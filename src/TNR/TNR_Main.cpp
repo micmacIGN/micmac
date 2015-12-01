@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <vector>
+#include <unistd.h>
 
 class cTestElParseDir : public ElActionParseDir
 {
@@ -56,49 +57,53 @@ class cAppli_TNR_Main  : public  cElErrorHandlor
 	cAppli_TNR_Main(int argc,char ** argv);
     private :
 
+	//Declaration des fonctions
 	void OnError();
-        void DoOneGlobTNR(const std::string &,const std::string & mOutXML,const std::string & mOutErrorsXML);
-        vector<cXmlTNR_OneTestReport> TestOneCom(const cXmlTNR_OneTest & aOneT);
-        cXmlTNR_TestFileReport TestExistFile(const cXmlTNR_TestExistFile & aFile);
-        cXmlTNR_TestDirReport TestExistDir(const cXmlTNR_TestExistDir & aDirPath);
-        cXmlTNR_CalibReport TestCalib(const cXmlTNR_TestDiffCalib & aCalib);
-        cXmlTNR_OriReport TestOri(const cXmlTNR_TestDiffOri & aOri);
-        cXmlTNR_ImgReport TestImg(const cXmlTNR_TestDiffImg & aImg);
+	void DoOneGlobTNR(const std::string &,const std::string & mOutXML,const std::string & mOutErrorsXML);
+	vector<cXmlTNR_OneTestReport> TestOneCom(const cXmlTNR_OneTest & aOneT);
+	cXmlTNR_TestFileReport TestExistFile(const cXmlTNR_TestExistFile & aFile);
+	cXmlTNR_TestDirReport TestExistDir(const cXmlTNR_TestExistDir & aDirPath);
+	cXmlTNR_CalibReport TestCalib(const cXmlTNR_TestDiffCalib & aCalib);
+	cXmlTNR_OriReport TestOri(const cXmlTNR_TestDiffOri & aOri);
+	cXmlTNR_ImgReport TestImg(const cXmlTNR_TestDiffImg & aImg);
 	std::vector<std::string> DirArbo(const std::string & DirPath);
 	int DirSize(const std::string & DirPath);
-        cElemAppliSetFile mEASF;
-        std::string mPattern;
-        std::string mCurDirRef;
-        std::string mCurDirExe;
-        std::list<std::string>mLFileExe;
-        std::list<std::string>mLFileRef;
-        std::string mFullName;
-        std::string mOutReportXML;
+	void  Error(const std::string &);
+	
+	//Declaration des variables
+	cElemAppliSetFile mEASF;
+	std::string mPattern;
+	std::string mCurDirRef;
+	std::string mCurDirExe;
+	std::list<std::string>mLFileExe;
+	std::list<std::string>mLFileRef;
+	std::string mFullName;
+	std::string mOutReportXML;
 	std::string mOutErrorsXML;
-        std::string mInRefDir;
-        std::string mInExeDir;
+	std::string mInRefDir;
+	std::string mInExeDir;
+	bool mPurge;
 	cInterfChantierNameManipulateur*mICNMExe;
 	cInterfChantierNameManipulateur*mICNMRef;
 	cInterfChantierNameManipulateur*DirFile;
-
-        cXmlTNR_GlobTest mXML_CurGT;
-
-        void  Error(const std::string &);
-        std::string mCurCom;
+    cXmlTNR_GlobTest mXML_CurGT;
+	std::string mCurCom;
 };
 
-
+//Return message when command fails
 void cAppli_TNR_Main::OnError()
 {
     std::cout << "ERROR WHEN EXE " << mCurCom << "\n";
     exit(EXIT_SUCCESS);
 } 
 
+//Error fonction
 void cAppli_TNR_Main::Error(const std::string & aMes)
 {
     std::cout << aMes << "\n";
 }
 
+//Recursive function to get complete arborescence of one directory
 std::vector<std::string> cAppli_TNR_Main::DirArbo(const std::string & DirPath)
 {
     cTestElParseDir aTPD;
@@ -106,20 +111,22 @@ std::vector<std::string> cAppli_TNR_Main::DirArbo(const std::string & DirPath)
     return aTPD.FileList;
 }
 
+//Get directory size
 int cAppli_TNR_Main::DirSize(const std::string & DirPath)
 {
     std::vector<std::string> FileList = DirArbo(DirPath);
     int Sz = 0;
     for(unsigned int i=0;i<FileList.size();i++)
     {
-	if(ELISE_fp::IsDirectory(FileList[i])==0)
-	{
-	    Sz += ELISE_fp::file_length(FileList[i]);
-	}
+		if(ELISE_fp::IsDirectory(FileList[i])==0)
+		{
+			Sz += ELISE_fp::file_length(FileList[i]);
+		}
     }
     return Sz;
 }
 
+//Function to test if a file exist and compare it between Ref and Exe (size)
 cXmlTNR_TestFileReport cAppli_TNR_Main::TestExistFile(const cXmlTNR_TestExistFile & aFile)
 {
     //Global test report in Xml
@@ -138,38 +145,33 @@ cXmlTNR_TestFileReport cAppli_TNR_Main::TestExistFile(const cXmlTNR_TestExistFil
     if(IsRefFile==1){aFileReport.TestRefFile() = true;}
     else{aFileReport.TestRefFile() = false;}
     
-    if(IsExeFile==1&&IsRefFile==1)
+    int ExeFileSize = ELISE_fp::file_length(mCurDirExe+aFile.NameFile());
+	int RefFileSize = ELISE_fp::file_length(mCurDirRef+aFile.NameFile());
+    
+    if((IsExeFile==1)&&(IsRefFile==1)&&(ExeFileSize==RefFileSize))
     {
-	//If file exist, check for file size		
-	std::cout<<"Ref file and Exe file "<<mCurDirExe+aFile.NameFile()<<" EXIST"<<endl;
-	int CmpFile = ELISE_fp::CmpFiles(mCurDirExe+aFile.NameFile(),mCurDirRef+aFile.NameFile()); //Binary comparison beetween Ref and Exe file
-	if(CmpFile==1)
-	{
-	    //If file are different display size of Reference and New
-	    std::cout<<"WARNING : Files are DIFFERENT : Exe file size "<<ELISE_fp::file_length(mCurDirExe+aFile.NameFile())<<"o Ref file size "<<ELISE_fp::file_length(mCurDirRef+aFile.NameFile())<<"o"<<endl;
-	    aFileReport.ExeFileSize() = ELISE_fp::file_length(mCurDirExe+aFile.NameFile());//Stock Exe file size
-	    aFileReport.RefFileSize() = ELISE_fp::file_length(mCurDirExe+aFile.NameFile());//Stock Ref file size
-	    aFileReport.TestFileDiff() = false;
-	}
-	else
-	{
-	    //Else display the size of both
-	    aFileReport.TestFileDiff() = true;
-	    std::cout<<"Files are the SAME : file size "<<ELISE_fp::file_length(mCurDirExe+aFile.NameFile())<<"o"<<endl;
-	    aFileReport.ExeFileSize() = ELISE_fp::file_length(mCurDirExe+aFile.NameFile());//Stock Exe file size
-	    aFileReport.RefFileSize() = ELISE_fp::file_length(mCurDirRef+aFile.NameFile());//Stock Ref file size
-	}
+		//Else display the size of both
+		aFileReport.TestFileDiff() = true;
+		std::cout<<"Files are the SAME : file size "<<ELISE_fp::file_length(mCurDirExe+aFile.NameFile())<<"o"<<endl;
     }
-    else
+    if(ExeFileSize!=RefFileSize)
     {
-	//If file doesn't exist display message
-	aFileReport.TestFileDiff() = false;//False to FileTest
-	std::cout<<"ERROR : file "<<mCurDirExe+aFile.NameFile()<<" DOESN'T EXIST"<<endl;
+		//If file are different display size of Reference and New
+		std::cout<<"WARNING : Files are DIFFERENT : Exe file size "<<ELISE_fp::file_length(mCurDirExe+aFile.NameFile())<<"o Ref file size "<<ELISE_fp::file_length(mCurDirRef+aFile.NameFile())<<"o"<<endl;
+		aFileReport.TestFileDiff() = false;
+	}
+	if((IsExeFile==0)&&(IsRefFile==0))
+	{
+		//If file doesn't exist display message
+		aFileReport.TestFileDiff() = false;//False to FileTest
+		std::cout<<"ERROR : file "<<mCurDirExe+aFile.NameFile()<<" DOESN'T EXIST"<<endl;
     }
+	aFileReport.ExeFileSize() = ExeFileSize; //Stock Exe file size
+	aFileReport.RefFileSize() = RefFileSize; //Stock Ref file size
     return aFileReport;
 }
 
-
+//Function to test if a directory exist and compare it between Ref and Exe (Files and size)
 cXmlTNR_TestDirReport cAppli_TNR_Main::TestExistDir(const cXmlTNR_TestExistDir & aDir)
 {
     std::vector<std::string> FileListRef = DirArbo(mCurDirRef+aDir.NameDir());
@@ -178,109 +180,107 @@ cXmlTNR_TestDirReport cAppli_TNR_Main::TestExistDir(const cXmlTNR_TestExistDir &
     //Global test report in Xml
     cXmlTNR_TestDirReport aDirReport;
     aDirReport.DirName() = aDir.NameDir();//Get Dir name
-    
-    //vector<string> ExeNotFound;
-    //vector<string> RefNotFound;
+
     int DirExeSz=0;
     int DirRefSz=0;
     int DirSz=0;
     
-    //~ vector<string> NoFiles;
-    //~ NoFiles.push_back("Shade");
-    //~ NoFiles.push_back("MakefileParallelisation");
-    //~ NoFiles.push_back(".ply");
-    //~ NoFiles.push_back("8Bits");
-    
     int diff=0;
     for(unsigned int i=0;i<FileListRef.size();i++)
     {
-	std::string tmp = FileListRef[i];
-	std::string tmpstr = tmp.substr(mCurDirRef.size(),tmp.size());
-	std::size_t found1 = tmpstr.find("Shade");
-	std::size_t found2 = tmpstr.find("MakefileParallelisation");
-	std::size_t found3 = tmpstr.find(".ply");
-	std::size_t found4 = tmpstr.find("8Bits");
-
-	int IsDir = ELISE_fp::IsDirectory(mCurDirExe+tmpstr);
-	if(IsDir!=1&&found1>1000&&found2>1000&&found3>1000&&found4>1000)
-	{
-	    std::cout<<"Check for file "<<tmpstr<<endl;
-	    DirRefSz += ELISE_fp::file_length(mCurDirRef+tmpstr);
-	    if(ELISE_fp::exist_file(mCurDirExe+tmpstr)==1)
-	    {
-		int CmpFile = ELISE_fp::CmpFiles(mCurDirExe+tmpstr,mCurDirRef+tmpstr);
-		if((CmpFile==1)|(CmpFile==-1))
+		std::string tmp = FileListRef[i];
+		std::string tmpstr = tmp.substr(mCurDirRef.size(),tmp.size());
+		std::size_t found1 = tmpstr.find("Shade");
+		std::size_t found2 = tmpstr.find("MakefileParallelisation");
+		std::size_t found3 = tmpstr.find(".ply");
+		std::size_t found4 = tmpstr.find("8Bits");
+	
+		int IsDir = ELISE_fp::IsDirectory(mCurDirExe+tmpstr);
+		if(IsDir!=1&&found1>1000&&found2>1000&&found3>1000&&found4>1000)
 		{
-		    //If file are different display size of Reference and New
-		    std::cout<<"WARNING : Files are DIFFERENT : Exe file size "<<ELISE_fp::file_length(mCurDirExe+tmpstr)<<"o Ref file size "<<ELISE_fp::file_length(mCurDirRef+tmpstr)<<"o"<<"\n\n";
-		    cFileDiff tmpFile;
-		    tmpFile.Name() = tmpstr;
-		    tmpFile.DiffSize() = ELISE_fp::file_length(mCurDirRef+tmpstr) - ELISE_fp::file_length(mCurDirExe+tmpstr);
-		    aDirReport.FileDiff().push_back(tmpFile);
-		    diff += 1;
+			std::cout<<"Check for file "<<tmpstr<<endl;
+			DirRefSz += ELISE_fp::file_length(mCurDirRef+tmpstr);
+			DirExeSz += ELISE_fp::file_length(mCurDirExe+tmpstr);
+			if(ELISE_fp::exist_file(mCurDirExe+tmpstr)==1)
+			{
+				int CmpFile = ELISE_fp::CmpFiles(mCurDirExe+tmpstr,mCurDirRef+tmpstr);
+				if((CmpFile==1)|(CmpFile==-1))
+				{
+					//If file are different display size of Reference and New
+					std::cout<<"WARNING : Files are DIFFERENT : Exe file size "<<ELISE_fp::file_length(mCurDirExe+tmpstr)<<"o Ref file size "<<ELISE_fp::file_length(mCurDirRef+tmpstr)<<"o"<<"\n\n";
+					cFileDiff tmpFile;
+					tmpFile.Name() = tmpstr;
+					tmpFile.DiffSize() = ELISE_fp::file_length(mCurDirRef+tmpstr) - ELISE_fp::file_length(mCurDirExe+tmpstr);
+					aDirReport.FileDiff().push_back(tmpFile);
+					//~ if(DirRefSz!=DirExeSz)
+					//~ {
+						//~ diff += 1;
+					//~ }
+				}
+				if(CmpFile==0)
+				{
+					//Else display the size of both
+					std::cout<<"Files are the SAME : Exe file size "<<ELISE_fp::file_length(mCurDirExe+tmpstr)<<"o Ref file size "<<ELISE_fp::file_length(mCurDirRef+tmpstr)<<"o"<<"\n\n";
+					DirSz += ELISE_fp::file_length(mCurDirExe+tmpstr);
+				}
+			}
+			if(ELISE_fp::exist_file(mCurDirExe+tmpstr)!=1&&tmpstr!=aDir.NameDir())
+			{
+				std::cout<<"WARNING : Ref file "<<tmpstr<<" NOT FOUND in Exe directory"<<endl;
+				aDirReport.MissingExeFile().push_back(tmpstr);
+				diff += 1;
+			}
 		}
-		if(CmpFile==0)
-		{
-		    //Else display the size of both
-		    std::cout<<"Files are the SAME : Exe file size "<<ELISE_fp::file_length(mCurDirExe+tmpstr)<<"o Ref file size "<<ELISE_fp::file_length(mCurDirRef+tmpstr)<<"o"<<"\n\n";
-		    DirSz += ELISE_fp::file_length(mCurDirExe+tmpstr);
-		}
-	    }
-	    if(ELISE_fp::exist_file(mCurDirExe+tmpstr)!=1&&tmpstr!=aDir.NameDir())
-	    {
-		std::cout<<"WARNING : Ref file "<<tmpstr<<" NOT FOUND in Exe directory"<<endl;
-		aDirReport.MissingExeFile().push_back(tmpstr);
-	    }
-	}
     }
     
     for(unsigned int i=0;i<FileListExe.size();i++)
     {
-	std::string tmp = FileListExe[i];
-	std::string tmpstr = tmp.substr(mCurDirExe.size(),tmp.size());
-	DirExeSz += ELISE_fp::file_length(mCurDirExe+tmpstr);
-	std::size_t found1 = tmpstr.find("Shade");
-	std::size_t found2 = tmpstr.find("MakefileParallelisation");
-	std::size_t found3 = tmpstr.find(".ply");
-	std::size_t found4 = tmpstr.find("8Bits");
-	if(found1>1000&&found2>1000&&found3>1000&&found4>1000&&ELISE_fp::exist_file(mCurDirRef+tmpstr)!=1&&tmpstr!=aDir.NameDir()&&ELISE_fp::IsDirectory(mCurDirRef+tmpstr)!=1)
-	{
-	    std::cout<<"WARNING : Exe file "<<tmpstr<<" NOT FOUND in Ref directory"<<endl;
-	    aDirReport.MissingRefFile().push_back(tmpstr);
-	}
+		std::string tmp = FileListExe[i];
+		std::string tmpstr = tmp.substr(mCurDirExe.size(),tmp.size());
+		DirExeSz += ELISE_fp::file_length(mCurDirExe+tmpstr);
+		std::size_t found1 = tmpstr.find("Shade");
+		std::size_t found2 = tmpstr.find("MakefileParallelisation");
+		std::size_t found3 = tmpstr.find(".ply");
+		std::size_t found4 = tmpstr.find("8Bits");
+		if(found1>1000&&found2>1000&&found3>1000&&found4>1000&&ELISE_fp::exist_file(mCurDirRef+tmpstr)!=1&&tmpstr!=aDir.NameDir()&&ELISE_fp::IsDirectory(mCurDirRef+tmpstr)!=1)
+		{
+			std::cout<<"WARNING : Exe file "<<tmpstr<<" NOT FOUND in Ref directory"<<endl;
+			aDirReport.MissingRefFile().push_back(tmpstr);
+			diff += 1;
+		}
     }
     
     aDirReport.ExeDirSize() = DirExeSz;
     aDirReport.RefDirSize() = DirRefSz;
     if(diff==0)
     {
-	aDirReport.TestDirDiff()=true;
+		aDirReport.TestDirDiff()=true;
     }
     else
     {
-	aDirReport.TestDirDiff()=false;
+		aDirReport.TestDirDiff()=false;
     }
     
     if(ELISE_fp::IsDirectory(mCurDirExe+aDir.NameDir())!=1)
     {
-	//Else display message
-	aDirReport.TestExeDir() = false;
-	std::cout<<"ERROR : Exe directory "<<mCurDirExe+aDir.NameDir()<<" DOESN'T EXIST"<<endl;
+		//Else display message
+		aDirReport.TestExeDir() = false;
+		std::cout<<"ERROR : Exe directory "<<mCurDirExe+aDir.NameDir()<<" DOESN'T EXIST"<<endl;
     }
     else
     {
-	aDirReport.TestExeDir() = true;
+		aDirReport.TestExeDir() = true;
     }
     
     if(ELISE_fp::IsDirectory(mCurDirRef+aDir.NameDir())!=1)
     {
-	//Else display message
-	aDirReport.TestRefDir() = false;
-	std::cout<<"ERROR : Ref directory "<<mCurDirRef+aDir.NameDir()<<" DOESN'T EXIST"<<endl;
+		//Else display message
+		aDirReport.TestRefDir() = false;
+		std::cout<<"ERROR : Ref directory "<<mCurDirRef+aDir.NameDir()<<" DOESN'T EXIST"<<endl;
     }
     else
     {
-	aDirReport.TestRefDir() = true;
+		aDirReport.TestRefDir() = true;
     }
     return aDirReport;
 }
@@ -298,18 +298,18 @@ cXmlTNR_CalibReport cAppli_TNR_Main::TestCalib(const cXmlTNR_TestDiffCalib & aCa
     mCalib.TestCalibDiff() = mXML_TestCalib.TestCalibDiff();
     if(!mCalib.TestCalibDiff())
     {
-	for (std::list<Pt2dr>::const_iterator i= mXML_TestCalib.EcartsRadiaux().begin() ; i!= mXML_TestCalib.EcartsRadiaux().end() ;  i++)
-	{
-		mCalib.EcartsRadiaux().push_back(*i);
-	}
+		for (std::list<Pt2dr>::const_iterator i= mXML_TestCalib.EcartsRadiaux().begin() ; i!= mXML_TestCalib.EcartsRadiaux().end() ;  i++)
+		{
+			mCalib.EcartsRadiaux().push_back(*i);
+		}
 	
-	for (std::list<cEcartsPlani>::iterator i= mXML_TestCalib.EcartsPlani().begin() ; i!= mXML_TestCalib.EcartsPlani().end() ;  i++)
-	{
-	    crEcartsPlani mEP;
-	    mEP.CoordPx()=(*i).CoordPx();
-	    mEP.UxUyE()=(*i).UxUyE();
-	    mCalib.rEcartsPlani().push_back(mEP);
-	}
+		for (std::list<cEcartsPlani>::iterator i= mXML_TestCalib.EcartsPlani().begin() ; i!= mXML_TestCalib.EcartsPlani().end() ;  i++)
+		{
+			crEcartsPlani mEP;
+			mEP.CoordPx()=(*i).CoordPx();
+			mEP.UxUyE()=(*i).UxUyE();
+			mCalib.rEcartsPlani().push_back(mEP);
+		}
     }
 	
     //mCalib.EcartsRadiaux() = mXML_TestCalib.EcartsRadiaux();
@@ -330,8 +330,8 @@ cXmlTNR_OriReport cAppli_TNR_Main::TestOri(const cXmlTNR_TestDiffOri & aOri)
     mOri.TestOriDiff() = mXML_TestOri.TestOriDiff();
     if(!mOri.TestOriDiff())
     {
-	mOri.DistCenter() = mXML_TestOri.DistCenter();
-	mOri.DistMatrix() = mXML_TestOri.DistMatrix();
+		mOri.DistCenter() = mXML_TestOri.DistCenter();
+		mOri.DistMatrix() = mXML_TestOri.DistMatrix();
     }
     return mOri;//return the same structure for Global Test Report
 }
@@ -356,58 +356,78 @@ cXmlTNR_ImgReport cAppli_TNR_Main::TestImg(const cXmlTNR_TestDiffImg & aImg)
 
 vector<cXmlTNR_OneTestReport> cAppli_TNR_Main::TestOneCom(const cXmlTNR_OneTest & aOneT)
 {      
+    
     cXmlTNR_OneTestReport aOTR;//initialize One Test Report
     cXmlTNR_OneTestReport aFTR;//initialize One Test Report
     
     mCurCom = aOneT.Cmd();
     cXmlTNR_TestCmdReport aCmd;
     aCmd.CmdName() = aOneT.Cmd();
-    //std::cout<<"AAAA"<<mCurCom.substr(0,4)<<endl;
     if(mCurCom!="")
     {
-	std::cout<<"**************************************************"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**                TESTING COMMAND               **"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**************************************************"<<endl;
-	
-	int aVal = System(mCurCom,true);//execute commande of the test
-	
-	
-	//Check if you get de cmd execution status
-	if ((aVal != EXIT_SUCCESS)  && (aOneT.TestReturnValue().Val()))
-	{
-	    aFTR.XmlTNR_TestCmdReport().push_back(aCmd);
-	    Error("Cannot exe "+ mCurCom);
-	    aCmd.TestCmd() = false;
-	}
-	else{aCmd.TestCmd() = true;}
-	aOTR.XmlTNR_TestCmdReport().push_back(aCmd);
+		std::cout<<"**************************************************"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**                TESTING COMMAND               **"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**************************************************"<<endl;
+		
+		ctPath path = getWorkingDirectory();
+		setWorkingDirectory(mCurDirExe);	
+		int aVal = System(mCurCom,true);//execute commande of the test
+		setWorkingDirectory(path);
+		
+		//Check if you get de cmd execution status
+		if ((aVal != EXIT_SUCCESS)  && (aOneT.TestReturnValue().Val()))
+		{
+			aFTR.XmlTNR_TestCmdReport().push_back(aCmd);
+			Error("Cannot exe "+ mCurCom);
+			aCmd.TestCmd() = false;
+		}
+		else{aCmd.TestCmd() = true;}
+		aOTR.XmlTNR_TestCmdReport().push_back(aCmd);
     }
     
+    for (std::list<cXmlTNR_FileCopy>::const_iterator it7T= aOneT.FileCopy().begin() ; it7T!= aOneT.FileCopy().end() ;  it7T++)
+	{
+		std::cout<<"**                COPY FILE                     **"<<endl;
+		ELISE_fp::CpFile((mCurDirRef + (*it7T).FilePath()),(mCurDirExe + (*it7T).FilePath()));        
+    }
     
+    for (std::list<cXmlTNR_DirCopy>::const_iterator it8T= aOneT.DirCopy().begin() ; it8T!= aOneT.DirCopy().end() ;  it8T++)
+	{
+		std::cout<<"**                COPY DIR                      **"<<endl;
+		std::vector<std::string> FileList = DirArbo(mCurDirRef + (*it8T).DirPath());
+		ELISE_fp::MkDir(mCurDirExe + (*it8T).DirPath());
+		for(unsigned int i=0;i<FileList.size();i++)
+		{
+			if(ELISE_fp::IsDirectory(mCurDirRef + (*it8T).DirPath() + FileList[i])!=1)
+			{
+				ELISE_fp::CpFile((mCurDirRef + (*it8T).DirPath() + FileList[i]),mCurDirExe + (*it8T).DirPath());
+			}
+		}         
+    }
     
     //For each file to check
     int ct = 0;
     int c = 0;
     for (std::list<cXmlTNR_TestExistFile>::const_iterator it2T= aOneT.TestFiles().begin() ; it2T!= aOneT.TestFiles().end() ;  it2T++)
     {
-	c += 1;
-	std::cout<<"**************************************************"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**                TESTING FILE                  **"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**************************************************"<<endl;
-	cXmlTNR_TestFileReport aFile = TestExistFile(*it2T);
-	if(aFile.TestFileDiff())
-	{
-	    ct+=1;
-	}
-	else
-	{
-	    aFTR.XmlTNR_TestFileReport().push_back(aFile);  
-	}
-	aOTR.XmlTNR_TestFileReport().push_back(aFile);           
+		c += 1;
+		std::cout<<"**************************************************"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**                TESTING FILE                  **"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**************************************************"<<endl;
+		cXmlTNR_TestFileReport aFile = TestExistFile(*it2T);
+		if(aFile.TestFileDiff())
+		{
+			ct+=1;
+		}
+		else
+		{
+			aFTR.XmlTNR_TestFileReport().push_back(aFile);  
+		}
+		aOTR.XmlTNR_TestFileReport().push_back(aFile);           
     }
     
     
@@ -415,89 +435,90 @@ vector<cXmlTNR_OneTestReport> cAppli_TNR_Main::TestOneCom(const cXmlTNR_OneTest 
     //For each directory to check
     for (std::list<cXmlTNR_TestExistDir>::const_iterator it3T= aOneT.TestDir().begin() ; it3T!= aOneT.TestDir().end() ;  it3T++)
     {
-	c += 1;
-	std::cout<<"**************************************************"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**                TESTING DIR                   **"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**************************************************"<<endl;
-	cXmlTNR_TestDirReport aDir = TestExistDir(*it3T);
-	if(aDir.TestDirDiff())
-	{
-	    ct+=1;
+		c += 1;
+		std::cout<<"**************************************************"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**                TESTING DIR                   **"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**************************************************"<<endl;
+		cXmlTNR_TestDirReport aDir = TestExistDir(*it3T);
+		if(aDir.TestDirDiff())
+		{
+			ct+=1;
+		}
+		else
+		{
+			aFTR.XmlTNR_TestDirReport().push_back(aDir);  
+		}
+		aOTR.XmlTNR_TestDirReport().push_back(aDir);        
 	}
-	else
+		
+		//For each calib to check
+	for (std::list<cXmlTNR_TestDiffCalib>::const_iterator it4T= aOneT.TestCalib().begin() ; it4T!= aOneT.TestCalib().end() ;  it4T++)
 	{
-	    aFTR.XmlTNR_TestDirReport().push_back(aDir);  
+		c += 1;
+		std::cout<<"**************************************************"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**                TESTING CALIB                 **"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**************************************************"<<endl;          
+		cXmlTNR_CalibReport aCalib = TestCalib(*it4T);
+		if(aCalib.TestCalibDiff())
+		{
+			ct+=1;
+		}
+		else
+		{
+			aFTR.XmlTNR_CalibReport().push_back(aCalib);  
+		}
+		aOTR.XmlTNR_CalibReport().push_back(aCalib);          
 	}
-	aOTR.XmlTNR_TestDirReport().push_back(aDir);        
-    }
-    
-    //For each calib to check
-    for (std::list<cXmlTNR_TestDiffCalib>::const_iterator it4T= aOneT.TestCalib().begin() ; it4T!= aOneT.TestCalib().end() ;  it4T++)
-    {
-	c += 1;
-	std::cout<<"**************************************************"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**                TESTING CALIB                 **"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**************************************************"<<endl;          
-	cXmlTNR_CalibReport aCalib = TestCalib(*it4T);
-	if(aCalib.TestCalibDiff())
-	{
-	    ct+=1;
-	}
-	else
-	{
-	    aFTR.XmlTNR_CalibReport().push_back(aCalib);  
-	}
-	aOTR.XmlTNR_CalibReport().push_back(aCalib);          
-    }
     
     //For each Ori to check
     for (std::list<cXmlTNR_TestDiffOri>::const_iterator it5T= aOneT.TestOri().begin() ; it5T!= aOneT.TestOri().end() ;  it5T++)
     {
-	c += 1;
-	std::cout<<"**************************************************"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**                TESTING ORIENTATION           **"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**************************************************"<<endl;          
-	cXmlTNR_OriReport aOri = TestOri(*it5T);
-	if(aOri.TestOriDiff())
-	{
-	    ct+=1;
+		c += 1;
+		std::cout<<"**************************************************"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**                TESTING ORIENTATION           **"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**************************************************"<<endl;          
+		cXmlTNR_OriReport aOri = TestOri(*it5T);
+		if(aOri.TestOriDiff())
+		{
+			ct+=1;
+		}
+		else
+		{
+			aFTR.XmlTNR_OriReport().push_back(aOri);  
+		}
+		aOTR.XmlTNR_OriReport().push_back(aOri);          
 	}
-	else
+		
+	//For each Img to check
+	for (std::list<cXmlTNR_TestDiffImg>::const_iterator it6T= aOneT.TestImg().begin() ; it6T!= aOneT.TestImg().end() ;  it6T++)
 	{
-	    aFTR.XmlTNR_OriReport().push_back(aOri);  
-	}
-	aOTR.XmlTNR_OriReport().push_back(aOri);          
+		c += 1;
+		std::cout<<"**************************************************"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**                TESTING IMAGE                 **"<<endl;
+		std::cout<<"**                                              **"<<endl;
+		std::cout<<"**************************************************"<<endl;
+		cXmlTNR_ImgReport aImg = TestImg(*it6T);
+		if(aImg.TestImgDiff())
+		{
+			ct+=1;
+		}
+		else
+		{
+			aFTR.XmlTNR_ImgReport().push_back(aImg); 
+		}
+		aOTR.XmlTNR_ImgReport().push_back(aImg);           
     }
     
-    //For each Img to check
-    for (std::list<cXmlTNR_TestDiffImg>::const_iterator it6T= aOneT.TestImg().begin() ; it6T!= aOneT.TestImg().end() ;  it6T++)
-    {
-	c += 1;
-	std::cout<<"**************************************************"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**                TESTING IMAGE                 **"<<endl;
-	std::cout<<"**                                              **"<<endl;
-	std::cout<<"**************************************************"<<endl;
-	cXmlTNR_ImgReport aImg = TestImg(*it6T);
-	if(aImg.TestImgDiff())
-	{
-	    ct+=1;
-	}
-	else
-	{
-	    aFTR.XmlTNR_ImgReport().push_back(aImg); 
-	}
-	aOTR.XmlTNR_ImgReport().push_back(aImg);           
-    }
     if(ct==c&&aCmd.TestCmd())
     {
-	aOTR.TestOK() = true;
+		aOTR.TestOK() = true;
     }
     else{aOTR.TestOK() = false;}
     vector<cXmlTNR_OneTestReport> Test;
@@ -525,7 +546,7 @@ void cAppli_TNR_Main::DoOneGlobTNR(const std::string & aNameFile,const std::stri
     // On fait une directory TNR vide
     if (ExistDir==1)
     {
-		if (mXML_CurGT.PurgeExe())
+		if (mPurge)
 		{
 			ELISE_fp::PurgeDirRecursif(mCurDirExe);
 			ELISE_fp::MkDir(mCurDirExe);
@@ -574,18 +595,18 @@ void cAppli_TNR_Main::DoOneGlobTNR(const std::string & aNameFile,const std::stri
     int ct = 0;
     for (std::list<cXmlTNR_OneTest>::const_iterator it1T= mXML_CurGT.Tests().begin() ; it1T!= mXML_CurGT.Tests().end() ;  it1T++)
     {
-	c += 1;   
-	vector<cXmlTNR_OneTestReport> aOT = TestOneCom(*it1T);
-	if(aOT[0].TestOK())
-	{
-	    ct += 1;
-	}
-	else
-	{
-	    aOT[1].TestOK()=false;
-	    aGFT.XmlTNR_OneTestReport().push_back(aOT[1]);
-	}	
-	aGTR.XmlTNR_OneTestReport().push_back(aOT[0]);
+		c += 1;   
+		vector<cXmlTNR_OneTestReport> aOT = TestOneCom(*it1T);
+		if(aOT[0].TestOK())
+		{
+			ct += 1;
+		}
+		else
+		{
+			aOT[1].TestOK()=false;
+			aGFT.XmlTNR_OneTestReport().push_back(aOT[1]);
+		}	
+		aGTR.XmlTNR_OneTestReport().push_back(aOT[0]);
 	
     }
     aGTR.NbTest() = c;
@@ -596,14 +617,17 @@ void cAppli_TNR_Main::DoOneGlobTNR(const std::string & aNameFile,const std::stri
     
     if(c==ct)
     {
-	aGTR.Bilan()=true;
-	aGFT.Bilan()=true;
+		aGTR.Bilan()=true;
+		aGFT.Bilan()=true;
     }
     else
     {
-	aGTR.Bilan()=false;
-	aGFT.Bilan()=false;
+		aGTR.Bilan()=false;
+		aGFT.Bilan()=false;
     }
+    
+    aGTR.Name() = mXML_CurGT.Name();
+    aGFT.Name() = mXML_CurGT.Name();
     if(mOutReportXML!=""){MakeFileXML(aGTR, mOutReportXML);}
     else{MakeFileXML(aGTR, "GlobTest.xml");}
     if(mOutErrorsXML!=""){MakeFileXML(aGFT, mOutErrorsXML);}
@@ -618,14 +642,16 @@ cAppli_TNR_Main::cAppli_TNR_Main(int argc,char ** argv)
     mOutErrorsXML="";
     mInRefDir="";
     mInExeDir="";
+    mPurge = false;
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAMC(mPattern, "Xml file with test specification",  eSAM_IsPatFile),
-	LArgMain()  << EAM(mOutReportXML,"OutReportXML", true,"XML report file (Def=GlobTest.xml)")
-		    << EAM(mOutErrorsXML,"OutErrorsXML", true,"XML errors file (Def=ErrorsReport.xml)")
-		    << EAM(mInRefDir,"InRefDir", true,"Input Reference Directory (Def=TNR-Ref-Name)")
-		    //<< EAM(mInExeDir,"InExeDir", true,"Input Execution Directory")
+		argc,argv,
+		LArgMain()  << EAMC(mPattern, "Xml file with test specification",  eSAM_IsPatFile),
+		LArgMain()  << EAM(mOutReportXML,"OutReportXML", true,"XML report file (Def=GlobTest.xml)")
+					<< EAM(mOutErrorsXML,"OutErrorsXML", true,"XML errors file (Def=ErrorsReport.xml)")
+					<< EAM(mInRefDir,"InRefDir", true,"Input Reference Directory (Def=TNR-Ref-Name)")
+					<< EAM(mPurge,"Purge", true,"Purge Exe directory (Def=false)")
+					//<< EAM(mInExeDir,"InExeDir", true,"Input Execution Directory")
     );
     
     mEASF.Init(mPattern);
@@ -634,7 +660,7 @@ cAppli_TNR_Main::cAppli_TNR_Main(int argc,char ** argv)
 	
     for (int aK=0 ; aK<int(aSetIm->size()) ; aK++)
     {
-	DoOneGlobTNR((*aSetIm)[aK],mOutReportXML,mOutErrorsXML);
+		DoOneGlobTNR((*aSetIm)[aK],mOutReportXML,mOutErrorsXML);
     }
     
     if (aShowArgs) ShowArgs();
@@ -646,6 +672,12 @@ cAppli_TNR_Main::cAppli_TNR_Main(int argc,char ** argv)
 int TNR_main(int argc,char ** argv)
 {
     cAppli_TNR_Main anAppli(argc,argv);
+    //ELISE_fp::PurgeDirRecursif("Tmp-MM-Dir");
+    //~ ELISE_fp::RmFileIfExist("Calib.xml");
+    //~ ELISE_fp::RmFileIfExist("CmpImg.xml");
+    //~ ELISE_fp::RmFileIfExist("ecarts_calib.txt");
+    //~ ELISE_fp::RmFileIfExist("Ori.xml");
+    //~ ELISE_fp::RmFileIfExist("SauvApero.xml");
     return EXIT_SUCCESS;
 }
 

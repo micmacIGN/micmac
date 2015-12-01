@@ -50,8 +50,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 		(
 			argc,argv,
 			LArgMain()  << EAMC(aDir,"Directory")
-						<< EAMC(aPly,"Ply file", eSAM_IsExistFile),
-			LArgMain()  << EAM(aOut,"Out",false,"Text name (def=plyName.xyz)")
+						<< EAMC(aPly,"Ply file to export", eSAM_IsExistFile),
+			LArgMain()  << EAM(aOut,"Out",false,"Name output file (def=plyNameFile.xyz)")
 							
 		);
 				
@@ -105,57 +105,76 @@ Header-MicMac-eLiSe-25/06/2007*/
 		(
 			argc,argv,
 			LArgMain()  << EAMC(aDir,"Directory")
-						<< EAMC(aPly,"Ply file", eSAM_IsExistFile),
-			LArgMain()  << EAM(aOut,"Out",false,"Text name (def=plyName.xyz)")
+						<< EAMC(aPly,"Ply file to export", eSAM_IsExistFile),
+			LArgMain()  << EAM(aOut,"Out",false,"Name output file (def=plyNameFile.xyz)")
 							
 		);
 				
 		if (!EAMIsInit(&aOut)) aOut = StdPrefix(aPly) + ".xyz";
 	
-	list<string> aVFiles = RegexListFileMatch(aDir, aPly, 1, false);
-	
-	int gen_nelems =0;
-    int Cptr = 0;
-    int type = 0;
-    bool wNormales = false;
-	PlyFile * thePlyFile;
-	int nelems, nprops, num_elems=0, file_type;
-    float version;
-    char **elist;
-    char *elem_name;
-    PlyProperty **plist=NULL;
-	
-    thePlyFile = ply_open_for_reading( const_cast<char *>((aDir + ELISE_CAR_DIR + aPly).c_str()), &nelems, &elist, &file_type, &version);
-    elem_name = elist[0];
-    plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
-    gen_nelems += num_elems;
-    
-    sPlyOrientedColoredAlphaVertex **glist=NULL;
-    
-     //read ply files
-     list<string>::iterator itr = aVFiles.begin();
-     itr = aVFiles.begin();
-     for(;itr != aVFiles.end(); itr++)
-     {
-		thePlyFile = ply_open_for_reading( const_cast<char *>((aDir + ELISE_CAR_DIR +(*itr)).c_str()), &nelems, &elist, &file_type, &version);
+		list<string> aVFiles = RegexListFileMatch(aDir, aPly, 1, false);
 
-        for (int i = 0; i < nelems; i++)
+        sPlyOrientedColoredAlphaVertex **glist=NULL;
+        int gen_nelems =0;
+        int Cptr = 0;
+
+        int type = 0;
+        bool wNormales = false;
+
+        PlyFile * thePlyFile;
+        int nelems, nprops, num_elems, file_type;
+        float version;
+        char **elist;
+        char *elem_name;
+        PlyProperty **plist=NULL;
+
+        //get global number of elements
+        list<string>::iterator itr = aVFiles.begin();
+        for(;itr != aVFiles.end(); itr++)
         {
-			// get the description of the first element
-            elem_name = elist[i];
+            thePlyFile = ply_open_for_reading( const_cast<char *>((aDir + ELISE_CAR_DIR + (*itr)).c_str()), &nelems, &elist, &file_type, &version);
+
+            cout << "loading file " << *itr	<< endl;
+#ifdef _DEBUG
+            cout << "version "	<< version		<< endl;
+            cout << "type "		<< file_type	<< endl;
+            cout << "nb elem "	<< nelems		<< endl;
+#endif
+
+            elem_name = elist[0];
             plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 
-            if (equal_strings ("vertex", elem_name))
-            {
-				printf ("element %s number= %d\n", elem_name, num_elems);
+            gen_nelems += num_elems;
 
-                switch(nprops)
+            ply_close (thePlyFile);
+        }
+
+        cout << "nb total elem "	<< gen_nelems << endl;
+        glist = (sPlyOrientedColoredAlphaVertex **) malloc (sizeof (sPlyOrientedColoredAlphaVertex *) * gen_nelems);
+
+        //read ply files
+        itr = aVFiles.begin();
+        for(;itr != aVFiles.end(); itr++)
+        {
+            thePlyFile = ply_open_for_reading( const_cast<char *>((aDir + ELISE_CAR_DIR +(*itr)).c_str()), &nelems, &elist, &file_type, &version);
+
+            for (int i = 0; i < nelems; i++)
+            {
+                // get the description of the first element
+                elem_name = elist[i];
+                plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
+
+                if (equal_strings ("vertex", elem_name))
                 {
-					case 10: // x y z nx ny nz r g b a
+                    printf ("element %s number= %d\n", elem_name, num_elems);
+
+                    switch(nprops)
                     {
-						type = 5;
-                        for (int j = 0; j < nprops ;++j)
-							ply_get_property (thePlyFile, elem_name, &oriented_colored_alpha_vert_props[j]);
+                        case 10: // x y z nx ny nz r g b a
+                        {
+                            type = 5;
+                            for (int j = 0; j < nprops ;++j)
+                                ply_get_property (thePlyFile, elem_name, &oriented_colored_alpha_vert_props[j]);
 
                             sPlyOrientedColoredAlphaVertex *vertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
 
@@ -164,16 +183,16 @@ Header-MicMac-eLiSe-25/06/2007*/
                             {
                                 ply_get_element (thePlyFile, (void *) vertex);
 
-								#ifdef _DEBUG
-									printf ("vertex--: %g %g %g %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue, vertex->alpha);
-								#endif
+        #ifdef _DEBUG
+            printf ("vertex--: %g %g %g %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue, vertex->alpha);
+        #endif
 
                                 glist[Cptr] = vertex;
                             }
                             break;
-                    }
-                    case 9: // x y z nx ny nz r g b
-                    {
+                        }
+                        case 9: // x y z nx ny nz r g b
+                        {
                             type = 4;
                             for (int j = 0; j < nprops ;++j)
                                 ply_get_property (thePlyFile, elem_name, &oriented_colored_vert_props[j]);
@@ -257,7 +276,6 @@ Header-MicMac-eLiSe-25/06/2007*/
                             if (!wNormales)
                             {
                                 type = 1;
-
                                 for (int j = 0; j < nprops ;++j)
                                     ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
 
@@ -265,22 +283,23 @@ Header-MicMac-eLiSe-25/06/2007*/
 
                                 for (int j = 0; j < num_elems; j++, Cptr++)
                                 {
-									
+
                                     ply_get_element (thePlyFile, (void *) vertex);
 
                                     #ifdef _DEBUG
                                         printf ("vertex: %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue);
                                     #endif
-										
+
                                         sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
-										
+
                                         fvertex->x = vertex->x;
                                         fvertex->y = vertex->y;
                                         fvertex->z = vertex->z;
-                                        
+
                                         fvertex->red   = vertex->red;
                                         fvertex->green = vertex->green;
                                         fvertex->blue  = vertex->blue;
+
                                         glist[Cptr] = fvertex;
                                 }
                             }
@@ -327,9 +346,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
                                 ply_get_element (thePlyFile, (void *) vertex);
 
-							#ifdef _DEBUG
+            #ifdef _DEBUG
                                 printf ("vertex: %g %g %g\n", vertex->x, vertex->y, vertex->z);
-							#endif
+            #endif
 
                                 sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
 
@@ -352,9 +371,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
             ply_close (thePlyFile);
         }
-		
-        //write ply file in text
-        //Data
+			
+		//write ply file in text
 		if (!MMVisualMode)
 		{
 			FILE * aFP = FopenNN(aOut,"w","PLY2XYZ_main");
@@ -362,15 +380,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 			for (int aK=0 ; aK< gen_nelems ; aK++)
 			{
 				sPlyOrientedColoredAlphaVertex * pt = glist[aK];
-                fprintf(aFP,"%.7f %.7f %.7f\n", pt->x, pt->y, pt->z);       
+				fprintf(aFP,"%.7f %.7f %.7f\n", pt->x, pt->y, pt->z);       
 			}
 		ElFclose(aFP);
 		}
-        
-	    if ( glist!=NULL ) delete glist;
-        if ( plist!=NULL ) delete plist;
-        
-        
+			
+		if ( glist!=NULL ) delete glist;
+		if ( plist!=NULL ) delete plist;
+			
+			
 		return EXIT_SUCCESS;
 }
 #endif

@@ -47,7 +47,10 @@
     <Symb> Y0Ter=0 </Symb>
     <Symb> X1Ter=1 </Symb>
     <Symb> Y1Ter=1 </Symb>
-
+	
+	<Symb> UseResolTerrain=false </Symb>
+   <Symb> ResolTerrain=0 </Symb>
+   
     <Symb> ModeGeomMNT=eGeomMNTEuclid </Symb>
     <Symb> EZA=true </Symb>
     <Symb> NbProc=MMNbProc </Symb>
@@ -74,6 +77,9 @@
       <#WHEN VTEST=${UseBoxTer}>
         <BoxTerrain>  ${X0Ter} ${Y0Ter} ${X1Ter} ${Y1Ter} </BoxTerrain>
       </#WHEN>
+	  <#WHEN VTEST=${UseResolTerrain}>
+                  <ResolutionTerrain> ${ResolTerrain} </ResolutionTerrain>
+           </#WHEN>
     </Planimetrie>
   </Section_Terrain>
 

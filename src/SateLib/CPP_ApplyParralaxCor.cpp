@@ -44,7 +44,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int ApplyParralaxCor_main(int argc, char ** argv)
 {
-	std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
+	//std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
+	std::string aNameIm, aNameParallax;
 	std::string aNameOut = "";
 	//Reading the arguments
 	ElInitArgMain
@@ -52,9 +53,9 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		argc, argv,
 		LArgMain()
 		<< EAMC(aNameIm, "Image to be corrected", eSAM_IsPatFile)
-		<< EAMC(aNameIm2, "Other image", eSAM_IsPatFile)
-		<< EAMC(aNameParallax, "Paralax correction file", eSAM_IsPatFile)
-		<< EAMC(aNameDEM, "DEM file", eSAM_IsPatFile),
+		//<< EAMC(aNameIm2, "Other image", eSAM_IsPatFile)
+		<< EAMC(aNameParallax, "Paralax correction file", eSAM_IsPatFile),
+		//<< EAMC(aNameDEM, "DEM file", eSAM_IsPatFile),
 		LArgMain()
 		<< EAM(aNameOut, "Out", true, "Name of output image (Def=ImName_corrected.tif")
 		);
@@ -65,17 +66,6 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	cout << "Correcting " << aNameIm << endl;
 	if (aNameOut == "")
 		aNameOut = aNameIm + "_corrected.tif";
-
-	//Read RPCs
-	RPC aRPC;
-	string aNameRPC1 = "RPC_" + StdPrefix(aNameIm) + ".xml";
-	aRPC.ReadDimap(aNameRPC1);
-	cout << "Dimap File " << aNameRPC1 << " read" << endl;
-	RPC aRPC2;
-	string aNameRPC2 = "RPC_" + StdPrefix(aNameIm2) + ".xml";
-	aRPC2.ReadDimap(aNameRPC2);
-	cout << "Dimap File " << aNameRPC2 << " read" << endl;
-
 
 	//Reading the image and creating the objects to be manipulated
 	Tiff_Im aTF = Tiff_Im::StdConvGen(aDir + aNameIm, 1, false);
@@ -103,32 +93,44 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		);
 	REAL8 ** aDatPar = aPar.data();
 	
-	//Reading the DEM file
-	Tiff_Im aTFDEM = Tiff_Im::StdConvGen(aDir + aNameDEM, 1, false);
-	Im2D_REAL8  aDEM(aSz.x, aSz.y);
-	ELISE_COPY
-		(
-		aTFDEM.all_pts(),
-		aTFDEM.in(),
-		aDEM.out()
-		);
-	REAL8 ** aDatDEM = aDEM.data();
-
 
 	//Output container
 	Im2D_U_INT1  aImOut(aSz.x, aSz.y);
 	U_INT1 ** aDataOut = aImOut.data();
 
-	//Output angle container
+	/*Things needed for RPC angle computation, not main goal of this function
+	
+	//Read RPCs
+	RPC aRPC;
+	string aNameRPC1 = "RPC_" + StdPrefix(aNameIm) + ".xml";
+	aRPC.ReadDimap(aNameRPC1);
+	cout << "Dimap File " << aNameRPC1 << " read" << endl;
+	RPC aRPC2;
+	string aNameRPC2 = "RPC_" + StdPrefix(aNameIm2) + ".xml";
+	aRPC2.ReadDimap(aNameRPC2);
+	cout << "Dimap File " << aNameRPC2 << " read" << endl;
+	
+	//Reading the DEM file
+	Tiff_Im aTFDEM = Tiff_Im::StdConvGen(aDir + aNameDEM, 1, false);
+	Im2D_REAL8  aDEM(aSz.x, aSz.y);
+	ELISE_COPY
+	(
+	aTFDEM.all_pts(),
+	aTFDEM.in(),
+	aDEM.out()
+	);
+	REAL8 ** aDatDEM = aDEM.data();
+
+	//Output angle container 1
 	Im2D_REAL8  aAngleBOut(aSz.x, aSz.y);
 	REAL8 ** aDataAngleBOut = aAngleBOut.data();
 	string aNameAngleB = "AngleB.tif";
 
-	//Output angle container
+	//Output angle container 2
 	Im2D_REAL8  aAngleNOut(aSz.x, aSz.y);
 	REAL8 ** aDataAngleNOut = aAngleNOut.data();
 	string aNameAngleN = "AngleN.tif";
-
+	*/
 	//Pt3dr PBTest(1500,3000, 0);
 	//Pt3dr PWTest = aRPC.DirectRPC(PBTest);
 	//Pt3dr PNTest = aRPC2.InverseRPC(PWTest);
@@ -150,6 +152,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	{
 		for (int aY = 0; aY < aSz.y; aY++)
 		{
+			/*
 			Pt3dr P0B(aX, aY, aDatDEM[aY][aX]);
 			Pt3dr PW0 = aRPC.DirectRPC(P0B);
 			Pt3dr PW1 = PW0, PW2 = PW0;
@@ -170,7 +173,9 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 			//cout << aX << " " << aY << " " << aAngle << endl;
 			//cout << P1N << " " << P2N << " " << aAngle << endl;
 
+			*/
 			//THE THINGS COMPUTED ABOVE WILL BE USED IN A FURTHER UPDATE
+
 			Pt2dr ptOut;
 			ptOut.x = aX - aDatPar[aY][aX];// * cos(aAngleB);
 			ptOut.y = aY - aDatPar[aY][aX];// * sin(aAngleB);
@@ -194,7 +199,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		aImOut.in(),
 		aTOut.out()
 		);
-
+	/*
 	Tiff_Im  aTAngleBOut
 		(
 		aNameAngleB.c_str(),
@@ -229,7 +234,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		aAngleNOut.in(),
 		aTAngleNOut.out()
 		);
-
+*/
 	return 0;
 }
 
