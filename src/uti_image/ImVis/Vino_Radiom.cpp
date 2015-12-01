@@ -180,10 +180,17 @@ void cAppli_Vino::HistoSetDyn()
     ElList<Pt2di> aL = GetPtsImage(false,false,aMes);
     if (aL.card() >= 2)
     {
+        Flux_Pts aFlux = rectangle(aL.car(),aL.cdr().car());
+        if (aL.card() >2)
+           aFlux = polygone(aL);
+
+         FillStat(*mCurStats,aFlux,mScr->CurScale()->in());
+/*
         if (aL.card()== 2)
            FillStat(*mCurStats,rectangle(aL.car(),aL.cdr().car()),mScr->CurScale()->in());
         else
            FillStat(*mCurStats,polygone(aL),mScr->CurScale()->in());
+*/
 
         if (mCaseCur==mCaseHStat)
            mCurStats->Type() =  eDynVinoStat2;
@@ -191,11 +198,66 @@ void cAppli_Vino::HistoSetDyn()
         if (mCaseCur==mCaseHMinMax)
            mCurStats->Type() =  eDynVinoMaxMin;
 
+        if (mCaseCur==mCaseHEqual)
+        {
+             DoHistoEqual(aFlux);
+        }
+
+
         mCurStats->IsInit() = true;
         InitTabulDyn();
         SaveState();
     }
     Refresh();
+}
+
+void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
+{
+    std::cout << "DoHistoEqual::DoHistoEqual\n";
+   
+    double aVMinGlob = 1e30;
+    double aVMaxGlob = -1e30;
+    double aNbSigma = 15;
+    int aNbCh = mCurStats->VMax().size();
+    double anEctGlob = 0;
+
+    for (int aK=0 ; aK<aNbCh ; aK++)
+    {
+         double aMoy = mCurStats->Soms()[aK];
+         double anEct = mCurStats->ECT()[aK];
+         double aVMin = ElMax(mCurStats->VMin()[aK],aMoy-aNbSigma*anEct);
+         double aVMax = ElMin(mCurStats->VMax()[aK],aMoy+aNbSigma*anEct);
+         anEctGlob += anEct;
+         aVMinGlob = ElMin(aVMinGlob,aVMin);
+         aVMaxGlob = ElMax(aVMaxGlob,aVMax);
+    }
+
+    anEctGlob /= aNbCh;
+
+    Fonc_Num aF = mScr->CurScale()->in().kth_proj(0);
+    for (int aK =1 ; aK<aNbCh ; aK++)
+    {
+        aF = aF + mScr->CurScale()->in().kth_proj(aK);
+    }
+    aF = aF / double(aNbCh);
+
+    int aNbVal = 100000;
+    double aStep =  (aVMaxGlob - aVMinGlob) / aNbVal;
+    Im1D_REAL8 anIm(aNbVal,0.0);
+
+    Fonc_Num aFI = Max(0,Min(aNbVal-1,round_ni((aF-aVMinGlob) / aStep)));
+
+
+    ELISE_COPY
+    (
+         aFlux,
+         1,
+         anIm.histo(true).chc(aFI)
+    );
+    std::cout  << "DoHistoEqual " << aVMinGlob << " " << aVMaxGlob << " "<< anEctGlob << "\n";
+
+    //  FillStat(*mCurStats,aFlux,mScr->CurScale()->in());
+    // int aVMin = ElMax(mCurStats->VMax
 }
 
 
