@@ -529,8 +529,6 @@ int ExoCorrelEpip_main(int argc,char ** argv);
 int ScaleModel_main(int argc, char ** argv);
 int PLY2XYZ_main(int argc,char ** argv);
 int ExportXmlGcp2Txt_main(int argc,char ** argv);
-
-
 int  CheckOri_main(int argc,char ** argv);
 int  NLD_main(int argc,char ** argv);
 int  ResToTxt_main(int argc,char ** argv);
