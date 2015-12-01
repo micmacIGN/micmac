@@ -1252,7 +1252,7 @@ GenIm::type_el  DATA_Tiff_Ifd::type_el()
               case 64 : return GenIm::real8;
         }
     }
-    else if (_data_format[0] == Tiff_Im::Unsigned_int)
+    else if (_data_format[0] == Tiff_Im::Unsigned_int) 
     {
          switch (_nbb_ch0)
          {
@@ -1285,6 +1285,11 @@ GenIm::type_el  DATA_Tiff_Ifd::type_el()
                case 32 : return GenIm::int4;
          }
     }
+
+    std::cout << " TIFF DATA FORMAT " << _data_format[0]   << " NbBits " << _nbb_ch0
+              << " Float=" << Tiff_Im::IEEE_float 
+              << " Unsigned=" <<  Tiff_Im::Unsigned_int 
+              << " Signed="<< Tiff_Im::Signed_int << "\n";
 
     elise_internal_error
     (
