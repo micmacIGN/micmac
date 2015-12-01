@@ -151,14 +151,23 @@ int cAppliMalt::Exe()
 {
     if (! mExe) return 0;
     int aRes = TopSystem(mCom.c_str());
+
+    if (! mExe) return 0;
+
     if ((aRes==0) && ( mComTaramaOA !=""))
     {
         aRes = TopSystem(mComTaramaOA.c_str());
     }
+
+
+
     if ((aRes==0) && ( mComOA !=""))
     {
         aRes = TopSystem(mComOA.c_str());
     }
+
+
+
     if (!MMVisualMode) ShowParam();
     return aRes;
 }
