@@ -6805,6 +6805,54 @@ std::string  Mangling( cXmlTNR_TestDiffImg *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlTNR_FileCopy
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlTNR_FileCopy & anObj,cElXMLTree * aTree);
+
+
+        std::string & FilePath();
+        const std::string & FilePath()const ;
+    private:
+        std::string mFilePath;
+};
+cElXMLTree * ToXMLTree(const cXmlTNR_FileCopy &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlTNR_FileCopy &);
+
+void  BinaryUnDumpFromFile(cXmlTNR_FileCopy &,ELISE_fp &);
+
+std::string  Mangling( cXmlTNR_FileCopy *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlTNR_DirCopy
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlTNR_DirCopy & anObj,cElXMLTree * aTree);
+
+
+        std::string & DirPath();
+        const std::string & DirPath()const ;
+    private:
+        std::string mDirPath;
+};
+cElXMLTree * ToXMLTree(const cXmlTNR_DirCopy &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlTNR_DirCopy &);
+
+void  BinaryUnDumpFromFile(cXmlTNR_DirCopy &,ELISE_fp &);
+
+std::string  Mangling( cXmlTNR_DirCopy *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXmlTNR_OneTest
 {
     public:
@@ -6833,6 +6881,12 @@ class cXmlTNR_OneTest
 
         std::list< cXmlTNR_TestDiffImg > & TestImg();
         const std::list< cXmlTNR_TestDiffImg > & TestImg()const ;
+
+        std::list< cXmlTNR_FileCopy > & FileCopy();
+        const std::list< cXmlTNR_FileCopy > & FileCopy()const ;
+
+        std::list< cXmlTNR_DirCopy > & DirCopy();
+        const std::list< cXmlTNR_DirCopy > & DirCopy()const ;
     private:
         std::string mCmd;
         cTplValGesInit< bool > mTestReturnValue;
@@ -6841,6 +6895,8 @@ class cXmlTNR_OneTest
         std::list< cXmlTNR_TestDiffCalib > mTestCalib;
         std::list< cXmlTNR_TestDiffOri > mTestOri;
         std::list< cXmlTNR_TestDiffImg > mTestImg;
+        std::list< cXmlTNR_FileCopy > mFileCopy;
+        std::list< cXmlTNR_DirCopy > mDirCopy;
 };
 cElXMLTree * ToXMLTree(const cXmlTNR_OneTest &);
 
@@ -6872,15 +6928,11 @@ class cXmlTNR_GlobTest
 
         std::list< std::string > & DirInit();
         const std::list< std::string > & DirInit()const ;
-
-        bool & PurgeExe();
-        const bool & PurgeExe()const ;
     private:
         std::list< cXmlTNR_OneTest > mTests;
         std::string mName;
         std::list< std::string > mPatFileInit;
         std::list< std::string > mDirInit;
-        bool mPurgeExe;
 };
 cElXMLTree * ToXMLTree(const cXmlTNR_GlobTest &);
 
@@ -7225,6 +7277,9 @@ class cXmlTNR_GlobTestReport
         friend void xml_init(cXmlTNR_GlobTestReport & anObj,cElXMLTree * aTree);
 
 
+        std::string & Name();
+        const std::string & Name()const ;
+
         bool & Bilan();
         const bool & Bilan()const ;
 
@@ -7237,6 +7292,7 @@ class cXmlTNR_GlobTestReport
         std::list< cXmlTNR_OneTestReport > & XmlTNR_OneTestReport();
         const std::list< cXmlTNR_OneTestReport > & XmlTNR_OneTestReport()const ;
     private:
+        std::string mName;
         bool mBilan;
         int mNbTest;
         int mNbTestOk;

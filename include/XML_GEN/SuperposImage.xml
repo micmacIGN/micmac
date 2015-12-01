@@ -1498,6 +1498,14 @@
      <NameTestImg Nb="1" Type="std::string"> </NameTestImg>
 </XmlTNR_TestDiffImg>
 
+<XmlTNR_FileCopy Nb="1" Class="true" ToReference="true">
+     <FilePath Nb="1" Type="std::string"> </FilePath>
+</XmlTNR_FileCopy>
+
+<XmlTNR_DirCopy Nb="1" Class="true" ToReference="true">
+     <DirPath Nb="1" Type="std::string"> </DirPath>
+</XmlTNR_DirCopy>
+
 
 <XmlTNR_OneTest Nb="1" Class="true" ToReference="true">
      <Cmd  Nb="1" Type="std::string"> </Cmd>
@@ -1508,6 +1516,8 @@
      <TestCalib Nb="*" RefType="XmlTNR_TestDiffCalib"> </TestCalib>
      <TestOri Nb="*" RefType="XmlTNR_TestDiffOri"> </TestOri>
      <TestImg Nb="*" RefType="XmlTNR_TestDiffImg"> </TestImg>
+     <FileCopy Nb="*" RefType="XmlTNR_FileCopy"> </FileCopy>
+     <DirCopy Nb="*" RefType="XmlTNR_DirCopy"> </DirCopy>
 </XmlTNR_OneTest>
 
 
@@ -1517,7 +1527,9 @@
      <PatFileInit  Type="std::string"  Nb="*"> </PatFileInit>  <!-- Fichiers a recopier, ce sont des pattern -->
      <DirInit  Type="std::string"  Nb="*"> </DirInit>          <!-- dossier a recopier recursivement, ce sont les directory elle meme -->
 
-     <PurgeExe Nb="1" Type="bool"> </PurgeExe>  <!-- Si false  ne purge pas les TNR-Exe -->
+<!--
+     <PurgeExe Nb="1" Type="bool"> </PurgeExe>
+-->
 </XmlTNR_GlobTest>
 
 <!--  Test de non regression/Report -->
@@ -1525,6 +1537,7 @@
 
 <!--  test de directory -->
 <XmlTNR_GlobTestReport Nb="*" Class="true">
+	<Name Nb="1" Type="std::string"></Name>
 	<Bilan Nb="1" Type="bool"></Bilan>
 	<NbTest Nb="1" Type="int"></NbTest>
 	<NbTestOk Nb="1" Type="int"></NbTestOk>
