@@ -128,7 +128,9 @@ class cAppli_Vino : public cXml_EnvVino,
         void Refresh();
         void InitTabulDyn();
         void ZoomRect();
-        void  Help();
+        void Help();
+        void DoHistoEqual(Flux_Pts aFlux);
+
         ElList<Pt2di> GetPtsImage(bool GlobScale,bool ModeRect,const std::string& aMessage);
 
 
