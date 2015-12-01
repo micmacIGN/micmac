@@ -314,7 +314,7 @@ void cAppli_NewSolGolInit::ReMoyByTriplet()
     }
 
 static int aCpt=0; aCpt++;
-std::cout << " ENTER MED " << aCpt << "\n";
+std::cout << " ENTER MED " << aCpt << "\n";  // Nan
     mLastPdsMedRemoy = MedianeSup(mLastEcartReMoy);
 std::cout << "--------- END  MED \n";
 
