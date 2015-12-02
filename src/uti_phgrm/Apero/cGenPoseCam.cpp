@@ -383,7 +383,10 @@ void cPolynBGC3M2D_Formelle::AddEqRot(const Pt2di & aP0,const Pt2di &aP1,double 
             if (CellHasGradValue(aPInd))
             {
                 cCellPolBGC3M2DForm & aCurCell =  Cell(aPInd);
-                mRotPt.SetEtat(aCurCell.mPtIm);
+                if (mCamInit.DegreMax() > 0)
+                {
+                    mRotPt.SetEtat(aCurCell.mPtIm);
+                }
                 mDepR1.SetEtat(aCurCell.mValDep[0]);
                 mDepR2.SetEtat(aCurCell.mValDep[1]);
                 mDepR3.SetEtat(aCurCell.mValDep[2]);
@@ -526,13 +529,18 @@ void cPolynBGC3M2D_Formelle::PostInit()
     mSet.AddFonct(mFoncEqAttach);
     mSet.AddFonct(mFoncEqRot);
 
-    mFAmplAppui.InitAdr(*mFoncEqResidu);
-    mFCentrAppui.InitAdr(*mFoncEqResidu);
-    mFAmplFixVal.InitAdr(*mFoncEqAttach);
-    mFCentrFixVal.InitAdr(*mFoncEqAttach);
+    if (mCamInit.DegreMax() > 0)
+    {
+         mFAmplAppui.InitAdr(*mFoncEqResidu);
+         mFCentrAppui.InitAdr(*mFoncEqResidu);
+         mFAmplFixVal.InitAdr(*mFoncEqAttach);
+         mFCentrFixVal.InitAdr(*mFoncEqAttach);
+         mFAmplAttRot.InitAdr(*mFoncEqRot);
+         mFCentrAttRot.InitAdr(*mFoncEqRot);
+         mPtFixVal.InitAdr(*mFoncEqAttach);
+         mRotPt.InitAdr(*mFoncEqRot);
+    }
 
-    mFAmplAttRot.InitAdr(*mFoncEqRot);
-    mFCentrAttRot.InitAdr(*mFoncEqRot);
 
 
     mFP3DInit.InitAdr(*mFoncEqResidu);
@@ -542,20 +550,22 @@ void cPolynBGC3M2D_Formelle::PostInit()
     mFGradZ.InitAdr(*mFoncEqResidu);
     mObsPix.InitAdr(*mFoncEqResidu);
 
-    mPtFixVal.InitAdr(*mFoncEqAttach);
     mFixedVal.InitAdr(*mFoncEqAttach);
 
-    mRotPt.InitAdr(*mFoncEqRot);
     mDepR1.InitAdr(*mFoncEqRot);
     mDepR2.InitAdr(*mFoncEqRot);
     mDepR3.InitAdr(*mFoncEqRot);
 
-    mFAmplAppui.SetEtat(mCamCur.Ampl());
-    mFCentrAppui.SetEtat(mCamCur.Center());
-    mFAmplFixVal.SetEtat(mCamCur.Ampl());
-    mFCentrFixVal.SetEtat(mCamCur.Center());
-    mFAmplAttRot.SetEtat(mCamCur.Ampl());
-    mFCentrAttRot.SetEtat(mCamCur.Center());
+    if (mCamInit.DegreMax() > 0)
+    {
+        mFAmplAppui.SetEtat(mCamCur.Ampl());
+        mFCentrAppui.SetEtat(mCamCur.Center());
+        mFAmplFixVal.SetEtat(mCamCur.Ampl());
+        mFCentrFixVal.SetEtat(mCamCur.Center());
+        mFAmplAttRot.SetEtat(mCamCur.Ampl());
+        mFCentrAttRot.SetEtat(mCamCur.Center());
+    }
+
 
    
     mBufSubRot = new cSubstitueBlocIncTmp(*mEqP3I);
@@ -637,7 +647,10 @@ void  cPolynBGC3M2D_Formelle::GenerateCode(Pt2d<Fonc_Num> aFormP,const std::stri
 void cPolynBGC3M2D_Formelle::AddEqAttach(Pt2dr aPIm,double aPds,bool Cur,CamStenope * aKnownSol)
 {
    PostInit();
-   mPtFixVal.SetEtat(aPIm);
+   if (mCamInit.DegreMax() > 0)
+   {
+       mPtFixVal.SetEtat(aPIm);
+   }
    Pt2dr aValFix = Cur ? mCamCur.DeltaCamInit2CurIm(aPIm) : Pt2dr(0,0);
    if (aKnownSol)
    {

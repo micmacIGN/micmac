@@ -131,7 +131,7 @@ class cAppli_Vino : public cXml_EnvVino,
         void Help();
         void DoHistoEqual(Flux_Pts aFlux);
 
-        ElList<Pt2di> GetPtsImage(bool GlobScale,bool ModeRect,const std::string& aMessage);
+        ElList<Pt2di> GetPtsImage(bool GlobScale,bool ModeRect,bool AcceptPoint);
 
 
         bool OkPt(const Pt2di & aPt);

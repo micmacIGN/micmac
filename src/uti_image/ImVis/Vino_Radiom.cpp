@@ -177,7 +177,7 @@ void cAppli_Vino::InitTabulDyn()
 void cAppli_Vino::HistoSetDyn()
 {
     std::string aMes = "Clik  for polygone ; Shift Clik  to finish ; Enter 2 point for rectangle";
-    ElList<Pt2di> aL = GetPtsImage(false,false,aMes);
+    ElList<Pt2di> aL = GetPtsImage(false,false,false);
     if (aL.card() >= 2)
     {
         Flux_Pts aFlux = rectangle(aL.car(),aL.cdr().car());
