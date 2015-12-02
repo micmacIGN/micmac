@@ -1205,7 +1205,10 @@ void RequireBin
 // For top call like Tapas, Malt , .. want to duplicate args in @
 int TopSystem(const std::string & aComOri);
 
-int System(const std::string & aCom,bool aSVP=false,bool AddOptGlob=false,bool UseTheNbIterProcess=false);
+#define DEF_SVP_System false
+#define DEF_AdaptGlob_System false
+
+int System(const std::string & aCom,bool aSVP=DEF_SVP_System,bool AddOptGlob=DEF_AdaptGlob_System,bool UseTheNbIterProcess=false);
 
 void  EliseVerifAndParseArgcArgv(int argc,char ** argv);
 

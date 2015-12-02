@@ -9996,7 +9996,7 @@ int CLASS el_dcraw_main (int argc, const char **argv)
       printf (_("Full size:   %4d x %d\n"), raw_width, raw_height);
     } else if (!is_raw)
     {
-      fprintf (stderr,_("DCRAW Cannot decode file %s\n"), ifname);
+      // fprintf (stderr,_("DCRAW Cannot decode file %s\n"), ifname);  // MPD COMMENT
       return 1; // MPD Add
     }
     if (!is_raw) goto next;

@@ -313,7 +313,10 @@ void cAppli_NewSolGolInit::ReMoyByTriplet()
         mLastEcartReMoy.push_back(aDist);
     }
 
+static int aCpt=0; aCpt++;
+std::cout << " ENTER MED " << aCpt << "\n";  // Nan
     mLastPdsMedRemoy = MedianeSup(mLastEcartReMoy);
+std::cout << "--------- END  MED \n";
 
 
     for (int aKS=0 ; aKS <  int(mVSOrCur.size()) ; aKS++)

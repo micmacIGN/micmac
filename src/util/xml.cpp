@@ -2175,6 +2175,11 @@ bool SplitIn2ArroundCar
 	if ((!aGot) && (!AcceptNoCar))
 	{
 		std::cout << "STRING=[" << a2Stplit << "] CAR=" << aSpliCar << "\n";
+if (MPD_MM())
+{
+    std::cout << "MPD_MMMPD_MMMPD_MM\n";
+    getchar();
+}
 		ELISE_ASSERT(false,"Cannot split");
 	}
 	return aGot;
@@ -2266,11 +2271,14 @@ std::string  GetValLC
 {
 	for (int aK=0 ; aK<argc; aK++)
 	{
+            if (argv[aK][0] != cInterfChantierNameManipulateur::theCharSymbOptGlob)
+            {
 		std::string aSymb;
 		std::string aVal;
 		SplitIn2ArroundEq(std::string(argv[aK]),aSymb,aVal);
 		if (aSymb==aKey)
 			return aVal;
+            }
 	}
 	return aDef;
 }
@@ -2448,12 +2456,15 @@ bool GetOneModifLC
 	std::string aAfter;
 	for (int aK=0 ; aK<argc ; aK++)
 	{
+            if (argv[aK][0]!= cInterfChantierNameManipulateur::theCharSymbOptGlob)
+            {
 		SplitIn2ArroundEq(argv[aK],aBefore,aAfter);
 		if (aBefore==aNameSymb)
 		{
 			aVal=aAfter;
 			return true;
 		}
+            }
 	}
 	return false;
 }

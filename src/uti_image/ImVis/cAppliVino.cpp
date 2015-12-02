@@ -332,7 +332,10 @@ void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
     std::string aMesXY = " x=" + ToString(aP.x) + " y=" + ToString(aP.y);
     std::string aMesV =  " V=";
     for (int aK=0 ; aK<mNbChan; aK++)
+    {
+        if (aK!=0) aMesV = aMesV + " ";
         aMesV = aMesV  + StrNbChifApresVirg(aStat.Soms()[aK],3) ;
+    }
         // aMesV = aMesV  + StrNbChifSign(aStat.Soms()[aK],3) + " ";
         // aMesV = aMesV  + SimplString(ToString(aStat.Soms()[aK])) + " ";
 
