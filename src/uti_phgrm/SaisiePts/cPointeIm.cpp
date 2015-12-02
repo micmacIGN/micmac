@@ -74,7 +74,7 @@ bool cSP_PointeImage::BuildEpipolarLine(Pt2dr &pt1, Pt2dr &pt2)
     {
         eEtatPointeImage aState = mSIm->Etat();
 
-        cCapture3D * aCap3D = mIm->Capt3d();
+        cBasicGeomCap3D * aCap3D = mIm->Capt3d();
 
         if (aCap3D && mGl->PG()->PS1().IsInit() && ((aState==eEPI_NonSaisi) || (aState==eEPI_Refute)))
         {
@@ -93,7 +93,7 @@ bool cSP_PointeImage::BuildEpipolarLine(std::vector<Pt2dr> & aResVPt,std::vector
     {
         eEtatPointeImage aState = mSIm->Etat();
 
-        cCapture3D * aCap3D = mIm->Capt3d();
+        cBasicGeomCap3D * aCap3D = mIm->Capt3d();
 
         if (aCap3D && mGl->PG()->PS1().IsInit() && ((aState==eEPI_NonSaisi) || (aState==eEPI_Refute)))
         {

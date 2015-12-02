@@ -209,7 +209,7 @@ void cSP_PointGlob::ReCalculPoints()
     {
         cSP_PointeImage & aPointeIm = *(aVOK[0]);
         cImage &          anIm = *(aPointeIm.Image());
-        cCapture3D *      aCap3d =  anIm.Capt3d();
+        cBasicGeomCap3D *      aCap3d =  anIm.Capt3d();
         ELISE_ASSERT(aCap3d!=0,"Internal problem in cSP_PointGlob::ReCalculPoints");
 
         Pt2dr             aPIm = aCap3d->ImRef2Capteur(aPointeIm.Saisie()->PtIm());
@@ -221,8 +221,8 @@ void cSP_PointGlob::ReCalculPoints()
 
 
         Pt3dr aPt = aP0;
-        ElCamera * aCamera = anIm.CaptCam();
         // cElNuage3DMaille * aNuage = anIm.CaptNuage();
+        ElCamera * aCamera = anIm.ElCaptCam();
 
         if (aCap3d->HasPreciseCapteur2Terrain())
         {
@@ -252,10 +252,38 @@ void cSP_PointGlob::ReCalculPoints()
             mPG->VPS() = aVPt;
             mPG->PS1().SetVal(aVPt[aNbKMoins+1]);
             mPG->PS2().SetVal(aVPt[aNbKPlus-1]);
-
-            // std::cout << "TestEppoPii " << euclid( mPG->PS1().Val()-aVPt[aNbK+1]) << "\n";
-            // std::cout << "TestEppoPii " << euclid( mPG->PS2().Val()-aVPt[aNbK-1]) << "\n";
         }
+        else if (aCap3d->HasRoughCapteur2Terrain())
+        {
+
+            //double aProf = aCap3d->ProfondeurDeChamps(aCap3d->PMoyOfCenter());
+            double aProf = aCap3d->ProfondeurDeChamps(aCap3d->RoughCapteur2Terrain(aPIm));
+            // std::cout << "PIMMM " << aPIm   << " " << aCap3d->RoughCapteur2Terrain(aPIm) << "\n";
+            double aInc = 1+ mAppli.Param().IntervPercProf().Val()/100.0;
+
+            aPt = aCap3d->ImEtProf2Terrain(aPIm,aProf);
+
+            mPG->P3D().SetVal(aPt);
+            // mPG->PS1().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf*aInc));
+            // mPG->PS2().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf/aInc));
+
+            int aNbKMoins = 20;
+            int aNbKPlus = 20;
+            std::vector<Pt3dr> aVPt;
+            for (int aK= -aNbKMoins ; aK<= aNbKPlus ; aK++)
+            {
+                double aProfK = aProf * pow(aInc,aK);
+                aVPt.push_back(aCap3d->ImEtProf2Terrain(aPIm,aProfK));
+            }
+            mPG->VPS() = aVPt;
+            mPG->PS1().SetVal(aVPt[aNbKMoins+1]);
+            mPG->PS2().SetVal(aVPt[aNbKPlus-1]);
+        }
+
+
+
+
+
         if (euclid(aPt-aP0)< 1e-9) 
         {
             return;
@@ -271,7 +299,7 @@ void cSP_PointGlob::ReCalculPoints()
         {
             cSP_PointeImage & aPointeIm = *(aVOK[aK]);
             cImage &          anIm = *(aPointeIm.Image());
-            cCapture3D *      aCap3d =  anIm.Capt3d();
+            cBasicGeomCap3D *      aCap3d =  anIm.Capt3d();
             ELISE_ASSERT(aCap3d!=0,"Internal problem in cSP_PointGlob::ReCalculPoints");
             Pt2dr             aPIm = aCap3d->ImRef2Capteur(aPointeIm.Saisie()->PtIm());
             aVSeg.push_back(aCap3d->Capteur2RayTer(aPIm));
