@@ -76,6 +76,9 @@ int CmpIm_main(int argc,char ** argv)
         
         Tiff_Im aFile1 = Tiff_Im::BasicConvStd(aName1);
         Tiff_Im aFile2 = Tiff_Im::BasicConvStd(aName2);
+        
+        cXmlTNR_TestImgReport aImg;
+        aImg.ImgName() = aName1;
 
        if (aUseXmlFOM && (! EAMIsInit(&OkSzDif))) OkSzDif = true;
         Pt2di aSz = aFile1.sz();
@@ -83,6 +86,12 @@ int CmpIm_main(int argc,char ** argv)
         {
            
            std::cout << "Tailles Differentes " << aFile1.sz() << aFile2.sz() << "\n";
+           aImg.TestImgDiff() = false;
+           aImg.NbPxDiff() = 99999;
+		   aImg.SumDiff() = 99999;
+		   aImg.MoyDiff() = 99999;
+		   Pt3dr Diff(99999,99999,99999);
+		   aImg.DiffMaxi()= Diff;
            if (OkSzDif)
                aSz = Inf( aFile1.sz(),aFile2.sz());
            else
@@ -131,9 +140,6 @@ int CmpIm_main(int argc,char ** argv)
             )
         );
         
-        
-        cXmlTNR_TestImgReport aImg;
-        aImg.ImgName() = aName1;
 
         if (aNbDif)
         {
