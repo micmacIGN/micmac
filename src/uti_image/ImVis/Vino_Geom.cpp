@@ -52,9 +52,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 /****************************************/
 
 
-ElList<Pt2di> cAppli_Vino::GetPtsImage(bool GlobScale,bool ModeRect,const std::string& aMessage)
+ElList<Pt2di> cAppli_Vino::GetPtsImage(bool GlobScale,bool ModeRect,bool AcceptPoint)
 {
 
+    std::string aMessage = "Clik  for polygone ; Shift Clik  to finish ; Enter 2 point for rectangle";
+    if (AcceptPoint) aMessage = aMessage + "; Enter 1 point for a single pixel";
     PutMessageRelief(0,"Clik  for polygone ; Shift Clik  to finish ; Enter 2 point for rectangle");
     ElImScroller * aCurScr = GlobScale ? mScr : mScr->CurScale();
 
@@ -80,7 +82,7 @@ ElList<Pt2di> cAppli_Vino::GetPtsImage(bool GlobScale,bool ModeRect,const std::s
         }
 
         aLastW  = aPW;
-        Cont = !aClik.shifted();
+        Cont = (!aClik.shifted()) && ((aList.card()>1) || AcceptPoint);
         if (ModeRect && (aList.card()>=2)) 
         {
            Cont = false;
@@ -169,7 +171,7 @@ void cAppli_Vino::ZoomMolette()
 
 void cAppli_Vino::ZoomRect()
 {
-    ElList<Pt2di> aL = GetPtsImage(true,true,"Clik 2 point to select rectangle");
+    ElList<Pt2di> aL = GetPtsImage(true,true,false);
 
     Pt2dr aP0 = Pt2dr(aL.car());
     Pt2dr aP1 = Pt2dr(aL.cdr().car());
