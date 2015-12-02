@@ -1521,6 +1521,7 @@ void  Data_Elise_Video_Win::_inst_fixed_string(Pt2dr pt,const char * name,bool d
              name,
              strlen(name)
        );
+    disp_flush();
 }
 
 void   Data_Elise_Video_Win::grab(Grab_Untill_Realeased & gur)

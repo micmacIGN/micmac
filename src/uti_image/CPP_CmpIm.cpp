@@ -180,7 +180,7 @@ int CmpIm_main(int argc,char ** argv)
 				aImg.MoyDiff() = (aSomDif/aSom1);
 				Pt3dr Diff(aPtDifMax[0],aPtDifMax[1],aMaxDif);
 				aImg.DiffMaxi()= Diff;
-		   }
+	   }
         }   
         else
         {
@@ -192,7 +192,9 @@ int CmpIm_main(int argc,char ** argv)
 		   Pt3dr Diff(aPtDifMax[0],aPtDifMax[1],aMaxDif);
 		   aImg.DiffMaxi()= Diff;
         }
-        MakeFileXML(aImg, mXmlG);
+
+        if (mXmlG!="")  // MPD
+            MakeFileXML(aImg, mXmlG);
     }
     else{return EXIT_SUCCESS;}
     return 0;

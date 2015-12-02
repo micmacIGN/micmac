@@ -138,13 +138,14 @@ bool  cMMByImNM::StrIsPImsDIr(const std::string & aDir)
 
 
 
-cMMByImNM::cMMByImNM(double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix,const std::string & aNameType) :
+cMMByImNM::cMMByImNM(double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix,const std::string & aNameType,bool AddDirLoc) :
     mDS        (aDS),
     mDirGlob   (aDirGlob),
     mDirLoc    (aDirLoc),
     mPrefix    (aPrefix),
     mFullDir   (mDirGlob + mDirLoc),
-    mNameFileLON (mFullDir + TheNamePimsFile),
+    mNameFileLON ((AddDirLoc ? mDirLoc : mFullDir) + TheNamePimsFile),
+    // mNameFileLON (mFullDir + TheNamePimsFile),
     mKeyFileLON (aDirGlob+ "%NKS-Set-OfFile@" + mNameFileLON),
     mNameEtat   (mFullDir+ TheNamePimsEtat),
     mNameType   (aNameType)
@@ -208,11 +209,11 @@ std::string cMMByImNM::StdDirPims(double aDS, const std::string & aNameMatch)
    return  PrefixMPI  + aNameDS  + aNameMatch + "/";
 }
 
-cMMByImNM * cMMByImNM::ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch)
+cMMByImNM * cMMByImNM::ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch,bool AddDirLoc)
 {
    // std::string aNameDS = DS2String(aDS);
    // std::string aDirLoc = PrefixMPI  + aNameDS  + aNameMatch + "/";
-   return new cMMByImNM(aDS,aDirGlob,StdDirPims(aDS,aNameMatch),"Nuage-",aNameMatch);
+   return new cMMByImNM(aDS,aDirGlob,StdDirPims(aDS,aNameMatch),"Nuage-",aNameMatch,AddDirLoc);
 }
 
 
@@ -231,7 +232,7 @@ std::string SuppressCarDirEnd(const std::string & aDirOri)
     return aRes;
 }
 
-cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,bool Svp,double aDS,const std::string & aDir0)
+cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,bool Svp,double aDS,const std::string & aDir0,bool AddDirLoc)
 {
 
 // std::cout << "cMMByImNM::FromExistingDirOrMatch " << aNameDirOri << "\n"; getchar();
@@ -262,13 +263,13 @@ cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,b
          }
          if (Ok)
          {
-             return  cMMByImNM::ForGlobMerge(aDirGlob,aDS,aNameMatch);
+             return  cMMByImNM::ForGlobMerge(aDirGlob,aDS,aNameMatch,AddDirLoc);
          }
      }
 
      if (StrIsPImsDIr(StdDirPims(aDS,aNameDirOri)))
      {
-        return  cMMByImNM::ForGlobMerge(aDir0,aDS,aNameDirOri);
+        return  cMMByImNM::ForGlobMerge(aDir0,aDS,aNameDirOri,AddDirLoc);
      }
 
 

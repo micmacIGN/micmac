@@ -128,7 +128,8 @@ int Tawny_main(int argc,char ** argv)
 	if (!mDoRadiomEgal) aCom  = aCom +" +DoRadiomEgal=false ";
 
         std::cout << aCom << "\n";
-        int aRes = system_call(aCom.c_str());
+        int aRes = System(aCom.c_str(),DEF_SVP_System,true);
+        // int aRes = system_call(aCom.c_str());
 
         BanniereMM3D();
         return aRes;
