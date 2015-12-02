@@ -188,13 +188,13 @@ class cResulMSO
        cResulMSO();
        ElCamera * &       Cam() ;
        cElNuage3DMaille * & Nuage() ;
-       cCapture3D * &       Capt3d();
+       cBasicGeomCap3D * &       Capt3d();
        bool &               IsKeyOri();
    private :
        bool                 mIsKeyOri;
        ElCamera *           mCam;
        cElNuage3DMaille *   mNuage;
-       cCapture3D *         mCapt3d;
+       cBasicGeomCap3D *         mCapt3d;
 
 };
 

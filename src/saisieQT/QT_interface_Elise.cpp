@@ -945,7 +945,8 @@ void cQT_Interface::rebuildGlCamera()
 {
     for (int i = 0; i < mAppli->nbImagesVis(); ++i)
     {
-        ElCamera * aCamera = mAppli->imageVis(i)->CaptCam();
+        ElCamera * aCamera = mAppli->imageVis(i)->ElCaptCam();
+        
 
         if (aCamera != NULL)
         {

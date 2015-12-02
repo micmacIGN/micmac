@@ -1517,6 +1517,10 @@ class cBasicGeomCap3D
 
        virtual Pt3dr ToSysCible(const Pt3dr &) const;
        virtual Pt3dr ToSysSource(const Pt3dr &) const;
+       virtual Pt2dr ImRef2Capteur   (const Pt2dr & aP) const;
+       virtual double ResolImRefFromCapteur() const;
+      virtual bool  HasPreciseCapteur2Terrain() const ;
+      virtual Pt3dr PreciseCapteur2Terrain   (const Pt2dr & aP) const ;
 };
 
 
@@ -1530,13 +1534,9 @@ class cCapture3D : public cBasicGeomCap3D
    public :
       // virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
 
-      virtual bool  HasPreciseCapteur2Terrain() const = 0;
-      virtual Pt3dr PreciseCapteur2Terrain   (const Pt2dr & aP) const =0;
 
       virtual double ResolSolGlob() const = 0;
 
-      virtual Pt2dr ImRef2Capteur   (const Pt2dr & aP) const =0;
-      virtual double ResolImRefFromCapteur() const =0;
 };
 
 
