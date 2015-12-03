@@ -211,6 +211,41 @@ void cAppli_Vino::HistoSetDyn()
     Refresh();
 }
 
+template <class Type,class TyBase> Im2D<Type,TyBase> Im1D2Im2D(Im1D<Type,TyBase> aI1)
+{
+    Im2D<Type,TyBase>  aI2(aI1.tx(),1);
+    ELISE_COPY(aI2.all_pts(),aI1.in()[Virgule(FX,0)],aI2.out());
+    return aI2;
+}
+
+void PlotHisto(Video_Win aw,Im1D_REAL8 anIm)
+{
+   Im2D_REAL8 aImW = Im1D2Im2D(anIm);
+/*
+  int aSzWX = aW.sz().x;
+  int aSHw = anIm.tx();
+  double aCompr = double(aSzWX) / double(aSHw);
+
+   Im2D_REAL8 aI2D(aSHw.x,1);
+   ELISE_COPY(aI2D.all_pts(),,aI2D.out());
+
+   ELISE_COPY
+   (
+        aImW.all_pts(),
+         StdFoncChScale
+                 (
+                       //aDebug ? ((FX/30)%2) && tiff.in_proj() : tiff.in_proj(),
+                       aDebug ? tiff.in(0) : tiff.in_proj(),
+                       Pt2dr(aP0.x,aP0.y),
+                       Pt2dr(aScX,aScY),
+                       aDilXY
+                 );
+
+        aImW.out()
+   );
+*/
+}
+
 void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
 {
     std::cout << "DoHistoEqual::DoHistoEqual\n";
@@ -241,7 +276,7 @@ void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
     }
     aF = aF / double(aNbCh);
 
-    int aNbVal = 100000;
+    int aNbVal = 10000;
     double aStep =  (aVMaxGlob - aVMinGlob) / aNbVal;
     Im1D_REAL8 anIm(aNbVal,0.0);
 
@@ -255,6 +290,16 @@ void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
          anIm.histo(true).chc(aFI)
     );
     std::cout  << "DoHistoEqual " << aVMinGlob << " " << aVMaxGlob << " "<< anEctGlob << "\n";
+
+
+
+
+
+/*
+     plot.set(NewlArgPl1d(PlModePl(Plots::line)));
+     plot.set(NewlArgPl1d(PlotLinSty(lst)));
+*/
+
 
     //  FillStat(*mCurStats,aFlux,mScr->CurScale()->in());
     // int aVMin = ElMax(mCurStats->VMax
