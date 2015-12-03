@@ -82,7 +82,8 @@ ElList<Pt2di> cAppli_Vino::GetPtsImage(bool GlobScale,bool ModeRect,bool AcceptP
         }
 
         aLastW  = aPW;
-        Cont = (!aClik.shifted()) && ((aList.card()>1) || AcceptPoint);
+           
+        Cont = (!aClik.shifted()) ||  ((aList.card()==1) && (!AcceptPoint));
         if (ModeRect && (aList.card()>=2)) 
         {
            Cont = false;
