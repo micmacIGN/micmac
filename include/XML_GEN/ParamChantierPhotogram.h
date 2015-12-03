@@ -6775,6 +6775,7 @@ typedef enum
   eDynVinoColCirc,
   eDynVinoMaxMin,
   eDynVinoStat2,
+  eDynVinoEqual,
   eDynVinoNbVals
 } eTypeDynVino;
 void xml_init(eTypeDynVino & aVal,cElXMLTree * aTree);

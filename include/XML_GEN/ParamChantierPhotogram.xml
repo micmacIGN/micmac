@@ -1750,6 +1750,7 @@
     <eDynVinoColCirc>      </eDynVinoColCirc>
     <eDynVinoMaxMin>       </eDynVinoMaxMin>
     <eDynVinoStat2>        </eDynVinoStat2>
+    <eDynVinoEqual>        </eDynVinoEqual>
     <eDynVinoNbVals>       </eDynVinoNbVals>
 </enum>
 
