@@ -339,7 +339,7 @@ BugNanNewOri = (aCptRMT==3683440);
 
 
         double aDist = ReMoyOneTriplet(mV3Use4Ori[aK3]);
-if (isnan(aDist))
+if (std_isnan(aDist))
 {
     std::cout << "aCptRMT== " << aCptRMT << " NanDist\n";
     getchar();
