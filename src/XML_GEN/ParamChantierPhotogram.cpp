@@ -20946,6 +20946,8 @@ eTypeDynVino  Str2eTypeDynVino(const std::string & aName)
       return eDynVinoMaxMin;
    else if (aName=="eDynVinoStat2")
       return eDynVinoStat2;
+   else if (aName=="eDynVinoEqual")
+      return eDynVinoEqual;
    else if (aName=="eDynVinoNbVals")
       return eDynVinoNbVals;
   else
@@ -20969,6 +20971,8 @@ std::string  eToString(const eTypeDynVino & anObj)
       return  "eDynVinoMaxMin";
    if (anObj==eDynVinoStat2)
       return  "eDynVinoStat2";
+   if (anObj==eDynVinoEqual)
+      return  "eDynVinoEqual";
    if (anObj==eDynVinoNbVals)
       return  "eDynVinoNbVals";
  std::cout << "Enum = eTypeDynVino\n";
@@ -20993,7 +20997,7 @@ void  BinaryUnDumpFromFile(eTypeDynVino & anObj,ELISE_fp & aFp)
    anObj=(eTypeDynVino) aIVal;
 }
 
-std::string  Mangling( eTypeDynVino *) {return "DA97E52C36B3369FFC3F";};
+std::string  Mangling( eTypeDynVino *) {return "432509112C16FD9DFE3F";};
 
 
 std::string & cXml_StatVino::NameFile()
@@ -21284,7 +21288,7 @@ void xml_init(cXml_StatVino & anObj,cElXMLTree * aTree)
    xml_init(anObj.MulDyn(),aTree->Get("MulDyn",1)); //tototo 
 }
 
-std::string  Mangling( cXml_StatVino *) {return "C64B821BE0E3FEB2FE3F";};
+std::string  Mangling( cXml_StatVino *) {return "C490AA5238DD2DD1FE3F";};
 
 
 Pt2di & cXml_EnvVino::SzW()
@@ -21439,6 +21443,6 @@ void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree)
    xml_init(anObj.Stats(),aTree->GetAll("Stats",false,1));
 }
 
-std::string  Mangling( cXml_EnvVino *) {return "B461B100BCB399CCFE3F";};
+std::string  Mangling( cXml_EnvVino *) {return "ABEBC24CD1162BA8FF3F";};
 
 // };

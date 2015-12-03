@@ -71,7 +71,12 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mSzIncr            (400,400),
     mNbPixMinFile      (2e6),
     mCurStats          (0),
-    mTabulDynIsInit    (false)
+    mTabulDynIsInit    (false),
+    mNbHistoMax        (20000),
+    mNbHisto           (mNbHistoMax),
+    mHisto             (mNbHistoMax),
+    mHistoLisse        (mNbHistoMax),
+    mHistoCum          (mNbHistoMax)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)

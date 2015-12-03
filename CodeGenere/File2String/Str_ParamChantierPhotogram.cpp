@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1793]) = {
+const char * (theNameVar_ParamChantierPhotogram[1794]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1752,6 +1752,7 @@ const char * (theNameVar_ParamChantierPhotogram[1793]) = {
 "    <eDynVinoColCirc>      </eDynVinoColCirc>\n",
 "    <eDynVinoMaxMin>       </eDynVinoMaxMin>\n",
 "    <eDynVinoStat2>        </eDynVinoStat2>\n",
+"    <eDynVinoEqual>        </eDynVinoEqual>\n",
 "    <eDynVinoNbVals>       </eDynVinoNbVals>\n",
 "</enum>\n",
 "\n",
