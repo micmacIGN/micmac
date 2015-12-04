@@ -184,7 +184,7 @@ void cAppli_Vino::InitTabulDyn()
        for (int aK=0 ; aK<= aNbTabul ; aK++)
        {
            double  aVal = mV0TabulDyn + aK * mStepTabulDyn;
-           aVal = (aVal-mVMinHisto)/mStepHisto;
+           aVal = (aVal-mCurStats->VMinHisto())/mCurStats->StepHisto();
 
            aVal = ElMax(0.0,ElMin(aVal,aNbH-1.001));
            int iVal = round_down(aVal);
@@ -295,9 +295,8 @@ void PlotHisto(Video_Win aW,Im1D_REAL8 anIm,int aCoul,int aWidth)
 
 void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
 {
-    std::cout << "DoHistoEqual::DoHistoEqual\n";
    
-    mVMinHisto = 1e30;
+    mCurStats->VMinHisto() = 1e30;
     mVMaxHisto = -1e30;
     double aNbSigma = 15;
     int aNbCh = mCurStats->VMax().size();
@@ -310,7 +309,7 @@ void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
          double aVMin = ElMax(mCurStats->VMin()[aK],aMoy-aNbSigma*anEct);
          double aVMax = ElMin(mCurStats->VMax()[aK],aMoy+aNbSigma*anEct);
          anEctGlob += anEct;
-         mVMinHisto = ElMin(mVMinHisto,aVMin);
+         mCurStats->VMinHisto() = ElMin(mCurStats->VMinHisto(),aVMin);
          mVMaxHisto = ElMax(mVMaxHisto,aVMax);
     }
 
@@ -323,22 +322,22 @@ void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
     }
     aF = aF / double(aNbCh);
 
-    mStepHisto = 1;
-    if (  ((mVMaxHisto-mVMinHisto) < mNbHistoMax) && (aF.integral_fonc(true)))
+    mCurStats->StepHisto() = 1;
+    if (  ((mVMaxHisto-mCurStats->VMinHisto()) < mNbHistoMax) && (aF.integral_fonc(true)))
     {
-         mNbHisto  = mVMaxHisto-mVMinHisto + 1;
+         mNbHisto  = mVMaxHisto-mCurStats->VMinHisto() + 1;
     }
     else
     {
          mNbHisto = mNbHistoMax;
-         mStepHisto =  (mVMaxHisto - mVMinHisto) / (mNbHisto-1);
+         mCurStats->StepHisto() =  (mVMaxHisto - mCurStats->VMinHisto()) / (mNbHisto-1);
     }
     mHisto.Resize(mNbHisto);
     mHistoLisse.Resize(mNbHisto);
     mHistoCum.Resize(mNbHisto);
 
     mHisto.raz();
-    Fonc_Num aFI = Max(0,Min(mNbHisto-1,round_ni((aF-mVMinHisto) / mStepHisto)));
+    Fonc_Num aFI = Max(0,Min(mNbHisto-1,round_ni((aF-mCurStats->VMinHisto()) / mCurStats->StepHisto())));
 
 
     ELISE_COPY
@@ -349,17 +348,40 @@ void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
     );
 
     Im2D_REAL8 aI2L = Im1D2Im2D(mHisto);
-    for (int aK=0 ; aK< 4 ; aK++)
+    int aNbIter = 4;
+    double aSigmRest = ElSquare((0.05*anEctGlob) / mCurStats->StepHisto());
+    double aFact  = FromSzW2FactExp(sqrt(aSigmRest),aNbIter);
+    std::cout << "Sigma000 " << sqrt(aSigmRest) << " Fact " << aFact  << " " << anEctGlob/mCurStats->StepHisto() << "\n";
+    for (int aK=0 ; aK< aNbIter ; aK++)
     {
-        int aNb = ElMax(1, round_ni((0.05*anEctGlob) / mStepHisto));
-        ELISE_COPY
-        (
-             aI2L.all_pts(),
-             rect_som(aI2L.in(0),Pt2di(aNb,1)) / rect_som(aI2L.inside(),Pt2di(aNb,1)),
-             aI2L.out()
-        );
-
+         ELISE_COPY
+         (
+              aI2L.all_pts(),
+              canny_exp_filt(aI2L.in(0),aFact,aFact) / canny_exp_filt(aI2L.inside(),aFact,aFact),
+              aI2L.out()
+         );
     }
+/*
+    for (int aK=0 ; aK< aNbIter ; aK++)
+    {
+        if (aSigmRest>0)
+        {
+               double aSigma = aSigmRest / (aNbIter-aK);
+               int aNb = round_ni(sqrt(aSigma));
+               aSigmRest -= ElSquare(aNb);
+               if (aNb >=0)
+               {
+                  ELISE_COPY
+                  (
+                       aI2L.all_pts(),
+                       rect_som(aI2L.in(0),Pt2di(aNb,1)) / rect_som(aI2L.inside(),Pt2di(aNb,1)),
+                       aI2L.out()
+                  );
+               }
+               std::cout << "Nbbbb " << aNb << "\n";
+        }
+    }
+*/
     ELISE_COPY(mHistoLisse.all_pts(),aI2L.in()[Virgule(FX,0)],mHistoLisse.out());
 
     double * aDH = mHistoLisse.data();
@@ -381,6 +403,9 @@ void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
     PutMessageRelief(0,"Histo diplaid, Clik to continue");
     mW->clik_in();
 
+
+    Im2D_REAL8 aI2C = Im1D2Im2D(mHistoCum);
+    Tiff_Im::CreateFromIm(aI2C, mNameHisto);
 
 
 /*

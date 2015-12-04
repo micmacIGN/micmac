@@ -218,12 +218,11 @@ class cAppli_Vino : public cXml_EnvVino,
 
         int         mNbHistoMax;
         int         mNbHisto;
-        double      mStepHisto;
-        double      mVMinHisto;
         double      mVMaxHisto;
         Im1D_REAL8  mHisto;
         Im1D_REAL8  mHistoLisse;
         Im1D_REAL8  mHistoCum;
+        std::string mNameHisto;
 };
 
 #endif
