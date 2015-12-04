@@ -133,6 +133,14 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     // MakeFileXML(EnvXml(),mNameXmlOut);
 
 
+    mNameHisto = mDir + "Tmp-MM-Dir/Histo" + mNameIm + ".tif";
+    if (ELISE_fp::exist_file(mNameHisto))
+    {
+        Tiff_Im aTH(mNameHisto.c_str());
+        mNbHisto = aTH.sz().x;
+        mHistoCum.Resize(mNbHisto);
+        ELISE_COPY(aTH.all_pts(),aTH.in(), mHistoCum.out().chc(FX));
+    }
 
     mNameIm = NameWithoutDir(mNameIm);
     mTiffIm = new Tiff_Im(Tiff_Im::StdConvGen(mDir+mNameIm,-1,true,false));

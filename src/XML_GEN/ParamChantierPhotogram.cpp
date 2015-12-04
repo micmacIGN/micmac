@@ -21120,6 +21120,28 @@ const double & cXml_StatVino::MulDyn()const
    return mMulDyn;
 }
 
+
+double & cXml_StatVino::VMinHisto()
+{
+   return mVMinHisto;
+}
+
+const double & cXml_StatVino::VMinHisto()const 
+{
+   return mVMinHisto;
+}
+
+
+double & cXml_StatVino::StepHisto()
+{
+   return mStepHisto;
+}
+
+const double & cXml_StatVino::StepHisto()const 
+{
+   return mStepHisto;
+}
+
 void  BinaryUnDumpFromFile(cXml_StatVino & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NameFile(),aFp);
@@ -21173,6 +21195,8 @@ void  BinaryUnDumpFromFile(cXml_StatVino & anObj,ELISE_fp & aFp)
   } ;
     BinaryUnDumpFromFile(anObj.IntervDyn(),aFp);
     BinaryUnDumpFromFile(anObj.MulDyn(),aFp);
+    BinaryUnDumpFromFile(anObj.VMinHisto(),aFp);
+    BinaryUnDumpFromFile(anObj.StepHisto(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_StatVino & anObj)
@@ -21213,6 +21237,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_StatVino & anObj)
         BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,anObj.IntervDyn());
     BinaryDumpInFile(aFp,anObj.MulDyn());
+    BinaryDumpInFile(aFp,anObj.VMinHisto());
+    BinaryDumpInFile(aFp,anObj.StepHisto());
 }
 
 cElXMLTree * ToXMLTree(const cXml_StatVino & anObj)
@@ -21255,6 +21281,8 @@ cElXMLTree * ToXMLTree(const cXml_StatVino & anObj)
       aRes->AddFils(::ToXMLTree(std::string("VMin"),(*it))->ReTagThis("VMin"));
    aRes->AddFils(::ToXMLTree(std::string("IntervDyn"),anObj.IntervDyn())->ReTagThis("IntervDyn"));
    aRes->AddFils(::ToXMLTree(std::string("MulDyn"),anObj.MulDyn())->ReTagThis("MulDyn"));
+   aRes->AddFils(::ToXMLTree(std::string("VMinHisto"),anObj.VMinHisto())->ReTagThis("VMinHisto"));
+   aRes->AddFils(::ToXMLTree(std::string("StepHisto"),anObj.StepHisto())->ReTagThis("StepHisto"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21286,9 +21314,13 @@ void xml_init(cXml_StatVino & anObj,cElXMLTree * aTree)
    xml_init(anObj.IntervDyn(),aTree->Get("IntervDyn",1)); //tototo 
 
    xml_init(anObj.MulDyn(),aTree->Get("MulDyn",1)); //tototo 
+
+   xml_init(anObj.VMinHisto(),aTree->Get("VMinHisto",1)); //tototo 
+
+   xml_init(anObj.StepHisto(),aTree->Get("StepHisto",1)); //tototo 
 }
 
-std::string  Mangling( cXml_StatVino *) {return "C490AA5238DD2DD1FE3F";};
+std::string  Mangling( cXml_StatVino *) {return "2822970BEF4C09FDFE3F";};
 
 
 Pt2di & cXml_EnvVino::SzW()
@@ -21443,6 +21475,6 @@ void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree)
    xml_init(anObj.Stats(),aTree->GetAll("Stats",false,1));
 }
 
-std::string  Mangling( cXml_EnvVino *) {return "ABEBC24CD1162BA8FF3F";};
+std::string  Mangling( cXml_EnvVino *) {return "8CD2D85571B973A8FF3F";};
 
 // };

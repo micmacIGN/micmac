@@ -6831,6 +6831,12 @@ class cXml_StatVino
 
         double & MulDyn();
         const double & MulDyn()const ;
+
+        double & VMinHisto();
+        const double & VMinHisto()const ;
+
+        double & StepHisto();
+        const double & StepHisto()const ;
     private:
         std::string mNameFile;
         eTypeDynVino mType;
@@ -6843,6 +6849,8 @@ class cXml_StatVino
         std::vector< double > mVMin;
         Pt2dr mIntervDyn;
         double mMulDyn;
+        double mVMinHisto;
+        double mStepHisto;
 };
 cElXMLTree * ToXMLTree(const cXml_StatVino &);
 

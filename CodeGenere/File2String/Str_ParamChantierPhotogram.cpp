@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1794]) = {
+const char * (theNameVar_ParamChantierPhotogram[1797]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1768,6 +1768,9 @@ const char * (theNameVar_ParamChantierPhotogram[1794]) = {
 "     <VMin    Nb=\"*\" Type=\"double\" Container=\"std::vector\"> </VMin>\n",
 "     <IntervDyn    Nb=\"1\" Type=\"Pt2dr\">  </IntervDyn>\n",
 "     <MulDyn       Nb=\"1\" Type=\"double\">  </MulDyn>\n",
+"     <!--  Pour sauvegarde histo -->\n",
+"     <VMinHisto  Nb=\"1\" Type=\"double\">  </VMinHisto>\n",
+"     <StepHisto  Nb=\"1\" Type=\"double\">  </StepHisto>\n",
 "</Xml_StatVino>\n",
 "\n",
 "<Xml_EnvVino  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
