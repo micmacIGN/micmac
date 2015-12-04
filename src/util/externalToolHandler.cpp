@@ -292,6 +292,8 @@ int CheckDependencies_main(int argc,char ** argv)
         CGpGpuContext<cudaContext>::check_Cuda();
     #endif
 
+	cout << "micmac directory = [" << MMDir() << "]" << endl << endl;
+
     cout << printResult( "make" ) << endl;
     cout << printResult( "exiftool" ) << endl;
     cout << printResult( "exiv2" ) << endl;
