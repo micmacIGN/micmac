@@ -1750,6 +1750,7 @@
     <eDynVinoColCirc>      </eDynVinoColCirc>
     <eDynVinoMaxMin>       </eDynVinoMaxMin>
     <eDynVinoStat2>        </eDynVinoStat2>
+    <eDynVinoEqual>        </eDynVinoEqual>
     <eDynVinoNbVals>       </eDynVinoNbVals>
 </enum>
 
@@ -1765,6 +1766,9 @@
      <VMin    Nb="*" Type="double" Container="std::vector"> </VMin>
      <IntervDyn    Nb="1" Type="Pt2dr">  </IntervDyn>
      <MulDyn       Nb="1" Type="double">  </MulDyn>
+     <!--  Pour sauvegarde histo -->
+     <VMinHisto  Nb="1" Type="double">  </VMinHisto>
+     <StepHisto  Nb="1" Type="double">  </StepHisto>
 </Xml_StatVino>
 
 <Xml_EnvVino  Nb="1" Class="true" ToReference="true">
