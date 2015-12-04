@@ -175,6 +175,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // ========================= Bundle Gen 2D ==========================
 
+#include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg0.h"
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg1.h"
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg2.h"
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg3.h"
@@ -184,6 +185,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg7.h"
 
 
+#include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg0.h"
 #include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg1.h"
 #include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg2.h"
 #include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg3.h"
@@ -193,6 +195,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg7.h"
 
 
+#include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg0.h"
 #include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg1.h"
 #include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg2.h"
 #include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg3.h"
@@ -683,6 +686,7 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cEqBBCamSecond_AccelCsteCoord",cEqBBCamSecond_AccelCsteCoord::Alloc);
      AddEntry("cEqBBCamThird_AccelCsteCoord",cEqBBCamThird_AccelCsteCoord::Alloc);
 
+     AddEntry("cGen2DBundleEgProj_Deg0",cGen2DBundleEgProj_Deg0::Alloc);
      AddEntry("cGen2DBundleEgProj_Deg1",cGen2DBundleEgProj_Deg1::Alloc);
      AddEntry("cGen2DBundleEgProj_Deg2",cGen2DBundleEgProj_Deg2::Alloc);
      AddEntry("cGen2DBundleEgProj_Deg3",cGen2DBundleEgProj_Deg3::Alloc);
@@ -692,6 +696,7 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cGen2DBundleEgProj_Deg7",cGen2DBundleEgProj_Deg7::Alloc);
 
 
+     AddEntry("cGen2DBundleAttach_Deg0",cGen2DBundleAttach_Deg0::Alloc);
      AddEntry("cGen2DBundleAttach_Deg1",cGen2DBundleAttach_Deg1::Alloc);
      AddEntry("cGen2DBundleAttach_Deg2",cGen2DBundleAttach_Deg2::Alloc);
      AddEntry("cGen2DBundleAttach_Deg3",cGen2DBundleAttach_Deg3::Alloc);
@@ -700,6 +705,7 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cGen2DBundleAttach_Deg6",cGen2DBundleAttach_Deg6::Alloc);
      AddEntry("cGen2DBundleAttach_Deg7",cGen2DBundleAttach_Deg7::Alloc);
 
+     AddEntry("cGen2DBundleAtRot_Deg0",cGen2DBundleAtRot_Deg0::Alloc);
      AddEntry("cGen2DBundleAtRot_Deg1",cGen2DBundleAtRot_Deg1::Alloc);
      AddEntry("cGen2DBundleAtRot_Deg2",cGen2DBundleAtRot_Deg2::Alloc);
      AddEntry("cGen2DBundleAtRot_Deg3",cGen2DBundleAtRot_Deg3::Alloc);
