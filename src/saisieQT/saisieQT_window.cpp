@@ -581,6 +581,149 @@ void fillStringList(QStringList & actions, int appMode)
     }
 }
 
+#ifdef __DEBUG
+	class QT_node
+	{
+	public:
+		QWidget *mValue;
+		QT_node *mParent;
+		list<QT_node *> mChildren;
+
+		QT_node(QWidget *aValue):
+			mValue(aValue),
+			mParent(NULL)
+		{
+		}
+
+		void setParent(QT_node &aParent)
+		{
+			ELISE_DEBUG_ERROR(mParent != NULL, "QT_node::setParent", "mParent != NULL");
+			ELISE_DEBUG_ERROR(this == &aParent, "QT_node::setParent", "this == &aParent");
+
+			mParent = &aParent;
+			mParent->_addChild(*this);
+		}
+
+		bool isRoot() const { return mParent == NULL; }
+
+		size_t height() const
+		{
+			size_t result = 0;
+			list<QT_node *>::const_iterator it = mChildren.begin();
+			while (it != mChildren.end()) result = max<size_t>((**it++).height() + 1, result);
+			return result;
+		}
+
+		void printDescent(const string &aPrefix, ostream &aStream)
+		{
+		
+		}
+
+	private:
+		bool _addChild(QT_node &aChild)
+		{
+			QT_node * const child = &aChild;
+			list<QT_node *>::iterator it = mChildren.begin();
+			while (it != mChildren.end() && *it < child) it++;
+
+			if (it == mChildren.end() && *it != child)
+			{
+				mChildren.insert(it, child);
+				return true;
+			}
+			return false;
+		}
+	};
+
+	class QT_forest
+	{
+	public:
+		bool add(QWidget *aValue, QT_node **oAddedNode = NULL)
+		{
+			ELISE_DEBUG_ERROR(aValue == NULL, "QT_graph::add", "aValue == NULL");
+
+			list<QT_node>::iterator it = mNodes.begin();
+			while (it != mNodes.end() && it->mValue < aValue) it++;
+
+			bool result = false;
+			if (it == mNodes.end() || it->mValue != aValue)
+			{
+				it = mNodes.insert(it, QT_node(aValue));
+				result = true;
+			}
+
+			if (oAddedNode != NULL) *oAddedNode = &*it;
+			return result;
+		}
+
+		bool addLineage(QT_node &aNode)
+		{
+			bool result = false;
+			QT_node *node = &aNode, *parentNode = NULL;
+			while (node != NULL)
+			{
+				QWidget * const parent = node->mValue->parentWidget();
+				if (parent == NULL || !add(parent, &parentNode)) return result;
+				node->setParent(*parentNode);
+				node = parentNode;
+				result = true;
+			}
+			return result;
+		}
+
+		void addLineage(QWidget *aValue)
+		{
+			QT_node *node;
+			add(aValue, &node);
+			addLineage(*node);
+		}
+
+		size_t nbRoots() const
+		{
+			size_t result = 0;
+			list<QT_node>::const_iterator it = mNodes.begin();
+			while (it != mNodes.end())
+				if ((*it++).mParent == NULL) result++;
+			return result;
+		}
+
+		void print(const string &aPrefix, ostream &aStream)
+		{
+			//~ aStream << 
+		}
+
+		size_t maxHeight() const
+		{
+			size_t result = 0;
+			list<QT_node>::const_iterator it = mNodes.begin();
+			while (it != mNodes.end())
+			{
+				if (it->isRoot()) result = max<size_t>(result, it->height());
+				it++;
+			}
+			return result;
+		}
+
+		size_t minHeight() const
+		{
+			size_t result = numeric_limits<size_t>::max();
+			list<QT_node>::const_iterator it = mNodes.begin();
+			while (it != mNodes.end())
+			{
+				if (it->isRoot())
+				{
+					qt_out << "--- " << it->height() << endl;
+					result = min<size_t>(result, it->height());
+				}
+				it++;
+			}
+			return result;
+		}
+
+		list<QT_node> mNodes;
+	};
+#endif
+
 void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 {
     const QPoint global = qApp->desktop()->availableGeometry().center();
