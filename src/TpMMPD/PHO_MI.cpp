@@ -141,7 +141,9 @@ int PHO_MI_main(int argc,char ** argv)
     vector< Pt2dr > NewHomoFile;
     vector< Pt2dr > HomoImg1;
     vector< Pt2dr > HomoImg2;
-            
+    int w = 3; //size imagette
+    ElPackHomologue PairPoint1_2, PairPoint2_1, PairPoint1_3, PairPoint3_1, PairPoint3_2, PairPoint2_3;
+
              //read image 1 & 2 & 3
              std::string aNameIm1 = aSetImages[0];
              std::string aNameIm2 = aSetImages[1];
@@ -233,7 +235,26 @@ int PHO_MI_main(int argc,char ** argv)
                      }
 
                      else
-                     {//cout<<"P3 and triplet not good "<< " ++ "<<distP3Reprj<<" pxls"<<endl;
+                     {
+                         //cout<<"P3 and triplet not good "<< " ++ "<<distP3Reprj<<" pxls"<<endl;
+                     }
+                 }
+                 else
+                 {
+                     //case there is no triplet (no point homo b/w 2-3)
+                     //verify point P1 and P2 is a good couple by correlation
+                     cCorrelImage::setSzW(w);
+                     cCorrelImage Imgette1, Imgette2;
+                     Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+                     Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+                     //compute correlation b/w imagette P2 & P3
+                     double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
+                     if (corr1_2 > 0.9)
+                     {
+                         //P1 P2 is a good couple
+                        PairPoint1_2.Cple_Add( ElCplePtsHomologues(aP1,aP2) );
+                        PairPoint2_1.Cple_Add( ElCplePtsHomologues(aP2,aP1) );
+
                      }
                  }
              }
@@ -242,8 +263,6 @@ int PHO_MI_main(int argc,char ** argv)
       if (bStrategie == "2")
       {
            //for each point homo 1&2, find point P3 in cam3 by reprojection
-          int w = 3; //size imagette
-
           for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
           {
               //lire les point homo
@@ -350,7 +369,7 @@ int PHO_MI_main(int argc,char ** argv)
       std::string aNameH3_2d = aICNM->Assoc1To2(aKHOutDat, aNameIm3, aNameIm2, true);
       std::string aNameH3_1d = aICNM->Assoc1To2(aKHOutDat, aNameIm3, aNameIm1, true);
 
-      ElPackHomologue PairPoint1_2, PairPoint2_1, PairPoint1_3, PairPoint3_1, PairPoint3_2, PairPoint2_3;
+
       for (uint i=0; i<PtTripGood.size(); i++)
       {
           Pt2dr aP1 = PtTripGood[i].P1;
@@ -378,7 +397,7 @@ int PHO_MI_main(int argc,char ** argv)
       PairPoint3_2.StdPutInFile(aNameH3_2d);
       PairPoint2_3.StdPutInFile(aNameH2_3d);
 
-
+cout<<"use command SEL ./ img1 img2 KCpl=NKS-Assoc-CplIm2Hom@"<<aHomolOutput<< "@dat to view filtered point homomogues"<<endl;
 return EXIT_SUCCESS;
 }
 
