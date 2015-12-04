@@ -1675,6 +1675,8 @@ class cElXMLTree
             cElXMLTree * Get(const std::string & ,int aDepthMax=1000000);
             cElXMLTree * GetUnique(const std::string &,bool ByAttr=false );
             cElXMLTree * GetOneOrZero(const std::string & );
+	    const  std::list<cElXMLTree *>   & Fils() const;
+	    std::list<cElXMLTree *>   & Fils();
 
             cElXMLTree * GetUniqueFils();
 
@@ -1701,13 +1703,14 @@ class cElXMLTree
             ElCplePtsHomologues  GetCpleHomologues();
             ElPackHomologue      GetPackHomologues(const std::string & = "ListeCpleHom");
             const std::list<cElXMLAttr> & Attrs() const;
-            void  TopVerifMatch (cElXMLTree* aTSpecif,const std::string& aName);
-            void  TopVerifMatch 
+            bool  TopVerifMatch (cElXMLTree* aTSpecif,const std::string& aName,bool SVP=false);
+            bool  TopVerifMatch 
 	          (
 		       const std::string& aNameObj,
 		       cElXMLTree* aTSpecif,
 		       const std::string& aNameType,
-		       bool ByAttr=false
+		       bool ByAttr=false,
+		       bool SVP=false
 		  );
 
             void ModifLC(int argc,char ** argv,cElXMLTree * aSpecif);
@@ -1728,12 +1731,13 @@ class cElXMLTree
           const std::string & Contenu() const;
           std::string & NCContenu() ;
 	  bool  IsVide() const;
+           INT Profondeur () const;
 
 			// walk through the tree with a breadth-first strategy and execute i_functor on all nodes
 			void breadthFirstFunction( Functor &i_functor );
 
 	private :
-          void  VerifMatch (cElXMLTree* aTSpecif);
+          bool  VerifMatch (cElXMLTree* aTSpecifi,bool SVP=false);
           void GenOneCppNameSpace (FILE * aFileCpp,FILE* aFileH,std::string aDefaultNameSpace);
           void Verbatim(FILE * aFileCpp,FILE * aFileH);
 
@@ -1773,7 +1777,6 @@ class cElXMLTree
           const std::string & ValAttr(const std::string &,
                                       const std::string * Def) const;
            void GetAll(const std::string & ,std::list<cElXMLTree *> &,bool byAttr,int aDepthMax=1000000);
-           INT Profondeur () const;
 
 	   cElXMLTree
            (  bool DoFileFinclu,

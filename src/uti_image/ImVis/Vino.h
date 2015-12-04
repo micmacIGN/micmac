@@ -58,6 +58,8 @@ void PutFileText(Video_Win,const std::string &);
 
 void CorrectRect(Pt2di &  aP0,Pt2di &  aP1,const Pt2di & aSz);
 void FillStat(cXml_StatVino & aStat,Flux_Pts aFlux,Fonc_Num aFonc);
+bool TreeMatchSpecif(const std::string & aNameFile,const std::string & aNameSpecif,const std::string & aNameObj);
+
 
 
 

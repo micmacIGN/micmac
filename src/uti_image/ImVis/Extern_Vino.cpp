@@ -297,6 +297,91 @@ void PutFileText(Video_Win aW,const std::string & aName)
 }
 
 
+bool TreeMatchSpecif(const std::string & aNameFile,const std::string & aNameSpecif,const std::string & aNameObj)
+{
+    cElXMLTree aFullTreeParam(aNameFile);
+    cElXMLTree * aTreeParam = aFullTreeParam.GetUnique(aNameObj,false);
+    cElXMLTree aTreeSpec(StdGetFileXMLSpec(aNameSpecif));
+    return  aTreeParam->TopVerifMatch(&aTreeSpec,aNameObj,true);
+}
+
+class cWindowXmlEditor
+{
+     public :
+         cWindowXmlEditor(Video_Win aW);
+         Box2di  Draw(Pt2di ,cElXMLTree * aTree );
+     private :
+         Box2di  PrintTag(Pt2di aP0,cElXMLTree *,int aMode) ; // 0 => terminal, 1 ouvrant , 2 fermant
+
+         Video_Win    mW;
+         // std::vector<cElXMLTree *> mTrees;
+
+         Pt2di                     mPRab;
+         int                       mDecalX;
+};
+
+
+cWindowXmlEditor::cWindowXmlEditor
+(
+     Video_Win aW
+) :
+    mW  (aW),
+    mPRab  (Pt2di(12,8)),
+    mDecalX   (30)
+{
+}
+
+Box2di  cWindowXmlEditor::PrintTag(Pt2di aP0,cElXMLTree * aTree,int aMode) 
+{
+    std::string aTag =  ((aMode == -1) ? "</" : "<") + aTree->ValTag() + ((aMode==0) ? "/>" : ">");
+    Pt2di aSz = mW.SizeFixedString(aTag);
+    std::cout << aP0 << " " << aTree->ValTag()  <<  " " << aSz << "\n";
+    mW.fixed_string(Pt2dr(aP0)+Pt2dr(0,aSz.y), aTag.c_str(),mW.pdisc()(P8COL::black),true);
+    return Box2di (aP0-mPRab,aP0+aSz+ mPRab);
+
+}
+
+Box2di cWindowXmlEditor::Draw(Pt2di aP0,cElXMLTree * aTree)
+{
+     if (aTree->Profondeur() <= 1)
+     {
+          return PrintTag(aP0,aTree,0);
+     }
+
+     Box2di aRes = PrintTag(aP0,aTree,1);
+
+      for
+      (
+            std::list<cElXMLTree *>::iterator itF= aTree->Fils().begin();
+            itF != aTree->Fils().end();
+            itF++
+      )
+      {
+            
+           Box2di aBox = Draw(Pt2di(aP0.x+mDecalX,aRes._p1.y),*itF);
+           aRes = Sup(aRes,aBox);
+      }
+
+      
+     Box2di aBoxFerm = PrintTag(Pt2di(aP0.x,aRes._p1.y),aTree,1);
+
+     return Sup(aBoxFerm,aRes);
+}
+
+
+void TestXmlX11()
+{
+    Video_Win aW =  Video_Win::WStd(Pt2di(500,800),1.0);
+     
+    cElXMLTree aFullTreeParam("toto.xml");
+    aFullTreeParam.StdShow("tata.xml");
+    cWindowXmlEditor aWX(aW);
+  
+    aWX.Draw(Pt2di(50,50),&aFullTreeParam);
+    aW.clik_in();
+
+}
+
 
 #endif
 

@@ -947,9 +947,13 @@ void TestcFixedMergeStruct()
 }
 
 
+void TestXmlX11();
+
+
 int MPDtest_main (int argc,char** argv)
 {
-    TestcFixedMergeStruct();
+    TestXmlX11();
+    // TestcFixedMergeStruct();
     // TestFoncReelle(FX/100.0,"FXDiv100.tif",Pt2di(500,500));
 
    // TestFoncReelle(FY/10.0,"FYDiv10.tif");

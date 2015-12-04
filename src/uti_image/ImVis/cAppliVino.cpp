@@ -66,6 +66,8 @@ std::string  cAppli_Vino::CalculName(const std::string & aName,INT aZoom)
 
 extern Video_Win * TheWinAffRed ;
 
+// bool TreeMatchSpecif(const std::string & aNameFile,const std::string & aNameSpecif,const std::string & aNameObj);
+
 
 cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mSzIncr            (400,400),
@@ -83,7 +85,10 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     {
        mNameXmlOut =  DirOfFile(argv[1]) + "Tmp-MM-Dir/" + "EnvVino.xml";
        if (ELISE_fp::exist_file(mNameXmlOut))
-          mNameXmlIn = mNameXmlOut;
+       {
+          if (TreeMatchSpecif(mNameXmlOut,"ParamChantierPhotogram.xml","Xml_EnvVino"))
+              mNameXmlIn = mNameXmlOut;
+       }
     }
     EnvXml() = StdGetFromPCP(mNameXmlIn,Xml_EnvVino);
 
