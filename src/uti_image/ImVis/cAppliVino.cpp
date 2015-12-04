@@ -71,7 +71,12 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mSzIncr            (400,400),
     mNbPixMinFile      (2e6),
     mCurStats          (0),
-    mTabulDynIsInit    (false)
+    mTabulDynIsInit    (false),
+    mNbHistoMax        (20000),
+    mNbHisto           (mNbHistoMax),
+    mHisto             (mNbHistoMax),
+    mHistoLisse        (mNbHistoMax),
+    mHistoCum          (mNbHistoMax)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -128,6 +133,14 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     // MakeFileXML(EnvXml(),mNameXmlOut);
 
 
+    mNameHisto = mDir + "Tmp-MM-Dir/Histo" + mNameIm + ".tif";
+    if (ELISE_fp::exist_file(mNameHisto))
+    {
+        Tiff_Im aTH(mNameHisto.c_str());
+        mNbHisto = aTH.sz().x;
+        mHistoCum.Resize(mNbHisto);
+        ELISE_COPY(aTH.all_pts(),aTH.in(), mHistoCum.out().chc(FX));
+    }
 
     mNameIm = NameWithoutDir(mNameIm);
     mTiffIm = new Tiff_Im(Tiff_Im::StdConvGen(mDir+mNameIm,-1,true,false));

@@ -846,7 +846,7 @@ void cAppli_SaisiePts::AddOnePGInImage
         OkInIm = anI.PIMsValideVis(aP3d) ;
         if (OkInIm)
         {
-            cCapture3D * aCapt3D = anI.Capt3d();
+            cBasicGeomCap3D * aCapt3D = anI.Capt3d();
             if (aCapt3D)
             {
                 aPIm =  aCapt3D->Ter2Capteur(aP3d); //  : anI.PointArbitraire();

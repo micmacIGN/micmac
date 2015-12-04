@@ -51,6 +51,8 @@ void f()
 #include "StdAfx.h"
 #include "hassan/reechantillonnage.h"
 
+#include "../uti_phgrm/NewOri/NewOri.h"
+
 
 #if (ELISE_X11)
 
@@ -910,10 +912,45 @@ void TestFoncReelle(Fonc_Num aF,const std::string & aName,Pt2di aSz)
 }
 
 
+void TestcFixedMergeStruct()
+{
+    cFixedMergeStruct<3,Pt2dr>  aFMS;
+
+    aFMS.AddArc(Pt2dr(0,0),0,Pt2dr(1,1),1);
+    aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(2,2),0);
+    ///aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(0,0),0);
+
+    aFMS.DoExport();
+
+    const std::list<cFixedMergeTieP<3,Pt2dr> *> &  aLM = aFMS.ListMerged();
+ 
+    std::cout << "NB ITEM " << aLM.size() << "\n";
+
+    for
+    (
+        std::list<cFixedMergeTieP<3,Pt2dr> *>::const_iterator itM=aLM.begin();
+        itM != aLM.end();
+        itM++
+    )
+    {
+          std::cout << "NbS=" << (*itM)->NbSom() << " NbA=" << (*itM)->NbArc();
+          std::cout << " Init"  << (*itM)->IsInit(0) << (*itM)->IsInit(1) << (*itM)->IsInit(2) ;
+          std::cout << " "  << (*itM)->IsInit(0) << (*itM)->IsInit(1) << (*itM)->IsInit(2) ;
+          std::cout << " " << (*itM)->GetVal(0) ;
+
+             
+
+           std::cout << "\n";
+                
+    }
+    aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(2,2),0);
+}
+
 
 int MPDtest_main (int argc,char** argv)
 {
-    TestFoncReelle(FX/100.0,"FXDiv100.tif",Pt2di(500,500));
+    TestcFixedMergeStruct();
+    // TestFoncReelle(FX/100.0,"FXDiv100.tif",Pt2di(500,500));
 
    // TestFoncReelle(FY/10.0,"FYDiv10.tif");
 

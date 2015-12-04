@@ -130,8 +130,8 @@ class cImage
 
         void SetSPIM(cSaisiePointeIm * aSPIM);
         Tiff_Im &  Tif() const;
-        cCapture3D *       Capt3d();
-        ElCamera *         CaptCam();
+        cBasicGeomCap3D *       Capt3d();
+        ElCamera *         ElCaptCam();
         cElNuage3DMaille * CaptNuage();
         void AddAImPointe(cOneSaisie *,cSP_PointGlob *,bool FromFile);
         const std::string & Name() const;
@@ -167,9 +167,9 @@ class cImage
 
            std::string                               mName;
            mutable Tiff_Im *                         mTif;
-           cCapture3D *                              mCapt3d;
+           cBasicGeomCap3D *                         mCapt3d;
            // mCapt3d est l'un ou l'autre
-           ElCamera *                                mCaptCam;
+           ElCamera *                                mCaptElCam;
            cElNuage3DMaille *                        mCaptNuage;
            cSaisiePointeIm *                         mSPIm;
            std::map<std::string,cSP_PointeImage *>   mPointes; //map (nom point, pointe image)

@@ -283,6 +283,8 @@ int cFixedMergeTieP<TheNbPts,Type>::NbSom() const
 
 template class  cFixedMergeTieP<2,Pt2df>;
 template class  cFixedMergeTieP<3,Pt2df>;
+template class  cFixedMergeTieP<2,Pt2dr>;
+template class  cFixedMergeTieP<3,Pt2dr>;
 
 /**********************************************************************/
 /*                                                                    */
@@ -508,6 +510,7 @@ template class  cFixedMergeStruct<3,Pt2dr>;
 
 
 template class cGenTabByMapPtr<Pt2df, cFixedMergeTieP<2,Pt2df> >;
+template class cGenTabByMapPtr<Pt2df, cFixedMergeTieP<2,Pt2dr> >;
 
 
 /**********************************************************************************************/
