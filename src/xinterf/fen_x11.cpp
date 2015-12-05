@@ -1674,21 +1674,46 @@ Pt2di Video_Win::SizeFixedString(const std::string aStr)
    return devw()->InstSizeFixedString(aStr);
 }
 
+
+
+Pt2di Video_Win::fixed_string_middle(int aPos,const std::string &  name,Col_Pal aCol,bool draw_im)
+{
+   return fixed_string_middle(Box2di(Pt2di(0,0),sz()),aPos,name,aCol,draw_im);
+}
+
+Pt2di Video_Win::fixed_string_middle(const Box2di & aBox,int aPos,const std::string &  name,Col_Pal aCol,bool draw_im)
+{
+    Pt2di aLarg = SizeFixedString(name);
+    int anY = aBox._p0.y +  (aBox.sz().y + aLarg.y) / 2;
+    int aRab=ElAbs(aPos);
+
+    // int anY = (sz().y + aLarg.y) / 2;
+    int anX = 0;
+    if (aPos < 0)  anX=aRab;
+    else if (aPos > 0)  anX = aBox.sz().x - aLarg.x -aRab;
+    else  anX = (aBox.sz().x - aLarg.x) / 2;
+
+    anX += aBox._p0.x;
+
+    Pt2di aRes(anX,anY);
+    fixed_string(Pt2dr(aRes),name.c_str(),aCol,draw_im);
+
+    return aRes;
+}
+
+/*
+void Video_Win::fixed_string_middle(int anY,int aPos,const std::string &  name,Col_Pal aCol,bool draw_im)
+{
+}
+
+
 void Video_Win::fixed_string_middle(int aPos,const std::string &  name,Col_Pal aCol,bool draw_im)
 {
     Pt2di aLarg = SizeFixedString(name);
-    int aRab=ElAbs(aPos);
-
     int anY = (sz().y + aLarg.y) / 2;
-    int anX = 0;
-    if (aPos < 0)  anX=aRab;
-    else if (aPos > 0)  anX = sz().x - aLarg.x -aRab;
-    else  anX = (sz().x - aLarg.x) / 2;
-      
-
-    fixed_string(Pt2dr(anX,anY),name.c_str(),aCol,draw_im);
-
+    fixed_string_middle(anY,aPos,name,aCol,draw_im);
 }
+*/
 
 
 
