@@ -275,7 +275,7 @@ class Video_Win   :  public El_Window
 
 
 
-        std::string GetString(const Pt2dr & aP,Col_Pal aColDr,Col_Pal aColErase);
+        std::string GetString(const Pt2dr & aP,Col_Pal aColDr,Col_Pal aColErase,const std::string & aStr0="");
         Pt2di SizeFixedString(const std::string aStr);
         // Pos <0 => gauchen Pos >0 => droite , 0 middle
         Pt2di fixed_string_middle(const Box2di & aBox,int aPos,const std::string &  name, Col_Pal,bool draw_im = false);

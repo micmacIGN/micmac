@@ -372,7 +372,8 @@ class Data_Elise_Video_Win : public Data_Elise_Raster_W
                   (
                         const Pt2dr & aPt,
                         Data_Col_Pal *      colStr,
-                        Data_Col_Pal *      colEras
+                        Data_Col_Pal *      colEras,
+                        const std::string & aStr0
                   );
 
        Pt2di InstSizeFixedString(const std::string aStr);
@@ -1414,6 +1415,12 @@ Pt2dr Data_Elise_Video_Win::to_user_geom(Pt2dr p)
 
 #define X_RETOUR_CHARIOT 13
 #define X_ERASE 8
+#define X_Arrow_Recule_Deb 1  // Crt A
+#define X_Arrow_Recule 2  // Crt B
+#define X_Arrow_Avance 6  // Ctr F
+#define X_Arrow_Avance_Fin 5  // Ctr E
+
+
 
 Pt2di Data_Elise_Video_Win::InstSizeFixedString(const std::string aStr)
 {
@@ -1428,6 +1435,129 @@ Pt2di Data_Elise_Video_Win::InstSizeFixedString(const std::string aStr)
    return Pt2di(aXCS.rbearing - aXCS.lbearing ,aXCS.ascent + aXCS.descent);
 }
 
+
+int PopBackString(std::string & aStr)
+{
+     int aL = aStr.size();
+     if (aL)
+     {
+        int aRes = aStr[aL-1];
+        aStr = aStr.substr(0,aL-1); // pop_back en C++11
+        return aRes;
+     }
+
+     return 0;
+}
+int PopFrontString(std::string & aStr)
+{
+     int aL = aStr.size();
+     if (aL)
+     {
+        int aRes = aStr[0];
+        aStr = aStr.substr(1,std::string::npos); // pop_back en C++11
+        return aRes;
+     }
+
+     return 0;
+}
+
+std::string Data_Elise_Video_Win::InstGetString
+            (
+                 const Pt2dr & aPt, 
+                 Data_Col_Pal *      colStr,
+                 Data_Col_Pal *      colEras,
+                 const std::string & aStr0
+            )
+{
+   std::string aStrAv = aStr0;
+   std::string aStrApr;
+
+
+ //  XSelectInput(ecr->X11_ecran,fen->X11_fen,KeyPressMask);
+
+   bool cont = true;
+
+   XEvent event;
+   XFontStruct * aFont = _devd->SetFixedFonte();
+   set_col(colStr);
+   std::string aBar = "|";
+   int aLargBar = XTextWidth(aFont,aBar.c_str(),aBar.size());
+
+// XSelectInput(ecr->X11_ecran,fen->X11_fen,KeyPressMask);
+
+   while (cont)
+   {
+      std::string aMes = aStrAv + aStrApr + "  ";
+      set_col(colStr);
+      XDrawImageString (_devd->_disp,_w,_devd->_gc,aPt.x,aPt.y, aMes.c_str(),aMes.size());
+
+      int aLarg= ElMax(2,XTextWidth(aFont,aStrAv.c_str(),aStrAv.size()));
+      set_col(colEras);
+      XDrawString (_devd->_disp,_w,_devd->_gc,aPt.x+aLarg - aLargBar/2 ,aPt.y+2, aBar.c_str(),aBar.size());
+      XDrawString (_devd->_disp,_w,_devd->_gc,aPt.x+aLarg - aLargBar/2 ,aPt.y-2, aBar.c_str(),aBar.size());
+      char mes[4];
+
+       while (!  XCheckMaskEvent(_devd->_disp,KeyPressMask,&event)) ;
+       int nb = XLookupString(&(event.xkey),mes,2,(KeySym *)NULL,(XComposeStatus *)NULL);
+
+
+       if (nb)
+       {
+           if (mes[0] == X_RETOUR_CHARIOT)
+               cont = false;
+            else if (mes[0] == X_ERASE)
+            {
+               PopBackString(aStrAv);
+            }
+            else if (mes[0] == X_Arrow_Recule)
+            {
+                int aC = PopBackString(aStrAv);
+                if (aC)
+                   aStrApr = char(aC) + aStrApr;
+            }
+            else if (mes[0] == X_Arrow_Avance)
+            {
+                int aC = PopFrontString(aStrApr);
+                if (aC)
+                   aStrAv =  aStrAv + char(aC);
+            }
+            else if (mes[0] == X_Arrow_Recule_Deb)
+            {
+                 aStrApr = aStrAv + aStrApr;
+                 aStrAv = "";
+            }
+            else if (mes[0] == X_Arrow_Avance_Fin)
+            {
+                 aStrAv = aStrAv + aStrApr;
+                 aStrApr = "";
+            }
+            else
+            {
+                if (isprint(mes[0]))
+                   aStrAv += mes[0];
+                else
+                   std::cout << "Non printable caracter " << int(mes[0]) << "\n";
+            }
+
+/*
+
+            std::string aMes = aStrAv + aStrApr + "  ";
+            set_col(colStr);
+            XDrawImageString (_devd->_disp,_w,_devd->_gc,aPt.x,aPt.y, aMes.c_str(),aMes.size());
+
+            int aLarg= ElMax(2,XTextWidth(aFont,aStrAv.c_str(),aStrAv.size()));
+            set_col(colEras);
+            XDrawString (_devd->_disp,_w,_devd->_gc,aPt.x+aLarg - aLargBar/2 ,aPt.y+2, aBar.c_str(),aBar.size());
+            XDrawString (_devd->_disp,_w,_devd->_gc,aPt.x+aLarg - aLargBar/2 ,aPt.y-2, aBar.c_str(),aBar.size());
+*/
+       }
+
+   }
+   return  aStrAv + aStrApr;
+}
+
+
+/*
 std::string Data_Elise_Video_Win::InstGetString
             (
                  const Pt2dr & aPt, 
@@ -1490,11 +1620,13 @@ std::string Data_Elise_Video_Win::InstGetString
        }
 
    }
-
    aRes.push_back(0);
-
    return std::string(&(aRes[0]));
 }
+*/
+
+
+
 
 void  Data_Elise_Video_Win::_inst_fixed_string(Pt2dr pt,const char * name,bool draw_image)
 {
@@ -1664,9 +1796,9 @@ Clik  Video_Win::clik_in()
       return devw()->_devd->clik(ThisW,true,OK,true);
 }
 
-std::string Video_Win::GetString(const Pt2dr & aPt,Col_Pal aColDr,Col_Pal aColErase)
+std::string Video_Win::GetString(const Pt2dr & aPt,Col_Pal aColDr,Col_Pal aColErase,const std::string & aStr0)
 {
-   return devw()->InstGetString(U2W(aPt),aColDr.dcp(),aColErase.dcp());
+   return devw()->InstGetString(U2W(aPt),aColDr.dcp(),aColErase.dcp(),aStr0);
 }
 
 Pt2di Video_Win::SizeFixedString(const std::string aStr)
@@ -1700,21 +1832,6 @@ Pt2di Video_Win::fixed_string_middle(const Box2di & aBox,int aPos,const std::str
 
     return aRes;
 }
-
-/*
-void Video_Win::fixed_string_middle(int anY,int aPos,const std::string &  name,Col_Pal aCol,bool draw_im)
-{
-}
-
-
-void Video_Win::fixed_string_middle(int aPos,const std::string &  name,Col_Pal aCol,bool draw_im)
-{
-    Pt2di aLarg = SizeFixedString(name);
-    int anY = (sz().y + aLarg.y) / 2;
-    fixed_string_middle(anY,aPos,name,aCol,draw_im);
-}
-*/
-
 
 
 
