@@ -335,6 +335,13 @@ void El_Window::draw_circle_abs(Pt2dr p1,REAL radius,Line_St lst)
 
 void El_Window::fixed_string(Pt2dr pt,const char * name,Col_Pal col,bool draw_image)
 {
+/*
+     if (name[0] == 0)
+     {
+            std::cout << "NOTRTTT  El_Window::fixed_string " << "\n";
+            return;
+     }
+*/
      degeow()->fixed_string(pt,name,col.dcp(),draw_image);
 }
 
