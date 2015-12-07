@@ -92,7 +92,7 @@ void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
 }
 
 
-void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameManipulateur * aICNM, string aHomolOutput)
+void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameManipulateur * aICNM, string aHomolOutput, string aOriInput)
 {
     std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
                         +  std::string(aHomolOutput)
@@ -104,37 +104,111 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
                         +  std::string("@")
                         +  std::string("dat");
 
+    int w = 3;
     for (uint i=0; i<aPairImg.size(); i++)
     {
+
         if(i != aPairImg.size()-1)
         {
             cout<<"Cpl = "<<aPairImg[i].ImgA << " "<<aPairImg[i].ImgB<<endl;
 
+            //read image 1 & 2 & 3
+            std::string aNameIm1 = aPairImg[i].ImgA;
+            std::string aNameIm2 = aPairImg[i].ImgB;
+            std::string aNameIm3 = aPairImg[i+1].ImgB;
+            Tiff_Im mTiffImg1(aNameIm1.c_str());
+            Im2D<U_INT1,INT4> mImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);
+            ELISE_COPY(
+                        mTiffImg1.all_pts(),
+                        mTiffImg1.in(),
+                        mImg1.out()
+                      );
+            Tiff_Im mTiffImg2(aNameIm2.c_str());
+            Im2D<U_INT1,INT4> mImg2(mTiffImg2.sz().x,mTiffImg2.sz().y);
+            ELISE_COPY(
+                        mTiffImg2.all_pts(),
+                        mTiffImg2.in(),
+                        mImg2.out()
+                      );
+            Tiff_Im mTiffImg3(aNameIm3.c_str());
+            Im2D<U_INT1,INT4> mImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
+            ELISE_COPY(
+                        mTiffImg3.all_pts(),
+                        mTiffImg3.in(),
+                        mImg3.out()
+                     );
+
+            //get orientation information of 3 cameras
+            std::string aNameOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aPairImg[i].ImgA,true);
+            std::string aNameOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aPairImg[i].ImgB,true);
+            std::string aNameOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aPairImg[i+1].ImgB,true);
+            CamStenope * aCam1 = CamOrientGenFromFile(aNameOri1 , aICNM);
+            CamStenope * aCam2 = CamOrientGenFromFile(aNameOri2 , aICNM);
+            CamStenope * aCam3 = CamOrientGenFromFile(aNameOri3 , aICNM);
+
             ElPackHomologue aPackIn1_2 = aPairImg[i].HomoA_B;
             ElPackHomologue aPackIn2_3 = aPairImg[i+1].HomoA_B;
             cFixedMergeStruct<3,Pt2dr>  aFMS;
-            //creat name of homomogue file
-            ElPackHomologue Pair1_2, Pair2_3;
+            //creat name of homomogue file dans 2 sens
+            ElPackHomologue Pair1_2, Pair2_3, Pair1_2i, Pair2_3i;
             std::string NameHomolPair1 = aICNM->Assoc1To2(aKHOut, aPairImg[i].ImgA, aPairImg[i].ImgB, true);
             std::string NameHomolDatPair1 = aICNM->Assoc1To2(aKHOutDat, aPairImg[i].ImgA, aPairImg[i].ImgB, true);
+            std::string NameHomolDatPair1i = aICNM->Assoc1To2(aKHOutDat, aPairImg[i].ImgB, aPairImg[i].ImgA, true);
+
             std::string NameHomolPair2 = aICNM->Assoc1To2(aKHOut, aPairImg[i+1].ImgA, aPairImg[i+1].ImgB, true);
             std::string NameHomolDatPair2 = aICNM->Assoc1To2(aKHOutDat, aPairImg[i+1].ImgA, aPairImg[i+1].ImgB, true);
+            std::string NameHomolDatPair2i = aICNM->Assoc1To2(aKHOutDat, aPairImg[i+1].ImgB, aPairImg[i+1].ImgA, true);
 
+            double countTripletv = 0;
+            double countDoubletv = 0;
             for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
             {
+
+                //lire les point homo
                 Pt2dr aP1 = itP->P1();  //Point img1
                 Pt2dr aP2 = itP->P2();  //Point img2
-                //add couple P1 P2 to mergeStruct
-                aFMS.AddArc(aP1, 0, aP2, 1);
+                double d;
                 //search for point trilet P2 in fime homo 2_3
                 const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
                 double distP2 = sqrt(pow((aTriplet2_3->P1().x - aP2.x),2) + pow((aTriplet2_3->P1().y - aP2.y),2));
                 if (distP2 < 2)
+                {//condition 1 to form a triplet P1 P2 P3
+                    Pt3dr PInter1_2= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
+                    Pt2dr PReproj3 = aCam3->ElCamera::R3toF2(PInter1_2);					//use point 3d to search Point img3
+                    double distP3Reprj = sqrt(pow((aTriplet2_3->P2().x - PReproj3.x),2) + pow((aTriplet2_3->P2().y - PReproj3.y),2));
+                        if (distP3Reprj < 2)
+                        {   //condition 2
+                            //add P1 P2 P3 to merge struct
+                            countTripletv++;
+                            aFMS.AddArc(aP1, 0, aP2, 1);
+                            aFMS.AddArc(aP2, 1, aTriplet2_3->P2(), 2);
+                        }
+
+                        else
+                        {
+                            //cout<<"P3 and triplet not good "<< " ++ "<<distP3Reprj<<" pxls"<<endl;
+                        }
+                }
+                else
                 {
-                    //add couple P2 P3 to mergeStruct
-                    aFMS.AddArc(aP2, 1, aTriplet2_3->P2(), 2);
+                    //case there is couple P1 P2
+                    //verify point P1 and P2 is a good couple by correlation
+                    cCorrelImage::setSzW(w);
+                    cCorrelImage Imgette1, Imgette2;
+                    Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+                    Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+                    //compute correlation b/w imagette P2 & P3
+                    double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
+                    if (corr1_2 > 0.9)
+                    {
+                        //P1 P2 is a good couple
+                        //add P1 P2 to merge struct
+                        countDoubletv++;
+                        aFMS.AddArc(aP1, 0, aP2, 1);
+                    }
                 }
             }
+            std::cout << "NB ITEM Tripletv = " << countTripletv << " - Doubletv = "<< countDoubletv <<endl<<endl;
             aFMS.DoExport();
             const std::list<cFixedMergeTieP<3,Pt2dr> *> &  aLM = aFMS.ListMerged();
             std::cout << "NB ITEM INTEREST = " << aLM.size() << " /NB Pt Homo = "<<aPackIn1_2.size()<<endl;
@@ -153,20 +227,29 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
                     countTriplet++;
                     Pair1_2.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(0), (*itM)->GetVal(1) ));
                     Pair2_3.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(1), (*itM)->GetVal(2) ));
+                    Pair1_2i.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(1) , (*itM)->GetVal(0) ));
+                    Pair2_3i.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(2) , (*itM)->GetVal(1) ));
+
                     Pair1_2.StdPutInFile(NameHomolPair1);
                     Pair1_2.StdPutInFile(NameHomolDatPair1);
+                    Pair1_2i.StdPutInFile(NameHomolDatPair1i);
+
                     Pair2_3.StdPutInFile(NameHomolPair2);
                     Pair2_3.StdPutInFile(NameHomolDatPair2);
+                    Pair2_3i.StdPutInFile(NameHomolDatPair2i);
                 }
                 if ( (*itM)->NbArc() == 1 )
                 { //Point double
                     countDoublet++;
                 }
             }
-            std::cout << "NB ITEM Triplet = " << countTriplet << " - Doublet = "<< countDoublet <<endl;
+            std::cout << "NB ITEM Triplet = " << countTriplet << " - Doublet = "<< countDoublet <<endl<<endl;
         }
+
+
     }
 }
+
 
 
 int PHO_MI_main(int argc,char ** argv)
@@ -210,6 +293,16 @@ int PHO_MI_main(int argc,char ** argv)
     ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
  //============================================================
     std::string anExt = ExpTxt ? "txt" : "dat";
+
+    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                        +  std::string("txt");
+
+    std::string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                        +  std::string("dat");
 
     std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aNameHomol)
@@ -503,7 +596,7 @@ int PHO_MI_main(int argc,char ** argv)
           }
 
           //find triplet and couple, then creat new Homol file
-          TestcFixedMergeStruct_G(aPairImg, aICNM, aHomolOutput);
+          TestcFixedMergeStruct_G(aPairImg, aICNM, aHomolOutput, aOriInput);
       }
     //======================================================================================//
 
