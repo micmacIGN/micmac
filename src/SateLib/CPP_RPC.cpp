@@ -1255,11 +1255,20 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 			//Norming aLOS
 			aLOS = aLOS / sqrt(aLOS.x*aLOS.x + aLOS.y*aLOS.y + aLOS.z*aLOS.z);
 
+			//Normal vector to elispoid at the point (normed earth center->ASTERPtsECEF vector):
+			Pt3dr aSurfNormV = ASTERPtsECEF[i] / sqrt(ASTERPtsECEF[i].x*ASTERPtsECEF[i].x + ASTERPtsECEF[i].y*ASTERPtsECEF[i].y + ASTERPtsECEF[i].z*ASTERPtsECEF[i].z);
+
+			//Angle between LOS and normal to elipsoid
+			double aAngleIntersect = acos(aLOS.x*aSurfNormV.x + aLOS.y*aSurfNormV.y + aLOS.z*aSurfNormV.z);
+			//cout << "aAngleIntersect = " << aAngleIntersect*180/M_PI << endl;
+
 			//for each layer of grid
 			for (u_int height = aHMin; height <= aHMax; height = height + (aHMax-aHMin)/(nbLayers-1))
 			{
-				//ECEF coord points are computed
-				Pt3dr aPtECEF = ASTERPtsECEF[i] + aLOS*height;
+								
+
+				//ECEF coord points are computed (aAngleIntersect so levels of grids are approximatelly at the same ellipsoid heights, even with very angled LOS)
+				Pt3dr aPtECEF = ASTERPtsECEF[i] + aLOS*height/cos(aAngleIntersect);
 
 				//Coordinates are transformed from ECEF to geodetic
 
@@ -1304,6 +1313,7 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 				//Latitude rad to degrees
 				aPtGeo.y = aPtGeo.y * 180 / M_PI;
 
+				//cout << "Grid point : " << aPtGeo<<endl;
 				aVectPtsGeo.push_back(aPtGeo);
 
 				/* OLD
