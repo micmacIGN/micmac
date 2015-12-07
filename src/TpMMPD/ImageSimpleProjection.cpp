@@ -107,6 +107,7 @@ class cISR_Ima
        void InitMemImProj();
 	   void InitGeom();
 	   void GenTFW();
+       void ComputeHomographie();
        void CalculImProj();
        Pt2di SzUV(){return mSzIm;}
        Pt2di SzXY(){return mSzImRect;}
@@ -404,6 +405,37 @@ void cISR_Ima::InitMemImProj()
 	mSzImRect = Pt2di(SzX,SzY);
 }
 
+void cISR_Ima::ComputeHomographie()
+{
+
+	if (mAlti==0) mAlti=static_cast<int>(mCam->GetProfondeur());
+	Pt3dr OC=mCam->PseudoOpticalCenter();
+	mZTerrain=static_cast<int>(OC.z-mAlti);
+	Pt3dr P1;
+	Pt3dr P2;
+	Pt3dr P3;
+	Pt3dr P4;
+	// project the 4 corners of the camera, ground surface assumed to be a plane
+	mCam->CoinsProjZ(P1, P2, P3, P4, mZTerrain);
+	
+	ElCplePtsHomologues coin1(Pt2dr (0.f,0.f),Pt2dr (P1.x,P1.y)); // y mettre des points 2 d évidemment
+	ElCplePtsHomologues coin2(Pt2dr (mCam->Sz().x,0.f),Pt2dr (P2.x,P2.y));
+	ElCplePtsHomologues coin3(Pt2dr (0.f,mCam->Sz().y),Pt2dr (P3.x,P3.y));
+	ElCplePtsHomologues coin4(Pt2dr (mCam->Sz().x,mCam->Sz().y),Pt2dr (P4.x,P4.y));
+
+	ElPackHomologue  aPackHomImTer;
+	aPackHomImTer.Cple_Add(coin1);
+	aPackHomImTer.Cple_Add(coin2);
+	aPackHomImTer.Cple_Add(coin3);
+	aPackHomImTer.Cple_Add(coin4);
+	
+	// définir l'homographie
+	cElHomographie H(aPackHomImTer,true);
+	//H = cElHomographie::RobustInit(qual,aPackHomImTer,bool Ok(1),1, 1.0,4);
+
+	//Pt2dr Pt = H.Direct(Pt2dr (1.f,100.f));
+	// std::cout << "Pt 2 dim, reel  " << Pt  << " \n"; // ça a l'air de tenir la route. reste plus qu'a mettre ça en place.
+}
 
 /********************************************************************/
 /*                                                                  */
@@ -474,6 +506,7 @@ void cISR_Appli::InitGeomTerrain()
         cISR_Ima * anIm = mIms[aKIm];
 		// Define the ground footprint of each georectified images
         anIm->InitMemImProj() ;
+	anIm->ComputeHomographie();
     }
 }
 
