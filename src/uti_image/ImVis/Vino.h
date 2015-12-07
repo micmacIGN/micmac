@@ -47,6 +47,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define TheNbMaxChan  10
 
 
+   //======================== A externaliser  ====================
+
 std::string StrNbChifSignNotSimple(double aVal,int aNbCh);
 std::string StrNbChifSign(double aVal,int aNbCh);
 std::string SimplString(std::string aStr);
@@ -59,6 +61,101 @@ void PutFileText(Video_Win,const std::string &);
 void CorrectRect(Pt2di &  aP0,Pt2di &  aP1,const Pt2di & aSz);
 void FillStat(cXml_StatVino & aStat,Flux_Pts aFlux,Fonc_Num aFonc);
 bool TreeMatchSpecif(const std::string & aNameFile,const std::string & aNameSpecif,const std::string & aNameObj);
+
+
+
+class cCaseX11Xml
+{
+    public :
+       void Efface();
+       void Efface(int aCoul);
+       void Efface(Col_Pal aCoul);
+       static cCaseX11Xml * Alloc(Video_Win aW,Box2di aBox,int aCoul);
+       void string(int aPos,const std::string & );
+       bool Inside(const Pt2di &) const;
+       static int  GetCase(const std::vector<cCaseX11Xml *> &,const Pt2di &);
+       Pt2di P0Line() ;
+       Clik clik_in();
+    private :
+       cCaseX11Xml(Video_Win aW,Box2di aBox,int aCoul);
+       Video_Win mW;
+       Box2di    mBox;
+       int       mCoul;
+};
+
+
+
+class cWXXInfoCase
+{
+    public :
+        cWXXInfoCase(cElXMLTree * aTree,cElXMLTree * aFilter);
+
+        cElXMLTree  * mTree;
+        cElXMLTree  * mFilter;
+        bool          mModified;
+};
+
+
+class cWXXTreeSelector
+{
+    public :
+       virtual bool SelectTree(cElXMLTree *);
+};
+
+class cWindowXmlEditor
+{
+     public :
+         cWindowXmlEditor(Video_Win aW,bool aXmlMode,cElXMLTree * aTree,cWXXTreeSelector * aSelector,cElXMLTree * aFilter=0);
+         Box2di  TopDraw();
+         void Interact();
+     private :
+
+
+         void ShowQuit();
+         void ShowWarn(const std::string& aMes1, const std::string& aMes2);
+
+         int  EndXOfLevel(int aLevel);
+         Box2di  PrintTag(Pt2di aP0,cElXMLTree *,int aMode,int aLev,cElXMLTree * aFilter) ; // 0 => terminal, 1 ouvrant , 2 fermant
+         Box2di  Draw(Pt2di ,cElXMLTree * aTree ,int aLev,cElXMLTree * aFilter);
+         void ModifyCase(cCaseX11Xml * aCase,int aK);
+
+         bool                      mFirstDraw;
+         Video_Win                 mW;
+         bool                      mXmlMode;
+         cElXMLTree *              mTreeGlob;
+         cWXXTreeSelector *        mSelector;
+         cElXMLTree *              mFilterGlob;
+         // std::vector<cElXMLTree *> mTrees;
+
+         Pt2di                     mPRab;
+         std::vector<cCaseX11Xml*> mVCase;
+         std::vector<cWXXInfoCase> mVInfoCase;
+         cCaseX11Xml *             mCaseQuit;
+         cCaseX11Xml *             mCaseWarn;
+         int                       mGrayFond;
+         int                       mGrayTag;
+         int                       mSpaceTag;
+         int                       mDecalX;
+         bool                      mModeCreate;
+};
+
+
+
+
+
+   //======================== Specif Vino ====================
+
+
+class cWXXVinoSelector : public cWXXTreeSelector
+{
+     public  :
+           cWXXVinoSelector(const std::string & aName);
+           bool SelectTree(cElXMLTree *);
+     private :
+          std::string mName;
+};
+
+
 
 
 

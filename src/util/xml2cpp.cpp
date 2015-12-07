@@ -1222,6 +1222,9 @@ void cElXMLTree::GenAccessor
 }
 
 #define aSzBuf  4000
+bool GenereErrorOnXmlInit=true;
+bool GotErrorOnXmlInit=false;
+
 static char aBuf[aSzBuf];
 
 void xml_init(std::string    & aStr,cElXMLTree * aTree)
@@ -1285,7 +1288,7 @@ void FuckQTReadFloat()
 
 void xml_init(double         & aVal,cElXMLTree * aTree)
 {
-    FuckQTReadFloat();
+   FuckQTReadFloat();
 
    int aNb = sscanf(aTree->Contenu().c_str(),"%lf %s",&aVal,aBuf);
    if (aNb!=1)
@@ -1295,24 +1298,40 @@ void xml_init(double         & aVal,cElXMLTree * aTree)
    }
    if (aNb!=1)
    {
-      std::cout << "TAG = "<< aTree->ValTag()
+      GotErrorOnXmlInit = true;
+      if (GenereErrorOnXmlInit)
+      {
+          std::cout << "TAG = "<< aTree->ValTag()
                 <<  " Nb= " << aNb 
                  << " Contenu=[" << aTree->Contenu() << "]"
                 <<"\n";
-      ELISE_ASSERT(false,"Bad Nb Value in xml_init (double)");
+          ELISE_ASSERT(false,"Bad Nb Value in xml_init (double)");
+      }
+    }
+    else
+    {
+       GotErrorOnXmlInit = false;
     }
 }
 
-void xml_init(int            & aVal,cElXMLTree * aTree)
+void xml_init(int    & aVal,cElXMLTree * aTree)
 {
    int aNb = sscanf(aTree->Contenu().c_str(),"%d %s",&aVal,aBuf);
    if (aNb!=1)
    {
-      std::cout << "TAG = "<< aTree->ValTag()
+      GotErrorOnXmlInit = true;
+      if (GenereErrorOnXmlInit)
+      {
+           std::cout << "TAG = "<< aTree->ValTag()
                 <<  " Nb= " << aNb 
                  << " Contenu=[" << aTree->Contenu() << "]"
                 <<"\n";
-     ELISE_ASSERT(aNb==1,"Bad Nb Value in xml_init (int)");
+          ELISE_ASSERT(aNb==1,"Bad Nb Value in xml_init (int)");
+      }
+   }
+   else
+   {
+       GotErrorOnXmlInit = false;
    }
 }
 void xml_init(Box2dr & aVal,cElXMLTree * aTree)
@@ -1378,11 +1397,19 @@ void xml_init(Pt2dr & aP,cElXMLTree * aTree)
 
    if (aNb!=2)
    {
-      std::cout << "xml_init(Pt2dr..),"
+      GotErrorOnXmlInit = true;
+      if (GenereErrorOnXmlInit)
+      {
+          std::cout << "xml_init(Pt2dr..),"
                 << " TAG=" <<  aTree->ValTag()
                 << " Arg=" <<  aTree->Contenu()
 		<< "\n";
-      ELISE_ASSERT(aNb==2,"Bad Nb Value in xml_init (double)");
+          ELISE_ASSERT(aNb==2,"Bad Nb Value in xml_init (double)");
+      }
+   }
+   else
+   {
+      GotErrorOnXmlInit = false;
    }
 }
 
@@ -1391,8 +1418,16 @@ void xml_init(Pt2di & aP,cElXMLTree * aTree)
    int aNb = sscanf(aTree->Contenu().c_str(),"%d %d %s",&aP.x,&aP.y,aBuf);
    if (aNb!=2)
    {
-       std::cout << "CONTENU = " << aTree->Contenu().c_str() << "\n";
-       ELISE_ASSERT(false,"Bad Nb Value in xml_init (double)");
+       GotErrorOnXmlInit = true;
+       if (GenereErrorOnXmlInit)
+       {
+          std::cout << "CONTENU = " << aTree->Contenu().c_str() << "\n";
+          ELISE_ASSERT(false,"Bad Nb Value in xml_init (double)");
+       }
+   }
+   else
+   {
+      GotErrorOnXmlInit = false;
    }
 }
 

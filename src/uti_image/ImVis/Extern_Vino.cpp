@@ -314,22 +314,6 @@ bool TreeMatchSpecif(const std::string & aNameFile,const std::string & aNameSpec
 
      // ============== cCaseX11Xml =======================================
 
-class cCaseX11Xml
-{
-    public :
-       void Efface();
-       void Efface(int aCoul);
-       static cCaseX11Xml * Alloc(Video_Win aW,Box2di aBox,int aCoul);
-       void string(int aPos,const std::string & );
-       bool Inside(const Pt2di &) const;
-       static int  GetCase(const std::vector<cCaseX11Xml *> &,const Pt2di &);
-       Pt2di P0Line() ;
-    private :
-       cCaseX11Xml(Video_Win aW,Box2di aBox,int aCoul);
-       Video_Win mW;
-       Box2di    mBox;
-       int       mCoul;
-};
 
 void cCaseX11Xml::string(int aPos,const std::string & aName)
 {
@@ -338,15 +322,17 @@ void cCaseX11Xml::string(int aPos,const std::string & aName)
 
 Pt2di cCaseX11Xml::P0Line() 
 {
-   // return mW.fixed_string_middle(mBox,-1,"t",mW.pdisc()(P8COL::black),true);
-
    return Pt2di (mBox._p0.x+2,mBox._p1.y-3);
 }
 
+void cCaseX11Xml::Efface(Col_Pal aCoul)
+{
+      mW.fill_rect(Pt2dr(mBox._p0),Pt2dr(mBox._p1),aCoul);
+}
 void cCaseX11Xml::Efface(int aCoul)
 {
    if (aCoul >=0)
-      mW.fill_rect(Pt2dr(mBox._p0),Pt2dr(mBox._p1),mW.pdisc()(aCoul));
+      Efface(mW.pdisc()(aCoul));
 }
 void cCaseX11Xml::Efface() {Efface(mCoul);}
 
@@ -360,7 +346,7 @@ cCaseX11Xml::cCaseX11Xml(Video_Win aW,Box2di aBox,int aCoul) :
     mBox  (aBox),
     mCoul (aCoul)
 {
-    Efface();
+    // Efface();
 }
 bool cCaseX11Xml::Inside(const Pt2di & aP) const { return mBox.inside(aP); }
 
@@ -376,43 +362,26 @@ int  cCaseX11Xml::GetCase(const std::vector<cCaseX11Xml *> & aVC,const Pt2di & a
 }
 
 
+Clik  cCaseX11Xml::clik_in()
+{
+   while (1)
+   {
+      Clik aClk = mW.clik_in();
+      if (Inside(Pt2di(aClk._pt)))
+         return aClk;
+   }
+   return mW.clik_in();
+}
 
      // ============== cWindowXmlEditor =======================================
-
-class cWXXInfoCase
-{
-    public :
-        cWXXInfoCase(cElXMLTree * aTree);
-
-        cElXMLTree  * mTree;
-        bool          mModified;
-};
-
-
-class cWXXTreeSelector
-{
-    public :
-       virtual bool SelectTree(cElXMLTree *);
-};
-
-
-
-class cWXXVinoSelector : public cWXXTreeSelector
-{
-     public  :
-           cWXXVinoSelector(const std::string & aName);
-           bool SelectTree(cElXMLTree *);
-     private :
-          std::string mName;
-};
-
 
 
          //=================================================
 
-cWXXInfoCase::cWXXInfoCase(cElXMLTree * aTree) :
-   mTree (aTree),
-   mModified (false)
+cWXXInfoCase::cWXXInfoCase(cElXMLTree * aTree,cElXMLTree * aFilter) :
+   mTree      (aTree  ),
+   mFilter    (aFilter),
+   mModified  (false  )
 {
 }
 
@@ -434,61 +403,97 @@ bool  cWXXVinoSelector::SelectTree(cElXMLTree * aTree)
 
          //=================================================
 
-class cWindowXmlEditor
-{
-     public :
-         cWindowXmlEditor(Video_Win aW,bool aXmlMode);
-         Box2di  TopDraw(cElXMLTree * aTree,cWXXTreeSelector & aSelector,cElXMLTree * aFilter=0);
-         void Interact();
-     private :
-         int  EndXOfLevel(int aLevel);
-         Box2di  PrintTag(Pt2di aP0,cElXMLTree *,int aMode,int aLev) ; // 0 => terminal, 1 ouvrant , 2 fermant
-         Box2di  Draw(Pt2di ,cElXMLTree * aTree ,int aLev,cWXXTreeSelector & aSelector,cElXMLTree * aFilter);
-         void ModifyCase(cCaseX11Xml * aCase,int aK);
-
-         Video_Win    mW;
-         bool                      mXmlMode;
-         // std::vector<cElXMLTree *> mTrees;
-
-         Pt2di                     mPRab;
-         std::vector<cCaseX11Xml*> mVCase;
-         std::vector<cWXXInfoCase> mVInfoCase;
-         cCaseX11Xml *             mCaseQuit;
-         int                       mGrayFond;
-         int                       mGrayTag;
-         int                       mSpaceTag;
-         int                       mDecalX;
-         
-};
-
-
 cWindowXmlEditor::cWindowXmlEditor
 (
      Video_Win aW,
-     bool      aXmlMode
+     bool      aXmlMode,
+     cElXMLTree * aTree,
+     cWXXTreeSelector * aSelector,
+     cElXMLTree * aFilter 
 ) :
-    mW  (aW),
-    mXmlMode  (aXmlMode),
-    mPRab  (Pt2di(12,12)),
-    mCaseQuit (0),
-    mGrayFond (mXmlMode ?196 : 128),
-    mGrayTag  (mXmlMode ?230 : 230),
-    mSpaceTag    (mXmlMode?7:0),
-    mDecalX   (mXmlMode? 30 : 0)
+    mFirstDraw    (true),
+    mW            (aW),
+    mXmlMode      (aXmlMode),
+    mTreeGlob     (aTree),
+    mSelector     (aSelector),
+    mFilterGlob   (aFilter),
+    mPRab         (Pt2di(12,12)),
+    mCaseQuit     (0),
+    mCaseWarn     (0),
+    mGrayFond     (mXmlMode ?196 : 128),
+    mGrayTag      (mXmlMode ?230 : 230),
+    mSpaceTag     (mXmlMode?7:0),
+    mDecalX       (mXmlMode? 30 : 0)
 {
 }
 
 
+extern bool GenereErrorOnXmlInit;
+extern bool GotErrorOnXmlInit;
+
 void cWindowXmlEditor::ModifyCase(cCaseX11Xml * aCase,int aKC)
 {
+
    aCase->Efface(P8COL::green);
    cWXXInfoCase & anIC = mVInfoCase[aKC];
    std::string & aStr0 = anIC.mTree->GetUniqueVal();
+   std::string  aStrInit = aStr0;
 
    aStr0 = mW.GetString(Pt2dr(aCase->P0Line()),mW.pdisc()(P8COL::black),mW.pdisc()(P8COL::red),aStr0);
+   bool Ok = true;
+   cElXMLTree * aFilter = anIC.mFilter;
+
+
+   {
+       if ((aFilter!=0) &&  aFilter->HasAttr("Type"))
+       {
+           bool CurrErrorOnXmlInit = GenereErrorOnXmlInit;
+           GenereErrorOnXmlInit = false;
+           const std::string & aType = aFilter->ValAttr("Type");
+           // std::cout << "TYPEEEE " << aType << "\n";
+           if (aType=="int")
+           {
+                int anInt;
+                xml_init(anInt,anIC.mTree);
+           }
+           else if (aType=="double")
+           {
+                double aDouble;
+                xml_init(aDouble,anIC.mTree);
+           }
+           else if (aType=="Pt2dr")
+           {
+                Pt2dr aPt;
+                xml_init(aPt,anIC.mTree);
+           }
+           else if (aType=="Pt2di")
+           {
+                Pt2di aPt;
+                xml_init(aPt,anIC.mTree);
+           }
+           else
+           {
+                std::cout << "For type = " << aType << "\n";
+                ELISE_ASSERT(false,"Bad Type Specif in filter Xml/X11");
+           }
+
+           GenereErrorOnXmlInit = CurrErrorOnXmlInit;
+           if (GotErrorOnXmlInit)
+           {
+               ShowWarn(std::string("String=[") +aStr0 +  "] not valid for " +  aType , "Clik in to continue"); 
+
+
+               // std::cout << "String=[" << aStr0 << "] not valid for " << aType << "\n";
+               Ok = false;
+               aStr0 = aStrInit;
+           }
+       }
+   }
+
+ 
    aCase->Efface();
    aCase->string(-10,aStr0);
-   anIC.mModified = true;
+   anIC.mModified = Ok;
 }
 
 void cWindowXmlEditor::Interact()
@@ -510,7 +515,7 @@ void cWindowXmlEditor::Interact()
 }
 
 
-Box2di  cWindowXmlEditor::PrintTag(Pt2di aP0,cElXMLTree * aTree,int aMode,int aLevel) 
+Box2di  cWindowXmlEditor::PrintTag(Pt2di aP0,cElXMLTree * aTree,int aMode,int aLevel,cElXMLTree * aFilter) 
 {
     if ((!mXmlMode) && (aMode!=0)) 
        return Box2di(aP0-Pt2di(0,1),aP0-Pt2di(0,1));
@@ -528,13 +533,12 @@ Box2di  cWindowXmlEditor::PrintTag(Pt2di aP0,cElXMLTree * aTree,int aMode,int aL
     mW.fixed_string(Pt2dr(aP0)+Pt2dr(0,aSz.y), aTag.c_str(),mW.pdisc()(P8COL::black),false);
 
     Box2di aRes  (aP0-mPRab,aP1+ mPRab);
-    if (aMode ==0)
+    if ((aMode ==0) && mFirstDraw)
     {
          Pt2di aQ0 (aP0.x+aSz.x+5,aP0.y-4);
          Pt2di aQ1 (EndXOfLevel(aLevel)-5,aP0.y+aSz.y+4);
          mVCase.push_back(cCaseX11Xml::Alloc(mW,Box2di(aQ0,aQ1),P8COL::yellow));
-         mVCase.back()->string(-10,aTree->GetUniqueVal());
-         mVInfoCase.push_back(cWXXInfoCase(aTree));
+         mVInfoCase.push_back(cWXXInfoCase(aTree,aFilter));
     }
 
     return aRes;
@@ -546,21 +550,21 @@ int  cWindowXmlEditor::EndXOfLevel(int aLevel)
 }
 
 
-Box2di cWindowXmlEditor::Draw(Pt2di aP0,cElXMLTree * aTree,int aLev,cWXXTreeSelector & aSelector,cElXMLTree * aFilter)
+Box2di cWindowXmlEditor::Draw(Pt2di aP0,cElXMLTree * aTree,int aLev,cElXMLTree * aFilter)
 {
      Box2di aBoxNone(aP0,aP0);
-     if (! aSelector.SelectTree(aTree)) 
+     if (! mSelector->SelectTree(aTree)) 
         return aBoxNone;
 
 
      if (aTree->Profondeur() <= 1)
      {
-          return PrintTag(aP0,aTree,0,aLev);
+          return PrintTag(aP0,aTree,0,aLev,aFilter);
      }
 
      aP0.y +=mSpaceTag;
 
-     Box2di aRes = PrintTag(aP0,aTree,1,aLev);
+     Box2di aRes = PrintTag(aP0,aTree,1,aLev,aFilter);
 
       for
       (
@@ -573,13 +577,13 @@ Box2di cWindowXmlEditor::Draw(Pt2di aP0,cElXMLTree * aTree,int aLev,cWXXTreeSele
 
            if ((aFilter==0)  || (aFilsFilter!=0))
            {
-              Box2di aBox = Draw(Pt2di(aP0.x+mDecalX,aRes._p1.y),*itF,aLev+1,aSelector,aFilsFilter);
+              Box2di aBox = Draw(Pt2di(aP0.x+mDecalX,aRes._p1.y),*itF,aLev+1,aFilsFilter);
               aRes = Sup(aRes,aBox);
            }
       }
 
       
-     Box2di aBoxFerm = PrintTag(Pt2di(aP0.x,aRes._p1.y),aTree,-1,aLev);
+     Box2di aBoxFerm = PrintTag(Pt2di(aP0.x,aRes._p1.y),aTree,-1,aLev,aFilter);
 
      aRes =  Sup(aBoxFerm,aRes);
      if (mXmlMode)
@@ -591,24 +595,57 @@ Box2di cWindowXmlEditor::Draw(Pt2di aP0,cElXMLTree * aTree,int aLev,cWXXTreeSele
      return aRes;
 }
 
-Box2di cWindowXmlEditor::TopDraw(cElXMLTree * aTree,cWXXTreeSelector & aSelector,cElXMLTree * aFilter)
+
+void  cWindowXmlEditor::ShowQuit()
+{
+    mCaseQuit->Efface();
+    mCaseQuit->string(0,"Quit edit");
+}
+
+void cWindowXmlEditor::ShowWarn(const std::string& aMes1, const std::string& aMes2)
+{
+   mCaseWarn->Efface(P8COL::red);
+
+   mW.fixed_string_middle(Box2di(Pt2di(0,5),Pt2di(mW.sz().x,20)),0,aMes1,mW.pdisc()(P8COL::black),true);
+   mW.fixed_string_middle(Box2di(Pt2di(0,25),Pt2di(mW.sz().x,40)),0,aMes2,mW.pdisc()(P8COL::black),true);
+
+
+   mCaseWarn->clik_in();
+   mCaseWarn->Efface(mW.pgray()(mGrayFond));
+
+   ShowQuit();
+}
+
+Box2di cWindowXmlEditor::TopDraw()
 {
     ELISE_COPY(mW.all_pts(),mGrayFond,mW.ogray());
 
-    int aXMil = mW.sz().x/2;
+    int aTx = mW.sz().x;
+    // int aXMil = aTx/2;
 
-    if (mCaseQuit==0)
+    if (mFirstDraw)
     {
-       mCaseQuit = cCaseX11Xml::Alloc(mW,Box2di(Pt2di(aXMil-100,10),Pt2di(aXMil+100,40)),P8COL::magenta);
+       mCaseQuit = cCaseX11Xml::Alloc(mW,Box2di(Pt2di(10,10),Pt2di(200,40)),P8COL::magenta);
+       mCaseWarn = cCaseX11Xml::Alloc(mW,Box2di(Pt2di(10,2),Pt2di(aTx-2,48)),P8COL::red);
+       mVCase.push_back(mCaseQuit);
+       mVInfoCase.push_back(cWXXInfoCase(0,0));
     }
-    mCaseQuit->Efface();
-    mCaseQuit->string(0,"Quit edit");
-    
-    mVCase.clear();
-    mVCase.push_back(mCaseQuit);
-    mVInfoCase.push_back(cWXXInfoCase(0));
 
-    return Draw(Pt2di(50,50),aTree,0,aSelector,aFilter);
+    Box2di aRes =  Draw(Pt2di(50,50),mTreeGlob,0,mFilterGlob);
+    mFirstDraw = false;
+    for (int aKC=0 ; aKC<int(mVCase.size()) ; aKC++)
+    {
+        cCaseX11Xml * aCX   = mVCase[aKC];
+        aCX->Efface();
+        cWXXInfoCase & anIC = mVInfoCase[aKC];
+        cElXMLTree * aTree = anIC.mTree;
+        if (aTree)
+           aCX->string(-10,anIC.mTree->GetUniqueVal());
+    }
+
+    ShowQuit();
+    return aRes;
+   
 }
 
 
@@ -617,14 +654,23 @@ void TestXmlX11()
     Video_Win aW =  Video_Win::WStd(Pt2di(700,800),1.0);
      
     cElXMLTree aFullTreeParam("EnvVino.xml");
-    cWindowXmlEditor aWX(aW,true);
-
-    cWXXVinoSelector aSelector("41_0421_PAN.tif");
-  
+    cWXXVinoSelector aSelector("FXDiv10.tif");
     cElXMLTree aFilter("FilterVino.xml");
-    aWX.TopDraw(aFullTreeParam.Fils().front(),aSelector,&aFilter);
 
+    cWindowXmlEditor aWX(aW,true,aFullTreeParam.Fils().front(),&aSelector,&aFilter);
+
+    // cWXXTreeSelector aSelId;
+  
+    aWX.TopDraw();
     aWX.Interact();
+
+    aW.clear(); aW.clik_in();
+
+
+    aWX.TopDraw();
+    aWX.Interact();
+
+    aFullTreeParam.StdShow("SORTIE.xml");
 
 }
 
