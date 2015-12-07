@@ -309,6 +309,21 @@ void cAppli_Vino::Help()
     Refresh();
 }
 
+void  cAppli_Vino::EditData()
+{
+
+    cElXMLTree *  aTree = ToXMLTree(EnvXml());
+    cWXXVinoSelector aSelector(mNameIm);
+
+    cWindowXmlEditor aWX(*mW,true,aTree,&aSelector);
+
+    aWX.TopDraw();
+    aWX.Interact();
+
+
+    Refresh();
+}
+
 
 /********************************************/
 /*                                          */
