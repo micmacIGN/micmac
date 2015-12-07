@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "kugelhupf.h"
-
+#include "../uti_phgrm/NewOri/NewOri.h"
 
 #if ELISE_windows
     #define uint unsigned
@@ -69,6 +69,13 @@ struct PtDoub
     Pt2dr P2;
 };
 
+struct PairHomol
+{
+    string ImgA;
+    string ImgB;
+    ElPackHomologue HomoA_B;
+};
+
 void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
 {
 
@@ -84,6 +91,84 @@ void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
     std::string aTest =  ( isUsingSeparateDirectories()?MMOutputDirectory():aDir ) + "Homol"+aNameH+ ELISE_CAR_DIR;
 }
 
+
+void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameManipulateur * aICNM, string aHomolOutput)
+{
+    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                        +  std::string("txt");
+
+    std::string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                        +  std::string("dat");
+
+    for (uint i=0; i<aPairImg.size(); i++)
+    {
+        if(i != aPairImg.size()-1)
+        {
+            cout<<"Cpl = "<<aPairImg[i].ImgA << " "<<aPairImg[i].ImgB<<endl;
+
+            ElPackHomologue aPackIn1_2 = aPairImg[i].HomoA_B;
+            ElPackHomologue aPackIn2_3 = aPairImg[i+1].HomoA_B;
+            cFixedMergeStruct<3,Pt2dr>  aFMS;
+            //creat name of homomogue file
+            ElPackHomologue Pair1_2, Pair2_3;
+            std::string NameHomolPair1 = aICNM->Assoc1To2(aKHOut, aPairImg[i].ImgA, aPairImg[i].ImgB, true);
+            std::string NameHomolDatPair1 = aICNM->Assoc1To2(aKHOutDat, aPairImg[i].ImgA, aPairImg[i].ImgB, true);
+            std::string NameHomolPair2 = aICNM->Assoc1To2(aKHOut, aPairImg[i+1].ImgA, aPairImg[i+1].ImgB, true);
+            std::string NameHomolDatPair2 = aICNM->Assoc1To2(aKHOutDat, aPairImg[i+1].ImgA, aPairImg[i+1].ImgB, true);
+
+            for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
+            {
+                Pt2dr aP1 = itP->P1();  //Point img1
+                Pt2dr aP2 = itP->P2();  //Point img2
+                //add couple P1 P2 to mergeStruct
+                aFMS.AddArc(aP1, 0, aP2, 1);
+                //search for point trilet P2 in fime homo 2_3
+                const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
+                double distP2 = sqrt(pow((aTriplet2_3->P1().x - aP2.x),2) + pow((aTriplet2_3->P1().y - aP2.y),2));
+                if (distP2 < 2)
+                {
+                    //add couple P2 P3 to mergeStruct
+                    aFMS.AddArc(aP2, 1, aTriplet2_3->P2(), 2);
+                }
+            }
+            aFMS.DoExport();
+            const std::list<cFixedMergeTieP<3,Pt2dr> *> &  aLM = aFMS.ListMerged();
+            std::cout << "NB ITEM INTEREST = " << aLM.size() << " /NB Pt Homo = "<<aPackIn1_2.size()<<endl;
+
+            double countTriplet = 0;
+            double countDoublet = 0;
+            for
+                    (
+                     std::list<cFixedMergeTieP<3,Pt2dr> *>::const_iterator itM=aLM.begin();
+                     itM != aLM.end();
+                     itM++
+                     )
+            {
+                if ( (*itM)->NbArc() == 2 )
+                { //Point tripet
+                    countTriplet++;
+                    Pair1_2.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(0), (*itM)->GetVal(1) ));
+                    Pair2_3.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(1), (*itM)->GetVal(2) ));
+                    Pair1_2.StdPutInFile(NameHomolPair1);
+                    Pair1_2.StdPutInFile(NameHomolDatPair1);
+                    Pair2_3.StdPutInFile(NameHomolPair2);
+                    Pair2_3.StdPutInFile(NameHomolDatPair2);
+                }
+                if ( (*itM)->NbArc() == 1 )
+                { //Point double
+                    countDoublet++;
+                }
+            }
+            std::cout << "NB ITEM Triplet = " << countTriplet << " - Doublet = "<< countDoublet <<endl;
+        }
+    }
+}
+
+
 int PHO_MI_main(int argc,char ** argv)
 {
     cout<<"*********************"<<endl;
@@ -94,7 +179,7 @@ int PHO_MI_main(int argc,char ** argv)
     cout<<"* I : Initial       *"<<endl;
     cout<<"*********************"<<endl;
 
-    std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="Homol_Filtered/", bStrategie = "1";
+    std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="_Filtered/", bStrategie = "1";
     bool ExpTxt = false;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
@@ -116,6 +201,7 @@ int PHO_MI_main(int argc,char ** argv)
     // Initialize name manipulator & files
     std::string aDirImages, aPatImages;
     SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
+
     StdCorrecNameOrient(aOriInput,aDirImages);//remove "Ori-" if needed
 
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
@@ -129,14 +215,9 @@ int PHO_MI_main(int argc,char ** argv)
                        +  std::string(aNameHomol)
                        +  std::string("@")
                        +  std::string(anExt);
-    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
-                        +  std::string(aHomolOutput)
-                        +  std::string("@")
-                        +  std::string("txt");
-    std::string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
-                        +  std::string(aHomolOutput)
-                        +  std::string("@")
-                        +  std::string("dat");
+    //cout<<aKHIn<<endl;
+
+
 
     vector< Pt2dr > NewHomoFile;
     vector< Pt2dr > HomoImg1;
@@ -189,6 +270,7 @@ int PHO_MI_main(int argc,char ** argv)
              std::string aHomoIn1_3 = aICNM->Assoc1To2(aKHIn,aNameIm1,aNameIm3,true);
              StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
              ElPackHomologue aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);
+
 
              cout<<aPackIn1_2.size()<<" pts homo entre 1_2"<<endl;
              cout<<aPackIn1_3.size()<<" pts homo entre 1_3"<<endl;
@@ -352,50 +434,79 @@ int PHO_MI_main(int argc,char ** argv)
 
       }
 
-      cout<<"There are "<<PtTripGood.size()<<" pts triplet good"<<endl;
+
+      //cout<<"There are "<<PtTripGood.size()<<" pts triplet good"<<endl;
 
       //===============TEST ------ Creat new file Homo -------===============//
-      std::string aNameH1_2 = aICNM->Assoc1To2(aKHOut, aNameIm1, aNameIm2, true);
-      std::string aNameH1_3 = aICNM->Assoc1To2(aKHOut, aNameIm1, aNameIm3, true);
-      std::string aNameH2_1 = aICNM->Assoc1To2(aKHOut, aNameIm2, aNameIm1, true);
-      std::string aNameH2_3 = aICNM->Assoc1To2(aKHOut, aNameIm2, aNameIm3, true);
-      std::string aNameH3_2 = aICNM->Assoc1To2(aKHOut, aNameIm3, aNameIm2, true);
-      std::string aNameH3_1 = aICNM->Assoc1To2(aKHOut, aNameIm3, aNameIm1, true);
+//      std::string aNameH1_2 = aICNM->Assoc1To2(aKHOut, aNameIm1, aNameIm2, true);
+//      std::string aNameH1_3 = aICNM->Assoc1To2(aKHOut, aNameIm1, aNameIm3, true);
+//      std::string aNameH2_1 = aICNM->Assoc1To2(aKHOut, aNameIm2, aNameIm1, true);
+//      std::string aNameH2_3 = aICNM->Assoc1To2(aKHOut, aNameIm2, aNameIm3, true);
+//      std::string aNameH3_2 = aICNM->Assoc1To2(aKHOut, aNameIm3, aNameIm2, true);
+//      std::string aNameH3_1 = aICNM->Assoc1To2(aKHOut, aNameIm3, aNameIm1, true);
 
-      std::string aNameH1_2d = aICNM->Assoc1To2(aKHOutDat, aNameIm1, aNameIm2, true);
-      std::string aNameH1_3d = aICNM->Assoc1To2(aKHOutDat, aNameIm1, aNameIm3, true);
-      std::string aNameH2_1d = aICNM->Assoc1To2(aKHOutDat, aNameIm2, aNameIm1, true);
-      std::string aNameH2_3d = aICNM->Assoc1To2(aKHOutDat, aNameIm2, aNameIm3, true);
-      std::string aNameH3_2d = aICNM->Assoc1To2(aKHOutDat, aNameIm3, aNameIm2, true);
-      std::string aNameH3_1d = aICNM->Assoc1To2(aKHOutDat, aNameIm3, aNameIm1, true);
+//      std::string aNameH1_2d = aICNM->Assoc1To2(aKHOutDat, aNameIm1, aNameIm2, true);
+//      std::string aNameH1_3d = aICNM->Assoc1To2(aKHOutDat, aNameIm1, aNameIm3, true);
+//      std::string aNameH2_1d = aICNM->Assoc1To2(aKHOutDat, aNameIm2, aNameIm1, true);
+//      std::string aNameH2_3d = aICNM->Assoc1To2(aKHOutDat, aNameIm2, aNameIm3, true);
+//      std::string aNameH3_2d = aICNM->Assoc1To2(aKHOutDat, aNameIm3, aNameIm2, true);
+//      std::string aNameH3_1d = aICNM->Assoc1To2(aKHOutDat, aNameIm3, aNameIm1, true);
 
 
-      for (uint i=0; i<PtTripGood.size(); i++)
+//      for (uint i=0; i<PtTripGood.size(); i++)
+//      {
+//          Pt2dr aP1 = PtTripGood[i].P1;
+//          Pt2dr aP2 = PtTripGood[i].P2;
+//          Pt2dr aP3 = PtTripGood[i].P3;
+
+//          PairPoint1_2.Cple_Add( ElCplePtsHomologues(aP1,aP2) );
+//          PairPoint2_1.Cple_Add( ElCplePtsHomologues(aP2,aP1) );
+//          PairPoint1_3.Cple_Add( ElCplePtsHomologues(aP1,aP3) );
+//          PairPoint3_1.Cple_Add( ElCplePtsHomologues(aP3,aP1) );
+//          PairPoint3_2.Cple_Add( ElCplePtsHomologues(aP3,aP2) );
+//          PairPoint2_3.Cple_Add( ElCplePtsHomologues(aP2,aP3) );
+//      }
+//      PairPoint1_2.StdPutInFile(aNameH1_2);
+//      PairPoint2_1.StdPutInFile(aNameH2_1);
+//      PairPoint1_3.StdPutInFile(aNameH1_3);
+//      PairPoint3_1.StdPutInFile(aNameH3_1);
+//      PairPoint3_2.StdPutInFile(aNameH3_2);
+//      PairPoint2_3.StdPutInFile(aNameH2_3);
+
+//      PairPoint1_2.StdPutInFile(aNameH1_2d);
+//      PairPoint2_1.StdPutInFile(aNameH2_1d);
+//      PairPoint1_3.StdPutInFile(aNameH1_3d);
+//      PairPoint3_1.StdPutInFile(aNameH3_1d);
+//      PairPoint3_2.StdPutInFile(aNameH3_2d);
+//      PairPoint2_3.StdPutInFile(aNameH2_3d);
+
+      //===============================TEST WRITE HOMO FILE===============================//
+      if (bStrategie == "4")
       {
-          Pt2dr aP1 = PtTripGood[i].P1;
-          Pt2dr aP2 = PtTripGood[i].P2;
-          Pt2dr aP3 = PtTripGood[i].P3;
 
-          PairPoint1_2.Cple_Add( ElCplePtsHomologues(aP1,aP2) );
-          PairPoint2_1.Cple_Add( ElCplePtsHomologues(aP2,aP1) );
-          PairPoint1_3.Cple_Add( ElCplePtsHomologues(aP1,aP3) );
-          PairPoint3_1.Cple_Add( ElCplePtsHomologues(aP3,aP1) );
-          PairPoint3_2.Cple_Add( ElCplePtsHomologues(aP3,aP2) );
-          PairPoint2_3.Cple_Add( ElCplePtsHomologues(aP2,aP3) );
+         vector<PairHomol> aPairImg;
+         //creat pair images
+         for (uint i=0; i<aSetImages.size(); i++)
+         {
+             PairHomol aPair;
+             aPair.ImgA = aSetImages[i];
+             if (i != aSetImages.size()-1)
+             {
+                aPair.ImgB = aSetImages[i+1];
+                std::string aHomoInA_B = aICNM->Assoc1To2(aKHIn,aPair.ImgA,aPair.ImgB,true);
+                StdCorrecNameHomol_G(aHomoInA_B,aDirImages);
+                ElPackHomologue aPackInA_B =  ElPackHomologue::FromFile(aHomoInA_B);
+                aPair.HomoA_B = aPackInA_B;
+                aPairImg.push_back(aPair);
+                cout<<"Pair = "<<aSetImages[i]<< " "<<aSetImages[i+1]<<" "<<aPackInA_B.size()<<endl;
+             }
+          }
+
+          //find triplet and couple, then creat new Homol file
+          TestcFixedMergeStruct_G(aPairImg, aICNM, aHomolOutput);
       }
-      PairPoint1_2.StdPutInFile(aNameH1_2);
-      PairPoint2_1.StdPutInFile(aNameH2_1);
-      PairPoint1_3.StdPutInFile(aNameH1_3);
-      PairPoint3_1.StdPutInFile(aNameH3_1);
-      PairPoint3_2.StdPutInFile(aNameH3_2);
-      PairPoint2_3.StdPutInFile(aNameH2_3);
+    //======================================================================================//
 
-      PairPoint1_2.StdPutInFile(aNameH1_2d);
-      PairPoint2_1.StdPutInFile(aNameH2_1d);
-      PairPoint1_3.StdPutInFile(aNameH1_3d);
-      PairPoint3_1.StdPutInFile(aNameH3_1d);
-      PairPoint3_2.StdPutInFile(aNameH3_2d);
-      PairPoint2_3.StdPutInFile(aNameH2_3d);
 
 cout<<"use command SEL ./ img1 img2 KCpl=NKS-Assoc-CplIm2Hom@"<<aHomolOutput<< "@dat to view filtered point homomogues"<<endl;
 return EXIT_SUCCESS;

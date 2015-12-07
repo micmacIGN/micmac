@@ -917,8 +917,28 @@ void TestcFixedMergeStruct()
     cFixedMergeStruct<3,Pt2dr>  aFMS;
 
     aFMS.AddArc(Pt2dr(0,0),0,Pt2dr(1,1),1);
-    aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(2,2),0);
-    ///aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(0,0),0);
+    aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(1,2),2);
+    aFMS.AddArc(Pt2dr(1,2),2,Pt2dr(0,0),0);
+
+    aFMS.AddArc(Pt2dr(10,10),0,Pt2dr(11,11),1);
+    aFMS.AddArc(Pt2dr(11,11),1,Pt2dr(12,12),2);
+    aFMS.AddArc(Pt2dr(12,12),2,Pt2dr(11,11),1);
+//    aFMS.AddArc(Pt2dr(12,12),1,Pt2dr(10,10),0);
+    aFMS.AddArc(Pt2dr(11,11),1,Pt2dr(10,10),0);
+//    aFMS.AddArc(Pt2dr(12,12),1,Pt2dr(10,10),0);
+
+    aFMS.AddArc(Pt2dr(7,7),0,Pt2dr(8,8),1);
+    aFMS.AddArc(Pt2dr(8,8),1,Pt2dr(7,7),0);
+
+    aFMS.AddArc(Pt2dr(4,4),0,Pt2dr(5,5),1);
+    aFMS.AddArc(Pt2dr(5,5),1,Pt2dr(4,4),0);
+    aFMS.AddArc(Pt2dr(5,5),1,Pt2dr(6,6),2);
+
+    aFMS.AddArc(Pt2dr(77,77),0,Pt2dr(88,88),2);
+    aFMS.AddArc(Pt2dr(88,88),2,Pt2dr(99,99),1);
+
+    aFMS.AddArc(Pt2dr(777,777),0,Pt2dr(888,888),1);
+    aFMS.AddArc(Pt2dr(888,888),1,Pt2dr(999,999),2);
 
     aFMS.DoExport();
 
@@ -933,17 +953,15 @@ void TestcFixedMergeStruct()
         itM++
     )
     {
-          std::cout << "NbS=" << (*itM)->NbSom() << " NbA=" << (*itM)->NbArc();
-          std::cout << " Init"  << (*itM)->IsInit(0) << (*itM)->IsInit(1) << (*itM)->IsInit(2) ;
-          std::cout << " "  << (*itM)->IsInit(0) << (*itM)->IsInit(1) << (*itM)->IsInit(2) ;
-          std::cout << " " << (*itM)->GetVal(0) ;
+          std::cout << "NbS=" << (*itM)->NbSom() << " NbA=" << (*itM)->NbArc()<<endl;
+          for (uint i=0; i<(*itM)->NbSom(); i++)
+          {
+            std::cout << (*itM)->IsInit(i)<<" " ;
+            std::cout << " " << (*itM)->GetVal(i) ;
+            std::cout << "\n";
+          }
 
-             
-
-           std::cout << "\n";
-                
     }
-    aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(2,2),0);
 }
 
 
