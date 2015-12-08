@@ -150,7 +150,7 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
             ElPackHomologue aPackIn2_3 = aPairImg[i+1].HomoA_B;
             cFixedMergeStruct<3,Pt2dr>  aFMS;
             //creat name of homomogue file dans 2 sens
-            ElPackHomologue Pair1_2, Pair2_3, Pair1_2i, Pair2_3i;
+            ElPackHomologue Pair1_2, Pair2_3, Pair1_2i, Pair2_3i, Pair1_3, Pair1_3i;
             std::string NameHomolPair1 = aICNM->Assoc1To2(aKHOut, aPairImg[i].ImgA, aPairImg[i].ImgB, true);
             std::string NameHomolDatPair1 = aICNM->Assoc1To2(aKHOutDat, aPairImg[i].ImgA, aPairImg[i].ImgB, true);
             std::string NameHomolDatPair1i = aICNM->Assoc1To2(aKHOutDat, aPairImg[i].ImgB, aPairImg[i].ImgA, true);
@@ -158,6 +158,10 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
             std::string NameHomolPair2 = aICNM->Assoc1To2(aKHOut, aPairImg[i+1].ImgA, aPairImg[i+1].ImgB, true);
             std::string NameHomolDatPair2 = aICNM->Assoc1To2(aKHOutDat, aPairImg[i+1].ImgA, aPairImg[i+1].ImgB, true);
             std::string NameHomolDatPair2i = aICNM->Assoc1To2(aKHOutDat, aPairImg[i+1].ImgB, aPairImg[i+1].ImgA, true);
+
+            std::string NameHomolPair3 = aICNM->Assoc1To2(aKHOut, aPairImg[i].ImgA, aPairImg[i+1].ImgB, true);
+            std::string NameHomolDatPair3 = aICNM->Assoc1To2(aKHOutDat, aPairImg[i].ImgA, aPairImg[i+1].ImgB, true);
+            std::string NameHomolDatPair3i = aICNM->Assoc1To2(aKHOutDat, aPairImg[i+1].ImgB, aPairImg[i].ImgA, true);
 
             double countTripletv = 0;
             double countDoubletv = 0;
@@ -178,10 +182,23 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
                     double distP3Reprj = sqrt(pow((aTriplet2_3->P2().x - PReproj3.x),2) + pow((aTriplet2_3->P2().y - PReproj3.y),2));
                         if (distP3Reprj < 2)
                         {   //condition 2
-                            //add P1 P2 P3 to merge struct
-                            countTripletv++;
-                            aFMS.AddArc(aP1, 0, aP2, 1);
-                            aFMS.AddArc(aP2, 1, aTriplet2_3->P2(), 2);
+//                            cCorrelImage::setSzW(w);
+//                            cCorrelImage Imgette1, Imgette2, Imgette3;
+//                            Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+//                            Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+//                            Imgette3.getFromIm(&mImg3, aTriplet2_3->P2().x, aTriplet2_3->P2().y);
+//                            //compute correlation b/w imagette P1 P2; P2 P3; P1 P3
+//                            double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
+//                            double corr1_3 = Imgette1.CrossCorrelation(Imgette3);
+//                            double corr2_3 = Imgette2.CrossCorrelation(Imgette3);
+
+//                            if ((corr1_2 > 0.9) && (corr1_3 > 0.9) && (corr2_3>0.9))
+//                            {//condition 3
+                                //add P1 P2 P3 to merge struct
+                                countTripletv++;
+                                aFMS.AddArc(aP1, 0, aP2, 1);
+                                aFMS.AddArc(aP2, 1, aTriplet2_3->P2(), 2);
+//                            }
                         }
 
                         else
@@ -208,10 +225,10 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
                     }
                 }
             }
-            std::cout << "NB ITEM Tripletv = " << countTripletv << " - Doubletv = "<< countDoubletv <<endl<<endl;
+            //std::cout << "NB ITEM Tripletv = " << countTripletv << " - Doubletv = "<< countDoubletv <<endl<<endl;
             aFMS.DoExport();
             const std::list<cFixedMergeTieP<3,Pt2dr> *> &  aLM = aFMS.ListMerged();
-            std::cout << "NB ITEM INTEREST = " << aLM.size() << " /NB Pt Homo = "<<aPackIn1_2.size()<<endl;
+            std::cout << "NB ITEM INTEREST = " << aLM.size() << " / NB Pt Homo = "<<aPackIn1_2.size()<<endl;
 
             double countTriplet = 0;
             double countDoublet = 0;
@@ -220,7 +237,7 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
                      std::list<cFixedMergeTieP<3,Pt2dr> *>::const_iterator itM=aLM.begin();
                      itM != aLM.end();
                      itM++
-                     )
+                    )
             {
                 if ( (*itM)->NbArc() == 2 )
                 { //Point tripet
@@ -229,6 +246,8 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
                     Pair2_3.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(1), (*itM)->GetVal(2) ));
                     Pair1_2i.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(1) , (*itM)->GetVal(0) ));
                     Pair2_3i.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(2) , (*itM)->GetVal(1) ));
+                    Pair1_3.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(0), (*itM)->GetVal(2) ));
+                    Pair1_3i.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(2) , (*itM)->GetVal(0) ));
 
                     Pair1_2.StdPutInFile(NameHomolPair1);
                     Pair1_2.StdPutInFile(NameHomolDatPair1);
@@ -237,6 +256,10 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
                     Pair2_3.StdPutInFile(NameHomolPair2);
                     Pair2_3.StdPutInFile(NameHomolDatPair2);
                     Pair2_3i.StdPutInFile(NameHomolDatPair2i);
+
+                    Pair1_3.StdPutInFile(NameHomolPair3);
+                    Pair1_3.StdPutInFile(NameHomolDatPair3);
+                    Pair1_3i.StdPutInFile(NameHomolDatPair3i);
                 }
                 if ( (*itM)->NbArc() == 1 )
                 { //Point double
@@ -245,8 +268,6 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
             }
             std::cout << "NB ITEM Triplet = " << countTriplet << " - Doublet = "<< countDoublet <<endl<<endl;
         }
-
-
     }
 }
 
@@ -262,7 +283,7 @@ int PHO_MI_main(int argc,char ** argv)
     cout<<"* I : Initial       *"<<endl;
     cout<<"*********************"<<endl;
 
-    std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="_Filtered/", bStrategie = "1";
+    std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="_Filtered/", bStrategie = "4";
     bool ExpTxt = false;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
@@ -291,6 +312,10 @@ int PHO_MI_main(int argc,char ** argv)
     const std::vector<std::string> aSetImages = *(aICNM->Get(aPatImages));
 
     ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
+    for (uint i=0; i< aSetImages.size(); i++)
+    {
+        cout << aSetImages[i]<<endl;
+    }
  //============================================================
     std::string anExt = ExpTxt ? "txt" : "dat";
 
@@ -527,53 +552,6 @@ int PHO_MI_main(int argc,char ** argv)
 
       }
 
-
-      //cout<<"There are "<<PtTripGood.size()<<" pts triplet good"<<endl;
-
-      //===============TEST ------ Creat new file Homo -------===============//
-//      std::string aNameH1_2 = aICNM->Assoc1To2(aKHOut, aNameIm1, aNameIm2, true);
-//      std::string aNameH1_3 = aICNM->Assoc1To2(aKHOut, aNameIm1, aNameIm3, true);
-//      std::string aNameH2_1 = aICNM->Assoc1To2(aKHOut, aNameIm2, aNameIm1, true);
-//      std::string aNameH2_3 = aICNM->Assoc1To2(aKHOut, aNameIm2, aNameIm3, true);
-//      std::string aNameH3_2 = aICNM->Assoc1To2(aKHOut, aNameIm3, aNameIm2, true);
-//      std::string aNameH3_1 = aICNM->Assoc1To2(aKHOut, aNameIm3, aNameIm1, true);
-
-//      std::string aNameH1_2d = aICNM->Assoc1To2(aKHOutDat, aNameIm1, aNameIm2, true);
-//      std::string aNameH1_3d = aICNM->Assoc1To2(aKHOutDat, aNameIm1, aNameIm3, true);
-//      std::string aNameH2_1d = aICNM->Assoc1To2(aKHOutDat, aNameIm2, aNameIm1, true);
-//      std::string aNameH2_3d = aICNM->Assoc1To2(aKHOutDat, aNameIm2, aNameIm3, true);
-//      std::string aNameH3_2d = aICNM->Assoc1To2(aKHOutDat, aNameIm3, aNameIm2, true);
-//      std::string aNameH3_1d = aICNM->Assoc1To2(aKHOutDat, aNameIm3, aNameIm1, true);
-
-
-//      for (uint i=0; i<PtTripGood.size(); i++)
-//      {
-//          Pt2dr aP1 = PtTripGood[i].P1;
-//          Pt2dr aP2 = PtTripGood[i].P2;
-//          Pt2dr aP3 = PtTripGood[i].P3;
-
-//          PairPoint1_2.Cple_Add( ElCplePtsHomologues(aP1,aP2) );
-//          PairPoint2_1.Cple_Add( ElCplePtsHomologues(aP2,aP1) );
-//          PairPoint1_3.Cple_Add( ElCplePtsHomologues(aP1,aP3) );
-//          PairPoint3_1.Cple_Add( ElCplePtsHomologues(aP3,aP1) );
-//          PairPoint3_2.Cple_Add( ElCplePtsHomologues(aP3,aP2) );
-//          PairPoint2_3.Cple_Add( ElCplePtsHomologues(aP2,aP3) );
-//      }
-//      PairPoint1_2.StdPutInFile(aNameH1_2);
-//      PairPoint2_1.StdPutInFile(aNameH2_1);
-//      PairPoint1_3.StdPutInFile(aNameH1_3);
-//      PairPoint3_1.StdPutInFile(aNameH3_1);
-//      PairPoint3_2.StdPutInFile(aNameH3_2);
-//      PairPoint2_3.StdPutInFile(aNameH2_3);
-
-//      PairPoint1_2.StdPutInFile(aNameH1_2d);
-//      PairPoint2_1.StdPutInFile(aNameH2_1d);
-//      PairPoint1_3.StdPutInFile(aNameH1_3d);
-//      PairPoint3_1.StdPutInFile(aNameH3_1d);
-//      PairPoint3_2.StdPutInFile(aNameH3_2d);
-//      PairPoint2_3.StdPutInFile(aNameH2_3d);
-
-      //===============================TEST WRITE HOMO FILE===============================//
       if (bStrategie == "4")
       {
 
