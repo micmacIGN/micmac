@@ -182,23 +182,24 @@ void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameMani
                     double distP3Reprj = sqrt(pow((aTriplet2_3->P2().x - PReproj3.x),2) + pow((aTriplet2_3->P2().y - PReproj3.y),2));
                         if (distP3Reprj < 2)
                         {   //condition 2
-//                            cCorrelImage::setSzW(w);
-//                            cCorrelImage Imgette1, Imgette2, Imgette3;
-//                            Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
-//                            Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
-//                            Imgette3.getFromIm(&mImg3, aTriplet2_3->P2().x, aTriplet2_3->P2().y);
-//                            //compute correlation b/w imagette P1 P2; P2 P3; P1 P3
-//                            double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
-//                            double corr1_3 = Imgette1.CrossCorrelation(Imgette3);
-//                            double corr2_3 = Imgette2.CrossCorrelation(Imgette3);
+                            cCorrelImage::setSzW(w);
+                            cCorrelImage Imgette1, Imgette2, Imgette3;
+                            Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+                            Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+                            Imgette3.getFromIm(&mImg3, aTriplet2_3->P2().x, aTriplet2_3->P2().y);
+                            //compute correlation b/w imagette P1 P2; P2 P3; P1 P3
+                            double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
+                            double corr1_3 = Imgette1.CrossCorrelation(Imgette3);
+                            double corr2_3 = Imgette2.CrossCorrelation(Imgette3);
+                            //cout<<corr1_2<<" "<<corr1_3<<" "<<corr2_3<<endl;
 
-//                            if ((corr1_2 > 0.9) && (corr1_3 > 0.9) && (corr2_3>0.9))
-//                            {//condition 3
+                            if ((corr1_2 > 0.9) && (corr1_3 > 0.8) && (corr2_3>0.9))
+                               {//condition 3
                                 //add P1 P2 P3 to merge struct
                                 countTripletv++;
                                 aFMS.AddArc(aP1, 0, aP2, 1);
                                 aFMS.AddArc(aP2, 1, aTriplet2_3->P2(), 2);
-//                            }
+                               }
                         }
 
                         else
