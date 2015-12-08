@@ -1092,6 +1092,9 @@ void DATA_Tiff_Ifd::post_init(const char * name)
    // std::cout << "ghgjYujg " << mSzFileTile << _sz_tile << mNbTTByTF <<  name << "\n";
 }
 
+Pt2di DATA_Tiff_Ifd::SzFileTile() const {return mSzFileTile;}
+Pt2di DATA_Tiff_Ifd::NbTTByTF() const  {return mNbTTByTF;}
+
 DATA_Tiff_Ifd::~DATA_Tiff_Ifd()
 {
      _maxs.flush();
@@ -1569,6 +1572,10 @@ Tiff_Im::COMPR_TYPE Tiff_Im::mode_compr()
 {
     return (Tiff_Im::COMPR_TYPE) dtifd()->_mode_compr;
 }
+Pt2di Tiff_Im::SzFileTile() {return dtifd()->SzFileTile();}
+Pt2di Tiff_Im::NbTTByTF()   {return dtifd()->NbTTByTF();}
+std::string Tiff_Im::NameTileFile(Pt2di aTile)   {return dtifd()->NameTileFile(aTile);}
+
 
 
 
