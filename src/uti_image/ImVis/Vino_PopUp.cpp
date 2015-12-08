@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void cAppli_Vino::End()
 {
+    SaveState();
     std::cout << "   ******************************************\n";
     std::cout << "   *                                        *\n";
     std::cout << "   *    V-isualizer of                      *\n";
@@ -83,6 +84,10 @@ void  cAppli_Vino::MenuPopUp()
         if (mCaseCur== mCaseZoomRect)
         {
             ZoomRect();
+        }
+        if (mCaseCur== mCaseEdit)
+        {
+           EditData();
         }
 
         if (    (mCaseCur==mCaseHStat)
@@ -160,6 +165,7 @@ void cAppli_Vino::InitMenu()
 
     mCaseExit         = CaseBase("Exit",Pt2di(0,0));
     mCaseZoomRect     = CaseBase("Zoom\nRect",Pt2di(1,0));
+    mCaseEdit         = CaseBase("Edit\ndata",Pt2di(2,0));
     mCaseInterpPpv    = CaseChoix(             0,"Interp\nPpv"  ,Pt2di(0,1),0);
     mCaseInterpBilin  = CaseChoix(mCaseInterpPpv,"Interp\nBilin",Pt2di(1,1),1);
 

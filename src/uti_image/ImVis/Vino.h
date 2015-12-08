@@ -92,7 +92,7 @@ class cWXXInfoCase
 
         cElXMLTree  * mTree;
         cElXMLTree  * mFilter;
-        bool          mModified;
+        int           mTimeModif;
 };
 
 
@@ -137,6 +137,7 @@ class cWindowXmlEditor
          int                       mSpaceTag;
          int                       mDecalX;
          bool                      mModeCreate;
+         int                       mTimeModif;
 };
 
 
@@ -228,6 +229,7 @@ class cAppli_Vino : public cXml_EnvVino,
         void InitTabulDyn();
         void ZoomRect();
         void Help();
+        void EditData();
         void DoHistoEqual(Flux_Pts aFlux);
 
         ElList<Pt2di> GetPtsImage(bool GlobScale,bool ModeRect,bool AcceptPoint);
@@ -297,6 +299,7 @@ class cAppli_Vino : public cXml_EnvVino,
         GridPopUpMenuTransp*    mPopUpBase;
         CaseGPUMT *             mCaseExit;
         CaseGPUMT *             mCaseZoomRect;
+        CaseGPUMT *             mCaseEdit;
         ChoixParmiCaseGPUMT *   mCaseInterpPpv;
         ChoixParmiCaseGPUMT *   mCaseInterpBilin;
         CaseGPUMT *             mCaseHStat;
