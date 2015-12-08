@@ -92,7 +92,7 @@ class cWXXInfoCase
 
         cElXMLTree  * mTree;
         cElXMLTree  * mFilter;
-        bool          mModified;
+        int           mTimeModif;
 };
 
 
@@ -137,6 +137,7 @@ class cWindowXmlEditor
          int                       mSpaceTag;
          int                       mDecalX;
          bool                      mModeCreate;
+         int                       mTimeModif;
 };
 
 

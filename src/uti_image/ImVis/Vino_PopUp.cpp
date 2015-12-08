@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void cAppli_Vino::End()
 {
+    SaveState();
     std::cout << "   ******************************************\n";
     std::cout << "   *                                        *\n";
     std::cout << "   *    V-isualizer of                      *\n";

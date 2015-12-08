@@ -629,7 +629,7 @@ template <class Type> class  ImFileLoader : public GenScaleIm<typename El_CTypeT
 			bool                             mByteOrdered;
 			Tiff_Im                          * _tiff;
 			INT                             _nb_chan;
-			ELISE_fp *                      _fp;
+			ELISE_fp *                      mFPGlob;
 			Pt2di                           _nb_tile;
 			Pt2di                           _sz_tile;
 			ElSTDNS vector<ElSTDNS vector<TilesIMFL<Type> *> >    _tiles;
@@ -667,7 +667,14 @@ template <class Type> class  ImFileLoader : public GenScaleIm<typename El_CTypeT
 			INT mLastX0_GLU; // GLU = get_line_user
 			INT mLastX1_GLU; // GLU = get_line_user
 			INT mLastY_GLU; // GLU = get_line_user
+                        Pt2di mSzTileFile;
+                        bool  mHasTileFile;
+                        
+			ELISE_fp *                      mFPOfFileTile;
+			Pt2di                           mCurTileOfFT;
+			Pt2di                           mNbTTByF;
 
+                        ELISE_fp * FileOfTile(Pt2di aTile);
 };                                      
 
 template <class Type> class ImFileScroller : public ImFileLoader<Type>,
