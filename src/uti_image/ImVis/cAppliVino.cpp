@@ -311,14 +311,18 @@ void cAppli_Vino::Help()
 
 void  cAppli_Vino::EditData()
 {
-
     cElXMLTree *  aTree = ToXMLTree(EnvXml());
     cWXXVinoSelector aSelector(mNameIm);
+    cElXMLTree aFilter(Basic_XML_MM_File("FilterVino.xml"));
 
-    cWindowXmlEditor aWX(*mW,true,aTree,&aSelector);
+    cWindowXmlEditor aWX(*mW,true,aTree,&aSelector,&aFilter);
 
     aWX.TopDraw();
     aWX.Interact();
+
+    cXml_EnvVino aNewEnv;
+    xml_init(aNewEnv,aTree);
+    EnvXml() = aNewEnv;
 
 
     Refresh();

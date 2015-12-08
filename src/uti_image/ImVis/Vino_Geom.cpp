@@ -182,7 +182,7 @@ void cAppli_Vino::ZoomRect()
 
     double aScale = ElMin(SzW().x/aSz.x,SzW().y/aSz.y);
 
-    std::cout << "SCALE " << aScale  << " " << aSz  << "\n";
+    // std::cout << "SCALE " << aScale  << " " << aSz  << "\n";
     // mScr->SetScArroundPW(mScr->to_win((aP0+aP1)/2.0),aScale,false);
 
     Pt2dr aSzU = SzW() / aScale;

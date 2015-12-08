@@ -120,7 +120,7 @@ Clik  cCaseX11Xml::clik_in()
 cWXXInfoCase::cWXXInfoCase(cElXMLTree * aTree,cElXMLTree * aFilter) :
    mTree      (aTree  ),
    mFilter    (aFilter),
-   mModified  (false  )
+   mTimeModif  (-1  )
 {
 }
 
@@ -162,7 +162,8 @@ cWindowXmlEditor::cWindowXmlEditor
     mGrayFond     (mXmlMode ?196 : 128),
     mGrayTag      (mXmlMode ?230 : 230),
     mSpaceTag     (mXmlMode?7:0),
-    mDecalX       (mXmlMode? 30 : 0)
+    mDecalX       (mXmlMode? 30 : 0),
+    mTimeModif   (0)
 {
 }
 
@@ -232,7 +233,8 @@ void cWindowXmlEditor::ModifyCase(cCaseX11Xml * aCase,int aKC)
  
    aCase->Efface();
    aCase->string(-10,aStr0);
-   anIC.mModified = Ok;
+   if (Ok)
+      anIC.mTimeModif = mTimeModif++;
 }
 
 void cWindowXmlEditor::Interact()
