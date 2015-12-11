@@ -157,8 +157,8 @@ int SimplePredict_main(int argc,char ** argv)
 
   // Initialize name manipulator & files
   std::string aDirXML,aDirImages,aPatIm;
-  std::string aGCPFileTmpName;
-  SplitDirAndFile(aDirXML,aGCPFileTmpName,aGCPFileName);
+  //std::string aGCPFileTmpName;
+  //SplitDirAndFile(aDirXML,aGCPFileTmpName,aGCPFileName);
   SplitDirAndFile(aDirImages,aPatIm,aFullPattern);
   std::cout<<"Working dir: "<<aDirImages<<std::endl;
   std::cout<<"Images pattern: "<<aPatIm<<std::endl;
@@ -170,7 +170,7 @@ int SimplePredict_main(int argc,char ** argv)
 
   //read xml file
   //see cDicoAppuisFlottant definition in include/XML_GEN/ParamChantierPhotogram.xml
-  cDicoAppuisFlottant aDico = StdGetFromPCP(aGCPFileName,DicoAppuisFlottant);
+  cDicoAppuisFlottant aDico = StdGetFromPCP(aDirImages + aGCPFileName,DicoAppuisFlottant);
   std::list< cOneAppuisDAF > aOneAppuisDAFList= aDico.OneAppuisDAF();
   std::cout<<"On "<<aGCPFileName<<", found 3d points:\n";
 
@@ -236,7 +236,7 @@ int SimplePredict_main(int argc,char ** argv)
     outFile.close();
   }
 
-  MakeFileXML(aMes2dList,"SimplePredict.xml");
+  MakeFileXML(aMes2dList, aDirImages + "SimplePredict.xml");
 
   //export for calib poly:
   //  GS1_15_1_60_rrx00001_00001.tif => PointeInitIm.001_00001
