@@ -1,4 +1,5 @@
 <Xml_EnvVino>
+    <SzLimSsEch >      1.5e8       </SzLimSsEch>
     <SzW >             800 600   </SzW>
     <LargAsc >         10        </LargAsc>
     <SzIncr >          200 200   </SzIncr>

@@ -79,14 +79,14 @@ ElImScroller::ElImScroller
 /*
 */
 
-void ElImScroller::write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data)
+void ElImScroller::write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data,int aNbChanelIn)
 {
-   mVisuCur->write_image(x0src,p0dest,nb,data);
+   mVisuCur->write_image(x0src,p0dest,nb,data,aNbChanelIn);
 }
-void ElImScroller::write_image(INT x0src,Pt2di p0dest,INT nb,double ** data)
+void ElImScroller::write_image(INT x0src,Pt2di p0dest,INT nb,double ** data,int aNbChanelIn)
 {
 
-   mVisuCur->write_image(x0src,p0dest,nb,data);
+   mVisuCur->write_image(x0src,p0dest,nb,data,aNbChanelIn);
 }
 
 
@@ -628,12 +628,12 @@ REAL ElImScroller::TimeReformat() const { return mTimeReformat;}
 /*                                                              */
 /****************************************************************/
 
-void PckBitImScroller::RasterUseLine(Pt2di p0,Pt2di p1,INT ** l)
+void PckBitImScroller::RasterUseLine(Pt2di p0,Pt2di p1,INT ** l,int aNbChan)
 {
      ElTimer aTimer;
      for (INT y= p0.y ; y<p1.y ; y++)
      {
-          write_image (p0.x,Pt2di(p0.x,y),p1.x-p0.x,l);
+          write_image (p0.x,Pt2di(p0.x,y),p1.x-p0.x,l,aNbChan);
      }                      
      mTimeLoadXIm += aTimer.uval();
 }
@@ -750,7 +750,7 @@ void  RGB_PckbImScr::WriteRGBImage(Pt2di p0,Pt2di p1,RGB_Int ** Tl)
      aTimer.reinit();
      for (INT y= p0.y ; y<p1.y ; y++)
      {
-          write_image (p0.x,Pt2di(p0.x,y),p1.x-p0.x,mIm);
+          write_image (p0.x,Pt2di(p0.x,y),p1.x-p0.x,mIm,3);
      }                      
      mTimeLoadXIm += aTimer.uval();
 }
@@ -788,7 +788,7 @@ Fonc_Num RGBLut_PckbImScr::in()
    return _pbim.in();
 }
 
-void  RGBLut_PckbImScr::RasterUseLine(Pt2di p0,Pt2di p1,RGB_Int ** Tl)
+void  RGBLut_PckbImScr::RasterUseLine(Pt2di p0,Pt2di p1,RGB_Int ** Tl,int aNbChanIn)
 {
     WriteRGBImage(p0,p1,Tl);
 }
@@ -828,7 +828,7 @@ Fonc_Num RGBTrue16Col_PckbImScr::in()
    return _pbim.in();
 }
 
-void  RGBTrue16Col_PckbImScr::RasterUseLine(Pt2di p0,Pt2di p1,RGB_Int ** Tl)
+void  RGBTrue16Col_PckbImScr::RasterUseLine(Pt2di p0,Pt2di p1,RGB_Int ** Tl,int aNbChanIn)
 {
     WriteRGBImage(p0,p1,Tl);
 }

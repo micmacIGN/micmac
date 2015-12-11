@@ -112,7 +112,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
             mCurStats->Type() = eDynVinoModulo;
             mCurStats->IsInit() = false ;
             mCurStats->NameFile() = aNameFile;
-            mCurStats->MulDyn() = 0.5;
+            mCurStats->MulDyn() = 0.75;
         }
     }
 
@@ -191,8 +191,10 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
 
     mVEch.push_back(1); 
     int aSc = 1;
-    while ( ((mNbPix*mSzEl)/ElSquare(aSc))  > mNbPixMinFile)
+    double aSzLim = SzLimSsEch().Val();
+    while ( ((mNbPix*mSzEl)/ElSquare(aSc))  > aSzLim)
     {
+        aSzLim = 6e6; // Si on reduit, tant qu'a faire on 
         aSc *= 2;
         mVEch.push_back(aSc); 
         std::string aName = NamePyramImage(mVEch.back());
@@ -323,6 +325,22 @@ void  cAppli_Vino::EditData()
     cXml_EnvVino aNewEnv;
     xml_init(aNewEnv,aTree);
     EnvXml() = aNewEnv;
+
+    cWXXInfoCase * aCaseID = aWX.GetCaseOfNam("IntervDyn",false);
+    cWXXInfoCase * aCaseMD = aWX.GetCaseOfNam("MulDyn",false);
+
+    if (aCaseID->mTimeModif >=0)
+    {
+        mCurStats->Type() = eDynVinoMaxMin;
+    }
+
+    if (aCaseMD->mTimeModif> ElMax(-1,aCaseID->mTimeModif))
+    {
+          mCurStats->Type() = eDynVinoStat2;
+    }
+
+
+    InitTabulDyn();
 
 
     Refresh();
