@@ -1579,7 +1579,9 @@ int OriExport_main(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
     std::string aFullName;
     std::string aRes;
-    bool        AddFormat=false;
+    bool AddFormat=false;
+    bool onlyC=false;
+    bool onlyA=false;
     std::string aModeExport="WPK";
     std::string aFormat ="N W P K X Y Z";
     // eExportOri aModeEO = eEO_WPK;
@@ -1590,7 +1592,9 @@ int OriExport_main(int argc,char ** argv)
         LArgMain()  << EAMC(aFullName,"Full Directory (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(aRes,"Results"),
         LArgMain()  << EAM(AddFormat,"AddF",true,"Add format as first line of header, def= false",eSAM_IsBool)
-                    <<  EAM(aModeExport,"ModeExp",true,"Mode export, def=WPK (Omega Phi Kapa)",eSAM_None,ListOfVal(eEO_NbVals,"eEO_"))
+                    << EAM(aModeExport,"ModeExp",true,"Mode export, def=WPK (Omega Phi Kapa)",eSAM_None,ListOfVal(eEO_NbVals,"eEO_"))
+                    << EAM(onlyC,"OnlyCenters",true,"Export only camera centers, def=false",eSAM_IsBool)
+                    << EAM(onlyA,"OnlyAngles",true,"Export only camera angles, def=false",eSAM_IsBool)
     );
 
     eExportOri aModeEO;
@@ -1617,17 +1621,21 @@ int OriExport_main(int argc,char ** argv)
 
         for (int aK=0 ; aK<int(aEASF.SetIm()->size()) ; aK++)
         {
-             const std::string & aNameCam =  (*aEASF.SetIm())[aK];
-             std::string aNameIm = aEASF.mICNM->Assoc1To1("NKS-Assoc-Ori2ImGen",aNameCam,true);
-             CamStenope * aCS =  CamOrientGenFromFile(aNameCam,aEASF.mICNM);
-             // std::cout << "IM = " << aNameCam  << " " << aCS->Focale() << "\n";
-             Pt3dr aA = TestInvAngles(aCO,aCS->Orient().Mat());
-             Pt3dr aC = aCS->PseudoOpticalCenter();
-             fprintf(aFP,"%s %lf %lf %lf %lf %lf %f\n",aNameIm.c_str(),aA.x,aA.y,aA.z,aC.x,aC.y,aC.z);
+            const std::string & aNameCam =  (*aEASF.SetIm())[aK];
+            std::string aNameIm = aEASF.mICNM->Assoc1To1("NKS-Assoc-Ori2ImGen",aNameCam,true);
+            CamStenope * aCS =  CamOrientGenFromFile(aNameCam,aEASF.mICNM);
+            // std::cout << "IM = " << aNameCam  << " " << aCS->Focale() << "\n";
+            Pt3dr aA = TestInvAngles(aCO,aCS->Orient().Mat());
+            Pt3dr aC = aCS->PseudoOpticalCenter();
+			if(!onlyC && onlyA)
+				fprintf(aFP,"%s %lf %lf %lf\n",aNameIm.c_str(),aA.x,aA.y,aA.z);
+			else if(onlyC && !onlyA)
+				fprintf(aFP,"%s %lf %lf %lf\n",aNameIm.c_str(),aC.x,aC.y,aC.z);
+			else
+				fprintf(aFP,"%s %lf %lf %lf %lf %lf %f\n",aNameIm.c_str(),aA.x,aA.y,aA.z,aC.x,aC.y,aC.z);
         }
 
         fclose(aFP);
-
 
         BanniereMM3D();
     }
