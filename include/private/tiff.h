@@ -242,6 +242,9 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
      public :
            const char *  name() const {return  _name;}
            cMetaDataPhoto  MDP();
+           Pt2di SzFileTile() const ;
+           Pt2di NbTTByTF() const   ;
+
       private :
 
            class  vmodif

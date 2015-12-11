@@ -21,8 +21,9 @@ Button 3 , contextual menu:
  
   # Line 3, Set dynamic :
  
-     * Stat2 : adapat dynamic from average & standard deviation (with error function)
-     * MinMax : compute linear  min an max value
+     * Stat2 :      adapat dynamic from average & standard deviation (with error function)
+     * MinMax :     compute linear  min an max value
+     * HistoEqual : compute histogramm equalization
  
 Run :  Vino "MyFile.tif"  SzW=[X,Y] to change size of windows 
        Vino "MyFile.tif"  Dyn=[VMax,VMin] to change dynamic

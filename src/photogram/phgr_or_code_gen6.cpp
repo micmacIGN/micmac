@@ -90,6 +90,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqBBCamThird_AccelCsteCoord.cpp"
 
 
+#include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg0.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg1.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg2.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg3.cpp"
@@ -98,6 +99,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg6.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg7.cpp"
 
+#include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg0.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg1.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg2.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg3.cpp"
@@ -107,6 +109,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg7.cpp"
 
 
+#include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg0.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg1.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg2.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg3.cpp"

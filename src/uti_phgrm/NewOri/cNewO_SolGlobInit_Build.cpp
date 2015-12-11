@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 #include "SolInitNewOri.h"
 
+bool BugNanNewOri = false;
 
 /**********************************************************/
 /*                                                        */
@@ -187,6 +188,12 @@ void  cAppli_NewSolGolInit::AddSOrCur(tSomNSI * aSom,const ElRotation3D & aR)
 
 */
 
+bool SomSpec(cNOSolIn_Triplet * aTri)
+{
+return     (aTri->KSom(0)->attr().Im()->Name()=="OIS-Reech_Vol10_1986_FR3989_0267_013.tif")
+       &&  (aTri->KSom(1)->attr().Im()->Name()=="OIS-Reech_Vol11_1986_FR3989_0297_015.tif")
+       &&  (aTri->KSom(2)->attr().Im()->Name()=="OIS-Reech_Vol12_1986_FR3989_0323_015.tif");
+}
 
 double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
 {
@@ -223,6 +230,8 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
      double aLambda = aSomDCur / aSomDTri;
 
 
+
+
      //  aOffsTr + aMTri2Cur * PTri * aLambda = PCur
      Pt3dr aOffsTr(0,0,0);
      for (int aKS=0 ; aKS<3 ; aKS++)
@@ -231,6 +240,8 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
      }
      aOffsTr = aOffsTr / 3.0;
 
+     if (BugNanNewOri) 
+        std::cout << "OOOoaOffsTr= " << aOffsTr << "\n";
 
      double aSomDistMat = 0; 
      double aSomDistTr = 0; 
@@ -243,6 +254,9 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
      aSomDistTr  *= aTri->BOnH();
 
      aSomDistMat = sqrt(aSomDistMat/2.0);
+
+     if (BugNanNewOri) 
+        std::cout << "aSomDistMataSomDistMat= " << aSomDistMat << "\n";
 
      double aSomDist =  aSomDistTr + aSomDistMat;
      double anEcart = ElMax(mLastPdsMedRemoy,mCoherMed12);
@@ -270,6 +284,17 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
         }
      }
 
+if (SomSpec(aTri))
+{
+     std::cout << "LLLLambda= " << aLambda  << " Nb3 " << aTri->Nb3() << "\n";
+     std::cout <<  aTri->KSom(0)->attr().Im()->Name() << " " 
+               <<  aTri->KSom(1)->attr().Im()->Name() << " " 
+               <<  aTri->KSom(2)->attr().Im()->Name() << " " 
+               << "\n";
+     std::cout << "SD " << aSomDist << " " << anEcart << "\n";
+     // if (BugNanNewOri) std::cout << "LLLLambda= " << aLambda << "\n";
+     getchar();
+}
 
      return aSomDist;
 }
@@ -309,11 +334,23 @@ void cAppli_NewSolGolInit::ReMoyByTriplet()
 
     for (int aK3=0 ; aK3<int(mV3Use4Ori.size()) ; aK3++)
     {
+static int aCptRMT=0 ;aCptRMT++;
+BugNanNewOri = (aCptRMT==3683440);
+
+
         double aDist = ReMoyOneTriplet(mV3Use4Ori[aK3]);
+if (std_isnan(aDist))
+{
+    std::cout << "aCptRMT== " << aCptRMT << " NanDist\n";
+    getchar();
+}
         mLastEcartReMoy.push_back(aDist);
     }
 
+static int aCpt=0; aCpt++;
+std::cout << " ENTER MED " << aCpt << "\n";  // Nan
     mLastPdsMedRemoy = MedianeSup(mLastEcartReMoy);
+std::cout << "--------- END  MED \n";
 
 
     for (int aKS=0 ; aKS <  int(mVSOrCur.size()) ; aKS++)

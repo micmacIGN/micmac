@@ -172,18 +172,48 @@ void cAppli_Vino::InitTabulDyn()
            mTabulDyn.push_back(ElMax(0,ElMin(255,round_ni(256 * erfcc (aVal)))));
        }
    }
+
+   if (mCurStats->Type()==eDynVinoEqual)
+   {
+       double * aDC = mHistoCum.data();
+       int aNbH =  mHistoCum.tx();
+
+       mTabulDyn.clear();
+       mTabulDynIsInit = true;
+       double aVEnd = aDC[aNbH-1];
+       for (int aK=0 ; aK<= aNbTabul ; aK++)
+       {
+           double  aVal = mV0TabulDyn + aK * mStepTabulDyn;
+           aVal = (aVal-mCurStats->VMinHisto())/mCurStats->StepHisto();
+
+           aVal = ElMax(0.0,ElMin(aVal,aNbH-1.001));
+           int iVal = round_down(aVal);
+           double aP1 = aVal-iVal;
+           double aP0 = 1 - aP1;
+           aVal = aDC[iVal] * aP0 + aDC[iVal+1] * aP1;
+           
+           mTabulDyn.push_back(ElMax(0,ElMin(255,round_ni(256  * (aVal/aVEnd)))));
+       }
+   }
 }
 
 void cAppli_Vino::HistoSetDyn()
 {
     std::string aMes = "Clik  for polygone ; Shift Clik  to finish ; Enter 2 point for rectangle";
-    ElList<Pt2di> aL = GetPtsImage(false,false,aMes);
+    ElList<Pt2di> aL = GetPtsImage(false,false,false);
     if (aL.card() >= 2)
     {
+        Flux_Pts aFlux = rectangle(aL.car(),aL.cdr().car());
+        if (aL.card() >2)
+           aFlux = polygone(aL);
+
+         FillStat(*mCurStats,aFlux,mScr->CurScale()->in());
+/*
         if (aL.card()== 2)
            FillStat(*mCurStats,rectangle(aL.car(),aL.cdr().car()),mScr->CurScale()->in());
         else
            FillStat(*mCurStats,polygone(aL),mScr->CurScale()->in());
+*/
 
         if (mCaseCur==mCaseHStat)
            mCurStats->Type() =  eDynVinoStat2;
@@ -191,11 +221,201 @@ void cAppli_Vino::HistoSetDyn()
         if (mCaseCur==mCaseHMinMax)
            mCurStats->Type() =  eDynVinoMaxMin;
 
+        if (mCaseCur==mCaseHEqual)
+        {
+             DoHistoEqual(aFlux);
+             mCurStats->Type() =  eDynVinoEqual;
+        }
+
+
         mCurStats->IsInit() = true;
         InitTabulDyn();
         SaveState();
     }
     Refresh();
+}
+
+template <class Type,class TyBase> Im2D<Type,TyBase> Im1D2Im2D(Im1D<Type,TyBase> aI1)
+{
+    Im2D<Type,TyBase>  aI2(aI1.tx(),1);
+    ELISE_COPY(aI2.all_pts(),aI1.in()[FX],aI2.out());
+    return aI2;
+}
+
+void PlotHisto(Video_Win aW,Im1D_REAL8 anIm,int aCoul,int aWidth)
+{
+  Im2D_REAL8 aI2DInit = Im1D2Im2D(anIm);
+  int aSzWX = aW.sz().x;
+  int aSzWY =  aW.sz().y;
+  int aSHw = anIm.tx();
+  double aCompr = double(aSzWX) / double(aSHw);
+
+   Im2D_REAL8 aI2DRed(aSzWX,1);
+   // ELISE_COPY(aI2D.all_pts(),,aI2D.out());
+
+   if (1) // (aCompr < 1)
+   {
+      ELISE_COPY
+      (
+           aI2DRed.all_pts(),
+           StdFoncChScale
+           (
+               aI2DInit.in_proj(),
+               Pt2dr(0,0),
+               Pt2dr(1.0/aCompr,1.0),
+               Pt2dr(1,1)
+           ),
+           aI2DRed.out()
+   
+      );
+   }
+   else
+   {
+       ELISE_COPY(aI2DRed.all_pts(), anIm.in(0)[FX*aCompr], aI2DRed.out());
+   }
+
+   double aVMax;
+   ELISE_COPY(aI2DRed.all_pts(),aI2DRed.in(),VMax(aVMax));
+   double * aData = aI2DRed.data()[0];
+
+   double aY0 = aSzWY *(1 - 1/20.0);
+   double aMulY = (aSzWY * 0.8) / aVMax;
+   
+   std::vector<Pt2dr> aVPts;
+   for (int aK= 0 ; aK<aSzWX ; aK++)
+   {
+       aVPts.push_back(Pt2dr(aK,aY0 - aMulY * aData[aK]));
+
+   }
+   for (int aK= 1 ; aK<aSzWX ; aK++)
+   {
+       aW.draw_seg(aVPts[aK-1],aVPts[aK],Line_St(aW.pdisc()(aCoul),2));
+   }
+}
+
+void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
+{
+   
+    mCurStats->VMinHisto() = 1e30;
+    mVMaxHisto = -1e30;
+    double aNbSigma = 15;
+    int aNbCh = mCurStats->VMax().size();
+    double anEctGlob = 0;
+
+    for (int aK=0 ; aK<aNbCh ; aK++)
+    {
+         double aMoy = mCurStats->Soms()[aK];
+         double anEct = mCurStats->ECT()[aK];
+         double aVMin = ElMax(mCurStats->VMin()[aK],aMoy-aNbSigma*anEct);
+         double aVMax = ElMin(mCurStats->VMax()[aK],aMoy+aNbSigma*anEct);
+         anEctGlob += anEct;
+         mCurStats->VMinHisto() = ElMin(mCurStats->VMinHisto(),aVMin);
+         mVMaxHisto = ElMax(mVMaxHisto,aVMax);
+    }
+
+    anEctGlob /= aNbCh;
+
+    Fonc_Num aF = mScr->CurScale()->in().kth_proj(0);
+    for (int aK =1 ; aK<aNbCh ; aK++)
+    {
+        aF = aF + mScr->CurScale()->in().kth_proj(aK);
+    }
+    aF = aF / double(aNbCh);
+
+    mCurStats->StepHisto() = 1;
+    if (  ((mVMaxHisto-mCurStats->VMinHisto()) < mNbHistoMax) && (aF.integral_fonc(true)))
+    {
+         mNbHisto  = mVMaxHisto-mCurStats->VMinHisto() + 1;
+    }
+    else
+    {
+         mNbHisto = mNbHistoMax;
+         mCurStats->StepHisto() =  (mVMaxHisto - mCurStats->VMinHisto()) / (mNbHisto-1);
+    }
+    mHisto.Resize(mNbHisto);
+    mHistoLisse.Resize(mNbHisto);
+    mHistoCum.Resize(mNbHisto);
+
+    mHisto.raz();
+    Fonc_Num aFI = Max(0,Min(mNbHisto-1,round_ni((aF-mCurStats->VMinHisto()) / mCurStats->StepHisto())));
+
+
+    ELISE_COPY
+    (
+         aFlux,
+         1,
+         mHisto.histo(true).chc(aFI)
+    );
+
+    Im2D_REAL8 aI2L = Im1D2Im2D(mHisto);
+    int aNbIter = 4;
+    double aSigmRest = ElSquare((0.05*anEctGlob) / mCurStats->StepHisto());
+    double aFact  = FromSzW2FactExp(sqrt(aSigmRest),aNbIter);
+    std::cout << "Sigma000 " << sqrt(aSigmRest) << " Fact " << aFact  << " " << anEctGlob/mCurStats->StepHisto() << "\n";
+    for (int aK=0 ; aK< aNbIter ; aK++)
+    {
+         ELISE_COPY
+         (
+              aI2L.all_pts(),
+              canny_exp_filt(aI2L.in(0),aFact,aFact) / canny_exp_filt(aI2L.inside(),aFact,aFact),
+              aI2L.out()
+         );
+    }
+/*
+    for (int aK=0 ; aK< aNbIter ; aK++)
+    {
+        if (aSigmRest>0)
+        {
+               double aSigma = aSigmRest / (aNbIter-aK);
+               int aNb = round_ni(sqrt(aSigma));
+               aSigmRest -= ElSquare(aNb);
+               if (aNb >=0)
+               {
+                  ELISE_COPY
+                  (
+                       aI2L.all_pts(),
+                       rect_som(aI2L.in(0),Pt2di(aNb,1)) / rect_som(aI2L.inside(),Pt2di(aNb,1)),
+                       aI2L.out()
+                  );
+               }
+               std::cout << "Nbbbb " << aNb << "\n";
+        }
+    }
+*/
+    ELISE_COPY(mHistoLisse.all_pts(),aI2L.in()[Virgule(FX,0)],mHistoLisse.out());
+
+    double * aDH = mHistoLisse.data();
+    double * aDC = mHistoCum.data();
+    aDC[0] = aDH[0];
+
+    for (int aK=1 ; aK<mNbHisto ; aK++)
+         aDC[aK] =  aDC[aK-1] + aDH[aK];
+
+
+       
+    // std::cout  << "DoHistoEqual " << aVMinGlob << " " << aVMaxGlob << " "<< anEctGlob << "\n";
+
+
+    PlotHisto(*mW,mHisto,P8COL::red,2);
+    PlotHisto(*mW,mHistoLisse,P8COL::blue,2);
+    PlotHisto(*mW,mHistoCum,P8COL::green,2);
+    EffaceMessageRelief();
+    PutMessageRelief(0,"Histo diplaid, Clik to continue");
+    mW->clik_in();
+
+
+    Im2D_REAL8 aI2C = Im1D2Im2D(mHistoCum);
+    Tiff_Im::CreateFromIm(aI2C, mNameHisto);
+
+
+/*
+     plot.set(NewlArgPl1d(PlModePl(Plots::line)));
+     plot.set(NewlArgPl1d(PlotLinSty(lst)));
+*/
+
+
+    //  FillStat(*mCurStats,aFlux,mScr->CurScale()->in());
+    // int aVMin = ElMax(mCurStats->VMax
 }
 
 

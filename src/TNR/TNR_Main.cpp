@@ -38,7 +38,14 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <vector>
+//Cmt Luc : unistd.h does not exist in Windows VS. Not including it still compiles, io.h is, I've heard, the W equivalent (to be confirmed)
+#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
 #include <unistd.h>
+#endif
+//#if (ELISE_windows)
+//#include <io.h>
+//#endif
+
 
 class cTestElParseDir : public ElActionParseDir
 {

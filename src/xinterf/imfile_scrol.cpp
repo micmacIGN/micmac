@@ -508,7 +508,7 @@ template <class Type> ImFileLoader<Type>::ImFileLoader
     mByteOrdered    (true),
     _tiff           (0),
 	_nb_chan  		(Big._nb_chan),
-    _fp             (0),
+    mFPGlob             (0),
     _nb_tile        (1,1),
     _sz_tile        (this->_SzU),
     _uline          (NEW_VECTEUR(-this->RAB*Big._nb_chan,(this->_SzU.x+this->RAB)*Big._nb_chan,Type)),
@@ -579,14 +579,31 @@ template <class Type> ImFileLoader<Type>::~ImFileLoader()
 	if (_own_alloc)
 		DELETE_ONE(_alloc);
 	DELETE_VECTOR(_uline,-this->RAB*_nb_chan);
-    if (_fp)
-		delete _fp;
+    if (mFPGlob)
+		delete mFPGlob;
     if (_tiff)
 		delete _tiff;
 
     for (INT k=0; k<(INT)mBufLW.size() ; k++)
         delete mBufLW[k];
 }
+
+template <class Type> ELISE_fp * ImFileLoader<Type>::FileOfTile(Pt2di aTile)
+{
+   if (!mHasTileFile) return  mFPGlob;
+
+    Pt2di aNumTF (aTile.x/mNbTTByF.x,aTile.y/mNbTTByF.y);
+   
+    if (aNumTF==mCurTileOfFT) return mFPOfFileTile;
+
+    delete mFPOfFileTile;
+    mCurTileOfFT = aNumTF;
+    mFPOfFileTile = new ELISE_fp(_tiff->NameTileFile(mCurTileOfFT).c_str(),ELISE_fp::READ);
+
+    return mFPOfFileTile;
+}
+
+
 
 
 template <class Type> ImFileLoader<Type>::ImFileLoader
@@ -599,13 +616,18 @@ template <class Type> ImFileLoader<Type>::ImFileLoader
     mByteOrdered (tiff.byte_ordered()),
 	_tiff     (new Tiff_Im (tiff)),
 	_nb_chan  (tiff.NbChannel()),
-	_fp		  (new ELISE_fp(tiff.name(),ELISE_fp::READ)),
+	mFPGlob	  (new ELISE_fp(tiff.name(),ELISE_fp::READ)),
 	_nb_tile  (tiff.nb_tile()),
 	_sz_tile  (tiff.sz_tile()),
 	_uline    (NEW_VECTEUR(-this->RAB*_nb_chan,(this->_SzU.x+this->RAB)*_nb_chan,Type)),
    _dynamic    (true),
     mXTabIntervales (SzW.x,this->_SzU.x,this->RAB,this->XTransfo),
-    mYTabIntervales (SzW.y,this->_SzU.y,this->RAB,this->YTransfo)
+    mYTabIntervales (SzW.y,this->_SzU.y,this->RAB,this->YTransfo),
+    mSzTileFile     (tiff.SzFileTile()),
+    mHasTileFile    (mSzTileFile.x > 0),
+    mFPOfFileTile   (0),
+    mCurTileOfFT    (-1,-1),
+    mNbTTByF        (tiff.NbTTByTF())
 {
     init_LW();
     _own_alloc =  (IMFalloc == 0);
@@ -630,7 +652,7 @@ template <class Type> ImFileLoader<Type>::ImFileLoader
   	Tjs_El_User.ElAssert
     (
         tiff.plan_conf()  == Tiff_Im::Chunky_conf,
-        EEM0 << "ImFileLoader, handle 8 bits images"
+        EEM0 << "ImFileLoader, handle Chunky_conf as plan_conf"
             << "Tiff File = " << tiff.name()
     );             
 
@@ -640,9 +662,28 @@ template <class Type> ImFileLoader<Type>::ImFileLoader
 	   _tiles.push_back(ElSTDNS vector<TilesIMFL<Type> *>());
 	   for (INT x=0; x<_nb_tile.x ; x++)
 	   {
+//  mSzFileTile
+//  mUseFileTile
+
+// std::cout << "HHHHHH " << _nb_tile << " " << tiff.name() << " " << tiff.sz_tile()  << "\n";
+// std::cout << "GGGGGG " << tiff.SzFileTile()  << " " << tiff.NbTTByTF()   << "\n";
+                 
+                 Tiff_Im aTiff2Load = tiff;
+                 Pt2di    aTileInside(x,y);
+                 if (mHasTileFile)
+                 {
+                      aTileInside = Pt2di(x%mNbTTByF.x,y%mNbTTByF.y);
+                      Pt2di aNumTTF(x/mNbTTByF.x,y/mNbTTByF.y);
+                      std::string aNameTTF = tiff.NameTileFile(aNumTTF);
+                      aTiff2Load = Tiff_Im(aNameTTF.c_str());
+                 }
+
+
+
 		 _tiles[y].push_back
                  (
-                     CLASS_NEW_ONE(TilesIMFL<Type>,(tiff,Pt2di(x,y),_nb_chan))
+                     CLASS_NEW_ONE(TilesIMFL<Type>,(aTiff2Load,aTileInside,_nb_chan))
+                     // CLASS_NEW_ONE(TilesIMFL<Type>,(tiff,Pt2di(x,y),_nb_chan))
                  );
 	}
     }
@@ -650,11 +691,16 @@ template <class Type> ImFileLoader<Type>::ImFileLoader
 
 template <class Type> void ImFileLoader<Type>::ImFReInitTifFile(Tiff_Im aTif)
 {
+    if ( mHasTileFile)
+    {
+         
+         ELISE_ASSERT(false,"::ImFReInitTifFile with Tile File");
+    }
     put_tiles_in_alloc(true);
     delete _tiff;
-    delete _fp;
+    delete mFPGlob;
     _tiff = new Tiff_Im (aTif);
-    _fp	  = new ELISE_fp(aTif.name(),ELISE_fp::READ);
+    mFPGlob	  = new ELISE_fp(aTif.name(),ELISE_fp::READ);
 }
 
 
@@ -692,7 +738,7 @@ template <class Type> void ImFileLoader<Type>::load_this_tile(INT x,INT y)
 {
 	if ( ! _tiles[y][x]->_loaded)
         {
-	   _alloc->load_it(_tiles[y][x],*_fp);
+	   _alloc->load_it(_tiles[y][x],*FileOfTile(Pt2di(x,y)));
         }
 }
 
@@ -736,6 +782,7 @@ template <class Type> bool ImFileLoader<Type>::load_all(Pt2dr tr,REAL sc,Pt2di p
 						_alloc->get_if_loaded(_tiles[y][x]);
 				}
 			}
+// std::cout << "Ppppppppppppp\n";
 
 			// Cette fois, on force le load
 
@@ -744,6 +791,7 @@ template <class Type> bool ImFileLoader<Type>::load_all(Pt2dr tr,REAL sc,Pt2di p
 				for (INT x=_tiles_0.x; x<_tiles_1.x ; x++)
 					load_this_tile(x,y);
 			}
+// std::cout << "GGgggggggggg\n";
     }
 
 	return true;

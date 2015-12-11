@@ -154,7 +154,7 @@ int Campari_main(int argc,char ** argv)
             // Pt2dr Focales(0,100000);
             // std::string aParamPatFocSetIm = "@" + aPat + "@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
             ELISE_ASSERT(aImMinMax.size()==2,"Bad size in vect");
-            aSetIm =  "NKS-Set-OfPatternAndInterv" + aPat + "@" + aImMinMax[0] + "@" + aImMinMax[1];
+            aSetIm =  "NKS-Set-OfPatternAndInterv@" + aPat + "@" + aImMinMax[0] + "@" + aImMinMax[1];
         }
 
 
