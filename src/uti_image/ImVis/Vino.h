@@ -108,6 +108,7 @@ class cWindowXmlEditor
          cWindowXmlEditor(Video_Win aW,bool aXmlMode,cElXMLTree * aTree,cWXXTreeSelector * aSelector,cElXMLTree * aFilter=0);
          Box2di  TopDraw();
          void Interact();
+         cWXXInfoCase * GetCaseOfNam(const std::string & aVal,bool SVP);
      private :
 
 

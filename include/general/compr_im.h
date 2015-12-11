@@ -141,7 +141,7 @@ class Visu_ElImDest;
 template <class Type> class FriendVisu_ElImDest
 {
    public :
-       static void write_image(Visu_ElImDest&,INT  x0src,Pt2di p0dest,INT nb,Type ** data,int** aDataBuf);
+       static void write_image(Visu_ElImDest&,INT  x0src,Pt2di p0dest,INT nb,Type ** data,int** aDataBuf,int aNbChanelIn);
 };
 
 class Visu_ElImDest
@@ -155,8 +155,8 @@ class Visu_ElImDest
 		   virtual void VerifDim(INT DimOut) =0;
 
 		   void SetGamaCorr(REAL aGamaFact);
-                   void write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data);
-                   void write_image(INT x0src,Pt2di p0dest,INT nb,double ** data);
+                   void write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data,int aNbChanelIn);
+                   void write_image(INT x0src,Pt2di p0dest,INT nb,double ** data,int aNbChanelIn);
 
 		   Visu_ElImDest(Pt2di aSz,INT aDimOut);
 
@@ -431,8 +431,8 @@ class ElImScroller
 
         Pt2di           _SzW;
         Pt2di           _SzU;
-        void write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data);
-        void write_image(INT x0src,Pt2di p0dest,INT nb,double ** data);
+        void write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data,int aNbChanelIn);
+        void write_image(INT x0src,Pt2di p0dest,INT nb,double ** data,int aNbChanelIn);
 /*
         {
               mVisuCur->write_image(x0src,p0dest,nb,data);
