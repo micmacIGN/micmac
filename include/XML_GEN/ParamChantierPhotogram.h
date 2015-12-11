@@ -6874,6 +6874,9 @@ class cXml_EnvVino
         Pt2di & SzW();
         const Pt2di & SzW()const ;
 
+        cTplValGesInit< double > & SzLimSsEch();
+        const cTplValGesInit< double > & SzLimSsEch()const ;
+
         int & LargAsc();
         const int & LargAsc()const ;
 
@@ -6893,6 +6896,7 @@ class cXml_EnvVino
         const std::list< cXml_StatVino > & Stats()const ;
     private:
         Pt2di mSzW;
+        cTplValGesInit< double > mSzLimSsEch;
         int mLargAsc;
         Pt2di mSzIncr;
         bool mZoomBilin;

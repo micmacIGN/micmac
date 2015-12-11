@@ -973,7 +973,6 @@ template <class Type>  void ImFileLoader<Type>::MakeOneLine(bool quick)
 template <class Type> void ImFileLoader<Type>::do_it(Pt2dr tr,REAL sc,Pt2di p0,Pt2di p1,bool quick)
 {
 
-
    mPixReplic = quick;
    mReduc = (sc<=1);
 
@@ -1047,7 +1046,8 @@ template <class Type> void ImFileLoader<Type>::do_it(Pt2dr tr,REAL sc,Pt2di p0,P
         (
             Pt2di(this->_pW0.x, mWyCur0),
             Pt2di(this->_pW1.x, mWyCur1),
-            this->_line
+            this->_line,
+            _nb_chan
         );
 	    mWyCur0 =  mWyCur1;
     }                                            
@@ -1157,12 +1157,12 @@ std::cout << "LLL::LoadXImage " << quick << " " << this->sc() << " " << this->Al
 	this->do_it(ElImScroller::tr(),ElImScroller::sc(),p0,p1,quick);
 }
 
-template <class Type> void ImFileScroller<Type>::RasterUseLine(Pt2di p0,Pt2di p1,tGSI ** l)
+template <class Type> void ImFileScroller<Type>::RasterUseLine(Pt2di p0,Pt2di p1,tGSI ** l,int aNbChanIn)
 {
      for (INT y= p0.y ; y<p1.y ; y++)
      {
  
-          write_image (p0.x,Pt2di(p0.x,y),p1.x-p0.x,l);        
+          write_image (p0.x,Pt2di(p0.x,y),p1.x-p0.x,l,aNbChanIn);        
      }             
 }
 
