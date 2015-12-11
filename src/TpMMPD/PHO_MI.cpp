@@ -1,4 +1,3 @@
-
 /*Header-MicMac-eLiSe-25/06/2007
 
     MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
@@ -39,10 +38,10 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "kugelhupf.h"
-
+#include "../uti_phgrm/NewOri/NewOri.h"
 
 #if ELISE_windows
-	#define uint unsigned
+    #define uint unsigned
 #endif
 
 
@@ -54,9 +53,28 @@ Header-MicMac-eLiSe-25/06/2007*/
  *  - Fichier de calibration du caméra
  * Output:
  *  - List de coordonné de point homologue
+ *  - serie1_Line$ mm3d PHO_MI "soussol_161015_001_0000[6-8].tif" Ori-Serie1/
  * */
 
+struct PtTrip
+{
+    Pt2dr P1;
+    Pt2dr P2;
+    Pt2dr P3;
+};
 
+struct PtDoub
+{
+    Pt2dr P1;
+    Pt2dr P2;
+};
+
+struct PairHomol
+{
+    string ImgA;
+    string ImgB;
+    ElPackHomologue HomoA_B;
+};
 
 void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
 {
@@ -74,42 +92,199 @@ void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
 }
 
 
-Im2D<U_INT1,INT4> CreatImageZ(Im2D<U_INT1,INT4> origin, int centreX, int centreY, int w, int h)
+void TestcFixedMergeStruct_G(vector<PairHomol> aPairImg, cInterfChantierNameManipulateur * aICNM, string aHomolOutput, string aOriInput)
 {
-    Im2D<U_INT1,INT4> imageZ(w*2+1,h*2+1);
-    ELISE_COPY
-    (
-        imageZ.all_pts(),                     //List de coordonne on va travailler
-        origin.in()[Virgule(FX+centreX-w,FY+centreY-h)],    //entree, FX et FY va parcourir dans la list de coordonne
-        imageZ.out()
-    );
-//    ELISE_COPY
-//    (
-//        imageZ.all_pts(),
-//        imageZ.in()[Virgule(FX,FY)],
-//        Tiff_Im(
-//            "toto.tif",
-//            imageZ.sz(),
-//            GenIm::u_int1,
-//            Tiff_Im::No_Compr,
-//            Tiff_Im::BlackIsZero,
-//            Tiff_Im::Empty_ARG ).out()
-//    );
-    return imageZ;
+    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                        +  std::string("txt");
+
+    std::string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                        +  std::string("dat");
+
+    int w = 3;
+    for (uint i=0; i<aPairImg.size(); i++)
+    {
+
+        if(i != aPairImg.size()-1)
+        {
+            cout<<"Cpl = "<<aPairImg[i].ImgA << " "<<aPairImg[i].ImgB<<endl;
+
+            //read image 1 & 2 & 3
+            std::string aNameIm1 = aPairImg[i].ImgA;
+            std::string aNameIm2 = aPairImg[i].ImgB;
+            std::string aNameIm3 = aPairImg[i+1].ImgB;
+            Tiff_Im mTiffImg1(aNameIm1.c_str());
+            Im2D<U_INT1,INT4> mImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);
+            ELISE_COPY(
+                        mTiffImg1.all_pts(),
+                        mTiffImg1.in(),
+                        mImg1.out()
+                      );
+            Tiff_Im mTiffImg2(aNameIm2.c_str());
+            Im2D<U_INT1,INT4> mImg2(mTiffImg2.sz().x,mTiffImg2.sz().y);
+            ELISE_COPY(
+                        mTiffImg2.all_pts(),
+                        mTiffImg2.in(),
+                        mImg2.out()
+                      );
+            Tiff_Im mTiffImg3(aNameIm3.c_str());
+            Im2D<U_INT1,INT4> mImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
+            ELISE_COPY(
+                        mTiffImg3.all_pts(),
+                        mTiffImg3.in(),
+                        mImg3.out()
+                     );
+
+            //get orientation information of 3 cameras
+            std::string aNameOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aPairImg[i].ImgA,true);
+            std::string aNameOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aPairImg[i].ImgB,true);
+            std::string aNameOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aPairImg[i+1].ImgB,true);
+            CamStenope * aCam1 = CamOrientGenFromFile(aNameOri1 , aICNM);
+            CamStenope * aCam2 = CamOrientGenFromFile(aNameOri2 , aICNM);
+            CamStenope * aCam3 = CamOrientGenFromFile(aNameOri3 , aICNM);
+
+            ElPackHomologue aPackIn1_2 = aPairImg[i].HomoA_B;
+            ElPackHomologue aPackIn2_3 = aPairImg[i+1].HomoA_B;
+            cFixedMergeStruct<3,Pt2dr>  aFMS;
+            //creat name of homomogue file dans 2 sens
+            ElPackHomologue Pair1_2, Pair2_3, Pair1_2i, Pair2_3i, Pair1_3, Pair1_3i;
+            std::string NameHomolPair1 = aICNM->Assoc1To2(aKHOut, aPairImg[i].ImgA, aPairImg[i].ImgB, true);
+            std::string NameHomolDatPair1 = aICNM->Assoc1To2(aKHOutDat, aPairImg[i].ImgA, aPairImg[i].ImgB, true);
+            std::string NameHomolDatPair1i = aICNM->Assoc1To2(aKHOutDat, aPairImg[i].ImgB, aPairImg[i].ImgA, true);
+
+            std::string NameHomolPair2 = aICNM->Assoc1To2(aKHOut, aPairImg[i+1].ImgA, aPairImg[i+1].ImgB, true);
+            std::string NameHomolDatPair2 = aICNM->Assoc1To2(aKHOutDat, aPairImg[i+1].ImgA, aPairImg[i+1].ImgB, true);
+            std::string NameHomolDatPair2i = aICNM->Assoc1To2(aKHOutDat, aPairImg[i+1].ImgB, aPairImg[i+1].ImgA, true);
+
+            std::string NameHomolPair3 = aICNM->Assoc1To2(aKHOut, aPairImg[i].ImgA, aPairImg[i+1].ImgB, true);
+            std::string NameHomolDatPair3 = aICNM->Assoc1To2(aKHOutDat, aPairImg[i].ImgA, aPairImg[i+1].ImgB, true);
+            std::string NameHomolDatPair3i = aICNM->Assoc1To2(aKHOutDat, aPairImg[i+1].ImgB, aPairImg[i].ImgA, true);
+
+            double countTripletv = 0;
+            double countDoubletv = 0;
+            for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
+            {
+
+                //lire les point homo
+                Pt2dr aP1 = itP->P1();  //Point img1
+                Pt2dr aP2 = itP->P2();  //Point img2
+                double d;
+                //search for point trilet P2 in fime homo 2_3
+                const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
+                double distP2 = sqrt(pow((aTriplet2_3->P1().x - aP2.x),2) + pow((aTriplet2_3->P1().y - aP2.y),2));
+                if (distP2 < 2)
+                {//condition 1 to form a triplet P1 P2 P3
+                    Pt3dr PInter1_2= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
+                    Pt2dr PReproj3 = aCam3->ElCamera::R3toF2(PInter1_2);					//use point 3d to search Point img3
+                    double distP3Reprj = sqrt(pow((aTriplet2_3->P2().x - PReproj3.x),2) + pow((aTriplet2_3->P2().y - PReproj3.y),2));
+                        if (distP3Reprj < 2)
+                        {   //condition 2
+                            cCorrelImage::setSzW(w);
+                            cCorrelImage Imgette1, Imgette2, Imgette3;
+                            Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+                            Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+                            Imgette3.getFromIm(&mImg3, aTriplet2_3->P2().x, aTriplet2_3->P2().y);
+                            //compute correlation b/w imagette P1 P2; P2 P3; P1 P3
+                            double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
+                            double corr1_3 = Imgette1.CrossCorrelation(Imgette3);
+                            double corr2_3 = Imgette2.CrossCorrelation(Imgette3);
+                            //cout<<corr1_2<<" "<<corr1_3<<" "<<corr2_3<<endl;
+
+                            if ((corr1_2 > 0.9) && (corr1_3 > 0.8) && (corr2_3>0.9))
+                               {//condition 3
+                                //add P1 P2 P3 to merge struct
+                                countTripletv++;
+                                aFMS.AddArc(aP1, 0, aP2, 1);
+                                aFMS.AddArc(aP2, 1, aTriplet2_3->P2(), 2);
+                               }
+                        }
+
+                        else
+                        {
+                            //cout<<"P3 and triplet not good "<< " ++ "<<distP3Reprj<<" pxls"<<endl;
+                        }
+                }
+                else
+                {
+                    //case there is couple P1 P2
+                    //verify point P1 and P2 is a good couple by correlation
+                    cCorrelImage::setSzW(w);
+                    cCorrelImage Imgette1, Imgette2;
+                    Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+                    Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+                    //compute correlation b/w imagette P2 & P3
+                    double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
+                    if (corr1_2 > 0.9)
+                    {
+                        //P1 P2 is a good couple
+                        //add P1 P2 to merge struct
+                        countDoubletv++;
+                        aFMS.AddArc(aP1, 0, aP2, 1);
+                    }
+                }
+            }
+            //std::cout << "NB ITEM Tripletv = " << countTripletv << " - Doubletv = "<< countDoubletv <<endl<<endl;
+            aFMS.DoExport();
+            const std::list<cFixedMergeTieP<3,Pt2dr> *> &  aLM = aFMS.ListMerged();
+            std::cout << "NB ITEM INTEREST = " << aLM.size() << " / NB Pt Homo = "<<aPackIn1_2.size()<<endl;
+
+            double countTriplet = 0;
+            double countDoublet = 0;
+            for
+                    (
+                     std::list<cFixedMergeTieP<3,Pt2dr> *>::const_iterator itM=aLM.begin();
+                     itM != aLM.end();
+                     itM++
+                    )
+            {
+                if ( (*itM)->NbArc() == 2 )
+                { //Point tripet
+                    countTriplet++;
+                    Pair1_2.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(0), (*itM)->GetVal(1) ));
+                    Pair2_3.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(1), (*itM)->GetVal(2) ));
+                    Pair1_2i.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(1) , (*itM)->GetVal(0) ));
+                    Pair2_3i.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(2) , (*itM)->GetVal(1) ));
+                    Pair1_3.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(0), (*itM)->GetVal(2) ));
+                    Pair1_3i.Cple_Add(ElCplePtsHomologues( (*itM)->GetVal(2) , (*itM)->GetVal(0) ));
+
+                    Pair1_2.StdPutInFile(NameHomolPair1);
+                    Pair1_2.StdPutInFile(NameHomolDatPair1);
+                    Pair1_2i.StdPutInFile(NameHomolDatPair1i);
+
+                    Pair2_3.StdPutInFile(NameHomolPair2);
+                    Pair2_3.StdPutInFile(NameHomolDatPair2);
+                    Pair2_3i.StdPutInFile(NameHomolDatPair2i);
+
+                    Pair1_3.StdPutInFile(NameHomolPair3);
+                    Pair1_3.StdPutInFile(NameHomolDatPair3);
+                    Pair1_3i.StdPutInFile(NameHomolDatPair3i);
+                }
+                if ( (*itM)->NbArc() == 1 )
+                { //Point double
+                    countDoublet++;
+                }
+            }
+            std::cout << "NB ITEM Triplet = " << countTriplet << " - Doublet = "<< countDoublet <<endl<<endl;
+        }
+    }
 }
+
 
 
 int PHO_MI_main(int argc,char ** argv)
 {
     cout<<"*********************"<<endl;
-    cout<<"* "<<"P : Points"<<endl;
-    cout<<"* "<<"H : Homologues"<<endl;
-    cout<<"* "<<"O : Observés sur"<<endl;
-    cout<<"* "<<"M : Modèle"<<endl;
-    cout<<"* "<<"I : Initial"<<endl;
+    cout<<"* P : Points        *"<<endl;
+    cout<<"* H : Homologues    *"<<endl;
+    cout<<"* O : Observés sur  *"<<endl;
+    cout<<"* M : Modèle        *"<<endl;
+    cout<<"* I : Initial       *"<<endl;
     cout<<"*********************"<<endl;
 
-    std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="Homol_Filtered/";
+    std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="_Filtered/", bStrategie = "4";
     bool ExpTxt = false;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
@@ -122,6 +297,7 @@ int PHO_MI_main(int argc,char ** argv)
     LArgMain()  << EAM(aNameHomol, "HomolIn", true, "Name of input Homol foler, Homol par default")
                 << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                 << EAM(aHomolOutput, "HomolOut" , true, "Output corrected Homologues folder")
+                << EAM(bStrategie, "Strategie" , true, "Strategie de filtre les points homols")
     );
     if (MMVisualMode) return EXIT_SUCCESS;
 
@@ -130,78 +306,51 @@ int PHO_MI_main(int argc,char ** argv)
     // Initialize name manipulator & files
     std::string aDirImages, aPatImages;
     SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
+
     StdCorrecNameOrient(aOriInput,aDirImages);//remove "Ori-" if needed
 
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
     const std::vector<std::string> aSetImages = *(aICNM->Get(aPatImages));
 
     ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
-    string aDirImageZ = aDirImages + "Temp_ImageZ/";
- //======================================================================//
-    //Lire une image:
-//    Tiff_Im mTiffImg(aSetImages[0].c_str());                      //read header of image Tiff
-//    cout<<mTiffImg.sz().x<<" x "<<mTiffImg.sz().y<<endl;
-//    Im2D<U_INT1,INT4> mImg(mTiffImg.sz().x,mTiffImg.sz().y);      //to read pixel, using Im2D
-//    ELISE_COPY(                                                   //read image
-//                mTiffImg.all_pts(),
-//                mTiffImg.in(),
-//                mImg.out()
-//              );
-
-//    Im2D<U_INT1,INT4> mImgOut(mTiffImg.sz().x,mTiffImg.sz().y);
-//    cout<<mImgOut.sz()<<endl;
-
-//   // Copy une Image Jet
-//    int w=200;
-//    Im2D<U_INT1,INT4> mImgOut2(w*2+1,w*2+1);
-//    float cx=2000,cy=2000;
-//    ELISE_COPY
-//    (
-//        mImgOut2.all_pts(),                     //List de coordonne on va travailler
-//        mImg.in()[Virgule(FX+cx-w,FY+cy-w)],    //entrée, FX et FY va parcourir dans la list de coordonne
-//        mImgOut2.out()
-//    );
-//    ELISE_COPY
-//    (
-//        mImgOut2.all_pts(),
-//        mImgOut2.in()[Virgule(FX,FY)],
-//        Tiff_Im(
-//            "toto.tif",
-//            mImgOut2.sz(),
-//            GenIm::u_int1,
-//            Tiff_Im::No_Compr,
-//            Tiff_Im::BlackIsZero,
-//            Tiff_Im::Empty_ARG).out()
-//    );
-//=========================================================================================//
+    for (uint i=0; i< aSetImages.size(); i++)
+    {
+        cout << aSetImages[i]<<endl;
+    }
+ //============================================================
     std::string anExt = ExpTxt ? "txt" : "dat";
+
+    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                        +  std::string("txt");
+
+    std::string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                        +  std::string("dat");
 
     std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aNameHomol)
                        +  std::string("@")
                        +  std::string(anExt);
-    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
-                        +  std::string(aHomolOutput)
-                        +  std::string("@")
-                       +  std::string(anExt);
+    //cout<<aKHIn<<endl;
 
-    int h = 10;    //taille du fenetre de balayage
-    int w = 10;
-    int extzone = 10; //taile d'extende zone de recherche
-    int step = 5;
 
-    ELISE_fp::MkDir(aDirImages+"/temp_balayer");
-    for (int aKN1 = 0 ; aKN1<int(aSetImages.size()-1) ; aKN1++)     //test just for 3 images, from point homo b/w 2, verify with 3
-    {
-        for (int aKN2 = 0 ; aKN2<int(aSetImages.size()-1) ; aKN2++)
-        {
-             std::string aNameIm1 = aSetImages[aKN1];
-             std::string aNameIm2 = aSetImages[aKN2];
 
-             //read image
-             Tiff_Im mTiffImg1(aNameIm1.c_str());                      //read header of image Tiff
-             Im2D<U_INT1,INT4> mImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);      //to read pixel, using Im2D
-             ELISE_COPY(                                                   //read image
+    vector< Pt2dr > NewHomoFile;
+    vector< Pt2dr > HomoImg1;
+    vector< Pt2dr > HomoImg2;
+    int w = 3; //size imagette
+    ElPackHomologue PairPoint1_2, PairPoint2_1, PairPoint1_3, PairPoint3_1, PairPoint3_2, PairPoint2_3;
+
+             //read image 1 & 2 & 3
+             std::string aNameIm1 = aSetImages[0];
+             std::string aNameIm2 = aSetImages[1];
+             std::string aNameIm3 = aSetImages[2];
+             Tiff_Im mTiffImg1(aNameIm1.c_str());                     
+             Im2D<U_INT1,INT4> mImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);     
+             ELISE_COPY(                                                   
                          mTiffImg1.all_pts(),
                          mTiffImg1.in(),
                          mImg1.out()
@@ -213,283 +362,249 @@ int PHO_MI_main(int argc,char ** argv)
                          mTiffImg2.in(),
                          mImg2.out()
                        );
+             Tiff_Im mTiffImg3(aNameIm3.c_str());
+             Im2D<U_INT1,INT4> mImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
+             ELISE_COPY(
+                         mTiffImg3.all_pts(),
+                         mTiffImg3.in(),
+                         mImg3.out()
+                      );
+             //read file point homo 1 & 2
+             std::string aHomoIn1_2 = aICNM->Assoc1To2(aKHIn,aNameIm1,aNameIm2,true);  
+             StdCorrecNameHomol_G(aHomoIn1_2,aDirImages);
+             ElPackHomologue aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);   
+             //read file point homo 3 & 1
+             std::string aHomoIn3_1 = aICNM->Assoc1To2(aKHIn,aNameIm3,aNameIm1,true);
+             StdCorrecNameHomol_G(aHomoIn3_1,aDirImages);
+             ElPackHomologue aPackIn3_1 =  ElPackHomologue::FromFile(aHomoIn3_1);
+             //read file point homo 2 & 3
+             std::string aHomoIn2_3 = aICNM->Assoc1To2(aKHIn,aNameIm2,aNameIm3,true);
+             StdCorrecNameHomol_G(aHomoIn2_3,aDirImages);
+             ElPackHomologue aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);
+             //read file point homo 3 & 2
+             std::string aHomoIn3_2 = aICNM->Assoc1To2(aKHIn,aNameIm3,aNameIm2,true);
+             StdCorrecNameHomol_G(aHomoIn3_2,aDirImages);
+             ElPackHomologue aPackIn3_2 =  ElPackHomologue::FromFile(aHomoIn3_2);
+             //read file point homo 1 & 3
+             std::string aHomoIn1_3 = aICNM->Assoc1To2(aKHIn,aNameIm1,aNameIm3,true);
+             StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
+             ElPackHomologue aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);
 
 
-             std::string aNameIn = aICNM->Assoc1To2(aKHIn,aNameIm1,aNameIm2,true);  //fichier contient les point homologue à partir des pairs
-             StdCorrecNameHomol_G(aNameIn,aDirImages);
+             cout<<aPackIn1_2.size()<<" pts homo entre 1_2"<<endl;
+             cout<<aPackIn1_3.size()<<" pts homo entre 1_3"<<endl;
+             cout<<aPackIn2_3.size()<<" pts homo entre 2_3"<<endl;
 
-             if (ELISE_fp::exist_file(aNameIn))     //check fichier point homo existe
-             {
-                  ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn);    //lire coor de point homo dans images
-                  ElPackHomologue aPackOut;
-                  cout<<endl<<"There are "<<aPackIn.size()<<" point homologues b/w "<< aNameIm1<<" and "<< aNameIm2<<endl;
 
-                  //   R3 : "reel" coorhttp://stackoverflow.com/questions/5590381/easiest-way-to-convert-int-to-string-in-cdonnee initiale
-                  //   L3 : "Locale", apres rotation
-                  //   C2 :  camera, avant distortion
-                  //   F2 : finale apres Distortion
-                  //
                   //       Orientation      Projection      Distortion
                   //   R3 -------------> L3------------>C2------------->F2
+             //get orientation information of 3 cameras
+             std::string aNameOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm1,true);
+             std::string aNameOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm2,true);
+             std::string aNameOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm3,true);
+             CamStenope * aCam1 = CamOrientGenFromFile(aNameOri1 , aICNM);
+             CamStenope * aCam2 = CamOrientGenFromFile(aNameOri2 , aICNM);
+             CamStenope * aCam3 = CamOrientGenFromFile(aNameOri3 , aICNM);
 
-                  //get orientation information of 2 images
-                  std::string anOrient = "All";
-                  std::string aNameOri0 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm1,true);
-                  std::cout << " ++ For image " << aNameIm1 << " ++ " << aNameOri0  << "\n";
-                  CamStenope * aCam0 = CamOrientGenFromFile(aNameOri0 , aICNM);
+      vector<PtTrip> PtTripGood;
+      if (bStrategie == "1")
+      {
+             //for each point homo 1&2, search for its triplet in homo 2&3 (search P2 in homo 2_3)
+             //If it is a point triplet, for each point homo 1&2, reprojeter vers img3 pour voir le distance
 
+             for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
+             {
+                 //lire les point homo
+                 Pt2dr aP1 = itP->P1();  //Point img1
+                 Pt2dr aP2 = itP->P2();  //Point img2
+                 double d;
+                 Pt3dr PInter1_2= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
+                 Pt2dr PReproj3 = aCam3->ElCamera::R3toF2(PInter1_2);					//use point 3d to search Point img3
 
-                  std::string aNameOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm2,true);
-                  std::cout << " ++ For image " << aNameIm2 << " ++ " << aNameOri1  << "\n";
-                  CamStenope * aCam1 = CamOrientGenFromFile(aNameOri1 , aICNM);
+                 //search for point trilet P2 in fime homo 2_3
+                 const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
+                 double distP2 = sqrt(pow((aTriplet2_3->P1().x - aP2.x),2) + pow((aTriplet2_3->P1().y - aP2.y),2));
+                 if (distP2 < 2)
+                 {
+                     //cout<<"Triplet= "<<aP1<<aP2<<aTriplet2_3->P2();
+                     double distP3Reprj = sqrt(pow((aTriplet2_3->P2().x - PReproj3.x),2) + pow((aTriplet2_3->P2().y - PReproj3.y),2));
+                     if (distP3Reprj < 2)
+                     {
+                         //cout<<"P3 verified = "<<PReproj3<<" ++ "<<distP3Reprj<<" pxls"<<endl;
+                         PtTrip PointTrip; PointTrip.P1 = aP1; PointTrip.P2 = aP2; PointTrip.P3 = aTriplet2_3->P2();
+                         PtTripGood.push_back(PointTrip);
+                     }
 
-                  //le 3eme image pour reprojeter point homo de 1er et 2eme
-                  string aNameIm = aSetImages.back();
-                  std::string aNameOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm,true);
-                  CamStenope * aCam3 = CamOrientGenFromFile(aNameOri3 , aICNM);
+                     else
+                     {
+                         //cout<<"P3 and triplet not good "<< " ++ "<<distP3Reprj<<" pxls"<<endl;
+                     }
+                 }
+                 else
+                 {
+                     //case there is no triplet (no point homo b/w 2-3)
+                     //verify point P1 and P2 is a good couple by correlation
+                     cCorrelImage::setSzW(w);
+                     cCorrelImage Imgette1, Imgette2;
+                     Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+                     Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+                     //compute correlation b/w imagette P2 & P3
+                     double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
+                     if (corr1_2 > 0.9)
+                     {
+                         //P1 P2 is a good couple
+                        PairPoint1_2.Cple_Add( ElCplePtsHomologues(aP1,aP2) );
+                        PairPoint2_1.Cple_Add( ElCplePtsHomologues(aP2,aP1) );
 
-                  Tiff_Im mTiffImg3(aNameIm.c_str());
-                  Im2D<U_INT1,INT4> mImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
-                  ELISE_COPY(
-                              mTiffImg3.all_pts(),
-                              mTiffImg3.in(),
-                              mImg3.out()
-                            );
+                     }
+                 }
+             }
+       }
 
-                  for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
+      if (bStrategie == "2")
+      {
+           //for each point homo 1&2, find point P3 in cam3 by reprojection
+          for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
+          {
+              //lire les point homo
+              Pt2dr aP1 = itP->P1();  //Point img1
+              Pt2dr aP2 = itP->P2();  //Point img2
+              double d;
+              Pt3dr PInter1_2= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
+              Pt2dr PReproj3 = aCam3->ElCamera::R3toF2(PInter1_2);					//use point 3d to search Point img3
+              //compute correlation b/w imagette P1 & P3
+              cCorrelImage::setSzW(w);
+              cCorrelImage Imgette1, Imgette2, Imgette3;
+              Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+              Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+              Imgette3.getFromIm(&mImg3, PReproj3.x, PReproj3.y);
+              //compute correlation b/w imagette P2 & P3
+              double corr1_3 = Imgette1.CrossCorrelation(Imgette3);
+              double corr2_3 = Imgette2.CrossCorrelation(Imgette3);
+              //if correlation ok, keep P1 & P2
+              if ((corr1_3 > 0.8) && (corr2_3 > 0.8))
+                {
+                  //search for point trilet P2 in fime homo 2_3
+                  const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
+                  double distP2 = sqrt(pow((aTriplet2_3->P1().x - aP2.x),2) + pow((aTriplet2_3->P1().y - aP2.y),2));
+                  if (distP2 < 2)
                   {
-                      //lire les point homo
-                      Pt2dr aP1 = itP->P1();    //Point 2d REAL
-                      Pt2dr aP2 = itP->P2();
-                      double d, d1;
-
-                      //calcul coordonné 3D à partir de points homos et orientation 2 camera
-                      Pt3dr PInter_Cam0= aCam0->ElCamera::PseudoInter(aP1, *aCam1, aP2, &d);       //partir de cam0
-
-                      //reprojecter à partir de point R3 => F2
-                      //Pt2dr aP1verify = aCam0->ElCamera::R3toF2(PInter_Cam0);
-
-                      //reprojeter vers autre camera
-                      Pt2dr aP3 = aCam3->ElCamera::R3toF2(PInter_Cam0);
-
-                      //Get imagette1 and imagette 2
-                      cCorrelImage::setSzW(w);
-                      cCorrelImage Imgette1,Imgette2;
-                      Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
-                      Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
-
-                      //Store all imagette to vector, compute correllation b/w all
-                      int startZoneX=aP3.x - w - extzone;
-                      int startZoneY=aP3.y - h - extzone;
-                      int endZoneX=aP3.x + w + extzone;
-                      int endZoneY=aP3.y + h + extzone;
-
-                      //control if slide out of image
-                      if (endZoneX > mTiffImg3.sz().x)
-                          {endZoneX = mTiffImg3.sz().x;}
-                      if (endZoneY > mTiffImg3.sz().y)
-                          {endZoneY = mTiffImg3.sz().y;}
-                      if (startZoneX <0 )
-                          {startZoneX = 0;}
-                      if (startZoneY  <0 )
-                          {startZoneY = 0;}
-
-                      vector< Im2D<U_INT1,INT4> > Imagette3Autour;                 //vector store all ImageZ
-                      vector< double > CorrImagette3_1;
-                      vector< double > CorrImagette3_2;
-                      for (int ii=startZoneX; ii<endZoneX-w*2; ii=ii+step)
+                      //compute correlation b/w imagette P1 & P3origin and P2 & P3origin
+                      //cout<<"P1 & P2 good "<<corr1_3<<" "<<corr2_3;
+                      cCorrelImage Imgette3origin;
+                      Imgette3origin.getFromIm(&mImg3, aTriplet2_3->P2().x, aTriplet2_3->P2().y);
+                      double corr1_3o = Imgette1.CrossCorrelation(Imgette3origin);
+                      double corr2_3o = Imgette2.CrossCorrelation(Imgette3origin);
+                      double distP3 = sqrt( pow((aTriplet2_3->P2().x - PReproj3.x),2) + pow((aTriplet2_3->P2().y - PReproj3.y),2) );
+                      if ((corr1_3o > corr1_3) && (corr2_3o > corr2_3))
                       {
-                          for (int jj=startZoneY; jj<endZoneY-w*2; jj=jj+step)
-                          {
-
-                              //creer ImageZ autour point d'interet reprojeter image3
-                              cCorrelImage Imgette3;
-                              Imgette3.getFromIm(&mImg3, ii+w, jj+h);
-
-//                              ELISE_COPY
-//                                    (
-//                                          Imgette3.getIm()->all_pts(),
-//                                          Imgette3.getIm()->in()[Virgule(FX,FY)],
-//                                      Tiff_Im(
-//                                          "tototestkukuf_1.tif",
-//                                          Imgette3.getmSz(),
-//                                          GenIm::u_int1,
-//                                          Tiff_Im::No_Compr,
-//                                          Tiff_Im::BlackIsZero,
-//                                          Tiff_Im::Empty_ARG ).out()
-//                                    );
-                              Im2D<U_INT1,INT4> Imgette3Courrant (Imgette3.getIm()->sz().x, Imgette3.getIm()->sz().y);
-                              ELISE_COPY
-                                    (
-                                          Imgette3.getIm()->all_pts(),
-                                          Imgette3.getIm()->in()[Virgule(FX,FY)],
-                                          Imgette3Courrant.out()
-                                    );
-                              Imagette3Autour.push_back(Imgette3Courrant);
-                              CorrImagette3_1.push_back(abs(Imgette1.CrossCorrelation(Imgette3)));
-                              CorrImagette3_2.push_back(abs(Imgette2.CrossCorrelation(Imgette3)));
-                          }
-                      }
-                      cout <<"Total "<<Imagette3Autour.size()<<" imagettes +-+-+ ";
-                      if (Imagette3Autour.size() > 0)
-                      {
-                          double max_Corr3_1 = CorrImagette3_1[*max_element(CorrImagette3_1.begin(), CorrImagette3_1.end())];
-                          double max_Corr3_2 = CorrImagette3_2[*max_element(CorrImagette3_2.begin(), CorrImagette3_2.end())];
-                          cout<<"Max corr value 3-1 = "<<max_Corr3_1<<" ++ 3_2 = "<<max_Corr3_2<<endl;
+                       //cout << " ++ P3 Origin better "<<corr1_3o<<" "<<corr2_3o<<" DistP3 = " <<distP3<<endl;
+                        PtTrip PointTrip; PointTrip.P1 = aP1; PointTrip.P2 = aP2; PointTrip.P3 = aTriplet2_3->P2();
+                        PtTripGood.push_back(PointTrip);
                       }
                       else
                       {
-                          //cout<<"Coor reproj sur Img3 = "<<aP3<<" ++StartCoor++ "<<Pt2dr(startZoneX,startZoneY)<<" ++EndCoor++ "<<Pt2dr(endZoneX,endZone)<<endl;
-                          // MPD endZone=>endZoneY, sinon ca compile pas
-                          cout<<"Coor reproj sur Img3 = "<<aP3<<" ++StartCoor++ "<<Pt2dr(startZoneX,startZoneY)<<" ++EndCoor++ "<<Pt2dr(endZoneX,endZoneY)<<endl;
+                        //cout<<" ++ P3 Reproject better"<<" DistP3 = " <<distP3<<endl;
+                        PtTrip PointTrip; PointTrip.P1 = aP1; PointTrip.P2 = aP2; PointTrip.P3 = PReproj3;
+                        PtTripGood.push_back(PointTrip);
                       }
                   }
-             }
-        }
-    }
+                }
+          }
 
+      }
 
-/*
-    //======================================Lire image et créer les imageZ autour point d'intéret====================//
-    int h = 50;    //taille du fenetre de balayage
-    int w = 50;
-    int extzone = 10; //taile du zone de recherche
-    int step = 5;
-    ELISE_fp::MkDir(aDirImages+"/temp_balayer");
-    Tiff_Im mTiffImg(aSetImages[0].c_str());                      //read header of image Tiff
-    cout<<mTiffImg.sz().x<<" x "<<mTiffImg.sz().y<<endl;
-    Im2D<U_INT1,INT4> mImg(mTiffImg.sz().x,mTiffImg.sz().y);      //to read pixel, using Im2D
-    ELISE_COPY(                                                   //read image
-                mTiffImg.all_pts(),
-                mTiffImg.in(),
-                mImg.out()
-              );
-
-        int startZoneX=2000 - w - extzone;
-        int startZoneY=1500 - h - extzone;
-        int endZoneX=2000 + w + extzone;
-        int endZoneY=1500 + h + extzone;
-
-        //control if slide out of image
-        if (endZoneX > mTiffImg.sz().x)
-            {endZoneX = mTiffImg.sz().x;}
-        if (endZoneY > mTiffImg.sz().y)
-            {endZoneY = mTiffImg.sz().y;}
-        if (startZoneX <0 )
-            {startZoneX = 0;}
-        if (startZoneY  <0 )
-            {startZoneY = 0;}
-
-        vector< Im2D<U_INT1,INT4> > ImageZScan;                 //vector store all ImageZ
-        for (int ii=startZoneX; ii<endZoneX-w*2; ii=ii+step)
+      if (bStrategie == "3")
+      {
+          double distP3_H32, distP3_H31;
+          PtTrip PointTrip;
+          //Search triplet [P1,P2,P3] from file Homol1-3 & 2-3
+        for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
         {
-            for (int jj=startZoneY; jj<endZoneY-w*2; jj=jj+step)
+          Pt2dr aP1 = itP->P1();
+          Pt2dr aP2 = itP->P2();
+          const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
+          double distP2 = sqrt(pow((aTriplet2_3->P1().x - aP2.x),2) + pow((aTriplet2_3->P1().y - aP2.y),2));
+          if (distP2 < 1)
+          {
+            PointTrip.P1 = aP1; PointTrip.P2 = aP2; PointTrip.P3 = aTriplet2_3->P2();
+            //Search for point P3 in file Homol3-1 (search by P1)
+            const ElCplePtsHomologues  * aTriplet3_1 = aPackIn3_1.Cple_Nearest(aP1,false);
+            double distP1 = sqrt(pow((aTriplet3_1->P2().x - aP1.x),2) + pow((aTriplet3_1->P2().y - aP1.y),2));
+            if (distP1 < 1)
             {
-                Im2D<U_INT1,INT4>ImageZ = CreatImageZ(mImg, ii+w, jj+h, w, h);
-                ImageZScan.push_back(ImageZ);
+              distP3_H31 = sqrt(pow((aTriplet3_1->P1().x - PointTrip.P3.x),2) + pow((aTriplet3_1->P1().y - PointTrip.P3.y),2));
+              //Search for point P3 in file Homol3-2 (search by P2)
+              const ElCplePtsHomologues  * aTriplet3_2 = aPackIn3_2.Cple_Nearest(aP2,false);
+              distP2 = sqrt(pow((aTriplet3_2->P2().x - aP2.x),2) + pow((aTriplet3_2->P2().y - aP2.y),2));
+              if (distP2 < 1)
+              {
+                distP3_H32 = sqrt(pow((aTriplet3_2->P1().x - PointTrip.P3.x),2) + pow((aTriplet3_2->P1().y - PointTrip.P3.y),2));
+                //Decide by distance b/w P3 of triplet and P3 in Homol3-1 and 3-2
+                if ((distP3_H31 < 2) && (distP3_H32 < 2))
+                {
+                  //cout<<"Good Triplet"<<endl;
+                  PtTripGood.push_back(PointTrip);
+                }
+              }
             }
-        }
-        cout <<"Total "<<ImageZScan.size()<<" image Z"<<endl;
-        for (uint i=0; i<ImageZScan.size(); i++)
-        {
-            string count;
-            std::stringstream out;
-            out << i;
-            count = out.str();
-            string pathImageZ = aDirImages+"temp_balayer/"+ aSetImages.back()+ "_" + count + "_toto.tif";
-            ELISE_COPY
-            (
-                        ImageZScan[i].all_pts(),
-                        ImageZScan[i].in()[Virgule(FX,FY)],
-                    Tiff_Im(
-                        pathImageZ.c_str(),
-                        ImageZScan[i].sz(),
-                        GenIm::u_int1,
-                        Tiff_Im::No_Compr,
-                        Tiff_Im::BlackIsZero,
-                        Tiff_Im::Empty_ARG ).out()
-            );
+          }
         }
 
+      }
+
+      if (bStrategie == "4")
+      {
+
+         vector<PairHomol> aPairImg;
+         //creat pair images
+         for (uint i=0; i<aSetImages.size(); i++)
+         {
+             PairHomol aPair;
+             aPair.ImgA = aSetImages[i];
+             if (i != aSetImages.size()-1)
+             {
+                aPair.ImgB = aSetImages[i+1];
+                std::string aHomoInA_B = aICNM->Assoc1To2(aKHIn,aPair.ImgA,aPair.ImgB,true);
+                StdCorrecNameHomol_G(aHomoInA_B,aDirImages);
+                ElPackHomologue aPackInA_B =  ElPackHomologue::FromFile(aHomoInA_B);
+                aPair.HomoA_B = aPackInA_B;
+                aPairImg.push_back(aPair);
+                cout<<"Pair = "<<aSetImages[i]<< " "<<aSetImages[i+1]<<" "<<aPackInA_B.size()<<endl;
+             }
+          }
+
+          //find triplet and couple, then creat new Homol file
+          TestcFixedMergeStruct_G(aPairImg, aICNM, aHomolOutput, aOriInput);
+      }
+    //======================================================================================//
 
 
-    Pt2dr aP1(30,30);
-    cCorrelImage::setSzW(10);
-    cCorrelImage Imgette0;
-    Imgette0.getFromIm(&ImageZScan[5], aP1.x, aP1.y);
-
-    ELISE_COPY
-    (
-                Imgette0.getIm()->all_pts(),
-                Imgette0.getIm()->in()[Virgule(FX,FY)],
-            Tiff_Im(
-                "tototestkukuf_1.tif",
-                Imgette0.getIm()->sz(),
-                GenIm::u_int1,
-                Tiff_Im::No_Compr,
-                Tiff_Im::BlackIsZero,
-                Tiff_Im::Empty_ARG ).out()
-    );
-
-
-    Pt2dr aP2(30,30);
-    cCorrelImage Imgette1;
-    Imgette1.getFromIm(&ImageZScan[6], aP2.x, aP2.y);
-
-    ELISE_COPY
-    (
-                Imgette1.getIm()->all_pts(),
-                Imgette1.getIm()->in()[Virgule(FX,FY)],
-            Tiff_Im(
-                "tototestkukuf_2.tif",
-                Imgette1.getIm()->sz(),
-                GenIm::u_int1,
-                Tiff_Im::No_Compr,
-                Tiff_Im::BlackIsZero,
-                Tiff_Im::Empty_ARG ).out()
-    );
-
-    cout<<"CrossCorrelation 0-1 = "<<Imgette0.CrossCorrelation(Imgette1)<<endl;
-    cout<<"Covariance 0-1 = "<<Imgette0.Covariance(Imgette1)<<endl;
-    cout<<"CrossCorrelation 1-0 = "<<Imgette1.CrossCorrelation(Imgette0)<<endl;
-    cout<<"Covariance 1-0 = "<<Imgette1.Covariance(Imgette0)<<endl;
-
-*/
-
+cout<<"use command SEL ./ img1 img2 KCpl=NKS-Assoc-CplIm2Hom@"<<aHomolOutput<< "@dat to view filtered point homomogues"<<endl;
 return EXIT_SUCCESS;
 }
 
-/* Footer-MicMac-eLiSe-25/06/2007
-
-Ce logiciel est un programme informatique servant Ã  la mise en
-correspondances d'images pour la reconstruction du relief.
-
-Ce logiciel est rÃ©gi par la licence CeCILL-B soumise au droit franÃ§ais et
-respectant les principes de diffusion des logiciels libres. Vous pouvez
-utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusÃ©e par le CEA, le CNRS et l'INRIA
-sur le site "http://www.cecill.info".
-
-En contrepartie de l'accessibilitÃ© au code source et des droits de copie,
-de modification et de redistribution accordÃ©s par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitÃ©e.  Pour les mÃªmes raisons,
-seule une responsabilitÃ© restreinte pÃ¨se sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concÃ©dants successifs.
-
-A cet Ã©gard  l'attention de l'utilisateur est attirÃ©e sur les risques
-associÃ©s au chargement,  Ã  l'utilisation,  Ã  la modification et/ou au
-dÃ©veloppement et Ã  la reproduction du logiciel par l'utilisateur Ã©tant
-donnÃ© sa spÃ©cificitÃ© de logiciel libre, qui peut le rendre complexe Ã
-manipuler et qui le rÃ©serve donc Ã  des dÃ©veloppeurs et des professionnels
-avertis possÃ©dant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invitÃ©s Ã  charger  et  tester  l'adÃ©quation  du
-logiciel Ã  leurs besoins dans des conditions permettant d'assurer la
-sÃ©curitÃ© de leurs systÃ¨mes et ou de leurs donnÃ©es et, plus gÃ©nÃ©ralement,
-Ã  l'utiliser et l'exploiter dans les mÃªmes conditions de sÃ©curitÃ©.
-
-Le fait que vous puissiez accÃ©der Ã  cet en-tÃªte signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez acceptÃ© les
-termes.
-Footer-MicMac-eLiSe-25/06/2007/*/
 
 
+/*strategie à faire:
+1)
+Homol1_2 => P1 & P2, Homol2_3 => P2 & P3, triplet [P1, P2, P3].
+Pt3d P3' reprojeter ves cam3 à partir P1 et P2
+P3' = P3 ?
+si OK => fabriquer Homol nouvel avec P1 P2 P3 pour tout les sens
+
+2)
+Homol1_2 => P1 & P2 => Pt3d ===reprojeter==> P3
+Corellation entre P1 et P3
+Corellation entre P2 et P3
+si OK => garde P1 et P2
+=> P3 juste pour validation point homo entre P1 et P2
+Q: comment choisir le pose bien pour cam3 ? (avant ou apres cam1 et cam2)
+    
+3)
+Homol cohérent, pas besoins l'orientation du caméra => si camera orientation est pas bonne, on peut eviter
+Homol1_2 => P1 & P2, Homol2_3 => P2 & P3, triplet [P1, P2, P3].
+P3 => chercher dans Homol3_1 => si trop loin avec P3 => pas bonne ????????????????????????????????????????
+P3 => chercher dans Homol3_2 => si trop loin avec P3 => pas bonne couple P2 P3 ???????????????????????????
+Comment faire une methode de validation plus efficace ?
+*/

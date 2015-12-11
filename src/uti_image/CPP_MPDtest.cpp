@@ -51,6 +51,8 @@ void f()
 #include "StdAfx.h"
 #include "hassan/reechantillonnage.h"
 
+#include "../uti_phgrm/NewOri/NewOri.h"
+
 
 #if (ELISE_X11)
 
@@ -910,10 +912,67 @@ void TestFoncReelle(Fonc_Num aF,const std::string & aName,Pt2di aSz)
 }
 
 
+void TestcFixedMergeStruct()
+{
+    cFixedMergeStruct<3,Pt2dr>  aFMS;
+
+    aFMS.AddArc(Pt2dr(0,0),0,Pt2dr(1,1),1);
+    aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(1,2),2);
+    aFMS.AddArc(Pt2dr(1,2),2,Pt2dr(0,0),0);
+
+    aFMS.AddArc(Pt2dr(10,10),0,Pt2dr(11,11),1);
+    aFMS.AddArc(Pt2dr(11,11),1,Pt2dr(12,12),2);
+    aFMS.AddArc(Pt2dr(12,12),2,Pt2dr(11,11),1);
+//    aFMS.AddArc(Pt2dr(12,12),1,Pt2dr(10,10),0);
+    aFMS.AddArc(Pt2dr(11,11),1,Pt2dr(10,10),0);
+//    aFMS.AddArc(Pt2dr(12,12),1,Pt2dr(10,10),0);
+
+    aFMS.AddArc(Pt2dr(7,7),0,Pt2dr(8,8),1);
+    aFMS.AddArc(Pt2dr(8,8),1,Pt2dr(7,7),0);
+
+    aFMS.AddArc(Pt2dr(4,4),0,Pt2dr(5,5),1);
+    aFMS.AddArc(Pt2dr(5,5),1,Pt2dr(4,4),0);
+    aFMS.AddArc(Pt2dr(5,5),1,Pt2dr(6,6),2);
+
+    aFMS.AddArc(Pt2dr(77,77),0,Pt2dr(88,88),2);
+    aFMS.AddArc(Pt2dr(88,88),2,Pt2dr(99,99),1);
+
+    aFMS.AddArc(Pt2dr(777,777),0,Pt2dr(888,888),1);
+    aFMS.AddArc(Pt2dr(888,888),1,Pt2dr(999,999),2);
+
+    aFMS.DoExport();
+
+    const std::list<cFixedMergeTieP<3,Pt2dr> *> &  aLM = aFMS.ListMerged();
+ 
+    std::cout << "NB ITEM " << aLM.size() << "\n";
+
+    for
+    (
+        std::list<cFixedMergeTieP<3,Pt2dr> *>::const_iterator itM=aLM.begin();
+        itM != aLM.end();
+        itM++
+    )
+    {
+          std::cout << "NbS=" << (*itM)->NbSom() << " NbA=" << (*itM)->NbArc()<<endl;
+          for (uint i=0; i<(*itM)->NbSom(); i++)
+          {
+            std::cout << (*itM)->IsInit(i)<<" " ;
+            std::cout << " " << (*itM)->GetVal(i) ;
+            std::cout << "\n";
+          }
+
+    }
+}
+
+
+void TestXmlX11();
+
 
 int MPDtest_main (int argc,char** argv)
 {
-    TestFoncReelle(FX/100.0,"FXDiv100.tif",Pt2di(500,500));
+    TestXmlX11();
+    // TestcFixedMergeStruct();
+    // TestFoncReelle(FX/100.0,"FXDiv100.tif",Pt2di(500,500));
 
    // TestFoncReelle(FY/10.0,"FYDiv10.tif");
 

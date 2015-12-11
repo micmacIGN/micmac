@@ -361,6 +361,11 @@ class Tiff_Im : public ElGenFileIm
           Pt2di sz();
           Pt2di sz_tile();
           Pt2di nb_tile();
+          Pt2di SzFileTile();
+          Pt2di NbTTByTF();
+          std::string NameTileFile(Pt2di aITF);
+
+
           INT   nb_chan();
           cMetaDataPhoto MDP() ;
           INT   bitpp();

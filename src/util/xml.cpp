@@ -1447,6 +1447,11 @@ std::list<cElXMLTree *>  cElXMLTree::GetAll(const std::string & aName,bool byAtt
 	return aRes;
 }
 
+
+const  std::list<cElXMLTree *>   &  cElXMLTree::Fils() const {return mFils;}
+std::list<cElXMLTree *>   &  cElXMLTree::Fils() {return mFils;}
+
+
 cElXMLTree * cElXMLTree::GetUnique(const std::string & aName,bool ByAttr)
 {
 	std::list<cElXMLTree *> aRes = GetAll(aName,ByAttr);
@@ -1951,7 +1956,7 @@ cElXMLTree *  cElXMLTree::Missmatch
 	return 0;
 }
 
-void  cElXMLTree::VerifMatch(cElXMLTree* aTSpecif)
+bool  cElXMLTree::VerifMatch(cElXMLTree* aTSpecif,bool SVP)
 {
 
 	std::string aMes;
@@ -1963,7 +1968,8 @@ void  cElXMLTree::VerifMatch(cElXMLTree* aTSpecif)
 		aMM = aTSpecif->Missmatch(this,false,aMes);
 	}
 
-	if (! aMM) return;
+	if (! aMM) return true;
+        if (SVP) return false;
 
 	cout << "*********************************************************\n";
 	cout << "\n";
@@ -1972,19 +1978,18 @@ void  cElXMLTree::VerifMatch(cElXMLTree* aTSpecif)
 	aMM->ShowAscendance(stdout);
 	cout << "*********************************************************\n";
 	std::cout << "SPECIF:" ; aTSpecif->ShowAscendance(stdout);
-{
-if(0)
-  StdShow("DEBUG.XML");
-}
 	ELISE_ASSERT(false,"Exit XML Matching Specif Error");
+
+        return false;
 }
 
-void  cElXMLTree::TopVerifMatch
+bool  cElXMLTree::TopVerifMatch
 	(
-	const std::string & aNameObj,
-	cElXMLTree* aTSpecif,
-	const std::string & aNameType,
-	bool  ByAttr
+	   const std::string & aNameObj,
+	   cElXMLTree* aTSpecif,
+	   const std::string & aNameType,
+	   bool  ByAttr,
+           bool SVP
 	)
 {
 	std::list<cElXMLTree *> aL1 = GetAll(aNameObj,ByAttr);
@@ -1992,19 +1997,26 @@ void  cElXMLTree::TopVerifMatch
 
 	if ((aL1.size() !=1) || (aL2.size() !=1))
 	{
+            if (SVP)
+            {
+               return false;
+            }
+            else
+            {
 		ShowAscendance(stdout);
 		cout << "ERROR at top level in TopVerifMatch for " 
 			<< aNameObj << "-" << aNameType << "\n";
 		cout << " Found " << (unsigned int) aL1.size() << " in instance \n";
 		cout << " Found " << (unsigned int) aL2.size() << " in specif \n";
 		ELISE_ASSERT(false,"ERROR at top level in TopVerifMatch");
+            }
 	}
-	(*(aL1.begin()))->VerifMatch(*(aL2.begin()));
+	return (*(aL1.begin()))->VerifMatch(*(aL2.begin()),SVP);
 }
 
-void  cElXMLTree::TopVerifMatch(cElXMLTree* aTSpecif,const std::string & aName)
+bool  cElXMLTree::TopVerifMatch(cElXMLTree* aTSpecif,const std::string & aName,bool SVP)
 {
-	TopVerifMatch(aName,aTSpecif,aName);
+	return TopVerifMatch(aName,aTSpecif,aName,false,SVP);
 }
 
 

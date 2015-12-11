@@ -224,8 +224,8 @@ int Aster2Grid_main(int argc, char ** argv)
 	bool expDIMAP = false;
 	int nbLayers;
 	double aHMin = 0, aHMax = 3000;
-	double stepPixel = 25.f;
-	double stepCarto = 500.f;//equals to image resolution in cm
+	double stepPixel = 100.f;
+	double stepCarto = 1500.f;//equals to 100*image resolution in m
 
 	//Object being worked on
 	RPC aRPC;
@@ -242,7 +242,7 @@ int Aster2Grid_main(int argc, char ** argv)
 		<< EAM(aHMin, "HMin", true, "Min elipsoid height of scene (Def=0)")
 		<< EAM(aHMax, "HMax", true, "Max elipsoid height of scene (Def=3000)")
 		<< EAM(stepPixel, "stepPixel", true, "Step in pixel (Def=100pix)")
-		<< EAM(stepCarto, "stepCarto", true, "Step in m (carto) (Def=50m)")
+		<< EAM(stepCarto, "stepCarto", true, "Step in m (carto) (Def=1500m, GSD*100)")
 		<< EAM(refineCoef, "refineCoef", true, "File of Coef to refine Grid")
 		<< EAM(expGrid, "expGrid", true, "Export Grid (Def=True)")
 		<< EAM(binaire, "Bin", true, "Convert Grid to binary format (Def=True)")

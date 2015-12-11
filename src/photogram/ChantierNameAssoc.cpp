@@ -3969,7 +3969,7 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
     ElCamera * & cResulMSO::Cam()           {return mCam;}
     cElNuage3DMaille * & cResulMSO::Nuage() {return mNuage;}
     bool   & cResulMSO::IsKeyOri()          {return mIsKeyOri;}
-    cCapture3D * & cResulMSO::Capt3d()      {return mCapt3d;}
+    cBasicGeomCap3D * & cResulMSO::Capt3d()      {return mCapt3d;}
 
 
 bool  cInterfChantierNameManipulateur::TestStdOrient
@@ -4028,6 +4028,8 @@ void cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri)
 
 cResulMSO cInterfChantierNameManipulateur::MakeStdOrient(std::string & anOri,bool AccepNone,std::string * aNameIm)
 {
+       std::string anOriInit = anOri;
+
         cResulMSO  aResult;
         if (AccepNone && (anOri=="NONE"))
             return aResult;
@@ -4087,6 +4089,21 @@ cResulMSO cInterfChantierNameManipulateur::MakeStdOrient(std::string & anOri,boo
             aResult.IsKeyOri() = true;
             return aResult;
         }
+
+
+       if (aNameIm)
+       {
+            // On recoit NKS-Assoc-Im2Orient@-BundleCorrec-Deg2
+            static cElRegex aSuprNKS("NKS-Assoc-Im2Orient@-(.*)",10);
+            if (aSuprNKS.Match(anOriInit))
+            {
+                 std::string anOri = aSuprNKS.KIemeExprPar(1);
+                 cBasicGeomCap3D * aBGC = StdCamGenOfNames(anOri,*aNameIm);
+                 
+                 aResult.Capt3d() = aBGC;
+                 return aResult;
+            }
+       }
 
         std::cout << "For Key = " << anOri << "\n";
         ELISE_ASSERT

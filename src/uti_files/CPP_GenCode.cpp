@@ -43,7 +43,7 @@ void GenCodeEqProjGen()
 {
    for (int aMode=0 ; aMode<3 ; aMode++)
    {
-       for (int aDeg=1 ; aDeg<8 ; aDeg++)
+       for (int aDeg=0 ; aDeg<1 ; aDeg++)
        {
            GenCodeEqProjGen(aDeg,aMode==0,aMode==1,aMode==2);
        }

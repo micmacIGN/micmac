@@ -54,7 +54,7 @@ cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli,bool Visuali
    mName  (aName),
    mTif   (0),
    mCapt3d   (0),
-   mCaptCam  (0),
+   mCaptElCam  (0),
    mCaptNuage(0),
    mSPIm  (0),
    mSzIm  (-1,-1),
@@ -238,7 +238,7 @@ void cImage::InitCameraAndNuage()
       mCapt3d = aRMso.Capt3d();
 
    if (aRMso.Cam())
-      mCaptCam = aRMso.Cam();
+      mCaptElCam = aRMso.Cam();
 
    if (aRMso.Nuage())
    {
@@ -248,17 +248,17 @@ void cImage::InitCameraAndNuage()
 
    if (0)
    {
-      std::cout << "ICAN "  << mName << " Cap3D " << mCapt3d  << " Cam " << mCaptCam << " Nuage " << mCaptNuage << "\n";
+      std::cout << "ICAN "  << mName << " Cap3D " << mCapt3d  << " Cam " << mCaptElCam << " Nuage " << mCaptNuage << "\n";
    }
 }
 
 
-ElCamera * cImage::CaptCam()
+ElCamera * cImage::ElCaptCam()
 {
     InitCameraAndNuage();
-    return mCaptCam;
+    return mCaptElCam;
 }
-cCapture3D * cImage::Capt3d()
+cBasicGeomCap3D * cImage::Capt3d()
 {
     InitCameraAndNuage();
     return mCapt3d;
@@ -364,7 +364,7 @@ cSP_PointGlob * cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,doubl
     // Pt3dr aP1(0,0,0);
     // Pt3dr aP2(0,0,0);
 
-    cCapture3D *  aCapt3d = Capt3d();
+    cBasicGeomCap3D *  aCapt3d = Capt3d();
     if (aCapt3d)
     {
        if (aCapt3d->HasRoughCapteur2Terrain())
@@ -436,7 +436,7 @@ Fonc_Num  cImage::FilterImage(Fonc_Num aFonc,eTypePts aType,cPointGlob * aPG)
 
     if (! mCapt3d)
        return aFonc;
-    double aResol = (aPG && aPG->P3D().IsInit()) ? mCapt3d->ResolSolOfPt(aPG->P3D().Val()) : mCapt3d->ResolSolGlob() ;
+    double aResol = (aPG && aPG->P3D().IsInit()) ? mCapt3d->ResolSolOfPt(aPG->P3D().Val()) : mCapt3d->GlobResol() ;
 
     aResol *= mCapt3d->ResolImRefFromCapteur();
     // std::cout <<  "FILIM : " << eToString(aType) <<  "  aPG " << aPG<<  " R=" << aResol << "\n";

@@ -297,6 +297,15 @@ void PutFileText(Video_Win aW,const std::string & aName)
 }
 
 
+bool TreeMatchSpecif(const std::string & aNameFile,const std::string & aNameSpecif,const std::string & aNameObj)
+{
+    cElXMLTree aFullTreeParam(aNameFile);
+    cElXMLTree * aTreeParam = aFullTreeParam.GetUnique(aNameObj,false);
+    cElXMLTree aTreeSpec(StdGetFileXMLSpec(aNameSpecif));
+    return  aTreeParam->TopVerifMatch(&aTreeSpec,aNameObj,true);
+}
+
+
 
 #endif
 

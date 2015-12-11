@@ -66,19 +66,29 @@ std::string  cAppli_Vino::CalculName(const std::string & aName,INT aZoom)
 
 extern Video_Win * TheWinAffRed ;
 
+// bool TreeMatchSpecif(const std::string & aNameFile,const std::string & aNameSpecif,const std::string & aNameObj);
+
 
 cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mSzIncr            (400,400),
     mNbPixMinFile      (2e6),
     mCurStats          (0),
-    mTabulDynIsInit    (false)
+    mTabulDynIsInit    (false),
+    mNbHistoMax        (20000),
+    mNbHisto           (mNbHistoMax),
+    mHisto             (mNbHistoMax),
+    mHistoLisse        (mNbHistoMax),
+    mHistoCum          (mNbHistoMax)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
     {
        mNameXmlOut =  DirOfFile(argv[1]) + "Tmp-MM-Dir/" + "EnvVino.xml";
        if (ELISE_fp::exist_file(mNameXmlOut))
-          mNameXmlIn = mNameXmlOut;
+       {
+          if (TreeMatchSpecif(mNameXmlOut,"ParamChantierPhotogram.xml","Xml_EnvVino"))
+              mNameXmlIn = mNameXmlOut;
+       }
     }
     EnvXml() = StdGetFromPCP(mNameXmlIn,Xml_EnvVino);
 
@@ -128,6 +138,14 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     // MakeFileXML(EnvXml(),mNameXmlOut);
 
 
+    mNameHisto = mDir + "Tmp-MM-Dir/Histo" + mNameIm + ".tif";
+    if (ELISE_fp::exist_file(mNameHisto))
+    {
+        Tiff_Im aTH(mNameHisto.c_str());
+        mNbHisto = aTH.sz().x;
+        mHistoCum.Resize(mNbHisto);
+        ELISE_COPY(aTH.all_pts(),aTH.in(), mHistoCum.out().chc(FX));
+    }
 
     mNameIm = NameWithoutDir(mNameIm);
     mTiffIm = new Tiff_Im(Tiff_Im::StdConvGen(mDir+mNameIm,-1,true,false));
@@ -288,6 +306,25 @@ void cAppli_Vino::Help()
     
     PutFileText(*mW,Basic_XML_MM_File("HelpVino.txt"));
     mW->clik_in();
+    Refresh();
+}
+
+void  cAppli_Vino::EditData()
+{
+    cElXMLTree *  aTree = ToXMLTree(EnvXml());
+    cWXXVinoSelector aSelector(mNameIm);
+    cElXMLTree aFilter(Basic_XML_MM_File("FilterVino.xml"));
+
+    cWindowXmlEditor aWX(*mW,true,aTree,&aSelector,&aFilter);
+
+    aWX.TopDraw();
+    aWX.Interact();
+
+    cXml_EnvVino aNewEnv;
+    xml_init(aNewEnv,aTree);
+    EnvXml() = aNewEnv;
+
+
     Refresh();
 }
 

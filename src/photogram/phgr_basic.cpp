@@ -1444,6 +1444,9 @@ Pt2dr cCorrRefracAPost::CorrC2M(const Pt2dr & aP0) const
 /*                                               */
 /*************************************************/
 
+Pt2dr  cBasicGeomCap3D::ImRef2Capteur   (const Pt2dr & aP) const {return aP;}
+double  cBasicGeomCap3D::ResolImRefFromCapteur() const  {return 1.0;}
+
 double cBasicGeomCap3D::GetVeryRoughInterProf() const
 {
    return 1/600.0;
@@ -1540,6 +1543,17 @@ Pt3dr cBasicGeomCap3D::ToSysSource(const Pt3dr &) const
 {
     ELISE_ASSERT(false,"cBasicGeomCap3D::ToSysSource");
     return Pt3dr(0,0,0);
+}
+
+bool  cBasicGeomCap3D::HasPreciseCapteur2Terrain() const
+{
+    return false;
+}
+
+Pt3dr cBasicGeomCap3D::PreciseCapteur2Terrain   (const Pt2dr & aP) const
+{
+   ELISE_ASSERT(false,"Camera has no \"PreciseCapteur2Terrain\"  functionality");
+   return Pt3dr(0,0,0);
 }
 
 /*
