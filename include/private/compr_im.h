@@ -323,7 +323,7 @@ template <class TObj,class TLut,class TInd > class Scale_Im_Compr : public GenSc
 
 
 	protected :
-		virtual void RasterUseLine(Pt2di p0,Pt2di p1,TObj **) = 0;
+		virtual void RasterUseLine(Pt2di p0,Pt2di p1,TObj **,int aNbChanIn) = 0;
 		virtual ~Scale_Im_Compr();
 		Scale_Im_Compr(PackB_IM<TInd>,Pt2di SzW);
 
@@ -430,7 +430,7 @@ class PckBitImScroller : public ElImScroller ,
 
 		virtual REAL TimeUnCompr() const; 
         void LoadXImage(Pt2di p0,Pt2di p1,bool quick);
-        void RasterUseLine(Pt2di p0,Pt2di p1,INT **);
+        void RasterUseLine(Pt2di p0,Pt2di p1,INT **,int aNbChanIn);
 		PckBitImScroller(const PckBitImScroller &);
 };            
 
@@ -474,7 +474,7 @@ class RGBLut_PckbImScr : public RGB_PckbImScr ,
 	private :
 
         void LoadXImage(Pt2di p0,Pt2di p1,bool quick);
-        void RasterUseLine(Pt2di p0,Pt2di p1,RGB_Int **);
+        void RasterUseLine(Pt2di p0,Pt2di p1,RGB_Int **,int aNbChanIn);
 		RGBLut_PckbImScr(const RGBLut_PckbImScr &);
 		virtual REAL TimeUnCompr() const; 
 };            
@@ -498,7 +498,7 @@ class RGBTrue16Col_PckbImScr : public RGB_PckbImScr,
 	private :
 
         void LoadXImage(Pt2di p0,Pt2di p1,bool quick);
-        void RasterUseLine(Pt2di p0,Pt2di p1,RGB_Int **);
+        void RasterUseLine(Pt2di p0,Pt2di p1,RGB_Int **,int aNbChanIn);
 		RGBTrue16Col_PckbImScr(const RGBTrue16Col_PckbImScr &);
 		virtual REAL TimeUnCompr() const; 
 };
@@ -614,7 +614,7 @@ template <class Type> class  ImFileLoader : public GenScaleIm<typename El_CTypeT
                        Tiff_Im  Tiff();                        
 			bool load_all(Pt2dr tr,REAL sc,Pt2di p0,Pt2di p1);
 			Type * get_line_user(INT x0,INT x1,INT y);
-			virtual void RasterUseLine(Pt2di p0,Pt2di p1,tGSI **) =0;
+			virtual void RasterUseLine(Pt2di p0,Pt2di p1,tGSI **,int aNbChanIn) =0;
 																			 
                        void MakeOneLine(bool quick);
                        void MakeOneLineZooPPV();
@@ -697,7 +697,7 @@ template <class Type> class ImFileScroller : public ImFileLoader<Type>,
                                 virtual void no_use();
 							 
 				void LoadXImage(Pt2di p0,Pt2di p1,bool quick);
-				void RasterUseLine(Pt2di p0,Pt2di p1,tGSI **);
+				void RasterUseLine(Pt2di p0,Pt2di p1,tGSI **,int aNbChanIn);
                 virtual ElImScroller * Reduc(INT zoom,bool quick = false);
                 Pt2di SzIn() ;
 

@@ -336,6 +336,20 @@ Box2di cWindowXmlEditor::Draw(Pt2di aP0,cElXMLTree * aTree,int aLev,cElXMLTree *
      return aRes;
 }
 
+cWXXInfoCase *  cWindowXmlEditor::GetCaseOfNam(const std::string & aName,bool SVP)
+{
+   for (int aKC=0 ; aKC<int(mVInfoCase.size()) ; aKC++)
+   {
+        if (mVInfoCase[aKC].mTree && mVInfoCase[aKC].mTree->ValTag() == aName)
+           return &(mVInfoCase[aKC]);
+   }
+   if (! SVP)
+   {
+       ELISE_ASSERT(false,"cWindowXmlEditor::GetCaseOfNam");
+   }
+   return  0;
+}
+
 
 void  cWindowXmlEditor::ShowQuit()
 {

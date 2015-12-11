@@ -245,7 +245,7 @@ template <class Type,class TyBase> Im2D<Type,TyBase> Im1D2Im2D(Im1D<Type,TyBase>
 void PlotHisto(Video_Win aW,Im1D_REAL8 anIm,int aCoul,int aWidth)
 {
   Im2D_REAL8 aI2DInit = Im1D2Im2D(anIm);
-  int aSzWX = aW.sz().x;
+  int aSzWX = aW.sz().x-20;
   int aSzWY =  aW.sz().y;
   int aSHw = anIm.tx();
   double aCompr = double(aSzWX) / double(aSHw);
@@ -351,7 +351,7 @@ void cAppli_Vino::DoHistoEqual(Flux_Pts aFlux)
     int aNbIter = 4;
     double aSigmRest = ElSquare((0.05*anEctGlob) / mCurStats->StepHisto());
     double aFact  = FromSzW2FactExp(sqrt(aSigmRest),aNbIter);
-    std::cout << "Sigma000 " << sqrt(aSigmRest) << " Fact " << aFact  << " " << anEctGlob/mCurStats->StepHisto() << "\n";
+    // std::cout << "Sigma000 " << sqrt(aSigmRest) << " Fact " << aFact  << " " << anEctGlob/mCurStats->StepHisto() << "\n";
     for (int aK=0 ; aK< aNbIter ; aK++)
     {
          ELISE_COPY
