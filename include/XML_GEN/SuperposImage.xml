@@ -1625,6 +1625,16 @@
 </XmlTNR_TestImgReport>
 
 
+<!--  ********************  RTI ******************************* -->
+<!--  ********************  RTI ******************************* -->
+<!--  ********************  RTI ******************************* -->
+
+<Xml_ParamRTI  Nb="1" Class="true" ToReference="true">
+     <MasterIm Nb="1" Type="std::string">  </MasterIm>
+     <Pattern  Nb="1" Type="std::string">  </Pattern>
+     <ScaleSSRes  Nb="1" Type="double">    </ScaleSSRes>
+</Xml_ParamRTI>
+
 
 <Verbatim File=".h.cpp">
 // };

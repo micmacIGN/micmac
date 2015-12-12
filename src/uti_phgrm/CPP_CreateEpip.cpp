@@ -155,6 +155,7 @@ class cTmpReechEpip
      public :
         cTmpReechEpip
         (
+                bool aConsChan,
                 const std::string &,
                 Box2dr aBoxImIn,
                 ElDistortion22_Gen * anEpi,
@@ -191,6 +192,7 @@ class cTmpReechEpip
 
 void ReechFichier
     (
+        bool  ConsChan,
         const std::string & aNameOri,
         Box2dr aBoxImIn,
         ElDistortion22_Gen * anEpi,
@@ -201,7 +203,7 @@ void ReechFichier
         int   aNumKer
 )
 {
-    cTmpReechEpip aReech(aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut,aPostMasq,aNumKer,false);
+    cTmpReechEpip aReech(ConsChan,aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut,aPostMasq,aNumKer,false);
 }
 
 
@@ -209,6 +211,7 @@ void ReechFichier
 
 cTmpReechEpip::cTmpReechEpip
 (
+        bool aConsChan,
         const std::string & aNameOri,
         Box2dr aBoxImIn,
         ElDistortion22_Gen * anEpi,
@@ -284,7 +287,7 @@ cTmpReechEpip::cTmpReechEpip
     ELISE_COPY(mRedIMasq.all_pts(),dilat_d8(mRedIMasq.in(0),4),mRedIMasq.out());
 
 
-    Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameOri.c_str(),-1,true);
+    Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameOri.c_str(),aConsChan ? -1 :1 ,true);
     Tiff_Im aTifEpi  = Debug                       ?
                        Tiff_Im(aNameOut.c_str())     :
                        Tiff_Im
@@ -299,7 +302,7 @@ cTmpReechEpip::cTmpReechEpip
     Tiff_Im aTifMasq = aTifEpi;
     bool ExportMasq = (aPostMasq!="NONE");
 
-std::cout << "POSTMAS " << aPostMasq << "\n";
+// std::cout << "POSTMAS " << aPostMasq << "\n";
 
     if (ExportMasq)
     {
@@ -321,7 +324,7 @@ std::cout << "POSTMAS " << aPostMasq << "\n";
 
 
     int aNbBloc=2000;
-    int aBrd = aNumKer+3;
+    int aBrd = aNumKer+10;
     Pt2di aSzBrd(aBrd,aBrd);
 
     int aX00 = 0;
@@ -533,9 +536,9 @@ void cApply_CreateEpip_main::DoEpipGen()
       std::cout << "Epip Rect Accuracy, Moy " << aErrMoy/mNbP << " Max " << aErrMax << "\n";
 
 
-      cTmpReechEpip aReech1(mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1"+mPostIm+".tif",mPostMasq,mNumKer,mDebug);
+      cTmpReechEpip aReech1(true,mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1"+mPostIm+".tif",mPostMasq,mNumKer,mDebug);
       std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2"+mPostIm+".tif",mPostMasq,mNumKer,mDebug);
+      cTmpReechEpip aReech2(true,mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2"+mPostIm+".tif",mPostMasq,mNumKer,mDebug);
       std::cout << "DONE IM2 \n";
 
       std::cout << "DONNE REECH TMP \n";
@@ -683,6 +686,154 @@ int CreateEpip_main(int argc,char ** argv)
      return EXIT_SUCCESS;
 }
 
+/*************************************************************/
+/*                                                           */
+/*                 cAppliReechHomogr                         */                                         
+/*                                                           */
+/*************************************************************/
+
+
+class cAppliReechHomogr    : public ElDistortion22_Gen
+{
+    public :
+        cAppliReechHomogr(int argc,char ** argv);
+        void DoReech();
+    private :
+        Pt2dr Direct(Pt2dr) const;
+        bool OwnInverse(Pt2dr &) const ;
+
+        cElemAppliSetFile mEASF;
+
+
+        std::string mFullNameI1;
+        std::string mFullNameI2;
+        std::string mNameI1;
+        std::string mNameI2;
+        std::string mNameI2Redr;
+        std::string mPostMasq;
+        std::string mKeyHom;
+
+        ElPackHomologue  mPack;
+        cElHomographie  mH1To2;
+        cElHomographie  mH2To1;
+};
+
+Pt2dr cAppliReechHomogr::Direct(Pt2dr aP) const
+{
+    return mH2To1.Direct(aP);
+}
+
+bool cAppliReechHomogr::OwnInverse(Pt2dr & aP) const 
+{
+   aP = mH1To2.Direct(aP);
+   return true;
+}
+
+
+
+cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
+    mPostMasq ("Masq"),
+    mH1To2    (cElHomographie::Id()),
+    mH2To1    (cElHomographie::Id())
+{
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(mFullNameI1,"Name of \"Master\" Image", eSAM_IsExistFile)
+                      << EAMC(mFullNameI2,"Name of \"Slave\" Image", eSAM_IsExistFile)
+                      << EAMC(mNameI2Redr,"Name of resulting registered Image", eSAM_IsExistFile),
+          LArgMain()  << EAM (mPostMasq,"PostMasq",true,"Name of Masq , Def = \"Masq\"")
+    );
+
+     mNameI1 = NameWithoutDir(mFullNameI1);
+     mNameI2 = NameWithoutDir(mFullNameI2);
+   
+     mEASF.Init(mFullNameI1);
+
+     mKeyHom = "NKS-Assoc-CplIm2Hom@@dat";
+
+     std::string aNameH = mEASF.mDir + mEASF.mICNM->Assoc1To2(mKeyHom,mNameI1,mNameI2,true);
+     ElPackHomologue aPack = ElPackHomologue::FromFile(aNameH);
+
+     double anEcart,aQuality;
+     bool Ok;
+     mH1To2 = cElHomographie::RobustInit(anEcart,&aQuality,aPack,Ok,50,80.0,2000);
+     mH2To1 = mH1To2.Inverse();
+     std::cout << "Ecart " << anEcart << " ; Quality " << aQuality    << " \n";
+
+     cMetaDataPhoto aMTD1 = cMetaDataPhoto::CreateExiv2(mFullNameI1);
+     cMetaDataPhoto aMTD2 = cMetaDataPhoto::CreateExiv2(mFullNameI2);
+
+
+     ReechFichier
+     (
+          false,
+          mFullNameI2,
+          Box2dr(Pt2dr(0,0),Pt2dr(aMTD2.TifSzIm())),
+          this,
+          Box2dr(Pt2dr(0,0),Pt2dr(aMTD1.TifSzIm())),
+          10.0,
+          mNameI2Redr,
+          mPostMasq,
+          5
+     );
+
+}
+
+int OneReechHom_main(int argc,char ** argv)
+{
+     cAppliReechHomogr  anAppli(argc,argv);
+     return EXIT_SUCCESS;
+}
+
+int AllReechHom_main(int argc,char ** argv)
+{
+    std::string aFullName1,aPat,aPref,aPostMasq = "Masq";
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aFullName1,"Name of \"Master\" Image", eSAM_IsExistFile)
+                      << EAMC(aPat,"Name of all \"Slaves\" Image", eSAM_IsExistFile)
+                      << EAMC(aPref,"Name of Prefix for registered Images", eSAM_IsExistFile),
+          LArgMain()   <<  EAM(aPostMasq,"PostMasq",true,"Name of Masq , Def = \"Masq\"")
+    );
+
+    cElemAppliSetFile anEASF(aPat);
+    const cInterfChantierNameManipulateur::tSet *  aSet = anEASF.SetIm();
+
+    std::string aName1 = NameWithoutDir(aFullName1);
+
+    std::list<std::string>  aLCom;
+
+    for (int aK=0 ; aK<int(aSet->size()) ; aK++)
+    {
+         std::string aName2 = (*aSet)[aK];
+         if (aName1 != aName2)
+         {
+             std::string aNameRes = anEASF.mDir +  aPref + StdPrefix(aName2) + ".tif";
+             if (! ELISE_fp::exist_file(aNameRes))
+             {
+                 // std::cout << "RES = " << aNameRes << "\n";
+                 std::string aCom =  MM3dBinFile_quotes("TestLib")
+                                     + " OneReechHom " 
+                                     +   aFullName1
+                                     +  " " + anEASF.mDir + aName2 
+                                     +  " " +  aNameRes
+                                     +  " PostMasq=" + aPostMasq;
+
+                 aLCom.push_back(aCom);
+                 // std::cout << "COM= " << aCom << "\n";
+             }
+         }
+    }
+    cEl_GPAO::DoComInParal(aLCom);
+
+   
+     return EXIT_SUCCESS;
+}
+
+
+/*************************************************************/
 
 /*************************************************************/
 /*                                                           */
@@ -690,7 +841,9 @@ int CreateEpip_main(int argc,char ** argv)
 /*                                                           */
 /*************************************************************/
 
-class cAppliOneReechMarqFid : public ElDistortion22_Gen,
+
+
+class cAppliOneReechMarqFid : public ElDistortion22_Gen ,
                               public cAppliWithSetImage
 {
     public :
@@ -732,18 +885,6 @@ Pt2dr  cAppliOneReechMarqFid::Direct(Pt2dr aP) const
 {
     return  ChambreMm2ChambrePixel(mAffPixIm2ChambreMm(aP));
 }
-/*
-bool cAppliOneReechMarqFid::OwnInverse(Pt2dr & aP) const 
-{
-    aP = ChambreMm2ChambrePixel(mAffPixIm2ChambreMm(aP));
-    return true;
-}
-
-Pt2dr  cAppliOneReechMarqFid::Direct(Pt2dr aP) const
-{
-    return  mAffChambreMm2PixIm(ChambrePixel2ChambreMm(aP));
-}
-*/
 
 
 
@@ -833,6 +974,7 @@ void cAppliOneReechMarqFid::DoReech()
 
     ReechFichier
     (
+          true,
           mNameIm,
           Box2dr(Pt2dr(0,0),Pt2dr(mSzIm)),
           this,
@@ -850,10 +992,7 @@ void cAppliOneReechMarqFid::DoReech()
 int OneReechFid_main(int argc,char ** argv)
 {
      cAppliOneReechMarqFid anAppli(argc,argv);
-
      anAppli.DoReech();
-
-
      return EXIT_SUCCESS;
 }
 

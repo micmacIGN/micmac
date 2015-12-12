@@ -519,6 +519,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
    }
    mKeyOri =  "NKS-Assoc-Im2Orient@-" + mOri;
 
+
    int aNbImGot = 0;
    for (int aKV=0 ; aKV<int(mEASF.SetIm()->size()) ; aKV++)
    {
