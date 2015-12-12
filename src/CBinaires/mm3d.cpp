@@ -569,6 +569,11 @@ int SysCall_main (int argc,char** argv);
 int TestARCam_main(int argc,char ** argv);
 int CPP_TestPhysMod_Main(int argc,char ** argv);
 
+int OneReechHom_main(int argc,char ** argv);
+int AllReechHom_main(int argc,char ** argv);
+int RTI_main(int argc,char ** argv);
+int RTIRecalRadiom_main(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -693,6 +698,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("TestPhysMod",CPP_TestPhysMod_Main,"Unitary test for new bundle gen"));
 
     aRes.push_back(cMMCom("TestParseDir",TestElParseDir_main," Test Parse Dir"));
+    aRes.push_back(cMMCom("OneReechHom",OneReechHom_main," Resample image using homography"));
+    aRes.push_back(cMMCom("AllReechHom",AllReechHom_main," Resample multiple image using homography"));
+    aRes.push_back(cMMCom("RTI",RTI_main," RTI prototype"));
+    aRes.push_back(cMMCom("RTI_RR",RTIRecalRadiom_main," RTI recalage radiom"));
 
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
