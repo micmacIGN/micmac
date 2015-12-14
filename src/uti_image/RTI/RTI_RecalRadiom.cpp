@@ -37,77 +37,52 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "Vino.h"
-
-#if (ELISE_X11)
+#include "RTI.h"
 
 
-// Reisdu sur 4 point FFTK
-
-// Ortho en mod Forest
-
-
-int Vino_Main(int argc, char ** argv)
+class cAppli_RecalRadio : public  cAppliWithSetImage
 {
-    
-    cAppli_Vino  anAppli(argc,argv);
+     public :
+          cAppli_RecalRadio(int argc,char ** argv);
 
-    anAppli.PostInitVirtual();
-    anAppli.Boucle();
+          std::string mNameI1;
+          std::string mNameI2;
+};
 
-    getchar();
+cAppli_RecalRadio::cAppli_RecalRadio(int argc,char ** argv) :
+    cAppliWithSetImage(argc-1,argv+1,TheFlagNoOri)
+{
+    const cInterfChantierNameManipulateur::tSet * aSetIm = mEASF.SetIm();
 
-/*
-    VideoWin_Visu_ElImScr  aVV = VideoWin_Visu_ElImScr
+    if (aSetIm->size() ==0)
+    {
+          ELISE_ASSERT(false,"No image in RTI_RR");
+    }
+    else if (aSetIm->size() > 1)
+    {
+         ExpandCommand(3,"",true);
+         return;
+    }
 
-     ElPyramScroller * StdPyramide
-                                     (
-                                        Visu_ElImScr &Visu,
-                                        const std::string &,
-                                        std::vector<INT> * EchAcc =0,
-                                        bool Adapt =false,
-                                        bool ForceGray =false
-                        );
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(mNameI1, "Name Image 1",  eSAM_IsPatFile)
+                     << EAMC(mNameI2, "Name Image 2", eSAM_IsExistFile),
+         LArgMain()  
+    );
 
 
-*/
 
-    return EXIT_SUCCESS;
 }
 
 
-/*
-cPopUpMenuMessage::cPopUpMenuMessage(Video_Win aW,Pt2di aSz) :
-   PopUpMenuTransp(aW,aSz)
+int RTIRecalRadiom_main(int argc,char ** argv)
 {
+     cAppli_RecalRadio anAppli(argc,argv);
+
+      return EXIT_SUCCESS;
 }
-
-void cPopUpMenuMessage::ShowMessage(const std::string & aName, Pt2di aP,Pt3di aCoul)
-{
-     UpP0(aP);
-     Pt2di aLarg = mW.SizeFixedString(aName);
-     mW.fixed_string
-     (
-           Pt2dr(aP+ (mSz+Pt2di(-aLarg.x, aLarg.y))/2)  ,
-           aName.c_str(), mW.prgb()(aCoul.x,aCoul.y,aCoul.z),
-           true
-     );
-}
-
-void cPopUpMenuMessage::Hide()
-{
-    Pop();
-}
-*/
-
-
-#else
-int Vino_Main(int argc, char ** argv)
-{
-   return EXIT_FAILURE;
-}
-#endif
-
 
 
 

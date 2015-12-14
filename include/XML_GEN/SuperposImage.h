@@ -7453,5 +7453,37 @@ std::string  Mangling( cXmlTNR_TestImgReport *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_ParamRTI
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ParamRTI & anObj,cElXMLTree * aTree);
+
+
+        std::string & MasterIm();
+        const std::string & MasterIm()const ;
+
+        std::string & Pattern();
+        const std::string & Pattern()const ;
+
+        double & ScaleSSRes();
+        const double & ScaleSSRes()const ;
+    private:
+        std::string mMasterIm;
+        std::string mPattern;
+        double mScaleSSRes;
+};
+cElXMLTree * ToXMLTree(const cXml_ParamRTI &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ParamRTI &);
+
+void  BinaryUnDumpFromFile(cXml_ParamRTI &,ELISE_fp &);
+
+std::string  Mangling( cXml_ParamRTI *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm

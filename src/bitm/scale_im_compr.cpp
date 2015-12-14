@@ -258,7 +258,8 @@ template <class TObj,class TLut,class TInd >
 				(
 					Pt2di(this->_pW0.x,wy),
 					Pt2di(this->_pW1.x,wy+1),
-					this->_line
+					this->_line,
+                                        1
 				);
                 aTimer.reinit();
 			}
@@ -333,7 +334,8 @@ template <class TObj,class TLut,class TInd >
 		(
 			Pt2di(this->_pW0.x,wy0),
 			Pt2di(this->_pW1.x,wy1),
-			this->_line
+			this->_line,
+                        1
 		);
         aTimer.reinit();
 
@@ -556,7 +558,7 @@ class Reducteur_Im_Compr  : public StdGray_Scale_Im_Compr
 {
 	public :
          Reducteur_Im_Compr (PackB_IM<U_INT1>,INT zoom);
-		 void RasterUseLine(Pt2di p0,Pt2di p1,INT **);
+		 void RasterUseLine(Pt2di p0,Pt2di p1,INT **,int aNbChanIn);
 
 
 		~Reducteur_Im_Compr();
@@ -595,7 +597,7 @@ Reducteur_Im_Compr::Reducteur_Im_Compr
 }
 
 
-void  Reducteur_Im_Compr::RasterUseLine(Pt2di p0,Pt2di p1,INT ** im)
+void  Reducteur_Im_Compr::RasterUseLine(Pt2di p0,Pt2di p1,INT ** im,int aNbChanIn)
 {
 	INT nb = p1.x-p0.x;
 	convert(_line,im[0],nb);
