@@ -7469,10 +7469,14 @@ class cXml_ParamRTI
 
         double & ScaleSSRes();
         const double & ScaleSSRes()const ;
+
+        cTplValGesInit< double > & SeuilSat();
+        const cTplValGesInit< double > & SeuilSat()const ;
     private:
         std::string mMasterIm;
         std::string mPattern;
         double mScaleSSRes;
+        cTplValGesInit< double > mSeuilSat;
 };
 cElXMLTree * ToXMLTree(const cXml_ParamRTI &);
 
