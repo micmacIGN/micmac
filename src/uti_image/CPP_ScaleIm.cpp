@@ -65,6 +65,8 @@ int ScaleIm_main(int argc,char ** argv)
     bool aForceGray  = false;
     bool aForce8B  = false;
 
+    bool aModeMasq=false;
+
 
     ElInitArgMain
     (
@@ -84,6 +86,7 @@ int ScaleIm_main(int argc,char ** argv)
                     << EAM(Tile,"Tile",true)
                     << EAM(aForceGray,"FG",true,"Force gray (Def=false)")
                     << EAM(aForce8B,"F8B",true,"Force 8 bits (Def=false)")
+                    << EAM(aModeMasq,"ModMasq",true,"Mode Masq => binarize at 0.9999 threshlod ")
     );
     if (!MMVisualMode)
     {
@@ -162,13 +165,17 @@ int ScaleIm_main(int argc,char ** argv)
     Fonc_Num aFIn = StdFoncChScale
                  (
                        //aDebug ? ((FX/30)%2) && tiff.in_proj() : tiff.in_proj(),
-                       aDebug ? tiff.in(0) : tiff.in_proj(),
+                       (aDebug | aModeMasq) ? tiff.in(0) : tiff.in_proj(),
                        Pt2dr(aP0.x,aP0.y),
                        Pt2dr(aScX,aScY),
                        aDilXY
                  );
     aFIn = aFactMult * aFIn;
     aFIn = anOffset + aFIn;
+    if (aModeMasq) 
+    {
+       aFIn =  (aFIn > 0.9999);
+    }
     aFIn = Tronque(aType,aFIn);
     ELISE_COPY
     (

@@ -1633,6 +1633,7 @@
      <MasterIm Nb="1" Type="std::string">  </MasterIm>
      <Pattern  Nb="1" Type="std::string">  </Pattern>
      <ScaleSSRes  Nb="1" Type="double">    </ScaleSSRes>
+     <SeuilSat  Nb="?" Type="double" Def="1e9">      </SeuilSat>
 </Xml_ParamRTI>
 
 

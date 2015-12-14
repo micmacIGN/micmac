@@ -46,7 +46,9 @@ class cAppli_RecalRadio : public  cAppliWithSetImage
           cAppli_RecalRadio(int argc,char ** argv);
 
           std::string mNameI1;
-          std::string mNameI2;
+          std::string mNameMaster;
+          std::string mNameParam;
+          Pt2di       mSz;
 };
 
 cAppli_RecalRadio::cAppli_RecalRadio(int argc,char ** argv) :
@@ -68,12 +70,83 @@ cAppli_RecalRadio::cAppli_RecalRadio(int argc,char ** argv) :
     (
          argc,argv,
          LArgMain()  << EAMC(mNameI1, "Name Image 1",  eSAM_IsPatFile)
-                     << EAMC(mNameI2, "Name Image 2", eSAM_IsExistFile),
-         LArgMain()  
+                     << EAMC(mNameParam, "Name XML", eSAM_IsExistFile),
+         LArgMain()  << EAM(mNameMaster, "Master",true,"Name of master image if != def master", eSAM_IsExistFile)
     );
 
+   cAppli_RTI aRTIA(mNameParam,mNameI1);
 
 
+   cOneIm_RTI_Slave * aSl = aRTIA.UniqSlave();
+   // cOneIm_RTI_Master * aMas = aRTIA.Master();
+
+/*
+   cOneIm_RTI * aMas = aRTIA.Master();
+   if (EAMIsInit(&mNameMaster))
+   {
+       cAppli_RTI * aRTIA2 = new cAppli_RTI (mNameParam,mNameMaster);
+       aMas =  aRTIA2->UniqSlave();
+   }
+*/
+
+   //   Tiff_Im aTif2 = aSl->DoImReduite();
+   //   Tiff_Im aTifMasq (aSl->NameMasqR().c_str());
+   //   Tiff_Im aTif1 = aMas->DoImReduite();
+   Tiff_Im aTif1 = aSl->ImFull();
+   Tiff_Im aTifMasq = aSl->MasqFull();
+   Tiff_Im aTif2("Mediane.tif");
+
+   mSz = aTif2.sz();
+   ELISE_ASSERT((aTifMasq.sz()==mSz) && (aTif1.sz()==mSz),"Sz incohe in RTIRecalRadiom");
+ 
+   Im2D_REAL4 aI1(mSz.x,mSz.y);
+   ELISE_COPY(aTif1.all_pts(),aTif1.in(),aI1.out());
+   TIm2D<REAL4,REAL8> aTI1(aI1);
+
+   Im2D_REAL4 aI2(mSz.x,mSz.y);
+   ELISE_COPY(aTif2.all_pts(),aTif2.in(),aI2.out());
+   TIm2D<REAL4,REAL8> aTI2(aI2);
+
+   Im2D_Bits<1> aIM(mSz.x,mSz.y);
+   ELISE_COPY(aTifMasq.all_pts(),aTifMasq.in(),aIM.out());
+   TIm2DBits<1> aTIM(aIM);
+
+   
+   Im2D_Bits<1> aIMDil (mSz.x,mSz.y);
+
+   ELISE_COPY
+   (
+        aIM.all_pts(),
+        dilat_d4(aIM.in(0) && (aI2.in(1e9)>aRTIA.Param().SeuilSat().Val()) ,1),  
+        aIMDil.out()
+   );
+   
+
+   
+   int aStep = 5;
+   Pt2di aP;
+   std::vector<double> aV1s2;
+   for (aP.x =0 ; aP.x<mSz.x ; aP.x+= aStep)
+   {
+       for (aP.y =0 ; aP.y<mSz.y ; aP.y+= aStep)
+       {
+           if (aTIM.get(aP))
+           {
+                double aRatio = aTI1.get(aP) / ElMax(0.1,aTI2.get(aP));
+                aV1s2.push_back(aRatio);
+           }
+       }
+   }
+   double aMed = MedianeSup(aV1s2);
+   std::cout << "MEDIAN= " << aMed << "\n";
+   Tiff_Im::CreateFromFonc 
+   (
+          "RATIO"+aSl->Name()+".tif",
+          mSz, 
+          (aI1.in() /(Max(0.1,aI2.in())*aMed)),
+          GenIm::real4
+    );
+   
 }
 
 
@@ -81,10 +154,103 @@ int RTIRecalRadiom_main(int argc,char ** argv)
 {
      cAppli_RecalRadio anAppli(argc,argv);
 
-      return EXIT_SUCCESS;
+     return EXIT_SUCCESS;
 }
 
 
+void cAppli_RTI::MakeImageMed(const Box2di & aBox)
+{
+   std::cout << " cAppli_RTI::MakeImageMed " << aBox._p0 << "\n";
+   Pt2di aSz = aBox.sz();
+
+  std::vector<Im2D_REAL4 *> aVIm;
+  std::vector<TIm2D<REAL4,REAL8> *> aVTIm;
+  Im2D_REAL4 aMed(aSz.x,aSz.y);
+  TIm2D<REAL4,REAL8>  aTMed(aMed);
+
+   for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
+   {
+       aVIm.push_back(new Im2D_REAL4(aSz.x,aSz.y));
+       aVTIm.push_back(new TIm2D<REAL4,REAL8>(*(aVIm.back())));
+
+       ELISE_COPY
+       (
+           aVIm.back()->all_pts(),
+           trans(mVIms[aK]->ImFull().in(),aBox._p0),
+           aVIm.back()->out()
+       );
+   }
+
+   Pt2di aP;
+   for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+   {
+       for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
+       {
+           std::vector<double> aVVals;
+           for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
+           {
+               aVVals.push_back(aVTIm[aK]->get(aP));
+           }
+           aTMed.oset(aP,MedianeSup(aVVals));
+       }
+   }
+
+   Tiff_Im aTifMed(mNameImMed.c_str());
+   ELISE_COPY
+   (
+       rectangle(aBox._p0,aBox._p1),
+       trans(aMed.in(),-aBox._p0),
+       aTifMed.out()
+   );
+}
+
+
+void cAppli_RTI::MakeImageMed()
+{
+   mNameImMed = "Mediane.tif";
+   Tiff_Im aTif1 = mMasterIm->ImFull();
+
+   Tiff_Im
+   (
+       mNameImMed.c_str(),
+       aTif1.sz(),
+       aTif1.type_el(),
+       Tiff_Im::No_Compr,
+       aTif1.phot_interp()
+   );
+
+
+   Pt2di aSz = aTif1.sz();
+
+
+   int aBloc = 500;
+
+   Pt2di aP0;
+
+   for (aP0.x=0 ; aP0.x<aSz.x ; aP0.x+=aBloc)
+   {
+       for (aP0.y=0 ; aP0.y<aSz.y ; aP0.y+=aBloc)
+       {
+            Pt2di aP1 = Inf(aSz,aP0+Pt2di(aBloc,aBloc));
+            MakeImageMed(Box2di(aP0,aP1));
+       }
+   }
+   
+}
+
+void RTIMed_main(int argc,char **argv)
+{
+    std::string aNameParam;
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aNameParam, "Name XML", eSAM_IsExistFile),
+         LArgMain()  
+    );
+
+   cAppli_RTI aRTIA(aNameParam);
+   aRTIA.MakeImageMed();
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

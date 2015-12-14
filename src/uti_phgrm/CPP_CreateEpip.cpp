@@ -810,7 +810,7 @@ int AllReechHom_main(int argc,char ** argv)
          std::string aName2 = (*aSet)[aK];
          if (aName1 != aName2)
          {
-             std::string aNameRes = anEASF.mDir +  aPref + StdPrefix(aName2) + ".tif";
+             std::string aNameRes = anEASF.mDir +  aPref +aName2 + ".tif";
              if (! ELISE_fp::exist_file(aNameRes))
              {
                  // std::cout << "RES = " << aNameRes << "\n";
