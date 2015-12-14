@@ -712,7 +712,7 @@ void fillStringList(QStringList & actions, int appMode)
 			{
 				if (it->isRoot())
 				{
-					qt_out << "--- " << it->height() << endl;
+					//~ qt_out << "--- " << it->height() << endl;
 					result = min<size_t>(result, it->height());
 				}
 				it++;
