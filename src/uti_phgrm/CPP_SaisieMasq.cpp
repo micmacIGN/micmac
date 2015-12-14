@@ -56,18 +56,24 @@ void saisieMasq_ElInitArgMain(int argc,char ** argv, std::string &aFullName, std
 #if (ELISE_X11)
 
 
-class cAppliSM : public Grab_Untill_Realeased
+class cAppliSM : public Grab_Untill_Realeased,
+                 public cClikInterceptor
 {
     public :
          cAppliSM(int argc,char ** argv);
 
      void NoOp(){}
      void ExeClik(Clik aCl);
+// std::cout << "FFFFF  "<< aNTifIm << "\n";
+
+         void Help();
 
          void DumpImage(const std::string &);
+         int  CurCoul() {return mCaseCoul->Val() ? 1 : 0;}
 
     private :
         void  GUR_query_pointer(Clik,bool);
+        bool InterceptClik(Clik);
         void ShowCC();
 
         void GetPolyg(Clik aCl);
@@ -76,7 +82,6 @@ class cAppliSM : public Grab_Untill_Realeased
         Pt2di                  mSzWP;
         std::string            mDir;
         std::string            mNIm;
-        int                    mCurCoul;
 
     Tiff_Im *           mT1;
     Video_Win*          mW;
@@ -93,6 +98,8 @@ class cAppliSM : public Grab_Untill_Realeased
         bool                    mEnd;
         std::string             mAttr;
 
+
+        Video_Win  *           mWHelp;
 };
 
 void cAppliSM::GUR_query_pointer(Clik cl,bool)
@@ -113,7 +120,7 @@ void cAppliSM::GetPolyg(Clik aCl)
        ELISE_COPY
        (
          polygone(aLPt),
-         mCurCoul,
+         CurCoul(),
          mBiS-> ImMasq().out()
        );
     }
@@ -153,7 +160,7 @@ void cAppliSM::ShowCC()
 {
     Box2dr aBox(Pt2di(0,0),mWCC->sz());
 
-    Fill_St aFst(mWCC->pdisc()(mCurCoul? P8COL::yellow:P8COL::white));
+    Fill_St aFst(mWCC->pdisc()(CurCoul()? P8COL::yellow:P8COL::white));
     mWCC->fill_rect(aBox._p0,aBox._p1,aFst);
 
     mWCC->draw_rect(aBox,Line_St(mWCC->pdisc()(P8COL::red),4));
@@ -172,7 +179,6 @@ void cAppliSM::DoMenu(Clik aCl)
    }
    else if (aCase==mCaseCoul)
    {
-       mCurCoul = int(mCaseCoul->Val());
        ShowCC();
    }
    else
@@ -180,10 +186,51 @@ void cAppliSM::DoMenu(Clik aCl)
    }
 }
 
+
+void PutFileText(Video_Win,const std::string &);
+
+void cAppliSM::Help()
+{
+    mW->fill_rect(Pt2dr(0,0),Pt2dr(mW->sz()),mW->pdisc()(P8COL::white));
+
+    PutFileText(*mW,Basic_XML_MM_File("HelpSaisieMasq.txt"));
+    mW->clik_in();
+    mESII->Refresh();
+    // Refresh();
+
+}
+
+
+bool cAppliSM::InterceptClik(Clik aCl)
+{
+   if (aCl._w==*mWHelp) 
+   {
+       Help();
+       return true;
+   }
+
+   if (aCl._w==*mWCC) 
+   {
+      mCaseCoul->SetVal(!mCaseCoul->Val());
+      ShowCC();
+      return true;
+   }
+
+
+   return false;
+
+}
+
+
 void cAppliSM::ExeClik(Clik aCl)
 {
     std::cout  << mESII->W2U(aCl._pt)  << aCl._b << "\n";
-    if (aCl._b==1)
+
+    if (InterceptClik(aCl))
+    {
+        return;
+    }
+    else if (aCl._b==1)
     {
        GetPolyg(aCl);
     }
@@ -194,7 +241,6 @@ void cAppliSM::ExeClik(Clik aCl)
 }
 
 cAppliSM::cAppliSM(int argc,char ** argv) :
-   mCurCoul  (1),
    // mTifExit  ("data/Exit.tif"),
    mTifExit  (MMIcone("Exit")),
    mSzCase   (mTifExit.sz()),
@@ -275,6 +321,10 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
     mW =  Video_Win::PtrWStd(mSzWP);
     mWCC = new Video_Win(Video_Win(*mW,Video_Win::eDroiteH,Pt2di(100,50)));
 
+    Tiff_Im aTifHelp = MMIcone("Help");
+    mWHelp = new Video_Win(*mWCC,Video_Win::eBasG,aTifHelp.sz());
+    ELISE_COPY(mWHelp->all_pts(),aTifHelp.in(),mWHelp->ogray());
+
     VideoWin_Visu_ElImScr * aVVE = new VideoWin_Visu_ElImScr(*mW,*mT1);
     // ElPyramScroller * aPyr = ElImScroller::StdPyramide(*aVVE,aNTifIm);
 
@@ -284,7 +334,7 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
 
    mBiS->GraySetGamaCorrec(aGama);
 
-    mESII = new EliseStdImageInteractor(*mW,*mBiS,2,5,4);
+    mESII = new EliseStdImageInteractor(*mW,*mBiS,2,5,4,this);
 
 
     mPopUp = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(5,5),Pt2di(1,1));
@@ -301,7 +351,7 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
                        *mPopUp,"titi",Pt2di(0,0),
                        MMIcone("Coul").in(0) *255,
                        (!MMIcone("Coul").in(0)) *255,
-                       mCurCoul != 0
+                       true
                     );
 
     ShowCC();
@@ -323,6 +373,10 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
        mBiS-> ImMasq().in() * (aMax-1),
        aTifM.out()
     );
+
+
+    //mWHelp->move_to(Pt2di(0));
+
 }
 
 
