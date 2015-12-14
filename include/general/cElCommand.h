@@ -238,6 +238,7 @@ public:
    bool isDirectory() const;
    bool create() const;
    bool remove() const;
+   bool copy( const cElFilename &i_dst, bool i_overwrite = false ) const;
    inline bool setRights( mode_t o_rights ) const;
    inline bool getRights( mode_t &o_rights ) const;
    U_INT8 getSize() const;
@@ -245,15 +246,16 @@ public:
 
 
 //-------------------------------------------
-// cElRegEx
+// cElPathRegex
 //-------------------------------------------
 
 // it's a Filename but with different rules for use with ::system or make
-class cElRegEx : public cElFilename
+class cElPathRegex : public cElFilename
 {
 public:   
-   inline cElRegEx( const ctPath &i_path, const std::string i_regex );
-   inline cElRegEx( const std::string i_fullregex=std::string() ); // i_fullname = path+regex
+   inline cElPathRegex( const ctPath &i_path, const std::string i_regex );
+   inline cElPathRegex( const std::string i_fullregex=std::string() ); // i_fullname = path+regex
+   bool getFilenames( std::list<cElFilename> &o_filenames, bool i_wantFiles = true, bool i_wantDirectories = false ) const;
 };
 
 
@@ -291,6 +293,8 @@ inline void uint4_to_raw_data( const U_INT4 &i_v, bool i_reverseByteOrder, char 
 inline void uint4_from_raw_data( const char *&io_rawData, bool i_reverseByteOrder, U_INT4 &o_v );
 
 std::string file_rights_to_string( mode_t i_rights );
+
+std::string getShortestExtension( const std::string &i_basename );
 
 
 //----------------------------------------------------------------------

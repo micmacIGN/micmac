@@ -611,7 +611,7 @@ bool ctPath::getContent( std::list<cElFilename> &o_files, std::list<ctPath> &o_d
    if ( !getContent( unspecialized_filenames ) ) return false;
    specialize_filenames( unspecialized_filenames, o_files, o_directories );
 
-   if ( i_isRecursive )
+   if (i_isRecursive)
    {
       list<ctPath>::iterator itPath = o_directories.begin();
       while ( itPath!=o_directories.end() )
@@ -793,6 +793,60 @@ U_INT8 cElFilename::getSize() const
    return (U_INT8)f.tellg();
 }
 
+bool cElFilename::copy( const cElFilename &i_dst, bool i_overwrite ) const
+{
+	if ( !exists())
+	{
+		ELISE_DEBUG_ERROR(true, "cElFilename::copy", "source file [" << str() << "] does not exist");
+		return false;
+	}
+
+	#ifdef ELISE_windows
+		cout << "src = [" << str_windows() << "]" << endl;
+		cout << "i_dst.str_windows() = [" << i_dst.str_windows() << ']' << endl;
+		return ELISE_fp::copy_file(str_windows(), i_dst.str_windows(), i_overwrite);
+	#else
+		return ELISE_fp::copy_file(str(), i_dst.str(), i_overwrite);
+	#endif
+}
+
+
+//-------------------------------------------
+// cElFilename
+//-------------------------------------------
+
+bool cElPathRegex::getFilenames( std::list<cElFilename> &o_filenames, bool i_wantFiles, bool i_wantDirectories ) const
+{
+	o_filenames.clear();
+
+	if ( !i_wantFiles && !i_wantDirectories) return true;
+
+	if ( !m_path.exists())
+	{
+		ELISE_DEBUG_ERROR(true, "cElPathRegex::get", "path [" << m_path.str() "] does not exist");
+		return false;
+	}
+
+	list<cElFilename> filenames;
+	m_path.getContent(filenames); // false = recursive
+
+	cout << "i_wantFiles = " << i_wantFiles << endl;
+	cout << "i_wantDirectories = " << i_wantDirectories << endl;
+	cout << "filenames.size() = " << filenames.size() << endl;
+
+	cElRegex regularExpression(m_basename, 1);
+
+	list<cElFilename>::const_iterator itFilename = filenames.begin();
+	while (itFilename != filenames.end())
+	{
+		const cElFilename &filename = (*itFilename++);
+		if (regularExpression.Match(filename.m_basename) && (((i_wantFiles && filename.exists()) || (i_wantDirectories && filename.isDirectory()))))
+			o_filenames.push_back(filename);
+	}
+
+	return true;
+}
+
 
 //-------------------------------------------
 // related functions
@@ -912,3 +966,9 @@ std::string file_rights_to_string( mode_t i_rights )
     return res;
 }
 
+
+string getShortestExtension( const string &i_basename )
+{
+	size_t pos = i_basename.rfind('.');
+	return (pos == string::npos ? string() : i_basename.substr(pos));
+}
