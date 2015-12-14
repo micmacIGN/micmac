@@ -54,18 +54,23 @@ void cAppli_RTI::CreateSuperpHom()
 
 }
 
-cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,bool aMainAppli) :
-   mTest  (true)
+cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,const std::string & aNameI2) :
+   mTest      (true),
+   mMainAppli (aNameI2=="")
 {
     mFullNameParam = aFullNameParam;
     
     SplitDirAndFile(mDir,mNameParam,mFullNameParam);
     mParam = StdGetFromSI(mFullNameParam,Xml_ParamRTI);
+    if (! mMainAppli)
+       mParam.Pattern() = aNameI2;
 
     mEASF.Init(mDir+mParam.Pattern());
     const cInterfChantierNameManipulateur::tSet *  aSetIm = mEASF.SetIm();
 
     mMasterIm = new cOneIm_RTI_Master(*this,mParam.MasterIm());
+    mMasterIm->DoImReduite();
+
     mVIms.push_back(mMasterIm);
 
     for (int aKI=0 ; aKI<(aSetIm->size()) ; aKI++)
@@ -79,23 +84,36 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,bool aMainAppli) :
          }
     }
    
-    CreateSuperpHom();
-
-    
+    if (mMainAppli)
+    {
+       CreateSuperpHom();
+    }
 }
+
+const cXml_ParamRTI & cAppli_RTI::Param() const { return mParam; }
+const std::string &   cAppli_RTI::Dir()   const {return mDir;}
+cOneIm_RTI_Master *   cAppli_RTI::Master() {return mMasterIm;}
+
+cOneIm_RTI_Slave * cAppli_RTI::UniqSlave()
+{
+   ELISE_ASSERT(mVSlavIm.size()==1,"cAppli_RTI::UniqSlave");
+   return mVSlavIm[0];
+}
+
+
 
 
 int  RTI_main(int argc,char ** argv)
 {
-    std::string aFullNameParam;
+    std::string aFullNameParam,aPat="";
     ElInitArgMain
     (
           argc,argv,
           LArgMain()  << EAMC(aFullNameParam,"Name of Xml Param", eSAM_IsExistFile),
-          LArgMain()  
+          LArgMain()  << EAM(aPat,"Pat",true,"Pattern to replace existing Pattern in xml file",eSAM_IsExistFile) 
     );
     
-   cAppli_RTI anAppli(aFullNameParam,true);
+   cAppli_RTI anAppli(aFullNameParam,aPat);
 
    return EXIT_SUCCESS;
 }
