@@ -61,7 +61,7 @@
 	#define snprintf _snprintf
 	#define strcasecmp stricmp
 	#define strncasecmp strnicmp
-	#if (!ELISE_MinGW)
+	#if !defined(__MINGW__)
 		// for visual c++
 		#include <direct.h>
 		#define getcwd _getcwd
@@ -9587,6 +9587,19 @@ struct tiff_hdr {
   unsigned gps[26];
   char desc[512], make[64], model[64], soft[32], date[20], artist[64];
 };
+
+#ifdef __MINGW__
+size_t strnlen(const char *str, size_t maxlen)
+{
+	size_t i = 0;
+	while (i < maxlen && *str)
+	{
+		i++;
+		str++;
+	}
+	return i;
+} 
+#endif
 
 void CLASS tiff_set (struct tiff_hdr *th, ushort *ntag,
 	ushort tag, ushort type, int count, int val)
