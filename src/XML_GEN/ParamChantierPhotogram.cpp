@@ -21334,6 +21334,17 @@ const Pt2di & cXml_EnvVino::SzW()const
 }
 
 
+cTplValGesInit< double > & cXml_EnvVino::SzLimSsEch()
+{
+   return mSzLimSsEch;
+}
+
+const cTplValGesInit< double > & cXml_EnvVino::SzLimSsEch()const 
+{
+   return mSzLimSsEch;
+}
+
+
 int & cXml_EnvVino::LargAsc()
 {
    return mLargAsc;
@@ -21402,6 +21413,14 @@ const std::list< cXml_StatVino > & cXml_EnvVino::Stats()const
 void  BinaryUnDumpFromFile(cXml_EnvVino & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.SzW(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SzLimSsEch().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzLimSsEch().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SzLimSsEch().SetNoInit();
+  } ;
     BinaryUnDumpFromFile(anObj.LargAsc(),aFp);
     BinaryUnDumpFromFile(anObj.SzIncr(),aFp);
     BinaryUnDumpFromFile(anObj.ZoomBilin(),aFp);
@@ -21421,6 +21440,8 @@ void  BinaryUnDumpFromFile(cXml_EnvVino & anObj,ELISE_fp & aFp)
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_EnvVino & anObj)
 {
     BinaryDumpInFile(aFp,anObj.SzW());
+    BinaryDumpInFile(aFp,anObj.SzLimSsEch().IsInit());
+    if (anObj.SzLimSsEch().IsInit()) BinaryDumpInFile(aFp,anObj.SzLimSsEch().Val());
     BinaryDumpInFile(aFp,anObj.LargAsc());
     BinaryDumpInFile(aFp,anObj.SzIncr());
     BinaryDumpInFile(aFp,anObj.ZoomBilin());
@@ -21439,6 +21460,8 @@ cElXMLTree * ToXMLTree(const cXml_EnvVino & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_EnvVino",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("SzW"),anObj.SzW())->ReTagThis("SzW"));
+   if (anObj.SzLimSsEch().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SzLimSsEch"),anObj.SzLimSsEch().Val())->ReTagThis("SzLimSsEch"));
    aRes->AddFils(::ToXMLTree(std::string("LargAsc"),anObj.LargAsc())->ReTagThis("LargAsc"));
    aRes->AddFils(::ToXMLTree(std::string("SzIncr"),anObj.SzIncr())->ReTagThis("SzIncr"));
    aRes->AddFils(::ToXMLTree(std::string("ZoomBilin"),anObj.ZoomBilin())->ReTagThis("ZoomBilin"));
@@ -21462,6 +21485,8 @@ void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SzW(),aTree->Get("SzW",1)); //tototo 
 
+   xml_init(anObj.SzLimSsEch(),aTree->Get("SzLimSsEch",1),double(2e7)); //tototo 
+
    xml_init(anObj.LargAsc(),aTree->Get("LargAsc",1)); //tototo 
 
    xml_init(anObj.SzIncr(),aTree->Get("SzIncr",1)); //tototo 
@@ -21475,6 +21500,6 @@ void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree)
    xml_init(anObj.Stats(),aTree->GetAll("Stats",false,1));
 }
 
-std::string  Mangling( cXml_EnvVino *) {return "8CD2D85571B973A8FF3F";};
+std::string  Mangling( cXml_EnvVino *) {return "30D5E32DD8181DF9FD3F";};
 
 // };

@@ -37,79 +37,43 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "Vino.h"
+#include "RTI.h"
 
-#if (ELISE_X11)
+/*****************************************************************/
+/*                                                               */
+/*              cOneIm_RTI                                       */
+/*                                                               */
+/*****************************************************************/
 
-
-// Reisdu sur 4 point FFTK
-
-// Ortho en mod Forest
-
-
-int Vino_Main(int argc, char ** argv)
-{
-    
-    cAppli_Vino  anAppli(argc,argv);
-
-    anAppli.PostInitVirtual();
-    anAppli.Boucle();
-
-    getchar();
-
-/*
-    VideoWin_Visu_ElImScr  aVV = VideoWin_Visu_ElImScr
-
-     ElPyramScroller * StdPyramide
-                                     (
-                                        Visu_ElImScr &Visu,
-                                        const std::string &,
-                                        std::vector<INT> * EchAcc =0,
-                                        bool Adapt =false,
-                                        bool ForceGray =false
-                        );
-
-
-*/
-
-    return EXIT_SUCCESS;
-}
-
-
-/*
-cPopUpMenuMessage::cPopUpMenuMessage(Video_Win aW,Pt2di aSz) :
-   PopUpMenuTransp(aW,aSz)
+cOneIm_RTI::cOneIm_RTI(cAppli_RTI & anAppli,const std::string & aName,bool isMaster) :
+    mAppli  (anAppli),
+    mName   (aName),
+    mMaster (isMaster)
 {
 }
 
-void cPopUpMenuMessage::ShowMessage(const std::string & aName, Pt2di aP,Pt3di aCoul)
+
+/*****************************************************************/
+/*                                                               */
+/*                 cOneIm_RTI_Slave                              */
+/*                                                               */
+/*****************************************************************/
+
+cOneIm_RTI_Slave::cOneIm_RTI_Slave(cAppli_RTI & anAppli,const std::string & aName) :
+   cOneIm_RTI(anAppli,aName,false)
 {
-     UpP0(aP);
-     Pt2di aLarg = mW.SizeFixedString(aName);
-     mW.fixed_string
-     (
-           Pt2dr(aP+ (mSz+Pt2di(-aLarg.x, aLarg.y))/2)  ,
-           aName.c_str(), mW.prgb()(aCoul.x,aCoul.y,aCoul.z),
-           true
-     );
 }
 
-void cPopUpMenuMessage::Hide()
+/*****************************************************************/
+/*                                                               */
+/*                 cOneIm_RTI_Master                              */
+/*                                                               */
+/*****************************************************************/
+
+cOneIm_RTI_Master::cOneIm_RTI_Master(cAppli_RTI & anAppli,const std::string & aName) :
+   cOneIm_RTI(anAppli,aName,true)
 {
-    Pop();
 }
-*/
-
-
-#else
-int Vino_Main(int argc, char ** argv)
-{
-   return EXIT_FAILURE;
-}
-#endif
-
-
-
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -24089,4 +24089,77 @@ void xml_init(cXmlTNR_TestImgReport & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXmlTNR_TestImgReport *) {return "36BC03DE8A3264CCFE3F";};
 
+
+std::string & cXml_ParamRTI::MasterIm()
+{
+   return mMasterIm;
+}
+
+const std::string & cXml_ParamRTI::MasterIm()const 
+{
+   return mMasterIm;
+}
+
+
+std::string & cXml_ParamRTI::Pattern()
+{
+   return mPattern;
+}
+
+const std::string & cXml_ParamRTI::Pattern()const 
+{
+   return mPattern;
+}
+
+
+double & cXml_ParamRTI::ScaleSSRes()
+{
+   return mScaleSSRes;
+}
+
+const double & cXml_ParamRTI::ScaleSSRes()const 
+{
+   return mScaleSSRes;
+}
+
+void  BinaryUnDumpFromFile(cXml_ParamRTI & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.MasterIm(),aFp);
+    BinaryUnDumpFromFile(anObj.Pattern(),aFp);
+    BinaryUnDumpFromFile(anObj.ScaleSSRes(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamRTI & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.MasterIm());
+    BinaryDumpInFile(aFp,anObj.Pattern());
+    BinaryDumpInFile(aFp,anObj.ScaleSSRes());
+}
+
+cElXMLTree * ToXMLTree(const cXml_ParamRTI & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ParamRTI",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("MasterIm"),anObj.MasterIm())->ReTagThis("MasterIm"));
+   aRes->AddFils(::ToXMLTree(std::string("Pattern"),anObj.Pattern())->ReTagThis("Pattern"));
+   aRes->AddFils(::ToXMLTree(std::string("ScaleSSRes"),anObj.ScaleSSRes())->ReTagThis("ScaleSSRes"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_ParamRTI & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.MasterIm(),aTree->Get("MasterIm",1)); //tototo 
+
+   xml_init(anObj.Pattern(),aTree->Get("Pattern",1)); //tototo 
+
+   xml_init(anObj.ScaleSSRes(),aTree->Get("ScaleSSRes",1)); //tototo 
+}
+
+std::string  Mangling( cXml_ParamRTI *) {return "D15DA63DAB4E2782FE3F";};
+
 // };

@@ -106,7 +106,7 @@ void Visu_ElImDest::SetGamaCorr(REAL aGamaFact)
    mUseGamaCorr = true;
 }
 
-template <class Type>  void FriendVisu_ElImDest<Type>::write_image(Visu_ElImDest& aVEI,INT  x0src,Pt2di p0dest,INT nb,Type ** data,int** aDataBuf)
+template <class Type>  void FriendVisu_ElImDest<Type>::write_image(Visu_ElImDest& aVEI,INT  x0src,Pt2di p0dest,INT nb,Type ** data,int** aDataBuf,int aNbChanelIn)
 {
 
      if (aVEI.mIVCD)
@@ -120,9 +120,8 @@ template <class Type>  void FriendVisu_ElImDest<Type>::write_image(Visu_ElImDest
      {
          for (INT d=0 ; d<aVEI.mDimOut ; d++)
          {
-              Type  * dIn = data[d]+x0src;
+              Type  * dIn = data[ElMin(d,aNbChanelIn-1)]+x0src;
               INT * dOut = aDataBuf[d]+x0src;
-// cout << dIn << " " << dOut << " " << mVMin << " " << mDiff << "\n";
               for (INT k=0; k<nb ; k++)
                   dOut[k] = ElMin(255,ElMax(0, ElStdTypeScal<int>::RtoT (((dIn[k]-aVEI.mVMin)*255)/aVEI.mDiff)));
          }
@@ -131,28 +130,31 @@ template <class Type>  void FriendVisu_ElImDest<Type>::write_image(Visu_ElImDest
      {
          for (INT d=0 ; d<aVEI.mDimOut ; d++)
          {
-              Type  * dIn = data[d]+x0src;
+              Type  * dIn = data[ElMin(d,aNbChanelIn-1)]+x0src;
               INT * dOut = aDataBuf[d]+x0src;
               for (INT k=0; k<nb ; k++)
               {
-                  // ELISE_ASSERT(dIn[k]>=0&&dIn[k]<256,"Bad Vals in mUseGamaCorr");
                   dOut[k] = aVEI.mDataGamaCorr[round_ni(dIn[k])];
               }
          }
      }
      else
      {
+
          for (INT d=0 ; d<aVEI.mDimOut ; d++)
-             convert(aDataBuf[d]+x0src,data[d]+x0src,nb);
+         {
+             // convert(aDataBuf[d]+x0src,data[d]+x0src,nb);
+             convert(aDataBuf[d]+x0src,data[ElMin(d,aNbChanelIn-1)]+x0src,nb);
+         }
      }
      aVEI.write_image_brute(x0src,p0dest,nb,aDataBuf);
 }
 
 
 
-void Visu_ElImDest::write_image(INT  x0src,Pt2di p0dest,INT nb,INT ** data)
+void Visu_ElImDest::write_image(INT  x0src,Pt2di p0dest,INT nb,INT ** data,int aNbChanelIn)
 {
-    FriendVisu_ElImDest<int>::write_image(*this,x0src,p0dest,nb,data,mDataBufI);
+    FriendVisu_ElImDest<int>::write_image(*this,x0src,p0dest,nb,data,mDataBufI,aNbChanelIn);
 
 /*
 Visu_ElImDest& aVEI,INT  x0src,Pt2di p0dest,INT nb,Type ** data,Type** aDataBuf)
@@ -197,9 +199,9 @@ Visu_ElImDest& aVEI,INT  x0src,Pt2di p0dest,INT nb,Type ** data,Type** aDataBuf)
 */
 }
 
-void Visu_ElImDest::write_image(INT  x0src,Pt2di p0dest,INT nb,double ** data)
+void Visu_ElImDest::write_image(INT  x0src,Pt2di p0dest,INT nb,double ** data,int aNbChanelIn)
 {
-    FriendVisu_ElImDest<double>::write_image(*this,x0src,p0dest,nb,data,mDataBufI);
+    FriendVisu_ElImDest<double>::write_image(*this,x0src,p0dest,nb,data,mDataBufI,aNbChanelIn);
    // ELISE_ASSERT(false,"Visu_ElImDest::write_image double");
 }
 

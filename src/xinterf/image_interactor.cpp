@@ -316,6 +316,11 @@ void EliseStdImageInteractor::GQP(Clik cl,bool)
 		 scy = mScale0Grab *pow(2.0,scy);
 		 scy = ElMin(ElMax(scy,mScaleMin),mScaleMax);
 
+if (0 && MPD_MM()){
+    std::cout << "EliseStdImageInteractor::GQP " << mRasterQuickZoom << "\n";
+    mRasterQuickZoom = false;
+}
+
       	        mScr.SetScArroundPW
                 (
                     mP0Grab,

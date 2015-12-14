@@ -37,79 +37,68 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "Vino.h"
+#include "RTI.h"
 
-#if (ELISE_X11)
-
-
-// Reisdu sur 4 point FFTK
-
-// Ortho en mod Forest
+const std::string cAppli_RTI::ThePrefixReech = "Tmp-MM-Dir/RTI_REECH_";
 
 
-int Vino_Main(int argc, char ** argv)
+void cAppli_RTI::CreateSuperpHom()
 {
+    std::string aCom = MM3dBinFile_quotes("TestLib")
+                                     + " AllReechHom "
+                                     +  mParam.MasterIm() 
+                                     +  " " + mParam.Pattern()
+                                     +  " " +  ThePrefixReech ;
+
+   System (aCom);
+
+}
+
+cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,bool aMainAppli) :
+   mTest  (true)
+{
+    mFullNameParam = aFullNameParam;
     
-    cAppli_Vino  anAppli(argc,argv);
+    SplitDirAndFile(mDir,mNameParam,mFullNameParam);
+    mParam = StdGetFromSI(mFullNameParam,Xml_ParamRTI);
 
-    anAppli.PostInitVirtual();
-    anAppli.Boucle();
+    mEASF.Init(mDir+mParam.Pattern());
+    const cInterfChantierNameManipulateur::tSet *  aSetIm = mEASF.SetIm();
 
-    getchar();
+    mMasterIm = new cOneIm_RTI_Master(*this,mParam.MasterIm());
+    mVIms.push_back(mMasterIm);
 
-/*
-    VideoWin_Visu_ElImScr  aVV = VideoWin_Visu_ElImScr
+    for (int aKI=0 ; aKI<(aSetIm->size()) ; aKI++)
+    {
+         std::string aName = (*aSetIm)[aKI];
+         if (aName != mParam.MasterIm())
+         {
+             cOneIm_RTI_Slave * aNewIm = new cOneIm_RTI_Slave(*this,aName);
+             mVIms.push_back(aNewIm);
+             mVSlavIm.push_back(aNewIm);
+         }
+    }
+   
+    CreateSuperpHom();
 
-     ElPyramScroller * StdPyramide
-                                     (
-                                        Visu_ElImScr &Visu,
-                                        const std::string &,
-                                        std::vector<INT> * EchAcc =0,
-                                        bool Adapt =false,
-                                        bool ForceGray =false
-                        );
-
-
-*/
-
-    return EXIT_SUCCESS;
+    
 }
 
 
-/*
-cPopUpMenuMessage::cPopUpMenuMessage(Video_Win aW,Pt2di aSz) :
-   PopUpMenuTransp(aW,aSz)
+int  RTI_main(int argc,char ** argv)
 {
+    std::string aFullNameParam;
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aFullNameParam,"Name of Xml Param", eSAM_IsExistFile),
+          LArgMain()  
+    );
+    
+   cAppli_RTI anAppli(aFullNameParam,true);
+
+   return EXIT_SUCCESS;
 }
-
-void cPopUpMenuMessage::ShowMessage(const std::string & aName, Pt2di aP,Pt3di aCoul)
-{
-     UpP0(aP);
-     Pt2di aLarg = mW.SizeFixedString(aName);
-     mW.fixed_string
-     (
-           Pt2dr(aP+ (mSz+Pt2di(-aLarg.x, aLarg.y))/2)  ,
-           aName.c_str(), mW.prgb()(aCoul.x,aCoul.y,aCoul.z),
-           true
-     );
-}
-
-void cPopUpMenuMessage::Hide()
-{
-    Pop();
-}
-*/
-
-
-#else
-int Vino_Main(int argc, char ** argv)
-{
-   return EXIT_FAILURE;
-}
-#endif
-
-
-
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

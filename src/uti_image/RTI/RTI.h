@@ -37,80 +37,65 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "Vino.h"
+#ifndef _RTI_H_
+#define _RTI_H_
 
-#if (ELISE_X11)
-
-
-// Reisdu sur 4 point FFTK
-
-// Ortho en mod Forest
+#include "StdAfx.h"
 
 
-int Vino_Main(int argc, char ** argv)
+class cOneIm_RTI;
+class cAppli_RTI;
+
+
+
+class cOneIm_RTI
 {
-    
-    cAppli_Vino  anAppli(argc,argv);
+    public :
+       cOneIm_RTI(cAppli_RTI &,const std::string & aName,bool Master);
+    protected :
+      cAppli_RTI &   mAppli;
+      std::string    mName;
+      bool           mMaster;
+};
 
-    anAppli.PostInitVirtual();
-    anAppli.Boucle();
-
-    getchar();
-
-/*
-    VideoWin_Visu_ElImScr  aVV = VideoWin_Visu_ElImScr
-
-     ElPyramScroller * StdPyramide
-                                     (
-                                        Visu_ElImScr &Visu,
-                                        const std::string &,
-                                        std::vector<INT> * EchAcc =0,
-                                        bool Adapt =false,
-                                        bool ForceGray =false
-                        );
-
-
-*/
-
-    return EXIT_SUCCESS;
-}
-
-
-/*
-cPopUpMenuMessage::cPopUpMenuMessage(Video_Win aW,Pt2di aSz) :
-   PopUpMenuTransp(aW,aSz)
+class cOneIm_RTI_Slave : public cOneIm_RTI
 {
-}
+    public :
+       cOneIm_RTI_Slave(cAppli_RTI &,const std::string & aName);
+};
 
-void cPopUpMenuMessage::ShowMessage(const std::string & aName, Pt2di aP,Pt3di aCoul)
+class cOneIm_RTI_Master : public cOneIm_RTI
 {
-     UpP0(aP);
-     Pt2di aLarg = mW.SizeFixedString(aName);
-     mW.fixed_string
-     (
-           Pt2dr(aP+ (mSz+Pt2di(-aLarg.x, aLarg.y))/2)  ,
-           aName.c_str(), mW.prgb()(aCoul.x,aCoul.y,aCoul.z),
-           true
-     );
-}
+    public :
+       cOneIm_RTI_Master(cAppli_RTI &,const std::string & aName);
+};
 
-void cPopUpMenuMessage::Hide()
+
+
+
+class cAppli_RTI
 {
-    Pop();
-}
-*/
+    public :
+       static const std::string ThePrefixReech;
+       cAppli_RTI(const std::string & aFullNameParam,bool aMainAppli) ;
+       void CreateSuperpHom();
+
+    private :
+       cXml_ParamRTI                    mParam;
+       std::string                      mFullNameParam;
+       std::string                      mDir;
+       std::string                      mNameParam;
+       bool                             mTest;
+       std::vector<cOneIm_RTI *>        mVIms;
+       std::vector<cOneIm_RTI_Slave *>  mVSlavIm;
+       cOneIm_RTI_Master *              mMasterIm;
+       cElemAppliSetFile                mEASF;
+};
 
 
-#else
-int Vino_Main(int argc, char ** argv)
-{
-   return EXIT_FAILURE;
-}
-#endif
 
 
-
-
+#endif // _RTI_H_
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
@@ -143,4 +128,4 @@ sécurité de leurs systèmes et ou de leurs données et, plus généralement,
 Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
-Footer-MicMac-eLiSe-25/06/2007*/
+aooter-MicMac-eLiSe-25/06/2007*/
