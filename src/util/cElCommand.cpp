@@ -823,7 +823,7 @@ bool cElPathRegex::getFilenames( std::list<cElFilename> &o_filenames, bool i_wan
 
 	if ( !m_path.exists())
 	{
-		ELISE_DEBUG_ERROR(true, "cElPathRegex::get", "path [" << m_path.str() "] does not exist");
+		ELISE_DEBUG_ERROR(true, "cElPathRegex::get", "path [" << m_path.str() << "] does not exist");
 		return false;
 	}
 
