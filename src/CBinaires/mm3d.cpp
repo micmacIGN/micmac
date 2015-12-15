@@ -230,12 +230,15 @@ int  Apero2NVM_main(int argc,char ** argv);
 
 int Vino_Main(int argc, char ** argv);
 int XifGps2Txt_main(int argc,char ** argv);
+int TestOscarTieP_main(int argc,char **argv) ;
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("TestOscar",TestOscarTieP_main,"Test tie points filtering "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
@@ -574,6 +577,7 @@ int AllReechHom_main(int argc,char ** argv);
 int RTI_main(int argc,char ** argv);
 int RTIRecalRadiom_main(int argc,char ** argv);
 int RTIMed_main(int argc,char ** argv);
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
