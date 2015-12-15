@@ -176,8 +176,8 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
    mDepR1          ("DepR1"),
    mDepR2          ("DepR2"),
    mDepR3          ("DepR3"),
-   mCompX          (*this,mCamCur.Cx()),
-   mCompY          (*this,mCamCur.Cy()),
+   mCompX          (*ThisIsConstructeur(),mCamCur.Cx()),
+   mCompY          (*ThisIsConstructeur(),mCamCur.Cy()),
    mNameType       ("cGen2DBundleEgProj_Deg"+ToString(mCamCur.DegreMax())),
    mNameAttach     ("cGen2DBundleAttach_Deg"+ToString(mCamCur.DegreMax())),
    mNameRot        ("cGen2DBundleAtRot_Deg"+ToString(mCamCur.DegreMax())),
@@ -333,6 +333,10 @@ Pt2dr cPolynBGC3M2D_Formelle::DepOfKnownSol(const Pt2dr & aP0,CamStenope * aCSOu
 
     return aP2 - aP0;
 }
+
+cPolynBGC3M2D_Formelle  *         cPolynBGC3M2D_Formelle::ThisIsConstructeur() {return this;}
+const cPolynBGC3M2D_Formelle  *   cPolynBGC3M2D_Formelle::ThisIsConstructeur() const {return this;}
+
 
 
 

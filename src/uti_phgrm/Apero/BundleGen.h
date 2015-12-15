@@ -201,6 +201,11 @@ class cPolynBGC3M2D_Formelle : public cGenPDVFormelle
 {
 
     public  :
+
+         cPolynBGC3M2D_Formelle  * ThisIsConstructeur();
+         const cPolynBGC3M2D_Formelle  * ThisIsConstructeur() const;
+
+
          friend class cOneEq_PBGC3M2DF;
          friend class cCellPolBGC3M2DForm;
 
