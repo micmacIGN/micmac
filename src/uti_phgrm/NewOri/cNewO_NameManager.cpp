@@ -277,17 +277,33 @@ std::string  cNewO_NameManager::Dir3POneImage(cNewO_OneIm * anIm,bool WithMakeDi
 
 
 
-std::string  cNewO_NameManager::Dir3PDeuxImage(cNewO_OneIm * anI1,cNewO_OneIm * anI2,bool WithMakeDir)
+std::string  cNewO_NameManager::Dir3PDeuxImage(const std::string & aName1,const std::string & aName2,bool WithMakeDir)
 {
-    std::string aRes = Dir3POneImage(anI1,WithMakeDir) + anI2->Name() + "/";
+    std::string aRes = Dir3POneImage(aName1,WithMakeDir) + aName2 + "/";
     if (WithMakeDir)  ELISE_fp::MkDir(aRes);
     return aRes;
 }
 
+
+std::string  cNewO_NameManager::Dir3PDeuxImage(cNewO_OneIm * anI1,cNewO_OneIm * anI2,bool WithMakeDir)
+{
+   return Dir3PDeuxImage(anI1->Name(),anI2->Name(),WithMakeDir);
+}
+
+
+
+
+std::string cNewO_NameManager::NameHomFloat(const std::string & aName1,const std::string & aName2)
+{
+   return Dir3PDeuxImage(aName1,aName2,false) + "HomFloatSym"  + ".dat";
+}
+
 std::string cNewO_NameManager::NameHomFloat(cNewO_OneIm * anI1,cNewO_OneIm * anI2)
 {
-   return Dir3PDeuxImage(anI1,anI2,false) + "HomFloatSym"  + ".dat";
+    return NameHomFloat(anI1->Name(),anI2->Name());
 }
+
+
 
 
 

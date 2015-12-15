@@ -104,14 +104,14 @@ bool cNewO_NameManager::LoadTriplet(cNewO_OneIm * anI1 ,cNewO_OneIm * anI2,cNewO
    return true;
 }
 
-void cNewO_NameManager::LoadHomFloats(cNewO_OneIm * anI1,cNewO_OneIm * anI2,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2)
+void cNewO_NameManager::LoadHomFloats(std::string  aName1,std::string  aName2,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2)
 {
-   if (anI1->Name() > anI2->Name())
+   if (aName1 > aName2)
    {
-       ElSwap(anI1,anI2);
+       ElSwap(aName1,aName2);
        ElSwap(aVP1,aVP2);
    }
-   std::string aNameH = NameHomFloat(anI1,anI2);
+   std::string aNameH = NameHomFloat(aName1,aName2);
 
    ELISE_fp aFile(aNameH.c_str(),ELISE_fp::READ,false);
    // FILE *  aFP = aFile.FP() ;
@@ -128,6 +128,10 @@ void cNewO_NameManager::LoadHomFloats(cNewO_OneIm * anI1,cNewO_OneIm * anI2,std:
    aFile.read(VData(*aVP2),sizeof((*aVP2)[0]),aNb);
 
    aFile.close();
+}
+void cNewO_NameManager::LoadHomFloats(cNewO_OneIm * anI1,cNewO_OneIm * anI2,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2)
+{
+    LoadHomFloats(anI1->Name(),anI2->Name(),aVP1,aVP2);
 }
 
 

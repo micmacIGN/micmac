@@ -195,7 +195,11 @@ void getPastisGrayscaleFilename( const string &i_baseName, int i_resolution, str
 
 void InitDetectingTool( std::string & detectingTool )
 {
-    if ( ( !EAMIsInit(&detectingTool) ) && MMUserEnv().TiePDetect().IsInit() )
+    if (0 && MPD_MM() && ( !EAMIsInit(&detectingTool) ) )
+    {
+         detectingTool = "mm3d:Digeo";
+    }
+    else if ( ( !EAMIsInit(&detectingTool) ) && MMUserEnv().TiePDetect().IsInit() )
         detectingTool = MMUserEnv().TiePDetect().Val();
 }
 
