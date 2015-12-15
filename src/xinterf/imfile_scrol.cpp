@@ -442,6 +442,10 @@ IFL_LineWindow::~IFL_LineWindow()
 
 template <class Type> void ImFileLoader<Type>::init_LW()
 {
+/*
+   for (INT k=0 ; k<12 ; k++)
+      mBufLW.push_back(new IFL_LineWindow(_SzW.x,_nb_chan));
+*/
    for (INT k=0 ; k<12 ; k++)
       mBufLW.push_back(new IFL_LineWindow(this->_SzW.x,_nb_chan));
 }
