@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.1)
 project(saisieQT)
 
-cmake_policy(SET CMP0020 NEW) #windows specific: Automatically link Qt executables to qtmain
+if(POLICY CMP0020)
+	cmake_policy(SET CMP0020 NEW) #windows specific: Automatically link Qt executables to qtmain
+endif()
 
 IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
     add_definitions(-DELISE_Darwin)

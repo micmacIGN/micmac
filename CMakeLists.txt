@@ -4,7 +4,9 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/precompiled_headers.cmake)
 cmake_minimum_required( VERSION 2.8.1 )
 project(MICMAC)
 
-cmake_policy(SET CMP0020 NEW) #windows specific: Automatically link Qt executables to qtmain
+if(POLICY CMP0020)
+	cmake_policy(SET CMP0020 NEW) #windows specific: Automatically link Qt executables to qtmain
+endif()
 
 set(VERBOSE 0)
 
