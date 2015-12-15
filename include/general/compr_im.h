@@ -1059,6 +1059,12 @@ class BiScroller : public ElImScroller
                 Im2D_U_INT1                    mImMasq;
 };
 
+class cClikInterceptor
+{
+    public :
+       virtual bool InterceptClik(Clik) = 0;
+};
+
 class  EliseStdImageInteractor
 {
       public :
@@ -1070,7 +1076,8 @@ class  EliseStdImageInteractor
                  ElImScroller & aScrol,
                  INT            aButonGeom,
                  INT            aButonZoomIn = -1,
-                 INT            aButonZoomOut = -1
+                 INT            aButonZoomOut = -1,
+                 cClikInterceptor *           = 0
           );
 
           Clik clik_press();
@@ -1148,6 +1155,7 @@ class  EliseStdImageInteractor
           std::vector<Pt2dr> mPolygCur;
           INT                mCoulSomPolygCur;
           INT                mCoulEdgePolygCur;
+          cClikInterceptor*  mClikIntercept;
 
 
           friend class Graber;
