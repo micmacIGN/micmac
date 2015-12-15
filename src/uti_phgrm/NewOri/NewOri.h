@@ -388,13 +388,16 @@ class cNewO_NameManager
 
            std::string NameTripletsOfCple(cNewO_OneIm *,cNewO_OneIm *,bool Bin);
            std::string Dir3PDeuxImage(cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+           std::string Dir3PDeuxImage(const std::string&,const std::string&,bool WithMakeDir=false);
            std::string NameHomFloat(cNewO_OneIm * ,cNewO_OneIm * );
+           std::string NameHomFloat(const std::string&,const std::string&);
 
            std::string NameListeImOrientedWith(const std::string &,bool Bin) const;
            std::list<std::string>  ListeImOrientedWith(const std::string & aName) const;
 
            std::string NameListeCpleOriented(bool Bin) const;
 
+           void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);
            void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);
            std::string NameHomTriplet(cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameOriInitTriplet(bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
