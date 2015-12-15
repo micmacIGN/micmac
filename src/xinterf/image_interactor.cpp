@@ -82,7 +82,8 @@ EliseStdImageInteractor::EliseStdImageInteractor
     ElImScroller & aScrol,
     INT            aButonGeom,
     INT            aButonZoomIn ,
-    INT            aButonZoomOut 
+    INT            aButonZoomOut,
+    cClikInterceptor *   aClikInterceptor
 )  :
    mW           (aW),
    mScr         (aScrol),
@@ -98,7 +99,8 @@ EliseStdImageInteractor::EliseStdImageInteractor
    mScaleMin       (0.02),
    mRasterQuickZoom      (true),
    mGeoGraber            (NULL),
-   mModeReplicationPixel (false)
+   mModeReplicationPixel (false),
+   mClikIntercept        (aClikInterceptor)
 {
 	// NO_WARN
 	mGeoGraber = new Graber(*this);
@@ -235,41 +237,47 @@ Clik  EliseStdImageInteractor::clik_press()
     while (true)
     {
         Clik cl1   =  mW.disp().clik_press();
-	EliseStdImageInteractor * anI =0;
-	if (cl1._w == mW)
-            anI = this;
-	else
-            anI = cl1._w.Interactor();
+        if (mClikIntercept && mClikIntercept->InterceptClik(cl1))
+        {
+        }
+        else
+        {
+	     EliseStdImageInteractor * anI =0;
+	     if (cl1._w == mW)
+                 anI = this;
+	     else
+                 anI = cl1._w.Interactor();
 
-	if (anI == 0)
-           return cl1;
-	 if ((cl1._b== mButtonZoomIn) || (cl1._b== mButtonZoomOut))
-	 {
-	   double aFact = 1.2;
-      	    mScr.SetScArroundPW
-            (
-                mP0Grab,
-                 anI->mScr.sc() * ((cl1._b== mButtonZoomIn) ? aFact : 1/aFact),
-                false // mRasterQuickZoom
-            );
-            // mScr.LoadAndVisuIm(mModeReplicationPixel);
-             ShowVect();
-             OnEndScale(cl1);
-            // anI->mScale0Grab = anI->mScr.sc();
-	 }
-	 else
-	 {
+	     if (anI == 0)
+                return cl1;
+	      if ((cl1._b== mButtonZoomIn) || (cl1._b== mButtonZoomOut))
+	      {
+	        double aFact = 1.2;
+      	         mScr.SetScArroundPW
+                 (
+                     mP0Grab,
+                      anI->mScr.sc() * ((cl1._b== mButtonZoomIn) ? aFact : 1/aFact),
+                     false // mRasterQuickZoom
+                 );
+                 // mScr.LoadAndVisuIm(mModeReplicationPixel);
+                  ShowVect();
+                  OnEndScale(cl1);
+                 // anI->mScale0Grab = anI->mScr.sc();
+	      }
+	      else
+	      {
 
 
-        if (cl1._b != anI->mButtonGeom)
-           return cl1;
+                  if (cl1._b != anI->mButtonGeom)
+                     return cl1;
 
-        anI->mScaleMode =  cl1.shifted();
-        anI->mP0Grab    = cl1._pt;
-        anI->mLastPGrab    = cl1._pt;
-        anI->mScale0Grab = anI->mScr.sc();
-        anI->mW.grab( *( anI->mGeoGraber ) );
-	}
+                  anI->mScaleMode =  cl1.shifted();
+                  anI->mP0Grab    = cl1._pt;
+                  anI->mLastPGrab    = cl1._pt;
+                  anI->mScale0Grab = anI->mScr.sc();
+                  anI->mW.grab( *( anI->mGeoGraber ) );
+	     }
+         }
     }
 
 

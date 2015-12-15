@@ -954,7 +954,7 @@ void TestcFixedMergeStruct()
     )
     {
           std::cout << "NbS=" << (*itM)->NbSom() << " NbA=" << (*itM)->NbArc()<<endl;
-          for (uint i=0; i<(*itM)->NbSom(); i++)
+          for (int i=0; i<(*itM)->NbSom(); i++)
           {
             std::cout << (*itM)->IsInit(i)<<" " ;
             std::cout << " " << (*itM)->GetVal(i) ;
