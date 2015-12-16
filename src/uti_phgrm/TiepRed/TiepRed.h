@@ -47,12 +47,16 @@ class cAppliTiepRed
 {
      public :
           cAppliTiepRed(int argc,char **argv); 
+          void Test();
 
      private :
 
           cElemAppliSetFile mEASF;
           std::string  mPatImage;
           std::string  mCalib;
+          const std::vector<std::string> * mFilesIm;
+          std::set<std::string>          * mSetFiles;
+          cVirtInterf_NewO_NameManager *   mNM ;
 };
 
 

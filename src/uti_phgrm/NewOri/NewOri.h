@@ -343,7 +343,8 @@ class cNewO_OrInit2Im
 };
 
 
-class cNewO_NameManager
+
+class cNewO_NameManager : public cVirtInterf_NewO_NameManager
 {
      public :
            cNewO_NameManager
