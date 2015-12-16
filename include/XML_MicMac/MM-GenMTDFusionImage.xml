@@ -1,0 +1,104 @@
+<!--
+ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-GenMTDFusionImage.xml  WorkDir=/home/marc/TMP/EPI/Pompei/  +Ori=Basc +Zoom=2 +Im1=MVxxxx_MAP_7052.NEF +PattVois="(MVxxxx_MAP_7052.NEF|MVxxxx_MAP_7053.NEF|MVxxxx_MAP_7054.NEF)"
+
+          <Im1>  ${Im1} </Im1>
+          <ImPat>  ${PattVois} </ImPat>
+-->
+
+<ParamMICMAC>
+  <DicoLoc>
+           <Symb>   PattVois="XXXX"  </Symb>
+           <Symb>   Im1="XXXX"  </Symb>
+           <Symb>   Ori="XXXX"  </Symb>
+           <Symb>   Zoom="1"  </Symb>
+           <Symb>   PrefixDIR=MTD-Image-  </Symb>
+
+           <Symb>   DirMEC=${PrefixDIR}${Im1}  </Symb>
+  </DicoLoc>
+
+
+
+<!--  M2 : Describe the ground zone where the matching is to be done -->
+<Section_Terrain>    
+      <IntervAltimetrie>
+             <ZIncCalc>   0.0  </ZIncCalc>
+      </IntervAltimetrie>
+      <Planimetrie>
+      </Planimetrie>
+
+</Section_Terrain>
+
+<!--  M3 : describe the set of images to match -->
+<Section_PriseDeVue >   
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <Im1>  ${Im1} </Im1>
+          <ImPat>  ${PattVois} </ImPat>
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc> NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <ChantierFullImage1>  true </ChantierFullImage1>
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        1.0  </ZPas>
+             <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+
+	     <ZDilatAlti>  3    </ZDilatAlti>
+             <ZDilatPlani> 4    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+        </EtapeMEC>
+	     
+
+        <EtapeMEC> 
+                 <DeZoom >        ${Zoom}        </DeZoom> 
+        </EtapeMEC>
+
+</Section_MEC>
+
+<!--  M4 : Specify the output geometry -->
+<Section_Results >
+   <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D  </GeomMNT> 
+
+   <DoNothingBut>
+        <ButDoOriMNT> true </ButDoOriMNT>
+<!--
+        <ButDoMTDNuage>  true </ButDoMTDNuage>
+        <ButDoMasqueChantier> true</ButDoMasqueChantier>
+        <ButDoExtendParam> true </ButDoExtendParam>
+-->
+    </DoNothingBut>
+
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  #### </WorkDir> 
+     <TmpMEC>  ${DirMEC}/  </TmpMEC>
+     <TmpResult> ${DirMEC}/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess>   ${MMNbProc} </ByProcess>
+     <DefTileFile> 500000 </DefTileFile>
+     <PurgeMECResultBefore>  false </PurgeMECResultBefore>
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
