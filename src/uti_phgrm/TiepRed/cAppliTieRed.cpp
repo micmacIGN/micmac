@@ -50,19 +50,51 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)
 
    mEASF.Init(mPatImage);
 
-   const std::vector<std::string> * mFilesIm = mEASF.SetIm();
-
+   mFilesIm = mEASF.SetIm();
    std::cout << " Get Nb Images " <<  mFilesIm->size() << "\n";
+   mSetFiles = new std::set<std::string>(mFilesIm->begin(),mFilesIm->end());
+
+
+   mNM = cVirtInterf_NewO_NameManager::StdAlloc(mEASF.mDir,mCalib);
+}
+
+
+
+void cAppliTiepRed::Test()
+{
+   for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
+   {
+       const std::string & anI1 = (*mFilesIm)[aKI];
+       // Get list of images sharin tie-P with anI1
+       std::list<std::string>  aLI2 = mNM->ListeImOrientedWith(anI1);
+       for (std::list<std::string>::const_iterator itL= aLI2.begin(); itL!=aLI2.end() ; itL++)
+       {
+            const std::string & anI2 = *itL;
+            // Test if the file anI2 is in the current pattern
+            // As the martini result may containi much more file 
+            if (mSetFiles->find(anI2) != mSetFiles->end())
+            {
+               // The result being symetric, the convention is that some data are stored only for  I1 < I2
+               if (anI1 < anI2)
+               {
+                   std::vector<Pt2df> aVP1,aVP2;
+                   mNM->LoadHomFloats(anI1,anI2,&aVP1,&aVP2);  // would have worked for I2 > I1 
+                   cXml_Ori2Im aX2 = mNM->GetOri2Im(anI1,anI2); // works only for I1 < I2
+
+                   std::cout << anI1 << " " << anI2 << " " << aVP1.size() << " " << aVP2.size() << " Rec=" << aX2.Geom().Val().RecHom() << "\n";
+               }
+            }
+       }
+   }
 
 }
 
-extern void TESTcNewO_NameManager(int argc,char **argv);
 
 
 int TestOscarTieP_main(int argc,char **argv) 
 {
-    //cAppliTiepRed anAppli(argc,argv);
-    TESTcNewO_NameManager(argc,argv);
+    cAppliTiepRed anAppli(argc,argv);
+    anAppli.Test();
 
     return EXIT_SUCCESS;
 }

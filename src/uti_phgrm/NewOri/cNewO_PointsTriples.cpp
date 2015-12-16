@@ -113,6 +113,16 @@ void cNewO_NameManager::LoadHomFloats(std::string  aName1,std::string  aName2,st
    }
    std::string aNameH = NameHomFloat(aName1,aName2);
 
+   if (SVP)
+   {
+        if (! ELISE_fp::exist_file(aNameH))
+        {
+            aVP1->clear();
+            aVP2->clear();
+            return;
+        }
+   }
+
    ELISE_fp aFile(aNameH.c_str(),ELISE_fp::READ,false);
    // FILE *  aFP = aFile.FP() ;
    int aRev = aFile.read_INT4();
@@ -592,48 +602,6 @@ int CPP_GenAllImP3(int argc,char ** argv)
 }
 
 
-
-void TESTcNewO_NameManager(int argc,char **argv)
-{
-  cElemAppliSetFile mEASF;
-  std::string  mPatImage;
-  std::string  mCalib;
-
-  ElInitArgMain
-  (
-         argc,argv,
-         LArgMain()  << EAMC(mPatImage, "Name Image 1",  eSAM_IsPatFile),
-         LArgMain()  << EAM(mCalib,"OriCalib",true,"Calibration folder if any")
-  );
-
-  mEASF.Init(mPatImage);
-
-  cNewO_NameManager aNM(true,mEASF.mDir,mCalib,"dat");
-
-  const std::vector<std::string> * mFilesIm = mEASF.SetIm();
-  std::set<std::string> aSetFile(mFilesIm->begin(),mFilesIm->end());
-
-  std::cout << " Get Nb Images " <<  mFilesIm->size() << "\n";
-
-   for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
-   {
-       const std::string & anI1 = (*mFilesIm)[aKI];
-       std::list<std::string>  aLI2 = aNM.ListeImOrientedWith(anI1);
-       for (std::list<std::string>::const_iterator itL= aLI2.begin(); itL!=aLI2.end() ; itL++)
-       {
-            const std::string & anI2 = *itL;
-            if (aSetFile.find(anI2) != aSetFile.end())
-            {
-               if (anI1 < anI2)
-               {
-                   std::vector<Pt2df> aVP1,aVP2;
-                   aNM.LoadHomFloats(anI1,anI2,&aVP1,&aVP2);
-                   std::cout << anI1 << " " << anI2 << " " << aVP1.size() << " " << aVP2.size() << "\n";
-               }
-            }
-       }
-   }
-}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

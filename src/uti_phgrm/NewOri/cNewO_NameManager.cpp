@@ -68,6 +68,12 @@ cNewO_NameManager::cNewO_NameManager
    ELISE_fp::MkDir(mDir+"Ori-"+mOriOut+"/");
 }
 
+
+cVirtInterf_NewO_NameManager * cVirtInterf_NewO_NameManager::StdAlloc(const std::string & aDir,const std::string  & anOri,bool  Quick)
+{
+   return new cNewO_NameManager(Quick,aDir,anOri,"dat");
+}
+
 const std::string & cNewO_NameManager::Dir() const
 {
    return mDir;
