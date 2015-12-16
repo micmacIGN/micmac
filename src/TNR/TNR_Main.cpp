@@ -244,7 +244,7 @@ cXmlTNR_TestDirReport cAppli_TNR_Main::TestExistDir(const cXmlTNR_TestExistDir &
     {
 		std::string tmp = FileListExe[i];
 		std::string tmpstr = tmp.substr(mCurDirExe.size(),tmp.size());
-		DirExeSz += ELISE_fp::file_length(mCurDirExe+tmpstr);
+		//DirExeSz += ELISE_fp::file_length(mCurDirExe+tmpstr);
 		std::size_t found1 = tmpstr.find("Shade");
 		std::size_t found2 = tmpstr.find("MakefileParallelisation");
 		std::size_t found3 = tmpstr.find(".ply");

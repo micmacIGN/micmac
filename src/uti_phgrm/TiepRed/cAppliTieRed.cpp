@@ -37,88 +37,68 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#ifndef _RTI_H_
-#define _RTI_H_
+#include "TiepRed.h"
 
-#include "StdAfx.h"
-
-
-class cOneIm_RTI;
-class cAppli_RTI;
-
-
-
-class cOneIm_RTI
+cAppliTiepRed::cAppliTiepRed(int argc,char **argv) 
 {
-    public :
-       cOneIm_RTI(cAppli_RTI &,const std::string & aName,bool Master);
-       virtual Tiff_Im DoImReduite();
-       Tiff_Im   ImFull();
-       const std::string & Name() const;
-    protected :
-      cAppli_RTI &   mAppli;
-      std::string    mName;
-      bool           mMaster;
-      std::string    mNameIS;  // Name Image Superpose
-      std::string    mNameISPan;  // Name Image Superpose
-      std::string    mNameISR; // IS Reduced
-};
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(mPatImage, "Name Image 1",  eSAM_IsPatFile),
+         LArgMain()  << EAM(mCalib,"OriCalib",true,"Calibration folder if any")
+   );
 
-class cOneIm_RTI_Slave : public cOneIm_RTI
+   mEASF.Init(mPatImage);
+
+   mFilesIm = mEASF.SetIm();
+   std::cout << " Get Nb Images " <<  mFilesIm->size() << "\n";
+   mSetFiles = new std::set<std::string>(mFilesIm->begin(),mFilesIm->end());
+
+
+   mNM = cVirtInterf_NewO_NameManager::StdAlloc(mEASF.mDir,mCalib);
+}
+
+
+
+void cAppliTiepRed::Test()
 {
-    public :
-       cOneIm_RTI_Slave(cAppli_RTI &,const std::string & aName);
-       Tiff_Im DoImReduite();
-       const std::string & NameMasq() const;
-       const std::string & NameMasqR() const;
-       Tiff_Im   MasqFull();
-    private :
-      std::string    mNameMasq;  // Name Image Superpose
-      std::string    mNameMasqR; // IS Reduced
-};
+   for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
+   {
+       const std::string & anI1 = (*mFilesIm)[aKI];
+       // Get list of images sharin tie-P with anI1
+       std::list<std::string>  aLI2 = mNM->ListeImOrientedWith(anI1);
+       for (std::list<std::string>::const_iterator itL= aLI2.begin(); itL!=aLI2.end() ; itL++)
+       {
+            const std::string & anI2 = *itL;
+            // Test if the file anI2 is in the current pattern
+            // As the martini result may containi much more file 
+            if (mSetFiles->find(anI2) != mSetFiles->end())
+            {
+               // The result being symetric, the convention is that some data are stored only for  I1 < I2
+               if (anI1 < anI2)
+               {
+                   std::vector<Pt2df> aVP1,aVP2;
+                   mNM->LoadHomFloats(anI1,anI2,&aVP1,&aVP2);  // would have worked for I2 > I1 
+                   cXml_Ori2Im aX2 = mNM->GetOri2Im(anI1,anI2); // works only for I1 < I2
 
-class cOneIm_RTI_Master : public cOneIm_RTI
+                   std::cout << anI1 << " " << anI2 << " " << aVP1.size() << " " << aVP2.size() << " Rec=" << aX2.Geom().Val().RecHom() << "\n";
+               }
+            }
+       }
+   }
+
+}
+
+
+
+int TestOscarTieP_main(int argc,char **argv) 
 {
-    public :
-       cOneIm_RTI_Master(cAppli_RTI &,const std::string & aName);
-};
+    cAppliTiepRed anAppli(argc,argv);
+    anAppli.Test();
 
+    return EXIT_SUCCESS;
+}
 
-
-
-class cAppli_RTI
-{
-    public :
-       static const std::string ThePrefixReech;
-       cAppli_RTI(const std::string & aFullNameParam,const std::string & aNameI2="");
-       void CreateSuperpHom();
-       const cXml_ParamRTI & Param() const;
-       const std::string & Dir() const;
-       cOneIm_RTI_Slave * UniqSlave();
-       cOneIm_RTI_Master * Master();
-       void MakeImageMed();
-
-    private :
-
-       void MakeImageMed(const Box2di & aBox);
-
-       cXml_ParamRTI                    mParam;
-       std::string                      mFullNameParam;
-       std::string                      mDir;
-       std::string                      mNameParam;
-       bool                             mTest;
-       bool                             mMainAppli;
-       std::vector<cOneIm_RTI *>        mVIms;
-       std::vector<cOneIm_RTI_Slave *>  mVSlavIm;
-       cOneIm_RTI_Master *              mMasterIm;
-       cElemAppliSetFile                mEASF;
-       std::string                      mNameImMed;
-};
-
-
-
-
-#endif // _RTI_H_
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
@@ -151,4 +131,4 @@ sécurité de leurs systèmes et ou de leurs données et, plus généralement,
 Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
-aooter-MicMac-eLiSe-25/06/2007*/
+Footer-MicMac-eLiSe-25/06/2007*/

@@ -24122,11 +24122,30 @@ const double & cXml_ParamRTI::ScaleSSRes()const
    return mScaleSSRes;
 }
 
+
+cTplValGesInit< double > & cXml_ParamRTI::SeuilSat()
+{
+   return mSeuilSat;
+}
+
+const cTplValGesInit< double > & cXml_ParamRTI::SeuilSat()const 
+{
+   return mSeuilSat;
+}
+
 void  BinaryUnDumpFromFile(cXml_ParamRTI & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.MasterIm(),aFp);
     BinaryUnDumpFromFile(anObj.Pattern(),aFp);
     BinaryUnDumpFromFile(anObj.ScaleSSRes(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SeuilSat().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SeuilSat().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SeuilSat().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamRTI & anObj)
@@ -24134,6 +24153,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamRTI & anObj)
     BinaryDumpInFile(aFp,anObj.MasterIm());
     BinaryDumpInFile(aFp,anObj.Pattern());
     BinaryDumpInFile(aFp,anObj.ScaleSSRes());
+    BinaryDumpInFile(aFp,anObj.SeuilSat().IsInit());
+    if (anObj.SeuilSat().IsInit()) BinaryDumpInFile(aFp,anObj.SeuilSat().Val());
 }
 
 cElXMLTree * ToXMLTree(const cXml_ParamRTI & anObj)
@@ -24143,6 +24164,8 @@ cElXMLTree * ToXMLTree(const cXml_ParamRTI & anObj)
    aRes->AddFils(::ToXMLTree(std::string("MasterIm"),anObj.MasterIm())->ReTagThis("MasterIm"));
    aRes->AddFils(::ToXMLTree(std::string("Pattern"),anObj.Pattern())->ReTagThis("Pattern"));
    aRes->AddFils(::ToXMLTree(std::string("ScaleSSRes"),anObj.ScaleSSRes())->ReTagThis("ScaleSSRes"));
+   if (anObj.SeuilSat().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilSat"),anObj.SeuilSat().Val())->ReTagThis("SeuilSat"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -24158,8 +24181,10 @@ void xml_init(cXml_ParamRTI & anObj,cElXMLTree * aTree)
    xml_init(anObj.Pattern(),aTree->Get("Pattern",1)); //tototo 
 
    xml_init(anObj.ScaleSSRes(),aTree->Get("ScaleSSRes",1)); //tototo 
+
+   xml_init(anObj.SeuilSat(),aTree->Get("SeuilSat",1),double(1e9)); //tototo 
 }
 
-std::string  Mangling( cXml_ParamRTI *) {return "D15DA63DAB4E2782FE3F";};
+std::string  Mangling( cXml_ParamRTI *) {return "D83D8DDFC545BED1FE3F";};
 
 // };

@@ -46,11 +46,36 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*****************************************************************/
 
 cOneIm_RTI::cOneIm_RTI(cAppli_RTI & anAppli,const std::string & aName,bool isMaster) :
-    mAppli  (anAppli),
-    mName   (aName),
-    mMaster (isMaster)
+    mAppli     (anAppli),
+    mName      (aName),
+    mMaster    (isMaster),
+    mNameIS    (mAppli.Dir() + (isMaster ? "" : cAppli_RTI::ThePrefixReech) + aName +  (isMaster ? "" : ".tif")),
+    mNameISPan (NameFileStd(mNameIS,1,true)),
+    mNameISR   ( cAppli_RTI::ThePrefixReech  + NameWithoutDir(mNameISPan) + "_Scaled.tif")
 {
 }
+
+Tiff_Im  cOneIm_RTI::DoImReduite()
+{
+   Tiff_Im::StdConvGen(mNameIS,1,true);
+
+
+   if (! ELISE_fp::exist_file(mNameISR))
+   {
+        std::string aCom =   MM3dBinFile("ScaleIm ") 
+                           + mNameISPan 
+                           +  " "  +  ToString(mAppli.Param().ScaleSSRes())
+                           +  " Out=" + mNameISR;
+
+   
+        System(aCom);
+   }
+
+   return Tiff_Im(mNameISR.c_str());
+}
+
+Tiff_Im   cOneIm_RTI::ImFull() {return Tiff_Im(mNameISPan.c_str());}
+const std::string & cOneIm_RTI::Name() const {return mName;}
 
 
 /*****************************************************************/
@@ -60,9 +85,35 @@ cOneIm_RTI::cOneIm_RTI(cAppli_RTI & anAppli,const std::string & aName,bool isMas
 /*****************************************************************/
 
 cOneIm_RTI_Slave::cOneIm_RTI_Slave(cAppli_RTI & anAppli,const std::string & aName) :
-   cOneIm_RTI(anAppli,aName,false)
+   cOneIm_RTI      (anAppli,aName,false),
+   mNameMasq       (StdPrefix(mNameISPan) + "Masq.tif"),
+   mNameMasqR      (StdPrefix(mNameMasq) + "_Scaled.tif")
 {
 }
+
+Tiff_Im cOneIm_RTI_Slave::DoImReduite()
+{
+   Tiff_Im aRes = cOneIm_RTI::DoImReduite();
+   if (! ELISE_fp::exist_file(mNameMasqR))
+   {
+        std::string aCom =    MM3dBinFile("ScaleIm ") 
+                           +  mNameMasq 
+                           +  " "  +  ToString(mAppli.Param().ScaleSSRes())
+                           +  " Out=" + mNameMasqR
+                           +  " ModMasq=true " ;
+
+   
+        System(aCom);
+   }
+
+   return aRes;
+}
+
+const std::string &  cOneIm_RTI_Slave::NameMasq()  const {return mNameMasq;}
+const std::string &  cOneIm_RTI_Slave::NameMasqR() const {return mNameMasqR;}
+
+Tiff_Im   cOneIm_RTI_Slave::MasqFull() {return Tiff_Im(mNameMasq.c_str());}
+
 
 /*****************************************************************/
 /*                                                               */

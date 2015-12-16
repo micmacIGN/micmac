@@ -306,6 +306,30 @@ class cCWWSImage;
 const cCWWSImage * GetFromCAWSI(const cChantierAppliWithSetImage & ,const std::string & );
 
 
+class cVirtInterf_NewO_NameManager
+{
+       public :
+           // for a given image "aName", return the list of images having homolgous data (tieP + orientaion)
+
+           virtual std::list<std::string>  ListeImOrientedWith(const std::string & aName) const = 0;
+
+           // for a given pair of image, load the tie points (in two vector of point)
+           //  !! => they are "photogrametric" tie points, i.e they have been corrected of focal, PP and distorsion
+           //  for a given 2d point (U,V)  the (U,V,1) 3d point is a direction in the camera repair
+           virtual void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP=false) = 0;
+
+
+           // for a given pair of image, return the structure containg the orientation
+           virtual cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2) = 0;
+
+
+           static cVirtInterf_NewO_NameManager * StdAlloc(
+                                                            const std::string  & aDir,   // Global Dir
+                                                            const std::string  & anOri,  // Dir where is stored calibration
+                                                            bool  Quick  = true  // Mean that accelarated computation where done
+                                                );
+};
+
 
 
 

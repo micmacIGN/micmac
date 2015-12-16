@@ -3054,69 +3054,56 @@ void printtriangle( struct triedge *t)
   struct edge printsh;
   point printpoint;
 
-  printf("triangle x" ELISE_PTR_FORMAT "x with orientation %d:\n", (ELISE_PTR_U_INT) t->tri,
-         t->orient);
+  cout << "triangle x" << t->tri << "x with orientation " << t->orient << ":" << endl;
   decode(t->tri[0], printtri);
   if (printtri.tri == dummytri) {
-    printf("    [0] = Outer space\n");
+    cout << "    [0] = Outer space" << endl;
   } else {
-    printf("    [0] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
-           printtri.orient);
+    cout << "    [0] = x" << printtri.tri << "x  " << printtri.orient << endl;
   }
   decode(t->tri[1], printtri);
   if (printtri.tri == dummytri) {
-    printf("    [1] = Outer space\n");
+    cout << "    [1] = Outer space" << endl;
   } else {
-    printf("    [1] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
-           printtri.orient);
+    cout << "    [1] = x" << printtri.tri << "x  " << printtri.orient << endl;
   }
   decode(t->tri[2], printtri);
   if (printtri.tri == dummytri) {
-    printf("    [2] = Outer space\n");
+    cout << "    [2] = Outer space" << endl;
   } else {
-    printf("    [2] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
-           printtri.orient);
+    cout << "    [2] = x" << printtri.tri << "x  " << printtri.orient << endl;
   }
   org(*t, printpoint);
   if (printpoint == (point) NULL)
-    printf("    Origin[%d] = NULL\n", (t->orient + 1) % 3 + 3);
+    cout << "    Origin[" << (t->orient + 1) % 3 + 3 << "] = NULL" << endl;
   else
-    printf("    Origin[%d] = x" ELISE_PTR_FORMAT "x  (%.12g, %.12g)\n",
-           (t->orient + 1) % 3 + 3, (ELISE_PTR_U_INT) printpoint,
-           printpoint[0], printpoint[1]);
+    cout << "    Origin[" << (t->orient + 1) % 3 + 3 << "] = x" << printpoint << "x  (" << setprecision(12) << printpoint[0] << ", " << setprecision(12) << printpoint[1] << ")" << endl;
   dest(*t, printpoint);
   if (printpoint == (point) NULL)
-    printf("    Dest  [%d] = NULL\n", (t->orient + 2) % 3 + 3);
+    cout << "    Dest  [" << (t->orient + 2) % 3 + 3 << "] = NULL" << endl;
   else
-    printf("    Dest  [%d] = x" ELISE_PTR_FORMAT "x  (%.12g, %.12g)\n",
-           (t->orient + 2) % 3 + 3, (ELISE_PTR_U_INT) printpoint,
-           printpoint[0], printpoint[1]);
+    cout << "    Dest  [" << (t->orient + 2) % 3 + 3 << "] = x" << printpoint << "x  (" << setprecision(12) << printpoint[0] << ", " << setprecision(12) << printpoint[1] << ")" << endl;
   apex(*t, printpoint);
   if (printpoint == (point) NULL)
-    printf("    Apex  [%d] = NULL\n", t->orient + 3);
+    cout << "    Apex  [" << t->orient + 3 << "] = NULL" << endl;
   else
-    printf("    Apex  [%d] = x" ELISE_PTR_FORMAT "x  (%.12g, %.12g)\n",
-           t->orient + 3, (ELISE_PTR_U_INT) printpoint,
-           printpoint[0], printpoint[1]);
+    cout << "    Apex  [" << t->orient + 3 << "] = x" << printpoint << "x  (" << setprecision(12) << printpoint[0] << ", " << setprecision(12) << printpoint[1] << ")" << endl;
   if (useshelles) {
     sdecode(t->tri[6], printsh);
     if (printsh.sh != dummysh) {
-      printf("    [6] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
-             printsh.shorient);
+      cout << "    [6] = x" << printsh.sh << "x  " << printsh.shorient << endl;
     }
     sdecode(t->tri[7], printsh);
     if (printsh.sh != dummysh) {
-      printf("    [7] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
-             printsh.shorient);
+      cout << "    [7] = x" << printsh.sh << "x  " << printsh.shorient << endl;
     }
     sdecode(t->tri[8], printsh);
     if (printsh.sh != dummysh) {
-      printf("    [8] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
-             printsh.shorient);
+      cout << "    [8] = x" << printsh.sh << "x  " << printsh.shorient << endl;
     }
   }
   if (vararea) {
-    printf("    Area constraint:  %.4g\n", areabound(*t));
+    cout << "    Area constraint:  " << setprecision(4) << areabound(*t) << endl;
   }
 }
 
@@ -3138,49 +3125,40 @@ void printshelle( struct edge *s)
   struct triedge printtri;
   point printpoint;
 
-  printf("shell edge x" ELISE_PTR_FORMAT "x with orientation %d and mark %d:\n",
-         (ELISE_PTR_U_INT) s->sh, s->shorient, mark(*s));
+  cout << "shell edge x" << s->sh << "x with orientation " << s->shorient << " and mark " << mark(*s) << ":" << endl;
   sdecode(s->sh[0], printsh);
   if (printsh.sh == dummysh) {
-    printf("    [0] = No shell\n");
+    cout << "    [0] = No shell" << endl;
   } else {
-    printf("    [0] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
-           printsh.shorient);
+    cout << "    [0] = x" << printsh.sh << "x  " << printsh.shorient << endl;
   }
   sdecode(s->sh[1], printsh);
   if (printsh.sh == dummysh) {
-    printf("    [1] = No shell\n");
+    cout << "    [1] = No shell" << endl;
   } else {
-    printf("    [1] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
-           printsh.shorient);
+    cout << "    [1] = x" << printsh.sh << "x  " << printsh.shorient << endl;
   }
   sorg(*s, printpoint);
   if (printpoint == (point) NULL)
-    printf("    Origin[%d] = NULL\n", 2 + s->shorient);
+    cout << "    Origin[" << 2 + s->shorient << "] = NULL" << endl;
   else
-    printf("    Origin[%d] = x" ELISE_PTR_FORMAT "x  (%.12g, %.12g)\n",
-           2 + s->shorient, (ELISE_PTR_U_INT) printpoint,
-           printpoint[0], printpoint[1]);
+    cout << "    Origin[" << 2 + s->shorient << "] = x" << printpoint << "x  (" << setprecision(12) << printpoint[0] << ", " << setprecision(12) << printpoint[1] << ")" << endl;
   sdest(*s, printpoint);
   if (printpoint == (point) NULL)
-    printf("    Dest  [%d] = NULL\n", 3 - s->shorient);
+    cout << "    Dest  [" << 3 - s->shorient << "] = NULL" << endl;
   else
-    printf("    Dest  [%d] = x" ELISE_PTR_FORMAT "x  (%.12g, %.12g)\n",
-           3 - s->shorient, (ELISE_PTR_U_INT) printpoint,
-           printpoint[0], printpoint[1]);
+    cout << "    Dest  [" << 3 - s->shorient << "] = x" ELISE_PTR_FORMAT "x  (" << setprecision(12) << printpoint[0] << ", " << setprecision(12) << printpoint[1] << ")" << endl;
   decode(s->sh[4], printtri);
   if (printtri.tri == dummytri) {
-    printf("    [4] = Outer space\n");
+    cout << "    [4] = Outer space" << endl;
   } else {
-    printf("    [4] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
-           printtri.orient);
+    cout << "    [4] = x" << printtri.tri << "x  " << printtri.orient << endl;
   }
   decode(s->sh[5], printtri);
   if (printtri.tri == dummytri) {
-    printf("    [5] = Outer space\n");
+    cout << "    [5] = Outer space" << endl;
   } else {
-    printf("    [5] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
-           printtri.orient);
+    cout << "    [5] = x" << printtri.tri << "x  " << printtri.orient << endl;
   }
 }
 

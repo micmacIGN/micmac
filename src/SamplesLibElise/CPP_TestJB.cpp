@@ -7,10 +7,12 @@ typedef struct{
 
 int command_correctPlanarPolygons( int argc, char **argv );
 int command_maskContent( int argc, char **argv );
+int command_renameImageSet( int argc, char **argv );
 
 command_t commands[] = {
 	{ "correctplanarpolygons", &command_correctPlanarPolygons },
 	{ "maskcontent", &command_maskContent },
+	{ "renameimageset", &command_renameImageSet },
 	{ "", NULL }
 };
 
@@ -245,6 +247,57 @@ int command_maskContent( int argc, char ** argv )
 
 	return EXIT_SUCCESS;
 }
+
+//------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
+
+unsigned int nbDigits( unsigned int i_n, unsigned int i_base )
+{
+	//~ double l = log((double)i_n) / log(i_base);
+	//~ unsigned int i = (unsigned int)l;
+	//~ if (l != double(i)) return i + 1;
+	//~ return i;
+
+	stringstream ss;
+	ss << i_n;
+	return (unsigned int)ss.str().length();
+}
+
+int command_renameImageSet( int argc, char **argv )
+{
+	if (argc < 2) ELISE_ERROR_EXIT("arg0 is a path + regular expression, arg1 is output prefix");
+
+	cElPathRegex fullPattern(argv[0]);
+	cElFilename outputBase(argv[1]);
+	cout << "input pattern = [" << fullPattern.str() << "]" << endl;
+	cout << "output base = [" << outputBase.str() << "]" << endl;
+
+	list<cElFilename> filenames;
+	fullPattern.getFilenames(filenames);
+
+	const unsigned int nbdigits = nbDigits((unsigned int)filenames.size(), 10);
+	unsigned int iFilename = 0;
+	list<cElFilename>::const_iterator itFilename = filenames.begin();
+	while (itFilename != filenames.end())
+	{
+		const cElFilename src = (*itFilename++);
+		const string srcStr = src.str();
+
+		stringstream ss;
+		ss << outputBase.str() << setw(nbdigits) << setfill('0') << (iFilename++) << getShortestExtension(srcStr);
+		cElFilename dst(ss.str());
+
+		cout << '[' << src.str() << "] -> " << dst.str() << endl;
+
+		if (dst.exists())
+			cerr << "[" << dst.str() << "] already exists" << endl;
+		else if ( !src.copy(dst))
+			cerr << "failed to copy [" << src.str() << "] to [" << dst.str() << "]" << endl;
+	}
+
+	return EXIT_SUCCESS;
+}
+
 
 int TestJB_main( int argc, char **argv )
 {

@@ -4,6 +4,10 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/precompiled_headers.cmake)
 cmake_minimum_required( VERSION 2.8.1 )
 project(MICMAC)
 
+if(POLICY CMP0020)
+	cmake_policy(SET CMP0020 NEW) #windows specific: Automatically link Qt executables to qtmain
+endif()
+
 set(VERBOSE 0)
 
 set (MICMAC_VERSION_MAJOR 1)
@@ -495,7 +499,7 @@ if(EXIV2_EXECUTABLE_NOTFOUND)
 endif(EXIV2_EXECUTABLE_NOTFOUND)
 
 if (MINGW)
-	add_definitions(-D__MINGW__)
+	add_definitions(-D__MINGW__ -D__MSVCRT_VERSION__=0x800 -D_WIN32_WINNT=0x0500)
 	set( WINSOCK2_LIBRARY ws2_32 )
 endif()
 

@@ -1,13 +1,13 @@
-if ( ${qt_version} EQUAL 5 AND WIN32)
-	if(POLICY CMP0020)
-			cmake_policy(SET CMP0020 NEW)
-	endif()
-endif()
 add_executable(mm3d mm3d.cpp)
 
 #target_link_libraries(mm3d elise ${X11_LIBRARIES} ${WINSOCK2_LIBRARY} ${DYN_LIB_LIBRARY} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ANN)
 
 target_link_libraries(mm3d elise ${X11_LIBRARIES} ${WINSOCK2_LIBRARY} ${DYN_LIB_LIBRARY} ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${OPENGL_LIBRARIES} ANN)
+
+if(MINGW)
+	#~ target_link_libraries(mm3d msvcr80 gettextlib.dll)
+	target_link_libraries(mm3d msvcr100)
+endif()
 
 if (( ${qt_version} EQUAL 5 ) AND UNIX)
 	target_link_libraries(mm3d dl)

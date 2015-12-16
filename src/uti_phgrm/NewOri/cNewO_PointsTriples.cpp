@@ -104,14 +104,24 @@ bool cNewO_NameManager::LoadTriplet(cNewO_OneIm * anI1 ,cNewO_OneIm * anI2,cNewO
    return true;
 }
 
-void cNewO_NameManager::LoadHomFloats(cNewO_OneIm * anI1,cNewO_OneIm * anI2,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2)
+void cNewO_NameManager::LoadHomFloats(std::string  aName1,std::string  aName2,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP)
 {
-   if (anI1->Name() > anI2->Name())
+   if (aName1 > aName2)
    {
-       ElSwap(anI1,anI2);
+       ElSwap(aName1,aName2);
        ElSwap(aVP1,aVP2);
    }
-   std::string aNameH = NameHomFloat(anI1,anI2);
+   std::string aNameH = NameHomFloat(aName1,aName2);
+
+   if (SVP)
+   {
+        if (! ELISE_fp::exist_file(aNameH))
+        {
+            aVP1->clear();
+            aVP2->clear();
+            return;
+        }
+   }
 
    ELISE_fp aFile(aNameH.c_str(),ELISE_fp::READ,false);
    // FILE *  aFP = aFile.FP() ;
@@ -128,6 +138,10 @@ void cNewO_NameManager::LoadHomFloats(cNewO_OneIm * anI1,cNewO_OneIm * anI2,std:
    aFile.read(VData(*aVP2),sizeof((*aVP2)[0]),aNb);
 
    aFile.close();
+}
+void cNewO_NameManager::LoadHomFloats(cNewO_OneIm * anI1,cNewO_OneIm * anI2,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2)
+{
+    LoadHomFloats(anI1->Name(),anI2->Name(),aVP1,aVP2);
 }
 
 
@@ -586,6 +600,8 @@ int CPP_GenAllImP3(int argc,char ** argv)
 {
      return  PreGenerateDuTriplet(argc,argv,"NO_OneImTriplet");
 }
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

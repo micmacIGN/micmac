@@ -76,9 +76,9 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mMaxNivH   (-1),
    mSSIma     (mStdN->DynProfInPixel() *  mAppli->Param().ImageVariations().SeuilStrictVarIma()),
    mISOM      (StdGetISOM(anAppli->ICNM(),anIma->mNameIm,anAppli->Ori())),
-   mNivSelected  (-1),
-   mIsMAP        (mAppli->IsInImageMAP(this))
+   mNivSelected  (-1)
 {
+   mIsMAP = mAppli->IsInImageMAP(this);
 
    bool doComputeIncid = mAppli->Param().ComputeIncid().Val();
    if (doComputeIncid)
