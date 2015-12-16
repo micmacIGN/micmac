@@ -47,9 +47,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_SYS_DEP_H
 #define _ELISE_SYS_DEP_H
 
-#include <cstdio>
-#include <cstring>
-
 #include "general/CMake_defines.h"
 
 #ifndef ELISE_unix
@@ -162,16 +159,22 @@ Header-MicMac-eLiSe-25/06/2007*/
     #define SYS_CAT "type"
     #define ELISE_CAR_DIR  '/'
     #define ELISE_Current_DIR  "./"
-    #include <float.h>
-    #define std_isnan _isnan
-    #define std_isinf isinf
 
     #define ELISE_STR_DIR "/"
     // the character separating directories in PATH environment variable
     #define ELISE_CAR_ENV ';'
-    #define isinf(x) (!_finite(x))
+    #if !ELISE_MinGW
+		#include <float.h>
+		#define std_isnan _isnan
+		#define std_isinf isinf
+		#define isinf(x) (!_finite(x))
+	#else
+		#include <cmath>
+		#define std_isnan std::isnan
+		#define std_isinf std::isinf
+	#endif
 
-	#if _MSC_VER<_MSC_VER_2013
+	#if _MSC_VER<_MSC_VER_2013 && !ELISE_MinGW
 		double round( double aX );
 	#endif
 #else
@@ -371,9 +374,10 @@ extern char * TheCharPtrFuckingReturnValue;
 int trace_system( const char *cmd );		 // print cmd and execute ::system (helps with debugging)
 extern int (*system_call)( const char*cmd ); // equals ::system unless __TRACE_SYSTEM__ is defined (see all.cpp)
 #if (!ELISE_windows)
-// same thing as system but with popen
-FILE * trace_popen( const char *cmd, const char *acces );
-extern FILE * (*popen_call)( const char *cmd, const char *acces );
+	#include <stdio.h>
+	// same thing as system but with popen
+	FILE * trace_popen( const char *cmd, const char *acces );
+	extern FILE * (*popen_call)( const char *cmd, const char *acces );
 #endif
 
 #define  VoidFscanf TheIntFuckingReturnValue=::fscanf

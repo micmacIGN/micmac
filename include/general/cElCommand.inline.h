@@ -143,12 +143,12 @@ bool cElFilename::getRights( mode_t &o_rights ) const
 
 
 //-------------------------------------------
-// cElRegEx
+// cElPathRegex
 //-------------------------------------------
 
-cElRegEx::cElRegEx( const ctPath &i_path, const std::string i_regex ):cElFilename(i_path,i_regex){}
+cElPathRegex::cElPathRegex( const ctPath &i_path, const std::string i_regex ):cElFilename(i_path,i_regex){}
 
-cElRegEx::cElRegEx( const std::string i_fullregex ):cElFilename(i_fullregex){}
+cElPathRegex::cElPathRegex( const std::string i_fullregex ):cElFilename(i_fullregex){}
 
 
 //-------------------------------------------

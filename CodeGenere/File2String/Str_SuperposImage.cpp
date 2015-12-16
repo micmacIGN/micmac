@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1651]) = {
+const char * (theNameVar_SuperposImage[1652]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1635,6 +1635,7 @@ const char * (theNameVar_SuperposImage[1651]) = {
 "     <MasterIm Nb=\"1\" Type=\"std::string\">  </MasterIm>\n",
 "     <Pattern  Nb=\"1\" Type=\"std::string\">  </Pattern>\n",
 "     <ScaleSSRes  Nb=\"1\" Type=\"double\">    </ScaleSSRes>\n",
+"     <SeuilSat  Nb=\"?\" Type=\"double\" Def=\"1e9\">      </SeuilSat>\n",
 "</Xml_ParamRTI>\n",
 "\n",
 "\n",

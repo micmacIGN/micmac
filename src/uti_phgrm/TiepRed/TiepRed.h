@@ -37,88 +37,30 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#ifndef _RTI_H_
-#define _RTI_H_
+#ifndef _TiepRed_H_
+#define _TiepRed_H_
 
 #include "StdAfx.h"
 
 
-class cOneIm_RTI;
-class cAppli_RTI;
-
-
-
-class cOneIm_RTI
+class cAppliTiepRed 
 {
-    public :
-       cOneIm_RTI(cAppli_RTI &,const std::string & aName,bool Master);
-       virtual Tiff_Im DoImReduite();
-       Tiff_Im   ImFull();
-       const std::string & Name() const;
-    protected :
-      cAppli_RTI &   mAppli;
-      std::string    mName;
-      bool           mMaster;
-      std::string    mNameIS;  // Name Image Superpose
-      std::string    mNameISPan;  // Name Image Superpose
-      std::string    mNameISR; // IS Reduced
-};
+     public :
+          cAppliTiepRed(int argc,char **argv); 
+          void Test();
 
-class cOneIm_RTI_Slave : public cOneIm_RTI
-{
-    public :
-       cOneIm_RTI_Slave(cAppli_RTI &,const std::string & aName);
-       Tiff_Im DoImReduite();
-       const std::string & NameMasq() const;
-       const std::string & NameMasqR() const;
-       Tiff_Im   MasqFull();
-    private :
-      std::string    mNameMasq;  // Name Image Superpose
-      std::string    mNameMasqR; // IS Reduced
-};
+     private :
 
-class cOneIm_RTI_Master : public cOneIm_RTI
-{
-    public :
-       cOneIm_RTI_Master(cAppli_RTI &,const std::string & aName);
+          cElemAppliSetFile mEASF;
+          std::string  mPatImage;
+          std::string  mCalib;
+          const std::vector<std::string> * mFilesIm;
+          std::set<std::string>          * mSetFiles;
+          cVirtInterf_NewO_NameManager *   mNM ;
 };
 
 
-
-
-class cAppli_RTI
-{
-    public :
-       static const std::string ThePrefixReech;
-       cAppli_RTI(const std::string & aFullNameParam,const std::string & aNameI2="");
-       void CreateSuperpHom();
-       const cXml_ParamRTI & Param() const;
-       const std::string & Dir() const;
-       cOneIm_RTI_Slave * UniqSlave();
-       cOneIm_RTI_Master * Master();
-       void MakeImageMed();
-
-    private :
-
-       void MakeImageMed(const Box2di & aBox);
-
-       cXml_ParamRTI                    mParam;
-       std::string                      mFullNameParam;
-       std::string                      mDir;
-       std::string                      mNameParam;
-       bool                             mTest;
-       bool                             mMainAppli;
-       std::vector<cOneIm_RTI *>        mVIms;
-       std::vector<cOneIm_RTI_Slave *>  mVSlavIm;
-       cOneIm_RTI_Master *              mMasterIm;
-       cElemAppliSetFile                mEASF;
-       std::string                      mNameImMed;
-};
-
-
-
-
-#endif // _RTI_H_
+#endif // _TiepRed_H_
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
