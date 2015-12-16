@@ -58,6 +58,96 @@ void f()
 
 
 
+
+/*
+template <class TVal,class tFVal,class tFPds> 
+         void RecursWeightedSplitArrounKthValue(TVal * Data,const tFPds & aFVal,const tFPds & aFPds,int aNb,U_INT8 aPds)
+{
+   if (aNb==0) return;
+   if (aPds<=0) return;
+ // std::cout << " SplitArrounKthValue " << aNb << " " << aKth << "\n";
+   // On calcule la moyenne
+   TVal aMoy(0);
+   U_INT8 aSomP=0;
+
+   for (int aKv=0 ; aKv<aNb ; aKv++)
+   {
+      U_INT8 aCurPds = aFPds(Data[aKv]);
+      aMoy = aMoy+FVal(Data[aKv]) * aCurPds;
+      aSomP += aCurPds;
+   }
+   if (aPds>=aSomP) return;
+
+   aMoy = aMoy / aSomP;
+
+   // On permut de maniere a ce que les valeur du debut soit < Moy  et celle de la fin >=Moy
+   int aK0 =0;
+   int aK1 = aNb-1;
+   U_INT8 aP0Moins = 0;
+   U_INT8 aP0Plus  = 0;
+   while (aK0 < aK1)
+   {
+        while ((aK0<aK1) && (aFVal(Data[aK0]) <  aMoy))
+        {
+            aP0Moins += aFPds(Data[aK0]);
+            aK0++;
+        }
+        while ((aK0<aK1) && (aFVal(Data[aK1]) >= aMoy))
+        {
+            aP0Plus += aFPds(Data[aK1]);
+            aK1--;
+        }
+        if (aK0 < aK1) 
+        {
+           ElSwap(Data[aK0],Data[aK1]);
+        }
+   }
+   ELISE_ASSERT(aK0==aK1,"Verif in SplitArrounKthValue");
+   ELISE_ASSERT((aP0Moins+aP0Plus)==aSomP,"Verif in SplitArrounKthValue");
+
+   // Si le cas, on n'a pas progresse, toute les valeur sont egale
+   if  (aK0==0)
+   {
+       return;
+   }
+
+   if (aK0 == aKth)  
+   {
+      return;
+   }
+
+   if (aK0 < aKth)
+   {
+      RecursWeightedSplitArrounKthValue(Data+aK0,aNb-aK0,aKth-aK0);
+   }
+   else           
+   {
+      RecursWeightedSplitArrounKthValue(Data,aK0,aKth);
+   }
+}
+*/
+
+
+/*
+template <class TVal> void WeightedSplitArrounKthValue(TVal * Data,int aNb,int aKth)
+{
+}
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // To put in bench file
 
 void Bench_Rank()
@@ -98,8 +188,6 @@ void Bench_Rank()
          ELISE_ASSERT(ElAbs(aVK-aVK2)<1e-10,"Bench rnk");
 
 /*
-   Ne marche pas : la valeur RrnK est n'importe ou
-
          SplitArrounKthValue(VData(aV3),aNb,aRnk);
          double aVK3 = aV3[aRnk];
          std::cout << "Bench Rank " << aVK-aVK2 << " " << aVK-aVK3<< "\n";
