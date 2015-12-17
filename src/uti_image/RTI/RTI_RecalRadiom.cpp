@@ -238,7 +238,7 @@ void cAppli_RTI::MakeImageMed()
    
 }
 
-void RTIMed_main(int argc,char **argv)
+int RTIMed_main(int argc,char **argv)
 {
     std::string aNameParam;
     ElInitArgMain
@@ -250,6 +250,8 @@ void RTIMed_main(int argc,char **argv)
 
    cAppli_RTI aRTIA(aNameParam);
    aRTIA.MakeImageMed();
+  
+   return EXIT_SUCCESS;
 }
 
 
