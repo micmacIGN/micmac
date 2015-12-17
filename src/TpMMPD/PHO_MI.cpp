@@ -615,7 +615,6 @@ int PHO_MI_main(int argc,char ** argv)
                         //creer abre de Homol
                         aAbre.ImgRacine = nameImgA;
                         aAbre.ImgBranch.push_back(nameImgB);
-                        cout<<"1"<<endl;
                         ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aHomol);
                         aAbre.NbPointHomo.push_back(aPackIn.size());
                     }
@@ -660,8 +659,8 @@ int PHO_MI_main(int argc,char ** argv)
                    //form a list of Abre[k].ImgBranch(kk) with others img in folder
                    double curHomol = Abre[k].NbPointHomo[kk];
                    for (uint t=0; t<Abre[k].ImgBranch.size(); t++)
-                   {
-                       //all expect kk
+                   {//chercher dans une homol dossier, le triplet correspondant avec chaque images
+                       //all except kk
                        if (t!=kk)
                        {
                            //Abre[k].ImgRacine||Abre[k].ImgBranch(X) + Abre[k].ImgBranch(kk)||Abre[k].ImgBranch(X)
@@ -675,7 +674,6 @@ int PHO_MI_main(int argc,char ** argv)
                            double candHomol;
                            if (Exist)
                            {
-                               cout<<"2"<<endl;
                                ElPackHomologue aPackInt =  ElPackHomologue::FromFile(aHomolt);
                                candHomol = Abre[k].NbPointHomo[t] + aPackInt.size();
                            }
@@ -724,6 +722,8 @@ int PHO_MI_main(int argc,char ** argv)
                                mTiffImg3.in(),
                                mImg3.out()
                             );
+                   Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
+                   double diag = sqrt(pow(mTiffImg3.sz().x,2) + pow(mTiffImg3.sz().y,2));
 
                    std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,Abre[k].ImgRacine,true);
                    std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,Abre[k].ImgBranch[first],true);
@@ -735,66 +735,89 @@ int PHO_MI_main(int argc,char ** argv)
 
                    std::string aHomoIn1_2 = aICNM->Assoc1To2(aKHIn,Abre[k].ImgRacine,Abre[k].ImgBranch[first],true);
                    StdCorrecNameHomol_G(aHomoIn1_2,aDirImages);
-                   cout<<"4"<<endl;
-                   ElPackHomologue aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);
+                   bool Exist1_2 = ELISE_fp::exist_file(aHomoIn1_2);
+                   if (Exist1_2)
+                   {
+                    ElPackHomologue aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);
+                   }
 
                    std::string aHomoIn1_3 = aICNM->Assoc1To2(aKHIn,Abre[k].ImgRacine,Abre[k].ImgBranch[second],true);
                    StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
-                   cout<<"5"<<endl;
-                   ElPackHomologue aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);
+                   bool Exist1_3 = ELISE_fp::exist_file(aHomoIn1_3);
+                   if (Exist1_3)
+                   {
+                    ElPackHomologue aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);
+                   }
 
                    std::string aHomoIn2_3 = aICNM->Assoc1To2(aKHIn,Abre[k].ImgBranch[first],Abre[k].ImgBranch[second],true);
                    StdCorrecNameHomol_G(aHomoIn2_3,aDirImages);
-                   cout<<"6"<<endl;
-                   ElPackHomologue aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);
+                   bool Exist2_3 = ELISE_fp::exist_file(aHomoIn2_3);
+                   if (Exist2_3)
+                   {
+                    ElPackHomologue aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);
+                   }
 
                    //filtre entre 1 et 2
                    //Faire ca avec tout les fichier point homo dans tout les repertoir
                    double countTripletv = 0;
+                   double count_pass_reproj = 0;
+                   double count_pass_corr = 0;
                    double w=3;
                    for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
                    {
 
-                       //lire les point homo
                        Pt2dr aP1 = itP->P1();  //Point img1
                        Pt2dr aP2 = itP->P2();  //Point img2
                        double d;
-                       //search for point trilet P2 in fime homo 2_3
-                       const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
-                       double distP2 = sqrt(pow((aTriplet2_3->P1().x - aP2.x),2) + pow((aTriplet2_3->P1().y - aP2.y),2));
-                       if (distP2 < 2)
-                       {//condition 1 to form a triplet P1 P2 P3
-                           Pt3dr PInter1_2= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
-                           Pt2dr PReproj3 = aCam3->ElCamera::R3toF2(PInter1_2);					//use point 3d to search Point img3
-                           double distP3Reprj = sqrt(pow((aTriplet2_3->P2().x - PReproj3.x),2) + pow((aTriplet2_3->P2().y - PReproj3.y),2));
-                               if (distP3Reprj < 2)
-                               {   //condition 2
-                                   cCorrelImage::setSzW(w);
-                                   cCorrelImage Imgette1, Imgette2, Imgette3;
-                                   Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
-                                   Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
-                                   Imgette3.getFromIm(&mImg3, aTriplet2_3->P2().x, aTriplet2_3->P2().y);
-                                   //compute correlation b/w imagette P1 P2; P2 P3; P1 P3
-                                   double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
-                                   //cout<<corr1_2<<" "<<corr1_3<<" "<<corr2_3<<endl;
+                       bool pass_reproj, pass_corr;
 
-                                   if ((corr1_2 > 0.9))
-                                      {//condition 3
-                                       //good couple P1 P2
-                                       countTripletv++;
-                                      }
+                       //=================verifier par reprojeter============
+                       Pt3dr PInter1_2= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
+                       Pt2dr PReproj3 = aCam3->ElCamera::R3toF2(PInter1_2);					//use point 3d to search Point img3
+                       double dist_centre = sqrt(pow((PReproj3.x - centre_img.x),2) + pow((PReproj3.y - centre_img.y),2));
+                       if (dist_centre < 0.67*diag)
+                       {//check if reprojected inside fisheye cover
+                           if (Exist2_3)
+                           {
+                               const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
+                               double distP2 = sqrt(pow((aTriplet2_3->P1().x - aP2.x),2) + pow((aTriplet2_3->P1().y - aP2.y),2));
+                               if (distP2 < 2)
+                               {
+                                   //pass condition reproject
+                                   pass_reproj=1;
+                                   count_pass_reproj++;
                                }
-
                                else
                                {
-                                   //cout<<"P3 and triplet not good "<< " ++ "<<distP3Reprj<<" pxls"<<endl;
+                                   pass_reproj=0;
                                }
-
-                   }
+                           }
+                           else
+                           {
+                               pass_reproj=0; //or reprojecter vers autres images dans la collection de 3eme images
+                           }
+                       }
+                       //==============verifier par correlation==================
+                       cCorrelImage::setSzW(w);
+                       cCorrelImage Imgette1, Imgette2;
+                       Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+                       Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+                       double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
+                       if ((corr1_2 > 0.9))
+                          {
+                            //pass condition correlation
+                            pass_corr = 1;
+                            count_pass_corr++;
+                          }
+                       //décider de garder ou jeter le point homologue
+                       if (pass_corr && pass_reproj)
+                       {
+                           countTripletv++;
+                       }
 
                 }
 
-                   cout<<" ++ NBCouplGood = "<<countTripletv<<"/"<<aPackIn1_2.size()<<endl;
+                   cout<<" ++ NBCouplGood = "<<countTripletv<<"/"<<aPackIn1_2.size()<<" ++ "<<"NBRep = "<<count_pass_reproj<<" NBCor = "<<count_pass_corr<<endl;
                    countTripletv = 0;
 
                 }
