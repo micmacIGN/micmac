@@ -1,0 +1,185 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+
+    AeroIn="-Init"
+    AeroOut="-Basc"
+>
+   <ParamApero>
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+
+             <BDD_Orient>
+                  <Id>  IdOrInit </Id>
+                  <KeySet>   KeyStd-Set-Orient@${AeroIn}       </KeySet>
+                  <KeyAssoc> KeyStd-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+             </BDD_Orient>
+
+
+             <BDD_ObsAppuisFlottant >
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  ^Mesure-Appuis-Init.xml </KeySetOrPat>
+            </BDD_ObsAppuisFlottant>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_005 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>    Ori${AeroIn}/F005_AutoCal.xml </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName> ${PatternAllIm}    </PatternName>
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+                       <PosFromBDOrient> IdOrInit </PosFromBDOrient>
+                   </PosValueInit>
+
+              </PoseCameraInc>
+
+              <PointFlottantInc>
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  ^Dico-Appuis.xml </KeySetOrPat>
+              </PointFlottantInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+
+                       <BasculeOrientation>
+                          <AfterCompens> false </AfterCompens>
+                          <PatternNameApply> .* </PatternNameApply>
+
+                          <ModeBascule>
+                               <BasculeOnPoints>
+                                   <BascOnAppuis>
+                                        <NameRef>Id-Appui </NameRef>
+                                   </BascOnAppuis>
+                                   <ModeL2> true  </ModeL2>
+                               </BasculeOnPoints>
+                          </ModeBascule>
+                     </BasculeOrientation>
+                     <SectionContraintes>
+                          <ContraintesPoses>
+                             <NamePose>   .* </NamePose>
+                             <ByPattern>   true </ByPattern>
+                             <Val>      ePoseFigee   </Val>
+                          </ContraintesPoses>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberteFocale_0  </Val>
+                              <Val> eLib_PP_CD_00     </Val>
+                              <Val> eLiberte_DR0      </Val>
+                          </ContraintesCamerasInc>
+
+                     </SectionContraintes>
+
+                    </IterationsCompensation>
+
+
+<!--
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+-->
+
+
+		    <SectionObservations>
+                        <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                  <EcartMax> 5 </EcartMax>
+                                  <SigmaPond> 2 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                        </ObsLiaisons>
+                        <ObsAppuisFlottant>
+                             <NameRef> Id-Appui </NameRef>
+                             <PondIm >
+                                  <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                  <Show> eNSM_Paquet     </Show>
+                             </PondIm>
+
+                             <PtsShowDet> .* </PtsShowDet>
+<!--
+                             <PtsShowDet> QBB </PtsShowDet>
+                             <PtsShowDet> TOPO07 </PtsShowDet>
+                             <PtsShowDet> TOPO10 </PtsShowDet>
+-->
+                        </ObsAppuisFlottant>
+
+		    </SectionObservations>
+
+                    <SectionExport>
+                        <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc> KeyStd-Assoc-Im2Orient@${AeroOut}  </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+                            <NbVerif>  10 </NbVerif>
+                            <TolWhenVerif> 1e-3 </TolWhenVerif>
+                            <FileExtern> KeyStd-Assoc-Im2AutoCal@${AeroOut} </FileExtern>
+                            <FileExternIsKey> true </FileExternIsKey>
+                        </ExportPose>
+                        <ExportCalib>
+                             <KeyAssoc>  KeyStd-Assoc-CleCal2AutoCal@${AeroOut} </KeyAssoc>
+                             <KeyIsName> false </KeyIsName>
+                        </ExportCalib>
+
+                         <ExportNuage>
+                               <NameOut> Azer-Glob.ply </NameOut>
+                               <PlyModeBin> true </PlyModeBin>
+<!--
+                               <NameRefLiaison> Id_Pastis_Hom </NameRefLiaison>
+-->
+                               <Pond>
+                                      <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                      <EcartMax> 2.0 </EcartMax>
+                               </Pond>
+                               <KeyFileColImage>  KeyStd-Assoc-AddPref@RGB- </KeyFileColImage>
+                               <NuagePutCam >
+                                   <ColCadre > 255 0 0 </ColCadre>
+                                   <ColRay >  0 255 0 </ColRay>
+                                   <Long > 0.3 </Long>
+                                   <StepSeg > 0.01 </StepSeg>
+                               </NuagePutCam>
+                         </ExportNuage>
+<!--
+-->
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
