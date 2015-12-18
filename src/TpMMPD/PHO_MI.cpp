@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "kugelhupf.h"
 #include "../uti_phgrm/NewOri/NewOri.h"
-
+#include <algorithm>
 #if ELISE_windows
     #define uint unsigned
 #endif
@@ -76,6 +76,13 @@ struct PairHomol
     ElPackHomologue HomoA_B;
 };
 
+struct AbreHomol
+{
+    string ImgRacine;
+    vector<string> ImgBranch;
+    vector< vector<string> > Img3eme;
+    vector<double> NbPointHomo;
+};
 void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
 {
 
@@ -495,7 +502,7 @@ int PHO_MI_main(int argc,char ** argv)
                       Imgette3origin.getFromIm(&mImg3, aTriplet2_3->P2().x, aTriplet2_3->P2().y);
                       double corr1_3o = Imgette1.CrossCorrelation(Imgette3origin);
                       double corr2_3o = Imgette2.CrossCorrelation(Imgette3origin);
-                      double distP3 = sqrt( pow((aTriplet2_3->P2().x - PReproj3.x),2) + pow((aTriplet2_3->P2().y - PReproj3.y),2) );
+                     // double distP3 = sqrt( pow((aTriplet2_3->P2().x - PReproj3.x),2) + pow((aTriplet2_3->P2().y - PReproj3.y),2) );
                       if ((corr1_3o > corr1_3) && (corr2_3o > corr2_3))
                       {
                        //cout << " ++ P3 Origin better "<<corr1_3o<<" "<<corr2_3o<<" DistP3 = " <<distP3<<endl;
@@ -577,7 +584,275 @@ int PHO_MI_main(int argc,char ** argv)
           //find triplet and couple, then creat new Homol file
           TestcFixedMergeStruct_G(aPairImg, aICNM, aHomolOutput, aOriInput);
       }
-    //======================================================================================//
+
+      if (bStrategie == "5")
+      {
+          //parcourir dans le repertoire homol
+
+          //A partir list d'image aSetImages[i], entrer dans chaque Patis de chaque img
+            //Dans chaque Patis, lire fichier img + tout les img dans la list
+            //condition is_existes
+            //creer une abre de homol
+            vector<string> tempArbeRacine;
+            vector<AbreHomol> Abre;
+            for (uint i=0; i<aSetImages.size(); i++)
+            {
+                string namePatisFolder = "Patis" + aSetImages[i];
+                AbreHomol aAbre;
+                for (uint j=0; j<aSetImages.size(); j++)
+                {
+                    string nameImgB = aSetImages[j];
+                    string nameImgA = aSetImages[i];
+
+                    std::string aKey =   std::string("NKS-Assoc-CplIm2Hom@")
+                                       +  std::string(aNameHomol)
+                                       +  std::string("@")
+                                       +  std::string("dat");
+                    std::string aHomol = aICNM->Assoc1To2(aKey,nameImgA,nameImgB,true);
+                    StdCorrecNameHomol_G(aHomol,aDirImages);
+
+                    bool Exist = ELISE_fp::exist_file(aHomol);
+                    if (Exist)
+                    {
+                        //creer abre de Homol
+                        aAbre.ImgRacine = nameImgA;
+                        aAbre.ImgBranch.push_back(nameImgB);
+                        ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aHomol);
+                        aAbre.NbPointHomo.push_back(aPackIn.size());
+                    }
+                }
+                Abre.push_back(aAbre);
+                tempArbeRacine.push_back(aSetImages[i]);
+            }
+            for (uint h=0; h<tempArbeRacine.size(); h++)
+            {
+               cout<< tempArbeRacine[h]<<endl;
+            }
+            //creer abre de couple et des collection de 3eme images correspondant
+            //parcourir abre 1 ; prendre image racine
+            //parcourir les image branche corresponde with img racine
+            //search for abre of image branch current, it's abre 2
+            //out list of 2 abre to img3eme correspond with abre 1 abre 2
+            for (uint k1=0; k1<Abre.size(); k1++)
+            {
+
+                cout<<"ImgRac = "<<Abre[k1].ImgRacine<<endl;
+                for (uint k2=0; k2<Abre[k1].ImgBranch.size(); k2++)
+                {
+                    vector <string> ColImg3eme;
+                    std::vector<string>::iterator it;
+                    it = std::find(tempArbeRacine.begin(), tempArbeRacine.end(), Abre[k1].ImgBranch[k2]);
+                    double p = std::distance( tempArbeRacine.begin(), it );
+                    cout<<" ++ ImgCons = "<<Abre[p].ImgRacine<<endl;
+                    for (uint k3=0; k3<Abre[p].ImgBranch.size(); k3++)
+                    {
+                        //search for common img b/w Abre[k1] and Abre[p]
+                        std::vector<string>::iterator it1;
+                        it1 = std::find(Abre[k1].ImgBranch.begin(), Abre[k1].ImgBranch.end(), Abre[p].ImgBranch[k3]);
+                        double p1 = std::distance( Abre[k1].ImgBranch.begin(), it1 );
+                        bool isPresent = (it1 != Abre[k1].ImgBranch.end());
+                        if (isPresent)
+                        {
+                            cout<<"   ++ ImgComm = "<<Abre[k1].ImgBranch[p1]<<endl;
+                            ColImg3eme.push_back(Abre[k1].ImgBranch[p1]);//common img entre Abre[k1] and Abre[p]
+                        }
+                    }
+                    Abre[k1].Img3eme.push_back(ColImg3eme);
+                }
+
+            }
+            //affichier abre avec collection d'image 3eme
+            for (uint k1=0; k1<Abre.size(); k1++)
+            {
+                cout<<"Img1 "<<Abre[k1].ImgRacine<<endl;
+                for (uint k2=0; k2<Abre[k1].ImgBranch.size(); k2++)
+                {
+                    cout<<" +Img2+ "<<Abre[k1].ImgBranch[k2]<<endl;
+                    for (uint k3=0; k3<Abre[k1].Img3eme[k2].size(); k3++)
+                    {
+                        cout<<"  +Com+ "<<Abre[k1].Img3eme[k2][k3]<<endl;
+                    }
+                }
+            }
+
+            //=========================filtrer les fichier homol============================
+            for (uint k1=0; k1<Abre.size(); k1++)
+            {
+                cout<<"Img1 "<<Abre[k1].ImgRacine<<endl;
+                aNameIm1 = Abre[k1].ImgRacine;
+                //==========import img1===========
+                Tiff_Im mTiffImg1(aNameIm1.c_str());
+                Im2D<U_INT1,INT4> mImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);
+                ELISE_COPY(
+                            mTiffImg1.all_pts(),
+                            mTiffImg1.in(),
+                            mImg1.out()
+                          );
+                std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm1,true);
+                CamStenope * aCam1 = CamOrientGenFromFile(aOri1 , aICNM);
+                //================================
+                for (uint k2=0; k2<Abre[k1].ImgBranch.size(); k2++)
+                {
+                    cout<<" +Img2+ "<<Abre[k1].ImgBranch[k2]<<endl;
+                    aNameIm2 = Abre[k1].ImgBranch[k2];
+                    //==========import img2===========
+                    Tiff_Im mTiffImg2(aNameIm2.c_str());
+                    Im2D<U_INT1,INT4> mImg2(mTiffImg2.sz().x,mTiffImg2.sz().y);
+                    ELISE_COPY(
+                                mTiffImg2.all_pts(),
+                                mTiffImg2.in(),
+                                mImg2.out()
+                              );
+                    std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm2,true);
+                    CamStenope * aCam2 = CamOrientGenFromFile(aOri2 , aICNM);
+                    //================================
+                    vector< vector<bool> >colDecCoor;
+                    vector< vector<bool> >colDecRepr;
+                    for (uint k3=0; k3<Abre[k1].Img3eme[k2].size(); k3++)
+                    {
+                        cout<<"  +Com+ "<<Abre[k1].Img3eme[k2][k3];
+                        aNameIm3 = Abre[k1].Img3eme[k2][k3];
+                        vector <bool> decideCoor;
+                        vector <bool> decideRepr;
+                        //============traite avec triple aNameIm1 aNameIm2 aNameIm3=============
+                        Tiff_Im mTiffImg3(aNameIm3.c_str());
+                        Im2D<U_INT1,INT4> mImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
+                        ELISE_COPY(
+                                    mTiffImg3.all_pts(),
+                                    mTiffImg3.in(),
+                                    mImg3.out()
+                                 );
+                        Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
+                        double diag = sqrt(pow(mTiffImg3.sz().x,2) + pow(mTiffImg3.sz().y,2));
+
+
+                        std::string aOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm3,true);
+
+
+                        CamStenope * aCam3 = CamOrientGenFromFile(aOri3 , aICNM);
+
+                        std::string aHomoIn1_2 = aICNM->Assoc1To2(aKHIn, aNameIm1, aNameIm2,true);
+                        StdCorrecNameHomol_G(aHomoIn1_2,aDirImages);
+                        bool Exist1_2 = ELISE_fp::exist_file(aHomoIn1_2);
+                        if (Exist1_2)
+                        {
+                         ElPackHomologue aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);
+                        }
+
+                        std::string aHomoIn1_3 = aICNM->Assoc1To2(aKHIn, aNameIm1, aNameIm3,true);
+                        StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
+                        bool Exist1_3 = ELISE_fp::exist_file(aHomoIn1_3);
+                        if (Exist1_3)
+                        {
+                         ElPackHomologue aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);
+                        }
+
+                        std::string aHomoIn2_3 = aICNM->Assoc1To2(aKHIn, aNameIm2, aNameIm3, true);
+                        StdCorrecNameHomol_G(aHomoIn2_3,aDirImages);
+                        bool Exist2_3 = ELISE_fp::exist_file(aHomoIn2_3);
+                        if (Exist2_3)
+                        {
+                         ElPackHomologue aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);
+                        }
+
+                        //filtre entre 1 et 2
+                        //Faire ca avec tout les fichier point homo dans tout les repertoir
+                        double countTripletv = 0;
+                        double count_pass_reproj = 0;
+                        double count_pass_corr = 0;
+                        double w=3;
+                        for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
+                        {
+
+                            Pt2dr aP1 = itP->P1();  //Point img1
+                            Pt2dr aP2 = itP->P2();  //Point img2
+                            double d;
+                            bool pass_reproj, pass_corr;
+
+                            //=================verifier par reprojeter============
+                            Pt3dr PInter1_2= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
+                            Pt2dr PReproj3 = aCam3->ElCamera::R3toF2(PInter1_2);					//use point 3d to search Point img3
+                            double dist_centre = sqrt(pow((PReproj3.x - centre_img.x),2) + pow((PReproj3.y - centre_img.y),2));
+                            if (dist_centre < 0.67*diag/2)
+                            {//check if reprojected inside fisheye cover
+                                if (Exist2_3)
+                                {
+                                    const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
+                                    double distP2 = sqrt(pow((aTriplet2_3->P1().x - aP2.x),2) + pow((aTriplet2_3->P1().y - aP2.y),2));
+                                    if (distP2 < 2)
+                                    {
+                                        //pass condition reproject
+                                        pass_reproj=1;
+                                        count_pass_reproj++;
+                                    }
+                                    else
+                                    {
+                                        pass_reproj=0;
+                                    }
+                                }
+                                else
+                                {
+                                    pass_reproj=0; //or reprojecter vers autres images dans la collection de 3eme images
+                                }
+                            }
+                            //==============verifier par correlation==================
+                            cCorrelImage::setSzW(w);
+                            cCorrelImage Imgette1, Imgette2;
+                            Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+                            Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+                            double corr1_2 = Imgette1.CrossCorrelation(Imgette2);
+                            if ((dist_centre < 0.67*diag/2) && (corr1_2 > 0.8))
+                               {
+                                 //pass condition correlation
+                                 pass_corr = 1;
+                                 count_pass_corr++;
+                               }
+                            else
+                            {
+                                pass_corr = 0;
+                            }
+                            //==============décider de garder ou jeter le point homologue===========
+                            decideCoor.push_back(pass_corr);
+                            decideRepr.push_back(pass_reproj);
+                    }
+                        cout<< " " << count_pass_reproj << " "<<count_pass_corr<< " / "<<aPackIn1_2.size()<<endl;
+                        colDecCoor.push_back(decideCoor);
+                        colDecRepr.push_back(decideRepr);
+                }
+                    //==========decide filter for this couple==========//
+                    //l = img Commun entre 2 image
+                    //g = point homo
+                    vector<bool> finalDec;
+                    bool decCoor=0;
+                    bool decRepr=0;
+                    for (uint g=0; g<colDecCoor[0].size(); g++)
+                    {
+                       for (uint l=0; l<colDecCoor.size() ; l++)
+                        {
+                            decCoor = decCoor || colDecCoor[l][g];
+                            decRepr = decRepr || colDecRepr[l][g];
+                        }
+                       if (decCoor || decRepr)
+                       {
+                           finalDec.push_back(1);
+                       }
+                       else
+                       {
+                           finalDec.push_back(0);
+                       }
+                    }
+                    double countBon = 0;
+                    for(uint l=0; l<finalDec.size(); l++)
+                    {
+                        if (finalDec[l])
+                            {countBon ++;}
+                    }
+                    cout<<" + => "<< countBon << " Pts Filtré / "<<finalDec.size()<<endl;
+            }
+
+            }
+      }
+
 
 
 cout<<"use command SEL ./ img1 img2 KCpl=NKS-Assoc-CplIm2Hom@"<<aHomolOutput<< "@dat to view filtered point homomogues"<<endl;

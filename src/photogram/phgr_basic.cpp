@@ -380,11 +380,31 @@ std::vector<Pt3dr> * StdNuage3DFromFile(const std::string & aName)
    {
        std::vector<Pt3dr> *  aRes = new std::vector<Pt3dr> ;
 
-       ELISE_fp aFile(aName.c_str(),ELISE_fp::READ);
-       int aNb = aFile.read((INT4 *)0);
-       aRes->reserve(aNb);
-       for (int aK=0 ; aK<aNb; aK++)
-           aRes->push_back(aFile.read((Pt3dr *)0));
+		#if ELISE_windows && !ELISE_MinGW
+			ifstream f(aName.c_str());
+			ELISE_DEBUG_ERROR( !f, "StdNuage3DFromFile", "failed to open file [" << aName << "]");
+
+			INT4 nbPoints;
+			f.read((char *)&nbPoints, 4);
+			ELISE_DEBUG_ERROR(nbPoints < 0, "StdNuage3DFromFile", "invalid nbPoints = " << nbPoints);
+			aRes->resize((size_t)nbPoints);
+
+			REAL readPoint[3];
+			Pt3dr *itDst = aRes->data();
+			while (nbPoints--)
+			{
+				f.read((char *)readPoint, sizeof(readPoint));
+				itDst->x = readPoint[0];
+				itDst->y = readPoint[1];
+				(*itDst++).z = readPoint[2];
+			}
+		#else
+			ELISE_fp aFile(aName.c_str(),ELISE_fp::READ);
+			int aNb = aFile.read((INT4 *)0);
+			aRes->reserve(aNb);
+			for (int aK=0 ; aK<aNb; aK++)
+				aRes->push_back(aFile.read((Pt3dr *)0));
+		#endif
 
        return aRes;
    }
