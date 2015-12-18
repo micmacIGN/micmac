@@ -64,7 +64,7 @@ int ChgSysCo_main(int argc,char ** argv)
     std::string AeroIn= "";
     std::string aStrChSys="";
     std::string AeroOut="";
-    bool        ForceRot = false;
+    bool        ForceRot = true;
 
 
     ElInitArgMain
@@ -74,7 +74,7 @@ int ChgSysCo_main(int argc,char ** argv)
                     << EAMC(AeroIn,"Input Orientation", eSAM_IsExistDirOri)
                     << EAMC(aStrChSys,"Change coordinate file", eSAM_IsExistFile)
                     << EAMC(AeroOut,"Output Orientation", eSAM_IsOutputDirOri),
-        LArgMain()  << EAM(ForceRot,"FR",true,"Force orientation matrix to be pure rotation (Def = false)", eSAM_IsBool)
+        LArgMain()  << EAM(ForceRot,"FR",true,"Force orientation matrix to be pure rotation (Def = true)", eSAM_IsBool)
     );
 
     if (!MMVisualMode)
