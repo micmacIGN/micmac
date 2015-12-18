@@ -653,7 +653,7 @@ int PHO_MI_main(int argc,char ** argv)
                 double countVerif=0;
                 for(uint o=0; o<decision.size(); o++)
                 {
-                    if (decision[o] && ((decPoint[o]/totalImgCom) > 0.8) )
+                    if (decision[o] && ((decPoint[o]/totalImgCom) > 0.95) )
                     {countVerif++; decision[o] = 1;}
                     else
                     {decision[o] = 0;}
