@@ -1,0 +1,143 @@
+<!--
+    Porto  /home/marc/micmac/include/XML_MicMac/Param-Tawny.xml WorkDir=/home/marc/TMP/TestGPS/VincennesPtx50/Ortho-New-Tests/
+
+    Porto  /home/marc/micmac/include/XML_MicMac/Param-Tawny.xml +ThisDir=/home/marc/TMP/TestGPS/VincennesPtx50/Ortho-New-Tests/
+
+    Porto  /home/marc/micmac/include/XML_MicMac/Param-Tawny.xml %WD=/home/marc/TMP/TestGPS/VincennesPtx50/Ortho-New-Tests/
+-->
+<CreateOrtho>
+        <!-- Truc +ou- genreaux a ttes les applis -->
+        <DicoLoc >
+
+               <Symb>  DR0X=-1 </Symb>
+               <Symb>  DR0Y=-1 </Symb>
+
+               <Symb>  DR1X=1 </Symb>
+               <Symb>  DR1Y=1 </Symb>
+
+               <Symb>  DegRapX=0 </Symb>
+               <Symb>  DegRapY=0 </Symb>
+
+               <Symb>  RapGlobPhys=true </Symb>
+
+<!--
+               <Symb>  ImLabel=NoLabel </Symb>
+-->
+               <Symb>  ImLabel=Label.tif </Symb>
+               <Symb>  ThisDir=XXXX </Symb>
+               <Symb>  DynGlob=1.0 </Symb>
+
+                <Symb>  ImPrio=".*" </Symb>
+
+
+                <Symb>  CorrThresh=0.7 </Symb>
+                <Symb>  NbPerIm=2.5e4 </Symb>
+                <Symb>  SzV=2 </Symb>
+                <Symb>  DoL1Filter=true </Symb>
+
+                <Symb>  UseSatThr=false </Symb>
+                <Symb>  SatThr=1e9 </Symb>
+
+		<Symb>  DoRadiomEgal=1 </Symb> <!-- perform or not the radiometric egalisation -->
+<!--
+               <SzVois >  ${SzV}  </SzVois>
+               <CorrelThreshold> ${CorrThresh} </CorrelThreshold>
+               <NbPEqualMoyPerImage>  ${NbPerIm} </NbPEqualMoyPerImage>
+-->
+
+                <KeyedNamesAssociations>
+                        <Calcs>
+                            <Arrite>  1 1 </Arrite>
+                            <Direct>
+                                <PatternTransform> ${ImPrio}  </PatternTransform>
+                                <CalcName>  0.0  </CalcName>
+                             </Direct>
+                        </Calcs>
+                        <Calcs>
+                            <Arrite>  1 1 </Arrite>
+                            <Direct>
+                                <PatternTransform> .*  </PatternTransform>
+                                <CalcName>  1.0  </CalcName>
+                             </Direct>
+                        </Calcs>
+
+
+                        <Key>         Loc-Key-Prio </Key>
+                 </KeyedNamesAssociations>
+
+        </DicoLoc>
+<!--
+        <WorkDir>  /home/marc/TMP/TestGPS/VincennesPtx50/Ortho-New-Tests/  </WorkDir>
+-->
+        <WorkDir Id="WD">  ThisDir  </WorkDir>
+
+        <SectionEntree>
+           <FileMNT> MTDOrtho.xml   </FileMNT>
+           <KeySetIm>  NKS-Set-OfPattern@^Ort_(.*)\.tif </KeySetIm>
+           <KeyAssocMetaData > NKS-Assoc-ChangPrefixAndExt@Ort_@tif@PC_@xml  </KeyAssocMetaData>
+           <KeyAssocNamePC >   NKS-Assoc-ChangPrefixAndExt@Ort_@tif@PC_@tif </KeyAssocNamePC>
+           <KeyAssocNameIncH>  NKS-Assoc-ChangPrefixAndExt@Ort_@tif@Incid_@tif </KeyAssocNameIncH>
+           <FileExterneMasqMesures> MTDMaskOrtho.xml  </FileExterneMasqMesures>
+
+           <KeyAssocPriorite> Loc-Key-Prio </KeyAssocPriorite>
+
+
+
+        </SectionEntree>
+
+        <SectionFiltrageIn>
+             <SzDilatPC >   1 </SzDilatPC>
+             <SzOuvPC >     2 </SzOuvPC>
+             <#WHEN VTEST=${UseSatThr}>
+                 <SaturThreshold> ${SatThr} </SaturThreshold>
+             </#WHEN>
+             <BoucheTrou>
+                <SeuilVisib > 50  </SeuilVisib>
+                <SeuilVisibBT > 10 </SeuilVisibBT>
+                <CoeffPondAngul > 3.14 </CoeffPondAngul>
+             </BoucheTrou>
+
+        </SectionFiltrageIn>
+
+   	<#WHEN VTEST=${DoRadiomEgal}>
+        <SectionEgalisation>
+               <SzVois >  ${SzV}  </SzVois>
+               <CorrelThreshold> ${CorrThresh} </CorrelThreshold>
+               <NbPEqualMoyPerImage>  ${NbPerIm} </NbPEqualMoyPerImage>
+
+               <NameFileMesures >  MesuresEgales.dat </NameFileMesures>
+
+               <AdjL1ByCple>  ${DoL1Filter}</AdjL1ByCple>
+
+               <PercCutAdjL1> 50.0 </PercCutAdjL1>
+
+               <UseFileMesure > false </UseFileMesure>
+
+               <DegresEgalVois>  ${DR0X} ${DR0Y}   </DegresEgalVois>
+               <DegresEgalVois>  ${DR1X} ${DR1Y}  </DegresEgalVois>
+               <EgaliseSomCh> false </EgaliseSomCh>
+               <PdsRappelInit>  0.001 </PdsRappelInit>
+
+               <GlobRappInit>
+                    <DoGlob> true </DoGlob>
+                    <Degres>  -1 -1  </Degres>
+                    <Degres>  ${DegRapX} ${DegRapY} </Degres>
+                    <RapelOnEgalPhys> ${RapGlobPhys} </RapelOnEgalPhys>
+               </GlobRappInit>
+
+        </SectionEgalisation>
+  	</#WHEN>
+
+        <SectionSorties>
+           <SzDalle>    1000            </SzDalle>
+           <SzBrd>      100             </SzBrd>
+           <NameOrtho>  ${NameOrtho} </NameOrtho>
+           <NameLabels>  ${ImLabel} </NameLabels>
+           <SzTileResult> 20000 </SzTileResult>
+           <DynGlob>      ${DynGlob} </DynGlob>
+
+        </SectionSorties>
+
+
+</CreateOrtho>
+
