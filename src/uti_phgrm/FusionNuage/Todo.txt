@@ -1,0 +1,51 @@
+
+
+Point homologue comme filtre
+Point sparse comme 2eme filtre
+
+Point Hom Sparse : nuage a 25 point ?
+
+Flag teste
+Flag In
+
+TestArc :
+   Si pas teste
+   {
+       Calcul Flag In
+       Teste <- Vrai
+   }
+   return FlagIn
+
+CalculFlagIn
+  Si Point Homolgue absent ou pas assez return false;
+  Si recouvrement faible return false;
+  return true;
+
+
+Algo TestArc Glob
+
+Pour tous les arcs initiaux (du Choix Im Sec ...) TestArc
+
+Tant qu'on en trouve
+   Pour tous S1
+     Pour tous les S2, succ-Flagin de S1
+         Pour tous les S3, succ-Flagin de S2
+         {
+             Si S1-S3 pas teste 
+             {
+                 Test S1-S3, si CalculFlagIn(S1,S3) OnEnTrouve <- Vrai
+             }
+         }
+
+Acceleration possible : liste des arcs nouveau
+(voir une seule Filo ou un seul vect que l'on parcourt jusqu'a epuisement)
+===========================================================
+
+Dans MMTieP : refaire correl sur fen min (3x3?) , rogner  les bords de correl trop faible (objectif :
+limiter , par ex, le ciel: voir en sur resol ?).
+
+Critère pour adapter les poids de fenetre en fonction du gradient de l'image. Critère à trouver ? Rechercher du coté du multi échelle  type SIFT ?? 
+
+
+
+
