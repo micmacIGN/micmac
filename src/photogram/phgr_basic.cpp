@@ -381,7 +381,7 @@ std::vector<Pt3dr> * StdNuage3DFromFile(const std::string & aName)
        std::vector<Pt3dr> *  aRes = new std::vector<Pt3dr> ;
 
 		#if ELISE_windows && !ELISE_MinGW
-			ifstream f(aName.c_str());
+			ifstream f(aName.c_str(), ios::binary);
 			ELISE_DEBUG_ERROR( !f, "StdNuage3DFromFile", "failed to open file [" << aName << "]");
 
 			INT4 nbPoints;
