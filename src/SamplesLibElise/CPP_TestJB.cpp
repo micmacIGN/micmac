@@ -319,7 +319,7 @@ int command_toto( int argc, char **argv )
 	INT4 nbPoints;
 	f.read((char *)&nbPoints, 4);
 	ELISE_DEBUG_ERROR(nbPoints < 0, "command_toto", "invalid nbPoints = " << nbPoints);
-	cout << "nbPoints = " << nbPoints << endl;
+	cout << "nbPoints = " << nbPoints << ' ' << f.tellg() << endl;
 	points.resize((size_t)nbPoints);
 
 	REAL readPoint[3];
@@ -332,7 +332,7 @@ int command_toto( int argc, char **argv )
 		itDst->y = readPoint[1];
 		(*itDst++).z = readPoint[2];
 
-		cout << i << ": " << itDst[-1] << endl;
+		cout << i << ": " << itDst[-1] << ' ' << f.tellg() << endl;
 	}
 
 	return EXIT_SUCCESS;
