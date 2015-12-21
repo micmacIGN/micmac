@@ -723,7 +723,7 @@ int PHO_MI_main(int argc,char ** argv)
                                     mImg3.out()
                                  );
                         Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
-                        double diag = sqrt(pow(mTiffImg3.sz().x,2) + pow(mTiffImg3.sz().y,2));
+                        double diag = sqrt(pow((double)mTiffImg3.sz().x,2.) + pow((double)mTiffImg3.sz().y,2.));
 
 
                         std::string aOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm3,true);
