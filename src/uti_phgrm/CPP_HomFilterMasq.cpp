@@ -106,6 +106,8 @@ int HomFilterMasq_main(int argc,char ** argv)
     std::string aOriMasq3D,aNameMasq3D;
     cMasqBin3D * aMasq3D = 0;
 
+    Pt2dr  aSelecTer;
+
 
     ElInitArgMain
     (
@@ -123,7 +125,11 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(aPostOut,"PostOut",true,"Post for Output dir Hom, Def=MasqFiltered")
                     << EAM(aOriMasq3D,"OriMasq3D",true,"Orientation for Masq 3D")
                     << EAM(aNameMasq3D,"Masq3D",true,"File of Masq3D, Def=AperiCloud_${OriMasq3D}.ply")
+                    << EAM(aSelecTer,"SelecTer",true,"[Per,Prop] Period of tiling on ground selection, Prop=proporion of selected")
     );
+    bool aHasOri3D =  EAMIsInit(&aOriMasq3D);
+    bool HasTerSelec = EAMIsInit(&aSelecTer);
+
 
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
@@ -135,20 +141,27 @@ int HomFilterMasq_main(int argc,char ** argv)
     }
 
     if (!EAMIsInit(&AcceptNoMask))
-       AcceptNoMask = EAMIsInit(&MasqGlob) || EAMIsInit(&aOriMasq3D);
+       AcceptNoMask = EAMIsInit(&MasqGlob) || aHasOri3D;
 
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
     std::string aKeyOri;
-    if (EAMIsInit(&aOriMasq3D))
+    if (aHasOri3D)
     {
         anICNM->CorrecNameOrient(aOriMasq3D);
         if (! EAMIsInit(&aNameMasq3D))
         {
-              aNameMasq3D = aDir + "AperiCloud_" + aOriMasq3D + ".ply";
+              aNameMasq3D = aDir + "AperiCloud_" + aOriMasq3D + "_polyg3d.xml";
         }
-        aMasq3D = cMasqBin3D::FromSaisieMasq3d(aDir+aNameMasq3D);
+        if (ELISE_fp::exist_file(aDir+aNameMasq3D))
+        {
+            aMasq3D = cMasqBin3D::FromSaisieMasq3d(aDir+aNameMasq3D);
+        }
+        else
+        {
+            ELISE_ASSERT(EAMIsInit(&aSelecTer),"Unused OriMasq3D");
+        }
         aKeyOri = "NKS-Assoc-Im2Orient@" + aOriMasq3D;
     }
 
@@ -162,6 +175,8 @@ int HomFilterMasq_main(int argc,char ** argv)
 
      std::vector<CamStenope *> aVCam;
 
+
+    double aResolMoy = 0;
 
     for (int aKN = 0 ; aKN<int(aVN->size()) ; aKN++)
     {
@@ -200,11 +215,14 @@ int HomFilterMasq_main(int argc,char ** argv)
 
         aVMasq.push_back(aImMasq);
         // Tiff_Im::CreateFromIm(aImMasq,"SousRes"+aNameMasq);
-        if (aMasq3D!=0)
+        if (aHasOri3D)
         {
             aVCam.push_back(anICNM->StdCamOfNames(aNameIm,aOriMasq3D));
+            aResolMoy += aVCam.back()->GlobResol();
         }
     }
+    if (aHasOri3D)
+       aResolMoy /= aVCam.size();
 
     std::string anExt = ExpTxt ? "txt" : "dat";
 
@@ -219,6 +237,15 @@ int HomFilterMasq_main(int argc,char ** argv)
                        +  std::string(anExt);
 
 
+    double aPeriodTer=0,aSeuilDistTer=0;
+    if (HasTerSelec)
+    {
+       aPeriodTer = aSelecTer.x * aResolMoy;
+       aSeuilDistTer = aPeriodTer * sqrt(aSelecTer.y);
+    }
+
+    double aNbInTer=0;
+    double aNbTestTer=0;
 
 
     for (int aKN1 = 0 ; aKN1<int(aVN->size()) ; aKN1++)
@@ -253,11 +280,19 @@ int HomFilterMasq_main(int argc,char ** argv)
 
                       bool Ok = ((aMasq1.get(aQ1,0) && aMasq2.get(aQ2,0)) || (! UseMasq));
 
-                      if (Ok &&  aMasq3D)
+                      if (Ok &&  aHasOri3D)
                       {
                           Pt3dr  aPTer= aVCam[aKN1]->PseudoInter(aP1,*(aVCam[aKN2]),aP2);
-                          if (! aMasq3D->IsInMasq(aPTer))
+                          if (aMasq3D && (! aMasq3D->IsInMasq(aPTer)))
                              Ok = false;
+
+                          if (Ok && HasTerSelec)
+                          {
+                              bool OkTer =  (mod_real(aPTer.x,aPeriodTer) < aSeuilDistTer) && (mod_real(aPTer.y,aPeriodTer) < aSeuilDistTer);
+                              Ok = OkTer;
+                              aNbTestTer ++;
+                              aNbInTer += OkTer;
+                          }
                       }  
 
                       if (Ok)
@@ -273,6 +308,11 @@ int HomFilterMasq_main(int argc,char ** argv)
         }
     }
     // std::vector<cImFMasq *> mVIm;
+
+    if (HasTerSelec)
+    {
+        std::cout << "A Posteriori Prop=" << aNbInTer / aNbTestTer << "\n";
+    }
 
 
 
