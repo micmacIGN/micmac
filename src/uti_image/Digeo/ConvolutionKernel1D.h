@@ -1,7 +1,7 @@
 #ifndef __CONVOLUTION_KERNEL_1D__
 #define __CONVOLUTION_KERNEL_1D__
 
-#ifdef __MINGW__ && !defined(__MSVCRT_VERSION__)
+#if defined(__MINGW__) && !defined(__MSVCRT_VERSION__)
 	#define __MSVCRT_VERSION__ 0x800
 #endif
 

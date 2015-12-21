@@ -311,7 +311,7 @@ int command_toto( int argc, char **argv )
 	const string filename = argv[0];
 	if ( !ELISE_fp::exist_file(filename)) ELISE_ERROR_EXIT("file [" << filename << "] does not exist");
 
-	ifstream f(filename.c_str());
+	ifstream f(filename.c_str(), ios::binary);
 	ELISE_DEBUG_ERROR( !f, "command_toto", "failed to open file [" << filename << "] for reading");
 
 	vector<Pt3dr> points;
