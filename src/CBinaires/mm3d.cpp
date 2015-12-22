@@ -231,6 +231,7 @@ int  Apero2NVM_main(int argc,char ** argv);
 int Vino_Main(int argc, char ** argv);
 int XifGps2Txt_main(int argc,char ** argv);
 int TestOscarTieP_main(int argc,char **argv) ;
+int HomFusionPDVUnik_main(int argc,char **argv) ;
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -351,6 +352,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Tool to define a local repair without changing the orientation",cArgLogCom(2)));
        aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule",cArgLogCom(2)));
        aRes.push_back(cMMCom("HomolFilterMasq",HomFilterMasq_main," Tool for filter homologous points according to masq",cArgLogCom(2)));
+       aRes.push_back(cMMCom("HomolMergePDVUnik",HomFusionPDVUnik_main," Tool for merge homologous point from unik point of view",cArgLogCom(2)));
 
 
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for image scaling"));
