@@ -142,8 +142,8 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                                  <Show> eNSM_Paquet     </Show>
                                  <NbMax>   100    </NbMax>
                                  <ModePonderation>  eL1Secured </ModePonderation>
-                                 <SigmaPond> 2.0 </SigmaPond>
-                                 <EcartMax> 5.0 </EcartMax>
+                                 <SigmaPond> 10.0 </SigmaPond>
+                                 <EcartMax> 200.0 </EcartMax>
                               </Pond>
                            </ObsLiaisons>
                     </SectionObservations>

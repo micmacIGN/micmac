@@ -39,23 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 
-/*
-
-
-
-Bascule ".*.jpg" RadialExtended B2   ImRep=00000002.jpg  P1Rep=[463,1406] P2Rep=[610,284] Teta=90
-Bascule ".*.jpg" RadialExtended R2.xml   ImRep=00000002.jpg  P1Rep=[463,1406] P2Rep=[610,284] Teta=45
-
-
-Bascule ".*.jpg" RadialExtended B2 MesureIm=OutAligned-Im.xml Teta=90
-Tarama ".*.jpg" B2
-
-Bascule ".*.jpg" RadialExtended R2.xml MesureIm=OutAligned.xml Teta=180
-Tarama ".*.jpg" RadialExtended Repere=R2.xml
-
-Bascule ".*.jpg" RadialExtended R3.xml MesureIm=OutAligned.xml Teta=180
-
-*/
 
 #define DEF_OFSET -12349876
 
@@ -316,12 +299,92 @@ int HomFilterMasq_main(int argc,char ** argv)
 
 
 
-   return 0;
+   return EXIT_SUCCESS;
 }
 
+int HomFusionPDVUnik_main(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv);
+    std::string  aDir,aPat,aFullDir;
+    std::string aPostIn= "";
+    std::string aPostOut= "MasqFusion";
+    bool ExpTxt=false;
+
+    std::string aDir2;
+    std::vector<std::string > aDirN;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile)
+                    << EAMC(aDir2,"Dir of external point", eSAM_IsPatFile),
+        LArgMain()  
+                    << EAM(aPostIn,"PostIn",true,"Post for Input dir Hom, Def=")
+                    << EAM(aPostOut,"PostOut",true,"Post for Output dir Hom, Def=MasqFusion")
+                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
+                    << EAM(aDirN,"DirN",true,"Supplementary dirs 2 merge")
+    );
+
+    #if (ELISE_windows)
+        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+     #endif
+    cElemAppliSetFile anEASF(aFullDir);
+
+    cInterfChantierNameManipulateur * anICNM = anEASF.mICNM;
 
 
+    const std::vector<std::string> *  aVN = anEASF.SetIm();
 
+
+    std::string anExt = ExpTxt ? "txt" : "dat";
+    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(aPostIn)
+                       +  std::string("@")
+                       +  std::string(anExt);
+    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aPostOut)
+                        +  std::string("@")
+                       +  std::string(anExt);
+
+
+    aDirN.push_back(aDir);
+    aDirN.push_back(aDir2);
+
+    for (int aKN1 = 0 ; aKN1<int(aVN->size()) ; aKN1++)
+    {
+        for (int aKN2 = 0 ; aKN2<int(aVN->size()) ; aKN2++)
+        {
+             std::string aNameIm1 = (*aVN)[aKN1];
+             std::string aNameIm2 = (*aVN)[aKN2];
+             std::string aNameLocIn = aDir + anICNM->Assoc1To2(aKHIn,aNameIm1,aNameIm2,true);
+             ElPackHomologue aPackOut;
+             int aNbH=0;
+
+             for (int aKP=0 ; aKP<int(aDirN.size()) ; aKP++)
+             {
+                 std::string aNameIn=  aDirN[aKP] + aNameLocIn;
+                 if (ELISE_fp::exist_file(aNameIn))
+                 {
+                     ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn);
+                     aNbH++;
+                     for (ElPackHomologue::const_iterator itP=aPackIn.begin() ; itP!=aPackIn.end() ; itP++)
+                     {
+                         aPackOut.Cple_Add(itP->ToCple());
+                     }
+                 }
+             }
+             if (aPackOut.size() !=0)
+             {
+                std::string aNameOut = aDir + anICNM->Assoc1To2(aKHOut,aNameIm1,aNameIm2,true);
+                aPackOut.StdPutInFile(aNameOut);
+                if (0)
+                   std::cout << "aNbH " << aNbH << "\n";
+             }
+        }
+    }
+
+    return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
