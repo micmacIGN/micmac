@@ -8,11 +8,13 @@ typedef struct{
 int command_correctPlanarPolygons( int argc, char **argv );
 int command_maskContent( int argc, char **argv );
 int command_renameImageSet( int argc, char **argv );
+int command_toto( int argc, char **argv );
 
 command_t commands[] = {
 	{ "correctplanarpolygons", &command_correctPlanarPolygons },
 	{ "maskcontent", &command_maskContent },
 	{ "renameimageset", &command_renameImageSet },
+	{ "toto", &command_toto },
 	{ "", NULL }
 };
 
@@ -298,6 +300,43 @@ int command_renameImageSet( int argc, char **argv )
 	return EXIT_SUCCESS;
 }
 
+
+//------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
+
+int command_toto( int argc, char **argv )
+{
+	if (argc != 1) ELISE_ERROR_EXIT("missing 3d points filename");
+
+	const string filename = argv[0];
+	if ( !ELISE_fp::exist_file(filename)) ELISE_ERROR_EXIT("file [" << filename << "] does not exist");
+
+	ifstream f(filename.c_str(), ios::binary);
+	ELISE_DEBUG_ERROR( !f, "command_toto", "failed to open file [" << filename << "] for reading");
+
+	vector<Pt3dr> points;
+
+	INT4 nbPoints;
+	f.read((char *)&nbPoints, 4);
+	ELISE_DEBUG_ERROR(nbPoints < 0, "command_toto", "invalid nbPoints = " << nbPoints);
+	cout << "nbPoints = " << nbPoints << ' ' << f.tellg() << endl;
+	points.resize((size_t)nbPoints);
+
+	REAL readPoint[3];
+	Pt3dr *itDst = points.data();
+	//~ while (nbPoints--)
+	for (int i = 0; i < nbPoints; i++)
+	{
+		f.read((char *)readPoint, sizeof(readPoint));
+		itDst->x = readPoint[0];
+		itDst->y = readPoint[1];
+		(*itDst++).z = readPoint[2];
+
+		cout << i << ": " << itDst[-1] << ' ' << f.tellg() << endl;
+	}
+
+	return EXIT_SUCCESS;
+}
 
 int TestJB_main( int argc, char **argv )
 {
