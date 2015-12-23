@@ -108,13 +108,15 @@ int Campari_main(int argc,char ** argv)
     int aDrMax = 0;
     bool AcceptGB=true;
 
+    bool  RTA = false;
+
     ElInitArgMain
     (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile)
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Input Orientation", eSAM_IsExistDirOri)
                     << EAMC(AeroOut,"Output Orientation", eSAM_IsOutputDirOri),
-    LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]", eSAM_NoInit)
+        LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]", eSAM_NoInit)
                     << EAM(EmGPS,"EmGPS",true,"Embedded GPS [Gps-Dir,GpsUnc, ?GpsAlti?], GpsAlti if != Plani", eSAM_NoInit)
                     << EAM(aGpsLA,"GpsLa",true,"Gps Lever Arm, in combination with EmGPS", eSAM_NoInit)
                     << EAM(aSigmaTieP,"SigmaTieP", true, "Sigma use for TieP weighting (Def=1)")
@@ -148,6 +150,8 @@ int Campari_main(int argc,char ** argv)
 
         std::string aSetIm = "NKS-Set-OfPattern@" + aPat;
 
+
+        RTA = MPD_MM()  && (EAMIsInit(&GCP));
 
         if (EAMIsInit(&aImMinMax))
         {
@@ -230,6 +234,11 @@ int Campari_main(int argc,char ** argv)
 
         if (EAMIsInit(&aSigmaTieP)) aCom = aCom + " +SigmaTieP=" + ToString(aSigmaTieP);
 
+
+        if (RTA)
+        {
+             aCom = aCom + " +RTA=true";
+        }
 
         std::cout << aCom << "\n";
         int aRes = System(aCom.c_str());

@@ -39,23 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 
-/*
-
-
-
-Bascule ".*.jpg" RadialExtended B2   ImRep=00000002.jpg  P1Rep=[463,1406] P2Rep=[610,284] Teta=90
-Bascule ".*.jpg" RadialExtended R2.xml   ImRep=00000002.jpg  P1Rep=[463,1406] P2Rep=[610,284] Teta=45
-
-
-Bascule ".*.jpg" RadialExtended B2 MesureIm=OutAligned-Im.xml Teta=90
-Tarama ".*.jpg" B2
-
-Bascule ".*.jpg" RadialExtended R2.xml MesureIm=OutAligned.xml Teta=180
-Tarama ".*.jpg" RadialExtended Repere=R2.xml
-
-Bascule ".*.jpg" RadialExtended R3.xml MesureIm=OutAligned.xml Teta=180
-
-*/
 
 #define DEF_OFSET -12349876
 
@@ -106,6 +89,8 @@ int HomFilterMasq_main(int argc,char ** argv)
     std::string aOriMasq3D,aNameMasq3D;
     cMasqBin3D * aMasq3D = 0;
 
+    Pt2dr  aSelecTer;
+
 
     ElInitArgMain
     (
@@ -123,7 +108,11 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(aPostOut,"PostOut",true,"Post for Output dir Hom, Def=MasqFiltered")
                     << EAM(aOriMasq3D,"OriMasq3D",true,"Orientation for Masq 3D")
                     << EAM(aNameMasq3D,"Masq3D",true,"File of Masq3D, Def=AperiCloud_${OriMasq3D}.ply")
+                    << EAM(aSelecTer,"SelecTer",true,"[Per,Prop] Period of tiling on ground selection, Prop=proporion of selected")
     );
+    bool aHasOri3D =  EAMIsInit(&aOriMasq3D);
+    bool HasTerSelec = EAMIsInit(&aSelecTer);
+
 
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
@@ -135,20 +124,27 @@ int HomFilterMasq_main(int argc,char ** argv)
     }
 
     if (!EAMIsInit(&AcceptNoMask))
-       AcceptNoMask = EAMIsInit(&MasqGlob) || EAMIsInit(&aOriMasq3D);
+       AcceptNoMask = EAMIsInit(&MasqGlob) || aHasOri3D;
 
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
     std::string aKeyOri;
-    if (EAMIsInit(&aOriMasq3D))
+    if (aHasOri3D)
     {
         anICNM->CorrecNameOrient(aOriMasq3D);
         if (! EAMIsInit(&aNameMasq3D))
         {
-              aNameMasq3D = aDir + "AperiCloud_" + aOriMasq3D + ".ply";
+              aNameMasq3D = aDir + "AperiCloud_" + aOriMasq3D + "_polyg3d.xml";
         }
-        aMasq3D = cMasqBin3D::FromSaisieMasq3d(aDir+aNameMasq3D);
+        if (ELISE_fp::exist_file(aDir+aNameMasq3D))
+        {
+            aMasq3D = cMasqBin3D::FromSaisieMasq3d(aDir+aNameMasq3D);
+        }
+        else
+        {
+            ELISE_ASSERT(EAMIsInit(&aSelecTer),"Unused OriMasq3D");
+        }
         aKeyOri = "NKS-Assoc-Im2Orient@" + aOriMasq3D;
     }
 
@@ -162,6 +158,8 @@ int HomFilterMasq_main(int argc,char ** argv)
 
      std::vector<CamStenope *> aVCam;
 
+
+    double aResolMoy = 0;
 
     for (int aKN = 0 ; aKN<int(aVN->size()) ; aKN++)
     {
@@ -200,11 +198,14 @@ int HomFilterMasq_main(int argc,char ** argv)
 
         aVMasq.push_back(aImMasq);
         // Tiff_Im::CreateFromIm(aImMasq,"SousRes"+aNameMasq);
-        if (aMasq3D!=0)
+        if (aHasOri3D)
         {
             aVCam.push_back(anICNM->StdCamOfNames(aNameIm,aOriMasq3D));
+            aResolMoy += aVCam.back()->GlobResol();
         }
     }
+    if (aHasOri3D)
+       aResolMoy /= aVCam.size();
 
     std::string anExt = ExpTxt ? "txt" : "dat";
 
@@ -219,6 +220,15 @@ int HomFilterMasq_main(int argc,char ** argv)
                        +  std::string(anExt);
 
 
+    double aPeriodTer=0,aSeuilDistTer=0;
+    if (HasTerSelec)
+    {
+       aPeriodTer = aSelecTer.x * aResolMoy;
+       aSeuilDistTer = aPeriodTer * sqrt(aSelecTer.y);
+    }
+
+    double aNbInTer=0;
+    double aNbTestTer=0;
 
 
     for (int aKN1 = 0 ; aKN1<int(aVN->size()) ; aKN1++)
@@ -253,11 +263,19 @@ int HomFilterMasq_main(int argc,char ** argv)
 
                       bool Ok = ((aMasq1.get(aQ1,0) && aMasq2.get(aQ2,0)) || (! UseMasq));
 
-                      if (Ok &&  aMasq3D)
+                      if (Ok &&  aHasOri3D)
                       {
                           Pt3dr  aPTer= aVCam[aKN1]->PseudoInter(aP1,*(aVCam[aKN2]),aP2);
-                          if (! aMasq3D->IsInMasq(aPTer))
+                          if (aMasq3D && (! aMasq3D->IsInMasq(aPTer)))
                              Ok = false;
+
+                          if (Ok && HasTerSelec)
+                          {
+                              bool OkTer =  (mod_real(aPTer.x,aPeriodTer) < aSeuilDistTer) && (mod_real(aPTer.y,aPeriodTer) < aSeuilDistTer);
+                              Ok = OkTer;
+                              aNbTestTer ++;
+                              aNbInTer += OkTer;
+                          }
                       }  
 
                       if (Ok)
@@ -274,14 +292,99 @@ int HomFilterMasq_main(int argc,char ** argv)
     }
     // std::vector<cImFMasq *> mVIm;
 
+    if (HasTerSelec)
+    {
+        std::cout << "A Posteriori Prop=" << aNbInTer / aNbTestTer << "\n";
+    }
 
 
-   return 0;
+
+   return EXIT_SUCCESS;
 }
 
+int HomFusionPDVUnik_main(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv);
+    std::string  aDir,aPat,aFullDir;
+    std::string aPostIn= "";
+    std::string aPostOut= "MasqFusion";
+    bool ExpTxt=false;
+
+    std::string aDir2;
+    std::vector<std::string > aDirN;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile)
+                    << EAMC(aDir2,"Dir of external point", eSAM_IsPatFile),
+        LArgMain()  
+                    << EAM(aPostIn,"PostIn",true,"Post for Input dir Hom, Def=")
+                    << EAM(aPostOut,"PostOut",true,"Post for Output dir Hom, Def=MasqFusion")
+                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
+                    << EAM(aDirN,"DirN",true,"Supplementary dirs 2 merge")
+    );
+
+    #if (ELISE_windows)
+        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+     #endif
+    cElemAppliSetFile anEASF(aFullDir);
+
+    cInterfChantierNameManipulateur * anICNM = anEASF.mICNM;
 
 
+    const std::vector<std::string> *  aVN = anEASF.SetIm();
 
+
+    std::string anExt = ExpTxt ? "txt" : "dat";
+    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(aPostIn)
+                       +  std::string("@")
+                       +  std::string(anExt);
+    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aPostOut)
+                        +  std::string("@")
+                       +  std::string(anExt);
+
+
+    aDirN.push_back(aDir);
+    aDirN.push_back(aDir2);
+
+    for (int aKN1 = 0 ; aKN1<int(aVN->size()) ; aKN1++)
+    {
+        for (int aKN2 = 0 ; aKN2<int(aVN->size()) ; aKN2++)
+        {
+             std::string aNameIm1 = (*aVN)[aKN1];
+             std::string aNameIm2 = (*aVN)[aKN2];
+             std::string aNameLocIn = aDir + anICNM->Assoc1To2(aKHIn,aNameIm1,aNameIm2,true);
+             ElPackHomologue aPackOut;
+             int aNbH=0;
+
+             for (int aKP=0 ; aKP<int(aDirN.size()) ; aKP++)
+             {
+                 std::string aNameIn=  aDirN[aKP] + aNameLocIn;
+                 if (ELISE_fp::exist_file(aNameIn))
+                 {
+                     ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn);
+                     aNbH++;
+                     for (ElPackHomologue::const_iterator itP=aPackIn.begin() ; itP!=aPackIn.end() ; itP++)
+                     {
+                         aPackOut.Cple_Add(itP->ToCple());
+                     }
+                 }
+             }
+             if (aPackOut.size() !=0)
+             {
+                std::string aNameOut = aDir + anICNM->Assoc1To2(aKHOut,aNameIm1,aNameIm2,true);
+                aPackOut.StdPutInFile(aNameOut);
+                if (0)
+                   std::cout << "aNbH " << aNbH << "\n";
+             }
+        }
+    }
+
+    return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

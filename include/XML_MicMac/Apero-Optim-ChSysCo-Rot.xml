@@ -125,6 +125,8 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Optim-ChSysCo-Rot.xml D
                                 <AddCalib>  true </AddCalib>
                                 <NbVerif>  10 </NbVerif>
                                 <TolWhenVerif> 1e-3 </TolWhenVerif>
+                                <!-- <FileExtern> NKS-Assoc-FromFocMm@Ori-${AeroOut}/AutoCal@.xml </FileExtern> -->
+
                           </ExportPose>
                     </SectionExport>
 
