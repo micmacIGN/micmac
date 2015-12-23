@@ -835,30 +835,13 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    mSugg.push_back(PrefMach);
    mSugg.push_back(SubMach);
 
+   const cMMCom *toExecute = NULL;
    for (unsigned int aKC=0 ; aKC<aVComs.size() ; aKC++)
    {
        if (StrToLower(aVComs[aKC].mName)==StrToLower(aCom))
        {
-          cArgLogCom aLog = aVComs[aKC].mLog;
-          bool DoLog = (aLog.mNumArgDir >0) && (aLog.mNumArgDir<argc);
-          string outDirectory;
-          if (DoLog){
-             outDirectory = ( isUsingSeparateDirectories()?MMLogDirectory():DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup );
-             LogIn( argc, argv, outDirectory,aLog.mNumArgDir );
-          }
-
-          int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
-          if (DoLog) LogOut( aRes, outDirectory );
-
-          delete PatMach;
-          delete PrefMach; 
-          delete SubMach;
-
-          if (Chol16Byte)
-          {
-               std::cout << "WARN : 16 BYTE ACCURACY FOR LEAST SQUARE\n";
-          }
-          return aRes;
+          toExecute = &aVComs[aKC];
+          break;
        }
        for (int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
        {
@@ -866,6 +849,35 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
        }
    }
 
+	// use suggestion if there is only one and no exact match has been found
+	if (toExecute == NULL && PrefMach->mRes.size() == 1)
+	{
+		toExecute = &PrefMach->mRes.front();
+		cout << "using [" << toExecute->mName << ']' << endl;
+	}
+
+	if (toExecute != NULL)
+	{
+		cArgLogCom aLog = toExecute->mLog;
+		bool DoLog = (aLog.mNumArgDir >0) && (aLog.mNumArgDir<argc);
+		string outDirectory;
+		if (DoLog)
+		{
+			outDirectory = (isUsingSeparateDirectories() ? MMLogDirectory() : DirOfFile(argv[aLog.mNumArgDir]) + aLog.mDirSup);
+			LogIn(argc, argv, outDirectory,aLog.mNumArgDir);
+		}
+
+		int aRes = toExecute->mCommand(argc - 1, argv + 1);
+		if (DoLog) LogOut(aRes, outDirectory);
+
+		delete PatMach;
+		delete PrefMach; 
+		delete SubMach;
+
+		if (Chol16Byte) std::cout << "WARN : 16 BYTE ACCURACY FOR LEAST SQUARE\n";
+
+		return aRes;
+	}
 
    for (unsigned int aKS=0 ; aKS<mSugg.size() ; aKS++)
    {
