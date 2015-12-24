@@ -48,6 +48,10 @@ void  cAppliMergeCloud::CreateGrapheConx()
 
    std::vector<tMCArc *> aVAddCur;
    const cInterfChantierNameManipulateur::tSet * aSetHom = ICNM()->Get(aKSH);
+
+
+
+
    for (int aKH=0 ; aKH<int(aSetHom->size()) ; aKH++)
    {
        const std::string & aNameFile = (*aSetHom)[aKH];
@@ -57,7 +61,9 @@ void  cAppliMergeCloud::CreateGrapheConx()
            std::pair<std::string,std::string> aPair = ICNM()->Assoc2To1(aKAH,aNameFile,false);
            tMCSom * aS1 = SomOfName(aPair.first);
            tMCSom * aS2 = SomOfName(aPair.second);
-           if ((aS1!=0) && (aS2!=0) && (sizeofile(aNameFile.c_str())>mParam.MinSzFilHom().Val()))
+           // if ((aS1!=0) && (aS2!=0) && (sizeofile(aNameFile.c_str())>mParam.MinSzFilHom().Val()))
+           // MPD : redondant + erreur car pas aFullNF 
+           if ((aS1!=0) && (aS2!=0) )
            {
               tMCArc *  anArc = TestAddNewarc(aS1,aS2);
               if (anArc)

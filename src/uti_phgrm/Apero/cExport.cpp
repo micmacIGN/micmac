@@ -776,6 +776,7 @@ void  cAppliApero::Export(const cSectionExport & anEx)
     if (anEx.ExportResiduXml().IsInit())
     {
         MakeFileXML(mXMLExport,mDC+anEx.ExportResiduXml().Val());
+        MakeFileXML(mXMLExport,StdPrefix(mDC+anEx.ExportResiduXml().Val()) + ".dmp");
     }
 
     if (anEx.ChoixImMM().IsInit())

@@ -160,6 +160,12 @@ Pt3dr cOneAppuisFlottant::PInter() const
 
 double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO,std::string & aCamMaxErr)
 {
+   mAppli.CurXmlE(true).OneAppui().push_back(cXmlSauvExportAperoOneAppuis());
+   cXmlSauvExportAperoOneAppuis  & aXmlAp =  mAppli.CurXmlE().OneAppui().back();
+   aXmlAp.Name() = mName;
+
+
+
    if (mAppli.SqueezeDOCOAC())
    {
       if (mHasGround)
@@ -287,6 +293,15 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
 				);
 
 
+/*
+    aXmlAp.DistFaiscTerrain().SetNoInit();
+    aXmlAp.EcartFaiscTerrain() = Pt3dr(0,0,0);
+    aXmlAp.EcartImMoy() = -1;
+    aXmlAp.EcartImMax() = -1;
+    aXmlAp.NameImMax() = "";
+*/
+
+
 // std::cout << "  GGGGGGGGGGGGGGGGGGGgg " << mPt   << mInc << aUseAppAsInit << "\n";
 
    if (! aRes.mOKRP3I)
@@ -336,8 +351,19 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
         std::cout << "Inc = "  << mInc << "PdsIm = " <<  mPdsIm  << "\n";
 
        if (HasFaiscPur)
-          std::cout << "    Ecart Estim-Faisceaux " << euclid(aPFP-aRes.mPTer) << "\n";
+       {
+          std::cout << "    Ecart Estim-Faisceaux " << euclid(aPFP-aRes.mPTer) ;
+          if (mHasGround)   std::cout << " Ter-Faisceau " << aPFP-mPt << " D= " << euclid(aPFP-mPt);
+          std::cout << "\n";
+       }
       
+   }
+
+   if (HasFaiscPur && mHasGround)
+   {
+      Pt3dr anEcart = aPFP-mPt;
+      aXmlAp.EcartFaiscTerrain().SetVal(anEcart);
+      aXmlAp.DistFaiscTerrain().SetVal(euclid(anEcart));
    }
 
    FILE * aFpRT = mAppli.FpRT() ;
@@ -407,6 +433,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
 	    {
                 anErMax = anEr;
 	        aKMax = aK;
+                aXmlAp.EcartImMax().SetVal(anErMax);
+                aXmlAp.NameImMax().SetVal(mCams[aK]->Name());
 	    }
 
 	   mPdsIm[aK] = aPdrtIm.PdsOfError(anEr);
@@ -442,6 +470,10 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
 
    if (anObs.ShowSom().Val())
       std::cout <<  "      ErrMoy " << aSEr/aSPds << " pixels " << " SP=" << aSPds << " \n";
+   if (aSPds>0)
+   {
+       aXmlAp.EcartImMoy().SetVal(aSEr/aSPds);
+   }
    if (anObs.ShowMax().Val())
    {
       std::cout <<  "     ErrMax = " << anErMax 

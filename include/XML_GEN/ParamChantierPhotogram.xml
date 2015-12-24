@@ -533,6 +533,7 @@
            <Pt Nb="1" Type="Pt3dr"> </Pt>
            <NamePt Nb="1" Type="std::string"> </NamePt>
            <Incertitude Nb="1"  Type="Pt3dr"> </Incertitude>
+           <UseForRTA Nb="?" Type="bool" Def="true"> </UseForRTA>
        </OneAppuisDAF>
    </DicoAppuisFlottant>
 

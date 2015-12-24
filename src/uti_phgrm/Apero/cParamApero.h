@@ -6665,6 +6665,50 @@ std::string  Mangling( cXmlSauvExportAperoOneIm *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlSauvExportAperoOneAppuis
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlSauvExportAperoOneAppuis & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        cTplValGesInit< Pt3dr > & EcartFaiscTerrain();
+        const cTplValGesInit< Pt3dr > & EcartFaiscTerrain()const ;
+
+        cTplValGesInit< double > & DistFaiscTerrain();
+        const cTplValGesInit< double > & DistFaiscTerrain()const ;
+
+        cTplValGesInit< double > & EcartImMoy();
+        const cTplValGesInit< double > & EcartImMoy()const ;
+
+        cTplValGesInit< double > & EcartImMax();
+        const cTplValGesInit< double > & EcartImMax()const ;
+
+        cTplValGesInit< std::string > & NameImMax();
+        const cTplValGesInit< std::string > & NameImMax()const ;
+    private:
+        std::string mName;
+        cTplValGesInit< Pt3dr > mEcartFaiscTerrain;
+        cTplValGesInit< double > mDistFaiscTerrain;
+        cTplValGesInit< double > mEcartImMoy;
+        cTplValGesInit< double > mEcartImMax;
+        cTplValGesInit< std::string > mNameImMax;
+};
+cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneAppuis &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlSauvExportAperoOneAppuis &);
+
+void  BinaryUnDumpFromFile(cXmlSauvExportAperoOneAppuis &,ELISE_fp &);
+
+std::string  Mangling( cXmlSauvExportAperoOneAppuis *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXmlSauvExportAperoOneIter
 {
     public:
@@ -6672,6 +6716,9 @@ class cXmlSauvExportAperoOneIter
 
         friend void xml_init(cXmlSauvExportAperoOneIter & anObj,cElXMLTree * aTree);
 
+
+        std::list< cXmlSauvExportAperoOneAppuis > & OneAppui();
+        const std::list< cXmlSauvExportAperoOneAppuis > & OneAppui()const ;
 
         std::list< cXmlSauvExportAperoOneIm > & OneIm();
         const std::list< cXmlSauvExportAperoOneIm > & OneIm()const ;
@@ -6691,6 +6738,7 @@ class cXmlSauvExportAperoOneIter
         cTplValGesInit< double > & EvolMoy();
         const cTplValGesInit< double > & EvolMoy()const ;
     private:
+        std::list< cXmlSauvExportAperoOneAppuis > mOneAppui;
         std::list< cXmlSauvExportAperoOneIm > mOneIm;
         double mAverageResidual;
         int mNumIter;
@@ -6729,6 +6777,70 @@ void  BinaryDumpInFile(ELISE_fp &,const cXmlSauvExportAperoGlob &);
 void  BinaryUnDumpFromFile(cXmlSauvExportAperoGlob &,ELISE_fp &);
 
 std::string  Mangling( cXmlSauvExportAperoGlob *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlOneResultRTA
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlOneResultRTA & anObj,cElXMLTree * aTree);
+
+
+        double & Mult();
+        const double & Mult()const ;
+
+        double & MoyErr();
+        const double & MoyErr()const ;
+
+        std::list< cXmlSauvExportAperoOneAppuis > & OneAppui();
+        const std::list< cXmlSauvExportAperoOneAppuis > & OneAppui()const ;
+    private:
+        double mMult;
+        double mMoyErr;
+        std::list< cXmlSauvExportAperoOneAppuis > mOneAppui;
+};
+cElXMLTree * ToXMLTree(const cXmlOneResultRTA &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlOneResultRTA &);
+
+void  BinaryUnDumpFromFile(cXmlOneResultRTA &,ELISE_fp &);
+
+std::string  Mangling( cXmlOneResultRTA *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlResultRTA
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlResultRTA & anObj,cElXMLTree * aTree);
+
+
+        double & BestMult();
+        const double & BestMult()const ;
+
+        double & BestMoyErr();
+        const double & BestMoyErr()const ;
+
+        std::list< cXmlOneResultRTA > & RTA();
+        const std::list< cXmlOneResultRTA > & RTA()const ;
+    private:
+        double mBestMult;
+        double mBestMoyErr;
+        std::list< cXmlOneResultRTA > mRTA;
+};
+cElXMLTree * ToXMLTree(const cXmlResultRTA &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlResultRTA &);
+
+void  BinaryUnDumpFromFile(cXmlResultRTA &,ELISE_fp &);
+
+std::string  Mangling( cXmlResultRTA *);
 
 /******************************************************/
 /******************************************************/

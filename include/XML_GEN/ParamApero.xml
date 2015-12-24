@@ -1628,7 +1628,17 @@ normalises en echelle et/ou en translation -->
      <NbPtsMul  Nb="1" Type="int">    </NbPtsMul>
 </XmlSauvExportAperoOneIm>
 
+<XmlSauvExportAperoOneAppuis  Nb="1" Class="true" ToReference="true">
+    <Name Nb="1" Type="std::string"> </Name>
+    <EcartFaiscTerrain Nb="?" Type="Pt3dr" > </EcartFaiscTerrain>
+    <DistFaiscTerrain Nb="?" Type="double" > </DistFaiscTerrain>
+    <EcartImMoy Nb="?" Type="double">        </EcartImMoy>
+    <EcartImMax Nb="?" Type="double">        </EcartImMax>
+    <NameImMax Nb="?" Type="std::string">         </NameImMax>
+</XmlSauvExportAperoOneAppuis>
+
 <XmlSauvExportAperoOneIter Nb="1" Class="true" ToReference="true">
+    <OneAppui  Nb="*" RefType="XmlSauvExportAperoOneAppuis"> </OneAppui>
     <OneIm Nb="*" RefType="XmlSauvExportAperoOneIm"> </OneIm>
     <AverageResidual Nb="1" Type="double">  </AverageResidual>
     <NumIter Nb="1" Type="int"> </NumIter>
@@ -1640,6 +1650,19 @@ normalises en echelle et/ou en translation -->
 <XmlSauvExportAperoGlob Nb="1" Class="true" ToReference="true">
     <Iters Nb="*" RefType="XmlSauvExportAperoOneIter"> </Iters>
 </XmlSauvExportAperoGlob>
+
+<XmlOneResultRTA Nb="1" Class="true" ToReference="true">
+       <Mult Nb="1" Type="double">   </Mult>
+       <MoyErr Nb="1" Type="double"> </MoyErr>
+       <OneAppui  Nb="*" RefType="XmlSauvExportAperoOneAppuis"> </OneAppui>
+</XmlOneResultRTA>
+
+<XmlResultRTA Nb="1" Class="true" ToReference="true">
+      <BestMult Nb="1" Type="double">         </BestMult>
+      <BestMoyErr Nb="1" Type="double">       </BestMoyErr>
+      <RTA Nb="*"  RefType="XmlOneResultRTA"> </RTA>
+</XmlResultRTA>
+
 
 
 <Verbatim File=".h.cpp">

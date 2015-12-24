@@ -1948,7 +1948,7 @@ class cAppliApero : public NROptF1vND
 
         void AddStatCam(cGenPoseCam *,double aRes,double aPerc);
         void DebugPbConvAppui();
-        cXmlSauvExportAperoOneIter & CurXmlE();
+        cXmlSauvExportAperoOneIter & CurXmlE(bool SVP=false);
 
         int  NumSauvAuto() const {return  mNumSauvAuto;}
         bool NumIterDebug() const;

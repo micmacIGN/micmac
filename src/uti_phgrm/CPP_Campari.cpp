@@ -72,15 +72,37 @@ void Campari_Banniere()
 }
 
 
-
-
-int Campari_main(int argc,char ** argv)
+class cAppli_Campari
 {
+     public :
+       cAppli_Campari(int argc,char ** argv);
+       int RTA();
+
+       std::string mCom;
+
+       int mResult;
+       bool mExe;
+       double mGcpGrU;
+       double mGcpImU;
+       std::vector<double>      mMulRTA;
+       std::vector<std::string> GCP;
+       std::vector<std::string> GCPRTA;
+       std::string mDir,mPat;
+       std::string mStr0;
+       std::string AeroOut;
+       std::string mNameRTA;
+};
+
+
+cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
+    AeroOut(""),
+    mNameRTA ("SauvRTA.xml")
+{
+    mStr0 = MakeStrFromArgcARgv(argc,argv);
     MMD_InitArgcArgv(argc,argv);
 
     std::string aFullDir= "";
     std::string AeroIn= "";
-    std::string AeroOut="";
 
     bool  CPI1 = false;
     bool  CPI2 = false;
@@ -94,7 +116,6 @@ int Campari_main(int argc,char ** argv)
     double aSigmaTieP = 1;
     double aFactResElimTieP = 5;
 
-    std::vector<std::string> GCP;
     std::vector<std::string> EmGPS;
     bool DetailAppuis = false;
     double Viscos = 1.0;
@@ -108,7 +129,6 @@ int Campari_main(int argc,char ** argv)
     int aDrMax = 0;
     bool AcceptGB=true;
 
-    bool  RTA = false;
 
     ElInitArgMain
     (
@@ -136,122 +156,246 @@ int Campari_main(int argc,char ** argv)
                     << EAM(aDrMax,"DRMax",true, "When specified degree of freedom of radial parameters")
  		    << EAM(PoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
                     << EAM(AcceptGB,"AcceptGB",true,"Accepte new Generik Bundle image, Def=true, set false for perfect backward compatibility")
+                    << EAM(mMulRTA,"MulRTA",true,"Rolling Test Appuis , multiplier ")
+                    << EAM(mNameRTA,"NameRTA",true,"Name for save results of Rolling Test Appuis , Def=SauvRTA.xml")
+                    << EAM(GCPRTA,"GCPRTA",true,"Internal Use, GCP for RTA ")
+                    // << EAM(GCP,"MulRTA",true,"Rolling Test Appuis , multiplier ")
 
     );
 
     if (!MMVisualMode)
     {
-        std::string aDir,aPat;
     #if (ELISE_windows)
          replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
     #endif
-        SplitDirAndFile(aDir,aPat,aFullDir);
-        StdCorrecNameOrient(AeroIn,aDir);
+        SplitDirAndFile(mDir,mPat,aFullDir);
+        StdCorrecNameOrient(AeroIn,mDir);
 
-        std::string aSetIm = "NKS-Set-OfPattern@" + aPat;
+        std::string aSetIm = "NKS-Set-OfPattern@" + mPat;
 
 
-        RTA = MPD_MM()  && (EAMIsInit(&GCP));
 
         if (EAMIsInit(&aImMinMax))
         {
             // Pt2dr Focales(0,100000);
             // std::string aParamPatFocSetIm = "@" + aPat + "@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
             ELISE_ASSERT(aImMinMax.size()==2,"Bad size in vect");
-            aSetIm =  "NKS-Set-OfPatternAndInterv@" + aPat + "@" + aImMinMax[0] + "@" + aImMinMax[1];
+            aSetIm =  "NKS-Set-OfPatternAndInterv@" + mPat + "@" + aImMinMax[0] + "@" + aImMinMax[1];
         }
 
 
 
 
-       std::string aCom =     MM3dBinFile_quotes( "Apero" )
+       mCom =     MM3dBinFile_quotes( "Apero" )
                            +  ToStrBlkCorr( Basic_XML_MM_File("Apero-Compense.xml") )
-                           +  std::string(" DirectoryChantier=") + aDir + " "
+                           +  std::string(" DirectoryChantier=") + mDir + " "
                            +  std::string(" +SetIm=") + QUOTE(aSetIm) + " "
-                           +  std::string(" +PatterIm0=") + QUOTE(aPat) + " "
+                           +  std::string(" +PatterIm0=") + QUOTE(mPat) + " "
                            +  std::string(" +AeroIn=-") + AeroIn + " "
                            +  std::string(" +AeroOut=-") + AeroOut + " "
                           ;
 
-        if (CPI1 || CPI2) aCom       += " +CPI=true ";
-        if (CPI2) aCom       += " +CPIInput=true ";
-        if (FocFree) aCom    += " +FocFree=true ";
-        if (PPFree) aCom    += " +PPFree=true ";
-        if (AffineFree) aCom += " +AffineFree=true ";
-        if (AllFree) aCom    += " +AllFree=true ";
-        if (ExpTxt) aCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
+        if (CPI1 || CPI2) mCom       += " +CPI=true ";
+        if (CPI2) mCom       += " +CPIInput=true ";
+        if (FocFree) mCom    += " +FocFree=true ";
+        if (PPFree) mCom    += " +PPFree=true ";
+        if (AffineFree) mCom += " +AffineFree=true ";
+        if (AllFree) mCom    += " +AllFree=true ";
+        if (ExpTxt) mCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
 
- 	if (PoseFigee) aCom    += " +PoseFigee=true ";
+ 	if (PoseFigee) mCom    += " +PoseFigee=true ";
 
         if (EAMIsInit(&aFactResElimTieP))
-           aCom =  aCom+ " +FactMaxRes=" + ToString(aFactResElimTieP);
+           mCom =  mCom+ " +FactMaxRes=" + ToString(aFactResElimTieP);
 
 
-       if (EAMIsInit(&Viscos)) aCom  +=  " +Viscos=" + ToString(Viscos) + " ";
+       if (EAMIsInit(&Viscos)) mCom  +=  " +Viscos=" + ToString(Viscos) + " ";
 
-       if (EAMIsInit(&DetailAppuis)) aCom += " +DetailAppuis=" + ToString(DetailAppuis) + " ";
+       if (EAMIsInit(&DetailAppuis)) mCom += " +DetailAppuis=" + ToString(DetailAppuis) + " ";
 
         if (EAMIsInit(&GCP))
         {
+            if (EAMIsInit(&GCPRTA))
+            {
+               GCP = GCPRTA;
+            }
+
             ELISE_ASSERT(GCP.size()==4,"Mandatory part of GCP requires 4 arguments");
-            double aGcpGrU = RequireFromString<double>(GCP[1],"GCP-Ground uncertainty");
-            double aGcpImU = RequireFromString<double>(GCP[3],"GCP-Image  uncertainty");
+            mGcpGrU = RequireFromString<double>(GCP[1],"GCP-Ground uncertainty");
+            mGcpImU = RequireFromString<double>(GCP[3],"GCP-Image  uncertainty");
 
-            std::cout << "THAT IS ::: " << aGcpGrU << " === " << aGcpImU << "\n";
+            std::cout << "GPC UNCERTAINCY, Ground : " << mGcpGrU << " === Image : " << mGcpImU << "\n";
 
-            aCom =   aCom
+            mCom =   mCom
                    + std::string("+WithGCP=true ")
                    + std::string("+FileGCP-Gr=") + GCP[0] + " "
                    + std::string("+FileGCP-Im=") + GCP[2] + " "
-                   + std::string("+GrIncGr=") + ToString(aGcpGrU) + " "
-                   + std::string("+GrIncIm=") + ToString(aGcpImU) + " ";
+                   + std::string("+GrIncGr=") + ToString(mGcpGrU) + " "
+                   + std::string("+GrIncIm=") + ToString(mGcpImU) + " ";
         }
-        if (aDegAdd>0)  aCom = aCom + " +HasModeleAdd=true  +ModeleAdditionnel=eModelePolyDeg" +  ToString(aDegAdd);
-        if (aDegFree>0)  aCom = aCom + " +DegGen=" +  ToString(aDegFree);
-        if (aDrMax>0)   aCom = aCom + " +DRMax=" +  ToString(aDrMax);
+        if (aDegAdd>0)  mCom = mCom + " +HasModeleAdd=true  +ModeleAdditionnel=eModelePolyDeg" +  ToString(aDegAdd);
+        if (aDegFree>0)  mCom = mCom + " +DegGen=" +  ToString(aDegFree);
+        if (aDrMax>0)   mCom = mCom + " +DRMax=" +  ToString(aDrMax);
 
         if (EAMIsInit(&EmGPS))
         {
             ELISE_ASSERT((EmGPS.size()>=2) && (EmGPS.size()<=3) ,"Mandatory part of EmGPS requires 2 arguments");
-            StdCorrecNameOrient(EmGPS[0],aDir);
+            StdCorrecNameOrient(EmGPS[0],mDir);
             double aGpsU = RequireFromString<double>(EmGPS[1],"GCP-Ground uncertainty");
             double aGpsAlti = aGpsU;
             if (EmGPS.size()>=3)
                aGpsAlti = RequireFromString<double>(EmGPS[2],"GCP-Ground Alti uncertainty");
-            aCom = aCom +  " +BDDC=" + EmGPS[0]
+            mCom = mCom +  " +BDDC=" + EmGPS[0]
                         +  " +SigmGPS=" + ToString(aGpsU)
                         +  " +SigmGPSAlti=" + ToString(aGpsAlti)
                         +  " +WithCenter=true";
 
             if (EAMIsInit(&aGpsLA))
             {
-                aCom = aCom + " +WithLA=true +LaX="  + ToString(aGpsLA.x)
+                mCom = mCom + " +WithLA=true +LaX="  + ToString(aGpsLA.x)
                                          + " +LaY=" + ToString(aGpsLA.y)
                                          + " +LaZ=" + ToString(aGpsLA.z)
                                          + " ";
             }
         }
 
-        if (EAMIsInit(&aSigmaTieP)) aCom = aCom + " +SigmaTieP=" + ToString(aSigmaTieP);
+        if (EAMIsInit(&aSigmaTieP)) mCom = mCom + " +SigmaTieP=" + ToString(aSigmaTieP);
 
 
-        if (RTA)
+        if (EAMIsInit(&mMulRTA))
         {
-             aCom = aCom + " +RTA=true";
+            ELISE_ASSERT(EAMIsInit(&GCP),"RTA without GCP");
         }
 
-        std::cout << aCom << "\n";
-        int aRes = System(aCom.c_str());
 
-        Campari_Banniere();
-        BanniereMM3D();
+        mExe = (! EAMIsInit(&mMulRTA)) || (EAMIsInit(&GCPRTA));
 
-        return aRes;
+        if (mExe)
+        {
+
+            std::cout << mCom << "\n";
+            int aRes = System(mCom.c_str());
+
+            Campari_Banniere();
+            BanniereMM3D();
+
+            mResult = aRes;
+        }
     }
     else
-        return EXIT_SUCCESS;
+        mResult = EXIT_SUCCESS;
 }
 
+int cAppli_Campari::RTA()
+{
+    // std::cout << "CCCCCCC=[" <<  mStr0 << "]\n";
+    cDicoAppuisFlottant aDAF = StdGetFromPCP(mDir +GCP[0] ,DicoAppuisFlottant);
+    cSetOfMesureAppuisFlottants aMAF = StdGetFromPCP(mDir +GCP[2] ,SetOfMesureAppuisFlottants);
+
+    cXmlResultRTA aResGlobRTA;
+    aResGlobRTA.BestMult() = 0.0;
+    aResGlobRTA.BestMoyErr() = 1e20;
+
+
+    std::string aTmpDAF = "Tmp-RTA-DAF"+ mNameRTA;
+    for (int aKMul=0 ; aKMul<int(mMulRTA.size()) ; aKMul++)
+    {
+         aResGlobRTA.RTA().push_back(cXmlOneResultRTA());
+         cXmlOneResultRTA & aResRTA = aResGlobRTA.RTA().back();
+         char aBuf[1000];
+         double aMul= mMulRTA[aKMul];
+         aResRTA.Mult() = aMul;
+
+         sprintf(aBuf,"[%s,%lf,%s,%lf]",aTmpDAF.c_str(),mGcpGrU*aMul,GCP[2].c_str(),mGcpImU*aMul);
+
+         std::string aCom = mStr0 + " GCPRTA=" + std::string(aBuf);
+         double aSomDist = 0;
+         int    aNbist = 0;
+
+         for
+         (
+              std::list<cOneAppuisDAF>::iterator itDAF=aDAF.OneAppuisDAF().begin();
+              itDAF!=aDAF.OneAppuisDAF().end();
+              itDAF ++
+         )
+         {
+               int aNbMesIm =0 ;
+               for (std::list<cMesureAppuiFlottant1Im>::const_iterator itMIm=aMAF.MesureAppuiFlottant1Im().begin() ; itMIm!=aMAF.MesureAppuiFlottant1Im().end() ; itMIm++)
+               {
+                     for (std::list<cOneMesureAF1I>::const_iterator itMp=itMIm->OneMesureAF1I().begin();itMp!=itMIm->OneMesureAF1I().end();itMp++)
+                     {
+                         aNbMesIm += (itMp->NamePt()==itDAF->NamePt());
+                     }
+               }
+
+
+
+               Pt3dr anI = itDAF->Incertitude();
+               if (  ((anI.x>0) || (anI.y>0) || (anI.z>0)) && (aNbMesIm>=2) && (itDAF->UseForRTA().Val()))
+               {
+                  itDAF->Incertitude() = Pt3dr(-1,-1,-1);
+                  MakeFileXML(aDAF,mDir+aTmpDAF);
+                  
+                  int aResult = System(aCom.c_str());
+                  if (aResult != EXIT_SUCCESS) 
+                  {
+                     return aResult;
+                  }
+
+                  std::string aName = mDir + "Ori-" + AeroOut + "/Residus.dmp";
+                  cXmlSauvExportAperoGlob aEG = StdGetFromAp(aName,XmlSauvExportAperoGlob);
+                  const cXmlSauvExportAperoOneIter &  anIt = aEG.Iters().back();
+                  const cXmlSauvExportAperoOneAppuis * TheApp=0;
+
+                  for (std::list<cXmlSauvExportAperoOneAppuis>::const_iterator itAp=anIt.OneAppui().begin() ; itAp!=anIt.OneAppui().end() ; itAp++)
+                  {
+                       if (itAp->Name() == itDAF->NamePt())
+                       {
+                           ELISE_ASSERT(TheApp==0,"Multiple name in XmlSauvExportAperoOneAppuis");
+                           TheApp = & (*itAp);
+                       }
+                  }
+                  ELISE_ASSERT(TheApp!=0,"No name in XmlSauvExportAperoOneAppuis");
+
+                  // cXmlSauvExportAperoGlob =  
+                  // std::cout << "PT=" << TheApp->Name() << "\n"; std::cout << " " << TheApp->EcartFaiscTerrain().Val() << "\n"; getchar();
+
+                  aResRTA.OneAppui().push_back(*TheApp);
+
+                  if (TheApp->DistFaiscTerrain().IsInit())
+                  {
+                       aSomDist += TheApp->DistFaiscTerrain().Val();
+                       aNbist++;
+                       aResRTA.MoyErr() = aSomDist / aNbist;
+                  }
+
+                  itDAF->Incertitude() = anI;
+               }
+               MakeFileXML(aResGlobRTA,mNameRTA);
+         }
+         if (aResGlobRTA.BestMoyErr() > aResRTA.MoyErr())
+         {
+              aResGlobRTA.BestMoyErr() = aResRTA.MoyErr();
+              aResGlobRTA.BestMult() =  aMul;
+         }
+         MakeFileXML(aResGlobRTA,mNameRTA);
+
+         // std::cout << "GPPPPP " << aBuf << "\n";
+    }
+    MakeFileXML(aResGlobRTA,mNameRTA);
+
+    return EXIT_SUCCESS;
+}
+
+int Campari_main(int argc,char ** argv)
+{
+    cAppli_Campari anAppli(argc,argv);
+
+     if (anAppli.mExe || MMVisualMode)
+        return anAppli.mResult;
+
+    return anAppli.RTA();
+}
 
 int AperoProg_main(int argc,char ** argv)
 {

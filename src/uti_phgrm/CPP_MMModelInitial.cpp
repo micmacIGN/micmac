@@ -732,10 +732,11 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    {
 
        std::string aDirMatch  = Dir() + "Masq-TieP-" + mNameIm  + "/";
-       ELISE_fp::PurgeDir(Dir()+aDirMatch,true);
+       ELISE_fp::PurgeDir(aDirMatch,true);
+
        if (mGlob)
        {
-           ELISE_fp::PurgeDir(Dir()+mDirMergeCurIm,true);
+           ELISE_fp::PurgeDir(mDirMergeCurIm,true);
        }
        else
        {

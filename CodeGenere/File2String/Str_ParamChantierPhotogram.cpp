@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1798]) = {
+const char * (theNameVar_ParamChantierPhotogram[1799]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -535,6 +535,7 @@ const char * (theNameVar_ParamChantierPhotogram[1798]) = {
 "           <Pt Nb=\"1\" Type=\"Pt3dr\"> </Pt>\n",
 "           <NamePt Nb=\"1\" Type=\"std::string\"> </NamePt>\n",
 "           <Incertitude Nb=\"1\"  Type=\"Pt3dr\"> </Incertitude>\n",
+"           <UseForRTA Nb=\"?\" Type=\"bool\" Def=\"true\"> </UseForRTA>\n",
 "       </OneAppuisDAF>\n",
 "   </DicoAppuisFlottant>\n",
 "\n",

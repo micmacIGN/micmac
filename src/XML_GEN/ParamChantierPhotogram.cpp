@@ -5297,11 +5297,30 @@ const Pt3dr & cOneAppuisDAF::Incertitude()const
    return mIncertitude;
 }
 
+
+cTplValGesInit< bool > & cOneAppuisDAF::UseForRTA()
+{
+   return mUseForRTA;
+}
+
+const cTplValGesInit< bool > & cOneAppuisDAF::UseForRTA()const 
+{
+   return mUseForRTA;
+}
+
 void  BinaryUnDumpFromFile(cOneAppuisDAF & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Pt(),aFp);
     BinaryUnDumpFromFile(anObj.NamePt(),aFp);
     BinaryUnDumpFromFile(anObj.Incertitude(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.UseForRTA().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.UseForRTA().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.UseForRTA().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cOneAppuisDAF & anObj)
@@ -5309,6 +5328,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOneAppuisDAF & anObj)
     BinaryDumpInFile(aFp,anObj.Pt());
     BinaryDumpInFile(aFp,anObj.NamePt());
     BinaryDumpInFile(aFp,anObj.Incertitude());
+    BinaryDumpInFile(aFp,anObj.UseForRTA().IsInit());
+    if (anObj.UseForRTA().IsInit()) BinaryDumpInFile(aFp,anObj.UseForRTA().Val());
 }
 
 cElXMLTree * ToXMLTree(const cOneAppuisDAF & anObj)
@@ -5318,6 +5339,8 @@ cElXMLTree * ToXMLTree(const cOneAppuisDAF & anObj)
    aRes->AddFils(ToXMLTree(std::string("Pt"),anObj.Pt())->ReTagThis("Pt"));
    aRes->AddFils(::ToXMLTree(std::string("NamePt"),anObj.NamePt())->ReTagThis("NamePt"));
    aRes->AddFils(ToXMLTree(std::string("Incertitude"),anObj.Incertitude())->ReTagThis("Incertitude"));
+   if (anObj.UseForRTA().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UseForRTA"),anObj.UseForRTA().Val())->ReTagThis("UseForRTA"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -5333,9 +5356,11 @@ void xml_init(cOneAppuisDAF & anObj,cElXMLTree * aTree)
    xml_init(anObj.NamePt(),aTree->Get("NamePt",1)); //tototo 
 
    xml_init(anObj.Incertitude(),aTree->Get("Incertitude",1)); //tototo 
+
+   xml_init(anObj.UseForRTA(),aTree->Get("UseForRTA",1),bool(true)); //tototo 
 }
 
-std::string  Mangling( cOneAppuisDAF *) {return "06493DEE7D35A8B9FF3F";};
+std::string  Mangling( cOneAppuisDAF *) {return "B6347A05E335B2BFFD3F";};
 
 
 std::list< cOneAppuisDAF > & cDicoAppuisFlottant::OneAppuisDAF()
@@ -5394,7 +5419,7 @@ void xml_init(cDicoAppuisFlottant & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneAppuisDAF(),aTree->GetAll("OneAppuisDAF",false,1));
 }
 
-std::string  Mangling( cDicoAppuisFlottant *) {return "6C6FB1C43C4A1DABFC3F";};
+std::string  Mangling( cDicoAppuisFlottant *) {return "19E38C257C947DA2FE3F";};
 
 
 std::string & cOneModifIPF::KeyName()

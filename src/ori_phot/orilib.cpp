@@ -4488,7 +4488,15 @@ CamStenope * CamOrientGenFromFile(const std::string & aNameFile, cInterfChantier
    if ( isUsingSeparateDirectories() )
       aFullFileName = MMOutputDirectory()+aNameFile;
    else
+   {
+      std::string aName0 = aNameFile;
       aFullFileName = (anICNM ? anICNM->Dir() : "") + aNameFile;
+      if ( (!ELISE_fp::exist_file(aFullFileName)) && (ELISE_fp::exist_file(aName0)))
+      {
+         aFullFileName = aName0;
+      }
+   }
+
 
     cElXMLTree aTree(aFullFileName);
     cElXMLTree * aF1 = aTree.Get("CalibrationInternConique");

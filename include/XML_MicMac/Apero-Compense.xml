@@ -82,7 +82,7 @@
            <eSymb> DR2Free= SupEq ${DRMax} 2 </eSymb>
            <eSymb> DR3Free= SupEq ${DRMax} 3 </eSymb>
 
-            <Symb> AcceptGB=true </Symb>
+           <Symb> AcceptGB=true </Symb>
 
 
        </DicoLoc>
@@ -258,8 +258,9 @@
 
                        </SectionContraintes>
 			<#WHEN VTEST=${PoseFigee}>
-			<Messages>  External orientations of the cameras are frozen </Messages>
-			</#WHEN>
+			     <Messages>  External orientations of the cameras are frozen </Messages>
+		        </#WHEN>
+
 
                    </IterationsCompensation>
 
@@ -459,7 +460,7 @@
                                      <KeyIsName> false </KeyIsName>
                                 </ExportCalib>
                             </#WHEN>
-                             <ExportResiduXml> Ori${AeroOut}/Residus.xml </ExportResiduXml>
+                            <ExportResiduXml> Ori${AeroOut}/Residus.xml </ExportResiduXml>
 
                     </SectionExport>
 	      </EtapeCompensation>

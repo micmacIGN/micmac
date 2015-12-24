@@ -387,7 +387,7 @@ std::string  cASAMG::ExportMiseAuPoint()
     std::string aComPly =  MM3dBinFile("Nuage2Ply") + "  " + aNameXML;
     if (mAppli->DoPlyCoul())
     {
-       aComPly = aComPly + " Attr=" + mIma->mNameIm + " RatioAttrCarte=" + ToString(mStdN->Params().SsResolRef().Val());
+       aComPly = aComPly + " "+QUOTE("Attr=" + mAppli->Dir()+mIma->mNameIm) + " RatioAttrCarte=" + ToString(mStdN->Params().SsResolRef().Val());
     }
 
 

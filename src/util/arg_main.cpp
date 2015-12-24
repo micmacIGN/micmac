@@ -105,9 +105,10 @@ void OpenFileDebug(const std::string & aName)
 
 std::string TheStringMemoArgOptGlob = "";
 
-static const int TheNbKeyACM=5;
+static const int TheNbKeyACM=6;
 int TheNbProcCom = -1;
-const char *  TheKeyACM[TheNbKeyACM] ={"ExitOnBrkp","ExitOnNan","MajickFile","EnBoucle","NbMaxProc"};
+std::string TheSpecMess="";
+const char *  TheKeyACM[TheNbKeyACM] ={"ExitOnBrkp","ExitOnNan","MajickFile","EnBoucle","NbMaxProc","SpecMessage"};
 
 void AnalyseContextCom(int argc,char ** argv)
 {
@@ -149,6 +150,11 @@ void AnalyseContextCom(int argc,char ** argv)
            {
                bool Ok=FromString(TheNbProcCom,aAfterEq);
                ELISE_ASSERT(Ok,"Cannot read value in @NbProc");
+               ForAction = true;
+           }
+           else if (aBeforEq==TheKeyACM[5])
+           {
+               TheSpecMess= aAfterEq;
                ForAction = true;
            }
 /*

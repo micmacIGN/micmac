@@ -1092,6 +1092,8 @@ void cCalibCam::AddViscosite(const std::vector<double> & aTol)
     mPIF.AddRapViscosite(aTol[0]);
 }
 
+extern std::string TheSpecMess;
+
 cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,const cCalibrationCameraInc & aCCI,cPoseCam * aPC)
 {
     cCalibrationInternConique aCIC;
@@ -1105,6 +1107,8 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
     }
 
 
+    // bool Test= TheSpecMess=="PbMehdi";
+
     if ((!Done) && (aCCI.CalFromFileExtern().IsInit()))
     {
 
@@ -1113,6 +1117,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
             aDirAdd = MMOutputDirectory() + aDirAdd;
         else if (aCCI.AddDirCur().Val())
             aDirAdd = anAppli.DC() + aDirAdd;
+
 
         cSpecExtractFromFile aSEF = aCCI.CalFromFileExtern().Val();
         if (aPC)
@@ -1134,7 +1139,16 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
         aTestFullName = aFullName;
 
 
-        if (ELISE_fp::exist_file(aFullName))
+        bool IsExistFile = ELISE_fp::exist_file(aFullName);
+
+
+        if ((!IsExistFile) && ELISE_fp::exist_file(aDirAdd + aFullName))
+        {
+              aFullName = aDirAdd + aFullName;
+              IsExistFile = true;
+        }
+
+        if (IsExistFile)
         {
             aCIC = StdGetObjFromFile<cCalibrationInternConique>
 	           (
@@ -1154,6 +1168,8 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
               }
          }
     }
+
+
 
     if ((!Done) && (aCCI.CalibFromMmBD().Val()))
     {
@@ -1179,6 +1195,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
         }
         // std::string aName = StdNameGeomCalib();
     }
+
 
     if ((!Done) && (aCCI.CalibAutomNoDist().IsInit()))
     {
@@ -1222,6 +1239,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
         // aCCI.
     }
 
+
     if (!Done)
     {
        if (aPC) std::cout << "For name = " << aPC->Name() << "\n";
@@ -1252,6 +1270,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
 
     cCalibDistortion  aCD = aCIC.CalibDistortion().back();
     AdaptDist2PPaEqPPs(aCD);
+
 
     if (aCD.ModRad().IsInit())
     {

@@ -56,9 +56,13 @@ void cAppliApero::AddStatCam(cGenPoseCam * aCam,double aRes,double aPerc)
    }
 }
 
-cXmlSauvExportAperoOneIter & cAppliApero::CurXmlE()
+cXmlSauvExportAperoOneIter & cAppliApero::CurXmlE(bool SVP)
 {
-    ELISE_ASSERT(!mXMLExport.Iters().empty(),"cAppliApero::CurXmlE");
+    if (mXMLExport.Iters().empty())
+    {
+        ELISE_ASSERT(SVP,"cAppliApero::CurXmlE");
+       mXMLExport.Iters().push_back(cXmlSauvExportAperoOneIter());
+    }
     return mXMLExport.Iters().back();
 }
 
@@ -816,7 +820,7 @@ void cAppliApero::DoContraintesAndCompens
       return;
    }
 
-  std::cout << "-------------  MESURE ERREUR EXTRAPOLATION  ------------------------\n";
+  std::cout << "-------------  MESURE ERREUR EXTRAPOLATION  ------------------------\n"; 
 
   const cMesureErreurTournante & aMET = anIter.MesureErreurTournante().Val();
   int aNbPer = aMET.NbTest().ValWithDef(aMET.Periode()) ;

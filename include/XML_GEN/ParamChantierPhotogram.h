@@ -1820,10 +1820,14 @@ class cOneAppuisDAF
 
         Pt3dr & Incertitude();
         const Pt3dr & Incertitude()const ;
+
+        cTplValGesInit< bool > & UseForRTA();
+        const cTplValGesInit< bool > & UseForRTA()const ;
     private:
         Pt3dr mPt;
         std::string mNamePt;
         Pt3dr mIncertitude;
+        cTplValGesInit< bool > mUseForRTA;
 };
 cElXMLTree * ToXMLTree(const cOneAppuisDAF &);
 

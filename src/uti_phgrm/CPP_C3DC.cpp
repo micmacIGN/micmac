@@ -225,7 +225,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    if (EAMIsInit(&mDefCor)) mArgSupEpip +=  " DefCor=" + ToString(mDefCor);
    if (EAMIsInit(&mZReg)) mArgSupEpip +=  " ZReg=" + ToString(mZReg);
    if (EAMIsInit(&mExpTxt)) mArgSupEpip +=  " ExpTxt=" + ToString(mExpTxt);
-   if (! EAMIsInit(&mMergeOut)) mMergeOut = "C3DC_"+ mStrType + ".ply";
+   if (! EAMIsInit(&mMergeOut)) mMergeOut = mEASF.mDir+"C3DC_"+ mStrType + ".ply";
 
    mStrImOri0  =  BLANK + QUOTE(mEASF.mFullName) +  BLANK + Ori() + BLANK;
    mStrImOriApSec = BLANK +  DirAndPatFileMMByP() +  BLANK + Ori() + BLANK;

@@ -137,6 +137,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
         //  std::string aNameNuXml = NameFileInput(true,anIma,".xml");
         std::string aNameNuXml = mMMIN->NameFileXml(eTMIN_Depth,aNameIm);
         // Possible aucun nuage si peu de voisins et mauvaise config epip
+
         if (ELISE_fp::exist_file(aNameNuXml))
         {
              // std::string aNM = NameFileInput(true,anIma,"_Masq.tif");
