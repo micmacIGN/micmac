@@ -110,6 +110,7 @@ class cNewAppli_GenTripletOfCple
            std::string mN2;
            std::string mDir;
            bool        mQuick;
+           std::string mPrefHom;
            std::string mNameOriCalib;
 
 
@@ -259,7 +260,8 @@ int cNewAppli_GenTripletOfCple::ToIndexVP1(const Pt2df &  aP0) const
 
 cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple(int argc,char ** argv) :
     mDir        ("./"),
-    mQuick      (true)
+    mQuick      (true),
+    mPrefHom    ("")
 {
    ElInitArgMain
    (
@@ -269,6 +271,7 @@ cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple(int argc,char ** argv) :
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(mDir,"Dir",true,"Directory, Def=./ ",eSAM_IsDir)
                    << EAM(mQuick,"Quick",true,"Quick version")
+                   << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
 
    );
 
@@ -278,7 +281,7 @@ cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple(int argc,char ** argv) :
    }
 
 
-   mNM = new cNewO_NameManager(mQuick,mDir,mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mPrefHom,mQuick,mDir,mNameOriCalib,"dat");
 
    mI1 = new cNewO_OneIm(*mNM,mN1);
    mI2 = new cNewO_OneIm(*mNM,mN2);

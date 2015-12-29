@@ -66,6 +66,12 @@ class cSolBasculeRig
            double aLambda                  // mL
        );
 
+       static cSolBasculeRig SBRFromElems( const Pt3dr & aTr,const ElMatrix<double> & aRot,const double & aLambda );
+       cSolBasculeRig Inv() const;
+       // VR1 et VR2 sont des orientation de Camera, sens Cam-> Monde, sans outlier
+       // renvoie une solution type LSQ M2->M1
+       static cSolBasculeRig SolM2ToM1(const std::vector<ElRotation3D> & aVR1, const std::vector<ElRotation3D> & aVR2);
+
 
        Pt3dr operator()(const Pt3dr &) const;  // mTr + mMatR * aP * mL
        static cSolBasculeRig  Id();

@@ -105,7 +105,18 @@ class cAppliMorito
         std::string       mDir;
         std::string       mDirOutLoc;
         std::string       mDirOutGlob;
+
+        std::vector<ElRotation3D> mVR1;
+        std::vector<ElRotation3D> mVR2;
 };
+
+cSolBasculeRig  BascFromVRot
+                (
+                     const std::vector<ElRotation3D> & aVR1 ,
+                     const std::vector<ElRotation3D> & aVR2,
+                     std::vector<Pt3dr> &              aVP1,
+                     std::vector<Pt3dr> &              aVP2
+                );
 
 // =============  cOriMorito   ===================================
 
@@ -175,13 +186,21 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
          if (itO->second.mCam1 && itO->second.mCam2)
          {
              mVDpl.push_back(&(itO->second));
+             mVR1.push_back(mVDpl.back()->mCam1->Orient().inv());
+             mVR2.push_back(mVDpl.back()->mCam2->Orient().inv());
          }
     }
     ELISE_ASSERT(mVDpl.size()>=2,"Not Enough common orientation in Morito");
 
+    cSolBasculeRig  aSol =  BascFromVRot(mVR1,mVR2,mVP1,mVP2);
+    mSc2to1 =  aSol.Lambda();
+    mTr2to1 = aSol.Tr();
+    mRM2toM1 = aSol.Rot();
+/*
+*/
 
-    InitRotM2toM1();
-    InitScTr2to1();
+    // InitRotM2toM1();
+    // InitScTr2to1();
     ComputNewRot2();
     Sauv();
 }
@@ -200,9 +219,30 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
 
 */
 
+ElMatrix<double>  RotM2toM1(const std::vector<ElRotation3D> & aVR1 ,const std::vector<ElRotation3D> & aVR2)
+{
+   ElMatrix<double>  aRes(3,3,0.0);
+   //  Cam -> Monde
+   for (int aK = 0 ; aK<int(aVR1.size()) ; aK++)
+   {
+       ElRotation3D aLocM2toM1 =  aVR1[aK] * aVR2[aK].inv();
+       aRes  = aRes + aLocM2toM1.Mat();
+
+       //~ if (mShow>=2)
+       //~ {
+          //~ std::cout << "TETA : " << aLocM2toM1.teta01() << " "
+                                 //~ << aLocM2toM1.teta02() << " "
+                                 //~ << aLocM2toM1.teta12()  << "\n";
+       //~ }
+   }
+   aRes = aRes * (1.0/double(aVR1.size()));
+   return NearestRotation(aRes);
+}
+
 void cAppliMorito::InitRotM2toM1()
 {
    // Monde -> Cam
+/*
    for (int aK = 0 ; aK<int(mVDpl.size()) ; aK++)
    {
        ElRotation3D aRM1toCam =  mVDpl[aK]->mCam1->Orient();
@@ -220,10 +260,77 @@ void cAppliMorito::InitRotM2toM1()
    }
    mRM2toM1 = mRM2toM1 * (1.0/double(mVDpl.size()));
    mRM2toM1  = NearestRotation(mRM2toM1);
+
+    
+   ElMatrix<double>   aSol2 = RotM2toM1(mVR1,mVR2);
+   // std::cout << "cAppliMorito::InitRotM2toM1 " << aSol2.L2(mRM2toM1)  << " " << aSol2.L2() << " " <<  aSol2.L2(ElMatrix<double>(3,true)) << "\n"; getchar();
+*/
+    mRM2toM1 =  RotM2toM1(mVR1,mVR2);
 }
+
+void  ScTr2to1
+      (
+             const std::vector<ElRotation3D> & aVR1 ,
+             const std::vector<ElRotation3D> & aVR2,
+             std::vector<Pt3dr> &              aVP1,
+             std::vector<Pt3dr> &              aVP2,
+             const ElMatrix<double> &          aRM2toM1 ,
+             double &                          aSc2to1,
+             Pt3dr &                           aTr2to1
+      )
+{
+   aVP1.clear();
+   aVP2.clear();
+   Pt3dr aCdg1(0,0,0);
+   Pt3dr aCdg2(0,0,0);
+   for (int aK = 0 ; aK<int(aVR1.size()) ; aK++)
+   {
+       Pt3dr aP1 =  aVR1[aK].ImAff(Pt3dr(0,0,0));
+       Pt3dr aP2 =  aRM2toM1 * aVR2[aK].ImAff(Pt3dr(0,0,0));
+
+       aVP1.push_back(aP1);
+       aVP2.push_back(aP2);
+
+       aCdg1 = aCdg1 + aP1;
+       aCdg2 = aCdg2 + aP2;
+   }
+
+   aCdg1  = aCdg1 / double(aVR1.size());
+   aCdg2  = aCdg2 / double(aVR1.size());
+
+   double aSomD1 = 0;
+   double aSomD2 = 0;
+
+   for (int aK = 0 ; aK<int(aVR1.size()) ; aK++)
+   {
+       double aD1 = euclid(aVP1[aK]-aCdg1);
+       double aD2 = euclid(aVP2[aK]-aCdg2);
+       //~ if (mShow>=2)
+       //~ {
+           //~ std::cout << "Ratio = " << aD1 / aD2 << " D1 " << aD1 << "\n";
+       //~ }
+
+       aSomD1 += aD1;
+       aSomD2 += aD2;
+   }
+   aSomD1 /= aVR1.size();
+   aSomD2 /= aVR1.size();
+
+   aSc2to1 = aSomD1 / aSomD2;
+   //~ if (mShow>=2)
+   //~ {
+      //~ std::cout << "RGLOB " << mSc2to1 << "\n";
+      //~ std::cout << "RRGLOBBBb = " << aSomD1 << " " << aSomD2 << "\n";
+   //~ }
+   aTr2to1 = aCdg1  - aCdg2 * aSc2to1;
+}
+
+
+
 
 void cAppliMorito::InitScTr2to1()
 {
+/*
    Pt3dr aCdg1(0,0,0);
    Pt3dr aCdg2(0,0,0);
    for (int aK = 0 ; aK<int(mVDpl.size()) ; aK++)
@@ -266,11 +373,73 @@ void cAppliMorito::InitScTr2to1()
       //~ std::cout << "RRGLOBBBb = " << aSomD1 << " " << aSomD2 << "\n";
    //~ }
    mTr2to1 = aCdg1  - aCdg2 * mSc2to1;
+
+   
+   double aSc2to1; Pt3dr aTr2to1;
+   ScTr2to1
+   (
+       mVR1,mVR2,
+       mVP1,mVP2,
+       mRM2toM1, aSc2to1,aTr2to1
+   );
+*/
+
+   ScTr2to1
+   (
+       mVR1,mVR2,
+       mVP1,mVP2,
+       mRM2toM1, mSc2to1,mTr2to1
+   );
+
 }
+
+
+cSolBasculeRig  BascFromVRot
+                (
+                     const std::vector<ElRotation3D> & aVR1 ,
+                     const std::vector<ElRotation3D> & aVR2,
+                     std::vector<Pt3dr> &              aVP1,
+                     std::vector<Pt3dr> &              aVP2
+                )
+{
+   ElMatrix<double>  aRM2toM1 = RotM2toM1(aVR1,aVR2);
+
+   double aSc2to1;
+   Pt3dr  aTr2to1;
+   ScTr2to1
+   (
+       aVR1,aVR2,
+       aVP1,aVP2,
+       aRM2toM1, aSc2to1,aTr2to1
+   );
+   return cSolBasculeRig::SBRFromElems(aTr2to1,aRM2toM1,aSc2to1);
+}
+
+cSolBasculeRig cSolBasculeRig::SolM2ToM1(const std::vector<ElRotation3D> & aVR1, const std::vector<ElRotation3D> & aVR2)
+{
+     std::vector<Pt3dr> aVP1,aVP2;
+
+     return BascFromVRot(aVR1,aVR2,aVP1,aVP2);
+}
+
 
 
 void cAppliMorito::ComputNewRot2()
 {
+
+/*
+    {
+       std::vector<Pt3dr> aVP1,aVP2;
+       cSolBasculeRig aSol = BascFromVRot(mVR1,mVR2,aVP1,aVP2);
+
+       std::cout<< "cAppliMorito::ComputNewRot2cAppliMorito::ComputNewRot2cAppliMorito::ComputNewRot2\n";
+       std::cout << mSc2to1  << " " << aSol.Lambda() << "\n";
+       std::cout << mTr2to1  << " " << aSol.Tr() << "\n";
+       std::cout << mRM2toM1.L2(aSol.Rot());
+
+       getchar();
+    }
+*/
 
     //   (P1-Cd1) = (P2- Cdg2) *aRatio
     //  aTr + aP2 * aRatio
@@ -291,6 +460,10 @@ void cAppliMorito::ComputNewRot2()
        std::cout << "RESIDU R= " << aDifM.L2() << " " << euclid(aDifP) << "\n";
    }
 
+
+   double aMaxDP=-1;
+   std::string  aCamMaxDP = "";
+   
    for
    (
       std::map<std::string,cOriMorito>::iterator itO=mOrients.begin();
@@ -327,9 +500,16 @@ void cAppliMorito::ComputNewRot2()
                 double aDMatr = aDifM.L2();
                 double aDistP = euclid(aCam2->PseudoOpticalCenter()-aCam1->PseudoOpticalCenter());
                 std::cout << itO->second.mName << " DMatr "  << sqrt(aDMatr) << " DPt " << aDistP << "\n";
+                if (aDistP>aMaxDP)
+                {
+                   aCamMaxDP = itO->second.mName;
+                   aMaxDP = aDistP;
+                }
             }
         }
    }
+   if (aMaxDP>=0)
+      std::cout << "Max DPt for " << aCamMaxDP << " D=" << aMaxDP << "\n";
 }
 
 void cAppliMorito::SauvCalib(const std::string & anOri)

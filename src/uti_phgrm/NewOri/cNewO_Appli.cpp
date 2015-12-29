@@ -52,6 +52,7 @@ class cAppli_Martini
           std::string mPat;
           bool        mExe;
           bool        mQuick;
+          std::string mPrefHom;
           ElTimer     aChrono;
 };
 
@@ -62,6 +63,8 @@ void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
     aFullCom += " Quick=" + ToString(mQuick);
 
     aFullCom = aFullCom + aPost;
+
+    aFullCom = aFullCom + " PrefHom=" + mPrefHom;
 
 
     if (mExe)
@@ -115,8 +118,9 @@ void cAppli_Martini::DoAll()
 
 
 cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
-    mExe   (true),
-    mQuick (Quick)
+    mExe     (true),
+    mQuick   (Quick),
+    mPrefHom ("")
 {
    ElInitArgMain
    (
@@ -124,6 +128,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
         LArgMain() << EAMC(mPat,"Image Pat", eSAM_IsPatFile),
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(mExe,"Exe",true,"Execute commands, def=true (if false, only print)")
+                   << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes 
                    // << EAM(mQuick,"Quick",true,"Quick version")
    );
 
@@ -132,7 +137,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
     cElemAppliSetFile anEASF(mPat);
     StdCorrecNameOrient(mNameOriCalib,anEASF.mDir);
 
-    cNewO_NameManager aNM(mQuick,anEASF.mDir,mNameOriCalib,"dat");
+    cNewO_NameManager aNM(mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,"dat");
     const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
     for (int aK=0 ; aK<int(aVIm->size()) ; aK++)
     {
