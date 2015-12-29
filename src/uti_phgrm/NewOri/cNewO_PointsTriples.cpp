@@ -231,6 +231,7 @@ class cAppli_GenPTripleOneImage
            std::vector<std::vector<Pt2df> >  mVP1;
            std::vector<std::vector<Pt2df> >  mVP2;
            bool                              mQuick;
+           std::string                       mPrefHom;
            bool                              mSkWhenExist;
 };
 
@@ -245,6 +246,7 @@ static cCmpPtrIOnName TheCmpPtrIOnName;
 cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
     mSeuilNbArc  (1),  // Change car : existe des cas a forte assymetrie + 2 genere des plantage lorsque + de triplets que de couples
     mQuick       (false),
+    mPrefHom     (""),
     mSkWhenExist (true)
 {
    ElInitArgMain
@@ -254,12 +256,14 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
         LArgMain() << EAM(mOriCalib,"OriCalib",true,"Calibration directory", eSAM_IsExistDirOri)
                    << EAM(mQuick,"Quick",true,"Quick version", eSAM_IsBool)
                    << EAM(mSkWhenExist,"SWE",true,"Skip when file alreay exist (Def=true, tuning purpose)", eSAM_IsBool)
+                   << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+
    );
 
    if (MMVisualMode) return;
 
    SplitDirAndFile(mDir,mName,mFullName);
-   mNM  = new cNewO_NameManager(mQuick,mDir,mOriCalib,"dat");
+   mNM  = new cNewO_NameManager(mPrefHom,mQuick,mDir,mOriCalib,"dat");
    mDir3P = mNM->Dir3P(false);
    ELISE_ASSERT(ELISE_fp::IsDirectory(mDir3P),"Dir point triple");
 
@@ -553,6 +557,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
    std::string aFullName,anOriCalib;
    bool aQuick;
    bool aSkWhenExist;
+   std::string aPrefHom="";
    ElInitArgMain
    (
         argc,argv,
@@ -560,6 +565,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
         LArgMain() << EAM(anOriCalib,"OriCalib",true,"Calibration directory ")
                    << EAM(aQuick,"Quick",true,"Quick version")
                    << EAM(aSkWhenExist,"SWE",true,"Skip when file alreay exist (Def=true, tuning purpose)", eSAM_IsBool)
+                   << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
    );
 
    cElemAppliSetFile anEASF(aFullName);
@@ -568,7 +574,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
       MakeXmlXifInfo(aFullName,anEASF.mICNM);
    }
 
-   cNewO_NameManager aNM(aQuick,anEASF.mDir,anOriCalib,"dat");
+   cNewO_NameManager aNM(aPrefHom,aQuick,anEASF.mDir,anOriCalib,"dat");
    aNM.Dir3P(true);
    const cInterfChantierNameManipulateur::tSet * aSetIm = anEASF.SetIm();
 
@@ -582,6 +588,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
             if (EAMIsInit(&anOriCalib))  aCom = aCom + " OriCalib=" + anOriCalib;
             aCom += " Quick=" +ToString(aQuick);
             aCom += " SWE=" +ToString(aSkWhenExist);
+            aCom += " PrefHom=" +aPrefHom;
 
             //           std::cout << "COM= " << aCom << "\n";
             anEPbP.AddCom(aCom);

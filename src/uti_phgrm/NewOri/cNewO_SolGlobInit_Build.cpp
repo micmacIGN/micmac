@@ -293,7 +293,7 @@ if (SomSpec(aTri))
                << "\n";
      std::cout << "SD " << aSomDist << " " << anEcart << "\n";
      // if (BugNanNewOri) std::cout << "LLLLambda= " << aLambda << "\n";
-     getchar();
+     // getchar();
 }
 
      return aSomDist;
