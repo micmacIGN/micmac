@@ -2,6 +2,7 @@
 
 set(SAN_DIR "SAN")
 set(AMD_DIR "AMD")
+set(XERES_DIR "Xeres")
 set(HASSA_DIR "HassanArrangt")
 set(XINTER_DIR "xinterf")
 set(VECTO_DIR "vectorize")
@@ -48,6 +49,7 @@ set(UTI_ETAPOLY_DIR "EtalonnagePolygone")
 set(POISSON_DIR ${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/)
 
 INCLUDE (${AMD_DIR}/Sources.cmake)
+INCLUDE (${XERES_DIR}/Sources.cmake)
 INCLUDE (${HASSA_DIR}/Sources.cmake)
 INCLUDE (${SAN_DIR}/Sources.cmake)
 INCLUDE (${SIMULPH_DIR}/Sources.cmake)

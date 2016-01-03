@@ -299,6 +299,14 @@ inline REAL mod_real(REAL a,REAL b)
    return res;
 }
 
+inline REAL Centered_mod_real(REAL a,REAL b)
+{
+    REAL aRes = mod_real(a,b);
+    if (aRes > (b/2)) aRes -= b;
+    return aRes;
+}
+
+
 class cDecimal
 {
     public :

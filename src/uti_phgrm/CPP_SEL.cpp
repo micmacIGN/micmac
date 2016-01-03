@@ -115,6 +115,8 @@ int SEL_main(int argc,char ** argv)
     bool ModeEpip = false;
 
     std::string aKeyCompl="Cple2HomAp";
+
+    std::string SH="";
     ElInitArgMain
     (
            argc,argv,
@@ -128,6 +130,7 @@ int SEL_main(int argc,char ** argv)
                       << EAM(aKeyCompl,"KCpl",true)
                       << EAM(aSzW,"SzW",true)
                       << EAM(ModeEpip,"ModeEpip",true,"If mode epip, the y displacement are forced to 0")
+                      << EAM(SH,"SH",true,"Homologue extenion for NB/NT mode")
     );
 
     if (!MMVisualMode)
@@ -180,11 +183,11 @@ int SEL_main(int argc,char ** argv)
            }
            else if (aKeyH=="NB")
            {
-              aKeyCompl = "NKS-Assoc-CplIm2Hom@@dat";
+              aKeyCompl = "NKS-Assoc-CplIm2Hom@"+SH+"@dat";
            }
            else if (aKeyH=="NT")
            {
-              aKeyCompl = "NKS-Assoc-CplIm2Hom@@txt";
+              aKeyCompl = "NKS-Assoc-CplIm2Hom@"+SH+"@txt";
            }
            else if (aKeyH=="MMD")
            {

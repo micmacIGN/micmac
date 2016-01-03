@@ -10,14 +10,6 @@
                <Symb>  HasSinglePoseCalibEstim=false </Symb>
                <Symb>  PatSinglePose=XXXXX </Symb>
                <Symb>  PatSingleCalib=XXXXX </Symb>
-<!--
-
-               <Symb>  HasSinglePoseCalibEstim=true </Symb>
-               <Symb>  PatSinglePose=V1_MPD1.jpg</Symb>
-               <Symb>  PatSingleCalib=.*V1 </Symb>
--->
-               <eSymb> NotHasSinglePoseCalibEstim=! ${HasSinglePoseCalibEstim} </eSymb>
-
 
                <Symb>  TolLinkPPCD=0.2 </Symb> 
                <Symb>  SeuilFE=16.5 </Symb> 
@@ -31,9 +23,6 @@
                <Symb>  InitCamCenter=true </Symb>
 
 <!--
-               <Symb>  FocMin=0 </Symb>
-               <Symb>  FocMax=10000 </Symb>
-               <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
 -->
 
                <Symb>  SetImInit="XXXX" </Symb>
@@ -61,7 +50,7 @@
                
                <Symb> FrozeCalibInit=true </Symb>
 
-               <Symb>   FastSet=Or ${HasSinglePoseCalibEstim}  ${Fast} </Symb>
+               <Symb>   Fast=false </Symb>
                <Symb>   AutoCal=false </Symb>
                <Symb>   CalFigee=false </Symb>
 
@@ -108,19 +97,14 @@
 
                <eSymb> WithNoPoseFigee=! ${WithPoseFigee} </eSymb>
                <eSymb> IntrLVM1000=* 1000 ${IntrLVM} </eSymb>
-               <eSymb>  AffineAll=! ${FastSet}  </eSymb>
-               <eSymb>  NbMax0=? ${FastSet} 3 10  </eSymb>
+               <eSymb>  AffineAll=! ${Fast}  </eSymb>
+               <eSymb>  NbMax0=? ${Fast} 3 10  </eSymb>
 
 
                <!--      Relatif aux problemes de panoramiques -->
 
                 <Symb>  UsePano=false </Symb>
                 <Symb>  CondMaxPano=1e4 </Symb>
-
-                <Symb>  UseSpecialParam0=false </Symb>
-                <Symb>  UseSpecialParam1=false </Symb>
-                <Symb>  SpecialParam0=eLib_PP_CD_10 </Symb>
-                <Symb>  SpecialParam1=eLiberteFocale_1 </Symb>
 
 
        </DicoLoc>
@@ -391,36 +375,6 @@
                     </#WHEN>
 
 
-                    <!-- Liberer la focale qui est souvent assez fausse -->
-
-                    <#WHEN VTEST=${UseSpecialParam0}>
-                         <IterationsCompensation>
-
-                              <SectionContraintes>
-                                    <ContraintesCamerasInc>
-                                        <Val> ${SpecialParam0} </Val>
-                                        <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
-                                    </ContraintesCamerasInc>
-                              </SectionContraintes>
-                              <Messages>   Special param : ${SpecialParam0}  </Messages>
-                         </IterationsCompensation>
-                         <IterationsCompensation> </IterationsCompensation>
-                    </#WHEN>
-                    <#WHEN VTEST=${UseSpecialParam1}>
-                         <IterationsCompensation>
-
-                              <SectionContraintes>
-                                    <ContraintesCamerasInc>
-                                        <Val> ${SpecialParam1} </Val>
-                                        <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
-                                    </ContraintesCamerasInc>
-                              </SectionContraintes>
-                              <Messages>   Special param : ${SpecialParam1}  </Messages>
-                         </IterationsCompensation>
-                         <IterationsCompensation> </IterationsCompensation>
-                    </#WHEN>
-
-
                     <!-- D'abord 2 Coeff radiaux, car souvent focal instable -->
                     <#WHEN VTEST=${DoDR1}>
                          <IterationsCompensation>
@@ -483,9 +437,6 @@
                          </IterationsCompensation>
                          <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
-
-
-
 
                     <#WHEN VTEST=${DoDR3}>
                          <IterationsCompensation>
@@ -846,10 +797,7 @@
 
                     <SectionExport>
                             <ExportPose>
-                                <#IF VTEST=${HasSinglePoseCalibEstim}>
-                                    <PatternSel> ${PatSinglePose} </PatternSel>
-                                    <PatternSel> (.*) </PatternSel>
-                                </#IF>
+                                <PatternSel> (.*) </PatternSel>
                                 <KeyAssoc> NKS-Assoc-Im2Orient@${AeroOut} </KeyAssoc>
                                 <AddCalib>  true </AddCalib>
                                 <NbVerif>  10 </NbVerif>
@@ -857,16 +805,11 @@
                                 <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
                                 <FileExternIsKey> true </FileExternIsKey>
                             </ExportPose>
-                            <ExportCalib>
-                                 <#WHEN VTEST=${HasSinglePoseCalibEstim}>
-                                       <PatternSel> ${PatSingleCalib} </PatternSel>
-                                 </#WHEN>
+                             <ExportCalib>
                                  <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
                                  <KeyIsName> false </KeyIsName>
                             </ExportCalib>
-                            <#WHEN VTEST=${NotHasSinglePoseCalibEstim}>
-                                 <ExportResiduXml> Ori${AeroOut}/Residus.xml </ExportResiduXml>
-                            </#WHEN>
+                             <ExportResiduXml> Ori${AeroOut}/Residus.xml </ExportResiduXml>
                     </SectionExport>
 	      </EtapeCompensation>
 	</SectionCompensation>
