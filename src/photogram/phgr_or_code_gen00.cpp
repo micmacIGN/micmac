@@ -631,6 +631,125 @@ AddEntry("cEqAppui_PProjInc_M2C"#aDist,cEqAppui_PProjInc_M2C##aDist::Alloc);
 
 
 
+//   REGDIST 
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_CamBilin.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_CamBilin.h"
+#include "../../CodeGenere/photogram/cREgDistDx_CamBilin.h"
+#include "../../CodeGenere/photogram/cREgDistVal_CamBilin.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_DCBrown.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_DCBrown.h"
+#include "../../CodeGenere/photogram/cREgDistDx_DCBrown.h"
+#include "../../CodeGenere/photogram/cREgDistVal_DCBrown.h"
+
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_DRad5APFraser.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_DRad5APFraser.h"
+#include "../../CodeGenere/photogram/cREgDistDx_DRad5APFraser.h"
+#include "../../CodeGenere/photogram/cREgDistVal_DRad5APFraser.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_DRad5.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_DRad5.h"
+#include "../../CodeGenere/photogram/cREgDistDx_DRad5.h"
+#include "../../CodeGenere/photogram/cREgDistVal_DRad5.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_DRad_PPaEqPPs.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_DRad_PPaEqPPs.h"
+#include "../../CodeGenere/photogram/cREgDistDx_DRad_PPaEqPPs.h"
+#include "../../CodeGenere/photogram/cREgDistVal_DRad_PPaEqPPs.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Ebner.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Ebner.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Ebner.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Ebner.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_EquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_EquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cREgDistDx_EquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cREgDistVal_EquiSolid_FishEye_10_5_5.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cREgDistDx_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cREgDistVal_FishEye_10_5_5.h"
+
+
+   // Four
+#include "../../CodeGenere/photogram/cREgDistDxDy_Four11x2.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Four11x2.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Four11x2.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Four11x2.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Four15x2.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Four15x2.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Four15x2.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Four15x2.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Four19x2.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Four19x2.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Four19x2.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Four19x2.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Four7x2.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Four7x2.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Four7x2.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Four7x2.h"
+
+
+// ========
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Fraser_PPaEqPPs.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Fraser_PPaEqPPs.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Fraser_PPaEqPPs.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Fraser_PPaEqPPs.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_NoDist.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_NoDist.h"
+#include "../../CodeGenere/photogram/cREgDistDx_NoDist.h"
+#include "../../CodeGenere/photogram/cREgDistVal_NoDist.h"
+
+
+     //  =======  Polyn ==========
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Polyn2.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Polyn2.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Polyn2.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Polyn2.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Polyn3.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Polyn3.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Polyn3.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Polyn3.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Polyn4.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Polyn4.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Polyn4.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Polyn4.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Polyn5.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Polyn5.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Polyn5.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Polyn5.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Polyn6.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Polyn6.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Polyn6.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Polyn6.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Polyn7.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Polyn7.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Polyn7.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Polyn7.h"
+
+
+#define REGDIST_ADD_ENTRY(aDist)\
+AddEntry("cREgDistDxDy_"#aDist,cREgDistDxDy_##aDist::Alloc);\
+AddEntry("cREgDistDxx_"#aDist,cREgDistDxx_##aDist::Alloc);\
+AddEntry("cREgDistDx_"#aDist,cREgDistDx_##aDist::Alloc);\
+AddEntry("cREgDistVal_"#aDist,cREgDistVal_##aDist::Alloc);
+
+
 
 
 
@@ -640,6 +759,32 @@ void cElCompiledFonc::InitEntries()
      static bool First = true;
      if (! First)
 	return;
+
+      REGDIST_ADD_ENTRY(Ebner)
+      REGDIST_ADD_ENTRY(CamBilin)
+      REGDIST_ADD_ENTRY(DCBrown)
+      REGDIST_ADD_ENTRY(DRad5APFraser)
+      REGDIST_ADD_ENTRY(DRad5)
+      REGDIST_ADD_ENTRY(DRad_PPaEqPPs)
+      REGDIST_ADD_ENTRY(EquiSolid_FishEye_10_5_5)
+      REGDIST_ADD_ENTRY(FishEye_10_5_5)
+
+      REGDIST_ADD_ENTRY(Four7x2)
+      REGDIST_ADD_ENTRY(Four11x2)
+      REGDIST_ADD_ENTRY(Four15x2)
+      REGDIST_ADD_ENTRY(Four19x2)
+
+      REGDIST_ADD_ENTRY(Fraser_PPaEqPPs)
+      REGDIST_ADD_ENTRY(NoDist)
+
+      REGDIST_ADD_ENTRY(Polyn2)
+      REGDIST_ADD_ENTRY(Polyn3)
+      REGDIST_ADD_ENTRY(Polyn4)
+      REGDIST_ADD_ENTRY(Polyn5)
+      REGDIST_ADD_ENTRY(Polyn6)
+      REGDIST_ADD_ENTRY(Polyn7)
+
+
 
      First = false;
 

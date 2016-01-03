@@ -1089,6 +1089,13 @@ void cAppliApero::NormaliseScTr(CamStenope & aCam)
 
 void cCalibCam::AddViscosite(const std::vector<double> & aTol)
 {
+if (MPD_MM())
+{
+    mPIF.AddCstrRegulGlob(4,1e-8,1,1);
+  std::cout << "cCalibCam::AddViscositecCalibCam::AddViscosite\n";
+}
+
+
     mPIF.AddRapViscosite(aTol[0]);
 }
 
