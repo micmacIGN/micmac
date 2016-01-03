@@ -202,6 +202,12 @@ void cElemEqFormelle::CloseEEF(bool asIntervBlock)
       std::cout << asIntervBlock << " CLOSE-EEF " << mNumInc0 << " " << mNumIncN <<  " " << mIncInterv.Id() << "\n";
       getchar();
    }
+
+   Virtual_CloseEEF();
+}
+
+void  cElemEqFormelle::Virtual_CloseEEF()
+{
 }
 
 INT cElemEqFormelle::NbInc()

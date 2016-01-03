@@ -986,15 +986,18 @@ cCameraFormelle::cCameraFormelle
    mCameraCourante(NULL),
    mHasEqDroite   (HasEqDroite)
 {
-        for (int aKEqDr=0 ; aKEqDr<TheNbEqDr; aKEqDr++)
-        {
+   for (int aKEqDr=0 ; aKEqDr<TheNbEqDr; aKEqDr++)
+   {
             mEqAppuiDroite[aKEqDr] = 0;
-        }
+   }
 	// NO_WARN
-	mEqAppuiTerNoGL = new cEqAppui(true,false,false,true,CompEqAppui,*this,GenCodeAppui,false);
-	mEqAppuiTerGL	 = new cEqAppui(true,true ,false,true,CompEqAppui,*this,GenCodeAppui,false);
-	mCameraCourante	 = CalcCameraCourante();
+   mEqAppuiTerNoGL = new cEqAppui(true,false,false,true,CompEqAppui,*this,GenCodeAppui,false);
+   mEqAppuiTerGL	 = new cEqAppui(true,true ,false,true,CompEqAppui,*this,GenCodeAppui,false);
+   mCameraCourante	 = CalcCameraCourante();
+
 }
+
+
 
 cCameraFormelle::~cCameraFormelle(){
 	// we should delete mEqAppuiTerNoGL and mEqAppuiTerGL but it makes apero crash
