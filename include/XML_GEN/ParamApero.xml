@@ -319,6 +319,13 @@
 </ExportAsNewGrid>
 
 
+<XmlPondRegDist Nb="1"   Class="true" ToReference="true">
+       <Pds0 NB="1" Type="double"> </Pds0>  <!-- Valeur force a Id -->
+       <Pds1 NB="1" Type="double"> </Pds1>  <!-- Grad force a 1 -->
+       <Pds2 NB="1" Type="double"> </Pds2>  <!-- Derive seconde forcee a 0 -->
+</XmlPondRegDist>
+
+
    <ParamApero  Nb="1" Class="true">
 
 

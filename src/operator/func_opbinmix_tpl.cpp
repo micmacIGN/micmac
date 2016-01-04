@@ -122,7 +122,8 @@ void  Op_Bin_Not_Comp::compile (cElCompileFN & anEnv)
     if (mIsInfixe)
     {
          PutFoncPar(_f0,anEnv,mTGauche);
-	 anEnv << _name;
+	 // anEnv << _name;
+	 anEnv << " " <<  _name << " " ; // MPD Modif  sinon genere conflits  du genre -- 
 	 PutFoncPar(_f1,anEnv,mTDroite);
     }
     else

@@ -38,6 +38,8 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+bool TEST_NEW_REGUL_DIST = true;
+
 extern void GenCodeEqProjGen(int,bool GenCode,bool GenCodeAttach,bool GenCodeRot );
 void GenCodeEqProjGen()
 {
@@ -289,6 +291,7 @@ cParamIntrinsequeFormel * PIF_For_GC
 
 void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const std::string & aType,bool EqDroite)
 {
+        std::cout << "BEGIN-GEN-CODE " << aType << "\n";
 
         std::vector<double>  aPAF;
         if (isAFocal)
@@ -316,65 +319,82 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
 	   aCam->AddForUseFctrEqAppuisInc(true,false,wDist,EqDroite);
 	   aCam->AddForUseFctrEqAppuisInc(true,true,wDist,EqDroite);
 	}
+
+        if ((!C2M) && (!isFixe) && (! isGL) && (!EqDroite)  && (aType !="NoVar"))
+        {
+            aPIF->GenEqRegulDist();
+        }
 }
+
+
 
 void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite)
 {
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"BiLin",EqDroite);
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"NoVar",EqDroite);
+     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"NoVar",EqDroite);
+
+
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"BiLin",EqDroite);
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"BiLin",EqDroite);
-/*
+
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"DRad5",EqDroite);
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"DRad5",EqDroite);
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"DRad5",EqDroite);
 
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadPPaEqPPs",EqDroite);
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadPPaEqPPs",EqDroite);
-
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"NoVar",EqDroite);
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"NoVar",EqDroite);
-
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour7x2");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour7x2");
-
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour11x2");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour11x2");
-
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour15x2");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour15x2");
-
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour19x2");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour19x2");
-*/
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadPPaEqPPs",EqDroite);
 
 
-/*
-
-
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"NoVar");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"NoDist");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"PhgrStd");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Ebner");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"DCBrown");
-
-
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn2");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn3");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn4");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn5");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn6");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn7");
-*/
-
-/*
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"FishEye_10_5_5");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"EquiSolFishEye_10_5_5");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"EquiSolFishEye_10_5_5");
-*/
-
-    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadPPaEqPPs");
-    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"FraserPPaEqPPs");
-
-    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadPPaEqPPs");
+     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"FraserPPaEqPPs",EqDroite);
     // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"FraserPPaEqPPs");
+
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour7x2",EqDroite);
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour7x2");
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour11x2",EqDroite);
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour11x2");
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour15x2",EqDroite);
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour15x2");
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour19x2",EqDroite);
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour19x2");
+
+/*
+*/
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Ebner",EqDroite);
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"Ebner",EqDroite);
+
+
+
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"NoVar");
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"NoVar",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"NoDist",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"PhgrStd",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"DCBrown",EqDroite);
+
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn2",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn3",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn4",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn5",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn6",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn7",EqDroite);
+
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"FishEye_10_5_5",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"EquiSolFishEye_10_5_5",EqDroite);
+/*
+*/
+
+
+
+    // GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"EquiSolFishEye_10_5_5",EqDroite);
+/*
+*/
+
+
 
 }
 
@@ -387,10 +407,22 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite)
     // GenCodeAppui(false,false,true,false,true);
     // GenCodeAppui(false,false,false,false,true);
   // SANS AFOCAL SS EQ DROITE
-    GenCodeAppui(false,true,true,false,false);
-    GenCodeAppui(false,true,false,false,false);
-    GenCodeAppui(false,false,true,false,false);
-    GenCodeAppui(false,false,false,false,false);
+
+    if (! TEST_NEW_REGUL_DIST)
+    {
+       GenCodeAppui(false,true,true,false,false);
+       GenCodeAppui(false,false,true,false,false);
+       GenCodeAppui(false,true,false,false,false);
+    }
+    else
+    {
+       GenCodeAppui(false,false,false,false,false);
+       for (int aK=0 ; aK< 20 ; aK++)
+           std::cout << "WARRNNN  TEST_NEW_REGUL_DIST\n";
+    }
+
+
+
 /*
 */
 
@@ -663,7 +695,7 @@ void GenerateCodeEqRelativeGPS();
 
 int GenCode_main(int argc,char ** argv)
 {
-    GenCodeEqProjGen();
+    // GenCodeEqProjGen();
     
     // GenerateCodeEqRelativeGPS();
     // GenCodecEqBundleBase();
@@ -674,7 +706,7 @@ int GenCode_main(int argc,char ** argv)
     // GenerateCodeEqOffsetGPS();
     //  GenCodeOneEqHom();
     //  GenCodeEqHom();
-    // GenCodeAppui();
+     GenCodeAppui();
     // GenEqPlanInc();
     // GenDirecteDistorsion();
     //   GencqCalibCroisee();

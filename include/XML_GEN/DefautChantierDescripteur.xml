@@ -311,6 +311,19 @@
         <Key>   NKS-Assoc-SFS </Key>
     </KeyedNamesAssociations>
 
+    <!-- Cas des images devant etre tournee au devlpt -->
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  0 </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-DevlptAutoRot </Key>
+    </KeyedNamesAssociations>
+
+
 
     <KeyedNamesAssociations>
         <Calcs>
