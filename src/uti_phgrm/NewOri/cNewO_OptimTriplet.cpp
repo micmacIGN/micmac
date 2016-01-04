@@ -192,6 +192,7 @@ class cAppliOptimTriplet
           int              mNbMaxInit;
           bool             mShow;
           bool             mQuick;
+          std::string      mPrefHom;
           double           mPds3;
           double           mBestResidu;
           std::string      mN1,mN2,mN3;
@@ -500,6 +501,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
     // mNbMaxSel (StdDefNbMaxSel),
     mShow     (true),
     mQuick    (false),
+    mPrefHom   (""),
     mQuitExist (QuitExist),
     m3S        ("a","b","c"),
     mNoIm1     (0),
@@ -517,6 +519,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
                    << EAM(mNbMaxSel,"NbPts",true,"Nb of selected points")
                    << EAM(mShow,"Show",true,"Show Message")
                    << EAM(mQuick,"Quick",true,"Quick version")
+                   << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
    );
 
 
@@ -525,7 +528,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
    std::string aNameMin = (mN1<mN2) ? mN1 : mN2;
    std::string aNameMax = (mN1>mN2) ? mN1 : mN2;
 
-   mNM = new cNewO_NameManager(mQuick,mDir,mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mPrefHom,mQuick,mDir,mNameOriCalib,"dat");
    mNoIm1 = new cNewO_OneIm(*mNM,aNameMin);
    mNoIm2 = new cNewO_OneIm(*mNM,aNameMax);
 
@@ -782,6 +785,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    std::string aFullPat,aNameCalib;
    bool inParal=true;
    bool Quick = false;
+   std::string aPrefHom="";
    bool Debug  = false;
 
    ElInitArgMain
@@ -791,6 +795,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
         LArgMain() << EAM(aNameCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(inParal,"Paral",true,"Execute in parallel ", eSAM_IsBool)
                    << EAM(Quick,"Quick",true,"Quick version", eSAM_IsBool)
+                   << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
                    << EAM(Debug,"Debug",true,"Debugging mode (tuning purpose)", eSAM_IsBool)
     );
 
@@ -801,7 +806,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    std::set<std::string> aSetName(aVIm->begin(),aVIm->end());
    std::string aDir = anEASF.mDir;
 
-   cNewO_NameManager * aNM =  new cNewO_NameManager(Quick,aDir,aNameCalib,"dat");
+   cNewO_NameManager * aNM =  new cNewO_NameManager(aPrefHom,Quick,aDir,aNameCalib,"dat");
 
    cSauvegardeNamedRel aLCpl =  StdGetFromPCP(aNM->NameCpleOfTopoTriplet(true),SauvegardeNamedRel);
    std::list<std::string> aLCom;
@@ -822,6 +827,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
                aCom +=  " OriCalib=" + aNameCalib;
 
             aCom += " Quick=" + ToString(Quick);
+            aCom += " PrefHom=" + aPrefHom;
 
             if (inParal)
             {

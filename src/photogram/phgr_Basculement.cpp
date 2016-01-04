@@ -182,6 +182,19 @@ cSolBasculeRig::cSolBasculeRig
 {
 }
 
+cSolBasculeRig cSolBasculeRig::SBRFromElems(const Pt3dr & aTr,const ElMatrix<double> & aRot,const double & aLambda )
+{
+    return cSolBasculeRig(Pt3dr(0,0,0),aTr,aRot,aLambda);
+}
+
+
+cSolBasculeRig cSolBasculeRig::Inv() const
+{
+    ElMatrix<double> aMInv = mMatR.transpose();
+    return SBRFromElems(  -(aMInv*(mTr/mL)),aMInv,1/mL);
+}
+
+
 cSolBasculeRig  cSolBasculeRig::Id()
 {
    return cSolBasculeRig
@@ -192,6 +205,8 @@ cSolBasculeRig  cSolBasculeRig::Id()
               1.0
           );
 }
+
+
 
          //===========================
          //  cRansacBasculementRigide 

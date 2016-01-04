@@ -43,18 +43,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #define CstSeuilMedianArc 0.02
-#define MulSeuilMedianArc 2.0
+#define MulSeuilMedianArc 3.0
 #define PenalMedMed       2.0
 #define NbInitEvalRot     3
 
 
+class cNOSolIn_Triplet;  // Triplet +ou- ensembliste
 
-class cLinkTripl;
+class cLinkTripl;  //  Un cLinkTripl est un cNOSolIn_Triplet  ordonne, fait d'un cNOSolIn_Triplet + un permutation
+
+
+
 class cNOSolIn_AttrSom;
-class cNOSolIn_AttrASym;
+class cNOSolIn_AttrASym;  // Attribut symetrique
 class cNOSolIn_AttrArc;
 class cAppli_NewSolGolInit;
-class cNOSolIn_Triplet;
 
 typedef  ElSom<cNOSolIn_AttrSom,cNOSolIn_AttrArc>         tSomNSI;
 typedef  ElArc<cNOSolIn_AttrSom,cNOSolIn_AttrArc>         tArcNSI;
@@ -127,7 +130,7 @@ class cNOSolIn_AttrSom
          std::vector<cLinkTripl >         mLnk3;
          double                           mCurCostMin;
          ElRotation3D                     mCurRot;
-         ElRotation3D                     mTestRot;
+         ElRotation3D                     mTestRot;  // Utilisee soit en simulation soit avec verite externe
 
          double                           mSomGainByTriplet;
          int                              mNbGainByTriplet;
@@ -173,7 +176,7 @@ class cNOSolIn_AttrASym
          void PostInit(bool Show);
      private :
          std::vector<cLinkTripl> mLnk3;
-         ElRotation3D            mEstimC2toC1;
+         ElRotation3D            mEstimC2toC1;  // Rotation estime par aggregat "robuste" sur les triplets
          double                  mBOnH;
 
 };
@@ -194,6 +197,12 @@ class cNOSolIn_AttrArc
 };
 
 
+/*
+    Dans un triplet , l'organisation arc sommet est telle que l'arc AK
+    va de  A(K) = S(K+1) -> S(K+2) , voir CheckArcsSom
+      
+*/
+
 class cNOSolIn_Triplet
 {
       public :
@@ -201,6 +210,9 @@ class cNOSolIn_Triplet
           void SetArc(int aK,tArcNSI *);
           tSomNSI * KSom(int aK) const {return mSoms[aK];}
           tArcNSI * KArc(int aK) const {return mArcs[aK];}
+          double CoherTest() const;
+
+           
 
           void InitRot3Som();
           const ElRotation3D & RotOfSom(tSomNSI * aS) const
@@ -338,10 +350,13 @@ class cAppli_NewSolGolInit
 
         void                 CreateArc(tSomNSI *,tSomNSI *,cNOSolIn_Triplet *,int aK0,int aK1,int aK2);
         void   EstimCoherenceMed();
-        void   EstimRotsInit();
+        void   EstimRotsArcsInit();
         void   EstimCoheTriplet();
         void   FilterTripletValide(std::vector<cLinkTripl > &);
         void   FilterTripletValide();
+ 
+
+        // Calcule une rotation robuste a partir des differentes solution des triplets
         void    InitRotOfArc(tArcNSI * anArc,bool Test);
 
 
@@ -352,8 +367,11 @@ class cAppli_NewSolGolInit
         cElemAppliSetFile    mEASF;
         cNewO_NameManager  * mNM;
         bool                 mQuick;
+        std::string          mPrefHom;
         bool                 mTest;
         bool                 mSimul;
+        std::string          mOriTest;
+        bool                 mWithOriTest;
         bool                 mIterLocEstimRot;
 
         tGrNSI               mGr;
@@ -406,7 +424,20 @@ class cAppli_NewSolGolInit
 
 
 void AssertArcOriented(tArcNSI *);
+
+//  L'arc doit faire partie du triplet
+//  Return la rotation qui va des coordonnes de  A.s2() vers A.s1()
 ElRotation3D RotationC2toC1(tArcNSI * anArc,cNOSolIn_Triplet * aTri);
+
+// anArc doit etre l'arc commun aux 2 triplets (et oriente, sait pas si necessaire ?)
+//  calcule la coherence entre les deux valeurs de RotationC2toC1
+
+double DistCoherence1to2 (tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Triplet * aTriB);
+
+//  Calcule la coherence en faisant deux fois le calcule qui va du triplet A vers le triplet B
+
+double DistCoherenceAtoB(tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Triplet * aTriB);
+
 
 
 

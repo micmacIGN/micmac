@@ -372,6 +372,20 @@ void  cArgMpDCRaw::DevJpg()
     Tiff_Im aFTmp(aTmp.c_str());
     cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
 
+
+   std::string aStrTeta = ICNM()->Assoc1To1("NKS-Assoc-DevlptAutoRot",CurF1(),true);
+   int  aITeta;
+   FromString(aITeta,aStrTeta);
+
+   if (aITeta!=0)
+   {
+       std::vector<Im2DGen *>  aV = aFTmp.ReadVecOfIm();
+       Im2DGen * aImOut = aV[0]->ImRotate(4-aITeta/90);
+       ELISE_fp::RmFile(aTmp);
+       Tiff_Im::CreateFromIm(*aImOut,aTmp);
+       aFTmp = Tiff_Im(aTmp.c_str());
+   }
+
     if (0) // Apparemment ca cree plus de pb que ca n'en resoud ....
     {
          bool Ok,OkCam;
