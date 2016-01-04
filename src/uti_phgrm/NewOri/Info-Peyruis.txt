@@ -1,0 +1,122 @@
+#1################################
+
+ mm3d TestLib  NO_AllOri2Im "Vol.*DNG" OriCalib=Calib Quick=1
+
+    Done  166600 on 166753 in T=1242.58
+
+#2################################
+
+"/home/mpd/MMM/culture3d/bin/mm3d" TestLib  NO_AllImTriplet "Vol.*DNG" OriCalib=Calib Quick=1 SWE=0
+
+   NO_OneImTriplet Done 578 out of 578 in time=605.353
+
+#3################################
+
+mm3d TestLib  NO_GenTripl "Vol.*DNG" OriCalib=Calib Quick=1 Show=true 
+
+KS 577 ONE SOOMM  GT 1 T=4978.47 TLA=342.458 n=28032 TL3=4288.66 n=1915860 TLA+3=4631.11 
+ Merge 4408.51 Selec 226.647 GenTripl 5009.51
+
+
+=> // sur chaque couple, etant donne que c'est a peu pres independant pour chacun; puis faire programe de fusion
+
+#4################################
+mm3d TestLib  NO_AllImOptTrip "Vol.*DNG" OriCalib=Calib Quick=1
+
+Optim triplets Done 25800 pairs out of 25813 in 4267.46
+
+A priori pas grand chose a faire, verifier qd meme que le temps de calcul est bouffe par CPU et pas par acces disque
+
+#5################################
+
+mm3d TestLib NO_SolInit3 "Vol.*DNG" OriCalib=Calib Quick=1
+
+   CalculOrient, done 560soms , T=1262.04
+ReMoy  Med=0.00382616  80%=0.00660065 Ec80/Med12 1.821
+ Done Calc , T= 1355.53
+ Done Save , T= 1355.7
+
+
+OK, mais risque d'explosion quadratique, a optimiser :
+
+   - regarder si SVD bouffe du temps dans Nearest Rot => remplacer par SVD opt ?
+   - faire une seul iter , ou un iter tous les sqrt(N-K)
+   - 
+   
+
+
+==============================
+
+
+mm3d TestLib  NO_AllImTriplet "Vol.*DNG" OriCalib=Calib Quick=1 SWE=0
+
+
+=> INIT 
+
+GeneratePointTriple Vol3d_22887.DNG 19.3384
+GeneratePointTriple Vol3d_22886.DNG 20.1559
+GeneratePointTriple Vol3d_22885.DNG 23.9983
+GeneratePointTriple Vol3d_22884.DNG 30.9933
+GeneratePointTriple Vol3d_22889.DNG 14.7673
+GeneratePointTriple Vol3d_22888.DNG 15.3685
+GeneratePointTriple Vol3d_22890.DNG 12.7676
+GeneratePointTriple Vol3d_22883.DNG 44.8436
+GeneratePointTriple Vol3d_22880.DNG 45.9701
+GeneratePointTriple Vol3d_22891.DNG 11.5092
+GeneratePointTriple Vol3d_22882.DNG 48.8486
+GeneratePointTriple Vol3d_22894.DNG 4.53578
+
+=> INIT  2
+
+GeneratePointTriple Vol3d_22887.DNG 18.425
+GeneratePointTriple Vol3d_22886.DNG 19.2228
+GeneratePointTriple Vol3d_22885.DNG 24.5103
+GeneratePointTriple Vol3d_22884.DNG 32.238
+GeneratePointTriple Vol3d_22889.DNG 16.4758
+GeneratePointTriple Vol3d_22888.DNG 16.9293
+GeneratePointTriple Vol3d_22890.DNG 13.5195
+GeneratePointTriple Vol3d_22883.DNG 46.2756
+GeneratePointTriple Vol3d_22880.DNG 47.6205
+GeneratePointTriple Vol3d_22891.DNG 9.90864
+GeneratePointTriple Vol3d_22882.DNG 49.7313
+GeneratePointTriple Vol3d_22894.DNG 2.86479
+
+=> INIT  AVEC 2 Indexation :
+
+   ==> END GeneratePointTriple Vol3d_22887.DNG 18.427
+   ==> END GeneratePointTriple Vol3d_22886.DNG 19.5161
+   ==> END GeneratePointTriple Vol3d_22885.DNG 24.2102
+   ==> END GeneratePointTriple Vol3d_22884.DNG 33.159
+   ==> END GeneratePointTriple Vol3d_22889.DNG 16.2547
+   ==> END GeneratePointTriple Vol3d_22888.DNG 16.9359
+   ==> END GeneratePointTriple Vol3d_22890.DNG 13.981
+   ==> END GeneratePointTriple Vol3d_22880.DNG 48.5225
+   ==> END GeneratePointTriple Vol3d_22883.DNG 48.6666
+   ==> END GeneratePointTriple Vol3d_22891.DNG 12.1692
+   ==> END GeneratePointTriple Vol3d_22894.DNG 3.67559
+   ==> END GeneratePointTriple Vol3d_22882.DNG 51.2158
+   ==> END GeneratePointTriple Vol3d_22893.DNG 8.52814
+   ==> END GeneratePointTriple Vol3d_22892.DNG 11.1038
+   ==> END GeneratePointTriple Vol3d_22895.DNG 6.8836
+   ==> END GeneratePointTriple Vol3d_22881.DNG 61.2159
+   ==> END GeneratePointTriple Vol3d_22896.DNG 8.53723
+   ==> END GeneratePointTriple Vol3d_22897.DNG 7.46224
+   ==> END GeneratePointTriple Vol3d_22898.DNG 8.25661
+   ==> END GeneratePointTriple Vol3d_22899.DNG 8.53388
+   ==> END GeneratePointTriple Vol3d_22900.DNG 8.50443
+
+ 
+=> INIT  AVEC 11 Indexation :
+
+   ==> END GeneratePointTriple Vol3d_22887.DNG 45.6814
+   ==> END GeneratePointTriple Vol3d_22886.DNG 46.9245
+   ==> END GeneratePointTriple Vol3d_22885.DNG 57.0366
+   ==> END GeneratePointTriple Vol3d_22884.DNG 68.9519
+
+==> GT_SetVal avec 10 supression ajout :
+
+   ==> END GeneratePointTriple Vol3d_22887.DNG 52.6595
+   ==> END GeneratePointTriple Vol3d_22886.DNG 60.0233
+
+Cout indexation entre 1/10 et 1/3
+
