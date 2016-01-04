@@ -51,6 +51,11 @@ int NumHgRev()
 
 static const std::string HRevXif = "4227";
 
+string StdMetaDataFilename(const string &aBasename, bool aBinary)
+{
+	return MMTemporaryDirectory() + aBasename + "-MDT-" + HRevXif + (aBinary ? ".dmp" : ".xml");
+}
+
 const std::string & DefXifOrientation() 
 {
    static std::string aRes="";

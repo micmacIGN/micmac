@@ -810,6 +810,20 @@ bool cElFilename::copy( const cElFilename &i_dst, bool i_overwrite ) const
 	#endif
 }
 
+bool cElFilename::move(const cElFilename &aDstFilename) const
+{
+	ELISE_DEBUG_ERROR( !exists(), "cElFilename::move", "file [" << (*this) << "] does not exist");
+	ELISE_DEBUG_ERROR(aDstFilename.exists(), "cElFilename::move", "dst file [" << aDstFilename << "] already exists");
+	ELISE_DEBUG_ERROR( !aDstFilename.m_path.exists(), "cElFilename::move", "dst path [" << aDstFilename.m_path << "] does not exists");
+
+	#if ELISE_POSIX
+		return rename(str().c_str(), aDstFilename.str().c_str()) == 0;
+	#else
+		ELISE_ERROR_EXIT("cElFilename::move: not implemented");
+		return false;
+	#endif
+}
+
 
 //-------------------------------------------
 // cElFilename
@@ -829,10 +843,6 @@ bool cElPathRegex::getFilenames( std::list<cElFilename> &o_filenames, bool i_wan
 
 	list<cElFilename> filenames;
 	m_path.getContent(filenames); // false = recursive
-
-	cout << "i_wantFiles = " << i_wantFiles << endl;
-	cout << "i_wantDirectories = " << i_wantDirectories << endl;
-	cout << "filenames.size() = " << filenames.size() << endl;
 
 	cElRegex regularExpression(m_basename, 1);
 
@@ -971,4 +981,14 @@ string getShortestExtension( const string &i_basename )
 {
 	size_t pos = i_basename.rfind('.');
 	return (pos == string::npos ? string() : i_basename.substr(pos));
+}
+
+std::ostream & operator <<(ostream &aStream, const ctPath &aPath)
+{
+	return aStream << aPath.str();
+}
+
+std::ostream & operator <<(ostream &aStream, const cElFilename &aFilename)
+{
+	return aStream << aFilename.str();
 }
