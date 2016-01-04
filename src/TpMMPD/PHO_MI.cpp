@@ -335,7 +335,7 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
 }
 
 
-VerifParRepr::VerifParRepr(vector<string> mListImg, string aDirImages, string aPatImages, string aNameHomol, string aOri, string aHomolOutput, bool ExpTxt)
+VerifParRepr::VerifParRepr(vector<string> mListImg, string aDirImages, string aPatImages, string aNameHomol, string aOri, string aHomolOutput, bool ExpTxt, double aDistHom, double aDistRepr)
 {    
         this->mListImg = mListImg;
         this->mDirImages = aDirImages;
@@ -344,6 +344,8 @@ VerifParRepr::VerifParRepr(vector<string> mListImg, string aDirImages, string aP
         this->mOri = aOri;
         this->mHomolOutput = aHomolOutput;
         this->mExpTxt = ExpTxt;
+        this->mDistHom = aDistHom;
+        this->mDistRepr = aDistRepr;
 }
 
 vector<AbreHomol> VerifParRepr::creatAbre()
@@ -509,7 +511,7 @@ vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, stri
         const ElCplePtsHomologues  * aTriplet1_3 = aPackIn1_3.Cple_Nearest(aP1,true);
         double distP2 = sqrt(pow((aTriplet2_3->P1().x - aP2.x),2) + pow((aTriplet2_3->P1().y - aP2.y),2));
         double distP3 = sqrt(pow((aTriplet1_3->P2().x - aTriplet2_3->P2().x),2) + pow((aTriplet1_3->P2().y - aTriplet2_3->P2().y),2));
-        if ( (distP2 < this->mDistHom) && (distP3 < this->mDistHom) )
+        if ( (distP2 < this->mDistHom)  && (distP3 < this->mDistHom) )
         {
             Pt2dr aP3 = aTriplet2_3->P2();
             countGoodTrip ++;
@@ -525,7 +527,6 @@ vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, stri
             {
                 pass_reproj=0;
             }
-
         }
         else
         {
@@ -534,15 +535,10 @@ vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, stri
         result.push_back(pass_reproj);
     }
     //cout <<"   ++ => "<<count_pass_reproj<<" / "<<countGoodTrip<<" / "<<aPackIn1_2.size()<<endl;
+    cout<<"Verif FiltreDe3img "<<result.size()<<" "<<aPackIn1_2.size()<<endl;
+    cout <<"Verif FiltreDe3img NbPts Filtré => "<<count_pass_reproj<<" "<<countGoodTrip<<endl;
     count_pass_reproj = 0;
-    for (uint i=0;i<result.size(); i++)
-    {
-        if (result[i])
-        {
-            count_pass_reproj++;
-        }
-    }
-    //cout <<"   ++ Verif => "<<count_pass_reproj<<" / "<<countGoodTrip<<" / "<<result.size()<<endl;
+    countGoodTrip = 0;
     return result;
 }
 
@@ -578,6 +574,7 @@ void VerifParRepr::creatHomolFromPair(string aNameImg1, string aNameImg2, vector
     if (Exist1_2)
     {
      aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);
+     cout<<"Verif creatHomolFromPair "<<decision.size()<<" "<<aPackIn1_2.size();
     }
 
     //creat name of homomogue file dans 2 sens
@@ -586,7 +583,6 @@ void VerifParRepr::creatHomolFromPair(string aNameImg1, string aNameImg2, vector
     std::string NameHomolDatPair1 = aICNM->Assoc1To2(aKHOutDat, aNameImg1, aNameImg2, true);
     std::string NameHomolDatPair1i = aICNM->Assoc1To2(aKHOutDat, aNameImg2, aNameImg1 , true);
     double ind=0;
-    cout<<NameHomolPair1;
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
     {
         if(decision[ind])
@@ -610,7 +606,7 @@ void VerifParRepr::FiltragePtsHomo()
 
     Pt2dr centre_img=this->mcentre_img;
     double diag = this->mdiag;
-    vector< vector<bool> > ColDec;
+
 
     double stat = 0;
     double all = 0;
@@ -620,6 +616,7 @@ void VerifParRepr::FiltragePtsHomo()
         string aNameImg1 = aAbre[i].ImgRacine;
         for(uint k=0; k<aAbre[i].ImgBranch.size(); k++)
         {
+            vector< vector<bool> > ColDec;
             cout<<" ++ "<<aAbre[i].ImgBranch[k]<<endl;
             string aNameImg2 = aAbre[i].ImgBranch[k];
             for(uint l=0; l<aAbre[i].Img3eme[k].size(); l++)
@@ -633,6 +630,7 @@ void VerifParRepr::FiltragePtsHomo()
                 vector<bool> result = FiltreDe3img( aNameImg1,  aNameImg2,  aNameImg3);
                 ColDec.push_back(result);
             }
+            cout<<"Verif FiltragePtsHomo "<<ColDec.size()<<" "<<ColDec[0].size();
             //=====decision=====
             vector<bool> decision; vector<double> decPoint;
 
@@ -648,13 +646,14 @@ void VerifParRepr::FiltragePtsHomo()
                 decision.push_back(dec);
                 decPoint.push_back(point);
             }
+            cout<<" "<<decision.size()<<" "<<decPoint.size()<<endl;
             //creat homol file with decision and pack homo b/w aNameImg1 aNameImg2
             //.....
             double totalImgCom = aAbre[i].Img3eme[k].size();
             double countVerif=0;
             for(uint o=0; o<decision.size(); o++)
             {
-                if (decision[o] && ((decPoint[o]/totalImgCom) > 0.95) )
+                if (decision[o] && ((decPoint[o]/totalImgCom) > 0.5) )
                 {countVerif++; decision[o] = 1;}
                 else
                 {decision[o] = 0;}
@@ -680,7 +679,7 @@ int PHO_MI_main(int argc,char ** argv)
     cout<<"*********************"<<endl;
 
     std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="_Filtered/", bStrategie = "6";
-    double aDistRepr=2, aDistHom=2;
+    double aDistRepr=10, aDistHom=20;
     bool ExpTxt = false;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
@@ -780,6 +779,7 @@ int PHO_MI_main(int argc,char ** argv)
                     decision.push_back(dec);
                     decPoint.push_back(point);
                 }
+                cout<<decision.size()<<" "<<ColDec[0].size()<<endl;
                 //creat homol file with decision and pack homo b/w aNameImg1 aNameImg2
                 //.....
                 double totalImgCom = aAbre[i].Img3eme[k].size();
@@ -809,7 +809,7 @@ int PHO_MI_main(int argc,char ** argv)
     //===================================test===========================================
     if (bStrategie == "6")
     {
-        VerifParRepr aImgVerif(aSetImages, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt);
+        VerifParRepr aImgVerif(aSetImages, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt, aDistHom, aDistRepr);
         aImgVerif.creatAbre();
         bool disp = 1;
         aImgVerif.displayAbreHomol(aImgVerif.mAbre, disp);
