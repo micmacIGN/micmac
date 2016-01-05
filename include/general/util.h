@@ -1643,6 +1643,12 @@ size_t getUsedMemory();
 
 std::string humanReadable( size_t aSize );
 
+template <class T>
+inline char toS(const T &v)
+{
+	return (v < 2 ? '\0' : 's');
+}
+
 #endif /* ! _ELISE_UTIL_H */
 
 

@@ -1065,7 +1065,7 @@ const cMetaDataPhoto & cMetaDataPhoto::CreateExiv2(const std::string & aNameFile
 		/// std::cout << "JJJJJJJJJj " << aF << "\n";
 		if (aF>0)
 		{
-			if (aMDP->FocMm(true)>0)
+			if (aF != aMDP->FocMm(true))
 			{
 				cElWarning::FocInxifAndMM.AddWarn("Cam="+aNameFile,__LINE__,__FILE__);
 			}
@@ -1081,7 +1081,7 @@ const cMetaDataPhoto & cMetaDataPhoto::CreateExiv2(const std::string & aNameFile
 		// std::string aStrCam =  aGICNM->Assoc1To1("NKS-Assoc-STD-CAM",aNameFile,true);
 		if (aStrCam!="NO-CAM")
 		{
-			if (aMDP->Cam(true)!="")
+			if (aMDP->Cam(true) != aStrCam)
 			{
 				cElWarning::CamInxifAndMM.AddWarn("Cam="+aNameFile,__LINE__,__FILE__);
 			}
