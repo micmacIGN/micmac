@@ -1,0 +1,298 @@
+<!--
+    Innovation
+-->
+
+<Global >
+   <ParamApero>
+
+      <DicoLoc>
+
+
+               <Symb>  TolLinkPPCD=0.2 </Symb> 
+               <Symb>  SeuilFE=16.5 </Symb> 
+               <Symb>  TetaLVM=0.01 </Symb>
+               <Symb>  CentreLVM=0.1 </Symb>
+               <Symb>  RayFEInit=0.85 </Symb>
+               <Symb>  CalibIn="ABC" </Symb>
+
+               <Symb>  FocMin=0 </Symb>
+               <Symb>  FocMax=10000 </Symb>
+               <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
+
+               <Symb>  SetImInit="XXXX" </Symb>
+
+               <Symb>  FileCamInit=InitCamCenter.xml </Symb>
+               <Symb>  AeroIn=XXXXXX </Symb>
+               <Symb>  AeroOutGrid=-Grid${AeroOut} </Symb>
+               <Symb>  RayonInvGrid=0.95  </Symb>
+
+               <Symb>  ModeCDD=eCDD_Jamais </Symb>
+
+               <Symb> VitesseInit=4 </Symb>
+               <Symb> xPRelPP=0.5  </Symb>
+               <Symb> yPRelPP=0.5  </Symb>
+               <Symb> PropDiagU=1.0  </Symb>
+               <Symb> SauvAutom=""  </Symb>
+               <Symb> MOI=false  </Symb>
+               <Symb> DebugPbCondFaisceau=false  </Symb>
+
+               <Symb> ValDec=eLiberte_Phgr_Std_Dec </Symb>
+               <Symb> ValAff=eLiberte_Phgr_Std_Aff </Symb>
+               <Symb> RapTxt=""   </Symb>
+               <Symb> PoseFigee="HUyZZ9_m@@9hyY" </Symb>
+
+               <Symb>  LiberteAff="true" </Symb>
+
+
+
+               <Symb>  DegRadMax=12 </Symb>
+               <Symb>  DoPP=true    </Symb>
+               <Symb>  DoCD=true    </Symb>
+               <Symb>  SetHom=""   </Symb>
+               <Symb>  DoFoc=true   </Symb>
+
+
+
+               <eSymb>  DoDR1=  SupEq ${DegRadMax} 1 </eSymb>
+               <eSymb>  DoDR2=  SupEq ${DegRadMax} 2 </eSymb>
+               <eSymb>  DoDR3=  SupEq ${DegRadMax} 3 </eSymb>
+               <eSymb>  DoDR4=  SupEq ${DegRadMax} 4 </eSymb>
+               <eSymb>  DoDR5=  SupEq ${DegRadMax} 5 </eSymb>
+               <eSymb>  DoDR6=  SupEq ${DegRadMax} 6 </eSymb>
+               <eSymb>  DoDR7=  SupEq ${DegRadMax} 7 </eSymb>
+               <eSymb>  DoDR8=  SupEq ${DegRadMax} 8 </eSymb>
+               <eSymb>  DoDR9=  SupEq ${DegRadMax} 9 </eSymb>
+               <eSymb>  DoDR10=  SupEq ${DegRadMax} 10 </eSymb>
+               <eSymb>  DoPPorCD= Or ${DoPP} ${DoCD}  </eSymb>
+               <eSymb>  DoPPandCD= And  ${DoPP} ${DoCD}  </eSymb>
+
+
+
+       </DicoLoc>
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> NKS-Set-Homol@${SetHom}@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@${SetHom}@${Ext}   </KeyAssoc>
+            </BDD_PtsLiaisons>
+
+            <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+             </BDD_Orient>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <SeuilAutomFE>  ${SeuilFE} </SeuilAutomFE>
+
+             <CalibrationCameraInc>
+                   <Name> GenerateKC-Others   </Name>
+                   <CalValueInit>
+                         <CalibAutomNoDist>
+                              <!-- <TypeDist> eCalibAutomRadial </TypeDist> -->
+                              <TypeDist> ${ModeleCam} </TypeDist>
+                              <PositionRelPP> ${xPRelPP} ${yPRelPP} </PositionRelPP>
+                         </CalibAutomNoDist>
+
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+                   <CalibPerPose>
+                        <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                        <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${CalibIn}/AutoCal@.xml  </KeyInitFromPose>
+                    </CalibPerPose>
+                   <RayMaxUtile>  ${RayFEInit} </RayMaxUtile>
+                   <RayIsRelatifDiag  > true </RayIsRelatifDiag>
+                   <RayApplyOnlyFE > true </RayApplyOnlyFE>
+                   <PropDiagUtile> ${PropDiagU} </PropDiagUtile>
+              </CalibrationCameraInc>
+
+
+              <IncludeFileLoc>  ${FileCamInit} </IncludeFileLoc>
+
+              <PoseCameraInc>
+	           <PatternName>  ${SetIm}    </PatternName>
+	           <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
+                   <InitNow> false </InitNow>
+                   <MEP_SPEC_MST>
+                           <Show> true </Show>
+                           <MontageOnInit> ${MOI} </MontageOnInit>
+                   </MEP_SPEC_MST>
+
+		   <PosValueInit>
+		        <PoseFromLiaisons>
+                             <LiaisonsInit>
+                                 <NameCam> ####  </NameCam>
+				 <IdBD> Id_Pastis_Hom  </IdBD>
+                             </LiaisonsInit>
+		        </PoseFromLiaisons>
+		   </PosValueInit>
+              </PoseCameraInc>
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXXX </DirectoryChantier>
+             <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
+             <SauvAutom>  ${SauvAutom} </SauvAutom>
+<!--
+-->
+             <SauvAutomBasic>  true </SauvAutomBasic>
+
+             <DebugPbCondFaisceau> ${DebugPbCondFaisceau} </DebugPbCondFaisceau>
+
+        </SectionChantier>
+
+        <SectionSolveur>
+              <ModeControleDescDic> ${ModeCDD} </ModeControleDescDic>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+<!--
+              <LimBsHRefut>  1e-3  </LimBsHRefut>
+-->
+
+              <SLMGlob> 
+                 <RappelOnAngles>
+                      <ParamF >
+                          <PatternNameApply> .* </PatternNameApply>
+                          <Incertitude> ${TetaLVM} </Incertitude>
+                          <OnCur> true </OnCur>  
+                       </ParamF>
+                      <TetaApply> 0 </TetaApply>
+                      <TetaApply> 1 </TetaApply>
+                      <TetaApply> 2 </TetaApply>
+                </RappelOnAngles>
+                 <RappelOnCentres>
+                      <ParamF> 
+                             <PatternNameApply> .* </PatternNameApply>
+                             <Incertitude> ${CentreLVM} </Incertitude>
+                             <OnCur> true </OnCur>  
+                      </ParamF>
+                      <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                </RappelOnCentres>
+
+             </SLMGlob>
+
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                   <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eAllParamFiges  </Val>
+                          </ContraintesCamerasInc>
+                           <ContraintesPoses>
+                                   <NamePose>   ${PoseFigee} </NamePose>
+                                   <ByPattern>  true </ByPattern>
+                                   <Val>      ePoseFigee   </Val>
+                           </ContraintesPoses>
+                       </SectionContraintes>
+                       <Pose2Init>
+                             <ProfMin> [2,${VitesseInit}] </ProfMin>
+                             <Show> true </Show>
+                       </Pose2Init>
+                    </IterationsCompensation>
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                  <EcartMax> 100 </EcartMax>
+                                  <SigmaPond> 5 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+                    <IterationsCompensation> 
+                        <Messages>  ${FileLibereParam} </Messages>
+                    </IterationsCompensation>
+
+                    <IncludeFileLoc>  ${FileLibereParam} </IncludeFileLoc>
+<!--
+-->
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                  <EcartMax> 50 </EcartMax>
+                                  <SigmaPond> 4 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> 
+                   </IterationsCompensation>
+
+		    <SectionObservations>
+                          <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                          </ObsLiaisons>
+                          <TxtRapDetaille>
+                               <NameFile> ${RapTxt}</NameFile>
+                         </TxtRapDetaille>
+		    </SectionObservations>
+
+                    <SectionExport>
+                            <ExportPose>
+                                <PatternSel> (.*) </PatternSel>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                                <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
+                                <FileExternIsKey> true </FileExternIsKey>
+                            </ExportPose>
+                             <ExportCalib>
+                                 <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                 <KeyIsName> false </KeyIsName>
+                            </ExportCalib>
+                    </SectionExport>
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
