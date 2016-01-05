@@ -668,6 +668,32 @@ void VerifParRepr::FiltragePtsHomo()
 
 }
 
+CplImg::CplImg(string aNameImg1, string aNameImg2)
+{
+    this->mNameImg1 = aNameImg1;
+    this->mNameImg2 = aNameImg2;
+    //====lire Img1 et Img2=====//
+
+    //====lire Cam1 et Cam2====//
+
+    //====Import collection 3eme Image====//
+
+
+}
+
+void CplImg::SupposeVecSruf1er(double dirX[2], double dirY[2])
+{
+    VectorSurface a(dirX[2], dirY[2]);
+    this->mSurfImg1 = a;
+}
+
+void CplImg::CalVectorSurface(string m3emeImg)
+{
+    //==à partir de vector surface Img1, profondeur,
+
+}
+
+
 int PHO_MI_main(int argc,char ** argv)
 {
     cout<<"*********************"<<endl;
