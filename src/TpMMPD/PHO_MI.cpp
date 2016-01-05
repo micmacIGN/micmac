@@ -668,6 +668,11 @@ void VerifParRepr::FiltragePtsHomo()
 
 }
 
+VectorSurface::VectorSurface(double dirX[], double dirY[])
+{
+
+}
+
 CplImg::CplImg(string aNameImg1, string aNameImg2)
 {
     this->mNameImg1 = aNameImg1;
@@ -683,8 +688,8 @@ CplImg::CplImg(string aNameImg1, string aNameImg2)
 
 void CplImg::SupposeVecSruf1er(double dirX[2], double dirY[2])
 {
-    VectorSurface a(dirX[2], dirY[2]);
-    this->mSurfImg1 = a;
+    //VectorSurface a(dirX[2], dirY[2]);
+    //this->mSurfImg1 = a;
 }
 
 void CplImg::CalVectorSurface(string m3emeImg)

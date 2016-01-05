@@ -28,8 +28,8 @@ class CplImg
           Im2D<U_INT1,INT4> mImg2;
           CamStenope * mCam1;
           CamStenope * mCam2;
-          VectorSurface mSurfImg1;
-          VectorSurface mSurfImg2;
+          //VectorSurface mSurfImg1;
+          //VectorSurface mSurfImg2;
 
           void SupposeVecSruf1er(double dirX[2], double dirY[2]);
           void ValPtsLia(vector<double> NorSur);
