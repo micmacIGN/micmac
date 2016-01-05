@@ -8,19 +8,32 @@ struct AbreHomol
     vector<double> NbPointHomo;
 };
 
+class VectorSurface
+{
+    public:
+    VectorSurface(double dirX[2], double dirY[2]);
+    double dirX[2];
+    double dirY[2];
+};
+
 class CplImg
 {
     public :
           CplImg(string aNameImg1, string aNameImg2);
 
-          vector<string> mEns3emeImg;
+          vector<string> mCollection3emeImg;
+          string mNameImg1;
+          string mNameImg2;
           Im2D<U_INT1,INT4> mImg1;
           Im2D<U_INT1,INT4> mImg2;
-          CamStenope * aCam1;
-          CamStenope * aCam2;
+          CamStenope * mCam1;
+          CamStenope * mCam2;
+          //VectorSurface mSurfImg1;
+          //VectorSurface mSurfImg2;
 
+          void SupposeVecSruf1er(double dirX[2], double dirY[2]);
           void ValPtsLia(vector<double> NorSur);
-          void CalNorSur();
+          void CalVectorSurface(string mImg3eme);
 };
 
 class UneImage
@@ -37,7 +50,7 @@ class UneImage
 class VerifParRepr
 {
     public :
-          VerifParRepr(vector<string> mListImg, string mDirImages, string mPatImages, string mNameHomol, string mOri , string aHomolOutput);
+          VerifParRepr(vector<string> mListImg, string mDirImages, string mPatImages, string mNameHomol, string mOri , string aHomolOutput, bool ExpTxt, double aDistHom, double aDistRepr );
           vector<AbreHomol> creatAbre();
           vector<string> displayAbreHomol(vector<AbreHomol> aAbre, bool disp);
           vector<bool> FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3);

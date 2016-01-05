@@ -51,6 +51,11 @@ int NumHgRev()
 
 static const std::string HRevXif = "4227";
 
+string StdMetaDataFilename(const string &aBasename, bool aBinary)
+{
+	return MMTemporaryDirectory() + aBasename + "-MDT-" + HRevXif + (aBinary ? ".dmp" : ".xml");
+}
+
 const std::string & DefXifOrientation() 
 {
    static std::string aRes="";
@@ -1060,7 +1065,7 @@ const cMetaDataPhoto & cMetaDataPhoto::CreateExiv2(const std::string & aNameFile
 		/// std::cout << "JJJJJJJJJj " << aF << "\n";
 		if (aF>0)
 		{
-			if (aMDP->FocMm(true)>0)
+			if (aF != aMDP->FocMm(true))
 			{
 				cElWarning::FocInxifAndMM.AddWarn("Cam="+aNameFile,__LINE__,__FILE__);
 			}
@@ -1076,7 +1081,7 @@ const cMetaDataPhoto & cMetaDataPhoto::CreateExiv2(const std::string & aNameFile
 		// std::string aStrCam =  aGICNM->Assoc1To1("NKS-Assoc-STD-CAM",aNameFile,true);
 		if (aStrCam!="NO-CAM")
 		{
-			if (aMDP->Cam(true)!="")
+			if (aMDP->Cam(true) != aStrCam)
 			{
 				cElWarning::CamInxifAndMM.AddWarn("Cam="+aNameFile,__LINE__,__FILE__);
 			}
