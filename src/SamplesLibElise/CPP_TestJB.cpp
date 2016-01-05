@@ -393,7 +393,7 @@ public:
 			ss << aBasename << '_' << setw(nbDigits) << setfill('0') << iFilename++ << extension;
 			const cElFilename newFilename(itFilename->m_path, ss.str());
 
-			cout << "[" << itFilename->str() << "] -> [" << newFilename.str() << ']' << endl;
+			cout << "\t[" << itFilename->str() << "] -> [" << newFilename.str() << ']' << endl;
 			itFilename->move(newFilename);
 
 			itFilename++;
@@ -426,7 +426,6 @@ void add(list<ImageSet> &aSets, const cElFilename &aFilename)
 	{
 		aSets.push_back(ImageSet(info));
 		it = --aSets.rbegin().base();
-		return;
 	}
 
 	it->mFilenames.push_back(aFilename);
@@ -441,6 +440,7 @@ void move(list<ImageSet> &aSets, const string &aBase)
 	list<ImageSet>::iterator it = aSets.begin();
 	while (it != aSets.end())
 	{
+		cout << it->mInfo << ": " << it->mFilenames.size() << " image" << toS(it->mFilenames.size()) << endl;
 		ostringstream ss;
 		ss << aBase << setw(nbDigits) << setfill('0') << iSet++;
 		(*it++).move(ss.str());
@@ -449,7 +449,7 @@ void move(list<ImageSet> &aSets, const string &aBase)
 
 void dump(const list<ImageSet> &aSets, const string &aPrefix = string(), ostream &aStream = cout)
 {
-	cout << aSets.size() << " set" << (aSets.size() < 2 ? '\0' : 's') << endl;
+	cout << aSets.size() << " set" << toS(aSets.size()) << endl;
 	size_t iSet = 0;
 	list<ImageSet>::const_iterator itSet = aSets.begin();
 	while (itSet != aSets.end())
@@ -474,7 +474,7 @@ int command_makeSets(int argc, char **argv)
 	const size_t nbImages = filenames.size();
 	if (nbImages == 0) ELISE_ERROR_RETURN("pattern defines no image filename");
 
-	cout << "--- " << nbImages << " image" << (nbImages < 2 ? '\0' : 's') << endl;
+	cout << "--- " << nbImages << " image" << toS(nbImages) << endl;
 
 	list<ImageSet> sets;
 	list<cElFilename>::const_iterator itFilename = filenames.begin();
@@ -482,7 +482,8 @@ int command_makeSets(int argc, char **argv)
 		add(sets, *itFilename++);
 
 	const size_t nbSets = sets.size();
-	cout << "--- " << nbSets << " set" << (nbSets < 2 ? '\0' : 's') << endl;
+	cout << "--- " << nbSets << " set" << toS(nbSets) << endl;
+
 	//~ dump(sets);
 	move(sets, "set");
 
@@ -514,24 +515,6 @@ int TestJB_main( int argc, char **argv )
 			break;
 		}
 		itCommand++;
-	}
-
-	if (argc == 2)
-	{
-		ctPath path = getWorkingDirectory();
-		cout << "working directory: [" << path.str_unix() << ']' << endl;
-
-		ctPath newPath(argv[1]);
-		if ( !setWorkingDirectory(newPath)) ELISE_ERROR_EXIT("failed to change directory to [" << newPath.str() << "]");
-
-		path = getWorkingDirectory();
-		cout << "working directory: [" << path.str_unix() << ']' << endl;
-
-		list<cElFilename> filenames;
-		ctPath current(".");
-		current.getContent(filenames);
-		for (list<cElFilename>::const_iterator it = filenames.begin(); it != filenames.end(); it++)
-			cout << '[' << it->str() << ']' << endl;
 	}
 
 	if (itCommand->func == NULL)
