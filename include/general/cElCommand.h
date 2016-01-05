@@ -201,6 +201,8 @@ public:
    bool getContent( std::list<cElFilename> &o_files, std::list<ctPath> &o_directories, bool i_isRecursive ) const;
 };
 
+std::ostream & operator <<(std::ostream &aStream, const cElFilename &aFilename);
+
 
 //-------------------------------------------
 // cElFilename
@@ -242,7 +244,10 @@ public:
    inline bool setRights( mode_t o_rights ) const;
    inline bool getRights( mode_t &o_rights ) const;
    U_INT8 getSize() const;
+   bool move(const cElFilename &aDstFilename) const;
 };
+
+std::ostream & operator <<(std::ostream &aStream, const ctPath &aFilename);
 
 
 //-------------------------------------------

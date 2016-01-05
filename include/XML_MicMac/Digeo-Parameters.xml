@@ -134,7 +134,7 @@
 
 	<GenereCodeConvol></GenereCodeConvol>
 
-	<ShowTimes> 1 </ShowTimes>
+	<ShowTimes> 0 </ShowTimes>
 
 	<!-- Pas de raison, hors mis au point/test, de changer cette val -->
 	<ShowConvolSpec> false </ShowConvolSpec>

@@ -9,12 +9,14 @@ int command_correctPlanarPolygons( int argc, char **argv );
 int command_maskContent( int argc, char **argv );
 int command_renameImageSet( int argc, char **argv );
 int command_toto( int argc, char **argv );
+int command_makeSets( int argc, char **argv );
 
 command_t commands[] = {
 	{ "correctplanarpolygons", &command_correctPlanarPolygons },
 	{ "maskcontent", &command_maskContent },
 	{ "renameimageset", &command_renameImageSet },
 	{ "toto", &command_toto },
+	{ "makesets", &command_makeSets },
 	{ "", NULL }
 };
 
@@ -253,7 +255,7 @@ int command_maskContent( int argc, char ** argv )
 //------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------
 
-unsigned int nbDigits( unsigned int i_n, unsigned int i_base )
+unsigned int getNbDigits(unsigned int i_n, unsigned int i_base = 10)
 {
 	//~ double l = log((double)i_n) / log(i_base);
 	//~ unsigned int i = (unsigned int)l;
@@ -277,7 +279,7 @@ int command_renameImageSet( int argc, char **argv )
 	list<cElFilename> filenames;
 	fullPattern.getFilenames(filenames);
 
-	const unsigned int nbdigits = nbDigits((unsigned int)filenames.size(), 10);
+	const unsigned int nbdigits = getNbDigits((unsigned int)filenames.size(), 10);
 	unsigned int iFilename = 0;
 	list<cElFilename>::const_iterator itFilename = filenames.begin();
 	while (itFilename != filenames.end())
@@ -338,6 +340,160 @@ int command_toto( int argc, char **argv )
 	return EXIT_SUCCESS;
 }
 
+
+//------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
+
+class ImageSet
+{
+public:
+	class Info
+	{
+	public:
+		string mModel;
+		Pt2di mSize;
+		double mFocal;
+
+		Info(const cElFilename &aFilename)
+		{
+			cMetaDataPhoto metaData = cMetaDataPhoto::CreateExiv2(aFilename.str());
+
+			//~ cXmlXifInfo xmlMetaData = MDT2Xml(metaData);
+			//~ MakeFileXML(xmlMetaData, StdMetaDataFilename(basename, false)); // false = binary
+
+			mModel = metaData.Cam();
+			mSize = metaData.SzImTifOrXif();
+			mFocal = metaData.FocMm();
+		}
+
+		bool operator !=(const Info &aInfo) const
+		{
+			return mModel != aInfo.mModel || mSize != aInfo.mSize || mFocal != aInfo.mFocal;
+		}
+	};
+
+	ImageSet(const Info &aInfo):
+		mInfo(aInfo)
+	{
+	}
+
+	void dump(const string &aPrefix = string(), ostream &aStream = cout) const;
+
+	void move(const string &aBasename) const
+	{
+		if (mFilenames.empty()) return;
+
+		size_t iFilename = 0;
+		unsigned int nbDigits = getNbDigits(mFilenames.size() - 1);
+		list<cElFilename>::const_iterator itFilename = mFilenames.begin();
+		while (itFilename != mFilenames.end())
+		{
+			const string extension = getShortestExtension(itFilename->m_basename);
+			ostringstream ss;
+			ss << aBasename << '_' << setw(nbDigits) << setfill('0') << iFilename++ << extension;
+			const cElFilename newFilename(itFilename->m_path, ss.str());
+
+			cout << "\t[" << itFilename->str() << "] -> [" << newFilename.str() << ']' << endl;
+			itFilename->move(newFilename);
+
+			itFilename++;
+		}
+	}
+
+	Info mInfo;
+	list<cElFilename> mFilenames;
+};
+
+ostream & operator <<(ostream &aStream, const ImageSet::Info &aInfo)
+{
+	return (aStream << '[' << aInfo.mModel << "] " << aInfo.mSize.x << 'x' << aInfo.mSize.y << ' ' << aInfo.mFocal);
+}
+
+void ImageSet::dump(const string &aPrefix, ostream &aStream) const
+{
+	aStream << aPrefix << mInfo << endl; 
+	list<cElFilename>::const_iterator itFilename = mFilenames.begin();
+	while (itFilename != mFilenames.end()) aStream << aPrefix << "\t[" << (*itFilename++).str() << ']' << endl;
+}
+
+void add(list<ImageSet> &aSets, const cElFilename &aFilename)
+{
+	ImageSet::Info info(aFilename);
+	list<ImageSet>::iterator it = aSets.begin();
+	while (it != aSets.end() && it->mInfo != info) it++;
+
+	if (it == aSets.end())
+	{
+		aSets.push_back(ImageSet(info));
+		it = --aSets.rbegin().base();
+	}
+
+	it->mFilenames.push_back(aFilename);
+}
+
+void move(list<ImageSet> &aSets, const string &aBase)
+{
+	if (aSets.empty()) return;
+
+	unsigned int nbDigits = getNbDigits(aSets.size() - 1);
+	size_t iSet = 0;
+	list<ImageSet>::iterator it = aSets.begin();
+	while (it != aSets.end())
+	{
+		cout << it->mInfo << ": " << it->mFilenames.size() << " image" << toS(it->mFilenames.size()) << endl;
+		ostringstream ss;
+		ss << aBase << setw(nbDigits) << setfill('0') << iSet++;
+		(*it++).move(ss.str());
+	}
+}
+
+void dump(const list<ImageSet> &aSets, const string &aPrefix = string(), ostream &aStream = cout)
+{
+	cout << aSets.size() << " set" << toS(aSets.size()) << endl;
+	size_t iSet = 0;
+	list<ImageSet>::const_iterator itSet = aSets.begin();
+	while (itSet != aSets.end())
+	{
+		aStream << aPrefix << iSet++ << ": ";
+		(*itSet++).dump(aPrefix, aStream);
+	}
+}
+
+int command_makeSets(int argc, char **argv)
+{
+	if (argc < 1) ELISE_ERROR_RETURN("missing image filename pattern");
+
+	cElPathRegex fullPattern(argv[0]);
+
+	if ( !fullPattern.m_path.exists()) ELISE_ERROR_RETURN("pattern directory [" << fullPattern.m_path.str() << "] does not existing");
+
+	list<cElFilename> filenames;
+	fullPattern.getFilenames(filenames);
+	filenames.sort();
+
+	const size_t nbImages = filenames.size();
+	if (nbImages == 0) ELISE_ERROR_RETURN("pattern defines no image filename");
+
+	cout << "--- " << nbImages << " image" << toS(nbImages) << endl;
+
+	list<ImageSet> sets;
+	list<cElFilename>::const_iterator itFilename = filenames.begin();
+	while (itFilename != filenames.end())
+		add(sets, *itFilename++);
+
+	const size_t nbSets = sets.size();
+	cout << "--- " << nbSets << " set" << toS(nbSets) << endl;
+
+	//~ dump(sets);
+	move(sets, "set");
+
+	return EXIT_SUCCESS;
+}
+
+
+//------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
+
 int TestJB_main( int argc, char **argv )
 {
 	string command;
@@ -359,24 +515,6 @@ int TestJB_main( int argc, char **argv )
 			break;
 		}
 		itCommand++;
-	}
-
-	if (argc == 2)
-	{
-		ctPath path = getWorkingDirectory();
-		cout << "working directory: [" << path.str_unix() << ']' << endl;
-
-		ctPath newPath(argv[1]);
-		if ( !setWorkingDirectory(newPath)) ELISE_ERROR_EXIT("failed to change directory to [" << newPath.str() << "]");
-
-		path = getWorkingDirectory();
-		cout << "working directory: [" << path.str_unix() << ']' << endl;
-
-		list<cElFilename> filenames;
-		ctPath current(".");
-		current.getContent(filenames);
-		for (list<cElFilename>::const_iterator it = filenames.begin(); it != filenames.end(); it++)
-			cout << '[' << it->str() << ']' << endl;
 	}
 
 	if (itCommand->func == NULL)
