@@ -1366,7 +1366,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
 // std::cout << "Ppppppppppppppppppppppppppp " << aVpds[aKPose] << " " << aPdsIm << "\n";
                         if (aVpds[aKPose])
                         {
-                            aVP[aKPose]->AddPMoy(aRes.mPTer,aRes.mBSurH);
+                            aVP[aKPose]->AddPMoy(aNupl.PK(aKPose),aRes.mPTer,aRes.mBSurH,aKPose,&aVpds,&aVP);
                         }
                     }
 

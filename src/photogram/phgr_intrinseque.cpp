@@ -743,10 +743,13 @@ void cParamIntrinsequeFormel::AddCstrRegulGlob(int aNbEch,double aPdsVal,double 
                   }
                   else
                   {
-                     Pt2dr aPIm = aPProp.mcbyc(Pt2dr(mCamInit->Sz()));
-                     aPIm = CurPIF()->NormC2M(aPIm);
-                     aPds /= aSomPds;
-                     AddCstrRegulDist(aPIm,aPdsVal*aPds,aPdsGrad*aPds,aPdsD2*aPds);
+                     if (aSomPds > 1e-6)
+                     {
+                         Pt2dr aPIm = aPProp.mcbyc(Pt2dr(mCamInit->Sz()));
+                         aPIm = CurPIF()->NormC2M(aPIm);
+                         aPds /= aSomPds;
+                         AddCstrRegulDist(aPIm,aPdsVal*aPds,aPdsGrad*aPds,aPdsD2*aPds);
+                     }
                      
 // void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aPdsGrad,double aPdsD2)
                   }

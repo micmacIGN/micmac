@@ -409,6 +409,7 @@ int Tapas_main(int argc,char ** argv)
     int RankFocale = 3;
     int RankPP     = 4;
 
+    std::vector<double> aVRegulDist;
 
     ElInitArgMain
     (
@@ -453,6 +454,7 @@ int Tapas_main(int argc,char ** argv)
 
                     << EAM(RankFocale,"RankInitF",true,"Order of focal initialisation, ref id distotion =2, Def=3 ")
                     << EAM(RankPP,"RankInitPP",true,"Order of Principal point initialisation, ref id distotion =2, Def=4")
+                    << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
     );
 
 
@@ -681,6 +683,19 @@ int Tapas_main(int argc,char ** argv)
                   + std::string(" +HasSinglePoseCalibEstim=true")
                   + std::string(" +PatSinglePose=") + QUOTE(SinglePos[0])
                   + std::string(" +PatSingleCalib=") + QUOTE(SinglePos[1]);
+       }
+
+       if (EAMIsInit(&aVRegulDist))
+       {
+           ELISE_ASSERT(aVRegulDist.size()>=3,"Not enough parameter in RegulDist")
+           double aNbCase = (aVRegulDist.size() >= 4) ? round_ni(aVRegulDist[3])  : 7;
+           double aSeuilNbPts = (aVRegulDist.size() >= 5) ? aVRegulDist[4]  : 5.0;
+           aCom = aCom  + std::string(" +UseRegulDist=true")
+                        + std::string(" +RegDist0=") + ToString(aVRegulDist[0])
+                        + std::string(" +RegDist1=") + ToString(aVRegulDist[1])
+                        + std::string(" +RegDist2=") + ToString(aVRegulDist[2])
+                        + std::string(" +RegDistNbCase=") + ToString(aNbCase)
+                        + std::string(" +RegDistSeuil=") + ToString(aSeuilNbPts);
        }
 
 

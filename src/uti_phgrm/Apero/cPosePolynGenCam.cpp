@@ -144,7 +144,28 @@ int   cGenPoseCam::NbPtsMulNN() const
 }
 
 
-void    cGenPoseCam::AddPMoy(const Pt3dr & aP,double aBSurH)
+void cGenPoseCam::VirtualAddPMoy
+     (
+           const Pt2dr & aPIm,
+           const Pt3dr & aP,
+           int aKPoseThis,
+           const std::vector<double> * aVPds,
+           const std::vector<cGenPoseCam*>*
+     )
+{
+}
+
+
+
+void    cGenPoseCam::AddPMoy
+        (
+             const Pt2dr & aPIm,
+             const Pt3dr & aP,
+             double aBSurH,
+             int aKPoseThis,
+             const std::vector<double> * aVPds,
+             const std::vector<cGenPoseCam*> *aVPose
+        )
 {
    double aPds = (aBSurH-mAppli.Param().LimInfBSurHPMoy().Val());
    aPds /= (mAppli.Param().LimSupBSurHPMoy().Val() - mAppli.Param().LimInfBSurHPMoy().Val());
@@ -164,6 +185,8 @@ void    cGenPoseCam::AddPMoy(const Pt3dr & aP,double aBSurH)
     mPMoy = mPMoy + aP * aPds;
     mMoyInvProf  += (1/aProf) * aPds;
     mSomPM  += aPds ;
+
+    VirtualAddPMoy(aPIm,aP,aKPoseThis,aVPds,aVPose);
 }
 
 

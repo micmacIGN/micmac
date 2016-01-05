@@ -437,6 +437,11 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         itD->second->InitAvantCompens();
     }
 
+    for (tDiCal::iterator itC=mDicoCalib.begin() ; itC!=mDicoCalib.end(); itC++)
+    {
+        itC->second->InitAvantCompens();
+    }
+
 
     ActiveContraintes(true);
     mSetEq.SetPhaseEquation();
@@ -476,6 +481,10 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         }
     }
 
+    for (tDiCal::iterator itC=mDicoCalib.begin() ; itC!=mDicoCalib.end(); itC++)
+    {
+        itC->second->PostFinCompens();
+    }
 
 
 
@@ -521,6 +530,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
     }
 
     mCptIterCompens ++;
+
 }
 
 
@@ -798,9 +808,13 @@ void cAppliApero::DoContraintesAndCompens
      (
             const cEtapeCompensation & anEC,
             const cIterationsCompensation &  anIter,
-            bool  IsLastIter
+            bool  IsLastIter,
+            bool IsLastEtape
      )
 {
+ 
+
+   mIsLastEtape = IsLastEtape;
 
 /*
    if (mSqueezeDOCOAC)
@@ -906,7 +920,7 @@ void cAppliApero::TestF2C2()
 }
 
 
-void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
+void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC,bool LastEtape)
 {
     delete mMTRes;
     mMTRes = 0;
@@ -1048,12 +1062,12 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
                            }
                        }
                        bool aKProfLast = (aKProf==((int)mVProfs.size()-1));
-                       DoContraintesAndCompens(anEC,anIter,kIterLast&&aKProfLast);
+                       DoContraintesAndCompens(anEC,anIter,kIterLast&&aKProfLast,LastEtape);
                    }
                 }
                 else
                 {
-                   DoContraintesAndCompens(anEC,anIter,kIterLast);
+                   DoContraintesAndCompens(anEC,anIter,kIterLast,LastEtape);
                 }
 
                 if (anIter.BasculeOrientation().IsInit())
@@ -1145,8 +1159,13 @@ typedef std::list<cEtapeCompensation> tLEC;
 void cAppliApero::DoCompensation()
 {
    const tLEC & aLEC =mParam.EtapeCompensation();
+   int aNbRest = aLEC.size();
    for ( tLEC::const_iterator itEC=aLEC.begin(); itEC != aLEC.end() ;itEC++)
-      DoOneEtapeCompensation(*itEC);
+   {
+      
+      DoOneEtapeCompensation(*itEC,aNbRest==1);
+      aNbRest--;
+   }
 
    
    MajAddCoeffMatrix();

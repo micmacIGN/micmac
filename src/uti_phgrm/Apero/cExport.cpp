@@ -141,6 +141,8 @@ void cAppliApero::ExportCalib(const cExportCalib & anEC)
 	   cCalibrationInternConique anOC = aCS->ExportCalibInterne2XmlStruct(aSzIm);
 	   MakeFileXML(anOC,aNXml,Engl);
 
+           aCC->Export(aNXml);
+
 
            if (anEC.ExportAsGrid().IsInit()  && anEC.ExportAsGrid().Val().DoExport().Val())
            { 

@@ -96,6 +96,11 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mSqueezeDOCOAC     (0),
    mXmlSMLRop         (0)
 {
+     mIsLastIter = false;
+     mIsLastEtape = false;
+
+     SetPdsRegDist(mParam.SectionSolveur().RegDistGlob().PtrVal());
+
      setInputDirectory( mDC );
      std::string aNameFileDebug;
      if (mParam.FileDebug().IsInit())
@@ -1016,6 +1021,26 @@ void cAppliApero::DebugPbConvAppui()
     ShowSpectrSys(mSetEq);
 }
 
+void cAppliApero::SetPdsRegDist(const cXmlPondRegDist * aPds)
+{
+    if (aPds && (aPds->Pds0() || aPds->Pds1() ||  aPds->Pds2()))
+       mCurXmlPondRegDist = aPds;
+    else
+       mCurXmlPondRegDist = 0;
+}
+
+bool  cAppliApero::UsePdsCalib()
+{
+      return true;
+      // return (mCurXmlPondRegDist!=0) || (mIsLastIter && mIsLastEtape);
+}
+
+const cXmlPondRegDist * cAppliApero::CurXmlPondRegDist()
+{
+   return mCurXmlPondRegDist;
+}
+
+ 
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -858,6 +858,46 @@ std::string  Mangling( cExportAsNewGrid *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlPondRegDist
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlPondRegDist & anObj,cElXMLTree * aTree);
+
+
+        double & Pds0();
+        const double & Pds0()const ;
+
+        double & Pds1();
+        const double & Pds1()const ;
+
+        double & Pds2();
+        const double & Pds2()const ;
+
+        double & NbCase();
+        const double & NbCase()const ;
+
+        double & SeuilNbPtsByCase();
+        const double & SeuilNbPtsByCase()const ;
+    private:
+        double mPds0;
+        double mPds1;
+        double mPds2;
+        double mNbCase;
+        double mSeuilNbPtsByCase;
+};
+cElXMLTree * ToXMLTree(const cXmlPondRegDist &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlPondRegDist &);
+
+void  BinaryUnDumpFromFile(cXmlPondRegDist &,ELISE_fp &);
+
+std::string  Mangling( cXmlPondRegDist *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cShowSection
 {
     public:
@@ -2917,6 +2957,9 @@ class cSectionSolveur
 
         cTplValGesInit< cElRegex_Ptr > & Im2Aff();
         const cTplValGesInit< cElRegex_Ptr > & Im2Aff()const ;
+
+        cTplValGesInit< cXmlPondRegDist > & RegDistGlob();
+        const cTplValGesInit< cXmlPondRegDist > & RegDistGlob()const ;
     private:
         cTplValGesInit< bool > mAllMatSym;
         eModeSolveurEq mModeResolution;
@@ -2938,6 +2981,7 @@ class cSectionSolveur
         cTplValGesInit< cSectionLevenbergMarkard > mSLMGlob;
         cTplValGesInit< double > mMultSLMGlob;
         cTplValGesInit< cElRegex_Ptr > mIm2Aff;
+        cTplValGesInit< cXmlPondRegDist > mRegDistGlob;
 };
 cElXMLTree * ToXMLTree(const cSectionSolveur &);
 
@@ -5719,12 +5763,16 @@ class cNuagePutCam
 
         cTplValGesInit< double > & StepImage();
         const cTplValGesInit< double > & StepImage()const ;
+
+        cTplValGesInit< std::string > & KeyCalName();
+        const cTplValGesInit< std::string > & KeyCalName()const ;
     private:
         Pt3di mColCadre;
         cTplValGesInit< Pt3di > mColRay;
         double mLong;
         double mStepSeg;
         cTplValGesInit< double > mStepImage;
+        cTplValGesInit< std::string > mKeyCalName;
 };
 cElXMLTree * ToXMLTree(const cNuagePutCam &);
 
@@ -5798,6 +5846,9 @@ class cExportNuage
 
         cTplValGesInit< double > & StepImage();
         const cTplValGesInit< double > & StepImage()const ;
+
+        cTplValGesInit< std::string > & KeyCalName();
+        const cTplValGesInit< std::string > & KeyCalName()const ;
 
         cTplValGesInit< cNuagePutCam > & NuagePutCam();
         const cTplValGesInit< cNuagePutCam > & NuagePutCam()const ;
@@ -6593,6 +6644,9 @@ class cParamApero
 
         cTplValGesInit< cElRegex_Ptr > & Im2Aff();
         const cTplValGesInit< cElRegex_Ptr > & Im2Aff()const ;
+
+        cTplValGesInit< cXmlPondRegDist > & RegDistGlob();
+        const cTplValGesInit< cXmlPondRegDist > & RegDistGlob()const ;
 
         cSectionSolveur & SectionSolveur();
         const cSectionSolveur & SectionSolveur()const ;

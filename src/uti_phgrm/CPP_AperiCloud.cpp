@@ -66,6 +66,7 @@ int AperiCloud_main(int argc,char ** argv)
     Pt3di aColCadre(255,0,0);
     Pt3di aColRay(0,255,0);
     std::string aSetHom="";
+    std::string aKeyCalcName;
 
     ElInitArgMain
     (
@@ -86,6 +87,7 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(aColCadre,"ColCadre",true,"Col of camera rect Def= 255 0 0 (Red)")
                     << EAM(aColRay,"ColRay",true,"Col of camera rect Def=  0 255 0 (Green)")
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
+                    << EAM(aKeyCalcName,"KeyName",true,"Key to compute printed string (Def contain only digit)")
     );
 
     if (!MMVisualMode)
@@ -162,6 +164,10 @@ int AperiCloud_main(int argc,char ** argv)
             aCom = aCom + std::string(" +SetHom=") + aSetHom;
 
 
+        if (EAMIsInit(&aKeyCalcName))
+        {
+              aCom = aCom + " +WithCalcName=true +CalcName=" + aKeyCalcName;
+        }
         
 
         if (EAMIsInit(&aLimBsH))

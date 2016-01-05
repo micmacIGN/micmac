@@ -37,7 +37,6 @@ enum LINE_STYLE
     LINE_STIPPLE
 };
 
-//! Selection mode
 enum SELECTION_MODE { SUB_INSIDE,
                       ADD_INSIDE,
                       SUB_OUTSIDE,

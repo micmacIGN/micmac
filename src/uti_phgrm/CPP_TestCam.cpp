@@ -295,7 +295,8 @@ int TestDistM2C_main(int argc,char ** argv)
 
     std::cout << "SZ " << aCam->Sz() << "\n";
     std::cout   << " Delta=" << aCam->DistDirecte(aP0) -aP0 << "\n";
-    std::cout   << " Dx=" << aCam->DistDirecte(aP0) -aCam->DistDirecte(aP0+Pt2dr(1,0)) << "\n";
+    std::cout   << " Dx=" << aCam->DistDirecte(aP0) -aCam->DistDirecte(aP0+Pt2dr(-1,0)) << "\n";
+    std::cout   << " Dy=" << aCam->DistDirecte(aP0) -aCam->DistDirecte(aP0+Pt2dr(0,-1)) << "\n";
     std::cout   << " Delta=" << aCam->DistInverse(aP0) -aP0 << "\n";
 
    return EXIT_SUCCESS;

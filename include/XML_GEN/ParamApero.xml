@@ -320,9 +320,11 @@
 
 
 <XmlPondRegDist Nb="1"   Class="true" ToReference="true">
-       <Pds0 NB="1" Type="double"> </Pds0>  <!-- Valeur force a Id -->
-       <Pds1 NB="1" Type="double"> </Pds1>  <!-- Grad force a 1 -->
-       <Pds2 NB="1" Type="double"> </Pds2>  <!-- Derive seconde forcee a 0 -->
+       <Pds0 Nb="1" Type="double">  </Pds0>  <!-- Valeur force a Id -->
+       <Pds1 Nb="1" Type="double">  </Pds1>  <!-- Grad force a 1 -->
+       <Pds2 Nb="1" Type="double">  </Pds2>  <!-- Derive seconde forcee a 0 -->
+       <NbCase Nb="1" Type="double" >   </NbCase>
+       <SeuilNbPtsByCase  Nb="1" Type="double"> </SeuilNbPtsByCase>
 </XmlPondRegDist>
 
 
@@ -993,6 +995,9 @@ normalises en echelle et/ou en translation -->
 
             <Im2Aff Nb="?" Type="cElRegex_Ptr"> </Im2Aff>
 
+
+            <RegDistGlob Nb="?" RefType="XmlPondRegDist"> </RegDistGlob>
+
         </SectionSolveur>
 
 
@@ -1570,6 +1575,7 @@ normalises en echelle et/ou en translation -->
                               <Long Nb="1" Type="double"> </Long>
                               <StepSeg Nb="1" Type="double"> </StepSeg>
                               <StepImage Nb="?" Type="double" Def="-1.0"> </StepImage>
+                              <KeyCalName Nb="?" Type="std::string"> </KeyCalName> 
                           </NuagePutCam>
                      </ExportNuage>
 

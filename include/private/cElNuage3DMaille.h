@@ -791,7 +791,6 @@ class cMasqBin3D
 };
 
 
-
 #endif // _ELISE_NUAGE_3D_MAILLE_
 
 

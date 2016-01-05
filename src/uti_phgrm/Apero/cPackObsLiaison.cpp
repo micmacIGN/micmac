@@ -359,8 +359,8 @@ double  cObservLiaison_1Cple::AddObs
           if (int(aPPM.Show().Val()) >= int(eNSM_Indiv))
             std::cout << "RLiais = " << sqrt(aResidu) << " pour P1 " << itL->P1() << "\n";
 
-	    mPose1->AddPMoy(aRes.mPTer,aRes.mBSurH);
-	    mPose2->AddPMoy(aRes.mPTer,aRes.mBSurH);
+	    mPose1->AddPMoy(itL->P1(),aRes.mPTer,aRes.mBSurH);
+	    mPose2->AddPMoy(itL->P2(),aRes.mPTer,aRes.mBSurH);
       }
 
    }

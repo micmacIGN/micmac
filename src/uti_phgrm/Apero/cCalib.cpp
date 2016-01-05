@@ -153,7 +153,11 @@ cCalibCam::cCalibCam
     mRMaxU2  (DefRMaxU2),
     mFiged   (false),
     mPropDiagU (aCCI.PropDiagUtile().Val()),
-    mRay2Max  (10 * square_euclid(mMil))
+    mRay2Max  (10 * square_euclid(mMil)),
+    mReducPReg (50.0),
+    mSzPReg    (round_up(Pt2dr(mSzIm)/mReducPReg)),
+    mImReg     (mSzPReg.x,mSzPReg.y,0.0),
+    mTImReg    (mImReg)
 {
    SetRMaxU(aCCI.RayMaxUtile().Val(),aCCI.RayIsRelatifDiag().Val(),aCCI.RayApplyOnlyFE().Val());
 
@@ -1089,14 +1093,80 @@ void cAppliApero::NormaliseScTr(CamStenope & aCam)
 
 void cCalibCam::AddViscosite(const std::vector<double> & aTol)
 {
-if (MPD_MM())
-{
-    mPIF.AddCstrRegulGlob(4,1e-8,1,1);
-  std::cout << "cCalibCam::AddViscositecCalibCam::AddViscosite\n";
+    mPIF.AddRapViscosite(aTol[0]);
 }
 
 
-    mPIF.AddRapViscosite(aTol[0]);
+void cCalibCam::InitAvantCompens()
+{
+   mSomNbReg = 0.0;
+   mSomPdsReg = 0.0;
+   mImReg.raz();
+}
+
+void  cCalibCam::PostFinCompens()
+{
+   // On renormalise pour que ce soit equivalent a un nombre de point et prop a une ponderation
+   ELISE_COPY(mImReg.all_pts(),mImReg.in() * (mSomNbReg/mSomPdsReg),mImReg.out());
+
+   const cXmlPondRegDist * aPond = mAppli.CurXmlPondRegDist();
+
+   if ((aPond==0) || (mSomNbReg==0)) return;
+   
+   Im2D_REAL4 aImPds(mSzPReg.x,mSzPReg.y);
+
+   int aNbCase = aPond->NbCase();
+   Pt2di aSzW = round_up(Pt2dr(mSzPReg) * (1/(1.0+2.0*aNbCase)));
+   ELISE_COPY
+   (
+        mImReg.all_pts(),
+        rect_som(mImReg.in(0),aSzW) /  rect_som(mImReg.inside(),aSzW),
+        aImPds.out()
+   );
+
+   // Renormalise a som=mSomNbReg, et multiplie par une case pour que en moyenne, la valeur d'un pixel soit 
+   // la somme sur une case
+   double aSom;
+   ELISE_COPY(aImPds.all_pts(),aImPds.in(),sigma(aSom));
+   double aNbByCase = (1+2*aSzW.x)*(1+2*aSzW.y);
+   ELISE_COPY(aImPds.all_pts(),aImPds.in() * ((aNbByCase*mSomNbReg)/aSom),aImPds.out());
+
+   double aSeuil = aPond->SeuilNbPtsByCase();
+   Fonc_Num aF = Square(aSeuil / (aSeuil + aImPds.in()));
+
+   double aS1,aSP;
+   ELISE_COPY(aImPds.all_pts(),Virgule(aF,1),Virgule(aImPds.out()|sigma(aSP),sigma(aS1)));
+
+   double aMul = aSP /aS1;
+   mPIF.AddCstrRegulGlob(1+2*aNbCase,aPond->Pds0()*aMul,aPond->Pds1()*aMul,aPond->Pds2()*aMul,&aImPds);
+
+   
+/*
+if (MPD_MM())
+{
+    double aChekS;
+   ELISE_COPY(aImPds.all_pts(),aImPds.in(),sigma(aChekS));
+    for (int aK=0 ; aK<1 ; aK++) 
+        std::cout << " wwwwwwww WwmImRegmImReg "  << mKeyId <<  " " << aMul << " " << mSomNbReg << "\n";
+    ELISE_COPY(aImPds.all_pts(),aImPds.in(),mImReg.out());
+}
+*/
+
+}
+
+void cCalibCam::AddPds(const Pt2dr & aPt,const double & aPds)
+{
+   mTImReg.incr(aPt/mReducPReg,aPds);
+   mSomNbReg++;
+   mSomPdsReg += aPds;
+}
+
+void cCalibCam::Export(const std::string & aNameXml)
+{
+    std::string aNameTif = DirOfFile(aNameXml) + "Densite_" + StdPrefix(NameWithoutDir(aNameXml)) + ".tif";
+
+    Tiff_Im::CreateFromIm(mImReg,aNameTif);
+    // std::cout << "cCalibCam::Export :: " << aNameTif << "\n"; getchar();
 }
 
 extern std::string TheSpecMess;

@@ -704,6 +704,19 @@ void  cPoseCam::SetBascRig(const cSolBasculeRig & aSBR)
 }
 
 
+void cPoseCam::VirtualAddPMoy
+     (
+           const Pt2dr & aPIm,
+           const Pt3dr & aP,
+           int aKPoseThis,
+           const std::vector<double> * aVPds,
+           const std::vector<cGenPoseCam*>*
+     )
+{
+  if (mAppli.UsePdsCalib())
+      mCalib->AddPds(aPIm,(*aVPds)[aKPoseThis]);
+}
+
 
 void cPoseCam::BeforeCompens()
 {

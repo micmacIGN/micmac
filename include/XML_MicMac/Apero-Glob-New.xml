@@ -122,7 +122,12 @@
                 <Symb>  SpecialParam0=eLib_PP_CD_10 </Symb>
                 <Symb>  SpecialParam1=eLiberteFocale_1 </Symb>
 
-
+                <Symb>  UseRegulDist=false </Symb>
+                <Symb>  RegDist0=0.0 </Symb>
+                <Symb>  RegDist1=0.0 </Symb>
+                <Symb>  RegDist2=0.0 </Symb>
+                <Symb>  RegDistNbCase=0.0 </Symb>
+                <Symb>  RegDistSeuil=0.0 </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -267,6 +272,16 @@
                            <CondMax> ${CondMaxPano} </CondMax> 
                       </XmlSLM_RappelOnPt>
                   </SLMGlob>
+              </#WHEN>
+              <#WHEN VTEST=${UseRegulDist}>
+                  <RegDistGlob>
+                        <Pds0> ${RegDist0} </Pds0>  <!-- Valeur force a Id -->
+                        <Pds1> ${RegDist1} </Pds1>  <!-- Grad force a 1 -->
+                        <Pds2> ${RegDist2} </Pds2>  <!-- Derive seconde forcee a 0 -->
+                        <NbCase> ${RegDistNbCase}   </NbCase>
+                        <SeuilNbPtsByCase > ${RegDistSeuil} </SeuilNbPtsByCase>
+                  </RegDistGlob>
+
               </#WHEN>
 
 
@@ -810,8 +825,8 @@
                    <IterationsCompensation> 
                         <#IF VTEST=${AffineAll}>
                               <CtrlTimeCompens>
-                                    <NbMin > 3 </NbMin>
-                                    <NbMax>    10       </NbMax>
+                                    <NbMin > 2 </NbMin>
+                                    <NbMax>    9       </NbMax>
                                     <SeuilEvolMoy > 1e-10  </SeuilEvolMoy>
                                     <AutoAdaptLVM>
                                          <Mult> 1e-2  </Mult>  <!-- MultSLMEtape sera egal a Mult * EvolMoy -->
@@ -820,11 +835,13 @@
                               </CtrlTimeCompens>
                               <CtrlTimeCompens>
                                     <NbMin > 0 </NbMin>
-                                    <NbMax>    5      </NbMax>
+                                    <NbMax>    4      </NbMax>
                                     <SeuilEvolMoy > 1e-5  </SeuilEvolMoy>
                               </CtrlTimeCompens>
                         </#IF>
                    </IterationsCompensation>
+
+                   <IterationsCompensation> </IterationsCompensation>
 
 
 		    <SectionObservations>

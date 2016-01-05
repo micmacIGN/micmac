@@ -215,6 +215,12 @@ class cCalibCam
         bool HasRayonMax() const;
         double RayonMax() const;
         void AddViscosite(const std::vector<double> & aTol);
+        void InitAvantCompens();
+        void AddPds(const Pt2dr & aPt,const double & aPds);
+        void Export(const std::string & aNameXml);
+        void PostFinCompens();
+
+
      protected :
         virtual ~cCalibCam();
 
@@ -242,6 +248,13 @@ class cCalibCam
         bool                            mFiged;
         double                          mPropDiagU;
         double                          mRay2Max;
+
+        double                          mReducPReg;
+        Pt2di                           mSzPReg;
+        Im2D_REAL4                      mImReg;
+        TIm2D<REAL4,REAL>               mTImReg;
+        double                          mSomNbReg;
+        double                          mSomPdsReg;
 };
 
 /*
@@ -371,7 +384,8 @@ class cGenPoseCam
           void AddPtsVu(const Pt3dr &);
           const std::vector<Pt3dr> & PtsVu() const;
           bool HasMasqHom() const;
-	  void    AddPMoy(const Pt3dr & aP,double aBSurH);
+	  void    AddPMoy(const Pt2dr &aPIm,const Pt3dr & aP,double aBSurH,int aKPoseThis=-1,const std::vector<double> * =0,const std::vector<cGenPoseCam*>* =0);
+	  virtual void    VirtualAddPMoy(const Pt2dr &aPIm,const Pt3dr & aP,int aKPoseThis=-1,const std::vector<double> * =0,const std::vector<cGenPoseCam*>* =0);
 	  void    InitAvantCompens();
 	  virtual void    VirtualInitAvantCompens();
 	  bool    PMoyIsInit() const;
@@ -442,6 +456,7 @@ class cPoseCam : public cGenPoseCam
 {
      public :
 
+	 virtual void    VirtualAddPMoy(const Pt2dr & aPIm,const Pt3dr & aP,int aKPoseThis=-1,const std::vector<double> * =0,const std::vector<cGenPoseCam*> * =0);
 	 virtual void    VirtualInitAvantCompens();
          virtual cPoseCam * DownCastPoseCamSVP();
          virtual const cPoseCam * DownCastPoseCamSVP() const;
@@ -2143,7 +2158,13 @@ class cAppliApero : public NROptF1vND
        cAperoOffsetGPS *  OffsetNNOfName(const std::string &);
        const cXmlSLM_RappelOnPt *  XmlSMLRop();
        cArg_UPL                    ArgUPL();
+
+       bool   UsePdsCalib();
+       const cXmlPondRegDist * CurXmlPondRegDist();
     private :
+
+       void SetPdsRegDist(const cXmlPondRegDist *);
+
 
        // Active uniquement si  mFileDebug != 0
        void AddAllMajick(int aLine,const std::string & aFile,const std::string & aMes);
@@ -2282,7 +2303,7 @@ class cAppliApero : public NROptF1vND
 	                    
 
 	void InitOneSurfParam(const cSurfParamInc &);
-        void DoOneEtapeCompensation(const cEtapeCompensation &);
+        void DoOneEtapeCompensation(const cEtapeCompensation &,bool LastEtape);
 
 
         void DoOneContraintesAndCompens
@@ -2295,7 +2316,8 @@ class cAppliApero : public NROptF1vND
              (
                     const cEtapeCompensation & anEC,
                     const cIterationsCompensation &  anIter,
-                    bool IsLastIter
+                    bool IsLastIter,
+                    bool IsLastEtape
              );
 
 
@@ -2532,6 +2554,7 @@ class cAppliApero : public NROptF1vND
 
         const cEtapeCompensation * mCurEC;
         bool                       mIsLastIter;
+        bool                       mIsLastEtape;
         double                     mScoreLambda0;
         double                     mScoreLambda1;
 
@@ -2569,6 +2592,7 @@ class cAppliApero : public NROptF1vND
         int                                    mSqueezeDOCOAC;  
         cXmlSauvExportAperoGlob                mXMLExport;
         const cXmlSLM_RappelOnPt *             mXmlSMLRop;
+        const cXmlPondRegDist *                mCurXmlPondRegDist;
 
         
     public :

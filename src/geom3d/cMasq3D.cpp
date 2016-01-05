@@ -41,9 +41,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#if (ELISE_QT_VERSION >= 4)
-
+#if  (ELISE_QT_VERSION >= 4)
 #include "../saisieQT/include_QT/3DObject.h"
+#else
+enum SELECTION_MODE { SUB_INSIDE,
+                      ADD_INSIDE,
+                      SUB_OUTSIDE,
+                      ADD_OUTSIDE,
+                      INVERT,
+                      ALL,
+                      NONE,
+                      SIZE_OF_SELECTION_MODE
+                    };
+
+#endif
 
 
 bool IsModeGlobal(SELECTION_MODE aMode)
@@ -369,7 +380,7 @@ bool cMasq3DEmpileMasqPart::IsInMasq(const Pt3dr & aP) const
 */
 
 
-#include "MatrixManager.h"
+// #include "MatrixManager.h"
 
 
 
@@ -543,7 +554,10 @@ int Masq3Dto2D_main(int argc,char ** argv)
                     << EAM(aNameMasq,"MasqNuage",true, "Masq of Nuage if dif of XML File")
     );
 
-   cMasqBin3D * aM3D = cMasq3DEmpileMasqPart::FromSaisieMasq3d(aNameMasq3D);
+// std::cout << "AAAAAA " << SUB_OUTSIDE << "\n";
+
+   // cMasqBin3D * aM3D = cMasq3DEmpileMasqPart::FromSaisieMasq3d(aNameMasq3D);
+   cMasqBin3D  * aM3D = cMasqBin3D::FromSaisieMasq3d(aNameMasq3D);
 
    cXML_ParamNuage3DMaille aXmlPN = StdGetFromSI(aNameNuage,XML_ParamNuage3DMaille);
    cElNuage3DMaille * aNuage = cElNuage3DMaille::FromParam
@@ -558,7 +572,7 @@ int Masq3Dto2D_main(int argc,char ** argv)
    {
       if (!AcceptNew2d)
       {
-          ELISE_ASSERT(false,"Masq3Dto2D file res do not exist, set AcceptNew2d=true for create")
+          ELISE_ASSERT(false,"Masq3Dto2D file res do not exist, set OkNew2d=true for create")
       }
       Tiff_Im aFileRes(aNameRes.c_str(),aNuage->SzUnique(),GenIm::u_int1,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
       ELISE_COPY(aFileRes.all_pts(),1,aFileRes.out());
@@ -577,6 +591,7 @@ int Masq3Dto2D_main(int argc,char ** argv)
    return 1;
 }
 
+/*
 #else
 cMasqBin3D  *cMasqBin3D::FromSaisieMasq3d(const std::string & aName)
 {
@@ -584,6 +599,7 @@ cMasqBin3D  *cMasqBin3D::FromSaisieMasq3d(const std::string & aName)
    return 0;
 }
 #endif
+*/
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
