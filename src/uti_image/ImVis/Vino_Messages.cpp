@@ -37,11 +37,11 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "Vino.h"
-
+#include "general/CMake_defines.h"
 
 #if (ELISE_X11)
 
+#include "Vino.h"
 
 void cAppli_Vino::Efface(const Box2di & aBox)
 {
