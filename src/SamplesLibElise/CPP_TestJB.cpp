@@ -255,7 +255,7 @@ int command_maskContent( int argc, char ** argv )
 //------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------
 
-unsigned int getNbDigits(unsigned int i_n, unsigned int i_base = 10)
+size_t getNbDigits(size_t i_n, unsigned int i_base = 10)
 {
 	//~ double l = log((double)i_n) / log(i_base);
 	//~ unsigned int i = (unsigned int)l;
@@ -264,7 +264,7 @@ unsigned int getNbDigits(unsigned int i_n, unsigned int i_base = 10)
 
 	stringstream ss;
 	ss << i_n;
-	return (unsigned int)ss.str().length();
+	return ss.str().length();
 }
 
 int command_renameImageSet( int argc, char **argv )
@@ -279,8 +279,8 @@ int command_renameImageSet( int argc, char **argv )
 	list<cElFilename> filenames;
 	fullPattern.getFilenames(filenames);
 
-	const unsigned int nbdigits = getNbDigits((unsigned int)filenames.size(), 10);
-	unsigned int iFilename = 0;
+	const size_t nbdigits = getNbDigits((unsigned int)filenames.size(), 10);
+	size_t iFilename = 0;
 	list<cElFilename>::const_iterator itFilename = filenames.begin();
 	while (itFilename != filenames.end())
 	{
@@ -384,7 +384,7 @@ public:
 		if (mFilenames.empty()) return;
 
 		size_t iFilename = 0;
-		unsigned int nbDigits = getNbDigits(mFilenames.size() - 1);
+		size_t nbDigits = getNbDigits(mFilenames.size() - 1);
 		list<cElFilename>::const_iterator itFilename = mFilenames.begin();
 		while (itFilename != mFilenames.end())
 		{
@@ -435,7 +435,7 @@ void move(list<ImageSet> &aSets, const string &aBase)
 {
 	if (aSets.empty()) return;
 
-	unsigned int nbDigits = getNbDigits(aSets.size() - 1);
+	size_t nbDigits = getNbDigits(aSets.size() - 1);
 	size_t iSet = 0;
 	list<ImageSet>::iterator it = aSets.begin();
 	while (it != aSets.end())
