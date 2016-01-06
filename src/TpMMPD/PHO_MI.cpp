@@ -748,7 +748,8 @@ void CplImg::CalVectorSurface(string m3emeImg)
     string aDirImages = this->mDirImages;
     string aNameImg1 = this->mNameImg1;
     string aNameImg2 = this->mNameImg2;
-
+    CamStenope * aCam1 = this->mCam1;
+    CamStenope * aCam2 = this->mCam2;
     //====Import collection 3eme Image====//
     string aNameImg3 = this->mCollection3emeImg[0];
     std::string aOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ this->mOri, aNameImg3, true);
@@ -779,9 +780,25 @@ void CplImg::CalVectorSurface(string m3emeImg)
      aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);
     }
     //=======================================================//
+    for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
+    {
 
-    //==à partir de vector surface Img1, profondeur,
+        Pt2dr aP1 = itP->P1();
+        Pt2dr aP2 = itP->P2();
+        const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
+        Pt2dr aP3 = aTriplet2_3->P2();
+        //======à partir de vector surface d'Img1, profondeur======
+        double d;
+        Pt3dr Pt_H= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
+        //=== 2) Pt 3d H et orientation img 1 => profondeur d =======
 
+        //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
+
+        //=== 4) Projecte Hu et Hv dans img 3 =====
+
+        //=== 5) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
+
+    }
 }
 
 
@@ -923,7 +940,7 @@ int PHO_MI_main(int argc,char ** argv)
         //out list of 2 abre to img3eme correspond with abre 1 abre 2
     }
 
-    //===================================test===========================================
+    //=============================================================================
     if (bStrategie == "6")
     {
         VerifParRepr aImgVerif(aSetImages, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt, aDistHom, aDistRepr);
@@ -933,7 +950,21 @@ int PHO_MI_main(int argc,char ** argv)
         aImgVerif.FiltragePtsHomo();
     }
     cout<<"use command SEL ./ img1 img2 KCpl=NKS-Assoc-CplIm2Hom@"<<aHomolOutput<< "@dat to view filtered point homomogues"<<endl;
-
+    //=============================================================================
+    if (bStrategie == "7")
+    {
+        VerifParRepr aImgVerif(aSetImages, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt, aDistHom, aDistRepr);
+        vector<AbreHomol> aAbre = aImgVerif.creatAbre();
+        vector<string>  aAbreRacine= aImgVerif.displayAbreHomol(aImgVerif.mAbre, 0);
+        string aImg1 = aAbre[0].ImgRacine;
+        string aImg2 = aAbre[0].ImgBranch[0];
+        string aImg3 = aAbre[0].Img3eme[0][0];
+        CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt);
+        aCouple.mCollection3emeImg = aAbre[0].Img3eme[0];
+        vector<double> InitDirX; InitDirX.push_back(1); InitDirX.push_back(0);
+        vector<double> InitDirY; InitDirY.push_back(0); InitDirY.push_back(1);
+        aCouple.SupposeVecSruf1er(InitDirX , InitDirY);
+    }
     return EXIT_SUCCESS;
 }
 
