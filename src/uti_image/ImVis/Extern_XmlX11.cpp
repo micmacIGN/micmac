@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/CMake_defines.h"
+#include "general/sys_dep.h"
 
 #if (ELISE_X11)
 
