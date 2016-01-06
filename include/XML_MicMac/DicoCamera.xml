@@ -170,6 +170,58 @@
         <ShortName> PK5 </ShortName>
 	</CameraEntry>
    
+
+        <CameraEntry>
+               <Name> PENTAX K-5 </Name>  <!--  4.807 micron -->
+               <SzCaptMm> 16.0 24.0 </SzCaptMm>
+               <ShortName> PK5 </ShortName>
+        </CameraEntry>
+        <CameraEntry>
+               <Name> PENTAX K-7 </Name>
+               <SzCaptMm> 15.6 23.4 </SzCaptMm>
+               <ShortName> PK7 </ShortName>
+        </CameraEntry>
+        <CameraEntry>
+               <Name> PENTAX K10D </Name>
+               <SzCaptMm> 15.7 23.5 </SzCaptMm>
+               <ShortName> PK10 </ShortName>
+        </CameraEntry>
+        <CameraEntry>
+               <Name> PENTAX K20D </Name>
+               <SzCaptMm> 15.6 23.4 </SzCaptMm>
+               <ShortName> PK20 </ShortName>
+        </CameraEntry>
+        <CameraEntry>
+               <Name> PENTAX K100D </Name>
+               <SzCaptMm> 15.7 23.5 </SzCaptMm>
+               <ShortName> PK100 </ShortName>
+        </CameraEntry>
+        <CameraEntry>
+               <Name> PENTAX K110D </Name>
+               <SzCaptMm> 15.7 23.5 </SzCaptMm>
+               <ShortName> PK110 </ShortName>
+        </CameraEntry>
+        <CameraEntry>
+               <Name> PENTAX K200D </Name>
+               <SzCaptMm> 15.7 23.5 </SzCaptMm>
+               <ShortName> PK200 </ShortName>
+        </CameraEntry>
+        <CameraEntry>
+               <Name> PENTAX K-m  </Name>
+               <SzCaptMm> 15.7 23.5 </SzCaptMm>
+               <ShortName> PKm </ShortName>
+        </CameraEntry>
+        <CameraEntry>
+               <Name> PENTAX K-r  </Name>
+               <SzCaptMm> 15.8 23.6 </SzCaptMm>
+               <ShortName> PKr </ShortName>
+        </CameraEntry>
+        <CameraEntry>
+               <Name> PENTAX K-x </Name>
+               <SzCaptMm> 15.8 23.6 </SzCaptMm>
+               <ShortName> PKx </ShortName>
+        </CameraEntry>   
+
    
 <!-- Sony -->
 
@@ -280,6 +332,8 @@
         <SzCaptMm>   36.9 36.9 </SzCaptMm>
         <ShortName> Ph1p20  </ShortName>
 	</CameraEntry>
+
+
 
 </MMCameraDataBase>
 
