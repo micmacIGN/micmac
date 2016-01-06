@@ -668,32 +668,118 @@ void VerifParRepr::FiltragePtsHomo()
 
 }
 
-VectorSurface::VectorSurface(double dirX[], double dirY[])
+VectorSurface::VectorSurface(vector<double> dirX, vector<double> dirY)
 {
-
+    this->dirX = dirX;
+    this->dirY = dirY;
 }
 
-CplImg::CplImg(string aNameImg1, string aNameImg2)
+VectorSurface::VectorSurface()
+{
+    vector<double> nul;
+    nul.push_back(0);nul.push_back(0);
+    this->dirX = nul;
+    this->dirY = nul;
+}
+
+CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput, string aFullPatternImages, bool ExpTxt)
 {
     this->mNameImg1 = aNameImg1;
     this->mNameImg2 = aNameImg2;
+    this->mNameHomol = aNameHomol;
+    this->mHomolOutput = aHomolOutput;
+    this->mExpTxt = ExpTxt;
+   //====== Initialize name manipulator & files=====//
+    ELISE_fp::AssertIsDirectory(aNameHomol);
+    std::string aDirImages, aPatImages;
+    SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
+    StdCorrecNameOrient(aOri,aDirImages);//remove "Ori-" if needed
+    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+    const std::vector<std::string> aSetImages = *(aICNM->Get(aPatImages));
+    ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
+
+    this->mOri = aOri;
+    this->mSetImages = aSetImages;
+    this->mDirImages = aDirImages;
+    this->mPatImages = aPatImages;
+    this->mICNM = aICNM;
+
+    std::string anExt = ExpTxt ? "txt" : "dat";
+
+    this->mKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                        +  std::string("txt");
+
+    this->mKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                        +  std::string("dat");
+
+    this->mKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(aNameHomol)
+                       +  std::string("@")
+                       +  std::string(anExt);
+
+
+ //===========================================================
     //====lire Img1 et Img2=====//
-
+    Tiff_Im aTiffImg1(aNameImg1.c_str());
+    Tiff_Im aTiffImg2(aNameImg2.c_str());
     //====lire Cam1 et Cam2====//
-
-    //====Import collection 3eme Image====//
-
-
+    std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg1, true);
+    CamStenope * aCam1 = CamOrientGenFromFile(aOri1 , aICNM);
+    std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg2,true);
+    CamStenope * aCam2 = CamOrientGenFromFile(aOri2 , aICNM);
+    this->mCam1 = aCam1;
+    this->mCam2 = aCam2;
 }
 
-void CplImg::SupposeVecSruf1er(double dirX[2], double dirY[2])
+void CplImg::SupposeVecSruf1er(vector<double> dirX, vector<double> dirY)
 {
-    //VectorSurface a(dirX[2], dirY[2]);
-    //this->mSurfImg1 = a;
+    VectorSurface a(dirX, dirY);
+    this->mSurfImg1 = a;
 }
 
 void CplImg::CalVectorSurface(string m3emeImg)
 {
+    cInterfChantierNameManipulateur * aICNM = this->mICNM;
+    string aKHIn = this->mKHIn;
+    string aDirImages = this->mDirImages;
+    string aNameImg1 = this->mNameImg1;
+    string aNameImg2 = this->mNameImg2;
+
+    //====Import collection 3eme Image====//
+    string aNameImg3 = this->mCollection3emeImg[0];
+    std::string aOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ this->mOri, aNameImg3, true);
+    CamStenope * aCam3 = CamOrientGenFromFile(aOri3 , aICNM);
+    //====Import Pack Homologue======//
+    std::string aHomoIn1_2 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg2,true);
+    StdCorrecNameHomol_G(aHomoIn1_2,aDirImages);
+    ElPackHomologue aPackIn1_2, aPackIn1_3, aPackIn2_3;
+    bool Exist1_2 = ELISE_fp::exist_file(aHomoIn1_2);
+    if (Exist1_2)
+    {
+     aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);
+    }
+
+    std::string aHomoIn1_3 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg3,true);
+    StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
+    bool Exist1_3 = ELISE_fp::exist_file(aHomoIn1_3);
+    if (Exist1_3)
+    {
+     aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);
+    }
+
+    std::string aHomoIn2_3 = aICNM->Assoc1To2(aKHIn, aNameImg2, aNameImg3, true);
+    StdCorrecNameHomol_G(aHomoIn2_3,aDirImages);
+    bool Exist2_3 = ELISE_fp::exist_file(aHomoIn2_3);
+    if (Exist2_3)
+    {
+     aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);
+    }
+    //=======================================================//
+
     //==à partir de vector surface Img1, profondeur,
 
 }
