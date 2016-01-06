@@ -11,16 +11,17 @@ struct AbreHomol
 class VectorSurface
 {
     public:
-    VectorSurface(double dirX[2], double dirY[2]);
-    double dirX[2];
-    double dirY[2];
+    VectorSurface(vector<double> dirX, vector<double> dirY);
+    VectorSurface();
+    vector<double> dirX;
+    vector<double> dirY;
 };
 
 class CplImg
 {
     public :
-          CplImg(string aNameImg1, string aNameImg2);
-
+          CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,string aFullPatternImages, bool ExpTxt);
+          vector<double> nul;
           vector<string> mCollection3emeImg;
           string mNameImg1;
           string mNameImg2;
@@ -28,10 +29,20 @@ class CplImg
           Im2D<U_INT1,INT4> mImg2;
           CamStenope * mCam1;
           CamStenope * mCam2;
-          //VectorSurface mSurfImg1;
-          //VectorSurface mSurfImg2;
+          string mDirImages;
+          string mPatImages;
+          string mNameHomol;
+          string mOri;
+          string mHomolOutput;
+          vector<string> mSetImages;
+          string mKHIn, mKHOutDat, mKHOut;
+          cInterfChantierNameManipulateur * mICNM;
+          bool mExpTxt;
 
-          void SupposeVecSruf1er(double dirX[2], double dirY[2]);
+          VectorSurface mSurfImg1;
+          VectorSurface mSurfImg2;
+
+          void SupposeVecSruf1er(vector<double> dirX, vector<double> dirY);
           void ValPtsLia(vector<double> NorSur);
           void CalVectorSurface(string mImg3eme);
 };
