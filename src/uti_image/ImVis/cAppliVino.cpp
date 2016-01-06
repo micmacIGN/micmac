@@ -37,12 +37,11 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "Vino.h"
-
+#include "general/CMake_defines.h"
 
 #if (ELISE_X11)
 
-
+#include "Vino.h"
 
 std::string NameVinoPyramImage(const std::string & aDir,const std::string & aName,int aZoom)
 {
