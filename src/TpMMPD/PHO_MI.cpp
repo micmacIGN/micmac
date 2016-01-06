@@ -668,7 +668,7 @@ void VerifParRepr::FiltragePtsHomo()
 
 }
 
-VectorSurface::VectorSurface(vector<double> dirX, vector<double> dirY)
+VectorSurface::VectorSurface(Pt2dr dirX, Pt2dr dirY)
 {
     this->dirX = dirX;
     this->dirY = dirY;
@@ -676,10 +676,8 @@ VectorSurface::VectorSurface(vector<double> dirX, vector<double> dirY)
 
 VectorSurface::VectorSurface()
 {
-    vector<double> nul;
-    nul.push_back(0);nul.push_back(0);
-    this->dirX = nul;
-    this->dirY = nul;
+    this->dirX = Pt2dr(0,0);
+    this->dirY = Pt2dr(0,0);
 }
 
 CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput, string aFullPatternImages, bool ExpTxt)
@@ -735,7 +733,7 @@ CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOr
     this->mCam2 = aCam2;
 }
 
-void CplImg::SupposeVecSruf1er(vector<double> dirX, vector<double> dirY)
+void CplImg::SupposeVecSruf1er(Pt2dr dirX, Pt2dr dirY)
 {
     VectorSurface a(dirX, dirY);
     this->mSurfImg1 = a;
@@ -791,13 +789,25 @@ void CplImg::CalVectorSurface(string m3emeImg)
         double d;
         Pt3dr Pt_H= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
         //=== 2) Pt 3d H et orientation img 1 => profondeur d =======
-
+            //how to get profondeur ?
+            //what is thr role of img 2 ?
         //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
-
-        //=== 4) Projecte Hu et Hv dans img 3 =====
-
-        //=== 5) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
-
+        Pt2dr SupDirX = aP1+Pt2dr(0,1);
+        Pt2dr SupDirY = aP1+Pt2dr(1,0);
+        Pt3dr OptCenterImg1 = aCam1->VraiOpticalCenter();
+        double prof_d = sqrt(pow((OptCenterImg1.x - Pt_H.x),2) + pow((OptCenterImg1.y - Pt_H.y),2) + pow((OptCenterImg1.z - Pt_H.z),2));
+        Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une spère
+        Pt3dr Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
+        //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
+        Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
+        Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
+        //=== 5) Vector direction de surface d'img 3 ===
+        Pt2dr DirX = Pt_Hu_dansImg3 - aP3;
+        Pt2dr DirY = Pt_Hv_dansImg3 - aP3;
+        VectorSurface aDirSurfImg3(DirX,DirY);
+        cout<<SupDirX<<SupDirY<<" + "<<prof_d<< " = "<<DirX<<DirY<<endl;
+        //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
+            //comment calcul ?
     }
 }
 
@@ -958,12 +968,11 @@ int PHO_MI_main(int argc,char ** argv)
         vector<string>  aAbreRacine= aImgVerif.displayAbreHomol(aImgVerif.mAbre, 0);
         string aImg1 = aAbre[0].ImgRacine;
         string aImg2 = aAbre[0].ImgBranch[0];
-        string aImg3 = aAbre[0].Img3eme[0][0];
         CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt);
         aCouple.mCollection3emeImg = aAbre[0].Img3eme[0];
-        vector<double> InitDirX; InitDirX.push_back(1); InitDirX.push_back(0);
-        vector<double> InitDirY; InitDirY.push_back(0); InitDirY.push_back(1);
-        aCouple.SupposeVecSruf1er(InitDirX , InitDirY);
+        aCouple.SupposeVecSruf1er(Pt2dr(0,0) , Pt2dr(0,0));
+        cout<<"trip: "<<aImg1<<" + "<<aImg2<<" + "<< aCouple.mCollection3emeImg[0]<<endl;
+        aCouple.CalVectorSurface(aCouple.mCollection3emeImg[0]);
     }
     return EXIT_SUCCESS;
 }

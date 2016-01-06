@@ -11,10 +11,10 @@ struct AbreHomol
 class VectorSurface
 {
     public:
-    VectorSurface(vector<double> dirX, vector<double> dirY);
+    VectorSurface(Pt2dr dirX, Pt2dr dirY);
     VectorSurface();
-    vector<double> dirX;
-    vector<double> dirY;
+    Pt2dr dirX;
+    Pt2dr dirY;
 };
 
 class CplImg
@@ -42,7 +42,7 @@ class CplImg
           VectorSurface mSurfImg1;
           VectorSurface mSurfImg2;
 
-          void SupposeVecSruf1er(vector<double> dirX, vector<double> dirY);
+          void SupposeVecSruf1er(Pt2dr dirX, Pt2dr dirY);
           void ValPtsLia(vector<double> NorSur);
           void CalVectorSurface(string mImg3eme);
 };
