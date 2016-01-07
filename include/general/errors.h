@@ -3,6 +3,8 @@
 
 #include "MessageHandler.h"
 
+#include "general/sys_dep.h"
+
 #if ELISE_unix || defined UNIX
 	#define ELISE_TTY_BOLD_RED "\033[1;31m"
 	#define ELISE_TTY_DEFAULT "\033[0m"

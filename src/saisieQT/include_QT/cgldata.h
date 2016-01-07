@@ -29,7 +29,10 @@ public:
     bool        isImgEmpty()                            { return _glMaskedImage._m_image == NULL; }
 
 	#ifndef USE_MIPMAP_HANDLER
-    	QImage*     getMask()                               { return _glMaskedImage.getMaskedImage()->_m_rescaled_mask; }
+		QImage * getMask()                               { return _glMaskedImage.getMaskedImage()->_m_rescaled_mask; }
+
+		// this method may crash, for unknown reason, probably because of the multiple cObject inheritance
+		QString imageName() { return _glMaskedImage.cObjectGL::name(); }
 	#endif
 
     void        setPolygon(int aK, cPolygon *aPoly)     { _vPolygons[aK] = aPoly; }
@@ -42,11 +45,6 @@ public:
 	void        clearCurrentPolygon();
 
     bool        isNewMask()                             { return !isImgEmpty() ? _glMaskedImage._m_newMask : true; }
-
-	#ifndef USE_MIPMAP_HANDLER
-	   	// this method may crash, for unknown reason, probably because of the multiple cObject inheritance
-	    QString     imageName() { return _glMaskedImage.cObjectGL::name(); }
-	#endif
 
     //info coming from cData
     float       getBBoxMaxSize(){return _diam;}
@@ -142,20 +140,26 @@ public:
 
 	#ifdef USE_MIPMAP_HANDLER
 		int id() const { return mId; }
+
 		MipmapHandler::Mipmap & getMask()
 		{
 			ELISE_DEBUG_ERROR( !_glMaskedImage.hasSrcMask(), "cMaskedImageGL::getMask()", "!_glMaskedImage.hasSrcMask()");
 			return _glMaskedImage.srcMask();
 		}
 
-		bool isLoaded() const { return mIsLoaded; }
+		bool isLoaded() const { return mNbLoaded != 0; }
 
-		void setLoaded( bool aIsLoaded )
+		void setLoaded(bool aLoad)
 		{
-			ELISE_DEBUG_ERROR(aIsLoaded == mIsLoaded, "cGLData::setLoaded", "aIsLoaded = mIsLoaded = " << mIsLoaded);
-			mIsLoaded = aIsLoaded;
+			if (aLoad)
+				mNbLoaded++;
+			else
+			{
+				ELISE_DEBUG_ERROR(mNbLoaded == 0, "cGLData::setLoaded", "aLoad == false && mNbLoaded == 0");
+				mNbLoaded--;
+			}
 
-			if ( !aIsLoaded) _glMaskedImage.deleteTextures();
+			if (mNbLoaded == 0) _glMaskedImage.deleteTextures();
 		}
 
 		void dump( std::string aPrefix, std::ostream &aStream ) const;
@@ -163,7 +167,7 @@ public:
 private:
 	#ifdef USE_MIPMAP_HANDLER
 		int mId;
-		bool mIsLoaded;
+		unsigned int mNbLoaded;
 	#endif
 
 	cMaskedImageGL      _glMaskedImage;
