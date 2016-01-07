@@ -739,6 +739,20 @@ void CplImg::SupposeVecSruf1er(Pt2dr dirX, Pt2dr dirY)
     this->mSurfImg1 = a;
 }
 
+bool IsInside(Pt2dr checkPoint, double w, double h)
+{
+    bool in=false;
+    if ((checkPoint.x < w) && (checkPoint.x > 0))
+    {
+        if((checkPoint.y < h)  && (checkPoint.y > 0))
+            {in = true; }
+        else
+            {in = false;}
+    }
+    else
+    {in = false;}
+    return in;
+}
 void CplImg::CalVectorSurface(string m3emeImg)
 {
     cInterfChantierNameManipulateur * aICNM = this->mICNM;
@@ -777,40 +791,106 @@ void CplImg::CalVectorSurface(string m3emeImg)
     {
      aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);
     }
+    // ====Import images Tiff and IM2D =====//
+    Tiff_Im mTiffImg1(aNameImg1.c_str());
+    Tiff_Im mTiffImg2(aNameImg2.c_str());
+    Tiff_Im mTiffImg3(aNameImg3.c_str());
+
+    Im2D<U_INT1,INT4> mIm2DImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);
+    Im2D<U_INT1,INT4> mIm2DImg2(mTiffImg2.sz().x,mTiffImg2.sz().y);
+    Im2D<U_INT1,INT4> mIm2DImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
+
+    ELISE_COPY(
+                 mTiffImg1.all_pts(),
+                 mTiffImg1.in(),
+                 mIm2DImg1.out()
+              );
+    ELISE_COPY(
+                 mTiffImg2.all_pts(),
+                 mTiffImg2.in(),
+                 mIm2DImg2.out()
+              );
+    ELISE_COPY(
+                 mTiffImg3.all_pts(),
+                 mTiffImg3.in(),
+                 mIm2DImg3.out()
+              );
+    Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
+    double diag = sqrt(pow(mTiffImg1.sz().x,2) + pow(mTiffImg1.sz().y,2));
     //=======================================================//
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
     {
-
+        cout<<"-------------------------------------"<<endl;
         Pt2dr aP1 = itP->P1();
+        cout<<"aP1 "<<aP1<<endl;
         Pt2dr aP2 = itP->P2();
-        const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
-        Pt2dr aP3 = aTriplet2_3->P2();
-        //======à partir de vector surface d'Img1, profondeur======
+        //======Profondeur a partir de cam 1 et cam 2======
         double d;
-        Pt3dr Pt_H= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
-        //=== 2) Pt 3d H et orientation img 1 => profondeur d =======
-            //how to get profondeur ?
-            //what is thr role of img 2 ?
+        Pt3dr Pt_pseudointer= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
+            //====== calcul profondeur correspondant avec direction viseur de cam 1 =====
+        double prof_d = aCam1->ProfInDir(Pt_pseudointer,aCam1->DirK());
+        Pt3dr Pt_H = aCam1->ImEtProf2Terrain(aP1, prof_d);  //pt3d intersection entre point img 1 et 2 mais se situe dans la direction viseur de cam 1
+        cout<<"Pt_H "<<Pt_H<<endl;
+        Pt2dr aP3 = aCam3->R3toF2(Pt_H);
+        cout<<"aP3 "<<aP3<<endl;
+        //Pt3dr OptCenterImg1 = aCam1->VraiOpticalCenter();
+        //cout<<"OptCenterImg1 "<<OptCenterImg1<<endl;
+        //double prof_d = sqrt(pow((OptCenterImg1.x - Pt_H.x),2) + pow((OptCenterImg1.y - Pt_H.y),2) + pow((OptCenterImg1.z - Pt_H.z),2));
+        cout<<"prof_d "<<prof_d<<endl;
+
+        double dist_centre = sqrt(pow((aP3 - centre_img).x, 2) + pow((aP3 - centre_img).y, 2));
+
+      if( (dist_centre/diag < 0.67) && IsInside(aP3, mTiffImg1.sz().x, mTiffImg1.sz().y) )
+      {
         //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
-        Pt2dr SupDirX = aP1+Pt2dr(0,1);
-        Pt2dr SupDirY = aP1+Pt2dr(1,0);
-        Pt3dr OptCenterImg1 = aCam1->VraiOpticalCenter();
-        double prof_d = sqrt(pow((OptCenterImg1.x - Pt_H.x),2) + pow((OptCenterImg1.y - Pt_H.y),2) + pow((OptCenterImg1.z - Pt_H.z),2));
-        Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une spère
+        Pt2dr SupDirX = aP1+Pt2dr(1,0);
+        cout<<"SupDirX "<<SupDirX<<endl;
+        Pt2dr SupDirY = aP1+Pt2dr(0,1);
+        cout<<"SupDirY "<<SupDirY<<endl;
+        Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une sphere
+        cout<<"Pt_Hu "<<Pt_Hu<<endl;
         Pt3dr Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
+        cout<<"Pt_Hv "<<Pt_Hv<<endl;
+
         //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
         Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
+        cout<<"Pt_Hu_dansImg3 "<<Pt_Hu_dansImg3<<endl;
         Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
+        cout<<"Pt_Hv_dansImg3 "<<Pt_Hv_dansImg3<<endl;
+
         //=== 5) Vector direction de surface d'img 3 ===
         Pt2dr DirX = Pt_Hu_dansImg3 - aP3;
+        cout<<"DirX "<<DirX<<endl;
         Pt2dr DirY = Pt_Hv_dansImg3 - aP3;
+        cout<<"DirY "<<DirY<<endl;
         VectorSurface aDirSurfImg3(DirX,DirY);
-        cout<<SupDirX<<SupDirY<<" + "<<prof_d<< " = "<<DirX<<DirY<<endl;
+        cout<<Pt2dr(0,1)<<Pt2dr(1,0)<<" + "<<prof_d<< " = "<<DirX<<DirY;
+
         //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
-            //comment calcul ?
+            //Vignette d'img 1
+        cCorrelImage::setSzW(5);
+        cCorrelImage Imgette1;
+        Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
+        double longeurX = sqrt(pow(DirX.x,2) + pow(DirX.y,2));
+        double longeurY = sqrt(pow(DirY.x,2) + pow(DirY.y,2));
+        cout<<longeurX<<" "<<longeurY<<endl;
+            //Parcourir vignette imagette 1
+        for (int i=-5; i<5; i++)
+        {
+            Pt2dr CoorX = Pt2dr(aP3.x,0) + Pt2dr(i,i)*Pt_Hu_dansImg3;
+            Pt2dr CoorY = Pt2dr(0,aP3.y) + Pt2dr(i,i)*Pt_Hv_dansImg3;
+        }
+    }
     }
 }
 
+//   R3 : "reel" coordonnee initiale
+//   L3 : "Locale", apres rotation
+//   C2 :  camera, avant distortion
+//   F2 : finale apres Distortion
+//
+//       Orientation      Projection      Distortion
+//   R3 -------------> L3------------>C2------------->F2
 
 int PHO_MI_main(int argc,char ** argv)
 {
