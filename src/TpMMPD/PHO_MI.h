@@ -17,6 +17,17 @@ class VectorSurface
     Pt2dr dirY;
 };
 
+class RepereImagette
+{
+    public:
+    RepereImagette(Pt2dr centre, Pt2dr dirX, Pt2dr dirY);
+    RepereImagette();
+    Pt2dr centre;
+    Pt2dr dirX;
+    Pt2dr dirY;
+    Pt2dr uv2img(Pt2dr coorUV, Pt2dr dirX, Pt2dr dirY, string aNameImgB);
+};
+
 class CplImg
 {
     public :
