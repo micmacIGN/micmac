@@ -186,7 +186,7 @@ void cGLData::setOptionPolygons(cParameters aParams)
 #ifdef USE_MIPMAP_HANDLER
 	cGLData::cGLData( int aId, cData *data, cParameters aParams, int appMode, MaskedImage aSrcImage ):
 		mId(aId),
-		mIsLoaded(false),
+		mNbLoaded(0),
 		_glMaskedImage(aSrcImage.first, aSrcImage.second),
 		_bbox_center(QVector3D(0.,0.,0.)),
 		_clouds_center(QVector3D(0.,0.,0.)),

@@ -78,26 +78,29 @@ ContextMenu* GLWidget::contextMenu()
 
 void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool doZoom, bool resetPoly, int nav)
 {
+	if (m_GLData == aData) return;
+
 	#ifdef USE_MIPMAP_HANDLER
 		if (m_GLData != NULL) m_GLData->setLoaded(false);
 	#endif
-    if (aData != NULL)
+
+    if (aData == NULL)
     {
+        m_GLData = NULL;
+        if (doZoom) reset();
+        return;
+    }
 
-        if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
-            m_GLData->glImageMasked().deleteTextures();
+	if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
+	m_GLData->glImageMasked().deleteTextures();
 
-        m_GLData = aData;
+	m_GLData = aData;
 
-        if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
-        {
-            m_GLData->glImageMasked().createTextures();
-
-            if ( m_GLData->glImageMasked().getLoadedImageRescaleFactor()<1.f)
-            {
-                m_GLData->createTiles();
-            }
-        }
+	if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
+	{
+		m_GLData->glImageMasked().createTextures();
+		if (m_GLData->glImageMasked().getLoadedImageRescaleFactor() < 1.f) m_GLData->createTiles();
+	}
 
 //        if(!m_GLData->isImgEmpty())
 //        {
@@ -114,27 +117,19 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
 //            }
 //        }
 
-        m_bDisplayMode2D = !m_GLData->isImgEmpty();
-        m_bFirstAction   =  m_GLData->isNewMask();
+	m_bDisplayMode2D = !m_GLData->isImgEmpty();
+	m_bFirstAction   =  m_GLData->isNewMask();
 
-        _contextMenu.setPolygon( getGLData()->polygon(0));
+	_contextMenu.setPolygon( getGLData()->polygon(0));
 
-        _matrixManager.setSceneTopo(getGLData()->getPosition(),getGLData()->getBBoxMaxSize());
+	_matrixManager.setSceneTopo(getGLData()->getPosition(),getGLData()->getBBoxMaxSize());
 
+	_matrixManager.setENavigation((eNavigationType)nav);
+	resetView(doZoom, showMessage, showCams, true, resetPoly);
 
-        _matrixManager.setENavigation((eNavigationType)nav);
-        resetView(doZoom, showMessage, showCams, true, resetPoly);
-
-		#ifdef USE_MIPMAP_HANDLER
-			if (m_GLData != NULL) m_GLData->setLoaded(true);
-		#endif
-    }
-    else
-    {
-        m_GLData = NULL;
-        if(doZoom)
-            reset();
-    }
+	#ifdef USE_MIPMAP_HANDLER
+		if (m_GLData != NULL) m_GLData->setLoaded(true);
+	#endif
 }
 
 cPolygon *GLWidget::polygon(int id){ return m_GLData->polygon(id); }
