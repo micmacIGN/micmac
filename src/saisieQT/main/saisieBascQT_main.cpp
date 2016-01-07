@@ -128,7 +128,7 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
 
         w.show();
 
-        w.addFiles(filenames, false);
+        w.addFiles(filenames, false); // false = aSetGLData
 
         return app.exec();
     }

@@ -371,7 +371,14 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
                 for (int aK = 0; aK < nbWidgets();++aK)
                 {
-                    getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,_params->eNavigation());
+						 __OUT("aK = " << aK);
+
+						#ifdef USE_MIPMAP_HANDLER
+							setDataToGLWidget(aK, _Engine->getGLData(aK));
+						#else
+							getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,_params->eNavigation());
+						#endif
+
                     getWidget(aK)->setParams(_params);
 
                     if (getWidget(aK)->getHistoryManager()->size())
