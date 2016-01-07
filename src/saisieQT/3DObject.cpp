@@ -1849,11 +1849,7 @@ bool cImageGL::isPtInside(const QPointF &pt)
 			return;
 		}
 
-		if (aImage.mData == NULL)
-		{
-			cerr << ELISE_RED_ERROR << "image file [" << aImage.mCacheFilename << "] is not loaded" << endl;
-			return;
-		}
+		ELISE_DEBUG_ERROR(aImage.mData == NULL, "cImageGL::ImageToTexture", "aImage = [" << aImage.mCacheFilename << "] is not loaded");
 
 		// store unpacking alignement (unpack = memory -> GL)
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
