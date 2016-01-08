@@ -31,7 +31,7 @@ class RepereImagette
 class CplImg
 {
     public :
-          CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,string aFullPatternImages, bool ExpTxt);
+          CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,string aFullPatternImages, bool ExpTxt, double aPropDiag);
           vector<double> nul;
           vector<string> mCollection3emeImg;
           string mNameImg1;
@@ -45,6 +45,7 @@ class CplImg
           string mNameHomol;
           string mOri;
           string mHomolOutput;
+          double mPropDiag;
           vector<string> mSetImages;
           string mKHIn, mKHOutDat, mKHOut;
           cInterfChantierNameManipulateur * mICNM;
