@@ -126,6 +126,7 @@ class cCorrelImage
     int getSzW();
     Pt2di getmSz();
     void getFromIm(Im2D<U_INT1,INT4> * anIm,double aCenterX,double aCenterY);
+    void getWholeIm(Im2D<U_INT1,INT4> * anIm);
     static int mSzW;//window size for the correlation
     static void setSzW(int aSzW);
 
