@@ -739,18 +739,19 @@ void CplImg::SupposeVecSruf1er(Pt2dr dirX, Pt2dr dirY)
     this->mSurfImg1 = a;
 }
 
-bool IsInside(Pt2dr checkPoint, double w, double h)
+bool IsInside(Pt2dr checkPoint, Tiff_Im mTiffImg1, double percent = 1)
 {
-    bool in=false;
-    if ((checkPoint.x < w) && (checkPoint.x > 0))
+    bool in;
+    Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
+    double diag = sqrt(pow(mTiffImg1.sz().x/2,2) + pow(mTiffImg1.sz().y/2,2));
+    double dist = sqrt(pow(checkPoint.x - centre_img.x,2) + pow(checkPoint.y - centre_img.y , 2));
+    if((fabs(checkPoint.x-mTiffImg1.sz().x/2) < mTiffImg1.sz().x/2 ) && (fabs(checkPoint.y-mTiffImg1.sz().y/2) < mTiffImg1.sz().y/2))
     {
-        if((checkPoint.y < h)  && (checkPoint.y > 0))
-            {in = true; }
+        if (dist/diag <= percent)
+            {in=true; }
         else
-            {in = false;}
+            {in=false;}
     }
-    else
-    {in = false;}
     return in;
 }
 void CplImg::CalVectorSurface(string m3emeImg)
@@ -821,8 +822,7 @@ void CplImg::CalVectorSurface(string m3emeImg)
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
     {
         Pt2dr aP1 = itP->P1();
-        if( (fabs(aP1.x-2736)<20)&&(fabs(aP1.y-1824)<20) )
-        {
+        //(fabs(aP1.x-2736)<20)&&(fabs(aP1.y-1824)<20)
 
             cout<<"-------------------------------------"<<endl;
             cout<<"aP1 "<<aP1<<endl;
@@ -843,50 +843,78 @@ void CplImg::CalVectorSurface(string m3emeImg)
 
             double dist_centre = sqrt(pow((aP3 - centre_img).x, 2) + pow((aP3 - centre_img).y, 2));
 
-
-            //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
-            Pt2dr SupDirX = aP1+Pt2dr(1,0);
-            cout<<"SupDirX "<<SupDirX<<endl;
-            Pt2dr SupDirY = aP1+Pt2dr(0,1);
-            cout<<"SupDirY "<<SupDirY<<endl;
-            Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une sphere
-            cout<<"Pt_Hu "<<Pt_Hu<<endl;
-            Pt3dr Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
-            cout<<"Pt_Hv "<<Pt_Hv<<endl;
-
-            //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
-            Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
-            cout<<"Pt_Hu_dansImg3 "<<Pt_Hu_dansImg3<<endl;
-            Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
-            cout<<"Pt_Hv_dansImg3 "<<Pt_Hv_dansImg3<<endl;
-
-            //=== 5) Vector direction de surface d'img 3 ===
-            Pt2dr DirX = Pt_Hu_dansImg3 - aP3;
-            cout<<"DirX "<<DirX<<endl;
-            Pt2dr DirY = Pt_Hv_dansImg3 - aP3;
-            cout<<"DirY "<<DirY<<endl;
-            VectorSurface aDirSurfImg3(DirX,DirY);
-            cout<<Pt2dr(0,1)<<Pt2dr(1,0)<<" + "<<prof_d<< " = "<<DirX<<DirY;
-
-            //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
-            //Vignette d'img 1
-            cCorrelImage::setSzW(5);
-            cCorrelImage Imgette1;
-            Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
-            double longeurX = sqrt(pow(DirX.x,2) + pow(DirX.y,2));
-            double longeurY = sqrt(pow(DirY.x,2) + pow(DirY.y,2));
-            cout<<longeurX<<" "<<longeurY<<endl;
-            //Parcourir vignette imagette 1
-            for (int i=-5; i<5; i++)
+            if( IsInside(aP3, mTiffImg3, 1) )
             {
-                Pt2dr CoorX = Pt2dr(aP3.x,0) + Pt2dr(i,i)*Pt_Hu_dansImg3;
-                Pt2dr CoorY = Pt2dr(0,aP3.y) + Pt2dr(i,i)*Pt_Hv_dansImg3;
+                //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
+                Pt2dr SupDirX = aP1+Pt2dr(1,0);
+                cout<<"SupDirX "<<SupDirX<<endl;
+                Pt2dr SupDirY = aP1+Pt2dr(0,1);
+                cout<<"SupDirY "<<SupDirY<<endl;
+                Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une sphere
+                cout<<"Pt_Hu "<<Pt_Hu<<endl;
+                Pt3dr Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
+                cout<<"Pt_Hv "<<Pt_Hv<<endl;
+
+                //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
+                Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
+                cout<<"Pt_Hu_dansImg3 "<<Pt_Hu_dansImg3<<endl;
+                Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
+                cout<<"Pt_Hv_dansImg3 "<<Pt_Hv_dansImg3<<endl;
+
+                //=== 5) Vector direction de surface d'img 3 ===
+                Pt2dr DirX = Pt_Hu_dansImg3 - aP3;
+                cout<<"DirX "<<DirX<<endl;
+                Pt2dr DirY = Pt_Hv_dansImg3 - aP3;
+                cout<<"DirY "<<DirY<<endl;
+                VectorSurface aDirSurfImg3(DirX,DirY);
+                cout<<Pt2dr(0,1)<<Pt2dr(1,0)<<" + "<<prof_d<< " = "<<DirX<<DirY;
+
+                //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
+                //Vignette d'img 1
+                cCorrelImage::setSzW(5);
+                cCorrelImage Imgette1;
+                Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
+                double longeurX = sqrt(pow(DirX.x,2) + pow(DirX.y,2));
+                double longeurY = sqrt(pow(DirY.x,2) + pow(DirY.y,2));
+                RepereImagette RepImgette3(aP3, DirX, DirY);
+                cout<<longeurX<<" "<<longeurY<<endl;
+                //Parcourir vignette imagette 1
+                for (int i=-5; i<5; i++)
+                {
+                    for (int k=-5; k<5; k++)
+                    {
+                        Pt2dr pixelCorrImg3 =  RepImgette3.uv2img(Pt2dr(i,k));
+                        /*access and fill new imagette
+                    ...
+                    */
+                    }
+                }
             }
         }
-    }
     cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl;
 }
 
+RepereImagette::RepereImagette(Pt2dr centre, Pt2dr dirX, Pt2dr dirY)
+{
+    this->centre = centre;
+    this->dirX = dirX;
+    this->dirY = dirY;
+}
+
+RepereImagette::RepereImagette()
+{
+    this->centre = Pt2dr(0,0);
+    this->dirX = Pt2dr(0,0);
+    this->dirY = Pt2dr(0,0);
+}
+
+Pt2dr RepereImagette::uv2img(Pt2dr coorOrg)
+{
+    Pt2dr coorInImgB(0,0);
+    coorInImgB.x = this->centre.x - coorOrg.x*this->dirX.x - coorOrg.y*this->dirY.x;
+    coorInImgB.y = this->centre.y - coorOrg.y*this->dirX.y - coorOrg.y*this->dirY.y;
+    return coorInImgB;
+}
 //   R3 : "reel" coordonnee initiale
 //   L3 : "Locale", apres rotation
 //   C2 :  camera, avant distortion
