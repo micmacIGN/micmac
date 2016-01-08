@@ -25,7 +25,7 @@ class RepereImagette
     Pt2dr centre;
     Pt2dr dirX;
     Pt2dr dirY;
-    Pt2dr uv2img(Pt2dr coorUV, Pt2dr dirX, Pt2dr dirY, string aNameImgB);
+    Pt2dr uv2img(Pt2dr coorOrg);
 };
 
 class CplImg
