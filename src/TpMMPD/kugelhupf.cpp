@@ -552,7 +552,7 @@ double cCorrelImage::CrossCorrelation( const cCorrelImage & aIm2 )
 double cCorrelImage::Covariance( const cCorrelImage & aIm2 )
 {
   Pt2di aPIm1(mSzW,mSzW);
-  if (1) // A test to check the low level access to data
+  if (1) // A test to check the low level access to data - pixel access
   {
     float ** aRaw2 = mIm.data();
     float *  aRaw1 = mIm.data_lin();
