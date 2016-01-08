@@ -684,13 +684,14 @@ VectorSurface::VectorSurface()
 }
 
 
-CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput, string aFullPatternImages, bool ExpTxt)
+CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput, string aFullPatternImages, bool ExpTxt, double aPropDiag)
 {
     this->mNameImg1 = aNameImg1;
     this->mNameImg2 = aNameImg2;
     this->mNameHomol = aNameHomol;
     this->mHomolOutput = aHomolOutput;
     this->mExpTxt = ExpTxt;
+    this->mPropDiag = aPropDiag;
    //====== Initialize name manipulator & files=====//
     ELISE_fp::AssertIsDirectory(aNameHomol);
     std::string aDirImages, aPatImages;
@@ -777,25 +778,20 @@ void CplImg::CalVectorSurface(string m3emeImg)
     ElPackHomologue aPackIn1_2, aPackIn1_3, aPackIn2_3;
     bool Exist1_2 = ELISE_fp::exist_file(aHomoIn1_2);
     if (Exist1_2)
-    {
-     aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);
-    }
+         {aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);}
 
     std::string aHomoIn1_3 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg3,true);
     StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
     bool Exist1_3 = ELISE_fp::exist_file(aHomoIn1_3);
     if (Exist1_3)
-    {
-     aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);
-    }
+        {aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3); }
 
     std::string aHomoIn2_3 = aICNM->Assoc1To2(aKHIn, aNameImg2, aNameImg3, true);
     StdCorrecNameHomol_G(aHomoIn2_3,aDirImages);
     bool Exist2_3 = ELISE_fp::exist_file(aHomoIn2_3);
     if (Exist2_3)
-    {
-     aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);
-    }
+        {aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);}
+
     // ====Import images Tiff and IM2D =====//
     Tiff_Im mTiffImg1(aNameImg1.c_str());
     Tiff_Im mTiffImg2(aNameImg2.c_str());
@@ -827,9 +823,8 @@ void CplImg::CalVectorSurface(string m3emeImg)
                  mIm2DImg3.out()
               );
     Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
-    double diag = sqrt(pow((double)mTiffImg1.sz().x,2.) + pow((double)mTiffImg1.sz().y,2.));
     //=======================================================//
-                    double count =0;
+    double count =0;
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
     {
         Pt2dr aP1 = itP->P1();
@@ -977,7 +972,7 @@ int PHO_MI_main(int argc,char ** argv)
     cout<<"*********************"<<endl;
 
     std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="_Filtered/", bStrategie = "6";
-    double aDistRepr=10, aDistHom=20;
+    double aDistRepr=10, aDistHom=20, aPropDiag =1;
     bool ExpTxt = false;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
@@ -993,6 +988,7 @@ int PHO_MI_main(int argc,char ** argv)
                 << EAM(bStrategie, "Strategie" , true, "Strategie de filtre les points homols")
                 << EAM(aDistRepr, "Dist" , true, "Distant to verify reprojection point")
                 << EAM(aDistHom, "DistHom" , true, "Distant to verify triplet")
+                << EAM(aPropDiag, "PropDiag" , true, "For fisheye lens")
 
     );
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -1122,11 +1118,12 @@ int PHO_MI_main(int argc,char ** argv)
         vector<string>  aAbreRacine= aImgVerif.displayAbreHomol(aImgVerif.mAbre, 0);
         string aImg1 = aAbre[0].ImgRacine;
         string aImg2 = aAbre[0].ImgBranch[0];
-        CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt);
+        CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt, aPropDiag);
         aCouple.mCollection3emeImg = aAbre[0].Img3eme[0];
         aCouple.SupposeVecSruf1er(Pt2dr(0,0) , Pt2dr(0,0));
         cout<<"trip: "<<aImg1<<" + "<<aImg2<<" + "<< aCouple.mCollection3emeImg[0]<<endl;
         aCouple.CalVectorSurface(aCouple.mCollection3emeImg[0]);
+
     }
     return EXIT_SUCCESS;
 }
