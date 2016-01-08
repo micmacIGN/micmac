@@ -60,24 +60,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
 {
-
     int aL = strlen(aNameH.c_str());
     if (aL && (aNameH[aL-1]==ELISE_CAR_DIR))
-    {
-        aNameH = aNameH.substr(0,aL-1);
-    }
-
+        {aNameH = aNameH.substr(0,aL-1);}
     if ((strlen(aNameH.c_str())>=5) && (aNameH.substr(0,5)==std::string("Homol")))
        aNameH = aNameH.substr(5,std::string::npos);
-
     std::string aTest =  ( isUsingSeparateDirectories()?MMOutputDirectory():aDir ) + "Homol"+aNameH+ ELISE_CAR_DIR;
 }
 
 
 vector<AbreHomol> creatAbreFromPattern(vector<string> aSetImages, string aNameHomol, string aFullPatternImages, string aOriInput)
 {
-
-
     //=============Manip File Name=====================
       ELISE_fp::AssertIsDirectory(aNameHomol);
 
@@ -149,6 +142,7 @@ vector<AbreHomol> creatAbreFromPattern(vector<string> aSetImages, string aNameHo
 return Abre;
 }
 
+
 vector<string> displayAbreHomol(vector<AbreHomol> aAbre, bool disp)
 {
     vector<string> result;
@@ -171,6 +165,7 @@ vector<string> displayAbreHomol(vector<AbreHomol> aAbre, bool disp)
     }
     return result;
 }
+
 
 vector<bool> FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3, string aNameHomol, string aDirImages, string aPatImages, string aOriInput, bool ExpTxt, Pt2dr centre_img, double diag, double aDistRepr, double aDistHom)
 {
@@ -221,7 +216,7 @@ vector<bool> FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3, 
     }
 
     //================traite======================//
-    double w=3;
+    //double w=3;
     double count_pass_reproj=0;
     double countGoodTrip = 0;
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
@@ -230,12 +225,12 @@ vector<bool> FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3, 
         Pt2dr aP1 = itP->P1();  //Point img1
         Pt2dr aP2 = itP->P2();  //Point img2
         double d;
-        bool pass_reproj, pass_corr;
+        bool pass_reproj;
         //=================verifier par reprojeter============
         Pt3dr PInter1_2= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
         Pt2dr PReproj3 = aCam3->ElCamera::R3toF2(PInter1_2);					//use point 3d to search Point img3
-        double dist_centre = sqrt(pow((PReproj3.x - centre_img.x),2) + pow((PReproj3.y - centre_img.y),2));
-        bool inside = (dist_centre < 0.67*diag/2) ? true : false;
+        //double dist_centre = sqrt(pow((PReproj3.x - centre_img.x),2) + pow((PReproj3.y - centre_img.y),2));
+        //bool inside = (dist_centre < 0.67*diag/2) ? true : false;
         //chercher triplet
         const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
         const ElCplePtsHomologues  * aTriplet1_3 = aPackIn1_3.Cple_Nearest(aP1,true);
@@ -277,6 +272,7 @@ vector<bool> FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3, 
     //cout <<"   ++ Verif => "<<count_pass_reproj<<" / "<<countGoodTrip<<" / "<<result.size()<<endl;
     return result;
 }
+
 
 void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, string aDirImages, string aPatImages, string aHomolOutput, bool ExpTxt, vector<bool> decision)
 {
@@ -335,6 +331,7 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
 }
 
 
+
 VerifParRepr::VerifParRepr(vector<string> mListImg, string aDirImages, string aPatImages, string aNameHomol, string aOri, string aHomolOutput, bool ExpTxt, double aDistHom, double aDistRepr)
 {    
         this->mListImg = mListImg;
@@ -347,6 +344,7 @@ VerifParRepr::VerifParRepr(vector<string> mListImg, string aDirImages, string aP
         this->mDistHom = aDistHom;
         this->mDistRepr = aDistRepr;
 }
+
 
 vector<AbreHomol> VerifParRepr::creatAbre()
 {
@@ -442,6 +440,7 @@ vector<string> VerifParRepr::displayAbreHomol(vector<AbreHomol> aAbre, bool disp
     return result;
 }
 
+
 vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3)
 {
   //=============Manip File Name=====================
@@ -491,7 +490,7 @@ vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, stri
     }
 
     //================traite======================//
-    double w=3;
+    //double w=3;
     double count_pass_reproj=0;
     double countGoodTrip = 0;
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
@@ -500,12 +499,12 @@ vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, stri
         Pt2dr aP1 = itP->P1();  //Point img1
         Pt2dr aP2 = itP->P2();  //Point img2
         double d;
-        bool pass_reproj, pass_corr;
+        bool pass_reproj;
         //=================verifier par reprojeter============
         Pt3dr PInter1_2= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
         Pt2dr PReproj3 = aCam3->ElCamera::R3toF2(PInter1_2);					//use point 3d to search Point img3
-        double dist_centre = sqrt(pow((PReproj3.x - this->mcentre_img.x),2) + pow((PReproj3.y - this->mcentre_img.y),2));
-        bool inside = (dist_centre < 0.67*this->mdiag/2) ? true : false;
+        //double dist_centre = sqrt(pow((PReproj3.x - this->mcentre_img.x),2) + pow((PReproj3.y - this->mcentre_img.y),2));
+        //bool inside = (dist_centre < 0.67*this->mdiag/2) ? true : false;
         //chercher triplet
         const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
         const ElCplePtsHomologues  * aTriplet1_3 = aPackIn1_3.Cple_Nearest(aP1,true);
@@ -541,6 +540,7 @@ vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, stri
     countGoodTrip = 0;
     return result;
 }
+
 
 void VerifParRepr::creatHomolFromPair(string aNameImg1, string aNameImg2, vector<bool> decision)
 {
@@ -598,14 +598,15 @@ void VerifParRepr::creatHomolFromPair(string aNameImg1, string aNameImg2, vector
     cout<<"..done !"<<endl;
 }
 
+
 void VerifParRepr::FiltragePtsHomo()
 {
     vector<string> tempArbeRacine = this->mtempArbeRacine;
 
     vector<AbreHomol> aAbre = this->mAbre;
 
-    Pt2dr centre_img=this->mcentre_img;
-    double diag = this->mdiag;
+    //Pt2dr centre_img=this->mcentre_img;
+    //double diag = this->mdiag;
 
 
     double stat = 0;
@@ -668,17 +669,20 @@ void VerifParRepr::FiltragePtsHomo()
 
 }
 
+
 VectorSurface::VectorSurface(Pt2dr dirX, Pt2dr dirY)
 {
     this->dirX = dirX;
     this->dirY = dirY;
 }
 
+
 VectorSurface::VectorSurface()
 {
     this->dirX = Pt2dr(0,0);
     this->dirY = Pt2dr(0,0);
 }
+
 
 CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput, string aFullPatternImages, bool ExpTxt)
 {
@@ -741,7 +745,7 @@ void CplImg::SupposeVecSruf1er(Pt2dr dirX, Pt2dr dirY)
 
 bool IsInside(Pt2dr checkPoint, Tiff_Im mTiffImg1, double percent = 1)
 {
-    bool in;
+    bool in=FALSE;
     Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
     double diag = sqrt(pow((double)(mTiffImg1.sz().x/2),2.) + pow((double)(mTiffImg1.sz().y/2),2.));
     double dist = sqrt(pow(checkPoint.x - centre_img.x,2) + pow(checkPoint.y - centre_img.y , 2));
@@ -804,6 +808,9 @@ void CplImg::CalVectorSurface(string m3emeImg)
     TIm2D<U_INT1,INT4> mTIm2DImg3(mTiffImg3.sz());
     ELISE_COPY(mTIm2DImg3.all_pts(),mTiffImg3.in(),mTIm2DImg3.out());
 
+    TIm2D<U_INT1,INT4> mTIm2DImg2(mTiffImg2.sz());
+    ELISE_COPY(mTIm2DImg2.all_pts(),mTiffImg2.in(),mTIm2DImg2.out());
+
     ELISE_COPY(
                  mTiffImg1.all_pts(),
                  mTiffImg1.in(),
@@ -822,6 +829,7 @@ void CplImg::CalVectorSurface(string m3emeImg)
     Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
     double diag = sqrt(pow((double)mTiffImg1.sz().x,2.) + pow((double)mTiffImg1.sz().y,2.));
     //=======================================================//
+                    double count =0;
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
     {
         Pt2dr aP1 = itP->P1();
@@ -842,11 +850,12 @@ void CplImg::CalVectorSurface(string m3emeImg)
             //cout<<"OptCenterImg1 "<<OptCenterImg1<<endl;
             //double prof_d = sqrt(pow((OptCenterImg1.x - Pt_H.x),2) + pow((OptCenterImg1.y - Pt_H.y),2) + pow((OptCenterImg1.z - Pt_H.z),2));
 
-            double dist_centre = sqrt(pow((aP3 - centre_img).x, 2) + pow((aP3 - centre_img).y, 2));
+            //double dist_centre = sqrt(pow((aP3 - centre_img).x, 2) + pow((aP3 - centre_img).y, 2));
+            int sizeVignette = 5;
 
             if( IsInside(aP3, mTiffImg3, 1) )
             {
-                cout<<"-------------------------------------"<<endl;
+                cout<<endl<<"-------------------------------------"<<endl;
                 cout<<"aP1 "<<aP1<<endl;
                 cout<<"Pt_H "<<Pt_H<<endl;
                 cout<<"aP3 "<<aP3<<endl;
@@ -877,7 +886,7 @@ void CplImg::CalVectorSurface(string m3emeImg)
 
                 //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
                 //Vignette d'img 1
-                cCorrelImage::setSzW(5);
+                cCorrelImage::setSzW(sizeVignette);
                 cCorrelImage Imgette1;
                 Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
                 double longeurX = sqrt(pow(DirX.x,2) + pow(DirX.y,2));
@@ -887,18 +896,45 @@ void CplImg::CalVectorSurface(string m3emeImg)
                 //Parcourir vignette imagette 1
                 Pt2di aP3access;
                 aP3access.x = int(round(aP3.x)); aP3access.y = int(round(aP3.y));
-                for (int i=-5; i<5; i++)
+                TIm2D<U_INT1,INT4> mTIm2DImgette3(Pt2di(sizeVignette*2+1, sizeVignette*2+1));
+                Im2D<U_INT1,INT4> mIm2DImgette3(sizeVignette*2+1, sizeVignette*2+1);
+                bool out=false;
+                for (int i=-sizeVignette; i<sizeVignette; i++)
                 {
-                    for (int k=-5; k<5; k++)
+                    for (int k=-sizeVignette; k<sizeVignette; k++)
                     {
                         Pt2di aVois(i,k);
-                        Pt2dr pixelCorrImg3 =  RepImgette3.uv2img(Pt2dr(i,k));
-                        double val = mTIm2DImg3.get(aP3access+aVois);
+                        //Pt2dr pixelCorrImg3 =  RepImgette3.uv2img(Pt2dr(i,k));
+                        if ( IsInside( aP3 + Pt2dr(i,k) , mTiffImg3, 1) )
+                            {
+                                INT4 val = mTIm2DImg3.get(aP3access + aVois);
+                                cout<<val<<" ";
+                                /*== ecrire dans un pixel d'image ====*/
+                                //oset_svp pour tester si il est dedans avant ecrire
+                                //oset pour ecrire sans tester
+                                mTIm2DImgette3.oset(aVois+Pt2di(5,5),val);
+                                out=false;
+                            }
+                        else
+                            {out = true; break;}
                     }
+                    if (out)
+                    {break;}
+                }
+                // ==== comparer par corellation ==== //
+                if (!out)
+                {
+                    ELISE_COPY(mIm2DImgette3.all_pts(),mTIm2DImgette3.in(),mIm2DImgette3.out());
+                    cCorrelImage Imgette3;
+                    Imgette3.getWholeIm(&mIm2DImgette3);
+                    double corl = Imgette3.CrossCorrelation(Imgette1);
+                    cout<<endl<<"Corell = "<<corl<<endl;
+                    if (corl > 0.5)
+                        {count++;}
                 }
             }
         }
-    cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl;
+    cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl<<count/aPackIn1_2.size()<<"% conserve"<<endl;
 }
 
 RepereImagette::RepereImagette(Pt2dr centre, Pt2dr dirX, Pt2dr dirY)
