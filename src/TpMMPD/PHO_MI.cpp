@@ -415,7 +415,7 @@ vector<AbreHomol> VerifParRepr::creatAbre()
 
     Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
     this->mcentre_img = centre_img;
-    this->mdiag = sqrt(pow(mTiffImg3.sz().x,2) + pow(mTiffImg3.sz().y,2));
+    this->mdiag = sqrt(pow((double)mTiffImg3.sz().x,2.) + pow((double)mTiffImg3.sz().y,2.));
 return Abre;
 }
 
@@ -743,7 +743,7 @@ bool IsInside(Pt2dr checkPoint, Tiff_Im mTiffImg1, double percent = 1)
 {
     bool in;
     Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
-    double diag = sqrt(pow(mTiffImg1.sz().x/2,2) + pow(mTiffImg1.sz().y/2,2));
+    double diag = sqrt(pow((double)(mTiffImg1.sz().x/2),2.) + pow((double)(mTiffImg1.sz().y/2),2.));
     double dist = sqrt(pow(checkPoint.x - centre_img.x,2) + pow(checkPoint.y - centre_img.y , 2));
     if((fabs(checkPoint.x-mTiffImg1.sz().x/2) < mTiffImg1.sz().x/2 ) && (fabs(checkPoint.y-mTiffImg1.sz().y/2) < mTiffImg1.sz().y/2))
     {
@@ -820,7 +820,7 @@ void CplImg::CalVectorSurface(string m3emeImg)
                  mIm2DImg3.out()
               );
     Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
-    double diag = sqrt(pow(mTiffImg1.sz().x,2) + pow(mTiffImg1.sz().y,2));
+    double diag = sqrt(pow((double)mTiffImg1.sz().x,2.) + pow((double)mTiffImg1.sz().y,2.));
     //=======================================================//
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
     {
@@ -1002,7 +1002,7 @@ int PHO_MI_main(int argc,char ** argv)
 
         Tiff_Im mTiffImg3(tempArbeRacine[0].c_str());
         Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
-        double diag = sqrt(pow(mTiffImg3.sz().x,2) + pow(mTiffImg3.sz().y,2));
+        double diag = sqrt(pow((double)mTiffImg3.sz().x,2.) + pow((double)mTiffImg3.sz().y,2.));
         vector< vector<bool> > ColDec;
 
         double stat = 0;
