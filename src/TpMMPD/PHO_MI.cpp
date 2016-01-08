@@ -801,6 +801,9 @@ void CplImg::CalVectorSurface(string m3emeImg)
     Im2D<U_INT1,INT4> mIm2DImg2(mTiffImg2.sz().x,mTiffImg2.sz().y);
     Im2D<U_INT1,INT4> mIm2DImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
 
+    TIm2D<U_INT1,INT4> mTIm2DImg3(mTiffImg3.sz());
+    ELISE_COPY(mTIm2DImg3.all_pts(),mTiffImg3.in(),mTIm2DImg3.out());
+
     ELISE_COPY(
                  mTiffImg1.all_pts(),
                  mTiffImg1.in(),
@@ -824,8 +827,7 @@ void CplImg::CalVectorSurface(string m3emeImg)
         Pt2dr aP1 = itP->P1();
         //(fabs(aP1.x-2736)<20)&&(fabs(aP1.y-1824)<20)
 
-            cout<<"-------------------------------------"<<endl;
-            cout<<"aP1 "<<aP1<<endl;
+
             Pt2dr aP2 = itP->P2();
             //======Profondeur a partir de cam 1 et cam 2======
             double d;
@@ -833,18 +835,22 @@ void CplImg::CalVectorSurface(string m3emeImg)
                 //====== calcul profondeur correspondant avec direction viseur de cam 1 =====
             double prof_d = aCam1->ProfInDir(Pt_pseudointer,aCam1->DirK());
             Pt3dr Pt_H = aCam1->ImEtProf2Terrain(aP1, prof_d);  //pt3d intersection entre point img 1 et 2 mais se situe dans la direction viseur de cam 1
-            cout<<"Pt_H "<<Pt_H<<endl;
+
             Pt2dr aP3 = aCam3->R3toF2(Pt_H);
-            cout<<"aP3 "<<aP3<<endl;
+
             //Pt3dr OptCenterImg1 = aCam1->VraiOpticalCenter();
             //cout<<"OptCenterImg1 "<<OptCenterImg1<<endl;
             //double prof_d = sqrt(pow((OptCenterImg1.x - Pt_H.x),2) + pow((OptCenterImg1.y - Pt_H.y),2) + pow((OptCenterImg1.z - Pt_H.z),2));
-            cout<<"prof_d "<<prof_d<<endl;
 
             double dist_centre = sqrt(pow((aP3 - centre_img).x, 2) + pow((aP3 - centre_img).y, 2));
 
             if( IsInside(aP3, mTiffImg3, 1) )
             {
+                cout<<"-------------------------------------"<<endl;
+                cout<<"aP1 "<<aP1<<endl;
+                cout<<"Pt_H "<<Pt_H<<endl;
+                cout<<"aP3 "<<aP3<<endl;
+                cout<<"prof_d "<<prof_d<<endl;
                 //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
                 Pt2dr SupDirX = aP1+Pt2dr(1,0);
                 cout<<"SupDirX "<<SupDirX<<endl;
@@ -879,14 +885,15 @@ void CplImg::CalVectorSurface(string m3emeImg)
                 RepereImagette RepImgette3(aP3, DirX, DirY);
                 cout<<longeurX<<" "<<longeurY<<endl;
                 //Parcourir vignette imagette 1
+                Pt2di aP3access;
+                aP3access.x = int(round(aP3.x)); aP3access.y = int(round(aP3.y));
                 for (int i=-5; i<5; i++)
                 {
                     for (int k=-5; k<5; k++)
                     {
+                        Pt2di aVois(i,k);
                         Pt2dr pixelCorrImg3 =  RepImgette3.uv2img(Pt2dr(i,k));
-                        /*access and fill new imagette
-                    ...
-                    */
+                        double val = mTIm2DImg3.get(aP3access+aVois);
                     }
                 }
             }
