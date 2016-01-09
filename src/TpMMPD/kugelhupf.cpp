@@ -507,6 +507,27 @@ void cCorrelImage::getFromIm(Im2D<U_INT1,INT4> * anIm,double aCenterX,double aCe
   prepare();
 }
 
+void cCorrelImage::getWholeIm(Im2D<U_INT1,INT4> * anIm)
+{
+  cout<<mIm.sz()<<" "<<anIm->sz()<<endl;
+  ELISE_COPY
+    (
+     mIm.all_pts(),
+     anIm->in()[Virgule(FX,FY)],
+     mIm.out()
+    );
+
+  //to write to a file:
+  //Tiff_Im(
+  //          "toto.tif",
+  //          Pt2di(400,400),
+  //          GenIm::u_int1,
+  //          Tiff_Im::No_Compr,
+  //          Tiff_Im::BlackIsZero,
+  //          Tiff_Im::Empty_ARG ).out()
+  prepare();
+}
+
 void cCorrelImage::prepare()
 {
   ELISE_COPY
@@ -552,7 +573,7 @@ double cCorrelImage::CrossCorrelation( const cCorrelImage & aIm2 )
 double cCorrelImage::Covariance( const cCorrelImage & aIm2 )
 {
   Pt2di aPIm1(mSzW,mSzW);
-  if (1) // A test to check the low level access to data
+  if (1) // A test to check the low level access to data - pixel access
   {
     float ** aRaw2 = mIm.data();
     float *  aRaw1 = mIm.data_lin();
