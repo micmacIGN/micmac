@@ -17,10 +17,21 @@ class VectorSurface
     Pt2dr dirY;
 };
 
+class RepereImagette
+{
+    public:
+    RepereImagette(Pt2dr centre, Pt2dr dirX, Pt2dr dirY);
+    RepereImagette();
+    Pt2dr centre;
+    Pt2dr dirX;
+    Pt2dr dirY;
+    Pt2dr uv2img(Pt2dr coorOrg);
+};
+
 class CplImg
 {
     public :
-          CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,string aFullPatternImages, bool ExpTxt);
+          CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,string aFullPatternImages, bool ExpTxt, double aPropDiag);
           vector<double> nul;
           vector<string> mCollection3emeImg;
           string mNameImg1;
@@ -34,6 +45,7 @@ class CplImg
           string mNameHomol;
           string mOri;
           string mHomolOutput;
+          double mPropDiag;
           vector<string> mSetImages;
           string mKHIn, mKHOutDat, mKHOut;
           cInterfChantierNameManipulateur * mICNM;
@@ -45,6 +57,7 @@ class CplImg
           void SupposeVecSruf1er(Pt2dr dirX, Pt2dr dirY);
           void ValPtsLia(vector<double> NorSur);
           void CalVectorSurface(string mImg3eme);
+          //bool IsInside(Pt2dr checkPoint, double w, double h);
 };
 
 class UneImage
