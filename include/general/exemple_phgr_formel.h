@@ -875,6 +875,52 @@ class cEqRelativeGPS  : public cNameSpaceEqF,
 };
 
 
+class  cPackInPts3d
+{
+     public :
+       cPackInPts3d(const  ElPackHomologue & aPack);
+    protected :
+       std::vector<Pt3dr> mVP1;
+       std::vector<Pt3dr> mVP2;
+       std::vector<double> mVPds;
+};
+
+class  cPackInPts2d
+{
+     public :
+       cPackInPts2d(const  ElPackHomologue & aPack);
+    protected :
+       std::vector<Pt2dr> mVP1;
+       std::vector<Pt2dr> mVP2;
+       std::vector<double> mVPds;
+};
+
+
+class cPt3dEEF : public cElemEqFormelle,
+                 public cObjFormel2Destroy
+{
+    public :
+       Pt3dr             mP0;
+       Pt3d<Fonc_Num>    mP;
+
+       cPt3dEEF(cSetEqFormelles & aSet,const Pt3dr & aP0,bool HasValCste) ;
+};
+
+
+class cScalEEF : public cElemEqFormelle,
+                     public cObjFormel2Destroy
+{
+    public :
+       double      mS0;
+       Fonc_Num    mS;
+
+       cScalEEF(cSetEqFormelles & aSet,double aV0,bool HasValCste) ;
+};
+
+
+
+
+
 
 /****************************************************/
 /*                                                  */
