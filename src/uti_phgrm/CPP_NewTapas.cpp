@@ -395,6 +395,7 @@ int Tapas_main(int argc,char ** argv)
     std::string  aRapTxt;
     std::string  aPoseFigee="";
     std::string  aCalFigee="";
+    std::string  aCalLibre=".*";
     bool         aFreeCalibInit = false;
     bool Debug = false;
     bool AffineAll = true;
@@ -444,6 +445,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
                     << EAM(aFreeCalibInit,"FreeCalibInit",true,"Free calibs as soon as created (Def=false)", eSAM_IsPatFile)
                     << EAM(aCalFigee,"FrozenCalibs",true,"List of frozen calibration (pattern)", eSAM_IsPatFile)
+                    << EAM(aCalLibre,"FreeCalibs",true,"List of free calibration (pattern, Def=\".*\")", eSAM_IsPatFile)
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
                     << EAM(AffineAll,"RefineAll",true,"More refinement at all step, safer and more accurate, but slower, def=true")
                     << EAM(aImMinMax,"ImMinMax",true,"Image min and max (may avoid tricky pattern ...)")
@@ -671,6 +673,10 @@ int Tapas_main(int argc,char ** argv)
        if (aCalFigee!="")
        {
           aCom  = aCom + " +CalibFigee=" + QUOTE(aCalFigee) ;
+       }
+       if (EAMIsInit(&aCalLibre))
+       {
+          aCom  = aCom + " +CalibLibre=" + QUOTE(aCalLibre) ;
        }
 
        if (IsAutoCal) aCom  = aCom + " +AutoCal=true";
