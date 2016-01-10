@@ -57,6 +57,7 @@
                <Symb> RapTxt=""   </Symb>
                <Symb> PoseFigee="HUyZZ9_m@@9hyY" </Symb>
                <Symb> CalibFigee="HUyZZ9_m@@9hyY" </Symb>
+               <Symb> CalibLibre=.* </Symb>
                <Symb> WithPoseFigee=false </Symb>
                
                <Symb> FrozeCalibInit=true </Symb>
@@ -388,6 +389,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eAllParamLibres      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <CtrlTimeCompens>
@@ -415,6 +417,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> ${SpecialParam0} </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>   Special param : ${SpecialParam0}  </Messages>
@@ -428,6 +431,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> ${SpecialParam1} </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>   Special param : ${SpecialParam1}  </Messages>
@@ -443,6 +447,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_DR1      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  DR1 </Messages>
@@ -455,6 +460,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_DR2      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  DR2 </Messages>
@@ -471,6 +477,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberteFocale_1   </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  Lib FOC </Messages>
@@ -485,12 +492,14 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLib_PP_CD_10   </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                                     <#WHEN VTEST=${LibCD}>
                                          <ContraintesCamerasInc>
                                               <Val> eLib_PP_CD_Lies      </Val>
                                               <TolContrainte>  1e-5 </TolContrainte>
                                               <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                              <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                          </ContraintesCamerasInc>
                                      </#WHEN>
                               </SectionContraintes>
@@ -514,6 +523,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_DR3      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  DR3 </Messages>
@@ -530,6 +540,7 @@
                                              <Val>  eLib_PP_CD_01    </Val>
                                         </#IF>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  CD </Messages>
@@ -550,6 +561,7 @@
                                         <Val> eLiberte_Phgr_Std_Aff      </Val>
                                         <Val> eLiberteParamDeg_1      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  Polyn1 </Messages>
@@ -563,6 +575,7 @@
                                         <Val> eLiberte_Dec1      </Val>
                                         <Val> eLiberte_Phgr_Std_Dec      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  Decentrik </Messages>
@@ -576,6 +589,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_DR4      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  DR4 </Messages>
@@ -588,6 +602,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_DR5      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  DR5 </Messages>
@@ -602,6 +617,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberteParamDeg_2      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  Polyn2 </Messages>
@@ -614,6 +630,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberteParamDeg_3      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  Polyn3 </Messages>
@@ -626,6 +643,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberteParamDeg_4      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  Polyn4 </Messages>
@@ -638,6 +656,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberteParamDeg_5      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  Polyn5 </Messages>
@@ -650,6 +669,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberteParamDeg_6      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  Polyn6 </Messages>
@@ -662,6 +682,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberteParamDeg_7      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  Polyn7 </Messages>
@@ -675,6 +696,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_DR6      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  DR6 </Messages>
@@ -688,6 +710,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_DR7      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  DR7 </Messages>
@@ -701,6 +724,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_DR8      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  DR8 </Messages>
@@ -714,6 +738,7 @@
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_DR9      </Val>
                                         <PatternRefuteur> ${CalibFigee} </PatternRefuteur>
+                                        <PatternNameApply> ${CalibLibre} </PatternNameApply>
                                     </ContraintesCamerasInc>
                               </SectionContraintes>
                               <Messages>  LIB  DR9 </Messages>
