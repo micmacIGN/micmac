@@ -31,7 +31,7 @@ class RepereImagette
 class CplImg
 {
     public :
-          CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,string aFullPatternImages, bool ExpTxt, double aPropDiag);
+          CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,string aFullPatternImages, bool ExpTxt, double aPropDiag, double aCorel);
           vector<double> nul;
           vector<string> mCollection3emeImg;
           string mNameImg1;
@@ -46,6 +46,7 @@ class CplImg
           string mOri;
           string mHomolOutput;
           double mPropDiag;
+          double mCorel;
           vector<string> mSetImages;
           string mKHIn, mKHOutDat, mKHOut;
           cInterfChantierNameManipulateur * mICNM;
@@ -58,6 +59,8 @@ class CplImg
           void ValPtsLia(vector<double> NorSur);
           vector<bool> CalVectorSurface(string mImg3eme);
           //bool IsInside(Pt2dr checkPoint, double w, double h);
+
+          Video_Win * mW; Video_Win * mW1;
 };
 
 class UneImage

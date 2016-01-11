@@ -319,6 +319,11 @@
         <SzCaptMm> 3.52 4.59 </SzCaptMm>
         <ShortName> Samsung Galaxy Note 3 </ShortName>
    </CameraEntry>   
+   <CameraEntry>
+        <Name> ASUS_Z00ED </Name>
+        <SzCaptMm> 4.29 5.76 </SzCaptMm>
+        <ShortName> Asus Zenfone 2 Laser </ShortName>
+   </CameraEntry>   
 
 
 <!-- Other -->	

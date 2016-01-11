@@ -509,7 +509,6 @@ void cCorrelImage::getFromIm(Im2D<U_INT1,INT4> * anIm,double aCenterX,double aCe
 
 void cCorrelImage::getWholeIm(Im2D<U_INT1,INT4> * anIm)
 {
-  cout<<mIm.sz()<<" "<<anIm->sz()<<endl;
   ELISE_COPY
     (
      mIm.all_pts(),
