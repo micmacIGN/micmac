@@ -56,7 +56,7 @@ class CplImg
 
           void SupposeVecSruf1er(Pt2dr dirX, Pt2dr dirY);
           void ValPtsLia(vector<double> NorSur);
-          void CalVectorSurface(string mImg3eme);
+          vector<bool> CalVectorSurface(string mImg3eme);
           //bool IsInside(Pt2dr checkPoint, double w, double h);
 };
 

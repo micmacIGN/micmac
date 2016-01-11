@@ -759,8 +759,9 @@ bool IsInside(Pt2dr checkPoint, Tiff_Im mTiffImg1, double percent = 1)
     }
     return in;
 }
-void CplImg::CalVectorSurface(string m3emeImg)
+vector<bool> CplImg::CalVectorSurface(string m3emeImg)
 {
+    vector<bool> result;
     cInterfChantierNameManipulateur * aICNM = this->mICNM;
     string aKHIn = this->mKHIn;
     string aDirImages = this->mDirImages;
@@ -769,7 +770,7 @@ void CplImg::CalVectorSurface(string m3emeImg)
     CamStenope * aCam1 = this->mCam1;
     CamStenope * aCam2 = this->mCam2;
     //====Import collection 3eme Image====//
-    string aNameImg3 = this->mCollection3emeImg[0];
+    string aNameImg3 = m3emeImg;
     std::string aOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ this->mOri, aNameImg3, true);
     CamStenope * aCam3 = CamOrientGenFromFile(aOri3 , aICNM);
     //====Import Pack Homologue======//
@@ -850,44 +851,46 @@ void CplImg::CalVectorSurface(string m3emeImg)
 
             if( IsInside(aP3, mTiffImg3, 1) )
             {
+                /*
                 cout<<endl<<"-------------------------------------"<<endl;
                 cout<<"aP1 "<<aP1<<endl;
                 cout<<"Pt_H "<<Pt_H<<endl;
                 cout<<"aP3 "<<aP3<<endl;
-                cout<<"prof_d "<<prof_d<<endl;
+                cout<<"prof_d "<<prof_d<<endl;*/
                 //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
                 Pt2dr SupDirX = aP1+Pt2dr(1,0);
-                cout<<"SupDirX "<<SupDirX<<endl;
-                Pt2dr SupDirY = aP1+Pt2dr(0,1);
-                cout<<"SupDirY "<<SupDirY<<endl;
-                Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une sphere
-                cout<<"Pt_Hu "<<Pt_Hu<<endl;
+                Pt2dr SupDirY = aP1+Pt2dr(0,1);             
+                Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une sphere                
                 Pt3dr Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
-                cout<<"Pt_Hv "<<Pt_Hv<<endl;
+                /*
+                cout<<"SupDirX "<<SupDirX<<endl;
+                cout<<"SupDirY "<<SupDirY<<endl;
+                cout<<"Pt_Hu "<<Pt_Hu<<endl;
+                cout<<"Pt_Hv "<<Pt_Hv<<endl;*/
 
                 //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
                 Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
-                cout<<"Pt_Hu_dansImg3 "<<Pt_Hu_dansImg3<<endl;
                 Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
-                cout<<"Pt_Hv_dansImg3 "<<Pt_Hv_dansImg3<<endl;
+                /*
+                cout<<"Pt_Hu_dansImg3 "<<Pt_Hu_dansImg3<<endl;
+                cout<<"Pt_Hv_dansImg3 "<<Pt_Hv_dansImg3<<endl;*/
 
                 //=== 5) Vector direction de surface d'img 3 ===
                 Pt2dr DirX = Pt_Hu_dansImg3 - aP3;
-                cout<<"DirX "<<DirX<<endl;
                 Pt2dr DirY = Pt_Hv_dansImg3 - aP3;
-                cout<<"DirY "<<DirY<<endl;
                 VectorSurface aDirSurfImg3(DirX,DirY);
                 cout<<Pt2dr(0,1)<<Pt2dr(1,0)<<" + "<<prof_d<< " = "<<DirX<<DirY;
-
+                /*
+                cout<<"DirX "<<DirX<<endl;
+                cout<<"DirY "<<DirY<<endl;*/
                 //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
                 //Vignette d'img 1
                 cCorrelImage::setSzW(sizeVignette);
                 cCorrelImage Imgette1;
                 Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
-                double longeurX = sqrt(pow(DirX.x,2) + pow(DirX.y,2));
-                double longeurY = sqrt(pow(DirY.x,2) + pow(DirY.y,2));
+                //double longeurX = sqrt(pow(DirX.x,2) + pow(DirX.y,2));
+                //double longeurY = sqrt(pow(DirY.x,2) + pow(DirY.y,2));
                 RepereImagette RepImgette3(aP3, DirX, DirY);
-                cout<<longeurX<<" "<<longeurY<<endl;
                 //Parcourir vignette imagette 1
                 Pt2di aP3access;
                 aP3access.x = int(round(aP3.x)); aP3access.y = int(round(aP3.y));
@@ -903,7 +906,7 @@ void CplImg::CalVectorSurface(string m3emeImg)
                         if ( IsInside( aP3 + Pt2dr(i,k) , mTiffImg3, 1) )
                             {
                                 INT4 val = mTIm2DImg3.get(aP3access + aVois);
-                                cout<<val<<" ";
+                                //cout<<val<<" ";
                                 /*== ecrire dans un pixel d'image ====*/
                                 //oset_svp pour tester si il est dedans avant ecrire
                                 //oset pour ecrire sans tester
@@ -914,7 +917,7 @@ void CplImg::CalVectorSurface(string m3emeImg)
                             {out = true; break;}
                     }
                     if (out)
-                    {break;}
+                    {break; result.push_back(false);}
                 }
                 // ==== comparer par corellation ==== //
                 if (!out)
@@ -923,12 +926,15 @@ void CplImg::CalVectorSurface(string m3emeImg)
                     cCorrelImage Imgette3;
                     Imgette3.getWholeIm(&mIm2DImgette3);
                     double corl = Imgette3.CrossCorrelation(Imgette1);
-                    cout<<endl<<"Corell = "<<corl<<endl;
+                    //cout<<endl<<"Corell = "<<corl<<endl;
                     if (corl > 0.5)
-                        {count++;}
+                        {count++;result.push_back(true);}
+                    else
+                        {result.push_back(false);}
                 }
             }
         }
+    return result;
     cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl<<count/aPackIn1_2.size()<<"% conserve"<<endl;
 }
 
@@ -1115,14 +1121,51 @@ int PHO_MI_main(int argc,char ** argv)
     {
         VerifParRepr aImgVerif(aSetImages, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt, aDistHom, aDistRepr);
         vector<AbreHomol> aAbre = aImgVerif.creatAbre();
-        vector<string>  aAbreRacine= aImgVerif.displayAbreHomol(aImgVerif.mAbre, 0);
-        string aImg1 = aAbre[0].ImgRacine;
-        string aImg2 = aAbre[0].ImgBranch[0];
-        CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt, aPropDiag);
-        aCouple.mCollection3emeImg = aAbre[0].Img3eme[0];
-        aCouple.SupposeVecSruf1er(Pt2dr(0,0) , Pt2dr(0,0));
-        cout<<"trip: "<<aImg1<<" + "<<aImg2<<" + "<< aCouple.mCollection3emeImg[0]<<endl;
-        aCouple.CalVectorSurface(aCouple.mCollection3emeImg[0]);
+        vector<string>  aAbreRacine= aImgVerif.displayAbreHomol(aImgVerif.mAbre, 1);
+
+        for (uint i=0;i<aAbre.size();i++)
+        {
+            string aImg1 = aAbre[i].ImgRacine;
+            for(uint k=0; k<aAbre[i].ImgBranch.size(); k++)
+            {
+                cout<<endl<<" ++ "<<aAbre[i].ImgBranch[k]<<endl;
+                string aImg2 = aAbre[i].ImgBranch[k];
+                CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt, aPropDiag);
+                aCouple.SupposeVecSruf1er(Pt2dr(0,0) , Pt2dr(0,0));
+                vector< vector<bool> > ColDec;
+                for(uint l=0; l<aAbre[i].Img3eme[k].size(); l++)
+                {
+                    cout<<"   + Com + "<<aAbre[i].Img3eme[k][l]<<endl;
+                    //====Triplet Image==========//
+                    aImg1 = aAbre[i].ImgRacine;
+                    aImg2 = aAbre[i].ImgBranch[k];
+                    string aImg3 = aAbre[i].Img3eme[k][l];
+                    ColDec.push_back(aCouple.CalVectorSurface(aImg3));
+                }
+                vector<bool> decision; vector<double> decPoint;
+                for(uint m=0; m<ColDec[0].size(); m++)
+                {
+                    bool dec = 0; double point=0;
+                    for (uint n=0; n<ColDec.size(); n++)
+                    {
+                        dec = dec || ColDec[n][m];
+                        if (ColDec[n][m])
+                        {point++;}
+                    }
+                    decision.push_back(dec);
+                    decPoint.push_back(point);
+                }
+                double countGood = 0;
+                for(uint h=0; h<decision.size(); h++)
+                {
+                    if(decision[h])
+                    {
+                        countGood++;
+                    }
+                }
+                cout<<endl<<countGood/decision.size()*100<<" % Pts conservé"<<endl;
+            }
+        }
 
     }
     return EXIT_SUCCESS;
