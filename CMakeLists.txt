@@ -131,7 +131,8 @@ if(${WITH_QT5} OR ${WITH_QT4})
 		if (${WITH_QT5})
 
 			    #find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
-			    find_package(Qt5 COMPONENTS Gui Core OpenGL Xml)
+			    #~ find_package(Qt5 COMPONENTS Gui Core OpenGL Xml)
+			    find_package(Qt5Widgets REQUIRED)
 
 			if (Qt5_FOUND)
 
@@ -656,6 +657,9 @@ IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
     #------------------------------------------------------------------------------------
     SET(QT_OLD_PREFIX "")
     if(qt_version EQUAL 5)
+		if (POLICY CMP0045)
+			cmake_policy(SET CMP0045 NEW)
+		endif()
 	    #setting old QT4 variables for installs
 	    get_target_property(QT_QTCORE_LIBRARY 		Qt5::Core			LOCATION_Release)
 	    get_target_property(QT_QTGUI_LIBRARY 		Qt5::Gui			LOCATION_Release)

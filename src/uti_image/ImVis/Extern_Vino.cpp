@@ -171,7 +171,7 @@ std::string StrNbChifSignNotSimple(double aVal,int aNbCh)
 
         double aLog10 = log(aVal) / log(10);
         int aLogDown =  round_down(ElAbs(aLog10));
-        aVal = ElMin(1.0,aVal * pow(10,aLogDown));
+        aVal = ElMin(1.0,aVal * pow(10.,(double)aLogDown));
 
         return aStrSign  + ToString(aVal).substr(0,aNbCh+2) + "E-" + ToString(aLogDown);
 
@@ -186,7 +186,7 @@ std::string StrNbChifSignNotSimple(double aVal,int aNbCh)
 
    double aLog10 = log(aVal) / log(10);
    int aLogDown =  round_down(ElAbs(aLog10));
-   aVal = ElMin(10.0,aVal / pow(10,aLogDown));
+   aVal = ElMin(10.0,aVal / pow(10.,(double)aLogDown));
    return aStrSign  + ToString(aVal).substr(0,aNbCh+2) +  "E" + ToString(aLogDown);
 }
 
