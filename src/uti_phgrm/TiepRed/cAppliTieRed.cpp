@@ -40,22 +40,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "TiepRed.h"
 
 
-cCameraTiepRed::cCameraTiepRed
-(
-    cAppliTiepRed &         anAppli,
-    const std::string &     aName,
-    CamStenope *            aCam
-) :
-   mAppli  (anAppli),
-   mNameIm (aName),
-   mCS     (aCam)
-{
-}
-
-const std::string cCameraTiepRed::NameIm() const { return mNameIm; }
-
-
-
+/**********************************************************************/
+/*                                                                    */
+/*                         cAppliTiepRed                              */
+/*                                                                    */
+/**********************************************************************/
 
 
 cAppliTiepRed::cAppliTiepRed(int argc,char **argv) 
@@ -98,10 +87,10 @@ void cAppliTiepRed::Test()
 {
    for (int aKI = 0 ; aKI<int(mVecCam.size()) ; aKI++)
    {
-       const std::string & anI1 = mVecCam[aKI]->NameIm();
+       cCameraTiepRed & aCam1 = *(mVecCam[aKI]);
+       const std::string & anI1 = aCam1.NameIm();
        // Get list of images sharin tie-P with anI1
        std::list<std::string>  aLI2 = mNM->ListeImOrientedWith(anI1);
-/*
        for (std::list<std::string>::const_iterator itL= aLI2.begin(); itL!=aLI2.end() ; itL++)
        {
             const std::string & anI2 = *itL;
@@ -112,15 +101,23 @@ void cAppliTiepRed::Test()
                // The result being symetric, the convention is that some data are stored only for  I1 < I2
                if (anI1 < anI2)
                {
+                   cCameraTiepRed & aCam2 = *(mMapCam[anI2]);
                    std::vector<Pt2df> aVP1,aVP2;
                    mNM->LoadHomFloats(anI1,anI2,&aVP1,&aVP2);  // would have worked for I2 > I1 
-                   cXml_Ori2Im aX2 = mNM->GetOri2Im(anI1,anI2); // works only for I1 < I2
+                   // cXml_Ori2Im aX2 = mNM->GetOri2Im(anI1,anI2); // works only for I1 < I2
 
-                   std::cout << anI1 << " " << anI2 << " " << aVP1.size() << " " << aVP2.size() << " Rec=" << aX2.Geom().Val().RecHom() << "\n";
+                   for (int aKP=0 ; aKP<int(aVP1.size()) ; aKP++)
+                   {
+                       double aD;
+                       Pt3dr aPTer = aCam1.BundleInter(aVP1[aKP],aCam2,aVP2[aKP],aD);
+                       std::cout << "AAAAAAAAAAAAAAAaa " << aD << "\n";
+                   }
+                   std::cout << "NNNN " << anI1 << " " << anI2 << "\n";
+                   getchar();
+
                }
             }
        }
-*/
    }
 
 }

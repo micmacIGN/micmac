@@ -37,60 +37,64 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#ifndef _TiepRed_H_
-#define _TiepRed_H_
+#include "TiepRed.h"
 
-#include "StdAfx.h"
+/**********************************************************************/
+/*                                                                    */
+/*                         cCameraTiepRed                             */
+/*                                                                    */
+/**********************************************************************/
 
-class cCameraTiepRed;
-class cAppliTiepRed;
-
-class cCameraTiepRed
+cCameraTiepRed::cCameraTiepRed
+(
+    cAppliTiepRed &         anAppli,
+    const std::string &     aName,
+    CamStenope *            aCam
+) :
+   mAppli  (anAppli),
+   mNameIm (aName),
+   mCS     (aCam)
 {
-    public :
-        cCameraTiepRed(cAppliTiepRed & anAppli,const std::string &,CamStenope *);
-        const std::string NameIm() const;
- 
-        //  Intersection of bundles in ground geometry
-        Pt3dr BundleInter(const Pt2df & aP1,const cCameraTiepRed & aCam2,const Pt2df & aP2,double & Precision) const;
+}
 
-
-    private :
-        cCameraTiepRed(const cCameraTiepRed &); // Not Implemented
-
-        Pt2dr Hom2Cam(const Pt2df & aP) const;
-
-        cAppliTiepRed & mAppli;
-        std::string mNameIm;
-        CamStenope * mCS;
-};
-
-
-
-
-
-class cAppliTiepRed 
+Pt2dr cCameraTiepRed::Hom2Cam(const Pt2df & aP) const
 {
-     public :
-          cAppliTiepRed(int argc,char **argv); 
-          void Test();
-           
-
-     private :
-          cAppliTiepRed(const cAppliTiepRed &); // N.I.
-
-          cElemAppliSetFile mEASF;
-          std::string  mPatImage;
-          std::string  mCalib;
-
-          std::map<std::string,cCameraTiepRed *> mMapCam;
-          std::vector<cCameraTiepRed *>          mVecCam;
-          std::set<std::string>          * mSetFiles;
-          cVirtInterf_NewO_NameManager *   mNM ;
-};
+     Pt3dr aQ(aP.x,aP.y,1.0);
+     return mCS->L3toF2(aQ);
+}
 
 
-#endif // _TiepRed_H_
+const std::string cCameraTiepRed::NameIm() const { return mNameIm; }
+
+Pt3dr cCameraTiepRed::BundleInter(const Pt2df & aPH1,const cCameraTiepRed & aCam2,const Pt2df & aPH2,double & Precision) const
+{
+
+     Pt2dr aPC1 = Hom2Cam(aPH1);
+     Pt2dr aPC2 = aCam2.Hom2Cam(aPH2);
+
+     ElSeg3D aSeg1 = mCS->Capteur2RayTer(aPC1);
+     ElSeg3D aSeg2 = aCam2.mCS->Capteur2RayTer(aPC2);
+
+     bool Ok;
+     double aD;
+     Pt3dr aRes= InterSeg(aSeg1.P0(),aSeg1.P1(),aSeg2.P0(),aSeg2.P1(),Ok,&aD);
+
+     if (Ok)
+     {
+         Pt2dr aRP1 = mCS->Ter2Capteur(aRes);
+         Pt2dr aRP2 = aCam2.mCS->Ter2Capteur(aRes);
+         Precision = (euclid(aRP1-aPC1)+euclid(aRP2-aPC2)) / 2.0;
+     }
+     else
+     {
+        Precision = 1e20;
+     }
+     
+     return aRes;
+    
+}
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
@@ -123,4 +127,4 @@ sécurité de leurs systèmes et ou de leurs données et, plus généralement,
 Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
-aooter-MicMac-eLiSe-25/06/2007*/
+Footer-MicMac-eLiSe-25/06/2007*/
