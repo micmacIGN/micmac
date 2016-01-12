@@ -862,7 +862,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
     StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
     bool Exist1_3 = ELISE_fp::exist_file(aHomoIn1_3);
     if (Exist1_3)
-        {aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3); }
+        {aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);}
 
     std::string aHomoIn2_3 = aICNM->Assoc1To2(aKHIn, aNameImg2, aNameImg3, true);
     StdCorrecNameHomol_G(aHomoIn2_3,aDirImages);
@@ -885,6 +885,22 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
     TIm2D<U_INT1,INT4> mTIm2DImg2(mTiffImg2.sz());
     ELISE_COPY(mTIm2DImg2.all_pts(),mTiffImg2.in(),mTIm2DImg2.out());
 
+//    ELISE_COPY(
+//                 mTiffImg1.all_pts(),
+//                ((FX/50+FY/50)%2)*255,
+//                 mIm2DImg1.out()
+//              );
+//    ELISE_COPY(
+//                 mTiffImg2.all_pts(),
+//                ((FX/50+FY/50)%2)*255,
+//                 mIm2DImg2.out()
+//              );
+//    ELISE_COPY(
+//                 mTiffImg3.all_pts(),
+//                ((FX/50+FY/50)%2)*255,
+//                 mIm2DImg3.out()
+//              );
+
     ELISE_COPY(
                  mTiffImg1.all_pts(),
                  mTiffImg1.in(),
@@ -900,6 +916,18 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
                  mTiffImg3.in(),
                  mIm2DImg3.out()
               );
+
+
+    ELISE_COPY(
+                mTiffImg3.all_pts(),
+                ((FX/10+FY/10)%2)*255,
+                mIm2DImg3.out()
+                );
+    ELISE_COPY(
+                mIm2DImg3.all_pts(),
+                ((FX/10+FY/10)%2)*255,
+                mTiffImg3.out()
+                );
     Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
     //=======================================================//
     double count =0;
@@ -983,7 +1011,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
                         Pt2dr aP3Test; aP3Test.x = ceil(aP3access.x); aP3Test.y = ceil(aP3access.y);
                         if ( IsInside( aP3Test , mTiffImg3, this->mPropDiag) )
                             {
-                                INT4 val = mTIm2DImg3.get(aP3access);
+                                INT4 val = mTIm2DImg3.getr(pixelCorrImg3, -1);
                                 //cout<<val<<" ";
                                 /*== ecrire dans un pixel d'image ====*/
                                 //oset_svp pour tester si il est dedans avant ecrire
@@ -1004,9 +1032,11 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
                     cCorrelImage Imgette3;
                     Imgette3.getWholeIm(&mIm2DImgette3);
                     double corl = Imgette3.CrossCorrelation(Imgette1);
+                    double corl_o = Imgette3_o.CrossCorrelation(Imgette1);
                     if (displayVignette)
                     {
-                        cout<<endl<<"Corell = "<<corl<<endl;
+                        cout<<endl<<"Order = Deforme Img3 - Img1 - Origin Img3"<<endl;
+                        cout<<"Corell Deforme = "<<corl<<" - Corell Origin = "<<corl_o<<endl;
                         if (mW==0)
                             mW = Video_Win::PtrWStd(mIm2DImgette3.sz()*4);  //vignette deforme img3
                         ELISE_COPY(mW->all_pts(), mIm2DImgette3.in()[Virgule(FX/4,FY/4)] ,mW->ogray());
