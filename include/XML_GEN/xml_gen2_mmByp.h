@@ -313,6 +313,8 @@ const cCWWSImage * GetFromCAWSI(const cChantierAppliWithSetImage & ,const std::s
 class cVirtInterf_NewO_NameManager
 {
        public :
+           
+           virtual CamStenope * OutPutCamera(const std::string & aName) const = 0;
            // for a given image "aName", return the list of images having homolgous data (tieP + orientaion)
 
            virtual std::list<std::string>  ListeImOrientedWith(const std::string & aName) const = 0;
