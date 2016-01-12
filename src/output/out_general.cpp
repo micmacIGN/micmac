@@ -522,6 +522,16 @@ Video_Win::Video_Win
 {
 }
 
+Video_Win::Video_Win
+(
+       Video_Win                aSoeur,
+       ePosRel                  aPos,
+       Pt2di                    sz ,
+       INT                      border_witdh
+): El_Window((Data_El_Geom_GWin *)NULL)
+{
+   ELISE_ASSERT(false, "Video_Win::Video_Win in ELISE_NO_VIDEO mode");
+}
 
 
 
