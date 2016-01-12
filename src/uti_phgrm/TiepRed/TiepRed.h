@@ -42,19 +42,42 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+class cCameraTiepRed;
+class cAppliTiepRed;
+
+class cCameraTiepRed
+{
+    public :
+        cCameraTiepRed(cAppliTiepRed & anAppli,const std::string &,CamStenope *);
+        const std::string NameIm() const;
+    private :
+        cCameraTiepRed(const cCameraTiepRed &); // Not Implemented
+
+        cAppliTiepRed & mAppli;
+        std::string mNameIm;
+        CamStenope * mCS;
+};
+
+
+
+
 
 class cAppliTiepRed 
 {
      public :
           cAppliTiepRed(int argc,char **argv); 
           void Test();
+           
 
      private :
+          cAppliTiepRed(const cAppliTiepRed &); // N.I.
 
           cElemAppliSetFile mEASF;
           std::string  mPatImage;
           std::string  mCalib;
-          const std::vector<std::string> * mFilesIm;
+
+          std::map<std::string,cCameraTiepRed *> mMapCam;
+          std::vector<cCameraTiepRed *>          mVecCam;
           std::set<std::string>          * mSetFiles;
           cVirtInterf_NewO_NameManager *   mNM ;
 };

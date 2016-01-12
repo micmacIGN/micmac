@@ -358,6 +358,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            );
            CamStenope * CamOfName(const std::string & aName);
            ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2) const;
+           std::string NameOriOut(const std::string & aNameIm) const;
 
            std::string KeySetCpleOri() const ;
            std::string KeyAssocCpleOri() const ;
@@ -397,6 +398,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            std::string NameListeImOrientedWith(const std::string &,bool Bin) const;
            std::list<std::string>  ListeImOrientedWith(const std::string & aName) const;
 
+           CamStenope * OutPutCamera(const std::string & aName) const;
            std::string NameListeCpleOriented(bool Bin) const;
 
            void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP=false);

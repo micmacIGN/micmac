@@ -39,6 +39,25 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepRed.h"
 
+
+cCameraTiepRed::cCameraTiepRed
+(
+    cAppliTiepRed &         anAppli,
+    const std::string &     aName,
+    CamStenope *            aCam
+) :
+   mAppli  (anAppli),
+   mNameIm (aName),
+   mCS     (aCam)
+{
+}
+
+const std::string cCameraTiepRed::NameIm() const { return mNameIm; }
+
+
+
+
+
 cAppliTiepRed::cAppliTiepRed(int argc,char **argv) 
 {
    ElInitArgMain
@@ -50,23 +69,39 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)
 
    mEASF.Init(mPatImage);
 
-   mFilesIm = mEASF.SetIm();
-   std::cout << " Get Nb Images " <<  mFilesIm->size() << "\n";
-   mSetFiles = new std::set<std::string>(mFilesIm->begin(),mFilesIm->end());
+   if (EAMIsInit(&mCalib))
+   {
+      StdCorrecNameOrient(mCalib,mEASF.mDir);
+   }
+
+   const std::vector<std::string> * aFilesIm = mEASF.SetIm();
+   mSetFiles = new std::set<std::string>(aFilesIm->begin(),aFilesIm->end());
+   std::cout << " Get Nb Images " <<  aFilesIm->size() << "\n";
 
 
    mNM = cVirtInterf_NewO_NameManager::StdAlloc(mEASF.mDir,mCalib);
+
+   for (int aKI = 0 ; aKI<int(aFilesIm->size()) ; aKI++)
+   {
+       const std::string & aNameIm = (*aFilesIm)[aKI];
+       CamStenope * aCS = mNM->OutPutCamera(aNameIm);
+       cCameraTiepRed * aCam = new cCameraTiepRed(*this,aNameIm,aCS);
+       
+       mVecCam.push_back(aCam);
+       mMapCam[aNameIm] = aCam;
+   }
 }
 
 
 
 void cAppliTiepRed::Test()
 {
-   for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
+   for (int aKI = 0 ; aKI<int(mVecCam.size()) ; aKI++)
    {
-       const std::string & anI1 = (*mFilesIm)[aKI];
+       const std::string & anI1 = mVecCam[aKI]->NameIm();
        // Get list of images sharin tie-P with anI1
        std::list<std::string>  aLI2 = mNM->ListeImOrientedWith(anI1);
+/*
        for (std::list<std::string>::const_iterator itL= aLI2.begin(); itL!=aLI2.end() ; itL++)
        {
             const std::string & anI2 = *itL;
@@ -85,6 +120,7 @@ void cAppliTiepRed::Test()
                }
             }
        }
+*/
    }
 
 }

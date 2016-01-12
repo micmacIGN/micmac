@@ -1085,7 +1085,8 @@ void cAppli_NewSolGolInit::Save()
         anOC.Externe().AltiSol().SetVal(aPMed.z);
         anOC.Externe().Profondeur().SetVal(aD);
         
-        std::string aNameOri = mNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+mNM->OriOut(),aNameIm,true);
+        //std::string aNameOri = mNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+mNM->OriOut(),aNameIm,true);
+        std::string aNameOri = mNM->NameOriOut(aNameIm);
       
         MakeFileXML(anOC,aNameOri);
     }

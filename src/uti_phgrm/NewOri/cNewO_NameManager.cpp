@@ -73,6 +73,7 @@ cNewO_NameManager::cNewO_NameManager
 
 cVirtInterf_NewO_NameManager * cVirtInterf_NewO_NameManager::StdAlloc(const std::string & aDir,const std::string  & anOri,bool  Quick)
 {
+
    return new cNewO_NameManager("",Quick,aDir,anOri,"dat");
 }
 
@@ -180,6 +181,15 @@ CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName)
     return mICNM->GlobCalibOfName(aName,mPrefOriCal,true);
 }
 
+std::string cNewO_NameManager::NameOriOut(const std::string & aNameIm) const
+{
+   return mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+OriOut(),aNameIm,true);
+}
+
+CamStenope *  cNewO_NameManager::OutPutCamera(const std::string & aName) const
+{
+    return  mICNM->StdCamOfNames(aName,OriOut());
+}
 
 
 /*
