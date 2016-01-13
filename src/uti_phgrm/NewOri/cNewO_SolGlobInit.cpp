@@ -1067,6 +1067,44 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
 
 void cAppli_NewSolGolInit::Save()
 {
+
+    double aSomDistMin = 1e30;
+    Pt3dr aDirKMin(0,0,1);
+    Pt3dr aCentre(0,0,0);
+    double aNbCentre=0;
+    for (tItSNSI anItS1=mGr.begin(mSubAll) ; anItS1.go_on(); anItS1++)
+    {
+        // C'est du Cam 2 Monde 
+        const ElRotation3D & aR1 = (*anItS1).attr().CurRot();
+        aCentre =  aCentre+ aR1.ImAff(Pt3dr(0,0,0));
+        aNbCentre++;
+        Pt3dr aDirK1 =  aR1.ImVect(Pt3dr(0,0,1));
+
+        double aSomDist = 0;
+        double aNbDist = 0;
+
+        for (tItSNSI anItS2=mGr.begin(mSubAll) ; anItS2.go_on(); anItS2++)
+        {
+            const ElRotation3D & aR2 = (*anItS2).attr().CurRot();
+            Pt3dr aDirK2 =  aR2.ImVect(Pt3dr(0,0,1));
+            aSomDist += ElSquare(euclid(aDirK1-aDirK2));
+            aNbDist++;
+        }
+        aSomDist /= aNbDist;
+        if (aSomDist< aSomDistMin)
+        {
+           aSomDistMin = aSomDist;
+           aDirKMin = aDirK1;
+        }
+        std::cout << "Moy Dist " << aSomDist << " K=" << aDirK1 << " C=" <<  aR1.ImAff(Pt3dr(0,0,0)) << "\n";
+    }
+    aCentre = aCentre / aNbCentre;
+    Pt3dr aDirIMin,aDirJMin;
+    MakeRONWith1Vect(aDirKMin,aDirIMin,aDirJMin);
+    std::cout <<"DMIIIIIN " << aSomDistMin << " " << aDirKMin << " " << aCentre << "\n";
+
+
+
     for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
     {
         cNewO_OneIm * anI = (*anItS).attr().Im();

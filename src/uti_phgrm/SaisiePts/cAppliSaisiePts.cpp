@@ -354,11 +354,17 @@ bool cVirtualInterface::PtImgIsVisible(cSP_PointeImage &aPIm)
 
 //********************************************************************************
 
+const std::string cAppli_SaisiePts::TheTmpSaisie = "Tmp-SaisieAppuis/";
+
 cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :
     mParam      (*aP2.mObj),
     mInterface  (0),
     mICNM       (aP2.mICNM),
     mDC         (aP2.mDC),
+    mDirTmp     (mDC+TheTmpSaisie),
+    mPrefSauv   (DC()+StdPrefix(mParam.ExportPointeImage().Val())),
+    mSauv2D     (mPrefSauv+"-S2D.xml"),
+    mSauv3D     (mPrefSauv+"-S3D.xml"),
     mShowDet    (mParam.ShowDet().Val()),
     mSzRech     (100,100),
     mImRechVisu (mSzRech.x,mSzRech.y),
@@ -366,6 +372,8 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     mMasq3DVisib(0),
     mPIMsFilter   (0)
 {
+
+    ELISE_fp::MkDirSvp(mDirTmp);
     if (mParam.Masq3DFilterVis().IsInit())
     {
        mMasq3DVisib = cMasqBin3D::FromSaisieMasq3d(mDC+mParam.Masq3DFilterVis().Val());
@@ -450,13 +458,13 @@ void cAppli_SaisiePts::InitImages()
     mImagesVis = mImagesTot;
     mNbImVis  = (int)mImagesVis.size();
 
-    mNameSauvPtIm = mDC + mParam.NamePointesImage().Val();
+    mNameSauvPtIm = mDirTmp + mParam.NamePointesImage().Val();
     mDupNameSauvPtIm = mNameSauvPtIm + ".dup";
 
 
-    InitImages(mNameSauvPtIm);
+    InitImages(mNameSauvPtIm,mDC+ mParam.NamePointesImage().Val(),mSauv2D);
     for(int aKIm=0 ;  aKIm<int(mPtImInputSec.size()) ; aKIm++)
-       InitImages(mPtImInputSec[aKIm]);
+       InitImages(mDirTmp+mPtImInputSec[aKIm],mDC+mPtImInputSec[aKIm],"");
 /*
     if (ELISE_fp::exist_file(mNameSauvPtIm))
     {
@@ -518,17 +526,61 @@ double PrioOfEtat(eEtatPointeImage aState)
 }
 
 
-void cAppli_SaisiePts::InitImages(const std::string & aName)
+void cAppli_SaisiePts::InitImages(const std::string & aN1,const std::string & aN2,const std::string & aNameS2D)
 {
-    if (! ELISE_fp::exist_file(aName)) return;
+    bool InitSOSPI = false;
+    cSetOfSaisiePointeIm aNewSOSPI;
 
-    cSetOfSaisiePointeIm aNewSOSPI =  StdGetObjFromFile<cSetOfSaisiePointeIm>
+
+    std::string aName;
+    if ( ELISE_fp::exist_file(aN1)) 
+        aName = aN1;
+    else if ( ELISE_fp::exist_file(aN2)) 
+        aName = aN2;
+    else  if ((aNameS2D!="") &&  ELISE_fp::exist_file(aNameS2D))
+    {
+        //cSetOfSaisiePointeIm
+        InitSOSPI = true;
+        cSetOfMesureAppuisFlottants aSOM =  StdGetFromPCP(aNameS2D,SetOfMesureAppuisFlottants);
+        for 
+        (
+              std::list<cMesureAppuiFlottant1Im>::const_iterator itIm=aSOM.MesureAppuiFlottant1Im().begin() ;
+              itIm!=aSOM.MesureAppuiFlottant1Im().end() ; 
+              itIm++
+        )
+        {
+             aNewSOSPI.SaisiePointeIm().push_back(cSaisiePointeIm());
+             cSaisiePointeIm & aSPI = aNewSOSPI.SaisiePointeIm().back();
+             aSPI.NameIm() = itIm->NameIm();
+             for
+             (
+                     std::list<cOneMesureAF1I>::const_iterator itP=itIm->OneMesureAF1I().begin();
+                     itP!=itIm->OneMesureAF1I().end();
+                     itP++
+             )
+             {
+                  cOneSaisie anOS;
+                  anOS.Etat() = eEPI_Valide;
+                  anOS.NamePt() = itP->NamePt();
+                  anOS.PtIm() = itP->PtIm();
+                  aSPI.OneSaisie().push_back(anOS);
+             }
+        }
+    }
+    else
+        return;
+
+    
+    if (! InitSOSPI)
+    {
+         aNewSOSPI =  StdGetObjFromFile<cSetOfSaisiePointeIm>
                                       (
                                            aName,
                                            StdGetFileXMLSpec("ParamSaisiePts.xml"),
                                            "SetOfSaisiePointeIm",
                                            "SetOfSaisiePointeIm"
                                        );
+     }
 
      for
      (
@@ -657,13 +709,13 @@ cSP_PointGlob * cAppli_SaisiePts::AddPointGlob(cPointGlob aPG,bool OkRessuscite,
 
 void cAppli_SaisiePts::InitPG()
 {
-    mNameSauvPG = mDC + mParam.NamePointsGlobal().Val();
+    mNameSauvPG = mDirTmp + mParam.NamePointsGlobal().Val();
     mDupNameSauvPG = mNameSauvPG + ".dup";
-    InitPG(mParam.NamePointsGlobal().Val());
+    InitPG(mNameSauvPG,mDC +  mParam.NamePointsGlobal().Val());
 
     for (int aK=0 ; aK<int(mGlobLInputSec.size()) ; aK++)
     {
-        InitPG(mGlobLInputSec[aK]);
+        InitPG(mDirTmp+mGlobLInputSec[aK],mDC+mGlobLInputSec[aK]);
     }
 
     for
@@ -710,13 +762,12 @@ void cAppli_SaisiePts::InitPG()
 }
 
 
-void  cAppli_SaisiePts::InitPG(const std::string & aName)
+void  cAppli_SaisiePts::InitPG(const std::string & aN1,const std::string & aN2)
 {
+    std::string aName = aN1;
+    if (!ELISE_fp::exist_file(aName))
+       aName = aN2;
 
-    // mNameSauvPG = mDC + mParam.NamePointsGlobal().Val();
-
-
-    // std::cout << "TTttttcs::InitPG"  << mNameSauvPG << " " << ELISE_fp::exist_file(mNameSauvPG) << "\n";
     if (ELISE_fp::exist_file(aName))
     {
         cSetPointGlob aSPG = StdGetObjFromFile<cSetPointGlob>
@@ -1025,9 +1076,8 @@ void cAppli_SaisiePts::Save()
 
             aSOMAF.MesureAppuiFlottant1Im().push_back(aMAF);
         }
-        std::string aNameExp = DC()+StdPrefix(mParam.ExportPointeImage().Val());
 
-        MakeFileXML(aSOMAF, aNameExp + "-S2D.xml");
+        MakeFileXML(aSOMAF, mSauv2D);
 
 
         cDicoAppuisFlottant aDico;
@@ -1044,7 +1094,7 @@ void cAppli_SaisiePts::Save()
             }
         }
 
-        MakeFileXML(aDico, aNameExp + "-S3D.xml");
+        MakeFileXML(aDico,mSauv3D);
 
         /*
 */
