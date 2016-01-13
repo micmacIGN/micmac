@@ -604,14 +604,15 @@ private :
 
 
          void InitImages();
-         void InitImages(const std::string &);
+         // Deuxieme nom pour assurer la compat avec existant
+         void InitImages(const std::string & aN1,const std::string & aN2,const std::string & aNameS2D);
 
          void InitInPuts();
          void AddOnePGInImage(cSP_PointGlob * aSPG,cImage & anI,bool WithP3D,const Pt3dr & aP3d,bool InMasq3D);
 
 
          void InitPG();
-         void InitPG(const std::string &);
+         void InitPG(const std::string & aN1,const std::string & aN2);
          void InitPointeIm();
 
          cParamSaisiePts &                     mParam;
@@ -619,6 +620,10 @@ private :
 
          cInterfChantierNameManipulateur *     mICNM;
          std::string                           mDC;
+         std::string                           mDirTmp;
+         std::string                           mPrefSauv;
+         std::string                           mSauv2D;
+         std::string                           mSauv3D;
          std::vector<cImage *>                 mImagesVis;
          std::vector<cImage *>                 mImagesTot;
          std::map<std::string,cImage *>        mMapNameIms;
@@ -653,6 +658,8 @@ private :
 
          std::vector<std::string>          mGlobLInputSec;
          std::vector<std::string>          mPtImInputSec;
+
+         static const std::string          TheTmpSaisie;
 };
 
 
