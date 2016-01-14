@@ -2535,7 +2535,7 @@ bool DebugConvCal() {return false;}
     string MMQtLibraryPath()
     {
         #if defined(__APPLE__) || defined(__MACH__)
-            return MMDir()+"Frameworks";
+            return MMDir() + "Frameworks";
 		#elif ELISE_windows
 			return MMBin();
         #endif
@@ -2543,10 +2543,11 @@ bool DebugConvCal() {return false;}
     }
 
     // there is alway one path in the list to avoid multiple library loading
-    void setQtLibraryPath( const string &i_path )
-    {
+    void setQtLibraryPath(const string &i_path)
+	{
         QString path( i_path.c_str() );
         if ( !QDir(path).exists() ) cerr << "WARNING: setQtLibraryPath(" << i_path << "): path does not exist" << endl;
+
         QCoreApplication::setLibraryPaths( QStringList(path) );
     }
 
@@ -2554,8 +2555,17 @@ bool DebugConvCal() {return false;}
     // used by mm3d and SaisieQT
     void initQtLibraryPath()
     {
+        // set to install plugins directory if it exists
+        const string installPlugins = QT_INSTALL_PLUGINS;
+        if ( !installPlugins.empty() && QDir( QString(installPlugins.c_str())).exists() )
+        {
+            setQtLibraryPath(installPlugins);
+            return;
+        }
+
         // set to deployment path if it exists
-        string deploymentPath = MMQtLibraryPath();
+        const string deploymentPath = MMQtLibraryPath();
+
         if ( !deploymentPath.empty() && QDir( QString(deploymentPath.c_str())).exists() )
         {
             setQtLibraryPath(deploymentPath);

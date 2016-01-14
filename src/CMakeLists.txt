@@ -127,7 +127,6 @@ enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
 # fichiers qui n'utilisent pas les en tetes precompilées
 set(Elise_Src_Files
 	${Elise_Src_Files}
-	${UTIL_DIR}/win_regex.c
 	${TIFF_DIR}/el_dcraw.c
 	${OPTIM_DIR}/opt_mat_creuse.cpp
 	${OPTIM_DIR}/opt_sysl2.cpp
@@ -137,6 +136,10 @@ set(Elise_Src_Files
 	${MULLGES_DIR}/muvmblock.cpp
 	${ORIPHO_DIR}/cOriMntCarto.cpp
 )
+
+if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
+	set(Elise_Src_Files ${Elise_Src_Files} ${UTIL_DIR}/win_regex.c)
+endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
 
