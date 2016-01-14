@@ -79,6 +79,11 @@ typedef const tVP2f   tCVP2f;
 typedef std::vector<U_INT1> tVUI1;
 typedef const tVUI1 tCVUI1;
 
+/*
+   Permet d'encapsuler la structure qui gere les index permettant d'acceder a une fusion a partir d'un point.
+  Pour l'instant c'est des map, mais voir qi Qdt Tree, tiles, vecteur ordonnes etc... sont + efficaces
+*/
+
 template <class TypeIndex,class TypeVal> class  cGenTabByMapPtr
 {
    private :
