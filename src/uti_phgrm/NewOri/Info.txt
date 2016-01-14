@@ -1,0 +1,58 @@
+Feuille de route pour terminer calcul orientation :
+
+
+1- Ajouter compensation par faisceau basique :
+
+ 1-A 
+
+   * dans phgr_mep_util.cpp, classe cEqBundleBase
+
+   * ajouter equation a 2 ou 3 points completement libres
+
+   * ajouter viscosite, a posteriori sur cumul poids equationA,  essayer poids angle = prop pois pixel, poid tr= PdsAngle *  1/Prof
+  
+   * 
+
+ 1-B
+  
+   *  Ajouter chargement des points (au lieu de tout charger)
+
+ 1-C 
+  
+   * Ajouter points "virtuels" par matrices inerties
+
+  1-D 
+
+   * remplacer les points de substitution fixe par meme chose dynamique
+
+
+(1 syst d'inconnue / triplets)
+
+=====================================
+
+Revoir le B/H qui est bizarre :
+
+     * B/H de correlation != B/H d'Aero (a cause de la //axe verticale)
+     * B/H des triplets , est-ce le max ou le min ?
+     * opportunité douteuse de ponderer les ecarts de translation avec le B/H ? 
+
+
+Pour les triplets :
+
+    * ne prendre que ceux a B/H minimal
+    *
+
+
+=====================================
+
+
+This folder will contains devlopment relative to a new approach of global orientation in MicMac.
+
+Basically :
+
+   - precompute for each pair of image the possible relative orientation (maybe several solution)
+
+   - validate/invalidate and solve ambiguity of pair of images, using triplet of images
+
+   - then we will see  ....
+
