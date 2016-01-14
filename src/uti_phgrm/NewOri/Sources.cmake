@@ -15,6 +15,7 @@ set(uti_phgrm_NewOri_Src_Files
     ${UTI_PHGRM_NEW_ORI}/cNewO_SolGlobInit.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_SolGlobInit_Build.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_SolGlob_PondApriori.cpp
+    ${UTI_PHGRM_NEW_ORI}/cNewO_DynFusPtsMul.cpp
 )
 
 
