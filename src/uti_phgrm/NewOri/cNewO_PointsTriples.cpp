@@ -68,12 +68,12 @@ void F()
 typedef std::vector<Pt2df> * tPtrVPt2df;
 typedef cNewO_OneIm *        tPtrNIm;
 
-bool cNewO_NameManager::LoadTriplet(cNewO_OneIm * anI1 ,cNewO_OneIm * anI2,cNewO_OneIm * anI3,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3)
+bool cNewO_NameManager::LoadTriplet(const std::string & anI1,const std::string & anI2,const std::string & anI3,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3)
 {
    int aRnk[3] ;
-   Rank3(aRnk,anI1->Name(),anI2->Name(),anI3->Name());
+   Rank3(aRnk,anI1,anI2,anI3);
 
-   tPtrNIm aVIm[3];
+   std::string aVIm[3];
    aVIm[aRnk[0]] =  anI1;
    aVIm[aRnk[1]] =  anI2;
    aVIm[aRnk[2]] =  anI3;
@@ -103,6 +103,16 @@ bool cNewO_NameManager::LoadTriplet(cNewO_OneIm * anI1 ,cNewO_OneIm * anI2,cNewO
    aFile.close();
    return true;
 }
+/*
+*/
+
+
+bool cNewO_NameManager::LoadTriplet(cNewO_OneIm * anI1 ,cNewO_OneIm * anI2,cNewO_OneIm * anI3,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3)
+{
+    return LoadTriplet(anI1->Name(),anI2->Name(),anI3->Name(),aVP1,aVP2,aVP3);
+}
+
+
 
 void cNewO_NameManager::LoadHomFloats(std::string  aName1,std::string  aName2,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP)
 {

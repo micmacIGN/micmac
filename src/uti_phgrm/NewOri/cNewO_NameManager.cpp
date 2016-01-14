@@ -336,23 +336,47 @@ std::string cNewO_NameManager::NameTripletsOfCple(cNewO_OneIm * anI1,cNewO_OneIm
 std::string cNewO_NameManager::NameAttribTriplet
             (
                const std::string & aPrefix,const std::string & aPost,
+               const std::string &   aI1,const std::string &   aI2,const std::string &   aI3,
+               bool WithMakeDir
+            )
+
+{
+    ELISE_ASSERT(aI1<aI2,"cNO_P3_NameM::NameAttribTriplet");
+    ELISE_ASSERT(aI2<aI3,"cNO_P3_NameM::NameAttribTriplet");
+
+    std::string aDir = Dir3PDeuxImage(aI1,aI2,WithMakeDir);
+
+    return aDir + "Triplet-" + aPrefix + "-" + aI3 + "." + aPost;
+}
+/*
+*/
+
+std::string cNewO_NameManager::NameAttribTriplet
+            (
+               const std::string & aPrefix,const std::string & aPost,
                cNewO_OneIm * aI1,cNewO_OneIm * aI2,cNewO_OneIm * aI3,
                bool WithMakeDir
             )
 
 {
-    ELISE_ASSERT(aI1->Name()<aI2->Name(),"cNO_P3_NameM::NameAttribTriplet");
-    ELISE_ASSERT(aI2->Name()<aI3->Name(),"cNO_P3_NameM::NameAttribTriplet");
+    return NameAttribTriplet(aPrefix,aPost,aI1->Name(),aI2->Name(),aI3->Name(),WithMakeDir);
+}
 
-    std::string aDir = Dir3PDeuxImage(aI1,aI2,WithMakeDir);
 
-    return aDir + "Triplet-" + aPrefix + "-" + aI3->Name() + "." + aPost;
+std::string cNewO_NameManager::NameHomTriplet(const std::string & aI1,const std::string & aI2,const std::string & aI3,bool WithMakeDir)
+{
+    return NameAttribTriplet("Hom","dat",aI1,aI2,aI3,WithMakeDir);
 }
 
 std::string cNewO_NameManager::NameHomTriplet(cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
 {
-    return NameAttribTriplet("Hom","dat",aI1,aI2,aI3,WithMakeDir);
+    return NameAttribTriplet("Hom","dat",aI1->Name(),aI2->Name(),aI3->Name(),WithMakeDir);
 }
+
+
+
+
+
 
 std::string cNewO_NameManager::NameOriInitTriplet(bool ModeBin,cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
 {

@@ -24,6 +24,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/ExportXmlGcp2Txt.cpp
     ${TDPPMD_DIR}/PHO_MI.cpp
     ${TDPPMD_DIR}/Panache.cpp
+    ${TDPPMD_DIR}/TestStephane.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

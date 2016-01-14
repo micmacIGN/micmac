@@ -325,6 +325,10 @@ class cVirtInterf_NewO_NameManager
            virtual void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP=false) = 0;
 
 
+
+           virtual bool LoadTriplet(const std::string &,const std::string &,const std::string &,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3) = 0;
+
+
            // for a given pair of image, return the structure containg the orientation
            virtual cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2) = 0;
 
