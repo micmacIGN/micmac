@@ -2,6 +2,8 @@
 #define ELISE_QT_VERSION @qt_version@
 #endif
 
+#define QT_INSTALL_PLUGINS "@QT_INSTALL_PLUGINS@"
+
 #define ELISE_DEPLOY @DEPLOY@
 #define PROJECT_SOURCE_DIR @PROJECT_SRC_DIR@
 

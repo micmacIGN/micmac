@@ -281,7 +281,15 @@ int CheckDependencies_main(int argc,char ** argv)
     #endif
 
     #if ELISE_QT_VERSION != 0
-		cout << "--- Qt enabled : " << qVersion() << endl << endl;
+		cout << "--- Qt enabled : " << qVersion() << endl;
+
+		cout << "\tlibrary path: ";
+		QStringList paths = QCoreApplication::libraryPaths();
+		if (paths.size() == 0)
+			cout << "none";
+		else
+			foreach (QString path, paths) cout << " [" << path.toStdString() << ']';
+		cout << endl << endl;
     #endif
 
     #if defined __USE_JP2__

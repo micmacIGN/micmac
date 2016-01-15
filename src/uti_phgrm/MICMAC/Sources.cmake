@@ -18,7 +18,6 @@ set(uti_phgrm_MICMAC_Src_Files
     ${UTI_PHGRM_MICMAC_DIR}/cEtapeMecComp.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cFilePx.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cGBV2_ProgDynOptimiseur.cpp
-    ${UTI_PHGRM_MICMAC_DIR}/cGeomImage.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cGeomXXX.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cLoadedImage.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cMicMacVisu.cpp
@@ -26,11 +25,9 @@ set(uti_phgrm_MICMAC_Src_Files
     ${UTI_PHGRM_MICMAC_DIR}/cNewProgDyn.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cOptimisationDiff.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cCameraModuleOrientation.cpp
-    ${UTI_PHGRM_MICMAC_DIR}/cOrientationCon.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cOrientationGrille.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cOrientationRTO.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cParamMICMAC.cpp
-    ${UTI_PHGRM_MICMAC_DIR}/cPriseDeVue.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cProgDynOptimiseur.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cSimulation.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cStatNDistrib.cpp
@@ -41,7 +38,6 @@ set(uti_phgrm_MICMAC_Src_Files
 #    ${UTI_PHGRM_MICMAC_DIR}/GenParamMICMAC.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/GrilleXml2Bin.cpp
     ${UTI_PHGRM_MICMAC_DIR}/Jp2ImageLoader.cpp
-    ${UTI_PHGRM_MICMAC_DIR}/IgnSocleImageLoader.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/Ori-cAppliMICMAC_GPU.cpp
     ${UTI_PHGRM_MICMAC_DIR}/OrthoLocAnam.cpp
     ${UTI_PHGRM_MICMAC_DIR}/PartiesCachees.cpp
@@ -53,5 +49,13 @@ set(uti_phgrm_MICMAC_Src_Files
     ${UTI_PHGRM_MICMAC_DIR}/uti_MICMAC.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/VisuSuperpGrid.cpp
     ${UTI_PHGRM_MICMAC_DIR}/CameraRPC.cpp
+	${UTI_PHGRM_MICMAC_DIR}/cPriseDeVue.cpp
+	${UTI_PHGRM_MICMAC_DIR}/cGeomImage.cpp
 )
 
+if (${WITH_IGN_ORI})
+	set(uti_phgrm_MICMAC_Src_Files ${uti_phgrm_MICMAC_Src_Files}
+		${UTI_PHGRM_MICMAC_DIR}/IgnSocleImageLoader.cpp
+		${UTI_PHGRM_MICMAC_DIR}/cOrientationCon.cpp
+	)
+endif()
