@@ -42,6 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#define NbCamTest 6
+
+
 //================ SEUILS ==============
 
 // Nombre de point pour echantillonner le recouvrt / homogr
@@ -409,6 +412,8 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP=false);
            void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);
            std::string NameHomTriplet(cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+           std::string NameHomTriplet(const std::string&,const std::string&,const std::string&,bool WithMakeDir=false);
+
            std::string NameOriInitTriplet(bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameOriOptimTriplet(bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
 
@@ -419,6 +424,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
 
 
            bool LoadTriplet(cNewO_OneIm * ,cNewO_OneIm *,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3);
+           bool LoadTriplet(const std::string &,const std::string &,const std::string &,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3);
            
 
            void WriteTriplet(const std::string & aNameFile,tCVP2f &,tCVP2f &,tCVP2f &,tCVUI1 &);
@@ -432,6 +438,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
 
 
            std::string NameAttribTriplet(const std::string & aPrefix,const std::string & aPost,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+           std::string NameAttribTriplet(const std::string & aPrefix,const std::string & aPost,const std::string & aN1,const std::string & aN2,const std::string & aN3,bool WithMakeDir=false);
 
 
            cInterfChantierNameManipulateur *  mICNM;

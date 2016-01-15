@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+#if (0)
 
 class cComMergeTieP
 {
@@ -185,7 +186,7 @@ cFixedSizeMergeTieP<TheNbPts,Type>::cFixedSizeMergeTieP() :
 template <class Type> 
 void  cVarSizeMergeTieP<Type>::AddSom(const Type & aV,int anInd)
 {
-     for (int aKI=0 ; aKI< mVecInd.size() ; aKI++)
+     for (int aKI=0 ; aKI< int(mVecInd.size()) ; aKI++)
      {
          if ( mVecInd[aKI] == anInd)
          {
@@ -265,7 +266,7 @@ template <const int TheNbPts,class Type>
 template <class Type> 
 bool  cVarSizeMergeTieP<Type>::IsInit(int anInd) const
 {
-     for (int aKI=0 ; aKI< mVecInd.size() ; aKI++)
+     for (int aKI=0 ; aKI< int(mVecInd.size()) ; aKI++)
      {
          if ( mVecInd[aKI] == anInd)
             return true;
@@ -286,7 +287,7 @@ template <const int TheNbPts,class Type>
 template <class Type> 
 const Type &    cVarSizeMergeTieP<Type>::GetVal(int anInd) const
 {
-     for (int aKI=0 ; aKI< mVecInd.size() ; aKI++)
+     for (int aKI=0 ; aKI< int(mVecInd.size()) ; aKI++)
      {
          if ( mVecInd[aKI] == anInd)
             return mVecV[aKI];
@@ -319,7 +320,7 @@ void cVarSizeMergeTieP<Type>::FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,tMa
           const Type  & aV2 = anEl2.mVecV[aK2];
           for (int aK1=0 ; aK1<int(mVecInd.size()) ; aK1++)
           {
-              if (mVecInd[aK1] = anInd2)
+              if (mVecInd[aK1] == anInd2)
               {
                   // Ce cas ne devrait pas se produire, il doivent avoir ete fusionnes
                   ELISE_ASSERT(mVecV[aK1]!= aV2,"cFixedMergeTieP");
@@ -527,6 +528,13 @@ template <class Type>   void cStructMergeTieP<Type>::DoExport()
 }
 
 
+template <class Type>  const  std::list<Type *> & cStructMergeTieP<Type>::ListMerged() const
+{
+   AssertExported();
+   return mLM;
+}
+
+
 template <class Type>  void cStructMergeTieP<Type>::AssertExported() const
 {
    AssertUnDeleted();
@@ -547,19 +555,34 @@ template <class Type>  void cStructMergeTieP<Type>::AssertUnDeleted() const
    // ======================= Instanciation =========================
    // ======================= Instanciation =========================
 
-template <> class cVarSizeMergeTieP<Pt2df>;
-template <> class cFixedSizeMergeTieP<3,Pt2df>;
-template <> class cFixedSizeMergeTieP<2,Pt2df>;
+
+template  class cVarSizeMergeTieP<Pt2df>;
+template  class cFixedSizeMergeTieP<3,Pt2df>;
+template  class cFixedSizeMergeTieP<2,Pt2df>;
 
 
 
-template <> class cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2df> >;
-template <> class cStructMergeTieP<cFixedSizeMergeTieP<2,Pt2df> >;
-template <> class cStructMergeTieP<cVarSizeMergeTieP<Pt2df> >;
+template  class cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2df> >;
+template  class cStructMergeTieP<cFixedSizeMergeTieP<2,Pt2df> >;
+template  class cStructMergeTieP<cVarSizeMergeTieP<Pt2df> >;
 
 
 
 
+void OneTestNewMerge()
+{
+    for (int aNb = 1 ; aNb < 500 ; aNb += 3)
+    {
+         cFixedMergeStruct<NbCamTest,Pt2df> aFMS;
+    }
+}
+#endif
+
+int TestNewMergeTieP_main(int argc,char ** argv)
+{
+    //OneTestNewMerge();
+    return EXIT_SUCCESS;
+}
 
 
 #if (0)
