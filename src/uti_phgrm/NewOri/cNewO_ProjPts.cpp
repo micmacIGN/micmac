@@ -513,6 +513,10 @@ template class cGenTabByMapPtr<Pt2df, cFixedMergeTieP<2,Pt2df> >;
 template class cGenTabByMapPtr<Pt2df, cFixedMergeTieP<2,Pt2dr> >;
 
 
+template class cGenTabByMapPtr<Pt2df, cFixedMergeTieP<NbCamTest,Pt2df> >;
+template class  cFixedMergeStruct<NbCamTest,Pt2df>;
+template class  cFixedMergeTieP<NbCamTest,Pt2df>;
+
 /**********************************************************************************************/
 /*                                                                                            */
 /*                           BENCHS                                                           */

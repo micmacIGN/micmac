@@ -584,6 +584,8 @@ int RTI_main(int argc,char ** argv);
 int RTIRecalRadiom_main(int argc,char ** argv);
 int RTIMed_main(int argc,char ** argv);
 
+int TestNewMergeTieP_main(int argc,char ** argv);
+int TestStephane_Main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -591,6 +593,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("Stephane",TestStephane_Main,"In test funtction for Stephane Guinard "));
+       aRes.push_back(cMMCom("TestNewMergeTieP",TestNewMergeTieP_main,"Some consitency check on Merge TieP "));
        aRes.push_back(cMMCom("TestARCam",TestARCam_main,"Some consitency check on camera "));
        aRes.push_back(cMMCom("SysCall",SysCall_main,"Some stuff "));
        aRes.push_back(cMMCom("SysCalled",SysCalled_main,"Some stuff "));
