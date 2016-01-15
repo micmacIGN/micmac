@@ -134,7 +134,7 @@ if(${WITH_QT5} OR ${WITH_QT4})
 			    find_package(Qt5Widgets REQUIRED)
 			    find_package(Qt5Xml REQUIRED)
 			    find_package(Qt5Concurrent REQUIRED)
-			    find_package(Qt5LinguistTools REQUIRED)
+			    #~ find_package(Qt5LinguistTools REQUIRED)
 			    find_package(Qt5OpenGL REQUIRED)
 
 			if (Qt5Widgets_FOUND)
