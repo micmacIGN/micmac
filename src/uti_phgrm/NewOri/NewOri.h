@@ -124,7 +124,7 @@ for (int aK=0 ; aK<10 ; aK++)
       }
 
    private :
-      cGenTabByMapPtr(const cGenTabByMapPtr<TypeIndex,TypeVal> &); // N.I.
+      // cGenTabByMapPtr(const cGenTabByMapPtr<TypeIndex,TypeVal> &); // N.I.
 
       tMap    mMap;
 };

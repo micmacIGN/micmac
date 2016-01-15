@@ -39,7 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
-#if (0)
 
 class cComMergeTieP
 {
@@ -66,14 +65,14 @@ template <class Type>  class cVarSizeMergeTieP : public cComMergeTieP
        typedef  DefcTpl_GT<Type,tMerge> tMapMerge;
 
        cVarSizeMergeTieP() ;
-       void FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,tMapMerge * Tabs);
+       void FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,std::vector<tMapMerge> &  Tabs); 
        void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
 
         bool IsInit(int aK) const ;
         const Type & GetVal(int aK) const ;
         int  NbSom() const ;
-     private :
         void AddSom(const Type & aV,int aK);
+     private :
 
         std::vector<int>   mVecInd;
         std::vector<Type>  mVecV;
@@ -83,19 +82,19 @@ template <const int TheNbPts,class Type>  class cFixedSizeMergeTieP : public cCo
 {
      public :
        typedef Type                    tVal;
-       typedef cFixedMergeTieP<TheNbPts,Type> tMerge;
+       typedef cFixedSizeMergeTieP<TheNbPts,Type> tMerge;
        //  typedef std::map<Type,tMerge *>     tMapMerge;
        typedef  DefcTpl_GT<Type,tMerge> tMapMerge;
 
        cFixedSizeMergeTieP() ;
-       void FusionneInThis(cFixedSizeMergeTieP<TheNbPts,Type> & anEl2,tMapMerge * Tabs);
+       void FusionneInThis(cFixedSizeMergeTieP<TheNbPts,Type> & anEl2,std::vector<tMapMerge> &  Tabs);
        void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
 
         bool IsInit(int aK) const;
         const Type & GetVal(int aK) const;
         int  NbSom() const ;
-     private :
         void AddSom(const Type & aV,int aK);
+     private :
 
         Type mVals[TheNbPts];
         bool  mTabIsInit[TheNbPts];
@@ -132,7 +131,7 @@ template <class Type> class cStructMergeTieP
         void AssertUnDeleted() const;
 
         int                                 mTheNb;
-        std::vector<tMapMerge>              mTheMaps;
+        std::vector<tMapMerge>              mTheMapMerges;
         std::vector<tVal>                   mEnvInf;
         std::vector<tVal>                   mEnvSup;
         std::vector<int>                    mNbSomOfIm;
@@ -178,6 +177,11 @@ template <const int TheNbPts,class Type>
 cFixedSizeMergeTieP<TheNbPts,Type>::cFixedSizeMergeTieP() :
      cComMergeTieP()
 {
+    for (int aK=0 ; aK<TheNbPts; aK++)
+    {
+        mTabIsInit[aK] = false;
+    }
+
 }
 
    // ======================= Addsom =========================
@@ -245,7 +249,7 @@ template <class TTieP,class Type> void AddArcTieP(TTieP & aTieP,const Type & aV1
 {
     aTieP.AddSom(aV1,aK1);
     aTieP.AddSom(aV2,aK2);
-    aTieP.IncArc();
+    aTieP.IncrArc();
 }
 
  
@@ -304,9 +308,10 @@ const Type & cFixedSizeMergeTieP<TheNbPts,Type>::GetVal(int aK) const
 
 
    // ======================= FusionneInThis =========================
+       // void FusionneInThis(cFixedSizeMergeTieP<TheNbPts,Type> & anEl2,std::vector<tMapMerge> &  Tabs);
 
 template <class Type>   
-void cVarSizeMergeTieP<Type>::FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,tMapMerge * Tabs)
+void cVarSizeMergeTieP<Type>::FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,std::vector<tMapMerge> &  Tabs)
 {
      if ((!mOk) || (! anEl2.mOk))
      {
@@ -336,7 +341,7 @@ void cVarSizeMergeTieP<Type>::FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,tMa
 
 
 template <const int TheNbPts,class Type>   
-void cFixedSizeMergeTieP<TheNbPts,Type>::FusionneInThis(cFixedSizeMergeTieP<TheNbPts,Type> & anEl2,tMapMerge * Tabs)
+void cFixedSizeMergeTieP<TheNbPts,Type>::FusionneInThis(cFixedSizeMergeTieP<TheNbPts,Type> & anEl2,std::vector<tMapMerge> &  Tabs)
 {
 
      if ((!mOk) || (! anEl2.mOk))
@@ -372,32 +377,30 @@ void cFixedSizeMergeTieP<TheNbPts,Type>::FusionneInThis(cFixedSizeMergeTieP<TheN
 
 template <class Type> cStructMergeTieP<Type>::cStructMergeTieP(int aNb) :
     mTheNb      (aNb),
-    mExportDone (false),
-    mDeleted    (false),
-    mTheMaps    (aNb),
+    mTheMapMerges    (aNb),
     mEnvInf     (aNb),
     mEnvSup     (aNb),
     mNbSomOfIm  (aNb,0),
-    mStatArc    ()
+    mStatArc    (),
+    mExportDone (false),
+    mDeleted    (false)
 {
 }
+
+
 
 template <class Type>
   void cStructMergeTieP<Type>::AddArc(const tVal & aV1,int aK1,const tVal & aV2,int aK2)
 {
 
-             ELISE_ASSERT((aK1!=aK2) && (aK1>=0) && (aK1<mTheNb) && (aK2>=0) && (aK2<mTheNb),"cStructMergeTieP::AddArc Index illicit");
+            ELISE_ASSERT((aK1!=aK2) && (aK1>=0) && (aK1<mTheNb) && (aK2>=0) && (aK2<mTheNb),"cStructMergeTieP::AddArc Index illicit");
 
-             AssertUnExported();
-             tMapMerge & aMap1 = mTheMaps[aK1];
-             tMerge * aM1 = aMap1.GT_GetVal(aV1);
-//  GT::            tItMM anIt1  = aMap1.find(aV1);
-//  GT::            tMerge * aM1 = (anIt1 != aMap1.end()) ? anIt1->second : 0;
+            AssertUnExported();
+            tMapMerge & aMap1 = mTheMapMerges[aK1];
+            tMerge * aM1 = aMap1.GT_GetVal(aV1);
 
-             tMapMerge & aMap2 = mTheMaps[aK2];
-             tMerge * aM2 = aMap2.GT_GetVal(aV2);
-//  GT::            tItMM anIt2  = aMap2.find(aV2);
-//  GT::            tMerge * aM2 =  (anIt2 != aMap2.end()) ? anIt2->second : 0;
+            tMapMerge & aMap2 = mTheMapMerges[aK2];
+            tMerge * aM2 = aMap2.GT_GetVal(aV2);
             tMerge * aMerge = 0;
              
 
@@ -417,7 +420,7 @@ template <class Type>
                      aM1->IncrArc();
                      return;
                   }
-                  aM1->FusionneInThis(*aM2,mTheMaps);
+                  aM1->FusionneInThis(*aM2,mTheMapMerges);
                   if (aM1->IsOk() && aM2->IsOk())
                   {
                      delete aM2;
@@ -430,13 +433,13 @@ template <class Type>
              {
                  // GT:: aMerge = mTheMaps[aK1][aV1] = aM2;
                  aMerge = aM2;
-                 mTheMaps[aK1].GT_SetVal(aV1,aM2);
+                 mTheMapMerges[aK1].GT_SetVal(aV1,aM2);
              }
              else
              {
                  // GT :: aMerge =  mTheMaps[aK2][aV2] = aM1;
                  aMerge = aM1;
-                 mTheMaps[aK2].GT_SetVal(aV2,aM1);
+                 mTheMapMerges[aK2].GT_SetVal(aV2,aM1);
              }
              aMerge->AddArc(aV1,aK1,aV2,aK2);
 }
@@ -446,7 +449,7 @@ template <class Type> void cStructMergeTieP<Type>::Delete()
 {
     for (int aK=0 ; aK<mTheNb ; aK++)
     {
-        tMapMerge & aMap = mTheMaps[aK];
+        tMapMerge & aMap = mTheMapMerges[aK];
         for (tItMM anIt = aMap.GT_Begin() ; anIt != aMap.GT_End() ; anIt++)
         {
             tMerge * aM = tMapMerge::GT_GetValOfIt(anIt);
@@ -456,7 +459,7 @@ template <class Type> void cStructMergeTieP<Type>::Delete()
     std::vector<tMerge *> aV2Del;
     for (int aK=0 ; aK<mTheNb ; aK++)
     {
-        tMapMerge & aMap = mTheMaps[aK];
+        tMapMerge & aMap = mTheMapMerges[aK];
         for (tItMM anIt = aMap.GT_Begin() ; anIt != aMap.GT_End() ; anIt++)
         {
             tMerge * aM = tMapMerge::GT_GetValOfIt(anIt);
@@ -484,7 +487,7 @@ template <class Type>   void cStructMergeTieP<Type>::DoExport()
 
     for (int aK=0 ; aK<mTheNb ; aK++)
     {
-        tMapMerge & aMap = mTheMaps[aK];
+        tMapMerge & aMap = mTheMapMerges[aK];
 
         for (tItMM anIt = aMap.GT_Begin() ; anIt != aMap.GT_End() ; anIt++)
         {
@@ -514,7 +517,7 @@ template <class Type>   void cStructMergeTieP<Type>::DoExport()
         {
            if ((*itM)->IsInit(aKS))
            {
-               const Type &  aVal = (*itM)->GetVal(aKS);
+               const tVal &  aVal = (*itM)->GetVal(aKS);
                if(mNbSomOfIm[aKS] == 0)
                {
                    mEnvSup[aKS] = mEnvInf[aKS] = aVal;
@@ -567,1044 +570,162 @@ template  class cStructMergeTieP<cFixedSizeMergeTieP<2,Pt2df> >;
 template  class cStructMergeTieP<cVarSizeMergeTieP<Pt2df> >;
 
 
-
-
-void OneTestNewMerge()
+template <class Type> double ChkMerge(const Type & aM)
 {
-    for (int aNb = 1 ; aNb < 500 ; aNb += 3)
+    double aRes =  1/ (2.3+ aM.NbArc());
+    for (int aK=0 ; aK<NbCamTest ; aK++)
     {
-         cFixedMergeStruct<NbCamTest,Pt2df> aFMS;
-    }
-}
-#endif
-
-int TestNewMergeTieP_main(int argc,char ** argv)
-{
-    //OneTestNewMerge();
-    return EXIT_SUCCESS;
-}
-
-
-#if (0)
-
-
-/**************************************************************/
-/*                                                            */
-/*                       ::                                   */
-/*                                                            */
-/**************************************************************/
-
-template <const int TheNb,class Type> void NOMerge_AddVect
-                                           (
-                                                cFixedMergeStruct<TheNb,Type> & aMap,
-                                                const std::vector<Type> & aV1, int aK1,
-                                                const std::vector<Type> & aV2, int aK2
-                                           )
-{
-    ELISE_ASSERT(aV1.size()==aV2.size(),"NOMerge_AddVect");
-    for ( int aKV=0 ; aKV<int(aV1.size()) ; aKV++)
-    {
-         aMap.AddArc(aV1[aKV],aK1,aV2[aKV],aK2);
-    }
-}
-
-
-
-
-
-
-template <const int TheNb> void NOMerge_AddPackHom
-                           (
-                                cFixedMergeStruct<TheNb,Pt2dr> & aMap,
-                                const ElPackHomologue & aPack,
-                                const ElCamera * aCam1,int aK1,
-                                const ElCamera * aCam2,int aK2
-                           )
-{
-    for 
-    (
-          ElPackHomologue::tCstIter itH=aPack.begin();
-          itH !=aPack.end();
-          itH++
-    )
-    {
-         ElCplePtsHomologues aCple = itH->ToCple();
-         Pt2dr aP1 =  aCple.P1();
-         Pt2dr aP2 =  aCple.P2();
-         if (aCam1)
+         if (aM.IsInit(aK))
          {
-             aP1 =  ProjStenope(aCam1->F2toDirRayonL3(aP1));
+            Pt2df aP = aM.GetVal(aK);
+            aRes = aRes + cos(aP.x) + aP.y / (10.0 + ElAbs(aP.y));
          }
-         if (aCam2)
+         else
          {
-            aP2 =  ProjStenope(aCam2->F2toDirRayonL3(aP2));
+             aRes += 1/(8.65 + aK);
          }
-         aMap.AddArc(aP1,aK1,aP2,aK2);
     }
+    return aRes;
 }
 
-
-
-
-
-template <const int TheNb> void NOMerge_AddPackHom
-                           (
-                                cFixedMergeStruct<TheNb,Pt2dr> & aMap,
-                                const ElPackHomologue & aPack,
-                                const ElCamera & aCam1,int aK1,
-                                const ElCamera & aCam2,int aK2
-                           )
+template <class Type> double ChkSomMerge(const std::list<Type  *> & aList)
 {
-    NOMerge_AddPackHom(aMap,aPack,&aCam1,aK1,&aCam2,aK2);
-}
-
-
-template <const int TheNb> void NOMerge_AddAllCams
-                           (
-                                cFixedMergeStruct<TheNb,Pt2dr> & aMap,
-                                std::vector<cNewO_OneIm *> aVI
-                           )
-{
-    ELISE_ASSERT(TheNb==int(aVI.size()),"MeregTieP All Cams");
-
-    for (int aK1=0 ; aK1<TheNb ; aK1++)
+    double aRes = 0;
+    for (typename std::list<Type  *>::const_iterator iT=aList.begin(); iT!=aList.end() ; iT++)
     {
-        for (int aK2=0 ; aK2<TheNb ; aK2++)
-        {
-            ElPackHomologue aLH12 = aVI[aK1]->NM().PackOfName(aVI[aK1]->Name(),aVI[aK2]->Name());
-            NOMerge_AddPackHom(aMap,aLH12,*(aVI[aK1]->CS()),aK1,*(aVI[aK2]->CS()),aK2);
-        }
+        aRes += ChkMerge(**iT);
     }
-}
-
-
-void Merge2Pack
-     (
-          std::vector<Pt2dr> & aVP1,
-          std::vector<Pt2dr> & aVP2,
-          int aSeuil,
-          const ElPackHomologue & aPack1,
-          const ElPackHomologue & aPack2
-     )
-{
-    cFixedMergeStruct<2,Pt2dr> aMergeStr;
-    const ElCamera  * aPtrCam = (const ElCamera *)NULL;
-// NOMerge_AddPackHom
-    NOMerge_AddPackHom(aMergeStr,aPack1,aPtrCam,0,aPtrCam,1);
-    NOMerge_AddPackHom(aMergeStr,aPack2,aPtrCam,1,aPtrCam,0);
-
-    aMergeStr.DoExport();
-
-    const std::list<cFixedMergeTieP<2,Pt2dr> *> & aLM = aMergeStr.ListMerged();
-    for (std::list<cFixedMergeTieP<2,Pt2dr> *>::const_iterator itM=aLM.begin(); itM!=aLM.end() ; itM++)
-    {
-        if (((*itM)->NbSom()==2) && ((*itM)->NbArc()>=aSeuil))
-        {
-            aVP1.push_back((*itM)->GetVal(0));
-            aVP2.push_back((*itM)->GetVal(1));
-        }
-    }
-
-}
-
-void Merge3Pack
-     (
-          std::vector<Pt2dr> & aVP1,
-          std::vector<Pt2dr> & aVP2,
-          std::vector<Pt2dr> & aVP3,
-          int aSeuil,
-          const std::vector<Pt2dr> & aV12,
-          const std::vector<Pt2dr> & aV21,
-          const std::vector<Pt2dr> & aV13,
-          const std::vector<Pt2dr> & aV31,
-          const std::vector<Pt2dr> & aV23,
-          const std::vector<Pt2dr> & aV32
-     )
-{
-    cFixedMergeStruct<3,Pt2dr> aMergeStr;
-
-    NOMerge_AddVect(aMergeStr,aV12,0,aV21,1);
-    NOMerge_AddVect(aMergeStr,aV13,0,aV31,2);
-    NOMerge_AddVect(aMergeStr,aV23,1,aV32,2);
-
-    aMergeStr.DoExport();
-
-    const std::list<cFixedMergeTieP<3,Pt2dr> *> & aLM = aMergeStr.ListMerged();
-    for (std::list<cFixedMergeTieP<3,Pt2dr> *>::const_iterator itM=aLM.begin(); itM!=aLM.end() ; itM++)
-    {
-        if (((*itM)->NbSom()==3) && ((*itM)->NbArc()>=aSeuil))
-        {
-            aVP1.push_back((*itM)->GetVal(0));
-            aVP2.push_back((*itM)->GetVal(1));
-            aVP3.push_back((*itM)->GetVal(2));
-        }
-    }
-
-}
-
-/**********************************************************************/
-/*                                                                    */
-/*                         cFixedMergeTieP                            */
-/*                                                                    */
-/**********************************************************************/
-
-template <const int TheNbPts,class Type>   cFixedMergeTieP<TheNbPts,Type>::cFixedMergeTieP() :
-           mOk     (true),
-           mNbArc  (0)
-{
-    for (int aK=0 ; aK<TheNbPts; aK++)
-    {
-        mTabIsInit[aK] = false;
-    }
-}
-
-template <const int TheNbPts,class Type>   
-void cFixedMergeTieP<TheNbPts,Type>::FusionneInThis(cFixedMergeTieP<TheNbPts,Type> & anEl2,tMapMerge * Tabs)
-{
-
-     if ((!mOk) || (! anEl2.mOk))
-     {
-         mOk = anEl2.mOk = false;
-         return;
-     }
-     mNbArc += anEl2.mNbArc;
-     for (int aK=0 ; aK<TheNbPts; aK++)
-     {
-         if ( mTabIsInit[aK] && anEl2.mTabIsInit[aK] )
-         {
-            // Ce cas ne devrait pas se produire, il doivent avoir ete fusionnes
-            ELISE_ASSERT(mVals[aK]!= anEl2.mVals[aK],"cFixedMergeTieP");
-            mOk = anEl2.mOk = false;
-            return;
-         }
-         else if ( (!mTabIsInit[aK]) && anEl2.mTabIsInit[aK] )
-         {
-            mVals[aK] = anEl2.mVals[aK] ;
-            mTabIsInit[aK] = true;
-            // GT::  Tabs[aK][mVals[aK]] = this;
-            Tabs[aK].GT_SetVal(mVals[aK],this);
-         }
-     }
-}
-
-
-
-
-template <const int TheNbPts,class Type> 
-   void cFixedMergeTieP<TheNbPts,Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
-{
-    AddSom(aV1,aK1);
-    AddSom(aV2,aK2);
-    mNbArc ++;
-}
-
-template <const int TheNbPts,class Type>
-   void  cFixedMergeTieP<TheNbPts,Type>::AddSom(const Type & aV,int aK)
-{
-     if (mTabIsInit[aK])
-     {
-        if (mVals[aK] != aV)
-        {
-           mOk = false;
-        }
-     }
-     else 
-     {
-        mVals[aK] = aV;
-        mTabIsInit[aK] = true;
-     }
-}
-
-
-
-template <const int TheNbPts,class Type>   
-int cFixedMergeTieP<TheNbPts,Type>::NbSom() const
-{
-   int aRes=0; 
-   for (int aK=0 ; aK<TheNbPts ; aK++)
-   {
-       if (mTabIsInit[aK])
-       {
-           aRes++;
-       }
-   }
-   return aRes;
-}
-
-// template class  cFixedMergeTieP<2,Pt2dr>;
-// template class  cFixedMergeTieP<3,Pt2dr>;
-
-template class  cFixedMergeTieP<2,Pt2df>;
-template class  cFixedMergeTieP<3,Pt2df>;
-template class  cFixedMergeTieP<2,Pt2dr>;
-template class  cFixedMergeTieP<3,Pt2dr>;
-
-/**********************************************************************/
-/*                                                                    */
-/*                         cFixedMergeStruct                            */
-/*                                                                    */
-/**********************************************************************/
-
-template <const int TheNb,class Type> cFixedMergeStruct<TheNb,Type>::cFixedMergeStruct() :
-    mExportDone (false),
-    mDeleted    (false)
-{
-}
-
-template <const int TheNb,class Type> void cFixedMergeStruct<TheNb,Type>::Delete()
-{
-    for (int aK=0 ; aK<TheNb ; aK++)
-    {
-        tMapMerge & aMap = mTheMaps[aK];
-// NEW GT
-        for (tItMM anIt = aMap.GT_Begin() ; anIt != aMap.GT_End() ; anIt++)
-        {
-            tMerge * aM = tMapMerge::GT_GetValOfIt(anIt);
-            aM->SetOkForDelete();
-        }
-/* GT::
-        for (tItMM anIt = aMap.begin() ; anIt != aMap.end() ; anIt++)
-        {
-            tMerge * aM = anIt->second;
-            aM->SetOkForDelete();
-        }
-*/
-    }
-    std::vector<tMerge *> aV2Del;
-    for (int aK=0 ; aK<TheNb ; aK++)
-    {
-        tMapMerge & aMap = mTheMaps[aK];
-// NEW GT
-        for (tItMM anIt = aMap.GT_Begin() ; anIt != aMap.GT_End() ; anIt++)
-        {
-            tMerge * aM = tMapMerge::GT_GetValOfIt(anIt);
-            if (aM->IsOk())
-            {
-               aV2Del.push_back(aM);
-               aM->SetNoOk();
-            }
-        }
-/* GT::
-        for (tItMM anIt = aMap.begin() ; anIt != aMap.end() ; anIt++)
-        {
-            tMerge * aM = anIt->second;
-            if (aM->IsOk())
-            {
-               aV2Del.push_back(aM);
-               aM->SetNoOk();
-            }
-        }
-*/
-    }
-
-
-    for (int aK=0 ; aK<int(aV2Del.size()) ; aK++)
-        delete aV2Del[aK];
-
-
-    mDeleted = true;
-}
-
-
-template <const int TheNb,class Type>   void cFixedMergeStruct<TheNb,Type>::DoExport()
-{
-    AssertUnExported();
-    mExportDone = true;
-
-    for (int aK=0 ; aK<TheNb ; aK++)
-    {
-        tMapMerge & aMap = mTheMaps[aK];
-
-// NEW GT
-        for (tItMM anIt = aMap.GT_Begin() ; anIt != aMap.GT_End() ; anIt++)
-        {
-            tMerge * aM = tMapMerge::GT_GetValOfIt(anIt);
-            if (aM->IsOk())
-            {
-               mLM.push_back(aM);
-               aM->SetNoOk();
-            }
-        }
-/* GT::
-        for (tItMM anIt = aMap.begin() ; anIt != aMap.end() ; anIt++)
-        {
-            tMerge * aM = anIt->second;
-            if (aM->IsOk())
-            {
-               mLM.push_back(aM);
-               aM->SetNoOk();
-            }
-        }
-*/
-    }
-
-    for (int aK=0 ; aK<TheNb ; aK++)
-    {
-       mNbSomOfIm[aK] = 0;
-    }
-    
-    for (typename std::list<tMerge *>::const_iterator itM=mLM.begin() ; itM!=mLM.end() ; itM++)
-    {
-        int aNbA = (*itM)->NbArc();
-        while (int(mStatArc.size()) <= aNbA)
-        {
-           mStatArc.push_back(0);
-        }
-        mStatArc[aNbA] ++;
-        for (int aKS=0 ; aKS<TheNb ; aKS++)
-        {
-           if ((*itM)->IsInit(aKS))
-           {
-               const Type &  aVal = (*itM)->GetVal(aKS);
-               if(mNbSomOfIm[aKS] == 0)
-               {
-                   mEnvSup[aKS] = mEnvInf[aKS] = aVal;
-               }
-               mNbSomOfIm[aKS] ++;
-               mEnvInf[aKS] = Inf(mEnvInf[aKS],aVal);
-               mEnvSup[aKS] = Sup(mEnvSup[aKS],aVal);
-           }
-        }
-    }
-}
-
-
-
-
-
-template <const int TheNb,class Type>
-        void cFixedMergeStruct<TheNb,Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
-{
-
-             ELISE_ASSERT((aK1!=aK2) && (aK1>=0) && (aK1<TheNb) && (aK2>=0) && (aK2<TheNb),"cFixedMergeStruct::AddArc Index illicit");
-
-             AssertUnExported();
-             tMapMerge & aMap1 = mTheMaps[aK1];
-             tMerge * aM1 = aMap1.GT_GetVal(aV1);
-//  GT::            tItMM anIt1  = aMap1.find(aV1);
-//  GT::            tMerge * aM1 = (anIt1 != aMap1.end()) ? anIt1->second : 0;
-
-             tMapMerge & aMap2 = mTheMaps[aK2];
-             tMerge * aM2 = aMap2.GT_GetVal(aV2);
-//  GT::            tItMM anIt2  = aMap2.find(aV2);
-//  GT::            tMerge * aM2 =  (anIt2 != aMap2.end()) ? anIt2->second : 0;
-            tMerge * aMerge = 0;
-             
-
-
-             if ((aM1==0) && (aM2==0))
-             {
-                 aMerge = new tMerge;
-                 aMap1.GT_SetVal(aV1,aMerge);
-                 aMap2.GT_SetVal(aV2,aMerge);
-                 //  GT::aMap1[aV1] = aMerge;
-                 //  GT::aMap2[aV2] = aMerge;
-             }
-             else if ((aM1!=0) && (aM2!=0))
-             {
-                  if (aM1==aM2) 
-                  {   
-                     aM1->IncrArc();
-                     return;
-                  }
-                  aM1->FusionneInThis(*aM2,mTheMaps);
-                  if (aM1->IsOk() && aM2->IsOk())
-                  {
-                     delete aM2;
-                     aMerge = aM1;
-                  }
-                  else
-                     return;
-             }
-             else if ((aM1==0) && (aM2!=0))
-             {
-                 // GT:: aMerge = mTheMaps[aK1][aV1] = aM2;
-                 aMerge = aM2;
-                 mTheMaps[aK1].GT_SetVal(aV1,aM2);
-             }
-             else
-             {
-                 // GT :: aMerge =  mTheMaps[aK2][aV2] = aM1;
-                 aMerge = aM1;
-                 mTheMaps[aK2].GT_SetVal(aV2,aM1);
-             }
-             aMerge->AddArc(aV1,aK1,aV2,aK2);
-}
-
-
-
-
-
-template <const int TheNb,class Type>  const  std::list<cFixedMergeTieP<TheNb,Type> *> & cFixedMergeStruct<TheNb,Type>::ListMerged() const
-{
-   AssertExported();
-   return mLM;
-}
-
-
-
-template <const int TheNb,class Type>  void cFixedMergeStruct<TheNb,Type>::AssertExported() const
-{
-   AssertUnDeleted();
-   ELISE_ASSERT(mExportDone,"cFixedMergeStruct<TheNb,Type>::AssertExported");
-}
-template <const int TheNb,class Type>  void cFixedMergeStruct<TheNb,Type>::AssertUnExported() const
-{
-   AssertUnDeleted();
-   ELISE_ASSERT(!mExportDone,"cFixedMergeStruct<TheNb,Type>::AssertUnExported");
-}
-template <const int TheNb,class Type>  void cFixedMergeStruct<TheNb,Type>::AssertUnDeleted() const
-{
-   ELISE_ASSERT(!mDeleted,"cFixedMergeStruct<TheNb,Type>::AssertUnExported");
-}
-
-
-
-
-template class  cFixedMergeStruct<2,Pt2df>;
-template class  cFixedMergeStruct<3,Pt2df>;
-template class  cFixedMergeStruct<2,Pt2dr>;
-template class  cFixedMergeStruct<3,Pt2dr>;
-
-
-template class cGenTabByMapPtr<Pt2df, cFixedMergeTieP<2,Pt2df> >;
-template class cGenTabByMapPtr<Pt2df, cFixedMergeTieP<2,Pt2dr> >;
-
-
-/**********************************************************************************************/
-/*                                                                                            */
-/*                           BENCHS                                                           */
-/*                                                                                            */
-/**********************************************************************************************/
-
-std::vector<int> CptArc(const std::list<cFixedMergeTieP<2,Pt2dr> *> aL,int & aTot)
-{
-    std::vector<int> aRes(100);
-    aTot = 0;
-
-    for (std::list<cFixedMergeTieP<2,Pt2dr> *>::const_iterator  itR=aL.begin() ; itR!=aL.end() ; itR++)
-    {
-        int aNb = (*itR)->NbArc();
-        aTot += aNb;
-        aRes[aNb] ++;
-    }
-     return aRes;
-}
-
-void AssertCptArc(cFixedMergeStruct<2,Pt2dr> & aMap ,int aNb0,int aNb1,int aNb2)
-{
-   aMap.DoExport();
-   std::list<cFixedMergeTieP<2,Pt2dr> *>  aRes = aMap.ListMerged();
-   int aTot;
-   std::vector<int> aCpt = CptArc(aRes,aTot);
-
-   if ((aNb0 != aCpt[0]) || (aNb1 != aCpt[1])   || (aNb2 != aCpt[2]) )
-   {
-      std::cout << "Nb0 " << aCpt[0] << " ; Nb1=" << aCpt[1] << " ; Nb2=" << aCpt[2] << "\n";
-      ELISE_ASSERT(false,"AssertCptArc");
-   }
-}
-
-
-void  NO_MergeTO_Test2_Basic(int aK)
-{
-    cFixedMergeStruct<2,Pt2dr> aMap;
-    
-    aMap.AddArc(Pt2dr(0,0),0,Pt2dr(1,1),1);
-
-    if (aK==0)
-    {
-       AssertCptArc(aMap,0,1,0);  // 1 ARc
-       return ;
-    }
-
-    aMap.AddArc(Pt2dr(1,1),1,Pt2dr(0,0),0);  
-    if (aK==1)
-    {
-       AssertCptArc(aMap,0,0,1); // Arc Sym
-       return ;
-    }
-
-    aMap.AddArc(Pt2dr(2,2),0,Pt2dr(3,3),1);
-    if (aK==2)
-    {
-       AssertCptArc(aMap,0,1,1);  // 1 Sym + 1 ASym
-       return ;
-    }
-
-    aMap.AddArc(Pt2dr(2,2),0,Pt2dr(4,4),1);  // Incoherent
-    if (aK==3)
-    {
-       AssertCptArc(aMap,0,0,1);  //  1 Sym, 1 Inco
-       return ;
-    }
-    return ;
-}
-
-
-
-
-void  NewOri_Info1Cple
-(  
-      const ElCamera & aCam1,
-      const ElPackHomologue & aPack12,
-      const ElCamera & aCam2,const ElPackHomologue & aPack21
-)  
-{
-    cFixedMergeStruct<2,Pt2dr> aMap2;
-    NOMerge_AddPackHom(aMap2,aPack12,aCam1,0,aCam2,1);
-    NOMerge_AddPackHom(aMap2,aPack21,aCam2,1,aCam1,0);
-    aMap2.DoExport();
-    std::list<cFixedMergeTieP<2,Pt2dr> *>  aRes = aMap2.ListMerged();
-    int aNb1=0;
-    int aNb2=0;
-    for (std::list<cFixedMergeTieP<2,Pt2dr> *>::const_iterator  itR=aRes.begin() ; itR!=aRes.end() ; itR++)
-    {
-        if ((*itR)->NbArc() ==1)
-        {
-           aNb1++;
-        }
-        else if ((*itR)->NbArc() ==2)
-        {
-           aNb2++;
-        }
-        else 
-        {
-           ELISE_ASSERT(false,"NO_MergeTO_Test2_0");
-        }
-    }
-    std::cout << "INPUT " << aPack12.size() << " " << aPack21.size() << " Exp " << aNb1 << " " << aNb2 << "\n";
-}
-
-
-
-void  NO_MergeTO_Test4_Basic(int aK)
-{
-    cFixedMergeStruct<4,Pt2dr> aMap;
-
-    if (aK==0)
-    {
-        aMap.DoExport();
-        std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.ListMerged();
-        ELISE_ASSERT(aRes.size()==0,"NO_MergeTO_Test4_Basic");
-        return;
-    }
-    
-    aMap.AddArc(Pt2dr(0,0),0,Pt2dr(1,1),1);
-    aMap.AddArc(Pt2dr(2,2),2,Pt2dr(3,3),3);
-    if (aK==1)
-    {
-        aMap.DoExport();
-        std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.ListMerged();
-        ELISE_ASSERT(aRes.size()==2,"NO_MergeTO_Test4_Basic");
-        for 
-        (
-             std::list<cFixedMergeTieP<4,Pt2dr> *>::const_iterator itM=aRes.begin();
-             itM!= aRes.end();
-             itM++
-        )
-        {
-            ELISE_ASSERT((*itM)->NbSom() == 2,"NO_MergeTO_Test4_Basic");
-            ELISE_ASSERT((*itM)->NbArc() == 1,"NO_MergeTO_Test4_Basic");
-        }
-        return;
-    }
-
-
-    aMap.AddArc(Pt2dr(2,2),2,Pt2dr(1,1),1);
-
-    aMap.DoExport();
-    std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.ListMerged();
-
-    ELISE_ASSERT(aRes.size()==1,"NO_MergeTO_Test4_Basic");
-    ELISE_ASSERT((*aRes.begin())->NbArc()==3,"NO_MergeTO_Test4_Basic");
-    ELISE_ASSERT((*aRes.begin())->NbSom()==4,"NO_MergeTO_Test4_Basic");
-}
-
-
-template<const int TheNb> void Bench_RandNewOri(int aNbTir,int aMaxVal)
-{
-    
-    cFixedMergeStruct<TheNb,int> aMap;
-
-    for (int aK=0 ; aK< aNbTir ; aK++)
-    {
-        int aInd1 = NRrandom3(TheNb);
-        int aInd2 = NRrandom3(TheNb);
-        if (aInd1 != aInd2)
-        {
-           aMap.AddArc(NRrandom3(aMaxVal),aInd1,NRrandom3(aMaxVal),aInd2);
-        }
-    }
-}
-
-void Bench_NewOri()
-{
-
-   for (int aK=0 ; aK<10000000 ; aK++)
-   {
-       std::cout << " Bench_NewOri " << aK << "\n";
-       Bench_RandNewOri<3>(100,6);
-       Bench_RandNewOri<4>(100,7);
-   }
-   std::cout << "All Fine New Ori\n";
-
-   for (int aK=0 ; aK< 10 ; aK++)
-   {
-     NO_MergeTO_Test2_Basic(aK);
-     NO_MergeTO_Test4_Basic(aK);
-   }
-}
-
-
-void ForceInstanceNOMerge_AddAllCams()
-{
-    std::vector<cNewO_OneIm*> aVI;
-    cFixedMergeStruct<2,Pt2dr> aMap;
-    NOMerge_AddAllCams(aMap,aVI);
-}
-
-
-double NormPt2Ray(const Pt2dr & aP)
-{
-   return euclid(Pt3dr(aP.x,aP.y,1.0));
-}
-
-
-/***********************************************/
-/*           FONCTIONS GLOBALES                */
-/***********************************************/
-
-
-
-ElPackHomologue ToStdPack(const tMergeLPackH * aMPack,bool PondInvNorm,double aPdsSingle)
-{
-    ElPackHomologue aRes;
-
-    const tLMCplP & aLM = aMPack->ListMerged();
-
-    for ( tLMCplP::const_iterator itC=aLM.begin() ; itC!=aLM.end() ; itC++)
-    {
-        const Pt2dr & aP0 = (*itC)->GetVal(0);
-        const Pt2dr & aP1 = (*itC)->GetVal(1);
-
-        double aPds = ((*itC)->NbArc() == 1) ? aPdsSingle : 1.0;
-
-        if (PondInvNorm)
-        {
-             aPds /= NormPt2Ray(aP0) * NormPt2Ray(aP1);
-        }
-
-        ElCplePtsHomologues aCple(aP0,aP1,aPds);
-        aRes.Cple_Add(aCple);
-    }
-
     return aRes;
 }
 
 
+typedef  ElSom<Pt2df,cNoAttr>       tSomTestTieP;
+typedef  ElArc<Pt2df,cNoAttr>       tArcTestTieP;
+typedef  ElGraphe<Pt2df,cNoAttr>    tGraphTestTieP;
+typedef  ElSubGraphe<Pt2df,cNoAttr> tSubGraphTestTieP;
 
-class cCdtSelect
+
+void OneTestNewMerge()
 {
-     public :
-        cCdtSelect(int aNum,const double & aPds) :
-            mNum      (aNum),
-            mPds0     (aPds),
-            mPdsOccup (0.0),
-            mDMin     (1e10),
-            mTaken    (false)
+    for (int aNb = 2 ; aNb < 500 ; aNb += 3)
+    {
+          
+         double aProbaPInt = NRrandom3();
+         double aProbaArcGlob = NRrandom3();
+         cFixedMergeStruct<NbCamTest,Pt2df> aFMS;
+         cStructMergeTieP<cVarSizeMergeTieP<Pt2df> > aVSMT(NbCamTest);
+         cStructMergeTieP<cFixedSizeMergeTieP<NbCamTest,Pt2df> > aFSMT(NbCamTest);
+
+         tGraphTestTieP aGr;
+         std::map<Pt2df,tSomTestTieP *> aMapS;
+         
+
+         for (int aKP=0 ; aKP<aNb ;  aKP++)
          {
-         }
-        int    mNum;
-        double mPds0;
-        double mPdsOccup;
-        double mDMin;
-        bool   mTaken;
-};
-
-
-static double DefDistArret = -1;
-
-template<class TypePt> class   cTplSelecPt
-{
-    public :
-        cTplSelecPt(const std::vector<TypePt> & aVPres,const std::vector<double> * = 0);
-        void InitPresel(int aNbPres);
-        void CalcPond();
-        const TypePt & PSel(const int & aK) const
-        {
-              return (*mVPts)[mVPresel[aK].mNum];
-        }
-        const TypePt & PSel(const cCdtSelect & aCdt) const
-        {
-              return (*mVPts)[aCdt.mNum];
-        }
-
-        void UpdateDistPtsAdd(const TypePt & aNewP);
-        void SelectN(int aN,double aDistArret = DefDistArret);
-        const std::vector<int>  & VSel() const {return mVSel;}
-
-        double DistMinSelMoy();
-        cResIPR & Res() {return mRes;}
-
-    private :
-        double Pds(int aK) {return mVPds ? (*mVPds)[aK] : 1.0;}
- 
-        double mDistType;
-        const std::vector<TypePt> * mVPts;
-        const std::vector<double> * mVPds;
-        std::vector<cCdtSelect>     mVPresel;
-        int                         mNbPts;
-        int                         mNbPres;
-        cResIPR                     mRes;
-        std::vector<int> &          mVSel;
-        
-};
-
-template<class TypePt> cTplSelecPt<TypePt>::cTplSelecPt(const std::vector<TypePt> & aVPts,const std::vector<double> * aVPds) :
-     mVPts  (&aVPts),
-     mVPds  (aVPds),
-     mNbPts ((int)mVPts->size()),
-     mVSel  (mRes.mVSel)
-{
-}
-
-
-template<class TypePt> void cTplSelecPt<TypePt>::InitPresel(int aNbPres)
-{
-    RMat_Inertie aMat;
-    {
-       cRandNParmiQ aSelec(aNbPres,mNbPts);
-       for (int aK=0 ; aK<mNbPts ; aK++)
-       {
-            if (aSelec.GetNext())
-            {
-               const  TypePt & aPt = (*mVPts)[aK];
-               aMat.add_pt_en_place(aPt.x,aPt.y);
-               mVPresel.push_back(cCdtSelect(aK,Pds(aK)));
-            }
-       }
-    }
-    aMat = aMat.normalize();
-    mNbPres = int(mVPresel.size());
-
-    double aSurfType  =  sqrt (aMat.s11()* aMat.s22() - ElSquare(aMat.s12()));
-    mDistType = sqrt(aSurfType/mNbPres);
-}
-
-
-template<class TypePt> void cTplSelecPt<TypePt>::CalcPond()
-{
-    for (int aKS1 = 0 ; aKS1 <mNbPres ; aKS1++)
-    {
-        const TypePt & aP1 = PSel(aKS1);
-        for (int aKS2 = aKS1 ; aKS2 <mNbPres ; aKS2++)
-        {
-           double aDist = euclid( aP1-PSel(aKS2));
-           // sqrt pour attenuer la ponderation
-           double aPds = sqrt(1 / (mDistType+aDist));
-           mVPresel[aKS1].mPdsOccup += aPds;
-           mVPresel[aKS2].mPdsOccup += aPds;
-        }
-    }
-    for (int aKSom = 0 ; aKSom<mNbPres ; aKSom++)
-    {
-       mVPresel[aKSom].mPdsOccup *= mVPresel[aKSom].mPds0;
-    }
-}
-
-
-
-template<class TypePt> void cTplSelecPt<TypePt>::UpdateDistPtsAdd(const TypePt & aNewP)
-{
-   for (int aKSom = 0 ; aKSom <mNbPres ; aKSom++)
-   {
-       cCdtSelect & aCdt = mVPresel[aKSom];
-       aCdt.mDMin = ElMin(aCdt.mDMin,euclid(PSel(aCdt)-aNewP));
-   }
-}
-
-
-template<class TypePt> void cTplSelecPt<TypePt>::SelectN(int aTargetNbSel,double aDistArret)
-{
-
-    int aNbSomSel = ElMin(mNbPres,aTargetNbSel);
-    mVSel.clear();
-    bool Cont = true;
-
-
-
-
-    for (int aKSel=0 ; (aKSel<aNbSomSel) && Cont ; aKSel++)
-    {
-         // Recherche du cdt le plus loin
-         double aMaxDMin = -1;
-         cCdtSelect * aBest = 0;
-         for (int aKSom = 0 ; aKSom <mNbPres ; aKSom++)
-         {
-             cCdtSelect & aCdt = mVPresel[aKSom];
-             double aDist = aCdt.mDMin *  aCdt.mPdsOccup;
-
-             if ((!aCdt.mTaken) &&  (aDist > aMaxDMin))
+             double aProbaArc = aProbaArcGlob * NRrandom3();
+             std::vector<Pt2df> aVP;
+             std::vector<tSomTestTieP *> aVS;
+             for (int aKC = 0 ; aKC<NbCamTest ; aKC++)
              {
-                 aMaxDMin = aDist;
-                 aBest = & aCdt;
+                 Pt2df aP;
+                 if (NRrandom3() < aProbaPInt)
+                 {
+                     aP = Pt2df(aKC,NRrandom3(aNb*NbCamTest));
+                 }
+                 else
+                 {
+                     aP = Pt2df(aKC,aKP) ; // Chaque point est different
+                 }
+                 aVP.push_back(aP);
+
+                 if (aMapS[aP] == 0)
+                    aMapS[aP] = &aGr.new_som(aP);
+                 aVS.push_back(aMapS[aP]);
+                 
+             }
+             for (int aKC1=0 ; aKC1<NbCamTest ; aKC1++)
+             {
+                 for (int aKC2=0 ; aKC2<NbCamTest ; aKC2++)
+                 {
+                      if ((NRrandom3() < aProbaArc) && (aKC1!=aKC2))
+                      {
+                          aVSMT.AddArc(aVP[aKC1],aKC1,aVP[aKC2],aKC2);
+                          aFSMT.AddArc(aVP[aKC1],aKC1,aVP[aKC2],aKC2);
+                          aFMS.AddArc(aVP[aKC1],aKC1,aVP[aKC2],aKC2);
+                          
+                          tSomTestTieP * aS1 = aVS[aKC1];
+                          tSomTestTieP * aS2 = aVS[aKC2];
+                          tArcTestTieP * anArc =  aGr.arc_s1s2(*aS1,*aS2);
+                          if (anArc==0)
+                             anArc = &aGr.add_arc(*aS1,*aS2,cNoAttr());
+
+                      }
+                 }
+             }
+         }
+         tSubGraphTestTieP aSub;
+         ElPartition<tSomTestTieP * >  aPart;
+         PartitionCC(aPart,aGr,aSub);
+         int aNbCCOk=0;
+         for (int aKSet=0 ; aKSet <aPart.nb()  ; aKSet++)
+         {
+             ElSubFilo<tSomTestTieP *> aSet = aPart[aKSet];
+             if (aSet.size() != 1)
+             {
+                  bool Ok=true;
+                  std::vector<int> aCpt(NbCamTest,0);
+                  for (int aKSom=0 ; aKSom<aSet.size() ; aKSom++)
+                  {
+                       Pt2df aP = aSet[aKSom]->attr();
+                       int aKC = round_ni(aP.x);
+                       if (aCpt[aKC]) 
+                           Ok= false;
+                       aCpt[aKC]++;
+                  }
+                  if (Ok) 
+                     aNbCCOk++;
              }
          }
 
-         ELISE_ASSERT(aBest!=0,"cNewO_CombineCple");
-         aBest->mTaken = true;
+         aVSMT.DoExport();
+         aFSMT.DoExport();
+         aFMS.DoExport();
 
-         UpdateDistPtsAdd(PSel(*aBest));
-         mVSel.push_back(aBest->mNum);
+         const std::list<cVarSizeMergeTieP<Pt2df>  *> &  aLVT = aVSMT.ListMerged();
+         const std::list<cFixedSizeMergeTieP<NbCamTest,Pt2df> *> &  aLFT = aFSMT.ListMerged();
+         const std::list<cFixedMergeTieP<NbCamTest,Pt2df> *> &  aLF = aFMS.ListMerged();
 
-         //    aKSom>50 => pour que la dist puisse etre fiable;  aKSom%10 pour gagner du temps
-         if ( (aDistArret>0) && (aKSel>50)  && ((aKSel%10)==0) )
+         std::cout<< "============== " << aLVT.size() << " " << aNbCCOk << "\n";
+
+         double aChk1 = ChkSomMerge(aLVT);
+         double aChk2 = ChkSomMerge(aLFT);
+         double aChk3 = ChkSomMerge(aLF);
+         if ( (ElAbs(aChk1-aChk2)> 1E-5) || (ElAbs(aChk1-aChk3)> 1E-5) )
          {
-             Cont = (DistMinSelMoy() > aDistArret);
+               std::cout << "HHHHH " <<   ChkSomMerge(aLVT)  << " " << ChkSomMerge(aLFT)  << " " << ChkSomMerge(aLF)  << " " << "\n";
+               ELISE_ASSERT(false,"Chk TieP");
          }
+
+         // std::cout << "HHHHH " <<   ChkSomMerge(aLVT)  << " " << ChkSomMerge(aLFT)  << " " << ChkSomMerge(aLF)  << " " << "\n";
+         aVSMT.Delete();
+         aFSMT.Delete();
+         aFMS.Delete();
     }
 }
 
-template<class TypePt> double cTplSelecPt<TypePt>::DistMinSelMoy() 
+
+
+
+int TestNewMergeTieP_main(int argc,char ** argv)
 {
-    double aSom = 0.0;
-    for (int aKS=0 ; aKS<int(mVSel.size()) ; aKS++)
+    for (int aKT=0 ; aKT<1000000000; aKT++)
     {
-          aSom += mVPresel[aKS].mDMin;
+        OneTestNewMerge();
+        std::cout << "TestNewMergeTieP_main " << aKT << "\n";
+        // getchar();
     }
-    mRes.mDistMoy = aSom / mVSel.size();
-    return mRes.mDistMoy;
+    return EXIT_SUCCESS;
 }
-
-cResIPR cResIPRIdent(int aNb)
-{
-   cResIPR aRes;
-   for (int aK=0 ; aK< aNb ; aK++)
-       aRes.mVSel.push_back(aK);
-   aRes.mDistMoy = 0;
-   return aRes;
-
-}
-
-template<class TypePt> cResIPR  TplIndPackReduit
-                                (
-                                     const std::vector<TypePt> & aVPts,
-                                     int aNbMaxInit,
-                                     int aNbFin, 
-                                     const cResIPR * aResExist = 0,
-                                     const std::vector<TypePt> * aVPtsExist = 0
-                                )
-{
-    // risque d'avoir des degeneresnce
-    if (aVPts.size() <= 5)
-    {
-        return cResIPRIdent((int)aVPts.size());
-    }
-
-
-    cTplSelecPt<TypePt> aSel(aVPts);
-    aSel.InitPresel(aNbMaxInit);
-    aSel.CalcPond();
-
-    double aDistArret = DefDistArret;
-    if (aResExist)
-    {
-       for (int aK=0 ; aK<int(aResExist->mVSel.size()) ; aK++)
-       {
-           aSel.UpdateDistPtsAdd((*aVPtsExist)[aResExist->mVSel[aK]]);
-       }
-       aDistArret = aResExist->mDistMoy;
-    }
-
-
-    aSel.SelectN(aNbFin,aDistArret);
-    aSel.DistMinSelMoy();
-    aSel.Res().mDistMoy *= sqrt(aSel.VSel().size()/double(aNbFin));
-
-    return aSel.Res();
-}
-
-
-
-cResIPR  IndPackReduit(const std::vector<Pt2dr> & aV,int aNbMaxInit,int aNbFin)
-{
-   return TplIndPackReduit(aV,aNbMaxInit,aNbFin);
-}
-
-cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin)
-{
-   return TplIndPackReduit(aV,aNbMaxInit,aNbFin);
-}
-
-cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin,const cResIPR & aResExist,const std::vector<Pt2df> & aVPtsExist)
-{
-   cResIPR aRes = TplIndPackReduit(aV,aNbMaxInit,aNbFin,&aResExist,&aVPtsExist);
-   return aRes;
-}
-
-
-
-
-
-void cNewO_OrInit2Im::TestNewSel(const ElPackHomologue & aPack)
-{
-     std::vector<Pt2dr> aVPts;
-     for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
-     {
-         aVPts.push_back(itP->P1());
-     }
-
-     for (int aK=0 ; aK<int(aVPts.size()) ; aK++)
-        mW->draw_circle_abs(ToW(aVPts[aK]),2.0,mW->pdisc()(P8COL::green));
-
-     std::vector<int>  aVSel = TplIndPackReduit(aVPts,1500,500).mVSel;
-     for (int aK=0 ; aK<int(aVSel.size()) ; aK++)
-     {
-         Pt2dr aP = ToW(aVPts[aVSel[aK]]);
-         mW->draw_circle_abs(aP,4.0,mW->pdisc()(P8COL::red));
-         mW->draw_circle_abs(aP,6.0,mW->pdisc()(P8COL::red));
-     }
-     mW->clik_in();
-}
-   
-ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aNbFin)
-{
-   std::vector<Pt2dr> aVP1;
-   std::vector<Pt2dr> aVP2;
-   for (ElPackHomologue::const_iterator itP=aPackIn.begin() ; itP!=aPackIn.end() ; itP++)
-   {
-       aVP1.push_back(itP->P1());
-       aVP2.push_back(itP->P2());
-   }
-
-   ElPackHomologue aRes;
-   std::vector<int>  aVSel = TplIndPackReduit(aVP1,aNbMaxInit,aNbFin).mVSel;
-   for (int aK=0 ; aK<int(aVSel.size()) ; aK++)
-   {
-         ElCplePtsHomologues aCple(aVP1[aVSel[aK]],aVP2[aVSel[aK]]);
-         aRes.Cple_Add(aCple);
-   }
-
-
-   return aRes;
-}
-
-
-
-
-
-
-ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbFin)
-{
-    return PackReduit(aPackIn,aPackIn.size(),aNbFin);
-}
-
-
-
-#endif
-
-
 
 
 
