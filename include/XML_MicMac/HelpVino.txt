@@ -1,0 +1,33 @@
+Button 1:
+ 
+    * drag to show pixel values and coordinate
+  
+Button 2, displacement:
+ 
+    * drag to translate
+    * shit drag to zoom
+    * ctrl clik  to zoom at resol 1, centered on image
+    * ctrl shift clik unzoom to full image
+ 
+Button 3 , contextual menu:
+ 
+  # Line 1:
+    * Exit : quit Vino
+    * Zoom Rect : zoom centerd on rectangle
+  
+  # Line 2, Interporlators :
+    * PPV : neirest neighboor
+    * Bilin : Bilinear
+ 
+  # Line 3, Set dynamic :
+ 
+     * Stat2 :      adapat dynamic from average & standard deviation (with error function)
+     * MinMax :     compute linear  min an max value
+     * HistoEqual : compute histogramm equalization
+ 
+Run :  Vino "MyFile.tif"  SzW=[X,Y] to change size of windows 
+       Vino "MyFile.tif"  Dyn=[VMax,VMin] to change dynamic
+All set option will be stored for next execution.
+ 
+ 
+======= Clik in this window to go back to navigation ==================
