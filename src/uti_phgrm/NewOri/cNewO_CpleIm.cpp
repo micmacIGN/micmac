@@ -575,8 +575,8 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
    mVI.push_back(mIm1);
    mVI.push_back(mIm2);
-   NOMerge_AddAllCams(mMergeStr,mVI);
 
+   NOMerge_AddAllCams(mMergeStr,mVI);
    mMergeStr.DoExport();
 
    if (EAMIsInit(&mNameOriTest))
@@ -591,9 +591,6 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
       aRot = aRot.inv();
       mTestSol = new ElRotation3D(aRot);
    }
-
-//    cNewO_CombineCple aARI(aMergeStr,aTestSol);
-   // cNewO_OrInit2Im aCple(mIm1,mIm2,&mMergeStr,mTestSol,mShow,mHPP);
 }
 
 cNewO_OrInit2Im * cNO_AppliOneCple::CpleIm()

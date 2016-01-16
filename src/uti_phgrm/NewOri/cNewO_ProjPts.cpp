@@ -898,7 +898,7 @@ template<class TypePt> void cTplSelecPt<TypePt>::SelectN(int aTargetNbSel,double
              }
          }
 
-         ELISE_ASSERT(aBest!=0,"cNewO_CombineCple");
+         ELISE_ASSERT(aBest!=0,"::SelectN");
          aBest->mTaken = true;
 
          UpdateDistPtsAdd(PSel(*aBest));

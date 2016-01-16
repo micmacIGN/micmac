@@ -131,6 +131,109 @@ for (int aK=0 ; aK<10 ; aK++)
 
 #define DefcTpl_GT cGenTabByMapPtr
 
+class cComMergeTieP
+{
+    public  :
+        bool IsOk() const {return mOk;}
+        void SetNoOk() {mOk=false;}
+        void SetOkForDelete() {mOk=true;}  // A n'utiliser que dans cFixedMergeStruct::delete
+        int  NbArc() const {return mNbArc;}
+        void IncrArc() { mNbArc++;}
+    protected :
+        cComMergeTieP();
+        bool  mOk;
+        int   mNbArc;
+
+};
+template <class Type>  class cVarSizeMergeTieP : public cComMergeTieP
+{
+     public :
+       typedef Type                    tVal;
+       typedef cVarSizeMergeTieP<Type> tMerge;
+       //  typedef std::map<Type,tMerge *>     tMapMerge;
+       typedef  DefcTpl_GT<Type,tMerge> tMapMerge;
+
+       cVarSizeMergeTieP() ;
+       void FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,std::vector<tMapMerge> &  Tabs);
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
+
+        bool IsInit(int aK) const ;
+        const Type & GetVal(int aK) const ;
+        int  NbSom() const ;
+        void AddSom(const Type & aV,int aK);
+     private :
+
+        std::vector<int>   mVecInd;
+        std::vector<Type>  mVecV;
+};
+template <const int TheNbPts,class Type>  class cFixedSizeMergeTieP : public cComMergeTieP
+{
+     public :
+       typedef Type                    tVal;
+       typedef cFixedSizeMergeTieP<TheNbPts,Type> tMerge;
+       //  typedef std::map<Type,tMerge *>     tMapMerge;
+       typedef  DefcTpl_GT<Type,tMerge> tMapMerge;
+
+       cFixedSizeMergeTieP() ;
+       void FusionneInThis(cFixedSizeMergeTieP<TheNbPts,Type> & anEl2,std::vector<tMapMerge> &  Tabs);
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
+
+        bool IsInit(int aK) const;
+        const Type & GetVal(int aK) const;
+        int  NbSom() const ;
+        void AddSom(const Type & aV,int aK);
+     private :
+
+        Type mVals[TheNbPts];
+        bool  mTabIsInit[TheNbPts];
+};
+template <class Type> class cStructMergeTieP
+{
+     public :
+        typedef Type        tMerge;
+        typedef typename Type::tVal  tVal;
+
+        typedef  DefcTpl_GT<tVal,tMerge> tMapMerge;
+        typedef typename tMapMerge::GT_tIter         tItMM;
+
+        // Pas de delete implicite dans le ~X(),  car exporte l'allocation dans
+        void Delete();
+        void DoExport();
+        const std::list<tMerge *> & ListMerged() const;
+
+
+        void AddArc(const tVal & aV1,int aK1,const tVal & aV2,int aK2);
+        cStructMergeTieP(int aNbVal);
+
+        const tVal & ValInf(int aK) const {return mEnvInf[aK];}
+        const tVal & ValSup(int aK) const {return mEnvSup[aK];}
+
+
+     private :
+        cStructMergeTieP(const cStructMergeTieP<Type> &); // N.I.
+        void AssertExported() const;
+        void AssertUnExported() const;
+        void AssertUnDeleted() const;
+
+        int                                 mTheNb;
+        std::vector<tMapMerge>              mTheMapMerges;
+        std::vector<tVal>                   mEnvInf;
+        std::vector<tVal>                   mEnvSup;
+        std::vector<int>                    mNbSomOfIm;
+        std::vector<int>                    mStatArc;
+        bool                                mExportDone;
+        bool                                mDeleted;
+        std::list<tMerge *>                 mLM;
+};
+
+
+
+
+
+
+
+
+
 
 template <const int TheNbPts,class Type>  class cFixedMergeTieP
 {
@@ -159,6 +262,10 @@ template <const int TheNbPts,class Type>  class cFixedMergeTieP
         bool  mOk;
         int   mNbArc;
 };
+
+
+// cFixedMergeStruct => cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> >
+// cFixedMergeTieP =>   cFixedSizeMergeTieP<2,Pt2df>
 
 
 
@@ -469,65 +576,6 @@ template <const int TheNb> void NOMerge_AddAllCams
                                 std::vector<cNewO_OneIm *> aVI
                            );
 
-
-class cCdtCombTiep
-{
-    public :
-        typedef cFixedMergeTieP<2,Pt2dr> tMerge;
-        cCdtCombTiep(tMerge * aM) ;
-        Pt3dr NormQ1Q2();
-
-        tMerge * mMerge;
-        Pt2dr    mP1;
-        double   mDMin;
-        bool     mTaken;
-        double   mPdsOccup;
-        Pt3dr    mQ1;
-        Pt3dr    mQ2;
-        Pt3dr    mQ2Init;
-};
-
-
-class cNewO_CombineCple
-{
-    public :
-         typedef cFixedMergeTieP<2,Pt2dr> tMerge;
-         cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  & aM,ElRotation3D * aTestSol);
-
-          const cXml_Ori2Im &  Result() const;
-    private :
-          cXml_Ori2Im  mResult;
-          double CostOneArc(const Pt2di &);
-          double CostOneBase(const Pt3dr & aBase);
-
-          Pt2dr ToW(const Pt2dr &) const;
-          void SetCurRot(const Pt3di & aP);
-          void SetCurRot(const  ElMatrix<double> & aP);
-
-          double K2Teta(int aK) const;
-          int    PInt2Ind(const Pt3di  & aP) const;
-          Pt3dr   PInt2Tetas(const Pt3di  & aP) const;
-
-          double GetCost(const Pt3di  & aP) ;
-          double  CalculCostCur();
-
-          int               mCurStep;
-          int               mNbStepTeta;
-          ElMatrix<double>  mCurRot;
-          Pt3di             mCurInd;
-          Pt3dr             mCurTeta;
-          Pt3dr             mCurBase;
-
-          std::map<int,double>     mMapCost;
-          std::vector<cCdtCombTiep> mVAllCdt;
-          std::vector<cCdtCombTiep*> mVCdtSel;
-          std::list<Pt2di>         mLArcs;
-
-          Video_Win *                mW;
-          double                     mScaleW;
-          Pt2dr                      mP0W;
-         
-};
 
 extern Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
 ElMatrix<double> TestMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,double & anEcart);
