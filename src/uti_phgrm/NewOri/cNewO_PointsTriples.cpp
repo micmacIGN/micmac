@@ -225,7 +225,7 @@ class cAppli_GenPTripleOneImage
            void  GenerateTriplet(int aKC1,int aKC2);
 
            void GenerateHomFloat(cNewO_OneIm * anI1,cNewO_OneIm * anI2);
-           void AddOnePackOneSens(cFixedMergeStruct<2,Pt2df> &,cNewO_OneIm * anI1,int anIndI1,cNewO_OneIm * anI2);
+           void AddOnePackOneSens(cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> >  &,cNewO_OneIm * anI1,int anIndI1,cNewO_OneIm * anI2);
 
            cNewO_NameManager *        mNM;
            std::string                mFullName;
@@ -348,17 +348,17 @@ void cAppli_GenPTripleOneImage::GenerateTriplets()
     if (!mSkWhenExist)  std::cout << "   ==> END GeneratePointTriple " << mCam->Name()  << " " << aChrono.uval() << "\n";
 }
 
+typedef  cFixedSizeMergeTieP<3,Pt2df>    tElM;
+typedef  cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2df> >  tMapM;
+typedef  std::list<tElM *>           tListM;
 
-void AddVPts2Map(cFixedMergeStruct<3,Pt2df> & aMap,const std::vector<Pt2df> & aVP1,int anInd1,const std::vector<Pt2df> & aVP2,int anInd2)
+void AddVPts2Map(tMapM & aMap,const std::vector<Pt2df> & aVP1,int anInd1,const std::vector<Pt2df> & aVP2,int anInd2)
 {
     for (int aKP=0 ; aKP<int(aVP1.size()) ; aKP++)
         aMap.AddArc(aVP1[aKP],anInd1,aVP2[aKP],anInd2);
 }
 
 
-typedef  cFixedMergeTieP<3,Pt2df>    tElM;
-typedef  cFixedMergeStruct<3,Pt2df>  tMapM;
-typedef  std::list<tElM *>           tListM;
 
 
 void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
@@ -373,20 +373,8 @@ void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
     std::vector<Pt2df> aVP2In;
     mNM->LoadHomFloats(mVCams[aKC1],mVCams[aKC2],&aVP1In,&aVP2In);
 
-/*
-for (int aK=0 ; aK<3 ; aK++)
-{
-tMapM aMap;
-AddVPts2Map(aMap,aVP1In,1,aVP2In,2);
-AddVPts2Map(aMap,mVP1[aKC1],0,mVP2[aKC1],1);
-AddVPts2Map(aMap,mVP1[aKC2],0,mVP2[aKC2],2);
-aMap.DoExport();
-aMap.ListMerged();
-aMap.Delete();
-}
-*/
 
-    tMapM aMap;
+    tMapM aMap(3);
     AddVPts2Map(aMap,aVP1In,1,aVP2In,2);
     AddVPts2Map(aMap,mVP1[aKC1],0,mVP2[aKC1],1);
     AddVPts2Map(aMap,mVP1[aKC2],0,mVP2[aKC2],2);
@@ -424,7 +412,7 @@ aMap.Delete();
 /*                                                                 */
 /*******************************************************************/
 
-void  cAppli_GenPTripleOneImage::AddOnePackOneSens(cFixedMergeStruct<2,Pt2df> & aMap,cNewO_OneIm * anI1,int anIndI1,cNewO_OneIm * anI2)
+void  cAppli_GenPTripleOneImage::AddOnePackOneSens(cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> > & aMap,cNewO_OneIm * anI1,int anIndI1,cNewO_OneIm * anI2)
 {
     ElPackHomologue aPack = mNM->PackOfName(anI1->Name(),anI2->Name());
 
@@ -452,7 +440,7 @@ void  cAppli_GenPTripleOneImage::GenerateHomFloat(cNewO_OneIm * anI1,cNewO_OneIm
      // std::cout << "NHH " << aNameH << "\n";
 
 
-     cFixedMergeStruct<2,Pt2df>   aMap;
+     cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> >    aMap(2);
      AddOnePackOneSens(aMap,anI1,0,anI2);
      AddOnePackOneSens(aMap,anI2,1,anI1);
 
@@ -461,10 +449,10 @@ void  cAppli_GenPTripleOneImage::GenerateHomFloat(cNewO_OneIm * anI1,cNewO_OneIm
      std::vector<U_INT1> aVNb;
 
      aMap.DoExport();
-     const  std::list<cFixedMergeTieP<2,Pt2df> *> &  aLM = aMap.ListMerged();
-     for (std::list<cFixedMergeTieP<2,Pt2df> *>::const_iterator itM = aLM.begin() ; itM!=aLM.end() ; itM++)
+     const  std::list<cFixedSizeMergeTieP<2,Pt2df> *> &  aLM = aMap.ListMerged();
+     for (std::list<cFixedSizeMergeTieP<2,Pt2df> *>::const_iterator itM = aLM.begin() ; itM!=aLM.end() ; itM++)
      {
-          const cFixedMergeTieP<2,Pt2df> & aM = **itM;
+          const cFixedSizeMergeTieP<2,Pt2df> & aM = **itM;
           if (aM.NbArc() >= mSeuilNbArc)
           {
               aVP1.push_back(aM.GetVal(0));

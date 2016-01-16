@@ -40,6 +40,69 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+/* Portion de code qui n'est plus utilisee actuellement, correspondait a des tentative pour  selectionner des points ...*/
+
+class cCdtCombTiep
+{
+    public :
+        typedef cFixedSizeMergeTieP<2,Pt2dr> tMerge;
+        cCdtCombTiep(tMerge * aM) ;
+        Pt3dr NormQ1Q2();
+
+        tMerge * mMerge;
+        Pt2dr    mP1;
+        double   mDMin;
+        bool     mTaken;
+        double   mPdsOccup;
+        Pt3dr    mQ1;
+        Pt3dr    mQ2;
+        Pt3dr    mQ2Init;
+};
+class cNewO_CombineCple
+{
+    public :
+         typedef cFixedSizeMergeTieP<2,Pt2dr> tMerge;
+         cNewO_CombineCple(const   cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> >   & aM,ElRotation3D * aTestSol);
+
+          const cXml_Ori2Im &  Result() const;
+    private :
+          cXml_Ori2Im  mResult;
+          double CostOneArc(const Pt2di &);
+          double CostOneBase(const Pt3dr & aBase);
+
+          Pt2dr ToW(const Pt2dr &) const;
+          void SetCurRot(const Pt3di & aP);
+          void SetCurRot(const  ElMatrix<double> & aP);
+
+          double K2Teta(int aK) const;
+          int    PInt2Ind(const Pt3di  & aP) const;
+          Pt3dr   PInt2Tetas(const Pt3di  & aP) const;
+
+          double GetCost(const Pt3di  & aP) ;
+          double  CalculCostCur();
+
+          int               mCurStep;
+          int               mNbStepTeta;
+          ElMatrix<double>  mCurRot;
+          Pt3di             mCurInd;
+          Pt3dr             mCurTeta;
+          Pt3dr             mCurBase;
+
+          std::map<int,double>     mMapCost;
+          std::vector<cCdtCombTiep> mVAllCdt;
+          std::vector<cCdtCombTiep*> mVCdtSel;
+          std::list<Pt2di>         mLArcs;
+
+          Video_Win *                mW;
+          double                     mScaleW;
+          Pt2dr                      mP0W;
+         
+};
+
+
+
+
+
 /************************ cCdtCombTiep ****************/
 
 
@@ -221,7 +284,7 @@ Pt2dr cNewO_CombineCple::ToW(const Pt2dr & aP) const
 
 
 
-cNewO_CombineCple::cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  &  aMap,ElRotation3D * aTestSol) :
+cNewO_CombineCple::cNewO_CombineCple(const  cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> >  &  aMap,ElRotation3D * aTestSol) :
     mCurStep     (1<<NbPow2),
     mNbStepTeta  (4 * NbDecoup0PIS2 * mCurStep),
     mCurRot      (3,3),
