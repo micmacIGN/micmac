@@ -572,6 +572,24 @@ template <class TypeCont> inline void FreeAllFlag(TypeCont & aCont,int aFlag)
     }
 }
 
+template <class AttrSom,class AttrArc>
+         class ElSubGrapheFlag  : public ElSubGraphe<AttrSom,AttrArc>
+{
+   public :
+        ElSubGrapheFlag(int aFlagS,int aFlagA) :  // -1 => No Flag
+             mFlagS (aFlagS),
+             mFlagA (aFlagA)
+        {
+        }
+        bool   inS(ElSom<AttrSom,AttrArc>  & aSom )  {return (mFlagS<0) ||  aSom.flag_kth(mFlagS);}
+        bool   inA(ElArc<AttrSom,AttrArc>  & anArc)  {return (mFlagA<0) || anArc.flag_kth(mFlagA);}
+   private :
+        int mFlagS;
+        int mFlagA;
+
+};
+
+
 
 #endif // _ELISE_GRAPHES_GRAPHE_H
 

@@ -588,28 +588,51 @@ template <class Type> double ChkMerge(const Type & aM)
     return aRes;
 }
 
-template <class Type> double ChkSomMerge(const std::list<Type  *> & aList)
+template <class Type> double ChkSomMerge(const std::list<Type  *> & aList,int & aNbArc)
 {
+    aNbArc=0;
     double aRes = 0;
     for (typename std::list<Type  *>::const_iterator iT=aList.begin(); iT!=aList.end() ; iT++)
     {
         aRes += ChkMerge(**iT);
+        aNbArc += (*iT)->NbArc();
     }
     return aRes;
 }
 
 
-typedef  ElSom<Pt2df,cNoAttr>       tSomTestTieP;
-typedef  ElArc<Pt2df,cNoAttr>       tArcTestTieP;
-typedef  ElGraphe<Pt2df,cNoAttr>    tGraphTestTieP;
-typedef  ElSubGraphe<Pt2df,cNoAttr> tSubGraphTestTieP;
+typedef  ElSom<Pt2df,int>       tSomTestTieP;
+typedef  ElArc<Pt2df,int>       tArcTestTieP;
+typedef  ElGraphe<Pt2df,int>    tGraphTestTieP;
+typedef  ElSubGraphe<Pt2df,int> tSubGraphTestTieP;
+typedef  ElArcIterator<Pt2df,int> tArtIterTestTieP;
 
+/*
+template <class AttrSom,class AttrArc>
+         class ElSubGrapheFlag  : public ElSubGraphe<AttrSom,AttrArc>
+{
+   public :
+        ElSubGrapheFlag(int aFlagS,int aFlagA) :  // -1 => No Flag
+             mFlagS (aFlagS),
+             mFlagA (aFlagA)
+        {
+        }
+        bool   inS(ElSom<AttrSom,AttrArc>  & aSom )  {return (mFlagS<0) ||  aSom.flag_kth(mFlagS);}
+        bool   inA(ElArc<AttrSom,AttrArc>  & anArc)  {return (mFlagA<0) || anArc.flag_kth(mFlagA);}
+   private :
+        int mFlagS;
+        int mFlagA;
+
+};
+*/
+typedef  ElSubGrapheFlag<Pt2df,int> tSubGraphTestTiepOr;
 
 void OneTestNewMerge()
 {
+    static int aCpt=0;
     for (int aNb = 2 ; aNb < 500 ; aNb += 3)
     {
-          
+         aCpt++; 
          double aProbaPInt = NRrandom3();
          double aProbaArcGlob = NRrandom3();
          cFixedMergeStruct<NbCamTest,Pt2df> aFMS;
@@ -617,6 +640,8 @@ void OneTestNewMerge()
          cStructMergeTieP<cFixedSizeMergeTieP<NbCamTest,Pt2df> > aFSMT(NbCamTest);
 
          tGraphTestTieP aGr;
+         int aFlagOr = aGr.alloc_flag_arc();
+         tSubGraphTestTiepOr aSubOr(-1,aFlagOr);
          std::map<Pt2df,tSomTestTieP *> aMapS;
          
 
@@ -657,7 +682,9 @@ void OneTestNewMerge()
                           tSomTestTieP * aS2 = aVS[aKC2];
                           tArcTestTieP * anArc =  aGr.arc_s1s2(*aS1,*aS2);
                           if (anArc==0)
-                             anArc = &aGr.add_arc(*aS1,*aS2,cNoAttr());
+                             anArc = &aGr.add_arc(*aS1,*aS2,0);
+                          anArc->flag_set_kth_true(aFlagOr);
+                          anArc->attr()++;
 
                       }
                  }
@@ -667,6 +694,7 @@ void OneTestNewMerge()
          ElPartition<tSomTestTieP * >  aPart;
          PartitionCC(aPart,aGr,aSub);
          int aNbCCOk=0;
+         int aNbArcOK=0;
          for (int aKSet=0 ; aKSet <aPart.nb()  ; aKSet++)
          {
              ElSubFilo<tSomTestTieP *> aSet = aPart[aKSet];
@@ -674,6 +702,7 @@ void OneTestNewMerge()
              {
                   bool Ok=true;
                   std::vector<int> aCpt(NbCamTest,0);
+                  int aNbArc = 0;
                   for (int aKSom=0 ; aKSom<aSet.size() ; aKSom++)
                   {
                        Pt2df aP = aSet[aKSom]->attr();
@@ -681,9 +710,14 @@ void OneTestNewMerge()
                        if (aCpt[aKC]) 
                            Ok= false;
                        aCpt[aKC]++;
+                       for (tArtIterTestTieP itA= aSet[aKSom]->begin(aSub) ; itA.go_on() ; itA++)
+                          aNbArc += (*itA).attr();
                   }
                   if (Ok) 
+                  {
+                     aNbArcOK += aNbArc;
                      aNbCCOk++;
+                  }
              }
          }
 
@@ -695,16 +729,26 @@ void OneTestNewMerge()
          const std::list<cFixedSizeMergeTieP<NbCamTest,Pt2df> *> &  aLFT = aFSMT.ListMerged();
          const std::list<cFixedMergeTieP<NbCamTest,Pt2df> *> &  aLF = aFMS.ListMerged();
 
-         std::cout<< "============== " << aLVT.size() << " " << aNbCCOk << "\n";
+         ELISE_ASSERT(int(aLVT.size())==aNbCCOk,"Tie Point CC Check");
 
-         double aChk1 = ChkSomMerge(aLVT);
-         double aChk2 = ChkSomMerge(aLFT);
-         double aChk3 = ChkSomMerge(aLF);
+         int aNbA1,aNbA2,aNbA3;
+         double aChk1 = ChkSomMerge(aLVT,aNbA1);
+         double aChk2 = ChkSomMerge(aLFT,aNbA2);
+         double aChk3 = ChkSomMerge( aLF,aNbA3);
+
+         std::cout << aCpt << " ============== " << aLVT.size() << " " << aNbCCOk << " " << aNbArcOK << " " << " " << aNbA1 << "\n";
          if ( (ElAbs(aChk1-aChk2)> 1E-5) || (ElAbs(aChk1-aChk3)> 1E-5) )
          {
-               std::cout << "HHHHH " <<   ChkSomMerge(aLVT)  << " " << ChkSomMerge(aLFT)  << " " << ChkSomMerge(aLF)  << " " << "\n";
+               std::cout << "HHHHH " <<   aChk1  << " " << aChk2  << " " << aChk3 << " " << "\n";
                ELISE_ASSERT(false,"Chk TieP");
          }
+
+         if (aNbArcOK != aNbA1)
+         {
+             std::cout << " NB ARC : " << aNbArcOK << " " << aNbA1 << "\n";
+             ELISE_ASSERT(aNbArcOK==aNbA1,"Tie Point CC Check");
+         }
+
 
          // std::cout << "HHHHH " <<   ChkSomMerge(aLVT)  << " " << ChkSomMerge(aLFT)  << " " << ChkSomMerge(aLF)  << " " << "\n";
          aVSMT.Delete();
