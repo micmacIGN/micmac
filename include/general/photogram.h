@@ -1806,6 +1806,7 @@ class ElCamera : public cCapture3D
          virtual Pt3dr OrigineProf() const;
          virtual bool  HasOrigineProf() const;
          const cElPolygone &  EmpriseSol() const;
+         const Box2dr &  BoxSol() const;
 
          const tOrIntIma & IntrOrImaC2M() const;
 

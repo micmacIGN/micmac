@@ -2190,6 +2190,15 @@ const cElPolygone &  ElCamera::EmpriseSol() const
    return mEmpriseSol;
 }
 
+const Box2dr &  ElCamera::BoxSol() const
+{
+    AssertSolInit();
+    return mBoxSol;
+}
+
+
+
+
 
 void  ElCamera::SetAltiSol(double  aZ)
 {

@@ -213,7 +213,7 @@ std::string SubstArgcArvGlob(int aKSubst,std::string aSubst, bool aProtect)
 
 int MemoArgc=-1;
 char ** MemoArgv=0;
-static std::string GlobArcArgv;
+std::string GlobArcArgv;
 static std::vector<std::string>  GlobMessErrContext;
 void AddMessErrContext(const std::string & aMes)
 {

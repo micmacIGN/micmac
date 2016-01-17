@@ -255,6 +255,20 @@ double  cElPolygone::Surf() const
 }
 
 
+cElPolygone cElPolygone::FromBox(const Box2dr & aBox)
+{
+    std::vector<Pt2dr> aCont;
+    aCont.push_back(aBox._p0);
+    aCont.push_back(Pt2dr(aBox._p1.x,aBox._p0.y));
+    aCont.push_back(aBox._p1);
+    aCont.push_back(Pt2dr(aBox._p0.x,aBox._p1.y));
+
+    cElPolygone aRes;
+    aRes.AddContour(aCont,true);
+    return aRes;
+}
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

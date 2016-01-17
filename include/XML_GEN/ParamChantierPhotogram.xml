@@ -1783,6 +1783,14 @@
     <Stats Nb="*" RefType="Xml_StatVino">      </Stats>
 </Xml_EnvVino>
 
+<Xml_ParamBoxReducTieP Nb="1" Class="true" ToReference="true">
+     <Box   Nb="1" Type="Box2dr">   </Box>
+     <Ims   Nb="*" Type="std::string" Container="std::vector"> </Ims>
+</Xml_ParamBoxReducTieP>
+
+<Xml_ParamGlobReducTieP Nb="1" Class="true" ToReference="true">
+      <Resol Nb="1" Type="double"> </Resol>
+</Xml_ParamGlobReducTieP>
 
 <Verbatim File=".h.cpp">
 // };

@@ -515,7 +515,6 @@ class cNO_AppliOneCple
           cNewO_OrInit2Im * CpleIm();
           std::string NameXmlOri2Im(bool Bin) const;
     private :
-         typedef cFixedMergeTieP<2,Pt2dr> tMerge;
 
          cNO_AppliOneCple(const cNO_AppliOneCple &); // N.I.
 
@@ -531,7 +530,7 @@ class cNO_AppliOneCple
          std::string          mNameOriTest;
          bool                 mShow;
          bool                 mHPP;
-         cFixedMergeStruct<2,Pt2dr> mMergeStr;
+         tMergeLPackH         mMergeStr;
          ElRotation3D *       mTestSol;
 };
 
@@ -549,6 +548,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
    mPrefHom (""),
    mShow    (false),
    mHPP     (true),
+   mMergeStr (2),
    mTestSol (0)
 {
 

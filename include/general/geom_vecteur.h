@@ -988,6 +988,8 @@ class cElPolygone
        double Surf() const;
        double DiamSimple() const;  // Suppose que existe surf englob
 
+       static cElPolygone FromBox(const Box2dr & aBox);
+
     private  :
        cElPolygone GenOp(const cElPolygone & aPol,INT)const;
 
