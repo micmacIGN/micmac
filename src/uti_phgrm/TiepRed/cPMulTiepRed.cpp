@@ -41,117 +41,45 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /**********************************************************************/
 /*                                                                    */
-/*                         cCameraTiepRed                             */
+/*                            cPMulTiepRed                            */
 /*                                                                    */
 /**********************************************************************/
 
-cCameraTiepRed::cCameraTiepRed
-(
-    cAppliTiepRed &         anAppli,
-    const std::string &     aName,
-    CamStenope *            aCam
-) :
-   mAppli  (anAppli),
-   mNameIm (aName),
-   mCS     (aCam),
-   mNbPtsHom2Im  (0),
-   mNum          (-1)
+cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli) 
 {
-}
+    std::vector<ElSeg3D> aVSeg;
+    std::vector<Pt2dr>   aVPt;
 
-CamStenope  & cCameraTiepRed::CS() {return *mCS;}
-const int & cCameraTiepRed::NbPtsHom2Im() const {return mNbPtsHom2Im;}
-bool  cCameraTiepRed::SelectOnHom2Im() const
-{
-    return mNbPtsHom2Im >= mAppli.ThresholdTotalNbPts2Im();
-}
+    const std::vector<int>  &  aVecInd = aPM->VecInd() ;
+    const std::vector<Pt2df> & aVHom   = aPM-> VecV()  ;
 
-void cCameraTiepRed::SetNum(int aNum)
-{
-   mNum = aNum;
-}
-const int & cCameraTiepRed::Num() const
-{
-   return mNum;
-}
-
-
-
-
-Pt2dr cCameraTiepRed::Hom2Cam(const Pt2df & aP) const
-{
-     Pt3dr aQ(aP.x,aP.y,1.0);
-     return mCS->L3toF2(aQ);
-}
-
-
-const std::string cCameraTiepRed::NameIm() const { return mNameIm; }
-
-Pt3dr cCameraTiepRed::BundleIntersection(const Pt2df & aPH1,const cCameraTiepRed & aCam2,const Pt2df & aPH2,double & Precision) const
-{
-
-     Pt2dr aPC1 = Hom2Cam(aPH1);
-     Pt2dr aPC2 = aCam2.Hom2Cam(aPH2);
-
-     ElSeg3D aSeg1 = mCS->Capteur2RayTer(aPC1);
-     ElSeg3D aSeg2 = aCam2.mCS->Capteur2RayTer(aPC2);
-
-     bool Ok;
-     double aD;
-     Pt3dr aRes= InterSeg(aSeg1.P0(),aSeg1.P1(),aSeg2.P0(),aSeg2.P1(),Ok,&aD);
-
-     if (Ok)
-     {
-         Pt2dr aRP1 = mCS->Ter2Capteur(aRes);
-         Pt2dr aRP2 = aCam2.mCS->Ter2Capteur(aRes);
-         Precision = (euclid(aRP1-aPC1)+euclid(aRP2-aPC2)) / 2.0;
-     }
-     else
-     {
-        Precision = 1e20;
-     }
-     
-     return aRes;
-    
-}
-
-void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
-{
-    std::vector<Pt2df> aVPIn1,aVPIn2;
-    mAppli.NM().LoadHomFloats(NameIm(),aCam2.NameIm(),&aVPIn1,&aVPIn2);  // would have worked for I2 > I1 
-    Box2dr aBox = mAppli.ParamBox().Box();
-    double aThresh = mAppli.ThresoldPrec2Point();
-
-    cLnk2ImTiepRed * aLnk = new cLnk2ImTiepRed(this,&aCam2);
-    std::vector<Pt2df> & aVPOut1 = aLnk->VP1();
-    std::vector<Pt2df> & aVPOut2 = aLnk->VP2();
-
-    for (int aKP=0 ; aKP<int(aVPIn1.size()) ; aKP++)
+    for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
     {
-        double aD;
-        Pt3dr aPTer = BundleIntersection(aVPIn1[aKP],aCam2,aVPIn2[aKP],aD);
-        if ( (aD< aThresh) && aBox.inside(Pt2dr(aPTer.x,aPTer.y)) )
-        {
-            aVPOut1.push_back(aVPIn1[aKP]);
-            aVPOut2.push_back(aVPIn2[aKP]);
-        }
-        //                std::cout << "AAAAAAAAAAAAAAAaa " << aD << aPTer << "\n";
+         cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
+         Pt2dr aPCam = aCam->Hom2Cam(aVHom[aKP]);
+         aVPt.push_back(aPCam);
+         aVSeg.push_back(aCam->CS().Capteur2RayTer(aPCam));
     }
 
-    if (int(aVPOut1.size()) >= mAppli.ThresholdNbPts2Im())
+    bool Ok;
+    Pt3dr aPTer = InterSeg(aVSeg,Ok);
+    double aSomDist = 0.0;
+    for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
     {
-        mNbPtsHom2Im +=  aVPOut1.size();
-        aCam2.mNbPtsHom2Im +=  aVPOut1.size();
-        // std::cout << "LoadHom " <<  NameIm() << " @ " << aCam2.NameIm() 
-        //              << " ## " << aVPIn1.size() << " ->" << aVPOut1.size() << "\n";
-        mAppli.AddLnk(aLnk);
+         cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
+         Pt2dr aPProj = aCam->CS().Ter2Capteur(aPTer);
+         double aDist = euclid(aPProj,aVPt[aKP]);
+         aSomDist += aDist;
     }
-    else
-    {
-         delete aLnk;
-    }
+
+    mP = Pt2dr(aPTer.x,aPTer.y);
+    mZ = aPTer.z;
+    mPrec = aSomDist / (aVecInd.size() -1);
+    // std::cout << "PREC " << mPrec << " " << aVecInd.size() << "\n";
+    mGain =  aPM->NbArc() * (1.0 /(1.0 + ElSquare(mPrec/anAppli.ThresholdPrecMult())));
 }
-  
+
+
 
 
 

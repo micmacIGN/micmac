@@ -44,6 +44,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 class cCameraTiepRed;
 class cAppliTiepRed;
+class cLnk2ImTiepRed;
+
+
+typedef cVarSizeMergeTieP<Pt2df>  tMerge;
+typedef cStructMergeTieP<tMerge>  tMergeStr;
 
 class cCameraTiepRed
 {
@@ -52,20 +57,64 @@ class cCameraTiepRed
         const std::string NameIm() const;
  
         //  Intersection of bundles in ground geometry
-        Pt3dr BundleInter(const Pt2df & aP1,const cCameraTiepRed & aCam2,const Pt2df & aP2,double & Precision) const;
+        Pt3dr BundleIntersection(const Pt2df & aP1,const cCameraTiepRed & aCam2,const Pt2df & aP2,double & Precision) const;
+
+        CamStenope  & CS();
+        bool  SelectOnHom2Im() const;
+        const int &   NbPtsHom2Im() const;
+
+        void LoadHom(cCameraTiepRed & aCam2);
+        void SetNum(int aNum);
+        const int & Num() const;
+
+        Pt2dr Hom2Cam(const Pt2df & aP) const;
 
 
     private :
         cCameraTiepRed(const cCameraTiepRed &); // Not Implemented
 
-        Pt2dr Hom2Cam(const Pt2df & aP) const;
 
         cAppliTiepRed & mAppli;
         std::string mNameIm;
         CamStenope * mCS;
+        int          mNbPtsHom2Im;
+        int          mNum;
+};
+
+class cLnk2ImTiepRed
+{
+     public :
+        cLnk2ImTiepRed(cCameraTiepRed * ,cCameraTiepRed *);
+        cCameraTiepRed &     Cam1();
+        cCameraTiepRed &     Cam2();
+        std::vector<Pt2df>&  VP1();
+        std::vector<Pt2df>&  VP2();
+
+        void Add2Merge(tMergeStr *);
+     private :
+        cCameraTiepRed *    mCam1;
+        cCameraTiepRed *    mCam2;
+        std::vector<Pt2df>  mVP1;
+        std::vector<Pt2df>  mVP2;
 };
 
 
+class cPMulTiepRed
+{
+     public :
+       cPMulTiepRed(tMerge *,cAppliTiepRed &);
+       const Pt2dr & Pt() const {return mP;}
+     private :
+       Pt2dr  mP;
+       double mZ;
+       double mPrec;
+       double mGain;
+};
+class cP2dGroundOfPMul
+{
+    public :
+          Pt2dr operator()(cPMulTiepRed * aPM) {return aPM->Pt();}
+};
 
 
 
@@ -73,13 +122,33 @@ class cAppliTiepRed
 {
      public :
           cAppliTiepRed(int argc,char **argv); 
-          void Test();
-           
+          void Exe();
+          cVirtInterf_NewO_NameManager & NM();
+          const cXml_ParamBoxReducTieP & ParamBox() const;
+          const double & ThresoldPrec2Point() const;
+          const double & ThresholdPrecMult() const;
+          const int    & ThresholdNbPts2Im() const;
+          const int    & ThresholdTotalNbPts2Im() const;
+          void AddLnk(cLnk2ImTiepRed *);
+          cCameraTiepRed * KthCam(int aK);
 
      private :
+
+          void GenerateSplit();
+          void DoReduceBox();
           cAppliTiepRed(const cAppliTiepRed &); // N.I.
 
-          cElemAppliSetFile mEASF;
+          static const std::string TheNameTmp;
+
+          std::string NameParamBox(int aK) const;
+
+          double mPrec2Point; // Threshold on precision for a pair of tie P
+          double mThresholdPrecMult; // Threshold on precision for multiple points
+          int    mThresholdNbPts2Im;
+          int    mThresholdTotalNbPts2Im;
+          int    mSzTile;    //  Number of pixel / tiles
+
+          std::string  mDir;
           std::string  mPatImage;
           std::string  mCalib;
 
@@ -87,6 +156,19 @@ class cAppliTiepRed
           std::vector<cCameraTiepRed *>          mVecCam;
           std::set<std::string>          * mSetFiles;
           cVirtInterf_NewO_NameManager *   mNM ;
+          bool                             mCallBack;
+          int                              mKBox;
+          Box2dr                           mBoxGlob;
+          Box2dr                           mBoxLoc;
+          double                           mResol;
+          cXml_ParamBoxReducTieP           mXmlParBox;
+          std::list<cLnk2ImTiepRed *>      mLnk2Im;
+          tMergeStr *                      mMergeStruct;
+          const std::list<tMerge *> *      mLMerge;
+          std::list<cPMulTiepRed *>        mLPMul;
+
+          cP2dGroundOfPMul                            mPMul2Gr;
+          ElQT<cPMulTiepRed*,Pt2dr,cP2dGroundOfPMul>  *mQT;
 };
 
 

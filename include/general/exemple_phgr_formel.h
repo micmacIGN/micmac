@@ -942,6 +942,149 @@ class cAmeliorOrRel
 };
 */
 
+
+/*
+   Permet d'encapsuler la structure qui gere les index permettant d'acceder a une fusion a partir d'un point.
+  Pour l'instant c'est des map, mais voir qi Qdt Tree, tiles, vecteur ordonnes etc... sont + efficaces
+*/
+
+template <class TypeIndex,class TypeVal> class  cGenTabByMapPtr
+{
+   private :
+      typedef std::map<TypeIndex,TypeVal *>     tMap;
+
+   public :
+      typedef typename tMap::iterator           GT_tIter;
+
+      GT_tIter  GT_Begin()    {return mMap.begin();}
+      GT_tIter  GT_End()      {return mMap.end();}
+      static TypeVal * GT_GetValOfIt(const GT_tIter & anIter) {return anIter->second;}
+
+      inline TypeVal *  GT_GetVal(const TypeIndex & anIndex)
+      {
+         GT_tIter anIter = mMap.find(anIndex);
+
+         return (anIter!=mMap.end()) ? anIter->second : 0;
+      }
+      inline void GT_SetVal(const TypeIndex & anIndex,TypeVal * aVal)
+      {
+         mMap[anIndex] = aVal;
+      }
+
+      cGenTabByMapPtr()
+      {
+      }
+
+   private :
+      tMap    mMap;
+};
+
+#define DefcTpl_GT cGenTabByMapPtr
+class cComMergeTieP
+{
+    public  :
+        bool IsOk() const {return mOk;}
+        void SetNoOk() {mOk=false;}
+        void SetOkForDelete() {mOk=true;}  // A n'utiliser que dans cFixedMergeStruct::delete
+        int  NbArc() const {return mNbArc;}
+        void IncrArc() { mNbArc++;}
+    protected :
+        cComMergeTieP();
+        bool  mOk;
+        int   mNbArc;
+
+};
+template <class Type>  class cVarSizeMergeTieP : public cComMergeTieP
+{
+     public :
+       typedef Type                    tVal;
+       typedef cVarSizeMergeTieP<Type> tMerge;
+       //  typedef std::map<Type,tMerge *>     tMapMerge;
+       typedef  DefcTpl_GT<Type,tMerge> tMapMerge;
+
+       cVarSizeMergeTieP() ;
+       void FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,std::vector<tMapMerge> &  Tabs);
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
+
+        bool IsInit(int aK) const ;
+        const Type & GetVal(int aK) const ;
+        int  NbSom() const ;
+        void AddSom(const Type & aV,int aK);
+        static int FixedSize();
+
+        const std::vector<int>  & VecInd() const;
+        const std::vector<Type> & VecV()   const;
+     private :
+
+        std::vector<int>   mVecInd;
+        std::vector<Type>  mVecV;
+};
+template <const int TheNbPts,class Type>  class cFixedSizeMergeTieP : public cComMergeTieP
+{
+     public :
+       typedef Type                    tVal;
+       typedef cFixedSizeMergeTieP<TheNbPts,Type> tMerge;
+       //  typedef std::map<Type,tMerge *>     tMapMerge;
+       typedef  DefcTpl_GT<Type,tMerge> tMapMerge;
+
+       cFixedSizeMergeTieP() ;
+       void FusionneInThis(cFixedSizeMergeTieP<TheNbPts,Type> & anEl2,std::vector<tMapMerge> &  Tabs);
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
+
+        bool IsInit(int aK) const;
+        const Type & GetVal(int aK) const;
+        int  NbSom() const ;
+        void AddSom(const Type & aV,int aK);
+        static int FixedSize();
+     private :
+
+        Type mVals[TheNbPts];
+        bool  mTabIsInit[TheNbPts];
+};
+template <class Type> class cStructMergeTieP
+{
+     public :
+        typedef Type        tMerge;
+        typedef typename Type::tVal  tVal;
+
+        typedef  DefcTpl_GT<tVal,tMerge> tMapMerge;
+        typedef typename tMapMerge::GT_tIter         tItMM;
+
+        // Pas de delete implicite dans le ~X(),  car exporte l'allocation dans
+        void Delete();
+        void DoExport();
+        const std::list<tMerge *> & ListMerged() const;
+
+
+        void AddArc(const tVal & aV1,int aK1,const tVal & aV2,int aK2);
+        cStructMergeTieP(int aNbVal);
+
+        const tVal & ValInf(int aK) const {return mEnvInf[aK];}
+        const tVal & ValSup(int aK) const {return mEnvSup[aK];}
+
+
+     private :
+        cStructMergeTieP(const cStructMergeTieP<Type> &); // N.I.
+        void AssertExported() const;
+        void AssertUnExported() const;
+        void AssertUnDeleted() const;
+
+        int                                 mTheNb;
+        std::vector<tMapMerge>              mTheMapMerges;
+        std::vector<tVal>                   mEnvInf;
+        std::vector<tVal>                   mEnvSup;
+        std::vector<int>                    mNbSomOfIm;
+        std::vector<int>                    mStatArc;
+        bool                                mExportDone;
+        bool                                mDeleted;
+        std::list<tMerge *>                 mLM;
+};
+
+
+
+
+
+
 #endif //   _EXEMPLE_PHGR_FORMEL_H_
 
 

@@ -1002,7 +1002,7 @@ void TestFoncReelle(Fonc_Num aF,const std::string & aName,Pt2di aSz)
 
 void TestcFixedMergeStruct()
 {
-    cFixedMergeStruct<3,Pt2dr>  aFMS;
+    cStructMergeTieP< cFixedSizeMergeTieP<3,Pt2dr> >  aFMS(3);
 
     aFMS.AddArc(Pt2dr(0,0),0,Pt2dr(1,1),1);
     aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(1,2),2);
@@ -1030,13 +1030,13 @@ void TestcFixedMergeStruct()
 
     aFMS.DoExport();
 
-    const std::list<cFixedMergeTieP<3,Pt2dr> *> &  aLM = aFMS.ListMerged();
+    const std::list<cFixedSizeMergeTieP<3,Pt2dr> *> &  aLM = aFMS.ListMerged();
  
     std::cout << "NB ITEM " << aLM.size() << "\n";
 
     for
     (
-        std::list<cFixedMergeTieP<3,Pt2dr> *>::const_iterator itM=aLM.begin();
+        std::list<cFixedSizeMergeTieP<3,Pt2dr> *>::const_iterator itM=aLM.begin();
         itM != aLM.end();
         itM++
     )

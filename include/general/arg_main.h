@@ -78,6 +78,8 @@ void MemoArg(int,char**);
 void ShowArgs();
 
 extern std::string TheStringMemoArgOptGlob;
+extern std::string GlobArcArgv;
+
 
 
 // Remet dans la commande les option commancant par "-"

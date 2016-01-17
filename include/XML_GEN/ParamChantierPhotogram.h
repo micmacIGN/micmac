@@ -6919,5 +6919,57 @@ std::string  Mangling( cXml_EnvVino *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_ParamBoxReducTieP
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ParamBoxReducTieP & anObj,cElXMLTree * aTree);
+
+
+        Box2dr & Box();
+        const Box2dr & Box()const ;
+
+        std::vector< std::string > & Ims();
+        const std::vector< std::string > & Ims()const ;
+    private:
+        Box2dr mBox;
+        std::vector< std::string > mIms;
+};
+cElXMLTree * ToXMLTree(const cXml_ParamBoxReducTieP &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ParamBoxReducTieP &);
+
+void  BinaryUnDumpFromFile(cXml_ParamBoxReducTieP &,ELISE_fp &);
+
+std::string  Mangling( cXml_ParamBoxReducTieP *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_ParamGlobReducTieP
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ParamGlobReducTieP & anObj,cElXMLTree * aTree);
+
+
+        double & Resol();
+        const double & Resol()const ;
+    private:
+        double mResol;
+};
+cElXMLTree * ToXMLTree(const cXml_ParamGlobReducTieP &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ParamGlobReducTieP &);
+
+void  BinaryUnDumpFromFile(cXml_ParamGlobReducTieP &,ELISE_fp &);
+
+std::string  Mangling( cXml_ParamGlobReducTieP *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotPCP

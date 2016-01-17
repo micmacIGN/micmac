@@ -47,28 +47,55 @@ Header-MicMac-eLiSe-25/06/2007*/
 /**********************************************************************/
 
 
-cAppliTiepRed::cAppliTiepRed(int argc,char **argv) 
+cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
+     mPrec2Point              (5.0),
+     mThresholdPrecMult       (2.0),
+     mThresholdNbPts2Im       (3),
+     mThresholdTotalNbPts2Im  (10),
+     mSzTile                  (1600),
+     mCallBack                (false)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    ElInitArgMain
    (
          argc,argv,
          LArgMain()  << EAMC(mPatImage, "Name Image 1",  eSAM_IsPatFile),
          LArgMain()  << EAM(mCalib,"OriCalib",true,"Calibration folder if any")
+                     << EAM(mPrec2Point,"Prec2P",true,"Threshold of precision for 2 Points")
+                     << EAM(mKBox,"KBox",true,"Internal use")
+                     << EAM(mSzTile,"SzTile",true,"Size of Tiles in Pixel")
    );
-
-   mEASF.Init(mPatImage);
-
+   mCallBack = EAMIsInit(&mKBox);
+   mDir = DirOfFile(mPatImage);
    if (EAMIsInit(&mCalib))
    {
-      StdCorrecNameOrient(mCalib,mEASF.mDir);
+      StdCorrecNameOrient(mCalib,mDir);
+   }
+   const std::vector<std::string> * aFilesIm =0;
+   if (mCallBack)
+   {
+       mXmlParBox = StdGetFromPCP(NameParamBox(mKBox),Xml_ParamBoxReducTieP);
+       mBoxLoc = mXmlParBox.Box();
+       aFilesIm = &(mXmlParBox.Ims());
+   }
+   else
+   {
+       cElemAppliSetFile anEASF(mPatImage);
+       anEASF.Init(mPatImage);
+       aFilesIm = anEASF.SetIm();
    }
 
-   const std::vector<std::string> * aFilesIm = mEASF.SetIm();
+
    mSetFiles = new std::set<std::string>(aFilesIm->begin(),aFilesIm->end());
-   std::cout << " Get Nb Images " <<  aFilesIm->size() << "\n";
+   std::cout << "## Get Nb Images " <<  aFilesIm->size() << "\n";
 
 
-   mNM = cVirtInterf_NewO_NameManager::StdAlloc(mEASF.mDir,mCalib);
+   mNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir,mCalib);
+
+   std::vector<double> aVResol;
+   Pt2dr aPInf( 1E50, 1E50);
+   Pt2dr aPSup(-1E50,-1E50);
 
    for (int aKI = 0 ; aKI<int(aFilesIm->size()) ; aKI++)
    {
@@ -78,13 +105,48 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)
        
        mVecCam.push_back(aCam);
        mMapCam[aNameIm] = aCam;
+
+       Box2dr aBox = aCam->CS().BoxSol();
+       aPInf = Inf(aBox._p0,aPInf);
+       aPSup = Sup(aBox._p1,aPSup);
+       aVResol.push_back(aCam->CS().ResolutionSol());
+       // std::cout << "BBB " << aBox._p0 << aBox._p1 << " " <<  aCam->CS().ResolutionSol() << "\n";
    }
+   mBoxGlob = Box2dr(aPInf,aPSup);
+   mResol = MedianeSup(aVResol);
+
+   std::cout << "   BOX " << mBoxGlob << " Resol=" << mResol << "\n";
+}
+
+
+const std::string cAppliTiepRed::TheNameTmp = "Tmp-ReducTieP/";
+
+std::string  cAppliTiepRed::NameParamBox(int aK) const
+{
+    return mDir+TheNameTmp + "Param_" +ToString(aK) + ".xml";
+}
+
+cVirtInterf_NewO_NameManager & cAppliTiepRed::NM(){ return *mNM ;}
+const cXml_ParamBoxReducTieP & cAppliTiepRed::ParamBox() const {return mXmlParBox;}
+const double & cAppliTiepRed::ThresoldPrec2Point() const {return  mPrec2Point;}
+const int    & cAppliTiepRed::ThresholdNbPts2Im() const  {return mThresholdNbPts2Im;}
+const int    & cAppliTiepRed::ThresholdTotalNbPts2Im() const  {return mThresholdTotalNbPts2Im;}
+cCameraTiepRed * cAppliTiepRed::KthCam(int aK) {return mVecCam[aK];}
+const double & cAppliTiepRed::ThresholdPrecMult() const {return mThresholdPrecMult;}
+
+
+void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
+{
+    mLnk2Im.push_back(aLnk);
 }
 
 
 
-void cAppliTiepRed::Test()
+
+
+void cAppliTiepRed::DoReduceBox()
 {
+   // Load Tie Points in box
    for (int aKI = 0 ; aKI<int(mVecCam.size()) ; aKI++)
    {
        cCameraTiepRed & aCam1 = *(mVecCam[aKI]);
@@ -102,24 +164,156 @@ void cAppliTiepRed::Test()
                if (anI1 < anI2)
                {
                    cCameraTiepRed & aCam2 = *(mMapCam[anI2]);
-                   std::vector<Pt2df> aVP1,aVP2;
-                   mNM->LoadHomFloats(anI1,anI2,&aVP1,&aVP2);  // would have worked for I2 > I1 
-                   // cXml_Ori2Im aX2 = mNM->GetOri2Im(anI1,anI2); // works only for I1 < I2
 
-                   for (int aKP=0 ; aKP<int(aVP1.size()) ; aKP++)
-                   {
-                       double aD;
-                       Pt3dr aPTer = aCam1.BundleInter(aVP1[aKP],aCam2,aVP2[aKP],aD);
-                       std::cout << "AAAAAAAAAAAAAAAaa " << aD << "\n";
-                   }
-                   std::cout << "NNNN " << anI1 << " " << anI2 << "\n";
-                   getchar();
-
+                   aCam1.LoadHom(aCam2);
                }
             }
        }
    }
 
+   // Select Cam ( and Link ) with enough points
+   {
+      std::vector<cCameraTiepRed *>  aNewV;
+      int aNum=0;
+      for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
+      {
+          if (mVecCam[aKC]->SelectOnHom2Im())
+          {
+             aNewV.push_back(mVecCam[aKC]);
+             mVecCam[aKC]->SetNum(aNum);
+             aNum++;
+          }
+          else
+          {
+             mMapCam[mVecCam[aKC]->NameIm()] = 0;
+             delete mVecCam[aKC];
+          }
+      }
+      std::cout << "   CAMSS " << mVecCam.size() << " " << aNewV.size() << "\n";
+      mVecCam = aNewV;
+
+      std::list<cLnk2ImTiepRed *> aNewL;
+      for (std::list<cLnk2ImTiepRed *>::const_iterator itL=mLnk2Im.begin() ; itL!=mLnk2Im.end() ; itL++)
+      {
+          if ((*itL)->Cam1().SelectOnHom2Im() && (*itL)->Cam2().SelectOnHom2Im())
+             aNewL.push_back(*itL);
+      }
+      std::cout << "   LNK " << mLnk2Im.size() << " " << aNewL.size() << "\n";
+      mLnk2Im = aNewL;
+   }
+
+   // merge topological tie point
+
+    mMergeStruct  = new  tMergeStr(mVecCam.size());
+    for (std::list<cLnk2ImTiepRed *>::const_iterator itL=mLnk2Im.begin() ; itL!=mLnk2Im.end() ; itL++)
+    {
+        (*itL)->Add2Merge(mMergeStruct);
+    }
+    mMergeStruct->DoExport();
+    mLMerge =  & mMergeStruct->ListMerged();
+    std::vector<int> aVHist(mVecCam.size(),0);
+
+    double aSzTileAver = sqrt(mBoxLoc.surf()/mLMerge->size()); 
+
+   // give ground coord to multiple point and put them in quod-tree for indexation
+    
+    mQT = new ElQT<cPMulTiepRed*,Pt2dr,cP2dGroundOfPMul>
+              (
+                     mPMul2Gr,
+                     mBoxLoc,
+                     5,  // 5 obj max / box
+                     2*aSzTileAver
+              );
+
+    for (std::list<tMerge *>::const_iterator itM=mLMerge->begin() ; itM!=mLMerge->end() ; itM++)
+    {
+        cPMulTiepRed * aPM = new cPMulTiepRed(*itM,*this);
+        if (mBoxLoc.inside(aPM->Pt()))
+        {
+           mLPMul.push_back(aPM);
+           aVHist[(*itM)->NbSom()] ++;
+           mQT->insert(aPM);
+        }
+        else
+        {
+           delete aPM;
+        }
+    }
+
+
+    std::cout << "   NbMul " << mLMerge->size() 
+              << " Nb2:" << aVHist[2] << " Nb3:" << aVHist[3] 
+              << " Nb4:" << aVHist[4] << " Nb5:" << aVHist[5] 
+              << " Nb6:" << aVHist[6] << "\n";
+}
+
+
+
+
+void cAppliTiepRed::GenerateSplit()
+{
+    ELISE_fp::MkDirSvp(mDir+TheNameTmp);
+
+    Pt2dr aSzPix = mBoxGlob.sz() / mResol;
+    Pt2di aNb = round_up(aSzPix / double(mSzTile));
+    std::cout << "   GenerateSplit SzP=" << aSzPix << " Nb=" << aNb << " \n";
+    Pt2dr aSzTile =  mBoxGlob.sz().dcbyc(Pt2dr(aNb));
+
+    std::list<std::string> aLCom;
+
+
+    int aCpt=0;
+    for (int aKx=0 ; aKx<aNb.x ; aKx++)
+    {
+        for (int aKy=0 ; aKy<aNb.y ; aKy++)
+        {
+             Pt2dr aP0 = mBoxGlob._p0 + aSzTile.mcbyc(Pt2dr(aKx,aKy));
+             Pt2dr aP1 = aP0 +aSzTile;
+             Box2dr aBox(aP0,aP1);
+             cElPolygone aPolyBox = cElPolygone::FromBox(aBox);
+             // std::cout << "JJJJJjj " << aP0 << aP1 << "\n";
+             cXml_ParamBoxReducTieP aParamBox;
+             aParamBox.Box() = aBox;
+
+             for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
+             {
+                   // Polygone d'intersection
+                   cElPolygone  aPolInter = aPolyBox  * mVecCam[aKC]->CS().EmpriseSol();
+                   if (aPolInter.Surf() > 0)
+                   {
+               //          std::cout << "    SURF " << aPolInter.Surf() << " " << mVecCam[aKC]->NameIm() << "\n";
+                        aParamBox.Ims().push_back(mVecCam[aKC]->NameIm());
+                   }
+
+             }
+             if (aParamBox.Ims().size() >=2)
+             {
+                 MakeFileXML(aParamBox,NameParamBox(aCpt));
+                 std::string aCom = GlobArcArgv + "  KBox=" + ToString(aCpt);
+                 aLCom.push_back(aCom);
+                 // std::cout << aCom << "\n";
+                 aCpt++;
+             }
+        }
+    }
+    // cEl_GPAO::DoComInParal(aLCom);
+    cEl_GPAO::DoComInSerie(aLCom);
+
+    // int aNbX = round_up(mBoxGlob.sz().x /
+}
+
+
+
+void  cAppliTiepRed::Exe()
+{
+   if (mCallBack)
+   {
+      DoReduceBox();
+   }
+   else
+   {
+       GenerateSplit();
+   }
 }
 
 
@@ -127,7 +321,7 @@ void cAppliTiepRed::Test()
 int TestOscarTieP_main(int argc,char **argv) 
 {
     cAppliTiepRed anAppli(argc,argv);
-    anAppli.Test();
+    anAppli.Exe();
 
     return EXIT_SUCCESS;
 }

@@ -247,9 +247,6 @@ void TestF()
 
 
 
-#if (0)
-cHeapCmpSmallerY cHeapCmpSmallerY::TheOne;
-#endif
 
 
 static const int  TMaxNbCase = TNbCaseP1 * TNbCaseP1;
@@ -267,10 +264,6 @@ typedef  ElArcIterator<cGTrip_AttrSom,cGTrip_AttrArc> tItAGT;
 typedef  ElGraphe<cGTrip_AttrSom,cGTrip_AttrArc>      tGrGT;
 typedef  ElSubGraphe<cGTrip_AttrSom,cGTrip_AttrArc>   tSubGrGT;
 
-
-typedef  cFixedMergeTieP<3,Pt2df>    tElM;
-typedef  cFixedMergeStruct<3,Pt2df>  tMapM;
-typedef  std::list<tElM *>           tListM;
 
 class cGTrip_AttrSom
 {
@@ -303,7 +296,6 @@ class cGTrip_AttrSom
          cNewO_OneIm *       mIm;
          Pt3dr               mC3;
          ElMatrix<double>    mM3;
-         tMapM *             mMerged;
 
          int mNb[TMaxNbCase];
          int mDens[TMaxNbCase];
@@ -1058,11 +1050,9 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
 
    return true;
 }
-/*
-*/
 
 
-void  AddPackToMerge(CamStenope * aCS1,CamStenope * aCS2,const ElPackHomologue & aPack,cFixedMergeStruct<2,Pt2df> &   aMap,int aInd0)
+void  AddPackToMerge(CamStenope * aCS1,CamStenope * aCS2,const ElPackHomologue & aPack,cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> >&   aMap,int aInd0)
 {
     for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
     {
@@ -1183,6 +1173,7 @@ int GenTriplet_main(int argc,char ** argv)
    anAppli.GenTriplet();
    return EXIT_SUCCESS;
 }
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
