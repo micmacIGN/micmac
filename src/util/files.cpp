@@ -359,9 +359,9 @@ void ELISE_fp::CpFile(const std::string & aName1,const std::string &  aDest)
 		std::string aNameCom = std::string(SYS_CP) + " " + aName1 + " " + aDest;
 	#endif
 
-     VoidSystem(aNameCom.c_str());
+	VoidSystem(aNameCom.c_str());
 
-	 ELISE_DEBUG_ERROR(!ELISE_fp::exist_file(aDest), "ELISE_fp::CpFile", '[' << aNameCom << "] has not been created");
+	ELISE_DEBUG_ERROR(!ELISE_fp::exist_file(aDest), "ELISE_fp::CpFile", '[' << aNameCom << "] has not been created");
 }
 
 void  ELISE_fp::PurgeDirGen(const std::string & aDir, bool Recurs)
@@ -452,29 +452,31 @@ void ELISE_fp::MkDirRec(const std::string &  aName )
 bool ELISE_fp::copy_file( const std::string i_src, const std::string i_dst, bool i_overwrite )
 {
 	#if (ELISE_windows)
-		return CopyFile(i_src.c_str(), i_dst.c_str(), i_overwrite ? 0 : 1 /*fail if Exits*/ ) != 0;
+		return CopyFile(i_src.c_str(), i_dst.c_str(), i_overwrite ? 0 : 1) != 0;
 	#else
-		if ( !i_overwrite && exist_file(i_dst) ) return false;
+		if ( !i_overwrite && exist_file(i_dst)) return false;
 
-		ifstream src( i_src.c_str(), ios::binary );
-		ofstream dst( i_dst.c_str(), ios::binary );
+		ifstream src(i_src.c_str(), ios::binary);
+		ofstream dst(i_dst.c_str(), ios::binary);
 
-		if ( !src || !dst ) return false;
+		if ( !src || !dst) return false;
 
-        const unsigned int buffer_size = 1000000;
-        vector<char> buffer(buffer_size);
-		while ( !src.eof() )
+		const unsigned int buffer_size = 1000000;
+		vector<char> buffer(buffer_size);
+		while ( !src.eof())
 		{
-            src.read( buffer.data(), buffer_size );
-            dst.write( buffer.data(), src.gcount() );
+			src.read(buffer.data(), buffer_size);
+			dst.write(buffer.data(), src.gcount());
 		}
-		return true;
+
 		#if (ELISE_POSIX)
 			// copy rights on file
 			struct stat s;
-			stat( i_src.c_str(), &s );
-			chmod( i_dst.c_str(), s.st_mode );
+			stat(i_src.c_str(), &s);
+			chmod(i_dst.c_str(), s.st_mode);
 		#endif
+
+		return true;
 	#endif
 }
 

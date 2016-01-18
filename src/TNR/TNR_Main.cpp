@@ -46,18 +46,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#include <io.h>
 //#endif
 
-
-class cTestElParseDir : public ElActionParseDir
-{
-    public :
-        void act(const ElResParseDir & aRPD)
-	{
-	    FileList.push_back(aRPD.name());
-	};
-	vector<std::string> FileList;
-};
-
-
 class cAppli_TNR_Main  : public  cElErrorHandlor
 {
     public :
@@ -73,10 +61,12 @@ class cAppli_TNR_Main  : public  cElErrorHandlor
 	cXmlTNR_CalibReport TestCalib(const cXmlTNR_TestDiffCalib & aCalib);
 	cXmlTNR_OriReport TestOri(const cXmlTNR_TestDiffOri & aOri);
 	cXmlTNR_ImgReport TestImg(const cXmlTNR_TestDiffImg & aImg);
-	std::vector<std::string> DirArbo(const std::string & DirPath);
+	vector<string> DirArbo(const string & DirPath) const;
 	int DirSize(const std::string & DirPath);
 	void  Error(const std::string &);
-	
+
+	void createInitialDirectory() const;
+
 	//Declaration des variables
 	cElemAppliSetFile mEASF;
 	std::string mPattern;
@@ -110,8 +100,18 @@ void cAppli_TNR_Main::Error(const std::string & aMes)
     std::cout << aMes << "\n";
 }
 
+class cTestElParseDir : public ElActionParseDir
+{
+    public :
+        void act(const ElResParseDir & aRPD)
+	{
+	    FileList.push_back(aRPD.name());
+	};
+	vector<std::string> FileList;
+};
+
 //Recursive function to get complete arborescence of one directory
-std::vector<std::string> cAppli_TNR_Main::DirArbo(const std::string & DirPath)
+vector<string> cAppli_TNR_Main::DirArbo(const string & DirPath) const
 {
     cTestElParseDir aTPD;
     ElParseDir(DirPath.c_str(),aTPD,1000);
@@ -534,6 +534,39 @@ vector<cXmlTNR_OneTestReport> cAppli_TNR_Main::TestOneCom(const cXmlTNR_OneTest 
     return Test;
 }
 
+void cAppli_TNR_Main::createInitialDirectory() const
+{
+	cout << "--- creating initial Exe directory [" << mCurDirExe << ']' << endl;
+	ELISE_fp::MkDir(mCurDirExe);
+	if ( !cElFilename(mCurDirExe).copyRights(cElFilename(mCurDirExe)))
+	{
+		ELISE_DEBUG_ERROR(true, "cAppli_TNR_Main::createInitialDirectory", "failed to copy rights from [" << mCurDirRef << "] to [" << mCurDirExe << "]");
+		return;
+	}
+
+	for (list<string>::const_iterator itN = mXML_CurGT.PatFileInit().begin(); itN != mXML_CurGT.PatFileInit().end(); itN++)
+	{
+		cout << '\t' << "copy files of pattern [" << mCurDirRef + *itN << ']' << endl;
+
+		cElPathRegex pathRegex(mCurDirRef + *itN);
+		pathRegex.copy(mCurDirExe);
+
+		//~ ELISE_fp::CpFile((mCurDirRef + *itN), mCurDirExe);
+	}
+
+	for (list<string>::const_iterator itN = mXML_CurGT.DirInit().begin(); itN != mXML_CurGT.DirInit().end(); itN++)
+	{
+		cout << '\t' << "copy directory [" << mCurDirRef + *itN << ']' << endl;
+
+		ctPath(mCurDirRef + *itN).copy(ctPath(mCurDirExe + *itN));
+
+		//~ vector<string> FileList = DirArbo(mCurDirRef + *itN);
+		//~ ELISE_fp::MkDir(mCurDirExe + *itN);
+		//~ for(size_t i = 0; i < FileList.size(); i++)
+			//~ if(ELISE_fp::IsDirectory(mCurDirRef + *itN + FileList[i])) ELISE_fp::CpFile((mCurDirRef + *itN + FileList[i]), mCurDirExe + *itN);
+	}
+}
+
 void cAppli_TNR_Main::DoOneGlobTNR(const std::string & aNameFile,const std::string & mOutXML, const std::string & mOutErrorsXML)
 {
     cXmlTNR_GlobTestReport aGTR;//initialize Global Test Report
@@ -548,56 +581,11 @@ void cAppli_TNR_Main::DoOneGlobTNR(const std::string & aNameFile,const std::stri
     {
 		mCurDirExe = mEASF.mDir+  "TNR-Exe-" + mXML_CurGT.Name() + "/";
     }
-    int ExistDir=ELISE_fp::IsDirectory(mCurDirExe);
     
-    // On fait une directory TNR vide
-    if (ExistDir==1)
-    {
-		if (mPurge)
-		{
-			ELISE_fp::PurgeDirRecursif(mCurDirExe);
-			ELISE_fp::MkDir(mCurDirExe);
-			for (std::list<std::string>::const_iterator itN=mXML_CurGT.PatFileInit().begin() ; itN!=mXML_CurGT.PatFileInit().end() ; itN++)
-			{
-				ELISE_fp::CpFile((mCurDirRef + *itN),mCurDirExe);
-			}
-			for (std::list<std::string>::const_iterator itN=mXML_CurGT.DirInit().begin() ; itN!=mXML_CurGT.DirInit().end() ; itN++)
-			{
-				std::vector<std::string> FileList = DirArbo(mCurDirRef + *itN);
-				ELISE_fp::MkDir(mCurDirExe + *itN);
-				for(unsigned int i=0;i<FileList.size();i++)
-				{
-					if(ELISE_fp::IsDirectory(mCurDirRef + *itN + FileList[i])!=1)
-					{
-						ELISE_fp::CpFile((mCurDirRef + *itN + FileList[i]),mCurDirExe + *itN);
-					}
-				}
-				
-			}
-	}
-    }
-    else
-    {
-		ELISE_fp::MkDir(mCurDirExe);
-	for (std::list<std::string>::const_iterator itN=mXML_CurGT.PatFileInit().begin() ; itN!=mXML_CurGT.PatFileInit().end() ; itN++)
-	{
-	    ELISE_fp::CpFile((mCurDirRef + *itN),mCurDirExe);
-	}
-	
-	for (std::list<std::string>::const_iterator itN=mXML_CurGT.DirInit().begin() ; itN!=mXML_CurGT.DirInit().end() ; itN++)
-	{
-	    std::vector<std::string> FileList = DirArbo(mCurDirRef + *itN);
-		ELISE_fp::MkDir(mCurDirExe + *itN);
-		for(unsigned int i=0;i<FileList.size();i++)
-		{
-			if(ELISE_fp::IsDirectory(mCurDirRef + *itN + FileList[i])!=1)
-			{
-				ELISE_fp::CpFile((mCurDirRef + *itN + FileList[i]),mCurDirExe + *itN);
-			}
-		}
-	}
-    }
-		
+	// On fait une directory TNR vide
+	if (ELISE_fp::IsDirectory(mCurDirExe) && mPurge) ELISE_fp::PurgeDirRecursif(mCurDirExe);
+	createInitialDirectory();
+
     int c = 0;
     int ct = 0;
     for (std::list<cXmlTNR_OneTest>::const_iterator it1T= mXML_CurGT.Tests().begin() ; it1T!= mXML_CurGT.Tests().end() ;  it1T++)

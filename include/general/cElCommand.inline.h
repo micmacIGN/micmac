@@ -4,17 +4,31 @@
 // cElCommandToken
 //-------------------------------------------
 
-bool cElCommandToken::operator !=( const cElCommandToken &i_b ) const { return !((*this)==i_b); }
-
-template <class T> T & cElCommandToken::specialize() { return *((T *)this); }
-
-template <class T> const T & cElCommandToken::specialize() const { return *((const T *)this); }
-
-U_INT8 cElCommandToken::raw_size() const { return string_raw_size( str() )+4; } // 4 = type size
-
-void cElCommandToken::trace( std::ostream &io_ostream ) const
+inline bool cElCommandToken::operator !=(const cElCommandToken &aB) const
 {
-   io_ostream << "(" << CmdTokenType_to_string( type() ) << "," << str() << ")" << std::endl;
+	return !((*this) == aB);
+}
+
+template <class T>
+inline T & cElCommandToken::specialize()
+{
+	return *((T *)this);
+}
+
+template <class T>
+inline const T & cElCommandToken::specialize() const
+{
+	return *((const T *)this);
+}
+
+inline U_INT8 cElCommandToken::raw_size() const
+{
+	return string_raw_size(str()) + 4; // 4 = type size
+}
+
+inline void cElCommandToken::trace(std::ostream &aOstream) const
+{
+	aOstream << "(" << CmdTokenType_to_string(type()) << "," << str() << ")" << std::endl;
 }
 
 
@@ -22,36 +36,69 @@ void cElCommandToken::trace( std::ostream &io_ostream ) const
 // ctRawString
 //-------------------------------------------
 
-ctRawString::ctRawString( const std::string &i_value ):m_value(i_value){}
+inline ctRawString::ctRawString(const std::string &aValue):
+	m_value(aValue)
+{
+}
+
+inline CmdTokenType ctRawString::type() const
+{
+	return CTT_RawString;
+}
+
+inline std::string ctRawString::str() const
+{
+	return m_value;
+}
 
 
 //-------------------------------------------
 // cElCommand
 //-------------------------------------------
 
-cElCommand::cElCommand(){}
+inline cElCommand::cElCommand()
+{
+}
 
-cElCommand::cElCommand( const std::string &i_str ){ add_raw(i_str); }
+inline cElCommand::cElCommand(const std::string &aStr)
+{
+	add_raw(aStr);
+}
 
-cElCommand::~cElCommand(){ clear(); }
+inline cElCommand::~cElCommand()
+{
+	clear();
+}
 
-cElCommand::cElCommand( const cElCommand &i_b ){ *this=i_b; }
+inline cElCommand::cElCommand(const cElCommand &aB)
+{
+	*this = aB;
+}
 
-bool cElCommand::operator !=( const cElCommand &i_b ) const { return !( (*this)==i_b ); }
+inline bool cElCommand::operator !=(const cElCommand &aB) const
+{
+	return !((*this) == aB);
+}
 
-unsigned int cElCommand::nbTokens() const { return (unsigned int)m_tokens.size(); }
+inline unsigned int cElCommand::nbTokens() const
+{
+	return (unsigned int)m_tokens.size();
+}
 
 
 //-------------------------------------------
 // ctPath::Token
 //-------------------------------------------
 
-ctPath::Token::Token( const std::string &i_token ):std::string(i_token){}
-
-bool ctPath::Token::isRoot() const
+inline ctPath::Token::Token(const std::string &aToken):
+	std::string(aToken)
 {
-   return length()==0 ||  // empty (unix)
-          ( length()==2 && at(1)==':' ); // a volume letter + ':' (windows)
+}
+
+inline bool ctPath::Token::isRoot() const
+{
+	return length() == 0 ||  // empty (unix)
+		( length()==2 && at(1)==':' ); // a volume letter + ':' (windows)
 }
 
    
@@ -59,85 +106,153 @@ bool ctPath::Token::isRoot() const
 // ctPath
 //-------------------------------------------
 
-CmdTokenType ctPath::type() const { return CTT_Path; }
+inline CmdTokenType ctPath::type() const
+{
+	return CTT_Path;
+}
 
-std::string ctPath::str() const { return m_normalizedName; }
+inline std::string ctPath::str() const
+{
+	return m_normalizedName;
+}
 
-std::string ctPath::str_unix() const { return str(ctPath::unix_separator); }
+inline std::string ctPath::str_unix() const
+{
+	return str(ctPath::unix_separator);
+}
 
-std::string ctPath::str_windows() const { return str(ctPath::windows_separator); }
+inline std::string ctPath::str_windows() const
+{
+	return str(ctPath::windows_separator);
+}
    
-bool ctPath::isAbsolute() const { return m_tokens.size()>1 && m_tokens.begin()->isRoot(); }
+inline bool ctPath::isAbsolute() const
+{
+	return !m_tokens.empty() && m_tokens.begin()->isRoot();
+}
 
-bool ctPath::isNull() const { return m_tokens.begin()==m_tokens.end(); }
+inline bool ctPath::isNull() const
+{
+	return m_tokens.begin() == m_tokens.end();
+}
 
-bool ctPath::operator <( const ctPath &i_b ) const { return compare( i_b )<0; }
+inline bool ctPath::operator <(const ctPath &aB) const
+{
+	return compare(aB) < 0;
+}
 
-bool ctPath::operator >( const ctPath &i_b ) const { return compare( i_b )>0; }
+inline bool ctPath::operator >(const ctPath &aB) const
+{
+	return compare(aB) > 0;
+}
 
-bool ctPath::operator ==( const ctPath &i_b ) const { return compare( i_b )==0; }
+inline bool ctPath::operator ==(const ctPath &aB) const
+{
+	return compare(aB) == 0;
+}
 
-bool ctPath::operator !=( const ctPath &i_b ) const { return compare( i_b )!=0; }
+inline bool ctPath::operator !=(const ctPath &aB) const
+{
+	return compare(aB) != 0;
+}
 
-bool ctPath::remove() const{ return ( removeContent() && removeEmpty() ); }
+inline bool ctPath::remove() const
+{
+	return removeContent() && removeEmpty();
+}
+
+inline void ctPath::update_normalized_name()
+{
+   m_normalizedName = str(unix_separator);
+}
 
 
 //-------------------------------------------
 // cElFilename
 //-------------------------------------------
 
-cElFilename::cElFilename( const ctPath &i_path, const cElFilename &i_filename ):m_path(i_path,i_filename.m_path),m_basename(i_filename.m_basename){}
-
-cElFilename::cElFilename( const ctPath &i_path, const std::string i_basename ):m_path(i_path),m_basename(i_basename){}
-
-std::string cElFilename::str( char i_separator ) const
+inline cElFilename::cElFilename(const ctPath &aPath, const cElFilename &aFilename):
+	m_path(aPath, aFilename.m_path),
+	m_basename(aFilename.m_basename)
 {
-   if ( m_path.isNull() ) return m_basename;
-   return m_path.str( i_separator )+m_basename;
 }
 
-std::string cElFilename::str_unix() const { return str(ctPath::unix_separator); }
+inline cElFilename::cElFilename(const ctPath &aPath, const std::string aBasename):
+	m_path(aPath),
+	m_basename(aBasename)
+{
+}
 
-std::string cElFilename::str_windows() const { return str(ctPath::windows_separator); }
+inline std::string cElFilename::str(char aSeparator) const
+{
+   if (m_path.isNull()) return m_basename;
+   return m_path.str(aSeparator) + m_basename;
+}
 
-std::string cElFilename::str() const { return str_unix(); }
+inline std::string cElFilename::str_unix() const
+{
+	return str(ctPath::unix_separator);
+}
 
-bool cElFilename::operator <( const cElFilename &i_b ) const { return compare( i_b )<0; }
+inline std::string cElFilename::str_windows() const
+{
+	return str(ctPath::windows_separator);
+}
 
-bool cElFilename::operator >( const cElFilename &i_b ) const { return compare( i_b )>0; }
+inline std::string cElFilename::str() const
+{
+	return str_unix();
+}
 
-bool cElFilename::operator ==( const cElFilename &i_b ) const { return compare( i_b )==0; }
+inline bool cElFilename::operator <(const cElFilename &aB) const
+{
+	return compare(aB) < 0;
+}
 
-bool cElFilename::operator !=( const cElFilename &i_b ) const { return compare( i_b )!=0; }
+inline bool cElFilename::operator >(const cElFilename &aB) const
+{
+	return compare(aB) > 0;
+}
 
-bool cElFilename::setRights( mode_t o_rights ) const {
+inline bool cElFilename::operator ==(const cElFilename &aB) const
+{
+	return compare(aB) == 0;
+}
+
+inline bool cElFilename::operator !=(const cElFilename &aB) const
+{
+	return compare(aB) != 0;
+}
+
+inline bool cElFilename::setRights(mode_t aRights) const
+{
 	bool res;
 	#if (ELISE_POSIX)
-		res = (chmod( str_unix().c_str(), o_rights )==0);
+		res = (chmod(str_unix().c_str(), aRights) == 0);
 	#else
 		res = true; // __TODO : windows read-only files
 	#endif
 	#ifdef __DEBUG_C_EL_COMMAND
-		if ( !res ) ELISE_ERROR_EXIT("cannot set rights on [" << str_unix() << ']');
+		if ( !res) ELISE_ERROR_EXIT("cannot set rights on [" << str_unix() << ']');
 	#endif
 	return res;
 }
 
-bool cElFilename::getRights( mode_t &o_rights ) const
+inline bool cElFilename::getRights(mode_t &oRights) const
 {
 	bool res;
 	#if (ELISE_POSIX)
 		struct stat s;
-		res = ( stat( str_unix().c_str(), &s )==0 );
-		o_rights = s.st_mode;
-		o_rights &= posixMask; // restrain rights to documented posix bits (the twelve less significant bits)
+		res = (stat(str_unix().c_str(), &s) == 0);
+		oRights = s.st_mode;
+		oRights &= posixMask; // restrain rights to documented posix bits (the twelve less significant bits)
 	#else
-		o_rights = unhandledRights;
+		oRights = unhandledRights;
 		res = true; // __TODO : windows read-only files
 	#endif
-	#ifdef __DEBUG_C_EL_COMMAND
-		if ( !res) ELISE_ERROR_EXIT("cannot get rights on [" << str_unix() << ']');
-	#endif
+
+	ELISE_DEBUG_ERROR( !res, "cElFilename::getRights", "cannot get rights on [" << str() << ']');
+
 	return res;
 }
 
@@ -146,61 +261,70 @@ bool cElFilename::getRights( mode_t &o_rights ) const
 // cElPathRegex
 //-------------------------------------------
 
-cElPathRegex::cElPathRegex( const ctPath &i_path, const std::string i_regex ):cElFilename(i_path,i_regex){}
+inline cElPathRegex::cElPathRegex(const ctPath &aPath, const std::string aRegex):
+	cElFilename(aPath, aRegex)
+{
+}
 
-cElPathRegex::cElPathRegex( const std::string i_fullregex ):cElFilename(i_fullregex){}
+inline cElPathRegex::cElPathRegex(const std::string aFullregex):
+	cElFilename(aFullregex)
+{
+}
 
 
 //-------------------------------------------
 // related functions
 //-------------------------------------------
 
-U_INT8 string_raw_size( const std::string &i_str ){ return 4+i_str.length(); }
-
-std::string read_string( std::istream &io_istream, std::vector<char> &io_buffer, bool i_reverseByteOrder )
+inline U_INT8 string_raw_size(const std::string &aStr)
 {
-   U_INT4 ui;
-   io_istream.read( (char*)(&ui), 4 );
-   if ( i_reverseByteOrder ) byte_inv_4( &ui );
-   io_buffer.resize(ui);
-   io_istream.read( io_buffer.data(), ui );
-   return std::string( io_buffer.data(), ui );
+	return (U_INT8)(aStr.length() + 4);
 }
 
-void write_string( const std::string &str, std::ostream &io_ostream, bool i_reverseByteOrder )
+inline std::string read_string(std::istream &aIStream, std::vector<char> &oBuffer, bool aReverseByteOrder)
 {
-   U_INT4 ui = (U_INT4)str.size();
-   if ( i_reverseByteOrder ) byte_inv_4( &ui );
-   io_ostream.write( (char*)(&ui), 4 );
-   io_ostream.write( str.c_str(), ui );
+	U_INT4 ui;
+	aIStream.read((char *)( &ui), 4);
+	if (aReverseByteOrder) byte_inv_4( &ui);
+	oBuffer.resize(ui);
+	aIStream.read(oBuffer.data(), ui);
+	return std::string(oBuffer.data(), ui);
+}
+
+inline void write_string(const std::string &aStr, std::ostream &aOStream, bool aReverseByteOrder)
+{
+	U_INT4 ui = (U_INT4)aStr.size();
+	if (aReverseByteOrder) byte_inv_4( &ui);
+	aOStream.write((char *)(&ui), 4);
+	aOStream.write(aStr.c_str(), ui);
 }
 
 // int4<->raw
-void int4_to_raw_data( const INT4 &i_v, bool i_reverseByteOrder, char *&o_rawData )
+inline void int4_to_raw_data(const INT4 &aV, bool aReverseByteOrder, char *&aRawData)
 {
-   memcpy( o_rawData, &i_v, 4 );
-   if ( i_reverseByteOrder ) byte_inv_4( &o_rawData );
-   o_rawData += 4;
+	memcpy(aRawData, &aV, 4);
+	if (aReverseByteOrder) byte_inv_4( &aRawData);
+	aRawData += 4;
 }
 
-void int4_from_raw_data( char const *&io_rawData, bool i_reverseByteOrder, INT4 &o_v )
+inline void int4_from_raw_data(char const *&aRawData, bool aReverseByteOrder, INT4 &oV)
 {
-   memcpy( &o_v, io_rawData, 4 );
-   if ( i_reverseByteOrder ) byte_inv_4( &o_v );
-   io_rawData += 4;
+	memcpy( &oV, aRawData, 4);
+	if (aReverseByteOrder) byte_inv_4( &oV);
+	aRawData += 4;
 }
 
 // uint4<->raw
-void uint4_to_raw_data( const U_INT4 &i_v, bool i_reverseByteOrder, char *&o_rawData )
+inline void uint4_to_raw_data(const U_INT4 &aV, bool aReverseByteOrder, char *&aRawData)
 {
-   memcpy( o_rawData, &i_v, 4 );
-   if ( i_reverseByteOrder ) byte_inv_4( &o_rawData );
-   o_rawData += 4;
+	memcpy(aRawData, &aV, 4);
+	if (aReverseByteOrder) byte_inv_4( &aRawData);
+	aRawData += 4;
 }
 
-void uint4_from_raw_data( const char *&io_rawData, bool i_reverseByteOrder, U_INT4 &o_v )
+inline void uint4_from_raw_data(const char *&aRawData, bool aReverseByteOrder, U_INT4 &oV)
 {
-   memcpy( &o_v, io_rawData, 4 );
-   if ( i_reverseByteOrder ) byte_inv_4( &o_v );
-   io_rawData += 4;
+	memcpy(&oV, aRawData, 4);
+	if (aReverseByteOrder) byte_inv_4( &oV);
+	aRawData += 4;
 }

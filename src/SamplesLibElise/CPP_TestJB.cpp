@@ -308,34 +308,15 @@ int command_renameImageSet( int argc, char **argv )
 
 int command_toto( int argc, char **argv )
 {
-	if (argc != 1) ELISE_ERROR_EXIT("missing 3d points filename");
+	if (argc != 2) ELISE_ERROR_RETURN("usage: src_directory src_directory");
 
-	const string filename = argv[0];
-	if ( !ELISE_fp::exist_file(filename)) ELISE_ERROR_EXIT("file [" << filename << "] does not exist");
-
-	ifstream f(filename.c_str(), ios::binary);
-	ELISE_DEBUG_ERROR( !f, "command_toto", "failed to open file [" << filename << "] for reading");
-
-	vector<Pt3dr> points;
-
-	INT4 nbPoints;
-	f.read((char *)&nbPoints, 4);
-	ELISE_DEBUG_ERROR(nbPoints < 0, "command_toto", "invalid nbPoints = " << nbPoints);
-	cout << "nbPoints = " << nbPoints << ' ' << f.tellg() << endl;
-	points.resize((size_t)nbPoints);
-
-	REAL readPoint[3];
-	Pt3dr *itDst = points.data();
-	//~ while (nbPoints--)
-	for (int i = 0; i < nbPoints; i++)
-	{
-		f.read((char *)readPoint, sizeof(readPoint));
-		itDst->x = readPoint[0];
-		itDst->y = readPoint[1];
-		(*itDst++).z = readPoint[2];
-
-		cout << i << ": " << itDst[-1] << ' ' << f.tellg() << endl;
-	}
+	ctPath src(argv[0]), dst(argv[1]);
+	cout << "src: [" << src.str() << ']' << endl;
+	cout << "dst: [" << dst.str() << ']' << endl;
+	if (src.copy(dst))
+		cout << "copy succeeded" << endl;
+	else
+		cout << "copy failed" << endl;
 
 	return EXIT_SUCCESS;
 }
