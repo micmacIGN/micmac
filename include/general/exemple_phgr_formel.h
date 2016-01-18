@@ -980,6 +980,63 @@ template <class TypeIndex,class TypeVal> class  cGenTabByMapPtr
 };
 
 #define DefcTpl_GT cGenTabByMapPtr
+/*
+ #######    Classes to store one multiple point : ###########
+
+
+  implemantation in  src/uti_phgrm/NewOri/cNewO_DynFusPtsMul.cpp
+
+
+ #    cComMergeTieP => Common to all classes used for merging one multiple  point , to factorize the code (others inhreits of its)
+
+
+ #   cVarSizeMergeTieP<Type> => Store tie point of one type=Type  (for  ex Type= Pt2dr, only use == on this type)
+                                Usable with artibrary number of images
+
+
+  #  cFixedSizeMergeTieP<TheNb,Type> => Store tie point when the number of images is limited to TheNb (optimisation 
+                                         for pair, triplet ... used in martini).
+
+  #  Requirement of Multiple tie point classe 
+
+        bool IsInit(int aK) const  => Is there some value for image K
+        int  NbSom() const         =>  number of images
+        void FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,std::vector<tMapMerge> &  Tabs) 
+             Makes one single  mutiple point by merging two , El2 is merged inside this
+             Tabs is the map that for given image, reference the multiple point associated to a value
+
+             Tabs[int KImage][Pt2dr aPt] => multiple point in image KImage at value aPt
+
+
+        void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2) => Update counting when a new pair is added to the multiple
+
+        cVarSizeMergeTieP() ;
+        const Type & GetVal(int aK) const ;
+        void AddSom(const Type & aV,int aK);
+        static int FixedSize();
+
+   # cStructMergeTieP<Type>  class for storing all the multiple point, for exemple
+
+       *     cStructMergeTieP<cVarSizeMergeTieP<Pt2df> >  store Tie Points of 
+       *     cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2df> >  store Tie Points for triplets
+
+
+   # Basic manipulation :
+
+       * constructor    cStructMergeTieP(int aNbVal) => Must indicate the number of image (will be redundant in cFixedSizeMergeTieP case)
+
+       * void AddArc(const tVal & aV1,int aK1,const tVal & aV2,int aK2) => add a pair of tie point in image K1 an K2) 
+          (= Add Edge)
+
+       * void DoExport() => generate the export !!!! => No more AddArc can be done after
+
+       * const std::list<tMerge *> & ListMerged() const;  => retune the list of merge tie point (in fact tMerge==Type)
+
+       * Delete  => free memory 
+
+*/
+
+
 class cComMergeTieP
 {
     public  :
