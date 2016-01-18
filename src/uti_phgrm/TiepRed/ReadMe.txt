@@ -3,6 +3,13 @@ Manipulation of tie points after first step of  Martini processing. Use the clas
 
 
 ==================================================
+Classe for topological merging in  "general/exemple_phgr_formel.h"
+
+
+    cVarSizeMergeTieP                     => One Multiple point
+    cStructMergeTieP<cVarSizeMergeTieP>   => All multiple point
+
+==================================================
 
 Exemple of use with my data set
 
