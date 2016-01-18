@@ -332,46 +332,54 @@ void dump(const cRepereCartesien &aRepereCartesien, const string &aPrefix = stri
 int command_toto( int argc, char **argv )
 {
 	#if 0
-	if (argc != 2) ELISE_ERROR_RETURN("usage: src_directory src_directory");
+		if (argc != 2) ELISE_ERROR_RETURN("usage: src_directory src_directory");
 
-	ctPath src(argv[0]), dst(argv[1]);
-	cout << "src: [" << src.str() << ']' << endl;
-	cout << "dst: [" << dst.str() << ']' << endl;
-	if (src.copy(dst))
-		cout << "copy succeeded" << endl;
-	else
-		cout << "copy failed" << endl;
+		ctPath src(argv[0]), dst(argv[1]);
+		cout << "src: [" << src.str() << ']' << endl;
+		cout << "dst: [" << dst.str() << ']' << endl;
+		if (src.copy(dst))
+			cout << "copy succeeded" << endl;
+		else
+			cout << "copy failed" << endl;
 	#endif
 
-	const string xml_zmap = "/home/jbelvaux/data/Pierrerue_benjamin/Z_Num8_DeZoom2_STD-MALT.xml";
-	cFileOriMnt fileOriMNT_zmap = StdGetFromPCP(xml_zmap, FileOriMnt);
-	cout << '[' << xml_zmap << ']' << endl;
-	dump(fileOriMNT_zmap, "\t");
-	cout << endl;
+	#if 0
+		const string xml_zmap = "/home/jbelvaux/data/Pierrerue_benjamin/Z_Num8_DeZoom2_STD-MALT.xml";
+		cFileOriMnt fileOriMNT_zmap = StdGetFromPCP(xml_zmap, FileOriMnt);
+		cout << '[' << xml_zmap << ']' << endl;
+		dump(fileOriMNT_zmap, "\t");
+		cout << endl;
 
-	const string xml_ortho = "/home/jbelvaux/data/Pierrerue_benjamin/MTDOrtho.xml";
-	cFileOriMnt fileOriMNT_ortho = StdGetFromPCP(xml_ortho, FileOriMnt);
-	cout << '[' << xml_ortho << ']' << endl;
-	dump(fileOriMNT_ortho, "\t");
-	cout << endl;
+		const string xml_ortho = "/home/jbelvaux/data/Pierrerue_benjamin/MTDOrtho.xml";
+		cFileOriMnt fileOriMNT_ortho = StdGetFromPCP(xml_ortho, FileOriMnt);
+		cout << '[' << xml_ortho << ']' << endl;
+		dump(fileOriMNT_ortho, "\t");
+		cout << endl;
 
-	const string xml_repereCartesien = "/home/jbelvaux/data/Pierrerue_benjamin/Repere-Facade1.xml";
-	cRepereCartesien repereCartesien = StdGetFromPCP(xml_repereCartesien, RepereCartesien);
-	cout << '[' << xml_repereCartesien << ']' << endl;
-	dump(repereCartesien, "\t");
-	cout << endl;
+		const string xml_repereCartesien = "/home/jbelvaux/data/Pierrerue_benjamin/Repere-Facade1.xml";
+		cRepereCartesien repereCartesien = StdGetFromPCP(xml_repereCartesien, RepereCartesien);
+		cout << '[' << xml_repereCartesien << ']' << endl;
+		dump(repereCartesien, "\t");
+		cout << endl;
 
-	const Pt2dr p2d(367.36, 4224.);
-	Pt2dr pp2d = ToMnt(fileOriMNT_ortho, p2d);
-	cout << "toMNT(" << p2d << ") = " << pp2d << endl << endl;
+		const Pt2dr p2d(367.36, 4224.);
+		Pt2dr pp2d = ToMnt(fileOriMNT_ortho, p2d);
+		cout << "toMNT(" << p2d << ") = " << pp2d << endl << endl;
 
-	const Pt3dr p(367.36, 4224., -1.85795);
-	Pt3dr pp = ToMnt(fileOriMNT_ortho, p);
-	cout << "toMNT(" << p << ") = " << pp << endl;
+		const Pt3dr p(367.36, 4224., -1.85795);
+		Pt3dr pp = ToMnt(fileOriMNT_ortho, p);
+		cout << "toMNT(" << p << ") = " << pp << endl;
 
-	cChCoCart changeCoordCartesiennes = cChCoCart::Xml2El(repereCartesien);
-	//~ cout << "f(0., 0., 0.) = " << changeCoordCartesiennes.FromLoc(Pt3dr(0., 0., 0.)) << endl;
-	cout << "f(" << pp << ") = " << changeCoordCartesiennes.FromLoc(pp) << endl;
+		cChCoCart changeCoordCartesiennes = cChCoCart::Xml2El(repereCartesien);
+		//~ cout << "f(0., 0., 0.) = " << changeCoordCartesiennes.FromLoc(Pt3dr(0., 0., 0.)) << endl;
+		cout << "f(" << pp << ") = " << changeCoordCartesiennes.FromLoc(pp) << endl;
+	#endif
+
+	cElRegex pattern(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);
+	if (pattern.Match("Ori-Toto"))
+		cout << "yeah !" << endl;
+	else
+		cout << "oh no !" << endl;
 
 	return EXIT_SUCCESS;
 }
