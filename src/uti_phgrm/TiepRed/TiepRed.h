@@ -45,6 +45,58 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cCameraTiepRed;
 class cAppliTiepRed;
 class cLnk2ImTiepRed;
+class cPMulTiepRed;
+
+/*
+    cCameraTiepRed => geometry of camera,
+
+
+    cPMulTiepRed => one multiple point (topology + ground geometry)
+
+    cLnk2ImTiepRed  => link between two images (contains homologous points in the current box)
+
+#####   cAppliTiepRed => The application ####
+
+
+When executing 
+
+    mm3d TestOscar Abbey-IMG_0.*jpg OriCalib=Ori-RTL2/
+          void DoReduceBox();
+
+    1/ The spliting in boxes is done, for each box K the set of image which footprint intersect the box is compted and
+       store in Tmp-ReducTieP/Param_K.xml :
+
+Exemple  of Param_K.xml
+
+<Xml_ParamBoxReducTieP>
+     <Box>-6.37202317345678271 -4.53617702320232041 -2.56975959785584473 -0.322177001523337836</Box>
+     <Ims>Abbey-IMG_0173.jpg</Ims>
+     <Ims>Abbey-IMG_0192.jpg</Ims>
+     ....
+<Xml_ParamBoxReducTieP>
+
+       This is done in  void cAppliTiepRed::GenerateSplit();
+
+
+    2/ Then the subprocess are executed
+         mm3d TestOscar Abbey-IMG_0.*jpg OriCalib=Ori-RTL2/   KBox=1
+         mm3d TestOscar Abbey-IMG_0.*jpg OriCalib=Ori-RTL2/   KBox=2
+         ...
+
+      This the same command, the programm "knows" that is called at the second level du the existence of KBox= 
+
+
+       This is done in  void cAppliTiepRed::DoReduceBox();
+
+###  !!!!!!!!  => One tricky thing 
+
+The code read the tie points that comes from Martini because they are more memory efficient (float value + store on way);
+But Martini store tie point corrected from distorsion, focale an principal (ideal sensor with F=1, PP=(0,0)), which means that
+if (X,Y) is one point then (X,Y,1) is the direction of the bundle in the camera coordinate system.
+
+
+
+*/
 
 
 typedef cVarSizeMergeTieP<Pt2df>  tMerge;
@@ -59,14 +111,21 @@ class cCameraTiepRed
         //  Intersection of bundles in ground geometry
         Pt3dr BundleIntersection(const Pt2df & aP1,const cCameraTiepRed & aCam2,const Pt2df & aP2,double & Precision) const;
 
+        // return "standard" MicMac stenope camera
         CamStenope  & CS();
+        // is the camera to maintains once the tie points are loaded
         bool  SelectOnHom2Im() const;
         const int &   NbPtsHom2Im() const;
 
+        // Load the tie point between this and Cam2
         void LoadHom(cCameraTiepRed & aCam2);
+
+        //  handle numeration of camera (associate a unique integer to each camera), because in topological merging ,
+        // images are referenced by numbers
         void SetNum(int aNum);
         const int & Num() const;
 
+        // Transform for "ideal sensor" coordinate to the pixel coordinates
         Pt2dr Hom2Cam(const Pt2df & aP) const;
 
 
@@ -105,11 +164,13 @@ class cPMulTiepRed
        cPMulTiepRed(tMerge *,cAppliTiepRed &);
        const Pt2dr & Pt() const {return mP;}
      private :
-       Pt2dr  mP;
+       Pt2dr  mP;   // mP + Z => 3D coordinate
        double mZ;
-       double mPrec;
-       double mGain;
+       double mPrec;  // Precision of bundle intersection
+       double mGain;  // Gain to select this tie points (takes into account multiplicity and precision)
 };
+
+// Class to interact with the Quod Tree
 class cP2dGroundOfPMul
 {
     public :

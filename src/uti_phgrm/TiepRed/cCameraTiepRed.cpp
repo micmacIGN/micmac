@@ -117,18 +117,23 @@ Pt3dr cCameraTiepRed::BundleIntersection(const Pt2df & aPH1,const cCameraTiepRed
 
 void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
 {
+    // Declare Input Tie Points
     std::vector<Pt2df> aVPIn1,aVPIn2;
+    // Load Input
     mAppli.NM().LoadHomFloats(NameIm(),aCam2.NameIm(),&aVPIn1,&aVPIn2);  // would have worked for I2 > I1 
     Box2dr aBox = mAppli.ParamBox().Box();
     double aThresh = mAppli.ThresoldPrec2Point();
 
+     // Create a connexion with initialy no tie points
     cLnk2ImTiepRed * aLnk = new cLnk2ImTiepRed(this,&aCam2);
     std::vector<Pt2df> & aVPOut1 = aLnk->VP1();
     std::vector<Pt2df> & aVPOut2 = aLnk->VP2();
 
+    // Filter the ties points that are inside the current tiles and
+    // have "good" intersection
     for (int aKP=0 ; aKP<int(aVPIn1.size()) ; aKP++)
     {
-        double aD;
+        double aD; // store the reprojection error
         Pt3dr aPTer = BundleIntersection(aVPIn1[aKP],aCam2,aVPIn2[aKP],aD);
         if ( (aD< aThresh) && aBox.inside(Pt2dr(aPTer.x,aPTer.y)) )
         {
@@ -138,12 +143,14 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
         //                std::cout << "AAAAAAAAAAAAAAAaa " << aD << aPTer << "\n";
     }
 
+    // If enough tie point , memorize the connexion 
+
     if (int(aVPOut1.size()) >= mAppli.ThresholdNbPts2Im())
     {
-        mNbPtsHom2Im +=  aVPOut1.size();
+        // Update counters
+        mNbPtsHom2Im +=  aVPOut1.size();  
         aCam2.mNbPtsHom2Im +=  aVPOut1.size();
-        // std::cout << "LoadHom " <<  NameIm() << " @ " << aCam2.NameIm() 
-        //              << " ## " << aVPIn1.size() << " ->" << aVPOut1.size() << "\n";
+        // Ask application to memorize
         mAppli.AddLnk(aLnk);
     }
     else
