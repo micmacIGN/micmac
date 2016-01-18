@@ -229,7 +229,7 @@ const std::string & cParamEtal::PatternGlob() const
 
 void cParamEtal::InitFromFile(const std::string & aNameFile)
 {
-     static std::string  aPatternCamV2 = ".*_.x[0-9]{2,3}_[0-9]{4,5}(|\\.tif|_8Bits\\.tif)";
+     static std::string  aPatternCamV2 = ".*_.x[0-9]{2,3}_[0-9]{4,5}($|\\.tif|_8Bits\\.tif)";
      static cElRegex   anAutomCamV2(aPatternCamV2,10);
 
 

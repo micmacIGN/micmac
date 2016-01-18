@@ -300,7 +300,11 @@ int ExtractAngleFromRot(const std::string & aSA,bool & Ok)
        Ok = true;
        return 0;
    }
-   static cElRegex anAutom("Rotate[ ]+(90|180|270)[ ]+(CW|).*",15);
+   #ifdef REG_EMPTY
+       static cElRegex anAutom("Rotate[ ]+(90|180|270)[ ]+(CW.*|.*)",15); // MacOS X does not accept empty (sub)expresions
+   #else
+       static cElRegex anAutom("Rotate[ ]+(90|180|270)[ ]+(CW|).*",15);
+   #endif
 
    if (! anAutom.Match(aSA)) return 0;
 

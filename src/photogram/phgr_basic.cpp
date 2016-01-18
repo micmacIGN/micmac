@@ -1657,7 +1657,11 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
 
 
     eTypeImporGenBundle aType = (eTypeImporGenBundle) aIntType;
-    static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
+    #ifdef REG_EMPTY
+        static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-Orientation|Orientation).*xml",10); // MacOS X does not accept empty (sub)expresions
+    #else
+        static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
+    #endif
     static cElRegex  ThePattGBMM(".*Ori-.*/GB-Orientation-.*xml",10);  // Its a Generik Bundle Camera created using MicMac
 
     static cElRegex  ThePattSatelit(".*Ori-.*/UnCorExtern-Orientation-(eTIGB_[a-z,A-Z,0-9]*)-.*xml",10);  // Its a copy for generik
