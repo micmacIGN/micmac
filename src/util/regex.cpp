@@ -60,6 +60,40 @@ cElRegex::cElRegex(const std::string & aNameExprIn,int aNbMatchMax,int aCFlag) :
    mOkReplace = false;
 
    mResCreate = regcomp(&mAutom,mNameExpr.c_str(),aCFlag);
+   
+	#ifdef __DEBUG
+		if (mResCreate != 0)
+		{
+			cout << "### regcomp = ";
+			switch (mResCreate)
+			{
+			case REG_BADPAT: cout << "BADPAT" << endl; break;
+			case REG_ECOLLATE: cout << "ECOLLATE" << endl; break;
+			case REG_ECTYPE: cout << "ECTYPE" << endl; break;
+			case REG_EESCAPE: cout << "EESCAPE" << endl; break;
+			case REG_ESUBREG: cout << "ESUBREG" << endl; break;
+			case REG_EBRACK: cout << "EBRACK" << endl; break;
+			case REG_ENOSYS: cout << "ENOSYS" << endl; break;
+			case REG_EPAREN: cout << "EPAREN" << endl; break;
+			case REG_EBRACE: cout << "EBRACE" << endl; break;
+			case REG_BADBR: cout << "BADBR" << endl; break;
+			case REG_ERANGE: cout << "ERANGE" << endl; break;
+			case REG_ESPACE: cout << "ESPACE" << endl; break;
+			case REG_BADRPT: cout << "BADRPT" << endl; break;
+			#ifdef REG_EMPTY
+				case REG_EMPTY: cout << "REG_EMPTY" << endl; break;
+			#endif
+			#ifdef REG_ASSERT
+				case REG_ASSERT: cout << "REG_ASSERT" << endl; break;
+			#endif
+			#ifdef REG_INVARG
+				case REG_INVARG: cout << "REG_INVARG" << endl; break;
+			#endif
+			default: cout << "unknown error code: " << mResCreate << endl;
+			}
+		}
+	#endif
+
    if (! IsOk())
       return;
    regmatch_t aMatch;
