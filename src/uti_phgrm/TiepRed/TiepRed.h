@@ -168,12 +168,13 @@ class cPMulTiepRed
        const double  & Gain() const {return mGain;}
        double  & Gain() {return mGain;}
        const double  & Prec() const {return mPrec;}
+       tMerge * Merge() {return mMerge;}
        void InitGain(cAppliTiepRed &);
 
        bool Removed() const;
        bool Removable() const;
        void Remove();
-       void UpdateNewSel(cPMulTiepRed *);
+       void UpdateNewSel(const cPMulTiepRed *,cAppliTiepRed & anAppli);
      private :
        tMerge * mMerge;
        Pt2dr    mP;   // mP + Z => 3D coordinate
@@ -182,6 +183,8 @@ class cPMulTiepRed
        double   mGain;  // Gain to select this tie points (takes into account multiplicity and precision)
        int      mHeapIndex; // This memory will be used vy the heap to allow dynamic change of the priority
        bool     mRemoved;
+       int      mNbCam0;
+       int      mNbCamCur;
 };
 
 
@@ -230,6 +233,7 @@ class cAppliTiepRed
           void AddLnk(cLnk2ImTiepRed *);
           cCameraTiepRed * KthCam(int aK);
           const double & StdPrec() const;
+          std::vector<int>  & BufICam();
 
      private :
 
@@ -249,6 +253,7 @@ class cAppliTiepRed
           int    mThresholdNbPts2Im;
           int    mThresholdTotalNbPts2Im;
           int    mSzTile;    //  Number of pixel / tiles
+          double mDistPMul;
 
           std::string  mDir;
           std::string  mPatImage;
@@ -274,6 +279,7 @@ class cAppliTiepRed
           cCompareHeapPMulTiepRed          mPMulCmp;
           tTiePRed_Heap                    *mHeap;
           double                           mStdPrec;
+          std::vector<int>                 mBufICam;
 };
 
 

@@ -47,7 +47,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
     mMerge   (aPM),
-    mRemoved (false)
+    mRemoved (false),
+    mNbCam0  (aPM->NbSom()),
+    mNbCamCur(aPM->NbSom())
 {
     std::vector<ElSeg3D> aVSeg;
     std::vector<Pt2dr>   aVPt;
@@ -85,6 +87,7 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
 void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli)
 {
     mGain =  mMerge->NbArc() * (1.0 /(1.0 + ElSquare(mPrec/(anAppli.ThresholdPrecMult() * anAppli.StdPrec()))));
+    mGain *= (0.5+ mNbCamCur / double(mNbCam0));
 }
 
 bool cPMulTiepRed::Removed() const
@@ -94,7 +97,7 @@ bool cPMulTiepRed::Removed() const
 
 bool cPMulTiepRed::Removable() const
 {
-   return true;
+   return (mNbCamCur==0);
 }
 
 
@@ -103,9 +106,41 @@ void cPMulTiepRed::Remove()
     mRemoved = true;
 }
 
-void cPMulTiepRed::UpdateNewSel(cPMulTiepRed *)
+static inline int ToInitialInt(int I) {return (I>=0) ? I : - (I+1);}
+static inline int ToRemoveInt(int I) {return (I<0) ? I : -(I+1);} 
+
+void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anAppli)
 {
+   // Mark index of aPNew as existing in buf
+    const std::vector<int>  & aVNew =  aPNew->mMerge->VecInd() ;
+    std::vector<int>  &  aBuf = anAppli.BufICam();
+    for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
+    {
+        aBuf[ToInitialInt(aVNew[aK])] = 1;
+    }
+
+
+
+
+    std::vector<int>  & aVCur =  mMerge->VecInd() ;
+
+    for (int aK=0 ; aK<int(aVCur.size()) ; aK++)
+    {
+         int aKCam = aVCur[aK];
+         if ((aKCam>=0) && (aBuf[aKCam]==1))
+         {
+             aVCur[aK] = ToRemoveInt(aKCam);
+             mNbCamCur--;
+         }
+    }
+
+    InitGain(anAppli);
+
+   // Free Mark index in aBuf
+    for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
+        aBuf[ToInitialInt(aVNew[aK])] = 0;
 }
+
 
 
 

@@ -64,6 +64,8 @@ cComMergeTieP::cComMergeTieP() :
 
 template <class Type> const std::vector<int>  & cVarSizeMergeTieP<Type>::VecInd() const {return mVecInd;}
 template <class Type> const std::vector<Type> & cVarSizeMergeTieP<Type>::VecV()   const {return mVecV;}
+template <class Type> std::vector<int>  & cVarSizeMergeTieP<Type>::VecInd() {return mVecInd;}
+template <class Type> std::vector<Type> & cVarSizeMergeTieP<Type>::VecV()   {return mVecV;}
 
 
    // ======================= Constructeurs =========================
