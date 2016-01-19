@@ -1304,6 +1304,29 @@ void cAppli_Ori_Txt2Xml_main::SauvRel()
        }
    }
 
+   if (EAMIsInit(&mDistNeigh))
+   {
+        for (int aK1=0 ; aK1<mNbCam ; aK1++)
+        {
+            for (int aK2=0 ; aK2<mNbCam ; aK2++)
+            {
+               if (aK1 != aK2)
+               {
+                   const cTxtCam & aC1 = *(mVCam[aK1]);
+                   const cTxtCam & aC2 = *(mVCam[aK2]);
+                   Pt3dr aP1 = aC1.mC;
+                   Pt3dr aP2 = aC2.mC;
+
+                   if (euclid(aP1-aP2)<mDistNeigh)
+                   {
+                       cCpleString aCpl(aC1.mNameIm,aC2.mNameIm);
+                       aRelIm.Cple().push_back(aCpl);
+                   }
+                }
+            }
+        }
+   }
+
 
    if ( EAMIsInit(&mNameCple))
       MakeFileXML(aRelIm,mDir+mNameCple);
