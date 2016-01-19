@@ -49,7 +49,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mPrec2Point              (5.0),
-     mThresholdPrecMult       (2.0),
+     mThresholdPrecMult       (2.0),  // Multiplier of Mediane Prec, can probably be stable
      mThresholdNbPts2Im       (3),
      mThresholdTotalNbPts2Im  (10),
      mSzTile                  (1600),
@@ -142,6 +142,7 @@ const int    & cAppliTiepRed::ThresholdNbPts2Im() const  {return mThresholdNbPts
 const int    & cAppliTiepRed::ThresholdTotalNbPts2Im() const  {return mThresholdTotalNbPts2Im;}
 cCameraTiepRed * cAppliTiepRed::KthCam(int aK) {return mVecCam[aK];}
 const double & cAppliTiepRed::ThresholdPrecMult() const {return mThresholdPrecMult;}
+const double & cAppliTiepRed::StdPrec() const {return mStdPrec;}
 
 
 void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
@@ -153,7 +154,7 @@ void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
 
 
 
-void cAppliTiepRed::DoReduceBox()
+void cAppliTiepRed::DoLoadTiePoints()
 {
    // Load Tie Points in box
    for (int aKI = 0 ; aKI<int(mVecCam.size()) ; aKI++)
@@ -178,7 +179,10 @@ void cAppliTiepRed::DoReduceBox()
             }
        }
    }
+}
 
+void cAppliTiepRed::DoFilterCamAnLinks()
+{
    // Select Cam ( and Link ) with enough points, and give a numeration to camera
    {
       // Suppress the links if one of its camera was supressed
@@ -212,6 +216,12 @@ void cAppliTiepRed::DoReduceBox()
       std::cout << "   CAMSS " << mVecCam.size() << " " << aNewV.size() << "\n";
       mVecCam = aNewV; // Update member vector of cams
    }
+}
+
+void cAppliTiepRed::DoReduceBox()
+{
+    DoLoadTiePoints();
+    DoFilterCamAnLinks();
 
    // merge topological tie point
 
@@ -229,31 +239,81 @@ void cAppliTiepRed::DoReduceBox()
     // Compute the average 
     double aSzTileAver = sqrt(mBoxLoc.surf()/mLMerge->size()); 
 
-   // give ground coord to multiple point and put them in quod-tree for indexation
     
-    mQT = new ElQT<cPMulTiepRed*,Pt2dr,cP2dGroundOfPMul> 
-              (
-                     mPMul2Gr,
-                     mBoxLoc,
-                     5,  // 5 obj max / box
-                     2*aSzTileAver
-              );
+    // Quod tree for spatial indexation
+    mQT = new tTiePRed_QT ( mPMul2Gr, mBoxLoc, 5  /* 5 obj max  box */, 2*aSzTileAver);
+    // Heap for priority management
 
-    for (std::list<tMerge *>::const_iterator itM=mLMerge->begin() ; itM!=mLMerge->end() ; itM++)
+
+   // give ground coord to multiple point and put them in quod-tree  and  heap 
     {
-        cPMulTiepRed * aPM = new cPMulTiepRed(*itM,*this);
-        if (mBoxLoc.inside(aPM->Pt()))
-        {
-           mLPMul.push_back(aPM);
-           aVHist[(*itM)->NbSom()] ++;
-           mQT->insert(aPM);
-        }
-        else
-        {
-           delete aPM;
-        }
+       std::vector<double> aVPrec;
+       std::vector<tPMulTiepRedPtr> aVPM;  aVPM.reserve(mLMerge->size());
+
+       for (std::list<tMerge *>::const_iterator itM=mLMerge->begin() ; itM!=mLMerge->end() ; itM++)
+       {
+           cPMulTiepRed * aPM = new cPMulTiepRed(*itM,*this);
+           if (mBoxLoc.inside(aPM->Pt()))
+           {
+              aVPM.push_back(aPM);
+              
+              aVPrec.push_back(aPM->Prec());
+              aVHist[(*itM)->NbSom()] ++;
+              mQT->insert(aPM);
+           }
+           else
+           {
+              delete aPM;
+           }
+       }
+       if (aVPrec.size() ==0)
+       {   
+          return;
+       }
+       mStdPrec = MedianeSup(aVPrec);  
+
+       mHeap = new tTiePRed_Heap(mPMulCmp);
+       // The gain can be computed once we know the standard precision
+       for (int aKP=0 ; aKP<int(aVPM.size()) ; aKP++)
+       {
+           aVPM[aKP]->InitGain(*this);
+           mHeap->push(aVPM[aKP]);
+       }
     }
 
+    tPMulTiepRedPtr aPMPtr;
+    while (mHeap->pop(aPMPtr))
+    {
+std::cout << "GGGGGGGGGGGGGGGGgg\n";
+          std::set<tPMulTiepRedPtr> & aSetNeigh = *(new std::set<tPMulTiepRedPtr>);
+          double aDist=1000 * mResol;
+          mQT->RVoisins(aSetNeigh,aPMPtr->Pt(),aDist);
+
+std::cout << "AAAAAAAAAAAAAA\n";
+          for (std::set<tPMulTiepRedPtr>::const_iterator itS=aSetNeigh.begin() ; itS!=aSetNeigh.end() ; itS++)
+          {
+              tPMulTiepRedPtr aNeigh = *itS;
+              if (! aNeigh->Removed())
+              {
+                  aNeigh->UpdateNewSel(aPMPtr);
+                  if (aNeigh->Removable())
+                  {
+                      aNeigh->Remove();
+                      mQT->remove(aNeigh);
+                      mHeap->Sortir(aNeigh);
+                  }
+              }
+          }
+std::cout << "BBBBBBBBBBBBBB\n";
+delete &aSetNeigh;
+          std::cout << "GAIN " << aPMPtr->Gain() << " " << aSetNeigh.size() << " " <<  mHeap->nb() << "\n";
+          
+
+    }
+    getchar();
+
+/*
+*/
 
     std::cout << "   NbMul " << mLMerge->size() 
               << " Nb2:" << aVHist[2] << " Nb3:" << aVHist[3] 

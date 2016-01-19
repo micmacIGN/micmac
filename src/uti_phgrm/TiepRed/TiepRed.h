@@ -163,19 +163,56 @@ class cPMulTiepRed
      public :
        cPMulTiepRed(tMerge *,cAppliTiepRed &);
        const Pt2dr & Pt() const {return mP;}
+       int & HeapIndex() { return mHeapIndex;}
+       const int & HeapIndex() const { return mHeapIndex;}
+       const double  & Gain() const {return mGain;}
+       double  & Gain() {return mGain;}
+       const double  & Prec() const {return mPrec;}
+       void InitGain(cAppliTiepRed &);
+
+       bool Removed() const;
+       bool Removable() const;
+       void Remove();
+       void UpdateNewSel(cPMulTiepRed *);
      private :
-       Pt2dr  mP;   // mP + Z => 3D coordinate
-       double mZ;
-       double mPrec;  // Precision of bundle intersection
-       double mGain;  // Gain to select this tie points (takes into account multiplicity and precision)
+       tMerge * mMerge;
+       Pt2dr    mP;   // mP + Z => 3D coordinate
+       double   mZ;
+       double   mPrec;  // Precision of bundle intersection
+       double   mGain;  // Gain to select this tie points (takes into account multiplicity and precision)
+       int      mHeapIndex; // This memory will be used vy the heap to allow dynamic change of the priority
+       bool     mRemoved;
 };
+
+
+typedef cPMulTiepRed * tPMulTiepRedPtr;
 
 // Class to interact with the Quod Tree
 class cP2dGroundOfPMul
 {
     public :
-          Pt2dr operator()(cPMulTiepRed * aPM) {return aPM->Pt();}
+          Pt2dr operator()(const tPMulTiepRedPtr &  aPM) {return aPM->Pt();}
 };
+typedef ElQT<cPMulTiepRed*,Pt2dr,cP2dGroundOfPMul>  tTiePRed_QT;
+
+// Classes to interact with the heap
+class cParamHeapPMulTiepRed
+{
+   public :
+        static void SetIndex(tPMulTiepRedPtr  &  aPM,int i) { aPM->HeapIndex() = i;}
+        static int  Index(const tPMulTiepRedPtr &  aPM) { return aPM->HeapIndex(); }
+};
+
+class cCompareHeapPMulTiepRed
+{
+    public :
+        bool operator() (const tPMulTiepRedPtr & aP1,const tPMulTiepRedPtr &  aP2)
+        {
+             return  aP1->Gain() > aP2->Gain();
+        }
+};
+
+typedef ElHeap<tPMulTiepRedPtr,cCompareHeapPMulTiepRed,cParamHeapPMulTiepRed>  tTiePRed_Heap;
 
 
 
@@ -192,11 +229,15 @@ class cAppliTiepRed
           const int    & ThresholdTotalNbPts2Im() const;
           void AddLnk(cLnk2ImTiepRed *);
           cCameraTiepRed * KthCam(int aK);
+          const double & StdPrec() const;
 
      private :
 
           void GenerateSplit();
           void DoReduceBox();
+          void DoLoadTiePoints();
+          void DoFilterCamAnLinks();
+
           cAppliTiepRed(const cAppliTiepRed &); // N.I.
 
           static const std::string TheNameTmp;
@@ -226,10 +267,13 @@ class cAppliTiepRed
           std::list<cLnk2ImTiepRed *>      mLnk2Im;
           tMergeStr *                      mMergeStruct;
           const std::list<tMerge *> *      mLMerge;
-          std::list<cPMulTiepRed *>        mLPMul;
+          // std::list<cPMulTiepRed *>        mLPMul;
 
-          cP2dGroundOfPMul                            mPMul2Gr;
-          ElQT<cPMulTiepRed*,Pt2dr,cP2dGroundOfPMul>  *mQT;
+          cP2dGroundOfPMul                 mPMul2Gr;
+          tTiePRed_QT                      *mQT;
+          cCompareHeapPMulTiepRed          mPMulCmp;
+          tTiePRed_Heap                    *mHeap;
+          double                           mStdPrec;
 };
 
 

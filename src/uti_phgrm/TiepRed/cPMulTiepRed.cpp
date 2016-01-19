@@ -45,7 +45,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                                    */
 /**********************************************************************/
 
-cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli) 
+cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
+    mMerge   (aPM),
+    mRemoved (false)
 {
     std::vector<ElSeg3D> aVSeg;
     std::vector<Pt2dr>   aVPt;
@@ -76,7 +78,33 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)
     mZ = aPTer.z;
     mPrec = aSomDist / (aVecInd.size() -1);
     // std::cout << "PREC " << mPrec << " " << aVecInd.size() << "\n";
-    mGain =  aPM->NbArc() * (1.0 /(1.0 + ElSquare(mPrec/anAppli.ThresholdPrecMult())));
+
+     // mGain =   aPM->NbArc()  +  mPrec/1000.0;
+}
+
+void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli)
+{
+    mGain =  mMerge->NbArc() * (1.0 /(1.0 + ElSquare(mPrec/(anAppli.ThresholdPrecMult() * anAppli.StdPrec()))));
+}
+
+bool cPMulTiepRed::Removed() const
+{
+   return mRemoved;
+}
+
+bool cPMulTiepRed::Removable() const
+{
+   return true;
+}
+
+
+void cPMulTiepRed::Remove()
+{
+    mRemoved = true;
+}
+
+void cPMulTiepRed::UpdateNewSel(cPMulTiepRed *)
+{
 }
 
 
