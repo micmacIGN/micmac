@@ -53,6 +53,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mThresholdNbPts2Im       (3),
      mThresholdTotalNbPts2Im  (10),
      mSzTile                  (1600),
+     mDistPMul                (200.0),
      mCallBack                (false)
 {
    // Read parameters 
@@ -65,6 +66,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
                      << EAM(mPrec2Point,"Prec2P",true,"Threshold of precision for 2 Points")
                      << EAM(mKBox,"KBox",true,"Internal use")
                      << EAM(mSzTile,"SzTile",true,"Size of Tiles in Pixel")
+                     << EAM(mDistPMul,"DistPMul",true,"Typical dist between pmult")
    );
    // if mKBox was set, we are not the master call (we are the "subcommand")
    mCallBack = EAMIsInit(&mKBox);
@@ -143,6 +145,8 @@ const int    & cAppliTiepRed::ThresholdTotalNbPts2Im() const  {return mThreshold
 cCameraTiepRed * cAppliTiepRed::KthCam(int aK) {return mVecCam[aK];}
 const double & cAppliTiepRed::ThresholdPrecMult() const {return mThresholdPrecMult;}
 const double & cAppliTiepRed::StdPrec() const {return mStdPrec;}
+std::vector<int>  & cAppliTiepRed::BufICam() {return mBufICam;}
+
 
 
 void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
@@ -215,6 +219,8 @@ void cAppliTiepRed::DoFilterCamAnLinks()
       }
       std::cout << "   CAMSS " << mVecCam.size() << " " << aNewV.size() << "\n";
       mVecCam = aNewV; // Update member vector of cams
+
+      mBufICam = std::vector<int>(mVecCam.size(),0);
    }
 }
 
@@ -280,22 +286,26 @@ void cAppliTiepRed::DoReduceBox()
            mHeap->push(aVPM[aKP]);
        }
     }
+    int aNbInit = mHeap->nb();
+    int aNbSel=0;
 
     tPMulTiepRedPtr aPMPtr;
     while (mHeap->pop(aPMPtr))
     {
-std::cout << "GGGGGGGGGGGGGGGGgg\n";
+          aNbSel++;
+          aPMPtr->Remove();
           std::set<tPMulTiepRedPtr> & aSetNeigh = *(new std::set<tPMulTiepRedPtr>);
-          double aDist=1000 * mResol;
+          double aDist= mDistPMul * mResol;
           mQT->RVoisins(aSetNeigh,aPMPtr->Pt(),aDist);
 
-std::cout << "AAAAAAAAAAAAAA\n";
           for (std::set<tPMulTiepRedPtr>::const_iterator itS=aSetNeigh.begin() ; itS!=aSetNeigh.end() ; itS++)
           {
+
+              // tPMulTiepRedPtr aNeigh = aSetNeigh[aK];
               tPMulTiepRedPtr aNeigh = *itS;
               if (! aNeigh->Removed())
               {
-                  aNeigh->UpdateNewSel(aPMPtr);
+                  aNeigh->UpdateNewSel(aPMPtr,*this);
                   if (aNeigh->Removable())
                   {
                       aNeigh->Remove();
@@ -304,21 +314,25 @@ std::cout << "AAAAAAAAAAAAAA\n";
                   }
               }
           }
-std::cout << "BBBBBBBBBBBBBB\n";
-delete &aSetNeigh;
-          std::cout << "GAIN " << aPMPtr->Gain() << " " << aSetNeigh.size() << " " <<  mHeap->nb() << "\n";
+          /* std::cout << "         GAIN " << aPMPtr->Gain() << " " 
+                       <<  aPMPtr->Merge()->NbArc()  << " " <<  aPMPtr->Merge()->NbSom() 
+                       << " " << aSetNeigh.size() << " " <<  mHeap->nb() << "\n";
+          */
           
 
     }
+
+    std::cout << "NBPTS " <<  aNbInit << " => " << aNbSel << "\n";
     getchar();
 
+
 /*
-*/
 
     std::cout << "   NbMul " << mLMerge->size() 
               << " Nb2:" << aVHist[2] << " Nb3:" << aVHist[3] 
               << " Nb4:" << aVHist[4] << " Nb5:" << aVHist[5] 
               << " Nb6:" << aVHist[6] << "\n";
+*/
 }
 
 

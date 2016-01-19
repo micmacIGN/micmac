@@ -102,7 +102,7 @@ template <class Obj> class cVecTplResRVoisin : public cTplResRVoisin<Obj> ,
                                                public std::vector<Obj>
 {
     public :
-       virtual void Add(const Obj & anObj) {push_back(anObj);}
+       virtual void Add(const Obj & anObj) {this->push_back(anObj);}
        virtual ~cVecTplResRVoisin() {}
 
 };

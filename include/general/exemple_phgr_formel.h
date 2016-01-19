@@ -1071,6 +1071,8 @@ template <class Type>  class cVarSizeMergeTieP : public cComMergeTieP
 
         const std::vector<int>  & VecInd() const;
         const std::vector<Type> & VecV()   const;
+        std::vector<int>  & VecInd() ;
+        std::vector<Type> & VecV()   ;
      private :
 
         std::vector<int>   mVecInd;
