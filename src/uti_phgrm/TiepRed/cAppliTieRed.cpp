@@ -224,6 +224,18 @@ void cAppliTiepRed::DoFilterCamAnLinks()
    }
 }
 
+void cAppliTiepRed::DoExport()
+{
+    int aNbCam = mVecCam.size();
+    std::vector<std::vector<ElPackHomologue> > (aNbCam,std::vector<ElPackHomologue>(aNbCam));
+    for (std::list<tPMulTiepRedPtr>::const_iterator itP=mListSel.begin(); itP!=mListSel.end();  itP++)
+    {
+         tMerge * aMerge = (*itP)->Merge();
+         const std::vector<Pt2dUi2> &  Edges();
+    }
+   
+}
+
 void cAppliTiepRed::DoReduceBox()
 {
     DoLoadTiePoints();
@@ -293,6 +305,7 @@ void cAppliTiepRed::DoReduceBox()
     while (mHeap->pop(aPMPtr))
     {
           aNbSel++;
+          mListSel.push_back(aPMPtr);
           aPMPtr->Remove();
           std::set<tPMulTiepRedPtr> & aSetNeigh = *(new std::set<tPMulTiepRedPtr>);
           double aDist= mDistPMul * mResol;
@@ -325,6 +338,7 @@ void cAppliTiepRed::DoReduceBox()
     std::cout << "NBPTS " <<  aNbInit << " => " << aNbSel << "\n";
     getchar();
 
+    DoExport();
 
 /*
 
