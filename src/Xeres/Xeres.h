@@ -110,7 +110,7 @@ class cAppliXeres
 
          void TestInteractNeigh();
 
-         void CalculTiePoint(int aSz);
+         void CalculTiePoint(int aSz,int aNBHom);
 
          static void FusionneHom(const std::vector<cAppliXeres *>,const std::string & aPostOut);
      private :

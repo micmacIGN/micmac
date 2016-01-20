@@ -46,7 +46,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*********************************************************************************/
 
 
-void cAppliXeres::CalculTiePoint(int aSz)
+void cAppliXeres::CalculTiePoint(int aSz,int aNBHom)
 {
     cSauvegardeNamedRel aXmlCples;
     for (int aKC=0 ; aKC<int(mVCam.size()) ; aKC++)
@@ -54,7 +54,7 @@ void cAppliXeres::CalculTiePoint(int aSz)
         cXeres_Cam * aCam0 = mVCam[aKC];
         if (aCam0->HasIm())
         {
-            std::vector<cXeres_Cam *> aVV =  NeighPtsHom(aCam0);
+            std::vector<cXeres_Cam *> aVV =  NeighVois(aCam0,aNBHom);
 
             for (int aKV=0 ; aKV<int(aVV.size()) ; aKV++)
             {

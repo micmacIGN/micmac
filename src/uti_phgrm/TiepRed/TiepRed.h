@@ -247,8 +247,12 @@ class cAppliTiepRed
 
           static const std::string TheNameTmp;
 
+          std::string DirOneImage(const std::string &) const;
+          std::string NameHomol(const std::string &,const std::string &,int aK) const;
           std::string NameParamBox(int aK) const;
 
+
+          const std::vector<std::string> * mFilesIm;
           double mPrec2Point; // Threshold on precision for a pair of tie P
           double mThresholdPrecMult; // Threshold on precision for multiple points
           int    mThresholdNbPts2Im;

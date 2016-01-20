@@ -48,6 +48,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
+     mFilesIm                 (0),
      mPrec2Point              (5.0),
      mThresholdPrecMult       (2.0),  // Multiplier of Mediane Prec, can probably be stable
      mThresholdNbPts2Im       (3),
@@ -77,23 +78,22 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
       StdCorrecNameOrient(mCalib,mDir);
    }
    
-   const std::vector<std::string> * aFilesIm =0;
    if (mCallBack)  // Subcommand mode, initialise set of file for Param_K.xml
    {
        mXmlParBox = StdGetFromPCP(NameParamBox(mKBox),Xml_ParamBoxReducTieP);
        mBoxLoc = mXmlParBox.Box();
-       aFilesIm = &(mXmlParBox.Ims());
+       mFilesIm = &(mXmlParBox.Ims());
    }
    else  // Master command, initialise from pattern
    {
        cElemAppliSetFile anEASF(mPatImage);
        // anEASF.Init(mPatImage);
-       aFilesIm = anEASF.SetIm();
+       mFilesIm = anEASF.SetIm();
    }
 
 
-   mSetFiles = new std::set<std::string>(aFilesIm->begin(),aFilesIm->end());
-   std::cout << "## Get Nb Images " <<  aFilesIm->size() << "\n";
+   mSetFiles = new std::set<std::string>(mFilesIm->begin(),mFilesIm->end());
+   std::cout << "## Get Nb Images " <<  mFilesIm->size() << "\n";
 
 
    mNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir,mCalib);
@@ -103,9 +103,9 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    Pt2dr aPSup(-1E50,-1E50);
 
    // Parse the images 
-   for (int aKI = 0 ; aKI<int(aFilesIm->size()) ; aKI++)
+   for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
    {
-       const std::string & aNameIm = (*aFilesIm)[aKI];
+       const std::string & aNameIm = (*mFilesIm)[aKI];
         // Get the camera created by Martini 
        CamStenope * aCS = mNM->OutPutCamera(aNameIm);
        cCameraTiepRed * aCam = new cCameraTiepRed(*this,aNameIm,aCS);
@@ -136,6 +136,19 @@ std::string  cAppliTiepRed::NameParamBox(int aK) const
 {
     return mDir+TheNameTmp + "Param_" +ToString(aK) + ".xml";
 }
+
+std::string  cAppliTiepRed::DirOneImage(const std::string &aName) const
+{
+   return mDir+TheNameTmp + aName + "/";
+}
+
+std::string  cAppliTiepRed::NameHomol(const std::string &aName1,const std::string &aName2,int aK) const
+{
+   return DirOneImage(aName1) + "KBOX" + ToString(aK) + "-" + aName2  + ".dat";
+}
+
+
+
 
 cVirtInterf_NewO_NameManager & cAppliTiepRed::NM(){ return *mNM ;}
 const cXml_ParamBoxReducTieP & cAppliTiepRed::ParamBox() const {return mXmlParBox;}
@@ -227,11 +240,30 @@ void cAppliTiepRed::DoFilterCamAnLinks()
 void cAppliTiepRed::DoExport()
 {
     int aNbCam = mVecCam.size();
-    std::vector<std::vector<ElPackHomologue> > (aNbCam,std::vector<ElPackHomologue>(aNbCam));
+    std::vector<std::vector<ElPackHomologue> > aVVH (aNbCam,std::vector<ElPackHomologue>(aNbCam));
     for (std::list<tPMulTiepRedPtr>::const_iterator itP=mListSel.begin(); itP!=mListSel.end();  itP++)
     {
          tMerge * aMerge = (*itP)->Merge();
-         const std::vector<Pt2dUi2> &  Edges();
+         const std::vector<Pt2dUi2> &  aVE = aMerge->Edges();
+         std::vector<Pt2df> &  aVP = aMerge->VecV() ;
+         for (int aKCple=0 ; aKCple<int(aVE.size()) ; aKCple++)
+         {
+              int aKCam1 = aVE[aKCple].x;
+              int aKCam2 = aVE[aKCple].y;
+              aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(ToPt2dr(aVP[aKCam1]),ToPt2dr(aVP[aKCam2])));
+         }
+    }
+
+    for (int aKCam1=0 ; aKCam1<aNbCam ; aKCam1++)
+    {
+        for (int aKCam2=0 ; aKCam2<aNbCam ; aKCam2++)
+        {
+             const ElPackHomologue & aPack = aVVH[aKCam1][aKCam2];
+             if (aPack.size())
+             {
+                  aPack.StdPutInFile(NameHomol(mVecCam[aKCam1]->NameIm(),mVecCam[aKCam2]->NameIm(),mKBox));
+             }
+        }
     }
    
 }
@@ -336,17 +368,7 @@ void cAppliTiepRed::DoReduceBox()
     }
 
     std::cout << "NBPTS " <<  aNbInit << " => " << aNbSel << "\n";
-    getchar();
-
     DoExport();
-
-/*
-
-    std::cout << "   NbMul " << mLMerge->size() 
-              << " Nb2:" << aVHist[2] << " Nb3:" << aVHist[3] 
-              << " Nb4:" << aVHist[4] << " Nb5:" << aVHist[5] 
-              << " Nb6:" << aVHist[6] << "\n";
-*/
 }
 
 
@@ -355,6 +377,11 @@ void cAppliTiepRed::DoReduceBox()
 void cAppliTiepRed::GenerateSplit()
 {
     ELISE_fp::MkDirSvp(mDir+TheNameTmp);
+    for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
+    {
+       const std::string & aNameIm = (*mFilesIm)[aKI];
+       ELISE_fp::MkDirSvp(DirOneImage(aNameIm));
+    }
 
     Pt2dr aSzPix = mBoxGlob.sz() / mResol; // mBoxGlob.sz()  mResol => local refernce,  aSzPix => in pixel (average)
     Pt2di aNb = round_up(aSzPix / double(mSzTile));  // Compute the number of boxes
