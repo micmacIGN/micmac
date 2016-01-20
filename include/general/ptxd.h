@@ -444,6 +444,7 @@ typedef  Pt2d<INT> Pt2di;
 typedef  Pt2d<REAL> Pt2dr;
 typedef  Pt2d<long double> Pt2dlr;
 typedef  Pt2d<float> Pt2df;
+typedef  Pt2d<U_INT2> Pt2dUi2;
 double DMaxCoins(Pt2dr aSzIm,Pt2dr aC);
 double DMaxCoins(Pt2dr aP0,Pt2dr aP1,Pt2dr aC);
 
@@ -451,6 +452,7 @@ template<class Type> Pt2dr ToPt2dr(const  Pt2d<Type> & aP) {return Pt2dr(aP.x,aP
 template<class Type> Pt2df ToPt2df(const  Pt2d<Type> & aP) {return Pt2df(aP.x,aP.y);}
 template<class Type> Pt2di ToPt2di(const  Pt2d<Type> & aP) {return Pt2di(round_ni(aP.x),round_ni(aP.y));}
 
+extern std::ostream & operator << (std::ostream & ofs,const Pt2dUi2  &p);
 extern std::ostream & operator << (std::ostream & ofs,const Pt2df  &p);
 extern std::ostream & operator << (std::ostream & ofs,const Pt2dr  &p);
 extern std::ostream & operator << (std::ostream & ofs,const Pt2di  &p);
