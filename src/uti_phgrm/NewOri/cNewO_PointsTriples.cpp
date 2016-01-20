@@ -374,7 +374,7 @@ void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
     mNM->LoadHomFloats(mVCams[aKC1],mVCams[aKC2],&aVP1In,&aVP2In);
 
 
-    tMapM aMap(3);
+    tMapM aMap(3,false);
     AddVPts2Map(aMap,aVP1In,1,aVP2In,2);
     AddVPts2Map(aMap,mVP1[aKC1],0,mVP2[aKC1],1);
     AddVPts2Map(aMap,mVP1[aKC2],0,mVP2[aKC2],2);
@@ -440,7 +440,7 @@ void  cAppli_GenPTripleOneImage::GenerateHomFloat(cNewO_OneIm * anI1,cNewO_OneIm
      // std::cout << "NHH " << aNameH << "\n";
 
 
-     cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> >    aMap(2);
+     cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> >    aMap(2,false);
      AddOnePackOneSens(aMap,anI1,0,anI2);
      AddOnePackOneSens(aMap,anI2,1,anI1);
 

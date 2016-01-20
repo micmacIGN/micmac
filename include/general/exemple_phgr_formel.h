@@ -1045,12 +1045,18 @@ class cComMergeTieP
         void SetOkForDelete() {mOk=true;}  // A n'utiliser que dans cFixedMergeStruct::delete
         int  NbArc() const {return mNbArc;}
         void IncrArc() { mNbArc++;}
+        void MemoCnx(int aK1,int aK2);
+        void FusionneCnxInThis(const cComMergeTieP &);
+        const std::vector<Pt2dUi2> & Edges() const;
     protected :
         cComMergeTieP();
         bool  mOk;
         int   mNbArc;
-
+        std::vector<Pt2dUi2> mEdges;
 };
+
+
+
 template <class Type>  class cVarSizeMergeTieP : public cComMergeTieP
 {
      public :
@@ -1061,7 +1067,7 @@ template <class Type>  class cVarSizeMergeTieP : public cComMergeTieP
 
        cVarSizeMergeTieP() ;
        void FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,std::vector<tMapMerge> &  Tabs);
-       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2,bool MemoEdge);
 
         bool IsInit(int aK) const ;
         const Type & GetVal(int aK) const ;
@@ -1088,7 +1094,7 @@ template <const int TheNbPts,class Type>  class cFixedSizeMergeTieP : public cCo
 
        cFixedSizeMergeTieP() ;
        void FusionneInThis(cFixedSizeMergeTieP<TheNbPts,Type> & anEl2,std::vector<tMapMerge> &  Tabs);
-       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2,bool MemoEdge);
 
         bool IsInit(int aK) const;
         const Type & GetVal(int aK) const;
@@ -1116,7 +1122,7 @@ template <class Type> class cStructMergeTieP
 
 
         void AddArc(const tVal & aV1,int aK1,const tVal & aV2,int aK2);
-        cStructMergeTieP(int aNbVal);
+        cStructMergeTieP(int aNbVal,bool WithMemoEdges);
 
         const tVal & ValInf(int aK) const {return mEnvInf[aK];}
         const tVal & ValSup(int aK) const {return mEnvSup[aK];}
@@ -1137,6 +1143,7 @@ template <class Type> class cStructMergeTieP
         bool                                mExportDone;
         bool                                mDeleted;
         std::list<tMerge *>                 mLM;
+        bool                                mWithMemoEdges;
 };
 
 

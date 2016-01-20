@@ -1002,7 +1002,7 @@ void TestFoncReelle(Fonc_Num aF,const std::string & aName,Pt2di aSz)
 
 void TestcFixedMergeStruct()
 {
-    cStructMergeTieP< cFixedSizeMergeTieP<3,Pt2dr> >  aFMS(3);
+    cStructMergeTieP< cFixedSizeMergeTieP<3,Pt2dr> >  aFMS(3,false);
 
     aFMS.AddArc(Pt2dr(0,0),0,Pt2dr(1,1),1);
     aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(1,2),2);

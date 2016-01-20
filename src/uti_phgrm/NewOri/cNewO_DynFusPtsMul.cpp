@@ -54,6 +54,22 @@ cComMergeTieP::cComMergeTieP() :
 {
 }
 
+void cComMergeTieP::MemoCnx(int aK1,int aK2)
+{
+   mEdges.push_back(Pt2dUi2(aK1,aK2));
+}
+
+const std::vector<Pt2dUi2> &  cComMergeTieP::Edges() const
+{
+   return mEdges;
+}
+
+void cComMergeTieP::FusionneCnxInThis(const cComMergeTieP & aC2)
+{
+    for (int aK=0 ; aK<int(aC2.mEdges.size()) ; aK++)
+        mEdges.push_back(aC2.mEdges[aK]);
+}
+
 /**************************************************************************/
 /*                                                                        */
 /*        cVarSizeMergeTieP  / cFixedSizeMergeTieP                        */
@@ -152,23 +168,25 @@ int cFixedSizeMergeTieP<TheNbPts,Type>::NbSom() const
 
    // ======================= AddArc =========================
 
-template <class TTieP,class Type> void AddArcTieP(TTieP & aTieP,const Type & aV1,int aK1,const Type & aV2,int aK2)
+template <class TTieP,class Type> void AddArcTieP(TTieP & aTieP,const Type & aV1,int aK1,const Type & aV2,int aK2,bool MemoEdge)
 {
     aTieP.AddSom(aV1,aK1);
     aTieP.AddSom(aV2,aK2);
     aTieP.IncrArc();
+    if (MemoEdge) 
+       aTieP.MemoCnx(aK1,aK2);
 }
 
  
 template <class Type> 
-void  cVarSizeMergeTieP<Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
+void  cVarSizeMergeTieP<Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2,bool MemoEdge)
 {
-    AddArcTieP(*this,aV1,aK1,aV2,aK2);
+    AddArcTieP(*this,aV1,aK1,aV2,aK2,MemoEdge);
 }
 template <const int TheNbPts,class Type>
-   void  cFixedSizeMergeTieP<TheNbPts,Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
+   void  cFixedSizeMergeTieP<TheNbPts,Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2,bool MemoEdge)
 {
-    AddArcTieP(*this,aV1,aK1,aV2,aK2);
+    AddArcTieP(*this,aV1,aK1,aV2,aK2,MemoEdge);
 }
 
 
@@ -282,7 +300,7 @@ void cFixedSizeMergeTieP<TheNbPts,Type>::FusionneInThis(cFixedSizeMergeTieP<TheN
 /*                                                                        */
 /**************************************************************************/
 
-template <class Type> cStructMergeTieP<Type>::cStructMergeTieP(int aNb) :
+template <class Type> cStructMergeTieP<Type>::cStructMergeTieP(int aNb,bool WithMemoEdges) :
     mTheNb      (aNb),
     mTheMapMerges    (aNb),
     mEnvInf     (aNb),
@@ -290,7 +308,8 @@ template <class Type> cStructMergeTieP<Type>::cStructMergeTieP(int aNb) :
     mNbSomOfIm  (aNb,0),
     mStatArc    (),
     mExportDone (false),
-    mDeleted    (false)
+    mDeleted    (false),
+    mWithMemoEdges (WithMemoEdges)
 {
      int aNb2 = Type::FixedSize();
      if (aNb2>=0)
@@ -330,9 +349,13 @@ template <class Type>
                   if (aM1==aM2) 
                   {   
                      aM1->IncrArc();
+                     if (mWithMemoEdges)
+                        aM1->MemoCnx(aK1,aK2);
                      return;
                   }
                   aM1->FusionneInThis(*aM2,mTheMapMerges);
+                  if (mWithMemoEdges) 
+                     aM1->FusionneCnxInThis(*aM2);
                   if (aM1->IsOk() && aM2->IsOk())
                   {
                      delete aM2;
@@ -353,7 +376,7 @@ template <class Type>
                  aMerge = aM1;
                  mTheMapMerges[aK2].GT_SetVal(aV2,aM1);
              }
-             aMerge->AddArc(aV1,aK1,aV2,aK2);
+             aMerge->AddArc(aV1,aK1,aV2,aK2,mWithMemoEdges);
 }
 
 
@@ -518,7 +541,7 @@ void Merge3Pack
           const std::vector<Pt2dr> & aV32
      )
 {
-    cStructMergeTieP< cFixedSizeMergeTieP<3,Pt2dr> > aMergeStr(3);
+    cStructMergeTieP< cFixedSizeMergeTieP<3,Pt2dr> > aMergeStr(3,false);
 
     NOMerge_AddVect(aMergeStr,aV12,0,aV21,1);
     NOMerge_AddVect(aMergeStr,aV13,0,aV31,2);
@@ -593,7 +616,7 @@ void Merge2Pack
           const ElPackHomologue & aPack2
      )
 {
-    cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> > aMergeStr(2);
+    cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> > aMergeStr(2,false);
     const ElCamera  * aPtrCam = (const ElCamera *)NULL;
 // NOMerge_AddPackHom
     NOMerge_AddPackHom(aMergeStr,aPack1,aPtrCam,0,aPtrCam,1);
@@ -636,7 +659,7 @@ template <const int TheNb> void NOMerge_AddAllCams
 void New_ForceInstanceNOMerge_AddAllCams()
 {
     std::vector<cNewO_OneIm*> aVI;
-    cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> > aMap(2);
+    cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> > aMap(2,false);
     NOMerge_AddAllCams(aMap,aVI);
 }
 
@@ -648,7 +671,7 @@ void  NewOri_Info1Cple
       const ElCamera & aCam2,const ElPackHomologue & aPack21
 )
 {
-    cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> > aMap2(2);
+    cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> > aMap2(2,false);
 
     NOMerge_AddPackHom(aMap2,aPack12,aCam1,0,aCam2,1);
     NOMerge_AddPackHom(aMap2,aPack21,aCam2,1,aCam1,0);
@@ -728,9 +751,15 @@ class cChkMerge
          double mRes;
 };
 
-template <class Type> double ChkMerge(const Type & aM)
+template <class Type> double ChkMerge(const Type & aM,bool CheckEdges)
 {
     cChkMerge aChk;
+    if (CheckEdges)
+    {
+       ELISE_ASSERT(aM.NbArc()==int(aM.Edges().size()),"ChkMerge");
+    }
+
+
     aChk.AddNbArc(aM.NbArc());
     for (int aK=0 ; aK<NbCamTest ; aK++)
     {
@@ -743,13 +772,13 @@ template <class Type> double ChkMerge(const Type & aM)
 
 }
 
-template <class Type> double ChkSomMerge(const std::list<Type  *> & aList,int & aNbArc)
+template <class Type> double ChkSomMerge(const std::list<Type  *> & aList,int & aNbArc,bool CheckEdges)
 {
     aNbArc=0;
     double aRes = 0;
     for (typename std::list<Type  *>::const_iterator iT=aList.begin(); iT!=aList.end() ; iT++)
     {
-        aRes += ChkMerge(**iT);
+        aRes += ChkMerge(**iT,CheckEdges);
         aNbArc += (*iT)->NbArc();
     }
     return aRes;
@@ -787,11 +816,12 @@ void OneTestNewMerge()
     static int aCpt=0;
     for (int aNb = 2 ; aNb < 500 ; aNb += 3)
     {
+         bool MemoArc = true;
          aCpt++; 
          double aProbaPInt = NRrandom3();
          double aProbaArcGlob = NRrandom3();
-         cStructMergeTieP<cVarSizeMergeTieP<Pt2df> > aVSMT(NbCamTest);
-         cStructMergeTieP<cFixedSizeMergeTieP<NbCamTest,Pt2df> > aFSMT(NbCamTest);
+         cStructMergeTieP<cVarSizeMergeTieP<Pt2df> > aVSMT(NbCamTest,MemoArc);
+         cStructMergeTieP<cFixedSizeMergeTieP<NbCamTest,Pt2df> > aFSMT(NbCamTest,MemoArc);
 
          tGraphTestTieP aGr;
          int aFlagOr = aGr.alloc_flag_arc();
@@ -895,10 +925,10 @@ void OneTestNewMerge()
          ELISE_ASSERT(int(aLVT.size())==aNbCCOk,"Tie Point CC Check");
 
          int aNbA1,aNbA2;
-         double aChk1 = ChkSomMerge(aLVT,aNbA1);
-         double aChk2 = ChkSomMerge(aLFT,aNbA2);
+         double aChk1 = ChkSomMerge(aLVT,aNbA1,MemoArc);
+         double aChk2 = ChkSomMerge(aLFT,aNbA2,MemoArc);
 
-         std::cout << aCpt << " ============== " << aLVT.size() << " " << aNbCCOk << " " << aNbArcOK << " " << " " << aNbA1 << "\n";
+         // std::cout << aCpt << " ============== " << aLVT.size() << " " << aNbCCOk << " " << aNbArcOK << " " << " " << aNbA1 << "\n";
          if  (ElAbs(aChk1-aChk2)> 1E-5)  
          {
                std::cout << "HHHHH " <<   aChk1  << " " << aChk2  << " "  << "\n";

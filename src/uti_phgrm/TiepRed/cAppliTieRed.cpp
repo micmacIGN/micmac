@@ -232,7 +232,7 @@ void cAppliTiepRed::DoReduceBox()
    // merge topological tie point
 
     // Create an empty merging struct
-    mMergeStruct  = new  tMergeStr(mVecCam.size());
+    mMergeStruct  = new  tMergeStr(mVecCam.size(),true);
     // for each link do the mergin
     for (std::list<cLnk2ImTiepRed *>::const_iterator itL=mLnk2Im.begin() ; itL!=mLnk2Im.end() ; itL++)
     {
