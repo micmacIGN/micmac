@@ -241,6 +241,7 @@ class cAppliTiepRed
           void DoReduceBox();
           void DoLoadTiePoints();
           void DoFilterCamAnLinks();
+          void DoExport();
 
           cAppliTiepRed(const cAppliTiepRed &); // N.I.
 
@@ -278,6 +279,7 @@ class cAppliTiepRed
           tTiePRed_QT                      *mQT;
           cCompareHeapPMulTiepRed          mPMulCmp;
           tTiePRed_Heap                    *mHeap;
+          std::list<tPMulTiepRedPtr>       mListSel; // List of selected multi points
           double                           mStdPrec;
           std::vector<int>                 mBufICam;
 };
