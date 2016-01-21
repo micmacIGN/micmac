@@ -264,7 +264,7 @@ cElPolygone cElPolygone::FromBox(const Box2dr & aBox)
     aCont.push_back(Pt2dr(aBox._p0.x,aBox._p1.y));
 
     cElPolygone aRes;
-    aRes.AddContour(aCont,true);
+    aRes.AddContour(aCont,false);
     return aRes;
 }
 
