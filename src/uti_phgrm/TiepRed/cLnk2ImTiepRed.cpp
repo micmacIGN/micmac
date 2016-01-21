@@ -63,6 +63,7 @@ void cLnk2ImTiepRed::Add2Merge(tMergeStr * aMergeStr)
     int aKCam1 =  mCam1->Num();
     int aKCam2 =  mCam2->Num();
 
+
     // Parse the point 
     for (int aKP=0 ; aKP<int(mVP1.size()) ; aKP++)
     {

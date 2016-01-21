@@ -84,6 +84,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
        mXmlParBox = StdGetFromPCP(NameParamBox(mKBox,true),Xml_ParamBoxReducTieP);
        mBoxLoc = mXmlParBox.Box();
        mFilesIm = &(mXmlParBox.Ims());
+   std::cout << "=======================   KBOX=" << mKBox << "  ===================\n";
    }
    else  // Master command, initialise from pattern
    {
@@ -172,226 +173,6 @@ void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
 
 
 
-
-
-void cAppliTiepRed::DoLoadTiePoints()
-{
-   // Load Tie Points in box
-   for (int aKI = 0 ; aKI<int(mVecCam.size()) ; aKI++)
-   {
-       cCameraTiepRed & aCam1 = *(mVecCam[aKI]);
-       const std::string & anI1 = aCam1.NameIm();
-       // Get list of images sharin tie-P with anI1
-       std::list<std::string>  aLI2 = mNM->ListeImOrientedWith(anI1);
-       for (std::list<std::string>::const_iterator itL= aLI2.begin(); itL!=aLI2.end() ; itL++)
-       {
-            const std::string & anI2 = *itL;
-            // Test if the file anI2 is in the current pattern
-            // As the martini result may containi much more file 
-            if (mSetFiles->find(anI2) != mSetFiles->end())
-            {
-               // The result being symetric, the convention is that some data are stored only for  I1 < I2
-               if (anI1 < anI2)
-               {
-                   cCameraTiepRed & aCam2 = *(mMapCam[anI2]);
-                   aCam1.LoadHom(aCam2);
-               }
-            }
-       }
-   }
-}
-
-void cAppliTiepRed::DoFilterCamAnLinks()
-{
-   // Select Cam ( and Link ) with enough points, and give a numeration to camera
-   {
-      // Suppress the links if one of its camera was supressed
-      std::list<cLnk2ImTiepRed *> aNewL;
-      for (std::list<cLnk2ImTiepRed *>::const_iterator itL=mLnk2Im.begin() ; itL!=mLnk2Im.end() ; itL++)
-      {
-          // if the two camera are to preserve, then preserve the link
-          if ((*itL)->Cam1().SelectOnHom2Im() && (*itL)->Cam2().SelectOnHom2Im())
-             aNewL.push_back(*itL);
-      }
-      std::cout << "   LNK " << mLnk2Im.size() << " " << aNewL.size() << "\n";
-      mLnk2Im = aNewL;
-
-      std::vector<cCameraTiepRed *>  aNewV; // Filtered camera
-      int aNum=0; // Current number
-      for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
-      {
-          if (mVecCam[aKC]->SelectOnHom2Im()) // If enouh point  camera is to preserve
-          {
-             aNewV.push_back(mVecCam[aKC]); // Add to new vec
-             mVecCam[aKC]->SetNum(aNum);    // Give current numeration
-             aNum++;
-          }
-          else
-          {
-             // Forget this camera
-             mMapCam[mVecCam[aKC]->NameIm()] = 0;
-             // delete mVecCam[aKC];
-          }
-      }
-      std::cout << "   CAMSS " << mVecCam.size() << " " << aNewV.size() << "\n";
-      mVecCam = aNewV; // Update member vector of cams
-
-      mBufICam = std::vector<int>(mVecCam.size(),0);
-   }
-}
-
-void Verif(Pt2df aPf)
-{
-   Pt2dr aPd = ToPt2dr(aPf);
-   if (std_isnan(aPd.x) || std_isnan(aPd.y))
-   {
-       std::cout << "PB PTS " << aPf << " => " << aPd << "\n";
-       ELISE_ASSERT(false,"PB PTS in Verif");
-   }
-}
-
-void cAppliTiepRed::DoExport()
-{
-    int aNbCam = mVecCam.size();
-    std::vector<std::vector<ElPackHomologue> > aVVH (aNbCam,std::vector<ElPackHomologue>(aNbCam));
-    for (std::list<tPMulTiepRedPtr>::const_iterator itP=mListSel.begin(); itP!=mListSel.end();  itP++)
-    {
-         tMerge * aMerge = (*itP)->Merge();
-         const std::vector<Pt2dUi2> &  aVE = aMerge->Edges();
-         for (int aKCple=0 ; aKCple<int(aVE.size()) ; aKCple++)
-         {
-              int aKCam1 = aVE[aKCple].x;
-              int aKCam2 = aVE[aKCple].y;
-              cCameraTiepRed * aCam1 = mVecCam[aKCam1];
-              cCameraTiepRed * aCam2 = mVecCam[aKCam2];
-
-              Pt2df aP1 = aMerge->GetVal(aKCam1);
-              Pt2df aP2 = aMerge->GetVal(aKCam2);
-              aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(aCam1->Hom2Cam(aP1),aCam2->Hom2Cam(aP2)));
-
-              Verif(aP1);
-              Verif(aP2);
-         }
-    }
-
-    for (int aKCam1=0 ; aKCam1<aNbCam ; aKCam1++)
-    {
-        for (int aKCam2=0 ; aKCam2<aNbCam ; aKCam2++)
-        {
-             const ElPackHomologue & aPack = aVVH[aKCam1][aKCam2];
-             if (aPack.size())
-             {
-                  aPack.StdPutInFile(NameHomol(mVecCam[aKCam1]->NameIm(),mVecCam[aKCam2]->NameIm(),mKBox));
-             }
-        }
-    }
-   
-}
-
-void cAppliTiepRed::DoReduceBox()
-{
-    DoLoadTiePoints();
-    DoFilterCamAnLinks();
-
-   // merge topological tie point
-
-    // Create an empty merging struct
-    mMergeStruct  = new  tMergeStr(mVecCam.size(),true);
-    // for each link do the mergin
-    for (std::list<cLnk2ImTiepRed *>::const_iterator itL=mLnk2Im.begin() ; itL!=mLnk2Im.end() ; itL++)
-    {
-        (*itL)->Add2Merge(mMergeStruct);
-    }
-    mMergeStruct->DoExport();                  // "Compile" to make the point usable
-    mLMerge =  & mMergeStruct->ListMerged();    // Get the merged multiple points
-    std::vector<int> aVHist(mVecCam.size(),0);
-
-    // Compute the average 
-    double aSzTileAver = sqrt(mBoxLoc.surf()/mLMerge->size()); 
-
-    
-    // Quod tree for spatial indexation
-    mQT = new tTiePRed_QT ( mPMul2Gr, mBoxLoc, 5  /* 5 obj max  box */, 2*aSzTileAver);
-    // Heap for priority management
-
-
-   // give ground coord to multiple point and put them in quod-tree  and  heap 
-    {
-       std::vector<double> aVPrec;
-       std::vector<tPMulTiepRedPtr> aVPM;  aVPM.reserve(mLMerge->size());
-
-       for (std::list<tMerge *>::const_iterator itM=mLMerge->begin() ; itM!=mLMerge->end() ; itM++)
-       {
-           cPMulTiepRed * aPM = new cPMulTiepRed(*itM,*this);
-           if (mBoxLoc.inside(aPM->Pt()))
-           {
-              aVPM.push_back(aPM);
-              
-              aVPrec.push_back(aPM->Prec());
-              aVHist[(*itM)->NbSom()] ++;
-              mQT->insert(aPM);
-           }
-           else
-           {
-              delete aPM;
-           }
-       }
-       if (aVPrec.size() ==0)
-       {   
-          return;
-       }
-       mStdPrec = MedianeSup(aVPrec);  
-
-       mHeap = new tTiePRed_Heap(mPMulCmp);
-       // The gain can be computed once we know the standard precision
-       for (int aKP=0 ; aKP<int(aVPM.size()) ; aKP++)
-       {
-           aVPM[aKP]->InitGain(*this);
-           mHeap->push(aVPM[aKP]);
-       }
-    }
-    int aNbInit = mHeap->nb();
-    int aNbSel=0;
-
-    tPMulTiepRedPtr aPMPtr;
-    while (mHeap->pop(aPMPtr))
-    {
-          aNbSel++;
-          mListSel.push_back(aPMPtr);
-          aPMPtr->Remove();
-          std::set<tPMulTiepRedPtr> & aSetNeigh = *(new std::set<tPMulTiepRedPtr>);
-          double aDist= mDistPMul * mResol;
-          mQT->RVoisins(aSetNeigh,aPMPtr->Pt(),aDist);
-
-          for (std::set<tPMulTiepRedPtr>::const_iterator itS=aSetNeigh.begin() ; itS!=aSetNeigh.end() ; itS++)
-          {
-
-              // tPMulTiepRedPtr aNeigh = aSetNeigh[aK];
-              tPMulTiepRedPtr aNeigh = *itS;
-              if (! aNeigh->Removed())
-              {
-                  aNeigh->UpdateNewSel(aPMPtr,*this);
-                  if (aNeigh->Removable())
-                  {
-                      aNeigh->Remove();
-                      mQT->remove(aNeigh);
-                      mHeap->Sortir(aNeigh);
-                  }
-              }
-          }
-          /* std::cout << "         GAIN " << aPMPtr->Gain() << " " 
-                       <<  aPMPtr->Merge()->NbArc()  << " " <<  aPMPtr->Merge()->NbSom() 
-                       << " " << aSetNeigh.size() << " " <<  mHeap->nb() << "\n";
-          */
-          
-
-    }
-
-    std::cout << "NBPTS " <<  aNbInit << " => " << aNbSel << "\n";
-    DoExport();
-}
-
-
 void TestPoly(const cElPolygone & aPol )
 {
    const std::list<std::vector<Pt2dr> >   aLC = aPol.Contours();
@@ -469,7 +250,6 @@ void cAppliTiepRed::GenerateSplit()
                  // add to list to be executed
                  aLCom.push_back(aCom);
                  std::cout << "==>   " << aCom << "\n";
-                 aCpt++;
                  for (int aKC1=0; aKC1<int(aVCamSel.size()) ; aKC1++)
                  {
                      cCameraTiepRed * aCam1 = aVCamSel[aKC1];
@@ -479,23 +259,11 @@ void cAppliTiepRed::GenerateSplit()
                          cElPolygone  aPolInter = aPolyBox  * aCam1->CS().EmpriseSol() *  aCam2->CS().EmpriseSol();
                          if (aPolInter.Surf() > 0)
                          {
-if ((aCam1->NameIm()=="Abbey-IMG_0282.jpg") && (aCam2->NameIm()=="Abbey-IMG_0283.jpg"))
-{
-   TestPoly(aCam1->CS().EmpriseSol());
-   TestPoly(aCam2->CS().EmpriseSol());
-   std::cout << "KKBBBBB " << aCpt  << " " << aPolInter.Surf() 
-                                    << " B " << aPolyBox.Surf()  
-                                    << " C1 : " <<  aCam1->CS().EmpriseSol().Surf()
-                                    << " C2 : " <<  aCam2->CS().EmpriseSol().Surf()
-                                    << " R1 : " <<  aCam1->CS().ResolutionSol()
-                                    << " A1 : " <<  aCam1->CS().GetAltiSol()
-                                    << "\n"; 
-                                    // getchar();
-}
                             aCam1->AddCamBox(aCam2,aCpt);
                          }
                      }
                  }
+                 aCpt++;
 
              }
         }
@@ -525,8 +293,10 @@ void  cAppliTiepRed::Exe()
 
 int TestOscarTieP_main(int argc,char **argv) 
 {
-    cAppliTiepRed anAppli(argc,argv);
-    anAppli.Exe();
+    cAppliTiepRed * anAppli = new cAppliTiepRed(argc,argv);
+
+     anAppli->Exe();
+
 
     return EXIT_SUCCESS;
 }
