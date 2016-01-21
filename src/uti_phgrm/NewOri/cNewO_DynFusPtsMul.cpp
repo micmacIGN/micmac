@@ -40,6 +40,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+template <class Type> void CheckCnx(const  Type & aVM)
+{
+   const std::vector<Pt2dUi2> &  aVE = aVM.Edges();
+   for (int aKCple=0 ; aKCple<int(aVE.size()) ; aKCple++)
+   {
+std::cout << aVE[aKCple] << "\n";
+       int aKCam1 = aVE[aKCple].x;
+       int aKCam2 = aVE[aKCple].y;
+       aVM.GetVal(aKCam1);
+       aVM.GetVal(aKCam2);
+   }
+}
 
 /**************************************************************************/
 /*                                                                        */
@@ -75,6 +87,7 @@ void cComMergeTieP::FusionneCnxInThis(const cComMergeTieP & aC2)
 /*        cVarSizeMergeTieP  / cFixedSizeMergeTieP                        */
 /*                                                                        */
 /**************************************************************************/
+
 
    // =================== Specif cVarSizeMergeTieP =================
 
@@ -174,7 +187,12 @@ template <class TTieP,class Type> void AddArcTieP(TTieP & aTieP,const Type & aV1
     aTieP.AddSom(aV2,aK2);
     aTieP.IncrArc();
     if (MemoEdge) 
+    {
        aTieP.MemoCnx(aK1,aK2);
+CheckCnx(aTieP);
+// aTieP.GetVal(aK1);
+// aTieP.GetVal(aK2);
+    }
 }
 
  
@@ -349,8 +367,15 @@ template <class Type>
                   if (aM1==aM2) 
                   {   
                      aM1->IncrArc();
+/*
+aM1->AddArc(aV1,aK1,aV2,aK2,mWithMemoEdges);
+*/
                      if (mWithMemoEdges)
+                     {
                         aM1->MemoCnx(aK1,aK2);
+// aM1->GetVal(aK1);
+// aM1->GetVal(aK2);
+                     }
                      return;
                   }
                   aM1->FusionneInThis(*aM2,mTheMapMerges);

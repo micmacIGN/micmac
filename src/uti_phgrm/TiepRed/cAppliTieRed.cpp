@@ -80,7 +80,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    
    if (mCallBack)  // Subcommand mode, initialise set of file for Param_K.xml
    {
-       mXmlParBox = StdGetFromPCP(NameParamBox(mKBox),Xml_ParamBoxReducTieP);
+       mXmlParBox = StdGetFromPCP(NameParamBox(mKBox,true),Xml_ParamBoxReducTieP);
        mBoxLoc = mXmlParBox.Box();
        mFilesIm = &(mXmlParBox.Ims());
    }
@@ -132,9 +132,9 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
 
 const std::string cAppliTiepRed::TheNameTmp = "Tmp-ReducTieP/";
 
-std::string  cAppliTiepRed::NameParamBox(int aK) const
+std::string  cAppliTiepRed::NameParamBox(int aK,bool Bin) const
 {
-    return mDir+TheNameTmp + "Param_" +ToString(aK) + ".xml";
+    return mDir+TheNameTmp + "Param_" +ToString(aK) + (Bin ? ".xml" : "dmp");
 }
 
 std::string  cAppliTiepRed::DirOneImage(const std::string &aName) const
@@ -237,6 +237,16 @@ void cAppliTiepRed::DoFilterCamAnLinks()
    }
 }
 
+void Verif(Pt2df aPf)
+{
+   Pt2dr aPd = ToPt2dr(aPf);
+   if (std_isnan(aPd.x) || std_isnan(aPd.y))
+   {
+       std::cout << "PB PTS " << aPf << " => " << aPd << "\n";
+       ELISE_ASSERT(false,"PB PTS in Verif");
+   }
+}
+
 void cAppliTiepRed::DoExport()
 {
     int aNbCam = mVecCam.size();
@@ -245,12 +255,16 @@ void cAppliTiepRed::DoExport()
     {
          tMerge * aMerge = (*itP)->Merge();
          const std::vector<Pt2dUi2> &  aVE = aMerge->Edges();
-         std::vector<Pt2df> &  aVP = aMerge->VecV() ;
          for (int aKCple=0 ; aKCple<int(aVE.size()) ; aKCple++)
          {
               int aKCam1 = aVE[aKCple].x;
               int aKCam2 = aVE[aKCple].y;
-              aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(ToPt2dr(aVP[aKCam1]),ToPt2dr(aVP[aKCam2])));
+              Pt2df aP1 = aMerge->GetVal(aKCam1);
+              Pt2df aP2 = aMerge->GetVal(aKCam2);
+              aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(ToPt2dr(aP1),ToPt2dr(aP2)));
+
+              Verif(aP1);
+              Verif(aP2);
          }
     }
 
@@ -405,6 +419,7 @@ void cAppliTiepRed::GenerateSplit()
              cXml_ParamBoxReducTieP aParamBox;                           // XML/C++ Structure to save
              aParamBox.Box() = aBox;                                     // Memorize the box of tile
 
+             std::vector<cCameraTiepRed *> aVCamSel;
              for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
              {
                    // Intersection between footprint and box (see class cElPolygone)
@@ -414,6 +429,7 @@ void cAppliTiepRed::GenerateSplit()
                    {
                         //  Add the name to the vector
                         aParamBox.Ims().push_back(mVecCam[aKC]->NameIm());
+                        aVCamSel.push_back(mVecCam[aKC]);
                    }
 
              }
@@ -421,20 +437,32 @@ void cAppliTiepRed::GenerateSplit()
              if (aParamBox.Ims().size() >=2)
              {
                  // Save the file to XML
-                 MakeFileXML(aParamBox,NameParamBox(aCpt));
+                 MakeFileXML(aParamBox,NameParamBox(aCpt,false));
+                 MakeFileXML(aParamBox,NameParamBox(aCpt,true));
                  // Generate the command line to process this box
                  std::string aCom = GlobArcArgv + "  KBox=" + ToString(aCpt);
                  // add to list to be executed
                  aLCom.push_back(aCom);
                  std::cout << "==>   " << aCom << "\n";
                  aCpt++;
+                 for (int aKC1=0; aKC1<int(aVCamSel.size()) ; aKC1++)
+                 {
+                     for (int aKC2=0; aKC2<int(aVCamSel.size()) ; aKC2++)
+                     {
+                         cElPolygone  aPolInter = aPolyBox  * mVecCam[aKC1]->CS().EmpriseSol() *  mVecCam[aKC2]->CS().EmpriseSol();
+                         if (aPolInter.Surf() > 0)
+                            aVCamSel[aKC1]->AddCamBox(aVCamSel[aKC2],aCpt);
+                     }
+                 }
+
              }
         }
     }
     // cEl_GPAO::DoComInParal(aLCom);
     cEl_GPAO::DoComInSerie(aLCom);
 
-    // int aNbX = round_up(mBoxGlob.sz().x /
+    for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
+       mVecCam[aKC]->SaveHom();
 }
 
 

@@ -127,9 +127,13 @@ class cCameraTiepRed
 
         // Transform for "ideal sensor" coordinate to the pixel coordinates
         Pt2dr Hom2Cam(const Pt2df & aP) const;
+        void AddCamBox(cCameraTiepRed*,int aKBox);
+
+        void SaveHom();
 
 
     private :
+        void SaveHom( cCameraTiepRed*,const std::list<int> & aLBox);
         cCameraTiepRed(const cCameraTiepRed &); // Not Implemented
 
 
@@ -138,6 +142,7 @@ class cCameraTiepRed
         CamStenope * mCS;
         int          mNbPtsHom2Im;
         int          mNum;
+        std::map<cCameraTiepRed*,std::list<int> > mMapCamBox;
 };
 
 class cLnk2ImTiepRed
@@ -234,6 +239,7 @@ class cAppliTiepRed
           cCameraTiepRed * KthCam(int aK);
           const double & StdPrec() const;
           std::vector<int>  & BufICam();
+          std::string NameHomol(const std::string &,const std::string &,int aK) const;
 
      private :
 
@@ -248,8 +254,7 @@ class cAppliTiepRed
           static const std::string TheNameTmp;
 
           std::string DirOneImage(const std::string &) const;
-          std::string NameHomol(const std::string &,const std::string &,int aK) const;
-          std::string NameParamBox(int aK) const;
+          std::string NameParamBox(int aK,bool Bin) const;
 
 
           const std::vector<std::string> * mFilesIm;
