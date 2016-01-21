@@ -159,7 +159,33 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
     }
 }
   
+void cCameraTiepRed::AddCamBox(cCameraTiepRed* aCam2,int aKBox)
+{
+   mMapCamBox[aCam2].push_back(aKBox);
+}
 
+
+void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
+{
+    ElPackHomologue aRes;
+    for (std::list<int>::const_iterator itI=aLBox.begin(); itI!=aLBox.end() ; itI++)
+    {
+         std::string aName = mAppli.NameHomol(NameIm(),aCam2->NameIm(),*itI);
+         if (ELISE_fp::exist_file(aName))
+         {
+             ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
+             aRes.Add(aPack);
+             std::cout << aName << " " << aPack.size() << aRes.size() << "\n";
+         }
+    }
+    std::cout << "================== " <<NameIm() << " " << aCam2->NameIm() << " "<< aLBox.size() << "\n";
+}
+
+void  cCameraTiepRed::SaveHom()
+{
+    for (std::map<cCameraTiepRed*,std::list<int> >::const_iterator itM=mMapCamBox.begin(); itM!=mMapCamBox.end() ;itM++)
+       SaveHom(itM->first,itM->second);
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
