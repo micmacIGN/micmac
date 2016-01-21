@@ -190,6 +190,7 @@ class cPMulTiepRed
        bool     mRemoved;
        int      mNbCam0;
        int      mNbCamCur;
+       std::vector<U_INT1> mVConserved;
 };
 
 
@@ -240,6 +241,7 @@ class cAppliTiepRed
           const double & StdPrec() const;
           std::vector<int>  & BufICam();
           std::string NameHomol(const std::string &,const std::string &,int aK) const;
+          cInterfChantierNameManipulateur* ICNM();
 
      private :
 
@@ -291,6 +293,7 @@ class cAppliTiepRed
           std::list<tPMulTiepRedPtr>       mListSel; // List of selected multi points
           double                           mStdPrec;
           std::vector<int>                 mBufICam;
+          cInterfChantierNameManipulateur* mICNM;
 };
 
 

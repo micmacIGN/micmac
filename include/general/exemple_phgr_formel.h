@@ -1075,13 +1075,11 @@ template <class Type>  class cVarSizeMergeTieP : public cComMergeTieP
         void AddSom(const Type & aV,int aK);
         static int FixedSize();
 
-        const std::vector<int>  & VecInd() const;
+        const std::vector<U_INT2>  & VecInd() const;
         const std::vector<Type> & VecV()   const;
-        std::vector<int>  & VecInd() ;
-        std::vector<Type> & VecV()   ;
      private :
 
-        std::vector<int>   mVecInd;
+        std::vector<U_INT2>   mVecInd;
         std::vector<Type>  mVecV;
 };
 template <const int TheNbPts,class Type>  class cFixedSizeMergeTieP : public cComMergeTieP

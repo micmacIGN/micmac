@@ -40,8 +40,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
-template <class Type> void CheckCnx(const  Type & aVM)
+template <class Type> void CheckCnx(const  cVarSizeMergeTieP<Type> & aVM,const std::string & aMes,int aK1 , int aK2)
 {
+static int aCpt=0; aCpt++;
+std::cout << "CCx " << aMes << " " << aCpt << " K1K2 " << aK1 << " " << aK2 << " Adr=" << &aVM  << " KS=" <<aVM.VecInd() << "\n";
    const std::vector<Pt2dUi2> &  aVE = aVM.Edges();
    for (int aKCple=0 ; aKCple<int(aVE.size()) ; aKCple++)
    {
@@ -51,6 +53,9 @@ std::cout << aVE[aKCple] << "\n";
        aVM.GetVal(aKCam1);
        aVM.GetVal(aKCam2);
    }
+}
+template <const int TheNbPts,class Type> void CheckCnx(const  cFixedSizeMergeTieP<TheNbPts,Type> & aVM,const std::string & aMes,int aK1 , int aK2)
+{
 }
 
 /**************************************************************************/
@@ -80,6 +85,7 @@ void cComMergeTieP::FusionneCnxInThis(const cComMergeTieP & aC2)
 {
     for (int aK=0 ; aK<int(aC2.mEdges.size()) ; aK++)
         mEdges.push_back(aC2.mEdges[aK]);
+
 }
 
 /**************************************************************************/
@@ -91,10 +97,8 @@ void cComMergeTieP::FusionneCnxInThis(const cComMergeTieP & aC2)
 
    // =================== Specif cVarSizeMergeTieP =================
 
-template <class Type> const std::vector<int>  & cVarSizeMergeTieP<Type>::VecInd() const {return mVecInd;}
+template <class Type> const std::vector<U_INT2>  & cVarSizeMergeTieP<Type>::VecInd() const {return mVecInd;}
 template <class Type> const std::vector<Type> & cVarSizeMergeTieP<Type>::VecV()   const {return mVecV;}
-template <class Type> std::vector<int>  & cVarSizeMergeTieP<Type>::VecInd() {return mVecInd;}
-template <class Type> std::vector<Type> & cVarSizeMergeTieP<Type>::VecV()   {return mVecV;}
 
 
    // ======================= Constructeurs =========================
@@ -189,9 +193,7 @@ template <class TTieP,class Type> void AddArcTieP(TTieP & aTieP,const Type & aV1
     if (MemoEdge) 
     {
        aTieP.MemoCnx(aK1,aK2);
-CheckCnx(aTieP);
-// aTieP.GetVal(aK1);
-// aTieP.GetVal(aK2);
+       // CheckCnx(aTieP,"ADDARC",aK1,aK2);
     }
 }
 
@@ -239,6 +241,7 @@ const Type &    cVarSizeMergeTieP<Type>::GetVal(int anInd) const
          if ( mVecInd[aKI] == anInd)
             return mVecV[aKI];
      }
+     std::cout << "VECIND " << mVecInd  << " Ind=" << anInd << "\n";
      ELISE_ASSERT(false,":::GetVal");
      return mVecV[0];
 }
@@ -366,23 +369,24 @@ template <class Type>
              {
                   if (aM1==aM2) 
                   {   
-                     aM1->IncrArc();
+                     aM1->AddArc(aV1,aK1,aV2,aK2,mWithMemoEdges);
 /*
-aM1->AddArc(aV1,aK1,aV2,aK2,mWithMemoEdges);
-*/
+                     aM1->IncrArc();
                      if (mWithMemoEdges)
                      {
                         aM1->MemoCnx(aK1,aK2);
+// CheckCnx(*aM1,"M1=m2",aK1,aK2);
 // aM1->GetVal(aK1);
 // aM1->GetVal(aK2);
                      }
+*/
                      return;
                   }
                   aM1->FusionneInThis(*aM2,mTheMapMerges);
-                  if (mWithMemoEdges) 
-                     aM1->FusionneCnxInThis(*aM2);
                   if (aM1->IsOk() && aM2->IsOk())
                   {
+                     if (mWithMemoEdges) 
+                        aM1->FusionneCnxInThis(*aM2);
                      delete aM2;
                      aMerge = aM1;
                   }
@@ -841,6 +845,7 @@ void OneTestNewMerge()
     static int aCpt=0;
     for (int aNb = 2 ; aNb < 500 ; aNb += 3)
     {
+         // std::cout << "================ " << aNb << " =============================\n";
          bool MemoArc = true;
          aCpt++; 
          double aProbaPInt = NRrandom3();

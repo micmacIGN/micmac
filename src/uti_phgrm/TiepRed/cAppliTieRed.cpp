@@ -72,6 +72,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    // if mKBox was set, we are not the master call (we are the "subcommand")
    mCallBack = EAMIsInit(&mKBox);
    mDir = DirOfFile(mPatImage);
+   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    // Correct orientation (for example Ori-toto => toto)
    if (EAMIsInit(&mCalib))
    {
@@ -159,6 +160,8 @@ cCameraTiepRed * cAppliTiepRed::KthCam(int aK) {return mVecCam[aK];}
 const double & cAppliTiepRed::ThresholdPrecMult() const {return mThresholdPrecMult;}
 const double & cAppliTiepRed::StdPrec() const {return mStdPrec;}
 std::vector<int>  & cAppliTiepRed::BufICam() {return mBufICam;}
+cInterfChantierNameManipulateur* cAppliTiepRed::ICNM() {return mICNM;}
+
 
 
 
@@ -259,9 +262,12 @@ void cAppliTiepRed::DoExport()
          {
               int aKCam1 = aVE[aKCple].x;
               int aKCam2 = aVE[aKCple].y;
+              cCameraTiepRed * aCam1 = mVecCam[aKCam1];
+              cCameraTiepRed * aCam2 = mVecCam[aKCam2];
+
               Pt2df aP1 = aMerge->GetVal(aKCam1);
               Pt2df aP2 = aMerge->GetVal(aKCam2);
-              aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(ToPt2dr(aP1),ToPt2dr(aP2)));
+              aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(aCam1->Hom2Cam(aP1),aCam2->Hom2Cam(aP2)));
 
               Verif(aP1);
               Verif(aP2);
@@ -386,6 +392,25 @@ void cAppliTiepRed::DoReduceBox()
 }
 
 
+void TestPoly(const cElPolygone & aPol )
+{
+   const std::list<std::vector<Pt2dr> >   aLC = aPol.Contours();
+
+   for
+   (
+       std::list<std::vector<Pt2dr> >::const_iterator itC=aLC.begin();
+       itC!=aLC.end();
+       itC++
+   )
+   {
+        std::cout << " AAaa= " << itC->size()  ;
+        for (int aK=0 ; aK<int(itC->size()) ; aK++)
+            std::cout << (*itC)[aK] << "  ";
+        std::cout << "\n";
+   }
+   
+   std::cout << "\n";
+}
 
 
 void cAppliTiepRed::GenerateSplit()
@@ -447,11 +472,28 @@ void cAppliTiepRed::GenerateSplit()
                  aCpt++;
                  for (int aKC1=0; aKC1<int(aVCamSel.size()) ; aKC1++)
                  {
+                     cCameraTiepRed * aCam1 = aVCamSel[aKC1];
                      for (int aKC2=0; aKC2<int(aVCamSel.size()) ; aKC2++)
                      {
-                         cElPolygone  aPolInter = aPolyBox  * mVecCam[aKC1]->CS().EmpriseSol() *  mVecCam[aKC2]->CS().EmpriseSol();
+                         cCameraTiepRed * aCam2 = aVCamSel[aKC2];
+                         cElPolygone  aPolInter = aPolyBox  * aCam1->CS().EmpriseSol() *  aCam2->CS().EmpriseSol();
                          if (aPolInter.Surf() > 0)
-                            aVCamSel[aKC1]->AddCamBox(aVCamSel[aKC2],aCpt);
+                         {
+if ((aCam1->NameIm()=="Abbey-IMG_0282.jpg") && (aCam2->NameIm()=="Abbey-IMG_0283.jpg"))
+{
+   TestPoly(aCam1->CS().EmpriseSol());
+   TestPoly(aCam2->CS().EmpriseSol());
+   std::cout << "KKBBBBB " << aCpt  << " " << aPolInter.Surf() 
+                                    << " B " << aPolyBox.Surf()  
+                                    << " C1 : " <<  aCam1->CS().EmpriseSol().Surf()
+                                    << " C2 : " <<  aCam2->CS().EmpriseSol().Surf()
+                                    << " R1 : " <<  aCam1->CS().ResolutionSol()
+                                    << " A1 : " <<  aCam1->CS().GetAltiSol()
+                                    << "\n"; 
+                                    // getchar();
+}
+                            aCam1->AddCamBox(aCam2,aCpt);
+                         }
                      }
                  }
 

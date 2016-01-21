@@ -46,15 +46,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 /**********************************************************************/
 
 cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
-    mMerge   (aPM),
-    mRemoved (false),
-    mNbCam0  (aPM->NbSom()),
-    mNbCamCur(aPM->NbSom())
+    mMerge      (aPM),
+    mRemoved    (false),
+    mNbCam0     (aPM->NbSom()),
+    mNbCamCur   (aPM->NbSom()),
+    mVConserved (aPM->VecInd().size(),1)
 {
     std::vector<ElSeg3D> aVSeg;
     std::vector<Pt2dr>   aVPt;
 
-    const std::vector<int>  &  aVecInd = aPM->VecInd() ;
+    const std::vector<U_INT2>  &  aVecInd = aPM->VecInd() ;
     const std::vector<Pt2df> & aVHom   = aPM-> VecV()  ;
 
     for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
@@ -106,30 +107,24 @@ void cPMulTiepRed::Remove()
     mRemoved = true;
 }
 
-static inline int ToInitialInt(int I) {return (I>=0) ? I : - (I+1);}
-static inline int ToRemoveInt(int I) {return (I<0) ? I : -(I+1);} 
-
 void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anAppli)
 {
    // Mark index of aPNew as existing in buf
-    const std::vector<int>  & aVNew =  aPNew->mMerge->VecInd() ;
+    const std::vector<U_INT2>  & aVNew =  aPNew->mMerge->VecInd() ;
     std::vector<int>  &  aBuf = anAppli.BufICam();
     for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
     {
-        aBuf[ToInitialInt(aVNew[aK])] = 1;
+        aBuf[aVNew[aK]] = 1;
     }
 
-
-
-
-    std::vector<int>  & aVCur =  mMerge->VecInd() ;
+    const std::vector<U_INT2>  & aVCur =  mMerge->VecInd() ;
 
     for (int aK=0 ; aK<int(aVCur.size()) ; aK++)
     {
          int aKCam = aVCur[aK];
-         if ((aKCam>=0) && (aBuf[aKCam]==1))
+         if (mVConserved[aK]  && (aBuf[aKCam]==1))
          {
-             aVCur[aK] = ToRemoveInt(aKCam);
+             mVConserved[aK] = 0;
              mNbCamCur--;
          }
     }
@@ -138,7 +133,7 @@ void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anApp
 
    // Free Mark index in aBuf
     for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
-        aBuf[ToInitialInt(aVNew[aK])] = 0;
+        aBuf[aVNew[aK]] = 0;
 }
 
 

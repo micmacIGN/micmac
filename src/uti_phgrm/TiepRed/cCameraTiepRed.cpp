@@ -167,18 +167,33 @@ void cCameraTiepRed::AddCamBox(cCameraTiepRed* aCam2,int aKBox)
 
 void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
 {
+bool Test = (NameIm()=="Abbey-IMG_0282.jpg") && (aCam2->NameIm()=="Abbey-IMG_0283.jpg");
+
+
     ElPackHomologue aRes;
     for (std::list<int>::const_iterator itI=aLBox.begin(); itI!=aLBox.end() ; itI++)
     {
          std::string aName = mAppli.NameHomol(NameIm(),aCam2->NameIm(),*itI);
+if (Test) std::cout << "AAAAAAAAAAA " << aName << "\n";
          if (ELISE_fp::exist_file(aName))
          {
              ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
              aRes.Add(aPack);
-             std::cout << aName << " " << aPack.size() << aRes.size() << "\n";
+if (Test)
+             std::cout << "ZZZ " << aName << " " << aPack.size() << " "  << aRes.size() << "\n";
          }
     }
-    std::cout << "================== " <<NameIm() << " " << aCam2->NameIm() << " "<< aLBox.size() << "\n";
+if (Test)
+    std::cout << "================== " <<NameIm() << " " << aCam2->NameIm() << " "<< aLBox.size() << " " << aRes.size() << "\n";
+
+    if (aRes.size())
+    {
+         std::string aKeyH = "NKS-Assoc-CplIm2Hom@TiePRed@dat";
+         std::string aNameH = mAppli.ICNM()->Assoc1To2(aKeyH,NameIm(),aCam2->NameIm(),true);
+         std::cout << "HHHHhhhhhhhhhh " << aNameH << "\n";
+         aRes.StdPutInFile(aNameH);
+         // std::string aNameH = mAppli
+    }
 }
 
 void  cCameraTiepRed::SaveHom()
