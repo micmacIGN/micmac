@@ -306,8 +306,32 @@ int command_renameImageSet( int argc, char **argv )
 //------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------
 
+void dump(const cFileOriMnt &aFileOriMnt, const string &aPrefix = string(), ostream &aStream = cout)
+{
+	aStream << aPrefix << "NameFileMnt     = [" << aFileOriMnt.NameFileMnt() << ']' << endl;
+	if (aFileOriMnt.NameFileMasque().IsInit()) aStream << aPrefix << "NameFileMasque  = [" << aFileOriMnt.NameFileMasque().Val() << ']' << endl;
+	aStream << aPrefix << "NombrePixels    = " << aFileOriMnt.NombrePixels() << endl;
+	aStream << aPrefix << "OriginePlani    = " << aFileOriMnt.OriginePlani() << endl;
+	aStream << aPrefix << "ResolutionPlani = " << aFileOriMnt.ResolutionPlani() << endl;
+	aStream << aPrefix << "OrigineAlti     = " << aFileOriMnt.OrigineAlti() << endl;
+	aStream << aPrefix << "ResolutionAlti  = " << aFileOriMnt.ResolutionAlti() << endl;
+	if (aFileOriMnt.NumZoneLambert().IsInit()) aStream << aPrefix << "NumZoneLambert  = " << aFileOriMnt.NumZoneLambert().Val() << endl;
+	aStream << aPrefix << "Geometrie       = " << eToString(aFileOriMnt.Geometrie()) << endl;
+	if (aFileOriMnt.OrigineTgtLoc().IsInit()) aStream << aPrefix << "OrigineTgtLoc  = " << aFileOriMnt.OrigineTgtLoc().Val() << endl;
+	if (aFileOriMnt.Rounding().IsInit()) aStream << aPrefix << "Rounding  = " << aFileOriMnt.Rounding().Val() << endl;
+}
+
+void dump(const cRepereCartesien &aRepereCartesien, const string &aPrefix = string(), ostream &aStream = cout)
+{
+	aStream << aPrefix << "ori = " << aRepereCartesien.Ori() << endl;
+	aStream << aPrefix << "ox  = " << aRepereCartesien.Ox() << endl;
+	aStream << aPrefix << "oy  = " << aRepereCartesien.Oy() << endl;
+	aStream << aPrefix << "oz  = " << aRepereCartesien.Oz() << endl;
+}
+
 int command_toto( int argc, char **argv )
 {
+	#if 0
 	if (argc != 2) ELISE_ERROR_RETURN("usage: src_directory src_directory");
 
 	ctPath src(argv[0]), dst(argv[1]);
@@ -317,6 +341,37 @@ int command_toto( int argc, char **argv )
 		cout << "copy succeeded" << endl;
 	else
 		cout << "copy failed" << endl;
+	#endif
+
+	const string xml_zmap = "/home/jbelvaux/data/Pierrerue_benjamin/Z_Num8_DeZoom2_STD-MALT.xml";
+	cFileOriMnt fileOriMNT_zmap = StdGetFromPCP(xml_zmap, FileOriMnt);
+	cout << '[' << xml_zmap << ']' << endl;
+	dump(fileOriMNT_zmap, "\t");
+	cout << endl;
+
+	const string xml_ortho = "/home/jbelvaux/data/Pierrerue_benjamin/MTDOrtho.xml";
+	cFileOriMnt fileOriMNT_ortho = StdGetFromPCP(xml_ortho, FileOriMnt);
+	cout << '[' << xml_ortho << ']' << endl;
+	dump(fileOriMNT_ortho, "\t");
+	cout << endl;
+
+	const string xml_repereCartesien = "/home/jbelvaux/data/Pierrerue_benjamin/Repere-Facade1.xml";
+	cRepereCartesien repereCartesien = StdGetFromPCP(xml_repereCartesien, RepereCartesien);
+	cout << '[' << xml_repereCartesien << ']' << endl;
+	dump(repereCartesien, "\t");
+	cout << endl;
+
+	const Pt2dr p2d(367.36, 4224.);
+	Pt2dr pp2d = ToMnt(fileOriMNT_ortho, p2d);
+	cout << "toMNT(" << p2d << ") = " << pp2d << endl << endl;
+
+	const Pt3dr p(367.36, 4224., -1.85795);
+	Pt3dr pp = ToMnt(fileOriMNT_ortho, p);
+	cout << "toMNT(" << p << ") = " << pp << endl;
+
+	cChCoCart changeCoordCartesiennes = cChCoCart::Xml2El(repereCartesien);
+	//~ cout << "f(0., 0., 0.) = " << changeCoordCartesiennes.FromLoc(Pt3dr(0., 0., 0.)) << endl;
+	cout << "f(" << pp << ") = " << changeCoordCartesiennes.FromLoc(pp) << endl;
 
 	return EXIT_SUCCESS;
 }
