@@ -371,8 +371,6 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
                 for (int aK = 0; aK < nbWidgets();++aK)
                 {
-						 __OUT("aK = " << aK);
-
 						#ifdef USE_MIPMAP_HANDLER
 							setDataToGLWidget(aK, _Engine->getGLData(aK));
 						#else
