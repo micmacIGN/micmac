@@ -1,0 +1,13 @@
+set(uti_image_Oritiepred
+    ${UTI_PHGRM_OriTieRed_DIR}/cOriAppliTieRed.cpp
+    ${UTI_PHGRM_OriTieRed_DIR}/cOriCameraTiepRed.cpp
+    ${UTI_PHGRM_OriTieRed_DIR}/cOriLnk2ImTiepRed.cpp
+    ${UTI_PHGRM_OriTieRed_DIR}/cOriPMulTiepRed.cpp
+)
+
+
+list( APPEND uti_phgrm_Src_Files
+        ${uti_image_Oritiepred}
+)
+
+
