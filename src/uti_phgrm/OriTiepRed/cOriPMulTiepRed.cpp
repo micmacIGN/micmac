@@ -38,7 +38,9 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "OriTiepRed.h"
+
 NS_OriTiePRed_BEGIN
+
 
 /**********************************************************************/
 /*                                                                    */
@@ -137,8 +139,9 @@ void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anApp
         aBuf[aVNew[aK]] = 0;
 }
 
-
 NS_OriTiePRed_END
+
+
 
 
 

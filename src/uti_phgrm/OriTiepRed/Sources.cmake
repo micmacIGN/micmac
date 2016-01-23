@@ -1,5 +1,6 @@
 set(uti_image_Oritiepred
     ${UTI_PHGRM_OriTieRed_DIR}/cOriAppliTieRed.cpp
+    ${UTI_PHGRM_OriTieRed_DIR}/cOriAppliTieRed_Algo.cpp
     ${UTI_PHGRM_OriTieRed_DIR}/cOriCameraTiepRed.cpp
     ${UTI_PHGRM_OriTieRed_DIR}/cOriLnk2ImTiepRed.cpp
     ${UTI_PHGRM_OriTieRed_DIR}/cOriPMulTiepRed.cpp

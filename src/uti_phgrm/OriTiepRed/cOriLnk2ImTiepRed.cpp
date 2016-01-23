@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "OriTiepRed.h"
+
 NS_OriTiePRed_BEGIN
 
 /**********************************************************************/
@@ -64,6 +65,7 @@ void cLnk2ImTiepRed::Add2Merge(tMergeStr * aMergeStr)
     int aKCam1 =  mCam1->Num();
     int aKCam2 =  mCam2->Num();
 
+
     // Parse the point 
     for (int aKP=0 ; aKP<int(mVP1.size()) ; aKP++)
     {
@@ -72,9 +74,9 @@ void cLnk2ImTiepRed::Add2Merge(tMergeStr * aMergeStr)
     }
 }
 
-
-
 NS_OriTiePRed_END
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

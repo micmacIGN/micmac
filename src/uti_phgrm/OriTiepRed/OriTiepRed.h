@@ -52,12 +52,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#ifndef _OriTiepRed_H_
-#define _OriTiepRed_H_
+#ifndef _TiepRed_H_
+#define _TiepRed_H_
+
+
 
 #include "StdAfx.h"
 
 NS_OriTiePRed_BEGIN
+
 class cCameraTiepRed;
 class cAppliTiepRed;
 class cLnk2ImTiepRed;
@@ -312,12 +315,9 @@ class cAppliTiepRed
           cInterfChantierNameManipulateur* mICNM;
 };
 
-
-#endif // _OriTiepRed_H_
-
 NS_OriTiePRed_END
 
-
+#endif // _TiepRed_H_
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
