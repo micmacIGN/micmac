@@ -164,14 +164,14 @@ void cAppliTiepRed::DoReduceBox()
    // give ground coord to multiple point and put them in quod-tree  and  heap 
     {
        std::vector<double> aVPrec;
-       std::vector<tPMulTiepRedPtr> aVPM;  aVPM.reserve(mLMerge->size());
+       mVPM.reserve(mLMerge->size());
 
        for (std::list<tMerge *>::const_iterator itM=mLMerge->begin() ; itM!=mLMerge->end() ; itM++)
        {
            cPMulTiepRed * aPM = new cPMulTiepRed(*itM,*this);
            if (mBoxLoc.inside(aPM->Pt()))
            {
-              aVPM.push_back(aPM);
+              mVPM.push_back(aPM);
               
               aVPrec.push_back(aPM->Prec());
 
@@ -192,10 +192,10 @@ void cAppliTiepRed::DoReduceBox()
 
        mHeap = new tTiePRed_Heap(mPMulCmp);
        // The gain can be computed once we know the standard precision
-       for (int aKP=0 ; aKP<int(aVPM.size()) ; aKP++)
+       for (int aKP=0 ; aKP<int(mVPM.size()) ; aKP++)
        {
-           aVPM[aKP]->InitGain(*this);
-           mHeap->push(aVPM[aKP]);
+           mVPM[aKP]->InitGain(*this);
+           mHeap->push(mVPM[aKP]);
        }
     }
     int aNbInit = mHeap->nb();
@@ -206,6 +206,7 @@ void cAppliTiepRed::DoReduceBox()
     {
           mListSel.push_back(aPMPtr);
           aPMPtr->Remove();
+          aPMPtr->SetSelected();
           std::set<tPMulTiepRedPtr>  aSetNeigh; // = *(new std::set<tPMulTiepRedPtr>);
           double aDist= mDistPMul * mResol;
           mQT->RVoisins(aSetNeigh,aPMPtr->Pt(),aDist);
@@ -234,10 +235,63 @@ void cAppliTiepRed::DoReduceBox()
 
     }
 
+    VonGruber();
+
     // PAOK
     std::cout << "NBPTS " <<  aNbInit << " => " <<  mListSel.size() << "\n";
     DoExport();
 }
+
+
+void cAppliTiepRed::VonGruber()
+{
+     for (int aK1=0 ; aK1<int(mVecCam.size()) ; aK1++)
+     {
+         std::vector<tPMulTiepRedPtr> aVK1;
+         for (int aKP=0 ; aKP<int(mVPM.size()) ; aKP++)
+         {
+             if (mVPM[aKP]->Merge()->IsInit(aK1))
+                aVK1.push_back(mVPM[aKP]);
+         }
+         std::cout << "VonGrube " << aK1 << " " << aVK1.size() << "\n";
+
+
+
+         for (int aK2=aK1+1 ; aK2<int(mVecCam.size()) ; aK2++)
+         {
+              VonGruber(aVK1,mVecCam[aK1],mVecCam[aK2]);
+         }
+     }
+}
+
+void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraTiepRed * aCam1,cCameraTiepRed * aCam2)
+{
+    std::vector<tPMulTiepRedPtr> aVK1K2;
+
+    for (int aKP=0 ; aKP<int(aVK1.size()) ; aKP++)
+    {
+        if (aVK1[aKP]->Merge()->IsInit(aCam2->Num())  && (aVK1[aKP]->Prec() < (0.5+2*StdPrec())))
+           aVK1K2.push_back(aVK1[aKP]);
+    }
+    if (aVK1K2.size() ==0) 
+       return;
+
+    for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
+    {
+        if (aVK1K2[aKP]->Selected())
+        {
+           mQT->insert(aVK1K2[aKP]);
+        }
+    }
+    std::cout << "HHHHhh " << aVK1K2.size() << "\n";
+
+
+    mQT->clear();
+}
+
+
+
+
 
 void cAppliTiepRed::DoExport()
 {
@@ -254,9 +308,18 @@ void cAppliTiepRed::DoExport()
               cCameraTiepRed * aCam1 = mVecCam[aKCam1];
               cCameraTiepRed * aCam2 = mVecCam[aKCam2];
 
+              /*
+                  if ((aCam1->NameIm() == "Abbey-IMG_0207.jpg") && (aCam2->NameIm() == "Abbey-IMG_0206.jpg"))
+                  {
+                     std::cout << "cAppliTiepRed::DoExportcAppliTiepRed::DoExport\n";
+                  }
+              */
+
+
               Pt2df aP1 = aMerge->GetVal(aKCam1);
               Pt2df aP2 = aMerge->GetVal(aKCam2);
               aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(aCam1->Hom2Cam(aP1),aCam2->Hom2Cam(aP2)));
+              aVVH[aKCam2][aKCam1].Cple_Add(ElCplePtsHomologues(aCam1->Hom2Cam(aP2),aCam2->Hom2Cam(aP1)));
 
               Verif(aP1);
               Verif(aP2);
@@ -274,8 +337,6 @@ void cAppliTiepRed::DoExport()
              {
                   aPack.StdPutInFile(NameHomol(mVecCam[aKCam1]->NameIm(),mVecCam[aKCam2]->NameIm(),mKBox));
              }
-             if (CpleCamTest(*mVecCam[aKCam1],*mVecCam[aKCam2]) )
-                std::cout << "HHHhh " <<  mVecCam[aKCam1]->NameIm() << mVecCam[aKCam2]->NameIm() << " " << aPack.size() << "\n";
         }
     }
 }

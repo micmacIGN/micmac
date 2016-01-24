@@ -31,7 +31,7 @@ const char * (theNameVar_DefautChantierDescripteur[3088]) = {
 "       VerticaleStandard=\"${XVertStd} ${YVertStd} ${ZVertStd}\"\n",
 "\n",
 "       PNumCV2=\"[0-9]{2,3}_[0-9]{4,5}\"\n",
-"       PostFixImPoly=\"(|\\.tif|_8Bits\\.tif)\"\n",
+"       PostFixImPoly=\"($|\\.tif|_8Bits\\.tif)\"\n",
 "       PostFix8BImPoly=\"_8Bits\\.tif\"\n",
 "       EF=\" *-?[0-9]+\\\\.?[0-9]*\"\n",
 "       EIU=\"[0-9]+\"\n",

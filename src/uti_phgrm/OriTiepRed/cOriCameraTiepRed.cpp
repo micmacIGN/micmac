@@ -120,7 +120,6 @@ Pt3dr cCameraTiepRed::BundleIntersection(const Pt2df & aPH1,const cCameraTiepRed
 
 void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
 {
-bool TEST = CpleCamTest(*this,aCam2);
 
 
     // Declare Input Tie Points
@@ -142,7 +141,6 @@ bool TEST = CpleCamTest(*this,aCam2);
         double aD; // store the reprojection error
 
         Pt3dr aPTer = BundleIntersection(aVPIn1[aKP],aCam2,aVPIn2[aKP],aD);
-// if (TEST) std::cout << "DDddddd " << aD << "\n";
         if ( (aD< aThresh) && aBox.inside(Pt2dr(aPTer.x,aPTer.y)) )
         {
             aVPOut1.push_back(aVPIn1[aKP]);
@@ -152,12 +150,6 @@ bool TEST = CpleCamTest(*this,aCam2);
     }
 
     // If enough tie point , memorize the connexion 
-
-    if (TEST)
-    {
-       std::cout << "cCameraTiepRed::LoadHom " << aVPIn1.size() << " " << aVPOut2.size() << " " << "\n\n";
-       getchar();
-    }
 
     if (int(aVPOut1.size()) >= mAppli.ThresholdNbPts2Im())
     {
@@ -175,11 +167,6 @@ bool TEST = CpleCamTest(*this,aCam2);
   
 void cCameraTiepRed::AddCamBox(cCameraTiepRed* aCam2,int aKBox)
 {
-   bool TEST = CpleCamTest(*this,*aCam2);
-   if (TEST)
-   {
-           std::cout << "TTT cCameraTiepRed::AddCamBox " << aKBox  << " " << NameIm() << " " << aCam2->NameIm() << "\n";
-   }
    mMapCamBox[aCam2].push_back(aKBox);
 }
 
@@ -187,26 +174,22 @@ void cCameraTiepRed::AddCamBox(cCameraTiepRed* aCam2,int aKBox)
 void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
 {
 
-    bool TEST = CpleCamTest(*this,*aCam2);
 
     ElPackHomologue aRes;
     for (std::list<int>::const_iterator itI=aLBox.begin(); itI!=aLBox.end() ; itI++)
     {
          std::string aName = mAppli.NameHomol(NameIm(),aCam2->NameIm(),*itI);
-         if (TEST) std::cout << "NNNNNN " << aName << " Ex=" << ELISE_fp::exist_file(aName)  << " KB=" << *itI << "\n";
          if (ELISE_fp::exist_file(aName))
          {
              ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
              aRes.Add(aPack);
 
-             if (TEST) std::cout << "OOouuut KB=" << *itI << " SZ=" << aPack.size() << "\n";
          }
     }
-    if (TEST) std::cout << "OOoo GGGLOBBBBB " << aRes.size() << "\n";
 
     if (aRes.size())
     {
-         std::string aKeyH = "NKS-Assoc-CplIm2Hom@TiePRed@dat";
+         std::string aKeyH = "NKS-Assoc-CplIm2Hom@"+ mAppli.StrOut() + "@dat";
          std::string aNameH = mAppli.ICNM()->Assoc1To2(aKeyH,NameIm(),aCam2->NameIm(),true);
          aRes.StdPutInFile(aNameH);
          // std::string aNameH = mAppli

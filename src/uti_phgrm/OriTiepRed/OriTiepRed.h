@@ -117,7 +117,6 @@ if (X,Y) is one point then (X,Y,1) is the direction of the bundle in the camera 
 
 */
 
-extern bool DEBUG_OTR;
 
 
 typedef cVarSizeMergeTieP<Pt2df>  tMerge;
@@ -201,6 +200,8 @@ class cPMulTiepRed
        bool Removable() const;
        void Remove();
        void UpdateNewSel(const cPMulTiepRed *,cAppliTiepRed & anAppli);
+       bool Selected() const;
+       void SetSelected();
      private :
        tMerge * mMerge;
        Pt2dr    mP;   // mP + Z => 3D coordinate
@@ -209,9 +210,11 @@ class cPMulTiepRed
        double   mGain;  // Gain to select this tie points (takes into account multiplicity and precision)
        int      mHeapIndex; // This memory will be used vy the heap to allow dynamic change of the priority
        bool     mRemoved;
+       bool     mSelected;
        int      mNbCam0;
        int      mNbCamCur;
        std::vector<U_INT1> mVConserved;
+       
 };
 
 
@@ -263,6 +266,7 @@ class cAppliTiepRed
           std::vector<int>  & BufICam();
           std::string NameHomol(const std::string &,const std::string &,int aK) const;
           cInterfChantierNameManipulateur* ICNM();
+          const std::string & StrOut() const;
 
      private :
 
@@ -271,6 +275,8 @@ class cAppliTiepRed
           void DoLoadTiePoints();
           void DoFilterCamAnLinks();
           void DoExport();
+          void VonGruber();
+          void VonGruber(const std::vector<tPMulTiepRedPtr> &, cCameraTiepRed *,cCameraTiepRed *);
 
           cAppliTiepRed(const cAppliTiepRed &); // N.I.
 
@@ -297,9 +303,13 @@ class cAppliTiepRed
           std::set<std::string>          * mSetFiles;
           cVirtInterf_NewO_NameManager *   mNM ;
           bool                             mCallBack;
+          double                           mMulBoxRab;
+          bool                             mParal;
+          std::string                      mStrOut;
           int                              mKBox;
           Box2dr                           mBoxGlob;
           Box2dr                           mBoxLoc;
+          Box2dr                           mBoxRabLoc; // Enlarged box
           double                           mResol;
           cXml_ParamBoxReducTieP           mXmlParBox;
           std::list<cLnk2ImTiepRed *>      mLnk2Im;
@@ -309,6 +319,7 @@ class cAppliTiepRed
 
           cP2dGroundOfPMul                 mPMul2Gr;
           tTiePRed_QT                      *mQT;
+          std::vector<tPMulTiepRedPtr>     mVPM;
           cCompareHeapPMulTiepRed          mPMulCmp;
           tTiePRed_Heap                    *mHeap;
           std::list<tPMulTiepRedPtr>       mListSel; // List of selected multi points
@@ -318,6 +329,7 @@ class cAppliTiepRed
 };
 
 
+/*
 inline bool ImTest(const std::string & aName)
 {
    return (aName=="Abbey-IMG_0206.jpg") ||  (aName=="Abbey-IMG_0207.jpg");
@@ -329,7 +341,7 @@ inline bool CpleImTest(const std::string & aName1,const std::string & aName2)
 }
 inline bool CamTest(const cCameraTiepRed & aCam) { return ImTest(aCam.NameIm()); }
 inline bool CpleCamTest(const cCameraTiepRed & aCam1,const cCameraTiepRed & aCam2) { return CpleImTest(aCam1.NameIm(),aCam2.NameIm()); }
-
+*/
 
 NS_OriTiePRed_END
 
