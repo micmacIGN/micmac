@@ -274,6 +274,8 @@ void cAppliTiepRed::DoExport()
              {
                   aPack.StdPutInFile(NameHomol(mVecCam[aKCam1]->NameIm(),mVecCam[aKCam2]->NameIm(),mKBox));
              }
+             if (CpleCamTest(*mVecCam[aKCam1],*mVecCam[aKCam2]) )
+                std::cout << "HHHhh " <<  mVecCam[aKCam1]->NameIm() << mVecCam[aKCam2]->NameIm() << " " << aPack.size() << "\n";
         }
     }
 }
