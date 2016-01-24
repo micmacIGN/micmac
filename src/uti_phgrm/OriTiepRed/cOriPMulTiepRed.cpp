@@ -51,6 +51,7 @@ NS_OriTiePRed_BEGIN
 cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
     mMerge      (aPM),
     mRemoved    (false),
+    mSelected   (false),
     mNbCam0     (aPM->NbSom()),
     mNbCamCur   (aPM->NbSom()),
     mVConserved (aPM->VecInd().size(),1)
@@ -109,6 +110,17 @@ void cPMulTiepRed::Remove()
 {
     mRemoved = true;
 }
+
+bool cPMulTiepRed::Selected() const
+{
+   return mSelected;
+}
+
+void cPMulTiepRed::SetSelected()
+{
+    mSelected = true;
+}
+
 
 void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anAppli)
 {

@@ -6930,10 +6930,14 @@ class cXml_ParamBoxReducTieP
         Box2dr & Box();
         const Box2dr & Box()const ;
 
+        Box2dr & BoxRab();
+        const Box2dr & BoxRab()const ;
+
         std::vector< std::string > & Ims();
         const std::vector< std::string > & Ims()const ;
     private:
         Box2dr mBox;
+        Box2dr mBoxRab;
         std::vector< std::string > mIms;
 };
 cElXMLTree * ToXMLTree(const cXml_ParamBoxReducTieP &);

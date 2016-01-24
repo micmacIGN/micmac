@@ -47,7 +47,6 @@ NS_OriTiePRed_BEGIN
 /*                                                                    */
 /**********************************************************************/
 
-bool DEBUG_OTR = true;
 
 cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mFilesIm                 (0),
@@ -57,7 +56,10 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mThresholdTotalNbPts2Im  (10),
      mSzTile                  (1600),
      mDistPMul                (200.0),
-     mCallBack                (false)
+     mCallBack                (false),
+     mMulBoxRab               (0.15),
+     mParal                   (true),
+     mStrOut                  ("TiePRed")
 {
    // Read parameters 
    MMD_InitArgcArgv(argc,argv);
@@ -85,8 +87,9 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    {
        mXmlParBox = StdGetFromPCP(NameParamBox(mKBox,true),Xml_ParamBoxReducTieP);
        mBoxLoc = mXmlParBox.Box();
+       mBoxRabLoc = mXmlParBox.BoxRab();
        mFilesIm = &(mXmlParBox.Ims());
-   std::cout << "=======================   KBOX=" << mKBox << "  ===================\n";
+       std::cout << "=======================   KBOX=" << mKBox << "  ===================\n";
    }
    else  // Master command, initialise from pattern
    {
@@ -131,18 +134,6 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    mResol = MedianeSup(aVResol);
 
    
-   if (DEBUG_OTR)
-   {
-      if (mCallBack) 
-      {
-          std::cout << "\n\n";
-      }
-      else
-      {
-          for (int aK=0 ; aK< 20 ; aK++)
-             std::cout << "--------------------------------------------DEBUG_OTR DEBUG_OTR " << DEBUG_OTR << "\n";
-      }
-   }
    std::cout << "   BOX " << mBoxGlob << " Resol=" << mResol << "\n";
 }
 
@@ -177,7 +168,7 @@ const double & cAppliTiepRed::ThresholdPrecMult() const {return mThresholdPrecMu
 const double & cAppliTiepRed::StdPrec() const {return mStdPrec;}
 std::vector<int>  & cAppliTiepRed::BufICam() {return mBufICam;}
 cInterfChantierNameManipulateur* cAppliTiepRed::ICNM() {return mICNM;}
-
+const std::string & cAppliTiepRed::StrOut() const {return mStrOut;}
 
 
 
@@ -245,10 +236,12 @@ void cAppliTiepRed::GenerateSplit()
              Pt2dr aP0 = mBoxGlob._p0 + aSzTile.mcbyc(Pt2dr(aKx,aKy)); // Origine of tile
              Pt2dr aP1 = aP0 +aSzTile;                                 // End of tile
              Box2dr aBox(aP0,aP1);                                     // Box of tile
-             cElPolygone aPolyBox = cElPolygone::FromBox(aBox);         // Box again in polygon
+             Box2dr aBoxRab(aP0-aSzTile*mMulBoxRab,aP1+aSzTile*mMulBoxRab);
+             cElPolygone aPolyBox = cElPolygone::FromBox(aBoxRab);      // Box again in polygon
              // std::cout << "JJJJJjj " << aP0 << aP1 << "\n";
              cXml_ParamBoxReducTieP aParamBox;                           // XML/C++ Structure to save
              aParamBox.Box() = aBox;                                     // Memorize the box of tile
+             aParamBox.BoxRab() = aBoxRab;                               // Memorize the box of tile
 
              std::vector<cCameraTiepRed *> aVCamSel;
              for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
@@ -257,18 +250,12 @@ void cAppliTiepRed::GenerateSplit()
                    cElPolygone  aPolInter = aPolyBox  * mVecCam[aKC]->CS().EmpriseSol(); 
                    // If polygon not empty
 
-if (CamTest(*mVecCam[aKC]))
-{
-  std::cout << mVecCam[aKC]->NameIm() << " SSSSSSSss " << aPolInter.Surf()  << " " << mVecCam[aKC]->CS().EmpriseSol().Surf() << "\n";
-}
-
-                   if ((aPolInter.Surf() > 0) || DEBUG_OTR)
+                   if (aPolInter.Surf() > 0) 
                    {
                         //  Add the name to the vector
                         aParamBox.Ims().push_back(mVecCam[aKC]->NameIm());
                         aVCamSel.push_back(mVecCam[aKC]);
                    }
-                   if (CamTest(*mVecCam[aKC])) std::cout << mVecCam[aKC]->NameIm() << " " << "S=" << aPolInter.Surf() << " K=" << aCpt << "\n";
 
              }
               // If at least 2 images
@@ -293,22 +280,22 @@ if (CamTest(*mVecCam[aKC]))
                          {
                             aCam1->AddCamBox(aCam2,aCpt);
                          }
-if (CpleCamTest(*aCam1,*aCam2) && (aCpt==4) )
-{
-    std::cout << "SSSSS " << aPolyBox.Surf() << " " << aCam1->CS().EmpriseSol().Surf() << " " << aCam2->CS().EmpriseSol().Surf() << "\n";
-    ShowPoly(aPolyBox);
-    ShowPoly(aCam1->CS().EmpriseSol());
-    ShowPoly(aCam2->CS().EmpriseSol());
-    getchar();
-}
                      }
                  }
                  aCpt++;
              }
         }
     }
-    // cEl_GPAO::DoComInParal(aLCom);
-    cEl_GPAO::DoComInSerie(aLCom);
+
+    if (mParal)
+       cEl_GPAO::DoComInParal(aLCom);
+    else
+       cEl_GPAO::DoComInSerie(aLCom);
+
+    ELISE_fp::PurgeDirRecursif(mDir+ "Homol"+mStrOut + "/");
+
+    // std::cout << "DDDDD= " << mDir+ "Homol"+mStrOut + "/" << "\n"; getchar();
+
 
     for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
        mVecCam[aKC]->SaveHom();

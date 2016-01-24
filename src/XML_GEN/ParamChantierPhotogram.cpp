@@ -21539,6 +21539,17 @@ const Box2dr & cXml_ParamBoxReducTieP::Box()const
 }
 
 
+Box2dr & cXml_ParamBoxReducTieP::BoxRab()
+{
+   return mBoxRab;
+}
+
+const Box2dr & cXml_ParamBoxReducTieP::BoxRab()const 
+{
+   return mBoxRab;
+}
+
+
 std::vector< std::string > & cXml_ParamBoxReducTieP::Ims()
 {
    return mIms;
@@ -21552,6 +21563,7 @@ const std::vector< std::string > & cXml_ParamBoxReducTieP::Ims()const
 void  BinaryUnDumpFromFile(cXml_ParamBoxReducTieP & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Box(),aFp);
+    BinaryUnDumpFromFile(anObj.BoxRab(),aFp);
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
@@ -21566,6 +21578,7 @@ void  BinaryUnDumpFromFile(cXml_ParamBoxReducTieP & anObj,ELISE_fp & aFp)
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamBoxReducTieP & anObj)
 {
     BinaryDumpInFile(aFp,anObj.Box());
+    BinaryDumpInFile(aFp,anObj.BoxRab());
     BinaryDumpInFile(aFp,(int)anObj.Ims().size());
     for(  std::vector< std::string >::const_iterator iT=anObj.Ims().begin();
          iT!=anObj.Ims().end();
@@ -21579,6 +21592,7 @@ cElXMLTree * ToXMLTree(const cXml_ParamBoxReducTieP & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ParamBoxReducTieP",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("Box"),anObj.Box())->ReTagThis("Box"));
+   aRes->AddFils(::ToXMLTree(std::string("BoxRab"),anObj.BoxRab())->ReTagThis("BoxRab"));
   for
   (       std::vector< std::string >::const_iterator it=anObj.Ims().begin();
       it !=anObj.Ims().end();
@@ -21597,10 +21611,12 @@ void xml_init(cXml_ParamBoxReducTieP & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Box(),aTree->Get("Box",1)); //tototo 
 
+   xml_init(anObj.BoxRab(),aTree->Get("BoxRab",1)); //tototo 
+
    xml_init(anObj.Ims(),aTree->GetAll("Ims",false,1));
 }
 
-std::string  Mangling( cXml_ParamBoxReducTieP *) {return "10DA08B7FBFB93BBFD3F";};
+std::string  Mangling( cXml_ParamBoxReducTieP *) {return "995840466C0231C4FE3F";};
 
 
 double & cXml_ParamGlobReducTieP::Resol()
