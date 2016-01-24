@@ -117,6 +117,8 @@ if (X,Y) is one point then (X,Y,1) is the direction of the bundle in the camera 
 
 */
 
+extern bool DEBUG_OTR;
+
 
 typedef cVarSizeMergeTieP<Pt2df>  tMerge;
 typedef cStructMergeTieP<tMerge>  tMergeStr;
@@ -314,6 +316,20 @@ class cAppliTiepRed
           std::vector<int>                 mBufICam;
           cInterfChantierNameManipulateur* mICNM;
 };
+
+
+inline bool ImTest(const std::string & aName)
+{
+   return (aName=="Abbey-IMG_0206.jpg") ||  (aName=="Abbey-IMG_0207.jpg");
+}
+
+inline bool CpleImTest(const std::string & aName1,const std::string & aName2)
+{
+   return (aName1!=aName2) && ImTest(aName1) && ImTest(aName2);
+}
+inline bool CamTest(const cCameraTiepRed & aCam) { return ImTest(aCam.NameIm()); }
+inline bool CpleCamTest(const cCameraTiepRed & aCam1,const cCameraTiepRed & aCam2) { return CpleImTest(aCam1.NameIm(),aCam2.NameIm()); }
+
 
 NS_OriTiePRed_END
 

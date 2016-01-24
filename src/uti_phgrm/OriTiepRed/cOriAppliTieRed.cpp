@@ -47,6 +47,7 @@ NS_OriTiePRed_BEGIN
 /*                                                                    */
 /**********************************************************************/
 
+bool DEBUG_OTR = true;
 
 cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mFilesIm                 (0),
@@ -129,6 +130,19 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    // Get a global resolution as mediane of each resolution
    mResol = MedianeSup(aVResol);
 
+   
+   if (DEBUG_OTR)
+   {
+      if (mCallBack) 
+      {
+          std::cout << "\n\n";
+      }
+      else
+      {
+          for (int aK=0 ; aK< 20 ; aK++)
+             std::cout << "--------------------------------------------DEBUG_OTR DEBUG_OTR " << DEBUG_OTR << "\n";
+      }
+   }
    std::cout << "   BOX " << mBoxGlob << " Resol=" << mResol << "\n";
 }
 
@@ -195,6 +209,16 @@ void TestPoly(const cElPolygone & aPol )
 }
 
 
+void ShowPoly(const cElPolygone & aPoly)
+{
+    const std::list<std::vector<Pt2dr> > & aLC = aPoly.Contours();
+    std::cout << "NBC " << aLC.size();
+    std::cout << "\n";
+}
+
+
+
+
 void cAppliTiepRed::GenerateSplit()
 {
     ELISE_fp::MkDirSvp(mDir+TheNameTmp);
@@ -232,12 +256,19 @@ void cAppliTiepRed::GenerateSplit()
                    // Intersection between footprint and box (see class cElPolygone)
                    cElPolygone  aPolInter = aPolyBox  * mVecCam[aKC]->CS().EmpriseSol(); 
                    // If polygon not empty
-                   if (aPolInter.Surf() > 0)
+
+if (CamTest(*mVecCam[aKC]))
+{
+  std::cout << mVecCam[aKC]->NameIm() << " SSSSSSSss " << aPolInter.Surf()  << " " << mVecCam[aKC]->CS().EmpriseSol().Surf() << "\n";
+}
+
+                   if ((aPolInter.Surf() > 0) || DEBUG_OTR)
                    {
                         //  Add the name to the vector
                         aParamBox.Ims().push_back(mVecCam[aKC]->NameIm());
                         aVCamSel.push_back(mVecCam[aKC]);
                    }
+                   if (CamTest(*mVecCam[aKC])) std::cout << mVecCam[aKC]->NameIm() << " " << "S=" << aPolInter.Surf() << " K=" << aCpt << "\n";
 
              }
               // If at least 2 images
@@ -262,10 +293,17 @@ void cAppliTiepRed::GenerateSplit()
                          {
                             aCam1->AddCamBox(aCam2,aCpt);
                          }
+if (CpleCamTest(*aCam1,*aCam2) && (aCpt==4) )
+{
+    std::cout << "SSSSS " << aPolyBox.Surf() << " " << aCam1->CS().EmpriseSol().Surf() << " " << aCam2->CS().EmpriseSol().Surf() << "\n";
+    ShowPoly(aPolyBox);
+    ShowPoly(aCam1->CS().EmpriseSol());
+    ShowPoly(aCam2->CS().EmpriseSol());
+    getchar();
+}
                      }
                  }
                  aCpt++;
-
              }
         }
     }
