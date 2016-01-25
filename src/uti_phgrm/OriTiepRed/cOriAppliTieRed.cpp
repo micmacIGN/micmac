@@ -56,6 +56,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mThresholdTotalNbPts2Im  (10),
      mSzTile                  (1600),
      mDistPMul                (200.0),
+     mMulVonGruber            (1.5),
      mCallBack                (false),
      mMulBoxRab               (0.15),
      mParal                   (true),
@@ -72,6 +73,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
                      << EAM(mKBox,"KBox",true,"Internal use")
                      << EAM(mSzTile,"SzTile",true,"Size of Tiles in Pixel")
                      << EAM(mDistPMul,"DistPMul",true,"Typical dist between pmult")
+                     << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber")
    );
    // if mKBox was set, we are not the master call (we are the "subcommand")
    mCallBack = EAMIsInit(&mKBox);
@@ -142,7 +144,7 @@ const std::string cAppliTiepRed::TheNameTmp = "Tmp-ReducTieP/";
 
 std::string  cAppliTiepRed::NameParamBox(int aK,bool Bin) const
 {
-    return mDir+TheNameTmp + "Param_" +ToString(aK) + (Bin ? ".xml" : "dmp");
+    return mDir+TheNameTmp + "Param_" +ToString(aK) + (Bin ? ".xml" : ".dmp");
 }
 
 std::string  cAppliTiepRed::DirOneImage(const std::string &aName) const

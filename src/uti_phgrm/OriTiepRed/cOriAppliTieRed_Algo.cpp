@@ -242,6 +242,7 @@ void cAppliTiepRed::DoReduceBox()
     DoExport();
 }
 
+/*
 
 void cAppliTiepRed::VonGruber()
 {
@@ -276,19 +277,63 @@ void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraT
     if (aVK1K2.size() ==0) 
        return;
 
+    double aDistMax = euclid(mBoxLoc.sz());
+    int aNbInside=0;
     for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
     {
-        if (aVK1K2[aKP]->Selected())
+        tPMulTiepRedPtr aSom = aVK1K2[aKP];
+        aSom->SetDistVonGruber(aDistMax,*this);
+        if (aSom->Selected())
         {
-           mQT->insert(aVK1K2[aKP]);
+           mQT->insert(aSom);
+           aNbInside++;
         }
     }
+
+
+    double aDistMoy = sqrt(mBoxLoc.surf()/(1+aNbInside));
+
+    for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
+    {
+        tPMulTiepRedPtr aSom = aVK1K2[aKP];
+        double aDist = aDistMax;
+        if ((!aSom->Selected()) && (aNbInside > 0))
+        {
+           tPMulTiepRedPtr aNearObj = mQT->NearestObj(aSom->Pt(),aDistMoy,aDistMax);
+           aDist = euclid(aNearObj->Pt(),aSom->Pt());
+           aSom->ModifDistVonGruber(aDist,*this);
+        }
+    }
+
+    bool Cont=true;
+    while (Cont)
+    {
+        double aMaxDist  = 0;
+        double aGainMax  = 0;
+        tPMulTiepRedPtr aMaxSom = 0;
+        for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
+        {
+             tPMulTiepRedPtr aSom = aVK1K2[aKP];
+             if (!aSom->Selected()) 
+             {
+                 if (aSom->Gain() > aGainMax)
+                 {
+                      aGainMax = aSom->Gain();
+                      aMaxSom = aSom;
+                 }
+                 aMaxDist = ElMax(aMaxDist,aSom->DMin());
+             }
+        }
+    }
+
+
     std::cout << "HHHHhh " << aVK1K2.size() << "\n";
 
 
     mQT->clear();
 }
 
+*/
 
 
 
@@ -319,7 +364,8 @@ void cAppliTiepRed::DoExport()
               Pt2df aP1 = aMerge->GetVal(aKCam1);
               Pt2df aP2 = aMerge->GetVal(aKCam2);
               aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(aCam1->Hom2Cam(aP1),aCam2->Hom2Cam(aP2)));
-              aVVH[aKCam2][aKCam1].Cple_Add(ElCplePtsHomologues(aCam1->Hom2Cam(aP2),aCam2->Hom2Cam(aP1)));
+              // Symetrisation
+              aVVH[aKCam2][aKCam1].Cple_Add(ElCplePtsHomologues(aCam2->Hom2Cam(aP2),aCam1->Hom2Cam(aP1)));
 
               Verif(aP1);
               Verif(aP2);

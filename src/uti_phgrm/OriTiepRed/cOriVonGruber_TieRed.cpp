@@ -37,137 +37,133 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "OriTiepRed.h"
 
+#include "OriTiepRed.h"
 NS_OriTiePRed_BEGIN
 
+// bool BUGTR = true;
+
+
 
 /**********************************************************************/
 /*                                                                    */
-/*                            cPMulTiepRed                            */
+/*                         cAppliTiepRed                              */
 /*                                                                    */
 /**********************************************************************/
 
-cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
-    mMerge      (aPM),
-    mRemoved    (false),
-    mSelected   (false),
-    mNbCam0     (aPM->NbSom()),
-    mNbCamCur   (aPM->NbSom()),
-    mVConserved (aPM->VecInd().size(),1)
+void cAppliTiepRed::VonGruber()
 {
-    std::vector<ElSeg3D> aVSeg;
-    std::vector<Pt2dr>   aVPt;
-
-    const std::vector<U_INT2>  &  aVecInd = aPM->VecInd() ;
-    const std::vector<Pt2df> & aVHom   = aPM-> VecV()  ;
-
-    for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
-    {
-         cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
-         Pt2dr aPCam = aCam->Hom2Cam(aVHom[aKP]);
-         aVPt.push_back(aPCam);
-         aVSeg.push_back(aCam->CS().Capteur2RayTer(aPCam));
-    }
-
-    bool Ok;
-    Pt3dr aPTer = InterSeg(aVSeg,Ok);
-    double aSomDist = 0.0;
-    for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
-    {
-         cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
-         Pt2dr aPProj = aCam->CS().Ter2Capteur(aPTer);
-         double aDist = euclid(aPProj,aVPt[aKP]);
-         aSomDist += aDist;
-    }
-
-    mP = Pt2dr(aPTer.x,aPTer.y);
-    mZ = aPTer.z;
-    mPrec = aSomDist / (aVecInd.size() -1);
-    // std::cout << "PREC " << mPrec << " " << aVecInd.size() << "\n";
-
-     // mGain =   aPM->NbArc()  +  mPrec/1000.0;
-}
-
-void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli)
-{
-    mGain =  mMerge->NbArc() * (1.0 /(1.0 + ElSquare(mPrec/(anAppli.ThresholdPrecMult() * anAppli.StdPrec()))));
-    mGain *= (0.5+ mNbCamCur / double(mNbCam0));
-}
-
-bool cPMulTiepRed::Removed() const
-{
-   return mRemoved;
-}
-
-bool cPMulTiepRed::Removable() const
-{
-   return (mNbCamCur==0);
-}
-
-
-void cPMulTiepRed::Remove()
-{
-    mRemoved = true;
-}
-
-bool cPMulTiepRed::Selected() const
-{
-   return mSelected;
-}
-
-void cPMulTiepRed::SetSelected()
-{
-    mSelected = true;
-}
-
-
-void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anAppli)
-{
-   // Mark index of aPNew as existing in buf
-    const std::vector<U_INT2>  & aVNew =  aPNew->mMerge->VecInd() ;
-    std::vector<int>  &  aBuf = anAppli.BufICam();
-    for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
-    {
-        aBuf[aVNew[aK]] = 1;
-    }
-
-    const std::vector<U_INT2>  & aVCur =  mMerge->VecInd() ;
-
-    for (int aK=0 ; aK<int(aVCur.size()) ; aK++)
-    {
-         int aKCam = aVCur[aK];
-         if (mVConserved[aK]  && (aBuf[aKCam]==1))
+     int aNbSel0 =  mListSel.size();
+     for (int aK1=0 ; aK1<int(mVecCam.size()) ; aK1++)
+     {
+         std::vector<tPMulTiepRedPtr> aVK1;
+         for (int aKP=0 ; aKP<int(mVPM.size()) ; aKP++)
          {
-             mVConserved[aK] = 0;
-             mNbCamCur--;
+             if (mVPM[aKP]->Merge()->IsInit(aK1))
+                aVK1.push_back(mVPM[aKP]);
          }
+         // std::cout << "VonGrube " << aK1 << " " << aVK1.size() << "\n";
+
+
+
+         for (int aK2=aK1+1 ; aK2<int(mVecCam.size()) ; aK2++)
+         {
+              VonGruber(aVK1,mVecCam[aK1],mVecCam[aK2]);
+         }
+     }
+
+     std::cout << " VonGruber , " << aNbSel0  << " => " << mListSel.size() << "\n";
+}
+
+
+
+void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraTiepRed * aCam1,cCameraTiepRed * aCam2)
+{
+    std::vector<tPMulTiepRedPtr> aVK1K2;
+
+    for (int aKP=0 ; aKP<int(aVK1.size()) ; aKP++)
+    {
+        if (aVK1[aKP]->Merge()->IsInit(aCam2->Num())  && (aVK1[aKP]->Prec() < (0.5+2*StdPrec())))
+           aVK1K2.push_back(aVK1[aKP]);
+    }
+    if (aVK1K2.size() ==0) 
+       return;
+
+    double aDistMax = euclid(mBoxLoc.sz());
+    int aNbInside=0;
+    for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
+    {
+        tPMulTiepRedPtr aSom = aVK1K2[aKP];
+        aSom->SetDistVonGruber(aDistMax,*this);
+        if (aSom->Selected())
+        {
+           mQT->insert(aSom);
+           aNbInside++;
+        }
     }
 
-    InitGain(anAppli);
 
-   // Free Mark index in aBuf
-    for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
-        aBuf[aVNew[aK]] = 0;
-}
+    double aDistMoy = sqrt(mBoxLoc.surf()/(1+aNbInside));
 
-void cPMulTiepRed::SetDistVonGruber(const double & aDist,const cAppliTiepRed & anAppli)
-{
-    mDMin = aDist;
-    mGain = mDMin / (1+2.0*mPrec/anAppli.StdPrec());
-}
+    for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
+    {
+        tPMulTiepRedPtr aSom = aVK1K2[aKP];
+        double aDist = aDistMax;
+        if ((!aSom->Selected()) && (aNbInside > 0))
+        {
+           tPMulTiepRedPtr aNearObj = mQT->NearestObj(aSom->Pt(),aDistMoy,aDistMax);
+           aDist = euclid(aNearObj->Pt(),aSom->Pt());
+           aSom->ModifDistVonGruber(aDist,*this);
+        }
+    }
+    bool Cont=true;
+    double aSeuilDist = mDistPMul * mResol * mMulVonGruber;
 
-void cPMulTiepRed::ModifDistVonGruber(const double & aDist,const cAppliTiepRed & anAppli)
-{
-    SetDistVonGruber(ElMin(aDist,mDMin),anAppli);
+    int aNbPVG=0;
+    while (Cont)
+    {
+        double aMaxDist  = 0;
+        double aGainMax  = 0;
+        tPMulTiepRedPtr aMaxSom = 0;
+        for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
+        {
+             tPMulTiepRedPtr aSom = aVK1K2[aKP];
+             if (!aSom->Selected()) 
+             {
+                 if (aSom->Gain() > aGainMax)
+                 {
+                      aGainMax = aSom->Gain();
+                      aMaxSom = aSom;
+                 }
+                 aMaxDist = ElMax(aMaxDist,aSom->DMin());
+             }
+        }
+
+        if ((aMaxDist> aSeuilDist) && aMaxSom)
+        {
+           aMaxSom->SetSelected();
+           mListSel.push_back(aMaxSom);
+           for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
+           {
+                tPMulTiepRedPtr aSom = aVK1K2[aKP];
+                aSom->ModifDistVonGruber(euclid(aSom->Pt(),aMaxSom->Pt()),*this);
+           }
+           aNbPVG++;
+        }
+        else
+        {
+            Cont = false;
+        }
+    }
+
+    // std::cout << "HHHHhh " << aVK1K2.size() << " NbVG " << aNbPVG << "\n";
+    // if (aNbPVG) getchar();
+
+    mQT->clear();
 }
 
 
 NS_OriTiePRed_END
-
-
-
-
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

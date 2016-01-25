@@ -191,6 +191,7 @@ class cPMulTiepRed
        int & HeapIndex() { return mHeapIndex;}
        const int & HeapIndex() const { return mHeapIndex;}
        const double  & Gain() const {return mGain;}
+       const double  & DMin() const {return mDMin;}
        double  & Gain() {return mGain;}
        const double  & Prec() const {return mPrec;}
        tMerge * Merge() {return mMerge;}
@@ -202,6 +203,8 @@ class cPMulTiepRed
        void UpdateNewSel(const cPMulTiepRed *,cAppliTiepRed & anAppli);
        bool Selected() const;
        void SetSelected();
+       void SetDistVonGruber(const double & aDist,const cAppliTiepRed &);
+       void ModifDistVonGruber(const double & aDist,const cAppliTiepRed &);
      private :
        tMerge * mMerge;
        Pt2dr    mP;   // mP + Z => 3D coordinate
@@ -214,6 +217,7 @@ class cPMulTiepRed
        int      mNbCam0;
        int      mNbCamCur;
        std::vector<U_INT1> mVConserved;
+       double   mDMin;
        
 };
 
@@ -293,6 +297,7 @@ class cAppliTiepRed
           int    mThresholdTotalNbPts2Im;
           int    mSzTile;    //  Number of pixel / tiles
           double mDistPMul;
+          double mMulVonGruber;
 
           std::string  mDir;
           std::string  mPatImage;
