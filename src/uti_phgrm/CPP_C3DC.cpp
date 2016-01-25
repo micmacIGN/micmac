@@ -320,7 +320,7 @@ void cAppli_C3DC::ReadType(const std::string & aType)
 
 void  cAppli_C3DC::PipelineQuickMack()
 {
-    ExeCom(mBaseComMMByP + " Do=AMP " + mStrZ0ZF);
+    ExeCom(mBaseComMMByP + " Do=AMP " + mStrZ0ZF + " ExpTxt=" + ToString(mExpTxt));
     ExeCom(mBaseComEnv + " DownScale=" + ToString(mDS));
     DoMergeAndPly();
 }
