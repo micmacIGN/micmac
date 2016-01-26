@@ -921,7 +921,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
     {
         Pt2dr aP1 = itP->P1();
         //(fabs(aP1.x-2736)<20)&&(fabs(aP1.y-1824)<20)
-
+        bool decide = false;
 
             Pt2dr aP2 = itP->P2();
             //======Profondeur a partir de cam 1 et cam 2======
@@ -981,13 +981,13 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
                                 out=false;
                             }
                         else
-                            {out = true; break;}
+                            {out = true; decide = false; break;}
                     }
                     if (out)
-                    {result.push_back(false); break;}
+                    {break;}
                 }
                 // ==== comparer par corellation ==== //
-                if (!out)
+                if (!out) //out=false, donc dans image
                 {   
                     ELISE_COPY(mTIm2DImgette3.all_pts(),mTIm2DImgette3.in(),mIm2DImgette3.out());
                     cCorrelImage Imgette3;
@@ -1011,13 +1011,16 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
                         mW2->clik_in();
                     }
                     if (corl > this->mCorel)
-                        {count++;result.push_back(true);}
+                        {decide=true;}
                     else
-                        {result.push_back(false);}
+                        {decide=false;}
                 }
             }
+            if (decide)
+                {count++;}
+            result.push_back(decide);
         }
-    cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl<<count/aPackIn1_2.size()<<"% conserve"<<endl;
+    cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl<<count/aPackIn1_2.size()*100<<" % conserve of "<<aPackIn1_2.size()<<" "<<result.size()<<endl;
     return result;
 }
 
@@ -1219,7 +1222,7 @@ int PHO_MI_main(int argc,char ** argv)
                         countGood++;
                     }
                 }
-                cout<<endl<<countGood/decision.size()*100<<" % Pts conservé"<<endl;
+                cout<<endl<<countGood/decision.size()*100<<" % Pts conservé of "<<decision.size()<<endl;
                 //creat homol file with decision and pack homo b/w aImg1 aImg2
                 //.....
                 creatHomolFromPair(aImg1, aImg2, aNameHomol, aDirImages, aPatImages, aHomolOutput, ExpTxt, decision);
