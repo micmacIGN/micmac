@@ -47,7 +47,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-
 PS_Window PS(char * name, bool auth_lzw = false)
 {
       // sz of images we will use
@@ -878,28 +877,13 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
     Im2D<U_INT1,INT4> mIm2DImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);
     Im2D<U_INT1,INT4> mIm2DImg2(mTiffImg2.sz().x,mTiffImg2.sz().y);
     Im2D<U_INT1,INT4> mIm2DImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
-
+    this->mImg1 = mIm2DImg1;
+    this->mImg2 = mIm2DImg2;
     TIm2D<U_INT1,INT4> mTIm2DImg3(mTiffImg3.sz());
     ELISE_COPY(mTIm2DImg3.all_pts(),mTiffImg3.in(),mTIm2DImg3.out());
 
     TIm2D<U_INT1,INT4> mTIm2DImg2(mTiffImg2.sz());
     ELISE_COPY(mTIm2DImg2.all_pts(),mTiffImg2.in(),mTIm2DImg2.out());
-
-//    ELISE_COPY(
-//                 mTiffImg1.all_pts(),
-//                ((FX/50+FY/50)%2)*255,
-//                 mIm2DImg1.out()
-//              );
-//    ELISE_COPY(
-//                 mTiffImg2.all_pts(),
-//                ((FX/50+FY/50)%2)*255,
-//                 mIm2DImg2.out()
-//              );
-//    ELISE_COPY(
-//                 mTiffImg3.all_pts(),
-//                ((FX/50+FY/50)%2)*255,
-//                 mIm2DImg3.out()
-//              );
 
     ELISE_COPY(
                  mTiffImg1.all_pts(),
@@ -916,18 +900,20 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
                  mTiffImg3.in(),
                  mIm2DImg3.out()
               );
-
-
+/*
+//convert img3 to image dame
     ELISE_COPY(
                 mTiffImg3.all_pts(),
                 ((FX/10+FY/10)%2)*255,
                 mIm2DImg3.out()
                 );
+//on veut image dame format Tiff
     ELISE_COPY(
                 mIm2DImg3.all_pts(),
                 ((FX/10+FY/10)%2)*255,
                 mTiffImg3.out()
                 );
+*/
     Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
     //=======================================================//
     double count =0;
@@ -956,46 +942,24 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
 
             if( IsInside(aP3, mTiffImg3, 1) )
             {
-                /*
-                cout<<endl<<"-------------------------------------"<<endl;
-                cout<<"aP1 "<<aP1<<endl;
-                cout<<"Pt_H "<<Pt_H<<endl;
-                cout<<"aP3 "<<aP3<<endl;
-                cout<<"prof_d "<<prof_d<<endl;*/
                 //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
                 Pt2dr SupDirX = aP1+Pt2dr(1,0);
                 Pt2dr SupDirY = aP1+Pt2dr(0,1);             
                 Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une sphere                
                 Pt3dr Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
-                /*
-                cout<<"SupDirX "<<SupDirX<<endl;
-                cout<<"SupDirY "<<SupDirY<<endl;
-                cout<<"Pt_Hu "<<Pt_Hu<<endl;
-                cout<<"Pt_Hv "<<Pt_Hv<<endl;*/
-
                 //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
                 Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
                 Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
-                /*
-                cout<<"Pt_Hu_dansImg3 "<<Pt_Hu_dansImg3<<endl;
-                cout<<"Pt_Hv_dansImg3 "<<Pt_Hv_dansImg3<<endl;*/
-
                 //=== 5) Vector direction de surface d'img 3 ===
                 Pt2dr DirX = aP3 - Pt_Hu_dansImg3;
                 Pt2dr DirY = aP3 - Pt_Hv_dansImg3;
                 VectorSurface aDirSurfImg3(DirX,DirY);
-                /*
-                cout<<Pt2dr(0,1)<<Pt2dr(1,0)<<" + "<<prof_d<< " = "<<DirX<<DirY;
-                cout<<"DirX "<<DirX<<endl;
-                cout<<"DirY "<<DirY<<endl;*/
                 //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
                 //Vignette d'img 1
                 cCorrelImage::setSzW(sizeVignette);
                 cCorrelImage Imgette1; cCorrelImage Imgette3_o;
                 Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
                 Imgette3_o.getFromIm(&mIm2DImg3, aP3.x, aP3.y);
-                //double longeurX = sqrt(pow(DirX.x,2) + pow(DirX.y,2));
-                //double longeurY = sqrt(pow(DirY.x,2) + pow(DirY.y,2));
                 RepereImagette RepImgette3(aP3, DirX, DirY);
                 Pt2di aP3access;
                 TIm2D<U_INT1,INT4> mTIm2DImgette3(Pt2di(sizeVignette*2+1, sizeVignette*2+1));
@@ -1012,10 +976,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
                         if ( IsInside( aP3Test , mTiffImg3, this->mPropDiag) )
                             {
                                 INT4 val = mTIm2DImg3.getr(pixelCorrImg3, -1);
-                                //cout<<val<<" ";
                                 /*== ecrire dans un pixel d'image ====*/
-                                //oset_svp pour tester si il est dedans avant ecrire
-                                //oset pour ecrire sans tester
                                 mTIm2DImgette3.oset_svp(aVois+Pt2di(sizeVignette,sizeVignette),val);
                                 out=false;
                             }
@@ -1048,28 +1009,6 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
                         ELISE_COPY(mW1->all_pts(), Imgette1.getIm()->in()[Virgule(FX/4,FY/4)] ,mW1->ogray());
                         ELISE_COPY(mW2->all_pts(), Imgette3_o.getIm()->in()[Virgule(FX/4,FY/4)] ,mW2->ogray());
                         mW2->clik_in();
-
-                        //                    if (mW==0)
-                        //                        mW = Video_Win::PtrWStd(Imgette3.getIm()->sz()*20);
-                        //                    ELISE_COPY(mW->all_pts(), Imgette3.getIm()->in()[Virgule(FX/10,FY/10)] ,mW->ogray());
-                        //                    if (mW1==0)
-                        //                        mW1 = Video_Win::PtrWStd(Imgette1.getIm()->sz()*20);
-                        //                    ELISE_COPY(mW1->all_pts(), Imgette1.getIm()->in()[Virgule(FX/10,FY/10)] ,mW1->ogray());
-                        //                    mW1->clik_in();
-
-                        //                    ELISE_COPY(rectangle(Pt2di(0,0),Imgette3.getIm()->sz()*10).chc(Virgule(FX,FY)),
-                        //                               Imgette3.getIm()->in()[Virgule(FX/10,FY/10)] ,mW->ogray());
-                        /*ELISE_COPY(rectangle(Imgette3.getIm()->sz(),Imgette3.getIm()->sz()*2),
-                               Imgette3.getIm()->in()[Virgule(FX/10,FY/10)-Imgette3.getIm()->sz()] ,mW->ogray());*/
-                        //ELISE_COPY(Imgette1.getIm()->all_pts(),Imgette1.getIm()->in(0)[Virgule(FX, FY)],mW->ogray());
-                        //mW->draw_circle_loc(Pt2dr(50,50),5.0,mW->pdisc()(P8COL::red));
-
-
-                        //                    if (mW==0)
-                        //                        mW = Video_Win::PtrWStd(mIm2DImg3.sz());
-                        //                    ELISE_COPY(mIm2DImg3.all_pts(), mTIm2DImg3.in() ,mW->ogray());
-                        //                    mW->draw_circle_loc(Pt2dr(50,50),5.0,mW->pdisc()(P8COL::red));
-                        //                    mW->clik_in();
                     }
                     if (corl > this->mCorel)
                         {count++;result.push_back(true);}
@@ -1081,7 +1020,6 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
     cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl<<count/aPackIn1_2.size()<<"% conserve"<<endl;
     return result;
 }
-
 
 
 int PHO_MI_main(int argc,char ** argv)

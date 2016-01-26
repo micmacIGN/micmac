@@ -28,7 +28,7 @@ class RepereImagette
     Pt2dr uv2img(Pt2dr coorOrg);
 };
 
-class CplImg
+class CplImg : public cCorrelImage
 {
     public :
           CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,string aFullPatternImages, bool ExpTxt, double aPropDiag, double aCorel, double asizeVignette, bool adisplayVignette);
@@ -61,7 +61,6 @@ class CplImg
           void ValPtsLia(vector<double> NorSur);
           vector<bool> CalVectorSurface(string mImg3eme);
           //bool IsInside(Pt2dr checkPoint, double w, double h);
-
           Video_Win * mW; Video_Win * mW1; Video_Win * mW2;
 };
 
@@ -123,6 +122,5 @@ struct PairHomol
     string ImgB;
     ElPackHomologue HomoA_B;
 };
-
 
 #endif
