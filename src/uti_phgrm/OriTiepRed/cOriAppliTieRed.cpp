@@ -214,6 +214,7 @@ void ShowPoly(const cElPolygone & aPoly)
 
 void cAppliTiepRed::GenerateSplit()
 {
+    ELISE_fp::PurgeDirRecursif(mDir+TheNameTmp);
     ELISE_fp::MkDirSvp(mDir+TheNameTmp);
     for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
     {

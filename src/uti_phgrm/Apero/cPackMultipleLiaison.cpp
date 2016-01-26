@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 template  class ElQT<NS_ParamApero::cOnePtsMult *,Pt2dr,NS_ParamApero::cFctrPtsOfPMul> ;
 
 
-#define VERIF_PackMUL 1
+#define VERIF_PackMUL 0
 
 // bool DebugPM = false;
 
@@ -319,6 +319,8 @@ void cOnePtsMult::Add(int aNum,const Pt2dr & aP,bool IsFirstSet)
        if (mNPts.NbPts() > 0)
           std::cout << "P0 " << mNPts.PK(0) << "\n";
        ELISE_ASSERT(false,"Multiple add in cOnePtsMult::Add");
+#else
+       return;
 #endif
    }
    mFlagI.Add(aNum);
@@ -859,6 +861,8 @@ void    cObsLiaisonMultiple::AddPose(const std::string & aName,bool IsFirstSet)
 #if VERIF_PackMUL
          std::cout  << "Name =" << aName << "\n";
          ELISE_ASSERT(false,"cObsLiaisonMultiple::cAddPose");
+#else
+         return;
 #endif
 /*
 */
