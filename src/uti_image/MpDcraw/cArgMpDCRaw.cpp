@@ -472,7 +472,7 @@ void  cArgMpDCRaw::DevJpg()
 
 L_Arg_Opt_Tiff  cArgMpDCRaw::ArgMTD() const
 {
-   return ArgOpTiffMDP(cMetaDataPhoto::CreateExiv2(DirChantier()+CurF1()));
+   return ArgOpTiffMDP(cMetaDataPhoto::CreateExiv2(DirChantier()+CurF1()),true);
 }
 
 

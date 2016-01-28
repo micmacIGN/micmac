@@ -624,6 +624,10 @@ bool  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
    cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale (aCIM.IdBdl(),aPC0->Name());
 
    int aNbPtsInNu;
+if (MPD_MM())
+{
+   // std::cout << "llllllllllllllllll\n";
+}
    cPCICentr aPCIC(aPC0,anOLM->CentreNuage(aMasq3D,&aNbPtsInNu));
 
    if (aNbPtsInNu < 10)
