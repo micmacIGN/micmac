@@ -350,13 +350,13 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
      aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);
     }
 
-    //creat name of homomogue file dans 2 sens
+    //creat name of homomologue file dans 2 sens
     ElPackHomologue Pair1_2, Pair1_2i;
     std::string NameHomolPair1 = aICNM->Assoc1To2(aKHOut, aNameImg1, aNameImg2, true);
     std::string NameHomolDatPair1 = aICNM->Assoc1To2(aKHOutDat, aNameImg1, aNameImg2, true);
     std::string NameHomolDatPair1i = aICNM->Assoc1To2(aKHOutDat, aNameImg2, aNameImg1 , true);
     double ind=0;
-    cout<<NameHomolPair1;
+    cout<<NameHomolDatPair1;
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
     {
         if(decision[ind])
@@ -366,7 +366,8 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
         }
         ind++;
     }
-    Pair1_2.StdPutInFile(NameHomolPair1);
+    if (ExpTxt)
+        {Pair1_2.StdPutInFile(NameHomolPair1);}
     Pair1_2.StdPutInFile(NameHomolDatPair1);
     Pair1_2i.StdPutInFile(NameHomolDatPair1i);
     cout<<"..done !"<<endl;
@@ -449,8 +450,32 @@ vector<AbreHomol> VerifParRepr::creatAbre()
         }
 
     }
-    this->mAbre = Abre;
-    this->mtempArbeRacine = tempArbeRacine;
+    //filtre abre for traitement
+    vector<string> tempArbeRacine_N;
+    vector<AbreHomol> Abre_N;
+    for (uint i=0; i<Abre.size(); i++)
+    {
+        AbreHomol aAbre;
+        for (uint j=0; j<Abre[i].ImgBranch.size(); j++)
+        {
+            std::vector<string>::iterator it1;
+            it1 = std::find(tempArbeRacine.begin(), tempArbeRacine.end(), Abre[i].ImgBranch[j]);
+            double p1 = std::distance( tempArbeRacine.begin(), it1 );
+            if (p1 > i)
+            {
+                aAbre.ImgBranch.push_back(Abre[i].ImgBranch[j]);
+                aAbre.ImgRacine = Abre[i].ImgRacine;
+                aAbre.Img3eme.push_back(Abre[i].Img3eme[j]);
+            }
+        }
+        if(aAbre.ImgBranch.size() > 0)
+        {
+            Abre_N.push_back(aAbre);
+            tempArbeRacine_N.push_back(Abre[i].ImgRacine);
+        }
+    }
+    this->mAbre = Abre_N;
+    this->mtempArbeRacine = tempArbeRacine_N;
     Tiff_Im mTiffImg3(tempArbeRacine[0].c_str());
 
     Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
@@ -755,8 +780,9 @@ Pt2dr RepereImagette::uv2img(Pt2dr coorOrg)
 //   R3 -------------> L3------------>C2------------->F2
 
 CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,
-               string aFullPatternImages, bool ExpTxt, double aPropDiag, double aCorel, double aSizeVignette, bool aDisplayVignette):
-    mNameImg1(aNameImg1),mW(0), mW1(0)
+               string aFullPatternImages, bool ExpTxt, double aPropDiag, double aCorel, double aSizeVignette,
+               bool aDisplayVignette, bool aFiltreBy1Img, double aTauxGood):
+    mNameImg1(aNameImg1), mFiltreBy1Img(aFiltreBy1Img), mTauxGood(aTauxGood)
 {
     this->mNameImg1 = aNameImg1;
     this->mNameImg2 = aNameImg2;
@@ -1036,8 +1062,8 @@ int PHO_MI_main(int argc,char ** argv)
     cout<<"*********************"<<endl;
 
     std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="_Filtered/", bStrategie = "6";
-    double aDistRepr=10, aDistHom=20, aPropDiag =1 ,aCorel = 0.7, aSizeVignette=5;
-    bool ExpTxt = false, aDisplayVignette = false;
+    double aDistRepr=10, aDistHom=20, aPropDiag =1 ,aCorel = 0.7, aSizeVignette=5, aTauxGood = 0.5;
+    bool ExpTxt = false, aDisplayVignette = false, aFiltreBy1Img=true;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
     argc,                   //nb d’arguments
@@ -1056,7 +1082,8 @@ int PHO_MI_main(int argc,char ** argv)
                 << EAM(aCorel, "CorelThres" , true, "Threshold for corellation value  [-1 1]")
                 << EAM(aSizeVignette, "SizeVignette" , true, "Size of Corellation Vignette [default = 5]")
                 << EAM(aDisplayVignette, "DispVignette" , true, "Display imagette before do corellation [defalut=false]")
-
+                << EAM(aFiltreBy1Img, "By1Img" , true, "Decide result is good if it's good in 1 of collection 3eme image [defalut=true]")
+                << EAM(aTauxGood, "TauxGood" , true, "Decide result is good if it's good in TauxGood% of collection 3eme image [defalut=0.5]")
     );
     if (MMVisualMode) return EXIT_SUCCESS;
 
@@ -1185,52 +1212,71 @@ int PHO_MI_main(int argc,char ** argv)
         for (uint i=0;i<aAbre.size();i++)
         {
             string aImg1 = aAbre[i].ImgRacine;
-            for(uint k=0; k<aAbre[i].ImgBranch.size(); k++)
+            for(uint k=i; k<aAbre[i].ImgBranch.size(); k++)
             {
                 cout<<endl<<" ++ "<<aAbre[i].ImgBranch[k]<<endl;
                 string aImg2 = aAbre[i].ImgBranch[k];
-                CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt, aPropDiag, aCorel, aSizeVignette, aDisplayVignette);
+                CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt, aPropDiag, aCorel, aSizeVignette, aDisplayVignette, aFiltreBy1Img, aTauxGood);
                 aCouple.SupposeVecSruf1er(Pt2dr(0,0) , Pt2dr(0,0));
                 vector< vector<bool> > ColDec;
-                for(uint l=0; l<aAbre[i].Img3eme[k].size(); l++)
+                if (aAbre[i].Img3eme[k].size() > 0)
                 {
-                    cout<<"   + Com + "<<aAbre[i].Img3eme[k][l]<<endl;
-                    //====Triplet Image==========//
-                    aImg1 = aAbre[i].ImgRacine;
-                    aImg2 = aAbre[i].ImgBranch[k];
-                    string aImg3 = aAbre[i].Img3eme[k][l];
-                    ColDec.push_back(aCouple.CalVectorSurface(aImg3));
-                }
-                vector<bool> decision; vector<double> decPoint;
-                for(uint m=0; m<ColDec[0].size(); m++)
-                {
-                    bool dec = 0; double point=0;
-                    for (uint n=0; n<ColDec.size(); n++)
+                    for(uint l=0; l<aAbre[i].Img3eme[k].size(); l++)
                     {
-                        dec = dec || ColDec[n][m];
-                        if (ColDec[n][m])
-                        {point++;}
+                        cout<<"   + Com + "<<aAbre[i].Img3eme[k][l]<<endl;
+                        //====Triplet Image==========//
+                        aImg1 = aAbre[i].ImgRacine;
+                        aImg2 = aAbre[i].ImgBranch[k];
+                        string aImg3 = aAbre[i].Img3eme[k][l];
+                        ColDec.push_back(aCouple.CalVectorSurface(aImg3));
                     }
-                    decision.push_back(dec);
-                    decPoint.push_back(point);
-                }
-                double countGood = 0;
-                for(uint h=0; h<decision.size(); h++)
-                {
-                    if(decision[h])
+                    vector<bool> decision; vector<double> decPoint;
+                    for(uint m=0; m<ColDec[0].size(); m++)
                     {
-                        countGood++;
+                        bool dec = 0; double point=0;
+                        for (uint n=0; n<ColDec.size(); n++)
+                        {
+                            dec = dec || ColDec[n][m];
+                            if (ColDec[n][m])
+                            {point++;}
+                        }
+                        decision.push_back(dec);
+                        decPoint.push_back(point);
                     }
+                    double countGood = 0;
+                    for(uint h=0; h<decision.size(); h++)
+                    {
+                        if(decision[h] && aCouple.mFiltreBy1Img)
+                        {
+                            countGood++;
+                        }
+                        if((decPoint[h]/aAbre[i].Img3eme[h].size() > aCouple.mTauxGood) && !aCouple.mFiltreBy1Img )
+                        {
+                            countGood++;
+                        }
+                    }
+                    aAbre[i].NbPtFiltre.push_back(countGood);
+                    aAbre[i].NbPointHomo.push_back(decision.size());
+                    cout<<endl<<countGood/decision.size()*100<<" % Pts conservé of "<<decision.size()<<endl;
+                    //creat homol file with decision and pack homo b/w aImg1 aImg2
+                    //.....
+                    creatHomolFromPair(aImg1, aImg2, aNameHomol, aDirImages, aPatImages, aHomolOutput, ExpTxt, decision);
                 }
-                cout<<endl<<countGood/decision.size()*100<<" % Pts conservé of "<<decision.size()<<endl;
-                //creat homol file with decision and pack homo b/w aImg1 aImg2
-                //.....
-                creatHomolFromPair(aImg1, aImg2, aNameHomol, aDirImages, aPatImages, aHomolOutput, ExpTxt, decision);
             }
         }
-
+        //Display result
+        for(uint i=0; i<aAbre.size(); i++)
+        {
+            for (uint j=0; j<aAbre[i].ImgBranch.size(); j++)
+            {
+               cout<<"Couple ["<<aAbre[i].ImgRacine<<"] ["<<endl;
+                  cout<<aAbre[i].ImgBranch[j]<<"] % Reste "<<endl;
+                  cout<<aAbre[i].NbPtFiltre[j]/aAbre[i].NbPointHomo[j]*100<<" Of "<<endl;
+                  cout<<aAbre[i].NbPointHomo[j]<<endl;
+            }
+        }
     }
-    cout<<"use command SEL ./ img1 img2 KCpl=NKS-Assoc-CplIm2Hom@"<<aHomolOutput<< "@dat to view filtered point homomogues"<<endl;
+    cout<<endl<<"use command SEL ./ img1 img2 KCpl=NKS-Assoc-CplIm2Hom@"<<aHomolOutput<< "@dat to view filtered point homomogues"<<endl<<endl;
     return EXIT_SUCCESS;
 }
 
