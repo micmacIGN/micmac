@@ -481,7 +481,7 @@ vector<AbreHomol> VerifParRepr::creatAbre()
     Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
     this->mcentre_img = centre_img;
     this->mdiag = sqrt(pow((double)mTiffImg3.sz().x,2.) + pow((double)mTiffImg3.sz().y,2.));
-return Abre;
+return Abre_N;
 }
 
 vector<string> VerifParRepr::displayAbreHomol(vector<AbreHomol> aAbre, bool disp)
@@ -1212,7 +1212,7 @@ int PHO_MI_main(int argc,char ** argv)
         for (uint i=0;i<aAbre.size();i++)
         {
             string aImg1 = aAbre[i].ImgRacine;
-            for(uint k=i; k<aAbre[i].ImgBranch.size(); k++)
+            for(uint k=0; k<aAbre[i].ImgBranch.size(); k++)
             {
                 cout<<endl<<" ++ "<<aAbre[i].ImgBranch[k]<<endl;
                 string aImg2 = aAbre[i].ImgBranch[k];
@@ -1269,9 +1269,9 @@ int PHO_MI_main(int argc,char ** argv)
         {
             for (uint j=0; j<aAbre[i].ImgBranch.size(); j++)
             {
-               cout<<"Couple ["<<aAbre[i].ImgRacine<<"] ["<<endl;
-                  cout<<aAbre[i].ImgBranch[j]<<"] % Reste "<<endl;
-                  cout<<aAbre[i].NbPtFiltre[j]/aAbre[i].NbPointHomo[j]*100<<" Of "<<endl;
+               cout<<"Couple ["<<aAbre[i].ImgRacine<<"] [";
+                  cout<<aAbre[i].ImgBranch[j]<<"] Nb "<<aAbre[i].NbPtFiltre[j]<<" % Reste ";
+                  cout<<aAbre[i].NbPtFiltre[j]/aAbre[i].NbPointHomo[j]*100<<" Of ";
                   cout<<aAbre[i].NbPointHomo[j]<<endl;
             }
         }
