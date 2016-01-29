@@ -96,7 +96,7 @@ cElRegex::cElRegex(const std::string & aNameExprIn,int aNbMatchMax,int aCFlag) :
 		{
 			stringstream ss;
 			ss << "regcomp(" << mNameExpr << ") = ";
-			ELISE_DEBUG_ERROR(true, "cElRegex::cElRegex", string("regcomp(") + mNameExpr + ") = " << regcompErrorToString(mResCreate));
+			ELISE_DEBUG_WARNING(true, "cElRegex::cElRegex", string("regcomp(") + mNameExpr + ") = " << regcompErrorToString(mResCreate));
 		}
 	#endif
 
