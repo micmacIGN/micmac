@@ -105,12 +105,13 @@ class cAppli_C3DC : public cAppliWithSetImage
          bool        mDoMerge;
          cMMByImNM * mMMIN;
          bool		 mUseGpu;
-         double          mDefCor;
-         double          mZReg;
-	 bool		 mExpTxt;
-         std::string     mArgSupEpip;
-         std::string     mFilePair;
-         bool                     mDebugMMByP;
+         double      mDefCor;
+         double      mZReg;
+		 bool		 mExpTxt;
+         std::string mArgSupEpip;
+         std::string mFilePair;
+         bool        mDebugMMByP;
+         bool        mBin;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -127,7 +128,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mUseGpu	       (false),
    mExpTxt	       (false),
    mArgSupEpip         (""),
-   mDebugMMByP         (false)
+   mDebugMMByP         (false),
+   mBin                (true)
 {
 
 
@@ -202,9 +204,10 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",true,"Def correlation, context depend")
                     << EAM(mZReg,"ZReg",true,"Regularisation, context depend")
-   		    << EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for determining image pairs")
+					<< EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for determining image pairs")
                     << EAM(mFilePair,"FilePair",true,"Explicit pairs of images (as in Tapioca)", eSAM_IsExistFileRP)
                     << EAM(mDebugMMByP,"DebugMMByP",true,"Debug MMByPair ...")
+                    << EAM(mBin,"Bin",true,"Generate Binary or Ascii (Def=true, Binary)")
     );
 
    if (MMVisualMode) return;
@@ -283,8 +286,11 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    //=====================================
 
    std::string aDirFusMM = mMMIN->FullDir();
-
-   mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( aDirFusMM + ".*Merge.*ply") + " Out="  + mMergeOut;
+   
+   if(mBin)
+		mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( aDirFusMM + ".*Merge.*ply") + " Out="  + mMergeOut;
+   else
+		mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( aDirFusMM + ".*Merge.*ply") + " Out="  + mMergeOut + " Bin=0";
 
    mStrZ0ZF = " Zoom0=" + ToString(mZoomF) + " ZoomF=" + ToString(mZoomF);
    mMMIN->SetOriOfEtat(mOri);
@@ -446,6 +452,7 @@ class cAppli_MPI2Ply
          std::string mComNuageMerge;
          std::string mComCatPly;
          std::string mPat;
+         bool 		 mBin;
 };
 
 
@@ -479,7 +486,6 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
 
    if (! EAMIsInit(&mMergeOut)) mMergeOut =  mCFPI->mFullDirChantier+"C3DC_"+ mCFPI->mStrType + ".ply";
    mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( mCFPI->mFullDirPIm + aPatPly) + " Out="  + mMergeOut;
-
 }
 
 void cAppli_MPI2Ply::DoAll()
