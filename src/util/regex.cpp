@@ -62,7 +62,9 @@ string regcompErrorToString(int aRegcompResult)
 	case REG_EESCAPE: return "EESCAPE";
 	case REG_ESUBREG: return "ESUBREG";
 	case REG_EBRACK: return "EBRACK";
-	case REG_ENOSYS: return "ENOSYS";
+	#ifdef REG_ENOSYS
+		case REG_ENOSYS: return "ENOSYS";
+	#endif
 	case REG_EPAREN: return "EPAREN";
 	case REG_EBRACE: return "EBRACE";
 	case REG_BADBR: return "BADBR";
