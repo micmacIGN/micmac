@@ -1005,7 +1005,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
 
                                Pt2dr pixelCorrImg3 =RepImgette3.uv2img(Pt2dr(i,k));
                                aP3access.x = int(round(pixelCorrImg3.x)); aP3access.y = int(round(pixelCorrImg3.y));
-                               Pt2dr aP3Test; aP3Test.x = ceil(aP3access.x); aP3Test.y = ceil(aP3access.y);
+                               Pt2dr aP3Test; aP3Test.x = ceil((double)aP3access.x); aP3Test.y = ceil((double)aP3access.y);
                                if ( IsInside( aP3Test , mTiffImg3, this->mPropDiag) )
                                {
                                    INT4 val = mTIm2DImg3.getr(pixelCorrImg3, -1);
