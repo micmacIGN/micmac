@@ -61,7 +61,7 @@ double ToDecimal(string aString)
     for (uint i=0; i<mLength; i++)
     {
         int h = aVecDigit.back();
-        sum = sum + h * pow(10,i);
+        sum = sum + h * pow(10.,(double)i);
         aVecDigit.pop_back();
     }
     if (negativ)
