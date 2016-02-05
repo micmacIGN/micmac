@@ -671,6 +671,7 @@ if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 	configure_file( ${BinAuxWinDir}/proj.exe ${PROJECT_SOURCE_DIR}/binaire-aux/proj.exe COPYONLY )
 	configure_file( ${BinAuxWinDir}/proj.dll ${PROJECT_SOURCE_DIR}/binaire-aux/proj.dll COPYONLY )
 	configure_file( ${BinAuxWinDir}/cs2cs.exe ${PROJECT_SOURCE_DIR}/binaire-aux/cs2cs.exe COPYONLY )
+	configure_file( ${BinAuxWinDir}/msys-1.0.dll ${PROJECT_SOURCE_DIR}/binaire-aux/msys-1.0.dll COPYONLY )
 endif()
 
 # Doxygen
