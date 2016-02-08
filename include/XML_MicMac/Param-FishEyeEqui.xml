@@ -1,0 +1,105 @@
+
+
+                   <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberteFocale_1      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  FOCALE - 2 </Messages>
+                   </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR1      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  ============= LIB  DR1 </Messages>
+                   </IterationsCompensation>
+                   <IterationsCompensation>
+                       <SetRayMaxUtileCalib>
+                             <Name > .*</Name>
+                             <Ray > 0.90 </Ray>
+                             <IsRelatifDiag > true </IsRelatifDiag>
+                             <ApplyOnlyFE  > true </ApplyOnlyFE>
+                       </SetRayMaxUtileCalib>
+                   </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR2      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  DR2 </Messages>
+                    </IterationsCompensation>
+                   <IterationsCompensation>
+                       <SetRayMaxUtileCalib>
+                             <Name > .*</Name>
+                             <Ray > 0.95 </Ray>
+                             <IsRelatifDiag > true </IsRelatifDiag>
+                             <ApplyOnlyFE  > true </ApplyOnlyFE>
+                       </SetRayMaxUtileCalib>
+                   </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLib_PP_CD_11      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>   PP CD  11 </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR3      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  DR3 </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR4      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  DR4 </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR5      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  DR5 </Messages>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_Dec1      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>   Decentr 1 </Messages>
+                   </IterationsCompensation>
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberteParamDeg_1      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>   Polyn 2 </Messages>
+                   </IterationsCompensation>
+
+
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
