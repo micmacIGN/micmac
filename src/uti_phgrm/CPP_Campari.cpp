@@ -128,6 +128,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     int aDegFree = 0;
     int aDrMax = 0;
     bool AcceptGB=true;
+    std::string aSetHom="";
+
 
 
     ElInitArgMain
@@ -159,6 +161,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(mMulRTA,"MulRTA",true,"Rolling Test Appuis , multiplier ")
                     << EAM(mNameRTA,"NameRTA",true,"Name for save results of Rolling Test Appuis , Def=SauvRTA.xml")
                     << EAM(GCPRTA,"GCPRTA",true,"Internal Use, GCP for RTA ")
+                    << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
                     // << EAM(GCP,"MulRTA",true,"Rolling Test Appuis , multiplier ")
 
     );
@@ -258,6 +261,14 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                                          + " ";
             }
         }
+
+
+        StdCorrecNameHomol(aSetHom,mDir);
+        if (EAMIsInit(&aSetHom))
+        {
+            mCom = mCom + std::string(" +SetHom=") + aSetHom;
+        }
+
 
         if (EAMIsInit(&aSigmaTieP)) mCom = mCom + " +SigmaTieP=" + ToString(aSigmaTieP);
 
