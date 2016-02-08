@@ -1076,13 +1076,32 @@ cSysCoord * cSysCoord::FromXML(const cSystemeCoord & aSC,const char * aDir)
    return aRes;
 }
 
+#define TheNbSysPredef 4
+const std::string NameSysPredef[TheNbSysPredef] =
+                  {
+                       "GeoC",
+                       "WGS84",
+                       "DegreeWGS84",
+                       "Lambert93"
+                  };
+
 cSysCoord * cSysCoord::FromFile(const std::string & aNF,const std::string & aNameTag)
 {
    std::string aNBasic = NameWithoutDir(aNF);
-   if (aNBasic=="GeoC")        return GeoC();
-   if (aNBasic=="WGS84")       return WGS84();
-   if (aNBasic=="DegreeWGS84") return cGeoc_WGS4::TheOneDeg();
-   if (aNBasic=="Lambert93")   return cProj4::Lambert93();
+   if (aNBasic==NameSysPredef[0])        return GeoC();
+   if (aNBasic==NameSysPredef[1])       return WGS84();
+   if (aNBasic==NameSysPredef[2]) return cGeoc_WGS4::TheOneDeg();
+   if (aNBasic==NameSysPredef[3])   return cProj4::Lambert93();
+
+   if (!ELISE_fp::exist_file(aNF))
+   {
+      std::cout << "Bad Sys coord  for " << aNF << "\n";
+      std::cout << " not an existing file, not an allowed value \n";
+      for (int aK=0 ; aK<TheNbSysPredef ; aK++)
+          std::cout << "   " << NameSysPredef[aK] << "\n";
+      
+      ELISE_ASSERT(false,"cSysCoord::FromFile");
+   }
 
 
    cSystemeCoord  aCS = StdGetObjFromFile<cSystemeCoord>
