@@ -158,7 +158,7 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
 
     mKeyFile = mICNM->StdKeyOrient(mKeyFile);
 
-    mLFile =  mICNM->StdGetListOfFile(mPat);
+    mLFile =  mICNM->StdGetListOfFile(mPat,1);
 
 
     mNbSom =  (int)mLFile.size();
