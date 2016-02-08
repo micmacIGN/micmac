@@ -95,12 +95,15 @@ OPTION(WITH_DOXYGEN "Generation de documentation" OFF )
 ######################################
 ## 	Trouver les EXES et Libs	##
 ######################################
-IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
-    add_definitions(-DELISE_Darwin)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	add_definitions(-DELISE_Darwin)
+	set(BIN_AUX_SUBDIR "darwin")
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set(BIN_AUX_SUBDIR "windows")
+else()
+	set(BIN_AUX_SUBDIR "linux")
 endif()
-
-# DEFINITION : Dossier des exe et Dll necessaires sous windows
-set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
+set (BIN_AUX_FULL_PATH ${PROJECT_SOURCE_DIR}/binaire-aux/${BIN_AUX_SUBDIR})
 
 # DEFINITIION : des chemins binaires sous UNIX
 set(UnixBinPath
@@ -511,31 +514,6 @@ if(NOT WIN32) # ImageMagick n'est pas obligatoire sous windows puisque les exécu
 	endif(NOT ImageMagick_FOUND)
 endif()
 
-# VERIFICATION si exiftool est installe
-
-find_program(EXIF_EXECUTABLE exiftool
-				PATHS 	${BinAuxWinDir} ${UnixBinPath}
-				DOC "Chemin vers la commande exiftool"
-				NO_DEFAULT_PATH)
-
-if(EXIF_EXECUTABLE_NOTFOUND)
-
-	message("Exiftool non trouve!!")
-
-endif()
-
-# VERIFICATION si exiv2 est installe
-find_program(EXIV2_EXECUTABLE exiv2
-				PATHS 	${BinAuxWinDir} ${UnixBinPath}
-				DOC "Chemin vers la commande exiv2"
-				NO_DEFAULT_PATH)
-
-if(EXIV2_EXECUTABLE_NOTFOUND)
-
-	message("Exiv2 non trouve!!")
-
-endif(EXIV2_EXECUTABLE_NOTFOUND)
-
 if (MINGW)
 	add_definitions(-D__MINGW__ -D__MSVCRT_VERSION__=0x800 -D_WIN32_WINNT=0x0500)
 	set( WINSOCK2_LIBRARY ws2_32 )
@@ -577,18 +555,7 @@ if(NOT WIN32)
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
 	ENDIF()
 ELSE()
-		set( CMAKE_BUILD_TYPE Release )
-	find_program(MAKE_EXECUTABLE make
-				PATHS 	${BinAuxWinDir}
-				DOC "Chemin vers la commande Make"
-				NO_DEFAULT_PATH)
-
-	if(MAKE_EXECUTABLE_NOTFOUND)
-
-		message("Make non trouve!!")
-
-	endif()
-
+	set( CMAKE_BUILD_TYPE Release )
 ENDIF()
 
 # DEFINITION : des preprocesseurs windows
@@ -657,22 +624,6 @@ include(${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/CMakeLists.txt)
 set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
 include(${code_genere_dir}/Sources.cmake)
 ADD_SUBDIRECTORY(${ELISE_DIR})
-
-# INSTALLATION : Liste des exe et Dll necessaires sous windows
-if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
-	configure_file( ${BinAuxWinDir}/convert.exe ${PROJECT_SOURCE_DIR}/binaire-aux/convert.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/vcomp100.dll ${PROJECT_SOURCE_DIR}/binaire-aux/proj.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/exiftool.exe ${PROJECT_SOURCE_DIR}/binaire-aux/exiftool.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/exiv2.exe ${PROJECT_SOURCE_DIR}/binaire-aux/exiv2.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/libexpat.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libexpat.dll COPYONLY )
-	configure_file( ${BinAuxWinDir}/libiconv2.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libiconv2.dll COPYONLY )
-	configure_file( ${BinAuxWinDir}/libintl3.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libintl3.dll COPYONLY )
-	configure_file( ${BinAuxWinDir}/make.exe ${PROJECT_SOURCE_DIR}/binaire-aux/make.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/proj.exe ${PROJECT_SOURCE_DIR}/binaire-aux/proj.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/proj.dll ${PROJECT_SOURCE_DIR}/binaire-aux/proj.dll COPYONLY )
-	configure_file( ${BinAuxWinDir}/cs2cs.exe ${PROJECT_SOURCE_DIR}/binaire-aux/cs2cs.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/msys-1.0.dll ${PROJECT_SOURCE_DIR}/binaire-aux/msys-1.0.dll COPYONLY )
-endif()
 
 # Doxygen
 if(${WITH_DOXYGEN})
