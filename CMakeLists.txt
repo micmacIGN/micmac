@@ -577,7 +577,7 @@ IF (MSVC)
 				string(REPLACE "/Zm1000" ${zm_value} CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 			endif()
 	elseif (NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.0.0")) # 19 is visual studio 2015
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm237")
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm263")
 	elseif ( ${CMAKE_SYSTEM_VERSION} MATCHES "5.1" )
 		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm131") # 5.1 is windows xp
 	else()
@@ -587,7 +587,6 @@ IF (MSVC)
 	if(NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.0.0"))
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 	endif()
-
 ENDIF()
 
 # DEFINITION : Dossier include
