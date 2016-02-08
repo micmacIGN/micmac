@@ -83,6 +83,7 @@
            <eSymb> DR3Free= SupEq ${DRMax} 3 </eSymb>
 
            <Symb> AcceptGB=true </Symb>
+           <Symb> SetHom=""  </Symb>
 
 
        </DicoLoc>
@@ -90,8 +91,8 @@
        <SectionBDD_Observation>
              <BDD_PtsLiaisons>
                  <Id>    Id_Pastis_Hom  </Id>
-                 <KeySet> NKS-Set-Homol@@${Ext}  </KeySet>
-                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@@${Ext}   </KeyAssoc>
+                 <KeySet> NKS-Set-Homol@${SetHom}@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@${SetHom}@${Ext}   </KeyAssoc>
             </BDD_PtsLiaisons>
 
             <BDD_Orient>
