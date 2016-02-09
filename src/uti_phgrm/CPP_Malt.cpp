@@ -265,6 +265,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
     Box2dr aBoxClip, aBoxTerrain;
     double aResolTerrain;
+    double aRatioResolImage=1;
 
     bool mModePB = false;
     std::string mModeOri;
@@ -323,6 +324,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, normalized image coordinates ([0,0,1,1] means full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
                     << EAM(aResolTerrain,"ResolTerrain",true,"Ground Resol (Def automatically computed)", eSAM_NoInit)
+                    << EAM(aRatioResolImage,"RRI",true,"Ratio Resol Image (f.e. if set to 0.8 and image resol is 2.0, will be computed at 1.6)", eSAM_NoInit)
                     << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependent,tuning purpose)", eSAM_InternalUse)
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
@@ -537,6 +539,7 @@ if(0)
               aRSRT = true;
           }
       }
+
 
       bool IsOrthoXCSte = false;
       bool IsAnamXCsteOfCart = false;
@@ -836,6 +839,10 @@ if(0)
                   +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
       }
 
+      if (EAMIsInit(&aRatioResolImage))
+      {
+           mCom  =    mCom + " +UseRatioResolImage=true " + " +RatioResolImage=" + ToString(aRatioResolImage);
+      }
       if (ResolTerrainIsInit)
       {
           mCom  =    mCom + " +UseResolTerrain=true "
