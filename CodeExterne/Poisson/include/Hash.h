@@ -1,7 +1,8 @@
 #ifndef HASH_INCLUDED
 #define HASH_INCLUDED
 
-#if ((defined __APPLE__) && (defined __clang__) && (__clang_major__>=5)) || _MSC_VER == _MSC_VER_2015
+// MPD _MSC_VER == _MSC_VER_2015 est vrai meme sous Gnu/Linux ...
+#if  ((defined __APPLE__) && (defined __clang__) && (__clang_major__>=5)) ||( ELISE_windows && (_MSC_VER == _MSC_VER_2015))
 	#include <unordered_map>
 	#define hash_map std::unordered_map
 #elif _WIN32
