@@ -89,6 +89,8 @@ int InitOriLinear_main(int argc,char ** argv)
     {
         double xOffsetRef = 0;double yOffsetRef = 0;double zOffsetRef = 0;
         double xOffset = 0;double yOffset = 0;double zOffset = 0;
+        std::vector<cOrientationConique> aRefOriList;
+        std::vector<cOrientationConique> aOriConique1stCam;
     for(uint ii=0; ii<aVecPatternNewImages.size(); ii++)
     {
         cout<<"\nInit Cam "<<ii<<" : ";
@@ -119,7 +121,6 @@ int InitOriLinear_main(int argc,char ** argv)
         //Read orientation initial (first image in series)
         string aOriRefImage="Ori-"+aOriRef+"/Orientation-"+aSetRefImages.back()+".xml";
         cOrientationConique aOriConiqueRef=StdGetFromPCP(aOriRefImage,OrientationConique);
-
         //init relative position b/w different series image
         if (ii==0) //1st camera as reference
         {
@@ -127,140 +128,77 @@ int InitOriLinear_main(int argc,char ** argv)
             xOffsetRef = aOriConiqueRef.Externe().Centre().x;
             yOffsetRef = aOriConiqueRef.Externe().Centre().y;
             zOffsetRef = aOriConiqueRef.Externe().Centre().z;
-        }
-        else
-        {
-            xOffset = aOriConiqueRef.Externe().Centre().x - xOffsetRef;
-            yOffset = aOriConiqueRef.Externe().Centre().y - yOffsetRef;
-            zOffset = aOriConiqueRef.Externe().Centre().z - zOffsetRef;
-            cout<<"Offset = "<<xOffset<<" - "<<yOffset<<" - "<<zOffset;
-        }
-        std::vector<cOrientationConique> aRefOriList;
-        double xBefore=0, yBefore=0, zBefore=0;
-        double xAcc = 0, yAcc = 0, zAcc = 0;
+            double xBefore=0, yBefore=0, zBefore=0;
+            double xAcc = 0, yAcc = 0, zAcc = 0;
+            for (unsigned int i=0;i<aSetRefImages.size();i++)
+            {
+                std::cout<<"  - "<<aSetRefImages[i]<<" ";
 
-        for (unsigned int i=0;i<aSetRefImages.size();i++)
-        {
-            std::cout<<"  - "<<aSetRefImages[i]<<" ";
-            std::string aOriRefImage="Ori-"+aOriRef+"/Orientation-"+aSetRefImages[i]+".xml";
-            //Pour orientation
-            cOrientationConique aOriConique=StdGetFromPCP(aOriRefImage,OrientationConique);
-            aRefOriList.push_back(aOriConique);
-            std::cout<<aOriConique.Externe().Centre()<<"\n";
-            if (i==0)
-                {
+                std::string aOriRefImage="Ori-"+aOriRef+"/Orientation-"+aSetRefImages[i]+".xml";
+                //Pour orientation
+                cOrientationConique aOriConique=StdGetFromPCP(aOriRefImage,OrientationConique);
+                aRefOriList.push_back(aOriConique);
+                std::cout<<aOriConique.Externe().Centre()<<"\n";
+
+                if (i==0)
+                {   //1st pose as reference
                     xBefore = aOriConique.Externe().Centre().x;
                     yBefore = aOriConique.Externe().Centre().y;
                     zBefore = aOriConique.Externe().Centre().z;
                 }
-            xAcc = xAcc + aOriConique.Externe().Centre().x - xBefore;
-            yAcc = yAcc + aOriConique.Externe().Centre().y - yBefore;
-            zAcc = zAcc + aOriConique.Externe().Centre().z - zBefore;
-            xBefore =  aOriConique.Externe().Centre().x;
-            yBefore = aOriConique.Externe().Centre().y;
-            zBefore = aOriConique.Externe().Centre().z;
-        }
-        //compute orientation and movement
-        double xMov = xAcc/(aSetRefImages.size()-1);
-        double yMov = yAcc/(aSetRefImages.size()-1);
-        double zMov = zAcc/(aSetRefImages.size()-1);
-        cout<<endl<<"Init with vector movement = "<<xMov<<" ; "<<yMov<<" ; "<<zMov<<endl;
-        //Create a XML file with class cOrientationConique (define in ParamChantierPhotogram.h)
-        double xEstimate = aRefOriList.front().Externe().Centre().x;
-        double yEstimate = aRefOriList.front().Externe().Centre().y;
-        double zEstimate = aRefOriList.front().Externe().Centre().z;
-        cOrientationConique aOriConique = aRefOriList.front();
-        //std::cout<<"\nInit Images:\n";
-        for (unsigned int i=0;i<aSetNewImages.size();i++)
-        {
-            //std::cout<<"  - "<<aSetNewImages[i]<<"\n";
-            aOriConique.Externe().Centre().x = xEstimate;
-            aOriConique.Externe().Centre().y = yEstimate;
-            aOriConique.Externe().Centre().z = zEstimate;
-            xEstimate = xEstimate + xMov + xOffset;
-            yEstimate = yEstimate + yMov + yOffset;
-            zEstimate = zEstimate + zMov + zOffset;
-            aOriConique.Externe().ParamRotation().CodageMatr().SetVal(aOriConiqueRef.Externe().ParamRotation().CodageMatr().Val());
-            MakeFileXML(aOriConique, "Ori-"+aOriOut+"/Orientation-"+aSetNewImages[i]+".xml");
-        }
-    }
-    }
-    else
-    {
-        std::cout<<"***"<<aFullPatternNewImages<<"***"<<std::endl;
-        std::cout<<"***"<<aFullPatternRefImages<<"***"<<std::endl;
-
-        // Initialize name manipulator & files
-        std::string aDirNewImages,aDirRefImages, aPatNewImages,aPatRefImages;
-        SplitDirAndFile(aDirNewImages,aPatNewImages,aFullPatternNewImages);
-        SplitDirAndFile(aDirRefImages,aPatRefImages,aFullPatternRefImages);
-        StdCorrecNameOrient(aOriRef,aDirRefImages);//remove "Ori-" if needed
-        std::cout<<"New images dir: "<<aDirNewImages<<std::endl;
-
-        cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirNewImages);
-        const std::vector<std::string> aSetNewImages = *(aICNM->Get(aPatNewImages));		//cInterfChantierNameManipulateur::BasicAlloc(aDirImages) have method Get to read path with RegEx
-
-        std::cout<<"\nNew images:\n";
-        for (unsigned int i=0;i<aSetNewImages.size();i++)
-            std::cout<<"  - "<<aSetNewImages[i]<<"\n";
-
-
-        aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirRefImages);
-        const std::vector<std::string> aSetRefImages = *(aICNM->Get(aPatRefImages));
-
-        ELISE_ASSERT(aSetRefImages.size()>1,"Number of reference image must be > 1");
-
-        std::cout<<"\nRef images:\n";
-
-        std::vector<cOrientationConique> aRefOriList;
-        double xBefore=0, yBefore=0, zBefore=0;
-        double xAcc = 0, yAcc = 0, zAcc = 0;
-
-        for (unsigned int i=0;i<aSetRefImages.size();i++)
-        {
-            std::cout<<"  - "<<aSetRefImages[i]<<" ";
-            std::string aOriRefImage="Ori-"+aOriRef+"/Orientation-"+aSetRefImages[i]+".xml";
-            /*aRefCamList.push_back(CamOrientGenFromFile(aOriRefImage,aICNM));
-        std::cout<<aRefCamList.back()->VraiOpticalCenter()<<"\n";
-        std::cout<<aRefCamList.back()->VraiOpticalCenter()<<"\n";*/
-            cOrientationConique aOriConique=StdGetFromPCP(aOriRefImage,OrientationConique);
-            aRefOriList.push_back(aOriConique);
-            std::cout<<aOriConique.Externe().Centre()<<"\n";
-            if (i==0)
-            {
-                xBefore = aOriConique.Externe().Centre().x;
+                xAcc = xAcc + aOriConique.Externe().Centre().x - xBefore;
+                yAcc = yAcc + aOriConique.Externe().Centre().y - yBefore;
+                zAcc = zAcc + aOriConique.Externe().Centre().z - zBefore;
+                xBefore =  aOriConique.Externe().Centre().x;
                 yBefore = aOriConique.Externe().Centre().y;
                 zBefore = aOriConique.Externe().Centre().z;
             }
-            xAcc = xAcc + aOriConique.Externe().Centre().x - xBefore;
-            yAcc = yAcc + aOriConique.Externe().Centre().y - yBefore;
-            zAcc = zAcc + aOriConique.Externe().Centre().z - zBefore;
-            xBefore =  aOriConique.Externe().Centre().x;
-            yBefore = aOriConique.Externe().Centre().y;
-            zBefore = aOriConique.Externe().Centre().z;
+            //compute orientation and movement
+            double xMov = xAcc/(aSetRefImages.size()-1);
+            double yMov = yAcc/(aSetRefImages.size()-1);
+            double zMov = zAcc/(aSetRefImages.size()-1);
+            cout<<endl<<"Init with vector movement = "<<xMov<<" ; "<<yMov<<" ; "<<zMov<<" ; "<<endl;
+            //Create a XML file with class cOrientationConique (define in ParamChantierPhotogram.h)
+            double xEstimate = aRefOriList.front().Externe().Centre().x;
+            double yEstimate = aRefOriList.front().Externe().Centre().y;
+            double zEstimate = aRefOriList.front().Externe().Centre().z;
+            cOrientationConique aOriConique = aRefOriList.front();
+            //std::cout<<"\nInit Images:\n";
+            for (unsigned int i=0;i<aSetNewImages.size();i++)
+            {
+                    aOriConique.Externe().Centre().x = xEstimate;
+                    aOriConique.Externe().Centre().y = yEstimate;
+                    aOriConique.Externe().Centre().z = zEstimate;
+                    xEstimate = xEstimate + xMov;
+                    yEstimate = yEstimate + yMov;
+                    zEstimate = zEstimate + zMov;
+                aOriConique.Externe().ParamRotation().CodageMatr().SetVal(aOriConiqueRef.Externe().ParamRotation().CodageMatr().Val());
+                MakeFileXML(aOriConique, "Ori-"+aOriOut+"/Orientation-"+aSetNewImages[i]+".xml");
+                aOriConique1stCam.push_back(aOriConique);
+            }
         }
-        //compute orientation and movement
-        double xMov = xAcc/(aSetRefImages.size()-1);
-        double yMov = yAcc/(aSetRefImages.size()-1);
-        double zMov = zAcc/(aSetRefImages.size()-1);
-        cout<<endl<<"Init with vector movement = "<<xMov<<" ; "<<yMov<<" ; "<<zMov<<endl;
-        //Create a XML file with class cOrientationConique (define in ParamChantierPhotogram.h)
-        double xEstimate = aRefOriList.front().Externe().Centre().x;
-        double yEstimate = aRefOriList.front().Externe().Centre().y;
-        double zEstimate = aRefOriList.front().Externe().Centre().z;
-        cOrientationConique aOriConique = aRefOriList.front();
-        //std::cout<<"\nInit Images:\n";
-        for (unsigned int i=0;i<aSetNewImages.size();i++)
+        else
         {
-            //std::cout<<"  - "<<aSetNewImages[i]<<"\n";
-            aOriConique.Externe().Centre().x = xEstimate;
-            aOriConique.Externe().Centre().y = yEstimate;
-            aOriConique.Externe().Centre().z = zEstimate;
-            xEstimate = xEstimate + xMov;
-            yEstimate = yEstimate + yMov;
-            zEstimate = zEstimate + zMov;
-            MakeFileXML(aOriConique, "Ori-"+aOriRef+"/Orientation-"+aSetNewImages[i]+".xml");
+                string aOriRefImage = "Ori-"+aOriRef+"/Orientation-"+aSetRefImages.front()+".xml";
+                cOrientationConique aOriConiqueThisCam = StdGetFromPCP(aOriRefImage,OrientationConique);
+                //Read orientation initial (first image in series of cam 1)
+                cOrientationConique aOriConiqueRefCam1 = aOriConique1stCam.front();
+                //offset b/w Cam 1 and this camera
+                xOffset = aOriConiqueThisCam.Externe().Centre().x - aOriConiqueRefCam1.Externe().Centre().x;
+                yOffset = aOriConiqueThisCam.Externe().Centre().y - aOriConiqueRefCam1.Externe().Centre().y;
+                zOffset = aOriConiqueThisCam.Externe().Centre().z - aOriConiqueRefCam1.Externe().Centre().z;
+                cout<<"Offset = "<<xOffset<<" - "<<yOffset<<" - "<<zOffset<<endl;
+                for (unsigned int i=0;i<aSetNewImages.size();i++)
+                {
+                    cOrientationConique  aOriConique  = aOriConique1stCam[i];
+                    aOriConique.Externe().Centre().x = aOriConique.Externe().Centre().x + xOffset;
+                    aOriConique.Externe().Centre().y = aOriConique.Externe().Centre().y + yOffset;
+                    aOriConique.Externe().Centre().z = aOriConique.Externe().Centre().z + zOffset;
+                    aOriConique.Externe().ParamRotation().CodageMatr().SetVal(aOriConiqueThisCam.Externe().ParamRotation().CodageMatr().Val());
+                    MakeFileXML(aOriConique, "Ori-"+aOriOut+"/Orientation-"+aSetNewImages[i]+".xml");
+                }
         }
+    }
     }
     return EXIT_SUCCESS;
 }
