@@ -756,6 +756,11 @@ void cParamIntrinsequeFormel::AddCstrRegulGlob(int aNbEch,double aPdsVal,double 
              }
         }
     }
+
+    if (MPD_MM())
+    {
+        std::cout << "AddCstrRegulGloAddCstrRegulGlo:aSomPds " << aSomPds << "\n";
+    }
 }
 
 
