@@ -861,7 +861,7 @@ bool IsInside(Pt2dr checkPoint, Tiff_Im mTiffImg1, double percent = 1)
     }
     return in;
 }
-vector<bool> CplImg::CalVectorSurface(string m3emeImg)
+vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
 {
     vector<bool> result;
     cInterfChantierNameManipulateur * aICNM = this->mICNM;
@@ -977,8 +977,17 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg)
                        //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
                        Pt2dr SupDirX = aP1+Pt2dr(1,0);
                        Pt2dr SupDirY = aP1+Pt2dr(0,1);
-                       Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une sphere
-                       Pt3dr Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
+                       Pt3dr Pt_Hu, Pt_Hv;
+                       if (ModeSurf == "plan")
+                       {
+                        Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une plan perpendiculaire
+                        Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
+                       }
+                       if (ModeSurf == "sphere")
+                       {
+
+
+                       }
                        //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
                        Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
                        Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
@@ -1242,7 +1251,7 @@ int PHO_MI_main(int argc,char ** argv)
                         aImg1 = aAbre[i].ImgRacine;
                         aImg2 = aAbre[i].ImgBranch[k];
                         string aImg3 = aAbre[i].Img3eme[k][l];
-                        ColDec.push_back(aCouple.CalVectorSurface(aImg3));
+                        ColDec.push_back(aCouple.CalVectorSurface(aImg3, "plan"));
                     }
                     vector<bool> decision; vector<double> decPoint;
                     for(uint m=0; m<ColDec[0].size(); m++)
