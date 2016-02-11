@@ -27,7 +27,7 @@ Pat=TS_35_50[0-5].CR2
    <Symb>  PrefixBasc=PIMs-TmpBasc/PIMs- </Symb>
    <Symb>  FOM=${PrefixBasc}ZNUM-Merged.xml </Symb>
    <Symb>  FOMMasq=${PrefixBasc}Merged_Masq.xml </Symb>
-   <Symb>  NuageInit=${PrefixBasc}Merged.xml </Symb>
+   <Symb>  NuageInit=${ThisDir}${PrefixBasc}Merged.xml </Symb>
    <Symb>  MasqInit=${PrefixBasc}Merged_Masq.tif </Symb>
 
    <Symb> Purge=true </Symb>

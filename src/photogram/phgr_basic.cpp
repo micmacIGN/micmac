@@ -3277,6 +3277,7 @@ cOrientationConique  ElCamera::StdExportCalibGlob(bool ModeMatr) const
 
 cVerifOrient ElCamera::MakeVerif(int aNbVerif,double aProf,const char * aNAux,const Pt3di * aVerifDet) const
 {
+
    FILE * aFPAux = 0;
 
    if (aNAux)
@@ -3303,6 +3304,7 @@ cVerifOrient ElCamera::MakeVerif(int aNbVerif,double aProf,const char * aNAux,co
                       if (IsInZoneUtile(aP2))
                       {
                          double aP =  1000.0 * (1+aZ);
+
                          Pt3dr aP3 = ImEtProf2Terrain(aP2,aP);
                          Pt2dr aQ2 = R3toF2(aP3);
 
@@ -3328,6 +3330,14 @@ cVerifOrient ElCamera::MakeVerif(int aNbVerif,double aProf,const char * aNAux,co
        {
 // std::cout << "P2 = " << aP2 << "\n";
           double aP = (0.5 +  NRrandom3()) * aProf;
+/*
+          if (MPD_MM())
+          {
+              std::cout << "ImEtProf2TerrainImEtProf2Terrain " << aP2 << " " << Sz() << "\n";
+              ImEtProf2Terrain(Pt2dr(2100,1500),1);
+              std::cout << "******************************************\n";
+          }
+*/
           Pt3dr aP3 = ImEtProf2Terrain(aP2,aP);
           Pt2dr aQ2 = R3toF2(aP3);
 

@@ -87,6 +87,8 @@ extern ExternalToolHandler g_externalToolHandler;
 extern const std::string   TheStrSiftPP;
 extern const std::string   TheStrAnnPP;
 
+std::string MMAuxilaryBinariesDirectory();
+
 // inline methods
 
 // ExternalToolItem

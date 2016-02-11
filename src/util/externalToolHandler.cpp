@@ -170,17 +170,9 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
                      testName;
     ExtToolStatus status = EXT_TOOL_UNDEF;
 
-    #if (ELISE_windows)
-        // add an ending ".exe" if there's none
-        bool addExe = true;
-        if ( exeName.length()>=4 )
-        {
-            string suffix = exeName.substr( exeName.length()-4, 4 );
-            tolower( suffix );
-            addExe = ( suffix!=".exe" );
-        }
-        if ( addExe ) exeName.append(".exe");
-    #endif
+	#if (ELISE_windows)
+		if (tolower(getShortestExtension(i_tool)) != "exe") exeName.append(".exe");
+	#endif
 
     // is there's a path in the name we don't look in other directories
     size_t pos = i_tool.find_last_of( "/\\" );
@@ -195,12 +187,28 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
             status = EXT_TOOL_UNDEF;
     }
 
-    // check EXTERNAL_TOOLS_SUBDIRECTORY directory
-    testName = MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
-    if ( ELISE_fp::exist_file( testName ) ){
-        status = ( ExtToolStatus )( status|EXT_TOOL_FOUND_IN_EXTERN );
-        fullName = testName;
-    }
+	#if 0
+		// check EXTERNAL_TOOLS_SUBDIRECTORY directory
+		testName = MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
+		if ( ELISE_fp::exist_file( testName ) ){
+			status = ( ExtToolStatus )( status|EXT_TOOL_FOUND_IN_EXTERN );
+			fullName = testName;
+		}
+	#else
+		list<cElFilename> filenames;
+		list<ctPath> subdirectories;
+		ctPath(MMAuxilaryBinariesDirectory()).getContent(filenames, subdirectories, true); // true = aIsRecursive
+		list<cElFilename>::const_iterator itFilename = filenames.begin();
+		while (itFilename != filenames.end())
+		{
+			if (itFilename->m_basename == exeName)
+			{
+				status = (ExtToolStatus)(status | EXT_TOOL_FOUND_IN_EXTERN);
+				fullName = itFilename->str();
+			}
+			itFilename++;
+		}
+	#endif
 
     // check INTERNAL_TOOLS_SUBDIRECTORY directory
     // INTERNAL_TOOLS_SUBDIRECTORY prevails upon EXTERNAL_TOOLS_SUBDIRECTORY
@@ -238,6 +246,11 @@ string printResult( const string &i_tool )
     return printLine;
 }
 
+string MMAuxilaryBinariesDirectory()
+{
+	return MMDir() + EXTERNAL_TOOLS_SUBDIRECTORY + "/" + BIN_AUX_SUBDIR + "/";
+}
+
 int CheckDependencies_main(int argc,char ** argv)
 {
 	if (argc > 1)
@@ -266,10 +279,35 @@ int CheckDependencies_main(int argc,char ** argv)
 		}
 	}
 
-    cout << "mercurial revision : " << __HG_REV__ << endl;
-    cout << endl;
-    cout << "byte order   : " << ( MSBF_PROCESSOR()?"big-endian":"little-endian" ) << endl;
-    cout << "address size : " << sizeof(int*)*8 << " bits" << endl;
+	cout << "mercurial revision : " << __HG_REV__ << endl;
+	cout << endl;
+	cout << "byte order   : " << ( MSBF_PROCESSOR()?"big-endian":"little-endian" ) << endl;
+	cout << "address size : " << sizeof(int*)*8 << " bits" << endl;
+	cout << endl;
+
+	cout << "micmac directory : [" << MMDir() << "]" << endl;
+	cout << "auxilary tools directory : [" << MMAuxilaryBinariesDirectory() << "]" << endl;
+
+	ELISE_DEBUG_ERROR( !ctPath(MMDir()).exists(), "CheckDependencies_main", "MMDir() = [" << MMDir() << "] does not exists");
+	ELISE_DEBUG_ERROR( !ctPath(MMAuxilaryBinariesDirectory()).exists(), "CheckDependencies_main", "MMAuxilaryBinariesDirectory() = [" << MMAuxilaryBinariesDirectory() << "] does not exists");
+
+	#ifdef __DEBUG
+		//~ ctPath binauxPath(MMAuxilaryBinariesDirectory());
+		//~ list<cElFilename> files;
+		//~ list<ctPath> subdirs;
+		//~ binauxPath.getContent(files, subdirs, true); // true = recursive
+
+		//~ cout << "files:" << endl;
+		//~ list<cElFilename>::const_iterator itFile = files.begin();
+		//~ while (itFile != files.end())
+			//~ cout << "\t[" << (*itFile++).str() << ']' << endl;
+
+		//~ cout << "subdirs:" << endl;
+		//~ list<ctPath>::const_iterator itDir = subdirs.begin();
+		//~ while (itDir != subdirs.end())
+			//~ cout << "\t[" << (*itDir++).str() << ']' << endl;
+	#endif
+
     cout << endl;
 
     #ifdef __TRACE_SYSTEM__
@@ -299,8 +337,6 @@ int CheckDependencies_main(int argc,char ** argv)
     #if defined CUDA_ENABLED
         CGpGpuContext<cudaContext>::check_Cuda();
     #endif
-
-	cout << "micmac directory = [" << MMDir() << "]" << endl << endl;
 
     cout << printResult( "make" ) << endl;
     cout << printResult( "exiftool" ) << endl;
