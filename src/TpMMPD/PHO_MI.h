@@ -67,7 +67,8 @@ class CplImg : public cCorrelImage
 
           vector<bool> CalVectorSurface(string mImg3eme, string ModeSurf);
           //bool IsInside(Pt2dr checkPoint, double w, double h);
-          Video_Win * mW ; Video_Win * mW1 ; Video_Win * mW2 ;
+          Video_Win * mW; Video_Win * mW1; Video_Win * mW2;
+
 };
 
 class UneImage
