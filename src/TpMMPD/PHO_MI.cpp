@@ -975,8 +975,8 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
                    if( IsInside(aP3, mTiffImg3, 1) )
                    {
                        //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
-                       Pt2dr SupDirX = aP1+Pt2dr(1,0);
-                       Pt2dr SupDirY = aP1+Pt2dr(0,1);
+                       Pt2dr SupDirX = aP1+Pt2dr(10,0);
+                       Pt2dr SupDirY = aP1+Pt2dr(0,10);
                        Pt3dr Pt_Hu, Pt_Hv;
                        if (ModeSurf == "plan")
                        {
@@ -988,40 +988,24 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
 
                             Pt3dr vecaP1 = aCam1->C2toDirRayonL3(aP1);
                             Pt3dr vecSupDirX = aCam1->C2toDirRayonL3(SupDirX);
-                            Pt3dr vecSupDirY = aCam1->C2toDirRayonL3(SupDirY);
-                            //angle b/w 2 rayon aP1 and SupDirX
+                            //Pt3dr vecSupDirY = aCam1->C2toDirRayonL3(SupDirY);
+
+                            //angle b/w (aP1, PP)
+                            Pt3dr vecPP = aCam1->C2toDirRayonL3(aCam1->PP());
                             double length_vecaP1 = sqrt(vecaP1.x*vecaP1.x + vecaP1.y*vecaP1.y + vecaP1.z*vecaP1.z);
+                            double length_vecPP = sqrt(vecPP.x*vecPP.x + vecPP.y*vecPP.y + vecPP.z*vecPP.z);
+                            double cosPhi = (vecaP1.x * vecPP.x + vecaP1.y * vecPP.y + vecaP1.z * vecPP.z) / (length_vecaP1*length_vecPP);
+                            //Rayon
+                            double R=prof_d / cosPhi;
+                            //angle b/w (SupDirX, PP)
                             double length_vecSupDirX = sqrt(vecSupDirX.x*vecSupDirX.x + vecSupDirX.y*vecSupDirX.y + vecSupDirX.z*vecSupDirX.z);
-                            double cosPhi = (vecaP1.x * vecSupDirX.x + vecaP1.y * vecSupDirX.y + vecaP1.z * vecSupDirX.z) / (length_vecaP1*length_vecSupDirX);
-                            double angle1 = acos(cosPhi);
-                            //angle b/w 2 rayon aP1 and SupDirY
-                            length_vecaP1 = sqrt(vecaP1.x*vecaP1.x + vecaP1.y*vecaP1.y + vecaP1.z*vecaP1.z);
-                            double length_vecSupDirY = sqrt(vecSupDirY.x*vecSupDirY.x + vecSupDirY.y*vecSupDirY.y + vecSupDirY.z*vecSupDirY.z);
-                            cosPhi = (vecaP1.x * vecSupDirY.x + vecaP1.y * vecSupDirY.y + vecaP1.z * vecSupDirY.z) / (length_vecaP1*length_vecSupDirY);
-                            double angle2 = acos(cosPhi);
-                            cout<<angle1<<angle2<<endl;
-
-
-                        /*
-                        Pt3dr ptC = aCam1->VraiOpticalCenter();
-                        cout<<ptC;
-                        //Pt3dr ptA = aCam1->OpticalCenterOfPixel(aCam1->PP());
-                        Pt3dr ptB = aCam1->(SupDirX);
-                        cout<<ptB;
-                        double coteCA = aCam1->Focale();
-                        cout<<coteCA;
-                        //double coteCD = prof_d;
-                        double rayonR = sqrt(pow((Pt_pseudointer - ptC).x , 2) + pow((Pt_pseudointer - ptC).y , 2) + pow((Pt_pseudointer - ptC).z , 2));
-                        cout<<rayonR<<" ";
-                        double coteBC = sqrt(pow((ptB - ptC).x , 2) + pow((ptB - ptC).y , 2) + pow((ptB - ptC).z , 2));
-                        cout<<coteBC<<" ";
-                        double prof_voisin = coteCA*rayonR/coteBC;
-                        cout<<prof_voisin<<" ";
-                        Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_voisin);
-                        cout<<Pt_Hu;
-                        Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d);
-                        cout<<Pt_Hu<<endl;
-                        */
+                            double cosPhi2 = (vecSupDirX.x * vecPP.x + vecSupDirX.y * vecPP.y + vecSupDirX.z * vecPP.z) / (length_vecSupDirX*length_vecPP);
+                            //profondeur SupDirX
+                            double prof_SupDirX = R*cosPhi2;
+                            Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_SupDirX);
+                            cout<<prof_SupDirX<<" "<<Pt_Hu;
+                            Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d);
+                            cout<<" "<<prof_d<<" "<<Pt_Hu<<endl;
 
                        }
                        //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
@@ -1047,7 +1031,82 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
                            for (int k=-sizeVignette; k<=sizeVignette; k++)
                            {
                                Pt2di aVois(i,k);
-
+            if( IsInside(aP3, mTiffImg3, 1) )
+            {
+                //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
+                Pt2dr SupDirX = aP1+Pt2dr(1,0);
+                Pt2dr SupDirY = aP1+Pt2dr(0,1);             
+                Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une sphere                
+                Pt3dr Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
+                //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
+                Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
+                Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
+                //=== 5) Vector direction de surface d'img 3 ===
+                Pt2dr DirX = aP3 - Pt_Hu_dansImg3;
+                Pt2dr DirY = aP3 - Pt_Hv_dansImg3;
+                VectorSurface aDirSurfImg3(DirX,DirY);
+                //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
+                //Vignette d'img 1
+                cCorrelImage::setSzW(sizeVignette);
+                cCorrelImage Imgette1; cCorrelImage Imgette3_o;
+                Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
+                Imgette3_o.getFromIm(&mIm2DImg3, aP3.x, aP3.y);
+                RepereImagette RepImgette3(aP3, DirX, DirY);
+                Pt2di aP3access;
+                TIm2D<U_INT1,INT4> mTIm2DImgette3(Pt2di(sizeVignette*2+1, sizeVignette*2+1));
+                Im2D<U_INT1,INT4> mIm2DImgette3(sizeVignette*2+1, sizeVignette*2+1);
+                bool out=false;
+                for (int i=-sizeVignette; i<=sizeVignette; i++)
+                {
+                    for (int k=-sizeVignette; k<=sizeVignette; k++)
+                    {
+                        Pt2di aVois(i,k);
+                        Pt2dr pixelCorrImg3 =  RepImgette3.uv2img(Pt2dr(i,k));
+                        aP3access.x = int(round(pixelCorrImg3.x)); aP3access.y = int(round(pixelCorrImg3.y));
+                        Pt2dr aP3Test; aP3Test.x = ceil(aP3access.x); aP3Test.y = ceil(aP3access.y);
+                        if ( IsInside( aP3Test , mTiffImg3, this->mPropDiag) )
+                            {
+                                INT4 val = mTIm2DImg3.getr(pixelCorrImg3, -1);
+                                /*== ecrire dans un pixel d'image ====*/
+                                mTIm2DImgette3.oset_svp(aVois+Pt2di(sizeVignette,sizeVignette),val);
+                                out=false;
+                            }
+                        else
+                            {out = true; break;}
+                    }
+                    if (out)
+                    {result.push_back(false); break;}
+                }
+                // ==== comparer par corellation ==== //
+                if (!out)
+                {   
+                    ELISE_COPY(mTIm2DImgette3.all_pts(),mTIm2DImgette3.in(),mIm2DImgette3.out());
+                    cCorrelImage Imgette3;
+                    Imgette3.getWholeIm(&mIm2DImgette3);
+                    double corl = Imgette3.CrossCorrelation(Imgette1);
+                    double corl_o = Imgette3_o.CrossCorrelation(Imgette1);
+                    if (displayVignette)
+                    {
+                        cout<<endl<<"Order = Deforme Img3 - Img1 - Origin Img3"<<endl;
+                        cout<<"Corell Deforme = "<<corl<<" - Corell Origin = "<<corl_o<<endl;
+                        if (mW==0)
+                            mW = Video_Win::PtrWStd(mIm2DImgette3.sz()*4);  //vignette deforme img3
+                        ELISE_COPY(mW->all_pts(), mIm2DImgette3.in()[Virgule(FX/4,FY/4)] ,mW->ogray());
+                        if (mW1==0)
+                        {
+                            mW1 = new Video_Win(*mW,Video_Win::eDroiteH,Imgette1.getIm()->sz()*4);  //vignette img 1
+                            mW2 = new Video_Win(*mW1,Video_Win::eDroiteH,Imgette3_o.getIm()->sz()*4);   //vignette origin img 3
+                        }
+                        ELISE_COPY(mW1->all_pts(), Imgette1.getIm()->in()[Virgule(FX/4,FY/4)] ,mW1->ogray());
+                        ELISE_COPY(mW2->all_pts(), Imgette3_o.getIm()->in()[Virgule(FX/4,FY/4)] ,mW2->ogray());
+                        mW2->clik_in();
+                    }
+                    if (corl > this->mCorel)
+                        {count++;result.push_back(true);}
+                    else
+                        {result.push_back(false);}
+                }
+            }
                                Pt2dr pixelCorrImg3 =RepImgette3.uv2img(Pt2dr(i,k));
                                aP3access.x = int(round(pixelCorrImg3.x)); aP3access.y = int(round(pixelCorrImg3.y));
                                Pt2dr aP3Test; aP3Test.x = ceil((double)aP3access.x); aP3Test.y = ceil((double)aP3access.y);
