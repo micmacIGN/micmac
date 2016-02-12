@@ -986,6 +986,42 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
                        if (ModeSurf == "sphere")
                        {
 
+                            Pt3dr vecaP1 = aCam1->C2toDirRayonL3(aP1);
+                            Pt3dr vecSupDirX = aCam1->C2toDirRayonL3(SupDirX);
+                            Pt3dr vecSupDirY = aCam1->C2toDirRayonL3(SupDirY);
+                            //angle b/w 2 rayon aP1 and SupDirX
+                            double length_vecaP1 = sqrt(vecaP1.x*vecaP1.x + vecaP1.y*vecaP1.y + vecaP1.z*vecaP1.z);
+                            double length_vecSupDirX = sqrt(vecSupDirX.x*vecSupDirX.x + vecSupDirX.y*vecSupDirX.y + vecSupDirX.z*vecSupDirX.z);
+                            double cosPhi = (vecaP1.x * vecSupDirX.x + vecaP1.y * vecSupDirX.y + vecaP1.z * vecSupDirX.z) / (length_vecaP1*length_vecSupDirX);
+                            double angle1 = acos(cosPhi);
+                            //angle b/w 2 rayon aP1 and SupDirY
+                            length_vecaP1 = sqrt(vecaP1.x*vecaP1.x + vecaP1.y*vecaP1.y + vecaP1.z*vecaP1.z);
+                            double length_vecSupDirY = sqrt(vecSupDirY.x*vecSupDirY.x + vecSupDirY.y*vecSupDirY.y + vecSupDirY.z*vecSupDirY.z);
+                            cosPhi = (vecaP1.x * vecSupDirY.x + vecaP1.y * vecSupDirY.y + vecaP1.z * vecSupDirY.z) / (length_vecaP1*length_vecSupDirY);
+                            double angle2 = acos(cosPhi);
+                            cout<<angle1<<angle2<<endl;
+
+
+                        /*
+                        Pt3dr ptC = aCam1->VraiOpticalCenter();
+                        cout<<ptC;
+                        //Pt3dr ptA = aCam1->OpticalCenterOfPixel(aCam1->PP());
+                        Pt3dr ptB = aCam1->(SupDirX);
+                        cout<<ptB;
+                        double coteCA = aCam1->Focale();
+                        cout<<coteCA;
+                        //double coteCD = prof_d;
+                        double rayonR = sqrt(pow((Pt_pseudointer - ptC).x , 2) + pow((Pt_pseudointer - ptC).y , 2) + pow((Pt_pseudointer - ptC).z , 2));
+                        cout<<rayonR<<" ";
+                        double coteBC = sqrt(pow((ptB - ptC).x , 2) + pow((ptB - ptC).y , 2) + pow((ptB - ptC).z , 2));
+                        cout<<coteBC<<" ";
+                        double prof_voisin = coteCA*rayonR/coteBC;
+                        cout<<prof_voisin<<" ";
+                        Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_voisin);
+                        cout<<Pt_Hu;
+                        Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d);
+                        cout<<Pt_Hu<<endl;
+                        */
 
                        }
                        //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
@@ -1251,7 +1287,7 @@ int PHO_MI_main(int argc,char ** argv)
                         aImg1 = aAbre[i].ImgRacine;
                         aImg2 = aAbre[i].ImgBranch[k];
                         string aImg3 = aAbre[i].Img3eme[k][l];
-                        ColDec.push_back(aCouple.CalVectorSurface(aImg3, "plan"));
+                        ColDec.push_back(aCouple.CalVectorSurface(aImg3, "sphere"));
                     }
                     vector<bool> decision; vector<double> decPoint;
                     for(uint m=0; m<ColDec[0].size(); m++)
@@ -1299,6 +1335,7 @@ int PHO_MI_main(int argc,char ** argv)
             }
         }
     }
+
     cout<<endl<<"use command SEL ./ img1 img2 KCpl=NKS-Assoc-CplIm2Hom@"<<aHomolOutput<< "@dat to view filtered point homomogues"<<endl<<endl;
     return EXIT_SUCCESS;
 }
