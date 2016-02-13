@@ -329,7 +329,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("MMTestOrient",MMTestOrient_main," Tool for testing quality of orientation"));
        aRes.push_back(cMMCom("MMHomCorOri",MMHomCorOri_main," Tool to compute homologues for correcting orientation in epip matching"));
-       aRes.push_back(cMMCom("MMInitialModel",MMInitialModel_main," Initial Model for MicMac ",cArgLogCom(2)));
+       aRes.push_back(cMMCom("MMInitialModel",MMInitialModel_main," Initial Model for MicMac ")); //  ,cArgLogCom(2)));
        aRes.push_back(cMMCom("MMTestAllAuto",MMAllAuto_main," Full automatic version for 1 view point, test mode ",cArgLogCom(2)));
        aRes.push_back(cMMCom("MM2DPosSism",MM2DPostSism_Main," Simplified interface for post 2D post sismic deformation ",cArgLogCom(2)));
        aRes.push_back(cMMCom("MMMergeCloud",MM_FusionNuage_main," Merging of low resol cloud, in preparation 2 MicMac ",cArgLogCom(2)));
@@ -784,6 +784,7 @@ int SateLib_main(int argc, char ** argv)
 extern int XeresTest_Main(int,char**);
 extern int XeresTieP_Main(int,char**);
 extern int XeresMergeTieP_Main(int,char**);
+extern int XeresHomMatch_main(int,char**);
 
 const std::vector<cMMCom> & XLibAvailableCommands()
 {
@@ -792,8 +793,9 @@ const std::vector<cMMCom> & XLibAvailableCommands()
     if (aRes.empty())
     {
         aRes.push_back(cMMCom("Test", XeresTest_Main, "test Xeres"));
-        aRes.push_back(cMMCom("TieP", XeresTieP_Main, "test Xeres"));
-        aRes.push_back(cMMCom("MergeTieP", XeresMergeTieP_Main, "test Xeres"));
+        aRes.push_back(cMMCom("TieP", XeresTieP_Main, "Xeres tie points"));
+        aRes.push_back(cMMCom("MergeTieP", XeresMergeTieP_Main, "Xeres merge tie points"));
+        aRes.push_back(cMMCom("MatchGr", XeresHomMatch_main, "Xeres : generate graph for mathcing"));
     }
 
     cCmpMMCom CmpMMCom;
