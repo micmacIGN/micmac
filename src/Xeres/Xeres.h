@@ -111,6 +111,7 @@ class cAppliXeres
          void TestInteractNeigh();
 
          void CalculTiePoint(int aSz,int aNBHom);
+         void CalculHomMatch(const std::string & anOri);
 
          static void FusionneHom(const std::vector<cAppliXeres *>,const std::string & aPostOut);
      private :

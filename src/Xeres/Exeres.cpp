@@ -112,6 +112,28 @@ int XeresMergeTieP_Main(int argc,char** argv)
    return EXIT_SUCCESS;
 }
 
+int XeresHomMatch_main(int argc,char** argv)
+{
+   std::string aDir="./";
+   std::string aSeq;
+   std::string anOri;
+
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(aSeq, "Sequence")
+                     << EAMC(anOri,"Orientation"),
+         LArgMain()  << EAM(aDir,"Dir",true,"Folder of data, Def=./")
+   );
+
+   cAppliXeres  anAppli(aDir,aSeq);
+   StdCorrecNameOrient(anOri,aDir);
+   anAppli.CalculHomMatch(anOri);
+
+
+   return EXIT_SUCCESS;
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
