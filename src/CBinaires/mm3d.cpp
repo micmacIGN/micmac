@@ -519,6 +519,18 @@ extern int  TD_Exemple_main(int argc,char ** argv);
 extern int  TD_Sol1(int argc,char ** argv);
 extern int  TD_Sol2(int argc,char ** argv);
 extern int  TD_Sol3(int argc,char ** argv);
+
+extern int  TD_Exo0(int argc,char ** argv);
+extern int  TD_Exo1(int argc,char ** argv);
+extern int  TD_Exo2(int argc,char ** argv);
+extern int  TD_Exo3(int argc,char ** argv);
+extern int  TD_Exo4(int argc,char ** argv);
+extern int  TD_Exo5(int argc,char ** argv);
+extern int  TD_Exo6(int argc,char ** argv);
+extern int  TD_Exo7(int argc,char ** argv);
+extern int  TD_Exo8(int argc,char ** argv);
+extern int  TD_Exo9(int argc,char ** argv);
+
 extern int TD_Match1_main(int argc,char ** argv);
 extern int TD_Match2_main(int argc,char ** argv);
 extern int TD_Match3_main(int argc,char ** argv);
@@ -595,6 +607,18 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("Exo0",TD_Exo0,"Some stuff "));
+       aRes.push_back(cMMCom("Exo1",TD_Exo1,"Some stuff "));
+       aRes.push_back(cMMCom("Exo2",TD_Exo2,"Some stuff "));
+       aRes.push_back(cMMCom("Exo3",TD_Exo3,"Some stuff "));
+       aRes.push_back(cMMCom("Exo4",TD_Exo4,"Some stuff "));
+       aRes.push_back(cMMCom("Exo5",TD_Exo5,"Some stuff "));
+       aRes.push_back(cMMCom("Exo6",TD_Exo6,"Some stuff "));
+       aRes.push_back(cMMCom("Exo7",TD_Exo7,"Some stuff "));
+       aRes.push_back(cMMCom("Exo8",TD_Exo8,"Some stuff "));
+       aRes.push_back(cMMCom("Exo9",TD_Exo9,"Some stuff "));
+
+
        aRes.push_back(cMMCom("Stephane",TestStephane_Main,"In test funtction for Stephane Guinard "));
        aRes.push_back(cMMCom("TestNewMergeTieP",TestNewMergeTieP_main,"Some consitency check on Merge TieP "));
        aRes.push_back(cMMCom("TestARCam",TestARCam_main,"Some consitency check on camera "));
