@@ -1189,8 +1189,8 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
 	    // impliques dans une equation, il importe de pouvoir distinguer les variables,
 	    // d'ou le role de KCam
 	    
-            Pt2d<Fonc_Num> DistC2M(Pt2d<Fonc_Num>,int aKCam);
-            Pt2d<Fonc_Num> DistM2C(Pt2d<Fonc_Num>,int aKCam);
+            Pt2d<Fonc_Num> DistorC2M(Pt2d<Fonc_Num>,bool UsePC=true,int aKCam=0);
+            Pt2d<Fonc_Num> DistorM2C(Pt2d<Fonc_Num>,bool UsePC=true,int aKCam=0);
 	    bool  DistIsC2M() const;
 
 
@@ -1304,7 +1304,7 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
              cElCompiledFonc *          mFER_Val; 
              Im2D_REAL4                 mImPdsDef;
       private :
-            virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
+            virtual  Pt2d<Fonc_Num> VirtualDist(Pt2d<Fonc_Num>,bool UsePC=true,int aKCam=0);
             cIncListInterv mLInterv;
 
 };
@@ -1329,8 +1329,7 @@ class cParamIFHomogr  : public cParamIntrinsequeFormel
 	    virtual ~cParamIFHomogr();
             virtual cMultiContEQF  StdContraintes();
 	    virtual  std::string  NameType() const;
-            virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
-            // virtual  Pt2d<Fonc_Num> DistM2C(Pt2d<Fonc_Num>);
+            virtual  Pt2d<Fonc_Num> VirtualDist(Pt2d<Fonc_Num>,bool UsePC=true,int aKCam=0);
 
 	    cHomogFormelle *  mHF;
 	    cCamStenopeDistHomogr * mCurPIF;
@@ -1381,7 +1380,7 @@ class cParamIFDistRadiale : public cParamIntrinsequeFormel
 	    cElCompiledFonc *       mFoncEqPPCDistX;
 	    cElCompiledFonc *       mFoncEqPPCDistY;
 
-            virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
+            virtual  Pt2d<Fonc_Num> VirtualDist(Pt2d<Fonc_Num>,bool UsePC=true,int aKCam=0);
             cDistRadialeFormelle    mDRF;
 	    cCamStenopeDistRadPol * mCurPIF;
       private :
@@ -1416,7 +1415,7 @@ class cParamIFDistStdPhgr : public cParamIFDistRadiale
            bool IsDistFiged() const;
 
 	private :
-           virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
+            virtual  Pt2d<Fonc_Num> VirtualDist(Pt2d<Fonc_Num>,bool UsePC=true,int aKCam=0);
            cParamIFDistStdPhgr(bool isDC2M,cCamStenopeModStdPhpgr *,cSetEqFormelles &,int aDegFig);
 
 	   cDistModStdPhpgr &      mDStd;
@@ -2141,7 +2140,7 @@ class cParamIFDistPolynXY : public cParamIntrinsequeFormel
           cDistFormelPolXY  mDist;
 
 	  cCamStenopeDistPolyn * mCurPIF;
-          virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
+          virtual  Pt2d<Fonc_Num> VirtualDist(Pt2d<Fonc_Num>,bool UsePC=true,int aKCam=0);
 };
 
 
@@ -2908,7 +2907,7 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
      private  :
           // virtual Fonc_Num  NormGradC2M(Pt2d<Fonc_Num>); a priori inutile
           virtual void PrepareEqFForPointIm(const cIncListInterv &,cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);
-          virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
+          virtual  Pt2d<Fonc_Num> VirtualDist(Pt2d<Fonc_Num>,bool UsePC=true,int aKCam=0);
           void    NV_UpdateCurPIF();   // Non virtuel, pour appel constructeur ????
           virtual void    UpdateCurPIF();
           virtual bool IsDistFiged() const;
@@ -2939,7 +2938,6 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
           cDistorBilin                                 mDistInit;
           cDistorBilin                                 mDistCur;
           cCamStenopeBilin *                           mCurPIF;
-          // std::vector<Pt2d<Fonc_Num>  >                mFVDist;
           std::vector<std::vector<cSomBilin > >        mFVDist;
           std::vector<std::vector<cQuadrangle > >      mQuads;
 

@@ -423,7 +423,6 @@ cEqCalibCroisee::~cEqCalibCroisee()
 /*                                                       */
 /*********************************************************/
 
-      // return aPIF.DistC2M(aP2) + (aP2-aPIF.FPP()).mul(aPIF.FFoc());
 class cEDD_UsageBayer : public ElDistortion22_Gen
 {
      public :
@@ -490,10 +489,10 @@ static Pt2d<Fonc_Num>  P1_EDD
                        )
 {
    if ( Usage== cNameSpaceEqF::eTEDD_Reformat)
-      return aPIF.DistC2M(aP2,0);
+      return aPIF.DistorC2M(aP2);
 
    if (Usage == cNameSpaceEqF::eTEDD_Bayer)
-      return aPIF.DistC2M(aP2,0) + (aP2-aPIF.FPP()).mul(aPIF.FFoc());
+      return aPIF.DistorC2M(aP2) + (aP2-aPIF.FPP()).mul(aPIF.FFoc());
    
    // eTEDD_Interp
    Pt3d<Fonc_Num> aP3 = aPIF.Cam2DirRayMonde(aP2,0);

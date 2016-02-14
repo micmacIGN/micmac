@@ -260,7 +260,8 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
           virtual std::string  NameType() const;
 
 	  virtual cMultiContEQF  StdContraintes();
-	  virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
+          virtual  Pt2d<Fonc_Num> VirtualDist(Pt2d<Fonc_Num>,bool UsePC=true,int aKCam=0);
+
 
 	  
 	  virtual CamStenope * CurPIF(); ;

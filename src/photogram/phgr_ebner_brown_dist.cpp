@@ -1295,9 +1295,9 @@ cMultiContEQF cPIF_Unif<TDistR,TDistF,NbVar,NbState>::StdContraintes()
 }
 
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
-Pt2d<Fonc_Num>  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::VDist(Pt2d<Fonc_Num> aP,int aKCam)
+Pt2d<Fonc_Num>  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::VirtualDist(Pt2d<Fonc_Num> aP,bool UsePC,int aKCam)
 {
-    return TDistF::DistElem(true,aP,mVars,mStates[aKCam],mFFoc,mFPP);
+    return TDistF::DistElem(UsePC,aP,mVars,mStates[aKCam],mFFoc,mFPP);
 }
 
 
