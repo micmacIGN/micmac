@@ -1960,7 +1960,6 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIs
 
    Pt2dr aI0Again = DistInverse(aPF1);
 
-// if (MPD_MM()) std::cout << "Jjjjjjjjjjjjjjjje  " <<  euclid(aPI0-aI0Again) << " " << 1.0/ mScaleAfnt << "\n";
 
     return euclid(aPI0-aI0Again) < 1.0/ mScaleAfnt;
 }
@@ -3330,14 +3329,6 @@ cVerifOrient ElCamera::MakeVerif(int aNbVerif,double aProf,const char * aNAux,co
        {
 // std::cout << "P2 = " << aP2 << "\n";
           double aP = (0.5 +  NRrandom3()) * aProf;
-/*
-          if (MPD_MM())
-          {
-              std::cout << "ImEtProf2TerrainImEtProf2Terrain " << aP2 << " " << Sz() << "\n";
-              ImEtProf2Terrain(Pt2dr(2100,1500),1);
-              std::cout << "******************************************\n";
-          }
-*/
           Pt3dr aP3 = ImEtProf2Terrain(aP2,aP);
           Pt2dr aQ2 = R3toF2(aP3);
 

@@ -728,7 +728,7 @@ cCameraFormelle::cEqAppui::cEqAppui
            
           mCam.mIntr.AssertNoAFocalParam("Dist Cam->Monde");
           aP1  = mCam.mIntr.DirRayMonde2CorrDist(aRay);
-          aP2 =  mCam.mIntr.DistC2M(mPIm,0);
+          aP2 =  mCam.mIntr.DistorC2M(mPIm);
        }
        else
        {
