@@ -26,6 +26,8 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/Panache.cpp
     ${TDPPMD_DIR}/TestStephane.cpp
     ${TDPPMD_DIR}/TD_Exo.cpp
+    ${TDPPMD_DIR}/ConvertRtk.cpp
+    ${TDPPMD_DIR}/MatchCenters.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})
