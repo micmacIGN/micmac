@@ -95,6 +95,8 @@ public:
 	bool write_pnm( const string &i_filename ) const;
 
 	void duplicateLastChannel( size_t i_nbDuplicates );
+	void suppressLastChannels(size_t i_nbToSuppress);
+	void toGrayScale(Im2D<tData, tBase> &oImage);
 
 	bool hasSameDimensions( const MultiChannel<tData> &i_b ) const;
 	bool hasSameData( const MultiChannel<tData> &i_b, size_t &i_firstDifferentChannel ) const;

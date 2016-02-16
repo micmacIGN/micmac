@@ -545,14 +545,15 @@ extern int  DocEx_Introanalyse_main(int,char **);
 #endif
 extern int VisuCoupeEpip_main(int,char **);
 
-int ExoSimulTieP_main(int argc, char** argv);
-int ExoMCI_main(int argc, char** argv);
-int PseudoIntersect_main(int argc, char** argv);
+int ExoSimulTieP_main(int argc,char** argv);
+int ExoMCI_main(int argc,char** argv);
+int PseudoIntersect_main(int argc,char** argv);
 int ExoCorrelEpip_main(int argc,char ** argv);
-int ScaleModel_main(int argc, char ** argv);
+int ScaleModel_main(int argc,char ** argv);
 int PLY2XYZ_main(int argc,char ** argv);
 int ExportXmlGcp2Txt_main(int argc,char ** argv);
-
+int ConvertRtk_main(int argc,char ** argv);
+int MatchCenters_main( int argc,char ** argv);
 int Panache_main(int argc,char ** argv);
 
 int  CheckOri_main(int argc,char ** argv);
@@ -674,7 +675,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Ply2Xyz",PLY2XYZ_main,"Tool to export in TxT file XYZ columns only from a .ply file",cArgLogCom(2)));
        aRes.push_back(cMMCom("ExportXmlGcp2Txt",ExportXmlGcp2Txt_main,"Tool to export xml GCPs file to Txt file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Panache",Panache_main,"Tool to export profile along axis given a line draw on Orthoimage",cArgLogCom(2)));
-
+	   aRes.push_back(cMMCom("ConvRtk",ConvertRtk_main,"Tool to extract X_Y_Z_Ix_Iy_Iz from Rtklib output file",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("MatchCenters",MatchCenters_main,"Tool to match Gps positions and Camera Centers",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));

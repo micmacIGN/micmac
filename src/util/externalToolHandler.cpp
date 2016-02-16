@@ -23,11 +23,8 @@ string g_externalToolItem_errors[] = { "cannot be found",
 
 const std::string &ExternalToolItem::callName() const
 {
-    if ( !isCallable() ){
-        cerr << "ERROR: trying to call the external program ["  << m_shortName << "] but it " << errorMessage() << endl;
-        exit(-1);
-    }
-    return m_fullName;
+	if ( !isCallable()) ELISE_ERROR_EXIT("tool [" << m_shortName << "] has not been found");
+	return m_fullName;
 }
 
 // ExternalToolHandler
