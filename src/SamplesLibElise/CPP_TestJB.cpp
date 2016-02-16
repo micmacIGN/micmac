@@ -1,4 +1,8 @@
 #include "StdAfx.h"
+#include "../src/uti_image/Digeo/MultiChannel.h"
+
+//~ #define PRINT_EL_SYSTEM
+#define EXECUTE_EL_SYSTEM
 
 typedef struct{
 	string name;
@@ -10,6 +14,7 @@ int command_maskContent( int argc, char **argv );
 int command_renameImageSet( int argc, char **argv );
 int command_toto( int argc, char **argv );
 int command_makeSets( int argc, char **argv );
+int command_drawMatches( int argc, char **argv );
 
 command_t commands[] = {
 	{ "correctplanarpolygons", &command_correctPlanarPolygons },
@@ -17,6 +22,7 @@ command_t commands[] = {
 	{ "renameimageset", &command_renameImageSet },
 	{ "toto", &command_toto },
 	{ "makesets", &command_makeSets },
+	{ "drawmatches", &command_drawMatches },
 	{ "", NULL }
 };
 
@@ -534,6 +540,488 @@ int command_makeSets(int argc, char **argv)
 	return EXIT_SUCCESS;
 }
 
+
+//------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
+
+class Match
+{
+public:
+	Pt2dr mP0, mP1;
+	REAL mWeight;
+};
+
+ostream & operator <<(ostream &aStream, const Match &aMatch)
+{
+	return aStream << aMatch.mP0 << ' ' << aMatch.mP1 << ' ' << aMatch.mWeight;
+}
+
+bool read_ascii_matches(const string aFilename, vector<Match> &oMatches)
+{
+	oMatches.clear();
+	ifstream f(aFilename.c_str());
+
+	if ( !f)
+	{
+		ELISE_DEBUG_ERROR(true, "read_ascii_matches", "failed to open [" << aFilename << "] for reading");
+		return false;
+	}
+
+	list<Match> matches;
+	Match match;
+	while ( !f.eof())
+	{
+		f >> match.mP0.x >> match.mP0.y >> match.mP1.x >> match.mP1.y;
+
+		if ( !f.eof()) matches.push_back(match);
+	}
+
+	oMatches.resize(matches.size());
+	copy(matches.begin(), matches.end(), oMatches.begin());
+
+	return true;
+}
+
+bool read_binary_matches(const string aFilename, vector<Match> &oMatches)
+{
+	oMatches.clear();
+	ifstream f(aFilename.c_str(), ios::binary);
+
+	if ( !f)
+	{
+		ELISE_DEBUG_ERROR(true, "read_binary_matches", "failed to open [" << aFilename << "] for reading");
+		return false;
+	}
+
+	INT4 nbDimensions;
+	f.read((char *)&nbDimensions, sizeof(nbDimensions));
+	INT4 nbMatches;
+	f.read((char *)&nbMatches, sizeof(nbMatches));
+
+	if (nbMatches < 0)
+	{
+		ELISE_DEBUG_ERROR(true, "read_binary_matches", "nbMatches = " << nbMatches);
+		return false;
+	}
+
+	oMatches.resize((size_t)nbMatches);
+	Match *itMatch = oMatches.data();
+	int nbElements;
+	REAL buffer[5];
+	for (int i = 0; i < nbMatches; i++)
+	{
+		f.read((char *)&nbElements, sizeof(nbElements));
+
+		if (nbElements != 2)
+		{
+			ELISE_DEBUG_ERROR(true, "read_binary_matches", "nbElements = " << nbElements << " != nbDimensions = " << nbDimensions);
+			return false;
+		}
+
+		f.read((char *)buffer, sizeof(buffer));
+		itMatch->mP0 = Pt2dr(buffer[1], buffer[2]);
+		itMatch->mP1 = Pt2dr(buffer[3], buffer[4]);
+		(*itMatch++).mWeight = buffer[0];
+	}
+
+	return true;
+}
+
+void getGrayImage(const string &aFilename, Im2D_U_INT1 &oGrayImage)
+{
+	if ( !Tiff_Im::IsTiff(aFilename.c_str())) ELISE_ERROR_EXIT("[" << aFilename << "] is not a TIFF file");
+
+	MultiChannel<U_INT1> channels;
+	if ( !channels.read_tiff(aFilename)) ELISE_ERROR_EXIT("failed to read TIFF image [" << aFilename << "]");
+
+	cout << '\t' << "-- [" << aFilename << "] read: " << channels.width() << 'x' << channels.height() << 'x' << channels.nbChannels() << ' ' << eToString(channels.typeEl()) << endl;
+
+	if (channels.typeEl() != GenIm::u_int1 || channels.nbChannels() == 2) ELISE_ERROR_EXIT("invalid image format: " << channels.nbChannels() << ' ' << eToString(channels.typeEl()));
+
+	channels.toGrayScale(oGrayImage);
+}
+
+void getGrayImages(const string &aFilename, Im2D_U_INT1 &oGrayImage0, Im2D_U_INT1 &oGrayImage1, Im2D_U_INT1 &oGrayImage2)
+{
+	getGrayImage(aFilename, oGrayImage0);
+
+	oGrayImage1.Resize(oGrayImage0.sz());
+	oGrayImage1.dup(oGrayImage0);
+
+	oGrayImage2.Resize(oGrayImage0.sz());
+	oGrayImage2.dup(oGrayImage0);
+}
+
+void drawPoint(Im2D_U_INT1 &aImage, int aX, int aY, U_INT1 aValue)
+{
+	if (aX >=0 && aX < aImage.tx() && aY >= 0 && aY < aImage.ty()) aImage.data()[aY][aX] = aValue;
+}
+
+void drawPoint(Im2D_U_INT1 &aImage, const Pt2dr &aPoint, U_INT1 aValue, unsigned int aSize)
+{
+	const int sizei = (int)aSize;
+	int x = round_ni(aPoint.x), y = round_ni(aPoint.y);
+
+	if (x < 0 || x >= aImage.tx() || y < 0 || y >= aImage.ty())
+	{
+		ELISE_WARNING("point (" << x << ',' << y << ") out of rectangle " << aImage.sz());
+		return;
+	}
+
+	drawPoint(aImage, x, y, aValue);
+	for (int j = -sizei; j <= sizei; j++)
+		for (int i = -sizei; i < sizei; i++)
+		{
+			drawPoint(aImage, x + i, y + j, aValue);
+		}
+}
+
+void save_tiff(const string &aFilename, Im2D_U_INT1 &aRed, Im2D_U_INT1 &aGreen, Im2D_U_INT1 &aBlue)
+{
+	ELISE_DEBUG_ERROR(aRed.sz() != aGreen.sz() || aRed.sz() != aBlue.sz(), "save_tiff", "invalid sizes " << aRed.sz() << ' ' << aGreen.sz() << ' ' << aBlue.sz());
+
+	ELISE_COPY
+	(
+		aRed.all_pts(),
+		Virgule(aRed.in(), aGreen.in(), aBlue.in()),
+		Tiff_Im(
+			aFilename.c_str(),
+			aRed.sz(),
+			GenIm::u_int1,
+			Tiff_Im::No_Compr,
+			Tiff_Im::RGB,
+			Tiff_Im::Empty_ARG ).out()
+	);
+
+	if ( !ELISE_fp::exist_file(aFilename)) ELISE_ERROR_EXIT("failed to save TIFF image [" << aFilename << "]");
+	cout << '\t' << "-- TIFF file [" << aFilename << "] created" << endl;
+}
+
+bool is_binary_matches(const string &aFilename)
+{
+	ifstream f(aFilename.c_str(), ios::binary);
+	INT4 nbDimensions;
+	f.read((char *)&nbDimensions, 4);
+	return nbDimensions == 128;
+}
+
+string clipShortestExtension(const std::string &aFilename);
+
+void ElSystem(const string &aCommand)
+{
+	#ifdef PRINT_EL_SYSTEM
+		cout << "ElSystem: [" << aCommand << "]" << endl;
+	#endif
+
+	#ifdef EXECUTE_EL_SYSTEM
+		int result = System(aCommand + " >/dev/null 2>&1");
+		if (result != 0) ELISE_ERROR_EXIT("command [" << aCommand << "] failed (" << result << ")");
+	#endif
+}
+
+string scaled_filename(const string &aFilename, int aScale)
+{
+	stringstream ss;
+	ss << clipShortestExtension(aFilename) << '.' << setw(3) << setfill('0') << aScale << ".tif";
+	return ss.str();
+}
+
+string points_filename(const string &aFilename, const string &aDetectTool)
+{
+	stringstream ss;
+	ss << clipShortestExtension(aFilename) << '.' << aDetectTool << ".dat";
+	return ss.str();
+}
+
+string original_size_points_filename(const string &aSrcFilename)
+{
+	return clipShortestExtension(aSrcFilename) + ".100.dat";
+}
+
+string match_filename(const string &aSrcFilename0, const string &aSrcFilename1, int aScale, const string &aDetectTool)
+{
+	stringstream ss;
+	ss << clipShortestExtension(aSrcFilename0) << '_' << clipShortestExtension(aSrcFilename1) << '.' << setw(3) << setfill('0') << aScale << '.' << aDetectTool << ".result";
+	return ss.str();
+}
+
+string drawn_matches_filename(const string aMatchFilename, const string &aImageFilename)
+{
+	return clipShortestExtension(aMatchFilename) + "." + clipShortestExtension(aImageFilename) + ".tif";
+}
+
+void scale_image(const string &aSrcFilename, int aScale, const string &aDstFilename)
+{
+	stringstream ss;
+	ss << g_externalToolHandler.get("convert").callName() << " " << aSrcFilename << " -resize " << aScale << "% " << aDstFilename;
+	ElSystem(ss.str());
+
+	if ( !ELISE_fp::exist_file(aDstFilename)) ELISE_ERROR_EXIT("failed to create scaled image [" << aDstFilename << "]");
+	cout << '\t' << "-- scaled image [" << aDstFilename << "] created" << endl;
+}
+
+void detect_points(const string &aSrcFilename, const string &aDetectTool, const string &aDetectToolOptions, const string &aDstFilename)
+{
+	stringstream ss;
+	ss << MM3dBinFile(aDetectTool) << aDetectToolOptions << ' ' << aSrcFilename << " -o " << aDstFilename;
+	ElSystem(ss.str());
+
+	if ( !ELISE_fp::exist_file(aDstFilename)) ELISE_ERROR_EXIT("failed to create points file [" << aDstFilename << "]");
+	cout << '\t' << "-- points file [" << aDstFilename << "] created" << endl;
+}
+
+void toOriginalSize(const string &aSrcFilename, double aScale, const string &aDstFilename)
+{
+	vector<DigeoPoint> points;
+	if ( !DigeoPoint::readDigeoFile(aSrcFilename, true, points)) ELISE_ERROR_EXIT("failed to read digeo file [" << aSrcFilename << "]"); // true = aStoreMultipleAngles
+
+	DigeoPoint *it = points.data();
+	size_t i = points.size();
+	while (i--)
+	{
+		it->x *= aScale;
+		(*it++).y *= aScale;
+	}
+
+	if ( !DigeoPoint::writeDigeoFile(aDstFilename, points)) ELISE_ERROR_EXIT("failed to write digeo file [" << aDstFilename << "]");
+	cout << '\t' << "-- digeo file [" << aDstFilename << "] created" << endl;
+}
+
+string drawMatches_process_image(const string &aFilename, int aScale, const string &aDetectTool, const string &aDetectToolOptions)
+{
+	string scaledFilename = scaled_filename(aFilename, aScale);
+	scale_image(aFilename, aScale, scaledFilename);
+
+	string pointsFilename = points_filename(scaledFilename, aDetectTool);
+	detect_points(scaledFilename, aDetectTool, aDetectToolOptions, pointsFilename);
+
+	double scaleToOriginal = 100./double(aScale);
+	string originalSizePointsFilename = pointsFilename;
+	if (aScale != 100)
+	{
+		originalSizePointsFilename = original_size_points_filename(pointsFilename);
+		toOriginalSize(pointsFilename, scaleToOriginal, originalSizePointsFilename);
+	}
+
+	return originalSizePointsFilename;
+}
+
+void match_points(const string &aSrcFilename0, const string &aSrcFilename1, const string &aDstFilename)
+{
+	stringstream ss;
+	ss << MM3dBinFile("Ann") << aSrcFilename0 << ' ' << aSrcFilename1 << ' ' << aDstFilename;
+	ElSystem(ss.str());
+
+	if ( !ELISE_fp::exist_file(aDstFilename)) ELISE_ERROR_EXIT("failed to create matches file [" << aDstFilename << "]");
+	cout << '\t' << "-- matches file [" << aDstFilename << "] created" << endl;
+}
+
+void drawDetectedPoints(const string &aFilename, Im2D_U_INT1 &aImage)
+{
+	vector<DigeoPoint> points;
+	if ( !DigeoPoint::readDigeoFile(aFilename, true, points)) ELISE_ERROR_EXIT("failed to read digeo file [" << aFilename << "]"); // true = aStoreMultipleAngles
+
+	cout << '\t' << "-- [" << aFilename << "] read: " << points.size() << " points" << endl;
+
+	DigeoPoint *it = points.data();
+	size_t i = points.size();
+	while (i--)
+	{
+		drawPoint(aImage, Pt2dr(it->x, it->y), 255, 5);
+		it++;
+	}
+}
+
+void readMatches(const string &aFilename, vector<Match> &oMatches)
+{
+	if ( !cElFilename(aFilename).exists()) ELISE_ERROR_EXIT("matches file [" << aFilename << "] does not exist");
+
+	bool isBinary = is_binary_matches(aFilename), readOK;
+	readOK = isBinary ? read_binary_matches(aFilename, oMatches) : read_ascii_matches(aFilename, oMatches);
+
+	if ( !readOK)  ELISE_ERROR_EXIT("failed to read matches file [" << aFilename << "] ");
+
+	cout << '\t' << "-- [" << aFilename << "] read: " << oMatches.size() << " matches (" << (isBinary ? "binary" : "ASCII") << ")" << endl;
+}
+
+void drawMatches(const string &aFilename, Im2D_U_INT1 &aImage0, Im2D_U_INT1 &aImage1)
+{
+	vector<Match> matches;
+	readMatches(aFilename, matches);
+
+	const Match *it = matches.data();
+	size_t i = matches.size();
+	while (i--)
+	{
+		drawPoint(aImage0, it->mP0, 255, 5);
+		drawPoint(aImage1, it->mP1, 255, 5);
+		it++;
+	}
+}
+
+void drawPoints(const string &aImageFilename0, const string &aPointsFilename0, const string &aImageFilename1, const string &aPointsFilename1, const string &aMatchFilename)
+{
+	Im2D_U_INT1 red0, green0, blue0;
+	getGrayImages(aImageFilename0, red0, green0, blue0);
+	drawDetectedPoints(aPointsFilename0, blue0);
+
+	Im2D_U_INT1 red1, green1, blue1;
+	getGrayImages(aImageFilename1, red1, green1, blue1);
+	drawDetectedPoints(aPointsFilename1, blue1);
+
+	drawMatches(aMatchFilename, green0, green1);
+
+	string dstImageFilename0 = drawn_matches_filename(aMatchFilename, aImageFilename0);
+	save_tiff(dstImageFilename0, red0, green0, blue0);
+
+	string dstImageFilename1 = drawn_matches_filename(aMatchFilename, aImageFilename1);
+	save_tiff(dstImageFilename1, red1, green1, blue1);
+}
+
+void drawMatches_process_scale(const string &aFilename0, const string &aFilename1, int aScale, const string &aDetectTool, const string &aDetectToolOptions)
+{
+	ELISE_DEBUG_ERROR(aScale <= 0, "process_scale", "invalid scale " << aScale);
+	ELISE_DEBUG_ERROR(aDetectTool.empty(), "process_scale", "invalid detecting tool [" << aDetectTool << "]");
+
+	cout << "--- scale " << aScale << endl;
+
+	string pointsFilename0 = drawMatches_process_image(aFilename0, aScale, aDetectTool, aDetectToolOptions);
+	string pointsFilename1 = drawMatches_process_image(aFilename1, aScale, aDetectTool, aDetectToolOptions);
+
+	string matchFilename = match_filename(aFilename0, aFilename1, aScale, aDetectTool);
+	match_points(pointsFilename0, pointsFilename1, matchFilename);
+
+	drawPoints(aFilename0, pointsFilename0, aFilename1, pointsFilename1, matchFilename);
+}
+
+#include "../src/uti_image/Digeo/Digeo.h"
+
+void convolute()
+{
+	const string filename = "61.030.tif";
+
+	REAL sigma = 3.2;
+	int nbShift = 15;
+	double epsilon = 0.001;
+	int surEch = 10;
+	ConvolutionKernel1D<INT> kernel;
+	integralGaussianKernel<INT>(sigma, nbShift, epsilon, surEch, kernel);
+	const vector<INT> &c = kernel.coefficients();
+
+	cout << "kernel.size() = " << kernel.size() << endl;
+
+	for (size_t i = 0; i < kernel.size(); i++)
+		cout << c[i] << ' ';
+	cout << endl;
+
+	ConvolutionHandler<U_INT2> convolutionHandler;
+	cConvolSpec<U_INT2> *convolution1d = convolutionHandler.getConvolution(kernel);
+
+	cout << "convolution is " << ( !convolution1d->IsCompiled() ? "not " : "") << "compiled" << endl;
+ 
+	Im2D_U_INT2 image0, image1;
+
+	Tiff_Im tiff(filename.c_str());
+	cout << "[" << filename << "]: " << tiff.sz() << 'x' << tiff.nb_chan() << ' ' << eToString(tiff.type_el()) << endl;
+	Im2DGen src_gen = tiff.ReadIm();
+	if (tiff.type_el() != GenIm::u_int1) ELISE_ERROR_EXIT("bad type");
+	{
+		U_INT1 *src = ((Im2D_U_INT1 *) &src_gen)->data_lin();
+
+		image0.Resize(tiff.sz());
+
+		cout << "src_gen.sz() = " << src_gen.sz() << " image0.sz() = " << image0.sz() << endl;
+
+		U_INT2 *dst = image0.data_lin();
+		size_t i = size_t(image0.tx()) * size_t(image0.ty());
+		while (i--) *dst++ = (U_INT2)(*src++) * 257;
+	}
+
+	image1.Resize(image0.sz());
+	Im2D_U_INT2 *src = &image0, *dst = &image1;
+	int nbConvol = 10;
+	while (nbConvol--)
+	{
+		convolution<U_INT2>((const U_INT2 **)src->data(), src->tx(), src->ty(), *convolution1d, dst->data());
+		swap<Im2D_U_INT2 *>(src, dst);
+	}
+
+	Im2D_U_INT1 imageToWrite(src->tx(), src->ty());
+	{
+		U_INT2 *itSrc = src->data_lin();
+		U_INT1 *itDst = imageToWrite.data_lin();
+		size_t i = size_t(src->tx()) * size_t(src->ty());
+		while (i--) *itDst++ = (U_INT1)((*itSrc++) / 257);
+	}
+	ELISE_COPY
+	(
+		imageToWrite.all_pts(),
+		imageToWrite.in(),
+		Tiff_Im(
+			"toto.tif",
+			imageToWrite.sz(),
+			GenIm::u_int1,
+			Tiff_Im::No_Compr,
+			Tiff_Im::BlackIsZero,
+			Tiff_Im::Empty_ARG ).out()
+	);
+}
+
+int command_drawMatches(int argc, char **argv)
+{
+	//~ convolute();
+	//~ return 0;
+
+	if (argc < 2) ELISE_ERROR_RETURN("usage: match_filename image_filename0 image_filename1");
+
+	//~ const string detectTool = "Sift";
+	//~ const string detectToolOptions = "-f0";
+	const string detectTool = "Digeo";
+	string detectToolOptions;
+	if ( !detectToolOptions.empty() && detectToolOptions[0] != ' ') detectToolOptions = string(" ") + detectToolOptions;
+	cout << "--- detecting tool: " << '[' << detectTool << detectToolOptions << ']' << endl;
+
+	string imageFilename0 = argv[0], imageFilename1 = argv[1];
+	if ( !cElFilename(imageFilename0).exists()) ELISE_ERROR_RETURN("image file [" << imageFilename0 << "] does not exist");
+	if ( !cElFilename(imageFilename1).exists()) ELISE_ERROR_RETURN("image file [" << imageFilename1 << "] does not exist");
+	cout << "--- images: [" << imageFilename0 << "] [" << imageFilename1 << "]" << endl;
+
+	//~ if ( !cElFilename(matchesFilename).exists()) ELISE_ERROR_RETURN("matches' file [" << matchesFilename << "] does not exist");
+	//~ bool isBinary = is_binary_matches(matchesFilename), readOK;
+	//~ vector<Match> matches;
+	//~ readOK = isBinary ? read_binary_matches(matchesFilename, matches) : read_ascii_matches(matchesFilename, matches);
+	//~ if ( !readOK)  ELISE_ERROR_RETURN("failed to read matches file [" << matchesFilename << "] ");
+	//~ cout << "--- [" << matchesFilename << "]: " << matches.size() << " matches (" << (isBinary ? "binary" : "ASCII") << ")" << endl;
+
+	//~ for (size_t i = 0; i < matches.size(); i++)
+		//~ cout << i << ": " << matches[i] << endl;
+
+	//~ Im2D_U_INT1 gray0, green0;
+	//~ getGrayImages(imageFilename0, gray0, green0);
+//~ 
+	//~ Im2D_U_INT1 gray1, green1;
+	//~ getGrayImages(imageFilename1, gray1, green1);
+
+	const int pace = 10;
+	// __DEL
+	//~ for (double scale = 100; scale >= pace; scale -= pace)
+	for (double scale = 0; scale <= 100; scale += pace)
+		drawMatches_process_scale(imageFilename0, imageFilename1, scale, detectTool, detectToolOptions);
+
+	//~ const Match *itMatch = matches.data();
+	//~ size_t iMatch = matches.size();
+	//~ while (iMatch--)
+	//~ {
+		//~ drawPoint(green0, itMatch->mP0, 255, 5);
+		//~ drawPoint(green1, itMatch->mP1, 255, 5);
+		//~ itMatch++;
+	//~ }
+//~ 
+	//~ save_tiff(gray0, green0);
+	//~ save_tiff(gray1, green1);
+
+	return EXIT_SUCCESS;
+}
 
 //------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------
