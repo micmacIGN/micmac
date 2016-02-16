@@ -263,7 +263,11 @@ bool MultiChannel<tData>::read_raw( const string &i_filename, VersionedFileHeade
 template <class tData>
 bool MultiChannel<tData>::read_tiff( Tiff_Im &i_tiff ) // Tiff_Im is not const because of ReadVecOfIm
 {
-	if ( i_tiff.type_el()!=typeEl() ) return false;
+	if ( i_tiff.type_el()!=typeEl() )
+	{
+		ELISE_DEBUG_ERROR(true, "MultiChannel<" << El_CTypeTraits<tData>::Name() << ">::read_tiff", "cannot read image of type " << eToString(i_tiff.type_el()));
+		return false;
+	}
 
 	vector<Im2DGen *> tiffChannels = i_tiff.ReadVecOfIm();
 
@@ -620,6 +624,53 @@ void MultiChannel<tData>::duplicateLastChannel( size_t i_nbDuplicates )
 	const size_t nbBytes = (size_t)mWidth*(size_t)mHeight*sizeof(tData);
 	while ( i<mChannels.size() )
 		memcpy( mChannels[i++]->data_lin(), src, nbBytes );
+}
+
+template <class tData>
+void MultiChannel<tData>::suppressLastChannels(size_t i_nbToSuppress)
+{
+	if (i_nbToSuppress > mChannels.size())
+	{
+		ELISE_DEBUG_ERROR(true, "MultiChannel<tData>::suppressLastChannels", "i_nbToSuppress = " << i_nbToSuppress << " > " << mChannels.size() << " = mChannels.size()" );
+		clear();
+
+		return;
+	}
+
+	const size_t finalNbChannels = mChannels.size() - i_nbToSuppress;
+	for (size_t i = finalNbChannels; i < mChannels.size(); i++)
+		delete mChannels[i];
+
+	mChannels.resize(finalNbChannels);
+}
+
+template <class tData>
+void MultiChannel<tData>::toGrayScale(Im2D<tData, TBASE> &oImage)
+{
+	const size_t nbChannels = mChannels.size();
+	if (nbChannels == 0 || nbChannels == 2)
+	{
+		ELISE_DEBUG_ERROR(true, "MultiChannel<tData>::toGrayScale", "invalid nbChannels = " << nbChannels);
+		return;
+	}
+
+	oImage.Resize(mChannels[0]->sz());
+
+	if (nbChannels == 1)
+	{
+		memcpy(oImage.data_lin(), mChannels[0]->data_lin(), size_t(oImage.tx()) * size_t(oImage.ty()));
+		return;
+	}
+
+	if (nbChannels >= 3)
+	{
+		const tData *itRed = data_lin(0), *itGreen = data_lin(1), *itBlue = data_lin(2);
+		tData *itDst = oImage.data_lin();
+		size_t iPix = size_t(oImage.tx()) * size_t(oImage.ty());
+		while (iPix--)
+			*itDst++ = round_ni(0.299 * float(*itRed++) + 0.587 * float(*itGreen++) + 0.114 * float(*itBlue++));
+		return;
+	}
 }
 
 template <class tData>
