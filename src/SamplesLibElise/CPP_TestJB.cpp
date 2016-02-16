@@ -919,11 +919,11 @@ void convolute()
 
 	cout << "convolution is " << ( !convolution1d->IsCompiled() ? "not " : "") << "compiled" << endl;
  
-	Im2D_U_INT2 image0, image1;
 
 	Tiff_Im tiff(filename.c_str());
 	cout << "[" << filename << "]: " << tiff.sz() << 'x' << tiff.nb_chan() << ' ' << eToString(tiff.type_el()) << endl;
 	Im2DGen src_gen = tiff.ReadIm();
+	Im2D_U_INT2 image0;
 	if (tiff.type_el() != GenIm::u_int1) ELISE_ERROR_EXIT("bad type");
 	{
 		U_INT1 *src = ((Im2D_U_INT1 *) &src_gen)->data_lin();
@@ -937,13 +937,13 @@ void convolute()
 		while (i--) *dst++ = (U_INT2)(*src++) * 257;
 	}
 
-	image1.Resize(image0.sz());
+	Im2D_U_INT2 image1(image0.tx(), image0.ty());
 	Im2D_U_INT2 *src = &image0, *dst = &image1;
 	int nbConvol = 10;
 	while (nbConvol--)
 	{
 		convolution<U_INT2>((const U_INT2 **)src->data(), src->tx(), src->ty(), *convolution1d, dst->data());
-		swap<Im2D_U_INT2 *>(src, dst);
+		ElSwap<Im2D_U_INT2 *>(src, dst);
 	}
 
 	Im2D_U_INT1 imageToWrite(src->tx(), src->ty());
