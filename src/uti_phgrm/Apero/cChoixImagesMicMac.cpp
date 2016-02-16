@@ -624,10 +624,6 @@ bool  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
    cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale (aCIM.IdBdl(),aPC0->Name());
 
    int aNbPtsInNu;
-if (MPD_MM())
-{
-   // std::cout << "llllllllllllllllll\n";
-}
    cPCICentr aPCIC(aPC0,anOLM->CentreNuage(aMasq3D,&aNbPtsInNu));
 
    if (aNbPtsInNu < 10)
@@ -864,8 +860,11 @@ if (MPD_MM())
        delete mVecPose[aKP]->CdtImSec() ;
    }
 
-   std::string aName = mDC + mICNM->Assoc1To1(aCIM.KeyAssoc(),aPC0->Name(),true);
-   MakeFileXML(aISM,aName);
+   if (aCIM.KeyAssoc().IsInit())
+   {
+      std::string aName = mDC + mICNM->Assoc1To1(aCIM.KeyAssoc().Val(),aPC0->Name(),true);
+      MakeFileXML(aISM,aName);
+   }
    std::cout << "Chx : " << aPC0->Name()  << " Nb:" <<  aBestSol.Images().size() ;
    int aCpt=0;
    for (std::list<std::string>::iterator itS=aBestSol.Images().begin(); itS!=aBestSol.Images().end() ; itS++)

@@ -21501,12 +21501,12 @@ const cTplValGesInit< std::string > & cChoixImSec::FileImSel()const
 }
 
 
-std::string & cChoixImSec::KeyAssoc()
+cTplValGesInit< std::string > & cChoixImSec::KeyAssoc()
 {
    return mKeyAssoc;
 }
 
-const std::string & cChoixImSec::KeyAssoc()const 
+const cTplValGesInit< std::string > & cChoixImSec::KeyAssoc()const 
 {
    return mKeyAssoc;
 }
@@ -21727,7 +21727,14 @@ void  BinaryUnDumpFromFile(cChoixImSec & anObj,ELISE_fp & aFp)
         }
         else  anObj.FileImSel().SetNoInit();
   } ;
-    BinaryUnDumpFromFile(anObj.KeyAssoc(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.KeyAssoc().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.KeyAssoc().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.KeyAssoc().SetNoInit();
+  } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -21866,7 +21873,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cChoixImSec & anObj)
     if (anObj.KeyExistingFile().IsInit()) BinaryDumpInFile(aFp,anObj.KeyExistingFile().Val());
     BinaryDumpInFile(aFp,anObj.FileImSel().IsInit());
     if (anObj.FileImSel().IsInit()) BinaryDumpInFile(aFp,anObj.FileImSel().Val());
-    BinaryDumpInFile(aFp,anObj.KeyAssoc());
+    BinaryDumpInFile(aFp,anObj.KeyAssoc().IsInit());
+    if (anObj.KeyAssoc().IsInit()) BinaryDumpInFile(aFp,anObj.KeyAssoc().Val());
     BinaryDumpInFile(aFp,anObj.PatternSel().IsInit());
     if (anObj.PatternSel().IsInit()) BinaryDumpInFile(aFp,anObj.PatternSel().Val());
     BinaryDumpInFile(aFp,anObj.CardMaxSub().IsInit());
@@ -21911,7 +21919,8 @@ cElXMLTree * ToXMLTree(const cChoixImSec & anObj)
       aRes->AddFils(::ToXMLTree(std::string("KeyExistingFile"),anObj.KeyExistingFile().Val())->ReTagThis("KeyExistingFile"));
    if (anObj.FileImSel().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("FileImSel"),anObj.FileImSel().Val())->ReTagThis("FileImSel"));
-   aRes->AddFils(::ToXMLTree(std::string("KeyAssoc"),anObj.KeyAssoc())->ReTagThis("KeyAssoc"));
+   if (anObj.KeyAssoc().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("KeyAssoc"),anObj.KeyAssoc().Val())->ReTagThis("KeyAssoc"));
    if (anObj.PatternSel().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PatternSel"),anObj.PatternSel().Val())->ReTagThis("PatternSel"));
    if (anObj.CardMaxSub().IsInit())
@@ -21999,7 +22008,7 @@ void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
    xml_init(anObj.Masq3D(),aTree->Get("Masq3D",1)); //tototo 
 }
 
-std::string  Mangling( cChoixImSec *) {return "BCC53A41BA44EEA4FD3F";};
+std::string  Mangling( cChoixImSec *) {return "143A1EAA4ACDC6A3FF3F";};
 
 
 cTplValGesInit< std::string > & cChoixImMM::KeyExistingFile()
@@ -22024,12 +22033,12 @@ const cTplValGesInit< std::string > & cChoixImMM::FileImSel()const
 }
 
 
-std::string & cChoixImMM::KeyAssoc()
+cTplValGesInit< std::string > & cChoixImMM::KeyAssoc()
 {
    return ChoixImSec().KeyAssoc();
 }
 
-const std::string & cChoixImMM::KeyAssoc()const 
+const cTplValGesInit< std::string > & cChoixImMM::KeyAssoc()const 
 {
    return ChoixImSec().KeyAssoc();
 }
@@ -22271,7 +22280,7 @@ void xml_init(cChoixImMM & anObj,cElXMLTree * aTree)
    xml_init(anObj.ChoixImSec(),aTree->Get("ChoixImSec",1)); //tototo 
 }
 
-std::string  Mangling( cChoixImMM *) {return "043E3EE10A0CA481FE3F";};
+std::string  Mangling( cChoixImMM *) {return "51B8116A46BBCFC9FD3F";};
 
 
 std::list< cExportCalib > & cSectionExport::ExportCalib()
@@ -22417,12 +22426,12 @@ const cTplValGesInit< std::string > & cSectionExport::FileImSel()const
 }
 
 
-std::string & cSectionExport::KeyAssoc()
+cTplValGesInit< std::string > & cSectionExport::KeyAssoc()
 {
    return ChoixImMM().Val().ChoixImSec().KeyAssoc();
 }
 
-const std::string & cSectionExport::KeyAssoc()const 
+const cTplValGesInit< std::string > & cSectionExport::KeyAssoc()const 
 {
    return ChoixImMM().Val().ChoixImSec().KeyAssoc();
 }
@@ -22953,7 +22962,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportResiduXml(),aTree->Get("ExportResiduXml",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "5C34421AB8371185FD3F";};
+std::string  Mangling( cSectionExport *) {return "A5957298D10CB693FE3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -23308,12 +23317,12 @@ const cTplValGesInit< std::string > & cEtapeCompensation::FileImSel()const
 }
 
 
-std::string & cEtapeCompensation::KeyAssoc()
+cTplValGesInit< std::string > & cEtapeCompensation::KeyAssoc()
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().KeyAssoc();
 }
 
-const std::string & cEtapeCompensation::KeyAssoc()const 
+const cTplValGesInit< std::string > & cEtapeCompensation::KeyAssoc()const 
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().KeyAssoc();
 }
@@ -23695,7 +23704,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "E27200D243E503A3FE3F";};
+std::string  Mangling( cEtapeCompensation *) {return "94C82DCD8E3A8EF9FE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -23754,7 +23763,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "A0A92EE9DA718FB7FABF";};
+std::string  Mangling( cSectionCompensation *) {return "88E6DEDE9ACA45ADFC3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -24754,7 +24763,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "7B0E464113A9B8E0FE3F";};
+std::string  Mangling( cParamApero *) {return "7009DBC6A0D8978EFF3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()
