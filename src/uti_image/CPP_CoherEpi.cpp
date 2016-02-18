@@ -171,9 +171,9 @@ cCEM_OneIm_Nuage::cCEM_OneIm_Nuage(cCoherEpi_main * aCoh,const std::string & aNa
     mPGMN       (1.0,I2R(aBox),true),
     mNameN      ("NuageImProf_Chantier-Ori_Etape_" +ToString(mCoher->mNumPx) + ".xml"),
     mParam1     (StdGetFromSI(mDirNuage1+mNameN,XML_ParamNuage3DMaille)),
-    mNuage1     (cElNuage3DMaille::FromParam(mParam1,mDirNuage1,"",1.0,&mPGMN,false)),
+    mNuage1     (cElNuage3DMaille::FromParam(aName1,mParam1,mDirNuage1,"",1.0,&mPGMN,false)),
     mParam2     (StdGetFromSI(mDirNuage2+mNameN,XML_ParamNuage3DMaille)),
-    mNuage2     (cElNuage3DMaille::FromParam(mParam2,mDirNuage2,"",1.0,(const cParamModifGeomMTDNuage *)0,true))
+    mNuage2     (cElNuage3DMaille::FromParam(aName2,mParam2,mDirNuage2,"",1.0,(const cParamModifGeomMTDNuage *)0,true))
 {
     ELISE_COPY
     (

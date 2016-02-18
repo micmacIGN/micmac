@@ -122,7 +122,7 @@ cTD_Camera cTD_Camera::NewCam(double aFoc , double aR3)
      aVC[0] = aR3;
 
      aRes.mCIO = aCO.Interne().Val();
-     aRes.mCS = Cam_Gen_From_XML(aCO,cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(mName)))->CS();
+     aRes.mCS = Cam_Gen_From_XML(aCO,cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(mName)),mCS->IdCam())->CS();
 
      return aRes;
 }

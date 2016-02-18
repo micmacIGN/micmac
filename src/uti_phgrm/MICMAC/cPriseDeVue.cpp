@@ -374,6 +374,7 @@ bool cPriseDeVue::LoadImageMM
             // cElNuage3DMaille * anEN  = cElNuage3DMaille::FromParam
             mNuagePredict = cElNuage3DMaille::FromParam
                             (
+                                aFullNameNuage,
                                 aPN3,
                                 aDirNuage,
                                  "",
