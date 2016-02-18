@@ -4533,12 +4533,14 @@ CamStenope * Std_Cal_From_File
                         aNameTag,
                         "CalibrationInternConique"
                  );
-   return Std_Cal_From_CIC(aCIC);
+   CamStenope * aRes=  Std_Cal_From_CIC(aCIC);
+   aRes->SetIdCam(aNameFile);
+   return aRes;
 }
 
 static std::map<std::string,CamStenope *> theDic;
 
-ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC,cInterfChantierNameManipulateur * anICNM,const std::string & aDir)
+ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC,cInterfChantierNameManipulateur * anICNM,const std::string & aDir,const std::string & aNameFile)
 {
    ElCamera * aRes = 0;
    cCalibrationInternConique  aCIC;
@@ -4580,6 +4582,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
                aRayonInv=aCIC.RayonUtile().Val();
          }
          CamStenope * aCS = Std_Cal_From_CIC(aCIC);
+         aCS->SetIdCam(aNameFile);
 
          if (CanUseGr && (! aCS->IsGrid()))
          {
@@ -4591,6 +4594,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
                   aStepGr =aCIC.ParamForGrid().Val().StepGrid();
              }
              aCS = cCamStenopeGrid::Alloc(aRayonInv,*aCS,aStepGr);
+             aCS->SetIdCam(aNameFile);
          }
          aRes = aCS;
          //aRes = Std_Cal_From_CIC(anOC.Interne().Val());
@@ -4736,15 +4740,15 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
       aRes->SetVitesse(anOC.Externe().Vitesse().Val());
 
    aRes->SetIncCentre(anOC.Externe().IncCentre().ValWithDef(Pt3dr(1,1,1)));
-// std::cout << "ISCANEDDD " << aRes->IsScanned() << "\n";
+// if (MPD_MM()) std::cout << "ISCANEDDD " << aRes->IsScanned() << "\n";
 
    return aRes;
 }
 
 
-ElCamera * Cam_Gen_From_XML (const cOrientationConique  & anOC,cInterfChantierNameManipulateur * anICNM)
+ElCamera * Cam_Gen_From_XML (const cOrientationConique  & anOC,cInterfChantierNameManipulateur * anICNM,const std::string& aNameFile)
 {
-   return Gen_Cam_Gen_From_XML(false,anOC,anICNM);
+   return Gen_Cam_Gen_From_XML(false,anOC,anICNM,"",aNameFile);
 }
 
 ElCamera * Gen_Cam_Gen_From_File
@@ -4771,6 +4775,7 @@ ElCamera * Gen_Cam_Gen_From_File
 
 
        ElCamera * aRes = Gen_Cam_Gen_From_XML(CanUseGr,anOC,anICNM,DirOfFile(aNameFile));
+       aRes->SetIdCam(aNameFileOri);
        return aRes;
    }
    if ((StdPostfix(aNameFile)=="ori") || (StdPostfix(aNameFile)=="ORI") )

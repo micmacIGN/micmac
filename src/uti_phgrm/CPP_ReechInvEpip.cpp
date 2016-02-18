@@ -139,11 +139,11 @@ int ReechInvEpip_main(int argc,char ** argv)
     if (CalleByP)
     {
          cXML_ParamNuage3DMaille aNuageXMLIn = StdGetFromSI(aNameIn,XML_ParamNuage3DMaille);
-         cElNuage3DMaille *  aNIn = cElNuage3DMaille::FromParam(aNuageXMLIn,aDirIn,"",1.0,(cParamModifGeomMTDNuage*)0,true);
+         cElNuage3DMaille *  aNIn = cElNuage3DMaille::FromParam(aNameIn,aNuageXMLIn,aDirIn,"",1.0,(cParamModifGeomMTDNuage*)0,true);
 
          cXML_ParamNuage3DMaille aNuageXMLOut =  StdGetFromSI(aNameOut,XML_ParamNuage3DMaille);
          cParamModifGeomMTDNuage aModifGOut(1.0,I2R(aBoxOut),false);
-         cElNuage3DMaille *  aNOut = cElNuage3DMaille::FromParam(aNuageXMLOut,aDirOut,"",1.0,&aModifGOut);
+         cElNuage3DMaille *  aNOut = cElNuage3DMaille::FromParam(aNameOut,aNuageXMLOut,aDirOut,"",1.0,&aModifGOut);
          std::vector<Pt2dr> aVCont;
 
 
@@ -171,7 +171,7 @@ int ReechInvEpip_main(int argc,char ** argv)
          if ((aSzIn.x<=0) || (aSzIn.y<=0)) return 0;
 
          cParamModifGeomMTDNuage aModifGIn(1.0,I2R(aBoxIn),false);
-         aNIn = cElNuage3DMaille::FromParam(aNuageXMLIn,aDirIn,"",1.0,&aModifGIn);
+         aNIn = cElNuage3DMaille::FromParam(aNameIn,aNuageXMLIn,aDirIn,"",1.0,&aModifGIn);
 
          Im2D_U_INT1 aImDist_Out(aSzOut.x,aSzOut.y,255);
          Tiff_Im aTifDistIn = Tiff_Im::BasicConvStd(aNameDistIn);
