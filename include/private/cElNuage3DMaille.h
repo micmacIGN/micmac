@@ -399,8 +399,10 @@ class cElNuage3DMaille : public cCapture3D
              const std::string & aDir,
              const cXML_ParamNuage3DMaille &,
              Fonc_Num aFDef,
+             const std::string & aNameFile,
              bool      WithEmptyData = false
         );
+        const std::string & NameFile() const;
         virtual ~cElNuage3DMaille();
 
         static cElNuage3DMaille * FromFileIm
@@ -412,6 +414,7 @@ class cElNuage3DMaille : public cCapture3D
                                   );
         static cElNuage3DMaille * FromParam
                                   (
+                                       const std::string & aNameFile,
                                        const cXML_ParamNuage3DMaille &,
                                        const std::string & aDir,
                                        const std::string & aMasq = "",
@@ -571,6 +574,7 @@ class cElNuage3DMaille : public cCapture3D
         int                              mNbTri;
         mutable bool                     mResolGlobCalc;
         mutable double                   mResolGlob;
+        std::string                      mNameFile;
 };
 
 
