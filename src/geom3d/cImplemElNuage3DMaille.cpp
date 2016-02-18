@@ -73,6 +73,7 @@ template <class Type,class TBase>
 
          cElNuage3DMaille_FromImProf
          (
+              const std::string &             aNameFile,
               const std::string &             aDir,
               const cXML_ParamNuage3DMaille & aNuage,
               Fonc_Num  aFMasq,
@@ -155,7 +156,8 @@ template <class Type,class TBase>
 
      protected :
 
-         Im2D<Type,TBase> mIm;
+         std::string       mNameFile;
+         Im2D<Type,TBase>  mIm;
          TIm2D<Type,TBase> mTIm;
          double            mProf0;
          double            mResolProf;
@@ -237,6 +239,7 @@ template <class Type,class TBase>
 
 template <class Type,class TBase>  cElNuage3DMaille_FromImProf<Type,TBase>::cElNuage3DMaille_FromImProf
 (
+     const std::string &             aNameFile,
      const std::string &             aDir,
      const cXML_ParamNuage3DMaille & aNuage,
      Fonc_Num  aFMasq,
@@ -245,7 +248,7 @@ template <class Type,class TBase>  cElNuage3DMaille_FromImProf<Type,TBase>::cElN
      bool      aDequant
 
 )  :
-   cElNuage3DMaille(aDir,aNuage,aFMasq,WithEmpyData), 
+   cElNuage3DMaille(aDir,aNuage,aFMasq,aNameFile,WithEmpyData), 
    mIm        (mSzData.x,mSzData.y),
    mTIm       (mIm),
    mProf0     (aNuage.Image_Profondeur().Val().OrigineAlti()),
@@ -292,6 +295,7 @@ template <class Type,class TBase>
 
          cElN3D_EpipGen
          (
+              const std::string &             aNameFile,
               const std::string &             aDir,
               const cXML_ParamNuage3DMaille & aNuage,
               Fonc_Num  aFMasq,
@@ -363,6 +367,7 @@ template <class Type,class TBase> cElN3D_EpipGen<Type,TBase> *  cElN3D_EpipGen<T
 {
     return new cElN3D_EpipGen<Type,TBase>
                (
+                     this->NameFile(),
                      this->mDir,
                      this->mParams,
                      Fonc_Num(0),
@@ -383,6 +388,7 @@ template <class Type,class TBase> cElNuage3DMaille *  cElN3D_EpipGen<Type,TBase>
 
 template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
 (
+        const std::string &             aNameFile,
         const std::string &             aDir,
         const cXML_ParamNuage3DMaille & aNuage,
         Fonc_Num  aFMasq,
@@ -392,7 +398,7 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
         bool      Dequant
 
 )  :
-   cElNuage3DMaille_FromImProf<Type,TBase>(aDir,aNuage,aFMasq,aFProf,WithEmptyData,Dequant), 
+   cElNuage3DMaille_FromImProf<Type,TBase>(aNameFile,aDir,aNuage,aFMasq,aFProf,WithEmptyData,Dequant), 
    mProfIsZ   (aProfIsZ)
 {
 	mCentre	   = this->mCam->OrigineProf();
@@ -455,6 +461,7 @@ template <class Type,class TBase> cElNuage3DMaille * cElN3D_EpipGen<Type,TBase>:
 
    cElN3D_EpipGen<float,double> * aRes = new cElN3D_EpipGen<float,double>
                                              (
+                                                 this->NameFile(),
                                                  this->mDir,
                                                  aNewParam,
                                                  anImPds.in(0) > 0.1,
@@ -539,6 +546,7 @@ template class cElN3D_EpipGen<float,double>;
 
 cElNuage3DMaille * cElNuage3DMaille::FromParam
                    (
+                       const std::string & aNameFile,
                        const cXML_ParamNuage3DMaille & aParamOri,
                        const std::string & aDir,
                        const std::string & aMasqSpec,
@@ -609,12 +617,12 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
            {
                case GenIm::int2 :
                     if (Dequant) 
-                        return new cElN3D_EpipGen<float,double>(aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData,true);
+                        return new cElN3D_EpipGen<float,double>(aNameFile,aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData,true);
                     else
-                        return new cElN3D_EpipGen<INT2,INT>(aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData,false);
+                        return new cElN3D_EpipGen<INT2,INT>(aNameFile,aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData,false);
                break;
                case GenIm::real4 :
-                    return new cElN3D_EpipGen<float,double>(aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData,false);
+                    return new cElN3D_EpipGen<float,double>(aNameFile,aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData,false);
                break;
 
                default :
@@ -646,6 +654,7 @@ cElNuage3DMaille * cElNuage3DMaille::FromFileIm
    SplitDirAndFile(aDir,aNF,aFile);
    return FromParam
           (
+                aFile,
                 StdGetObjFromFile<cXML_ParamNuage3DMaille>
                 (
                       aFile,
@@ -720,6 +729,7 @@ cElNuage3DMaille * NuageWithoutDataWithModel(const std::string & aName,const std
 
    return cElNuage3DMaille::FromParam
            (
+                 aName,
                  aParam,
                  DirOfFile(aName),
                  "",
@@ -733,6 +743,7 @@ cElNuage3DMaille * NuageWithoutData(const cXML_ParamNuage3DMaille & aParam,const
 {
    return cElNuage3DMaille::FromParam
            (
+                 aName,
                  aParam,
                  DirOfFile(aName),
                  "",

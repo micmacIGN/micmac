@@ -2471,6 +2471,11 @@ Pt2dr ElCamera::DistDirecte(Pt2dr aP) const
 
 Pt2dr ElCamera::DistInverseSsComplem(Pt2dr aP) const
 {
+    if (MPD_MM())
+    {
+          std::cout << "DistInverseSsDistInverseSs " << IdCam() << "\n";
+          getchar();
+    }
     return  mDIsDirect ? Dist().Inverse(aP) : Dist().Direct(aP);
 }
 
@@ -3917,7 +3922,7 @@ bool CamStenope::CanExportDistAsGrid() const
 
 CamStenope * CamStenope::Dupl() const
 {
-  return NS_ParamChantierPhotogram::Cam_Gen_From_XML(StdExportCalibGlob(),0)->CS();
+  return NS_ParamChantierPhotogram::Cam_Gen_From_XML(StdExportCalibGlob(),0,IdCam())->CS();
 }
 
 

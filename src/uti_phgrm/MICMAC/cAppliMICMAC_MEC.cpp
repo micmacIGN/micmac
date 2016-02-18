@@ -925,7 +925,7 @@ void cAppliMICMAC::DoImagesBSurH(const cDoImageBSurH& aParBsH)
      double aDownScale = aParBsH.ScaleNuage();
 
      cXML_ParamNuage3DMaille aXmlN =  mCurEtape->DoRemplitXML_MTD_Nuage();
-     cElNuage3DMaille *  aFullNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
+     cElNuage3DMaille *  aFullNuage = cElNuage3DMaille::FromParam(PDV1()->Name(),aXmlN,FullDirMEC());
 
      cElNuage3DMaille *  aNuage = aFullNuage->ReScaleAndClip(aDownScale);
 
