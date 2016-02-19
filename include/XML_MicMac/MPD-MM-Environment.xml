@@ -1,0 +1,13 @@
+<!-- To share between my computers ... -->
+<MMUserEnvironment>
+         <TiePDetect> mm3d:Digeo </TiePDetect> 
+         <TiePMatch > mm3d:Ann </TiePMatch> 
+<!--
+         <TiePDetect> mm3d:Sift </TiePDetect> 
+         <NbMaxProc> 3 </NbMaxProc>
+-->
+         <VersionNameCam> 1 </VersionNameCam>
+         <UserName> MPD </UserName>
+</MMUserEnvironment>
+
+
