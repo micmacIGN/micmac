@@ -73,7 +73,7 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,const std::string & aN
 
     mVIms.push_back(mMasterIm);
 
-    for (int aKI=0 ; aKI<(aSetIm->size()) ; aKI++)
+    for (size_t aKI = 0; aKI < aSetIm->size(); aKI++)
     {
          std::string aName = (*aSetIm)[aKI];
          if (aName != mParam.MasterIm())

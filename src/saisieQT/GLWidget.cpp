@@ -822,10 +822,6 @@ void GLWidget::wheelEvent(QWheelEvent* event)
 #endif
 }
 
-#ifdef __DEBUG
-	#include "qt_node.h"
-#endif
-
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     if(hasDataLoaded())
@@ -836,57 +832,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
         if (event->button() == Qt::LeftButton)
         {
-				#ifdef __DEBUG
-					gDefaultDebugErrorHandler->setAction(MessageHandler::CIN_GET);
-
-					cout << "mouse left down !" << endl;
-					cout << eToString(gDefaultDebugErrorHandler->action()) << " (" << gDefaultDebugErrorHandler->exitCode() << ')' << endl;
-
-					QApplication &appli = *(QApplication *)QCoreApplication::instance();
-					QWidgetList wlist = appli.allWidgets();
-					cout << wlist.size() << " widgets" << endl;
-
-					QWidgetList topwlist = appli.topLevelWidgets();
-					cout << topwlist.size() << " widgets sont au top" << endl;
-
-					QWidget *focus = appli.focusWidget();
-					cout << "focus widgets = " << focus << endl;
-
-					QT_forest forest;
-					foreach (QWidget *widget, wlist)
-					{
-						//~ cout << "--- widget = {" << widget << "} root = " << QT_forest::getRoot(widget) << endl;
-						forest.addLineage(widget);
-
-						//~ cout << '{' << widget << "}.parent() = " << widget->parent();
-						//~ if (widget->parentWidget() != widget->parent()) cout << " parentWidget() = {" << widget->parentWidget() << "}";
-						//~ cout << endl;
-					}
-
-					cout << "forest.mNodes.size() = " << forest.mNodes.size() << endl;
-					forest.__check_connections();
-
-					cout << "forest.nbRoots() = " << forest.nbRoots() << endl;
-					cout << "forest.nbLeafs() = " << forest.nbLeafs() << endl;
-					cout << "forest.minHeight() = " << forest.minHeight() << endl;
-					cout << "forest.maxHeight() = " << forest.maxHeight() << endl;
-
-					list<QT_node *> roots;
-					forest.getRoots(roots);
-					cout << "roots.size() = " << roots.size() << endl;
-
-					list<QT_node *>::iterator itRoot = roots.begin();
-					while (itRoot != roots.end())
-					{
-						QT_node &root = **itRoot++;
-
-						list<QT_node *> leafs;
-						cout << "go !" << endl;
-						root.getLeafs(leafs);
-						cout << "leafs.size() = " << leafs.size() << endl;
-					}
-				#endif
-
             if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
             {
 
