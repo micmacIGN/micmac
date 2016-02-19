@@ -39,14 +39,6 @@
 
 		bool isLeaf() const { return mChildren.empty(); }
 
-		size_t height() const
-		{
-			size_t result = 0;
-			list<QT_node *>::const_iterator it = mChildren.begin();
-			while (it != mChildren.end()) result = max<size_t>((**it++).height() + 1, result);
-			return result;
-		}
-
 		void printDescent(const string &aPrefix, ostream &aStream)
 		{
 		
@@ -78,6 +70,33 @@
 			return false;
 		}
 
+		size_t height() const
+		{
+			if (isLeaf()) return 0;
+
+			list<QT_node *>::const_iterator it = mChildren.begin();
+			size_t maxHeight = 0;
+			while (it != mChildren.end())
+			{
+				size_t height = (**it++).height();
+				if (height > maxHeight) maxHeight = height;
+			}
+
+			return maxHeight + 1;
+		}
+
+		size_t depth() const
+		{
+			size_t result = 0;
+			const QT_node *node = this;
+			while (node->mParent != NULL)
+			{
+				result++;
+				node = node->mParent;
+			}
+			return result;
+		}
+
 		#ifdef __DEBUG
 			void __check_connections() const
 			{
@@ -94,30 +113,6 @@
 	private:
 		bool _addLineage(QT_node &aNode)
 		{
-			/*
-			bool result = false;
-			QT_node *node = &aNode, *parentNode = NULL;
-			while (node != NULL)
-			{
-				if (aNode.mParent != NULL) return result;
-
-				QWidget *parent = node->mValue->parentWidget();
-				if (parent == NULL) return result;
-
-				if (!_add(parent, &parentNode))
-				{
-					ELISE_DEBUG_ERROR(parentNode == NULL, "_addLineage(QT_node &)", "parentNode == NULL");
-					ELISE_DEBUG_ERROR(parentNode->mValue != parent, "_addLineage(QT_node &)", "parentNode->mValue != parent");
-
-					if (parentNode->mParent == NULL) node->setParent(*parentNode);
-					return result;
-				}
-				result = true;
-				node->setParent(*parentNode);
-				node = parentNode;
-			}
-			return result;
-			*/
 			bool result = false;
 			QT_node *node = &aNode, *parentNode = NULL;
 			QWidget *parent = node->mValue->parentWidget();
@@ -135,9 +130,6 @@
 		{
 			ELISE_DEBUG_ERROR(aValue == NULL, "QT_forest::add", "aValue == NULL");
 
-			// __DEL
-			//~ cout << "adding {" << aValue << "}";
-
 			list<QT_node>::iterator it = mNodes.begin();
 			while (it != mNodes.end() && it->mValue < aValue) it++;
 
@@ -152,11 +144,6 @@
 			}
 
 			if (oAddedNode != NULL) *oAddedNode = &*it;
-
-			// __DEL
-			//~ if (result) cout << " new";
-			//~ cout << endl;
-
 			return result;
 		}
 
@@ -189,7 +176,6 @@
 
 		void print(const string &aPrefix, ostream &aStream)
 		{
-			//~ aStream << 
 		}
 
 		size_t maxHeight() const
@@ -204,17 +190,20 @@
 			return result;
 		}
 
+		string name() const
+		{
+			stringstream ss;
+			ss << '{' << this << '}';
+			return ss.str();
+		}
+
 		size_t minHeight() const
 		{
 			size_t result = numeric_limits<size_t>::max();
 			list<QT_node>::const_iterator it = mNodes.begin();
 			while (it != mNodes.end())
 			{
-				if (it->isRoot())
-				{
-					//~ qt_out << "--- " << it->height() << endl;
-					result = min<size_t>(result, it->height());
-				}
+				if (it->isRoot()) result = min<size_t>(result, it->height());
 				it++;
 			}
 			return result;

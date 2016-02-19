@@ -19,6 +19,14 @@ void setStyleSheet(QApplication &app)
         QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Can't find qss file"));
 }
 
+#ifdef __DEBUG
+	#include "qt_node.h"
+	#include <typeinfo>
+	#if ELISE_unix
+		#include <cxxabi.h>
+	#endif
+#endif
+
 SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
         _ui(new Ui::SaisieQtWindow),
@@ -82,6 +90,70 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
 
+
+	#ifdef __DEBUG
+		gDefaultDebugErrorHandler->setAction(MessageHandler::CIN_GET);
+		cout << "mouse left down !" << endl;
+		cout << eToString(gDefaultDebugErrorHandler->action()) << " (" << gDefaultDebugErrorHandler->exitCode() << ')' << endl;
+
+		QApplication &appli = *(QApplication *)QCoreApplication::instance();
+
+		QWidgetList wlist = appli.allWidgets();
+		cout << wlist.size() << " widgets" << endl;
+
+		QWidgetList topwlist = appli.topLevelWidgets();
+		cout << topwlist.size() << " widgets sont au top" << endl;
+
+		QWidget *focus = appli.focusWidget();
+		cout << "focus widgets = " << focus << endl;
+
+		QT_forest forest;
+		foreach (QWidget *widget, wlist)
+		{
+			//~ cout << "--- widget = {" << widget << "} root = " << QT_forest::getRoot(widget) << endl;
+			forest.addLineage(widget);
+
+			//~ cout << '{' << widget << "}.parent() = " << widget->parent();
+			//~ if (widget->parentWidget() != widget->parent()) cout << " parentWidget() = {" << widget->parentWidget() << "}";
+			//~ cout << endl;
+		}
+
+		cout << "forest.mNodes.size() = " << forest.mNodes.size() << endl;
+		forest.__check_connections();
+
+		cout << "forest.nbRoots() = " << forest.nbRoots() << endl;
+		cout << "forest.nbLeafs() = " << forest.nbLeafs() << endl;
+		cout << "forest.minHeight() = " << forest.minHeight() << endl;
+		cout << "forest.maxHeight() = " << forest.maxHeight() << endl;
+
+		list<QT_node *> roots;
+		forest.getRoots(roots);
+		cout << "roots.size() = " << roots.size() << endl;
+
+		// __DEL
+		list<QT_node>::iterator it = forest.mNodes.begin();
+		while (it != forest.mNodes.end())
+		{
+			int status = 0;
+			#if ELISE_unix
+				string name = abi::__cxa_demangle(typeid(*it->mValue).name(), NULL, NULL, &status);
+			#else
+				string name = typeid(*it->mValue).name();
+			#endif
+			if (it->mValue->actions().size()) cout << name << '(' << it->mValue->objectName().toStdString() << ')' << ' ' << it->mValue->actions().size() << endl;
+			it++;
+		}
+
+		list<QT_node *>::iterator itRoot = roots.begin();
+		while (itRoot != roots.end())
+		{
+			QT_node &root = **itRoot++;
+
+			list<QT_node *> leafs;
+			root.getLeafs(leafs);
+			cout << "leafs.size() = " << leafs.size() << endl;
+		}
+	#endif
 }
 
 SaisieQtWindow::~SaisieQtWindow()
