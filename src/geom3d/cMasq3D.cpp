@@ -562,6 +562,7 @@ int Masq3Dto2D_main(int argc,char ** argv)
    cXML_ParamNuage3DMaille aXmlPN = StdGetFromSI(aNameNuage,XML_ParamNuage3DMaille);
    cElNuage3DMaille * aNuage = cElNuage3DMaille::FromParam
                                (
+                                    aNameNuage,
                                     aXmlPN,
                                     DirOfFile(aNameNuage),
                                     aNameMasq,

@@ -1855,8 +1855,7 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cMMExportNuage & 
     {
         const cPlyFile & aPlF = anEN.PlyFile().Val();
 
-        cElNuage3DMaille * aN1 = cElNuage3DMaille::FromParam
-                                    (aNuage, mAppli.FullDirMEC());
+        cElNuage3DMaille * aN1 = cElNuage3DMaille::FromParam(mNameXMLNuage,aNuage, mAppli.FullDirMEC());
 
 
         for

@@ -1208,7 +1208,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoBy
 
 
    {
-       cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
+       cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(mPDV1->Name(),aXmlN,FullDirMEC());
        if (aMasq3D)
        {
            mMMTP->SetMasq3D(aMasq3D,aNuage,Pt2dr(mBoxIn._p0));
