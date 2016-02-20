@@ -512,7 +512,7 @@ void cGeomImage::InstPostInit()
 
 std::string cGeomImage::Name() const
 {
-   return "NoName";
+   return "XNoName";
 }
 
 
