@@ -1229,7 +1229,7 @@ ElAffin2D AffCur(const cOrientationConique & anOri);
 
 void AssertOrIntImaIsId(const cOrientationConique &);
 
-ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr, const cOrientationConique  & anOC,cInterfChantierNameManipulateur * anICNM,const std::string & aDir="",const std::string & aNameFile="NoNameGen_Cam_Gen_From_XML");
+ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr, const cOrientationConique  & anOC,cInterfChantierNameManipulateur * anICNM,const std::string & aDir,const std::string & aNameFile);
 ElCamera * Cam_Gen_From_XML ( const cOrientationConique  & anOC,cInterfChantierNameManipulateur * anICNM,const std::string & aNameFile);
 
 

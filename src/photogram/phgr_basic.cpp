@@ -1827,7 +1827,7 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     // mAltiSol       (-1e30),
     mProfondeurIsDef (false),
     mProfondeur       (0),
-    mIdCam               ("NoName"),
+    mIdCam               ("NoCamName"),
     //mPrecisionEmpriseSol (1e30),
     mRayonUtile (-1),
     mHasDomaineSpecial  (false),
@@ -2471,11 +2471,6 @@ Pt2dr ElCamera::DistDirecte(Pt2dr aP) const
 
 Pt2dr ElCamera::DistInverseSsComplem(Pt2dr aP) const
 {
-    if (MPD_MM())
-    {
-          std::cout << "DistInverseSsDistInverseSs " << IdCam() << "\n";
-          getchar();
-    }
     return  mDIsDirect ? Dist().Inverse(aP) : Dist().Direct(aP);
 }
 
@@ -3933,6 +3928,7 @@ CamStenope * CamStenope::StdCamFromFile
                      cInterfChantierNameManipulateur * anICNM
              )
 {
+
   return Gen_Cam_Gen_From_File(CanUseGr,aName,"OrientationConique",anICNM)->CS();
 }
 
