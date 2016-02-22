@@ -19,10 +19,6 @@ void setStyleSheet(QApplication &app)
         QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Can't find qss file"));
 }
 
-#ifdef __DEBUG
-	#include "qt_node.h"
-#endif
-
 SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
         _ui(new Ui::SaisieQtWindow),
