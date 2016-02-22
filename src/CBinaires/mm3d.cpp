@@ -811,6 +811,7 @@ extern int XeresTest_Main(int,char**);
 extern int XeresTieP_Main(int,char**);
 extern int XeresMergeTieP_Main(int,char**);
 extern int XeresHomMatch_main(int,char**);
+extern int XeresReNameInit_main(int,char**);
 
 const std::vector<cMMCom> & XLibAvailableCommands()
 {
@@ -820,8 +821,9 @@ const std::vector<cMMCom> & XLibAvailableCommands()
     {
         aRes.push_back(cMMCom("Test", XeresTest_Main, "test Xeres"));
         aRes.push_back(cMMCom("TieP", XeresTieP_Main, "Xeres tie points"));
-        aRes.push_back(cMMCom("MergeTieP", XeresMergeTieP_Main, "Xeres merge tie points"));
-        aRes.push_back(cMMCom("MatchGr", XeresHomMatch_main, "Xeres : generate graph for mathcing"));
+        aRes.push_back(cMMCom("MergeTieP", XeresMergeTieP_Main, "Xeres : merge tie points"));
+        aRes.push_back(cMMCom("MatchGr"  , XeresHomMatch_main , "Xeres : generate graph for mathcing"));
+        aRes.push_back(cMMCom("ReName0"  , XeresReNameInit_main , "Xeres : Rename image for Xeres convention"));
     }
 
     cCmpMMCom CmpMMCom;
