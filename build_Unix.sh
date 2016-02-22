@@ -18,6 +18,6 @@ NBRP=$(cat /proc/cpuinfo | grep processor | wc -l)
 echo "Nbre de coeurs à la compilation : " $NBRP
 make install -j$NBRP
 cd ..
-chmod +x ./binaire-aux/siftpp_tgi.LINUX
-chmod +x ./binaire-aux/ann_mec_filtre.LINUX
+chmod +x ./binaire-aux/linux/siftpp_tgi.LINUX
+chmod +x ./binaire-aux/linux/ann_mec_filtre.LINUX
 

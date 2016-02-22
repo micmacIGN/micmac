@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int XeresTest_Main(int argc,char** argv)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    std::string aSeq;
 
    ElInitArgMain
@@ -62,6 +64,8 @@ int XeresTest_Main(int argc,char** argv)
 
 int XeresTieP_Main(int argc,char** argv)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    std::string aSeq;
    int aSz,aNbHom=2;
    std::string aDir="./";
@@ -84,6 +88,8 @@ int XeresTieP_Main(int argc,char** argv)
 
 int XeresMergeTieP_Main(int argc,char** argv)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    std::vector<std::string> aVSeq;
    std::string aDir="./";
    std::string aPostMerge;
@@ -114,6 +120,8 @@ int XeresMergeTieP_Main(int argc,char** argv)
 
 int XeresHomMatch_main(int argc,char** argv)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    std::string aDir="./";
    std::string aSeq;
    std::string anOri;
@@ -130,9 +138,34 @@ int XeresHomMatch_main(int argc,char** argv)
    StdCorrecNameOrient(anOri,aDir);
    anAppli.CalculHomMatch(anOri);
 
+   return EXIT_SUCCESS;
+}
+
+int XeresReNameInit_main(int argc,char** argv)
+{
+   MMD_InitArgcArgv(argc,argv);
+
+   std::string aDir="./";
+   std::string aSeq;
+
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(aSeq, "Sequence"),
+         LArgMain()  << EAM(aDir,"Dir",true,"Folder of data, Def=./")
+   );
+
+   std::string aCom = MM3dBinFile_quotes( "MyRename " )
+                      + "\"([A-Z][0-9]{1,2})_.*\"   \"\\$1_" + aSeq + ".jpg\" Exe=1" ;
+
+   // std::cout << aCom << "\n";
+   System(aCom);
+
+
 
    return EXIT_SUCCESS;
 }
+
 
 
 
