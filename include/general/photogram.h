@@ -1689,6 +1689,9 @@ class ElCamera : public cCapture3D
       Pt2dr   L3toF2(Pt3dr) const;
       Pt2dr   PtDirRayonL3toF2(Pt2dr) const;
 
+      Pt2dr Pixel2Radian(const Pt2dr & aP) const;
+      Pt2dr Radian2Pixel(const Pt2dr & aP) const;
+
       Pt3dr   C2toDirRayonL3(Pt2dr) const;
       Pt2dr   L3toC2(Pt3dr) const;
 
