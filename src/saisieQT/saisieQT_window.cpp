@@ -86,65 +86,16 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
 
-
-	#ifdef __DEBUG
-		gDefaultDebugErrorHandler->setAction(MessageHandler::CIN_GET);
-		mainWindow = this;
-
-		qt_out << "mouse left down ! mainWindow = {" << mainWindow << "}" << endl;
-		qt_out << eToString(gDefaultDebugErrorHandler->action()) << " (" << gDefaultDebugErrorHandler->exitCode() << ')' << endl;
-
-		QApplication &appli = *(QApplication *)QCoreApplication::instance();
-
-		QWidgetList wlist = appli.allWidgets();
-		qt_out << wlist.size() << " widgets" << endl;
-
-		QWidgetList topwlist = appli.topLevelWidgets();
-		qt_out << topwlist.size() << " widgets sont au top" << endl;
-
-		QWidget *focus = appli.focusWidget();
-		qt_out << "focus widgets = " << focus << endl;
-
-		QT_forest forest;
-		foreach (QWidget *widget, wlist)
-		{
-			//~ qt_out << "--- widget = {" << widget << "} root = " << QT_forest::getRoot(widget) << endl;
-			forest.addLineage(widget);
-
-			//~ qt_out << '{' << widget << "}.parent() = " << widget->parent();
-			//~ if (widget->parentWidget() != widget->parent()) qt_out << " parentWidget() = {" << widget->parentWidget() << "}";
-			//~ qt_out << endl;
-		}
-
-		qt_out << "forest.mNodes.size() = " << forest.mNodes.size() << endl;
-		forest.__check_connections();
-
-		qt_out << "forest.nbRoots() = " << forest.nbRoots() << endl;
-		qt_out << "forest.nbLeafs() = " << forest.nbLeafs() << endl;
-		qt_out << "forest.minHeight() = " << forest.minHeight() << endl;
-		qt_out << "forest.maxHeight() = " << forest.maxHeight() << endl;
-
-		list<QT_node *> roots;
-		forest.getRoots(roots);
-		qt_out << "roots.size() = " << roots.size() << endl;
-
-		// __DEL
-		list<QT_node>::iterator it = forest.mNodes.begin();
-		while (it != forest.mNodes.end())
-		{
-			if (it->mValue->actions().size()) qt_out << it->lineage() << endl;
-			it++;
-		}
-
-		list<QT_node *>::iterator itRoot = roots.begin();
-		while (itRoot != roots.end())
-		{
-			QT_node &root = **itRoot++;
-
-			list<QT_node *> leafs;
-			root.getLeafs(leafs);
-			qt_out << "leafs.size() = " << leafs.size() << endl;
-		}
+	#if ELISE_unix
+		//~ shortcuts do not work under linux (bug or architecture pb)
+		addAction(_ui->menuSelection->menuAction());
+		addAction(_ui->menuFile->menuAction());
+		addAction(_ui->menuView->menuAction());
+		addAction(_ui->menuStandard_views->menuAction());
+		addAction(_ui->menuZoom->menuAction());
+		addAction(_ui->menuHelp->menuAction());
+		addAction(_ui->menuTools->menuAction());
+		addAction(_ui->menuWindows->menuAction());
 	#endif
 }
 
@@ -210,6 +161,9 @@ void SaisieQtWindow::createRecentFileMenu()
     if (_appMode <= MASK3D)
     {
         _RFMenu = new QMenu(tr("&Recent files"), this);
+
+        
+			gAllActions[_RFMenu->menuAction()] = "_RFMenu";
 
         _ui->menuFile->insertMenu(_ui->actionSettings, _RFMenu);
 
