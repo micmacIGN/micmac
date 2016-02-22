@@ -74,6 +74,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
                      << EAM(mSzTile,"SzTile",true,"Size of Tiles in Pixel")
                      << EAM(mDistPMul,"DistPMul",true,"Typical dist between pmult")
                      << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber")
+                     << EAM(mParal,"Paral",true,"Do it paral, def=true")
    );
    // if mKBox was set, we are not the master call (we are the "subcommand")
    mCallBack = EAMIsInit(&mKBox);
