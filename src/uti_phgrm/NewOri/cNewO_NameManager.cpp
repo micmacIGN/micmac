@@ -176,9 +176,14 @@ CamStenope * cInterfChantierNameManipulateur::GlobCalibOfName(const std::string 
    return mMapName2Calib[aNC];
 }
 
-CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName) 
+CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName)  const
 {
     return mICNM->GlobCalibOfName(aName,mPrefOriCal,true);
+}
+
+CamStenope * cNewO_NameManager::CalibrationCamera(const std::string  & aName) const
+{
+   return CamOfName(aName);
 }
 
 std::string cNewO_NameManager::NameOriOut(const std::string & aNameIm) const
