@@ -21,17 +21,6 @@ void setStyleSheet(QApplication &app)
 
 #ifdef __DEBUG
 	#include "qt_node.h"
-	#include <typeinfo>
-	#if ELISE_unix
-		#include <cxxabi.h>
-	#endif
-	
-	#ifdef ELISE_windows
-		#include <fstream>
-		ofstream qt_out("qt_out.txt");
-	#else
-		#define qt_out cout
-	#endif
 #endif
 
 SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
@@ -100,7 +89,9 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
 	#ifdef __DEBUG
 		gDefaultDebugErrorHandler->setAction(MessageHandler::CIN_GET);
-		qt_out << "mouse left down !" << endl;
+		mainWindow = this;
+
+		qt_out << "mouse left down ! mainWindow = {" << mainWindow << "}" << endl;
 		qt_out << eToString(gDefaultDebugErrorHandler->action()) << " (" << gDefaultDebugErrorHandler->exitCode() << ')' << endl;
 
 		QApplication &appli = *(QApplication *)QCoreApplication::instance();
@@ -141,13 +132,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 		list<QT_node>::iterator it = forest.mNodes.begin();
 		while (it != forest.mNodes.end())
 		{
-			int status = 0;
-			#if ELISE_unix
-				string name = abi::__cxa_demangle(typeid(*it->mValue).name(), NULL, NULL, &status);
-			#else
-				string name = typeid(*it->mValue).name();
-			#endif
-			if (it->mValue->actions().size()) qt_out << name << '(' << it->mValue->objectName().toStdString() << ')' << ' ' << it->mValue->actions().size() << endl;
+			if (it->mValue->actions().size()) qt_out << it->lineage() << endl;
 			it++;
 		}
 

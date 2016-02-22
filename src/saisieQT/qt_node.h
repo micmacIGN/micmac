@@ -1,4 +1,18 @@
 #ifdef __DEBUG
+	#if ELISE_windows
+		#include <fstream>
+		ofstream qt_out("qt_out.txt");
+	#else
+		#define qt_out cout
+	#endif
+
+	#include <typeinfo>
+	#if ELISE_unix
+		#include <cxxabi.h>
+	#endif
+
+	QWidget *mainWindow = NULL;
+
 	class QT_node
 	{
 	public:
@@ -97,6 +111,60 @@
 			return result;
 		}
 
+		string name() const
+		{
+			stringstream ss;
+
+			#if ELISE_unix
+				int status;
+				string name = abi::__cxa_demangle(typeid(*mValue).name(), NULL, NULL, &status);
+			#else
+				string name = typeid(*mValue).name();
+			#endif
+
+			ss << name << '(' << mValue->objectName().toStdString() << ',' << mValue->actions().size() << " actions)";
+
+			//~ QAction *help = NULL;
+			foreach (QAction *action, mValue->actions())
+			{
+				//~ if (mainWindow != NULL) mainWindow->addAction(action);
+
+				//~ ss << ' ' << action->objectName().toStdString();
+				ss << " [" << gAllActions[action] << ']';
+//~ 
+				//~ if (action->objectName() == "actionHelpShortcuts") help = action;
+			}
+			//~ ss << ')';
+//~ 
+			//~ if (help != NULL)
+			//~ {
+				//~ qt_out << "action help found !" << endl;
+				//~ help->trigger();
+			//~ }
+
+			return ss.str();
+		}
+
+		string lineage() const
+		{
+			stringstream ss;
+			list<const QT_node *>lineage;
+			const QT_node *node = this;
+			while ( !node->isRoot())
+			{
+				lineage.push_front(node);
+				node = node->mParent;
+			}
+			lineage.push_front(node);
+
+			list<const QT_node *>::const_iterator it = lineage.begin();
+			ss << (**it++).name();
+			while (it != lineage.end())
+				ss << " <- " << (**it++).name();
+
+			return ss.str();
+		}
+
 		#ifdef __DEBUG
 			void __check_connections() const
 			{
@@ -188,13 +256,6 @@
 				it++;
 			}
 			return result;
-		}
-
-		string name() const
-		{
-			stringstream ss;
-			ss << '{' << this << '}';
-			return ss.str();
 		}
 
 		size_t minHeight() const
