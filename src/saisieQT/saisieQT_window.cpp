@@ -25,6 +25,13 @@ void setStyleSheet(QApplication &app)
 	#if ELISE_unix
 		#include <cxxabi.h>
 	#endif
+	
+	#ifdef ELISE_windows
+		#include <fstream>
+		ofstream qt_out("qt_out.txt");
+	#else
+		#define qt_out cout
+	#endif
 #endif
 
 SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
@@ -93,42 +100,42 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
 	#ifdef __DEBUG
 		gDefaultDebugErrorHandler->setAction(MessageHandler::CIN_GET);
-		cout << "mouse left down !" << endl;
-		cout << eToString(gDefaultDebugErrorHandler->action()) << " (" << gDefaultDebugErrorHandler->exitCode() << ')' << endl;
+		qt_out << "mouse left down !" << endl;
+		qt_out << eToString(gDefaultDebugErrorHandler->action()) << " (" << gDefaultDebugErrorHandler->exitCode() << ')' << endl;
 
 		QApplication &appli = *(QApplication *)QCoreApplication::instance();
 
 		QWidgetList wlist = appli.allWidgets();
-		cout << wlist.size() << " widgets" << endl;
+		qt_out << wlist.size() << " widgets" << endl;
 
 		QWidgetList topwlist = appli.topLevelWidgets();
-		cout << topwlist.size() << " widgets sont au top" << endl;
+		qt_out << topwlist.size() << " widgets sont au top" << endl;
 
 		QWidget *focus = appli.focusWidget();
-		cout << "focus widgets = " << focus << endl;
+		qt_out << "focus widgets = " << focus << endl;
 
 		QT_forest forest;
 		foreach (QWidget *widget, wlist)
 		{
-			//~ cout << "--- widget = {" << widget << "} root = " << QT_forest::getRoot(widget) << endl;
+			//~ qt_out << "--- widget = {" << widget << "} root = " << QT_forest::getRoot(widget) << endl;
 			forest.addLineage(widget);
 
-			//~ cout << '{' << widget << "}.parent() = " << widget->parent();
-			//~ if (widget->parentWidget() != widget->parent()) cout << " parentWidget() = {" << widget->parentWidget() << "}";
-			//~ cout << endl;
+			//~ qt_out << '{' << widget << "}.parent() = " << widget->parent();
+			//~ if (widget->parentWidget() != widget->parent()) qt_out << " parentWidget() = {" << widget->parentWidget() << "}";
+			//~ qt_out << endl;
 		}
 
-		cout << "forest.mNodes.size() = " << forest.mNodes.size() << endl;
+		qt_out << "forest.mNodes.size() = " << forest.mNodes.size() << endl;
 		forest.__check_connections();
 
-		cout << "forest.nbRoots() = " << forest.nbRoots() << endl;
-		cout << "forest.nbLeafs() = " << forest.nbLeafs() << endl;
-		cout << "forest.minHeight() = " << forest.minHeight() << endl;
-		cout << "forest.maxHeight() = " << forest.maxHeight() << endl;
+		qt_out << "forest.nbRoots() = " << forest.nbRoots() << endl;
+		qt_out << "forest.nbLeafs() = " << forest.nbLeafs() << endl;
+		qt_out << "forest.minHeight() = " << forest.minHeight() << endl;
+		qt_out << "forest.maxHeight() = " << forest.maxHeight() << endl;
 
 		list<QT_node *> roots;
 		forest.getRoots(roots);
-		cout << "roots.size() = " << roots.size() << endl;
+		qt_out << "roots.size() = " << roots.size() << endl;
 
 		// __DEL
 		list<QT_node>::iterator it = forest.mNodes.begin();
@@ -140,7 +147,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 			#else
 				string name = typeid(*it->mValue).name();
 			#endif
-			if (it->mValue->actions().size()) cout << name << '(' << it->mValue->objectName().toStdString() << ')' << ' ' << it->mValue->actions().size() << endl;
+			if (it->mValue->actions().size()) qt_out << name << '(' << it->mValue->objectName().toStdString() << ')' << ' ' << it->mValue->actions().size() << endl;
 			it++;
 		}
 
@@ -151,7 +158,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
 			list<QT_node *> leafs;
 			root.getLeafs(leafs);
-			cout << "leafs.size() = " << leafs.size() << endl;
+			qt_out << "leafs.size() = " << leafs.size() << endl;
 		}
 	#endif
 }
