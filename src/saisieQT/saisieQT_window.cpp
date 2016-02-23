@@ -82,7 +82,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
 
-	#if ELISE_unix
+	#ifdef __QT_5_SHORTCUT_PATCH
 		//~ shortcuts do not work under linux (bug or architecture pb)
 		addAction(_ui->menuSelection->menuAction());
 		addAction(_ui->menuFile->menuAction());
@@ -92,6 +92,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 		addAction(_ui->menuHelp->menuAction());
 		addAction(_ui->menuTools->menuAction());
 		addAction(_ui->menuWindows->menuAction());
+
+		// some shortcuts names do not appear
 	#endif
 }
 
@@ -157,10 +159,6 @@ void SaisieQtWindow::createRecentFileMenu()
     if (_appMode <= MASK3D)
     {
         _RFMenu = new QMenu(tr("&Recent files"), this);
-
-        
-			gAllActions[_RFMenu->menuAction()] = "_RFMenu";
-
         _ui->menuFile->insertMenu(_ui->actionSettings, _RFMenu);
 
         for (int i = 0; i < MaxRecentFiles; ++i)
