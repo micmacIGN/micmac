@@ -406,3 +406,5 @@ Documentation/DocProg/Doc0CPP.log
 include/XML_MicMac/Apero-Glob-New-tmp.xml
 hgrc
 Frameworks
+binaire-aux/linux/PoissonRecon
+binaire-aux/linux/SurfaceTrimmer
