@@ -55,7 +55,8 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mThresholdTotalNbPts2Im  (10),
      mSzTile                  (1600),
      mDistPMul                (200.0),
-     mCallBack                (false)
+     mCallBack                (false),
+     mInParal                 (true)
 {
    // Read parameters 
    MMD_InitArgcArgv(argc,argv);
@@ -68,6 +69,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
                      << EAM(mKBox,"KBox",true,"Internal use")
                      << EAM(mSzTile,"SzTile",true,"Size of Tiles in Pixel")
                      << EAM(mDistPMul,"DistPMul",true,"Typical dist between pmult")
+                     << EAM(mInParal,"InParal",true,"Do it in parallel, Def=true")
    );
    // if mKBox was set, we are not the master call (we are the "subcommand")
    mCallBack = EAMIsInit(&mKBox);
@@ -268,8 +270,10 @@ void cAppliTiepRed::GenerateSplit()
              }
         }
     }
-    // cEl_GPAO::DoComInParal(aLCom);
-    cEl_GPAO::DoComInSerie(aLCom);
+    if (mInParal)
+       cEl_GPAO::DoComInParal(aLCom);
+    else 
+       cEl_GPAO::DoComInSerie(aLCom);
 
     for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
        mVecCam[aKC]->SaveHom();

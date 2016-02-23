@@ -363,9 +363,16 @@ void cAppliTiepRed::DoExport()
 
               Pt2df aP1 = aMerge->GetVal(aKCam1);
               Pt2df aP2 = aMerge->GetVal(aKCam2);
-              aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(aCam1->Hom2Cam(aP1),aCam2->Hom2Cam(aP2)));
+
+              Pt2dr aQ1 = aCam1->Hom2Cam(aP1);
+              Pt2dr aQ2 = aCam2->Hom2Cam(aP2);
+
+              aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(aQ1,aQ2));
               // Symetrisation
-              aVVH[aKCam2][aKCam1].Cple_Add(ElCplePtsHomologues(aCam2->Hom2Cam(aP2),aCam1->Hom2Cam(aP1)));
+              aVVH[aKCam2][aKCam1].Cple_Add(ElCplePtsHomologues(aQ2,aQ1));
+
+               
+              // std::cout << "FFFFffGG  :" << mNM->CalibrationCamera(aCam1->NameIm())->Radian2Pixel(Pt2dr(aP1.x,aP1.y)) - aQ1 << "\n";
 
               Verif(aP1);
               Verif(aP2);

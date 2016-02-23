@@ -2842,6 +2842,25 @@ Pt2dr  ElCamera::L3toF2(Pt3dr p) const
     return DistDirecte(Proj().Proj(p));
 }
 
+
+Pt2dr ElCamera::Radian2Pixel(const Pt2dr & aP) const
+{
+     Pt3dr aQ(aP.x,aP.y,1.0);
+     return L3toF2(aQ);
+
+}
+
+Pt2dr ElCamera::Pixel2Radian(const Pt2dr & aP) const
+{
+    Pt3dr aQ =  F2toDirRayonL3(aP);
+    return Pt2dr(aQ.x,aQ.y) / aQ.z;
+}
+
+
+
+// Pt2dr Radian2Pixel() const;
+
+
 Pt2dr   ElCamera::PtDirRayonL3toF2(Pt2dr aP) const
 {
      return DistDirecte(Proj().Proj(Pt3dr(aP.x,aP.y,1.0)));
