@@ -276,6 +276,7 @@ class cAppliTiepRed
           std::set<std::string>          * mSetFiles;
           cVirtInterf_NewO_NameManager *   mNM ;
           bool                             mCallBack;
+          bool                             mInParal;
           int                              mKBox;
           Box2dr                           mBoxGlob;
           Box2dr                           mBoxLoc;
