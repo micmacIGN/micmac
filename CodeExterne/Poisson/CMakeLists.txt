@@ -4,7 +4,6 @@ if (${BUILD_POISSON})
 	include_directories ( ${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/include )
 
 	set(POISSON_SRC_DIR ${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/src)
-	set(BinAuxDir ${PROJECT_SOURCE_DIR}/binaire-aux)
 
 	add_executable( PoissonRecon
 					${POISSON_SRC_DIR}/CmdLineParser.cpp
@@ -26,12 +25,12 @@ if (${BUILD_POISSON})
 					${POISSON_SRC_DIR}/PTime.cpp
 					)
 
-	INSTALL(TARGETS PoissonRecon RUNTIME DESTINATION ${BinAuxDir} )
+	INSTALL(TARGETS PoissonRecon RUNTIME DESTINATION ${BIN_AUX_FULL_PATH} )
 	IF (WIN32)
 		target_link_libraries(PoissonRecon Psapi)
 	ENDIF()
 	
-	INSTALL(TARGETS SurfaceTrimmer RUNTIME DESTINATION ${BinAuxDir} )
+	INSTALL(TARGETS SurfaceTrimmer RUNTIME DESTINATION ${BIN_AUX_FULL_PATH} )
 	
 
 	
