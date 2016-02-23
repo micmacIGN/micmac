@@ -41,6 +41,9 @@ OPTION(WITH_ETALONPOLY  "Build etalonnage polygone" ON)
 # construire les binaires Poisson
 OPTION(BUILD_POISSON "Build Poisson binaries" OFF )
 
+# construire le binaire Rnx2rtkp
+OPTION(BUILD_RNX2RTKP "Build Rnx2rtkp binaries" OFF )
+
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
 
@@ -619,6 +622,8 @@ set(ELISE_DIR src)
 include(${PROJECT_SOURCE_DIR}/CodeExterne/ANN/CMakeLists.txt)
 # CONSTRUCTION : Librairie POISSON
 include(${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/CMakeLists.txt)
+# CONSTRUCTION : Librairie Rnx2rtkp
+include(${PROJECT_SOURCE_DIR}/CodeExterne/rnx2rtkp/CMakeLists.txt)
 # CONSTRUCTION : Librairie ELISE
 set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
 include(${code_genere_dir}/Sources.cmake)
