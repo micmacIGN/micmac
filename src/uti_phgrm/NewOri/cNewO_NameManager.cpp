@@ -40,6 +40,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+
+
+
 const std::string  cNewO_NameManager::PrefixDirTmp = "NewOriTmp";
 
 
@@ -186,6 +189,49 @@ CamStenope * cNewO_NameManager::CalibrationCamera(const std::string  & aName) co
    return CamOfName(aName);
 }
 
+ElRotation3D cNewO_NameManager::OriCam2On1(const std::string & aNOri1,const std::string & aNOri2,bool & OK) const
+{
+    OK = false;
+    bool aN1InfN2 = (aNOri1<aNOri2);
+    std::string aN1 =  aN1InfN2?aNOri1:aNOri2;
+    std::string aN2 =  aN1InfN2?aNOri2:aNOri1;
+
+    if (!  ELISE_fp::exist_file(NameXmlOri2Im(aN1,aN2,true)))
+       return ElRotation3D::Id;
+
+
+    cXml_Ori2Im  aXmlO = GetOri2Im(aN1,aN2);
+    OK = aXmlO.Geom().IsInit();
+    if (!OK)
+       return ElRotation3D::Id;
+    const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
+    ElRotation3D aR12 =    ElRotation3D (aXO.Centre(),ImportMat(aXO.Ori()),true);
+
+    OK = true;
+    return aN1InfN2 ? aR12.inv() : aR12;
+    //  return aN1InfN2 ? aR12 : aR12.inv();
+}
+
+
+std::pair<CamStenope*,CamStenope*> cNewO_NameManager::CamOriRel(const std::string & aN1,const std::string & aN2) const
+{
+    bool Ok;
+    ElRotation3D aR2On1 = OriCam2On1(aN1,aN2,Ok);
+    if (Ok)
+        return std::pair<CamStenope*,CamStenope*>(0,0);
+
+    CamStenope* aCam1 = CalibrationCamera(aN1)->Dupl();
+    CamStenope* aCam2 = CalibrationCamera(aN2)->Dupl();
+
+    aCam1->SetOrientation(ElRotation3D::Id);
+    aCam2->SetOrientation(aR2On1);
+
+    return std::pair<CamStenope*,CamStenope*>(aCam1,aCam2);
+}
+
+
+//   cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2);
+
 std::string cNewO_NameManager::NameOriOut(const std::string & aNameIm) const
 {
    return mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+OriOut(),aNameIm,true);
@@ -270,7 +316,7 @@ std::string cNewO_NameManager::NameTimingOri2Im() const
     return  Dir3P(true)  + "Timing2Im.xml";
 }
 
-cXml_Ori2Im cNewO_NameManager::GetOri2Im(const std::string & aN1,const std::string & aN2)
+cXml_Ori2Im cNewO_NameManager::GetOri2Im(const std::string & aN1,const std::string & aN2) const
 {
    return StdGetFromSI(mDir + NameXmlOri2Im(aN1,aN2,true),Xml_Ori2Im);
 }

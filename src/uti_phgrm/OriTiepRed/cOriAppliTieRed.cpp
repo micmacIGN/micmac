@@ -60,6 +60,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mCallBack                (false),
      mMulBoxRab               (0.15),
      mParal                   (true),
+     mVerifNM                 (false),
      mStrOut                  ("TiePRed")
 {
    // Read parameters 
@@ -75,6 +76,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
                      << EAM(mDistPMul,"DistPMul",true,"Typical dist between pmult")
                      << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber")
                      << EAM(mParal,"Paral",true,"Do it paral, def=true")
+                     << EAM(mVerifNM,"VerifNM",true,"(Internal) Verification of Virtual Name Manager")
    );
    // if mKBox was set, we are not the master call (we are the "subcommand")
    mCallBack = EAMIsInit(&mKBox);
@@ -172,8 +174,7 @@ const double & cAppliTiepRed::StdPrec() const {return mStdPrec;}
 std::vector<int>  & cAppliTiepRed::BufICam() {return mBufICam;}
 cInterfChantierNameManipulateur* cAppliTiepRed::ICNM() {return mICNM;}
 const std::string & cAppliTiepRed::StrOut() const {return mStrOut;}
-
-
+bool cAppliTiepRed::VerifNM() const {return mVerifNM;}
 
 void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
 {

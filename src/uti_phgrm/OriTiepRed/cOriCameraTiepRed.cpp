@@ -174,15 +174,37 @@ void cCameraTiepRed::AddCamBox(cCameraTiepRed* aCam2,int aKBox)
 void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
 {
 
+    std::pair<CamStenope*,CamStenope*>  aPC (0,0);
+    if (mAppli.VerifNM())// (this != aCam2)
+    {
+       aPC = mAppli.NM().CamOriRel(NameIm(),aCam2->NameIm());
+       std::cout << "SaveHomSaveHom " << NameIm() << " " << aCam2->NameIm() << " " << aPC.first << " " << aPC.second << "\n";
+    }
+    CamStenope* aCS1 = aPC.first;
+    CamStenope* aCS2 = aPC.second;
 
     ElPackHomologue aRes;
     for (std::list<int>::const_iterator itI=aLBox.begin(); itI!=aLBox.end() ; itI++)
     {
          std::string aName = mAppli.NameHomol(NameIm(),aCam2->NameIm(),*itI);
+
          if (ELISE_fp::exist_file(aName))
          {
              ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
+std::cout << aName << " EEEE " << aPack.size()<< "\n";
              aRes.Add(aPack);
+std::cout << aName << " FFFFFFFFF " << aPack.size() << " " << aCS2 << "\n";
+
+             // Verif
+             if (aCS2)
+             {
+                 for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end(); itP++)
+                 {
+                     double aDist;
+                     Pt3dr aQ=  aCS1->PseudoInter(itP->P1(),*aCS2,itP->P2(),&aDist);
+                     std::cout << "DDdddd " << aDist << "\n";
+                 }
+             }
 
          }
     }

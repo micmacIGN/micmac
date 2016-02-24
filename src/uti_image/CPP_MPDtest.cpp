@@ -1059,6 +1059,20 @@ void TestXmlX11();
 int MPDtest_main (int argc,char** argv)
 {
     {
+       double aFact =  1;
+       int aNb=0;
+       std::cout << "Entrer l'entier max\n";
+       std::cin >> aNb;
+       for (int i=1 ; i<=aNb ; i++)
+           aFact *= i;
+
+       std::cout << "Produit de 1 a " << aNb << " = " << aFact << "\n";
+
+       exit(EXIT_SUCCESS);
+    }
+
+
+    {
         std::cout << "ELISE_X11=" << ELISE_X11 << "\n";
     }
     // TestXmlX11();

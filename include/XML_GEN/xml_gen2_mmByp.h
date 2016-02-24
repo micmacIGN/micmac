@@ -319,6 +319,9 @@ class cVirtInterf_NewO_NameManager
 
            virtual std::list<std::string>  ListeImOrientedWith(const std::string & aName) const = 0;
 
+            virtual std::pair<CamStenope*,CamStenope*> CamOriRel(const std::string &,const std::string &) const =0;
+
+
            // for a given pair of image, load the tie points (in two vector of point)
            //  !! => they are "photogrametric" tie points, i.e they have been corrected of focal, PP and distorsion
            //  for a given 2d point (U,V)  the (U,V,1) 3d point is a direction in the camera repair
@@ -330,7 +333,7 @@ class cVirtInterf_NewO_NameManager
 
 
            // for a given pair of image, return the structure containg the orientation
-           virtual cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2) = 0;
+           virtual cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2) const = 0;
 
 
            static cVirtInterf_NewO_NameManager * StdAlloc(
