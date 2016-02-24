@@ -340,6 +340,8 @@ void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraT
 
 void cAppliTiepRed::DoExport()
 {
+
+
     int aNbCam = mVecCam.size();
     std::vector<std::vector<ElPackHomologue> > aVVH (aNbCam,std::vector<ElPackHomologue>(aNbCam));
     for (std::list<tPMulTiepRedPtr>::const_iterator itP=mListSel.begin(); itP!=mListSel.end();  itP++)
@@ -371,8 +373,12 @@ void cAppliTiepRed::DoExport()
               // Symetrisation
               aVVH[aKCam2][aKCam1].Cple_Add(ElCplePtsHomologues(aQ2,aQ1));
 
+              if (VerifNM())
+              {
+                   // Pt2dr aW1 = mNM->CalibrationCamera(aCam1->NameIm());
+                   // std::cout << "FFFFffGG  :" << mNM->CalibrationCamera(aCam1->NameIm())->Radian2Pixel(Pt2dr(aP1.x,aP1.y)) - aQ1 << "\n";
+              }
                
-              // std::cout << "FFFFffGG  :" << mNM->CalibrationCamera(aCam1->NameIm())->Radian2Pixel(Pt2dr(aP1.x,aP1.y)) - aQ1 << "\n";
 
               Verif(aP1);
               Verif(aP2);

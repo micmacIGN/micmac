@@ -271,6 +271,7 @@ class cAppliTiepRed
           std::string NameHomol(const std::string &,const std::string &,int aK) const;
           cInterfChantierNameManipulateur* ICNM();
           const std::string & StrOut() const;
+          bool  VerifNM() const;
 
      private :
 
@@ -310,6 +311,7 @@ class cAppliTiepRed
           bool                             mCallBack;
           double                           mMulBoxRab;
           bool                             mParal;
+          bool                             mVerifNM;
           std::string                      mStrOut;
           int                              mKBox;
           Box2dr                           mBoxGlob;
