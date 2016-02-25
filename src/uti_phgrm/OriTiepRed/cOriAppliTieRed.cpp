@@ -303,7 +303,9 @@ void cAppliTiepRed::GenerateSplit()
 
 
     for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
+    {
        mVecCam[aKC]->SaveHom();
+    }
 }
 
 

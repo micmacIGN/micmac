@@ -217,7 +217,7 @@ std::pair<CamStenope*,CamStenope*> cNewO_NameManager::CamOriRel(const std::strin
 {
     bool Ok;
     ElRotation3D aR2On1 = OriCam2On1(aN1,aN2,Ok);
-    if (Ok)
+    if (!Ok)
         return std::pair<CamStenope*,CamStenope*>(0,0);
 
     CamStenope* aCam1 = CalibrationCamera(aN1)->Dupl();
