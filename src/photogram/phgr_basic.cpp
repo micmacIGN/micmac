@@ -3591,6 +3591,20 @@ double   ElCamera::SomEcartAngulaire
     return aSomE;
 }
 
+Pt3dr  ElCamera::PseudoInterPixPrec
+       (
+           Pt2dr aPF2A,
+           const ElCamera & CamB,
+           Pt2dr aPF2B,
+           double & aD
+       ) const
+{
+    Pt3dr aRes = PseudoInter(aPF2A,CamB,aPF2B);
+    aD  =  (euclid(Ter2Capteur(aRes)-aPF2A) + euclid(CamB.Ter2Capteur(aRes)-aPF2B))/2.0;
+
+    return aRes;
+}
+
 
 
 Pt3dr   ElCamera::PseudoInter

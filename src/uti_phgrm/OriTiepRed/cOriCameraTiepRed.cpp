@@ -178,7 +178,6 @@ void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
     if (mAppli.VerifNM())// (this != aCam2)
     {
        aPC = mAppli.NM().CamOriRel(NameIm(),aCam2->NameIm());
-       std::cout << "SaveHomSaveHom " << NameIm() << " " << aCam2->NameIm() << " " << aPC.first << " " << aPC.second << "\n";
     }
     CamStenope* aCS1 = aPC.first;
     CamStenope* aCS2 = aPC.second;
@@ -191,19 +190,20 @@ void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
          if (ELISE_fp::exist_file(aName))
          {
              ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
-std::cout << aName << " EEEE " << aPack.size()<< "\n";
              aRes.Add(aPack);
-std::cout << aName << " FFFFFFFFF " << aPack.size() << " " << aCS2 << "\n";
 
              // Verif
              if (aCS2)
              {
+                 std::vector<double> aVD;
                  for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end(); itP++)
                  {
                      double aDist;
-                     Pt3dr aQ=  aCS1->PseudoInter(itP->P1(),*aCS2,itP->P2(),&aDist);
-                     std::cout << "DDdddd " << aDist << "\n";
+                     aCS1->PseudoInterPixPrec(itP->P1(),*aCS2,itP->P2(),aDist);
+                     aVD.push_back(aDist);
                  }
+                 if (aVD.size())
+                     std::cout << "Verif   CamOriRel " << MedianeSup(aVD) << "\n";
              }
 
          }
@@ -221,7 +221,9 @@ std::cout << aName << " FFFFFFFFF " << aPack.size() << " " << aCS2 << "\n";
 void  cCameraTiepRed::SaveHom()
 {
     for (std::map<cCameraTiepRed*,std::list<int> >::const_iterator itM=mMapCamBox.begin(); itM!=mMapCamBox.end() ;itM++)
+    {
        SaveHom(itM->first,itM->second);
+    }
 }
 
 NS_OriTiePRed_END
