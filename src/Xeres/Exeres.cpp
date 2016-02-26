@@ -69,6 +69,7 @@ int XeresTieP_Main(int argc,char** argv)
    std::string aSeq;
    int aSz,aNbHom=2;
    std::string aDir="./";
+   std::string aNameCpleSup="";
 
    ElInitArgMain
    (
@@ -77,10 +78,11 @@ int XeresTieP_Main(int argc,char** argv)
                      << EAMC(aSz,"Sz Tie points"),
          LArgMain()  << EAM(aDir,"Dir",true,"Folder of data, Def=./")
                      << EAM(aNbHom,"DV",true,"Delta Vois, Def=2")
+                     << EAM(aNameCpleSup,"CpleSup",true,"File for additional cple")
    );
 
    cAppliXeres anAppli(aDir,aSeq);
-   anAppli.CalculTiePoint(aSz,aNbHom);
+   anAppli.CalculTiePoint(aSz,aNbHom,aNameCpleSup);
 
    return EXIT_SUCCESS;
 }
