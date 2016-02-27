@@ -33,4 +33,74 @@ _MG_0081.CR2 _MG_0082.CR2 190 190 Rec=0.736466
 _MG_0081.CR2 _MG_0083.CR2 113 113 Rec=0.698989
 _MG_0082.CR2 _MG_0083.CR2 1112 1112 Rec=0.800119
 
+==================================================
+
+Function added for oscar after 22/2 meeting :
+
+        ############   For the export : ############
+
+cVirtInterf_NewO_NameManager
+{
+   ...
+              virtual CamStenope * CalibrationCamera(const std::string  & aName) const = 0;
+   ...
+};
+
+So you can get the calibration used in Martini to transform pixel 2 radian
+
+And then 
+
+class ElCamera 
+{
+    ..
+          Pt2dr Radian2Pixel(const Pt2dr & aP) const;
+    ...
+};
+
+To transform a "normalized" point in pixel (a CamStenope inehrit from ElCamera)
+
+        ############   For computing accuracy of TieP with relative orientation : ############
+
+
+
+cVirtInterf_NewO_NameManager
+{
+   ...
+       virtual std::pair<CamStenope*,CamStenope*> CamOriRel(const std::string &,const std::string &) const =0;
+   ...
+};
+
+Return a pair oriented camera computed by the first command of Martini
+
+class ElCamera 
+{
+    ..
+  Pt3dr  PseudoInterPixPrec(Pt2dr aPF2A,const ElCamera & CamB,Pt2dr aPF2B,double & aD) const;
+   ..
+};
+
+Given 2 oriented camera, and 2 point in each image, compute intersection (no usefull here) and accuracy in pixel.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

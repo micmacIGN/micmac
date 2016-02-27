@@ -79,9 +79,31 @@ void  cAppliXeres::CalculHomMatch(const std::string & anOri)
     }
 }
   
-
-void cAppliXeres::CalculTiePoint(int aSz,int aNBHom)
+void  cAppliXeres::ExeTapioca(const std::string & aFile)
 {
+    std::string aCom =   MM3dBinFile_quotes("Tapioca")
+                       + " File "
+                       +  mDir + mNameCpleXml
+                       +  " " + ToString(mSzTapioca);
+
+    System(aCom);
+}
+
+std::string cAppliXeres::ExtractId(const std::string & aNameIm)
+{
+    static cElRegex TheAutom("([A-Z][0-9]{1,2}).*",10);
+    static std::string TheReplace = "$1";
+    return MatchAndReplace(TheAutom,aNameIm,TheReplace);
+}
+
+std::string cAppliXeres::Make2CurSeq(const std::string & aNameIm)
+{
+     return ExtractId(aNameIm) + "_" + mSeq + ".jpg";
+}
+
+void cAppliXeres::CalculTiePoint(int aSz,int aNBHom,const std::string & aNameAdd)
+{
+    mSzTapioca = aSz;
     cSauvegardeNamedRel aXmlCples;
     
     for (int aKC=0 ; aKC<int(mVCam.size()) ; aKC++)
@@ -102,15 +124,20 @@ void cAppliXeres::CalculTiePoint(int aSz,int aNBHom)
         }
     }
 
+    if (aNameAdd!="")
+    {
+        cSauvegardeNamedRel aXmlAdd = StdGetFromPCP(mDir+aNameAdd,SauvegardeNamedRel); 
+        for (std::vector<cCpleString>::const_iterator itC=aXmlAdd.Cple().begin() ; itC!=aXmlAdd.Cple().end() ; itC++)
+        {
+            std::string aN1 =  Make2CurSeq(itC->N1());
+            std::string aN2 =  Make2CurSeq(itC->N2());
+            aXmlCples.Cple().push_back(cCpleString(aN1,aN2));        
+        }
+    }
+
+
     MakeFileXML(aXmlCples,mDir+mNameCpleXml);
-
-    std::string aCom =   MM3dBinFile_quotes("Tapioca")
-                       + " File "
-                       +  mDir + mNameCpleXml
-                       +  " " + ToString(aSz);
-
-     // std::cout << "COM= " << aCom << "\n";
-     System(aCom);
+    ExeTapioca(mNameCpleXml);
 
      std::string aKH = "NKS-Assoc-CplIm2Hom@@dat";
 
