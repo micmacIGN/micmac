@@ -341,11 +341,24 @@ endif()
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 
 if (NOT HG_REVISION_DIST)
-	if(NOT MERCURIAL_EXECUTABLE)
-		message( STATUS "Mercurial (hg) cannot be found" )
-		set( HG_REVISION_DIST "unknown_no_hg" )
+	if(NOT MERCURIAL_EXECUTABLE OR NOT EXISTS "${PROJECT_SOURCE_DIR}/.hg")
+		message(STATUS "Mercurial (hg) cannot be found")
+		set(rev_file "${PROJECT_SOURCE_DIR}/include/rev")
+		if(EXISTS ${rev_file})
+			message(STATUS "using rev file")
+			EXECUTE_PROCESS(
+				COMMAND
+				cat ${rev_file}
+				RESULT_VARIABLE cat_result
+				OUTPUT_VARIABLE HG_REVISION_DIST
+				ERROR_QUIET
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		else()
+			message(STATUS "hg revision cannot be retrieved")
+			set( HG_REVISION_DIST "unknown_no_hg" )
+		endif()
 	else()
-		# Affiche la revision MICMAC
 		EXECUTE_PROCESS(
 			COMMAND
 			${MERCURIAL_EXECUTABLE} identify --num
