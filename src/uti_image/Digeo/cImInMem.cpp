@@ -206,24 +206,11 @@ void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_
 		}
 		else
 		{
-			Type aMaxV = aMinT;
-			for (int aY=0 ; aY<mSz.y ; aY++)
-			{
-				Type * aL = mData[aY];
-				for (int aX=0 ; aX<mSz.x ; aX++)
-					ElSetMax(aMaxV,aL[aX]);
-			}
-			aMul = (aMaxT-1) / aMaxV;
-			if (aMul > 1)
-			{
-				for (int aY=0 ; aY<mSz.y ; aY++)
-				{
-					Type * aL = mData[aY];
-					for (int aX=0 ; aX<mSz.x ; aX++)
-						aL[aX] *= aMul;
-				}
-				SauvIm("ReDyn_");
-			}
+			Type aMinV, aMaxV;
+			mIm.getMinMax(aMinV, aMaxV);
+
+			aMul = (aMaxT - 1) / (aMaxV - aMinV);
+			mIm.ramp(aMinV, aMul);
 		}
 
 		mImGlob.SetDyn(aMul);
@@ -234,21 +221,18 @@ void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_
 		mIm.getMinMax(aMinV, aMaxV);
 
 		#ifdef __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
-			Type mul;
+			Type aMul;
 			if (mAppli.Params().ValMaxForDyn().IsInit())
 			{
-				mul = Type(1) / (Type)(mAppli.Params().ValMaxForDyn().Val());
-				mIm.multiply(mul);
+				aMul = Type(1) / (Type)(mAppli.Params().ValMaxForDyn().Val());
+				mIm.multiply(aMul);
 			}
 			else
 			{
-				mul = Type(1) / (aMaxV - aMinV);
-				if (aMinV == 0)
-					mIm.multiply(mul);
-				else
-					mIm.ramp(aMinV, mul);
+				aMul = Type(1) / (aMaxV - aMinV);
+				mIm.ramp(aMinV, aMul);
 			}
-			mImGlob.SetDyn(mul);
+			mImGlob.SetDyn(aMul);
 			mImGlob.SetMaxValue(1);
 		#else
 			mImGlob.SetDyn(1);
