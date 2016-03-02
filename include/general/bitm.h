@@ -619,6 +619,7 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
 
       void getMinMax(Type &oMin, Type &oMax) const;
       void multiply(const Type &aK);
+      void substract(const Type &aB);
       void ramp(const Type &aMin, const Type &aK);
 
    private :
