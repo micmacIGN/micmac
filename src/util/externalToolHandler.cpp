@@ -23,11 +23,8 @@ string g_externalToolItem_errors[] = { "cannot be found",
 
 const std::string &ExternalToolItem::callName() const
 {
-    if ( !isCallable() ){
-        cerr << "ERROR: trying to call the external program ["  << m_shortName << "] but it " << errorMessage() << endl;
-        exit(-1);
-    }
-    return m_fullName;
+	if ( !isCallable()) ELISE_ERROR_EXIT("tool [" << m_shortName << "] has not been found");
+	return m_fullName;
 }
 
 // ExternalToolHandler
@@ -225,6 +222,18 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
         fullName = exeName;
     }
 
+    if (status == EXT_TOOL_UNDEF)
+    {
+        // check old binaire-aux
+        testName = MMDir() + EXTERNAL_TOOLS_SUBDIRECTORY + ELISE_CAR_DIR + exeName;
+        __OUT("testName = [" << testName << ']');
+        if (ELISE_fp::exist_file(testName))
+        {
+            status = (ExtToolStatus)(status | EXT_TOOL_FOUND_IN_EXTERN);
+            fullName = testName;
+       }
+    }
+
     // we searched and found nothing
     if ( status==EXT_TOOL_UNDEF )
         status=EXT_TOOL_NOT_FOUND;
@@ -290,25 +299,7 @@ int CheckDependencies_main(int argc,char ** argv)
 
 	ELISE_DEBUG_ERROR( !ctPath(MMDir()).exists(), "CheckDependencies_main", "MMDir() = [" << MMDir() << "] does not exists");
 	ELISE_DEBUG_ERROR( !ctPath(MMAuxilaryBinariesDirectory()).exists(), "CheckDependencies_main", "MMAuxilaryBinariesDirectory() = [" << MMAuxilaryBinariesDirectory() << "] does not exists");
-
-	#ifdef __DEBUG
-		//~ ctPath binauxPath(MMAuxilaryBinariesDirectory());
-		//~ list<cElFilename> files;
-		//~ list<ctPath> subdirs;
-		//~ binauxPath.getContent(files, subdirs, true); // true = recursive
-
-		//~ cout << "files:" << endl;
-		//~ list<cElFilename>::const_iterator itFile = files.begin();
-		//~ while (itFile != files.end())
-			//~ cout << "\t[" << (*itFile++).str() << ']' << endl;
-
-		//~ cout << "subdirs:" << endl;
-		//~ list<ctPath>::const_iterator itDir = subdirs.begin();
-		//~ while (itDir != subdirs.end())
-			//~ cout << "\t[" << (*itDir++).str() << ']' << endl;
-	#endif
-
-    cout << endl;
+	cout << endl;
 
     #ifdef __TRACE_SYSTEM__
         cout << "--- __TRACE_SYSTEM__ = " << __TRACE_SYSTEM__ << endl << endl;

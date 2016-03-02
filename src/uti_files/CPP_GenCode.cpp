@@ -306,6 +306,12 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
 	cParamIntrinsequeFormel * aPIF = PIF_For_GC(C2M,aType,aSet,aPAF);
 	ElRotation3D aRot(Pt3dr(0,0,0),0,0,0);
 
+        if ((!C2M) && (!isFixe) && (! isGL) && (!EqDroite)  && (aType !="NoVar"))
+        {
+            aPIF->GenEqRegulDist();
+            if (TEST_NEW_REGUL_DIST) return;
+        }
+
         // Genere auto les appuis fixe en X et Y
          if (isFixe)
 	 {
@@ -320,10 +326,6 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
 	   aCam->AddForUseFctrEqAppuisInc(true,true,wDist,EqDroite);
 	}
 
-        if ((!C2M) && (!isFixe) && (! isGL) && (!EqDroite)  && (aType !="NoVar"))
-        {
-            aPIF->GenEqRegulDist();
-        }
 }
 
 
@@ -331,7 +333,7 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
 void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite)
 {
     // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"NoVar",EqDroite);
-     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"NoVar",EqDroite);
+     // GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"NoVar",EqDroite);
 
 
     // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"BiLin",EqDroite);
@@ -413,6 +415,7 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite)
        GenCodeAppui(false,true,true,false,false);
        GenCodeAppui(false,false,true,false,false);
        GenCodeAppui(false,true,false,false,false);
+       GenCodeAppui(false,false,false,false,false);
     }
     else
     {

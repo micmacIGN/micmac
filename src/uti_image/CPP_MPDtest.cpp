@@ -1058,9 +1058,23 @@ void TestXmlX11();
 
 int MPDtest_main (int argc,char** argv)
 {
-    ELISE_fp::PurgeDir("BUG-Mehdi/Masq-TieP-D0002831.JPG/",true);
-    ELISE_fp::PurgeDir("BUG-Mehdi/Masq-TieP-D0002832.JPG/",true);
-    ELISE_fp::PurgeDir("BUG-Mehdi/Masq-TieP-D0002833.JPG/",true);
+    {
+       double aFact =  1;
+       int aNb=0;
+       std::cout << "Entrer l'entier max\n";
+       std::cin >> aNb;
+       for (int i=1 ; i<=aNb ; i++)
+           aFact *= i;
+
+       std::cout << "Produit de 1 a " << aNb << " = " << aFact << "\n";
+
+       exit(EXIT_SUCCESS);
+    }
+
+
+    {
+        std::cout << "ELISE_X11=" << ELISE_X11 << "\n";
+    }
     // TestXmlX11();
     // TestcFixedMergeStruct();
     // TestFoncReelle(FX/100.0,"FXDiv100.tif",Pt2di(500,500));

@@ -174,15 +174,37 @@ void cCameraTiepRed::AddCamBox(cCameraTiepRed* aCam2,int aKBox)
 void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
 {
 
+    std::pair<CamStenope*,CamStenope*>  aPC (0,0);
+    if (mAppli.VerifNM())// (this != aCam2)
+    {
+       aPC = mAppli.NM().CamOriRel(NameIm(),aCam2->NameIm());
+    }
+    CamStenope* aCS1 = aPC.first;
+    CamStenope* aCS2 = aPC.second;
 
     ElPackHomologue aRes;
     for (std::list<int>::const_iterator itI=aLBox.begin(); itI!=aLBox.end() ; itI++)
     {
          std::string aName = mAppli.NameHomol(NameIm(),aCam2->NameIm(),*itI);
+
          if (ELISE_fp::exist_file(aName))
          {
              ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
              aRes.Add(aPack);
+
+             // Verif
+             if (aCS2)
+             {
+                 std::vector<double> aVD;
+                 for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end(); itP++)
+                 {
+                     double aDist;
+                     aCS1->PseudoInterPixPrec(itP->P1(),*aCS2,itP->P2(),aDist);
+                     aVD.push_back(aDist);
+                 }
+                 if (aVD.size())
+                     std::cout << "Verif   CamOriRel " << MedianeSup(aVD) << "\n";
+             }
 
          }
     }
@@ -199,7 +221,9 @@ void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
 void  cCameraTiepRed::SaveHom()
 {
     for (std::map<cCameraTiepRed*,std::list<int> >::const_iterator itM=mMapCamBox.begin(); itM!=mMapCamBox.end() ;itM++)
+    {
        SaveHom(itM->first,itM->second);
+    }
 }
 
 NS_OriTiePRed_END

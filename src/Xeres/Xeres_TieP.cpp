@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Xeres.h"
 
+
+
 /*********************************************************************************/
 /*                                                                               */
 /*               cAppliXeres                                                     */
@@ -46,9 +48,64 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*********************************************************************************/
 
 
-void cAppliXeres::CalculTiePoint(int aSz,int aNBHom)
+void  cAppliXeres::CalculHomMatch(const std::string & anOri)
 {
+    for (int aKC=0 ; aKC<int(mVCam.size()) ; aKC++)
+    {
+        cXeres_Cam * aCam0 = mVCam[aKC];
+        if (aCam0->HasIm())
+        {
+            cImSecOfMaster  anISOM;
+            anISOM.Master() = aCam0->NameIm();
+            anISOM.UsedPenal() = 0.0;
+            cOneSolImageSec anOSIS;
+            std::vector<cXeres_Cam *> aVV =  NeighVois(aCam0,1);
+            anOSIS.Coverage() = aVV.size() * 0.3;
+            anOSIS.Score() =  anOSIS.Coverage();
+
+            for (int aKV=0 ; aKV<int(aVV.size()) ; aKV++)
+            {
+                cXeres_Cam * aCamV = aVV[aKV];
+                anOSIS.Images().push_back(aCamV->NameIm());
+            }
+            anISOM.Sols().push_back(anOSIS);
+            // "NKS-Assoc-ImSec"
+            MakeFileXML
+            (
+               anISOM,
+               mICNM->Assoc1To1("NKS-Assoc-ImSec@-"+anOri,aCam0->NameIm(),true)
+            );
+        }
+    }
+}
+  
+void  cAppliXeres::ExeTapioca(const std::string & aFile)
+{
+    std::string aCom =   MM3dBinFile_quotes("Tapioca")
+                       + " File "
+                       +  mDir + mNameCpleXml
+                       +  " " + ToString(mSzTapioca);
+
+    System(aCom);
+}
+
+std::string cAppliXeres::ExtractId(const std::string & aNameIm)
+{
+    static cElRegex TheAutom("([A-Z][0-9]{1,2}).*",10);
+    static std::string TheReplace = "$1";
+    return MatchAndReplace(TheAutom,aNameIm,TheReplace);
+}
+
+std::string cAppliXeres::Make2CurSeq(const std::string & aNameIm)
+{
+     return ExtractId(aNameIm) + "_" + mSeq + ".jpg";
+}
+
+void cAppliXeres::CalculTiePoint(int aSz,int aNBHom,const std::string & aNameAdd)
+{
+    mSzTapioca = aSz;
     cSauvegardeNamedRel aXmlCples;
+    
     for (int aKC=0 ; aKC<int(mVCam.size()) ; aKC++)
     {
         cXeres_Cam * aCam0 = mVCam[aKC];
@@ -67,15 +124,20 @@ void cAppliXeres::CalculTiePoint(int aSz,int aNBHom)
         }
     }
 
+    if (aNameAdd!="")
+    {
+        cSauvegardeNamedRel aXmlAdd = StdGetFromPCP(mDir+aNameAdd,SauvegardeNamedRel); 
+        for (std::vector<cCpleString>::const_iterator itC=aXmlAdd.Cple().begin() ; itC!=aXmlAdd.Cple().end() ; itC++)
+        {
+            std::string aN1 =  Make2CurSeq(itC->N1());
+            std::string aN2 =  Make2CurSeq(itC->N2());
+            aXmlCples.Cple().push_back(cCpleString(aN1,aN2));        
+        }
+    }
+
+
     MakeFileXML(aXmlCples,mDir+mNameCpleXml);
-
-    std::string aCom =   MM3dBinFile_quotes("Tapioca")
-                       + " File "
-                       +  mDir + mNameCpleXml
-                       +  " " + ToString(aSz);
-
-     // std::cout << "COM= " << aCom << "\n";
-     System(aCom);
+    ExeTapioca(mNameCpleXml);
 
      std::string aKH = "NKS-Assoc-CplIm2Hom@@dat";
 

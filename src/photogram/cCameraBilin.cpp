@@ -242,7 +242,7 @@ cSomBilin & cPIF_Bilin::FDist(const Pt2di & aP)
    return mFVDist[aP.y][aP.x];
 }
 
-Pt2d<Fonc_Num> cPIF_Bilin::VDist(Pt2d<Fonc_Num> aP,int aKCam)
+Pt2d<Fonc_Num> cPIF_Bilin::VirtualDist(Pt2d<Fonc_Num> aP,bool UsePC,int aKCam)
 {
    ELISE_ASSERT(aKCam==0,"cPIF_Bilin do not handle KCam!=0!!");
    int aOffs = aKCam * 4;

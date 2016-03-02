@@ -759,9 +759,9 @@ void SelfSetConvolSepY
 		const cConvolSpec<tData> &aConvolution1d
 	)
 {
-	tData **aBufIn  = new_data_lines<tData>( i_height, PackTranspo );
-	tData **aBufOut = new_data_lines<tData>( i_height, PackTranspo );
-	for ( int anX=0; anX<i_height; anX+=PackTranspo )
+	tData **aBufIn  = new_data_lines<tData>(i_height, PackTranspo);
+	tData **aBufOut = new_data_lines<tData>(i_height, PackTranspo);
+	for (int anX = 0; anX < i_width; anX += PackTranspo)
 	{
 		// Il n'y a pas de debordement car les images  sont predementionnee 
 		// d'un Rab de PackTranspo;  voir ResizeBasic
@@ -770,13 +770,13 @@ void SelfSetConvolSepY
 		tData * aL1 = aBufIn[1];
 		tData * aL2 = aBufIn[2];
 		tData * aL3 = aBufIn[3];
-		for (int aY=0 ; aY<i_height; aY++)
+		for (int aY = 0 ; aY < i_height; aY++)
 		{
-			const tData * aL = i_data[aY]+anX;
-			*(aL0)++ = *(aL++);
-			*(aL1)++ = *(aL++);
-			*(aL2)++ = *(aL++);
-			*(aL3)++ = *(aL++);
+			const tData * aL = i_data[aY] + anX;
+			*aL0++ = *aL++;
+			*aL1++ = *aL++;
+			*aL2++ = *aL++;
+			*aL3++ = *aL++;
 		}
 		SetConvolSepX( (const tData**)aBufIn, i_height, PackTranspo, aBufOut, aConvolution1d );
 
@@ -785,13 +785,13 @@ void SelfSetConvolSepY
 		aL2 = aBufOut[2];
 		aL3 = aBufOut[3];
 
-		for ( int aY=0; aY<i_height; aY++ )
+		for (int aY = 0; aY < i_height; aY++)
 		{
-			tData * aL = i_data[aY]+anX;
-			*(aL)++ = *(aL0++);
-			*(aL)++ = *(aL1++);
-			*(aL)++ = *(aL2++);
-			*(aL)++ = *(aL3++);
+			tData * aL = i_data[aY] + anX;
+			*aL++ = *aL0++;
+			*aL++ = *aL1++;
+			*aL++ = *aL2++;
+			*aL++ = *aL3++;
 		}
 	}
 

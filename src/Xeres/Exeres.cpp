@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int XeresTest_Main(int argc,char** argv)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    std::string aSeq;
 
    ElInitArgMain
@@ -62,9 +64,12 @@ int XeresTest_Main(int argc,char** argv)
 
 int XeresTieP_Main(int argc,char** argv)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    std::string aSeq;
    int aSz,aNbHom=2;
    std::string aDir="./";
+   std::string aNameCpleSup="";
 
    ElInitArgMain
    (
@@ -73,10 +78,11 @@ int XeresTieP_Main(int argc,char** argv)
                      << EAMC(aSz,"Sz Tie points"),
          LArgMain()  << EAM(aDir,"Dir",true,"Folder of data, Def=./")
                      << EAM(aNbHom,"DV",true,"Delta Vois, Def=2")
+                     << EAM(aNameCpleSup,"CpleSup",true,"File for additional cple")
    );
 
    cAppliXeres anAppli(aDir,aSeq);
-   anAppli.CalculTiePoint(aSz,aNbHom);
+   anAppli.CalculTiePoint(aSz,aNbHom,aNameCpleSup);
 
    return EXIT_SUCCESS;
 }
@@ -84,6 +90,8 @@ int XeresTieP_Main(int argc,char** argv)
 
 int XeresMergeTieP_Main(int argc,char** argv)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    std::vector<std::string> aVSeq;
    std::string aDir="./";
    std::string aPostMerge;
@@ -108,6 +116,104 @@ int XeresMergeTieP_Main(int argc,char** argv)
    }
 
    cAppliXeres::FusionneHom(aVAp,aPostMerge);
+
+   return EXIT_SUCCESS;
+}
+
+int XeresHomMatch_main(int argc,char** argv)
+{
+   MMD_InitArgcArgv(argc,argv);
+
+   std::string aDir="./";
+   std::string aSeq;
+   std::string anOri;
+
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(aSeq, "Sequence")
+                     << EAMC(anOri,"Orientation"),
+         LArgMain()  << EAM(aDir,"Dir",true,"Folder of data, Def=./")
+   );
+
+   cAppliXeres  anAppli(aDir,aSeq);
+   StdCorrecNameOrient(anOri,aDir);
+   anAppli.CalculHomMatch(anOri);
+
+   return EXIT_SUCCESS;
+}
+
+int XeresReNameInit_main(int argc,char** argv)
+{
+   MMD_InitArgcArgv(argc,argv);
+
+   std::string aDir="./";
+   std::string aSeq;
+
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(aSeq, "Sequence"),
+         LArgMain()  << EAM(aDir,"Dir",true,"Folder of data, Def=./")
+   );
+
+   std::string aCom = MM3dBinFile_quotes( "MyRename " )
+                      + "\"([A-Z][0-9]{1,2})_.*\"   \"\\$1_" + aSeq + ".jpg\" Exe=1" ;
+
+   // std::cout << aCom << "\n";
+   System(aCom);
+
+
+
+   return EXIT_SUCCESS;
+}
+
+int XeresCalibMain_main(int argc,char** argv)
+{
+   MMD_InitArgcArgv(argc,argv);
+
+   std::string aSeq,aDir,OutCal="Calib";
+   int aSz=1500;
+
+
+
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  //  << EAMC(aSeq, "Sequence")
+                     << EAMC(aDir, "Directory"),
+         LArgMain()  << EAM(aSeq,"Seq",true,"Folder of data, Def=./")
+                     << EAM(aSz,"Sz",true,"Sz of TieP, Def=1500")
+                     << EAM(OutCal,"Out",true,"")
+   );
+
+   // std::string aCdDir = "cd " + aDir + "/";
+   // System(aCdDir);
+   if (!EAMIsInit(&aSeq) ) aSeq = aDir;
+
+   cElemAppliSetFile anEASF(aDir+"/.*jpg");
+
+   const std::vector<std::string> * aVS = anEASF.SetIm();
+   int aNbIm = aVS->size();
+   for (int aK=0 ; aK<aNbIm ; aK++)
+   {
+        const std::string & aName = (*aVS)[aK];
+        ELISE_fp::MvFile(aDir+"/"+aName,aDir+"/"+aSeq+"_Calib" +ToString(aK) + ".jpg");
+        std::cout << "NAME = " << aName << "\n";
+   }
+
+   std::string aStrMMD= "MicMac-LocalChantierDescripteur.xml";
+
+   ELISE_fp::CpFile(aStrMMD,aDir+"/"+aStrMMD);
+
+
+   std::string aComTiep = MM3dBinFile_quotes("Tapioca") + " All  " + aDir + "/.*jpg " + ToString(aSz);
+   System(aComTiep);
+
+   std::string aComOri =  MM3dBinFile_quotes("Tapas ") + " FraserBasic " +  aDir + "/.*jpg " + " Out=" + OutCal
+                          + " RankInitPP=0 RankInitF=1 RefineAll=0";
+   System(aComOri);
+
 
    return EXIT_SUCCESS;
 }

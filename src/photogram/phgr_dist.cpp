@@ -215,7 +215,9 @@ REPERE-222222
 
 static int aCpt=0 ; aCpt++;
 /*
-std::cout << "CPT " << aCpt << "\n";
+bool Bug = (aCpt>=3381684) && MPD_MM();
+*/
+/*
  bool BugGravillon = (aCpt==146282);
  if (BugGravillon)
  {

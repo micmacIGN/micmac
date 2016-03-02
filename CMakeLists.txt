@@ -41,6 +41,9 @@ OPTION(WITH_ETALONPOLY  "Build etalonnage polygone" ON)
 # construire les binaires Poisson
 OPTION(BUILD_POISSON "Build Poisson binaries" OFF )
 
+# construire le binaire Rnx2rtkp
+OPTION(BUILD_RNX2RTKP "Build Rnx2rtkp binaries" OFF )
+
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
 
@@ -141,8 +144,25 @@ if(${WITH_QT5} OR ${WITH_QT4})
 			    find_package(Qt5OpenGL REQUIRED)
 
 			if (Qt5Widgets_FOUND)
+				if (NOT QT_QMAKE_EXECUTABLE)
+					get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+				endif()
 
-			    message( STATUS "-----> Qt5 found" )
+				EXECUTE_PROCESS(
+						COMMAND
+						${QT_QMAKE_EXECUTABLE} -query QT_VERSION
+						RESULT_VARIABLE qmake_version_result
+						OUTPUT_VARIABLE QT_VERSION
+						ERROR_QUIET
+						OUTPUT_STRIP_TRAILING_WHITESPACE
+					)
+
+				message(STATUS "using Qt " ${QT_VERSION})
+
+				if (QT_VERSION VERSION_LESS "5.4.0")
+					message(STATUS "Qt version < 5.4.0: using shortcuts patch")
+					add_definitions("-D__QT_5_SHORTCUT_PATCH")
+				endif()
 
 			    set(qt_version 5)
 
@@ -190,10 +210,6 @@ endif()
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND qt_version EQUAL 5)
 	if (POLICY CMP0045)
 		cmake_policy(SET CMP0045 NEW) # target of get_target_property must exists or a FATAL_ERROR is issued
-	endif()
-
-	if (NOT QT_QMAKE_EXECUTABLE)
-		get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 	endif()
 
 	if (NOT QT_INSTALL_LIBS)
@@ -325,11 +341,24 @@ endif()
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 
 if (NOT HG_REVISION_DIST)
-	if(NOT MERCURIAL_EXECUTABLE)
-		message( STATUS "Mercurial (hg) cannot be found" )
-		set( HG_REVISION_DIST "unknown_no_hg" )
+	if(NOT MERCURIAL_EXECUTABLE OR NOT EXISTS "${PROJECT_SOURCE_DIR}/.hg")
+		message(STATUS "Mercurial (hg) cannot be found")
+		set(rev_file "${PROJECT_SOURCE_DIR}/include/rev")
+		if(EXISTS ${rev_file})
+			message(STATUS "using rev file")
+			EXECUTE_PROCESS(
+				COMMAND
+				cat ${rev_file}
+				RESULT_VARIABLE cat_result
+				OUTPUT_VARIABLE HG_REVISION_DIST
+				ERROR_QUIET
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		else()
+			message(STATUS "hg revision cannot be retrieved")
+			set( HG_REVISION_DIST "unknown_no_hg" )
+		endif()
 	else()
-		# Affiche la revision MICMAC
 		EXECUTE_PROCESS(
 			COMMAND
 			${MERCURIAL_EXECUTABLE} identify --num
@@ -619,6 +648,8 @@ set(ELISE_DIR src)
 include(${PROJECT_SOURCE_DIR}/CodeExterne/ANN/CMakeLists.txt)
 # CONSTRUCTION : Librairie POISSON
 include(${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/CMakeLists.txt)
+# CONSTRUCTION : Librairie Rnx2rtkp
+include(${PROJECT_SOURCE_DIR}/CodeExterne/rnx2rtkp/CMakeLists.txt)
 # CONSTRUCTION : Librairie ELISE
 set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
 include(${code_genere_dir}/Sources.cmake)

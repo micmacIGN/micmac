@@ -1039,7 +1039,59 @@ void cAppliApero::BasculePlan
         cElRegex &                    aSelectorApply
      )
 {
-   cElPlan3D aPlan= EstimPlan(aBL.EstimPl(), aSelectorEstim,(const char *)0);
+   const cOrientInPlane * anOIP =0;
+   cSetOfMesureAppuisFlottants aSMAF;
+   if (aBL.OrientInPlane().IsInit())
+   {
+        anOIP = &(aBL.OrientInPlane().Val());
+        aSMAF = StdGetMAF(anOIP->FileMesures());
+   }
+
+
+   cElPlan3D * aPlanFromNamedPt=0;
+
+
+   // On regarde si le plan peut etre defini par les points 3D de nom "Plan*"
+   if (MPD_MM())
+   {
+       std::map<std::string,int> aCptName;
+       std::list<std::string>    aLName;
+       static cElRegex  aRegPlan("Plan[0-9]*",10);
+       for (   std::list<cMesureAppuiFlottant1Im>::const_iterator itMAF=aSMAF.MesureAppuiFlottant1Im().begin();
+               itMAF!=aSMAF.MesureAppuiFlottant1Im().end() ;
+               itMAF++
+           )
+       {
+           for 
+           (
+                std::list<cOneMesureAF1I>::const_iterator itMes=itMAF->OneMesureAF1I().begin();
+                itMes !=itMAF->OneMesureAF1I().end();
+                itMes++
+           )
+           {
+                std::string aName = itMes->NamePt();
+                if (aRegPlan.Match(itMes->NamePt()))
+                {
+                    aCptName[aName]++;
+                    if (aCptName[aName]==2)
+                       aLName.push_back(aName);
+                }
+           }
+       }
+       if (aLName.size() >=3)
+       {
+           std::vector<Pt3dr> aVPt;
+           for (std::list<std::string>::const_iterator itN=aLName.begin() ; itN!=aLName.end() ; itN++)
+           {
+               Pt3dr  aPt    = CreatePtFromPointeMonoOrStereo(aSMAF,*itN,(cElPlan3D*)0);
+               aVPt.push_back(aPt);
+           }
+           aPlanFromNamedPt = new cElPlan3D(aVPt,0);
+       }
+   }
+
+
+   cElPlan3D aPlan=  aPlanFromNamedPt ? (*aPlanFromNamedPt) :EstimPlan(aBL.EstimPl(), aSelectorEstim,(const char *)0);
 
    //std::cout << "ZZZ::cAppliApero::BasculePlan  \n";
    ElRotation3D  aRP2E = aPlan.CoordPlan2Euclid();
@@ -1051,8 +1103,8 @@ void cAppliApero::BasculePlan
 
    if (aBL.OrientInPlane().IsInit())
    {
-        const cOrientInPlane & anOIP = aBL.OrientInPlane().Val();
-        cSetOfMesureAppuisFlottants aSMAF = StdGetMAF(anOIP.FileMesures());
+        // const cOrientInPlane & anOIP = aBL.OrientInPlane().Val();
+        // cSetOfMesureAppuisFlottants aSMAF = StdGetMAF(anOIP.FileMesures());
 
          Pt3dr aP1 = aRP2E.ImAff(Pt3dr(1,0,0));
          aP1 = CreatePtFromPointeMonoOrStereo(aSMAF,"Line1",&aPlan,"USEDEF",&aP1);
@@ -1070,7 +1122,7 @@ void cAppliApero::BasculePlan
 */
 
 
-        double aD = anOIP.DistFixEch().ValWithDef(0);
+        double aD = anOIP->DistFixEch().ValWithDef(0);
 
         if (aD >0)
         {
@@ -1097,7 +1149,7 @@ void cAppliApero::BasculePlan
         // Pt3dr aDirY = aNorm ^ aDirX;
 
         Pt3dr aV[3];
-        ElMatrix<double>::PermRot(anOIP.AlignOn().Val(),aV);
+        ElMatrix<double>::PermRot(anOIP->AlignOn().Val(),aV);
 
 
         aMP2E = ComplemRotation(aV[0],aV[1],aNorm,aDirX);
@@ -1142,6 +1194,7 @@ void cAppliApero::BasculePlan
        }
    }
 
+   delete   aPlanFromNamedPt;
 }
 
 
