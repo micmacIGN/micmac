@@ -177,7 +177,8 @@ void initial_convolution( Im2D<tData,tBase> &o_dst )
 }
 */
 
-template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el aTypeFile)
+template <class Type>
+void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el aTypeFile)
 {
 	ResizeOctave(aBox.sz());
 	ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
@@ -229,27 +230,29 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 		mImGlob.SetMaxValue( aMaxT-1 );
 	}
 	else{
-		Type aMaxV = numeric_limits<Type>::min();
-		for (int aY=0 ; aY<mSz.y ; aY++)
-		{
-			Type * aL = mData[aY];
-			for (int aX=0 ; aX<mSz.x ; aX++)
-				ElSetMax(aMaxV,aL[aX]);
-		}
+		Type aMinV, aMaxV;
+		mIm.getMinMax(aMinV, aMaxV);
 
 		#ifdef __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
-			const Type  mul = (Type)1/(Type)( mAppli.Params().ValMaxForDyn().IsInit()?mAppli.Params().ValMaxForDyn().Val():mFileTheoricalMaxValue );
-			for (int aY=0 ; aY<mSz.y ; aY++)
+			Type mul;
+			if (mAppli.Params().ValMaxForDyn().IsInit())
 			{
-				Type * aL = mData[aY];
-				for (int aX=0 ; aX<mSz.x ; aX++)
-					aL[aX] *= mul;
+				mul = Type(1) / (Type)(mAppli.Params().ValMaxForDyn().Val());
+				mIm.multiply(mul);
+			}
+			else
+			{
+				mul = Type(1) / (aMaxV - aMinV);
+				if (aMinV == 0)
+					mIm.multiply(mul);
+				else
+					mIm.ramp(aMinV, mul);
 			}
 			mImGlob.SetDyn(mul);
 			mImGlob.SetMaxValue(1);
 		#else
 			mImGlob.SetDyn(1);
-			mImGlob.SetMaxValue( (REAL8)aMaxV );
+			mImGlob.SetMaxValue((REAL8)aMaxV);
 		#endif
 	}
 
