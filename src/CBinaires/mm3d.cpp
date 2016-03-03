@@ -236,6 +236,9 @@ int OriRedTie_main(int argc,char **argv) ;
 int HomFusionPDVUnik_main(int argc,char **argv) ;
 int TestDistM2C_main(int argc,char ** argv);
 
+int Blinis_main(int argc,char ** argv);
+
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -285,6 +288,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Drunk", Drunk_main," Images distortion removing tool"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using GCP",cArgLogCom(2)));
+       aRes.push_back(cMMCom("Blinis",Blinis_main," Block Initialisation",cArgLogCom(2)));
        aRes.push_back(cMMCom("GCPCtrl",GCPCtrl_main," Control accuracy with GCP"));
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Relative to absolute using embedded GPS",cArgLogCom(2)));

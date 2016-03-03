@@ -731,7 +731,6 @@ void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & an
            aSomM = NearestRotation(aSomM);
            ElRotation3D aRMoy(aSomTr,aSomM,true);
 
-/*
            double aSomEcP = 0.0;
            double aSomEcM = 0.0;
            for (int aKT=0 ; aKT<mNbTime ; aKT++)
@@ -747,10 +746,12 @@ void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & an
                    Pt3dr aTr =  aR1to0.tr();
                    ElMatrix<double>       aMatr=  aR1to0.Mat();
 
-                   xx// aSomEcP += euclid(aTr-
+                   aSomEcP += euclid(aTr-aSomTr);
+                   aSomEcM += aMatr.L2(aSomM);
                }
            }
-*/
+           aSomEcP /= aSomP;
+           aSomEcM = sqrt(aSomEcM) / aSomP;
 
            std::cout << "  ==========  AVERAGE =========== \n";
            std::cout << "    " <<  aRMoy.ImAff(Pt3dr(0,0,0))
@@ -758,6 +759,7 @@ void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & an
                                << "  " << aRMoy.teta02() 
                                << "  " << aRMoy.teta12() 
                                << "\n";
+           std::cout << "    DispTr=" << aSomEcP << " DispMat=" << aSomEcM << "\n";
 
            cParamOrientSHC aP;
            aP.IdGrp() = mNum2Cam[aKC]->NameCam();
