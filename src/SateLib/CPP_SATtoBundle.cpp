@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-#include "../uti_phgrm/MICMAC/CameraRPC.h"
+#include "../uti_phgrm/Apero/cCameraRPC.h"
 
 class cSatI_Appli
 {
@@ -49,49 +49,55 @@ class cSatI_Appli
         std::list<std::string> mListFile;
 
 	eTypeImporGenBundle mType;
-	std::string mMetadata;
-	std::string mCSysOut;
+    const   cSystemeCoord * mChSys;
+
 	Pt2di mGridSz;
 
 	std::vector<std::string> mValidByGCP;
 };
 
 cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
-	mMetadata(""),
-	mCSysOut(""),
-	mGridSz(Pt2di(10,8))
+	mType(eTIGB_Unknown),
+    mGridSz(Pt2di(10,8))
 {
     std::string aFullName;
     std::string aDir;
     std::string aPat;
+	std::string aCSysOut;
 
     std::string aNameType;
 
     ElInitArgMain
     (
          argc, argv,
-         LArgMain() << EAMC(aFullName,"Orientation file (RPC/SPICE) full name (Dir+Pat)", eSAM_IsExistFile)
-                    << EAMC(aNameType,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_")),
-	 LArgMain() << EAM(mCSysOut,"proj","true", "Output cartographic coordinate system (proj format)")
+         LArgMain() << EAMC(aFullName,"Orientation file (RPC/SPICE) full name (Dir+Pat)", eSAM_IsExistFile),
+	 LArgMain() << EAM(aCSysOut,"proj","true", "Output cartographic coordinate system (proj format)")
                     << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[10,10]", eSAM_NoInit)
-		    << EAM(mMetadata, "Meta", true, "Sensor metadata file, other than the RPC; Valid for IKONOS and CARTOSAT", eSAM_IsExistFile)
 		    << EAM(mValidByGCP, "VGCP", true, "Validate the prj fn with the provided GCPs [GrMes.xml,ImMes.xml]; optical centers not retrieved", eSAM_NoInit )
     );		      
 
     SplitDirAndFile(aDir, aPat, aFullName);
 
-    bool aModeHelp;
-    StdReadEnum(aModeHelp,mType,aNameType,eTIGB_NbVals);
+   // bool aModeHelp;
+   // StdReadEnum(aModeHelp,mType,aNameType,eTIGB_NbVals);
 
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     mListFile = mICNM->StdGetListOfFile(aPat);
+
+    mChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
+            (
+                aCSysOut,
+                StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                "SystemeCoord",
+                "SystemeCoord"
+             ));
 }
 
 
 int SATtoBundle_main(int argc,char ** argv)
 {
 
-    cSatI_Appli aApps(argc,argv);
+/*    cSatI_Appli aApps(argc,argv);
 
     for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
 		                         itL != aApps.mListFile.end(); 
@@ -101,8 +107,6 @@ int SATtoBundle_main(int argc,char ** argv)
 	if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
 	{
 
-            //CameraRPC aCurCam(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz);
-	   // aCurCam.ExpImp2Bundle();
 
             CameraRPC aCurCam(*itL,aApps.mType);
 	    aCurCam.Exp2BundleInGeoc();
@@ -115,22 +119,30 @@ int SATtoBundle_main(int argc,char ** argv)
 	}
     }
 
-
+*/
     return EXIT_SUCCESS;
 }
  
 int SATtoOpticalCenter_main(cSatI_Appli &aApps)
 {
 
+
     for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
 		                         itL != aApps.mListFile.end(); 
 					 itL++ )
     {
+
+       AutoDetermineTypeTIGB(aApps.mType,(const std::string)(*itL));
+
+       
        //Earth satellite
        if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
        {
-           CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
-           aCamRPC.OpticalCenterGrid(true);
+           //CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
+           
+
+           CameraRPC aCamRPC(*itL, aApps.mType,aApps.mChSys);
+           aCamRPC.OpticalCenterGrid(aApps.mGridSz,true);
 	
 	
 	   /*Pt2dr aa(100.4,1000.0);
@@ -217,19 +229,24 @@ void SATbackrpjGCP_main(cSatI_Appli &aApps)
 		                         itL != aApps.mListFile.end(); 
 					 itL++ )
     {
-	if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
-	{
-            CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
+       AutoDetermineTypeTIGB(aApps.mType,*itL);
+           
+
+	    if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
+	    {
+           // CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
+           CameraRPC aCamRPC(*itL, aApps.mType,aApps.mChSys);
 
             cMesureAppuiFlottant1Im aImCur;
 	    aImCur.NameIm() = *itL;
+            std::cout << "aImCur.NameIm() " << *itL  << "\n"; 
 
 	    //for all images
 	    std::list<cMesureAppuiFlottant1Im>::const_iterator aImIt;
 	    for( aImIt=aDicoIm.MesureAppuiFlottant1Im().begin();
                  aImIt!=aDicoIm.MesureAppuiFlottant1Im().end(); aImIt++)
 	    {
-                
+            std::cout << "aImIt->NameIm() " << aImIt->NameIm()  << "\n"; 
 		if( *itL == aImIt->NameIm() )
 	        {
 	            cMesureAppuiFlottant1Im aMAFcur;
@@ -241,6 +258,7 @@ void SATbackrpjGCP_main(cSatI_Appli &aApps)
 		    for(aImPtIt=aImIt->OneMesureAF1I().begin(); 
 		        aImPtIt!=aImIt->OneMesureAF1I().end(); aImPtIt++)
 		    {
+            std::cout << "aImPtIt->NamePt() " << aImPtIt->NamePt()  << "\n"; 
 		        //find ground coordintes XYZ
 		        std::list<cOneAppuisDAF>::const_iterator aGrPtIt;
 		        for(aGrPtIt=aDicoGr.OneAppuisDAF().begin();
@@ -263,7 +281,7 @@ void SATbackrpjGCP_main(cSatI_Appli &aApps)
 
 				//push the backprojected obs
 				aOMcur.push_back(aPtCurCmp);
-				std::cout << aGrPtIt->NamePt() << "\n";        
+				std::cout << aGrPtIt->NamePt() << aPtCurCmp.PtIm() << aPtCurCmp.PtIm()  << "\n";        
 			    }
 		        }
 		    }
@@ -355,8 +373,11 @@ int CPP_TestRPCDirectGen(int argc,char ** argv)
 	//Earth satellite
 	if(aType!=eTIGB_Unknown && aType!=eTIGB_MMSten)
 	{
+        
         CameraRPC aCRPC(*itL,aType,aChSys);
-	    aCRPC.TestDirectRPCGen();
+        //create TestDirectRPCGen to make it work
+	    //aCRPC.TestDirectRPCGen();
+
 	    
 	}
 	//other planets or stenope camera

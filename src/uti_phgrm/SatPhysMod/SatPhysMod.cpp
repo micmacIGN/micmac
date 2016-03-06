@@ -51,7 +51,7 @@ class cAppli_TestPhysMod
        std::string mNameIm,mNameOrient,mNameMetaOri;
        std::string       mNameType;
        eTypeImporGenBundle mType;
-       RPC                  mRPC;  // Gives acces to the lowest level
+       cRPC                 *mRPC;  // Gives acces to the lowest level
        Pt2di                mSzLineG;
        bool                 mDet;
 };
@@ -79,7 +79,12 @@ cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
      // int aIntType = mType;
 
      eModeRefinePB aModeRefine = eMRP_None;
-     if (mType==eTIGB_MMDimap2)
+     
+     //////////// EwR modified
+     mRPC = new cRPC(mNameOrient,mType);
+     aModeRefine = eMRP_Direct;
+
+     /*if (mType==eTIGB_MMDimap2)
      {
           mRPC.ReadDimap(mNameOrient);
           aModeRefine = eMRP_Direct;
@@ -87,7 +92,7 @@ cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
      else if(mType==eTIGB_MMDGlobe )
      {
           mRPC.ReadXML(mNameOrient);
-          mRPC.InverseToDirectRPC();
+          mRPC.InvToDirRPC();
           aModeRefine = eMRP_Direct;
 
      }
@@ -95,17 +100,17 @@ cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
      {
           ELISE_ASSERT(EAMIsInit(&mNameMetaOri),"Ikonos requires meta file");
           mRPC.ReadASCII(mNameOrient);
-          mRPC.ReadASCIIMetaData(mNameMetaOri, mNameOrient);
-          mRPC.InverseToDirectRPC();
+          mRPC.ReadASCIIMeta(mNameMetaOri, mNameOrient);
+          mRPC.InvToDirRPC();
 
           aModeRefine = eMRP_Direct;
      }
      else
      {
          ELISE_ASSERT(false,"Use unsuported eTypeImporGenBundle");
-     }
+     }*/
 
-     cRPC_PushB_PhysMod * aPhys = cRPC_PushB_PhysMod::NewRPC_PBP(mRPC,aModeRefine,mSzLineG);
+     cRPC_PushB_PhysMod * aPhys = cRPC_PushB_PhysMod::NewRPC_PBP(*mRPC,aModeRefine,mSzLineG);
      // Pt2dr aSz =       Pt2dr(aPhys->Sz());
 
 
