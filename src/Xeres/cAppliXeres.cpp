@@ -89,7 +89,7 @@ cAppliXeres::cAppliXeres(const std::string & aDir,const std::string & aSeq) :
          }
     }
 
-    for (int anI = 1; anI <= 24 ; anI++)
+    for (int anI = 1; anI <= 30 ; anI++)
     {
          AddCam(std::string("X") + ToString(anI));
     }

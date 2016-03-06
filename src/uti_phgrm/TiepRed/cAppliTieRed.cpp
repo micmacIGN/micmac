@@ -48,12 +48,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
+     mFilesIm                 (0),
      mPrec2Point              (5.0),
-     mThresholdPrecMult       (2.0),
+     mThresholdPrecMult       (2.0),  // Multiplier of Mediane Prec, can probably be stable
      mThresholdNbPts2Im       (3),
      mThresholdTotalNbPts2Im  (10),
      mSzTile                  (1600),
-     mCallBack                (false)
+     mDistPMul                (200.0),
+     mCallBack                (false),
+     mInParal                 (true)
 {
    // Read parameters 
    MMD_InitArgcArgv(argc,argv);
@@ -65,33 +68,36 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
                      << EAM(mPrec2Point,"Prec2P",true,"Threshold of precision for 2 Points")
                      << EAM(mKBox,"KBox",true,"Internal use")
                      << EAM(mSzTile,"SzTile",true,"Size of Tiles in Pixel")
+                     << EAM(mDistPMul,"DistPMul",true,"Typical dist between pmult")
+                     << EAM(mInParal,"InParal",true,"Do it in parallel, Def=true")
    );
    // if mKBox was set, we are not the master call (we are the "subcommand")
    mCallBack = EAMIsInit(&mKBox);
    mDir = DirOfFile(mPatImage);
+   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    // Correct orientation (for example Ori-toto => toto)
    if (EAMIsInit(&mCalib))
    {
       StdCorrecNameOrient(mCalib,mDir);
    }
    
-   const std::vector<std::string> * aFilesIm =0;
    if (mCallBack)  // Subcommand mode, initialise set of file for Param_K.xml
    {
-       mXmlParBox = StdGetFromPCP(NameParamBox(mKBox),Xml_ParamBoxReducTieP);
+       mXmlParBox = StdGetFromPCP(NameParamBox(mKBox,true),Xml_ParamBoxReducTieP);
        mBoxLoc = mXmlParBox.Box();
-       aFilesIm = &(mXmlParBox.Ims());
+       mFilesIm = &(mXmlParBox.Ims());
+   std::cout << "=======================   KBOX=" << mKBox << "  ===================\n";
    }
    else  // Master command, initialise from pattern
    {
        cElemAppliSetFile anEASF(mPatImage);
        // anEASF.Init(mPatImage);
-       aFilesIm = anEASF.SetIm();
+       mFilesIm = anEASF.SetIm();
    }
 
 
-   mSetFiles = new std::set<std::string>(aFilesIm->begin(),aFilesIm->end());
-   std::cout << "## Get Nb Images " <<  aFilesIm->size() << "\n";
+   mSetFiles = new std::set<std::string>(mFilesIm->begin(),mFilesIm->end());
+   std::cout << "## Get Nb Images " <<  mFilesIm->size() << "\n";
 
 
    mNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir,mCalib);
@@ -101,9 +107,9 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    Pt2dr aPSup(-1E50,-1E50);
 
    // Parse the images 
-   for (int aKI = 0 ; aKI<int(aFilesIm->size()) ; aKI++)
+   for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
    {
-       const std::string & aNameIm = (*aFilesIm)[aKI];
+       const std::string & aNameIm = (*mFilesIm)[aKI];
         // Get the camera created by Martini 
        CamStenope * aCS = mNM->OutPutCamera(aNameIm);
        cCameraTiepRed * aCam = new cCameraTiepRed(*this,aNameIm,aCS);
@@ -130,10 +136,23 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
 
 const std::string cAppliTiepRed::TheNameTmp = "Tmp-ReducTieP/";
 
-std::string  cAppliTiepRed::NameParamBox(int aK) const
+std::string  cAppliTiepRed::NameParamBox(int aK,bool Bin) const
 {
-    return mDir+TheNameTmp + "Param_" +ToString(aK) + ".xml";
+    return mDir+TheNameTmp + "Param_" +ToString(aK) + (Bin ? ".xml" : "dmp");
 }
+
+std::string  cAppliTiepRed::DirOneImage(const std::string &aName) const
+{
+   return mDir+TheNameTmp + aName + "/";
+}
+
+std::string  cAppliTiepRed::NameHomol(const std::string &aName1,const std::string &aName2,int aK) const
+{
+   return DirOneImage(aName1) + "KBOX" + ToString(aK) + "-" + aName2  + ".dat";
+}
+
+
+
 
 cVirtInterf_NewO_NameManager & cAppliTiepRed::NM(){ return *mNM ;}
 const cXml_ParamBoxReducTieP & cAppliTiepRed::ParamBox() const {return mXmlParBox;}
@@ -142,6 +161,11 @@ const int    & cAppliTiepRed::ThresholdNbPts2Im() const  {return mThresholdNbPts
 const int    & cAppliTiepRed::ThresholdTotalNbPts2Im() const  {return mThresholdTotalNbPts2Im;}
 cCameraTiepRed * cAppliTiepRed::KthCam(int aK) {return mVecCam[aK];}
 const double & cAppliTiepRed::ThresholdPrecMult() const {return mThresholdPrecMult;}
+const double & cAppliTiepRed::StdPrec() const {return mStdPrec;}
+std::vector<int>  & cAppliTiepRed::BufICam() {return mBufICam;}
+cInterfChantierNameManipulateur* cAppliTiepRed::ICNM() {return mICNM;}
+
+
 
 
 void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
@@ -151,122 +175,35 @@ void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
 
 
 
-
-
-void cAppliTiepRed::DoReduceBox()
+void TestPoly(const cElPolygone & aPol )
 {
-   // Load Tie Points in box
-   for (int aKI = 0 ; aKI<int(mVecCam.size()) ; aKI++)
+   const std::list<std::vector<Pt2dr> >   aLC = aPol.Contours();
+
+   for
+   (
+       std::list<std::vector<Pt2dr> >::const_iterator itC=aLC.begin();
+       itC!=aLC.end();
+       itC++
+   )
    {
-       cCameraTiepRed & aCam1 = *(mVecCam[aKI]);
-       const std::string & anI1 = aCam1.NameIm();
-       // Get list of images sharin tie-P with anI1
-       std::list<std::string>  aLI2 = mNM->ListeImOrientedWith(anI1);
-       for (std::list<std::string>::const_iterator itL= aLI2.begin(); itL!=aLI2.end() ; itL++)
-       {
-            const std::string & anI2 = *itL;
-            // Test if the file anI2 is in the current pattern
-            // As the martini result may containi much more file 
-            if (mSetFiles->find(anI2) != mSetFiles->end())
-            {
-               // The result being symetric, the convention is that some data are stored only for  I1 < I2
-               if (anI1 < anI2)
-               {
-                   cCameraTiepRed & aCam2 = *(mMapCam[anI2]);
-                   aCam1.LoadHom(aCam2);
-               }
-            }
-       }
+        std::cout << " AAaa= " << itC->size()  ;
+        for (int aK=0 ; aK<int(itC->size()) ; aK++)
+            std::cout << (*itC)[aK] << "  ";
+        std::cout << "\n";
    }
-
-   // Select Cam ( and Link ) with enough points, and give a numeration to camera
-   {
-      // Suppress the links if one of its camera was supressed
-      std::list<cLnk2ImTiepRed *> aNewL;
-      for (std::list<cLnk2ImTiepRed *>::const_iterator itL=mLnk2Im.begin() ; itL!=mLnk2Im.end() ; itL++)
-      {
-          // if the two camera are to preserve, then preserve the link
-          if ((*itL)->Cam1().SelectOnHom2Im() && (*itL)->Cam2().SelectOnHom2Im())
-             aNewL.push_back(*itL);
-      }
-      std::cout << "   LNK " << mLnk2Im.size() << " " << aNewL.size() << "\n";
-      mLnk2Im = aNewL;
-
-      std::vector<cCameraTiepRed *>  aNewV; // Filtered camera
-      int aNum=0; // Current number
-      for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
-      {
-          if (mVecCam[aKC]->SelectOnHom2Im()) // If enouh point  camera is to preserve
-          {
-             aNewV.push_back(mVecCam[aKC]); // Add to new vec
-             mVecCam[aKC]->SetNum(aNum);    // Give current numeration
-             aNum++;
-          }
-          else
-          {
-             // Forget this camera
-             mMapCam[mVecCam[aKC]->NameIm()] = 0;
-             // delete mVecCam[aKC];
-          }
-      }
-      std::cout << "   CAMSS " << mVecCam.size() << " " << aNewV.size() << "\n";
-      mVecCam = aNewV; // Update member vector of cams
-   }
-
-   // merge topological tie point
-
-    // Create an empty merging struct
-    mMergeStruct  = new  tMergeStr(mVecCam.size());
-    // for each link do the mergin
-    for (std::list<cLnk2ImTiepRed *>::const_iterator itL=mLnk2Im.begin() ; itL!=mLnk2Im.end() ; itL++)
-    {
-        (*itL)->Add2Merge(mMergeStruct);
-    }
-    mMergeStruct->DoExport();                  // "Compile" to make the point usable
-    mLMerge =  & mMergeStruct->ListMerged();    // Get the merged multiple points
-    std::vector<int> aVHist(mVecCam.size(),0);
-
-    // Compute the average 
-    double aSzTileAver = sqrt(mBoxLoc.surf()/mLMerge->size()); 
-
-   // give ground coord to multiple point and put them in quod-tree for indexation
-    
-    mQT = new ElQT<cPMulTiepRed*,Pt2dr,cP2dGroundOfPMul> 
-              (
-                     mPMul2Gr,
-                     mBoxLoc,
-                     5,  // 5 obj max / box
-                     2*aSzTileAver
-              );
-
-    for (std::list<tMerge *>::const_iterator itM=mLMerge->begin() ; itM!=mLMerge->end() ; itM++)
-    {
-        cPMulTiepRed * aPM = new cPMulTiepRed(*itM,*this);
-        if (mBoxLoc.inside(aPM->Pt()))
-        {
-           mLPMul.push_back(aPM);
-           aVHist[(*itM)->NbSom()] ++;
-           mQT->insert(aPM);
-        }
-        else
-        {
-           delete aPM;
-        }
-    }
-
-
-    std::cout << "   NbMul " << mLMerge->size() 
-              << " Nb2:" << aVHist[2] << " Nb3:" << aVHist[3] 
-              << " Nb4:" << aVHist[4] << " Nb5:" << aVHist[5] 
-              << " Nb6:" << aVHist[6] << "\n";
+   
+   std::cout << "\n";
 }
-
-
 
 
 void cAppliTiepRed::GenerateSplit()
 {
     ELISE_fp::MkDirSvp(mDir+TheNameTmp);
+    for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
+    {
+       const std::string & aNameIm = (*mFilesIm)[aKI];
+       ELISE_fp::MkDirSvp(DirOneImage(aNameIm));
+    }
 
     Pt2dr aSzPix = mBoxGlob.sz() / mResol; // mBoxGlob.sz()  mResol => local refernce,  aSzPix => in pixel (average)
     Pt2di aNb = round_up(aSzPix / double(mSzTile));  // Compute the number of boxes
@@ -290,6 +227,7 @@ void cAppliTiepRed::GenerateSplit()
              cXml_ParamBoxReducTieP aParamBox;                           // XML/C++ Structure to save
              aParamBox.Box() = aBox;                                     // Memorize the box of tile
 
+             std::vector<cCameraTiepRed *> aVCamSel;
              for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
              {
                    // Intersection between footprint and box (see class cElPolygone)
@@ -299,6 +237,7 @@ void cAppliTiepRed::GenerateSplit()
                    {
                         //  Add the name to the vector
                         aParamBox.Ims().push_back(mVecCam[aKC]->NameIm());
+                        aVCamSel.push_back(mVecCam[aKC]);
                    }
 
              }
@@ -306,20 +245,38 @@ void cAppliTiepRed::GenerateSplit()
              if (aParamBox.Ims().size() >=2)
              {
                  // Save the file to XML
-                 MakeFileXML(aParamBox,NameParamBox(aCpt));
+                 MakeFileXML(aParamBox,NameParamBox(aCpt,false));
+                 MakeFileXML(aParamBox,NameParamBox(aCpt,true));
                  // Generate the command line to process this box
                  std::string aCom = GlobArcArgv + "  KBox=" + ToString(aCpt);
                  // add to list to be executed
                  aLCom.push_back(aCom);
                  std::cout << "==>   " << aCom << "\n";
+                 for (int aKC1=0; aKC1<int(aVCamSel.size()) ; aKC1++)
+                 {
+                     cCameraTiepRed * aCam1 = aVCamSel[aKC1];
+                     for (int aKC2=0; aKC2<int(aVCamSel.size()) ; aKC2++)
+                     {
+                         cCameraTiepRed * aCam2 = aVCamSel[aKC2];
+                         cElPolygone  aPolInter = aPolyBox  * aCam1->CS().EmpriseSol() *  aCam2->CS().EmpriseSol();
+                         if (aPolInter.Surf() > 0)
+                         {
+                            aCam1->AddCamBox(aCam2,aCpt);
+                         }
+                     }
+                 }
                  aCpt++;
+
              }
         }
     }
-    // cEl_GPAO::DoComInParal(aLCom);
-    cEl_GPAO::DoComInSerie(aLCom);
+    if (mInParal)
+       cEl_GPAO::DoComInParal(aLCom);
+    else 
+       cEl_GPAO::DoComInSerie(aLCom);
 
-    // int aNbX = round_up(mBoxGlob.sz().x /
+    for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
+       mVecCam[aKC]->SaveHom();
 }
 
 
@@ -340,8 +297,10 @@ void  cAppliTiepRed::Exe()
 
 int TestOscarTieP_main(int argc,char **argv) 
 {
-    cAppliTiepRed anAppli(argc,argv);
-    anAppli.Exe();
+    cAppliTiepRed * anAppli = new cAppliTiepRed(argc,argv);
+
+     anAppli->Exe();
+
 
     return EXIT_SUCCESS;
 }

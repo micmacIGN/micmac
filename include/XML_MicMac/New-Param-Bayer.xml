@@ -1,6 +1,10 @@
 <!--
 Qq commande de bayer => RAW
 
+ElDcraw -c -t 0 -d _DSC0323.ARW  > _DSC0323.pnm      
+
+ -4 cree des pb !!!!
+
 ElDcraw -4 -c -t 0 -d _DSC0323.ARW  > _DSC0323.pnm
 
 MpDcraw  _DSC0323.ARW Split=RVBW

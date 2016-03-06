@@ -548,7 +548,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
    mPrefHom (""),
    mShow    (false),
    mHPP     (true),
-   mMergeStr (2),
+   mMergeStr (2,false),
    mTestSol (0)
 {
 

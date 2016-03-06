@@ -1643,6 +1643,8 @@ class ElCamera : public cCapture3D
           void SetOrientation(const ElRotation3D &);
 
           Pt3dr  PseudoInter(Pt2dr aPF2A,const ElCamera & CamB,Pt2dr aPF2B,double * aD=0) const;
+          // Idem PseudoInter mais la precision est celle de reprojection
+          Pt3dr  PseudoInterPixPrec(Pt2dr aPF2A,const ElCamera & CamB,Pt2dr aPF2B,double & aD) const;
           Pt3dr  CdgPseudoInter(const ElPackHomologue &,const ElCamera & CamB,double & aD) const;
 
           REAL EcartProj(Pt2dr aPF2A,const ElCamera & CamB,Pt2dr aPF2B) const;
@@ -1687,6 +1689,9 @@ class ElCamera : public cCapture3D
       Pt2dr   F2toPtDirRayonL3(Pt2dr) const;  // Meme chose, enleve la z a 1
       Pt2dr   L3toF2(Pt3dr) const;
       Pt2dr   PtDirRayonL3toF2(Pt2dr) const;
+
+      Pt2dr Pixel2Radian(const Pt2dr & aP) const;
+      Pt2dr Radian2Pixel(const Pt2dr & aP) const;
 
       Pt3dr   C2toDirRayonL3(Pt2dr) const;
       Pt2dr   L3toC2(Pt3dr) const;
@@ -2705,7 +2710,10 @@ class cResMepRelCoplan
 {
         public :
            cResMepRelCoplan();
-           cElemMepRelCoplan & BestSol();
+           cElemMepRelCoplan & RefBestSol();
+           cElemMepRelCoplan * PtrBestSol();
+
+
            void AddSol(const cElemMepRelCoplan &);
            const std::list<ElRotation3D> &  LRot() const;
            const std::vector<cElemMepRelCoplan> & VElOk() const;

@@ -313,11 +313,14 @@ const cCWWSImage * GetFromCAWSI(const cChantierAppliWithSetImage & ,const std::s
 class cVirtInterf_NewO_NameManager
 {
        public :
-           
            virtual CamStenope * OutPutCamera(const std::string & aName) const = 0;
+           virtual CamStenope * CalibrationCamera(const std::string  & aName) const = 0;
            // for a given image "aName", return the list of images having homolgous data (tieP + orientaion)
 
            virtual std::list<std::string>  ListeImOrientedWith(const std::string & aName) const = 0;
+
+            virtual std::pair<CamStenope*,CamStenope*> CamOriRel(const std::string &,const std::string &) const =0;
+
 
            // for a given pair of image, load the tie points (in two vector of point)
            //  !! => they are "photogrametric" tie points, i.e they have been corrected of focal, PP and distorsion
@@ -330,7 +333,7 @@ class cVirtInterf_NewO_NameManager
 
 
            // for a given pair of image, return the structure containg the orientation
-           virtual cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2) = 0;
+           virtual cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2) const = 0;
 
 
            static cVirtInterf_NewO_NameManager * StdAlloc(

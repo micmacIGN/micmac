@@ -248,14 +248,6 @@ void AffinePose(ElCamera & aCam,const std::vector<Pt2dr> & aVIm,const std::vecto
                         + " DirectoryChantier=" +  aDir
                         + " +Im=" + aNameCam;
 
-/*
-if (MPD_MM())
-{
-    std::cout << "AAAAAjjjjfff \n"; 
-    std::cout << aCom << "\n";
-    getchar();
-}
-*/
     System(aCom.c_str());
 
 

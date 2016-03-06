@@ -55,6 +55,7 @@ int AperoChImMM_main(int argc,char ** argv)
     bool OnlyVecDep=false;
 
     Pt2dr aFocs;
+    bool ExpImSec = true;
 
 
     ElInitArgMain
@@ -73,6 +74,7 @@ int AperoChImMM_main(int argc,char ** argv)
                     << EAM(aMasq3D,"Masq3D",true,"Masq3D for tie points selection")
                     << EAM(mVecDep,"VecDep",true,"Fixed Vec of deplacement (adapted to video like acquisition) ")
                     << EAM(OnlyVecDep,"OnlyVecDep",true,"Only vec dep (internal purpose) ",eSAM_InternalUse)
+                    << EAM(ExpImSec,"ExpImSec",true,"Export Im Sec (Def= true) ",eSAM_IsBool)
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -121,6 +123,11 @@ int AperoChImMM_main(int argc,char ** argv)
     if (EAMIsInit(&aMasq3D))
     {
         aCom = aCom + " +UseMasq3D=true +Masq3D=" + aMasq3D;
+    }
+
+    if (EAMIsInit(&ExpImSec))
+    {
+        aCom = aCom + " +ExportImSec=" + ToString(ExpImSec);
     }
 
    int aRes = EXIT_SUCCESS;

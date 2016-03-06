@@ -52,6 +52,38 @@ std::string RegExAdapt(const std::string & aNameExprIn)
              +   ( ((aNb==0) || (aC[aNb-1]!='$'))  ? "$" : "") ;
 }
 
+string regcompErrorToString(int aRegcompResult)
+{
+	switch (aRegcompResult)
+	{
+	case REG_BADPAT: return "BADPAT";
+	case REG_ECOLLATE: return "ECOLLATE";;
+	case REG_ECTYPE: return "ECTYPE";
+	case REG_EESCAPE: return "EESCAPE";
+	case REG_ESUBREG: return "ESUBREG";
+	case REG_EBRACK: return "EBRACK";
+	#ifdef REG_ENOSYS
+		case REG_ENOSYS: return "ENOSYS";
+	#endif
+	case REG_EPAREN: return "EPAREN";
+	case REG_EBRACE: return "EBRACE";
+	case REG_BADBR: return "BADBR";
+	case REG_ERANGE: return "ERANGE";
+	case REG_ESPACE: return "ESPACE";
+	case REG_BADRPT: return "BADRPT";
+	#ifdef REG_EMPTY
+		case REG_EMPTY: return "REG_EMPTY";
+	#endif
+	#ifdef REG_ASSERT
+		case REG_ASSERT: return "REG_ASSERT";
+	#endif
+	#ifdef REG_INVARG
+		case REG_INVARG: return "REG_INVARG";
+	#endif
+	default: return string("UNKNOWN_ERROR(") + ToString(aRegcompResult) + ")";
+	}
+}
+
 cElRegex::cElRegex(const std::string & aNameExprIn,int aNbMatchMax,int aCFlag) :
      mNameExpr (RegExAdapt(aNameExprIn))
 {
@@ -60,6 +92,16 @@ cElRegex::cElRegex(const std::string & aNameExprIn,int aNbMatchMax,int aCFlag) :
    mOkReplace = false;
 
    mResCreate = regcomp(&mAutom,mNameExpr.c_str(),aCFlag);
+   
+	#ifdef __DEBUG
+		if (mResCreate != 0)
+		{
+			stringstream ss;
+			ss << "regcomp(" << mNameExpr << ") = ";
+			ELISE_DEBUG_WARNING(true, "cElRegex::cElRegex", string("regcomp(") + mNameExpr + ") = " << regcompErrorToString(mResCreate));
+		}
+	#endif
+
    if (! IsOk())
       return;
    regmatch_t aMatch;

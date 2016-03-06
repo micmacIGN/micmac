@@ -1645,7 +1645,11 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
 
 
     eTypeImporGenBundle aType = (eTypeImporGenBundle) aIntType;
-    static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
+    #ifdef REG_EMPTY
+        static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-Orientation|Orientation).*xml",10); // MacOS X does not accept empty (sub)expresions
+    #else
+        static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
+    #endif
     static cElRegex  ThePattGBMM(".*Ori-.*/GB-Orientation-.*xml",10);  // Its a Generik Bundle Camera created using MicMac
 
     static cElRegex  ThePattSatelit(".*Ori-.*/UnCorExtern-Orientation-(eTIGB_[a-z,A-Z,0-9]*)-.*xml",10);  // Its a copy for generik
@@ -1811,7 +1815,7 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     // mAltiSol       (-1e30),
     mProfondeurIsDef (false),
     mProfondeur       (0),
-    mIdCam               ("NoName"),
+    mIdCam               ("NoCamName"),
     //mPrecisionEmpriseSol (1e30),
     mRayonUtile (-1),
     mHasDomaineSpecial  (false),
@@ -1944,7 +1948,6 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIs
 
    Pt2dr aI0Again = DistInverse(aPF1);
 
-// if (MPD_MM()) std::cout << "Jjjjjjjjjjjjjjjje  " <<  euclid(aPI0-aI0Again) << " " << 1.0/ mScaleAfnt << "\n";
 
     return euclid(aPI0-aI0Again) < 1.0/ mScaleAfnt;
 }
@@ -2827,6 +2830,25 @@ Pt2dr  ElCamera::L3toF2(Pt3dr p) const
     return DistDirecte(Proj().Proj(p));
 }
 
+
+Pt2dr ElCamera::Radian2Pixel(const Pt2dr & aP) const
+{
+     Pt3dr aQ(aP.x,aP.y,1.0);
+     return L3toF2(aQ);
+
+}
+
+Pt2dr ElCamera::Pixel2Radian(const Pt2dr & aP) const
+{
+    Pt3dr aQ =  F2toDirRayonL3(aP);
+    return Pt2dr(aQ.x,aQ.y) / aQ.z;
+}
+
+
+
+// Pt2dr Radian2Pixel() const;
+
+
 Pt2dr   ElCamera::PtDirRayonL3toF2(Pt2dr aP) const
 {
      return DistDirecte(Proj().Proj(Pt3dr(aP.x,aP.y,1.0)));
@@ -3261,6 +3283,7 @@ cOrientationConique  ElCamera::StdExportCalibGlob(bool ModeMatr) const
 
 cVerifOrient ElCamera::MakeVerif(int aNbVerif,double aProf,const char * aNAux,const Pt3di * aVerifDet) const
 {
+
    FILE * aFPAux = 0;
 
    if (aNAux)
@@ -3287,6 +3310,7 @@ cVerifOrient ElCamera::MakeVerif(int aNbVerif,double aProf,const char * aNAux,co
                       if (IsInZoneUtile(aP2))
                       {
                          double aP =  1000.0 * (1+aZ);
+
                          Pt3dr aP3 = ImEtProf2Terrain(aP2,aP);
                          Pt2dr aQ2 = R3toF2(aP3);
 
@@ -3553,6 +3577,20 @@ double   ElCamera::SomEcartAngulaire
        aSomE+= anEc *aPds;
     }
     return aSomE;
+}
+
+Pt3dr  ElCamera::PseudoInterPixPrec
+       (
+           Pt2dr aPF2A,
+           const ElCamera & CamB,
+           Pt2dr aPF2B,
+           double & aD
+       ) const
+{
+    Pt3dr aRes = PseudoInter(aPF2A,CamB,aPF2B);
+    aD  =  (euclid(Ter2Capteur(aRes)-aPF2A) + euclid(CamB.Ter2Capteur(aRes)-aPF2B))/2.0;
+
+    return aRes;
 }
 
 
@@ -3900,7 +3938,7 @@ bool CamStenope::CanExportDistAsGrid() const
 
 CamStenope * CamStenope::Dupl() const
 {
-  return NS_ParamChantierPhotogram::Cam_Gen_From_XML(StdExportCalibGlob(),0)->CS();
+  return NS_ParamChantierPhotogram::Cam_Gen_From_XML(StdExportCalibGlob(),0,IdCam())->CS();
 }
 
 
@@ -3911,6 +3949,7 @@ CamStenope * CamStenope::StdCamFromFile
                      cInterfChantierNameManipulateur * anICNM
              )
 {
+
   return Gen_Cam_Gen_From_File(CanUseGr,aName,"OrientationConique",anICNM)->CS();
 }
 

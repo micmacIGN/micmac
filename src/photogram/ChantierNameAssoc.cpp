@@ -2517,7 +2517,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
     std::string current_program_fullname()   { return CurrentProgramFullName;}
     std::string current_program_subcommand() { return CurrentProgramSubcommand;}
 
-    bool (MPD_MM())
+    bool MPD_MM()
     {
         static bool aRes = MMUserEnv().UserName().Val() == "MPD";
         return aRes;
@@ -3996,7 +3996,7 @@ bool  cInterfChantierNameManipulateur::TestStdOrient
 
         string inputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():mDir );
         std::string aDir = inputDirectory + aManquant + anOri + ELISE_CAR_DIR;
-        std::list<std::string> aL = RegexListFileMatch(aDir,"(GB-Orientation-|Orientation-|AutoCal).*\\.xml",2,false);
+        std::list<std::string> aL = RegexListFileMatch(aDir,".*(GB-Orientation-|Orientation-|AutoCal).*\\.(xml|XML)",2,false);
         // std::list<std::string> aL = RegexListFileMatch(mDir,aManquant + anOri+ "(Orientation-|AutoCal).*\\.xml",2);
 
         // std::cout << "3-ttTEST " <<  aDir  << " " << aL.size() << "\n";

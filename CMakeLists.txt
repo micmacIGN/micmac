@@ -41,6 +41,9 @@ OPTION(WITH_ETALONPOLY  "Build etalonnage polygone" ON)
 # construire les binaires Poisson
 OPTION(BUILD_POISSON "Build Poisson binaries" OFF )
 
+# construire le binaire Rnx2rtkp
+OPTION(BUILD_RNX2RTKP "Build Rnx2rtkp binaries" OFF )
+
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
 
@@ -95,12 +98,15 @@ OPTION(WITH_DOXYGEN "Generation de documentation" OFF )
 ######################################
 ## 	Trouver les EXES et Libs	##
 ######################################
-IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
-    add_definitions(-DELISE_Darwin)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	add_definitions(-DELISE_Darwin)
+	set(BIN_AUX_SUBDIR "darwin")
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set(BIN_AUX_SUBDIR "windows")
+else()
+	set(BIN_AUX_SUBDIR "linux")
 endif()
-
-# DEFINITION : Dossier des exe et Dll necessaires sous windows
-set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
+set (BIN_AUX_FULL_PATH ${PROJECT_SOURCE_DIR}/binaire-aux/${BIN_AUX_SUBDIR})
 
 # DEFINITIION : des chemins binaires sous UNIX
 set(UnixBinPath
@@ -138,8 +144,25 @@ if(${WITH_QT5} OR ${WITH_QT4})
 			    find_package(Qt5OpenGL REQUIRED)
 
 			if (Qt5Widgets_FOUND)
+				if (NOT QT_QMAKE_EXECUTABLE)
+					get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+				endif()
 
-			    message( STATUS "-----> Qt5 found" )
+				EXECUTE_PROCESS(
+						COMMAND
+						${QT_QMAKE_EXECUTABLE} -query QT_VERSION
+						RESULT_VARIABLE qmake_version_result
+						OUTPUT_VARIABLE QT_VERSION
+						ERROR_QUIET
+						OUTPUT_STRIP_TRAILING_WHITESPACE
+					)
+
+				message(STATUS "using Qt " ${QT_VERSION})
+
+				if (QT_VERSION VERSION_LESS "5.4.0")
+					message(STATUS "Qt version < 5.4.0: using shortcuts patch")
+					add_definitions("-D__QT_5_SHORTCUT_PATCH")
+				endif()
 
 			    set(qt_version 5)
 
@@ -187,10 +210,6 @@ endif()
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND qt_version EQUAL 5)
 	if (POLICY CMP0045)
 		cmake_policy(SET CMP0045 NEW) # target of get_target_property must exists or a FATAL_ERROR is issued
-	endif()
-
-	if (NOT QT_QMAKE_EXECUTABLE)
-		get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 	endif()
 
 	if (NOT QT_INSTALL_LIBS)
@@ -322,11 +341,24 @@ endif()
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 
 if (NOT HG_REVISION_DIST)
-	if(NOT MERCURIAL_EXECUTABLE)
-		message( STATUS "Mercurial (hg) cannot be found" )
-		set( HG_REVISION_DIST "unknown_no_hg" )
+	if(NOT MERCURIAL_EXECUTABLE OR NOT EXISTS "${PROJECT_SOURCE_DIR}/.hg")
+		message(STATUS "Mercurial (hg) cannot be found")
+		set(rev_file "${PROJECT_SOURCE_DIR}/include/rev")
+		if(EXISTS ${rev_file})
+			message(STATUS "using rev file")
+			EXECUTE_PROCESS(
+				COMMAND
+				cat ${rev_file}
+				RESULT_VARIABLE cat_result
+				OUTPUT_VARIABLE HG_REVISION_DIST
+				ERROR_QUIET
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		else()
+			message(STATUS "hg revision cannot be retrieved")
+			set( HG_REVISION_DIST "unknown_no_hg" )
+		endif()
 	else()
-		# Affiche la revision MICMAC
 		EXECUTE_PROCESS(
 			COMMAND
 			${MERCURIAL_EXECUTABLE} identify --num
@@ -511,31 +543,6 @@ if(NOT WIN32) # ImageMagick n'est pas obligatoire sous windows puisque les exécu
 	endif(NOT ImageMagick_FOUND)
 endif()
 
-# VERIFICATION si exiftool est installe
-
-find_program(EXIF_EXECUTABLE exiftool
-				PATHS 	${BinAuxWinDir} ${UnixBinPath}
-				DOC "Chemin vers la commande exiftool"
-				NO_DEFAULT_PATH)
-
-if(EXIF_EXECUTABLE_NOTFOUND)
-
-	message("Exiftool non trouve!!")
-
-endif()
-
-# VERIFICATION si exiv2 est installe
-find_program(EXIV2_EXECUTABLE exiv2
-				PATHS 	${BinAuxWinDir} ${UnixBinPath}
-				DOC "Chemin vers la commande exiv2"
-				NO_DEFAULT_PATH)
-
-if(EXIV2_EXECUTABLE_NOTFOUND)
-
-	message("Exiv2 non trouve!!")
-
-endif(EXIV2_EXECUTABLE_NOTFOUND)
-
 if (MINGW)
 	add_definitions(-D__MINGW__ -D__MSVCRT_VERSION__=0x800 -D_WIN32_WINNT=0x0500)
 	set( WINSOCK2_LIBRARY ws2_32 )
@@ -577,18 +584,7 @@ if(NOT WIN32)
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
 	ENDIF()
 ELSE()
-		set( CMAKE_BUILD_TYPE Release )
-	find_program(MAKE_EXECUTABLE make
-				PATHS 	${BinAuxWinDir}
-				DOC "Chemin vers la commande Make"
-				NO_DEFAULT_PATH)
-
-	if(MAKE_EXECUTABLE_NOTFOUND)
-
-		message("Make non trouve!!")
-
-	endif()
-
+	set( CMAKE_BUILD_TYPE Release )
 ENDIF()
 
 # DEFINITION : des preprocesseurs windows
@@ -610,7 +606,7 @@ IF (MSVC)
 				string(REPLACE "/Zm1000" ${zm_value} CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 			endif()
 	elseif (NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.0.0")) # 19 is visual studio 2015
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm237")
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm263")
 	elseif ( ${CMAKE_SYSTEM_VERSION} MATCHES "5.1" )
 		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm131") # 5.1 is windows xp
 	else()
@@ -620,7 +616,6 @@ IF (MSVC)
 	if(NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.0.0"))
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 	endif()
-
 ENDIF()
 
 # DEFINITION : Dossier include
@@ -653,25 +648,12 @@ set(ELISE_DIR src)
 include(${PROJECT_SOURCE_DIR}/CodeExterne/ANN/CMakeLists.txt)
 # CONSTRUCTION : Librairie POISSON
 include(${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/CMakeLists.txt)
+# CONSTRUCTION : Librairie Rnx2rtkp
+include(${PROJECT_SOURCE_DIR}/CodeExterne/rnx2rtkp/CMakeLists.txt)
 # CONSTRUCTION : Librairie ELISE
 set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
 include(${code_genere_dir}/Sources.cmake)
 ADD_SUBDIRECTORY(${ELISE_DIR})
-
-# INSTALLATION : Liste des exe et Dll necessaires sous windows
-if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
-	configure_file( ${BinAuxWinDir}/convert.exe ${PROJECT_SOURCE_DIR}/binaire-aux/convert.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/vcomp100.dll ${PROJECT_SOURCE_DIR}/binaire-aux/proj.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/exiftool.exe ${PROJECT_SOURCE_DIR}/binaire-aux/exiftool.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/exiv2.exe ${PROJECT_SOURCE_DIR}/binaire-aux/exiv2.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/libexpat.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libexpat.dll COPYONLY )
-	configure_file( ${BinAuxWinDir}/libiconv2.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libiconv2.dll COPYONLY )
-	configure_file( ${BinAuxWinDir}/libintl3.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libintl3.dll COPYONLY )
-	configure_file( ${BinAuxWinDir}/make.exe ${PROJECT_SOURCE_DIR}/binaire-aux/make.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/proj.exe ${PROJECT_SOURCE_DIR}/binaire-aux/proj.exe COPYONLY )
-	configure_file( ${BinAuxWinDir}/proj.dll ${PROJECT_SOURCE_DIR}/binaire-aux/proj.dll COPYONLY )
-	configure_file( ${BinAuxWinDir}/cs2cs.exe ${PROJECT_SOURCE_DIR}/binaire-aux/cs2cs.exe COPYONLY )
-endif()
 
 # Doxygen
 if(${WITH_DOXYGEN})

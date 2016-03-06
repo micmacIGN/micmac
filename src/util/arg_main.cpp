@@ -245,7 +245,7 @@ void MemoArg(int argc,char** argv)
     MMD_InitArgcArgv(argc,argv);
     MemoArgc = argc;
     MemoArgv = argv;
-   GlobArcArgv = MakeStrFromArgcARgv(argc,argv);
+    GlobArcArgv = MakeStrFromArgcARgv(argc,argv,true);
 }
 
 void ShowArgs()

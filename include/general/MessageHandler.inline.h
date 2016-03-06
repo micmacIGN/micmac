@@ -52,6 +52,10 @@ inline MessageHandler::MessageHandler( eAction i_action, int i_exitCode ){ setAc
 
 inline MessageHandler::~MessageHandler(){}
 
+inline MessageHandler::eAction MessageHandler::action() const { return m_action; }
+
+inline int MessageHandler::exitCode() const { return m_exitCode; }
+
 
 //----------------------------------------------------------------------
 // methods of class ListMessageHandler

@@ -141,6 +141,7 @@ class cTD_Im
         float GetVal(int anX,int anY) const {return mTIm.get(Pt2di(anX,anY));}
 
         float GetVal(const Pt2di & aP) const {return mTIm.get(aP);}
+        float GetVal(const Pt2dr & aP) const {return mTIm.getr(aP,-1e5);}
 
         bool Ok(int anX,int anY) const  {return mTIm.inside(Pt2di(anX,anY));}
         Pt2di Sz() const ;

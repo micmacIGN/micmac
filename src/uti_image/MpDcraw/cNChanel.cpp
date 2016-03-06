@@ -280,6 +280,7 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
 
     std::string aNameTmp = StdPrefix(aNameFile)+ "XXX-hkjyur-toto.pgm";
     // std::string aNameCom =  std::string("dcraw -t 0 -c -d  " )
+    // ElDcraw -d -c -t 0 SiteU-Drone-DSC07977.ARW > T.pgm
 
     bool  TraitBasic =  (anEntry && anEntry->DevRawBasic().Val()) ;
 

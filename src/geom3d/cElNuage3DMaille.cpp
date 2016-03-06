@@ -201,6 +201,7 @@ Pt2di TTT(const Pt2di & aP)
    std::cout << "TTTTTTTTTTtt " << aP << "\n";
    return aP;
 }
+const std::string&  cElNuage3DMaille::NameFile() const {return mNameFile;}
 
 
 cElNuage3DMaille::cElNuage3DMaille
@@ -208,6 +209,7 @@ cElNuage3DMaille::cElNuage3DMaille
     const std::string &             aDir,
     const cXML_ParamNuage3DMaille & aParam,
     Fonc_Num aFDef,
+    const std::string & aNameFile,
     bool     WithEmpyData
 ) :
    mEmptyData     (WithEmpyData),
@@ -221,7 +223,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mTImDef        (mImDef),
    mImDefInterp   (mSzData.x,mSzData.y,0),
    mTImDefInterp  (mImDefInterp),
-   mCam           (Cam_Gen_From_XML(mParams.Orientation(),mICNM)),
+   mCam           (Cam_Gen_From_XML(mParams.Orientation(),mICNM,aNameFile)),
    mImEtire       (1,1),
    mVoisImDef     (mImDef),
    mTVoisImDef    (mVoisImDef),
@@ -234,7 +236,8 @@ cElNuage3DMaille::cElNuage3DMaille
    mTNumP         (mNumPts),
    mNbTri         (0),
    mResolGlobCalc (false),
-   mResolGlob     (0)
+   mResolGlob     (0),
+   mNameFile      (aNameFile)
 
 {
 
@@ -1820,7 +1823,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
     }
 
 
-   cElNuage3DMaille *  aNOut = cElNuage3DMaille::FromParam(aGeomOut,aDirIn,"",1.0,(cParamModifGeomMTDNuage *)0);
+   cElNuage3DMaille *  aNOut = cElNuage3DMaille::FromParam(aNameRes,aGeomOut,aDirIn,"",1.0,(cParamModifGeomMTDNuage *)0);
 
 
    cParamModifGeomMTDNuage * aParamIn = 0;
@@ -1828,7 +1831,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
    {
       aParamIn = new cParamModifGeomMTDNuage(1.0,Box2dr(anArgBasc.mBoxClipIn->_p0,anArgBasc.mBoxClipIn->_p1));
    }
-   cElNuage3DMaille *  aNIn = cElNuage3DMaille::FromParam(aGeomIn,aDirIn,"",1.0,aParamIn);
+   cElNuage3DMaille *  aNIn = cElNuage3DMaille::FromParam(aNameRes,aGeomIn,aDirIn,"",1.0,aParamIn);
    delete aParamIn;
 
 

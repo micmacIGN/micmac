@@ -159,7 +159,41 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
     }
 }
   
+void cCameraTiepRed::AddCamBox(cCameraTiepRed* aCam2,int aKBox)
+{
+   mMapCamBox[aCam2].push_back(aKBox);
+}
 
+
+void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
+{
+
+
+    ElPackHomologue aRes;
+    for (std::list<int>::const_iterator itI=aLBox.begin(); itI!=aLBox.end() ; itI++)
+    {
+         std::string aName = mAppli.NameHomol(NameIm(),aCam2->NameIm(),*itI);
+         if (ELISE_fp::exist_file(aName))
+         {
+             ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
+             aRes.Add(aPack);
+         }
+    }
+
+    if (aRes.size())
+    {
+         std::string aKeyH = "NKS-Assoc-CplIm2Hom@TiePRed@dat";
+         std::string aNameH = mAppli.ICNM()->Assoc1To2(aKeyH,NameIm(),aCam2->NameIm(),true);
+         aRes.StdPutInFile(aNameH);
+         // std::string aNameH = mAppli
+    }
+}
+
+void  cCameraTiepRed::SaveHom()
+{
+    for (std::map<cCameraTiepRed*,std::list<int> >::const_iterator itM=mMapCamBox.begin(); itM!=mMapCamBox.end() ;itM++)
+       SaveHom(itM->first,itM->second);
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

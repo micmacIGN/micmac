@@ -5889,8 +5889,8 @@ class cChoixImSec
         cTplValGesInit< std::string > & FileImSel();
         const cTplValGesInit< std::string > & FileImSel()const ;
 
-        std::string & KeyAssoc();
-        const std::string & KeyAssoc()const ;
+        cTplValGesInit< std::string > & KeyAssoc();
+        const cTplValGesInit< std::string > & KeyAssoc()const ;
 
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
@@ -5948,7 +5948,7 @@ class cChoixImSec
     private:
         cTplValGesInit< std::string > mKeyExistingFile;
         cTplValGesInit< std::string > mFileImSel;
-        std::string mKeyAssoc;
+        cTplValGesInit< std::string > mKeyAssoc;
         cTplValGesInit< std::string > mPatternSel;
         cTplValGesInit< int > mCardMaxSub;
         cTplValGesInit< double > mPenalNbIm;
@@ -5990,8 +5990,8 @@ class cChoixImMM
         cTplValGesInit< std::string > & FileImSel();
         const cTplValGesInit< std::string > & FileImSel()const ;
 
-        std::string & KeyAssoc();
-        const std::string & KeyAssoc()const ;
+        cTplValGesInit< std::string > & KeyAssoc();
+        const cTplValGesInit< std::string > & KeyAssoc()const ;
 
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
@@ -6107,8 +6107,8 @@ class cSectionExport
         cTplValGesInit< std::string > & FileImSel();
         const cTplValGesInit< std::string > & FileImSel()const ;
 
-        std::string & KeyAssoc();
-        const std::string & KeyAssoc()const ;
+        cTplValGesInit< std::string > & KeyAssoc();
+        const cTplValGesInit< std::string > & KeyAssoc()const ;
 
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
@@ -6299,8 +6299,8 @@ class cEtapeCompensation
         cTplValGesInit< std::string > & FileImSel();
         const cTplValGesInit< std::string > & FileImSel()const ;
 
-        std::string & KeyAssoc();
-        const std::string & KeyAssoc()const ;
+        cTplValGesInit< std::string > & KeyAssoc();
+        const cTplValGesInit< std::string > & KeyAssoc()const ;
 
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;

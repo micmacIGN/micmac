@@ -5,6 +5,7 @@ set(UTI_PHGRM_REDUCHOM_DIR ${UTI_PHGRM_DIR}/ReducHom)
 set(UTI_PHGRM_RHH_DIR ${UTI_PHGRM_DIR}/RHH)
 set(UTI_PHGRM_CASA_DIR ${UTI_PHGRM_DIR}/CASA)
 set(UTI_PHGRM_TieRed_DIR ${UTI_PHGRM_DIR}/TiepRed)
+set(UTI_PHGRM_OriTieRed_DIR ${UTI_PHGRM_DIR}/OriTiepRed)
 
 
 set(UTI_PHGRM_PORTO_DIR ${UTI_PHGRM_DIR}/Porto)
@@ -35,6 +36,7 @@ INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_MERGE_CLOUD}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_CASA_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_TieRed_DIR}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_OriTieRed_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_NEW_ORI}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_SAT_PHYS_MOD}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_TEXT_DIR}/Sources.cmake)
@@ -118,6 +120,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_CmpCalib.cpp
     ${UTI_PHGRM_DIR}/CPP_Gri2Bin.cpp
     ${UTI_PHGRM_DIR}/CPP_GCPBascule.cpp
+    ${UTI_PHGRM_DIR}/CPP_Block.cpp
     ${UTI_PHGRM_DIR}/CPP_CenterBascule.cpp
     ${UTI_PHGRM_DIR}/CPP_MakeGrid.cpp
     ${UTI_PHGRM_DIR}/CPP_Malt.cpp

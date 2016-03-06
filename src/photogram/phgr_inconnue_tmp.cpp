@@ -1776,10 +1776,6 @@ if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << "
         }
 	for (int aK=0 ; aK< 3 ; aK++)
 	{
-if (0 &&MPD_MM())
-{
-std::cout << "AAAAAAAAAAAAA " << aVInc[aK] << " " << mMulGlobPds  << " " <<  aPRapel << AddEq << " \n";
-}
 	    if (aVInc[aK] > 0)
 	    {
 	        double aPds = (1/ElSquare(aVInc[aK])) * mMulGlobPds;
