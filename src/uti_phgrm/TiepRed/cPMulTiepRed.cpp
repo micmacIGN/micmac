@@ -45,12 +45,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                                    */
 /**********************************************************************/
 
-cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli) 
+cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
+    mMerge      (aPM),
+    mRemoved    (false),
+    mNbCam0     (aPM->NbSom()),
+    mNbCamCur   (aPM->NbSom()),
+    mVConserved (aPM->VecInd().size(),1)
 {
     std::vector<ElSeg3D> aVSeg;
     std::vector<Pt2dr>   aVPt;
 
-    const std::vector<int>  &  aVecInd = aPM->VecInd() ;
+    const std::vector<U_INT2>  &  aVecInd = aPM->VecInd() ;
     const std::vector<Pt2df> & aVHom   = aPM-> VecV()  ;
 
     for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
@@ -76,8 +81,61 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)
     mZ = aPTer.z;
     mPrec = aSomDist / (aVecInd.size() -1);
     // std::cout << "PREC " << mPrec << " " << aVecInd.size() << "\n";
-    mGain =  aPM->NbArc() * (1.0 /(1.0 + ElSquare(mPrec/anAppli.ThresholdPrecMult())));
+
+     // mGain =   aPM->NbArc()  +  mPrec/1000.0;
 }
+
+void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli)
+{
+    mGain =  mMerge->NbArc() * (1.0 /(1.0 + ElSquare(mPrec/(anAppli.ThresholdPrecMult() * anAppli.StdPrec()))));
+    mGain *= (0.5+ mNbCamCur / double(mNbCam0));
+}
+
+bool cPMulTiepRed::Removed() const
+{
+   return mRemoved;
+}
+
+bool cPMulTiepRed::Removable() const
+{
+   return (mNbCamCur==0);
+}
+
+
+void cPMulTiepRed::Remove()
+{
+    mRemoved = true;
+}
+
+void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anAppli)
+{
+   // Mark index of aPNew as existing in buf
+    const std::vector<U_INT2>  & aVNew =  aPNew->mMerge->VecInd() ;
+    std::vector<int>  &  aBuf = anAppli.BufICam();
+    for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
+    {
+        aBuf[aVNew[aK]] = 1;
+    }
+
+    const std::vector<U_INT2>  & aVCur =  mMerge->VecInd() ;
+
+    for (int aK=0 ; aK<int(aVCur.size()) ; aK++)
+    {
+         int aKCam = aVCur[aK];
+         if (mVConserved[aK]  && (aBuf[aKCam]==1))
+         {
+             mVConserved[aK] = 0;
+             mNbCamCur--;
+         }
+    }
+
+    InitGain(anAppli);
+
+   // Free Mark index in aBuf
+    for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
+        aBuf[aVNew[aK]] = 0;
+}
+
 
 
 

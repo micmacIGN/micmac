@@ -111,7 +111,7 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(mMode,"Mode (among allowed values)", eSAM_None, ListOfVal),
+        LArgMain()  << EAMC(mMode,"Mode (among allowed values RGBTextApp, GrayCalib)", eSAM_None, ListOfVal),
         LArgMain()
                     << EAM(mSz,"Sz",true,"Image size, def =[1600,1000]")
                     << EAM(mFileOut,"Out", true, "Result (Def depend of Mode)", eSAM_NoInit)

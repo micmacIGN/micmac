@@ -2051,7 +2051,7 @@ Fonc_Num StdInput(const std::vector<Im2DGen *> & aV)
 }
 
 
-L_Arg_Opt_Tiff  ArgOpTiffMDP(const cMetaDataPhoto & aMDP)
+L_Arg_Opt_Tiff  ArgOpTiffMDP(const cMetaDataPhoto & aMDP,bool SVP)
 {
    if (aMDP.IsNoMTD())
    {
@@ -2059,12 +2059,12 @@ L_Arg_Opt_Tiff  ArgOpTiffMDP(const cMetaDataPhoto & aMDP)
    }
 
    return     Tiff_Im::Empty_ARG
-           +  Arg_Tiff(Tiff_Im::AExifTiff_FocalLength(aMDP.FocMm()))
-           +  Arg_Tiff(Tiff_Im::AExifTiff_FocalEqui35Length(aMDP.Foc35()))
+           +  Arg_Tiff(Tiff_Im::AExifTiff_FocalLength(aMDP.FocMm(SVP)))
+           +  Arg_Tiff(Tiff_Im::AExifTiff_FocalEqui35Length(aMDP.Foc35(SVP)))
            +  Arg_Tiff(Tiff_Im::AExifTiff_Aperture(aMDP.Diaph(true)))
            +  Arg_Tiff(Tiff_Im::AExifTiff_IsoSpeed(aMDP.IsoSpeed(true)))
            +  Arg_Tiff(Tiff_Im::AExifTiff_ShutterSpeed(aMDP.ExpTime(true)))
-           +  Arg_Tiff(Tiff_Im::AExifTiff_Camera(aMDP.Cam()))
+           +  Arg_Tiff(Tiff_Im::AExifTiff_Camera(aMDP.Cam(SVP)))
            +  Arg_Tiff(Tiff_Im::AExifTiff_Date(cElDate(aMDP.Date(true))));
 
 }

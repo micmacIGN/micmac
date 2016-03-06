@@ -730,12 +730,36 @@ void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & an
            aSomM *=  1.0/aSomP;
            aSomM = NearestRotation(aSomM);
            ElRotation3D aRMoy(aSomTr,aSomM,true);
+
+           double aSomEcP = 0.0;
+           double aSomEcM = 0.0;
+           for (int aKT=0 ; aKT<mNbTime ; aKT++)
+           {
+               cIBC_ImsOneTime *  aTime =  mNum2ITime[aKT];
+               cPoseCam * aP0 = aTime->Pose(0);
+               cPoseCam * aP1 = aTime->Pose(aKC);
+               if (aP0 && aP1)
+               {
+                   ElRotation3D  aR0toM = aP0->CurCam()->Orient().inv(); // CONV-ORI
+                   ElRotation3D  aR1toM = aP1->CurCam()->Orient().inv();
+                   ElRotation3D aR1to0 = aR0toM.inv() * aR1toM;  //  CONV-ORI
+                   Pt3dr aTr =  aR1to0.tr();
+                   ElMatrix<double>       aMatr=  aR1to0.Mat();
+
+                   aSomEcP += euclid(aTr-aSomTr);
+                   aSomEcM += aMatr.L2(aSomM);
+               }
+           }
+           aSomEcP /= aSomP;
+           aSomEcM = sqrt(aSomEcM) / aSomP;
+
            std::cout << "  ==========  AVERAGE =========== \n";
            std::cout << "    " <<  aRMoy.ImAff(Pt3dr(0,0,0))
                                << " tetas " << aRMoy.teta01() 
                                << "  " << aRMoy.teta02() 
                                << "  " << aRMoy.teta12() 
                                << "\n";
+           std::cout << "    DispTr=" << aSomEcP << " DispMat=" << aSomEcM << "\n";
 
            cParamOrientSHC aP;
            aP.IdGrp() = mNum2Cam[aKC]->NameCam();

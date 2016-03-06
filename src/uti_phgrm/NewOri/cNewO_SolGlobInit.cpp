@@ -1107,15 +1107,21 @@ void cAppli_NewSolGolInit::Save()
     // std::cout <<"DMIIIIIN " << aSomDistMin << " " << aDirKMin << " " << aCentre <<  " DET=" << aMat.Det() << "\n";
     ElRotation3D  aNew2Old(aCentre,aMat,true);
 
-
-   Pt3dr aNewC(0,0,0);
+    Pt3dr aNewC(0,0,0);
 
     for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
     {
+        Pt3dr aPMed =  (*anItS).attr().SomPMedReM() ;
         cNewO_OneIm * anI = (*anItS).attr().Im();
         std::string aNameIm = anI->Name();
         CamStenope * aCS = anI->CS();
         ElRotation3D aROld2Cam = (*anItS).attr().CurRot().inv();
+
+        aCS->SetOrientation(aROld2Cam);
+        if (0)   // Verif avec iii
+           std::cout << "hhhhhh " << aCS->R3toF2(aPMed) << "\n";
+
+
         ElRotation3D aRNew2Cam =  aROld2Cam * aNew2Old;
         aCS->SetOrientation(aRNew2Cam);
 
@@ -1127,7 +1133,9 @@ void cAppli_NewSolGolInit::Save()
         anOC.FileInterne().SetVal(mNM->ICNM()->StdNameCalib(mNM->OriOut(),aNameIm));
 
 
-        Pt3dr aPMed =  (*anItS).attr().SomPMedReM() ;
+        aPMed = aNew2Old.ImRecAff(aPMed);
+        if (0)
+           std::cout << "iiiiii " << aCS->R3toF2(aPMed) << "\n";
         double aD = euclid(aPMed-(*anItS).attr().CurRot().tr());
 
         anOC.Externe().AltiSol().SetVal(aPMed.z);

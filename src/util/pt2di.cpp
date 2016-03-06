@@ -61,6 +61,11 @@ ostream & operator << (ostream & ofs,const Pt2df  &p)
       return ofs;
 }                        
 
+ostream & operator << (ostream & ofs,const Pt2dUi2  &p)
+{
+      ofs << "[" << p.x << "," << p.y <<"]";
+      return ofs;
+}                        
 
 
 ostream & operator << (ostream & ofs,const Pt3dr  &aPt)

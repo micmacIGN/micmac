@@ -251,7 +251,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
                const std::string  & PostTxt,
                const std::string  & anOriOut=""  // Def => Martini / MartiniGin
            );
-           CamStenope * CamOfName(const std::string & aName);
+           CamStenope * CamOfName(const std::string & aName) const;
            ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2) const;
            std::string NameOriOut(const std::string & aNameIm) const;
 
@@ -262,7 +262,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            std::string NameXmlOri2Im(const std::string & aN1,const std::string & aN2,bool Bin) const;
            std::string NameXmlOri2Im(cNewO_OneIm* aI1,cNewO_OneIm* aI2,bool Bin) const;
 
-           cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2);
+           cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2) const;
 
            std::string  NameTimingOri2Im() const;
            const std::string & Dir() const;
@@ -294,6 +294,10 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            std::list<std::string>  ListeImOrientedWith(const std::string & aName) const;
 
            CamStenope * OutPutCamera(const std::string & aName) const;
+           CamStenope * CalibrationCamera(const std::string  & aName) const;
+           std::pair<CamStenope*,CamStenope*> CamOriRel(const std::string & aN1,const std::string & aN2) const;
+           // L'orientation Cam2Monde de 2 sur 1
+           ElRotation3D OriCam2On1(const std::string & aN1,const std::string & aN2,bool &OK) const;
            std::string NameListeCpleOriented(bool Bin) const;
 
            void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP=false);

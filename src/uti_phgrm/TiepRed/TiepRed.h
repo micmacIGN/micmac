@@ -127,9 +127,13 @@ class cCameraTiepRed
 
         // Transform for "ideal sensor" coordinate to the pixel coordinates
         Pt2dr Hom2Cam(const Pt2df & aP) const;
+        void AddCamBox(cCameraTiepRed*,int aKBox);
+
+        void SaveHom();
 
 
     private :
+        void SaveHom( cCameraTiepRed*,const std::list<int> & aLBox);
         cCameraTiepRed(const cCameraTiepRed &); // Not Implemented
 
 
@@ -138,6 +142,7 @@ class cCameraTiepRed
         CamStenope * mCS;
         int          mNbPtsHom2Im;
         int          mNum;
+        std::map<cCameraTiepRed*,std::list<int> > mMapCamBox;
 };
 
 class cLnk2ImTiepRed
@@ -163,19 +168,60 @@ class cPMulTiepRed
      public :
        cPMulTiepRed(tMerge *,cAppliTiepRed &);
        const Pt2dr & Pt() const {return mP;}
+       int & HeapIndex() { return mHeapIndex;}
+       const int & HeapIndex() const { return mHeapIndex;}
+       const double  & Gain() const {return mGain;}
+       double  & Gain() {return mGain;}
+       const double  & Prec() const {return mPrec;}
+       tMerge * Merge() {return mMerge;}
+       void InitGain(cAppliTiepRed &);
+
+       bool Removed() const;
+       bool Removable() const;
+       void Remove();
+       void UpdateNewSel(const cPMulTiepRed *,cAppliTiepRed & anAppli);
      private :
-       Pt2dr  mP;   // mP + Z => 3D coordinate
-       double mZ;
-       double mPrec;  // Precision of bundle intersection
-       double mGain;  // Gain to select this tie points (takes into account multiplicity and precision)
+       tMerge * mMerge;
+       Pt2dr    mP;   // mP + Z => 3D coordinate
+       double   mZ;
+       double   mPrec;  // Precision of bundle intersection
+       double   mGain;  // Gain to select this tie points (takes into account multiplicity and precision)
+       int      mHeapIndex; // This memory will be used vy the heap to allow dynamic change of the priority
+       bool     mRemoved;
+       int      mNbCam0;
+       int      mNbCamCur;
+       std::vector<U_INT1> mVConserved;
 };
+
+
+typedef cPMulTiepRed * tPMulTiepRedPtr;
 
 // Class to interact with the Quod Tree
 class cP2dGroundOfPMul
 {
     public :
-          Pt2dr operator()(cPMulTiepRed * aPM) {return aPM->Pt();}
+          Pt2dr operator()(const tPMulTiepRedPtr &  aPM) {return aPM->Pt();}
 };
+typedef ElQT<cPMulTiepRed*,Pt2dr,cP2dGroundOfPMul>  tTiePRed_QT;
+
+// Classes to interact with the heap
+class cParamHeapPMulTiepRed
+{
+   public :
+        static void SetIndex(tPMulTiepRedPtr  &  aPM,int i) { aPM->HeapIndex() = i;}
+        static int  Index(const tPMulTiepRedPtr &  aPM) { return aPM->HeapIndex(); }
+};
+
+class cCompareHeapPMulTiepRed
+{
+    public :
+        bool operator() (const tPMulTiepRedPtr & aP1,const tPMulTiepRedPtr &  aP2)
+        {
+             return  aP1->Gain() > aP2->Gain();
+        }
+};
+
+typedef ElHeap<tPMulTiepRedPtr,cCompareHeapPMulTiepRed,cParamHeapPMulTiepRed>  tTiePRed_Heap;
 
 
 
@@ -192,22 +238,34 @@ class cAppliTiepRed
           const int    & ThresholdTotalNbPts2Im() const;
           void AddLnk(cLnk2ImTiepRed *);
           cCameraTiepRed * KthCam(int aK);
+          const double & StdPrec() const;
+          std::vector<int>  & BufICam();
+          std::string NameHomol(const std::string &,const std::string &,int aK) const;
+          cInterfChantierNameManipulateur* ICNM();
 
      private :
 
           void GenerateSplit();
           void DoReduceBox();
+          void DoLoadTiePoints();
+          void DoFilterCamAnLinks();
+          void DoExport();
+
           cAppliTiepRed(const cAppliTiepRed &); // N.I.
 
           static const std::string TheNameTmp;
 
-          std::string NameParamBox(int aK) const;
+          std::string DirOneImage(const std::string &) const;
+          std::string NameParamBox(int aK,bool Bin) const;
 
+
+          const std::vector<std::string> * mFilesIm;
           double mPrec2Point; // Threshold on precision for a pair of tie P
           double mThresholdPrecMult; // Threshold on precision for multiple points
           int    mThresholdNbPts2Im;
           int    mThresholdTotalNbPts2Im;
           int    mSzTile;    //  Number of pixel / tiles
+          double mDistPMul;
 
           std::string  mDir;
           std::string  mPatImage;
@@ -218,6 +276,7 @@ class cAppliTiepRed
           std::set<std::string>          * mSetFiles;
           cVirtInterf_NewO_NameManager *   mNM ;
           bool                             mCallBack;
+          bool                             mInParal;
           int                              mKBox;
           Box2dr                           mBoxGlob;
           Box2dr                           mBoxLoc;
@@ -226,10 +285,16 @@ class cAppliTiepRed
           std::list<cLnk2ImTiepRed *>      mLnk2Im;
           tMergeStr *                      mMergeStruct;
           const std::list<tMerge *> *      mLMerge;
-          std::list<cPMulTiepRed *>        mLPMul;
+          // std::list<cPMulTiepRed *>        mLPMul;
 
-          cP2dGroundOfPMul                            mPMul2Gr;
-          ElQT<cPMulTiepRed*,Pt2dr,cP2dGroundOfPMul>  *mQT;
+          cP2dGroundOfPMul                 mPMul2Gr;
+          tTiePRed_QT                      *mQT;
+          cCompareHeapPMulTiepRed          mPMulCmp;
+          tTiePRed_Heap                    *mHeap;
+          std::list<tPMulTiepRedPtr>       mListSel; // List of selected multi points
+          double                           mStdPrec;
+          std::vector<int>                 mBufICam;
+          cInterfChantierNameManipulateur* mICNM;
 };
 
 

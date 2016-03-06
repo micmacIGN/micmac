@@ -1583,7 +1583,8 @@ normalises en echelle et/ou en translation -->
                           <ChoixImSec Nb="1">
                                <KeyExistingFile Nb="?" Type="std::string"> </KeyExistingFile>
                                <FileImSel Nb="?" Type="std::string"> </FileImSel>
-                               <KeyAssoc Nb="1" Type="std::string"> </KeyAssoc>
+                               <!-- Devenu optionnel car pr Xeres figee par appli -->
+                               <KeyAssoc Nb="?" Type="std::string"> </KeyAssoc>
                                <PatternSel Nb="?" Type="std::string" Def=".*"> </PatternSel>
                                <CardMaxSub Nb="?" Type="int" Def="6"> </CardMaxSub>
                  <!-- Pls c'est faible plus il y aura d'image dans la best sol,  Score=Cover - NbIm *PenalNbIm -->

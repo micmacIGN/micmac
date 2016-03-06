@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1691]) = {
+const char * (theNameVar_ParamApero[1692]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1585,7 +1585,8 @@ const char * (theNameVar_ParamApero[1691]) = {
 "                          <ChoixImSec Nb=\"1\">\n",
 "                               <KeyExistingFile Nb=\"?\" Type=\"std::string\"> </KeyExistingFile>\n",
 "                               <FileImSel Nb=\"?\" Type=\"std::string\"> </FileImSel>\n",
-"                               <KeyAssoc Nb=\"1\" Type=\"std::string\"> </KeyAssoc>\n",
+"                               <!-- Devenu optionnel car pr Xeres figee par appli -->\n",
+"                               <KeyAssoc Nb=\"?\" Type=\"std::string\"> </KeyAssoc>\n",
 "                               <PatternSel Nb=\"?\" Type=\"std::string\" Def=\".*\"> </PatternSel>\n",
 "                               <CardMaxSub Nb=\"?\" Type=\"int\" Def=\"6\"> </CardMaxSub>\n",
 "                 <!-- Pls c'est faible plus il y aura d'image dans la best sol,  Score=Cover - NbIm *PenalNbIm -->\n",

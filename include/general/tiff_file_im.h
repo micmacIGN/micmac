@@ -75,7 +75,7 @@ class Arg_Tiff : public PRC0
 };
 typedef ElList<Arg_Tiff> L_Arg_Opt_Tiff;
 
-L_Arg_Opt_Tiff  ArgOpTiffMDP(const cMetaDataPhoto &);
+L_Arg_Opt_Tiff  ArgOpTiffMDP(const cMetaDataPhoto &,bool SVP=false);
 L_Arg_Opt_Tiff  ArgOpTiffMDP(const std::string & aNameF );
 
 

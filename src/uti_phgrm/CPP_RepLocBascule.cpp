@@ -119,6 +119,24 @@ int RepLocBascule_main(int argc,char ** argv)
    return aRes;
 }
 
+/*
+int AppuiRepLoc_main(int argc,char ** argv)
+{
+    std::string aFileMes3D;
+    std::string aFileRep;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFileMes3D,"Full name (Dir+Pat)", eSAM_IsPatFile ),
+        LArgMain()
+                    << EAM(aFileRep,"ExpTxt",true,"Are tie points in ascii mode ? (Def=false)")
+    );
+    if (!EAMIsInit(&aFileRep))
+    {
+       aFileRep = "Rep-"+aFileMes3D;
+    }
+}
+*/
 
 
 

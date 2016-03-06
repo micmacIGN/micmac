@@ -1784,7 +1784,8 @@
 </Xml_EnvVino>
 
 <Xml_ParamBoxReducTieP Nb="1" Class="true" ToReference="true">
-     <Box   Nb="1" Type="Box2dr">   </Box>
+     <Box     Nb="1" Type="Box2dr">   </Box>
+     <BoxRab  Nb="1" Type="Box2dr">   </BoxRab>
      <Ims   Nb="*" Type="std::string" Container="std::vector"> </Ims>
 </Xml_ParamBoxReducTieP>
 

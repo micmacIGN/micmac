@@ -98,6 +98,15 @@ template <class Obj> class cTplResRVoisin
 
 };
 
+template <class Obj> class cVecTplResRVoisin : public cTplResRVoisin<Obj> ,
+                                               public std::vector<Obj>
+{
+    public :
+       virtual void Add(const Obj & anObj) {this->push_back(anObj);}
+       virtual ~cVecTplResRVoisin() {}
+
+};
+
 template <class Obj,class Prim,class FPrim> 
           class ElQT : public   ElClassQT<Obj,Prim,FPrim>,
                        public   ElQdtGen

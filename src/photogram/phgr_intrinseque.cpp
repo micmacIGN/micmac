@@ -64,7 +64,7 @@ cParamIFDistPolynXY::~cParamIFDistPolynXY()
 {
 }
 
-Pt2d<Fonc_Num> cParamIFDistPolynXY::VDist(Pt2d<Fonc_Num> aP,int aKCam)
+Pt2d<Fonc_Num> cParamIFDistPolynXY::VirtualDist(Pt2d<Fonc_Num> aP,bool UsePC,int aKCam)
 {
    return mDist(aP);
 }
@@ -613,10 +613,10 @@ void  cParamIntrinsequeFormel::Virtual_CloseEEF()
 
 void cParamIntrinsequeFormel::GenEqRegulDist()
 {
-    // std::cout << "cCameraFormelle::GenEqRegulDist  " << NameType() << "\n";
+    // bool aUP=   Dist22Gen_UsePreConditionner();
 
-    Pt2d<Fonc_Num> aRegDistDxDy =     DistM2C(mRegulDistDxyP1->PtF(),0) + DistM2C(mRegulDistDxyP2->PtF(),0)
-                                   - (DistM2C(mRegulDistDxyP3->PtF(),0) + DistM2C(mRegulDistDxyP4->PtF(),0));
+    Pt2d<Fonc_Num> aRegDistDxDy =     DistorM2C(mRegulDistDxyP1->PtF(),false) + DistorM2C(mRegulDistDxyP2->PtF(),false)
+                                   - (DistorM2C(mRegulDistDxyP3->PtF(),false) + DistorM2C(mRegulDistDxyP4->PtF(),false));
     cElCompileFN::DoEverything
     (
         DIRECTORY_GENCODE_FORMEL,
@@ -625,8 +625,8 @@ void cParamIntrinsequeFormel::GenEqRegulDist()
         mLInterv
     );
 
-    Pt2d<Fonc_Num> aRegDistDxx =     DistM2C(mRegulDistDxxP1->PtF(),0) + DistM2C(mRegulDistDxxP2->PtF(),0)
-                                   - DistM2C(mRegulDistDxxP3->PtF(),0)  * 2.0;
+    Pt2d<Fonc_Num> aRegDistDxx =     DistorM2C(mRegulDistDxxP1->PtF(),false) + DistorM2C(mRegulDistDxxP2->PtF(),false)
+                                   - DistorM2C(mRegulDistDxxP3->PtF(),false)  * 2.0;
     cElCompileFN::DoEverything
     (
         DIRECTORY_GENCODE_FORMEL,
@@ -635,7 +635,7 @@ void cParamIntrinsequeFormel::GenEqRegulDist()
         mLInterv
     );
 
-    Pt2d<Fonc_Num> aRegDistGrad =     DistM2C(mRegulDistDxP1->PtF(),0) - DistM2C(mRegulDistDxP2->PtF(),0) - mRegulDistKnownDer->PtF();
+    Pt2d<Fonc_Num> aRegDistGrad =     DistorM2C(mRegulDistDxP1->PtF(),false) - DistorM2C(mRegulDistDxP2->PtF(),false) - mRegulDistKnownDer->PtF();
     cElCompileFN::DoEverything
     (
         DIRECTORY_GENCODE_FORMEL,
@@ -644,7 +644,7 @@ void cParamIntrinsequeFormel::GenEqRegulDist()
         mLInterv
     );
 
-    Pt2d<Fonc_Num> aRegDistVal =     DistM2C(mRegulDistValP1->PtF(),0) - mRegulDistKnownVal->PtF();
+    Pt2d<Fonc_Num> aRegDistVal =     DistorM2C(mRegulDistValP1->PtF(),false) - mRegulDistKnownVal->PtF();
     cElCompileFN::DoEverything
     (
         DIRECTORY_GENCODE_FORMEL,
@@ -657,6 +657,10 @@ void cParamIntrinsequeFormel::GenEqRegulDist()
 
 void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aPdsGrad,double aPdsD2)
 {
+   InitStateOfFoncteur(mFER_Val,0);
+   InitStateOfFoncteur(mFER_Dx,0);
+   InitStateOfFoncteur(mFER_DxDy,0);
+   InitStateOfFoncteur(mFER_Dxx,0);
    bool Show = false;
 // Val  
     std::vector<double> aVPv(2,aPdsVal);
@@ -665,8 +669,6 @@ void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aP
     std::vector<double> aRes;
 
     aRes = mSet.VAddEqFonctToSys(mFER_Val,aVPv,false);
-    if (Show)
-       std::cout << aRes.size() << "VVV " << aP << " " << " " << aRes[0] << " " << aRes[1] << "\n";
 
     double aEps = CurFocale() / 50.0;
 
@@ -756,6 +758,7 @@ void cParamIntrinsequeFormel::AddCstrRegulGlob(int aNbEch,double aPdsVal,double 
              }
         }
     }
+
 }
 
 
@@ -1015,7 +1018,7 @@ void cParamIntrinsequeFormel::InitStateOfFoncteur(cElCompiledFonc *,int aKCam)
 
 cParamIntrinsequeFormel::~cParamIntrinsequeFormel() {}
 
-Pt2d<Fonc_Num> cParamIntrinsequeFormel::VDist(Pt2d<Fonc_Num> aP,int aKCam)
+Pt2d<Fonc_Num> cParamIntrinsequeFormel::VirtualDist(Pt2d<Fonc_Num> aP,bool UsePC,int aKCam)
 {
    return aP;
 }
@@ -1023,16 +1026,16 @@ Pt2d<Fonc_Num> cParamIntrinsequeFormel::VDist(Pt2d<Fonc_Num> aP,int aKCam)
 
 
 
-Pt2d<Fonc_Num> cParamIntrinsequeFormel::DistM2C(Pt2d<Fonc_Num> aP,int aK)
+Pt2d<Fonc_Num> cParamIntrinsequeFormel::DistorM2C(Pt2d<Fonc_Num> aP,bool UsePC,int aK)
 {
    ELISE_ASSERT(!isDistC2M,"No cParamIntrinsequeFormel is C2M");
-   return VDist(aP,aK);
+   return VirtualDist(aP,UsePC,aK);
 }
 
-Pt2d<Fonc_Num> cParamIntrinsequeFormel::DistC2M(Pt2d<Fonc_Num> aP,int aK)
+Pt2d<Fonc_Num> cParamIntrinsequeFormel::DistorC2M(Pt2d<Fonc_Num> aP,bool UsePC,int aK)
 {
    ELISE_ASSERT(isDistC2M,"No cParamIntrinsequeFormel is M2C");
-   return VDist(aP,aK);
+   return VirtualDist(aP,UsePC,aK);
 }
 
 
@@ -1043,7 +1046,7 @@ bool cParamIntrinsequeFormel::DistIsC2M() const
 
 Pt3d<Fonc_Num> cParamIntrinsequeFormel::Cam2DirRayMonde(Pt2d<Fonc_Num> aP,int aKCam)
 {
-   return CorrDist2DirRayMonde(DistC2M(aP,aKCam));
+   return CorrDist2DirRayMonde(DistorC2M(aP,true,aKCam));
 }
 
 Fonc_Num  cParamIntrinsequeFormel::NormGradC2M(Pt2d<Fonc_Num> )
@@ -1082,7 +1085,7 @@ Pt2d<Fonc_Num>   cParamIntrinsequeFormel::DirRayMonde2CorrDist(Pt3d<Fonc_Num> aP
 
 Pt2d<Fonc_Num>   cParamIntrinsequeFormel::DirRayMonde2Cam(Pt3d<Fonc_Num>  aP,int aKCam)
 {
-   return DistM2C(DirRayMonde2CorrDist(aP),aKCam);
+   return DistorM2C(DirRayMonde2CorrDist(aP),true,aKCam);
 }
 
 std::string cParamIntrinsequeFormel::NameType() const
@@ -1220,7 +1223,7 @@ std::string  cParamIFDistRadiale::NameType() const
 	    + ToString(mDRF.DistInit().NbCoeff());
 }
 
-Pt2d<Fonc_Num> cParamIFDistRadiale::VDist(Pt2d<Fonc_Num> aP,int aKCam)
+Pt2d<Fonc_Num> cParamIFDistRadiale::VirtualDist(Pt2d<Fonc_Num> aP,bool UsePC,int aKCam)
 {
    return mDRF(aP);
 }
@@ -1472,9 +1475,9 @@ getchar();
 
 
 
-Pt2d<Fonc_Num> cParamIFDistStdPhgr::VDist(Pt2d<Fonc_Num> aPF,int aKCam)
+Pt2d<Fonc_Num> cParamIFDistStdPhgr::VirtualDist(Pt2d<Fonc_Num> aPF,bool UsePC,int aKCam)
 {
-   Pt2d<Fonc_Num> fPRad = cParamIFDistRadiale::VDist(aPF,aKCam);
+   Pt2d<Fonc_Num> fPRad = cParamIFDistRadiale::VirtualDist(aPF,UsePC,aKCam);
    Pt2d<Fonc_Num> fDp = aPF - mDRF.FCentre();
 
    Fonc_Num fDx = fDp.x;
@@ -1530,7 +1533,7 @@ std::string  cParamIFHomogr::NameType() const
     return "DHom";
 }
 
-Pt2d<Fonc_Num> cParamIFHomogr::VDist(Pt2d<Fonc_Num> aP,int aKCam)
+Pt2d<Fonc_Num> cParamIFHomogr::VirtualDist(Pt2d<Fonc_Num> aP,bool UsePC,int aKCam)
 {
 	return (*mHF)(aP);
 }

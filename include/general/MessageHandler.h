@@ -59,6 +59,8 @@ public:
 	virtual void add( const Message &i_message ) = 0;
 	virtual ~MessageHandler();
 	void setAction( eAction i_action, int i_exitCode=0 );
+	eAction action() const;
+	int exitCode() const;
 };
 
 class ListMessageHandler : public MessageHandler
@@ -93,6 +95,8 @@ public:
 	ss << msg;\
 	handler.add( StringMessage( ss.str() ) );\
 }
+
+std::string eToString(MessageHandler::eAction e);
 
 #include "MessageHandler.inline.h"
 

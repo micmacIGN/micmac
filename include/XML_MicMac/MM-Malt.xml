@@ -164,6 +164,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
    <Symb> UseResolTerrain=false </Symb>
    <Symb> ResolTerrain=0 </Symb>
+   <Symb> UseRatioResolImage=false </Symb>
+   <Symb> RatioResolImage=1 </Symb>
+
 <!--
 
     <Symb>  UseEqui=t=rue </Symb>
@@ -219,6 +222,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
            <#WHEN VTEST=${UseResolTerrain}>
                   <ResolutionTerrain> ${ResolTerrain} </ResolutionTerrain>
            </#WHEN>
+           <#WHEN VTEST=${UseRatioResolImage}>
+                  <RatioResolImage> ${RatioResolImage} </RatioResolImage>
+           </#WHEN>
+
+
+
            <RoundSpecifiedRT>  ${RSRT} </RoundSpecifiedRT>
            <IncludeFileLoc>  ${FileMasqT} </IncludeFileLoc>
            <FilterEstimTerrain> ${ImMNT} </FilterEstimTerrain>

@@ -168,6 +168,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 		#define std_isnan _isnan
 		#define std_isinf isinf
 		#define isinf(x) (!_finite(x))
+		typedef unsigned int uint;
 	#else
 		#include <cmath>
 		#define std_isnan std::isnan

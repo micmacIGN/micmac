@@ -110,10 +110,17 @@ class cAppliXeres
 
          void TestInteractNeigh();
 
-         void CalculTiePoint(int aSz);
+         void CalculTiePoint(int aSz,int aNBHom,const std::string & aNameAdd="");
+         void CalculHomMatch(const std::string & anOri);
 
          static void FusionneHom(const std::vector<cAppliXeres *>,const std::string & aPostOut);
+
+         std::string ExtractId(const std::string & aNameIm);
+         std::string Make2CurSeq(const std::string & aNameIm);
+
      private :
+
+         void ExeTapioca(const std::string & aFile);
          std::vector<cXeres_Cam *> GetNearestNeigh(cXeres_Cam *,int aDL,int aNb);
          std::vector<cXeres_Cam *> GetNearestExistingNeigh(cXeres_Cam *,int aDL,int aNb);
          void  AddNearestExistingNeigh(std::vector<cXeres_Cam *> & aRes,cXeres_Cam *,int aDL,int aNb);
@@ -134,6 +141,7 @@ class cAppliXeres
          std::string mSeq;
          std::string mPost;
          std::string mNameCpleXml;
+         int         mSzTapioca;
 };
 
 #endif // _Xeres_H_

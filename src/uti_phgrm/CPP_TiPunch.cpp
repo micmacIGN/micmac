@@ -98,6 +98,8 @@ REAL SqrDistSum(vector <Pt3dr> const & Sommets, cElNuage3DMaille* nuage)
 
 int TiPunch_main(int argc,char ** argv)
 {
+	if ( !g_externalToolHandler.get( "PoissonRecon" ).isCallable()) ELISE_ERROR_RETURN("cannot find PoissonRecon tool, did build micmac with option BUILD_POISSON=1 ?");
+
     bool verbose = true;
 
     string aDir, aPat, aFullName, aPly, aOut, aMode, aCom;
