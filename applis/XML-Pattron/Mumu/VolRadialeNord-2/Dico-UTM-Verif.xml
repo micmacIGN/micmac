@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+<Global>
+     <DicoAppuisFlottant>
+          <OneAppuisDAF>
+               <Pt>726583.626999079715 7586612.8369985735 -5.99199536965591051</Pt>
+               <NamePt>PT001</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726567.254999067169 7586548.90099864267 -6.62899536866029848</Pt>
+               <NamePt>PT002</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726536.089999062126 7586589.99799855147 -6.08899537070908536</Pt>
+               <NamePt>PT003</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726402.37799902237 7586620.7129983725 -5.9669953704405998</Pt>
+               <NamePt>PT004</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726389.455999016762 7586695.81099824701 -5.49699537122342008</Pt>
+               <NamePt>PT005</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726296.116998993326 7586600.15399830788 -6.06399536963101582</Pt>
+               <NamePt>PT006</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726176.203998964163 7586605.4359982023 -6.05899536978802189</Pt>
+               <NamePt>PT007</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726047.649998918874 7586710.719997935 -5.53399537229722682</Pt>
+               <NamePt>PT008</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725979.626998917898 7586639.31099801138 -5.9809953716775226</Pt>
+               <NamePt>PT009</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725936.352998914081 7586616.03699802607 -6.07699536978179822</Pt>
+               <NamePt>PT010</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725816.452998897526 7586621.34999795444 -6.07499537133469403</Pt>
+               <NamePt>PT011</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725757.553998877993 7586659.30999785848 -6.07799537086805231</Pt>
+               <NamePt>PT012</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725708.341998853022 7586725.71999771986 -5.45499537310047344</Pt>
+               <NamePt>PT013</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725571.540998891811 7586572.55799795128 -6.46499537026909366</Pt>
+               <NamePt>PT014</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725461.074998884811 7586594.10799788404 -4.52099537093874915</Pt>
+               <NamePt>PT015</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725492.370998800034 7586802.23899751063 -5.17499537164474077</Pt>
+               <NamePt>PT016</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+     </DicoAppuisFlottant>
+</Global>
