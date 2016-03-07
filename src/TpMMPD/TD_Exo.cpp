@@ -644,7 +644,7 @@ int CorrelRapide_TD_Exo6(int argc,char ** argv)
                       int aYV = aY + dY;
                       if (anImIn1.Ok(aXV,aYV))
                       {
-                          double aPds = (2-fabs(dX) ) * (2-fabs(dY));
+                          double aPds = (2-fabs((double)dX) ) * (2-fabs((double)dY));
                           float aValP = anImIn1.GetVal(aXV,aYV) * aPds;
                           if ((aXV%2) != (aYV%2))
                           {
