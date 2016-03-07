@@ -41,38 +41,47 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /**********************************************************************/
 /*                                                                    */
-/*                         cLnk2ImTiepRed                             */
+/*                         cImageTiepRed                             */
 /*                                                                    */
 /**********************************************************************/
-
-cLnk2ImTiepRed::cLnk2ImTiepRed(cCameraTiepRed * aC1 ,cCameraTiepRed * aC2) :
-    mCam1 (aC1),
-    mCam2 (aC2)
+cImageTiepRed::cImageTiepRed (const std::string & aImageName) :
+   mImageName 		(aImageName),
+   mNbPtsHom2Im		(0),
+   mImageId 	    (-1),
+   mImageBeenMaster  (false)
 {
 }
 
+const std::string cImageTiepRed::ImageName() const { return mImageName; }
 
-cCameraTiepRed &     cLnk2ImTiepRed::Cam1() {return *mCam1;}
-cCameraTiepRed &     cLnk2ImTiepRed::Cam2() {return *mCam2;}
-std::vector<Pt2df>&  cLnk2ImTiepRed::VP1()  {return mVP1;}
-std::vector<Pt2df>&  cLnk2ImTiepRed::VP2()  {return mVP2;}
-
-// Add all the tie points to the merging structur
-void cLnk2ImTiepRed::Add2Merge(tMergeStr * aMergeStr)
+void cImageTiepRed::SetNbPtsHom2Im(int aNbPtsHom2Im)
 {
-    int aKCam1 =  mCam1->Num();
-    int aKCam2 =  mCam2->Num();
-
-
-    // Parse the point 
-    for (int aKP=0 ; aKP<int(mVP1.size()) ; aKP++)
-    {
-         // And add elementay connexions
-         aMergeStr->AddArc(mVP1[aKP],aKCam1,mVP2[aKP],aKCam2);
-    }
+	mNbPtsHom2Im = aNbPtsHom2Im;
 }
 
+const int & cImageTiepRed::NbPtsHom2Im() const {
+	return mNbPtsHom2Im;
+}
 
+void cImageTiepRed::SetImageId(int aImageId)
+{
+	mImageId = aImageId;
+}
+
+const int & cImageTiepRed::ImageId() const
+{
+   return mImageId;
+}
+
+void cImageTiepRed::SetImageBeenMaster(bool aImageBeenMaster)
+{
+	mImageBeenMaster = aImageBeenMaster;
+}
+
+const bool & cImageTiepRed::ImageBeenMaster() const
+{
+   return mImageBeenMaster;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
