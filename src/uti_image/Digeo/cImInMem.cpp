@@ -189,8 +189,9 @@ void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_
 	{
 		const tBase theoricalMax = (tBase)(double(numeric_limits<tBase>::max()) / (double)(1 << mNbShift));
 		const tBase typeMax = (tBase)numeric_limits<Type>::max();
-		aMaxT = min<Type>(theoricalMax, typeMax);
+		Type aMaxT = min<Type>(theoricalMax, typeMax);
 
+		tBase aMul = 0;
 		if ( mAppli.Params().ValMaxForDyn().IsInit() )
 		{
 			tBase aMaxTm1 = aMaxT-1;
