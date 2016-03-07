@@ -187,10 +187,9 @@ void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_
 	     type_im_integral(mType) &&
 	     (!signed_type_num(mType) ) )
 	{
-		int aMinT,aMaxT;
-		min_max_type_num(mType,aMinT,aMaxT);
-		aMaxT = ElMin(aMaxT-1,1<<19);  // !!! LIES A NbShift ds PyramideGaussienne
-		tBase aMul = 0;
+		const tBase theoricalMax = (tBase)(double(numeric_limits<tBase>::max()) / (double)(1 << mNbShift));
+		const tBase typeMax = (tBase)numeric_limits<Type>::max();
+		aMaxT = min<Type>(theoricalMax, typeMax);
 
 		if ( mAppli.Params().ValMaxForDyn().IsInit() )
 		{
