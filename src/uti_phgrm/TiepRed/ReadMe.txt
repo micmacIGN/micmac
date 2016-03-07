@@ -34,3 +34,11 @@ _MG_0081.CR2 _MG_0083.CR2 113 113 Rec=0.698989
 _MG_0082.CR2 _MG_0083.CR2 1112 1112 Rec=0.800119
 
 
+Generate XML API
+======================
+
+once you've added your class to the xml class you need to execute this command (from micmac dir)
+
+make -f Makefile-XML2CPP  all
+
+it will generate all the necessary c++ definitions & declarations;

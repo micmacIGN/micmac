@@ -1793,6 +1793,12 @@
       <Resol Nb="1" Type="double"> </Resol>
 </Xml_ParamGlobReducTieP>
 
+<Xml_ParamSubcommandTiepRed Nb="1" Class="true" ToReference="true">
+     <NumInit Nb="1" Type="int"> </NumInit>
+     <Images Nb="*" Type="std::string" Container="std::vector"> </Images>
+</Xml_ParamSubcommandTiepRed>
+
+
 <Verbatim File=".h.cpp">
 // };
 </Verbatim>
