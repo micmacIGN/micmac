@@ -177,7 +177,8 @@ void initial_convolution( Im2D<tData,tBase> &o_dst )
 }
 */
 
-template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el aTypeFile)
+template <class Type>
+void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el aTypeFile)
 {
 	ResizeOctave(aBox.sz());
 	ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
@@ -186,10 +187,9 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 	     type_im_integral(mType) &&
 	     (!signed_type_num(mType) ) )
 	{
-		int aMinT,aMaxT;
-		min_max_type_num(mType,aMinT,aMaxT);
-		aMaxT = ElMin(aMaxT-1,1<<19);  // !!! LIES A NbShift ds PyramideGaussienne
-		tBase aMul = 0;
+		const tBase theoricalMax = (tBase)(double(numeric_limits<tBase>::max()) / (double)(1 << mNbShift));
+		const tBase typeMax = (tBase)numeric_limits<Type>::max();
+		aMaxT = min<Type>(theoricalMax, typeMax);
 
 		if ( mAppli.Params().ValMaxForDyn().IsInit() )
 		{
@@ -205,51 +205,37 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 		}
 		else
 		{
-			Type aMaxV = aMinT;
-			for (int aY=0 ; aY<mSz.y ; aY++)
-			{
-				Type * aL = mData[aY];
-				for (int aX=0 ; aX<mSz.x ; aX++)
-					ElSetMax(aMaxV,aL[aX]);
-			}
-			aMul = (aMaxT-1) / aMaxV;
-			if (aMul > 1)
-			{
-				for (int aY=0 ; aY<mSz.y ; aY++)
-				{
-					Type * aL = mData[aY];
-					for (int aX=0 ; aX<mSz.x ; aX++)
-						aL[aX] *= aMul;
-				}
-				SauvIm("ReDyn_");
-			}
+			Type aMinV, aMaxV;
+			mIm.getMinMax(aMinV, aMaxV);
+
+			aMul = (aMaxT - 1) / (aMaxV - aMinV);
+			mIm.ramp(aMinV, aMul);
 		}
 
 		mImGlob.SetDyn(aMul);
 		mImGlob.SetMaxValue( aMaxT-1 );
 	}
 	else{
-		Type aMaxV = numeric_limits<Type>::min();
-		for (int aY=0 ; aY<mSz.y ; aY++)
-		{
-			Type * aL = mData[aY];
-			for (int aX=0 ; aX<mSz.x ; aX++)
-				ElSetMax(aMaxV,aL[aX]);
-		}
+		Type aMinV, aMaxV;
+		mIm.getMinMax(aMinV, aMaxV);
 
 		#ifdef __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
-			const Type  mul = (Type)1/(Type)( mAppli.Params().ValMaxForDyn().IsInit()?mAppli.Params().ValMaxForDyn().Val():mFileTheoricalMaxValue );
-			for (int aY=0 ; aY<mSz.y ; aY++)
+			Type aMul;
+			if (mAppli.Params().ValMaxForDyn().IsInit())
 			{
-				Type * aL = mData[aY];
-				for (int aX=0 ; aX<mSz.x ; aX++)
-					aL[aX] *= mul;
+				aMul = Type(1) / (Type)(mAppli.Params().ValMaxForDyn().Val());
+				mIm.multiply(aMul);
 			}
-			mImGlob.SetDyn(mul);
+			else
+			{
+				aMul = Type(1) / (aMaxV - aMinV);
+				mIm.ramp(aMinV, aMul);
+			}
+			mImGlob.SetDyn(aMul);
 			mImGlob.SetMaxValue(1);
 		#else
 			mImGlob.SetDyn(1);
-			mImGlob.SetMaxValue( (REAL8)aMaxV );
+			mImGlob.SetMaxValue((REAL8)aMaxV);
 		#endif
 	}
 
