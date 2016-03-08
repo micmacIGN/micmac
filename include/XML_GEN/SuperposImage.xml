@@ -1426,6 +1426,39 @@
 </Xml_TopoTriplet>
 
 
+<!-- Export RPCs -->
+<Xml_RPC_Model Nb="1" Class="true" ToReference="true">
+        <SAMP_NUM_COEFF Nb="*" Type="double" Container="std::vector"></SAMP_NUM_COEFF>    
+        <SAMP_DEN_COEFF Nb="*" Type="double" Container="std::vector"></SAMP_DEN_COEFF>    
+        <LINE_NUM_COEFF Nb="*" Type="double" Container="std::vector"></LINE_NUM_COEFF>    
+        <LINE_DEN_COEFF Nb="*" Type="double" Container="std::vector"></LINE_DEN_COEFF>    
+</Xml_RPC_Model>
+
+
+<Xml_RPC  Nb="1" Class="true" ToReference="true">
+    <Direct_Model Nb="1" RefType="Xml_RPC_Model"></Direct_Model>
+    <Inverse_Model Nb="1" RefType="Xml_RPC_Model"></Inverse_Model>
+    <FIRST_ROW Nb="1" Type="double"></FIRST_ROW>
+    <FIRST_COL Nb="1" Type="double"></FIRST_COL>
+    <LAST_ROW Nb="1" Type="double"></LAST_ROW>
+    <LAST_COL Nb="1" Type="double"></LAST_COL>
+    <FIRST_LON Nb="1" Type="double"></FIRST_LON>
+    <FIRST_LAT Nb="1" Type="double"></FIRST_LAT>
+    <LAST_LON Nb="1" Type="double"></LAST_LON>
+    <LAST_LAT Nb="1" Type="double"></LAST_LAT>
+    <LONG_SCALE Nb="1" Type="double"></LONG_SCALE>
+    <LONG_OFF Nb="1" Type="double"></LONG_OFF>
+    <LAT_SCALE Nb="1" Type="double"></LAT_SCALE>
+    <LAT_OFF Nb="1" Type="double"></LAT_OFF>
+    <HEIGHT_SCALE Nb="1" Type="int"></HEIGHT_SCALE>
+    <HEIGHT_OFF Nb="1" Type="int"></HEIGHT_OFF>
+    <SAMP_SCALE Nb="1" Type="double"></SAMP_SCALE>
+    <SAMP_OFF Nb="1" Type="double"></SAMP_OFF>
+    <LINE_SCALE Nb="1" Type="double"></LINE_SCALE>
+    <LINE_OFF Nb="1" Type="double"></LINE_OFF>
+</Xml_RPC>
+
+
 <Xml_SLSRay  Nb="1" Class="true" ToReference="true">
      <IndCol Nb="1" Type="double"> </IndCol>
      <P1 Nb="1"  Type="Pt3dr"> </P1>

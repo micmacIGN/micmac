@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-#include "../uti_phgrm/MICMAC/CameraRPC.h"
+#include "../uti_phgrm/Apero/cCameraRPC.h"
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
 
@@ -324,7 +324,7 @@ int TestER_main(int argc,char ** argv)
 
 int DoTile_main(int argc,char ** argv)
 {
-    std::string aDirTmp = "Tmp-TIL", aPrefixName = "_TIL_";
+/*    std::string aDirTmp = "Tmp-TIL", aPrefixName = "_TIL_";
     std::string aTmp;
     std::string aIm1Name, aIm2Name;
     std::string aNameType;
@@ -412,11 +412,11 @@ int DoTile_main(int argc,char ** argv)
 	}
    }
 
-   /* For eqch tile in the left image,
-    * (a) define the volume in 3D space that it sees, and
-    * (b) project that volume to the second image;
-    * (c) form an image to contain the backprojected zone
-    * (d) save the the pair to an XML file  */ 
+   // For eqch tile in the left image,
+// (a) define the volume in 3D space that it sees, and
+  //  * (b) project that volume to the second image;
+    // (c) form an image to contain the backprojected zone
+    // (d) save the the pair to an XML file   
 
     //(a) corner start in top left corner and 
     //    follow clockwise direction
@@ -587,7 +587,7 @@ int DoTile_main(int argc,char ** argv)
     //(1) run PASTIS with pairs of tiles
     //std::string aTapRun = "mm3d Tapioca File " + aDirTmp+aGHOut + " -1 ExpTxt=-1";
     //System(aTapRun,true);
-
+*/
     return EXIT_SUCCESS;
 }
 
@@ -742,7 +742,7 @@ int TestER_main3(int argc,char ** argv)
 //test export of a CamStenope into bundles of rays
 int TestER_main2(int argc,char ** argv)
 {
-    cInterfChantierNameManipulateur * aICNM;
+/*    cInterfChantierNameManipulateur * aICNM;
     std::string aFullName;
     std::string aDir;
     std::string aNameOri;
@@ -768,7 +768,23 @@ int TestER_main2(int argc,char ** argv)
         CamStenope * aCurCamSten = CamStenope::StdCamFromFile(true, aDir+(*itL), aICNM);
         aCurCamSten->ExpImp2Bundle(aGridSz, *itL);
     }
+*/
+    return EXIT_SUCCESS;
+}
 
+int TestER_rpc(int argc,char ** argv)
+{
+    std::string aFullName;
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aFullName,"Orientation file"),
+        LArgMain()
+    );
+
+    cRPC aRPC(aFullName);
+    aRPC.Show();
+    
     return EXIT_SUCCESS;
 }
 

@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -42,261 +42,167 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-class cCameraTiepRed;
+class cImageTiepRed;
+class cPMulTiepRed;
 class cAppliTiepRed;
 class cLnk2ImTiepRed;
-class cPMulTiepRed;
+class cImageGrid;
 
-/*
-    cCameraTiepRed => geometry of camera,
+typedef cVarSizeMergeTieP<Pt2df>  tMerge; // Class to store a multi-point
+typedef cStructMergeTieP<tMerge>  tMergeStr; // Class to store a bunch of multi-points
 
-
-    cPMulTiepRed => one multiple point (topology + ground geometry)
-
-    cLnk2ImTiepRed  => link between two images (contains homologous points in the current box)
-
-#####   cAppliTiepRed => The application ####
-
-
-When executing 
-
-    mm3d TestOscar Abbey-IMG_0.*jpg OriCalib=Ori-RTL2/
-          void DoReduceBox();
-
-    1/ The spliting in boxes is done, for each box K the set of image which footprint intersect the box is compted and
-       store in Tmp-ReducTieP/Param_K.xml :
-
-Exemple  of Param_K.xml
-
-<Xml_ParamBoxReducTieP>
-     <Box>-6.37202317345678271 -4.53617702320232041 -2.56975959785584473 -0.322177001523337836</Box>
-     <Ims>Abbey-IMG_0173.jpg</Ims>
-     <Ims>Abbey-IMG_0192.jpg</Ims>
-     ....
-<Xml_ParamBoxReducTieP>
-
-       This is done in  void cAppliTiepRed::GenerateSplit();
-
-
-    2/ Then the subprocess are executed
-         mm3d TestOscar Abbey-IMG_0.*jpg OriCalib=Ori-RTL2/   KBox=1
-         mm3d TestOscar Abbey-IMG_0.*jpg OriCalib=Ori-RTL2/   KBox=2
-         ...
-
-      This the same command, the programm "knows" that is called at the second level du the existence of KBox= 
-
-
-       This is done in  void cAppliTiepRed::DoReduceBox();
-
-###  !!!!!!!!  => One tricky thing 
-
-The code read the tie points that comes from Martini because they are more memory efficient (float value + store on way);
-But Martini store tie point corrected from distorsion, focale an principal (ideal sensor with F=1, PP=(0,0)), which means that
-if (X,Y) is one point then (X,Y,1) is the direction of the bundle in the camera coordinate system.
-
-
-
-*/
-
-
-typedef cVarSizeMergeTieP<Pt2df>  tMerge;
-typedef cStructMergeTieP<tMerge>  tMergeStr;
-
-class cCameraTiepRed
-{
-    public :
-        cCameraTiepRed(cAppliTiepRed & anAppli,const std::string &,CamStenope *);
-        const std::string NameIm() const;
- 
-        //  Intersection of bundles in ground geometry
-        Pt3dr BundleIntersection(const Pt2df & aP1,const cCameraTiepRed & aCam2,const Pt2df & aP2,double & Precision) const;
-
-        // return "standard" MicMac stenope camera
-        CamStenope  & CS();
-        // is the camera to maintains once the tie points are loaded
-        bool  SelectOnHom2Im() const;
-        const int &   NbPtsHom2Im() const;
-
-        // Load the tie point between this and Cam2
-        void LoadHom(cCameraTiepRed & aCam2);
-
-        //  handle numeration of camera (associate a unique integer to each camera), because in topological merging ,
-        // images are referenced by numbers
-        void SetNum(int aNum);
-        const int & Num() const;
-
-        // Transform for "ideal sensor" coordinate to the pixel coordinates
-        Pt2dr Hom2Cam(const Pt2df & aP) const;
-        void AddCamBox(cCameraTiepRed*,int aKBox);
-
-        void SaveHom();
-
-
-    private :
-        void SaveHom( cCameraTiepRed*,const std::list<int> & aLBox);
-        cCameraTiepRed(const cCameraTiepRed &); // Not Implemented
-
-
-        cAppliTiepRed & mAppli;
-        std::string mNameIm;
-        CamStenope * mCS;
-        int          mNbPtsHom2Im;
-        int          mNum;
-        std::map<cCameraTiepRed*,std::list<int> > mMapCamBox;
+// Class to store multi-points pointers in the grid in which we divide the image-space of an image
+// for each multi-point we use its position in the current image
+class cImageGrid {
+	public:
+		cImageGrid(cImageTiepRed * aImage, Box2dr & aBox , int aNumCellsX, int aNumCellsY, int aNumImages); // Constructor. Initializes the grid
+		cImageTiepRed &     Image(); // Gets reference to image
+		void Add(cPMulTiepRed * aMultiPoint); // Adds a (point of) multi-point in the cell where it lays (actually the position in current image of the multi-point)
+		void SortCells(); // Sort the multi-points in the cells according to their multiplicity (number of images in which the multi-point has a visible tie-point)
+		int CellIndex(const Pt2df & aPoint); // Gets the cell index for a given aPoint
+		int NumPointsCell(int aCellIndex); // Gets the number of points in a cell given its cellIndex
+		int NumPointsCellImage(int aCellIndex, int aImageId); // Gets the number of points in a cell for a certain related image index given its cellIndex
+		std::vector<cPMulTiepRed *> & CellPoints(int aCellIndex); // Gets the vector of (point to) multi-points in a cell given its cellIndex
+		void Remove(cPMulTiepRed * aMultiPoint, int aCellIndex); // Remove the multipoint from the cell index
+	private:
+		cImageTiepRed *                           mImage; // Image
+		Box2dr                                    mBox; // Image-space of the image (always p0=(-1,-1) p1=(1,1))
+		int                                       mNumCellsX; // Number of cells in x dimension of image-space
+		int                                       mNumCellsY; // Number of cells in y dimension of image-space
+		std::vector<std::vector<cPMulTiepRed *> > mCellsPoints; // vector of grid cells. For each cell we have the vector of (pointers to) multi-points in it.
+		std::vector<std::vector<int> > mCellsImageCounters; // vector of grid cells. For each cell we have a vector of counters that count how many points come from which image
 };
 
+
+// Class to handle the list of tie points between two images (image pair)
 class cLnk2ImTiepRed
 {
      public :
-        cLnk2ImTiepRed(cCameraTiepRed * ,cCameraTiepRed *);
-        cCameraTiepRed &     Cam1();
-        cCameraTiepRed &     Cam2();
-        std::vector<Pt2df>&  VP1();
-        std::vector<Pt2df>&  VP2();
-
-        void Add2Merge(tMergeStr *);
+		cLnk2ImTiepRed(cImageTiepRed * aImage1,cImageTiepRed * aImage2); // Constructor from pointers to the two images
+		cImageTiepRed &     Image1(); // Gets reference to image 1
+		cImageTiepRed &     Image2(); // Gets reference to image 2
+        std::vector<Pt2df>&  VP1(); // Gets reference to vector of tie points in image 1
+        std::vector<Pt2df>&  VP2(); // Gets reference to vector of tie points in image 2
      private :
-        cCameraTiepRed *    mCam1;
-        cCameraTiepRed *    mCam2;
-        std::vector<Pt2df>  mVP1;
-        std::vector<Pt2df>  mVP2;
+        cImageTiepRed *    mImage1; //reference to image 1
+        cImageTiepRed *    mImage2; //reference to image 2
+        std::vector<Pt2df> mVP1; //vector of tie points in image 1
+        std::vector<Pt2df> mVP2; //vector of tie points in image 2
 };
 
+// Class to handle an image
+class cImageTiepRed
+{
+    public :
+		cImageTiepRed(const std::string & aImageName); // Constructor. From reference of image name
+        const std::string ImageName() const; // Get the image name
+        void SetNbPtsHom2Im(int aNbPtsHom2Im); // Sets the number of tie points
+        const int &   NbPtsHom2Im() const; // Get the number of tie points with this image
+        void SetImageId(int aImageId); // Sets the image identifier
+        const int & ImageId() const; // Gets the image identifier
+        void SetImageBeenMaster(bool aImageBeenMaster); // Sets the ImageBeenMaster
+        const bool & ImageBeenMaster() const; // Gets the ImageBeenMaster
+    private :
+        cImageTiepRed(const cImageTiepRed &); // Not Implemented
+        std::string     mImageName; // Image name
+        int             mNbPtsHom2Im; // Number of tie points with this image
+        int             mImageId; // Image identifier (within current subset)
+        bool 		    mImageBeenMaster; // Indicates if image has been master before
+};
 
+// Class to handle a multi-point
 class cPMulTiepRed
 {
      public :
-       cPMulTiepRed(tMerge *,cAppliTiepRed &);
-       const Pt2dr & Pt() const {return mP;}
-       int & HeapIndex() { return mHeapIndex;}
-       const int & HeapIndex() const { return mHeapIndex;}
-       const double  & Gain() const {return mGain;}
-       double  & Gain() {return mGain;}
-       const double  & Prec() const {return mPrec;}
-       tMerge * Merge() {return mMerge;}
-       void InitGain(cAppliTiepRed &);
-
-       bool Removed() const;
-       bool Removable() const;
-       void Remove();
-       void UpdateNewSel(const cPMulTiepRed *,cAppliTiepRed & anAppli);
+	   cPMulTiepRed(tMerge * aMergedHomolPoints); // Constructor. From the merged tie points structure pointer
+       const int  & Multiplicity() const {return mMultiplicity;} // Gets the (const) multiplicity
+       int  & Multiplicity() {return mMultiplicity;} // Gets the multiplicity
+       tMerge * MergedHomolPoints() {return mMergedHomolPoints;} // Gets the pointer to the merged tie points structure
+       bool Removed() const; // Gets bool indicating if the point is selected for removal
+       void Remove(); // Sets this point for its removal
      private :
-       tMerge * mMerge;
-       Pt2dr    mP;   // mP + Z => 3D coordinate
-       double   mZ;
-       double   mPrec;  // Precision of bundle intersection
-       double   mGain;  // Gain to select this tie points (takes into account multiplicity and precision)
-       int      mHeapIndex; // This memory will be used vy the heap to allow dynamic change of the priority
-       bool     mRemoved;
-       int      mNbCam0;
-       int      mNbCamCur;
-       std::vector<U_INT1> mVConserved;
+       tMerge * mMergedHomolPoints; // Reference to the merged tie points structure
+       int      mMultiplicity; //Multiplicity of this multi-point (i.e. in how many images it is present)
+       bool     mRemoved; //Indicates if multi-point is selected for removal
 };
 
-
-typedef cPMulTiepRed * tPMulTiepRedPtr;
-
-// Class to interact with the Quod Tree
-class cP2dGroundOfPMul
-{
-    public :
-          Pt2dr operator()(const tPMulTiepRedPtr &  aPM) {return aPM->Pt();}
-};
-typedef ElQT<cPMulTiepRed*,Pt2dr,cP2dGroundOfPMul>  tTiePRed_QT;
-
-// Classes to interact with the heap
-class cParamHeapPMulTiepRed
-{
-   public :
-        static void SetIndex(tPMulTiepRedPtr  &  aPM,int i) { aPM->HeapIndex() = i;}
-        static int  Index(const tPMulTiepRedPtr &  aPM) { return aPM->HeapIndex(); }
-};
-
-class cCompareHeapPMulTiepRed
-{
-    public :
-        bool operator() (const tPMulTiepRedPtr & aP1,const tPMulTiepRedPtr &  aP2)
-        {
-             return  aP1->Gain() > aP2->Gain();
-        }
-};
-
-typedef ElHeap<tPMulTiepRedPtr,cCompareHeapPMulTiepRed,cParamHeapPMulTiepRed>  tTiePRed_Heap;
-
-
-
-class cAppliTiepRed 
+// Class for the application to reduce tie points between image pairs
+class cAppliTiepRed
 {
      public :
-          cAppliTiepRed(int argc,char **argv); 
-          void Exe();
-          cVirtInterf_NewO_NameManager & NM();
-          const cXml_ParamBoxReducTieP & ParamBox() const;
-          const double & ThresoldPrec2Point() const;
-          const double & ThresholdPrecMult() const;
-          const int    & ThresholdNbPts2Im() const;
-          const int    & ThresholdTotalNbPts2Im() const;
-          void AddLnk(cLnk2ImTiepRed *);
-          cCameraTiepRed * KthCam(int aK);
-          const double & StdPrec() const;
-          std::vector<int>  & BufICam();
-          std::string NameHomol(const std::string &,const std::string &,int aK) const;
-          cInterfChantierNameManipulateur* ICNM();
-
+          cAppliTiepRed(int argc,char **argv); // Constructor
+          void Exe(); // Executes the application
+          cVirtInterf_NewO_NameManager & NM(); //Folder names manager
+          const cXml_ParamSubcommandTiepRed & ParamSubcommand() const; //Structure to handle the Subcommand information from XML (only by children)
+          void AddLnk(cLnk2ImTiepRed * imagePairLink); // Adds an image pair link
+          std::string NameHomol(const std::string &aName1,const std::string &aName2) const; //Gets the name of file that contains tie points of the given images names
+          std::string NameHomolTemp(const std::string &aName1,const std::string &aName2) const; //Gets the name of file that contains tie points of the given images names in the format use by this app
      private :
 
-          void GenerateSplit();
-          void DoReduceBox();
-          void DoLoadTiePoints();
-          void DoFilterCamAnLinks();
+          /* Generates the list of subcommands. For each subcommand it generates a configuration file.
+           * For each image we have a subcommand. Each subcommand deals with the image associated to it, which is called master image,
+           * and the images that share tie poins with the master image  (related images)
+           * Executed by the parent process
+           */
+          void GenerateSubcommands();
+
+          /*
+           * Export the subcommands to a JSON file
+           * Executed by the parent process
+           */
+          void ExportSubcommands(std::vector<std::string> & aVSubcommands , std::vector<std::vector< int > > & aVRelatedSubcommandsIndexes);
+
+          /* Reduce the tie points of a master image and its related images
+           * Executed within a subcommand.
+           */
+          void DoReduce();
+
+          /*
+           * Load the tie points between the master images and the related images
+           * Executed within a subcommand.
+           */
+          bool DoLoadTiePoints();
+
+          /*
+           * Dumps to disk the list of reduced points, i.e. the ones not selected for removal.
+           * Executed within a subcommand.
+           */
           void DoExport();
 
-          cAppliTiepRed(const cAppliTiepRed &); // N.I.
+          cAppliTiepRed(const cAppliTiepRed & anAppli); // N.I.
 
-          static const std::string TheNameTmp;
+          /*
+           * Simple getters
+           */
+          std::string DirOneImage(const std::string & aName) const; //Gets the output folder for the tie points of an image
+          std::string DirOneImageTemp(const std::string & aName) const; //Gets the temporal folder for the tie points of an image
+          std::string NameParamSubcommand(int aK, bool Bin) const; //Gets the name of a subcommand configuration file
 
-          std::string DirOneImage(const std::string &) const;
-          std::string NameParamBox(int aK,bool Bin) const;
-
-
-          const std::vector<std::string> * mFilesIm;
-          double mPrec2Point; // Threshold on precision for a pair of tie P
-          double mThresholdPrecMult; // Threshold on precision for multiple points
-          int    mThresholdNbPts2Im;
-          int    mThresholdTotalNbPts2Im;
-          int    mSzTile;    //  Number of pixel / tiles
-          double mDistPMul;
-
-          std::string  mDir;
-          std::string  mPatImage;
-          std::string  mCalib;
-
-          std::map<std::string,cCameraTiepRed *> mMapCam;
-          std::vector<cCameraTiepRed *>          mVecCam;
-          std::set<std::string>          * mSetFiles;
-          cVirtInterf_NewO_NameManager *   mNM ;
-          bool                             mCallBack;
-          bool                             mInParal;
-          int                              mKBox;
-          Box2dr                           mBoxGlob;
-          Box2dr                           mBoxLoc;
-          double                           mResol;
-          cXml_ParamBoxReducTieP           mXmlParBox;
-          std::list<cLnk2ImTiepRed *>      mLnk2Im;
-          tMergeStr *                      mMergeStruct;
-          const std::list<tMerge *> *      mLMerge;
-          // std::list<cPMulTiepRed *>        mLPMul;
-
-          cP2dGroundOfPMul                 mPMul2Gr;
-          tTiePRed_QT                      *mQT;
-          cCompareHeapPMulTiepRed          mPMulCmp;
-          tTiePRed_Heap                    *mHeap;
-          std::list<tPMulTiepRedPtr>       mListSel; // List of selected multi points
-          double                           mStdPrec;
-          std::vector<int>                 mBufICam;
-          cInterfChantierNameManipulateur* mICNM;
+          // VARIABLES OF THE APPLICATION
+          static const std::string         TempFolderName; //Name of the temporal folder for the subcommands temporal data
+          static const std::string         OutputFolderName; //Name of the output folder
+          static const std::string         SubComFileName; //Name of the file with the subcommand
+          std::string                      mDir; //Parent directory of the images
+          std::string                      mPatImage; // Pattern of images to use
+          int 							   mNumCellsX; // Target number of tie point per image in X
+          int 							   mNumCellsY; // Target number of tie point per image in Y
+          cVirtInterf_NewO_NameManager *   mNM ; // Folder name manager
+          const std::vector<std::string> * mImagesNames; // Image names
+          std::vector<cImageTiepRed *>     mImages; // Images
+          bool                             mCallBack; //Indicates if current running process is a subcommand
+          bool 							   mExpSubCom; //Indicates if the user wishes to export the subcommands instead of executing them
+          bool 							   mExpTxt; // Indicates if the user wishes to export to TXT instead of binary
+          bool 							   mSortByNum; // Indicates if the user wishes to sort the images by number of tie points instead of by file name
+          bool							   mDesc; //Indicates if the user wishes to use descending order in sorting the images, instead of ascending
+          int                              mSubcommandIndex; // Subcommand index (used by the subcommands only)
+          int 							   mNumInit; // Initial number of tie points in the master image (used by the subcommands only)
+          int 							   mNumDeleted; // Number of deleted multi-tie-points (used by the subcommands only)
+          cXml_ParamSubcommandTiepRed      mXmlParamSubcommand; // Structure with subcommand configuration info
+          std::list<cLnk2ImTiepRed *>      mImagePairsLinks; //Image pairs
+          tMergeStr *                      mMergeStruct; //Merged structure to handle all tie points and image pairs
+          const std::list<tMerge *> *      mMergedHomolPointss;//List of multi-tie-points (without multiplicity and removing flag)
+          std::list<cPMulTiepRed* >        mMultiPoints; // List of multi-tie-points (with multiplicity and removing flag)
 };
-
 
 #endif // _TiepRed_H_
 
@@ -308,7 +214,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -319,16 +225,17 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
 manipuler et qui le réserve donc à des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
 logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
-aooter-MicMac-eLiSe-25/06/2007*/
+footer-MicMac-eLiSe-25/06/2007*/
+

@@ -21163,6 +21163,512 @@ void xml_init(cXml_TopoTriplet & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXml_TopoTriplet *) {return "8998B01898888FA8FF3F";};
 
 
+std::vector< double > & cXml_RPC_Model::SAMP_NUM_COEFF()
+{
+   return mSAMP_NUM_COEFF;
+}
+
+const std::vector< double > & cXml_RPC_Model::SAMP_NUM_COEFF()const 
+{
+   return mSAMP_NUM_COEFF;
+}
+
+
+std::vector< double > & cXml_RPC_Model::SAMP_DEN_COEFF()
+{
+   return mSAMP_DEN_COEFF;
+}
+
+const std::vector< double > & cXml_RPC_Model::SAMP_DEN_COEFF()const 
+{
+   return mSAMP_DEN_COEFF;
+}
+
+
+std::vector< double > & cXml_RPC_Model::LINE_NUM_COEFF()
+{
+   return mLINE_NUM_COEFF;
+}
+
+const std::vector< double > & cXml_RPC_Model::LINE_NUM_COEFF()const 
+{
+   return mLINE_NUM_COEFF;
+}
+
+
+std::vector< double > & cXml_RPC_Model::LINE_DEN_COEFF()
+{
+   return mLINE_DEN_COEFF;
+}
+
+const std::vector< double > & cXml_RPC_Model::LINE_DEN_COEFF()const 
+{
+   return mLINE_DEN_COEFF;
+}
+
+void  BinaryUnDumpFromFile(cXml_RPC_Model & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             double aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.SAMP_NUM_COEFF().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             double aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.SAMP_DEN_COEFF().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             double aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.LINE_NUM_COEFF().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             double aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.LINE_DEN_COEFF().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RPC_Model & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.SAMP_NUM_COEFF().size());
+    for(  std::vector< double >::const_iterator iT=anObj.SAMP_NUM_COEFF().begin();
+         iT!=anObj.SAMP_NUM_COEFF().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.SAMP_DEN_COEFF().size());
+    for(  std::vector< double >::const_iterator iT=anObj.SAMP_DEN_COEFF().begin();
+         iT!=anObj.SAMP_DEN_COEFF().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.LINE_NUM_COEFF().size());
+    for(  std::vector< double >::const_iterator iT=anObj.LINE_NUM_COEFF().begin();
+         iT!=anObj.LINE_NUM_COEFF().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.LINE_DEN_COEFF().size());
+    for(  std::vector< double >::const_iterator iT=anObj.LINE_DEN_COEFF().begin();
+         iT!=anObj.LINE_DEN_COEFF().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_RPC_Model & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RPC_Model",eXMLBranche);
+  for
+  (       std::vector< double >::const_iterator it=anObj.SAMP_NUM_COEFF().begin();
+      it !=anObj.SAMP_NUM_COEFF().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF"),(*it))->ReTagThis("SAMP_NUM_COEFF"));
+  for
+  (       std::vector< double >::const_iterator it=anObj.SAMP_DEN_COEFF().begin();
+      it !=anObj.SAMP_DEN_COEFF().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF"),(*it))->ReTagThis("SAMP_DEN_COEFF"));
+  for
+  (       std::vector< double >::const_iterator it=anObj.LINE_NUM_COEFF().begin();
+      it !=anObj.LINE_NUM_COEFF().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF"),(*it))->ReTagThis("LINE_NUM_COEFF"));
+  for
+  (       std::vector< double >::const_iterator it=anObj.LINE_DEN_COEFF().begin();
+      it !=anObj.LINE_DEN_COEFF().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF"),(*it))->ReTagThis("LINE_DEN_COEFF"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_RPC_Model & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.SAMP_NUM_COEFF(),aTree->GetAll("SAMP_NUM_COEFF",false,1));
+
+   xml_init(anObj.SAMP_DEN_COEFF(),aTree->GetAll("SAMP_DEN_COEFF",false,1));
+
+   xml_init(anObj.LINE_NUM_COEFF(),aTree->GetAll("LINE_NUM_COEFF",false,1));
+
+   xml_init(anObj.LINE_DEN_COEFF(),aTree->GetAll("LINE_DEN_COEFF",false,1));
+}
+
+std::string  Mangling( cXml_RPC_Model *) {return "0FCFF03FE80EB09AFF3F";};
+
+
+cXml_RPC_Model & cXml_RPC::Direct_Model()
+{
+   return mDirect_Model;
+}
+
+const cXml_RPC_Model & cXml_RPC::Direct_Model()const 
+{
+   return mDirect_Model;
+}
+
+
+cXml_RPC_Model & cXml_RPC::Inverse_Model()
+{
+   return mInverse_Model;
+}
+
+const cXml_RPC_Model & cXml_RPC::Inverse_Model()const 
+{
+   return mInverse_Model;
+}
+
+
+double & cXml_RPC::FIRST_ROW()
+{
+   return mFIRST_ROW;
+}
+
+const double & cXml_RPC::FIRST_ROW()const 
+{
+   return mFIRST_ROW;
+}
+
+
+double & cXml_RPC::FIRST_COL()
+{
+   return mFIRST_COL;
+}
+
+const double & cXml_RPC::FIRST_COL()const 
+{
+   return mFIRST_COL;
+}
+
+
+double & cXml_RPC::LAST_ROW()
+{
+   return mLAST_ROW;
+}
+
+const double & cXml_RPC::LAST_ROW()const 
+{
+   return mLAST_ROW;
+}
+
+
+double & cXml_RPC::LAST_COL()
+{
+   return mLAST_COL;
+}
+
+const double & cXml_RPC::LAST_COL()const 
+{
+   return mLAST_COL;
+}
+
+
+double & cXml_RPC::FIRST_LON()
+{
+   return mFIRST_LON;
+}
+
+const double & cXml_RPC::FIRST_LON()const 
+{
+   return mFIRST_LON;
+}
+
+
+double & cXml_RPC::FIRST_LAT()
+{
+   return mFIRST_LAT;
+}
+
+const double & cXml_RPC::FIRST_LAT()const 
+{
+   return mFIRST_LAT;
+}
+
+
+double & cXml_RPC::LAST_LON()
+{
+   return mLAST_LON;
+}
+
+const double & cXml_RPC::LAST_LON()const 
+{
+   return mLAST_LON;
+}
+
+
+double & cXml_RPC::LAST_LAT()
+{
+   return mLAST_LAT;
+}
+
+const double & cXml_RPC::LAST_LAT()const 
+{
+   return mLAST_LAT;
+}
+
+
+double & cXml_RPC::LONG_SCALE()
+{
+   return mLONG_SCALE;
+}
+
+const double & cXml_RPC::LONG_SCALE()const 
+{
+   return mLONG_SCALE;
+}
+
+
+double & cXml_RPC::LONG_OFF()
+{
+   return mLONG_OFF;
+}
+
+const double & cXml_RPC::LONG_OFF()const 
+{
+   return mLONG_OFF;
+}
+
+
+double & cXml_RPC::LAT_SCALE()
+{
+   return mLAT_SCALE;
+}
+
+const double & cXml_RPC::LAT_SCALE()const 
+{
+   return mLAT_SCALE;
+}
+
+
+double & cXml_RPC::LAT_OFF()
+{
+   return mLAT_OFF;
+}
+
+const double & cXml_RPC::LAT_OFF()const 
+{
+   return mLAT_OFF;
+}
+
+
+int & cXml_RPC::HEIGHT_SCALE()
+{
+   return mHEIGHT_SCALE;
+}
+
+const int & cXml_RPC::HEIGHT_SCALE()const 
+{
+   return mHEIGHT_SCALE;
+}
+
+
+int & cXml_RPC::HEIGHT_OFF()
+{
+   return mHEIGHT_OFF;
+}
+
+const int & cXml_RPC::HEIGHT_OFF()const 
+{
+   return mHEIGHT_OFF;
+}
+
+
+double & cXml_RPC::SAMP_SCALE()
+{
+   return mSAMP_SCALE;
+}
+
+const double & cXml_RPC::SAMP_SCALE()const 
+{
+   return mSAMP_SCALE;
+}
+
+
+double & cXml_RPC::SAMP_OFF()
+{
+   return mSAMP_OFF;
+}
+
+const double & cXml_RPC::SAMP_OFF()const 
+{
+   return mSAMP_OFF;
+}
+
+
+double & cXml_RPC::LINE_SCALE()
+{
+   return mLINE_SCALE;
+}
+
+const double & cXml_RPC::LINE_SCALE()const 
+{
+   return mLINE_SCALE;
+}
+
+
+double & cXml_RPC::LINE_OFF()
+{
+   return mLINE_OFF;
+}
+
+const double & cXml_RPC::LINE_OFF()const 
+{
+   return mLINE_OFF;
+}
+
+void  BinaryUnDumpFromFile(cXml_RPC & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Direct_Model(),aFp);
+    BinaryUnDumpFromFile(anObj.Inverse_Model(),aFp);
+    BinaryUnDumpFromFile(anObj.FIRST_ROW(),aFp);
+    BinaryUnDumpFromFile(anObj.FIRST_COL(),aFp);
+    BinaryUnDumpFromFile(anObj.LAST_ROW(),aFp);
+    BinaryUnDumpFromFile(anObj.LAST_COL(),aFp);
+    BinaryUnDumpFromFile(anObj.FIRST_LON(),aFp);
+    BinaryUnDumpFromFile(anObj.FIRST_LAT(),aFp);
+    BinaryUnDumpFromFile(anObj.LAST_LON(),aFp);
+    BinaryUnDumpFromFile(anObj.LAST_LAT(),aFp);
+    BinaryUnDumpFromFile(anObj.LONG_SCALE(),aFp);
+    BinaryUnDumpFromFile(anObj.LONG_OFF(),aFp);
+    BinaryUnDumpFromFile(anObj.LAT_SCALE(),aFp);
+    BinaryUnDumpFromFile(anObj.LAT_OFF(),aFp);
+    BinaryUnDumpFromFile(anObj.HEIGHT_SCALE(),aFp);
+    BinaryUnDumpFromFile(anObj.HEIGHT_OFF(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_SCALE(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_OFF(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_SCALE(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_OFF(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RPC & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Direct_Model());
+    BinaryDumpInFile(aFp,anObj.Inverse_Model());
+    BinaryDumpInFile(aFp,anObj.FIRST_ROW());
+    BinaryDumpInFile(aFp,anObj.FIRST_COL());
+    BinaryDumpInFile(aFp,anObj.LAST_ROW());
+    BinaryDumpInFile(aFp,anObj.LAST_COL());
+    BinaryDumpInFile(aFp,anObj.FIRST_LON());
+    BinaryDumpInFile(aFp,anObj.FIRST_LAT());
+    BinaryDumpInFile(aFp,anObj.LAST_LON());
+    BinaryDumpInFile(aFp,anObj.LAST_LAT());
+    BinaryDumpInFile(aFp,anObj.LONG_SCALE());
+    BinaryDumpInFile(aFp,anObj.LONG_OFF());
+    BinaryDumpInFile(aFp,anObj.LAT_SCALE());
+    BinaryDumpInFile(aFp,anObj.LAT_OFF());
+    BinaryDumpInFile(aFp,anObj.HEIGHT_SCALE());
+    BinaryDumpInFile(aFp,anObj.HEIGHT_OFF());
+    BinaryDumpInFile(aFp,anObj.SAMP_SCALE());
+    BinaryDumpInFile(aFp,anObj.SAMP_OFF());
+    BinaryDumpInFile(aFp,anObj.LINE_SCALE());
+    BinaryDumpInFile(aFp,anObj.LINE_OFF());
+}
+
+cElXMLTree * ToXMLTree(const cXml_RPC & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RPC",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.Direct_Model())->ReTagThis("Direct_Model"));
+   aRes->AddFils(ToXMLTree(anObj.Inverse_Model())->ReTagThis("Inverse_Model"));
+   aRes->AddFils(::ToXMLTree(std::string("FIRST_ROW"),anObj.FIRST_ROW())->ReTagThis("FIRST_ROW"));
+   aRes->AddFils(::ToXMLTree(std::string("FIRST_COL"),anObj.FIRST_COL())->ReTagThis("FIRST_COL"));
+   aRes->AddFils(::ToXMLTree(std::string("LAST_ROW"),anObj.LAST_ROW())->ReTagThis("LAST_ROW"));
+   aRes->AddFils(::ToXMLTree(std::string("LAST_COL"),anObj.LAST_COL())->ReTagThis("LAST_COL"));
+   aRes->AddFils(::ToXMLTree(std::string("FIRST_LON"),anObj.FIRST_LON())->ReTagThis("FIRST_LON"));
+   aRes->AddFils(::ToXMLTree(std::string("FIRST_LAT"),anObj.FIRST_LAT())->ReTagThis("FIRST_LAT"));
+   aRes->AddFils(::ToXMLTree(std::string("LAST_LON"),anObj.LAST_LON())->ReTagThis("LAST_LON"));
+   aRes->AddFils(::ToXMLTree(std::string("LAST_LAT"),anObj.LAST_LAT())->ReTagThis("LAST_LAT"));
+   aRes->AddFils(::ToXMLTree(std::string("LONG_SCALE"),anObj.LONG_SCALE())->ReTagThis("LONG_SCALE"));
+   aRes->AddFils(::ToXMLTree(std::string("LONG_OFF"),anObj.LONG_OFF())->ReTagThis("LONG_OFF"));
+   aRes->AddFils(::ToXMLTree(std::string("LAT_SCALE"),anObj.LAT_SCALE())->ReTagThis("LAT_SCALE"));
+   aRes->AddFils(::ToXMLTree(std::string("LAT_OFF"),anObj.LAT_OFF())->ReTagThis("LAT_OFF"));
+   aRes->AddFils(::ToXMLTree(std::string("HEIGHT_SCALE"),anObj.HEIGHT_SCALE())->ReTagThis("HEIGHT_SCALE"));
+   aRes->AddFils(::ToXMLTree(std::string("HEIGHT_OFF"),anObj.HEIGHT_OFF())->ReTagThis("HEIGHT_OFF"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_SCALE"),anObj.SAMP_SCALE())->ReTagThis("SAMP_SCALE"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_OFF"),anObj.SAMP_OFF())->ReTagThis("SAMP_OFF"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_SCALE"),anObj.LINE_SCALE())->ReTagThis("LINE_SCALE"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_OFF"),anObj.LINE_OFF())->ReTagThis("LINE_OFF"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_RPC & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Direct_Model(),aTree->Get("Direct_Model",1)); //tototo 
+
+   xml_init(anObj.Inverse_Model(),aTree->Get("Inverse_Model",1)); //tototo 
+
+   xml_init(anObj.FIRST_ROW(),aTree->Get("FIRST_ROW",1)); //tototo 
+
+   xml_init(anObj.FIRST_COL(),aTree->Get("FIRST_COL",1)); //tototo 
+
+   xml_init(anObj.LAST_ROW(),aTree->Get("LAST_ROW",1)); //tototo 
+
+   xml_init(anObj.LAST_COL(),aTree->Get("LAST_COL",1)); //tototo 
+
+   xml_init(anObj.FIRST_LON(),aTree->Get("FIRST_LON",1)); //tototo 
+
+   xml_init(anObj.FIRST_LAT(),aTree->Get("FIRST_LAT",1)); //tototo 
+
+   xml_init(anObj.LAST_LON(),aTree->Get("LAST_LON",1)); //tototo 
+
+   xml_init(anObj.LAST_LAT(),aTree->Get("LAST_LAT",1)); //tototo 
+
+   xml_init(anObj.LONG_SCALE(),aTree->Get("LONG_SCALE",1)); //tototo 
+
+   xml_init(anObj.LONG_OFF(),aTree->Get("LONG_OFF",1)); //tototo 
+
+   xml_init(anObj.LAT_SCALE(),aTree->Get("LAT_SCALE",1)); //tototo 
+
+   xml_init(anObj.LAT_OFF(),aTree->Get("LAT_OFF",1)); //tototo 
+
+   xml_init(anObj.HEIGHT_SCALE(),aTree->Get("HEIGHT_SCALE",1)); //tototo 
+
+   xml_init(anObj.HEIGHT_OFF(),aTree->Get("HEIGHT_OFF",1)); //tototo 
+
+   xml_init(anObj.SAMP_SCALE(),aTree->Get("SAMP_SCALE",1)); //tototo 
+
+   xml_init(anObj.SAMP_OFF(),aTree->Get("SAMP_OFF",1)); //tototo 
+
+   xml_init(anObj.LINE_SCALE(),aTree->Get("LINE_SCALE",1)); //tototo 
+
+   xml_init(anObj.LINE_OFF(),aTree->Get("LINE_OFF",1)); //tototo 
+}
+
+std::string  Mangling( cXml_RPC *) {return "9068598DA9E3E8C8FCBF";};
+
+
 double & cXml_SLSRay::IndCol()
 {
    return mIndCol;

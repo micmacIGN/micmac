@@ -37,96 +37,51 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "TiepRed.h"
 
-#include "SatPhysMod.h"
-
-//================ SEUILS ==============
-
-
-class cAppli_TestPhysMod
+/**********************************************************************/
+/*                                                                    */
+/*                         cImageTiepRed                             */
+/*                                                                    */
+/**********************************************************************/
+cImageTiepRed::cImageTiepRed (const std::string & aImageName) :
+   mImageName 		(aImageName),
+   mNbPtsHom2Im		(0),
+   mImageId 	    (-1),
+   mImageBeenMaster  (false)
 {
-    public :
-       cAppli_TestPhysMod(int argc, char ** argv);
-
-       std::string mNameIm,mNameOrient,mNameMetaOri;
-       std::string       mNameType;
-       eTypeImporGenBundle mType;
-       cRPC                 *mRPC;  // Gives acces to the lowest level
-       Pt2di                mSzLineG;
-       bool                 mDet;
-};
-cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
-    mNameType ("TIGB_Unknown"),
-    mSzLineG  (100,200),
-    mDet      (true)
-{
-     ElInitArgMain
-     (
-        argc,argv,
-        LArgMain()  << EAMC(mNameOrient,"Name of input Orientation File"),
-        LArgMain()
-                    << EAM(mNameType,"Type",true,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
-                    << EAM(mNameIm,"Im",true,"Name of Im")
-                    << EAM(mSzLineG,"SzLineG",true,"Size in X and Y of computation line parameters")
-                    << EAM(mDet,"Det",true,"Show Detail")
-                    << EAM(mNameMetaOri,"Meta",true,"Meta data for ikonos")
-     );
-     bool mModeHelp;
-     StdReadEnum(mModeHelp,mType,mNameType,eTIGB_NbVals);
-
-     AutoDetermineTypeTIGB(mType,mNameOrient);
-
-     // int aIntType = mType;
-
-     eModeRefinePB aModeRefine = eMRP_None;
-     
-     //////////// EwR modified
-     mRPC = new cRPC(mNameOrient,mType);
-     aModeRefine = eMRP_Direct;
-
-     /*if (mType==eTIGB_MMDimap2)
-     {
-          mRPC.ReadDimap(mNameOrient);
-          aModeRefine = eMRP_Direct;
-     }
-     else if(mType==eTIGB_MMDGlobe )
-     {
-          mRPC.ReadXML(mNameOrient);
-          mRPC.InvToDirRPC();
-          aModeRefine = eMRP_Direct;
-
-     }
-     else if (mType==eTIGB_MMIkonos)
-     {
-          ELISE_ASSERT(EAMIsInit(&mNameMetaOri),"Ikonos requires meta file");
-          mRPC.ReadASCII(mNameOrient);
-          mRPC.ReadASCIIMeta(mNameMetaOri, mNameOrient);
-          mRPC.InvToDirRPC();
-
-          aModeRefine = eMRP_Direct;
-     }
-     else
-     {
-         ELISE_ASSERT(false,"Use unsuported eTypeImporGenBundle");
-     }*/
-
-     cRPC_PushB_PhysMod * aPhys = cRPC_PushB_PhysMod::NewRPC_PBP(*mRPC,aModeRefine,mSzLineG);
-     // Pt2dr aSz =       Pt2dr(aPhys->Sz());
-
-
-     aPhys->ShowLinesPB(mDet);
 }
 
-int CPP_TestPhysMod_Main(int argc,char ** argv)
-{
-   cAppli_TestPhysMod anAppli(argc,argv);
+const std::string cImageTiepRed::ImageName() const { return mImageName; }
 
-   return EXIT_SUCCESS;
+void cImageTiepRed::SetNbPtsHom2Im(int aNbPtsHom2Im)
+{
+	mNbPtsHom2Im = aNbPtsHom2Im;
 }
 
+const int & cImageTiepRed::NbPtsHom2Im() const {
+	return mNbPtsHom2Im;
+}
 
+void cImageTiepRed::SetImageId(int aImageId)
+{
+	mImageId = aImageId;
+}
 
+const int & cImageTiepRed::ImageId() const
+{
+   return mImageId;
+}
 
+void cImageTiepRed::SetImageBeenMaster(bool aImageBeenMaster)
+{
+	mImageBeenMaster = aImageBeenMaster;
+}
+
+const bool & cImageTiepRed::ImageBeenMaster() const
+{
+   return mImageBeenMaster;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

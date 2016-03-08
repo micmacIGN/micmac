@@ -538,7 +538,7 @@ extern int  TD_Exo9(int argc,char ** argv);
 extern int TD_Match1_main(int argc,char ** argv);
 extern int TD_Match2_main(int argc,char ** argv);
 extern int TD_Match3_main(int argc,char ** argv);
-extern int TestER_main(int argc,char ** argv);
+extern int TestER_rpc(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -650,7 +650,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
        aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
-       aRes.push_back(cMMCom("TestER",TestER_main,"ER test workplace"));
+       aRes.push_back(cMMCom("TestER",TestER_rpc,"ER test workplace"));
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
@@ -774,11 +774,10 @@ extern int Dimap2Grid_main(int argc, char **argv);
 extern int DigitalGlobe2Grid_main(int argc, char **argv);
 extern int Aster2Grid_main(int argc, char **argv);
 extern int AsterDestrip_main(int argc, char **argv);
-extern int SATtoBundle_main(int argc,char ** argv);
 extern int SATvalid_main(int argc,char ** argv);
 extern int CPP_SATDef2D_main(int argc,char ** argv);
-extern int CPP_TestRPCDirectGen(int argc,char ** argv);
 extern int DoTile_main(int argc,char ** argv);
+extern int RecalRPC_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
@@ -793,11 +792,10 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("RefineJitter", RefineJitter_main, "/!\\ V0.01 Highly experimental /!\\ Refine a grid with Affine + jitter model based on SIFT obs"));
     aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
-    aRes.push_back(cMMCom("SATtoBundle", SATtoBundle_main, "Export a satellite image to a grid of bundles"));
     aRes.push_back(cMMCom("SATValid", SATvalid_main, "Validate the prj function by either retrieving the line of optical centers or the provided GCPs"));
     aRes.push_back(cMMCom("SATD2D", CPP_SATDef2D_main, "Visualize 2D deformation fields of a pushbroom image"));
-    aRes.push_back(cMMCom("TestRPC", CPP_TestRPCDirectGen, "Test the calculation of direct RPCs"));
     aRes.push_back(cMMCom("ImageTiling", DoTile_main, "Tile an image pair to selected size"));
+    aRes.push_back(cMMCom("RecalRPC", RecalRPC_main, "Recalculate the adjusted RPCs"));
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);
 

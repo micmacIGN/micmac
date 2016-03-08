@@ -102,6 +102,7 @@ class ElDistortionPolynomiale;
 class ElCamera;
 class CamStenope;
 class CameraRPC;
+class cRPC;
 class cCamStenopeGen;
 class CamStenopeIdeale;
 class CalcPtsInteret;
@@ -1515,8 +1516,6 @@ class cBasicGeomCap3D
        virtual bool  HasRoughCapteur2Terrain() const ;
        virtual   Pt2dr OrGlbImaM2C(const Pt2dr &) const;
 
-       virtual Pt3dr ToSysCible(const Pt3dr &) const;
-       virtual Pt3dr ToSysSource(const Pt3dr &) const;
        virtual Pt2dr ImRef2Capteur   (const Pt2dr & aP) const;
        virtual double ResolImRefFromCapteur() const;
       virtual bool  HasPreciseCapteur2Terrain() const ;
@@ -2711,7 +2710,10 @@ class cResMepRelCoplan
 {
         public :
            cResMepRelCoplan();
-           cElemMepRelCoplan & BestSol();
+           cElemMepRelCoplan & RefBestSol();
+           cElemMepRelCoplan * PtrBestSol();
+
+
            void AddSol(const cElemMepRelCoplan &);
            const std::list<ElRotation3D> &  LRot() const;
            const std::vector<cElemMepRelCoplan> & VElOk() const;

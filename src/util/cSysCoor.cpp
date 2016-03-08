@@ -244,49 +244,100 @@ Pt3dr cGeoc_WGS4::FromGeoC(const Pt3dr & aP) const
 
 /*************************************************/
 /*                                               */
+/*          cCs2Cs                               */
+/*                                               */
+/*************************************************/
+cCs2Cs::cCs2Cs(const std::string  & aStr) :
+                     mStr (aStr)
+{};
+
+
+std::vector<Pt3dr> cCs2Cs::Chang(const std::vector<Pt3dr> & aPtsIn) const
+{
+
+   std::string aTmpIn = "Proj4Input"+GetUnikId() +".txt";  // Pour exe en //
+   FILE * aFPin = FopenNN(aTmpIn,"w","cCs2Cs::Chang");
+   for (int aK= 0 ; aK< int(aPtsIn.size()) ; aK++)
+   {
+       fprintf(aFPin,"%.20f %.20f %.20f\n", aPtsIn.at(aK).x, aPtsIn.at(aK).y, aPtsIn.at(aK).z);
+   }
+   ElFclose(aFPin);
+
+
+   std::string aTmpOut = "Proj4Output" + GetUnikId() + ".txt";
+   
+   std::string aCom = g_externalToolHandler.get("cs2cs").callName() + " " +
+                      mStr + " " + aTmpIn + " > " + aTmpOut;
+
+   VoidSystem(aCom.c_str());
+   
+   ELISE_fp aFOut(aTmpOut.c_str(),ELISE_fp::READ);
+
+   
+   std::vector<Pt3dr> aRes;
+   char * aLine;
+   while ((aLine = aFOut.std_fgets()))
+   {
+         Pt3dr aP;
+         int aNb = sscanf(aLine,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
+         
+         ELISE_ASSERT(aNb==3,"Bad Nb value in cCs2Cs::Chang, internal error");
+         
+         aRes.push_back(aP);
+   }
+   aFOut.close();
+
+   ELISE_fp::RmFile(aTmpIn);
+   ELISE_fp::RmFile(aTmpOut);
+
+   return(aRes);
+}
+
+cSystemeCoord cCs2Cs::ToXML() const
+{
+    cSystemeCoord aRes = SYSCoord(eTC_Proj4,1);
+
+    aRes.BSC()[0].AuxStr().push_back(mStr);
+    
+    return aRes;
+}
+
+/*************************************************/
+/*                                               */
 /*          cProj4                               */
 /*                                               */
 /*************************************************/
 
-class cProj4 : public cSysCoord
+cProj4::cProj4(const std::string  & aStr,const Pt3dr & aMOdg) :
+                     mStr (aStr),
+                     mMOdg  (aMOdg)
+{};
+
+cProj4 * cProj4::Lambert93()
 {
-    public :
-         cProj4(const std::string  & aStr,const Pt3dr & aMOdg) :
-              mStr (aStr),
-              mMOdg  (aMOdg)
-         {
-         }
-         std::vector<Pt3dr> ToGeoC(const std::vector<Pt3dr> &) const;
-         std::vector<Pt3dr> FromGeoC(const std::vector<Pt3dr> &) const ;
-
-
-         static cProj4  Lambert(double aPhi0,double aPhi1,double aPhi2,double aLon0,double aX0,double aY0);
-         static cProj4 * Lambert93()
-         {
-              static cProj4 * aRes =  new cProj4(cProj4::Lambert(46.5,49,44,3,700000,6600000));
-              return aRes;
-         }
-         Pt3dr OdgEnMetre() const {return mMOdg;}
-         cSystemeCoord ToXML() const
-         {
-             cSystemeCoord aRes = SYSCoord(eTC_Proj4,1);
-
-             aRes.BSC()[0].AuxR().push_back(mMOdg.x);
-             aRes.BSC()[0].AuxR().push_back(mMOdg.y);
-             aRes.BSC()[0].AuxR().push_back(mMOdg.z);
-             aRes.BSC()[0].AuxStr().push_back(mStr);
-
-
-             return aRes;
-         }
-
-
-         void Delete() { };
-    private :
-         std::vector<Pt3dr> Chang(const std::vector<Pt3dr> &, bool Sens2GeoC) const;
-         std::string mStr;
-         Pt3dr       mMOdg;
+    static cProj4 * aRes =  new cProj4(cProj4::Lambert(46.5,49,44,3,700000,6600000));
+    return aRes;
 };
+
+Pt3dr cProj4::OdgEnMetre() const 
+{
+    return mMOdg;
+};
+
+cSystemeCoord cProj4::ToXML() const
+{
+    cSystemeCoord aRes = SYSCoord(eTC_Proj4,1);
+
+    aRes.BSC()[0].AuxR().push_back(mMOdg.x);
+    aRes.BSC()[0].AuxR().push_back(mMOdg.y);
+    aRes.BSC()[0].AuxR().push_back(mMOdg.z);
+    aRes.BSC()[0].AuxStr().push_back(mStr);
+
+    return aRes;
+};
+
+void cProj4::Delete()
+{};
 
 
 cProj4  cProj4::Lambert(double aPhi0,double aPhi1,double aPhi2,double aLon0,double aX0,double aY0)
@@ -333,22 +384,13 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
 
    std::string aTmpOut = "Proj4Output" + GetUnikId() + ".txt";
 
-	#if ELISE_windows
-	   std::string aCom =  g_externalToolHandler.get("proj").callName() + (Sens2GeoC?" -I ":" ")
-						   + std::string(" -f %.7f ")
-						   + mStr
-						   + " " + aTmpIn
-						   + " > " 
-						   + aTmpOut;
-	#else
-	   std::string aCom =    std::string( std::string(SYS_CAT) + " " + aTmpIn + " | ")
+   std::string aCom =    std::string( std::string(SYS_CAT) + " " + aTmpIn + " | ")
 						   + g_externalToolHandler.get("proj").callName() + (Sens2GeoC?" -I ":" ")
 						   + std::string(" -f %.7f ")
 						   + mStr
 						   + " > " 
 						   + aTmpOut;
-	#endif
-
+   
    VoidSystem(aCom.c_str());
 
 
@@ -361,6 +403,7 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
    {
          Pt3dr aP;
          int aNb = sscanf(aLine,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
+         std::cout << " ap " << aNb << " " << aP << std::endl;
          ELISE_ASSERT(aNb==3,"Bad Nb value in cProj4::Chang, internal error");
          if (Sens2GeoC)
          {

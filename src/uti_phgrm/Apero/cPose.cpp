@@ -944,7 +944,7 @@ else
 
        aPack = aCS1->F2toPtDirRayonL3(aPack,&aCS2);
        cResMepRelCoplan aRMRC = aPack.MepRelCoplan(1.0,aPP.L2EstimPlan().Val());
-       cElemMepRelCoplan & aSP = aRMRC.BestSol();
+       cElemMepRelCoplan & aSP = aRMRC.RefBestSol();
 
        // aM1 aM2 aM3 -> coordonnees monde, specifiees par l'utilisateur
        // aC1 aC2 aC3 -> coordonnees monde
@@ -1178,7 +1178,7 @@ else
 	       {
 	          aNZPl = aLI.OnZonePlane().Val();
 	          cResMepRelCoplan aRMRC = aPack.MepRelCoplan(aLBase,aLI.L2EstimPlan().Val());
-		  cElemMepRelCoplan & aSP = aRMRC.BestSol();
+		  cElemMepRelCoplan & aSP = aRMRC.RefBestSol();
 
 
 		  aP0Pl = aSP.P0();

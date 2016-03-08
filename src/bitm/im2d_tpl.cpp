@@ -1723,6 +1723,70 @@ template <class Type,class TyBase>
    }
 }
 
+template <class Type,class TyBase>
+void Im2D<Type,TyBase>::getMinMax(Type &oMin, Type &oMax) const
+{
+	ELISE_DEBUG_ERROR(tx() <= 0 || ty() <= 0, "Im2D<Type,TyBase>::getMinMax", "sz() = " << sz());
+
+	oMin = numeric_limits<Type>::max();
+	oMax = numeric_limits<Type>::min();
+	const Type *itPix = data_lin();
+	size_t iPix = size_t(tx()) * size_t(ty());
+	while (iPix--)
+	{
+		if (*itPix < oMin) oMin = *itPix;
+		if (*itPix > oMax) oMax = *itPix;
+		itPix++;
+	}
+}
+
+template <class Type,class TyBase>
+void Im2D<Type,TyBase>::multiply(const Type &aK)
+{
+	ELISE_DEBUG_ERROR(tx() <= 0 || ty() <= 0, "Im2D<Type,TyBase>::getMinMax", "sz() = " << sz());
+	if (aK == Type(1)) return;
+
+	Type *itPix = data_lin();
+	size_t iPix = size_t(tx()) * size_t(ty());
+	while (iPix--) *itPix++ *= aK;
+}
+
+template <class Type,class TyBase>
+void Im2D<Type,TyBase>::substract(const Type &aB)
+{
+	ELISE_DEBUG_ERROR(tx() <= 0 || ty() <= 0, "Im2D<Type,TyBase>::getMinMax", "sz() = " << sz());
+	if (aB == Type(0)) return;
+
+	Type *itPix = data_lin();
+	size_t iPix = size_t(tx()) * size_t(ty());
+	while (iPix--) *itPix++ -= aB;
+}
+
+template <class Type,class TyBase>
+void Im2D<Type,TyBase>::ramp(const Type &aMin, const Type &aK)
+{
+	ELISE_DEBUG_ERROR(tx() <= 0 || ty() <= 0, "Im2D<Type,TyBase>::getMinMax", "sz() = " << sz());
+
+	if (aMin == Type(0))
+	{
+		multiply(aK);
+		return;
+	}
+
+	if (aK == Type(1))
+	{
+		substract(aMin);
+		return;
+	}
+
+	Type *itPix = data_lin();
+	size_t iPix = size_t(tx()) * size_t(ty());
+	while (iPix--)
+	{
+		*itPix = (*itPix - aMin) * aK;
+		itPix++;
+	}
+}
 
 template <class Type,class TyBase>
 void Im2D<Type,TyBase>:: ReadAndPushTif

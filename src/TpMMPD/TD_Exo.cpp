@@ -644,7 +644,7 @@ int CorrelRapide_TD_Exo6(int argc,char ** argv)
                       int aYV = aY + dY;
                       if (anImIn1.Ok(aXV,aYV))
                       {
-                          double aPds = (2-fabs(dX) ) * (2-fabs(dY));
+                          double aPds = (2-fabs((double)dX) ) * (2-fabs((double)dY));
                           float aValP = anImIn1.GetVal(aXV,aYV) * aPds;
                           if ((aXV%2) != (aYV%2))
                           {
@@ -807,25 +807,13 @@ int TD_Exo7(int argc,char ** argv)
         {
              double aDX = anImDecX.GetVal(aX,aY) -aDec0.x;
              double aDY = anImDecY.GetVal(aX,aY) -aDec0.y;
-             double aN1 = ElMax(hypot(aDX,aDY),1e-5);
-             anImRho.SetVal(aX,aY,aN1);
-             aDX /= aN1;
-             aDY /= aN1;
 
-             double aCX = aX - aSzF.x /2.0;
-             double aCY = aY - aSzF.y /2.0;
-             double aN2 = ElMax(hypot(aCX,aCY),1e-5);
-             aCX /= aN2;
-             aCY /= aN2;
-
-
-             anImTeta.SetVal(aX,aY,aDX*aCX+aDY*aCY);
+             anImRho.SetVal(aX,aY,sqrt(aDX*aDX+aDY*aDY));
              
         }
     }
 
     anImRho.Save("Rho.tif");
-    anImTeta.Save("Teta.tif");
 
     return EXIT_SUCCESS;
 }

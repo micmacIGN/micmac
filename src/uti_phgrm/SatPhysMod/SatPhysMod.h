@@ -166,7 +166,7 @@ class cPushB_PhysMod
 class cRPC_PushB_PhysMod : public cPushB_PhysMod
 {
     public :
-        static cRPC_PushB_PhysMod * NewRPC_PBP(const RPC & aRPC,eModeRefinePB,const Pt2di &aSzGeoL);
+        static cRPC_PushB_PhysMod * NewRPC_PBP(const cRPC & aRPC,eModeRefinePB,const Pt2di &aSzGeoL);
  //  LatLon  <-> Image
         Pt2dr RPC_LlZ2Im(const Pt3dr & aLlZ) const;
         Pt3dr RPC_ImAndZ2LlZ(const Pt2dr & aPIm,const double & aZ) const;
@@ -177,13 +177,13 @@ class cRPC_PushB_PhysMod : public cPushB_PhysMod
     private :
 
         
-        cRPC_PushB_PhysMod(const RPC & aRPC,eModeRefinePB,const Pt2di & aSzGeoL);
+        cRPC_PushB_PhysMod(const cRPC & aRPC,eModeRefinePB,const Pt2di & aSzGeoL);
 
 
         static const double ThePdsRay;
         static const double TheMinDeltaZ;
 
-        RPC  mRPC;
+        cRPC  mRPC;
         cSysCoord * mWGS84Degr;
         double      mZ0Ray;  // Z used for Ray computation
         double      mZ1Ray;  // Z used for Ray computation

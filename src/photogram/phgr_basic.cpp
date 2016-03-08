@@ -1553,18 +1553,6 @@ void cBasicGeomCap3D::Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPI
 CamStenope * cBasicGeomCap3D::DownCastCS() { return 0; }
 
 
-Pt3dr cBasicGeomCap3D::ToSysCible(const Pt3dr &) const
-{
-    ELISE_ASSERT(false,"cBasicGeomCap3D::ToSysCible");
-    return Pt3dr(0,0,0);
-}
-
-Pt3dr cBasicGeomCap3D::ToSysSource(const Pt3dr &) const
-{
-    ELISE_ASSERT(false,"cBasicGeomCap3D::ToSysSource");
-    return Pt3dr(0,0,0);
-}
-
 bool  cBasicGeomCap3D::HasPreciseCapteur2Terrain() const
 {
     return false;
@@ -1611,7 +1599,7 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                     std::string aStrVersion = aXmlMETADATA_FORMAT->ValAttr("version","-1");
                     if (aStrVersion =="2.0")
                     {
-                        // std::cout << "GOT DIMAP2 \n"; getchar();
+                         //std::cout << "GOT DIMAP2 \n"; getchar();
                         aType = eTIGB_MMDimap2;
                         return;
                     }
@@ -1681,7 +1669,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
     else if (aType==eTIGB_MMDimap2 || aType==eTIGB_MMDGlobe)
     {
 	
-	return CamRPCOrientGenFromFile(aName, aType, aChSys);
+	return CameraRPC::CamRPCOrientGenFromFile(aName, aType, aChSys);
     }
 
     if (ThePattGBMM.Match(aName))
@@ -1700,7 +1688,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
          {
                 case eTIGB_MMDGlobe : 
                 case eTIGB_MMDimap2 :
-                      return  CamRPCOrientGenFromFile(aName,aTrueType,aChSys);
+                      return  CameraRPC::CamRPCOrientGenFromFile(aName,aTrueType,aChSys);
 
                 default : ;
 
