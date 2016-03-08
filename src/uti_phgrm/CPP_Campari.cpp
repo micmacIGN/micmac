@@ -57,6 +57,41 @@ Parametre de Tapas :
 #define  NbModele 10
 
 
+/*
+   Campari avec Block Adj :
+
+      <BlockCamera>
+              <NameFile>  Stereo-Apero-EstimBlock.xml </NameFile>
+              <Id> TheBlock </Id>
+              <UseForBundle>
+                        <GlobalBundle >  false     </GlobalBundle>
+                        <RelTimeBundle >  true    </RelTimeBundle>
+              </UseForBundle>
+      </BlockCamera>
+
+
+      <ObsBlockCamRig>
+             <Id>  TheBlock  </Id>
+             <Show> true </Show>
+             <!-- <GlobalPond> </GlobalPond> -->
+             <RelTimePond>
+                            <PondOnTr >  1e+2 </PondOnTr>
+                            <PondOnRot>  2e+3 </PondOnRot>
+             </RelTimePond>
+       </ObsBlockCamRig>
+
+
+        <ExportBlockCamera>
+                         <Id> TheBlock</Id>
+                         <NameFile> Bloc_Cmp_LR.xml </NameFile>
+        </ExportBlockCamera>
+
+
+
+         
+*/
+
+
 void Campari_Banniere()
 {
     std::cout <<  "\n";
