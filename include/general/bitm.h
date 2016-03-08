@@ -617,6 +617,11 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
       INT linearDataAllocatedSize() const;
       INT dataAllocatedSize() const;
 
+      void getMinMax(Type &oMin, Type &oMax) const;
+      void multiply(const Type &aK);
+      void substract(const Type &aB);
+      void ramp(const Type &aMin, const Type &aK);
+
    private :
       DataIm2D<Type,TyBase> * di2d(){return (DataIm2D<Type,TyBase> *) (_ptr);}
       const DataIm2D<Type,TyBase> * di2d() const {return (DataIm2D<Type,TyBase> *) (_ptr);}

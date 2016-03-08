@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1808]) = {
+const char * (theNameVar_ParamChantierPhotogram[1814]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1794,6 +1794,12 @@ const char * (theNameVar_ParamChantierPhotogram[1808]) = {
 "<Xml_ParamGlobReducTieP Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "      <Resol Nb=\"1\" Type=\"double\"> </Resol>\n",
 "</Xml_ParamGlobReducTieP>\n",
+"\n",
+"<Xml_ParamSubcommandTiepRed Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"     <NumInit Nb=\"1\" Type=\"int\"> </NumInit>\n",
+"     <Images Nb=\"*\" Type=\"std::string\" Container=\"std::vector\"> </Images>\n",
+"</Xml_ParamSubcommandTiepRed>\n",
+"\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
 "// };\n",

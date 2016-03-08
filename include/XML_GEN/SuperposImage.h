@@ -6493,6 +6493,142 @@ std::string  Mangling( cXml_TopoTriplet *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_RPC_Model
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_RPC_Model & anObj,cElXMLTree * aTree);
+
+
+        std::vector< double > & SAMP_NUM_COEFF();
+        const std::vector< double > & SAMP_NUM_COEFF()const ;
+
+        std::vector< double > & SAMP_DEN_COEFF();
+        const std::vector< double > & SAMP_DEN_COEFF()const ;
+
+        std::vector< double > & LINE_NUM_COEFF();
+        const std::vector< double > & LINE_NUM_COEFF()const ;
+
+        std::vector< double > & LINE_DEN_COEFF();
+        const std::vector< double > & LINE_DEN_COEFF()const ;
+    private:
+        std::vector< double > mSAMP_NUM_COEFF;
+        std::vector< double > mSAMP_DEN_COEFF;
+        std::vector< double > mLINE_NUM_COEFF;
+        std::vector< double > mLINE_DEN_COEFF;
+};
+cElXMLTree * ToXMLTree(const cXml_RPC_Model &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_RPC_Model &);
+
+void  BinaryUnDumpFromFile(cXml_RPC_Model &,ELISE_fp &);
+
+std::string  Mangling( cXml_RPC_Model *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_RPC
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_RPC & anObj,cElXMLTree * aTree);
+
+
+        cXml_RPC_Model & Direct_Model();
+        const cXml_RPC_Model & Direct_Model()const ;
+
+        cXml_RPC_Model & Inverse_Model();
+        const cXml_RPC_Model & Inverse_Model()const ;
+
+        double & FIRST_ROW();
+        const double & FIRST_ROW()const ;
+
+        double & FIRST_COL();
+        const double & FIRST_COL()const ;
+
+        double & LAST_ROW();
+        const double & LAST_ROW()const ;
+
+        double & LAST_COL();
+        const double & LAST_COL()const ;
+
+        double & FIRST_LON();
+        const double & FIRST_LON()const ;
+
+        double & FIRST_LAT();
+        const double & FIRST_LAT()const ;
+
+        double & LAST_LON();
+        const double & LAST_LON()const ;
+
+        double & LAST_LAT();
+        const double & LAST_LAT()const ;
+
+        double & LONG_SCALE();
+        const double & LONG_SCALE()const ;
+
+        double & LONG_OFF();
+        const double & LONG_OFF()const ;
+
+        double & LAT_SCALE();
+        const double & LAT_SCALE()const ;
+
+        double & LAT_OFF();
+        const double & LAT_OFF()const ;
+
+        int & HEIGHT_SCALE();
+        const int & HEIGHT_SCALE()const ;
+
+        int & HEIGHT_OFF();
+        const int & HEIGHT_OFF()const ;
+
+        double & SAMP_SCALE();
+        const double & SAMP_SCALE()const ;
+
+        double & SAMP_OFF();
+        const double & SAMP_OFF()const ;
+
+        double & LINE_SCALE();
+        const double & LINE_SCALE()const ;
+
+        double & LINE_OFF();
+        const double & LINE_OFF()const ;
+    private:
+        cXml_RPC_Model mDirect_Model;
+        cXml_RPC_Model mInverse_Model;
+        double mFIRST_ROW;
+        double mFIRST_COL;
+        double mLAST_ROW;
+        double mLAST_COL;
+        double mFIRST_LON;
+        double mFIRST_LAT;
+        double mLAST_LON;
+        double mLAST_LAT;
+        double mLONG_SCALE;
+        double mLONG_OFF;
+        double mLAT_SCALE;
+        double mLAT_OFF;
+        int mHEIGHT_SCALE;
+        int mHEIGHT_OFF;
+        double mSAMP_SCALE;
+        double mSAMP_OFF;
+        double mLINE_SCALE;
+        double mLINE_OFF;
+};
+cElXMLTree * ToXMLTree(const cXml_RPC &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_RPC &);
+
+void  BinaryUnDumpFromFile(cXml_RPC &,ELISE_fp &);
+
+std::string  Mangling( cXml_RPC *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_SLSRay
 {
     public:

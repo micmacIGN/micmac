@@ -52,12 +52,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 const double cRPC_PushB_PhysMod::ThePdsRay = 0.1;
 const double cRPC_PushB_PhysMod::TheMinDeltaZ = 50;
 
-cRPC_PushB_PhysMod::cRPC_PushB_PhysMod(const RPC & aRPC,eModeRefinePB aModeRefine,const Pt2di & aSzGeoL) :
-   cPushB_PhysMod  (Pt2di(aRPC.last_col,aRPC.last_row),aModeRefine,aSzGeoL),
+cRPC_PushB_PhysMod::cRPC_PushB_PhysMod(const cRPC & aRPC,eModeRefinePB aModeRefine,const Pt2di & aSzGeoL) :
+   cPushB_PhysMod  (Pt2di(aRPC.GetImCol2(),aRPC.GetImRow2()),aModeRefine,aSzGeoL),
    mRPC            (aRPC),
    mWGS84Degr      (cSysCoord::WGS84Degre()),
-   mZ0Ray          (barry(0.5+ThePdsRay,mRPC.first_height,mRPC.last_height)),
-   mZ1Ray          (barry(0.5-ThePdsRay,mRPC.first_height,mRPC.last_height))
+   mZ0Ray          (barry(0.5+ThePdsRay,mRPC.GetGrC31(),mRPC.GetGrC32())),
+   mZ1Ray          (barry(0.5-ThePdsRay,mRPC.GetGrC31(),mRPC.GetGrC32()))
    //mZ0Ray          (barry(0.5+ThePdsRay,mRPC.height_scale,mRPC.height_off)),
    //mZ1Ray          (barry(0.5-ThePdsRay,mRPC.height_scale,mRPC.height_off))
 {
@@ -73,7 +73,7 @@ cRPC_PushB_PhysMod::cRPC_PushB_PhysMod(const RPC & aRPC,eModeRefinePB aModeRefin
    }
 }
 
-cRPC_PushB_PhysMod * cRPC_PushB_PhysMod::NewRPC_PBP(const RPC & aRPC,eModeRefinePB aModeRefine,const Pt2di &aSzGeoL)
+cRPC_PushB_PhysMod * cRPC_PushB_PhysMod::NewRPC_PBP(const cRPC & aRPC,eModeRefinePB aModeRefine,const Pt2di &aSzGeoL)
 {
    cRPC_PushB_PhysMod * aRes = new cRPC_PushB_PhysMod(aRPC,aModeRefine,aSzGeoL);
    aRes->PostInit();
@@ -83,14 +83,14 @@ cRPC_PushB_PhysMod * cRPC_PushB_PhysMod::NewRPC_PBP(const RPC & aRPC,eModeRefine
 
 Pt2dr  cRPC_PushB_PhysMod::RPC_LlZ2Im(const Pt3dr & aLlZ) const
 {
-    Pt3dr aPInv = mRPC.InverseRPC(aLlZ);
-    return Pt2dr(aPInv.x,aPInv.y);
+    Pt2dr aPInv = mRPC.InverseRPC(aLlZ);
+    return aPInv;
 }
 
 Pt3dr cRPC_PushB_PhysMod::RPC_ImAndZ2LlZ(const Pt2dr & aPIm,const double & aZ) const
 {
     // std::cout << aPIm << " " << aZ << "\n";
-    Pt3dr aRes =  mRPC.DirectRPC(Pt3dr(aPIm.x,aPIm.y,aZ));
+    Pt3dr aRes =  mRPC.DirectRPC(aPIm, aZ);
     // std::cout << "GGGGGGgggg \n";
 
     return aRes;

@@ -416,10 +416,15 @@ cResMepRelCoplan::cResMepRelCoplan()
 {
 }
 
-cElemMepRelCoplan & cResMepRelCoplan::BestSol()
+cElemMepRelCoplan & cResMepRelCoplan::RefBestSol()
 {
    ELISE_ASSERT(mVElOk.size()!=0," cResMepRelCoplan::BestSol");
    return mVElOk[0];
+}
+
+cElemMepRelCoplan * cResMepRelCoplan::PtrBestSol()
+{
+   return (mVElOk.size()) ? &(mVElOk[0]) : 0;
 }
 
 const std::vector<cElemMepRelCoplan> & cResMepRelCoplan::VElOk() const
@@ -1052,14 +1057,18 @@ BUG=(aCpt==10);
 */
 
    ElRotation3D aR1 = MepRelPhysStd(LongBase,L2);
-
-   cResMepRelCoplan aMRC = MepRelCoplan(LongBase,L2);
-
-
-   ElRotation3D aR2 = aMRC.BestSol().Rot();
-
    double aD1 = AngularDistInter(aR1);
-   double aD2 = AngularDistInter(aR2);
+
+   ElRotation3D   aR2 = aR1;
+   cResMepRelCoplan aMRC = MepRelCoplan(LongBase,L2);
+   cElemMepRelCoplan *  anEMRC = aMRC.PtrBestSol();
+   double aD2 = aD1 + 1;
+   if (anEMRC)
+   {
+       aR2 = anEMRC->Rot();
+       aD2 = AngularDistInter(aR2);
+   }
+
 
 // std::cout << "COST-Ess " << aD1 << " Cost Co plan " << aD2 << "\n";
 

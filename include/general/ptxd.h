@@ -1376,6 +1376,45 @@ class cSysCoord
                              );
 };
 
+class cProj4 : public cSysCoord
+{
+    public :
+        cProj4(const std::string  & aStr,const Pt3dr & aMOdg);
+
+        std::vector<Pt3dr> ToGeoC(const std::vector<Pt3dr> &) const;
+        std::vector<Pt3dr> FromGeoC(const std::vector<Pt3dr> &) const ;
+
+        static cProj4  Lambert(double aPhi0,double aPhi1,double aPhi2,double aLon0,double aX0,double aY0);
+        static cProj4 * Lambert93();
+
+        Pt3dr OdgEnMetre() const;
+        cSystemeCoord ToXML() const;
+        
+        void Delete();
+
+    private :
+        std::vector<Pt3dr> Chang(const std::vector<Pt3dr> &, bool Sens2GeoC) const;
+        std::string mStr;
+        Pt3dr       mMOdg;
+
+};
+
+class cCs2Cs //:  public cSysCoord
+{
+    public :
+        cCs2Cs(const std::string  & aStr);
+
+        std::vector<Pt3dr> Chang(const std::vector<Pt3dr> &) const;
+
+        cSystemeCoord ToXML() const;
+
+        void Delete();
+
+    private :
+        std::string mStr;
+
+};
+
 class ElCamera;
 
 class cTransfo3D

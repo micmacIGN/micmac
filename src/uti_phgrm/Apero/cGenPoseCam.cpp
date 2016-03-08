@@ -1044,6 +1044,7 @@ void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc) const
      {
             ELISE_fp::CpFile(mNameFileCam0,aNameSsCor);
      }
+
      aXml.NameCamSsCor() = aNameSsCor;
      if (mPtrChSys)
      {
@@ -1052,6 +1053,7 @@ void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc) const
 
      
      MakeFileXML(aXml,aNameXml);
+
 }
 
 

@@ -6,6 +6,7 @@ set(uti_phgrm_Apero_Src_Files
     ${UTI_PHGRM_APERO_DIR}/cAppliApero.cpp
     ${UTI_PHGRM_APERO_DIR}/CarteProfExport.cpp
     ${UTI_PHGRM_APERO_DIR}/cCalib.cpp
+    ${UTI_PHGRM_APERO_DIR}/cCameraRPC.cpp
     ${UTI_PHGRM_APERO_DIR}/cChoixImagesMicMac.cpp
     ${UTI_PHGRM_APERO_DIR}/cCorrel.cpp
     ${UTI_PHGRM_APERO_DIR}/cExport.cpp
