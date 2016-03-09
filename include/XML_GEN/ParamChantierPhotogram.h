@@ -6,6 +6,368 @@
 // NO MORE
 typedef enum
 {
+  esingle,
+  edgps,
+  ekinematic,
+  estatic,
+  emovingbase,
+  efixed,
+  eppp_kine,
+  eppp_static,
+  eNbTypeGpsMod
+} eTypeGpsMod;
+void xml_init(eTypeGpsMod & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsMod & aVal);
+
+eTypeGpsMod  Str2eTypeGpsMod(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsMod & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsMod &);
+
+std::string  Mangling( eTypeGpsMod *);
+
+void  BinaryUnDumpFromFile(eTypeGpsMod &,ELISE_fp &);
+
+typedef enum
+{
+  ellh,
+  exyz,
+  eenu,
+  enmea,
+  eNbTypeGpsSolFormat
+} eTypeGpsSolFormat;
+void xml_init(eTypeGpsSolFormat & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsSolFormat & aVal);
+
+eTypeGpsSolFormat  Str2eTypeGpsSolFormat(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsSolFormat & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsSolFormat &);
+
+std::string  Mangling( eTypeGpsSolFormat *);
+
+void  BinaryUnDumpFromFile(eTypeGpsSolFormat &,ELISE_fp &);
+
+typedef enum
+{
+  eellipsoidal,
+  egeodetic,
+  eNbTypeGpsHeight
+} eTypeGpsHeight;
+void xml_init(eTypeGpsHeight & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsHeight & aVal);
+
+eTypeGpsHeight  Str2eTypeGpsHeight(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsHeight & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsHeight &);
+
+std::string  Mangling( eTypeGpsHeight *);
+
+void  BinaryUnDumpFromFile(eTypeGpsHeight &,ELISE_fp &);
+
+typedef enum
+{
+  einternal,
+  eegm96,
+  eegm08_2_5,
+  eegm08_1,
+  egsi2000,
+  eNbTypeGeoid
+} eTypeGeoid;
+void xml_init(eTypeGeoid & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGeoid & aVal);
+
+eTypeGeoid  Str2eTypeGeoid(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGeoid & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGeoid &);
+
+std::string  Mangling( eTypeGeoid *);
+
+void  BinaryUnDumpFromFile(eTypeGeoid &,ELISE_fp &);
+
+typedef enum
+{
+  enone,
+  estate,
+  eresidual,
+  eNbTypeRtkOutStats
+} eTypeRtkOutStats;
+void xml_init(eTypeRtkOutStats & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeRtkOutStats & aVal);
+
+eTypeRtkOutStats  Str2eTypeRtkOutStats(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeRtkOutStats & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeRtkOutStats &);
+
+std::string  Mangling( eTypeRtkOutStats *);
+
+void  BinaryUnDumpFromFile(eTypeRtkOutStats &,ELISE_fp &);
+
+typedef enum
+{
+  eall,
+  eone,
+  eNbTypeGpsSolStatic
+} eTypeGpsStaticSol;
+void xml_init(eTypeGpsStaticSol & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsStaticSol & aVal);
+
+eTypeGpsStaticSol  Str2eTypeGpsStaticSol(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsStaticSol & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsStaticSol &);
+
+std::string  Mangling( eTypeGpsStaticSol *);
+
+void  BinaryUnDumpFromFile(eTypeGpsStaticSol &,ELISE_fp &);
+
+typedef enum
+{
+  egpst,
+  eutc,
+  ejst,
+  eNbTypeGpsTimeSys
+} eTypeGpsTimeSys;
+void xml_init(eTypeGpsTimeSys & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsTimeSys & aVal);
+
+eTypeGpsTimeSys  Str2eTypeGpsTimeSys(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsTimeSys & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsTimeSys &);
+
+std::string  Mangling( eTypeGpsTimeSys *);
+
+void  BinaryUnDumpFromFile(eTypeGpsTimeSys &,ELISE_fp &);
+
+typedef enum
+{
+  etow,
+  ehms,
+  eNbTypeGpsTimeFormat
+} eTypeGpsTimeFormat;
+void xml_init(eTypeGpsTimeFormat & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsTimeFormat & aVal);
+
+eTypeGpsTimeFormat  Str2eTypeGpsTimeFormat(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsTimeFormat & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsTimeFormat &);
+
+std::string  Mangling( eTypeGpsTimeFormat *);
+
+void  BinaryUnDumpFromFile(eTypeGpsTimeFormat &,ELISE_fp &);
+
+typedef enum
+{
+  edeg,
+  edms,
+  eNbTypeGpsDegFormat
+} eTypeGpsDegFormat;
+void xml_init(eTypeGpsDegFormat & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsDegFormat & aVal);
+
+eTypeGpsDegFormat  Str2eTypeGpsDegFormat(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsDegFormat & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsDegFormat &);
+
+std::string  Mangling( eTypeGpsDegFormat *);
+
+void  BinaryUnDumpFromFile(eTypeGpsDegFormat &,ELISE_fp &);
+
+typedef enum
+{
+  el1,
+  el1_l2,
+  el1_l2_l5,
+  el1_l2_l5_l6,
+  el1_l2_l5_l6_l7,
+  eNbTypeGpsFreq
+} eTypeGpsFreq;
+void xml_init(eTypeGpsFreq & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsFreq & aVal);
+
+eTypeGpsFreq  Str2eTypeGpsFreq(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsFreq & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsFreq &);
+
+std::string  Mangling( eTypeGpsFreq *);
+
+void  BinaryUnDumpFromFile(eTypeGpsFreq &,ELISE_fp &);
+
+typedef enum
+{
+  eforward,
+  ebackward,
+  ecombined,
+  eNbTypeGpsSol
+} eTypeGpsSol;
+void xml_init(eTypeGpsSol & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsSol & aVal);
+
+eTypeGpsSol  Str2eTypeGpsSol(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsSol & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsSol &);
+
+std::string  Mangling( eTypeGpsSol *);
+
+void  BinaryUnDumpFromFile(eTypeGpsSol &,ELISE_fp &);
+
+typedef enum
+{
+  eNav,
+  eprecise,
+  ebrdc_sbas,
+  ebrdc_ssrapc,
+  ebrdc_ssrcom,
+  eNbTypeGpsEphe
+} eTypeGpsEphe;
+void xml_init(eTypeGpsEphe & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsEphe & aVal);
+
+eTypeGpsEphe  Str2eTypeGpsEphe(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsEphe & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsEphe &);
+
+std::string  Mangling( eTypeGpsEphe *);
+
+void  BinaryUnDumpFromFile(eTypeGpsEphe &,ELISE_fp &);
+
+typedef enum
+{
+  eNONE,
+  econtinuous,
+  einstantaneous,
+  efix_and_hold,
+  eNbTypeGpsAmbRes
+} eTypeGpsAmbRes;
+void xml_init(eTypeGpsAmbRes & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsAmbRes & aVal);
+
+eTypeGpsAmbRes  Str2eTypeGpsAmbRes(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsAmbRes & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsAmbRes &);
+
+std::string  Mangling( eTypeGpsAmbRes *);
+
+void  BinaryUnDumpFromFile(eTypeGpsAmbRes &,ELISE_fp &);
+
+typedef enum
+{
+  eOFF,
+  eon,
+  eautocal,
+  eNbTypeGloAmbRes
+} eTypeGloAmbRes;
+void xml_init(eTypeGloAmbRes & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGloAmbRes & aVal);
+
+eTypeGloAmbRes  Str2eTypeGloAmbRes(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGloAmbRes & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGloAmbRes &);
+
+std::string  Mangling( eTypeGloAmbRes *);
+
+void  BinaryUnDumpFromFile(eTypeGloAmbRes &,ELISE_fp &);
+
+typedef enum
+{
+  eoff,
+  ebrdc,
+  esbas,
+  edual_freq,
+  eest_stec,
+  eionex_tec,
+  eqzs_brdc,
+  eqzs_lex,
+  evtec_sf,
+  evtec_ef,
+  egtec,
+  eNbTypeGpsIonoCorr
+} eTypeGpsIonoCorr;
+void xml_init(eTypeGpsIonoCorr & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsIonoCorr & aVal);
+
+eTypeGpsIonoCorr  Str2eTypeGpsIonoCorr(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsIonoCorr & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsIonoCorr &);
+
+std::string  Mangling( eTypeGpsIonoCorr *);
+
+void  BinaryUnDumpFromFile(eTypeGpsIonoCorr &,ELISE_fp &);
+
+typedef enum
+{
+  enull,
+  esaas,
+  eSBAS,
+  eest_ztd,
+  eest_ztdgrad,
+  eNbTypeGpsTropoCorr
+} eTypeGpsTropoCorr;
+void xml_init(eTypeGpsTropoCorr & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsTropoCorr & aVal);
+
+eTypeGpsTropoCorr  Str2eTypeGpsTropoCorr(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsTropoCorr & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsTropoCorr &);
+
+std::string  Mangling( eTypeGpsTropoCorr *);
+
+void  BinaryUnDumpFromFile(eTypeGpsTropoCorr &,ELISE_fp &);
+
+typedef enum
+{
+  eLLH,
+  eXYZ,
+  ecode,
+  eposfile,
+  erinexhead,
+  ertcm,
+  eNbGpsAntPos
+} eTypeGpsAntPos;
+void xml_init(eTypeGpsAntPos & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeGpsAntPos & aVal);
+
+eTypeGpsAntPos  Str2eTypeGpsAntPos(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsAntPos & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeGpsAntPos &);
+
+std::string  Mangling( eTypeGpsAntPos *);
+
+void  BinaryUnDumpFromFile(eTypeGpsAntPos &,ELISE_fp &);
+
+typedef enum
+{
   eTMalt_Ortho,
   eTMalt_UrbanMNE,
   eTMalt_GeomImage,
@@ -1860,6 +2222,70 @@ void  BinaryDumpInFile(ELISE_fp &,const cDicoAppuisFlottant &);
 void  BinaryUnDumpFromFile(cDicoAppuisFlottant &,ELISE_fp &);
 
 std::string  Mangling( cDicoAppuisFlottant *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cOneGpsDGF
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cOneGpsDGF & anObj,cElXMLTree * aTree);
+
+
+        Pt3dr & Pt();
+        const Pt3dr & Pt()const ;
+
+        std::string & NamePt();
+        const std::string & NamePt()const ;
+
+        int & TagPt();
+        const int & TagPt()const ;
+
+        std::string & TimePt();
+        const std::string & TimePt()const ;
+
+        Pt3dr & Incertitude();
+        const Pt3dr & Incertitude()const ;
+    private:
+        Pt3dr mPt;
+        std::string mNamePt;
+        int mTagPt;
+        std::string mTimePt;
+        Pt3dr mIncertitude;
+};
+cElXMLTree * ToXMLTree(const cOneGpsDGF &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOneGpsDGF &);
+
+void  BinaryUnDumpFromFile(cOneGpsDGF &,ELISE_fp &);
+
+std::string  Mangling( cOneGpsDGF *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cDicoGpsFlottant
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cDicoGpsFlottant & anObj,cElXMLTree * aTree);
+
+
+        std::list< cOneGpsDGF > & OneGpsDGF();
+        const std::list< cOneGpsDGF > & OneGpsDGF()const ;
+    private:
+        std::list< cOneGpsDGF > mOneGpsDGF;
+};
+cElXMLTree * ToXMLTree(const cDicoGpsFlottant &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cDicoGpsFlottant &);
+
+void  BinaryUnDumpFromFile(cDicoGpsFlottant &,ELISE_fp &);
+
+std::string  Mangling( cDicoGpsFlottant *);
 
 /******************************************************/
 /******************************************************/
@@ -6971,34 +7397,6 @@ void  BinaryDumpInFile(ELISE_fp &,const cXml_ParamGlobReducTieP &);
 void  BinaryUnDumpFromFile(cXml_ParamGlobReducTieP &,ELISE_fp &);
 
 std::string  Mangling( cXml_ParamGlobReducTieP *);
-
-/******************************************************/
-/******************************************************/
-/******************************************************/
-class cXml_ParamSubcommandTiepRed
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cXml_ParamSubcommandTiepRed & anObj,cElXMLTree * aTree);
-
-
-        int & NumInit();
-        const int & NumInit()const ;
-
-        std::vector< std::string > & Images();
-        const std::vector< std::string > & Images()const ;
-    private:
-        int mNumInit;
-        std::vector< std::string > mImages;
-};
-cElXMLTree * ToXMLTree(const cXml_ParamSubcommandTiepRed &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cXml_ParamSubcommandTiepRed &);
-
-void  BinaryUnDumpFromFile(cXml_ParamSubcommandTiepRed &,ELISE_fp &);
-
-std::string  Mangling( cXml_ParamSubcommandTiepRed *);
 
 /******************************************************/
 /******************************************************/

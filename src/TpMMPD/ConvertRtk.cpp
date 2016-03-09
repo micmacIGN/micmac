@@ -42,20 +42,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 int ConvertRtk_main(int argc,char ** argv)
 {
 	std::string aDir, aFile, aOut;
-	bool addInc = false;
+	bool aShowH=false;
+	bool aXYZ=false;
 	
 	ElInitArgMain
     (
           argc, argv,
           LArgMain() << EAMC(aDir, "Directory")
-					 << EAMC(aFile, "Rtk output.txt file",  eSAM_IsExistFile),
-          LArgMain() << EAM(aOut,"Out",false,"output txt file name : def=Output.txt")
-					 << EAM(addInc,"addInc",false,"export also uncertainty values : def=flase",eSAM_IsBool)
+					 << EAMC(aFile, "Rtk Output.txt file",  eSAM_IsExistFile),
+          LArgMain() << EAM(aOut,"Out",false,"output txt file name ; Def=Output.xml")
+					 << EAM(aShowH,"ShowH",false,"Show header informations ; Def = false", eSAM_IsBool)
+					 << EAM(aXYZ,"XYZ",false,"Export XYZ format data ; Def = false", eSAM_IsBool)
     );
     
     std::string aFullName = aDir+aFile;
     
-    //name output .xml file
+    //name output (.xml) file
     if (aOut=="")
     {
 		aOut = StdPrefixGen(aFile) + ".xml";
@@ -63,33 +65,36 @@ int ConvertRtk_main(int argc,char ** argv)
     
     std::vector<Pt3dr> aPosList;
     std::vector<Pt3dr> aIcList;
+    std::vector<int> Flag;
+    std::vector<std::string> Time;
     
     //read rtk input file
-    ifstream fichier(aFullName.c_str());  								//déclaration du flux et ouverture du fichier
+    ifstream fichier(aFullName.c_str());
 
-    if(fichier)  														// si l'ouverture a réussi
+    if(fichier)
     {
 
-		std::string ligne; 												//Une variable pour stocker les lignes lues
+		std::string ligne; 												
         
         while(!fichier.eof())
         {
 			getline(fichier,ligne);
             
-            if(ligne.compare(0,1,"%") == 0)								//pour sauter l'entête (toute les lignes qui commencent par "%")
+            if(ligne.compare(0,1,"%") == 0)								
             {
-				std::cout << " % Skip Header Line % " << std::endl;
-				std::cout << "Ligne = "<< ligne << std::endl;				
+				if(aShowH)
+					std::cout << ligne << std::endl;			
             }
             
-            else if(ligne.size() != 0)       							// problème de dernière ligne du fihier
+            //if line is not empty
+            else if(ligne.size() != 0)       							
             {
 				std::string s = ligne;
                 std::vector<string> coord;                 
                 int lowmark=-1;
                 int uppermark=-1;
                 
-                for(unsigned int i=0;i<s.size()+1;i++)     				// parser chaque ligne par l'espace
+                for(unsigned int i=0;i<s.size()+1;i++)     				
                 {
 					if(std::isspace(s[i]) && (lowmark!=-1))
                     {                             
@@ -117,42 +122,69 @@ int ConvertRtk_main(int argc,char ** argv)
                         }
                 }
 
-                      Pt3dr Pt;											//position
-                      Pt3dr Ic;
-                      
-                      Pt.x = atof(coord[2].c_str());
-                      Pt.y = atof (coord[3].c_str());
-                      Pt.z = atof (coord[4].c_str());
-                      
-                      Ic.x = atof(coord[7].c_str());
-                      Ic.y = atof(coord[8].c_str());
-                      Ic.z = atof(coord[9].c_str());
-                      
-                      aPosList.push_back(Pt);                      
-                      aIcList.push_back(Ic);                      
+                Pt3dr Pt;											
+                Pt3dr Ic;
+                
+                std::string tps = coord[0];
+                
+                Pt.x = atof(coord[2].c_str());
+                Pt.y = atof (coord[3].c_str());
+                Pt.z = atof (coord[4].c_str());
+                
+                int f_q = atoi(coord[5].c_str());
+                
+                Ic.x = atof(coord[7].c_str());
+                Ic.y = atof(coord[8].c_str());
+                Ic.z = atof(coord[9].c_str());
+                
+                aPosList.push_back(Pt);                      
+                aIcList.push_back(Ic);
+                Flag.push_back(f_q);
+                Time.push_back(tps);                
             }
         }
       
-        fichier.close();  												// fermeture fichier
+        fichier.close();  												
     }
     
     else
     
 		std::cout<< "Erreur à l'ouverture !" << '\n';
 	
-	//save coordinates in a .xml file
+	cDicoGpsFlottant  aDico;
 	
-	cDicoAppuisFlottant  aDico;
     for (int aKP=0 ; aKP<int(aPosList.size()) ; aKP++)
     {
-		cOneAppuisDAF aOAD;
+		cOneGpsDGF aOAD;
         aOAD.Pt() = aPosList[aKP];
         aOAD.Incertitude() = aIcList[aKP];
+        aOAD.TagPt() = Flag[aKP];
+        aOAD.TimePt() = Time[aKP];
 
-        aDico.OneAppuisDAF().push_back(aOAD);
+        aDico.OneGpsDGF().push_back(aOAD);
 	}
 
     MakeFileXML(aDico,aOut);
+    
+    if(aXYZ)
+    {
+		if (!MMVisualMode)
+		{
+			std::string aTxtOut = StdPrefixGen(aFile) + ".xyz";
+			
+			FILE * aFP = FopenNN(aTxtOut,"w","ConvertRtk_main");
+				
+			cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aTxtOut);
+				
+			for (unsigned int aK=0 ; aK<aPosList.size() ; aK++)
+			{
+				fprintf(aFP,"%lf %lf %lf \n",aPosList[aK].x,aPosList[aK].y,aPosList[aK].z);
+			}
+			
+		ElFclose(aFP);
+			
+		}
+	}
     
    	return EXIT_SUCCESS;
 }

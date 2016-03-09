@@ -3,6 +3,1029 @@
 //#include "private/all.h"
 // #include "XML_GEN/ParamChantierPhotogram.h"
 // NO MORE
+eTypeGpsMod  Str2eTypeGpsMod(const std::string & aName)
+{
+   if (aName=="esingle")
+      return esingle;
+   else if (aName=="edgps")
+      return edgps;
+   else if (aName=="ekinematic")
+      return ekinematic;
+   else if (aName=="estatic")
+      return estatic;
+   else if (aName=="emovingbase")
+      return emovingbase;
+   else if (aName=="efixed")
+      return efixed;
+   else if (aName=="eppp_kine")
+      return eppp_kine;
+   else if (aName=="eppp_static")
+      return eppp_static;
+   else if (aName=="eNbTypeGpsMod")
+      return eNbTypeGpsMod;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsMod\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsMod) 0;
+}
+void xml_init(eTypeGpsMod & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsMod(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsMod & anObj)
+{
+   if (anObj==esingle)
+      return  "esingle";
+   if (anObj==edgps)
+      return  "edgps";
+   if (anObj==ekinematic)
+      return  "ekinematic";
+   if (anObj==estatic)
+      return  "estatic";
+   if (anObj==emovingbase)
+      return  "emovingbase";
+   if (anObj==efixed)
+      return  "efixed";
+   if (anObj==eppp_kine)
+      return  "eppp_kine";
+   if (anObj==eppp_static)
+      return  "eppp_static";
+   if (anObj==eNbTypeGpsMod)
+      return  "eNbTypeGpsMod";
+ std::cout << "Enum = eTypeGpsMod\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsMod & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsMod & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsMod & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsMod) aIVal;
+}
+
+std::string  Mangling( eTypeGpsMod *) {return "E6ADC16F3BA2A8E3FE3F";};
+
+eTypeGpsSolFormat  Str2eTypeGpsSolFormat(const std::string & aName)
+{
+   if (aName=="ellh")
+      return ellh;
+   else if (aName=="exyz")
+      return exyz;
+   else if (aName=="eenu")
+      return eenu;
+   else if (aName=="enmea")
+      return enmea;
+   else if (aName=="eNbTypeGpsSolFormat")
+      return eNbTypeGpsSolFormat;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsSolFormat\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsSolFormat) 0;
+}
+void xml_init(eTypeGpsSolFormat & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsSolFormat(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsSolFormat & anObj)
+{
+   if (anObj==ellh)
+      return  "ellh";
+   if (anObj==exyz)
+      return  "exyz";
+   if (anObj==eenu)
+      return  "eenu";
+   if (anObj==enmea)
+      return  "enmea";
+   if (anObj==eNbTypeGpsSolFormat)
+      return  "eNbTypeGpsSolFormat";
+ std::cout << "Enum = eTypeGpsSolFormat\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsSolFormat & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsSolFormat & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsSolFormat & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsSolFormat) aIVal;
+}
+
+std::string  Mangling( eTypeGpsSolFormat *) {return "F80A43E81D4F1A9EFE3F";};
+
+eTypeGpsHeight  Str2eTypeGpsHeight(const std::string & aName)
+{
+   if (aName=="eellipsoidal")
+      return eellipsoidal;
+   else if (aName=="egeodetic")
+      return egeodetic;
+   else if (aName=="eNbTypeGpsHeight")
+      return eNbTypeGpsHeight;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsHeight\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsHeight) 0;
+}
+void xml_init(eTypeGpsHeight & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsHeight(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsHeight & anObj)
+{
+   if (anObj==eellipsoidal)
+      return  "eellipsoidal";
+   if (anObj==egeodetic)
+      return  "egeodetic";
+   if (anObj==eNbTypeGpsHeight)
+      return  "eNbTypeGpsHeight";
+ std::cout << "Enum = eTypeGpsHeight\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsHeight & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsHeight & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsHeight & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsHeight) aIVal;
+}
+
+std::string  Mangling( eTypeGpsHeight *) {return "45024AA457628EA2FE3F";};
+
+eTypeGeoid  Str2eTypeGeoid(const std::string & aName)
+{
+   if (aName=="einternal")
+      return einternal;
+   else if (aName=="eegm96")
+      return eegm96;
+   else if (aName=="eegm08_2_5")
+      return eegm08_2_5;
+   else if (aName=="eegm08_1")
+      return eegm08_1;
+   else if (aName=="egsi2000")
+      return egsi2000;
+   else if (aName=="eNbTypeGeoid")
+      return eNbTypeGeoid;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGeoid\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGeoid) 0;
+}
+void xml_init(eTypeGeoid & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGeoid(aTree->Contenu());
+}
+std::string  eToString(const eTypeGeoid & anObj)
+{
+   if (anObj==einternal)
+      return  "einternal";
+   if (anObj==eegm96)
+      return  "eegm96";
+   if (anObj==eegm08_2_5)
+      return  "eegm08_2_5";
+   if (anObj==eegm08_1)
+      return  "eegm08_1";
+   if (anObj==egsi2000)
+      return  "egsi2000";
+   if (anObj==eNbTypeGeoid)
+      return  "eNbTypeGeoid";
+ std::cout << "Enum = eTypeGeoid\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGeoid & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGeoid & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGeoid & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGeoid) aIVal;
+}
+
+std::string  Mangling( eTypeGeoid *) {return "231123D0485B9DA5FF3F";};
+
+eTypeRtkOutStats  Str2eTypeRtkOutStats(const std::string & aName)
+{
+   if (aName=="enone")
+      return enone;
+   else if (aName=="estate")
+      return estate;
+   else if (aName=="eresidual")
+      return eresidual;
+   else if (aName=="eNbTypeRtkOutStats")
+      return eNbTypeRtkOutStats;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeRtkOutStats\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeRtkOutStats) 0;
+}
+void xml_init(eTypeRtkOutStats & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeRtkOutStats(aTree->Contenu());
+}
+std::string  eToString(const eTypeRtkOutStats & anObj)
+{
+   if (anObj==enone)
+      return  "enone";
+   if (anObj==estate)
+      return  "estate";
+   if (anObj==eresidual)
+      return  "eresidual";
+   if (anObj==eNbTypeRtkOutStats)
+      return  "eNbTypeRtkOutStats";
+ std::cout << "Enum = eTypeRtkOutStats\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeRtkOutStats & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeRtkOutStats & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeRtkOutStats & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeRtkOutStats) aIVal;
+}
+
+std::string  Mangling( eTypeRtkOutStats *) {return "00CACD72F78D32B5F9BF";};
+
+eTypeGpsStaticSol  Str2eTypeGpsStaticSol(const std::string & aName)
+{
+   if (aName=="eall")
+      return eall;
+   else if (aName=="eone")
+      return eone;
+   else if (aName=="eNbTypeGpsSolStatic")
+      return eNbTypeGpsSolStatic;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsStaticSol\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsStaticSol) 0;
+}
+void xml_init(eTypeGpsStaticSol & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsStaticSol(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsStaticSol & anObj)
+{
+   if (anObj==eall)
+      return  "eall";
+   if (anObj==eone)
+      return  "eone";
+   if (anObj==eNbTypeGpsSolStatic)
+      return  "eNbTypeGpsSolStatic";
+ std::cout << "Enum = eTypeGpsStaticSol\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsStaticSol & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsStaticSol & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsStaticSol & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsStaticSol) aIVal;
+}
+
+std::string  Mangling( eTypeGpsStaticSol *) {return "C036117A5A72ADC1F93F";};
+
+eTypeGpsTimeSys  Str2eTypeGpsTimeSys(const std::string & aName)
+{
+   if (aName=="egpst")
+      return egpst;
+   else if (aName=="eutc")
+      return eutc;
+   else if (aName=="ejst")
+      return ejst;
+   else if (aName=="eNbTypeGpsTimeSys")
+      return eNbTypeGpsTimeSys;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsTimeSys\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsTimeSys) 0;
+}
+void xml_init(eTypeGpsTimeSys & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsTimeSys(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsTimeSys & anObj)
+{
+   if (anObj==egpst)
+      return  "egpst";
+   if (anObj==eutc)
+      return  "eutc";
+   if (anObj==ejst)
+      return  "ejst";
+   if (anObj==eNbTypeGpsTimeSys)
+      return  "eNbTypeGpsTimeSys";
+ std::cout << "Enum = eTypeGpsTimeSys\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsTimeSys & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsTimeSys & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsTimeSys & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsTimeSys) aIVal;
+}
+
+std::string  Mangling( eTypeGpsTimeSys *) {return "25AB906B75F7C1A8FBBF";};
+
+eTypeGpsTimeFormat  Str2eTypeGpsTimeFormat(const std::string & aName)
+{
+   if (aName=="etow")
+      return etow;
+   else if (aName=="ehms")
+      return ehms;
+   else if (aName=="eNbTypeGpsTimeFormat")
+      return eNbTypeGpsTimeFormat;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsTimeFormat\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsTimeFormat) 0;
+}
+void xml_init(eTypeGpsTimeFormat & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsTimeFormat(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsTimeFormat & anObj)
+{
+   if (anObj==etow)
+      return  "etow";
+   if (anObj==ehms)
+      return  "ehms";
+   if (anObj==eNbTypeGpsTimeFormat)
+      return  "eNbTypeGpsTimeFormat";
+ std::cout << "Enum = eTypeGpsTimeFormat\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsTimeFormat & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsTimeFormat & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsTimeFormat & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsTimeFormat) aIVal;
+}
+
+std::string  Mangling( eTypeGpsTimeFormat *) {return "84E59BAB379F3580FC3F";};
+
+eTypeGpsDegFormat  Str2eTypeGpsDegFormat(const std::string & aName)
+{
+   if (aName=="edeg")
+      return edeg;
+   else if (aName=="edms")
+      return edms;
+   else if (aName=="eNbTypeGpsDegFormat")
+      return eNbTypeGpsDegFormat;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsDegFormat\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsDegFormat) 0;
+}
+void xml_init(eTypeGpsDegFormat & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsDegFormat(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsDegFormat & anObj)
+{
+   if (anObj==edeg)
+      return  "edeg";
+   if (anObj==edms)
+      return  "edms";
+   if (anObj==eNbTypeGpsDegFormat)
+      return  "eNbTypeGpsDegFormat";
+ std::cout << "Enum = eTypeGpsDegFormat\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsDegFormat & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsDegFormat & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsDegFormat & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsDegFormat) aIVal;
+}
+
+std::string  Mangling( eTypeGpsDegFormat *) {return "C61D36CF7C3BDBFEFD3F";};
+
+eTypeGpsFreq  Str2eTypeGpsFreq(const std::string & aName)
+{
+   if (aName=="el1")
+      return el1;
+   else if (aName=="el1_l2")
+      return el1_l2;
+   else if (aName=="el1_l2_l5")
+      return el1_l2_l5;
+   else if (aName=="el1_l2_l5_l6")
+      return el1_l2_l5_l6;
+   else if (aName=="el1_l2_l5_l6_l7")
+      return el1_l2_l5_l6_l7;
+   else if (aName=="eNbTypeGpsFreq")
+      return eNbTypeGpsFreq;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsFreq\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsFreq) 0;
+}
+void xml_init(eTypeGpsFreq & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsFreq(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsFreq & anObj)
+{
+   if (anObj==el1)
+      return  "el1";
+   if (anObj==el1_l2)
+      return  "el1_l2";
+   if (anObj==el1_l2_l5)
+      return  "el1_l2_l5";
+   if (anObj==el1_l2_l5_l6)
+      return  "el1_l2_l5_l6";
+   if (anObj==el1_l2_l5_l6_l7)
+      return  "el1_l2_l5_l6_l7";
+   if (anObj==eNbTypeGpsFreq)
+      return  "eNbTypeGpsFreq";
+ std::cout << "Enum = eTypeGpsFreq\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsFreq & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsFreq & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsFreq & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsFreq) aIVal;
+}
+
+std::string  Mangling( eTypeGpsFreq *) {return "920EC590BA16E7BEFE3F";};
+
+eTypeGpsSol  Str2eTypeGpsSol(const std::string & aName)
+{
+   if (aName=="eforward")
+      return eforward;
+   else if (aName=="ebackward")
+      return ebackward;
+   else if (aName=="ecombined")
+      return ecombined;
+   else if (aName=="eNbTypeGpsSol")
+      return eNbTypeGpsSol;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsSol\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsSol) 0;
+}
+void xml_init(eTypeGpsSol & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsSol(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsSol & anObj)
+{
+   if (anObj==eforward)
+      return  "eforward";
+   if (anObj==ebackward)
+      return  "ebackward";
+   if (anObj==ecombined)
+      return  "ecombined";
+   if (anObj==eNbTypeGpsSol)
+      return  "eNbTypeGpsSol";
+ std::cout << "Enum = eTypeGpsSol\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsSol & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsSol & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsSol & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsSol) aIVal;
+}
+
+std::string  Mangling( eTypeGpsSol *) {return "4A850566E94328C8FD3F";};
+
+eTypeGpsEphe  Str2eTypeGpsEphe(const std::string & aName)
+{
+   if (aName=="eNav")
+      return eNav;
+   else if (aName=="eprecise")
+      return eprecise;
+   else if (aName=="ebrdc_sbas")
+      return ebrdc_sbas;
+   else if (aName=="ebrdc_ssrapc")
+      return ebrdc_ssrapc;
+   else if (aName=="ebrdc_ssrcom")
+      return ebrdc_ssrcom;
+   else if (aName=="eNbTypeGpsEphe")
+      return eNbTypeGpsEphe;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsEphe\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsEphe) 0;
+}
+void xml_init(eTypeGpsEphe & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsEphe(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsEphe & anObj)
+{
+   if (anObj==eNav)
+      return  "eNav";
+   if (anObj==eprecise)
+      return  "eprecise";
+   if (anObj==ebrdc_sbas)
+      return  "ebrdc_sbas";
+   if (anObj==ebrdc_ssrapc)
+      return  "ebrdc_ssrapc";
+   if (anObj==ebrdc_ssrcom)
+      return  "ebrdc_ssrcom";
+   if (anObj==eNbTypeGpsEphe)
+      return  "eNbTypeGpsEphe";
+ std::cout << "Enum = eTypeGpsEphe\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsEphe & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsEphe & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsEphe & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsEphe) aIVal;
+}
+
+std::string  Mangling( eTypeGpsEphe *) {return "DC224A9B584ACF95FD3F";};
+
+eTypeGpsAmbRes  Str2eTypeGpsAmbRes(const std::string & aName)
+{
+   if (aName=="eNONE")
+      return eNONE;
+   else if (aName=="econtinuous")
+      return econtinuous;
+   else if (aName=="einstantaneous")
+      return einstantaneous;
+   else if (aName=="efix_and_hold")
+      return efix_and_hold;
+   else if (aName=="eNbTypeGpsAmbRes")
+      return eNbTypeGpsAmbRes;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsAmbRes\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsAmbRes) 0;
+}
+void xml_init(eTypeGpsAmbRes & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsAmbRes(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsAmbRes & anObj)
+{
+   if (anObj==eNONE)
+      return  "eNONE";
+   if (anObj==econtinuous)
+      return  "econtinuous";
+   if (anObj==einstantaneous)
+      return  "einstantaneous";
+   if (anObj==efix_and_hold)
+      return  "efix_and_hold";
+   if (anObj==eNbTypeGpsAmbRes)
+      return  "eNbTypeGpsAmbRes";
+ std::cout << "Enum = eTypeGpsAmbRes\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsAmbRes & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsAmbRes & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsAmbRes & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsAmbRes) aIVal;
+}
+
+std::string  Mangling( eTypeGpsAmbRes *) {return "9C7F2ADBA4886BF2FE3F";};
+
+eTypeGloAmbRes  Str2eTypeGloAmbRes(const std::string & aName)
+{
+   if (aName=="eOFF")
+      return eOFF;
+   else if (aName=="eon")
+      return eon;
+   else if (aName=="eautocal")
+      return eautocal;
+   else if (aName=="eNbTypeGloAmbRes")
+      return eNbTypeGloAmbRes;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGloAmbRes\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGloAmbRes) 0;
+}
+void xml_init(eTypeGloAmbRes & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGloAmbRes(aTree->Contenu());
+}
+std::string  eToString(const eTypeGloAmbRes & anObj)
+{
+   if (anObj==eOFF)
+      return  "eOFF";
+   if (anObj==eon)
+      return  "eon";
+   if (anObj==eautocal)
+      return  "eautocal";
+   if (anObj==eNbTypeGloAmbRes)
+      return  "eNbTypeGloAmbRes";
+ std::cout << "Enum = eTypeGloAmbRes\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGloAmbRes & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGloAmbRes & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGloAmbRes & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGloAmbRes) aIVal;
+}
+
+std::string  Mangling( eTypeGloAmbRes *) {return "243FA0DA57BD5C95FC3F";};
+
+eTypeGpsIonoCorr  Str2eTypeGpsIonoCorr(const std::string & aName)
+{
+   if (aName=="eoff")
+      return eoff;
+   else if (aName=="ebrdc")
+      return ebrdc;
+   else if (aName=="esbas")
+      return esbas;
+   else if (aName=="edual_freq")
+      return edual_freq;
+   else if (aName=="eest_stec")
+      return eest_stec;
+   else if (aName=="eionex_tec")
+      return eionex_tec;
+   else if (aName=="eqzs_brdc")
+      return eqzs_brdc;
+   else if (aName=="eqzs_lex")
+      return eqzs_lex;
+   else if (aName=="evtec_sf")
+      return evtec_sf;
+   else if (aName=="evtec_ef")
+      return evtec_ef;
+   else if (aName=="egtec")
+      return egtec;
+   else if (aName=="eNbTypeGpsIonoCorr")
+      return eNbTypeGpsIonoCorr;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsIonoCorr\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsIonoCorr) 0;
+}
+void xml_init(eTypeGpsIonoCorr & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsIonoCorr(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsIonoCorr & anObj)
+{
+   if (anObj==eoff)
+      return  "eoff";
+   if (anObj==ebrdc)
+      return  "ebrdc";
+   if (anObj==esbas)
+      return  "esbas";
+   if (anObj==edual_freq)
+      return  "edual_freq";
+   if (anObj==eest_stec)
+      return  "eest_stec";
+   if (anObj==eionex_tec)
+      return  "eionex_tec";
+   if (anObj==eqzs_brdc)
+      return  "eqzs_brdc";
+   if (anObj==eqzs_lex)
+      return  "eqzs_lex";
+   if (anObj==evtec_sf)
+      return  "evtec_sf";
+   if (anObj==evtec_ef)
+      return  "evtec_ef";
+   if (anObj==egtec)
+      return  "egtec";
+   if (anObj==eNbTypeGpsIonoCorr)
+      return  "eNbTypeGpsIonoCorr";
+ std::cout << "Enum = eTypeGpsIonoCorr\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsIonoCorr & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsIonoCorr & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsIonoCorr & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsIonoCorr) aIVal;
+}
+
+std::string  Mangling( eTypeGpsIonoCorr *) {return "9C919FC0E589968EFF3F";};
+
+eTypeGpsTropoCorr  Str2eTypeGpsTropoCorr(const std::string & aName)
+{
+   if (aName=="enull")
+      return enull;
+   else if (aName=="esaas")
+      return esaas;
+   else if (aName=="eSBAS")
+      return eSBAS;
+   else if (aName=="eest_ztd")
+      return eest_ztd;
+   else if (aName=="eest_ztdgrad")
+      return eest_ztdgrad;
+   else if (aName=="eNbTypeGpsTropoCorr")
+      return eNbTypeGpsTropoCorr;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsTropoCorr\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsTropoCorr) 0;
+}
+void xml_init(eTypeGpsTropoCorr & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsTropoCorr(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsTropoCorr & anObj)
+{
+   if (anObj==enull)
+      return  "enull";
+   if (anObj==esaas)
+      return  "esaas";
+   if (anObj==eSBAS)
+      return  "eSBAS";
+   if (anObj==eest_ztd)
+      return  "eest_ztd";
+   if (anObj==eest_ztdgrad)
+      return  "eest_ztdgrad";
+   if (anObj==eNbTypeGpsTropoCorr)
+      return  "eNbTypeGpsTropoCorr";
+ std::cout << "Enum = eTypeGpsTropoCorr\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsTropoCorr & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsTropoCorr & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsTropoCorr & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsTropoCorr) aIVal;
+}
+
+std::string  Mangling( eTypeGpsTropoCorr *) {return "F3029F8209CD0C88FF3F";};
+
+eTypeGpsAntPos  Str2eTypeGpsAntPos(const std::string & aName)
+{
+   if (aName=="eLLH")
+      return eLLH;
+   else if (aName=="eXYZ")
+      return eXYZ;
+   else if (aName=="ecode")
+      return ecode;
+   else if (aName=="eposfile")
+      return eposfile;
+   else if (aName=="erinexhead")
+      return erinexhead;
+   else if (aName=="ertcm")
+      return ertcm;
+   else if (aName=="eNbGpsAntPos")
+      return eNbGpsAntPos;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeGpsAntPos\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeGpsAntPos) 0;
+}
+void xml_init(eTypeGpsAntPos & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeGpsAntPos(aTree->Contenu());
+}
+std::string  eToString(const eTypeGpsAntPos & anObj)
+{
+   if (anObj==eLLH)
+      return  "eLLH";
+   if (anObj==eXYZ)
+      return  "eXYZ";
+   if (anObj==ecode)
+      return  "ecode";
+   if (anObj==eposfile)
+      return  "eposfile";
+   if (anObj==erinexhead)
+      return  "erinexhead";
+   if (anObj==ertcm)
+      return  "ertcm";
+   if (anObj==eNbGpsAntPos)
+      return  "eNbGpsAntPos";
+ std::cout << "Enum = eTypeGpsAntPos\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeGpsAntPos & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeGpsAntPos & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeGpsAntPos & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeGpsAntPos) aIVal;
+}
+
+std::string  Mangling( eTypeGpsAntPos *) {return "54FDD7EFD0F827A6FE3F";};
+
 eNewTypeMalt  Str2eNewTypeMalt(const std::string & aName)
 {
    if (aName=="eTMalt_Ortho")
@@ -5420,6 +6443,170 @@ void xml_init(cDicoAppuisFlottant & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cDicoAppuisFlottant *) {return "19E38C257C947DA2FE3F";};
+
+
+Pt3dr & cOneGpsDGF::Pt()
+{
+   return mPt;
+}
+
+const Pt3dr & cOneGpsDGF::Pt()const 
+{
+   return mPt;
+}
+
+
+std::string & cOneGpsDGF::NamePt()
+{
+   return mNamePt;
+}
+
+const std::string & cOneGpsDGF::NamePt()const 
+{
+   return mNamePt;
+}
+
+
+int & cOneGpsDGF::TagPt()
+{
+   return mTagPt;
+}
+
+const int & cOneGpsDGF::TagPt()const 
+{
+   return mTagPt;
+}
+
+
+std::string & cOneGpsDGF::TimePt()
+{
+   return mTimePt;
+}
+
+const std::string & cOneGpsDGF::TimePt()const 
+{
+   return mTimePt;
+}
+
+
+Pt3dr & cOneGpsDGF::Incertitude()
+{
+   return mIncertitude;
+}
+
+const Pt3dr & cOneGpsDGF::Incertitude()const 
+{
+   return mIncertitude;
+}
+
+void  BinaryUnDumpFromFile(cOneGpsDGF & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Pt(),aFp);
+    BinaryUnDumpFromFile(anObj.NamePt(),aFp);
+    BinaryUnDumpFromFile(anObj.TagPt(),aFp);
+    BinaryUnDumpFromFile(anObj.TimePt(),aFp);
+    BinaryUnDumpFromFile(anObj.Incertitude(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cOneGpsDGF & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Pt());
+    BinaryDumpInFile(aFp,anObj.NamePt());
+    BinaryDumpInFile(aFp,anObj.TagPt());
+    BinaryDumpInFile(aFp,anObj.TimePt());
+    BinaryDumpInFile(aFp,anObj.Incertitude());
+}
+
+cElXMLTree * ToXMLTree(const cOneGpsDGF & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OneGpsDGF",eXMLBranche);
+   aRes->AddFils(ToXMLTree(std::string("Pt"),anObj.Pt())->ReTagThis("Pt"));
+   aRes->AddFils(::ToXMLTree(std::string("NamePt"),anObj.NamePt())->ReTagThis("NamePt"));
+   aRes->AddFils(::ToXMLTree(std::string("TagPt"),anObj.TagPt())->ReTagThis("TagPt"));
+   aRes->AddFils(::ToXMLTree(std::string("TimePt"),anObj.TimePt())->ReTagThis("TimePt"));
+   aRes->AddFils(ToXMLTree(std::string("Incertitude"),anObj.Incertitude())->ReTagThis("Incertitude"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cOneGpsDGF & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Pt(),aTree->Get("Pt",1)); //tototo 
+
+   xml_init(anObj.NamePt(),aTree->Get("NamePt",1)); //tototo 
+
+   xml_init(anObj.TagPt(),aTree->Get("TagPt",1)); //tototo 
+
+   xml_init(anObj.TimePt(),aTree->Get("TimePt",1)); //tototo 
+
+   xml_init(anObj.Incertitude(),aTree->Get("Incertitude",1)); //tototo 
+}
+
+std::string  Mangling( cOneGpsDGF *) {return "806C22E5DAE79AA1F73F";};
+
+
+std::list< cOneGpsDGF > & cDicoGpsFlottant::OneGpsDGF()
+{
+   return mOneGpsDGF;
+}
+
+const std::list< cOneGpsDGF > & cDicoGpsFlottant::OneGpsDGF()const 
+{
+   return mOneGpsDGF;
+}
+
+void  BinaryUnDumpFromFile(cDicoGpsFlottant & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cOneGpsDGF aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.OneGpsDGF().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cDicoGpsFlottant & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.OneGpsDGF().size());
+    for(  std::list< cOneGpsDGF >::const_iterator iT=anObj.OneGpsDGF().begin();
+         iT!=anObj.OneGpsDGF().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cDicoGpsFlottant & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"DicoGpsFlottant",eXMLBranche);
+  for
+  (       std::list< cOneGpsDGF >::const_iterator it=anObj.OneGpsDGF().begin();
+      it !=anObj.OneGpsDGF().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("OneGpsDGF"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cDicoGpsFlottant & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.OneGpsDGF(),aTree->GetAll("OneGpsDGF",false,1));
+}
+
+std::string  Mangling( cDicoGpsFlottant *) {return "CAB977134441B784FB3F";};
 
 
 std::string & cOneModifIPF::KeyName()
@@ -21658,80 +22845,5 @@ void xml_init(cXml_ParamGlobReducTieP & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cXml_ParamGlobReducTieP *) {return "36D0C656A4B67986FD3F";};
-
-
-int & cXml_ParamSubcommandTiepRed::NumInit()
-{
-   return mNumInit;
-}
-
-const int & cXml_ParamSubcommandTiepRed::NumInit()const 
-{
-   return mNumInit;
-}
-
-
-std::vector< std::string > & cXml_ParamSubcommandTiepRed::Images()
-{
-   return mImages;
-}
-
-const std::vector< std::string > & cXml_ParamSubcommandTiepRed::Images()const 
-{
-   return mImages;
-}
-
-void  BinaryUnDumpFromFile(cXml_ParamSubcommandTiepRed & anObj,ELISE_fp & aFp)
-{
-     BinaryUnDumpFromFile(anObj.NumInit(),aFp);
-  { int aNb;
-    BinaryUnDumpFromFile(aNb,aFp);
-        for(  int aK=0 ; aK<aNb ; aK++)
-        {
-             std::string aVal;
-              BinaryUnDumpFromFile(aVal,aFp);
-              anObj.Images().push_back(aVal);
-        }
-  } ;
-}
-
-void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamSubcommandTiepRed & anObj)
-{
-    BinaryDumpInFile(aFp,anObj.NumInit());
-    BinaryDumpInFile(aFp,(int)anObj.Images().size());
-    for(  std::vector< std::string >::const_iterator iT=anObj.Images().begin();
-         iT!=anObj.Images().end();
-          iT++
-    )
-        BinaryDumpInFile(aFp,*iT);
-}
-
-cElXMLTree * ToXMLTree(const cXml_ParamSubcommandTiepRed & anObj)
-{
-  XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ParamSubcommandTiepRed",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("NumInit"),anObj.NumInit())->ReTagThis("NumInit"));
-  for
-  (       std::vector< std::string >::const_iterator it=anObj.Images().begin();
-      it !=anObj.Images().end();
-      it++
-  ) 
-      aRes->AddFils(::ToXMLTree(std::string("Images"),(*it))->ReTagThis("Images"));
-  aRes->mGXml = anObj.mGXml;
-  XMLPopContext(anObj.mGXml);
-  return aRes;
-}
-
-void xml_init(cXml_ParamSubcommandTiepRed & anObj,cElXMLTree * aTree)
-{
-   if (aTree==0) return;
-   anObj.mGXml = aTree->mGXml;
-
-   xml_init(anObj.NumInit(),aTree->Get("NumInit",1)); //tototo 
-
-   xml_init(anObj.Images(),aTree->GetAll("Images",false,1));
-}
-
-std::string  Mangling( cXml_ParamSubcommandTiepRed *) {return "B619FE02944CF7F5FE3F";};
 
 // };
