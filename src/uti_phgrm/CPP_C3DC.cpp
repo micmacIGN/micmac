@@ -523,7 +523,7 @@ class cAppli_MPI2Mnt
          void DoMerge();
          void DoOrtho();
 
-         std::string NameBascOfIm(const std::string &);
+         std::string NameBascOfIm(const std::string &,bool ModePattern);
 
 
          std::string mName;
@@ -564,9 +564,9 @@ void cAppli_MPI2Mnt::ExeCom(const std::string & aCom)
       System(aCom);
 }
 
-std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
+std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm,bool ModePattern)
 {
-    return  "Bascule" + aNameIm + ".xml" ;
+    return  "Bascule" + aNameIm + (ModePattern ? ".*" : "") + ".xml" ;
 }
 
 
@@ -633,7 +633,7 @@ void cAppli_MPI2Mnt::DoMerge()
 {
 
     std::string aCom =       MM3dBinFile("SMDM ")
-                         +   QUOTE(mDirApp+mDirBasc + NameBascOfIm(mCFPI->mPatFilter)) + BLANK
+                         +   QUOTE(mDirApp+mDirBasc + NameBascOfIm(mCFPI->mPatFilter,true)) + BLANK
                          +   "Out=" + mNameMerge + BLANK
                          // +   "TargetGeom=" +   mTargetGeom + BLANK
 
@@ -664,7 +664,7 @@ void cAppli_MPI2Mnt::DoBascule()
                              // +   mCFPI->mFullDirPIm+   "Nuage-Depth-"+ aNameIm +  ".xml" + BLANK
                              +   aNameBascInput + BLANK
                              +   mTargetGeom + BLANK
-                             +   mDirApp+mDirBasc + NameBascOfIm(aNameIm) + BLANK
+                             +   mDirApp+mDirBasc + NameBascOfIm(aNameIm,false) + BLANK
                              +   "Paral=0 ";
 
                aLCom.push_back(aCom);
@@ -702,11 +702,6 @@ void cAppli_MPI2Mnt::DoMTD()
                        ;
 
     ExeCom(aCom);
-if (MPD_MM())
-{
-   std::cout << "COM= " << aCom << "\n";
-   getchar();
-}
 }
 
 cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
@@ -789,7 +784,7 @@ int MPI2Mnt_main(int argc,char ** argv)
     cAppli_MPI2Mnt anAppli(argc,argv);
     if (!MMVisualMode) anAppli.DoAll();
 
-    if (!MMVisualMode) anAppli.DoAll();
+    // MPD : pourquoi 2 fois  ??  if (!MMVisualMode) anAppli.DoAll();
 
     return EXIT_SUCCESS;
 }
