@@ -57,7 +57,7 @@ int Blinis_main(int argc,char ** argv)
         LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Orientation in", eSAM_IsExistDirOri)
                     << EAMC(KeyIm2Bloc,"Key for computing bloc structure")
-                    << EAMC(aFileOut,"Key for computing bloc structure"),
+                    << EAMC(aFileOut,"File for destination"),
         LArgMain()
     );
 

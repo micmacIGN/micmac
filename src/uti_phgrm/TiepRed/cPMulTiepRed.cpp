@@ -41,105 +41,27 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /**********************************************************************/
 /*                                                                    */
-/*                            cPMulTiepRed                            */
+/*                            cPMulTiepRed                         */
 /*                                                                    */
 /**********************************************************************/
 
-cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
-    mMerge      (aPM),
-    mRemoved    (false),
-    mNbCam0     (aPM->NbSom()),
-    mNbCamCur   (aPM->NbSom()),
-    mVConserved (aPM->VecInd().size(),1)
+cPMulTiepRed::cPMulTiepRed(tMerge * aMergedHomolPoints)  :
+	mMergedHomolPoints      (aMergedHomolPoints),
+    mRemoved    			(false)
 {
-    std::vector<ElSeg3D> aVSeg;
-    std::vector<Pt2dr>   aVPt;
-
-    const std::vector<U_INT2>  &  aVecInd = aPM->VecInd() ;
-    const std::vector<Pt2df> & aVHom   = aPM-> VecV()  ;
-
-    for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
-    {
-         cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
-         Pt2dr aPCam = aCam->Hom2Cam(aVHom[aKP]);
-         aVPt.push_back(aPCam);
-         aVSeg.push_back(aCam->CS().Capteur2RayTer(aPCam));
-    }
-
-    bool Ok;
-    Pt3dr aPTer = InterSeg(aVSeg,Ok);
-    double aSomDist = 0.0;
-    for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
-    {
-         cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
-         Pt2dr aPProj = aCam->CS().Ter2Capteur(aPTer);
-         double aDist = euclid(aPProj,aVPt[aKP]);
-         aSomDist += aDist;
-    }
-
-    mP = Pt2dr(aPTer.x,aPTer.y);
-    mZ = aPTer.z;
-    mPrec = aSomDist / (aVecInd.size() -1);
-    // std::cout << "PREC " << mPrec << " " << aVecInd.size() << "\n";
-
-     // mGain =   aPM->NbArc()  +  mPrec/1000.0;
+	mMultiplicity = mMergedHomolPoints->VecInd().size();
 }
 
-void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli)
-{
-    mGain =  mMerge->NbArc() * (1.0 /(1.0 + ElSquare(mPrec/(anAppli.ThresholdPrecMult() * anAppli.StdPrec()))));
-    mGain *= (0.5+ mNbCamCur / double(mNbCam0));
-}
 
 bool cPMulTiepRed::Removed() const
 {
    return mRemoved;
 }
 
-bool cPMulTiepRed::Removable() const
-{
-   return (mNbCamCur==0);
-}
-
-
 void cPMulTiepRed::Remove()
 {
     mRemoved = true;
 }
-
-void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anAppli)
-{
-   // Mark index of aPNew as existing in buf
-    const std::vector<U_INT2>  & aVNew =  aPNew->mMerge->VecInd() ;
-    std::vector<int>  &  aBuf = anAppli.BufICam();
-    for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
-    {
-        aBuf[aVNew[aK]] = 1;
-    }
-
-    const std::vector<U_INT2>  & aVCur =  mMerge->VecInd() ;
-
-    for (int aK=0 ; aK<int(aVCur.size()) ; aK++)
-    {
-         int aKCam = aVCur[aK];
-         if (mVConserved[aK]  && (aBuf[aKCam]==1))
-         {
-             mVConserved[aK] = 0;
-             mNbCamCur--;
-         }
-    }
-
-    InitGain(anAppli);
-
-   // Free Mark index in aBuf
-    for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
-        aBuf[aVNew[aK]] = 0;
-}
-
-
-
-
-
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -41,18 +41,48 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /**********************************************************************/
 /*                                                                    */
-/*                         cLnk2ImTiepRed                          */
+/*                         cImageTiepRed                             */
 /*                                                                    */
 /**********************************************************************/
-cLnk2ImTiepRed::cLnk2ImTiepRed(cImageTiepRed * aImage1,cImageTiepRed * aImage2) :
-    mImage1 (aImage1),
-    mImage2 (aImage2)
-{}
+cImageTiepRed::cImageTiepRed (const std::string & aImageName) :
+   mImageName 		(aImageName),
+   mNbPtsHom2Im		(0),
+   mImageId 	    (-1),
+   mImageBeenMaster  (false)
+{
+}
 
-cImageTiepRed &     cLnk2ImTiepRed::Image1() {return *mImage1;}
-cImageTiepRed &     cLnk2ImTiepRed::Image2() {return *mImage2;}
-std::vector<Pt2df>&  cLnk2ImTiepRed::VP1()  {return mVP1;}
-std::vector<Pt2df>&  cLnk2ImTiepRed::VP2()  {return mVP2;}
+const std::string cImageTiepRed::ImageName() const { return mImageName; }
+
+void cImageTiepRed::SetNbPtsHom2Im(int aNbPtsHom2Im)
+{
+	mNbPtsHom2Im = aNbPtsHom2Im;
+}
+
+const int & cImageTiepRed::NbPtsHom2Im() const {
+	return mNbPtsHom2Im;
+}
+
+void cImageTiepRed::SetImageId(int aImageId)
+{
+	mImageId = aImageId;
+}
+
+const int & cImageTiepRed::ImageId() const
+{
+   return mImageId;
+}
+
+void cImageTiepRed::SetImageBeenMaster(bool aImageBeenMaster)
+{
+	mImageBeenMaster = aImageBeenMaster;
+}
+
+const bool & cImageTiepRed::ImageBeenMaster() const
+{
+   return mImageBeenMaster;
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

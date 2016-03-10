@@ -45,7 +45,7 @@ int Panache_main(int argc,char ** argv)
 {
 	std::string aDir, aOrtho, aMTDOrtho, aXmlLine, aDSM, aZnum, aOut="Profile.xyz", aPly="Profile.ply";
 	double aX1, aX2, aY1, aY2;
-	bool aBin=1;
+	bool aBin=true;
 	double apixPas=1;
 	bool aShow=false;
 	Pt3di aCoul(255,0,0);
@@ -69,7 +69,9 @@ int Panache_main(int argc,char ** argv)
 					<< EAM(aBin,"Bin",true,"Generate Binary or Ascii .ply file (Def=1, Binary)")
 	);
 	
-	//read aXmlLine
+	std::cout << "aDir = " << aDir << std::endl;
+	
+	//read aXmlLine : mesures images
 	cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aXmlLine,SetOfMesureAppuisFlottants);
 	std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
 	std::vector<Pt2dr> aPtx;
@@ -87,21 +89,32 @@ int Panache_main(int argc,char ** argv)
 		}
 		
 	}
+	
+	std::cout << "aPtx = " << aPtx << std::endl;
 		
 	//line equation
 	ELISE_ASSERT(aPtx.size() == 2, "Size of points for line must be equal to 2 !");
 	
 	aX1 = aPtx.at(0).x;
+	std::cout << "aX1 = " << aX1 << std::endl;
 	aX2 = aPtx.at(1).x;
+	std::cout << "aX2 = " << aX2 << std::endl;
 	aY1 = aPtx.at(0).y;
+	std::cout << "aY1 = " << aY1 << std::endl;
 	aY2 = aPtx.at(1).y;
+	std::cout << "aY2 = " << aY2 << std::endl;
 	
 	double Coeff =  ( aY2 - aY1) / ( aX2 - aX1);
-	double Org = aY1 - Coeff * aX1 ; 
+	double Org = aY1 - Coeff * aX1 ;
+	
+	std::cout << "Coeff = " << Coeff << std::endl;
+	std::cout << "Org = " << Org << std::endl;
 
 	//read aOrtho
 	Tiff_Im aTifIm1 = Tiff_Im::StdConvGen(aDir + aOrtho,1,true);
     Pt2di aSz1 = aTifIm1.sz();
+    
+    std::cout << "aSz1 = " << aSz1 << std::endl;
     
     //read aMTDOrtho
     cFileOriMnt mMTDOrtho = StdGetFromPCP(aMTDOrtho,FileOriMnt);
@@ -120,14 +133,32 @@ int Panache_main(int argc,char ** argv)
 	
 	//generate line in image coordinates
 	std::vector<double> aXi, aYi;
-	int compteur=0;
-	for (int compt=round_ni(aX1); compt < round_ni(aX2) ; compt=compt+apixPas)
+	double aStart;
+	double aEnd;
+	
+	if(aX1 < aX2)
 	{
+		aStart = round_ni(aX1);
+		aEnd = round_ni(aX2);
+	}
+	else
+	{
+		aStart = round_ni(aX2);
+		aEnd = round_ni(aX1);
+	}
+	
+	for (int compt=aStart; compt < aEnd ; compt=compt+apixPas)
+	{
+		std::cout << "compt = " << compt << std::endl;
 		aXi.push_back(compt);
 		double aY = Coeff * compt + Org ;
+		std::cout << "aY = " << aY << std::endl;
 		aYi.push_back(aY);
-		compteur++;
+		//compteur++;
 	}
+	
+	std::cout << "aXi.size() = " << aXi.size() << std::endl;
+	std::cout << "aYi.size() = " << aYi.size() << std::endl;
 	
 	//give to line reel coordinates
 	std::vector<Pt2dr> aVRPts;
@@ -151,13 +182,17 @@ int Panache_main(int argc,char ** argv)
 	for (unsigned int iT=0 ; iT < aVRPts.size() ; iT++)
 	{
 		aGCPinMNT.x = round_ni(( aVRPts.at(iT).x - aOrgMNT.x) / aResMNT.x);
+		std::cout << "aGCPinMNT.x = " << aGCPinMNT.x << std::endl;
 		
 		aGCPinMNT.y = round_ni(( aVRPts.at(iT).y - aOrgMNT.y) / aResMNT.y);
+		std::cout << "aGCPinMNT.y = " << aGCPinMNT.y << std::endl;
 		
 		if (DSM->IndexHasContenu(aGCPinMNT))
 		{
 			Pt3dr aPTer = DSM->PtOfIndex(aGCPinMNT);
+			std::cout << "aPTer = " << aPTer << std::endl;
 			double aZval = aPTer.z;
+			std::cout << "aZval = " << aZval << std::endl;
 			aZValues.push_back(aZval);
 			Pt3dr aP2X(aVRPts.at(iT).x,aVRPts.at(iT).y,aZval);
 			aVFPts.push_back(aP2X);
@@ -186,6 +221,11 @@ int Panache_main(int argc,char ** argv)
 	std::list<std::string> aVCom;
 	std::vector<const cElNuage3DMaille *> aVNuage;
 	
+	//~ cElNuage3DMaille * aRes = aNuage;
+	//~ aRes->PlyPutFile(aPly,aVCom,(aBin!=0),&aVFPts,true,
+	
+	//aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), DoNrm, DoublePrec, anOffset );
+	
 	cElNuage3DMaille::PlyPutFile
     (
 		aPly,
@@ -193,7 +233,9 @@ int Panache_main(int argc,char ** argv)
         aVNuage,
         &aVFPts,
         &aVCol,
-        aBin
+        aBin,
+        false,
+        false
     );
     
     if(aShow)
