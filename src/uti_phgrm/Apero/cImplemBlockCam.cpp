@@ -657,13 +657,20 @@ void cImplemBlockCam::DoCompensation(const cObsBlockCamRig & anObs)
     {
        ELISE_ASSERT(mForRelCompens,"Require RelCompen, not specify at creation");
        cRigidBlockWeighting aRBW = anObs.RelTimePond().Val();
+       std::cout << "ADR APLI " 
+                 << mAppli.PdsAvIter() 
+                 << " " <<  mAppli.RBW_PdsTr(aRBW) 
+                 << " " << mAppli.RBW_PdsRot(aRBW)
+                 << " PDS " << mAppli.PdsAvIter()
+                 << "\n";
 
        double aGlobEcMat = 0;
        double aGlobEcPt = 0;
        for (int aKE=0 ; aKE<int(mVectEqRel.size()) ; aKE++)
        {
           cEqObsBlockCam &  anEQ = mVectEqRel[aKE].EQ() ;
-          const std::vector<double> & aResidu = anEQ.AddObs(aRBW.PondOnTr(),aRBW.PondOnRot());
+          const std::vector<double> & aResidu = anEQ.AddObs(mAppli.RBW_PdsTr(aRBW),mAppli.RBW_PdsRot(aRBW));
+          // const std::vector<double> & aResidu = anEQ.AddObs(aRBW.PondOnTr(),aRBW.PondOnRot());
           double aSomEcartMat = 0;
           double aSomEcartPt = 0;
 
