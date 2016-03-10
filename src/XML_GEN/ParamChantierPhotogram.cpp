@@ -22846,4 +22846,79 @@ void xml_init(cXml_ParamGlobReducTieP & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXml_ParamGlobReducTieP *) {return "36D0C656A4B67986FD3F";};
 
+
+int & cXml_ParamSubcommandTiepRed::NumInit()
+{
+   return mNumInit;
+}
+
+const int & cXml_ParamSubcommandTiepRed::NumInit()const 
+{
+   return mNumInit;
+}
+
+
+std::vector< std::string > & cXml_ParamSubcommandTiepRed::Images()
+{
+   return mImages;
+}
+
+const std::vector< std::string > & cXml_ParamSubcommandTiepRed::Images()const 
+{
+   return mImages;
+}
+
+void  BinaryUnDumpFromFile(cXml_ParamSubcommandTiepRed & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NumInit(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             std::string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Images().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamSubcommandTiepRed & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NumInit());
+    BinaryDumpInFile(aFp,(int)anObj.Images().size());
+    for(  std::vector< std::string >::const_iterator iT=anObj.Images().begin();
+         iT!=anObj.Images().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_ParamSubcommandTiepRed & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ParamSubcommandTiepRed",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NumInit"),anObj.NumInit())->ReTagThis("NumInit"));
+  for
+  (       std::vector< std::string >::const_iterator it=anObj.Images().begin();
+      it !=anObj.Images().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("Images"),(*it))->ReTagThis("Images"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_ParamSubcommandTiepRed & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NumInit(),aTree->Get("NumInit",1)); //tototo 
+
+   xml_init(anObj.Images(),aTree->GetAll("Images",false,1));
+}
+
+std::string  Mangling( cXml_ParamSubcommandTiepRed *) {return "B619FE02944CF7F5FE3F";};
+
 // };

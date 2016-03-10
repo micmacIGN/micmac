@@ -7401,5 +7401,33 @@ std::string  Mangling( cXml_ParamGlobReducTieP *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_ParamSubcommandTiepRed
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ParamSubcommandTiepRed & anObj,cElXMLTree * aTree);
+
+
+        int & NumInit();
+        const int & NumInit()const ;
+
+        std::vector< std::string > & Images();
+        const std::vector< std::string > & Images()const ;
+    private:
+        int mNumInit;
+        std::vector< std::string > mImages;
+};
+cElXMLTree * ToXMLTree(const cXml_ParamSubcommandTiepRed &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ParamSubcommandTiepRed &);
+
+void  BinaryUnDumpFromFile(cXml_ParamSubcommandTiepRed &,ELISE_fp &);
+
+std::string  Mangling( cXml_ParamSubcommandTiepRed *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotPCP
