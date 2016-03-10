@@ -1,0 +1,125 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+
+    PatternFace="(1)"
+    PatternIm400="F400_IMG_${PatternNumero}_Face${PatternFace}_.*_MpDcraw8B_GR.tif"
+    PatternIm100="F100_IMG_${PatternNumero}_Face${PatternFace}_MpDcraw8B_GR.tif"
+>
+   <ParamApero>
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+             <BDD_Orient >
+                  <Id> Key-Ori-Init </Id>
+                  <KeySet>  Key-Set-All-OrInit </KeySet>
+                  <KeyAssoc>  Key-Assoc-Im2OrInit </KeyAssoc>
+             </BDD_Orient>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_100 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Orient/F100_AutoCalInit.xml    </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_400 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   AutoCalDRad-Canon-400.xml    </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+
+
+              <PoseCameraInc>
+	           <PatternName>  ${PatternIm100} </PatternName>
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosFromBDOrient>  Key-Ori-Init </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+              <PoseCameraInc>
+	          <PatternName>  ${PatternIm400} </PatternName> 
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+
+                  <PosValueInit>
+                       <PosId> toto </PosId>
+                  </PosValueInit>
+              </PoseCameraInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <SectionObservations>
+                    </SectionObservations>
+                    <SectionExport>
+<!--
+                          <ExportMesuresFromCarteProf>
+                             <Cartes2Export>
+                                 <Im1>  F100_IMG_4838_Face2_MpDcraw8B_GR.tif </Im1>
+                                 <Nuage> GeoI/NuageImProf_GeomIm-4838_Etape_7.xml </Nuage>
+                                 <ImN> F100_IMG_4829_Face2_MpDcraw8B_GR.tif </ImN>
+                                 <ImN> F100_IMG_4847_Face2_MpDcraw8B_GR.tif </ImN>
+                                 <ImN> F100_IMG_4855_Face2_MpDcraw8B_GR.tif </ImN>
+                                 <FilterIm2> F400*  </FilterIm2>
+                             </Cartes2Export>
+                             <IdBdLiaisonIn> Id_Pastis_Hom </IdBdLiaisonIn>
+                             <KeyAssocLiaisons12> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons12>
+                             <KeyAssocLiaisons21> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons21>
+                             <LiaisonModeAdd> true </LiaisonModeAdd>
+                          </ExportMesuresFromCarteProf>
+-->
+                          <ExportMesuresFromCarteProf>
+                             <Cartes2Export>
+                                 <Im1>  F100_IMG_4893_Face1_MpDcraw8B_GR.tif </Im1>
+                                 <Nuage> GeoI24/NuageImProf_GeomIm-4893_Etape_7.xml </Nuage>
+                                 <ImN> F100_IMG_4890_Face1_MpDcraw8B_GR.tif </ImN>
+                                 <ImN> F100_IMG_4896_Face1_MpDcraw8B_GR.tif </ImN>
+                                 <ImN> F100_IMG_4899_Face1_MpDcraw8B_GR.tif </ImN>
+                                 <FilterIm2> F400*  </FilterIm2>
+                             </Cartes2Export>
+                             <IdBdLiaisonIn> Id_Pastis_Hom </IdBdLiaisonIn>
+                             <KeyAssocLiaisons12> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons12>
+                             <KeyAssocLiaisons21> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons21>
+                             <LiaisonModeAdd> true </LiaisonModeAdd>
+                          </ExportMesuresFromCarteProf>
+
+
+                    </SectionExport>
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
