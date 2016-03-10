@@ -657,17 +657,33 @@ void cImplemBlockCam::DoCompensation(const cObsBlockCamRig & anObs)
     {
        ELISE_ASSERT(mForRelCompens,"Require RelCompen, not specify at creation");
        cRigidBlockWeighting aRBW = anObs.RelTimePond().Val();
+
+       double aGlobEcMat = 0;
+       double aGlobEcPt = 0;
        for (int aKE=0 ; aKE<int(mVectEqRel.size()) ; aKE++)
        {
           cEqObsBlockCam &  anEQ = mVectEqRel[aKE].EQ() ;
           const std::vector<double> & aResidu = anEQ.AddObs(aRBW.PondOnTr(),aRBW.PondOnRot());
           double aSomEcartMat = 0;
+          double aSomEcartPt = 0;
+
+          for (int aK=0 ; aK<3 ; aK++)
+              aSomEcartPt += ElSquare(aResidu[aK]);
+
           for (int aK=3 ; aK<12 ; aK++)
               aSomEcartMat += ElSquare(aResidu[aK]);
+
+          aGlobEcMat += aSomEcartMat;
+          aGlobEcPt += aSomEcartPt;
        
-          std::cout << aKE << " EcMat  " <<  sqrt(aSomEcartMat)   
-                   << " XYZ " <<  aResidu[0] << " " << aResidu[1] << " " << aResidu[2] <<" \n";
+          if (anObs.Show().Val())
+          {
+              std::cout << "    " << aKE << "   EcMat  " <<  sqrt(aSomEcartMat)   
+                   << " XYZ " <<  sqrt(aSomEcartPt) <<" \n";
+          }
        }
+       std::cout << " GlobMat    " <<  sqrt(aGlobEcMat/mVectEqRel.size())   
+                 << " GlobXYZ    " <<  sqrt(aGlobEcPt/mVectEqRel.size()) <<" \n";
     }
 }
 

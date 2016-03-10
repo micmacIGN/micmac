@@ -28,6 +28,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TD_Exo.cpp
     ${TDPPMD_DIR}/ConvertRtk.cpp
     ${TDPPMD_DIR}/MatchCenters.cpp
+    ${TDPPMD_DIR}/rnx2rtkp.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

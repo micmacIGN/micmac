@@ -19,6 +19,172 @@
 // NO MORE
 </Verbatim>
 
+    <enum Name="eTypeGpsMod">
+		<esingle>			</esingle>
+		<edgps>				</edgps>
+		<ekinematic>		</ekinematic>
+		<estatic>			</estatic>
+		<emovingbase>		</emovingbase>
+		<efixed>			</efixed>
+<!--
+		Attention, pour rtaklib c'est : ppp-kine & ppp-static
+-->
+		<eppp_kine>			</eppp_kine>
+		<eppp_static>		</eppp_static>
+		<eNbTypeGpsMod>		</eNbTypeGpsMod>
+	</enum>
+	
+	<enum Name="eTypeGpsSolFormat">
+		<ellh>					</ellh>
+		<exyz>					</exyz>
+		<eenu>					</eenu>
+		<enmea>					</enmea>
+		<eNbTypeGpsSolFormat>	</eNbTypeGpsSolFormat>
+	</enum>
+	
+	<enum Name="eTypeGpsHeight">
+		<eellipsoidal>			</eellipsoidal>
+		<egeodetic>				</egeodetic>
+		<eNbTypeGpsHeight>		</eNbTypeGpsHeight>
+	</enum>
+	
+	<enum Name="eTypeGeoid">
+		<einternal>					</einternal>
+		<eegm96>					</eegm96>
+<!--
+		Attention, pour RTKlib c'est egm08_2.5
+-->
+		<eegm08_2_5>				</eegm08_2_5>			
+		<eegm08_1>					</eegm08_1>
+		<egsi2000>					</egsi2000>
+		<eNbTypeGeoid>				</eNbTypeGeoid>
+	</enum>
+	
+	<enum Name="eTypeRtkOutStats">
+		<enone>						</enone>
+		<estate>					</estate>
+		<eresidual>					</eresidual>
+		<eNbTypeRtkOutStats>		</eNbTypeRtkOutStats>
+	</enum>
+	
+	<enum Name="eTypeGpsStaticSol">
+		<eall>						</eall>
+		<eone>					</eone>
+		<eNbTypeGpsSolStatic>		</eNbTypeGpsSolStatic>
+	</enum>
+	
+	<enum Name="eTypeGpsTimeSys">
+		<egpst>						</egpst>
+		<eutc>						</eutc>
+		<ejst>						</ejst>
+		<eNbTypeGpsTimeSys>		</eNbTypeGpsTimeSys>
+	</enum>
+	
+	<enum Name="eTypeGpsTimeFormat">
+		<etow>					</etow>
+		<ehms>					</ehms>
+		<eNbTypeGpsTimeFormat>	</eNbTypeGpsTimeFormat>
+	</enum>
+	
+	<enum Name="eTypeGpsDegFormat">
+		<edeg>					</edeg>
+		<edms>					</edms>
+		<eNbTypeGpsDegFormat>	</eNbTypeGpsDegFormat>
+	</enum>
+	
+	
+	
+	<enum Name="eTypeGpsFreq">
+<!--
+		Attention, pour RTKlib c'est des + au lieu de _
+-->
+		<el1>				</el1>
+		<el1_l2>			</el1_l2>
+		<el1_l2_l5>			</el1_l2_l5>
+		<el1_l2_l5_l6>		</el1_l2_l5_l6>
+		<el1_l2_l5_l6_l7>   </el1_l2_l5_l6_l7>
+		<eNbTypeGpsFreq>	</eNbTypeGpsFreq>
+	</enum>
+	
+	<enum Name="eTypeGpsSol">
+		<eforward>			</eforward>
+		<ebackward>			</ebackward>
+		<ecombined>			</ecombined>
+		<eNbTypeGpsSol>		</eNbTypeGpsSol>
+	</enum>
+	
+	<enum Name="eTypeGpsEphe">
+		<eNav>				</eNav>
+		<eprecise>			</eprecise>
+<!--
+		Attention, ici c'est des + à la place de _
+-->
+		<ebrdc_sbas>		</ebrdc_sbas>
+		<ebrdc_ssrapc>		</ebrdc_ssrapc>
+		<ebrdc_ssrcom>		</ebrdc_ssrcom>
+		<eNbTypeGpsEphe>	</eNbTypeGpsEphe>
+	</enum>
+	
+	<enum Name="eTypeGpsAmbRes">
+		<eNONE>					</eNONE>
+		<econtinuous>			</econtinuous>
+		<einstantaneous>		</einstantaneous>
+<!--
+		Attention, pour RTKlib c'est : fix-and-hold
+-->
+		<efix_and_hold>			</efix_and_hold>
+		<eNbTypeGpsAmbRes>		</eNbTypeGpsAmbRes>
+	</enum>
+	
+	<enum Name="eTypeGloAmbRes">
+		<eOFF>					</eOFF>
+		<eon>					</eon>
+		<eautocal>				</eautocal>
+		<eNbTypeGloAmbRes>		</eNbTypeGloAmbRes>
+	</enum>
+	
+	<enum Name="eTypeGpsIonoCorr">
+		<eoff>					</eoff>
+		<ebrdc>					</ebrdc>
+		<esbas>					</esbas>
+		<edual_freq>			</edual_freq>
+		<eest_stec>				</eest_stec>
+		<eionex_tec>			</eionex_tec>
+		<eqzs_brdc>				</eqzs_brdc>
+		<eqzs_lex>				</eqzs_lex>
+<!--
+		Attention, remplacer par - tout ce qui précède !
+-->
+		<evtec_sf>				</evtec_sf>
+		<evtec_ef>				</evtec_ef>
+		<egtec>					</egtec>
+		<eNbTypeGpsIonoCorr>	</eNbTypeGpsIonoCorr>
+	</enum>
+	
+	<enum Name="eTypeGpsTropoCorr">
+		<enull>					</enull>
+		<esaas>					</esaas>
+		<eSBAS>					</eSBAS>
+<!--
+		Attention, ici c'est - pour RTKlib
+-->
+		<eest_ztd>				</eest_ztd>
+		<eest_ztdgrad>			</eest_ztdgrad>
+		<eNbTypeGpsTropoCorr>	</eNbTypeGpsTropoCorr>
+	
+	</enum>
+	
+	<enum Name="eTypeGpsAntPos">
+		<eLLH>					</eLLH>
+		<eXYZ>					</eXYZ>
+		<ecode>					</ecode>
+		<eposfile>				</eposfile>
+		<erinexhead>			</erinexhead>
+		<ertcm>					</ertcm>
+		<eNbGpsAntPos>			</eNbGpsAntPos>
+	</enum>
+	
+   
    <enum Name="eNewTypeMalt">
        <eTMalt_Ortho>     </eTMalt_Ortho>
        <eTMalt_UrbanMNE>  </eTMalt_UrbanMNE>
@@ -536,6 +702,16 @@
            <UseForRTA Nb="?" Type="bool" Def="true"> </UseForRTA>
        </OneAppuisDAF>
    </DicoAppuisFlottant>
+   
+   <DicoGpsFlottant Nb="1" Class="true">
+		<OneGpsDGF Nb="*">
+			<Pt Nb="1" Type="Pt3dr"> </Pt>
+			<NamePt Nb="1" Type="std::string"> </NamePt>
+			<TagPt Nb="1" Type="int"> </TagPt>
+			<TimePt Nb="1" Type="std::string"> </TimePt>
+			<Incertitude Nb="1" Type="Pt3dr">	</Incertitude>
+		</OneGpsDGF>
+   </DicoGpsFlottant>
 
    <ModifIncPtsFlottant  Nb="1" Class="true" ToReference="true">
        <OneModifIPF Nb="*">
