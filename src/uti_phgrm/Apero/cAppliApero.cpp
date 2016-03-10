@@ -879,6 +879,45 @@ const std::string &   cAppliApero::DC() const {return mDC;}
 const std::string &   cAppliApero::OutputDirectory() const { return mOutputDirectory; }
 bool  cAppliApero::HasEqDr() const { return mHasEqDr; }
 
+int      cAppliApero::NbIterDone() const {return mNbIterDone;}
+int      cAppliApero::NbIterTot()  const {return mNbIterTot;}
+double   cAppliApero::PdsAvIter()  const 
+{
+    if (mNbIterTot<=1) 
+       return 0.5;
+    return ElMin(1.0,mNbIterDone / double(mNbIterTot-1));
+}
+
+double   cAppliApero::MoyGeomPdsIter(const double & aPds0, const double &  aPds1) const
+{
+   return aPds0 * pow(aPds1/aPds0,PdsAvIter());
+}
+
+double   cAppliApero::MoyGeomPdsIter(const double & aPds0, const cTplValGesInit<double> &  aPds1) const
+{
+   return MoyGeomPdsIter(aPds0,aPds1.ValWithDef(aPds0));
+}
+
+double   cAppliApero::RBW_PdsTr(const cRigidBlockWeighting  & aRBW) const
+{
+   return MoyGeomPdsIter(aRBW.PondOnTr(),aRBW.PondOnTrFinal());
+}
+
+double   cAppliApero::RBW_PdsRot(const cRigidBlockWeighting  & aRBW) const
+{
+   return MoyGeomPdsIter(aRBW.PondOnRot(),aRBW.PondOnRotFinal());
+}
+
+
+
+/*
+double   cAppliApero::RBW_PdsRot(const cRigidBlockWeighting & aRBW) const
+{
+}
+*/
+
+
+
 cInterfChantierNameManipulateur * cAppliApero::ICNM()
 {
    return mICNM;

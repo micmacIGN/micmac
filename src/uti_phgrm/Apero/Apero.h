@@ -2161,6 +2161,14 @@ class cAppliApero : public NROptF1vND
 
        bool   UsePdsCalib();
        const cXmlPondRegDist * CurXmlPondRegDist();
+
+       int      NbIterDone() const;
+       int      NbIterTot()  const;
+       double   PdsAvIter()  const;
+       double   MoyGeomPdsIter(const double & aPds0, const double &  aPds1) const;
+       double   MoyGeomPdsIter(const double & aPds0, const cTplValGesInit<double> &  aPds1) const;
+       double   RBW_PdsTr(const cRigidBlockWeighting  &) const;
+       double   RBW_PdsRot(const cRigidBlockWeighting &) const;
     private :
 
        void SetPdsRegDist(const cXmlPondRegDist *);
@@ -2564,6 +2572,7 @@ class cAppliApero : public NROptF1vND
         cShowPbLiaison *                    mCurPbLiaison;
         int                                 mNbEtape;
         int                                 mNbIterDone;
+        int                                 mNbIterTot;
 
         std::vector<Pt3dr>                  mResiduCentre;
         std::vector<double>                 mRetardGpsC;

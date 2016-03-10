@@ -468,9 +468,17 @@ class cRigidBlockWeighting
 
         double & PondOnRot();
         const double & PondOnRot()const ;
+
+        cTplValGesInit< double > & PondOnTrFinal();
+        const cTplValGesInit< double > & PondOnTrFinal()const ;
+
+        cTplValGesInit< double > & PondOnRotFinal();
+        const cTplValGesInit< double > & PondOnRotFinal()const ;
     private:
         double mPondOnTr;
         double mPondOnRot;
+        cTplValGesInit< double > mPondOnTrFinal;
+        cTplValGesInit< double > mPondOnRotFinal;
 };
 cElXMLTree * ToXMLTree(const cRigidBlockWeighting &);
 
