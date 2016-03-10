@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1692]) = {
+const char * (theNameVar_ParamApero[1695]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -243,6 +243,9 @@ const char * (theNameVar_ParamApero[1692]) = {
 "<RigidBlockWeighting Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "    <PondOnTr Nb=\"1\" Type=\"double\"> </PondOnTr>\n",
 "    <PondOnRot Nb=\"1\" Type=\"double\"> </PondOnRot>\n",
+"    <!-- Si donne, il y a une evolution selon une suite geometrique -->\n",
+"    <PondOnTrFinal Nb=\"?\" Type=\"double\"> </PondOnTrFinal>\n",
+"    <PondOnRotFinal Nb=\"?\" Type=\"double\"> </PondOnRotFinal>\n",
 "</RigidBlockWeighting>\n",
 "\n",
 "<GpsRelativeWeighting Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",

@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepRed.h"
 
+#if (!BUG_PUSH_XML_TIEP)
+
+
 /**********************************************************************/
 /*                                                                    */
 /*                         cAppliTiepRed       (Subcommand methods)     */
@@ -348,6 +351,7 @@ void cAppliTiepRed::DoExport()
 
     std::cout << "#InitialHomolPoints:" << mNumInit << " #HomolPoints:" << mImages[0]->NbPtsHom2Im() <<  "(" <<  mMergedHomolPointss->size() << ")=>" << numHomolPoints << "(" << (mMultiPoints.size()-mNumDeleted) << ")\n";
 }
+#endif
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

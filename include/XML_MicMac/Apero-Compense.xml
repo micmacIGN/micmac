@@ -85,7 +85,17 @@
            <Symb> AcceptGB=true </Symb>
            <Symb> SetHom=""  </Symb>
 
+           <Symb> WithBloc=false </Symb>
+           <Symb> NameInputBloc=XXX </Symb>
 
+           
+           <Symb> WithBloc_TimeRel=false  </Symb>
+           <Symb> PdsBlocTr0_TimeRel=XXX  </Symb>
+           <Symb> PdsBlocRot0_TimeRel=XXX  </Symb>
+           <Symb> PdsBlocTrFin_TimeRel=XXX  </Symb>
+           <Symb> PdsBlocRotFin_TimeRel=XXX  </Symb>
+
+           <Symb> WithBloc_Glob=false  </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -201,6 +211,19 @@
                     <ErrorWhenNoFileOrient> false </ErrorWhenNoFileOrient>
                  </CamGenInc>
              </#WHEN>
+
+
+             <#WHEN  VTEST=${WithBloc}>
+                 <BlockCamera>
+                      <NameFile>  ${NameInputBloc}  </NameFile>
+                      <Id> TheBlock </Id>
+                      <UseForBundle>
+                           <GlobalBundle >   ${WithBloc_Glob}     </GlobalBundle>
+                           <RelTimeBundle >  ${WithBloc_TimeRel}  </RelTimeBundle>
+                      </UseForBundle>
+                 </BlockCamera>
+             </#WHEN>
+            
 
         </SectionInconnues>
 
@@ -439,6 +462,26 @@
                                    <PdsAttachRGLob>  1e-2    </PdsAttachRGLob>
                               </ContrCamGenInc>
                           </#WHEN>
+
+                          <#WHEN VTEST=${WithBloc}>
+                                <ObsBlockCamRig>
+                                    <Id> TheBlock </Id>
+                                    <Show> false </Show>
+                                    <#WHEN VTEST=${WithBloc_Glob}>
+                                        <GlobalPond> </GlobalPond>
+                                    </#WHEN>
+                                    <#WHEN VTEST=${WithBloc_TimeRel}>
+                                        <RelTimePond> 
+                                           <PondOnTr >  ${PdsBlocTr0_TimeRel} </PondOnTr>
+                                           <PondOnRot>  ${PdsBlocRot0_TimeRel} </PondOnRot>
+                                           <PondOnTrFinal > ${PdsBlocTrFin_TimeRel}  </PondOnTrFinal>
+                                           <PondOnRotFinal> ${PdsBlocRotFin_TimeRel} </PondOnRotFinal>
+                                        </RelTimePond>
+                                    </#WHEN>
+                                </ObsBlockCamRig>
+                          </#WHEN>
+
+
 
 
 		    </SectionObservations>

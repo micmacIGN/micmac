@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepRed.h"
 
+#if (!BUG_PUSH_XML_TIEP)
+
 /**********************************************************************/
 /*                                                                    */
 /*                         cLnk2ImTiepRed                          */
@@ -53,6 +55,8 @@ cImageTiepRed &     cLnk2ImTiepRed::Image1() {return *mImage1;}
 cImageTiepRed &     cLnk2ImTiepRed::Image2() {return *mImage2;}
 std::vector<Pt2df>&  cLnk2ImTiepRed::VP1()  {return mVP1;}
 std::vector<Pt2df>&  cLnk2ImTiepRed::VP2()  {return mVP2;}
+
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

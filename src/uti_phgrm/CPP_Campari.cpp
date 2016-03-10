@@ -111,6 +111,10 @@ class cAppli_Campari
 {
      public :
        cAppli_Campari(int argc,char ** argv);
+
+       void AddParamBloc(std::vector<std::string> & aVBL,const std::string & aPref);
+
+
        int RTA();
 
        std::string mCom;
@@ -126,12 +130,55 @@ class cAppli_Campari
        std::string mStr0;
        std::string AeroOut;
        std::string mNameRTA;
+       bool                      mWithBlock;
+       std::string               mNameInputBloc;
+       std::vector<std::string>  mVBlockRel;
 };
 
 
+void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::string & aPref)
+{
+    if (!EAMIsInit(&aVBL)) return;
+    ELISE_ASSERT(aVBL.size() >= 3,"Not enough param in AddParamBloc");
+
+
+    if (!mWithBlock)
+    {
+        mWithBlock = true;
+        mCom = mCom + " +WithBloc=true ";
+        mNameInputBloc = aVBL[0];
+        mCom = mCom + " +NameInputBloc=" + mNameInputBloc +" ";
+    }
+    else
+    {
+        ELISE_ASSERT(mNameInputBloc==aVBL[0],"Variable name in NameInputBloc");
+    }
+
+    double aSigmaTr0,aSigmaRot0;
+    FromString(aSigmaTr0,aVBL[1]);
+    FromString(aSigmaRot0,aVBL[2]);
+
+    double aMulFin = 1.0;
+    if (aVBL.size() >= 4)
+       FromString(aMulFin,aVBL[3]);
+
+
+    double aSigmaTrFin = aSigmaTr0 * aMulFin;
+    double aSigmaRotFin = aSigmaRot0 * aMulFin;
+
+    mCom = mCom + " +WithBloc_" + aPref + "=true ";
+    mCom = mCom + " +PdsBlocTr0_"  + aPref + "=" + ToString(1.0/ElSquare(aSigmaTr0))  + " ";
+    mCom = mCom + " +PdsBlocRot0_" + aPref + "=" + ToString(1.0/ElSquare(aSigmaRot0)) + " ";
+    mCom = mCom + " +PdsBlocTrFin_"  + aPref + "=" + ToString(1.0/ElSquare(aSigmaTrFin))  + " ";
+    mCom = mCom + " +PdsBlocRotFin_" + aPref + "=" + ToString(1.0/ElSquare(aSigmaRotFin)) + " ";
+}
+
+
+
 cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
-    AeroOut(""),
-    mNameRTA ("SauvRTA.xml")
+    AeroOut    (""),
+    mNameRTA   ("SauvRTA.xml"),
+    mWithBlock (false)
 {
     mStr0 = MakeStrFromArgcARgv(argc,argv);
     MMD_InitArgcArgv(argc,argv);
@@ -164,6 +211,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     int aDrMax = 0;
     bool AcceptGB=true;
     std::string aSetHom="";
+    int aNbIterFin = 4;
 
 
 
@@ -197,9 +245,12 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(mNameRTA,"NameRTA",true,"Name for save results of Rolling Test Appuis , Def=SauvRTA.xml")
                     << EAM(GCPRTA,"GCPRTA",true,"Internal Use, GCP for RTA ")
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
+                    << EAM(aNbIterFin,"NbIterEnd",true,"Number of iteration at end, Def = 4")
                     // << EAM(GCP,"MulRTA",true,"Rolling Test Appuis , multiplier ")
+                    << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute ")
 
     );
+
 
     if (!MMVisualMode)
     {
@@ -231,6 +282,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                            +  std::string(" +PatterIm0=") + QUOTE(mPat) + " "
                            +  std::string(" +AeroIn=-") + AeroIn + " "
                            +  std::string(" +AeroOut=-") + AeroOut + " "
+                           +  std::string(" +NbMinIterFin=") + ToString(aNbIterFin) + " "
+                           +  std::string(" +NbMaxIterFin=") + ToString(aNbIterFin) + " "
                           ;
 
         if (CPI1 || CPI2) mCom       += " +CPI=true ";
@@ -313,6 +366,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
             ELISE_ASSERT(EAMIsInit(&GCP),"RTA without GCP");
         }
 
+        AddParamBloc(mVBlockRel,"TimeRel");
 
         mExe = (! EAMIsInit(&mMulRTA)) || (EAMIsInit(&GCPRTA));
 

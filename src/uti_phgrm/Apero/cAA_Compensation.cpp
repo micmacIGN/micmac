@@ -929,6 +929,24 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC,bool L
     InitLVM(mCurSLMEtape,anEC.SLMEtape(),mMulSLMEtape,anEC.MultSLMEtape());
 
     mNbIterDone =0;
+    mNbIterTot = 0;
+
+    for (int aK=0 ; aK<int(anEC.IterationsCompensation().size()) ; aK++)
+    {
+	const cIterationsCompensation &  anIter  = anEC.IterationsCompensation()[aK];
+        const cCtrlTimeCompens * aCtrl = anIter.CtrlTimeCompens().PtrVal();
+        if (aCtrl)
+        {
+            mNbIterTot += aCtrl->NbMax()  +1 ;
+        }
+        else
+        {
+            mNbIterTot ++;
+        }
+    }
+
+
+
     for (int aK=0 ; aK<int(anEC.IterationsCompensation().size()) ; aK++)
     {
         bool kIterLast = (aK==((int)anEC.IterationsCompensation().size()-1));
