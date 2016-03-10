@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepRed.h"
 
+#if (!BUG_PUSH_XML_TIEP)
+
+
 /**********************************************************************/
 /*                                                                    */
 /*                            cPMulTiepRed                         */
@@ -62,6 +65,7 @@ void cPMulTiepRed::Remove()
 {
     mRemoved = true;
 }
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

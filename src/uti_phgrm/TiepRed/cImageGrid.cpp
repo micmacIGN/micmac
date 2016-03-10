@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepRed.h"
 
+#if (!BUG_PUSH_XML_TIEP)
+
+
 struct mPComparerClass {
   bool operator() (cPMulTiepRed * i,cPMulTiepRed * j) { return (i->Multiplicity() > j->Multiplicity());}
 } mPComparer;
@@ -130,6 +133,7 @@ void cImageGrid::Remove(cPMulTiepRed * aMultiPoint, int aCellIndex){
 		}
 	}
 }
+#endif
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
