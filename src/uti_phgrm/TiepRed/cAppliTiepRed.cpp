@@ -288,14 +288,14 @@ void  cAppliTiepRed::Exe()
 
 
 
-int TestOscarTieP_main(int argc,char **argv)
+int RedTieP_main(int argc,char **argv)
 {
 	cAppliTiepRed * anAppli = new cAppliTiepRed(argc,argv);
 	anAppli->Exe();
 	return EXIT_SUCCESS;
 }
 #else
-int TestOscarTieP_main(int argc,char **argv)
+int RedTieP_main(int argc,char **argv)
 {
    return EXIT_SUCCESS;
 }
