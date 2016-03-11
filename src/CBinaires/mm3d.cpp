@@ -558,7 +558,7 @@ int ConvertRtk_main(int argc,char ** argv);
 int MatchCenters_main( int argc,char ** argv);
 int Panache_main(int argc,char ** argv);
 int rnx2rtkp_main(int argc,char ** argv);
-
+int GPS_Txt2Xml_main(int argc,char ** argv);
 int  CheckOri_main(int argc,char ** argv);
 int  NLD_main(int argc,char ** argv);
 int  ResToTxt_main(int argc,char ** argv);
@@ -682,6 +682,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("ConvRtk",ConvertRtk_main,"Tool to extract X_Y_Z_Ix_Iy_Iz from Rtklib output file",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("MatchCenters",MatchCenters_main,"Tool to match Gps positions and Camera Centers",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("GpsProc",rnx2rtkp_main,"Tool using rnx2rtkp from RTKlib to do GNSS processing",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
