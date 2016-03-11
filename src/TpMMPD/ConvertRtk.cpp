@@ -44,6 +44,7 @@ int ConvertRtk_main(int argc,char ** argv)
 	std::string aDir, aFile, aOut;
 	bool aShowH=false;
 	bool aXYZ=false;
+	std::string aStrChSys;
 	
 	ElInitArgMain
     (
@@ -51,6 +52,7 @@ int ConvertRtk_main(int argc,char ** argv)
           LArgMain() << EAMC(aDir, "Directory")
 					 << EAMC(aFile, "Rtk Output.txt file",  eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"output txt file name ; Def=Output.xml")
+					 << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
 					 << EAM(aShowH,"ShowH",false,"Show header informations ; Def = false", eSAM_IsBool)
 					 << EAM(aXYZ,"XYZ",false,"Export XYZ format data ; Def = false", eSAM_IsBool)
     );
@@ -150,6 +152,17 @@ int ConvertRtk_main(int argc,char ** argv)
     else
     
 		std::cout<< "Erreur à l'ouverture !" << '\n';
+		
+		
+	 //if changing coordinates system
+     cChSysCo * aCSC = 0;
+     if (aStrChSys!="")
+		aCSC = cChSysCo::Alloc(aStrChSys,"");
+		
+	 if (aCSC!=0)
+     {
+		aPosList = aCSC->Src2Cibl(aPosList);
+     }
 	
 	cDicoGpsFlottant  aDico;
 	
