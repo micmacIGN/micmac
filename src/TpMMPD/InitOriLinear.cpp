@@ -53,7 +53,7 @@ int InitOriLinear_main(int argc,char ** argv)
     cout<<"************************"<<endl;
     vector<std::string> aVecPatternNewImages;
     vector<std::string> aVecPatternRefImages;
-    std::string aFullPatternNewImages, aFullPatternRefImages, aOriRef, aPatternCam1, aPatternCam2, aPatternRef1, aPatternRef2;//pattern of all files
+    std::string aFullPatternNewImages, aFullPatternRefImages, aOriRef, aPatternCam1, aPatternCam2, aPatternCam3, aPatternCam4, aPatternRef1, aPatternRef2, aPatternRef3, aPatternRef4;//pattern of all files
     string aOriOut = "InitOut";
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
@@ -68,8 +68,12 @@ int InitOriLinear_main(int argc,char ** argv)
                 <<EAM(aVecPatternRefImages, "VPR", true, "Vector pattern of Reference Orientation VPR=[Pat Ref 1, Pat Ref 2,..]")
                 <<EAM(aPatternCam1, "PatCam1", true, "Vector pattern of images to orientate for cam 1 (a enlever apres)")
                 <<EAM(aPatternCam2, "PatCam2", true, "Vector pattern of images to orientate for cam 2 (a enlever apres)")
+                <<EAM(aPatternCam3, "PatCam3", true, "Vector pattern of images to orientate for cam 2 (a enlever apres)")
+                <<EAM(aPatternCam4, "PatCam4", true, "Vector pattern of images to orientate for cam 2 (a enlever apres)")
                 <<EAM(aPatternRef1, "PatRef1", true, "Vector pattern of Ref to orientate for cam 1 (a enlever apres)")
                 <<EAM(aPatternRef2, "PatRef2", true, "Vector pattern of Ref to orientate for cam 2 (a enlever apres)")
+                <<EAM(aPatternRef3, "PatRef3", true, "Vector pattern of Ref to orientate for cam 2 (a enlever apres)")
+                <<EAM(aPatternRef4, "PatRef4", true, "Vector pattern of Ref to orientate for cam 2 (a enlever apres)")
 
     );
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -78,9 +82,17 @@ int InitOriLinear_main(int argc,char ** argv)
     aVecPatternNewImages.push_back(aPatternCam1);
     if (aPatternCam2.length() > 1)
          {aVecPatternNewImages.push_back(aPatternCam2);}
+    if (aPatternCam3.length() > 1)
+         {aVecPatternNewImages.push_back(aPatternCam3);}
+    if (aPatternCam4.length() > 1)
+         {aVecPatternNewImages.push_back(aPatternCam4);}
     aVecPatternRefImages.push_back(aPatternRef1);
     if (aPatternRef2.length() > 1)
     {aVecPatternRefImages.push_back(aPatternRef2);}
+    if (aPatternRef3.length() > 1)
+    {aVecPatternRefImages.push_back(aPatternRef3);}
+    if (aPatternRef4.length() > 1)
+    {aVecPatternRefImages.push_back(aPatternRef4);}
 
     //========//
     cout<<"System with "<<aVecPatternNewImages.size()<<" cameras"<<endl;
@@ -92,7 +104,7 @@ int InitOriLinear_main(int argc,char ** argv)
         std::vector<cOrientationConique> aRefOriList;
         std::vector<cOrientationConique> aOriConique1stCam;
     for(uint ii=0; ii<aVecPatternNewImages.size(); ii++)
-    {
+    {   //lire chaque pattern d'image de chaque camera
         cout<<"\nInit Cam "<<ii<<" : ";
         aFullPatternNewImages = RequireFromString<string>(aVecPatternNewImages[ii],"Pat Cam");
         aFullPatternRefImages = RequireFromString<string>(aVecPatternRefImages[ii],"Pat Cam");
@@ -108,6 +120,7 @@ int InitOriLinear_main(int argc,char ** argv)
         const std::vector<std::string> aSetNewImages = *(aICNM->Get(aPatNewImages));
 
         std::cout<<"\nInit images:\n";
+        //nouvelle image a initializer
         for (unsigned int ik=0;ik<aSetNewImages.size();ik++)
             std::cout<<"  - "<<aSetNewImages[ik]<<"\n";
 
@@ -115,7 +128,7 @@ int InitOriLinear_main(int argc,char ** argv)
         aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirRefImages);
         const std::vector<std::string> aSetRefImages = *(aICNM->Get(aPatRefImages));
 
-        ELISE_ASSERT(aSetRefImages.size()>1,"Number of reference image must be > 1");
+        ELISE_ASSERT(aSetRefImages.size()>1,"Number of reference image must be > 1");   //pour chaque camera, il fault au moins 2 images pour caculer vector de deplacement
 
         std::cout<<"\nRef images:\n";
         //Read orientation initial (first image in series)
@@ -131,15 +144,12 @@ int InitOriLinear_main(int argc,char ** argv)
             double xBefore=0, yBefore=0, zBefore=0;
             double xAcc = 0, yAcc = 0, zAcc = 0;
             for (unsigned int i=0;i<aSetRefImages.size();i++)
-            {
+            {   //tout les poses references dans camera
                 std::cout<<"  - "<<aSetRefImages[i]<<" ";
-
                 std::string aOriRefImage="Ori-"+aOriRef+"/Orientation-"+aSetRefImages[i]+".xml";
-                //Pour orientation
-                cOrientationConique aOriConique=StdGetFromPCP(aOriRefImage,OrientationConique);
+                cOrientationConique aOriConique=StdGetFromPCP(aOriRefImage,OrientationConique); //prendre orientation Conique partie a partir de XML fichier
                 aRefOriList.push_back(aOriConique);
                 std::cout<<aOriConique.Externe().Centre()<<"\n";
-
                 if (i==0)
                 {   //1st pose as reference
                     xBefore = aOriConique.Externe().Centre().x;
