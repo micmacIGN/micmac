@@ -40,13 +40,26 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _TiepRed_H_
 #define _TiepRed_H_
 
+#define BUG_PUSH_XML_TIEP false
+
+
 #include "StdAfx.h"
+
+#if (!BUG_PUSH_XML_TIEP)
 
 class cImageTiepRed;
 class cPMulTiepRed;
 class cAppliTiepRed;
 class cLnk2ImTiepRed;
 class cImageGrid;
+
+// DEBUT MPD 
+class cXml_ParamSubcommandTiepRed;
+/*
+{
+};
+*/
+// END MPD 
 
 typedef cVarSizeMergeTieP<Pt2df>  tMerge; // Class to store a multi-point
 typedef cStructMergeTieP<tMerge>  tMergeStr; // Class to store a bunch of multi-points
@@ -203,6 +216,8 @@ class cAppliTiepRed
           const std::list<tMerge *> *      mMergedHomolPointss;//List of multi-tie-points (without multiplicity and removing flag)
           std::list<cPMulTiepRed* >        mMultiPoints; // List of multi-tie-points (with multiplicity and removing flag)
 };
+
+#endif // 
 
 #endif // _TiepRed_H_
 

@@ -335,6 +335,121 @@ void dump(const cRepereCartesien &aRepereCartesien, const string &aPrefix = stri
 	aStream << aPrefix << "oz  = " << aRepereCartesien.Oz() << endl;
 }
 
+void dump(const cDataBaseNameTransfo &v, const string &aPrefix = string(), ostream &aStream = cout)
+{
+	if (v.AddFocMul().IsInit()) aStream << aPrefix << "AddFocMul: " << v.AddFocMul().Val() << endl;
+	if (v.Separateur().IsInit()) aStream << aPrefix << "Separateur: [" << v.Separateur().Val() << ']' << endl;
+	if (v.NewKeyId().IsInit()) aStream << aPrefix << "NewKeyId: [" << v.NewKeyId().Val() << ']' << endl;
+	if (v.NewKeyIdAdd().IsInit()) aStream << aPrefix << "NewKeyIdAdd: [" << v.NewKeyIdAdd().Val() << ']' << endl;
+	if (v.NewAddNameCam().ValWithDef(false)) aStream << aPrefix << "NewAddNameCam" << endl;
+	if (v.NewFocMul().IsInit()) aStream << aPrefix << "NewFocMul: " << v.NewFocMul().Val() << endl;
+}
+
+void dump(const cFilterLocalisation &v, const string &aPrefix = string(), ostream &aStream = cout)
+{
+	aStream << aPrefix << "KeyAssocOrient: [" << v.KeyAssocOrient() << ']' << endl;
+	aStream << aPrefix << "NameMasq: [" << v.NameMasq() << ']' << endl;
+	aStream << aPrefix << "NameMTDMasq: [" << v.NameMTDMasq() << ']' << endl;
+}
+
+void dump(const cNameFilter &v, const string &aPrefix = string(), ostream &aStream = cout)
+{
+	const list<Pt2drSubst> &focMm = v.FocMm();
+	if (focMm.size() != 0)
+	{
+		list<Pt2drSubst>::const_iterator itFocMm = focMm.begin();
+		while (itFocMm != focMm.end()) aStream << aPrefix << '\t' << (*itFocMm++).Val() << endl;
+	}
+
+	if (v.Min().IsInit()) aStream << aPrefix << "Min: |" << v.Min().Val() << ']' << endl;
+	if (v.Max().IsInit()) aStream << aPrefix << "Max: |" << v.Max().Val() << ']' << endl;
+	if (v.SizeMinFile().IsInit()) aStream << aPrefix << "SizeMinFile: " << v.SizeMinFile().Val() << endl;
+
+	const list<cKeyExistingFile> &keyExistingFile = v.KeyExistingFile();
+	if (keyExistingFile.size() != 0)
+	{
+		list<cKeyExistingFile>::const_iterator itKeyExistingFile = keyExistingFile.begin();
+		while (itKeyExistingFile != keyExistingFile.end())
+		{
+			const list<string> &keyAssoc = itKeyExistingFile->KeyAssoc();
+			aStream << aPrefix << keyAssoc.size() << " KeyAssoc" << endl;
+
+			list<string>::const_iterator itKeyAssoc = keyAssoc.begin();
+			while (itKeyAssoc != keyAssoc.end()) aStream << aPrefix << '\t' << '[' << *itKeyAssoc++ << ']' << endl;
+
+			if (itKeyExistingFile->RequireExist()) aStream << aPrefix << '\t' << "RequireExist" << endl;
+			if (itKeyExistingFile->RequireForAll()) aStream << aPrefix << '\t' << "RequireForAll" << endl;
+			itKeyExistingFile++;
+		}
+	}
+
+	if (v.KeyLocalisation().IsInit())
+	{
+		aStream << aPrefix << "KeyLocalisation: " << endl;
+		dump(v.KeyLocalisation().Val(), aPrefix + "\t", aStream);
+	}
+}
+
+void dump(const cBasicAssocNameToName &v, const string &aPrefix = string(), ostream &aStream = cout)
+{
+	// __DEL
+	cInterfChantierNameManipulateur *aICNM = cInterfChantierNameManipulateur::BasicAlloc("");
+	cNI_AutomNC interfNameCalculator(aICNM, v);
+
+	aStream << aPrefix << '[' << v.PatternTransform() << ']' << endl;
+	if (v.NameTransfo().IsInit()) dump(v.NameTransfo().Val(), aPrefix + "\t", aStream);
+	if (v.PatternSelector().IsInit()) aStream << aPrefix << "PatternSelector: [" << v.PatternSelector().Val() << ']' << endl;
+
+	const vector<string> &calcNames = v.CalcName();
+	aStream << aPrefix << calcNames.size() << " CalcNames" << endl;
+	vector<string>::const_iterator itCalcName = calcNames.begin();
+	while (itCalcName != calcNames.end()) aStream << aPrefix << '\t' << '[' << *itCalcName++ << ']' << endl;
+
+	if (v.Filter().IsInit())
+	{
+		aStream << aPrefix << "Filter: ";
+		dump(v.Filter().Val(), "", aStream);
+	}
+}
+
+//~ <AssocNameToName  Nb="1" Class="true" ToReference="true" >
+	//~ <!-- Devenu obsolete -->
+	//~ <Arrite Nb="?" Type="Pt2di"> </Arrite>
+//~ 
+	//~ <Direct Nb="1" RefType="BasicAssocNameToName"> </Direct>
+	//~ <Inverse Nb="?" RefType="BasicAssocNameToName"> </Inverse>
+	//~ <AutoInverseBySym Nb="?"  Type="bool" Def="false"> </AutoInverseBySym>
+//~ </AssocNameToName>
+
+void dump(const cAssocNameToName &v, const string &aPrefix = string(), ostream &aStream = cout)
+{
+	if (v.Arrite().IsInit()) aStream << aPrefix << "Arrite: " << v.Arrite().Val() << endl;
+
+	aStream << aPrefix << "Direct: " << endl;
+	dump(v.Direct(), aPrefix + "\t", aStream);
+
+	if (v.Inverse().IsInit())
+	{
+		aStream << aPrefix << "Inverse: ";
+		dump(v.Inverse().Val(), aPrefix + "\t", aStream);
+	}
+
+	if (v.AutoInverseBySym().ValWithDef(false)) aStream << aPrefix << "AutoInverseBySym" << endl;
+}
+
+void dump(const cKeyedNamesAssociations &v, const string &aPrefix = string(), ostream &aStream = cout)
+{
+	aStream << aPrefix << '[' << v.Key() << ']' << endl;
+
+	const list<cAssocNameToName> &calcs = v.Calcs();
+
+	aStream << aPrefix << '\t' << calcs.size() << " Calcs" << endl;
+	list<cAssocNameToName>::const_iterator itCalc = calcs.begin();
+	while (itCalc != calcs.end()) dump(*itCalc++, aPrefix + "\t\t", aStream);
+
+	if (v.IsParametrized().ValWithDef(false)) aStream << aPrefix << '\t' << "IsParametrized" << endl;
+}
+
 int command_toto( int argc, char **argv )
 {
 	#if 0
@@ -381,11 +496,9 @@ int command_toto( int argc, char **argv )
 		cout << "f(" << pp << ") = " << changeCoordCartesiennes.FromLoc(pp) << endl;
 	#endif
 
-	cElRegex pattern(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);
-	if (pattern.Match("Ori-Toto"))
-		cout << "yeah !" << endl;
-	else
-		cout << "oh no !" << endl;
+	const string filenameKeyedNamesAssociations = "toto.xml";
+	cKeyedNamesAssociations keyedNamesAssociations = StdGetFromPCP(filenameKeyedNamesAssociations, KeyedNamesAssociations);
+	dump(keyedNamesAssociations);
 
 	return EXIT_SUCCESS;
 }
@@ -979,7 +1092,7 @@ int command_drawMatches(int argc, char **argv)
 	const string detectTool = "Digeo";
 	string detectToolOptions;
 	if ( !detectToolOptions.empty() && detectToolOptions[0] != ' ') detectToolOptions = string(" ") + detectToolOptions;
-	cout << "--- detecting tool: " << '[' << detectTool << detectToolOptions << ']' << endl;
+	cout << "--- detecting tool: " << '[' << detectTool << detectToolOptions << ']' << endl;	
 
 	string imageFilename0 = argv[0], imageFilename1 = argv[1];
 	if ( !cElFilename(imageFilename0).exists()) ELISE_ERROR_RETURN("image file [" << imageFilename0 << "] does not exist");

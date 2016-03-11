@@ -236,12 +236,14 @@ int OriRedTie_main(int argc,char **argv) ;
 int HomFusionPDVUnik_main(int argc,char **argv) ;
 int TestDistM2C_main(int argc,char ** argv);
 
+int Blinis_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("Blinis",Blinis_main,"Block Initialisation "));
        aRes.push_back(cMMCom("TestOscar",TestOscarTieP_main,"Test tie points filtering "));
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
@@ -651,6 +653,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
+
 
        aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
        aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));

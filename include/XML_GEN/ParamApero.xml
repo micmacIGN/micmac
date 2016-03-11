@@ -241,6 +241,9 @@
 <RigidBlockWeighting Nb="1" Class="true" ToReference="true">
     <PondOnTr Nb="1" Type="double"> </PondOnTr>
     <PondOnRot Nb="1" Type="double"> </PondOnRot>
+    <!-- Si donne, il y a une evolution selon une suite geometrique -->
+    <PondOnTrFinal Nb="?" Type="double"> </PondOnTrFinal>
+    <PondOnRotFinal Nb="?" Type="double"> </PondOnRotFinal>
 </RigidBlockWeighting>
 
 <GpsRelativeWeighting Nb="1" Class="true" ToReference="true">
