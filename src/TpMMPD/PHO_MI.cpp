@@ -1346,7 +1346,7 @@ int PHO_MI_main(int argc,char ** argv)
                         aImg1 = aAbre[i].ImgRacine;
                         aImg2 = aAbre[i].ImgBranch[k];
                         string aImg3 = aAbre[i].Img3eme[k][l];
-                        ColDec.push_back(aCouple.CalVectorSurface(aImg3, "sphere"));
+                        ColDec.push_back(aCouple.CalVectorSurface(aImg3, "plan"));
                     }
                     vector<bool> decision; vector<double> decPoint;
                     for(uint m=0; m<ColDec[0].size(); m++)
