@@ -535,6 +535,15 @@ cImplemBlockCam::cImplemBlockCam
       mForGlobCompens (false),
       mKPivot          (0)
 {
+if (0&& MPD_MM())
+{
+    std::cout << "TESSTTT CAM UKNOWWnnnnn \n";
+    cRotationFormelle *  aRF = mAppli.SetEq().NewRotation(cNameSpaceEqF::eRotFigee,ElRotation3D::Id);
+
+    getchar();
+}
+
+
     const std::vector<cPoseCam*> & aVP = mAppli.VecAllPose();
    
 
