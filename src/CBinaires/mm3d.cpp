@@ -243,7 +243,7 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-       aRes.push_back(cMMCom("Blinis",Blinis_main,"Block Initialisation "));
+       aRes.push_back(cMMCom("Blinis",Blinis_main,"Block Initialisation ",cArgLogCom(2)));
        aRes.push_back(cMMCom("RedTieP",RedTieP_main,"Test tie points filtering "));
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));

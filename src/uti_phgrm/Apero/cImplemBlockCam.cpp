@@ -405,13 +405,14 @@ class cIBC_OneCam
           const int & Num() const;
           const std::string & NameCam() const;
           const bool & V0Init() const;
-          void Init0(const cParamOrientSHC & aPSH);
+          void Init0(const cParamOrientSHC & aPSH,cSetEqFormelles &);
       private :
           std::string mNameCam;
           int         mNum;
           Pt3dr             mC0;
           ElMatrix<double>  mMat0;
           bool              mV0Init;
+          cRotationFormelle * mRF;
 };
 
 
@@ -429,6 +430,7 @@ class cImplemBlockCam
          void DoAMD(cAMD_Interf * anAMD);
 
     private :
+         void InitRF();
 
          cAppliApero &               mAppli;
          cStructBlockCam             mSBC;
@@ -450,6 +452,8 @@ class cImplemBlockCam
          int                                     mKPivot; // Number of Pivot 
 
          std::vector<cAperoEqBlockTimeRel >      mVectEqRel;
+
+         std::vector<cRotationFormelle *>        mRF0;
 };
 
     // =================================
@@ -497,7 +501,8 @@ cIBC_OneCam::cIBC_OneCam(const std::string & aNameCam ,int aNum) :
     mNameCam (aNameCam ),
     mNum     (aNum),
     mMat0    (1,1),
-    mV0Init  (false)
+    mV0Init  (false),
+    mRF      (0)
 {
 }
 
@@ -505,14 +510,37 @@ const int & cIBC_OneCam::Num() const {return mNum;}
 const std::string & cIBC_OneCam::NameCam() const { return mNameCam; }
 const bool & cIBC_OneCam::V0Init() const {return mV0Init;}
 
-void cIBC_OneCam::Init0(const cParamOrientSHC & aPOS)
+void cIBC_OneCam::Init0(const cParamOrientSHC & aPOS,cSetEqFormelles & aSet)
 {
     mV0Init = true;
     mC0   = aPOS.Vecteur();
     mMat0 = ImportMat(aPOS.Rot());
-    
+
+    if (MPD_MM())
+       mRF = aSet.NewRotation(cNameSpaceEqF::eRotFigee,ElRotation3D(mC0,mMat0,true));
 }
 
+
+void cImplemBlockCam::InitRF()
+{
+    if (! MPD_MM()) return;
+
+    for 
+    (
+        std::list<cParamOrientSHC>::const_iterator itPOS=mLSHC->ParamOrientSHC().begin();
+        itPOS !=mLSHC->ParamOrientSHC().end();
+        itPOS++
+    )
+    {
+        cIBC_OneCam * aCam = mName2Cam[itPOS->IdGrp()];
+        ELISE_ASSERT(aCam!=0,"Cannot get cam from IdGrp");
+        ELISE_ASSERT(! aCam->V0Init(),"Multiple Init For IdGrp");
+        aCam->Init0(*itPOS,mAppli.SetEq());
+    }
+
+    std::cout << "TESSTTT CAM UKNOWWnnnnn \n";
+    getchar();
+}
 
     // =================================
     //       cImplemBlockCam
@@ -535,35 +563,32 @@ cImplemBlockCam::cImplemBlockCam
       mForGlobCompens (false),
       mKPivot          (0)
 {
-if (0&& MPD_MM())
-{
-    std::cout << "TESSTTT CAM UKNOWWnnnnn \n";
-    cRotationFormelle *  aRF = mAppli.SetEq().NewRotation(cNameSpaceEqF::eRotFigee,ElRotation3D::Id);
-
-    getchar();
-}
-
-
     const std::vector<cPoseCam*> & aVP = mAppli.VecAllPose();
-   
 
     // On initialise les camera
     for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
     {
-          cPoseCam * aPC = aVP[aKP];
-          std::string aNamePose = aPC->Name();
-          std::pair<std::string,std::string> aPair =   mAppli.ICNM()->Assoc2To1(mSBC.KeyIm2TimeCam(),aNamePose,true);
-          std::string aNameCam = aPair.second;
-          if (! DicBoolFind(mName2Cam,aNameCam))
-          {
+        cPoseCam * aPC = aVP[aKP];
+        std::string aNamePose = aPC->Name();
+        std::pair<std::string,std::string> aPair =   mAppli.ICNM()->Assoc2To1(mSBC.KeyIm2TimeCam(),aNamePose,true);
+        std::string aNameCam = aPair.second;
+        if (! DicBoolFind(mName2Cam,aNameCam))
+        {
+            cIBC_OneCam *  aCam = new cIBC_OneCam(aNameCam, (int)mNum2Cam.size());
+            mName2Cam[aNameCam] = aCam;
+            mNum2Cam.push_back(aCam); 
 
-               cIBC_OneCam *  aCam = new cIBC_OneCam(aNameCam, (int)mNum2Cam.size());
-               mName2Cam[aNameCam] = aCam;
-               mNum2Cam.push_back(aCam); 
-          }
+        }
     }
     mNbCam  = (int)mNum2Cam.size();
+    mForCompens = aParamCreateBC.UseForBundle().IsInit();
+    mLSHC = mSBC.LiaisonsSHC().PtrVal();
 
+    if (mForCompens)//  && MPD_MM())
+    {
+        ELISE_ASSERT(mLSHC!=0,"Compens without LiaisonsSHC");
+        InitRF();
+    }
     
     // On regroupe les images prises au meme temps
     for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
@@ -588,10 +613,9 @@ if (0&& MPD_MM())
     std::sort(mNum2ITime.begin(),mNum2ITime.end(),TheIOTCmp);
 
 
-    mLSHC = mSBC.LiaisonsSHC().PtrVal();
-    mForCompens = aParamCreateBC.UseForBundle().IsInit();
 // ## mForCompens => Mettre dans StructBlockCam
 //    On peut avoir equation / a calib et  I/I+1 (pour model derive)
+
     if (mForCompens)
     {
        const cUseForBundle & aUFB = aParamCreateBC.UseForBundle().Val();
@@ -600,6 +624,7 @@ if (0&& MPD_MM())
        {
           mForGlobCompens = true;
           ELISE_ASSERT(false,"GlobalBundle in Rigid Block, still unsupported");
+/*
           for 
           (
                std::list<cParamOrientSHC>::const_iterator itPOS=mLSHC->ParamOrientSHC().begin();
@@ -611,10 +636,9 @@ if (0&& MPD_MM())
              ELISE_ASSERT(aCam!=0,"Cannot get cam from IdGrp");
              ELISE_ASSERT(! aCam->V0Init(),"Multiple Init For IdGrp");
 
-//  ## Creer la camera formelle initialisee en fonction de ParamOrientSHC dans aCam
-// LA
              std::cout << "xxxxxxxxxxxxxxxx CCCaaaammm " << aCam << "\n";
           }
+*/
        }
        if (aUFB.RelTimeBundle())
        {
