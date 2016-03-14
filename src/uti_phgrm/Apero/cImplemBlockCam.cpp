@@ -538,6 +538,16 @@ void cImplemBlockCam::InitRF()
         aCam->Init0(*itPOS,mAppli.SetEq());
     }
 
+    for
+    (
+         std::map<std::string,cIBC_OneCam *>::const_iterator itC=mName2Cam.begin();
+         itC!=mName2Cam.end();
+         itC++
+    )
+    {
+        ELISE_ASSERT(itC->second->V0Init(),"Camera non init in grp");
+    }
+
     std::cout << "TESSTTT CAM UKNOWWnnnnn \n";
     getchar();
 }
