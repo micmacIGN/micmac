@@ -363,7 +363,8 @@ void cAppliApero::ActiveContraintes(bool Stricte)
         itD->second->ActiveContrainte(Stricte);
     }
 
-    BlocContraintes();
+    if (Stricte)
+       BlocContraintes();
 }
 
 #define TheUninitScoreLambda -1e30

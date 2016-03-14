@@ -406,12 +406,14 @@ class cIBC_OneCam
           const std::string & NameCam() const;
           const bool & V0Init() const;
           void Init0(const cParamOrientSHC & aPSH,cSetEqFormelles &);
+          void AddContraintes();
       private :
           std::string mNameCam;
           int         mNum;
           Pt3dr             mC0;
           ElMatrix<double>  mMat0;
           bool              mV0Init;
+          cSetEqFormelles *   mSetEq;
           cRotationFormelle * mRF;
 };
 
@@ -428,6 +430,7 @@ class cImplemBlockCam
 
          void DoCompensation(const cObsBlockCamRig &);
          void DoAMD(cAMD_Interf * anAMD);
+         void AddContraintes();
 
     private :
          void InitRF();
@@ -502,6 +505,7 @@ cIBC_OneCam::cIBC_OneCam(const std::string & aNameCam ,int aNum) :
     mNum     (aNum),
     mMat0    (1,1),
     mV0Init  (false),
+    mSetEq   (0),
     mRF      (0)
 {
 }
@@ -516,9 +520,21 @@ void cIBC_OneCam::Init0(const cParamOrientSHC & aPOS,cSetEqFormelles & aSet)
     mC0   = aPOS.Vecteur();
     mMat0 = ImportMat(aPOS.Rot());
 
+    mSetEq = & aSet;
     if (MPD_MM())
        mRF = aSet.NewRotation(cNameSpaceEqF::eRotFigee,ElRotation3D(mC0,mMat0,true));
 }
+
+void cIBC_OneCam::AddContraintes()
+{
+   if (! mRF) return;
+   
+   mSetEq->AddContrainte(mRF->StdContraintes(),true);
+}
+
+    // =================================
+    //       cImplemBlockCam
+    // =================================
 
 
 void cImplemBlockCam::InitRF()
@@ -538,23 +554,14 @@ void cImplemBlockCam::InitRF()
         aCam->Init0(*itPOS,mAppli.SetEq());
     }
 
-    for
-    (
-         std::map<std::string,cIBC_OneCam *>::const_iterator itC=mName2Cam.begin();
-         itC!=mName2Cam.end();
-         itC++
-    )
+    for (int aKC=0 ; aKC<mNbCam ; aKC++)
     {
-        ELISE_ASSERT(itC->second->V0Init(),"Camera non init in grp");
+        ELISE_ASSERT(mNum2Cam[aKC]->V0Init(),"Camera non init in grp");
     }
 
-    std::cout << "TESSTTT CAM UKNOWWnnnnn \n";
-    getchar();
+    // std::cout << "TESSTTT CAM UKNOWWnnnnn \n";
+    // getchar();
 }
-
-    // =================================
-    //       cImplemBlockCam
-    // =================================
 
 cImplemBlockCam::cImplemBlockCam
 (
@@ -838,6 +845,14 @@ void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & an
    mEstimSBC.LiaisonsSHC().SetVal(aLSHC);
 }
 
+void cImplemBlockCam::AddContraintes()
+{
+    for (int aKC=0 ; aKC<mNbCam ; aKC++)
+    {
+        mNum2Cam[aKC]->AddContraintes();
+    }
+
+}
 
 
     // =================================
@@ -883,6 +898,15 @@ void cAppliApero::InitBlockCameras()
 
 void  cAppliApero::BlocContraintes()
 {
+   for 
+   (
+        std::map<std::string,cImplemBlockCam *>::iterator itB = mBlockCams.begin();
+        itB != mBlockCams.end();
+        itB++
+   )
+   {
+       itB->second->AddContraintes();
+   }
 }
 
 
