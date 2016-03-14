@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _TiepRed_H_
 #define _TiepRed_H_
 
-#define BUG_PUSH_XML_TIEP false
+#define BUG_PUSH_XML_TIEP 0
 
 
 #include "StdAfx.h"
