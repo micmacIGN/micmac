@@ -7412,10 +7412,14 @@ class cXml_ParamSubcommandTiepRed
         int & NumInit();
         const int & NumInit()const ;
 
+        int & NumSubcommands();
+        const int & NumSubcommands()const ;
+
         std::vector< std::string > & Images();
         const std::vector< std::string > & Images()const ;
     private:
         int mNumInit;
+        int mNumSubcommands;
         std::vector< std::string > mImages;
 };
 cElXMLTree * ToXMLTree(const cXml_ParamSubcommandTiepRed &);

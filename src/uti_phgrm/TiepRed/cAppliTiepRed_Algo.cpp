@@ -150,8 +150,6 @@ void Verif(Pt2df aPf)
 
 void cAppliTiepRed::DoReduce()
 {
-
-	std::cout << "=======================   KSubcommand=" << mSubcommandIndex << "  ===================\n";
     std::cout << "Loading tie points..." << endl;
     bool stopProcessing = DoLoadTiePoints();
 
@@ -207,6 +205,7 @@ void cAppliTiepRed::DoReduce()
 		cImageGrid * masterImageGrid = imageGridVec[0];
 		std::cout << "Sorting master image grid..." << endl;
 		masterImageGrid->SortCells();
+		std::cout << "Reducing multi-tie-points from master image grid cells..." << endl;
 		mNumDeleted = 0;
 		// We iterate over all the cells of the grid of the master image
 		for (std::size_t cellIndex = 0; cellIndex < numCells ; cellIndex++){
@@ -277,7 +276,7 @@ void cAppliTiepRed::DoExport()
     std::vector<std::vector<ElPackHomologue> > aVVH (aNbImage,std::vector<ElPackHomologue>(aNbImage));
     std::vector<std::vector<ElPackHomologue> > aVVHTemp (aNbImage,std::vector<ElPackHomologue>(aNbImage));
 
-    std::cout << "Storing points with multiplicity:";
+    std::cout << "Storing multi-tie-points with multiplicity:";
 
     for (std::list<cPMulTiepRed *>::const_iterator itP=mMultiPoints.begin(); itP!=mMultiPoints.end();  itP++)
     {
