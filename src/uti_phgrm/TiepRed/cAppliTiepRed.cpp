@@ -99,6 +99,9 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
 		mImagesNames = &(mXmlParamSubcommand.Images());
 		// Get the initital number of tie-points that the master image had before any subcommand was executed
 		mNumInit = mXmlParamSubcommand.NumInit();
+		int numSubcommands = mXmlParamSubcommand.NumSubcommands();
+
+		std::cout << "=======================   KSubcommand=" << mSubcommandIndex << "/" << numSubcommands << "  ===================\n";
 	}
 	else {
 		// This is the parent. We get the list of images from the pattern provided by the user
@@ -250,6 +253,7 @@ void cAppliTiepRed::GenerateSubcommands(){
 		std::vector<int> relatedSubcommandsIndexes; // Create the list of related subcommands (commands that use as master images images used in the current subcommand)
 
 		aParamSubcommand.NumInit() = imagesNumPointsMap[masterImageName];
+		aParamSubcommand.NumSubcommands() = static_cast<int>(imagesNumPointsVP.size());
 		aParamSubcommand.Images().push_back(masterImageName); // Add master image to config
 		relatedSubcommandsIndexes.push_back(static_cast<int>(imageIndex)); // Add the index of the current subcommand
 

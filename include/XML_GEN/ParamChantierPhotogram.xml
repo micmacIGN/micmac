@@ -1971,6 +1971,7 @@
 
 <Xml_ParamSubcommandTiepRed Nb="1" Class="true" ToReference="true">
      <NumInit Nb="1" Type="int"> </NumInit>
+     <NumSubcommands Nb="1" Type="int"> </NumSubcommands>
      <Images Nb="*" Type="std::string" Container="std::vector"> </Images>
 </Xml_ParamSubcommandTiepRed>
 
