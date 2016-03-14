@@ -341,14 +341,17 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
                         +  std::string("@")
                         +  std::string("dat");
 
-    std::string aHomoIn1_2 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg2,true);
+    std::string aHomoIn1_2 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg2, true);
     StdCorrecNameHomol_G(aHomoIn1_2,aDirImages);
     ElPackHomologue aPackIn1_2, aPackIn1_3, aPackIn2_3;
     bool Exist1_2 = ELISE_fp::exist_file(aHomoIn1_2);
     if (Exist1_2)
-    {
-     aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);
-    }
+        {
+         aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);
+         cout<<"Size Homol "<<aPackIn1_2.size()<<endl;
+        }
+    else
+        {cout<<"Homol "<< aNameImg1<< "++" <<aNameImg2<<" not existed!";}
 
     //creat name of homomologue file dans 2 sens
     ElPackHomologue Pair1_2, Pair1_2i;
@@ -356,7 +359,7 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
     std::string NameHomolDatPair1 = aICNM->Assoc1To2(aKHOutDat, aNameImg1, aNameImg2, true);
     std::string NameHomolDatPair1i = aICNM->Assoc1To2(aKHOutDat, aNameImg2, aNameImg1 , true);
     double ind=0;
-    cout<<NameHomolDatPair1;
+    cout<<NameHomolDatPair1<<" ++ ";
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
     {
         if(decision[ind])
@@ -375,10 +378,13 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
 
 
 
-VerifParRepr::VerifParRepr(vector<string> mListImg, string aDirImages, string aPatImages, string aNameHomol, string aOri, string aHomolOutput, bool ExpTxt, double aDistHom, double aDistRepr)
+VerifParRepr::VerifParRepr(vector<string> mListImg, vector<string> mListImg_NoTif, string aDirImages, string aPatImages, string aNameHomol, string aOri, string aHomolOutput, bool ExpTxt, double aDistHom, double aDistRepr)
 {    
         this->mListImg = mListImg;
-        this->mDirImages = aDirImages;
+        this->mListImg_NoTif = mListImg_NoTif;
+
+            this->mDirImages = aDirImages;
+
         this->mPatImages = aPatImages;
         this->mNameHomol = aNameHomol;
         this->mOri = aOri;
@@ -392,10 +398,22 @@ VerifParRepr::VerifParRepr(vector<string> mListImg, string aDirImages, string aP
 vector<AbreHomol> VerifParRepr::creatAbre()
 {
 
+    cout<<"creatAbre"<<endl;
+    vector<string> backup_ListImg;
+    if (this->mListImg_NoTif.size() > 0)
+    {
+        backup_ListImg = this->mListImg;
+        this->mListImg = this->mListImg_NoTif;
+    }
+
     //=============Manip File Name=====================
       cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(this->mDirImages);
       ELISE_ASSERT(this->mListImg.size()>1,"Number of image must be > 1");
     //======================================================
+      if (this->mListImg_NoTif.size() > 0)
+      {
+       this->mListImg = backup_ListImg;
+      }
     vector<string> tempArbeRacine;
     vector<AbreHomol> Abre;
     for (uint i=0; i<this->mListImg.size(); i++)
@@ -412,6 +430,7 @@ vector<AbreHomol> VerifParRepr::creatAbre()
                     +  std::string("dat");
             std::string aHomol = aICNM->Assoc1To2(aKey,nameImgA,nameImgB,true);
             StdCorrecNameHomol_G(aHomol,this->mDirImages);
+            cout<<aHomol<<endl;
 
             bool Exist = ELISE_fp::exist_file(aHomol);
             if (Exist)
@@ -421,6 +440,10 @@ vector<AbreHomol> VerifParRepr::creatAbre()
                 aAbre.ImgBranch.push_back(nameImgB);
                 ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aHomol);
                 aAbre.NbPointHomo.push_back(aPackIn.size());
+            }
+            else
+            {
+                cout <<" Homol : "<<nameImgA<<" ++ "<<nameImgB<<" not existe !";
             }
         }
         Abre.push_back(aAbre);
@@ -476,11 +499,20 @@ vector<AbreHomol> VerifParRepr::creatAbre()
     }
     this->mAbre = Abre_N;
     this->mtempArbeRacine = tempArbeRacine_N;
-    Tiff_Im mTiffImg3(tempArbeRacine[0].c_str());
-
-    Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
-    this->mcentre_img = centre_img;
-    this->mdiag = sqrt(pow((double)mTiffImg3.sz().x,2.) + pow((double)mTiffImg3.sz().y,2.));
+    if(this->mListImg_NoTif.size() > 0)
+    {
+        Tiff_Im mTiffImg3(("./Tmp-MM-Dir/" + tempArbeRacine[0] + "_Ch1.tif").c_str());
+        Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
+        this->mcentre_img = centre_img;
+        this->mdiag = sqrt(pow((double)mTiffImg3.sz().x,2.) + pow((double)mTiffImg3.sz().y,2.));
+    }
+    else
+    {
+        Tiff_Im mTiffImg3(tempArbeRacine[0].c_str());
+        Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
+        this->mcentre_img = centre_img;
+        this->mdiag = sqrt(pow((double)mTiffImg3.sz().x,2.) + pow((double)mTiffImg3.sz().y,2.));
+    }
 return Abre_N;
 }
 
@@ -510,6 +542,7 @@ vector<string> VerifParRepr::displayAbreHomol(vector<AbreHomol> aAbre, bool disp
 
 vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3)
 {
+    cout<<"FiltreDe3img"<<endl;
   //=============Manip File Name=====================
     ELISE_fp::AssertIsDirectory(this->mNameHomol);
 
@@ -781,7 +814,7 @@ Pt2dr RepereImagette::uv2img(Pt2dr coorOrg)
 
 CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,
                string aFullPatternImages, bool ExpTxt, double aPropDiag, double aCorel, double aSizeVignette,
-               bool aDisplayVignette, bool aFiltreBy1Img, double aTauxGood, double aSizeSearchAutour):
+               bool aDisplayVignette, bool aFiltreBy1Img, double aTauxGood, double aSizeSearchAutour, bool NotTif_flag):
     mNameImg1(aNameImg1), mFiltreBy1Img(aFiltreBy1Img), mTauxGood(aTauxGood)
 {
     this->mNameImg1 = aNameImg1;
@@ -794,6 +827,7 @@ CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOr
     this->mdisplayVignette = aDisplayVignette;
     this->msizeVignette = aSizeVignette;
     this->mSizeSearchAutour = aSizeSearchAutour;
+    this->NotTif_flag = NotTif_flag;
    //====== Initialize name manipulator & files=====//
     ELISE_fp::AssertIsDirectory(aNameHomol);
     std::string aDirImages, aPatImages;
@@ -829,15 +863,35 @@ CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOr
 
  //===========================================================
     //====lire Img1 et Img2=====//
+    cout<<aNameImg1<< " ++ "<<aNameImg2<<endl;
     Tiff_Im aTiffImg1(aNameImg1.c_str());
     Tiff_Im aTiffImg2(aNameImg2.c_str());
     //====lire Cam1 et Cam2====//
-    std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg1, true);
-    CamStenope * aCam1 = CamOrientGenFromFile(aOri1 , aICNM);
-    std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg2,true);
-    CamStenope * aCam2 = CamOrientGenFromFile(aOri2 , aICNM);
-    this->mCam1 = aCam1;
-    this->mCam2 = aCam2;
+    if (NotTif_flag == false)
+    {
+        std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg1, true);
+        CamStenope * aCam1 = CamOrientGenFromFile(aOri1 , aICNM);
+        std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg2,true);
+        CamStenope * aCam2 = CamOrientGenFromFile(aOri2 , aICNM);
+        this->mCam1 = aCam1;
+        this->mCam2 = aCam2;
+    }
+    else
+    {
+        aNameImg1 = aNameImg1.substr(13, aNameImg1.length());
+        aNameImg1 = aNameImg1.substr(0, aNameImg1.length()-8);
+
+        aNameImg2 = aNameImg2.substr(13, aNameImg2.length());
+        aNameImg2 = aNameImg2.substr(0, aNameImg2.length()-8);
+
+        cout<<aNameImg1<< " ++ "<<aNameImg2<<endl;
+        std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg1, true);
+        CamStenope * aCam1 = CamOrientGenFromFile(aOri1 , aICNM);
+        std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg2,true);
+        CamStenope * aCam2 = CamOrientGenFromFile(aOri2 , aICNM);
+        this->mCam1 = aCam1;
+        this->mCam2 = aCam2;
+    }
 }
 
 void CplImg::SupposeVecSruf1er(Pt2dr dirX, Pt2dr dirY)
@@ -869,6 +923,13 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
     string aDirImages = this->mDirImages;
     string aNameImg1 = this->mNameImg1;
     string aNameImg2 = this->mNameImg2;
+    if (this->NotTif_flag == true)
+    {
+        aNameImg1 = aNameImg1.substr(13, aNameImg1.length());
+        aNameImg1 = aNameImg1.substr(0, aNameImg1.length()-8);
+        aNameImg2 = aNameImg2.substr(13, aNameImg2.length());
+        aNameImg2 = aNameImg2.substr(0, aNameImg2.length()-8);
+    }
     CamStenope * aCam1 = this->mCam1;
     CamStenope * aCam2 = this->mCam2;
     bool displayVignette = this->mdisplayVignette;
@@ -883,20 +944,33 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
     bool Exist1_2 = ELISE_fp::exist_file(aHomoIn1_2);
     if (Exist1_2)
          {aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);}
+    else
+         {cout<<"Homol "<<aNameImg1<<" ++ "<<aNameImg2<<" not existed !";}
 
     std::string aHomoIn1_3 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg3,true);
     StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
     bool Exist1_3 = ELISE_fp::exist_file(aHomoIn1_3);
     if (Exist1_3)
         {aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);}
+    else
+         {cout<<"Homol "<<aNameImg1<<" ++ "<<aNameImg3<<" not existed !";}
 
     std::string aHomoIn2_3 = aICNM->Assoc1To2(aKHIn, aNameImg2, aNameImg3, true);
     StdCorrecNameHomol_G(aHomoIn2_3,aDirImages);
     bool Exist2_3 = ELISE_fp::exist_file(aHomoIn2_3);
     if (Exist2_3)
         {aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);}
+    else
+         {cout<<"Homol "<<aNameImg2<<" ++ "<<aNameImg3<<" not existed !";}
 
     // ====Import images Tiff and IM2D =====//
+    aNameImg1 = this->mNameImg1;
+    aNameImg2 = this->mNameImg2;
+    if(this->NotTif_flag == true)
+        {
+            aNameImg3 = "./Tmp-MM-Dir/" + aNameImg3 + "_Ch1.tif";
+        }
+    cout <<aNameImg1 <<" ++ "<<aNameImg2<<endl;
     Tiff_Im mTiffImg1(aNameImg1.c_str());
     Tiff_Im mTiffImg2(aNameImg2.c_str());
     Tiff_Im mTiffImg3(aNameImg3.c_str());
@@ -1206,17 +1280,44 @@ int PHO_MI_main(int argc,char ** argv)
     if (MMVisualMode) return EXIT_SUCCESS;
 
     ELISE_fp::AssertIsDirectory(aNameHomol);
+    std::string aDirImages, aPatImages, aDirImages_NotTif, aPatImages_NotTif, aFullPatternImages_NotTif;
+    std::vector<std::string> aSetImages, aSetImages_NoTif;
+    //===========Modifier ou chercher l'image si l'image ne sont pas tif============//
+       std::size_t found = aFullPatternImages.find_last_of(".");
+       std::cout << " extension: " << aFullPatternImages.substr(found+1) << '\n';
+       bool notif_flag = false;
+       if (aFullPatternImages.substr(found+1) != "tif")
+       {
+           notif_flag=true;
+           std::cout << " chercher dans Tmp-MM-Dir pour fichier tif: "<< '\n';
+           aFullPatternImages_NotTif = "./Tmp-MM-Dir/" + aFullPatternImages + "_Ch1.*.tif";
 
+           SplitDirAndFile(aDirImages_NotTif,aPatImages_NotTif,aFullPatternImages_NotTif);
+           cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages_NotTif);
+           aSetImages_NoTif = *(aICNM->Get(aPatImages_NotTif));
+           for (uint i=0; i<aSetImages_NoTif.size(); i++)
+           {
+               aSetImages_NoTif[i] = aDirImages_NotTif + aSetImages_NoTif[i];
+           }
+           ELISE_ASSERT(aSetImages_NoTif.size()>1,"Number of image must be > 1");
+
+           SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
+           cInterfChantierNameManipulateur * aICNM1=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+           aSetImages = *(aICNM1->Get(aPatImages));
+
+           aICNM->BasicAlloc(aDirImages);
+           //aDirImages = aDirImages_NotTif;
+       }
+    //===============================================================================//
     // Initialize name manipulator & files
-    std::string aDirImages, aPatImages;
-    SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
-
-    StdCorrecNameOrient(aOriInput,aDirImages);//remove "Ori-" if needed
-
-    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
-    const std::vector<std::string> aSetImages = *(aICNM->Get(aPatImages));
-
-    ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
+    else
+       {
+           SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
+           StdCorrecNameOrient(aOriInput,aDirImages);//remove "Ori-" if needed
+           cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+           aSetImages = *(aICNM->Get(aPatImages));
+           ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
+       }
  //============================================================
     std::string anExt = ExpTxt ? "txt" : "dat";
 
@@ -1314,7 +1415,7 @@ int PHO_MI_main(int argc,char ** argv)
     //=============================================================================
     if (bStrategie == "6")
     {
-        VerifParRepr aImgVerif(aSetImages, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt, aDistHom, aDistRepr);
+        VerifParRepr aImgVerif(aSetImages, aSetImages_NoTif, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt, aDistHom, aDistRepr);
         aImgVerif.creatAbre();
         bool disp = 1;
         aImgVerif.displayAbreHomol(aImgVerif.mAbre, disp);
@@ -1323,19 +1424,28 @@ int PHO_MI_main(int argc,char ** argv)
     //=============================================================================
     if (bStrategie == "7")
     {
-        VerifParRepr aImgVerif(aSetImages, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt, aDistHom, aDistRepr);
+
+        VerifParRepr aImgVerif(aSetImages, aSetImages_NoTif, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt, aDistHom, aDistRepr);
         vector<AbreHomol> aAbre = aImgVerif.creatAbre();
         vector<string>  aAbreRacine= aImgVerif.displayAbreHomol(aImgVerif.mAbre, 1);
 
         for (uint i=0;i<aAbre.size();i++)
         {
             string aImg1 = aAbre[i].ImgRacine;
+            if(notif_flag == true)
+            {
+                aImg1 = "./Tmp-MM-Dir/" + aAbre[i].ImgRacine + "_Ch1.tif";
+            }
             for(uint k=0; k<aAbre[i].ImgBranch.size(); k++)
             {
-                cout<<endl<<" ++ "<<aAbre[i].ImgBranch[k]<<endl;
                 string aImg2 = aAbre[i].ImgBranch[k];
-                CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt, aPropDiag, aCorel, aSizeVignette, aDisplayVignette, aFiltreBy1Img, aTauxGood, aSizeSearchAutour);
-                aCouple.SupposeVecSruf1er(Pt2dr(0,0) , Pt2dr(0,0));
+                if(notif_flag == true)
+                {
+                    aImg1 = "./Tmp-MM-Dir/" + aAbre[i].ImgRacine + "_Ch1.tif";
+                    aImg2 = "./Tmp-MM-Dir/" + aAbre[i].ImgBranch[k] + "_Ch1.tif";
+                }
+                CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt, aPropDiag, aCorel, aSizeVignette, aDisplayVignette, aFiltreBy1Img, aTauxGood, aSizeSearchAutour, notif_flag);
+                aCouple.SupposeVecSruf1er(Pt2dr(1,0) , Pt2dr(0,1));
                 vector< vector<bool> > ColDec;
                 if (aAbre[i].Img3eme[k].size() > 0)
                 {
