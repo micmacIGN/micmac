@@ -2344,6 +2344,7 @@ class cAppliApero : public NROptF1vND
 
 
 	void ActiveContraintes(bool Stricte);
+        void BlocContraintes();
 	// void ActiveContraintesCalib();
 	// void ActiveContraintesPose();
 
