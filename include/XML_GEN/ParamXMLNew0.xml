@@ -1,0 +1,67 @@
+<!--
+    Nouveau fichier :
+     - (pour alleger un peu les autres qui deviennent lourd)
+     - pour faire un test sur les dump
+
+   NE PAS FAIRE CROITRE POUR QUE CA RESTE LE TERRAIN D'EXPERIMENTATION DE LA GENERATION DE CODE
+   Pour que ce soit facile, il faut que personne n'utilise ces classes ....
+
+  Rajouter des ParamXMLNew1.xml , ParamXMLNew2.xml ...
+-->
+
+<GenCpp  Difndef="Define_ParamXMLNew0">
+
+<Verbatim File=".h">
+#include "StdAfx.h"
+</Verbatim>
+<Verbatim File=".cpp">
+#include "cParamXMLNew0.h"
+</Verbatim>
+<Verbatim File=".h.cpp">
+// NOMORE ... 
+</Verbatim>
+
+   <enum Name="eTestDump">
+       <eTestDump_0> </eTestDump_0>
+       <eTestDump_1> </eTestDump_1>
+       <eTestDump_3> </eTestDump_3>
+   </enum>
+
+   <TD2REF  Nb="1" Class="true" ToReference="true">
+        <K Nb="1" Type="std::string"> </K>
+        <V Nb="+" Type="int"> </V>
+   </TD2REF>
+
+   <TestDump  Nb="1" Class="true">
+       <I Nb="?" Type="int" Def="128"> </I>
+       <D Nb="?" Type="Pt2dr"> </D>
+       <E Nb="1" Type="eTestDump"> </E>
+       <V Nb="*" Type="eTestDump"> </V>
+
+       <R1 Nb="1" RefType="TD2REF"> </R1>
+       <R2 Nb="?" RefType="TD2REF"> </R2>
+       <R3 Nb="*" RefType="TD2REF"> </R3>
+       <R4 Nb="*" RefType="TD2REF"  Container="std::vector"> </R4>
+       <Compos Nb="1">
+             <A Nb="1" Type="double"> </A>
+             <B Nb="1" Type="Pt2dr">  </B>
+       </Compos>
+   </TestDump>
+
+
+   <TestNoDump  Nb="1" Class="true">
+       <R5 Nb="*" Container="std::map"  KeyType="std::string" KeyGetVal="IdImage" > 
+              <IdImage Nb="1" Type="std::string">  </IdImage>
+       </R5>
+       <AA Nb="1" Type="int"> </AA>
+       <vvAA Nb="1" Type="std::vector<int>"> </vvAA>
+   </TestNoDump>
+ 
+
+
+
+<Verbatim File=".h.cpp">
+// };
+</Verbatim>
+
+</GenCpp>
