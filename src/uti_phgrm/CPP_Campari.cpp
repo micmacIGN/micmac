@@ -140,6 +140,7 @@ void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::str
 {
     if (!EAMIsInit(&aVBL)) return;
     ELISE_ASSERT(aVBL.size() >= 3,"Not enough param in AddParamBloc");
+    ELISE_ASSERT(aVBL.size() <= 4,"Too many param in AddParamBloc");
 
 
     if (!mWithBlock)
@@ -247,7 +248,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
                     << EAM(aNbIterFin,"NbIterEnd",true,"Number of iteration at end, Def = 4")
                     // << EAM(GCP,"MulRTA",true,"Rolling Test Appuis , multiplier ")
-                    << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute ")
+                    << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal]")
 
     );
 
