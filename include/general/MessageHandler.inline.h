@@ -76,11 +76,3 @@ inline OStreamMessageHandler::OStreamMessageHandler( std::ostream &io_ostream, c
 	MessageHandler(i_action,i_exitCode),
 	m_stream(io_ostream),
 	m_prefix(i_prefix){}
-
-inline void OStreamMessageHandler::add( const Message &i_message )
-{
-	m_stream << m_prefix << i_message.toString() << std::endl;
-	if (m_action==NOTHING) return;
-	else if (m_action==EXIT) exit(m_exitCode);
-	else if (m_action==CIN_GET) std::cin.get();
-}
