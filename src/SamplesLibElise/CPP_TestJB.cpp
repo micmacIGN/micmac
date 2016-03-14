@@ -1141,8 +1141,10 @@ int command_drawMatches(int argc, char **argv)
 
 int TestJB_main( int argc, char **argv )
 {
-	gDefaultDebugWarningHandler->setAction(MessageHandler::CIN_GET);
-	cout << "debug error action: " << eToString(gDefaultDebugErrorHandler->action()) << endl;
+	#ifdef __DEBUG
+		gDefaultDebugWarningHandler->setAction(MessageHandler::CIN_GET);
+		cout << "debug error action: " << eToString(gDefaultDebugErrorHandler->action()) << endl;
+	#endif
 
 	string command;
 
