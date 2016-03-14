@@ -881,6 +881,12 @@ void cAppliApero::InitBlockCameras()
 }
 
 
+void  cAppliApero::BlocContraintes()
+{
+}
+
+
+
 cImplemBlockCam * cAppliApero::GetBlockCam(const std::string & anId)
 {
    cImplemBlockCam* aRes = mBlockCams[anId];
