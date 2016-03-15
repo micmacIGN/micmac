@@ -37,7 +37,7 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     _SaisieWin->setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
 
     _SaisieWin->setBanniere(QString(getBanniereMM3D().c_str()));
-    _SaisieWin->setHg_revision(QString(__HG_REV__));
+    _SaisieWin->setHg_revision(QString(mercurialRevision().c_str()));
 
     setWindowFlags(Qt::WindowStaysOnTopHint);
     //setAttribute( Qt::WA_DeleteOnClose );
