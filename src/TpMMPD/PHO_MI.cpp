@@ -351,7 +351,7 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
          cout<<"Size Homol "<<aPackIn1_2.size()<<endl;
         }
     else
-        {cout<<"Homol "<< aNameImg1<< "++" <<aNameImg2<<" not existed!";}
+        {cout<<"Homol "<< aNameImg1<< "++" <<aNameImg2<<" not existed!"<<endl;}
 
     //creat name of homomologue file dans 2 sens
     ElPackHomologue Pair1_2, Pair1_2i;
@@ -443,7 +443,7 @@ vector<AbreHomol> VerifParRepr::creatAbre()
             }
             else
             {
-                cout <<" Homol : "<<nameImgA<<" ++ "<<nameImgB<<" not existe !";
+                cout <<" Homol : "<<nameImgA<<" ++ "<<nameImgB<<" not existe !"<<endl;
             }
         }
         Abre.push_back(aAbre);
@@ -915,9 +915,10 @@ bool IsInside(Pt2dr checkPoint, Tiff_Im mTiffImg1, double percent = 1)
     }
     return in;
 }
+
+
 vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
 {
-    vector<bool> result;
     cInterfChantierNameManipulateur * aICNM = this->mICNM;
     string aKHIn = this->mKHIn;
     string aDirImages = this->mDirImages;
@@ -945,7 +946,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
     if (Exist1_2)
          {aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);}
     else
-         {cout<<"Homol "<<aNameImg1<<" ++ "<<aNameImg2<<" not existed !";}
+         {cout<<"Homol "<<aNameImg1<<" ++ "<<aNameImg2<<" not existed !"<<endl;}
 
     std::string aHomoIn1_3 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg3,true);
     StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
@@ -953,7 +954,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
     if (Exist1_3)
         {aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);}
     else
-         {cout<<"Homol "<<aNameImg1<<" ++ "<<aNameImg3<<" not existed !";}
+         {cout<<"Homol "<<aNameImg1<<" ++ "<<aNameImg3<<" not existed !"<<endl;}
 
     std::string aHomoIn2_3 = aICNM->Assoc1To2(aKHIn, aNameImg2, aNameImg3, true);
     StdCorrecNameHomol_G(aHomoIn2_3,aDirImages);
@@ -961,7 +962,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
     if (Exist2_3)
         {aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);}
     else
-         {cout<<"Homol "<<aNameImg2<<" ++ "<<aNameImg3<<" not existed !";}
+         {cout<<"Homol "<<aNameImg2<<" ++ "<<aNameImg3<<" not existed !"<<endl;}
 
     // ====Import images Tiff and IM2D =====//
     aNameImg1 = this->mNameImg1;
@@ -970,7 +971,6 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
         {
             aNameImg3 = "./Tmp-MM-Dir/" + aNameImg3 + "_Ch1.tif";
         }
-    cout <<aNameImg1 <<" ++ "<<aNameImg2<<endl;
     Tiff_Im mTiffImg1(aNameImg1.c_str());
     Tiff_Im mTiffImg2(aNameImg2.c_str());
     Tiff_Im mTiffImg3(aNameImg3.c_str());
@@ -1016,230 +1016,408 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
                 );
 */
     Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
+    vector <bool> ColDecide;        double count = 0 ;
     //=======================================================//
-    double count =0;
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
     {
+        bool decide;
         Pt2dr aP1 = itP->P1();
-        //(fabs(aP1.x-2736)<20)&&(fabs(aP1.y-1824)<20)
-        bool decide = false;
-
-            Pt2dr aP2 = itP->P2();
-            //======Profondeur a partir de cam 1 et cam 2======
-            double d;
-            Pt3dr Pt_pseudointer= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
-                //====== calcul profondeur correspondant avec direction viseur de cam 1 =====
-            double prof_d = aCam1->ProfInDir(Pt_pseudointer,aCam1->DirK());
-            Pt3dr Pt_H = aCam1->ImEtProf2Terrain(aP1, prof_d);  //pt3d intersection entre point img 1 et 2 mais se situe dans la direction viseur de cam 1
-
-            Pt2dr aP3 = aCam3->R3toF2(Pt_H); Pt2dr aP3_o=aP3;
-
-            //Pt3dr OptCenterImg1 = aCam1->VraiOpticalCenter();
-            //cout<<"OptCenterImg1 "<<OptCenterImg1<<endl;
-            //double prof_d = sqrt(pow((OptCenterImg1.x - Pt_H.x),2) + pow((OptCenterImg1.y - Pt_H.y),2) + pow((OptCenterImg1.z - Pt_H.z),2));
-
-            //double dist_centre = sqrt(pow((aP3 - centre_img).x, 2) + pow((aP3 - centre_img).y, 2));
-           vector<bool> Coldecide;
-           for (int ii=-this->mSizeSearchAutour; ii<=this->mSizeSearchAutour; ii++)
-           {
-               for (int jj=-this->mSizeSearchAutour; jj<=this->mSizeSearchAutour; jj++)
-               {
-                   int sizeVignette = this->msizeVignette;
-                   aP3 = aP3_o + Pt2dr(ii,jj);
-                   if( IsInside(aP3, mTiffImg3, 1) )
-                   {
-                       //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
-                       Pt2dr SupDirX = aP1+Pt2dr(10,0);
-                       Pt2dr SupDirY = aP1+Pt2dr(0,10);
-                       Pt3dr Pt_Hu, Pt_Hv;
-                       if (ModeSurf == "plan")
-                       {
+        Pt2dr aP2 = itP->P2();
+        //======Profondeur a partir de cam 1 et cam 2======
+        double d;
+        Pt3dr Pt_pseudointer= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
+        //====== calcul profondeur correspondant avec direction viseur de cam 1 =====
+        double prof_d = aCam1->ProfInDir(Pt_pseudointer,aCam1->DirK());
+        Pt3dr Pt_H = aCam1->ImEtProf2Terrain(aP1, prof_d);  //pt3d intersection entre point img 1 et 2 mais se situe dans la direction viseur de cam 1
+        Pt2dr aP3 = aCam3->R3toF2(Pt_H);
+        Pt2dr aP3_o=aP3;
+        //====== chercher autour pts d' img 3 ========
+        for (int ii=-this->mSizeSearchAutour; ii<=this->mSizeSearchAutour; ii++)
+        {
+            for (int jj=-this->mSizeSearchAutour; jj<=this->mSizeSearchAutour; jj++)
+            {
+                int sizeVignette = this->msizeVignette;
+                aP3 = aP3_o + Pt2dr(ii,jj);
+                if( IsInside(aP3, mTiffImg3, 1) )
+                {
+                    //=== 3) Calcul vector direction de surface Hu et Hv (descripteur d'imagette 1) dans l'espace ===
+                    Pt2dr SupDirX = aP1+Pt2dr(1,0);
+                    Pt2dr SupDirY = aP1+Pt2dr(0,1);
+                    Pt3dr Pt_Hu, Pt_Hv;
+                    if (ModeSurf == "plan")
+                    {
                         Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une plan perpendiculaire
                         Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
-                       }
-                       if (ModeSurf == "sphere")
-                       {
-
-                            Pt3dr vecaP1 = aCam1->C2toDirRayonL3(aP1);
-                            Pt3dr vecSupDirX = aCam1->C2toDirRayonL3(SupDirX);
-                            //Pt3dr vecSupDirY = aCam1->C2toDirRayonL3(SupDirY);
-
-                            //angle b/w (aP1, PP)
-                            Pt3dr vecPP = aCam1->C2toDirRayonL3(aCam1->PP());
-                            double length_vecaP1 = sqrt(vecaP1.x*vecaP1.x + vecaP1.y*vecaP1.y + vecaP1.z*vecaP1.z);
-                            double length_vecPP = sqrt(vecPP.x*vecPP.x + vecPP.y*vecPP.y + vecPP.z*vecPP.z);
-                            double cosPhi = (vecaP1.x * vecPP.x + vecaP1.y * vecPP.y + vecaP1.z * vecPP.z) / (length_vecaP1*length_vecPP);
-                            //Rayon
-                            double R=prof_d / cosPhi;
-                            //angle b/w (SupDirX, PP)
-                            double length_vecSupDirX = sqrt(vecSupDirX.x*vecSupDirX.x + vecSupDirX.y*vecSupDirX.y + vecSupDirX.z*vecSupDirX.z);
-                            double cosPhi2 = (vecSupDirX.x * vecPP.x + vecSupDirX.y * vecPP.y + vecSupDirX.z * vecPP.z) / (length_vecSupDirX*length_vecPP);
-                            //profondeur SupDirX
-                            double prof_SupDirX = R*cosPhi2;
-                            Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_SupDirX);
-                            cout<<prof_SupDirX<<" "<<Pt_Hu;
-                            Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d);
-                            cout<<" "<<prof_d<<" "<<Pt_Hu<<endl;
-
-                       }
-                       //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
-                       Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
-                       Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
-                       //=== 5) Vector direction de surface d'img 3 ===
-                       Pt2dr DirX = aP3 - Pt_Hu_dansImg3;
-                       Pt2dr DirY = aP3 - Pt_Hv_dansImg3;
-                       VectorSurface aDirSurfImg3(DirX,DirY);
-                       //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
-                       //Vignette d'img 1
-                       cCorrelImage::setSzW(sizeVignette);
-                       cCorrelImage Imgette1; cCorrelImage Imgette3_o;
-                       Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
-                       Imgette3_o.getFromIm(&mIm2DImg3, aP3.x, aP3.y);
-                       RepereImagette RepImgette3(aP3, DirX, DirY);
-                       Pt2di aP3access;
-                       TIm2D<U_INT1,INT4> mTIm2DImgette3(Pt2di(sizeVignette*2+1, sizeVignette*2+1));
-                       Im2D<U_INT1,INT4> mIm2DImgette3(sizeVignette*2+1, sizeVignette*2+1);
-                       bool out=false;
-                       for (int i=-sizeVignette; i<=sizeVignette; i++)
-                       {
-                           for (int k=-sizeVignette; k<=sizeVignette; k++)
-                           {
-                               Pt2di aVois(i,k);
-            if( IsInside(aP3, mTiffImg3, 1) )
-            {
-                //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
-                Pt2dr SupDirX = aP1+Pt2dr(1,0);
-                Pt2dr SupDirY = aP1+Pt2dr(0,1);             
-                Pt3dr Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une sphere                
-                Pt3dr Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
-                //=== 4) ReProjecte Hu et Hv de l'espace à img 3 =====
-                Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
-                Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
-                //=== 5) Vector direction de surface d'img 3 ===
-                Pt2dr DirX = aP3 - Pt_Hu_dansImg3;
-                Pt2dr DirY = aP3 - Pt_Hv_dansImg3;
-                VectorSurface aDirSurfImg3(DirX,DirY);
-                //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
-                //Vignette d'img 1
-                cCorrelImage::setSzW(sizeVignette);
-                cCorrelImage Imgette1; cCorrelImage Imgette3_o;
-                Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
-                Imgette3_o.getFromIm(&mIm2DImg3, aP3.x, aP3.y);
-                RepereImagette RepImgette3(aP3, DirX, DirY);
-                Pt2di aP3access;
-                TIm2D<U_INT1,INT4> mTIm2DImgette3(Pt2di(sizeVignette*2+1, sizeVignette*2+1));
-                Im2D<U_INT1,INT4> mIm2DImgette3(sizeVignette*2+1, sizeVignette*2+1);
-                bool out=false;
-                for (int i=-sizeVignette; i<=sizeVignette; i++)
-                {
-                    for (int k=-sizeVignette; k<=sizeVignette; k++)
-                    {
-                        Pt2di aVois(i,k);
-                        Pt2dr pixelCorrImg3 =  RepImgette3.uv2img(Pt2dr(i,k));
-                        aP3access.x = int(round(pixelCorrImg3.x)); aP3access.y = int(round(pixelCorrImg3.y));
-                        Pt2dr aP3Test; aP3Test.x = ceil(aP3access.x); aP3Test.y = ceil(aP3access.y);
-                        if ( IsInside( aP3Test , mTiffImg3, this->mPropDiag) )
-                            {
-                                INT4 val = mTIm2DImg3.getr(pixelCorrImg3, -1);
-                                /*== ecrire dans un pixel d'image ====*/
-                                mTIm2DImgette3.oset_svp(aVois+Pt2di(sizeVignette,sizeVignette),val);
-                                out=false;
-                            }
-                        else
-                            {out = true; break;}
                     }
-                    if (out)
-                    {result.push_back(false); break;}
-                }
-                // ==== comparer par corellation ==== //
-                if (!out)
-                {   
-                    ELISE_COPY(mTIm2DImgette3.all_pts(),mTIm2DImgette3.in(),mIm2DImgette3.out());
-                    cCorrelImage Imgette3;
-                    Imgette3.getWholeIm(&mIm2DImgette3);
-                    double corl = Imgette3.CrossCorrelation(Imgette1);
-                    double corl_o = Imgette3_o.CrossCorrelation(Imgette1);
-                    if (displayVignette)
+                    if (ModeSurf == "sphere")
                     {
-                        cout<<endl<<"Order = Deforme Img3 - Img1 - Origin Img3"<<endl;
-                        cout<<"Corell Deforme = "<<corl<<" - Corell Origin = "<<corl_o<<endl;
-                        if (mW==0)
-                            mW = Video_Win::PtrWStd(mIm2DImgette3.sz()*4);  //vignette deforme img3
-                        ELISE_COPY(mW->all_pts(), mIm2DImgette3.in()[Virgule(FX/4,FY/4)] ,mW->ogray());
-                        if (mW1==0)
+
+                        Pt3dr vecaP1 = aCam1->C2toDirRayonL3(aP1);
+                        Pt3dr vecSupDirX = aCam1->C2toDirRayonL3(SupDirX);
+                        //angle b/w (aP1, PP)
+                        Pt3dr vecPP = aCam1->C2toDirRayonL3(aCam1->PP());
+                        double length_vecaP1 = sqrt(vecaP1.x*vecaP1.x + vecaP1.y*vecaP1.y + vecaP1.z*vecaP1.z);
+                        double length_vecPP = sqrt(vecPP.x*vecPP.x + vecPP.y*vecPP.y + vecPP.z*vecPP.z);
+                        double cosPhi = (vecaP1.x * vecPP.x + vecaP1.y * vecPP.y + vecaP1.z * vecPP.z) / (length_vecaP1*length_vecPP);
+                        //Rayon
+                        double R=prof_d / cosPhi;
+                        //angle b/w (SupDirX, PP)
+                        double length_vecSupDirX = sqrt(vecSupDirX.x*vecSupDirX.x + vecSupDirX.y*vecSupDirX.y + vecSupDirX.z*vecSupDirX.z);
+                        double cosPhi2 = (vecSupDirX.x * vecPP.x + vecSupDirX.y * vecPP.y + vecSupDirX.z * vecPP.z) / (length_vecSupDirX*length_vecPP);
+                        //profondeur SupDirX
+                        double prof_SupDirX = R*cosPhi2;
+                        Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_SupDirX);
+                        Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d);
+                    }
+                    //=== 4) ReProjecte Hu et Hv de l'espace a img 3 =====
+                    Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
+                    Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
+                    //=== 5) Vector direction de surface d'img 3 ===
+                    Pt2dr DirX = aP3 - Pt_Hu_dansImg3;
+                    Pt2dr DirY = aP3 - Pt_Hv_dansImg3;
+                    VectorSurface aDirSurfImg3(DirX,DirY);
+                    //=== 6) Calcul coordonne des autres point dans l'imagette d'img 1 correspondant avec img 3 ===
+                    //prendre imagette 1 et imagette 3 origin
+                    cCorrelImage::setSzW(sizeVignette);
+                    cCorrelImage Imgette1;
+                    cCorrelImage Imgette3_o;
+                    Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
+                    Imgette3_o.getFromIm(&mIm2DImg3, aP3.x, aP3.y);
+                    RepereImagette RepImgette3(aP3, DirX, DirY);
+                    Pt2di aP3access;
+                    TIm2D<U_INT1,INT4> mTIm2DImgette3(Pt2di(sizeVignette*2+1, sizeVignette*2+1));
+                    Im2D<U_INT1,INT4> mIm2DImgette3(sizeVignette*2+1, sizeVignette*2+1);
+                    //fabriquer imagette 3 deforme
+                    bool out = false;
+                    for (int i=-sizeVignette; i<=sizeVignette; i++)
+                    {
+                        if (out == false)
                         {
-                            mW1 = new Video_Win(*mW,Video_Win::eDroiteH,Imgette1.getIm()->sz()*4);  //vignette img 1
-                            mW2 = new Video_Win(*mW1,Video_Win::eDroiteH,Imgette3_o.getIm()->sz()*4);   //vignette origin img 3
+                            for (int k=-sizeVignette; k<=sizeVignette; k++)
+                            {
+                                if (out == false)
+                                {
+                                    Pt2di aVois(i,k);
+                                    Pt2dr pixelCorrImg3 =RepImgette3.uv2img(Pt2dr(i,k));
+                                    //aP3access.x = int(round(pixelCorrImg3.x));
+                                    //aP3access.y = int(round(pixelCorrImg3.y));
+                                    Pt2dr aP3Test;
+                                    aP3Test.x = ceil(pixelCorrImg3.x);
+                                    aP3Test.y = ceil(pixelCorrImg3.y);
+                                    //si pixels se situe dans l'img 3
+                                    if (IsInside( aP3Test , mTiffImg3, this->mPropDiag))
+                                    {
+                                        INT4 val = mTIm2DImg3.getr(pixelCorrImg3, -1);
+                                        /*== ecrire dans un pixel d'image ====*/
+                                        mTIm2DImgette3.oset_svp(aVois+Pt2di(sizeVignette,sizeVignette),val);
+                                        out = false;
+                                    }
+                                    else
+                                    {
+                                        out = true;
+                                    }
+                                }
+                            }
                         }
-                        ELISE_COPY(mW1->all_pts(), Imgette1.getIm()->in()[Virgule(FX/4,FY/4)] ,mW1->ogray());
-                        ELISE_COPY(mW2->all_pts(), Imgette3_o.getIm()->in()[Virgule(FX/4,FY/4)] ,mW2->ogray());
-                        mW2->clik_in();
                     }
-                    if (corl > this->mCorel)
-                        {count++;result.push_back(true);}
+                    // ==== comparer par corellation ==== //
+                    if (out == false)
+                    {
+                        ELISE_COPY(mTIm2DImgette3.all_pts(),mTIm2DImgette3.in(),mIm2DImgette3.out());
+                        cCorrelImage Imgette3;
+                        Imgette3.getWholeIm(&mIm2DImgette3);
+                        double corl = Imgette3.CrossCorrelation(Imgette1);
+                        double corl_o = Imgette3_o.CrossCorrelation(Imgette1);
+                        if (displayVignette)
+                        {
+                            cout<<endl<<"Order = Deforme Img3 - Img1 - Origin Img3"<<endl;
+                            cout<<"Corell Deforme = "<<corl<<" - Corell Origin = "<<corl_o<<endl;
+                            if (mW==0)
+                                {mW = Video_Win::PtrWStd(mIm2DImgette3.sz()*4);}  //vignette deforme img3
+                            ELISE_COPY(mW->all_pts(), mIm2DImgette3.in()[Virgule(FX/4,FY/4)] ,mW->ogray());
+                            if (mW1==0)
+                            {
+                                mW1 = new Video_Win(*mW,Video_Win::eDroiteH,Imgette1.getIm()->sz()*4);  //vignette img 1
+                                mW2 = new Video_Win(*mW1,Video_Win::eDroiteH,Imgette3_o.getIm()->sz()*4);   //vignette origin img 3
+                            }
+                            ELISE_COPY(mW1->all_pts(), Imgette1.getIm()->in()[Virgule(FX/4,FY/4)] ,mW1->ogray());
+                            ELISE_COPY(mW2->all_pts(), Imgette3_o.getIm()->in()[Virgule(FX/4,FY/4)] ,mW2->ogray());
+                            mW2->clik_in();
+                        }
+                        if (corl > this->mCorel)
+                             {decide=true; count ++ ;}
+                        else
+                             {decide=false;}
+                    }
                     else
-                        {result.push_back(false);}
+                    {
+                        decide=false;
+                    }
+                } //(pts img3 dans l'image)
+                else
+                {
+                    decide=false;
                 }
-            }
-                               Pt2dr pixelCorrImg3 =RepImgette3.uv2img(Pt2dr(i,k));
-                               aP3access.x = int(round(pixelCorrImg3.x)); aP3access.y = int(round(pixelCorrImg3.y));
-                               Pt2dr aP3Test; aP3Test.x = ceil((double)aP3access.x); aP3Test.y = ceil((double)aP3access.y);
-                               if ( IsInside( aP3Test , mTiffImg3, this->mPropDiag) )
-                               {
-                                   INT4 val = mTIm2DImg3.getr(pixelCorrImg3, -1);
-                                   /*== ecrire dans un pixel d'image ====*/
-                                   mTIm2DImgette3.oset_svp(aVois+Pt2di(sizeVignette,sizeVignette),val);
-                                   out=false;
-                               }
-                               else
-                               {out = true; decide = false; break;}
-                           }
-                           if (out)
-                           {break;}
-                       }
-                       // ==== comparer par corellation ==== //
-                       if (!out) //out=false, donc dans image
-                       {
-                           ELISE_COPY(mTIm2DImgette3.all_pts(),mTIm2DImgette3.in(),mIm2DImgette3.out());
-                           cCorrelImage Imgette3;
-                           Imgette3.getWholeIm(&mIm2DImgette3);
-                           double corl = Imgette3.CrossCorrelation(Imgette1);
-                           double corl_o = Imgette3_o.CrossCorrelation(Imgette1);
-                           if (displayVignette)
-                           {
-                               cout<<endl<<"Order = Deforme Img3 - Img1 - Origin Img3"<<endl;
-                               cout<<"Corell Deforme = "<<corl<<" - Corell Origin = "<<corl_o<<endl;
-                               if (mW==0)
-                                   mW = Video_Win::PtrWStd(mIm2DImgette3.sz()*4);  //vignette deforme img3
-                               ELISE_COPY(mW->all_pts(), mIm2DImgette3.in()[Virgule(FX/4,FY/4)] ,mW->ogray());
-                               if (mW1==0)
-                               {
-                                   mW1 = new Video_Win(*mW,Video_Win::eDroiteH,Imgette1.getIm()->sz()*4);  //vignette img 1
-                                   mW2 = new Video_Win(*mW1,Video_Win::eDroiteH,Imgette3_o.getIm()->sz()*4);   //vignette origin img 3
-                               }
-                               ELISE_COPY(mW1->all_pts(), Imgette1.getIm()->in()[Virgule(FX/4,FY/4)] ,mW1->ogray());
-                               ELISE_COPY(mW2->all_pts(), Imgette3_o.getIm()->in()[Virgule(FX/4,FY/4)] ,mW2->ogray());
-                               mW2->clik_in();
-                           }
-                           if (corl > this->mCorel)
-                                {decide=true;}
-                           else
-                                {decide=false;}
-                           Coldecide.push_back(decide);
-                       }
-                   }
-               }
-           }
-           bool decideF=false;
-           for (uint hh=0; hh<Coldecide.size(); hh++)
-            {decideF = decideF || Coldecide[hh];}
-            if (decideF)
-                {count++;}
-            result.push_back(decideF);
-        }
-    cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl<<count/aPackIn1_2.size()*100<<" % conserve of "<<aPackIn1_2.size()<<" "<<result.size()<<endl;
-    return result;
-}
+            }//(chercher autour)
+        } //(chercher autour)
+    ColDecide.push_back(decide);
+    } //(parcourir pack homo)
+    cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl<<(count/aPackIn1_2.size())*100<<" % conserve of "<<aPackIn1_2.size()<<" == "<<ColDecide.size()<<endl;
+    return ColDecide;
+} //(main)
+
+
+
+
+//vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
+//{
+//    vector<bool> result;
+//    cInterfChantierNameManipulateur * aICNM = this->mICNM;
+//    string aKHIn = this->mKHIn;
+//    string aDirImages = this->mDirImages;
+//    string aNameImg1 = this->mNameImg1;
+//    string aNameImg2 = this->mNameImg2;
+//    if (this->NotTif_flag == true)
+//    {
+//        aNameImg1 = aNameImg1.substr(13, aNameImg1.length());
+//        aNameImg1 = aNameImg1.substr(0, aNameImg1.length()-8);
+//        aNameImg2 = aNameImg2.substr(13, aNameImg2.length());
+//        aNameImg2 = aNameImg2.substr(0, aNameImg2.length()-8);
+//    }
+//    CamStenope * aCam1 = this->mCam1;
+//    CamStenope * aCam2 = this->mCam2;
+//    bool displayVignette = this->mdisplayVignette;
+//    //====Import collection 3eme Image====//
+//    string aNameImg3 = m3emeImg;
+//    std::string aOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ this->mOri, aNameImg3, true);
+//    CamStenope * aCam3 = CamOrientGenFromFile(aOri3 , aICNM);
+//    //====Import Pack Homologue======//
+//    std::string aHomoIn1_2 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg2,true);
+//    StdCorrecNameHomol_G(aHomoIn1_2,aDirImages);
+//    ElPackHomologue aPackIn1_2, aPackIn1_3, aPackIn2_3;
+//    bool Exist1_2 = ELISE_fp::exist_file(aHomoIn1_2);
+//    if (Exist1_2)
+//         {aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);}
+//    else
+//         {cout<<"Homol "<<aNameImg1<<" ++ "<<aNameImg2<<" not existed !";}
+
+//    std::string aHomoIn1_3 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg3,true);
+//    StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
+//    bool Exist1_3 = ELISE_fp::exist_file(aHomoIn1_3);
+//    if (Exist1_3)
+//        {aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);}
+//    else
+//         {cout<<"Homol "<<aNameImg1<<" ++ "<<aNameImg3<<" not existed !";}
+
+//    std::string aHomoIn2_3 = aICNM->Assoc1To2(aKHIn, aNameImg2, aNameImg3, true);
+//    StdCorrecNameHomol_G(aHomoIn2_3,aDirImages);
+//    bool Exist2_3 = ELISE_fp::exist_file(aHomoIn2_3);
+//    if (Exist2_3)
+//        {aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);}
+//    else
+//         {cout<<"Homol "<<aNameImg2<<" ++ "<<aNameImg3<<" not existed !";}
+
+//    // ====Import images Tiff and IM2D =====//
+//    aNameImg1 = this->mNameImg1;
+//    aNameImg2 = this->mNameImg2;
+//    if(this->NotTif_flag == true)
+//        {
+//            aNameImg3 = "./Tmp-MM-Dir/" + aNameImg3 + "_Ch1.tif";
+//        }
+//    cout <<aNameImg1 <<" ++ "<<aNameImg2<<endl;
+//    Tiff_Im mTiffImg1(aNameImg1.c_str());
+//    Tiff_Im mTiffImg2(aNameImg2.c_str());
+//    Tiff_Im mTiffImg3(aNameImg3.c_str());
+
+//    Im2D<U_INT1,INT4> mIm2DImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);
+//    Im2D<U_INT1,INT4> mIm2DImg2(mTiffImg2.sz().x,mTiffImg2.sz().y);
+//    Im2D<U_INT1,INT4> mIm2DImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
+//    this->mImg1 = mIm2DImg1;
+//    this->mImg2 = mIm2DImg2;
+//    TIm2D<U_INT1,INT4> mTIm2DImg3(mTiffImg3.sz());
+//    ELISE_COPY(mTIm2DImg3.all_pts(),mTiffImg3.in(),mTIm2DImg3.out());
+
+//    TIm2D<U_INT1,INT4> mTIm2DImg2(mTiffImg2.sz());
+//    ELISE_COPY(mTIm2DImg2.all_pts(),mTiffImg2.in(),mTIm2DImg2.out());
+
+//    ELISE_COPY(
+//                 mTiffImg1.all_pts(),
+//                 mTiffImg1.in(),
+//                 mIm2DImg1.out()
+//              );
+//    ELISE_COPY(
+//                 mTiffImg2.all_pts(),
+//                 mTiffImg2.in(),
+//                 mIm2DImg2.out()
+//              );
+//    ELISE_COPY(
+//                 mTiffImg3.all_pts(),
+//                 mTiffImg3.in(),
+//                 mIm2DImg3.out()
+//              );
+///*
+////convert img3 to image dame
+//    ELISE_COPY(
+//                mTiffImg3.all_pts(),
+//                ((FX/10+FY/10)%2)*255,
+//                mIm2DImg3.out()
+//                );
+////on veut image dame format Tiff
+//    ELISE_COPY(
+//                mIm2DImg3.all_pts(),
+//                ((FX/10+FY/10)%2)*255,
+//                mTiffImg3.out()
+//                );
+//*/
+//    Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
+//    //=======================================================//
+//    double count =0;
+//    for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
+//    {
+//        Pt2dr aP1 = itP->P1();
+//        //(fabs(aP1.x-2736)<20)&&(fabs(aP1.y-1824)<20)
+//        bool decide = false;
+
+//            Pt2dr aP2 = itP->P2();
+//            //======Profondeur a partir de cam 1 et cam 2======
+//            double d;
+//            Pt3dr Pt_pseudointer= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
+//                //====== calcul profondeur correspondant avec direction viseur de cam 1 =====
+//            double prof_d = aCam1->ProfInDir(Pt_pseudointer,aCam1->DirK());
+//            Pt3dr Pt_H = aCam1->ImEtProf2Terrain(aP1, prof_d);  //pt3d intersection entre point img 1 et 2 mais se situe dans la direction viseur de cam 1
+
+//            Pt2dr aP3 = aCam3->R3toF2(Pt_H); Pt2dr aP3_o=aP3;
+
+//            //Pt3dr OptCenterImg1 = aCam1->VraiOpticalCenter();
+//            //cout<<"OptCenterImg1 "<<OptCenterImg1<<endl;
+//            //double prof_d = sqrt(pow((OptCenterImg1.x - Pt_H.x),2) + pow((OptCenterImg1.y - Pt_H.y),2) + pow((OptCenterImg1.z - Pt_H.z),2));
+
+//            //double dist_centre = sqrt(pow((aP3 - centre_img).x, 2) + pow((aP3 - centre_img).y, 2));
+//           vector<bool> Coldecide;
+//           for (int ii=-this->mSizeSearchAutour; ii<=this->mSizeSearchAutour; ii++)
+//           {
+//               for (int jj=-this->mSizeSearchAutour; jj<=this->mSizeSearchAutour; jj++)
+//               {
+//                   int sizeVignette = this->msizeVignette;
+//                   aP3 = aP3_o + Pt2dr(ii,jj);
+//                   if( IsInside(aP3, mTiffImg3, 1) )
+//                   {
+//                       //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
+//                       Pt2dr SupDirX = aP1+Pt2dr(10,0);
+//                       Pt2dr SupDirY = aP1+Pt2dr(0,10);
+//                       Pt3dr Pt_Hu, Pt_Hv;
+//                       if (ModeSurf == "plan")
+//                       {
+//                        Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une plan perpendiculaire
+//                        Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
+//                       }
+//                       if (ModeSurf == "sphere")
+//                       {
+
+//                            Pt3dr vecaP1 = aCam1->C2toDirRayonL3(aP1);
+//                            Pt3dr vecSupDirX = aCam1->C2toDirRayonL3(SupDirX);
+//                            //Pt3dr vecSupDirY = aCam1->C2toDirRayonL3(SupDirY);
+
+//                            //angle b/w (aP1, PP)
+//                            Pt3dr vecPP = aCam1->C2toDirRayonL3(aCam1->PP());
+//                            double length_vecaP1 = sqrt(vecaP1.x*vecaP1.x + vecaP1.y*vecaP1.y + vecaP1.z*vecaP1.z);
+//                            double length_vecPP = sqrt(vecPP.x*vecPP.x + vecPP.y*vecPP.y + vecPP.z*vecPP.z);
+//                            double cosPhi = (vecaP1.x * vecPP.x + vecaP1.y * vecPP.y + vecaP1.z * vecPP.z) / (length_vecaP1*length_vecPP);
+//                            //Rayon
+//                            double R=prof_d / cosPhi;
+//                            //angle b/w (SupDirX, PP)
+//                            double length_vecSupDirX = sqrt(vecSupDirX.x*vecSupDirX.x + vecSupDirX.y*vecSupDirX.y + vecSupDirX.z*vecSupDirX.z);
+//                            double cosPhi2 = (vecSupDirX.x * vecPP.x + vecSupDirX.y * vecPP.y + vecSupDirX.z * vecPP.z) / (length_vecSupDirX*length_vecPP);
+//                            //profondeur SupDirX
+//                            double prof_SupDirX = R*cosPhi2;
+//                            Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_SupDirX);
+//                            cout<<prof_SupDirX<<" "<<Pt_Hu;
+//                            Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d);
+//                            cout<<" "<<prof_d<<" "<<Pt_Hu<<endl;
+
+//                       }
+//                       //=== 4) ReProjecte Hu et Hv de l'espace Ã  img 3 =====
+//                       Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
+//                       Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
+//                       //=== 5) Vector direction de surface d'img 3 ===
+//                       Pt2dr DirX = aP3 - Pt_Hu_dansImg3;
+//                       Pt2dr DirY = aP3 - Pt_Hv_dansImg3;
+//                       VectorSurface aDirSurfImg3(DirX,DirY);
+//                       //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
+//                       //Vignette d'img 1
+//                       cCorrelImage::setSzW(sizeVignette);
+//                       cCorrelImage Imgette1; cCorrelImage Imgette3_o;
+//                       Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
+//                       Imgette3_o.getFromIm(&mIm2DImg3, aP3.x, aP3.y);
+//                       RepereImagette RepImgette3(aP3, DirX, DirY);
+//                       Pt2di aP3access;
+//                       TIm2D<U_INT1,INT4> mTIm2DImgette3(Pt2di(sizeVignette*2+1, sizeVignette*2+1));
+//                       Im2D<U_INT1,INT4> mIm2DImgette3(sizeVignette*2+1, sizeVignette*2+1);
+//                       bool out=false;
+//                       for (int i=-sizeVignette; i<=sizeVignette; i++)
+//                       {
+//                           for (int k=-sizeVignette; k<=sizeVignette; k++)
+//                           {
+//                               Pt2di aVois(i,k);
+//                               Pt2dr pixelCorrImg3 =RepImgette3.uv2img(Pt2dr(i,k));
+//                               aP3access.x = int(round(pixelCorrImg3.x)); aP3access.y = int(round(pixelCorrImg3.y));
+//                               Pt2dr aP3Test; aP3Test.x = ceil((double)aP3access.x); aP3Test.y = ceil((double)aP3access.y);
+//                               if ( IsInside( aP3Test , mTiffImg3, this->mPropDiag) )
+//                               {
+//                                   INT4 val = mTIm2DImg3.getr(pixelCorrImg3, -1);
+//                                   /*== ecrire dans un pixel d'image ====*/
+//                                   mTIm2DImgette3.oset_svp(aVois+Pt2di(sizeVignette,sizeVignette),val);
+//                                   out=false;
+//                               }
+//                               else
+//                               {out = true; decide = false; break;}
+//                           }
+//                           if (out)
+//                           {break;}
+//                       }
+//                       // ==== comparer par corellation ==== //
+//                       if (!out) //out=false, donc dans image
+//                       {
+//                           ELISE_COPY(mTIm2DImgette3.all_pts(),mTIm2DImgette3.in(),mIm2DImgette3.out());
+//                           cCorrelImage Imgette3;
+//                           Imgette3.getWholeIm(&mIm2DImgette3);
+//                           double corl = Imgette3.CrossCorrelation(Imgette1);
+//                           double corl_o = Imgette3_o.CrossCorrelation(Imgette1);
+//                           if (displayVignette)
+//                           {
+//                               cout<<endl<<"Order = Deforme Img3 - Img1 - Origin Img3"<<endl;
+//                               cout<<"Corell Deforme = "<<corl<<" - Corell Origin = "<<corl_o<<endl;
+//                               if (mW==0)
+//                                   mW = Video_Win::PtrWStd(mIm2DImgette3.sz()*4);  //vignette deforme img3
+//                               ELISE_COPY(mW->all_pts(), mIm2DImgette3.in()[Virgule(FX/4,FY/4)] ,mW->ogray());
+//                               if (mW1==0)
+//                               {
+//                                   mW1 = new Video_Win(*mW,Video_Win::eDroiteH,Imgette1.getIm()->sz()*4);  //vignette img 1
+//                                   mW2 = new Video_Win(*mW1,Video_Win::eDroiteH,Imgette3_o.getIm()->sz()*4);   //vignette origin img 3
+//                               }
+//                               ELISE_COPY(mW1->all_pts(), Imgette1.getIm()->in()[Virgule(FX/4,FY/4)] ,mW1->ogray());
+//                               ELISE_COPY(mW2->all_pts(), Imgette3_o.getIm()->in()[Virgule(FX/4,FY/4)] ,mW2->ogray());
+//                               mW2->clik_in();
+//                           }
+//                           if (corl > this->mCorel)
+//                                {decide=true;}
+//                           else
+//                                {decide=false;}
+//                           Coldecide.push_back(decide);
+//                       }
+//                   }
+//               }
+//           }
+//           bool decideF=false;
+//           for (uint hh=0; hh<Coldecide.size(); hh++)
+//            {decideF = decideF || Coldecide[hh];}
+//            if (decideF)
+//                {count++;}
+//            result.push_back(decideF);
+//        }
+//    cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl<<count/aPackIn1_2.size()*100<<" % conserve of "<<aPackIn1_2.size()<<" "<<result.size()<<endl;
+//    return result;
+//}
 
 
 int PHO_MI_main(int argc,char ** argv)
@@ -1458,6 +1636,8 @@ int PHO_MI_main(int argc,char ** argv)
                         string aImg3 = aAbre[i].Img3eme[k][l];
                         ColDec.push_back(aCouple.CalVectorSurface(aImg3, "plan"));
                     }
+
+                    //prendre decision
                     vector<bool> decision; vector<double> decPoint;
                     for(uint m=0; m<ColDec[0].size(); m++)
                     {
@@ -1469,12 +1649,13 @@ int PHO_MI_main(int argc,char ** argv)
                             {point++;}
                         }
                         decision.push_back(dec);
+                        point = point /ColDec.size();
                         decPoint.push_back(point);
                     }
                     double countGood = 0;
                     for(uint h=0; h<decision.size(); h++)
                     {
-                        if(decision[h] && aCouple.mFiltreBy1Img)
+                        if(decision[h] && aCouple.mFiltreBy1Img)        //mFiltreBy1Img : decision par 1 image bon dans collection de 3eme img
                         {
                             countGood++;
                         }
@@ -1485,7 +1666,7 @@ int PHO_MI_main(int argc,char ** argv)
                     }
                     aAbre[i].NbPtFiltre.push_back(countGood);
                     aAbre[i].NbPointHomo.push_back(decision.size());
-                    cout<<endl<<countGood/decision.size()*100<<" % Pts conservé of "<<decision.size()<<endl;
+                    cout<<endl<<(countGood/decision.size())*100<<" % Pts conservé of "<<decision.size()<<endl;
                     //creat homol file with decision and pack homo b/w aImg1 aImg2
                     //.....
                     creatHomolFromPair(aImg1, aImg2, aNameHomol, aDirImages, aPatImages, aHomolOutput, ExpTxt, decision);
@@ -1498,9 +1679,8 @@ int PHO_MI_main(int argc,char ** argv)
             for (uint j=0; j<aAbre[i].ImgBranch.size(); j++)
             {
                cout<<"Couple ["<<aAbre[i].ImgRacine<<"] [";
-                  cout<<aAbre[i].ImgBranch[j]<<"] Nb "<<aAbre[i].NbPtFiltre[j]<<" % Reste ";
-                  cout<<aAbre[i].NbPtFiltre[j]/aAbre[i].NbPointHomo[j]*100<<" Of ";
-                  cout<<aAbre[i].NbPointHomo[j]<<endl;
+                  cout<<aAbre[i].ImgBranch[j]<<"] Reste "<<aAbre[i].NbPtFiltre[j]<<" Pts / "<<aAbre[i].NbPointHomo[j];
+                  cout<<" soit "<<(aAbre[i].NbPtFiltre[j]/aAbre[i].NbPointHomo[j])*100<<" %"<<endl;
             }
         }
     }
