@@ -639,7 +639,7 @@ void cQT_Interface::connectDeviceElise(SaisieQtWindow& win)
     win.setDevIOTieFile((deviceIOTieFileElise*)new deviceIOTieFileElise);
 
     win.setBanniere(QString(getBanniereMM3D().c_str()));
-    win.setHg_revision(QString(__HG_REV__));
+    win.setHg_revision(QString(mercurialRevision().c_str()));
 }
 
 cImage * cQT_Interface::currentCImage()
