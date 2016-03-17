@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 int NumHgRev()
 {
    static int aRes=-1;
-   if (aRes<0) FromString(aRes,__HG_REV__);
+   if (aRes<0) FromString(aRes,mercurialRevision());
 
    return aRes;
 }

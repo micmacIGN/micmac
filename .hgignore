@@ -412,3 +412,4 @@ binaire-aux/linux/Rnx2rtkp
 binaire-aux/windows/SurfaceTrimmer.exe
 binaire-aux/windows/PoissonRecon.exe
 binaire-aux/windows/Rnx2rtkp.exe
+src/util/HG_defines.cpp
