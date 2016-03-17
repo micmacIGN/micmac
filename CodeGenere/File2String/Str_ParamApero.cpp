@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1695]) = {
+const char * (theNameVar_ParamApero[1700]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -646,8 +646,13 @@ const char * (theNameVar_ParamApero[1695]) = {
 "                    <NameFile Nb=\"1\" Type=\"std::string\"> </NameFile>\n",
 "                    <Id   Nb=\"?\" Type=\"std::string\"> </Id>\n",
 "                    <UseForBundle Nb=\"?\">\n",
-"                        <GlobalBundle Nb=\"1\" Type=\"bool\">      </GlobalBundle>\n",
+"                        <BlockGlobalBundle Nb=\"?\" >\n",
+"                              <!-- Pas def => pas de rappel V0,  <=0 : strict, sinon sigma -->\n",
+"                             <SigmaCentreV0 Nb=\"?\" Type=\"double\"> </SigmaCentreV0> \n",
+"                             <SigmaRotV0 Nb=\"?\" Type=\"double\"> </SigmaRotV0> \n",
+"                        </BlockGlobalBundle>\n",
 "                        <RelTimeBundle Nb=\"1\" Type=\"bool\">     </RelTimeBundle>\n",
+"                        \n",
 "                    </UseForBundle>\n",
 "              </BlockCamera>\n",
 "\n",

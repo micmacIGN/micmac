@@ -1756,6 +1756,31 @@ void  BinaryUnDumpFromFile(cCalibrationCameraInc &,ELISE_fp &);
 
 std::string  Mangling( cCalibrationCameraInc *);
 
+class cBlockGlobalBundle
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cBlockGlobalBundle & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & SigmaCentreV0();
+        const cTplValGesInit< double > & SigmaCentreV0()const ;
+
+        cTplValGesInit< double > & SigmaRotV0();
+        const cTplValGesInit< double > & SigmaRotV0()const ;
+    private:
+        cTplValGesInit< double > mSigmaCentreV0;
+        cTplValGesInit< double > mSigmaRotV0;
+};
+cElXMLTree * ToXMLTree(const cBlockGlobalBundle &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cBlockGlobalBundle &);
+
+void  BinaryUnDumpFromFile(cBlockGlobalBundle &,ELISE_fp &);
+
+std::string  Mangling( cBlockGlobalBundle *);
+
 class cUseForBundle
 {
     public:
@@ -1764,13 +1789,19 @@ class cUseForBundle
         friend void xml_init(cUseForBundle & anObj,cElXMLTree * aTree);
 
 
-        bool & GlobalBundle();
-        const bool & GlobalBundle()const ;
+        cTplValGesInit< double > & SigmaCentreV0();
+        const cTplValGesInit< double > & SigmaCentreV0()const ;
+
+        cTplValGesInit< double > & SigmaRotV0();
+        const cTplValGesInit< double > & SigmaRotV0()const ;
+
+        cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle();
+        const cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle()const ;
 
         bool & RelTimeBundle();
         const bool & RelTimeBundle()const ;
     private:
-        bool mGlobalBundle;
+        cTplValGesInit< cBlockGlobalBundle > mBlockGlobalBundle;
         bool mRelTimeBundle;
 };
 cElXMLTree * ToXMLTree(const cUseForBundle &);
@@ -1795,8 +1826,14 @@ class cBlockCamera
         cTplValGesInit< std::string > & Id();
         const cTplValGesInit< std::string > & Id()const ;
 
-        bool & GlobalBundle();
-        const bool & GlobalBundle()const ;
+        cTplValGesInit< double > & SigmaCentreV0();
+        const cTplValGesInit< double > & SigmaCentreV0()const ;
+
+        cTplValGesInit< double > & SigmaRotV0();
+        const cTplValGesInit< double > & SigmaRotV0()const ;
+
+        cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle();
+        const cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle()const ;
 
         bool & RelTimeBundle();
         const bool & RelTimeBundle()const ;

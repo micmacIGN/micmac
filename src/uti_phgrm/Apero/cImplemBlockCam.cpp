@@ -449,7 +449,7 @@ class cImplemBlockCam
          std::map<std::string,cIBC_ImsOneTime *> mName2ITime;
          std::vector<cIBC_ImsOneTime *>          mNum2ITime;
          bool                                    mDoneIFC;
-         bool                                    mForCompens;
+         const cUseForBundle *                   mUFB;
          bool                                    mForRelCompens;
          bool                                    mForGlobCompens;
          int                                     mKPivot; // Number of Pivot 
@@ -521,8 +521,7 @@ void cIBC_OneCam::Init0(const cParamOrientSHC & aPOS,cSetEqFormelles & aSet)
     mMat0 = ImportMat(aPOS.Rot());
 
     mSetEq = & aSet;
-    if (MPD_MM())
-       mRF = aSet.NewRotation(cNameSpaceEqF::eRotFigee,ElRotation3D(mC0,mMat0,true));
+    mRF = aSet.NewRotation(cNameSpaceEqF::eRotFigee,ElRotation3D(mC0,mMat0,true));
 }
 
 void cIBC_OneCam::AddContraintes()
@@ -539,7 +538,6 @@ void cIBC_OneCam::AddContraintes()
 
 void cImplemBlockCam::InitRF()
 {
-    if (! MPD_MM()) return;
 
     for 
     (
@@ -575,7 +573,7 @@ cImplemBlockCam::cImplemBlockCam
       mEstimSBC   (aSBC),
       mId         (anId),
       mDoneIFC    (false),
-      mForCompens     (false),
+      mUFB            (0),
       mForRelCompens  (false),
       mForGlobCompens (false),
       mKPivot          (0)
@@ -598,10 +596,11 @@ cImplemBlockCam::cImplemBlockCam
         }
     }
     mNbCam  = (int)mNum2Cam.size();
-    mForCompens = aParamCreateBC.UseForBundle().IsInit();
+    mUFB = aParamCreateBC.UseForBundle().PtrVal();
     mLSHC = mSBC.LiaisonsSHC().PtrVal();
+    // mGlobCmp = mForCompens && 
 
-    if (mForCompens)//  && MPD_MM())
+    if (mUFB)
     {
         ELISE_ASSERT(mLSHC!=0,"Compens without LiaisonsSHC");
         InitRF();
@@ -630,14 +629,13 @@ cImplemBlockCam::cImplemBlockCam
     std::sort(mNum2ITime.begin(),mNum2ITime.end(),TheIOTCmp);
 
 
-// ## mForCompens => Mettre dans StructBlockCam
+// ## 
 //    On peut avoir equation / a calib et  I/I+1 (pour model derive)
 
-    if (mForCompens)
+    if (mUFB)
     {
-       const cUseForBundle & aUFB = aParamCreateBC.UseForBundle().Val();
 
-       if (aUFB.GlobalBundle())
+       if (mUFB->BlockGlobalBundle().IsInit())
        {
           mForGlobCompens = true;
           ELISE_ASSERT(false,"GlobalBundle in Rigid Block, still unsupported");
@@ -657,7 +655,7 @@ cImplemBlockCam::cImplemBlockCam
           }
 */
        }
-       if (aUFB.RelTimeBundle())
+       if (mUFB->RelTimeBundle())
        {
            mForRelCompens = true;
            for (int aKTime=1 ; aKTime<mNbTime ; aKTime++)

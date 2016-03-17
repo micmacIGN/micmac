@@ -218,7 +218,9 @@
                       <NameFile>  ${NameInputBloc}  </NameFile>
                       <Id> TheBlock </Id>
                       <UseForBundle>
+<!--
                            <GlobalBundle >   ${WithBloc_Glob}     </GlobalBundle>
+-->
                            <RelTimeBundle >  ${WithBloc_TimeRel}  </RelTimeBundle>
                       </UseForBundle>
                  </BlockCamera>

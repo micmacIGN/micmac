@@ -644,8 +644,13 @@
                     <NameFile Nb="1" Type="std::string"> </NameFile>
                     <Id   Nb="?" Type="std::string"> </Id>
                     <UseForBundle Nb="?">
-                        <GlobalBundle Nb="1" Type="bool">      </GlobalBundle>
+                        <BlockGlobalBundle Nb="?" >
+                              <!-- Pas def => pas de rappel V0,  <=0 : strict, sinon sigma -->
+                             <SigmaCentreV0 Nb="?" Type="double"> </SigmaCentreV0> 
+                             <SigmaRotV0 Nb="?" Type="double"> </SigmaRotV0> 
+                        </BlockGlobalBundle>
                         <RelTimeBundle Nb="1" Type="bool">     </RelTimeBundle>
+                        
                     </UseForBundle>
               </BlockCamera>
 
