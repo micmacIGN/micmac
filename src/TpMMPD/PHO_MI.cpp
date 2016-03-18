@@ -46,6 +46,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #endif
 
 
+std::string aKHIn, aKHOut, aKHOutDat, anExt;
 
 PS_Window PS(char * name, bool auth_lzw = false)
 {
@@ -86,18 +87,6 @@ PS_Window PS(char * name, bool auth_lzw = false)
 
            return  disp.w_centered_max(SZ,Pt2dr(4.0,4.0));
 }
-
-
-
-/**
- * TestPointHomo: read point homologue entre 2 image après Tapioca
- * Inputs:
- *  - Nom de 2 images
- *  - Fichier de calibration du caméra
- * Output:
- *  - List de coordonné de point homologue
- *  - serie1_Line$ mm3d PHO_MI "soussol_161015_001_0000[6-8].tif" Ori-Serie1/
- * */
 
 
 void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
@@ -216,12 +205,6 @@ vector<bool> FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3, 
 
     // Initialize name manipulator & files
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
-    std::string anExt = ExpTxt ? "txt" : "dat";
-    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
-            +  std::string(aNameHomol)
-            +  std::string("@")
-            +  std::string(anExt);
-
     //===========================================================
     vector<bool> result;
     //==========import img1 img2 img3===========
@@ -302,7 +285,6 @@ vector<bool> FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3, 
         }
         result.push_back(pass_reproj);
     }
-    //cout <<"   ++ => "<<count_pass_reproj<<" / "<<countGoodTrip<<" / "<<aPackIn1_2.size()<<endl;
     count_pass_reproj = 0;
     for (uint i=0;i<result.size(); i++)
     {
@@ -311,7 +293,6 @@ vector<bool> FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3, 
             count_pass_reproj++;
         }
     }
-    //cout <<"   ++ Verif => "<<count_pass_reproj<<" / "<<countGoodTrip<<" / "<<result.size()<<endl;
     return result;
 }
 
@@ -324,22 +305,6 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
 
     // Initialize name manipulator & files
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
-    std::string anExt = ExpTxt ? "txt" : "dat";
-    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
-            +  std::string(aNameHomol)
-            +  std::string("@")
-            +  std::string(anExt);
-
-    //===========================================================
-    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
-                        +  std::string(aHomolOutput)
-                        +  std::string("@")
-                        +  std::string("txt");
-
-    std::string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
-                        +  std::string(aHomolOutput)
-                        +  std::string("@")
-                        +  std::string("dat");
 
     std::string aHomoIn1_2 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg2, true);
     StdCorrecNameHomol_G(aHomoIn1_2,aDirImages);
@@ -378,18 +343,15 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
 
 
 
-VerifParRepr::VerifParRepr(vector<string> mListImg, vector<string> mListImg_NoTif, string aDirImages, string aPatImages, string aNameHomol, string aOri, string aHomolOutput, bool ExpTxt, double aDistHom, double aDistRepr)
+VerifParRepr::VerifParRepr(vector<string> mListImg, vector<string> mListImg_NoTif, string aDirImages, string aPatImages, string aNameHomol, string aOri, string aHomolOutput, double aDistHom, double aDistRepr)
 {    
         this->mListImg = mListImg;
         this->mListImg_NoTif = mListImg_NoTif;
-
-            this->mDirImages = aDirImages;
-
+        this->mDirImages = aDirImages;
         this->mPatImages = aPatImages;
         this->mNameHomol = aNameHomol;
         this->mOri = aOri;
         this->mHomolOutput = aHomolOutput;
-        this->mExpTxt = ExpTxt;
         this->mDistHom = aDistHom;
         this->mDistRepr = aDistRepr;
 }
@@ -548,11 +510,6 @@ vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, stri
 
     // Initialize name manipulator & files
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(this->mDirImages);
-    std::string anExt = this->mExpTxt ? "txt" : "dat";
-    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
-            +  std::string(this->mNameHomol)
-            +  std::string("@")
-            +  std::string(anExt);
     //===========================================================
     vector<bool> result;
     //==========import img1 img2 img3===========
@@ -603,8 +560,6 @@ vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, stri
         //=================verifier par reprojeter============
         Pt3dr PInter1_2= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
         Pt2dr PReproj3 = aCam3->ElCamera::R3toF2(PInter1_2);					//use point 3d to search Point img3
-        //double dist_centre = sqrt(pow((PReproj3.x - this->mcentre_img.x),2) + pow((PReproj3.y - this->mcentre_img.y),2));
-        //bool inside = (dist_centre < 0.67*this->mdiag/2) ? true : false;
         //chercher triplet
         const ElCplePtsHomologues  * aTriplet2_3 = aPackIn2_3.Cple_Nearest(aP2,true);
         const ElCplePtsHomologues  * aTriplet1_3 = aPackIn1_3.Cple_Nearest(aP1,true);
@@ -650,22 +605,8 @@ void VerifParRepr::creatHomolFromPair(string aNameImg1, string aNameImg2, vector
 
     // Initialize name manipulator & files
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(this->mDirImages);
-    std::string anExt = this->mExpTxt ? "txt" : "dat";
-    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
-            +  std::string(this->mNameHomol)
-            +  std::string("@")
-            +  std::string(anExt);
 
     //===========================================================
-    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
-                        +  std::string(this->mHomolOutput)
-                        +  std::string("@")
-                        +  std::string("txt");
-
-    std::string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
-                        +  std::string(this->mHomolOutput)
-                        +  std::string("@")
-                        +  std::string("dat");
 
     std::string aHomoIn1_2 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg2,true);
     StdCorrecNameHomol_G(aHomoIn1_2,this->mDirImages);
@@ -821,7 +762,7 @@ CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOr
     this->mNameImg2 = aNameImg2;
     this->mNameHomol = aNameHomol;
     this->mHomolOutput = aHomolOutput;
-    this->mExpTxt = ExpTxt;
+    //this->mExpTxt = ExpTxt;
     this->mPropDiag = aPropDiag;
     this->mCorel = aCorel;
     this->mdisplayVignette = aDisplayVignette;
@@ -843,22 +784,9 @@ CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOr
     this->mPatImages = aPatImages;
     this->mICNM = aICNM;
 
-    std::string anExt = ExpTxt ? "txt" : "dat";
-
-    this->mKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
-                        +  std::string(aHomolOutput)
-                        +  std::string("@")
-                        +  std::string("txt");
-
-    this->mKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
-                        +  std::string(aHomolOutput)
-                        +  std::string("@")
-                        +  std::string("dat");
-
-    this->mKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
-                       +  std::string(aNameHomol)
-                       +  std::string("@")
-                       +  std::string(anExt);
+    this->mKHOut =   aKHOut;
+    this->mKHOutDat =   aKHOutDat;
+    this->mKHIn =   aKHIn;
 
 
  //===========================================================
@@ -920,7 +848,7 @@ bool IsInside(Pt2dr checkPoint, Tiff_Im mTiffImg1, double percent = 1)
 vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
 {
     cInterfChantierNameManipulateur * aICNM = this->mICNM;
-    string aKHIn = this->mKHIn;
+    //string aKHIn = this->mKHIn;
     string aDirImages = this->mDirImages;
     string aNameImg1 = this->mNameImg1;
     string aNameImg2 = this->mNameImg2;
@@ -1484,7 +1412,6 @@ int PHO_MI_main(int argc,char ** argv)
            aSetImages = *(aICNM1->Get(aPatImages));
 
            aICNM->BasicAlloc(aDirImages);
-           //aDirImages = aDirImages_NotTif;
        }
     //===============================================================================//
     // Initialize name manipulator & files
@@ -1497,19 +1424,19 @@ int PHO_MI_main(int argc,char ** argv)
            ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
        }
  //============================================================
-    std::string anExt = ExpTxt ? "txt" : "dat";
+    anExt = ExpTxt ? "txt" : "dat";
 
-    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+    aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
                         +  std::string(aHomolOutput)
                         +  std::string("@")
                         +  std::string("txt");
 
-    std::string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
+    aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
                         +  std::string(aHomolOutput)
                         +  std::string("@")
                         +  std::string("dat");
 
-    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+    aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aNameHomol)
                        +  std::string("@")
                        +  std::string(anExt);
@@ -1593,7 +1520,7 @@ int PHO_MI_main(int argc,char ** argv)
     //=============================================================================
     if (bStrategie == "6")
     {
-        VerifParRepr aImgVerif(aSetImages, aSetImages_NoTif, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt, aDistHom, aDistRepr);
+        VerifParRepr aImgVerif(aSetImages, aSetImages_NoTif, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, aDistHom, aDistRepr);
         aImgVerif.creatAbre();
         bool disp = 1;
         aImgVerif.displayAbreHomol(aImgVerif.mAbre, disp);
@@ -1603,7 +1530,7 @@ int PHO_MI_main(int argc,char ** argv)
     if (bStrategie == "7")
     {
 
-        VerifParRepr aImgVerif(aSetImages, aSetImages_NoTif, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, ExpTxt, aDistHom, aDistRepr);
+        VerifParRepr aImgVerif(aSetImages, aSetImages_NoTif, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, aDistHom, aDistRepr);
         vector<AbreHomol> aAbre = aImgVerif.creatAbre();
         vector<string>  aAbreRacine= aImgVerif.displayAbreHomol(aImgVerif.mAbre, 1);
 

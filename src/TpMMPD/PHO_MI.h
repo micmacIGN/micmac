@@ -86,7 +86,7 @@ class UneImage
 class VerifParRepr
 {
     public :
-          VerifParRepr(vector<string> mListImg, vector<string> mListImg_NoTif, string mDirImages, string mPatImages, string mNameHomol, string mOri , string aHomolOutput, bool ExpTxt, double aDistHom, double aDistRepr );
+          VerifParRepr(vector<string> mListImg, vector<string> mListImg_NoTif, string mDirImages, string mPatImages, string mNameHomol, string mOri , string aHomolOutput, double aDistHom, double aDistRepr );
           vector<AbreHomol> creatAbre();
           vector<string> displayAbreHomol(vector<AbreHomol> aAbre, bool disp);
           vector<bool> FiltreDe3img(string aNameImg1, string aNameImg2, string aNameImg3);
