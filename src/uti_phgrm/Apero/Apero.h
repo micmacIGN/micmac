@@ -2286,7 +2286,7 @@ class cAppliApero : public NROptF1vND
           void VerifAero(const cVerifAero & aVA,cPoseCam *,cObsLiaisonMultiple  &);
 
           void InitBlockCameras();
-          void EstimateOIBC(const cEstimateOrientationInitBlockCamera &);
+          void EstimateOIBC(const cXml_EstimateOrientationInitBlockCamera &);
           cImplemBlockCam * GetBlockCam(const std::string & anId);
 
           void InitFilters();
@@ -2344,7 +2344,7 @@ class cAppliApero : public NROptF1vND
 
 
 	void ActiveContraintes(bool Stricte);
-        void BlocContraintes();
+        void BlocContraintes(bool Stricte);
 	// void ActiveContraintesCalib();
 	// void ActiveContraintesPose();
 

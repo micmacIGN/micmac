@@ -87,6 +87,7 @@
 
            <Symb> WithBloc=false </Symb>
            <Symb> NameInputBloc=XXX </Symb>
+           <Symb> NameOutputBloc=XXX </Symb>
 
            
            <Symb> WithBloc_TimeRel=false  </Symb>
@@ -96,6 +97,14 @@
            <Symb> PdsBlocRotFin_TimeRel=XXX  </Symb>
 
            <Symb> WithBloc_Glob=false  </Symb>
+           <Symb> PdsBlocTr0_Glob=XXX  </Symb>
+           <Symb> PdsBlocRot0_Glob=XXX  </Symb>
+           <Symb> PdsBlocTrFin_Glob=XXX  </Symb>
+           <Symb> PdsBlocRotFin_Glob=XXX  </Symb>
+           <Symb> WBG_Sigma=false  </Symb>
+           <Symb> WBG_Stricte=false  </Symb>
+           <Symb> WBG_Ang=xxxxx  </Symb>
+           <Symb> WBG_Center=xxxxx  </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -218,9 +227,17 @@
                       <NameFile>  ${NameInputBloc}  </NameFile>
                       <Id> TheBlock </Id>
                       <UseForBundle>
-<!--
-                           <GlobalBundle >   ${WithBloc_Glob}     </GlobalBundle>
--->
+                           <#WHEN  VTEST=${WithBloc_Glob}>
+                               <BlockGlobalBundle >   
+                                   <#WHEN  VTEST=${WBG_Sigma}>
+                                       <SigmaV0>
+                                          <Ang> ${WBG_Ang}  </Ang>
+                                          <Center> ${WBG_Center}  </Center>
+                                       </SigmaV0>
+                                   </#WHEN>
+                                   <V0Stricte> ${WBG_Stricte} </V0Stricte>
+                               </BlockGlobalBundle>
+                           </#WHEN>
                            <RelTimeBundle >  ${WithBloc_TimeRel}  </RelTimeBundle>
                       </UseForBundle>
                  </BlockCamera>
@@ -410,6 +427,12 @@
                         </CtrlTimeCompens>
                     </IterationsCompensation>
 
+<!--
+                    <#WHEN VTEST=${WithBloc}>
+                        <IterationsCompensation>
+                        </IterationsCompensation>
+                    </#WHEN>
+-->
 
 		    <SectionObservations>
                           <ObsLiaisons>
@@ -456,7 +479,7 @@
                                    </PondAlti>
                               </ObsCentrePDV>
                           </#WHEN>
-                          <#WHEN VTEST=${AcceptGB}>
+                          <#WHEN VTEST=${AcceptGB}> <!-- Generik Bundle -->
                               <ContrCamGenInc>
                                    <PatternApply> .*  </PatternApply>
                                    <PdsAttachToId>   1e-8     </PdsAttachToId>
@@ -470,7 +493,12 @@
                                     <Id> TheBlock </Id>
                                     <Show> false </Show>
                                     <#WHEN VTEST=${WithBloc_Glob}>
-                                        <GlobalPond> </GlobalPond>
+                                        <GlobalPond> 
+                                           <PondOnTr >  ${PdsBlocTr0_Glob} </PondOnTr>
+                                           <PondOnRot>  ${PdsBlocRot0_Glob} </PondOnRot>
+                                           <PondOnTrFinal > ${PdsBlocTrFin_Glob}  </PondOnTrFinal>
+                                           <PondOnRotFinal> ${PdsBlocRotFin_Glob} </PondOnRotFinal>
+                                       </GlobalPond>
                                     </#WHEN>
                                     <#WHEN VTEST=${WithBloc_TimeRel}>
                                         <RelTimePond> 
@@ -506,6 +534,18 @@
                                      <KeyIsName> false </KeyIsName>
                                 </ExportCalib>
                             </#WHEN>
+                            <#WHEN  VTEST=${WithBloc}>
+                                <ExportBlockCamera>
+                                    <Id> TheBlock</Id>
+                                    <NameFile> ${NameOutputBloc} </NameFile>
+                                    <Estimate>
+                                        <Id> TheBlock </Id>
+                                        <Show> true   </Show>
+                                    </Estimate>
+
+                                </ExportBlockCamera>
+                            </#WHEN>
+
                             <ExportResiduXml> Ori${AeroOut}/Residus.xml </ExportResiduXml>
 
                     </SectionExport>
