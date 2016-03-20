@@ -303,6 +303,10 @@
     </XmlSLM_RappelOnPt>
 </SectionLevenbergMarkard>
 
+<Xml_SigmaRot Nb="1" Class="true" ToReference="true">
+     <Ang Nb="1" Type="double">     </Ang>
+     <Center Nb="1" Type="double">  </Center>
+</Xml_SigmaRot>
 
 <SetOrientationInterne Nb="1" Class="true" ToReference="true">
     <KeyFile Nb="1" Type="std::string"> </KeyFile>
@@ -330,6 +334,10 @@
        <SeuilNbPtsByCase  Nb="1" Type="double"> </SeuilNbPtsByCase>
 </XmlPondRegDist>
 
+<Xml_EstimateOrientationInitBlockCamera Nb="1"   Class="true" ToReference="true">
+     <Id Nb="1" Type="std::string"> </Id>
+     <Show Type="bool" Nb="?" Def="false"> </Show>
+</Xml_EstimateOrientationInitBlockCamera>
 
    <ParamApero  Nb="1" Class="true">
 
@@ -645,9 +653,9 @@
                     <Id   Nb="?" Type="std::string"> </Id>
                     <UseForBundle Nb="?">
                         <BlockGlobalBundle Nb="?" >
-                              <!-- Pas def => pas de rappel V0,  <=0 : strict, sinon sigma -->
-                             <SigmaCentreV0 Nb="?" Type="double"> </SigmaCentreV0> 
-                             <SigmaRotV0 Nb="?" Type="double"> </SigmaRotV0> 
+                              <!-- exclusif : si SigmaV0 alors V0Stricte undef ou false, sinon erreur -->
+                             <SigmaV0       Nb="?" RefType="Xml_SigmaRot"> </SigmaV0> 
+                             <V0Stricte Nb="?" Type="bool"> </V0Stricte>
                         </BlockGlobalBundle>
                         <RelTimeBundle Nb="1" Type="bool">     </RelTimeBundle>
                         
@@ -1135,9 +1143,7 @@ normalises en echelle et/ou en translation -->
                      </BlocBascule>
 
 
-                     <EstimateOrientationInitBlockCamera Nb="*">
-                         <Id Nb="1" Type="std::string"> </Id>
-                         <Show Type="bool" Nb="?" Def="false"> </Show>
+                     <EstimateOrientationInitBlockCamera Nb="*" RefType="Xml_EstimateOrientationInitBlockCamera">
                      </EstimateOrientationInitBlockCamera>
 
                      <MesureErreurTournante Nb="?">
@@ -1463,6 +1469,7 @@ normalises en echelle et/ou en translation -->
                      <ExportBlockCamera Nb="*">
                          <Id Nb="1" Type="std::string"> </Id>
                          <NameFile Nb="1" Type="std::string"> </NameFile>
+                         <Estimate Nb="?" RefType="Xml_EstimateOrientationInitBlockCamera"> </Estimate>
                      </ExportBlockCamera>
 
 

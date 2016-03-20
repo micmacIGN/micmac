@@ -462,6 +462,8 @@ cMultiContEQF    cRotationFormelle::StdContraintes()
   {
      AddFoncRappInit(aRes,0,3,mTolAng);
      AddFoncRappInit(aRes,3,6,mTolCentre);
+
+// std::cout << "YYYYYYYYYYYyyyyyyyyyyyyyyyyyy " << mTolAng << " " << mTolCentre << "\n";
      // aRes =  FoncRappInit(0,6);
   }
   else if (mModeContr == eRotCOptFige)
