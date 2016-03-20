@@ -143,7 +143,7 @@ void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::str
 {
     if (!EAMIsInit(&aVBL)) return;
     ELISE_ASSERT(aVBL.size() >= 3,"Not enough param in AddParamBloc");
-    ELISE_ASSERT(aVBL.size() <= 4,"Too many param in AddParamBloc");
+    ELISE_ASSERT(aVBL.size() <= 5,"Too many param in AddParamBloc");
 
 
     if (!mWithBlock)
