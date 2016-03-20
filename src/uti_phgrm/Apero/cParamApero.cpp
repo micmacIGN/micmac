@@ -2377,6 +2377,63 @@ void xml_init(cSectionLevenbergMarkard & anObj,cElXMLTree * aTree)
 std::string  Mangling( cSectionLevenbergMarkard *) {return "48BA5FEF1A4B43A3FE3F";};
 
 
+double & cXml_SigmaRot::Ang()
+{
+   return mAng;
+}
+
+const double & cXml_SigmaRot::Ang()const 
+{
+   return mAng;
+}
+
+
+double & cXml_SigmaRot::Center()
+{
+   return mCenter;
+}
+
+const double & cXml_SigmaRot::Center()const 
+{
+   return mCenter;
+}
+
+void  BinaryUnDumpFromFile(cXml_SigmaRot & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Ang(),aFp);
+    BinaryUnDumpFromFile(anObj.Center(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_SigmaRot & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Ang());
+    BinaryDumpInFile(aFp,anObj.Center());
+}
+
+cElXMLTree * ToXMLTree(const cXml_SigmaRot & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_SigmaRot",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Ang"),anObj.Ang())->ReTagThis("Ang"));
+   aRes->AddFils(::ToXMLTree(std::string("Center"),anObj.Center())->ReTagThis("Center"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_SigmaRot & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Ang(),aTree->Get("Ang",1)); //tototo 
+
+   xml_init(anObj.Center(),aTree->Get("Center",1)); //tototo 
+}
+
+std::string  Mangling( cXml_SigmaRot *) {return "11F0B3FB5B516CA0FE3F";};
+
+
 std::string & cSetOrientationInterne::KeyFile()
 {
    return mKeyFile;
@@ -2694,6 +2751,72 @@ void xml_init(cXmlPondRegDist & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cXmlPondRegDist *) {return "5D81B7440ADB498DFD3F";};
+
+
+std::string & cXml_EstimateOrientationInitBlockCamera::Id()
+{
+   return mId;
+}
+
+const std::string & cXml_EstimateOrientationInitBlockCamera::Id()const 
+{
+   return mId;
+}
+
+
+cTplValGesInit< bool > & cXml_EstimateOrientationInitBlockCamera::Show()
+{
+   return mShow;
+}
+
+const cTplValGesInit< bool > & cXml_EstimateOrientationInitBlockCamera::Show()const 
+{
+   return mShow;
+}
+
+void  BinaryUnDumpFromFile(cXml_EstimateOrientationInitBlockCamera & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Id(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Show().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Show().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Show().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_EstimateOrientationInitBlockCamera & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Id());
+    BinaryDumpInFile(aFp,anObj.Show().IsInit());
+    if (anObj.Show().IsInit()) BinaryDumpInFile(aFp,anObj.Show().Val());
+}
+
+cElXMLTree * ToXMLTree(const cXml_EstimateOrientationInitBlockCamera & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_EstimateOrientationInitBlockCamera",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+   if (anObj.Show().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Show"),anObj.Show().Val())->ReTagThis("Show"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_EstimateOrientationInitBlockCamera & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+
+   xml_init(anObj.Show(),aTree->Get("Show",1),bool(false)); //tototo 
+}
+
+std::string  Mangling( cXml_EstimateOrientationInitBlockCamera *) {return "45400A05984F87F5FD3F";};
 
 
 cTplValGesInit< bool > & cShowSection::ShowMes()
@@ -5833,25 +5956,25 @@ void xml_init(cCalibrationCameraInc & anObj,cElXMLTree * aTree)
 std::string  Mangling( cCalibrationCameraInc *) {return "4B0AFE084B646EAAFC3F";};
 
 
-cTplValGesInit< double > & cBlockGlobalBundle::SigmaCentreV0()
+cTplValGesInit< cXml_SigmaRot > & cBlockGlobalBundle::SigmaV0()
 {
-   return mSigmaCentreV0;
+   return mSigmaV0;
 }
 
-const cTplValGesInit< double > & cBlockGlobalBundle::SigmaCentreV0()const 
+const cTplValGesInit< cXml_SigmaRot > & cBlockGlobalBundle::SigmaV0()const 
 {
-   return mSigmaCentreV0;
+   return mSigmaV0;
 }
 
 
-cTplValGesInit< double > & cBlockGlobalBundle::SigmaRotV0()
+cTplValGesInit< bool > & cBlockGlobalBundle::V0Stricte()
 {
-   return mSigmaRotV0;
+   return mV0Stricte;
 }
 
-const cTplValGesInit< double > & cBlockGlobalBundle::SigmaRotV0()const 
+const cTplValGesInit< bool > & cBlockGlobalBundle::V0Stricte()const 
 {
-   return mSigmaRotV0;
+   return mV0Stricte;
 }
 
 void  BinaryUnDumpFromFile(cBlockGlobalBundle & anObj,ELISE_fp & aFp)
@@ -5859,37 +5982,37 @@ void  BinaryUnDumpFromFile(cBlockGlobalBundle & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.SigmaCentreV0().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.SigmaCentreV0().ValForcedForUnUmp(),aFp);
+             anObj.SigmaV0().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SigmaV0().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.SigmaCentreV0().SetNoInit();
+        else  anObj.SigmaV0().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.SigmaRotV0().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.SigmaRotV0().ValForcedForUnUmp(),aFp);
+             anObj.V0Stricte().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.V0Stricte().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.SigmaRotV0().SetNoInit();
+        else  anObj.V0Stricte().SetNoInit();
   } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cBlockGlobalBundle & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.SigmaCentreV0().IsInit());
-    if (anObj.SigmaCentreV0().IsInit()) BinaryDumpInFile(aFp,anObj.SigmaCentreV0().Val());
-    BinaryDumpInFile(aFp,anObj.SigmaRotV0().IsInit());
-    if (anObj.SigmaRotV0().IsInit()) BinaryDumpInFile(aFp,anObj.SigmaRotV0().Val());
+    BinaryDumpInFile(aFp,anObj.SigmaV0().IsInit());
+    if (anObj.SigmaV0().IsInit()) BinaryDumpInFile(aFp,anObj.SigmaV0().Val());
+    BinaryDumpInFile(aFp,anObj.V0Stricte().IsInit());
+    if (anObj.V0Stricte().IsInit()) BinaryDumpInFile(aFp,anObj.V0Stricte().Val());
 }
 
 cElXMLTree * ToXMLTree(const cBlockGlobalBundle & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"BlockGlobalBundle",eXMLBranche);
-   if (anObj.SigmaCentreV0().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("SigmaCentreV0"),anObj.SigmaCentreV0().Val())->ReTagThis("SigmaCentreV0"));
-   if (anObj.SigmaRotV0().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("SigmaRotV0"),anObj.SigmaRotV0().Val())->ReTagThis("SigmaRotV0"));
+   if (anObj.SigmaV0().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.SigmaV0().Val())->ReTagThis("SigmaV0"));
+   if (anObj.V0Stricte().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("V0Stricte"),anObj.V0Stricte().Val())->ReTagThis("V0Stricte"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -5900,33 +6023,33 @@ void xml_init(cBlockGlobalBundle & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
-   xml_init(anObj.SigmaCentreV0(),aTree->Get("SigmaCentreV0",1)); //tototo 
+   xml_init(anObj.SigmaV0(),aTree->Get("SigmaV0",1)); //tototo 
 
-   xml_init(anObj.SigmaRotV0(),aTree->Get("SigmaRotV0",1)); //tototo 
+   xml_init(anObj.V0Stricte(),aTree->Get("V0Stricte",1)); //tototo 
 }
 
-std::string  Mangling( cBlockGlobalBundle *) {return "0208424954AE08D2FD3F";};
+std::string  Mangling( cBlockGlobalBundle *) {return "2B561BA567B2F598FE3F";};
 
 
-cTplValGesInit< double > & cUseForBundle::SigmaCentreV0()
+cTplValGesInit< cXml_SigmaRot > & cUseForBundle::SigmaV0()
 {
-   return BlockGlobalBundle().Val().SigmaCentreV0();
+   return BlockGlobalBundle().Val().SigmaV0();
 }
 
-const cTplValGesInit< double > & cUseForBundle::SigmaCentreV0()const 
+const cTplValGesInit< cXml_SigmaRot > & cUseForBundle::SigmaV0()const 
 {
-   return BlockGlobalBundle().Val().SigmaCentreV0();
+   return BlockGlobalBundle().Val().SigmaV0();
 }
 
 
-cTplValGesInit< double > & cUseForBundle::SigmaRotV0()
+cTplValGesInit< bool > & cUseForBundle::V0Stricte()
 {
-   return BlockGlobalBundle().Val().SigmaRotV0();
+   return BlockGlobalBundle().Val().V0Stricte();
 }
 
-const cTplValGesInit< double > & cUseForBundle::SigmaRotV0()const 
+const cTplValGesInit< bool > & cUseForBundle::V0Stricte()const 
 {
-   return BlockGlobalBundle().Val().SigmaRotV0();
+   return BlockGlobalBundle().Val().V0Stricte();
 }
 
 
@@ -5993,7 +6116,7 @@ void xml_init(cUseForBundle & anObj,cElXMLTree * aTree)
    xml_init(anObj.RelTimeBundle(),aTree->Get("RelTimeBundle",1)); //tototo 
 }
 
-std::string  Mangling( cUseForBundle *) {return "EBDD52953C31009FFE3F";};
+std::string  Mangling( cUseForBundle *) {return "DE70068FAF0555C3FD3F";};
 
 
 std::string & cBlockCamera::NameFile()
@@ -6018,25 +6141,25 @@ const cTplValGesInit< std::string > & cBlockCamera::Id()const
 }
 
 
-cTplValGesInit< double > & cBlockCamera::SigmaCentreV0()
+cTplValGesInit< cXml_SigmaRot > & cBlockCamera::SigmaV0()
 {
-   return UseForBundle().Val().BlockGlobalBundle().Val().SigmaCentreV0();
+   return UseForBundle().Val().BlockGlobalBundle().Val().SigmaV0();
 }
 
-const cTplValGesInit< double > & cBlockCamera::SigmaCentreV0()const 
+const cTplValGesInit< cXml_SigmaRot > & cBlockCamera::SigmaV0()const 
 {
-   return UseForBundle().Val().BlockGlobalBundle().Val().SigmaCentreV0();
+   return UseForBundle().Val().BlockGlobalBundle().Val().SigmaV0();
 }
 
 
-cTplValGesInit< double > & cBlockCamera::SigmaRotV0()
+cTplValGesInit< bool > & cBlockCamera::V0Stricte()
 {
-   return UseForBundle().Val().BlockGlobalBundle().Val().SigmaRotV0();
+   return UseForBundle().Val().BlockGlobalBundle().Val().V0Stricte();
 }
 
-const cTplValGesInit< double > & cBlockCamera::SigmaRotV0()const 
+const cTplValGesInit< bool > & cBlockCamera::V0Stricte()const 
 {
-   return UseForBundle().Val().BlockGlobalBundle().Val().SigmaRotV0();
+   return UseForBundle().Val().BlockGlobalBundle().Val().V0Stricte();
 }
 
 
@@ -6128,7 +6251,7 @@ void xml_init(cBlockCamera & anObj,cElXMLTree * aTree)
    xml_init(anObj.UseForBundle(),aTree->Get("UseForBundle",1)); //tototo 
 }
 
-std::string  Mangling( cBlockCamera *) {return "4294A2B35280BF98FF3F";};
+std::string  Mangling( cBlockCamera *) {return "5857A85B45CE9DB8FE3F";};
 
 
 cElRegex_Ptr & cCamGenInc::PatterName()
@@ -9870,7 +9993,7 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointFlottantInc(),aTree->GetAll("PointFlottantInc",false,1));
 }
 
-std::string  Mangling( cSectionInconnues *) {return "75469830A6001EC3FE3F";};
+std::string  Mangling( cSectionInconnues *) {return "10ED660651647F84FF3F";};
 
 
 double & cTimeLinkage::DeltaMax()
@@ -13140,72 +13263,6 @@ void xml_init(cBlocBascule & anObj,cElXMLTree * aTree)
 std::string  Mangling( cBlocBascule *) {return "37738DE6BE7DDBC7FE3F";};
 
 
-std::string & cEstimateOrientationInitBlockCamera::Id()
-{
-   return mId;
-}
-
-const std::string & cEstimateOrientationInitBlockCamera::Id()const 
-{
-   return mId;
-}
-
-
-cTplValGesInit< bool > & cEstimateOrientationInitBlockCamera::Show()
-{
-   return mShow;
-}
-
-const cTplValGesInit< bool > & cEstimateOrientationInitBlockCamera::Show()const 
-{
-   return mShow;
-}
-
-void  BinaryUnDumpFromFile(cEstimateOrientationInitBlockCamera & anObj,ELISE_fp & aFp)
-{
-     BinaryUnDumpFromFile(anObj.Id(),aFp);
-  { bool IsInit;
-       BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) {
-             anObj.Show().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.Show().ValForcedForUnUmp(),aFp);
-        }
-        else  anObj.Show().SetNoInit();
-  } ;
-}
-
-void  BinaryDumpInFile(ELISE_fp & aFp,const cEstimateOrientationInitBlockCamera & anObj)
-{
-    BinaryDumpInFile(aFp,anObj.Id());
-    BinaryDumpInFile(aFp,anObj.Show().IsInit());
-    if (anObj.Show().IsInit()) BinaryDumpInFile(aFp,anObj.Show().Val());
-}
-
-cElXMLTree * ToXMLTree(const cEstimateOrientationInitBlockCamera & anObj)
-{
-  XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"EstimateOrientationInitBlockCamera",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
-   if (anObj.Show().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("Show"),anObj.Show().Val())->ReTagThis("Show"));
-  aRes->mGXml = anObj.mGXml;
-  XMLPopContext(anObj.mGXml);
-  return aRes;
-}
-
-void xml_init(cEstimateOrientationInitBlockCamera & anObj,cElXMLTree * aTree)
-{
-   if (aTree==0) return;
-   anObj.mGXml = aTree->mGXml;
-
-   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
-
-   xml_init(anObj.Show(),aTree->Get("Show",1),bool(false)); //tototo 
-}
-
-std::string  Mangling( cEstimateOrientationInitBlockCamera *) {return "48570437700777D0FE3F";};
-
-
 int & cMesureErreurTournante::Periode()
 {
    return mPeriode;
@@ -15592,12 +15649,12 @@ const cTplValGesInit< cBlocBascule > & cIterationsCompensation::BlocBascule()con
 }
 
 
-std::list< cEstimateOrientationInitBlockCamera > & cIterationsCompensation::EstimateOrientationInitBlockCamera()
+std::list< cXml_EstimateOrientationInitBlockCamera > & cIterationsCompensation::EstimateOrientationInitBlockCamera()
 {
    return mEstimateOrientationInitBlockCamera;
 }
 
-const std::list< cEstimateOrientationInitBlockCamera > & cIterationsCompensation::EstimateOrientationInitBlockCamera()const 
+const std::list< cXml_EstimateOrientationInitBlockCamera > & cIterationsCompensation::EstimateOrientationInitBlockCamera()const 
 {
    return mEstimateOrientationInitBlockCamera;
 }
@@ -15927,7 +15984,7 @@ void  BinaryUnDumpFromFile(cIterationsCompensation & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
         {
-             cEstimateOrientationInitBlockCamera aVal;
+             cXml_EstimateOrientationInitBlockCamera aVal;
               BinaryUnDumpFromFile(aVal,aFp);
               anObj.EstimateOrientationInitBlockCamera().push_back(aVal);
         }
@@ -16031,7 +16088,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cIterationsCompensation & anObj)
     BinaryDumpInFile(aFp,anObj.BlocBascule().IsInit());
     if (anObj.BlocBascule().IsInit()) BinaryDumpInFile(aFp,anObj.BlocBascule().Val());
     BinaryDumpInFile(aFp,(int)anObj.EstimateOrientationInitBlockCamera().size());
-    for(  std::list< cEstimateOrientationInitBlockCamera >::const_iterator iT=anObj.EstimateOrientationInitBlockCamera().begin();
+    for(  std::list< cXml_EstimateOrientationInitBlockCamera >::const_iterator iT=anObj.EstimateOrientationInitBlockCamera().begin();
          iT!=anObj.EstimateOrientationInitBlockCamera().end();
           iT++
     )
@@ -16107,7 +16164,7 @@ cElXMLTree * ToXMLTree(const cIterationsCompensation & anObj)
    if (anObj.BlocBascule().IsInit())
       aRes->AddFils(ToXMLTree(anObj.BlocBascule().Val())->ReTagThis("BlocBascule"));
   for
-  (       std::list< cEstimateOrientationInitBlockCamera >::const_iterator it=anObj.EstimateOrientationInitBlockCamera().begin();
+  (       std::list< cXml_EstimateOrientationInitBlockCamera >::const_iterator it=anObj.EstimateOrientationInitBlockCamera().begin();
       it !=anObj.EstimateOrientationInitBlockCamera().end();
       it++
   ) 
@@ -16199,7 +16256,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.TestInteractif(),aTree->Get("TestInteractif",1)); //tototo 
 }
 
-std::string  Mangling( cIterationsCompensation *) {return "FF2EA49C9C7100B5FE3F";};
+std::string  Mangling( cIterationsCompensation *) {return "30104D00FCD432D1FE3F";};
 
 
 std::string & cTraceCpleHom::Id()
@@ -19846,16 +19903,37 @@ const std::string & cExportBlockCamera::NameFile()const
    return mNameFile;
 }
 
+
+cTplValGesInit< cXml_EstimateOrientationInitBlockCamera > & cExportBlockCamera::Estimate()
+{
+   return mEstimate;
+}
+
+const cTplValGesInit< cXml_EstimateOrientationInitBlockCamera > & cExportBlockCamera::Estimate()const 
+{
+   return mEstimate;
+}
+
 void  BinaryUnDumpFromFile(cExportBlockCamera & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Id(),aFp);
     BinaryUnDumpFromFile(anObj.NameFile(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Estimate().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Estimate().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Estimate().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cExportBlockCamera & anObj)
 {
     BinaryDumpInFile(aFp,anObj.Id());
     BinaryDumpInFile(aFp,anObj.NameFile());
+    BinaryDumpInFile(aFp,anObj.Estimate().IsInit());
+    if (anObj.Estimate().IsInit()) BinaryDumpInFile(aFp,anObj.Estimate().Val());
 }
 
 cElXMLTree * ToXMLTree(const cExportBlockCamera & anObj)
@@ -19864,6 +19942,8 @@ cElXMLTree * ToXMLTree(const cExportBlockCamera & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ExportBlockCamera",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
    aRes->AddFils(::ToXMLTree(std::string("NameFile"),anObj.NameFile())->ReTagThis("NameFile"));
+   if (anObj.Estimate().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.Estimate().Val())->ReTagThis("Estimate"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -19877,9 +19957,11 @@ void xml_init(cExportBlockCamera & anObj,cElXMLTree * aTree)
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
    xml_init(anObj.NameFile(),aTree->Get("NameFile",1)); //tototo 
+
+   xml_init(anObj.Estimate(),aTree->Get("Estimate",1)); //tototo 
 }
 
-std::string  Mangling( cExportBlockCamera *) {return "1A315399DBB67AE5FE3F";};
+std::string  Mangling( cExportBlockCamera *) {return "5427958307805DE5FD3F";};
 
 
 std::list< std::string > & cCartes2Export::Im1()
@@ -23140,7 +23222,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportResiduXml(),aTree->Get("ExportResiduXml",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "A5957298D10CB693FE3F";};
+std::string  Mangling( cSectionExport *) {return "830D9B77369249CFFE3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -23882,7 +23964,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "8D82A8DC5F196AA6FF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "31F4B239C0DFB19EFF3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -23941,7 +24023,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "1CABF51065072AD2FC3F";};
+std::string  Mangling( cSectionCompensation *) {return "98F4464EA7DC37DAFD3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -24941,7 +25023,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "AA0CCD99E745BC87FE3F";};
+std::string  Mangling( cParamApero *) {return "F3D98064C5A33293FE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

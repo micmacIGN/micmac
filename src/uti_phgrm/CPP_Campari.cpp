@@ -132,7 +132,10 @@ class cAppli_Campari
        std::string mNameRTA;
        bool                      mWithBlock;
        std::string               mNameInputBloc;
+       std::string               mNameOutputBloc;
        std::vector<std::string>  mVBlockRel;
+       std::vector<std::string>  mVBlockGlob;
+       std::vector<std::string>  mVOptGlob;
 };
 
 
@@ -149,6 +152,7 @@ void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::str
         mCom = mCom + " +WithBloc=true ";
         mNameInputBloc = aVBL[0];
         mCom = mCom + " +NameInputBloc=" + mNameInputBloc +" ";
+        mNameOutputBloc = "Out-" + mNameInputBloc;
     }
     else
     {
@@ -163,6 +167,9 @@ void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::str
     if (aVBL.size() >= 4)
        FromString(aMulFin,aVBL[3]);
 
+    if (aVBL.size()>=5) 
+       mNameOutputBloc = aVBL[4];
+
 
     double aSigmaTrFin = aSigmaTr0 * aMulFin;
     double aSigmaRotFin = aSigmaRot0 * aMulFin;
@@ -172,6 +179,8 @@ void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::str
     mCom = mCom + " +PdsBlocRot0_" + aPref + "=" + ToString(1.0/ElSquare(aSigmaRot0)) + " ";
     mCom = mCom + " +PdsBlocTrFin_"  + aPref + "=" + ToString(1.0/ElSquare(aSigmaTrFin))  + " ";
     mCom = mCom + " +PdsBlocRotFin_" + aPref + "=" + ToString(1.0/ElSquare(aSigmaRotFin)) + " ";
+
+    mCom = mCom + " +NameOutputBloc=" + mNameOutputBloc +" ";
 }
 
 
@@ -248,7 +257,9 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
                     << EAM(aNbIterFin,"NbIterEnd",true,"Number of iteration at end, Def = 4")
                     // << EAM(GCP,"MulRTA",true,"Rolling Test Appuis , multiplier ")
-                    << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal]")
+                    << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
+                    << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
+                    << EAM(mVOptGlob,"OptBlocG",true,"[uu]")
 
     );
 
@@ -368,6 +379,32 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         }
 
         AddParamBloc(mVBlockRel,"TimeRel");
+        AddParamBloc(mVBlockGlob,"Glob");
+        if (EAMIsInit(&mVOptGlob))
+        {
+           ELISE_ASSERT(EAMIsInit(&mVBlockGlob),"OptBlocG without BlocGlob");
+           ELISE_ASSERT(mVOptGlob.size()>=2,"Not enough arg in OptBlocG");
+
+           double aSigTr,aSigRot;
+           FromString(aSigTr,mVOptGlob[0]);
+           FromString(aSigRot,mVOptGlob[1]);
+           if ((aSigTr<=0) || (aSigRot<=0))
+           {
+               ELISE_ASSERT((aSigTr==aSigRot) &&((aSigTr==-1)||(aSigTr==-2)),"Bad neg value in OptBlocG");
+           }
+
+           if (aSigTr>0)
+           {
+                mCom +=   std::string(" +WBG_Sigma=true ")
+                        + " +WBG_Center=" + ToString(1/ElSquare(aSigTr))
+                        + " +WBG_Ang=" + ToString(1/ElSquare(aSigRot))
+                        + " " ;
+           }
+           if (aSigTr==-1)
+           {
+               mCom += std::string(" +WBG_Stricte=true ");
+           }
+        }
 
         mExe = (! EAMIsInit(&mMulRTA)) || (EAMIsInit(&GCPRTA));
 

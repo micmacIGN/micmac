@@ -363,8 +363,7 @@ void cAppliApero::ActiveContraintes(bool Stricte)
         itD->second->ActiveContrainte(Stricte);
     }
 
-    if (Stricte)
-       BlocContraintes();
+    BlocContraintes(Stricte);
 }
 
 #define TheUninitScoreLambda -1e30
@@ -524,7 +523,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
 
     for 
     (
-        std::list<cEstimateOrientationInitBlockCamera>::const_iterator itE= anIter.EstimateOrientationInitBlockCamera().begin();
+        std::list<cXml_EstimateOrientationInitBlockCamera>::const_iterator itE= anIter.EstimateOrientationInitBlockCamera().begin();
         itE != anIter.EstimateOrientationInitBlockCamera().end();
         itE++
     )
