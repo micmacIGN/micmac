@@ -55,7 +55,7 @@ class cAppliSake
 
   private:
     std::string   mImPat, mDir, mMaskIm, mDirMEC, mPyr, mDirOrtho, mModeOri, mOriFileExtension;
-    double        mZInc, mZMoy, mStepF, mRegul, mResolOrtho;
+    double        mZInc, mZMoy, mStepF, mRegul, mResolOrtho, mDefCor;
     int           mSzW, mZoomI, mZoomF;
     bool          mEZA, mExe, mCalcMosaO;
     std::string   mInstruct;
