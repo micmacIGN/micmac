@@ -55,7 +55,7 @@ class cAppliSake
 
   private:
     std::string   mImPat, mDir, mMaskIm, mDirMEC, mPyr, mDirOrtho, mModeOri, mOriFileExtension;
-    double        mZInc, mZMoy, mStepF, mRegul, mResolOrtho, mDefCor;
+    double        mZInc, mZMoy, mStepF, mDefCor, mRegul, mResolOrtho;
     int           mSzW, mZoomI, mZoomF;
     bool          mEZA, mExe, mCalcMosaO;
     std::string   mInstruct;
@@ -82,8 +82,8 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mZInc             (1000.0),
   mZMoy             (1000.0),
   mStepF            (0.5),
-  mRegul            (0.2),
   mDefCor           (0.2),
+  mRegul            (0.2),
   mResolOrtho       (1.0),
   mSzW              (2),
   mZoomI            (32),
@@ -204,8 +204,8 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               + std::string(" +ZInc=") + ToString(mZInc)
               + std::string(" +ZMoy=") + ToString(mZMoy)
               + std::string(" +ZPasF=")    + ToString(mStepF)
-              + std::string(" +ZRegul=") + ToString(mRegul)
               + std::string(" +DefCor=") + ToString(mDefCor)
+              + std::string(" +ZRegul=") + ToString(mRegul)
               ;
 
     if (mZoomF<mZoomI)
