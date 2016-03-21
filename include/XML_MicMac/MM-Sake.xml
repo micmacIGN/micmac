@@ -57,6 +57,7 @@
 
     <Symb> DirOrtho=XXXX</Symb>
     <Symb> CalcOrtho=false</Symb>
+    <Symb> DefCor=0.2</Symb>
     <Symb> ResolOrtho=1.0  </Symb>
     <Symb> CalcMosaO=false  </Symb>
   </DicoLoc>
@@ -119,7 +120,7 @@
         </EtapeProgDyn>
         <Px1PenteMax> 3 </Px1PenteMax>
         <ArgMaskAuto >
-          <ValDefCorrel>  0.2 </ValDefCorrel>
+          <ValDefCorrel>  DefCor </ValDefCorrel>
           <CostTrans >  1.0 </CostTrans>
           <ReInjectMask> false   </ReInjectMask>
         </ArgMaskAuto>
