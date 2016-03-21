@@ -55,7 +55,7 @@ class cAppliSake
 
   private:
     std::string   mImPat, mDir, mMaskIm, mDirMEC, mPyr, mDirOrtho, mModeOri, mOriFileExtension;
-    double        mZInc, mZMoy, mStepF, mRegul, mResolOrtho;
+    double        mZInc, mZMoy, mStepF, mDefCor, mRegul, mResolOrtho;
     int           mSzW, mZoomI, mZoomF;
     bool          mEZA, mExe, mCalcMosaO;
     std::string   mInstruct;
@@ -82,6 +82,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mZInc             (1000.0),
   mZMoy             (1000.0),
   mStepF            (0.5),
+  mDefCor           (0.2),
   mRegul            (0.2),
   mResolOrtho       (1.0),
   mSzW              (2),
@@ -157,6 +158,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               << EAM(mModeOri,"ModeOri", true, "Orientation type (GRID or RTO; Def=GRID)", eSAM_NoInit)
               << EAM(mMaskIm,"Mask",true,"Mask file", eSAM_IsExistFile)
               << EAM(mSzW,"SzW",true,"Correlation window size (Def=2, equiv 5x5)")
+              << EAM(mDefCor,"DefCor",true,"Default Correlation in un correlated pixels (Def=0.2) ")
               << EAM(mRegul,"ZRegul",true,"Regularization factor (Def=0.2")
               << EAM(mStepF,"ZPas",true,"Quantification step (Def=0.5)")
               << EAM(mZoomF,"ZoomF",true,"Final zoom (Def=1)",eSAM_IsPowerOf2)
@@ -202,6 +204,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               + std::string(" +ZInc=") + ToString(mZInc)
               + std::string(" +ZMoy=") + ToString(mZMoy)
               + std::string(" +ZPasF=")    + ToString(mStepF)
+              + std::string(" +DefCor=") + ToString(mDefCor)
               + std::string(" +ZRegul=") + ToString(mRegul)
               ;
 
