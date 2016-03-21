@@ -35,6 +35,7 @@
     <eSymb> DemiZPasF=* 0.5 ${ZPasF} </eSymb>
 
     <Symb> ZRegul=0.2</Symb>
+    <Symb> DefCor=0.2</Symb>
 
     <Symb> UseClip=false </Symb>
     <Symb> X0Clip=0 </Symb>
@@ -57,7 +58,6 @@
 
     <Symb> DirOrtho=XXXX</Symb>
     <Symb> CalcOrtho=false</Symb>
-    <Symb> DefCor=0.2</Symb>
     <Symb> ResolOrtho=1.0  </Symb>
     <Symb> CalcMosaO=false  </Symb>
   </DicoLoc>
@@ -120,7 +120,7 @@
         </EtapeProgDyn>
         <Px1PenteMax> 3 </Px1PenteMax>
         <ArgMaskAuto >
-          <ValDefCorrel>  DefCor </ValDefCorrel>
+          <ValDefCorrel>  ${DefCor} </ValDefCorrel>
           <CostTrans >  1.0 </CostTrans>
           <ReInjectMask> false   </ReInjectMask>
         </ArgMaskAuto>
