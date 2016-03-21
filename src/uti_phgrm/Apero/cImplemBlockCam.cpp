@@ -80,7 +80,7 @@ extern bool AllowUnsortedVarIn_SetMappingCur;
      Et R-1 (P) = Wr-1*P - Wr-1 * Tr = tWr * P - Tr  ;   R-1 = (Wr-1,- Wr-1* P)
     
 
-      CamRi-1  CamLi  = (Wr-1,- Wr-1* Pr) X (Wl,Pl) = (Wr-1*Wl,- Wr-1* Pr +  Wr-1* Pl)
+      CamRi-1  CamLi  = (Wr-1,- Wr-1* Pr) X (Wl,Pl) = (Wr-1*Wl,-  Pr +  Wr-1* Pl)
 */
 
 class cIBC_ImsOneTime;
