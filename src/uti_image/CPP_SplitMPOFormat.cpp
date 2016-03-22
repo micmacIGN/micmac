@@ -83,7 +83,16 @@ int SplitMPO_main(int argc,char ** argv)
             std::string aPost = StdPostfix(aNameIn);
             std::string aNameOut = aPref+((aK==0)? aPostL : aPostR) + ".jpg";
 
-            std::string aCom = "exiftool ";
+			//Creating cmd
+			std::string aCom;
+			#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
+						aCom = "exiftool ";
+			#endif
+			#if (ELISE_windows)
+						aCom = MMDir() + "binaire-aux/exiftool ";
+			#endif
+
+            
              if (aK==0)
                 aCom = aCom + "-trailer:all= " + aNameIn  + " -o " + aNameOut;
              else
