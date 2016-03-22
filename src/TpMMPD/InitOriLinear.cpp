@@ -166,6 +166,7 @@ void OrientationLinear (vector<string> PoseToInit, Pt3dr vectorAvancement, cOrie
 
 Pt3dr CalVecAvancementInit (vector<string> PoseRef, string aOriRef)
 {
+    cout<<"Calculate vector d'avancement : "<<endl;
     double xBefore=0, yBefore=0, zBefore=0;
     double xAcc = 0, yAcc = 0, zAcc = 0;
     vector<string> aSetRefImages = PoseRef;
@@ -197,7 +198,12 @@ Pt3dr CalVecAvancementInit (vector<string> PoseRef, string aOriRef)
     return result;
 }
 
-
+struct Section
+{
+    vector<string> Poses;
+    double angle;
+    bool isReference;
+};
 //----------------------------------------------------------------------------
 
 int InitOriLinear_main(int argc,char ** argv)
@@ -231,6 +237,12 @@ int InitOriLinear_main(int argc,char ** argv)
     //separate pattern camera
     std::size_t pos = aVecPatternNewImages_E.find(",");
     std::size_t pos1 = aVecPatternRefImages_E.find(",");
+    if(pos == std::string::npos && pos1 == std::string::npos)
+    {
+        cout << "Warning : Can't seperate Patterns Cameras, maybe system have just 1 camera or user not seperate by ',' sign (Pat_Cam1,Pat_Cam 2,...)"<<endl;
+        aVecPatternNewImages.push_back(aVecPatternNewImages_E);
+        aVecPatternRefImages.push_back(aVecPatternRefImages_E);
+    }
     while(pos!=std::string::npos)
     {
         pos = aVecPatternNewImages_E.find(",");
@@ -338,6 +350,8 @@ int InitOriLinear_main(int argc,char ** argv)
             cOrientationConique aOriConique;
             //init relative position b/w different series image
             Pt3dr VecMouvement;
+            VecMouvement = CalVecAvancementInit(aSetRefImages,aOriRef);
+            vector<Section> aSection;
             if (ii==0) //1st camera as reference
             {
                 std::string aOriRefImage="Ori-"+aOriRef+"/Orientation-"+aSetRefImages.back()+".xml";
@@ -345,39 +359,90 @@ int InitOriLinear_main(int argc,char ** argv)
                 aRefOriList.push_back(aOriConique);
                 std::cout<<aOriConique.Externe().Centre()<<"\n";
                 //creat section for turn initialization
-                for (uint f=0; f<aVecPoseTurn.size(); f++)
+                for (uint f=0; f<=aVecPoseTurn.size(); f++)
                 {
+                    Section thisSection;
                     string PoseInit;
                     string PoseEnd;
+                    double indPoseInit, indPoseEnd;
                     if (f == 0)
                     {
                         PoseInit = aSetNewImages.front();
+                        indPoseInit = 0;
                         std::vector<string>::iterator it;
                         it = std::find(aSetNewImages.begin(), aSetNewImages.end(), aVecPoseTurn[f]);
                         double p = std::distance(aSetNewImages.begin(), it );
                         //bool isPresent = (it != aSetNewImages.end());
                         PoseEnd = aSetNewImages[p-1];
+                        indPoseEnd = p-1;
+                        //cout<<"Section "<<f<<": "<<PoseInit<<" - "<<PoseEnd<<" turn "<<"0 (section reference)"<<endl;
+                        for(uint j=indPoseInit;j<=indPoseEnd;j++)
+                            {thisSection.Poses.push_back(aSetNewImages[j]);}
+                        thisSection.angle = 0;
+                        thisSection.isReference=true;
+                        aSection.push_back(thisSection);
                     }
                     else
                     {
-                        PoseInit = aVecPoseTurn[f];
+                        PoseInit = aVecPoseTurn[f-1];
                         std::vector<string>::iterator it;
-                        if (f+1 < aVecPoseTurn.size())
+                        if (f < aVecPoseTurn.size())
                         {
-                            it = std::find(aSetNewImages.begin(), aSetNewImages.end(), aVecPoseTurn[f+1]);
+                            it = std::find(aSetNewImages.begin(), aSetNewImages.end(), aVecPoseTurn[f]);
                             double p = std::distance(aSetNewImages.begin(), it );
-                            //bool isPresent = (it != aSetNewImages.end());
                             PoseEnd = aSetNewImages[p-1];
+                            indPoseEnd=p-1;
+                            it = std::find(aSetNewImages.begin(), aSetNewImages.end(), PoseInit);
+                            p = std::distance(aSetNewImages.begin(), it );
+                            indPoseInit = p;
+                            for(uint j=indPoseInit;j<=indPoseEnd;j++)
+                                {thisSection.Poses.push_back(aSetNewImages[j]);}
+                            thisSection.angle = aVecAngle_Dec[f-1];
+                            thisSection.isReference=false;
+                            aSection.push_back(thisSection);
                         }
                         else
                         {
+                            it = std::find(aSetNewImages.begin(), aSetNewImages.end(), PoseInit);
+                            double p = std::distance(aSetNewImages.begin(), it );
+                            indPoseInit = p;
                             PoseEnd = aSetNewImages.back();
+                            for(uint j=indPoseInit;j<aSetNewImages.size();j++)
+                                {thisSection.Poses.push_back(aSetNewImages[j]);}
+                            thisSection.angle = aVecAngle_Dec[f-1];
+                            thisSection.isReference=false;
+                            aSection.push_back(thisSection);
                         }
+                         //cout<<"Section "<<f<<": "<<PoseInit<<" - "<<PoseEnd<<" turn "<<aVecAngle_Dec[f-1]<<endl;
                     }
-                    cout<<"Section "<<f<<": "<<PoseInit<<" - "<<PoseEnd<<" turn "<<aVecAngle_Dec[f]<<endl;
                 }
-                VecMouvement = CalVecAvancementInit(aSetRefImages,aOriRef);
-                OrientationLinear(aSetNewImages, VecMouvement, aOriConique, aOriOut);
+                for (uint j=0; j<aSection.size(); j++)
+                {
+                    cout<<"Section "<<j<<": "<<aSection[j].Poses.front()<<" - "<<aSection[j].Poses.back()<<" - "<<aSection[j].angle<< " degree"<<endl;
+                    if (aSection[j].isReference)
+                        {OrientationLinear(aSection[j].Poses, VecMouvement, aOriConique, aOriOut);}
+                    else
+                    {
+                        //take last pose of section that just initialize as XML reference
+                        std::string aOriRefSection="Ori-"+aOriOut+"/Orientation-"+aSection[j-1].Poses.back()+".xml";
+                        cOrientationConique aXMLRef = StdGetFromPCP(aOriRefSection,OrientationConique);;
+                        //calculate orientation turn of new section
+                        matrix orientationRef;
+                        matrix orientationSection;
+                        set_matrixLine(orientationRef, aXMLRef.Externe().ParamRotation().CodageMatr().Val().L1(), 0);
+                        set_matrixLine(orientationRef, aXMLRef.Externe().ParamRotation().CodageMatr().Val().L2(), 1);
+                        set_matrixLine(orientationRef, aXMLRef.Externe().ParamRotation().CodageMatr().Val().L3(), 2);
+                        CalOrient(orientationRef, aSection[j].angle, orientationSection);
+                        aXMLRef.Externe().ParamRotation().CodageMatr().Val().L1() = get_matrixLine(orientationSection,0);
+                        aXMLRef.Externe().ParamRotation().CodageMatr().Val().L2() = get_matrixLine(orientationSection,1);
+                        aXMLRef.Externe().ParamRotation().CodageMatr().Val().L3() = get_matrixLine(orientationSection,2);
+
+                        //calculate new vector mouvement of section
+
+                        //initialize Linear new section
+                        OrientationLinear(aSection[j].Poses, VecMouvement, aXMLRef, aOriOut);
+                    }
+                }
             }
 
         }

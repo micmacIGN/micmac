@@ -344,7 +344,7 @@ void creatHomolFromPair(string aNameImg1, string aNameImg2, string aNameHomol, s
 
 
 VerifParRepr::VerifParRepr(vector<string> mListImg, vector<string> mListImg_NoTif, string aDirImages, string aPatImages, string aNameHomol, string aOri, string aHomolOutput, double aDistHom, double aDistRepr)
-{    
+{
         this->mListImg = mListImg;
         this->mListImg_NoTif = mListImg_NoTif;
         this->mDirImages = aDirImages;
@@ -590,7 +590,7 @@ vector<bool> VerifParRepr::FiltreDe3img(string aNameImg1, string aNameImg2, stri
     }
     //cout <<"   ++ => "<<count_pass_reproj<<" / "<<countGoodTrip<<" / "<<aPackIn1_2.size()<<endl;
     cout<<"Verif FiltreDe3img "<<result.size()<<" "<<aPackIn1_2.size()<<endl;
-    cout <<"Verif FiltreDe3img NbPts Filtré => "<<count_pass_reproj<<" "<<countGoodTrip<<endl;
+    cout <<"Verif FiltreDe3img NbPts FiltrÃ© => "<<count_pass_reproj<<" "<<countGoodTrip<<endl;
     count_pass_reproj = 0;
     countGoodTrip = 0;
     return result;
@@ -700,7 +700,7 @@ void VerifParRepr::FiltragePtsHomo()
                 else
                 {decision[o] = 0;}
             }
-            cout<<"     *-*-*-*-*-*   "<<" NbPt Filtré = "<<countVerif<< " / "<<decision.size()<<endl<<endl;
+            cout<<"     *-*-*-*-*-*   "<<" NbPt FiltrÃ© = "<<countVerif<< " / "<<decision.size()<<endl<<endl;
             stat = stat + countVerif;
             all = all + decision.size();
             creatHomolFromPair(aNameImg1, aNameImg2, decision);
@@ -1264,7 +1264,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
 //                            cout<<" "<<prof_d<<" "<<Pt_Hu<<endl;
 
 //                       }
-//                       //=== 4) ReProjecte Hu et Hv de l'espace Ã  img 3 =====
+//                       //=== 4) ReProjecte Hu et Hv de l'espace Ã  img 3 =====
 //                       Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
 //                       Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
 //                       //=== 5) Vector direction de surface d'img 3 ===
@@ -1353,8 +1353,8 @@ int PHO_MI_main(int argc,char ** argv)
     cout<<"*********************"<<endl;
     cout<<"* P : Points        *"<<endl;
     cout<<"* H : Homologues    *"<<endl;
-    cout<<"* O : Observés sur  *"<<endl;
-    cout<<"* M : Modèle        *"<<endl;
+    cout<<"* O : ObservÃ©s sur  *"<<endl;
+    cout<<"* M : ModÃ¨le        *"<<endl;
     cout<<"* I : Initial       *"<<endl;
     cout<<"*********************"<<endl;
 
@@ -1363,9 +1363,9 @@ int PHO_MI_main(int argc,char ** argv)
     bool ExpTxt = false, aDisplayVignette = false, aFiltreBy1Img=true;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
-    argc,                   //nb d’arguments
+    argc,                   //nb dâarguments
     argv,                   //chaines de caracteres contenants tous les arguments
-    //mandatory arguments - arg obligatoires²
+    //mandatory arguments - arg obligatoiresÂ²
     LArgMain()  << EAMC(aFullPatternImages, "Pattern of images to compute",  eSAM_IsPatFile)
                 << EAMC(aOriInput, "Input Initial Orientation",  eSAM_IsExistDirOri),
     //optional arguments - arg facultatifs
@@ -1502,7 +1502,7 @@ int PHO_MI_main(int argc,char ** argv)
                     else
                     {decision[o] = 0;}
                 }
-                cout<<"     *-*-*-*-*-*   "<<" NbPt Filtré = "<<countVerif<< " / "<<decision.size()<<endl<<endl;
+                cout<<"     *-*-*-*-*-*   "<<" NbPt FiltrÃ© = "<<countVerif<< " / "<<decision.size()<<endl<<endl;
                 stat = stat + countVerif;
                 all = all + decision.size();
                 creatHomolFromPair(aNameImg1, aNameImg2, aNameHomol, aDirImages, aPatImages, aHomolOutput, ExpTxt, decision);
@@ -1593,7 +1593,7 @@ int PHO_MI_main(int argc,char ** argv)
                     }
                     aAbre[i].NbPtFiltre.push_back(countGood);
                     aAbre[i].NbPointHomo.push_back(decision.size());
-                    cout<<endl<<(countGood/decision.size())*100<<" % Pts conservé of "<<decision.size()<<endl;
+                    cout<<endl<<(countGood/decision.size())*100<<" % Pts conservÃ© of "<<decision.size()<<endl;
                     //creat homol file with decision and pack homo b/w aImg1 aImg2
                     //.....
                     creatHomolFromPair(aImg1, aImg2, aNameHomol, aDirImages, aPatImages, aHomolOutput, ExpTxt, decision);
@@ -1619,10 +1619,10 @@ int PHO_MI_main(int argc,char ** argv)
 
 
 
-/*strategie à faire:
+/*strategie Ã  faire:
 1)
 Homol1_2 => P1 & P2, Homol2_3 => P2 & P3, triplet [P1, P2, P3].
-Pt3d P3' reprojeter ves cam3 à partir P1 et P2
+Pt3d P3' reprojeter ves cam3 Ã  partir P1 et P2
 P3' = P3 ?
 si OK => fabriquer Homol nouvel avec P1 P2 P3 pour tout les sens
 
@@ -1633,12 +1633,11 @@ Corellation entre P2 et P3
 si OK => garde P1 et P2
 => P3 juste pour validation point homo entre P1 et P2
 Q: comment choisir le pose bien pour cam3 ? (avant ou apres cam1 et cam2)
-    
+
 3)
-Homol cohérent, pas besoins l'orientation du caméra => si camera orientation est pas bonne, on peut eviter
+Homol cohÃ©rent, pas besoins l'orientation du camÃ©ra => si camera orientation est pas bonne, on peut eviter
 Homol1_2 => P1 & P2, Homol2_3 => P2 & P3, triplet [P1, P2, P3].
 P3 => chercher dans Homol3_1 => si trop loin avec P3 => pas bonne ????????????????????????????????????????
 P3 => chercher dans Homol3_2 => si trop loin avec P3 => pas bonne couple P2 P3 ???????????????????????????
 Comment faire une methode de validation plus efficace ?
 */
-
