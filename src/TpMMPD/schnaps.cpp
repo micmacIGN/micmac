@@ -36,6 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
 #include "StdAfx.h"
 #include <fstream>
 #include <algorithm>
@@ -177,15 +178,18 @@ class cPic
     bool removeHomolPoint(cPointOnPic* aPointOnPic);
     void printHomols();
     bool addSelectedPointOnPicUnique(cPointOnPic* aPointOnPic);
+    float getPercentWinUsed();
+    void incNbWinUsed(){mNbWinUsed++;}
   protected:
     std::string mName;
     cPicSize * mPicSize;
     std::list<cPointOnPic*> mAllPointsOnPic;
     std::list<cPointOnPic*> mAllSelectedPointsOnPic;
+    int mNbWinUsed;
 };
 
 cPic::cPic(std::string aName,std::vector<cPicSize> & allSizes,int aNumWindows) :
-    mName(aName),mPicSize(0)
+    mName(aName),mPicSize(0),mNbWinUsed(0)
 {
     Tiff_Im aPic(aName.c_str());
     Pt2di aPicSize=aPic.sz();
@@ -230,6 +234,11 @@ bool cPic::addSelectedPointOnPicUnique(cPointOnPic* aPointOnPic)
     }
     mAllSelectedPointsOnPic.push_back(aPointOnPic);
     return true;
+}
+
+float cPic::getPercentWinUsed()
+{
+    return 100.0*((float)mNbWinUsed)/(mPicSize->getNbWin().x*mPicSize->getNbWin().y);
 }
 
 //----------------------------------------------------------------------------
@@ -455,68 +464,6 @@ int schnaps_main(int argc,char ** argv)
                         }
                     }
                     
-                    /*std::list<cHomol*>::iterator itHomol;
-                    cHomol *homolP1=0;//where aP1 has been found
-                    std::list<cHomol*>::iterator itHomolP1;
-                    cHomol *homolP2=0;//where aP1 has been found
-                    std::list<cHomol*>::iterator itHomolP2;
-                    for (itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();++itHomol)
-                    {
-                        if ((!homolP1)&&((*itHomol)->alreadyIn(pic1,aP1)))
-                        {
-                            homolP1=*(itHomol);
-                            itHomolP1=itHomol;
-                            if (homolP2) break;
-                        }
-                        if ((!homolP2)&&((*itHomol)->alreadyIn(pic2,aP2)))
-                        {
-                            homolP2=*(itHomol);
-                            itHomolP2=itHomol;
-                            if (homolP1) break;
-                        }
-                    }
-                    #ifdef ReductHomolImage_DEBUG
-                    std::cout<<"Result Homol: "<<homolP1<<" "<<homolP2<<std::endl;
-                    #endif
-                    if (homolP1 && (!homolP2))
-                        homolP1->add(pic2,aP2);
-                    else if (homolP2 && (!homolP1))
-                        homolP2->add(pic1,aP1);
-                    else if (homolP1 && homolP2 &&(homolP1!=homolP2))
-                    {
-                        cPointOnPic * aPointOnPic2=homolP1->getPointOnPic(pic2);
-                        cPointOnPic * aPointOnPic1=homolP2->getPointOnPic(pic1);
-                        if (
-                            ((aPointOnPic2)
-                              &&(
-                                 (fabs(aPointOnPic2->getPt().x-aP2.x)>0.2)
-                                 ||(fabs(aPointOnPic2->getPt().y-aP2.y)>0.2))
-                                )
-                            ||
-                            ((aPointOnPic1)
-                              &&(
-                                 (fabs(aPointOnPic1->getPt().x-aP1.x)>0.2)
-                                 ||(fabs(aPointOnPic1->getPt().y-aP1.y)>0.2))
-                                )
-                           )
-                        {
-                            std::cout<<"Bad homols!\n";
-                            homolP1->setBad();
-                            homolP2->setBad();
-                        }
-                        //merge the two homol points
-                        homolP1->add(homolP2);
-                        homolP2->getPointOnPics().clear();
-                        allHomolsIn.erase(itHomolP2);
-                    }
-                    else if ((!homolP1) && (!homolP2))
-                    {
-                        //new homol point
-                        allHomolsIn.push_back(new cHomol);
-                        allHomolsIn.back()->add(pic1,aP1);
-                        allHomolsIn.back()->add(pic2,aP2);
-                    }
-                    */
                     #ifdef ReductHomolImage_DEBUG
                     std::cout<<"Result Homol: "<<aPointOnPic1<<" "<<aPointOnPic2<<std::endl;
                     #endif
@@ -564,6 +511,7 @@ int schnaps_main(int argc,char ** argv)
             }
         }
     }
+    #ifdef ReductHomolImage_DEBUG
     std::cout<<"Found "<<allHomolsIn.size()<<" Homol points :\n";
     std::list<cHomol*>::iterator itHomol;
     for (itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();++itHomol)
@@ -572,12 +520,12 @@ int schnaps_main(int argc,char ** argv)
         (*itHomol)->print();
     }
     std::cout<<std::endl;
-
+    #endif
     
     //sort pics on number of homols ------------------------------------
     std::sort(allPics.begin(), allPics.end(), compareNumberOfHomolPics);
     
-    
+    #ifdef ReductHomolImage_DEBUG
     std::cout<<"Homols per image:";
     for (unsigned int i=0;i<allPics.size();i++)
     {
@@ -593,6 +541,7 @@ int schnaps_main(int argc,char ** argv)
         }*/
     }
     std::cout<<std::endl;
+    #endif
     
     
     //create new homols ------------------------------------------------
@@ -601,7 +550,7 @@ int schnaps_main(int argc,char ** argv)
     for (unsigned int i=0;i<allPics.size();i++)
     {
         cPic* aPic=allPics[i];
-        std::cout<<"For "<<aPic->getName()<<":\n";
+        std::cout<<"For "<<aPic->getName()<<"\n";
         //for each window, get current best selected point, and best existing point
         for (int x=0;x<aPic->getPicSize()->getNbWin().x;x++)
         {
@@ -689,10 +638,13 @@ int schnaps_main(int argc,char ** argv)
                 }
                 std::cout<<std::endl;
                 #endif
+                if (aBestOldHomolMultiple>0)
+                    aPic->incNbWinUsed();
             }
         }
     }
 
+    #ifdef ReductHomolImage_DEBUG
     std::cout<<"New Homols per image:";
     for (unsigned int i=0;i<allPics.size();i++)
     {
@@ -706,12 +658,22 @@ int schnaps_main(int argc,char ** argv)
         }
     }
     std::cout<<std::endl;
+    #endif
     
     std::cout<<"Write new Packs:\n";
+    std::ofstream aFileBadPictureNames;
+    aFileBadPictureNames.open("Schnaps_pictures_poubelle.txt");
+    if (!aFileBadPictureNames.is_open())
+    {
+        std::cout<<"Impossible to create \"Schnaps_pictures_poubelle.txt\" file!\n";
+        return -1;
+    }
     for (unsigned int i=0;i<allPics.size();i++)
     {
         cPic *pic1=allPics[i];
-        std::cout<<" Picture "<<aSetIm[i]<<"\n";
+        std::cout<<" - "<<pic1->getName()<<": "<<pic1->getPercentWinUsed()<<"% of the picture covered ("<<pic1->getAllSelectedPointsOnPic()->size()<<" points)\n";
+        if (pic1->getPercentWinUsed()<25)
+            aFileBadPictureNames<<pic1->getName()<<"\n";
         for (unsigned int j=i+1;j<allPics.size();j++)
         {
             cPic *pic2=allPics[j];
@@ -742,6 +704,7 @@ int schnaps_main(int argc,char ** argv)
             }
         }
     }
+    aFileBadPictureNames.close();
 
   /*todo :
    * error if no packs
@@ -758,33 +721,33 @@ int schnaps_main(int argc,char ** argv)
 
 /* Footer-MicMac-eLiSe-25/06/2007
 
-   Ce logiciel est un programme informatique servant �  la mise en
+   Ce logiciel est un programme informatique servant a  la mise en
    correspondances d'images pour la reconstruction du relief.
 
-   Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+   Ce logiciel est regi par la licence CeCILL-B soumise au droit francais et
    respectant les principes de diffusion des logiciels libres. Vous pouvez
    utiliser, modifier et/ou redistribuer ce programme sous les conditions
-   de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+   de la licence CeCILL-B telle que diffusee par le CEA, le CNRS et l'INRIA
    sur le site "http://www.cecill.info".
 
-   En contrepartie de l'accessibilité au code source et des droits de copie,
-   de modification et de redistribution accordés par cette licence, il n'est
-   offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-   seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-   titulaire des droits patrimoniaux et les concédants successifs.
+   En contrepartie de l'accessibilite au code source et des droits de copie,
+   de modification et de redistribution accordes par cette licence, il n'est
+   offert aux utilisateurs qu'une garantie limitee.  Pour les memes raisons,
+   seule une responsabilite restreinte pese sur l'auteur du programme,  le
+   titulaire des droits patrimoniaux et les concedants successifs.
 
-   A cet égard  l'attention de l'utilisateur est attirée sur les risques
-   associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-   développement et �  la reproduction du logiciel par l'utilisateur étant
-   donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-   manipuler et qui le réserve donc �  des développeurs et des professionnels
-   avertis possédant  des  connaissances  informatiques approfondies.  Les
-   utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-   logiciel �  leurs besoins dans des conditions permettant d'assurer la
-   sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-   �  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+   A cet egard  l'attention de l'utilisateur est attiree sur les risques
+   associes au chargement, a l'utilisation, a la modification et/ou au
+   developpement et a la reproduction du logiciel par l'utilisateur etant
+   donne sa specificite de logiciel libre, qui peut le rendre complexe a
+   manipuler et qui le reserve donc a des developpeurs et des professionnels
+   avertis possedant  des  connaissances  informatiques approfondies.  Les
+   utilisateurs sont donc invites a charger  et  tester  l'adequation  du
+   logiciel a leurs besoins dans des conditions permettant d'assurer la
+   securite de leurs systemes et ou de leurs donnees et, plus generalement,
+   a l'utiliser et l'exploiter dans les memes conditions de securite.
 
-   Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
-   pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+   Le fait que vous puissiez acceder a cet en-tete signifie que vous avez
+   pris connaissance de la licence CeCILL-B, et que vous en avez accepte les
    termes.
    Footer-MicMac-eLiSe-25/06/2007/*/
