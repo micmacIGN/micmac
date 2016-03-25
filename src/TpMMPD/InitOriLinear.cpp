@@ -37,7 +37,6 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-
 double ToDecimal(string aString)
 {
     uint mLength = aString.length();
@@ -127,6 +126,28 @@ void mult_matrix(matrix mat_1, matrix mat_2, matrix fin_mat)
        }
    }
 }
+void mult_matrix(matrix mat_1, matrix mat_2, cTypeCodageMatr result)
+{
+    matrix fin_mat;
+   double temp = 0;
+   int a, b, c;
+
+   for(a = 0; a < 3; a++)
+   {
+       for(b = 0; b < 3; b++)
+       {
+           for(c = 0; c < 3; c++)
+           {
+               temp += mat_1[b][c] * mat_2[c][a];
+           }
+           fin_mat[b][a] = temp;
+           temp = 0;
+       }
+   }
+   result.L1()  = get_matrixLine(fin_mat,0);
+   result.L2()  = get_matrixLine(fin_mat,1);
+   result.L3()  = get_matrixLine(fin_mat,2);
+}
 Pt3dr mult_vector(matrix mat_1, Pt3dr vec_1)
 {
     Pt3dr result;
@@ -135,32 +156,93 @@ Pt3dr mult_vector(matrix mat_1, Pt3dr vec_1)
     result.z = mat_1[2][0]*vec_1.x + mat_1[2][1]*vec_1.y + mat_1[2][2]*vec_1.z;
     return result;
 }
-void CalOrient(matrix org, double alpha, matrix out)
-{   //rotation autour l'axe X
+void CalOrient(matrix org, double alpha, matrix out, string axe)
+{
+    cout<<"Matrix rotation axe "<<axe<<" "<<alpha<< " rad"<<endl;
     matrix orient;
-    Pt3dr line0(1,0 , 0);
-    Pt3dr line1(0, cos(alpha), -sin(alpha));
-    Pt3dr line2(0,sin(alpha) ,cos(alpha) );
+    Pt3dr line0, line1, line2;
+    if (axe == "x")
+    {
+        line0 = Pt3dr(1,0 , 0);
+        line1 = Pt3dr (0,cos(alpha) ,-sin(alpha) );
+        line2 = Pt3dr (0,sin(alpha) ,cos(alpha) );
+    }
+    if (axe == "y")
+    {
+        line0 = Pt3dr(cos(alpha),0 , sin(alpha));
+        line1 = Pt3dr(0,1,0 );
+        line2 = Pt3dr(-sin(alpha),0,cos(alpha) );
+    }
+    if (axe == "z")
+    {
+        line0 = Pt3dr(cos(alpha) ,-sin(alpha), 0);
+        line1 = Pt3dr(sin(alpha) ,cos(alpha),0 );
+        line2 = Pt3dr(0,0,1 );
+    }
     set_matrixLine(orient, line0 ,0);
     set_matrixLine(orient, line1 ,1);
     set_matrixLine(orient, line2 ,2);
-    mult_matrix(org, orient, out);
+    cout<<"modif:\n    "<<line0<<"\n    "<<line1<<"\n    "<<line2<<endl;
+    mult_matrix(orient,org, out);
 }
 
-Pt3dr CalDirectionVecMouvement(Pt3dr VecMouvement, double alpha)
+
+Pt3dr CalDirectionVecMouvement(Pt3dr VecMouvement, double alpha, string axe)
 {
     matrix orient;
-    Pt3dr line0(cos(alpha), -sin(alpha) , 0);
-    Pt3dr line1(sin(alpha) ,cos(alpha), 0);
-    Pt3dr line2(0,0 ,1 );
+    Pt3dr line0, line1, line2;
+    if (axe == "x")
+    {
+        line0 = Pt3dr(1,0 , 0);
+        line1 = Pt3dr (0,cos(alpha) ,-sin(alpha) );
+        line2 = Pt3dr (0,sin(alpha) ,cos(alpha) );
+    }
+    if (axe == "y")
+    {
+        line0 = Pt3dr(cos(alpha),0 , sin(alpha));
+        line1 = Pt3dr(0,1,0 );
+        line2 = Pt3dr(-sin(alpha),0,cos(alpha) );
+    }
+    if (axe == "z")
+    {
+        line0 = Pt3dr(cos(alpha) ,-sin(alpha), 0);
+        line1 = Pt3dr(sin(alpha) ,cos(alpha),0 );
+        line2 = Pt3dr(0,0,1 );
+    }
     set_matrixLine(orient, line0 ,0);
     set_matrixLine(orient, line1 ,1);
     set_matrixLine(orient, line2 ,2);
     return mult_vector(orient,VecMouvement);
 }
 
+void OrientationLinear (vector<string> PoseToInit, Pt3dr vectorAvancement, cOrientationConique OriRef, string aOriOut, matrix Ori)
+{
+    cout<<"Init with vector: "<<vectorAvancement<<endl;
+    cOrientationConique aOriConique = OriRef;
+    aOriConique.Externe().ParamRotation().CodageMatr().Val().L1() = get_matrixLine(Ori,0);
+    aOriConique.Externe().ParamRotation().CodageMatr().Val().L2() = get_matrixLine(Ori,1);
+    aOriConique.Externe().ParamRotation().CodageMatr().Val().L3() = get_matrixLine(Ori,2);
+    double xEstimate = aOriConique.Externe().Centre().x;
+    double yEstimate = aOriConique.Externe().Centre().y;
+    double zEstimate = aOriConique.Externe().Centre().z;
+    for (unsigned int i=0;i<PoseToInit.size();i++)
+    {
+        cout<<"   -- ";
+        //calculate positon pose
+        aOriConique.Externe().Centre().x = xEstimate;
+        aOriConique.Externe().Centre().y = yEstimate;
+        aOriConique.Externe().Centre().z = zEstimate;
+        xEstimate = xEstimate + vectorAvancement.x;
+        yEstimate = yEstimate + vectorAvancement.y;
+        zEstimate = zEstimate + vectorAvancement.z;
+        //make file XML
+        MakeFileXML(aOriConique, "Ori-"+aOriOut+"/Orientation-"+PoseToInit[i]+".xml");
+        cout<<xEstimate<<" "<<yEstimate<<" "<<zEstimate<<endl;
+    }
+}
 void OrientationLinear (vector<string> PoseToInit, Pt3dr vectorAvancement, cOrientationConique OriRef, string aOriOut)
 {
+    cout<<"Init with vector: "<<vectorAvancement<<endl;
     cOrientationConique aOriConique = OriRef;
     double xEstimate = aOriConique.Externe().Centre().x;
     double yEstimate = aOriConique.Externe().Centre().y;
@@ -175,8 +257,6 @@ void OrientationLinear (vector<string> PoseToInit, Pt3dr vectorAvancement, cOrie
         xEstimate = xEstimate + vectorAvancement.x;
         yEstimate = yEstimate + vectorAvancement.y;
         zEstimate = zEstimate + vectorAvancement.z;
-        //copy matrix orientation
-        //aOriConique.Externe().ParamRotation().CodageMatr().SetVal(OriRef.Externe().ParamRotation().CodageMatr().Val());
         //make file XML
         MakeFileXML(aOriConique, "Ori-"+aOriOut+"/Orientation-"+PoseToInit[i]+".xml");
         cout<<xEstimate<<" "<<yEstimate<<" "<<zEstimate<<endl;
@@ -257,21 +337,23 @@ int InitOriLinear_main(int argc,char ** argv)
     vector<std::string> aVecPatternNewImages;
     vector<std::string> aVecPatternRefImages;
     std::string aFullPatternNewImages, aFullPatternRefImages, aOriRef, aPatternCam1, aPatternCam2, aPatternCam3, aPatternCam4, aPatternRef1, aPatternRef2, aPatternRef3, aPatternRef4;//pattern of all files
-    std::string aVecPatternNewImages_E, aVecPatternRefImages_E, aPatPoseTurn, aPatAngle;
+    std::string aVecPatternNewImages_E, aVecPatternRefImages_E, aPatPoseTurn, aPatAngle, aAxeOrient;
+    aAxeOrient = "x";
     string aOriOut = "InitOut";
     bool bWithOriIdentity = false;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
     argc,argv,
     //mandatory arguments
-    LArgMain()  << EAMC(aOriRef,"Reference Orientation",  eSAM_IsExistDirOri)
+    LArgMain()  << EAMC(aOriRef,"Reference Orientation Ori folder",  eSAM_IsExistDirOri)
                 << EAMC(aOriOut, "Output initialized ori folder", eSAM_None)
                 << EAMC(aVecPatternNewImages_E, "Vector pattern of new images to orientate Pat Cam 1, Pat Cam 2,..", eSAM_None)
-                << EAMC(aVecPatternRefImages_E, "Vector pattern of Reference Orientation Pat Ref 1, Pat Ref 2,..", eSAM_None),
+                << EAMC(aVecPatternRefImages_E, "Vector pattern of Reference Image Pat Ref 1, Pat Ref 2,..", eSAM_None),
     //optional arguments
     LArgMain()  <<EAM(aPatPoseTurn, "PatTurn", true, "Vector of images when the serie change acquisition direction pose1,pose2...")
                 <<EAM(aPatAngle,    "PatAngle", true, "Vector of turn angle apha1,alpha2,...")
                 <<EAM(bWithOriIdentity,    "WithIdent", true, "Initialize with orientation identique (default = false)")
+                <<EAM(aAxeOrient,    "Axe", true, "Which axe to calcul rotation about")
     );
     if (MMVisualMode) return EXIT_SUCCESS;
 
@@ -398,6 +480,9 @@ int InitOriLinear_main(int argc,char ** argv)
             //init relative position b/w different series image
             Pt3dr VecMouvement;
             VecMouvement = CalVecAvancementInit(aSetRefImages,aOriRef);
+            //====Test===//
+            VecMouvement = Pt3dr(0,0,1);
+            //===========//
             vector<Section> aSection;
             if (ii==0) //1st camera as reference
             {
@@ -476,30 +561,40 @@ int InitOriLinear_main(int argc,char ** argv)
                 }
                 for (uint j=0; j<aSection.size(); j++)
                 {
-                    cout<<"Section "<<j<<": "<<aSection[j].Poses.front()<<" - "<<aSection[j].Poses.back()<<" - "<<aSection[j].angle<< " degree"<<endl;
+                    cout<<endl<<"Section "<<j<<": "<<aSection[j].Poses.front()<<" - "<<aSection[j].Poses.back()<<" - "<<aSection[j].angle<< " degree"<<endl;
                     if (aSection[j].isReference)
-                        {OrientationLinear(aSection[j].Poses, VecMouvement, aOriConique, aOriOut);}
+                    {
+                        OrientationLinear(aSection[j].Poses, VecMouvement, aOriConique, aOriOut);
+                    }
                     else
                     {
-                        //take last pose of section that just initialize as XML reference
+                        //take last pose of section that just initialized as XML reference
                         std::string aOriRefSection="Ori-"+aOriOut+"/Orientation-"+aSection[j-1].Poses.back()+".xml";
                         cOrientationConique aXMLRef = StdGetFromPCP(aOriRefSection,OrientationConique);
-                        aXMLRef.Externe().Centre() = aXMLRef.Externe().Centre() + VecMouvement;
-                        //aXMLRef.Externe().ParamRotation().CodageMatr().SetVal(aOriConiqueRef.Externe().ParamRotation().CodageMatr().Val());
+                        //aXMLRef.Externe().ParamRotation().CodageMatr().SetVal(aOriRefSection.Externe().ParamRotation().CodageMatr().Val());
                         //calculate orientation turn of new section
                         matrix orientationRef;
                         matrix orientationSection;
                         set_matrixLine(orientationRef, aXMLRef.Externe().ParamRotation().CodageMatr().Val().L1(), 0);
                         set_matrixLine(orientationRef, aXMLRef.Externe().ParamRotation().CodageMatr().Val().L2(), 1);
                         set_matrixLine(orientationRef, aXMLRef.Externe().ParamRotation().CodageMatr().Val().L3(), 2);
-                        CalOrient(orientationRef, aSection[j].angle, orientationSection);
-                        //VecMouvement = CalDirectionVecMouvement(VecMouvement, aSection[j].angle);
+                        cout<<"Avant:\n    "<<aXMLRef.Externe().ParamRotation().CodageMatr().Val().L1()<<"\n    "
+                            <<aXMLRef.Externe().ParamRotation().CodageMatr().Val().L2()<<"\n    "
+                            <<aXMLRef.Externe().ParamRotation().CodageMatr().Val().L3()<<endl;
+                        CalOrient(orientationRef, aSection[j].angle*PI/180, orientationSection, aAxeOrient);
                         //RotationParAxe(VecMouvement,0, orientationSection);
                         aXMLRef.Externe().ParamRotation().CodageMatr().Val().L1() = get_matrixLine(orientationSection,0);
                         aXMLRef.Externe().ParamRotation().CodageMatr().Val().L2() = get_matrixLine(orientationSection,1);
                         aXMLRef.Externe().ParamRotation().CodageMatr().Val().L3() = get_matrixLine(orientationSection,2);
+                        cout<<"Apres:\n    "<<aXMLRef.Externe().ParamRotation().CodageMatr().Val().L1()<<"\n    "
+                            <<aXMLRef.Externe().ParamRotation().CodageMatr().Val().L2()<<"\n    "
+                            <<aXMLRef.Externe().ParamRotation().CodageMatr().Val().L3()<<endl;
                         //calculate new vector mouvement of section
-                        VecMouvement = mult_vector(orientationSection, VecMouvement);
+                        cout<<"Vec mouv avant = "<<VecMouvement;
+                        //VecMouvement = mult_vector(orientationSection, VecMouvement);
+                        VecMouvement = CalDirectionVecMouvement(VecMouvement, aSection[j].angle*PI/180, aAxeOrient);
+                        cout<<" - apres = "<<VecMouvement<<endl;
+                        aXMLRef.Externe().Centre() = aXMLRef.Externe().Centre() + VecMouvement;
                         //initialize Linear new section
                         OrientationLinear(aSection[j].Poses, VecMouvement, aXMLRef, aOriOut);
                     }
