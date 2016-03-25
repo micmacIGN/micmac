@@ -468,9 +468,17 @@ class cRigidBlockWeighting
 
         double & PondOnRot();
         const double & PondOnRot()const ;
+
+        cTplValGesInit< double > & PondOnTrFinal();
+        const cTplValGesInit< double > & PondOnTrFinal()const ;
+
+        cTplValGesInit< double > & PondOnRotFinal();
+        const cTplValGesInit< double > & PondOnRotFinal()const ;
     private:
         double mPondOnTr;
         double mPondOnRot;
+        cTplValGesInit< double > mPondOnTrFinal;
+        cTplValGesInit< double > mPondOnRotFinal;
 };
 cElXMLTree * ToXMLTree(const cRigidBlockWeighting &);
 
@@ -786,6 +794,34 @@ std::string  Mangling( cSectionLevenbergMarkard *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_SigmaRot
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_SigmaRot & anObj,cElXMLTree * aTree);
+
+
+        double & Ang();
+        const double & Ang()const ;
+
+        double & Center();
+        const double & Center()const ;
+    private:
+        double mAng;
+        double mCenter;
+};
+cElXMLTree * ToXMLTree(const cXml_SigmaRot &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_SigmaRot &);
+
+void  BinaryUnDumpFromFile(cXml_SigmaRot &,ELISE_fp &);
+
+std::string  Mangling( cXml_SigmaRot *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cSetOrientationInterne
 {
     public:
@@ -894,6 +930,34 @@ void  BinaryDumpInFile(ELISE_fp &,const cXmlPondRegDist &);
 void  BinaryUnDumpFromFile(cXmlPondRegDist &,ELISE_fp &);
 
 std::string  Mangling( cXmlPondRegDist *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_EstimateOrientationInitBlockCamera
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_EstimateOrientationInitBlockCamera & anObj,cElXMLTree * aTree);
+
+
+        std::string & Id();
+        const std::string & Id()const ;
+
+        cTplValGesInit< bool > & Show();
+        const cTplValGesInit< bool > & Show()const ;
+    private:
+        std::string mId;
+        cTplValGesInit< bool > mShow;
+};
+cElXMLTree * ToXMLTree(const cXml_EstimateOrientationInitBlockCamera &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_EstimateOrientationInitBlockCamera &);
+
+void  BinaryUnDumpFromFile(cXml_EstimateOrientationInitBlockCamera &,ELISE_fp &);
+
+std::string  Mangling( cXml_EstimateOrientationInitBlockCamera *);
 
 /******************************************************/
 /******************************************************/
@@ -1748,6 +1812,31 @@ void  BinaryUnDumpFromFile(cCalibrationCameraInc &,ELISE_fp &);
 
 std::string  Mangling( cCalibrationCameraInc *);
 
+class cBlockGlobalBundle
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cBlockGlobalBundle & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< cXml_SigmaRot > & SigmaV0();
+        const cTplValGesInit< cXml_SigmaRot > & SigmaV0()const ;
+
+        cTplValGesInit< bool > & V0Stricte();
+        const cTplValGesInit< bool > & V0Stricte()const ;
+    private:
+        cTplValGesInit< cXml_SigmaRot > mSigmaV0;
+        cTplValGesInit< bool > mV0Stricte;
+};
+cElXMLTree * ToXMLTree(const cBlockGlobalBundle &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cBlockGlobalBundle &);
+
+void  BinaryUnDumpFromFile(cBlockGlobalBundle &,ELISE_fp &);
+
+std::string  Mangling( cBlockGlobalBundle *);
+
 class cUseForBundle
 {
     public:
@@ -1756,13 +1845,19 @@ class cUseForBundle
         friend void xml_init(cUseForBundle & anObj,cElXMLTree * aTree);
 
 
-        bool & GlobalBundle();
-        const bool & GlobalBundle()const ;
+        cTplValGesInit< cXml_SigmaRot > & SigmaV0();
+        const cTplValGesInit< cXml_SigmaRot > & SigmaV0()const ;
+
+        cTplValGesInit< bool > & V0Stricte();
+        const cTplValGesInit< bool > & V0Stricte()const ;
+
+        cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle();
+        const cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle()const ;
 
         bool & RelTimeBundle();
         const bool & RelTimeBundle()const ;
     private:
-        bool mGlobalBundle;
+        cTplValGesInit< cBlockGlobalBundle > mBlockGlobalBundle;
         bool mRelTimeBundle;
 };
 cElXMLTree * ToXMLTree(const cUseForBundle &);
@@ -1787,8 +1882,14 @@ class cBlockCamera
         cTplValGesInit< std::string > & Id();
         const cTplValGesInit< std::string > & Id()const ;
 
-        bool & GlobalBundle();
-        const bool & GlobalBundle()const ;
+        cTplValGesInit< cXml_SigmaRot > & SigmaV0();
+        const cTplValGesInit< cXml_SigmaRot > & SigmaV0()const ;
+
+        cTplValGesInit< bool > & V0Stricte();
+        const cTplValGesInit< bool > & V0Stricte()const ;
+
+        cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle();
+        const cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle()const ;
 
         bool & RelTimeBundle();
         const bool & RelTimeBundle()const ;
@@ -3657,31 +3758,6 @@ void  BinaryUnDumpFromFile(cBlocBascule &,ELISE_fp &);
 
 std::string  Mangling( cBlocBascule *);
 
-class cEstimateOrientationInitBlockCamera
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cEstimateOrientationInitBlockCamera & anObj,cElXMLTree * aTree);
-
-
-        std::string & Id();
-        const std::string & Id()const ;
-
-        cTplValGesInit< bool > & Show();
-        const cTplValGesInit< bool > & Show()const ;
-    private:
-        std::string mId;
-        cTplValGesInit< bool > mShow;
-};
-cElXMLTree * ToXMLTree(const cEstimateOrientationInitBlockCamera &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cEstimateOrientationInitBlockCamera &);
-
-void  BinaryUnDumpFromFile(cEstimateOrientationInitBlockCamera &,ELISE_fp &);
-
-std::string  Mangling( cEstimateOrientationInitBlockCamera *);
-
 class cMesureErreurTournante
 {
     public:
@@ -4338,8 +4414,8 @@ class cIterationsCompensation
         cTplValGesInit< cBlocBascule > & BlocBascule();
         const cTplValGesInit< cBlocBascule > & BlocBascule()const ;
 
-        std::list< cEstimateOrientationInitBlockCamera > & EstimateOrientationInitBlockCamera();
-        const std::list< cEstimateOrientationInitBlockCamera > & EstimateOrientationInitBlockCamera()const ;
+        std::list< cXml_EstimateOrientationInitBlockCamera > & EstimateOrientationInitBlockCamera();
+        const std::list< cXml_EstimateOrientationInitBlockCamera > & EstimateOrientationInitBlockCamera()const ;
 
         int & Periode();
         const int & Periode()const ;
@@ -4410,7 +4486,7 @@ class cIterationsCompensation
         cTplValGesInit< cFixeOrientPlane > mFixeOrientPlane;
         cTplValGesInit< std::string > mBasicOrPl;
         cTplValGesInit< cBlocBascule > mBlocBascule;
-        std::list< cEstimateOrientationInitBlockCamera > mEstimateOrientationInitBlockCamera;
+        std::list< cXml_EstimateOrientationInitBlockCamera > mEstimateOrientationInitBlockCamera;
         cTplValGesInit< cMesureErreurTournante > mMesureErreurTournante;
         cTplValGesInit< cSectionContraintes > mSectionContraintes;
         std::list< std::string > mMessages;
@@ -5415,9 +5491,13 @@ class cExportBlockCamera
 
         std::string & NameFile();
         const std::string & NameFile()const ;
+
+        cTplValGesInit< cXml_EstimateOrientationInitBlockCamera > & Estimate();
+        const cTplValGesInit< cXml_EstimateOrientationInitBlockCamera > & Estimate()const ;
     private:
         std::string mId;
         std::string mNameFile;
+        cTplValGesInit< cXml_EstimateOrientationInitBlockCamera > mEstimate;
 };
 cElXMLTree * ToXMLTree(const cExportBlockCamera &);
 

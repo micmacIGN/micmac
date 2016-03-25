@@ -2161,6 +2161,14 @@ class cAppliApero : public NROptF1vND
 
        bool   UsePdsCalib();
        const cXmlPondRegDist * CurXmlPondRegDist();
+
+       int      NbIterDone() const;
+       int      NbIterTot()  const;
+       double   PdsAvIter()  const;
+       double   MoyGeomPdsIter(const double & aPds0, const double &  aPds1) const;
+       double   MoyGeomPdsIter(const double & aPds0, const cTplValGesInit<double> &  aPds1) const;
+       double   RBW_PdsTr(const cRigidBlockWeighting  &) const;
+       double   RBW_PdsRot(const cRigidBlockWeighting &) const;
     private :
 
        void SetPdsRegDist(const cXmlPondRegDist *);
@@ -2278,7 +2286,7 @@ class cAppliApero : public NROptF1vND
           void VerifAero(const cVerifAero & aVA,cPoseCam *,cObsLiaisonMultiple  &);
 
           void InitBlockCameras();
-          void EstimateOIBC(const cEstimateOrientationInitBlockCamera &);
+          void EstimateOIBC(const cXml_EstimateOrientationInitBlockCamera &);
           cImplemBlockCam * GetBlockCam(const std::string & anId);
 
           void InitFilters();
@@ -2336,6 +2344,7 @@ class cAppliApero : public NROptF1vND
 
 
 	void ActiveContraintes(bool Stricte);
+        void BlocContraintes(bool Stricte);
 	// void ActiveContraintesCalib();
 	// void ActiveContraintesPose();
 
@@ -2564,6 +2573,7 @@ class cAppliApero : public NROptF1vND
         cShowPbLiaison *                    mCurPbLiaison;
         int                                 mNbEtape;
         int                                 mNbIterDone;
+        int                                 mNbIterTot;
 
         std::vector<Pt3dr>                  mResiduCentre;
         std::vector<double>                 mRetardGpsC;

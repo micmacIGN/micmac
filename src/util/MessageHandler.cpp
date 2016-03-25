@@ -13,6 +13,18 @@ ListMessageHandler::~ListMessageHandler()
 }
 
 //----------------------------------------------------------------------
+// OStreamMessageHandler methods
+//----------------------------------------------------------------------
+
+void OStreamMessageHandler::add( const Message &i_message )
+{
+	m_stream << m_prefix << i_message.toString() << std::endl;
+	if (m_action==NOTHING) return;
+	else if (m_action==EXIT) exit(m_exitCode);
+	else if (m_action==CIN_GET) std::cin.get();
+}
+
+//----------------------------------------------------------------------
 // related functions
 //----------------------------------------------------------------------
 

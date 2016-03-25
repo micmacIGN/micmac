@@ -17,6 +17,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/kugelhupf.cpp
 	${TDPPMD_DIR}/SimplePredict.cpp
 	${TDPPMD_DIR}/cPseudoIntersect.cpp
+	${TDPPMD_DIR}/schnaps.cpp
 	${TDPPMD_DIR}/Export2Ply.cpp
 	${TDPPMD_DIR}/ScaleModel.cpp
 	${TDPPMD_DIR}/ImageSimpleProjection.cpp
@@ -29,6 +30,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/ConvertRtk.cpp
     ${TDPPMD_DIR}/MatchCenters.cpp
     ${TDPPMD_DIR}/rnx2rtkp.cpp
+    ${TDPPMD_DIR}/CPP_GPS_txt2Xml.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

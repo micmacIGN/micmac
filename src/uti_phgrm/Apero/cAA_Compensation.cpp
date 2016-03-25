@@ -362,6 +362,8 @@ void cAppliApero::ActiveContraintes(bool Stricte)
     {
         itD->second->ActiveContrainte(Stricte);
     }
+
+    BlocContraintes(Stricte);
 }
 
 #define TheUninitScoreLambda -1e30
@@ -521,7 +523,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
 
     for 
     (
-        std::list<cEstimateOrientationInitBlockCamera>::const_iterator itE= anIter.EstimateOrientationInitBlockCamera().begin();
+        std::list<cXml_EstimateOrientationInitBlockCamera>::const_iterator itE= anIter.EstimateOrientationInitBlockCamera().begin();
         itE != anIter.EstimateOrientationInitBlockCamera().end();
         itE++
     )
@@ -929,6 +931,24 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC,bool L
     InitLVM(mCurSLMEtape,anEC.SLMEtape(),mMulSLMEtape,anEC.MultSLMEtape());
 
     mNbIterDone =0;
+    mNbIterTot = 0;
+
+    for (int aK=0 ; aK<int(anEC.IterationsCompensation().size()) ; aK++)
+    {
+	const cIterationsCompensation &  anIter  = anEC.IterationsCompensation()[aK];
+        const cCtrlTimeCompens * aCtrl = anIter.CtrlTimeCompens().PtrVal();
+        if (aCtrl)
+        {
+            mNbIterTot += aCtrl->NbMax()  +1 ;
+        }
+        else
+        {
+            mNbIterTot ++;
+        }
+    }
+
+
+
     for (int aK=0 ; aK<int(anEC.IterationsCompensation().size()) ; aK++)
     {
         bool kIterLast = (aK==((int)anEC.IterationsCompensation().size()-1));

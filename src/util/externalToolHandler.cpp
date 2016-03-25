@@ -278,17 +278,17 @@ int CheckDependencies_main(int argc,char ** argv)
 
 			const string instructionSet = (sizeof(void *) == 8 ? "amd64" : "x86");
 			
-			cout << os << '_' << instructionSet << '_' << "rev" << __HG_REV__ << endl;
+			cout << os << '_' << instructionSet << '_' << "rev" << mercurialRevision() << endl;
 			return EXIT_SUCCESS;
 		}
 		if (arg1 == "rev")
 		{
-			cout << __HG_REV__ << endl;
+			cout << mercurialRevision() << endl;
 			return EXIT_SUCCESS;
 		}
 	}
 
-	cout << "mercurial revision : " << __HG_REV__ << endl;
+	cout << "mercurial revision : " << mercurialRevision() << endl;
 	cout << endl;
 	cout << "byte order   : " << ( MSBF_PROCESSOR()?"big-endian":"little-endian" ) << endl;
 	cout << "address size : " << sizeof(int*)*8 << " bits" << endl;

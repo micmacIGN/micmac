@@ -178,7 +178,7 @@ int rnx2rtkp_main(int argc,char ** argv)
 {
 	std::string aDir, aMode, aFileR, aFileB, aFileN, aFileG, aFileP, aFileA;
 	std::string aOut, aXmlOut;
-	
+	std::string aStrChSys;
 	std::string aFreq="l1";
 	std::string aSolType="combined";
 	int aElMask=15;
@@ -258,9 +258,10 @@ int rnx2rtkp_main(int argc,char ** argv)
 					 << EAMC(aMode,"Positionning mode",eSAM_None,ListOfVal(eNbTypeGpsMod))
 					 << EAMC(aFileR,"Rinex file of rover station",  eSAM_IsExistFile)
 					 << EAMC(aFileB,"Rinex file of base station ; NONE if single or PPP pos mode", eSAM_IsExistFile)
-					 << EAMC(aFileN,"Navigation file for GPS stellites ephemerides", eSAM_IsExistFile),
+					 << EAMC(aFileN,"Navigation file for GPS satellites ephemerides", eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"output txt file name ; Def = Output_mode.txt", eSAM_IsOutputFile)
 					 << EAM(aXmlOut,"Xml",true,"output xml Gps Trajectory file ; Def = Output_mode.xml", eSAM_IsBool)
+					 << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
 					 << EAM(aFreq,"Freq",true,"Freq to be used ; Def = l1",eSAM_None,ListOfVal(eNbTypeGpsFreq))
 					 << EAM(aSolType,"SolStrg",true,"Filter strategy ; Def = combined",eSAM_None,ListOfVal(eNbTypeGpsSol))
 					 << EAM(aElMask,"ElevMask",true,"Elevation mask ; Def = 15 deg")
@@ -270,6 +271,7 @@ int rnx2rtkp_main(int argc,char ** argv)
 					 << EAM(aTropo,"Tropo",true,"Tropospheric correction ; Def = saas", eSAM_None,ListOfVal(eNbTypeGpsTropoCorr))
 					 << EAM(aEph,"Ephe",true,"Satellites Ephemerides ; Def = brdc", eSAM_None,ListOfVal(eNbTypeGpsEphe))
 					 << EAM(aNavSys,"NavSys",true,"Navigation system ; Def = 1 <==> GPS")
+					 << EAM(aFileG,"GloNavFile",true,"Navigation file for Glonass satellites ephemerides", eSAM_IsExistFile)
 					 << EAM(aAmbRes,"AmbRes",true,"Ambiguity resolution strategy ; Def = fix-and-hold", eSAM_None,ListOfVal(eNbTypeGpsAmbRes))
 					 << EAM(aAmbResGlo,"AmResGlo",true,"Ambiguity resolution for Glonass ; Def = off", eSAM_None,ListOfVal(eNbTypeGloAmbRes))
 					 << EAM(aAmbResTh,"AmResTh",true,"Ambiguity resolution ratio ; Def = 3")
@@ -501,7 +503,7 @@ int rnx2rtkp_main(int argc,char ** argv)
 		aAnt1PosType = "single";
 	
 	eTypeGpsAntPos typeA2P;
-	StdReadEnum(help,typeA2P,aAnt1PosType,eNbGpsAntPos);
+	StdReadEnum(help,typeA2P,aAnt2PosType,eNbGpsAntPos);
 	
 	//correction for "ant2-postype"
 	if(aAnt2PosType == "LLH")
@@ -514,6 +516,31 @@ int rnx2rtkp_main(int argc,char ** argv)
 	//correction for "ant2-postype"
 	if(aAnt2PosType == "code")
 		aAnt2PosType = "single";
+		
+	//****************************************************************//
+	//if a station file is given
+	if(aStaPosFile != "")
+	{
+		//read the .xml file : one position only
+		cDicoGpsFlottant aStationFile =  StdGetFromPCP(aStaPosFile,DicoGpsFlottant);
+				
+		if(aStationFile.OneGpsDGF().size() != 1)
+		{
+			ELISE_ASSERT(0,"Your station file does not containe a unique position");
+		}
+		else
+		{
+			std::list <cOneGpsDGF> & aVPS = aStationFile.OneGpsDGF();
+			for(std::list<cOneGpsDGF>::iterator iT=aVPS.begin(); iT!=aVPS.end(); iT++)
+			{
+				aAnt2Pos.x = iT->Pt().x;
+				aAnt2Pos.y = iT->Pt().y;
+				aAnt2Pos.z = iT->Pt().z;
+			}
+		}
+		
+		//give coordinates
+	}
 	
      
     if (!MMVisualMode)
@@ -618,7 +645,7 @@ int rnx2rtkp_main(int argc,char ** argv)
 		fprintf(aFP,"misc-sbasatsel=0\n");
 		fprintf(aFP,"file-rcvantfile=%s\n",aRcvAntFile.c_str());
 		fprintf(aFP,"file-satantfile=%s\n",aRcvAntFile.c_str());
-		fprintf(aFP,"file-staposfile=%s\n",aStaPosFile.c_str());
+		fprintf(aFP,"file-staposfile=\n");
 		fprintf(aFP,"file-geoidfile=%s\n",aGeoidFile.c_str());
 		fprintf(aFP,"file-ionofile=%s\n",aIonoFile.c_str());
 		fprintf(aFP,"file-dcbfile=%s\n",aDcbFile.c_str());
@@ -633,7 +660,7 @@ int rnx2rtkp_main(int argc,char ** argv)
 	}
     
     //lanch gps processing
-    std::string aCom0, aCom1, aCom2;
+    std::string aCom, aCom1;
 	if (aOut == "")
     {
 		aOut = "Output_" + aMode + ".txt";
@@ -642,33 +669,44 @@ int rnx2rtkp_main(int argc,char ** argv)
     //if mode is single/ppp-kine/ppp-static no need of base station
     if(aMode == "single" || aMode == "ppp-static" || aMode == "ppp-kine")
     {
-		aCom0 = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
-		        + " " + aFileR
-		        + " " + aFileN
+		aCom = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
+		        + std::string(" ") + aFileR
+		        + std::string(" ") + aFileN
 		        + string(" -o ")
 		        + aOut
 		        + string(" -k ")
 		        + aOutRtkParam;
-		        
-		std::cout << "aCom = " << aCom0 << std::endl;
-		system_call(aCom0.c_str());
 	}
-	
-	//if Ephe are precises, need to add it
-	//~ if(aEph == "precise")
-    
-    aCom1 = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
-            + " " + aFileR 
-            + " " + aFileB 
-            + " " + aFileN 
+	else if((aNavSys == 5) && (aFileG == ""))							//if Glonass satellites are used
+	{
+		ELISE_ASSERT(0,"No Glonass Navigation file given");
+	}
+	else if((aNavSys == 5) && (aFileG != ""))
+	{
+		aCom = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
+				+ std::string(" ") + aFileR
+				+ std::string(" ") + aFileB
+				+ std::string(" ") + aFileN
+				+ std::string(" ") + aFileG
+				+ string(" -o ")
+				+ aOut
+				+ string(" -k ")
+				+ aOutRtkParam;
+	}
+    else
+    {
+		aCom = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
+            + std::string(" ") + aFileR 
+            + std::string(" ") + aFileB 
+            + std::string(" ") + aFileN 
             + string(" -o ") 
             + aOut 
             + string(" -k ")
             + aOutRtkParam;
-            
-     std::cout << "aCom = " << aCom1 << std::endl;
-     
-     system_call(aCom1.c_str());
+	}
+	
+	std::cout << "aCom = " << aCom << std::endl;
+    system_call(aCom.c_str());
      
      //lanch conversion to .xml Gps Trajectory format
      if (aXmlOut == "")
@@ -676,15 +714,28 @@ int rnx2rtkp_main(int argc,char ** argv)
 		 aXmlOut = "Output_" + aMode + ".xml";
 	 }
 	 
-	 aCom2 = MMDir() 
-	         + std::string("bin/mm3d ")
-	         + "TestLib ConvRTK "
-	         + aDir + std::string(" ")
-	         + aOut;
-	         
-	 std::cout << "aCom = " << aCom2 << std::endl;
+	 //dealing with changing system
+	 if(aStrChSys == "")
+	 {
+		aCom1 = MMDir() 
+				+ std::string("bin/mm3d ")
+				+ "TestLib ConvRTK "
+				+ aDir + std::string(" ")
+				+ aOut;
+	 }
+	 else
+	 {
+		aCom1 = MMDir() 
+				+ std::string("bin/mm3d ")
+				+ "TestLib ConvRTK "
+				+ aDir + std::string(" ")
+				+ aOut + std::string(" ")
+				+ std::string("ChSys=")
+				+ aStrChSys;
+	 }
 	 
-	 system_call(aCom2.c_str());
+	 std::cout << "aCom = " << aCom1 << std::endl;
+	 system_call(aCom1.c_str());
     
    	return EXIT_SUCCESS;
 }

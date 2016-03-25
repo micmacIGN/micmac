@@ -22858,6 +22858,17 @@ const int & cXml_ParamSubcommandTiepRed::NumInit()const
 }
 
 
+int & cXml_ParamSubcommandTiepRed::NumSubcommands()
+{
+   return mNumSubcommands;
+}
+
+const int & cXml_ParamSubcommandTiepRed::NumSubcommands()const 
+{
+   return mNumSubcommands;
+}
+
+
 std::vector< std::string > & cXml_ParamSubcommandTiepRed::Images()
 {
    return mImages;
@@ -22871,6 +22882,7 @@ const std::vector< std::string > & cXml_ParamSubcommandTiepRed::Images()const
 void  BinaryUnDumpFromFile(cXml_ParamSubcommandTiepRed & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NumInit(),aFp);
+    BinaryUnDumpFromFile(anObj.NumSubcommands(),aFp);
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
@@ -22885,6 +22897,7 @@ void  BinaryUnDumpFromFile(cXml_ParamSubcommandTiepRed & anObj,ELISE_fp & aFp)
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamSubcommandTiepRed & anObj)
 {
     BinaryDumpInFile(aFp,anObj.NumInit());
+    BinaryDumpInFile(aFp,anObj.NumSubcommands());
     BinaryDumpInFile(aFp,(int)anObj.Images().size());
     for(  std::vector< std::string >::const_iterator iT=anObj.Images().begin();
          iT!=anObj.Images().end();
@@ -22898,6 +22911,7 @@ cElXMLTree * ToXMLTree(const cXml_ParamSubcommandTiepRed & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ParamSubcommandTiepRed",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("NumInit"),anObj.NumInit())->ReTagThis("NumInit"));
+   aRes->AddFils(::ToXMLTree(std::string("NumSubcommands"),anObj.NumSubcommands())->ReTagThis("NumSubcommands"));
   for
   (       std::vector< std::string >::const_iterator it=anObj.Images().begin();
       it !=anObj.Images().end();
@@ -22916,9 +22930,11 @@ void xml_init(cXml_ParamSubcommandTiepRed & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NumInit(),aTree->Get("NumInit",1)); //tototo 
 
+   xml_init(anObj.NumSubcommands(),aTree->Get("NumSubcommands",1)); //tototo 
+
    xml_init(anObj.Images(),aTree->GetAll("Images",false,1));
 }
 
-std::string  Mangling( cXml_ParamSubcommandTiepRed *) {return "B619FE02944CF7F5FE3F";};
+std::string  Mangling( cXml_ParamSubcommandTiepRed *) {return "A87B77FF69EB11FDFB3F";};
 
 // };
