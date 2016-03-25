@@ -202,6 +202,7 @@ extern int TestElParseDir_main(int , char **);
 extern int Kugelhupf_main(int , char **);
 extern int FFTKugelhupf_main(int , char **);
 extern int SimplePredict_main(int , char **);
+extern int schnaps_main(int , char **);
 extern int SimpleFusionCarte_main(int , char **);
 
 
@@ -231,18 +232,20 @@ int  Apero2NVM_main(int argc,char ** argv);
 
 int Vino_Main(int argc, char ** argv);
 int XifGps2Txt_main(int argc,char ** argv);
-int TestOscarTieP_main(int argc,char **argv) ;
+int RedTieP_main(int argc,char **argv) ;
 int OriRedTie_main(int argc,char **argv) ;
 int HomFusionPDVUnik_main(int argc,char **argv) ;
 int TestDistM2C_main(int argc,char ** argv);
 
+int Blinis_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-       aRes.push_back(cMMCom("TestOscar",TestOscarTieP_main,"Test tie points filtering "));
+       aRes.push_back(cMMCom("Blinis",Blinis_main,"Block Initialisation ",cArgLogCom(2)));
+       aRes.push_back(cMMCom("RedTieP",RedTieP_main,"Test tie points filtering "));
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
@@ -273,6 +276,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
        aRes.push_back(cMMCom("FFTKugelhupf",FFTKugelhupf_main," Version of Kugelhupf using FFT, expecetd faster when it works (if ever ...)"));
        aRes.push_back(cMMCom("SimplePredict",SimplePredict_main," Project ground points on oriented cameras"));
+       aRes.push_back(cMMCom("Schnaps",schnaps_main," Reduction of homologue points in image geometry"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));
@@ -556,7 +560,7 @@ int ConvertRtk_main(int argc,char ** argv);
 int MatchCenters_main( int argc,char ** argv);
 int Panache_main(int argc,char ** argv);
 int rnx2rtkp_main(int argc,char ** argv);
-
+int GPS_Txt2Xml_main(int argc,char ** argv);
 int  CheckOri_main(int argc,char ** argv);
 int  NLD_main(int argc,char ** argv);
 int  ResToTxt_main(int argc,char ** argv);
@@ -652,6 +656,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
 
+
        aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
        aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
        aRes.push_back(cMMCom("TD_GenApp",TD_GenereAppuis_main,"TD Generate GCP"));
@@ -679,6 +684,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("ConvRtk",ConvertRtk_main,"Tool to extract X_Y_Z_Ix_Iy_Iz from Rtklib output file",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("MatchCenters",MatchCenters_main,"Tool to match Gps positions and Camera Centers",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("GpsProc",rnx2rtkp_main,"Tool using rnx2rtkp from RTKlib to do GNSS processing",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));

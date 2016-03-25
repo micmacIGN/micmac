@@ -1649,6 +1649,8 @@ inline char toS(const T &v)
 	return (v < 2 ? '\0' : 's');
 }
 
+std::string mercurialRevision();
+
 #endif /* ! _ELISE_UTIL_H */
 
 

@@ -42,3 +42,6 @@ once you've added your class to the xml class you need to execute this command (
 make -f Makefile-XML2CPP  all
 
 it will generate all the necessary c++ definitions & declarations;
+
+
+

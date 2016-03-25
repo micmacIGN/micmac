@@ -64,7 +64,6 @@ class cOrientationConique;
 using namespace std;
 
 
-#include "general/HG_defines.h"
 #include "general/sys_dep.h"
 #include "general/opt_debug.h"
 #include "general/allocation.h"

@@ -54,7 +54,6 @@ extern bool BugDG;
 #endif
 */
 
-#include  "general/HG_defines.h"
 #include "general/sys_dep.h"
 
 

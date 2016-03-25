@@ -269,8 +269,6 @@ int Export2Ply_main(int argc,char ** argv)
     for(u_int i=0; i<aPoints.size(); i++)
         std::cout << aPoints.at(i) << std::endl;
 
-    std::cout << "**************debut*******************" << std::endl;
-
     //if we want to change color each "aDiffColor" time
     int aMinValue = 0;
     int aMaxValue = 255;
@@ -302,8 +300,6 @@ int Export2Ply_main(int argc,char ** argv)
             }
         }
     }
-
-    std::cout << "**************debut*******************" << std::endl;
 
     // if we want a sphere per point
     if(aRay > 0)

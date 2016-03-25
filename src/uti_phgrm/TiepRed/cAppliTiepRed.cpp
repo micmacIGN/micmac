@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepRed.h"
 
+#if (!BUG_PUSH_XML_TIEP)
+
+
 bool cmpStringDesc(const pair<std::string, int>  &p1, const pair<std::string, int> &p2)
 {
     return p1.first > p2.first;
@@ -96,6 +99,9 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
 		mImagesNames = &(mXmlParamSubcommand.Images());
 		// Get the initital number of tie-points that the master image had before any subcommand was executed
 		mNumInit = mXmlParamSubcommand.NumInit();
+		int numSubcommands = mXmlParamSubcommand.NumSubcommands();
+
+		std::cout << "=======================   KSubcommand=" << mSubcommandIndex << "/" << numSubcommands << "  ===================\n";
 	}
 	else {
 		// This is the parent. We get the list of images from the pattern provided by the user
@@ -247,6 +253,7 @@ void cAppliTiepRed::GenerateSubcommands(){
 		std::vector<int> relatedSubcommandsIndexes; // Create the list of related subcommands (commands that use as master images images used in the current subcommand)
 
 		aParamSubcommand.NumInit() = imagesNumPointsMap[masterImageName];
+		aParamSubcommand.NumSubcommands() = static_cast<int>(imagesNumPointsVP.size());
 		aParamSubcommand.Images().push_back(masterImageName); // Add master image to config
 		relatedSubcommandsIndexes.push_back(static_cast<int>(imageIndex)); // Add the index of the current subcommand
 
@@ -285,11 +292,20 @@ void  cAppliTiepRed::Exe()
 
 
 
-int TestOscarTieP_main(int argc,char **argv){
+int RedTieP_main(int argc,char **argv)
+{
 	cAppliTiepRed * anAppli = new cAppliTiepRed(argc,argv);
 	anAppli->Exe();
 	return EXIT_SUCCESS;
 }
+#else
+int RedTieP_main(int argc,char **argv)
+{
+   return EXIT_SUCCESS;
+}
+
+
+#endif
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

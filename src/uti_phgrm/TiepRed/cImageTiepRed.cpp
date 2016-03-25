@@ -38,6 +38,8 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepRed.h"
+#if (!BUG_PUSH_XML_TIEP)
+
 
 /**********************************************************************/
 /*                                                                    */
@@ -83,6 +85,7 @@ const bool & cImageTiepRed::ImageBeenMaster() const
    return mImageBeenMaster;
 }
 
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -380,8 +380,8 @@ set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
 
 set( HG_REVISION_DIST \"${HG_REVISION_DIST}\" )
 CONFIGURE_FILE (
-	"include/general/HG_defines.h.in"
-	"${CMAKE_SOURCE_DIR}/include/general/HG_defines.h"
+	"src/util/HG_defines.cpp.in"
+	"${CMAKE_SOURCE_DIR}/src/util/HG_defines.cpp"
 )
 
 CONFIGURE_FILE (

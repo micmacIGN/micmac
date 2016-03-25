@@ -72,8 +72,8 @@ private :
     std::vector<aSolution> Trie(int nbr_sol);
     std::string mDir;
     std::string mPat;
-    std::string nom_dir ;
-    std::string fich_GPS ;
+    std::string aOri ;
+    std::string aGpsFile ;
     int nbr_sol;
     double nbr;
     std::list<std::string>files;
@@ -91,6 +91,7 @@ private :
     int duree;
     int dt_max;
     std::string aOut;
+    std::string aDir;
 
 };
 
@@ -98,14 +99,16 @@ private :
 S_Appli::S_Appli(int argc, char ** argv )
 {
     nbr=0;
+    
     ElInitArgMain
     (
 
         argc,argv,
-        LArgMain()	<<EAMC(nom_dir,"nom du dossier d'orientation")
-					<<EAMC(fich_GPS,"nom du fichier xml des points GPS")                  //EAMC means mandatory argument
-					<<EAMC(mFullName,"mFullNameerne des images"),
-        LArgMain()	<<EAM(nbr,"nbr",true,"nombre des meilleures solutions à afficher")   //EAM means optionnal argument
+        LArgMain()	<<EAMC(aDir,"Directory")
+					<<EAMC(aOri,"Orientations directory")
+					<<EAMC(aGpsFile,"Gps .xml file of trajectory")
+					<<EAMC(mFullName,"Pattern of images"),
+        LArgMain()	<<EAM(nbr,"nbr",true,"Number of best solutions to display")
 					<<EAM(aOut,"Out",true,"output file")
     );
     
@@ -114,7 +117,7 @@ S_Appli::S_Appli(int argc, char ** argv )
     //name output .xml file
     if (aOut=="")
     {
-		aOut = "Ori-" + StdPrefixGen(fich_GPS) + ".txt";
+		aOut = "Ori-" + StdPrefixGen(aGpsFile) + ".txt";
     }
 
 	SplitDirAndFile(mDir, mPat, mFullName);
@@ -139,7 +142,7 @@ S_Appli::S_Appli(int argc, char ** argv )
     {
 
         nbr_sol=nbr_i;        
-        if(fich_GPS.compare(fich_GPS.size()-3,3,"xml") == 0)        //test si l'extension du fichier GPS est .xml?
+        if(aGpsFile.compare(aGpsFile.size()-3,3,"xml") == 0)        	//test si l'extension du fichier GPS est .xml?
         {
 
             ShowGPS();		   //creation de la listes des points GPS à partir du fichier Xml en argument
@@ -194,9 +197,9 @@ S_Appli::S_Appli(int argc, char ** argv )
 //ShowGPS() retourne aGPSListe (la liste des coordonnées des points GPS à partir du fichier xml)
 void S_Appli::ShowGPS()  
 {
-    cDicoAppuisFlottant aDico= StdGetFromPCP(fich_GPS,DicoAppuisFlottant) ;
-    std::list<cOneAppuisDAF> &GPS=aDico.OneAppuisDAF();
-    for(std::list<cOneAppuisDAF>::iterator IT=GPS.begin();IT!=GPS.end();IT++)
+    cDicoGpsFlottant aDico =  StdGetFromPCP(aGpsFile,DicoGpsFlottant);
+    std::list<cOneGpsDGF> &GPS = aDico.OneGpsDGF();
+    for(std::list<cOneGpsDGF>::iterator IT=GPS.begin();IT!=GPS.end();IT++)
     {
         aGPSList.push_back(IT->Pt());        
      }
@@ -207,7 +210,7 @@ void S_Appli::ShowGPS()
 //ShowGPS_RTK() retourne aGPSListe (la liste des coordonnées des points GPS à partir du fichier RTKLib)
 void S_Appli::ShowGPS_RTK()  
 {
-    ifstream fichier(fich_GPS.c_str());  		//déclaration du flux et ouverture du fichier
+    ifstream fichier(aGpsFile.c_str());  		//déclaration du flux et ouverture du fichier
 
             if(fichier)  						// si l'ouverture a réussi
             {
@@ -282,13 +285,13 @@ void S_Appli::ShowGPS_RTK()
 void S_Appli::ShowSommet()       
 {    
     string new_mFullName="Orientation-*.*xml";
-    ManC=cInterfChantierNameManipulateur::BasicAlloc(nom_dir);
+    ManC=cInterfChantierNameManipulateur::BasicAlloc(aOri);
     files=ManC->StdGetListOfFile(new_mFullName);
     for(std::list<std::string>::iterator I=files.begin();I!=files.end();I++)
     {	
         //std::cout << "*I1 =" << *I << std::endl;
         aNameList.push_back(*I);
-        cOrientationConique aOriConique=StdGetFromPCP(nom_dir+"/"+*I,OrientationConique);        
+        cOrientationConique aOriConique=StdGetFromPCP(aOri+"/"+*I,OrientationConique);        
         aSomList.push_back(aOriConique.Externe().Centre());
     }
     
