@@ -763,6 +763,7 @@ int SampleLibElise_main(int argc, char ** argv)
 }
 
 //SateLib declarations
+extern int RecalRPC_main(int argc, char ** argv);
 extern int RPC_main(int argc, char ** argv);
 extern int NewRefineModel_main(int argc, char **argv);
 extern int RefineModel_main(int argc, char **argv);
@@ -782,6 +783,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 {
     static std::vector<cMMCom> aRes;
 
+    aRes.push_back(cMMCom("RecalRPC", RecalRPC_main, "Recalculate the adjusted RPCs back to geodetic coordinate system"));
     aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcoming RPC functions"));
     aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
     aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));

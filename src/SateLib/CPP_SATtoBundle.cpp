@@ -94,6 +94,25 @@ cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
 }
 
 
+int Recal_RPC_main(int argc,char ** argv)
+{
+    std::string aFullName, aPat, aDir;
+
+    ElInitArgMain
+    (
+         argc, argv,
+         LArgMain() << EAMC(aFullName,"File name of the RPC in XML_RPC format", eSAM_IsExistFile),
+	   LArgMain() 
+    );		      
+    
+    SplitDirAndFile(aDir, aPat, aFullName);
+
+    cRPC::Save2XmlStdMMName(aPat);
+
+    
+    return EXIT_SUCCESS;
+}
+
 int SATtoBundle_main(int argc,char ** argv)
 {
 
