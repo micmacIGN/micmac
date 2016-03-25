@@ -171,6 +171,7 @@ void cAppliXeres::FusionneHom(const std::vector<cAppliXeres *> aVAppli,const std
 
      for (int aKC1=0 ; aKC1<aNbCam ; aKC1++)
      {
+         std::cout << "RESTE " << (aNbCam-aKC1) << " Cam to do \n";
          for (int aKC2=0 ; aKC2< aNbCam ; aKC2++)
          {
                ElPackHomologue aRes;
