@@ -168,6 +168,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       double       mDefCor;
       double       mZReg;
       bool	   mExpTxt;
+      bool	   mExpImSec;
       bool mSuprImNoMasq;
       std::string mPIMsDirName;
 };
@@ -769,12 +770,13 @@ void cAppliWithSetImage::AddDelaunayCple()
 
 }
 
-void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bool AddCple,bool ExpTxt=false)
+void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bool AddCple,bool ExpTxt,bool ExpImSec)
 {
       std::string aCom = MMDir() + "bin/mm3d AperoChImSecMM "
                          + BLANK + QUOTE(mEASF.mFullName)
                          + BLANK + mOri
-			 + BLANK + "ExpTxt=" + ToString(ExpTxt);
+			 + BLANK + "ExpTxt=" + ToString(ExpTxt)
+			 + BLANK + "ExpImSec=" + ToString(ExpImSec);
 	 
       if (mPenPerIm>0)
       {
@@ -1270,7 +1272,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mUseGpu        (false),
     mDefCor        (0.5),
     mZReg          (0.05),
-    mExpTxt       (false),
+    mExpTxt        (false),
+    mExpImSec      (true),
     mSuprImNoMasq  (false),
     mPIMsDirName   ("Statue") // used in MMEnvStatute for differenciating PIMs-Forest from PIMs-Statue
 
@@ -1383,6 +1386,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mDefCor,"DefCor",false,"Def corr (context condepend 0.5 Statue, 0.2 Forest)")
                     << EAM(mZReg,"ZReg",true,"Z Regul (context condepend,  0.05 Statue, 0.02 Forest)")
    		    << EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for determining image pairs and/or computing epipolar geometry (Def false, e.g. use dat format)")
+   		    << EAM(mExpImSec,"ExpImSec",false,"Export ImSec def=true (put false if set elsewhere)")
 
   );
 
@@ -1433,7 +1437,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
          AddDelaunayCple();
       if (mRunAperoImSec)
       {
-         AddCoupleMMImSec(BoolFind(mDo,'A'),mSuprImNoMasq,mAddCpleImSec,mExpTxt);
+         AddCoupleMMImSec(BoolFind(mDo,'A'),mSuprImNoMasq,mAddCpleImSec,mExpTxt,mExpImSec);
       }
 
       if (EAMIsInit(&mFilePair))
