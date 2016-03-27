@@ -123,12 +123,13 @@ class cImage_LumRas
        Tiff_Im          mTiffIm;
        Im2D_REAL4       mImShade;
        Im2D_U_INT2      mIm;
+        
 
        Fonc_Num         FMoy(int aKIter,int aSzW,Fonc_Num);
        Fonc_Num         FLoc(int aKIter,int aSzW,Im2D_U_INT2);
        Fonc_Num         MoyGlobImage(Fonc_Num aF);
        // Fonc_Num         MoyByCC(Fonc_Num aF);
-       void CalculShadeByDiff();
+       void CalculShadeByDiff(int aNbIter,int aSzW);
 };
 
 class cAppli_LumRas : cAppliWithSetImage
@@ -150,6 +151,8 @@ class cAppli_LumRas : cAppliWithSetImage
        Pt2di                        mSz;
        Im2D_Bits<1>                 mImMasq;
        std::string                  mNameTargSh;
+       int                          mSzW;
+       int                          mNbIter;
 
 };
 
@@ -162,9 +165,9 @@ class cAppli_LumRas : cAppliWithSetImage
 
 Fonc_Num   cImage_LumRas::FMoy(int aNbIter,int aSzW,Fonc_Num aF)
 {
-   Fonc_Num aRes = aF;
+   Fonc_Num aRes = Rconv(aF);
    for (int aK=0 ; aK<aNbIter; aK++)
-      aRes = rect_som(aF,aSzW) / ElSquare(1.0+2*aSzW);
+      aRes = rect_som(aRes,aSzW) / ElSquare(1.0+2*aSzW);
 
    return aRes;
 }
@@ -194,7 +197,7 @@ Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Im2D_U_INT2 anIm)
 
    Fonc_Num aFMoy =  0;
 
-   if (0)
+   if (aNbIter>0)
       aFMoy =  FMoy(aNbIter,aSzW,aF*aFMasq) / Max(1e-2,FMoy(aNbIter,aSzW,aFMasq)) ;
    else if (0)
       aFMoy = MoyGlobImage(aF);
@@ -251,7 +254,7 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
    }
 }
 
-void cImage_LumRas::CalculShadeByDiff()
+void cImage_LumRas::CalculShadeByDiff(int aNbIter,int aSzW)
 {
 
    mImShade.Resize(mAppli.mImGr.sz());
@@ -267,8 +270,8 @@ void cImage_LumRas::CalculShadeByDiff()
                  Tiff_Im::BlackIsZero
            );
 
-    Fonc_Num aFRas  =  FLoc(6,50,mIm);
-    Fonc_Num aFStd  =  FLoc(6,50,mAppli.mImGr);
+    Fonc_Num aFRas  =  FLoc(aNbIter,aSzW,mIm);
+    Fonc_Num aFStd  =  FLoc(aNbIter,aSzW,mAppli.mImGr);
     Tiff_Im::Create8BFromFonc("Test-Ras.tif",mIm.sz(),aFRas*100);
     Tiff_Im::Create8BFromFonc("Test-Std.tif",mIm.sz(),aFStd*100);
 // Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Fonc_Num aF)
@@ -321,7 +324,9 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
    // mTifBaseGr   (0),
    mTifBaseCoul (0),
    mImGr        (1,1),
-   mImMasq      (1,1)
+   mImMasq      (1,1),
+   mSzW        (-1),
+   mNbIter     (-1)
 
 {
      std::vector<double> aPdsI;
@@ -333,6 +338,8 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
            LArgMain() << EAM(mPostMasq,"Masq",true,"Mask for computation", eSAM_NoInit)
                       << EAM(aPdsI,"PdsIn",true,"Pds on RGB Input, def=[1,1,1]", eSAM_NoInit)
                       << EAM(mNameTargSh,"TargShade",true,"Targeted Shade", eSAM_NoInit)
+                      << EAM(mSzW,"SzW",true,"Sz of average window", eSAM_NoInit)
+                      << EAM(mNbIter,"NbIter",true,"Number of window iter", eSAM_NoInit)
     );
 
 
@@ -384,7 +391,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
         else
         {
              for (int aK=0 ; aK<int(mVIm.size()) ; aK++)
-                mVIm[aK]->CalculShadeByDiff();
+                mVIm[aK]->CalculShadeByDiff(mNbIter,mSzW);
         }
 /* 
   // RGB 
