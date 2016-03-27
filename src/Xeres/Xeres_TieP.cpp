@@ -91,7 +91,7 @@ void  cAppliXeres::ExeTapioca(const std::string & aFile)
 
 std::string cAppliXeres::ExtractId(const std::string & aNameIm)
 {
-    static cElRegex TheAutom("([A-Z][0-9]{1,2}).*",10);
+    static cElRegex TheAutom("([A-Z][0-9]{1,2})_.*",10);
     static std::string TheReplace = "$1";
     return MatchAndReplace(TheAutom,aNameIm,TheReplace);
 }
@@ -131,9 +131,16 @@ void cAppliXeres::CalculTiePoint(int aSz,int aNBHom,const std::string & aNameAdd
         {
             std::string aN1 =  Make2CurSeq(itC->N1());
             std::string aN2 =  Make2CurSeq(itC->N2());
-            aXmlCples.Cple().push_back(cCpleString(aN1,aN2));        
+            if (ELISE_fp::exist_file(mDir+aN1) && ELISE_fp::exist_file(mDir+aN2))
+            {
+               aXmlCples.Cple().push_back(cCpleString(aN1,aN2));        
+            }
+            else
+            {
+            }
         }
     }
+
 
 
     MakeFileXML(aXmlCples,mDir+mNameCpleXml);
@@ -169,9 +176,10 @@ void cAppliXeres::FusionneHom(const std::vector<cAppliXeres *> aVAppli,const std
      std::string aKHOut = "NKS-Assoc-CplIm2Hom@"+ aPostOut + "@dat";
      std::string aDir =  aVAppli[0]->mDir;
 
+     ElTimer aChrono;
      for (int aKC1=0 ; aKC1<aNbCam ; aKC1++)
      {
-         std::cout << "RESTE " << (aNbCam-aKC1) << " Cam to do \n";
+         std::cout << "RESTE " << (aNbCam-aKC1) << " Cam to do ; time " << aChrono.uval() << "\n";
          for (int aKC2=0 ; aKC2< aNbCam ; aKC2++)
          {
                ElPackHomologue aRes;
