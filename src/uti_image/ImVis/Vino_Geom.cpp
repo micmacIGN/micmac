@@ -168,13 +168,19 @@ void cAppli_Vino::ZoomMolette()
     mScr->SetScArroundPW(mP0Click,aSc,false);
 }
 
-void cAppli_Vino::ZoomRect()
+void cAppli_Vino::GetRect(Pt2dr & aP0,Pt2dr &aP1)
 {
     ElList<Pt2di> aL = GetPtsImage(true,true,false);
 
-    Pt2dr aP0 = Pt2dr(aL.car());
-    Pt2dr aP1 = Pt2dr(aL.cdr().car());
+    aP0 = Pt2dr(aL.car());
+    aP1 = Pt2dr(aL.cdr().car());
     pt_set_min_max(aP0,aP1);
+}
+
+void cAppli_Vino::ZoomRect()
+{
+    Pt2dr aP0,aP1;
+    GetRect(aP0,aP1);
 
     Pt2dr aSz = aP1-aP0;
 
