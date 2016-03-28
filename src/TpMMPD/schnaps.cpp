@@ -679,7 +679,8 @@ int schnaps_main(int argc,char ** argv)
             cPic *pic2=allPics[j];
             
             std::string aNameOut1 = aDirImages + aICNM->Assoc1To2(aKHOut,pic1->getName(),pic2->getName(),true);
-            std::string aNameOut2 = aDirImages + aICNM->Assoc1To2(aKHOut,pic1->getName(),pic2->getName(),true);
+            std::string aNameOut2 = aDirImages + aICNM->Assoc1To2(aKHOut,pic2->getName(),pic1->getName(),true);
+            //std::cout<<"For "<<aNameOut1<<" and "<<aNameOut2<<": ";
             ElPackHomologue aPackOut1;
             ElPackHomologue aPackOut2;
             std::list<cPointOnPic*>::iterator itPointsOnPic;
@@ -693,10 +694,11 @@ int schnaps_main(int argc,char ** argv)
                 Pt2dr aP2=aPointOnPic2->getPt();
                 ElCplePtsHomologues aCple1(aP1,aP2);
                 aPackOut1.Cple_Add(aCple1);
-                ElCplePtsHomologues aCple2(aP1,aP2);
+                ElCplePtsHomologues aCple2(aP2,aP1);
                 aPackOut2.Cple_Add(aCple2);
             }
             
+            //std::cout<<aPackOut1.size()<<" pairs.\n";
             if (aPackOut1.size()>0)
             {
                 aPackOut1.StdPutInFile(aNameOut1);
@@ -707,9 +709,8 @@ int schnaps_main(int argc,char ** argv)
     aFileBadPictureNames.close();
 
   /*todo :
-   * error if no packs
+   * error if no packs or wrong homol name
    * warning if too few points on images
-   * print stats
    * merge homol points?
    * */
   
