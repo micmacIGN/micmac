@@ -419,6 +419,7 @@ Box2di cAppli_Vino::PutMessage(Pt2dr aP0 ,const std::string & aMes,int aCoulText
 */
 }
 
+
 #endif
 
 
