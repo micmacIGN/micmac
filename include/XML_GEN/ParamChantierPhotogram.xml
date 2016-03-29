@@ -1956,6 +1956,8 @@
     <ZoomBilin Nb="1" Type="bool">             </ZoomBilin>
     <SpeedZoomGrab Nb="1" Type="double">       </SpeedZoomGrab>
     <SpeedZoomMolette Nb="1" Type="double">    </SpeedZoomMolette>
+    <ForceGray Nb="1" Type="bool">    </ForceGray>
+    <NumCrop Nb="1" Type="int">    </NumCrop>
     <Stats Nb="*" RefType="Xml_StatVino">      </Stats>
 </Xml_EnvVino>
 

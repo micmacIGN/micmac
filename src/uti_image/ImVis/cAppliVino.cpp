@@ -126,6 +126,8 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
                     << EAM(SpeedZoomMolette(),"SZM",true,"Speed Zoom Molette")
                     << EAM(LargAsc(),"WS",true,"Width Scroller")
                     << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
+                    << EAM(ForceGray(),"Gray",true,"Force gray images (def=false)")
+                    // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
     );
 
 
@@ -147,7 +149,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     }
 
     mNameIm = NameWithoutDir(mNameIm);
-    mTiffIm = new Tiff_Im(Tiff_Im::StdConvGen(mDir+mNameIm,-1,true,false));
+    mTiffIm = new Tiff_Im(Tiff_Im::StdConvGen(mDir+mNameIm,(ForceGray()?1:-1),true,false));
     mNameTiffIm = mTiffIm->name();
     mTifSz = mTiffIm->sz();
     mNbPix = double(mTifSz.x) * double(mTifSz.y);

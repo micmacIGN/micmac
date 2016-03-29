@@ -71,7 +71,47 @@ void  cAppli_Vino::Crop()
     bool HOri = (mCaseCur==mCaseCropZ1HisOri) || (mCaseCur==mCaseCropZCurHisOri);
     Pt2dr aP0,aP1;
     GetRect(aP0,aP1);
-    std::cout << "JJJJJJ " << Zoom1 << " " << HOri << aP0  << " " << aP1  << "\n";
+
+    Pt2dr aSzR = aP1-aP0;
+    if (!Zoom1) 
+       aSzR = aSzR * mScr->sc();
+    Pt2di aSzI = round_ni(aSzR);
+
+    std::cout << "JJJJJJ " << Zoom1 << " " << HOri << aP0  << " " << aP1  << " SZ=" << aSzR << "\n";
+    // static int aNumCrop=0;
+      
+    std::string aNameRes = mDir + "Crop-" + ToString(NumCrop()) + "-" +  mNameIm + ".tif";
+    NumCrop()++;
+    SaveState();
+    Tiff_Im aTiffCrop
+            (
+                aNameRes.c_str(),
+                aSzI,
+                HOri ? mTiffIm->type_el() : GenIm::u_int1,
+                Tiff_Im::No_Compr,
+                mTiffIm->phot_interp()
+            );
+
+    Fonc_Num aFIn = mTiffIm->in_proj();
+    if (! HOri)
+       aFIn = ChgDynAppliVino(aFIn,*this);
+
+    if (Zoom1)
+    {
+        ELISE_COPY
+        (
+           rectangle(Pt2di(0,0),aSzI),
+           trans(aFIn,round_ni(aP0)),
+           aTiffCrop.out()
+        );
+    }
+    else
+    {
+        PutMessageRelief(0,"ZOOM Crop not implemented for now");
+    }
+
+
+    Refresh();
 }
 
 void  cAppli_Vino::MenuPopUp()

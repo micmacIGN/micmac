@@ -339,6 +339,9 @@ class cAppli_Vino : public cXml_EnvVino,
         std::string mNameHisto;
 };
 
+Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);
+
+
 #endif
 
 

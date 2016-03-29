@@ -7322,6 +7322,12 @@ class cXml_EnvVino
         double & SpeedZoomMolette();
         const double & SpeedZoomMolette()const ;
 
+        bool & ForceGray();
+        const bool & ForceGray()const ;
+
+        int & NumCrop();
+        const int & NumCrop()const ;
+
         std::list< cXml_StatVino > & Stats();
         const std::list< cXml_StatVino > & Stats()const ;
     private:
@@ -7332,6 +7338,8 @@ class cXml_EnvVino
         bool mZoomBilin;
         double mSpeedZoomGrab;
         double mSpeedZoomMolette;
+        bool mForceGray;
+        int mNumCrop;
         std::list< cXml_StatVino > mStats;
 };
 cElXMLTree * ToXMLTree(const cXml_EnvVino &);

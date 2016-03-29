@@ -22612,6 +22612,28 @@ const double & cXml_EnvVino::SpeedZoomMolette()const
 }
 
 
+bool & cXml_EnvVino::ForceGray()
+{
+   return mForceGray;
+}
+
+const bool & cXml_EnvVino::ForceGray()const 
+{
+   return mForceGray;
+}
+
+
+int & cXml_EnvVino::NumCrop()
+{
+   return mNumCrop;
+}
+
+const int & cXml_EnvVino::NumCrop()const 
+{
+   return mNumCrop;
+}
+
+
 std::list< cXml_StatVino > & cXml_EnvVino::Stats()
 {
    return mStats;
@@ -22638,6 +22660,8 @@ void  BinaryUnDumpFromFile(cXml_EnvVino & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.ZoomBilin(),aFp);
     BinaryUnDumpFromFile(anObj.SpeedZoomGrab(),aFp);
     BinaryUnDumpFromFile(anObj.SpeedZoomMolette(),aFp);
+    BinaryUnDumpFromFile(anObj.ForceGray(),aFp);
+    BinaryUnDumpFromFile(anObj.NumCrop(),aFp);
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
@@ -22659,6 +22683,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_EnvVino & anObj)
     BinaryDumpInFile(aFp,anObj.ZoomBilin());
     BinaryDumpInFile(aFp,anObj.SpeedZoomGrab());
     BinaryDumpInFile(aFp,anObj.SpeedZoomMolette());
+    BinaryDumpInFile(aFp,anObj.ForceGray());
+    BinaryDumpInFile(aFp,anObj.NumCrop());
     BinaryDumpInFile(aFp,(int)anObj.Stats().size());
     for(  std::list< cXml_StatVino >::const_iterator iT=anObj.Stats().begin();
          iT!=anObj.Stats().end();
@@ -22679,6 +22705,8 @@ cElXMLTree * ToXMLTree(const cXml_EnvVino & anObj)
    aRes->AddFils(::ToXMLTree(std::string("ZoomBilin"),anObj.ZoomBilin())->ReTagThis("ZoomBilin"));
    aRes->AddFils(::ToXMLTree(std::string("SpeedZoomGrab"),anObj.SpeedZoomGrab())->ReTagThis("SpeedZoomGrab"));
    aRes->AddFils(::ToXMLTree(std::string("SpeedZoomMolette"),anObj.SpeedZoomMolette())->ReTagThis("SpeedZoomMolette"));
+   aRes->AddFils(::ToXMLTree(std::string("ForceGray"),anObj.ForceGray())->ReTagThis("ForceGray"));
+   aRes->AddFils(::ToXMLTree(std::string("NumCrop"),anObj.NumCrop())->ReTagThis("NumCrop"));
   for
   (       std::list< cXml_StatVino >::const_iterator it=anObj.Stats().begin();
       it !=anObj.Stats().end();
@@ -22709,10 +22737,14 @@ void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SpeedZoomMolette(),aTree->Get("SpeedZoomMolette",1)); //tototo 
 
+   xml_init(anObj.ForceGray(),aTree->Get("ForceGray",1)); //tototo 
+
+   xml_init(anObj.NumCrop(),aTree->Get("NumCrop",1)); //tototo 
+
    xml_init(anObj.Stats(),aTree->GetAll("Stats",false,1));
 }
 
-std::string  Mangling( cXml_EnvVino *) {return "30D5E32DD8181DF9FD3F";};
+std::string  Mangling( cXml_EnvVino *) {return "C652002BDA6E4D85FD3F";};
 
 
 Box2dr & cXml_ParamBoxReducTieP::Box()
