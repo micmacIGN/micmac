@@ -341,6 +341,7 @@ int InitOriLinear_main(int argc,char ** argv)
     aAxeOrient = "x";
     string aOriOut = "InitOut";
     bool bWithOriIdentity = false;
+    bool forceInPlan = false;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
     argc,argv,
@@ -354,6 +355,7 @@ int InitOriLinear_main(int argc,char ** argv)
                 <<EAM(aPatAngle,    "PatAngle", true, "Vector of turn angle apha1,alpha2,...")
                 <<EAM(bWithOriIdentity,    "WithIdent", true, "Initialize with orientation identique (default = false)")
                 <<EAM(aAxeOrient,    "Axe", true, "Which axe to calcul rotation about")
+                <<EAM(forceInPlan,   "Plan", true, "Force using vector [0,0,1] to initialize (garantie all poses will be in a same plan) - (default = false)")
     );
     if (MMVisualMode) return EXIT_SUCCESS;
 
@@ -481,7 +483,8 @@ int InitOriLinear_main(int argc,char ** argv)
             Pt3dr VecMouvement;
             VecMouvement = CalVecAvancementInit(aSetRefImages,aOriRef);
             //====Test===//
-            VecMouvement = Pt3dr(0,0,1);
+            if (forceInPlan)
+                {VecMouvement = Pt3dr(0,0,1);}
             //===========//
             vector<Section> aSection;
             if (ii==0) //1st camera as reference
