@@ -169,7 +169,7 @@ void cHomol::print()
 class cPic
 {
   public:
-    cPic(std::string aName,std::vector<cPicSize> & allSizes,int aNumWindows);
+    cPic(std::string aDir,std::string aName,std::vector<cPicSize> & allSizes,int aNumWindows);
     cPic(cPic* aPic);
     std::string getName(){return mName;}
     cPicSize * getPicSize(){return mPicSize;}
@@ -188,10 +188,10 @@ class cPic
     int mNbWinUsed;
 };
 
-cPic::cPic(std::string aName,std::vector<cPicSize> & allSizes,int aNumWindows) :
+cPic::cPic(std::string aDir,std::string aName,std::vector<cPicSize> & allSizes,int aNumWindows) :
     mName(aName),mPicSize(0),mNbWinUsed(0)
 {
-    Tiff_Im aPic(aName.c_str());
+    Tiff_Im aPic( Tiff_Im::StdConvGen(aDir+"/"+aName,1,false)); //to read file in Tmp-MM-Dir if needed
     Pt2di aPicSize=aPic.sz();
     bool found=false;
     for (unsigned int i=0;i<allSizes.size();i++)
@@ -387,11 +387,12 @@ int schnaps_main(int argc,char ** argv)
     std::cout<<"Found pictures:\n";
     for (unsigned int i=0;i<aSetIm.size();i++)
     {
-        std::cout<<" - "<<aSetIm[i]<<": ";
-        Tiff_Im aPic(aSetIm[i].c_str());
+        std::cout<<" - "<<aSetIm[i]<<"\n";
+        //Tiff_Im aPic(aSetIm[i].c_str());
+        /*Tiff_Im aPic(Tiff_Im::StdConvGen(aDirImages+"/"+aSetIm[i],1,false)   );
         Pt2di aPicSize=aPic.sz();
-        std::cout<<aPicSize<<"\n";
-        allPics.push_back(new cPic(aSetIm[i],allPicSizes,aNumWindows));
+        std::cout<<aPicSize<<"\n";*/
+        allPics.push_back(new cPic(aDirImages,aSetIm[i],allPicSizes,aNumWindows));
     }
     std::cout<<"All sizes: \n";
     for (unsigned int i=0;i<allPicSizes.size();i++)
