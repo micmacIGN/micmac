@@ -21,8 +21,11 @@
 
                <Symb>  TolLinkPPCD=0.2 </Symb> 
                <Symb>  SeuilFE=16.5 </Symb> 
-               <Symb>  TetaLVM=0.01 </Symb>
-               <Symb>  CentreLVM=0.1 </Symb>
+               
+               <Symb>   MulLVM=1 </Symb> 
+               <eSymb>  TetaLVM= * 0.01 ${MulLVM} </eSymb>
+               <eSymb>  CentreLVM= * 0.1 ${MulLVM} </eSymb>
+
                <Symb>  IntrLVM=0.1 </Symb>
                <Symb>  RayFEInit=0.85 </Symb>
                <Symb>  CalibIn="ABC" </Symb>

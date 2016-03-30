@@ -74,7 +74,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
                      << EAM(mKBox,"KBox",true,"Internal use")
                      << EAM(mSzTile,"SzTile",true,"Size of Tiles in Pixel Def="+ToString(mSzTile))
                      << EAM(mDistPMul,"DistPMul",true,"Typical dist between pmult Def="+ToString(mDistPMul))
-                     << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber")
+                     << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber, Def=" + ToString(mMulVonGruber))
                      << EAM(mParal,"Paral",true,"Do it paral, def=true")
                      << EAM(mVerifNM,"VerifNM",true,"(Internal) Verification of Virtual Name Manager")
    );
