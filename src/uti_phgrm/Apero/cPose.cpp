@@ -1457,6 +1457,7 @@ void cPoseCam::SetContrainte(const cContraintesPoses & aCP)
    switch(aCP.Val())
    {
       case ePoseLibre :
+          cElWarning::ToleranceSurPoseLibre.AddWarn("",__LINE__,__FILE__);
 /*
           ELISE_ASSERT
 	  (
