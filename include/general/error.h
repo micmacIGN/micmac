@@ -302,6 +302,8 @@ class cElWarning
          static cElWarning  TrueRot;
          static cElWarning  ScaleInNuageFromP;
          static cElWarning  AppuisMultipleDefined;
+         static cElWarning  OnzeParamSigneIncoh;
+         static cElWarning  ToleranceSurPoseLibre;
 
          static void ShowWarns(const std::string & aFile);
     private :
