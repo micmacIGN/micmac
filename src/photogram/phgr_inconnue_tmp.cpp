@@ -1242,6 +1242,7 @@ bool OkReproj
            if (! aCam.PIsVisibleInImage(aPTer,&anArg))
            {
               aKP = aK;
+
               return false;
            }
         }

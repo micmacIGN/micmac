@@ -74,14 +74,45 @@ std::pair<ElMatrix<double>,ElRotation3D > cEq12Parametre::ComputeOrtho()
    ElMatrix<double> aR = aRQ.first;
    ElMatrix<double> aQ = aRQ.second;
 
-   double aC= aR(2,2);
+   double aC22 = aR(2,2);
 
    for (int anX=0 ; anX<3; anX++)
    {
       for (int anY=0 ; anY<3; anY++)
       {
-           aR(anX,anY) /= aC;
+           aR(anX,anY) /= aC22 ;
       }
+   }
+
+   Pt3dr aCenter = aPair.second;
+   ElRotation3D aRotC2M (aCenter,aQ.transpose(),true);
+   int aNbGoodSide=0;
+   int aNbBadSide=0;
+   for (int aK = 0 ; aK<int(mVPG.size()) ; aK++)
+   {
+        Pt3dr aPCam = aRotC2M.ImRecAff(mVPG[aK]);
+        if (aPCam.z>0)  
+           aNbGoodSide++;
+        else
+           aNbBadSide++;
+   }
+             // cElWarning::OnzeParamSigneIncoh.AddWarn("",__LINE__,__FILE__);
+
+   if ((aNbGoodSide!=0) && (aNbBadSide==0))
+   {
+       cElWarning::OnzeParamSigneIncoh.AddWarn("",__LINE__,__FILE__);
+   }
+
+   if (aNbBadSide > aNbGoodSide)
+   {
+     
+/*
+       Pt3dr aI = aRotC2M.ImVect(Pt3dr(1,0,0));
+       Pt3dr aJ = aRotC2M.ImVect(Pt3dr(0,1,0));
+       Pt3dr aK = aRotC2M.ImVect(Pt3dr(0,0,1));
+*/
+       ELISE_ASSERT(false,"In 11 param, probable sign error in coordinates ");
+
    }
 
 /*
@@ -98,7 +129,11 @@ std::pair<ElMatrix<double>,ElRotation3D > cEq12Parametre::ComputeOrtho()
 */
 
    //return std::pair<ElMatrix<double>,ElRotation3D> (aR,ElRotation3D(aPair.second,aQ,true));
-   return std::pair<ElMatrix<double>,ElRotation3D> (aR,ElRotation3D(aPair.second,aQ.transpose(),true));
+
+
+
+   // return std::pair<ElMatrix<double>,ElRotation3D> (aR,ElRotation3D(aPair.second,aQ.transpose(),true));
+   return std::pair<ElMatrix<double>,ElRotation3D> (aR,aRotC2M);
    
 }
 
