@@ -50,10 +50,10 @@ cXeres_Cam::cXeres_Cam(const std::string & anId,cAppliXeres & anAppli) :
    mId      (anId),
    mNS      (cXeres_NumSom::CreateFromStdName_V0(anId)),
    mNameIm  (mAppli.NameOfId(mId)),
-   mHasIm   (ELISE_fp::exist_file(mNameIm))
+   mHasIm   (ELISE_fp::exist_file(mNameIm) && mAppli.NameInFilter(mNameIm) )
 {
     mNameIm  = NameWithoutDir(mNameIm);
-   // std::cout << " cXeres_Cam:" << mId <<  " " << mHasIm << "\n";
+    std::cout << " cXeres_Cam:" << mId <<  " " << mHasIm  << " [" << mNameIm << "]\n";
 }
 
 
@@ -73,12 +73,13 @@ const std::string & cXeres_Cam::NameIm() const {return mNameIm;}
 /*********************************************************************************/
 
 
-cAppliXeres::cAppliXeres(const std::string & aDir,const std::string & aSeq) :
+cAppliXeres::cAppliXeres(const std::string & aDir,const std::string & aSeq,cElRegex * aFilter ) :
     mICNM         (cInterfChantierNameManipulateur::BasicAlloc(aDir)),
     mDir          (aDir),
     mSeq          (aSeq),
     mPost         ("jpg"),
-    mNameCpleXml  ( "Cples-" + mSeq + ".xml")
+    mNameCpleXml  ( "Cples-" + mSeq + ".xml"),
+    mFilter       (aFilter)
 {
 
     for (char aC='A' ; aC<='W' ; aC++)
@@ -108,6 +109,14 @@ std::string cAppliXeres::NameOfId(const std::string & anId)
 {
    return mDir+ anId + "_" + mSeq + "." + mPost;
 }
+
+bool cAppliXeres::NameInFilter(const std::string & aName) const
+{
+    if (! mFilter) return true;
+// std::cout << "NameInFilterNameInFilter " << aName << " " << mFilter->NameExpr() << "\n";
+    return mFilter->Match(NameWithoutDir(aName));
+}
+
 
 
 
