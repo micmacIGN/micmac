@@ -836,7 +836,7 @@ const std::vector<cMMCom> & XLibAvailableCommands()
         aRes.push_back(cMMCom("MergeTieP", XeresMergeTieP_Main, "Xeres : merge tie points"));
         aRes.push_back(cMMCom("MatchGr"  , XeresHomMatch_main , "Xeres : generate graph for mathcing"));
         aRes.push_back(cMMCom("ReName0"  , XeresReNameInit_main , "Xeres : Rename image for Xeres convention"));
-        aRes.push_back(cMMCom("Calib"  , XeresCalibMain_main , "Xeres : Pipeline for calibration images"));
+        aRes.push_back(cMMCom("Calib"  , XeresCalibMain_main , "Xeres : Pipeline for calibration images (corners like)"));
     }
 
     cCmpMMCom CmpMMCom;

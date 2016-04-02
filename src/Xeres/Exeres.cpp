@@ -127,6 +127,7 @@ int XeresHomMatch_main(int argc,char** argv)
    std::string aDir="./";
    std::string aSeq;
    std::string anOri;
+   std::string aPat=".*";
 
    ElInitArgMain
    (
@@ -134,9 +135,12 @@ int XeresHomMatch_main(int argc,char** argv)
          LArgMain()  << EAMC(aSeq, "Sequence")
                      << EAMC(anOri,"Orientation"),
          LArgMain()  << EAM(aDir,"Dir",true,"Folder of data, Def=./")
+                     << EAM(aPat,"Filter",true,"Filter for selection")
    );
 
-   cAppliXeres  anAppli(aDir,aSeq);
+   cElRegex * anAutomFilter = new cElRegex (aPat,10);
+
+   cAppliXeres  anAppli(aDir,aSeq,anAutomFilter);
    StdCorrecNameOrient(anOri,aDir);
    anAppli.CalculHomMatch(anOri);
 

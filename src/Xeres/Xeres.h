@@ -105,7 +105,7 @@ class cXeres_Cam
 class cAppliXeres
 {
      public :
-         cAppliXeres(const std::string & aDir,const std::string & aSeq);
+         cAppliXeres(const std::string & aDir,const std::string & aSeq,cElRegex * aFilter =0);
          std::string NameOfId(const std::string &);
 
          void TestInteractNeigh();
@@ -117,6 +117,8 @@ class cAppliXeres
 
          std::string ExtractId(const std::string & aNameIm);
          std::string Make2CurSeq(const std::string & aNameIm);
+
+         bool NameInFilter(const std::string & aName) const;
 
      private :
 
@@ -142,6 +144,7 @@ class cAppliXeres
          std::string mPost;
          std::string mNameCpleXml;
          int         mSzTapioca;
+         cElRegex *  mFilter;
 };
 
 #endif // _Xeres_H_
