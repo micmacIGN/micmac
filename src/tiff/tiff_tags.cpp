@@ -148,7 +148,7 @@ GenIm::type_el  Tiff_Im::to_Elise_Type_Num(FIELD_TYPE ftype,const char * aName)
            case eBYTE  : return GenIm::u_int1;
            case eASCII : return GenIm::u_int1;
            case eSHORT : return GenIm::u_int2;
-           case eLONG  : return GenIm::int4;
+           case eLONG  : return GenIm::u_int4;
 
            case eSSHORT   : return GenIm::int2;
            case eSLONG  : return GenIm::int4;
@@ -825,6 +825,7 @@ void TAG_TIF::Offset_write_value_0 (ELISE_fp fp,const tFileOffset   * v,INT nb)
     for (int aK=0 ; aK<nb ; aK++)
     {
          aTabOffsetI[aK] = v[aK].BasicLLO();
+         //    aTabOffsetI[aK] = v[aK].ToReinterpretInt();
     }
     write_value_0(fp,aTabOffsetI,nb,Tiff_Im::eLONG);
 }

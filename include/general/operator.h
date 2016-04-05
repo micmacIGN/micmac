@@ -152,6 +152,7 @@ class OperBinMixte : public OperBin
    public :
 
        void t0_eg_t1_op_t2(REAL16 * t0,const REAL16 * t1,const REAL16 *t2,INT nb) const ;
+       void t0_eg_t1_op_t2(_INT8 * t0,const _INT8 * t1,const _INT8 *t2,INT nb) const ;
 
        virtual void t0_eg_t1_op_t2(REAL * t0,const REAL * t1,const REAL *t2,INT nb) const = 0;
        virtual void t0_eg_t1_op_t2(REAL * t0,const REAL * t1,const INT  *t2,INT nb) const = 0;
@@ -186,6 +187,7 @@ class OperAssocMixte : public OperBinMixte
    public :
 
      REAL16 opel(REAL16,REAL16) const;
+     _INT8  opel(_INT8 ,_INT8 ) const;
      virtual REAL opel(REAL,REAL) const =0;
      virtual INT  opel(INT ,INT ) const =0;
 

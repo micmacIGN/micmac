@@ -959,19 +959,21 @@ class tFileOffset
 
 // Deux interface bas niveaus, "tres sales", poiur assurer la communication avec le stockage
 // en int des offset dans les tiffs qui est necessaire pour utiliser le service de tag generiques
-         static  tFileOffset FromReinterpretInt(int anI)
+         static  tFileOffset CKK_FromReinterpretInt(int anI)
          {
                tByte4AbsFileOffset anUI;
                memcpy(&anUI,&anI,sizeof(tByte4AbsFileOffset));
                return tFileOffset(anUI);
          }
-         int ToReinterpretInt() const
+         int CKK_ToReinterpretInt() const
          {
               int aRes;
               tByte4AbsFileOffset anOfs4 = Byte4AbsLLO();
               memcpy(&aRes,&anOfs4,sizeof(tByte4AbsFileOffset));
               return aRes;
          }
+/*
+*/
     private :
         cTplValGesInit<tLowLevelFileOffset> mLLO;
 };

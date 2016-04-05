@@ -454,6 +454,11 @@ template <> CONST_STAT_TPL bool DataGenImType<INT,INT>::_integral_type = true;
 template <> CONST_STAT_TPL DataIm1D<INT,INT> DataIm1D<INT,INT>::The_Bitm =  DataIm1D<INT,INT>(0,0,0,0);
 
 
+template <> CONST_STAT_TPL  GenIm::type_el DataGenImType<U_INT4,_INT8>::type_el_bitm = GenIm::u_int4;
+template <> CONST_STAT_TPL INT DataGenImType<U_INT4,_INT8>::v_max = (1<<31);
+template <> CONST_STAT_TPL INT DataGenImType<U_INT4,_INT8>::v_min = 0;
+template <> CONST_STAT_TPL bool DataGenImType<U_INT4,_INT8>::_integral_type = true;
+// template <> CONST_STAT_TPL DataIm1D<INT,INT> DataIm1D<U_INT4,_INT8>::The_Bitm =  DataIm1D<U_INT4,_INT8>(0,0,0,0);
 
 
 template <> CONST_STAT_TPL  GenIm::type_el DataGenImType<REAL4,REAL8>::type_el_bitm = GenIm::real4;
@@ -2263,6 +2268,7 @@ GenIm alloc_im1d(GenIm::type_el type_el,int tx,void * data)
             case GenIm::u_int2 :    return Im1D<U_INT2,INT>  ((Im1D<U_INT2,INT>  *) 0  ,tx,data);
             case  GenIm::int2 :     return Im1D<INT2,INT>    ((Im1D<INT2,INT>    *) 0  ,tx,data);
             case  GenIm::int4 :     return Im1D<INT4,INT>    ((Im1D<INT4,INT>    *) 0  ,tx,data);
+            case  GenIm::u_int4 :   return Im1D<U_INT,_INT8>    ((Im1D<U_INT,_INT8>    *) 0  ,tx,data);
             case  GenIm::real4 :    return Im1D<REAL4,REAL8> ((Im1D<REAL4,REAL8> *) 0  ,tx,data);
             case  GenIm::real8 :    return Im1D<REAL8,REAL8> ((Im1D<REAL8,REAL8> *) 0  ,tx,data);
             default :;
