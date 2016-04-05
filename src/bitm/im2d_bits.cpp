@@ -158,6 +158,27 @@ template <const INT nbb,const bool msbf>  void
     }
 }
 
+template <const INT nbb,const bool msbf>  void
+         Tabul_Bits<nbb,msbf>::output
+         (
+               U_INT1 * out,
+               const _INT8 * in,
+               INT   x0,
+               INT   x1
+         )     const
+{
+   U_INT1 * ox;
+
+    for (INT x = x0; x<x1 ; x++,in++)
+    {
+       ox = out +x/nb_per_byte;
+      *ox = out_tab[*ox][(INT)*in][x%nb_per_byte];
+    }
+}
+
+
+
+
 template <const INT nbb,const bool msbf> INT
           Tabul_Bits<nbb,msbf>::sz_line(INT nb_el)
 {
@@ -352,6 +373,14 @@ template <const INT nbb> void * DataGenImBits<nbb>::data_lin_gen()
 {
      return _data_lin;
 }
+
+
+
+
+/*
+virtual void  out_rle(void *,INT,const INT*,INT offs_0) const;
+virtual void  out_rle(void *,INT,const REAL*,INT offs_0) const;
+*/
 
 
 

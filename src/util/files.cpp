@@ -564,6 +564,14 @@ U_INT8 ELISE_fp::read_U_INT8()
 }
 
 
+U_INT4  ELISE_fp::read_U_INT4 ()
+{
+	U_INT4  c;
+	read(&c,sizeof(U_INT4 ),1);
+	if (!_byte_ordered)
+		byte_inv_4(&c);
+	return c;
+}
 
 INT4  ELISE_fp::read_INT4 ()
 {

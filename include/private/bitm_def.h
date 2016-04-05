@@ -71,10 +71,12 @@ class DataGenIm : public RC_Object
       virtual const INT  * p1() const = 0;
 
 
+      virtual void  out_rle(void *,INT,const _INT8*,INT offs_0) const  = 0;
       virtual void  out_rle(void *,INT,const INT*,INT offs_0) const  = 0;
       virtual void  out_rle(void *,INT,const REAL*,INT offs_0)const  = 0;
       virtual void  * calc_adr_seg(INT *)     = 0;
-      virtual void  input_rle(void *,INT,const void*,INT offs_0)const  = 0;
+      virtual void  void_input_rle(void *,INT,const void*,INT offs_0)const  = 0;
+      virtual void  int8_input_rle(_INT8 *,INT,const void*,INT offs_0)const  = 0;
 
       virtual void  striped_input_rle(void *,INT nb,INT dim,const void*,INT offs_0) const = 0;
       virtual void  striped_output_rle(void *,INT nb,INT dim,const void*,INT offs_0) const = 0;

@@ -278,10 +278,18 @@ DATA_tiff_header::DATA_tiff_header(const char * name)
     fp.close();
 }
 
+    // BIG TIFF HANDLING 
+
 bool   DATA_tiff_header::BigTiff() const
 {
    return mBigTiff;
 }
+
+
+
+
+
+
 
 DATA_tiff_header::~DATA_tiff_header()
 {
@@ -293,10 +301,6 @@ tFileOffset DATA_tiff_header::ReadFileOffset(ELISE_fp & aFp) const
    return mBigTiff ? aFp.read_FileOffset8() :  aFp.read_FileOffset4();
 }
 
-U_INT8 DATA_tiff_header::LireNbTag(ELISE_fp & aFp) const
-{
-    return   mBigTiff ? aFp.read_U_INT8()  : aFp.read_U_INT2();
-}
 
 
 ELISE_fp DATA_tiff_header::kth_file(INT & nb,bool read)
@@ -455,23 +459,23 @@ DATA_Tiff_Ifd::vmodif::vmodif() :
 {
 }
 
-void DATA_Tiff_Ifd::vmodif::init(INT v0,INT nb)
+void DATA_Tiff_Ifd::vmodif::init(_INT8 v0,INT nb)
 {
     flush();
     _nb = nb;
-    _vals =  STD_NEW_TAB_USER(nb,INT);
+    _vals =  STD_NEW_TAB_USER(nb,_INT8);
     for (int i=0; i<nb; i++)
         _vals[i] = v0;
 }
 
-void DATA_Tiff_Ifd::vmodif::init(INT *v,INT nb)
+void DATA_Tiff_Ifd::vmodif::init(_INT8 *v,INT nb)
 {
     flush();
     _nb = nb;
     _vals =  v;
 }
 
-void DATA_Tiff_Ifd::vmodif::init_if_0(INT v0,INT nb)
+void DATA_Tiff_Ifd::vmodif::init_if_0(_INT8 v0,INT nb)
 {
     if (! _vals)
         init(v0,nb);
@@ -529,8 +533,8 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
 
 
     _nb_chanel =  Tiff_Im::nb_chan_of_phot_interp(phot_interp);
-    _bits_p_chanel = STD_NEW_TAB_USER(_nb_chanel,INT);
-    _data_format = STD_NEW_TAB_USER(_nb_chanel,INT);
+    _bits_p_chanel = STD_NEW_TAB_USER(_nb_chanel,_INT8);
+    _data_format = STD_NEW_TAB_USER(_nb_chanel,_INT8);
 
     _palette = 0;
     _nb_pal_entry  = -1;
@@ -544,7 +548,7 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
        );
        _nb_pal_entry  = 3 * nb_col;
 
-       _palette = STD_NEW_TAB_USER(_nb_pal_entry,INT);
+       _palette = STD_NEW_TAB_USER(_nb_pal_entry,_INT8);
 
        for (int c=0; c<nb_col ; c++)
        {
@@ -800,16 +804,42 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
 
 }
 
+/*
 U_INT8 DATA_Tiff_Ifd::LireNbTag(ELISE_fp & aFp) const
 {
     return   mBigTiff ? aFp.read_U_INT8()  : aFp.read_U_INT2();
 }
+*/
 
 
+    // BIG TIFF HANDLING 
 bool   DATA_Tiff_Ifd::BigTiff() const
 {
    return mBigTiff;
 }
+int  DATA_Tiff_Ifd::SzTag() const
+{
+    // return mBigTif  ? Tiff_Im::BIGTIF_SZ_TAG : Tiff_Im::STD_SZ_TAG;
+    return 4 + 2 * MaxNbByteTagValNonDefer();
+}
+int DATA_Tiff_Ifd::MaxNbByteTagValNonDefer() const
+{
+    return mBigTiff  ? 8 : 4;
+}
+U_INT8  DATA_Tiff_Ifd::LireNbVal(ELISE_fp & aFp) const
+{
+   return mBigTiff  ?  aFp.read_U_INT8()  : aFp.read_U_INT4();
+}
+U_INT8 DATA_Tiff_Ifd::LireNbTag(ELISE_fp & aFp) const
+{
+    return   mBigTiff ? aFp.read_U_INT8()  : aFp.read_U_INT2();
+}
+U_INT8  DATA_Tiff_Ifd::LireOffset(ELISE_fp & aFp) const
+{
+   return mBigTiff  ?  aFp.read_U_INT8()  : aFp.read_U_INT4();
+}
+
+
 
 extern INT aEliseCptFileOpen;
 
@@ -882,8 +912,8 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
 
        // Tags with def values, but needing results of other tags
 
-    _data_format = (INT *) 0;
-    _bits_p_chanel = (INT *) 0;
+    _data_format = (_INT8 *) 0;
+    _bits_p_chanel = (_INT8 *) 0;
     _sz_tile = Pt2di(-1,-1);
 
 
@@ -915,13 +945,7 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
 
    if (pta._bidon)
    {
-if (MPD_MM())
-{
-   std::cout << "ggggGGggggg " <<  mBigTiff << " " << pta._bidon << "\n";
-   getchar();
-}
        lire_all_tiff_tag(this,fp);
-   std::cout << "UuuuuuU " <<  mBigTiff << " " << pta._bidon << "\n";
    }
    else
    {
@@ -945,13 +969,13 @@ std::cout << "XIFtif:APRES Date " << ToString(mExifTiff_Date) << "\n";
 
     if (! _bits_p_chanel)
     {
-         _bits_p_chanel = STD_NEW_TAB_USER(_nb_chanel,INT);
+         _bits_p_chanel = STD_NEW_TAB_USER(_nb_chanel,_INT8);
          for (INT i =0; i<_nb_chanel; i++)
              _bits_p_chanel[i] = 1;
     }
     if (! _data_format)
     {
-        _data_format = STD_NEW_TAB_USER(_nb_chanel,INT);
+        _data_format = STD_NEW_TAB_USER(_nb_chanel,_INT8);
         for (INT ch =0; ch < _nb_chanel ; ch++)
              _data_format[ch] = Tiff_Im::Unsigned_int;
     }
