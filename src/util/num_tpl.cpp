@@ -497,6 +497,28 @@ template  void  convert(REAL16 * ,  const REAL16 *  ,INT);
 template  void  convert(REAL16 * ,  const REAL8  *  ,INT);
 template  void  convert(REAL16 * ,  const REAL4  *  ,INT);
 
+
+template  void  convert(_INT8 * ,  const char  *  ,INT);
+template  void  convert(_INT8 * ,  const U_INT1  *  ,INT);
+template  void  convert(_INT8 * ,  const INT1  *  ,INT);
+template  void  convert(_INT8 * ,  const U_INT2  *  ,INT);
+template  void  convert(_INT8 * ,  const INT2  *  ,INT);
+template  void  convert(_INT8 * ,  const INT  *  ,INT);
+template  void  convert(_INT8 * ,  const REAL4  *  ,INT);
+template  void  convert(_INT8 * ,  const REAL8  *  ,INT);
+template  void  convert(_INT8 * ,  const REAL16  *  ,INT);
+
+template  void  convert(U_INT1 * ,  const _INT8  *  ,INT);
+template  void  convert(INT1 * ,  const _INT8  *  ,INT);
+template  void  convert(U_INT2 * ,  const _INT8  *  ,INT);
+template  void  convert(INT2 * ,  const _INT8  *  ,INT);
+template  void  convert(INT * ,  const _INT8  *  ,INT);
+template  void  convert(REAL8 * ,  const _INT8  *  ,INT);
+template  void  convert(REAL4 * ,  const _INT8  *  ,INT);
+template  void  convert(REAL16 * ,  const _INT8  *  ,INT);
+template  void  convert(_INT8 * ,  const _INT8  *  ,INT);
+
+
 template  void  convert(REAL * ,  const U_INT1 *  ,INT);
 template  void  convert(REAL * ,  const U_INT2 *  ,INT);
 template  void  convert(REAL * ,  const INT1 *  ,INT);

@@ -53,6 +53,7 @@ class Tabul_Bits_Gen
          virtual void  input(INT * out,const U_INT1 * in,INT x0,INT x1) const = 0;
          virtual void  output(U_INT1 * out,const  INT * in,INT x0,INT x1) const = 0;
          virtual void  output(U_INT1 * out,const REAL * in,INT x0,INT x1) const = 0;
+         virtual void  output(U_INT1 * out,const _INT8 * in,INT x0,INT x1) const = 0;
 
 	 virtual ~Tabul_Bits_Gen() {}
 
@@ -109,6 +110,7 @@ template<const INT nbb,const bool msbf> class Tabul_Bits : public Tabul_Bits_Gen
          void  input(INT * out,const U_INT1 * in,INT x0,INT x1) const;
          void  output(U_INT1 * out,const  INT * in,INT x0,INT x1) const ;
          void  output(U_INT1 * out,const REAL * in,INT x0,INT x1) const ;
+         void  output(U_INT1 * out,const _INT8 * in,INT x0,INT x1) const ;
 
          virtual INT   kieme_val      (INT byte,INT k) const;
          virtual INT   set_kieme_val  (INT old_byte,INT val,INT k) const;
@@ -127,9 +129,11 @@ template <const INT nbb>  class DataGenImBits : public DataGenIm
    public :
 
       DataGenImBits(INT sz_0,INT sz_tot,void * DataLin);  // sz_tot do not incopoarte first dim
-      virtual void  input_rle(void *,INT,const void*,INT offs_0) const;
+      virtual void  void_input_rle(void *,INT,const void*,INT offs_0) const;
+      virtual void  int8_input_rle(_INT8 *,INT,const void*,INT offs_0) const;
 
 
+      virtual void  out_rle(void *,INT,const _INT8*,INT offs_0) const;
       virtual void  out_rle(void *,INT,const INT*,INT offs_0) const;
       virtual void  out_rle(void *,INT,const REAL*,INT offs_0) const;
       virtual INT sz_tot() const;
@@ -272,7 +276,7 @@ DataIm2DGen(Tx,Ty)
 // du type : error: explicit specialization of 'TheType' after instantiation
 
 
-template <const INT nbb>  void DataGenImBits<nbb>::input_rle
+template <const INT nbb>  void DataGenImBits<nbb>::void_input_rle
 (void * v_out,INT nb,const void* v_in,INT offs_0) const
 {
     
@@ -284,6 +288,24 @@ template <const INT nbb>  void DataGenImBits<nbb>::input_rle
      offs_0+nb
      );
 }
+template <const INT nbb>  void DataGenImBits<nbb>::int8_input_rle
+(_INT8 * v_out,INT nb,const void* v_in,INT offs_0) const
+{
+    
+    ELISE_ASSERT(false,"No DataGenImBits<nbb>::int8_input_rle");
+/*
+    Tabul_Bits<nbb,true>::The_Only_One.input
+    (
+     v_out,
+     C_CAST(const U_INT1 *,v_in),
+     offs_0,
+     offs_0+nb
+     );
+*/
+}
+
+
+
 
 template <const INT nbb>  void DataGenImBits<nbb>::out_rle
 (void * v_out,INT nb,const INT * v_in,INT offs_0) const
@@ -310,6 +332,22 @@ template <const INT nbb>  void DataGenImBits<nbb>::out_rle
      offs_0+nb
      );
 }
+
+template <const INT nbb>  void DataGenImBits<nbb>::out_rle
+(void * v_out,INT nb,const _INT8 * v_in,INT offs_0) const
+{
+    
+    Tabul_Bits<nbb,true>::The_Only_One.output
+    (
+     C_CAST(U_INT1 *,v_out),
+     v_in,
+     offs_0,
+     offs_0+nb
+     );
+}
+
+
+
 
 template <const INT nbb>  GenIm::type_el  DataGenImBits<nbb>::type() const
 {

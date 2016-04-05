@@ -229,6 +229,13 @@ template <class Type,class TyBase>
 }
 
 template <class Type,class TyBase>
+        void DataGenImType<Type,TyBase>::out_rle(void * v,INT nb,const _INT8* i,INT offs_0) const
+{
+     convert(C_CAST(Type *,v) + offs_0,i,nb);
+}
+
+
+template <class Type,class TyBase>
         void DataGenImType<Type,TyBase>::out_rle(void * v,INT nb,const REAL * i,INT offs_0) const
 {
      convert(C_CAST(Type *,v)+offs_0,i,nb);
@@ -236,11 +243,21 @@ template <class Type,class TyBase>
 
 
 template <class Type,class TyBase>  void
-         DataGenImType<Type,TyBase>::input_rle
+         DataGenImType<Type,TyBase>::void_input_rle
               (void * v_out,INT nb,const void* v_in,INT offs_0) const
 {
      convert(C_CAST(TyBase *,v_out),C_CAST(const Type *,v_in) + offs_0,nb);
 }
+
+template <class Type,class TyBase>  void
+         DataGenImType<Type,TyBase>::int8_input_rle
+              (_INT8 * v_out,INT nb,const void* v_in,INT offs_0) const
+{
+     convert(v_out,C_CAST(const Type *,v_in) + offs_0,nb);
+}
+
+
+
 
 template <class Type,class TyBase>  void
          DataGenImType<Type,TyBase>::striped_input_rle
@@ -248,7 +265,7 @@ template <class Type,class TyBase>  void
 {
      // when dim ==1, this in fact not striped and convertion will be faster
      if (dim == 1)
-        input_rle(*((TyBase **)v_out),nb,v_in,offs_0);
+        void_input_rle(*((TyBase **)v_out),nb,v_in,offs_0);
      else
      {
           TyBase ** out = C_CAST(TyBase **,v_out);

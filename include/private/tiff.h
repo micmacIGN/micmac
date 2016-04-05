@@ -178,10 +178,6 @@ template <class Type> class UnLoadPackBit
 
 class DATA_Tiff_Ifd : public ElDataGenFileIm
 {
-
-      
-
-
       friend class Tiff_Tiles_MPD_T6;
       friend class Tiff_Tiles_Ccit4_2D_T6;
       friend class Tiff_Tiles_Ccit3_1D;
@@ -252,9 +248,15 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            cMetaDataPhoto  MDP();
            Pt2di SzFileTile() const ;
            Pt2di NbTTByTF() const   ;
+
+           // Bif tiff handling
            bool           BigTiff() const;
            U_INT8 LireNbTag(ELISE_fp & aFp) const;
-
+           int SzTag() const;
+           U_INT8  LireNbVal(ELISE_fp & aFp) const;
+           U_INT8  LireOffset(ELISE_fp & aFp) const;
+           // Taille max pour que la valeur ne soit pas dereferencee
+           int MaxNbByteTagValNonDefer() const; 
       private :
 
            class  vmodif
@@ -262,12 +264,12 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
               public :
                   vmodif ();
                   void flush();
-                  void init(INT v0,INT nb);
-                  void init_if_0(INT v0,INT nb);
-                  void init(INT *v,INT nb);
+                  void init(_INT8 v0,INT nb);
+                  void init_if_0(_INT8 v0,INT nb);
+                  void init(_INT8 *v,INT nb);
 
-                  INT   * _vals;
-                  INT     _nb;
+                  _INT8   *       _vals;
+                  INT             _nb;
                   tFileOffset     _offs;
            };
 
@@ -363,7 +365,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            int                                 _nb_chan_per_tile;
            
 
-           INT    *                    _palette;
+           _INT8    *                  _palette;
            INT                         _nb_pal_entry;
 
 
@@ -373,7 +375,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            Pt2di                       _nb_tile;
            tFileOffset                 _nb_tile_tot;
 
-           INT *                       _bits_p_chanel;
+           _INT8 *                     _bits_p_chanel;
            INT                         _nbb_ch0;
            INT                         _nbb_tot;// sum of _bits_p_chanel
            tFileOffset *               _tiles_offset;
@@ -384,7 +386,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            INT                         _mode_compr;
            INT                         _phot_interp;
            INT                         _plan_conf;
-           INT *                       _data_format;
+           _INT8 *                     _data_format;
            INT                         _predict;
            bool                        _ccitt_ucomp;
            INT                         _orientation;

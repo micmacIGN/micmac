@@ -127,18 +127,18 @@ class Tiff_Im : public ElGenFileIm
                eLONG  = 4,
                eRATIONNAL = 5,
                // EXTENSION Signed de Tiff 6.0
-               //   eSBYTE = 6,
-               //   eUNDEFINED  = 7,
-               //   eSSHORT  = 8,
-               //   eSLONG  = 9,
-               //   eSRATIONNAL = 10,
-               //   eFLOAT = 11,
-               //   eDOUBLE = 12,
+                 eSBYTE = 6,
+                 eUNDEFINED  = 7,
+                 eSSHORT  = 8,
+                 eSLONG  = 9,
+                 eSRATIONNAL = 10,
+                 eFLOAT = 11,
+                 eDOUBLE = 12,
 
                //  13 14 15 ????
             
-               e_LONG8 = 16
-               // e_SLONG8 = 17,
+               e_LONG8 = 16,
+               e_SLONG8 = 17
                // e_IFD8 = 18,
 
         } FIELD_TYPE;

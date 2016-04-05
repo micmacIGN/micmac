@@ -48,10 +48,12 @@ template <class Type,class TyBase>  class DataGenImType :
       DataGenImType(INT sz_tot,bool to_init,TyBase v_init,const char * =0);
       void Initializer(INT sz_tot,bool to_init,TyBase v_init,const char * =0);
       virtual void  out_rle(void *,INT,const INT*,INT offs_0) const;
+      virtual void  out_rle(void *,INT,const _INT8*,INT offs_0) const;
       virtual void  out_rle(void *,INT,const REAL*,INT offs_0) const;
       virtual void  out_rle(void *,INT,const REAL16*,INT offs_0) const;
 
-      virtual void  input_rle(void *,INT,const void*,INT offs_0) const;
+      virtual void  void_input_rle(void *,INT,const void*,INT offs_0) const;
+      virtual void  int8_input_rle(_INT8 *,INT,const void*,INT offs_0) const;
       virtual void  striped_input_rle(void *,INT nb,INT dim,const void*,INT offs_0) const;
       virtual void  striped_output_rle(void *,INT nb,INT dim,const void*,INT offs_0) const;
       virtual bool integral_type() const;
