@@ -95,6 +95,16 @@ class ElEM   // Elise Erreur Message
 
       public :
 
+         inline ElEM(_INT8 i)
+         {
+               _type   = _i8;
+               _data.i8 = i;
+         }
+         inline ElEM(U_INT4 i)
+         {
+               _type   = _u_int4;
+               _data.ui4 = i;
+         }
          inline ElEM(REAL16 i)
          {
                _type   = _real;
@@ -168,13 +178,17 @@ class ElEM   // Elise Erreur Message
               _tab_int,
               _tab_real,
               _box_2di,
-              _pt2di
+              _pt2di,
+              _u_int4,
+              _i8
           }  _type_of;
 
           _type_of _type;
 
           union
           {
+             U_INT4    ui4;
+             _INT8     i8;
              INT       i;
              REAL      r;
              const class Pack_Of_Pts *   pack;
