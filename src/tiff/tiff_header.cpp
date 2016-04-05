@@ -213,7 +213,7 @@ bool Tiff_Im::IsTiff(const char * name,bool AcceptUnPrefixed )
     fp.set_byte_ordered(byte_ordered);
     INT version = fp.read_U_INT2();
     fp.close();
-    return version == Tiff_Im::THE_VERSION;
+    return  (version == Tiff_Im::THE_STD_VERSION) || (version == Tiff_Im::BIGTIF_VERSION) ;
 }
 
 
@@ -252,26 +252,51 @@ DATA_tiff_header::DATA_tiff_header(const char * name)
 
     fp.set_byte_ordered(_byte_ordered);
 
-    INT version = fp.read_U_INT2();
+    mVersion = fp.read_U_INT2();
+    mBigTiff = (mVersion == Tiff_Im::BIGTIF_VERSION);
 
 
     Tjs_El_User.ElAssert
     (
-         version == Tiff_Im::THE_VERSION,
+            (mVersion == Tiff_Im::THE_STD_VERSION)
+         || (mVersion == Tiff_Im::BIGTIF_VERSION),
          EEM0 <<  "Incoherent version number for tiff file \n"
               << "|    file : "  <<  _name  << "\n"
               << "|   got following version number : "
-              << version
+              << mVersion
     );
+
+    if (mBigTiff)
+    {
+       int aK8 = fp.read_U_INT2();
+       ELISE_ASSERT(aK8==Tiff_Im::BIGTIF_K8,"Bad majic in BigTiff");
+       int aK0 = fp.read_U_INT2();
+       ELISE_ASSERT(aK0==Tiff_Im::BIGTIF_K0,"Bad majic in BigTiff");
+    }
+    mOffsetIfd0 = mBigTiff ? Tiff_Im::BIGTIF_OFSS_IFD0 : Tiff_Im::STD_OFSS_IFD0 ;
+    mSzTag      = mBigTiff ? Tiff_Im::BIGTIF_SZ_TAG    : Tiff_Im::STD_SZ_TAG    ;
     fp.close();
 }
 
+bool   DATA_tiff_header::BigTiff() const
+{
+   return mBigTiff;
+}
 
 DATA_tiff_header::~DATA_tiff_header()
 {
      delete _tprov_name;
 }
 
+tFileOffset DATA_tiff_header::ReadFileOffset(ELISE_fp & aFp) const
+{
+   return mBigTiff ? aFp.read_FileOffset8() :  aFp.read_FileOffset4();
+}
+
+U_INT8 DATA_tiff_header::LireNbTag(ELISE_fp & aFp) const
+{
+    return   mBigTiff ? aFp.read_U_INT8()  : aFp.read_U_INT2();
+}
 
 
 ELISE_fp DATA_tiff_header::kth_file(INT & nb,bool read)
@@ -283,24 +308,24 @@ ELISE_fp DATA_tiff_header::kth_file(INT & nb,bool read)
 
     fp.set_byte_ordered(_byte_ordered);
 
-    fp.seek_begin(Tiff_Im::OFSS_IFD0);
+    // fp.seek_begin(Tiff_Im::OFSS_IFD0);
+    fp.seek_begin(mOffsetIfd0);
 
     INT i=0 ;
     tFileOffset offs = 0;
 
-    for (offs = fp.read_FileOffset4(); offs.BasicLLO() && (i<nb) ; i++)
+    // for (offs = fp.read_FileOffset4(); offs.BasicLLO() && (i<nb) ; i++)
+    for (offs = ReadFileOffset(fp); offs.BasicLLO() && (i<nb) ; i++)
     {
-
           fp.seek_begin(offs);
-          INT nb_tag =  fp.read_U_INT2();
-          fp.seek_cur(nb_tag*Tiff_Im::SZ_TAG);
-          offs = fp.read_INT4();
+          U_INT8 nb_tag =  mBigTiff ? fp.read_U_INT8()  : fp.read_U_INT2();
+          fp.seek_cur(nb_tag*mSzTag);
+          offs = ReadFileOffset(fp);
     }
 
     if (offs.BasicLLO())
     {
        fp.seek_begin(offs);
-
     }
     else
     {
@@ -343,7 +368,7 @@ Tiff_Im DATA_tiff_header::kth_im(INT kth)
     }
 
 
-    Tiff_Im Image(new DATA_Tiff_Ifd(_byte_ordered,fp,_name,Pseudo_Tiff_Arg()));
+    Tiff_Im Image(new DATA_Tiff_Ifd(_byte_ordered,mBigTiff,fp,_name,Pseudo_Tiff_Arg()));
     fp.close();
 
     return Image;
@@ -472,6 +497,7 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
     mExifTiff_Date (cElDate::NoDate)
 {
     _byte_ordered = true;
+    mBigTiff = false;
     _clip_last = false;
 
 
@@ -671,7 +697,7 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
     ELISE_fp fp(name,ELISE_fp::WRITE);
 
     fp.write_U_INT2(MSBF_PROCESSOR() ? Tiff_Im::MSBYTE : Tiff_Im::LSBYTE);
-    fp.write_U_INT2(Tiff_Im::THE_VERSION);
+    fp.write_U_INT2(Tiff_Im::THE_STD_VERSION);
 
     // GESTION du DALLAGE de fichier
 
@@ -774,7 +800,16 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
 
 }
 
+U_INT8 DATA_Tiff_Ifd::LireNbTag(ELISE_fp & aFp) const
+{
+    return   mBigTiff ? aFp.read_U_INT8()  : aFp.read_U_INT2();
+}
 
+
+bool   DATA_Tiff_Ifd::BigTiff() const
+{
+   return mBigTiff;
+}
 
 extern INT aEliseCptFileOpen;
 
@@ -804,6 +839,7 @@ cMetaDataPhoto  DATA_Tiff_Ifd::MDP()
 DATA_Tiff_Ifd::DATA_Tiff_Ifd
 (
        bool  byte_ordered,
+       bool  aBigTiff,
        ELISE_fp fp,
        const char *name,
        const Pseudo_Tiff_Arg & pta
@@ -813,6 +849,8 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
     mUseFileTile = false;
     mSzFileTile = Pt2di(-10000,-10000);
     _byte_ordered = byte_ordered;
+    mBigTiff      = aBigTiff;
+
 
     if (! pta._bidon)
     {
@@ -877,7 +915,13 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
 
    if (pta._bidon)
    {
+if (MPD_MM())
+{
+   std::cout << "ggggGGggggg " <<  mBigTiff << " " << pta._bidon << "\n";
+   getchar();
+}
        lire_all_tiff_tag(this,fp);
+   std::cout << "UuuuuuU " <<  mBigTiff << " " << pta._bidon << "\n";
    }
    else
    {
@@ -1828,6 +1872,7 @@ Elise_Tiled_File_Im_2D::Elise_Tiled_File_Im_2D
             new DATA_Tiff_Ifd
             (
                  byte_ordered,
+                 false,
                  ELISE_fp(),
                  name,
                  Pseudo_Tiff_Arg

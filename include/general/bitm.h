@@ -330,6 +330,9 @@ class GenIm : public PRC0 ,
              bits4_lsbf,
 
              real16,
+             int8,
+             u_int4,
+             u_int8,
              no_type    // to have some def value
         }
         type_el;

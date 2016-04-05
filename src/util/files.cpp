@@ -553,6 +553,18 @@ U_INT2 ELISE_fp::read_U_INT2()
 		byte_inv_2(&c);
 	return c;
 }
+
+U_INT8 ELISE_fp::read_U_INT8()
+{
+	U_INT8 c;
+	read(&c,sizeof(U_INT8),1);
+	if (!_byte_ordered)
+		byte_inv_2(&c);
+	return c;
+}
+
+
+
 INT4  ELISE_fp::read_INT4 ()
 {
 	INT4  c;
@@ -567,7 +579,7 @@ tFileOffset ELISE_fp::read_FileOffset8()
 	tFileOffset  c;
 	read(&c,sizeof(tFileOffset ),1);
 	if (!_byte_ordered)
-		byte_inv_2(&c);
+		byte_inv_8(&c);
 	return c;
 }
 
