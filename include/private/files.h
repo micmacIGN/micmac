@@ -188,8 +188,12 @@ class  ELISE_fp
 
          U_INT1 read_U_INT1();
          U_INT2 read_U_INT2();
-         INT2 read_INT2();
+         U_INT4 read_U_INT4();
+         U_INT8 read_U_INT8();
+
+         INT2   read_INT2();
          INT4   read_INT4();
+         _INT8  read_INT8();
          tFileOffset read_FileOffset4();
          tFileOffset read_FileOffset8();
          REAL4   read_REAL4();

@@ -414,26 +414,27 @@ tRelFileOffset BitsPacked_PFOB::Rseek(tRelFileOffset nb)
 
 void byte_inv_2(void * t)
 {
-     ElSwap
-     (
-          ((char *) t)[0],
-          ((char *) t)[1]
-     );
+     ElSwap ( ((char *) t)[0], ((char *) t)[1]);
 }
 
 void byte_inv_4(void * t)
 {
-     ElSwap
-     (
-          ((char *) t)[0],
-          ((char *) t)[3]
-     );
-     ElSwap
-     (
-          ((char *) t)[1],
-          ((char *) t)[2]
-     );
+     ElSwap ( ((char *) t)[0], ((char *) t)[3]);
+     ElSwap ( ((char *) t)[1], ((char *) t)[2]);
 }
+
+/*
+void byte_inv_8(void * t)
+{
+     ElSwap ( ((char *) t)[0], ((char *) t)[7]);
+     ElSwap ( ((char *) t)[1], ((char *) t)[6]);
+     ElSwap ( ((char *) t)[2], ((char *) t)[5]);
+     ElSwap ( ((char *) t)[3], ((char *) t)[4]);
+}
+*/
+
+
+
 
 void byte_inv_8(void * t)
 {

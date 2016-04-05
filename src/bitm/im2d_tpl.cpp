@@ -2358,7 +2358,11 @@ bool type_im_integral(GenIm::type_el type_el)
             case GenIm::int1 :
             case GenIm::u_int2 :
             case  GenIm::int2 :
-            case  GenIm::int4 :        return true;
+            case  GenIm::u_int4 :      
+            case  GenIm::int4 :      
+            case  GenIm::u_int8 :      
+            case  GenIm::int8 :      
+            return true;
 
             case  GenIm::real4 :
             case  GenIm::real8 :       return false;
@@ -2406,9 +2410,17 @@ INT nbb_type_num(GenIm::type_el type_el)
             case  GenIm::int2 :         return 16;
 
             case  GenIm::int4 :
-            case  GenIm::real4 :        return 32;
+            case  GenIm::u_int4 :
+            case  GenIm::real4 :    
+                                      return 32;
 
-            case  GenIm::real8 :        return 64;
+            case  GenIm::int8 :
+            case  GenIm::u_int8 :
+            case  GenIm::real8 :        
+                                     return 64;
+
+            case  GenIm::real16 :        
+                                     return 128;
 
             default :;
       }
@@ -2449,13 +2461,18 @@ bool signed_type_num(GenIm::type_el type_el)
             case GenIm::bits4_lsbf :
 
             case GenIm::u_int1 :
-            case GenIm::u_int2 :      return false;
+            case GenIm::u_int2 :  
+            case GenIm::u_int4 :  
+            case GenIm::u_int8 :  
+            return false;
 
             case GenIm::int1 :
             case  GenIm::int2 :
             case  GenIm::int4 :
+            case  GenIm::int8 :
             case  GenIm::real4 :
             case  GenIm::real8 :
+            case  GenIm::real16 :
                                        return true;
 
             default :;
@@ -2484,6 +2501,8 @@ GenIm::type_el type_u_int_of_nbb(INT nbb,bool msbf)
 
             case 8  : return GenIm::u_int1;
             case 16 : return GenIm::u_int2;
+            case 32 : return GenIm::u_int4;
+            case 64 : return GenIm::u_int8;
     }
 
     El_Internal.ElAssert
@@ -2500,12 +2519,22 @@ GenIm::type_el type_im(const std::string & aName)
       return GenIm::u_int1;
    if (aName=="int1")
       return GenIm::int1;
+
    if (aName=="u_int2")
       return GenIm::u_int2;
    if (aName=="int2")
       return GenIm::int2;
+
+   if (aName=="u_int4")
+      return GenIm::u_int4;
    if (aName=="int4")
       return GenIm::int4;
+
+   if (aName=="u_int8")
+      return GenIm::u_int8;
+   if (aName=="int8")
+      return GenIm::int8;
+
    if (aName=="real4")
       return GenIm::real4;
    if (aName=="real8")
@@ -2520,12 +2549,22 @@ std::string eToString(const GenIm::type_el & aType)
        return  "u_int1";
     if (aType==GenIm::int1)
        return  "int1";
+
     if (aType==GenIm::u_int2)
        return  "u_int2";
     if (aType==GenIm::int2)
        return  "int2";
+
+    if (aType==GenIm::u_int4)
+       return  "u_int4";
     if (aType==GenIm::int4)
        return  "int4";
+
+    if (aType==GenIm::u_int8)
+       return  "u_int8";
+    if (aType==GenIm::int8)
+       return  "int8";
+
     if (aType==GenIm::real4)
        return  "real4";
     if (aType==GenIm::real8)
@@ -2547,6 +2586,8 @@ GenIm::type_el type_im(bool integral,INT nbb,bool Signed,bool msbf)
                return GenIm::int2;
              if (nbb == 32)
                return GenIm::int4;
+             if (nbb == 64)
+               return GenIm::int8;
          }
          else
             return  type_u_int_of_nbb(nbb,msbf);

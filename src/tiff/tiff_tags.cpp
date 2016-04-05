@@ -989,8 +989,9 @@ void TAG_TIF::lire_1_tag(DATA_Tiff_Ifd * DTIfd,ELISE_fp fp)
 
 void  lire_all_tiff_tag(DATA_Tiff_Ifd * DTIfd,ELISE_fp fp)
 {
-      INT nb_tag = fp.read_U_INT2();
+      INT nb_tag = DTIfd->LireNbTag(fp);
 
+std::cout << "lire_all_tiff_tag " << DTIfd->BigTiff()  << " " << nb_tag << "\n"; getchar();
 
       for (INT i = 0; i < nb_tag ; i++)
       {

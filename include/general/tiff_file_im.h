@@ -105,9 +105,14 @@ class Tiff_Im : public ElGenFileIm
 
         typedef enum
         {
-                THE_VERSION = 0x2A,
-                OFSS_IFD0   = 4,
-                SZ_TAG      = 12,
+                THE_STD_VERSION = 0x2A,
+                BIGTIF_VERSION = 0x2B,
+                STD_OFSS_IFD0   = 4,
+                BIGTIF_OFSS_IFD0   = 8,
+                BIGTIF_K8   = 8,
+                BIGTIF_K0   = 0,
+                STD_SZ_TAG      = 12,
+                BIGTIF_SZ_TAG   = 20
 
 
         } VERSION;
@@ -120,7 +125,22 @@ class Tiff_Im : public ElGenFileIm
                eASCII = 2,
                eSHORT = 3,
                eLONG  = 4,
-               eRATIONNAL = 5
+               eRATIONNAL = 5,
+               // EXTENSION Signed de Tiff 6.0
+               //   eSBYTE = 6,
+               //   eUNDEFINED  = 7,
+               //   eSSHORT  = 8,
+               //   eSLONG  = 9,
+               //   eSRATIONNAL = 10,
+               //   eFLOAT = 11,
+               //   eDOUBLE = 12,
+
+               //  13 14 15 ????
+            
+               e_LONG8 = 16
+               // e_SLONG8 = 17,
+               // e_IFD8 = 18,
+
         } FIELD_TYPE;
 
         static GenIm::type_el  to_Elise_Type_Num(FIELD_TYPE,const char * aNameFile);

@@ -97,6 +97,10 @@ class DATA_tiff_header : public  RC_Object
 
       public :
 
+         tFileOffset ReadFileOffset(ELISE_fp &) const;
+         U_INT8 LireNbTag(ELISE_fp & aFp) const;
+
+         bool           BigTiff() const;
 
       private :
 
@@ -109,6 +113,10 @@ class DATA_tiff_header : public  RC_Object
          bool           _byte_ordered;
          Tprov_char *   _tprov_name;
          char *         _name;
+         int            mVersion;
+         tFileOffset    mOffsetIfd0;
+         int            mSzTag;
+         bool           mBigTiff;
 
          ELISE_fp   kth_file(INT & nb,bool read); 
          INT        nb_im(); 
@@ -244,6 +252,8 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            cMetaDataPhoto  MDP();
            Pt2di SzFileTile() const ;
            Pt2di NbTTByTF() const   ;
+           bool           BigTiff() const;
+           U_INT8 LireNbTag(ELISE_fp & aFp) const;
 
       private :
 
@@ -307,6 +317,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            DATA_Tiff_Ifd
            (
                    bool     byte_ordered,
+                   bool     BigTiff,
                    ELISE_fp fp,
                    const char *,
                    const Pseudo_Tiff_Arg &
@@ -328,6 +339,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
 
 
            bool           _byte_ordered;
+           bool           mBigTiff;
            Tprov_char *   _tprov_name;
            char *         _name;
            bool           _msbit_first;
