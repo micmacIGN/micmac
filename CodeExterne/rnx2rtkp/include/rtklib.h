@@ -37,6 +37,7 @@
 #ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
+#pragma warning(disable: 4996) // strcpy, sscanf are considered unsafe
 #else
 #include <pthread.h>
 #endif
