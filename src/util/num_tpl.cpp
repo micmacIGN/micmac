@@ -567,6 +567,8 @@ INSTANCIATE_TYPE_BITM_GEN(U_INT2,INT);
 INSTANCIATE_TYPE_BITM_GEN(INT2,INT);
 INSTANCIATE_TYPE_BITM_GEN(REAL4,REAL);
 
+template  void  set_cste(U_INT4 * ,  U_INT4  ,INT);
+
 
 #define INSTANCIATE_TYPE_BITM_BASE(Type)\
 template  void  convert(Type *     ,  const INT *   ,INT);\

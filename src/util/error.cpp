@@ -277,6 +277,9 @@ std::string ElEM::mes_el() const
                     + "[" + p0y.str() + "," + p1y.str() + "]";
         }
         break;
+
+        default:
+        ;
     };
 
     return mes;
