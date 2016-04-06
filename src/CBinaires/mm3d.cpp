@@ -609,6 +609,8 @@ int TestNewMergeTieP_main(int argc,char ** argv);
 int TestStephane_Main(int argc,char ** argv);
 
 
+int TestDupBigTiff(int argc,char ** argv);
+
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -626,6 +628,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Exo9",TD_Exo9,"Some stuff "));
 
 
+       aRes.push_back(cMMCom("DupBigTiff",TestDupBigTiff,"Duplicate a tiff file, handling the big tif option"));
        aRes.push_back(cMMCom("Stephane",TestStephane_Main,"In test funtction for Stephane Guinard "));
        aRes.push_back(cMMCom("TestNewMergeTieP",TestNewMergeTieP_main,"Some consitency check on Merge TieP "));
        aRes.push_back(cMMCom("TestARCam",TestARCam_main,"Some consitency check on camera "));

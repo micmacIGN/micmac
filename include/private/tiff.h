@@ -105,6 +105,8 @@ class DATA_tiff_header : public  RC_Object
       private :
 
          Tiff_Im kth_im(INT kth);
+         void InitBigTiff();
+
 
 
          DATA_tiff_header (const char * name);
@@ -331,10 +333,11 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
                  GenIm::type_el              type,
                  Tiff_Im::COMPR_TYPE         compr,
                  Tiff_Im::PH_INTER_TYPE      phot_interp,
-		 Disc_Pal *                      aPal,
-                 Elise_colour                    *,
-                 INT                             nb,
-                 L_Arg_Opt_Tiff            l = Tiff_Im::Empty_ARG
+		 Disc_Pal *                  aPal,
+                 Elise_colour                *,
+                 INT                         nb,
+                 L_Arg_Opt_Tiff              l = Tiff_Im::Empty_ARG,
+                 int                         BigTif = -1 // -1 jamais , 0 si possible, 1 toujours
            );
 
 

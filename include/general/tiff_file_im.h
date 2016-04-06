@@ -337,7 +337,8 @@ class Tiff_Im : public ElGenFileIm
                     GenIm::type_el              type,
                     COMPR_TYPE                  compr,
                     PH_INTER_TYPE               phot_interp,
-                    L_Arg_Opt_Tiff              l = Empty_ARG
+                    L_Arg_Opt_Tiff              l = Empty_ARG,
+                    int BigTiff                 =-1
                  );
 
       // Cree le fichier si il n'existe pas  ou si  une de
@@ -350,7 +351,8 @@ class Tiff_Im : public ElGenFileIm
                               GenIm::type_el              type,
                               COMPR_TYPE                  compr,
                               PH_INTER_TYPE               phot_interp,
-                              L_Arg_Opt_Tiff              l = Empty_ARG
+                              L_Arg_Opt_Tiff              l = Empty_ARG,
+                              int BigTiff                 =-1
                         );
 
           // Color Indexed
@@ -360,7 +362,8 @@ class Tiff_Im : public ElGenFileIm
                     GenIm::type_el              type,
                     COMPR_TYPE                  compr,
                     Disc_Pal                    pal,
-                    L_Arg_Opt_Tiff              l = Empty_ARG
+                    L_Arg_Opt_Tiff              l = Empty_ARG,
+                    int BigTiff                 =-1
                  );
 
 
@@ -375,6 +378,7 @@ class Tiff_Im : public ElGenFileIm
           Pt2dr resol();
           RESOLUTION_UNIT resunit();
           GenIm::type_el  type_el();
+          bool            BigTif() const;
 
           Disc_Pal              pal();
           Elise_Palette         std_pal(Video_Win);
@@ -384,6 +388,7 @@ class Tiff_Im : public ElGenFileIm
           Pt2di SzFileTile();
           Pt2di NbTTByTF();
           std::string NameTileFile(Pt2di aITF);
+
 
 
           INT   nb_chan();
