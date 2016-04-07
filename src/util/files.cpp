@@ -665,12 +665,22 @@ void ELISE_fp::write_U_INT1(INT v)
 	U_INT1 c = v;
 	write(&c,sizeof(c),1);
 }
-
 void ELISE_fp::write_U_INT2(INT v)
 {
 	U_INT2 c = v;
 	write(&c,sizeof(c),1);
 }
+
+void ELISE_fp::write_U_INT4(U_INT4 v)
+{
+	write(&v,sizeof(v),1);
+}
+void ELISE_fp::write_U_INT8(U_INT8 v)
+{
+	write(&v,sizeof(v),1);
+}
+
+
 
 void ELISE_fp::write_INT4(INT c)
 {

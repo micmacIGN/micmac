@@ -253,12 +253,17 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
 
            // Bif tiff handling
            bool           BigTiff() const;
+           int MaxNbByteTagValNonDefer() const; // Taille max pour que la valeur ne soit pas dereferencee
+
            U_INT8 LireNbTag(ELISE_fp & aFp) const;
+           void WriteNbTag(ELISE_fp & aFp,U_INT8);
+
            int SzTag() const;
            U_INT8  LireNbVal(ELISE_fp & aFp) const;
+           void  WriteNbVal(ELISE_fp & aFp,U_INT8);
+ 
            U_INT8  LireOffset(ELISE_fp & aFp) const;
-           // Taille max pour que la valeur ne soit pas dereferencee
-           int MaxNbByteTagValNonDefer() const; 
+           void   WriteOffet(ELISE_fp & aFp,U_INT8);
       private :
 
            class  vmodif
