@@ -1663,10 +1663,11 @@
 <!--  ********************  RTI ******************************* -->
 
 <Xml_ParamRTI  Nb="1" Class="true" ToReference="true">
-     <MasterIm Nb="1" Type="std::string">  </MasterIm>
-     <Pattern  Nb="1" Type="std::string">  </Pattern>
-     <ScaleSSRes  Nb="1" Type="double">    </ScaleSSRes>
+     <MasterIm Nb="1" Type="std::string">            </MasterIm>
+     <Pattern  Nb="1" Type="std::string">            </Pattern>
+     <ScaleSSRes  Nb="1" Type="double">              </ScaleSSRes>
      <SeuilSat  Nb="?" Type="double" Def="1e9">      </SeuilSat>
+     <SzHom  Nb="?" Type="int">                      </SzHom>
 </Xml_ParamRTI>
 
 

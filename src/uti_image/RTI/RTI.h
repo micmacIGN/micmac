@@ -59,9 +59,12 @@ class cOneIm_RTI
       cAppli_RTI &   mAppli;
       std::string    mName;
       bool           mMaster;
+      bool           mWithRecal;
       std::string    mNameIS;  // Name Image Superpose
-      std::string    mNameISPan;  // Name Image Superpose
+      std::string    mNameISPan;  // Name Image Superpose Panchro ?
       std::string    mNameISR; // IS Reduced
+      std::string    mNameMasq;  // Name Image Superpose
+      std::string    mNameMasqR; // IS Reduced
 };
 
 class cOneIm_RTI_Slave : public cOneIm_RTI
@@ -73,14 +76,13 @@ class cOneIm_RTI_Slave : public cOneIm_RTI
        const std::string & NameMasqR() const;
        Tiff_Im   MasqFull();
     private :
-      std::string    mNameMasq;  // Name Image Superpose
-      std::string    mNameMasqR; // IS Reduced
 };
 
 class cOneIm_RTI_Master : public cOneIm_RTI
 {
     public :
        cOneIm_RTI_Master(cAppli_RTI &,const std::string & aName);
+    protected :
 };
 
 
@@ -92,22 +94,24 @@ class cAppli_RTI
        static const std::string ThePrefixReech;
        cAppli_RTI(const std::string & aFullNameParam,const std::string & aNameI2="");
        void CreateSuperpHom();
+       void CreatHom();
        const cXml_ParamRTI & Param() const;
        const std::string & Dir() const;
        cOneIm_RTI_Slave * UniqSlave();
        cOneIm_RTI_Master * Master();
        void MakeImageMed();
+       bool  WithRecal() const;
 
     private :
 
        void MakeImageMed(const Box2di & aBox);
 
        cXml_ParamRTI                    mParam;
+       bool                             mWithRecal;
        std::string                      mFullNameParam;
        std::string                      mDir;
        std::string                      mNameParam;
        bool                             mTest;
-       bool                             mMainAppli;
        std::vector<cOneIm_RTI *>        mVIms;
        std::vector<cOneIm_RTI_Slave *>  mVSlavIm;
        cOneIm_RTI_Master *              mMasterIm;

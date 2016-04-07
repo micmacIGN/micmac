@@ -45,13 +45,27 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                               */
 /*****************************************************************/
 
+template <class Type> Type & MessageInit(const std::string & aMes,Type & aVal)
+{
+      std::cout << aMes ;
+    return aVal;
+}
+template <class Type> const Type & MessageInit(const std::string & aMes,const Type & aVal)
+{
+      std::cout << aMes ;
+    return aVal;
+}
+
 cOneIm_RTI::cOneIm_RTI(cAppli_RTI & anAppli,const std::string & aName,bool isMaster) :
-    mAppli     (anAppli),
-    mName      (aName),
-    mMaster    (isMaster),
-    mNameIS    (mAppli.Dir() + (isMaster ? "" : cAppli_RTI::ThePrefixReech) + aName +  (isMaster ? "" : ".tif")),
-    mNameISPan (NameFileStd(mNameIS,1,true)),
-    mNameISR   ( cAppli_RTI::ThePrefixReech  + NameWithoutDir(mNameISPan) + "_Scaled.tif")
+    mAppli       (anAppli),
+    mName        (aName),
+    mMaster      (isMaster),
+    mWithRecal   (mMaster && mAppli.WithRecal()),
+    mNameIS      (mAppli.Dir() + (mWithRecal ? cAppli_RTI::ThePrefixReech:"") + aName +  (mWithRecal ? ".tif" : "" )),
+    mNameISPan   (NameFileStd(mNameIS,1,true)),
+    mNameISR     ( cAppli_RTI::ThePrefixReech  + NameWithoutDir(mNameISPan) + "_Scaled.tif"),
+    mNameMasq    (StdPrefix(mName) + "_Masq.tif"),
+    mNameMasqR   (cAppli_RTI::ThePrefixReech + StdPrefix(mNameMasq) + "_Scaled.tif")
 {
 }
 
@@ -70,6 +84,18 @@ Tiff_Im  cOneIm_RTI::DoImReduite()
    
         System(aCom);
    }
+   if (ELISE_fp::exist_file(mNameMasq) && (! ELISE_fp::exist_file(mNameMasqR)))
+   {
+        std::string aCom =    MM3dBinFile("ScaleIm ") 
+                           +  mNameMasq 
+                           +  " "  +  ToString(mAppli.Param().ScaleSSRes())
+                           +  " Out=" + mNameMasqR
+                           +  " ModMasq=true " ;
+
+   
+        System(aCom);
+   }
+
 
    return Tiff_Im(mNameISR.c_str());
 }
@@ -85,27 +111,13 @@ const std::string & cOneIm_RTI::Name() const {return mName;}
 /*****************************************************************/
 
 cOneIm_RTI_Slave::cOneIm_RTI_Slave(cAppli_RTI & anAppli,const std::string & aName) :
-   cOneIm_RTI      (anAppli,aName,false),
-   mNameMasq       (StdPrefix(mNameISPan) + "Masq.tif"),
-   mNameMasqR      (StdPrefix(mNameMasq) + "_Scaled.tif")
+   cOneIm_RTI      (anAppli,aName,false)
 {
 }
 
 Tiff_Im cOneIm_RTI_Slave::DoImReduite()
 {
    Tiff_Im aRes = cOneIm_RTI::DoImReduite();
-   if (! ELISE_fp::exist_file(mNameMasqR))
-   {
-        std::string aCom =    MM3dBinFile("ScaleIm ") 
-                           +  mNameMasq 
-                           +  " "  +  ToString(mAppli.Param().ScaleSSRes())
-                           +  " Out=" + mNameMasqR
-                           +  " ModMasq=true " ;
-
-   
-        System(aCom);
-   }
-
    return aRes;
 }
 

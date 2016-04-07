@@ -7608,11 +7608,15 @@ class cXml_ParamRTI
 
         cTplValGesInit< double > & SeuilSat();
         const cTplValGesInit< double > & SeuilSat()const ;
+
+        cTplValGesInit< int > & SzHom();
+        const cTplValGesInit< int > & SzHom()const ;
     private:
         std::string mMasterIm;
         std::string mPattern;
         double mScaleSSRes;
         cTplValGesInit< double > mSeuilSat;
+        cTplValGesInit< int > mSzHom;
 };
 cElXMLTree * ToXMLTree(const cXml_ParamRTI &);
 

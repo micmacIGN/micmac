@@ -54,16 +54,35 @@ void cAppli_RTI::CreateSuperpHom()
 
 }
 
+void cAppli_RTI::CreatHom()
+{
+    // int aSzTapioca = 2000;
+    std::string aCom =    MM3dBinFile_quotes("Tapioca") +  " All " 
+                       +  mParam.Pattern()  + " "
+                       +  ToString(mParam.SzHom().Val()) +  " "
+                       +  QUOTE("Pat2=" + mParam.Pattern()) ;
+
+   System (aCom);
+}
+
+
+
 cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,const std::string & aNameI2) :
-   mTest      (true),
-   mMainAppli (aNameI2=="")
+   mTest      (true)
 {
     mFullNameParam = aFullNameParam;
+
     
     SplitDirAndFile(mDir,mNameParam,mFullNameParam);
     mParam = StdGetFromSI(mFullNameParam,Xml_ParamRTI);
-    if (! mMainAppli)
-       mParam.Pattern() = aNameI2;
+
+    mWithRecal = mParam.SzHom().IsInit();
+
+    if (mWithRecal)
+    {
+       CreatHom();
+       CreateSuperpHom();
+    }
 
     mEASF.Init(mDir+mParam.Pattern());
     const cInterfChantierNameManipulateur::tSet *  aSetIm = mEASF.SetIm();
@@ -81,18 +100,17 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,const std::string & aN
              cOneIm_RTI_Slave * aNewIm = new cOneIm_RTI_Slave(*this,aName);
              mVIms.push_back(aNewIm);
              mVSlavIm.push_back(aNewIm);
+             aNewIm->DoImReduite();
          }
     }
-   
-    if (mMainAppli)
-    {
-       CreateSuperpHom();
-    }
+
+    exit(EXIT_SUCCESS);
 }
 
 const cXml_ParamRTI & cAppli_RTI::Param() const { return mParam; }
 const std::string &   cAppli_RTI::Dir()   const {return mDir;}
 cOneIm_RTI_Master *   cAppli_RTI::Master() {return mMasterIm;}
+bool  cAppli_RTI::WithRecal() const { return mWithRecal; }
 
 cOneIm_RTI_Slave * cAppli_RTI::UniqSlave()
 {
