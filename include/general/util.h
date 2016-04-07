@@ -862,13 +862,13 @@ class tFileOffset
     public :
 
 
-         const tLowLevelFileOffset & AbsLLO() const
+         const tLowLevelFileOffset & CKK_AbsLLO() const
          {
                tLowLevelFileOffset aLLO = mLLO.Val();
                ELISE_ASSERT(aLLO>=0,"AbsLLO neg");
                return mLLO.Val();
          }
-         tByte4AbsFileOffset   Byte4AbsLLO() const
+         tByte4AbsFileOffset   CKK_Byte4AbsLLO() const
          {
                tLowLevelFileOffset aLLO = mLLO.Val();
                ELISE_ASSERT((aLLO>=0) && (aLLO<=0xFFFFFFFFll),"Byt4LLO too big");
@@ -878,7 +878,7 @@ class tFileOffset
          {
                return mLLO.Val();
          }
-         int  IntBasicLLO() const
+         int  CKK_IntBasicLLO() const
          {
                tLowLevelFileOffset aLLO = mLLO.Val();
                ELISE_ASSERT((aLLO>-0x7FFFFFFFll) && (aLLO<0x7FFFFFFFll),"Byt4LLO too big");
@@ -968,10 +968,12 @@ class tFileOffset
          int CKK_ToReinterpretInt() const
          {
               int aRes;
-              tByte4AbsFileOffset anOfs4 = Byte4AbsLLO();
+              tByte4AbsFileOffset anOfs4 = CKK_Byte4AbsLLO();
               memcpy(&aRes,&anOfs4,sizeof(tByte4AbsFileOffset));
               return aRes;
          }
+
+         static  const tFileOffset NoOffset;
 /*
 */
     private :

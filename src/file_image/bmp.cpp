@@ -305,7 +305,7 @@ BMP_Rle_8_PFOB::BMP_Rle_8_PFOB(Data_BMP_File * bmp) :
 
 tFileOffset BMP_Rle_8_PFOB::Read(U_INT1 * res,tFileOffset nbo)
 {
-    int nb = nbo.IntBasicLLO();
+    int nb = nbo.CKK_IntBasicLLO();
     for (int i=0 ; i < nb ;)
     {
         if (_nb_buffered == 0)
@@ -361,7 +361,7 @@ tFileOffset BMP_Rle_8_PFOB::Read(U_INT1 * res,tFileOffset nbo)
 
               case Data_BMP_File::rle:
               {
-                   INT nb_to_read = ElMin(nb-i,_nb_buffered.IntBasicLLO());
+                   INT nb_to_read = ElMin(nb-i,_nb_buffered.CKK_IntBasicLLO());
                     memset(res+i,_rle_val,nb_to_read);
                     i+= nb_to_read;
                    _nb_buffered -= nb_to_read;
@@ -371,7 +371,7 @@ tFileOffset BMP_Rle_8_PFOB::Read(U_INT1 * res,tFileOffset nbo)
 
               case Data_BMP_File::absolute:
               {
-                   INT nb_to_read = ElMin(nb-i,_nb_buffered.IntBasicLLO());
+                   INT nb_to_read = ElMin(nb-i,_nb_buffered.CKK_IntBasicLLO());
                    _fp.read(res+i,sizeof(U_INT1),nb_to_read);
                    i += nb_to_read;
                    _nb_buffered -= nb_to_read;
@@ -490,7 +490,7 @@ BMP_file_2d::BMP_file_2d
                             (
                                 bmpf->_name,
                                 bmpf->_nb_chan,
-                                bmpf->_offs_im.IntBasicLLO(),
+                                bmpf->_offs_im.CKK_IntBasicLLO(),
                                 read_mode                ?
                                      ELISE_fp::READ      :
                                      ELISE_fp::READ_WRITE

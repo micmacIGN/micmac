@@ -279,7 +279,7 @@ class Ps_Filter : public Mcheck
             _TopFlx     (0)
         {
         }
-        INT  nb_byte() {return _mflx->nbbyte().IntBasicLLO();}
+        INT  nb_byte() {return _mflx->nbbyte().CKK_IntBasicLLO();}
 
         void new_line();
         void put_mem(INT);
@@ -326,7 +326,7 @@ void Ps_Filter::put_file(ostream & fd)
 {
     PS_A85  p85(fd);
 
-    for (INT k =0; k<_mflx->nbbyte().IntBasicLLO() ; k++)
+    for (INT k =0; k<_mflx->nbbyte().CKK_IntBasicLLO() ; k++)
         p85.put((*_mflx)[k]);
     p85.close_block();
 }

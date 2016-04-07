@@ -782,8 +782,8 @@ void Packed_LZW_Decompr_Flow::assert_end_code()
 
 tFileOffset Packed_LZW_Decompr_Flow::Read(U_INT1 * res,tFileOffset nbo)
 {
-      int nb = nbo.IntBasicLLO();
-      int sum_nb_added = ElMin(nb,_nb_buffered.IntBasicLLO());
+      int nb = nbo.CKK_IntBasicLLO();
+      int sum_nb_added = ElMin(nb,_nb_buffered.CKK_IntBasicLLO());
       _nb_buffered -= sum_nb_added;
       if (res)
          memcpy(res,_buf+_deb_buffered.BasicLLO(),sum_nb_added);
@@ -812,7 +812,7 @@ tFileOffset Packed_LZW_Decompr_Flow::Read(U_INT1 * res,tFileOffset nbo)
       }
       _deb_buffered = 0;
       _nb_buffered = nb_decoded - nb_transfered;
-      memcpy(_buf,decoded+nb_transfered,_nb_buffered.Byte4AbsLLO());
+      memcpy(_buf,decoded+nb_transfered,_nb_buffered.CKK_Byte4AbsLLO());
 
       return nb;
 }
@@ -823,7 +823,7 @@ tFileOffset RelToAbs(tRelFileOffset anOff)
    ELISE_ASSERT(anOff.>=0,"RelToAbs Offset");
    return tFileOffset(anOff);
 */
-    return anOff.AbsLLO();
+    return anOff.CKK_AbsLLO();
 }
 
 
@@ -851,12 +851,12 @@ tRelFileOffset Packed_LZW_Decompr_Flow::Rseek(tRelFileOffset nbr)
                             _flxi->nexti(_decoder->nb_bit_cur())
                        );
 
-              nb_transfered = ElMin(nb_decoded,(nb-sum_nb_added).IntBasicLLO());
+              nb_transfered = ElMin(nb_decoded,(nb-sum_nb_added).CKK_IntBasicLLO());
               sum_nb_added += nb_transfered;
       }
       _deb_buffered = 0;
       _nb_buffered = nb_decoded - nb_transfered;
-      memcpy(_buf,decoded+nb_transfered,_nb_buffered.Byte4AbsLLO());
+      memcpy(_buf,decoded+nb_transfered,_nb_buffered.CKK_Byte4AbsLLO());
 
       return nb;
 }
@@ -877,7 +877,7 @@ Packed_LZW_Decompr_Flow::~Packed_LZW_Decompr_Flow()
 
 tFileOffset Packed_LZW_Decompr_Flow::Write(const U_INT1 * vals,tFileOffset nbo)
 {
-    int nb = nbo.IntBasicLLO();
+    int nb = nbo.CKK_IntBasicLLO();
     LZW_decoder::wcodes wc;
 
     for (int i=0 ; i<nb ; i++)
@@ -891,7 +891,7 @@ tFileOffset Packed_LZW_Decompr_Flow::Write(const U_INT1 * vals,tFileOffset nbo)
 
 void  Packed_LZW_Decompr_Flow::Write(const INT * vals,tFileOffset nbo)
 {
-    int nb = nbo.IntBasicLLO();
+    int nb = nbo.CKK_IntBasicLLO();
     const int sz_buf = 100;
     U_INT1 buf[sz_buf];
 

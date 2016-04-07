@@ -211,7 +211,7 @@ void to_msb_rep_4(void * adr)
 
 void mem_raz(void * adr,tFileOffset nb)
 {
-    memset(adr,0,nb.AbsLLO());
+    memset(adr,0,nb.CKK_AbsLLO());
 }
 
 void  set_fonc_x(INT * res,INT x0,INT x1)

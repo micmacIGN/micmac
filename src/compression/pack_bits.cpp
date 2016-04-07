@@ -303,7 +303,7 @@ tFileOffset Pack_Bits_Flow::Read(U_INT1 * ,tFileOffset nb)
 
 tFileOffset Pack_Bits_Flow::Write(const U_INT1 * vals ,tFileOffset nbo)
 {
-    int nb = nbo.IntBasicLLO();
+    int nb = nbo.CKK_IntBasicLLO();
     El_Internal.ElAssert
     (
        ! _read,

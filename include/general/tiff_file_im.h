@@ -79,6 +79,7 @@ L_Arg_Opt_Tiff  ArgOpTiffMDP(const cMetaDataPhoto &,bool SVP=false);
 L_Arg_Opt_Tiff  ArgOpTiffMDP(const std::string & aNameF );
 
 
+extern int DefValueBigTif;
 
 class Tiff_Im : public ElGenFileIm
 {
@@ -338,7 +339,7 @@ class Tiff_Im : public ElGenFileIm
                     COMPR_TYPE                  compr,
                     PH_INTER_TYPE               phot_interp,
                     L_Arg_Opt_Tiff              l = Empty_ARG,
-                    int BigTiff                 =-1
+                    int * BigTiff               = &DefValueBigTif
                  );
 
       // Cree le fichier si il n'existe pas  ou si  une de
@@ -352,7 +353,7 @@ class Tiff_Im : public ElGenFileIm
                               COMPR_TYPE                  compr,
                               PH_INTER_TYPE               phot_interp,
                               L_Arg_Opt_Tiff              l = Empty_ARG,
-                              int BigTiff                 =-1
+                              int * BigTiff               = &DefValueBigTif
                         );
 
           // Color Indexed
@@ -363,7 +364,7 @@ class Tiff_Im : public ElGenFileIm
                     COMPR_TYPE                  compr,
                     Disc_Pal                    pal,
                     L_Arg_Opt_Tiff              l = Empty_ARG,
-                    int BigTiff                 =-1
+                    int * BigTiff               = &DefValueBigTif
                  );
 
 
