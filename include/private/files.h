@@ -202,8 +202,8 @@ class  ELISE_fp
          const std::string & NameFile() const {return  mNameFile;}
 
 
-         void write_FileOffset4(tFileOffset);
-         void write_FileOffset8(tFileOffset);
+         void CKK_write_FileOffset4(tFileOffset);
+         void CKK_write_FileOffset8(tFileOffset);
          void write_U_INT1(INT);
          void write_U_INT2(INT);
          void write_U_INT4(U_INT4);

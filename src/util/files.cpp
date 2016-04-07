@@ -559,7 +559,7 @@ U_INT8 ELISE_fp::read_U_INT8()
 	U_INT8 c;
 	read(&c,sizeof(U_INT8),1);
 	if (!_byte_ordered)
-		byte_inv_2(&c);
+		byte_inv_8(&c);
 	return c;
 }
 
@@ -582,14 +582,6 @@ INT4  ELISE_fp::read_INT4 ()
 	return c;
 }
 
-tFileOffset ELISE_fp::read_FileOffset8()
-{
-	tFileOffset  c;
-	read(&c,sizeof(tFileOffset ),1);
-	if (!_byte_ordered)
-		byte_inv_8(&c);
-	return c;
-}
 
 INT2  ELISE_fp::read_INT2 ()
 {
@@ -644,9 +636,9 @@ std::string  ELISE_fp::read(std::string *)
 	return aRes;
 }
 
-void ELISE_fp::write_FileOffset4(tFileOffset anOffs)
+void ELISE_fp::CKK_write_FileOffset4(tFileOffset anOffs)
 {
-   tByte4AbsFileOffset anO4 = anOffs.Byte4AbsLLO();
+   tByte4AbsFileOffset anO4 = anOffs.CKK_Byte4AbsLLO();
    write(&anO4,sizeof(tByte4AbsFileOffset),1);
 }
 
@@ -659,6 +651,14 @@ tFileOffset ELISE_fp::read_FileOffset4()
     return anO4;
 }
 
+
+tFileOffset ELISE_fp::read_FileOffset8()
+{
+	tLowLevelFileOffset  c;
+	read(&c,sizeof(c ),1);
+	if (!_byte_ordered) byte_inv_8(&c);
+	return c;
+}
 
 void ELISE_fp::write_U_INT1(INT v)
 {
@@ -1399,14 +1399,14 @@ tFileOffset Mem_Packed_Flux_Of_Byte::Write(const U_INT1 * vals,tFileOffset n)
 	{
 		while (_nb+n > _sz)
 			_sz *= 2;
-		U_INT1 * newd   = NEW_VECTEUR(0,(_sz*sz_el()).IntBasicLLO(),U_INT1);
-		convert(newd,_data,(_nb*sz_el()).IntBasicLLO());
+		U_INT1 * newd   = NEW_VECTEUR(0,(_sz*sz_el()).CKK_IntBasicLLO(),U_INT1);
+		convert(newd,_data,(_nb*sz_el()).CKK_IntBasicLLO());
 
 		DELETE_VECTOR(_data,0);
 		_data = newd;
 	}
 
-	convert(_data+(_nb*sz_el()).BasicLLO(),vals,(n*sz_el()).IntBasicLLO());
+	convert(_data+(_nb*sz_el()).BasicLLO(),vals,(n*sz_el()).CKK_IntBasicLLO());
 	_nb += n;
 	return n;
 }
@@ -1981,14 +1981,14 @@ std::vector<Pt2di> ELISE_fp::read(std::vector<Pt2di> *)
 template <class Type> void  WritePtr(ELISE_fp & aFile,tFileOffset aNb,const Type * aPtr)
 {
 	for (tFileOffset k=0 ; k< aNb ; k++)
-		aFile.write(aPtr[k.AbsLLO()]);
+		aFile.write(aPtr[k.CKK_AbsLLO()]);
 }
 
 
 template <class Type> void  ReadPtr(ELISE_fp & aFile,tFileOffset aNb,Type * aPtr)
 {
 	for (tFileOffset k=0 ; k< aNb ; k++)
-		aPtr[k.AbsLLO()] = aFile.read((Type *) 0);
+		aPtr[k.CKK_AbsLLO()] = aFile.read((Type *) 0);
 }
 
 template void WritePtr(ELISE_fp & aFile,tFileOffset aNb,const REAL8 *);
@@ -2263,6 +2263,9 @@ No_ElFp_DumpUndump(IntSubst)
 No_ElFp_DumpUndump(DoubleSubst)
 No_ElFp_DumpUndump(Pt2diSubst)
 No_ElFp_DumpUndump(Pt2drSubst)
+
+
+const tFileOffset tFileOffset::NoOffset (-1);
 
 
 

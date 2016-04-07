@@ -178,6 +178,8 @@ template <class Type> class UnLoadPackBit
 		static PackB_IM<Type>  Do(DATA_Tiff_Ifd &,Tiff_Im::COMPR_TYPE);
 };
 
+extern int DefValueBigTif;
+
 class DATA_Tiff_Ifd : public ElDataGenFileIm
 {
       friend class Tiff_Tiles_MPD_T6;
@@ -254,6 +256,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            // Bif tiff handling
            bool           BigTiff() const;
            int MaxNbByteTagValNonDefer() const; // Taille max pour que la valeur ne soit pas dereferencee
+           int SzPtr() const; // Meme valeur que MaxNbByteTagValNonDefer , mais semantique un peu !=
 
            U_INT8 LireNbTag(ELISE_fp & aFp) const;
            void WriteNbTag(ELISE_fp & aFp,U_INT8);
@@ -263,7 +266,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            void  WriteNbVal(ELISE_fp & aFp,U_INT8);
  
            U_INT8  LireOffset(ELISE_fp & aFp) const;
-           void   WriteOffet(ELISE_fp & aFp,U_INT8);
+           void   WriteOffset(ELISE_fp & aFp,tFileOffset);
       private :
 
            class  vmodif
@@ -342,7 +345,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
                  Elise_colour                *,
                  INT                         nb,
                  L_Arg_Opt_Tiff              l = Tiff_Im::Empty_ARG,
-                 int                         BigTif = -1 // -1 jamais , 0 si possible, 1 toujours
+                 int *                       BigTif = &DefValueBigTif // -1 jamais , 0 si possible, 1 toujours
            );
 
 

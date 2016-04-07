@@ -279,7 +279,7 @@ BitsPacked_PFOB::~BitsPacked_PFOB()
 
 tFileOffset BitsPacked_PFOB::_Read(U_INT1 * res,tFileOffset nbo) 
 {
-    int nb = nbo.IntBasicLLO();
+    int nb = nbo.CKK_IntBasicLLO();
     ELISE_ASSERT(nb>=0,"Read-neg-in-BitsPacked_PFOB");
     for (int i = 0 ; i<nb ; i++)
     {
@@ -298,7 +298,7 @@ tFileOffset BitsPacked_PFOB::Read(U_INT1 * res,tFileOffset nb)
 
 tFileOffset BitsPacked_PFOB::_Write(const U_INT1 * data,tFileOffset nbo) 
 {
-    int nb = nbo.IntBasicLLO();
+    int nb = nbo.CKK_IntBasicLLO();
     if (El_User_Dyn.active())
     {
          INT index = index_values_out_of_range
@@ -388,7 +388,7 @@ INT BitsPacked_PFOB::_Rseek(INT nb_el)
 
 tRelFileOffset BitsPacked_PFOB::_Rseek(tRelFileOffset nb_elo) 
 {
-      int nb_el = nb_elo.IntBasicLLO();
+      int nb_el = nb_elo.CKK_IntBasicLLO();
       // _i_buf += nb_el;
       int aNbSeek = Elise_div(_i_buf+nb_el-1,_nb_pb)-Elise_div(_i_buf-1,_nb_pb);
      _i_buf = mod(_i_buf+nb_el,_nb_pb);

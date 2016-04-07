@@ -494,7 +494,7 @@ TGA_RLE_Flx_byte::TGA_RLE_Flx_byte(Data_TGA_File * dtga) :
 
 tFileOffset TGA_RLE_Flx_byte::Read(U_INT1 * cbuf,tFileOffset nb_elo)
 {
-   int nb_el = nb_elo.IntBasicLLO();
+   int nb_el = nb_elo.CKK_IntBasicLLO();
    INT nb_el_red = -12345; // warn init
 
     for
@@ -512,7 +512,7 @@ tFileOffset TGA_RLE_Flx_byte::Read(U_INT1 * cbuf,tFileOffset nb_elo)
            if (_rle_state)
               _fp.read(_buf_rle,_sz_el,1); 
        }
-       nb_el_red = ElMin(_nb_buffered.IntBasicLLO(),nb_el-sum_nb_el);
+       nb_el_red = ElMin(_nb_buffered.CKK_IntBasicLLO(),nb_el-sum_nb_el);
        _nb_buffered -= nb_el_red;
 
        if (_rle_state)

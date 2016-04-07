@@ -42,6 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+int DefValueBigTif = 0;
+
+
 
 /***********************************************************************/
 /***********************************************************************/
@@ -312,6 +315,10 @@ tFileOffset DATA_tiff_header::ReadFileOffset(ELISE_fp & aFp) const
 
 ELISE_fp DATA_tiff_header::kth_file(INT & nb,bool read)
 {
+
+// static int aCpt=0; aCpt++;
+// bool Bug = (aCpt==2);
+// if (MPD_MM()) std::cout << "AAAAAAAAAAAAA " << Bug << "\n";
     ELISE_fp fp
              (  _name,
                  read   ?   ELISE_fp::READ  :  ELISE_fp::READ_WRITE
@@ -328,11 +335,14 @@ ELISE_fp DATA_tiff_header::kth_file(INT & nb,bool read)
     // for (offs = fp.read_FileOffset4(); offs.BasicLLO() && (i<nb) ; i++)
     for (offs = ReadFileOffset(fp); offs.BasicLLO() && (i<nb) ; i++)
     {
+// if (MPD_MM()) std::cout << "CCCCCCC\n";
           fp.seek_begin(offs);
           U_INT8 nb_tag =  mBigTiff ? fp.read_U_INT8()  : fp.read_U_INT2();
           fp.seek_cur(nb_tag*mSzTag);
           offs = ReadFileOffset(fp);
+// if (MPD_MM()) std::cout << "DDDDDD\n";
     }
+// if (MPD_MM()) std::cout << "HHHHHHHHHh\n";
 
     if (offs.BasicLLO())
     {
@@ -503,8 +513,8 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
       Disc_Pal *                  aPal,
       Elise_colour                * tab_c,
       INT                         nb_col,
-      L_Arg_Opt_Tiff             l_arg_opt,
-      int                        aIntBigTif
+      L_Arg_Opt_Tiff              l_arg_opt,
+      int *                       aIntPtrBigTif
 ) :
     mExifTiff_Date (cElDate::NoDate)
 {
@@ -732,10 +742,10 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
     }
 
     mBigTiff = false;
-    if (aIntBigTif==-1)
+    if ((aIntPtrBigTif!=0) && (*aIntPtrBigTif==-1))
     {
     }
-    else if (aIntBigTif==1)
+    else if ((aIntPtrBigTif!=0) && (*aIntPtrBigTif==1))
     {
       mUseFileTile = 0;
       mBigTiff = true;
@@ -757,6 +767,8 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
     }
     // InitBigTiff();
 
+
+    tFileOffset aOffsData0 = fp.tell() +  SzPtr();
 
     // GESTION du dallage interne
 
@@ -799,21 +811,22 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
          }
           }
         }
-        fp.write_INT4(8);
+        WriteOffset(fp,aOffsData0);
     }
     else
     {
-        _tiles_offset = STD_NEW_TAB_USER(_nb_tile_tot.IntBasicLLO(),tFileOffset);
-        _tiles_byte_count = STD_NEW_TAB_USER(_nb_tile_tot.IntBasicLLO(),tFileOffset);
+        _tiles_offset = STD_NEW_TAB_USER(_nb_tile_tot.BasicLLO(),tFileOffset);
+        _tiles_byte_count = STD_NEW_TAB_USER(_nb_tile_tot.BasicLLO(),tFileOffset);
 
         if ( _mode_compr == Tiff_Im::No_Compr)
         {
               for(tFileOffset i = 0 ; i <_nb_tile_tot; i++)
               {
-                  _tiles_offset[i.IntBasicLLO()] = tFileOffset(8) + i * _byte_sz_tiles;
-                  _tiles_byte_count[i.IntBasicLLO()] =  _byte_sz_tiles;
+                  _tiles_offset[i.BasicLLO()] = tFileOffset(aOffsData0) + i * _byte_sz_tiles;
+                  _tiles_byte_count[i.BasicLLO()] =  _byte_sz_tiles;
               }
-              fp.write_FileOffset4(tFileOffset(8)+_nb_tile_tot*_byte_sz_tiles);
+              WriteOffset(fp,tFileOffset(aOffsData0)+_nb_tile_tot*_byte_sz_tiles);
+              //  fp.write_FileOffset4(tFileOffset(8)+_nb_tile_tot*_byte_sz_tiles);
 
 
               fp.write_dummy(_nb_tile_tot*_byte_sz_tiles);
@@ -823,10 +836,11 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
         {
               for(tFileOffset i = 0 ; i <_nb_tile_tot; i++)
               {
-                  _tiles_offset[i.IntBasicLLO()] =   Tiff_Im::UN_INIT_TILE;
-                  _tiles_byte_count[i.IntBasicLLO()] =  Tiff_Im::UN_INIT_TILE;
+                  _tiles_offset[i.BasicLLO()] =   Tiff_Im::UN_INIT_TILE;
+                  _tiles_byte_count[i.BasicLLO()] =  Tiff_Im::UN_INIT_TILE;
               }
-              fp.write_INT4(8);
+              WriteOffset(fp,aOffsData0);
+              // fp.write_INT4(8);
         }
     }
     write_all_tiff_tag(this,fp);
@@ -853,6 +867,10 @@ int  DATA_Tiff_Ifd::SzTag() const
     return 4 + 2 * MaxNbByteTagValNonDefer();
 }
 int DATA_Tiff_Ifd::MaxNbByteTagValNonDefer() const
+{
+    return mBigTiff  ? 8 : 4;
+}
+int DATA_Tiff_Ifd::SzPtr() const
 {
     return mBigTiff  ? 8 : 4;
 }
@@ -891,12 +909,12 @@ U_INT8  DATA_Tiff_Ifd::LireOffset(ELISE_fp & aFp) const
 {
    return mBigTiff  ?  aFp.read_U_INT8()  : aFp.read_U_INT4();
 }
-void  DATA_Tiff_Ifd::WriteOffet(ELISE_fp & aFp,U_INT8 aVal)
+void  DATA_Tiff_Ifd::WriteOffset(ELISE_fp & aFp,tFileOffset anOff)
 {
    if (mBigTiff)
-      aFp.write_U_INT8(aVal);
+      aFp.write_U_INT8(anOff.BasicLLO());
    else
-      aFp.write_U_INT4(aVal);
+      aFp.write_U_INT4(anOff.BasicLLO());
 }
 
 
@@ -936,6 +954,7 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
 ) :
     mExifTiff_Date (cElDate::NoDate)
 {
+
     mUseFileTile = false;
     mSzFileTile = Pt2di(-10000,-10000);
     _byte_ordered = byte_ordered;
@@ -1278,7 +1297,7 @@ void DATA_Tiff_Ifd::show()
      {
        cout << "TILES : ";
      {
-         for (int  i =0 ; i<ElMin(6,_nb_tile_tot.IntBasicLLO()) ; i++)
+         for (int  i =0 ; i<ElMin(6,_nb_tile_tot.CKK_IntBasicLLO()) ; i++)
          {
              cout << "(" << _tiles_offset[i].BasicLLO() << "," ;
             if   (_tiles_byte_count)
@@ -1288,7 +1307,7 @@ void DATA_Tiff_Ifd::show()
             cout     << ")";
         }
      }
-       if (_nb_tile_tot.IntBasicLLO()>5) cout << "...";
+       if (_nb_tile_tot.BasicLLO()>5) cout << "...";
        cout << "\n";
      }
      else
@@ -1468,7 +1487,8 @@ void DATA_Tiff_Ifd::set_value_tile
    tFileOffset offs_cur = fp.tell();
 
    fp.seek_begin(offset_file+nt*4);
-   tFileOffset old_value = fp.read_FileOffset4();
+   tFileOffset where = fp.tell();
+   tFileOffset old_value = LireOffset(fp) ;  // fp.read_FileOffset4();
 
    Tjs_El_User.ElAssert
    (
@@ -1478,9 +1498,11 @@ void DATA_Tiff_Ifd::set_value_tile
              <<  "; tile = " << tx << "," << ty << "\n"
    );
 
-   fp.seek_cur(-4);
-   fp.write_FileOffset4(value);
-   tab_val[nt.IntBasicLLO()] = value;
+   fp.seek_begin(where); // 
+   // fp.seek_cur(-4); // P bbbb
+   // fp.write_FileOffset4(value);
+   WriteOffset(fp,value);
+   tab_val[nt.CKK_Byte4AbsLLO()] = value;
 
    fp.seek_begin(offs_cur);
 }
@@ -1567,10 +1589,10 @@ Tiff_Im::Tiff_Im
       Tiff_Im::COMPR_TYPE      compr,
       Tiff_Im::PH_INTER_TYPE   Phot_interp,
       L_Arg_Opt_Tiff              l,
-      int                         aBigTif
+      int *                       aPtrBigTif
 )     :
 
-      ElGenFileIm ( new DATA_Tiff_Ifd (name,sz,type,compr,Phot_interp,0,0,0,l,aBigTif))
+      ElGenFileIm ( new DATA_Tiff_Ifd (name,sz,type,compr,Phot_interp,0,0,0,l,aPtrBigTif))
 {
     *this = Tiff_Im(name);
 }
@@ -1583,7 +1605,7 @@ Tiff_Im::Tiff_Im
       Tiff_Im::COMPR_TYPE      compr,
       Disc_Pal                 The_Pal,
       L_Arg_Opt_Tiff              l,
-      int                         aBigTif
+      int *                       aPtrBigTif
 )     :
       ElGenFileIm
       (  new DATA_Tiff_Ifd
@@ -1597,7 +1619,7 @@ Tiff_Im::Tiff_Im
                  The_Pal.create_tab_c(),
                  The_Pal.nb_col(),
                  l,
-                 aBigTif
+                 aPtrBigTif
               )
       )
 {
@@ -1614,7 +1636,7 @@ Tiff_Im Tiff_Im::CreateIfNeeded
              COMPR_TYPE                  aCompr,
              PH_INTER_TYPE               aPhotInterp,
              L_Arg_Opt_Tiff              aListArgOpt,
-             int                         aBigTif
+             int *                       aPtrBigTif
         )
 {
     if (ELISE_fp::exist_file(aName))
@@ -1635,7 +1657,7 @@ Tiff_Im Tiff_Im::CreateIfNeeded
     }
 
     IsModified = true;
-    return Tiff_Im(aName.c_str(),aSz,aType,aCompr,aPhotInterp,aListArgOpt,aBigTif);
+    return Tiff_Im(aName.c_str(),aSz,aType,aCompr,aPhotInterp,aListArgOpt,aPtrBigTif);
 }
 
 
@@ -2588,21 +2610,26 @@ std::string NameFileStd
    return aNewName;
 }
 
+
 int TestDupBigTiff(int argc,char ** argv)
 {
     std::string aNameTifIn;
     bool BigTif = true;
+    bool DoCopy = true;
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aNameTifIn,"Name File In ", eSAM_IsPatFile),
-        LArgMain()  << EAM(BigTif,"BigTif,",true,"Generate big tif files (Def=false)",eSAM_IsBool)
+        LArgMain()  << EAM(BigTif,"BigTif",true,"Generate big tif files (Def=true)",eSAM_IsBool)
+                    << EAM(DoCopy,"Cp",true,"Do Copy (Def=true)",eSAM_IsBool)
     );
 
     std::string aNameTifOut = StdPrefix(aNameTifIn) + "-DupBT.tif";
 
     Tiff_Im aTiffIn(aNameTifIn.c_str());
 
+
+    int aIntBigTif  =  (BigTif ? 1 : -1);
     Tiff_Im aTiffOut
             (
                 aNameTifOut.c_str(),
@@ -2611,10 +2638,15 @@ int TestDupBigTiff(int argc,char ** argv)
                 aTiffIn.mode_compr(),
                 aTiffIn.phot_interp(),
                 Tiff_Im::Empty_ARG,
-                (BigTif ? 1 : -1)
+                &aIntBigTif
             );
 
-     ELISE_COPY(aTiffIn.all_pts(),aTiffIn.in(),aTiffOut.out());
+     if (DoCopy)
+     {
+        // ELISE_COPY(aTiffIn.all_pts(),aTiffIn.in(),aTiffOut.out());
+        Pt2di aSz = aTiffOut.sz();
+        ELISE_COPY(rectangle(Pt2di(0,0),aSz),aTiffIn.in(),aTiffOut.out());
+     }
 
 
     return EXIT_SUCCESS;
