@@ -37,107 +37,79 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#ifndef _RTI_H_
-#define _RTI_H_
-
-#include "StdAfx.h"
+#include "RTI.h"
 
 
-class cOneIm_RTI;
-class cAppli_RTI;
-
-
-typedef enum
+void  cAppli_RTI::OneItereRecalRadiom
+      (
+           Im2D_U_INT2  aIRMaster,
+           Im2D_Bits<1> aIRMasq,
+           Im2D_U_INT2  aIRSec,
+           int          aNbCase,
+           int          aDeg
+      )
 {
-     eRTI_Test,
-     eRTI_Med,
-     eRTI_OldRecal,
-     eRTI_RecalBeton_1Im,
-     eRTI_RecalBeton_1AllIm
-} eModeRTI;
+     TIm2D<U_INT2,INT> aTRMaster(aIRMaster);
+     TIm2D<U_INT2,INT> aTRSec(aIRSec);
+     TIm2DBits<1> aTRMasq(aIRMasq);
+        
+     Pt2di aSz = aIRMaster.sz();
+     for (int aCx=0 ; aCx<aNbCase ; aCx++)
+     {
+          int aX0 = (aSz.x * aCx) / aNbCase;
+          int aX1 = (aSz.x * (aCx+1)) / aNbCase;
+          for (int aCy=0 ; aCy<aNbCase ; aCy++)
+          {
+               int aY0 = (aSz.y * aCy) / aNbCase;
+               int aY1 = (aSz.y * (aCy+1)) / aNbCase;
 
+                Pt2dr aSomP(0,0);
+                double aSomPds = 0;
+                double aSomIm = 0;
+                double aSomIs = 0;
+                Pt2di aP;
+                for (aP.x=aX0 ; aP.x<aX1; aP.x++)
+                {
+                     for (aP.y=aY0 ; aP.y<aY1; aP.y++)
+                     {
+                          if (aTRMasq.get(aP))
+                          {
+                              aSomP = aSomP + Pt2dr(aP);
+                              aSomPds += 1;
+                              aSomIm += aTRMaster.get(aP);
+                              aSomIs += aTRSec.get(aP);
+                          }
+                     }
+                }
+                if (aSomPds!=0=
+                {
+                    aSomP = aSomP / aSomPds;
+                    aSomIm /= aSomPds;
+                    aSomIs /= aSomPds;
+                }
+          }
+     }
+}
 
-class cOneIm_RTI
+void  cAppli_RTI::DoOneRecalRadiomBeton()
 {
-    public :
-       cOneIm_RTI(cAppli_RTI &,const std::string & aName,bool Master);
-       virtual Tiff_Im DoImReduite();
-       Tiff_Im   ImFull();
-       const std::string & Name() const;
-       Im2D_U_INT2  ImRed();
-       Im2D_Bits<1> MasqRed(Im2D_U_INT2);
-    protected :
-      cAppli_RTI &   mAppli;
-      std::string    mName;
-      bool           mMaster;
-      bool           mWithRecal;
-      std::string    mNameIS;  // Name Image Superpose
-      std::string    mNameISPan;  // Name Image Superpose Panchro ?
-      std::string    mNameISR; // IS Reduced
-      std::string    mNameMasq;  // Name Image Superpose
-      std::string    mNameMasqR; // IS Reduced
-};
+    Im2D_U_INT2 aIRMas =  Master()->ImRed();
+    Im2D_Bits<1>  aIRMaq = Master()->MasqRed(aIRMas);
+    Im2D_U_INT2 aIRSec =  UniqSlave()->ImRed();
 
-class cOneIm_RTI_Slave : public cOneIm_RTI
-{
-    public :
-       cOneIm_RTI_Slave(cAppli_RTI &,const std::string & aName);
-       Tiff_Im DoImReduite();
-       const std::string & NameMasq() const;
-       const std::string & NameMasqR() const;
-       Tiff_Im   MasqFull();
-    private :
-};
+    OneItereRecalRadiom
+    (
+         aIRMas,
+         aIRMaq,
+         aIRSec,
+         10,
+         1
+    );
 
-class cOneIm_RTI_Master : public cOneIm_RTI
-{
-    public :
-       cOneIm_RTI_Master(cAppli_RTI &,const std::string & aName);
-    protected :
-};
+    std::cout << "RRRbb " << aIRMas.sz()  << " " << aIRSec.sz() << "\n";
+}
 
 
-
-
-class cAppli_RTI
-{
-    public :
-       static const std::string ThePrefixReech;
-       cAppli_RTI(const std::string & aFullNameParam,eModeRTI aMode,const std::string & aName2);
-       void CreateSuperpHom();
-       void CreatHom();
-       const cXml_ParamRTI & Param() const;
-       const std::string & Dir() const;
-       cOneIm_RTI_Slave * UniqSlave();
-       cOneIm_RTI_Master * Master();
-       void MakeImageMed();
-       bool  WithRecal() const;
-
-       void DoOneRecalRadiomBeton();
-
-    private :
-       void  OneItereRecalRadiom(Im2D_U_INT2,Im2D_Bits<1>,Im2D_U_INT2,int aNbCase,int aDeg);
-
-
-       void MakeImageMed(const Box2di & aBox);
-
-       cXml_ParamRTI                    mParam;
-       bool                             mWithRecal;
-       std::string                      mFullNameParam;
-       std::string                      mDir;
-       std::string                      mNameParam;
-       bool                             mTest;
-       std::vector<cOneIm_RTI *>        mVIms;
-       std::vector<cOneIm_RTI_Slave *>  mVSlavIm;
-       cOneIm_RTI_Master *              mMasterIm;
-       cElemAppliSetFile                mEASF;
-       std::string                      mNameImMed;
-};
-
-
-
-
-#endif // _RTI_H_
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
@@ -170,4 +142,4 @@ sécurité de leurs systèmes et ou de leurs données et, plus généralement,
 Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
-aooter-MicMac-eLiSe-25/06/2007*/
+Footer-MicMac-eLiSe-25/06/2007*/

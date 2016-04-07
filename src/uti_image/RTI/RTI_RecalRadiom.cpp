@@ -74,7 +74,7 @@ cAppli_RecalRadio::cAppli_RecalRadio(int argc,char ** argv) :
          LArgMain()  << EAM(mNameMaster, "Master",true,"Name of master image if != def master", eSAM_IsExistFile)
     );
 
-   cAppli_RTI aRTIA(mNameParam,mNameI1);
+   cAppli_RTI aRTIA(mNameParam,eRTI_OldRecal,mNameI1);
 
 
    cOneIm_RTI_Slave * aSl = aRTIA.UniqSlave();
@@ -248,7 +248,7 @@ int RTIMed_main(int argc,char **argv)
          LArgMain()  
     );
 
-   cAppli_RTI aRTIA(aNameParam);
+   cAppli_RTI aRTIA(aNameParam,eRTI_Med,"");
    aRTIA.MakeImageMed();
   
    return EXIT_SUCCESS;
