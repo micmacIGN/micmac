@@ -69,6 +69,27 @@ cOneIm_RTI::cOneIm_RTI(cAppli_RTI & anAppli,const std::string & aName,bool isMas
 {
 }
 
+
+Im2D_U_INT2  cOneIm_RTI::ImRed()
+{
+    return Im2D_U_INT2::FromFileStd(mNameISR);
+}
+
+Im2D_Bits<1> cOneIm_RTI::MasqRed(Im2D_U_INT2 anIm)
+{
+   if (ELISE_fp::exist_file(mNameMasqR))
+   {
+       Tiff_Im aTif(mNameMasqR.c_str());
+       Pt2di aSz = aTif.sz();
+       Im2D_Bits<1> aRes(aSz.x,aSz.y);
+       ELISE_COPY(aTif.all_pts(),aTif.in(),aRes.out());
+       return aRes;
+   }
+   Pt2di aSz = anIm.sz();
+   return Im2D_Bits<1>(aSz.x,aSz.y,1);
+}
+
+
 Tiff_Im  cOneIm_RTI::DoImReduite()
 {
    Tiff_Im::StdConvGen(mNameIS,1,true);

@@ -67,7 +67,7 @@ void cAppli_RTI::CreatHom()
 
 
 
-cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,const std::string & aNameI2) :
+cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,eModeRTI aMode,const std::string & aNameI2) :
    mTest      (true)
 {
     mFullNameParam = aFullNameParam;
@@ -75,6 +75,11 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,const std::string & aN
     
     SplitDirAndFile(mDir,mNameParam,mFullNameParam);
     mParam = StdGetFromSI(mFullNameParam,Xml_ParamRTI);
+
+    if (aNameI2!="")
+    {
+       mParam.Pattern() = aNameI2;
+    }
 
     mWithRecal = mParam.SzHom().IsInit();
 
@@ -104,7 +109,6 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,const std::string & aN
          }
     }
 
-    exit(EXIT_SUCCESS);
 }
 
 const cXml_ParamRTI & cAppli_RTI::Param() const { return mParam; }
@@ -121,7 +125,7 @@ cOneIm_RTI_Slave * cAppli_RTI::UniqSlave()
 
 
 
-int  RTI_main(int argc,char ** argv)
+int  Gen_RTI_main(int argc,char ** argv,eModeRTI aMode)
 {
     std::string aFullNameParam,aPat="";
     ElInitArgMain
@@ -131,9 +135,27 @@ int  RTI_main(int argc,char ** argv)
           LArgMain()  << EAM(aPat,"Pat",true,"Pattern to replace existing Pattern in xml file",eSAM_IsExistFile) 
     );
     
-   cAppli_RTI anAppli(aFullNameParam,aPat);
+    if (aMode==eRTI_RecalBeton_1Im)
+    {
+         ELISE_ASSERT(EAMIsInit(&aPat),"Gen_RTI_main Pat non init");
+    }
+    cAppli_RTI anAppli(aFullNameParam,aMode,aPat);
 
-   return EXIT_SUCCESS;
+    if (aMode==eRTI_RecalBeton_1Im)
+    {
+        anAppli.DoOneRecalRadiomBeton();
+    }
+
+    return EXIT_SUCCESS;
+}
+int  RTI_main(int argc,char ** argv)
+{
+      return Gen_RTI_main(argc,argv,eRTI_Test);
+}
+
+int  RTI_RecalRadionmBeton_main(int argc,char ** argv)
+{
+      return Gen_RTI_main(argc,argv,eRTI_RecalBeton_1Im);
 }
 
 
