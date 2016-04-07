@@ -206,6 +206,9 @@ class  ELISE_fp
          void write_FileOffset8(tFileOffset);
          void write_U_INT1(INT);
          void write_U_INT2(INT);
+         void write_U_INT4(U_INT4);
+         void write_U_INT8(U_INT8);
+
          void write_INT4(INT);
          void write_REAL4(REAL4);
          void write_REAL8(REAL8);

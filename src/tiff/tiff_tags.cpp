@@ -571,6 +571,13 @@ TIFF_TAG_VALUE::TIFF_TAG_VALUE(ELISE_fp fp,DATA_Tiff_Ifd * aDTI)
      _nb_log     = aDTI->LireNbVal(fp) ; // fp.read_INT4();
      _nb_phys    = _nb_log;
 
+if (0&& MPD_MM())
+{
+   std::cout << "_field_type_field_type " << _field_type << "\n";
+}
+
+     int aLimNbByte = aDTI->MaxNbByteTagValNonDefer();
+
      if (_field_type != Tiff_Im::eRATIONNAL)
      {
          _integral = true;
@@ -578,7 +585,6 @@ TIFF_TAG_VALUE::TIFF_TAG_VALUE(ELISE_fp fp,DATA_Tiff_Ifd * aDTI)
          INT nb_byte = nbb_type_num(el_ty)/8;
          INT byte_sz = nb_byte * _nb_log;
 
-         int aLimNbByte = aDTI->MaxNbByteTagValNonDefer();
 
          if (byte_sz <= aLimNbByte)
          {
@@ -606,27 +612,32 @@ TIFF_TAG_VALUE::TIFF_TAG_VALUE(ELISE_fp fp,DATA_Tiff_Ifd * aDTI)
 	           << (INT) _NB_MAX_RVALUES  << " values"
          );
          /// tFileOffset offs_goto = fp.read_FileOffset4();
-         tFileOffset offs_goto = aDTI->LireOffset(fp);
-         tFileOffset off_cur   = fp.tell();
-         fp.seek_begin(offs_goto);
+ 
+         int byte_sz = _nb_log * 8;
+         bool DeRef = (byte_sz >aLimNbByte);
+         
+         tFileOffset off_cur;
+         if (DeRef)
+         {
+             tFileOffset offs_goto = aDTI->LireOffset(fp);
+             off_cur   = fp.tell();
+             fp.seek_begin(offs_goto);
+         }
+
+
          for (INT k =0; k < _nb_log ; k++)
          {
               INT p = fp.read_INT4();
               INT q = fp.read_INT4();
-/*
-              El_Internal.ElAssert
-              (
-                    q != 0,
-                    EEM0 << "Null quotient value in Tiff rationnal"
-              );
-*/
-               if (q==0)
+              if (q==0)
                   _rvalues[k] = InfRegex;
-               else
+              else
                  _rvalues[k] = p / (double) q;
          }
-         fp.seek_begin(off_cur);
-         _dereferenced = false;
+         if (DeRef)
+             fp.seek_begin(off_cur);
+
+         _dereferenced = false;  // On a tout lu donc on fait croire que DeRef est false
      }
 
 }
@@ -698,7 +709,7 @@ class TAG_TIF
           TAGS_ID id() const {return _id;};
 
           void read_vmodif(DATA_Tiff_Ifd::vmodif &,TIFF_TAG_VALUE & v,ELISE_fp fp);
-          bool  write_vmodif(DATA_Tiff_Ifd::vmodif, ELISE_fp fp,Tiff_Im::FIELD_TYPE);
+          bool  write_vmodif(DATA_Tiff_Ifd *,DATA_Tiff_Ifd::vmodif, ELISE_fp fp,Tiff_Im::FIELD_TYPE);
 
            void tag_set_tile_offset
                 (DATA_Tiff_Ifd * Di,TIFF_TAG_VALUE & v,
@@ -713,13 +724,13 @@ class TAG_TIF
           //  Put values if they fit in 4-byte, else 
           // memo offset of byte 8 of tiff (offset to data)
 
-          void write_string0(ELISE_fp,const std::string &);
-          void write_value_0 (ELISE_fp,const _INT8   *,INT nb,Tiff_Im::FIELD_TYPE);
-          void Offset_write_value_0 (ELISE_fp,const tFileOffset   *,INT nb);
-          void write_value_0 (ELISE_fp,const REAL  *,INT nb,Tiff_Im::FIELD_TYPE);
+          void write_string0(DATA_Tiff_Ifd *,ELISE_fp,const std::string &);
+          void write_int_0 (DATA_Tiff_Ifd *,ELISE_fp,INT aVal,Tiff_Im::FIELD_TYPE);
+          void Offset_write_value_0 (DATA_Tiff_Ifd *,ELISE_fp,const tFileOffset   *,INT nb);
 
+          void write_value_0 (DATA_Tiff_Ifd *,ELISE_fp,const REAL  *,INT nb,Tiff_Im::FIELD_TYPE);
+          void write_value_0 (DATA_Tiff_Ifd *,ELISE_fp,const _INT8   *,INT nb,Tiff_Im::FIELD_TYPE);
 
-          void write_int_0 (ELISE_fp,INT aVal,Tiff_Im::FIELD_TYPE);
           // void write_tab_int_0 (ELISE_fp,INT* aVal,int,Tiff_Im::FIELD_TYPE);
 
           virtual void   pseudo_read
@@ -733,7 +744,7 @@ class TAG_TIF
           virtual bool write_value (DATA_Tiff_Ifd * Di,ELISE_fp fp) = 0;
 
           void write_header_value
-              (ELISE_fp,Tiff_Im::FIELD_TYPE,INT nb);
+              (DATA_Tiff_Ifd *Di,ELISE_fp,Tiff_Im::FIELD_TYPE,INT nb);
 
           virtual void tag_use_value
                        (DATA_Tiff_Ifd *,TIFF_TAG_VALUE &,ELISE_fp fp) = 0;
@@ -806,17 +817,19 @@ void TAG_TIF::memo_offset_tag(ELISE_fp fp,INT nb, Tiff_Im::FIELD_TYPE type)
 
 void TAG_TIF::write_header_value
      (
+        DATA_Tiff_Ifd * Di,
         ELISE_fp fp,
-         Tiff_Im::FIELD_TYPE type,
-         INT nb
+        Tiff_Im::FIELD_TYPE type,
+        INT nb
      )
 {
      fp.write_U_INT2(_id);
      fp.write_U_INT2(type);
-     fp.write_INT4(nb);
+     //  fp.write_INT4(nb);
+     Di->WriteNbVal(fp,nb);
 }
 
-void TAG_TIF::Offset_write_value_0 (ELISE_fp fp,const tFileOffset   * v,INT nb)
+void TAG_TIF::Offset_write_value_0 (DATA_Tiff_Ifd * Di,ELISE_fp fp,const tFileOffset   * v,INT nb)
 {
 // std::cout << "SZOF " << sizeof(tFileOffset) << " " << sizeof(int) << "\n";
     ELISE_ASSERT(sizeof(tByte4AbsFileOffset)==sizeof(int),"write_value_0 tFileOffset/int");
@@ -827,17 +840,19 @@ void TAG_TIF::Offset_write_value_0 (ELISE_fp fp,const tFileOffset   * v,INT nb)
          aTabOffsetI[aK] = v[aK].BasicLLO();
          //    aTabOffsetI[aK] = v[aK].ToReinterpretInt();
     }
-    write_value_0(fp,aTabOffsetI,nb,Tiff_Im::eLONG);
+    write_value_0(Di,fp,aTabOffsetI,nb,Tiff_Im::eLONG);
 }
 
 void TAG_TIF::write_value_0
-     (   ELISE_fp fp,
+     (   
+         DATA_Tiff_Ifd * Di,
+         ELISE_fp fp,
          const _INT8 * v,
          INT nb,
          Tiff_Im::FIELD_TYPE type
      )
 {
-    write_header_value(fp,type,nb);
+    write_header_value(Di,fp,type,nb);
 
     El_Internal.ElAssert
     ( ! _real_field,
@@ -862,20 +877,20 @@ void TAG_TIF::write_value_0
 }
 
           // void write_value_0 (ELISE_fp,const _INT8   *,INT nb,Tiff_Im::FIELD_TYPE);
-void TAG_TIF::write_int_0 (ELISE_fp aFp,INT aVal,Tiff_Im::FIELD_TYPE aType)
+void TAG_TIF::write_int_0 (DATA_Tiff_Ifd  * Di,ELISE_fp aFp,INT aVal,Tiff_Im::FIELD_TYPE aType)
 {
     _INT8 aValI8 = aVal;
-    write_value_0(aFp,&aValI8,1,aType);
+    write_value_0(Di,aFp,&aValI8,1,aType);
 }
 
-void TAG_TIF::write_string0(ELISE_fp fp ,const std::string & aStr)
+void TAG_TIF::write_string0(DATA_Tiff_Ifd * Di,ELISE_fp fp ,const std::string & aStr)
 {
    const char * aC = aStr.c_str();
    int aNb = (int)strlen(aC);
 
    _INT8 * aTab = STD_NEW_TAB_USER(aNb,_INT8);
    convert(aTab,aC,aNb);
-   write_value_0(fp,aTab,aNb,Tiff_Im::eASCII);
+   write_value_0(Di,fp,aTab,aNb,Tiff_Im::eASCII);
 
    // STD_DELETE_TAB_USER(aTab);
    
@@ -884,13 +899,15 @@ void TAG_TIF::write_string0(ELISE_fp fp ,const std::string & aStr)
 
 
 void TAG_TIF::write_value_0
-     (   ELISE_fp fp,
+     (   
+         DATA_Tiff_Ifd * Di,
+         ELISE_fp fp,
          const REAL * v,
          INT nb,
          Tiff_Im::FIELD_TYPE type
      )
 {
-    write_header_value(fp,type,nb);
+    write_header_value(Di,fp,type,nb);
 
     El_Internal.ElAssert
     ( _real_field && (type == Tiff_Im::eRATIONNAL),
@@ -938,6 +955,7 @@ void TAG_TIF::write_tiles_offset(DATA_Tiff_Ifd * Di,ELISE_fp fp)
 {
      Offset_write_value_0
      (
+          Di,
           fp,
           Di->_tiles_offset,
           Di->_nb_tile_tot.IntBasicLLO()
@@ -948,6 +966,7 @@ void TAG_TIF::write_tiles_byte_count(DATA_Tiff_Ifd * Di,ELISE_fp fp)
 {
      Offset_write_value_0
      (
+          Di,
           fp,
           Di->_tiles_byte_count,
           Di->_nb_tile_tot.IntBasicLLO()
@@ -982,6 +1001,7 @@ void TAG_TIF::read_vmodif
 
 bool TAG_TIF::write_vmodif
      (
+          DATA_Tiff_Ifd * Di,
           DATA_Tiff_Ifd::vmodif     vmod, 
           ELISE_fp                  fp,
           Tiff_Im::FIELD_TYPE       type
@@ -989,7 +1009,7 @@ bool TAG_TIF::write_vmodif
 {
      if (vmod._vals)
      {
-        write_value_0(fp,vmod._vals,vmod._nb,type);
+        write_value_0(Di,fp,vmod._vals,vmod._nb,type);
      }
      return  vmod._vals != 0;
 }
@@ -1023,7 +1043,7 @@ if (0&& MPD_MM())
      {
         TIFF_TAG_VALUE::skeep_value(fp,DTIfd);
      }
-if (0 && MPD_MM())
+if (0&& MPD_MM())
 {
      std::cout << "DONNNE lire_1_tag \n";
      getchar();
@@ -1050,6 +1070,7 @@ void  lire_all_tiff_tag(DATA_Tiff_Ifd * DTIfd,ELISE_fp fp)
 
       for (INT i = 0; i < nb_tag ; i++)
       {
+           
            TAG_TIF::lire_1_tag(DTIfd,fp);
       }
 }
@@ -1064,8 +1085,10 @@ void  lire_all_tiff_tag(DATA_Tiff_Ifd * DTIfd,const Pseudo_Tiff_Arg & pta)
 void   write_all_tiff_tag(DATA_Tiff_Ifd * DTIfd,ELISE_fp fp)
 {
        tFileOffset where = fp.tell();
-       fp.write_U_INT2(0);  // nb tag, will fil once I know how
-                            // many are really used
+
+       // nb tag, will fil once I know how many are really used
+       // fp.write_U_INT2(0);  
+       DTIfd->WriteNbTag(fp,0); 
        INT nb_tag = 0;
 
        for (INT i =0; i<TAG_TIF::NB_TAG ; i++)
@@ -1075,7 +1098,9 @@ void   write_all_tiff_tag(DATA_Tiff_Ifd * DTIfd,ELISE_fp fp)
            if (tag->_used)
               nb_tag++;
        }
-       fp.write_INT4(0);  // offset to next ifd
+       //  fp.write_INT4(0);  
+        DTIfd->WriteOffet(fp,0);  // offset to next ifd
+
 
        {
           for (INT i =0; i<TAG_TIF::NB_TAG ; i++)
@@ -1089,7 +1114,8 @@ void   write_all_tiff_tag(DATA_Tiff_Ifd * DTIfd,ELISE_fp fp)
        }
 
        fp.seek_begin(where);
-       fp.write_U_INT2(nb_tag);
+       // fp.write_U_INT2(nb_tag);
+       DTIfd->WriteNbTag(fp,nb_tag);
 
        fp.seek_end(0);
 }
@@ -1118,16 +1144,10 @@ class TAG_TIF_SZX :  public  TAG_TIF
         {
               Di->_sz.x = v.iget1v();
 
-if (0&& MPD_MM())
-{
-    std::cout << "TAG_TIF_SZX " << Di->_sz.x  << "\n";
-}
-
         }
         bool write_value (DATA_Tiff_Ifd * Di,ELISE_fp fp)
         {
-          // write_value_0(fp,&(Di->_sz.x),1,Tiff_Im::eLONG);
-          write_int_0 (fp,Di->_sz.x,Tiff_Im::eLONG);
+          write_int_0 (Di,fp,Di->_sz.x,Tiff_Im::eLONG);
           return true;
         }
         static TAG_TIF_SZX The_only_one;
@@ -1167,8 +1187,7 @@ class TAG_TIF_SZY :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-              // write_value_0(fp,&(Di->_sz.y),1,Tiff_Im::eLONG);
-              write_int_0(fp,Di->_sz.y,Tiff_Im::eLONG);
+              write_int_0(Di,fp,Di->_sz.y,Tiff_Im::eLONG);
               return true;
         }
         static TAG_TIF_SZY The_only_one;
@@ -1204,7 +1223,7 @@ class TAG_TIF_BIT_P_CHAN :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd * Di,ELISE_fp fp)
         {
-          write_value_0(fp,Di->_bits_p_chanel,Di->_nb_chanel, Tiff_Im::eSHORT);
+          write_value_0(Di,fp,Di->_bits_p_chanel,Di->_nb_chanel, Tiff_Im::eSHORT);
           return true;
         }
         static TAG_TIF_BIT_P_CHAN The_only_one;
@@ -1241,8 +1260,7 @@ class TAG_TIF_COMPR :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-          // write_value_0(fp,&(Di->_mode_compr),1,Tiff_Im::eSHORT);
-          write_int_0(fp,Di->_mode_compr,Tiff_Im::eSHORT);
+          write_int_0(Di,fp,Di->_mode_compr,Tiff_Im::eSHORT);
           return true;
         }
         static TAG_TIF_COMPR The_only_one;
@@ -1279,8 +1297,7 @@ class TAG_TIF_PHIT_INT :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-          // write_value_0(fp,&(Di->_phot_interp),1,Tiff_Im::eSHORT);
-          write_int_0(fp,Di->_phot_interp,Tiff_Im::eSHORT);
+          write_int_0(Di,fp,Di->_phot_interp,Tiff_Im::eSHORT);
           return true;
         }
         static TAG_TIF_PHIT_INT The_only_one;
@@ -1316,8 +1333,7 @@ class TAG_TIF_FILL_ORDER :  public  TAG_TIF
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
 	    int msbf = Di->_msbit_first;
-            // write_value_0(fp,&msbf,1,Tiff_Im::eSHORT);
-            write_int_0(fp,msbf,Tiff_Im::eSHORT);
+            write_int_0(Di,fp,msbf,Tiff_Im::eSHORT);
             return true;
         }
         static TAG_TIF_FILL_ORDER The_only_one;
@@ -1394,8 +1410,7 @@ class TAG_TIF_ORIENTATION :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-            // write_value_0(fp,&(Di->_orientation),1,Tiff_Im::eSHORT);
-            write_int_0(fp,Di->_orientation,Tiff_Im::eSHORT);
+            write_int_0(Di,fp,Di->_orientation,Tiff_Im::eSHORT);
             return true;
         }
 
@@ -1432,8 +1447,7 @@ class TAG_TIF_NB_CHAN :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-          // write_value_0(fp,&(Di->_nb_chanel),1,Tiff_Im::eSHORT);
-          write_int_0(fp,Di->_nb_chanel,Tiff_Im::eSHORT);
+          write_int_0(Di,fp,Di->_nb_chanel,Tiff_Im::eSHORT);
           return true;
         }
         static TAG_TIF_NB_CHAN The_only_one;
@@ -1470,8 +1484,7 @@ class TAG_TIF_ROW_P_STR :  public  TAG_TIF
         {
             if (! Di->_tiled)
             {
-               // write_value_0(fp,&(Di->_sz_tile.y),1,Tiff_Im::eLONG);
-               write_int_0(fp,Di->_sz_tile.y,Tiff_Im::eLONG);
+               write_int_0(Di,fp,Di->_sz_tile.y,Tiff_Im::eLONG);
             }
             return (! Di->_tiled);
         }
@@ -1546,7 +1559,7 @@ class TAG_TIF_VMIN_SAMP :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-           return write_vmodif(Di->_mins,fp,Tiff_Im::eSHORT);
+           return write_vmodif(Di,Di->_mins,fp,Tiff_Im::eSHORT);
         }
         static TAG_TIF_VMIN_SAMP The_only_one;
 
@@ -1582,7 +1595,7 @@ class TAG_TIF_VMAX_SAMP :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-           return write_vmodif(Di->_maxs,fp,Tiff_Im::eSHORT);
+           return write_vmodif(Di,Di->_maxs,fp,Tiff_Im::eSHORT);
         }
         static TAG_TIF_VMAX_SAMP The_only_one;
 
@@ -1614,7 +1627,7 @@ class TAG_TIF_XRESOL :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-          write_value_0(fp,&(Di->_resol.x),1,Tiff_Im::eRATIONNAL);
+          write_value_0(Di,fp,&(Di->_resol.x),1,Tiff_Im::eRATIONNAL);
           return true;
         }
         static TAG_TIF_XRESOL The_only_one;
@@ -1652,7 +1665,7 @@ class TAG_TIF_YRESOL :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-          write_value_0(fp,&(Di->_resol.y),1,Tiff_Im::eRATIONNAL);
+          write_value_0(Di,fp,&(Di->_resol.y),1,Tiff_Im::eRATIONNAL);
           return true;
         }
         static TAG_TIF_YRESOL The_only_one;
@@ -1688,8 +1701,7 @@ class TAG_TIF_PLAN_CONFIG :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-          //  write_value_0(fp,&(Di->_plan_conf),1,Tiff_Im::eSHORT);
-          write_int_0(fp,Di->_plan_conf,Tiff_Im::eSHORT);
+          write_int_0(Di,fp,Di->_plan_conf,Tiff_Im::eSHORT);
           return true;
         }
         static TAG_TIF_PLAN_CONFIG The_only_one;
@@ -1735,8 +1747,7 @@ class TAG_T6_OPTIONS :  public  TAG_TIF
           INT v =0;
           if (Di->_mode_compr == Tiff_Im::Group_4FAX_Compr)
           {
-             write_int_0(fp,v,Tiff_Im::eLONG);
-             // write_value_0(fp,&v,1,Tiff_Im::eLONG);
+             write_int_0(Di,fp,v,Tiff_Im::eLONG);
           }
           return Di->_mode_compr == Tiff_Im::Group_4FAX_Compr;
         }
@@ -1775,8 +1786,7 @@ class TAG_TIF_RESOL_UNIT :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd *Di,ELISE_fp fp)
         {
-             write_int_0(fp,Di->_res_unit,Tiff_Im::eSHORT);
-             // write_value_0(fp,&(Di->_res_unit),1,Tiff_Im::eSHORT);
+             write_int_0(Di,fp,Di->_res_unit,Tiff_Im::eSHORT);
              return true;
         }
         static TAG_TIF_RESOL_UNIT The_only_one;
@@ -1815,8 +1825,7 @@ class TAG_TIF_PREDICTOR :  public  TAG_TIF
 // defaut, on ne met rien
              if(Di->_predict != Tiff_Im::No_Predic)
              {
-                //  write_value_0(fp,&(Di->_predict),1,Tiff_Im::eSHORT);
-                write_int_0(fp,Di->_predict,Tiff_Im::eSHORT);
+                write_int_0(Di,fp,Di->_predict,Tiff_Im::eSHORT);
                 return true;
              }
              else
@@ -1861,7 +1870,7 @@ class TAG_TIF_RGB_PALETTE :  public  TAG_TIF
         {
              if(DI->_palette != 0)
              {
-                 write_value_0(fp,DI->_palette,DI->_nb_pal_entry,Tiff_Im::eSHORT);
+                 write_value_0(DI,fp,DI->_palette,DI->_nb_pal_entry,Tiff_Im::eSHORT);
              }
              return (DI->_palette != 0);
         }
@@ -1900,8 +1909,7 @@ class TAG_TIF_TILE_WIDTH :  public  TAG_TIF
         {
           if (Di->_tiled)
           {
-             write_int_0(fp,Di->_sz_tile.x,Tiff_Im::eLONG);
-             // write_value_0(fp,&(Di->_sz_tile.x),1,Tiff_Im::eLONG);
+             write_int_0(Di,fp,Di->_sz_tile.x,Tiff_Im::eLONG);
           }
           return Di->_tiled;
         }
@@ -1940,8 +1948,7 @@ class TAG_TIF_TILE_LENGTH :  public  TAG_TIF
         {
           if (Di->_tiled)
           {
-             write_int_0(fp,Di->_sz_tile.y,Tiff_Im::eLONG);
-             // write_value_0(fp,&(Di->_sz_tile.y),1,Tiff_Im::eLONG);
+             write_int_0(Di,fp,Di->_sz_tile.y,Tiff_Im::eLONG);
           }
           return Di->_tiled;
         }
@@ -2104,7 +2111,7 @@ class TAG_TIF_DATA_FORMAT :  public  TAG_TIF
         }
         bool write_value (DATA_Tiff_Ifd * Di,ELISE_fp fp)
         {
-          write_value_0(fp,Di->_data_format,Di->_nb_chanel,
+          write_value_0(Di,fp,Di->_data_format,Di->_nb_chanel,
                         Tiff_Im::eSHORT);
           return true;
         }
@@ -2164,8 +2171,7 @@ class cTAG_TIF_TileFileWidth :  public  TAG_TIF
         {
             if ( Di->mUseFileTile)
             {
-               write_int_0(fp,Di->mSzFileTile.x,Tiff_Im::eLONG);
-               // write_value_0(fp,&(Di->mSzFileTile.x),1,Tiff_Im::eLONG);
+               write_int_0(Di,fp,Di->mSzFileTile.x,Tiff_Im::eLONG);
             }
             return (Di->mUseFileTile != 0);
         }
@@ -2205,8 +2211,7 @@ class cTAG_TIF_TileFileLength :  public  TAG_TIF
         {
             if ( Di->mUseFileTile)
             {
-               write_int_0(fp,Di->mSzFileTile.y,Tiff_Im::eLONG);
-               // write_value_0(fp,&(Di->mSzFileTile.y),1,Tiff_Im::eLONG);
+               write_int_0(Di,fp,Di->mSzFileTile.y,Tiff_Im::eLONG);
             }
             return  (Di->mUseFileTile != 0);
         }
@@ -2256,7 +2261,7 @@ class cTAG_TIF_ExifTiff_IsoSpeed :  public  TAG_TIF
         {
             if ( Di->mExifTiff_IsoSpeed>=0)
             {
-               write_value_0(fp,&(Di->mExifTiff_IsoSpeed),1,Tiff_Im::eRATIONNAL);
+               write_value_0(Di,fp,&(Di->mExifTiff_IsoSpeed),1,Tiff_Im::eRATIONNAL);
                return  true;
             }
             return  false;
@@ -2288,7 +2293,7 @@ class cTAG_TIF_ExifTiff_Aperture :  public  TAG_TIF
         {
             if ( Di->mExifTiff_Aperture>=0)
             {
-               write_value_0(fp,&(Di->mExifTiff_Aperture),1,Tiff_Im::eRATIONNAL);
+               write_value_0(Di,fp,&(Di->mExifTiff_Aperture),1,Tiff_Im::eRATIONNAL);
                return  true;
             }
             return  false;
@@ -2320,7 +2325,7 @@ class cTAG_TIF_ExifTiff_FocalLength :  public  TAG_TIF
         {
             if ( Di->mExifTiff_FocalLength>=0)
             {
-               write_value_0(fp,&(Di->mExifTiff_FocalLength),1,Tiff_Im::eRATIONNAL);
+               write_value_0(Di,fp,&(Di->mExifTiff_FocalLength),1,Tiff_Im::eRATIONNAL);
                return  true;
             }
             return  false;
@@ -2353,7 +2358,7 @@ class cTAG_TIF_ExifTiff_FocalEqui35Length :  public  TAG_TIF
         {
             if ( Di->mExifTiff_FocalEqui35Length>=0)
             {
-               write_value_0(fp,&(Di->mExifTiff_FocalEqui35Length),1,Tiff_Im::eRATIONNAL);
+               write_value_0(Di,fp,&(Di->mExifTiff_FocalEqui35Length),1,Tiff_Im::eRATIONNAL);
                return  true;
             }
             return  false;
@@ -2389,7 +2394,7 @@ class cTAG_TIF_ExifTiff_ShutterSpeed :  public  TAG_TIF
         {
             if ( Di->mExifTiff_ShutterSpeed>=0)
             {
-               write_value_0(fp,&(Di->mExifTiff_ShutterSpeed),1,Tiff_Im::eRATIONNAL);
+               write_value_0(Di,fp,&(Di->mExifTiff_ShutterSpeed),1,Tiff_Im::eRATIONNAL);
                return  true;
             }
             return  false;
@@ -2422,7 +2427,7 @@ class cTAG_TIF_ExifTiff_Camera :  public  TAG_TIF
         {
             if ( Di->mExifTiff_Camera != "" )
             {
-               write_string0(fp,Di->mExifTiff_Camera);
+               write_string0(Di,fp,Di->mExifTiff_Camera);
                return  true;
             }
             return  false;
@@ -2462,7 +2467,7 @@ if (0&& MPD_MM())
         {
             if (! Di->mExifTiff_Date.IsNoDate()) 
             {
-               write_string0(fp,ToString(Di->mExifTiff_Date));
+               write_string0(Di,fp,ToString(Di->mExifTiff_Date));
                return  true;
             }
             return  false;

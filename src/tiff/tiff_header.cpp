@@ -275,6 +275,7 @@ DATA_tiff_header::DATA_tiff_header(const char * name)
     }
     InitBigTiff();
     fp.close();
+
 }
 
 void DATA_tiff_header::InitBigTiff()
@@ -855,17 +856,47 @@ int DATA_Tiff_Ifd::MaxNbByteTagValNonDefer() const
 {
     return mBigTiff  ? 8 : 4;
 }
+
+     // Nb Val
+
 U_INT8  DATA_Tiff_Ifd::LireNbVal(ELISE_fp & aFp) const
 {
    return mBigTiff  ?  aFp.read_U_INT8()  : aFp.read_U_INT4();
 }
+void  DATA_Tiff_Ifd::WriteNbVal(ELISE_fp & aFp,U_INT8 aVal)
+{
+   if (mBigTiff)
+      aFp.write_U_INT8(aVal);
+   else
+      aFp.write_U_INT4(aVal);
+}
+
+
+     // Nb Tag
 U_INT8 DATA_Tiff_Ifd::LireNbTag(ELISE_fp & aFp) const
 {
     return   mBigTiff ? aFp.read_U_INT8()  : aFp.read_U_INT2();
 }
+void  DATA_Tiff_Ifd::WriteNbTag(ELISE_fp & aFp,U_INT8 aVal)
+{
+   if (mBigTiff)
+      aFp.write_U_INT8(aVal);
+   else
+      aFp.write_U_INT2(aVal);
+}
+
+
+
 U_INT8  DATA_Tiff_Ifd::LireOffset(ELISE_fp & aFp) const
 {
    return mBigTiff  ?  aFp.read_U_INT8()  : aFp.read_U_INT4();
+}
+void  DATA_Tiff_Ifd::WriteOffet(ELISE_fp & aFp,U_INT8 aVal)
+{
+   if (mBigTiff)
+      aFp.write_U_INT8(aVal);
+   else
+      aFp.write_U_INT4(aVal);
 }
 
 
