@@ -81,7 +81,7 @@ void  cAppli_RTI::OneItereRecalRadiom
                           }
                      }
                 }
-                if (aSomPds!=0=
+                if (aSomPds!=0)
                 {
                     aSomP = aSomP / aSomPds;
                     aSomIm /= aSomPds;
