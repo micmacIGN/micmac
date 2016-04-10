@@ -179,7 +179,6 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
 
 
     mTitle = std::string("MicMac/Vino -> ") + mNameIm;
-    mW->set_title(mTitle.c_str());
     mDisp = new Video_Display(mW->disp());
 
 
@@ -226,6 +225,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mWHelp->move_to(Pt2di(mW->sz().x-mWHelp->sz().x,LargAsc()+10));
 
     InitMenu();
+    mW->set_title(mTitle.c_str());
 }
 
 void cAppli_Vino::PostInitVirtual()

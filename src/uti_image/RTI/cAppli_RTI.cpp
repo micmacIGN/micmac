@@ -76,6 +76,9 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,eModeRTI aMode,const s
     SplitDirAndFile(mDir,mNameParam,mFullNameParam);
     mParam = StdGetFromSI(mFullNameParam,Xml_ParamRTI);
 
+    mICNM= cInterfChantierNameManipulateur::BasicAlloc(mDir);
+    mOriMaster = 0;
+
     if (aNameI2!="")
     {
        mParam.Pattern() = aNameI2;
@@ -85,7 +88,7 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,eModeRTI aMode,const s
 
     if (mWithRecal)
     {
-       CreatHom();
+       // CreatHom();
        CreateSuperpHom();
     }
 
@@ -94,8 +97,8 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,eModeRTI aMode,const s
 
     mMasterIm = new cOneIm_RTI_Master(*this,mParam.MasterIm());
     mMasterIm->DoImReduite();
-
     mVIms.push_back(mMasterIm);
+    mDicoIm[mMasterIm->Name()] =  mMasterIm;
 
     for (size_t aKI = 0; aKI < aSetIm->size(); aKI++)
     {
@@ -106,6 +109,7 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,eModeRTI aMode,const s
              mVIms.push_back(aNewIm);
              mVSlavIm.push_back(aNewIm);
              aNewIm->DoImReduite();
+             mDicoIm[aNewIm->Name()] =  aNewIm;
          }
     }
 
@@ -157,6 +161,9 @@ int  RTI_RecalRadionmBeton_main(int argc,char ** argv)
 {
       return Gen_RTI_main(argc,argv,eRTI_RecalBeton_1Im);
 }
+
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

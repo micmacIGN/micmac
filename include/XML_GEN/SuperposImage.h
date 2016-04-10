@@ -7589,6 +7589,90 @@ std::string  Mangling( cXmlTNR_TestImgReport *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_RTI_ExportIm
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_RTI_ExportIm & anObj,cElXMLTree * aTree);
+
+
+        Pt3dr & PosLum();
+        const Pt3dr & PosLum()const ;
+    private:
+        Pt3dr mPosLum;
+};
+cElXMLTree * ToXMLTree(const cXml_RTI_ExportIm &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_RTI_ExportIm &);
+
+void  BinaryUnDumpFromFile(cXml_RTI_ExportIm &,ELISE_fp &);
+
+std::string  Mangling( cXml_RTI_ExportIm *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_RTI_Im
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_RTI_Im & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        cTplValGesInit< cXml_RTI_ExportIm > & Export();
+        const cTplValGesInit< cXml_RTI_ExportIm > & Export()const ;
+
+        std::list< std::string > & NameOmbre();
+        const std::list< std::string > & NameOmbre()const ;
+    private:
+        std::string mName;
+        cTplValGesInit< cXml_RTI_ExportIm > mExport;
+        std::list< std::string > mNameOmbre;
+};
+cElXMLTree * ToXMLTree(const cXml_RTI_Im &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_RTI_Im &);
+
+void  BinaryUnDumpFromFile(cXml_RTI_Im &,ELISE_fp &);
+
+std::string  Mangling( cXml_RTI_Im *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_RTI_Ombre
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_RTI_Ombre & anObj,cElXMLTree * aTree);
+
+
+        std::string & OrientMaster();
+        const std::string & OrientMaster()const ;
+
+        double & DefAltiLum();
+        const double & DefAltiLum()const ;
+    private:
+        std::string mOrientMaster;
+        double mDefAltiLum;
+};
+cElXMLTree * ToXMLTree(const cXml_RTI_Ombre &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_RTI_Ombre &);
+
+void  BinaryUnDumpFromFile(cXml_RTI_Ombre &,ELISE_fp &);
+
+std::string  Mangling( cXml_RTI_Ombre *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_ParamRTI
 {
     public:
@@ -7611,12 +7695,20 @@ class cXml_ParamRTI
 
         cTplValGesInit< int > & SzHom();
         const cTplValGesInit< int > & SzHom()const ;
+
+        std::list< cXml_RTI_Im > & RTI_Im();
+        const std::list< cXml_RTI_Im > & RTI_Im()const ;
+
+        cTplValGesInit< cXml_RTI_Ombre > & ParamOmbre();
+        const cTplValGesInit< cXml_RTI_Ombre > & ParamOmbre()const ;
     private:
         std::string mMasterIm;
         std::string mPattern;
         double mScaleSSRes;
         cTplValGesInit< double > mSeuilSat;
         cTplValGesInit< int > mSzHom;
+        std::list< cXml_RTI_Im > mRTI_Im;
+        cTplValGesInit< cXml_RTI_Ombre > mParamOmbre;
 };
 cElXMLTree * ToXMLTree(const cXml_ParamRTI &);
 

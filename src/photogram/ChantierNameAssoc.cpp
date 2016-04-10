@@ -4036,7 +4036,13 @@ void cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri)
 
 
 
-cResulMSO cInterfChantierNameManipulateur::MakeStdOrient(std::string & anOri,bool AccepNone,std::string * aNameIm)
+cResulMSO cInterfChantierNameManipulateur::MakeStdOrient
+          (
+               std::string & anOri,
+               bool AccepNone,
+               std::string * aNameIm,
+               bool          SVP
+          )
 {
        std::string anOriInit = anOri;
 
@@ -4108,7 +4114,7 @@ cResulMSO cInterfChantierNameManipulateur::MakeStdOrient(std::string & anOri,boo
             if (aSuprNKS.Match(anOriInit))
             {
                  std::string anOri = aSuprNKS.KIemeExprPar(1);
-                 cBasicGeomCap3D * aBGC = StdCamGenOfNames(anOri,*aNameIm);
+                 cBasicGeomCap3D * aBGC = StdCamGenOfNames(anOri,*aNameIm,SVP);
                  
                  aResult.Capt3d() = aBGC;
                  return aResult;

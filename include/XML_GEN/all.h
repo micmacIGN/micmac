@@ -213,7 +213,7 @@ class cInterfChantierNameManipulateur
          std::string StdNameCalib(const std::string & anOri,const std::string & aNameIm);  // =>  Ori-XX/AutoCal ...
          CamStenope *  StdCamOfNames(const std::string & anOri,const std::string & aNameIm);  // => Ori-XX/Orientation...
          // Ori-XX/Orientation... exist, sinon  Ori-XX/GB-Orientation..
-         cBasicGeomCap3D * StdCamGenOfNames(const std::string & anOri,const std::string & aNameIm);
+         cBasicGeomCap3D * StdCamGenOfNames(const std::string & anOri,const std::string & aNameIm,bool SVP=false);
          // return "" si rien trouve
          std::string  StdNameCamGenOfNames(const std::string & anOri,const std::string & aNameIm);
 
@@ -224,7 +224,7 @@ class cInterfChantierNameManipulateur
          std::list<std::string> GetListImByDelta(const cListImByDelta &,const std::string & aN0);
 
          std::vector<std::string> StdGetVecStr(const std::string &);  // Cas [A,Bn..] , ou toto.txt lit fichie, sinon singleton
-         cResulMSO MakeStdOrient(std::string &,bool AccepNone,std::string * aNameIm=0);
+         cResulMSO MakeStdOrient(std::string &,bool AccepNone,std::string * aNameIm=0,bool SVP=false);
 
          cSetName *  KeyOrPatSelector(const std::string &);
          cSetName *  KeyOrPatSelector(const cTplValGesInit<std::string> &);
@@ -1336,7 +1336,11 @@ class cSetOfMesureAppuisFlottants;
 class cOneMesureAF1I;
 // Ecrit les images dans le NamePt !!!
 std::vector<cOneMesureAF1I> GetMesureOfPts(const cSetOfMesureAppuisFlottants &,const std::string & aNamePt);
+std::vector<cOneMesureAF1I> GetMesureOfPtsIm(const cSetOfMesureAppuisFlottants &,const std::string & aNamePt,const std::string & aNameIm);
 
+class cDicoAppuisFlottant;
+class cOneAppuisDAF;
+const cOneAppuisDAF * GetApOfName(const cDicoAppuisFlottant &,const std::string & aNamePt);
 
 ElPackHomologue PackFromCplAPF(const cMesureAppuiFlottant1Im & aMes, const cMesureAppuiFlottant1Im & aRef);
 

@@ -53,19 +53,25 @@ typedef enum
      eRTI_Med,
      eRTI_OldRecal,
      eRTI_RecalBeton_1Im,
-     eRTI_RecalBeton_1AllIm
+     eRTI_RecalBeton_1AllIm,
+     eRTI_PoseFromOmbre
 } eModeRTI;
 
 
 class cOneIm_RTI
 {
     public :
-       cOneIm_RTI(cAppli_RTI &,const std::string & aName,bool Master);
-       virtual Tiff_Im DoImReduite();
-       Tiff_Im   ImFull();
-       const std::string & Name() const;
-       Im2D_U_INT2  ImRed();
-       Im2D_Bits<1> MasqRed(Im2D_U_INT2);
+      cOneIm_RTI(cAppli_RTI &,const std::string & aName,bool Master);
+      virtual Tiff_Im DoImReduite();
+      Tiff_Im      FileImFull(const std::string & aNameIm);
+
+      const std::string & Name() const;
+      Im2D_U_INT2  MemImRed();
+      Im2D_U_INT2  MemImFull();
+      Im2D_Bits<1> MasqRed(Im2D_U_INT2);
+      const std::string & NameDif();
+      bool IsMaster() const;
+      void DoPoseFromOmbre(const cDicoAppuisFlottant &,const cSetOfMesureAppuisFlottants &,const cXml_RTI_Im &);
     protected :
       cAppli_RTI &   mAppli;
       std::string    mName;
@@ -76,6 +82,7 @@ class cOneIm_RTI
       std::string    mNameISR; // IS Reduced
       std::string    mNameMasq;  // Name Image Superpose
       std::string    mNameMasqR; // IS Reduced
+      string         mNameDif;
 };
 
 class cOneIm_RTI_Slave : public cOneIm_RTI
@@ -110,25 +117,38 @@ class cAppli_RTI
        const std::string & Dir() const;
        cOneIm_RTI_Slave * UniqSlave();
        cOneIm_RTI_Master * Master();
-       void MakeImageMed();
+       void MakeImageMed(const std::string & aNameIm);
        bool  WithRecal() const;
 
        void DoOneRecalRadiomBeton();
+       void DoPoseFromOmbre(const cDicoAppuisFlottant &,const cSetOfMesureAppuisFlottants &);
+
+       CamStenope *    OriMaster();
+       const cXml_RTI_Ombre & Ombr() const;
+
 
     private :
-       void  OneItereRecalRadiom(Im2D_U_INT2,Im2D_Bits<1>,Im2D_U_INT2,int aNbCase,int aDeg);
+       Im2D_REAL8  OneItereRecalRadiom
+                   (
+                       double & aScaleRes,bool L1,Im2D_U_INT2,Im2D_Bits<1>,Im2D_U_INT2,
+                       int aNbCase,int aDeg
+                   );
 
 
-       void MakeImageMed(const Box2di & aBox);
+       void MakeImageMed(const Box2di & aBox,const std::string & aNameIm);
+
+       CamStenope *                    mOriMaster;
 
        cXml_ParamRTI                    mParam;
        bool                             mWithRecal;
        std::string                      mFullNameParam;
        std::string                      mDir;
+       cInterfChantierNameManipulateur  *mICNM;
        std::string                      mNameParam;
        bool                             mTest;
        std::vector<cOneIm_RTI *>        mVIms;
        std::vector<cOneIm_RTI_Slave *>  mVSlavIm;
+       std::map<std::string,cOneIm_RTI*> mDicoIm;
        cOneIm_RTI_Master *              mMasterIm;
        cElemAppliSetFile                mEASF;
        std::string                      mNameImMed;

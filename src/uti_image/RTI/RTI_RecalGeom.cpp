@@ -40,6 +40,89 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "RTI.h"
 
 
+const cXml_RTI_Ombre & cAppli_RTI::Ombr() const
+{
+    ELISE_ASSERT(mParam.ParamOmbre().IsInit(),"cOneIm_RTI::Ombr");
+    return mParam.ParamOmbre().Val();
+}
+
+CamStenope * cAppli_RTI::OriMaster()
+{
+   if (mOriMaster==0)
+   {
+      
+      mOriMaster = mICNM->StdCamOfNames(mMasterIm->Name(),Ombr().OrientMaster()); // ,mMasterIm->Name());
+   }
+   return mOriMaster;
+}
+
+void cOneIm_RTI::DoPoseFromOmbre
+    (
+           const cDicoAppuisFlottant & aDAF,
+           const cSetOfMesureAppuisFlottants & aMAFI,
+           const cXml_RTI_Im & aParI
+    )
+{
+    for (std::list<std::string>::const_iterator itN=aParI.NameOmbre().begin();itN!=aParI.NameOmbre().end();itN++)
+    {
+        std::string aNamePt = *itN;
+        const cOneAppuisDAF * aPAf = GetApOfName(aDAF,aNamePt);
+        ELISE_ASSERT(aPAf!=0,"cOneIm_RTI::DoPoseFromOmbre no Appuis");
+        
+        std::vector<cOneMesureAF1I> aVM = GetMesureOfPtsIm(aMAFI,"Ombre-"+aNamePt,mName);
+        ELISE_ASSERT(aVM.size()==1,"Incoh in GetMesureOfPtsIm");
+        Pt3dr aPOmbr = mAppli.OriMaster()->ImEtZ2Terrain(aVM[0].PtIm(),0.0);
+        Pt3dr aPObj = aPAf->Pt();
+
+        double aZLum = mAppli.Ombr().DefAltiLum();
+        Pt3dr aVect = aPObj-aPOmbr;
+        double aLambda =  (aZLum-aPOmbr.z)  / aVect.z;
+        Pt3dr aCentrLum = aPOmbr + aVect * aLambda;
+
+        std::cout << "For " << mName << " / " << aNamePt <<  " lum=> " << aCentrLum << "\n";
+
+    }
+}
+
+void cAppli_RTI::DoPoseFromOmbre(const cDicoAppuisFlottant & aDAF,const cSetOfMesureAppuisFlottants & aMAFI)
+{
+    for (std::list<cXml_RTI_Im>::iterator itI=mParam.RTI_Im().begin() ; itI!=mParam.RTI_Im().end() ; itI++)
+    {
+        const std::string & aName = itI->Name();
+        cOneIm_RTI* anIm= mDicoIm[aName];
+std::cout << "HHHHH " << aName << " " << anIm << "\n";
+        if (anIm)
+        {
+            anIm->DoPoseFromOmbre(aDAF,aMAFI,*itI);
+        }
+    }
+}
+
+int RTI_PosLumFromOmbre_main(int argc,char ** argv)
+{
+    std::string aFullNameParam,aName3D,aName2D;
+    ElInitArgMain
+    (
+          argc,argv,  
+          LArgMain()  << EAMC(aFullNameParam,"Name of Xml Param", eSAM_IsExistFile)
+                      << EAMC(aName3D,"Name of GCP File",eSAM_IsExistFile)
+                      << EAMC(aName2D,"Name of Image File",eSAM_IsExistFile),
+          LArgMain()  
+    );
+
+    cAppli_RTI anAppli(aFullNameParam,eRTI_PoseFromOmbre,"");
+
+    cDicoAppuisFlottant aDAF = StdGetFromPCP(aName3D ,DicoAppuisFlottant);
+    cSetOfMesureAppuisFlottants aMAFI = StdGetFromPCP(aName2D ,SetOfMesureAppuisFlottants);
+
+
+    anAppli.DoPoseFromOmbre(aDAF,aMAFI);
+
+    return EXIT_SUCCESS;
+
+}
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
