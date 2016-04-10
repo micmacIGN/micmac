@@ -92,7 +92,7 @@ cAppli_RecalRadio::cAppli_RecalRadio(int argc,char ** argv) :
    //   Tiff_Im aTif2 = aSl->DoImReduite();
    //   Tiff_Im aTifMasq (aSl->NameMasqR().c_str());
    //   Tiff_Im aTif1 = aMas->DoImReduite();
-   Tiff_Im aTif1 = aSl->ImFull();
+   Tiff_Im aTif1 = aSl->FileImFull("");
    Tiff_Im aTifMasq = aSl->MasqFull();
    Tiff_Im aTif2("Mediane.tif");
 
@@ -158,7 +158,7 @@ int RTIRecalRadiom_main(int argc,char ** argv)
 }
 
 
-void cAppli_RTI::MakeImageMed(const Box2di & aBox)
+void cAppli_RTI::MakeImageMed(const Box2di & aBox,const std::string & aNameIm)
 {
    std::cout << " cAppli_RTI::MakeImageMed " << aBox._p0 << "\n";
    Pt2di aSz = aBox.sz();
@@ -170,15 +170,18 @@ void cAppli_RTI::MakeImageMed(const Box2di & aBox)
 
    for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
    {
-       aVIm.push_back(new Im2D_REAL4(aSz.x,aSz.y));
-       aVTIm.push_back(new TIm2D<REAL4,REAL8>(*(aVIm.back())));
+       if ((! mVIms[aK]->IsMaster()) || (aNameIm!="ImDif"))
+       {
+           aVIm.push_back(new Im2D_REAL4(aSz.x,aSz.y));
+           aVTIm.push_back(new TIm2D<REAL4,REAL8>(*(aVIm.back())));
 
-       ELISE_COPY
-       (
-           aVIm.back()->all_pts(),
-           trans(mVIms[aK]->ImFull().in(),aBox._p0),
-           aVIm.back()->out()
-       );
+           ELISE_COPY
+           (
+               aVIm.back()->all_pts(),
+               trans(mVIms[aK]->FileImFull(aNameIm).in(),aBox._p0),
+               aVIm.back()->out()
+           );
+       }
    }
 
    Pt2di aP;
@@ -187,7 +190,7 @@ void cAppli_RTI::MakeImageMed(const Box2di & aBox)
        for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
        {
            std::vector<double> aVVals;
-           for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
+           for (int aK=0 ; aK<int(aVIm.size()) ; aK++)
            {
                aVVals.push_back(aVTIm[aK]->get(aP));
            }
@@ -205,16 +208,16 @@ void cAppli_RTI::MakeImageMed(const Box2di & aBox)
 }
 
 
-void cAppli_RTI::MakeImageMed()
+void cAppli_RTI::MakeImageMed(const std::string & aNameIm)
 {
    mNameImMed = "Mediane.tif";
-   Tiff_Im aTif1 = mMasterIm->ImFull();
+   Tiff_Im aTif1 = mMasterIm->FileImFull("");
 
    Tiff_Im
    (
        mNameImMed.c_str(),
        aTif1.sz(),
-       aTif1.type_el(),
+       (aNameIm=="ImDif") ? GenIm::real4 : aTif1.type_el(),
        Tiff_Im::No_Compr,
        aTif1.phot_interp()
    );
@@ -232,7 +235,7 @@ void cAppli_RTI::MakeImageMed()
        for (aP0.y=0 ; aP0.y<aSz.y ; aP0.y+=aBloc)
        {
             Pt2di aP1 = Inf(aSz,aP0+Pt2di(aBloc,aBloc));
-            MakeImageMed(Box2di(aP0,aP1));
+            MakeImageMed(Box2di(aP0,aP1),aNameIm);
        }
    }
    
@@ -249,7 +252,7 @@ int RTIMed_main(int argc,char **argv)
     );
 
    cAppli_RTI aRTIA(aNameParam,eRTI_Med,"");
-   aRTIA.MakeImageMed();
+   aRTIA.MakeImageMed("ImDif");
   
    return EXIT_SUCCESS;
 }

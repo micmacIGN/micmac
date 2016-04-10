@@ -133,23 +133,22 @@ bool cInitCamAppuis::InitPts(const cMesureAppuiFlottant1Im & aMAF)
 
 //==============================================
 
-class cAppli_Aspro :  public cAppliWithSetImage
+class cAppli_Aspro //  :  public cAppliWithSetImage
 {
     public :
 
        cAppli_Aspro(int argc,char ** argv);
   
+       cElemAppliSetFile mEASF;
        std::string mNameIm;
        std::string mNameCalib;
        std::string mNameFile3D;
        std::string mNameFile2D;
 };
 
-cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) :
-     cAppliWithSetImage (argc-1,argv+1,0)
+cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) //  : cAppliWithSetImage (argc-1,argv+1,0)
 
 {
-
 
    ElInitArgMain
    (
@@ -161,11 +160,15 @@ cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) :
        LArgMain()  // << EAM(toto,"toto",true,"toto et ttiti");
    );
 
+   
+   mEASF.Init(mNameIm);
+   StdCorrecNameOrient(mNameCalib,mEASF.mDir);
+
    std::string aCom =          MM3dBinFile_quotes("Apero")
                        + " " + XML_MM_File("Apero-GCP-Init.xml")
-                       + " DirectoryChantier=" + Dir()
+                       + " DirectoryChantier=" + mEASF.mDir
                        + " +PatternAllIm=" + mEASF.mPat
-                       + " +CalibIn="      + mOri
+                       + " +CalibIn="      + mNameCalib
                        + " +AeroOut=Aspro"
                        + " +DicoApp="  + mNameFile3D
                        + " +SaisieIm=" + mNameFile2D;

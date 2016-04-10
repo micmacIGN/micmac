@@ -47,12 +47,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 template <class Type> Type & MessageInit(const std::string & aMes,Type & aVal)
 {
-      std::cout << aMes ;
+      std::cout << aMes << "\n" ;
     return aVal;
 }
 template <class Type> const Type & MessageInit(const std::string & aMes,const Type & aVal)
 {
-      std::cout << aMes ;
+      std::cout << aMes << "\n" ;
     return aVal;
 }
 
@@ -60,17 +60,26 @@ cOneIm_RTI::cOneIm_RTI(cAppli_RTI & anAppli,const std::string & aName,bool isMas
     mAppli       (anAppli),
     mName        (aName),
     mMaster      (isMaster),
-    mWithRecal   (mMaster && mAppli.WithRecal()),
+    mWithRecal   ((!mMaster) && mAppli.WithRecal()),
     mNameIS      (mAppli.Dir() + (mWithRecal ? cAppli_RTI::ThePrefixReech:"") + aName +  (mWithRecal ? ".tif" : "" )),
     mNameISPan   (NameFileStd(mNameIS,1,true)),
     mNameISR     ( cAppli_RTI::ThePrefixReech  + NameWithoutDir(mNameISPan) + "_Scaled.tif"),
     mNameMasq    (StdPrefix(mName) + "_Masq.tif"),
-    mNameMasqR   (cAppli_RTI::ThePrefixReech + StdPrefix(mNameMasq) + "_Scaled.tif")
+    mNameMasqR   (cAppli_RTI::ThePrefixReech + StdPrefix(mNameMasq) + "_Scaled.tif"),
+    mNameDif     (cAppli_RTI::ThePrefixReech + "ImDif-" + StdPrefix(mName) + ".tif")
 {
 }
 
 
-Im2D_U_INT2  cOneIm_RTI::ImRed()
+const std::string & cOneIm_RTI::NameDif() {return mNameDif;}
+bool cOneIm_RTI::IsMaster() const {return mMaster;}
+
+Im2D_U_INT2  cOneIm_RTI::MemImFull()
+{
+    return Im2D_U_INT2::FromFileStd(mNameISPan);
+}
+
+Im2D_U_INT2  cOneIm_RTI::MemImRed()
 {
     return Im2D_U_INT2::FromFileStd(mNameISR);
 }
@@ -121,7 +130,15 @@ Tiff_Im  cOneIm_RTI::DoImReduite()
    return Tiff_Im(mNameISR.c_str());
 }
 
-Tiff_Im   cOneIm_RTI::ImFull() {return Tiff_Im(mNameISPan.c_str());}
+Tiff_Im   cOneIm_RTI::FileImFull(const std::string & aName) 
+{
+    if (aName=="ImDif") return Tiff_Im(mNameDif.c_str());
+    if (aName=="") return Tiff_Im(mNameISPan.c_str());
+
+    ELISE_ASSERT(false,"cOneIm_RTI::FileImFull");
+    return Tiff_Im(mNameISPan.c_str());
+}
+
 const std::string & cOneIm_RTI::Name() const {return mName;}
 
 

@@ -231,7 +231,8 @@ void cImage::InitCameraAndNuage()
    std::string aKey = mAppli.Param().KeyAssocOri().Val();
 
 
-   cResulMSO aRMso =  mAppli.ICNM()->MakeStdOrient(aKey,true,&mName);
+   // C'EST LALA
+   cResulMSO aRMso =  mAppli.ICNM()->MakeStdOrient(aKey,true,&mName,true);
 
 
    if (aRMso.Capt3d())

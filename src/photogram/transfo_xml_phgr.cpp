@@ -488,6 +488,49 @@ std::vector<cOneMesureAF1I> GetMesureOfPts(const cSetOfMesureAppuisFlottants & a
 
     return aRes;
 }
+std::vector<cOneMesureAF1I> GetMesureOfPtsIm(const cSetOfMesureAppuisFlottants & aSMAF,const std::string & aNamePt,const std::string & Im)
+{
+    std::vector<cOneMesureAF1I> aRes;
+
+    for 
+    (
+          std::list<cMesureAppuiFlottant1Im>::const_iterator itMAF=aSMAF.MesureAppuiFlottant1Im().begin();
+          itMAF!=aSMAF.MesureAppuiFlottant1Im().end();
+          itMAF++
+    )
+    {
+           if (Im==itMAF->NameIm())
+           {
+              for 
+              (
+                  std::list<cOneMesureAF1I>::const_iterator itM=itMAF->OneMesureAF1I().begin();
+                  itM!=itMAF->OneMesureAF1I().end();
+                  itM++
+              )
+              {
+                   if (itM->NamePt()==aNamePt)
+                   {
+                       cOneMesureAF1I aM = *itM;
+                       aRes.push_back(aM);
+                   }
+              }
+           }
+    }
+
+    return aRes;
+}
+
+const cOneAppuisDAF * GetApOfName(const cDicoAppuisFlottant & aDAF,const std::string & aNamePt)
+{
+    for (std::list<cOneAppuisDAF>::const_iterator itA=aDAF.OneAppuisDAF().begin(); itA!=aDAF.OneAppuisDAF().end(); itA++)
+    {
+        if (itA->NamePt()==aNamePt)
+           return &(*itA);
+    }
+    return 0;
+}
+
+
 
 double ToMnt(const cFileOriMnt & aFOM,const double & aZ)
 {

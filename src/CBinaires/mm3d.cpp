@@ -605,6 +605,7 @@ int RTI_main(int argc,char ** argv);
 int RTIRecalRadiom_main(int argc,char ** argv);
 int RTIMed_main(int argc,char ** argv);
 int RTI_RecalRadionmBeton_main(int argc,char ** argv);
+int RTI_PosLumFromOmbre_main(int argc,char ** argv);
 
 int TestNewMergeTieP_main(int argc,char ** argv);
 int TestStephane_Main(int argc,char ** argv);
@@ -761,6 +762,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("RTI_RR",RTIRecalRadiom_main," RTI recalage radiom"));
         aRes.push_back(cMMCom("RTIMed",RTIMed_main," RTI calc median image"));
         aRes.push_back(cMMCom("RTI_RRB1",RTI_RecalRadionmBeton_main,"Recal Radiom On Image"));
+        aRes.push_back(cMMCom("RTI_CLumOmbr",RTI_PosLumFromOmbre_main,"COmpute Centre Light based on shadow"));
     }
 
     cCmpMMCom CmpMMCom;

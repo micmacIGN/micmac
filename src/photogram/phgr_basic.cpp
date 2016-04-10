@@ -1702,7 +1702,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
     return 0;
 }
 
-cBasicGeomCap3D * cInterfChantierNameManipulateur::StdCamGenOfNames(const std::string & anOri,const std::string & aName)
+cBasicGeomCap3D * cInterfChantierNameManipulateur::StdCamGenOfNames(const std::string & anOri,const std::string & aName,bool SVP)
 {
    std::string aRes = StdNameCamGenOfNames(anOri,aName);
    int aType = eTIGB_Unknown;
@@ -1710,10 +1710,13 @@ cBasicGeomCap3D * cInterfChantierNameManipulateur::StdCamGenOfNames(const std::s
 
    if (aRes!= "") return cBasicGeomCap3D::StdGetFromFile(aRes,aType);
 
-    std::cout << "For Ori=" << anOri << " , and Name=" << aName << "\n";
-    ELISE_ASSERT(false,"cannot get cInterfChantierNameManipulateur::StdCamGenOfNames");
+   if (! SVP)
+   {
+       std::cout << "For Ori=" << anOri << " , and Name=" << aName << "\n";
+       ELISE_ASSERT(false,"cannot get cInterfChantierNameManipulateur::StdCamGenOfNames");
+   }
 
-    return 0;
+   return 0;
 
 }
 

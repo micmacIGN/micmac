@@ -1184,8 +1184,10 @@ Data_Elise_Video_Win::Data_Elise_Video_Win
 //-OK- std::cout << "xazerty   13 \n"; getchar();
     _devd->add_w(this);
 //-OK- std::cout << "xazerty   14 \n"; getchar();
+
     if (aX11IdPtr ==0)
        set_title("Fenetre ELISE");
+
 //-OK- std::cout << "xazerty   15 \n"; getchar();
 }
 
