@@ -238,6 +238,7 @@ int HomFusionPDVUnik_main(int argc,char **argv) ;
 int TestDistM2C_main(int argc,char ** argv);
 
 int Blinis_main(int argc,char ** argv);
+int Contrast_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -245,6 +246,7 @@ const std::vector<cMMCom> & getAvailableCommands()
    if (aRes.empty())
    {
        aRes.push_back(cMMCom("Blinis",Blinis_main,"Block Initialisation ",cArgLogCom(2)));
+       aRes.push_back(cMMCom("ContrastFilter",Contrast_main,"Some contrast filtering "));
        aRes.push_back(cMMCom("RedTieP",RedTieP_main,"Test tie points filtering "));
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
@@ -604,6 +606,8 @@ int AllReechHom_main(int argc,char ** argv);
 int RTI_main(int argc,char ** argv);
 int RTIRecalRadiom_main(int argc,char ** argv);
 int RTIMed_main(int argc,char ** argv);
+int RTIGrad_main(int argc,char ** argv);
+int RTIFiltrageGrad_main(int argc,char ** argv);
 int RTI_RecalRadionmBeton_main(int argc,char ** argv);
 int RTI_PosLumFromOmbre_main(int argc,char ** argv);
 
@@ -761,6 +765,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("RTI",RTI_main," RTI prototype"));
         aRes.push_back(cMMCom("RTI_RR",RTIRecalRadiom_main," RTI recalage radiom"));
         aRes.push_back(cMMCom("RTIMed",RTIMed_main," RTI calc median image"));
+        aRes.push_back(cMMCom("RTIGrad",RTIGrad_main," RTI calc grad image"));
+        aRes.push_back(cMMCom("RTIFilterGrad",RTIFiltrageGrad_main," RTI Filter : grad derive d'un potentiel"));
         aRes.push_back(cMMCom("RTI_RRB1",RTI_RecalRadionmBeton_main,"Recal Radiom On Image"));
         aRes.push_back(cMMCom("RTI_CLumOmbr",RTI_PosLumFromOmbre_main,"COmpute Centre Light based on shadow"));
     }

@@ -59,11 +59,17 @@ CamStenope * cAppli_RTI::OriMaster()
 void cOneIm_RTI::DoPoseFromOmbre
     (
            const cDicoAppuisFlottant & aDAF,
-           const cSetOfMesureAppuisFlottants & aMAFI,
-           const cXml_RTI_Im & aParI
+           const cSetOfMesureAppuisFlottants & aMAFI
     )
 {
-    for (std::list<std::string>::const_iterator itN=aParI.NameOmbre().begin();itN!=aParI.NameOmbre().end();itN++)
+    if (!mXml) return;
+
+    if (! mXml->Export().IsInit())
+    {
+         mXml->Export().SetVal(cXml_RTI_ExportIm());
+    }
+    Pt3dr  aPMoy(0,0,0);
+    for (std::list<std::string>::const_iterator itN=mXml->NameOmbre().begin();itN!=mXml->NameOmbre().end();itN++)
     {
         std::string aNamePt = *itN;
         const cOneAppuisDAF * aPAf = GetApOfName(aDAF,aNamePt);
@@ -78,24 +84,34 @@ void cOneIm_RTI::DoPoseFromOmbre
         Pt3dr aVect = aPObj-aPOmbr;
         double aLambda =  (aZLum-aPOmbr.z)  / aVect.z;
         Pt3dr aCentrLum = aPOmbr + aVect * aLambda;
+//      std::cout << " === " << aNamePt << " -> " << aCentrLum << "\n";
+        aPMoy = aPMoy + aCentrLum;
 
-        std::cout << "For " << mName << " / " << aNamePt <<  " lum=> " << aCentrLum << "\n";
 
     }
+    mXml->Export().Val().PosLum()  = aPMoy /  mXml->NameOmbre().size();
+    aPMoy = aPMoy /  mXml->NameOmbre().size();
+    std::cout << "For " << mName <<   " lum=> " << aPMoy << "\n";
 }
 
 void cAppli_RTI::DoPoseFromOmbre(const cDicoAppuisFlottant & aDAF,const cSetOfMesureAppuisFlottants & aMAFI)
 {
+    for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
+       mVIms[aK]->DoPoseFromOmbre(aDAF,aMAFI);
+
+/*
     for (std::list<cXml_RTI_Im>::iterator itI=mParam.RTI_Im().begin() ; itI!=mParam.RTI_Im().end() ; itI++)
     {
         const std::string & aName = itI->Name();
         cOneIm_RTI* anIm= mDicoIm[aName];
-std::cout << "HHHHH " << aName << " " << anIm << "\n";
         if (anIm)
         {
             anIm->DoPoseFromOmbre(aDAF,aMAFI,*itI);
         }
     }
+*/
+
+    MakeFileXML(mParam,"RTI-PosLum.xml");
 }
 
 int RTI_PosLumFromOmbre_main(int argc,char ** argv)

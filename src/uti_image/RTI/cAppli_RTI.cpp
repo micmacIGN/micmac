@@ -68,7 +68,10 @@ void cAppli_RTI::CreatHom()
 
 
 cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,eModeRTI aMode,const std::string & aNameI2) :
-   mTest      (true)
+   mTest      (true),
+   mNameImMed (ThePrefixReech + "Mediane.tif"),
+   mNameImGx  (ThePrefixReech + "Gx.tif"),
+   mNameImGy  (ThePrefixReech + "Gy.tif")
 {
     mFullNameParam = aFullNameParam;
 
@@ -112,6 +115,16 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,eModeRTI aMode,const s
              mDicoIm[aNewIm->Name()] =  aNewIm;
          }
     }
+
+    for (std::list<cXml_RTI_Im>::iterator itI=mParam.RTI_Im().begin() ; itI!=mParam.RTI_Im().end() ; itI++)
+    {
+        const std::string & aName = itI->Name();
+        cOneIm_RTI* anIm= mDicoIm[aName];
+        ELISE_ASSERT(anIm!=0,"No Image from cXml_RTI_Im");
+ 
+        anIm->SetXml(&(*itI));
+    }
+
 
 }
 

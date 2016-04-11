@@ -978,6 +978,22 @@ template <> U_INT1  Tabul_Bits<4,false>::out_tab[256][16][2];
 
     //==============================
 
+Im2D_Bits<1> MasqFromFile(const std::string & aName)
+{
+  Tiff_Im aTif(aName.c_str());
+  Pt2di aSz = aTif.sz();
+  Im2D_Bits<1> aRes(aSz.x,aSz.y);
+  ELISE_COPY(aTif.all_pts(),aTif.in(),aRes.out());
+  return aRes;
+}
+
+
+Im2D_Bits<1> MasqFromFile(const std::string & aName,const Pt2di & aSz)
+{
+   if (ELISE_fp::exist_file(aName))
+      return MasqFromFile(aName);
+   return Im2D_Bits<1>(aSz.x,aSz.y,1);
+}
 
 
 

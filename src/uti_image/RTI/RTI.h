@@ -51,6 +51,7 @@ typedef enum
 {
      eRTI_Test,
      eRTI_Med,
+     eRTI_Grad,
      eRTI_OldRecal,
      eRTI_RecalBeton_1Im,
      eRTI_RecalBeton_1AllIm,
@@ -71,7 +72,13 @@ class cOneIm_RTI
       Im2D_Bits<1> MasqRed(Im2D_U_INT2);
       const std::string & NameDif();
       bool IsMaster() const;
-      void DoPoseFromOmbre(const cDicoAppuisFlottant &,const cSetOfMesureAppuisFlottants &,const cXml_RTI_Im &);
+      void DoPoseFromOmbre(const cDicoAppuisFlottant &,const cSetOfMesureAppuisFlottants &);
+
+      void  SetXml(cXml_RTI_Im*);
+      const Pt3dr & CenterLum() const;
+      Tiff_Im   MasqFull();
+      Im2D_Bits<1> ImMasqFull();
+
     protected :
       cAppli_RTI &   mAppli;
       std::string    mName;
@@ -83,6 +90,9 @@ class cOneIm_RTI
       std::string    mNameMasq;  // Name Image Superpose
       std::string    mNameMasqR; // IS Reduced
       string         mNameDif;
+      cXml_RTI_Im*   mXml;
+      bool           mHasExp;
+      Pt3dr          mCenterLum;
 };
 
 class cOneIm_RTI_Slave : public cOneIm_RTI
@@ -92,7 +102,6 @@ class cOneIm_RTI_Slave : public cOneIm_RTI
        Tiff_Im DoImReduite();
        const std::string & NameMasq() const;
        const std::string & NameMasqR() const;
-       Tiff_Im   MasqFull();
     private :
 };
 
@@ -118,6 +127,7 @@ class cAppli_RTI
        cOneIm_RTI_Slave * UniqSlave();
        cOneIm_RTI_Master * Master();
        void MakeImageMed(const std::string & aNameIm);
+       void MakeImageGrad();
        bool  WithRecal() const;
 
        void DoOneRecalRadiomBeton();
@@ -125,6 +135,7 @@ class cAppli_RTI
 
        CamStenope *    OriMaster();
        const cXml_RTI_Ombre & Ombr() const;
+       void  FiltrageGrad();
 
 
     private :
@@ -136,6 +147,7 @@ class cAppli_RTI
 
 
        void MakeImageMed(const Box2di & aBox,const std::string & aNameIm);
+       void MakeImageGrad(const Box2di&);
 
        CamStenope *                    mOriMaster;
 
@@ -152,6 +164,8 @@ class cAppli_RTI
        cOneIm_RTI_Master *              mMasterIm;
        cElemAppliSetFile                mEASF;
        std::string                      mNameImMed;
+       std::string                      mNameImGx;
+       std::string                      mNameImGy;
 };
 
 
