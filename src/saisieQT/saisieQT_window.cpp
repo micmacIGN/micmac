@@ -1,5 +1,6 @@
 #include "saisieQT_window.h"
 #include "ui_saisieQT_window.h"
+#include "GlExtensions.h"
 
 #ifdef USE_MIPMAP_HANDLER
 	#include "StdAfx.h"
@@ -850,8 +851,10 @@ void SaisieQtWindow::on_actionAbout_triggered()
 
     QString adressbit(" " + QString::number(sizeof(int*)*8) + " bits");
 
+    GlExtensions glExtensions;
     qStr += "\n" + tr("Application") + "\t" + QApplication::applicationName() + adressbit +
             + "\n" +  tr("Built with \tQT ") + QT_VERSION_STR  +
+            + "\n" +  "OpenGL     \t[" + glExtensions.version().c_str() + "] [" + glExtensions.vendor().c_str() + "]" +
             + "\n" +  tr("Revision\t") + version + "\n";
 
     msgBox->setText(qStr);
