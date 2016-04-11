@@ -207,7 +207,7 @@ if(${WITH_QT5} OR ${WITH_QT4})
 	endif()
 endif()
 
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND qt_version EQUAL 5)
+IF (qt_version EQUAL 5)
 	if (POLICY CMP0045)
 		cmake_policy(SET CMP0045 NEW) # target of get_target_property must exists or a FATAL_ERROR is issued
 	endif()
@@ -234,7 +234,9 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND qt_version EQUAL 5)
 			)
 	endif()
 
-	set(CMAKE_INSTALL_RPATH "${QT_INSTALL_LIBS}" "${QT_INSTALL_PLUGINS}" "@executable_path/../Frameworks")
+	if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		set(CMAKE_INSTALL_RPATH "${QT_INSTALL_LIBS}" "${QT_INSTALL_PLUGINS}" "@executable_path/../Frameworks")
+	endif()
 endif()
 
 if ( NOT ${qt_version} EQUAL 0 )
