@@ -148,11 +148,15 @@ class cHomol
     bool isBad(){return mBad;}
     void setBad(){mBad=true;}
     cPointOnPic* getPointOnPic(cPic * aPic);
+    void addAppearsOnCouple(cPic * aPicA,cPic * aPicB);
+    bool appearsOnCouple(cPic * aPicA,cPic * aPicB);
   protected:
     int mId;//unique id
     static int mHomolCounter;
     std::vector<cPointOnPic*> mPointOnPics;
     bool mBad;
+    std::vector<cPic*> mAppearsOnCoupleA;//record in which couple A-B it has been seen
+    std::vector<cPic*> mAppearsOnCoupleB;
 };
 int cHomol::mHomolCounter=0;
 
@@ -173,6 +177,7 @@ void cHomol::print()
     for(unsigned int i=0;i<mPointOnPics.size();i++)
       mPointOnPics[i]->print();
 }
+
 //----------------------------------------------------------------------------
 // Pic class: a picture with its homol points
 class cPic
@@ -356,6 +361,30 @@ void cHomol::add(cHomol *aHomol)
         aHomol->getPointOnPics()[i]->getPic()->removeHomolPoint(aHomol->getPointOnPics()[i]);
         aHomol->getPointOnPics()[i]->getPic()->getAllPointsOnPic()->push_back(mPointOnPics.back());
     }
+    for (unsigned int i=0;i<aHomol->mAppearsOnCoupleA.size();i++)
+    {
+        mAppearsOnCoupleA.push_back(aHomol->mAppearsOnCoupleA[i]);
+        mAppearsOnCoupleB.push_back(aHomol->mAppearsOnCoupleB[i]);
+    }
+}
+
+
+void cHomol::addAppearsOnCouple(cPic * aPicA,cPic * aPicB)
+{
+    mAppearsOnCoupleA.push_back(aPicA);
+    mAppearsOnCoupleB.push_back(aPicB);
+}
+
+bool cHomol::appearsOnCouple(cPic * aPicA,cPic * aPicB)
+{
+    for (unsigned int i=0;i<mAppearsOnCoupleA.size();i++)
+    {
+        if ((mAppearsOnCoupleA[i]==aPicA)&&(mAppearsOnCoupleB[i]==aPicB))
+                return true;
+        if ((mAppearsOnCoupleA[i]==aPicB)&&(mAppearsOnCoupleB[i]==aPicA))
+                return true;
+    }
+    return false;
 }
 
 bool cPic::removeHomolPoint(cPointOnPic* aPointOnPic)
@@ -386,7 +415,7 @@ int schnaps_main(int argc,char ** argv)
     std::string aFullPattern;//pattern of all images
     std::string aInHomolDirName="";//input Homol dir suffix
     std::string aOutHomolDirName="_mini";//output Homol dir suffix
-    int aNumWindows=100;//minimal homol points in each picture
+    int aNumWindows=1000;//minimal homol points in each picture
     bool ExpTxt=false;//Homol are in dat or txt
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
@@ -405,7 +434,7 @@ int schnaps_main(int argc,char ** argv)
        LArgMain()  << EAMC(aFullPattern, "Pattern of images",  eSAM_IsPatFile),
        //optional arguments
        LArgMain()  << EAM(aInHomolDirName, "HomolIn", true, "Input Homol directory suffix (without \"Homol\")")
-                   << EAM(aNumWindows, "NbWin", true, "Minimal homol points in each picture (default: 100)")
+                   << EAM(aNumWindows, "NbWin", true, "Minimal homol points in each picture (default: 1000)")
                    << EAM(aOutHomolDirName, "HomolOut", true, "Output Homol directory suffix (default: _mini)")
                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
       );
@@ -515,14 +544,16 @@ int schnaps_main(int argc,char ** argv)
                         }
                     }
                     
-
-
-                    #ifdef ReductHomolImage_DEBUG
-                    std::cout<<"Result Homol: "<<aPointOnPic1<<" "<<aPointOnPic2<<std::endl;
-                    #endif
-
-                    /*if ((aPointOnPic1 && (aPointOnPic1->getHomol()->getId()==85996))||
-                        (aPointOnPic1 && (aPointOnPic1->getHomol()->getId()==85996)))
+                    /*if (((fabs(aP1.x-1349.69)<0.1)&&(fabs(aP1.y-1829.25)<0.1))
+                       ||((fabs(aP2.x-1349.69)<0.1)&&(fabs(aP2.y-1829.25)<0.1)))
+                    {
+                        std::cout<<"For pair : "<<aP1<<" "<<aP2<<std::endl;
+                        std::cout<<"Result Homol: "<<aPointOnPic1<<" "<<aPointOnPic2<<std::endl;
+                        if (aPointOnPic1) aPointOnPic1->getHomol()->print();
+                        if (aPointOnPic2) aPointOnPic2->getHomol()->print();
+                    }*/
+                    /*if ((aPointOnPic1 && (aPointOnPic1->getHomol()->getId()==7904))||
+                        (aPointOnPic2 && (aPointOnPic2->getHomol()->getId()==7904)))
                     {
                         std::cout<<"For pair : "<<aP1<<" "<<aP2<<std::endl;
                         std::cout<<"Result Homol: "<<aPointOnPic1<<" "<<aPointOnPic2<<std::endl;
@@ -531,9 +562,15 @@ int schnaps_main(int argc,char ** argv)
                     }*/
 
                     if (aPointOnPic1 && (!aPointOnPic2))
+                    {
                         aPointOnPic1->getHomol()->add(pic2,aP2);
+                        aPointOnPic1->getHomol()->addAppearsOnCouple(pic1,pic2);
+                    }
                     else if (aPointOnPic2 && (!aPointOnPic1))
+                    {
                         aPointOnPic2->getHomol()->add(pic1,aP1);
+                        aPointOnPic2->getHomol()->addAppearsOnCouple(pic1,pic2);
+                    }
                     else if (aPointOnPic1 && aPointOnPic2 &&(aPointOnPic1->getHomol()!=aPointOnPic2->getHomol()))
                     {
                         cPointOnPic * aPointOnPic12=aPointOnPic1->getHomol()->getPointOnPic(pic2);
@@ -571,6 +608,7 @@ int schnaps_main(int argc,char ** argv)
                                 break;
                             }
                         }
+                        aPointOnPic1->getHomol()->addAppearsOnCouple(pic1,pic2);
                     }
                     else if ((!aPointOnPic1) && (!aPointOnPic2))
                     {
@@ -578,6 +616,7 @@ int schnaps_main(int argc,char ** argv)
                         allHomolsIn.push_back(new cHomol);
                         allHomolsIn.back()->add(pic1,aP1);
                         allHomolsIn.back()->add(pic2,aP2);
+                        allHomolsIn.back()->addAppearsOnCouple(pic1,pic2);
                     }
                 }
             }
@@ -585,6 +624,42 @@ int schnaps_main(int argc,char ** argv)
     }
 
     ELISE_ASSERT(allHomolsIn.size()>0,"ERROR: No pack found!");
+
+    //check if homol apear everywhere they should
+    cout<<"Checking Homol integrity..";
+    //for every homol
+    int nbInconsistantHomol=0;
+    for (std::list<cHomol*>::iterator itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();++itHomol)
+    {
+        cHomol *aHomol=(*itHomol);
+        cPic *aPic1=0;
+        cPic *aPic2=0;
+        //for every combination of PointOnPic
+        for (unsigned int i=0;i<aHomol->getPointOnPics().size();i++)
+        {
+            aPic1=aHomol->getPointOnPics()[i]->getPic();
+            for (unsigned int j=i+1;j<aHomol->getPointOnPics().size();j++)
+            {
+                //if the pack exist
+                aPic2=aHomol->getPointOnPics()[j]->getPic();
+                std::string aNameIn = aDirImages + aICNM->Assoc1To2(aKHIn,aPic1->getName(),aPic2->getName(),true);
+                if (ELISE_fp::exist_file(aNameIn))
+                {
+                    //check that homol has been seen in this couple of pictures
+                    if (!aHomol->appearsOnCouple(aPic1,aPic2))
+                    {
+                        aHomol->setBad();
+                        i=aHomol->getPointOnPics().size();//end second loop
+                        nbInconsistantHomol++;
+                        break;
+                    }
+                }
+            }
+        }
+        if ((aHomol->getId()%1000)==0) cout<<"."<<flush;
+    }
+    std::cout<<"Done. "<<nbInconsistantHomol<<" inconsistant homols found."<<endl;
+            
 
     int aNumBadHomol=0;
     for (std::list<cHomol*>::iterator itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();++itHomol)
