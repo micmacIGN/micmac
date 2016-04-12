@@ -133,9 +133,12 @@ void cAppliMorito::InitOneDir(const std::string & aPat,bool aD1)
    cElemAppliSetFile anEASF(aPat);
 
    const std::vector<std::string> * aVN = anEASF.SetIm();
+   std::cout<<"For pattern \""<<aPat;
+   std::cout<<"\", found ori: \n";
    for (int aK=0 ; aK<int(aVN->size()) ; aK++)
    {
         std::string aNameOri = (*aVN)[aK];
+        std::cout<<"  - "<<aNameOri<<"\n";
         CamStenope * aCS = CamOrientGenFromFile(aNameOri,anEASF.mICNM);
 
         cOriMorito & anOri = mOrients[aNameOri];
@@ -183,6 +186,7 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
         itO++
     )
     {
+         std::cout<<"Test "<<itO->first<<"\n";
          if (itO->second.mCam1 && itO->second.mCam2)
          {
              mVDpl.push_back(&(itO->second));
