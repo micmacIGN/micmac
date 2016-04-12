@@ -71,6 +71,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#define ReductHomolImage_DEBUG
 #define ReductHomolImage_UsefullPackSize 100
 #define ReductHomolImage_UselessPackSize 50
+#define ReductHomolImage_Check2WayPack
 
 //----------------------------------------------------------------------------
 // PicSize class: only to compute windows size for one given picture size
@@ -499,12 +500,14 @@ int schnaps_main(int argc,char ** argv)
         for (unsigned int j=i+1;j<allPics.size();j++)
         {
             cPic *pic2=allPics[j];
-            std::string aNameIn = aDirImages + aICNM->Assoc1To2(aKHIn,pic1->getName(),pic2->getName(),true);
-            if (ELISE_fp::exist_file(aNameIn))
+            std::string aNameIn1 = aDirImages + aICNM->Assoc1To2(aKHIn,pic1->getName(),pic2->getName(),true);
+            std::string aNameIn2 = aDirImages + aICNM->Assoc1To2(aKHIn,pic2->getName(),pic1->getName(),true);
+            if ((ELISE_fp::exist_file(aNameIn1))&&(ELISE_fp::exist_file(aNameIn2)))
             {
-                ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn);
-                cout<<aNameIn<<"  Pack size: "<<aPackIn.size()<<"\n";
-                for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; ++itP)
+                ElPackHomologue aPackIn1 =  ElPackHomologue::FromFile(aNameIn1);
+                ElPackHomologue aPackIn2 =  ElPackHomologue::FromFile(aNameIn2);
+                cout<<aNameIn1<<"  Pack size: "<<aPackIn1.size()<<"\n";
+                for (ElPackHomologue::const_iterator itP=aPackIn1.begin(); itP!=aPackIn1.end() ; ++itP)
                 {
                     Pt2dr aP1 = itP->P1();
                     Pt2dr aP2 = itP->P2();
@@ -561,15 +564,19 @@ int schnaps_main(int argc,char ** argv)
                         if (aPointOnPic2) aPointOnPic2->getHomol()->print();
                     }*/
 
+                    cHomol* currentHomol=0;
+
                     if (aPointOnPic1 && (!aPointOnPic2))
                     {
                         aPointOnPic1->getHomol()->add(pic2,aP2);
                         aPointOnPic1->getHomol()->addAppearsOnCouple(pic1,pic2);
+                        currentHomol=aPointOnPic1->getHomol();
                     }
                     else if (aPointOnPic2 && (!aPointOnPic1))
                     {
                         aPointOnPic2->getHomol()->add(pic1,aP1);
                         aPointOnPic2->getHomol()->addAppearsOnCouple(pic1,pic2);
+                        currentHomol=aPointOnPic2->getHomol();
                     }
                     else if (aPointOnPic1 && aPointOnPic2 &&(aPointOnPic1->getHomol()!=aPointOnPic2->getHomol()))
                     {
@@ -609,6 +616,7 @@ int schnaps_main(int argc,char ** argv)
                             }
                         }
                         aPointOnPic1->getHomol()->addAppearsOnCouple(pic1,pic2);
+                        currentHomol=aPointOnPic1->getHomol();
                     }
                     else if ((!aPointOnPic1) && (!aPointOnPic2))
                     {
@@ -617,7 +625,32 @@ int schnaps_main(int argc,char ** argv)
                         allHomolsIn.back()->add(pic1,aP1);
                         allHomolsIn.back()->add(pic2,aP2);
                         allHomolsIn.back()->addAppearsOnCouple(pic1,pic2);
+                        currentHomol=allHomolsIn.back();
+                    }else if (aPointOnPic1 && aPointOnPic2 &&(aPointOnPic1->getHomol()==aPointOnPic2->getHomol()))
+                    {
+                        currentHomol=aPointOnPic1->getHomol();
                     }
+                    
+                    #ifdef ReductHomolImage_Check2WayPack
+                        bool find2Way=false;
+                        for (ElPackHomologue::const_iterator itP2=aPackIn2.begin(); itP2!=aPackIn2.end() ; ++itP2)
+                        {
+                            Pt2dr aP1b = itP2->P2();
+                            Pt2dr aP2b = itP2->P1();
+                            
+                            if ((fabs(aP1.x-aP1b.x)<0.01)&&(fabs(aP1.y-aP1b.y)<0.01)
+                                &&(fabs(aP2.x-aP2b.x)<0.01)&&(fabs(aP2.y-aP2b.y)<0.01))
+                            {
+                                find2Way=true;
+                                break;
+                            }
+                        }
+                        if (!find2Way)
+                        {
+                            //cout<<"Not 2-way for "<<aP1<<" "<<aP2<<endl;
+                            currentHomol->setBad();
+                        }
+                    #endif
                 }
             }
         }
@@ -939,13 +972,13 @@ int schnaps_main(int argc,char ** argv)
         }
     }
 
-  std::cout<<"You can look at \"Schnaps_pictures_poubelle.txt\" for a list of suspicious pictures.\n";
+    std::cout<<"You can look at \"Schnaps_pictures_poubelle.txt\" for a list of suspicious pictures.\n";
   
    
   
-  std::cout<<"Quit"<<std::endl;
+    std::cout<<"Quit"<<std::endl;
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 /* Footer-MicMac-eLiSe-25/06/2007
