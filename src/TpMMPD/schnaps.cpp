@@ -418,6 +418,7 @@ int schnaps_main(int argc,char ** argv)
     std::string aOutHomolDirName="_mini";//output Homol dir suffix
     int aNumWindows=1000;//minimal homol points in each picture
     bool ExpTxt=false;//Homol are in dat or txt
+    bool showPackEvolution=false;
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
             <<"S trict           \n"
@@ -438,6 +439,7 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(aNumWindows, "NbWin", true, "Minimal homol points in each picture (default: 1000)")
                    << EAM(aOutHomolDirName, "HomolOut", true, "Output Homol directory suffix (default: _mini)")
                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
+                   << EAM(showPackEvolution,"ShowEvo",true,"Show Packs evolution, def=false")
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -496,7 +498,7 @@ int schnaps_main(int argc,char ** argv)
     for (unsigned int i=0;i<allPics.size();i++)
     {
         cPic *pic1=allPics[i];
-        std::cout<<" Picture "<<aSetIm[i]<<": \n";
+        std::cout<<" Picture "<<aSetIm[i]<<"\n";
         for (unsigned int j=i+1;j<allPics.size();j++)
         {
             cPic *pic2=allPics[j];
@@ -506,7 +508,7 @@ int schnaps_main(int argc,char ** argv)
             {
                 ElPackHomologue aPackIn1 =  ElPackHomologue::FromFile(aNameIn1);
                 ElPackHomologue aPackIn2 =  ElPackHomologue::FromFile(aNameIn2);
-                cout<<aNameIn1<<"  Pack size: "<<aPackIn1.size()<<"\n";
+                //cout<<aNameIn1<<"  Pack size: "<<aPackIn1.size()<<"\n";
                 for (ElPackHomologue::const_iterator itP=aPackIn1.begin(); itP!=aPackIn1.end() ; ++itP)
                 {
                     Pt2dr aP1 = itP->P1();
@@ -585,14 +587,14 @@ int schnaps_main(int argc,char ** argv)
                         if (
                             ((aPointOnPic21)
                               &&(
-                                 (fabs(aPointOnPic21->getPt().x-aP2.x)>0.2)
-                                 ||(fabs(aPointOnPic21->getPt().y-aP2.y)>0.2))
+                                 (fabs(aPointOnPic21->getPt().x-aP2.x)>0.1)
+                                 ||(fabs(aPointOnPic21->getPt().y-aP2.y)>0.1))
                                 )
                             ||
                             ((aPointOnPic12)
                               &&(
-                                 (fabs(aPointOnPic12->getPt().x-aP1.x)>0.2)
-                                 ||(fabs(aPointOnPic12->getPt().y-aP1.y)>0.2))
+                                 (fabs(aPointOnPic12->getPt().x-aP1.x)>0.1)
+                                 ||(fabs(aPointOnPic12->getPt().y-aP1.y)>0.1))
                                 )
                            )
                         {
@@ -638,8 +640,8 @@ int schnaps_main(int argc,char ** argv)
                             Pt2dr aP1b = itP2->P2();
                             Pt2dr aP2b = itP2->P1();
                             
-                            if ((fabs(aP1.x-aP1b.x)<0.01)&&(fabs(aP1.y-aP1b.y)<0.01)
-                                &&(fabs(aP2.x-aP2b.x)<0.01)&&(fabs(aP2.y-aP2b.y)<0.01))
+                            if ((fabs(aP1.x-aP1b.x)<0.1)&&(fabs(aP1.y-aP1b.y)<0.1)
+                                &&(fabs(aP2.x-aP2b.x)<0.1)&&(fabs(aP2.y-aP2b.y)<0.1))
                             {
                                 find2Way=true;
                                 break;
@@ -700,7 +702,7 @@ int schnaps_main(int argc,char ** argv)
         if ((*itHomol)->isBad()) aNumBadHomol++;
     }
 
-    std::cout<<"Found "<<allHomolsIn.size()<<" Homol points (incl. "<<aNumBadHomol<<" bad ones).\n";
+    std::cout<<"Found "<<allHomolsIn.size()<<" Homol points (incl. "<<aNumBadHomol<<" bad ones): "<<100*aNumBadHomol/allHomolsIn.size()<<"% bad!\n";
 
 
     #ifdef ReductHomolImage_DEBUG
@@ -761,7 +763,7 @@ int schnaps_main(int argc,char ** argv)
     for (unsigned int i=0;i<allPics.size();i++)
     {
         cPic* aPic=allPics[i];
-        std::cout<<"For "<<aPic->getName()<<"\n";
+        std::cout<<"  "<<aPic->getName()<<"\n";
         //for each window, get current best selected point, and best existing point
         for (int x=0;x<aPic->getPicSize()->getNbWin().x;x++)
         {
@@ -941,32 +943,35 @@ int schnaps_main(int argc,char ** argv)
     }
     aFileBadPictureNames.close();
 
-    std::cout<<"\nPack size changes:\n";
-    //check if bad packs
-    for (unsigned int i=0;i<allPics.size();i++)
+    if (showPackEvolution)
     {
-        cPic *pic1=allPics[i];
-        for (unsigned int j=i+1;j<allPics.size();j++)
+        std::cout<<"\nPack size changes:\n";
+        //check if bad packs
+        for (unsigned int i=0;i<allPics.size();i++)
         {
-            cPic *pic2=allPics[j];
-            std::string aNameIn1 = aDirImages + aICNM->Assoc1To2(aKHIn,pic1->getName(),pic2->getName(),true);
-            std::string aNameOut1 = aDirImages + aICNM->Assoc1To2(aKHOut,pic1->getName(),pic2->getName(),true);
-            std::string aNameOut2 = aDirImages + aICNM->Assoc1To2(aKHOut,pic2->getName(),pic1->getName(),true);
-            
-            //compare new size with original one
-            if (ELISE_fp::exist_file(aNameIn1))
+            cPic *pic1=allPics[i];
+            for (unsigned int j=i+1;j<allPics.size();j++)
             {
-                ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn1);
-                if (ELISE_fp::exist_file(aNameOut1))
+                cPic *pic2=allPics[j];
+                std::string aNameIn1 = aDirImages + aICNM->Assoc1To2(aKHIn,pic1->getName(),pic2->getName(),true);
+                std::string aNameOut1 = aDirImages + aICNM->Assoc1To2(aKHOut,pic1->getName(),pic2->getName(),true);
+                std::string aNameOut2 = aDirImages + aICNM->Assoc1To2(aKHOut,pic2->getName(),pic1->getName(),true);
+                
+                //compare new size with original one
+                if (ELISE_fp::exist_file(aNameIn1))
                 {
-                    ElPackHomologue aPackOut1 =  ElPackHomologue::FromFile(aNameOut1);
                     ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn1);
-                    cout<<"   "<<aNameIn1<<": "<<aPackIn.size()<<" => "<<aPackOut1.size();
-                    if ((aPackIn.size()>ReductHomolImage_UsefullPackSize)
-                        &&(aPackOut1.size()<ReductHomolImage_UselessPackSize))
-                        cout<<"    This pack has become useless...\n";
-                    else
-                        cout<<"    Ok.\n";
+                    if (ELISE_fp::exist_file(aNameOut1))
+                    {
+                        ElPackHomologue aPackOut1 =  ElPackHomologue::FromFile(aNameOut1);
+                        ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn1);
+                        cout<<"   "<<aNameIn1<<": "<<aPackIn.size()<<" => "<<aPackOut1.size();
+                        if ((aPackIn.size()>ReductHomolImage_UsefullPackSize)
+                            &&(aPackOut1.size()<ReductHomolImage_UselessPackSize))
+                            cout<<"    This pack has become useless...\n";
+                        else
+                            cout<<"    Ok.\n";
+                    }
                 }
             }
         }
