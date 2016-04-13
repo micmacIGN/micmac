@@ -1059,6 +1059,30 @@ void TestXmlX11();
 int MPDtest_main (int argc,char** argv)
 {
     {
+        int aNx=3;
+        int aNy=4;
+        int aNxy = ElMax(aNx,aNy);
+        ElMatrix<double> aM(aNxy,aNxy);
+        for (int aKx=0 ; aKx<aNxy ; aKx++)
+        {
+           for (int aKy=0 ; aKy<aNxy ; aKy++)
+           {
+             if ((aNx<=aNxy) && (aNy<=aNxy))
+                aM(aKx,aKy) = 1.0 / (1+aKx + aKy*aKy);
+             else
+                aM(aKx,aKy) = 0.0;
+           }
+        }
+
+        ElMatrix<double> aU(1,1),aDiag(1,1),aV(1,1);
+      
+        svdcmp(aM,aU,aDiag,aV,false);
+        exit(EXIT_SUCCESS);
+    }
+
+
+
+    {
        double aFact =  1;
        int aNb=0;
        std::cout << "Entrer l'entier max\n";
