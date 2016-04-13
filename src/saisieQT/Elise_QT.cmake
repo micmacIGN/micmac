@@ -25,6 +25,7 @@ INCLUDE_DIRECTORIES(${SAISIE_DIR}/include_QT)
                     ${SAISIE_DIR}/mmglu.cpp
                     ${SAISIE_DIR}/WorkbenchWidget.cpp
                     ${SAISIE_DIR}/MipmapHandler.cpp
+                    ${SAISIE_DIR}/GlExtensions.cpp
 )
 
 if ( ${qt_version} EQUAL 4)
