@@ -48,11 +48,34 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                                    */
 /**********************************************************************/
 
-cPMulTiepRed::cPMulTiepRed(tMerge * aMergedHomolPoints)  :
+cPMulTiepRed::cPMulTiepRed(tMerge * aMergedHomolPoints, cAppliTiepRed & anAppli)  :
 	mMergedHomolPoints      (aMergedHomolPoints),
     mRemoved    			(false)
 {
-	mMultiplicity = mMergedHomolPoints->VecInd().size();
+
+	std::vector<double> accuracies;
+	const std::vector<U_INT2>  &  aVecInd = mMergedHomolPoints->VecInd() ;
+	for (int i=0 ; i<int(aVecInd.size()) ; i++){
+		if (aVecInd[i] != 0){
+			double acc;
+			cLnk2ImTiepRed * imagePair = anAppli.ImagePairsMap()[std::make_pair(0,aVecInd[i])];
+			(imagePair->Cam1()).PseudoInterPixPrec(ToPt2dr(mMergedHomolPoints->GetVal(0)),imagePair->Cam2(),ToPt2dr(mMergedHomolPoints->GetVal(aVecInd[i])),acc);
+			accuracies.push_back(acc);
+		}
+	}
+	mAcc = *(std::max_element(accuracies.begin(), accuracies.end()));
+}
+
+
+void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli)
+{
+	if (anAppli.GainMode() == 0){
+		mGain = mMergedHomolPoints->VecInd().size();
+	}else if (anAppli.GainMode() == 1){
+		mGain = mMergedHomolPoints->NbArc();
+	}else{
+		mGain =  mMergedHomolPoints->NbArc() * (1.0 /(1.0 + ElSquare(mAcc/(anAppli.ThresholdAccMult() * anAppli.StdAcc()))));
+	}
 }
 
 

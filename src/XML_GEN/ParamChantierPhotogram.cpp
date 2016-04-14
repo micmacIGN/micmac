@@ -22901,6 +22901,17 @@ const int & cXml_ParamSubcommandTiepRed::NumSubcommands()const
 }
 
 
+int & cXml_ParamSubcommandTiepRed::MaxNumRelated()
+{
+   return mMaxNumRelated;
+}
+
+const int & cXml_ParamSubcommandTiepRed::MaxNumRelated()const 
+{
+   return mMaxNumRelated;
+}
+
+
 std::vector< std::string > & cXml_ParamSubcommandTiepRed::Images()
 {
    return mImages;
@@ -22915,6 +22926,7 @@ void  BinaryUnDumpFromFile(cXml_ParamSubcommandTiepRed & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NumInit(),aFp);
     BinaryUnDumpFromFile(anObj.NumSubcommands(),aFp);
+    BinaryUnDumpFromFile(anObj.MaxNumRelated(),aFp);
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
@@ -22930,6 +22942,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamSubcommandTiepRed & anObj)
 {
     BinaryDumpInFile(aFp,anObj.NumInit());
     BinaryDumpInFile(aFp,anObj.NumSubcommands());
+    BinaryDumpInFile(aFp,anObj.MaxNumRelated());
     BinaryDumpInFile(aFp,(int)anObj.Images().size());
     for(  std::vector< std::string >::const_iterator iT=anObj.Images().begin();
          iT!=anObj.Images().end();
@@ -22944,6 +22957,7 @@ cElXMLTree * ToXMLTree(const cXml_ParamSubcommandTiepRed & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ParamSubcommandTiepRed",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("NumInit"),anObj.NumInit())->ReTagThis("NumInit"));
    aRes->AddFils(::ToXMLTree(std::string("NumSubcommands"),anObj.NumSubcommands())->ReTagThis("NumSubcommands"));
+   aRes->AddFils(::ToXMLTree(std::string("MaxNumRelated"),anObj.MaxNumRelated())->ReTagThis("MaxNumRelated"));
   for
   (       std::vector< std::string >::const_iterator it=anObj.Images().begin();
       it !=anObj.Images().end();
@@ -22964,9 +22978,11 @@ void xml_init(cXml_ParamSubcommandTiepRed & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NumSubcommands(),aTree->Get("NumSubcommands",1)); //tototo 
 
+   xml_init(anObj.MaxNumRelated(),aTree->Get("MaxNumRelated",1)); //tototo 
+
    xml_init(anObj.Images(),aTree->GetAll("Images",false,1));
 }
 
-std::string  Mangling( cXml_ParamSubcommandTiepRed *) {return "A87B77FF69EB11FDFB3F";};
+std::string  Mangling( cXml_ParamSubcommandTiepRed *) {return "50C1F7D236C8A7F1FA3F";};
 
 // };

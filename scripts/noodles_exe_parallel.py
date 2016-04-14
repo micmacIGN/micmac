@@ -10,7 +10,9 @@ import argparse
 import json
 import time
 import shlex
+import os
 
+logFolder = None
 
 class Job:
     def __init__(self, task, exclude, state, job, key):
@@ -112,7 +114,9 @@ def system_command(cmd, task):
         cmd_split, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, universal_newlines=True)
     p.check_returncode()
-    print(p.stdout)
+    oFile = open(os.path.join(logFolder, task),'w')
+    oFile.write(p.stdout)
+    oFile.close()
     return p.stdout
 
 
@@ -142,8 +146,13 @@ if __name__ == "__main__":
     parser.add_argument(
         'target', type=str,
         help='a JSON file specifying the graph.')
+    parser.add_argument(
+        'log', type=str,
+        help='a log folder.')
     args = parser.parse_args(sys.argv[1:])
 
+    logFolder = args.log
+    os.makedirs(logFolder)
     input = json.load(open(args.target, 'r'))
     jobs = [make_job(td['command'],
                      td['task'], td['exclude']) for td in input]

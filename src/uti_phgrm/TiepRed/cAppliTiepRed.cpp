@@ -68,12 +68,15 @@ bool cmpIntAsc(const pair<std::string, int>  &p1, const pair<std::string, int> &
 cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
 			mNumCellsX               (4),
 			mNumCellsY               (4),
+			mAdaptive              (false),
+		    mThresholdAccMult       (2.0),  // Multiplier of Mediane accuracy, can probably be stable
 			mImagesNames                 (0),
 			mCallBack                (false),
 			mExpSubCom               (false),
 			mExpTxt                  (false),
 			mSortByNum               (false),
-			mDesc                     (false)
+			mDesc                     (false),
+			mGainMode					(0)
 {
 	// Read parameters
 	MMD_InitArgcArgv(argc,argv);
@@ -81,11 +84,14 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
 		LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile),
 		LArgMain()  << EAM(mNumCellsX,"NumPointsX",true,"Target number of tie points between 2 images in x axis of image space, def=4")
 		            << EAM(mNumCellsY,"NumPointsY",true,"Target number of tie points between 2 images in y axis of image space, def=4")
+		            << EAM(mAdaptive,"Adaptive",true,"Use adaptive grids, def=false")
 		            << EAM(mSubcommandIndex,"SubcommandIndex",true,"Internal use")
 		            << EAM(mExpSubCom,"ExpSubCom",true,"Export the subcommands instead of executing them, def=false")
 		            << EAM(mExpTxt,"ExpTxt",true,"Export homol point in Ascii, def=false")
 		            << EAM(mSortByNum,"SortByNum",true,"Sort images by number of tie points, determining the order in which the subcommands are executed, def=0 (sort by file name)")
 		            << EAM(mDesc,"Desc",true,"Use descending order in the sorting of images, def=0 (ascending)")
+					<< EAM(mGainMode,"GainMode",true,"Gain mode for multi-tie-points:0-nb related images; 1-nb image pairs; 2-f(nb image pairs, accuracy, std accuracy), def=0 (nb related images)")
+					<< EAM(mThresholdAccMult,"ThresholdAccMult",true,"Threshold of mediane accuracy (only used in GainMode=2) , def=2.0")
 	);
 	// if mSubcommandIndex was set, we are not the master call or parent process (we are running a subcommand (a tie point reduction task of a master image and its related images)
 	mCallBack = EAMIsInit(&mSubcommandIndex);
@@ -99,9 +105,12 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
 		mImagesNames = &(mXmlParamSubcommand.Images());
 		// Get the initital number of tie-points that the master image had before any subcommand was executed
 		mNumInit = mXmlParamSubcommand.NumInit();
+
+		mMaxNumRelated = mXmlParamSubcommand.MaxNumRelated();
+
 		int numSubcommands = mXmlParamSubcommand.NumSubcommands();
 
-		std::cout << "=======================   KSubcommand=" << mSubcommandIndex << "/" << numSubcommands << "  ===================\n";
+		std::cout << "=======================   KSubcommand=" << (mSubcommandIndex+1) << "/" << numSubcommands << "  ===================\n";
 	}
 	else {
 		// This is the parent. We get the list of images from the pattern provided by the user
@@ -136,6 +145,7 @@ std::string  cAppliTiepRed::NameHomolTemp(const std::string &aName1,const std::s
 
 cVirtInterf_NewO_NameManager & cAppliTiepRed::NM(){ return *mNM ;}
 const cXml_ParamSubcommandTiepRed & cAppliTiepRed::ParamSubcommand() const {return mXmlParamSubcommand;}
+const double & cAppliTiepRed::ThresholdAccMult() const {return mThresholdAccMult;}
 
 void cAppliTiepRed::ExportSubcommands(std::vector<std::string> & aVSubcommands , std::vector<std::vector< int > > & aVRelatedSubcommandsIndexes){
 
@@ -215,6 +225,15 @@ void cAppliTiepRed::GenerateSubcommands(){
 		}
 	}
 
+	// Get the maximum number of related images
+	int maxNumRelated = 0;
+	for (std::size_t i = 0 ; i < mImagesNames->size() ; i++){
+		const std::string & imageName = (*mImagesNames)[i];
+		int numRelated = relatedImagesMap[imageName].size();
+		if 	(numRelated > maxNumRelated){
+			maxNumRelated = numRelated;
+		}
+	}
 
 	// Convert the map with the number of tie points per image to a vector of pairs
 	// This is required to sort them
@@ -256,6 +275,7 @@ void cAppliTiepRed::GenerateSubcommands(){
 		aParamSubcommand.NumSubcommands() = static_cast<int>(imagesNumPointsVP.size());
 		aParamSubcommand.Images().push_back(masterImageName); // Add master image to config
 		relatedSubcommandsIndexes.push_back(static_cast<int>(imageIndex)); // Add the index of the current subcommand
+		aParamSubcommand.MaxNumRelated() = maxNumRelated;
 
 		for(std::size_t j = 0; j < relatedImages.size(); ++j){
 			const std::string & relatedImageName = relatedImages[j];

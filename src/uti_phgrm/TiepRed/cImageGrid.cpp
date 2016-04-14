@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 struct mPComparerClass {
-  bool operator() (cPMulTiepRed * i,cPMulTiepRed * j) { return (i->Multiplicity() > j->Multiplicity());}
+  bool operator() (cPMulTiepRed * i,cPMulTiepRed * j) { return (i->Gain() > j->Gain());}
 } mPComparer;
 
 /**********************************************************************/
