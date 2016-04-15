@@ -210,7 +210,7 @@ class cAppliWithSetImage
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
       void AddDelaunayCple();
       void AddFilePair(const std::string & aFilePair);
-      void AddCoupleMMImSec(bool ExeApero,bool SupressImInNoMasq,bool AddCple,bool ExpTxt);
+      void AddCoupleMMImSec(bool ExeApero,bool SupressImInNoMasq,bool AddCple,bool ExpTxt=false,bool ExpImSec=true);
       void AddLinePair(int aDif, bool ExpTxt);
 
 

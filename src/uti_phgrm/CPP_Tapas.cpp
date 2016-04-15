@@ -319,6 +319,7 @@ int Tapas_main(int argc,char ** argv)
     std::string  aRapTxt;
     std::string  aPoseFigee="";
     bool Debug = false;
+    double aLVM = 1.0;
 
 
     ElInitArgMain
@@ -352,6 +353,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(TolLPPCD,"LinkPPaPPs",true, "Link PPa and PPs (double)", eSAM_NoInit)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
+                    << EAM(aLVM,"MulLVM",true,"Multiplier Levenber Markard")
     );
 
     if (!MMVisualMode)
@@ -430,6 +432,11 @@ int Tapas_main(int argc,char ** argv)
                            + std::string(" +ValAff=") + (GlobLibAff ?"eLiberte_Phgr_Std_Aff" : "eFige_Phgr_Std_Aff")
 
                         ;
+
+    if (EAMIsInit(&aLVM))
+    {
+       aCom = aCom + " +MulLVM=" + ToString(aLVM);
+    }
 
     if (EAMIsInit(&GlobLibPP  ))
        aCom = aCom + std::string(" +DoPP=") + ToString(GlobLibPP  ) + std::string(" ");

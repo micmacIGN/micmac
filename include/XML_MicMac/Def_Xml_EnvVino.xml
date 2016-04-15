@@ -6,6 +6,8 @@
     <ZoomBilin >       false      </ZoomBilin>
     <SpeedZoomGrab >   100.0     </SpeedZoomGrab>
     <SpeedZoomMolette> 0.3       </SpeedZoomMolette>
+    <ForceGray>        false       </ForceGray>
+    <NumCrop>          1           </NumCrop>
 </Xml_EnvVino>
 
 

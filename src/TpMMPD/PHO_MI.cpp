@@ -354,12 +354,12 @@ VerifParRepr::VerifParRepr(vector<string> mListImg, vector<string> mListImg_NoTi
         this->mHomolOutput = aHomolOutput;
         this->mDistHom = aDistHom;
         this->mDistRepr = aDistRepr;
+        this->mListImg_NoTif = mListImg;
 }
 
 
 vector<AbreHomol> VerifParRepr::creatAbre()
 {
-
     cout<<"creatAbre"<<endl;
     vector<string> backup_ListImg;
     if (this->mListImg_NoTif.size() > 0)
@@ -463,14 +463,16 @@ vector<AbreHomol> VerifParRepr::creatAbre()
     this->mtempArbeRacine = tempArbeRacine_N;
     if(this->mListImg_NoTif.size() > 0)
     {
-        Tiff_Im mTiffImg3(("./Tmp-MM-Dir/" + tempArbeRacine[0] + "_Ch1.tif").c_str());
+        //Tiff_Im mTiffImg3(("./Tmp-MM-Dir/" + tempArbeRacine[0] + "_Ch1.tif").c_str());
+        Tiff_Im mTiffImg3( Tiff_Im::StdConvGen(this->mDirImages+"/"+tempArbeRacine[0],1,false));
         Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
         this->mcentre_img = centre_img;
         this->mdiag = sqrt(pow((double)mTiffImg3.sz().x,2.) + pow((double)mTiffImg3.sz().y,2.));
     }
     else
     {
-        Tiff_Im mTiffImg3(tempArbeRacine[0].c_str());
+        //Tiff_Im mTiffImg3(tempArbeRacine[0].c_str());
+        Tiff_Im mTiffImg3( Tiff_Im::StdConvGen(this->mDirImages+"/"+tempArbeRacine[0],1,false));
         Pt2dr centre_img(mTiffImg3.sz().x/2, mTiffImg3.sz().y/2);
         this->mcentre_img = centre_img;
         this->mdiag = sqrt(pow((double)mTiffImg3.sz().x,2.) + pow((double)mTiffImg3.sz().y,2.));
@@ -755,20 +757,19 @@ Pt2dr RepereImagette::uv2img(Pt2dr coorOrg)
 
 CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,
                string aFullPatternImages, bool ExpTxt, double aPropDiag, double aCorel, double aSizeVignette,
-               bool aDisplayVignette, bool aFiltreBy1Img, double aTauxGood, double aSizeSearchAutour, bool NotTif_flag):
+               bool aDisplayVignette, bool aFiltreBy1Img, double aTauxGood, double aSizeSearchAutour):
     mNameImg1(aNameImg1), mFiltreBy1Img(aFiltreBy1Img), mTauxGood(aTauxGood)
 {
     this->mNameImg1 = aNameImg1;
     this->mNameImg2 = aNameImg2;
     this->mNameHomol = aNameHomol;
     this->mHomolOutput = aHomolOutput;
-    //this->mExpTxt = ExpTxt;
     this->mPropDiag = aPropDiag;
     this->mCorel = aCorel;
     this->mdisplayVignette = aDisplayVignette;
     this->msizeVignette = aSizeVignette;
     this->mSizeSearchAutour = aSizeSearchAutour;
-    this->NotTif_flag = NotTif_flag;
+//    this->NotTif_flag = NotTif_flag;
    //====== Initialize name manipulator & files=====//
     ELISE_fp::AssertIsDirectory(aNameHomol);
     std::string aDirImages, aPatImages;
@@ -792,34 +793,37 @@ CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOr
  //===========================================================
     //====lire Img1 et Img2=====//
     cout<<aNameImg1<< " ++ "<<aNameImg2<<endl;
-    Tiff_Im aTiffImg1(aNameImg1.c_str());
-    Tiff_Im aTiffImg2(aNameImg2.c_str());
+    //Tiff_Im aTiffImg1(aNameImg1.c_str());
+    //Tiff_Im aTiffImg2(aNameImg2.c_str());
+    Tiff_Im aTiffImg1( Tiff_Im::StdConvGen(this->mDirImages+"/"+aNameImg1,1,false));
+    Tiff_Im aTiffImg2( Tiff_Im::StdConvGen(this->mDirImages+"/"+aNameImg2,1,false));
     //====lire Cam1 et Cam2====//
-    if (NotTif_flag == false)
-    {
+//    NotTif_flag=false;
+//    if (NotTif_flag == false)
+//    {
         std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg1, true);
         CamStenope * aCam1 = CamOrientGenFromFile(aOri1 , aICNM);
         std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg2,true);
         CamStenope * aCam2 = CamOrientGenFromFile(aOri2 , aICNM);
         this->mCam1 = aCam1;
         this->mCam2 = aCam2;
-    }
-    else
-    {
-        aNameImg1 = aNameImg1.substr(13, aNameImg1.length());
-        aNameImg1 = aNameImg1.substr(0, aNameImg1.length()-8);
+//    }
+//    else
+//    {
+//        aNameImg1 = aNameImg1.substr(13, aNameImg1.length());
+//        aNameImg1 = aNameImg1.substr(0, aNameImg1.length()-8);
 
-        aNameImg2 = aNameImg2.substr(13, aNameImg2.length());
-        aNameImg2 = aNameImg2.substr(0, aNameImg2.length()-8);
+//        aNameImg2 = aNameImg2.substr(13, aNameImg2.length());
+//        aNameImg2 = aNameImg2.substr(0, aNameImg2.length()-8);
 
-        cout<<aNameImg1<< " ++ "<<aNameImg2<<endl;
-        std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg1, true);
-        CamStenope * aCam1 = CamOrientGenFromFile(aOri1 , aICNM);
-        std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg2,true);
-        CamStenope * aCam2 = CamOrientGenFromFile(aOri2 , aICNM);
-        this->mCam1 = aCam1;
-        this->mCam2 = aCam2;
-    }
+//        cout<<aNameImg1<< " ++ "<<aNameImg2<<endl;
+//        std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg1, true);
+//        CamStenope * aCam1 = CamOrientGenFromFile(aOri1 , aICNM);
+//        std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg2,true);
+//        CamStenope * aCam2 = CamOrientGenFromFile(aOri2 , aICNM);
+//        this->mCam1 = aCam1;
+//        this->mCam2 = aCam2;
+    //}
 }
 
 void CplImg::SupposeVecSruf1er(Pt2dr dirX, Pt2dr dirY)
@@ -852,13 +856,13 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
     string aDirImages = this->mDirImages;
     string aNameImg1 = this->mNameImg1;
     string aNameImg2 = this->mNameImg2;
-    if (this->NotTif_flag == true)
-    {
-        aNameImg1 = aNameImg1.substr(13, aNameImg1.length());
-        aNameImg1 = aNameImg1.substr(0, aNameImg1.length()-8);
-        aNameImg2 = aNameImg2.substr(13, aNameImg2.length());
-        aNameImg2 = aNameImg2.substr(0, aNameImg2.length()-8);
-    }
+//    if (this->NotTif_flag == true)
+//    {
+//        aNameImg1 = aNameImg1.substr(13, aNameImg1.length());
+//        aNameImg1 = aNameImg1.substr(0, aNameImg1.length()-8);
+//        aNameImg2 = aNameImg2.substr(13, aNameImg2.length());
+//        aNameImg2 = aNameImg2.substr(0, aNameImg2.length()-8);
+//    }
     CamStenope * aCam1 = this->mCam1;
     CamStenope * aCam2 = this->mCam2;
     bool displayVignette = this->mdisplayVignette;
@@ -895,13 +899,19 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
     // ====Import images Tiff and IM2D =====//
     aNameImg1 = this->mNameImg1;
     aNameImg2 = this->mNameImg2;
-    if(this->NotTif_flag == true)
-        {
-            aNameImg3 = "./Tmp-MM-Dir/" + aNameImg3 + "_Ch1.tif";
-        }
-    Tiff_Im mTiffImg1(aNameImg1.c_str());
-    Tiff_Im mTiffImg2(aNameImg2.c_str());
-    Tiff_Im mTiffImg3(aNameImg3.c_str());
+//    if(this->NotTif_flag == true)
+//        {
+//            aNameImg3 = "./Tmp-MM-Dir/" + aNameImg3 + "_Ch1.tif";
+//        }
+    //Tiff_Im mTiffImg1(aNameImg1.c_str());
+    //Tiff_Im mTiffImg2(aNameImg2.c_str());
+    //Tiff_Im mTiffImg3(aNameImg3.c_str());
+
+    Tiff_Im mTiffImg1( Tiff_Im::StdConvGen(this->mDirImages+"/"+aNameImg1,1,false));
+    Tiff_Im mTiffImg2( Tiff_Im::StdConvGen(this->mDirImages+"/"+aNameImg2,1,false));
+    Tiff_Im mTiffImg3( Tiff_Im::StdConvGen(this->mDirImages+"/"+aNameImg3,1,false));
+
+
 
     Im2D<U_INT1,INT4> mIm2DImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);
     Im2D<U_INT1,INT4> mIm2DImg2(mTiffImg2.sz().x,mTiffImg2.sz().y);
@@ -1391,38 +1401,41 @@ int PHO_MI_main(int argc,char ** argv)
     //===========Modifier ou chercher l'image si l'image ne sont pas tif============//
        std::size_t found = aFullPatternImages.find_last_of(".");
        std::cout << " extension: " << aFullPatternImages.substr(found+1) << '\n';
-       bool notif_flag = false;
-       if (aFullPatternImages.substr(found+1) != "tif")
-       {
-           notif_flag=true;
-           std::cout << " chercher dans Tmp-MM-Dir pour fichier tif: "<< '\n';
-           aFullPatternImages_NotTif = "./Tmp-MM-Dir/" + aFullPatternImages + "_Ch1.*.tif";
+       std::cout << " chercher dans Tmp-MM-Dir pour fichier tif: "<< '\n';
+//       bool notif_flag = false;
+//       if (aFullPatternImages.substr(found+1) != "tif")
+//       {
+//           notif_flag=true;
+//           std::cout << " chercher dans Tmp-MM-Dir pour fichier tif: "<< '\n';
+//           aFullPatternImages_NotTif = "./Tmp-MM-Dir/" + aFullPatternImages + "_Ch1.*.tif";
 
-           SplitDirAndFile(aDirImages_NotTif,aPatImages_NotTif,aFullPatternImages_NotTif);
-           cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages_NotTif);
-           aSetImages_NoTif = *(aICNM->Get(aPatImages_NotTif));
-           for (uint i=0; i<aSetImages_NoTif.size(); i++)
-           {
-               aSetImages_NoTif[i] = aDirImages_NotTif + aSetImages_NoTif[i];
-           }
-           ELISE_ASSERT(aSetImages_NoTif.size()>1,"Number of image must be > 1");
+//           SplitDirAndFile(aDirImages_NotTif,aPatImages_NotTif,aFullPatternImages_NotTif);
+//           cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages_NotTif);
+//           aSetImages_NoTif = *(aICNM->Get(aPatImages_NotTif));
+//           for (uint i=0; i<aSetImages_NoTif.size(); i++)
+//           {
+//               aSetImages_NoTif[i] = aDirImages_NotTif + aSetImages_NoTif[i];
+//           }
+//           ELISE_ASSERT(aSetImages_NoTif.size()>1,"Number of image must be > 1");
 
-           SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
-           cInterfChantierNameManipulateur * aICNM1=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
-           aSetImages = *(aICNM1->Get(aPatImages));
+//           SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
+//           cInterfChantierNameManipulateur * aICNM1=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+//           aSetImages = *(aICNM1->Get(aPatImages));
 
-           aICNM->BasicAlloc(aDirImages);
-       }
+//           aICNM->BasicAlloc(aDirImages);
+
+
+//       }
     //===============================================================================//
     // Initialize name manipulator & files
-    else
-       {
+//    else
+//       {
            SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
            StdCorrecNameOrient(aOriInput,aDirImages);//remove "Ori-" if needed
            cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
            aSetImages = *(aICNM->Get(aPatImages));
            ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
-       }
+       //}
  //============================================================
     anExt = ExpTxt ? "txt" : "dat";
 
@@ -1533,23 +1546,23 @@ int PHO_MI_main(int argc,char ** argv)
         VerifParRepr aImgVerif(aSetImages, aSetImages_NoTif, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, aDistHom, aDistRepr);
         vector<AbreHomol> aAbre = aImgVerif.creatAbre();
         vector<string>  aAbreRacine= aImgVerif.displayAbreHomol(aImgVerif.mAbre, 1);
-
+//        notif_flag = false;
         for (uint i=0;i<aAbre.size();i++)
         {
             string aImg1 = aAbre[i].ImgRacine;
-            if(notif_flag == true)
-            {
-                aImg1 = "./Tmp-MM-Dir/" + aAbre[i].ImgRacine + "_Ch1.tif";
-            }
+//            if(notif_flag == true)
+//            {
+//                aImg1 = "./Tmp-MM-Dir/" + aAbre[i].ImgRacine + "_Ch1.tif";
+//            }
             for(uint k=0; k<aAbre[i].ImgBranch.size(); k++)
             {
                 string aImg2 = aAbre[i].ImgBranch[k];
-                if(notif_flag == true)
-                {
-                    aImg1 = "./Tmp-MM-Dir/" + aAbre[i].ImgRacine + "_Ch1.tif";
-                    aImg2 = "./Tmp-MM-Dir/" + aAbre[i].ImgBranch[k] + "_Ch1.tif";
-                }
-                CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt, aPropDiag, aCorel, aSizeVignette, aDisplayVignette, aFiltreBy1Img, aTauxGood, aSizeSearchAutour, notif_flag);
+//                if(notif_flag == true)
+//                {
+//                    aImg1 = "./Tmp-MM-Dir/" + aAbre[i].ImgRacine + "_Ch1.tif";
+//                    aImg2 = "./Tmp-MM-Dir/" + aAbre[i].ImgBranch[k] + "_Ch1.tif";
+//                }
+                CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt, aPropDiag, aCorel, aSizeVignette, aDisplayVignette, aFiltreBy1Img, aTauxGood, aSizeSearchAutour);
                 aCouple.SupposeVecSruf1er(Pt2dr(1,0) , Pt2dr(0,1));
                 vector< vector<bool> > ColDec;
                 if (aAbre[i].Img3eme[k].size() > 0)

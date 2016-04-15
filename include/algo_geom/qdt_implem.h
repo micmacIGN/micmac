@@ -654,9 +654,8 @@ template <class Obj,class Prim,class FPrim>
     return aRes;
 }
 
-
-template <class Obj,class Prim,class FPrim> 
-   Obj   ElQT<Obj,Prim,FPrim>::NearestObj
+template <class Obj,class Prim,class FPrim>
+          cTplValGesInit<Obj>  ElQT<Obj,Prim,FPrim>::NearestObjSvp
           (
                 Pt2dr aP,
                 double aDistInit,
@@ -667,9 +666,33 @@ template <class Obj,class Prim,class FPrim>
     aDistInit = aDistMax/pow(2.0,aNbMax);
 
     std::list<Obj> aLObj = KPPVois(aP,1,aDistInit,2.0,aNbMax);
+
+    cTplValGesInit<Obj> aRes;
+    if (!aLObj.empty())
+       aRes.SetVal(*(aLObj.begin()));
+    return aRes;
+}
+
+
+
+template <class Obj,class Prim,class FPrim> 
+   Obj   ElQT<Obj,Prim,FPrim>::NearestObj
+          (
+                Pt2dr aP,
+                double aDistInit,
+                double aDistMax
+          )
+{
+/*
+    int aNbMax = round_up(log2(aDistMax/aDistInit));
+    aDistInit = aDistMax/pow(2.0,aNbMax);
+
+    std::list<Obj> aLObj = KPPVois(aP,1,aDistInit,2.0,aNbMax);
+*/
     
-    ELISE_ASSERT(!(aLObj.empty()),"ElQT<Obj,Prim,FPrim>::NearestObj");
-    return *(aLObj.begin());
+    cTplValGesInit<Obj>  aRes = NearestObjSvp(aP,aDistInit,aDistMax);
+    ELISE_ASSERT(aRes.IsInit(),"ElQT<Obj,Prim,FPrim>::NearestObj");
+    return aRes.Val();
 }
 
 #endif //  _ELISE_ALGO_GEOM_QDT_IMPLEM_H

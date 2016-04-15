@@ -113,7 +113,7 @@ int AperiCloud_main(int argc,char ** argv)
         StdCorrecNameOrient(AeroIn,aDir);
         if (Out=="")
         {
-            Out="AperiCloud_" + AeroIn + ".ply";
+            Out="AperiCloud_" + AeroIn + std::string((aSetHom=="")?"":std::string("_")+aSetHom)+".ply";
         }
 
 

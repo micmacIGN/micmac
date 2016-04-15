@@ -76,11 +76,34 @@ void cAppliTiepRed::VonGruber()
 }
 
 
+/*
+template <class Obj,class Prim,class FPrim>
+          ::cTplValGesInit<Obj>  ElQT<Obj,Prim,FPrim>::NearestObjSvp
+          (
+                Pt2dr aP,
+                double aDistInit,
+                double aDistMax
+          )
+{
+    int aNbMax = round_up(log2(aDistMax/aDistInit));
+    aDistInit = aDistMax/pow(2.0,aNbMax);
 
+    std::list<Obj> aLObj = KPPVois(aP,1,aDistInit,2.0,aNbMax);
+
+    cTplValGesInit<Obj> aRes;
+    if (!aLObj.empty())
+       aRes.SetVal(*(aLObj.begin()));
+    return aRes;
+}
+*/
+
+
+// VK1 => tout les points multiples qui contiennet Im1
 void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraTiepRed * aCam1,cCameraTiepRed * aCam2)
 {
     std::vector<tPMulTiepRedPtr> aVK1K2;
 
+    // On met tous les points contenant Im2 et suffisemment precis
     for (int aKP=0 ; aKP<int(aVK1.size()) ; aKP++)
     {
         if (aVK1[aKP]->Merge()->IsInit(aCam2->Num())  && (aVK1[aKP]->Prec() < (0.5+2*StdPrec())))
@@ -111,9 +134,13 @@ void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraT
         double aDist = aDistMax;
         if ((!aSom->Selected()) && (aNbInside > 0))
         {
-           tPMulTiepRedPtr aNearObj = mQT->NearestObj(aSom->Pt(),aDistMoy,aDistMax);
-           aDist = euclid(aNearObj->Pt(),aSom->Pt());
-           aSom->ModifDistVonGruber(aDist,*this);
+           cTplValGesInit<tPMulTiepRedPtr> aTlOb = mQT->NearestObjSvp(aSom->Pt(),aDistMoy,aDistMax);
+           if (aTlOb.IsInit())
+           {
+               tPMulTiepRedPtr aNearObj = aTlOb.Val();
+               aDist = euclid(aNearObj->Pt(),aSom->Pt());
+               aSom->ModifDistVonGruber(aDist,*this);
+           }
         }
     }
     bool Cont=true;

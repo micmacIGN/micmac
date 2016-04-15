@@ -66,7 +66,7 @@ double  VerifInt(const double * anInput,int aNb)
    return (aNb==0) ? 0.0 : (aSom/aNb);
 }
 
-template <class Type> void  cAppli_Vino_TplChgDyn<Type>::SetDyn(cAppli_Vino & anAppli,int * anOut,const Type * anInput,int aNb)
+template <class Type,class TypeOut> void  cAppli_Vino_TplChgDyn<Type,TypeOut>::SetDyn(cAppli_Vino & anAppli,TypeOut * anOut,const Type * anInput,int aNb)
 {
     // std::cout << " VerifInt== " << VerifInt(anInput,aNb) << "\n"; getchar();
     if (anAppli.mTabulDynIsInit)
@@ -99,11 +99,11 @@ template <class Type> void  cAppli_Vino_TplChgDyn<Type>::SetDyn(cAppli_Vino & an
           case eDynVinoMaxMin :
           {
               
-              int aV0 = aStats.IntervDyn().x; 
-              int anEcart = aStats.IntervDyn().y -aV0; 
+              Type aV0 = aStats.IntervDyn().x; 
+              Type anEcart = aStats.IntervDyn().y -aV0; 
               for (int aK=0 ; aK<aNb ; aK++)
               {
-                   anOut[aK] = ElMax(0,ElMin(255, int(((anInput[aK] -aV0) * 255) / anEcart)));
+                   anOut[aK] = ElMax(0,ElMin(255, round_ni(((anInput[aK] -aV0) * 255) / anEcart)));
               }
               return;
           }
@@ -131,17 +131,67 @@ template <class Type> void  cAppli_Vino_TplChgDyn<Type>::SetDyn(cAppli_Vino & an
     }
 }
 
+
 void cAppli_Vino::ChgDyn(int * anOut,const double * anInput,int aNb) 
 {
-    cAppli_Vino_TplChgDyn<double>::SetDyn(*this,anOut,anInput,aNb);
+    cAppli_Vino_TplChgDyn<double,int>::SetDyn(*this,anOut,anInput,aNb);
+/*
+    if (0) // Laisser : force instatiation 
+    {
+       cAppli_Vino_TplChgDyn<double,double>::SetDyn(*this,(double *)0,(const double *)0,0);
+    }
+*/
     // TplChgDyn(*mCurStats,anOut,anInput,aNb);
 }
 
 void cAppli_Vino::ChgDyn(int * anOut,const int * anInput,int aNb) 
 {
-    cAppli_Vino_TplChgDyn<int>::SetDyn(*this,anOut,anInput,aNb);
+    cAppli_Vino_TplChgDyn<int,int>::SetDyn(*this,anOut,anInput,aNb);
     // TplChgDyn(*mCurStats,anOut,anInput,aNb);
 }
+
+
+template <class Type> class cFoncNum_AppliVino_ChgDyn : public Simple_OP_UN<Type>
+{
+   public :
+       void  calc_buf
+             (
+                           Type ** output,
+                           Type ** input,
+                           INT        nb,
+                           const Arg_Comp_Simple_OP_UN  &
+             ) 
+             {
+                for (int aD=0 ; aD< mDim ; aD++)
+                {
+                    cAppli_Vino_TplChgDyn<Type,Type>::SetDyn(*mAppli,output[aD],input[aD],nb);
+                }
+             }
+
+             cFoncNum_AppliVino_ChgDyn(cAppli_Vino  &anAppli,int aDim) :
+                mAppli (&anAppli),
+                mDim (aDim)
+             {
+             }
+        
+   private :
+             cAppli_Vino * mAppli;
+             int           mDim;
+};
+
+Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli)
+{
+    int aDim = aF.dimf_out();
+    return create_users_oper
+           (
+              new cFoncNum_AppliVino_ChgDyn<INT>(anAppli,aDim),
+              new cFoncNum_AppliVino_ChgDyn<double>(anAppli,aDim),
+              aF,
+              aDim
+           );
+}
+
+
 
 
 void cAppli_Vino::InitTabulDyn()

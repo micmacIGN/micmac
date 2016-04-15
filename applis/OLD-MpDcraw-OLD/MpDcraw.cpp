@@ -47,6 +47,7 @@ using namespace NS_MpDcraw;
 
 int MpDcraw_main(int argc,char** argv)
 {
+
     MMD_InitArgcArgv(argc,argv);
 
     Tiff_Im::SetDefTileFile(1000000);
