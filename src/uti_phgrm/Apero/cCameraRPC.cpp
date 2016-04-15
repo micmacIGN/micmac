@@ -51,6 +51,8 @@ extern Pt2di PT_BugZBB;
 /*                                                    */
 /******************************************************/
 
+/* create a new constructuor for SPICE */
+
 /* Constructor that takes the RPC in Xml_CamGenPolBundle format */
 CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
     mProfondeurIsDef(false),
@@ -58,7 +60,8 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
 	mAltiSol(aAltiSol),
 	mOptCentersIsDef(false),
 	mOpticalCenters(new std::vector<Pt3dr>()),
-	mGridSz(Pt2di(10,10))
+	mGridSz(Pt2di(10,10)),
+    mInputName(aNameFile)
 {
     mRPC = new cRPC(aNameFile);
 }
@@ -474,6 +477,66 @@ bool CameraRPC::HasOpticalCenterOfPixel() const
 }
 
 
+void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) const
+{
+    AssertRPCDirInit();
+    ELISE_ASSERT(mRPC->IsMetric()," CameraRPC::ExpImp2Bundle, the RPC and the grid must be in meters");
+
+
+    Pt3di aGridSz = mRPC->GetGrid();
+    Pt2dr aGridStep = Pt2dr( double(SzBasicCapt3D().x)/aGridSz.x,
+                             double(SzBasicCapt3D().y)/aGridSz.y );
+
+    int aK1=0, aK2=0;
+
+    if( aGridToExp.size()==0 )
+    {
+        aGridToExp.resize(aGridSz.y);
+        for(aK1=0; aK1<aGridSz.y; aK1++)
+        {
+            for(aK2=0; aK2<aGridSz.x; aK2++)
+            {
+                aGridToExp.at(aK1).push_back( Capteur2RayTer( Pt2dr(aK2*aGridStep.x,aK1*aGridStep.y) ));
+            }
+        
+        }
+
+        ExpImp2Bundle(aGridToExp);
+
+    }
+    else
+    {
+        cXml_ScanLineSensor aSLS;
+        aSLS.P1P2IsAltitude() = HasRoughCapteur2Terrain();
+        aSLS.LineImIsScanLine() = true;
+        aSLS.GroundSystemIsEuclid() = true;
+
+        aSLS.ImSz() = SzBasicCapt3D();
+        aSLS.StepGrid() = aGridStep;
+        aSLS.GridSz() = Pt2di(aGridSz.x,aGridSz.y);
+
+        for( aK1=0; aK1<aGridSz.y; aK1++ )
+        {
+            cXml_OneLineSLS aOL;
+            aOL.IndLine() = aK1*aGridStep.y;
+            for( aK2=0; aK2<aGridSz.x; aK2++ )
+            {
+                cXml_SLSRay aOR;
+                aOR.IndCol() = aK2*aGridStep.x;
+
+                aOR.P1() = aGridToExp.at(aK1).at(aK2).P0();
+                aOR.P2() = aGridToExp.at(aK1).at(aK2).P1();
+
+                aOL.Rays().push_back(aOR);
+            }
+            aSLS.Lines().push_back(aOL);
+        }
+        //export to XML format
+        std::string aXMLSave = DirOfFile(mInputName) + "Bundles-" + StdPrefix(NameWithoutDir(mInputName)) + ".xml";
+        MakeFileXML(aSLS, aXMLSave);
+    }
+}
+
 void CameraRPC::Save2XmlStdMMName(const std::string &aName) const
 {
     mRPC->Save2XmlStdMMName(aName);
@@ -760,6 +823,10 @@ void cRPC::Initialize(const std::string &aName,
 
         if(AutoDetermineRPCFile(aName))
             SetPolyn(aName);
+    }
+    else if(aType==eTIGB_MMSpice)
+    {
+    
     }
     /*else if (aType == eTIGB_MMASTER)
     {
@@ -2427,6 +2494,16 @@ void cRPC::Show()
 
     
     std::cout << "\n";
+}
+
+Pt3di cRPC::GetGrid() const
+{
+    return mRecGrid;
+}
+
+bool cRPC::IsMetric() const
+{
+    return ISMETER;
 }
 
 int RecalRPC_main(int argc,char ** argv)

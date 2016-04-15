@@ -100,6 +100,7 @@ class CameraRPC : public cBasicGeomCap3D
 
         const  cRPC * GetRPC() const;
         
+        void   ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
         void   Save2XmlStdMMName(const std::string &aName) const;
         static cBasicGeomCap3D * CamRPCOrientGenFromFile(
                 const std::string & aName, 
@@ -200,9 +201,11 @@ class cRPC
         double GetImCol1() const;
         double GetImCol2() const;
 
+        Pt3di GetGrid() const;
+
         bool IsDir() const;
         bool IsInv() const;
-    
+        bool IsMetric() const;    
     private:
 
         void Initialize(const std::string &,
