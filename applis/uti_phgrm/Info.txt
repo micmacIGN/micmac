@@ -1,0 +1,117 @@
+bin/SysCoordPolyn :
+
+    Pour calculer un modele polynomial de coordonnees a partir d'un jeu d'exemple. 
+
+SimulePDV.cpp :
+
+    Genere un ensemble prise d'orientation. Peut etre utilise pour
+   de la simulation.
+
+    bin/SimulePDV.cpp  Calib.xml [4,5] 0.6  Conv=0.0     Prof=10.0
+
+                        Calib   Nb  Recouvrt  conv
+
+
+    Recouvrt  ->  fixe les sommet selon la convention aerienne
+    Conv  ->  0.0= aerien (//)  1.0 =  convergent (approximatif ...)
+
+  
+
+
+Baric.cpp  :
+   Pour calibrer les deformation entre les differents cannaux
+   d'une bayer
+
+   bin/Baric ../tmp2/ sg1l5125.pef P18
+
+
+ModeleRadial.cpp :
+
+   A partir d'un couple de fichier image (typiquement un resultat de correl)
+   considere comme des deplacement, calcul un modele analytique
+   (pour l'insntant radiale) et l'exporte comme une grille.
+
+
+EvalCompsGrid.cpp
+   
+    Lorsqu'on l'on a plusieur grille de deformation redondante,
+    evalue la coherence globale en calculant une grille composee
+    et en la comparant a l'identite.
+
+    Exemple (g12) (g23) (g13)-1 
+
+
+SEL.cpp
+  Frontal a MICMACSaisieLiaisons;  pour faire des pts de liaisons a la main
+  Exemple de filtrage : (Gamma 2.5 sur un Deriche de taille 1)
+     F=[G2.5,D1.0]
+
+Porto.cpp 
+   Frontal a MicMac en mode points de liaisons denses a partir d'une
+   orientation grossiere.
+
+   ex avec 2 images :
+
+   bin/Porto /mnt/data/Bruno/Golf/Motte/ MpDcraw__mg_8839GB.tif MpDcraw__mg_8842GB.tif Archi
+    
+   ex avec 1 relation par Key :
+   bin/Porto /mnt/data/Bruno/Golf/Motte/ CpleTif-Or-Adj3
+    
+Pastis.cpp
+   Frontal a AutoPanoSift (pour calculer les points de liaison
+   non dense), enchaine point d'interet, matching et conversion
+   en xml
+
+   Ex avec un cple d'image :
+   bin/Pastis /mnt/data/Bruno/Golf/Motte/ 
+                      MpDcraw__mg_8842GB.tif 
+                      MpDcraw__mg_8843GB.tif 900
+   Ex avec un relation 
+      bin/Pastis  /mnt/data/Bruno/Golf/Motte/ CpleTif-Or-Adj3 900
+
+
+BLANC  : Obsolete 
+   Frontale a Pastis pour effectuer les liaison d'une bande
+
+ROUGE  : Obsolete 
+   Frontale a Porto pour effectuer les liaison d'une bande
+
+Piphom
+   Inspection des liaisons semi-denses (genre resultat de Porto)
+
+
+Pinup 
+   Inspection de nuage 3D dense (genre export avec eTMA_Nuage3D
+   de MicMac). Verifie que les points se superposent bien aux image.
+
+
+Marc :
+   Superposition entre cannaux
+   Exemple : 
+
+ bin/Marc /mnt/data/Superposition/AJ-290408/ "MpDcraw_Pir3(1|3)GB.tif" IR2Re D3 Inc=300 Exe=1
+
+
+Macca :
+    Conversion et/ou chgt d'echelle (ou unites) pour les modele de calibration.
+
+FiltreHomByMasq :
+
+   Dir + Masque + Homologue => Filtrage d'un fichier homologue / masque
+
+CohNuage : coherence de deux nuages de points, en mode maille,
+           l'un etant dans une geometrie conique connue.
+
+
+bin/Conu  /mnt/data/Archi/Alex/ALL/ GeoI-F4/NuageImProf_GeoIm_f4_Etape_7.xml GeoI-E2/NuageImProf_GeoIm_e2_Etape_6.xml GeoI-F4/Nuage3DGeoIm_f4.tif TF=e2_MpDcraw8B_CB.tif
+
+
+
+VisuMSER   DIRECTORY   rvpb 2 
+    visualise le resultat MSER des 4 cannaux r,v,b et p dans le mode 2(ellipse) de resultat
+    des MSER. Tres contraignant sur le nommage des fichier.
+
+
+bin/InfoChantier 
+bin/InfoChantier /media/SQP/Vol_MPD/Quimper/Test-Aero-Rouge/ Key-Set-All-Rouge Key-Assoc-Im2OrInitExterne IC=mpdkimpvil_rx006_0216_8Bits.tif
+
