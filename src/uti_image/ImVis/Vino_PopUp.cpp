@@ -60,6 +60,59 @@ void cAppli_Vino::End()
 }
 
 
+void  cAppli_Vino::Crop()
+{
+    mPopUpCur = mPopUpCrop;
+    mPopUpCrop->UpCenter(Pt2di(mP0Click));
+    mW->grab(*this);
+    mCaseCur = mPopUpCrop->PopAndGet();
+
+    bool Zoom1 = (mCaseCur==mCaseCropZ1HisOri) || (mCaseCur==mCaseCropZ1HisCur);
+    bool HOri = (mCaseCur==mCaseCropZ1HisOri) || (mCaseCur==mCaseCropZCurHisOri);
+    Pt2dr aP0,aP1;
+    GetRect(aP0,aP1);
+
+    Pt2dr aSzR = aP1-aP0;
+    if (!Zoom1) 
+       aSzR = aSzR * mScr->sc();
+    Pt2di aSzI = round_ni(aSzR);
+
+    std::cout << "JJJJJJ " << Zoom1 << " " << HOri << aP0  << " " << aP1  << " SZ=" << aSzR << "\n";
+    // static int aNumCrop=0;
+      
+    std::string aNameRes = mDir + "Crop-" + ToString(NumCrop()) + "-" +  mNameIm + ".tif";
+    NumCrop()++;
+    SaveState();
+    Tiff_Im aTiffCrop
+            (
+                aNameRes.c_str(),
+                aSzI,
+                HOri ? mTiffIm->type_el() : GenIm::u_int1,
+                Tiff_Im::No_Compr,
+                mTiffIm->phot_interp()
+            );
+
+    Fonc_Num aFIn = mTiffIm->in_proj();
+    if (! HOri)
+       aFIn = ChgDynAppliVino(aFIn,*this);
+
+    if (Zoom1)
+    {
+        ELISE_COPY
+        (
+           rectangle(Pt2di(0,0),aSzI),
+           trans(aFIn,round_ni(aP0)),
+           aTiffCrop.out()
+        );
+    }
+    else
+    {
+        PutMessageRelief(0,"ZOOM Crop not implemented for now");
+    }
+
+
+    Refresh();
+}
 
 void  cAppli_Vino::MenuPopUp()
 {
@@ -89,6 +142,11 @@ void  cAppli_Vino::MenuPopUp()
         if (mCaseCur== mCaseEdit)
         {
            EditData();
+        }
+
+        if (mCaseCur== mCaseCrop)
+        {
+           Crop();
         }
 
         if (    (mCaseCur==mCaseHStat)
@@ -142,6 +200,16 @@ CaseGPUMT * cAppli_Vino::CaseBase(const std::string& aName,const Pt2di aNumCase)
     return new CaseGPUMT (*mPopUpBase,"i",aNumCase, anIc.in_proj());
 }
 
+
+CaseGPUMT * cAppli_Vino::CaseCrop(const std::string& aName,const Pt2di aNumCase)
+{
+    Im2D_U_INT1  anIc = Icone(aName,mSzCase,Floutage(),false);
+    return new CaseGPUMT (*mPopUpCrop,"i",aNumCase, anIc.in_proj());
+}
+
+
+
+
 ChoixParmiCaseGPUMT * cAppli_Vino::CaseChoix(ChoixParmiCaseGPUMT * aCasePrec,const std::string& aName,const Pt2di aNumCase,int aNumVal)
 {
     Im2D_U_INT1  anIcPos = Icone(aName,mSzCase,Floutage(),false);
@@ -162,11 +230,12 @@ ChoixParmiCaseGPUMT * cAppli_Vino::CaseChoix(ChoixParmiCaseGPUMT * aCasePrec,con
 void cAppli_Vino::InitMenu()
 {
     mSzCase        = Pt2di(70,40);
-    mPopUpBase = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(3,3),Pt2di(1,1));
+    mPopUpBase = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(4,3),Pt2di(1,1));
 
     mCaseExit         = CaseBase("Exit",Pt2di(0,0));
     mCaseZoomRect     = CaseBase("Zoom\nRect",Pt2di(1,0));
     mCaseEdit         = CaseBase("Edit\ndata",Pt2di(2,0));
+    mCaseCrop         = CaseBase("Crop",Pt2di(3,0));
     mCaseInterpPpv    = CaseChoix(             0,"Interp\nPpv"  ,Pt2di(0,1),0);
     mCaseInterpBilin  = CaseChoix(mCaseInterpPpv,"Interp\nBilin",Pt2di(1,1),1);
 
@@ -175,6 +244,12 @@ void cAppli_Vino::InitMenu()
     mCaseHEqual   = CaseBase("Histo\nEqual",Pt2di(2,2));
 
 
+    mPopUpCrop = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(2,2),Pt2di(1,1));
+    mCaseCropZ1HisOri = CaseCrop("Z 1\n H Ori",Pt2di(0,0));
+    mCaseCropZ1HisCur = CaseCrop("Z 1\n H Cur",Pt2di(1,0));
+
+    mCaseCropZCurHisOri = CaseCrop("Z Cur\n H Ori",Pt2di(0,1));
+    mCaseCropZCurHisCur = CaseCrop("Z Cur\n H Cur",Pt2di(1,1));
 }
 
 

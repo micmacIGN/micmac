@@ -112,6 +112,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          std::string mFilePair;
          bool        mDebugMMByP;
          bool        mBin;
+         bool        mExpImSec;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -129,7 +130,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mExpTxt	       (false),
    mArgSupEpip         (""),
    mDebugMMByP         (false),
-   mBin                (true)
+   mBin                (true),
+   mExpImSec           (true)
 {
 
 
@@ -208,6 +210,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mFilePair,"FilePair",true,"Explicit pairs of images (as in Tapioca)", eSAM_IsExistFileRP)
                     << EAM(mDebugMMByP,"DebugMMByP",true,"Debug MMByPair ...")
                     << EAM(mBin,"Bin",true,"Generate Binary or Ascii (Def=true, Binary)")
+                    << EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
     );
 
    if (MMVisualMode) return;
@@ -243,7 +246,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
            +  BLANK + mStrType
            +  mStrImOri0
            +  mArgMasq3D
-           +  " UseGpu=" + ToString(mUseGpu);
+           +  " UseGpu=" + ToString(mUseGpu)
+           +  " ExpImSec=" + ToString(mExpImSec);
    if (mDebugMMByP)
       mBaseComMMByP = mBaseComMMByP + " DebugMMByP=true";
 

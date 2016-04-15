@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1990]) = {
+const char * (theNameVar_ParamChantierPhotogram[1992]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1958,6 +1958,8 @@ const char * (theNameVar_ParamChantierPhotogram[1990]) = {
 "    <ZoomBilin Nb=\"1\" Type=\"bool\">             </ZoomBilin>\n",
 "    <SpeedZoomGrab Nb=\"1\" Type=\"double\">       </SpeedZoomGrab>\n",
 "    <SpeedZoomMolette Nb=\"1\" Type=\"double\">    </SpeedZoomMolette>\n",
+"    <ForceGray Nb=\"1\" Type=\"bool\">    </ForceGray>\n",
+"    <NumCrop Nb=\"1\" Type=\"int\">    </NumCrop>\n",
 "    <Stats Nb=\"*\" RefType=\"Xml_StatVino\">      </Stats>\n",
 "</Xml_EnvVino>\n",
 "\n",

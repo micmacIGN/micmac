@@ -185,10 +185,10 @@ class cPopUpMenuMessage : public PopUpMenuTransp
 
 
 class cAppli_Vino;
-template <class Type> class cAppli_Vino_TplChgDyn
+template <class Type,class TypeOut> class cAppli_Vino_TplChgDyn
 {
     public :
-       static void SetDyn(cAppli_Vino &,int * anOut,const Type * anInput,int aNb);
+       static void SetDyn(cAppli_Vino &,TypeOut * anOut,const Type * anInput,int aNb);
 };
 
 
@@ -199,8 +199,9 @@ class cAppli_Vino : public cXml_EnvVino,
                     public cImgVisuChgDyn
 {
      public :
-        friend class cAppli_Vino_TplChgDyn<double>;
-        friend class cAppli_Vino_TplChgDyn<int>;
+        friend class cAppli_Vino_TplChgDyn<double,int>;
+        friend class cAppli_Vino_TplChgDyn<int,int>;
+        friend class cAppli_Vino_TplChgDyn<double,double>;
 
 
         bool Floutage() {return false;} // A mettre dans cXml_EnvVino,
@@ -229,6 +230,7 @@ class cAppli_Vino : public cXml_EnvVino,
         void Refresh();
         void InitTabulDyn();
         void ZoomRect();
+        void GetRect(Pt2dr & aP0,Pt2dr &aP1);
         void Help();
         void EditData();
         void DoHistoEqual(Flux_Pts aFlux);
@@ -238,7 +240,9 @@ class cAppli_Vino : public cXml_EnvVino,
 
         bool OkPt(const Pt2di & aPt);
         void End();
+        void Crop();
         CaseGPUMT * CaseBase(const std::string&,const Pt2di aNumCase);
+        CaseGPUMT * CaseCrop(const std::string&,const Pt2di aNumCase);
         ChoixParmiCaseGPUMT * CaseChoix( ChoixParmiCaseGPUMT * aCaseBase,const std::string&,const Pt2di aNumCase,int aNumVal);
 
 
@@ -301,11 +305,18 @@ class cAppli_Vino : public cXml_EnvVino,
         CaseGPUMT *             mCaseExit;
         CaseGPUMT *             mCaseZoomRect;
         CaseGPUMT *             mCaseEdit;
+        CaseGPUMT *             mCaseCrop;
         ChoixParmiCaseGPUMT *   mCaseInterpPpv;
         ChoixParmiCaseGPUMT *   mCaseInterpBilin;
         CaseGPUMT *             mCaseHStat;
         CaseGPUMT *             mCaseHMinMax;
         CaseGPUMT *             mCaseHEqual;
+
+        GridPopUpMenuTransp*    mPopUpCrop;
+        CaseGPUMT *             mCaseCropZ1HisOri;
+        CaseGPUMT *             mCaseCropZ1HisCur;
+        CaseGPUMT *             mCaseCropZCurHisOri;
+        CaseGPUMT *             mCaseCropZCurHisCur;
 
         GridPopUpMenuTransp*    mPopUpCur;
         CaseGPUMT *             mCaseCur;
@@ -327,6 +338,9 @@ class cAppli_Vino : public cXml_EnvVino,
         Im1D_REAL8  mHistoCum;
         std::string mNameHisto;
 };
+
+Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);
+
 
 #endif
 

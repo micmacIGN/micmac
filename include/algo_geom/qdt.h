@@ -130,7 +130,8 @@ template <class Obj,class Prim,class FPrim>
             std::list<Obj> KPPVois(Pt2dr,int aNb,double aDistInit,double aFact=2.0,int aNbMax=10);
 
 
-            Obj  NearestObj(Pt2dr,double aDistInit,double aDistMax);
+            Obj  NearestObj(Pt2dr,double aDistInit,double aDistMax); // Erreur si vide
+            cTplValGesInit<Obj>  NearestObjSvp(Pt2dr,double aDistInit,double aDistMax); // peut etre vide
 
             void RVoisins(ElSTDNS set<Obj> &,Pt2dr   pt,REAL d);
             void RVoisins(ElSTDNS set<Obj> &,Seg2d   pt,REAL d);

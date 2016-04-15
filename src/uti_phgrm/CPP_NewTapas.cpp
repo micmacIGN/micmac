@@ -411,6 +411,7 @@ int Tapas_main(int argc,char ** argv)
     int RankPP     = 4;
 
     std::vector<double> aVRegulDist;
+    double aLVM = 1.0;
 
     ElInitArgMain
     (
@@ -457,6 +458,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(RankFocale,"RankInitF",true,"Order of focal initialisation, ref id distotion =2, Def=3 ")
                     << EAM(RankPP,"RankInitPP",true,"Order of Principal point initialisation, ref id distotion =2, Def=4")
                     << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
+                    << EAM(aLVM,"MulLVM",true,"Multipier Levenberg Markard")
     );
 
 
@@ -576,6 +578,11 @@ int Tapas_main(int argc,char ** argv)
         if (EAMIsInit(&aSetHom))
         {
             aCom = aCom + std::string(" +SetHom=") + aSetHom;
+        }
+
+        if (EAMIsInit(&aLVM))
+        {
+            aCom = aCom + std::string(" +MulLVM=") + ToString(aLVM);
         }
 
         if (EAMIsInit(&EcartMaxFin))

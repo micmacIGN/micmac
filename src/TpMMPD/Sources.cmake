@@ -11,6 +11,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/Surf.cpp
 	${TDPPMD_DIR}/cTD_Epip.cpp
 	${TDPPMD_DIR}/ReprojImg.cpp
+	${TDPPMD_DIR}/schnaps.cpp
 	${TDPPMD_DIR}/TestRegEx.cpp
 	${TDPPMD_DIR}/InitOriLinear.cpp
 	${TDPPMD_DIR}/extractMesure2D.cpp

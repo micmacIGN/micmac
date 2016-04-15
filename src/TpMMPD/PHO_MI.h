@@ -34,7 +34,7 @@ class CplImg : public cCorrelImage
     public :
           CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,
                  string aFullPatternImages, bool ExpTxt, double aPropDiag, double aCorel,
-                 double asizeVignette, bool adisplayVignette, bool aFiltreBy1Img, double aTauxGood, double aSizeSearchAutour, bool NotTif_flag);
+                 double asizeVignette, bool adisplayVignette, bool aFiltreBy1Img, double aTauxGood, double aSizeSearchAutour);
           vector<double> nul;
           vector<string> mCollection3emeImg;
           string mNameImg1;
@@ -68,8 +68,7 @@ class CplImg : public cCorrelImage
           vector<bool> CalVectorSurface(string mImg3eme, string ModeSurf);
           //bool IsInside(Pt2dr checkPoint, double w, double h);
           Video_Win * mW; Video_Win * mW1; Video_Win * mW2;
-          bool NotTif_flag;
-
+          bool NotTif_flag;    
 };
 
 class UneImage

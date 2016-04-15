@@ -54,7 +54,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mThresholdPrecMult       (2.0),  // Multiplier of Mediane Prec, can probably be stable
      mThresholdNbPts2Im       (3),
      mThresholdTotalNbPts2Im  (10),
-     mSzTile                  (1600),
+     mSzTile                  (2000),
      mDistPMul                (200.0),
      mMulVonGruber            (1.5),
      mCallBack                (false),
@@ -72,9 +72,9 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
          LArgMain()  << EAM(mCalib,"OriCalib",true,"Calibration folder if any")
                      << EAM(mPrec2Point,"Prec2P",true,"Threshold of precision for 2 Points")
                      << EAM(mKBox,"KBox",true,"Internal use")
-                     << EAM(mSzTile,"SzTile",true,"Size of Tiles in Pixel")
-                     << EAM(mDistPMul,"DistPMul",true,"Typical dist between pmult")
-                     << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber")
+                     << EAM(mSzTile,"SzTile",true,"Size of Tiles in Pixel Def="+ToString(mSzTile))
+                     << EAM(mDistPMul,"DistPMul",true,"Typical dist between pmult Def="+ToString(mDistPMul))
+                     << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber, Def=" + ToString(mMulVonGruber))
                      << EAM(mParal,"Paral",true,"Do it paral, def=true")
                      << EAM(mVerifNM,"VerifNM",true,"(Internal) Verification of Virtual Name Manager")
    );
