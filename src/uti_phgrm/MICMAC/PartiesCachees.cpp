@@ -52,8 +52,6 @@ const cGenerePartiesCachees & aGPC, double aZMin, double aZMax)
 
 
 
-extern bool DEBUG_ZBB;
-Pt2di PT_BugZBB;
 
 
 
@@ -131,27 +129,6 @@ Pt3dr cMicMacZbuf::ProjTerrain(const Pt3dr & aPTer) const
     double aPax[theDimPxMax] = {0,0};
     aPax[0] = aPTer.z;
     Pt2dr aPIm = mGeom.Objet2ImageInit_Euclid(Pt2dr(aPTer.x,aPTer.y),aPax);
-if (DEBUG_ZBB)
-{
-   Pt2di aPTI = Pt2di(aPTer.x,aPTer.y);
-   std::cout << "AAAA cMicMacZbuf::ProjTerrainXXXX " << aPTI << " " <<  mTImTer.sz() << "\n";
-   //std::cout << "cMicMacZbuf::ProjTerrainXXXX  " << aPTer << " " << " " << aPIm  << " " << mTImTer.get(aPTI) << " \n";
-
-   
-   for (int aDx = -1 ; aDx<=1 ; aDx++)
-   { 
-       for (int aDy = -1 ; aDy<=1 ; aDy++)
-       {
-           PT_BugZBB =  Pt2di(aDx,aDy);
-           Pt2di aPV = aPTI + PT_BugZBB;
-           double aZ = ZofXY(aPV);
-           mGeom.Objet2ImageInit_Euclid(Pt2dr(aPV),&aZ);
-           // std::cout << " ZzzZzz " <<  mGeom.Objet2ImageInit_Euclid(Pt2dr(aPV),&aZ)  << " " << aZ << "\n";
-
-       }
-   }
-   std::cout << "====================================================\n\n";
-}
 /*
 */
 /*

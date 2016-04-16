@@ -1906,6 +1906,25 @@ std::string StdNameCSOrient(const std::string & anOri,const std::string & aName,
 
 
 
+std::string  cInterfChantierNameManipulateur::StdNameHomol
+             (
+                  const std::string & anExt,
+                  const std::string & aI1,
+                  const std::string & aI2
+             )
+{
+    return Assoc1To2(std::string("NKS-Assoc-CplIm2Hom@")+anExt+"@dat",aI1,aI2,true);
+}
+
+ElPackHomologue cInterfChantierNameManipulateur::StdPackHomol
+                (
+                    const std::string & anExt,
+                    const std::string & aI1,
+                    const std::string & aI2
+                )
+{
+   return ElPackHomologue::FromFile(StdNameHomol(anExt,aI1,aI2));
+}
 
 
 

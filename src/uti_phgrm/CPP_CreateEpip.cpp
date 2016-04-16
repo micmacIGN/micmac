@@ -85,6 +85,10 @@ class cApply_CreateEpip_main
       cBasicGeomCap3D *  mGenI2;
       std::string        mName1;
       std::string        mName2;
+      bool               mWithOri;
+      int                mNbBloc;
+      Pt2dr              mDir1;
+      Pt2dr              mDir2;
 
       void DoEpipGen();
 
@@ -164,7 +168,8 @@ class cTmpReechEpip
                 const std::string & aNameOut,
                 const std::string & aPostMasq,
                 int aNumKer,
-                bool aDebug
+                bool aDebug,
+                int  aNbBloc
         );
      private :
         Box2dr                 mBoxImIn;
@@ -200,10 +205,11 @@ void ReechFichier
         double aStep,
         const std::string & aNameOut,
         const std::string & aPostMasq,
-        int   aNumKer
+        int   aNumKer,
+        int   aNbBloc
 )
 {
-    cTmpReechEpip aReech(ConsChan,aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut,aPostMasq,aNumKer,false);
+    cTmpReechEpip aReech(ConsChan,aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut,aPostMasq,aNumKer,false,aNbBloc);
 }
 
 
@@ -220,7 +226,8 @@ cTmpReechEpip::cTmpReechEpip
         const std::string & aNameOut,
         const std::string & aPostMasq,
         int aNumKer ,
-        bool Debug
+        bool Debug,
+        int  aNbBloc
 ) :
     mBoxImIn(aBoxImIn),
     mEpi    (anEpi),
@@ -323,7 +330,6 @@ cTmpReechEpip::cTmpReechEpip
 
 
 
-    int aNbBloc=2000;
     int aBrd = aNumKer+10;
     Pt2di aSzBrd(aBrd,aBrd);
 
@@ -459,11 +465,25 @@ void cApply_CreateEpip_main::DoEpipGen()
       mNbZ       = 1;
       mNbXY      = 100;
       ElPackHomologue aPack;
-      Pt2dr aDir2 =  DirEpipIm2(mGenI1,mGenI2,aPack,true);
-      Pt2dr aDir1 =  DirEpipIm2(mGenI2,mGenI1,aPack,false);
+
+  
+      if (mWithOri)
+      {
+         mDir2 =  DirEpipIm2(mGenI1,mGenI2,aPack,true);
+         mDir1 =  DirEpipIm2(mGenI2,mGenI1,aPack,false);
+      }
+      else
+      {
+          ELISE_ASSERT
+          (
+              EAMIsInit(&mDir1) &&  EAMIsInit(&mDir2),
+              "Dir1 and Dir2 must be initialized in mode no ori"
+          );
+          aPack = mICNM->StdPackHomol("",mName1,mName2);
+      }
 
       std::cout << "Compute Epip\n";
-      CpleEpipolaireCoord * aCple = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,mDegre,aDir1,aDir2);
+      CpleEpipolaireCoord * aCple = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,mDegre,mDir1,mDir2);
 
       EpipolaireCoordinate & e1 = aCple->EPI1();
       EpipolaireCoordinate & e2 = aCple->EPI2();
@@ -480,8 +500,8 @@ void cApply_CreateEpip_main::DoEpipGen()
       CpleEpipolaireCoord * aCple7 = 0;
       if (0)
       {
-         aCple3 = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,3,aDir1,aDir2);
-         aCple7 = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,7,aDir1,aDir2);
+         aCple3 = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,3,mDir1,mDir2);
+         aCple7 = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,7,mDir1,mDir2);
       }
 
       double aErrMaxDir1 = 0.0;
@@ -532,13 +552,16 @@ void cApply_CreateEpip_main::DoEpipGen()
 
       std::cout << aInf1 << " " <<  aSup1 << "\n";
       std::cout << aInf2 << " " <<  aSup2 << "\n";
-      std::cout << "DIR " << aDir1 << " " << aDir2 << " X2-X1 " << aX2mX1<< "\n";
+      std::cout << "DIR " << mDir1 << " " << mDir2 << " X2-X1 " << aX2mX1<< "\n";
       std::cout << "Epip Rect Accuracy, Moy " << aErrMoy/mNbP << " Max " << aErrMax << "\n";
 
+      bool aConsChan = true;
+      Pt2di aSzI1 = mWithOri ? mGenI1->SzBasicCapt3D() : Tiff_Im::StdConvGen(mName1.c_str(),aConsChan ? -1 :1 ,true).sz() ;
+      Pt2di aSzI2 = mWithOri ? mGenI2->SzBasicCapt3D() : Tiff_Im::StdConvGen(mName2.c_str(),aConsChan ? -1 :1 ,true).sz() ;
 
-      cTmpReechEpip aReech1(true,mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1"+mPostIm+".tif",mPostMasq,mNumKer,mDebug);
+      cTmpReechEpip aReech1(aConsChan,mName1,Box2dr(Pt2dr(0,0),Pt2dr(aSzI1)),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1"+mPostIm+".tif",mPostMasq,mNumKer,mDebug,mNbBloc);
       std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(true,mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2"+mPostIm+".tif",mPostMasq,mNumKer,mDebug);
+      cTmpReechEpip aReech2(aConsChan,mName2,Box2dr(Pt2dr(0,0),Pt2dr(aSzI2)),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2"+mPostIm+".tif",mPostMasq,mNumKer,mDebug,mNbBloc);
       std::cout << "DONE IM2 \n";
 
       std::cout << "DONNE REECH TMP \n";
@@ -555,7 +578,11 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mForceGen (false),
    mNumKer   (5),
    mDebug    (false),
-   mPostMasq ("")
+   mPostMasq (""),
+   mGenI1    (0),
+   mGenI2    (0),
+   mWithOri  (true),
+   mNbBloc   (2000)
 {
     Tiff_Im::SetDefTileFile(50000);
     std::string aDir= ELISE_Current_DIR;
@@ -589,6 +616,9 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
                     << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=Ori")
                     << EAM(mPostIm,"PostIm",true,"Attribut for Im ")
 		    << EAM(mExpTxt,"ExpTxt",false,"Use txt tie points (Def false, e.g. use dat format)")
+		    << EAM(mDir1,"Dir1",false,"Direction of Epip one (when Ori=NONE)")
+		    << EAM(mDir2,"Dir2",false,"Direction of Epip one (when Ori=NONE)")
+		    << EAM(mNbBloc,"NbBloc",false,"Sz of Bloc (mostly tuning)")
     );
 
 
@@ -605,22 +635,35 @@ if (!MMVisualMode)
                                                    aDir,
                                                    aTplFCND
                                                );
-     mICNM->CorrecNameOrient(anOri);
+     mWithOri = (anOri != "NONE");
+     if (mWithOri)
+     {
+        mICNM->CorrecNameOrient(anOri);
+     }
+     else
+     {
+     }
 
      if (mPostMasq!="NONE") 
      {
           // if (!EAMIsInit(&mPostMasq)) mPostMasq =  anOri;
            mPostMasq = "_Masq";
      }
-     if (!EAMIsInit(&mPostIm)) mPostIm =  "_"+anOri;
+     if (!EAMIsInit(&mPostIm)) mPostIm =  "_"+ (mWithOri ? anOri : std::string("EpiHom"));
 
 
-     mGenI1 = mICNM->StdCamGenOfNames(anOri,mName1);
-     mGenI2 = mICNM->StdCamGenOfNames(anOri,mName2);
-
-     if ((mGenI1->DownCastCS()==0) || (mGenI2->DownCastCS()==0) || mForceGen)
+     if (mWithOri)
      {
-         if (! EAMIsInit(&mDegre)) mDegre = 9;
+        mGenI1 = mICNM->StdCamGenOfNames(anOri,mName1);
+        mGenI2 = mICNM->StdCamGenOfNames(anOri,mName2);
+     }
+
+     if ((!mWithOri) || (mGenI1->DownCastCS()==0) || (mGenI2->DownCastCS()==0) || mForceGen)
+     {
+         if (! EAMIsInit(&mDegre))
+         {
+            mDegre = mWithOri ? 9 : 2;
+         }
          DoEpipGen();
          return;
      }
@@ -775,7 +818,8 @@ cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
           10.0,
           mNameI2Redr,
           mPostMasq,
-          5
+          5,
+          2000
      );
 
 }
@@ -982,7 +1026,8 @@ void cAppliOneReechMarqFid::DoReech()
           10.0,
           "OIS-Reech_"+mNameIm,
           mPostMasq,
-          mNumKer
+          mNumKer,
+          2000
     );
     std::cout << "FOR " << mNameIm << " RESIDU " << mResidu   << " Time " << aChrono.uval() << " \n";
 }

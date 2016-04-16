@@ -39,9 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "cCameraRPC.h"
 
-extern bool DEBUG_ZBB;
-extern Pt2di PT_BugZBB;
-
 
 
 /* Image coordinates order: [Line, Sample] = [row, col] =  [y, x]*/
@@ -142,11 +139,6 @@ ElSeg3D  CameraRPC::Capteur2RayTer(const Pt2dr & aP) const
     //middle of the height validity zones
     double aZ1 = aZ0+double(mRPC->GetGrC32() - mRPC->GetGrC31())/2;
 
-if (DEBUG_ZBB)
-{
-   ElSeg3D aSeg = F2toRayonLPH(aP, aZ0, aZ1);
-   std::cout << PT_BugZBB << "CameraRPC::Capteur2RayTer " << aP << " " <<  aSeg.P0() << aSeg.P1() << "\n";
-}
     return F2toRayonLPH(aP, aZ0, aZ1);
 }
 
@@ -2455,6 +2447,39 @@ int RecalRPC_main(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
+
+// mm3d TestPbRPC Ori-RPC/GB-Orientation-S6P--2014042116840914CP.tif.xml 
+void OneTestCamRPC(CameraRPC & aCam ,const Pt3dr & aP)
+{
+   std::cout << "P=" << aP << "Proj="  << aCam.Ter2Capteur(aP) << "\n";
+}
+int TestCamRPC(int argc,char** argv)
+{
+   std::string aName;
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aName,"Name camera"),
+        LArgMain()
+   );
+
+   double anAlti = 4400;
+   CameraRPC aCam(aName,anAlti);
+   Pt3dr aP0 (355936.0,3127508.8,6571.52);
+   Pt2dr aStepIn(12.8,-12.8);
+
+   for (int anX=-1 ; anX<=1 ; anX++)
+   {
+       for (int anY=-1 ; anY<=1 ; anY++)
+       {
+            OneTestCamRPC(aCam,aP0 + Pt3dr(aStepIn.x*anX,aStepIn.y*anY,0.0));
+       }
+   }
+
+   return EXIT_SUCCESS;
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
