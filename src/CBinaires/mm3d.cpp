@@ -240,11 +240,15 @@ int TestDistM2C_main(int argc,char ** argv);
 int Blinis_main(int argc,char ** argv);
 int Contrast_main(int argc,char ** argv);
 
+int TestCamRPC(int argc,char** argv);
+
+
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("TestPbRPC",TestCamRPC,"Block Initialisation ",cArgLogCom(2)));
        aRes.push_back(cMMCom("Blinis",Blinis_main,"Block Initialisation ",cArgLogCom(2)));
        aRes.push_back(cMMCom("ContrastFilter",Contrast_main,"Some contrast filtering "));
        aRes.push_back(cMMCom("RedTieP",RedTieP_main,"Test tie points filtering "));
