@@ -139,6 +139,7 @@ Pt2di cZBuffer::ToPtIndexDef(const Pt2di & aPt) const
 }
 
 bool DEBUG_ZBB = false;
+Pt2di PT_BugZBB;
 bool ERupnik_MM();
 
 Im2D_REAL4 cZBuffer::Basculer
@@ -187,6 +188,8 @@ Im2D_REAL4 cZBuffer::Basculer
     mTImDef_01.Resize(aSzDef);
     mTImDef_11.Resize(aSzDef);
 
+static int aCpt=0; aCpt++;
+
     // double a
     for (int anXDal0 = aP0In.x ;  anXDal0< aP1In.x ; anXDal0 += SzDalleDef  )
     {
@@ -205,7 +208,9 @@ Im2D_REAL4 cZBuffer::Basculer
 				aNbOkTer++;
                                 double aZofXY;
 
+//static int aCpt=0; aCpt++; if (aCpt>10600000) std::cout << "Iiiinnnn " << aCpt << "\n";
 				Pt3dr aP3Out = ProjDisc(aPIn,&aZofXY);
+//if (aCpt>10600000)std::cout << "OooUuutt " << aCpt << "\n";
 				Pt2dr aP2Out(aP3Out.x,aP3Out.y);
 
 
@@ -217,14 +222,33 @@ Im2D_REAL4 cZBuffer::Basculer
 if (MPD_MM() || ERupnik_MM())
 {
 
+// mm3d MPDTest Ori-RPC/GB-Orientation-S6P--2014042116840914CP.tif.xm
+
 //  std::cout << "pppppppppppppp " << aP2Out << "\n";
-if (euclid(aP2Out) > 100000)
+if (euclid(aP2Out) > 1e5  )
 {
-   
-   std::cout << "----aP2OutaP2Out " << aP2Out  << " " << aZofXY  << " " << aPIn << " BD=" <<  mBufDone << "\n";
+   ELISE_ASSERT(false,"Probable error in RPC");
+   std::cout << "STEPIN " << mStepIn << " OOOO " << aZofXY << "\n";
    DEBUG_ZBB = true;
+   for (int aDx = -1 ; aDx<=1 ; aDx++)
+   {
+       for (int aDy = -1 ; aDy<=1 ; aDy++)
+       {
+           PT_BugZBB =  Pt2di(aDx,aDy);
+           Pt2di aPV = aPIn + PT_BugZBB;
+           //std::cout << "uuu DEBUG_ZBB " << aPV << " " << aZofXY << "\n";
+           // mGeom.Objet2ImageInit_Euclid(Pt2dr(aPV),&aZofXY);
+           //std::cout << " ZzzZzz " <<  ProjDisc(aPV,&aZofXY) << " " << aZofXY << "\n";
+            ProjDisc(aPV,&aZofXY);
+
+       }
+   }
+
+   std::cout << "----aP2OutaP2Out " << aP2Out  << " " << aZofXY  << " " << aPIn << " BD=" <<  mBufDone << "\n";
    ProjDisc(aPIn,&aZofXY);
    DEBUG_ZBB = false;
+   std::cout << "Donnee aP2OutaP2Out\n";
+   exit(-1);
 }
 }
 				   aPInf.SetInf(aP2Out);
@@ -253,8 +277,10 @@ if (euclid(aP2Out) > 100000)
                       double aZMed  = KthVal(VData(aVZofXY),aNbVal,aNbVal/2);
                       Pt3dr aPMed((anXDal0+anXDal1)/2.0,(anYDal0+anYDal1)/2.0,aZMed);
 
+static int aCpt=0; aCpt++; if ((aCpt%1)==0) std::cout << "AaIiiinnnn " << aCpt << "\n";
                       Pt3dr aDerX = (ProjDisc(aPMed+Pt3dr(1,0,0)) - ProjDisc(aPMed+Pt3dr(-1,0,0))) / 2.0;
                       Pt3dr aDerY = (ProjDisc(aPMed+Pt3dr(0,1,0)) - ProjDisc(aPMed+Pt3dr(0,-1,0))) / 2.0;
+if ((aCpt%1)==0)std::cout << "AaOooUuutt " << aCpt << "\n";
 
                       ElMatrix<double> aJac =  MatFromCol(Pt2dr(aDerX.x,aDerX.y),Pt2dr(aDerY.x,aDerY.y));
 
@@ -304,10 +330,6 @@ if (euclid(aP2Out) > 100000)
     }
 
 
-if (MPD_MM())
-{
-std::cout << "mSzResmSzRes " << mSzRes  << " " << aPSup << mOffet_Out_00 << "\n";
-}
 
     mRes = Im2D_REAL4(mSzRes.x,mSzRes.y,aDef);
     mImTriInv = Im2D_Bits<1>(mSzRes.x,mSzRes.y,0);
