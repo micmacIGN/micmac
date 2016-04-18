@@ -105,14 +105,19 @@
            <Symb> WBG_Stricte=false  </Symb>
            <Symb> WBG_Ang=xxxxx  </Symb>
            <Symb> WBG_Center=xxxxx  </Symb>
+
+          
+           <Symb> UseHom=true  </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
-             <BDD_PtsLiaisons>
-                 <Id>    Id_Pastis_Hom  </Id>
-                 <KeySet> NKS-Set-Homol@${SetHom}@${Ext}  </KeySet>
-                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@${SetHom}@${Ext}   </KeyAssoc>
-            </BDD_PtsLiaisons>
+             <#WHEN  VTEST=${UseHom}>
+                 <BDD_PtsLiaisons>
+                     <Id>    Id_Pastis_Hom  </Id>
+                     <KeySet> NKS-Set-Homol@${SetHom}@${Ext}  </KeySet>
+                     <KeyAssoc>  NKS-Assoc-CplIm2Hom@${SetHom}@${Ext}   </KeyAssoc>
+                </BDD_PtsLiaisons>
+             </#WHEN>
 
             <BDD_Orient>
                   <Id>  Or-Init   </Id>
@@ -435,17 +440,19 @@
 -->
 
 		    <SectionObservations>
-                          <ObsLiaisons>
-                              <NameRef> Id_Pastis_Hom </NameRef>
-                              <Pond>
-                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
-                                 <Show> eNSM_Paquet     </Show>
-                                 <NbMax>   ${NbLiais}    </NbMax>
-				 <ModePonderation>  eL1Secured </ModePonderation>
-				 <SigmaPond> ${SigmaTieP} </SigmaPond>
-				 <EcartMax>  ${MaxResTieP} </EcartMax>
-                              </Pond>
-                          </ObsLiaisons>
+                          <#WHEN  VTEST=${UseHom}>
+                              <ObsLiaisons>
+                                  <NameRef> Id_Pastis_Hom </NameRef>
+                                  <Pond>
+                                     <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                     <Show> eNSM_Paquet     </Show>
+                                     <NbMax>   ${NbLiais}    </NbMax>
+				     <ModePonderation>  eL1Secured </ModePonderation>
+				     <SigmaPond> ${SigmaTieP} </SigmaPond>
+				     <EcartMax>  ${MaxResTieP} </EcartMax>
+                                  </Pond>
+                              </ObsLiaisons>
+                          </#WHEN>
 
                           <#WHEN  VTEST=${WithGCP}>
                                <ObsAppuisFlottant>

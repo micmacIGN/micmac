@@ -1457,11 +1457,14 @@ void cPoseCam::SetContrainte(const cContraintesPoses & aCP)
    switch(aCP.Val())
    {
       case ePoseLibre :
+          cElWarning::ToleranceSurPoseLibre.AddWarn("",__LINE__,__FILE__);
+/*
           ELISE_ASSERT
 	  (
 	       (aCP.TolAng().Val()<=0)&&(aCP.TolCoord().Val()<=0),
 	       "Tolerance inutile avec ePoseLibre"
 	  );
+*/
           mRF->SetModeRot(cNameSpaceEqF::eRotLibre);
       break;
 

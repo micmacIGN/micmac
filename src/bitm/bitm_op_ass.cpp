@@ -233,7 +233,7 @@ template <class TyBase>
 
         void * adr = _gi->calc_adr_seg(rle_pts->pt0());
 
-        _gi->input_rle(_pre_out,nb,adr,rle_pts->vx0());
+        _gi->void_input_rle(_pre_out,nb,adr,rle_pts->vx0());
         _op.t0_eg_t1_op_t2(_out,_pre_out,vals->_pts[0],nb);
 
         if (El_User_Dyn.active())

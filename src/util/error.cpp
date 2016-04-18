@@ -277,6 +277,9 @@ std::string ElEM::mes_el() const
                     + "[" + p0y.str() + "," + p1y.str() + "]";
         }
         break;
+
+        default:
+        ;
     };
 
     return mes;
@@ -357,6 +360,9 @@ cElWarning cElWarning::AppuisMultipleDefined("Ground point has several measures 
 
 
 cElWarning cElWarning::OrhoLocOnlyXCste("For now RedrLocAnam only works with X=Cst Anamorphose");
+
+cElWarning cElWarning::ToleranceSurPoseLibre("Tolerance inutile avec ePoseLibre");
+cElWarning cElWarning::OnzeParamSigneIncoh("Point on two sides of cam after space ressection");
 
 
 int cElWarning::mNbTot = 0;

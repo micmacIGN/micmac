@@ -97,10 +97,16 @@ class DATA_tiff_header : public  RC_Object
 
       public :
 
+         tFileOffset ReadFileOffset(ELISE_fp &) const;
+         U_INT8 LireNbTag(ELISE_fp & aFp) const;
+
+         bool           BigTiff() const;
 
       private :
 
          Tiff_Im kth_im(INT kth);
+         void InitBigTiff();
+
 
 
          DATA_tiff_header (const char * name);
@@ -109,6 +115,10 @@ class DATA_tiff_header : public  RC_Object
          bool           _byte_ordered;
          Tprov_char *   _tprov_name;
          char *         _name;
+         int            mVersion;
+         tFileOffset    mOffsetIfd0;
+         int            mSzTag;
+         bool           mBigTiff;
 
          ELISE_fp   kth_file(INT & nb,bool read); 
          INT        nb_im(); 
@@ -168,12 +178,10 @@ template <class Type> class UnLoadPackBit
 		static PackB_IM<Type>  Do(DATA_Tiff_Ifd &,Tiff_Im::COMPR_TYPE);
 };
 
+extern int DefValueBigTif;
+
 class DATA_Tiff_Ifd : public ElDataGenFileIm
 {
-
-      
-
-
       friend class Tiff_Tiles_MPD_T6;
       friend class Tiff_Tiles_Ccit4_2D_T6;
       friend class Tiff_Tiles_Ccit3_1D;
@@ -245,6 +253,20 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            Pt2di SzFileTile() const ;
            Pt2di NbTTByTF() const   ;
 
+           // Bif tiff handling
+           bool           BigTiff() const;
+           int MaxNbByteTagValNonDefer() const; // Taille max pour que la valeur ne soit pas dereferencee
+           int SzPtr() const; // Meme valeur que MaxNbByteTagValNonDefer , mais semantique un peu !=
+
+           U_INT8 LireNbTag(ELISE_fp & aFp) const;
+           void WriteNbTag(ELISE_fp & aFp,U_INT8);
+
+           int SzTag() const;
+           U_INT8  LireNbVal(ELISE_fp & aFp) const;
+           void  WriteNbVal(ELISE_fp & aFp,U_INT8);
+ 
+           U_INT8  LireOffset(ELISE_fp & aFp) const;
+           void   WriteOffset(ELISE_fp & aFp,tFileOffset);
       private :
 
            class  vmodif
@@ -252,12 +274,12 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
               public :
                   vmodif ();
                   void flush();
-                  void init(INT v0,INT nb);
-                  void init_if_0(INT v0,INT nb);
-                  void init(INT *v,INT nb);
+                  void init(_INT8 v0,INT nb);
+                  void init_if_0(_INT8 v0,INT nb);
+                  void init(_INT8 *v,INT nb);
 
-                  INT   * _vals;
-                  INT     _nb;
+                  _INT8   *       _vals;
+                  INT             _nb;
                   tFileOffset     _offs;
            };
 
@@ -307,6 +329,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            DATA_Tiff_Ifd
            (
                    bool     byte_ordered,
+                   bool     BigTiff,
                    ELISE_fp fp,
                    const char *,
                    const Pseudo_Tiff_Arg &
@@ -318,16 +341,18 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
                  GenIm::type_el              type,
                  Tiff_Im::COMPR_TYPE         compr,
                  Tiff_Im::PH_INTER_TYPE      phot_interp,
-		 Disc_Pal *                      aPal,
-                 Elise_colour                    *,
-                 INT                             nb,
-                 L_Arg_Opt_Tiff            l = Tiff_Im::Empty_ARG
+		 Disc_Pal *                  aPal,
+                 Elise_colour                *,
+                 INT                         nb,
+                 L_Arg_Opt_Tiff              l = Tiff_Im::Empty_ARG,
+                 int *                       BigTif = &DefValueBigTif // -1 jamais , 0 si possible, 1 toujours
            );
 
 
 
 
            bool           _byte_ordered;
+           bool           mBigTiff;
            Tprov_char *   _tprov_name;
            char *         _name;
            bool           _msbit_first;
@@ -351,7 +376,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            int                                 _nb_chan_per_tile;
            
 
-           INT    *                    _palette;
+           _INT8    *                  _palette;
            INT                         _nb_pal_entry;
 
 
@@ -361,7 +386,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            Pt2di                       _nb_tile;
            tFileOffset                 _nb_tile_tot;
 
-           INT *                       _bits_p_chanel;
+           _INT8 *                     _bits_p_chanel;
            INT                         _nbb_ch0;
            INT                         _nbb_tot;// sum of _bits_p_chanel
            tFileOffset *               _tiles_offset;
@@ -372,7 +397,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            INT                         _mode_compr;
            INT                         _phot_interp;
            INT                         _plan_conf;
-           INT *                       _data_format;
+           _INT8 *                     _data_format;
            INT                         _predict;
            bool                        _ccitt_ucomp;
            INT                         _orientation;

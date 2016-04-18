@@ -47,21 +47,52 @@ class cOneIm_RTI;
 class cAppli_RTI;
 
 
+typedef enum
+{
+     eRTI_Test,
+     eRTI_Med,
+     eRTI_Grad,
+     eRTI_OldRecal,
+     eRTI_RecalBeton_1Im,
+     eRTI_RecalBeton_1AllIm,
+     eRTI_PoseFromOmbre
+} eModeRTI;
+
 
 class cOneIm_RTI
 {
     public :
-       cOneIm_RTI(cAppli_RTI &,const std::string & aName,bool Master);
-       virtual Tiff_Im DoImReduite();
-       Tiff_Im   ImFull();
-       const std::string & Name() const;
+      cOneIm_RTI(cAppli_RTI &,const std::string & aName,bool Master);
+      virtual Tiff_Im DoImReduite();
+      Tiff_Im      FileImFull(const std::string & aNameIm);
+
+      const std::string & Name() const;
+      Im2D_U_INT2  MemImRed();
+      Im2D_U_INT2  MemImFull();
+      Im2D_Bits<1> MasqRed(Im2D_U_INT2);
+      const std::string & NameDif();
+      bool IsMaster() const;
+      void DoPoseFromOmbre(const cDicoAppuisFlottant &,const cSetOfMesureAppuisFlottants &);
+
+      void  SetXml(cXml_RTI_Im*);
+      const Pt3dr & CenterLum() const;
+      Tiff_Im   MasqFull();
+      Im2D_Bits<1> ImMasqFull();
+
     protected :
       cAppli_RTI &   mAppli;
       std::string    mName;
       bool           mMaster;
+      bool           mWithRecal;
       std::string    mNameIS;  // Name Image Superpose
-      std::string    mNameISPan;  // Name Image Superpose
+      std::string    mNameISPan;  // Name Image Superpose Panchro ?
       std::string    mNameISR; // IS Reduced
+      std::string    mNameMasq;  // Name Image Superpose
+      std::string    mNameMasqR; // IS Reduced
+      string         mNameDif;
+      cXml_RTI_Im*   mXml;
+      bool           mHasExp;
+      Pt3dr          mCenterLum;
 };
 
 class cOneIm_RTI_Slave : public cOneIm_RTI
@@ -71,16 +102,14 @@ class cOneIm_RTI_Slave : public cOneIm_RTI
        Tiff_Im DoImReduite();
        const std::string & NameMasq() const;
        const std::string & NameMasqR() const;
-       Tiff_Im   MasqFull();
     private :
-      std::string    mNameMasq;  // Name Image Superpose
-      std::string    mNameMasqR; // IS Reduced
 };
 
 class cOneIm_RTI_Master : public cOneIm_RTI
 {
     public :
        cOneIm_RTI_Master(cAppli_RTI &,const std::string & aName);
+    protected :
 };
 
 
@@ -90,29 +119,53 @@ class cAppli_RTI
 {
     public :
        static const std::string ThePrefixReech;
-       cAppli_RTI(const std::string & aFullNameParam,const std::string & aNameI2="");
+       cAppli_RTI(const std::string & aFullNameParam,eModeRTI aMode,const std::string & aName2);
        void CreateSuperpHom();
+       void CreatHom();
        const cXml_ParamRTI & Param() const;
        const std::string & Dir() const;
        cOneIm_RTI_Slave * UniqSlave();
        cOneIm_RTI_Master * Master();
-       void MakeImageMed();
+       void MakeImageMed(const std::string & aNameIm);
+       void MakeImageGrad();
+       bool  WithRecal() const;
+
+       void DoOneRecalRadiomBeton();
+       void DoPoseFromOmbre(const cDicoAppuisFlottant &,const cSetOfMesureAppuisFlottants &);
+
+       CamStenope *    OriMaster();
+       const cXml_RTI_Ombre & Ombr() const;
+       void  FiltrageGrad();
+
 
     private :
+       Im2D_REAL8  OneItereRecalRadiom
+                   (
+                       double & aScaleRes,bool L1,Im2D_U_INT2,Im2D_Bits<1>,Im2D_U_INT2,
+                       int aNbCase,int aDeg
+                   );
 
-       void MakeImageMed(const Box2di & aBox);
+
+       void MakeImageMed(const Box2di & aBox,const std::string & aNameIm);
+       void MakeImageGrad(const Box2di&);
+
+       CamStenope *                    mOriMaster;
 
        cXml_ParamRTI                    mParam;
+       bool                             mWithRecal;
        std::string                      mFullNameParam;
        std::string                      mDir;
+       cInterfChantierNameManipulateur  *mICNM;
        std::string                      mNameParam;
        bool                             mTest;
-       bool                             mMainAppli;
        std::vector<cOneIm_RTI *>        mVIms;
        std::vector<cOneIm_RTI_Slave *>  mVSlavIm;
+       std::map<std::string,cOneIm_RTI*> mDicoIm;
        cOneIm_RTI_Master *              mMasterIm;
        cElemAppliSetFile                mEASF;
        std::string                      mNameImMed;
+       std::string                      mNameImGx;
+       std::string                      mNameImGy;
 };
 
 

@@ -188,8 +188,12 @@ class  ELISE_fp
 
          U_INT1 read_U_INT1();
          U_INT2 read_U_INT2();
-         INT2 read_INT2();
+         U_INT4 read_U_INT4();
+         U_INT8 read_U_INT8();
+
+         INT2   read_INT2();
          INT4   read_INT4();
+         _INT8  read_INT8();
          tFileOffset read_FileOffset4();
          tFileOffset read_FileOffset8();
          REAL4   read_REAL4();
@@ -198,10 +202,13 @@ class  ELISE_fp
          const std::string & NameFile() const {return  mNameFile;}
 
 
-         void write_FileOffset4(tFileOffset);
-         void write_FileOffset8(tFileOffset);
+         void CKK_write_FileOffset4(tFileOffset);
+         void CKK_write_FileOffset8(tFileOffset);
          void write_U_INT1(INT);
          void write_U_INT2(INT);
+         void write_U_INT4(U_INT4);
+         void write_U_INT8(U_INT8);
+
          void write_INT4(INT);
          void write_REAL4(REAL4);
          void write_REAL8(REAL8);

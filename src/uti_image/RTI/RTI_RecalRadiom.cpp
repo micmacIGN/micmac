@@ -74,7 +74,7 @@ cAppli_RecalRadio::cAppli_RecalRadio(int argc,char ** argv) :
          LArgMain()  << EAM(mNameMaster, "Master",true,"Name of master image if != def master", eSAM_IsExistFile)
     );
 
-   cAppli_RTI aRTIA(mNameParam,mNameI1);
+   cAppli_RTI aRTIA(mNameParam,eRTI_OldRecal,mNameI1);
 
 
    cOneIm_RTI_Slave * aSl = aRTIA.UniqSlave();
@@ -92,7 +92,7 @@ cAppli_RecalRadio::cAppli_RecalRadio(int argc,char ** argv) :
    //   Tiff_Im aTif2 = aSl->DoImReduite();
    //   Tiff_Im aTifMasq (aSl->NameMasqR().c_str());
    //   Tiff_Im aTif1 = aMas->DoImReduite();
-   Tiff_Im aTif1 = aSl->ImFull();
+   Tiff_Im aTif1 = aSl->FileImFull("");
    Tiff_Im aTifMasq = aSl->MasqFull();
    Tiff_Im aTif2("Mediane.tif");
 
@@ -158,7 +158,7 @@ int RTIRecalRadiom_main(int argc,char ** argv)
 }
 
 
-void cAppli_RTI::MakeImageMed(const Box2di & aBox)
+void cAppli_RTI::MakeImageMed(const Box2di & aBox,const std::string & aNameIm)
 {
    std::cout << " cAppli_RTI::MakeImageMed " << aBox._p0 << "\n";
    Pt2di aSz = aBox.sz();
@@ -170,15 +170,18 @@ void cAppli_RTI::MakeImageMed(const Box2di & aBox)
 
    for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
    {
-       aVIm.push_back(new Im2D_REAL4(aSz.x,aSz.y));
-       aVTIm.push_back(new TIm2D<REAL4,REAL8>(*(aVIm.back())));
+       if ((! mVIms[aK]->IsMaster()) || (aNameIm!="ImDif"))
+       {
+           aVIm.push_back(new Im2D_REAL4(aSz.x,aSz.y));
+           aVTIm.push_back(new TIm2D<REAL4,REAL8>(*(aVIm.back())));
 
-       ELISE_COPY
-       (
-           aVIm.back()->all_pts(),
-           trans(mVIms[aK]->ImFull().in(),aBox._p0),
-           aVIm.back()->out()
-       );
+           ELISE_COPY
+           (
+               aVIm.back()->all_pts(),
+               trans(mVIms[aK]->FileImFull(aNameIm).in(),aBox._p0),
+               aVIm.back()->out()
+           );
+       }
    }
 
    Pt2di aP;
@@ -187,7 +190,7 @@ void cAppli_RTI::MakeImageMed(const Box2di & aBox)
        for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
        {
            std::vector<double> aVVals;
-           for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
+           for (int aK=0 ; aK<int(aVIm.size()) ; aK++)
            {
                aVVals.push_back(aVTIm[aK]->get(aP));
            }
@@ -205,16 +208,16 @@ void cAppli_RTI::MakeImageMed(const Box2di & aBox)
 }
 
 
-void cAppli_RTI::MakeImageMed()
+void cAppli_RTI::MakeImageMed(const std::string & aNameIm)
 {
-   mNameImMed = "Mediane.tif";
-   Tiff_Im aTif1 = mMasterIm->ImFull();
+   // mNameImMed = "Mediane.tif";
+   Tiff_Im aTif1 = mMasterIm->FileImFull("");
 
    Tiff_Im
    (
        mNameImMed.c_str(),
        aTif1.sz(),
-       aTif1.type_el(),
+       (aNameIm=="ImDif") ? GenIm::real4 : aTif1.type_el(),
        Tiff_Im::No_Compr,
        aTif1.phot_interp()
    );
@@ -232,7 +235,7 @@ void cAppli_RTI::MakeImageMed()
        for (aP0.y=0 ; aP0.y<aSz.y ; aP0.y+=aBloc)
        {
             Pt2di aP1 = Inf(aSz,aP0+Pt2di(aBloc,aBloc));
-            MakeImageMed(Box2di(aP0,aP1));
+            MakeImageMed(Box2di(aP0,aP1),aNameIm);
        }
    }
    
@@ -248,11 +251,230 @@ int RTIMed_main(int argc,char **argv)
          LArgMain()  
     );
 
-   cAppli_RTI aRTIA(aNameParam);
-   aRTIA.MakeImageMed();
+   cAppli_RTI aRTIA(aNameParam,eRTI_Med,"");
+   aRTIA.MakeImageMed("ImDif");
   
    return EXIT_SUCCESS;
 }
+
+/**********************************************************/
+/**********************************************************/
+/**********************************************************/
+
+void cAppli_RTI::MakeImageGrad(const Box2di & aBox)
+{
+   std::cout << " cAppli_RTI::MakeImageGrad " << aBox._p0 << "\n";
+   Pt2di aSz = aBox.sz();
+
+   std::vector<Im2D_REAL4 *> aVIm;
+   std::vector<TIm2D<REAL4,REAL8> *> aVTIm;
+   std::vector<cOneIm_RTI *>         aVGlobIm;
+
+   
+
+   for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
+   {
+       if (! mVIms[aK]->IsMaster()) 
+       {
+           aVIm.push_back(new Im2D_REAL4(aSz.x,aSz.y));
+           aVTIm.push_back(new TIm2D<REAL4,REAL8>(*(aVIm.back())));
+
+           ELISE_COPY
+           (
+               aVIm.back()->all_pts(),
+               trans(mVIms[aK]->FileImFull("ImDif").in(),aBox._p0),
+               aVIm.back()->out()
+           );
+           aVGlobIm.push_back(mVIms[aK]);
+       }
+   }
+   Im2D_REAL4 aIGx(aSz.x,aSz.y);
+   TIm2D<REAL4,REAL8>  aTGx(aIGx);
+   Im2D_REAL4 aIGy(aSz.x,aSz.y);
+   TIm2D<REAL4,REAL8>  aTGy(aIGy);
+
+
+   cGenSysSurResol * aSys =0;
+   int aNbObs = aVIm.size();
+     // int aNbEq = (aDeg * (aDeg+1) ) /2;
+   bool aL1 = true;
+   int aNbUnknown = 2;
+   if (aL1)
+      aSys = new SystLinSurResolu(aNbUnknown,aNbObs);
+   else
+      aSys = new L2SysSurResol(aNbUnknown);
+
+
+   Pt2di aP;
+   for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+   {
+       for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
+       {
+// std::cout << "AAAAAAA\n";
+           aSys->SetPhaseEquation(0);
+// std::cout << "BBBBBBBB\n";
+           Pt2dr aPGlob = Pt2dr(aP+ aBox._p0);
+           Pt3dr aPTer = OriMaster()->ImEtProf2Terrain(aPGlob,0.0);
+           for (int aK=0 ; aK<int(aVIm.size()) ; aK++)
+           {
+               Pt3dr aC = aVGlobIm[aK]->CenterLum();
+               Pt2dr aDir(aC.x-aPTer.x,aC.y-aPTer.y);
+               aDir = vunit(aDir);
+               double aCoeff[2];
+               aCoeff[0] = aDir.x;
+               aCoeff[1] = aDir.y;
+
+               aSys->GSSR_AddNewEquation(1,aCoeff,aVTIm[aK]->get(aP),(double *)0);
+           }
+
+// std::cout << "CCCCCCC\n";
+           Im1D_REAL8 aSol = aSys->GSSR_Solve(0);
+           REAL8 * aDS = aSol.data();
+           aTGx.oset(aP,aDS[0]);
+           aTGy.oset(aP,aDS[1]);
+
+
+// if (aP.x==aP.y) std::cout << "DSSS " << aDS[0] << " " << aDS[1] << "\n";
+           aSys->GSSR_Reset(true);
+// std::cout << "ZZZZZZZZZZZ\n";
+       }
+   }
+
+   delete aSys;
+
+// std::cout << "GGGGG " << mNameImGx << " " << mNameImGy << "\n";
+   Tiff_Im aTifGx(mNameImGx.c_str());
+   Tiff_Im aTifGy(mNameImGy.c_str());
+   ELISE_COPY
+   (
+       rectangle(aBox._p0,aBox._p1),
+       trans(Virgule(aIGx.in(),aIGy.in()),-aBox._p0),
+       Virgule(aTifGx.out(),aTifGy.out())
+   );
+
+/*
+static Video_Win  aWX = Video_Win::WStd(aBox.sz(),1.0);
+static Video_Win  aWY = Video_Win::WStd(aBox.sz(),1.0);
+
+ELISE_COPY(aWX.all_pts(),Max(0,Min(255,128+aIGx.in()*40)),aWX.ogray());
+ELISE_COPY(aWY.all_pts(),Max(0,Min(255,128+aIGy.in()*40)),aWY.ogray());
+aWX.clik_in();
+*/
+}
+
+void cAppli_RTI::MakeImageGrad()
+{
+   // mNameImMed = "Mediane.tif";
+   Tiff_Im aTif1 = mMasterIm->FileImFull("");
+
+   Tiff_Im(mNameImGx.c_str(),aTif1.sz(),GenIm::real4 ,Tiff_Im::No_Compr,aTif1.phot_interp());
+   Tiff_Im(mNameImGy.c_str(),aTif1.sz(),GenIm::real4 ,Tiff_Im::No_Compr,aTif1.phot_interp());
+
+   Pt2di aSz = aTif1.sz();
+
+   int aBloc = 500;
+   Pt2di aP0;
+
+   for (aP0.x=0 ; aP0.x<aSz.x ; aP0.x+=aBloc)
+   {
+       for (aP0.y=0 ; aP0.y<aSz.y ; aP0.y+=aBloc)
+       {
+            Pt2di aP1 = Inf(aSz,aP0+Pt2di(aBloc,aBloc));
+            MakeImageGrad(Box2di(aP0,aP1));
+       }
+   }
+   
+}
+
+int RTIGrad_main(int argc,char **argv)
+{
+    std::string aNameParam;
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aNameParam, "Name XML", eSAM_IsExistFile),
+         LArgMain()  
+    );
+
+   cAppli_RTI aRTIA(aNameParam,eRTI_Grad,"");
+   aRTIA.MakeImageGrad();
+  
+   return EXIT_SUCCESS;
+}
+
+/**********************************************************/
+/**********************************************************/
+/**********************************************************/
+
+void cAppli_RTI::FiltrageGrad()
+{
+    Im2D_REAL4 aGx = Im2D_REAL4::FromFileStd(mNameImGx);
+    Im2D_REAL4 aGy = Im2D_REAL4::FromFileStd(mNameImGy);
+    TIm2D<REAL4,REAL8> aTGx(aGx);
+    TIm2D<REAL4,REAL8> aTGy(aGy);
+    Im2D_Bits<1> aMasq = MasqFromFile("MasqGlob.tif");
+    // Im2D_Bits<1> aMasq = Master()->ImMasqFull();
+    TIm2DBits<1> aTMasq(aMasq);
+    Pt2di aSz = aGx.sz();
+
+    Im2D_REAL4 aR1(aSz.x,aSz.y,0.0);
+    Im2D_REAL4 aR2(aSz.x,aSz.y,0.0);
+
+    ELISE_COPY(aMasq.all_pts(),erod_d8(aMasq.in(0),1), aMasq.out());
+
+    for (int aK= 0 ; aK<1000 ; aK++)
+    {
+        double aAtt = 0.95;
+        TIm2D<REAL4,REAL8> aTI1(aR1);
+        TIm2D<REAL4,REAL8> aTI2(aR2);
+
+        Pt2di aP;
+        for (aP.x=0 ; aP.x<aSz.x; aP.x++)
+        {
+            for (aP.y=0 ; aP.y<aSz.y; aP.y++)
+            {
+                if (aTMasq.get(aP))
+                {
+                    double aV =    aAtt * aTI1.get(aP)
+                                +  (
+                                         aTGx.get(aP+Pt2di(-1, 0)) 
+                                       + aTGy.get(aP+Pt2di( 0,-1)) 
+                                       - aTGx.get(aP+Pt2di( 1, 0)) 
+                                       - aTGy.get(aP+Pt2di( 0, 1)) 
+                                   ) / 4.0;
+                    aTI2.oset(aP,aV);
+                }
+            }
+        }
+
+        std::cout << "K=" << aK << "\n";
+        if (((aK+1) %10) == 0)
+        {
+             Tiff_Im::CreateFromFonc("MNT-" + ToString(aK)+".tif",aSz,aR1.in(),GenIm::real4);
+             Tiff_Im::CreateFromFonc("MNTX-" + ToString(aK)+".tif",aSz,aR1.in()-trans(aR1.in(0),Pt2di(1,0)),GenIm::real4);
+             Tiff_Im::CreateFromFonc("MNTY-" + ToString(aK)+".tif",aSz,aR1.in()-trans(aR1.in(0),Pt2di(0,1)),GenIm::real4);
+        }
+        
+        ElSwap(aR1,aR2);
+    }
+}
+
+int RTIFiltrageGrad_main(int argc,char **argv)
+{
+    std::string aNameParam;
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aNameParam, "Name XML", eSAM_IsExistFile),
+         LArgMain()  
+    );
+
+   cAppli_RTI aRTIA(aNameParam,eRTI_Grad,"");
+   aRTIA.FiltrageGrad();
+  
+   return EXIT_SUCCESS;
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

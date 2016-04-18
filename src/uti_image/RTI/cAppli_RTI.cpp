@@ -54,24 +54,54 @@ void cAppli_RTI::CreateSuperpHom()
 
 }
 
-cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,const std::string & aNameI2) :
+void cAppli_RTI::CreatHom()
+{
+    // int aSzTapioca = 2000;
+    std::string aCom =    MM3dBinFile_quotes("Tapioca") +  " All " 
+                       +  mParam.Pattern()  + " "
+                       +  ToString(mParam.SzHom().Val()) +  " "
+                       +  QUOTE("Pat2=" + mParam.Pattern()) ;
+
+   System (aCom);
+}
+
+
+
+cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,eModeRTI aMode,const std::string & aNameI2) :
    mTest      (true),
-   mMainAppli (aNameI2=="")
+   mNameImMed (ThePrefixReech + "Mediane.tif"),
+   mNameImGx  (ThePrefixReech + "Gx.tif"),
+   mNameImGy  (ThePrefixReech + "Gy.tif")
 {
     mFullNameParam = aFullNameParam;
+
     
     SplitDirAndFile(mDir,mNameParam,mFullNameParam);
     mParam = StdGetFromSI(mFullNameParam,Xml_ParamRTI);
-    if (! mMainAppli)
+
+    mICNM= cInterfChantierNameManipulateur::BasicAlloc(mDir);
+    mOriMaster = 0;
+
+    if (aNameI2!="")
+    {
        mParam.Pattern() = aNameI2;
+    }
+
+    mWithRecal = mParam.SzHom().IsInit();
+
+    if (mWithRecal)
+    {
+       // CreatHom();
+       CreateSuperpHom();
+    }
 
     mEASF.Init(mDir+mParam.Pattern());
     const cInterfChantierNameManipulateur::tSet *  aSetIm = mEASF.SetIm();
 
     mMasterIm = new cOneIm_RTI_Master(*this,mParam.MasterIm());
     mMasterIm->DoImReduite();
-
     mVIms.push_back(mMasterIm);
+    mDicoIm[mMasterIm->Name()] =  mMasterIm;
 
     for (size_t aKI = 0; aKI < aSetIm->size(); aKI++)
     {
@@ -81,18 +111,27 @@ cAppli_RTI::cAppli_RTI(const std::string & aFullNameParam,const std::string & aN
              cOneIm_RTI_Slave * aNewIm = new cOneIm_RTI_Slave(*this,aName);
              mVIms.push_back(aNewIm);
              mVSlavIm.push_back(aNewIm);
+             aNewIm->DoImReduite();
+             mDicoIm[aNewIm->Name()] =  aNewIm;
          }
     }
-   
-    if (mMainAppli)
+
+    for (std::list<cXml_RTI_Im>::iterator itI=mParam.RTI_Im().begin() ; itI!=mParam.RTI_Im().end() ; itI++)
     {
-       CreateSuperpHom();
+        const std::string & aName = itI->Name();
+        cOneIm_RTI* anIm= mDicoIm[aName];
+        ELISE_ASSERT(anIm!=0,"No Image from cXml_RTI_Im");
+ 
+        anIm->SetXml(&(*itI));
     }
+
+
 }
 
 const cXml_ParamRTI & cAppli_RTI::Param() const { return mParam; }
 const std::string &   cAppli_RTI::Dir()   const {return mDir;}
 cOneIm_RTI_Master *   cAppli_RTI::Master() {return mMasterIm;}
+bool  cAppli_RTI::WithRecal() const { return mWithRecal; }
 
 cOneIm_RTI_Slave * cAppli_RTI::UniqSlave()
 {
@@ -103,7 +142,7 @@ cOneIm_RTI_Slave * cAppli_RTI::UniqSlave()
 
 
 
-int  RTI_main(int argc,char ** argv)
+int  Gen_RTI_main(int argc,char ** argv,eModeRTI aMode)
 {
     std::string aFullNameParam,aPat="";
     ElInitArgMain
@@ -113,10 +152,31 @@ int  RTI_main(int argc,char ** argv)
           LArgMain()  << EAM(aPat,"Pat",true,"Pattern to replace existing Pattern in xml file",eSAM_IsExistFile) 
     );
     
-   cAppli_RTI anAppli(aFullNameParam,aPat);
+    if (aMode==eRTI_RecalBeton_1Im)
+    {
+         ELISE_ASSERT(EAMIsInit(&aPat),"Gen_RTI_main Pat non init");
+    }
+    cAppli_RTI anAppli(aFullNameParam,aMode,aPat);
 
-   return EXIT_SUCCESS;
+    if (aMode==eRTI_RecalBeton_1Im)
+    {
+        anAppli.DoOneRecalRadiomBeton();
+    }
+
+    return EXIT_SUCCESS;
 }
+int  RTI_main(int argc,char ** argv)
+{
+      return Gen_RTI_main(argc,argv,eRTI_Test);
+}
+
+int  RTI_RecalRadionmBeton_main(int argc,char ** argv)
+{
+      return Gen_RTI_main(argc,argv,eRTI_RecalBeton_1Im);
+}
+
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

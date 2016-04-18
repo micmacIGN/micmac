@@ -206,7 +206,7 @@ template <class Type> PackB_IM<Type> UnLoadPackBit<Type>::Do(DATA_Tiff_Ifd &aDTI
 				 aDTI.offset_tile(Tilx,Tily,0) != Tiff_Im::UN_INIT_TILE,   
 				EEM0 << "Use of uncomplete Tiff file"
 			);
-			TUP.back().UpdateSize(aDTI.byte_count_tile(Tilx,Tily,0).Byte4AbsLLO());
+			TUP.back().UpdateSize(aDTI.byte_count_tile(Tilx,Tily,0).CKK_Byte4AbsLLO());
 		}
 		TUP.back().init();
 	}

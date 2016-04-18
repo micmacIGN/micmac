@@ -330,6 +330,9 @@ class GenIm : public PRC0 ,
              bits4_lsbf,
 
              real16,
+             int8,
+             u_int4,
+             u_int8,
              no_type    // to have some def value
         }
         type_el;
@@ -672,6 +675,7 @@ template <const int nbb> class Im2D_Bits : public Im2DGen
               );
 
 
+
       double Val(const int & x,const int & y) const;
       void SetI(const Pt2di & ,int aValI) ;
       void SetR(const Pt2di & ,double aValR) ;
@@ -697,6 +701,10 @@ template <const int nbb> class Im2D_Bits : public Im2DGen
        Im2D_Bits(DataIm2D_Bits<nbb> *);
        inline DataIm2D_Bits<nbb> * didb() const;
 };
+
+Im2D_Bits<1> MasqFromFile(const std::string &);
+Im2D_Bits<1> MasqFromFile(const std::string &,const Pt2di & aSz); // Renvoie un maque de 1 si pas exist
+
 
 template  <const int nbb> Im2D_Bits<nbb>::Im2D_Bits(INT tx,INT ty) :
         Im2DGen(new DataIm2D_Bits<nbb>(tx,ty,false,0,0))

@@ -287,6 +287,17 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 
    mMMIN = cMMByImNM::ForGlobMerge(Dir(),mDS,mStrType);
 
+/*
+   if (MPD_MM())
+   {
+       std::cout << "TESTING EXPORT PREP CARVING \n";
+
+
+       getchar();
+       exit(0);
+   }
+*/
+
    //=====================================
 
    std::string aDirFusMM = mMMIN->FullDir();

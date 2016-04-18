@@ -1662,12 +1662,31 @@
 <!--  ********************  RTI ******************************* -->
 <!--  ********************  RTI ******************************* -->
 <!--  ********************  RTI ******************************* -->
+<Xml_RTI_ExportIm  Nb="1" Class="true" ToReference="true">
+    <PosLum  Nb="1" Type="Pt3dr">       </PosLum>
+</Xml_RTI_ExportIm>
+
+
+<Xml_RTI_Im  Nb="1" Class="true" ToReference="true">
+    <Name Nb="1" Type="std::string">             </Name>
+    <Export  Nb="?"  RefType="Xml_RTI_ExportIm"> </Export>
+    <NameOmbre Nb="*" Type="std::string">       </NameOmbre>
+</Xml_RTI_Im>
+
+<Xml_RTI_Ombre  Nb="1" Class="true" ToReference="true">
+    <OrientMaster  Nb="1" Type="std::string"> </OrientMaster>
+    <DefAltiLum  Nb="1" Type="double">        </DefAltiLum>
+</Xml_RTI_Ombre>
 
 <Xml_ParamRTI  Nb="1" Class="true" ToReference="true">
-     <MasterIm Nb="1" Type="std::string">  </MasterIm>
-     <Pattern  Nb="1" Type="std::string">  </Pattern>
-     <ScaleSSRes  Nb="1" Type="double">    </ScaleSSRes>
+     <MasterIm Nb="1" Type="std::string">            </MasterIm>
+     <Pattern  Nb="1" Type="std::string">            </Pattern>
+     <ScaleSSRes  Nb="1" Type="double">              </ScaleSSRes>
      <SeuilSat  Nb="?" Type="double" Def="1e9">      </SeuilSat>
+     <SzHom  Nb="?" Type="int">                      </SzHom>
+
+     <RTI_Im  Nb="*" RefType="Xml_RTI_Im"> </RTI_Im>
+     <ParamOmbre  Nb="?"  RefType="Xml_RTI_Ombre"> </ParamOmbre>
 </Xml_ParamRTI>
 
 

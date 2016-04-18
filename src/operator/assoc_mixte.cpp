@@ -46,6 +46,10 @@ void OperBinMixte::t0_eg_t1_op_t2(REAL16 * t0,const REAL16 * t1,const REAL16 *t2
 {
    ELISE_ASSERT(false,"OperBinMixte::t0_eg_t1_op_t2");
 }
+void OperBinMixte::t0_eg_t1_op_t2(_INT8 * t0,const _INT8 * t1,const _INT8 *t2,INT nb) const
+{
+   ELISE_ASSERT(false,"OperBinMixte::t0_eg_t1_op_t2");
+}
 
 
 
@@ -428,6 +432,11 @@ template <class elem,class Type> void grp_tpl_red_seg<elem,Type>::f
 /****************************************************************/
 
 REAL16 OperAssocMixte::opel(REAL16,REAL16) const
+{
+    ELISE_ASSERT(false,"OperAssocMixte::opel");
+    return 0;
+}
+_INT8 OperAssocMixte::opel(_INT8,_INT8) const
 {
     ELISE_ASSERT(false,"OperAssocMixte::opel");
     return 0;

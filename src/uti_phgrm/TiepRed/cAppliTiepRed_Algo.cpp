@@ -99,15 +99,23 @@ bool cAppliTiepRed::DoLoadTiePoints()
 	}
 	std::cout << endl;
 
+	mMaxNumHomol = 0;
+
 	if (stopProcessing == false){
 		// Load Tie Points. For each image that is not the master image we load its shared tie points with the master
 		for (std::size_t i = 1 ; i<mImages.size() ; i++){
 			cImageTiepRed & homolImage = *(mImages[i]);
+
+			// Get the camera pair
+			std::pair<CamStenope*,CamStenope*> cameraPair = NM().CamOriRel(masterImage.ImageName(),homolImage.ImageName());
+
 			// Create a connection with initially no tie points
-			cLnk2ImTiepRed * imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage);
+			cLnk2ImTiepRed * imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage, &(*(cameraPair.first)), &(*(cameraPair.second)));
+
 			// Get references to the empty list of tie points in both images
 			std::vector<Pt2df> & masterImageTiePoints = imagePairLink->VP1();
 			std::vector<Pt2df> & homolImageTiePoints = imagePairLink->VP2();
+			//std::vector<double> & imagePairAccuacies = imagePairLink->Acc();
 			if (homolImage.ImageBeenMaster() == true){ // If the homol image has been already a master image before we load the point from the result of a previous step
 				std::string aName = NameHomolTemp(masterImage.ImageName(), homolImage.ImageName());
 				ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
@@ -119,23 +127,35 @@ bool cAppliTiepRed::DoLoadTiePoints()
 				// Load tie points from Homol folder
 				NM().LoadHomFloats(masterImage.ImageName(), homolImage.ImageName(), &masterImageTiePoints, &homolImageTiePoints);
 			}
-			// Update counters
+
+//			for (std::size_t j = 0; j<numImagePairTiePoints; j++){
+//				double acc;
+//				cameraPair.first->PseudoInterPixPrec(ToPt2dr(masterImageTiePoints[j]),*(cameraPair.second),ToPt2dr(homolImageTiePoints[j]),acc);
+//				imagePairAccuacies.push_back(acc);
+//			}
+
+			// Update counter of tie-points in master
 			masterImage.SetNbPtsHom2Im(masterImage.NbPtsHom2Im() + masterImageTiePoints.size());
-			homolImage.SetNbPtsHom2Im(homolImage.NbPtsHom2Im()   + homolImageTiePoints.size());
-			// Add to links
-			AddLnk(imagePairLink);
+			// Set number of tie-points for this homol image
+			homolImage.SetNbPtsHom2Im(masterImageTiePoints.size());
+
+			// Set the maximum number of homol points between a image-pair
+			if (homolImage.NbPtsHom2Im() > mMaxNumHomol) mMaxNumHomol = homolImage.NbPtsHom2Im();
+
+			// Add to image pair map
+			mImagePairsMap.insert(make_pair(make_pair(masterImage.ImageId(), homolImage.ImageId()), imagePairLink));
 		}
 	}else{
-		std::cout << "All related images already processed, nothing else to be done here!" << endl;
+		std::cout << "#InitialHomolPoints:" << mNumInit << ". All related images already processed, nothing else to be done here!" << endl;
 	}
 
 	return stopProcessing;
 }
 
 
-void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * imagePairLink){
-	mImagePairsLinks.push_back(imagePairLink);
-}
+//void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * imagePairLink){
+//	mImagePairsLinks.push_back(imagePairLink);
+//}
 
 void Verif(Pt2df aPf)
 {
@@ -160,7 +180,22 @@ void cAppliTiepRed::DoReduce()
 		// Create an empty merging struct
 		mMergeStruct = new tMergeStr(mImages.size(),true);
 		// For each image pairs add all the tie points to the merging structure
-		for (std::list<cLnk2ImTiepRed *>::const_iterator itImagePairLink=mImagePairsLinks.begin() ; itImagePairLink!=mImagePairsLinks.end() ; itImagePairLink++){
+		typedef std::map<pair<int, int>, cLnk2ImTiepRed * >::const_iterator it_type;
+		for(it_type iterator = mImagePairsMap.begin(); iterator != mImagePairsMap.end(); iterator++) {
+
+			cLnk2ImTiepRed * imagePairLink = iterator->second;
+			// Get refernces to image indentifiers and tie points vectors
+			int aKImage1 =  (imagePairLink->Image1()).ImageId();
+			int aKImage2 =  (imagePairLink->Image2()).ImageId();
+			std::vector<Pt2df>& vP1 = imagePairLink->VP1();
+			std::vector<Pt2df>& vP2 = imagePairLink->VP2();
+			// Add all tie points to merging structure
+			for (std::size_t aKP=0 ; aKP<vP1.size() ; aKP++){
+				// Add elementary connection
+				mMergeStruct->AddArc(vP1[aKP],aKImage1,vP2[aKP],aKImage2);
+			}
+		}
+		/*for (std::list<cLnk2ImTiepRed *>::const_iterator itImagePairLink=mImagePairsLinks.begin() ; itImagePairLink!=mImagePairsLinks.end() ; itImagePairLink++){
 			// Get refernces to image indentifiers and tie points vectors
 			int aKImage1 =  ((*itImagePairLink)->Image1()).ImageId();
 			int aKImage2 =  ((*itImagePairLink)->Image2()).ImageId();
@@ -171,7 +206,7 @@ void cAppliTiepRed::DoReduce()
 				// Add elementary connection
 				mMergeStruct->AddArc(vP1[aKP],aKImage1,vP2[aKP],aKImage2);
 			}
-		}
+		}*/
 		mMergeStruct->DoExport();                  // "Compile" to make the point usable
 		mMergedHomolPointss =  & mMergeStruct->ListMerged();    // Get the merged multiple points
 		// A multi-point is a structure that contains the positions of the point in the different images where it is present
@@ -179,20 +214,44 @@ void cAppliTiepRed::DoReduce()
 		std::cout << "Initializing grids..." << endl;
 		std::size_t numCells = mNumCellsX * mNumCellsY;
 		std::vector<cImageGrid*> imageGridVec;
+        // All the tie-points are normalized in a unit box
+		Box2dr box = Box2dr(Pt2dr( -1, -1), Pt2dr( 1, 1));
+
+		int nX = mNumCellsX;
+		int nY = mNumCellsY;
+		// Images with few related images will use grids with more cells (max factor is 2)
+		if (mAdaptive == true){
+			double ft = std::min(sqrt(mMaxNumRelated / (mImages.size()-1)), 2.0);
+			nX = std::floor(ft * mNumCellsX);
+			nY = std::floor(ft * mNumCellsY);
+		}
+
 		//Initialize the grids. We only keep counters for the first one, i.e. the master
 		for (std::size_t i = 0 ; i<mImages.size() ; i++){
-			Box2dr box = Box2dr(Pt2dr( -1, -1), Pt2dr( 1, 1));
-			cImageGrid* ig = new cImageGrid(mImages[i], box, mNumCellsX, mNumCellsY, mImages.size());
+			int ngX = nX;
+			int ngY = nY;
+			if (mAdaptive == true && i > 0){
+				cImageTiepRed & homolImage = *(mImages[i]);
+				double fr = std::min(sqrt(mMaxNumHomol / homolImage.NbPtsHom2Im()),2.0);
+				ngX = std::floor(fr * nX);
+				ngY = std::floor(fr * nY);
+			}
+			cImageGrid* ig = new cImageGrid(mImages[i], box, ngX, ngY, mImages.size());
 			imageGridVec.push_back(ig);
 		}
+
+		std::vector<double> aVAcc;
 
 		std::cout << "Filling grids..." << endl;
 		// Put points in each image in a grid
 		// We iterate over all the multi-points
 		for (std::list<tMerge *>::const_iterator itMergedHomolPoints=mMergedHomolPointss->begin() ; itMergedHomolPoints!=mMergedHomolPointss->end() ; itMergedHomolPoints++){
 			// Create the multi-point instance
-			cPMulTiepRed * aPM = new cPMulTiepRed(*itMergedHomolPoints);
+			cPMulTiepRed * aPM = new cPMulTiepRed(*itMergedHomolPoints, *this);
 			mMultiPoints.push_back(aPM);
+
+			aVAcc.push_back(aPM->Acc());
+
 			// Get the indices of the images where this multi-point is present
 			const std::vector<U_INT2> & vecInd = (*itMergedHomolPoints)->VecInd();
 			for (std::size_t i = 0; i < vecInd.size(); i++){
@@ -201,7 +260,18 @@ void cAppliTiepRed::DoReduce()
 			}
 		}
 
-		//For the master image we sort points in grid cell. They are sorted according to multiplicity
+		if (aVAcc.size() ==0)
+		{
+		  return;
+		}
+		mStdAcc = MedianeSup(aVAcc);
+
+		// The gain can be computed once we know the standard accuracy
+		for (std::list<cPMulTiepRed *>::const_iterator itP=mMultiPoints.begin(); itP!=mMultiPoints.end();  itP++){
+			(*itP)->InitGain(*this);
+		}
+
+		//For the master image we sort points in grid cell. They are sorted according to gain
 		cImageGrid * masterImageGrid = imageGridVec[0];
 		std::cout << "Sorting master image grid..." << endl;
 		masterImageGrid->SortCells();
@@ -212,7 +282,7 @@ void cAppliTiepRed::DoReduce()
 			// Ideally we want to remove all the points in the cell except the one which is most important (the one which appers in most images)
 			if (masterImageGrid->NumPointsCell(cellIndex) > 1){ // If the cells only has a point we are done
 				std::vector<cPMulTiepRed *> & cellPoints = masterImageGrid->CellPoints(cellIndex); // Get the points in the cell
-				for (std::size_t j = cellPoints.size()-1u; j > 0; j--){ // For all the points except the first the most important
+				for (std::size_t j = cellPoints.size()-1u; j > 0; j--){ // For all the points except the first (the most important) and we start with the least important point
 					cPMulTiepRed * mp = cellPoints[j];
 					const std::vector<U_INT2> & vecInd = mp->MergedHomolPoints()->VecInd(); // We check in which images this point is present. It should be visible in 0 (the master image) and at least anther image
 					bool removable = true;
@@ -276,13 +346,13 @@ void cAppliTiepRed::DoExport()
     std::vector<std::vector<ElPackHomologue> > aVVH (aNbImage,std::vector<ElPackHomologue>(aNbImage));
     std::vector<std::vector<ElPackHomologue> > aVVHTemp (aNbImage,std::vector<ElPackHomologue>(aNbImage));
 
-    std::cout << "Storing multi-tie-points with multiplicity:";
+    std::cout << "Storing multi-tie-points with gain:";
 
     for (std::list<cPMulTiepRed *>::const_iterator itP=mMultiPoints.begin(); itP!=mMultiPoints.end();  itP++)
     {
     	if ((*itP)->Removed() == false){
 
-    		std::cout << ' ' << (*itP)->Multiplicity();
+    		std::cout << ' ' << (*itP)->Gain();
 
             tMerge * aMerge = (*itP)->MergedHomolPoints();
             const std::vector<Pt2dUi2> &  aVE = aMerge->Edges();

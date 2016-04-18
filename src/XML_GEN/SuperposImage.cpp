@@ -24600,6 +24600,204 @@ void xml_init(cXmlTNR_TestImgReport & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXmlTNR_TestImgReport *) {return "36BC03DE8A3264CCFE3F";};
 
 
+Pt3dr & cXml_RTI_ExportIm::PosLum()
+{
+   return mPosLum;
+}
+
+const Pt3dr & cXml_RTI_ExportIm::PosLum()const 
+{
+   return mPosLum;
+}
+
+void  BinaryUnDumpFromFile(cXml_RTI_ExportIm & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.PosLum(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RTI_ExportIm & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.PosLum());
+}
+
+cElXMLTree * ToXMLTree(const cXml_RTI_ExportIm & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RTI_ExportIm",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("PosLum"),anObj.PosLum())->ReTagThis("PosLum"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_RTI_ExportIm & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.PosLum(),aTree->Get("PosLum",1)); //tototo 
+}
+
+std::string  Mangling( cXml_RTI_ExportIm *) {return "C5A43983D9F934F5FE3F";};
+
+
+std::string & cXml_RTI_Im::Name()
+{
+   return mName;
+}
+
+const std::string & cXml_RTI_Im::Name()const 
+{
+   return mName;
+}
+
+
+cTplValGesInit< cXml_RTI_ExportIm > & cXml_RTI_Im::Export()
+{
+   return mExport;
+}
+
+const cTplValGesInit< cXml_RTI_ExportIm > & cXml_RTI_Im::Export()const 
+{
+   return mExport;
+}
+
+
+std::list< std::string > & cXml_RTI_Im::NameOmbre()
+{
+   return mNameOmbre;
+}
+
+const std::list< std::string > & cXml_RTI_Im::NameOmbre()const 
+{
+   return mNameOmbre;
+}
+
+void  BinaryUnDumpFromFile(cXml_RTI_Im & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Name(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Export().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Export().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Export().SetNoInit();
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             std::string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.NameOmbre().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RTI_Im & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Name());
+    BinaryDumpInFile(aFp,anObj.Export().IsInit());
+    if (anObj.Export().IsInit()) BinaryDumpInFile(aFp,anObj.Export().Val());
+    BinaryDumpInFile(aFp,(int)anObj.NameOmbre().size());
+    for(  std::list< std::string >::const_iterator iT=anObj.NameOmbre().begin();
+         iT!=anObj.NameOmbre().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_RTI_Im & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RTI_Im",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+   if (anObj.Export().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.Export().Val())->ReTagThis("Export"));
+  for
+  (       std::list< std::string >::const_iterator it=anObj.NameOmbre().begin();
+      it !=anObj.NameOmbre().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("NameOmbre"),(*it))->ReTagThis("NameOmbre"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_RTI_Im & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+
+   xml_init(anObj.Export(),aTree->Get("Export",1)); //tototo 
+
+   xml_init(anObj.NameOmbre(),aTree->GetAll("NameOmbre",false,1));
+}
+
+std::string  Mangling( cXml_RTI_Im *) {return "5F7CD59EA9ABBDBCFDBF";};
+
+
+std::string & cXml_RTI_Ombre::OrientMaster()
+{
+   return mOrientMaster;
+}
+
+const std::string & cXml_RTI_Ombre::OrientMaster()const 
+{
+   return mOrientMaster;
+}
+
+
+double & cXml_RTI_Ombre::DefAltiLum()
+{
+   return mDefAltiLum;
+}
+
+const double & cXml_RTI_Ombre::DefAltiLum()const 
+{
+   return mDefAltiLum;
+}
+
+void  BinaryUnDumpFromFile(cXml_RTI_Ombre & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.OrientMaster(),aFp);
+    BinaryUnDumpFromFile(anObj.DefAltiLum(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RTI_Ombre & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.OrientMaster());
+    BinaryDumpInFile(aFp,anObj.DefAltiLum());
+}
+
+cElXMLTree * ToXMLTree(const cXml_RTI_Ombre & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RTI_Ombre",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("OrientMaster"),anObj.OrientMaster())->ReTagThis("OrientMaster"));
+   aRes->AddFils(::ToXMLTree(std::string("DefAltiLum"),anObj.DefAltiLum())->ReTagThis("DefAltiLum"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_RTI_Ombre & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.OrientMaster(),aTree->Get("OrientMaster",1)); //tototo 
+
+   xml_init(anObj.DefAltiLum(),aTree->Get("DefAltiLum",1)); //tototo 
+}
+
+std::string  Mangling( cXml_RTI_Ombre *) {return "EBC6AD7F52D0C7E9FE3F";};
+
+
 std::string & cXml_ParamRTI::MasterIm()
 {
    return mMasterIm;
@@ -24643,6 +24841,39 @@ const cTplValGesInit< double > & cXml_ParamRTI::SeuilSat()const
    return mSeuilSat;
 }
 
+
+cTplValGesInit< int > & cXml_ParamRTI::SzHom()
+{
+   return mSzHom;
+}
+
+const cTplValGesInit< int > & cXml_ParamRTI::SzHom()const 
+{
+   return mSzHom;
+}
+
+
+std::list< cXml_RTI_Im > & cXml_ParamRTI::RTI_Im()
+{
+   return mRTI_Im;
+}
+
+const std::list< cXml_RTI_Im > & cXml_ParamRTI::RTI_Im()const 
+{
+   return mRTI_Im;
+}
+
+
+cTplValGesInit< cXml_RTI_Ombre > & cXml_ParamRTI::ParamOmbre()
+{
+   return mParamOmbre;
+}
+
+const cTplValGesInit< cXml_RTI_Ombre > & cXml_ParamRTI::ParamOmbre()const 
+{
+   return mParamOmbre;
+}
+
 void  BinaryUnDumpFromFile(cXml_ParamRTI & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.MasterIm(),aFp);
@@ -24656,6 +24887,31 @@ void  BinaryUnDumpFromFile(cXml_ParamRTI & anObj,ELISE_fp & aFp)
         }
         else  anObj.SeuilSat().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SzHom().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzHom().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SzHom().SetNoInit();
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_RTI_Im aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.RTI_Im().push_back(aVal);
+        }
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ParamOmbre().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ParamOmbre().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ParamOmbre().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamRTI & anObj)
@@ -24665,6 +24921,16 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamRTI & anObj)
     BinaryDumpInFile(aFp,anObj.ScaleSSRes());
     BinaryDumpInFile(aFp,anObj.SeuilSat().IsInit());
     if (anObj.SeuilSat().IsInit()) BinaryDumpInFile(aFp,anObj.SeuilSat().Val());
+    BinaryDumpInFile(aFp,anObj.SzHom().IsInit());
+    if (anObj.SzHom().IsInit()) BinaryDumpInFile(aFp,anObj.SzHom().Val());
+    BinaryDumpInFile(aFp,(int)anObj.RTI_Im().size());
+    for(  std::list< cXml_RTI_Im >::const_iterator iT=anObj.RTI_Im().begin();
+         iT!=anObj.RTI_Im().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.ParamOmbre().IsInit());
+    if (anObj.ParamOmbre().IsInit()) BinaryDumpInFile(aFp,anObj.ParamOmbre().Val());
 }
 
 cElXMLTree * ToXMLTree(const cXml_ParamRTI & anObj)
@@ -24676,6 +24942,16 @@ cElXMLTree * ToXMLTree(const cXml_ParamRTI & anObj)
    aRes->AddFils(::ToXMLTree(std::string("ScaleSSRes"),anObj.ScaleSSRes())->ReTagThis("ScaleSSRes"));
    if (anObj.SeuilSat().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SeuilSat"),anObj.SeuilSat().Val())->ReTagThis("SeuilSat"));
+   if (anObj.SzHom().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SzHom"),anObj.SzHom().Val())->ReTagThis("SzHom"));
+  for
+  (       std::list< cXml_RTI_Im >::const_iterator it=anObj.RTI_Im().begin();
+      it !=anObj.RTI_Im().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("RTI_Im"));
+   if (anObj.ParamOmbre().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.ParamOmbre().Val())->ReTagThis("ParamOmbre"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -24693,8 +24969,14 @@ void xml_init(cXml_ParamRTI & anObj,cElXMLTree * aTree)
    xml_init(anObj.ScaleSSRes(),aTree->Get("ScaleSSRes",1)); //tototo 
 
    xml_init(anObj.SeuilSat(),aTree->Get("SeuilSat",1),double(1e9)); //tototo 
+
+   xml_init(anObj.SzHom(),aTree->Get("SzHom",1)); //tototo 
+
+   xml_init(anObj.RTI_Im(),aTree->GetAll("RTI_Im",false,1));
+
+   xml_init(anObj.ParamOmbre(),aTree->Get("ParamOmbre",1)); //tototo 
 }
 
-std::string  Mangling( cXml_ParamRTI *) {return "D83D8DDFC545BED1FE3F";};
+std::string  Mangling( cXml_ParamRTI *) {return "60E93832EE5251D2FE3F";};
 
 // };

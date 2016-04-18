@@ -229,6 +229,13 @@ template <class Type,class TyBase>
 }
 
 template <class Type,class TyBase>
+        void DataGenImType<Type,TyBase>::out_rle(void * v,INT nb,const _INT8* i,INT offs_0) const
+{
+     convert(C_CAST(Type *,v) + offs_0,i,nb);
+}
+
+
+template <class Type,class TyBase>
         void DataGenImType<Type,TyBase>::out_rle(void * v,INT nb,const REAL * i,INT offs_0) const
 {
      convert(C_CAST(Type *,v)+offs_0,i,nb);
@@ -236,11 +243,21 @@ template <class Type,class TyBase>
 
 
 template <class Type,class TyBase>  void
-         DataGenImType<Type,TyBase>::input_rle
+         DataGenImType<Type,TyBase>::void_input_rle
               (void * v_out,INT nb,const void* v_in,INT offs_0) const
 {
      convert(C_CAST(TyBase *,v_out),C_CAST(const Type *,v_in) + offs_0,nb);
 }
+
+template <class Type,class TyBase>  void
+         DataGenImType<Type,TyBase>::int8_input_rle
+              (_INT8 * v_out,INT nb,const void* v_in,INT offs_0) const
+{
+     convert(v_out,C_CAST(const Type *,v_in) + offs_0,nb);
+}
+
+
+
 
 template <class Type,class TyBase>  void
          DataGenImType<Type,TyBase>::striped_input_rle
@@ -248,7 +265,7 @@ template <class Type,class TyBase>  void
 {
      // when dim ==1, this in fact not striped and convertion will be faster
      if (dim == 1)
-        input_rle(*((TyBase **)v_out),nb,v_in,offs_0);
+        void_input_rle(*((TyBase **)v_out),nb,v_in,offs_0);
      else
      {
           TyBase ** out = C_CAST(TyBase **,v_out);
@@ -437,6 +454,11 @@ template <> CONST_STAT_TPL bool DataGenImType<INT,INT>::_integral_type = true;
 template <> CONST_STAT_TPL DataIm1D<INT,INT> DataIm1D<INT,INT>::The_Bitm =  DataIm1D<INT,INT>(0,0,0,0);
 
 
+template <> CONST_STAT_TPL  GenIm::type_el DataGenImType<U_INT4,_INT8>::type_el_bitm = GenIm::u_int4;
+template <> CONST_STAT_TPL INT DataGenImType<U_INT4,_INT8>::v_max = (1<<31);
+template <> CONST_STAT_TPL INT DataGenImType<U_INT4,_INT8>::v_min = 0;
+template <> CONST_STAT_TPL bool DataGenImType<U_INT4,_INT8>::_integral_type = true;
+// template <> CONST_STAT_TPL DataIm1D<INT,INT> DataIm1D<U_INT4,_INT8>::The_Bitm =  DataIm1D<U_INT4,_INT8>(0,0,0,0);
 
 
 template <> CONST_STAT_TPL  GenIm::type_el DataGenImType<REAL4,REAL8>::type_el_bitm = GenIm::real4;
@@ -2246,6 +2268,7 @@ GenIm alloc_im1d(GenIm::type_el type_el,int tx,void * data)
             case GenIm::u_int2 :    return Im1D<U_INT2,INT>  ((Im1D<U_INT2,INT>  *) 0  ,tx,data);
             case  GenIm::int2 :     return Im1D<INT2,INT>    ((Im1D<INT2,INT>    *) 0  ,tx,data);
             case  GenIm::int4 :     return Im1D<INT4,INT>    ((Im1D<INT4,INT>    *) 0  ,tx,data);
+            case  GenIm::u_int4 :   return Im1D<U_INT,_INT8>    ((Im1D<U_INT,_INT8>    *) 0  ,tx,data);
             case  GenIm::real4 :    return Im1D<REAL4,REAL8> ((Im1D<REAL4,REAL8> *) 0  ,tx,data);
             case  GenIm::real8 :    return Im1D<REAL8,REAL8> ((Im1D<REAL8,REAL8> *) 0  ,tx,data);
             default :;
@@ -2358,7 +2381,11 @@ bool type_im_integral(GenIm::type_el type_el)
             case GenIm::int1 :
             case GenIm::u_int2 :
             case  GenIm::int2 :
-            case  GenIm::int4 :        return true;
+            case  GenIm::u_int4 :      
+            case  GenIm::int4 :      
+            case  GenIm::u_int8 :      
+            case  GenIm::int8 :      
+            return true;
 
             case  GenIm::real4 :
             case  GenIm::real8 :       return false;
@@ -2406,9 +2433,17 @@ INT nbb_type_num(GenIm::type_el type_el)
             case  GenIm::int2 :         return 16;
 
             case  GenIm::int4 :
-            case  GenIm::real4 :        return 32;
+            case  GenIm::u_int4 :
+            case  GenIm::real4 :    
+                                      return 32;
 
-            case  GenIm::real8 :        return 64;
+            case  GenIm::int8 :
+            case  GenIm::u_int8 :
+            case  GenIm::real8 :        
+                                     return 64;
+
+            case  GenIm::real16 :        
+                                     return 128;
 
             default :;
       }
@@ -2449,13 +2484,18 @@ bool signed_type_num(GenIm::type_el type_el)
             case GenIm::bits4_lsbf :
 
             case GenIm::u_int1 :
-            case GenIm::u_int2 :      return false;
+            case GenIm::u_int2 :  
+            case GenIm::u_int4 :  
+            case GenIm::u_int8 :  
+            return false;
 
             case GenIm::int1 :
             case  GenIm::int2 :
             case  GenIm::int4 :
+            case  GenIm::int8 :
             case  GenIm::real4 :
             case  GenIm::real8 :
+            case  GenIm::real16 :
                                        return true;
 
             default :;
@@ -2484,6 +2524,8 @@ GenIm::type_el type_u_int_of_nbb(INT nbb,bool msbf)
 
             case 8  : return GenIm::u_int1;
             case 16 : return GenIm::u_int2;
+            case 32 : return GenIm::u_int4;
+            case 64 : return GenIm::u_int8;
     }
 
     El_Internal.ElAssert
@@ -2500,12 +2542,22 @@ GenIm::type_el type_im(const std::string & aName)
       return GenIm::u_int1;
    if (aName=="int1")
       return GenIm::int1;
+
    if (aName=="u_int2")
       return GenIm::u_int2;
    if (aName=="int2")
       return GenIm::int2;
+
+   if (aName=="u_int4")
+      return GenIm::u_int4;
    if (aName=="int4")
       return GenIm::int4;
+
+   if (aName=="u_int8")
+      return GenIm::u_int8;
+   if (aName=="int8")
+      return GenIm::int8;
+
    if (aName=="real4")
       return GenIm::real4;
    if (aName=="real8")
@@ -2520,12 +2572,22 @@ std::string eToString(const GenIm::type_el & aType)
        return  "u_int1";
     if (aType==GenIm::int1)
        return  "int1";
+
     if (aType==GenIm::u_int2)
        return  "u_int2";
     if (aType==GenIm::int2)
        return  "int2";
+
+    if (aType==GenIm::u_int4)
+       return  "u_int4";
     if (aType==GenIm::int4)
        return  "int4";
+
+    if (aType==GenIm::u_int8)
+       return  "u_int8";
+    if (aType==GenIm::int8)
+       return  "int8";
+
     if (aType==GenIm::real4)
        return  "real4";
     if (aType==GenIm::real8)
@@ -2547,6 +2609,8 @@ GenIm::type_el type_im(bool integral,INT nbb,bool Signed,bool msbf)
                return GenIm::int2;
              if (nbb == 32)
                return GenIm::int4;
+             if (nbb == 64)
+               return GenIm::int8;
          }
          else
             return  type_u_int_of_nbb(nbb,msbf);

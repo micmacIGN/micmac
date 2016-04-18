@@ -150,7 +150,7 @@ template <class TypeBase> const Pack_Of_Pts *
     }
 
    if (nb_tot)
-      _gi->input_rle
+      _gi->void_input_rle
       (
              this->_pack_out->_pts[0],
              nb_tot,

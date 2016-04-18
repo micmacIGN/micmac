@@ -46,15 +46,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                         cLnk2ImTiepRed                          */
 /*                                                                    */
 /**********************************************************************/
-cLnk2ImTiepRed::cLnk2ImTiepRed(cImageTiepRed * aImage1,cImageTiepRed * aImage2) :
+cLnk2ImTiepRed::cLnk2ImTiepRed(cImageTiepRed * aImage1,cImageTiepRed * aImage2, CamStenope * aCam1, CamStenope * aCam2) :
     mImage1 (aImage1),
-    mImage2 (aImage2)
+    mImage2 (aImage2),
+    mCam1 (aCam1),
+	mCam2 (aCam2)
 {}
 
 cImageTiepRed &     cLnk2ImTiepRed::Image1() {return *mImage1;}
 cImageTiepRed &     cLnk2ImTiepRed::Image2() {return *mImage2;}
+CamStenope &     cLnk2ImTiepRed::Cam1() {return *mCam1;}
+CamStenope &     cLnk2ImTiepRed::Cam2() {return *mCam2;}
 std::vector<Pt2df>&  cLnk2ImTiepRed::VP1()  {return mVP1;}
 std::vector<Pt2df>&  cLnk2ImTiepRed::VP2()  {return mVP2;}
+//std::vector<double>& cLnk2ImTiepRed::Acc() {return mAcc;}
 
 #endif
 

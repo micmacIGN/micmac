@@ -133,23 +133,22 @@ bool cInitCamAppuis::InitPts(const cMesureAppuiFlottant1Im & aMAF)
 
 //==============================================
 
-class cAppli_Aspro :  public cAppliWithSetImage
+class cAppli_Aspro //  :  public cAppliWithSetImage
 {
     public :
 
        cAppli_Aspro(int argc,char ** argv);
   
+       cElemAppliSetFile mEASF;
        std::string mNameIm;
        std::string mNameCalib;
        std::string mNameFile3D;
        std::string mNameFile2D;
 };
 
-cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) :
-     cAppliWithSetImage (argc-1,argv+1,0)
+cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) //  : cAppliWithSetImage (argc-1,argv+1,0)
 
 {
-
 
    ElInitArgMain
    (
@@ -161,11 +160,15 @@ cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) :
        LArgMain()  // << EAM(toto,"toto",true,"toto et ttiti");
    );
 
+   
+   mEASF.Init(mNameIm);
+   StdCorrecNameOrient(mNameCalib,mEASF.mDir);
+
    std::string aCom =          MM3dBinFile_quotes("Apero")
                        + " " + XML_MM_File("Apero-GCP-Init.xml")
-                       + " DirectoryChantier=" + Dir()
+                       + " DirectoryChantier=" + mEASF.mDir
                        + " +PatternAllIm=" + mEASF.mPat
-                       + " +CalibIn="      + mOri
+                       + " +CalibIn="      + mNameCalib
                        + " +AeroOut=Aspro"
                        + " +DicoApp="  + mNameFile3D
                        + " +SaisieIm=" + mNameFile2D;
@@ -265,6 +268,7 @@ int Init11Param_Main(int argc,char ** argv)
              Pt2dr aPP(aMat(2,0),aMat(2,1));
              double aSkew =  aMat(1,0);
 
+
              Pt3dr aCenter =  aR.ImAff(Pt3dr(0,0,0));
              double Alti = aPMoy.z;
              double Prof = euclid(aPMoy-aCenter);
@@ -308,6 +312,7 @@ int Init11Param_Main(int argc,char ** argv)
                                 + aBlk  + aNameIm 
                                 + aBlk  + Dir11Param 
                                 + aBlk  + Dir11Param + "Comp "
+                                + " SH=NONE "
                                 + std::string(" FocFree=1 PPFree=1 CPI2=1 GCP=[")
                                 +  aICA.aNameFile3D + aVirg + ToString(1e-3) + aVirg
                                 +  aICA.aNameFile2D + aVirg + ToString(1e3) + "]";

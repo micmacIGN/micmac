@@ -45,15 +45,88 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                               */
 /*****************************************************************/
 
+template <class Type> Type & MessageInit(const std::string & aMes,Type & aVal)
+{
+      std::cout << aMes << "\n" ;
+    return aVal;
+}
+template <class Type> const Type & MessageInit(const std::string & aMes,const Type & aVal)
+{
+      std::cout << aMes << "\n" ;
+    return aVal;
+}
+
 cOneIm_RTI::cOneIm_RTI(cAppli_RTI & anAppli,const std::string & aName,bool isMaster) :
-    mAppli     (anAppli),
-    mName      (aName),
-    mMaster    (isMaster),
-    mNameIS    (mAppli.Dir() + (isMaster ? "" : cAppli_RTI::ThePrefixReech) + aName +  (isMaster ? "" : ".tif")),
-    mNameISPan (NameFileStd(mNameIS,1,true)),
-    mNameISR   ( cAppli_RTI::ThePrefixReech  + NameWithoutDir(mNameISPan) + "_Scaled.tif")
+    mAppli       (anAppli),
+    mName        (aName),
+    mMaster      (isMaster),
+    mWithRecal   ((!mMaster) && mAppli.WithRecal()),
+    mNameIS      (mAppli.Dir() + (mWithRecal ? cAppli_RTI::ThePrefixReech:"") + aName +  (mWithRecal ? ".tif" : "" )),
+    mNameISPan   (NameFileStd(mNameIS,1,true)),
+    mNameISR     ( cAppli_RTI::ThePrefixReech  + NameWithoutDir(mNameISPan) + "_Scaled.tif"),
+    mNameMasq    (StdPrefix(mName) + "_Masq.tif"),
+    mNameMasqR   (cAppli_RTI::ThePrefixReech + StdPrefix(mNameMasq) + "_Scaled.tif"),
+    mNameDif     (cAppli_RTI::ThePrefixReech + "ImDif-" + StdPrefix(mName) + ".tif"),
+    mXml         (0),
+    mHasExp      (false)
 {
 }
+
+void cOneIm_RTI::SetXml(cXml_RTI_Im* aXml)
+{
+    mXml = aXml;
+    mHasExp = mXml->Export().IsInit();
+    if (mHasExp)
+    {
+       mCenterLum =  mXml->Export().Val().PosLum();
+    }
+}
+
+const Pt3dr & cOneIm_RTI::CenterLum() const
+{
+   ELISE_ASSERT(mHasExp,"cOneIm_RTI::CenterLum");
+   return mCenterLum;
+}
+
+//cXml_RTI_Im*&   cOneIm_RTI::Xml() {return mXml;}
+
+
+const std::string & cOneIm_RTI::NameDif() {return mNameDif;}
+bool cOneIm_RTI::IsMaster() const {return mMaster;}
+
+Im2D_U_INT2  cOneIm_RTI::MemImFull()
+{
+    return Im2D_U_INT2::FromFileStd(mNameISPan);
+}
+
+Im2D_U_INT2  cOneIm_RTI::MemImRed()
+{
+    return Im2D_U_INT2::FromFileStd(mNameISR);
+}
+
+Im2D_Bits<1> cOneIm_RTI::ImMasqFull()
+{
+    return MasqFromFile(mNameMasq);
+}
+
+
+Im2D_Bits<1> cOneIm_RTI::MasqRed(Im2D_U_INT2 anIm)
+{
+    return MasqFromFile(mNameMasqR,anIm.sz());
+/*
+   if (ELISE_fp::exist_file(mNameMasqR))
+   {
+       Tiff_Im aTif(mNameMasqR.c_str());
+       Pt2di aSz = aTif.sz();
+       Im2D_Bits<1> aRes(aSz.x,aSz.y);
+       ELISE_COPY(aTif.all_pts(),aTif.in(),aRes.out());
+       return aRes;
+   }
+   Pt2di aSz = anIm.sz();
+   return Im2D_Bits<1>(aSz.x,aSz.y,1);
+*/
+}
+
 
 Tiff_Im  cOneIm_RTI::DoImReduite()
 {
@@ -70,31 +143,7 @@ Tiff_Im  cOneIm_RTI::DoImReduite()
    
         System(aCom);
    }
-
-   return Tiff_Im(mNameISR.c_str());
-}
-
-Tiff_Im   cOneIm_RTI::ImFull() {return Tiff_Im(mNameISPan.c_str());}
-const std::string & cOneIm_RTI::Name() const {return mName;}
-
-
-/*****************************************************************/
-/*                                                               */
-/*                 cOneIm_RTI_Slave                              */
-/*                                                               */
-/*****************************************************************/
-
-cOneIm_RTI_Slave::cOneIm_RTI_Slave(cAppli_RTI & anAppli,const std::string & aName) :
-   cOneIm_RTI      (anAppli,aName,false),
-   mNameMasq       (StdPrefix(mNameISPan) + "Masq.tif"),
-   mNameMasqR      (StdPrefix(mNameMasq) + "_Scaled.tif")
-{
-}
-
-Tiff_Im cOneIm_RTI_Slave::DoImReduite()
-{
-   Tiff_Im aRes = cOneIm_RTI::DoImReduite();
-   if (! ELISE_fp::exist_file(mNameMasqR))
+   if (ELISE_fp::exist_file(mNameMasq) && (! ELISE_fp::exist_file(mNameMasqR)))
    {
         std::string aCom =    MM3dBinFile("ScaleIm ") 
                            +  mNameMasq 
@@ -106,13 +155,43 @@ Tiff_Im cOneIm_RTI_Slave::DoImReduite()
         System(aCom);
    }
 
+
+   return Tiff_Im(mNameISR.c_str());
+}
+
+Tiff_Im   cOneIm_RTI::FileImFull(const std::string & aName) 
+{
+    if (aName=="ImDif") return Tiff_Im(mNameDif.c_str());
+    if (aName=="") return Tiff_Im(mNameISPan.c_str());
+
+    ELISE_ASSERT(false,"cOneIm_RTI::FileImFull");
+    return Tiff_Im(mNameISPan.c_str());
+}
+
+const std::string & cOneIm_RTI::Name() const {return mName;}
+
+Tiff_Im   cOneIm_RTI::MasqFull() {return Tiff_Im(mNameMasq.c_str());}
+
+/*****************************************************************/
+/*                                                               */
+/*                 cOneIm_RTI_Slave                              */
+/*                                                               */
+/*****************************************************************/
+
+cOneIm_RTI_Slave::cOneIm_RTI_Slave(cAppli_RTI & anAppli,const std::string & aName) :
+   cOneIm_RTI      (anAppli,aName,false)
+{
+}
+
+Tiff_Im cOneIm_RTI_Slave::DoImReduite()
+{
+   Tiff_Im aRes = cOneIm_RTI::DoImReduite();
    return aRes;
 }
 
 const std::string &  cOneIm_RTI_Slave::NameMasq()  const {return mNameMasq;}
 const std::string &  cOneIm_RTI_Slave::NameMasqR() const {return mNameMasqR;}
 
-Tiff_Im   cOneIm_RTI_Slave::MasqFull() {return Tiff_Im(mNameMasq.c_str());}
 
 
 /*****************************************************************/

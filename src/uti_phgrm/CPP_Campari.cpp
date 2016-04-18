@@ -254,7 +254,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(mMulRTA,"MulRTA",true,"Rolling Test Appuis , multiplier ")
                     << EAM(mNameRTA,"NameRTA",true,"Name for save results of Rolling Test Appuis , Def=SauvRTA.xml")
                     << EAM(GCPRTA,"GCPRTA",true,"Internal Use, GCP for RTA ")
-                    << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
+                    << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq, set NONE if unused")
                     << EAM(aNbIterFin,"NbIterEnd",true,"Number of iteration at end, Def = 4")
                     // << EAM(GCP,"MulRTA",true,"Rolling Test Appuis , multiplier ")
                     << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
@@ -363,10 +363,17 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         }
 
 
-        StdCorrecNameHomol(aSetHom,mDir);
-        if (EAMIsInit(&aSetHom))
+        if (aSetHom=="NONE")
         {
-            mCom = mCom + std::string(" +SetHom=") + aSetHom;
+            mCom = mCom + " +UseHom=false ";
+        }
+        else
+        {
+           StdCorrecNameHomol(aSetHom,mDir);
+           if (EAMIsInit(&aSetHom))
+           {
+               mCom = mCom + std::string(" +SetHom=") + aSetHom;
+           }
         }
 
 

@@ -71,7 +71,7 @@ class cImageGrid {
 		cImageGrid(cImageTiepRed * aImage, Box2dr & aBox , int aNumCellsX, int aNumCellsY, int aNumImages); // Constructor. Initializes the grid
 		cImageTiepRed &     Image(); // Gets reference to image
 		void Add(cPMulTiepRed * aMultiPoint); // Adds a (point of) multi-point in the cell where it lays (actually the position in current image of the multi-point)
-		void SortCells(); // Sort the multi-points in the cells according to their multiplicity (number of images in which the multi-point has a visible tie-point)
+		void SortCells(); // Sort the multi-points in the cells according to their gain
 		int CellIndex(const Pt2df & aPoint); // Gets the cell index for a given aPoint
 		int NumPointsCell(int aCellIndex); // Gets the number of points in a cell given its cellIndex
 		int NumPointsCellImage(int aCellIndex, int aImageId); // Gets the number of points in a cell for a certain related image index given its cellIndex
@@ -91,16 +91,22 @@ class cImageGrid {
 class cLnk2ImTiepRed
 {
      public :
-		cLnk2ImTiepRed(cImageTiepRed * aImage1,cImageTiepRed * aImage2); // Constructor from pointers to the two images
+		cLnk2ImTiepRed(cImageTiepRed * aImage1,cImageTiepRed * aImage2, CamStenope * aCam1, CamStenope * aCam2); // Constructor from pointers to the two images and two cameras
 		cImageTiepRed &     Image1(); // Gets reference to image 1
 		cImageTiepRed &     Image2(); // Gets reference to image 2
+		CamStenope &     Cam1(); // Gets reference to camera 1
+		CamStenope &     Cam2(); // Gets reference to camera 2
         std::vector<Pt2df>&  VP1(); // Gets reference to vector of tie points in image 1
         std::vector<Pt2df>&  VP2(); // Gets reference to vector of tie points in image 2
+//        std::vector<double>& Acc(); // Gets the reference to vector of accuracies
      private :
         cImageTiepRed *    mImage1; //reference to image 1
         cImageTiepRed *    mImage2; //reference to image 2
+        CamStenope * mCam1; // reference to camera 1
+        CamStenope * mCam2; // reference to camera 2
         std::vector<Pt2df> mVP1; //vector of tie points in image 1
         std::vector<Pt2df> mVP2; //vector of tie points in image 2
+//        std::vector<double> mAcc; //vector of accuracy of the tie-points of this image pair
 };
 
 // Class to handle an image
@@ -127,15 +133,18 @@ class cImageTiepRed
 class cPMulTiepRed
 {
      public :
-	   cPMulTiepRed(tMerge * aMergedHomolPoints); // Constructor. From the merged tie points structure pointer
-       const int  & Multiplicity() const {return mMultiplicity;} // Gets the (const) multiplicity
-       int  & Multiplicity() {return mMultiplicity;} // Gets the multiplicity
+	   cPMulTiepRed(tMerge * aMergedHomolPoints, cAppliTiepRed & anAppli); // Constructor. From the merged tie points structure pointer
+	   const double  & Acc() const {return mAcc;}
+       const double  & Gain() const {return mGain;} // Gets the (const) Gain
+       double  & Gain() {return mGain;} // Gets the Gain
        tMerge * MergedHomolPoints() {return mMergedHomolPoints;} // Gets the pointer to the merged tie points structure
+       void InitGain(cAppliTiepRed & anAppli);
        bool Removed() const; // Gets bool indicating if the point is selected for removal
        void Remove(); // Sets this point for its removal
      private :
        tMerge * mMergedHomolPoints; // Reference to the merged tie points structure
-       int      mMultiplicity; //Multiplicity of this multi-point (i.e. in how many images it is present)
+       double   mAcc; // Accuracy of the multi-tie-point (worst accuracy of the related tie-points)
+       double   mGain;  // Gain to select this tie points (takes into account multiplicity and precision)
        bool     mRemoved; //Indicates if multi-point is selected for removal
 };
 
@@ -147,7 +156,11 @@ class cAppliTiepRed
           void Exe(); // Executes the application
           cVirtInterf_NewO_NameManager & NM(); //Folder names manager
           const cXml_ParamSubcommandTiepRed & ParamSubcommand() const; //Structure to handle the Subcommand information from XML (only by children)
-          void AddLnk(cLnk2ImTiepRed * imagePairLink); // Adds an image pair link
+          const double & ThresholdAccMult() const;
+          //void AddLnk(cLnk2ImTiepRed * imagePairLink); // Adds an image pair link
+          std::map<pair<int, int>, cLnk2ImTiepRed * > & ImagePairsMap() {return mImagePairsMap;}
+          int  & GainMode() {return mGainMode;}
+          double & StdAcc() {return mStdAcc;}
           std::string NameHomol(const std::string &aName1,const std::string &aName2) const; //Gets the name of file that contains tie points of the given images names
           std::string NameHomolTemp(const std::string &aName1,const std::string &aName2) const; //Gets the name of file that contains tie points of the given images names in the format use by this app
      private :
@@ -199,6 +212,8 @@ class cAppliTiepRed
           std::string                      mPatImage; // Pattern of images to use
           int 							   mNumCellsX; // Target number of tie point per image in X
           int 							   mNumCellsY; // Target number of tie point per image in Y
+          bool 							   mAdaptive; // Indicates if grids are adaptive (for image-pairs with less points grids with more cells are used)
+          double mThresholdAccMult; // Threshold on accuracy for multiple points
           cVirtInterf_NewO_NameManager *   mNM ; // Folder name manager
           const std::vector<std::string> * mImagesNames; // Image names
           std::vector<cImageTiepRed *>     mImages; // Images
@@ -208,13 +223,18 @@ class cAppliTiepRed
           bool 							   mSortByNum; // Indicates if the user wishes to sort the images by number of tie points instead of by file name
           bool							   mDesc; //Indicates if the user wishes to use descending order in sorting the images, instead of ascending
           int                              mSubcommandIndex; // Subcommand index (used by the subcommands only)
+          int 							   mGainMode; // mode to compute the gain of a multi-tie-point
+          int 							   mMaxNumRelated; // Maximum number of related images
+          int							   mMaxNumHomol; // Maximum number of homol-points in a image-pair
           int 							   mNumInit; // Initial number of tie points in the master image (used by the subcommands only)
           int 							   mNumDeleted; // Number of deleted multi-tie-points (used by the subcommands only)
           cXml_ParamSubcommandTiepRed      mXmlParamSubcommand; // Structure with subcommand configuration info
-          std::list<cLnk2ImTiepRed *>      mImagePairsLinks; //Image pairs
+          //std::list<cLnk2ImTiepRed *>      mImagePairsLinks; //Image pairs
+          std::map<pair<int, int>, cLnk2ImTiepRed * > mImagePairsMap; //Image pairs map
           tMergeStr *                      mMergeStruct; //Merged structure to handle all tie points and image pairs
-          const std::list<tMerge *> *      mMergedHomolPointss;//List of multi-tie-points (without multiplicity and removing flag)
-          std::list<cPMulTiepRed* >        mMultiPoints; // List of multi-tie-points (with multiplicity and removing flag)
+          const std::list<tMerge *> *      mMergedHomolPointss;//List of multi-tie-points (without gain and removing flag)
+          std::list<cPMulTiepRed* >        mMultiPoints; // List of multi-tie-points (with gain and removing flag)
+          double                           mStdAcc;
 };
 
 #endif // 
