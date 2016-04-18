@@ -740,12 +740,10 @@ cRPC::cRPC(const std::string &aName) :
    
     /* Retrieve the coordinate system for the computations */
     const cSystemeCoord * aChSys = aXml.SysCible().PtrCopy();//Val();
-	
     
     /* Initialize the class variables */
-    Initialize(aNameRPC,aType,aChSys);
+    Initialize(aName,aType,aChSys);
     
-   
     
 }
 
@@ -761,26 +759,39 @@ cRPC::cRPC(const std::string &aName, const eTypeImporGenBundle &aType, const cSy
     
     /* Initialize the class variables */
     Initialize(aName,aType,aChSys);
+
+
 }
 
 void cRPC::Initialize(const std::string &aName, 
                       const eTypeImporGenBundle &aType,
-                      const cSystemeCoord *aChSys)
+                      const cSystemeCoord *aChSys
+                      )
 {
+    bool aPolType=0;
+    std::string aNamePol,aNameRPC=aName;
+    if(AutoDetermineRPCFile(aName))
+    {
+        aPolType=1;
+        cXml_CamGenPolBundle aXml = StdGetFromSI(aName,Xml_CamGenPolBundle);
+        aNameRPC=aXml.NameCamSsCor();
+        aNamePol=aName;
+
+    }
+
     mChSys = *aChSys;
 
     if(aType==eTIGB_MMDimap2)
     {
-        ReadDimap(aName);
+        ReadDimap(aNameRPC);
         
         SetRecGrid();
 
         if(aChSys)
             ChSysRPC(mChSys);
        
-        if(AutoDetermineRPCFile(aName))
-            SetPolyn(aName);
-
+        if(aPolType)
+            SetPolyn(aNamePol);
     }
     else if(aType==eTIGB_MMDimap1)
     {
@@ -788,7 +799,7 @@ void cRPC::Initialize(const std::string &aName,
     }
     else if(aType==eTIGB_MMDGlobe)
     {
-        ReadXML(aName);
+        ReadXML(aNameRPC);
         
         InvToDirRPC();
         
@@ -797,14 +808,14 @@ void cRPC::Initialize(const std::string &aName,
         if(aChSys)
             ChSysRPC(mChSys);
 
-        if(AutoDetermineRPCFile(aName))
-            SetPolyn(aName);
+        if(aPolType)
+            SetPolyn(aNamePol);
     }
     else if(aType==eTIGB_MMIkonos)
     {
-        ReadASCII(aName);
+        ReadASCII(aNameRPC);
 	    
-        ReadASCIIMeta("Metafile.txt", aName);
+        ReadASCIIMeta("Metafile.txt", aNameRPC);
 	    
         InvToDirRPC();
 
@@ -813,8 +824,8 @@ void cRPC::Initialize(const std::string &aName,
         if(aChSys)
             ChSysRPC(mChSys);
 
-        if(AutoDetermineRPCFile(aName))
-            SetPolyn(aName);
+        if(aPolType)
+            SetPolyn(aNamePol);
     }
     else if(aType==eTIGB_MMSpice)
     {
@@ -1047,8 +1058,10 @@ Pt3dr cRPC::DirectRPC(const Pt2dr &aP, const double &aZ) const
 
     //polynom refinement
     if(mRefine==eRP_Poly)
-        aPIm = mPol->DeltaCamInit2CurIm(Pt2dr(aP.x, aP.y));
-
+    {
+        Pt2dr aDep=mPol->DeltaCamInit2CurIm(Pt2dr(aP.x, aP.y));
+        aPIm += aDep; 
+    }
     //normalize
     aPIm = NormIm(aPIm);
     const double aZGr = NormGrZ(aZ);
@@ -1111,8 +1124,10 @@ Pt2dr cRPC::InverseRPC(const Pt3dr &aP) const
 
     //polynom refinement
     if(mRefine==eRP_Poly)
-        aPIm = mPol->DeltaCamInit2CurIm(Pt2dr(aPIm.x, aPIm.y));
-
+    {
+        Pt2dr aDep = mPol->DeltaCamInit2CurIm(Pt2dr(aPIm.x, aPIm.y));
+        aPIm += aDep;
+    }
     return( aPIm );
 
 }
@@ -1375,6 +1390,7 @@ void cRPC::SetPolyn(const std::string &aName)
 {
     mPol = cPolynomial_BGC3M2D::NewFromFile(aName);
     mRefine = eRP_Poly; 
+    //mPol->Show();
 }
 
 /* Even if an image crop is used, the RPC are recomputed on the original img
@@ -2301,6 +2317,7 @@ void cRPC::ReadDimap(const std::string &aFile)
     int aK;
     cElXMLTree aTree(aFile.c_str());
 
+
     std::list<cElXMLTree*>::iterator aIt;
 
     std::string aSNumStr;
@@ -2541,9 +2558,9 @@ int TestCamRPC(int argc,char** argv)
         LArgMain()
    );
 
-   double anAlti = 4400;
+   double anAlti = 400;
    CameraRPC aCam(aName,anAlti);
-   Pt3dr aP0 (355936.0,3127508.8,6571.52);
+   Pt3dr aP0 (355936.0,3127508.8,571.52);//6571.52
    Pt2dr aStepIn(12.8,-12.8);
 
    for (int anX=-1 ; anX<=1 ; anX++)
