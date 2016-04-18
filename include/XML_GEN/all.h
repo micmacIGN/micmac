@@ -209,6 +209,10 @@ class cInterfChantierNameManipulateur
 
 
 
+        ElPackHomologue StdPackHomol(const std::string & anExt,const std::string & aI1,const std::string &aI2);
+        std::string  StdNameHomol(const std::string & anExt,const std::string & aI1,const std::string &aI2);
+
+
          std::string NameOriStenope(const tKey & aKeyOri,const std::string & aNameIm);
          std::string StdNameCalib(const std::string & anOri,const std::string & aNameIm);  // =>  Ori-XX/AutoCal ...
          CamStenope *  StdCamOfNames(const std::string & anOri,const std::string & aNameIm);  // => Ori-XX/Orientation...
