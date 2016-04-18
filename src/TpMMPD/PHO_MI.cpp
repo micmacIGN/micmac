@@ -798,32 +798,14 @@ CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOr
     Tiff_Im aTiffImg1( Tiff_Im::StdConvGen(this->mDirImages+"/"+aNameImg1,1,false));
     Tiff_Im aTiffImg2( Tiff_Im::StdConvGen(this->mDirImages+"/"+aNameImg2,1,false));
     //====lire Cam1 et Cam2====//
-//    NotTif_flag=false;
-//    if (NotTif_flag == false)
-//    {
+
         std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg1, true);
         CamStenope * aCam1 = CamOrientGenFromFile(aOri1 , aICNM);
         std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg2,true);
         CamStenope * aCam2 = CamOrientGenFromFile(aOri2 , aICNM);
         this->mCam1 = aCam1;
         this->mCam2 = aCam2;
-//    }
-//    else
-//    {
-//        aNameImg1 = aNameImg1.substr(13, aNameImg1.length());
-//        aNameImg1 = aNameImg1.substr(0, aNameImg1.length()-8);
 
-//        aNameImg2 = aNameImg2.substr(13, aNameImg2.length());
-//        aNameImg2 = aNameImg2.substr(0, aNameImg2.length()-8);
-
-//        cout<<aNameImg1<< " ++ "<<aNameImg2<<endl;
-//        std::string aOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg1, true);
-//        CamStenope * aCam1 = CamOrientGenFromFile(aOri1 , aICNM);
-//        std::string aOri2 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ aOri, aNameImg2,true);
-//        CamStenope * aCam2 = CamOrientGenFromFile(aOri2 , aICNM);
-//        this->mCam1 = aCam1;
-//        this->mCam2 = aCam2;
-    //}
 }
 
 void CplImg::SupposeVecSruf1er(Pt2dr dirX, Pt2dr dirY)
@@ -856,13 +838,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
     string aDirImages = this->mDirImages;
     string aNameImg1 = this->mNameImg1;
     string aNameImg2 = this->mNameImg2;
-//    if (this->NotTif_flag == true)
-//    {
-//        aNameImg1 = aNameImg1.substr(13, aNameImg1.length());
-//        aNameImg1 = aNameImg1.substr(0, aNameImg1.length()-8);
-//        aNameImg2 = aNameImg2.substr(13, aNameImg2.length());
-//        aNameImg2 = aNameImg2.substr(0, aNameImg2.length()-8);
-//    }
+
     CamStenope * aCam1 = this->mCam1;
     CamStenope * aCam2 = this->mCam2;
     bool displayVignette = this->mdisplayVignette;
@@ -899,13 +875,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
     // ====Import images Tiff and IM2D =====//
     aNameImg1 = this->mNameImg1;
     aNameImg2 = this->mNameImg2;
-//    if(this->NotTif_flag == true)
-//        {
-//            aNameImg3 = "./Tmp-MM-Dir/" + aNameImg3 + "_Ch1.tif";
-//        }
-    //Tiff_Im mTiffImg1(aNameImg1.c_str());
-    //Tiff_Im mTiffImg2(aNameImg2.c_str());
-    //Tiff_Im mTiffImg3(aNameImg3.c_str());
+
 
     Tiff_Im mTiffImg1( Tiff_Im::StdConvGen(this->mDirImages+"/"+aNameImg1,1,false));
     Tiff_Im mTiffImg2( Tiff_Im::StdConvGen(this->mDirImages+"/"+aNameImg2,1,false));
@@ -1070,8 +1040,11 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
                         {
                             cout<<endl<<"Order = Deforme Img3 - Img1 - Origin Img3"<<endl;
                             cout<<"Corell Deforme = "<<corl<<" - Corell Origin = "<<corl_o<<endl;
+                            cout << "Inside1"<<endl;
                             if (mW==0)
-                                {mW = Video_Win::PtrWStd(mIm2DImgette3.sz()*4);}  //vignette deforme img3
+                                {
+                                    mW = Video_Win::PtrWStd(mIm2DImgette3.sz()*4);
+                                }  //vignette deforme img3
                             ELISE_COPY(mW->all_pts(), mIm2DImgette3.in()[Virgule(FX/4,FY/4)] ,mW->ogray());
                             if (mW1==0)
                             {
@@ -1106,258 +1079,6 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
 
 
 
-
-//vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
-//{
-//    vector<bool> result;
-//    cInterfChantierNameManipulateur * aICNM = this->mICNM;
-//    string aKHIn = this->mKHIn;
-//    string aDirImages = this->mDirImages;
-//    string aNameImg1 = this->mNameImg1;
-//    string aNameImg2 = this->mNameImg2;
-//    if (this->NotTif_flag == true)
-//    {
-//        aNameImg1 = aNameImg1.substr(13, aNameImg1.length());
-//        aNameImg1 = aNameImg1.substr(0, aNameImg1.length()-8);
-//        aNameImg2 = aNameImg2.substr(13, aNameImg2.length());
-//        aNameImg2 = aNameImg2.substr(0, aNameImg2.length()-8);
-//    }
-//    CamStenope * aCam1 = this->mCam1;
-//    CamStenope * aCam2 = this->mCam2;
-//    bool displayVignette = this->mdisplayVignette;
-//    //====Import collection 3eme Image====//
-//    string aNameImg3 = m3emeImg;
-//    std::string aOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+ this->mOri, aNameImg3, true);
-//    CamStenope * aCam3 = CamOrientGenFromFile(aOri3 , aICNM);
-//    //====Import Pack Homologue======//
-//    std::string aHomoIn1_2 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg2,true);
-//    StdCorrecNameHomol_G(aHomoIn1_2,aDirImages);
-//    ElPackHomologue aPackIn1_2, aPackIn1_3, aPackIn2_3;
-//    bool Exist1_2 = ELISE_fp::exist_file(aHomoIn1_2);
-//    if (Exist1_2)
-//         {aPackIn1_2 =  ElPackHomologue::FromFile(aHomoIn1_2);}
-//    else
-//         {cout<<"Homol "<<aNameImg1<<" ++ "<<aNameImg2<<" not existed !";}
-
-//    std::string aHomoIn1_3 = aICNM->Assoc1To2(aKHIn, aNameImg1, aNameImg3,true);
-//    StdCorrecNameHomol_G(aHomoIn1_3,aDirImages);
-//    bool Exist1_3 = ELISE_fp::exist_file(aHomoIn1_3);
-//    if (Exist1_3)
-//        {aPackIn1_3 =  ElPackHomologue::FromFile(aHomoIn1_3);}
-//    else
-//         {cout<<"Homol "<<aNameImg1<<" ++ "<<aNameImg3<<" not existed !";}
-
-//    std::string aHomoIn2_3 = aICNM->Assoc1To2(aKHIn, aNameImg2, aNameImg3, true);
-//    StdCorrecNameHomol_G(aHomoIn2_3,aDirImages);
-//    bool Exist2_3 = ELISE_fp::exist_file(aHomoIn2_3);
-//    if (Exist2_3)
-//        {aPackIn2_3 =  ElPackHomologue::FromFile(aHomoIn2_3);}
-//    else
-//         {cout<<"Homol "<<aNameImg2<<" ++ "<<aNameImg3<<" not existed !";}
-
-//    // ====Import images Tiff and IM2D =====//
-//    aNameImg1 = this->mNameImg1;
-//    aNameImg2 = this->mNameImg2;
-//    if(this->NotTif_flag == true)
-//        {
-//            aNameImg3 = "./Tmp-MM-Dir/" + aNameImg3 + "_Ch1.tif";
-//        }
-//    cout <<aNameImg1 <<" ++ "<<aNameImg2<<endl;
-//    Tiff_Im mTiffImg1(aNameImg1.c_str());
-//    Tiff_Im mTiffImg2(aNameImg2.c_str());
-//    Tiff_Im mTiffImg3(aNameImg3.c_str());
-
-//    Im2D<U_INT1,INT4> mIm2DImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);
-//    Im2D<U_INT1,INT4> mIm2DImg2(mTiffImg2.sz().x,mTiffImg2.sz().y);
-//    Im2D<U_INT1,INT4> mIm2DImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
-//    this->mImg1 = mIm2DImg1;
-//    this->mImg2 = mIm2DImg2;
-//    TIm2D<U_INT1,INT4> mTIm2DImg3(mTiffImg3.sz());
-//    ELISE_COPY(mTIm2DImg3.all_pts(),mTiffImg3.in(),mTIm2DImg3.out());
-
-//    TIm2D<U_INT1,INT4> mTIm2DImg2(mTiffImg2.sz());
-//    ELISE_COPY(mTIm2DImg2.all_pts(),mTiffImg2.in(),mTIm2DImg2.out());
-
-//    ELISE_COPY(
-//                 mTiffImg1.all_pts(),
-//                 mTiffImg1.in(),
-//                 mIm2DImg1.out()
-//              );
-//    ELISE_COPY(
-//                 mTiffImg2.all_pts(),
-//                 mTiffImg2.in(),
-//                 mIm2DImg2.out()
-//              );
-//    ELISE_COPY(
-//                 mTiffImg3.all_pts(),
-//                 mTiffImg3.in(),
-//                 mIm2DImg3.out()
-//              );
-///*
-////convert img3 to image dame
-//    ELISE_COPY(
-//                mTiffImg3.all_pts(),
-//                ((FX/10+FY/10)%2)*255,
-//                mIm2DImg3.out()
-//                );
-////on veut image dame format Tiff
-//    ELISE_COPY(
-//                mIm2DImg3.all_pts(),
-//                ((FX/10+FY/10)%2)*255,
-//                mTiffImg3.out()
-//                );
-//*/
-//    Pt2dr centre_img(mTiffImg1.sz().x/2, mTiffImg1.sz().y/2);
-//    //=======================================================//
-//    double count =0;
-//    for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
-//    {
-//        Pt2dr aP1 = itP->P1();
-//        //(fabs(aP1.x-2736)<20)&&(fabs(aP1.y-1824)<20)
-//        bool decide = false;
-
-//            Pt2dr aP2 = itP->P2();
-//            //======Profondeur a partir de cam 1 et cam 2======
-//            double d;
-//            Pt3dr Pt_pseudointer= aCam1->ElCamera::PseudoInter(aP1, *aCam2, aP2, &d);	//use Point img1 & 2 to search point 3d
-//                //====== calcul profondeur correspondant avec direction viseur de cam 1 =====
-//            double prof_d = aCam1->ProfInDir(Pt_pseudointer,aCam1->DirK());
-//            Pt3dr Pt_H = aCam1->ImEtProf2Terrain(aP1, prof_d);  //pt3d intersection entre point img 1 et 2 mais se situe dans la direction viseur de cam 1
-
-//            Pt2dr aP3 = aCam3->R3toF2(Pt_H); Pt2dr aP3_o=aP3;
-
-//            //Pt3dr OptCenterImg1 = aCam1->VraiOpticalCenter();
-//            //cout<<"OptCenterImg1 "<<OptCenterImg1<<endl;
-//            //double prof_d = sqrt(pow((OptCenterImg1.x - Pt_H.x),2) + pow((OptCenterImg1.y - Pt_H.y),2) + pow((OptCenterImg1.z - Pt_H.z),2));
-
-//            //double dist_centre = sqrt(pow((aP3 - centre_img).x, 2) + pow((aP3 - centre_img).y, 2));
-//           vector<bool> Coldecide;
-//           for (int ii=-this->mSizeSearchAutour; ii<=this->mSizeSearchAutour; ii++)
-//           {
-//               for (int jj=-this->mSizeSearchAutour; jj<=this->mSizeSearchAutour; jj++)
-//               {
-//                   int sizeVignette = this->msizeVignette;
-//                   aP3 = aP3_o + Pt2dr(ii,jj);
-//                   if( IsInside(aP3, mTiffImg3, 1) )
-//                   {
-//                       //=== 3) Calcul vector direction de surface Hu et Hv dans l'espace ===
-//                       Pt2dr SupDirX = aP1+Pt2dr(10,0);
-//                       Pt2dr SupDirY = aP1+Pt2dr(0,10);
-//                       Pt3dr Pt_Hu, Pt_Hv;
-//                       if (ModeSurf == "plan")
-//                       {
-//                        Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d); //hyphothese surface est une plan perpendiculaire
-//                        Pt_Hv = aCam1->ImEtProf2Terrain(SupDirY, prof_d);
-//                       }
-//                       if (ModeSurf == "sphere")
-//                       {
-
-//                            Pt3dr vecaP1 = aCam1->C2toDirRayonL3(aP1);
-//                            Pt3dr vecSupDirX = aCam1->C2toDirRayonL3(SupDirX);
-//                            //Pt3dr vecSupDirY = aCam1->C2toDirRayonL3(SupDirY);
-
-//                            //angle b/w (aP1, PP)
-//                            Pt3dr vecPP = aCam1->C2toDirRayonL3(aCam1->PP());
-//                            double length_vecaP1 = sqrt(vecaP1.x*vecaP1.x + vecaP1.y*vecaP1.y + vecaP1.z*vecaP1.z);
-//                            double length_vecPP = sqrt(vecPP.x*vecPP.x + vecPP.y*vecPP.y + vecPP.z*vecPP.z);
-//                            double cosPhi = (vecaP1.x * vecPP.x + vecaP1.y * vecPP.y + vecaP1.z * vecPP.z) / (length_vecaP1*length_vecPP);
-//                            //Rayon
-//                            double R=prof_d / cosPhi;
-//                            //angle b/w (SupDirX, PP)
-//                            double length_vecSupDirX = sqrt(vecSupDirX.x*vecSupDirX.x + vecSupDirX.y*vecSupDirX.y + vecSupDirX.z*vecSupDirX.z);
-//                            double cosPhi2 = (vecSupDirX.x * vecPP.x + vecSupDirX.y * vecPP.y + vecSupDirX.z * vecPP.z) / (length_vecSupDirX*length_vecPP);
-//                            //profondeur SupDirX
-//                            double prof_SupDirX = R*cosPhi2;
-//                            Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_SupDirX);
-//                            cout<<prof_SupDirX<<" "<<Pt_Hu;
-//                            Pt_Hu = aCam1->ImEtProf2Terrain(SupDirX, prof_d);
-//                            cout<<" "<<prof_d<<" "<<Pt_Hu<<endl;
-
-//                       }
-//                       //=== 4) ReProjecte Hu et Hv de l'espace Ã  img 3 =====
-//                       Pt2dr Pt_Hu_dansImg3 = aCam3->R3toF2(Pt_Hu);
-//                       Pt2dr Pt_Hv_dansImg3 = aCam3->R3toF2(Pt_Hv);
-//                       //=== 5) Vector direction de surface d'img 3 ===
-//                       Pt2dr DirX = aP3 - Pt_Hu_dansImg3;
-//                       Pt2dr DirY = aP3 - Pt_Hv_dansImg3;
-//                       VectorSurface aDirSurfImg3(DirX,DirY);
-//                       //=== 6) Calcul coordonne des autres point dans le mire d'img 1 correspondant avec img 2 ===
-//                       //Vignette d'img 1
-//                       cCorrelImage::setSzW(sizeVignette);
-//                       cCorrelImage Imgette1; cCorrelImage Imgette3_o;
-//                       Imgette1.getFromIm(&mIm2DImg1, aP1.x, aP1.y);
-//                       Imgette3_o.getFromIm(&mIm2DImg3, aP3.x, aP3.y);
-//                       RepereImagette RepImgette3(aP3, DirX, DirY);
-//                       Pt2di aP3access;
-//                       TIm2D<U_INT1,INT4> mTIm2DImgette3(Pt2di(sizeVignette*2+1, sizeVignette*2+1));
-//                       Im2D<U_INT1,INT4> mIm2DImgette3(sizeVignette*2+1, sizeVignette*2+1);
-//                       bool out=false;
-//                       for (int i=-sizeVignette; i<=sizeVignette; i++)
-//                       {
-//                           for (int k=-sizeVignette; k<=sizeVignette; k++)
-//                           {
-//                               Pt2di aVois(i,k);
-//                               Pt2dr pixelCorrImg3 =RepImgette3.uv2img(Pt2dr(i,k));
-//                               aP3access.x = int(round(pixelCorrImg3.x)); aP3access.y = int(round(pixelCorrImg3.y));
-//                               Pt2dr aP3Test; aP3Test.x = ceil((double)aP3access.x); aP3Test.y = ceil((double)aP3access.y);
-//                               if ( IsInside( aP3Test , mTiffImg3, this->mPropDiag) )
-//                               {
-//                                   INT4 val = mTIm2DImg3.getr(pixelCorrImg3, -1);
-//                                   /*== ecrire dans un pixel d'image ====*/
-//                                   mTIm2DImgette3.oset_svp(aVois+Pt2di(sizeVignette,sizeVignette),val);
-//                                   out=false;
-//                               }
-//                               else
-//                               {out = true; decide = false; break;}
-//                           }
-//                           if (out)
-//                           {break;}
-//                       }
-//                       // ==== comparer par corellation ==== //
-//                       if (!out) //out=false, donc dans image
-//                       {
-//                           ELISE_COPY(mTIm2DImgette3.all_pts(),mTIm2DImgette3.in(),mIm2DImgette3.out());
-//                           cCorrelImage Imgette3;
-//                           Imgette3.getWholeIm(&mIm2DImgette3);
-//                           double corl = Imgette3.CrossCorrelation(Imgette1);
-//                           double corl_o = Imgette3_o.CrossCorrelation(Imgette1);
-//                           if (displayVignette)
-//                           {
-//                               cout<<endl<<"Order = Deforme Img3 - Img1 - Origin Img3"<<endl;
-//                               cout<<"Corell Deforme = "<<corl<<" - Corell Origin = "<<corl_o<<endl;
-//                               if (mW==0)
-//                                   mW = Video_Win::PtrWStd(mIm2DImgette3.sz()*4);  //vignette deforme img3
-//                               ELISE_COPY(mW->all_pts(), mIm2DImgette3.in()[Virgule(FX/4,FY/4)] ,mW->ogray());
-//                               if (mW1==0)
-//                               {
-//                                   mW1 = new Video_Win(*mW,Video_Win::eDroiteH,Imgette1.getIm()->sz()*4);  //vignette img 1
-//                                   mW2 = new Video_Win(*mW1,Video_Win::eDroiteH,Imgette3_o.getIm()->sz()*4);   //vignette origin img 3
-//                               }
-//                               ELISE_COPY(mW1->all_pts(), Imgette1.getIm()->in()[Virgule(FX/4,FY/4)] ,mW1->ogray());
-//                               ELISE_COPY(mW2->all_pts(), Imgette3_o.getIm()->in()[Virgule(FX/4,FY/4)] ,mW2->ogray());
-//                               mW2->clik_in();
-//                           }
-//                           if (corl > this->mCorel)
-//                                {decide=true;}
-//                           else
-//                                {decide=false;}
-//                           Coldecide.push_back(decide);
-//                       }
-//                   }
-//               }
-//           }
-//           bool decideF=false;
-//           for (uint hh=0; hh<Coldecide.size(); hh++)
-//            {decideF = decideF || Coldecide[hh];}
-//            if (decideF)
-//                {count++;}
-//            result.push_back(decideF);
-//        }
-//    cout<<"------------------------"<<endl<<"Trip: "<<aNameImg1<<" + "<<aNameImg2<<" + "<<aNameImg3<<endl<<count/aPackIn1_2.size()*100<<" % conserve of "<<aPackIn1_2.size()<<" "<<result.size()<<endl;
-//    return result;
-//}
-
-
 int PHO_MI_main(int argc,char ** argv)
 {
     cout<<"*********************"<<endl;
@@ -1373,9 +1094,9 @@ int PHO_MI_main(int argc,char ** argv)
     bool ExpTxt = false, aDisplayVignette = false, aFiltreBy1Img=true;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
-    argc,                   //nb dâarguments
+    argc,                   //nb arguments
     argv,                   //chaines de caracteres contenants tous les arguments
-    //mandatory arguments - arg obligatoiresÂ²
+    //mandatory arguments - arg obligatoires
     LArgMain()  << EAMC(aFullPatternImages, "Pattern of images to compute",  eSAM_IsPatFile)
                 << EAMC(aOriInput, "Input Initial Orientation",  eSAM_IsExistDirOri),
     //optional arguments - arg facultatifs
@@ -1402,40 +1123,14 @@ int PHO_MI_main(int argc,char ** argv)
        std::size_t found = aFullPatternImages.find_last_of(".");
        std::cout << " extension: " << aFullPatternImages.substr(found+1) << '\n';
        std::cout << " chercher dans Tmp-MM-Dir pour fichier tif: "<< '\n';
-//       bool notif_flag = false;
-//       if (aFullPatternImages.substr(found+1) != "tif")
-//       {
-//           notif_flag=true;
-//           std::cout << " chercher dans Tmp-MM-Dir pour fichier tif: "<< '\n';
-//           aFullPatternImages_NotTif = "./Tmp-MM-Dir/" + aFullPatternImages + "_Ch1.*.tif";
 
-//           SplitDirAndFile(aDirImages_NotTif,aPatImages_NotTif,aFullPatternImages_NotTif);
-//           cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages_NotTif);
-//           aSetImages_NoTif = *(aICNM->Get(aPatImages_NotTif));
-//           for (uint i=0; i<aSetImages_NoTif.size(); i++)
-//           {
-//               aSetImages_NoTif[i] = aDirImages_NotTif + aSetImages_NoTif[i];
-//           }
-//           ELISE_ASSERT(aSetImages_NoTif.size()>1,"Number of image must be > 1");
-
-//           SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
-//           cInterfChantierNameManipulateur * aICNM1=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
-//           aSetImages = *(aICNM1->Get(aPatImages));
-
-//           aICNM->BasicAlloc(aDirImages);
-
-
-//       }
     //===============================================================================//
     // Initialize name manipulator & files
-//    else
-//       {
            SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
            StdCorrecNameOrient(aOriInput,aDirImages);//remove "Ori-" if needed
            cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
            aSetImages = *(aICNM->Get(aPatImages));
            ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
-       //}
  //============================================================
     anExt = ExpTxt ? "txt" : "dat";
 
@@ -1522,12 +1217,6 @@ int PHO_MI_main(int argc,char ** argv)
             }
         }
         cout<<endl<<endl<<"+-+ "<<stat/all*100<<"%"<<endl;
-
-        //creer abre de couple et des collection de 3eme images correspondant
-        //parcourir abre 1 ; prendre image racine
-        //parcourir les image branche corresponde with img racine
-        //search for abre of image branch current, it's abre 2
-        //out list of 2 abre to img3eme correspond with abre 1 abre 2
     }
 
     //=============================================================================
@@ -1546,22 +1235,14 @@ int PHO_MI_main(int argc,char ** argv)
         VerifParRepr aImgVerif(aSetImages, aSetImages_NoTif, aDirImages, aPatImages, aNameHomol, aOriInput, aHomolOutput, aDistHom, aDistRepr);
         vector<AbreHomol> aAbre = aImgVerif.creatAbre();
         vector<string>  aAbreRacine= aImgVerif.displayAbreHomol(aImgVerif.mAbre, 1);
-//        notif_flag = false;
         for (uint i=0;i<aAbre.size();i++)
         {
             string aImg1 = aAbre[i].ImgRacine;
-//            if(notif_flag == true)
-//            {
-//                aImg1 = "./Tmp-MM-Dir/" + aAbre[i].ImgRacine + "_Ch1.tif";
-//            }
+
             for(uint k=0; k<aAbre[i].ImgBranch.size(); k++)
             {
                 string aImg2 = aAbre[i].ImgBranch[k];
-//                if(notif_flag == true)
-//                {
-//                    aImg1 = "./Tmp-MM-Dir/" + aAbre[i].ImgRacine + "_Ch1.tif";
-//                    aImg2 = "./Tmp-MM-Dir/" + aAbre[i].ImgBranch[k] + "_Ch1.tif";
-//                }
+
                 CplImg aCouple(aImg1, aImg2, aNameHomol, aOriInput, aHomolOutput, aFullPatternImages, ExpTxt, aPropDiag, aCorel, aSizeVignette, aDisplayVignette, aFiltreBy1Img, aTauxGood, aSizeSearchAutour);
                 aCouple.SupposeVecSruf1er(Pt2dr(1,0) , Pt2dr(0,1));
                 vector< vector<bool> > ColDec;
@@ -1595,7 +1276,7 @@ int PHO_MI_main(int argc,char ** argv)
                     double countGood = 0;
                     for(uint h=0; h<decision.size(); h++)
                     {
-                        if(decision[h] && aCouple.mFiltreBy1Img)        //mFiltreBy1Img : decision par 1 image bon dans collection de 3eme img
+                        if(decision[h] && aCouple.mFiltreBy1Img)
                         {
                             countGood++;
                         }
@@ -1624,33 +1305,6 @@ int PHO_MI_main(int argc,char ** argv)
             }
         }
     }
-
     cout<<endl<<"use command SEL ./ img1 img2 KCpl=NKS-Assoc-CplIm2Hom@"<<aHomolOutput<< "@dat to view filtered point homomogues"<<endl<<endl;
     return EXIT_SUCCESS;
 }
-
-
-
-
-/*strategie Ã  faire:
-1)
-Homol1_2 => P1 & P2, Homol2_3 => P2 & P3, triplet [P1, P2, P3].
-Pt3d P3' reprojeter ves cam3 Ã  partir P1 et P2
-P3' = P3 ?
-si OK => fabriquer Homol nouvel avec P1 P2 P3 pour tout les sens
-
-2)
-Homol1_2 => P1 & P2 => Pt3d ===reprojeter==> P3
-Corellation entre P1 et P3
-Corellation entre P2 et P3
-si OK => garde P1 et P2
-=> P3 juste pour validation point homo entre P1 et P2
-Q: comment choisir le pose bien pour cam3 ? (avant ou apres cam1 et cam2)
-
-3)
-Homol cohÃ©rent, pas besoins l'orientation du camÃ©ra => si camera orientation est pas bonne, on peut eviter
-Homol1_2 => P1 & P2, Homol2_3 => P2 & P3, triplet [P1, P2, P3].
-P3 => chercher dans Homol3_1 => si trop loin avec P3 => pas bonne ????????????????????????????????????????
-P3 => chercher dans Homol3_2 => si trop loin avec P3 => pas bonne couple P2 P3 ???????????????????????????
-Comment faire une methode de validation plus efficace ?
-*/
