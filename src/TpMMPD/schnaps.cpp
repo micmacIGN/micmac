@@ -71,6 +71,7 @@ Header-MicMac-eLiSe-25/06/2007*/
  * */
 
 //#define ReductHomolImage_DEBUG
+//#define ReductHomolImage_VeryStrict_DEBUG
 #define ReductHomolImage_UsefullPackSize 100
 #define ReductHomolImage_UselessPackSize 50
 
@@ -152,6 +153,10 @@ class cHomol
     cPointOnPic* getPointOnPic(cPic * aPic);
     void addAppearsOnCouple(cPic * aPicA,cPic * aPicB);
     bool appearsOnCouple(cPic * aPicA,cPic * aPicB);
+    bool appearsOnCouple2way(cPic * aPicA,cPic * aPicB);
+    cPic* getAppearsOnCoupleA(unsigned int i){return mAppearsOnCoupleA[i];}
+    cPic* getAppearsOnCoupleB(unsigned int i){return mAppearsOnCoupleB[i];}
+    int getAppearsOnCoupleSize(){return mAppearsOnCoupleA.size();}
   protected:
     int mId;//unique id
     static int mHomolCounter;
@@ -191,7 +196,7 @@ class cPic
     std::map<double,cPointOnPic*> mAllSelectedPointsOnPic;//key: x+mPicSize->getPicSz().x*y
     std::vector<bool> mWinUsed;//to check repartition of homol points (with buffer)
     //int mNbWinUsed;
-    double makePOPKey(Pt2dr & aPt){return aPt.x+mPicSize->getPicSz().x*aPt.y;}
+    double makePOPKey(Pt2dr & aPt){return aPt.x*100+mPicSize->getPicSz().x*100*aPt.y*100;}
 };
 
 //----------------------------------------------------------------------------
@@ -371,9 +376,28 @@ bool cHomol::appearsOnCouple(cPic * aPicA,cPic * aPicB)
     for (unsigned int i=0;i<mAppearsOnCoupleA.size();i++)
     {
         if ((mAppearsOnCoupleA[i]==aPicA)&&(mAppearsOnCoupleB[i]==aPicB))
-                return true;
-       /* if ((mAppearsOnCoupleA[i]==aPicB)&&(mAppearsOnCoupleB[i]==aPicA))
-                return true;*/
+            return true;
+    }
+    return false;
+}
+
+bool cHomol::appearsOnCouple2way(cPic * aPicA,cPic * aPicB)
+{
+    bool seen_way1=false;
+    bool seen_way2=false;
+    for (unsigned int i=0;i<mAppearsOnCoupleA.size();i++)
+    {
+        //must be seen on both directions
+        if ((mAppearsOnCoupleA[i]==aPicA)&&(mAppearsOnCoupleB[i]==aPicB))
+        {
+            seen_way1=true;
+            if (seen_way2) return true;
+        }
+        if ((mAppearsOnCoupleA[i]==aPicB)&&(mAppearsOnCoupleB[i]==aPicA))
+        {
+            seen_way2=true;
+            if (seen_way1) return true;
+        }
     }
     return false;
 }
@@ -623,9 +647,9 @@ int schnaps_main(int argc,char ** argv)
     std::string aFullPattern;//pattern of all images
     std::string aInHomolDirName="";//input Homol dir suffix
     std::string aOutHomolDirName="_mini";//output Homol dir suffix
+    std::string aPoubelleName="Schnaps_poubelle.txt";
     int aNumWindows=1000;//minimal homol points in each picture
     bool ExpTxt=false;//Homol are in dat or txt
-    bool showPackEvolution=false;
     bool veryStrict=false;
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
@@ -647,8 +671,8 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(aNumWindows, "NbWin", true, "Minimal homol points in each picture (default: 1000)")
                    << EAM(aOutHomolDirName, "HomolOut", true, "Output Homol directory suffix (default: _mini)")
                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
-                   //<< EAM(showPackEvolution,"ShowEvo",true,"Show Packs evolution, def=false")
                    << EAM(veryStrict,"VeryStrict",true,"Be very strict with homols (remove any suspect), def=false")
+                   << EAM(aPoubelleName,"PoubelleName",true,string("Where to write suspicious pictures names, def=\"")+aPoubelleName+"\"")
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -762,9 +786,10 @@ int schnaps_main(int argc,char ** argv)
                     if (aPointOnPic2) aPointOnPic2->getHomol()->print();
                     #endif
                     
-                    /*if (((fabs(aP1.x-1349.69)<0.1)&&(fabs(aP1.y-1829.25)<0.1))
-                       ||((fabs(aP2.x-1349.69)<0.1)&&(fabs(aP2.y-1829.25)<0.1)))
+                    /*if (((fabs(aP1.x-494.410)<0.1)&&(fabs(aP1.y-1894.23)<0.1))
+                       ||((fabs(aP2.x-494.410)<0.1)&&(fabs(aP2.y-1894.23)<0.1)))
                     {
+                        cout<<aNameIn1<<endl;
                         std::cout<<"For pair : "<<aP1<<" "<<aP2<<std::endl;
                         std::cout<<"Result Homol: "<<aPointOnPic1<<" "<<aPointOnPic2<<std::endl;
                         if (aPointOnPic1) aPointOnPic1->getHomol()->print();
@@ -836,10 +861,19 @@ int schnaps_main(int argc,char ** argv)
                         allHomolsIn.back()->add(pic1,aP1);
                         allHomolsIn.back()->add(pic2,aP2);
                         allHomolsIn.back()->addAppearsOnCouple(pic1,pic2);
+                        
+                        /*if (((fabs(aP1.x-494.410)<0.1)&&(fabs(aP1.y-1894.23)<0.1))
+                           ||((fabs(aP2.x-494.410)<0.1)&&(fabs(aP2.y-1894.23)<0.1)))
+                        {
+                            cout<<aNameIn1<<endl;
+                            allHomolsIn.back()->print();
+                        }*/
+                    
                     }else if (aPointOnPic1 && aPointOnPic2 &&(aPointOnPic1->getHomol()==aPointOnPic2->getHomol()))
                     {
                         aPointOnPic1->getHomol()->addAppearsOnCouple(pic1,pic2);
                     }
+                    
                     
                 }
             }
@@ -858,6 +892,34 @@ int schnaps_main(int argc,char ** argv)
             itHomol++;
     }*/
 
+    /*if (false)//check both ways
+    {
+        //check if homol apear everywhere they should
+        cout<<"Checking Homol both ways..";
+        //for every homol
+        int nbInconsistantHomol=0;
+        for (std::list<cHomol*>::iterator itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();++itHomol)
+        {
+            cHomol *aHomol=(*itHomol);
+            cPic *aPic1=0;
+            cPic *aPic2=0;
+            for (unsigned int i=0;i<aHomol->getAppearsOnCoupleSize();i++)
+            {
+                aPic1=aHomol->getAppearsOnCoupleA(i);
+                aPic2=aHomol->getAppearsOnCoupleB(i);
+                if (!aHomol->appearsOnCouple2way(aPic1,aPic2))
+                {
+                    aHomol->setBad();
+                    i=aHomol->getPointOnPics().size();//end second loop
+                    nbInconsistantHomol++;
+                    break;
+                }
+            }
+            if ((aHomol->getId()%1000)==0) cout<<"."<<flush;
+        }
+        std::cout<<"Done.\n"<<nbInconsistantHomol<<" inconsistant homols found."<<endl;
+    }*/
+
     if (veryStrict)
     {
         //check if homol apear everywhere they should
@@ -869,7 +931,7 @@ int schnaps_main(int argc,char ** argv)
             cHomol *aHomol=(*itHomol);
             cPic *aPic1=0;
             cPic *aPic2=0;
-            #ifdef ReductHomolImage_DEBUG
+            #ifdef ReductHomolImage_VeryStrict_DEBUG
             cout<<"For ";
             aHomol->print();
             #endif
@@ -885,13 +947,13 @@ int schnaps_main(int argc,char ** argv)
                     std::string aNameIn=aCKin.get(aPic1->getName(),aPic2->getName());
                     if (ELISE_fp::exist_file(aNameIn))
                     {
-                        #ifdef ReductHomolImage_DEBUG
+                        #ifdef ReductHomolImage_VeryStrict_DEBUG
                         cout<<"   "<<aNameIn<<": ";
                         #endif
                         //check that homol has been seen in this couple of pictures
-                        if (!aHomol->appearsOnCouple(aPic1,aPic2))
+                        if (!aHomol->appearsOnCouple2way(aPic1,aPic2))
                         {
-                            #ifdef ReductHomolImage_DEBUG
+                            #ifdef ReductHomolImage_VeryStrict_DEBUG
                             cout<<"No!\n";
                             #endif
                             aHomol->setBad();
@@ -899,7 +961,7 @@ int schnaps_main(int argc,char ** argv)
                             nbInconsistantHomol++;
                             break;
                         }
-                        #ifdef ReductHomolImage_DEBUG
+                        #ifdef ReductHomolImage_VeryStrict_DEBUG
                         else cout<<"OK!\n";
                         #endif
 
@@ -1035,10 +1097,10 @@ int schnaps_main(int argc,char ** argv)
 
     std::cout<<"Write new Packs:\n";
     std::ofstream aFileBadPictureNames;
-    aFileBadPictureNames.open("Schnaps_pictures_poubelle.txt");
+    aFileBadPictureNames.open(aPoubelleName.c_str());
     if (!aFileBadPictureNames.is_open())
     {
-        std::cout<<"Impossible to create \"Schnaps_pictures_poubelle.txt\" file!\n";
+        std::cout<<"Impossible to create \""<<aPoubelleName<<"\" file!\n";
         return -1;
     }
     for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
@@ -1063,46 +1125,7 @@ int schnaps_main(int argc,char ** argv)
     }
     aFileBadPictureNames.close();
 
-/*
-    if (showPackEvolution)
-    {
-        std::cout<<"\nPack size changes:\n";
-        //check if bad packs
-        for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
-        {
-            cPic* pic1=(*itPic1).second;
-            for (itPic2=itPic1;itPic2!=allPics.end();++itPic2)
-            {
-                if (itPic2==itPic1) continue; //with c++11: itPic2=next(itPic1)
-                cPic* pic2=(*itPic2).second;
-                //std::string aNameIn1 = aDirImages + aICNM->Assoc1To2(aKHIn,pic1->getName(),pic2->getName(),true);
-                std::string aNameIn1 = aDirImages + aCKin.get(pic1->getName(),pic2->getName());
-                //std::string aNameOut1 = aDirImages + aICNM->Assoc1To2(aKHOut,pic1->getName(),pic2->getName(),true);
-                std::string aNameOut1 = aDirImages + aCKout.get(pic1->getName(),pic2->getName());
-                //std::string aNameOut2 = aDirImages + aICNM->Assoc1To2(aKHOut,pic2->getName(),pic1->getName(),true);
-                std::string aNameOut2 = aDirImages + aCKout.get(pic2->getName(),pic1->getName());
-                
-                //compare new size with original one
-                if (ELISE_fp::exist_file(aNameIn1))
-                {
-                    ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn1);
-                    if (ELISE_fp::exist_file(aNameOut1))
-                    {
-                        ElPackHomologue aPackOut1 =  ElPackHomologue::FromFile(aNameOut1);
-                        ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn1);
-                        cout<<"   "<<aNameIn1<<": "<<aPackIn.size()<<" => "<<aPackOut1.size();
-                        if ((aPackIn.size()>ReductHomolImage_UsefullPackSize)
-                            &&(aPackOut1.size()<ReductHomolImage_UselessPackSize))
-                            cout<<"    This pack has become useless...\n";
-                        else
-                            cout<<"    Ok.\n";
-                    }
-                }
-            }
-        }
-    }
-*/
-    std::cout<<"You can look at \"Schnaps_pictures_poubelle.txt\" for a list of suspicious pictures.\n";
+    std::cout<<"You can look at \""<<aPoubelleName<<"\" for a list of suspicious pictures.\n";
   
    
     std::cout<<"Quit"<<std::endl;
