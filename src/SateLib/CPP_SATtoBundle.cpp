@@ -116,6 +116,20 @@ int Recal_RPC_main(int argc,char ** argv)
 int SATtoBundle_main(int argc,char ** argv)
 {
 
+     std::string aFullName;
+
+     Pt2di aGridSz;
+
+     ElInitArgMain
+     (
+        argc, argv,
+        LArgMain() << EAMC(aFullName,"Orientation file in Xml_CamGenPolBundle"),
+        LArgMain() << EAM(aGridSz,"GrSz",true)
+      );
+
+     CameraRPC aCam(aFullName);
+     aCam.ExpImp2Bundle();
+
 /*    cSatI_Appli aApps(argc,argv);
 
     for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
