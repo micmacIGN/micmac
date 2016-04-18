@@ -16,7 +16,7 @@
     In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
-[2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
+[2] M. Pierrot-Deseilligny, "MicMac, un logiciel de mise en correspondance
     d'images, adapte au contexte geograhique" to appears in 
     Bulletin d'information de l'Institut Geographique National, 2007.
 

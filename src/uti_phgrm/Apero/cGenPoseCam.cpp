@@ -944,6 +944,13 @@ cPolynomial_BGC3M2D::cPolynomial_BGC3M2D
               int aDegY=aDegreeTot - aDegX;
 
               double aVx=0,aVy=0;
+              
+              if(aDegX==1 && aDegY!=1)
+                  aVx=1;
+              if(aDegX!=1 && aDegY==1)
+                  aVy=1;
+              
+
               if (aRandPerturb)
               {
                  aVx = aRandPerturb * NRrandC();
