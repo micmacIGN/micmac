@@ -306,5 +306,6 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 #include <stdarg.h>
 #include "XML_GEN/xml_gen2_mmByp.h"
+#include "general/cMMCom.h"
 
 #endif //_ELISE_STDAFX_H

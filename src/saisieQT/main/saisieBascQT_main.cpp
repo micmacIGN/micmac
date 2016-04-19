@@ -1,7 +1,9 @@
 #include "saisieQT_main.h"
 
-int saisieBascQT_main(QApplication &app, int argc, char *argv[])
+int saisieBascQT_main(int argc, char *argv[])
 {
+	QApplication &app = getQApplication();
+
     QStringList cmdline_args = QCoreApplication::arguments();
 
     QString aMode = "0";
