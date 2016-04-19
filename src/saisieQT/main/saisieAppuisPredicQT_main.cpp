@@ -21,8 +21,10 @@ void SaisieAppuisPredic(int argc, char ** argv,
 
 using namespace std;
 
-int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
+int saisieAppuisPredicQT_main(int argc, char *argv[])
 {
+	QApplication &app = getQApplication();
+
     app.setApplicationName("SaisieAppuisPredicQT");
     app.setOrganizationName("Culture3D");
 
