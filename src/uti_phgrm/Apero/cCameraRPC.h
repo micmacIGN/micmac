@@ -180,9 +180,9 @@ class CameraAffine : public cBasicGeomCap3D
 class cRPC
 {
     public:
-        cRPC(const std::string &);
+        cRPC(const std::string &, cBasicGeomCap3D * aCam0=0);
         cRPC(const std::string &, const eTypeImporGenBundle &, 
-             const cSystemeCoord *aChSys=0);
+             const cSystemeCoord *aChSys=0, cBasicGeomCap3D * aCam0=0);
         ~cRPC(){};
 
         static void Save2XmlStdMMName(const std::string &aName);
@@ -303,6 +303,7 @@ class cRPC
         double mInvSNum[20], mInvSDen[20], mInvLNum[20], mInvLDen[20];
 
         /* Use the correcting polyn if available */
+        cBasicGeomCap3D * mCam0;
         cPolynomial_BGC3M2D * mPol;
         eRefinePB mRefine;
         

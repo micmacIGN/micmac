@@ -61,7 +61,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
 	mGridSz(Pt2di(10,10)),
     mInputName(aNameFile)
 {
-    mRPC = new cRPC(aNameFile);
+    mRPC = new cRPC(aNameFile,this);
 }
 
 /* Constructor that takes original RPC fiels as input */
@@ -719,10 +719,11 @@ void CameraAffine::ShowInfo()
  * image_row = mInvLNum / mInvLDen  */
 
 /* Constructor that takes cXml_CamGenPolBundle as input */
-cRPC::cRPC(const std::string &aName) :
+cRPC::cRPC(const std::string &aName, cBasicGeomCap3D * aCam0) :
     ISDIR(false),
     ISINV(false),
     ISMETER(false),
+    mCam0(aCam0),
     mRefine(eRP_None),
     mRecGrid(Pt3di(0,0,0))
 {
@@ -750,10 +751,11 @@ cRPC::cRPC(const std::string &aName) :
 
 
 /* Constructor to maintain Convert2GenBundle */
-cRPC::cRPC(const std::string &aName, const eTypeImporGenBundle &aType, const cSystemeCoord *aChSys) :
+cRPC::cRPC(const std::string &aName, const eTypeImporGenBundle &aType, const cSystemeCoord *aChSys, cBasicGeomCap3D * aCam0) :
     ISDIR(false),
     ISINV(false),
     ISMETER(false),
+    mCam0(aCam0),
     mRefine(eRP_None),
     mRecGrid(Pt3di(0,0,0))
 {
@@ -775,8 +777,10 @@ void cRPC::Initialize(const std::string &aName,
         cXml_CamGenPolBundle aXml = StdGetFromSI(aName,Xml_CamGenPolBundle);
         
         int aType = eTIGB_Unknown;
-        cBasicGeomCap3D * aCamSsCor=cBasicGeomCap3D::StdGetFromFile(aXml.NameCamSsCor(),aType,aChSys);
-        mPol = new cPolynomial_BGC3M2D(aChSys,aCamSsCor,aXml.NameCamSsCor(),aXml.        NameIma(),aXml.DegreTot(),0);
+        if(mCam0==0)
+            mCam0 = cBasicGeomCap3D::StdGetFromFile(aXml.NameCamSsCor(),aType,aChSys);
+
+        mPol = new cPolynomial_BGC3M2D(aChSys,mCam0,aXml.NameCamSsCor(),aXml.        NameIma(),aXml.DegreTot(),0);
         
         aNameRPC=aXml.NameCamSsCor();
         aNamePol=aName;
@@ -1149,7 +1153,7 @@ Pt2dr cRPC::InverseRPCN(const Pt3dr &aP) const
      
         if(DEBUG_EWELINA)
         {
-            std::cout << "aPoly(" << aK << ") " << aPoly[aK] << " mInvSDen " << mInvSDen[aK] << "\n";  
+            std::cout << "aPoly(" << aK << ") " << aPoly[aK] << " mInvSDen " << mInvSDen[aK] << "  s: " << aImSDen  << "\n";  
         }
     }
 
