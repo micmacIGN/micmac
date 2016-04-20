@@ -1,7 +1,7 @@
 #include "GlExtensions.h"
 
-#ifdef OS_WINDOWS
-	#include <windows.h>
+#if ELISE_windows
+	#include <windows.h> 
 #endif
 
 #include "GL/gl.h"

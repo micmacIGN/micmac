@@ -235,7 +235,7 @@ void cPointOnPic::print()
 void cPic::addPointOnPic(cPointOnPic* aPointOnPic)
 {
     mAllPointsOnPic.insert(
-        std::make_pair<double,cPointOnPic*>(
+        pair<double,cPointOnPic*>(
             makePOPKey(aPointOnPic->getPt()),
             aPointOnPic));
 }
@@ -449,7 +449,7 @@ bool cPic::addSelectedPointOnPicUnique(cPointOnPic* aPointOnPic)
         return false;
     else
         mAllSelectedPointsOnPic.insert(
-            std::make_pair<double,cPointOnPic*>(
+            pair<double,cPointOnPic*>(
                 makePOPKey(aPointOnPic->getPt()),
                 aPointOnPic));
     return true;
