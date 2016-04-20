@@ -758,7 +758,8 @@ Pt2dr RepereImagette::uv2img(Pt2dr coorOrg)
 CplImg::CplImg(string aNameImg1, string aNameImg2, string aNameHomol, string aOri, string aHomolOutput,
                string aFullPatternImages, bool ExpTxt, double aPropDiag, double aCorel, double aSizeVignette,
                bool aDisplayVignette, bool aFiltreBy1Img, double aTauxGood, double aSizeSearchAutour):
-    mNameImg1(aNameImg1), mFiltreBy1Img(aFiltreBy1Img), mTauxGood(aTauxGood)
+    mNameImg1(aNameImg1), mFiltreBy1Img(aFiltreBy1Img), mTauxGood(aTauxGood),
+    mW(NULL), mW1(NULL), mW2(NULL)
 {
     this->mNameImg1 = aNameImg1;
     this->mNameImg2 = aNameImg2;
