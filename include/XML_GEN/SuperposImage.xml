@@ -53,6 +53,7 @@
     <enum Name="eTypeImporGenBundle">
         <eTIGB_Unknown>  </eTIGB_Unknown>
         <eTIGB_MMSten>   </eTIGB_MMSten>
+        <eTIGB_MMXmlCamGen>   </eTIGB_MMXmlCamGen>
         <eTIGB_MMDimap2> </eTIGB_MMDimap2>
         <eTIGB_MMDimap1> </eTIGB_MMDimap1>
         <eTIGB_MMDGlobe> </eTIGB_MMDGlobe>

@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cCameraRPC.h"
 
 
+bool DEBUG_EWELINA=false;
 
 /* Image coordinates order: [Line, Sample] = [row, col] =  [y, x]*/
 /******************************************************/
@@ -768,12 +769,15 @@ void cRPC::Initialize(const std::string &aName,
                       const cSystemeCoord *aChSys
                       )
 {
-    bool aPolType=0;
     std::string aNamePol,aNameRPC=aName;
     if(AutoDetermineRPCFile(aName))
     {
-        aPolType=1;
         cXml_CamGenPolBundle aXml = StdGetFromSI(aName,Xml_CamGenPolBundle);
+        
+        int aType = eTIGB_Unknown;
+        cBasicGeomCap3D * aCamSsCor=cBasicGeomCap3D::StdGetFromFile(aXml.NameCamSsCor(),aType,aChSys);
+        mPol = new cPolynomial_BGC3M2D(aChSys,aCamSsCor,aXml.NameCamSsCor(),aXml.        NameIma(),aXml.DegreTot(),0);
+        
         aNameRPC=aXml.NameCamSsCor();
         aNamePol=aName;
 
@@ -790,8 +794,6 @@ void cRPC::Initialize(const std::string &aName,
         if(aChSys)
             ChSysRPC(mChSys);
        
-        if(aPolType)
-            SetPolyn(aNamePol);
     }
     else if(aType==eTIGB_MMDimap1)
     {
@@ -808,8 +810,6 @@ void cRPC::Initialize(const std::string &aName,
         if(aChSys)
             ChSysRPC(mChSys);
 
-        if(aPolType)
-            SetPolyn(aNamePol);
     }
     else if(aType==eTIGB_MMIkonos)
     {
@@ -824,8 +824,6 @@ void cRPC::Initialize(const std::string &aName,
         if(aChSys)
             ChSysRPC(mChSys);
 
-        if(aPolType)
-            SetPolyn(aNamePol);
     }
     else if(aType==eTIGB_MMSpice)
     {
@@ -1112,12 +1110,12 @@ Pt2dr cRPC::InverseRPC(const Pt3dr &aP) const
     Pt3dr aPGr;
     Pt2dr aPIm, aPIm_;
 
-
     //normalize
     aPGr = NormGr(aP);
 
     //apply inverse RPCs
     aPIm_ = InverseRPCN(aPGr);
+    std::cout << "aPIm_ " << aPIm_ << "\n";
 
     //denormalize
     aPIm = NormIm(aPIm_, true);
@@ -1148,10 +1146,16 @@ Pt2dr cRPC::InverseRPCN(const Pt3dr &aP) const
 
         aImLNum += aPoly[aK] * mInvLNum[aK];
         aImLDen += aPoly[aK] * mInvLDen[aK];
-        
+     
+        if(DEBUG_EWELINA)
+        {
+            std::cout << "aPoly(" << aK << ") " << aPoly[aK] << " mInvSDen " << mInvSDen[aK] << "\n";  
+        }
     }
 
-
+    if(DEBUG_EWELINA)
+        std::cout << "---------aImSNum/aImSDen " << aImSNum  << " / " << aImSDen << "\n";
+    
     ELISE_ASSERT(!(aImSDen==0 || aImLDen==0), "Pt3dr cRPC::InverseRPCN division by 0" );
 
     return( Pt2dr(aImSNum/aImSDen,
@@ -2534,7 +2538,8 @@ int RecalRPC_main(int argc,char ** argv)
     aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     aListFile = aICNM->StdGetListOfFile(aName);
 
-    for(std::list<std::string>::iterator itL = aListFile.begin(); itL !=aListFile.end(); itL++ )
+    std::list<std::string>::iterator itL=aListFile.begin();
+    for( ; itL !=aListFile.end(); itL++ )
     {
         cRPC::Save2XmlStdMMName(aDir + (*itL));
     }
@@ -2558,10 +2563,12 @@ int TestCamRPC(int argc,char** argv)
         LArgMain()
    );
 
-   double anAlti = 400;
+   double anAlti = 4400;
    CameraRPC aCam(aName,anAlti);
-   Pt3dr aP0 (355936.0,3127508.8,571.52);//6571.52
+   Pt3dr aP0 (355936.0,3127508.8,6571.52);//6571.52
    Pt2dr aStepIn(12.8,-12.8);
+
+   DEBUG_EWELINA = true;
 
    for (int anX=-1 ; anX<=1 ; anX++)
    {

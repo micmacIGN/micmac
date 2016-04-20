@@ -297,6 +297,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using GCP",cArgLogCom(2)));
        aRes.push_back(cMMCom("GCPCtrl",GCPCtrl_main," Control accuracy with GCP"));
+       aRes.push_back(cMMCom("GCPVisib",GCPVisib_main," Print a list of GCP visibility in images"));
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Relative to absolute using embedded GPS",cArgLogCom(2)));
 

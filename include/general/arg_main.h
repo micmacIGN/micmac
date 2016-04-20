@@ -684,6 +684,7 @@ int GrapheHom_main(int argc,char ** argv);
 int Init11Param_Main(int argc,char ** argv);
 int New_Tapas_main(int,char **);
 int GCPCtrl_main(int,char **);
+int GCPVisib_main(int,char **);
 int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
 int AddAffinity_main(int argc, char **argv);

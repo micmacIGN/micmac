@@ -253,6 +253,92 @@ int GCPCtrl_main(int argc,char ** argv)
 }
 
 
+int GCPVisib_main(int argc,char ** argv)
+{
+    
+    MMD_InitArgcArgv(argc,argv);
+    
+    cInterfChantierNameManipulateur * aICNM;
+    std::string aFullDir, aDir, aPat, aAeroIn, DicoPts, aFilePtsOut="GCPVisibility.txt";
+    std::list<std::string> aListFile;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile)
+                    << EAMC(aAeroIn,"Orientation in", eSAM_IsExistDirOri)
+                    << EAMC(DicoPts,"Ground Control Points File", eSAM_IsExistFile),
+        LArgMain()
+                    <<  EAM(aFilePtsOut,"Out",true,"Output filename")
+    );
+
+
+    #if (ELISE_windows)
+        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+    #endif
+    SplitDirAndFile(aDir,aPat,aFullDir);
+   
+
+    /* Get the list of orientations/cameras */
+    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    aListFile = aICNM->StdGetListOfFile(aPat);
+    StdCorrecNameOrient(aAeroIn,aDir);
+    
+
+    /* Read the groud control points */
+    int aNb=0;
+    std::vector<Pt3dr> aVPts;
+    std::vector<std::string> aVName;
+
+    cDicoAppuisFlottant aD = StdGetObjFromFile<cDicoAppuisFlottant>
+        (
+            DicoPts,
+            StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+            "DicoAppuisFlottant",
+            "DicoAppuisFlottant"
+         );
+    
+    std::list<cOneAppuisDAF>::iterator itA=aD.OneAppuisDAF().begin();
+    for( ; itA!=aD.OneAppuisDAF().end(); itA++ )
+    {
+        aVPts.push_back(itA->Pt());
+        aVName.push_back(itA->NamePt());
+
+        aNb++;
+    }
+
+
+    /* Check visibility of the GCP in the list of cameras */
+    FILE *  aFOut = FopenNN((aDir+aFilePtsOut).c_str(),"w","GCPVisib");
+
+    int aK=0;
+    cBasicGeomCap3D * aBGC =0;
+    std::list<std::string>::iterator itL = aListFile.begin();
+    for( ;
+         itL != aListFile.end();
+         itL++
+       )
+    {
+        
+        aBGC = aICNM->StdCamGenOfNames(aAeroIn, (*itL));
+        
+        for( aK=0; aK<aNb; aK++ )
+        {
+
+            if( aBGC->PIsVisibleInImage(aVPts.at(aK)) )
+            {
+                Pt2dr aPIm = aBGC->Ter2Capteur(aVPts.at(aK));
+                fprintf(aFOut,"%s %s %lf %lf\n", 
+                        aVName.at(aK).c_str(), (*itL).c_str(), aPIm.x, aPIm.y);
+            }
+        }
+    }
+    ElFclose(aFOut);
+            
+
+
+    return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
