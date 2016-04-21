@@ -203,6 +203,7 @@ extern int Kugelhupf_main(int , char **);
 extern int FFTKugelhupf_main(int , char **);
 extern int SimplePredict_main(int , char **);
 extern int schnaps_main(int , char **);
+extern int Zlimit_main(int , char **);
 extern int SimpleFusionCarte_main(int , char **);
 
 
@@ -284,6 +285,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("FFTKugelhupf",FFTKugelhupf_main," Version of Kugelhupf using FFT, expecetd faster when it works (if ever ...)"));
        aRes.push_back(cMMCom("SimplePredict",SimplePredict_main," Project ground points on oriented cameras"));
        aRes.push_back(cMMCom("Schnaps",schnaps_main," Reduction of homologue points in image geometry"));
+       aRes.push_back(cMMCom("Zlimit",Zlimit_main," Crop Depth image in Z"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));
@@ -621,6 +623,8 @@ int TestStephane_Main(int argc,char ** argv);
 
 
 int TestDupBigTiff(int argc,char ** argv);
+int Test_TomCan(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -774,6 +778,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("RTIFilterGrad",RTIFiltrageGrad_main," RTI Filter : grad derive d'un potentiel"));
         aRes.push_back(cMMCom("RTI_RRB1",RTI_RecalRadionmBeton_main,"Recal Radiom On Image"));
         aRes.push_back(cMMCom("RTI_CLumOmbr",RTI_PosLumFromOmbre_main,"COmpute Centre Light based on shadow"));
+        aRes.push_back(cMMCom("TestTomKan",Test_TomCan,"Test Tomasi Kanade"));
     }
 
     cCmpMMCom CmpMMCom;
