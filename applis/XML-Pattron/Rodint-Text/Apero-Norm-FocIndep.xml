@@ -1,0 +1,183 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+    Aero-In="-NormInit"
+    Aero-Out="-NormFocIndep"
+>
+   <ParamApero>
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+
+            <BDD_Orient>
+                  <Id>  IdOrInit</Id>
+                  <KeySet>    KeyStd-Set-Orient@${Aero-In}       </KeySet>
+                  <KeyAssoc>  KeyStd-Assoc-Im2Orient@${Aero-In}  </KeyAssoc>
+             </BDD_Orient>
+
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_050 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>    Ori${Aero-In}/F050_AutoCal.xml  </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+                    <CalibPerPose>
+                           <KeyPose2Cal> Key-Assoc-Cal-Var </KeyPose2Cal>
+                    </CalibPerPose>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>     F050_IMG_[0-9]{4}_Norm_MpDcraw8B_GR.tif  </PatternName>
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+                       <PosFromBDOrient> IdOrInit </PosFromBDOrient>
+                   </PosValueInit>
+                   <PosesDeRattachement>  0  </PosesDeRattachement>
+              </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+              <ModeResolution> eSysL2BlocSym </ModeResolution> 
+<!--
+	      <ModeResolution> eSysPlein </ModeResolution> 
+-->
+<!--
+              <AllMatSym>  false </AllMatSym>
+              <ModeResolution> eSysCreuxMap </ModeResolution> 
+              <GridOptimKnownDist> true </GridOptimKnownDist>
+              <NormaliseEqSc> true </NormaliseEqSc>
+              <NormaliseEqTr> true </NormaliseEqTr>
+-->
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+
+		          </ContraintesCamerasInc>
+
+		          <ContraintesPoses>
+			     <NamePose>   0 </NamePose>
+			     <Val>      ePoseFigee   </Val>
+		          </ContraintesPoses>
+
+		          <ContraintesPoses>
+			     <NamePose>   1     </NamePose>
+			     <Val>      ePoseBaseNormee   </Val>
+			     <PoseRattachement>   0 </PoseRattachement>
+		          </ContraintesPoses>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+
+<!--
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLib_PP_CD_01      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR1      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR2      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR3      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+-->
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_1  </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+<!--
+                        <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc> KeyStd-Assoc-Im2Orient@${Aero-Out} </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+			    <NbVerif>  10 </NbVerif>
+			    <TolWhenVerif> 1e-3 </TolWhenVerif>
+                            <FileExtern> KeyStd-Assoc-Im2AutoCal@${Aero-Out} </FileExtern>
+                            <FileExternIsKey> true </FileExternIsKey>
+                        </ExportPose>
+                        <ExportCalib>
+                             <KeyAssoc>  KeyStd-Assoc-CleCal2AutoCal@${Aero-Out} </KeyAssoc>
+                             <KeyIsName> false </KeyIsName>
+                        </ExportCalib>
+-->
+
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+

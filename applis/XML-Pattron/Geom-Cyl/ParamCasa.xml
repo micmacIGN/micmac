@@ -1,0 +1,61 @@
+
+
+<ParamCasa>
+
+    <DicoLoc > 
+    </DicoLoc>
+
+
+        <SectionInitModele>
+           <Name> TheCylindre </Name>  <!-- Identifiant -->
+	   <SectionLoadNuage >
+               <NuageByImage>
+                     <NameXMLNuage> 
+                       GeoI-Cyl/NuageImProf_Geom-Im-0030_Etape_6.xml
+                    </NameXMLNuage>
+               </NuageByImage>
+               <NuageByImage>
+                     <NameXMLNuage> 
+                       GeoI-Cyl/NuageImProf_Geom-Im-0032_Etape_6.xml
+                    </NameXMLNuage>
+               </NuageByImage>
+               <NuageByImage>
+                     <NameXMLNuage> 
+                       GeoI-Cyl/NuageImProf_Geom-Im-0034_Etape_6.xml
+                    </NameXMLNuage>
+               </NuageByImage>
+               <NuageByImage>
+                     <NameXMLNuage> 
+                       GeoI-Cyl/NuageImProf_Geom-Im-0036_Etape_6.xml
+                    </NameXMLNuage>
+               </NuageByImage>
+<!--
+-->
+
+
+
+               <DistSep > 20 </DistSep>
+               <DistZone>  40</DistZone>
+               <!-- <SzW > 500 300  </SzW> -->
+	   </SectionLoadNuage>
+
+           <SectionEstimSurf>
+                <TypeSurf> eTSA_CylindreRevolution </TypeSurf>
+                <NbRansac> 200 </NbRansac>
+           </SectionEstimSurf>
+        </SectionInitModele>
+
+        <SectionCompensation>
+            <EtapeCompensation >
+                 <Sigma> 0.2 </Sigma>
+                 <NbIter>  6 </NbIter>
+                 <Export> TheCylindre.xml </Export>
+            </EtapeCompensation>
+        </SectionCompensation>
+
+
+        <DirectoryChantier> ThisDir </DirectoryChantier>
+       
+</ParamCasa>
+
+

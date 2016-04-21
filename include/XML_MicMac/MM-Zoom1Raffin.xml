@@ -1,0 +1,8 @@
+       <EtapeMEC>
+                <DeZoom >     ${ZoomFinal}        </DeZoom>
+                <ZPas>        ${DemiZPas}  </ZPas>
+                <ZDilatAlti>  1    </ZDilatAlti>
+                <ZDilatPlani> 1    </ZDilatPlani>
+        </EtapeMEC>
+
+
