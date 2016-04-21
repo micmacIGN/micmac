@@ -581,6 +581,17 @@ Pt3dr MakeOrthon(Pt3dr & aV1,Pt3dr & aV2)
    return aV1 ^ aV2;
 }
 
+Pt3dr SchmitComplMakeOrthon(Pt3dr & aV1,Pt3dr & aV2)
+{
+   aV1 = vunit(aV1);
+   aV2 = vunit(aV2 - aV1 * scal(aV1,aV2));
+
+   return aV1 ^ aV2;
+}
+
+
+
+
 ElMatrix<double>  MakeMatON(Pt3dr aV1,Pt3dr aV2)
 {
    Pt3dr aV3 = MakeOrthon(aV1,aV2);
