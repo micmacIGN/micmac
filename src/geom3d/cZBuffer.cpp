@@ -219,7 +219,7 @@ static int aCpt=0; aCpt++;
 				   aNbOkIm++;
 
 
-if (MPD_MM() || ERupnik_MM())
+if (0 &&(MPD_MM() || ERupnik_MM()))
 {
 
 // mm3d MPDTest Ori-RPC/GB-Orientation-S6P--2014042116840914CP.tif.xm

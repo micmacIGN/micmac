@@ -1119,7 +1119,7 @@ Pt2dr cRPC::InverseRPC(const Pt3dr &aP) const
 
     //apply inverse RPCs
     aPIm_ = InverseRPCN(aPGr);
-    std::cout << "aPIm_ " << aPIm_ << "\n";
+    // std::cout << "aPIm_ " << aPIm_ << "\n";
 
     //denormalize
     aPIm = NormIm(aPIm_, true);
