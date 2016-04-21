@@ -180,9 +180,9 @@ class CameraAffine : public cBasicGeomCap3D
 class cRPC
 {
     public:
-        cRPC(const std::string &, cBasicGeomCap3D * aCam0=0);
+        cRPC(const std::string &);
         cRPC(const std::string &, const eTypeImporGenBundle &, 
-             const cSystemeCoord *aChSys=0, cBasicGeomCap3D * aCam0=0);
+             const cSystemeCoord *aChSys=0);
         ~cRPC(){};
 
         static void Save2XmlStdMMName(const std::string &aName);
@@ -239,6 +239,7 @@ class cRPC
                         bool PRECISIONTEST=1);
 
 
+
         /* Fill-in a cubic polynomials */
         void CubicPolyFil(const Pt3dr &aP, double (&aPTerms)[20]) const;
         void DifCubicPolyFil(const Pt3dr &aP, double &aB, double (&aPTerms)[39]) const;
@@ -270,8 +271,6 @@ class cRPC
         
         
 
-        void GetRPCDir(vector<double>& aCoeff, int aId) const;
-        void GetRPCInv(vector<double>& aCoeff, int aId) const;
         void GetGrC1(vector<double>& aC) const;
         void GetGrC2(vector<double>& aC) const;
         void GetImOff(vector<double>& aOff) const;
@@ -292,6 +291,15 @@ class cRPC
         
         bool AutoDetermineRPCFile(const std::string &) const;
         std::string NameSave(const std::string & aDirLoc) const;
+        template <typename T>
+        void FilLineNumCoeff(T& , double (&)[20] ) const;
+        template <typename T>
+        void FilLineDenCoeff(T& , double (&)[20] ) const;
+        template <typename T>
+        void FilSampNumCoeff(T& , double (&)[20] ) const;
+        template <typename T>
+        void FilSampDenCoeff(T& , double (&)[20] ) const;
+
 
         bool ISDIR;
         bool ISINV;
@@ -303,7 +311,6 @@ class cRPC
         double mInvSNum[20], mInvSDen[20], mInvLNum[20], mInvLDen[20];
 
         /* Use the correcting polyn if available */
-        cBasicGeomCap3D * mCam0;
         cPolynomial_BGC3M2D * mPol;
         eRefinePB mRefine;
         

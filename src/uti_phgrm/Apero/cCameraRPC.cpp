@@ -61,7 +61,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
 	mGridSz(Pt2di(10,10)),
     mInputName(aNameFile)
 {
-    mRPC = new cRPC(aNameFile,this);
+    mRPC = new cRPC(aNameFile);
 }
 
 /* Constructor that takes original RPC fiels as input */
@@ -719,11 +719,10 @@ void CameraAffine::ShowInfo()
  * image_row = mInvLNum / mInvLDen  */
 
 /* Constructor that takes cXml_CamGenPolBundle as input */
-cRPC::cRPC(const std::string &aName, cBasicGeomCap3D * aCam0) :
+cRPC::cRPC(const std::string &aName) :
     ISDIR(false),
     ISINV(false),
     ISMETER(false),
-    mCam0(aCam0),
     mRefine(eRP_None),
     mRecGrid(Pt3di(0,0,0))
 {
@@ -751,11 +750,10 @@ cRPC::cRPC(const std::string &aName, cBasicGeomCap3D * aCam0) :
 
 
 /* Constructor to maintain Convert2GenBundle */
-cRPC::cRPC(const std::string &aName, const eTypeImporGenBundle &aType, const cSystemeCoord *aChSys, cBasicGeomCap3D * aCam0) :
+cRPC::cRPC(const std::string &aName, const eTypeImporGenBundle &aType, const cSystemeCoord *aChSys) :
     ISDIR(false),
     ISINV(false),
     ISMETER(false),
-    mCam0(aCam0),
     mRefine(eRP_None),
     mRecGrid(Pt3di(0,0,0))
 {
@@ -771,20 +769,16 @@ void cRPC::Initialize(const std::string &aName,
                       const cSystemeCoord *aChSys
                       )
 {
-    std::string aNamePol,aNameRPC=aName;
+    std::string aNameRPC=aName;
     if(AutoDetermineRPCFile(aName))
     {
         cXml_CamGenPolBundle aXml = StdGetFromSI(aName,Xml_CamGenPolBundle);
-        
-        int aType = eTIGB_Unknown;
-        if(mCam0==0)
-            mCam0 = cBasicGeomCap3D::StdGetFromFile(aXml.NameCamSsCor(),aType,aChSys);
-
-        mPol = new cPolynomial_BGC3M2D(aChSys,mCam0,aXml.NameCamSsCor(),aXml.        NameIma(),aXml.DegreTot(),0);
-        
         aNameRPC=aXml.NameCamSsCor();
-        aNamePol=aName;
+        
+        mPol = cPolynomial_BGC3M2D::NewFromFile(aName);
 
+        
+        mRefine = eRP_Poly;
     }
 
     mChSys = *aChSys;
@@ -857,6 +851,108 @@ std::string cRPC::NameSave(const std::string & aName) const
     return aNameXml;
 }
 
+template <typename T>
+void cRPC::FilLineNumCoeff(T& aXml, double (&aLNC)[20]) const
+{
+   aXml.LINE_NUM_COEFF_1() = aLNC[0];  
+   aXml.LINE_NUM_COEFF_2() = aLNC[1];  
+   aXml.LINE_NUM_COEFF_3() = aLNC[2]; 
+   aXml.LINE_NUM_COEFF_4() = aLNC[3]; 
+   aXml.LINE_NUM_COEFF_5() = aLNC[4]; 
+   aXml.LINE_NUM_COEFF_6() = aLNC[5]; 
+   aXml.LINE_NUM_COEFF_7() = aLNC[6]; 
+   aXml.LINE_NUM_COEFF_8() = aLNC[7]; 
+   aXml.LINE_NUM_COEFF_9() = aLNC[8];  
+   aXml.LINE_NUM_COEFF_10() = aLNC[9];  
+   aXml.LINE_NUM_COEFF_11() = aLNC[10];  
+   aXml.LINE_NUM_COEFF_12() = aLNC[11];  
+   aXml.LINE_NUM_COEFF_13() = aLNC[12];  
+   aXml.LINE_NUM_COEFF_14() = aLNC[13];  
+   aXml.LINE_NUM_COEFF_15() = aLNC[14];  
+   aXml.LINE_NUM_COEFF_16() = aLNC[15];  
+   aXml.LINE_NUM_COEFF_17() = aLNC[16];  
+   aXml.LINE_NUM_COEFF_18() = aLNC[17];  
+   aXml.LINE_NUM_COEFF_19() = aLNC[18];
+   aXml.LINE_NUM_COEFF_20() = aLNC[19];
+}
+
+template <typename T>
+void cRPC::FilLineDenCoeff(T& aXml, double (&aLDC)[20]) const
+{
+   aXml.LINE_DEN_COEFF_1() = aLDC[0];  
+   aXml.LINE_DEN_COEFF_2() = aLDC[1];  
+   aXml.LINE_DEN_COEFF_3() = aLDC[2];  
+   aXml.LINE_DEN_COEFF_4() = aLDC[3];  
+   aXml.LINE_DEN_COEFF_5() = aLDC[4];  
+   aXml.LINE_DEN_COEFF_6() = aLDC[5];  
+   aXml.LINE_DEN_COEFF_7() = aLDC[6];  
+   aXml.LINE_DEN_COEFF_8() = aLDC[7];  
+   aXml.LINE_DEN_COEFF_9() = aLDC[8];  
+   aXml.LINE_DEN_COEFF_10() = aLDC[9];  
+   aXml.LINE_DEN_COEFF_11() = aLDC[10];  
+   aXml.LINE_DEN_COEFF_12() = aLDC[11];  
+   aXml.LINE_DEN_COEFF_13() = aLDC[12];  
+   aXml.LINE_DEN_COEFF_14() = aLDC[13];  
+   aXml.LINE_DEN_COEFF_15() = aLDC[14];  
+   aXml.LINE_DEN_COEFF_16() = aLDC[15];  
+   aXml.LINE_DEN_COEFF_17() = aLDC[16];  
+   aXml.LINE_DEN_COEFF_18() = aLDC[17];  
+   aXml.LINE_DEN_COEFF_19() = aLDC[18];  
+   aXml.LINE_DEN_COEFF_20() = aLDC[19];  
+}
+
+template <typename T>
+void cRPC::FilSampNumCoeff(T& aXml, double (&aSNC)[20]) const
+{
+
+   aXml.SAMP_NUM_COEFF_1() = aSNC[0];  
+   aXml.SAMP_NUM_COEFF_2() = aSNC[1];  
+   aXml.SAMP_NUM_COEFF_3() = aSNC[2];  
+   aXml.SAMP_NUM_COEFF_4() = aSNC[3];  
+   aXml.SAMP_NUM_COEFF_5() = aSNC[4];  
+   aXml.SAMP_NUM_COEFF_6() = aSNC[5];  
+   aXml.SAMP_NUM_COEFF_7() = aSNC[6];  
+   aXml.SAMP_NUM_COEFF_8() = aSNC[7];  
+   aXml.SAMP_NUM_COEFF_9() = aSNC[8];  
+   aXml.SAMP_NUM_COEFF_10() = aSNC[9];  
+   aXml.SAMP_NUM_COEFF_11() = aSNC[10];  
+   aXml.SAMP_NUM_COEFF_12() = aSNC[11];  
+   aXml.SAMP_NUM_COEFF_13() = aSNC[12];  
+   aXml.SAMP_NUM_COEFF_14() = aSNC[13];  
+   aXml.SAMP_NUM_COEFF_15() = aSNC[14];  
+   aXml.SAMP_NUM_COEFF_16() = aSNC[15];  
+   aXml.SAMP_NUM_COEFF_17() = aSNC[16];  
+   aXml.SAMP_NUM_COEFF_18() = aSNC[17];  
+   aXml.SAMP_NUM_COEFF_19() = aSNC[18];  
+   aXml.SAMP_NUM_COEFF_20() = aSNC[19];  
+}
+
+template <typename T>
+void cRPC::FilSampDenCoeff(T& aXml, double (&aSDC)[20]) const
+{
+
+   aXml.SAMP_DEN_COEFF_1() = aSDC[0];  
+   aXml.SAMP_DEN_COEFF_2() = aSDC[1];  
+   aXml.SAMP_DEN_COEFF_3() = aSDC[2];  
+   aXml.SAMP_DEN_COEFF_4() = aSDC[3];  
+   aXml.SAMP_DEN_COEFF_5() = aSDC[4];  
+   aXml.SAMP_DEN_COEFF_6() = aSDC[5];  
+   aXml.SAMP_DEN_COEFF_7() = aSDC[6];  
+   aXml.SAMP_DEN_COEFF_8() = aSDC[7];  
+   aXml.SAMP_DEN_COEFF_9() = aSDC[8];  
+   aXml.SAMP_DEN_COEFF_10() = aSDC[9];  
+   aXml.SAMP_DEN_COEFF_11() = aSDC[10];  
+   aXml.SAMP_DEN_COEFF_12() = aSDC[11];  
+   aXml.SAMP_DEN_COEFF_13() = aSDC[12];  
+   aXml.SAMP_DEN_COEFF_14() = aSDC[13];  
+   aXml.SAMP_DEN_COEFF_15() = aSDC[14];  
+   aXml.SAMP_DEN_COEFF_16() = aSDC[15];  
+   aXml.SAMP_DEN_COEFF_17() = aSDC[16];  
+   aXml.SAMP_DEN_COEFF_18() = aSDC[17];  
+   aXml.SAMP_DEN_COEFF_19() = aSDC[18];  
+   aXml.SAMP_DEN_COEFF_20() = aSDC[19];  
+}
+
 void cRPC::Save2XmlStdMMName(const std::string &aName)
 {
     /* Create new RPC */
@@ -869,47 +965,31 @@ void cRPC::Save2XmlStdMMName(const std::string &aName)
    /* Save to XML */
    std::string aNameXml = aRPCSauv.NameSave(aName);
    cXml_RPC aXml_RPC;
-   cXml_RPC_Model aXml_Dir, aXml_Inv;
+   cXml_RPC_Coeff aXml_Dir, aXml_Inv;
+   cXml_RPC_Validity aXml_Val;
 
+   aXml_RPC.METADATA_FORMAT() = "DIMAP";
+   aXml_RPC.METADATA_VERSION() = "2.0";
 
    /* Direct */
-   vector<double> aDirSNumVec;
-   vector<double> aDirSDenVec;
-   vector<double> aDirLNumVec;
-   vector<double> aDirLDenVec;
-
-
-   aRPCSauv.GetRPCDir(aDirSNumVec, 0);
-   aXml_Dir.SAMP_NUM_COEFF() = aDirSNumVec;
+   aRPCSauv.FilSampNumCoeff(aXml_Dir.SAMP_NUM_COEFF(),(aRPCSauv.mDirSNum));
    
-   aRPCSauv.GetRPCDir(aDirSDenVec, 1);
-   aXml_Dir.SAMP_DEN_COEFF() = aDirSDenVec;
+   aRPCSauv.FilSampDenCoeff(aXml_Dir.SAMP_DEN_COEFF(),aRPCSauv.mDirSDen);
 
-   aRPCSauv.GetRPCDir(aDirLNumVec, 2);
-   aXml_Dir.LINE_NUM_COEFF() = aDirLNumVec;
+   aRPCSauv.FilLineNumCoeff(aXml_Dir.LINE_NUM_COEFF(),aRPCSauv.mDirLNum);
    
-   aRPCSauv.GetRPCDir(aDirLDenVec, 3);
-   aXml_Dir.LINE_DEN_COEFF() = aDirLDenVec;
+   aRPCSauv.FilLineDenCoeff(aXml_Dir.LINE_DEN_COEFF(),aRPCSauv.mDirLDen);
 
    aXml_RPC.Direct_Model() = aXml_Dir;
 
    /* Inverse */
-   vector<double> aInvSNumVec;
-   vector<double> aInvSDenVec;
-   vector<double> aInvLNumVec;
-   vector<double> aInvLDenVec;
+   aRPCSauv.FilSampNumCoeff(aXml_Inv.SAMP_NUM_COEFF(),aRPCSauv.mInvSNum);
+   
+   aRPCSauv.FilSampDenCoeff(aXml_Inv.SAMP_DEN_COEFF(),aRPCSauv.mInvSDen);
 
-   aRPCSauv.GetRPCInv(aInvSNumVec, 0);
-   aXml_Inv.SAMP_NUM_COEFF() = aInvSNumVec;
+   aRPCSauv.FilLineNumCoeff(aXml_Inv.LINE_NUM_COEFF(),aRPCSauv.mInvLNum);
 
-   aRPCSauv.GetRPCInv(aInvSDenVec, 1);
-   aXml_Inv.SAMP_DEN_COEFF() = aInvSDenVec;
-
-   aRPCSauv.GetRPCInv(aInvLNumVec, 2);
-   aXml_Inv.LINE_NUM_COEFF() = aInvLNumVec;
-
-   aRPCSauv.GetRPCInv(aInvLDenVec, 3);
-   aXml_Inv.LINE_DEN_COEFF() = aInvLDenVec;
+   aRPCSauv.FilLineDenCoeff(aXml_Inv.LINE_DEN_COEFF(),aRPCSauv.mInvLDen);
 
    aXml_RPC.Inverse_Model() = aXml_Inv;
 
@@ -919,42 +999,44 @@ void cRPC::Save2XmlStdMMName(const std::string &aName)
    vector<double> aImRows, aImCols, aGrC1, aGrC2, aGrC3;
    
    aRPCSauv.GetGrC1(aGrC1);
-   aRPCSauv.GetGrC1(aGrC2);
-   aRPCSauv.GetGrC1(aGrC3);
+   aRPCSauv.GetGrC2(aGrC2);
+   aGrC3.push_back(aRPCSauv.GetGrC31());
+   aGrC3.push_back(aRPCSauv.GetGrC32());
    aRPCSauv.GetImOff(aImOff);
    aRPCSauv.GetImScal(aImScal);
    aRPCSauv.GetGrOff(aGrOff);
    aRPCSauv.GetGrScal(aGrScal);
 
    /* Direct */
-   aXml_RPC.FIRST_ROW() = aRPCSauv.GetImRow1();
-   aXml_RPC.LAST_ROW() = aRPCSauv.GetImRow2();
+   aXml_Val.FIRST_ROW() = aRPCSauv.GetImRow1();
+   aXml_Val.LAST_ROW() = aRPCSauv.GetImRow2();
 
-   aXml_RPC.FIRST_COL() = aRPCSauv.GetImCol1();
-   aXml_RPC.LAST_COL() = aRPCSauv.GetImCol2();
+   aXml_Val.FIRST_COL() = aRPCSauv.GetImCol1();
+   aXml_Val.LAST_COL() = aRPCSauv.GetImCol2();
 
-   aXml_RPC.SAMP_SCALE() = aImScal.at(0);
-   aXml_RPC.SAMP_OFF() = aImScal.at(0);
+   aXml_Val.SAMP_SCALE() = aImScal.at(0);
+   aXml_Val.SAMP_OFF() = aImOff.at(0);
  
-   aXml_RPC.LINE_SCALE() = aImScal.at(1);
-   aXml_RPC.LINE_OFF() = aImScal.at(1);
+   aXml_Val.LINE_SCALE() = aImScal.at(1);
+   aXml_Val.LINE_OFF() = aImOff.at(1);
    
    /* Inverse */
-   aXml_RPC.FIRST_LON() = aGrC1.at(0);
-   aXml_RPC.LAST_LON() = aGrC1.at(1);
+   aXml_Val.FIRST_LON() = aGrC1.at(0);
+   aXml_Val.LAST_LON() = aGrC1.at(1);
 
-   aXml_RPC.FIRST_LAT() = aGrC2.at(0);
-   aXml_RPC.LAST_LAT() = aGrC2.at(1);
+   aXml_Val.FIRST_LAT() = aGrC2.at(0);
+   aXml_Val.LAST_LAT() = aGrC2.at(1);
 
-   aXml_RPC.LONG_SCALE() = aGrScal.at(0);
-   aXml_RPC.LONG_OFF() = aGrOff.at(0);
+   aXml_Val.LONG_SCALE() = aGrScal.at(0);
+   aXml_Val.LONG_OFF() = aGrOff.at(0);
 
-   aXml_RPC.LAT_SCALE() = aGrScal.at(1);
-   aXml_RPC.LAT_OFF() = aGrOff.at(1);
+   aXml_Val.LAT_SCALE() = aGrScal.at(1);
+   aXml_Val.LAT_OFF() = aGrOff.at(1);
    
-   aXml_RPC.HEIGHT_SCALE() = aGrScal.at(2);
-   aXml_RPC.HEIGHT_OFF() = aGrOff.at(2);
+   aXml_Val.HEIGHT_SCALE() = aGrScal.at(2);
+   aXml_Val.HEIGHT_OFF() = aGrOff.at(2);
 
+   aXml_RPC.RFM_Validity() = aXml_Val;
 
    MakeFileXML(aXml_RPC,aNameXml);
    std::cout << "Saved to: " << aNameXml << "\n";
@@ -1062,7 +1144,7 @@ Pt3dr cRPC::DirectRPC(const Pt2dr &aP, const double &aZ) const
     if(mRefine==eRP_Poly)
     {
         Pt2dr aDep=mPol->DeltaCamInit2CurIm(Pt2dr(aP.x, aP.y));
-        aPIm += aDep; 
+        aPIm -= aDep; 
     }
     //normalize
     aPIm = NormIm(aPIm);
@@ -1119,7 +1201,6 @@ Pt2dr cRPC::InverseRPC(const Pt3dr &aP) const
 
     //apply inverse RPCs
     aPIm_ = InverseRPCN(aPGr);
-    std::cout << "aPIm_ " << aPIm_ << "\n";
 
     //denormalize
     aPIm = NormIm(aPIm_, true);
@@ -1201,6 +1282,7 @@ void cRPC::InvToDirRPC()
     ISDIR=true;
 }
 
+/* ChSysRPC/ChSysRPC_ change the coordinate system of RPC from or to geodetic */
 void cRPC::ChSysRPC(const cSystemeCoord &aChSys)
 {
 
@@ -1261,22 +1343,21 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
     /* Transform grids */
     aGridCorSys  = aToCorSys->Chang(aGridOrg);
     
-    /* Normalised geo grid -> normalised image space */
-    for(aK=0; aK<int(aGridOrgN.size()); aK++)
+    /* Geo grid to image space 
+     * (given the nature of the implementation it can be as well
+     * the cartographic grid to image space) */
+    for(aK=0; aK<int(aGridOrg.size()); aK++)
     {
-        aP = InverseRPCN(aGridOrgN.at(aK));
-        aGridImgN.push_back(Pt3dr(aP.x, aP.y, aGridOrgN.at(aK).z));
+        aP = InverseRPC(aGridOrg.at(aK));
+        aGridImg.push_back(Pt3dr(aP.x, aP.y, aGridOrg.at(aK).z));
     }
 
-
-    /* Unnormalize (in order to update the offset and scale) */
-    aGridImg = NormImAll(aGridImgN,1);
     
     /* Update offset/scale */
     NewImOffScal(aGridImg);
     NewGrOffScal(aGridCorSys);
 
-    /* Update the normalisation  (with the new offset/scale) */
+    /* Normalise */
     aGridImgN = NormImAll(aGridImg,0);
 
     /* Normalise (with updated offset/scale) */
@@ -1336,8 +1417,15 @@ if(0)
     if(ISMETER)
         ISMETER=false;
     else
-        ISMETER=true; 
+        ISMETER=true;
+
+    /* If RPC were recomputed including the polynom deformation
+     * we no longer want to correct the image observations */
+    if(mRefine==eRP_Poly)
+        mRefine=eRP_None;
+        
 }
+
 
 /* ground_coord_1 * mDirSDen - mDirSNum =0
  * ground_coord_2 * mDirLDen - mDirLNum =0
@@ -1527,7 +1615,7 @@ vector<Pt3dr> cRPC::NormImAll(const vector<Pt3dr> &aP, bool aDENORM) const
     for(aK=0; aK<int(aP.size()); aK++)
     {
         aPP = NormIm(Pt2dr(aP.at(aK).x,aP.at(aK).y), aDENORM);
-        aRes.push_back( Pt3dr(aPP.x, aPP.y, aP.at(aK).z));
+        aRes.push_back( Pt3dr(aPP.x, aPP.y, NormGrZ(aP.at(aK).z, aDENORM)));
     }
 
     return(aRes);
@@ -1589,6 +1677,7 @@ void cRPC::NewImOffScal(const std::vector<Pt3dr> & aGrid)
 
    mImScal[0] =abs(aExtMax.x - mImOff[0]);
    mImScal[1] =abs(aExtMax.y - mImOff[1]);
+
 
 }
 
@@ -1676,68 +1765,6 @@ void cRPC::GetGridExt(const std::vector<Pt3dr> & aGrid,
 
 }
 
-void cRPC::GetRPCDir(vector<double> &aCoeff, int aId) const
-{
-    ELISE_ASSERT(aId<4, "cRPC::GetRPCDir there are only 4sets of coeffs in RPC; what do you want?");
-
-    int aK;
-    if(aId==0)
-    {
-        for(aK=0; aK<20; aK++)
-            aCoeff.push_back(mDirSNum[aK]);
-
-    }
-    if(aId==1)
-    {
-        for(aK=0; aK<20; aK++)
-            aCoeff.push_back(mDirSDen[aK]);
-
-    }
-    if(aId==2)
-    {
-        for(aK=0; aK<20; aK++)
-            aCoeff.push_back(mDirLNum[aK]);
-
-    }
-    if(aId==3)
-    {
-        for(aK=0; aK<20; aK++)
-            aCoeff.push_back(mDirLDen[aK]);
-
-    }
-
-}
-
-void cRPC::GetRPCInv(vector<double> &aCoeff, int aId) const
-{
-    ELISE_ASSERT(aId<4, "cRPC::GetRPCInv there are only 4sets of coeffs in RPC; what do you want?");
-
-    int aK;
-    if(aId==0)
-    {
-        for(aK=0; aK<20; aK++)
-            aCoeff.push_back(mInvSNum[aK]);
-
-    }
-    if(aId==1)
-    {
-        for(aK=0; aK<20; aK++)
-            aCoeff.push_back(mInvSDen[aK]);
-
-    }
-    if(aId==2)
-    {
-        for(aK=0; aK<20; aK++)
-            aCoeff.push_back(mInvLNum[aK]);
-
-    }
-    if(aId==3)
-    {
-        for(aK=0; aK<20; aK++)
-            aCoeff.push_back(mInvLDen[aK]);
-
-    }
-}
 
 double cRPC::GetImRow1() const
 {
@@ -2409,24 +2436,24 @@ void cRPC::ReadDimap(const std::string &aFile)
                 mGrOff[2] = std::atof((*aIt)->GetUnique("HEIGHT_OFF")->GetUniqueVal().c_str());
             }
                 
-        }
+        //}
 
-        {
-            std::list<cElXMLTree*> aNoeudsDirVal = aTree.GetAll(std::string("Direct_Model_Validity_Domain"));
+        //{
+          //  std::list<cElXMLTree*> aNoeudsDirVal = aTree.GetAll(std::string("Direct_Model_Validity_Domain"));
 
-            for(aIt=aNoeudsDirVal.begin(); aIt!=aNoeudsDirVal.end(); aIt++)
+            for(aIt=aNoeudsRFM.begin(); aIt!=aNoeudsRFM.end(); aIt++)
             {
                 mImRows[0] = std::atof((*aIt)->GetUnique("FIRST_ROW")->GetUniqueVal().c_str());
                 mImRows[1] = std::atof((*aIt)->GetUnique("LAST_ROW")->GetUniqueVal().c_str());
                 mImCols[0] = std::atof((*aIt)->GetUnique("FIRST_COL")->GetUniqueVal().c_str());
                 mImCols[1] = std::atof((*aIt)->GetUnique("LAST_COL")->GetUniqueVal().c_str());
             }
-        }
+        //}
 
-        {
-            std::list<cElXMLTree*> aNoeudsInvVal = aTree.GetAll(std::string("Inverse_Model_Validity_Domain"));
+        //{
+          //  std::list<cElXMLTree*> aNoeudsInvVal = aTree.GetAll(std::string("Inverse_Model_Validity_Domain"));
 
-            for(aIt=aNoeudsInvVal.begin(); aIt!=aNoeudsInvVal.end(); aIt++)
+            for(aIt=aNoeudsRFM.begin(); aIt!=aNoeudsRFM.end(); aIt++)
             {
                 mGrC1[0] = std::atof((*aIt)->GetUnique("FIRST_LON")->GetUniqueVal().c_str());
                 mGrC1[1] = std::atof((*aIt)->GetUnique("LAST_LON")->GetUniqueVal().c_str());

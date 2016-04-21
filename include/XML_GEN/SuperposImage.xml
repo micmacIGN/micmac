@@ -1427,19 +1427,109 @@
        <Triplets  Nb="*" RefType="Xml_OneTriplet"> </Triplets>
 </Xml_TopoTriplet>
 
-
 <!-- Export RPCs -->
-<Xml_RPC_Model Nb="1" Class="true" ToReference="true">
-        <SAMP_NUM_COEFF Nb="*" Type="double" Container="std::vector"></SAMP_NUM_COEFF>    
-        <SAMP_DEN_COEFF Nb="*" Type="double" Container="std::vector"></SAMP_DEN_COEFF>    
-        <LINE_NUM_COEFF Nb="*" Type="double" Container="std::vector"></LINE_NUM_COEFF>    
-        <LINE_DEN_COEFF Nb="*" Type="double" Container="std::vector"></LINE_DEN_COEFF>    
-</Xml_RPC_Model>
+<SAMP_NUM_COEFF Nb="1" Class="true" ToReference="true">
+    <SAMP_NUM_COEFF_1  Nb="1" Type="double"></SAMP_NUM_COEFF_1>
+    <SAMP_NUM_COEFF_2  Nb="1" Type="double"></SAMP_NUM_COEFF_2>
+    <SAMP_NUM_COEFF_3  Nb="1" Type="double"></SAMP_NUM_COEFF_3>
+    <SAMP_NUM_COEFF_4  Nb="1" Type="double"></SAMP_NUM_COEFF_4>
+    <SAMP_NUM_COEFF_5  Nb="1" Type="double"></SAMP_NUM_COEFF_5>
+    <SAMP_NUM_COEFF_6  Nb="1" Type="double"></SAMP_NUM_COEFF_6>
+    <SAMP_NUM_COEFF_7  Nb="1" Type="double"></SAMP_NUM_COEFF_7>
+    <SAMP_NUM_COEFF_8  Nb="1" Type="double"></SAMP_NUM_COEFF_8>
+    <SAMP_NUM_COEFF_9  Nb="1" Type="double"></SAMP_NUM_COEFF_9>
+    <SAMP_NUM_COEFF_10  Nb="1" Type="double"></SAMP_NUM_COEFF_10>
+    <SAMP_NUM_COEFF_11  Nb="1" Type="double"></SAMP_NUM_COEFF_11>
+    <SAMP_NUM_COEFF_12  Nb="1" Type="double"></SAMP_NUM_COEFF_12>
+    <SAMP_NUM_COEFF_13  Nb="1" Type="double"></SAMP_NUM_COEFF_13>
+    <SAMP_NUM_COEFF_14  Nb="1" Type="double"></SAMP_NUM_COEFF_14>
+    <SAMP_NUM_COEFF_15  Nb="1" Type="double"></SAMP_NUM_COEFF_15>
+    <SAMP_NUM_COEFF_16  Nb="1" Type="double"></SAMP_NUM_COEFF_16>
+    <SAMP_NUM_COEFF_17  Nb="1" Type="double"></SAMP_NUM_COEFF_17>
+    <SAMP_NUM_COEFF_18  Nb="1" Type="double"></SAMP_NUM_COEFF_18>
+    <SAMP_NUM_COEFF_19  Nb="1" Type="double"></SAMP_NUM_COEFF_19>
+    <SAMP_NUM_COEFF_20  Nb="1" Type="double"></SAMP_NUM_COEFF_20>
+</SAMP_NUM_COEFF>
+
+<SAMP_DEN_COEFF Nb="1" Class="true" ToReference="true">
+    <SAMP_DEN_COEFF_1  Nb="1" Type="double"></SAMP_DEN_COEFF_1>
+    <SAMP_DEN_COEFF_2  Nb="1" Type="double"></SAMP_DEN_COEFF_2>
+    <SAMP_DEN_COEFF_3  Nb="1" Type="double"></SAMP_DEN_COEFF_3>
+    <SAMP_DEN_COEFF_4  Nb="1" Type="double"></SAMP_DEN_COEFF_4>
+    <SAMP_DEN_COEFF_5  Nb="1" Type="double"></SAMP_DEN_COEFF_5>
+    <SAMP_DEN_COEFF_6  Nb="1" Type="double"></SAMP_DEN_COEFF_6>
+    <SAMP_DEN_COEFF_7  Nb="1" Type="double"></SAMP_DEN_COEFF_7>
+    <SAMP_DEN_COEFF_8  Nb="1" Type="double"></SAMP_DEN_COEFF_8>
+    <SAMP_DEN_COEFF_9  Nb="1" Type="double"></SAMP_DEN_COEFF_9>
+    <SAMP_DEN_COEFF_10  Nb="1" Type="double"></SAMP_DEN_COEFF_10>
+    <SAMP_DEN_COEFF_11  Nb="1" Type="double"></SAMP_DEN_COEFF_11>
+    <SAMP_DEN_COEFF_12  Nb="1" Type="double"></SAMP_DEN_COEFF_12>
+    <SAMP_DEN_COEFF_13  Nb="1" Type="double"></SAMP_DEN_COEFF_13>
+    <SAMP_DEN_COEFF_14  Nb="1" Type="double"></SAMP_DEN_COEFF_14>
+    <SAMP_DEN_COEFF_15  Nb="1" Type="double"></SAMP_DEN_COEFF_15>
+    <SAMP_DEN_COEFF_16  Nb="1" Type="double"></SAMP_DEN_COEFF_16>
+    <SAMP_DEN_COEFF_17  Nb="1" Type="double"></SAMP_DEN_COEFF_17>
+    <SAMP_DEN_COEFF_18  Nb="1" Type="double"></SAMP_DEN_COEFF_18>
+    <SAMP_DEN_COEFF_19  Nb="1" Type="double"></SAMP_DEN_COEFF_19>
+    <SAMP_DEN_COEFF_20  Nb="1" Type="double"></SAMP_DEN_COEFF_20>
+</SAMP_DEN_COEFF>
+
+<LINE_NUM_COEFF Nb="1" Class="true" ToReference="true">
+    <LINE_NUM_COEFF_1  Nb="1" Type="double"></LINE_NUM_COEFF_1>
+    <LINE_NUM_COEFF_2  Nb="1" Type="double"></LINE_NUM_COEFF_2>
+    <LINE_NUM_COEFF_3  Nb="1" Type="double"></LINE_NUM_COEFF_3>
+    <LINE_NUM_COEFF_4  Nb="1" Type="double"></LINE_NUM_COEFF_4>
+    <LINE_NUM_COEFF_5  Nb="1" Type="double"></LINE_NUM_COEFF_5>
+    <LINE_NUM_COEFF_6  Nb="1" Type="double"></LINE_NUM_COEFF_6>
+    <LINE_NUM_COEFF_7  Nb="1" Type="double"></LINE_NUM_COEFF_7>
+    <LINE_NUM_COEFF_8  Nb="1" Type="double"></LINE_NUM_COEFF_8>
+    <LINE_NUM_COEFF_9  Nb="1" Type="double"></LINE_NUM_COEFF_9>
+    <LINE_NUM_COEFF_10  Nb="1" Type="double"></LINE_NUM_COEFF_10>
+    <LINE_NUM_COEFF_11  Nb="1" Type="double"></LINE_NUM_COEFF_11>
+    <LINE_NUM_COEFF_12  Nb="1" Type="double"></LINE_NUM_COEFF_12>
+    <LINE_NUM_COEFF_13  Nb="1" Type="double"></LINE_NUM_COEFF_13>
+    <LINE_NUM_COEFF_14  Nb="1" Type="double"></LINE_NUM_COEFF_14>
+    <LINE_NUM_COEFF_15  Nb="1" Type="double"></LINE_NUM_COEFF_15>
+    <LINE_NUM_COEFF_16  Nb="1" Type="double"></LINE_NUM_COEFF_16>
+    <LINE_NUM_COEFF_17  Nb="1" Type="double"></LINE_NUM_COEFF_17>
+    <LINE_NUM_COEFF_18  Nb="1" Type="double"></LINE_NUM_COEFF_18>
+    <LINE_NUM_COEFF_19  Nb="1" Type="double"></LINE_NUM_COEFF_19>
+    <LINE_NUM_COEFF_20  Nb="1" Type="double"></LINE_NUM_COEFF_20>
+</LINE_NUM_COEFF>
+
+<LINE_DEN_COEFF Nb="1" Class="true" ToReference="true">
+    <LINE_DEN_COEFF_1  Nb="1" Type="double"></LINE_DEN_COEFF_1>
+    <LINE_DEN_COEFF_2  Nb="1" Type="double"></LINE_DEN_COEFF_2>
+    <LINE_DEN_COEFF_3  Nb="1" Type="double"></LINE_DEN_COEFF_3>
+    <LINE_DEN_COEFF_4  Nb="1" Type="double"></LINE_DEN_COEFF_4>
+    <LINE_DEN_COEFF_5  Nb="1" Type="double"></LINE_DEN_COEFF_5>
+    <LINE_DEN_COEFF_6  Nb="1" Type="double"></LINE_DEN_COEFF_6>
+    <LINE_DEN_COEFF_7  Nb="1" Type="double"></LINE_DEN_COEFF_7>
+    <LINE_DEN_COEFF_8  Nb="1" Type="double"></LINE_DEN_COEFF_8>
+    <LINE_DEN_COEFF_9  Nb="1" Type="double"></LINE_DEN_COEFF_9>
+    <LINE_DEN_COEFF_10  Nb="1" Type="double"></LINE_DEN_COEFF_10>
+    <LINE_DEN_COEFF_11  Nb="1" Type="double"></LINE_DEN_COEFF_11>
+    <LINE_DEN_COEFF_12  Nb="1" Type="double"></LINE_DEN_COEFF_12>
+    <LINE_DEN_COEFF_13  Nb="1" Type="double"></LINE_DEN_COEFF_13>
+    <LINE_DEN_COEFF_14  Nb="1" Type="double"></LINE_DEN_COEFF_14>
+    <LINE_DEN_COEFF_15  Nb="1" Type="double"></LINE_DEN_COEFF_15>
+    <LINE_DEN_COEFF_16  Nb="1" Type="double"></LINE_DEN_COEFF_16>
+    <LINE_DEN_COEFF_17  Nb="1" Type="double"></LINE_DEN_COEFF_17>
+    <LINE_DEN_COEFF_18  Nb="1" Type="double"></LINE_DEN_COEFF_18>
+    <LINE_DEN_COEFF_19  Nb="1" Type="double"></LINE_DEN_COEFF_19>
+    <LINE_DEN_COEFF_20  Nb="1" Type="double"></LINE_DEN_COEFF_20>
+</LINE_DEN_COEFF>
 
 
-<Xml_RPC  Nb="1" Class="true" ToReference="true">
-    <Direct_Model Nb="1" RefType="Xml_RPC_Model"></Direct_Model>
-    <Inverse_Model Nb="1" RefType="Xml_RPC_Model"></Inverse_Model>
+<Xml_RPC_Coeff Nb="1" Class="true" ToReference="true">
+    <SAMP_NUM_COEFF Nb="1" RefType="SAMP_NUM_COEFF"></SAMP_NUM_COEFF>
+    <SAMP_DEN_COEFF Nb="1" RefType="SAMP_DEN_COEFF"></SAMP_DEN_COEFF>
+    <LINE_NUM_COEFF Nb="1" RefType="LINE_NUM_COEFF"></LINE_NUM_COEFF>
+    <LINE_DEN_COEFF Nb="1" RefType="LINE_DEN_COEFF"></LINE_DEN_COEFF>
+</Xml_RPC_Coeff>
+
+
+<Xml_RPC_Validity Nb="1" Class="true" ToReference="true">
     <FIRST_ROW Nb="1" Type="double"></FIRST_ROW>
     <FIRST_COL Nb="1" Type="double"></FIRST_COL>
     <LAST_ROW Nb="1" Type="double"></LAST_ROW>
@@ -1458,6 +1548,14 @@
     <SAMP_OFF Nb="1" Type="double"></SAMP_OFF>
     <LINE_SCALE Nb="1" Type="double"></LINE_SCALE>
     <LINE_OFF Nb="1" Type="double"></LINE_OFF>
+</Xml_RPC_Validity>
+
+<Xml_RPC  Nb="1" Class="true" ToReference="true">
+    <METADATA_FORMAT Nb="1" Type="std::string"></METADATA_FORMAT>
+    <METADATA_VERSION Nb="1" Type="std::string"></METADATA_VERSION>
+    <Direct_Model Nb="1" RefType="Xml_RPC_Coeff"></Direct_Model>
+    <Inverse_Model Nb="1" RefType="Xml_RPC_Coeff"></Inverse_Model>
+    <RFM_Validity Nb="1" RefType="Xml_RPC_Validity"></RFM_Validity>
 </Xml_RPC>
 
 

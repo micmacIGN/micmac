@@ -6495,55 +6495,449 @@ std::string  Mangling( cXml_TopoTriplet *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cXml_RPC_Model
+class cSAMP_NUM_COEFF
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cXml_RPC_Model & anObj,cElXMLTree * aTree);
+        friend void xml_init(cSAMP_NUM_COEFF & anObj,cElXMLTree * aTree);
 
 
-        std::vector< double > & SAMP_NUM_COEFF();
-        const std::vector< double > & SAMP_NUM_COEFF()const ;
+        double & SAMP_NUM_COEFF_1();
+        const double & SAMP_NUM_COEFF_1()const ;
 
-        std::vector< double > & SAMP_DEN_COEFF();
-        const std::vector< double > & SAMP_DEN_COEFF()const ;
+        double & SAMP_NUM_COEFF_2();
+        const double & SAMP_NUM_COEFF_2()const ;
 
-        std::vector< double > & LINE_NUM_COEFF();
-        const std::vector< double > & LINE_NUM_COEFF()const ;
+        double & SAMP_NUM_COEFF_3();
+        const double & SAMP_NUM_COEFF_3()const ;
 
-        std::vector< double > & LINE_DEN_COEFF();
-        const std::vector< double > & LINE_DEN_COEFF()const ;
+        double & SAMP_NUM_COEFF_4();
+        const double & SAMP_NUM_COEFF_4()const ;
+
+        double & SAMP_NUM_COEFF_5();
+        const double & SAMP_NUM_COEFF_5()const ;
+
+        double & SAMP_NUM_COEFF_6();
+        const double & SAMP_NUM_COEFF_6()const ;
+
+        double & SAMP_NUM_COEFF_7();
+        const double & SAMP_NUM_COEFF_7()const ;
+
+        double & SAMP_NUM_COEFF_8();
+        const double & SAMP_NUM_COEFF_8()const ;
+
+        double & SAMP_NUM_COEFF_9();
+        const double & SAMP_NUM_COEFF_9()const ;
+
+        double & SAMP_NUM_COEFF_10();
+        const double & SAMP_NUM_COEFF_10()const ;
+
+        double & SAMP_NUM_COEFF_11();
+        const double & SAMP_NUM_COEFF_11()const ;
+
+        double & SAMP_NUM_COEFF_12();
+        const double & SAMP_NUM_COEFF_12()const ;
+
+        double & SAMP_NUM_COEFF_13();
+        const double & SAMP_NUM_COEFF_13()const ;
+
+        double & SAMP_NUM_COEFF_14();
+        const double & SAMP_NUM_COEFF_14()const ;
+
+        double & SAMP_NUM_COEFF_15();
+        const double & SAMP_NUM_COEFF_15()const ;
+
+        double & SAMP_NUM_COEFF_16();
+        const double & SAMP_NUM_COEFF_16()const ;
+
+        double & SAMP_NUM_COEFF_17();
+        const double & SAMP_NUM_COEFF_17()const ;
+
+        double & SAMP_NUM_COEFF_18();
+        const double & SAMP_NUM_COEFF_18()const ;
+
+        double & SAMP_NUM_COEFF_19();
+        const double & SAMP_NUM_COEFF_19()const ;
+
+        double & SAMP_NUM_COEFF_20();
+        const double & SAMP_NUM_COEFF_20()const ;
     private:
-        std::vector< double > mSAMP_NUM_COEFF;
-        std::vector< double > mSAMP_DEN_COEFF;
-        std::vector< double > mLINE_NUM_COEFF;
-        std::vector< double > mLINE_DEN_COEFF;
+        double mSAMP_NUM_COEFF_1;
+        double mSAMP_NUM_COEFF_2;
+        double mSAMP_NUM_COEFF_3;
+        double mSAMP_NUM_COEFF_4;
+        double mSAMP_NUM_COEFF_5;
+        double mSAMP_NUM_COEFF_6;
+        double mSAMP_NUM_COEFF_7;
+        double mSAMP_NUM_COEFF_8;
+        double mSAMP_NUM_COEFF_9;
+        double mSAMP_NUM_COEFF_10;
+        double mSAMP_NUM_COEFF_11;
+        double mSAMP_NUM_COEFF_12;
+        double mSAMP_NUM_COEFF_13;
+        double mSAMP_NUM_COEFF_14;
+        double mSAMP_NUM_COEFF_15;
+        double mSAMP_NUM_COEFF_16;
+        double mSAMP_NUM_COEFF_17;
+        double mSAMP_NUM_COEFF_18;
+        double mSAMP_NUM_COEFF_19;
+        double mSAMP_NUM_COEFF_20;
 };
-cElXMLTree * ToXMLTree(const cXml_RPC_Model &);
+cElXMLTree * ToXMLTree(const cSAMP_NUM_COEFF &);
 
-void  BinaryDumpInFile(ELISE_fp &,const cXml_RPC_Model &);
+void  BinaryDumpInFile(ELISE_fp &,const cSAMP_NUM_COEFF &);
 
-void  BinaryUnDumpFromFile(cXml_RPC_Model &,ELISE_fp &);
+void  BinaryUnDumpFromFile(cSAMP_NUM_COEFF &,ELISE_fp &);
 
-std::string  Mangling( cXml_RPC_Model *);
+std::string  Mangling( cSAMP_NUM_COEFF *);
 
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cXml_RPC
+class cSAMP_DEN_COEFF
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cXml_RPC & anObj,cElXMLTree * aTree);
+        friend void xml_init(cSAMP_DEN_COEFF & anObj,cElXMLTree * aTree);
 
 
-        cXml_RPC_Model & Direct_Model();
-        const cXml_RPC_Model & Direct_Model()const ;
+        double & SAMP_DEN_COEFF_1();
+        const double & SAMP_DEN_COEFF_1()const ;
 
-        cXml_RPC_Model & Inverse_Model();
-        const cXml_RPC_Model & Inverse_Model()const ;
+        double & SAMP_DEN_COEFF_2();
+        const double & SAMP_DEN_COEFF_2()const ;
+
+        double & SAMP_DEN_COEFF_3();
+        const double & SAMP_DEN_COEFF_3()const ;
+
+        double & SAMP_DEN_COEFF_4();
+        const double & SAMP_DEN_COEFF_4()const ;
+
+        double & SAMP_DEN_COEFF_5();
+        const double & SAMP_DEN_COEFF_5()const ;
+
+        double & SAMP_DEN_COEFF_6();
+        const double & SAMP_DEN_COEFF_6()const ;
+
+        double & SAMP_DEN_COEFF_7();
+        const double & SAMP_DEN_COEFF_7()const ;
+
+        double & SAMP_DEN_COEFF_8();
+        const double & SAMP_DEN_COEFF_8()const ;
+
+        double & SAMP_DEN_COEFF_9();
+        const double & SAMP_DEN_COEFF_9()const ;
+
+        double & SAMP_DEN_COEFF_10();
+        const double & SAMP_DEN_COEFF_10()const ;
+
+        double & SAMP_DEN_COEFF_11();
+        const double & SAMP_DEN_COEFF_11()const ;
+
+        double & SAMP_DEN_COEFF_12();
+        const double & SAMP_DEN_COEFF_12()const ;
+
+        double & SAMP_DEN_COEFF_13();
+        const double & SAMP_DEN_COEFF_13()const ;
+
+        double & SAMP_DEN_COEFF_14();
+        const double & SAMP_DEN_COEFF_14()const ;
+
+        double & SAMP_DEN_COEFF_15();
+        const double & SAMP_DEN_COEFF_15()const ;
+
+        double & SAMP_DEN_COEFF_16();
+        const double & SAMP_DEN_COEFF_16()const ;
+
+        double & SAMP_DEN_COEFF_17();
+        const double & SAMP_DEN_COEFF_17()const ;
+
+        double & SAMP_DEN_COEFF_18();
+        const double & SAMP_DEN_COEFF_18()const ;
+
+        double & SAMP_DEN_COEFF_19();
+        const double & SAMP_DEN_COEFF_19()const ;
+
+        double & SAMP_DEN_COEFF_20();
+        const double & SAMP_DEN_COEFF_20()const ;
+    private:
+        double mSAMP_DEN_COEFF_1;
+        double mSAMP_DEN_COEFF_2;
+        double mSAMP_DEN_COEFF_3;
+        double mSAMP_DEN_COEFF_4;
+        double mSAMP_DEN_COEFF_5;
+        double mSAMP_DEN_COEFF_6;
+        double mSAMP_DEN_COEFF_7;
+        double mSAMP_DEN_COEFF_8;
+        double mSAMP_DEN_COEFF_9;
+        double mSAMP_DEN_COEFF_10;
+        double mSAMP_DEN_COEFF_11;
+        double mSAMP_DEN_COEFF_12;
+        double mSAMP_DEN_COEFF_13;
+        double mSAMP_DEN_COEFF_14;
+        double mSAMP_DEN_COEFF_15;
+        double mSAMP_DEN_COEFF_16;
+        double mSAMP_DEN_COEFF_17;
+        double mSAMP_DEN_COEFF_18;
+        double mSAMP_DEN_COEFF_19;
+        double mSAMP_DEN_COEFF_20;
+};
+cElXMLTree * ToXMLTree(const cSAMP_DEN_COEFF &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSAMP_DEN_COEFF &);
+
+void  BinaryUnDumpFromFile(cSAMP_DEN_COEFF &,ELISE_fp &);
+
+std::string  Mangling( cSAMP_DEN_COEFF *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cLINE_NUM_COEFF
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cLINE_NUM_COEFF & anObj,cElXMLTree * aTree);
+
+
+        double & LINE_NUM_COEFF_1();
+        const double & LINE_NUM_COEFF_1()const ;
+
+        double & LINE_NUM_COEFF_2();
+        const double & LINE_NUM_COEFF_2()const ;
+
+        double & LINE_NUM_COEFF_3();
+        const double & LINE_NUM_COEFF_3()const ;
+
+        double & LINE_NUM_COEFF_4();
+        const double & LINE_NUM_COEFF_4()const ;
+
+        double & LINE_NUM_COEFF_5();
+        const double & LINE_NUM_COEFF_5()const ;
+
+        double & LINE_NUM_COEFF_6();
+        const double & LINE_NUM_COEFF_6()const ;
+
+        double & LINE_NUM_COEFF_7();
+        const double & LINE_NUM_COEFF_7()const ;
+
+        double & LINE_NUM_COEFF_8();
+        const double & LINE_NUM_COEFF_8()const ;
+
+        double & LINE_NUM_COEFF_9();
+        const double & LINE_NUM_COEFF_9()const ;
+
+        double & LINE_NUM_COEFF_10();
+        const double & LINE_NUM_COEFF_10()const ;
+
+        double & LINE_NUM_COEFF_11();
+        const double & LINE_NUM_COEFF_11()const ;
+
+        double & LINE_NUM_COEFF_12();
+        const double & LINE_NUM_COEFF_12()const ;
+
+        double & LINE_NUM_COEFF_13();
+        const double & LINE_NUM_COEFF_13()const ;
+
+        double & LINE_NUM_COEFF_14();
+        const double & LINE_NUM_COEFF_14()const ;
+
+        double & LINE_NUM_COEFF_15();
+        const double & LINE_NUM_COEFF_15()const ;
+
+        double & LINE_NUM_COEFF_16();
+        const double & LINE_NUM_COEFF_16()const ;
+
+        double & LINE_NUM_COEFF_17();
+        const double & LINE_NUM_COEFF_17()const ;
+
+        double & LINE_NUM_COEFF_18();
+        const double & LINE_NUM_COEFF_18()const ;
+
+        double & LINE_NUM_COEFF_19();
+        const double & LINE_NUM_COEFF_19()const ;
+
+        double & LINE_NUM_COEFF_20();
+        const double & LINE_NUM_COEFF_20()const ;
+    private:
+        double mLINE_NUM_COEFF_1;
+        double mLINE_NUM_COEFF_2;
+        double mLINE_NUM_COEFF_3;
+        double mLINE_NUM_COEFF_4;
+        double mLINE_NUM_COEFF_5;
+        double mLINE_NUM_COEFF_6;
+        double mLINE_NUM_COEFF_7;
+        double mLINE_NUM_COEFF_8;
+        double mLINE_NUM_COEFF_9;
+        double mLINE_NUM_COEFF_10;
+        double mLINE_NUM_COEFF_11;
+        double mLINE_NUM_COEFF_12;
+        double mLINE_NUM_COEFF_13;
+        double mLINE_NUM_COEFF_14;
+        double mLINE_NUM_COEFF_15;
+        double mLINE_NUM_COEFF_16;
+        double mLINE_NUM_COEFF_17;
+        double mLINE_NUM_COEFF_18;
+        double mLINE_NUM_COEFF_19;
+        double mLINE_NUM_COEFF_20;
+};
+cElXMLTree * ToXMLTree(const cLINE_NUM_COEFF &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cLINE_NUM_COEFF &);
+
+void  BinaryUnDumpFromFile(cLINE_NUM_COEFF &,ELISE_fp &);
+
+std::string  Mangling( cLINE_NUM_COEFF *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cLINE_DEN_COEFF
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cLINE_DEN_COEFF & anObj,cElXMLTree * aTree);
+
+
+        double & LINE_DEN_COEFF_1();
+        const double & LINE_DEN_COEFF_1()const ;
+
+        double & LINE_DEN_COEFF_2();
+        const double & LINE_DEN_COEFF_2()const ;
+
+        double & LINE_DEN_COEFF_3();
+        const double & LINE_DEN_COEFF_3()const ;
+
+        double & LINE_DEN_COEFF_4();
+        const double & LINE_DEN_COEFF_4()const ;
+
+        double & LINE_DEN_COEFF_5();
+        const double & LINE_DEN_COEFF_5()const ;
+
+        double & LINE_DEN_COEFF_6();
+        const double & LINE_DEN_COEFF_6()const ;
+
+        double & LINE_DEN_COEFF_7();
+        const double & LINE_DEN_COEFF_7()const ;
+
+        double & LINE_DEN_COEFF_8();
+        const double & LINE_DEN_COEFF_8()const ;
+
+        double & LINE_DEN_COEFF_9();
+        const double & LINE_DEN_COEFF_9()const ;
+
+        double & LINE_DEN_COEFF_10();
+        const double & LINE_DEN_COEFF_10()const ;
+
+        double & LINE_DEN_COEFF_11();
+        const double & LINE_DEN_COEFF_11()const ;
+
+        double & LINE_DEN_COEFF_12();
+        const double & LINE_DEN_COEFF_12()const ;
+
+        double & LINE_DEN_COEFF_13();
+        const double & LINE_DEN_COEFF_13()const ;
+
+        double & LINE_DEN_COEFF_14();
+        const double & LINE_DEN_COEFF_14()const ;
+
+        double & LINE_DEN_COEFF_15();
+        const double & LINE_DEN_COEFF_15()const ;
+
+        double & LINE_DEN_COEFF_16();
+        const double & LINE_DEN_COEFF_16()const ;
+
+        double & LINE_DEN_COEFF_17();
+        const double & LINE_DEN_COEFF_17()const ;
+
+        double & LINE_DEN_COEFF_18();
+        const double & LINE_DEN_COEFF_18()const ;
+
+        double & LINE_DEN_COEFF_19();
+        const double & LINE_DEN_COEFF_19()const ;
+
+        double & LINE_DEN_COEFF_20();
+        const double & LINE_DEN_COEFF_20()const ;
+    private:
+        double mLINE_DEN_COEFF_1;
+        double mLINE_DEN_COEFF_2;
+        double mLINE_DEN_COEFF_3;
+        double mLINE_DEN_COEFF_4;
+        double mLINE_DEN_COEFF_5;
+        double mLINE_DEN_COEFF_6;
+        double mLINE_DEN_COEFF_7;
+        double mLINE_DEN_COEFF_8;
+        double mLINE_DEN_COEFF_9;
+        double mLINE_DEN_COEFF_10;
+        double mLINE_DEN_COEFF_11;
+        double mLINE_DEN_COEFF_12;
+        double mLINE_DEN_COEFF_13;
+        double mLINE_DEN_COEFF_14;
+        double mLINE_DEN_COEFF_15;
+        double mLINE_DEN_COEFF_16;
+        double mLINE_DEN_COEFF_17;
+        double mLINE_DEN_COEFF_18;
+        double mLINE_DEN_COEFF_19;
+        double mLINE_DEN_COEFF_20;
+};
+cElXMLTree * ToXMLTree(const cLINE_DEN_COEFF &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cLINE_DEN_COEFF &);
+
+void  BinaryUnDumpFromFile(cLINE_DEN_COEFF &,ELISE_fp &);
+
+std::string  Mangling( cLINE_DEN_COEFF *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_RPC_Coeff
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_RPC_Coeff & anObj,cElXMLTree * aTree);
+
+
+        cSAMP_NUM_COEFF & SAMP_NUM_COEFF();
+        const cSAMP_NUM_COEFF & SAMP_NUM_COEFF()const ;
+
+        cSAMP_DEN_COEFF & SAMP_DEN_COEFF();
+        const cSAMP_DEN_COEFF & SAMP_DEN_COEFF()const ;
+
+        cLINE_NUM_COEFF & LINE_NUM_COEFF();
+        const cLINE_NUM_COEFF & LINE_NUM_COEFF()const ;
+
+        cLINE_DEN_COEFF & LINE_DEN_COEFF();
+        const cLINE_DEN_COEFF & LINE_DEN_COEFF()const ;
+    private:
+        cSAMP_NUM_COEFF mSAMP_NUM_COEFF;
+        cSAMP_DEN_COEFF mSAMP_DEN_COEFF;
+        cLINE_NUM_COEFF mLINE_NUM_COEFF;
+        cLINE_DEN_COEFF mLINE_DEN_COEFF;
+};
+cElXMLTree * ToXMLTree(const cXml_RPC_Coeff &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_RPC_Coeff &);
+
+void  BinaryUnDumpFromFile(cXml_RPC_Coeff &,ELISE_fp &);
+
+std::string  Mangling( cXml_RPC_Coeff *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_RPC_Validity
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_RPC_Validity & anObj,cElXMLTree * aTree);
+
 
         double & FIRST_ROW();
         const double & FIRST_ROW()const ;
@@ -6599,8 +6993,6 @@ class cXml_RPC
         double & LINE_OFF();
         const double & LINE_OFF()const ;
     private:
-        cXml_RPC_Model mDirect_Model;
-        cXml_RPC_Model mInverse_Model;
         double mFIRST_ROW;
         double mFIRST_COL;
         double mLAST_ROW;
@@ -6619,6 +7011,46 @@ class cXml_RPC
         double mSAMP_OFF;
         double mLINE_SCALE;
         double mLINE_OFF;
+};
+cElXMLTree * ToXMLTree(const cXml_RPC_Validity &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_RPC_Validity &);
+
+void  BinaryUnDumpFromFile(cXml_RPC_Validity &,ELISE_fp &);
+
+std::string  Mangling( cXml_RPC_Validity *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_RPC
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_RPC & anObj,cElXMLTree * aTree);
+
+
+        std::string & METADATA_FORMAT();
+        const std::string & METADATA_FORMAT()const ;
+
+        std::string & METADATA_VERSION();
+        const std::string & METADATA_VERSION()const ;
+
+        cXml_RPC_Coeff & Direct_Model();
+        const cXml_RPC_Coeff & Direct_Model()const ;
+
+        cXml_RPC_Coeff & Inverse_Model();
+        const cXml_RPC_Coeff & Inverse_Model()const ;
+
+        cXml_RPC_Validity & RFM_Validity();
+        const cXml_RPC_Validity & RFM_Validity()const ;
+    private:
+        std::string mMETADATA_FORMAT;
+        std::string mMETADATA_VERSION;
+        cXml_RPC_Coeff mDirect_Model;
+        cXml_RPC_Coeff mInverse_Model;
+        cXml_RPC_Validity mRFM_Validity;
 };
 cElXMLTree * ToXMLTree(const cXml_RPC &);
 

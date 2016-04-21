@@ -1603,6 +1603,19 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                         aType = eTIGB_MMDimap2;
                         return;
                     }
+                    else
+                    {
+                        cElXMLTree * aXmlMETADATA_VERSION = aTree->Get("METADATA_VERSION");
+                        if(aXmlMETADATA_VERSION)
+                        {
+                            std::string aStrMETADATA_VERSION = aXmlMETADATA_VERSION->GetUniqueVal() ;
+                            if(aStrMETADATA_VERSION == "2.0")
+                            {
+                                aType = eTIGB_MMDimap2;
+                                return;
+                            }
+                        }
+                    }
                }
            }
 

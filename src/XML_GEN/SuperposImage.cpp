@@ -21171,391 +21171,1675 @@ void xml_init(cXml_TopoTriplet & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXml_TopoTriplet *) {return "8998B01898888FA8FF3F";};
 
 
-std::vector< double > & cXml_RPC_Model::SAMP_NUM_COEFF()
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_1()
 {
-   return mSAMP_NUM_COEFF;
+   return mSAMP_NUM_COEFF_1;
 }
 
-const std::vector< double > & cXml_RPC_Model::SAMP_NUM_COEFF()const 
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_1()const 
 {
-   return mSAMP_NUM_COEFF;
-}
-
-
-std::vector< double > & cXml_RPC_Model::SAMP_DEN_COEFF()
-{
-   return mSAMP_DEN_COEFF;
-}
-
-const std::vector< double > & cXml_RPC_Model::SAMP_DEN_COEFF()const 
-{
-   return mSAMP_DEN_COEFF;
+   return mSAMP_NUM_COEFF_1;
 }
 
 
-std::vector< double > & cXml_RPC_Model::LINE_NUM_COEFF()
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_2()
 {
-   return mLINE_NUM_COEFF;
+   return mSAMP_NUM_COEFF_2;
 }
 
-const std::vector< double > & cXml_RPC_Model::LINE_NUM_COEFF()const 
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_2()const 
 {
-   return mLINE_NUM_COEFF;
+   return mSAMP_NUM_COEFF_2;
 }
 
 
-std::vector< double > & cXml_RPC_Model::LINE_DEN_COEFF()
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_3()
 {
-   return mLINE_DEN_COEFF;
+   return mSAMP_NUM_COEFF_3;
 }
 
-const std::vector< double > & cXml_RPC_Model::LINE_DEN_COEFF()const 
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_3()const 
 {
-   return mLINE_DEN_COEFF;
+   return mSAMP_NUM_COEFF_3;
 }
 
-void  BinaryUnDumpFromFile(cXml_RPC_Model & anObj,ELISE_fp & aFp)
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_4()
 {
-   { int aNb;
-    BinaryUnDumpFromFile(aNb,aFp);
-        for(  int aK=0 ; aK<aNb ; aK++)
-        {
-             double aVal;
-              BinaryUnDumpFromFile(aVal,aFp);
-              anObj.SAMP_NUM_COEFF().push_back(aVal);
-        }
-  } ;
-  { int aNb;
-    BinaryUnDumpFromFile(aNb,aFp);
-        for(  int aK=0 ; aK<aNb ; aK++)
-        {
-             double aVal;
-              BinaryUnDumpFromFile(aVal,aFp);
-              anObj.SAMP_DEN_COEFF().push_back(aVal);
-        }
-  } ;
-  { int aNb;
-    BinaryUnDumpFromFile(aNb,aFp);
-        for(  int aK=0 ; aK<aNb ; aK++)
-        {
-             double aVal;
-              BinaryUnDumpFromFile(aVal,aFp);
-              anObj.LINE_NUM_COEFF().push_back(aVal);
-        }
-  } ;
-  { int aNb;
-    BinaryUnDumpFromFile(aNb,aFp);
-        for(  int aK=0 ; aK<aNb ; aK++)
-        {
-             double aVal;
-              BinaryUnDumpFromFile(aVal,aFp);
-              anObj.LINE_DEN_COEFF().push_back(aVal);
-        }
-  } ;
+   return mSAMP_NUM_COEFF_4;
 }
 
-void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RPC_Model & anObj)
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_4()const 
 {
-    BinaryDumpInFile(aFp,(int)anObj.SAMP_NUM_COEFF().size());
-    for(  std::vector< double >::const_iterator iT=anObj.SAMP_NUM_COEFF().begin();
-         iT!=anObj.SAMP_NUM_COEFF().end();
-          iT++
-    )
-        BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,(int)anObj.SAMP_DEN_COEFF().size());
-    for(  std::vector< double >::const_iterator iT=anObj.SAMP_DEN_COEFF().begin();
-         iT!=anObj.SAMP_DEN_COEFF().end();
-          iT++
-    )
-        BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,(int)anObj.LINE_NUM_COEFF().size());
-    for(  std::vector< double >::const_iterator iT=anObj.LINE_NUM_COEFF().begin();
-         iT!=anObj.LINE_NUM_COEFF().end();
-          iT++
-    )
-        BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,(int)anObj.LINE_DEN_COEFF().size());
-    for(  std::vector< double >::const_iterator iT=anObj.LINE_DEN_COEFF().begin();
-         iT!=anObj.LINE_DEN_COEFF().end();
-          iT++
-    )
-        BinaryDumpInFile(aFp,*iT);
+   return mSAMP_NUM_COEFF_4;
 }
 
-cElXMLTree * ToXMLTree(const cXml_RPC_Model & anObj)
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_5()
+{
+   return mSAMP_NUM_COEFF_5;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_5()const 
+{
+   return mSAMP_NUM_COEFF_5;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_6()
+{
+   return mSAMP_NUM_COEFF_6;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_6()const 
+{
+   return mSAMP_NUM_COEFF_6;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_7()
+{
+   return mSAMP_NUM_COEFF_7;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_7()const 
+{
+   return mSAMP_NUM_COEFF_7;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_8()
+{
+   return mSAMP_NUM_COEFF_8;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_8()const 
+{
+   return mSAMP_NUM_COEFF_8;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_9()
+{
+   return mSAMP_NUM_COEFF_9;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_9()const 
+{
+   return mSAMP_NUM_COEFF_9;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_10()
+{
+   return mSAMP_NUM_COEFF_10;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_10()const 
+{
+   return mSAMP_NUM_COEFF_10;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_11()
+{
+   return mSAMP_NUM_COEFF_11;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_11()const 
+{
+   return mSAMP_NUM_COEFF_11;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_12()
+{
+   return mSAMP_NUM_COEFF_12;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_12()const 
+{
+   return mSAMP_NUM_COEFF_12;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_13()
+{
+   return mSAMP_NUM_COEFF_13;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_13()const 
+{
+   return mSAMP_NUM_COEFF_13;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_14()
+{
+   return mSAMP_NUM_COEFF_14;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_14()const 
+{
+   return mSAMP_NUM_COEFF_14;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_15()
+{
+   return mSAMP_NUM_COEFF_15;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_15()const 
+{
+   return mSAMP_NUM_COEFF_15;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_16()
+{
+   return mSAMP_NUM_COEFF_16;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_16()const 
+{
+   return mSAMP_NUM_COEFF_16;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_17()
+{
+   return mSAMP_NUM_COEFF_17;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_17()const 
+{
+   return mSAMP_NUM_COEFF_17;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_18()
+{
+   return mSAMP_NUM_COEFF_18;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_18()const 
+{
+   return mSAMP_NUM_COEFF_18;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_19()
+{
+   return mSAMP_NUM_COEFF_19;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_19()const 
+{
+   return mSAMP_NUM_COEFF_19;
+}
+
+
+double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_20()
+{
+   return mSAMP_NUM_COEFF_20;
+}
+
+const double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_20()const 
+{
+   return mSAMP_NUM_COEFF_20;
+}
+
+void  BinaryUnDumpFromFile(cSAMP_NUM_COEFF & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_1(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_2(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_3(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_4(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_5(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_6(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_7(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_8(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_9(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_10(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_11(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_12(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_13(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_14(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_15(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_16(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_17(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_18(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_19(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF_20(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cSAMP_NUM_COEFF & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_1());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_2());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_3());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_4());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_5());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_6());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_7());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_8());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_9());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_10());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_11());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_12());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_13());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_14());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_15());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_16());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_17());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_18());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_19());
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF_20());
+}
+
+cElXMLTree * ToXMLTree(const cSAMP_NUM_COEFF & anObj)
 {
   XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RPC_Model",eXMLBranche);
-  for
-  (       std::vector< double >::const_iterator it=anObj.SAMP_NUM_COEFF().begin();
-      it !=anObj.SAMP_NUM_COEFF().end();
-      it++
-  ) 
-      aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF"),(*it))->ReTagThis("SAMP_NUM_COEFF"));
-  for
-  (       std::vector< double >::const_iterator it=anObj.SAMP_DEN_COEFF().begin();
-      it !=anObj.SAMP_DEN_COEFF().end();
-      it++
-  ) 
-      aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF"),(*it))->ReTagThis("SAMP_DEN_COEFF"));
-  for
-  (       std::vector< double >::const_iterator it=anObj.LINE_NUM_COEFF().begin();
-      it !=anObj.LINE_NUM_COEFF().end();
-      it++
-  ) 
-      aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF"),(*it))->ReTagThis("LINE_NUM_COEFF"));
-  for
-  (       std::vector< double >::const_iterator it=anObj.LINE_DEN_COEFF().begin();
-      it !=anObj.LINE_DEN_COEFF().end();
-      it++
-  ) 
-      aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF"),(*it))->ReTagThis("LINE_DEN_COEFF"));
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SAMP_NUM_COEFF",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_1"),anObj.SAMP_NUM_COEFF_1())->ReTagThis("SAMP_NUM_COEFF_1"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_2"),anObj.SAMP_NUM_COEFF_2())->ReTagThis("SAMP_NUM_COEFF_2"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_3"),anObj.SAMP_NUM_COEFF_3())->ReTagThis("SAMP_NUM_COEFF_3"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_4"),anObj.SAMP_NUM_COEFF_4())->ReTagThis("SAMP_NUM_COEFF_4"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_5"),anObj.SAMP_NUM_COEFF_5())->ReTagThis("SAMP_NUM_COEFF_5"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_6"),anObj.SAMP_NUM_COEFF_6())->ReTagThis("SAMP_NUM_COEFF_6"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_7"),anObj.SAMP_NUM_COEFF_7())->ReTagThis("SAMP_NUM_COEFF_7"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_8"),anObj.SAMP_NUM_COEFF_8())->ReTagThis("SAMP_NUM_COEFF_8"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_9"),anObj.SAMP_NUM_COEFF_9())->ReTagThis("SAMP_NUM_COEFF_9"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_10"),anObj.SAMP_NUM_COEFF_10())->ReTagThis("SAMP_NUM_COEFF_10"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_11"),anObj.SAMP_NUM_COEFF_11())->ReTagThis("SAMP_NUM_COEFF_11"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_12"),anObj.SAMP_NUM_COEFF_12())->ReTagThis("SAMP_NUM_COEFF_12"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_13"),anObj.SAMP_NUM_COEFF_13())->ReTagThis("SAMP_NUM_COEFF_13"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_14"),anObj.SAMP_NUM_COEFF_14())->ReTagThis("SAMP_NUM_COEFF_14"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_15"),anObj.SAMP_NUM_COEFF_15())->ReTagThis("SAMP_NUM_COEFF_15"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_16"),anObj.SAMP_NUM_COEFF_16())->ReTagThis("SAMP_NUM_COEFF_16"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_17"),anObj.SAMP_NUM_COEFF_17())->ReTagThis("SAMP_NUM_COEFF_17"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_18"),anObj.SAMP_NUM_COEFF_18())->ReTagThis("SAMP_NUM_COEFF_18"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_19"),anObj.SAMP_NUM_COEFF_19())->ReTagThis("SAMP_NUM_COEFF_19"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_NUM_COEFF_20"),anObj.SAMP_NUM_COEFF_20())->ReTagThis("SAMP_NUM_COEFF_20"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
-void xml_init(cXml_RPC_Model & anObj,cElXMLTree * aTree)
+void xml_init(cSAMP_NUM_COEFF & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
-   xml_init(anObj.SAMP_NUM_COEFF(),aTree->GetAll("SAMP_NUM_COEFF",false,1));
+   xml_init(anObj.SAMP_NUM_COEFF_1(),aTree->Get("SAMP_NUM_COEFF_1",1)); //tototo 
 
-   xml_init(anObj.SAMP_DEN_COEFF(),aTree->GetAll("SAMP_DEN_COEFF",false,1));
+   xml_init(anObj.SAMP_NUM_COEFF_2(),aTree->Get("SAMP_NUM_COEFF_2",1)); //tototo 
 
-   xml_init(anObj.LINE_NUM_COEFF(),aTree->GetAll("LINE_NUM_COEFF",false,1));
+   xml_init(anObj.SAMP_NUM_COEFF_3(),aTree->Get("SAMP_NUM_COEFF_3",1)); //tototo 
 
-   xml_init(anObj.LINE_DEN_COEFF(),aTree->GetAll("LINE_DEN_COEFF",false,1));
+   xml_init(anObj.SAMP_NUM_COEFF_4(),aTree->Get("SAMP_NUM_COEFF_4",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_5(),aTree->Get("SAMP_NUM_COEFF_5",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_6(),aTree->Get("SAMP_NUM_COEFF_6",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_7(),aTree->Get("SAMP_NUM_COEFF_7",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_8(),aTree->Get("SAMP_NUM_COEFF_8",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_9(),aTree->Get("SAMP_NUM_COEFF_9",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_10(),aTree->Get("SAMP_NUM_COEFF_10",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_11(),aTree->Get("SAMP_NUM_COEFF_11",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_12(),aTree->Get("SAMP_NUM_COEFF_12",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_13(),aTree->Get("SAMP_NUM_COEFF_13",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_14(),aTree->Get("SAMP_NUM_COEFF_14",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_15(),aTree->Get("SAMP_NUM_COEFF_15",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_16(),aTree->Get("SAMP_NUM_COEFF_16",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_17(),aTree->Get("SAMP_NUM_COEFF_17",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_18(),aTree->Get("SAMP_NUM_COEFF_18",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_19(),aTree->Get("SAMP_NUM_COEFF_19",1)); //tototo 
+
+   xml_init(anObj.SAMP_NUM_COEFF_20(),aTree->Get("SAMP_NUM_COEFF_20",1)); //tototo 
 }
 
-std::string  Mangling( cXml_RPC_Model *) {return "0FCFF03FE80EB09AFF3F";};
+std::string  Mangling( cSAMP_NUM_COEFF *) {return "F6EE41A86AD0E0AAFE3F";};
 
 
-cXml_RPC_Model & cXml_RPC::Direct_Model()
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_1()
 {
-   return mDirect_Model;
+   return mSAMP_DEN_COEFF_1;
 }
 
-const cXml_RPC_Model & cXml_RPC::Direct_Model()const 
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_1()const 
 {
-   return mDirect_Model;
+   return mSAMP_DEN_COEFF_1;
 }
 
 
-cXml_RPC_Model & cXml_RPC::Inverse_Model()
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_2()
 {
-   return mInverse_Model;
+   return mSAMP_DEN_COEFF_2;
 }
 
-const cXml_RPC_Model & cXml_RPC::Inverse_Model()const 
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_2()const 
 {
-   return mInverse_Model;
+   return mSAMP_DEN_COEFF_2;
 }
 
 
-double & cXml_RPC::FIRST_ROW()
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_3()
+{
+   return mSAMP_DEN_COEFF_3;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_3()const 
+{
+   return mSAMP_DEN_COEFF_3;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_4()
+{
+   return mSAMP_DEN_COEFF_4;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_4()const 
+{
+   return mSAMP_DEN_COEFF_4;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_5()
+{
+   return mSAMP_DEN_COEFF_5;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_5()const 
+{
+   return mSAMP_DEN_COEFF_5;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_6()
+{
+   return mSAMP_DEN_COEFF_6;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_6()const 
+{
+   return mSAMP_DEN_COEFF_6;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_7()
+{
+   return mSAMP_DEN_COEFF_7;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_7()const 
+{
+   return mSAMP_DEN_COEFF_7;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_8()
+{
+   return mSAMP_DEN_COEFF_8;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_8()const 
+{
+   return mSAMP_DEN_COEFF_8;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_9()
+{
+   return mSAMP_DEN_COEFF_9;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_9()const 
+{
+   return mSAMP_DEN_COEFF_9;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_10()
+{
+   return mSAMP_DEN_COEFF_10;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_10()const 
+{
+   return mSAMP_DEN_COEFF_10;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_11()
+{
+   return mSAMP_DEN_COEFF_11;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_11()const 
+{
+   return mSAMP_DEN_COEFF_11;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_12()
+{
+   return mSAMP_DEN_COEFF_12;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_12()const 
+{
+   return mSAMP_DEN_COEFF_12;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_13()
+{
+   return mSAMP_DEN_COEFF_13;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_13()const 
+{
+   return mSAMP_DEN_COEFF_13;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_14()
+{
+   return mSAMP_DEN_COEFF_14;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_14()const 
+{
+   return mSAMP_DEN_COEFF_14;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_15()
+{
+   return mSAMP_DEN_COEFF_15;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_15()const 
+{
+   return mSAMP_DEN_COEFF_15;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_16()
+{
+   return mSAMP_DEN_COEFF_16;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_16()const 
+{
+   return mSAMP_DEN_COEFF_16;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_17()
+{
+   return mSAMP_DEN_COEFF_17;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_17()const 
+{
+   return mSAMP_DEN_COEFF_17;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_18()
+{
+   return mSAMP_DEN_COEFF_18;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_18()const 
+{
+   return mSAMP_DEN_COEFF_18;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_19()
+{
+   return mSAMP_DEN_COEFF_19;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_19()const 
+{
+   return mSAMP_DEN_COEFF_19;
+}
+
+
+double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_20()
+{
+   return mSAMP_DEN_COEFF_20;
+}
+
+const double & cSAMP_DEN_COEFF::SAMP_DEN_COEFF_20()const 
+{
+   return mSAMP_DEN_COEFF_20;
+}
+
+void  BinaryUnDumpFromFile(cSAMP_DEN_COEFF & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_1(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_2(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_3(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_4(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_5(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_6(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_7(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_8(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_9(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_10(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_11(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_12(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_13(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_14(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_15(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_16(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_17(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_18(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_19(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF_20(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cSAMP_DEN_COEFF & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_1());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_2());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_3());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_4());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_5());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_6());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_7());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_8());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_9());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_10());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_11());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_12());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_13());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_14());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_15());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_16());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_17());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_18());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_19());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF_20());
+}
+
+cElXMLTree * ToXMLTree(const cSAMP_DEN_COEFF & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SAMP_DEN_COEFF",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_1"),anObj.SAMP_DEN_COEFF_1())->ReTagThis("SAMP_DEN_COEFF_1"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_2"),anObj.SAMP_DEN_COEFF_2())->ReTagThis("SAMP_DEN_COEFF_2"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_3"),anObj.SAMP_DEN_COEFF_3())->ReTagThis("SAMP_DEN_COEFF_3"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_4"),anObj.SAMP_DEN_COEFF_4())->ReTagThis("SAMP_DEN_COEFF_4"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_5"),anObj.SAMP_DEN_COEFF_5())->ReTagThis("SAMP_DEN_COEFF_5"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_6"),anObj.SAMP_DEN_COEFF_6())->ReTagThis("SAMP_DEN_COEFF_6"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_7"),anObj.SAMP_DEN_COEFF_7())->ReTagThis("SAMP_DEN_COEFF_7"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_8"),anObj.SAMP_DEN_COEFF_8())->ReTagThis("SAMP_DEN_COEFF_8"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_9"),anObj.SAMP_DEN_COEFF_9())->ReTagThis("SAMP_DEN_COEFF_9"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_10"),anObj.SAMP_DEN_COEFF_10())->ReTagThis("SAMP_DEN_COEFF_10"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_11"),anObj.SAMP_DEN_COEFF_11())->ReTagThis("SAMP_DEN_COEFF_11"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_12"),anObj.SAMP_DEN_COEFF_12())->ReTagThis("SAMP_DEN_COEFF_12"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_13"),anObj.SAMP_DEN_COEFF_13())->ReTagThis("SAMP_DEN_COEFF_13"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_14"),anObj.SAMP_DEN_COEFF_14())->ReTagThis("SAMP_DEN_COEFF_14"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_15"),anObj.SAMP_DEN_COEFF_15())->ReTagThis("SAMP_DEN_COEFF_15"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_16"),anObj.SAMP_DEN_COEFF_16())->ReTagThis("SAMP_DEN_COEFF_16"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_17"),anObj.SAMP_DEN_COEFF_17())->ReTagThis("SAMP_DEN_COEFF_17"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_18"),anObj.SAMP_DEN_COEFF_18())->ReTagThis("SAMP_DEN_COEFF_18"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_19"),anObj.SAMP_DEN_COEFF_19())->ReTagThis("SAMP_DEN_COEFF_19"));
+   aRes->AddFils(::ToXMLTree(std::string("SAMP_DEN_COEFF_20"),anObj.SAMP_DEN_COEFF_20())->ReTagThis("SAMP_DEN_COEFF_20"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cSAMP_DEN_COEFF & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.SAMP_DEN_COEFF_1(),aTree->Get("SAMP_DEN_COEFF_1",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_2(),aTree->Get("SAMP_DEN_COEFF_2",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_3(),aTree->Get("SAMP_DEN_COEFF_3",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_4(),aTree->Get("SAMP_DEN_COEFF_4",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_5(),aTree->Get("SAMP_DEN_COEFF_5",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_6(),aTree->Get("SAMP_DEN_COEFF_6",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_7(),aTree->Get("SAMP_DEN_COEFF_7",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_8(),aTree->Get("SAMP_DEN_COEFF_8",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_9(),aTree->Get("SAMP_DEN_COEFF_9",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_10(),aTree->Get("SAMP_DEN_COEFF_10",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_11(),aTree->Get("SAMP_DEN_COEFF_11",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_12(),aTree->Get("SAMP_DEN_COEFF_12",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_13(),aTree->Get("SAMP_DEN_COEFF_13",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_14(),aTree->Get("SAMP_DEN_COEFF_14",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_15(),aTree->Get("SAMP_DEN_COEFF_15",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_16(),aTree->Get("SAMP_DEN_COEFF_16",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_17(),aTree->Get("SAMP_DEN_COEFF_17",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_18(),aTree->Get("SAMP_DEN_COEFF_18",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_19(),aTree->Get("SAMP_DEN_COEFF_19",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF_20(),aTree->Get("SAMP_DEN_COEFF_20",1)); //tototo 
+}
+
+std::string  Mangling( cSAMP_DEN_COEFF *) {return "A463762625351D98FE3F";};
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_1()
+{
+   return mLINE_NUM_COEFF_1;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_1()const 
+{
+   return mLINE_NUM_COEFF_1;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_2()
+{
+   return mLINE_NUM_COEFF_2;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_2()const 
+{
+   return mLINE_NUM_COEFF_2;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_3()
+{
+   return mLINE_NUM_COEFF_3;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_3()const 
+{
+   return mLINE_NUM_COEFF_3;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_4()
+{
+   return mLINE_NUM_COEFF_4;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_4()const 
+{
+   return mLINE_NUM_COEFF_4;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_5()
+{
+   return mLINE_NUM_COEFF_5;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_5()const 
+{
+   return mLINE_NUM_COEFF_5;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_6()
+{
+   return mLINE_NUM_COEFF_6;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_6()const 
+{
+   return mLINE_NUM_COEFF_6;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_7()
+{
+   return mLINE_NUM_COEFF_7;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_7()const 
+{
+   return mLINE_NUM_COEFF_7;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_8()
+{
+   return mLINE_NUM_COEFF_8;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_8()const 
+{
+   return mLINE_NUM_COEFF_8;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_9()
+{
+   return mLINE_NUM_COEFF_9;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_9()const 
+{
+   return mLINE_NUM_COEFF_9;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_10()
+{
+   return mLINE_NUM_COEFF_10;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_10()const 
+{
+   return mLINE_NUM_COEFF_10;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_11()
+{
+   return mLINE_NUM_COEFF_11;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_11()const 
+{
+   return mLINE_NUM_COEFF_11;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_12()
+{
+   return mLINE_NUM_COEFF_12;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_12()const 
+{
+   return mLINE_NUM_COEFF_12;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_13()
+{
+   return mLINE_NUM_COEFF_13;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_13()const 
+{
+   return mLINE_NUM_COEFF_13;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_14()
+{
+   return mLINE_NUM_COEFF_14;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_14()const 
+{
+   return mLINE_NUM_COEFF_14;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_15()
+{
+   return mLINE_NUM_COEFF_15;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_15()const 
+{
+   return mLINE_NUM_COEFF_15;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_16()
+{
+   return mLINE_NUM_COEFF_16;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_16()const 
+{
+   return mLINE_NUM_COEFF_16;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_17()
+{
+   return mLINE_NUM_COEFF_17;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_17()const 
+{
+   return mLINE_NUM_COEFF_17;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_18()
+{
+   return mLINE_NUM_COEFF_18;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_18()const 
+{
+   return mLINE_NUM_COEFF_18;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_19()
+{
+   return mLINE_NUM_COEFF_19;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_19()const 
+{
+   return mLINE_NUM_COEFF_19;
+}
+
+
+double & cLINE_NUM_COEFF::LINE_NUM_COEFF_20()
+{
+   return mLINE_NUM_COEFF_20;
+}
+
+const double & cLINE_NUM_COEFF::LINE_NUM_COEFF_20()const 
+{
+   return mLINE_NUM_COEFF_20;
+}
+
+void  BinaryUnDumpFromFile(cLINE_NUM_COEFF & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_1(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_2(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_3(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_4(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_5(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_6(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_7(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_8(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_9(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_10(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_11(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_12(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_13(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_14(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_15(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_16(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_17(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_18(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_19(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF_20(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cLINE_NUM_COEFF & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_1());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_2());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_3());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_4());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_5());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_6());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_7());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_8());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_9());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_10());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_11());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_12());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_13());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_14());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_15());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_16());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_17());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_18());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_19());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF_20());
+}
+
+cElXMLTree * ToXMLTree(const cLINE_NUM_COEFF & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"LINE_NUM_COEFF",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_1"),anObj.LINE_NUM_COEFF_1())->ReTagThis("LINE_NUM_COEFF_1"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_2"),anObj.LINE_NUM_COEFF_2())->ReTagThis("LINE_NUM_COEFF_2"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_3"),anObj.LINE_NUM_COEFF_3())->ReTagThis("LINE_NUM_COEFF_3"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_4"),anObj.LINE_NUM_COEFF_4())->ReTagThis("LINE_NUM_COEFF_4"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_5"),anObj.LINE_NUM_COEFF_5())->ReTagThis("LINE_NUM_COEFF_5"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_6"),anObj.LINE_NUM_COEFF_6())->ReTagThis("LINE_NUM_COEFF_6"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_7"),anObj.LINE_NUM_COEFF_7())->ReTagThis("LINE_NUM_COEFF_7"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_8"),anObj.LINE_NUM_COEFF_8())->ReTagThis("LINE_NUM_COEFF_8"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_9"),anObj.LINE_NUM_COEFF_9())->ReTagThis("LINE_NUM_COEFF_9"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_10"),anObj.LINE_NUM_COEFF_10())->ReTagThis("LINE_NUM_COEFF_10"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_11"),anObj.LINE_NUM_COEFF_11())->ReTagThis("LINE_NUM_COEFF_11"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_12"),anObj.LINE_NUM_COEFF_12())->ReTagThis("LINE_NUM_COEFF_12"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_13"),anObj.LINE_NUM_COEFF_13())->ReTagThis("LINE_NUM_COEFF_13"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_14"),anObj.LINE_NUM_COEFF_14())->ReTagThis("LINE_NUM_COEFF_14"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_15"),anObj.LINE_NUM_COEFF_15())->ReTagThis("LINE_NUM_COEFF_15"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_16"),anObj.LINE_NUM_COEFF_16())->ReTagThis("LINE_NUM_COEFF_16"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_17"),anObj.LINE_NUM_COEFF_17())->ReTagThis("LINE_NUM_COEFF_17"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_18"),anObj.LINE_NUM_COEFF_18())->ReTagThis("LINE_NUM_COEFF_18"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_19"),anObj.LINE_NUM_COEFF_19())->ReTagThis("LINE_NUM_COEFF_19"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_NUM_COEFF_20"),anObj.LINE_NUM_COEFF_20())->ReTagThis("LINE_NUM_COEFF_20"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cLINE_NUM_COEFF & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.LINE_NUM_COEFF_1(),aTree->Get("LINE_NUM_COEFF_1",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_2(),aTree->Get("LINE_NUM_COEFF_2",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_3(),aTree->Get("LINE_NUM_COEFF_3",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_4(),aTree->Get("LINE_NUM_COEFF_4",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_5(),aTree->Get("LINE_NUM_COEFF_5",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_6(),aTree->Get("LINE_NUM_COEFF_6",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_7(),aTree->Get("LINE_NUM_COEFF_7",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_8(),aTree->Get("LINE_NUM_COEFF_8",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_9(),aTree->Get("LINE_NUM_COEFF_9",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_10(),aTree->Get("LINE_NUM_COEFF_10",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_11(),aTree->Get("LINE_NUM_COEFF_11",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_12(),aTree->Get("LINE_NUM_COEFF_12",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_13(),aTree->Get("LINE_NUM_COEFF_13",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_14(),aTree->Get("LINE_NUM_COEFF_14",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_15(),aTree->Get("LINE_NUM_COEFF_15",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_16(),aTree->Get("LINE_NUM_COEFF_16",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_17(),aTree->Get("LINE_NUM_COEFF_17",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_18(),aTree->Get("LINE_NUM_COEFF_18",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_19(),aTree->Get("LINE_NUM_COEFF_19",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF_20(),aTree->Get("LINE_NUM_COEFF_20",1)); //tototo 
+}
+
+std::string  Mangling( cLINE_NUM_COEFF *) {return "EE0FD4795127EABCFE3F";};
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_1()
+{
+   return mLINE_DEN_COEFF_1;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_1()const 
+{
+   return mLINE_DEN_COEFF_1;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_2()
+{
+   return mLINE_DEN_COEFF_2;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_2()const 
+{
+   return mLINE_DEN_COEFF_2;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_3()
+{
+   return mLINE_DEN_COEFF_3;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_3()const 
+{
+   return mLINE_DEN_COEFF_3;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_4()
+{
+   return mLINE_DEN_COEFF_4;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_4()const 
+{
+   return mLINE_DEN_COEFF_4;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_5()
+{
+   return mLINE_DEN_COEFF_5;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_5()const 
+{
+   return mLINE_DEN_COEFF_5;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_6()
+{
+   return mLINE_DEN_COEFF_6;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_6()const 
+{
+   return mLINE_DEN_COEFF_6;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_7()
+{
+   return mLINE_DEN_COEFF_7;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_7()const 
+{
+   return mLINE_DEN_COEFF_7;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_8()
+{
+   return mLINE_DEN_COEFF_8;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_8()const 
+{
+   return mLINE_DEN_COEFF_8;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_9()
+{
+   return mLINE_DEN_COEFF_9;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_9()const 
+{
+   return mLINE_DEN_COEFF_9;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_10()
+{
+   return mLINE_DEN_COEFF_10;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_10()const 
+{
+   return mLINE_DEN_COEFF_10;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_11()
+{
+   return mLINE_DEN_COEFF_11;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_11()const 
+{
+   return mLINE_DEN_COEFF_11;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_12()
+{
+   return mLINE_DEN_COEFF_12;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_12()const 
+{
+   return mLINE_DEN_COEFF_12;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_13()
+{
+   return mLINE_DEN_COEFF_13;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_13()const 
+{
+   return mLINE_DEN_COEFF_13;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_14()
+{
+   return mLINE_DEN_COEFF_14;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_14()const 
+{
+   return mLINE_DEN_COEFF_14;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_15()
+{
+   return mLINE_DEN_COEFF_15;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_15()const 
+{
+   return mLINE_DEN_COEFF_15;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_16()
+{
+   return mLINE_DEN_COEFF_16;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_16()const 
+{
+   return mLINE_DEN_COEFF_16;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_17()
+{
+   return mLINE_DEN_COEFF_17;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_17()const 
+{
+   return mLINE_DEN_COEFF_17;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_18()
+{
+   return mLINE_DEN_COEFF_18;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_18()const 
+{
+   return mLINE_DEN_COEFF_18;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_19()
+{
+   return mLINE_DEN_COEFF_19;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_19()const 
+{
+   return mLINE_DEN_COEFF_19;
+}
+
+
+double & cLINE_DEN_COEFF::LINE_DEN_COEFF_20()
+{
+   return mLINE_DEN_COEFF_20;
+}
+
+const double & cLINE_DEN_COEFF::LINE_DEN_COEFF_20()const 
+{
+   return mLINE_DEN_COEFF_20;
+}
+
+void  BinaryUnDumpFromFile(cLINE_DEN_COEFF & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_1(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_2(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_3(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_4(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_5(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_6(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_7(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_8(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_9(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_10(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_11(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_12(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_13(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_14(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_15(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_16(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_17(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_18(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_19(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF_20(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cLINE_DEN_COEFF & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_1());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_2());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_3());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_4());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_5());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_6());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_7());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_8());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_9());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_10());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_11());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_12());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_13());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_14());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_15());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_16());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_17());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_18());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_19());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF_20());
+}
+
+cElXMLTree * ToXMLTree(const cLINE_DEN_COEFF & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"LINE_DEN_COEFF",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_1"),anObj.LINE_DEN_COEFF_1())->ReTagThis("LINE_DEN_COEFF_1"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_2"),anObj.LINE_DEN_COEFF_2())->ReTagThis("LINE_DEN_COEFF_2"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_3"),anObj.LINE_DEN_COEFF_3())->ReTagThis("LINE_DEN_COEFF_3"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_4"),anObj.LINE_DEN_COEFF_4())->ReTagThis("LINE_DEN_COEFF_4"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_5"),anObj.LINE_DEN_COEFF_5())->ReTagThis("LINE_DEN_COEFF_5"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_6"),anObj.LINE_DEN_COEFF_6())->ReTagThis("LINE_DEN_COEFF_6"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_7"),anObj.LINE_DEN_COEFF_7())->ReTagThis("LINE_DEN_COEFF_7"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_8"),anObj.LINE_DEN_COEFF_8())->ReTagThis("LINE_DEN_COEFF_8"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_9"),anObj.LINE_DEN_COEFF_9())->ReTagThis("LINE_DEN_COEFF_9"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_10"),anObj.LINE_DEN_COEFF_10())->ReTagThis("LINE_DEN_COEFF_10"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_11"),anObj.LINE_DEN_COEFF_11())->ReTagThis("LINE_DEN_COEFF_11"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_12"),anObj.LINE_DEN_COEFF_12())->ReTagThis("LINE_DEN_COEFF_12"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_13"),anObj.LINE_DEN_COEFF_13())->ReTagThis("LINE_DEN_COEFF_13"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_14"),anObj.LINE_DEN_COEFF_14())->ReTagThis("LINE_DEN_COEFF_14"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_15"),anObj.LINE_DEN_COEFF_15())->ReTagThis("LINE_DEN_COEFF_15"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_16"),anObj.LINE_DEN_COEFF_16())->ReTagThis("LINE_DEN_COEFF_16"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_17"),anObj.LINE_DEN_COEFF_17())->ReTagThis("LINE_DEN_COEFF_17"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_18"),anObj.LINE_DEN_COEFF_18())->ReTagThis("LINE_DEN_COEFF_18"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_19"),anObj.LINE_DEN_COEFF_19())->ReTagThis("LINE_DEN_COEFF_19"));
+   aRes->AddFils(::ToXMLTree(std::string("LINE_DEN_COEFF_20"),anObj.LINE_DEN_COEFF_20())->ReTagThis("LINE_DEN_COEFF_20"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cLINE_DEN_COEFF & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.LINE_DEN_COEFF_1(),aTree->Get("LINE_DEN_COEFF_1",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_2(),aTree->Get("LINE_DEN_COEFF_2",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_3(),aTree->Get("LINE_DEN_COEFF_3",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_4(),aTree->Get("LINE_DEN_COEFF_4",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_5(),aTree->Get("LINE_DEN_COEFF_5",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_6(),aTree->Get("LINE_DEN_COEFF_6",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_7(),aTree->Get("LINE_DEN_COEFF_7",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_8(),aTree->Get("LINE_DEN_COEFF_8",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_9(),aTree->Get("LINE_DEN_COEFF_9",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_10(),aTree->Get("LINE_DEN_COEFF_10",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_11(),aTree->Get("LINE_DEN_COEFF_11",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_12(),aTree->Get("LINE_DEN_COEFF_12",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_13(),aTree->Get("LINE_DEN_COEFF_13",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_14(),aTree->Get("LINE_DEN_COEFF_14",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_15(),aTree->Get("LINE_DEN_COEFF_15",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_16(),aTree->Get("LINE_DEN_COEFF_16",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_17(),aTree->Get("LINE_DEN_COEFF_17",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_18(),aTree->Get("LINE_DEN_COEFF_18",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_19(),aTree->Get("LINE_DEN_COEFF_19",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF_20(),aTree->Get("LINE_DEN_COEFF_20",1)); //tototo 
+}
+
+std::string  Mangling( cLINE_DEN_COEFF *) {return "4C0E7DD609B13187FBBF";};
+
+
+cSAMP_NUM_COEFF & cXml_RPC_Coeff::SAMP_NUM_COEFF()
+{
+   return mSAMP_NUM_COEFF;
+}
+
+const cSAMP_NUM_COEFF & cXml_RPC_Coeff::SAMP_NUM_COEFF()const 
+{
+   return mSAMP_NUM_COEFF;
+}
+
+
+cSAMP_DEN_COEFF & cXml_RPC_Coeff::SAMP_DEN_COEFF()
+{
+   return mSAMP_DEN_COEFF;
+}
+
+const cSAMP_DEN_COEFF & cXml_RPC_Coeff::SAMP_DEN_COEFF()const 
+{
+   return mSAMP_DEN_COEFF;
+}
+
+
+cLINE_NUM_COEFF & cXml_RPC_Coeff::LINE_NUM_COEFF()
+{
+   return mLINE_NUM_COEFF;
+}
+
+const cLINE_NUM_COEFF & cXml_RPC_Coeff::LINE_NUM_COEFF()const 
+{
+   return mLINE_NUM_COEFF;
+}
+
+
+cLINE_DEN_COEFF & cXml_RPC_Coeff::LINE_DEN_COEFF()
+{
+   return mLINE_DEN_COEFF;
+}
+
+const cLINE_DEN_COEFF & cXml_RPC_Coeff::LINE_DEN_COEFF()const 
+{
+   return mLINE_DEN_COEFF;
+}
+
+void  BinaryUnDumpFromFile(cXml_RPC_Coeff & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.SAMP_NUM_COEFF(),aFp);
+    BinaryUnDumpFromFile(anObj.SAMP_DEN_COEFF(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_NUM_COEFF(),aFp);
+    BinaryUnDumpFromFile(anObj.LINE_DEN_COEFF(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RPC_Coeff & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.SAMP_NUM_COEFF());
+    BinaryDumpInFile(aFp,anObj.SAMP_DEN_COEFF());
+    BinaryDumpInFile(aFp,anObj.LINE_NUM_COEFF());
+    BinaryDumpInFile(aFp,anObj.LINE_DEN_COEFF());
+}
+
+cElXMLTree * ToXMLTree(const cXml_RPC_Coeff & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RPC_Coeff",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.SAMP_NUM_COEFF())->ReTagThis("SAMP_NUM_COEFF"));
+   aRes->AddFils(ToXMLTree(anObj.SAMP_DEN_COEFF())->ReTagThis("SAMP_DEN_COEFF"));
+   aRes->AddFils(ToXMLTree(anObj.LINE_NUM_COEFF())->ReTagThis("LINE_NUM_COEFF"));
+   aRes->AddFils(ToXMLTree(anObj.LINE_DEN_COEFF())->ReTagThis("LINE_DEN_COEFF"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_RPC_Coeff & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.SAMP_NUM_COEFF(),aTree->Get("SAMP_NUM_COEFF",1)); //tototo 
+
+   xml_init(anObj.SAMP_DEN_COEFF(),aTree->Get("SAMP_DEN_COEFF",1)); //tototo 
+
+   xml_init(anObj.LINE_NUM_COEFF(),aTree->Get("LINE_NUM_COEFF",1)); //tototo 
+
+   xml_init(anObj.LINE_DEN_COEFF(),aTree->Get("LINE_DEN_COEFF",1)); //tototo 
+}
+
+std::string  Mangling( cXml_RPC_Coeff *) {return "4BF3A824419748AFFF3F";};
+
+
+double & cXml_RPC_Validity::FIRST_ROW()
 {
    return mFIRST_ROW;
 }
 
-const double & cXml_RPC::FIRST_ROW()const 
+const double & cXml_RPC_Validity::FIRST_ROW()const 
 {
    return mFIRST_ROW;
 }
 
 
-double & cXml_RPC::FIRST_COL()
+double & cXml_RPC_Validity::FIRST_COL()
 {
    return mFIRST_COL;
 }
 
-const double & cXml_RPC::FIRST_COL()const 
+const double & cXml_RPC_Validity::FIRST_COL()const 
 {
    return mFIRST_COL;
 }
 
 
-double & cXml_RPC::LAST_ROW()
+double & cXml_RPC_Validity::LAST_ROW()
 {
    return mLAST_ROW;
 }
 
-const double & cXml_RPC::LAST_ROW()const 
+const double & cXml_RPC_Validity::LAST_ROW()const 
 {
    return mLAST_ROW;
 }
 
 
-double & cXml_RPC::LAST_COL()
+double & cXml_RPC_Validity::LAST_COL()
 {
    return mLAST_COL;
 }
 
-const double & cXml_RPC::LAST_COL()const 
+const double & cXml_RPC_Validity::LAST_COL()const 
 {
    return mLAST_COL;
 }
 
 
-double & cXml_RPC::FIRST_LON()
+double & cXml_RPC_Validity::FIRST_LON()
 {
    return mFIRST_LON;
 }
 
-const double & cXml_RPC::FIRST_LON()const 
+const double & cXml_RPC_Validity::FIRST_LON()const 
 {
    return mFIRST_LON;
 }
 
 
-double & cXml_RPC::FIRST_LAT()
+double & cXml_RPC_Validity::FIRST_LAT()
 {
    return mFIRST_LAT;
 }
 
-const double & cXml_RPC::FIRST_LAT()const 
+const double & cXml_RPC_Validity::FIRST_LAT()const 
 {
    return mFIRST_LAT;
 }
 
 
-double & cXml_RPC::LAST_LON()
+double & cXml_RPC_Validity::LAST_LON()
 {
    return mLAST_LON;
 }
 
-const double & cXml_RPC::LAST_LON()const 
+const double & cXml_RPC_Validity::LAST_LON()const 
 {
    return mLAST_LON;
 }
 
 
-double & cXml_RPC::LAST_LAT()
+double & cXml_RPC_Validity::LAST_LAT()
 {
    return mLAST_LAT;
 }
 
-const double & cXml_RPC::LAST_LAT()const 
+const double & cXml_RPC_Validity::LAST_LAT()const 
 {
    return mLAST_LAT;
 }
 
 
-double & cXml_RPC::LONG_SCALE()
+double & cXml_RPC_Validity::LONG_SCALE()
 {
    return mLONG_SCALE;
 }
 
-const double & cXml_RPC::LONG_SCALE()const 
+const double & cXml_RPC_Validity::LONG_SCALE()const 
 {
    return mLONG_SCALE;
 }
 
 
-double & cXml_RPC::LONG_OFF()
+double & cXml_RPC_Validity::LONG_OFF()
 {
    return mLONG_OFF;
 }
 
-const double & cXml_RPC::LONG_OFF()const 
+const double & cXml_RPC_Validity::LONG_OFF()const 
 {
    return mLONG_OFF;
 }
 
 
-double & cXml_RPC::LAT_SCALE()
+double & cXml_RPC_Validity::LAT_SCALE()
 {
    return mLAT_SCALE;
 }
 
-const double & cXml_RPC::LAT_SCALE()const 
+const double & cXml_RPC_Validity::LAT_SCALE()const 
 {
    return mLAT_SCALE;
 }
 
 
-double & cXml_RPC::LAT_OFF()
+double & cXml_RPC_Validity::LAT_OFF()
 {
    return mLAT_OFF;
 }
 
-const double & cXml_RPC::LAT_OFF()const 
+const double & cXml_RPC_Validity::LAT_OFF()const 
 {
    return mLAT_OFF;
 }
 
 
-int & cXml_RPC::HEIGHT_SCALE()
+int & cXml_RPC_Validity::HEIGHT_SCALE()
 {
    return mHEIGHT_SCALE;
 }
 
-const int & cXml_RPC::HEIGHT_SCALE()const 
+const int & cXml_RPC_Validity::HEIGHT_SCALE()const 
 {
    return mHEIGHT_SCALE;
 }
 
 
-int & cXml_RPC::HEIGHT_OFF()
+int & cXml_RPC_Validity::HEIGHT_OFF()
 {
    return mHEIGHT_OFF;
 }
 
-const int & cXml_RPC::HEIGHT_OFF()const 
+const int & cXml_RPC_Validity::HEIGHT_OFF()const 
 {
    return mHEIGHT_OFF;
 }
 
 
-double & cXml_RPC::SAMP_SCALE()
+double & cXml_RPC_Validity::SAMP_SCALE()
 {
    return mSAMP_SCALE;
 }
 
-const double & cXml_RPC::SAMP_SCALE()const 
+const double & cXml_RPC_Validity::SAMP_SCALE()const 
 {
    return mSAMP_SCALE;
 }
 
 
-double & cXml_RPC::SAMP_OFF()
+double & cXml_RPC_Validity::SAMP_OFF()
 {
    return mSAMP_OFF;
 }
 
-const double & cXml_RPC::SAMP_OFF()const 
+const double & cXml_RPC_Validity::SAMP_OFF()const 
 {
    return mSAMP_OFF;
 }
 
 
-double & cXml_RPC::LINE_SCALE()
+double & cXml_RPC_Validity::LINE_SCALE()
 {
    return mLINE_SCALE;
 }
 
-const double & cXml_RPC::LINE_SCALE()const 
+const double & cXml_RPC_Validity::LINE_SCALE()const 
 {
    return mLINE_SCALE;
 }
 
 
-double & cXml_RPC::LINE_OFF()
+double & cXml_RPC_Validity::LINE_OFF()
 {
    return mLINE_OFF;
 }
 
-const double & cXml_RPC::LINE_OFF()const 
+const double & cXml_RPC_Validity::LINE_OFF()const 
 {
    return mLINE_OFF;
 }
 
-void  BinaryUnDumpFromFile(cXml_RPC & anObj,ELISE_fp & aFp)
+void  BinaryUnDumpFromFile(cXml_RPC_Validity & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.Direct_Model(),aFp);
-    BinaryUnDumpFromFile(anObj.Inverse_Model(),aFp);
-    BinaryUnDumpFromFile(anObj.FIRST_ROW(),aFp);
+     BinaryUnDumpFromFile(anObj.FIRST_ROW(),aFp);
     BinaryUnDumpFromFile(anObj.FIRST_COL(),aFp);
     BinaryUnDumpFromFile(anObj.LAST_ROW(),aFp);
     BinaryUnDumpFromFile(anObj.LAST_COL(),aFp);
@@ -21575,10 +22859,8 @@ void  BinaryUnDumpFromFile(cXml_RPC & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.LINE_OFF(),aFp);
 }
 
-void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RPC & anObj)
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RPC_Validity & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.Direct_Model());
-    BinaryDumpInFile(aFp,anObj.Inverse_Model());
     BinaryDumpInFile(aFp,anObj.FIRST_ROW());
     BinaryDumpInFile(aFp,anObj.FIRST_COL());
     BinaryDumpInFile(aFp,anObj.LAST_ROW());
@@ -21599,12 +22881,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RPC & anObj)
     BinaryDumpInFile(aFp,anObj.LINE_OFF());
 }
 
-cElXMLTree * ToXMLTree(const cXml_RPC & anObj)
+cElXMLTree * ToXMLTree(const cXml_RPC_Validity & anObj)
 {
   XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RPC",eXMLBranche);
-   aRes->AddFils(ToXMLTree(anObj.Direct_Model())->ReTagThis("Direct_Model"));
-   aRes->AddFils(ToXMLTree(anObj.Inverse_Model())->ReTagThis("Inverse_Model"));
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RPC_Validity",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("FIRST_ROW"),anObj.FIRST_ROW())->ReTagThis("FIRST_ROW"));
    aRes->AddFils(::ToXMLTree(std::string("FIRST_COL"),anObj.FIRST_COL())->ReTagThis("FIRST_COL"));
    aRes->AddFils(::ToXMLTree(std::string("LAST_ROW"),anObj.LAST_ROW())->ReTagThis("LAST_ROW"));
@@ -21628,14 +22908,10 @@ cElXMLTree * ToXMLTree(const cXml_RPC & anObj)
   return aRes;
 }
 
-void xml_init(cXml_RPC & anObj,cElXMLTree * aTree)
+void xml_init(cXml_RPC_Validity & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
-
-   xml_init(anObj.Direct_Model(),aTree->Get("Direct_Model",1)); //tototo 
-
-   xml_init(anObj.Inverse_Model(),aTree->Get("Inverse_Model",1)); //tototo 
 
    xml_init(anObj.FIRST_ROW(),aTree->Get("FIRST_ROW",1)); //tototo 
 
@@ -21674,7 +22950,112 @@ void xml_init(cXml_RPC & anObj,cElXMLTree * aTree)
    xml_init(anObj.LINE_OFF(),aTree->Get("LINE_OFF",1)); //tototo 
 }
 
-std::string  Mangling( cXml_RPC *) {return "9068598DA9E3E8C8FCBF";};
+std::string  Mangling( cXml_RPC_Validity *) {return "D457C6F503D694D7FE3F";};
+
+
+std::string & cXml_RPC::METADATA_FORMAT()
+{
+   return mMETADATA_FORMAT;
+}
+
+const std::string & cXml_RPC::METADATA_FORMAT()const 
+{
+   return mMETADATA_FORMAT;
+}
+
+
+std::string & cXml_RPC::METADATA_VERSION()
+{
+   return mMETADATA_VERSION;
+}
+
+const std::string & cXml_RPC::METADATA_VERSION()const 
+{
+   return mMETADATA_VERSION;
+}
+
+
+cXml_RPC_Coeff & cXml_RPC::Direct_Model()
+{
+   return mDirect_Model;
+}
+
+const cXml_RPC_Coeff & cXml_RPC::Direct_Model()const 
+{
+   return mDirect_Model;
+}
+
+
+cXml_RPC_Coeff & cXml_RPC::Inverse_Model()
+{
+   return mInverse_Model;
+}
+
+const cXml_RPC_Coeff & cXml_RPC::Inverse_Model()const 
+{
+   return mInverse_Model;
+}
+
+
+cXml_RPC_Validity & cXml_RPC::RFM_Validity()
+{
+   return mRFM_Validity;
+}
+
+const cXml_RPC_Validity & cXml_RPC::RFM_Validity()const 
+{
+   return mRFM_Validity;
+}
+
+void  BinaryUnDumpFromFile(cXml_RPC & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.METADATA_FORMAT(),aFp);
+    BinaryUnDumpFromFile(anObj.METADATA_VERSION(),aFp);
+    BinaryUnDumpFromFile(anObj.Direct_Model(),aFp);
+    BinaryUnDumpFromFile(anObj.Inverse_Model(),aFp);
+    BinaryUnDumpFromFile(anObj.RFM_Validity(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RPC & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.METADATA_FORMAT());
+    BinaryDumpInFile(aFp,anObj.METADATA_VERSION());
+    BinaryDumpInFile(aFp,anObj.Direct_Model());
+    BinaryDumpInFile(aFp,anObj.Inverse_Model());
+    BinaryDumpInFile(aFp,anObj.RFM_Validity());
+}
+
+cElXMLTree * ToXMLTree(const cXml_RPC & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RPC",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("METADATA_FORMAT"),anObj.METADATA_FORMAT())->ReTagThis("METADATA_FORMAT"));
+   aRes->AddFils(::ToXMLTree(std::string("METADATA_VERSION"),anObj.METADATA_VERSION())->ReTagThis("METADATA_VERSION"));
+   aRes->AddFils(ToXMLTree(anObj.Direct_Model())->ReTagThis("Direct_Model"));
+   aRes->AddFils(ToXMLTree(anObj.Inverse_Model())->ReTagThis("Inverse_Model"));
+   aRes->AddFils(ToXMLTree(anObj.RFM_Validity())->ReTagThis("RFM_Validity"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_RPC & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.METADATA_FORMAT(),aTree->Get("METADATA_FORMAT",1)); //tototo 
+
+   xml_init(anObj.METADATA_VERSION(),aTree->Get("METADATA_VERSION",1)); //tototo 
+
+   xml_init(anObj.Direct_Model(),aTree->Get("Direct_Model",1)); //tototo 
+
+   xml_init(anObj.Inverse_Model(),aTree->Get("Inverse_Model",1)); //tototo 
+
+   xml_init(anObj.RFM_Validity(),aTree->Get("RFM_Validity",1)); //tototo 
+}
+
+std::string  Mangling( cXml_RPC *) {return "102C1E84DAEADEBAFD3F";};
 
 
 double & cXml_SLSRay::IndCol()
