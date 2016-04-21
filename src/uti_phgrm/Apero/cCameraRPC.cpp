@@ -2582,6 +2582,28 @@ int TestCamRPC(int argc,char** argv)
        }
    }
 
+   std::cout << "======================\n";
+
+   for (int anX=-30 ; anX<=30 ; anX++)
+   {
+       int anY = 0;
+       Pt3dr aQ0 = aP0 + Pt3dr(aStepIn.x*anX,aStepIn.y*anY,0.0);
+       Pt3dr aQ1 = aP0 + Pt3dr(aStepIn.x*(anX+1),aStepIn.y*anY,0.0);
+
+       std::cout  << "X=" << anX << " Dif=" << aCam.Ter2Capteur(aQ0) -  aCam.Ter2Capteur(aQ1) << "\n";
+   }
+
+    getchar();
+
+   for (int anY=-30 ; anY<=30 ; anY++)
+   {
+       int anX = 0;
+       Pt3dr aQ0 = aP0 + Pt3dr(aStepIn.x*anX,aStepIn.y*anY,0.0);
+       Pt3dr aQ1 = aP0 + Pt3dr(aStepIn.x*anX,aStepIn.y*(anY+1),0.0);
+
+       std::cout  << "Y=" << anY << " Dif=" << aCam.Ter2Capteur(aQ0) -  aCam.Ter2Capteur(aQ1) << "\n";
+   }
+
    return EXIT_SUCCESS;
 }
 
