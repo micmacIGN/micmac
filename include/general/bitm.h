@@ -1010,8 +1010,11 @@ ElMatrix<REAL> ComplemRotation
                     const Pt3dr & anIm2
                );
 
-// V1 et V2 sont initialise mais pas specialement unitaire ou ortho en entree
+// V1 et V2 sont initialise mais pas specialement unitaire ou ortho en entree => !! V1 V2 fortement modifies
 Pt3dr MakeOrthon(Pt3dr & aV1,Pt3dr & aV2);
+// Methode du complement d'orthogonalisatio de schmit, peu modifie si deja ortho ....
+Pt3dr SchmitComplMakeOrthon(Pt3dr & aV1,Pt3dr & aV2);
+
 ElMatrix<double>  MakeMatON(Pt3dr aV1,Pt3dr aV2);
 
 // Seul V1 est initialise, sa norme est modifiee, V2 et V3 sont plus ou moins au hasard
