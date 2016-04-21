@@ -19,6 +19,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/SimplePredict.cpp
 	${TDPPMD_DIR}/cPseudoIntersect.cpp
 	${TDPPMD_DIR}/schnaps.cpp
+	${TDPPMD_DIR}/zlimit.cpp
 	${TDPPMD_DIR}/Export2Ply.cpp
 	${TDPPMD_DIR}/ScaleModel.cpp
 	${TDPPMD_DIR}/ImageSimpleProjection.cpp
