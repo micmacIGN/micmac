@@ -427,12 +427,20 @@ void cPic::printHomols()
     }
 }
 
+//Luc G. : Here and next function, std::make_pair<double,cPointOnPic*> does not compile on VS15 (CPP11), make_pair should not be used with typedefinition, because it's advantage over std::pair is that you don't have to do so (apparently).
+//I made a change that let VS compile and suggested an other one that should work as well
+//jmmuller can choose solution 1 or 2
 void cPic::addPointOnPic(cPointOnPic* aPointOnPic)
 {
     mAllPointsOnPic.insert(
+        std::make_pair(
+            makePOPKey(aPointOnPic->getPt()),
+            aPointOnPic));
+	/* OR :	
         std::make_pair<double,cPointOnPic*>(
             makePOPKey(aPointOnPic->getPt()),
             aPointOnPic));
+	*/
 }
 
 bool cPic::addSelectedPointOnPicUnique(cPointOnPic* aPointOnPic)
@@ -443,9 +451,15 @@ bool cPic::addSelectedPointOnPicUnique(cPointOnPic* aPointOnPic)
         return false;
     else
         mAllSelectedPointsOnPic.insert(
-            std::make_pair<double,cPointOnPic*>(
+            std::make_pair(
                 makePOPKey(aPointOnPic->getPt()),
                 aPointOnPic));
+	/* OR :
+	
+            std::pair<double,cPointOnPic*>(
+                makePOPKey(aPointOnPic->getPt()),
+                aPointOnPic));	
+	*/
     return true;
 }
 
