@@ -976,15 +976,17 @@ void SolveBundle3Image
           const tMultiplePF  & aH13,
           const tMultiplePF  & aH23,
           double  aPds3,
-          int     aNbIter
+          int     aNbIter,
+          bool    FilterOutLayer
      )
 {
+    double aDefError = 1e5;
 
     double aProp = cBundle3Image::PropErInit;
     cBundle3Image aB3(aFoc,aR12,aR13,aH123,aH12,aH13,aH23,aPds3);
 
-    double anEr3 = aB3.RobustEr3(aProp);
-    double anEr2 = aB3.RobustEr2Glob(aProp);
+    double anEr3 = FilterOutLayer ? aB3.RobustEr3(aProp)     : aDefError;
+    double anEr2 = FilterOutLayer ? aB3.RobustEr2Glob(aProp) : aDefError;
 
     for (int anIter = 0 ; anIter<aNbIter ; anIter ++)
     {
@@ -992,9 +994,17 @@ void SolveBundle3Image
            anEr2 = aB3.OneIter2Glob(anEr2); 
            std::vector<ElRotation3D>  aVR = aB3.BB().GenSolveResetUpdate(); 
            aB3.BB().InitNewR2R3(aVR[0],aVR[1]);
-           // std::cout << "Er3 " <<  anEr3*aFoc  << " Er2 " << anEr2*aFoc   << "\n";
+           if ((anIter==0) || (anIter== NbIter/2) || (anIter==(aNbIter-1))
+           {
+               std::cout << "Er3 " <<  anEr3*aFoc  << " Er2 " << anEr2*aFoc   << "\n";
+           }
            aR12 = aVR[0];
            aR13 = aVR[1];
+           if (!FilterOutLayer)
+           {
+               anEr3 = aDefError;
+               anEr2 = aDefError;
+           }
     }
 
 

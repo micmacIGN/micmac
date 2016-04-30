@@ -3431,7 +3431,8 @@ void SolveBundle3Image
           const tMultiplePF  & aH13,
           const tMultiplePF  & aH23,
           double aPds3,
-          int aNbIter
+          int aNbIter,
+          bool FilterOutlayer=true
      );
 
 
