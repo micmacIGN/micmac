@@ -634,6 +634,14 @@ class cElHJaArrangt
 	      SystLinSurResolu          mL1SysResolv;
 };
 
+template <class T1,class T2> void ConvertContainer(T1 & aV1,const T2 & aV2)
+{
+    for (typename T2::const_iterator it2=aV2.begin() ; it2!=aV2.end() ; it2++)
+    {
+        aV1.push_back( (typename T1::value_type)(*it2));
+    }
+}
+
 
 
 #endif // _HASSAN_ARRANGT_H

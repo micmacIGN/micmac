@@ -206,6 +206,58 @@ cSolBasculeRig  cSolBasculeRig::Id()
           );
 }
 
+cSolBasculeRig cSolBasculeRig::StdSolFromPts
+               (
+                    const std::vector<Pt3dr> & aV1,
+                    const std::vector<Pt3dr> & aV2,
+                    const std::vector<double> * aVPds, // si 0 ts les pds valent 1
+                    int   aNbRansac             ,
+                    int   aNbL2                
+                )
+{
+   int aNbPts= aV1.size();
+   ELISE_ASSERT(aNbPts>=3,"Not enough point in cSolBasculeRig::StdSolFromPts");
+   ELISE_ASSERT(int(aV2.size())==aNbPts,"Incoherent size in cSolBasculeRig::StdSolFromPts");
+   if (aVPds)
+   {
+       ELISE_ASSERT(int(aVPds->size())==aNbPts,"Incoherent size in cSolBasculeRig::StdSolFromPts");
+   }
+
+   cRansacBasculementRigide aBasc(false); // false  => Pas de vitesse
+   for (int aKP=0 ; aKP<aNbPts ; aKP++)
+   {
+       aBasc.AddExemple(aV1[aKP],aV2[aKP],0,"");
+   }
+   aBasc.CloseWithTrGlob(false);
+
+   aBasc.ExploreAllRansac(aNbRansac);
+   cSolBasculeRig  aSBR = aBasc.BestSol();
+
+
+
+   if (aNbL2)
+   {
+       cSetEqFormelles aSetEq (cNameSpaceEqF::eSysPlein);
+       cL2EqObsBascult  * aL2Basc = aSetEq.NewEqObsBascult(aSBR,false);
+       aSetEq.SetClosed();
+
+       for (int aKEt=0 ; aKEt<aNbL2 ; aKEt++)
+       {
+           aSetEq.SetPhaseEquation();
+           for (int aKP=0 ; aKP<int(aV1.size()) ; aKP++)
+           {
+               aL2Basc->AddObservation(aV1[aKP],aV2[aKP],(aVPds?(*aVPds)[aKP]:1.0));
+           }
+           aSetEq.SolveResetUpdate();
+           aSBR=aL2Basc->CurSol();
+       }
+
+   }
+   return aSBR;
+}
+/*
+*/
+
 
 
          //===========================
@@ -471,27 +523,34 @@ double cRansacBasculementRigide::Delay() const
    return mDelay;
 }
 
-void cRansacBasculementRigide::ExploreAllRansac() 
+void cRansacBasculementRigide::ExploreAllRansac(int aNbMax) 
 {
-
     if (mUseV)
     {
        EstimateDelay();
     }
 
-    
+   int aNbCple = (mAvant.size() * (mAvant.size()-1)) / 2;
+
+   cRandNParmiQ aSel(aNbMax,aNbCple);
 
 
     for (int aK1=0 ; aK1<int(mAvant.size()) ; aK1++)
     {
        for (int aK2=aK1+1 ; aK2<int(mAvant.size()) ; aK2++)
        {
-           // std::cout << "SBR K1-K2 " << aK1 << " " << aK2 << "\n";
-           bool Ok;
-           cSolBasculeRig  aSBR= SolOfK1K2(aK1,aK2,Ok);
-           if (Ok)
+           if (aSel.GetNext())
            {
-              TestNewSol(aSBR);
+               // std::cout << "SBR K1-K2 " << aK1 << " " << aK2 << "\n";
+               bool Ok;
+               cSolBasculeRig  aSBR= SolOfK1K2(aK1,aK2,Ok);
+               if (Ok)
+               {
+                  TestNewSol(aSBR);
+               }
+           }
+           else
+           {
            }
        }
     }
