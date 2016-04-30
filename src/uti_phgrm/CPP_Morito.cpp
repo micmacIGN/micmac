@@ -516,6 +516,33 @@ void cAppliMorito::ComputNewRot2()
       std::cout << "Max DPt for " << aCamMaxDP << " D=" << aMaxDP << "\n";
 }
 
+
+void cSolBasculeRig::QualitySol
+     ( 
+             const std::vector<ElRotation3D> & aVR1 ,
+             const std::vector<ElRotation3D> & aVR2,
+             double & aDMatr,
+             double & aDCentr
+      )
+{
+    ELISE_ASSERT((aVR1.size()!=0) && (aVR1.size() == aVR2.size()),"cSolBasculeRig::QualitySol bad sizes");
+    aDMatr = 0;
+    aDCentr = 0;
+
+    for (int aK=0 ; aK<int(aVR1.size()) ; aK++)
+    {
+       ElRotation3D  aR2 = TransformOriC2M(aVR2[aK]);
+       ElMatrix<double> aDifM =  aVR1[aK].Mat()  -  aR2.Mat();
+       aDMatr +=  aDifM.L2();
+       aDCentr += euclid(aVR1[aK].tr()-aR2.tr());
+    }
+    aDMatr /= aVR1.size();
+    aDCentr /= aVR1.size();
+}
+
+
+
+
 void cAppliMorito::SauvCalib(const std::string & anOri)
 {
     ELISE_fp::CpFile

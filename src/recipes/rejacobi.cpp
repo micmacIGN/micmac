@@ -55,12 +55,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*************************************************************/
 
 
-template<class Type>  INT NR_jacobi (Type ** A ,INT n ,Type *d ,Type ** V)
+
+template<class Type>  INT NR_jacobi (Type ** A ,INT n ,Type *diag ,Type ** V)
 {
 	INT j,iq,ip,i;
 	Type tresh,theta,tau,t,sm,s,h,g,c;
 
-	d--;
+	diag--;
 
 	static ElFilo<Type *> Fa;  NR_InitNrMat(Fa,A,n); Type ** a= Fa.tab();
 	static ElFilo<Type *> Fv;  NR_InitNrMat(Fv,V,n); Type ** v = Fv.tab();
@@ -73,10 +74,13 @@ template<class Type>  INT NR_jacobi (Type ** A ,INT n ,Type *d ,Type ** V)
 		v[ip][ip]=1.0;
 	}
 	for (ip=1;ip<=n;ip++) {
-		b[ip]=d[ip]=a[ip][ip];
+		b[ip]=diag[ip]=a[ip][ip];
 		z[ip]=0.0;
 	}
 	for (i=1;i<=50;i++) {
+
+
+
 		sm=0.0;
 		for (ip=1;ip<=n-1;ip++) {
 			for (iq=ip+1;iq<=n;iq++)
@@ -92,11 +96,11 @@ template<class Type>  INT NR_jacobi (Type ** A ,INT n ,Type *d ,Type ** V)
 		for (ip=1;ip<=n-1;ip++) {
 			for (iq=ip+1;iq<=n;iq++) {
 				g=100.0*ElAbs(a[ip][iq]);
-				if (i > 4 && ElAbs(d[ip])+g == ElAbs(d[ip])
-					&& ElAbs(d[iq])+g == ElAbs(d[iq]))
+				if (i > 4 && ElAbs(diag[ip])+g == ElAbs(diag[ip])
+					&& ElAbs(diag[iq])+g == ElAbs(diag[iq]))
 					a[ip][iq]=0.0;
 				else if (ElAbs(a[ip][iq]) > tresh) {
-					h=d[iq]-d[ip];
+					h=diag[iq]-diag[ip];
 					if (ElAbs(h)+g == ElAbs(h))
 						t=(a[ip][iq])/h;
 					else {
@@ -110,8 +114,8 @@ template<class Type>  INT NR_jacobi (Type ** A ,INT n ,Type *d ,Type ** V)
 					h=t*a[ip][iq];
 					z[ip] -= h;
 					z[iq] += h;
-					d[ip] -= h;
-					d[iq] += h;
+					diag[ip] -= h;
+					diag[iq] += h;
 					a[ip][iq]=0.0;
 					for (j=1;j<=ip-1;j++) {
 						ROTATE(a,j,ip,j,iq)
@@ -130,7 +134,7 @@ template<class Type>  INT NR_jacobi (Type ** A ,INT n ,Type *d ,Type ** V)
 		}
 		for (ip=1;ip<=n;ip++) {
 			b[ip] += z[ip];
-			d[ip]=b[ip];
+			diag[ip]=b[ip];
 			z[ip]=0.0;
 		}
 	}
@@ -246,6 +250,10 @@ static inline double  PYTHAG(const double & a,const double & b)
 {
    double at=ElAbs(a);
    double bt=ElAbs(b);
+
+   // BUG NR => genere div/0 si a et b null
+   if ((at<1e-30) && (bt<1e-30))
+      return sqrt(a*a+b*b);
    
    if (at>bt)
    {
@@ -254,8 +262,8 @@ static inline double  PYTHAG(const double & a,const double & b)
    }
    else
    {
-       double ct = at/bt;
-       return bt*sqrt(1.0+ElSquare(ct));
+      double ct = at/bt;
+      return bt*sqrt(1.0+ElSquare(ct));
    }
    
 }
@@ -366,10 +374,14 @@ void NR_svdcmp(double ** A,int m,int n,double * w,double ** V)
 		}
 		++a[i][i];
 	}
-	for (k=n;k>=1;k--) {
-		for (its=1;its<=30;its++) {
+	for (k=n;k>=1;k--) 
+        {
+		for (its=1;its<=30;its++) 
+                {
+
 			flag=1;
-			for (l=k;l>=1;l--) {
+			for (l=k;l>=1;l--) 
+                        {
 				nm=l-1;
 				if (ElAbs(rv1[l])+anorm == anorm) {
 					flag=0;
@@ -377,7 +389,8 @@ void NR_svdcmp(double ** A,int m,int n,double * w,double ** V)
 				}
 				if (ElAbs(w[nm])+anorm == anorm) break;
 			}
-			if (flag) {
+			if (flag) 
+                        {
 				c=0.0;
 				s=1.0;
 				for (i=l;i<=k;i++) {
@@ -399,7 +412,8 @@ void NR_svdcmp(double ** A,int m,int n,double * w,double ** V)
 				}
 			}
 			z=w[k];
-			if (l == k) {
+			if (l == k) 
+                        {
 				if (z < 0.0) {
 					w[k] = -z;
 					for (j=1;j<=n;j++) v[j][k]=(-v[j][k]);
@@ -420,7 +434,8 @@ void NR_svdcmp(double ** A,int m,int n,double * w,double ** V)
 			g=PYTHAG(f,1.0);
 			f=((x-z)*(x+z)+h*((y/(f+SIGN(g,f)))-h))/x;
 			c=s=1.0;
-			for (j=l;j<=nm;j++) {
+			for (j=l;j<=nm;j++) 
+                        {
 				i=j+1;
 				g=rv1[i];
 				y=w[i];
