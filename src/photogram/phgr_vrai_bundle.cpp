@@ -994,7 +994,7 @@ void SolveBundle3Image
            anEr2 = aB3.OneIter2Glob(anEr2); 
            std::vector<ElRotation3D>  aVR = aB3.BB().GenSolveResetUpdate(); 
            aB3.BB().InitNewR2R3(aVR[0],aVR[1]);
-           if ((anIter==0) || (anIter== NbIter/2) || (anIter==(aNbIter-1))
+           if ((anIter==0) || (anIter== aNbIter/2) || (anIter==(aNbIter-1)))
            {
                std::cout << "Er3 " <<  anEr3*aFoc  << " Er2 " << anEr2*aFoc   << "\n";
            }
