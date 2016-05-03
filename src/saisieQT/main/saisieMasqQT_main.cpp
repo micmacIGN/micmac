@@ -35,7 +35,6 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
         loadTranslation(app);
 
         SaisieQtWindow win;
-
         cQT_Interface::connectDeviceElise(win);
 
 #ifdef _DEBUG

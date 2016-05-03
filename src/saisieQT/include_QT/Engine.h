@@ -143,6 +143,11 @@ enum idGPU_Vendor
     NOMODEL
 };
 
+class UpdateSignaler
+{
+public:
+	virtual void operator()() = 0;
+};
 
 class cEngine
 {
@@ -238,10 +243,14 @@ public:
 	void getGLDataIdSet( int aI0, int aI1, bool aIsLoaded, size_t aNbRequestedWidgets, std::vector<int> &oIds ) const;
 #endif
 
+	void setUpdateSignaler(UpdateSignaler *aSignaler);
+	void signalUpdate();
+
 private:
 
 	cLoader*            _Loader;
 	cData*              _Data;
+	UpdateSignaler    * _updateSignaler;
 
     QVector <cGLData*>  _vGLData;
 
