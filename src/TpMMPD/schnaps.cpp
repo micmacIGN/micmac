@@ -767,7 +767,9 @@ int schnaps_main(int argc,char ** argv)
         std::list<std::string>::iterator itPacName;
         for (itPacName=aSetPac.begin();itPacName!=aSetPac.end();++itPacName)
         {
-            cPic *pic2=allPics.at( (*itPacName) );
+            itPic2=allPics.find( (*itPacName) );
+            if (itPic2==allPics.end()) continue; //if the pic has been removed after Tapioca
+            cPic *pic2=(*itPic2).second; 
             
             std::string aNameIn1= aDirImages + aCKin.get(pic1->getName(),pic2->getName());
             //if (ELISE_fp::exist_file(aNameIn1))
