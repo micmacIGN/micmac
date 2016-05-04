@@ -1068,7 +1068,7 @@ std::cout << "XIFtif:APRES Date " << ToString(mExifTiff_Date) << "\n";
     if (!(  (_sz.x != -1) && (_sz.y != -1)
              && ((_tiles_offset != 0) || mUseFileTile)
              && (_resol.x != -1) && (_resol.y != -1)
-             && (_phot_interp != (Tiff_Im::PH_INTER_TYPE) -1)
+             && (_phot_interp != -1)
           )
        )
     {
