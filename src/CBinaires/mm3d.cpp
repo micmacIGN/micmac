@@ -68,7 +68,7 @@ FILE * FileLogMM3d(const std::string & aDir)
              SleepProcess (aTimeSleep);
         }
         aCpt++;
-        ELISE_ASSERT(aCpt<aCptMax,"Too max test in FileLogMM3d");
+        ELISE_ASSERT(aCpt<aCptMax, (string("FileLogMM3d: cannot open file for writing in [") + aDir + "]").c_str());
     }
     return aRes;
 }
