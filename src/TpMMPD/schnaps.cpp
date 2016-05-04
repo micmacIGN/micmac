@@ -658,6 +658,7 @@ int schnaps_main(int argc,char ** argv)
     int aNumWindows=1000;//minimal homol points in each picture
     bool ExpTxt=false;//Homol are in dat or txt
     bool veryStrict=false;
+    double aMinPercentCoverage=30;//if %coverage<aMinPercentCoverage, add to poubelle!
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
             <<"S trict           \n"
@@ -680,6 +681,7 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                    << EAM(veryStrict,"VeryStrict",true,"Be very strict with homols (remove any suspect), def=false")
                    << EAM(aPoubelleName,"PoubelleName",true,string("Where to write suspicious pictures names, def=\"")+aPoubelleName+"\"")
+                   << EAM(aMinPercentCoverage,"minPercentCoverage",true,"Minimum % of coverage to avoid adding to poubelle, def=30")
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -1087,7 +1089,7 @@ int schnaps_main(int argc,char ** argv)
     {
         cPic* pic1=(*itPic1).second;
         std::cout<<" - "<<pic1->getName()<<": "<<pic1->getPercentWinUsed()<<"% of the picture covered ("<<pic1->getAllSelectedPointsOnPicSize()<<" points)"<<endl;
-        if (pic1->getPercentWinUsed()<25)
+        if (pic1->getPercentWinUsed()<aMinPercentCoverage)
             aFileBadPictureNames<<pic1->getName()<<"\n";
         for (itPic2=itPic1;itPic2!=allPics.end();++itPic2)
         {
