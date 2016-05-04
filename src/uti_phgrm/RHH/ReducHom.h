@@ -270,8 +270,8 @@ class cTestPlIm
 
         cLink2Img *               mLnk;
         cElemMepRelCoplan*        mRMCP;
+        double                    mResiduH; // must be initialized before mHomI2T, see cTestPlIm::cTestPlIm
         cElHomographie            mHomI2T;
-        double                    mResiduH;
         bool                      mOk;
     private :
         // cTestPlIm(const cTestPlIm&);  // N.I.
