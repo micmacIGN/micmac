@@ -50,7 +50,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #define StdNbIterBundle 10
-#define QuickNbIterBundle 3
+#define QuickNbIterBundle 6
 
 #define  StdNbRansac 200
 #define  QuickNbRansac 100
@@ -200,6 +200,7 @@ class cAppliOptimTriplet
           cTplTriplet<std::string> m3S;
           cNewO_OneIm *    mNoIm1;
           cNewO_OneIm *    mNoIm2;
+          bool             mBugTK;
 };
 
 const std::string cAppliOptimTriplet::KeyCple = "KeyCple";
@@ -505,7 +506,8 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
     mQuitExist (QuitExist),
     m3S        ("a","b","c"),
     mNoIm1     (0),
-    mNoIm2     (0)
+    mNoIm2     (0),
+    mBugTK     (false)
 {
    ElInitArgMain
    (
@@ -520,8 +522,10 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
                    << EAM(mShow,"Show",true,"Show Message")
                    << EAM(mQuick,"Quick",true,"Quick version")
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mBugTK,"BugTK",true,"Debug Tomasi Kanade")
    );
 
+   StdCorrecNameOrient(mNameOriCalib,mDir);
 
    m3S = cTplTriplet<std::string> (mN1,mN2,mN3);
 
@@ -712,11 +716,29 @@ void cAppliOptimTriplet::Execute()
    int aNbIterBundle = mQuick ? QuickNbIterBundle : StdNbIterBundle;
    double aBOnH;
    Pt3dr aPMed;
+
+   ElRotation3D aR21 =  mIm2->Ori();
+   ElRotation3D aR31 =  mIm3->Ori();
+
+   if (mBugTK)
+   {
+       aR21 = ElRotation3D(aR21.tr(),aR21.Mat()*ElMatrix<double>::Rotation(0.01,0,0),true);
+       cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+       ElRotation3D aRef1toM = anICNM->StdCamOfNames(mN1,mNameOriCalib)->Orient().inv();
+       ElRotation3D aRef2toM = anICNM->StdCamOfNames(mN2,mNameOriCalib)->Orient().inv();
+       ElRotation3D aRef3toM = anICNM->StdCamOfNames(mN3,mNameOriCalib)->Orient().inv();
+
+       aR21 = aRef1toM.inv() * aRef2toM;
+       aR31 = aRef1toM.inv() * aRef3toM;
+       // aR21 = aR21.inv();
+       // aR31 = aR31.inv();
+   }
+
    SolveBundle3Image
    (
         mFoc,
-        mIm2->Ori(),
-        mIm3->Ori(),
+        aR21, // mIm2->Ori(),
+        aR31, // mIm3->Ori(),
         aPMed,
         aBOnH,
         mRedH123,
@@ -724,7 +746,7 @@ void cAppliOptimTriplet::Execute()
         mP13->RedHoms(),
         mP23->RedHoms(),
         mPds3,
-        aNbIterBundle
+        mBugTK ?  1000 : aNbIterBundle
    );
 
 

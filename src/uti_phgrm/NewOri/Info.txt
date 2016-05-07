@@ -1,3 +1,15 @@
+
+"/home/ubuntu/Desktop/MMM/culture3d/bin/mm3d" TestLib  NO_AllImOptTrip "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
+
+CPP_AllOptimTriplet_main
+
+
+NO_OneImOptTrip => CPP_OptimTriplet_main
+
+mm3d TestLib NO_OneImOptTrip
+mm3d TestLib NO_OneImOptTrip IMGP7033.JPG IMGP7034.JPG IMGP7035.JPG OriCalib=Ori-AllRel/ Quick=1
+
+/=========================================================
 Feuille de route pour terminer calcul orientation :
 
 

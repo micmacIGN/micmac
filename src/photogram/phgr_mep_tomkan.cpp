@@ -40,6 +40,185 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#if (1)
+template <class Type> double TestInter
+     (
+         const std::vector<Type> aVP,
+         const std::vector<ElRotation3D> aVR
+     )
+{
+   std::vector<ElSeg3D> aVSeg;
+   for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+   {
+       std::vector<double> aPAF;
+       CamStenopeIdeale aCam(true,1.0,Pt2dr(0,0),aPAF);
+       aCam.SetOrientation(aVR[aK]);
+       Pt2dr aPR(aVP[aK].x,aVP[aK].y);
+       aVSeg.push_back(aCam.Capteur2RayTer(aPR));
+   }
+
+   bool Ok;
+   Pt3dr aPTer = InterSeg(aVSeg,Ok);
+   double aRes = 0.0;
+
+   for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+   {
+       std::vector<double> aPAF;
+       CamStenopeIdeale aCam(true,1.0,Pt2dr(0,0),aPAF);
+       aCam.SetOrientation(aVR[aK]);
+       Pt2dr aProj = aCam.Ter2Capteur(aPTer);
+       Pt2dr aPR(aVP[aK].x,aVP[aK].y);
+       aRes += euclid(aProj,aPR);
+   }
+
+
+   return aRes ;
+}
+
+template <class Type> double TestInter
+     (
+         const Type  & aP1,
+         const Type  & aP2,
+         const ElRotation3D &        aR1,
+         const ElRotation3D &        aR2
+     )
+{
+    std::vector<Type> aVP;
+    std::vector<ElRotation3D> aVR;
+
+    aVP.push_back(aP1);
+    aVP.push_back(aP2);
+
+    aVR.push_back(aR1);
+    aVR.push_back(aR2);
+
+    return TestInter(aVP,aVR);
+}
+
+template <class Type> double TestInter
+     (
+         const Type  & aP1,
+         const Type  & aP2,
+         const Type  & aP3,
+         const ElRotation3D &        aR1,
+         const ElRotation3D &        aR2,
+         const ElRotation3D &        aR3
+     )
+{
+    std::vector<Type> aVP;
+    std::vector<ElRotation3D> aVR;
+
+    aVP.push_back(aP1);
+    aVP.push_back(aP2);
+    aVP.push_back(aP3);
+
+    aVR.push_back(aR1);
+    aVR.push_back(aR2);
+    aVR.push_back(aR3);
+
+    return TestInter(aVP,aVR);
+}
+
+
+
+
+#else
+
+template <class Type> double TestInter
+     (
+         const Type  & aP1,
+         const Type  & aP2,
+         const ElRotation3D &        aR1,
+         const ElRotation3D &        aR2
+     )
+{
+    std::vector<double> aPAF;
+    CamStenopeIdeale aCam1(true,1.0,Pt2dr(0,0),aPAF);
+    aCam1.SetOrientation(aR1);
+
+    CamStenopeIdeale aCam2(true,1.0,Pt2dr(0,0),aPAF);
+    aCam2.SetOrientation(aR2);
+
+   double aD;
+   Pt3dr aPTer = aCam1.PseudoInter(Pt2dr(aP1.x,aP1.y),aCam2,Pt2dr(aP2.x,aP2.y),&aD);
+
+
+   Pt2dr aQ1 = aCam1.Ter2Capteur(aPTer);
+   Type aQf1(aQ1.x,aQ1.y);
+
+   Pt2dr aQ2 = aCam2.Ter2Capteur(aPTer);
+   Type aQf2(aQ2.x,aQ2.y);
+
+   aD = (euclid(aQf1-aP1) + euclid(aQf2-aP2)) ;
+   return aD;
+}
+#endif
+
+
+double Pt2fTestInter(const Pt2df&aP1,const Pt2df&aP2,const ElRotation3D&aR1,const ElRotation3D&aR2)
+{
+   return TestInter(aP1,aP2,aR1,aR2);
+}
+
+double Pt2fTestInter(const Pt2df&aP1,const Pt2df&aP2,const Pt2df&aP3,const ElRotation3D&aR1,const ElRotation3D&aR2,const ElRotation3D&aR3)
+{
+   return TestInter(aP1,aP2,aP3,aR1,aR2,aR3);
+}
+
+
+
+template <class Type> void TestInter
+     (
+         const std::vector<Type>  & aVP1,
+         const std::vector<Type>  & aVP2,
+         const ElRotation3D &        aR1,
+         const ElRotation3D &        aR2
+     )
+{
+    ELISE_ASSERT(aVP1.size()==aVP2.size(),"TestInter");
+    double aSomD=0.0;
+    for (int aKP=0 ; aKP<int(aVP1.size()); aKP++)
+    {
+         aSomD += TestInter(aVP1[aKP],aVP2[aKP],aR1,aR2);
+    }
+    aSomD /= aVP1.size();
+    std::cout << "D=" << aSomD << "\n";
+}
+
+
+
+
+void TestInter
+     (
+         const std::vector<Pt2dr>  & aVP1,
+         const std::vector<Pt2dr>  & aVP2,
+         CamStenopeIdeale          aCam01,
+         CamStenopeIdeale          aCam02
+     )
+{
+    TestInter(aVP1,aVP2,aCam01.Orient(),aCam02.Orient());
+}
+
+
+
+void TestInter
+     (
+         const std::vector<std::vector<Pt2dr> > & aVVPt0,
+         std::vector<CamStenopeIdeale>            aVCamI,
+         int                                      aK1,
+         int                                      aK2
+     )
+{
+    TestInter(aVVPt0[aK1],aVVPt0[aK2],aVCamI[aK1],aVCamI[aK2]);
+}
+
+
+//================================================================================
+//================================================================================
+//================================================================================
+
+
+
 class cBasicCamOrtho;
 class cTomKanCamUnk;
 class cTomKanSolver;
@@ -67,36 +246,37 @@ class cTomKanCamUnk
 {
     public :
         friend class cTomKanSolver;
-        cTomKanCamUnk(const std::vector<Pt2dr> & aVpt,double aDist); // Dist >0 -> Pts Photogram, utilise pour normaliser
+        cTomKanCamUnk(const std::vector<Pt2dr> & aVpt,double aDist,CamStenopeIdeale * aRef); // Dist >0 -> Pts Photogram, utilise pour normaliser
         const cBasicCamOrtho & SolOrth() const;
         void SetCamOrtho(const Pt3dr & aI,const Pt3dr & aJ);
         const Pt2dr & VInitK(int) const;
         const Pt2dr & VCenterK(int) const;
 
-        CamStenopeIdeale& CamI();
+        CamStenopeIdeale& CamI(bool Ref);
         double & ResOFPA();
         std::vector<Pt2df> & VFInit();
     private :
-        std::vector<Pt2dr> mVInit;
-        std::vector<Pt2dr> mVNorm;
-        std::vector<Pt2dr> mVCenter;
-        int                mNbPts;
-        Pt2dr              mCDG;
-        cBasicCamOrtho     mSolOrth;
-        CamStenopeIdeale   mCamI;
-        double             mResOFPA;
-        std::vector<Pt2df> mVFInit;
+        std::vector<Pt2dr>   mVInit;
+        std::vector<Pt2dr>   mVNorm;
+        std::vector<Pt2dr>   mVCenter;
+        int                  mNbPts;
+        Pt2dr                mCDG;
+        cBasicCamOrtho       mSolOrth;
+        CamStenopeIdeale     mCamI;
+        double               mResOFPA;
+        std::vector<Pt2df>   mVFInit;
+        CamStenopeIdeale *   mCamRef;
 };
 
 
 class cTomKanSolver
 {
     public :
-        cTomKanSolver(const std::vector<std::vector<Pt2dr> > & aVVPt,double aDist);
+        cTomKanSolver(const std::vector<std::vector<Pt2dr> > & aVVPt,double aDist,std::vector<CamStenopeIdeale> * aVRef);
 
         // double OrientCamStenope(int aNbTest,CamStenope & aCam,int aKCam,int aSign);
         void   OrientCamStenope(int aNbTest,int aKCam,int aSign);
-        void   OrientAllCamStenope(int aNbTest,int aSign,std::vector<CamStenopeIdeale> * aVTest=0);
+        void   OrientAllCamStenope(int aNbTest,int aSign);
         bool VPNeg() const {return mVPNeg;}
 
         ElMatrix<double> OrientOrtho(int aK);
@@ -138,6 +318,9 @@ class cTomKanSolver
         std::vector<Pt3dr>        mVTer; // Vector of ground coordinates (=> mMatP)
         bool                      mVPNeg;
         double                    mSomResOFPA; // Residu de l'orient / appuis
+
+        bool                          mHasRef;
+        std::vector<CamStenopeIdeale>* mVRef;
 
 };
 
@@ -213,14 +396,15 @@ static std::vector<Pt2dr> ApproxFuseau(const std::vector<Pt2dr> & aV0,double aDi
 
 static std::vector<double> ThePAF;
 
-cTomKanCamUnk::cTomKanCamUnk(const std::vector<Pt2dr> & aVPt,double aDist) :
+cTomKanCamUnk::cTomKanCamUnk(const std::vector<Pt2dr> & aVPt,double aDist,CamStenopeIdeale * aRef) :
    mVInit   (aVPt),
    mVNorm   ((aDist>0) ? ApproxFuseau(mVInit,aDist) : mVInit),
    mVCenter (mVNorm),
    mNbPts   (aVPt.size()),
    mCDG     (0,0),
    mSolOrth (Pt3dr(1,0,0),Pt3dr(0,1,0),1.0,Pt2dr(0,0)),
-   mCamI    (true,1.0,Pt2dr(0,0),ThePAF)
+   mCamI    (true,1.0,Pt2dr(0,0),ThePAF),
+   mCamRef  (aRef)
 {
    ConvertContainer(mVFInit,mVInit);
    for (int aK=0 ; aK<mNbPts ; aK++)
@@ -250,7 +434,13 @@ const cBasicCamOrtho & cTomKanCamUnk::SolOrth() const
 {
    return mSolOrth;
 }
-CamStenopeIdeale& cTomKanCamUnk::CamI() {return mCamI;}
+CamStenopeIdeale& cTomKanCamUnk::CamI(bool Ref) 
+{
+   if (! Ref)
+      return mCamI;
+   ELISE_ASSERT(mCamRef!=0,"cTomKanCamUnk::CamI");
+   return * mCamRef;
+}
 double & cTomKanCamUnk::ResOFPA()       {return mResOFPA;}
 std::vector<Pt2df> & cTomKanCamUnk::VFInit() {return mVFInit;}
 
@@ -312,7 +502,12 @@ void cTomKanSolver::FillCoeffW(double * aCoef,int aIP1,int aIP2) const
 
 
 
-cTomKanSolver::cTomKanSolver(const std::vector<std::vector<Pt2dr> > & aVVPt,double aDist) :
+cTomKanSolver::cTomKanSolver
+(
+      const std::vector<std::vector<Pt2dr> > & aVVPt,
+      double aDist,
+      std::vector<CamStenopeIdeale> * aVRef
+) :
    mDist   (aDist),
    mNbCam  (aVVPt.size()),
    mMatUV0  (1,1),
@@ -326,7 +521,8 @@ cTomKanSolver::cTomKanSolver(const std::vector<std::vector<Pt2dr> > & aVVPt,doub
    mW       (3,3),
    mRotW    (3,3),
    mDiagW   (3,3),
-   mQ       (3,3)
+   mQ       (3,3),
+   mVRef    (aVRef)
 {
    // ====================================================
    //  [0]  Allocate Matrixes
@@ -337,7 +533,7 @@ cTomKanSolver::cTomKanSolver(const std::vector<std::vector<Pt2dr> > & aVVPt,doub
 
    for (int aKC=0 ; aKC<mNbCam ; aKC++)
    {
-       mVC.push_back(cTomKanCamUnk(aVVPt[aKC],aDist));
+       mVC.push_back(cTomKanCamUnk(aVVPt[aKC],aDist,aVRef ? &(aVRef->at(aKC)) : 0 ));
        ELISE_ASSERT(mNbPts==mVC.back().mNbPts,"cTomKanSolver size Pts Diff");
    }
    mSzMat = ElMax(mNbPts,2*mNbCam);
@@ -582,7 +778,7 @@ void  cTomKanSolver::OrientCamStenope(int aNbTest,int aKCam,int aSign)
 {
    std::vector<double> aPAF;
    cTomKanCamUnk & aTKC = mVC.at(aKCam);
-   CamStenopeIdeale & aCam = aTKC.CamI();
+   CamStenopeIdeale & aCam = aTKC.CamI(false);
    double & aSomD = aTKC.ResOFPA();
 
    std::list<Appar23> aL23;
@@ -611,7 +807,7 @@ void  cTomKanSolver::OrientCamStenope(int aNbTest,int aKCam,int aSign)
    aSomD /= mNbPts;
 }
 
-void   cTomKanSolver::OrientAllCamStenope(int aNbTest,int aSign, std::vector<CamStenopeIdeale> * aVRef)
+void   cTomKanSolver::OrientAllCamStenope(int aNbTest,int aSign)
 {
     // Initial orientation with GCP
     for (int aKC=0 ; aKC<mNbCam ; aKC++)
@@ -629,6 +825,19 @@ void   cTomKanSolver::OrientAllCamStenope(int aNbTest,int aSign, std::vector<Cam
           aVPF3.push_back(&(mVC.at(aKC).VFInit()));
        }
 
+       tMultiplePF aVPH_12;
+       aVPH_12.push_back(&(mVC.at(0).VFInit()));
+       aVPH_12.push_back(&(mVC.at(1).VFInit()));
+
+       tMultiplePF aVPH_13;
+       aVPH_13.push_back(&(mVC.at(0).VFInit()));
+       aVPH_13.push_back(&(mVC.at(2).VFInit()));
+
+       tMultiplePF aVPH_23;
+       aVPH_23.push_back(&(mVC.at(1).VFInit()));
+       aVPH_23.push_back(&(mVC.at(2).VFInit()));
+
+
        std::vector<Pt2df> aVNop;
        tMultiplePF aNoVPF2;
        for (int aKC=0 ; aKC<2 ; aKC++)
@@ -636,13 +845,43 @@ void   cTomKanSolver::OrientAllCamStenope(int aNbTest,int aSign, std::vector<Cam
           aNoVPF2.push_back(&aVNop);
        }
        
+       bool TestRef = true;
+
+       
     
-       ElRotation3D aRWtoC1 = mVC.at(0).CamI().Orient();
-       ElRotation3D aRWtoC2 = mVC.at(1).CamI().Orient();
-       ElRotation3D aRWtoC3 = mVC.at(2).CamI().Orient();
+       ElRotation3D aRWtoC1 = mVC.at(0).CamI(TestRef).Orient();
+       ElRotation3D aRWtoC2 = mVC.at(1).CamI(TestRef).Orient();
+       ElRotation3D aRWtoC3 = mVC.at(2).CamI(TestRef).Orient();
 
        ElRotation3D aRC2toC1 = (aRWtoC1 * aRWtoC2.inv());
        ElRotation3D aRC3toC1 = (aRWtoC1 * aRWtoC3.inv());
+
+       if (1)
+       {
+           std::cout << "BUNDLE INIT WITH SOLUTION !!!!\n";
+           std::cout << "Test Inter 0-1\n";
+
+/*
+           TestInter(mVC.at(0).mVInit,mVC.at(1).mVInit,mVC.at(0).CamI(true),mVC.at(1).CamI(true));
+           TestInter(mVC.at(0).mVInit,mVC.at(1).mVInit,aRWtoC1,aRWtoC2);
+
+           TestInter(mVC.at(0).mVInit,mVC.at(1).mVInit,ElRotation3D::Id,aRC2toC1.inv());
+           TestInter(mVC.at(0).mVInit,mVC.at(2).mVInit,ElRotation3D::Id,aRC3toC1.inv());
+           TestInter(mVC.at(1).mVInit,mVC.at(2).mVInit,aRC2toC1.inv(),aRC3toC1.inv());
+*/
+           TestInter(*(aVPF3[0]),*(aVPF3[1]),ElRotation3D::Id,aRC2toC1.inv());
+           TestInter(*(aVPF3[0]),*(aVPF3[2]),ElRotation3D::Id,aRC3toC1.inv());
+           TestInter(*(aVPF3[1]),*(aVPF3[2]),aRC2toC1.inv(),aRC3toC1.inv());
+           getchar();
+       }
+
+
+       if (0)
+       {
+           aRC2toC1 = aRC2toC1.inv();
+           aRC3toC1 = aRC3toC1.inv();
+       }
+
 
        Pt3dr  aPMed;
        double aBOnH;
@@ -652,7 +891,7 @@ void   cTomKanSolver::OrientAllCamStenope(int aNbTest,int aSign, std::vector<Cam
           aRC2toC1, aRC3toC1,
           aPMed,aBOnH,
           aVPF3,
-          aNoVPF2, aNoVPF2, aNoVPF2,
+          aVPH_12, aVPH_13,aVPH_23,
           1.0,
           50,
           false
@@ -667,10 +906,10 @@ void   cTomKanSolver::OrientAllCamStenope(int aNbTest,int aSign, std::vector<Cam
     for (int aKC=0 ; aKC<mNbCam ; aKC++)
     {
          mSomResOFPA +=  mVC.at(aKC).ResOFPA();
-         if (aVRef)
+         if (mVRef)
          {
-            aVRotInit.push_back((*aVRef)[aKC].Orient().inv());
-            aVRotAfter.push_back(mVC.at(aKC).CamI().Orient().inv());
+            aVRotInit.push_back((*mVRef)[aKC].Orient().inv());
+            aVRotAfter.push_back(mVC.at(aKC).CamI(false).Orient().inv());
          }
     }
     mSomResOFPA /= mNbCam;
@@ -678,7 +917,7 @@ void   cTomKanSolver::OrientAllCamStenope(int aNbTest,int aSign, std::vector<Cam
 
 
     // Print quality
-    if (aVRef)
+    if (mVRef)
     {
         cSolBasculeRig aSol =  cSolBasculeRig::SolM2ToM1(aVRotInit,aVRotAfter);
         double aDMatr,aDCentr;
@@ -690,7 +929,6 @@ void   cTomKanSolver::OrientAllCamStenope(int aNbTest,int aSign, std::vector<Cam
                       << "\n";
         getchar();
     }
-
 
 }
 
@@ -763,6 +1001,7 @@ double   cTomKanSolver::SomResOFPA() const
 }
 
 
+
 void OneTestTomKan(int aNbC,int aNbPts,double aDist,double aNoise)
 {
     static int aCptTot=0;
@@ -823,9 +1062,13 @@ void OneTestTomKan(int aNbC,int aNbPts,double aDist,double aNoise)
        }
        // std::cout << "\n";
     }
+  
+    if (aDist>0)
+    {
+       TestInter(aVVPt0,aVCamI,0,1);
+    }
 
-
-    cTomKanSolver aTKS(aVVPt0,aDist);
+    cTomKanSolver aTKS(aVVPt0,aDist,(aDist>0) ? &(aVCamI) : 0);
 
    
     ElMatrix<double> aMat(3,3);
@@ -842,7 +1085,7 @@ void OneTestTomKan(int aNbC,int aNbPts,double aDist,double aNoise)
    {
         for (int aS=-1 ; aS<=1 ; aS+=2)
         {
-            aTKS.OrientAllCamStenope(ElMin(30,(aNbPts*(aNbPts+1)/2)),aS,&aVCamI);
+            aTKS.OrientAllCamStenope(ElMin(30,(aNbPts*(aNbPts+1)/2)),aS);
             // std::cout << " RESSTEN=" <<  aTKS.SomResOFPA()   << "  Sig=" << aS << "\n";
         }
 /*
