@@ -6,11 +6,9 @@
 
 # Instructs the MSVC toolset to use the precompiled header PRECOMPILED_HEADER
 # for each source file given in the collection named by SOURCE_VARIABLE_NAME.
-function(enable_precompiled_headers_msvc PRECOMPILED_HEADER SOURCE_VARIABLE_NAME)
-
-	if(WITH_HEADER_PRECOMP)
-		if(MSVC_IDE)
-
+if(WITH_HEADER_PRECOMP)
+	if (MSVC)
+		function(enable_precompiled_headers_msvc PRECOMPILED_HEADER SOURCE_VARIABLE_NAME)
 			set(files ${${SOURCE_VARIABLE_NAME}})
 
 			# Generate precompiled header translation unit
@@ -33,59 +31,55 @@ function(enable_precompiled_headers_msvc PRECOMPILED_HEADER SOURCE_VARIABLE_NAME
 
 			# Finally, update the source file collection to contain the precompiled header translation unit
 			set(${SOURCE_VARIABLE_NAME} ${${SOURCE_VARIABLE_NAME}} ${pch_unity} PARENT_SCOPE)
-		endif(MSVC_IDE)
-	endif(WITH_HEADER_PRECOMP)
+		endfunction(enable_precompiled_headers_msvc)
+	else()
+		function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME EXTRA_CXX_FLAGS)
+			if(WITH_HEADER_PRECOMP)
+				if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+					SET(EXT_HP pch)
+					#~ SET(OPTION_HP "-ccl -emit-pth")
+				endif()
+				if(CMAKE_COMPILER_IS_GNUCXX)
+					#Message("Gcc")
+					SET(EXT_HP gch)
+				endif()
+				SET(OPTION_HP "-x c++-header")
 
-endfunction(enable_precompiled_headers_msvc)
+				IF(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+				#~ IF(CMAKE_COMPILER_IS_GNUCXX)
+					GET_FILENAME_COMPONENT(_name ${PRECOMPILED_HEADER} NAME)
 
+					#SET(_source "${CMAKE_CURRENT_SOURCE_DIR}/${PRECOMPILED_HEADER}")
+					SET(_source "${PROJECT_SOURCE_DIR}/include/${PRECOMPILED_HEADER}")
 
-function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME EXTRA_CXX_FLAGS)
-	if(WITH_HEADER_PRECOMP)
-#ne marche pas avec Clang
-#		if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-#		  SET(EXT_HP pth)
-#		  SET(OPTION_HP "-ccl -emit-pth")
-#		endif()
-		if(CMAKE_COMPILER_IS_GNUCXX)
-		  #Message("Gcc")
-		  SET(EXT_HP gch)
-		  SET(OPTION_HP "-x c++-header")
-		endif()
+					#SET(_outdir "${CMAKE_CURRENT_SOURCE_DIR}/${_name}.${EXT_HP}")
+					SET(_outdir "${PROJECT_SOURCE_DIR}/include/${_name}.${EXT_HP}")
+					MAKE_DIRECTORY(${_outdir})
+					SET(_output "${_outdir}/.c++")
 
-#		IF(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-		IF(CMAKE_COMPILER_IS_GNUCXX)
-			GET_FILENAME_COMPONENT(_name ${PRECOMPILED_HEADER} NAME)
+					STRING(TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" _flags_var_name)
+								SET(_compiler_FLAGS ${${_flags_var_name}} ${EXTRA_CXX_FLAGS})
 
-			#SET(_source "${CMAKE_CURRENT_SOURCE_DIR}/${PRECOMPILED_HEADER}")
-			SET(_source "${PROJECT_SOURCE_DIR}/include/${PRECOMPILED_HEADER}")
+					GET_DIRECTORY_PROPERTY(_directory_flags INCLUDE_DIRECTORIES)
+					FOREACH(item ${_directory_flags})
+					LIST(APPEND _compiler_FLAGS "-I${item}")
+					ENDFOREACH(item)
 
-			#SET(_outdir "${CMAKE_CURRENT_SOURCE_DIR}/${_name}.${EXT_HP}")
-			SET(_outdir "${PROJECT_SOURCE_DIR}/include/${_name}.${EXT_HP}")
-			MAKE_DIRECTORY(${_outdir})
-			SET(_output "${_outdir}/.c++")
+					GET_DIRECTORY_PROPERTY(_directory_flags DEFINITIONS)
+					LIST(APPEND _compiler_FLAGS ${_directory_flags})
 
-			STRING(TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" _flags_var_name)
-                        SET(_compiler_FLAGS ${${_flags_var_name}} ${EXTRA_CXX_FLAGS})
+					SEPARATE_ARGUMENTS(_compiler_FLAGS)
+					#MESSAGE("${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} ${OPTION_HP} -o ${_output} ${_source}")
+					ADD_CUSTOM_COMMAND(
+						OUTPUT ${_output}				
+										COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header -o ${_output} ${_source}
+						DEPENDS ${_source} IMPLICIT_DEPENDS CXX ${_source})
+						ADD_CUSTOM_TARGET(${TARGET_NAME}_${EXT_HP} DEPENDS ${_output})
 
-			GET_DIRECTORY_PROPERTY(_directory_flags INCLUDE_DIRECTORIES)
-			FOREACH(item ${_directory_flags})
-			LIST(APPEND _compiler_FLAGS "-I${item}")
-			ENDFOREACH(item)
-
-			GET_DIRECTORY_PROPERTY(_directory_flags DEFINITIONS)
-			LIST(APPEND _compiler_FLAGS ${_directory_flags})
-
-			SEPARATE_ARGUMENTS(_compiler_FLAGS)
-			#MESSAGE("${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} ${OPTION_HP} -o ${_output} ${_source}")
-			ADD_CUSTOM_COMMAND(
-				OUTPUT ${_output}				
-                                COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header -o ${_output} ${_source}
-				DEPENDS ${_source} IMPLICIT_DEPENDS CXX ${_source})
-				ADD_CUSTOM_TARGET(${TARGET_NAME}_${EXT_HP} DEPENDS ${_output})
-
-			ADD_DEPENDENCIES(${TARGET_NAME} ${TARGET_NAME}_${EXT_HP})
-			SET_TARGET_PROPERTIES(${TARGET_NAME}_${EXT_HP} PROPERTIES COMPILE_FLAGS "-include ${_name} -Winvalid-pch")
-		ENDIF(CMAKE_COMPILER_IS_GNUCXX)
-		#endif()
-	endif(WITH_HEADER_PRECOMP)
-endfunction(enable_precompiled_headers_GCC)
+					ADD_DEPENDENCIES(${TARGET_NAME} ${TARGET_NAME}_${EXT_HP})
+					SET_TARGET_PROPERTIES(${TARGET_NAME}_${EXT_HP} PROPERTIES COMPILE_FLAGS "-include ${_name} -Winvalid-pch")
+				ENDIF()
+			endif(WITH_HEADER_PRECOMP)
+		endfunction(enable_precompiled_headers_GCC)
+	endif()
+endif()

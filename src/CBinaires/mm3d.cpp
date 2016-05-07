@@ -43,25 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int XLib_Main(int argc, char ** argv);
 
-typedef int (*tCommande)  (int,char**);
-
-class cArgLogCom
-{
-    public :
-
-        cArgLogCom(int aNumArg,const std::string &aDirSup = "") :
-            mNumArgDir (aNumArg),
-            mDirSup    (aDirSup)
-        {
-        }
-
-        int mNumArgDir ;
-        std::string  mDirSup;
-
-        static const cArgLogCom NoLog;
-};
-
-const cArgLogCom  cArgLogCom::NoLog(-1);
+const cArgLogCom cArgLogCom::NoLog(-1);
 
 // MPD : suspecte un problème d'écrasement mutuel entre processus dans le logfile, inhibe temporairement pour
 // valider / invalider le diagnostic
@@ -86,7 +68,7 @@ FILE * FileLogMM3d(const std::string & aDir)
              SleepProcess (aTimeSleep);
         }
         aCpt++;
-        ELISE_ASSERT(aCpt<aCptMax,"Too max test in FileLogMM3d");
+        ELISE_ASSERT(aCpt<aCptMax, (string("FileLogMM3d: cannot open file for writing in [") + aDir + "]").c_str());
     }
     return aRes;
 }
@@ -135,37 +117,6 @@ void LogOut(int aRes,const std::string & aDir)
    LogTime(aFp,aMes);
    fclose(aFp);
 }
-
-
-
-
-// CMMCom is a descriptor of a MicMac Command
-class cMMCom
-{
-   public :
-      cMMCom
-      (
-             const std::string & aName,
-             tCommande  aCommand,
-             const std::string & aComment,
-             const cArgLogCom& aLog=cArgLogCom::NoLog
-      ) :
-          mName     (aName),
-          mLowName  (StrToLower(aName)),
-          mCommand  (aCommand),
-          mComment  (aComment),
-          mLog     (aLog)
-      {
-      }
-
-
-
-      std::string  mName;
-      std::string  mLowName;
-      tCommande    mCommand;
-      std::string  mComment;
-      cArgLogCom  mLog;
-};
 
 class cCmpMMCom
 {

@@ -1,8 +1,8 @@
 #include "saisieQT_main.h"
 
-int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
+int saisieMasqQT_main(int argc, char *argv[])
 {
-    //MMD_InitArgcArgv(argc,argv); //already done in SaisieQT_main.cpp ?
+	QApplication &app = getQApplication();
 
     Pt2di SzWP = Pt2di(900,700);
     std::string aFullName ="";
@@ -35,7 +35,6 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
         loadTranslation(app);
 
         SaisieQtWindow win;
-
         cQT_Interface::connectDeviceElise(win);
 
 #ifdef _DEBUG

@@ -138,7 +138,7 @@ S_Appli::S_Appli(int argc, char ** argv )
     int nbr_i=0;
     nbr_i=int (nbr);
     
-    if ((nbr==nbr_i) )   //tester si le nbr (si entré) par l'utilisateur est un entier
+    if (nbr==nbr_i)   //tester si le nbr (si entré) par l'utilisateur est un entier
     {
 
         nbr_sol=nbr_i;        
