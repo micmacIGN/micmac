@@ -245,7 +245,8 @@ cCamHandler* cLoader::loadCamera(QString aNameFile)
 
 cEngine::cEngine():
     _Loader(new cLoader),
-    _Data(new cData)
+    _Data(new cData),
+    _updateSignaler(NULL)
 {}
 
 cEngine::~cEngine()
@@ -321,10 +322,11 @@ void cEngine::loadImages(QStringList filenames, int* incre)
 {
     float scaleFactor = computeScaleFactor(filenames);
 
-    for (int i=0;i<filenames.size();++i)
+    for (int i=0; i<filenames.size(); ++i)
     {
         if (incre) *incre = 100.0f*(float)i/filenames.size();
-        loadImage(filenames[i],scaleFactor);
+        loadImage(filenames[i], scaleFactor);
+        signalUpdate();
     }
 }
 
@@ -870,6 +872,16 @@ float cEngine::computeScaleFactor(QStringList& filenames)
 		oIds.resize(itDst - oIds.data());
 	}
 #endif
+
+void cEngine::setUpdateSignaler(UpdateSignaler *aSignaler)
+{
+	_updateSignaler = aSignaler;
+}
+
+void cEngine::signalUpdate()
+{
+	if (_updateSignaler != NULL) (*_updateSignaler)();
+}
 
 //********************************************************************************
 

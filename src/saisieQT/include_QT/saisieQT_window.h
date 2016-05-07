@@ -14,6 +14,15 @@ class SaisieQtWindow;
 
 const QColor colorBorder("#606060");
 
+class ProgressDialogUpdateSignaler: public UpdateSignaler
+{
+public:
+	ProgressDialogUpdateSignaler(QProgressDialog &);
+	void operator ()();
+
+	QProgressDialog &_progressDialog;
+};
+
 class SaisieQtWindow : public QMainWindow, public GLWidgetSet
 {
     Q_OBJECT
@@ -26,7 +35,8 @@ public:
     void setPostFix(QString str);
     QString getPostFix();
 
-    void runProgressDialog(QFuture<void> future);
+    void activateLoadImageProgressDialog(int aMin, int aMax);
+    void runProgressDialog(QFuture<void> aFuture, int aMin, int aMax);
 
     void applyParams();
 
@@ -124,8 +134,6 @@ public slots:
     void closeCurrentWidget();
 
     void openRecentFile();
-
-    void progression();
 
     cEngine* getEngine(){return _Engine;}
 
@@ -264,7 +272,6 @@ private:
 
     cEngine*                _Engine;
 
-    QFutureWatcher<void>    _FutureWatcher;
     QProgressDialog*        _ProgressDialog;
 
     enum { MaxRecentFiles = 3 };
