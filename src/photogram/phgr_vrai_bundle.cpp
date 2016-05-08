@@ -49,9 +49,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 // #define TypeSysLin cNameSpaceEqF::eSysL2BlocSym
 
 
-double Pt2fTestInter(const Pt2df&aP1,const Pt2df&aP2,const ElRotation3D&aR1,const ElRotation3D&aR2);
-double Pt2fTestInter(const Pt2df&aP1,const Pt2df&aP2,const Pt2df&aP3,const ElRotation3D&aR1,const ElRotation3D&aR2,const ElRotation3D&aR3);
-
 
 extern bool AllowUnsortedVarIn_SetMappingCur;
 
@@ -636,7 +633,17 @@ double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const 
 
 if (BugTK)
 {
-    std::cout << "cEqBundleBase::AddEquationGen " << aRes << "\n";
+    for (int aK=0 ; aK<int(aVP0.size()) ; aK++)
+    {
+         ElSeg3D aSeg(aVP0[aK],aVP1[aK]);
+          
+         std::cout << "     GGGG " << aVP0[aK] << " " << aVP1[aK]  << " TN" << aSeg.TgNormee() << " D=" << aSeg.DistDoite(mLastI) << "\n";
+
+
+         // InterSeg(aVP0[0],aVP1[0],aVP0[1],aVP1[1],Ok,0);
+
+    }
+    std::cout << "cEqBundleBase::AddEquationGen " << aRes << " " << mLastI << "\n";
 }
 
    return aRes;
@@ -720,6 +727,8 @@ class cBundle3Image
                const tMultiplePF  & aH23,
                double  aPds3
          );
+        double SomNbPair() const;
+
         ElRotation3D RotOfInd(int anInd) const;
         ~cBundle3Image();
         double  RobustEr2Glob(double aProp);
@@ -756,6 +765,7 @@ class cBundle3Image
 
 
         double             mFoc;
+        double             mScale;
         ElRotation3D       mR12Init;
         ElRotation3D       mR13Init;
         ElRotation3D       mR12Cur;
@@ -806,10 +816,11 @@ cBundle3Image::cBundle3Image
      const double         aSurPds3
 ) :
    mFoc      (aFoc),
-   mR12Init  (aR12),
-   mR13Init  (aR13),
-   mR12Cur   (aR12),
-   mR13Cur   (aR13),
+   mScale    (1.0/LongBase(aR12)),
+   mR12Init  (ScaleBase(aR12,mScale)),
+   mR13Init  (ScaleBase(aR13,mScale)),
+   mR12Cur   (mR12Init),
+   mR13Cur   (mR13Init),
    mH123     (aH123),
    mNb123    ((int)aH123[0]->size()),
    mP12      (aH12,0,1,2),
@@ -841,20 +852,6 @@ double  cBundle3Image::AddEq3Pt(int aK,double aPds,double * anAccumVerif,bool Bu
     double aRes =  mEqBB->AddEquationGen(mBufPts,mBufSel,AddEq?aPds:1.0,AddEq,BugKT);
 
 
-if (MPD_MM()   && anAccumVerif)
-{
-     *anAccumVerif += aPds* Pt2fTestInter((*(mH123[0]))[aK],(*(mH123[1]))[aK],(*(mH123[2]))[aK],ElRotation3D::Id,mR12Cur.inv(),mR13Cur.inv());
-/*
-   std::cout << "AAAAzZzzAa " << aRes 
-             << " " <<   Pt2fTestInter((*(mH123[0]))[aK],(*(mH123[1]))[aK],(*(mH123[2]))[aK],ElRotation3D::Id,mR12Cur.inv(),mR13Cur.inv())
-             << " " <<   Pt2fTestInter((*(mH123[0]))[aK],(*(mH123[1]))[aK],ElRotation3D::Id,mR12Cur.inv())
-             << " " <<   Pt2fTestInter((*(mH123[0]))[aK],(*(mH123[2]))[aK],ElRotation3D::Id,mR13Cur.inv())
-             << " " <<   Pt2fTestInter((*(mH123[1]))[aK],(*(mH123[2]))[aK],mR12Cur.inv(),mR13Cur.inv())
-             << "\n";
-*/
-}
-
-
     return aRes;
 }
 double  cBundle3Image::RobustEr3(double aProp)
@@ -878,12 +875,13 @@ double cBundle3Image::OneIter3(double anErrStd)
      double aSomVerif = 0;
      for (int aK=0 ; aK<mNb123 ; aK++)
      {
-          if (MPD_MM() && (aK==0))
+          if (0&& MPD_MM() && (aK==0))
           {
              for (int aInd=0 ; aInd<3 ; aInd++)
              {
                 AddEq3Pt(aK,0,(double *)0,true,aInd);
              }
+             AddEq3Pt(aK,0,(double *)0,true,-1);
           }
           double anErr = AddEq3Pt(aK,0);
           double aPds =  PdsErr(anErr,anErrStd);
@@ -899,7 +897,7 @@ double cBundle3Image::OneIter3(double anErrStd)
                mZI.push_back(aP.z);
           }
      }
-if (MPD_MM())
+if (0&&MPD_MM())
 {
 std::cout << "OneIter3, Residu= " << aSomEP / (aSomP*mPds3)  << " Verif=" << aSomVerif/(aSomP*mPds3) << "\n";
 getchar();
@@ -944,34 +942,20 @@ double cBundle3Image::OneIter2(const cPairB3Im & aPair,double anErrStd)
 {
      double aSomP = 0;
      double aSomEP = 0;
-     double aSomVer = 0;
      for (int aK=0 ; aK<aPair.mNb ; aK++)
      {
           double anErr = AddEq2Pt(aPair,aK,0);
           double aPds =  PdsErr(anErr,anErrStd);
-if (MPD_MM())
-{
-   const tMultiplePF  & aH = aPair.mHoms;
-   double aVerif = Pt2fTestInter((*(aH[0]))[aK],(*(aH[1]))[aK],RotOfInd(aPair.mIndA).inv(),RotOfInd(aPair.mIndB).inv());
-/*
-   std::cout << "JhhhhHHHH  " << anErr 
-             << "  Ver=" <<   aVerif
-             << "\n";
-*/
-   aSomVer += aPds * aVerif;
-}
-
           AddEq2Pt(aPair,aK,aPds);
           aSomP += aPds;
           aSomEP += aPds * anErr;
      }
-if(MPD_MM())
-{
-    std::cout << "OneIter2 ResBundle=" << aSomEP/aSomP << " Verif=" << aSomVer/aSomP  
-              << " PAIR=" << aPair.mIndA << ","<< aPair.mIndB << "\n";
-    // getchar();
+     return (aSomP==0) ? 0.0 : (aSomEP / aSomP);
 }
-     return aSomEP / aSomP;
+
+double cBundle3Image::SomNbPair() const
+{
+   return ElMax(1.0,double(mP12.mNb + mP13.mNb + mP23.mNb));
 }
 
 double  cBundle3Image::RobustEr2Glob(double aProp)
@@ -980,7 +964,7 @@ double  cBundle3Image::RobustEr2Glob(double aProp)
                   +  RobustEr2(mP13,aProp)  * mP13.mNb
                   +  RobustEr2(mP23,aProp)  * mP23.mNb ;
 
-    return aRes / (mP12.mNb + mP13.mNb + mP23.mNb);
+    return aRes / SomNbPair();
 }
 
 double cBundle3Image::OneIter2Glob(double anErStd)
@@ -989,7 +973,7 @@ double cBundle3Image::OneIter2Glob(double anErStd)
                   +  OneIter2(mP13,anErStd)  * mP13.mNb
                   +  OneIter2(mP23,anErStd)  * mP23.mNb ;
 
-    return aRes / (mP12.mNb + mP13.mNb + mP23.mNb);
+    return aRes / SomNbPair();
 }
 
 ElRotation3D PerturRot(const ElRotation3D & aR,double aMul)
@@ -1039,6 +1023,16 @@ void TestBundle3Image
     }
 }
 
+std::vector<ElRotation3D> VRotB3(const ElRotation3D & aR12,const ElRotation3D &aR13)
+{
+   std::vector<ElRotation3D> aRes;
+   aRes.push_back(ElRotation3D::Id);
+   aRes.push_back(aR12);
+   aRes.push_back(aR13);
+
+   return aRes;
+}
+
 
 void SolveBundle3Image
      (
@@ -1052,31 +1046,40 @@ void SolveBundle3Image
           const tMultiplePF  & aH13,
           const tMultiplePF  & aH23,
           double  aPds3,
-          int     aNbIter,
-          bool    FilterOutLayer
+          cParamCtrlSB3I & aParam
      )
 {
+
     double aDefError = 1e5;
 
     double aProp = cBundle3Image::PropErInit;
     cBundle3Image aB3(aFoc,aR12,aR13,aH123,aH12,aH13,aH23,aPds3);
 
-    double anEr3 = FilterOutLayer ? aB3.RobustEr3(aProp)     : aDefError;
-    double anEr2 = FilterOutLayer ? aB3.RobustEr2Glob(aProp) : aDefError;
+    double anEr3 = aParam.mFilterOutlayer ? aB3.RobustEr3(aProp)     : aDefError;
+    double anEr2 = aParam.mFilterOutlayer ? aB3.RobustEr2Glob(aProp) : aDefError;
 
-    for (int anIter = 0 ; anIter<aNbIter ; anIter ++)
+    for (int anIter = 0 ; anIter<aParam.mNbIter ; anIter ++)
     {
            anEr2 = aB3.OneIter2Glob(anEr2); 
            anEr3 = aB3.OneIter3(anEr3); 
+           aParam.mRes3 = anEr3;
+           aParam.mRes2 = anEr2;
+           if ((anEr2<aParam.mResiduStop) && (anEr3<aParam.mResiduStop))
+           {
+              anIter = aParam.mNbIter;
+           }
+
            std::vector<ElRotation3D>  aVR = aB3.BB().GenSolveResetUpdate(); 
            aB3.BB().InitNewR2R3(aVR[0],aVR[1]);
-           if ((anIter==0) || (anIter== aNbIter/2) || (anIter==(aNbIter-1)))
+/*
+           if ((anIter==0) || (anIter== aParam.mNbIter/2) || (anIter==(aParam.mNbIter-1)))
            {
-               // std::cout << "Er3 " <<  anEr3*aFoc  << " Er2 " << anEr2*aFoc   << "\n";
+               std::cout << "Er3 " <<  anEr3*aFoc  << " Er2 " << anEr2*aFoc   << " RRRR33 " << aParam.mRes3 << "\n";
            }
+*/
            aR12 = aVR[0];
            aR13 = aVR[1];
-           if (!FilterOutLayer)
+           if (!aParam.mFilterOutlayer)
            {
                anEr3 = aDefError;
                anEr2 = aDefError;
@@ -1108,7 +1111,6 @@ void SolveBundle3Image
     aR12.tr() =   aR12.tr() / aDMax;
     aR13.tr() =   aR13.tr() / aDMax;
     aPMed     =   aPMed / aDMax;
-
 }
 
 
@@ -1153,6 +1155,20 @@ cInterfBundle2Image * cInterfBundle2Image::Bundle(const  ElPackHomologue & aPack
 
 /*
 */
+
+/************************************************************/
+/*                                                          */
+/*              cParamCtrlSB3I                              */
+/*                                                          */
+/************************************************************/
+
+cParamCtrlSB3I::cParamCtrlSB3I(int aNbIter,bool FilterOutlayer,double aResStop) :
+   mNbIter          (aNbIter),
+   mResiduStop      (aResStop),
+   mFilterOutlayer  (FilterOutlayer)
+{
+}
+
 
 /************************************************************/
 /*                                                          */

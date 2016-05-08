@@ -734,6 +734,7 @@ void cAppliOptimTriplet::Execute()
        // aR31 = aR31.inv();
    }
 
+   cParamCtrlSB3I aParamSB3I(aNbIterBundle);
    SolveBundle3Image
    (
         mFoc,
@@ -746,7 +747,7 @@ void cAppliOptimTriplet::Execute()
         mP13->RedHoms(),
         mP23->RedHoms(),
         mPds3,
-        mBugTK ?  1000 : aNbIterBundle
+        aParamSB3I
    );
 
 

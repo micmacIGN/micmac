@@ -558,6 +558,15 @@ double TetaOfAxeRot(const ElMatrix<REAL> & aMat, Pt3dr & aP1)
     return atan2(aS,aC);
 }
 
+double LongBase(const ElRotation3D &aR )
+{
+   return euclid(aR.tr());
+}
+ElRotation3D ScaleBase(const ElRotation3D & aR,const double & aScale)
+{
+    return ElRotation3D(aR.tr()*aScale,aR.Mat(),true);
+}
+
 
 
 

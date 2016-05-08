@@ -3419,6 +3419,18 @@ void TestBundle3Image
           double aPds3
      );
 
+class cParamCtrlSB3I
+{
+    public :
+         cParamCtrlSB3I(int aNbIter,bool FilterOutlayer=true,double aResStop=-1);
+
+         const int    mNbIter;
+         const double mResiduStop;
+         const bool   mFilterOutlayer;
+         double       mRes3;
+         double       mRes2;
+};
+
 void SolveBundle3Image
      (
           double               aFoc,
@@ -3431,8 +3443,7 @@ void SolveBundle3Image
           const tMultiplePF  & aH13,
           const tMultiplePF  & aH23,
           double aPds3,
-          int aNbIter,
-          bool FilterOutlayer=true
+          cParamCtrlSB3I & aParam
      );
 
 
@@ -3459,6 +3470,12 @@ void Merge3Pack
           const std::vector<Pt2dr> & aV23,
           const std::vector<Pt2dr> & aV32
      );
+
+std::vector<ElRotation3D> VRotB3(const ElRotation3D & aR12,const ElRotation3D &aR13);
+double QualInterSeg(const std::vector<ElRotation3D> & aVR,const tMultiplePF & aVPMul);
+Pt3dr InterSeg(const std::vector<ElRotation3D> & aVR,const std::vector<Pt2dr> & aVP,bool & Ok,double * aResidu);
+
+
 
 
 
