@@ -1312,6 +1312,9 @@ ElMatrix<REAL> VecKern ( const ElMatrix<REAL> & aMat);
 ElMatrix<REAL> VecOfValP(const ElMatrix<REAL> & aMat,REAL aVP);
 Pt3dr AxeRot(const ElMatrix<REAL> & aMat);
 
+double LongBase(const ElRotation3D &);
+ElRotation3D ScaleBase(const ElRotation3D &,const double & aScale); // Passer 1/LongBase pour faire base unit
+
 
 double ProfFromCam(const ElRotation3D & anOr,const Pt3dr & aP);  // anOr M->C
 
