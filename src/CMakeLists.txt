@@ -187,7 +187,7 @@ target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_LIBRARIES})
 INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB} )
 
 
-if (${WITH_HEADER_PRECOMP} AND NOT MSVC)
+if (${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX)) # OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "${CMAKE_CXX_FLAGS}")
 endif()
 
