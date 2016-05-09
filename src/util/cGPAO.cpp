@@ -527,9 +527,19 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
 }
 
 
-bool launchMake( const string &i_makefile, const string &i_rule, unsigned int i_nbJobs, const string &i_options, bool i_stopCurrentProgramOnFail )
+bool launchMake(const string &i_makefile, const string &i_rule, unsigned int i_nbJobs, const string &i_options, bool i_stopCurrentProgramOnFail)
 {
+	string nbJobsStr( "-j" );
+	if (i_nbJobs != 0)
+	{
+		stringstream ss;
+		ss << i_nbJobs;
+		nbJobsStr.append( ss.str() );
+	}
+
 	#ifdef __TRACE_SYSTEM__
+		if (__TRACE_SYSTEM__ >= 2) nbJobsStr.clear(); // no multithreading
+
 		static int iMakefile = 0;
 		string makefileCopyName;
 		// look for a filename that is not already used
@@ -542,18 +552,10 @@ bool launchMake( const string &i_makefile, const string &i_rule, unsigned int i_
 		while ( ELISE_fp::exist_file( makefileCopyName ) );
 		cout << "###copying [" << i_makefile << "] to [" << makefileCopyName << "]" << endl;
 		ELISE_fp::copy_file( i_makefile, makefileCopyName, true );
-		i_nbJobs = __TRACE_SYSTEM__; // no multithreading in trace_system mode
 	#endif
 
-	string nbJobsStr( "-j" );
-	if ( i_nbJobs!=0 )
-	{	
-		stringstream ss;
-		ss << i_nbJobs;
-		nbJobsStr.append( ss.str() );
-	}
 	std::string aCom = string("\"")+(g_externalToolHandler.get( "make" ).callName())+"\" " + i_rule + " -f \"" + i_makefile + "\" " + nbJobsStr + " " + i_options;
-	return ( System(aCom,!i_stopCurrentProgramOnFail)==EXIT_SUCCESS );
+	return System(aCom, !i_stopCurrentProgramOnFail) == EXIT_SUCCESS;
 }
 
 #if ELISE_unix
