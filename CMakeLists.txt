@@ -1,9 +1,6 @@
 cmake_minimum_required( VERSION 2.8.1 )
 project(MICMAC)
 
-# fichier contenant la fonction gerant les en-tetes precompilees
-include(${CMAKE_CURRENT_SOURCE_DIR}/precompiled_headers.cmake)
-
 if(POLICY CMP0020)
 	cmake_policy(SET CMP0020 NEW) #windows specific: Automatically link Qt executables to qtmain
 endif()
@@ -70,6 +67,9 @@ OPTION(WITH_CPP11 "Compilateur C++11" OFF )
 OPTION(DEPLOY "compile for end-user" OFF)
 
 OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)")
+
+# fichier contenant la fonction gerant les en-tetes precompilees
+include(${CMAKE_CURRENT_SOURCE_DIR}/precompiled_headers.cmake)
 
 if ( TRACE_SYSTEM )
 	add_definitions(-D__TRACE_SYSTEM__=${TRACE_SYSTEM})
