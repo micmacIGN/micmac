@@ -1,0 +1,10 @@
+Depot de qqs codes externes, que je ne compte pas (forcement) integrer
+mais dont je compte m'inspirer :
+
+   - Siftpp (pour specif complete de sift )
+   - flann (a integrer peut etre)
+   
+   - Poisson (pour le calcul de maillage)
+
+
+
