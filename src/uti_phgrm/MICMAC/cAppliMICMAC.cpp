@@ -2210,9 +2210,7 @@ void cAppliMICMAC::ExeProcessParallelisable
        fic.close();
        mCout << " ---Lance les Process avec le Makefile\n";
 
-	   //std::string aCom = string("\"")+g_externalToolHandler.get( "make" ).callName() + "\" -f \""+nomMakefile+std::string("\" -j ")+ToString(std::abs(ByProcess().Val()));
-	   //int aCodeRetour = ::System(aCom.c_str());
-	   bool makeSucceeded = launchMake( nomMakefile, "", ByProcess().Val() );
+	bool makeSucceeded = launchMake( nomMakefile, "", ByProcess().Val() );
 
        if (StopOnEchecFils().Val())
         {    

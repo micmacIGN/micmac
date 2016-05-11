@@ -47,17 +47,13 @@ void UseRequirement(const std::string & aDir,const cTplValGesInit<cBatchRequirem
 
     const cBatchRequirement & aBR = aTplB.Val();
 
-    for 
-    (
-        std::list<cExeRequired>::const_iterator itE=aBR.ExeRequired().begin();
-        itE!=aBR.ExeRequired().end();
-        itE++
-    )
-    {
-		//std::string aCom = string("\"")+(g_externalToolHandler.get( "make" ).callName())+"\" " + itE->Exe() + " -f \"" + itE->Make() + "\"";
-		//System(aCom);
-		launchMake( itE->Make(), itE->Exe() );
-    }
+	for 
+	(
+		std::list<cExeRequired>::const_iterator itE=aBR.ExeRequired().begin();
+		itE!=aBR.ExeRequired().end();
+		itE++
+	)
+		launchMake(itE->Make(), itE->Exe());
 
     for 
     (
@@ -813,8 +809,6 @@ cEl_GPAO * DoCmdExePar(const cCmdExePar & aCEP,int aNbProcess)
       aNbProcess = ElMax(1,aNbProcess);
       aGPAO->GenerateMakeFile(aNameMkF);
 
-      //std::string aCom = string("\"")+g_externalToolHandler.get( "make" ).callName()+"\" all -f \""+  aNameMkF + std::string("\" -j") +ToString(aNbProcess) + " -k"; 
-      //::System(aCom.c_str());
 	  launchMake( aNameMkF, "all", aNbProcess, "-k" );
 
       delete aGPAO;
