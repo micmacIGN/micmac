@@ -33,9 +33,9 @@ void cLoader::setDevIOImageAlter(deviceIOImage* devIOImageAlter)
     _devIOImageAlter = devIOImageAlter;
 }
 
-GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
+GlCloud* cLoader::loadCloud(string i_ply_file)
 {
-    return GlCloud::loadPly( i_ply_file, incre );
+    return GlCloud::loadPly(i_ply_file);
 }
 
 #ifdef USE_MIPMAP_HANDLER
@@ -270,20 +270,18 @@ cEngine::~cEngine()
 	}
 #endif
 
-void cEngine::loadClouds(QStringList filenames, int* incre)
+void cEngine::loadClouds(QStringList filenames)
 {
     for (int i=0;i<filenames.size();++i)
-        _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString(), incre));
+        _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString()));
 
     _Data->computeCenterAndBBox();
 }
 
-void cEngine::loadCameras(QStringList filenames, int *incre)
+void cEngine::loadCameras(QStringList filenames)
 {
     for (int i=0;i<filenames.size();++i)
     {
-
-         if (incre) *incre = 100.0f*(float)i/filenames.size();
          cCamHandler* cam = _Loader->loadCamera(filenames[i]);
          if (cam) _Data->addCamera(cam);
     }
@@ -318,13 +316,12 @@ void cEngine::setLoader(cLoader* Loader)
 }
 
 
-void cEngine::loadImages(QStringList filenames, int* incre)
+void cEngine::loadImages(QStringList filenames)
 {
     float scaleFactor = computeScaleFactor(filenames);
 
     for (int i=0; i<filenames.size(); ++i)
     {
-        if (incre) *incre = 100.0f*(float)i/filenames.size();
         loadImage(filenames[i], scaleFactor);
         signalUpdate();
     }

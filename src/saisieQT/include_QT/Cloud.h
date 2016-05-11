@@ -24,7 +24,7 @@ public:
     GlCloud(){}
     GlCloud(vector<GlVertex> const &, int type=1);
 
-    static GlCloud* loadPly(string,  int *incre = NULL);
+    static GlCloud* loadPly(string);
 
     void    addVertex( const GlVertex & vertex);
     GlVertex& getVertex( uint );

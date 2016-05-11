@@ -2026,15 +2026,7 @@ void RequireBin
 	)
 {
 	// Version minimaliste pour l'instant
-
-	/*
-	std::string aCom =
-		//std::string(g_externalToolHandler.get( "make" ).callName()+" -j2 ")
-		+ std::string(" -f")  + LeMake
-		+ std::string(" ") + LautreBin;
-	VoidSystem(aCom.c_str());
-	*/
-	launchMake( LeMake, LautreBin, 2 );
+	launchMake(LeMake, LautreBin, 2);
 }
 
 

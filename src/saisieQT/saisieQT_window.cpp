@@ -222,7 +222,9 @@ void SaisieQtWindow::runProgressDialog(QFuture<void> aFuture, int aMin, int aMax
     on_actionShow_messages_toggled(false);
 
     //~ _FutureWatcher.setFuture(aFuture);
-    activateLoadImageProgressDialog(aMin, aMax);
+	#if ELISE_QT_VERSION == 5
+		activateLoadImageProgressDialog(aMin, aMax);
+	#endif
 
     aFuture.waitForFinished();
     on_actionShow_messages_toggled(bShowMsgs);
@@ -230,7 +232,7 @@ void SaisieQtWindow::runProgressDialog(QFuture<void> aFuture, int aMin, int aMax
 
 bool SaisieQtWindow::loadPly(const QStringList& filenames)
 {
-    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre), 0, filenames.size());
+    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames), 0, filenames.size());
     return true;
 }
 
@@ -239,9 +241,9 @@ string __humanReadable( size_t aSize );
 bool SaisieQtWindow::loadImages(const QStringList& filenames)
 {
 	#ifdef USE_MIPMAP_HANDLER
-		_Engine->loadImages(filenames, _incre);
+		_Engine->loadImages(filenames);
 	#else
-    	runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages,filenames,_incre), 0, filenames.size());
+    	runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages,filenames), 0, filenames.size());
 	#endif
 
     return true;
@@ -264,7 +266,7 @@ bool SaisieQtWindow::loadCameras(const QStringList& filenames)
          }
     }
 
-    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras,filenames,_incre), 0, filenames.size());
+    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras,filenames), 0, filenames.size());
     return true;
 }
 
