@@ -213,9 +213,7 @@ void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
 	int ay = pos().y() + (_ui->frame_GLWidgets->size().height() * szFactor - _ProgressDialog->size().height())/2;
 
 	_ProgressDialog->move(ax, ay);
-	#if ELISE_QT_VERSION == 5
-		_ProgressDialog->exec();
-	#endif
+	_ProgressDialog->exec();
 }
 
 void SaisieQtWindow::runProgressDialog(QFuture<void> aFuture, int aMin, int aMax)
@@ -224,7 +222,9 @@ void SaisieQtWindow::runProgressDialog(QFuture<void> aFuture, int aMin, int aMax
     on_actionShow_messages_toggled(false);
 
     //~ _FutureWatcher.setFuture(aFuture);
-    activateLoadImageProgressDialog(aMin, aMax);
+	#if ELISE_QT_VERSION == 5
+		activateLoadImageProgressDialog(aMin, aMax);
+	#endif
 
     aFuture.waitForFinished();
     on_actionShow_messages_toggled(bShowMsgs);
