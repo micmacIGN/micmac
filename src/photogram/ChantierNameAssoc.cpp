@@ -2803,7 +2803,7 @@ std::list<std::string> cInterfChantierNameManipulateur::StdGetListOfFile
             if (ErrorWhenEmpty)
             {
                std::cout << "For Key-Or-Pat=" << aKeyOrPat << " Dir= " << mDir << "\n";
-               ELISE_ASSERT(false,"Empty list for StdGetListOfFile");
+               ELISE_ASSERT(false,"Empty list for StdGetListOfFile (one of the input file name is wrong)");
             }
         }
         return aRes;
