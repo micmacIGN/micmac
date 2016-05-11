@@ -149,6 +149,7 @@ extern int ReprojImg_main(int , char **);
 extern int TestRegEx_main(int , char **);
 extern int InitOriLinear_main(int , char **);
 extern int ExtractMesure2D_main(int , char **);
+extern int ExtractAppui3D_main(int , char **);
 extern int TestElParseDir_main(int , char **);
 extern int Kugelhupf_main(int , char **);
 extern int FFTKugelhupf_main(int , char **);
@@ -232,6 +233,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("InitOriLinear",InitOriLinear_main," Initialize orientation for linear acquisition"));
        aRes.push_back(cMMCom("PHO_MI",PHO_MI_main," Filter homologue points from initial orientation to reduce number of observations"));
        aRes.push_back(cMMCom("ExtractMesure2D",ExtractMesure2D_main," Extract points from a 2D measures xml file"));
+       aRes.push_back(cMMCom("ExtractAppui3D",ExtractAppui3D_main," Extract points from a 3D appui points xml file"));
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
        aRes.push_back(cMMCom("FFTKugelhupf",FFTKugelhupf_main," Version of Kugelhupf using FFT, expecetd faster when it works (if ever ...)"));
        aRes.push_back(cMMCom("SimplePredict",SimplePredict_main," Project ground points on oriented cameras"));
