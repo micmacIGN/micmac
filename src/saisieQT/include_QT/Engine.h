@@ -79,7 +79,7 @@ public:
 
 	cCamHandler* loadCamera(QString aNameFile);
 
-    GlCloud*    loadCloud(string i_ply_file , int *incre = NULL);
+    GlCloud*    loadCloud(string i_ply_file);
 
 #ifdef USE_MIPMAP_HANDLER
 	bool        reloadImage( MipmapHandler::Mipmap &aImage );
@@ -179,13 +179,13 @@ public:
     void    setPostFix(){_Loader->setPostFix(_params->getPostFix());}
 
     //! Load point cloud .ply files
-    void    loadClouds(QStringList, int *incre = NULL);
+    void    loadClouds(QStringList);
 
     //! Load cameras .xml files
-    void    loadCameras(QStringList, int *incre = NULL);
+    void    loadCameras(QStringList);
 
     //! Load images  files
-    void    loadImages(QStringList, int *incre = NULL);
+    void    loadImages(QStringList);
 
     //! Load image (and mask) file
 	void    loadImage(QString imgName, float scaleFactor = 1.f);
