@@ -1,0 +1,64 @@
+<Global
+    Subst="@$#1"
+>
+   <ParamApero>
+
+       <SectionBDD_Observation>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>    CalibRef.xml </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ListeNamesIm.xml </PatternName>
+                   <ByFile>   true </ByFile>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosId> toto.tif </PosId>
+                   </PosValueInit>
+
+              </PoseCameraInc>
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	    <EtapeCompensation>
+	          <SectionObservations> </SectionObservations>
+
+                  <SectionExport>
+                        <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc> Key-Assoc-Im2OrInit </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+			    <NbVerif>  0 </NbVerif>
+                            <VerifDeterm> 100 100 2    </VerifDeterm>
+
+			    <TolWhenVerif> 1e-3 </TolWhenVerif>
+                        </ExportPose>
+                  </SectionExport>
+
+	    </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
