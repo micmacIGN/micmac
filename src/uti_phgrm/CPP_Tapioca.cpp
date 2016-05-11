@@ -121,12 +121,7 @@ std::string NKS()
 
 void DoMkT()
 {
-    if (ByP)
-    {
-        //std::string aSMkSr = string("\"")+g_externalToolHandler.get( "make" ).callName()+"\" all -f \"" + MkFT + string("\" -j")+ToString(ByP)/*+" -s"*/;
-        //System(aSMkSr,true);
-        launchMake( MkFT, "all", ByP, ""/*"-s"*/, /*Tapioca stops on make failure?*/false );
-    }
+	if (ByP) launchMake( MkFT, "all", ByP, ""/*"-s"*/, /*Tapioca stops on make failure?*/false );
 }
 
 
