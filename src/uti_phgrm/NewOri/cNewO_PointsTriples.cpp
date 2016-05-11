@@ -556,6 +556,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
    bool aQuick;
    bool aSkWhenExist;
    std::string aPrefHom="";
+   std::string aModeNO  = TheStdModeNewOri;
    ElInitArgMain
    (
         argc,argv,
@@ -564,6 +565,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
                    << EAM(aQuick,"Quick",true,"Quick version")
                    << EAM(aSkWhenExist,"SWE",true,"Skip when file alreay exist (Def=true, tuning purpose)", eSAM_IsBool)
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(aModeNO,"ModeNO",true,"Mode (Def=Std)")
    );
 
    cElemAppliSetFile anEASF(aFullName);

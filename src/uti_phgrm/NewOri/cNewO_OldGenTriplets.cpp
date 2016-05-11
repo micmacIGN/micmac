@@ -440,6 +440,7 @@ class cAppli_GenTriplet
        double                        mRamAllowed;
        cMemorySwap<cSwappablePairVPts>  mAllocSwap;
        int                           mKS0;
+       std::string                   mModeNO;
 };
 
 /*********************************************************/
@@ -1080,7 +1081,8 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     mPrefHom    (""),
     mRamAllowed (4e9),
     mAllocSwap  (mRamAllowed),
-    mKS0        (0)
+    mKS0        (0),
+    mModeNO     (TheStdModeNewOri)
 {
    ElTimer aChronoLoad;
 
@@ -1097,6 +1099,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                    << EAM(mDebug,"Debug",true,"Debug .... tuning purpose .... Def=false", eSAM_IsBool)
                    << EAM(mKS0,"KS0",true,"Tuning Def=0", eSAM_IsBool)
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mModeNO,"ModeNO",true,"Mode (Def=Std)")
 
    );
 

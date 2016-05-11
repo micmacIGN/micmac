@@ -763,7 +763,7 @@ cNewAppli_GenTriplet::cNewAppli_GenTriplet(int argc,char ** argv)
 }
 
 
-int GenTriplet_main(int argc,char ** argv)
+int GenTriplet#_#main(int argc,char ** argv)
 {
    cAppli_GenTriplet anAppli(argc,argv);
    anAppli.GenTriplet();

@@ -3476,6 +3476,16 @@ double QualInterSeg(const std::vector<ElRotation3D> & aVR,const tMultiplePF & aV
 Pt3dr InterSeg(const std::vector<ElRotation3D> & aVR,const std::vector<Pt2dr> & aVP,bool & Ok,double * aResidu);
 
 
+std::vector<ElRotation3D> OrientTomasiKanade
+                          (
+                             double &            aPrec,
+                             const tMultiplePF & aVPF3,
+                             int                 aNbMin,
+                             int                 aNbMax,
+                             double              aPrecCible,
+                             std::vector<ElRotation3D> * aVRotInit
+                          );
+
 
 
 

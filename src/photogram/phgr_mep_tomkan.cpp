@@ -112,6 +112,7 @@ class cTomKanSolver
         cSolBasculeRig TestSolSim(const std::vector<Pt3dr> &,int aSign, double & aPrec);
 
         double   SomResOFPA() const; 
+        const tMultiplePF &  VPF3() const;
     private :
         void FillCoeffW(double *,int aIP1,int aIP2) const;
         Pt3dr GetPtIJ(int aIP) const;
@@ -147,11 +148,116 @@ class cTomKanSolver
 
         bool                          mHasRef;
         std::vector<CamStenopeIdeale>* mVRef;
-
+        tMultiplePF                    mVPF3;
 };
 
+class cTKS_OptGlob
+{
+    public :
+          cTKS_OptGlob(const tMultiplePF & aVPF3);
+          void  OneTest(int aNb);
+          void  Show(double aTime);
+          double ScMin() const;
+          const std::vector<ElRotation3D> & BestR() const;
+    private :
+          tMultiplePF               mVPF3;
+          int                       mNbPts;
+          int                       mNbCam;
+          double                    mBestScore;
+          std::vector<ElRotation3D> mBestR;
+          double                    mScMin;
+          double                    mScMax;
+          std::vector<double>       mVSc;
+          int                       mCptTot;
+          int                       mCptNeg;
+};
+
+/*****************************************************/
+/*                                                   */
+/*              cTKS_OptGlob                         */
+/*                                                   */
+/*****************************************************/
 
 
+
+cTKS_OptGlob::cTKS_OptGlob(const tMultiplePF & aVPF3) :
+   mVPF3       (aVPF3),
+   mNbPts      (mVPF3[0]->size()),
+   mNbCam      (mVPF3.size()),
+   mBestScore  (1e20),
+   mBestR      (),
+   mScMin      (1e20),
+   mScMax      (0),
+   mCptTot     (0),
+   mCptNeg     (0)
+{
+}
+
+void cTKS_OptGlob::Show(double aTime)
+{
+   int aNb = mVSc.size();
+   std::cout << "SCORE"
+             << " ; Min " << mScMin 
+             << " ; 2th " << KthVal(mVSc,2) 
+             << " ; Med " << KthVal(mVSc,aNb/2) 
+             << " ; Max " << mScMax 
+             << "  ### T=" << aTime 
+             << "  Neg=" << (100.0*mCptNeg) / mCptTot
+             << "\n";
+}
+
+
+
+void  cTKS_OptGlob::OneTest(int aNbLoc)
+{
+   int aDist = 10000;
+
+   std::vector<std::vector<Pt2dr> >  aVVPt(mNbCam);
+   aNbLoc = ElMax(6,aNbLoc);
+   cRandNParmiQ aSel(aNbLoc,mNbPts);
+
+   for (int aKp=0 ; aKp<mNbPts ; aKp++)
+   {
+       if (aSel.GetNext())
+       {
+          for (int aKc=0 ; aKc<mNbCam ; aKc++)
+          {
+              aVVPt[aKc].push_back(ToPt2dr( (*(mVPF3[aKc]))[aKp]));
+          } 
+       }
+   }
+   aNbLoc  = aVVPt[0].size();
+
+   cTomKanSolver aTKS(aVVPt,aDist,0);
+
+   std::vector<ElRotation3D> aVR;
+   // double aScore0 = 
+   aTKS.OrientAllCamStenopeAllSigne(ElMin(30,(aNbLoc*(aNbLoc+1)/2)),aVR);
+   double aScoreQ =  QualInterSeg(aVR,mVPF3);
+
+   // std::cout << "SCORE = " << aScore0  << " SCROT=" <<  aScoreQ << "\n";
+   mScMax = ElMax(aScoreQ,mScMax);
+   if (aScoreQ < mScMin)
+   {
+      mScMin = aScoreQ;
+      mBestR = aVR;
+   }
+   mVSc.push_back(aScoreQ);
+
+   mCptTot++;
+   if (aTKS.VPNeg())
+      mCptNeg++;
+}
+
+double cTKS_OptGlob::ScMin() const
+{
+   return mScMin;
+}
+
+const std::vector<ElRotation3D> & cTKS_OptGlob::BestR() const
+{
+   return mBestR;
+}
 /*****************************************************/
 /*                                                   */
 /*              cBasicCamOrtho                       */
@@ -366,6 +472,10 @@ cTomKanSolver::cTomKanSolver
    mDiag0 =  ElMatrix<double>(3,3,0.0);
    mMatP0 =  ElMatrix<double>(mNbPts,3);
 
+   for (int aKC=0 ; aKC<mNbCam ; aKC++)
+   {
+       mVPF3.push_back(&(mVC.at(aKC).VFInit()));
+   }
 
    // ====================================================
    //  [1]  Fill UV
@@ -666,7 +776,7 @@ double   cTomKanSolver::OrientAllCamStenope(int aNbTest,int aSign,std::vector<El
 
        Pt3dr  aPMed;
        double aBOnH;
-       cParamCtrlSB3I aParamSB3I(20,false,1e-5);
+       cParamCtrlSB3I aParamSB3I(10,false,1e-5);
        SolveBundle3Image
        (
           mDist,
@@ -813,11 +923,61 @@ double   cTomKanSolver::SomResOFPA() const
 }
 
 
-
-void OneTestTomKan(int aNbC,int aNbPts,double aDist,double aNoise)
+const tMultiplePF &  cTomKanSolver::VPF3() const 
 {
-    static int aCptTot=0;
-    static int aCptNeg=0;
+   return mVPF3;
+}
+
+
+std::vector<ElRotation3D> OrientTomasiKanade
+                          (
+                             double &            aPrec,
+                             const tMultiplePF & aVPF3,
+                             int                 aNbMin,
+                             int                 aNbMax,
+                             double              aPrecCible,
+                             std::vector<ElRotation3D> * aVRotInit
+                          )
+{
+   ElTimer aChrono;
+   cTKS_OptGlob aTOp(aVPF3);
+
+   bool cont = true;
+   int aCpt=0;
+
+   while (cont)
+   {
+             aCpt++;
+             aTOp.OneTest(6 );
+             if (aCpt>=aNbMin)
+             {
+                if ((aTOp.ScMin() < aPrecCible) || (aCpt>=aNbMax))
+                {
+                   cont = false;
+                }
+             }
+   }
+
+   aPrec = aTOp.ScMin() ;
+   if (aVRotInit)
+   {
+      aTOp.Show(aChrono.uval());
+
+      cSolBasculeRig aSol =  cSolBasculeRig::SolM2ToM1(aTOp.BestR(),*aVRotInit);
+      double aDMatr,aDCentr;
+      aSol.QualitySol(aTOp.BestR(),*aVRotInit,aDMatr,aDCentr);
+      std::cout << " DRef(M,Tr)=" << aDMatr << " " << aDCentr << "\n";
+
+      getchar();
+   }
+
+   return aTOp.BestR();
+}
+
+
+
+void OneTestTomKan(int aNbC,int aNbPts,double aDist,double aNoise,double anOutLayer)
+{
     // std::cin >> aNbC >> aNbPts  >> aDist >> aNoise;
     std::cout << "Nb Cam " << aNbC << " ; Nb Pts " << aNbPts  << " Dist " << aDist << " Noise=" << aNoise << " \n";
 
@@ -827,9 +987,13 @@ void OneTestTomKan(int aNbC,int aNbPts,double aDist,double aNoise)
     std::vector<std::vector<Pt2dr> > aVVPt0;
     std::vector<Pt3dr>               aVP3dAvant;
 
+    std::vector<ElRotation3D>        aVRotInit;
+    // std::vector<std::vector<Pt2df> > aVV3(aNbC);
+    tMultiplePF aVPF3;
 
     for (int aKC=0 ;  aKC<aNbC ; aKC++)
     {
+        aVPF3.push_back(new std::vector<Pt2df>);
         aVCamO.push_back(cBasicCamOrtho::RandomCam());
         aVVPt0.push_back(std::vector<Pt2dr>());
 
@@ -852,9 +1016,9 @@ void OneTestTomKan(int aNbC,int aNbPts,double aDist,double aNoise)
             ElRotation3D aRot(aC,MatFromCol(aI,aJ,aK),true);
             aCam.SetOrientation(aRot.inv());
             aVCamI.push_back(aCam);
+            aVRotInit.push_back(aRot);
         }
     }
-
 
     for (int aKP=0 ;  aKP<aNbPts ; aKP++)
     {
@@ -866,40 +1030,21 @@ void OneTestTomKan(int aNbC,int aNbPts,double aDist,double aNoise)
            Pt2dr aProj = (aDist>0) ? aVCamI[aKC].Ter2Capteur(aP) : aVCamO[aKC].Proj(aP) ;
            Pt2dr aPNoise =  RanP2C()*aNoise;;
            aProj = aProj + aPNoise;
+           if (NRrandom3() < anOutLayer)
+           {
+               aProj = aProj + RanP2C();  //  * NRrandC() * NRrandC() * NRrandC ();
+           }
            if (aDist>0)
               aProj = aVCamI[aKC].F2toPtDirRayonL3(aProj);
            aVVPt0[aKC].push_back(aProj);
+           aVPF3[aKC]->push_back(ToPt2df(aProj));
        }
     }
   
-
-    cTomKanSolver aTKS(aVVPt0,aDist,(aDist>0) ? &(aVCamI) : 0);
-
-   
-    ElMatrix<double> aMat(3,3);
-    Pt3dr aTr;
-    double aPrecLin = aTKS.TestSolLin(aVP3dAvant,aMat,aTr);
-    std::cout << "Coher Lin  " << aPrecLin << " DET " << aMat.Det() << "\n";
-   
-    double aDSimP1,aDSimM1;
-    aTKS.TestSolSim(aVP3dAvant,1,aDSimP1);
-    aTKS.TestSolSim(aVP3dAvant,-1,aDSimM1);
-    std::cout << "Coher Sim  " << aDSimP1 << " " << aDSimM1 << "\n";
-
-   if (aDist>0)
-   {
-         std::vector<ElRotation3D> aVR;
-         double aScore = aTKS.OrientAllCamStenopeAllSigne(ElMin(30,(aNbPts*(aNbPts+1)/2)),aVR);
-         std::cout << "SCORE = " << aScore << "\n";
-   }
-   aCptTot ++;
-   if (aTKS.VPNeg()) 
-   {
-      aCptNeg ++;
-      std::cout << "Neg " << aCptNeg << " out of " << aCptTot << "\n";
-   }
-   getchar();
+    double aPrec;
+    std::vector<ElRotation3D>  aVR =OrientTomasiKanade (aPrec,aVPF3,3,50,1e-5,&aVRotInit);
 }
+
 
 int Test_TomCan(int argc,char ** argv)
 {
@@ -907,6 +1052,7 @@ int Test_TomCan(int argc,char ** argv)
     int aNbPts=4;
     double aDist=10;
     double aNoise= 1e-3;
+    double anOutLayer= 0.0;
     ElInitArgMain
     (
         argc,argv,
@@ -914,13 +1060,14 @@ int Test_TomCan(int argc,char ** argv)
                     << EAMC(aNbPts,"Number Pts")
                     << EAMC(aDist,"Dist (+or- 1/FOV in radian)")
                     << EAMC(aNoise,"Noise added to image measurement")
+                    << EAMC(anOutLayer,"Proba of out layer")
         ,
         LArgMain()  
     );
 
     while (1)
     {
-       OneTestTomKan(aNbC,aNbPts,aDist,aNoise);
+       OneTestTomKan(aNbC,aNbPts,aDist,aNoise,anOutLayer);
     }
     return EXIT_SUCCESS;
 }

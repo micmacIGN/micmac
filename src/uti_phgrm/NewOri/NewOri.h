@@ -51,6 +51,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define NbRecHom 40
 // Nombre de point minimum pour etudier un couple
 #define NbMinPts2Im 20
+#define NbMinPts2Im_AllSel 10
 
 
 //  Sur les triplets
@@ -146,7 +147,8 @@ class cNewO_OrInit2Im
                 tMergeLPackH *      aMergeTieP,
                 ElRotation3D *      aTesSol,
                 bool                Show,
-                bool                aHPP
+                bool                aHPP,
+                bool                aSelAllIm
           );
 
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
@@ -235,6 +237,7 @@ class cNewO_OrInit2Im
           Pt2dr         mP0W;
           double        mScaleW;
           cXml_Ori2Im   mXml;
+          bool          mSelAllIm;
 };
 
 
@@ -386,6 +389,9 @@ cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin);
 cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin,const cResIPR & aResExist,const std::vector<Pt2df> & aVPtsExist);
 
 
+
+extern const std::string TheStdModeNewOri;
+eTypeModeNO ToTypeNO(const std::string &);
 
 
 

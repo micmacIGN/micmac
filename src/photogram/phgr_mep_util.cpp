@@ -348,7 +348,7 @@ double QualInterSeg(const std::vector<ElRotation3D> & aVR,const tMultiplePF & aV
    int aNbC = aVR.size();
    ELISE_ASSERT(aNbC == int(aVPMul.size()),"QualInterSeg");
 
-   double aSomRes = 0;
+   std::vector<double> aVRes;
    for (int aKP=0 ; aKP<aNbP ; aKP++)
    {
        std::vector<Pt2dr> aVP;
@@ -359,9 +359,22 @@ double QualInterSeg(const std::vector<ElRotation3D> & aVR,const tMultiplePF & aV
        double aResidu;
        bool Ok;
        InterSeg(aVR,aVP,Ok,&aResidu);
-       aSomRes += aResidu;
+       aVRes.push_back(aResidu);
    }
-   return aSomRes / aNbP;
+
+   double aResStd = KthVal(aVRes,aNbP*0.75) * 0.666;
+
+
+   double aSomRes = 0;
+   double aSomPds = 0;
+   for (int aKP=0 ; aKP<aNbP ; aKP++)
+   {
+        double aRes = aVRes[aKP];
+        double aPds = 1.0 / (1 + ElSquare(aRes/aResStd));
+        aSomRes += aRes * aPds;
+        aSomPds += aPds;
+   }
+   return aSomRes / aSomPds;
 }
 
 

@@ -39,6 +39,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+const std::string TheStdModeNewOri = "Std";
+
+eTypeModeNO ToTypeNO(const std::string & aStr)
+{
+   return Str2eTypeModeNO(std::string("eModeNO_")+aStr);
+}
+
+
 class cAppli_Martini
 {
       public :
@@ -53,6 +61,8 @@ class cAppli_Martini
           bool        mExe;
           bool        mQuick;
           std::string mPrefHom;
+          std::string mNameModeNO;
+          eTypeModeNO mModeNO;
           ElTimer     aChrono;
 };
 
@@ -65,6 +75,7 @@ void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
     aFullCom = aFullCom + aPost;
 
     aFullCom = aFullCom + " PrefHom=" + mPrefHom;
+    aFullCom = aFullCom + " ModeNO=" + mNameModeNO;
 
 
     if (mExe)
@@ -120,7 +131,8 @@ void cAppli_Martini::DoAll()
 cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
     mExe     (true),
     mQuick   (Quick),
-    mPrefHom ("")
+    mPrefHom (""),
+    mNameModeNO  (TheStdModeNewOri)
 {
    ElInitArgMain
    (
@@ -129,10 +141,12 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(mExe,"Exe",true,"Execute commands, def=true (if false, only print)")
                    << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes 
+                   << EAM(mNameModeNO,"ModeNO",true,"Mode Def=Std")  
                    // << EAM(mQuick,"Quick",true,"Quick version")
    );
 
 
+   mModeNO = ToTypeNO(mNameModeNO);
   // Force la creation des auto cal
     cElemAppliSetFile anEASF(mPat);
     StdCorrecNameOrient(mNameOriCalib,anEASF.mDir);

@@ -420,6 +420,7 @@ class cAppli_NewSolGolInit
         bool                    mActiveRemoy;
         ElTimer                 mChrono;
         int                     mNbIterLast;
+        std::string             mModeNO;
 };
 
 

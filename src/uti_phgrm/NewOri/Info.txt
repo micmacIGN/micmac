@@ -1,7 +1,23 @@
+NO_AllHomFloat
 
-"/home/ubuntu/Desktop/MMM/culture3d/bin/mm3d" TestLib  NO_AllImOptTrip "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
 
-CPP_AllOptimTriplet_main
+mm3d Martini IMGP70.*JPG OriCalib=Ori-AllRel/ Exe=0
+
+1) cNewO_CpleIm.cpp => TestAllNewOriImage_main
+/home/ubuntu/Desktop/MMM/culture3d/bin/mm3d" TestLib  NO_AllOri2Im "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
+
+2) CPP_GenAllImP3 => cNewO_PointsTriples.cpp
+ "/home/ubuntu/Desktop/MMM/culture3d/bin/mm3d" TestLib  NO_AllImTriplet "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
+
+COM= "/home/ubuntu/Desktop/MMM/culture3d/bin/mm3d" TestLib  NO_GenTripl "IMGP70.*JPG" OriCalib=AllRel Quick=1 Show=false PrefHom=
+  GenTriplet_main
+
+COM= "/home/ubuntu/Desktop/MMM/culture3d/bin/mm3d" TestLib  NO_AllImOptTrip "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
+  CPP_AllOptimTriplet_main
+
+COM= "/home/ubuntu/Desktop/MMM/culture3d/bin/mm3d" TestLib  NO_SolInit3 "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
+  CPP_NewSolGolInit_main
+
 
 
 NO_OneImOptTrip => CPP_OptimTriplet_main

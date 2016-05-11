@@ -810,6 +810,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    bool Quick = false;
    std::string aPrefHom="";
    bool Debug  = false;
+   std::string aModeNO = TheStdModeNewOri;
 
    ElInitArgMain
    (
@@ -820,6 +821,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
                    << EAM(Quick,"Quick",true,"Quick version", eSAM_IsBool)
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
                    << EAM(Debug,"Debug",true,"Debugging mode (tuning purpose)", eSAM_IsBool)
+                   << EAM(aModeNO,"ModeNO",true,"Mode (Def=Std)")
     );
 
    cElemAppliSetFile anEASF(aFullPat);
@@ -880,7 +882,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
 /*
     //  VERSION AVEC TRIPLETS - A CONSERVER AU CAS OU
     // REMPLACEE PAR UNE VERSION AVEC 1/Image par couple
-int CPP_AllOptimTriplet_main(int argc,char ** argv)
+int CPP _AllOptimTriplet_main(int argc,char ** argv)
 {
    ElTimer aChrono;
    std::string aFullPat,aNameCalib;
