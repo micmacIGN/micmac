@@ -198,7 +198,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
 	      if (aLName2Add.empty())
 	      {
                  std::cout << "For Pattern=["<< *itPat << "]\n";
-	         ELISE_ASSERT(false,"Aucun match pour ce pattern de nom de pose");
+	         ELISE_ASSERT(false,"No match for this pattern of image names");
 	      }
 
              std::copy(aLName2Add.begin(),aLName2Add.end(),std::back_inserter(aLName));
