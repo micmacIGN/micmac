@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC
+	"-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style type="text/css">
+	BODY {font-family: arial, helvetica, sans-serif; }
+	SPAN.bold { color: navy; }
+	SPAN.underline { color: purple; }
+	A:link {color: blue; text-decoration: none; }
+	A:visited {color: blue; text-decoration: none; }
+	A:hover {text-decoration: underline; }
+</style>
+<title>Man Page Lookup - sift
+</title>
+</head>
+<body>
+<pre>
+SIFT(1)                   BSD General Commands Manual                  SIFT(1)
+
+<span class="bold">NAME</span>
+     <span class="bold">sift</span> -- Scale Invariant Feature Transform
+
+<span class="bold">SYNOPSIS</span>
+     <span class="bold">sift</span> [<span class="bold">-vhb</span>] [<span class="bold">-o</span> <span class="underline">filename</span>] [<span class="bold">-k</span> <span class="underline">filename</span>] [<span class="bold">-p</span> <span class="underline">prefix</span>] [<span class="bold">-S</span> <span class="underline">number</span>]
+          [<span class="bold">-O</span> <span class="underline">number</span>] [<span class="bold">-t</span> <span class="underline">number</span>] [<span class="bold">-e</span> <span class="underline">number</span>] [<span class="bold">--save-gss</span>] [<span class="bold">--no-descriptors</span>]
+          [<span class="bold">--no-orientations</span>] [<span class="bold">--stable-order</span>] file.pgm ...
+
+<span class="bold">OPTIONS</span>
+     <span class="bold">--verbose</span>, <span class="bold">-v</span>
+                 Be verbose.
+
+     <span class="bold">--help</span>, <span class="bold">-h</span>  Print a summary of options.
+
+     <span class="bold">--output</span> <span class="underline">outfile</span>, <span class="bold">-o</span> <span class="underline">outfile</span>
+                 Wirte the keypoints to <span class="underline">outfile.</span>
+
+     <span class="bold">--prefix</span> <span class="underline">prefix</span>, <span class="bold">-p</span> <span class="underline">prefix</span>
+                 Derive the output filename prefixing <span class="underline">prefix</span> to the input
+                 filename.
+
+     <span class="bold">--binary</span>, <span class="bold">-b</span>
+                 Write the descriptors to a binary file. The name of this file
+                 is derived from the output filename by removing the `.key'
+                 suffix and adding the `.desc' suffix.
+
+     <span class="bold">--keypoints</span> <span class="underline">filename,</span> <span class="bold">-k</span> <span class="underline">filename</span>
+                 Instead of running the SIFT detector, read the keypoints from
+                 <span class="underline">filename</span> (but still compute the descriptors).
+
+     <span class="bold">--save-gss</span>  Save the layers of the Gaussian scale space. This produces a
+                 is derived from the output filename by removing the `.pgm'
+                 suffix, and adding the index of the level and the `.pgm' suf-
+                 fix.
+
+     <span class="bold">--octaves</span> <span class="underline">number</span>, <span class="bold">-O</span> <span class="underline">number</span>
+                 Set the number of octave to <span class="underline">number.</span> If not specified, this
+                 value is automatically computed to span all possible octaves.
+
+     <span class="bold">--levels</span> <span class="underline">number</span>, <span class="bold">-S</span> <span class="underline">number</span>
+                 Set the number of levels per octave to <span class="underline">number.</span> The default
+                 value is 3.
+
+     <span class="bold">--first-octave</span> <span class="underline">number</span>
+                 Set the index of the first octave of the pyramid to <span class="underline">number.</span>
+                 The default value is -1.
+
+     <span class="bold">--threshold</span> <span class="underline">number,</span> <span class="bold">-t</span> <span class="underline">number</span>
+                 Set the SIFT detector threshold to <span class="underline">number.</span>
+
+     <span class="bold">--edge-threshold</span> <span class="underline">number</span>, <span class="bold">-e</span> <span class="underline">number</span>
+                 Se the SIFT detector edge rejection threshold to <span class="underline">number.</span>
+
+     <span class="bold">--no-descriptors</span>
+                 Do not compute nor wirte to the output file the descriptors.
+
+     <span class="bold">--no-orientations</span>
+                 Set implicitly the orientation of all keypoints to zero.
+
+     <span class="bold">--stable-order</span>
+                 Preserve the order of keypoints read from a file.
+
+<span class="bold">OVERVIEW</span>
+     <span class="bold">sift</span> computes D. Lowe's Scale Invariant Feature Transfroms (SIFT). The
+     program can be used to process either a single image or several images in
+     a batch.  It is possible to customize the most important parameters of
+     the algorithm and to generate descriptors for keypoints computed exter-
+     nally.
+
+     In the most simple form <span class="bold">sift</span> takes an image in PGM format and computes
+     its SIFT keypoints and the relative descriptors, producing a `.key' text
+     file. This file has one line per keypoint, with the x and y coordiantes
+     (pixels), the scale (pixels), the orientation (radians) and 128 numbers
+     (in the range 0-255) representing the descriptor. This file is almost
+     equivalent to the output of D. Lowe's original implementation, except
+     that x and y are swapped and the orientation is negated.
+
+     The SIFT algorithm is based on a Gaussian pyrmaid of the input image. To
+     change the number of octaves, the index of the first octave and the num-
+     ber of levels per octave of the pyramid use the options <span class="bold">--octaves</span>,
+     <span class="bold">--first-octave</span> and <span class="bold">--levels</span> respectively. Note that setting
+     <span class="bold">--first-octave</span> to -1, -2, ... will cause the base of the pyramid to be
+     two, three, ... times larger than the input image.
+
+     In order to select reliable keypoints, SIFT rejects extrema of the Gaus-
+     sian scale space which are smaller than a threshold specified by
+     <span class="bold">--threshold</span>.  It also rejects keypoints that have an on-edge score below
+     another threshold specified by <span class="bold">--edge-threshold.</span>
+
+     By default, the name of the ouptut file is obtained by removing the
+     `.pgm' suffix from the input name (if any) and then appending the `.key'
+     suffix. The option <span class="bold">--output</span> <span class="underline">name</span> changes this behaviro and just uses the
+     name <span class="underline">name</span> instead.  <span class="underline">name</span> <span class="underline">works</span> <span class="underline">when</span> <span class="underline">processing</span> <span class="underline">single</span> <span class="underline">images.</span> <span class="underline">When</span>
+     <span class="underline">processing</span> <span class="underline">batches,</span> use the <span class="bold">--prefix</span> <span class="underline">prefix</span> options, which constructs the
+     name of the output file by prepending the prefix <span class="underline">prefix</span> to the base name
+     of the input file, and then substituting `.pgm' with `.key' as before.
+     Note that, since <span class="underline">prefix</span> is added verbatim, if <span class="underline">prefix</span> is a directory, one
+     should specify explicitly the trailing file separator `/'.
+
+     Descriptors can take a lot of disk space. This problem can be alleviated
+     by means of the <span class="bold">--binary</span> option, which writes (only) the descriptors to a
+     separate binary file.  The name of this file is obtained by removing the
+     suffix `.key' from the name of the keypoint output file (if any), and
+     then appending the suffix `.desc' to the result. Descriptors are written
+     in the same order of the keypoints, with each component taking exactly
+     one byte.
+
+     Sometimes one wants to compute the descriptors of keypoints generated
+     externally. This can be done by the <span class="bold">--keypoints</span> <span class="underline">file.key</span> option, which
+     reads the keypoints from the file <span class="underline">file.key</span>.  This file has the same for-
+     mat of the keypoint output files produced by <span class="bold">sift</span>, with one keypoint per
+     line. Note that, even when this option is used, keypoints are always
+     written to the output file along with the descriptors. Normally keypoints
+     are re-oder by scale before computing the descriptor, as this speeds up
+     the calculation. Reordering can be prevented by means of the switch
+     <span class="bold">--stalbe-oder</span>.  If this option is used, it is reccomended to provide a
+     list of keypoints already ordered by scale.
+
+<span class="bold">EXAMPLES</span>
+     <span class="bold">&#8226;</span>   Read the image `image.pgm' and write keypoints and descriptors to
+         `image.key':
+               &gt; sift image.pgm
+
+     <span class="bold">&#8226;</span>   Same as above, but use null thresholds
+               &gt; sift -t 0 -e 0 image.pgm
+
+     <span class="bold">&#8226;</span>   Same as above, but do <span class="underline">not</span> double the resolution of the image as part
+         of the computation of the Gaussian scale space:
+               &gt; sift --first-octave 0 image.pgm
+
+     <span class="bold">&#8226;</span>   Read the image `image.pgm' and write the keypoints to `image.key' and
+         the descriptor in binary format to `image.desc':
+               &gt; sift -b image.pgm
+
+     <span class="bold">&#8226;</span>   Read the images `image1.pgm' andq `image2.pgm' and write the key-
+         points and descriptors to `/tmp/image1.key' and `/tmp/image2.key':
+               &gt; sift -p /tmp/ image1.pgm image2.pgm
+
+     <span class="bold">&#8226;</span>   Read the image `image.pgm' and the keypoints `image.key' and write
+         keypoints and descriptors to `/tmp/image.key':
+               &gt; sift -p /tmp/ -k image.key image.pgm
+
+     <span class="bold">&#8226;</span>   Same as above, but writes the descriptors in binary format to
+         `/tmp/image.desc':
+               &gt; sift -b -p /tmp/ -k image.key image.pgm
+
+<span class="bold">SEE</span> <span class="bold">ALSO</span>
+     convert(1),
+
+BSD                             August 22, 2006                            BSD
+</pre>
+</body>
+</html>
