@@ -154,6 +154,19 @@ template<class TypePt> void cTplSelecPt<TypePt>::CalcPond()
     for (int aKSom = 0 ; aKSom<mNbPres ; aKSom++)
     {
        mVPresel[aKSom].mPdsOccup *= mVPresel[aKSom].mPds0;
+
+if (MPD_MM())
+{
+   static bool First = true;
+   if (First)
+   {
+         First = false;
+         std::cout << "===============================JUTSHKIL====================???? ::CalcPond::CalcPond::CalcPond \n";
+   }
+   mVPresel[aKSom].mPdsOccup = 1.0;
+}
+
+
     }
 }
 
@@ -264,6 +277,7 @@ template<class TypePt> cResIPR  TplIndPackReduit
 
     aSel.SelectN(aNbFin,aDistArret);
     aSel.DistMinSelMoy();
+std::cout << "UUuuu " << aSel.Res().mDistMoy  << " " << (aSel.VSel().size()) << " " << aNbFin   << "\n";
     aSel.Res().mDistMoy *= sqrt(aSel.VSel().size()/double(aNbFin));
 
     return aSel.Res();

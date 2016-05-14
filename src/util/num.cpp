@@ -1081,6 +1081,12 @@ bool CmpPtsX(const Pt2df & aP1,const Pt2df & aP2) {return aP1.x < aP2.x;}
 
 double MedianPond(std::vector<Pt2df> &  aV,int * aKMed)
 {
+/*
+if (MPD_MM())
+{
+std::cout << "MedianPondMedianPond " << aV.size() << " " << aKMed << "\n";
+}
+*/
      std::sort(aV.begin(),aV.end(),CmpPtsX);
      double aSomP = 0;
      for (int aK=0 ; aK<int(aV.size()) ; aK++)

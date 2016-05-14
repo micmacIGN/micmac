@@ -41,6 +41,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 #include "SolInitNewOri.h"
 
+double DefMedianPond(double aDefVal,int aDefKeMed,std::vector<Pt2df> &  aV,int * aKMed)
+{
+   if (aV.size() == 0)
+   {
+      if (aKMed) 
+         *aKMed = aDefKeMed;
+      return aDefVal;
+   }
+   return MedianPond(aV,aKMed);
+}
+
+
 double DistBase(Pt3dr  aB1,Pt3dr  aB2)
 {
       if (scal(aB1,aB2) < 0) aB2 = - aB2;
@@ -586,7 +598,7 @@ void  cAppli_NewSolGolInit::EstimCoheTriplet()
          aVCost3A.push_back(Pt2df(mV3[aK]->CostArc(),mV3[aK]->Nb3() ));
     }
 
-    mMedTripletCostA = MedianPond(aVCost3A);
+    mMedTripletCostA = DefMedianPond(0,-1,aVCost3A,0);
     mSeuilCostArc = CstSeuilMedianArc + MulSeuilMedianArc * mMedTripletCostA;
 
 
@@ -686,9 +698,9 @@ void  cAppli_NewSolGolInit::EstimCoherenceMed()
                 }
           }
     }
-    mCoherMedAB =  MedianPond(aVPAB);
+    mCoherMedAB =  DefMedianPond(0,-1,aVPAB,0);
     int aKMed;
-    mCoherMed12 =  MedianPond(aVP12,&aKMed);
+    mCoherMed12 =  DefMedianPond(0,-1,aVP12,&aKMed);
 
 
     if (0)

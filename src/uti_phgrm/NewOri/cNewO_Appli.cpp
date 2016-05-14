@@ -110,16 +110,29 @@ void cAppli_Martini::Banniere(bool Quick)
 
 void cAppli_Martini::DoAll()
 {
-     //  Calcul de toute les orientations relatives entre paires d'images
+     // 1-  Calcul de toute les orientations relatives entre paires d'images
+     // NO_AllOri2Im =>  cNewO_CpleIm.cpp => TestAllNewOriImage_main
+     // mm3d TestLib  NO_AllOri2Im "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
+ 
      StdCom("NO_AllOri2Im");
      // Homologues flottants
      // StdCom("NO_AllHomFloat"); => Supprime, pris en compte dans NO_AllOri2Im
-     // Generation des triplet de points hom flottants
+
+     // 2-  Generation des triplet de points hom flottants
+     //  NO_AllImTriplet  => cNewO_PointsTriples.cpp  => CPP_GenAllImP3
+     // NO_OneImTriplet   => cNewO_PointsTriples.cpp  => CPP_GenOneImP3
      StdCom("NO_AllImTriplet");
-     // Generation  des triplet
+
+     // 3-  Selection   des triplet
+     //  NO_GenTripl =>  cNewO_OldGenTriplets.cpp   => GenTriplet_main
      StdCom("NO_GenTripl"," Show=false");
-     // Optimisation des triplets
+
+     // 4-Optimisation des triplets
+     // NO_AllImOptTrip  =>  cNewO_OptimTriplet.cpp  => CPP_AllOptimTriplet_main
+     // TestLib NO_OneImOptTrip  =>  cNewO_OptimTriplet.cpp  => CPP_OptimTriplet_main => cAppliOptimTriplet
      StdCom("NO_AllImOptTrip");
+
+
      // Solution initiale (et probablement definitive)
      StdCom("NO_SolInit3");
 }
