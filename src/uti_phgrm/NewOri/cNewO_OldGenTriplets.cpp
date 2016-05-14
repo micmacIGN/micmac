@@ -440,7 +440,9 @@ class cAppli_GenTriplet
        double                        mRamAllowed;
        cMemorySwap<cSwappablePairVPts>  mAllocSwap;
        int                           mKS0;
-       std::string                   mModeNO;
+       std::string                   mNameModeNO;
+       eTypeModeNO                   mModeNO;
+       bool                          mSelAll;
 };
 
 /*********************************************************/
@@ -708,7 +710,7 @@ tSomGT * cAppli_GenTriplet::GetNextSom()
    }
    ELISE_ASSERT(aRes != 0,"cAppli_GenTriplet::GetNextSom");
 
-   if (aGainMax < (TGainSeuil * mMulQuant)) return 0;
+   if ((!mSelAll) && (aGainMax < (TGainSeuil * mMulQuant))) return 0;
 
    mVSomEnCourse.erase(mVSomEnCourse.begin()+aIndexRes);
    mVSomSelected.push_back(aRes);
@@ -1082,7 +1084,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     mRamAllowed (4e9),
     mAllocSwap  (mRamAllowed),
     mKS0        (0),
-    mModeNO     (TheStdModeNewOri)
+    mNameModeNO     (TheStdModeNewOri)
 {
    ElTimer aChronoLoad;
 
@@ -1099,9 +1101,13 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                    << EAM(mDebug,"Debug",true,"Debug .... tuning purpose .... Def=false", eSAM_IsBool)
                    << EAM(mKS0,"KS0",true,"Tuning Def=0", eSAM_IsBool)
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
-                   << EAM(mModeNO,"ModeNO",true,"Mode (Def=Std)")
+                   << EAM(mNameModeNO,"ModeNO",true,"Mode (Def=Std)")
 
    );
+   
+   mModeNO = ToTypeNO(mNameModeNO);
+   mSelAll = (mModeNO == eModeNO_TTK);
+
 
    if (MMVisualMode) return;
 
