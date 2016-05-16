@@ -3431,7 +3431,7 @@ class cParamCtrlSB3I
          double       mRes2;
 };
 
-void SolveBundle3Image
+bool SolveBundle3Image
      (
           double               aFoc,
           ElRotation3D & aR12,

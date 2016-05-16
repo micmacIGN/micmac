@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+static double DefScoreTKS = 1e20;
+
 //================================================================================
 
 
@@ -210,6 +212,14 @@ void cTKS_OptGlob::Show(double aTime)
 
 void  cTKS_OptGlob::OneTest(int aNbLoc)
 {
+/*
+   static int aCpt=0 ;
+   aCpt++;
+   std::cout << "cTKS_OptGlob::OneTest " << aCpt << "\n";
+*/
+
+
+
    int aDist = 10000;
 
    std::vector<std::vector<Pt2dr> >  aVVPt(mNbCam);
@@ -232,8 +242,8 @@ void  cTKS_OptGlob::OneTest(int aNbLoc)
 
    std::vector<ElRotation3D> aVR;
    // double aScore0 = 
-   aTKS.OrientAllCamStenopeAllSigne(ElMin(30,(aNbLoc*(aNbLoc+1)/2)),aVR);
-   double aScoreQ =  QualInterSeg(aVR,mVPF3);
+   double aS0 = aTKS.OrientAllCamStenopeAllSigne(ElMin(30,(aNbLoc*(aNbLoc+1)/2)),aVR);
+   double aScoreQ =  (aS0!= DefScoreTKS) ? QualInterSeg(aVR,mVPF3) :  DefScoreTKS;
 
    // std::cout << "SCORE = " << aScore0  << " SCROT=" <<  aScoreQ << "\n";
    mScMax = ElMax(aScoreQ,mScMax);
@@ -838,7 +848,7 @@ double   cTomKanSolver::OrientAllCamStenope(int aNbTest,int aSign,std::vector<El
 
 double   cTomKanSolver::OrientAllCamStenopeAllSigne(int aNbTest,std::vector<ElRotation3D> & aBestSol)
 {
-     double aDefScore = 1e20;
+     double aDefScore = DefScoreTKS;
      double aBestScore = aDefScore;
      for (int aSign=-1 ; aSign<=1 ; aSign+=2)
      {

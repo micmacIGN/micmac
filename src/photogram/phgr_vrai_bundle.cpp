@@ -895,13 +895,9 @@ double cBundle3Image::OneIter3(double anErrStd)
                mXI.push_back(aP.x);
                mYI.push_back(aP.y);
                mZI.push_back(aP.z);
+
           }
      }
-if (0&&MPD_MM())
-{
-std::cout << "OneIter3, Residu= " << aSomEP / (aSomP*mPds3)  << " Verif=" << aSomVerif/(aSomP*mPds3) << "\n";
-getchar();
-}
      return aSomEP / aSomP;
 }
 
@@ -1034,7 +1030,7 @@ std::vector<ElRotation3D> VRotB3(const ElRotation3D & aR12,const ElRotation3D &a
 }
 
 
-void SolveBundle3Image
+bool SolveBundle3Image
      (
           double               aFoc,
           ElRotation3D & aR12,
@@ -1049,6 +1045,13 @@ void SolveBundle3Image
           cParamCtrlSB3I & aParam
      )
 {
+    aParam.mRes2 = 1e30;
+    aParam.mRes3 = 1e30;
+    if (LongBase(aR12)==0)
+    {
+       return false;
+    }
+
 
     double aDefError = 1e5;
 
@@ -1071,12 +1074,6 @@ void SolveBundle3Image
 
            std::vector<ElRotation3D>  aVR = aB3.BB().GenSolveResetUpdate(); 
            aB3.BB().InitNewR2R3(aVR[0],aVR[1]);
-/*
-           if ((anIter==0) || (anIter== aParam.mNbIter/2) || (anIter==(aParam.mNbIter-1)))
-           {
-               std::cout << "Er3 " <<  anEr3*aFoc  << " Er2 " << anEr2*aFoc   << " RRRR33 " << aParam.mRes3 << "\n";
-           }
-*/
            aR12 = aVR[0];
            aR13 = aVR[1];
            if (!aParam.mFilterOutlayer)
@@ -1085,7 +1082,6 @@ void SolveBundle3Image
                anEr2 = aDefError;
            }
     }
-
 
     aPMed.x =  MedianeSup(aB3.mXI);
     aPMed.y =  MedianeSup(aB3.mYI);
@@ -1111,6 +1107,7 @@ void SolveBundle3Image
     aR12.tr() =   aR12.tr() / aDMax;
     aR13.tr() =   aR13.tr() / aDMax;
     aPMed     =   aPMed / aDMax;
+    return true;
 }
 
 
