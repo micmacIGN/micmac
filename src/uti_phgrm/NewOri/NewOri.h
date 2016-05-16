@@ -380,7 +380,7 @@ class  cResIPR
 {
     public :
          std::vector<int> mVSel;
-         double           mDistMoy;
+         double           mMoyDistNN;
 };
 
 cResIPR cResIPRIdent(int aNb);
