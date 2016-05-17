@@ -97,6 +97,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
 		// some shortcuts names do not appear
 	#endif
+
+	__check_gl_error("SaisieQtWindow::SaisieQtWindow");
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -187,7 +189,7 @@ void ProgressDialogUpdateSignaler::operator ()()
 	_progressDialog.setValue(_progressDialog.value() + 1);
 }
 
-void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
+	void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
 {
 	if (_ProgressDialog == NULL)
 	{
