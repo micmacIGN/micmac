@@ -1683,8 +1683,8 @@ bool cImageGL::isPtInside(const QPointF &pt)
     return (pt.x()>=0.f)&&(pt.y()>=0.f)&&(pt.x()<width())&&(pt.y()<height());
 }
 
-#ifdef USE_MIPMAP_HANDLER
-	string glErrorToString( GLenum aEnum )
+#ifdef __DEBUG
+	string glErrorToString(GLenum aEnum)
 	{
 		switch (aEnum)
 		{ 
@@ -1692,15 +1692,17 @@ bool cImageGL::isPtInside(const QPointF &pt)
 		case GL_INVALID_ENUM: return "GL_INVALID_ENUM";
 		case GL_INVALID_VALUE: return "GL_INVALID_VALUE";
 		case GL_INVALID_OPERATION: return "GL_INVALID_OPERATION";
-		case GL_INVALID_FRAMEBUFFER_OPERATION: return "GL_INVALID_FRAMEBUFFER_OPERATION";
+		//~ case GL_INVALID_FRAMEBUFFER_OPERATION: return "GL_INVALID_FRAMEBUFFER_OPERATION";
 		case GL_OUT_OF_MEMORY: return "GL_OUT_OF_MEMORY";
 		case GL_STACK_UNDERFLOW: return "GL_STACK_UNDERFLOW";
 		case GL_STACK_OVERFLOW: return "GL_STACK_OVERFLOW";
 		}
 		return "unknown";
 	}
+#endif
 
-	void printPixelStoreParameters( const string &aPrefix = string(), ostream &aStream = cout )
+#ifdef USE_MIPMAP_HANDLER
+	void printPixelStoreParameters(const string &aPrefix = string(), ostream &aStream = cout)
 	{
 		GLboolean glBool;
 		glGetBooleanv(GL_UNPACK_LSB_FIRST, &glBool);
