@@ -33,7 +33,7 @@ OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 OPTION(BUILD_ONLY_ELISE_MM3D "Projet Elise et MM3D uniquement" OFF )
 
 # construire l'interface graphique
-OPTION(WITH_ETALONPOLY  "Build etalonnage polygone" OFF)
+OPTION(WITH_ETALONPOLY  "Build etalonnage polygone" ON)
 
 # construire les binaires Poisson
 OPTION(BUILD_POISSON "Build Poisson binaries" OFF )
