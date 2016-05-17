@@ -97,6 +97,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
 		// some shortcuts names do not appear
 	#endif
+
+	__check_gl_error("SaisieQtWindow::SaisieQtWindow");
 }
 
 SaisieQtWindow::~SaisieQtWindow()
