@@ -49,6 +49,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 int Zlimit_main(int argc,char ** argv)
 {
     std::string aNameOriMNT;
+    std::string aMasqSup="?";
     double aMaxZ,aMinZ;
     
     cout<<"Zlimit: create masq for depth image."<<endl;
@@ -60,7 +61,7 @@ int Zlimit_main(int argc,char ** argv)
                 << EAMC(aMinZ, "Min Z (m)")
                 << EAMC(aMaxZ, "Max Z (m)"),
     //optional arguments
-    LArgMain()  //<< EAM(aAutoMaskImageName,"AutoMask",true,"AutoMask filename", eSAM_IsExistFile)
+    LArgMain()  << EAM(aMasqSup,"MasqSup",true,"Supplementary masq")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -94,7 +95,25 @@ int Zlimit_main(int argc,char ** argv)
 
     ELISE_COPY(tmpImage1.all_pts(),((1/(aFileMnt.in()*aResolutionAlti+aOrigineAlti))<aMaxZ),tmpImage1.out());
     ELISE_COPY(tmpImage2.all_pts(),((1/(aFileMnt.in()*aResolutionAlti+aOrigineAlti))>aMinZ),tmpImage2.out());
-    ELISE_COPY(masqImage.all_pts(),(tmpImage1.in()*tmpImage2.in())*255,masqImage.out());
+ 
+    if (aMasqSup!="?")
+    {
+      Tiff_Im aFileMasqSup(aMasqSup.c_str());
+      ELISE_ASSERT(aFileMasqSup.sz()==aOriMnt.NombrePixels(),"Masq Sup and MNT must have the same size!");
+      TIm2D<U_INT1,INT4> aMasqSupImT(aFileMasqSup.sz());//image for masq sup
+      Im2D<U_INT1,INT4>  aMasqSupIm(aMasqSupImT._the_im);
+
+      ELISE_COPY(aMasqSupIm.all_pts(),(aFileMasqSup.in()>0),aMasqSupIm.out());
+      Tiff_Im::CreateFromIm(aMasqSupIm,"tmp.tif");
+
+      ELISE_COPY(masqImage.all_pts(),(tmpImage1.in()*tmpImage2.in()*aMasqSupIm.in()),masqImage.out());
+    }else{
+      ELISE_COPY(masqImage.all_pts(),(tmpImage1.in()*tmpImage2.in()),masqImage.out());
+    }
+
+    ELISE_COPY(masqImage.all_pts(),(masqImage.in()*255),masqImage.out());
+
+
     Tiff_Im::CreateFromIm(masqImage,aMasqTifName);
 
     //for debug
