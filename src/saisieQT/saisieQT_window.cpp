@@ -189,7 +189,7 @@ void ProgressDialogUpdateSignaler::operator ()()
 	_progressDialog.setValue(_progressDialog.value() + 1);
 }
 
-void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
+	void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
 {
 	if (_ProgressDialog == NULL)
 	{

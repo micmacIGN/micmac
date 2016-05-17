@@ -311,6 +311,10 @@ int CheckDependencies_main(int argc,char ** argv)
         cout << "--- __TRACE_SYSTEM__ = " << __TRACE_SYSTEM__ << endl << endl;
     #endif
 
+    #ifdef __DEBUG
+        cout << "--- __DEBUG" << endl << endl;
+    #endif
+
     #ifdef USE_OPEN_MP
         cout << "--- OpenMP enabled\n" << endl;
     #endif
