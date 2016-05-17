@@ -272,21 +272,24 @@ cEngine::~cEngine()
 
 void cEngine::loadClouds(QStringList filenames)
 {
-    for (int i=0;i<filenames.size();++i)
-        _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString()));
-
-    _Data->computeCenterAndBBox();
+	for (int i=0;i<filenames.size();++i)
+	{
+		_Data->addCloud(_Loader->loadCloud(filenames[i].toStdString()));
+		signalUpdate();
+	}
+	_Data->computeCenterAndBBox();
 }
 
 void cEngine::loadCameras(QStringList filenames)
 {
-    for (int i=0;i<filenames.size();++i)
-    {
-         cCamHandler* cam = _Loader->loadCamera(filenames[i]);
-         if (cam) _Data->addCamera(cam);
-    }
+	for (int i=0;i<filenames.size();++i)
+	{
+		cCamHandler* cam = _Loader->loadCamera(filenames[i]);
+		if (cam) _Data->addCamera(cam);
+		signalUpdate();
+	}
 
-    _Data->computeCenterAndBBox();
+	_Data->computeCenterAndBBox();
 }
 
 //#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048

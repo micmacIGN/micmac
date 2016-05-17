@@ -848,8 +848,6 @@ std::ostream & operator <<( std::ostream &aStream, const QSize &aSize );
 
 	inline void __check_gl_error(const std::string &aWhere)
 	{
-		cout << "__check_gl_error" << endl;
-
 		const GLenum err = glGetError();
 		ELISE_DEBUG_ERROR(err != GL_NO_ERROR, aWhere, "glGetError() = " << glErrorToString(err));
 	}
