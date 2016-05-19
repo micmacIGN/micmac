@@ -52,8 +52,10 @@ int SaisiePts_main2(int argc,char ** argv)
    return 0;
 }
 
-int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
+int saisieAppuisInitQT_main(int argc, char *argv[])
 {
+	QApplication &app = getQApplication();
+
     app.setApplicationName("SaisieAppuisInitQT");
     app.setOrganizationName("Culture3D");
 

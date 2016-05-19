@@ -1,5 +1,26 @@
 ﻿#include "saisieQT_main.h"
 
+const cArgLogCom cArgLogCom::NoLog(-1);
+
+vector<cMMCom> getSaisieQtCommands()
+{
+	vector<cMMCom> result;
+
+	result.push_back(cMMCom("SaisieAppuisInitQT", saisieAppuisInitQT_main, " Interactive tool for initial capture of GCP"));
+	result.push_back(cMMCom("SaisieAppuisPredicQT", saisieAppuisPredicQT_main, " Interactive tool for assisted capture of GCP"));
+	result.push_back(cMMCom("SaisieBascQT", saisieBascQT_main, " Interactive tool to capture information on the scene"));
+	result.push_back(cMMCom("SaisieCylQT", SaisieCylQT_main, " Interactive tool to capture information on the scene for cylinders"));
+	result.push_back(cMMCom("SaisieMasqQT", saisieMasqQT_main, " Interactive tool to capture masq"));
+	result.push_back(cMMCom("SaisieBoxQT", saisieBoxQT_main, " Interactive tool to capture 2D box"));
+
+	return result;
+}
+
+int qtpopup(const string &aText)
+{
+	return QMessageBox(QMessageBox::NoIcon, QString("popup"), QString(aText.c_str()), QMessageBox::Ok).exec();
+}
+
 int helpMessage(const QApplication &app, QString text)
 {
     QString title = QObject::tr("Help for ") + app.applicationName();
@@ -56,6 +77,13 @@ public:
 };
 #endif
 
+QApplication & getQApplication()
+{
+	QApplication *result = (QApplication *)QCoreApplication::instance();
+	if (result == NULL) ELISE_ERROR_EXIT("no QApplication available");
+	return *result;
+}
+
 #if ( ( defined WIN32 ) && ( ELISE_QT_VERSION >= 4 ) )
 int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
 {
@@ -73,8 +101,6 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
-    //app.setStyle("fusion");
-
     // QT Modifie le comportement de sscanf !!!!! problematique quand on parse les fichiers XML
     setlocale(LC_NUMERIC,"C");
 
@@ -83,57 +109,37 @@ int main(int argc, char *argv[])
 
     setStyleSheet(app);
 
-    //qDebug() << "Number of screens:" << QGuiApplication::screens().size();
+	vector<cMMCom> commands = getSaisieQtCommands();
 
-    //QScreen *scrre =  QGuiApplication::primaryScreen();
+	tCommande commandFunction = NULL;
+	string commandStr, lowCommandStr;
+	if (argc > 1)
+	{
+		commandStr = argv[1];
+		lowCommandStr = StrToLower(commandStr);
+	}
 
-    //qDebug() << scrre->size();
-QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
-        QString("SaisieMasqQT\n") +
-        QString("SaisieAppuisInitQT\n") +
-        QString("SaisieAppuisPredicQT\n")+
-        QString("SaisieBascQT\n")+
-        QString("SaisieCylQT\n")+
-        QString("SaisieBoxQT\n\n");
+	for (size_t iCommand = 0; iCommand < commands.size(); iCommand++)
+		if (lowCommandStr == commands[iCommand].mLowName) commandFunction = commands[iCommand].mCommand;
 
-    if (argc > 1)
-    {
-        for (int i=0; i < argc; ++i)
-        {
-            QString str(argv[i]);
+	if (commandFunction == NULL)
+	{
+		ostringstream ss;
 
-#ifdef _DEBUG
-            cout << "\ncommand: " << str.toStdString().c_str()<<endl;
-#endif
+		if ( !commandStr.empty())
+			ss << "[" << commandStr << "]" << QObject::tr(" is not a valid command!!!").toStdString() << "\n" << endl;
 
-            if (!str.contains("SaisieQT"))
-            {
-                if (str.contains("SaisieMasqQT"))
-                    saisieMasqQT_main(app, argc, argv);
-                else if (str.contains("SaisieAppuisInitQT"))
-                    saisieAppuisInitQT_main(app, argc, argv);
-                else if (str.contains("SaisieAppuisPredicQT"))
-                    saisieAppuisPredicQT_main(app, argc, argv);
-                else if (str.contains("SaisieBoxQT"))
-                    saisieBoxQT_main(app, argc, argv);
-                else if (str.contains("SaisieBascQT"))
-                    saisieBascQT_main(app, argc, argv);
-                else
-                {
-                    QString text = str + QObject::tr(" is not a valid command!!!") + "\n\n" + cmds;
-                    helpMessage(app, text);
+		ss << "valid commands are: \n" << endl;
+		for (size_t iCommand = 0; iCommand < commands.size(); iCommand++)
+			ss << commands[iCommand].mName << endl;
+		ss << endl;
 
-                    return EXIT_FAILURE;
-                }
+		helpMessage(app, QString(ss.str().c_str()));
 
-                return EXIT_SUCCESS;
-            }
-        }
-    }
-    else
-        helpMessage(app, cmds);
+		return EXIT_FAILURE;
+	}
 
-    return EXIT_SUCCESS;
+	return (*commandFunction)(argc, argv);
 }
 
 bool checkNamePt(QString text)

@@ -194,30 +194,16 @@ void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileM
 
     aGPAO.GenerateMakeFile(FileMk);
 
-	/*
-    //std::string aCom = g_externalToolHandler.get( "make" ).callName()+" all -f " + FileMk + " -j" + ToString(aNbProc) + " ";
-    if (MoinsK) aCom = aCom + " -k ";
-    if (Exe)
-    {
-        VoidSystem(aCom.c_str());
-        ELISE_fp::RmFile(FileMk);
-    }
-    else
-    {
-        std::cout << aCom << "\n";
-    }
-	*/
-
-    std::string aSilent = " -s ";
-    std::string aContinueOnError  =  (MoinsK?"-k":"");
-	if ( Exe )
+	std::string aSilent = " -s ", aMultiProcess = string(ELISE_windows ? "-P" : "-j") + ToString(aNbProc);
+	std::string aContinueOnError  =  (MoinsK?"-k":"");
+	if (Exe)
 	{
-	     // launchMake( FileMk, "all", aNbProc, (MoinsK?"-k":"") );
-	     launchMake( FileMk, "all", aNbProc, aSilent + aContinueOnError);
-             ELISE_fp::RmFile(FileMk);
+		// launchMake( FileMk, "all", aNbProc, (MoinsK?"-k":"") );
+		launchMake( FileMk, "all", aNbProc, aSilent + aContinueOnError);
+		ELISE_fp::RmFile(FileMk);
 	}
 	else
-		cout << g_externalToolHandler.get( "make" ).callName()+" all -f " + FileMk + " -j" + ToString(aNbProc) + " " << endl;
+		cout << g_externalToolHandler.get( "make" ).callName() << " all -f " << FileMk << ' ' << aMultiProcess << endl;
 }
 
 
@@ -255,8 +241,6 @@ void MkFMapCmd
 
     aGPAO.GenerateMakeFile(FileMk);
 
-    //std::string aCom = g_externalToolHandler.get( "make" ).callName()+" all -f " + FileMk + " -j" + ToString(aNbProc);
-    //VoidSystem(aCom.c_str());
 	launchMake( FileMk, "all", aNbProc );
 }
 
@@ -286,22 +270,6 @@ void cEl_GPAO::ExeParal(std::string aFileMk,int aNbProc,bool Supr)
     // aFileMk = MMDir() + aFileMk;
     GenerateMakeFile(aFileMk);
 
-	/*
-    //std::string aCom = string("\"")+g_externalToolHandler.get( "make" ).callName()+"\" all -f \"" + aFileMk + "\" -j" + ToString(aNbProc);
-    if (false)
-    {
-       std::cout << "CCCC = " << aCom << "\n";
-       getchar();
-    }
-    else
-    {
-       ::System(aCom.c_str());
-       if (Supr)
-       {
-           ELISE_fp::RmFile(aFileMk);
-       }
-    }
-	*/
 	launchMake( aFileMk, "all", aNbProc );
 	if (Supr) ELISE_fp::RmFile(aFileMk);
 }
@@ -527,9 +495,14 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
 }
 
 
-bool launchMake( const string &i_makefile, const string &i_rule, unsigned int i_nbJobs, const string &i_options, bool i_stopCurrentProgramOnFail )
+bool launchMake(const string &i_makefile, const string &i_rule, unsigned int i_nbJobs, const string &i_options, bool i_stopCurrentProgramOnFail)
 {
+	string nbJobsStr(ELISE_windows ? "-P" : "-j");
+	if (i_nbJobs != 0) nbJobsStr.append(ToString((int)i_nbJobs));
+
 	#ifdef __TRACE_SYSTEM__
+		if (__TRACE_SYSTEM__ >= 2) nbJobsStr.clear(); // no multithreading
+
 		static int iMakefile = 0;
 		string makefileCopyName;
 		// look for a filename that is not already used
@@ -542,18 +515,10 @@ bool launchMake( const string &i_makefile, const string &i_rule, unsigned int i_
 		while ( ELISE_fp::exist_file( makefileCopyName ) );
 		cout << "###copying [" << i_makefile << "] to [" << makefileCopyName << "]" << endl;
 		ELISE_fp::copy_file( i_makefile, makefileCopyName, true );
-		i_nbJobs = __TRACE_SYSTEM__; // no multithreading in trace_system mode
 	#endif
 
-	string nbJobsStr( "-j" );
-	if ( i_nbJobs!=0 )
-	{	
-		stringstream ss;
-		ss << i_nbJobs;
-		nbJobsStr.append( ss.str() );
-	}
 	std::string aCom = string("\"")+(g_externalToolHandler.get( "make" ).callName())+"\" " + i_rule + " -f \"" + i_makefile + "\" " + nbJobsStr + " " + i_options;
-	return ( System(aCom,!i_stopCurrentProgramOnFail)==EXIT_SUCCESS );
+	return System(aCom, !i_stopCurrentProgramOnFail) == EXIT_SUCCESS;
 }
 
 #if ELISE_unix

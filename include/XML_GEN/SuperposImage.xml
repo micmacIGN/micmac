@@ -34,7 +34,6 @@
          <eMBF_First >     </eMBF_First>
     </enum>
 
-
     <enum Name="eQualCloud">
          <eQC_Out >            </eQC_Out>  
          <eQC_ZeroCohBrd >     </eQC_ZeroCohBrd>
@@ -65,6 +64,11 @@
         <eTIGB_NbVals>      </eTIGB_NbVals>
     </enum>
 
+    <enum Name="eTypeModeNO">
+        <eModeNO_Std>     </eModeNO_Std>
+        <eModeNO_TTK>     </eModeNO_TTK> <!-- Tomasi Kanade -->
+        <eModeNO_NbVals>  </eModeNO_NbVals> <!-- Tomasi Kanade -->
+    </enum>
 
     <LutConvertion  Nb="1"  Class="true" ToReference="true">
          <IntervLutConvertion Nb="+"  Container="std::vector">

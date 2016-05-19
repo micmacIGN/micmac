@@ -178,7 +178,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
       tMergeLPackH *      aMergeTieP,
       ElRotation3D *      aTestedSol,
       bool                aShow,
-      bool                aHPP
+      bool                aHPP,
+      bool                aSelAllIm
 )  :
    mQuick       (aQuick),
    mI1          (aI1),
@@ -205,7 +206,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    mCostBestSol (1e9),
    mBestSolIsInit (false),
    mSegAmbig      (Pt3dr(0,0,0),Pt3dr(1,1,1)),
-   mW             (0)
+   mW             (0),
+   mSelAllIm      (aSelAllIm)
 {
     // Sauvegarde des point hom flottants 
     {
@@ -241,7 +243,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
    if (mShow)
       std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
-   if (mXml.NbPts()<NbMinPts2Im)
+   if (mXml.NbPts()<(mSelAllIm ? NbMinPts2Im_AllSel : NbMinPts2Im) )
    {
         return;
    }
@@ -532,6 +534,10 @@ class cNO_AppliOneCple
          bool                 mHPP;
          tMergeLPackH         mMergeStr;
          ElRotation3D *       mTestSol;
+         std::string          mNameModeNO;
+         eTypeModeNO          mModeNO;
+         bool                 mIsTTK;  // Test Tomasi Kanade
+         bool                 mSelAllCple;  // Test Tomasi Kanade
 };
 
 std::string cNO_AppliOneCple::NameXmlOri2Im(bool Bin) const
@@ -549,21 +555,27 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
    mShow    (false),
    mHPP     (true),
    mMergeStr (2,false),
-   mTestSol (0)
+   mTestSol (0),
+   mNameModeNO  (TheStdModeNewOri)
 {
 
    ElInitArgMain
    (
         argc,argv,
-        LArgMain() <<  EAMC(mNameIm1,"Name First Image", eSAM_IsExistFile)
-                   <<  EAMC(mNameIm2,"Name Second Image", eSAM_IsExistFile),
+        LArgMain() << EAMC(mNameIm1,"Name First Image", eSAM_IsExistFile)
+                   << EAMC(mNameIm2,"Name Second Image", eSAM_IsExistFile),
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration", eSAM_IsExistDirOri)
                    << EAM(mNameOriTest,"OriTest",true,"Orientation for test to a reference", eSAM_IsExistDirOri)
                    << EAM(mShow,"Show",true,"Show")
                    << EAM(mQuick,"Quick",true,"Quick option adapted for UAV or easy acquisition, def = true")
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
                    << EAM(mHPP,"HPP",true,"Homograhic Planar Patch")
+                   << EAM(mNameModeNO,"ModeNO",true,"Mode New Ori")
    );
+
+   mModeNO = ToTypeNO(mNameModeNO);
+   mIsTTK  = (mModeNO==eModeNO_TTK);
+   mSelAllCple = mIsTTK;
 
    if (MMVisualMode) return;
 
@@ -595,7 +607,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
 cNewO_OrInit2Im * cNO_AppliOneCple::CpleIm()
 {
-   return new cNewO_OrInit2Im(mQuick,mIm1,mIm2,&mMergeStr,mTestSol,mShow,mHPP);
+   return new cNewO_OrInit2Im(mQuick,mIm1,mIm2,&mMergeStr,mTestSol,mShow,mHPP,mSelAllCple);
 }
 
 void cNO_AppliOneCple::Show()
@@ -665,15 +677,17 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    bool aQuick=false;
    std::string aPrefHom;
    std::map<std::string,cListOfName > aMLCpleOk;
+   std::string  aNameModeNO = TheStdModeNewOri;
 
 
    ElInitArgMain
    (
         argc,argv,
-        LArgMain() <<  EAMC(aPat,"Pattern"),
+        LArgMain() << EAMC(aPat,"Pattern"),
         LArgMain() << EAM(aNameOriCalib,"OriCalib",true,"Orientation for calibration ")
                    << EAM(aQuick,"Quick",true,"Quick option, adapted to simple acquisition (def=false)")
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous")
+                   << EAM(aNameModeNO,"ModeNO",true,"Mode New Ori")
    );
 
    cElemAppliSetFile anEASF(aPat);
@@ -719,6 +733,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                            aCom = aCom + " OriCalib=" + aNameOriCalib;
                         aCom = aCom + " Quick=" + ToString(aQuick);
                         aCom = aCom + " PrefHom=" + aPrefHom;
+                        aCom = aCom + " ModeNO=" + aNameModeNO;
 
                         aLCom.push_back(aCom);
                     }

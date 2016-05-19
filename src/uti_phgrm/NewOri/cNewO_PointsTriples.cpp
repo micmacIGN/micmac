@@ -243,6 +243,8 @@ class cAppli_GenPTripleOneImage
            bool                              mQuick;
            std::string                       mPrefHom;
            bool                              mSkWhenExist;
+           std::string                       mNameModeNO;
+           eTypeModeNO                       mModeNO;
 };
 
 class cCmpPtrIOnName
@@ -257,7 +259,8 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
     mSeuilNbArc  (1),  // Change car : existe des cas a forte assymetrie + 2 genere des plantage lorsque + de triplets que de couples
     mQuick       (false),
     mPrefHom     (""),
-    mSkWhenExist (true)
+    mSkWhenExist (true),
+    mNameModeNO      (TheStdModeNewOri)
 {
    ElInitArgMain
    (
@@ -267,8 +270,11 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
                    << EAM(mQuick,"Quick",true,"Quick version", eSAM_IsBool)
                    << EAM(mSkWhenExist,"SWE",true,"Skip when file alreay exist (Def=true, tuning purpose)", eSAM_IsBool)
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mNameModeNO,"ModeNO",true,"Mode (Def=Std)")
 
    );
+
+   mModeNO = ToTypeNO(mNameModeNO);
 
    if (MMVisualMode) return;
 
@@ -556,6 +562,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
    bool aQuick;
    bool aSkWhenExist;
    std::string aPrefHom="";
+   std::string aNameModeNO  = TheStdModeNewOri;
    ElInitArgMain
    (
         argc,argv,
@@ -564,6 +571,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
                    << EAM(aQuick,"Quick",true,"Quick version")
                    << EAM(aSkWhenExist,"SWE",true,"Skip when file alreay exist (Def=true, tuning purpose)", eSAM_IsBool)
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(aNameModeNO,"ModeNO",true,"Mode (Def=Std)")
    );
 
    cElemAppliSetFile anEASF(aFullName);
@@ -587,6 +595,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
             aCom += " Quick=" +ToString(aQuick);
             aCom += " SWE=" +ToString(aSkWhenExist);
             aCom += " PrefHom=" +aPrefHom;
+            aCom += " ModeNO=" +aNameModeNO;
 
             //           std::cout << "COM= " << aCom << "\n";
             anEPbP.AddCom(aCom);

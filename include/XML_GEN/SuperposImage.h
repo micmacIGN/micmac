@@ -98,6 +98,25 @@ std::string  Mangling( eTypeImporGenBundle *);
 
 void  BinaryUnDumpFromFile(eTypeImporGenBundle &,ELISE_fp &);
 
+typedef enum
+{
+  eModeNO_Std,
+  eModeNO_TTK,
+  eModeNO_NbVals
+} eTypeModeNO;
+void xml_init(eTypeModeNO & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeModeNO & aVal);
+
+eTypeModeNO  Str2eTypeModeNO(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeModeNO & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeModeNO &);
+
+std::string  Mangling( eTypeModeNO *);
+
+void  BinaryUnDumpFromFile(eTypeModeNO &,ELISE_fp &);
+
 class cIntervLutConvertion
 {
     public:

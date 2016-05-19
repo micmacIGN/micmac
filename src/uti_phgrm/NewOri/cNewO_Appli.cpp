@@ -39,6 +39,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+const std::string TheStdModeNewOri = "Std";
+
+eTypeModeNO ToTypeNO(const std::string & aStr)
+{
+   return Str2eTypeModeNO(std::string("eModeNO_")+aStr);
+}
+
+
 class cAppli_Martini
 {
       public :
@@ -53,6 +61,8 @@ class cAppli_Martini
           bool        mExe;
           bool        mQuick;
           std::string mPrefHom;
+          std::string mNameModeNO;
+          eTypeModeNO mModeNO;
           ElTimer     aChrono;
 };
 
@@ -65,6 +75,7 @@ void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
     aFullCom = aFullCom + aPost;
 
     aFullCom = aFullCom + " PrefHom=" + mPrefHom;
+    aFullCom = aFullCom + " ModeNO=" + mNameModeNO;
 
 
     if (mExe)
@@ -99,16 +110,29 @@ void cAppli_Martini::Banniere(bool Quick)
 
 void cAppli_Martini::DoAll()
 {
-     //  Calcul de toute les orientations relatives entre paires d'images
+     // 1-  Calcul de toute les orientations relatives entre paires d'images
+     // NO_AllOri2Im =>  cNewO_CpleIm.cpp => TestAllNewOriImage_main
+     // mm3d TestLib  NO_AllOri2Im "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
+ 
      StdCom("NO_AllOri2Im");
      // Homologues flottants
      // StdCom("NO_AllHomFloat"); => Supprime, pris en compte dans NO_AllOri2Im
-     // Generation des triplet de points hom flottants
+
+     // 2-  Generation des triplet de points hom flottants
+     //  NO_AllImTriplet  => cNewO_PointsTriples.cpp  => CPP_GenAllImP3
+     // NO_OneImTriplet   => cNewO_PointsTriples.cpp  => CPP_GenOneImP3
      StdCom("NO_AllImTriplet");
-     // Generation  des triplet
+
+     // 3-  Selection   des triplet
+     //  NO_GenTripl =>  cNewO_OldGenTriplets.cpp   => GenTriplet_main
      StdCom("NO_GenTripl"," Show=false");
-     // Optimisation des triplets
+
+     // 4-Optimisation des triplets
+     // NO_AllImOptTrip  =>  cNewO_OptimTriplet.cpp  => CPP_AllOptimTriplet_main
+     // TestLib NO_OneImOptTrip  =>  cNewO_OptimTriplet.cpp  => CPP_OptimTriplet_main => cAppliOptimTriplet
      StdCom("NO_AllImOptTrip");
+
+
      // Solution initiale (et probablement definitive)
      StdCom("NO_SolInit3");
 }
@@ -120,7 +144,8 @@ void cAppli_Martini::DoAll()
 cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
     mExe     (true),
     mQuick   (Quick),
-    mPrefHom ("")
+    mPrefHom (""),
+    mNameModeNO  (TheStdModeNewOri)
 {
    ElInitArgMain
    (
@@ -129,10 +154,12 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(mExe,"Exe",true,"Execute commands, def=true (if false, only print)")
                    << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes 
+                   << EAM(mNameModeNO,"ModeNO",true,"Mode Def=Std")  
                    // << EAM(mQuick,"Quick",true,"Quick version")
    );
 
 
+   mModeNO = ToTypeNO(mNameModeNO);
   // Force la creation des auto cal
     cElemAppliSetFile anEASF(mPat);
     StdCorrecNameOrient(mNameOriCalib,anEASF.mDir);

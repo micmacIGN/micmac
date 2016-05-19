@@ -145,7 +145,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
         for(;itr != aVFiles.end(); itr++, incre++)
         {
             cout << "loading file " << *itr << endl;
-            GlCloud * cloud = GlCloud::loadPly(aDir + ELISE_CAR_DIR + *itr, &incre );
+            GlCloud * cloud = GlCloud::loadPly(aDir + ELISE_CAR_DIR + *itr);
             if (cloud)
             {
                 clouds.push_back( cloud );

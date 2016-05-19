@@ -49,18 +49,28 @@ extern void SaisieBasc(int argc, char ** argv,
 						Pt2di &aNbFen,
                         bool &aForceGray);
 
+QApplication & getQApplication();
+
 int helpMessage(QApplication const &app, QString text);
 bool checkNamePt(QString text);
 QStringList getFilenames(std::string aDir, std::string aName);
 
 void loadTranslation(QApplication &app);
 
-int saisieMasqQT_main(QApplication &app, int argc, char *argv[]);
-int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[]);
-int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[]);
-int saisieBoxQT_main(QApplication &app, int argc, char *argv[]);
-int saisieBascQT_main(QApplication &app, int argc, char *argv[]);
+int saisieMasqQT_main(int argc, char *argv[]);
+int saisieAppuisInitQT_main(int argc, char *argv[]);
+int saisieAppuisPredicQT_main(int argc, char *argv[]);
+int saisieBoxQT_main(int argc, char *argv[]);
+int saisieBascQT_main(int argc, char *argv[]);
 
 void saisieMasq_ElInitArgMain(int argc, char ** argv, std::string &aFullName, std::string &aPost, std::string &aNameMasq, std::string &aAttr, Pt2di &aSzW, double &aGama);
+
+int qtpopup(const std::string &aText);
+
+#define QTPOPUP(text){\
+	std::ostringstream ss;\
+	ss << text << std::endl;\
+	qtpopup(ss.str());\
+}
 
 #endif

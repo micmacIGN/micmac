@@ -843,18 +843,16 @@ void glDrawEllipse(float cx, float cy, float rx=3.f, float ry= 3.f, int steps = 
 string eToString( QImage::Format e );
 std::ostream & operator <<( std::ostream &aStream, const QSize &aSize );
 
-#ifdef USE_MIPMAP_HANDLER
-	string glErrorToString( GLenum aEnum );
-#endif
+#ifdef __DEBUG
+	string glErrorToString(GLenum aEnum);
 
-#if defined(USE_MIPMAP_HANDLER) && defined(__DEBUG)
-	inline void __check_gl_error( const std::string &aWhere )
+	inline void __check_gl_error(const std::string &aWhere)
 	{
 		const GLenum err = glGetError();
 		ELISE_DEBUG_ERROR(err != GL_NO_ERROR, aWhere, "glGetError() = " << glErrorToString(err));
 	}
 #else
-	inline void __check_gl_error( const std::string & ){}
+	inline void __check_gl_error(const std::string &){}
 #endif
 
 #endif //__3DObject__
