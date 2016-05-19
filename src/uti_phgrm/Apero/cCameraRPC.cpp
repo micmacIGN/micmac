@@ -80,7 +80,6 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     mRPC = new cRPC(aNameFile,aType,aChSys);
 }
 
-
 cBasicGeomCap3D * CameraRPC::CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
 {
     cBasicGeomCap3D * aRes = new CameraRPC(aName, aType, aChSys); 
@@ -718,32 +717,49 @@ void CameraAffine::ShowInfo()
  * image_col = mInvSNum / mInvSDen
  * image_row = mInvLNum / mInvLDen  */
 
-/* Constructor that takes cXml_CamGenPolBundle as input */
+/* Constructor that takes cXml_CamGenPolBundle or OrientationGrille 
+ * as input */
 cRPC::cRPC(const std::string &aName) :
     ISDIR(false),
     ISINV(false),
     ISMETER(false),
     mRefine(eRP_None),
-    mRecGrid(Pt3di(0,0,0))
+    mRecGrid(Pt3di(0,0,0)),
+    mName("")
 {
-    ELISE_ASSERT( AutoDetermineRPCFile(aName), "cRPC::cRPC; this constructor needs RPC in cXml_CamGenPolBundle format" );
+    if( AutoDetermineRPCFile(aName) )
+    {
+        /* Read Xml_CamGenPolBundle */
+        cXml_CamGenPolBundle aXml = StdGetFromSI(aName,Xml_CamGenPolBundle);
+        const std::string aNameRPC = aXml.NameCamSsCor();
+        mName = aNameRPC;
+        ELISE_ASSERT(ELISE_fp::exist_file(aNameRPC),"cRPC::cRPC; the file with the polyn does not exist!");
 
-    /* Read Xml_CamGenPolBundle */
-    cXml_CamGenPolBundle aXml = StdGetFromSI(aName,Xml_CamGenPolBundle);
-    const std::string aNameRPC = aXml.NameCamSsCor();
-    ELISE_ASSERT(ELISE_fp::exist_file(aNameRPC),"cRPC::cRPC; the file with the polyn does not exist!");
+        eTypeImporGenBundle aType;
+        bool aModeHelp;
+       
+        /* Retrieve the coordinate system for the computations */
+        const cSystemeCoord * aChSys = aXml.SysCible().PtrCopy();//Val();
+        
 
-    /* Retrieve RPC format */
-    eTypeImporGenBundle aType;
-    bool mModeHelp;
-    StdReadEnum(mModeHelp,aType,"TIGB_Unknown",eTIGB_NbVals);
-    AutoDetermineTypeTIGB(aType,aXml.NameCamSsCor());
-   
-    /* Retrieve the coordinate system for the computations */
-    const cSystemeCoord * aChSys = aXml.SysCible().PtrCopy();//Val();
-    
-    /* Initialize the class variables */
-    Initialize(aName,aType,aChSys);
+        if(AutoDetermineGRIDFile(aNameRPC))
+        {
+            std::string aNameType="TIGB_MMOriGrille";
+            StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
+        }
+        else
+        {
+            /* Retrieve RPC format */
+            StdReadEnum(aModeHelp,aType,"TIGB_Unknown",eTIGB_NbVals);
+            AutoDetermineTypeTIGB(aType,aXml.NameCamSsCor());
+        }
+
+        /* Initialize the class variables */
+        Initialize(aName,aType,aChSys);
+
+    }
+    else
+        ELISE_ASSERT( false, "cRPC::cRPC; this constructor needs RPC in cXml_CamGenPolBundle format or the grid file" );
     
     
 }
@@ -755,9 +771,9 @@ cRPC::cRPC(const std::string &aName, const eTypeImporGenBundle &aType, const cSy
     ISINV(false),
     ISMETER(false),
     mRefine(eRP_None),
-    mRecGrid(Pt3di(0,0,0))
+    mRecGrid(Pt3di(0,0,0)),
+    mName(aName)
 {
-    
     /* Initialize the class variables */
     Initialize(aName,aType,aChSys);
 
@@ -776,22 +792,19 @@ void cRPC::Initialize(const std::string &aName,
         aNameRPC=aXml.NameCamSsCor();
         
         mPol = cPolynomial_BGC3M2D::NewFromFile(aName);
-
         
         mRefine = eRP_Poly;
     }
-
-    mChSys = *aChSys;
+    
+    if(aChSys)
+        mChSys = *aChSys;
 
     if(aType==eTIGB_MMDimap2)
     {
         ReadDimap(aNameRPC);
-        
-        SetRecGrid();
-
-        if(aChSys)
-            ChSysRPC(mChSys);
        
+        Initialize_(aChSys);
+
     }
     else if(aType==eTIGB_MMDimap1)
     {
@@ -803,24 +816,74 @@ void cRPC::Initialize(const std::string &aName,
         
         InvToDirRPC();
         
-        SetRecGrid();
-
-        if(aChSys)
-            ChSysRPC(mChSys);
+        Initialize_(aChSys);
 
     }
     else if(aType==eTIGB_MMIkonos)
     {
-        ReadASCII(aNameRPC);
+     ReadASCII(aNameRPC);
 	    
         ReadASCIIMeta("Metafile.txt", aNameRPC);
 	    
         InvToDirRPC();
 
-        SetRecGrid();
+        Initialize_(aChSys);
 
-        if(aChSys)
-            ChSysRPC(mChSys);
+    }
+    else if(aType==eTIGB_MMEuclid)
+    {
+        ReadEUCLIDIUM(aNameRPC);
+        Show(); 
+        Initialize_(aChSys);
+    
+    }
+    else if(aType==eTIGB_MMOriGrille)
+    {
+        ISMETER = true;
+
+        OrientationGrille aGrill(aNameRPC);
+      
+        /* Set validities */
+        mGrC1[0] = aGrill.GetRangeX().x;
+        mGrC1[1] = aGrill.GetRangeX().y;
+        mGrC2[0] = aGrill.GetRangeY().x;
+        mGrC2[1] = aGrill.GetRangeY().y;
+        mGrC3[0] = aGrill.GetRangeZ().x;
+        mGrC3[1] = aGrill.GetRangeZ().y;
+
+        mImRows[0] = aGrill.GetRangeRow().x;
+        mImRows[1] = aGrill.GetRangeRow().y;
+        mImCols[0] = aGrill.GetRangeCol().x;
+        mImCols[1] = aGrill.GetRangeCol().y;
+
+        /* Set the reconstruction grid size*/
+        SetRecGrid();
+        
+        /* Grid in 3D */
+        std::vector<Pt3dr> aGrid3D;
+        GenGridAbs(mRecGrid, aGrid3D);
+       
+        /* Grid in 2D */
+        int aK;
+        Pt2dr aP;
+        std::vector<Pt3dr> aGrid2D;
+        for(aK=0; aK< int(aGrid3D.size()); aK++)
+        {
+            aGrill.Objet2ImageInit(aGrid3D.at(aK).x, aGrid3D.at(aK).y, &(aGrid3D.at(aK).z),
+                            aP.x, aP.y);
+            aGrid2D.push_back(Pt3dr(aP.x, aP.y, aGrid3D.at(aK).z));
+        }
+        
+
+        /* Learn parameters */
+        CalculRPC(aGrid3D, aGrid2D,
+                  mDirSNum, mDirLNum, mDirSDen, mDirLDen,
+                  mInvSNum, mInvLNum, mInvSDen, mInvLDen, 0);
+
+        Show();
+
+        ISDIR=true;
+        ISINV=true;
 
     }
     else if(aType==eTIGB_MMSpice)
@@ -844,9 +907,17 @@ void cRPC::Initialize(const std::string &aName,
     
 }
 
+void cRPC::Initialize_(const cSystemeCoord *aChSys)
+{
+    SetRecGrid();
+
+    if(aChSys)
+        ChSysRPC(mChSys);
+}
+
 std::string cRPC::NameSave(const std::string & aName) const
 {
-    std::string aNameXml = DirOfFile(aName) + "ADJ-" + StdPrefix(NameWithoutDir(aName)) + ".xml";
+    std::string aNameXml = DirOfFile(aName) + "NEW-" + StdPrefix(NameWithoutDir(aName)) + ".xml";
 
     return aNameXml;
 }
@@ -963,7 +1034,7 @@ void cRPC::Save2XmlStdMMName(const std::string &aName)
     aRPCSauv.ChSysRPC(aRPCSauv.mChSys);
 
    /* Save to XML */
-   std::string aNameXml = aRPCSauv.NameSave(aName);
+   std::string aNameXml = aRPCSauv.NameSave(aRPCSauv.mName);
    cXml_RPC aXml_RPC;
    cXml_RPC_Coeff aXml_Dir, aXml_Inv;
    cXml_RPC_Validity aXml_Val;
@@ -1043,20 +1114,60 @@ void cRPC::Save2XmlStdMMName(const std::string &aName)
 
 }
 
-
-bool cRPC::AutoDetermineRPCFile(const std::string &aFile) const
+bool cRPC::AutoDetermineGRIDFile(const std::string &aFile) const
 {
     cElXMLTree * aTree = new cElXMLTree(aFile);
 
-    cElXMLTree * aXmlMETADATA_FORMAT = aTree->Get("METADATA_FORMAT");
-    if (aXmlMETADATA_FORMAT)
-    {
-        return false;
-    }
-    else
+    cElXMLTree * aFirstChild = aTree->Get("trans_coord");
+    
+    if(aFirstChild)
     {
         return true;
     }
+    else
+        return false;
+    /*
+    XercesDOMParser* parser = new XercesDOMParser();
+    parser->parse(aFile.c_str());
+    DOMNode* doc = parser->getDocument();
+    DOMNode* n = doc->getFirstChild();
+
+    if (n)
+        n=n->getFirstChild();
+
+    if (!XMLString::compareString(n->getNodeName(),XMLString::transcode("trans_coord")))
+        return true;
+    else
+        return false;
+*/
+
+}
+
+bool cRPC::AutoDetermineRPCFile(const std::string &aFile) const
+{
+    if( (aFile.substr(aFile.size()-3,3) == "XML") ||
+        (aFile.substr(aFile.size()-3,3) == "xml"))
+    {
+        if( (aFile.substr(aFile.size()-7,3) != "TXT") &&
+            (aFile.substr(aFile.size()-7,3) != "txt"))
+        {
+            cElXMLTree * aTree = new cElXMLTree(aFile);
+
+            cElXMLTree * aXmlMETADATA_FORMAT = aTree->Get("Xml_CamGenPolBundle");
+            if (aXmlMETADATA_FORMAT)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+            return false;
+    }
+    else
+        return false;
 }
 
 void cRPC::CubicPolyFil(const Pt3dr &aP, double (&aPTerms)[20]) const
@@ -1329,8 +1440,7 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
                   " +to +proj=longlat +datum=WGS84 ");
     }
 
-    vector<Pt3dr> aGridOrg, aGridCorSys,
-                  aGridOrgN, aGridCorSysN,
+    vector<Pt3dr> aGridOrg, aGridCorSys, aGridCorSysN,
                   aGridImg, aGridImgN;
     vector<Pt3dr> aGCNLearn, aGINLearn;
 
@@ -1338,7 +1448,7 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
     GenGridAbs(Pt3di(2*aSz.x,2*aSz.y,2*aSz.z), aGridOrg);
     
     /* Normalise */
-    aGridOrgN = NormGrAll(aGridOrg);
+    //aGridOrgN = NormGrAll(aGridOrg);
     
     /* Transform grids */
     aGridCorSys  = aToCorSys->Chang(aGridOrg);
@@ -1352,21 +1462,51 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
         aGridImg.push_back(Pt3dr(aP.x, aP.y, aGridOrg.at(aK).z));
     }
 
+    CalculRPC( aGridCorSys, aGridImg,
+               aDirSNum, aDirLNum, aDirSDen, aDirLDen,
+               aInvSNum, aInvLNum, aInvSDen, aInvLDen,
+               PRECISIONTEST);
     
+    
+    if(ISMETER)
+        ISMETER=false;
+    else
+        ISMETER=true;
+
+    /* If RPC were recomputed including the polynom deformation
+     * we no longer want to correct the image observations */
+    if(mRefine==eRP_Poly)
+        mRefine=eRP_None;
+        
+}
+
+/* REMARK : every other point of the grid 
+ * will be used for computation */
+void cRPC::CalculRPC(const vector<Pt3dr> &aGridGround, 
+                      const vector<Pt3dr> &aGridImg,
+                      double (&aDirSNum)[20], double (&aDirLNum)[20],
+                      double (&aDirSDen)[20], double (&aDirLDen)[20],
+                      double (&aInvSNum)[20], double (&aInvLNum)[20],
+                      double (&aInvSDen)[20], double (&aInvLDen)[20],
+                      bool PRECISIONTEST)
+{
+    int aK;
+    vector<Pt3dr> aGCNLearn, aGINLearn;
+
     /* Update offset/scale */
     NewImOffScal(aGridImg);
-    NewGrOffScal(aGridCorSys);
+    NewGrOffScal(aGridGround);
 
     /* Normalise */
-    aGridImgN = NormImAll(aGridImg,0);
+    vector<Pt3dr> aGridImgN = NormImAll(aGridImg,0);
 
     /* Normalise (with updated offset/scale) */
-    aGridCorSysN = NormGrAll(aGridCorSys);
+    vector<Pt3dr> aGridGroundN = NormGrAll(aGridGround);
 
 
     /* Take all even grid points for learning (odd for control)*/
-    for(aK=0; aK<int(aGridCorSysN.size()); aK+=2)
-        aGCNLearn.push_back(aGridCorSysN.at(aK));
+    for(aK=0; aK<int(aGridGroundN.size()); aK+=2)
+        aGCNLearn.push_back(aGridGroundN.at(aK));
 
     for(aK=0; aK<int(aGridImgN.size()); aK+=2)
         aGINLearn.push_back(aGridImgN.at(aK));
@@ -1395,9 +1535,9 @@ if(0)
     if(PRECISIONTEST)
     {
         Pt2dr aPDifMoy(0,0);
-        for(aK=1; aK<int(aGridCorSysN.size()); aK+=2)
+        for(aK=1; aK<int(aGridGroundN.size()); aK+=2)
         {
-            Pt2dr aPB = InverseRPCN(aGridCorSysN.at(aK));
+            Pt2dr aPB = InverseRPCN(aGridGroundN.at(aK));
             Pt2dr aPDif = Pt2dr(abs(aGridImgN.at(aK).x-aPB.x),
                                 abs(aGridImgN.at(aK).y-aPB.y));
 
@@ -1410,22 +1550,12 @@ if(0)
         }
 
         std::cout << "RPC recalculation"
-                  <<  " precision: " << 2*double(aPDifMoy.x)/(aGridCorSys.size()) << " "
-                  << 2*double(aPDifMoy.y)/(aGridCorSys.size()) << " [pix]\n";
+                  <<  " precision: " << 2*double(aPDifMoy.x)/(aGridGround.size()) << " "
+                  << 2*double(aPDifMoy.y)/(aGridGround.size()) << " [pix]\n";
     }
     
-    if(ISMETER)
-        ISMETER=false;
-    else
-        ISMETER=true;
-
-    /* If RPC were recomputed including the polynom deformation
-     * we no longer want to correct the image observations */
-    if(mRefine==eRP_Poly)
-        mRefine=eRP_None;
         
 }
-
 
 /* ground_coord_1 * mDirSDen - mDirSNum =0
  * ground_coord_2 * mDirLDen - mDirLNum =0
@@ -1500,7 +1630,6 @@ void cRPC::SetRecGrid()
     int aHorizM = 500, aVertM = 100;
     
 
-
     if(ISMETER)
     {
         aSamplX = floor((mGrC1[1] - mGrC1[0])/aHorizM);
@@ -1537,7 +1666,7 @@ void cRPC::SetRecGrid()
     mRecGrid = Pt3di(aSamplX,aSamplY,aSamplZ);
 
     if(1)
-        std::cout <<"RPC recalculation on a grid: " << mRecGrid << "\n";
+        std::cout <<"RPC grid: " << mRecGrid << "\n";
 }
 
 void cRPC::GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
@@ -1848,6 +1977,212 @@ bool cRPC::IsInv() const
 /*                Reading                                       */
 /****************************************************************/
 
+void cRPC::ReadEUCLIDIUM(const std::string &aFile)
+{
+    std::ifstream ASCIIfi(aFile.c_str());
+    ELISE_ASSERT(ASCIIfi.good(), "cRPC::ReadEUCLIDIUM(const std::string &aFile) file not found ");
+
+    int aC=0;
+    std::string line;
+    std::string delim="\t";
+    {
+        for(aC=0; aC<29; aC++)
+            std::getline(ASCIIfi, line);
+
+
+        /* Validity */
+        std::vector<std::string> aSegs; 
+        std::getline(ASCIIfi, line);
+        
+        size_t pos=0;
+        while ((pos = line.find(delim)) != (std::string::npos)) 
+        {
+            aSegs.push_back(line.substr(0, pos));
+            line.erase(0, pos + delim.length());
+        }
+
+        mGrOff[0] = atof( (aSegs.at(2)).c_str());
+        mGrScal[0] = atof(line.c_str());
+        
+        
+        aSegs.clear();
+        std::getline(ASCIIfi, line);
+        while ((pos = line.find(delim)) != std::string::npos) 
+        {
+            aSegs.push_back(line.substr(0, pos));
+            line.erase(0, pos + delim.length());
+        }
+        
+        mGrOff[1] = atof( (aSegs.at(2)).c_str());
+        mGrScal[1] = atof(line.c_str());
+        
+        aSegs.clear();
+        std::getline(ASCIIfi, line);
+        while ((pos = line.find(delim)) != std::string::npos) 
+        {
+            aSegs.push_back(line.substr(0, pos));
+            line.erase(0, pos + delim.length());
+        }
+
+        mGrOff[2] = atof( (aSegs.at(2)).c_str());
+        mGrScal[2] = atof(line.c_str());
+
+        aSegs.clear();
+        std::getline(ASCIIfi, line);
+        while ((pos = line.find(delim)) != std::string::npos) 
+        {
+            aSegs.push_back(line.substr(0, pos));
+            line.erase(0, pos + delim.length());
+        }
+                
+        mImOff[1] = atof( (aSegs.at(2)).c_str());
+        mImScal[1] = atof(line.c_str());
+        
+        aSegs.clear();
+        std::getline(ASCIIfi, line);
+        while ((pos = line.find(delim)) != std::string::npos) 
+        {
+            aSegs.push_back(line.substr(0, pos));
+            line.erase(0, pos + delim.length());
+        }
+                
+        mImOff[0] = atof( (aSegs.at(2)).c_str());
+        mImScal[0] = atof(line.c_str());
+        
+        /* Inverse coefficients i
+         * sample */
+        for(aC=0; aC<26; aC++)
+        {
+            std::istringstream iss;
+            std::getline(ASCIIfi, line);
+        }
+
+        for(aC=0; aC<20; aC++)
+        {
+            std::getline(ASCIIfi, line);
+            pos = line.find(delim);
+            line.erase(0, pos + delim.length());
+
+            mInvSNum[aC] = atof(line.c_str());
+        }
+
+        for(aC=0; aC<2; aC++)
+        {
+            std::istringstream iss;
+            std::getline(ASCIIfi, line);
+        }
+
+        for(aC=0; aC<20; aC++)
+        {
+            std::getline(ASCIIfi, line);
+            pos = line.find(delim);
+            line.erase(0, pos + delim.length());
+            
+            mInvSDen[aC] = atof(line.c_str());
+        }
+
+        /* line */
+        for(aC=0; aC<2; aC++)
+        {
+            std::istringstream iss;
+            std::getline(ASCIIfi, line);
+        }
+
+        for(aC=0; aC<20; aC++)
+        {
+            std::getline(ASCIIfi, line);
+            pos = line.find(delim);
+            line.erase(0, pos + delim.length());
+            
+            mInvLNum[aC] = atof(line.c_str());
+        }
+
+        for(aC=0; aC<2; aC++)
+        {
+            std::istringstream iss;
+            std::getline(ASCIIfi, line);
+        }
+
+        for(aC=0; aC<20; aC++)
+        {
+            std::getline(ASCIIfi, line);
+            pos = line.find(delim);
+            line.erase(0, pos + delim.length());
+            
+            mInvLDen[aC] = atof(line.c_str());
+        }
+
+        /* Direct coefficients */
+        for(aC=0; aC<61; aC++)
+        {
+            std::istringstream iss;
+            std::getline(ASCIIfi, line);
+        }
+        
+        for(aC=0; aC<20; aC++)
+        {
+            std::getline(ASCIIfi, line);
+            pos = line.find(delim);
+            line.erase(0, pos + delim.length());
+            
+            mDirSNum[aC] = atof(line.c_str());
+        }
+
+        for(aC=0; aC<2; aC++)
+        {
+            std::istringstream iss;
+            std::getline(ASCIIfi, line);
+        }
+
+        for(aC=0; aC<20; aC++)
+        {
+            std::getline(ASCIIfi, line);
+            pos = line.find(delim);
+            line.erase(0, pos + delim.length());
+            
+            mDirSDen[aC] = atof(line.c_str());
+        }
+
+        for(aC=0; aC<2; aC++)
+        {
+            std::istringstream iss;
+            std::getline(ASCIIfi, line);
+        }
+        
+        for(aC=0; aC<20; aC++)
+        {
+            std::getline(ASCIIfi, line);
+            pos = line.find(delim);
+            line.erase(0, pos + delim.length());
+            
+            mDirLNum[aC] = atof(line.c_str());
+        }
+    
+        for(aC=0; aC<2; aC++)
+        {
+            std::istringstream iss;
+            std::getline(ASCIIfi, line);
+        }
+        
+        for(aC=0; aC<20; aC++)
+        {
+            std::getline(ASCIIfi, line);
+            pos = line.find(delim);
+            line.erase(0, pos + delim.length());
+            
+            mDirLDen[aC] = atof(line.c_str());
+        }
+    
+    }
+
+    ISINV=true;
+    ISDIR=true;
+   
+    ReconstructValidityxy();
+    ReconstructValidityXY();
+    ReconstructValidityH();
+}
+
 void cRPC::ReadASCII(const std::string &aFile)
 {
     std::ifstream ASCIIfi(aFile.c_str());
@@ -1986,8 +2321,9 @@ void cRPC::ReadASCII(const std::string &aFile)
 
 int cRPC::ReadASCIIMeta(const std::string &aMeta, const std::string &aFile)
 {
+    std::string errorcmd = "cRPC::ReadASCIIMeta; rename your metadata file to: " + aMeta;
     std::ifstream MetaFi(aMeta.c_str());
-    ELISE_ASSERT(MetaFi.good(), "cRPC::ReadASCIIMeta; rename your metadata file to: Metafile.txt");
+    ELISE_ASSERT(MetaFi.good(), errorcmd.c_str());
 
     bool aMetaIsFound=false;
 
@@ -2470,6 +2806,28 @@ void cRPC::ReadDimap(const std::string &aFile)
     
 }
 
+void cRPC::ReconstructValidityxy()
+{
+    mImRows[0] = 0;
+    mImRows[1] = 1 * mImScal[0] + mImOff[0];
+
+    mImCols[0] = 0;
+    mImCols[1] = 1 * mImScal[1] + mImOff[1];
+
+}
+
+void cRPC::ReconstructValidityXY()
+{
+    ELISE_ASSERT(ISDIR, "cRPC::ReconstructValidityH() RPCs need to be initialised" );
+
+    mGrC1[0] = -1 * mGrScal[0] + mGrOff[0];
+    mGrC1[1] =  1 * mGrScal[0] + mGrOff[0];
+
+    mGrC2[0] = -1 * mGrScal[1] + mGrOff[1];
+    mGrC2[1] =  1 * mGrScal[1] + mGrOff[1];
+
+}
+
 void cRPC::ReconstructValidityH()
 {
     ELISE_ASSERT(ISDIR, "cRPC::ReconstructValidityH() RPCs need to be initialised" );
@@ -2548,6 +2906,54 @@ Pt3di cRPC::GetGrid() const
 bool cRPC::IsMetric() const
 {
     return ISMETER;
+}
+
+int Grid2RPC_main(int argc,char ** argv)
+{
+    cInterfChantierNameManipulateur * aICNM;
+    std::string aName, aSeulName, aNameOrient, aChSysStr,
+                aDir, aDest="ER-Tmp", aGBName;
+    std::string aCom1, aCom2;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aName,"Name of Image")
+                   << EAMC(aNameOrient,"Name of input Orientation File")
+                   << EAMC(aDest,"Directory of output Orientation (MyDir -> Oi-MyDir)"),
+        LArgMain()
+                   << EAM(aChSysStr,"ChSys", true, "Change coordinate file (MicMac XML convention)")
+    );
+
+    SplitDirAndFile(aDir, aSeulName, aName);
+
+    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    
+    
+    aCom1 = MM3dBinFile_quotes("Convert2GenBundle") + " " + 
+           aName + " " + aNameOrient + " " + 
+           aDest + " ChSys=" + aChSysStr + 
+           " Degre=0";   
+    std::cout << "aCom1 " << aCom1 << "\n";
+
+    TopSystem(aCom1.c_str());
+    
+    
+    
+    
+    aGBName = aICNM->StdNameCamGenOfNames(aDest, aSeulName);
+    std::cout << "aGBName " << aGBName << " aSeulName "  << aSeulName << "\n";
+
+    aCom2 = MM3dBinFile_quotes("SateLib RecalRPC") + " " + aGBName;
+    std::cout << "aCom2 " << aCom2 << "\n";
+
+    TopSystem(aCom2.c_str());
+            
+    
+    ELISE_fp::RmFile(aGBName); 
+
+    return EXIT_SUCCESS;
 }
 
 int RecalRPC_main(int argc,char ** argv)

@@ -75,6 +75,8 @@ typedef enum
   eTIGB_Unknown,
   eTIGB_MMSten,
   eTIGB_MMXmlCamGen,
+  eTIGB_MMOriGrille,
+  eTIGB_MMEuclid,
   eTIGB_MMDimap2,
   eTIGB_MMDimap1,
   eTIGB_MMDGlobe,

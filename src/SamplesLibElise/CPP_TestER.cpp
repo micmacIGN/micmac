@@ -788,6 +788,54 @@ int TestER_rpc(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+int TestER_grille_main(int argc,char ** argv)
+{
+    std::string aFullName, aChSysStr;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aFullName,"OrientationGrille file"),
+        LArgMain() << EAM(aChSysStr,"ChSys",true)
+    );
+
+    /*bool aModeHelp;
+    eTypeImporGenBundle aType;
+    std::string aNameType="TIGB_MMOriGrille";
+    StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
+
+    cSystemeCoord * aChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
+            (
+                aChSysStr,
+                StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                "SystemeCoord",
+                "SystemeCoord"
+             ));
+    */
+
+    //CameraRPC aCamRPC(aFullName);
+    bool aModeHelp;
+    eTypeImporGenBundle aType;
+    std::string aNameType="TIGB_MMEuclid";
+    StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
+
+
+    cSystemeCoord * aChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
+            (
+                aChSysStr,
+                StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                "SystemeCoord",
+                "SystemeCoord"
+            ));
+
+    cRPC aRPC(aFullName,aType,aChSys); 
+    
+    //OrientationGrille aGrill(aFullName);
+    //aGrill.GetRangeZ();
+
+    return EXIT_SUCCESS;
+}
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

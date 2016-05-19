@@ -51,16 +51,18 @@
     </enum>
 
     <enum Name="eTypeImporGenBundle">
-        <eTIGB_Unknown>  </eTIGB_Unknown>
-        <eTIGB_MMSten>   </eTIGB_MMSten>
-        <eTIGB_MMXmlCamGen>   </eTIGB_MMXmlCamGen>
-        <eTIGB_MMDimap2> </eTIGB_MMDimap2>
-        <eTIGB_MMDimap1> </eTIGB_MMDimap1>
-        <eTIGB_MMDGlobe> </eTIGB_MMDGlobe>
-        <eTIGB_MMIkonos> </eTIGB_MMIkonos>
-        <eTIGB_MMASTER> </eTIGB_MMASTER>
-        <eTIGB_MMSpice> </eTIGB_MMSpice>
-        <eTIGB_NbVals>   </eTIGB_NbVals>
+        <eTIGB_Unknown>     </eTIGB_Unknown>
+        <eTIGB_MMSten>      </eTIGB_MMSten>
+        <eTIGB_MMXmlCamGen> </eTIGB_MMXmlCamGen>
+        <eTIGB_MMOriGrille> </eTIGB_MMOriGrille>
+        <eTIGB_MMEuclid>    </eTIGB_MMEuclid>
+        <eTIGB_MMDimap2>    </eTIGB_MMDimap2>
+        <eTIGB_MMDimap1>    </eTIGB_MMDimap1>
+        <eTIGB_MMDGlobe>    </eTIGB_MMDGlobe>
+        <eTIGB_MMIkonos>    </eTIGB_MMIkonos>
+        <eTIGB_MMASTER>     </eTIGB_MMASTER>
+        <eTIGB_MMSpice>     </eTIGB_MMSpice>
+        <eTIGB_NbVals>      </eTIGB_NbVals>
     </enum>
 
 

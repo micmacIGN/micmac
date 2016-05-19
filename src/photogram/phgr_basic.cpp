@@ -1644,7 +1644,20 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
 
        if ((aPost=="txt") || (aPost=="TXT"))
        {
-            aType = eTIGB_MMIkonos;
+            std::string line;
+            std::ifstream aFile(aName.c_str());
+            std::getline(aFile, line);
+            if( line.find("DATE_GENERATION") != string::npos )
+                aType = eTIGB_MMEuclid;
+            else
+                aType = eTIGB_MMIkonos;
+            
+            return;
+       }
+
+       if ((aPost=="gri") || (aPost=="GRI"))
+       {
+            aType = eTIGB_MMOriGrille;
             return;
        }
    }
@@ -1679,7 +1692,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
              return BasicCamOrientGenFromFile(aName);
         }
     }
-    else if (aType==eTIGB_MMDimap2 || aType==eTIGB_MMDGlobe)
+    else if (aType==eTIGB_MMDimap2 || aType==eTIGB_MMDGlobe || aType==eTIGB_MMEuclid || aType==eTIGB_MMOriGrille )
     {
 	
 	return CameraRPC::CamRPCOrientGenFromFile(aName, aType, aChSys);
@@ -1692,6 +1705,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
 
     if (ThePattSatelit.Match(aName))
     {
+
          std::string aNameType = ThePattSatelit.KIemeExprPar(1);
     
 	 eTypeImporGenBundle aTrueType = Str2eTypeImporGenBundle(aNameType);
@@ -1701,6 +1715,8 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
          {
                 case eTIGB_MMDGlobe : 
                 case eTIGB_MMDimap2 :
+                case eTIGB_MMEuclid :
+                case eTIGB_MMOriGrille :
                       return  CameraRPC::CamRPCOrientGenFromFile(aName,aTrueType,aChSys);
 
                 default : ;

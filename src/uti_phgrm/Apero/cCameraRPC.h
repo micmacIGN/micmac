@@ -63,7 +63,6 @@ class CameraRPC : public cBasicGeomCap3D
                   const eTypeImporGenBundle &aType, 
    	              const cSystemeCoord * aChSys=0,
                   const double aAltiSol=0);
-
 		~CameraRPC();
 
 
@@ -206,11 +205,12 @@ class cRPC
         bool IsDir() const;
         bool IsInv() const;
         bool IsMetric() const;    
+    
     private:
-
         void Initialize(const std::string &,
                    const eTypeImporGenBundle &,
                    const cSystemeCoord *);
+        void Initialize_(const cSystemeCoord *);
 
         /* Normalized 2D<->3D projections */
         Pt3dr DirectRPCN(const Pt2dr &aP, const double &aZ) const;
@@ -221,6 +221,7 @@ class cRPC
         void ReadXML(const std::string &aFile);
         void ReadASCII(const std::string &aFile);
         int  ReadASCIIMeta(const std::string &aMeta, const std::string &aFile);
+        void ReadEUCLIDIUM(const std::string &aFile);
 
         
         /* Change coordinate system */
@@ -237,7 +238,13 @@ class cRPC
                         double (&aInvSNum)[20], double (&aInvLNum)[20],
                         double (&aInvSDen)[20], double (&aInvLDen)[20],
                         bool PRECISIONTEST=1);
-
+        void CalculRPC( const vector<Pt3dr> &, 
+                        const vector<Pt3dr> &, 
+                        double (&aDirSNum)[20], double (&aDirLNum)[20],
+                        double (&aDirSDen)[20], double (&aDirLDen)[20],
+                        double (&aInvSNum)[20], double (&aInvLNum)[20],
+                        double (&aInvSDen)[20], double (&aInvLDen)[20],
+                        bool PRECISIONTEST=1);
 
 
         /* Fill-in a cubic polynomials */
@@ -253,6 +260,8 @@ class cRPC
         
 
         /* Validity utils */
+        void ReconstructValidityxy();
+        void ReconstructValidityXY();
         void ReconstructValidityH();
 
         /* Noralize / denormalize */
@@ -290,6 +299,7 @@ class cRPC
         void SetPolyn(const std::string &);
         
         bool AutoDetermineRPCFile(const std::string &) const;
+        bool AutoDetermineGRIDFile(const std::string &) const;
         std::string NameSave(const std::string & aDirLoc) const;
         template <typename T>
         void FilLineNumCoeff(T& , double (&)[20] ) const;
@@ -326,6 +336,8 @@ class cRPC
 
         /* Grid to recompute RPCs */
         Pt3di mRecGrid;
+
+        std::string mName;
 
 
 };

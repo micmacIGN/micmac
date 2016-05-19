@@ -716,7 +716,30 @@ std::complex<double> OrientationGrille::interpolation(std::complex<double> posit
     return Pt;
 }
 
+Pt2dr OrientationGrille::GetRangeCol() const
+{
+    return( Pt2dr(Image2Obj_ULC.real(), Image2Obj_Taille.real() * Image2Obj_Pas.real()) );
+}
 
+Pt2dr OrientationGrille::GetRangeRow() const
+{
+    return( Pt2dr(Image2Obj_ULC.imag(), Image2Obj_Taille.imag() * Image2Obj_Pas.imag()) );
+}
+
+Pt2dr OrientationGrille::GetRangeX() const
+{
+    return( Pt2dr(Obj2Image_ULC.real(), Obj2Image_ULC.real() + Obj2Image_Taille.real() * Obj2Image_Pas.real()) );
+}
+
+Pt2dr OrientationGrille::GetRangeY() const
+{
+    return( Pt2dr(Obj2Image_ULC.imag(), Obj2Image_ULC.imag() + Obj2Image_Taille.imag() * Obj2Image_Pas.imag()) );
+}
+
+Pt2dr OrientationGrille::GetRangeZ() const
+{
+    return ( Pt2dr(Obj2Image_Value[0], Obj2Image_Value[(int) Obj2Image.size() -1]) );
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

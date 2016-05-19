@@ -62,6 +62,13 @@ public:
 			       double &c, double &l)const;
   virtual double GetResolMoyenne() const;
   virtual bool GetPxMoyenne(double * aPxMoy) const;
+ 
+  Pt2dr GetRangeCol() const;
+  Pt2dr GetRangeRow() const;
+  Pt2dr GetRangeX() const;
+  Pt2dr GetRangeY() const;
+  Pt2dr GetRangeZ() const;
+
   double PrecisionRetour;
 
   void WriteBinary(std::string const &nom)const;

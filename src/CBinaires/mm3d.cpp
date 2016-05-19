@@ -549,6 +549,7 @@ extern int TD_Match1_main(int argc,char ** argv);
 extern int TD_Match2_main(int argc,char ** argv);
 extern int TD_Match3_main(int argc,char ** argv);
 extern int TestER_main(int argc,char ** argv);
+extern int TestER_grille_main(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -670,7 +671,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
        aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
-       aRes.push_back(cMMCom("TestER",TestER_main,"ER test workplace"));
+       aRes.push_back(cMMCom("TestER",TestER_grille_main,"ER test workplace"));
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
@@ -794,6 +795,7 @@ int SampleLibElise_main(int argc, char ** argv)
 
 //SateLib declarations
 extern int RecalRPC_main(int argc, char ** argv);
+extern int Grid2RPC_main(int argc, char ** argv);
 extern int RPC_main(int argc, char ** argv);
 extern int NewRefineModel_main(int argc, char **argv);
 extern int RefineModel_main(int argc, char **argv);
@@ -814,6 +816,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     static std::vector<cMMCom> aRes;
 
     aRes.push_back(cMMCom("RecalRPC", RecalRPC_main, "Recalculate the adjusted RPCs back to geodetic coordinate system"));
+    aRes.push_back(cMMCom("Grid2RPC", Grid2RPC_main, "Calculate RPCs from the GRIDs"));
     aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcoming RPC functions"));
     aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
     aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
