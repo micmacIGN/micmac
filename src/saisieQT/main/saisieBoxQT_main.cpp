@@ -1,8 +1,8 @@
 #include "saisieQT_main.h"
 
-int saisieBoxQT_main(QApplication &app, int argc, char *argv[])
+int saisieBoxQT_main(int argc, char *argv[])
 {
-    MMD_InitArgcArgv(argc,argv);
+	QApplication &app = getQApplication();
 
     app.setApplicationName("SaisieBoxQT");
     app.setOrganizationName("Culture3D");

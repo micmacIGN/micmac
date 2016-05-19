@@ -110,8 +110,6 @@ int Devlop_main(int argc,char ** argv)
     // std::cout << aCom << "\n"; getchar();
      System(aCom);
 
-     //aCom = g_externalToolHandler.get( "make" ).callName()+" all -f MkDevlop  -j" + ToString(MMNbProc());
-     //System(aCom);
      launchMake( "MkDevlop", "all" );
 
     return EXIT_SUCCESS;

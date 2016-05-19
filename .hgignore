@@ -413,3 +413,6 @@ binaire-aux/windows/SurfaceTrimmer.exe
 binaire-aux/windows/PoissonRecon.exe
 binaire-aux/windows/Rnx2rtkp.exe
 src/util/HG_defines.cpp
+binaire-aux/darwin/PoissonRecon
+binaire-aux/darwin/Rnx2rtkp
+binaire-aux/darwin/SurfaceTrimmer

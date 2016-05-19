@@ -48,9 +48,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define StdDefNbMaxSel   500
 #define QuickDefNbMaxSel 200
 
+#define StdTKNbMaxSel   100
+#define QuicTKNbMaxSel  30
+
 
 #define StdNbIterBundle 10
-#define QuickNbIterBundle 3
+#define QuickNbIterBundle 6
 
 #define  StdNbRansac 200
 #define  QuickNbRansac 100
@@ -58,6 +61,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define ModeShowNbMaxSel   100
 #define MaxSurPond3    10.0
+
+#define NbMinPts3TomKan 10
 
 
 class cAppliOptimTriplet;
@@ -76,6 +81,7 @@ class cImOfTriplet
          cAppliOptimTriplet &Appli() {return mAppli;}
          std::vector<Pt2df> &  VFullPtOf3() {return mVFullPtOf3;}  // Points triples
          std::vector<Pt2df> &  VRedPtOf3() {return mVRedPtOf3;}  // Points triples
+         std::vector<Pt2df> &  VTK_PtOf3() {return mVTK_PtOf3;}  // Points triples
          double Foc() const {return mIm->CS()->Focale();}
 
 #if (ELISE_X11)
@@ -83,7 +89,7 @@ class cImOfTriplet
 #endif
          Video_Win * W() {return mW;}
 
-         void SetReduce(const cResIPR & aResIPR);
+         void SetReduce(const cResIPR & aResIPR,const cResIPR & aTKIpr);
          int NbR() {return (int)mVRedPtOf3.size();}
          int NbF() {return (int)mVFullPtOf3.size();}
          int  Num() {return mNum;}
@@ -94,6 +100,7 @@ class cImOfTriplet
          ElRotation3D  mRot;
          std::vector<Pt2df>    mVFullPtOf3;
          std::vector<Pt2df>    mVRedPtOf3;
+         std::vector<Pt2df>    mVTK_PtOf3;
 
          Video_Win *      mW;
          double           mZoomW;
@@ -159,6 +166,7 @@ class cAppliOptimTriplet
           double ResiduGlob();
           bool Show();
           void TestOPA(cPairOfTriplet &);
+          void TestSol(const  std::vector<ElRotation3D> & aVR);
  
           static const std::string KeyCple;
 
@@ -169,6 +177,7 @@ class cAppliOptimTriplet
           void ShowPointSel(const std::vector<int> &,cImOfTriplet * aIm,const std::vector<Pt2df> &,int aCoul);
           void ShowPointSel(cImOfTriplet * aIm,const std::vector<Pt2df> &,int aCoul);
           void Execute();
+          void TestTomasiKanade();
 
           cAppliOptimTriplet(const cAppliOptimTriplet&); // N.I.
           std::string mNameOriCalib;
@@ -185,10 +194,13 @@ class cAppliOptimTriplet
 
           tMultiplePF      mFullH123;
           tMultiplePF      mRedH123;
+          tMultiplePF      mTK_H123;
           double           mFoc;
           cResIPR          mSel3;
+          cResIPR          mTKSel3;  // Hyper resuit pour Tomasi Kanade init
           Pt2dr            mSzShow;
           int              mNbMaxSel;
+          int              mTKNbMaxSel;
           int              mNbMaxInit;
           bool             mShow;
           bool             mQuick;
@@ -200,6 +212,11 @@ class cAppliOptimTriplet
           cTplTriplet<std::string> m3S;
           cNewO_OneIm *    mNoIm1;
           cNewO_OneIm *    mNoIm2;
+          bool             mBugTK;
+
+          std::string      mNameModeNO;
+          eTypeModeNO      mModeNO;
+          bool             mModeTTK;
 };
 
 const std::string cAppliOptimTriplet::KeyCple = "KeyCple";
@@ -234,9 +251,10 @@ void cImOfTriplet::InitW(const Pt2dr & aSzMax)
 }
 #endif
 
-void  cImOfTriplet::SetReduce(const cResIPR & aResIPR)
+void  cImOfTriplet::SetReduce(const cResIPR & aResIPR,const cResIPR & aTKIPR)
 {
     ReducePts(mVRedPtOf3,mVFullPtOf3,aResIPR.mVSel);
+    ReducePts(mVTK_PtOf3,mVFullPtOf3,aTKIPR.mVSel);
 }
 
 
@@ -358,6 +376,20 @@ void cAppliOptimTriplet::ShowPointSel(cImOfTriplet * aIm,const std::vector<Pt2df
 
      //===========================================
 
+void cAppliOptimTriplet::TestSol(const  std::vector<ElRotation3D> & aVR)
+{
+    double aResidu = ResiduGlob(aVR[0],aVR[1],aVR[2]);
+
+    // std::cout << "cAppliOptimTriplet::TestSol " << aResidu << "\n";
+
+    if (aResidu < mBestResidu)
+    {
+       mBestResidu = aResidu;
+       for (int aK=0 ; aK<3 ; aK++)
+           mIms[aK]->SetOri(aVR[aK]);
+    }
+}
+
 void cAppliOptimTriplet::TestOPA(cPairOfTriplet & aPair)
 {
     ElRotation3D aR1 = ElRotation3D::Id;
@@ -420,6 +452,8 @@ void cAppliOptimTriplet::TestOPA(cPairOfTriplet & aPair)
     aVR[2] = ElRotation3D(aVR[2].tr()/aFact,aVR[2].Mat(),true);
 
 
+    TestSol(aVR);
+/*
     double aResidu = ResiduGlob(aVR[0],aVR[1],aVR[2]);
 
     if (aResidu < mBestResidu)
@@ -428,6 +462,7 @@ void cAppliOptimTriplet::TestOPA(cPairOfTriplet & aPair)
          for (int aK=0 ; aK<3 ; aK++)
              mIms[aK]->SetOri(aVR[aK]);
     }
+*/
 }
 
 
@@ -505,7 +540,10 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
     mQuitExist (QuitExist),
     m3S        ("a","b","c"),
     mNoIm1     (0),
-    mNoIm2     (0)
+    mNoIm2     (0),
+    mBugTK     (false),
+    mNameModeNO (TheStdModeNewOri),
+    mModeTTK    (false)
 {
    ElInitArgMain
    (
@@ -520,10 +558,19 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
                    << EAM(mShow,"Show",true,"Show Message")
                    << EAM(mQuick,"Quick",true,"Quick version")
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mBugTK,"BugTK",true,"Debug Tomasi Kanade")
+                   << EAM(mNameModeNO,"ModeNO",true,"Mode New Orient (Def=Std)")
    );
 
+   mModeNO =  ToTypeNO(mNameModeNO);
+   mModeTTK = (mModeNO==eModeNO_TTK);
+   if (mModeTTK)
+   {
+      mQuitExist = false;
+   }
 
-   m3S = cTplTriplet<std::string> (mN1,mN2,mN3);
+   StdCorrecNameOrient(mNameOriCalib,mDir);
+
 
    std::string aNameMin = (mN1<mN2) ? mN1 : mN2;
    std::string aNameMax = (mN1>mN2) ? mN1 : mN2;
@@ -538,6 +585,10 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
       cListOfName aLON  = StdGetFromPCP(aNameLON,ListOfName);
       for (std::list<std::string>::const_iterator itN =aLON.Name().begin() ; itN!=aLON.Name().end() ; itN++)
       {
+         if (mShow) 
+         {
+             // std::cout << "============= RUN with  Im3= " << *itN << " ======================\n";
+         }
          mN3 = *itN;
          m3S = cTplTriplet<std::string> (mN1,mN2,mN3);
          Execute();
@@ -545,11 +596,35 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
    }
    else
    {
+      m3S = cTplTriplet<std::string> (mN1,mN2,mN3);
       mQuitExist = false;
       Execute();
    }
 }
 
+void cAppliOptimTriplet::TestTomasiKanade()
+{
+   if (mTK_H123[0]->size() < NbMinPts3TomKan)
+      return;
+    double aPrec ;
+    if (mModeTTK) 
+       mBestResidu= 1e20 ;
+
+
+
+    std::vector<ElRotation3D> aVR = OrientTomasiKanade 
+                                    (
+                                        aPrec,
+                                        mTK_H123,
+                                        3,
+                                        50,
+                                        1e-5,
+                                        (std::vector<ElRotation3D> *)NULL
+                                    );
+
+    // std::cout << "TomasiKanad " << aPrec  <<  "\n";
+    TestSol(aVR);
+}
 
 void cAppliOptimTriplet::Execute()
 {
@@ -558,6 +633,7 @@ void cAppliOptimTriplet::Execute()
    {
         mNbMaxSel = mQuick ? QuickDefNbMaxSel : StdDefNbMaxSel;
    }
+   mTKNbMaxSel = mQuick ? QuicTKNbMaxSel : StdTKNbMaxSel;
 
    if (mShow) 
       mQuitExist = false;
@@ -604,7 +680,9 @@ void cAppliOptimTriplet::Execute()
    mP13 = mPairs[1];
    mP23 = mPairs[2];
 
+
    mNM->LoadTriplet(mIm1->Im(),mIm2->Im(),mIm3->Im(),&mIm1->VFullPtOf3(),&mIm2->VFullPtOf3(),&mIm3->VFullPtOf3());
+
 
 
    if (EAMIsInit(&mSzShow) && (!EAMIsInit(&mNbMaxSel)))
@@ -614,20 +692,26 @@ void cAppliOptimTriplet::Execute()
 
    if (mShow) 
       std::cout << "Time load " << aChrono.uval() << "\n";
-   int aNb3 = round_up(CoutAttenueTetaMax(mIm2->VFullPtOf3().size() ,mNbMaxSel));
-   
 
+   int aNbFull3 = mIm2->VFullPtOf3().size() ;
+   int aNb3 = round_up(CoutAttenueTetaMax(aNbFull3,mNbMaxSel));
    mNbMaxSel = aNb3;
-
-  //  mSel3 = IndPackReduit(mIm2->VFullPtOf3(),mNbMaxInit,mNbMaxSel);
-
    mSel3 = IndPackReduit(mIm2->VFullPtOf3(),mNbMaxInit,mNbMaxSel);
+
+
+   // aNb3 = round_up(CoutAttenueTetaMax(mIm2->VFullPtOf3().size() , mTKNbMaxSel));
+   mTKNbMaxSel = ElMin(mTKNbMaxSel,aNbFull3);
+   mTKSel3 = IndPackReduit(mIm2->VFullPtOf3(),ElMin(aNbFull3,5*mTKNbMaxSel),ElMin(aNbFull3,mTKNbMaxSel));
+
+
+
 
    for (int aK=0 ; aK<3 ; aK++)
    {
-        mIms[aK]->SetReduce(mSel3);
+        mIms[aK]->SetReduce(mSel3,mTKSel3);
         mFullH123.push_back(&(mIms[aK]->VFullPtOf3()));
         mRedH123.push_back(&(mIms[aK]->VRedPtOf3()));
+        mTK_H123.push_back(&(mIms[aK]->VTK_PtOf3()));
    }
 
    mP12->SetPackRed(false,mNbMaxInit,mNbMaxSel,mSel3,*mFullH123[1]);
@@ -657,6 +741,7 @@ void cAppliOptimTriplet::Execute()
    }
 
 
+    TestTomasiKanade();
 
    if (mShow)
    {
@@ -697,26 +782,20 @@ void cAppliOptimTriplet::Execute()
 
 #endif
 
-/*
-   SolveBundle3Image
-   (
-        mFoc,
-        mIm2->Rot(),
-        mIm3->Rot(),
-        mFullH123,
-        mP12->FullHoms(),
-        mP13->FullHoms(),
-        mP23->FullHoms()
-   );
-*/
    int aNbIterBundle = mQuick ? QuickNbIterBundle : StdNbIterBundle;
    double aBOnH;
    Pt3dr aPMed;
+
+   ElRotation3D aR21 =  mIm2->Ori();
+   ElRotation3D aR31 =  mIm3->Ori();
+
+
+   cParamCtrlSB3I aParamSB3I(aNbIterBundle);
    SolveBundle3Image
    (
         mFoc,
-        mIm2->Ori(),
-        mIm3->Ori(),
+        aR21, // mIm2->Ori(),
+        aR31, // mIm3->Ori(),
         aPMed,
         aBOnH,
         mRedH123,
@@ -724,7 +803,7 @@ void cAppliOptimTriplet::Execute()
         mP13->RedHoms(),
         mP23->RedHoms(),
         mPds3,
-        aNbIterBundle
+        aParamSB3I
    );
 
 
@@ -759,6 +838,7 @@ void cAppliOptimTriplet::Execute()
     mIms.clear();
     mFullH123.clear();
     mRedH123.clear();
+    mTK_H123.clear();
 }
 
 
@@ -787,6 +867,8 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    bool Quick = false;
    std::string aPrefHom="";
    bool Debug  = false;
+   std::string aNameModeNO = TheStdModeNewOri;
+   bool aShow = false;
 
    ElInitArgMain
    (
@@ -797,6 +879,8 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
                    << EAM(Quick,"Quick",true,"Quick version", eSAM_IsBool)
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
                    << EAM(Debug,"Debug",true,"Debugging mode (tuning purpose)", eSAM_IsBool)
+                   << EAM(aNameModeNO,"ModeNO",true,"Mode (Def=Std)")
+                   << EAM(aShow,"Show",true,"Print command of each triplet")
     );
 
    cElemAppliSetFile anEASF(aFullPat);
@@ -828,25 +912,34 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
 
             aCom += " Quick=" + ToString(Quick);
             aCom += " PrefHom=" + aPrefHom;
+            aCom += " ModeNO=" + aNameModeNO;
 
-            if (inParal)
+            if (aShow)
             {
-                aLCom.push_back(aCom);
-                if ((aNb%40) == 0)
-                {
-                    cEl_GPAO::DoComInParal(aLCom);
-                    aLCom.clear();
-                    std::cout << "Optim triplets Done " << aNb << " pairs out of " << aNb2  << " in " << aChrono.uval() << "\n";
-                }
+               std::cout << "#COM=[" << aCom << "]\n";
             }
             else
             {
-                std::cout << "COM " << aCom << "\n";
-                System(aCom);
+                if (inParal)
+                {
+                    aLCom.push_back(aCom);
+                    if ((aNb%40) == 0)
+                    {
+                        cEl_GPAO::DoComInParal(aLCom);
+                        aLCom.clear();
+                        std::cout << "Optim triplets Done " << aNb << " pairs out of " << aNb2  << " in " << aChrono.uval() << "\n";
+                    }
+                }
+                else
+                {
+                    std::cout << "COM " << aCom << "\n";
+                    System(aCom);
+                }
             }
        }
    }
-   cEl_GPAO::DoComInParal(aLCom);
+   if (! aShow)
+      cEl_GPAO::DoComInParal(aLCom);
 
    return EXIT_SUCCESS;
 }
@@ -857,7 +950,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
 /*
     //  VERSION AVEC TRIPLETS - A CONSERVER AU CAS OU
     // REMPLACEE PAR UNE VERSION AVEC 1/Image par couple
-int CPP_AllOptimTriplet_main(int argc,char ** argv)
+int CPP _AllOptimTriplet_main(int argc,char ** argv)
 {
    ElTimer aChrono;
    std::string aFullPat,aNameCalib;

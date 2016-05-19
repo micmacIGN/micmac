@@ -292,7 +292,8 @@ Pt3dr InterSeg(const std::vector<Pt3dr> & aVP0, const std::vector<Pt3dr> & aVP1,
     }
     cMSymCoffact3x3<double>  aMCF(aDM);
 
-    return aMCF.CoffVecInv(aV);
+    Pt3dr aPRes =  aMCF.CoffVecInv(aV);
+    return aPRes;
 }
 
 Pt3dr InterSeg(const std::vector<ElSeg3D> & aVS,bool & Ok)
@@ -304,6 +305,76 @@ Pt3dr InterSeg(const std::vector<ElSeg3D> & aVS,bool & Ok)
          aVP1.push_back(aVS[aKS].P1());
      }
      return InterSeg(aVP0,aVP1,Ok);
+}
+
+Pt3dr InterSeg(const std::vector<ElRotation3D> & aVR,const std::vector<Pt2dr> & aVP,bool & Ok,double * aResidu)
+{
+     std::vector<Pt3dr>  aVP0,aVP1;
+     ELISE_ASSERT(aVR.size()==aVP.size(),"InterSeg Rot");
+     for (int aK=0 ; aK<int(aVR.size()) ; aK++)
+     {
+         const ElRotation3D & aRot = aVR[aK];
+         Pt2dr aPIm = aVP[aK]; 
+
+         Pt3dr aC = aRot.tr();
+         Pt3dr aDir  = vunit(aRot.Mat() * Pt3dr(aPIm.x,aPIm.y,1.0));
+
+         aVP0.push_back(aC);
+         aVP1.push_back(aC+aDir);
+     }
+
+     Pt3dr aPRes = InterSeg(aVP0,aVP1,Ok);
+
+     if (aResidu)
+     {
+         *aResidu = 0;
+         for (int aK=0 ; aK<int(aVR.size()) ; aK++)
+         {
+             Pt3dr aDir1 = vunit(aPRes-aVP0[aK]);
+             Pt3dr aDir2 = vunit(aVP1[aK]-aVP0[aK]);
+             *aResidu += euclid(aDir1-aDir2);
+         }
+         *aResidu /= aVR.size();
+     }
+
+     return aPRes;
+}
+/*
+*/
+
+double QualInterSeg(const std::vector<ElRotation3D> & aVR,const tMultiplePF & aVPMul)
+{
+   int aNbP = aVPMul[0]->size();
+   int aNbC = aVR.size();
+   ELISE_ASSERT(aNbC == int(aVPMul.size()),"QualInterSeg");
+
+   std::vector<double> aVRes;
+   for (int aKP=0 ; aKP<aNbP ; aKP++)
+   {
+       std::vector<Pt2dr> aVP;
+       for (int aKC=0; aKC<aNbC ; aKC++)
+       {
+           aVP.push_back(ToPt2dr( (*(aVPMul[aKC]))[aKP]));
+       }
+       double aResidu;
+       bool Ok;
+       InterSeg(aVR,aVP,Ok,&aResidu);
+       aVRes.push_back(aResidu);
+   }
+
+   double aResStd = KthVal(aVRes,aNbP*0.75) * 0.666;
+
+
+   double aSomRes = 0;
+   double aSomPds = 0;
+   for (int aKP=0 ; aKP<aNbP ; aKP++)
+   {
+        double aRes = aVRes[aKP];
+        double aPds = 1.0 / (1 + ElSquare(aRes/aResStd));
+        aSomRes += aRes * aPds;
+        aSomPds += aPds;
+   }
+   return aSomRes / aSomPds;
 }
 
 

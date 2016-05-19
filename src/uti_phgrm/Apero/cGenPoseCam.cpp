@@ -43,6 +43,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 double  cPolynBGC3M2D_Formelle::mNbPixOfEpAngle = 1.0;
 double  cPolynBGC3M2D_Formelle::mEpsGrad = 5.0;
 
+
+extern bool    AllowUnsortedVarIn_SetMappingCur;
 // cPolynBGC3M2D_Formelle
 
 /***************************************************************/

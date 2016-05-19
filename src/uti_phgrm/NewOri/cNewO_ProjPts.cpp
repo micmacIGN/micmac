@@ -91,6 +91,8 @@ template<class TypePt> class   cTplSelecPt
         double DistMinSelMoy();
         cResIPR & Res() {return mRes;}
 
+        std::vector<double> VDistMin();
+
     private :
         double Pds(int aK) {return mVPds ? (*mVPds)[aK] : 1.0;}
  
@@ -210,15 +212,32 @@ template<class TypePt> void cTplSelecPt<TypePt>::SelectN(int aTargetNbSel,double
     }
 }
 
+template<class TypePt> std::vector<double> cTplSelecPt<TypePt>::VDistMin() 
+{
+   std::vector<double> aVDist;
+   for (int aKS=0 ; aKS<int(mVSel.size()) ; aKS++)
+   {
+       aVDist.push_back(mVPresel[aKS].mDMin);
+   }
+   return aVDist;
+}
+
+
 template<class TypePt> double cTplSelecPt<TypePt>::DistMinSelMoy() 
 {
     double aSom = 0.0;
+    int aNb = 0;
     for (int aKS=0 ; aKS<int(mVSel.size()) ; aKS++)
     {
-          aSom += mVPresel[aKS].mDMin;
+        double aD = mVPresel[aKS].mDMin;
+        if (aD>0)
+        {
+            aSom += aD;
+            aNb++;
+        }
     }
-    mRes.mDistMoy = aSom / mVSel.size();
-    return mRes.mDistMoy;
+    mRes.mMoyDistNN = aSom / ElMax(1,aNb);
+    return mRes.mMoyDistNN;
 }
 
 cResIPR cResIPRIdent(int aNb)
@@ -226,7 +245,7 @@ cResIPR cResIPRIdent(int aNb)
    cResIPR aRes;
    for (int aK=0 ; aK< aNb ; aK++)
        aRes.mVSel.push_back(aK);
-   aRes.mDistMoy = 0;
+   aRes.mMoyDistNN = 0;
    return aRes;
 
 }
@@ -258,13 +277,13 @@ template<class TypePt> cResIPR  TplIndPackReduit
        {
            aSel.UpdateDistPtsAdd((*aVPtsExist)[aResExist->mVSel[aK]]);
        }
-       aDistArret = aResExist->mDistMoy;
+       aDistArret = aResExist->mMoyDistNN;
     }
 
 
     aSel.SelectN(aNbFin,aDistArret);
     aSel.DistMinSelMoy();
-    aSel.Res().mDistMoy *= sqrt(aSel.VSel().size()/double(aNbFin));
+    aSel.Res().mMoyDistNN *= sqrt(aSel.VSel().size()/double(aNbFin));
 
     return aSel.Res();
 }

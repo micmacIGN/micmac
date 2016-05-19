@@ -24,6 +24,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
         _ui(new Ui::SaisieQtWindow),
         _Engine(new cEngine),
+        _ProgressDialog(NULL),
         _layout_GLwidgets(new QGridLayout),
         _zoomLayout(new QGridLayout),
         _params(new cParameters),
@@ -96,6 +97,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
 		// some shortcuts names do not appear
 	#endif
+
+	__check_gl_error("SaisieQtWindow::SaisieQtWindow");
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -112,10 +115,6 @@ SaisieQtWindow::~SaisieQtWindow()
 
 void SaisieQtWindow::connectActions()
 {
-    _ProgressDialog = new QProgressDialog(tr("Loading files"), tr("Stop"),0,100,this, Qt::ToolTip);
-
-    connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog, SLOT(cancel()));
-
     connect(_ui->menuFile, SIGNAL(aboutToShow()),this, SLOT(on_menuFile_triggered()));
 
     for (int aK = 0; aK < nbWidgets();++aK)
@@ -152,7 +151,6 @@ void SaisieQtWindow::connectActions()
     _signalMapper->setMapping (_ui->action1_4_25, 25);
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
-
 }
 
 void SaisieQtWindow::createRecentFileMenu()
@@ -181,53 +179,62 @@ QString SaisieQtWindow::getPostFix()
     return _params->getPostFix();
 }
 
-void SaisieQtWindow::progression()
+ProgressDialogUpdateSignaler::ProgressDialogUpdateSignaler(QProgressDialog &aProgressDialog):
+	_progressDialog(aProgressDialog)
 {
-    if(_incre)
-        _ProgressDialog->setValue(*_incre);
 }
 
-void SaisieQtWindow::runProgressDialog(QFuture<void> future)
+void ProgressDialogUpdateSignaler::operator ()()
+{
+	_progressDialog.setValue(_progressDialog.value() + 1);
+}
+
+	void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
+{
+	if (_ProgressDialog == NULL)
+	{
+		_ProgressDialog = new QProgressDialog(tr("Loading files"), tr("Stop"), aMin, aMax,this, Qt::ToolTip);
+		_Engine->setUpdateSignaler(new ProgressDialogUpdateSignaler(*_ProgressDialog));
+	}
+
+	_ProgressDialog->setRange(aMin, aMax);
+	_ProgressDialog->setValue(aMin);
+	_ProgressDialog->setWindowModality(Qt::WindowModal);
+	_ProgressDialog->setCancelButton(NULL);
+	_ProgressDialog->setMinimumDuration(500);
+
+	float szFactor = 1.f;
+	if (_params->getFullScreen())
+	{
+		QRect screen = QApplication::desktop()->screenGeometry ( -1 );
+
+		szFactor = (float) screen.width() / size().width();
+	}
+
+	int ax = pos().x() + (_ui->frame_GLWidgets->size().width() * szFactor - _ProgressDialog->size().width())/2;
+	int ay = pos().y() + (_ui->frame_GLWidgets->size().height() * szFactor - _ProgressDialog->size().height())/2;
+
+	_ProgressDialog->move(ax, ay);
+	_ProgressDialog->exec();
+}
+
+void SaisieQtWindow::runProgressDialog(QFuture<void> aFuture, int aMin, int aMax)
 {
     bool bShowMsgs = _ui->actionShow_messages->isChecked();
     on_actionShow_messages_toggled(false);
 
-    _FutureWatcher.setFuture(future);
-    _ProgressDialog->setWindowModality(Qt::WindowModal);
-    _ProgressDialog->setCancelButton(NULL);
+    //~ _FutureWatcher.setFuture(aFuture);
+	#if ELISE_QT_VERSION == 5
+		activateLoadImageProgressDialog(aMin, aMax);
+	#endif
 
-    float szFactor = 1.f;
-    if (_params->getFullScreen())
-    {
-        QRect screen = QApplication::desktop()->screenGeometry ( -1 );
-
-        szFactor = (float) screen.width() / size().width();
-    }
-
-    int ax = pos().x() + (_ui->frame_GLWidgets->size().width() * szFactor - _ProgressDialog->size().width())/2;
-    int ay = pos().y() + (_ui->frame_GLWidgets->size().height() * szFactor - _ProgressDialog->size().height())/2;
-
-    _ProgressDialog->move(ax, ay);
-    _ProgressDialog->exec();
-
-    future.waitForFinished();
+    aFuture.waitForFinished();
     on_actionShow_messages_toggled(bShowMsgs);
 }
 
 bool SaisieQtWindow::loadPly(const QStringList& filenames)
 {
-    QTimer *timer_test = new QTimer(this);
-    _incre = new int(0);
-    connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    timer_test->start();
-
-    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre));
-
-    timer_test->stop();
-    disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    delete _incre;
-    delete timer_test;
-
+    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames), 0, filenames.size());
     return true;
 }
 
@@ -235,21 +242,11 @@ string __humanReadable( size_t aSize );
 
 bool SaisieQtWindow::loadImages(const QStringList& filenames)
 {
-    QTimer *timer_test = new QTimer(this);
-    _incre = new int(0);
-    connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    timer_test->start();
-
-    if (filenames.size() == 1) _ProgressDialog->setMaximum(0);
 	#ifdef USE_MIPMAP_HANDLER
-		_Engine->loadImages(filenames, _incre);
+		_Engine->loadImages(filenames);
 	#else
-    	runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages,filenames,_incre));
+    	runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages,filenames), 0, filenames.size());
 	#endif
-    timer_test->stop();
-    disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    delete _incre;
-    delete timer_test;
 
     return true;
 }
@@ -271,18 +268,7 @@ bool SaisieQtWindow::loadCameras(const QStringList& filenames)
          }
     }
 
-    QTimer *timer_test = new QTimer(this);
-    _incre = new int(0);
-    connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    timer_test->start();
-
-    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras,filenames,_incre));
-
-    timer_test->stop();
-    disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    delete _incre;
-    delete timer_test;
-
+    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras,filenames), 0, filenames.size());
     return true;
 }
 

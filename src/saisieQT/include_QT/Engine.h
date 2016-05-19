@@ -79,7 +79,7 @@ public:
 
 	cCamHandler* loadCamera(QString aNameFile);
 
-    GlCloud*    loadCloud(string i_ply_file , int *incre = NULL);
+    GlCloud*    loadCloud(string i_ply_file);
 
 #ifdef USE_MIPMAP_HANDLER
 	bool        reloadImage( MipmapHandler::Mipmap &aImage );
@@ -143,6 +143,11 @@ enum idGPU_Vendor
     NOMODEL
 };
 
+class UpdateSignaler
+{
+public:
+	virtual void operator()() = 0;
+};
 
 class cEngine
 {
@@ -174,13 +179,13 @@ public:
     void    setPostFix(){_Loader->setPostFix(_params->getPostFix());}
 
     //! Load point cloud .ply files
-    void    loadClouds(QStringList, int *incre = NULL);
+    void    loadClouds(QStringList);
 
     //! Load cameras .xml files
-    void    loadCameras(QStringList, int *incre = NULL);
+    void    loadCameras(QStringList);
 
     //! Load images  files
-    void    loadImages(QStringList, int *incre = NULL);
+    void    loadImages(QStringList);
 
     //! Load image (and mask) file
 	void    loadImage(QString imgName, float scaleFactor = 1.f);
@@ -238,10 +243,14 @@ public:
 	void getGLDataIdSet( int aI0, int aI1, bool aIsLoaded, size_t aNbRequestedWidgets, std::vector<int> &oIds ) const;
 #endif
 
+	void setUpdateSignaler(UpdateSignaler *aSignaler);
+	void signalUpdate();
+
 private:
 
 	cLoader*            _Loader;
 	cData*              _Data;
+	UpdateSignaler    * _updateSignaler;
 
     QVector <cGLData*>  _vGLData;
 

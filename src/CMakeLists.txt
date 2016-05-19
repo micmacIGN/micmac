@@ -122,7 +122,9 @@ endforeach(source_file)
 
 # OPTION BUILD : En tetes precompiles visual studio
 
-enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
+if (${WITH_HEADER_PRECOMP} AND MSVC)
+	enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
+endif()
 
 # fichiers qui n'utilisent pas les en tetes precompilées
 set(Elise_Src_Files
@@ -182,12 +184,11 @@ target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_LIBRARIES})
 #    qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
 #endif()
 
-INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB} )
+INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB})
 
-
-# OPTION BUILD : En tetes precompilees pour gcc
-enable_precompiled_headers_GCC(StdAfx.h ${libElise} "${CMAKE_CXX_FLAGS}")
-
+if (${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX)) # OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "${CMAKE_CXX_FLAGS}")
+endif()
 
 # DEFINITION
 add_definitions(-DNO_JPEG -DNO_LCMS)

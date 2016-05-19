@@ -215,12 +215,18 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
         fullName = testName;
     }
 
-    // PATH directories prevails upon INTERNAL_TOOLS_SUBDIRECTORY and EXTERNAL_TOOLS_SUBDIRECTORY
-    // except for excluded directories (in m_excludedDirectories) which are ignored
-    if ( checkPathDirectories( exeName ) ){
-        status = ( ExtToolStatus )( status|EXT_TOOL_FOUND_IN_PATH );
-        fullName = exeName;
-    }
+	#if !ELISE_windows
+		// PATH directories prevails upon INTERNAL_TOOLS_SUBDIRECTORY and EXTERNAL_TOOLS_SUBDIRECTORY
+		// except for excluded directories (in m_excludedDirectories) which are ignored
+
+		// we do not use PATH under windows because all dependencies are provided in binaire-aux/windows
+
+		if (checkPathDirectories(exeName))
+		{
+			status = (ExtToolStatus)(status | EXT_TOOL_FOUND_IN_PATH);
+			fullName = exeName;
+		}
+	#endif
 
     if (status == EXT_TOOL_UNDEF)
     {
@@ -303,6 +309,10 @@ int CheckDependencies_main(int argc,char ** argv)
 
     #ifdef __TRACE_SYSTEM__
         cout << "--- __TRACE_SYSTEM__ = " << __TRACE_SYSTEM__ << endl << endl;
+    #endif
+
+    #ifdef __DEBUG
+        cout << "--- __DEBUG" << endl << endl;
     #endif
 
     #ifdef USE_OPEN_MP

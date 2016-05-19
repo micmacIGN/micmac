@@ -271,6 +271,57 @@ void  BinaryUnDumpFromFile(eTypeImporGenBundle & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eTypeImporGenBundle *) {return "6477A32B98EF9095FE3F";};
 
+eTypeModeNO  Str2eTypeModeNO(const std::string & aName)
+{
+   if (aName=="eModeNO_Std")
+      return eModeNO_Std;
+   else if (aName=="eModeNO_TTK")
+      return eModeNO_TTK;
+   else if (aName=="eModeNO_NbVals")
+      return eModeNO_NbVals;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeModeNO\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeModeNO) 0;
+}
+void xml_init(eTypeModeNO & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeModeNO(aTree->Contenu());
+}
+std::string  eToString(const eTypeModeNO & anObj)
+{
+   if (anObj==eModeNO_Std)
+      return  "eModeNO_Std";
+   if (anObj==eModeNO_TTK)
+      return  "eModeNO_TTK";
+   if (anObj==eModeNO_NbVals)
+      return  "eModeNO_NbVals";
+ std::cout << "Enum = eTypeModeNO\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeModeNO & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeModeNO & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeModeNO & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeModeNO) aIVal;
+}
+
+std::string  Mangling( eTypeModeNO *) {return "CAB53EEA202A17E5FD3F";};
+
 
 int & cIntervLutConvertion::NivIn()
 {

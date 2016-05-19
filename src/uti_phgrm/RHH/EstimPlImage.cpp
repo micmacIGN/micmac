@@ -204,6 +204,7 @@ double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2,bool H1On2,bo
 cTestPlIm::cTestPlIm(cLink2Img * aLnk,cElemMepRelCoplan * aRMCP,bool Show, double anEpsRes) :
      mLnk     (aLnk),
      mRMCP    (aRMCP),
+     mResiduH (0.),
      mHomI2T  (mRMCP->HomCam2Plan(&mResiduH)),
      mOk      (mResiduH < anEpsRes)
 {

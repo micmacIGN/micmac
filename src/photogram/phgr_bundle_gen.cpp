@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+extern bool AllowUnsortedVarIn_SetMappingCur;
 /*
      cPt3dEEF et cScalEEF sont definie afin d'heriter de cElemEqFormelle, cObjFormel2Destroy
     Sinon, on aurai interet a les traiter directement dans cGlobEqLineraiseAngle

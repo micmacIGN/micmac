@@ -73,6 +73,17 @@ class cSolBasculeRig
        static cSolBasculeRig SolM2ToM1(const std::vector<ElRotation3D> & aVR1, const std::vector<ElRotation3D> & aVR2);
 
 
+       // Renvoie une solution au sens des moindre L2, initialisee par RANSAC
+       static cSolBasculeRig StdSolFromPts
+                             (
+                                   const std::vector<Pt3dr> & aV1,
+                                   const std::vector<Pt3dr> & aV2,
+                                   const std::vector<double> * aVPds=0, // si 0 ts les pds valent 1
+                                   int   aNbRansac             = 200,
+                                   int   aNbL2                 = 5
+                             );
+
+
        Pt3dr operator()(const Pt3dr &) const;  // mTr + mMatR * aP * mL
        static cSolBasculeRig  Id();
 
@@ -87,12 +98,31 @@ class cSolBasculeRig
         // Assez elementaire.
         
        ElRotation3D TransformOriC2M(const ElRotation3D &) const;
+
+       void QualitySol(  const std::vector<ElRotation3D> & aVR1 ,
+                         const std::vector<ElRotation3D> & aVR2,
+                         double & aDMatr,
+                         double & aDCentr
+            );
+
     private :
 
         ElMatrix<double> mMatR;
         double           mL;
         Pt3dr            mTr;
 };
+
+/* => Redondant avec TransformOriC2M 
+cSolBasculeRig  BascFromVRot
+                (
+                     const std::vector<ElRotation3D> & aVR1 ,
+                     const std::vector<ElRotation3D> & aVR2,
+                     std::vector<Pt3dr> &              aVP1,
+                     std::vector<Pt3dr> &              aVP2
+                );
+*/
+
+
 
 class cRansacBasculementRigide
 {
@@ -102,7 +132,7 @@ class cRansacBasculementRigide
 
 
         const cSolBasculeRig & BestSol() const;
-        void ExploreAllRansac() ;
+        void ExploreAllRansac(int aNbRanSac=1000000000) ;
 
 
         void AddExemple(const Pt3dr & aAvant,const Pt3dr & aApres,const Pt3dr * aSpeedApres,const std::string & aName);

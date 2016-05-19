@@ -33,9 +33,9 @@ void cLoader::setDevIOImageAlter(deviceIOImage* devIOImageAlter)
     _devIOImageAlter = devIOImageAlter;
 }
 
-GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
+GlCloud* cLoader::loadCloud(string i_ply_file)
 {
-    return GlCloud::loadPly( i_ply_file, incre );
+    return GlCloud::loadPly(i_ply_file);
 }
 
 #ifdef USE_MIPMAP_HANDLER
@@ -245,7 +245,8 @@ cCamHandler* cLoader::loadCamera(QString aNameFile)
 
 cEngine::cEngine():
     _Loader(new cLoader),
-    _Data(new cData)
+    _Data(new cData),
+    _updateSignaler(NULL)
 {}
 
 cEngine::~cEngine()
@@ -269,25 +270,26 @@ cEngine::~cEngine()
 	}
 #endif
 
-void cEngine::loadClouds(QStringList filenames, int* incre)
+void cEngine::loadClouds(QStringList filenames)
 {
-    for (int i=0;i<filenames.size();++i)
-        _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString(), incre));
-
-    _Data->computeCenterAndBBox();
+	for (int i=0;i<filenames.size();++i)
+	{
+		_Data->addCloud(_Loader->loadCloud(filenames[i].toStdString()));
+		signalUpdate();
+	}
+	_Data->computeCenterAndBBox();
 }
 
-void cEngine::loadCameras(QStringList filenames, int *incre)
+void cEngine::loadCameras(QStringList filenames)
 {
-    for (int i=0;i<filenames.size();++i)
-    {
+	for (int i=0;i<filenames.size();++i)
+	{
+		cCamHandler* cam = _Loader->loadCamera(filenames[i]);
+		if (cam) _Data->addCamera(cam);
+		signalUpdate();
+	}
 
-         if (incre) *incre = 100.0f*(float)i/filenames.size();
-         cCamHandler* cam = _Loader->loadCamera(filenames[i]);
-         if (cam) _Data->addCamera(cam);
-    }
-
-    _Data->computeCenterAndBBox();
+	_Data->computeCenterAndBBox();
 }
 
 //#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
@@ -317,14 +319,14 @@ void cEngine::setLoader(cLoader* Loader)
 }
 
 
-void cEngine::loadImages(QStringList filenames, int* incre)
+void cEngine::loadImages(QStringList filenames)
 {
     float scaleFactor = computeScaleFactor(filenames);
 
-    for (int i=0;i<filenames.size();++i)
+    for (int i=0; i<filenames.size(); ++i)
     {
-        if (incre) *incre = 100.0f*(float)i/filenames.size();
-        loadImage(filenames[i],scaleFactor);
+        loadImage(filenames[i], scaleFactor);
+        signalUpdate();
     }
 }
 
@@ -870,6 +872,16 @@ float cEngine::computeScaleFactor(QStringList& filenames)
 		oIds.resize(itDst - oIds.data());
 	}
 #endif
+
+void cEngine::setUpdateSignaler(UpdateSignaler *aSignaler)
+{
+	_updateSignaler = aSignaler;
+}
+
+void cEngine::signalUpdate()
+{
+	if (_updateSignaler != NULL) (*_updateSignaler)();
+}
 
 //********************************************************************************
 

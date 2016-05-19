@@ -5,7 +5,7 @@
     Read a ply file, store the point cloud
 */
 
-GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
+GlCloud* GlCloud::loadPly(string i_filename)
 {
     int type = 0;
     vector <GlVertex> ptList;
@@ -61,8 +61,6 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
                     {
-                        if (incre) *incre = 100.0f*(float)j/num_elems;
-
                         ply_get_element (thePlyFile, (void *) vertex);
 
 #ifdef _DEBUG
@@ -84,8 +82,6 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
                     {
-                        if (incre) *incre = 100.0f*(float)j/num_elems;
-
                         ply_get_element (thePlyFile, (void *) vertex);
 
 #ifdef _DEBUG
@@ -108,8 +104,6 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
                     {
-                        if (incre) *incre = 100.0f*(float)j/num_elems;
-
                         // grab an element from the file
                         ply_get_element (thePlyFile, (void *) vertex);
 
@@ -144,8 +138,6 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 
                         for (int j = 0; j < num_elems; j++)
                         {
-                            if (incre) *incre = 100.0f*(float)j/num_elems;
-
                             ply_get_element (thePlyFile, (void *) vertex);
 
                             #ifdef _DEBUG
@@ -165,8 +157,6 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 
                         for (int j = 0; j < num_elems; j++)
                         {
-                            if (incre) *incre = 100.0f*(float)j/num_elems;
-
                             ply_get_element (thePlyFile, (void *) vertex);
 
                             #ifdef _DEBUG
@@ -187,8 +177,6 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 
                     for (int j = 0; j < num_elems; j++)
                     {
-                        if (incre) *incre = 100.0f*(float)j/num_elems;
-
                         ply_get_element (thePlyFile, (void *) vertex);
 
     #ifdef _DEBUG
@@ -213,8 +201,6 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
     #endif
 
     ply_close (thePlyFile);
-
-    if(incre) *incre = 0;
 
     return new GlCloud(ptList, type);
 }
