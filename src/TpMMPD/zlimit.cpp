@@ -50,9 +50,10 @@ int Zlimit_main(int argc,char ** argv)
 {
     std::string aNameOriMNT;
     std::string aMasqSup="?";
+    std::string aCorrelIm="?";
     double aMaxZ,aMinZ;
     
-    cout<<"Zlimit: create masq for depth image."<<endl;
+    cout<<endl<<"Zlimit: create masq for depth image."<<endl<<endl;
     ElInitArgMain
     (
     argc,argv,
@@ -62,6 +63,7 @@ int Zlimit_main(int argc,char ** argv)
                 << EAMC(aMaxZ, "Max Z (m)"),
     //optional arguments
     LArgMain()  << EAM(aMasqSup,"MasqSup",true,"Supplementary masq")
+                << EAM(aCorrelIm,"CorrelIm",true,"Use correl image as a masq")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -72,7 +74,7 @@ int Zlimit_main(int argc,char ** argv)
     string aMasqXmlName=aNameOriMNT+"_MasqZminmax.xml";
     
     cFileOriMnt aOriMnt = StdGetFromPCP(aNameOriMNT,FileOriMnt);
-    cout<<aOriMnt.OriginePlani()<<" "<<aOriMnt.ResolutionPlani()<<endl;
+    //cout<<aOriMnt.OriginePlani()<<" "<<aOriMnt.ResolutionPlani()<<endl;
 
     string aNameFileMnt=aOriMnt.NameFileMnt();
     string aNameFileMasque="";
@@ -96,19 +98,26 @@ int Zlimit_main(int argc,char ** argv)
     ELISE_COPY(tmpImage1.all_pts(),((1/(aFileMnt.in()*aResolutionAlti+aOrigineAlti))<aMaxZ),tmpImage1.out());
     ELISE_COPY(tmpImage2.all_pts(),((1/(aFileMnt.in()*aResolutionAlti+aOrigineAlti))>aMinZ),tmpImage2.out());
  
+    ELISE_COPY(masqImage.all_pts(),(tmpImage1.in()*tmpImage2.in()),masqImage.out());
     if (aMasqSup!="?")
     {
+      cout<<"Using MasqSup: "<<aMasqSup<<endl;
       Tiff_Im aFileMasqSup(aMasqSup.c_str());
       ELISE_ASSERT(aFileMasqSup.sz()==aOriMnt.NombrePixels(),"Masq Sup and MNT must have the same size!");
       TIm2D<U_INT1,INT4> aMasqSupImT(aFileMasqSup.sz());//image for masq sup
       Im2D<U_INT1,INT4>  aMasqSupIm(aMasqSupImT._the_im);
-
       ELISE_COPY(aMasqSupIm.all_pts(),(aFileMasqSup.in()>0),aMasqSupIm.out());
-      Tiff_Im::CreateFromIm(aMasqSupIm,"tmp.tif");
-
-      ELISE_COPY(masqImage.all_pts(),(tmpImage1.in()*tmpImage2.in()*aMasqSupIm.in()),masqImage.out());
-    }else{
-      ELISE_COPY(masqImage.all_pts(),(tmpImage1.in()*tmpImage2.in()),masqImage.out());
+      ELISE_COPY(masqImage.all_pts(),(masqImage.in()*aMasqSupIm.in()),masqImage.out());
+    }
+    if (aCorrelIm!="?")
+    {
+      cout<<"Using CorrelIm: "<<aCorrelIm<<endl;
+      Tiff_Im aFileCorrelIm(aCorrelIm.c_str());
+      ELISE_ASSERT(aFileCorrelIm.sz()==aOriMnt.NombrePixels(),"Correl Image and MNT must have the same size!");
+      TIm2D<U_INT1,INT4> aCorrelImImT(aFileCorrelIm.sz());//image for Correl Im
+      Im2D<U_INT1,INT4>  aCorrelImIm(aCorrelImImT._the_im);
+      ELISE_COPY(aCorrelImIm.all_pts(),(aFileCorrelIm.in()>5),aCorrelImIm.out());
+      ELISE_COPY(masqImage.all_pts(),(masqImage.in()*aCorrelImIm.in()),masqImage.out());
     }
 
     ELISE_COPY(masqImage.all_pts(),(masqImage.in()*255),masqImage.out());
@@ -134,7 +143,7 @@ int Zlimit_main(int argc,char ** argv)
     MakeFileXML(anOriMasq,aMasqXmlName);
     
     cout<<"New masq created: "<<aMasqTifName<<endl;
-    
+    cout<<"Zlimit finished."<<endl<<endl;
     //for debug
     /*TIm2D<REAL4,REAL8> mDepthImageT(aFileMnt.sz());
     Im2D<REAL4,REAL8>  mDepthImage(mDepthImageT._the_im);
