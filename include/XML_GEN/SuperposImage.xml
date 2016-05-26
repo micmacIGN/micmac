@@ -1380,6 +1380,15 @@
 
 
 
+<Xml_Elips3D  Nb="1" Class="true" ToReference="true">
+     <CDG Nb="1" Type="Pt3dr" > </CDG>
+     <Sxx Nb="1" Type="double"> </Sxx>
+     <Syy Nb="1" Type="double"> </Syy>
+     <Szz Nb="1" Type="double"> </Szz>
+     <Sxy Nb="1" Type="double"> </Sxy>
+     <Sxz Nb="1" Type="double"> </Sxz>
+     <Syz Nb="1" Type="double"> </Syz>
+</Xml_Elips3D>
 
 <Xml_O2IComputed Nb="1" Class="true" ToReference="true">
     <Timing Nb="1"  RefType="Xml_O2ITiming">     </Timing>
@@ -1388,6 +1397,7 @@
     <HomWithR Nb="1" RefType="Xml_O2IHom">            </HomWithR>
     <BSurH Nb="1" Type="double">   </BSurH>
     <RecHom Nb="1" Type="double">   </RecHom>  <!-- Recouvrement en faisant l'hypothese homographique -->
+    <Elips Nb="1" RefType="Xml_Elips3D"> </Elips>
 </Xml_O2IComputed>
 
 
@@ -1418,6 +1428,7 @@
     <ResiduTriplet Nb="1" Type="double"> </ResiduTriplet>
     <BSurH Nb="1" Type="double"> </BSurH>
     <PMed Nb="1" Type="Pt3dr"> </PMed>
+    <Elips Nb="1" RefType="Xml_Elips3D"> </Elips>
 </Xml_Ori3ImInit>
 
 <Xml_OneTriplet  Nb="1" Class="true" ToReference="true">
