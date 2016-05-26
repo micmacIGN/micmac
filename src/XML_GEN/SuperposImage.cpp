@@ -277,6 +277,8 @@ eTypeModeNO  Str2eTypeModeNO(const std::string & aName)
       return eModeNO_Std;
    else if (aName=="eModeNO_TTK")
       return eModeNO_TTK;
+   else if (aName=="eModeNO_StdNoTTK")
+      return eModeNO_StdNoTTK;
    else if (aName=="eModeNO_NbVals")
       return eModeNO_NbVals;
   else
@@ -296,6 +298,8 @@ std::string  eToString(const eTypeModeNO & anObj)
       return  "eModeNO_Std";
    if (anObj==eModeNO_TTK)
       return  "eModeNO_TTK";
+   if (anObj==eModeNO_StdNoTTK)
+      return  "eModeNO_StdNoTTK";
    if (anObj==eModeNO_NbVals)
       return  "eModeNO_NbVals";
  std::cout << "Enum = eTypeModeNO\n";
@@ -320,7 +324,7 @@ void  BinaryUnDumpFromFile(eTypeModeNO & anObj,ELISE_fp & aFp)
    anObj=(eTypeModeNO) aIVal;
 }
 
-std::string  Mangling( eTypeModeNO *) {return "CAB53EEA202A17E5FD3F";};
+std::string  Mangling( eTypeModeNO *) {return "DE17F3EDBE0462B9FF3F";};
 
 
 int & cIntervLutConvertion::NivIn()

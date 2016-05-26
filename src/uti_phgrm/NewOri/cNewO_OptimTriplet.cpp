@@ -217,6 +217,7 @@ class cAppliOptimTriplet
           std::string      mNameModeNO;
           eTypeModeNO      mModeNO;
           bool             mModeTTK;
+          bool             mWithTTK;
 };
 
 const std::string cAppliOptimTriplet::KeyCple = "KeyCple";
@@ -543,7 +544,8 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
     mNoIm2     (0),
     mBugTK     (false),
     mNameModeNO (TheStdModeNewOri),
-    mModeTTK    (false)
+    mModeTTK    (false),
+    mWithTTK    (true)
 {
    ElInitArgMain
    (
@@ -564,6 +566,9 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
 
    mModeNO =  ToTypeNO(mNameModeNO);
    mModeTTK = (mModeNO==eModeNO_TTK);
+   mWithTTK = (mModeNO!=eModeNO_StdNoTTK);
+
+
    if (mModeTTK)
    {
       mQuitExist = false;
@@ -604,7 +609,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
 
 void cAppliOptimTriplet::TestTomasiKanade()
 {
-   if (mTK_H123[0]->size() < NbMinPts3TomKan)
+   if  ((mTK_H123[0]->size() < NbMinPts3TomKan) || (! mWithTTK))
       return;
     double aPrec ;
     if (mModeTTK) 

@@ -102,6 +102,7 @@ typedef enum
 {
   eModeNO_Std,
   eModeNO_TTK,
+  eModeNO_StdNoTTK,
   eModeNO_NbVals
 } eTypeModeNO;
 void xml_init(eTypeModeNO & aVal,cElXMLTree * aTree);

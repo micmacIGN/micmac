@@ -67,7 +67,8 @@
     <enum Name="eTypeModeNO">
         <eModeNO_Std>     </eModeNO_Std>
         <eModeNO_TTK>     </eModeNO_TTK> <!-- Tomasi Kanade -->
-        <eModeNO_NbVals>  </eModeNO_NbVals> <!-- Tomasi Kanade -->
+        <eModeNO_StdNoTTK> </eModeNO_StdNoTTK> <!-- Supprime Tom Kan , car plante encore parfois -->
+        <eModeNO_NbVals>  </eModeNO_NbVals> <!-- LastValue -->
     </enum>
 
     <LutConvertion  Nb="1"  Class="true" ToReference="true">

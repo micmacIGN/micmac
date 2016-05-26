@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1821]) = {
+const char * (theNameVar_SuperposImage[1822]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -69,7 +69,8 @@ const char * (theNameVar_SuperposImage[1821]) = {
 "    <enum Name=\"eTypeModeNO\">\n",
 "        <eModeNO_Std>     </eModeNO_Std>\n",
 "        <eModeNO_TTK>     </eModeNO_TTK> <!-- Tomasi Kanade -->\n",
-"        <eModeNO_NbVals>  </eModeNO_NbVals> <!-- Tomasi Kanade -->\n",
+"        <eModeNO_StdNoTTK> </eModeNO_StdNoTTK> <!-- Supprime Tom Kan , car plante encore parfois -->\n",
+"        <eModeNO_NbVals>  </eModeNO_NbVals> <!-- LastValue -->\n",
 "    </enum>\n",
 "\n",
 "    <LutConvertion  Nb=\"1\"  Class=\"true\" ToReference=\"true\">\n",
