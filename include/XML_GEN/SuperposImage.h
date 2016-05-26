@@ -6292,6 +6292,54 @@ std::string  Mangling( cXml_O2ITiming *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_Elips3D
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Elips3D & anObj,cElXMLTree * aTree);
+
+
+        Pt3dr & CDG();
+        const Pt3dr & CDG()const ;
+
+        double & Sxx();
+        const double & Sxx()const ;
+
+        double & Syy();
+        const double & Syy()const ;
+
+        double & Szz();
+        const double & Szz()const ;
+
+        double & Sxy();
+        const double & Sxy()const ;
+
+        double & Sxz();
+        const double & Sxz()const ;
+
+        double & Syz();
+        const double & Syz()const ;
+    private:
+        Pt3dr mCDG;
+        double mSxx;
+        double mSyy;
+        double mSzz;
+        double mSxy;
+        double mSxz;
+        double mSyz;
+};
+cElXMLTree * ToXMLTree(const cXml_Elips3D &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Elips3D &);
+
+void  BinaryUnDumpFromFile(cXml_Elips3D &,ELISE_fp &);
+
+std::string  Mangling( cXml_Elips3D *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_O2IComputed
 {
     public:
@@ -6317,6 +6365,9 @@ class cXml_O2IComputed
 
         double & RecHom();
         const double & RecHom()const ;
+
+        cXml_Elips3D & Elips();
+        const cXml_Elips3D & Elips()const ;
     private:
         cXml_O2ITiming mTiming;
         cXml_O2IRotation mOrientAff;
@@ -6324,6 +6375,7 @@ class cXml_O2IComputed
         cXml_O2IHom mHomWithR;
         double mBSurH;
         double mRecHom;
+        cXml_Elips3D mElips;
 };
 cElXMLTree * ToXMLTree(const cXml_O2IComputed &);
 
@@ -6441,6 +6493,9 @@ class cXml_Ori3ImInit
 
         Pt3dr & PMed();
         const Pt3dr & PMed()const ;
+
+        cXml_Elips3D & Elips();
+        const cXml_Elips3D & Elips()const ;
     private:
         cXml_Rotation mOri2On1;
         cXml_Rotation mOri3On1;
@@ -6448,6 +6503,7 @@ class cXml_Ori3ImInit
         double mResiduTriplet;
         double mBSurH;
         Pt3dr mPMed;
+        cXml_Elips3D mElips;
 };
 cElXMLTree * ToXMLTree(const cXml_Ori3ImInit &);
 
