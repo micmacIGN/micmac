@@ -113,6 +113,8 @@ void cAppli_Martini::DoAll()
      // 1-  Calcul de toute les orientations relatives entre paires d'images
      // NO_AllOri2Im =>  cNewO_CpleIm.cpp => TestAllNewOriImage_main
      // mm3d TestLib  NO_AllOri2Im "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
+     // 
+     // Appelle  TestLib NO_Ori2Im   => TestNewOriImage_main
  
      StdCom("NO_AllOri2Im");
      // Homologues flottants

@@ -502,23 +502,6 @@ int CPP_GenOneHomFloat(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-class cExeParalByPaquets
-{
-    public :
-          cExeParalByPaquets(const std::string & aMes,int anEstimNbCom);
-          void AddCom(const std::string & aCom);
-          ~cExeParalByPaquets();
-
-    private :
-          void    ExeCom();
-          ElTimer mChrono;
-          std::list<std::string> mLCom;
-          std::string            mMes;
-          int                    mEstimNbCom;
-          int                    mCpt;
-          int                    mNbInOnePaquet;
-};
-
 cExeParalByPaquets::cExeParalByPaquets(const std::string & aMes,int anEstimNbCom) :
      mMes             (aMes),
      mEstimNbCom      (anEstimNbCom),

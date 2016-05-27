@@ -141,6 +141,7 @@ class cNewO_OrInit2Im
     public :
           cNewO_OrInit2Im
           (
+                bool GenereOri,
                 bool aQuick,
                 cNewO_OneIm * aI1,
                 cNewO_OneIm * aI2,
@@ -392,6 +393,23 @@ cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin,c
 
 extern const std::string TheStdModeNewOri;
 eTypeModeNO ToTypeNO(const std::string &);
+
+class cExeParalByPaquets
+{
+    public :
+          cExeParalByPaquets(const std::string & aMes,int anEstimNbCom);
+          void AddCom(const std::string & aCom);
+          ~cExeParalByPaquets();
+
+    private :
+          void    ExeCom();
+          ElTimer mChrono;
+          std::list<std::string> mLCom;
+          std::string            mMes;
+          int                    mEstimNbCom;
+          int                    mCpt;
+          int                    mNbInOnePaquet;
+};
 
 
 
