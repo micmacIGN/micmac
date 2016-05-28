@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+const double DefBundle3Im = 1e30;
+const double DefScoreTKS() {return   DefBundle3Im / 10;}
 
 
 
@@ -1030,6 +1032,7 @@ std::vector<ElRotation3D> VRotB3(const ElRotation3D & aR12,const ElRotation3D &a
 }
 
 
+
 bool SolveBundle3Image
      (
           double               aFoc,
@@ -1045,8 +1048,8 @@ bool SolveBundle3Image
           cParamCtrlSB3I & aParam
      )
 {
-    aParam.mRes2 = 1e30;
-    aParam.mRes3 = 1e30;
+    aParam.mRes2 = DefBundle3Im;
+    aParam.mRes3 = DefBundle3Im;
     if (LongBase(aR12)==0)
     {
        return false;
