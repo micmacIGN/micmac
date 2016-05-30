@@ -69,14 +69,14 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
 			mNumCellsX               (4),
 			mNumCellsY               (4),
 			mAdaptive              (false),
-		    mThresholdAccMult       (2.0),  // Multiplier of Mediane accuracy, can probably be stable
+		    mThresholdAccMult       (0.5),  // Multiplier of Mediane accuracy, can probably be stable
 			mImagesNames                 (0),
 			mCallBack                (false),
 			mExpSubCom               (false),
 			mExpTxt                  (false),
 			mSortByNum               (false),
 			mDesc                     (false),
-			mGainMode					(0)
+			mGainMode					(1)
 {
 	// Read parameters
 	MMD_InitArgcArgv(argc,argv);
@@ -90,13 +90,19 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
 		            << EAM(mExpTxt,"ExpTxt",true,"Export homol point in Ascii, def=false")
 		            << EAM(mSortByNum,"SortByNum",true,"Sort images by number of tie points, determining the order in which the subcommands are executed, def=0 (sort by file name)")
 		            << EAM(mDesc,"Desc",true,"Use descending order in the sorting of images, def=0 (ascending)")
-					<< EAM(mGainMode,"GainMode",true,"Gain mode for multi-tie-points:0-nb related images; 1-nb image pairs; 2-f(nb image pairs, accuracy, std accuracy), def=0 (nb related images)")
-					<< EAM(mThresholdAccMult,"ThresholdAccMult",true,"Threshold of mediane accuracy (only used in GainMode=2) , def=2.0")
+					<< EAM(mThresholdAccMult,"ThresholdAccMult",true,"Threshold of median accuracy when computing Gain, i.e. K in formula Gain=NumPairs*(1/1 + (K*Acc/AccMed)^2) (if K=0 then Gain is NumPairs), def=0.5")
 	);
 	// if mSubcommandIndex was set, we are not the master call or parent process (we are running a subcommand (a tie point reduction task of a master image and its related images)
 	mCallBack = EAMIsInit(&mSubcommandIndex);
 	mDir = DirOfFile(mPatImage); //Get the parent directory of the images
 	mNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir, ""); //Initializes the folder name manager
+
+
+	if (mThresholdAccMult == 0.){
+		mGainMode = 0;
+	}else{
+		mGainMode = 1;
+	}
 
 	if (mCallBack){
 		// We are ruuning a subcommand. Read its configuration from a XML file given by the mSubcommandIndex

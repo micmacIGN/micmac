@@ -70,11 +70,9 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aMergedHomolPoints, cAppliTiepRed & anAppli)
 void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli)
 {
 	if (anAppli.GainMode() == 0){
-		mGain = mMergedHomolPoints->VecInd().size();
-	}else if (anAppli.GainMode() == 1){
 		mGain = mMergedHomolPoints->NbArc();
 	}else{
-		mGain =  mMergedHomolPoints->NbArc() * (1.0 /(1.0 + ElSquare(mAcc/(anAppli.ThresholdAccMult() * anAppli.StdAcc()))));
+		mGain = mMergedHomolPoints->NbArc() * (1.0 /(1.0 + ElSquare((anAppli.ThresholdAccMult() * mAcc)/anAppli.StdAcc())));
 	}
 }
 
