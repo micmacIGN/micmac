@@ -60,16 +60,13 @@ if(WITH_HEADER_PRECOMP)
 
 			GET_DIRECTORY_PROPERTY(_directory_flags INCLUDE_DIRECTORIES)
 			FOREACH(item ${_directory_flags})
-			LIST(APPEND _compiler_FLAGS "-I${item}")
+				LIST(APPEND _compiler_FLAGS "-I${item}")
 			ENDFOREACH(item)
 
-			if (POLICY CMP0045)
-				GET_DIRECTORY_PROPERTY(_directory_flags COMPILE_DEFINITIONS)
-			else()
-				GET_DIRECTORY_PROPERTY(_directory_flags DEFINITIONS)
-			endif()
-			
-			LIST(APPEND _compiler_FLAGS ${_directory_flags})
+			GET_DIRECTORY_PROPERTY(_directory_flags COMPILE_DEFINITIONS)
+			foreach(item ${_directory_flags})
+				LIST(APPEND _compiler_FLAGS "-D${item}")
+			endforeach()
 
 			SEPARATE_ARGUMENTS(_compiler_FLAGS)
 			#MESSAGE("${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} ${OPTION_HP} -o ${_output} ${_source}")
