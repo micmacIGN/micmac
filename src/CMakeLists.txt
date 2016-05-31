@@ -173,9 +173,20 @@ if(${CUDA_ENABLED})
 	endif()
 
 else()
+	if (OUTPUT_ELISE_FILES)
+		set(elise_files_filename ${CMAKE_BINARY_DIR}/elise_files)
+		file(WRITE ${elise_files_filename} "elise_core_files = \n")
+		foreach (elise_file ${Elise_Src_Files})
+			file(APPEND ${elise_files_filename} "\t${elise_file}\n")
+		endforeach()
 
-    add_library( ${libElise}  ${Elise_Src_Files} ${IncFiles} ${QT_ALLFILES})
+		file(APPEND ${elise_files_filename} "elise_qt_files = \n")
+		foreach (elise_file ${QT_ALLFILES})
+			file(APPEND ${elise_files_filename} "\t${elise_file}\n")
+		endforeach()
+	endif()
 
+	add_library(${libElise} ${Elise_Src_Files} ${QT_ALLFILES})
 endif()
 
 target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_LIBRARIES})
