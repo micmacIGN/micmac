@@ -1,0 +1,377 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+
+#include "general/all.h"
+#include "private/all.h"
+
+
+/*****************************************************************/
+/*                                                               */
+/*                  Out_Ras_W_Comp                               */
+/*                                                               */
+/*****************************************************************/
+
+Out_Ras_W_Comp::Out_Ras_W_Comp
+( 
+           const Arg_Output_Comp &     arg ,
+           const Data_El_Geom_GWin *   geom,
+           Data_Elise_Raster_W *       derw,
+           Data_Elise_Palette  *       dep
+) :
+        GW_computed(arg,geom,dep)           ,
+       _derd      (derw->_derd)             ,
+       _derw      (derw)                    ,
+       _ddp       (derw->_ddsop->ddp_of_dep(dep))  ,
+       _dep       (dep),
+       _first     (true),
+       _byte_pp   (_derd->_byte_pp)
+       
+{
+}
+
+
+
+/*****************************************************************/
+/*                                                               */
+/*                  RLE_Fen_X11_Computed                         */
+/*                                                               */
+/*****************************************************************/
+
+/****************** La classe des des fenetres X11, vue de l'interieur ****/
+
+class  RLE_Out_Ras_W_Comp : public  Out_Ras_W_Comp
+{
+   public :
+      FUNC_DTI_THIS;
+
+      RLE_Out_Ras_W_Comp
+      (
+           const Arg_Output_Comp &  ,
+           const Data_El_Geom_GWin *,
+           Data_Elise_Raster_W     *,
+           Data_Elise_Palette      *
+      );
+
+
+      virtual void update(const Pack_Of_Pts * pts,const Pack_Of_Pts * vals);
+      void    flush_image(void);
+      void    inst_flush(void)
+              {
+                 flush_image();
+                 DELETE_VECTOR(_line_lut,0);
+                 DELETE_VECTOR(_cpbli  ,0);
+              }
+
+    private :
+      
+      INT       _u_last_y;
+      INT       _w_last_x0;
+      INT       _w_last_x1;
+      U_INT1 *  _line_lut;
+      U_INT1 *  _cpbli;
+};
+
+
+RLE_Out_Ras_W_Comp::RLE_Out_Ras_W_Comp
+(
+      const Arg_Output_Comp &  arg   ,
+      const Data_El_Geom_GWin * geom ,
+      Data_Elise_Raster_W     * derw ,
+      Data_Elise_Palette      * pal
+) :
+      Out_Ras_W_Comp(arg,geom,derw,pal)
+      // _u_last_y,_w_last_x0 and _w_last_x1 initialized in update when (! _first)
+{
+     Pt2di p1,p2;
+
+     geom->box_user_geom(p1,p2);
+     _line_lut = _derd->alloc_line_buf(p2.x-p1.x+2);
+     _cpbli    = _derd->alloc_line_buf(_sz.x);
+}
+
+
+
+
+void RLE_Out_Ras_W_Comp::flush_image(void)
+{
+   if (    (! _first)   //  !! : fisrt => _w_last_x .... = rubbish
+        && (_w_last_x0<_w_last_x1) // do not want to know how are handled empty lines
+      )
+   {
+       INT wy0,wy1;
+       interval_user_to_window(wy0,wy1,_u_last_y,_u_last_y+1,_tr.y,_sc.y);
+       wy0 = max(0,wy0);
+       wy1 = min(_sz.y,wy1);
+       if (wy0 != wy1)
+       {
+            memcpy
+            (
+                _derw->_bli+_w_last_x0 * _byte_pp,
+                _cpbli+_w_last_x0 * _byte_pp,
+                (_w_last_x1-_w_last_x0) * _byte_pp
+            );
+
+            for (INT wy = wy0; wy < wy1 ; wy++)
+                _derw->flush_bli(_w_last_x0,_w_last_x1,wy);
+           _derd->disp_flush();
+       }
+   }
+}
+
+
+void RLE_Out_Ras_W_Comp::update(const Pack_Of_Pts * p,const Pack_Of_Pts * v)
+{
+    const Std_Pack_Of_Pts<INT> * ivals 
+         = SAFE_DYNC(const Std_Pack_Of_Pts<INT> *,v);
+    RLE_Pack_Of_Pts * rle_pack = SAFE_DYNC(RLE_Pack_Of_Pts *,p);
+
+    INT nb = rle_pack->nb();
+    if (! nb) return;
+
+    INT ** vals = ivals->_pts;
+    
+     _dep->verif_values_out(vals,nb);
+
+
+
+    INT ux0 = rle_pack->x0();
+    INT ux1 = ux0 + nb;
+    INT uy  = rle_pack->pt0()[1];
+
+    REAL tx = _tr.x;
+    REAL sx = _sc.x;
+
+    INT out_wx0,out_wx1;  
+     // these values may get out ``slightly'' (no more than 1  user pixel) of window
+    interval_user_to_window(out_wx0,out_wx1,ux0,ux1,tx,sx);
+    INT wx0 =  max(0,out_wx0);
+    INT wx1 = min(_sz.x,out_wx1);
+
+
+    // An easy way to treat the firt call is to consider that a previous empty segment
+    // was preceding;
+    if (_first)
+    {
+       _first = false;
+       _w_last_x0 = _w_last_x1 = wx0;
+       _u_last_y = uy-1;
+    }
+
+    // if the curent segment is not a prolongation of previous one
+    if ((_u_last_y != uy) || (_w_last_x1 != wx0))
+    {
+        flush_image();
+       _w_last_x0 = wx0;
+       _u_last_y = uy;
+    }
+    _w_last_x1 = wx1;
+    
+
+    // for optmization purpose, treat separately
+    // the cases :
+    //    * sx = 1 (most frequent and fast)
+    //    * sx integer  (not so rare and quite quick)
+    //    * other case  (should be less frequent, and more complex to handle)
+   
+
+
+    if (sx == 1.0)
+    {
+        //  sx = 1 : copy with an eventual offset
+        _dep->lutage (_derd,_cpbli,wx0,wx1,
+                      _ddp->lut_compr(),vals,wx0 - out_wx0);
+    }
+    else 
+    {
+       //  special treatment for first and lats pixel 
+       // (who may be only partially inside the window)
+
+       _dep->lutage (_derd,_line_lut,0,nb,
+                      _ddp->lut_compr(),vals,0);
+
+       INT wx0p1,wx1m1;
+       interval_user_to_window(wx0p1,wx1m1,ux0+1,ux1-1,tx,sx);
+       wx0p1 = min(wx0p1,_sz.x);
+       wx1m1 = max(0,wx1m1);
+       U_INT1 * ddbli = _cpbli ;
+       {
+		  INT x;
+          for (x = wx0; x < wx0p1; x++)
+              for (INT byt = 0; byt < _byte_pp; byt++)
+                  ddbli[x*_byte_pp+byt] = _line_lut[byt];
+
+          U_INT1 * end_ll =  _line_lut+ (nb-1)*_byte_pp;
+          for (x = wx1m1; x < wx1; x++)
+              for (INT byt = 0; byt < _byte_pp; byt++)
+                  ddbli[x*_byte_pp+byt] = end_ll[byt];
+
+       }
+       if (wx0p1 >= wx1m1)
+          return;
+       ddbli += wx0p1*_byte_pp;
+       // take count of first and last pixel alredy treated
+       INT nb_t = nb - 1;
+       INT c;
+       INT iz;
+        //  sx integer, inside the window, the number of pixel by point is constant
+       if (sx == (INT) sx)
+       {
+           INT zx =  (INT) sx;
+           switch (_derd->_cmod)
+           {
+                 case Indexed_Colour :
+                 {
+                      for (int i=1 ; i<nb_t ; i++)
+                      {
+                          c = _line_lut[i];
+                          for (iz = 0; iz < zx; iz ++)
+                              *(ddbli++) = c;
+                      }
+                 }
+                 break;
+
+                 case True_16_Colour :
+                 {
+                      U_INT2 * ll2= (U_INT2 *) _line_lut;
+                      U_INT2 * dd2= (U_INT2 *) ddbli;
+                      for (int i=1 ; i<nb_t ; i++)
+                      {
+                          c = ll2[i];
+                          for (iz = 0; iz < zx; iz ++)
+                              *(dd2++) = c;
+                      }
+                 }
+                 break;
+
+                 case True_24_Colour :
+                 {
+                      INT r,g,b;
+                      U_INT1 * ll1= _line_lut+_byte_pp;
+                      INT  r_ind = _derd->_r_ind;
+                      INT  g_ind = _derd->_g_ind;
+                      INT  b_ind = _derd->_b_ind;
+
+                      for (int i=1 ; i<nb_t ; i++)
+                      {
+                          r = ll1[r_ind];
+                          g = ll1[g_ind];
+                          b = ll1[b_ind];
+                          for (iz = 0; iz < zx; iz ++)
+                          {
+                              ddbli[r_ind] = r;
+                              ddbli[g_ind] = g;
+                              ddbli[b_ind] = b;
+                              ddbli += _byte_pp;
+                          }
+                          ll1 += _byte_pp;
+                      }
+                 }
+                 break;
+           }
+       }      
+       //  other cases, need to recompute number of pixel each time
+       else
+       {
+          INT wxc = wx0p1;
+          INT wxp1c;
+          INT uxp1c = ux0+2;
+
+           switch (_derd->_cmod)
+           {
+                 case Indexed_Colour :
+                 {
+                      for (INT i = 1 ;  i<nb_t ; i++,uxp1c++)
+                      {
+                           wxp1c = deb_interval_user_to_window(uxp1c,tx,sx);
+                           c = _line_lut[i];
+                           for (iz = wxc; iz < wxp1c ; iz ++)
+                               *(ddbli++) = c;
+                           wxc = wxp1c;
+                      } 
+                 }
+                 break;
+
+                 case True_16_Colour :
+                 {
+                      U_INT2 * ll2= (U_INT2 *) _line_lut;
+                      U_INT2 * dd2= (U_INT2 *) ddbli;
+                      for (INT i = 1 ;  i<nb_t ; i++,uxp1c++)
+                      {
+                           wxp1c = deb_interval_user_to_window(uxp1c,tx,sx);
+                           c = ll2[i];
+                           for (iz = wxc; iz < wxp1c ; iz ++)
+                               *(dd2++) = c;
+                           wxc = wxp1c;
+                      } 
+                 }
+                 break;
+
+                 case True_24_Colour :
+                 {
+                      INT r,g,b;
+                      U_INT1 * ll1= _line_lut+_byte_pp;
+                      INT  r_ind = _derd->_r_ind;
+                      INT  g_ind = _derd->_g_ind;
+                      INT  b_ind = _derd->_b_ind;
+
+                      for (INT i = 1 ;  i<nb_t ; i++,uxp1c++)
+                      {
+                          r = ll1[r_ind];
+                          g = ll1[g_ind];
+                          b = ll1[b_ind];
+                          wxp1c = deb_interval_user_to_window(uxp1c,tx,sx);
+                          for (iz = wxc; iz < wxp1c ; iz ++)
+                          {
+                              ddbli[r_ind] = r;
+                              ddbli[g_ind] = g;
+                              ddbli[b_ind] = b;
+                              ddbli += _byte_pp;
+                          }
+                          ll1 += _byte_pp;
+                          wxc = wxp1c;
+                      }
+                 }
+                 break;
+          
+            }
+       }
+    }
+}
+
+
+Output_Computed * Data_Elise_Raster_W::rle_out_comp
+(
+      const Data_El_Geom_GWin * geom,
+      const Arg_Output_Comp & arg,
+      Data_Elise_Palette *    p
+)
+{
+     return  NEW_REUS_OBJ(RLE_Out_Ras_W_Comp,(arg,geom,this,p));
+}
+
+
+
