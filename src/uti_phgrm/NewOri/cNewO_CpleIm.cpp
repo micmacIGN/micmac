@@ -688,6 +688,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    std::string aPrefHom;
    std::string  aNameModeNO = TheStdModeNewOri;
    std::string aNameIm1;
+   std::string aPatGlob;
 
 
    ElInitArgMain
@@ -700,6 +701,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous")
                    << EAM(aNameModeNO,"ModeNO",true,"Mode New Ori")
                    << EAM(aNameIm1,"NameIm1",true,"Name of Image1, internal purpose")
+                   << EAM(aPatGlob,"PatGlob",true,"Name of Image1, internal purpose")
    );
 
    bool aModeIm1 = EAMIsInit(&aNameIm1);
@@ -715,6 +717,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
    if (!aModeIm1)
    {
+       MakeXmlXifInfo(anEASF.mPat,anEASF.mICNM);
        cExeParalByPaquets aExePaq("NewOri of One Image",aVIm->size());
 
        // Force la creation des directories
@@ -722,7 +725,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
        {
            std::string aName = (*aVIm)[aK];
            aNM->NameXmlOri2Im(aName,aName,true);
-           std::string aCom =  GlobArcArgv  + " NameIm1=" + aName;
+           std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ anEASF.mPat;
            aExePaq.AddCom(aCom);
        }
    }
@@ -734,6 +737,8 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
        cListOfName aLON;
 
+       cElRegex anAutom(aPatGlob,10);
+
        for (int aKH = 0 ; aKH<int(aVH->size()) ; aKH++)
        {
            std::string aNameH = (*aVH)[aKH];
@@ -741,7 +746,12 @@ int TestAllNewOriImage_main(int argc,char ** argv)
            ELISE_ASSERT(aNameIm1==aPair.first,"Incoh in NO_AllOri2Im");
 
            std::string aNameIm2 = aPair.second;
-           if (aNameIm1<aNameIm2)
+
+// std::cout << "UUUUUU " << ELISE_fp::exist_file(aDir+aNameIm2) << " " << anAutom.Match(aNameIm2) << " " << aNameIm2  << " " << anEASF.mPat<< "\n";
+           if (    (aNameIm1<aNameIm2) 
+                && (ELISE_fp::exist_file(aDir+aNameIm2))
+                && (anAutom.Match(aNameIm2))
+              )
            {
                std::string aNamOri = aDir + aNM->NameXmlOri2Im(aNameIm1,aNameIm2,true);
                if (! ELISE_fp::exist_file(aNamOri))
