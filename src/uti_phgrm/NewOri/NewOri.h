@@ -412,6 +412,12 @@ class cExeParalByPaquets
 };
 
 
+void RazEllips(cXml_Elips3D &);
+void AddEllips(cXml_Elips3D &,const Pt3dr & aP,double aPds);
+void NormEllips(cXml_Elips3D &);
+
+
+
 
 
 

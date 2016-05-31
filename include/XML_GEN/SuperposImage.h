@@ -6321,6 +6321,12 @@ class cXml_Elips3D
 
         double & Syz();
         const double & Syz()const ;
+
+        double & Pds();
+        const double & Pds()const ;
+
+        bool & Norm();
+        const bool & Norm()const ;
     private:
         Pt3dr mCDG;
         double mSxx;
@@ -6329,6 +6335,8 @@ class cXml_Elips3D
         double mSxy;
         double mSxz;
         double mSyz;
+        double mPds;
+        bool mNorm;
 };
 cElXMLTree * ToXMLTree(const cXml_Elips3D &);
 

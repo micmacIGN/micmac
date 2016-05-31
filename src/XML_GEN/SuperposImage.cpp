@@ -20717,6 +20717,28 @@ const double & cXml_Elips3D::Syz()const
    return mSyz;
 }
 
+
+double & cXml_Elips3D::Pds()
+{
+   return mPds;
+}
+
+const double & cXml_Elips3D::Pds()const 
+{
+   return mPds;
+}
+
+
+bool & cXml_Elips3D::Norm()
+{
+   return mNorm;
+}
+
+const bool & cXml_Elips3D::Norm()const 
+{
+   return mNorm;
+}
+
 void  BinaryUnDumpFromFile(cXml_Elips3D & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.CDG(),aFp);
@@ -20726,6 +20748,8 @@ void  BinaryUnDumpFromFile(cXml_Elips3D & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.Sxy(),aFp);
     BinaryUnDumpFromFile(anObj.Sxz(),aFp);
     BinaryUnDumpFromFile(anObj.Syz(),aFp);
+    BinaryUnDumpFromFile(anObj.Pds(),aFp);
+    BinaryUnDumpFromFile(anObj.Norm(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Elips3D & anObj)
@@ -20737,6 +20761,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Elips3D & anObj)
     BinaryDumpInFile(aFp,anObj.Sxy());
     BinaryDumpInFile(aFp,anObj.Sxz());
     BinaryDumpInFile(aFp,anObj.Syz());
+    BinaryDumpInFile(aFp,anObj.Pds());
+    BinaryDumpInFile(aFp,anObj.Norm());
 }
 
 cElXMLTree * ToXMLTree(const cXml_Elips3D & anObj)
@@ -20750,6 +20776,8 @@ cElXMLTree * ToXMLTree(const cXml_Elips3D & anObj)
    aRes->AddFils(::ToXMLTree(std::string("Sxy"),anObj.Sxy())->ReTagThis("Sxy"));
    aRes->AddFils(::ToXMLTree(std::string("Sxz"),anObj.Sxz())->ReTagThis("Sxz"));
    aRes->AddFils(::ToXMLTree(std::string("Syz"),anObj.Syz())->ReTagThis("Syz"));
+   aRes->AddFils(::ToXMLTree(std::string("Pds"),anObj.Pds())->ReTagThis("Pds"));
+   aRes->AddFils(::ToXMLTree(std::string("Norm"),anObj.Norm())->ReTagThis("Norm"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -20773,9 +20801,13 @@ void xml_init(cXml_Elips3D & anObj,cElXMLTree * aTree)
    xml_init(anObj.Sxz(),aTree->Get("Sxz",1)); //tototo 
 
    xml_init(anObj.Syz(),aTree->Get("Syz",1)); //tototo 
+
+   xml_init(anObj.Pds(),aTree->Get("Pds",1)); //tototo 
+
+   xml_init(anObj.Norm(),aTree->Get("Norm",1)); //tototo 
 }
 
-std::string  Mangling( cXml_Elips3D *) {return "04EA1FB266836995FD3F";};
+std::string  Mangling( cXml_Elips3D *) {return "7A2FF5499CFCACC7FF3F";};
 
 
 cXml_O2ITiming & cXml_O2IComputed::Timing()
@@ -20912,7 +20944,7 @@ void xml_init(cXml_O2IComputed & anObj,cElXMLTree * aTree)
    xml_init(anObj.Elips(),aTree->Get("Elips",1)); //tototo 
 }
 
-std::string  Mangling( cXml_O2IComputed *) {return "CC102D6036A4AEAEFF3F";};
+std::string  Mangling( cXml_O2IComputed *) {return "F32C45834360EF84FF3F";};
 
 
 std::string & cXml_Ori2Im::Im1()
@@ -21074,7 +21106,7 @@ void xml_init(cXml_Ori2Im & anObj,cElXMLTree * aTree)
    xml_init(anObj.Geom(),aTree->Get("Geom",1)); //tototo 
 }
 
-std::string  Mangling( cXml_Ori2Im *) {return "43BC34159E750EB1FE3F";};
+std::string  Mangling( cXml_Ori2Im *) {return "90E949E1046124A3FC3F";};
 
 
 cTypeCodageMatr & cXml_Rotation::Ori()
@@ -21268,7 +21300,7 @@ void xml_init(cXml_Ori3ImInit & anObj,cElXMLTree * aTree)
    xml_init(anObj.Elips(),aTree->Get("Elips",1)); //tototo 
 }
 
-std::string  Mangling( cXml_Ori3ImInit *) {return "836ECB344C937FCFFD3F";};
+std::string  Mangling( cXml_Ori3ImInit *) {return "700099207B82559DFE3F";};
 
 
 std::string & cXml_OneTriplet::Name1()
