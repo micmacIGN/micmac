@@ -254,6 +254,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
         return;
    }
    cXml_O2IComputed aXCmp;
+   RazEllips(aXCmp.Elips());
    cXml_O2ITiming & aTiming = aXCmp.Timing();
 
 
@@ -725,7 +726,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
        {
            std::string aName = (*aVIm)[aK];
            aNM->NameXmlOri2Im(aName,aName,true);
-           std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ anEASF.mPat;
+           std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ QUOTE(anEASF.mPat);
            aExePaq.AddCom(aCom);
        }
    }
