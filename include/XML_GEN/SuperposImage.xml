@@ -1389,6 +1389,8 @@
      <Sxy Nb="1" Type="double"> </Sxy>
      <Sxz Nb="1" Type="double"> </Sxz>
      <Syz Nb="1" Type="double"> </Syz>
+     <Pds Nb="1" Type="double"> </Pds>
+     <Norm Nb="1" Type="bool">  </Norm>
 </Xml_Elips3D>
 
 <Xml_O2IComputed Nb="1" Class="true" ToReference="true">
