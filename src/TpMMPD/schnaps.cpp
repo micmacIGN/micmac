@@ -757,8 +757,15 @@ int schnaps_main(int argc,char ** argv)
         cPic *pic1=(*itPic1).second;//allPics[i];
         std::cout<<" Picture "<<pic1->getName()<<": ";
         //get all pictures having pac with pic1
+
+        if (!ELISE_fp::IsDirectory(aCKin.getDir(pic1->getName(),aPatIm)))
+        {
+            std::cout<<"No pacs."<<endl;
+            continue;
+        }
+
         cInterfChantierNameManipulateur * homolICNM=cInterfChantierNameManipulateur::BasicAlloc(aCKin.getDir(pic1->getName(),aPatIm));
-        std::list<std::string> aSetPac = homolICNM->StdGetListOfFile(aCKin.getFile(pic1->getName(),aPatIm));
+        std::list<std::string> aSetPac = homolICNM->StdGetListOfFile(aCKin.getFile(pic1->getName(),aPatIm),2,false);
                 
         std::cout<<"Found "<<aSetPac.size()<<" pacs."<<endl;
         
