@@ -254,7 +254,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
         return;
    }
    cXml_O2IComputed aXCmp;
-   RazEllips(aXCmp.Elips());
+   //~ RazEllips(aXCmp.Elips());
    cXml_O2ITiming & aTiming = aXCmp.Timing();
 
 
