@@ -5,6 +5,7 @@ set(uti_image_Oritiepred
     ${UTI_PHGRM_OriTieRed_DIR}/cOriLnk2ImTiepRed.cpp
     ${UTI_PHGRM_OriTieRed_DIR}/cOriPMulTiepRed.cpp
     ${UTI_PHGRM_OriTieRed_DIR}/cOriVonGruber_TieRed.cpp
+    ${UTI_PHGRM_OriTieRed_DIR}/cRedTieDepFromGraph.cpp
 )
 
 

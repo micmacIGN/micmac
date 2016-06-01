@@ -303,6 +303,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            // L'orientation Cam2Monde de 2 sur 1
            ElRotation3D OriCam2On1(const std::string & aN1,const std::string & aN2,bool &OK) const;
            std::string NameListeCpleOriented(bool Bin) const;
+           std::string NameListeCpleConnected(bool Bin) const;
 
            void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP=false);
            void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);
