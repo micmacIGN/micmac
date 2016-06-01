@@ -792,7 +792,8 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    aTiming.TimeHomStd()    = 0;
 
 
-   cSauvegardeNamedRel                aLCple;
+   cSauvegardeNamedRel                aLCpleOri;
+   cSauvegardeNamedRel                aLCpleConc;
 
    for (int aK1=0 ; aK1<int(aVIm->size()) ; aK1++)
    {
@@ -818,14 +819,17 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                aTiming.TimeHomStd()    += aLocT.TimeHomStd();
 
                cCpleString aCple;
-               aLCple.Cple().push_back(cCpleString(aName1,aName2));
+               aLCpleOri.Cple().push_back(cCpleString(aName1,aName2));
            }
+           aLCpleConc.Cple().push_back(cCpleString(aName1,aName2));
        }
    }
 
    MakeFileXML(aTiming,aDir +   aNM->NameTimingOri2Im());
-   MakeFileXML(aLCple,aDir +   aNM->NameListeCpleOriented(true));
-   MakeFileXML(aLCple,aDir +   aNM->NameListeCpleOriented(false));
+   MakeFileXML(aLCpleOri,aDir +   aNM->NameListeCpleOriented(true));
+   MakeFileXML(aLCpleOri,aDir +   aNM->NameListeCpleOriented(false));
+   MakeFileXML(aLCpleConc,aDir +   aNM->NameListeCpleConnected(true));
+   MakeFileXML(aLCpleConc,aDir +   aNM->NameListeCpleConnected(false));
 
    return EXIT_SUCCESS;
 }
