@@ -561,8 +561,8 @@ std::string getBanniereMM3D()
     banniere += "**      (0) Take a Pastis                                             ** \n";
     banniere += "**      (1) Switch your computer off and on again                     ** \n";
     banniere += "**      (2) Install it on Gnu-Linux (work better on)                  ** \n";
-    banniere += "**      (3) Contact the forum http://forum-micmac.forumprod.com/      ** \n";
-    banniere += "**                                                                    ** \n";
+    banniere += "**      (3) See the wiki at http://micmac.ensg.eu/                    ** \n";
+    banniere += "**      (4) Contact the forum http://forum-micmac.forumprod.com/      ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "************************************************************************ \n";
 
