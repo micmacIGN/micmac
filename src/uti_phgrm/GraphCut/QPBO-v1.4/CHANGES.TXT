@@ -1,0 +1,35 @@
+QPBO, version 1.4.
+
+Changes from version 1.32:
+- put under GPL license
+
+Changes from version 1.31:
+- made it compile without warnings (on g++ 4.6.3)
+- fixed an issue in Save() and Load()
+
+Changes from version 1.3:
+- fixed a bug in Improve(): the value INFTY used for 'fixing' nodes could have
+  been underestimated.
+  Thanks to Yu Miao for pointing this out.
+
+Changes from version 1.2:
+- fixed a bug: MergeParallelEdges() followed by Probe() may have worked incorrectly.
+  Details: edges freed by MergeParallelEdges() are added to a list of "free arcs".
+  These free arcs may then be used when Probe() needs to add a new pairwise term.
+  However, there was an inconsistency between how MergeParallelEdges() marks free arcs,
+  and how free arcs are treated in AddPairwiseTerm(). The result may have been a segmentation fault.
+  Thanks to Lena Gorelick for pointing this out.
+
+Changes from version 1.1:
+- updated to make it compile under gcc 4.1.2.
+
+Changes from version 1.0:
+- fixed a bug in Probe(). (Thanks to Tian Taipeng for noticing that there is a bug).
+
+  Details: In version 1.1 the transformed energy after calling Probe() was incorrect.
+   As a result, the option ProbeOptions::weak_persistencies=1 was not working correctly,
+   since it called the main probing function iteratively.
+
+- Added new function Improve() (without arguments), which generates a random permutation itself.
+
+

@@ -1,0 +1,404 @@
+
+<!-- 
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip-Transv.xml WorkDir=//home/marc/TMP/EPI/SEA-Lot4_Ballast_02072015/ +Im1=Epi_Im1_Right_R0130619_R0130668.tif  +Im2=Epi_Im2_Left_R0130619_R0130668.tif +Ori=Epi  +DoEpi=true  +Purge=false +MMC=false 
+
+
+-->
+<ParamMICMAC>
+
+<DicoLoc>
+        <Symb> BiDim=true </Symb>
+
+	<Symb>  ZReg=0.05  </Symb>
+        <Symb>  PenteMax=1.0 </Symb>
+	<Symb>  Interpol=eInterpolBiLin  </Symb>
+
+        <Symb>  DoEpi=true </Symb>
+
+        <Symb>  UseGpu=false </Symb>
+        <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
+
+        <Symb> PrefMEC=MEC2Im </Symb>
+        <Symb> Purge=true </Symb>
+        <Symb> DoOnlyXml=false </Symb>
+  <!-- Parametres essentiels -->
+
+       <Symb> Ori=Epi    </Symb>
+       <Symb> Im1=ImEpi1_RPC-Comp.tif     </Symb>
+       <Symb> Im2=ImEpi2_RPC-Comp.tif     </Symb>
+       <Symb> IncPix=1000   </Symb>
+       <Symb> NbDirProg=7   </Symb>
+       <Symb> NbDirProg2=15   </Symb>
+       <Symb> CMS=true   </Symb>
+       <Symb> Census=true   </Symb>
+       <Symb> SquareW=true   </Symb>  <!-- Est ce que la fenetre muls scale est carre (sinon gauss) -->
+
+
+       <Symb> DebugClip=true  </Symb>
+       <Symb> SzW0=2  </Symb>
+       <Symb> SzW2=3  </Symb>
+       <Symb> DeltaY=0  </Symb>
+       <Symb> Verif=false  </Symb>
+       <Symb> NbProc=${MMNbProc}  </Symb>
+
+       <Symb>  MMC=true  </Symb>
+
+
+       <Symb> DirPyrIsMEC=true </Symb>
+
+  <!-- Clip zone pour le test -->
+
+  <!-- Parametres calcule -->
+        
+        <Symb>  DirMEC=MEC2Im-${Im1}-${Im2} </Symb>
+        <Symb>  DirPyram=Pyram/ </Symb>
+
+
+           <!-- Ici * joue le role de && --> 
+        <eSymb> SzW= ? ${CMS} 1 ${SzW0}  </eSymb>
+        <eSymb> CensusEff= * ${Census} ${DoEpi} </eSymb>
+       
+
+
+</DicoLoc>
+
+<Section_Terrain> 
+     <#WHEN VTEST=${DoEpi}>
+          <IntervParalaxe>
+              <Px1IncCalc> ${IncPix} </Px1IncCalc>
+          </IntervParalaxe>
+     </#WHEN>
+
+     <GeoRefAutoRoundResol> false </GeoRefAutoRoundResol>
+
+     <Planimetrie>
+         <MasqueTerrain>
+             <MT_Image > EpiMasq.tif </MT_Image>
+             <MT_Xml> ImEpi1_RPC_Masq.xml </MT_Xml>
+         </MasqueTerrain>
+     </Planimetrie>
+
+
+
+</Section_Terrain>
+
+
+<Section_PriseDeVue>
+   <GeomImages> eGeomImage_Epip </GeomImages> 
+   <Images>
+    	<Im1>   ${Im1} </Im1>
+    	<Im2>   ${Im2}    </Im2>
+   </Images>
+   <MasqImageIn>
+             <OneMasqueImage>
+                <PatternSel>  (.*).tif  </PatternSel>
+                <NomMasq>  $1_Masq.tif     </NomMasq>
+             </OneMasqueImage>
+             <AcceptNonExistingFile> false </AcceptNonExistingFile>
+   </MasqImageIn>
+</Section_PriseDeVue>
+
+
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC>
+	<ChantierFullImage1> true </ChantierFullImage1>
+
+	<EtapeMEC>
+    	    <DeZoom> -1 </DeZoom>
+    	    <ModeInterpolation> ${Interpol} </ModeInterpolation>
+
+	    <AggregCorr> eAggregIm1Maitre </AggregCorr>
+		
+	    <!-- param correl -->
+	    <SzW> ${SzW} </SzW>
+
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+
+	    <Px1Pas> 0.5  </Px1Pas>
+            <Px1DilatAlti>  3  </Px1DilatAlti>
+	    <Px1DilatPlani> 3  </Px1DilatPlani>
+	    <Px1Regul> ${ZReg} </Px1Regul>
+
+            <#WHEN VTEST=${BiDim}>
+	         <Px2Pas>        0.1   </Px2Pas>
+                 <Px2DilatAlti>  0     </Px2DilatAlti>
+	         <Px2DilatPlani> 0     </Px2DilatPlani>
+	         <Px2Regul>      2.0   </Px2Regul>
+            </#WHEN>
+
+
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+	    
+	
+            <!-- param regul -->
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+
+	    <ModulationProgDyn>
+               <EtapeProgDyn>
+            	   <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                   <NbDir> ${NbDirProg} </NbDir>
+               </EtapeProgDyn>
+               <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+               <Px2PenteMax> 0.01 </Px2PenteMax>
+            </ModulationProgDyn>
+
+
+        </EtapeMEC>
+
+	<EtapeMEC> 
+                  <DeZoom> 16 </DeZoom> 
+                  <Px1Pas>  1 </Px1Pas>
+                  <Px2DilatAlti>  0     </Px2DilatAlti>
+	          <Px2DilatPlani> 0     </Px2DilatPlani>
+        </EtapeMEC>	
+
+	<EtapeMEC> 
+                  <DeZoom> 16 </DeZoom> 
+                  <Px1Pas>  0.5 </Px1Pas>
+        </EtapeMEC>	
+
+	<EtapeMEC> 
+                  <DeZoom> 16  </DeZoom> 
+                  <Px1DilatAlti>  0     </Px1DilatAlti>
+	          <Px1DilatPlani> 0     </Px1DilatPlani>
+                  <Px2DilatAlti>  5     </Px2DilatAlti>
+	          <Px2DilatPlani> 5     </Px2DilatPlani>
+        </EtapeMEC>	
+
+
+	<EtapeMEC> 
+                  <DeZoom> 16 </DeZoom> 
+                  <Px1Pas>  0.5 </Px1Pas>
+        </EtapeMEC>	
+
+
+	<EtapeMEC> 
+                  <DeZoom> 8 </DeZoom> 
+                  <Px1DilatAlti>  0     </Px1DilatAlti>
+	          <Px1DilatPlani> 0     </Px1DilatPlani>
+                  <Px2DilatAlti>  2     </Px2DilatAlti>
+	          <Px2DilatPlani> 8     </Px2DilatPlani>
+        </EtapeMEC>	
+	<EtapeMEC> 
+                  <DeZoom> 8 </DeZoom> 
+                  <Px1DilatAlti>  3     </Px1DilatAlti>
+	          <Px1DilatPlani> 3     </Px1DilatPlani>
+                  <Px2DilatAlti>  0     </Px2DilatAlti>
+	          <Px2DilatPlani> 0     </Px2DilatPlani>
+        </EtapeMEC>	
+
+	<EtapeMEC> 
+                  <DeZoom> 4 </DeZoom> 
+                  <Px1DilatAlti>  0     </Px1DilatAlti>
+	          <Px1DilatPlani> 0     </Px1DilatPlani>
+                  <Px2DilatAlti>  2     </Px2DilatAlti>
+	          <Px2DilatPlani> 8     </Px2DilatPlani>
+                  <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+                  <SzSinCard>  5.0 </SzSinCard>
+                  <SzAppodSinCard>  5.0 </SzAppodSinCard>
+                  <SsResolOptim> 3  </SsResolOptim>
+	          <ModulationProgDyn>
+                       <EtapeProgDyn>
+            	           <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                           <NbDir> ${NbDirProg2} </NbDir>
+                       </EtapeProgDyn>
+                       <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+                       <Px2PenteMax> 0.01 </Px2PenteMax>
+                  </ModulationProgDyn>
+        </EtapeMEC>	
+	<EtapeMEC> 
+                  <DeZoom> 4 </DeZoom> 
+                  <Px1DilatAlti>  3     </Px1DilatAlti>
+	          <Px1DilatPlani> 3     </Px1DilatPlani>
+                  <Px2DilatAlti>  0     </Px2DilatAlti>
+	          <Px2DilatPlani> 0     </Px2DilatPlani>
+        </EtapeMEC>	
+
+	<EtapeMEC> 
+                  <DeZoom> 2 </DeZoom> 
+                  <Px1DilatAlti>  0     </Px1DilatAlti>
+	          <Px1DilatPlani> 0     </Px1DilatPlani>
+                  <Px2DilatAlti>  2     </Px2DilatAlti>
+	          <Px2DilatPlani> 8     </Px2DilatPlani>
+                  <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+                  <SzSinCard>  5.0 </SzSinCard>
+                  <SzAppodSinCard>  5.0 </SzAppodSinCard>
+                  <SsResolOptim> 5  </SsResolOptim>
+	          <ModulationProgDyn>
+                       <EtapeProgDyn>
+            	           <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                           <NbDir> ${NbDirProg2} </NbDir>
+                       </EtapeProgDyn>
+                       <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+                       <Px2PenteMax> 0.01 </Px2PenteMax>
+                  </ModulationProgDyn>
+	          <SzW> ${SzW2} </SzW>
+        </EtapeMEC>	
+	<EtapeMEC> 
+                  <DeZoom> 2 </DeZoom> 
+                  <Px1DilatAlti>  3     </Px1DilatAlti>
+	          <Px1DilatPlani> 3     </Px1DilatPlani>
+                  <Px2DilatAlti>  0     </Px2DilatAlti>
+	          <Px2DilatPlani> 0     </Px2DilatPlani>
+        </EtapeMEC>	
+
+
+	<EtapeMEC> 
+                  <DeZoom> 1 </DeZoom> 
+                  <Px1DilatAlti>  0     </Px1DilatAlti>
+	          <Px1DilatPlani> 0     </Px1DilatPlani>
+                  <Px2DilatAlti>  2     </Px2DilatAlti>
+	          <Px2DilatPlani> 8     </Px2DilatPlani>
+                  <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+                  <SzSinCard>  5.0 </SzSinCard>
+                  <SzAppodSinCard>  5.0 </SzAppodSinCard>
+                  <SsResolOptim> 10  </SsResolOptim>
+	          <ModulationProgDyn>
+                       <EtapeProgDyn>
+            	           <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                           <NbDir> ${NbDirProg2} </NbDir>
+                       </EtapeProgDyn>
+                       <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+                       <Px2PenteMax> 0.01 </Px2PenteMax>
+                  </ModulationProgDyn>
+	          <SzW> ${SzW2} </SzW>
+        </EtapeMEC>	
+	<EtapeMEC> 
+                  <DeZoom> 1 </DeZoom> 
+                  <Px1DilatAlti>  3     </Px1DilatAlti>
+	          <Px1DilatPlani> 3     </Px1DilatPlani>
+                  <Px2DilatAlti>  0     </Px2DilatAlti>
+	          <Px2DilatPlani> 0     </Px2DilatPlani>
+        </EtapeMEC>	
+	<EtapeMEC> 
+                  <DeZoom> 1 </DeZoom> 
+	          <Px2Pas>        0.05   </Px2Pas>
+                  <Px1DilatAlti>  0     </Px1DilatAlti>
+	          <Px1DilatPlani> 0     </Px1DilatPlani>
+                  <Px2DilatAlti>  2     </Px2DilatAlti>
+	          <Px2DilatPlani> 8     </Px2DilatPlani>
+                  <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+                  <SzSinCard>  5.0 </SzSinCard>
+                  <SzAppodSinCard>  5.0 </SzAppodSinCard>
+                  <SsResolOptim> 10  </SsResolOptim>
+	          <ModulationProgDyn>
+                       <EtapeProgDyn>
+            	           <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                           <NbDir> ${NbDirProg2} </NbDir>
+                       </EtapeProgDyn>
+                       <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+                       <Px2PenteMax> 0.01 </Px2PenteMax>
+                  </ModulationProgDyn>
+	          <SzW> ${SzW2} </SzW>
+        </EtapeMEC>	
+	<EtapeMEC> 
+                  <DeZoom> 1 </DeZoom> 
+	          <Px2Pas>        0.025   </Px2Pas>
+                  <Px1DilatAlti>  0     </Px1DilatAlti>
+	          <Px1DilatPlani> 0     </Px1DilatPlani>
+                  <Px2DilatAlti>  2     </Px2DilatAlti>
+	          <Px2DilatPlani> 8     </Px2DilatPlani>
+                  <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+                  <SzSinCard>  5.0 </SzSinCard>
+                  <SzAppodSinCard>  5.0 </SzAppodSinCard>
+                  <SsResolOptim> 10  </SsResolOptim>
+	          <ModulationProgDyn>
+                       <EtapeProgDyn>
+            	           <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                           <NbDir> ${NbDirProg2} </NbDir>
+                       </EtapeProgDyn>
+                       <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+                       <Px2PenteMax> 0.01 </Px2PenteMax>
+                  </ModulationProgDyn>
+	          <SzW> ${SzW2} </SzW>
+        </EtapeMEC>	
+
+
+<!--
+	<EtapeMEC> 
+              <DeZoom> ${ZoomF} </DeZoom>         
+	      <Px1Pas>   1.0 </Px1Pas>
+           
+              <#WHEN VTEST=${BiDim}>
+	           <Px2Pas>   1.0 </Px2Pas>
+              </#WHEN>
+              <AlgoRegul> eAlgoDequant </AlgoRegul>
+        </EtapeMEC>
+-->
+       
+</Section_MEC>
+
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results>
+    <#IF VTEST=${DoEpi}>
+         <GeomMNT> eGeomPxBiDim     </GeomMNT>
+         <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D     </GeomMNT>
+    </#IF>
+   <#WHEN  VTEST=${DoOnlyXml}>
+         <DoNothingBut>
+            <ButDoMTDNuage>  true </ButDoMTDNuage>
+<!--
+-->
+         </DoNothingBut>
+   </#WHEN>
+<!--
+    <DoMEC> true </DoMEC> 
+    <DoNothingBut>
+            <ButDoOriMNT>  true </ButDoOriMNT>
+    </DoNothingBut>
+
+    <NonExistingFileDoMEC>  ${DirMEC}/Z_Num8_DeZoom2_LeChantier.tif </NonExistingFileDoMEC>
+-->
+
+<!--
+    <DoFDC> true </DoFDC>
+-->
+    <ZoomMakeTA> 32 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    
+</Section_Results>
+
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace>
+
+
+
+
+    <WorkDir> ThisDir </WorkDir> 
+    <TmpMEC> ${DirMEC}/ </TmpMEC>
+    <TmpResult> ${DirMEC}/ </TmpResult>
+    <TmpPyr> ${DirPyram} </TmpPyr>
+    <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
+
+    <ByProcess>  1 </ByProcess>
+
+    <AvalaibleMemory> 1024 </AvalaibleMemory>
+    <SzDalleMin> 128 </SzDalleMin>
+    <SzRecouvrtDalles> 200 </SzRecouvrtDalles>
+
+    <SzMinDecomposCalc> 40 </SzMinDecomposCalc>
+    <ComprMasque> eComprTiff_None </ComprMasque>
+
+
+</Section_WorkSpace>
+
+<Section_Vrac> 
+     <DebugMM> true</DebugMM>
+</Section_Vrac>
+
+</ParamMICMAC>
+
