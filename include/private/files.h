@@ -62,92 +62,6 @@ class cElXMLTree;
 class Fich_Im2d;
 class cArgCreatXLMTree;
 
-
-
-#if (ELISE_unix || ELISE_MacOs)
-#include <dirent.h>
-class cElDirectory
-{
-public :
-    cElDirectory(const std::string& aName) :
-       mDir (opendir(aName.c_str()))
-       {
-       }
-       ~cElDirectory()
-       {
-           if (mDir !=0)
-               closedir(mDir);
-       }
-
-       bool IsDirectory()
-       {
-           return mDir != 0;
-       }
-       const char * GetNextName()
-       {
-           struct dirent * cont_dir = readdir(mDir);
-           return (cont_dir != 0) ? cont_dir->d_name : 0;
-       }
-private :
-    DIR  * mDir;
-};
-#elif (ELISE_windows)
-#undef INT
-#include "shlobj.h"
-class cElDirectory
-{
-public :
-    cElDirectory(const std::string& aName):
-            mFirst(true)
-       {
-           if ( ELISE_fp::exist_file(aName) )
-                mPattern = aName;
-           else
-           {
-                char lastChar = *aName.rbegin();
-                if ( lastChar!='\\' && lastChar!='/' )
-                    mPattern = aName+"/*";
-                else
-                    mPattern = aName+'*';
-           }
-           mHandleFind = ::FindFirstFile (mPattern.c_str(), &mWFD);
-       }
-       ~cElDirectory()  { ::FindClose(mHandleFind); }
-
-       bool IsDirectory()
-       {
-           return    (mHandleFind != INVALID_HANDLE_VALUE)
-               && (mWFD.dwFileAttributes &FILE_ATTRIBUTE_DIRECTORY);
-       }
-
-       const char * GetNextName()
-       {
-           if (mFirst)
-           {
-               mFirst=false;
-               return mWFD.cFileName;
-           }
-           if (FindNextFile (mHandleFind, &mWFD))
-           {
-               return mWFD.cFileName;
-           }
-           return 0;
-
-       }
-
-
-private :
-    std::string        mPattern;
-    bool               mFirst;
-    HANDLE             mHandleFind;
-    WIN32_FIND_DATA	   mWFD;
-
-};
-#endif
-
-
-
-
 std::list<std::string>  ListFileMatch
                         (
                                const std::string & aDir,
@@ -461,6 +375,89 @@ template <class Type> void  ReadPtr(ELISE_fp & aFile,tFileOffset aNb,Type * aPtr
 
 bool FileStrictPlusRecent(const std::string & aF1,const std::string & aF2);
 
+#if (ELISE_unix || ELISE_MacOs)
+	#include <dirent.h>
+	class cElDirectory
+	{
+	public :
+		cElDirectory(const std::string& aName) :
+		   mDir (opendir(aName.c_str()))
+		   {
+		   }
+		   ~cElDirectory()
+		   {
+			   if (mDir !=0)
+				   closedir(mDir);
+		   }
+
+		   bool IsDirectory()
+		   {
+			   return mDir != 0;
+		   }
+		   const char * GetNextName()
+		   {
+			   struct dirent * cont_dir = readdir(mDir);
+			   return (cont_dir != 0) ? cont_dir->d_name : 0;
+		   }
+	private :
+		DIR  * mDir;
+	};
+#elif (ELISE_windows)
+	#undef INT
+	#ifndef NOMINMAX
+		#define NOMINMAX
+	#endif
+	#include "shlobj.h"
+	class cElDirectory
+	{
+	public :
+		cElDirectory(const std::string& aName):
+				mFirst(true)
+		   {
+			   if ( ELISE_fp::exist_file(aName) )
+					mPattern = aName;
+			   else
+			   {
+					char lastChar = *aName.rbegin();
+					if ( lastChar!='\\' && lastChar!='/' )
+						mPattern = aName+"/*";
+					else
+						mPattern = aName+'*';
+			   }
+			   mHandleFind = ::FindFirstFile (mPattern.c_str(), &mWFD);
+		   }
+		   ~cElDirectory()  { ::FindClose(mHandleFind); }
+
+		   bool IsDirectory()
+		   {
+			   return    (mHandleFind != INVALID_HANDLE_VALUE)
+				   && (mWFD.dwFileAttributes &FILE_ATTRIBUTE_DIRECTORY);
+		   }
+
+		   const char * GetNextName()
+		   {
+			   if (mFirst)
+			   {
+				   mFirst=false;
+				   return mWFD.cFileName;
+			   }
+			   if (FindNextFile (mHandleFind, &mWFD))
+			   {
+				   return mWFD.cFileName;
+			   }
+			   return 0;
+
+		   }
+
+
+	private :
+		std::string        mPattern;
+		bool               mFirst;
+		HANDLE             mHandleFind;
+		WIN32_FIND_DATA	   mWFD;
+
+	};
+#endif
 
 INT sizeofile (const char * nom);
 typedef long int  FILE_offset;
