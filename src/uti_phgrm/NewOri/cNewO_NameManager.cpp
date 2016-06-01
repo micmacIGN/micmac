@@ -283,6 +283,13 @@ std::string cNewO_NameManager::NameListeCpleOriented(bool Bin) const
     return Dir3P() + "ListCpleOriented"+ (Bin ? ".dmp" : ".xml");
 }
 
+std::string cNewO_NameManager::NameListeCpleConnected(bool Bin) const
+{
+    return Dir3P() + "ListCpleConnected"+ (Bin ? ".dmp" : ".xml");
+}
+
+
+
 std::list<std::string>  cNewO_NameManager::ListeImOrientedWith(const std::string & aName) const
 {
    return StdGetFromPCP(NameListeImOrientedWith(aName,true),ListOfName).Name();
