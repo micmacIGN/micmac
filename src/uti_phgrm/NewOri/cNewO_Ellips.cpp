@@ -249,8 +249,45 @@ void NormEllips(cXml_Elips3D & anEl)
    anEl.Syz() = anEl.Syz() / aPds - aCdg.y * aCdg.z;
 }
 
-
 void TestEllips()
+{
+    while (1)
+    {
+        int aNbPts =  4 + NRrandom3(2);
+        cXml_Elips3D  anEl;
+   
+        RazEllips(anEl);
+        for (int aK=0 ; aK<aNbPts ; aK++)
+        {
+             Pt3dr aP (NRrandC(),NRrandC(),NRrandC());
+             AddEllips(anEl,aP,1.0);
+        }
+        NormEllips(anEl);
+
+        cGenGaus3D aGG1(anEl);
+        std::vector<Pt3dr> aVP;
+        aGG1.GetDistribGaus(aVP,1,2,3);
+
+        RazEllips(anEl);
+        for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+            AddEllips(anEl,aVP[aK],1.0);
+
+        NormEllips(anEl);
+        cGenGaus3D aGG2(anEl);
+
+        for (int aK=0 ; aK< 3 ; aK++)
+        {
+            std::cout << "RATIO VP " << aGG1.ValP(aK) /  aGG2.ValP(aK) << " " 
+                      <<  euclid( aGG1.VecP(aK) - aGG2.VecP(aK))       << " "
+                      << "\n";
+        }
+
+        getchar();
+    }
+}
+
+
+void TestEllips_0()
 {
    cXml_Elips3D  anEl;
    
