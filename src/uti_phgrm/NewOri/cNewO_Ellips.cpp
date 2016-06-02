@@ -225,47 +225,80 @@ void TestEllips()
    cGenGaus3D aGG(anEl);
 
    // Verifie que les vecp sont bien ceux ayant servi a generer
-   if (0)
+   if (1)
    {
        std::cout << "VALP " <<  aGG.ValP(0) << " " << aGG.ValP(1) << " " << aGG.ValP(2) << "\n";
        std::cout << "VEC1 " <<  aGG.VecP(0) << " " << aVec1 << "\n";
        std::cout << "VEC2 " <<  aGG.VecP(1) << " " << aVec2 << "\n";
        std::cout << "VEC3 " <<  aGG.VecP(2) << " " << aVec3 << "\n";
    }
+   double aNewVp1 = aGG.ValP(0);
+   double aNewVp2 = aGG.ValP(1);
+   double aNewVp3 = aGG.ValP(2);
 
-for (int aK=1 ; aK<=30 ; aK++)
+   // Verifie DerEF est intregale de gaussienne et InvErrFonc * DerEF = Id
+   if (0)
+   {
+     for (int aK=1 ; aK<=30 ; aK++)
+     {
+        double x = 1-pow(aK/30.0,4);
+        // std::cout << aK << " " << erfcc(aK) << "\n";
+        double Ix = InvErrFonc(x);
+        double Eps = 1e-4;
+        std::cout << "  " << x 
+                  << " "  << Ix 
+                  << " " << DirErFonc (Ix) 
+                  << " D1=" << DerEF(Ix) 
+                  << " D2=" << (DirErFonc(Ix+Eps)  - DirErFonc(Ix-Eps)) / (2*Eps)
+                  << "\n";
+     }
+     std::cout <<  InvErrFonc(0.999) << "\n";
+   }
+
+
+for (aNb=1 ; aNb < 100 ; aNb++)
 {
-   double x = 1-pow(aK/30.0,4);
-   // std::cout << aK << " " << erfcc(aK) << "\n";
-   double Ix = InvErrFonc(x);
-   double Eps = 1e-4;
-   std::cout << "  " << x 
-             << " "  << Ix 
-             << " " << DirErFonc (Ix) 
-             << " D1=" << DerEF(Ix) 
-             << " D2=" << (DirErFonc(Ix+Eps)  - DirErFonc(Ix-Eps)) / (2*Eps)
-             << "\n";
-}
-std::cout <<  InvErrFonc(0.999) << "\n";
-
    RazEllips(anEl);
 
-   aNb = 50;
+    // aNb = 200;
 
    for (int aK1 =-aNb ; aK1<=aNb ; aK1++)
    {
+       // std::cout << "K1= " << aK1 << "\n";
+       // (1-aR) (aNb+0.5) = C = 1/3
+       //  aR = 1 - aC / (aNb+0.5)
        for (int aK2 =-aNb ; aK2<=aNb ; aK2++)
        {
            for (int aK3 =-aNb ; aK3<=aNb ; aK3++)
            {
+               double aFact =  sqrt(2) / (1 - 0.3333/(aNb+0.5));
+               double aL1 = InvErrFonc( (2*aK1) / double(2*aNb+1)) * aFact;
+               double aL2 = InvErrFonc( (2*aK2) / double(2*aNb+1)) * aFact;
+               double aL3 = InvErrFonc( (2*aK3) / double(2*aNb+1)) * aFact;
                Pt3dr aP  =   aCDG 
-                           + (aVec1*aK1*aVp1) 
-                           + (aVec2*aK2*aVp2) 
-                           + (aVec3*aK3*aVp3)
+                           + (aVec1*aL1*aNewVp1) 
+                           + (aVec2*aL2*aNewVp2) 
+                           + (aVec3*aL3*aNewVp3)
                          ;
                AddEllips(anEl,aP,1.0);
            }
        }
+   }
+   NormEllips(anEl);
+   aGG = cGenGaus3D(anEl);
+   // std::cout << "RATIO " <<  aGG.ValP(0)/aNewVp1 << " " << aGG.ValP(1)/aNewVp2 << " " << aGG.ValP(2)/aNewVp3 << "\n";
+   double aR = aGG.ValP(0)/aNewVp1;
+   std::cout << "RATIO " <<  aR << " " << (1-aR) * (aNb+0.5) << "\n";
+}
+
+   // Verifie que les vecp sont bien ceux ayant servi a generer
+   if (1)
+   {
+       std::cout << "VALP " <<  aGG.ValP(0) << " " << aGG.ValP(1) << " " << aGG.ValP(2) << "\n";
+       std::cout << "RATIO " <<  aGG.ValP(0)/aNewVp1 << " " << aGG.ValP(1)/aNewVp2 << " " << aGG.ValP(2)/aNewVp3 << "\n";
+       std::cout << "VEC1 " <<  aGG.VecP(0) << " " << aVec1 << "\n";
+       std::cout << "VEC2 " <<  aGG.VecP(1) << " " << aVec2 << "\n";
+       std::cout << "VEC3 " <<  aGG.VecP(2) << " " << aVec3 << "\n";
    }
 }
 
