@@ -336,6 +336,66 @@ class cAppliTiepRed
 };
 
 
+//  ==============  
+
+class cAppliGrRedTieP;
+class cAttSomGrRedTP;
+class cAttArcSymGrRedTP;
+class cAttArcASymGrRedTP;
+
+typedef ElSom<cAttSomGrRedTP*,cAttArcASymGrRedTP*>        tSomGRTP;
+typedef ElArc<cAttSomGrRedTP*,cAttArcASymGrRedTP*>        tArcGRTP;
+typedef ElGraphe<cAttSomGrRedTP*,cAttArcASymGrRedTP*>     tGrGRTP;
+typedef ElSubGraphe<cAttSomGrRedTP*,cAttArcASymGrRedTP*>  tSubGrGRTP;
+
+class cAttSomGrRedTP
+{
+     public :
+        cAttSomGrRedTP(cAppliGrRedTieP &,const std::string & aName);
+        int & NbPtsMax();
+        const std::string & Name() const;
+     private :
+        cAppliGrRedTieP *    mAppli;
+        CamStenope *         mCamGlob;
+        std::string          mName;
+        int                  mNbPtsMax;
+};
+
+class cAttArcSymGrRedTP
+{
+     public :
+         cAttArcSymGrRedTP(const cXml_Ori2Im & );
+         const cXml_Ori2Im & Ori() const;
+     private :
+         cXml_Ori2Im    mOri;
+         
+};
+
+class cAttArcASymGrRedTP
+{
+     public :
+         cAttArcASymGrRedTP(cAttArcSymGrRedTP *,bool direct);
+     private :
+         cAttArcSymGrRedTP* mASym;
+         bool               mDirect;
+};
+
+class cAppliGrRedTieP : public cElemAppliSetFile
+{
+      public :
+           cAppliGrRedTieP(int argc,char ** argv);
+      private :
+           bool                               mUseOR;
+           bool                               mQuick;
+           std::string                        mCalib;
+           std::string                        mPatImage;
+           tGrGRTP                            mGr;
+           tSubGrGRTP                         mSubAll;
+           std::map<std::string,tSomGRTP *>   mDicoSom;
+           cVirtInterf_NewO_NameManager *     mNoNM;
+           int                                mNbP;
+};
+
 /*
 inline bool ImTest(const std::string & aName)
 {

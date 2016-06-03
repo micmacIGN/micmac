@@ -40,20 +40,121 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "OriTiepRed.h"
 NS_OriTiePRed_BEGIN
 
-// bool BUGTR = true;
+/**********************************************************************/
+/*                                                                    */
+/*                         cAttArcSymGrRedTP                          */
+/*                                                                    */
+/**********************************************************************/
 
+cAttArcSymGrRedTP::cAttArcSymGrRedTP(const cXml_Ori2Im & anOri) :
+    mOri (anOri)
+{
+}
+
+/**********************************************************************/
+/*                                                                    */
+/*                         cAttArcSymGrRedTP                          */
+/*                                                                    */
+/**********************************************************************/
+
+cAttArcASymGrRedTP::cAttArcASymGrRedTP(cAttArcSymGrRedTP * aASym,bool direct) :
+   mASym   (aASym),
+   mDirect (direct)
+{
+}
 
 
 /**********************************************************************/
 /*                                                                    */
-/*                         cAppliTiepRed                              */
+/*                         cAttSomGrRedTP                             */
 /*                                                                    */
 /**********************************************************************/
 
+cAttSomGrRedTP::cAttSomGrRedTP(cAppliGrRedTieP & anAppli,const std::string & aName) :
+   mAppli    (&anAppli),
+   mCamGlob  (0),
+   mName     (aName),
+   mNbPtsMax (0)
+{
+}
 
 
+int & cAttSomGrRedTP::NbPtsMax() {return mNbPtsMax;}
+const std::string & cAttSomGrRedTP::Name() const {return mName;}
+
+
+/**********************************************************************/
+/*                                                                    */
+/*                         cAppliGrRedTieP                            */
+/*                                                                    */
+/**********************************************************************/
+
+cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
+    mUseOR (true),
+    mQuick (true),
+    mNbP   (-1)
+{
+   // Read parameters 
+   MMD_InitArgcArgv(argc,argv);
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile),
+         LArgMain()  << EAM(mCalib,"OriCalib",true,"Calibration folder if any")
+                     << EAM(mUseOR,"UseOR",true,"Use Relative Orientation (Def =true)")
+                     << EAM(mNbP,"NbP",true,"Nb Process, def use all")
+   );
+
+
+    cElemAppliSetFile::Init(mPatImage);
+    mNoNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir,mCalib,mQuick);
+
+    if (!EAMIsInit(&mNbP))
+    {
+       mNbP = MMNbProc();
+    }
+
+    for (int aK=0 ; aK<int(mSetIm->size()) ; aK++)
+    {
+        const std::string & aName = (*mSetIm)[aK];
+        tSomGRTP & aSom = mGr.new_som(new cAttSomGrRedTP(*this,aName));
+        mDicoSom[aName] = & aSom;
+    }
+
+    std::string aNameCple =  mUseOR                                ?
+                             mNoNM->NameListeCpleOriented(true)    :
+                             mNoNM->NameListeCpleConnected(true)   ;
+
+    cSauvegardeNamedRel  aLCple = StdGetFromPCP(aNameCple,SauvegardeNamedRel);
+
+    for (std::vector<cCpleString>::const_iterator itCp=aLCple.Cple().begin() ; itCp!=aLCple.Cple().end() ; itCp++)
+    {
+        tSomGRTP * aS1 = mDicoSom[itCp->N1()];
+        tSomGRTP * aS2 = mDicoSom[itCp->N2()];
+
+        if ((aS1!=0) && (aS2!=0))
+        {
+             cXml_Ori2Im anOri = mNoNM->GetOri2Im(itCp->N1(),itCp->N2());
+             cAttArcSymGrRedTP * aAASym = new cAttArcSymGrRedTP(anOri);
+             mGr.add_arc(*aS1,*aS2,new cAttArcASymGrRedTP(aAASym,true),new cAttArcASymGrRedTP(aAASym,false));
+        }
+    }
+     
+   
+}
 
 NS_OriTiePRed_END
+
+
+NS_OriTiePRed_USE
+
+int  Ratafia_Main(int argc,char ** argv)
+{
+    cAppliGrRedTieP anAppli(argc,argv);
+
+    return EXIT_SUCCESS;
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

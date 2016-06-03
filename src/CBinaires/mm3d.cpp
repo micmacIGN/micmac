@@ -196,6 +196,7 @@ int Contrast_main(int argc,char ** argv);
 
 int TestCamRPC(int argc,char** argv);
 
+int Ratafia_Main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -209,6 +210,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
+       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Some stuff to be described later"));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));
