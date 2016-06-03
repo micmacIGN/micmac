@@ -48,16 +48,14 @@ Header-MicMac-eLiSe-25/06/2007*/
  * Merge Homol : merge two homol directories 
  *
  * Inputs:
- *  - HomolIn1
- *  - HomolIn2
+ *  - HomolIn pattern
  *  - HomolOut name
- *  - tolerance (px)
  *
  * Output:
  *  - new homol dir
  *
  * Call example:
- *   mm3d MergeHomol _1 _2 _merged tolerance=0.1
+ *   mm3d MergeHomol "Homol_[12]" Homol_merged
  *
  * Info: jmmuller
  * 
@@ -174,8 +172,6 @@ int mergeHomol_main(int argc,char ** argv)
 {
     std::string aHomolInPattern="";//input HomolIn pattern
     std::string aHomolOutDirName="";//output Homol dir
-    bool ExpTxt=false;//Homol are in dat or txt
-    double aTolerancePx=0.1;//tolerance for equality
 
     std::cout<<"\nMerge Homol : merge homol directories\n"<<std::endl;
 
@@ -183,11 +179,10 @@ int mergeHomol_main(int argc,char ** argv)
       (
        argc,argv,
        //mandatory arguments
-       LArgMain()  << EAMC(aHomolInPattern, "Homol in pattern name",eSAM_IsPatFile)
+       LArgMain()  << EAMC(aHomolInPattern, "Homol input pattern name",eSAM_IsPatFile)
                    << EAMC(aHomolOutDirName, "Homol output dir name",eSAM_IsDir),
        //optional arguments
-       LArgMain()  << EAM(aTolerancePx, "Tolrance", true, "Tolerance for equality in px (default=0.1)")
-                   << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
+       LArgMain()
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
