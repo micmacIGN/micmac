@@ -142,7 +142,7 @@ class cElemAppliSetFile
        std::string mPat;
        cInterfChantierNameManipulateur * mICNM;
        const cInterfChantierNameManipulateur::tSet * SetIm();
-    private :
+    protected :
        const cInterfChantierNameManipulateur::tSet * mSetIm;
 };
 
@@ -313,6 +313,9 @@ const cCWWSImage * GetFromCAWSI(const cChantierAppliWithSetImage & ,const std::s
 class cVirtInterf_NewO_NameManager
 {
        public :
+           virtual std::string NameListeCpleOriented(bool Bin) const = 0;
+           virtual std::string NameListeCpleConnected(bool Bin) const = 0;
+
            virtual CamStenope * OutPutCamera(const std::string & aName) const = 0;
            virtual CamStenope * CalibrationCamera(const std::string  & aName) const = 0;
            // for a given image "aName", return the list of images having homolgous data (tieP + orientaion)
