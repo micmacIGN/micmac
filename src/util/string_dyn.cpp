@@ -552,8 +552,8 @@ std::string getBanniereMM3D()
     banniere += "**  - ERC Advanced Grant A.Kaeaeb \"ICEMASS\" (University of Oslo)      ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
-    banniere += "**  Current Team: MP Deseilligny, D Jouin, J Belvaux,                 ** \n";
-    banniere += "**    G Maillet, L Girod, E Rupnik, JM Muller, M Daakir               ** \n";
+    banniere += "**  Current Team: MP Deseilligny, D Jouin, J Belvaux, G Maillet,      ** \n";
+    banniere += "**    L Girod, E Rupnik, JM Muller, M Daakir, TG Nguyen               ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**    Contact for participating : Marc.Pierrot-Deseilligny@ensg.eu    ** \n";
     banniere += "**                                                                    ** \n";
