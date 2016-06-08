@@ -337,6 +337,11 @@
         <SzCaptMm>   36.9 36.9 </SzCaptMm>
         <ShortName> Ph1p20  </ShortName>
 	</CameraEntry>
+	<CameraEntry>
+        <Name>  IQ180 </Name> <!-- Phase One A/S -->
+        <SzCaptMm>   53.7 40.4 </SzCaptMm>
+        <ShortName> IQ180 </ShortName>
+	</CameraEntry>
 
 
 
