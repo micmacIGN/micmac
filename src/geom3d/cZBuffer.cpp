@@ -277,10 +277,8 @@ if (euclid(aP2Out) > 1e5  )
                       double aZMed  = KthVal(VData(aVZofXY),aNbVal,aNbVal/2);
                       Pt3dr aPMed((anXDal0+anXDal1)/2.0,(anYDal0+anYDal1)/2.0,aZMed);
 
-static int aCpt=0; aCpt++; if ((aCpt%1)==0) std::cout << "AaIiiinnnn " << aCpt << "\n";
                       Pt3dr aDerX = (ProjDisc(aPMed+Pt3dr(1,0,0)) - ProjDisc(aPMed+Pt3dr(-1,0,0))) / 2.0;
                       Pt3dr aDerY = (ProjDisc(aPMed+Pt3dr(0,1,0)) - ProjDisc(aPMed+Pt3dr(0,-1,0))) / 2.0;
-if ((aCpt%1)==0)std::cout << "AaOooUuutt " << aCpt << "\n";
 
                       ElMatrix<double> aJac =  MatFromCol(Pt2dr(aDerX.x,aDerX.y),Pt2dr(aDerY.x,aDerY.y));
 

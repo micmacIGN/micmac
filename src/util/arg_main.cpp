@@ -105,10 +105,13 @@ void OpenFileDebug(const std::string & aName)
 
 std::string TheStringMemoArgOptGlob = "";
 
-static const int TheNbKeyACM=6;
+static const int TheNbKeyACM=7;
 int TheNbProcCom = -1;
 std::string TheSpecMess="";
-const char *  TheKeyACM[TheNbKeyACM] ={"ExitOnBrkp","ExitOnNan","MajickFile","EnBoucle","NbMaxProc","SpecMessage"};
+const char *  TheKeyACM[TheNbKeyACM] ={"ExitOnBrkp","ExitOnNan","MajickFile","EnBoucle","NbMaxProc","SpecMessage","SFS"};
+
+std::string TheGlobSFS="";
+
 
 void AnalyseContextCom(int argc,char ** argv)
 {
@@ -155,6 +158,11 @@ void AnalyseContextCom(int argc,char ** argv)
            else if (aBeforEq==TheKeyACM[5])
            {
                TheSpecMess= aAfterEq;
+               ForAction = true;
+           }
+           else if (aBeforEq==TheKeyACM[6])
+           {
+               TheGlobSFS=   argv[aK];
                ForAction = true;
            }
 /*

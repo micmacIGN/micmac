@@ -125,6 +125,8 @@ void DoMkT()
 }
 
 
+extern std::string TheGlobSFS ;
+
 void DoDevelopp(int aSz1,int aSz2)
 {
     aFileList = anICNM->StdGetListOfFile(aPatOri,1);
@@ -141,6 +143,8 @@ void DoDevelopp(int aSz1,int aSz2)
 
         //std::string aCom = MMBin() + "PastDevlop " + aNOri + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
         std::string aCom = MM3dBinFile_quotes("PastDevlop") + " " + protect_spaces(aNOri) + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
+
+        if (TheGlobSFS!="") aCom = aCom+ " " + TheGlobSFS;
 
         taskName = string( "T" ) + ToString( iImage ) + "_";
         aGPAO.GetOrCreate( taskName, aCom ); // always call PastDevlop (in case asked resolution changed)
