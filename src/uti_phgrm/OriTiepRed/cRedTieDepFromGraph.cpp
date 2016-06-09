@@ -51,9 +51,14 @@ cAttArcSymGrRedTP::cAttArcSymGrRedTP(const cXml_Ori2Im & anOri) :
 {
 }
 
+const cXml_Ori2Im & cAttArcSymGrRedTP::Ori() const
+{
+   return mOri;
+}
+
 /**********************************************************************/
 /*                                                                    */
-/*                         cAttArcSymGrRedTP                          */
+/*                         cAttArcASymGrRedTP                         */
 /*                                                                    */
 /**********************************************************************/
 
@@ -61,6 +66,25 @@ cAttArcASymGrRedTP::cAttArcASymGrRedTP(cAttArcSymGrRedTP * aASym,bool direct) :
    mASym   (aASym),
    mDirect (direct)
 {
+}
+
+const cXml_Ori2Im & cAttArcASymGrRedTP::Ori() const
+{
+   return mASym->Ori();
+}
+
+double & cAttArcASymGrRedTP::Recouv() {return mRecouv;}
+
+
+/**********************************************************************/
+/*                                                                    */
+/*                         cV2ParGRT                                  */
+/*                                                                    */
+/**********************************************************************/
+
+void cV2ParGRT::AddSom(tSomGRTP * aSom)
+{
+   mVSom.push_back(aSom);
 }
 
 
@@ -71,17 +95,20 @@ cAttArcASymGrRedTP::cAttArcASymGrRedTP(cAttArcSymGrRedTP * aASym,bool direct) :
 /**********************************************************************/
 
 cAttSomGrRedTP::cAttSomGrRedTP(cAppliGrRedTieP & anAppli,const std::string & aName) :
-   mAppli    (&anAppli),
-   mCamGlob  (0),
-   mName     (aName),
-   mNbPtsMax (0)
+   mAppli     (&anAppli),
+   mCamGlob   (0),
+   mName      (aName),
+   mNbPtsMax  (0),
+   mRecSelec  (0.0),
+   mRecCur    (0.0)
 {
 }
 
 
 int & cAttSomGrRedTP::NbPtsMax() {return mNbPtsMax;}
 const std::string & cAttSomGrRedTP::Name() const {return mName;}
-
+double & cAttSomGrRedTP::RecSelec() {return mRecSelec;}
+double & cAttSomGrRedTP::RecCur() {return mRecCur;}
 
 /**********************************************************************/
 /*                                                                    */
@@ -89,10 +116,55 @@ const std::string & cAttSomGrRedTP::Name() const {return mName;}
 /*                                                                    */
 /**********************************************************************/
 
+void cAppliGrRedTieP::SetSelected(tSomGRTP * aSom)
+{
+    aSom->flag_set_kth_true(mFlagSel);
+    mPartParal.back()->AddSom(aSom);
+    for (tIterArcGRTP  itA=aSom->begin(mSubAll) ; itA.go_on(); itA++)
+    {
+        tSomGRTP & aS2 = (*itA).s2();
+        double aRec = (*itA).attr()->Recouv();
+        ElSetMax(aS2.attr()->RecCur(),aRec);
+        ElSetMax(aS2.attr()->RecSelec(),aRec);
+    }
+
+}
+
+bool cAppliGrRedTieP::OneItereSelection()
+{
+     // Pour S0, on prend le non selec le + proche des deja selec
+     tSomGRTP * aS0 = 0;
+     for (int aKs=0 ; aKs<mNbSom ; aKs++)
+     {
+        tSomGRTP * aSom = mVSom[aKs];
+        aSom->attr()->RecCur() = 0;
+        if (
+                (! aSom->flag_kth(mFlagSel))  
+             && ((aS0==0)|| (aS0->attr()->RecSelec() < aSom->attr()->RecSelec()))
+           )
+        {
+            aS0 = aSom;
+        }
+     }
+
+    if (aS0==0) 
+       return false;
+
+    mPartParal.push_back(new cV2ParGRT);
+
+    SetSelected(aS0);
+
+    
+    //
+    return true;
+}
+
 cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
-    mUseOR (true),
-    mQuick (true),
-    mNbP   (-1)
+    mUseOR    (true),
+    mQuick    (true),
+    mNbP      (-1),
+    mFlagSel  (mGr.alloc_flag_som()),
+    mFlagCur  (mGr.alloc_flag_som())
 {
    // Read parameters 
    MMD_InitArgcArgv(argc,argv);
@@ -118,8 +190,10 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     {
         const std::string & aName = (*mSetIm)[aK];
         tSomGRTP & aSom = mGr.new_som(new cAttSomGrRedTP(*this,aName));
-        mDicoSom[aName] = & aSom;
+        mDicoSom[aName] = &aSom;
+        mVSom.push_back(&aSom);
     }
+    mNbSom = mVSom.size();
 
     std::string aNameCple =  mUseOR                                ?
                              mNoNM->NameListeCpleOriented(true)    :
@@ -140,6 +214,31 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
         }
     }
      
+
+   // Calcul du nombre de connexion max
+
+    for (tIterSomGRTP itS=mGr.begin(mSubAll);itS.go_on();itS++)
+    {
+        tSomGRTP & aS1 = (*itS);
+        for (tIterArcGRTP  itA=aS1.begin(mSubAll) ; itA.go_on(); itA++)
+        {
+             const cXml_Ori2Im & anOri = (*itA).attr()->Ori();
+             ElSetMax(aS1.attr()->NbPtsMax(),anOri.NbPts());
+        }
+    }
+
+   // Calcul du taux de recouvrement de chaque arc
+    for (tIterSomGRTP itS=mGr.begin(mSubAll);itS.go_on();itS++)
+    {
+        tSomGRTP & aS1 = (*itS);
+        for (tIterArcGRTP  itA=aS1.begin(mSubAll) ; itA.go_on(); itA++)
+        {
+             tSomGRTP & aS2 = (*itA).s2();
+             const cXml_Ori2Im & anOri = (*itA).attr()->Ori();
+             (*itA).attr()->Recouv() =  anOri.NbPts() / double(aS2.attr()->NbPtsMax());
+        }
+    }
+
    
 }
 
