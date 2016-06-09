@@ -1,0 +1,24 @@
+Main Window 
+  Button 1:
+ 
+      * Clik to add point
+      * Ctrl Clik to remove point
+      * Shift Clik to close polygon
+  
+  Button 2, displacement:
+ 
+      * drag to translate
+      * shit drag to zoom
+      * wheel to zoom
+ 
+  Button 3 , contextual menu:
+ 
+      * Exit : quit Vino
+      * Coul : to swap current colour
+
+Colour Window :
+
+      * Swap current colour
+  
+ 
+======= Clik in this window to go back to navigation ==================

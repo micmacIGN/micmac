@@ -1,0 +1,147 @@
+<!--
+
+CONVERSION :
+
+mm3d MapCmd mm3d Convert2GenBundle "P=Abbey-IMG_.*.jpg" "C=Ori-RTL-Init/Orientation-\$0.xml" Bundle
+
+mm3d MapCmd mm3d Convert2GenBundle "P=Abbey-IMG_.*.jpg" "C=Ori-RTL-Init/Orientation-\$0.xml" BundlePert PertubAng=1e-2
+
+
+
+
+   The simplest MicMac exemple
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml WorkDir=/media/data2/ExempleDoc/MiniCuxha/
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml  WorkDir=/home/marc/TMP/ExempleDoc/AerialCuxa/
+
+
+-->
+
+<ParamMICMAC>
+
+<DicoLoc>
+
+   <Symb> ImPat=Abbey-IMG_.*.jpg </Symb>
+   <Symb>  Ori=Bundle     </Symb>
+   <Symb>  DirMEC=MEC-${Ori}/ </Symb>
+
+</DicoLoc>
+
+
+<Section_Terrain>  
+      <IntervAltimetrie>
+             <ZIncCalc>   20.0  </ZIncCalc>
+      </IntervAltimetrie>
+     <Planimetrie>
+           <MasqueTerrain >
+                <FileBoxMasqIsBoxTer> ${DirMEC}BoxTer-Bundle.xml</FileBoxMasqIsBoxTer> 
+                <MT_Image >  TA/TA_LeChantier_Masq.tif        </MT_Image>
+                <MT_Xml>     TA/TA_LeChantier.xml  </MT_Xml>
+           </MasqueTerrain>
+
+     </Planimetrie>
+
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomGen </GeomImages>
+<!--
+     <GeomImages> eGeomImageOri </GeomImages>
+-->
+     <Images >
+          <ImPat> ${ImPat} </ImPat>
+     </Images>
+
+
+     <NomsGeometrieImage>
+         <NGI_StdDir>
+              <StdDir>  ${Ori} </StdDir>
+              <NGI_StdDir_Apply> .* </NGI_StdDir_Apply>
+         </NGI_StdDir>
+
+<!--
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori}  </FCND_GeomCalc>
+               <FCND_GeomApply>  .*</FCND_GeomApply> 
+         </FCND_Mode_GeomIm>
+-->
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+<!--
+      <ChantierFullImage1>  true </ChantierFullImage1>
+-->
+
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
+
+	     <ZDilatAlti>  3    </ZDilatAlti>
+             <ZDilatPlani> 4    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   7               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   3.0    </Px1PenteMax>
+            </ModulationProgDyn>
+
+
+        </EtapeMEC>
+	     
+
+        <EtapeMEC> 
+                 <DeZoom >        16        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        8        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        4        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        2        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        1        </DeZoom> 
+        </EtapeMEC>
+
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomMNTEuclid  </GeomMNT> 
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC>     ${DirMEC}  </TmpMEC>
+     <TmpResult>  ${DirMEC}  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+<!--
+     <ByProcess>  0 </ByProcess>
+-->
+     <ByProcess>  ${MMNbProc} </ByProcess>
+     <PurgeMECResultBefore>  true </PurgeMECResultBefore>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
