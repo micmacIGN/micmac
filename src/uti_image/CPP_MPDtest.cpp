@@ -1055,9 +1055,14 @@ void TestcFixedMergeStruct()
 
 void TestXmlX11();
 
+void TestEllips();
 
 int MPDtest_main (int argc,char** argv)
 {
+    {
+       TestEllips();
+       exit(EXIT_SUCCESS);
+    }
     {
         int aNx=3;
         int aNy=4;

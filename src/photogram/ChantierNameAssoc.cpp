@@ -3568,6 +3568,8 @@ cCompileCAPI::cCompileCAPI()
 {
 }
 
+extern std::string TheGlobSFS;
+
 std::string PastisNameFileStd(const std::string & aFullNameOri)
 {
    std::string aDir,aNameSsDir;
@@ -3575,6 +3577,9 @@ std::string PastisNameFileStd(const std::string & aFullNameOri)
    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
    std::string aNameSift = aICNM->Assoc1To1("NKS-Assoc-SFS",aNameSsDir,true);
+
+   if  (TheGlobSFS!="") 
+       aNameSift = "SFS";
 
    if (aNameSift=="NONE") 
       return  NameFileStd( aFullNameOri, 1, false, true, false );

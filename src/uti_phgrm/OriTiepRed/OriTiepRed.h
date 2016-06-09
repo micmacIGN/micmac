@@ -336,6 +336,97 @@ class cAppliTiepRed
 };
 
 
+//  ==============  
+
+class cAppliGrRedTieP;
+class cAttSomGrRedTP;
+class cAttArcSymGrRedTP;
+class cAttArcASymGrRedTP;
+
+typedef ElSom<cAttSomGrRedTP*,cAttArcASymGrRedTP*>          tSomGRTP;
+typedef ElArc<cAttSomGrRedTP*,cAttArcASymGrRedTP*>          tArcGRTP;
+typedef ElGraphe<cAttSomGrRedTP*,cAttArcASymGrRedTP*>       tGrGRTP;
+typedef ElSubGraphe<cAttSomGrRedTP*,cAttArcASymGrRedTP*>    tSubGrGRTP;
+typedef ElSomIterator<cAttSomGrRedTP*,cAttArcASymGrRedTP*>  tIterSomGRTP;
+typedef ElArcIterator<cAttSomGrRedTP*,cAttArcASymGrRedTP*>  tIterArcGRTP;
+
+class cAttSomGrRedTP
+{
+     public :
+        cAttSomGrRedTP(cAppliGrRedTieP &,const std::string & aName);
+        int & NbPtsMax();
+        const std::string & Name() const;
+        // bool & Selected();
+        // bool & CurSel();
+        double & RecSelec();
+        double & RecCur();
+     private :
+
+        cAppliGrRedTieP *    mAppli;
+        CamStenope *         mCamGlob;
+        std::string          mName;
+        int                  mNbPtsMax;
+        double               mRecSelec; // Niveau de bloquage
+        double               mRecCur;   // Niveau de bloquage
+};
+
+class cAttArcSymGrRedTP
+{
+     public :
+         cAttArcSymGrRedTP(const cXml_Ori2Im & );
+         const cXml_Ori2Im & Ori() const;
+     private :
+         cXml_Ori2Im    mOri;
+         
+};
+
+class cAttArcASymGrRedTP
+{
+     public :
+         cAttArcASymGrRedTP(cAttArcSymGrRedTP *,bool direct);
+         const cAttArcSymGrRedTP & ASym() const;
+         const cXml_Ori2Im & Ori()       const;
+         double & Recouv()   ;
+     private :
+         cAttArcSymGrRedTP* mASym;
+         bool               mDirect;
+         double             mRecouv;
+};
+
+class cV2ParGRT 
+{
+     public :
+          const std::vector<tSomGRTP *> & VSom() const;
+          void AddSom(tSomGRTP *);
+     private :
+          std::vector<tSomGRTP *> mVSom;
+};
+
+class cAppliGrRedTieP : public cElemAppliSetFile
+{
+      public :
+           cAppliGrRedTieP(int argc,char ** argv);
+      private :
+           bool OneItereSelection();
+           void SetSelected(tSomGRTP *);
+
+
+           bool                               mUseOR;
+           bool                               mQuick;
+           std::string                        mCalib;
+           std::string                        mPatImage;
+           tGrGRTP                            mGr;
+           tSubGrGRTP                         mSubAll;
+           std::map<std::string,tSomGRTP *>   mDicoSom;
+           std::vector<tSomGRTP *>            mVSom;
+           int                                mNbSom;
+           std::vector<cV2ParGRT *>           mPartParal;
+           cVirtInterf_NewO_NameManager *     mNoNM;
+           int                                mNbP;
+           int                                mFlagSel;
+           int                                mFlagCur;
+};
+
 /*
 inline bool ImTest(const std::string & aName)
 {

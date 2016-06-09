@@ -552,8 +552,8 @@ std::string getBanniereMM3D()
     banniere += "**  - ERC Advanced Grant A.Kaeaeb \"ICEMASS\" (University of Oslo)      ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
-    banniere += "**  Current Team: MP Deseilligny, D Jouin, J Belvaux,                 ** \n";
-    banniere += "**    G Maillet, L Girod, E Rupnik, JM Muller, M Daakir               ** \n";
+    banniere += "**  Current Team: MP Deseilligny, D Jouin, J Belvaux, G Maillet,      ** \n";
+    banniere += "**    L Girod, E Rupnik, JM Muller, M Daakir, TG Nguyen               ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**    Contact for participating : Marc.Pierrot-Deseilligny@ensg.eu    ** \n";
     banniere += "**                                                                    ** \n";
@@ -561,8 +561,8 @@ std::string getBanniereMM3D()
     banniere += "**      (0) Take a Pastis                                             ** \n";
     banniere += "**      (1) Switch your computer off and on again                     ** \n";
     banniere += "**      (2) Install it on Gnu-Linux (work better on)                  ** \n";
-    banniere += "**      (3) Contact the forum http://forum-micmac.forumprod.com/      ** \n";
-    banniere += "**                                                                    ** \n";
+    banniere += "**      (3) See the wiki at http://micmac.ensg.eu/                    ** \n";
+    banniere += "**      (4) Contact the forum http://forum-micmac.forumprod.com/      ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "************************************************************************ \n";
 
