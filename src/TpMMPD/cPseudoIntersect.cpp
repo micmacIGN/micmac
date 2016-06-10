@@ -70,12 +70,15 @@ class cPI_Appli
           std::string mPat; 			//pattern des images
           std::string aOriIn;			//dossier qui contient les orientations des images
 		  std::string a2dPtsFile;		//fichier .xml qui contient les pointes des images (avec SaisieAppuisInit)
+		  std::string aOut;				//nom fichier de sortie
           cInterfChantierNameManipulateur * mICNM;
 };
 
 cPI_Appli::cPI_Appli(int argc,char ** argv)
 {
      bool aShowArgs=true;
+     bool aXmlExport=true;
+     Pt3dr aInc(1,1,1);
      
      ElInitArgMain
      (
@@ -83,7 +86,9 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
           LArgMain() << EAMC(mFullName,"Full Name (Dir+Pat)")
 					 << EAMC(aOriIn, "Directory of input orientation",  eSAM_IsExistDirOri)
 					 << EAMC(a2dPtsFile, ".xml file of 2d points", eSAM_IsExistFile),
-          LArgMain() << EAM(aShowArgs,"Show",false,"Gives details on arguments")
+          LArgMain() << EAM(aOut,"Out",false,"Name output file (def=3DCoords.txt)")
+                     << EAM(aXmlExport,"XmlOut",true,"Export in .xml format to use as GCP file (Def=true)")
+                     << EAM(aShowArgs,"Show",true,"Gives details on arguments (Def=true)")
      );
 
      SplitDirAndFile(mDir, mPat, mFullName);
@@ -92,8 +97,15 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 
     if (aShowArgs) ShowArgs();
     
+    if(aOut == "")
+    {
+		aOut = "3DCoords.txt";
+	}
+    
+    
     //vecteur de noms de caméras
     std::vector<string> OriFiles(mLFile.size());
+    
     //vecteur de caméras
     std::vector<CamStenope *> aCamRep(mLFile.size());
     
@@ -104,16 +116,15 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
     {
 		//remplissage avec les noms des fichiers orientations
 		OriFiles.at(cmpt1) = aOriIn+"Orientation-"+*itS+".xml";
+		
 		//génération des caméras à partir des fichiers d'orientations
 		aCamRep.at(cmpt1) = CamOrientGenFromFile(OriFiles.at(cmpt1),mICNM);
+		
 		//incrémentation du compteur
 		cmpt1++;
 	}
     
     cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(a2dPtsFile,SetOfMesureAppuisFlottants);
-    
-    //autant que le nombre d'images dans le directory
-    //std::cout << "NbMesures = " << aDico.MesureAppuiFlottant1Im().size( ) << std::endl;
     
     std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
     
@@ -121,30 +132,28 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
     
     std::vector<PtAllInfos> vPtsAI;
     
-    std::vector<string> vNamePts;		//contient la liste des points à transformer en 3d
+    //contient la liste des points à transformer en 3d
+    std::vector<string> vNamePts;		
     
     for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
     {
-		//std::cout << "*************" ;
-		//std::cout << "NameIm : " << iT1->NameIm() << "\n";
 		
 		std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
 		
 		for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
 		{
-			//std::cout << "NamePt : " << iT2->NamePt() << "\n";
 			std::string aNamePt = iT2->NamePt();
 			vNamePts.push_back(aNamePt);
-			//std::cout << "CoordIm : " << iT2->PtIm() << "\n";
-
 		}
 	}
 	
-	std::sort(vNamePts.begin() , vNamePts.end());		//attention ce sont des strings
+	//tri
+	std::sort(vNamePts.begin() , vNamePts.end());
 	
-	vNamePts.erase(std::unique(vNamePts.begin(), vNamePts.end()),vNamePts.end());	//on vire les doublons
+	//on vire les doublons
+	vNamePts.erase(std::unique(vNamePts.begin(), vNamePts.end()),vNamePts.end());	
 	
-	//boucle sur le nombre de points à projeter
+	//boucle sur le nombre de points à projeter en 3D
 	for (unsigned int aKNP=0; aKNP<vNamePts.size(); aKNP++)
 	{
 		PtAllInfos aPtsAL;
@@ -177,14 +186,9 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 				}
 			}
 		}
+		
 		aPtsAL.CAC = vCameraEtCoord;
 		vPtsAI.push_back(aPtsAL);
-	}
-	
-	for(unsigned int j=0; j<vPtsAI.size(); j++)
-	{
-		//std::cout << "NamePt : " << vPtsAI.at(j).nom << std::endl;
-		//std::cout << "NuberCam : " << vPtsAI.at(j).CAC.size() << std::endl;
 	}
 	
 	//le vecteur des points 3d à exporter
@@ -195,6 +199,7 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 	{
 		//vecteur de caméras
 		std::vector<CamStenope *> vCSPt;
+		
 		//vecteur de coordonnées 2d
 		std::vector<Pt2dr> vC2d;
 		
@@ -209,19 +214,42 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 			Pts3d.push_back(aPt3d);
 	}
 	
-	//std::cout << "Number 3d pts : " << Pts3d.size() << std::endl;
-	
-	std::cout << "**************" << std::endl;
-	std::cout.precision(5);
-	std::cout << "fixed:\n" << std::fixed;
-	
-	for(unsigned int aVP=0; aVP<Pts3d.size(); aVP++)
+	//export en .txt
+	if (!MMVisualMode)
 	{
-		std::cout << vPtsAI.at(aVP).nom << " " << Pts3d.at(aVP).x << " " << Pts3d.at(aVP).y << " " << Pts3d.at(aVP).z << "\n" ;
+		
+		FILE * aFP = FopenNN(aOut,"w","PLY2XYZ_main");
+		cElemAppliSetFile aEASF(mDir + ELISE_CAR_DIR + aOut);
+		for(unsigned int aVP=0; aVP<Pts3d.size(); aVP++)
+		{
+			fprintf(aFP,"%s %lf %lf %lf \n",vPtsAI[aVP].nom.c_str(),Pts3d[aVP].x,Pts3d[aVP].y,Pts3d[aVP].z);
+			//~ std::cout << vPtsAI.at(aVP).nom << " " << Pts3d.at(aVP).x << " " << Pts3d.at(aVP).y << " " << Pts3d.at(aVP).z << "\n" ;
+		}
+		
+	ElFclose(aFP);
 	}
 	
-	//reprojeter le point 3D dans l'image pour calculer un résidu image
 	
+	//export en .xml pour utiliser comme fichier de GCPs
+	if(aXmlExport)
+	{
+		std::string aOutXml = StdPrefixGen(aOut) + ".xml";
+		
+		cDicoAppuisFlottant aDico;
+	
+		for (unsigned int aKP=0 ; aKP<Pts3d.size() ; aKP++)
+		{
+			cOneAppuisDAF aOAD;
+			aOAD.Pt() = Pts3d[aKP];
+			aOAD.NamePt() = vPtsAI.at(aKP).nom.c_str();
+			aOAD.Incertitude() = aInc;
+						
+			aDico.OneAppuisDAF().push_back(aOAD);
+		}
+
+		MakeFileXML(aDico,aOutXml);
+	}
+		
 }
 
 void cPI_Appli::ShowArgs()
@@ -245,7 +273,8 @@ Pt3dr cPI_Appli::IntersectionFaisceaux
 			const std::vector<Pt2dr> & aNPts2D
 		)
 {
-	std::vector<ElSeg3D> aVSeg;	//vecteur d'éléments segments 3d
+	//vecteur d'éléments segments 3d
+	std::vector<ElSeg3D> aVSeg;
 	
 	for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
 	{
