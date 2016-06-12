@@ -36,6 +36,11 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+/*
+The RedTieP tool has been developed by Oscar Martinez-Rubi within the project
+Improving Open-Source Photogrammetric Workflows for Processing Big Datasets
+The project is funded by the Netherlands eScience Center
+*/
 
 #include "TiepRed.h"
 
@@ -64,58 +69,59 @@ bool cmpIntAsc(const pair<std::string, int>  &p1, const pair<std::string, int> &
 /*                         cAppliTiepRed                              */
 /*                                                                    */
 /**********************************************************************/
-
 cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
-			mNumCellsX               (4),
-			mNumCellsY               (4),
-			mAdaptive              (false),
-		    mThresholdAccMult       (0.5),  // Multiplier of Mediane accuracy, can probably be stable
-			mImagesNames                 (0),
-			mCallBack                (false),
-			mExpSubCom               (false),
-			mExpTxt                  (false),
-			mSortByNum               (false),
-			mDesc                     (false),
-			mGainMode					(1)
+  mNumCellsX(12),
+  mNumCellsY(12),
+  mAdaptive(false),
+  mWeightAccGain(0.5),
+  mImagesNames(0),
+  mCallBack(false),
+  mExpSubCom(false),
+  mExpTxt(false),
+  mSortByNum(false),
+  mDesc(false),
+  mGainMode(1)
 {
 	// Read parameters
 	MMD_InitArgcArgv(argc,argv);
 	ElInitArgMain(argc,argv,
-		LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile),
-		LArgMain()  << EAM(mNumCellsX,"NumPointsX",true,"Target number of tie points between 2 images in x axis of image space, def=4")
-		            << EAM(mNumCellsY,"NumPointsY",true,"Target number of tie points between 2 images in y axis of image space, def=4")
-		            << EAM(mAdaptive,"Adaptive",true,"Use adaptive grids, def=false")
-		            << EAM(mSubcommandIndex,"SubcommandIndex",true,"Internal use")
-		            << EAM(mExpSubCom,"ExpSubCom",true,"Export the subcommands instead of executing them, def=false")
-		            << EAM(mExpTxt,"ExpTxt",true,"Export homol point in Ascii, def=false")
-		            << EAM(mSortByNum,"SortByNum",true,"Sort images by number of tie points, determining the order in which the subcommands are executed, def=0 (sort by file name)")
-		            << EAM(mDesc,"Desc",true,"Use descending order in the sorting of images, def=0 (ascending)")
-					<< EAM(mThresholdAccMult,"ThresholdAccMult",true,"Threshold of median accuracy when computing Gain, i.e. K in formula Gain=NumPairs*(1/1 + (K*Acc/AccMed)^2) (if K=0 then Gain is NumPairs), def=0.5")
+    LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile),
+    LArgMain()  << EAM(mNumCellsX,"NumPointsX",true,"Target number of tie-points between 2 images in x axis of image space, def=12")
+                << EAM(mNumCellsY,"NumPointsY",true,"Target number of tie-points between 2 images in y axis of image space, def=12")
+                << EAM(mAdaptive,"Adaptive",true,"Use adaptive grids, def=false")
+                << EAM(mSubcommandIndex,"SubcommandIndex",true,"Internal use")
+                << EAM(mExpSubCom,"ExpSubCom",true,"Export the subcommands instead of executing them, def=false")
+                << EAM(mExpTxt,"ExpTxt",true,"Export homol point in Ascii, def=false")
+                << EAM(mSortByNum,"SortByNum",true,"Sort images by number of tie-points, determining the order in which the subcommands are executed, def=0 (sort by file name)")
+                << EAM(mDesc,"Desc",true,"Use descending order in the sorting of images, def=0 (ascending)")
+                << EAM(mWeightAccGain,"WeightAccGain",true,"Weight of median accuracy with respect to multiplicity (NumPairs) when computing Gain of multi-tie-point, i.e. K in formula Gain=NumPairs*(1/1 + (K*Acc/AccMed)^2) (if K=0 then Gain is NumPairs), def=0.5")
 	);
-	// if mSubcommandIndex was set, we are not the master call or parent process (we are running a subcommand (a tie point reduction task of a master image and its related images)
+	// if mSubcommandIndex was set, this is not the parent process.
+  // This is child running a task/subcommand, i.e. a tie-point reduction task of a master image and its related images
 	mCallBack = EAMIsInit(&mSubcommandIndex);
-	mDir = DirOfFile(mPatImage); //Get the parent directory of the images
-	mNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir, ""); //Initializes the folder name manager
+  //Get the parent directory of the images
+	mDir = DirOfFile(mPatImage);
+   //Initializes the folder name manager
+	mNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir, "");
 
-
-	if (mThresholdAccMult == 0.){
+  // Sets the Gain mode, if the weight is 0, then GainMode is 0. This means Gain = multiplicity (and we do not need to keep track of accuracies)
+	if (mWeightAccGain == 0.){
 		mGainMode = 0;
 	}else{
 		mGainMode = 1;
 	}
 
-	if (mCallBack){
-		// We are ruuning a subcommand. Read its configuration from a XML file given by the mSubcommandIndex
+	if (mCallBack){ //This is a child
+		// We are running a subcommand. Read its configuration from a XML file given by the mSubcommandIndex
 		mXmlParamSubcommand = StdGetFromPCP(NameParamSubcommand(mSubcommandIndex,true),Xml_ParamSubcommandTiepRed);
-		// Read the images. mImagesNames[0] is the master image, the rest are related images to the master, i.e. they share tie points
+		// Read the images. mImagesNames[0] is the master image, the rest are related images to the master, i.e. they share tie-points
 		mImagesNames = &(mXmlParamSubcommand.Images());
 		// Get the initital number of tie-points that the master image had before any subcommand was executed
 		mNumInit = mXmlParamSubcommand.NumInit();
-
+    // Get the maximum number of related images for an image (this considers all the images, not only the ones related to this task)
 		mMaxNumRelated = mXmlParamSubcommand.MaxNumRelated();
-
+    // Get the number of subcommands/tasks (only for logging purposes)
 		int numSubcommands = mXmlParamSubcommand.NumSubcommands();
-
 		std::cout << "=======================   KSubcommand=" << (mSubcommandIndex+1) << "/" << numSubcommands << "  ===================\n";
 	}
 	else {
@@ -125,112 +131,103 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
 	}
 }
 
+// Set some constants: temporal folder, output folder and JSON for commands (used for Noodles)
 const std::string cAppliTiepRed::TempFolderName = "Tmp-ReducTieP-Pwork/";
 const std::string cAppliTiepRed::OutputFolderName = "Homol-Red/";
 const std::string cAppliTiepRed::SubComFileName = "subcommands.json";
 
+/*
+* Implement getters that depends on the previously defined constants
+*/
 std::string  cAppliTiepRed::NameParamSubcommand(int aK,bool Bin) const{
-    return mDir+TempFolderName + "Param_" +ToString(aK) + (Bin ? ".xml" : ".dmp");
+  return mDir+TempFolderName + "Param_" +ToString(aK) + (Bin ? ".xml" : ".dmp");
 }
-
 std::string  cAppliTiepRed::DirOneImage(const std::string &aName) const{
-   return mDir+OutputFolderName + "Pastis" + aName + "/";
+  return mDir+OutputFolderName + "Pastis" + aName + "/";
 }
-
 std::string  cAppliTiepRed::DirOneImageTemp(const std::string &aName) const{
-   return mDir+TempFolderName + "Pastis" + aName + "/";
+  return mDir+TempFolderName + "Pastis" + aName + "/";
 }
-
 std::string  cAppliTiepRed::NameHomol(const std::string &aName1,const std::string &aName2) const{
-     return DirOneImage(aName1) + aName2  + (mExpTxt ? ".txt" : ".dat");
+  return DirOneImage(aName1) + aName2  + (mExpTxt ? ".txt" : ".dat");
 }
-
 std::string  cAppliTiepRed::NameHomolTemp(const std::string &aName1,const std::string &aName2) const{
-     return DirOneImageTemp(aName1) + aName2  + (mExpTxt ? ".txt" : ".dat");
+  return DirOneImageTemp(aName1) + aName2  + (mExpTxt ? ".txt" : ".dat");
 }
-
-cVirtInterf_NewO_NameManager & cAppliTiepRed::NM(){ return *mNM ;}
-const cXml_ParamSubcommandTiepRed & cAppliTiepRed::ParamSubcommand() const {return mXmlParamSubcommand;}
-const double & cAppliTiepRed::ThresholdAccMult() const {return mThresholdAccMult;}
 
 void cAppliTiepRed::ExportSubcommands(std::vector<std::string> & aVSubcommands , std::vector<std::vector< int > > & aVRelatedSubcommandsIndexes){
+  // Opens the output file to write the subcommands
+  ofstream scFile;
+  std::string scFilePath = mDir+SubComFileName;
+  scFile.open (scFilePath.c_str());
 
-	ofstream scFile;
-	std::string scFilePath = mDir+SubComFileName;
-	scFile.open (scFilePath.c_str());
+  //Write in JSON format
+  scFile << "[" << endl;
+  for (std::size_t i = 0 ; i < aVSubcommands.size() ; i++){
+    scFile << "    {" << endl;
+    scFile << "        \"task\": \"" << aVRelatedSubcommandsIndexes[i][0] << "\"," << endl;
+    scFile << "        \"exclude\": [";
 
-	//Wrtie in JSON format
-	scFile << "[" << endl;
-	for (std::size_t i = 0 ; i < aVSubcommands.size() ; i++){
-		scFile << "    {" << endl;
-		scFile << "        \"task\": \"" << aVRelatedSubcommandsIndexes[i][0] << "\"," << endl;
-		scFile << "        \"exclude\": [";
-
-		for (std::size_t j = 1 ; j < aVRelatedSubcommandsIndexes[i].size() ; j++){
-			scFile << aVRelatedSubcommandsIndexes[i][j];
-			if (j < aVRelatedSubcommandsIndexes[i].size()-1) scFile << ",";
-		}
-		scFile << "]," << endl;
-		scFile << "        \"command\": \"" << aVSubcommands[i] << "\"" << endl;
-		scFile << "    }";
-		if (i < aVSubcommands.size()-1) scFile << ",";
-		scFile << endl;
-	}
-	scFile << "]" << endl;
-	scFile.close();
+    for (std::size_t j = 1 ; j < aVRelatedSubcommandsIndexes[i].size() ; j++){
+      scFile << aVRelatedSubcommandsIndexes[i][j];
+      if (j < aVRelatedSubcommandsIndexes[i].size()-1) scFile << ",";
+    }
+    scFile << "]," << endl;
+    scFile << "        \"command\": \"" << aVSubcommands[i] << "\"" << endl;
+    scFile << "    }";
+    if (i < aVSubcommands.size()-1) scFile << ",";
+    scFile << endl;
+  }
+  scFile << "]" << endl;
+  scFile.close();
 }
 
-
 void cAppliTiepRed::GenerateSubcommands(){
-	// This is executed by the parent command
+  // Create temp folder (remove it first to delete possible old data)
+  ELISE_fp::PurgeDirGen(mDir+TempFolderName, true);
+  ELISE_fp::MkDirSvp(mDir+TempFolderName);
+  // Create the output folder
+  ELISE_fp::MkDirSvp(mDir+OutputFolderName);
+  // Create one subfolder for each image in the output and the temp folders
+  for (std::size_t i = 0 ; i<mImagesNames->size() ; i++) {
+     const std::string & aNameIm = (*mImagesNames)[i];
+     ELISE_fp::MkDirSvp(DirOneImage(aNameIm));
+     ELISE_fp::MkDirSvp(DirOneImageTemp(aNameIm));
+  }
 
-	// Create temp folder (remove it first to delete possible old data)
-	ELISE_fp::PurgeDirGen(mDir+TempFolderName, true);
-    ELISE_fp::MkDirSvp(mDir+TempFolderName);
-    // Create the output folder
-    ELISE_fp::MkDirSvp(mDir+OutputFolderName);
-    // Create one subfolder for each image in the output and the temp folders
-    for (std::size_t i = 0 ; i<mImagesNames->size() ; i++) {
-       const std::string & aNameIm = (*mImagesNames)[i];
-       ELISE_fp::MkDirSvp(DirOneImage(aNameIm));
-       ELISE_fp::MkDirSvp(DirOneImageTemp(aNameIm));
-    }
+  // Fill a set of image names
+  std::set<std::string>* mSetImagesNames = new std::set<std::string>(mImagesNames->begin(),mImagesNames->end());
+  //Map of the names of the related images of for each image
+  std::map<std::string,std::vector<string> > relatedImagesMap;
+  //Map of number of tie-points per image (if a tie-point is in two image pairs, it counts as 2)
+  std::map<std::string,int> imagesNumPointsMap;
 
-    //Set of image names
-    std::set<std::string>* mSetImagesNames = new std::set<std::string>(mImagesNames->begin(),mImagesNames->end());
-    //Map of the names of the related images of all images
-	std::map<std::string,std::vector<string> > relatedImagesMap;
-	//Map of number of tie points per image (if a tie point is shared by 3 images, it counts as 2)
-	std::map<std::string,int> imagesNumPointsMap;
-
-	// Fill in the map with list of related images per image, and the map with number of tie points per image
+	// Fill in the map with list of related images per image, and the map with number of tie-points per image
 	for (std::size_t i = 0 ; i < mImagesNames->size() ; i++){ // for all images
-
+    // Get the image name
 		const std::string & imageName = (*mImagesNames)[i];
-
-		// Get list of images sharing tie points with imageName. We call these images related images
+		// Get list of images sharing tie-points with imageName. We call these images related images
 		std::list<std::string>  relatedImagesNames = mNM->ListeImOrientedWith(imageName);
-
-		// For each related image we load the shared tie points and update the maps
+		// For each related image we load the shared tie-points and update the maps
 		for (std::list<std::string>::const_iterator itRelatedImageName= relatedImagesNames.begin(); itRelatedImageName!=relatedImagesNames.end() ; itRelatedImageName++){
-			const std::string & relatedImageName = *itRelatedImageName;
+      // Get the related image name
+      const std::string & relatedImageName = *itRelatedImageName;
 			// Test if the relatedImageName is in the initial set of images
 			if (mSetImagesNames->find(relatedImageName) != mSetImagesNames->end()){
-				if (imageName < relatedImageName){ //We add this if to guarantee we do not load the same tie points when doing the iteration for the related image
-					// Load the tie points
+				if (imageName < relatedImageName){ //We add this if to guarantee we do not load the same tie-points when doing the iteration for the related image
+					// Load the tie-points
 					std::vector<Pt2df> aVP1,aVP2;
 					mNM->LoadHomFloats(imageName, relatedImageName, &aVP1, &aVP2);
 					// Update the related image names map
 					relatedImagesMap[imageName].push_back(relatedImageName);
 					relatedImagesMap[relatedImageName].push_back(imageName);
-					// Update the number of tie points map
+					// Update the number of tie-points map
 					imagesNumPointsMap[imageName]+=aVP1.size();
 					imagesNumPointsMap[relatedImageName]+=aVP2.size(); //should be same as aVP1
 				}
 			}
 		}
 	}
-
 	// Get the maximum number of related images
 	int maxNumRelated = 0;
 	for (std::size_t i = 0 ; i < mImagesNames->size() ; i++){
@@ -241,12 +238,11 @@ void cAppliTiepRed::GenerateSubcommands(){
 		}
 	}
 
-	// Convert the map with the number of tie points per image to a vector of pairs
+	// Convert the map with the number of tie-points per image to a vector of pairs
 	// This is required to sort them
 	std::vector<pair<std::string, int> > imagesNumPointsVP;
 	std::copy(imagesNumPointsMap.begin(), imagesNumPointsMap.end(), back_inserter(imagesNumPointsVP));
-
-	// Sort the images by file name or by number or tie points in ascending or descending order depending on user decision.
+	// Sort the images by file name or by number or tie-points in ascending or descending order depending on user decision.
 	if (mSortByNum == true){
 		if (mDesc == false) std::sort(imagesNumPointsVP.begin(), imagesNumPointsVP.end(), cmpIntAsc);
 		else std::sort(imagesNumPointsVP.begin(), imagesNumPointsVP.end(), cmpIntDesc);
@@ -254,16 +250,15 @@ void cAppliTiepRed::GenerateSubcommands(){
 		if (mDesc == false) std::sort(imagesNumPointsVP.begin(), imagesNumPointsVP.end(), cmpStringAsc);
 		else std::sort(imagesNumPointsVP.begin(), imagesNumPointsVP.end(), cmpStringDesc);
 	}
-
 	//Map containing for each image the order in the sorted list
 	std::map<std::string,unsigned int> imagesOrderMap;
 	for(std::size_t i = 0; i < imagesNumPointsVP.size(); ++i){
 		imagesOrderMap[imagesNumPointsVP[i].first] = i;
 	}
-
 	// The list of subcommands
 	std::vector<std::string> aVSubcommands;
-	std::vector<std::vector< int > > aVRelatedSubcommandsIndexes; // The list of subcommands dependencies (others subcommands which can NOT run in parallel)
+  // The list of subcommands dependencies (others subcommands which can NOT run in parallel)
+	std::vector<std::vector< int > > aVRelatedSubcommandsIndexes;
 
 	// We generate a subcommand per image
 	for(std::size_t imageIndex = 0; imageIndex < imagesNumPointsVP.size(); ++imageIndex){
@@ -274,9 +269,12 @@ void cAppliTiepRed::GenerateSubcommands(){
 		const std::string & masterImageName = imagesNumPointsVP[imageIndex].first;
 		const std::vector<string> & relatedImages = relatedImagesMap[masterImageName];
 
-		cXml_ParamSubcommandTiepRed aParamSubcommand; //Create a subcommand configuration structure
-		std::vector<int> relatedSubcommandsIndexes; // Create the list of related subcommands (commands that use as master images images used in the current subcommand)
+    //Create a subcommand configuration structure
+		cXml_ParamSubcommandTiepRed aParamSubcommand;
+    // Create the list of related subcommands (commands that use as master images images used in the current subcommand)
+		std::vector<int> relatedSubcommandsIndexes;
 
+    // Fill-in the subcommand configuration structure
 		aParamSubcommand.NumInit() = imagesNumPointsMap[masterImageName];
 		aParamSubcommand.NumSubcommands() = static_cast<int>(imagesNumPointsVP.size());
 		aParamSubcommand.Images().push_back(masterImageName); // Add master image to config
@@ -306,34 +304,30 @@ void cAppliTiepRed::GenerateSubcommands(){
 		std::list<std::string> aLSubcommand(aVSubcommands.begin(), aVSubcommands.end());
 		cEl_GPAO::DoComInSerie(aLSubcommand);
 	}
-	else ExportSubcommands(aVSubcommands, aVRelatedSubcommandsIndexes); // Export them to run them in parallel
+	else ExportSubcommands(aVSubcommands, aVRelatedSubcommandsIndexes); // Export them to run them in parallel using Noodles
 }
 
 
 void  cAppliTiepRed::Exe()
 {
-   if (mCallBack) DoReduce(); //If child we execute the reduce image subset
-   else GenerateSubcommands(); //If parent we generate the subcommands
+   if (mCallBack) DoReduce(); //If this is a child, we execute the reducing algorithm
+   else GenerateSubcommands(); //If this is the parent, we generate the subcommands
 }
 
 
-
-int RedTieP_main(int argc,char **argv)
-{
+int RedTieP_main(int argc,char **argv){
+  // Create the instance of the tool and executes it
 	cAppliTiepRed * anAppli = new cAppliTiepRed(argc,argv);
 	anAppli->Exe();
 	return EXIT_SUCCESS;
 }
+
+
 #else
-int RedTieP_main(int argc,char **argv)
-{
+int RedTieP_main(int argc,char **argv){
    return EXIT_SUCCESS;
 }
-
-
 #endif
-
-
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

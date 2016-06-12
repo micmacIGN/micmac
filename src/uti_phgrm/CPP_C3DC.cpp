@@ -569,6 +569,7 @@ class cAppli_MPI2Mnt
          bool                     mPurge;
          bool        mUseTA;
          void ExeCom(const std::string & aCom);
+         double      mZReg;
 };
 
 void cAppli_MPI2Mnt::ExeCom(const std::string & aCom)
@@ -714,6 +715,7 @@ void cAppli_MPI2Mnt::DoMTD()
                           + " UseTA=" + ToString(mUseTA)
                           + " ZoomF=" + ToString(mDeZoom)
                           + " RRI=" + ToString(mDeZoom *  mResolIm)
+                          + " Regul=" + ToString(mZReg)
                        ;
 
     ExeCom(aCom);
@@ -735,7 +737,8 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mMasqImGlob (""),
     mDebug       (false),
     mPurge       (true),
-    mUseTA       (false)
+    mUseTA       (false),
+    mZReg        (0.02)
 {
    ElInitArgMain
    (
@@ -743,6 +746,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
         LArgMain()  << EAMC(mName,"Dir or PIM-Type (QuickMac ....)",eSAM_None,ListOfVal(eNbTypeMMByP)),  //pas gerable par les vCommandes...
         LArgMain()
                     << EAM(mDS,"DS",true,"Downscale, Def=1.0")
+                    << EAM(mZReg,"ZReg",true,"Regularisation, context depend")
                     << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)",eSAM_IsExistFileRP)
                     << EAM(mPat,"Pat",true,"Pattern, def = all existing clouds", eSAM_IsPatFile)
                     << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to return only ortho)")

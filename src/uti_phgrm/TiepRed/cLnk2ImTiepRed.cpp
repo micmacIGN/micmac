@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -36,6 +36,11 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+/*
+The RedTieP tool has been developed by Oscar Martinez-Rubi within the project
+Improving Open-Source Photogrammetric Workflows for Processing Big Datasets
+The project is funded by the Netherlands eScience Center
+*/
 
 #include "TiepRed.h"
 
@@ -43,24 +48,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /**********************************************************************/
 /*                                                                    */
-/*                         cLnk2ImTiepRed                          */
+/*                         cLnk2ImTiepRed                             */
 /*                                                                    */
 /**********************************************************************/
 cLnk2ImTiepRed::cLnk2ImTiepRed(cImageTiepRed * aImage1,cImageTiepRed * aImage2, CamStenope * aCam1, CamStenope * aCam2) :
-    mImage1 (aImage1),
-    mImage2 (aImage2),
-    mCam1 (aCam1),
-	mCam2 (aCam2)
+  mImage1 (aImage1),
+  mImage2 (aImage2),
+  mCam1 (aCam1),
+  mCam2 (aCam2)
 {}
 
-cImageTiepRed &     cLnk2ImTiepRed::Image1() {return *mImage1;}
-cImageTiepRed &     cLnk2ImTiepRed::Image2() {return *mImage2;}
-CamStenope &     cLnk2ImTiepRed::Cam1() {return *mCam1;}
-CamStenope &     cLnk2ImTiepRed::Cam2() {return *mCam2;}
-std::vector<Pt2df>&  cLnk2ImTiepRed::VP1()  {return mVP1;}
-std::vector<Pt2df>&  cLnk2ImTiepRed::VP2()  {return mVP2;}
-//std::vector<double>& cLnk2ImTiepRed::Acc() {return mAcc;}
-
+cImageTiepRed & cLnk2ImTiepRed::Image1() {return *mImage1;}
+cImageTiepRed & cLnk2ImTiepRed::Image2() {return *mImage2;}
+CamStenope & cLnk2ImTiepRed::Cam1() {return *mCam1;}
+CamStenope & cLnk2ImTiepRed::Cam2() {return *mCam2;}
+std::vector<Pt2df>& cLnk2ImTiepRed::VP1()  {return mVP1;}
+std::vector<Pt2df>& cLnk2ImTiepRed::VP2()  {return mVP2;}
 #endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
@@ -71,7 +74,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -82,16 +85,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
 manipuler et qui le réserve donc à des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
 logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
