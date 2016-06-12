@@ -21034,6 +21034,28 @@ const cTplValGesInit< cXml_O2IComputed > & cXml_Ori2Im::Geom()const
    return mGeom;
 }
 
+
+Box2dr & cXml_Ori2Im::Box1()
+{
+   return mBox1;
+}
+
+const Box2dr & cXml_Ori2Im::Box1()const 
+{
+   return mBox1;
+}
+
+
+Box2dr & cXml_Ori2Im::Box2()
+{
+   return mBox2;
+}
+
+const Box2dr & cXml_Ori2Im::Box2()const 
+{
+   return mBox2;
+}
+
 void  BinaryUnDumpFromFile(cXml_Ori2Im & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Im1(),aFp);
@@ -21051,6 +21073,8 @@ void  BinaryUnDumpFromFile(cXml_Ori2Im & anObj,ELISE_fp & aFp)
         }
         else  anObj.Geom().SetNoInit();
   } ;
+    BinaryUnDumpFromFile(anObj.Box1(),aFp);
+    BinaryUnDumpFromFile(anObj.Box2(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Ori2Im & anObj)
@@ -21064,6 +21088,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Ori2Im & anObj)
     BinaryDumpInFile(aFp,anObj.FocMoy());
     BinaryDumpInFile(aFp,anObj.Geom().IsInit());
     if (anObj.Geom().IsInit()) BinaryDumpInFile(aFp,anObj.Geom().Val());
+    BinaryDumpInFile(aFp,anObj.Box1());
+    BinaryDumpInFile(aFp,anObj.Box2());
 }
 
 cElXMLTree * ToXMLTree(const cXml_Ori2Im & anObj)
@@ -21079,6 +21105,8 @@ cElXMLTree * ToXMLTree(const cXml_Ori2Im & anObj)
    aRes->AddFils(::ToXMLTree(std::string("FocMoy"),anObj.FocMoy())->ReTagThis("FocMoy"));
    if (anObj.Geom().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Geom().Val())->ReTagThis("Geom"));
+   aRes->AddFils(::ToXMLTree(std::string("Box1"),anObj.Box1())->ReTagThis("Box1"));
+   aRes->AddFils(::ToXMLTree(std::string("Box2"),anObj.Box2())->ReTagThis("Box2"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21104,9 +21132,13 @@ void xml_init(cXml_Ori2Im & anObj,cElXMLTree * aTree)
    xml_init(anObj.FocMoy(),aTree->Get("FocMoy",1)); //tototo 
 
    xml_init(anObj.Geom(),aTree->Get("Geom",1)); //tototo 
+
+   xml_init(anObj.Box1(),aTree->Get("Box1",1)); //tototo 
+
+   xml_init(anObj.Box2(),aTree->Get("Box2",1)); //tototo 
 }
 
-std::string  Mangling( cXml_Ori2Im *) {return "90E949E1046124A3FC3F";};
+std::string  Mangling( cXml_Ori2Im *) {return "9B9C0A5571BF57CBFE3F";};
 
 
 cTypeCodageMatr & cXml_Rotation::Ori()

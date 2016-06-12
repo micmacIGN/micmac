@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 NS_OriTiePRed_BEGIN
 
+
 /**********************************************************************/
 /*                                                                    */
 /*                         cAppliTiepRed                              */
@@ -48,7 +49,7 @@ NS_OriTiePRed_BEGIN
 /**********************************************************************/
 
 
-cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
+cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
      mFilesIm                 (0),
      mPrec2Point              (5.0),
      mThresholdPrecMult       (2.0),  // Multiplier of Mediane Prec, can probably be stable
@@ -61,10 +62,15 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mMulBoxRab               (0.15),
      mParal                   (true),
      mVerifNM                 (false),
-     mStrOut                  ("TiePRed")
+     mStrOut                  ("TiePRed"),
+     mFromRatafiaGlob         (false)
+     
 {
    // Read parameters 
-   MMD_InitArgcArgv(argc,argv);
+   if (! CalledFromInside)
+   {
+      MMD_InitArgcArgv(argc,argv);
+   }
    ElInitArgMain
    (
          argc,argv,
@@ -72,12 +78,17 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
          LArgMain()  << EAM(mCalib,"OriCalib",true,"Calibration folder if any")
                      << EAM(mPrec2Point,"Prec2P",true,"Threshold of precision for 2 Points")
                      << EAM(mKBox,"KBox",true,"Internal use")
+                     << EAM(mMasterIm,"MasterIm",true,"Internal use for image mode")
                      << EAM(mSzTile,"SzTile",true,"Size of Tiles in Pixel Def="+ToString(mSzTile))
                      << EAM(mDistPMul,"DistPMul",true,"Typical dist between pmult Def="+ToString(mDistPMul))
                      << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber, Def=" + ToString(mMulVonGruber))
                      << EAM(mParal,"Paral",true,"Do it paral, def=true")
                      << EAM(mVerifNM,"VerifNM",true,"(Internal) Verification of Virtual Name Manager")
+                     << EAM(mFromRatafiaGlob,"FromRG",true,"(Internal) called by ratagia at top level")
    );
+
+
+
    // if mKBox was set, we are not the master call (we are the "subcommand")
    mCallBack = EAMIsInit(&mKBox);
    mDir = DirOfFile(mPatImage);
@@ -87,6 +98,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    {
       StdCorrecNameOrient(mCalib,mDir);
    }
+
    
    if (mCallBack)  // Subcommand mode, initialise set of file for Param_K.xml
    {
@@ -114,6 +126,11 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    Pt2dr aPInf( 1E50, 1E50);
    Pt2dr aPSup(-1E50,-1E50);
 
+   if (mFromRatafiaGlob)
+   {
+      MkDirSubir();
+      return;
+   }
    // Parse the images 
    for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
    {
@@ -212,9 +229,7 @@ void ShowPoly(const cElPolygone & aPoly)
 }
 
 
-
-
-void cAppliTiepRed::GenerateSplit()
+void cAppliTiepRed::MkDirSubir()
 {
     ELISE_fp::PurgeDirRecursif(mDir+TheNameTmp);
     ELISE_fp::MkDirSvp(mDir+TheNameTmp);
@@ -223,6 +238,12 @@ void cAppliTiepRed::GenerateSplit()
        const std::string & aNameIm = (*mFilesIm)[aKI];
        ELISE_fp::MkDirSvp(DirOneImage(aNameIm));
     }
+}
+
+
+void cAppliTiepRed::GenerateSplit()
+{
+    MkDirSubir();
 
     Pt2dr aSzPix = mBoxGlob.sz() / mResol; // mBoxGlob.sz()  mResol => local refernce,  aSzPix => in pixel (average)
     Pt2di aNb = round_up(aSzPix / double(mSzTile));  // Compute the number of boxes

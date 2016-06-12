@@ -22779,6 +22779,17 @@ const std::vector< std::string > & cXml_ParamBoxReducTieP::Ims()const
    return mIms;
 }
 
+
+cTplValGesInit< std::string > & cXml_ParamBoxReducTieP::MasterIm()
+{
+   return mMasterIm;
+}
+
+const cTplValGesInit< std::string > & cXml_ParamBoxReducTieP::MasterIm()const 
+{
+   return mMasterIm;
+}
+
 void  BinaryUnDumpFromFile(cXml_ParamBoxReducTieP & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Box(),aFp);
@@ -22792,6 +22803,14 @@ void  BinaryUnDumpFromFile(cXml_ParamBoxReducTieP & anObj,ELISE_fp & aFp)
               anObj.Ims().push_back(aVal);
         }
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.MasterIm().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.MasterIm().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.MasterIm().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamBoxReducTieP & anObj)
@@ -22804,6 +22823,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamBoxReducTieP & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.MasterIm().IsInit());
+    if (anObj.MasterIm().IsInit()) BinaryDumpInFile(aFp,anObj.MasterIm().Val());
 }
 
 cElXMLTree * ToXMLTree(const cXml_ParamBoxReducTieP & anObj)
@@ -22818,6 +22839,8 @@ cElXMLTree * ToXMLTree(const cXml_ParamBoxReducTieP & anObj)
       it++
   ) 
       aRes->AddFils(::ToXMLTree(std::string("Ims"),(*it))->ReTagThis("Ims"));
+   if (anObj.MasterIm().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MasterIm"),anObj.MasterIm().Val())->ReTagThis("MasterIm"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -22833,9 +22856,11 @@ void xml_init(cXml_ParamBoxReducTieP & anObj,cElXMLTree * aTree)
    xml_init(anObj.BoxRab(),aTree->Get("BoxRab",1)); //tototo 
 
    xml_init(anObj.Ims(),aTree->GetAll("Ims",false,1));
+
+   xml_init(anObj.MasterIm(),aTree->Get("MasterIm",1)); //tototo 
 }
 
-std::string  Mangling( cXml_ParamBoxReducTieP *) {return "995840466C0231C4FE3F";};
+std::string  Mangling( cXml_ParamBoxReducTieP *) {return "28A391B7E44E3CB0FF3F";};
 
 
 double & cXml_ParamGlobReducTieP::Resol()

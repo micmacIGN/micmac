@@ -66,6 +66,8 @@ class cAppliTiepRed;
 class cLnk2ImTiepRed;
 class cPMulTiepRed;
 
+#define DefRecMaxModeIm 1e-2
+
 /*
     cCameraTiepRed => geometry of camera,
 
@@ -256,7 +258,7 @@ typedef ElHeap<tPMulTiepRedPtr,cCompareHeapPMulTiepRed,cParamHeapPMulTiepRed>  t
 class cAppliTiepRed 
 {
      public :
-          cAppliTiepRed(int argc,char **argv); 
+          cAppliTiepRed(int argc,char **argv, bool CalledFromInside=false); 
           void Exe();
           cVirtInterf_NewO_NameManager & NM();
           const cXml_ParamBoxReducTieP & ParamBox() const;
@@ -275,6 +277,7 @@ class cAppliTiepRed
 
      private :
 
+          void MkDirSubir();
           void GenerateSplit();
           void DoReduceBox();
           void DoLoadTiePoints();
@@ -333,6 +336,8 @@ class cAppliTiepRed
           double                           mStdPrec;
           std::vector<int>                 mBufICam;
           cInterfChantierNameManipulateur* mICNM;
+          std::string                      mMasterIm;
+          bool                             mFromRatafiaGlob;
 };
 
 
@@ -347,8 +352,11 @@ typedef ElSom<cAttSomGrRedTP*,cAttArcASymGrRedTP*>          tSomGRTP;
 typedef ElArc<cAttSomGrRedTP*,cAttArcASymGrRedTP*>          tArcGRTP;
 typedef ElGraphe<cAttSomGrRedTP*,cAttArcASymGrRedTP*>       tGrGRTP;
 typedef ElSubGraphe<cAttSomGrRedTP*,cAttArcASymGrRedTP*>    tSubGrGRTP;
+typedef ElEmptySubGrapheSom<cAttSomGrRedTP*,cAttArcASymGrRedTP*>    tEmptySubGrGRTP;
 typedef ElSomIterator<cAttSomGrRedTP*,cAttArcASymGrRedTP*>  tIterSomGRTP;
 typedef ElArcIterator<cAttSomGrRedTP*,cAttArcASymGrRedTP*>  tIterArcGRTP;
+typedef ElPcc<cAttSomGrRedTP*,cAttArcASymGrRedTP*>          tPccGRTP;
+
 
 class cAttSomGrRedTP
 {
@@ -360,6 +368,8 @@ class cAttSomGrRedTP
         // bool & CurSel();
         double & RecSelec();
         double & RecCur();
+        Box2dr & BoxIm();
+        double   SzDec() const;
      private :
 
         cAppliGrRedTieP *    mAppli;
@@ -368,6 +378,9 @@ class cAttSomGrRedTP
         int                  mNbPtsMax;
         double               mRecSelec; // Niveau de bloquage
         double               mRecCur;   // Niveau de bloquage
+        Box2dr               mBoxIm;
+        cMetaDataPhoto       mMTD;
+        double               mSzDec;
 };
 
 class cAttArcSymGrRedTP
@@ -387,6 +400,8 @@ class cAttArcASymGrRedTP
          const cAttArcSymGrRedTP & ASym() const;
          const cXml_Ori2Im & Ori()       const;
          double & Recouv()   ;
+         const Box2dr & Box() const;
+         const double & Foc() const;
      private :
          cAttArcSymGrRedTP* mASym;
          bool               mDirect;
@@ -406,9 +421,12 @@ class cAppliGrRedTieP : public cElemAppliSetFile
 {
       public :
            cAppliGrRedTieP(int argc,char ** argv);
+           double  SzPixDec() const;
       private :
            bool OneItereSelection();
            void SetSelected(tSomGRTP *);
+           tSomGRTP *  GetNextBestSom();
+           void Show();
 
 
            bool                               mUseOR;
@@ -417,6 +435,7 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            std::string                        mPatImage;
            tGrGRTP                            mGr;
            tSubGrGRTP                         mSubAll;
+           tEmptySubGrGRTP                    mSubNone;
            std::map<std::string,tSomGRTP *>   mDicoSom;
            std::vector<tSomGRTP *>            mVSom;
            int                                mNbSom;
@@ -425,6 +444,12 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            int                                mNbP;
            int                                mFlagSel;
            int                                mFlagCur;
+           ElFilo<tSomGRTP *>                 mFiloCur;
+           tPccGRTP                           mPcc;
+           double                             mRecMax;
+           bool                               mShowPart;
+           cAppliTiepRed *                    mAppliTR;
+           double                             mSzPixDec;
 };
 
 /*

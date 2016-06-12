@@ -180,6 +180,19 @@ template <class  AttrSom,class AttrArc> class  ElPcc
                ELISE_ASSERT(reached(s),"ElPcc::pds");
                return _pds[s.num()];
           }
+          REAL pds(TSom & s,double aDef) 
+          {
+               return reached(s) ? _pds[s.num()] : aDef;
+          }
+
+          REAL pdsDef(TSom & s)
+          {
+               return pds(s,1e60);
+          }
+
+
+
+
           TSom *  pere(TSom & s) 
           {
                ELISE_ASSERT(reached(s),"ElPcc::pere");
