@@ -71,6 +71,7 @@
         <eModeNO_NbVals>  </eModeNO_NbVals> <!-- LastValue -->
     </enum>
 
+
     <LutConvertion  Nb="1"  Class="true" ToReference="true">
          <IntervLutConvertion Nb="+"  Container="std::vector">
               <NivIn  Nb="1" Type="int"> </NivIn>
