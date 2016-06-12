@@ -1,0 +1,156 @@
+<!--
+-->
+
+<ParamMICMAC>
+
+<DicoLoc>
+   <Symb> Dir="/home/marc/TMP/Nogent/ArtDeco/MEC-Malt/"     </Symb>
+   <Symb> Repere=Cyl1.xml  </Symb>
+   <Symb> ImPat="IMGP.*.PEF"     </Symb>
+   <Symb> Ori=All     </Symb>
+
+   <Symb> ZoomFinal=2     </Symb>
+   <Symb> ResolRelOrhto=0.5     </Symb>
+
+
+   <Symb>  ZPas=1.0 </Symb>
+
+   <Symb> DirMEC=MEC-Malt/  </Symb>
+   <Symb> Chantier=Malt-Ortho-UnAnam  </Symb>
+   <Symb> DirTA=TA  </Symb>
+
+
+   <Symb> MkFPC=true </Symb>
+   <Symb> DirOrthoF=ORTHO  </Symb>
+
+
+   <Symb> NameMaskOrtho=../${DirMEC}Masq_Malt-Ortho-UnAnam_DeZoom${ZoomFinal}.tif </Symb>
+   <Symb> NameMTDMaskOrtho=../${DirMEC}Z_Num1_DeZoom${ZoomFinal}_Malt-Ortho-UnAnam.xml </Symb>
+
+   <Symb>  ImMNT=".*" </Symb>
+   <Symb>  ImOrtho=".*" </Symb>
+   <Symb>  InParal=true </Symb>
+   <Symb>  UseRepere=true </Symb>
+   <Symb>  UseAnam=false </Symb>
+
+
+</DicoLoc>
+
+<!--  M2 : Describe the ground zone where the matching is to be done -->
+<Section_Terrain>    
+      <IntervAltimetrie>
+             <ZIncCalc>    0</ZIncCalc>
+             <ZIncIsProp> true</ZIncIsProp>
+      </IntervAltimetrie>
+      <Planimetrie>
+           <MasqueTerrain >
+                <FileBoxMasqIsBoxTer> ${DirMEC}/BoxTer-${Chantier}.xml</FileBoxMasqIsBoxTer>
+                <MT_Image >  ${DirMEC}/Masq_${Chantier}_DeZoom${ZoomFinal}.tif        </MT_Image>
+                <MT_Xml>     ${DirMEC}/Z_Num1_DeZoom${ZoomFinal}_${Chantier}.xml  </MT_Xml>
+           </MasqueTerrain>
+      </Planimetrie>
+      <FileOriMnt> ${DirMEC}/OriGlob_${Chantier}.xml </FileOriMnt>
+
+</Section_Terrain>
+
+<!--  M3 : describe the set of images to match -->
+<Section_PriseDeVue >   
+     <SingulariteInCorresp_I1I2> true</SingulariteInCorresp_I1I2>
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <ImPat>    ${ImPat}  </ImPat>
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <PasIsInPixel>  true </PasIsInPixel>
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >       1             </SzW>
+             <AlgoRegul>  eAlgoDequant </AlgoRegul>
+
+
+             <ZPas>        ${ZPas} </ZPas>
+             <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+
+	     <ZDilatAlti>  1      </ZDilatAlti>
+             <ZDilatPlani> 1      </ZDilatPlani>
+	     <ZRegul>  0.1  </ZRegul>
+        </EtapeMEC>
+	     
+
+        <EtapeMEC> 
+               <DeZoom >        ${ZoomFinal}        </DeZoom> 
+               <ZPas>          1.0       </ZPas>
+               <AlgoRegul>  eAlgoDequant </AlgoRegul>
+
+               <IncludeFileLoc>  MM-Malt-OrthoFinal.xml </IncludeFileLoc>
+        </EtapeMEC>
+<!--
+-->
+
+</Section_MEC>
+
+<!--  M4 : Specify the output geometry -->
+<Section_Results >
+    <GeomMNT> eGeomMNTEuclid  </GeomMNT> 
+    <#WHEN VTEST=${UseRepere}>
+        <RepereCorrel>   ${Repere}  </RepereCorrel>
+        <TagRepereCorrel> Repere    </TagRepereCorrel>
+    </#WHEN>
+    <#WHEN VTEST=${UseAnam}>
+        <AnamorphoseGeometrieMNT>
+             <AnamSurfaceAnalytique>
+                   <NameFile> ${Repere}</NameFile>
+                   <Id> TheSurfAux </Id>
+             </AnamSurfaceAnalytique>
+             <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+             <!-- Limite +ou- Pi/3 -->
+             <AnamLimAngleVisib>  1.05 </AnamLimAngleVisib>
+       </AnamorphoseGeometrieMNT>
+    </#WHEN>
+
+
+    <ZoomMakeTA> 16 </ZoomMakeTA>
+    <DoNothingBut>
+        <ButDoOrtho>  true </ButDoOrtho>
+    </DoNothingBut>
+    <DoMEC> false </DoMEC>
+<!--
+-->
+
+
+
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  XXXX </WorkDir> 
+     <TmpMEC>    ${DirMEC}  </TmpMEC>
+     <TmpResult> ${DirMEC}  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess>   ${MMNbProc}  </ByProcess>
+<!--
+     <ByProcess>   0  </ByProcess>
+-->
+     <NomChantier> ${Chantier} </NomChantier>
+
+     <PurgeMECResultBefore>  false </PurgeMECResultBefore>
+
+     <DefTileFile>  40000</DefTileFile>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
