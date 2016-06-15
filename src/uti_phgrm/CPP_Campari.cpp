@@ -223,6 +223,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     std::string aSetHom="";
     int aNbIterFin = 4;
 
+    int aNbLiais=100;
+
 
 
     ElInitArgMain
@@ -260,6 +262,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
                     << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]")
                     << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
+                    << EAM(aNbLiais,"NbLiais",true,"Param for relative weighting for tie points")
 
     );
 
@@ -296,6 +299,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                            +  std::string(" +AeroOut=-") + AeroOut + " "
                            +  std::string(" +NbMinIterFin=") + ToString(aNbIterFin) + " "
                            +  std::string(" +NbMaxIterFin=") + ToString(aNbIterFin) + " "
+                           +  std::string(" +NbLiais=") + ToString(aNbLiais) + " "
                           ;
 
         if (CPI1 || CPI2) mCom       += " +CPI=true ";

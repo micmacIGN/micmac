@@ -7369,10 +7369,14 @@ class cXml_ParamBoxReducTieP
 
         std::vector< std::string > & Ims();
         const std::vector< std::string > & Ims()const ;
+
+        cTplValGesInit< std::string > & MasterIm();
+        const cTplValGesInit< std::string > & MasterIm()const ;
     private:
         Box2dr mBox;
         Box2dr mBoxRab;
         std::vector< std::string > mIms;
+        cTplValGesInit< std::string > mMasterIm;
 };
 cElXMLTree * ToXMLTree(const cXml_ParamBoxReducTieP &);
 

@@ -6428,6 +6428,12 @@ class cXml_Ori2Im
 
         cTplValGesInit< cXml_O2IComputed > & Geom();
         const cTplValGesInit< cXml_O2IComputed > & Geom()const ;
+
+        Box2dr & Box1();
+        const Box2dr & Box1()const ;
+
+        Box2dr & Box2();
+        const Box2dr & Box2()const ;
     private:
         std::string mIm1;
         std::string mIm2;
@@ -6437,6 +6443,8 @@ class cXml_Ori2Im
         double mFoc2;
         double mFocMoy;
         cTplValGesInit< cXml_O2IComputed > mGeom;
+        Box2dr mBox1;
+        Box2dr mBox2;
 };
 cElXMLTree * ToXMLTree(const cXml_Ori2Im &);
 
