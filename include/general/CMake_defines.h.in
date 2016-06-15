@@ -1,0 +1,20 @@
+#ifndef ELISE_QT_VERSION
+#define ELISE_QT_VERSION @qt_version@
+#endif
+
+#define QT_INSTALL_PLUGINS "@QT_INSTALL_PLUGINS@"
+
+#define ELISE_DEPLOY @DEPLOY@
+#define PROJECT_SOURCE_DIR @PROJECT_SRC_DIR@
+
+#define ELISE_PTR_SIZE @CMAKE_SIZEOF_VOID_P@
+
+#define BIN_AUX_SUBDIR "@BIN_AUX_SUBDIR@"
+
+#cmakedefine __USE_JP2__
+#cmakedefine USE_OPEN_MP
+#cmakedefine NO_X11
+#cmakedefine __QT_5_SHORTCUT_PATCH
+#cmakedefine ETA_POLYGON
+
+#cmakedefine01 ELISE_Darwin
