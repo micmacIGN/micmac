@@ -36,6 +36,11 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+/*
+The RedTieP tool has been developed by Oscar Martinez-Rubi within the project
+Improving Open-Source Photogrammetric Workflows for Processing Big Datasets
+The project is funded by the Netherlands eScience Center
+*/
 
 #include "TiepRed.h"
 
@@ -58,42 +63,48 @@ cImageGrid::cImageGrid(cImageTiepRed * aImage, Box2dr & aBox , int aNumCellsX, i
 		mNumCellsY (aNumCellsY)
 {
 	std::size_t numCells = aNumCellsX*aNumCellsY;
-	mCellsPoints.resize(numCells); // We reserve space for the cells
-	if (mImage->ImageId() == 0){ // This is a grid for th emaster image, in this case we also need counters
-		mCellsImageCounters.resize(numCells); // we reserve space for the cells
-		for (std::size_t i = 0; i < numCells ; i++){
-			mCellsImageCounters[i].resize(aNumImages-1, 0); // for each cell we initialize the counters to 0, there is a counter for all the images except the current one (master)
-		}
-	}
-}
-
-cImageTiepRed &  cImageGrid::Image() {return *mImage;}
-
-void cImageGrid::Add(cPMulTiepRed * aMultiPoint)
-{
-	const Pt2df & aPt = aMultiPoint->MergedHomolPoints()->GetVal(mImage->ImageId()); // Get the merge structure of the multi-point and from it get the 2D position of the tiePoint in the current image
-	int cellIndex = CellIndex(aPt); // Get the index of the grid cell in which the tiePoint in the current image
-	mCellsPoints[cellIndex].push_back(aMultiPoint);
-
+  // We reserve space for the cells
+	mCellsPoints.resize(numCells);
+  // If this is a grid for the master image, we also need counters
 	if (mImage->ImageId() == 0){
-		const std::vector<U_INT2> & vecInd = aMultiPoint->MergedHomolPoints()->VecInd(); // We check in which images this point is present. It should be visible in 0 (the master image) and at least anther image
-		for (std::size_t k = 0; k < vecInd.size(); k++){ // For all the images where the point is present
-			if (vecInd[k] != 0) mCellsImageCounters.at(cellIndex).at(vecInd[k]-1)++; // We update the counters
+    // we reserve space for the cells
+		mCellsImageCounters.resize(numCells);
+		for (std::size_t i = 0; i < numCells ; i++){
+      // for each cell we initialize the counters to 0, there is a counter for all the images except the current one (master)
+			mCellsImageCounters[i].resize(aNumImages-1, 0);
 		}
 	}
 }
 
-void cImageGrid::SortCells()
-{
-	// Sort the the vector of multi-points in each cell. It uses the mPComparer
+void cImageGrid::Add(cPMulTiepRed * aMultiTiePoint) {
+  // Get the raw multi-tie-point and from it get the 2D position of the related tie-point in the current image
+	const Pt2df & aPt = aMultiTiePoint->MultiTiePointRaw()->GetVal(mImage->ImageId());
+  // Get the index of the grid cell in which the multi-tie-point is in the current image (well, of its related tie-point)
+	int cellIndex = CellIndex(aPt);
+  // Add the multi-tie-point to the cell
+	mCellsPoints[cellIndex].push_back(aMultiTiePoint);
+
+  // We update the counters if this is the amster image grid
+	if (mImage->ImageId() == 0){
+    // We check in which images this point is present. It should be visible in 0 (the master image) and at least anther image
+		const std::vector<U_INT2> & vecInd = aMultiTiePoint->MultiTiePointRaw()->VecInd();
+    // For all the images where the point is present
+		for (std::size_t k = 0; k < vecInd.size(); k++){
+       // We update the counters
+			if (vecInd[k] != 0) mCellsImageCounters.at(cellIndex).at(vecInd[k]-1)++;
+		}
+	}
+}
+
+void cImageGrid::SortCells(){
+	// Sort the the vector of multi-tie-points in each cell. It uses the mPComparer
 	for (std::vector<std::vector<cPMulTiepRed *> >::iterator itP=mCellsPoints.begin(); itP!=mCellsPoints.end();  itP++){
 		std::vector<cPMulTiepRed *> & mPS = (*itP);
 		std::sort (mPS.begin(), mPS.end(), mPComparer);
 	}
 }
 
-int cImageGrid::CellIndex(const Pt2df & aPoint)
-{
+int cImageGrid::CellIndex(const Pt2df & aPoint){
 	int xpos = int((aPoint.x - mBox._p0.x) * mNumCellsX / (mBox._p1.x - mBox._p0.x));
 	int ypos = int((aPoint.y - mBox._p0.y) * mNumCellsY / (mBox._p1.y - mBox._p0.y));
 
@@ -103,9 +114,8 @@ int cImageGrid::CellIndex(const Pt2df & aPoint)
 	return (ypos * mNumCellsX) + xpos;
 }
 
-int cImageGrid::NumPointsCell(int aCellIndex)
-{
-	// Gets the number of points in cell, but only points which are not selected fro removal
+int cImageGrid::NumPointsCell(int aCellIndex){
+	// Gets the number of points in cell, but only points which are not selected for removal
 	int n = 0;
 	std::vector<cPMulTiepRed *> & mPS = mCellsPoints[aCellIndex];
 	for (std::vector<cPMulTiepRed *>::iterator itP=mPS.begin(); itP!=mPS.end();  itP++){
@@ -124,11 +134,14 @@ std::vector<cPMulTiepRed *> & cImageGrid::CellPoints(int aCellIndex){
 	return mCellsPoints[aCellIndex];
 }
 
-void cImageGrid::Remove(cPMulTiepRed * aMultiPoint, int aCellIndex){
-	aMultiPoint->Remove();
+void cImageGrid::Remove(cPMulTiepRed * aMultiTiePoint, int aCellIndex){
+	aMultiTiePoint->Remove();
+  // If this is the master image grid we update (decrease) the counters
 	if (mImage->ImageId() == 0){
-		const std::vector<U_INT2> & vecInd = aMultiPoint->MergedHomolPoints()->VecInd(); // We check in which images this point is present. It should be visible in 0 (the master image) and at least anther image
-		for (std::size_t k = 0; k < vecInd.size(); k++){ // For all the images where the point is present
+    // We check in which images this point is present. It should be visible in 0 (the master image) and at least anther image
+		const std::vector<U_INT2> & vecInd = aMultiTiePoint->MultiTiePointRaw()->VecInd();
+    // For all the images where the point is present
+		for (std::size_t k = 0; k < vecInd.size(); k++){
 			if (vecInd[k] != 0) mCellsImageCounters[aCellIndex][vecInd[k]-1]--;
 		}
 	}
