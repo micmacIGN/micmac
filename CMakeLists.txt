@@ -529,7 +529,8 @@ if(NOT WIN32) # ImageMagick n'est pas obligatoire sous windows puisque les exécu
 endif()
 
 if (MINGW)
-	add_definitions(-D__MINGW__ -D__MSVCRT_VERSION__=0x800 -D_WIN32_WINNT=0x0500)
+	set(__MINGW__ 1)
+	add_definitions(-D__MSVCRT_VERSION__=0x800 -D_WIN32_WINNT=0x0500)
 	set( WINSOCK2_LIBRARY ws2_32 )
 endif()
 
