@@ -2,9 +2,9 @@ include elise_files
 
 build_directories = obj lib bin ui rc moc
 qt_defines = -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_XML_LIB
-defines = -D__DEBUG  -fPIE -fPIC
+defines = -D__DEBUG
 includes = -I$(micmac_dir)/kakadu/all_includes -I$(micmac_dir)/include -I$(micmac_dir)/src/uti_image/Sift -I$(micmac_dir)/src/uti_image/Ann -I$(micmac_dir)/src/saisieQT/include_QT
-CXX_FLAGS = -O2 -Wall
+CXX_FLAGS = $(qt_compile_flags)
 ANN_FLAGS = -I$(micmac_dir)/CodeExterne/ANN/include $(CXX_FLAGS) $(CXXFLAGS)
 ALL_FLAGS = $(defines) $(qt_defines) $(includes) $(qt_includes) $(CXX_FLAGS) $(CXXFLAGS)
 ALL_LIB_FLAGS = -Llib -lelise -lANN -lQt5Concurrent -lQt5Xml -lQt5OpenGL -lQt5Widgets -lQt5Gui -lQt5Core -lX11 -lGL -ldl -L $(kakadu_dir)/lib -lkdu_v64R -pthread

@@ -73,6 +73,7 @@ file(APPEND ${elise_files_filename} "qt_qmake = ${QT_QMAKE_EXECUTABLE}\n")
 file(APPEND ${elise_files_filename} "qt_moc = ${QT_MOC_EXECUTABLE}\n")
 file(APPEND ${elise_files_filename} "qt_uic = ${QT_UIC_EXECUTABLE}\n")
 file(APPEND ${elise_files_filename} "qt_rcc = ${QT_RCC_EXECUTABLE}\n")
+file(APPEND ${elise_files_filename} "qt_compile_flags = ${qt_compile_flags}\n")
 
 file(APPEND ${elise_files_filename} "qt_generated_files =")
 foreach(f ${saisie_ui})

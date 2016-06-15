@@ -56,7 +56,7 @@ Header-MicMac-eLiSe-25/06/2007*/
         #define ELISE_windows 1
         #define ELISE_MacOs 0
         #define ELISE_POSIX 0
-        #if __MINGW__
+        #ifdef __MINGW__
             #define ELISE_MinGW 1
         #else
             #define ELISE_MinGW 0
