@@ -3,7 +3,7 @@ include elise_files
 build_directories = obj lib bin ui rc moc
 qt_defines = -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_XML_LIB
 defines = -D__DEBUG  -fPIE -fPIC
-includes = -I$(micmac_dir)/kakadu/all_includes -I$(micmac_dir)/culture3d-synchro2/include -I$(micmac_dir)/culture3d-synchro2/src/uti_image/Sift -I$(micmac_dir)/culture3d-synchro2/src/uti_image/Ann -I$(micmac_dir)/culture3d-synchro2/src/saisieQT/include_QT
+includes = -I$(micmac_dir)/kakadu/all_includes -I$(micmac_dir)/include -I$(micmac_dir)/src/uti_image/Sift -I$(micmac_dir)/src/uti_image/Ann -I$(micmac_dir)/src/saisieQT/include_QT
 CXX_FLAGS = -O2 -Wall
 ANN_FLAGS = -I$(micmac_dir)/CodeExterne/ANN/include $(CXX_FLAGS) $(CXXFLAGS)
 ALL_FLAGS = $(defines) $(qt_defines) $(includes) $(qt_includes) $(CXX_FLAGS) $(CXXFLAGS)
