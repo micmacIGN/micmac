@@ -1,0 +1,655 @@
+<!--
+
+   Pattron pour mise en place de vue convergente a partir de longue focale.
+
+   Toute les vues convergent vers le meme point, on calcule tout les couples
+   homologues.
+
+   Focale trop longue pour mise en place directes, on utilise une prise
+   de vue grand angles "annexe" (eventuellement a resolution plus basse)
+   pour faire une mise en place initiale par points d'appuis
+
+
+     PatNumIm="[0-9]{5}"
+-->
+
+<Global>
+
+  <ChantierDescripteur
+     Subst="@$#1"
+     NameDecl="@$#1"
+
+     Mission="ESS277"
+     NbJob="2"
+     CanalMaitre="v"
+     
+     PrefixCalibCoul="GRID_NoGrid_Pol5_3_10_1_45_"
+     PrefixCalibPanchro="GRID_NoGrid_Pol5_5_09_1_90_"
+     --PrefixCalibCoul="GRID_NoGrid_DRad_3_10_1_45_"
+     --PrefixCalibPanchro="GRID_NoGrid_DRad_5_09_1_90_"
+     --PostFixCalib="_MetaDonnees"
+     PostFixCalib=""
+     Dyn8B="0.07"
+
+     PatChan="[bilmnorv]"
+     PatCol="[rvbi]"
+     PatCanalPanchro="[lmno]"
+     PatNumBande="[0-9]{3}"
+     PatNumAero="0016[0-4]"
+     PatNumIm="[0-9]{5}"
+
+     NumBandeSsGPS="008"
+     NumBandeVoisSsGPS="00(7|9)"
+
+     P8B="_8Bits"
+
+     PatNomBrut="${Mission}_${PatChan}x${PatNumBande}_${PatNumIm}"
+     PatImCanalMaitre="${Mission}_${CanalMaitre}x${PatNumBande}_${PatNumIm}"
+
+     PatImSsGPS="${Mission}_${CanalMaitre}x${NumBandeSsGPS}_${PatNumIm}"
+     PatImVoisSsGPS="${Mission}_${CanalMaitre}x${NumBandeVoisSsGPS}_${PatNumIm}"
+
+
+     SzPastisSuperp="3500"
+
+     SzPastisOri_0="1500"
+
+     ImSuperpRVB="([0-9]{5})"
+     Trajecto="2009_FR9906F45_RGF93XYZ"
+     PostTrajecto="gps"
+     XMLTraj="${Trajecto}.xml"
+  >
+
+       <ShowChantDesc>
+           <OneShowChantDesc>
+                <KeyRels>  Key-Rel-Aero-5Tetes  </KeyRels>
+           </OneShowChantDesc>
+           <File>   Pairs.txt </File>
+       </ShowChantDesc>
+
+       <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+                  <ExeRequired>
+                       <Exe> bin/Pastis </Exe>
+                       <Make> Makefile </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/ImProfAndL2App </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/Apero </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/MICMAC </Exe>
+                       <Make> MakeMICMAC </Make>
+                  </ExeRequired>
+
+<!--
+                  <FileRequired> 
+                  </FileRequired> 
+-->
+
+              </Requirement>
+               
+
+   <!--  1 Conversion des images au format tiff -->
+<!--
+         En fait inutile, car mal fait. On utilise Dica
+              <Line> bin/MapCmd  bin/cv2convert tiff "P=${ThisDir}(${PatNomBrut})" "C=\$1.tif"  M=MkToto "T=\$1.tif" </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+-->
+
+     <!--  Generation d'images 8 Bits a dyn controlee pour sift -->
+
+              <Line> bin/MapCmd  bin/to8Bits "P=${ThisDir}(${PatNomBrut}).tif"   M=MkToto "T=\$1_8Bits.tif" Dyn=${Dyn8B} </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+     <!--  Generation de points sift pour la superposition -->
+
+              <Line> bin/Pastis  ${ThisDir} Key-Rel-Master2Chanel-8B ${SzPastisSuperp} FiltreOnlyDupl=1 MkF=MkToto  NbMinPtsExp=2 KG12=Key-Apriori-Superp-Master-8B   </Line>
+
+
+       <!-- Generation de Trajecto en XML -->
+
+              <Line> bin/Trajecto2Xml  ${ThisDir}${Trajecto}.${PostTrajecto} </Line>
+
+       <!-- Points sift pour la trajecto -->
+
+              <Line> bin/Pastis  ${ThisDir} Key-Rel-Delaunay-Master ${SzPastisOri_0} FiltreOnlyDupl=1 MkF=MkToto  NbMinPtsExp=20   </Line>
+
+       <!-- Cas special de la bande sans GPS -->
+
+              <Line> bin/Pastis  ${ThisDir} Key-Rel-Spec-SsGps ${SzPastisOri_0} FiltreOnlyDupl=1 MkF=MkToto  NbMinPtsExp=20   </Line>
+
+        </BatchChantDesc>
+
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${CanalMaitre}x${PatNumBande}_${PatNumIm}${P8B}\.tif  </PatternAccepteur>
+                  <PatternRefuteur> ${PatImSsGPS}${P8B}\.tif  </PatternRefuteur>
+           </Sets>
+           <Key > Key-Set-Masters-8B-With-GPS </Key>
+  </KeyedSetsOfNames>
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${PatImSsGPS}${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Masters-8B-Ss-GPS </Key>
+  </KeyedSetsOfNames>
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${PatImVoisSsGPS}${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Masters-8B-Vois-Ss-GPS </Key>
+  </KeyedSetsOfNames>
+
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${CanalMaitre}x${PatNumBande}_${PatNumIm}\.tif  </PatternAccepteur>
+                  <PatternRefuteur> ${PatImSsGPS}\.tif  </PatternRefuteur>
+           </Sets>
+           <Key > Key-Set-Masters-With-GPS </Key>
+  </KeyedSetsOfNames>
+
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${PatChan}x${PatNumBande}_00160${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Aero-0 </Key>
+  </KeyedSetsOfNames>
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${PatChan}x${PatNumBande}_00161${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Aero-1 </Key>
+  </KeyedSetsOfNames>
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${PatChan}x${PatNumBande}_00162${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Aero-2 </Key>
+  </KeyedSetsOfNames>
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${PatChan}x${PatNumBande}_00163${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Aero-3 </Key>
+  </KeyedSetsOfNames>
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${PatChan}x${PatNumBande}_00164${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Aero-4 </Key>
+  </KeyedSetsOfNames>
+
+
+
+
+
+
+
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${CanalMaitre}x${PatNumBande}_${PatNumIm}${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Masters-8B </Key>
+  </KeyedSetsOfNames>
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${CanalMaitre}x${PatNumBande}_${PatNumIm}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Masters </Key>
+  </KeyedSetsOfNames>
+
+
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_(${CanalMaitre}|${PatCanalPanchro})x${PatNumBande}_${PatNumIm}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-5-Tetes </Key>
+  </KeyedSetsOfNames>
+
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${PatChan}x${PatNumBande}_${PatNumIm}${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-8B </Key>
+  </KeyedSetsOfNames>
+
+   <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${PatCol}x${PatNumBande}_${PatNumIm}${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Colors-8B </Key>
+  </KeyedSetsOfNames>
+   <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${PatCanalPanchro}x${PatNumBande}_${PatNumIm}${P8B}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Panchro-8B </Key>
+  </KeyedSetsOfNames>
+
+   <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ${Mission}_${CanalMaitre}x${PatNumBande}_${ImSuperpRVB}\.tif  </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-Superp-RVB </Key>
+  </KeyedSetsOfNames>
+
+
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+  <APrioriImage>
+       <KeyedAddedSet>  Key-Set-Colors-8B    </KeyedAddedSet>
+       <Key>  Key-Apriori-Superp-Master-8B </Key>
+       <ContenuAPrioriImage>
+              <Scale> 1.0 </Scale>
+       </ContenuAPrioriImage>
+   </APrioriImage>
+  <APrioriImage>
+       <KeyedAddedSet>  Key-Set-Panchro-8B    </KeyedAddedSet>
+       <Key>  Key-Apriori-Superp-Master-8B </Key>
+       <ContenuAPrioriImage>
+              <Scale> 2.0 </Scale>
+       </ContenuAPrioriImage>
+   </APrioriImage>
+
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+
+<KeyedSetsORels>
+     <Sets > 
+<!--
+         <ByGroupesDImages>
+               <ByAdjDeGroupes >
+                      <KeySets>  Key-Set-Aero-0   </KeySets>
+                      <KeySets>  Key-Set-Aero-1   </KeySets>
+                      <KeySets>  Key-Set-Aero-2   </KeySets>
+                      <KeySets>  Key-Set-Aero-3   </KeySets>
+                      <KeySets>  Key-Set-Aero-4   </KeySets>
+                      <DeltaMin >  -2 </DeltaMin>
+                      <DeltaMax >  2 </DeltaMax>
+               </ByAdjDeGroupes>
+               <Sym > true</Sym>
+               <Reflexif > true </Reflexif>
+       </ByGroupesDImages>
+
+-->
+         <ByAdjacence >
+             <KeySets>  Key-Set-Masters-8B  </KeySets>
+             <KeySets>  Key-Set-All-8B </KeySets>
+             <DeltaMin >  -1000000  </DeltaMin>
+             <DeltaMax > 1000000 </DeltaMax>
+              <Filtre> 
+                   <KeyEquiv> Key-Assoc-Im2Num </KeyEquiv>
+              </Filtre>
+
+              <Sym> false </Sym>
+          </ByAdjacence>
+<!--
+  Je ne vous plus pourquoi il le faut dans les 2 sens dans ce cas la 
+         <ByAdjacence >
+             <KeySets>  Key-Set-Panchro-8B </KeySets>
+             <KeySets>  Key-Set-Masters-8B  </KeySets>
+             <DeltaMin >  -1000000  </DeltaMin>
+             <DeltaMax > 1000000 </DeltaMax>
+              <Filtre> 
+                   <KeyEquiv> Key-Assoc-Im2Num </KeyEquiv>
+              </Filtre>
+
+              <Sym> false </Sym>
+          </ByAdjacence>
+-->
+
+     </Sets>
+     <Key> Key-Rel-Master2Chanel-8B </Key>
+</KeyedSetsORels>
+
+
+<KeyedSetsORels>
+     <Sets >
+
+            <ByAdjacence>
+<!--
+                   <KeySets>  Key-Set-Masters   </KeySets>
+-->
+                   <KeySets>  Key-Set-5-Tetes  </KeySets>
+                   <DeltaMin>  -1000000 </DeltaMin>
+                   <DeltaMax>   1000000 </DeltaMax>
+                    <Filtre>
+                        <FiltreEmprise>
+                             <KeyOri> Key-Assoc-Im2OrFinale-2 </KeyOri>
+                             <RatioMin>  0.0 </RatioMin>
+                             <MemoFile>  true</MemoFile>
+                        </FiltreEmprise>
+                    </Filtre>
+            </ByAdjacence>
+     </Sets>
+     <Key> Key-Rel-Aero-5Tetes   </Key>
+</KeyedSetsORels>
+
+
+
+<KeyedSetsORels>
+     <Sets >
+           <NameFileSauvegarde>  Rel-Delaunay-Master.xml  </NameFileSauvegarde>
+            <ByFiltreSpatial>
+                  <ByFileTrajecto>  ${XMLTraj} </ByFileTrajecto>
+                  <KeyOri >   Key-NumIm-Ss0 </KeyOri>
+                  <KeySet>    Key-Set-Masters-8B-With-GPS   </KeySet>
+                  <Sym> true</Sym>
+                  <ModeFiltreSpatial>
+                         <FiltreDelaunay>
+                             <!--  <DMaxDelaunay></DMinDelaunay>  -->
+                         </FiltreDelaunay>
+                  </ModeFiltreSpatial>
+            </ByFiltreSpatial>
+     </Sets>
+     <Key> Key-Rel-Delaunay-Master </Key>
+</KeyedSetsORels>
+
+
+
+
+<KeyedSetsORels>
+     <Sets >
+         <ByAdjacence >
+             <KeySets>  Key-Set-Masters-8B-Ss-GPS  </KeySets>
+             <DeltaMin>  -2  </DeltaMin>
+             <DeltaMax > 2 </DeltaMax>
+             <!-- Si donne ne conserve que les couple auquel 
+             KeyEquiv associe la meme valeur
+             -->
+         </ByAdjacence>
+
+         <ByAdjacence >
+             <KeySets>  Key-Set-Masters-8B-Ss-GPS  </KeySets>
+             <KeySets>  Key-Set-Masters-8B-Vois-Ss-GPS  </KeySets>
+             <DeltaMin>  -1000000  </DeltaMin>
+             <DeltaMax >  1000000 </DeltaMax>
+             <!-- Si donne ne conserve que les couple auquel 
+             KeyEquiv associe la meme valeur
+             -->
+         </ByAdjacence>
+
+     </Sets>
+     <Key> Key-Rel-Spec-SsGps  </Key>
+</KeyedSetsORels>
+
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+          <!-- Associe a une image  le nom de son  fichier de calibration -->
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${Mission}_(${PatCol})x${PatNumBande}_${PatNumIm}(|${P8B})\.tif  </PatternTransform>
+                       <CalcName> ${PrefixCalibCoul}$1${PostFixCalib}.xml </CalcName>
+                 </Direct>
+             </Calcs>
+
+            <!-- Gestion de l'intervertion l-m  -->
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${Mission}_lx${PatNumBande}_${PatNumIm}(|${P8B})\.tif  </PatternTransform>
+                       <CalcName> ${PrefixCalibPanchro}m${PostFixCalib}.xml </CalcName>
+                 </Direct>
+            </Calcs>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${Mission}_mx${PatNumBande}_${PatNumIm}(|${P8B})\.tif  </PatternTransform>
+                       <CalcName> ${PrefixCalibPanchro}l${PostFixCalib}.xml </CalcName>
+                 </Direct>
+             </Calcs>
+
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${Mission}_(${PatCanalPanchro})x${PatNumBande}_${PatNumIm}(|${P8B})\.tif  </PatternTransform>
+                       <CalcName> ${PrefixCalibPanchro}$1${PostFixCalib}.xml </CalcName>
+                 </Direct>
+             </Calcs>
+
+
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+
+          <!-- Associe a une image  son numero d'image -->
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${Mission}_${PatChan}x${PatNumBande}_(${PatNumIm})(|${P8B})\.tif  </PatternTransform>
+                       <CalcName> $1 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-Im2Num </Key>
+   </KeyedNamesAssociations>
+
+          <!-- Associe a une image  son numero d'image en ayant supprimer les 0 en debut -->
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${Mission}_${PatChan}x${PatNumBande}_0*([1-9][0-9]*)(|${P8B})\.tif  </PatternTransform>
+                       <CalcName> $1 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-NumIm-Ss0 </Key>
+   </KeyedNamesAssociations>
+
+
+
+          <!-- Association pour la composition coloree -->
+
+                  <!--   Im -> RGB, pour les target, car prend deux argument  -->
+
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)@.*    </PatternTransform>
+                   <CalcName>  ${Mission}_RVBx$1   </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Target-Im2RGB </Key>
+   </KeyedNamesAssociations>
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)@.*    </PatternTransform>
+                   <CalcName>  ${Mission}_PXSx$1   </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Target-Im2PXS </Key>
+   </KeyedNamesAssociations>
+
+
+
+
+
+                  <!--   Im -> RGB -->
+
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)    </PatternTransform>
+                   <CalcName>  ${Mission}_RVBx$1   </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Im2RGB </Key>
+   </KeyedNamesAssociations>
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)    </PatternTransform>
+                   <CalcName>  ${Mission}_PXSx$1   </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Im2PXS </Key>
+   </KeyedNamesAssociations>
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)    </PatternTransform>
+                   <CalcName>  ${Mission}_Panx$1   </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Im2Pan </Key>
+   </KeyedNamesAssociations>
+
+
+
+
+                  <!--   Im -> Master Image -->
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)    </PatternTransform>
+                   <CalcName>  ${Mission}_${CanalMaitre}x$1  </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Im2Master </Key>
+   </KeyedNamesAssociations>
+
+
+                  <!--   Im -> r -->
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)    </PatternTransform>
+                   <CalcName>  ${Mission}_rx$1  </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Im2R </Key>
+   </KeyedNamesAssociations>
+
+
+                  <!--   Im -> b -->
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)    </PatternTransform>
+                   <CalcName>  ${Mission}_bx$1   </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Im2B </Key>
+   </KeyedNamesAssociations>
+                  <!--   Im -> l -->
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)    </PatternTransform>
+                   <CalcName>  ${Mission}_lx$1   </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Im2L </Key>
+   </KeyedNamesAssociations>
+                  <!--   Im -> m -->
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)    </PatternTransform>
+                   <CalcName>  ${Mission}_mx$1   </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Im2M </Key>
+   </KeyedNamesAssociations>
+                  <!--   Im -> n -->
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)    </PatternTransform>
+                   <CalcName>  ${Mission}_nx$1   </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Im2N </Key>
+   </KeyedNamesAssociations>
+                  <!--   Im -> b -->
+  <KeyedNamesAssociations>
+         <Calcs>
+              <Arrite>  1 1 </Arrite>
+              <Direct>
+                   <PatternTransform>   ${Mission}_${PatChan}x(${PatNumBande}_${PatNumIm}\.tif)    </PatternTransform>
+                   <CalcName>  ${Mission}_ox$1   </CalcName>
+              </Direct>
+         </Calcs>
+         <Key>   Key-Assoc-Im2O </Key>
+   </KeyedNamesAssociations>
+
+
+
+
+
+
+
+          <!-- Association CpleIm ->  Homs pour  superpos coloree -->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Homol/Pastis$1_8Bits/$2_8Bits.dat  </CalcName>
+             </Direct>
+             <Inverse>
+                <PatternTransform> Homol/Pastis(.*)_8Bits/(.*)_8Bits\.dat </PatternTransform>
+                <CalcName> $1.${TifPost}  </CalcName>
+                <CalcName> $2.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>  Key-Assoc-CpleIm2HomolPastis8BitsBin </Key>
+        <SubDirAutoMake> Homol </SubDirAutoMake>
+        <SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+
+
+  </ChantierDescripteur>
+</Global>
+
+
+
+
