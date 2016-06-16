@@ -158,6 +158,7 @@ class cHomol
     cPic* getAppearsOnCoupleA(unsigned int i){return mAppearsOnCoupleA[i];}
     cPic* getAppearsOnCoupleB(unsigned int i){return mAppearsOnCoupleB[i];}
     int getAppearsOnCoupleSize(){return mAppearsOnCoupleA.size();}
+    bool checkMerge(cHomol* aHomol);
   protected:
     int mId;//unique id
     static int mHomolCounter;
@@ -190,6 +191,7 @@ class cPic
     int getAllSelectedPointsOnPicSize(){return mAllSelectedPointsOnPic.size();}
     void selectHomols();
     void fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameManipulateur * aICNM,std::string & aKHOut);
+    std::vector<int> getStats(bool before=true);//computes repartition in homol-2, homol-3, homol-4 etc... export it as vector indexed by multiplicity
   protected:
     std::string mName;
     cPicSize * mPicSize;
@@ -386,6 +388,17 @@ bool cHomol::appearsOnCouple2way(cPic * aPicA,cPic * aPicB)
         }
     }
     return false;
+}
+
+//checks if the same picture is not in both Homol
+bool cHomol::checkMerge(cHomol* aHomol)
+{
+    for (unsigned int i=0;i<mPointOnPics.size();i++)
+    {
+        if (aHomol->getPointOnPic(getPointOnPic(i)->getPic()))
+            return false;
+    }
+    return true;
 }
 
 //----------------------------------------------------------------------------
@@ -609,6 +622,27 @@ void cPic::fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameMani
     
 }
 
+std::vector<int> cPic::getStats(bool before)
+{
+    std::vector<int> numHomolMultiplicity;
+    //homol-0: 0, homol-1: 0,homol-2: ??
+
+    std::map<double,cPointOnPic*> *pointsOnPic=before?&mAllPointsOnPic:&mAllSelectedPointsOnPic;
+    std::map<double,cPointOnPic*>::iterator itPointOnPic;
+    for (itPointOnPic=pointsOnPic->begin();itPointOnPic!=pointsOnPic->end();++itPointOnPic)
+    {
+        if ((itPointOnPic->second)->getHomol()->isBad()) continue;
+        unsigned int multi=(itPointOnPic->second)->getHomol()->getPointOnPicsSize();
+        if (multi>=numHomolMultiplicity.size())
+            numHomolMultiplicity.resize(multi+1,0);
+        numHomolMultiplicity[multi]++;
+
+        if (multi>4)
+            (itPointOnPic->second)->getHomol()->print();
+    }
+    return numHomolMultiplicity;
+}
+
 bool compareNumberOfHomolPics (cPic* aPic1,cPic* aPic2)
 {
     return (aPic1->getAllPointsOnPicSize()<aPic2->getAllPointsOnPicSize());
@@ -648,7 +682,6 @@ std::string CompiledKey2::getFile(std::string param1,std::string param2)
 }
 
 
-
 int schnaps_main(int argc,char ** argv)
 {
     std::string aFullPattern;//pattern of all images
@@ -658,6 +691,7 @@ int schnaps_main(int argc,char ** argv)
     int aNumWindows=1000;//minimal homol points in each picture
     bool ExpTxt=false;//Homol are in dat or txt
     bool veryStrict=false;
+    bool doShowStats=false;
     double aMinPercentCoverage=30;//if %coverage<aMinPercentCoverage, add to poubelle!
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
@@ -680,6 +714,7 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(aOutHomolDirName, "HomolOut", true, "Output Homol directory suffix (default: _mini)")
                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                    << EAM(veryStrict,"VeryStrict",true,"Be very strict with homols (remove any suspect), def=false")
+                   << EAM(doShowStats,"ShowStats",true,"Show Homol points stats before and after filtering, def=false")
                    << EAM(aPoubelleName,"PoubelleName",true,string("Where to write suspicious pictures names, def=\"")+aPoubelleName+"\"")
                    << EAM(aMinPercentCoverage,"minPercentCoverage",true,"Minimum % of coverage to avoid adding to poubelle, def=30")
       );
@@ -814,8 +849,8 @@ int schnaps_main(int argc,char ** argv)
                         if (aPointOnPic1) aPointOnPic1->getHomol()->print();
                         if (aPointOnPic2) aPointOnPic2->getHomol()->print();
                     }*/
-                    /*if ((aPointOnPic1 && (aPointOnPic1->getHomol()->getId()==7904))||
-                        (aPointOnPic2 && (aPointOnPic2->getHomol()->getId()==7904)))
+                    /*if ((aPointOnPic1 && (aPointOnPic1->getHomol()->getId()==8897))||
+                        (aPointOnPic2 && (aPointOnPic2->getHomol()->getId()==8897)))
                     {
                         std::cout<<"For pair : "<<aP1<<" "<<aP2<<std::endl;
                         std::cout<<"Result Homol: "<<aPointOnPic1<<" "<<aPointOnPic2<<std::endl;
@@ -835,20 +870,17 @@ int schnaps_main(int argc,char ** argv)
                     }
                     else if (aPointOnPic1 && aPointOnPic2 &&(aPointOnPic1->getHomol()!=aPointOnPic2->getHomol()))
                     {
-                        cPointOnPic * aPointOnPic12=aPointOnPic1->getHomol()->getPointOnPic(pic2);
-                        cPointOnPic * aPointOnPic21=aPointOnPic2->getHomol()->getPointOnPic(pic1);
+
+                        /*if ((aPointOnPic1 && (aPointOnPic1->getHomol()->getId()==8897))||
+                            (aPointOnPic2 && (aPointOnPic2->getHomol()->getId()==8897)))
+                        {
+                            std::cout<<"Try merging: "<<std::endl;
+                        if (aPointOnPic1) aPointOnPic1->getHomol()->print();
+                        if (aPointOnPic2) aPointOnPic2->getHomol()->print();
+                        }*/
+
                         if (
-                            ((aPointOnPic21)
-                              &&(
-                                 (fabs(aPointOnPic21->getPt().x-aP2.x)>0.1)
-                                 ||(fabs(aPointOnPic21->getPt().y-aP2.y)>0.1))
-                                )
-                            ||
-                            ((aPointOnPic12)
-                              &&(
-                                 (fabs(aPointOnPic12->getPt().x-aP1.x)>0.1)
-                                 ||(fabs(aPointOnPic12->getPt().y-aP1.y)>0.1))
-                                )
+                                !(aPointOnPic1->getHomol()->checkMerge(aPointOnPic2->getHomol()))
                            )
                         {
                             //std::cout<<"Bad homols!\n";
@@ -1116,7 +1148,28 @@ int schnaps_main(int argc,char ** argv)
     }
     aFileBadPictureNames.close();
 
-    std::cout<<"You can look at \""<<aPoubelleName<<"\" for a list of suspicious pictures.\n";
+    if (doShowStats)
+    {
+        for (int j=0;j<2;j++)
+        {
+            if (j==0)
+                std::cout<<"\nStats BEFORE filtering:\n";
+            else
+                std::cout<<"\nStats AFTER filtering:\n";
+            for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+            {
+                std::cout<<itPic1->second->getName()<<": ";
+                std::vector<int> homolStats=itPic1->second->getStats(j==0);
+                for (unsigned int i=2;i<homolStats.size();i++)
+                {
+                    std::cout<<i<<":"<<homolStats[i]<<" ";
+                }
+                std::cout<<std::endl;
+            }
+        }
+    }
+
+    std::cout<<"\nYou can look at \""<<aPoubelleName<<"\" for a list of suspicious pictures.\n";
   
    
     std::cout<<"Quit"<<std::endl;
