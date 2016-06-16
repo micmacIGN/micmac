@@ -69,7 +69,7 @@ OPTION(DEPLOY "compile for end-user" OFF)
 OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)")
 
 # fichier contenant la fonction gerant les en-tetes precompilees
-include(${CMAKE_CURRENT_SOURCE_DIR}/precompiled_headers.cmake)
+include(precompiled_headers.cmake)
 
 if ( TRACE_SYSTEM )
 	add_definitions(-D__TRACE_SYSTEM__=${TRACE_SYSTEM})
@@ -88,7 +88,7 @@ if ( WITH_OPEN_MP )
 	endif()
 	list( APPEND CMAKE_C_FLAGS ${OpenMP_C_FLAGS} )
 	list( APPEND CMAKE_CXX_FLAGS ${OpenMP_CXX_FLAGS} )
-	add_definitions(-DUSE_OPEN_MP)
+	set(USE_OPEN_MP 1)
 endif()
 
 # Utiliser Doxygen
@@ -99,7 +99,7 @@ OPTION(WITH_DOXYGEN "Generation de documentation" OFF )
 ## 	Trouver les EXES et Libs	##
 ######################################
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	add_definitions(-DELISE_Darwin)
+	set(ELISE_Darwin 1)
 	set(BIN_AUX_SUBDIR "darwin")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(BIN_AUX_SUBDIR "windows")
@@ -144,9 +144,10 @@ if(${WITH_QT5} OR ${WITH_QT4})
 			    find_package(Qt5OpenGL REQUIRED)
 
 			if (Qt5Widgets_FOUND)
-				if (NOT QT_QMAKE_EXECUTABLE)
-					get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
-				endif()
+				get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+				get_target_property(QT_MOC_EXECUTABLE Qt5::moc IMPORTED_LOCATION)
+				get_target_property(QT_UIC_EXECUTABLE Qt5::uic IMPORTED_LOCATION)
+				get_target_property(QT_RCC_EXECUTABLE Qt5::rcc IMPORTED_LOCATION)
 
 				EXECUTE_PROCESS(
 						COMMAND
@@ -161,23 +162,11 @@ if(${WITH_QT5} OR ${WITH_QT4})
 
 				if (QT_VERSION VERSION_LESS "5.4.0")
 					message(STATUS "Qt version < 5.4.0: using shortcuts patch")
-					add_definitions("-D__QT_5_SHORTCUT_PATCH")
+					set(__QT_5_SHORTCUT_PATCH 1)
 				endif()
 
-			    set(qt_version 5)
-
-#                            set(QT_LIBRARIES
-#                                    ${Qt5Core_LIBRARIES}
-#                                    ${Qt5Gui_LIBRARIES}
-#                                    ${Qt5Xml_LIBRARIES}
-#                                    ${Qt5OpenGL_LIBRARIES}
-#                            )
-
-#                            message("${Qt5Core_LIBRARIES}")
-
-			    #SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
-
-#                            link_directories(${Qt5_LIBRARY_DIRS})
+				set(qt_version 5)
+				set(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES})
 
 			elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
 
@@ -189,7 +178,6 @@ if(${WITH_QT5} OR ${WITH_QT4})
 			endif()
 
 		elseif (${WITH_QT4})
-
 			FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
 			if( QT4_FOUND )
 			    message( STATUS "-----> Qt4 found" )
@@ -336,7 +324,7 @@ endif()
 # Etalonnage polygone
 
 if (${WITH_ETALONPOLY})
-	add_definitions(-DETA_POLYGON)
+	set(ETA_POLYGON 1)
 endif()
 
 # MERCURIAL
@@ -386,12 +374,7 @@ CONFIGURE_FILE (
 	"${CMAKE_SOURCE_DIR}/src/util/HG_defines.cpp"
 )
 
-CONFIGURE_FILE (
-	"include/general/CMake_defines.h.in"
-	"${CMAKE_SOURCE_DIR}/include/general/CMake_defines.h"
-)
-
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
+#~ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
 # Utiliser le driver Kakadu pour gerer les images JP2OOO
 IF(${WITH_KAKADU})
@@ -414,9 +397,9 @@ IF(${WITH_KAKADU})
 		MESSAGE("Warning! Kakadu not found. Micmac will be built without JPEG2000 support.")
 	ELSE()
 		message( STATUS "Kakadu enabled" )
-		ADD_DEFINITIONS(-D__USE_JP2__)
 		LINK_DIRECTORIES( ${KAKADU_LIBRARY_DIRS})
-		INCLUDE_DIRECTORIES( ${KAKADU_INCLUDE_DIRS} )
+		INCLUDE_DIRECTORIES(${KAKADU_INCLUDE_DIRS})
+		set(__USE_JP2__ 1)
 	ENDIF()
 ENDIF()
 
@@ -546,7 +529,8 @@ if(NOT WIN32) # ImageMagick n'est pas obligatoire sous windows puisque les exécu
 endif()
 
 if (MINGW)
-	add_definitions(-D__MINGW__ -D__MSVCRT_VERSION__=0x800 -D_WIN32_WINNT=0x0500)
+	set(__MINGW__ 1)
+	add_definitions(-D__MSVCRT_VERSION__=0x800 -D_WIN32_WINNT=0x0500)
 	set( WINSOCK2_LIBRARY ws2_32 )
 endif()
 
@@ -582,7 +566,7 @@ if(NOT WIN32)
 		#message("   libraries dir : " ${X11_LIBRARY_DIR} )
 	INCLUDE_DIRECTORIES( ${X11_INCLUDE_DIR} )
 	ELSE()
-		add_definitions(-DNO_X11)
+		set(NO_X11)
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
 	ENDIF()
 ELSE()
@@ -647,13 +631,13 @@ set(Install_Dir_lib ${BUILD_PATH_LIB})
 set(ELISE_DIR src)
 
 # CONSTRUCTION : Librairie ANN
-include(${PROJECT_SOURCE_DIR}/CodeExterne/ANN/CMakeLists.txt)
+add_subdirectory(${PROJECT_SOURCE_DIR}/CodeExterne/ANN)
 # CONSTRUCTION : Librairie POISSON
-include(${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/CMakeLists.txt)
+add_subdirectory(${PROJECT_SOURCE_DIR}/CodeExterne/Poisson)
 # CONSTRUCTION : Librairie Rnx2rtkp
-include(${PROJECT_SOURCE_DIR}/CodeExterne/rnx2rtkp/CMakeLists.txt)
+add_subdirectory(${PROJECT_SOURCE_DIR}/CodeExterne/rnx2rtkp)
 # CONSTRUCTION : Librairie ELISE
-set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
+set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere)
 include(${code_genere_dir}/Sources.cmake)
 ADD_SUBDIRECTORY(${ELISE_DIR})
 
@@ -670,3 +654,12 @@ if ( ${BUILD_BENCH} )
    include(${PROJECT_SOURCE_DIR}/BenchElise/bench/CMakeLists.txt)
    include(${PROJECT_SOURCE_DIR}/BenchElise/bench_mm3d/CMakeLists.txt)
 endif()
+
+if (OUTPUT_ELISE_FILES)
+	include("output_elise_files.cmake")
+endif()
+
+CONFIGURE_FILE (
+	"include/general/CMake_defines.h.in"
+	"${CMAKE_SOURCE_DIR}/include/general/CMake_defines.h"
+)
