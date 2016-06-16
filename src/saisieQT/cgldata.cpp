@@ -45,7 +45,7 @@
 	size_t __dump( QImage &aQImage, const string &aName, const string &aPrefix )
 	{
 		size_t total = size_t(aQImage.bytesPerLine()) * size_t(aQImage.height());
-		cout << aPrefix << "QImage " << aName << ' ' << aQImage.width() << 'x' << aQImage.height() << ' ' << eToString(aQImage.format()) << ": " << __humanReadable(total) << endl;
+		cout << aPrefix << "QImage " << aName << ' ' << aQImage.width() << 'x' << aQImage.height() << ' ' << eToString(aQImage.format()) << ": " << humanReadable(total) << endl;
 		return total;
 	}
 
@@ -53,7 +53,7 @@
 		size_t __dump( MipmapHandler::Mipmap &aMipmap, const string &aPrefix )
 		{
 			size_t total = (aMipmap.mData == NULL ? 0 : aMipmap.mNbBytes);
-			cout << aPrefix << "Mipmap " << aMipmap.mWidth << 'x' << aMipmap.mHeight << 'x' << aMipmap.mNbChannels << '(' << aMipmap.mNbBitsPerChannel << "): " << __humanReadable(total) << endl;
+			cout << aPrefix << "Mipmap " << aMipmap.mWidth << 'x' << aMipmap.mHeight << 'x' << aMipmap.mNbChannels << '(' << aMipmap.mNbBitsPerChannel << "): " << humanReadable(total) << endl;
 			return total;
 		}
 	#else
@@ -65,7 +65,7 @@
 			if (aQMaskedImage._m_mask != NULL)           total += __dump(*aQMaskedImage._m_mask, "_m_mask", aPrefix + "\t");
 			if (aQMaskedImage._m_rescaled_image != NULL) total += __dump(*aQMaskedImage._m_rescaled_image, "_m_rescaled_image", aPrefix + "\t");
 			if (aQMaskedImage._m_rescaled_mask != NULL)  total += __dump(*aQMaskedImage._m_rescaled_mask, "_m_rescaled_mask", aPrefix + "\t");
-			cout << aPrefix << "<<<QMaskedImage: total = " << __humanReadable(total) << endl;
+			cout << aPrefix << "<<<QMaskedImage: total = " << humanReadable(total) << endl;
 			return total;
 		}
 	#endif
@@ -90,7 +90,7 @@
 		#else
 			if (aMaskedImageGL.hasQImage())               total += __dump(*aMaskedImageGL.getMaskedImage(), aPrefix + "\t");
 		#endif
-		cout << aPrefix << "<<<cMaskedImageGL: total = " << __humanReadable(total) << endl;
+		cout << aPrefix << "<<<cMaskedImageGL: total = " << humanReadable(total) << endl;
 		return total;
 	}
 
@@ -100,16 +100,16 @@
 		size_t total = 0;
 		foreach(cMaskedImageGL *ptr, aData)
 			total += __dump(*ptr, aPrefix + "\t");
-		cout << aPrefix << "<<<QVector<cMaskedImageGL*>: total = " << __humanReadable(total) << endl;
+		cout << aPrefix << "<<<QVector<cMaskedImageGL*>: total = " << humanReadable(total) << endl;
 		return total;
 	}
 
 	size_t __dump( cGLData &aData, const string &aPrefix )
 	{
-		cout << aPrefix << ">>>cGLData:" << endl;
+		cout << aPrefix << ">>>cGLData{" << &aData << "}:" << endl;
 		size_t total = __dump(aData.glImageMasked(), aPrefix + "\t");
 		total += __dump(aData.glTiles(), aPrefix + "\t");
-		cout << aPrefix << "<<<cGLData: total = " << __humanReadable(total) << endl;
+		cout << aPrefix << "<<<cGLData: total = " << humanReadable(total) << endl;
 		return total;
 	}
 
@@ -134,7 +134,7 @@
 		list<cGLData *>::iterator it = __all_cGLData.begin();
 		while (it != __all_cGLData.end())
 			total += __dump(**it++, "\t");
-		cout << formatedLine(string("total = ") + __humanReadable(total), false) << endl; // false = append -> prepend
+		cout << formatedLine(string("total = ") + humanReadable(total), false) << endl; // false = append -> prepend
 	}
 
 	bool __exist_cGLData( cGLData *aData )
@@ -249,6 +249,10 @@ void cGLData::setOptionPolygons(cParameters aParams)
 		_appMode(appMode)
 	//    _bDrawTiles(false)
 	{
+		#ifdef DUMP_GL_DATA
+			__add_cGLData(this);
+		#endif
+
 		if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
 		else _glMaskedImage._m_mask->setVisible(true);
 
@@ -258,7 +262,6 @@ void cGLData::setOptionPolygons(cParameters aParams)
 
 		setOptionPolygons(aParams);
 	}
-
 
 	cGLData::cGLData(cData *data, cParameters aParams, int appMode):
 		_pBall(new cBall),
@@ -272,6 +275,10 @@ void cGLData::setOptionPolygons(cParameters aParams)
 		_incFirstCloud(false)
 	//    _bDrawTiles(false)
 	{
+		#ifdef DUMP_GL_DATA4
+			__add_cGLData(this);4
+		#endif
+
 		initOptions(appMode);
 
 		setData(data, true, aParams.getSceneCenterType());
@@ -476,27 +483,25 @@ void outMatrix4X4(GLdouble *mvMatrix)
 
 void cGLData::draw()
 {
-
-    if(!is3D())
-    {
+	if(!is3D())
+	{
 		if (glImageMasked().glImage()->isVisible())
 			glImageMasked().draw();
-        else
-        {
+		else
+		{
 			for (int aK=0; aK< glTiles().size(); ++aK)
 				glTiles()[aK]->draw();
 
 			 glImageMasked().glImage()->setVisible(false);
 			 glImageMasked().draw();
-
-        }
-    }
-    else
-    {
+		}
+	}
+	else
+	{
 		enableOptionLine();
 
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
 		glTranslated(getPosition().x(),getPosition().y(),getPosition().z());
 		glRotatef(cObject::getRotation().x(),1.f,0.f,0.f);
 		glRotatef(cObject::getRotation().y(),0.f,1.f,0.f);
@@ -508,28 +513,26 @@ void cGLData::draw()
 			GLfloat oldPointSize;
 			glGetFloatv(GL_POINT_SIZE,&oldPointSize);
 
-			if(_incFirstCloud && i == 0)
-				glPointSize(oldPointSize*3.f);
-
+			if (_incFirstCloud && i == 0) glPointSize(oldPointSize * 3.f);
 
 			_vClouds[i]->draw();
 
 			glPointSize(oldPointSize);
 		}
 
-        //cameras
-        for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
+		//cameras
+		for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
 
-        glMatrixMode(GL_MODELVIEW);
-        glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
 
-        _pBall->draw();
-        _pAxis->draw();
-        _pBbox->draw();
-        _pGrid->draw();
+		_pBall->draw();
+		_pAxis->draw();
+		_pBbox->draw();
+		_pGrid->draw();
 
 		disableOptionLine();
-    }
+	}
 }
 
 void cGLData::drawCenter(bool white)

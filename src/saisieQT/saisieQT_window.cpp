@@ -189,7 +189,7 @@ void ProgressDialogUpdateSignaler::operator ()()
 	_progressDialog.setValue(_progressDialog.value() + 1);
 }
 
-	void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
+void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
 {
 	if (_ProgressDialog == NULL)
 	{
@@ -237,8 +237,6 @@ bool SaisieQtWindow::loadPly(const QStringList& filenames)
     runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames), 0, filenames.size());
     return true;
 }
-
-string __humanReadable( size_t aSize );
 
 bool SaisieQtWindow::loadImages(const QStringList& filenames)
 {
