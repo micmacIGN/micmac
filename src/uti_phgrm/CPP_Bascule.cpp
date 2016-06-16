@@ -283,6 +283,8 @@ int Bascule_main(int argc,char ** argv)
 }
 
 
+//  =============================================
+
 
 int BasculePtsInRepCam_main(int argc,char ** argv)
 {
@@ -369,12 +371,101 @@ cAppliBasculeCamsInRepCam_main::cAppliBasculeCamsInRepCam_main(int argc,char ** 
    }
 }
 
-
-
-
 int BasculeCamsInRepCam_main(int argc,char ** argv)
 {
     cAppliBasculeCamsInRepCam_main anAppli(argc,argv);
+    return EXIT_SUCCESS;
+}
+
+
+
+//  =============================================
+
+class cAppliCorrecCamFromLA_main : public cAppliWithSetImage
+{
+    public :
+          cAppliCorrecCamFromLA_main(int argc,char ** argv);
+    private :
+         std::string mDir,mPat,mOriFull;
+         Pt3dr mLA;
+         std::string mOriOut;
+         std::string mOri2;
+         std::string mOri2Out;
+         cInterfChantierNameManipulateur * mICNM2;
+};
+
+cAppliCorrecCamFromLA_main::cAppliCorrecCamFromLA_main(int argc,char ** argv) :
+    cAppliWithSetImage(argc-1,argv+1,0)
+{
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)",eSAM_IsPatFile)
+                    << EAMC(mOriFull,"Directory orientation", eSAM_IsExistDirOri)
+                    << EAMC(mLA,"Lever-Arm value"),
+        LArgMain()  << EAM(mOriOut,"OriOut",true,"Output Ori Name of corrected mandatory Ori ; Def=OriName-CorrLA")
+					<< EAM(mOri2,"Ori2",true,"Ori2 directory to apply LA correction to centers")
+					<< EAM(mOri2Out,"Ori2Out",true,"Output Ori Name of corrected Ori2 ; Def=Ori2Name-CorrLA")  
+   );
+
+   SplitDirAndFile(mDir,mPat,mEASF.mFullName);
+   
+   StdCorrecNameOrient(mOriFull,mDir);
+   if(mOriOut == "")
+   {
+		mOriOut = mOriFull + "-CorrLA" ;
+   }
+   
+   std::string aKey = "NKS-Assoc-Im2Orient@-" + mOriOut;
+   
+   std::vector<Pt3dr> aCorr;
+ 
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+   {
+       CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;
+       Pt3dr aCorr2Add = aCS->Orient().IRecVect(mLA);
+       aCorr.push_back(aCorr2Add);
+       ElRotation3D anOriC(aCorr2Add - aCS->PseudoOpticalCenter(),0,0,0);
+       aCS->SetOrientation(anOriC);
+       cOrientationConique  anOC = aCS->StdExportCalibGlob();
+       std::string aNameOut = mEASF.mICNM->Assoc1To1(aKey,mVSoms[aK]->attr().mIma->mNameIm,true);
+       MakeFileXML(anOC,aNameOut);
+   }
+   
+   
+   mICNM2 = mEASF.mICNM;
+   if(EAMIsInit(&mOri2))
+   {
+       mICNM2 = cInterfChantierNameManipulateur::BasicAlloc(mOri2);
+   }
+   
+   
+   StdCorrecNameOrient(mOri2,mDir);
+   if(mOri2Out == "")
+   {
+	   mOri2Out = mOri2 + "-CorrLa";
+   }
+   
+   
+   std::string aKey2 = "NKS-Assoc-Im2Orient@-" + mOri2Out;
+   
+      
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+   {
+       cImaMM * anIm = mVSoms[aK]->attr().mIma;
+       CamStenope * aCam =  mICNM2->StdCamOfNames(anIm->mNameIm,mOri2);
+	   ElRotation3D anOriC(aCorr[aK] - aCam->PseudoOpticalCenter(),0,0,0);
+	   aCam->SetOrientation(anOriC);
+	   cOrientationConique  anOC = aCam->StdExportCalibGlob();
+       std::string aNameOut = mEASF.mICNM->Assoc1To1(aKey2,mVSoms[aK]->attr().mIma->mNameIm,true);
+       MakeFileXML(anOC,aNameOut);
+   }
+   
+}
+
+int CorrLA_main(int argc,char ** argv)
+{
+    cAppliCorrecCamFromLA_main anAppli(argc,argv);
     return EXIT_SUCCESS;
 }
 

@@ -23,6 +23,7 @@
    $Date: 2015/05/25 02:29:14 $
  */
 #include "disable_msvc_warnings.h"
+#include "general/CMake_defines.h"
 
 #define DCRAW_VERSION "9.26"
 
@@ -86,12 +87,10 @@
 	typedef unsigned long long UINT64;
 #endif
 
-#ifdef NODEPS
 // #define NO_JASPER
 #define JASPER 0  //MPD
 #define NO_JPEG
 #define NO_LCMS
-#endif
 
 #if JASPER  //MPD
 #include <jasper/jasper.h>	/* Decode Red camera movies */

@@ -706,7 +706,8 @@ public:
 
     void  createFullImageTexture();
 
-    cImageGL*   glImage()  { return _m_image; }
+    cImageGL *       glImage()  { return _m_image; }
+    const cImageGL * glImage() const { return _m_image; }
     cImageGL*   glMask()   { return _m_mask;  }
 
     void		copyImage(cMaskedImage<QImage>* image, QRect& rect);
@@ -738,8 +739,9 @@ public:
 
 		void removeSrcMask() { mSrcMask = NULL; }
 	#else
-		QMaskedImage* getMaskedImage() { return _qMaskedImage; }
-		void          setMaskedImage(QMaskedImage * aMaskedImage) { _qMaskedImage = aMaskedImage; }
+		bool           hasQImage() const { return _qMaskedImage != NULL; }
+		QMaskedImage * getMaskedImage() { return _qMaskedImage; }
+		void           setMaskedImage(QMaskedImage * aMaskedImage) { _qMaskedImage = aMaskedImage; }
 	#endif
 private:
 	#ifdef USE_MIPMAP_HANDLER

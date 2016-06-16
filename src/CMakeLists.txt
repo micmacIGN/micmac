@@ -173,19 +173,6 @@ if(${CUDA_ENABLED})
 	endif()
 
 else()
-	if (OUTPUT_ELISE_FILES)
-		set(elise_files_filename ${CMAKE_BINARY_DIR}/elise_files)
-		file(WRITE ${elise_files_filename} "elise_core_files = \n")
-		foreach (elise_file ${Elise_Src_Files})
-			file(APPEND ${elise_files_filename} "\t${elise_file}\n")
-		endforeach()
-
-		file(APPEND ${elise_files_filename} "elise_qt_files = \n")
-		foreach (elise_file ${QT_ALLFILES})
-			file(APPEND ${elise_files_filename} "\t${elise_file}\n")
-		endforeach()
-	endif()
-
 	add_library(${libElise} ${Elise_Src_Files} ${QT_ALLFILES})
 endif()
 
@@ -199,20 +186,21 @@ INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB})
 
 if (${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX)) # OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "${CMAKE_CXX_FLAGS}")
+	set(precompiled_header ${precompiled_header} PARENT_SCOPE)
 endif()
-
-# DEFINITION
-add_definitions(-DNO_JPEG -DNO_LCMS)
 
 # INSTALLATION : Dossier de destination lors de l'install
 #install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
 
-ADD_SUBDIRECTORY(CBinaires)
+add_subdirectory(CBinaires)
 
 if (WITH_INTERFACE)
-    ADD_SUBDIRECTORY(interface)
+	add_subdirectory(interface)
 endif()
 
-if ( NOT ${qt_version} EQUAL 0)
-    ADD_SUBDIRECTORY(saisieQT)
+if (NOT ${qt_version} EQUAL 0)
+	add_subdirectory(saisieQT)
 endif()
+
+set(Elise_Src_Files ${Elise_Src_Files} PARENT_SCOPE)
+set(saisieqt_files ${saisieqt_files} PARENT_SCOPE)
