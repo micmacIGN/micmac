@@ -66,7 +66,17 @@ class cAppliTiepRed;
 class cLnk2ImTiepRed;
 class cPMulTiepRed;
 
+
+class cAppliGrRedTieP;
+
 #define DefRecMaxModeIm 1e-2
+
+typedef enum
+{
+   eLevO_NoOri,
+   eLevO_ByCple,
+   eLevO_Glob
+} eLevelOr;
 
 /*
     cCameraTiepRed => geometry of camera,
@@ -127,14 +137,15 @@ typedef cStructMergeTieP<tMerge>  tMergeStr;
 class cCameraTiepRed
 {
     public :
-        cCameraTiepRed(cAppliTiepRed & anAppli,const std::string &,CamStenope *);
+        cCameraTiepRed(cAppliTiepRed & anAppli,const std::string &,CamStenope * aCsOr,CamStenope * aCsCal);
         const std::string NameIm() const;
  
         //  Intersection of bundles in ground geometry
         Pt3dr BundleIntersection(const Pt2df & aP1,const cCameraTiepRed & aCam2,const Pt2df & aP2,double & Precision) const;
 
         // return "standard" MicMac stenope camera
-        CamStenope  & CS();
+        CamStenope  & CsOr();
+        CamStenope  & CsCal();
         // is the camera to maintains once the tie points are loaded
         bool  SelectOnHom2Im() const;
         const int &   NbPtsHom2Im() const;
@@ -152,6 +163,7 @@ class cCameraTiepRed
         void AddCamBox(cCameraTiepRed*,int aKBox);
 
         void SaveHom();
+        cAppliTiepRed & Appli();
 
 
     private :
@@ -161,7 +173,8 @@ class cCameraTiepRed
 
         cAppliTiepRed & mAppli;
         std::string mNameIm;
-        CamStenope * mCS;
+        CamStenope * mCsOr;
+        CamStenope * mCsCal;
         int          mNbPtsHom2Im;
         int          mNum;
         std::map<cCameraTiepRed*,std::list<int> > mMapCamBox;
@@ -177,11 +190,20 @@ class cLnk2ImTiepRed
         std::vector<Pt2df>&  VP2();
 
         void Add2Merge(tMergeStr *);
+        const ElRotation3D &    R2On1() const;
+        CamStenope &        CsRel1();
+        CamStenope &        CsRel2();
+        cElHomographie &    Hom();
+        
      private :
         cCameraTiepRed *    mCam1;
         cCameraTiepRed *    mCam2;
         std::vector<Pt2df>  mVP1;
         std::vector<Pt2df>  mVP2;
+        CamStenope *        mCsRel1;
+        CamStenope *        mCsRel2;
+        cElHomographie *    mHom;
+        double              mResiduH;
 };
 
 
@@ -258,6 +280,8 @@ typedef ElHeap<tPMulTiepRedPtr,cCompareHeapPMulTiepRed,cParamHeapPMulTiepRed>  t
 class cAppliTiepRed 
 {
      public :
+          friend class cAppliGrRedTieP;
+
           cAppliTiepRed(int argc,char **argv, bool CalledFromInside=false); 
           void Exe();
           cVirtInterf_NewO_NameManager & NM();
@@ -275,6 +299,8 @@ class cAppliTiepRed
           const std::string & StrOut() const;
           bool  VerifNM() const;
 
+          eLevelOr OrLevel() const;
+
      private :
 
           void MkDirSubir();
@@ -291,6 +317,7 @@ class cAppliTiepRed
           static const std::string TheNameTmp;
 
           std::string DirOneImage(const std::string &) const;
+          std::string NameXmlOneIm(const std::string &,bool Bin) const;
           std::string NameParamBox(int aK,bool Bin) const;
 
 
@@ -336,8 +363,11 @@ class cAppliTiepRed
           double                           mStdPrec;
           std::vector<int>                 mBufICam;
           cInterfChantierNameManipulateur* mICNM;
-          std::string                      mMasterIm;
           bool                             mFromRatafiaGlob;
+          bool                             mModeIm;
+          std::string                      mMasterIm;
+          int                              mIntOrLevel;
+          eLevelOr                         mOrLevel;
 };
 
 
@@ -370,6 +400,9 @@ class cAttSomGrRedTP
         double & RecCur();
         Box2dr & BoxIm();
         double   SzDec() const;
+        int &    NumBox0();
+        int &    NumBox1();
+        const cMetaDataPhoto &  MTD() const;
      private :
 
         cAppliGrRedTieP *    mAppli;
@@ -381,6 +414,8 @@ class cAttSomGrRedTP
         Box2dr               mBoxIm;
         cMetaDataPhoto       mMTD;
         double               mSzDec;
+        int                  mNumBox0;
+        int                  mNumBox1;
 };
 
 class cAttArcSymGrRedTP
@@ -413,6 +448,8 @@ class cV2ParGRT
      public :
           const std::vector<tSomGRTP *> & VSom() const;
           void AddSom(tSomGRTP *);
+          int    NumBox0();
+          int    NumBox1();
      private :
           std::vector<tSomGRTP *> mVSom;
 };
@@ -428,8 +465,14 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            tSomGRTP *  GetNextBestSom();
            void Show();
 
+           void CreateBox();
+           void CreateBoxOfSet(cV2ParGRT *);
+           void CreateBoxOfSom(tSomGRTP *);
 
-           bool                               mUseOR;
+
+           bool                               mUseOr;
+           int                                mIntOrLevel;
+           eLevelOr                           mOrLevel;
            bool                               mQuick;
            std::string                        mCalib;
            std::string                        mPatImage;
@@ -450,6 +493,7 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            bool                               mShowPart;
            cAppliTiepRed *                    mAppliTR;
            double                             mSzPixDec;
+           int                                mNumBox;
 };
 
 /*

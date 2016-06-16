@@ -42,17 +42,85 @@ NS_OriTiePRed_BEGIN
 
 void Banniere_Ratafia()
 {
-    std::cout << "***************************************************\n";
-    std::cout << "*                                                 *\n";
-    std::cout << "*       R-eduction                                *\n";
-    std::cout << "*       A-utomatic of                             *\n"; 
-    std::cout << "*       T-ie points                               *\n"; 
-    std::cout << "*       A-iming at                                *\n"; 
-    std::cout << "*       F-ast                                     *\n"; 
-    std::cout << "*       I-mage                                    *\n"; 
-    std::cout << "*       A-erotriangulation                        *\n"; 
-    std::cout << "*                                                 *\n";
-    std::cout << "***************************************************\n";
+    std::cout << " ***************************************************\n";
+    std::cout << " *                                                 *\n";
+    std::cout << " *       R-eduction                                *\n";
+    std::cout << " *       A-utomatic of                             *\n"; 
+    std::cout << " *       T-ie points                               *\n"; 
+    std::cout << " *       A-iming to get                            *\n"; 
+    std::cout << " *       F-aster                                   *\n"; 
+    std::cout << " *       I-mage                                    *\n"; 
+    std::cout << " *       A-erotriangulation                        *\n"; 
+    std::cout << " *                                                 *\n";
+    std::cout << " ***************************************************\n";
+}
+
+class cRealDecoupageInterv2D
+{
+     public :
+          cRealDecoupageInterv2D(const Box2dr & aBox,const Pt2dr & aSzMax,const Box2dr & aBord);
+
+      // Avec Bord par defaut
+          Box2dr  KthIntervIn(int aK) const;
+          Box2dr KthIntervOut(int aK) const;
+          int NbInterv() const;
+
+
+     private :
+          Pt2di ToInt(const Pt2dr &aP,bool WithP0) const ;
+          Box2di  ToInt(const Box2dr &aB,bool WithP0) const; 
+          Pt2dr ToReal(const Pt2di &aP) const;
+          Box2dr  ToReal(const Box2di &aB) const; 
+
+          int mNbDec;
+          Pt2dr mStep;
+          Pt2dr mP0;
+          cDecoupageInterv2D mIDec;
+};
+
+
+Pt2di cRealDecoupageInterv2D::ToInt(const Pt2dr &aP,bool WithP0) const 
+{
+   return round_ni( (aP-(WithP0 ? mP0: Pt2dr(0,0))).dcbyc(mStep));
+}
+Box2di  cRealDecoupageInterv2D::ToInt(const Box2dr &aB,bool WithP0) const 
+{
+   return Box2di(ToInt(aB._p0,WithP0),ToInt(aB._p1,WithP0));
+}
+
+Pt2dr cRealDecoupageInterv2D::ToReal(const Pt2di &aP) const 
+{
+   return mP0 + mStep.mcbyc(Pt2dr(aP));
+}
+Box2dr  cRealDecoupageInterv2D::ToReal(const Box2di &aB) const 
+{
+   return Box2dr(ToReal(aB._p0),ToReal(aB._p1));
+}
+
+int cRealDecoupageInterv2D::NbInterv() const
+{
+   return mIDec.NbInterv();
+}
+Box2dr  cRealDecoupageInterv2D::KthIntervIn(int aK) const
+{
+   return ToReal(mIDec.KthIntervIn(aK));
+}
+Box2dr cRealDecoupageInterv2D::KthIntervOut(int aK) const
+{
+   return ToReal(mIDec.KthIntervOut(aK));
+}
+
+
+
+
+
+
+cRealDecoupageInterv2D::cRealDecoupageInterv2D(const Box2dr & aBox,const Pt2dr & aSzMax,const Box2dr & aBord) :
+    mNbDec (100000000),
+    mStep  (aBox.sz() / mNbDec),
+    mP0    (aBox._p0),
+    mIDec  (ToInt(aBox,true),ToInt(aSzMax,false),ToInt(aBord,false))
+{
 }
 
 /**********************************************************************/
@@ -116,6 +184,18 @@ const std::vector<tSomGRTP *> & cV2ParGRT::VSom() const
    return mVSom;
 }
 
+int cV2ParGRT::NumBox0()
+{
+  ELISE_ASSERT(mVSom.size(),"cV2ParGRT::NumBox0");
+  return mVSom[0]->attr()->NumBox0();
+}
+
+int cV2ParGRT::NumBox1()
+{
+  ELISE_ASSERT(mVSom.size(),"cV2ParGRT::NumBox1");
+  return mVSom.back()->attr()->NumBox0();
+}
+
 /**********************************************************************/
 /*                                                                    */
 /*                         cAttSomGrRedTP                             */
@@ -130,7 +210,9 @@ cAttSomGrRedTP::cAttSomGrRedTP(cAppliGrRedTieP & anAppli,const std::string & aNa
    mRecSelec  (0.0),
    mRecCur    (0.0),
    mMTD       (cMetaDataPhoto::CreateExiv2(mName)),
-   mSzDec     (anAppli.SzPixDec()/mMTD.FocPix())
+   mSzDec     (anAppli.SzPixDec()/mMTD.FocPix()),
+   mNumBox0   (-1),
+   mNumBox1   (-1)
 {
 }
 
@@ -141,6 +223,9 @@ double & cAttSomGrRedTP::RecSelec() {return mRecSelec;}
 double & cAttSomGrRedTP::RecCur() {return mRecCur;}
 Box2dr & cAttSomGrRedTP::BoxIm() {return mBoxIm;}
 double  cAttSomGrRedTP::SzDec() const {return mSzDec;}
+int & cAttSomGrRedTP::NumBox0() {return mNumBox0;}
+int & cAttSomGrRedTP::NumBox1() {return mNumBox1;}
+const cMetaDataPhoto & cAttSomGrRedTP::MTD() const {return mMTD;}
 
 /**********************************************************************/
 /*                                                                    */
@@ -322,8 +407,74 @@ double  cAppliGrRedTieP::SzPixDec() const
 }
 
 
+        // ------------------ Box creation ------------
+
+void cAppliGrRedTieP::CreateBoxOfSom(tSomGRTP *aSom)
+{
+    cAttSomGrRedTP & anAtr =  *(aSom->attr());
+    anAtr.NumBox0() = mNumBox;
+    // std::cout << "HHHHHH  " << aSom->attr()->Name() << " " << aSom->attr()->BoxIm() << " " << aSom->attr()->SzDec() << "\n";    
+    Box2dr aBox = anAtr.BoxIm();
+    Pt2dr aNbR = aBox.sz() / anAtr.SzDec();
+    Pt2di aNbI = round_up(aNbR);
+  
+
+    if (anAtr.MTD().Foc35() < 20.0)  // Risque de Fish eye envoyant a l'infini
+    {
+        aNbI = ElMin(Pt2di(2,2),aNbI);
+    }
+
+    // cDecoupageInterv2D
+    double aSzD = anAtr.SzDec();
+    double aRab = aSzD / 50.0;
+    Pt2dr aPRab(aRab,aRab);
+
+    cRealDecoupageInterv2D aRDec(aBox,Pt2dr(aSzD,aSzD),Box2dr(-aPRab,aPRab));
+    for (int aKI=0 ; aKI< aRDec.NbInterv() ; aKI++)
+    {
+         cXml_ParamBoxReducTieP aXPB;
+         aXPB.Box() = aRDec.KthIntervOut(aKI);
+         aXPB.BoxRab() = aRDec.KthIntervIn(aKI);
+         aXPB.MasterIm().SetVal(anAtr.Name());
+         aXPB.Ims().push_back(anAtr.Name());
+
+         for (tIterArcGRTP  itA=aSom->begin(mSubAll) ; itA.go_on(); itA++)
+         {
+              aXPB.Ims().push_back((*itA).s2().attr()->Name());
+         }
+         // std::cout << "BOXXX=" << mAppliTR->NameParamBox(mNumBox,true) << "\n";
+
+         MakeFileXML(aXPB,mAppliTR->NameParamBox(mNumBox,true));
+         MakeFileXML(aXPB,mAppliTR->NameParamBox(mNumBox,false));
+
+         mNumBox++;
+    }
+
+    anAtr.NumBox1() = mNumBox;
+    // getchar();
+
+
+}
+void cAppliGrRedTieP::CreateBoxOfSet(cV2ParGRT * aSet)
+{
+    const std::vector<tSomGRTP *> & aVS = aSet->VSom();
+
+    for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
+    {
+         CreateBoxOfSom(aVS[aKS]);
+    }
+}
+
+void cAppliGrRedTieP::CreateBox()
+{
+    for (int aKP=0; aKP<int(mPartParal.size()) ; aKP++)
+    {
+        CreateBoxOfSet(mPartParal[aKP]);
+    }
+}
+
 cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
-    mUseOR       (true),
+    mIntOrLevel  (eLevO_ByCple),
     mQuick       (true),
     mNbP         (-1),
     mFlagSel     (mGr.alloc_flag_som()),
@@ -331,7 +482,8 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     mRecMax      (DefRecMaxModeIm),
     mShowPart    (false),
     mAppliTR     (0),
-    mSzPixDec    (4000)
+    mSzPixDec    (4000),
+    mNumBox      (0)
 {
    // Read parameters 
    MMD_InitArgcArgv(argc,argv);
@@ -340,13 +492,15 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
          argc,argv,
          LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile),
          LArgMain()  << EAM(mCalib,"OriCalib",true,"Calibration folder if any")
-                     << EAM(mUseOR,"UseOR",true,"Use Relative Orientation (Def =true)")
+                     << EAM(mIntOrLevel,"LevelOR",true,"Level Or, 0=None,1=Pair,2=Glob, (Def=1)")
                      << EAM(mNbP,"NbP",true,"Nb Process, def use all")
                      << EAM(mRecMax,"RecMax",true,"Max overlap acceptable in two parallely processed images")
                      << EAM(mShowPart,"ShowP",true,"Show Partition (def=false)")
                      << EAM(mSzPixDec,"SzPixDec",true,"Sz of decoupe in pixel")
    );
 
+   mOrLevel = (eLevelOr) mIntOrLevel;
+   mUseOr = (mOrLevel>=eLevO_ByCple);
 
    {
       std::string aComATR = /* MM3dBinFile("OriRedTieP")i*/ + " " + mPatImage + " FromRG=true";
@@ -369,6 +523,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
        mNbP = MMNbProc();
     }
 
+   // Creation des sommets du graphe
     for (int aK=0 ; aK<int(mSetIm->size()) ; aK++)
     {
         const std::string & aName = (*mSetIm)[aK];
@@ -378,7 +533,8 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     }
     mNbSom = mVSom.size();
 
-    std::string aNameCple =  mUseOR                                ?
+   // Creation des arcs du graphe
+    std::string aNameCple =  mUseOr                                ?
                              mNoNM->NameListeCpleOriented(true)    :
                              mNoNM->NameListeCpleConnected(true)   ;
 
@@ -425,13 +581,29 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
              aPInf = Inf(aPInf,aBox._p0);
              aPSup = Sup(aPSup,aBox._p1);
         }
-        aS1.attr()->BoxIm() = Box2dr(aPInf,aPSup);
+        double aRab = 5 / aS1.attr()->MTD().FocPix();
+        Pt2dr  aPRab(aRab,aRab);
+        aS1.attr()->BoxIm() = Box2dr(aPInf-aPRab,aPSup+aPRab);
 
-        std::cout <<  aS1.attr()->Name() << " " <<  aS1.attr()->BoxIm().sz() << " " << aS1.attr()->SzDec() << "\n";
+        // std::cout <<  aS1.attr()->Name() << " " <<  aS1.attr()->BoxIm().sz() << " " << aS1.attr()->SzDec() << " RAB=" << aPRab << "\n";
+        cXml_ResOneImReducTieP aXRIT;
+        aXRIT.BoxIm() = aS1.attr()->BoxIm();
+        aXRIT.Resol() = 1.0 / aS1.attr()->MTD().FocPix();
+        const std::string & aName = aS1.attr()->Name() ;
+        MakeFileXML(aXRIT,mAppliTR->NameXmlOneIm(aName,true));
+        MakeFileXML(aXRIT,mAppliTR->NameXmlOneIm(aName,false));
     }
 
+    // On calcule la partition
     while(OneItereSelection());
 
+
+    // Creation des box 
+
+    CreateBox();
+    
+
+    // Affichage de la partition
     if (mShowPart)
     {
        Show();

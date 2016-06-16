@@ -7389,6 +7389,34 @@ std::string  Mangling( cXml_ParamBoxReducTieP *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_ResOneImReducTieP
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ResOneImReducTieP & anObj,cElXMLTree * aTree);
+
+
+        Box2dr & BoxIm();
+        const Box2dr & BoxIm()const ;
+
+        double & Resol();
+        const double & Resol()const ;
+    private:
+        Box2dr mBoxIm;
+        double mResol;
+};
+cElXMLTree * ToXMLTree(const cXml_ResOneImReducTieP &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ResOneImReducTieP &);
+
+void  BinaryUnDumpFromFile(cXml_ResOneImReducTieP &,ELISE_fp &);
+
+std::string  Mangling( cXml_ResOneImReducTieP *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_ParamGlobReducTieP
 {
     public:

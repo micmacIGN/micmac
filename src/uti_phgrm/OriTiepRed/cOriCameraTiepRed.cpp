@@ -52,17 +52,26 @@ cCameraTiepRed::cCameraTiepRed
 (
     cAppliTiepRed &         anAppli,
     const std::string &     aName,
-    CamStenope *            aCam
+    CamStenope *            aCamOr,
+    CamStenope *            aCamCal
 ) :
    mAppli  (anAppli),
    mNameIm (aName),
-   mCS     (aCam),
+   mCsOr     (aCamOr),
+   mCsCal     (aCamCal),
    mNbPtsHom2Im  (0),
    mNum          (-1)
 {
 }
 
-CamStenope  & cCameraTiepRed::CS() {return *mCS;}
+cAppliTiepRed & cCameraTiepRed::Appli() {return mAppli;}
+
+
+CamStenope  & cCameraTiepRed::CsOr() 
+{
+   ELISE_ASSERT(mCsOr!=0,"cCameraTiepRed::CsOr");
+   return *mCsOr;
+}
 const int & cCameraTiepRed::NbPtsHom2Im() const {return mNbPtsHom2Im;}
 bool  cCameraTiepRed::SelectOnHom2Im() const
 {
@@ -79,12 +88,10 @@ const int & cCameraTiepRed::Num() const
 }
 
 
-
-
 Pt2dr cCameraTiepRed::Hom2Cam(const Pt2df & aP) const
 {
      Pt3dr aQ(aP.x,aP.y,1.0);
-     return mCS->L3toF2(aQ);
+     return mCsCal->L3toF2(aQ);
 }
 
 
@@ -96,8 +103,8 @@ Pt3dr cCameraTiepRed::BundleIntersection(const Pt2df & aPH1,const cCameraTiepRed
      Pt2dr aPC1 = Hom2Cam(aPH1);
      Pt2dr aPC2 = aCam2.Hom2Cam(aPH2);
 
-     ElSeg3D aSeg1 = mCS->Capteur2RayTer(aPC1);
-     ElSeg3D aSeg2 = aCam2.mCS->Capteur2RayTer(aPC2);
+     ElSeg3D aSeg1 = mCsOr->Capteur2RayTer(aPC1);
+     ElSeg3D aSeg2 = aCam2.mCsOr->Capteur2RayTer(aPC2);
 
      bool Ok;
      double aD;
@@ -105,8 +112,8 @@ Pt3dr cCameraTiepRed::BundleIntersection(const Pt2df & aPH1,const cCameraTiepRed
 
      if (Ok)
      {
-         Pt2dr aRP1 = mCS->Ter2Capteur(aRes);
-         Pt2dr aRP2 = aCam2.mCS->Ter2Capteur(aRes);
+         Pt2dr aRP1 = mCsOr->Ter2Capteur(aRes);
+         Pt2dr aRP2 = aCam2.mCsOr->Ter2Capteur(aRes);
          Precision = (euclid(aRP1-aPC1)+euclid(aRP2-aPC2)) / 2.0;
      }
      else
@@ -136,18 +143,54 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
 
     // Filter the ties points that are inside the current tiles and
     // have "good" intersection
+
+    double aSomRes = 0;
+    double aNbRes = 0;
+    std::vector<double> aVRes;
     for (int aKP=0 ; aKP<int(aVPIn1.size()) ; aKP++)
     {
-        double aD; // store the reprojection error
+        bool Ok= false;
+        const Pt2df & aPf1 = aVPIn1[aKP];
+        const Pt2df & aPf2 = aVPIn2[aKP];
 
-        Pt3dr aPTer = BundleIntersection(aVPIn1[aKP],aCam2,aVPIn2[aKP],aD);
-        if ( (aD< aThresh) && aBox.inside(Pt2dr(aPTer.x,aPTer.y)) )
+        if (mAppli.OrLevel() >= eLevO_Glob)
+        {
+            double aD; // store the reprojection error
+            Pt3dr aPTer = BundleIntersection(aPf1,aCam2,aPf2,aD);
+
+            Ok = (aD< aThresh) && aBox.inside(Pt2dr(aPTer.x,aPTer.y));
+        }
+        else if (mAppli.OrLevel() >= eLevO_ByCple)
+        {
+             Pt2dr  aP1 = Hom2Cam(aPf1);
+             Pt2dr  aP2 = aCam2.Hom2Cam(aPf2);
+             CamStenope & aCS1 =  aLnk->CsRel1();
+             CamStenope & aCS2 =  aLnk->CsRel2();
+
+             Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
+             double aRes =  euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer));
+             aSomRes += aRes;
+             aNbRes += 1.0;
+             aVRes.push_back(aRes);
+        }
+        else
+        {
+           Ok = true;
+        }
+
+        if ( Ok)
         {
             aVPOut1.push_back(aVPIn1[aKP]);
             aVPOut2.push_back(aVPIn2[aKP]);
         }
-        //                std::cout << "AAAAAAAAAAAAAAAaa " << aD << aPTer << "\n";
     }
+    std::cout << "GGg " <<  aSomRes / aNbRes 
+              << " MED " <<  KthValProp(aVRes,0.5) 
+              << " 90%=" << KthValProp(aVRes,0.9)  
+              << " Sz=" << aVRes.size() 
+              << " NN=" << NameIm() << " " <<  aCam2.NameIm()
+              << "\n";
+    getchar();
 
     // If enough tie point , memorize the connexion 
 

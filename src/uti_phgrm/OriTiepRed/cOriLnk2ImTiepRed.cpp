@@ -48,10 +48,33 @@ NS_OriTiePRed_BEGIN
 /**********************************************************************/
 
 cLnk2ImTiepRed::cLnk2ImTiepRed(cCameraTiepRed * aC1 ,cCameraTiepRed * aC2) :
-    mCam1 (aC1),
-    mCam2 (aC2)
+    mCam1   (aC1),
+    mCam2   (aC2),
+    mCsRel1 (0),
+    mCsRel2 (0)
 {
+    cAppliTiepRed & anAppli = aC1->Appli();
+    if (anAppli.OrLevel()==eLevO_ByCple)
+    {
+         cVirtInterf_NewO_NameManager & aNM = anAppli.NM();
+         std::pair<CamStenope*,CamStenope*>  aPair = aNM.CamOriRel(mCam1->NameIm() , mCam2->NameIm());
+         mCsRel1  = aPair.first;
+         mCsRel2  = aPair.second;
+    }
 }
+
+CamStenope & cLnk2ImTiepRed::CsRel1()
+{
+   ELISE_ASSERT(mCsRel1!=0,"cLnk2ImTiepRed::CsRel1");
+   return *mCsRel1;
+}
+CamStenope & cLnk2ImTiepRed::CsRel2()
+{
+   ELISE_ASSERT(mCsRel2!=0,"cLnk2ImTiepRed::CsRel1");
+   return *mCsRel2;
+}
+
+
 
 
 cCameraTiepRed &     cLnk2ImTiepRed::Cam1() {return *mCam1;}

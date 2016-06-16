@@ -1100,6 +1100,7 @@ class cArgMainTieP
           int                mByP;
           std::string        mPostFix;
           std::string        mDetectingTool;
+          bool               mCirc;
 
           LArgMain CommonMandatory();
           
@@ -1118,7 +1119,8 @@ cArgMainTieP::cArgMainTieP(int argc,char ** argv,const std::string & aNameCom) :
     mNameCom (aNameCom),
     mExpTxt  (false),
     mByP     (-1),
-    mPostFix ("")
+    mPostFix (""),
+    mCirc    (false)
 {
     mComObl  << EAMC(mFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
     ;
@@ -1126,6 +1128,7 @@ cArgMainTieP::cArgMainTieP(int argc,char ** argv,const std::string & aNameCom) :
              << EAM(mByP,"ByP",true,"By process")
              << EAM(mPostFix,"PostFix",false, "Add postfix in directory")
              << EAM(mDetectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
+             << EAM(mCirc,"Circ",true,"Circular in mode Line")
     ;
 }
 
@@ -1161,6 +1164,7 @@ std::string cArgMainTieP::CommandOpt()
     std::string aRes = " ";
 
     if (EAMIsInit(&mExpTxt))        aRes += " ExpTxt="  + ToString(mExpTxt);
+    if (EAMIsInit(&mCirc))        aRes += " Circ="  + ToString(mCirc);
     if (EAMIsInit(&mByP))           aRes += " ByP="     + ToString(mByP);
     if (EAMIsInit(&mPostFix))       aRes += " PostFix=" + mPostFix;
     if (EAMIsInit(&mDetectingTool)) aRes += " " + PASTIS_DETECT_ARGUMENT_NAME + "=" + mDetectingTool;

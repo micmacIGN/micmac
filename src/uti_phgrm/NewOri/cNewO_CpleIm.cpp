@@ -411,7 +411,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
                               );
        if (ShowDetailHom) std::cout << "THom0= " << aChrono.uval() << "\n";
        aXCmp.HomWithR().Hom() = aHom.ToXml();
-       aXCmp.HomWithR().ResiduHom() = aDist * FocMoy();
+       aXCmp.HomWithR().ResiduHom() = aDist ;
        double aRecHom = RecouvrtHom(aHom);
        if (ShowDetailHom) std::cout << "THom1= " << aChrono.uval() << "\n";
           if (mShow)
