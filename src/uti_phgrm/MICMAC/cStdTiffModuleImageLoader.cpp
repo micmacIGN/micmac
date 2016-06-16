@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-#if __USE_JP2__
+#ifdef __USE_JP2__
 #include "Jp2ImageLoader.h"
 #endif
 #if __USE_IMAGEIGN__
