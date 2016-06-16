@@ -5,10 +5,6 @@ if(POLICY CMP0020)
 	cmake_policy(SET CMP0020 NEW) #windows specific: Automatically link Qt executables to qtmain
 endif()
 
-IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
-    add_definitions(-DELISE_Darwin)
-endif()
-
 set(saisieQT_SRCS main/saisieQT_main.cpp
                   main/saisieMasqQT_main.cpp
                   main/saisieAppuisInitQT_main.cpp
@@ -16,8 +12,12 @@ set(saisieQT_SRCS main/saisieQT_main.cpp
                   main/saisieBascQT_main.cpp
                   main/saisieBoxQT_main.cpp)
 
+foreach(src ${saisieQT_SRCS})
+	list(APPEND saisieqt_files "${CMAKE_SOURCE_DIR}/src/saisieQT/${src}")
+endforeach()
+set(saisieqt_files ${saisieqt_files} PARENT_SCOPE)
+
 set (FILES_TO_TRANSLATE ${FILES_TO_TRANSLATE} ${saisieQT_SRCS} PARENT_SCOPE)
-#message ("saisie srcs: " ${saisieQT_SRCS} )
 
 if ( NOT ${qt_version} EQUAL 0 )
 

@@ -904,7 +904,7 @@ bool cOriPlanePatch::MakeHomogrInitDual(std::vector<tSomDualOPP *> aVInit,bool a
   // initialisation de la file
    InitHeapDual(aVInit);
 
-   long int aCpt=0;
+   ELISE_PTR_U_INT aCpt=0;
     
    while (mVSelectedSom.size() < 20)
    {
@@ -912,7 +912,7 @@ bool cOriPlanePatch::MakeHomogrInitDual(std::vector<tSomDualOPP *> aVInit,bool a
          bool Ok = mHeapF.pop(aF);
          if (! Ok) return false;
 
-         aCpt = aCpt ^ (long int)(aF);
+         aCpt = aCpt ^ (ELISE_PTR_U_INT)(aF);
 
          ELISE_ASSERT(Ok,"Incoher in pop; cOriPlanePatch::MakeHomogrInitDual");
 
