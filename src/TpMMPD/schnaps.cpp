@@ -654,12 +654,15 @@ bool compareNumberOfHomolPics (cPic* aPic1,cPic* aPic2)
 CompiledKey2::CompiledKey2(cInterfChantierNameManipulateur * aICNM,std::string aKH):
     mICNM(aICNM),mKH(aKH)
 {
-    std::string aNameIn = mICNM->Assoc1To2(aKH,"$1","$2",true);
-    std::size_t pos1 = aNameIn.find("$1");
-    std::size_t pos2 = aNameIn.find("$2");
+    std::string aNameIn = mICNM->Assoc1To2(aKH,"X1X","X2X",true);
+    std::size_t pos1 = aNameIn.find("X1X");
+    std::size_t pos2 = aNameIn.find("X2X");
     mPart1 = aNameIn.substr (0,pos1);
-    mPart2 = aNameIn.substr (pos1+2,pos2-pos1-2);
-    mPart3 = aNameIn.substr (pos2+2);
+    mPart2 = aNameIn.substr (pos1+3,pos2-pos1-3);
+    mPart3 = aNameIn.substr (pos2+3);
+
+    //remove the created folder "X1X":
+    ELISE_fp::RmDir(mPart1+"X1X");
 }
 
 std::string CompiledKey2::get(std::string param1,std::string param2)
