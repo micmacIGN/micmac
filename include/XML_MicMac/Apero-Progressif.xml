@@ -1,0 +1,490 @@
+<!--
+
+ Apero /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Progressif.xml  DirectoryChantier=/home/marc/TMP/UAV-Vincent/LP2013/ +AeroIn=-Bascule +AeroOut=MPDTEST "+SetIm=00[1-5]aDSC[0-9]*.ARW"  
+-->
+
+<Global >
+   <ParamApero>
+
+       <DicoLoc>
+<!-- Entree du Systeme -->
+           <Symb>  AeroIn=XXXXXX </Symb>
+           <Symb>  AeroOut=XXXXXX </Symb>
+           <Symb>  SetIm=XXXXXX </Symb>
+
+<!-- Borne des parame -->
+           <Symb>  SigmaTieP0=1  </Symb>
+           <Symb>  SigmaTiePEnd=0.02  </Symb>
+           <Symb>  MaxResTieP0=2  </Symb>
+           <Symb>  MaxResTiePEnd=1.0  </Symb>
+
+           <Symb>  SauvAutom="Progr" </Symb>
+
+<!-- Iteration -->
+           <Symb>   NbIter=10 </Symb>
+           <Symb>   NbCompByIter=2 </Symb>
+
+
+
+           <Symb>  Ext=dat </Symb>
+
+
+           <Symb>  CalibIn=${AeroIn} </Symb>
+           <Symb>  Viscos=1 </Symb>
+           <Symb>  NbLiais=100 </Symb>
+           
+
+
+           <Symb>  DetailAppuis=0 </Symb>
+
+<!--  SYMBOLE CALCULE , NE PA MODIFIER -->
+
+           <eSymb>  TetaLVM=/   0.1 ${Viscos} </eSymb>
+           <eSymb>  IntrLVM=/   0.1 ${Viscos} </eSymb>
+           <eSymb>  CentreLVM=/ 1.0  ${Viscos}</eSymb>
+
+           <eSymb>  PdsTP0= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 0 ${NbIter} </eSymb>
+           <eSymb>  PdsTP1= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 1 ${NbIter} </eSymb>
+           <eSymb>  PdsTP2= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 2 ${NbIter} </eSymb>
+           <eSymb>  PdsTP3= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 3 ${NbIter} </eSymb>
+           <eSymb>  PdsTP4= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 4 ${NbIter} </eSymb>
+           <eSymb>  PdsTP5= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 5 ${NbIter} </eSymb>
+           <eSymb>  PdsTP6= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 6 ${NbIter} </eSymb>
+           <eSymb>  PdsTP7= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 7 ${NbIter} </eSymb>
+           <eSymb>  PdsTP8= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 8 ${NbIter} </eSymb>
+           <eSymb>  PdsTP9= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 9 ${NbIter} </eSymb>
+           <eSymb>  PdsTP10= BarPow ${SigmaTiePEnd} ${SigmaTieP0} / 10 ${NbIter} </eSymb>
+
+
+           <eSymb>  ResTP0= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 0 ${NbIter} </eSymb>
+           <eSymb>  ResTP1= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 1 ${NbIter} </eSymb>
+           <eSymb>  ResTP2= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 2 ${NbIter} </eSymb>
+           <eSymb>  ResTP3= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 3 ${NbIter} </eSymb>
+           <eSymb>  ResTP4= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 4 ${NbIter} </eSymb>
+           <eSymb>  ResTP5= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 5 ${NbIter} </eSymb>
+           <eSymb>  ResTP6= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 6 ${NbIter} </eSymb>
+           <eSymb>  ResTP7= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 7 ${NbIter} </eSymb>
+           <eSymb>  ResTP8= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 8 ${NbIter} </eSymb>
+           <eSymb>  ResTP9= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 9 ${NbIter} </eSymb>
+           <eSymb>  ResTP10= BarPow ${MaxResTiePEnd} ${MaxResTieP0} / 10 ${NbIter} </eSymb>
+
+           <eSymb>  DoIt1= SupEq ${NbIter} 1 </eSymb>
+           <eSymb>  DoIt2= SupEq ${NbIter} 2 </eSymb>
+           <eSymb>  DoIt3= SupEq ${NbIter} 3 </eSymb>
+           <eSymb>  DoIt4= SupEq ${NbIter} 4 </eSymb>
+           <eSymb>  DoIt5= SupEq ${NbIter} 5 </eSymb>
+           <eSymb>  DoIt6= SupEq ${NbIter} 6 </eSymb>
+           <eSymb>  DoIt7= SupEq ${NbIter} 7 </eSymb>
+           <eSymb>  DoIt8= SupEq ${NbIter} 8 </eSymb>
+           <eSymb>  DoIt9= SupEq ${NbIter} 9 </eSymb>
+           <eSymb>  DoIt10= SupEq ${NbIter} 10 </eSymb>
+       </DicoLoc>
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> NKS-Set-Homol@@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@@${Ext}   </KeyAssoc>
+            </BDD_PtsLiaisons>
+
+            <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+             </BDD_Orient>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                <Name> GenerateKC-Others   </Name>
+                <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                               <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > false </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                </CalValueInit>
+
+                <CalibPerPose>
+                       <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                       <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${CalibIn}/AutoCal@.xml  </KeyInitFromPose>
+                </CalibPerPose>
+                <RayIsRelatifDiag  > true </RayIsRelatifDiag>
+                <RayApplyOnlyFE > true </RayApplyOnlyFE>
+                <PropDiagUtile> 1.0 </PropDiagUtile>
+             </CalibrationCameraInc>
+
+             <PoseCameraInc>
+                   <PatternName>    ${SetIm} </PatternName>
+                   <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                   
+                   <PosValueInit>
+                       <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ./ </DirectoryChantier>
+             <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
+             <SauvAutom>  ${SauvAutom}   </SauvAutom>
+             <SauvAutomBasic>  false </SauvAutomBasic>
+        </SectionChantier>
+
+        <SectionSolveur>
+	     <ModeResolution> eSysL2BlocSym </ModeResolution> 
+
+             <SLMGlob> 
+                 <RappelOnAngles>
+                      <ParamF >
+                          <PatternNameApply> .* </PatternNameApply>
+                          <Incertitude> ${TetaLVM} </Incertitude>
+                          <OnCur> true </OnCur>  
+                       </ParamF>
+                      <TetaApply> 0 </TetaApply>
+                      <TetaApply> 1 </TetaApply>
+                      <TetaApply> 2 </TetaApply>
+                </RappelOnAngles>
+                 <RappelOnCentres>
+                      <ParamF> 
+                             <PatternNameApply> .* </PatternNameApply>
+                             <Incertitude> ${CentreLVM} </Incertitude>
+                             <OnCur> true </OnCur>  
+                      </ParamF>
+                      <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                </RappelOnCentres>
+                <RappelOnIntrinseque>
+                                <ParamF>
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${IntrLVM} </Incertitude>
+                                       <OnCur> true </OnCur>
+                                </ParamF>
+                 </RappelOnIntrinseque>
+             </SLMGlob>
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+
+	     <EtapeCompensation>
+                    <IterationsCompensation>
+                        <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eAllParamLibres  </Val>
+                               </ContraintesCamerasInc>
+                        </SectionContraintes>
+                         <CtrlTimeCompens>
+                              <NbMin >  ${NbCompByIter} </NbMin>
+                              <NbMax>   ${NbCompByIter} </NbMax>
+                              <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                        </CtrlTimeCompens>
+
+                    </IterationsCompensation>
+
+
+		    <SectionObservations>
+                          <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   ${NbLiais}    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> ${PdsTP0} </SigmaPond>
+				 <EcartMax>  ${ResTP0} </EcartMax>
+                              </Pond>
+                          </ObsLiaisons>
+		    </SectionObservations>
+	      </EtapeCompensation>
+
+
+             <#WHEN VTEST=${DoIt1}>
+	            <EtapeCompensation>
+                           <IterationsCompensation>
+                                <CtrlTimeCompens>
+                                     <NbMin >  ${NbCompByIter} </NbMin>
+                                     <NbMax>   ${NbCompByIter} </NbMax>
+                                     <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                               </CtrlTimeCompens>
+
+                           </IterationsCompensation>
+		           <SectionObservations>
+                                 <ObsLiaisons>
+                                     <NameRef> Id_Pastis_Hom </NameRef>
+                                     <Pond>
+                                        <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                        <Show> eNSM_Paquet     </Show>
+                                        <NbMax>   ${NbLiais}    </NbMax>
+				        <ModePonderation>  eL1Secured </ModePonderation>
+				        <SigmaPond> ${PdsTP1} </SigmaPond>
+				        <EcartMax>  ${ResTP1} </EcartMax>
+                                     </Pond>
+                                 </ObsLiaisons>
+		           </SectionObservations>
+	             </EtapeCompensation>
+             </#WHEN>
+
+             <#WHEN VTEST=${DoIt2}>
+	            <EtapeCompensation>
+                           <IterationsCompensation>
+                                <CtrlTimeCompens>
+                                     <NbMin >  ${NbCompByIter} </NbMin>
+                                     <NbMax>   ${NbCompByIter} </NbMax>
+                                     <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                               </CtrlTimeCompens>
+
+                           </IterationsCompensation>
+		           <SectionObservations>
+                                 <ObsLiaisons>
+                                     <NameRef> Id_Pastis_Hom </NameRef>
+                                     <Pond>
+                                        <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                        <Show> eNSM_Paquet     </Show>
+                                        <NbMax>   ${NbLiais}    </NbMax>
+				        <ModePonderation>  eL1Secured </ModePonderation>
+				        <SigmaPond> ${PdsTP2} </SigmaPond>
+				        <EcartMax>  ${ResTP2} </EcartMax>
+                                     </Pond>
+                                 </ObsLiaisons>
+		           </SectionObservations>
+	             </EtapeCompensation>
+             </#WHEN>
+
+             <#WHEN VTEST=${DoIt3}>
+	            <EtapeCompensation>
+                           <IterationsCompensation>
+                                <CtrlTimeCompens>
+                                     <NbMin >  ${NbCompByIter} </NbMin>
+                                     <NbMax>   ${NbCompByIter} </NbMax>
+                                     <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                               </CtrlTimeCompens>
+
+                           </IterationsCompensation>
+		           <SectionObservations>
+                                 <ObsLiaisons>
+                                     <NameRef> Id_Pastis_Hom </NameRef>
+                                     <Pond>
+                                        <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                        <Show> eNSM_Paquet     </Show>
+                                        <NbMax>   ${NbLiais}    </NbMax>
+				        <ModePonderation>  eL1Secured </ModePonderation>
+				        <SigmaPond> ${PdsTP3} </SigmaPond>
+				        <EcartMax>  ${ResTP3} </EcartMax>
+                                     </Pond>
+                                 </ObsLiaisons>
+		           </SectionObservations>
+	             </EtapeCompensation>
+             </#WHEN>
+
+             <#WHEN VTEST=${DoIt4}>
+	            <EtapeCompensation>
+                           <IterationsCompensation>
+                                <CtrlTimeCompens>
+                                     <NbMin >  ${NbCompByIter} </NbMin>
+                                     <NbMax>   ${NbCompByIter} </NbMax>
+                                     <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                               </CtrlTimeCompens>
+
+                           </IterationsCompensation>
+		           <SectionObservations>
+                                 <ObsLiaisons>
+                                     <NameRef> Id_Pastis_Hom </NameRef>
+                                     <Pond>
+                                        <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                        <Show> eNSM_Paquet     </Show>
+                                        <NbMax>   ${NbLiais}    </NbMax>
+				        <ModePonderation>  eL1Secured </ModePonderation>
+				        <SigmaPond> ${PdsTP4} </SigmaPond>
+				        <EcartMax>  ${ResTP4} </EcartMax>
+                                     </Pond>
+                                 </ObsLiaisons>
+		           </SectionObservations>
+	             </EtapeCompensation>
+             </#WHEN>
+
+             <#WHEN VTEST=${DoIt5}>
+	            <EtapeCompensation>
+                           <IterationsCompensation>
+                                <CtrlTimeCompens>
+                                     <NbMin >  ${NbCompByIter} </NbMin>
+                                     <NbMax>   ${NbCompByIter} </NbMax>
+                                     <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                               </CtrlTimeCompens>
+
+                           </IterationsCompensation>
+		           <SectionObservations>
+                                 <ObsLiaisons>
+                                     <NameRef> Id_Pastis_Hom </NameRef>
+                                     <Pond>
+                                        <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                        <Show> eNSM_Paquet     </Show>
+                                        <NbMax>   ${NbLiais}    </NbMax>
+				        <ModePonderation>  eL1Secured </ModePonderation>
+				        <SigmaPond> ${PdsTP5} </SigmaPond>
+				        <EcartMax>  ${ResTP5} </EcartMax>
+                                     </Pond>
+                                 </ObsLiaisons>
+		           </SectionObservations>
+	             </EtapeCompensation>
+             </#WHEN>
+
+             <#WHEN VTEST=${DoIt6}>
+	            <EtapeCompensation>
+                           <IterationsCompensation>
+                                <CtrlTimeCompens>
+                                     <NbMin >  ${NbCompByIter} </NbMin>
+                                     <NbMax>   ${NbCompByIter} </NbMax>
+                                     <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                               </CtrlTimeCompens>
+
+                           </IterationsCompensation>
+		           <SectionObservations>
+                                 <ObsLiaisons>
+                                     <NameRef> Id_Pastis_Hom </NameRef>
+                                     <Pond>
+                                        <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                        <Show> eNSM_Paquet     </Show>
+                                        <NbMax>   ${NbLiais}    </NbMax>
+				        <ModePonderation>  eL1Secured </ModePonderation>
+				        <SigmaPond> ${PdsTP6} </SigmaPond>
+				        <EcartMax>  ${ResTP6} </EcartMax>
+                                     </Pond>
+                                 </ObsLiaisons>
+		           </SectionObservations>
+	             </EtapeCompensation>
+             </#WHEN>
+
+             <#WHEN VTEST=${DoIt7}>
+	            <EtapeCompensation>
+                           <IterationsCompensation>
+                                <CtrlTimeCompens>
+                                     <NbMin >  ${NbCompByIter} </NbMin>
+                                     <NbMax>   ${NbCompByIter} </NbMax>
+                                     <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                               </CtrlTimeCompens>
+
+                           </IterationsCompensation>
+		           <SectionObservations>
+                                 <ObsLiaisons>
+                                     <NameRef> Id_Pastis_Hom </NameRef>
+                                     <Pond>
+                                        <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                        <Show> eNSM_Paquet     </Show>
+                                        <NbMax>   ${NbLiais}    </NbMax>
+				        <ModePonderation>  eL1Secured </ModePonderation>
+				        <SigmaPond> ${PdsTP7} </SigmaPond>
+				        <EcartMax>  ${ResTP7} </EcartMax>
+                                     </Pond>
+                                 </ObsLiaisons>
+		           </SectionObservations>
+	             </EtapeCompensation>
+             </#WHEN>
+
+             <#WHEN VTEST=${DoIt8}>
+	            <EtapeCompensation>
+                           <IterationsCompensation>
+                                <CtrlTimeCompens>
+                                     <NbMin >  ${NbCompByIter} </NbMin>
+                                     <NbMax>   ${NbCompByIter} </NbMax>
+                                     <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                               </CtrlTimeCompens>
+
+                           </IterationsCompensation>
+		           <SectionObservations>
+                                 <ObsLiaisons>
+                                     <NameRef> Id_Pastis_Hom </NameRef>
+                                     <Pond>
+                                        <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                        <Show> eNSM_Paquet     </Show>
+                                        <NbMax>   ${NbLiais}    </NbMax>
+				        <ModePonderation>  eL1Secured </ModePonderation>
+				        <SigmaPond> ${PdsTP8} </SigmaPond>
+				        <EcartMax>  ${ResTP8} </EcartMax>
+                                     </Pond>
+                                 </ObsLiaisons>
+		           </SectionObservations>
+	             </EtapeCompensation>
+             </#WHEN>
+
+             <#WHEN VTEST=${DoIt9}>
+	            <EtapeCompensation>
+                           <IterationsCompensation>
+                                <CtrlTimeCompens>
+                                     <NbMin >  ${NbCompByIter} </NbMin>
+                                     <NbMax>   ${NbCompByIter} </NbMax>
+                                     <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                               </CtrlTimeCompens>
+
+                           </IterationsCompensation>
+		           <SectionObservations>
+                                 <ObsLiaisons>
+                                     <NameRef> Id_Pastis_Hom </NameRef>
+                                     <Pond>
+                                        <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                        <Show> eNSM_Paquet     </Show>
+                                        <NbMax>   ${NbLiais}    </NbMax>
+				        <ModePonderation>  eL1Secured </ModePonderation>
+				        <SigmaPond> ${PdsTP9} </SigmaPond>
+				        <EcartMax>  ${ResTP9} </EcartMax>
+                                     </Pond>
+                                 </ObsLiaisons>
+		           </SectionObservations>
+	             </EtapeCompensation>
+             </#WHEN>
+
+             <#WHEN VTEST=${DoIt10}>
+	            <EtapeCompensation>
+                           <IterationsCompensation>
+                                <CtrlTimeCompens>
+                                     <NbMin >  ${NbCompByIter} </NbMin>
+                                     <NbMax>   ${NbCompByIter} </NbMax>
+                                     <SeuilEvolMoy > 1e10 </SeuilEvolMoy>
+                               </CtrlTimeCompens>
+
+                           </IterationsCompensation>
+		           <SectionObservations>
+                                 <ObsLiaisons>
+                                     <NameRef> Id_Pastis_Hom </NameRef>
+                                     <Pond>
+                                        <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                        <Show> eNSM_Paquet     </Show>
+                                        <NbMax>   ${NbLiais}    </NbMax>
+				        <ModePonderation>  eL1Secured </ModePonderation>
+				        <SigmaPond> ${PdsTP10} </SigmaPond>
+				        <EcartMax>  ${ResTP10} </EcartMax>
+                                     </Pond>
+                                 </ObsLiaisons>
+		           </SectionObservations>
+	             </EtapeCompensation>
+             </#WHEN>
+
+<!--
+                 <SectionExport>
+                            <ExportPose>
+                                <PatternSel> (.*) </PatternSel>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                                <#WHEN VTEST=${NotCPI}>
+                                    <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
+                                    <FileExternIsKey> true </FileExternIsKey>
+                                </#WHEN>
+                            </ExportPose>
+                            <#WHEN VTEST=${NotCPI}>
+                                 <ExportCalib>
+                                     <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                     <KeyIsName> false </KeyIsName>
+                                </ExportCalib>
+                            </#WHEN>
+                    </SectionExport>
+-->
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
