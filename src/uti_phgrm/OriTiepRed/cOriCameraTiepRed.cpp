@@ -167,6 +167,9 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
              CamStenope & aCS1 =  aLnk->CsRel1();
              CamStenope & aCS2 =  aLnk->CsRel2();
 
+             Pt2dr aDif = Pt2dr(aPf2.x,aPf2.y) - aLnk->Hom().Direct(Pt2dr(aPf1.x,aPf1.y));
+std::cout << "DIFFFFF  " << aDif << "\n";
+
              Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
              double aRes =  euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer));
              aSomRes += aRes;
