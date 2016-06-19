@@ -752,6 +752,7 @@ int SampleLibElise_main(int argc, char ** argv)
 
 //SateLib declarations
 extern int RecalRPC_main(int argc, char ** argv);
+extern int CropRPC_main(int argc, char ** argv);
 extern int Grid2RPC_main(int argc, char ** argv);
 extern int RPC_main(int argc, char ** argv);
 extern int NewRefineModel_main(int argc, char **argv);
@@ -773,6 +774,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     static std::vector<cMMCom> aRes;
 
     aRes.push_back(cMMCom("RecalRPC", RecalRPC_main, "Recalculate the adjusted RPCs back to geodetic coordinate system"));
+    aRes.push_back(cMMCom("CropRPC", CropRPC_main, "Recalculate the RPCs for an image crop"));
     aRes.push_back(cMMCom("Grid2RPC", Grid2RPC_main, "Calculate RPCs from the GRIDs"));
     aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcoming RPC functions"));
     aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));

@@ -98,7 +98,8 @@ class CameraRPC : public cBasicGeomCap3D
 
 
         const  cRPC * GetRPC() const;
-        
+        void   CropRPC(const std::string &, const std::string &, const std::vector<Pt3dr>&);
+
         void   ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
         void   Save2XmlStdMMName(const std::string &aName) const;
         static cBasicGeomCap3D * CamRPCOrientGenFromFile(
@@ -179,12 +180,17 @@ class CameraAffine : public cBasicGeomCap3D
 class cRPC
 {
     public:
+        friend class CameraRPC;
+
         cRPC(const std::string &);
         cRPC(const std::string &, const eTypeImporGenBundle &, 
              const cSystemeCoord *aChSys=0);
         ~cRPC(){};
 
+        /* Re-save in original coordinate system */
         static void Save2XmlStdMMName(const std::string &aName);
+        /* Save non-existing RPCs in original coordinate system */
+        static void Save2XmlStdMMName_(cRPC &, const std::string &);
         void Show();
 
         /* 2D<->3D projections */
@@ -202,9 +208,18 @@ class cRPC
 
         Pt3di GetGrid() const;
 
+
         bool IsDir() const;
         bool IsInv() const;
         bool IsMetric() const;    
+      
+        static void SetRecGrid_(const bool  &, const Pt3dr &, const Pt3dr &, Pt3di &);
+        static void GenGridAbs_(const Pt3dr &aPMin, const Pt3dr &aPMax, const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
+        static void GetGridExt(const std::vector<Pt3dr> & aGrid, 
+                         Pt3dr & aExtMin,
+                         Pt3dr & aExtMax,
+                         Pt3dr & aSumXYZ );
+        
     
     private:
         void Initialize(const std::string &,
@@ -238,13 +253,6 @@ class cRPC
                         double (&aInvSNum)[20], double (&aInvLNum)[20],
                         double (&aInvSDen)[20], double (&aInvLDen)[20],
                         bool PRECISIONTEST=1);
-        void CalculRPC( const vector<Pt3dr> &, 
-                        const vector<Pt3dr> &, 
-                        double (&aDirSNum)[20], double (&aDirLNum)[20],
-                        double (&aDirSDen)[20], double (&aDirLDen)[20],
-                        double (&aInvSNum)[20], double (&aInvLNum)[20],
-                        double (&aInvSDen)[20], double (&aInvLDen)[20],
-                        bool PRECISIONTEST=1);
 
 
         /* Fill-in a cubic polynomials */
@@ -258,6 +266,14 @@ class cRPC
                          double (&aSol1)[20], double (&aSol2)[20],
                          double (&aSol3)[20], double (&aSol4)[20]);
         
+        void CalculRPC( const vector<Pt3dr> &, 
+                            const vector<Pt3dr> &, 
+                            double (&aDirSNum)[20], double (&aDirLNum)[20],
+                            double (&aDirSDen)[20], double (&aDirLDen)[20],
+                            double (&aInvSNum)[20], double (&aInvLNum)[20],
+                            double (&aInvSDen)[20], double (&aInvLDen)[20],
+                            bool PRECISIONTEST=1);
+    
 
         /* Validity utils */
         void ReconstructValidityxy();
@@ -290,12 +306,10 @@ class cRPC
         /* Grid creation */
         void GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
         void GenGridAbs(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
-        void GetGridExt(const std::vector<Pt3dr> & aGrid, 
-                         Pt3dr & aExtMin,
-                         Pt3dr & aExtMax,
-                         Pt3dr & aSumXYZ ) const;
+
 
         void SetRecGrid();
+
         void SetPolyn(const std::string &);
         
         bool AutoDetermineRPCFile(const std::string &) const;

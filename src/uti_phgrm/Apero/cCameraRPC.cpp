@@ -62,6 +62,9 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
     mInputName(aNameFile)
 {
     mRPC = new cRPC(aNameFile);
+
+    /* Mean Z */
+    SetAltiSol( abs(mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
 }
 
 /* Constructor that takes original RPC fiels as input */
@@ -78,6 +81,9 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 	mInputName(aNameFile)
 {
     mRPC = new cRPC(aNameFile,aType,aChSys);
+    
+    /* Mean Z */
+    SetAltiSol( abs(mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
 }
 
 cBasicGeomCap3D * CameraRPC::CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
@@ -100,6 +106,106 @@ const cRPC * CameraRPC::GetRPC() const
     return mRPC;
 }
 
+void CameraRPC::CropRPC(const std::string &aNameDir, 
+                        const std::string &aNameXML, 
+                        const std::vector<Pt3dr> &aBounds)
+{
+    /* Some metadata from the Xml */
+    cXml_CamGenPolBundle aXml = StdGetFromSI(aNameXML,Xml_CamGenPolBundle);
+    const std::string aNameRPC = "Crop-" + NameWithoutDir(aXml.NameCamSsCor());
+    const std::string aNameIma = "Crop-" + NameWithoutDir(aXml.NameIma());
+    int aDeg = aXml.DegreTot();
+
+    std::string aTmpChSys = "TMPChSys.xml";
+    cSystemeCoord *aChSys = aXml.SysCible().PtrVal();
+    MakeFileXML(*aChSys,aTmpChSys);
+
+    /* Get 3D grid extent */ 
+    Pt3dr aExtMin, aExtMax, aNeverMind;
+    cRPC::GetGridExt(aBounds, aExtMin, aExtMax, aNeverMind);
+
+    
+    /* Set your grid for RPC recalculation */
+    Pt3di aRecGrid;
+    const Pt3dr aPMin(aExtMin.x, aExtMin.y, mRPC->GetGrC31());
+    const Pt3dr aPMax(aExtMax.x, aExtMax.y, mRPC->GetGrC32());
+    
+    cRPC::SetRecGrid_(mRPC->ISMETER, aPMin, aPMax, aRecGrid);
+
+    
+    /* Create the 3D grid corresponding to your crop */
+    std::vector<Pt3dr> aGrid3D;
+    cRPC::GenGridAbs_(aPMin, aPMax, Pt3di(2*aRecGrid.x,2*aRecGrid.y,2*aRecGrid.z), aGrid3D);
+
+
+    /* Create the 2D grid corresponding to your 3D grid */
+    int aK;
+    Pt2dr aP;
+    std::vector<Pt3dr> aGrid2D;
+    for(aK=0; aK<int(aGrid3D.size()); aK++)
+    {
+        aP = Ter2Capteur(aGrid3D.at(aK));
+        aGrid2D.push_back(Pt3dr(aP.x, aP.y, aGrid3D.at(aK).z));
+    }
+    
+    /* Shift the 2D grid to be compliant with the cropped img */
+    aExtMin = Pt3dr(0,0,0); 
+    aExtMax = Pt3dr(0,0,0); 
+    aNeverMind = Pt3dr(0,0,0);
+
+    cRPC::GetGridExt(aGrid2D, aExtMin, aExtMax, aNeverMind);
+   
+    for(aK=0; aK<int(aGrid2D.size()); aK++)
+    {
+        aGrid2D.at(aK) = Pt3dr(aGrid2D.at(aK).x - int(aExtMin.x) +1,
+                               aGrid2D.at(aK).y - int(aExtMin.y) +1,
+                               aGrid2D.at(aK).z); 
+    }
+
+    /* Calculate RPCs */
+    mRPC->CalculRPC(aGrid3D, aGrid2D,
+                    mRPC->mDirSNum, mRPC->mDirLNum, mRPC->mDirSDen, mRPC->mDirLDen,
+                    mRPC->mInvSNum, mRPC->mInvLNum, mRPC->mInvSDen, mRPC->mInvLDen,
+                    1);
+    
+    /* Save the RPCs */
+    cRPC::Save2XmlStdMMName_(*mRPC, aNameRPC);
+   
+
+    /* Save the cropped image*/
+    Pt2di aSzI(aExtMax.x - aExtMin.x, aExtMax.y - aExtMin.y);
+    Tiff_Im aTiffIm(Tiff_Im::StdConvGen(aXml.NameIma().c_str(),1,false));
+
+    Tiff_Im aTiffCrop
+        (
+            aNameIma.c_str(),
+            aSzI,
+            aTiffIm.type_el(),
+            Tiff_Im::No_Compr,
+            aTiffIm.phot_interp()
+         );
+
+    ELISE_COPY
+        (
+            aTiffCrop.all_pts(),
+            trans(aTiffIm.in(),Pt2di(aExtMin.x,aExtMin.y)),
+            aTiffCrop.out()
+         );
+
+
+    /* Run ConvertBundleGen */
+    std::string aCom1;
+    aCom1 = MM3dBinFile_quotes("Convert2GenBundle") + " " + 
+                            aNameIma + " " + aNameRPC + " " + 
+                            aNameDir + " ChSys=" + aTmpChSys + 
+                            " Degre=" + ToString(aDeg);   
+    
+    std::cout << "aCom1 " << aCom1 << "\n";
+
+    TopSystem(aCom1.c_str());
+    ELISE_fp::RmFile(aTmpChSys); 
+    
+}
 
 Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
 {
@@ -878,7 +984,7 @@ void cRPC::Initialize(const std::string &aName,
         /* Learn parameters */
         CalculRPC(aGrid3D, aGrid2D,
                   mDirSNum, mDirLNum, mDirSDen, mDirLDen,
-                  mInvSNum, mInvLNum, mInvSDen, mInvLDen, 0);
+                  mInvSNum, mInvLNum, mInvSDen, mInvLDen, 1);
 
         Show();
 
@@ -1024,17 +1130,11 @@ void cRPC::FilSampDenCoeff(T& aXml, double (&aSDC)[20]) const
    aXml.SAMP_DEN_COEFF_20() = aSDC[19];  
 }
 
-void cRPC::Save2XmlStdMMName(const std::string &aName)
+void cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
 {
-    /* Create new RPC */
-    cRPC aRPCSauv(aName);
-
-
-    /* Change the coordinate sytem to original geodetic */
-    aRPCSauv.ChSysRPC(aRPCSauv.mChSys);
-
-   /* Save to XML */
-   std::string aNameXml = aRPCSauv.NameSave(aRPCSauv.mName);
+   /* Change the coordinate sytem to original geodetic */
+   aRPC.ChSysRPC(aRPC.mChSys);
+   
    cXml_RPC aXml_RPC;
    cXml_RPC_Coeff aXml_Dir, aXml_Inv;
    cXml_RPC_Validity aXml_Val;
@@ -1043,24 +1143,24 @@ void cRPC::Save2XmlStdMMName(const std::string &aName)
    aXml_RPC.METADATA_VERSION() = "2.0";
 
    /* Direct */
-   aRPCSauv.FilSampNumCoeff(aXml_Dir.SAMP_NUM_COEFF(),(aRPCSauv.mDirSNum));
+   aRPC.FilSampNumCoeff(aXml_Dir.SAMP_NUM_COEFF(),(aRPC.mDirSNum));
    
-   aRPCSauv.FilSampDenCoeff(aXml_Dir.SAMP_DEN_COEFF(),aRPCSauv.mDirSDen);
+   aRPC.FilSampDenCoeff(aXml_Dir.SAMP_DEN_COEFF(),aRPC.mDirSDen);
 
-   aRPCSauv.FilLineNumCoeff(aXml_Dir.LINE_NUM_COEFF(),aRPCSauv.mDirLNum);
+   aRPC.FilLineNumCoeff(aXml_Dir.LINE_NUM_COEFF(),aRPC.mDirLNum);
    
-   aRPCSauv.FilLineDenCoeff(aXml_Dir.LINE_DEN_COEFF(),aRPCSauv.mDirLDen);
+   aRPC.FilLineDenCoeff(aXml_Dir.LINE_DEN_COEFF(),aRPC.mDirLDen);
 
    aXml_RPC.Direct_Model() = aXml_Dir;
 
    /* Inverse */
-   aRPCSauv.FilSampNumCoeff(aXml_Inv.SAMP_NUM_COEFF(),aRPCSauv.mInvSNum);
+   aRPC.FilSampNumCoeff(aXml_Inv.SAMP_NUM_COEFF(),aRPC.mInvSNum);
    
-   aRPCSauv.FilSampDenCoeff(aXml_Inv.SAMP_DEN_COEFF(),aRPCSauv.mInvSDen);
+   aRPC.FilSampDenCoeff(aXml_Inv.SAMP_DEN_COEFF(),aRPC.mInvSDen);
 
-   aRPCSauv.FilLineNumCoeff(aXml_Inv.LINE_NUM_COEFF(),aRPCSauv.mInvLNum);
+   aRPC.FilLineNumCoeff(aXml_Inv.LINE_NUM_COEFF(),aRPC.mInvLNum);
 
-   aRPCSauv.FilLineDenCoeff(aXml_Inv.LINE_DEN_COEFF(),aRPCSauv.mInvLDen);
+   aRPC.FilLineDenCoeff(aXml_Inv.LINE_DEN_COEFF(),aRPC.mInvLDen);
 
    aXml_RPC.Inverse_Model() = aXml_Inv;
 
@@ -1069,21 +1169,21 @@ void cRPC::Save2XmlStdMMName(const std::string &aName)
    vector<double> aImOff, aImScal, aGrOff, aGrScal;
    vector<double> aImRows, aImCols, aGrC1, aGrC2, aGrC3;
    
-   aRPCSauv.GetGrC1(aGrC1);
-   aRPCSauv.GetGrC2(aGrC2);
-   aGrC3.push_back(aRPCSauv.GetGrC31());
-   aGrC3.push_back(aRPCSauv.GetGrC32());
-   aRPCSauv.GetImOff(aImOff);
-   aRPCSauv.GetImScal(aImScal);
-   aRPCSauv.GetGrOff(aGrOff);
-   aRPCSauv.GetGrScal(aGrScal);
+   aRPC.GetGrC1(aGrC1);
+   aRPC.GetGrC2(aGrC2);
+   aGrC3.push_back(aRPC.GetGrC31());
+   aGrC3.push_back(aRPC.GetGrC32());
+   aRPC.GetImOff(aImOff);
+   aRPC.GetImScal(aImScal);
+   aRPC.GetGrOff(aGrOff);
+   aRPC.GetGrScal(aGrScal);
 
    /* Direct */
-   aXml_Val.FIRST_ROW() = aRPCSauv.GetImRow1();
-   aXml_Val.LAST_ROW() = aRPCSauv.GetImRow2();
+   aXml_Val.FIRST_ROW() = aRPC.GetImRow1();
+   aXml_Val.LAST_ROW() = aRPC.GetImRow2();
 
-   aXml_Val.FIRST_COL() = aRPCSauv.GetImCol1();
-   aXml_Val.LAST_COL() = aRPCSauv.GetImCol2();
+   aXml_Val.FIRST_COL() = aRPC.GetImCol1();
+   aXml_Val.LAST_COL() = aRPC.GetImCol2();
 
    aXml_Val.SAMP_SCALE() = aImScal.at(0);
    aXml_Val.SAMP_OFF() = aImOff.at(0);
@@ -1109,8 +1209,20 @@ void cRPC::Save2XmlStdMMName(const std::string &aName)
 
    aXml_RPC.RFM_Validity() = aXml_Val;
 
-   MakeFileXML(aXml_RPC,aNameXml);
-   std::cout << "Saved to: " << aNameXml << "\n";
+   MakeFileXML(aXml_RPC,aName);
+   std::cout << "Saved to: " << aName << "\n";
+    
+}
+
+void cRPC::Save2XmlStdMMName(const std::string &aName)
+{
+    /* Create new RPC */
+    cRPC aRPCSauv(aName);
+
+   /* Save to XML */
+   std::string aNameXml = aRPCSauv.NameSave(aRPCSauv.mName);
+  
+   cRPC::Save2XmlStdMMName_(aRPCSauv,aNameXml);
 
 }
 
@@ -1385,10 +1497,6 @@ void cRPC::InvToDirRPC()
                 mDirSDen, mDirLDen);
 
 
-    //for inverse it will be
-    // LearnParam(aGridIm, aGridGr,
-    //             mInvSNum, mInvLNum, 
-    //             mInvSDen, mInvLDen);
 
     ISDIR=true;
 }
@@ -1403,7 +1511,7 @@ void cRPC::ChSysRPC(const cSystemeCoord &aChSys)
     ChSysRPC_(aChSys, mRecGrid, 
                mDirSNum, mDirLNum, mDirSDen, mDirLDen,
                mInvSNum, mInvLNum, mInvSDen, mInvLDen,
-               0);
+               1);
 
 }
 
@@ -1416,7 +1524,7 @@ void cRPC::ChSysRPC(const cSystemeCoord &aChSys,
     ChSysRPC_(aChSys, mRecGrid,
                aDirSNum, aDirLNum, aDirSDen, aDirLDen,
                aInvSNum, aInvLNum, aInvSDen, aInvLDen,
-               0);
+               1);
 }
 
 void cRPC::ChSysRPC_(const cSystemeCoord &aChSys, 
@@ -1549,9 +1657,14 @@ if(0)
             aPDifMoy.y += aPDif.y;
         }
 
-        std::cout << "RPC recalculation"
-                  <<  " precision: " << 2*double(aPDifMoy.x)/(aGridGround.size()) << " "
-                  << 2*double(aPDifMoy.y)/(aGridGround.size()) << " [pix]\n";
+
+        if( (2*double(aPDifMoy.x)/(aGridGround.size())) > 1 || (2*double(aPDifMoy.y)/(aGridGround.size())) > 1 )
+            std::cout << "RPC recalculation"
+                <<  " precision: " << 2*double(aPDifMoy.x)/(aGridGround.size()) << " "
+                << 2*double(aPDifMoy.y)/(aGridGround.size()) << " [pix] \n xXXXXXXXXX ATTENTION XXXXXXXXXXXXXXXXX\n"
+                <<                                                       " x          very badly estimated RPCs X\n"
+                <<                                                       " x          choose a larger crop      X\n"
+                <<                                                       " xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
     }
     
         
@@ -1622,30 +1735,29 @@ void cRPC::SetPolyn(const std::string &aName)
 /* Even if an image crop is used, the RPC are recomputed on the original img
  * btw in [Tao & Hu, 2001] horizontal grid every ~600pix, vert grid every ~500m
  * in [Guo, 2006] empirically showed that 20x20x3 grid is sufficient */
-void cRPC::SetRecGrid()
+void cRPC::SetRecGrid_(const bool &aMETER, const Pt3dr &aPMin, const Pt3dr &aPMax, Pt3di &aSz)
 {
     int aSamplX, aSamplY, aSamplZ;
-    
+
     //grid spacing in 3D
     int aHorizM = 500, aVertM = 100;
-    
 
-    if(ISMETER)
+    if(aMETER)
     {
-        aSamplX = floor((mGrC1[1] - mGrC1[0])/aHorizM);
-        aSamplY = floor((mGrC2[1] - mGrC2[0])/aHorizM);
-        aSamplZ = floor((mGrC3[1] - mGrC3[0])/aVertM);    
+        aSamplX = floor((aPMax.x - aPMin.x)/aHorizM);
+        aSamplY = floor((aPMax.y - aPMin.y)/aHorizM);
+        aSamplZ = floor((aPMax.z - aPMin.z)/aVertM);    
     }
     else
     {
         double aFprntLonM =  6378137 *
-                             (mGrC1[1] - mGrC1[0]) * M_PI /180.0;
+                             (aPMax.x - aPMin.x) * M_PI /180.0;
         double aFprntLatM = 6378137 *
-                            (mGrC2[1] - mGrC2[0]) * M_PI /180.0;
+                            (aPMax.y - aPMin.y) * M_PI /180.0;
 
         aSamplX = floor(aFprntLonM/aHorizM);
         aSamplY = floor(aFprntLatM/aHorizM);
-        aSamplZ = floor((mGrC3[1] - mGrC3[0])/aVertM);
+        aSamplZ = floor((aPMax.z - aPMin.z)/aVertM);
     }
 
 
@@ -1653,20 +1765,32 @@ void cRPC::SetRecGrid()
     while (aSamplZ<4)
         aSamplZ++;
 
-    //if planar grid smaller than 5
-    while (aSamplX<5)
+    //if planar grid smaller than 15 (to avoid bad estimations in cropped images)
+    while (aSamplX<15)
         aSamplX++;
-    while (aSamplY<5)
+    while (aSamplY<15)
         aSamplY++;
 
     //if the grid does not suffice to calculate 78 coefficients of the RPCs
     while ( (aSamplX*aSamplY*aSamplZ)<80 )
         aSamplX++;
 
-    mRecGrid = Pt3di(aSamplX,aSamplY,aSamplZ);
+    aSz = Pt3di(aSamplX,aSamplY,aSamplZ);
 
     if(1)
-        std::cout <<"RPC grid: " << mRecGrid << "\n";
+        std::cout <<"RPC grid: " << aSz << "\n";
+
+}
+
+
+void cRPC::SetRecGrid()
+{
+    Pt3dr aPMin(mGrC1[0], mGrC2[0], mGrC3[0]);
+    Pt3dr aPMax(mGrC1[1], mGrC2[1], mGrC3[1]);
+    
+    SetRecGrid_(ISMETER, aPMin, aPMax, mRecGrid);
+
+    
 }
 
 void cRPC::GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
@@ -1695,27 +1819,37 @@ void cRPC::GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
 
 void cRPC::GenGridAbs(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
 {
+    const Pt3dr aPMin(mGrC1[0], mGrC2[0], mGrC3[0]);
+    const Pt3dr aPMax(mGrC1[1], mGrC2[1], mGrC3[1]);
+
+    GenGridAbs_(aPMin, aPMax, aSz, aGrid);
+    
+}
+
+void cRPC::GenGridAbs_(const Pt3dr &aPMin, const Pt3dr &aPMax, const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
+{
     int aK1, aK2, aK3;
     Pt3dr aP, aStep;
 
-    aStep = Pt3dr(double(mGrC1[1] - mGrC1[0])/aSz.x,
-                  double(mGrC2[1] - mGrC2[0])/aSz.y,
-                  double(mGrC3[1] - mGrC3[0])/aSz.z );
+
+    aStep = Pt3dr(double(aPMax.x - aPMin.x)/aSz.x,
+                  double(aPMax.y - aPMin.y)/aSz.y,
+                  double(aPMax.z - aPMin.z)/aSz.z );
 
 
     for(aK1=0; aK1<=aSz.x; aK1++)
         for(aK2=0; aK2<=aSz.y; aK2++)
             for(aK3=0; aK3<=aSz.z; aK3++)
             {
-                aP = Pt3dr( mGrC1[0] + aStep.x*aK1,
-                            mGrC2[0] + aStep.y*aK2,
-                            mGrC3[0] + aStep.z*aK3);
+                aP = Pt3dr( aPMin.x + aStep.x*aK1,
+                            aPMin.y + aStep.y*aK2,
+                            aPMin.z + aStep.z*aK3);
                 
                 aGrid.push_back(aP);
             }
+    
 
 }
-
 
 Pt2dr cRPC::NormIm(const Pt2dr &aP, bool aDENORM) const
 {
@@ -1807,7 +1941,7 @@ void cRPC::NewImOffScal(const std::vector<Pt3dr> & aGrid)
    mImScal[0] =abs(aExtMax.x - mImOff[0]);
    mImScal[1] =abs(aExtMax.y - mImOff[1]);
 
-
+   ReconstructValidityxy();
 }
 
 void cRPC::NewGrC(double &aGrC1min, double &aGrC1max,
@@ -1853,7 +1987,7 @@ void cRPC::NewGrOffScal(const std::vector<Pt3dr> & aGrid)
 void cRPC::GetGridExt(const std::vector<Pt3dr> & aGrid,
                        Pt3dr & aExtMin,
                        Pt3dr & aExtMax,
-                       Pt3dr & aSumXYZ ) const
+                       Pt3dr & aSumXYZ )
 {
     int aK;
 
@@ -2808,11 +2942,11 @@ void cRPC::ReadDimap(const std::string &aFile)
 
 void cRPC::ReconstructValidityxy()
 {
-    mImRows[0] = 0;
-    mImRows[1] = 1 * mImScal[0] + mImOff[0];
+    mImRows[0] = -1 * mImScal[1] + mImOff[1];
+    mImRows[1] = 1 * mImScal[1] + mImOff[1];
 
-    mImCols[0] = 0;
-    mImCols[1] = 1 * mImScal[1] + mImOff[1];
+    mImCols[0] = -1 * mImScal[0] + mImOff[0];
+    mImCols[1] = 1 * mImScal[0] + mImOff[0];
 
 }
 
@@ -2952,6 +3086,63 @@ int Grid2RPC_main(int argc,char ** argv)
             
     
     ELISE_fp::RmFile(aGBName); 
+
+    return EXIT_SUCCESS;
+}
+
+int CropRPC_main(int argc,char ** argv)
+{
+    cInterfChantierNameManipulateur * aICNM;
+    std::string aCropName,aFullName;
+    std::string aDir, aDirSav="Crop";
+    std::string aName;
+    std::list<std::string> aListFile;
+    Pt2dr aO(100,100), aSz(10000,10000);
+
+    ElInitArgMain
+        (
+         argc, argv,
+         LArgMain() << EAMC(aCropName,"Orientation file of the image defining the crop extent (in cXml_CamGenPolBundle format)")
+                    << EAMC(aFullName,"Pattern of orientation files to be cropped accordinly (in cXml_CamGenPolBundle format)")
+                    << EAMC(aDirSav, "Directory of output orientation files (Def=Ori-Crop)"),
+         LArgMain() << EAM(aO,"Org", true, "Origin of the rectangular crop; Def=[100,100]")
+                    << EAM(aSz,"Sz", true, "Size of the crop; Def=[10000,10000]")
+        );
+
+    SplitDirAndFile(aDir, aName, aFullName);
+    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    aListFile = aICNM->StdGetListOfFile(aName);
+
+    /* Retrieve 3D volume corresponding to the crop */
+    std::vector<Pt3dr> aBounds;
+
+    CameraRPC aCamCrop(aCropName);
+    const double aZ = aCamCrop.GetAltiSol(); 
+    const Pt2dr a0(aO.x,aO.y);
+    const Pt2dr a1(a0.x+aSz.x,a0.y);
+    const Pt2dr a2(a0.x+aSz.x,a0.y+aSz.y);
+    const Pt2dr a3(a0.x,a0.y+aSz.y);
+
+    aBounds.push_back(aCamCrop.ImEtZ2Terrain(a0,aZ));
+    aBounds.push_back(aCamCrop.ImEtZ2Terrain(a1,aZ));
+    aBounds.push_back(aCamCrop.ImEtZ2Terrain(a2,aZ));
+    aBounds.push_back(aCamCrop.ImEtZ2Terrain(a3,aZ));
+
+    
+    //for every image : 
+    //  read
+    //  backproject the 3D bounds and find define 2D bounds (this will be the cut & 2d grid bounds)
+    //  create grids in 2d and 3d and pass to CalculRPC
+    //  save IMG + RPC (in original coords)
+
+    std::list<std::string>::iterator itL=aListFile.begin();
+    for( ; itL !=aListFile.end(); itL++ )
+    {
+
+        CameraRPC aCamCropTMP(aDir + (*itL));
+        aCamCropTMP.CropRPC(aDirSav, aDir + (*itL), aBounds);
+    }
+
 
     return EXIT_SUCCESS;
 }
