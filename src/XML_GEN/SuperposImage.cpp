@@ -20285,6 +20285,47 @@ void xml_init(cXML_TestImportOri & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXML_TestImportOri *) {return "9DF7C7AD2E46D1F3FE3F";};
 
 
+double & cXml_RatafiaSom::ResiduOr()
+{
+   return mResiduOr;
+}
+
+const double & cXml_RatafiaSom::ResiduOr()const 
+{
+   return mResiduOr;
+}
+
+void  BinaryUnDumpFromFile(cXml_RatafiaSom & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ResiduOr(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_RatafiaSom & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ResiduOr());
+}
+
+cElXMLTree * ToXMLTree(const cXml_RatafiaSom & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_RatafiaSom",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("ResiduOr"),anObj.ResiduOr())->ReTagThis("ResiduOr"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_RatafiaSom & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.ResiduOr(),aTree->Get("ResiduOr",1)); //tototo 
+}
+
+std::string  Mangling( cXml_RatafiaSom *) {return "446429C07C2C01D8FE3F";};
+
+
 cTypeCodageMatr & cXml_O2IRotation::Ori()
 {
    return mOri;

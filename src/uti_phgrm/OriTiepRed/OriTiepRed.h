@@ -137,7 +137,7 @@ typedef cStructMergeTieP<tMerge>  tMergeStr;
 class cCameraTiepRed
 {
     public :
-        cCameraTiepRed(cAppliTiepRed & anAppli,const std::string &,CamStenope * aCsOr,CamStenope * aCsCal);
+        cCameraTiepRed(cAppliTiepRed & anAppli,const std::string &,CamStenope * aCsOr,CamStenope * aCsCal,bool IsMaster);
         const std::string NameIm() const;
  
         //  Intersection of bundles in ground geometry
@@ -166,18 +166,29 @@ class cCameraTiepRed
         cAppliTiepRed & Appli();
 
 
+        Pt2dr ToImagePds(const Pt2dr & aP) const;
+
     private :
         void SaveHom( cCameraTiepRed*,const std::list<int> & aLBox);
         cCameraTiepRed(const cCameraTiepRed &); // Not Implemented
 
 
         cAppliTiepRed & mAppli;
-        std::string mNameIm;
-        CamStenope * mCsOr;
-        CamStenope * mCsCal;
-        int          mNbPtsHom2Im;
-        int          mNum;
+        std::string     mNameIm;
+        cMetaDataPhoto  mMTD;
+        CamStenope *    mCsOr;
+        CamStenope *    mCsCal;
+        int             mNbPtsHom2Im;
+        int             mNum;
         std::map<cCameraTiepRed*,std::list<int> > mMapCamBox;
+        cXml_RatafiaSom *   mXRat;
+        bool                mIsMaster;
+
+        Pt2di                            mSzIm;
+        double                           mResolPds;
+        Pt2di                            mSzPds;
+        Im2D_REAL4                       mImPds;
+        TIm2D<REAL4,REAL8>               mTImPds;
 };
 
 class cLnk2ImTiepRed
@@ -298,8 +309,11 @@ class cAppliTiepRed
           cInterfChantierNameManipulateur* ICNM();
           const std::string & StrOut() const;
           bool  VerifNM() const;
+          bool  FromRatafiaBox() const;
 
           eLevelOr OrLevel() const;
+          const std::string  & Dir() const;
+          bool ModeIm() const;
 
      private :
 
@@ -364,6 +378,7 @@ class cAppliTiepRed
           std::vector<int>                 mBufICam;
           cInterfChantierNameManipulateur* mICNM;
           bool                             mFromRatafiaGlob;
+          bool                             mFromRatafiaBox;
           bool                             mModeIm;
           std::string                      mMasterIm;
           int                              mIntOrLevel;

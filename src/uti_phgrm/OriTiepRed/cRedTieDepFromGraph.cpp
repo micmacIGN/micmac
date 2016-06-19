@@ -442,7 +442,7 @@ void cAppliGrRedTieP::CreateBoxOfSom(tSomGRTP *aSom)
          {
               aXPB.Ims().push_back((*itA).s2().attr()->Name());
          }
-         // std::cout << "BOXXX=" << mAppliTR->NameParamBox(mNumBox,true) << "\n";
+         std::cout << "BOXXX=" << mAppliTR->NameParamBox(mNumBox,true) << "\n";
 
          MakeFileXML(aXPB,mAppliTR->NameParamBox(mNumBox,true));
          MakeFileXML(aXPB,mAppliTR->NameParamBox(mNumBox,false));
@@ -451,7 +451,7 @@ void cAppliGrRedTieP::CreateBoxOfSom(tSomGRTP *aSom)
     }
 
     anAtr.NumBox1() = mNumBox;
-    // getchar();
+    getchar();
 
 
 }
@@ -559,11 +559,20 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     for (tIterSomGRTP itS=mGr.begin(mSubAll);itS.go_on();itS++)
     {
         tSomGRTP & aS1 = (*itS);
+        std::vector<Pt2df> aVecRes;
+
         for (tIterArcGRTP  itA=aS1.begin(mSubAll) ; itA.go_on(); itA++)
         {
              const cXml_Ori2Im & anOri = (*itA).attr()->Ori();
              ElSetMax(aS1.attr()->NbPtsMax(),anOri.NbPts());
+             aVecRes.push_back(Pt2df(anOri.Geom().Val().OrientAff().ResiduOr(),anOri.NbPts()));
         }
+        double aMed = MedianPond(aVecRes);
+        const std::string & aName = aS1.attr()->Name();
+        cXml_RatafiaSom aXRS;
+        aXRS.ResiduOr() = aMed;
+        MakeFileXML(aXRS,mNoNM->NameRatafiaSom(aName,true));
+        MakeFileXML(aXRS,mNoNM->NameRatafiaSom(aName,false));
     }
 
    // Calcul du taux de recouvrement de chaque arc

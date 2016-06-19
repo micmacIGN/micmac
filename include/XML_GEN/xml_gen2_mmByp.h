@@ -57,6 +57,10 @@ const std::string TheRaffineQuickMac();
 const std::string TheRaffineQuickMac(const std::string &);
 
 
+extern const std::string ExtTxtXml;
+extern const std::string ExtBinDmp;
+const std::string & ExtXml(bool Bin);
+
 class cImaMM;
 class cAppliWithSetImage;
 class cAppliMMByPair;
@@ -324,6 +328,7 @@ class cResVINM
 class cVirtInterf_NewO_NameManager
 {
        public :
+           virtual std::string NameRatafiaSom(const std::string & aName,bool Bin) const = 0;
            virtual std::string NameListeCpleOriented(bool Bin) const = 0;
            virtual std::string NameListeCpleConnected(bool Bin) const = 0;
 

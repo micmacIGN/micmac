@@ -6149,6 +6149,30 @@ std::string  Mangling( cXML_TestImportOri *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_RatafiaSom
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_RatafiaSom & anObj,cElXMLTree * aTree);
+
+
+        double & ResiduOr();
+        const double & ResiduOr()const ;
+    private:
+        double mResiduOr;
+};
+cElXMLTree * ToXMLTree(const cXml_RatafiaSom &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_RatafiaSom &);
+
+void  BinaryUnDumpFromFile(cXml_RatafiaSom &,ELISE_fp &);
+
+std::string  Mangling( cXml_RatafiaSom *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_O2IRotation
 {
     public:

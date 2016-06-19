@@ -48,20 +48,38 @@ NS_OriTiePRed_BEGIN
 /*                                                                    */
 /**********************************************************************/
 
+Pt2dr cCameraTiepRed::ToImagePds(const Pt2dr & aP) const
+{
+   return aP / mResolPds;
+}
+
 cCameraTiepRed::cCameraTiepRed
 (
     cAppliTiepRed &         anAppli,
     const std::string &     aName,
     CamStenope *            aCamOr,
-    CamStenope *            aCamCal
+    CamStenope *            aCamCal,
+    bool                    IsMaster
 ) :
-   mAppli  (anAppli),
-   mNameIm (aName),
-   mCsOr     (aCamOr),
-   mCsCal     (aCamCal),
+   mAppli        (anAppli),
+   mNameIm       (aName),
+   mMTD          (cMetaDataPhoto::CreateExiv2(anAppli.Dir() + aName)),
+   mCsOr         (aCamOr),
+   mCsCal        (aCamCal),
    mNbPtsHom2Im  (0),
-   mNum          (-1)
+   mNum          (-1),
+   mXRat         (0),
+   mIsMaster     (IsMaster),
+   mSzIm         (mMTD.TifSzIm()),
+   mResolPds     (anAppli.ModeIm() ? 20.0 : 200.0),
+   mSzPds        (round_up(Pt2dr(mSzIm)/mResolPds)),
+   mImPds        (mSzPds.x,mSzPds.y,0.0),
+   mTImPds       (mImPds)
 {
+   if (mAppli.FromRatafiaBox())
+   {
+        mXRat = new cXml_RatafiaSom(StdGetFromSI(mAppli.NM().NameRatafiaSom(aName,true),Xml_RatafiaSom));
+   }
 }
 
 cAppliTiepRed & cCameraTiepRed::Appli() {return mAppli;}
@@ -167,14 +185,21 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
              CamStenope & aCS1 =  aLnk->CsRel1();
              CamStenope & aCS2 =  aLnk->CsRel2();
 
-             Pt2dr aDif = Pt2dr(aPf2.x,aPf2.y) - aLnk->Hom().Direct(Pt2dr(aPf1.x,aPf1.y));
-std::cout << "DIFFFFF  " << aDif << "\n";
+//  Pt2dr aDif = Pt2dr(aPf2.x,aPf2.y) - aLnk->Hom().Direct(Pt2dr(aPf1.x,aPf1.y));
+// Pt2dr aDif = Pt2dr(aPf1.x,aPf1.y) - aLnk->Hom().Direct(Pt2dr(aPf2.x,aPf2.y));
+//  std::cout << "DIFFFFF  " << aDif << "\n";
 
              Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
-             double aRes =  euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer));
+             double aRes =  (euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer))) / 2.0;
              aSomRes += aRes;
              aNbRes += 1.0;
              aVRes.push_back(aRes);
+
+             if (mIsMaster)
+             {
+                  Ok =  mAppli.ParamBox().BoxRab().inside(Pt2dr(aPf1.x,aPf1.y));
+                  aCam2.mTImPds.incr(ToImagePds(aP2),Ok ? 1.0 : -0.9);
+             }
         }
         else
         {

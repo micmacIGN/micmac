@@ -306,6 +306,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            ElRotation3D OriCam2On1(const std::string & aN1,const std::string & aN2,bool &OK) const;
            std::string NameListeCpleOriented(bool Bin) const;
            std::string NameListeCpleConnected(bool Bin) const;
+           std::string NameRatafiaSom(const std::string & aName,bool Bin) const;
 
            void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP=false);
            void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);

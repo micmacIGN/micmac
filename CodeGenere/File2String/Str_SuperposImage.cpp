@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1827]) = {
+const char * (theNameVar_SuperposImage[1830]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1352,6 +1352,9 @@ const char * (theNameVar_SuperposImage[1827]) = {
 "</XML_TestImportOri>\n",
 "\n",
 "\n",
+"<Xml_RatafiaSom Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"    <ResiduOr Nb=\"1\" Type=\"double\" > </ResiduOr> <!-- Residu pondere par 1/(1+(R/S)^2) -->\n",
+"</Xml_RatafiaSom>\n",
 "\n",
 "\n",
 "<Xml_O2IRotation Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",

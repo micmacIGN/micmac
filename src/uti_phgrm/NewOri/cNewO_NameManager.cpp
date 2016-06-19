@@ -42,6 +42,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+const std::string ExtTxtXml = "xml";
+const std::string ExtBinDmp = "dmp";
+const std::string & ExtXml(bool Bin)
+{
+   return Bin ? ExtBinDmp : ExtTxtXml;
+}
+
 
 const std::string  cNewO_NameManager::PrefixDirTmp = "NewOriTmp";
 
@@ -314,6 +321,12 @@ std::string cNewO_NameManager::NameListeCpleOriented(bool Bin) const
 std::string cNewO_NameManager::NameListeCpleConnected(bool Bin) const
 {
     return Dir3P() + "ListCpleConnected"+ (Bin ? ".dmp" : ".xml");
+}
+
+
+std::string cNewO_NameManager::NameRatafiaSom(const std::string & aName,bool Bin) const
+{
+   return  Dir3POneImage(aName) + "Ratafia." + ExtXml(Bin);
 }
 
 

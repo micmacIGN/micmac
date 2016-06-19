@@ -64,6 +64,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
      mVerifNM                 (false),
      mStrOut                  ("TiePRed"),
      mFromRatafiaGlob         (false),
+     mFromRatafiaBox          (false),
      mIntOrLevel              (eLevO_Glob)
      
 {
@@ -85,6 +86,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
                      << EAM(mParal,"Paral",true,"Do it paral, def=true")
                      << EAM(mVerifNM,"VerifNM",true,"(Internal) Verification of Virtual Name Manager")
                      << EAM(mFromRatafiaGlob,"FromRG",true,"(Internal) called by ratagia at top level")
+                     << EAM(mFromRatafiaBox,"FromRB",true,"(Internal) called by ratagia at box level")
                      << EAM(mIntOrLevel,"LevelOr",true,"(Internal when call by ratafia) level of orientation")
    );
 
@@ -111,6 +113,10 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
            if (! EAMIsInit(&mIntOrLevel)) 
            {
               mIntOrLevel = eLevO_ByCple;
+           }
+           if ( ! EAMIsInit(&mFromRatafiaBox))
+           {
+              mFromRatafiaBox = true;
            }
        }
        mBoxLoc = mXmlParBox.Box();
@@ -156,7 +162,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
        // CamStenope * aCsOr = mNM->OutPutCamera(aNameIm);
 
        CamStenope * aCsCal = aCsOr ? aCsOr : mNM->CalibrationCamera(aNameIm) ;
-       cCameraTiepRed * aCam = new cCameraTiepRed(*this,aNameIm,aCsOr,aCsCal);
+       cCameraTiepRed * aCam = new cCameraTiepRed(*this,aNameIm,aCsOr,aCsCal,(mMasterIm==aNameIm));
        
        // Put them in vector and map
        mVecCam.push_back(aCam);
@@ -228,6 +234,10 @@ std::vector<int>  & cAppliTiepRed::BufICam() {return mBufICam;}
 cInterfChantierNameManipulateur* cAppliTiepRed::ICNM() {return mICNM;}
 const std::string & cAppliTiepRed::StrOut() const {return mStrOut;}
 bool cAppliTiepRed::VerifNM() const {return mVerifNM;}
+bool cAppliTiepRed::FromRatafiaBox() const {return mFromRatafiaBox;}
+const std::string  & cAppliTiepRed::Dir() const {return mDir;}
+bool cAppliTiepRed::ModeIm() const { return mModeIm; }
+
 
 void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
 {
