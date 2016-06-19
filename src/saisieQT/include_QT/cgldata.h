@@ -1,6 +1,8 @@
 #ifndef CGLDATA_H
 #define CGLDATA_H
 
+//~ #define DUMP_GL_DATA
+
 class cData;
 class GlCloud;
 class MatrixManager;
@@ -23,8 +25,8 @@ public:
 
     void        draw();
 
-    bool        is3D() const                            { return ((!_vClouds.empty()) || (!_vCams.empty()));   }
-    //~ bool        is3D() const;
+    //~ bool        is3D() const                            { return ((!_vClouds.empty()) || (!_vCams.empty())); 
+    bool        is3D() const                            { return glImageMasked().glImage() == NULL;   }
 
     bool        isImgEmpty()                            { return _glMaskedImage._m_image == NULL; }
 

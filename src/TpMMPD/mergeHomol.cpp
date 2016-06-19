@@ -107,6 +107,31 @@ vector<string> getFilesList(string ndir)
     return subStrList;
 }
 
+
+set<string> getFilesSet(string ndir)
+{
+    if (ndir[ndir.size()-1]=='/')
+        ndir.resize(ndir.size()-1);
+    set<string> subStrSet;
+    cElDirectory aDir(ndir.c_str());
+    if (!aDir.IsDirectory()) return subStrSet;
+    while(const char * subname = aDir.GetNextName())
+    {
+        if (subname[0] != '.')
+        {
+            string namecompl = ndir+"/"+subname;
+            cElDirectory aSubDir(namecompl.c_str());
+            if (!aSubDir.IsDirectory())
+            {
+                subStrSet.insert(subname);
+            }
+        }
+    }
+    return subStrSet;
+}
+
+
+
 vector<string> getDirListRegex(string pattern)
 {
     cElRegex aRegex(pattern,10000);
@@ -173,7 +198,7 @@ int mergeHomol_main(int argc,char ** argv)
     std::string aHomolInPattern="";//input HomolIn pattern
     std::string aHomolOutDirName="";//output Homol dir
 
-    std::cout<<"\nMerge Homol : merge homol directories\n"<<std::endl;
+    std::cout<<"\nMergeHomol : merge homol directories\n"<<std::endl;
 
     ElInitArgMain
       (
@@ -202,20 +227,21 @@ int mergeHomol_main(int argc,char ** argv)
     if(ELISE_fp::IsDirectory(aHomolOutDirName))
     {
         std::cout<<"Warning! "<<aHomolOutDirName<<" already exists!"<<std::endl;
-        std::cout<<""<<aHomolOutDirName<<" will be removed!"<<std::endl;
+        std::cout<<"Removing "<<aHomolOutDirName<<"..."<<std::endl;
         ELISE_fp::PurgeDirRecursif(aHomolOutDirName);
+        std::cout<<aHomolOutDirName<<" removed."<<std::endl;
     }
-
     ELISE_fp::MkDir(aHomolOutDirName);
 
 
     vector<string> aHomolOutDirlist;
 
     vector<string> aHomolInSubDirlist;
+    std::cout<<"Reading sub dir list."<<std::flush;
     for (unsigned int iHomol=0;iHomol<listHomolInDir.size();iHomol++)
     {
         aHomolInSubDirlist=getSubDirList(listHomolInDir[iHomol]);
-
+        std::cout<<"."<<std::flush;
         for (unsigned int i=0;i<aHomolInSubDirlist.size();i++)
         {
             //check if aHomolInSubDirlist[i] is in aHomolOutDirlist
@@ -231,6 +257,7 @@ int mergeHomol_main(int argc,char ** argv)
             if (!found) aHomolOutDirlist.push_back(aHomolInSubDirlist[i]);
         }
     }
+    std::cout<<" done."<<std::endl;
 
     /*std::cout<<"Merged list:"<<std::endl;
     for (unsigned int i=0;i<aHomolOutDirlist.size();i++)
@@ -242,6 +269,7 @@ int mergeHomol_main(int argc,char ** argv)
     long aNumCopiedFiles=0;
     long aNumMergedFiles=0;
 
+    std::cout<<"Merging."<<std::flush;
     //for each directory, for each input, copy if does not already exist, or merge
     for (unsigned int aNumDir=0;aNumDir<aHomolOutDirlist.size();aNumDir++)
     {
@@ -252,7 +280,7 @@ int mergeHomol_main(int argc,char ** argv)
 
         for (unsigned int iHomol=0;iHomol<listHomolInDir.size();iHomol++)
         {
-            vector<string> filesOutList=getFilesList(aHomolOutDirName+"/"+aDirName);
+            set<string> filesOutSet=getFilesSet(aHomolOutDirName+"/"+aDirName);
             //cout<<"Dir name: "<<aDirName<<" "<<filesOutList.size()<<" files."<<endl;
 
             string aHomolInName=listHomolInDir[iHomol];
@@ -260,17 +288,10 @@ int mergeHomol_main(int argc,char ** argv)
             vector<string> filesInList=getFilesList(aHomolInName+"/"+aDirName);
             for (unsigned int i=0;i<filesInList.size();i++)
             {
-                //search if file in filesOutList:
-                int indexOut=-1;
-                for (unsigned int j=0;j<filesOutList.size();j++)
-                {
-                    if (filesOutList[j]==filesInList[i])
-                    {
-                        indexOut=j;
-                        break;
-                    }
-                }
-                if (indexOut<0)
+                //search if file in filesOutSet:
+                set<string>::iterator itOut;
+                itOut=filesOutSet.find(filesInList[i]);
+                if (itOut==filesOutSet.end())
                 {
                     aNumCopiedFiles++;
                     //cout<<"  copy "<<aHomolInName+"/"+aDirName+"/"+filesInList[i]<<endl;
@@ -281,14 +302,16 @@ int mergeHomol_main(int argc,char ** argv)
                     aNumMergedFiles++;
                     //cout<<"  merge "<<aHomolOutDirName+"/"+aDirName+"/"+filesOutList[indexOut]<<" "<<aHomolInName+"/"+aDirName+"/"+filesInList[i]<<endl;
                     mergePacks(
-                               aHomolOutDirName+"/"+aDirName+"/"+filesOutList[indexOut],
+                               aHomolOutDirName+"/"+aDirName+"/"+filesInList[i],
                                aHomolInName+"/"+aDirName+"/"+filesInList[i],
                                aHomolOutDirName+"/"+aDirName+"/"+filesInList[i] );
                 }
+
+
             }
         }
     }
-    cout<<"\nFinished! "<<aNumCopiedFiles<<" copied files, "<<aNumMergedFiles<<" merged files."<<endl;
+    cout<<" Finished!\n"<<aNumCopiedFiles<<" copied files, "<<aNumMergedFiles<<" merged files."<<endl;
 
     std::cout<<"Quit"<<std::endl;
 

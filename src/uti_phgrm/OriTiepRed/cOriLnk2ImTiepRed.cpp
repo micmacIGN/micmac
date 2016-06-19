@@ -48,10 +48,40 @@ NS_OriTiePRed_BEGIN
 /**********************************************************************/
 
 cLnk2ImTiepRed::cLnk2ImTiepRed(cCameraTiepRed * aC1 ,cCameraTiepRed * aC2) :
-    mCam1 (aC1),
-    mCam2 (aC2)
+    mCam1   (aC1),
+    mCam2   (aC2),
+    mCsRel1 (0),
+    mCsRel2 (0)
 {
+    cAppliTiepRed & anAppli = aC1->Appli();
+    if (anAppli.OrLevel()==eLevO_ByCple)
+    {
+         cVirtInterf_NewO_NameManager & aNM = anAppli.NM();
+         cResVINM  aRV = aNM.ResVINM(mCam1->NameIm() , mCam2->NameIm());
+         mCsRel1  = aRV.mCam1;
+         mCsRel2  = aRV.mCam2;
+         mHom     = new cElHomographie(aRV.mHom);
+    }
 }
+
+CamStenope & cLnk2ImTiepRed::CsRel1()
+{
+   ELISE_ASSERT(mCsRel1!=0,"cLnk2ImTiepRed::CsRel1");
+   return *mCsRel1;
+}
+CamStenope & cLnk2ImTiepRed::CsRel2()
+{
+   ELISE_ASSERT(mCsRel2!=0,"cLnk2ImTiepRed::CsRel1");
+   return *mCsRel2;
+}
+
+cElHomographie & cLnk2ImTiepRed::Hom()
+{
+   ELISE_ASSERT(mHom!=0,"cLnk2ImTiepRed::CsRel1");
+   return *mHom;
+}
+
+
 
 
 cCameraTiepRed &     cLnk2ImTiepRed::Cam1() {return *mCam1;}

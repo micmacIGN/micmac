@@ -54,7 +54,7 @@ void DumpOutput2( char* str , const char* format , ... );
 #define XSTR(x) STR(x)
 #define STR(x) #x
 #if DEFAULT_FULL_DEPTH
-#pragma message ( "[WARNING] Setting default full depth to " XSTR(DEFAULT_FULL_DEPTH) )
+//~ #pragma message ( "[WARNING] Setting default full depth to " XSTR(DEFAULT_FULL_DEPTH) )
 #endif // DEFAULT_FULL_DEPTH
 
 #if defined(_WIN32) || defined(_WIN64)

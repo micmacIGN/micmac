@@ -32,7 +32,7 @@ if ( ${qt_version} EQUAL 4)
     set(vmm_SRCS ${vmm_SRCS} ${SAISIE_DIR}/gl_core_2_1.c)
 endif()
 
-    set( HEADERS_nomoc
+    set(HEADERS_nomoc
        ${SAISIE_DIR}/include_QT/Elise_QT.h
        ${SAISIE_DIR}/include_QT/HistoryManager.h
        ${SAISIE_DIR}/include_QT/MatrixManager.h
@@ -44,82 +44,71 @@ endif()
        ${SAISIE_DIR}/include_QT/GLWidgetSet.h
        ${SAISIE_DIR}/include_QT/3DObject.h
        ${SAISIE_DIR}/include_QT/cgldata.h
-       ${SAISIE_DIR}/include_QT/mmglu.h )
+       ${SAISIE_DIR}/include_QT/mmglu.h)
 
-    set( HEADERS_tomoc
-       ${SAISIE_DIR}/include_QT/GLWidget.h
-       ${SAISIE_DIR}/include_QT/saisieQT_window.h
-       ${SAISIE_DIR}/include_QT/ContextMenu.h
-       ${SAISIE_DIR}/include_QT/Settings.h
-       ${SAISIE_DIR}/include_QT/QT_interface_Elise.h
-       ${SAISIE_DIR}/include_QT/Tree.h
-       ${SAISIE_DIR}/include_QT/WorkbenchWidget.h
-    )
+	set(HEADERS_tomoc
+		${SAISIE_DIR}/include_QT/GLWidget.h
+		${SAISIE_DIR}/include_QT/saisieQT_window.h
+		${SAISIE_DIR}/include_QT/ContextMenu.h
+		${SAISIE_DIR}/include_QT/Settings.h
+		${SAISIE_DIR}/include_QT/QT_interface_Elise.h
+		${SAISIE_DIR}/include_QT/Tree.h
+		${SAISIE_DIR}/include_QT/WorkbenchWidget.h
+		${Uti_Headers_ToMoc})
+	set(HEADERS_tomoc ${HEADERS_tomoc} PARENT_SCOPE)
 
-    set (ui_toWrap
-     ${SAISIE_DIR}/ui/saisieQT_window.ui
-     ${SAISIE_DIR}/ui/Settings.ui
-     ${SAISIE_DIR}/ui/Help.ui
-     ${SAISIE_DIR}/ui/WorkbenchWidget.ui
-    )
+	set(ui_toWrap
+		${SAISIE_DIR}/ui/saisieQT_window.ui
+		${SAISIE_DIR}/ui/Settings.ui
+		${SAISIE_DIR}/ui/Help.ui
+		${SAISIE_DIR}/ui/WorkbenchWidget.ui)
+	set(ui_toWrap ${ui_toWrap} PARENT_SCOPE)
 
    set (FILES_TO_TRANSLATE ${FILES_TO_TRANSLATE} ${vmm_SRCS} ${ui_toWrap} ${HEADERS_nomoc} ${HEADERS_Tomoc})
 
-   if ( ${qt_version} EQUAL 5 )
+	if ( ${qt_version} EQUAL 5 )
+		QT5_WRAP_CPP(HEADERS_moced ${HEADERS_tomoc})
+		set(qt_ressource_files "${SAISIE_DIR}/icones/icones.qrc")
+		QT5_ADD_RESOURCES(RC_SRCS ${qt_ressource_files})
+		qt5_wrap_ui(saisie_ui ${ui_toWrap})
 
-      set(CMAKE_INCLUDE_CURRENT_DIR ON)
+		if ( WIN32 )
+			add_definitions(-DELISE_windows)
+		ENDIF()
 
-      QT5_WRAP_CPP(HEADERS_moced ${HEADERS_tomoc} )
+		if( Qt5Core_FOUND )
+			include_directories(${Qt5Widgets_INCLUDE_DIRS})
+			include_directories(${Qt5Core_INCLUDE_DIRS})
+			include_directories(${Qt5Concurrent_INCLUDE_DIRS})
+			include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+			include_directories(${Qt5Xml_INCLUDE_DIRS})
+			include_directories(${Qt5Gui_INCLUDE_DIRS})
 
-      QT5_ADD_RESOURCES( RC_SRCS ${SAISIE_DIR}/icones/icones.qrc )
+			# Use the compile definitions defined in the Qt 5 Widgets module
+			add_definitions(${Qt5Widgets_DEFINITIONS})
+		endif()
+	elseif ( ${qt_version} EQUAL 4 )
+		QT4_ADD_RESOURCES( RC_SRCS ${SAISIE_DIR}/icones/icones.qrc )
 
-      qt5_wrap_ui(saisie_ui ${ui_toWrap})
+		QT4_WRAP_UI(saisie_ui ${ui_toWrap})
+		QT4_WRAP_CPP(HEADERS_moced ${HEADERS_tomoc})
 
-      add_definitions(-DTWEAK)
+		INCLUDE(${QT_USE_FILE})
+	endif()
 
-      if ( WIN32 )
-         add_definitions(-DELISE_windows)
-      ENDIF()
+	#~ for ui generated cpp files
+	INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
-      find_package(Qt5Core REQUIRED)
+	set(QT_ALLFILES ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${HEADERS_nomoc} ${saisie_ui})
+	set(elise_qt_files ${vmm_SRCS} PARENT_SCOPE)
+	set(HEADERS_tomoc ${HEADERS_tomoc} PARENT_SCOPE)
+	set(saisie_ui ${saisie_ui} PARENT_SCOPE)
+	set(qt_ressource_files ${qt_ressource_files} PARENT_SCOPE)
+	set(saisieQT_SRCS ${saisieQT_SRCS} PARENT_SCOPE)
 
-      if( Qt5Core_FOUND )
-
-        include_directories(${Qt5Widgets_INCLUDE_DIRS})
-        include_directories(${Qt5Core_INCLUDE_DIRS})
-        include_directories(${Qt5Concurrent_INCLUDE_DIRS})
-        include_directories(${Qt5OpenGL_INCLUDE_DIRS})
-        include_directories(${Qt5Xml_INCLUDE_DIRS})
-        include_directories(${Qt5Gui_INCLUDE_DIRS})
-
-         # Use the compile definitions defined in the Qt 5 Widgets module
-         add_definitions(${Qt5Widgets_DEFINITIONS})
-
-        # Add compiler flags for building executables (-fPIE)
-        if (NOT MSVC)
-           set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-        endif()
-
-      endif()
-
-   elseif ( ${qt_version} EQUAL 4 )
-
-      QT4_ADD_RESOURCES( RC_SRCS ${SAISIE_DIR}/icones/icones.qrc )
-
-      QT4_WRAP_UI(saisie_ui ${ui_toWrap})
-      QT4_WRAP_CPP(HEADERS_moced ${HEADERS_tomoc} )
-
-      INCLUDE(${QT_USE_FILE})
-      include_directories( ${PROJECT_BINARY_DIR} )
-      INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-   endif()
-
-   set(QT_ALLFILES ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${HEADERS_tomoc} ${HEADERS_nomoc} ${saisie_ui})
-   
    SOURCE_GROUP(QT\\ui FILES ${saisie_ui})
    SOURCE_GROUP(QT\\include FILES ${HEADERS_nomoc})
    SOURCE_GROUP(QT\\include FILES ${HEADERS_tomoc})
    SOURCE_GROUP(QT\\src FILES ${RC_SRCS})
    SOURCE_GROUP(QT\\src FILES ${vmm_SRCS})
-
 endif()

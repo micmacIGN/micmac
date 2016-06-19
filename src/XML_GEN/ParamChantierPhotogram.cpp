@@ -22779,6 +22779,17 @@ const std::vector< std::string > & cXml_ParamBoxReducTieP::Ims()const
    return mIms;
 }
 
+
+cTplValGesInit< std::string > & cXml_ParamBoxReducTieP::MasterIm()
+{
+   return mMasterIm;
+}
+
+const cTplValGesInit< std::string > & cXml_ParamBoxReducTieP::MasterIm()const 
+{
+   return mMasterIm;
+}
+
 void  BinaryUnDumpFromFile(cXml_ParamBoxReducTieP & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Box(),aFp);
@@ -22792,6 +22803,14 @@ void  BinaryUnDumpFromFile(cXml_ParamBoxReducTieP & anObj,ELISE_fp & aFp)
               anObj.Ims().push_back(aVal);
         }
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.MasterIm().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.MasterIm().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.MasterIm().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamBoxReducTieP & anObj)
@@ -22804,6 +22823,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamBoxReducTieP & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.MasterIm().IsInit());
+    if (anObj.MasterIm().IsInit()) BinaryDumpInFile(aFp,anObj.MasterIm().Val());
 }
 
 cElXMLTree * ToXMLTree(const cXml_ParamBoxReducTieP & anObj)
@@ -22818,6 +22839,8 @@ cElXMLTree * ToXMLTree(const cXml_ParamBoxReducTieP & anObj)
       it++
   ) 
       aRes->AddFils(::ToXMLTree(std::string("Ims"),(*it))->ReTagThis("Ims"));
+   if (anObj.MasterIm().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MasterIm"),anObj.MasterIm().Val())->ReTagThis("MasterIm"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -22833,9 +22856,68 @@ void xml_init(cXml_ParamBoxReducTieP & anObj,cElXMLTree * aTree)
    xml_init(anObj.BoxRab(),aTree->Get("BoxRab",1)); //tototo 
 
    xml_init(anObj.Ims(),aTree->GetAll("Ims",false,1));
+
+   xml_init(anObj.MasterIm(),aTree->Get("MasterIm",1)); //tototo 
 }
 
-std::string  Mangling( cXml_ParamBoxReducTieP *) {return "995840466C0231C4FE3F";};
+std::string  Mangling( cXml_ParamBoxReducTieP *) {return "28A391B7E44E3CB0FF3F";};
+
+
+Box2dr & cXml_ResOneImReducTieP::BoxIm()
+{
+   return mBoxIm;
+}
+
+const Box2dr & cXml_ResOneImReducTieP::BoxIm()const 
+{
+   return mBoxIm;
+}
+
+
+double & cXml_ResOneImReducTieP::Resol()
+{
+   return mResol;
+}
+
+const double & cXml_ResOneImReducTieP::Resol()const 
+{
+   return mResol;
+}
+
+void  BinaryUnDumpFromFile(cXml_ResOneImReducTieP & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.BoxIm(),aFp);
+    BinaryUnDumpFromFile(anObj.Resol(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ResOneImReducTieP & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.BoxIm());
+    BinaryDumpInFile(aFp,anObj.Resol());
+}
+
+cElXMLTree * ToXMLTree(const cXml_ResOneImReducTieP & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ResOneImReducTieP",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("BoxIm"),anObj.BoxIm())->ReTagThis("BoxIm"));
+   aRes->AddFils(::ToXMLTree(std::string("Resol"),anObj.Resol())->ReTagThis("Resol"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_ResOneImReducTieP & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.BoxIm(),aTree->Get("BoxIm",1)); //tototo 
+
+   xml_init(anObj.Resol(),aTree->Get("Resol",1)); //tototo 
+}
+
+std::string  Mangling( cXml_ResOneImReducTieP *) {return "20204B2249EDFDB0FCBF";};
 
 
 double & cXml_ParamGlobReducTieP::Resol()

@@ -213,12 +213,23 @@ ElRotation3D cNewO_NameManager::OriCam2On1(const std::string & aNOri1,const std:
 }
 
 
-std::pair<CamStenope*,CamStenope*> cNewO_NameManager::CamOriRel(const std::string & aN1,const std::string & aN2) const
+cResVINM::cResVINM() :
+   mCam1    (0),
+   mCam2    (0),
+   mHom     (cElHomographie::Id()),
+   mResHom  (-1)
 {
+}
+
+cResVINM cNewO_NameManager::ResVINM(const std::string & aN1,const std::string & aN2) const
+{
+    cResVINM  aRes;
     bool Ok;
     ElRotation3D aR2On1 = OriCam2On1(aN1,aN2,Ok);
     if (!Ok)
-        return std::pair<CamStenope*,CamStenope*>(0,0);
+    {
+        return aRes;
+    }
 
     CamStenope* aCam1 = CalibrationCamera(aN1)->Dupl();
     CamStenope* aCam2 = CalibrationCamera(aN2)->Dupl();
@@ -226,8 +237,25 @@ std::pair<CamStenope*,CamStenope*> cNewO_NameManager::CamOriRel(const std::strin
     aCam1->SetOrientation(ElRotation3D::Id);
     aCam2->SetOrientation(aR2On1);
 
-    return std::pair<CamStenope*,CamStenope*>(aCam1,aCam2);
+    aRes.mCam1 = aCam1;
+    aRes.mCam2 = aCam2;
+
+    cXml_Ori2Im  aXmlO = GetOri2Im(aN1,aN2);
+    aRes.mHom = cElHomographie(aXmlO.Geom().Val().HomWithR().Hom());
+    aRes.mResHom = aXmlO.Geom().Val().HomWithR().ResiduHom();
+
+    return aRes;
 }
+
+
+std::pair<CamStenope*,CamStenope*> cNewO_NameManager::CamOriRel(const std::string & aN1,const std::string & aN2) const
+{
+    cResVINM aRV =   ResVINM(aN1,aN2);
+
+    return  std::pair<CamStenope*,CamStenope*>(aRV.mCam1,aRV.mCam2);
+
+}
+
 
 
 //   cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2);

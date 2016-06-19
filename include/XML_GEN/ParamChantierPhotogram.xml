@@ -1965,7 +1965,14 @@
      <Box     Nb="1" Type="Box2dr">   </Box>
      <BoxRab  Nb="1" Type="Box2dr">   </BoxRab>
      <Ims   Nb="*" Type="std::string" Container="std::vector"> </Ims>
+     <MasterIm Nb="?" Type="std::string"> </MasterIm>
 </Xml_ParamBoxReducTieP>
+
+<Xml_ResOneImReducTieP Nb="1" Class="true" ToReference="true">
+     <BoxIm Nb="1" Type="Box2dr"> </BoxIm>
+     <Resol Nb="1" Type="double"> </Resol>
+</Xml_ResOneImReducTieP>
+
 
 <Xml_ParamGlobReducTieP Nb="1" Class="true" ToReference="true">
       <Resol Nb="1" Type="double"> </Resol>
