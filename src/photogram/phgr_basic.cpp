@@ -800,9 +800,8 @@ ElPackHomologue ElPackHomologue::FromFile(const std::string & aName)
                 if ( aFTxt.fgets( aBuf, End ) ) //if (aFTxt.fgets(aBuf,200,End)) TEST_OVERFLOW
                 {
                    Pt2dr aP1,aP2;
-                   sscanf(aBuf.c_str(),"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y); //sscanf(aBuf.c_str(),"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y); TEST_OVERFLOW
-
-                    aPck.Cple_Add(ElCplePtsHomologues(aP1,aP2,1.0));
+                   if (sscanf(aBuf.c_str(),"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y)==4) //sscanf(aBuf.c_str(),"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y); TEST_OVERFLOW
+                     aPck.Cple_Add(ElCplePtsHomologues(aP1,aP2,1.0));
                 }
             }
 

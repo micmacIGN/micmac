@@ -210,8 +210,13 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    mW             (0),
    mSelAllIm      (aSelAllIm)
 {
+    Pt2dr aInf1(1e60,1e60);
+    Pt2dr aInf2(1e60,1e60);
+    Pt2dr aSup1(-1e60,-1e60);
+    Pt2dr aSup2(-1e60,-1e60);
     // Sauvegarde des point hom flottants 
     {
+ 
         const tLMCplP & aLM = mMergePH->ListMerged();
         tVP2f aVP1;
         tVP2f aVP2;
@@ -220,7 +225,12 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
          for ( tLMCplP::const_iterator itC=aLM.begin() ; itC!=aLM.end() ; itC++)
          {
              const Pt2dr & aP1 = (*itC)->GetVal(0);
+             aInf1 = Inf(aInf1,aP1);
+             aSup1 = Sup(aSup1,aP1);
              const Pt2dr & aP2 = (*itC)->GetVal(1);
+             aInf2 = Inf(aInf2,aP2);
+             aSup2 = Sup(aSup2,aP2);
+
              aVP1.push_back(Pt2df(aP1.x,aP1.y));
              aVP2.push_back(Pt2df(aP2.x,aP2.y));
              aVNb.push_back((*itC)->NbArc());
@@ -237,6 +247,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
    mXml.Im1()   = mI1->Name();
    mXml.Im2()   = mI2->Name();
+   mXml.Box1() = Box2dr(aInf1,aSup1);
+   mXml.Box2() = Box2dr(aInf2,aSup2);
    mXml.Calib() =  mI1->NM().OriCal();
    mXml.NbPts() = mPackPStd.size();
    mXml.Foc1()  = mI1->CS()->Focale();
@@ -399,7 +411,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
                               );
        if (ShowDetailHom) std::cout << "THom0= " << aChrono.uval() << "\n";
        aXCmp.HomWithR().Hom() = aHom.ToXml();
-       aXCmp.HomWithR().ResiduHom() = aDist * FocMoy();
+       aXCmp.HomWithR().ResiduHom() = aDist ;
        double aRecHom = RecouvrtHom(aHom);
        if (ShowDetailHom) std::cout << "THom1= " << aChrono.uval() << "\n";
           if (mShow)

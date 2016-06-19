@@ -1416,6 +1416,8 @@
      <Foc2 Nb="1" Type="double"  > </Foc2>
      <FocMoy Nb="1" Type="double"  > </FocMoy>
      <Geom Nb="?" RefType="Xml_O2IComputed"> </Geom>
+     <Box1 Nb="1" Type="Box2dr">             </Box1>
+     <Box2 Nb="1" Type="Box2dr">             </Box2>
 </Xml_Ori2Im>
 
 

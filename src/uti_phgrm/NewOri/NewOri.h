@@ -300,6 +300,8 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            CamStenope * OutPutCamera(const std::string & aName) const;
            CamStenope * CalibrationCamera(const std::string  & aName) const;
            std::pair<CamStenope*,CamStenope*> CamOriRel(const std::string & aN1,const std::string & aN2) const;
+
+           cResVINM  ResVINM(const std::string &,const std::string &) const;
            // L'orientation Cam2Monde de 2 sur 1
            ElRotation3D OriCam2On1(const std::string & aN1,const std::string & aN2,bool &OK) const;
            std::string NameListeCpleOriented(bool Bin) const;

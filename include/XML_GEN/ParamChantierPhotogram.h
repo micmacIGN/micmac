@@ -7369,10 +7369,14 @@ class cXml_ParamBoxReducTieP
 
         std::vector< std::string > & Ims();
         const std::vector< std::string > & Ims()const ;
+
+        cTplValGesInit< std::string > & MasterIm();
+        const cTplValGesInit< std::string > & MasterIm()const ;
     private:
         Box2dr mBox;
         Box2dr mBoxRab;
         std::vector< std::string > mIms;
+        cTplValGesInit< std::string > mMasterIm;
 };
 cElXMLTree * ToXMLTree(const cXml_ParamBoxReducTieP &);
 
@@ -7381,6 +7385,34 @@ void  BinaryDumpInFile(ELISE_fp &,const cXml_ParamBoxReducTieP &);
 void  BinaryUnDumpFromFile(cXml_ParamBoxReducTieP &,ELISE_fp &);
 
 std::string  Mangling( cXml_ParamBoxReducTieP *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_ResOneImReducTieP
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ResOneImReducTieP & anObj,cElXMLTree * aTree);
+
+
+        Box2dr & BoxIm();
+        const Box2dr & BoxIm()const ;
+
+        double & Resol();
+        const double & Resol()const ;
+    private:
+        Box2dr mBoxIm;
+        double mResol;
+};
+cElXMLTree * ToXMLTree(const cXml_ResOneImReducTieP &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ResOneImReducTieP &);
+
+void  BinaryUnDumpFromFile(cXml_ResOneImReducTieP &,ELISE_fp &);
+
+std::string  Mangling( cXml_ResOneImReducTieP *);
 
 /******************************************************/
 /******************************************************/

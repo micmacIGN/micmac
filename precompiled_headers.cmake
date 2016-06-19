@@ -50,10 +50,8 @@ if(WITH_HEADER_PRECOMP)
 			#SET(_source "${CMAKE_CURRENT_SOURCE_DIR}/${PRECOMPILED_HEADER}")
 			SET(_source "${PROJECT_SOURCE_DIR}/include/${PRECOMPILED_HEADER}")
 
-			#SET(_outdir "${CMAKE_CURRENT_SOURCE_DIR}/${_name}.${EXT_HP}")
-			SET(_outdir "${PROJECT_SOURCE_DIR}/include/${_name}.${EXT_HP}")
-			MAKE_DIRECTORY(${_outdir})
-			SET(_output "${_outdir}/.c++")
+			set(precompiled_header "${CMAKE_SOURCE_DIR}/include/${PRECOMPILED_HEADER}.${EXT_HP}")
+			set(precompiled_header ${precompiled_header} PARENT_SCOPE)
 
 			STRING(TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" _flags_var_name)
 						SET(_compiler_FLAGS ${${_flags_var_name}} ${EXTRA_CXX_FLAGS})
@@ -69,12 +67,11 @@ if(WITH_HEADER_PRECOMP)
 			endforeach()
 
 			SEPARATE_ARGUMENTS(_compiler_FLAGS)
-			#MESSAGE("${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} ${OPTION_HP} -o ${_output} ${_source}")
 			ADD_CUSTOM_COMMAND(
-				OUTPUT ${_output}
-				COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header -o ${_output} ${_source}
+				OUTPUT ${precompiled_header}
+				COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header ${_source}
 				DEPENDS ${_source} IMPLICIT_DEPENDS CXX ${_source})
-				ADD_CUSTOM_TARGET(${TARGET_NAME}_${EXT_HP} DEPENDS ${_output})
+				ADD_CUSTOM_TARGET(${TARGET_NAME}_${EXT_HP} DEPENDS ${precompiled_header})
 
 			ADD_DEPENDENCIES(${TARGET_NAME} ${TARGET_NAME}_${EXT_HP})
 			SET_TARGET_PROPERTIES(${TARGET_NAME}_${EXT_HP} PROPERTIES COMPILE_FLAGS "-include ${_name} -Winvalid-pch")

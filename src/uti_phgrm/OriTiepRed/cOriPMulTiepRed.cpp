@@ -67,7 +67,7 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
          cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
          Pt2dr aPCam = aCam->Hom2Cam(aVHom[aKP]);
          aVPt.push_back(aPCam);
-         aVSeg.push_back(aCam->CS().Capteur2RayTer(aPCam));
+         aVSeg.push_back(aCam->CsOr().Capteur2RayTer(aPCam));
     }
 
     bool Ok;
@@ -76,7 +76,7 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
     for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
     {
          cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
-         Pt2dr aPProj = aCam->CS().Ter2Capteur(aPTer);
+         Pt2dr aPProj = aCam->CsOr().Ter2Capteur(aPTer);
          double aDist = euclid(aPProj,aVPt[aKP]);
          aSomDist += aDist;
     }

@@ -173,9 +173,9 @@ void GLWidget::paintGL()
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    if (hasDataLoaded())
-    {
-        _matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,getZoom());
+	if (hasDataLoaded())
+	{
+		_matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,getZoom());
 
 		#ifdef DUMP_GL_DATA
 			ELISE_DEBUG_ERROR( !__exist_cGLData(m_GLData), "GLWidget::paintGL", "m_GLData = " << m_GLData << " does not exist");

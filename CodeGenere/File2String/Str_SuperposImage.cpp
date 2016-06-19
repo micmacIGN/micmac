@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1824]) = {
+const char * (theNameVar_SuperposImage[1827]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -72,6 +72,7 @@ const char * (theNameVar_SuperposImage[1824]) = {
 "        <eModeNO_StdNoTTK> </eModeNO_StdNoTTK> <!-- Supprime Tom Kan , car plante encore parfois -->\n",
 "        <eModeNO_NbVals>  </eModeNO_NbVals> <!-- LastValue -->\n",
 "    </enum>\n",
+"\n",
 "\n",
 "    <LutConvertion  Nb=\"1\"  Class=\"true\" ToReference=\"true\">\n",
 "         <IntervLutConvertion Nb=\"+\"  Container=\"std::vector\">\n",
@@ -1417,6 +1418,8 @@ const char * (theNameVar_SuperposImage[1824]) = {
 "     <Foc2 Nb=\"1\" Type=\"double\"  > </Foc2>\n",
 "     <FocMoy Nb=\"1\" Type=\"double\"  > </FocMoy>\n",
 "     <Geom Nb=\"?\" RefType=\"Xml_O2IComputed\"> </Geom>\n",
+"     <Box1 Nb=\"1\" Type=\"Box2dr\">             </Box1>\n",
+"     <Box2 Nb=\"1\" Type=\"Box2dr\">             </Box2>\n",
 "</Xml_Ori2Im>\n",
 "\n",
 "\n",

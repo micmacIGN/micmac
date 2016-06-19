@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 NS_OriTiePRed_BEGIN
 
+
 /**********************************************************************/
 /*                                                                    */
 /*                         cAppliTiepRed                              */
@@ -48,7 +49,7 @@ NS_OriTiePRed_BEGIN
 /**********************************************************************/
 
 
-cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
+cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
      mFilesIm                 (0),
      mPrec2Point              (5.0),
      mThresholdPrecMult       (2.0),  // Multiplier of Mediane Prec, can probably be stable
@@ -61,10 +62,16 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
      mMulBoxRab               (0.15),
      mParal                   (true),
      mVerifNM                 (false),
-     mStrOut                  ("TiePRed")
+     mStrOut                  ("TiePRed"),
+     mFromRatafiaGlob         (false),
+     mIntOrLevel              (eLevO_Glob)
+     
 {
    // Read parameters 
-   MMD_InitArgcArgv(argc,argv);
+   if (! CalledFromInside)
+   {
+      MMD_InitArgcArgv(argc,argv);
+   }
    ElInitArgMain
    (
          argc,argv,
@@ -77,7 +84,12 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
                      << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber, Def=" + ToString(mMulVonGruber))
                      << EAM(mParal,"Paral",true,"Do it paral, def=true")
                      << EAM(mVerifNM,"VerifNM",true,"(Internal) Verification of Virtual Name Manager")
+                     << EAM(mFromRatafiaGlob,"FromRG",true,"(Internal) called by ratagia at top level")
+                     << EAM(mIntOrLevel,"LevelOr",true,"(Internal when call by ratafia) level of orientation")
    );
+
+
+
    // if mKBox was set, we are not the master call (we are the "subcommand")
    mCallBack = EAMIsInit(&mKBox);
    mDir = DirOfFile(mPatImage);
@@ -87,14 +99,25 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    {
       StdCorrecNameOrient(mCalib,mDir);
    }
+
    
    if (mCallBack)  // Subcommand mode, initialise set of file for Param_K.xml
    {
        mXmlParBox = StdGetFromPCP(NameParamBox(mKBox,true),Xml_ParamBoxReducTieP);
+       mModeIm = mXmlParBox.MasterIm().IsInit();
+       if (mModeIm)
+       {
+           mMasterIm =  mXmlParBox.MasterIm().Val();
+           if (! EAMIsInit(&mIntOrLevel)) 
+           {
+              mIntOrLevel = eLevO_ByCple;
+           }
+       }
        mBoxLoc = mXmlParBox.Box();
        mBoxRabLoc = mXmlParBox.BoxRab();
        mFilesIm = &(mXmlParBox.Ims());
        std::cout << "=======================   KBOX=" << mKBox << "  ===================\n";
+
    }
    else  // Master command, initialise from pattern
    {
@@ -102,6 +125,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
        // anEASF.Init(mPatImage);
        mFilesIm = anEASF.SetIm();
    }
+   mOrLevel = (eLevelOr) mIntOrLevel;
 
 
    mSetFiles = new std::set<std::string>(mFilesIm->begin(),mFilesIm->end());
@@ -114,40 +138,64 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
    Pt2dr aPInf( 1E50, 1E50);
    Pt2dr aPSup(-1E50,-1E50);
 
+   if (mFromRatafiaGlob)
+   {
+      MkDirSubir();
+      return;
+   }
    // Parse the images 
    for (int aKI = 0 ; aKI<int(mFilesIm->size()) ; aKI++)
    {
        const std::string & aNameIm = (*mFilesIm)[aKI];
         // Get the camera created by Martini 
-       CamStenope * aCS = mNM->OutPutCamera(aNameIm);
-       cCameraTiepRed * aCam = new cCameraTiepRed(*this,aNameIm,aCS);
+       CamStenope * aCsOr = 0;
+       if (mOrLevel >= eLevO_Glob)
+       {
+          aCsOr = mNM->OutPutCamera(aNameIm);
+       }
+       // CamStenope * aCsOr = mNM->OutPutCamera(aNameIm);
+
+       CamStenope * aCsCal = aCsOr ? aCsOr : mNM->CalibrationCamera(aNameIm) ;
+       cCameraTiepRed * aCam = new cCameraTiepRed(*this,aNameIm,aCsOr,aCsCal);
        
        // Put them in vector and map
        mVecCam.push_back(aCam);
        mMapCam[aNameIm] = aCam;
 
-       // get box of footprint and resolution
-       Box2dr aBox = aCam->CS().BoxSol();
-       aPInf = Inf(aBox._p0,aPInf);
-       aPSup = Sup(aBox._p1,aPSup);
-       aVResol.push_back(aCam->CS().ResolutionSol());
-       // std::cout << "BBB " << aBox._p0 << aBox._p1 << " " <<  aCam->CS().ResolutionSol() << "\n";
-   }
-   // Memorize the global box
-   mBoxGlob = Box2dr(aPInf,aPSup);
-   // Get a global resolution as mediane of each resolution
-   mResol = MedianeSup(aVResol);
+       if (aCsOr)
+       {
+          // get box of footprint and resolution
+          Box2dr aBox = aCam->CsOr().BoxSol();
+          aPInf = Inf(aBox._p0,aPInf);
+          aPSup = Sup(aBox._p1,aPSup);
+          aVResol.push_back(aCam->CsOr().ResolutionSol());
+       }
 
+       // std::cout << "bBBhYu " << aBox._p0 << aBox._p1 << " " <<  aCam->CS().ResolutionSol() << "\n";
+   }
+
+   if (mModeIm)
+   {
+      cXml_ResOneImReducTieP aXRIT = StdGetFromPCP(NameXmlOneIm(mMasterIm,true),Xml_ResOneImReducTieP);
+      mBoxGlob = aXRIT.BoxIm();
+      mResol   = aXRIT.Resol();
+   }
+   else
+   {
+      // Memorize the global box
+      mBoxGlob = Box2dr(aPInf,aPSup);
+      // Get a global resolution as mediane of each resolution
+      mResol = MedianeSup(aVResol);
+   }
    
    std::cout << "   BOX " << mBoxGlob << " Resol=" << mResol << "\n";
 }
-
 
 const std::string cAppliTiepRed::TheNameTmp = "Tmp-ReducTieP/";
 
 std::string  cAppliTiepRed::NameParamBox(int aK,bool Bin) const
 {
-    return mDir+TheNameTmp + "Param_" +ToString(aK) + (Bin ? ".xml" : ".dmp");
+    return mDir+TheNameTmp + "Param_" +ToString(aK) + (Bin ? ".dmp" : ".xml");
 }
 
 std::string  cAppliTiepRed::DirOneImage(const std::string &aName) const
@@ -155,14 +203,19 @@ std::string  cAppliTiepRed::DirOneImage(const std::string &aName) const
    return mDir+TheNameTmp + aName + "/";
 }
 
+std::string  cAppliTiepRed::NameXmlOneIm(const std::string &aName,bool Bin) const
+{
+    return DirOneImage(aName) +"ResOneIm." + (Bin ? "dmp" : "xml");
+}
+
+
 std::string  cAppliTiepRed::NameHomol(const std::string &aName1,const std::string &aName2,int aK) const
 {
    return DirOneImage(aName1) + "KBOX" + ToString(aK) + "-" + aName2  + ".dat";
 }
 
 
-
-
+eLevelOr cAppliTiepRed::OrLevel() const {return mOrLevel;}
 cVirtInterf_NewO_NameManager & cAppliTiepRed::NM(){ return *mNM ;}
 const cXml_ParamBoxReducTieP & cAppliTiepRed::ParamBox() const {return mXmlParBox;}
 const double & cAppliTiepRed::ThresoldPrec2Point() const {return  mPrec2Point;}
@@ -212,9 +265,7 @@ void ShowPoly(const cElPolygone & aPoly)
 }
 
 
-
-
-void cAppliTiepRed::GenerateSplit()
+void cAppliTiepRed::MkDirSubir()
 {
     ELISE_fp::PurgeDirRecursif(mDir+TheNameTmp);
     ELISE_fp::MkDirSvp(mDir+TheNameTmp);
@@ -223,6 +274,12 @@ void cAppliTiepRed::GenerateSplit()
        const std::string & aNameIm = (*mFilesIm)[aKI];
        ELISE_fp::MkDirSvp(DirOneImage(aNameIm));
     }
+}
+
+
+void cAppliTiepRed::GenerateSplit()
+{
+    MkDirSubir();
 
     Pt2dr aSzPix = mBoxGlob.sz() / mResol; // mBoxGlob.sz()  mResol => local refernce,  aSzPix => in pixel (average)
     Pt2di aNb = round_up(aSzPix / double(mSzTile));  // Compute the number of boxes
@@ -243,7 +300,6 @@ void cAppliTiepRed::GenerateSplit()
              Box2dr aBox(aP0,aP1);                                     // Box of tile
              Box2dr aBoxRab(aP0-aSzTile*mMulBoxRab,aP1+aSzTile*mMulBoxRab);
              cElPolygone aPolyBox = cElPolygone::FromBox(aBoxRab);      // Box again in polygon
-             // std::cout << "JJJJJjj " << aP0 << aP1 << "\n";
              cXml_ParamBoxReducTieP aParamBox;                           // XML/C++ Structure to save
              aParamBox.Box() = aBox;                                     // Memorize the box of tile
              aParamBox.BoxRab() = aBoxRab;                               // Memorize the box of tile
@@ -252,7 +308,7 @@ void cAppliTiepRed::GenerateSplit()
              for (int aKC=0 ; aKC<int(mVecCam.size()) ; aKC++)
              {
                    // Intersection between footprint and box (see class cElPolygone)
-                   cElPolygone  aPolInter = aPolyBox  * mVecCam[aKC]->CS().EmpriseSol(); 
+                   cElPolygone  aPolInter = aPolyBox  * mVecCam[aKC]->CsOr().EmpriseSol(); 
                    // If polygon not empty
 
                    if (aPolInter.Surf() > 0) 
@@ -280,7 +336,7 @@ void cAppliTiepRed::GenerateSplit()
                      for (int aKC2=0; aKC2<int(aVCamSel.size()) ; aKC2++)
                      {
                          cCameraTiepRed * aCam2 = aVCamSel[aKC2];
-                         cElPolygone  aPolInter = aPolyBox  * aCam1->CS().EmpriseSol() *  aCam2->CS().EmpriseSol();
+                         cElPolygone  aPolInter = aPolyBox  * aCam1->CsOr().EmpriseSol() *  aCam2->CsOr().EmpriseSol();
                          if (aPolInter.Surf() > 0)
                          {
                             aCam1->AddCamBox(aCam2,aCpt);

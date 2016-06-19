@@ -309,6 +309,17 @@ class cChantierAppliWithSetImage;
 class cCWWSImage;
 const cCWWSImage * GetFromCAWSI(const cChantierAppliWithSetImage & ,const std::string & );
 
+class cResVINM
+{
+   public :
+       cResVINM();
+
+       CamStenope*     mCam1;
+       CamStenope*     mCam2;
+       cElHomographie  mHom;
+       double          mResHom;
+   private :
+};
 
 class cVirtInterf_NewO_NameManager
 {
@@ -322,7 +333,10 @@ class cVirtInterf_NewO_NameManager
 
            virtual std::list<std::string>  ListeImOrientedWith(const std::string & aName) const = 0;
 
-            virtual std::pair<CamStenope*,CamStenope*> CamOriRel(const std::string &,const std::string &) const =0;
+           virtual std::pair<CamStenope*,CamStenope*> CamOriRel(const std::string &,const std::string &) const =0;
+           virtual cResVINM  ResVINM(const std::string &,const std::string &) const =0;
+
+           
 
 
            // for a given pair of image, load the tie points (in two vector of point)

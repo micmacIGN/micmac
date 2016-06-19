@@ -133,8 +133,10 @@ void Verif(Pt2df aPf)
 void cAppliTiepRed::DoReduceBox()
 {
 
+if (mModeIm) { std::cout << "LU CAM  JJJJJJJJJMODIMME \n";  }
 
     DoLoadTiePoints();
+if (mModeIm) { std::cout << "LLLLLllllloeded \n"; getchar(); }
     DoFilterCamAnLinks();
     // == OK
 
