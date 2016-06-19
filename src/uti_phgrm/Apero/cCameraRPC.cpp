@@ -3103,8 +3103,8 @@ int CropRPC_main(int argc,char ** argv)
         (
          argc, argv,
          LArgMain() << EAMC(aCropName,"Orientation file of the image defining the crop extent (in cXml_CamGenPolBundle format)")
-                    << EAMC(aFullName,"Pattern of orientation files to be cropped accordinly (in cXml_CamGenPolBundle format)")
-                    << EAMC(aDirSav, "Directory of output orientation files (Def=Ori-Crop)"),
+                    << EAMC(aFullName,"Pattern of orientation files to be cropped accordingly (in cXml_CamGenPolBundle format)")
+                    << EAMC(aDirSav, "Directory of output orientation files"),
          LArgMain() << EAM(aO,"Org", true, "Origin of the rectangular crop; Def=[100,100]")
                     << EAM(aSz,"Sz", true, "Size of the crop; Def=[10000,10000]")
         );
