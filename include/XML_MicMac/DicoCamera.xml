@@ -333,6 +333,11 @@
 		<ShortName> Loemi </ShortName>
 	</CameraEntry>
 	<CameraEntry>
+		<Name> CamLightLOEMI </Name> <!-- infos pour The Viabon dataset-->
+		<SzCaptMm>  32.7 24.5 </SzCaptMm>
+		<ShortName> CamLightLOEMI </ShortName>
+	</CameraEntry>
+	<CameraEntry>
         <Name>  Phase One P 20 </Name>
         <SzCaptMm>   36.9 36.9 </SzCaptMm>
         <ShortName> Ph1p20  </ShortName>
