@@ -417,3 +417,4 @@ binaire-aux/darwin/PoissonRecon
 binaire-aux/darwin/Rnx2rtkp
 binaire-aux/darwin/SurfaceTrimmer
 include/StdAfx.h.gch
+include/StdAfx.h.pch

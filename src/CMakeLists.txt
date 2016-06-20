@@ -139,7 +139,7 @@ set(Elise_Src_Files
 	${ORIPHO_DIR}/cOriMntCarto.cpp
 )
 
-if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
+if (WINDOWS)
 	set(Elise_Src_Files ${Elise_Src_Files} ${UTIL_DIR}/win_regex.c)
 endif()
 
@@ -176,7 +176,7 @@ else()
 	add_library(${libElise} ${Elise_Src_Files} ${QT_ALLFILES})
 endif()
 
-target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_LIBRARIES})
+target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_CMAKE_LIBRARIES})
 
 if( ${qt_version} EQUAL 5 )
 	qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
