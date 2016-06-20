@@ -111,8 +111,9 @@ void cVirtualInterface::InitVNameCase()
              itN++
              )
     {
-        // const std::string aName = itN->c_str();
-        std::vector<std::string> aNew = mAppli->ICNM()->StdGetVecStr(*itN);
+        std::vector<std::string> aNew;
+        if (ELISE_fp::exist_file(*itN)) aNew = mAppli->ICNM()->StdGetVecStr(*itN);
+
         for (int aK=0 ; aK< (int)aNew.size(); aK++)
         {
             mVNameCase.push_back(cCaseNamePoint(aNew[aK],eCaseStd));
