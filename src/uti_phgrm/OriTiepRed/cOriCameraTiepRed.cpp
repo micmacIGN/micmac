@@ -73,8 +73,8 @@ cCameraTiepRed::cCameraTiepRed
    mSzIm         (mMTD.TifSzIm()),
    mResolPds     (anAppli.ModeIm() ? 20.0 : 200.0),
    mSzPds        (round_up(Pt2dr(mSzIm)/mResolPds)),
-   mImPds        (mSzPds.x,mSzPds.y,0.0),
-   mTImPds       (mImPds)
+   mIMasqM       (mSzPds.x,mSzPds.y,0),
+   mTMasqM       (mIMasqM)
 {
    if (mAppli.FromRatafiaBox())
    {
@@ -143,9 +143,17 @@ Pt3dr cCameraTiepRed::BundleIntersection(const Pt2df & aPH1,const cCameraTiepRed
     
 }
 
+
+
+
 void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
 {
-
+    Im2D_REAL4          aImPdsP(mSzPds.x,mSzPds.y,0.0);
+    TIm2D<REAL4,REAL8>  aTImPdsP(aImPdsP);
+    int                 aNbP=0;
+    Im2D_REAL4          aImPdsM(mSzPds.x,mSzPds.y,0.0);
+    TIm2D<REAL4,REAL8>  aTImPdsM(aImPdsM);
+    int                 aNbM =0;
 
     // Declare Input Tie Points
     std::vector<Pt2df> aVPIn1,aVPIn2;
@@ -198,7 +206,17 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
              if (mIsMaster)
              {
                   Ok =  mAppli.ParamBox().BoxRab().inside(Pt2dr(aPf1.x,aPf1.y));
-                  aCam2.mTImPds.incr(ToImagePds(aP2),Ok ? 1.0 : -0.9);
+                  Pt2dr aPP = ToImagePds(aP2);
+                  if (Ok)
+                  {
+                     aNbP++;
+                     aTImPdsP.incr(aPP,1.0);
+                  }
+                  else
+                  {
+                     aNbM++;
+                     aTImPdsM.incr(aPP,1.0);
+                  }
              }
         }
         else
@@ -212,6 +230,17 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
             aVPOut2.push_back(aVPIn2[aKP]);
         }
     }
+
+    if (mIsMaster)
+    {
+         double 	DMoy = sqrt((mSzPds.x*mSzPds.y) / double(aNbP + aNbP));
+         FilterGauss(aImPdsP,DMoy*2);
+         FilterGauss(aImPdsM,DMoy*2);
+
+         ELISE_COPY(mIMasqM.all_pts(),255*(aImPdsP.in()/ Max(aImPdsM.in()+aImPdsP.in(),1e-10)), mIMasqM.out());
+         // Tiff_Im::CreateFromIm(mIMasqM,"MasqRatafia-"+aCam2.NameIm() + ".tif");
+    }
+
     std::cout << "GGg " <<  aSomRes / aNbRes 
               << " MED " <<  KthValProp(aVRes,0.5) 
               << " 90%=" << KthValProp(aVRes,0.9)  

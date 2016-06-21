@@ -168,6 +168,8 @@ class cCameraTiepRed
 
         Pt2dr ToImagePds(const Pt2dr & aP) const;
 
+        void MakeImPds();
+
     private :
         void SaveHom( cCameraTiepRed*,const std::list<int> & aLBox);
         cCameraTiepRed(const cCameraTiepRed &); // Not Implemented
@@ -184,11 +186,11 @@ class cCameraTiepRed
         cXml_RatafiaSom *   mXRat;
         bool                mIsMaster;
 
-        Pt2di                            mSzIm;
-        double                           mResolPds;
-        Pt2di                            mSzPds;
-        Im2D_REAL4                       mImPds;
-        TIm2D<REAL4,REAL8>               mTImPds;
+        Pt2di               mSzIm;
+        double              mResolPds;
+        Pt2di               mSzPds;
+        Im2D<U_INT1,INT4>   mIMasqM;
+        TIm2D<U_INT1,INT4>  mTMasqM;
 };
 
 class cLnk2ImTiepRed

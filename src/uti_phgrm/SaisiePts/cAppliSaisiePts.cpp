@@ -396,6 +396,11 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
         std::string aPref = StdPrefix(aPat);
         mGlobLInputSec  =  *(mICNM->Get("Tmp-SL-Glob-" + aPref  +".xml"));
         mPtImInputSec   =  *(mICNM->Get("Tmp-SL-Im-" + aPref  +".xml"));
+if(MPD_MM())
+{
+   std::cout << "HHHHHH mGlobLInputSec " <<  mGlobLInputSec.size() << "\n";
+   getchar();
+}
     }
 
     InitImages();
