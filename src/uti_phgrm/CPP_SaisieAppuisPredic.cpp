@@ -80,7 +80,7 @@ void SaisieAppuisPredic(int argc, char ** argv,
                             << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
                             << EAM(aMasq3D,"Masq3D",true,"3D Masq used for visibility", eSAM_NoInit)
                             << EAM(PIMsFilter,"PIMsF",true,"PIMs filter used for visibility", eSAM_NoInit)
-                            << EAM(aInputSec,"InputSec",true,"PIMs filter used for visibility", eSAM_NoInit)
+                            << EAM(aInputSec,"InputSec",true,"For inmporting Other Inputs", eSAM_NoInit)
                 );
 
     if (!MMVisualMode)
