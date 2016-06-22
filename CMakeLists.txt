@@ -33,6 +33,14 @@ function(include_dirs_to_flags include_dirs flags)
 	set(${flags} ${${flags}} PARENT_SCOPE)
 endfunction()
 
+if (POLICY CMP0054)
+	cmake_policy(SET CMP0054 NEW)
+endif()
+
+if (POLICY CMP0043)
+	cmake_policy(SET CMP0043 NEW)
+endif()
+
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 	set(CMAKE_CXX_COMPILER_IS_CLANG 1)
 endif()
@@ -206,6 +214,7 @@ if(${WITH_QT5} OR ${WITH_QT4})
 
 				set(qt_version 5)
 				set(QT_LIBRARIES Qt5Core Qt5Gui Qt5Xml Qt5OpenGL)
+				link_directories(${QT_INSTALL_LIBS})
 
 				set(QT_INCLUDE_DIRS "${Qt5Core_INCLUDE_DIRS};${Qt5Widgets_INCLUDE_DIRS};${QtXml_INCLUDE_DIRS};${Qt5Concurrent_INCLUDE_DIRS};${Qt5OpenGL_INCLUDE_DIRS}")
 				list(REMOVE_DUPLICATES QT_INCLUDE_DIRS)
@@ -645,7 +654,6 @@ IF (MSVC)
 	 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 	 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 endif()
-
 
 set(BUILD_PATH_BIN  ${PROJECT_SOURCE_DIR}/bin CACHE PATH "binaires install path")
 set(BUILD_PATH_LIB  ${PROJECT_SOURCE_DIR}/lib CACHE PATH "library install path")
