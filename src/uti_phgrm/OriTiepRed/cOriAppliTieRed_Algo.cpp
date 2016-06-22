@@ -53,7 +53,7 @@ NS_OriTiePRed_BEGIN
 
 
 
-void cAppliTiepRed::DoLoadTiePoints()
+void cAppliTiepRed::DoLoadTiePoints(bool DoMaster)
 {
    // Load Tie Points in box
    for (int aKI = 0 ; aKI<int(mVecCam.size()) ; aKI++)
@@ -69,16 +69,38 @@ void cAppliTiepRed::DoLoadTiePoints()
             // As the martini result may containi much more file 
             if (mSetFiles->find(anI2) != mSetFiles->end())
             {
+               cCameraTiepRed & aCam2 = *(mMapCam[anI2]);
                // The result being symetric, the convention is that some data are stored only for  I1 < I2
-               if (anI1 < anI2)
+
+               if (DoMaster)
                {
-                   cCameraTiepRed & aCam2 = *(mMapCam[anI2]);
-                   aCam1.LoadHom(aCam2);
+                   if (aCam1.IsMaster() || aCam2.IsMaster())
+                   {
+                       if (anI1 < anI2)
+                          aCam1.LoadHom(aCam2);
+                        else
+                          aCam2.LoadHom(aCam1);
+                   }
+               }
+               else  
+               {
+                   if ( (! aCam1.IsMaster()) && (!aCam1.IsMaster()))
+                   {
+                       ELISE_ASSERT(anI1<anI2,"Name Sort incAppliTiepRed::DoLoadTiePoints ");
+                       aCam1.LoadHom(aCam2);
+                   }
                }
             }
        }
    }
 }
+
+void cAppliTiepRed::DoLoadTiePoints()
+{
+    DoLoadTiePoints(true);
+    DoLoadTiePoints(false);
+}
+
 
 void cAppliTiepRed::DoFilterCamAnLinks()
 {
@@ -133,11 +155,14 @@ void Verif(Pt2df aPf)
 void cAppliTiepRed::DoReduceBox()
 {
 
-if (mModeIm) { std::cout << "LU CAM  JJJJJJJJJMODIMME \n";  }
 
     DoLoadTiePoints();
-if (mModeIm) { std::cout << "LLLLLllllloeded \n"; getchar(); }
     DoFilterCamAnLinks();
+if (mModeIm) 
+{ 
+    std::cout << "EXITTTTtt FILTER AND LINK \n"; 
+    exit(EXIT_SUCCESS);
+}
     // == OK
 
    // merge topological tie point
