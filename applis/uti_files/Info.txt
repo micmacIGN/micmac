@@ -1,0 +1,171 @@
+exiv2 -M"set Exif.Photo.FocalLength 124/1" IMGP3491.PEF
+exiv2 -M"set Exif.Photo.FocalLengthIn35mmFilm 124" IMGP3491.PEF
+exiv2 -m"cmd.txt"  IMGP3491.PEF 
+
+cmd.txt=
+set Exif.Photo.FocalLength 120/1
+set Exif.Photo.FocalLengthIn35mmFilm 180
+
+set Exif.Photo.ApertureValue 35/10
+
+
+
+
+
+TrjBFXML.cpp : Conversion des donnes filees par Benjamin ferrand 
+(standard ?) en donnees XML
+
+
+ArcDtRename.cpp : rename speciale pour l'arc de triomphe
+(sans doute pas reutilisable, mais bon ...)
+
+
+
+
+bin/MapCmd convert "P=/media/MYPASSPORT/Archi/Aigues-Mortes/Facade-Tour-Reine/JPG/(F100.*).jpg"   -compress None -colorspace RGB -depth 8 "C=\$1.tif"   M=MkToto "T=\$1.tif"
+
+bin/MapCmd bin/ScaleIm  "P=/media/MYPASSPORT/Archi/Aigues-Mortes/Facade-Tour-Reine/JPG/(F100.*).tif" 2
+
+bin/MapCmd convert "P=/media/Iomega3/QL/Triees/Renamed/(.*).jpg"    -compress None -colorspace Gray -depth 8 "c=\$1.tif" M=MkToto
+
+
+
+
+bin/MapCmd  bin/cv2convert tiff "P=/media/ts/VOL-CREIL/(ESS277F45_.x[0-9]{3}_[0-9]{5})" "C=\$1.tif"  M=MkToto "T=\$1.tif"
+bin/MapCmd  mv  "P=/media/SQP/SYST2_09_80/CamerasNP/Bleue/(Pointe.*)\.([0-9]{2}_[0-9]{5})" "C=\$1.0\$2" 
+bin/MapCmd  mv  "P=/media/SQP/SYST2_09_80/CamerasNP/Bleue/(Rot.*)\.([0-9]{2}_[0-9]{5})" "C=\$1.0\$2" 
+
+
+bin/MapCmd convert "P=/media/SQP/Archi/Zhenjue/(DSC_.*.JPG)"   -compress None -colorspace Gray -depth 8 "C=GR_\$1.tif"
+
+
+
+bin/MapCmd convert "P=/media/H:/Archi/Salses/Helico/jpeg/(dsc.*).jpg"   -compress None -colorspace RGB -depth 8 "C=RGB_\$1.tif"   M=MkToto "T=RGB_\$1.tif"
+
+bin/MapCmd convert "P=/media/MYPASSPORT/Archi/Lamballe/JPG/(.*).jpg"   -compress None -colorspace RGB -depth 8 "C=\$1.tif"   M=MkToto "T=\$1.tif"
+
+
+bin/MapCmd bin/ScaleIm "P=/media/H:/Archi/Salses/Helico/jpeg/RGB_.*.tif"  2
+
+
+InsertCopyright.cpp
+   Utilise pour inserer/modifer le copyright des source eLiSe/MicMac
+
+
+bin/MapCmd mv "P=/media/SQP/Trieve/GR_2009_(.*).tif.tif" "C=GR_2009_\$1.tif"
+
+
+bin/MapCmd mv "P=/media/SQP/Trieve/Homol/PastisGR_2009_([0-9]{4}).tif-GR_2009_([0-9]{4}).tif.dat" "C=PastisGR_2009_\$1-GR_2009_\$2.dat"
+
+
+GR_2009_(.*).tif.tif" "C=GR_2009_\$1.tif"
+
+bin/MapCmd convert "P=/media/SQP/Trieve/COUL/(2009.*.tif)"   -compress None -colorspace Gray -depth 8 "C=GR_\$1.tif"
+
+
+
+
+
+
+bin/MapCmd mv "P=/media/SQP/Vol_MPD/Quimper/Test-Aero-Vert/OrInitExterne/OrInit-mpdkimpvil_rx(.*)_8Bits.xml" "C=OrInit-mpdkimpvil_vx\$1_8Bits.xml"
+
+
+
+
+bin/MapCmd bin/to8Bits "P=/media/SQP/Vol_MPD/Quimper/Test-Aero-Vert/(.*).tif" AdaptMinMax=1 M=MkToto "T=\$1_8Bits.tif"
+
+bin/MapCmd bin/to8Bits "P=/media/SQP/Vol_MPD/Quimper/Aero-Combinee/.*[0-9]\.tif" AdaptMinMax=1
+
+bin/MapCmd bin/to8Bits "P=/media/SQP/Vol_MPD/Quimper/Aero-Combinee/ImSup/mpdkimpvil_rx.*[0-9].tif" AdaptMinMax=1
+
+bin/MapCmd bin/to8Bits "P=/media/SQP/Vol_MPD/Calib_Geom/Compens//cgxs_vx.*[0-9].tif" AdaptMinMax=1
+
+----------------------------------------------------------------------
+MapCmd (map commande) :
+   Utiliser pour appliquer une commande, ne supportant pas a priori
+   les expression reguliere a plusieurs fichiers
+
+   Par exemple :
+bin/MapCmd convert "P=../TMP/D2/(.*)\.ppm"  -quality 90 "C=\$1.jpg"
+COM=[convert ../TMP/D2/sg1l3691.ppm -quality 90 ../TMP/D2/sg1l3691.jpg]
+COM=[convert ../TMP/D2/sg1l3695.ppm -quality 90 ../TMP/D2/sg1l3695.jpg]
+
+
+ convert dsc_0361.jpg -compress None -colorspace Gray -colors 256 toto.tif
+
+bin/MapCmd convert "P=/home/Data/Archi/BackUp/Salses/Helico/jpeg/(.*)\.jpg"   -compress None -colorspace Gray -depth 8 "C=\$1.tif"
+
+bin/MapCmd convert "P=/mnt/data/MEC/DRaix/draix_260308/olympus_volA/(.*)\.jpg"   -compress None -colorspace Gray -depth 8 "C=\$1.tif"
+
+bin/MapCmd convert "P=/home/mpierrot/Data/Bagatelle/(.*).JPG"  -compress None -colorspace Gray -depth 8 "C=\$1.tif"
+
+
+bin/MapCmd convert "P=/mnt/data/Aiguille/MMFC([0-9]{4})\.tif"   -compress None -colorspace Gray -depth 8 "C=Gr\$1.tif"
+
+
+bin/MapCmd convert "P=/mnt/data/Archi/Lattes/Dedans/Cle-De-Voutte/JPG/(.*)\.jpg"   -compress None -colorspace Gray -depth 8 "C=\$1.tif"
+
+
+bin/MapCmd bin/Ori2Xml "P=/home/Data/Archi/BackUp/Salses/Helico/ORI/ori/(.*)\.ori" 
+
+
+bin/MapCmd bin/ScaleIm "P=/mnt/data/Aiguille/Coul/MMFC[0-9]{4}.tif"  4
+
+
+bin/MapCmd convert "P=/mnt/data/Aiguille/Coul/MMFC([0-9]{4})_Scaled\.tif"  "C=Col\$1.jpg"
+
+
+bin/MapCmd  bin/cv2convert tiff "P=/media/SQP/Vol_MPD/Quimper/Superpose/mpdkimpvil_(.x[0-9]{3}_[0-9]{4})" "C=mpdkimpvil_\$1.tif"
+
+
+
+bin/MapCmd  bin/cv2convert tiff "P=/media/SQP/Vol_MPD/Quimper/Test-Aero-Rouge/THOM/mpdkimpvil_(.x[0-9]{3}_[0-9]{4})" "C=mpdkimpvil_\$1.tif" M=MkToto "T=mpdkimpvil_\$1.tif"
+
+
+bin/MapCmd  bin/cv2convert tiff "P=/media/SQP/SYST2_09_80/CamerasNP/Rouge/Thoms/GS2NP_09_80_(.x[0-9]{3}_[0-9]{5})" "C=GS2NP_09_80_\$1.tif" M=MkToto "T=GS2NP_09_80_\$1.tif"
+
+
+bin/MapCmd mv "P=/media/SQP/SYST2_09_80/CamerasAP/Bleue/GS2_09_80_rx027_00027.tif" "C
+
+
+bin/MapCmd  bin/cv2convert tiff "P=/home/Data/Calib/Camera-80-Mars/PIR/G(.*)[0-9]" "C=\$0.tif"
+
+
+bin/MapCmd bin/to8Bits "P=/media/SQP/Vol_MPD/Quimper/Superpose/16B/(.*).tif" AdaptMinMax=1
+
+bin/MapCmd bin/to8Bits "P=/media/SQP/Vol_MPD/Calib_Geom/rouge45/(cgxs.*[0-9]).tif" AdaptMinMax=1 M=MkToto "T=\$1_8Bits.tif"
+
+bin/MapCmd bin/to8Bits "P=/media/SQP/Vol_MPD/Quimper/Test-Aero-Rouge/(.*).tif" AdaptMinMax=1 M=MkToto "T=\$1_8Bits.tif"
+
+bin/MapCmd mv "P=/media/SQP/Vol_MPD/Quimper/Test-Aero-Panchro/OrInitExterne/OrInit-mpdkimpvil_px(.*)_8Bits.xml" "C=OrInit-mpdkimpvil_rx\$1_8Bits.xml"
+
+
+
+bin/MapCmd mv  "P=/media/SQP/Vol_MPD/Calib_Geom/rouge45/cgxs_r([0-9].*[0-9]).tif" "C=cgxs_rx\$1.tif" 
+
+bin/MapCmd mv  "P=/media/SQP/SYST2_09_80/CamerasNP/Rouge/OLD/PointeInitIm.([0-9]{2}_[0-9]{5})" "C=PointeInitIm.0\$1"
+
+
+bin/MapCmd mv  "P=/media/SQP/SYST2_09_80/CamerasAP/Rouge/PointeFinal.([0-9]{2}_[0-9]{5})" "C=PointeFinal.0\$1"
+
+bin/MapCmd mv  "P=/media/SQP/SYST2_09_80/CamerasAP/Rouge/PointeFina.([0-9]{3}_[0-9]{5})" "C=PointeFinal.$1"
+
+bin/MapCmd mv  "P=/media/SQP/SYST2_09_80/CamerasAP/Rouge/PointeInitIm.([0-9]{2}_[0-9]{5})" "C=PointeInitIm.0\$1"
+----------------------------------------------------------------------
+TestFDC.cpp
+   Test File Description Chantier.
+
+   TestFDC  aDir aMode [File=]
+
+----------------------------------------------------------------------
+MyRename.cpp 
+   Une version de rename utilisant la syntaxe Posix (je dis pas
+   que c'est mieux, mais c'est celle que je connais ....)
+
+----------------------------------------------------------------------
+ResynchIm.cpp
+    Pour retrouver les associations entre images multi-canal
+    lorsqu'il y a eu un pb de synchronisation.
+
+
+ bin/MyRename  "/media/MYPASSPORT/Archi/Aigues-Mortes/Facade-Tour-Reine/JPG/(.*.jpg)"   "F\$2_\$1" AddFoc=1 Exe=1

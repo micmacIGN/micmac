@@ -1,0 +1,164 @@
+<!--
+    Pattron pour le calcul de MNT a partir d'un ensemble de vue convergentes simples.
+ 
+    N Images , toutes convergentes vers la meme zones, angle suffisant pour que l'on puisse
+    faire une mise en place directe.
+-->
+
+<Global>
+   <ChantierDescripteur
+        Subst="@$#1"
+        NameDecl="@$#1"
+
+        PrefixImages="img_"
+        PostfixImages="_MpDcraw8B_GR"
+        PatternNumeroFE="08(2[0-9]|3[0-5])"
+        PatternNumeroGA="08(3[6-9]|[4-7][0-9])"
+        PatternNumeroAllIm="(${PatternNumeroFE}|${PatternNumeroGA})"
+        NumeroMaitresse="0823"
+
+        CalibFE="Calib-FE-Plaf.xml"
+        CalibGA="AutoCalDRad_Calib-24.xml"
+        CalibCoulFE="CoulF15.xml"
+        CalibCoulGA="CanonCoul-24.xml"
+
+        PatternImFE="${PrefixImages}${PatternNumeroFE}${PostfixImages}\.tif"
+        PatternImGA="${PrefixImages}${PatternNumeroGA}${PostfixImages}\.tif"
+        PatternAllIm="${PrefixImages}${PatternNumeroAllIm}${PostfixImages}\.tif"
+        ImMaitresse="${PrefixImages}${NumeroMaitresse}${PostfixImages}\.tif"
+
+
+        PatternImFECR2="${PrefixImages}${PatternNumeroFE}\.cr2"
+        PatternImGACR2="${PrefixImages}${PatternNumeroGA}\.cr2"
+
+        SzSiftInit="500"
+        SzSift="1500"
+        NbJob="2"
+   >
+
+<!--   BATCH  -->
+
+        <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}CR2/(.*).cr2" 16B=0 Gamma=2 Dyn=0.01 Cal=Key-Assoc-Calib-Coul GR=1 BiCubParam=-0.5    M=MkToto "T=\$1_MpDcraw8B_GR.tif" </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+              <Line> mv ${ThisDir}CR2/*.tif ${ThisDir} </Line>
+
+
+              <Line> bin/Pastis  ${ThisDir}  Key-Rel-Init-All-Cples ${SzSiftInit} MkF=MkToto FiltreOnlyDupl=1 SsRes=1 NbMinPtsExp=2 </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+              <Line> bin/Pastis  ${ThisDir}  Key-Rel-All-Cples-Filtr-SsEch ${SzSift} MkF=MkToto  FiltreOnlyDupl=1</Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+              <Line> bin/Apero ${ThisDir}Apero1-Pastis.xml </Line>
+              <Line> bin/MICMAC ${ThisDir}param-GeoIm.xml </Line>
+        </BatchChantDesc>
+
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> ${PatternAllIm}  </PatternAccepteur>
+          </Sets>
+          <Key> Key-Set-All-Im </Key>
+    </KeyedSetsOfNames>
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${PatternImFE}  </PatternTransform>
+                       <CalcName> ${CalibFE} </CalcName>
+                 </Direct>
+             </Calcs>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${PatternImGA}  </PatternTransform>
+                       <CalcName> ${CalibGA} </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <!-- <PatternTransform> ${PatternImFECR2}  </PatternTransform> -->
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> ${CalibCoulFE} </CalcName>
+                 </Direct>
+             </Calcs>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${PatternImGACR2}  </PatternTransform>
+                       <CalcName> ${CalibCoulGA} </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   Key-Assoc-Calib-Coul </Key>
+   </KeyedNamesAssociations>
+
+
+
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+
+    <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  Key-Set-All-Im   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-Init-All-Cples </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  Key-Set-All-Im   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+                <Filtre> 
+                     <FiltreByRelSsEch>
+                        <KeySet >  Key-Set-SsRes-HomolPastisBin          </KeySet>
+                        <KeyAssocCple>  Key-Assoc-SsRes-CpleIm2HomolPastisBin   </KeyAssocCple>
+                        <SeuilBasNbPts> 2 </SeuilBasNbPts>
+                        <SeuilHautNbPts> 2 </SeuilHautNbPts>
+                       <NbMinCple> 8 </NbMinCple>
+                     </FiltreByRelSsEch>
+                </Filtre>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-All-Cples-Filtr-SsEch </Key>
+    </KeyedSetsORels>
+
+
+
+  </ChantierDescripteur>
+</Global>
