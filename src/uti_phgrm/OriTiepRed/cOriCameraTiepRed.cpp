@@ -70,6 +70,7 @@ cCameraTiepRed::cCameraTiepRed
    mNum          (-1),
    mXRat         (0),
    mIsMaster     (IsMaster),
+   mMasqIsDone   (false),
    mSzIm         (mMTD.TifSzIm()),
    mResolPds     (anAppli.ModeIm() ? 20.0 : 200.0),
    mSzPds        (round_up(Pt2dr(mSzIm)/mResolPds)),
@@ -112,6 +113,12 @@ Pt2dr cCameraTiepRed::Hom2Cam(const Pt2df & aP) const
      return mCsCal->L3toF2(aQ);
 }
 
+Pt2dr cCameraTiepRed::Hom2Pds(const Pt2df & aP) const
+{
+    return ToImagePds(Hom2Cam(aP));
+}
+
+
 
 const std::string cCameraTiepRed::NameIm() const { return mNameIm; }
 
@@ -148,6 +155,21 @@ Pt3dr cCameraTiepRed::BundleIntersection(const Pt2df & aPH1,const cCameraTiepRed
 
 void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
 {
+    cCameraTiepRed * aMaster = 0;
+    cCameraTiepRed * aSlave = 0;
+
+    if (mIsMaster)
+    {
+         aMaster = this;
+         aSlave = & aCam2;
+    }
+    else if (aCam2.mIsMaster)
+    {
+         aMaster = & aCam2;
+         aSlave =  this;
+    }
+
+
     Im2D_REAL4          aImPdsP(mSzPds.x,mSzPds.y,0.0);
     TIm2D<REAL4,REAL8>  aTImPdsP(aImPdsP);
     int                 aNbP=0;
@@ -170,8 +192,8 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
     // Filter the ties points that are inside the current tiles and
     // have "good" intersection
 
-    double aSomRes = 0;
-    double aNbRes = 0;
+    // double aSomRes = 0;
+    // double aNbRes = 0;
     std::vector<double> aVRes;
     for (int aKP=0 ; aKP<int(aVPIn1.size()) ; aKP++)
     {
@@ -188,35 +210,48 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
         }
         else if (mAppli.OrLevel() >= eLevO_ByCple)
         {
+/*
              Pt2dr  aP1 = Hom2Cam(aPf1);
              Pt2dr  aP2 = aCam2.Hom2Cam(aPf2);
              CamStenope & aCS1 =  aLnk->CsRel1();
              CamStenope & aCS2 =  aLnk->CsRel2();
-
-//  Pt2dr aDif = Pt2dr(aPf2.x,aPf2.y) - aLnk->Hom().Direct(Pt2dr(aPf1.x,aPf1.y));
-// Pt2dr aDif = Pt2dr(aPf1.x,aPf1.y) - aLnk->Hom().Direct(Pt2dr(aPf2.x,aPf2.y));
-//  std::cout << "DIFFFFF  " << aDif << "\n";
 
              Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
              double aRes =  (euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer))) / 2.0;
              aSomRes += aRes;
              aNbRes += 1.0;
              aVRes.push_back(aRes);
+*/
 
-             if (mIsMaster)
+             if (aMaster)
              {
-                  Ok =  mAppli.ParamBox().BoxRab().inside(Pt2dr(aPf1.x,aPf1.y));
-                  Pt2dr aPP = ToImagePds(aP2);
+                  Pt2df aPfM = (aMaster==this) ? aPf1 : aPf2;
+                  Pt2df aPfS = (aMaster==this) ? aPf2 : aPf1;
+
+
+                  Ok =  mAppli.ParamBox().BoxRab().inside(Pt2dr(aPfM.x,aPfM.y));
+                  // Pt2dr  aP2S = aSlave->Hom2Cam(aPfS);
+                  // Pt2dr aPPS = ToImagePds(aP2S);
+                  Pt2dr aPPS = aSlave->Hom2Pds(aPfS);
                   if (Ok)
                   {
                      aNbP++;
-                     aTImPdsP.incr(aPP,1.0);
+                     aTImPdsP.incr(aPPS,1.0);
                   }
                   else
                   {
                      aNbM++;
-                     aTImPdsM.incr(aPP,1.0);
+                     aTImPdsM.incr(aPPS,1.0);
                   }
+             }
+             else
+             {
+                  double aSeuil = 65;
+                  ELISE_ASSERT(aCam2.mMasqIsDone &&  mMasqIsDone ,"Incoh Masq Done");
+                  Pt2dr aP1 = Hom2Pds(aPf1);
+                  Pt2dr aP2 = Hom2Pds(aPf2);
+                  Ok = (mTMasqM.getprojR(aP1) > aSeuil) || (aCam2.mTMasqM.getprojR(aP2) > aSeuil) ;
+                  // Pt2dr  aP2S = aSlave->Hom2Cam(aPfS);
              }
         }
         else
@@ -231,16 +266,18 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
         }
     }
 
-    if (mIsMaster)
+    if (aMaster)
     {
          double 	DMoy = sqrt((mSzPds.x*mSzPds.y) / double(aNbP + aNbP));
          FilterGauss(aImPdsP,DMoy*2);
          FilterGauss(aImPdsM,DMoy*2);
 
-         ELISE_COPY(mIMasqM.all_pts(),255*(aImPdsP.in()/ Max(aImPdsM.in()+aImPdsP.in(),1e-10)), mIMasqM.out());
+         ELISE_COPY(mIMasqM.all_pts(),255*(aImPdsP.in()/ Max(aImPdsM.in()+aImPdsP.in(),1e-10)), aSlave->mIMasqM.out());
          // Tiff_Im::CreateFromIm(mIMasqM,"MasqRatafia-"+aCam2.NameIm() + ".tif");
+         aSlave->mMasqIsDone = true;
     }
 
+/*
     std::cout << "GGg " <<  aSomRes / aNbRes 
               << " MED " <<  KthValProp(aVRes,0.5) 
               << " 90%=" << KthValProp(aVRes,0.9)  
@@ -248,6 +285,7 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
               << " NN=" << NameIm() << " " <<  aCam2.NameIm()
               << "\n";
     getchar();
+*/
 
     // If enough tie point , memorize the connexion 
 
@@ -324,6 +362,11 @@ void  cCameraTiepRed::SaveHom()
     {
        SaveHom(itM->first,itM->second);
     }
+}
+
+bool  cCameraTiepRed::IsMaster() const
+{
+   return mIsMaster;
 }
 
 NS_OriTiePRed_END

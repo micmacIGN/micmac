@@ -163,6 +163,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
 
        CamStenope * aCsCal = aCsOr ? aCsOr : mNM->CalibrationCamera(aNameIm) ;
        cCameraTiepRed * aCam = new cCameraTiepRed(*this,aNameIm,aCsOr,aCsCal,(mMasterIm==aNameIm));
+       aCam->SetNum(aKI);
        
        // Put them in vector and map
        mVecCam.push_back(aCam);

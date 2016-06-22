@@ -167,8 +167,11 @@ class cCameraTiepRed
 
 
         Pt2dr ToImagePds(const Pt2dr & aP) const;
+        Pt2dr Hom2Pds(const Pt2df & aP) const; // Compose ToImagePds et Hom2Cam
+
 
         void MakeImPds();
+        bool  IsMaster() const;
 
     private :
         void SaveHom( cCameraTiepRed*,const std::list<int> & aLBox);
@@ -185,6 +188,7 @@ class cCameraTiepRed
         std::map<cCameraTiepRed*,std::list<int> > mMapCamBox;
         cXml_RatafiaSom *   mXRat;
         bool                mIsMaster;
+        bool                mMasqIsDone;
 
         Pt2di               mSzIm;
         double              mResolPds;
@@ -323,6 +327,8 @@ class cAppliTiepRed
           void GenerateSplit();
           void DoReduceBox();
           void DoLoadTiePoints();
+          // Solution pour faire d'abord les master
+          void DoLoadTiePoints(bool DoMaster);
           void DoFilterCamAnLinks();
           void DoExport();
           void VonGruber();
@@ -477,6 +483,8 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            cAppliGrRedTieP(int argc,char ** argv);
            double  SzPixDec() const;
       private :
+           std::string ComOfKBox(int aKBox);
+
            bool OneItereSelection();
            void SetSelected(tSomGRTP *);
            tSomGRTP *  GetNextBestSom();
@@ -511,6 +519,7 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            cAppliTiepRed *                    mAppliTR;
            double                             mSzPixDec;
            int                                mNumBox;
+           bool                               mTestExeOri;
 };
 
 /*
