@@ -178,14 +178,14 @@ endif()
 
 target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_LIBRARIES})
 
-#if( ${qt_version} EQUAL 5 )
-#    qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
-#endif()
+if( ${qt_version} EQUAL 5 )
+	qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
+endif()
 
 INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB})
 
-if (${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX)) # OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "${CMAKE_CXX_FLAGS}")
+if (${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_IS_CLANG))
+	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "")
 	set(precompiled_header ${precompiled_header} PARENT_SCOPE)
 endif()
 

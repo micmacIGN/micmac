@@ -83,18 +83,17 @@ endif()
 			include_directories(${Qt5OpenGL_INCLUDE_DIRS})
 			include_directories(${Qt5Xml_INCLUDE_DIRS})
 			include_directories(${Qt5Gui_INCLUDE_DIRS})
-
-			# Use the compile definitions defined in the Qt 5 Widgets module
-			add_definitions(${Qt5Widgets_DEFINITIONS})
 		endif()
 	elseif ( ${qt_version} EQUAL 4 )
-		QT4_ADD_RESOURCES( RC_SRCS ${SAISIE_DIR}/icones/icones.qrc )
+		QT4_ADD_RESOURCES(RC_SRCS ${SAISIE_DIR}/icones/icones.qrc)
 
 		QT4_WRAP_UI(saisie_ui ${ui_toWrap})
 		QT4_WRAP_CPP(HEADERS_moced ${HEADERS_tomoc})
 
 		INCLUDE(${QT_USE_FILE})
 	endif()
+
+	add_definitions(${QT_DEFINITIONS})
 
 	#~ for ui generated cpp files
 	INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})

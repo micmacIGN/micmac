@@ -1,6 +1,42 @@
 cmake_minimum_required( VERSION 2.8.1 )
 project(MICMAC)
 
+function(print_list list_name)
+	message("${list_name}:")
+	foreach(e ${${list_name}})
+		message("\t${e}")
+	endforeach()
+endfunction()
+
+function(qmake_query property_name)
+	if (NOT ${property_name})
+		EXECUTE_PROCESS(
+				COMMAND
+				${QT_QMAKE_EXECUTABLE} -query ${property_name}
+				RESULT_VARIABLE qmake_result
+				OUTPUT_VARIABLE ${property_name}
+				ERROR_QUIET
+				OUTPUT_STRIP_TRAILING_WHITESPACE)
+	endif()
+
+	if (${qmake_result})
+		message(FATAL_ERROR "failed to retrieve qmake property [${property_name}]")
+	endif()
+
+	set(${property_name} ${${property_name}} PARENT_SCOPE)
+endfunction()
+
+function(include_dirs_to_flags include_dirs flags)
+	foreach(dir ${include_dirs})
+		list(APPEND ${flags} "-I${dir}")
+	endforeach()
+	set(${flags} ${${flags}} PARENT_SCOPE)
+endfunction()
+
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+	set(CMAKE_CXX_COMPILER_IS_CLANG 1)
+endif()
+
 if(POLICY CMP0020)
 	cmake_policy(SET CMP0020 NEW) #windows specific: Automatically link Qt executables to qtmain
 endif()
@@ -135,28 +171,31 @@ if(${WITH_QT5} OR ${WITH_QT4})
 		endif()
 
 		if (${WITH_QT5})
-			    #find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
-			    #~ find_package(Qt5 COMPONENTS Gui Core OpenGL Xml)
-			    find_package(Qt5Widgets REQUIRED)
-			    find_package(Qt5Xml REQUIRED)
-			    find_package(Qt5Concurrent REQUIRED)
-			    #~ find_package(Qt5LinguistTools REQUIRED)
-			    find_package(Qt5OpenGL REQUIRED)
+			#find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
+			#~ find_package(Qt5 COMPONENTS Gui Core OpenGL Xml)
+			find_package(Qt5Widgets REQUIRED)
+			find_package(Qt5Xml REQUIRED)
+			find_package(Qt5Concurrent REQUIRED)
+			#~ find_package(Qt5LinguistTools REQUIRED)
+			find_package(Qt5OpenGL REQUIRED)
 
 			if (Qt5Widgets_FOUND)
+				if (POLICY CMP0045)
+					cmake_policy(SET CMP0045 NEW) # target of get_target_property must exists or a FATAL_ERROR is issued
+				endif()
+
 				get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+			endif()
+
+			if (Qt5Widgets_FOUND)
+				#~ get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 				get_target_property(QT_MOC_EXECUTABLE Qt5::moc IMPORTED_LOCATION)
 				get_target_property(QT_UIC_EXECUTABLE Qt5::uic IMPORTED_LOCATION)
 				get_target_property(QT_RCC_EXECUTABLE Qt5::rcc IMPORTED_LOCATION)
 
-				EXECUTE_PROCESS(
-						COMMAND
-						${QT_QMAKE_EXECUTABLE} -query QT_VERSION
-						RESULT_VARIABLE qmake_version_result
-						OUTPUT_VARIABLE QT_VERSION
-						ERROR_QUIET
-						OUTPUT_STRIP_TRAILING_WHITESPACE
-					)
+				qmake_query(QT_VERSION)
+				qmake_query(QT_INSTALL_LIBS)
+				qmake_query(QT_INSTALL_PLUGINS)
 
 				message(STATUS "using Qt " ${QT_VERSION})
 
@@ -166,10 +205,21 @@ if(${WITH_QT5} OR ${WITH_QT4})
 				endif()
 
 				set(qt_version 5)
-				set(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES})
+				set(QT_LIBRARIES Qt5Core Qt5Gui Qt5Xml Qt5OpenGL)
 
+				set(QT_INCLUDE_DIRS "${Qt5Core_INCLUDE_DIRS};${Qt5Widgets_INCLUDE_DIRS};${QtXml_INCLUDE_DIRS};${Qt5Concurrent_INCLUDE_DIRS};${Qt5OpenGL_INCLUDE_DIRS}")
+				list(REMOVE_DUPLICATES QT_INCLUDE_DIRS)
+				#~ foreach(include_dir ${QT_INCLUDE_DIRS})
+					#~ list(APPEND QT_INCLUDES "-I${include_dir}")
+				#~ endforeach()
+				include_dirs_to_flags("${QT_INCLUDE_DIRS}" QT_INCLUDES)
+
+				set(QT_DEFINITIONS "-DQT_NO_DEBUG;${Qt5Core_DEFINITIONS};${Qt5Widgets_DEFINITIONS};${QtXml_DEFINITIONS};${Qt5Concurrent_DEFINITIONS};${Qt5OpenGL_DEFINITIONS}")
+				list(REMOVE_DUPLICATES QT_DEFINITIONS)
+
+				set(QT_COMPILE_FLAGS ${Qt5Core_EXECUTABLE_COMPILE_FLAGS})
+				add_compile_options(${QT_COMPILE_FLAGS})
 			elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
-
 			    message("WARNING QT 5 not found")
 			    message("Set Qt5_DIR to qt CMAKE directory")
 			    message("   Qt5_DIR --> C:\\Qt\\Qt5.0.1\\5.0.1\\msvc2010\\lib\\cmake\\Qt5")
@@ -196,39 +246,13 @@ if(${WITH_QT5} OR ${WITH_QT4})
 endif()
 
 IF (qt_version EQUAL 5)
-	if (POLICY CMP0045)
-		cmake_policy(SET CMP0045 NEW) # target of get_target_property must exists or a FATAL_ERROR is issued
-	endif()
-
-	if (NOT QT_INSTALL_LIBS)
-		EXECUTE_PROCESS(
-				COMMAND
-				${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_LIBS
-				RESULT_VARIABLE qmake_install_libs_result
-				OUTPUT_VARIABLE QT_INSTALL_LIBS
-				ERROR_QUIET
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-	endif()
-
-	if (NOT QT_INSTALL_PLUGINS)
-		EXECUTE_PROCESS(
-				COMMAND
-				${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
-				RESULT_VARIABLE qmake_install_plugins_result
-				OUTPUT_VARIABLE QT_INSTALL_PLUGINS
-				ERROR_QUIET
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-	endif()
-
 	if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set(CMAKE_INSTALL_RPATH "${QT_INSTALL_LIBS}" "${QT_INSTALL_PLUGINS}" "@executable_path/../Frameworks")
 	endif()
 endif()
 
 if ( NOT ${qt_version} EQUAL 0 )
-      message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
+	message(STATUS "QT tools enabled (Qt" ${qt_version} ")")
 endif()
 
 if (${DEPLOY})
@@ -236,13 +260,10 @@ if (${DEPLOY})
 endif()
 
 if(${WITH_CPP11})
-    IF(NOT MSVC)
-	    message("c++11")
-	    # support c++11
-	    ADD_DEFINITIONS(
-		    -std=c++11 # Or -std=c++0x
-		    # Other flags
-	    )
+	IF(NOT MSVC)
+		message("c++11")
+		# support c++11
+		add_compile_options("-std=c++11")
     endif()
 endif()
 
@@ -399,6 +420,12 @@ IF(${WITH_KAKADU})
 		message( STATUS "Kakadu enabled" )
 		LINK_DIRECTORIES( ${KAKADU_LIBRARY_DIRS})
 		INCLUDE_DIRECTORIES(${KAKADU_INCLUDE_DIRS})
+
+		#~ foreach(include_dir ${KAKADU_INCLUDE_DIRS})
+			#~ list(APPEND KAKADU_INCLUDES "-I${include_dir}")
+		#~ endforeach()
+		include_dirs_to_flags("${KAKADU_INCLUDE_DIRS}" KAKADU_INCLUDES)
+
 		set(__USE_JP2__ 1)
 	ENDIF()
 ENDIF()
@@ -609,7 +636,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 # DEFINITION : des preprocesseurs G++
 IF (CMAKE_COMPILER_IS_GNUCC)
-	ADD_DEFINITIONS(-O2 -Wall)
+	add_compile_options(-O2 -Wall)
 ENDIF()
 
 # DEFINITION : Windows : le projet debug est genere directement sous bin pour avoir les informations de Debug
@@ -663,3 +690,5 @@ CONFIGURE_FILE (
 	"include/general/CMake_defines.h.in"
 	"${CMAKE_SOURCE_DIR}/include/general/CMake_defines.h"
 )
+
+set_source_files_properties("src/tiff/el_dcraw.c" elise PROPERTIES COMPILE_FLAGS "-O2 -Wall" COMPILE_DEFINITIONS "")
