@@ -158,11 +158,6 @@ void cAppliTiepRed::DoReduceBox()
 
     DoLoadTiePoints();
     DoFilterCamAnLinks();
-if (mModeIm) 
-{ 
-    std::cout << "EXITTTTtt FILTER AND LINK \n"; 
-    exit(EXIT_SUCCESS);
-}
     // == OK
 
    // merge topological tie point
@@ -174,19 +169,41 @@ if (mModeIm)
     {
         (*itL)->Add2Merge(mMergeStruct);
     }
+
+
     mMergeStruct->DoExport();                  // "Compile" to make the point usable
+
+
     mLMerge =  & mMergeStruct->ListMerged();    // Get the merged multiple points
+
+    if (mModeIm) // Selectionne uniquement les  images connectees au master
+    { 
+        std::list<tMerge *> * aNewL = new std::list<tMerge *>;
+        for (std::list<tMerge *>::const_iterator itM=mLMerge->begin() ; itM!=mLMerge->end() ; itM++)
+        {
+            if ((*itM)->IsInit(0))
+            {
+               aNewL->push_back(*itM);
+            }
+        }
+        mLMerge  = aNewL;
+    }
     std::vector<int> aVHist(mVecCam.size()+1,0);
 
     // Compute the average 
-    double aSzTileAver = sqrt(mBoxLoc.surf()/mLMerge->size()); 
+    double aSzTileAver = sqrt(mBoxLocQT.surf()/mLMerge->size()); 
 
     
     // Quod tree for spatial indexation
-    mQT = new tTiePRed_QT ( mPMul2Gr, mBoxLoc, 5  /* 5 obj max  box */, 2*aSzTileAver);
+    mQT = new tTiePRed_QT ( mPMul2Gr, mBoxLocQT, 5  /* 5 obj max  box */, 2*aSzTileAver);
     // Heap for priority management
 
 
+    if (mModeIm)
+    {
+        std::cout << " Donne init QQQQ  " << aSzTileAver << " " << mBoxLocQT << "\n";
+        // exit(EXIT_SUCCESS);
+    }
     // OK
    // give ground coord to multiple point and put them in quod-tree  and  heap 
     {
@@ -195,8 +212,10 @@ if (mModeIm)
 
        for (std::list<tMerge *>::const_iterator itM=mLMerge->begin() ; itM!=mLMerge->end() ; itM++)
        {
+// std::cout << "AAAAA  " << mDistPMul << "  " <<  mResol   << "\n";
            cPMulTiepRed * aPM = new cPMulTiepRed(*itM,*this);
-           if (mBoxLoc.inside(aPM->Pt()))
+ // std::cout << "BBBBB  " << aPM->Pt() << "  \n";
+           if (mBoxLocQT.inside(aPM->Pt()))
            {
               mVPM.push_back(aPM);
               
@@ -226,6 +245,11 @@ if (mModeIm)
        }
     }
     int aNbInit = mHeap->nb();
+if (mModeIm)
+{
+        std::cout << " NNB in QT   " <<  aNbInit << "\n";
+}
+        // exit(EXIT_SUCCESS);
 // PAs OK
 
     tPMulTiepRedPtr aPMPtr;
@@ -235,7 +259,7 @@ if (mModeIm)
           aPMPtr->Remove();
           aPMPtr->SetSelected();
           std::set<tPMulTiepRedPtr>  aSetNeigh; // = *(new std::set<tPMulTiepRedPtr>);
-          double aDist= mDistPMul * mResol;
+          double aDist= mDistPMul * mResolQT;
           mQT->RVoisins(aSetNeigh,aPMPtr->Pt(),aDist);
 
           for (std::set<tPMulTiepRedPtr>::const_iterator itS=aSetNeigh.begin() ; itS!=aSetNeigh.end() ; itS++)
