@@ -56,34 +56,47 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
     mNbCamCur   (aPM->NbSom()),
     mVConserved (aPM->VecInd().size(),1)
 {
-    std::vector<ElSeg3D> aVSeg;
-    std::vector<Pt2dr>   aVPt;
-
-    const std::vector<U_INT2>  &  aVecInd = aPM->VecInd() ;
-    const std::vector<Pt2df> & aVHom   = aPM-> VecV()  ;
-
-    for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
+    if (anAppli.ModeIm())
     {
-         cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
-         Pt2dr aPCam = aCam->Hom2Cam(aVHom[aKP]);
-         aVPt.push_back(aPCam);
-         aVSeg.push_back(aCam->CsOr().Capteur2RayTer(aPCam));
-    }
+       mP = anAppli.CamMaster().Hom2Cam(aPM->GetVal(0)); 
+       mZ = 0.0;  // Faut bien remplir les trou ?
+       mPrec = 1.0;
 
-    bool Ok;
-    Pt3dr aPTer = InterSeg(aVSeg,Ok);
-    double aSomDist = 0.0;
-    for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
+
+       const std::vector<Pt2dUi2> &  aVP = aPM->Edges();
+
+    }
+    else
     {
-         cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
-         Pt2dr aPProj = aCam->CsOr().Ter2Capteur(aPTer);
-         double aDist = euclid(aPProj,aVPt[aKP]);
-         aSomDist += aDist;
-    }
+        std::vector<ElSeg3D> aVSeg;
+        std::vector<Pt2dr>   aVPt;
 
-    mP = Pt2dr(aPTer.x,aPTer.y);
-    mZ = aPTer.z;
-    mPrec = aSomDist / (aVecInd.size() -1);
+        const std::vector<U_INT2>  &  aVecInd = aPM->VecInd() ;
+        const std::vector<Pt2df> & aVHom   = aPM-> VecV()  ;
+
+        for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
+        {
+             cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
+             Pt2dr aPCam = aCam->Hom2Cam(aVHom[aKP]);
+             aVPt.push_back(aPCam);
+             aVSeg.push_back(aCam->CsOr().Capteur2RayTer(aPCam));
+        }
+
+        bool Ok;
+        Pt3dr aPTer = InterSeg(aVSeg,Ok);
+        double aSomDist = 0.0;
+        for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
+        {
+             cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
+             Pt2dr aPProj = aCam->CsOr().Ter2Capteur(aPTer);
+             double aDist = euclid(aPProj,aVPt[aKP]);
+             aSomDist += aDist;
+        }
+
+        mP = Pt2dr(aPTer.x,aPTer.y);
+        mZ = aPTer.z;
+        mPrec = aSomDist / (aVecInd.size() -1);
+     }
     // std::cout << "PREC " << mPrec << " " << aVecInd.size() << "\n";
 
      // mGain =   aPM->NbArc()  +  mPrec/1000.0;

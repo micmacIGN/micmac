@@ -408,6 +408,14 @@ double  cAppliGrRedTieP::SzPixDec() const
 
 
         // ------------------ Box creation ------------
+// mm3d OriRedTieP IMGP70.*JPG OriCalib=Ori-AllRel/ KBox=102
+
+std::string cAppliGrRedTieP::ComOfKBox(int aKBox)
+{
+
+   return MM3dBinFile("OriRedTieP") + " " + mPatImage + " OriCalib=" + mCalib + " KBox=" + ToString(aKBox);
+}
+
 
 void cAppliGrRedTieP::CreateBoxOfSom(tSomGRTP *aSom)
 {
@@ -442,16 +450,21 @@ void cAppliGrRedTieP::CreateBoxOfSom(tSomGRTP *aSom)
          {
               aXPB.Ims().push_back((*itA).s2().attr()->Name());
          }
-         std::cout << "BOXXX=" << mAppliTR->NameParamBox(mNumBox,true) << "\n";
+         // std::cout << "BOXXX=" << mAppliTR->NameParamBox(mNumBox,true) << "\n";
 
          MakeFileXML(aXPB,mAppliTR->NameParamBox(mNumBox,true));
          MakeFileXML(aXPB,mAppliTR->NameParamBox(mNumBox,false));
 
+         if (mTestExeOri)
+         {
+             std::cout <<  "GGG " << ComOfKBox(mNumBox) << "\n";
+             System(ComOfKBox(mNumBox));
+         }
          mNumBox++;
     }
 
     anAtr.NumBox1() = mNumBox;
-    getchar();
+    // getchar();
 
 
 }
@@ -483,7 +496,8 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     mShowPart    (false),
     mAppliTR     (0),
     mSzPixDec    (4000),
-    mNumBox      (0)
+    mNumBox      (0),
+    mTestExeOri  (false)
 {
    // Read parameters 
    MMD_InitArgcArgv(argc,argv);
@@ -497,6 +511,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
                      << EAM(mRecMax,"RecMax",true,"Max overlap acceptable in two parallely processed images")
                      << EAM(mShowPart,"ShowP",true,"Show Partition (def=false)")
                      << EAM(mSzPixDec,"SzPixDec",true,"Sz of decoupe in pixel")
+                     << EAM(mTestExeOri,"TEO",true,"Test Execution OriRedTieP ()")
    );
 
    mOrLevel = (eLevelOr) mIntOrLevel;

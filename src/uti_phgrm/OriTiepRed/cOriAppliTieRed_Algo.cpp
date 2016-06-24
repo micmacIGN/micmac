@@ -53,7 +53,7 @@ NS_OriTiePRed_BEGIN
 
 
 
-void cAppliTiepRed::DoLoadTiePoints()
+void cAppliTiepRed::DoLoadTiePoints(bool DoMaster)
 {
    // Load Tie Points in box
    for (int aKI = 0 ; aKI<int(mVecCam.size()) ; aKI++)
@@ -69,16 +69,38 @@ void cAppliTiepRed::DoLoadTiePoints()
             // As the martini result may containi much more file 
             if (mSetFiles->find(anI2) != mSetFiles->end())
             {
+               cCameraTiepRed & aCam2 = *(mMapCam[anI2]);
                // The result being symetric, the convention is that some data are stored only for  I1 < I2
-               if (anI1 < anI2)
+
+               if (DoMaster)
                {
-                   cCameraTiepRed & aCam2 = *(mMapCam[anI2]);
-                   aCam1.LoadHom(aCam2);
+                   if (aCam1.IsMaster() || aCam2.IsMaster())
+                   {
+                       if (anI1 < anI2)
+                          aCam1.LoadHom(aCam2);
+                        else
+                          aCam2.LoadHom(aCam1);
+                   }
+               }
+               else  
+               {
+                   if ( (! aCam1.IsMaster()) && (!aCam1.IsMaster()))
+                   {
+                       ELISE_ASSERT(anI1<anI2,"Name Sort incAppliTiepRed::DoLoadTiePoints ");
+                       aCam1.LoadHom(aCam2);
+                   }
                }
             }
        }
    }
 }
+
+void cAppliTiepRed::DoLoadTiePoints()
+{
+    DoLoadTiePoints(true);
+    DoLoadTiePoints(false);
+}
+
 
 void cAppliTiepRed::DoFilterCamAnLinks()
 {
@@ -133,10 +155,8 @@ void Verif(Pt2df aPf)
 void cAppliTiepRed::DoReduceBox()
 {
 
-if (mModeIm) { std::cout << "LU CAM  JJJJJJJJJMODIMME \n";  }
 
     DoLoadTiePoints();
-if (mModeIm) { std::cout << "LLLLLllllloeded \n"; getchar(); }
     DoFilterCamAnLinks();
     // == OK
 
@@ -149,19 +169,41 @@ if (mModeIm) { std::cout << "LLLLLllllloeded \n"; getchar(); }
     {
         (*itL)->Add2Merge(mMergeStruct);
     }
+
+
     mMergeStruct->DoExport();                  // "Compile" to make the point usable
+
+
     mLMerge =  & mMergeStruct->ListMerged();    // Get the merged multiple points
+
+    if (mModeIm) // Selectionne uniquement les  images connectees au master
+    { 
+        std::list<tMerge *> * aNewL = new std::list<tMerge *>;
+        for (std::list<tMerge *>::const_iterator itM=mLMerge->begin() ; itM!=mLMerge->end() ; itM++)
+        {
+            if ((*itM)->IsInit(0))
+            {
+               aNewL->push_back(*itM);
+            }
+        }
+        mLMerge  = aNewL;
+    }
     std::vector<int> aVHist(mVecCam.size()+1,0);
 
     // Compute the average 
-    double aSzTileAver = sqrt(mBoxLoc.surf()/mLMerge->size()); 
+    double aSzTileAver = sqrt(mBoxLocQT.surf()/mLMerge->size()); 
 
     
     // Quod tree for spatial indexation
-    mQT = new tTiePRed_QT ( mPMul2Gr, mBoxLoc, 5  /* 5 obj max  box */, 2*aSzTileAver);
+    mQT = new tTiePRed_QT ( mPMul2Gr, mBoxLocQT, 5  /* 5 obj max  box */, 2*aSzTileAver);
     // Heap for priority management
 
 
+    if (mModeIm)
+    {
+        std::cout << " Donne init QQQQ  " << aSzTileAver << " " << mBoxLocQT << "\n";
+        // exit(EXIT_SUCCESS);
+    }
     // OK
    // give ground coord to multiple point and put them in quod-tree  and  heap 
     {
@@ -170,8 +212,10 @@ if (mModeIm) { std::cout << "LLLLLllllloeded \n"; getchar(); }
 
        for (std::list<tMerge *>::const_iterator itM=mLMerge->begin() ; itM!=mLMerge->end() ; itM++)
        {
+// std::cout << "AAAAA  " << mDistPMul << "  " <<  mResol   << "\n";
            cPMulTiepRed * aPM = new cPMulTiepRed(*itM,*this);
-           if (mBoxLoc.inside(aPM->Pt()))
+ // std::cout << "BBBBB  " << aPM->Pt() << "  \n";
+           if (mBoxLocQT.inside(aPM->Pt()))
            {
               mVPM.push_back(aPM);
               
@@ -201,6 +245,11 @@ if (mModeIm) { std::cout << "LLLLLllllloeded \n"; getchar(); }
        }
     }
     int aNbInit = mHeap->nb();
+if (mModeIm)
+{
+        std::cout << " NNB in QT   " <<  aNbInit << "\n";
+}
+        // exit(EXIT_SUCCESS);
 // PAs OK
 
     tPMulTiepRedPtr aPMPtr;
@@ -210,7 +259,7 @@ if (mModeIm) { std::cout << "LLLLLllllloeded \n"; getchar(); }
           aPMPtr->Remove();
           aPMPtr->SetSelected();
           std::set<tPMulTiepRedPtr>  aSetNeigh; // = *(new std::set<tPMulTiepRedPtr>);
-          double aDist= mDistPMul * mResol;
+          double aDist= mDistPMul * mResolQT;
           mQT->RVoisins(aSetNeigh,aPMPtr->Pt(),aDist);
 
           for (std::set<tPMulTiepRedPtr>::const_iterator itS=aSetNeigh.begin() ; itS!=aSetNeigh.end() ; itS++)
