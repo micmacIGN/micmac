@@ -164,14 +164,14 @@ bool GLWidget::imageLoaded()
 
 void GLWidget::paintGL()
 {
-	__check_gl_error("GLWidget::paintGL");
+	CHECK_GL_ERROR("GLWidget::paintGL beg");
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //gradient color background
-    cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, !hasDataLoaded() || imageLoaded() ? _BGColor0 : _BGColor1);
+	//gradient color background
+	cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, !hasDataLoaded() || imageLoaded() ? _BGColor0 : _BGColor1);
 
-    glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	if (hasDataLoaded())
 	{
@@ -181,17 +181,17 @@ void GLWidget::paintGL()
 			ELISE_DEBUG_ERROR( !__exist_cGLData(m_GLData), "GLWidget::paintGL", "m_GLData = " << m_GLData << " does not exist");
 		#endif
 
-        m_GLData->draw();
+		m_GLData->draw();
 
-        glClear(GL_DEPTH_BUFFER_BIT);
+		glClear(GL_DEPTH_BUFFER_BIT);
 
-        overlay();
+		overlay();
 
-        if (_messageManager.drawMessages() && !m_bDisplayMode2D)
-            computeFPS(_messageManager.LastMessage());
+		if (_messageManager.drawMessages() && !m_bDisplayMode2D) computeFPS(_messageManager.LastMessage());
     }
 
-    _messageManager.draw();
+	_messageManager.draw();
+	CHECK_GL_ERROR("GLWidget::paintGL end");
 }
 
 void GLWidget::initializeGL()
@@ -266,9 +266,6 @@ void GLWidget::overlay()
                 }
             }
         }
-
-        if(m_interactionMode == SELECTION)
-            glPopMatrix();
     }
 }
 
