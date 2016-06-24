@@ -320,6 +320,7 @@ class cAppliTiepRed
           eLevelOr OrLevel() const;
           const std::string  & Dir() const;
           bool ModeIm() const;
+          cCameraTiepRed & CamMaster();
 
      private :
 
@@ -367,9 +368,12 @@ class cAppliTiepRed
           std::string                      mStrOut;
           int                              mKBox;
           Box2dr                           mBoxGlob;
-          Box2dr                           mBoxLoc;
-          Box2dr                           mBoxRabLoc; // Enlarged box
-          double                           mResol;
+          Box2dr                           mBoxLocQT;
+          Box2dr                           mBoxRabLocQT; // Enlarged box
+          // En geom image, il convient de distinguer la box mode photogram de la box image (QT) pour rester en metrique
+          // image, qui peut etre assez differente de la photogram (cas des fish eye)
+          double                           mResolInit;
+          double                           mResolQT;
           cXml_ParamBoxReducTieP           mXmlParBox;
           std::list<cLnk2ImTiepRed *>      mLnk2Im;
           tMergeStr *                      mMergeStruct;
@@ -391,6 +395,7 @@ class cAppliTiepRed
           std::string                      mMasterIm;
           int                              mIntOrLevel;
           eLevelOr                         mOrLevel;
+          cCameraTiepRed *                 mCamMaster;
 };
 
 

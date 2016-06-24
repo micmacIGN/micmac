@@ -112,7 +112,7 @@ void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraT
     if (aVK1K2.size() ==0) 
        return;
 
-    double aDistMax = euclid(mBoxLoc.sz());
+    double aDistMax = euclid(mBoxLocQT.sz());
     int aNbInside=0;
     for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
     {
@@ -126,7 +126,7 @@ void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraT
     }
 
 
-    double aDistMoy = sqrt(mBoxLoc.surf()/(1+aNbInside));
+    double aDistMoy = sqrt(mBoxLocQT.surf()/(1+aNbInside));
 
     for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
     {
@@ -144,7 +144,7 @@ void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraT
         }
     }
     bool Cont=true;
-    double aSeuilDist = mDistPMul * mResol * mMulVonGruber;
+    double aSeuilDist = mDistPMul * mResolQT * mMulVonGruber;
 
     int aNbPVG=0;
     while (Cont)

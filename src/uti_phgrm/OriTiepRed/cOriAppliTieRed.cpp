@@ -65,7 +65,8 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
      mStrOut                  ("TiePRed"),
      mFromRatafiaGlob         (false),
      mFromRatafiaBox          (false),
-     mIntOrLevel              (eLevO_Glob)
+     mIntOrLevel              (eLevO_Glob),
+     mCamMaster               (0)
      
 {
    // Read parameters 
@@ -119,8 +120,8 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
               mFromRatafiaBox = true;
            }
        }
-       mBoxLoc = mXmlParBox.Box();
-       mBoxRabLoc = mXmlParBox.BoxRab();
+       mBoxLocQT = mXmlParBox.Box();
+       mBoxRabLocQT = mXmlParBox.BoxRab();
        mFilesIm = &(mXmlParBox.Ims());
        std::cout << "=======================   KBOX=" << mKBox << "  ===================\n";
 
@@ -162,8 +163,14 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
        // CamStenope * aCsOr = mNM->OutPutCamera(aNameIm);
 
        CamStenope * aCsCal = aCsOr ? aCsOr : mNM->CalibrationCamera(aNameIm) ;
+       bool IsMaster = (mMasterIm==aNameIm);
        cCameraTiepRed * aCam = new cCameraTiepRed(*this,aNameIm,aCsOr,aCsCal,(mMasterIm==aNameIm));
        aCam->SetNum(aKI);
+       if (IsMaster)
+       {
+           ELISE_ASSERT(aKI==0,"Master not first ???");
+           mCamMaster = aCam;
+       }
        
        // Put them in vector and map
        mVecCam.push_back(aCam);
@@ -185,17 +192,23 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
    {
       cXml_ResOneImReducTieP aXRIT = StdGetFromPCP(NameXmlOneIm(mMasterIm,true),Xml_ResOneImReducTieP);
       mBoxGlob = aXRIT.BoxIm();
-      mResol   = aXRIT.Resol();
+      mResolInit   = aXRIT.Resol();
+
+      mResolQT = 1.0;
+      cMetaDataPhoto  aMTD = cMetaDataPhoto::CreateExiv2(mDir+mMasterIm);
+      mBoxLocQT =  Box2dr(Pt2dr(0,0),Pt2dr(aMTD.TifSzIm()));
+      mBoxRabLocQT = mBoxLocQT.dilate(Pt2dr(10,10));
+      // mBoxGlobQT= ; 
    }
    else
    {
       // Memorize the global box
       mBoxGlob = Box2dr(aPInf,aPSup);
       // Get a global resolution as mediane of each resolution
-      mResol = MedianeSup(aVResol);
+      mResolQT = mResolInit = MedianeSup(aVResol);
    }
    
-   std::cout << "   BOX " << mBoxGlob << " Resol=" << mResol << "\n";
+   std::cout << "   BOX " << mBoxGlob << " Resol=" << mResolInit << "\n";
 }
 
 const std::string cAppliTiepRed::TheNameTmp = "Tmp-ReducTieP/";
@@ -238,6 +251,13 @@ bool cAppliTiepRed::VerifNM() const {return mVerifNM;}
 bool cAppliTiepRed::FromRatafiaBox() const {return mFromRatafiaBox;}
 const std::string  & cAppliTiepRed::Dir() const {return mDir;}
 bool cAppliTiepRed::ModeIm() const { return mModeIm; }
+
+cCameraTiepRed & cAppliTiepRed::CamMaster()
+{
+   ELISE_ASSERT(mCamMaster!=0,"cAppliTiepRed::CamMaster");
+   return *mCamMaster;
+}
+
 
 
 void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
@@ -292,7 +312,7 @@ void cAppliTiepRed::GenerateSplit()
 {
     MkDirSubir();
 
-    Pt2dr aSzPix = mBoxGlob.sz() / mResol; // mBoxGlob.sz()  mResol => local refernce,  aSzPix => in pixel (average)
+    Pt2dr aSzPix = mBoxGlob.sz() / mResolInit; // mBoxGlob.sz()  mResol => local refernce,  aSzPix => in pixel (average)
     Pt2di aNb = round_up(aSzPix / double(mSzTile));  // Compute the number of boxes
     std::cout << "   GenerateSplit SzP=" << aSzPix << " Nb=" << aNb << " \n";
     Pt2dr aSzTile =  mBoxGlob.sz().dcbyc(Pt2dr(aNb));  // Compute the size of each tile 
