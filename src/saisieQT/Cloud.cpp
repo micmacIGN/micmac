@@ -10,8 +10,6 @@ GlCloud* GlCloud::loadPly(string i_filename)
     int type = 0;
     vector <GlVertex> ptList;
 
-    PlyFile * thePlyFile;
-
     int nelems;
     char **elist;
     int file_type;
@@ -19,13 +17,11 @@ GlCloud* GlCloud::loadPly(string i_filename)
     int nprops;
     int num_elems;
     char *elem_name;
-    PlyProperty ** plist = NULL;
-    (void)plist;
 
-    thePlyFile = ply_open_for_reading( const_cast<char *>(i_filename.c_str()), &nelems, &elist, &file_type, &version);
+    PlyFile *thePlyFile = ply_open_for_reading( const_cast<char *>(i_filename.c_str()), &nelems, &elist, &file_type, &version);
 
     elem_name = elist[0];
-    plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
+    ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 
     #ifdef _DEBUG
         printf ("file %s\n"    , i_filename.c_str());
@@ -39,7 +35,7 @@ GlCloud* GlCloud::loadPly(string i_filename)
     {
         // get the description of the first element
         elem_name = elist[i];
-        plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
+        ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 
         // print the name of the element, for debugging
         #ifdef _DEBUG

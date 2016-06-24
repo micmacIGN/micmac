@@ -176,8 +176,6 @@ else()
 	add_library(${libElise} ${Elise_Src_Files} ${QT_ALLFILES})
 endif()
 
-target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_CMAKE_LIBRARIES})
-
 if( ${qt_version} EQUAL 5 )
 	qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
 endif()

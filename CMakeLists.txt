@@ -240,6 +240,9 @@ if(${WITH_QT5} OR ${WITH_QT4})
 
 		elseif (${WITH_QT4})
 			FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
+
+			include(${QT_USE_FILE})
+
 			if( QT4_FOUND )
 			    message( STATUS "-----> Qt4 found" )
 			    set(qt_version 4)
@@ -697,3 +700,9 @@ CONFIGURE_FILE (
 )
 
 set_source_files_properties("src/tiff/el_dcraw.c" elise PROPERTIES COMPILE_FLAGS "-O2 -Wall" COMPILE_DEFINITIONS "")
+
+#~ message("QT_QMAKE_EXECUTABLE = ${QT_QMAKE_EXECUTABLE}")
+#~ message("QT_MOC_EXECUTABLE = ${QT_MOC_EXECUTABLE}")
+#~ print_list(QT_LIBRARIES)
+#~ print_list(QT_INCLUDES)
+#~ print_list(QT_DEFINITIONS)
