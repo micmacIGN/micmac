@@ -98,7 +98,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 		// some shortcuts names do not appear
 	#endif
 
-	__check_gl_error("SaisieQtWindow::SaisieQtWindow");
+	CHECK_GL_ERROR("SaisieQtWindow::SaisieQtWindow");
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -243,7 +243,7 @@ bool SaisieQtWindow::loadImages(const QStringList& filenames)
 	#ifdef USE_MIPMAP_HANDLER
 		_Engine->loadImages(filenames);
 	#else
-    	runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages,filenames), 0, filenames.size());
+    	runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages, filenames), 0, filenames.size());
 	#endif
 
     return true;

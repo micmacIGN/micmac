@@ -139,7 +139,7 @@ set(Elise_Src_Files
 	${ORIPHO_DIR}/cOriMntCarto.cpp
 )
 
-if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
+if (WINDOWS)
 	set(Elise_Src_Files ${Elise_Src_Files} ${UTIL_DIR}/win_regex.c)
 endif()
 
@@ -176,16 +176,14 @@ else()
 	add_library(${libElise} ${Elise_Src_Files} ${QT_ALLFILES})
 endif()
 
-target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_LIBRARIES})
-
-#if( ${qt_version} EQUAL 5 )
-#    qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
-#endif()
+if( ${qt_version} EQUAL 5 )
+	qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
+endif()
 
 INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB})
 
-if (${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX)) # OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "${CMAKE_CXX_FLAGS}")
+if (${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_IS_CLANG))
+	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "")
 	set(precompiled_header ${precompiled_header} PARENT_SCOPE)
 endif()
 
