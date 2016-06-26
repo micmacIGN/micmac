@@ -47,6 +47,18 @@ NS_OriTiePRed_BEGIN
 /*                            cPMulTiepRed                            */
 /*                                                                    */
 /**********************************************************************/
+bool  MergeHasPrec(tMerge * aMerge)
+{
+    const std::vector<cCMT_U_INT1> &  aVA = aMerge->ValArc();
+
+    for (int aKa=0 ; aKa<int(aVA.size()) ; aKa++)
+    {
+        if (aVA[aKa].mVal == IndMergePrec)
+           return true;
+    }
+    return false;
+}
+
 
 cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
     mMerge      (aPM),
@@ -54,7 +66,8 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
     mSelected   (false),
     mNbCam0     (aPM->NbSom()),
     mNbCamCur   (aPM->NbSom()),
-    mVConserved (aPM->VecInd().size(),1)
+    mVConserved (aPM->VecInd().size(),1),
+    mHasPrec    (MergeHasPrec(aPM))
 {
     if (anAppli.ModeIm())
     {
@@ -135,12 +148,18 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
     // std::cout << "PREC " << mPrec << " " << aVecInd.size() << "\n";
 
      // mGain =   aPM->NbArc()  +  mPrec/1000.0;
+
 }
 
 void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli)
 {
     mGain =  mMerge->NbArc() * (1.0 /(1.0 + ElSquare(mPrec/(anAppli.ThresholdPrecMult() * anAppli.StdPrec()))));
     mGain *= (0.5+ mNbCamCur / double(mNbCam0));
+
+    if (mHasPrec)
+    {
+       mGain += 1000;
+    }
 }
 
 bool cPMulTiepRed::Removed() const
@@ -150,7 +169,7 @@ bool cPMulTiepRed::Removed() const
 
 bool cPMulTiepRed::Removable() const
 {
-   return (mNbCamCur==0);
+   return (mNbCamCur==0) && (!mHasPrec);
 }
 
 
@@ -208,6 +227,11 @@ void cPMulTiepRed::SetDistVonGruber(const double & aDist,const cAppliTiepRed & a
 void cPMulTiepRed::ModifDistVonGruber(const double & aDist,const cAppliTiepRed & anAppli)
 {
     SetDistVonGruber(ElMin(aDist,mDMin),anAppli);
+}
+
+bool cPMulTiepRed::HasPrec() const
+{
+   return mHasPrec;
 }
 
 

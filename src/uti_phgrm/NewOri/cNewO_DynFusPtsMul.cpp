@@ -67,6 +67,12 @@ cCMT_NoVal::cCMT_NoVal()
 {
 }
 
+
+void cCMT_NoVal::Fusione(const cCMT_NoVal &)
+{
+}
+
+
    //------------------------------------
    
 cCMT_U_INT1::cCMT_U_INT1() :
@@ -77,6 +83,12 @@ cCMT_U_INT1::cCMT_U_INT1(U_INT1 aVal) :
    mVal (aVal)
 {
 }
+
+void cCMT_U_INT1::Fusione(const  cCMT_U_INT1 & aV2)
+{
+    mVal = ElMin(mVal,aV2.mVal);
+}
+
 
 /**************************************************************************/
 /*                                                                        */
@@ -93,6 +105,16 @@ template <class TypeArc> cComMergeTieP<TypeArc>::cComMergeTieP() :
 
 template <class TypeArc> void cComMergeTieP<TypeArc>::MemoCnx(int aK1,int aK2,const TypeArc & aValArc)
 {
+   Pt2dUi2 aNewP(aK1,aK2);
+   for (int aKE=0 ; aKE<int(mEdges.size()) ; aKE++)
+   {
+       if (mEdges[aKE] == aNewP)
+       {
+           mVecValArc[aKE].Fusione(aValArc);
+           return;
+       }
+   }
+
    mEdges.push_back(Pt2dUi2(aK1,aK2));
    mVecValArc.push_back(aValArc);
 }
@@ -565,6 +587,7 @@ template  class cFixedSizeMergeTieP<2,Pt2df,cCMT_NoVal>;
 template  class cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal>;
 template  class cFixedSizeMergeTieP<2,Pt2dr,cCMT_NoVal>;
 template  class cVarSizeMergeTieP<Pt2df,cCMT_NoVal>;
+template  class cVarSizeMergeTieP<Pt2df,cCMT_U_INT1>;
 
 
 
@@ -573,9 +596,10 @@ template  class cStructMergeTieP<cFixedSizeMergeTieP<2,Pt2df,cCMT_NoVal> >;
 template  class cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal> >;
 template  class cStructMergeTieP<cFixedSizeMergeTieP<2,Pt2dr,cCMT_NoVal> >;
 template  class cStructMergeTieP<cVarSizeMergeTieP<Pt2df,cCMT_NoVal> >;
+template  class cStructMergeTieP<cVarSizeMergeTieP<Pt2df,cCMT_U_INT1> >;
 
 template class cComMergeTieP<cCMT_NoVal>;
-template class cComMergeTieP<U_INT1>;
+template class cComMergeTieP<cCMT_U_INT1>;
 
 /**************************************************************************/
 /*                                                                        */

@@ -272,6 +272,7 @@ void cAppliTiepRed::DoReduceBox()
     tPMulTiepRedPtr aPMPtr;
     while (mHeap->pop(aPMPtr))
     {
+
           mListSel.push_back(aPMPtr);
           aPMPtr->Remove();
           aPMPtr->SetSelected();
@@ -303,10 +304,14 @@ void cAppliTiepRed::DoReduceBox()
 
     }
 
+    int aNbInit = mListSel.size();
     VonGruber();
 
     // PAOK
-    //     std::cout << "NBPTS " <<  aNbInit << " => " <<  mListSel.size() << "\n";
+    if (0)
+    {
+       std::cout << "NBPTS " <<  aNbInit << " Apr VonGruber => " <<  mListSel.size() << "\n";
+    }
     DoExport();
 }
 
@@ -323,47 +328,51 @@ void cAppliTiepRed::DoExport()
     {
          tMerge * aMerge = (*itP)->Merge();
          const std::vector<Pt2dUi2> &  aVE = aMerge->Edges();
+         const std::vector<cCMT_U_INT1> &  aVA = aMerge->ValArc();
          for (int aKCple=0 ; aKCple<int(aVE.size()) ; aKCple++)
          {
-              int aKCam1 = aVE[aKCple].x;
-              int aKCam2 = aVE[aKCple].y;
-
-              const Pt2df & aP1 = aMerge->GetVal(aKCam1);
-              const Pt2df & aP2 = aMerge->GetVal(aKCam2);
-              cCameraTiepRed * aCam1 = mVecCam[aKCam1];
-              cCameraTiepRed * aCam2 = mVecCam[aKCam2];
-
-              if (mModeIm)
+              if (aVA[aKCple].mVal==IndMergeNew)
               {
-                  if (aCam1->NameIm() > aCam2->NameIm())
-                  {
-                      ElSwap(aKCam1,aKCam2);
-                      ElSwap(aCam1,aCam2);
-                  }
-                  cLnk2ImTiepRed * aLnK = LnkOfCams(aCam1,aCam2);
-                  ELISE_ASSERT(aLnK!=0,"cLnk2ImTiepRed");
-                  aLnK->VSelP1().push_back(aP1);
-                  aLnK->VSelP2().push_back(aP2);
-                  aLnK->VSelNb().push_back(2);
-              }
-              else
-              {
+                   int aKCam1 = aVE[aKCple].x;
+                   int aKCam2 = aVE[aKCple].y;
 
-                  Pt2dr aQ1 = aCam1->Hom2Cam(aP1);
-                  Pt2dr aQ2 = aCam2->Hom2Cam(aP2);
+                   const Pt2df & aP1 = aMerge->GetVal(aKCam1);
+                   const Pt2df & aP2 = aMerge->GetVal(aKCam2);
+                   cCameraTiepRed * aCam1 = mVecCam[aKCam1];
+                   cCameraTiepRed * aCam2 = mVecCam[aKCam2];
 
-                  aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(aQ1,aQ2));
-                  aVVH[aKCam2][aKCam1].Cple_Add(ElCplePtsHomologues(aQ2,aQ1));
+                   if (mModeIm)
+                   {
+                       if (aCam1->NameIm() > aCam2->NameIm())
+                       {
+                           ElSwap(aKCam1,aKCam2);
+                           ElSwap(aCam1,aCam2);
+                       }
+                       cLnk2ImTiepRed * aLnK = LnkOfCams(aCam1,aCam2);
+                       ELISE_ASSERT(aLnK!=0,"cLnk2ImTiepRed");
+                       aLnK->VSelP1().push_back(aP1);
+                       aLnK->VSelP2().push_back(aP2);
+                       aLnK->VSelNb().push_back(2);
+                   }
+                   else
+                   {
 
-                  if (VerifNM())
-                  {
+                       Pt2dr aQ1 = aCam1->Hom2Cam(aP1);
+                       Pt2dr aQ2 = aCam2->Hom2Cam(aP2);
+
+                       aVVH[aKCam1][aKCam2].Cple_Add(ElCplePtsHomologues(aQ1,aQ2));
+                       aVVH[aKCam2][aKCam1].Cple_Add(ElCplePtsHomologues(aQ2,aQ1));
+
+                       if (VerifNM())
+                       {
                        // Pt2dr aW1 = mNM->CalibrationCamera(aCam1->NameIm());
                        // std::cout << "FFFFffGG  :" << mNM->CalibrationCamera(aCam1->NameIm())->Radian2Pixel(Pt2dr(aP1.x,aP1.y)) - aQ1 << "\n";
-                  }
+                       }
                
 
-                  Verif(aP1);
-                  Verif(aP2);
+                       Verif(aP1);
+                       Verif(aP2);
+                   }
               }
          }
     }

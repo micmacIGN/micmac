@@ -112,6 +112,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
        mModeIm = mXmlParBox.MasterIm().IsInit();
        if (mModeIm)
        {
+           mThresholdNbPts2Im=0;
            mMasterIm =  mXmlParBox.MasterIm().Val();
            if (! EAMIsInit(&mIntOrLevel)) 
            {
