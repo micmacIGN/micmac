@@ -97,6 +97,8 @@ cCameraTiepRed &     cLnk2ImTiepRed::Cam1() {return *mCam1;}
 cCameraTiepRed &     cLnk2ImTiepRed::Cam2() {return *mCam2;}
 std::vector<Pt2df>&  cLnk2ImTiepRed::VP1()  {return mVP1;}
 std::vector<Pt2df>&  cLnk2ImTiepRed::VP2()  {return mVP2;}
+std::vector<Pt2df>&  cLnk2ImTiepRed::VPPrec1()  {return mVPPrec1;}
+std::vector<Pt2df>&  cLnk2ImTiepRed::VPPrec2()  {return mVPPrec2;}
 
 
 std::vector<Pt2df> & cLnk2ImTiepRed::VSelP1()
@@ -123,9 +125,12 @@ void cLnk2ImTiepRed::Add2Merge(tMergeStr * aMergeStr)
     // Parse the point 
     for (int aKP=0 ; aKP<int(mVP1.size()) ; aKP++)
     {
-         // And add elementay connexions
-          
-         aMergeStr->AddArc(mVP1[aKP],aKCam1,mVP2[aKP],aKCam2,cCMT_NoVal());
+         aMergeStr->AddArc(mVP1[aKP],aKCam1,mVP2[aKP],aKCam2,cCMT_U_INT1(IndMergeNew));
+    }
+
+    for (int aKP=0 ; aKP<int(mVPPrec1.size()) ; aKP++)
+    {
+         aMergeStr->AddArc(mVPPrec1[aKP],aKCam1,mVPPrec2[aKP],aKCam2,cCMT_U_INT1(IndMergePrec));
     }
 }
 

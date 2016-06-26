@@ -1040,6 +1040,7 @@ class cCMT_NoVal
 {
    public :
        cCMT_NoVal();
+       void Fusione(const cCMT_NoVal &);
 };
 
 class cCMT_U_INT1
@@ -1049,6 +1050,7 @@ class cCMT_U_INT1
        cCMT_U_INT1(U_INT1);
 
        U_INT1 mVal;
+       void Fusione(const  cCMT_U_INT1 &);
 };
 
 
