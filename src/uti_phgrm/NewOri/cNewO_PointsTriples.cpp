@@ -122,7 +122,12 @@ void cNewO_NameManager::LoadHomFloats(std::string  aName1,std::string  aName2,st
        ElSwap(aVP1,aVP2);
    }
    std::string aNameH = NameHomFloat(aName1,aName2);
+   GenLoadHomFloats(aNameH,aVP1,aVP2,SVP);
+}
 
+
+void cNewO_NameManager::GenLoadHomFloats(const std::string &  aNameH,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP)
+{
    if (SVP)
    {
         if (! ELISE_fp::exist_file(aNameH))
@@ -225,7 +230,7 @@ class cAppli_GenPTripleOneImage
            void  GenerateTriplet(int aKC1,int aKC2);
 
            void GenerateHomFloat(cNewO_OneIm * anI1,cNewO_OneIm * anI2);
-           void AddOnePackOneSens(cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> >  &,cNewO_OneIm * anI1,int anIndI1,cNewO_OneIm * anI2);
+           void AddOnePackOneSens(cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df,cCMT_NoVal> >  &,cNewO_OneIm * anI1,int anIndI1,cNewO_OneIm * anI2);
 
            cNewO_NameManager *        mNM;
            std::string                mFullName;
@@ -354,14 +359,14 @@ void cAppli_GenPTripleOneImage::GenerateTriplets()
     if (!mSkWhenExist)  std::cout << "   ==> END GeneratePointTriple " << mCam->Name()  << " " << aChrono.uval() << "\n";
 }
 
-typedef  cFixedSizeMergeTieP<3,Pt2df>    tElM;
-typedef  cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2df> >  tMapM;
+typedef  cFixedSizeMergeTieP<3,Pt2df,cCMT_NoVal>    tElM;
+typedef  cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2df,cCMT_NoVal> >  tMapM;
 typedef  std::list<tElM *>           tListM;
 
 void AddVPts2Map(tMapM & aMap,const std::vector<Pt2df> & aVP1,int anInd1,const std::vector<Pt2df> & aVP2,int anInd2)
 {
     for (int aKP=0 ; aKP<int(aVP1.size()) ; aKP++)
-        aMap.AddArc(aVP1[aKP],anInd1,aVP2[aKP],anInd2);
+        aMap.AddArc(aVP1[aKP],anInd1,aVP2[aKP],anInd2,cCMT_NoVal());
 }
 
 
@@ -418,7 +423,7 @@ void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
 /*                                                                 */
 /*******************************************************************/
 
-void  cAppli_GenPTripleOneImage::AddOnePackOneSens(cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> > & aMap,cNewO_OneIm * anI1,int anIndI1,cNewO_OneIm * anI2)
+void  cAppli_GenPTripleOneImage::AddOnePackOneSens(cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df,cCMT_NoVal> > & aMap,cNewO_OneIm * anI1,int anIndI1,cNewO_OneIm * anI2)
 {
     ElPackHomologue aPack = mNM->PackOfName(anI1->Name(),anI2->Name());
 
@@ -433,7 +438,7 @@ void  cAppli_GenPTripleOneImage::AddOnePackOneSens(cStructMergeTieP< cFixedSizeM
         Pt2df aQ1(aP1.x,aP1.y);
         Pt2df aQ2(aP2.x,aP2.y);
         // if (aSwap) ElSwap(aQ1,aQ2);
-        aMap.AddArc(aQ1,anIndI1,aQ2,1-anIndI1);
+        aMap.AddArc(aQ1,anIndI1,aQ2,1-anIndI1,cCMT_NoVal());
     }
 
 }
@@ -446,7 +451,7 @@ void  cAppli_GenPTripleOneImage::GenerateHomFloat(cNewO_OneIm * anI1,cNewO_OneIm
      // std::cout << "NHH " << aNameH << "\n";
 
 
-     cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> >    aMap(2,false);
+     cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df,cCMT_NoVal> >    aMap(2,false);
      AddOnePackOneSens(aMap,anI1,0,anI2);
      AddOnePackOneSens(aMap,anI2,1,anI1);
 
@@ -455,10 +460,10 @@ void  cAppli_GenPTripleOneImage::GenerateHomFloat(cNewO_OneIm * anI1,cNewO_OneIm
      std::vector<U_INT1> aVNb;
 
      aMap.DoExport();
-     const  std::list<cFixedSizeMergeTieP<2,Pt2df> *> &  aLM = aMap.ListMerged();
-     for (std::list<cFixedSizeMergeTieP<2,Pt2df> *>::const_iterator itM = aLM.begin() ; itM!=aLM.end() ; itM++)
+     const  std::list<cFixedSizeMergeTieP<2,Pt2df,cCMT_NoVal> *> &  aLM = aMap.ListMerged();
+     for (std::list<cFixedSizeMergeTieP<2,Pt2df,cCMT_NoVal> *>::const_iterator itM = aLM.begin() ; itM!=aLM.end() ; itM++)
      {
-          const cFixedSizeMergeTieP<2,Pt2df> & aM = **itM;
+          const cFixedSizeMergeTieP<2,Pt2df,cCMT_NoVal> & aM = **itM;
           if (aM.NbArc() >= mSeuilNbArc)
           {
               aVP1.push_back(aM.GetVal(0));

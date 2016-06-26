@@ -75,7 +75,8 @@ cCameraTiepRed::cCameraTiepRed
    mResolPds     (anAppli.ModeIm() ? 20.0 : 200.0),
    mSzPds        (round_up(Pt2dr(mSzIm)/mResolPds)),
    mIMasqM       (mSzPds.x,mSzPds.y,0),
-   mTMasqM       (mIMasqM)
+   mTMasqM       (mIMasqM),
+   mAlive        (true)
 {
    if (mAppli.FromRatafiaBox())
    {
@@ -84,6 +85,16 @@ cCameraTiepRed::cCameraTiepRed
 }
 
 cAppliTiepRed & cCameraTiepRed::Appli() {return mAppli;}
+
+bool cCameraTiepRed::Alive() const 
+{
+   return mAlive;
+}
+
+void cCameraTiepRed::SetDead()
+{
+   mAlive = false;
+}
 
 
 CamStenope  & cCameraTiepRed::CsOr() 
@@ -155,6 +166,7 @@ Pt3dr cCameraTiepRed::BundleIntersection(const Pt2df & aPH1,const cCameraTiepRed
 
 void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
 {
+    ELISE_ASSERT(mNameIm < aCam2.mNameIm,"cCameraTiepRed::LoadHom order name");
     cCameraTiepRed * aMaster = 0;
     cCameraTiepRed * aSlave = 0;
 

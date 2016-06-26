@@ -63,7 +63,42 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
        mPrec = 1.0;
 
 
+       double aSomRes = 0;
+       double aNbRes = 0;
+
        const std::vector<Pt2dUi2> &  aVP = aPM->Edges();
+       for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
+       {
+           int aKC1 = aVP[aKCple].x;
+           int aKC2 = aVP[aKCple].y;
+
+           cCameraTiepRed * aCam1 = anAppli.KthCam(aKC1);
+           cCameraTiepRed * aCam2 = anAppli.KthCam(aKC2);
+
+           if (aCam1->NameIm() > aCam2->NameIm())
+           {
+               ElSwap( aKC1, aKC2);
+               ElSwap(aCam1,aCam2);
+           }
+
+           cLnk2ImTiepRed *  aLnk = anAppli.LnkOfCams(aCam1,aCam2);
+           double aRes = anAppli.DefResidual();
+           if (aLnk->HasOriRel())
+           {
+               Pt2dr aP1 =  aCam1->Hom2Cam(aPM->GetVal(aKC1));
+               Pt2dr aP2 =  aCam2->Hom2Cam(aPM->GetVal(aKC2));
+
+               CamStenope & aCS1 =  aLnk->CsRel1();
+               CamStenope & aCS2 =  aLnk->CsRel2();
+               Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
+               aRes =  (euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer))) / 2.0;
+           }
+
+           aSomRes += aRes;
+           aNbRes ++;
+       }
+
+       mPrec = aSomRes / aNbRes;
 
     }
     else

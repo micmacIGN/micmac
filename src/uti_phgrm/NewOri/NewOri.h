@@ -78,15 +78,9 @@ class cNewO_OrInit2Im;
 class cNewO_NameManager;
 class cNewO_Appli;
 
-typedef std::vector<Pt2df> tVP2f;
-typedef const tVP2f   tCVP2f;
-typedef std::vector<U_INT1> tVUI1;
-typedef const tVUI1 tCVUI1;
 
-
-
-typedef cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> > tMergeLPackH;
-typedef cFixedSizeMergeTieP<2,Pt2dr>                     tMergeCplePt;
+typedef cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr,cCMT_NoVal> > tMergeLPackH;
+typedef cFixedSizeMergeTieP<2,Pt2dr,cCMT_NoVal>                     tMergeCplePt;
 
 
 
@@ -310,6 +304,8 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
 
            void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP=false);
            void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);
+           void GenLoadHomFloats(const std::string &  aNameH,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP);
+
            std::string NameHomTriplet(cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameHomTriplet(const std::string&,const std::string&,const std::string&,bool WithMakeDir=false);
 
@@ -357,7 +353,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
 
 template <const int TheNb> void NOMerge_AddPackHom
                            (
-                                cStructMergeTieP< cFixedSizeMergeTieP<TheNb,Pt2dr> > & aMap,
+                                cStructMergeTieP< cFixedSizeMergeTieP<TheNb,Pt2dr,cCMT_NoVal> > & aMap,
                                 const ElPackHomologue & aPack,
                                 const ElCamera & aCam1,int aK1,
                                 const ElCamera & aCam2,int aK2
@@ -365,7 +361,7 @@ template <const int TheNb> void NOMerge_AddPackHom
 
 template <const int TheNb> void NOMerge_AddAllCams
                            (
-                                cStructMergeTieP< cFixedSizeMergeTieP<TheNb,Pt2dr> >  & aMap,
+                                cStructMergeTieP< cFixedSizeMergeTieP<TheNb,Pt2dr,cCMT_NoVal> >  & aMap,
                                 std::vector<cNewO_OneIm *> aVI
                            );
 

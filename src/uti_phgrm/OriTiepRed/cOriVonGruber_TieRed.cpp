@@ -53,7 +53,7 @@ NS_OriTiePRed_BEGIN
 
 void cAppliTiepRed::VonGruber()
 {
-     int aNbSel0 =  mListSel.size();
+     // int aNbSel0 =  mListSel.size();
      for (int aK1=0 ; aK1<int(mVecCam.size()) ; aK1++)
      {
          std::vector<tPMulTiepRedPtr> aVK1;
@@ -72,7 +72,7 @@ void cAppliTiepRed::VonGruber()
          }
      }
 
-     std::cout << " VonGruber , " << aNbSel0  << " => " << mListSel.size() << "\n";
+     // std::cout << " VonGruber , " << aNbSel0  << " => " << mListSel.size() << "\n";
 }
 
 

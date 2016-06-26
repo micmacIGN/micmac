@@ -1055,7 +1055,7 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
 }
 
 
-void  AddPackToMerge(CamStenope * aCS1,CamStenope * aCS2,const ElPackHomologue & aPack,cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df> >&   aMap,int aInd0)
+void  AddPackToMerge(CamStenope * aCS1,CamStenope * aCS2,const ElPackHomologue & aPack,cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2df,cCMT_NoVal> >&   aMap,int aInd0)
 {
     for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
     {
@@ -1064,7 +1064,7 @@ void  AddPackToMerge(CamStenope * aCS1,CamStenope * aCS2,const ElPackHomologue &
         Pt2df aQ1(aP1.x,aP1.y);
         Pt2df aQ2(aP2.x,aP2.y);
         // if (aSwap) ElSwap(aQ1,aQ2);
-        aMap.AddArc(aQ1,aInd0,aQ2,1-aInd0);
+        aMap.AddArc(aQ1,aInd0,aQ2,1-aInd0,cCMT_NoVal());
     }
 }
 

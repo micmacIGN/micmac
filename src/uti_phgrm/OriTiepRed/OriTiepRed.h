@@ -131,7 +131,7 @@ if (X,Y) is one point then (X,Y,1) is the direction of the bundle in the camera 
 
 
 
-typedef cVarSizeMergeTieP<Pt2df>  tMerge;
+typedef cVarSizeMergeTieP<Pt2df,cCMT_NoVal>  tMerge;
 typedef cStructMergeTieP<tMerge>  tMergeStr;
 
 class cCameraTiepRed
@@ -172,6 +172,8 @@ class cCameraTiepRed
 
         void MakeImPds();
         bool  IsMaster() const;
+        bool Alive() const;
+        void SetDead();
 
     private :
         void SaveHom( cCameraTiepRed*,const std::list<int> & aLBox);
@@ -195,6 +197,7 @@ class cCameraTiepRed
         Pt2di               mSzPds;
         Im2D<U_INT1,INT4>   mIMasqM;
         TIm2D<U_INT1,INT4>  mTMasqM;
+        bool                mAlive;
 };
 
 class cLnk2ImTiepRed
@@ -211,6 +214,10 @@ class cLnk2ImTiepRed
         CamStenope &        CsRel1();
         CamStenope &        CsRel2();
         cElHomographie &    Hom();
+        bool  HasOriRel() const;
+        std::vector<Pt2df> & VSelP1();
+        std::vector<Pt2df> & VSelP2();
+        std::vector<U_INT1> & VSelNb();
         
      private :
         cCameraTiepRed *    mCam1;
@@ -221,6 +228,9 @@ class cLnk2ImTiepRed
         CamStenope *        mCsRel2;
         cElHomographie *    mHom;
         double              mResiduH;
+        std::vector<Pt2df>  mVSelP1;
+        std::vector<Pt2df>  mVSelP2;
+        std::vector<U_INT1> mVSelNb;
 };
 
 
@@ -311,7 +321,9 @@ class cAppliTiepRed
           cCameraTiepRed * KthCam(int aK);
           const double & StdPrec() const;
           std::vector<int>  & BufICam();
-          std::string NameHomol(const std::string &,const std::string &,int aK) const;
+          std::string NameHomol    (const std::string &,const std::string &,int aK) const;
+          std::string NameHomolGlob(const std::string &,const std::string &) const;
+
           cInterfChantierNameManipulateur* ICNM();
           const std::string & StrOut() const;
           bool  VerifNM() const;
@@ -322,6 +334,9 @@ class cAppliTiepRed
           bool ModeIm() const;
           cCameraTiepRed & CamMaster();
 
+          cLnk2ImTiepRed * LnkOfCams(cCameraTiepRed * aCam1,cCameraTiepRed * aCam2);
+          bool   Debug() const;
+          double   DefResidual() const;
      private :
 
           void MkDirSubir();
@@ -376,6 +391,7 @@ class cAppliTiepRed
           double                           mResolQT;
           cXml_ParamBoxReducTieP           mXmlParBox;
           std::list<cLnk2ImTiepRed *>      mLnk2Im;
+          std::vector<std::vector<cLnk2ImTiepRed *> > mVVLnk;
           tMergeStr *                      mMergeStruct;
           const std::list<tMerge *> *      mLMerge;
           // std::list<cPMulTiepRed *>        mLPMul;
@@ -396,6 +412,8 @@ class cAppliTiepRed
           int                              mIntOrLevel;
           eLevelOr                         mOrLevel;
           cCameraTiepRed *                 mCamMaster;
+          bool                             mDebug;
+          double                           mDefResidual;
 };
 
 
@@ -498,6 +516,10 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            void CreateBox();
            void CreateBoxOfSet(cV2ParGRT *);
            void CreateBoxOfSom(tSomGRTP *);
+
+           void ExeSelec();
+           void ExeSelecOfSet(cV2ParGRT *);
+           void FusionSelec(cAttSomGrRedTP&,cAttSomGrRedTP&,int aKBox);
 
 
            bool                               mUseOr;
