@@ -486,6 +486,98 @@ void cAppliGrRedTieP::CreateBox()
     }
 }
 
+        // ------------------ Execution of command ------------
+
+void cAppliGrRedTieP::FusionSelec(cAttSomGrRedTP& anAtr1,cAttSomGrRedTP& anAtr2,int aKBox)
+{
+    const std::string & aN1 = anAtr1.Name();
+    const std::string & aN2 = anAtr2.Name();
+    if (aN1>=aN2)
+       return;
+    std::string aNameHomBox =  mAppliTR->NameHomol(aN1,aN2,aKBox);
+
+    bool Exist = ELISE_fp::exist_file(aNameHomBox);
+    if (! Exist) return;
+
+
+    std::string aNameHomGlob = mAppliTR->NameHomolGlob(aN1,aN2);
+
+    std::vector<Pt2df> aVPGlob1,aVPGlob2;
+    
+    if (ELISE_fp::exist_file(aNameHomGlob))
+    {
+         mNoNM->GenLoadHomFloats(aNameHomGlob,&aVPGlob1,&aVPGlob2,false);
+    }
+
+    std::vector<Pt2df> aVPLoc1,aVPLoc2;
+    mNoNM->GenLoadHomFloats(aNameHomBox,&aVPLoc1,&aVPLoc2,false);
+
+    for (int aK=0 ; aK<int(aVPLoc1.size()) ; aK++)
+    {
+        aVPGlob1.push_back(aVPLoc1[aK]);
+        aVPGlob2.push_back(aVPLoc2[aK]);
+    }
+    tCVUI1 aVNb(aVPGlob1.size(),2);
+
+    mNoNM->WriteCouple(aNameHomGlob,aVPGlob1,aVPGlob2,aVNb);
+
+    ELISE_fp::RmFile(aNameHomBox);
+}
+
+void cAppliGrRedTieP::ExeSelecOfSet(cV2ParGRT * aPart)
+{
+    const std::vector<tSomGRTP *> & aVS = aPart->VSom();
+
+
+    // Execution des commandes individuelles
+    std::list<std::string> aLCom;
+    for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
+    {
+        cAttSomGrRedTP & anAttr = *(aVS[aKS]->attr());
+        for (int aKB=anAttr.NumBox0() ; aKB<anAttr.NumBox1() ; aKB++)
+        {
+               std::string aCom = ComOfKBox(aKB);
+
+               aLCom.push_back(aCom);
+        }
+    }
+    cEl_GPAO::DoComInParal(aLCom);
+
+
+    // Fusion des pts homologues
+    for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
+    {
+        tSomGRTP * aSom = aVS[aKS];
+        cAttSomGrRedTP & anAttr0 = *(aSom->attr());
+        for (int aKB=anAttr0.NumBox0() ; aKB<anAttr0.NumBox1() ; aKB++)
+        {
+            for (tIterArcGRTP  itA1=aSom->begin(mSubAll) ; itA1.go_on(); itA1++)
+            {
+                cAttSomGrRedTP & anAttr1 = *(itA1->s2().attr());
+                FusionSelec(anAttr0,anAttr1,aKB);
+                FusionSelec(anAttr1,anAttr0,aKB);
+                for (tIterArcGRTP  itA2=aSom->begin(mSubAll) ; itA2.go_on(); itA2++)
+                {
+                    cAttSomGrRedTP & anAttr2 = *(itA2->s2().attr());
+                    FusionSelec(anAttr1,anAttr2,aKB);
+                }
+            }
+        }
+    }
+}
+   
+
+void cAppliGrRedTieP::ExeSelec()
+{
+    for (int aKP=0; aKP<int(mPartParal.size()) ; aKP++)
+    {
+        ExeSelecOfSet(mPartParal[aKP]);
+        std::cout << "=======    Done " << aKP <<  "  Part on " << mPartParal.size() << " ================\n";
+    }
+}
+
+
+
 cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     mIntOrLevel  (eLevO_ByCple),
     mQuick       (true),
@@ -632,6 +724,9 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     {
        Show();
     }
+
+    // Lancement de la selection
+    ExeSelec();
 }
 
 NS_OriTiePRed_END

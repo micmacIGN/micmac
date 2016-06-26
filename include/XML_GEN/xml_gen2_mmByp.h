@@ -325,9 +325,18 @@ class cResVINM
    private :
 };
 
+typedef std::vector<Pt2df> tVP2f;
+typedef const tVP2f   tCVP2f;
+typedef std::vector<U_INT1> tVUI1;
+typedef const tVUI1 tCVUI1;
+
+
 class cVirtInterf_NewO_NameManager
 {
        public :
+           virtual void WriteTriplet(const std::string & aNameFile,tCVP2f &,tCVP2f &,tCVP2f &,tCVUI1 &)=0;
+           virtual void WriteCouple(const std::string & aNameFile,tCVP2f &,tCVP2f &,tCVUI1 &) = 0;
+
            virtual std::string NameRatafiaSom(const std::string & aName,bool Bin) const = 0;
            virtual std::string NameListeCpleOriented(bool Bin) const = 0;
            virtual std::string NameListeCpleConnected(bool Bin) const = 0;
@@ -348,8 +357,7 @@ class cVirtInterf_NewO_NameManager
            //  !! => they are "photogrametric" tie points, i.e they have been corrected of focal, PP and distorsion
            //  for a given 2d point (U,V)  the (U,V,1) 3d point is a direction in the camera repair
            virtual void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP=false) = 0;
-
-
+           virtual void GenLoadHomFloats(const std::string &  aNameH,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP)=0;
 
            virtual bool LoadTriplet(const std::string &,const std::string &,const std::string &,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3) = 0;
 

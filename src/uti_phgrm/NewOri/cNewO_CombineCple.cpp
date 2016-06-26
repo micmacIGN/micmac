@@ -45,7 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cCdtCombTiep
 {
     public :
-        typedef cFixedSizeMergeTieP<2,Pt2dr> tMerge;
+        typedef cFixedSizeMergeTieP<2,Pt2dr,cCMT_NoVal> tMerge;
         cCdtCombTiep(tMerge * aM) ;
         Pt3dr NormQ1Q2();
 
@@ -61,8 +61,8 @@ class cCdtCombTiep
 class cNewO_CombineCple
 {
     public :
-         typedef cFixedSizeMergeTieP<2,Pt2dr> tMerge;
-         cNewO_CombineCple(const   cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> >   & aM,ElRotation3D * aTestSol);
+         typedef cFixedSizeMergeTieP<2,Pt2dr,cCMT_NoVal> tMerge;
+         cNewO_CombineCple(const   cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr,cCMT_NoVal> >   & aM,ElRotation3D * aTestSol);
 
           const cXml_Ori2Im &  Result() const;
     private :
@@ -284,7 +284,7 @@ Pt2dr cNewO_CombineCple::ToW(const Pt2dr & aP) const
 
 
 
-cNewO_CombineCple::cNewO_CombineCple(const  cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr> >  &  aMap,ElRotation3D * aTestSol) :
+cNewO_CombineCple::cNewO_CombineCple(const  cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr,cCMT_NoVal> >  &  aMap,ElRotation3D * aTestSol) :
     mCurStep     (1<<NbPow2),
     mNbStepTeta  (4 * NbDecoup0PIS2 * mCurStep),
     mCurRot      (3,3),

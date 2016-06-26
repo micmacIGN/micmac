@@ -79,7 +79,7 @@ class cXml_ParamSubcommandTiepRed;
 /*                                                                            */
 /******************************************************************************/
 
-typedef cVarSizeMergeTieP<Pt2df>  tMerge; // Class for the merging to produce one raw multi-tie-point
+typedef cVarSizeMergeTieP<Pt2df,cCMT_NoVal>  tMerge; // Class for the merging to produce one raw multi-tie-point
 typedef cStructMergeTieP<tMerge>  tMergeStr; // Class for the merging structure to produce all the raw multi-tie-points
 
 // Class to store multi-tie-points in the grid in which we divide the image-space of an image
