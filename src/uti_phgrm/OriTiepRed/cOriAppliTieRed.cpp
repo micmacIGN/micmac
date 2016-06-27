@@ -66,8 +66,9 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
      mFromRatafiaGlob         (false),
      mFromRatafiaBox          (false),
      mIntOrLevel              (eLevO_Glob),
-     mCamMaster               (0)
-     
+     mCamMaster               (0),
+     mDebug                   (false),
+     mDefResidual             (10.0)
 {
    // Read parameters 
    if (! CalledFromInside)
@@ -89,6 +90,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
                      << EAM(mFromRatafiaGlob,"FromRG",true,"(Internal) called by ratagia at top level")
                      << EAM(mFromRatafiaBox,"FromRB",true,"(Internal) called by ratagia at box level")
                      << EAM(mIntOrLevel,"LevelOr",true,"(Internal when call by ratafia) level of orientation")
+                     << EAM(mDebug,"Debug",true,"Debug, tunging purpose")
    );
 
 
@@ -106,10 +108,11 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
    
    if (mCallBack)  // Subcommand mode, initialise set of file for Param_K.xml
    {
-       mXmlParBox = StdGetFromPCP(NameParamBox(mKBox,true),Xml_ParamBoxReducTieP);
+       mXmlParBox = StdGetFromPCP(NameParamBox(mKBox,!mDebug),Xml_ParamBoxReducTieP);
        mModeIm = mXmlParBox.MasterIm().IsInit();
        if (mModeIm)
        {
+           mThresholdNbPts2Im=0;
            mMasterIm =  mXmlParBox.MasterIm().Val();
            if (! EAMIsInit(&mIntOrLevel)) 
            {
@@ -123,7 +126,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
        mBoxLocQT = mXmlParBox.Box();
        mBoxRabLocQT = mXmlParBox.BoxRab();
        mFilesIm = &(mXmlParBox.Ims());
-       std::cout << "=======================   KBOX=" << mKBox << "  ===================\n";
+       // std::cout << "=======================   KBOX=" << mKBox << "  ===================\n";
 
    }
    else  // Master command, initialise from pattern
@@ -136,7 +139,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
 
 
    mSetFiles = new std::set<std::string>(mFilesIm->begin(),mFilesIm->end());
-   std::cout << "## Get Nb Images " <<  mFilesIm->size() << "\n";
+   // std::cout << "## Get Nb Images " <<  mFilesIm->size() << "\n";
 
 
    mNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir,mCalib);
@@ -208,7 +211,13 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
       mResolQT = mResolInit = MedianeSup(aVResol);
    }
    
-   std::cout << "   BOX " << mBoxGlob << " Resol=" << mResolInit << "\n";
+   // std::cout << "   BOX " << mBoxGlob << " Resol=" << mResolInit << "\n";
+}
+
+
+double cAppliTiepRed::DefResidual() const
+{
+   return mDefResidual;
 }
 
 const std::string cAppliTiepRed::TheNameTmp = "Tmp-ReducTieP/";
@@ -235,6 +244,14 @@ std::string  cAppliTiepRed::NameHomol(const std::string &aName1,const std::strin
 }
 
 
+std::string  cAppliTiepRed::NameHomolGlob(const std::string &aName1,const std::string &aName2) const
+{
+   return DirOneImage(aName1) + "Glob-" + aName2  + ".dat";
+}
+
+
+
+
 eLevelOr cAppliTiepRed::OrLevel() const {return mOrLevel;}
 cVirtInterf_NewO_NameManager & cAppliTiepRed::NM(){ return *mNM ;}
 const cXml_ParamBoxReducTieP & cAppliTiepRed::ParamBox() const {return mXmlParBox;}
@@ -251,6 +268,7 @@ bool cAppliTiepRed::VerifNM() const {return mVerifNM;}
 bool cAppliTiepRed::FromRatafiaBox() const {return mFromRatafiaBox;}
 const std::string  & cAppliTiepRed::Dir() const {return mDir;}
 bool cAppliTiepRed::ModeIm() const { return mModeIm; }
+bool cAppliTiepRed::Debug() const { return mDebug; }
 
 cCameraTiepRed & cAppliTiepRed::CamMaster()
 {
@@ -263,6 +281,14 @@ cCameraTiepRed & cAppliTiepRed::CamMaster()
 void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
 {
     mLnk2Im.push_back(aLnk);
+}
+
+
+cLnk2ImTiepRed * cAppliTiepRed::LnkOfCams(cCameraTiepRed * aCam1,cCameraTiepRed * aCam2)
+{
+   cLnk2ImTiepRed * aRes = mVVLnk[aCam1->Num()][aCam2->Num()];
+   ELISE_ASSERT(aRes!=0,"cAppliTiepRed::LnkOfCams");
+   return aRes;
 }
 
 

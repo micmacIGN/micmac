@@ -75,7 +75,8 @@ cCameraTiepRed::cCameraTiepRed
    mResolPds     (anAppli.ModeIm() ? 20.0 : 200.0),
    mSzPds        (round_up(Pt2dr(mSzIm)/mResolPds)),
    mIMasqM       (mSzPds.x,mSzPds.y,0),
-   mTMasqM       (mIMasqM)
+   mTMasqM       (mIMasqM),
+   mAlive        (true)
 {
    if (mAppli.FromRatafiaBox())
    {
@@ -84,6 +85,16 @@ cCameraTiepRed::cCameraTiepRed
 }
 
 cAppliTiepRed & cCameraTiepRed::Appli() {return mAppli;}
+
+bool cCameraTiepRed::Alive() const 
+{
+   return mAlive;
+}
+
+void cCameraTiepRed::SetDead()
+{
+   mAlive = false;
+}
 
 
 CamStenope  & cCameraTiepRed::CsOr() 
@@ -155,6 +166,7 @@ Pt3dr cCameraTiepRed::BundleIntersection(const Pt2df & aPH1,const cCameraTiepRed
 
 void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
 {
+    ELISE_ASSERT(mNameIm < aCam2.mNameIm,"cCameraTiepRed::LoadHom order name");
     cCameraTiepRed * aMaster = 0;
     cCameraTiepRed * aSlave = 0;
 
@@ -201,28 +213,8 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
         const Pt2df & aPf1 = aVPIn1[aKP];
         const Pt2df & aPf2 = aVPIn2[aKP];
 
-        if (mAppli.OrLevel() >= eLevO_Glob)
+        if (mAppli.ModeIm())
         {
-            double aD; // store the reprojection error
-            Pt3dr aPTer = BundleIntersection(aPf1,aCam2,aPf2,aD);
-
-            Ok = (aD< aThresh) && aBox.inside(Pt2dr(aPTer.x,aPTer.y));
-        }
-        else if (mAppli.OrLevel() >= eLevO_ByCple)
-        {
-/*
-             Pt2dr  aP1 = Hom2Cam(aPf1);
-             Pt2dr  aP2 = aCam2.Hom2Cam(aPf2);
-             CamStenope & aCS1 =  aLnk->CsRel1();
-             CamStenope & aCS2 =  aLnk->CsRel2();
-
-             Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
-             double aRes =  (euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer))) / 2.0;
-             aSomRes += aRes;
-             aNbRes += 1.0;
-             aVRes.push_back(aRes);
-*/
-
              if (aMaster)
              {
                   Pt2df aPfM = (aMaster==this) ? aPf1 : aPf2;
@@ -254,6 +246,13 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
                   // Pt2dr  aP2S = aSlave->Hom2Cam(aPfS);
              }
         }
+        else if (mAppli.OrLevel() >= eLevO_Glob)
+        {
+            double aD; // store the reprojection error
+            Pt3dr aPTer = BundleIntersection(aPf1,aCam2,aPf2,aD);
+
+            Ok = (aD< aThresh) && aBox.inside(Pt2dr(aPTer.x,aPTer.y));
+        }
         else
         {
            Ok = true;
@@ -277,15 +276,16 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
          aSlave->mMasqIsDone = true;
     }
 
-/*
-    std::cout << "GGg " <<  aSomRes / aNbRes 
-              << " MED " <<  KthValProp(aVRes,0.5) 
-              << " 90%=" << KthValProp(aVRes,0.9)  
-              << " Sz=" << aVRes.size() 
-              << " NN=" << NameIm() << " " <<  aCam2.NameIm()
-              << "\n";
-    getchar();
-*/
+    if (mAppli.ModeIm())
+    {
+       std::string aNH = mAppli.NameHomolGlob(mNameIm,aCam2.mNameIm);
+
+       if (ELISE_fp::exist_file(aNH))
+       {
+         
+           mAppli.NM().GenLoadHomFloats(aNH,&(aLnk->VPPrec1()),&(aLnk->VPPrec2()),false);  // would have worked for I2 > I1 
+       }
+    }
 
     // If enough tie point , memorize the connexion 
 

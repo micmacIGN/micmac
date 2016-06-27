@@ -1036,38 +1036,59 @@ template <class TypeIndex,class TypeVal> class  cGenTabByMapPtr
 
 */
 
+class cCMT_NoVal
+{
+   public :
+       cCMT_NoVal();
+       void Fusione(const cCMT_NoVal &);
+};
 
-class cComMergeTieP
+class cCMT_U_INT1
+{
+   public :
+       cCMT_U_INT1();
+       cCMT_U_INT1(U_INT1);
+
+       U_INT1 mVal;
+       void Fusione(const  cCMT_U_INT1 &);
+};
+
+
+template <class TypeArc>  class cComMergeTieP
 {
     public  :
+       typedef TypeArc                    tArc;
         bool IsOk() const {return mOk;}
         void SetNoOk() {mOk=false;}
         void SetOkForDelete() {mOk=true;}  // A n'utiliser que dans cFixedMergeStruct::delete
         int  NbArc() const {return mNbArc;}
         void IncrArc() { mNbArc++;}
-        void MemoCnx(int aK1,int aK2);
-        void FusionneCnxInThis(const cComMergeTieP &);
+        void MemoCnx(int aK1,int aK2,const TypeArc& );
+        void FusionneCnxInThis(const cComMergeTieP<TypeArc> &);
         const std::vector<Pt2dUi2> & Edges() const;
+        const std::vector<TypeArc> & ValArc() const;
     protected :
         cComMergeTieP();
         bool  mOk;
         int   mNbArc;
         std::vector<Pt2dUi2> mEdges;
+        std::vector<TypeArc> mVecValArc;
 };
 
 
 
-template <class Type>  class cVarSizeMergeTieP : public cComMergeTieP
+template <class Type,class TypeArc>  class cVarSizeMergeTieP : public cComMergeTieP<TypeArc>
 {
      public :
        typedef Type                    tVal;
-       typedef cVarSizeMergeTieP<Type> tMerge;
+       typedef cVarSizeMergeTieP<Type,TypeArc> tMerge;
+       typedef TypeArc                    tArc;
        //  typedef std::map<Type,tMerge *>     tMapMerge;
        typedef  DefcTpl_GT<Type,tMerge> tMapMerge;
 
        cVarSizeMergeTieP() ;
-       void FusionneInThis(cVarSizeMergeTieP<Type> & anEl2,std::vector<tMapMerge> &  Tabs);
-       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2,bool MemoEdge);
+       void FusionneInThis(cVarSizeMergeTieP<Type,TypeArc> & anEl2,std::vector<tMapMerge> &  Tabs);
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2,bool MemoEdge,const TypeArc &);
 
         bool IsInit(int aK) const ;
         const Type & GetVal(int aK) const ;
@@ -1080,19 +1101,23 @@ template <class Type>  class cVarSizeMergeTieP : public cComMergeTieP
      private :
 
         std::vector<U_INT2>   mVecInd;
-        std::vector<Type>  mVecV;
+        std::vector<Type>     mVecV;
 };
-template <const int TheNbPts,class Type>  class cFixedSizeMergeTieP : public cComMergeTieP
+
+
+
+template <const int TheNbPts,class Type,class TypeArc>  class cFixedSizeMergeTieP : public cComMergeTieP<TypeArc>
 {
      public :
        typedef Type                    tVal;
-       typedef cFixedSizeMergeTieP<TheNbPts,Type> tMerge;
+       typedef cFixedSizeMergeTieP<TheNbPts,Type,TypeArc> tMerge;
        //  typedef std::map<Type,tMerge *>     tMapMerge;
        typedef  DefcTpl_GT<Type,tMerge> tMapMerge;
+       typedef TypeArc                    tArc;
 
        cFixedSizeMergeTieP() ;
-       void FusionneInThis(cFixedSizeMergeTieP<TheNbPts,Type> & anEl2,std::vector<tMapMerge> &  Tabs);
-       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2,bool MemoEdge);
+       void FusionneInThis(cFixedSizeMergeTieP<TheNbPts,Type,TypeArc> & anEl2,std::vector<tMapMerge> &  Tabs);
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2,bool MemoEdge,const TypeArc &);
 
         bool IsInit(int aK) const;
         const Type & GetVal(int aK) const;
@@ -1109,6 +1134,7 @@ template <class Type> class cStructMergeTieP
      public :
         typedef Type        tMerge;
         typedef typename Type::tVal  tVal;
+        typedef typename Type::tArc  tArc;
 
         typedef  DefcTpl_GT<tVal,tMerge> tMapMerge;
         typedef typename tMapMerge::GT_tIter         tItMM;
@@ -1119,7 +1145,7 @@ template <class Type> class cStructMergeTieP
         const std::list<tMerge *> & ListMerged() const;
 
 
-        void AddArc(const tVal & aV1,int aK1,const tVal & aV2,int aK2);
+        void AddArc(const tVal & aV1,int aK1,const tVal & aV2,int aK2,const tArc & aValArc);
         cStructMergeTieP(int aNbVal,bool WithMemoEdges);
 
         const tVal & ValInf(int aK) const {return mEnvInf[aK];}

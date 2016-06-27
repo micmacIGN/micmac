@@ -1002,41 +1002,42 @@ void TestFoncReelle(Fonc_Num aF,const std::string & aName,Pt2di aSz)
 
 void TestcFixedMergeStruct()
 {
-    cStructMergeTieP< cFixedSizeMergeTieP<3,Pt2dr> >  aFMS(3,false);
+    cCMT_NoVal aValArc;
+    cStructMergeTieP< cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal> >  aFMS(3,false);
 
-    aFMS.AddArc(Pt2dr(0,0),0,Pt2dr(1,1),1);
-    aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(1,2),2);
-    aFMS.AddArc(Pt2dr(1,2),2,Pt2dr(0,0),0);
+    aFMS.AddArc(Pt2dr(0,0),0,Pt2dr(1,1),1,aValArc);
+    aFMS.AddArc(Pt2dr(1,1),1,Pt2dr(1,2),2,aValArc);
+    aFMS.AddArc(Pt2dr(1,2),2,Pt2dr(0,0),0,aValArc);
 
-    aFMS.AddArc(Pt2dr(10,10),0,Pt2dr(11,11),1);
-    aFMS.AddArc(Pt2dr(11,11),1,Pt2dr(12,12),2);
-    aFMS.AddArc(Pt2dr(12,12),2,Pt2dr(11,11),1);
+    aFMS.AddArc(Pt2dr(10,10),0,Pt2dr(11,11),1,aValArc);
+    aFMS.AddArc(Pt2dr(11,11),1,Pt2dr(12,12),2,aValArc);
+    aFMS.AddArc(Pt2dr(12,12),2,Pt2dr(11,11),1,aValArc);
 //    aFMS.AddArc(Pt2dr(12,12),1,Pt2dr(10,10),0);
-    aFMS.AddArc(Pt2dr(11,11),1,Pt2dr(10,10),0);
+    aFMS.AddArc(Pt2dr(11,11),1,Pt2dr(10,10),0,aValArc);
 //    aFMS.AddArc(Pt2dr(12,12),1,Pt2dr(10,10),0);
 
-    aFMS.AddArc(Pt2dr(7,7),0,Pt2dr(8,8),1);
-    aFMS.AddArc(Pt2dr(8,8),1,Pt2dr(7,7),0);
+    aFMS.AddArc(Pt2dr(7,7),0,Pt2dr(8,8),1,aValArc);
+    aFMS.AddArc(Pt2dr(8,8),1,Pt2dr(7,7),0,aValArc);
 
-    aFMS.AddArc(Pt2dr(4,4),0,Pt2dr(5,5),1);
-    aFMS.AddArc(Pt2dr(5,5),1,Pt2dr(4,4),0);
-    aFMS.AddArc(Pt2dr(5,5),1,Pt2dr(6,6),2);
+    aFMS.AddArc(Pt2dr(4,4),0,Pt2dr(5,5),1,aValArc);
+    aFMS.AddArc(Pt2dr(5,5),1,Pt2dr(4,4),0,aValArc);
+    aFMS.AddArc(Pt2dr(5,5),1,Pt2dr(6,6),2,aValArc);
 
-    aFMS.AddArc(Pt2dr(77,77),0,Pt2dr(88,88),2);
-    aFMS.AddArc(Pt2dr(88,88),2,Pt2dr(99,99),1);
+    aFMS.AddArc(Pt2dr(77,77),0,Pt2dr(88,88),2,aValArc);
+    aFMS.AddArc(Pt2dr(88,88),2,Pt2dr(99,99),1,aValArc);
 
-    aFMS.AddArc(Pt2dr(777,777),0,Pt2dr(888,888),1);
-    aFMS.AddArc(Pt2dr(888,888),1,Pt2dr(999,999),2);
+    aFMS.AddArc(Pt2dr(777,777),0,Pt2dr(888,888),1,aValArc);
+    aFMS.AddArc(Pt2dr(888,888),1,Pt2dr(999,999),2,aValArc);
 
     aFMS.DoExport();
 
-    const std::list<cFixedSizeMergeTieP<3,Pt2dr> *> &  aLM = aFMS.ListMerged();
+    const std::list<cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal> *> &  aLM = aFMS.ListMerged();
  
     std::cout << "NB ITEM " << aLM.size() << "\n";
 
     for
     (
-        std::list<cFixedSizeMergeTieP<3,Pt2dr> *>::const_iterator itM=aLM.begin();
+        std::list<cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal> *>::const_iterator itM=aLM.begin();
         itM != aLM.end();
         itM++
     )
