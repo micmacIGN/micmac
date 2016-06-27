@@ -59,6 +59,28 @@ bool  MergeHasPrec(tMerge * aMerge)
     return false;
 }
 
+/*
+double  cPMulTiepRed::Residual(int aKC1,int aKC2,double aDef)
+{
+  cCameraTiepRed * aCam1 = anAppli.KthCam(aKC1);
+  cCameraTiepRed * aCam2 = anAppli.KthCam(aKC2);
+  cLnk2ImTiepRed *  aLnk = anAppli.LnkOfCams(aCam1,aCam2);
+  if (aLnk->HasOriRel())
+  {
+      Pt2dr aP1 =  aCam1->Hom2Cam(aPM->GetVal(aKC1));
+      Pt2dr aP2 =  aCam2->Hom2Cam(aPM->GetVal(aKC2));
+
+      CamStenope & aCS1 =  aLnk->CsRel1();
+      CamStenope & aCS2 =  aLnk->CsRel2();
+      Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
+      return  (euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer))) / 2.0;
+  }
+  return aDef;
+}
+*/
+
+
+
 
 cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
     mMerge      (aPM),

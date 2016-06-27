@@ -721,7 +721,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     mRecMax      (DefRecMaxModeIm),
     mShowPart    (false),
     mAppliTR     (0),
-    mSzPixDec    (4000),
+    mSzPixDec    (10000),
     mNumBox      (0),
     mTestExeOri  (false),
     mMergeStruct (NULL),
