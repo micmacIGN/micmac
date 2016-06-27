@@ -846,15 +846,22 @@ string eToString( QImage::Format e );
 std::ostream & operator <<( std::ostream &aStream, const QSize &aSize );
 
 #ifdef __DEBUG
+	#define CHECK_GL_ERROR(where) __check_gl_error(where)
+
 	string glErrorToString(GLenum aEnum);
 
 	inline void __check_gl_error(const std::string &aWhere)
 	{
+		#if ELISE_QT_VERSION == 4
+			ELISE_DEBUG_ERROR(glGetError == NULL, aWhere, "glGetError == NULL");
+		#endif
+
 		const GLenum err = glGetError();
+
 		ELISE_DEBUG_ERROR(err != GL_NO_ERROR, aWhere, "glGetError() = " << glErrorToString(err));
 	}
 #else
-	inline void __check_gl_error(const std::string &){}
+	#define CHECK_GL_ERROR(where)
 #endif
 
 #endif //__3DObject__

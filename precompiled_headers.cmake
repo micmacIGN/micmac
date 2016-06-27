@@ -32,49 +32,59 @@ if(WITH_HEADER_PRECOMP)
 			# Finally, update the source file collection to contain the precompiled header translation unit
 			set(${SOURCE_VARIABLE_NAME} ${${SOURCE_VARIABLE_NAME}} ${pch_unity} PARENT_SCOPE)
 		endfunction(enable_precompiled_headers_msvc)
-	elseif(CMAKE_COMPILER_IS_GNUCXX) # OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-		function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME EXTRA_CXX_FLAGS)
-			if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-				SET(EXT_HP pch)
-				#~ SET(OPTION_HP "-ccl -emit-pth")
-			endif()
+	elseif(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_IS_CLANG)
+		function(enable_precompiled_headers_GCC HEADER_NAME TARGET_NAME EXTRA_CXX_FLAGS)
+			GET_FILENAME_COMPONENT(_name ${HEADER_NAME} NAME)
+			SET(_source "${PROJECT_SOURCE_DIR}/include/${HEADER_NAME}")
 
-			if(CMAKE_COMPILER_IS_GNUCXX)
-				#Message("Gcc")
-				SET(EXT_HP gch)
+			if(CMAKE_CXX_COMPILER_IS_CLANG)
+				set(precompiled_header "${CMAKE_SOURCE_DIR}/include/${HEADER_NAME}.pch")
+				set(pch_flags -x c++-header ${_source} -o ${precompiled_header})
+				set(pch_include_flag "-include-pch ${precompiled_header}")
+			elseif(CMAKE_COMPILER_IS_GNUCXX)
+				set(precompiled_header "${CMAKE_SOURCE_DIR}/include/${HEADER_NAME}.gch")
+				set(pch_flags ${_source} -o ${precompiled_header})
+				set(pch_include_flag "-include ${HEADER_NAME}")
 			endif()
+			set(precompiled_header ${precompiled_header} PARENT_SCOPE)
 			SET(OPTION_HP "-x c++-header")
 
-			GET_FILENAME_COMPONENT(_name ${PRECOMPILED_HEADER} NAME)
-
-			#SET(_source "${CMAKE_CURRENT_SOURCE_DIR}/${PRECOMPILED_HEADER}")
-			SET(_source "${PROJECT_SOURCE_DIR}/include/${PRECOMPILED_HEADER}")
-
-			set(precompiled_header "${CMAKE_SOURCE_DIR}/include/${PRECOMPILED_HEADER}.${EXT_HP}")
-			set(precompiled_header ${precompiled_header} PARENT_SCOPE)
-
 			STRING(TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" _flags_var_name)
-						SET(_compiler_FLAGS ${${_flags_var_name}} ${EXTRA_CXX_FLAGS})
+			SET(_compiler_FLAGS ${${_flags_var_name}} ${EXTRA_CXX_FLAGS} ${CMAKE_CXX_FLAGS})
 
 			GET_DIRECTORY_PROPERTY(_directory_flags INCLUDE_DIRECTORIES)
-			FOREACH(item ${_directory_flags})
-				LIST(APPEND _compiler_FLAGS "-I${item}")
-			ENDFOREACH(item)
+			include_dirs_to_flags("${_directory_flags}" directory_includes)
+			list(REMOVE_DUPLICATES directory_includes)
+			list(APPEND _compiler_FLAGS ${directory_includes})
 
 			GET_DIRECTORY_PROPERTY(_directory_flags COMPILE_DEFINITIONS)
 			foreach(item ${_directory_flags})
 				LIST(APPEND _compiler_FLAGS "-D${item}")
 			endforeach()
 
+			GET_DIRECTORY_PROPERTY(_directory_flags COMPILE_OPTIONS)
+			LIST(APPEND _compiler_FLAGS ${_directory_flags})
+
+			list(REMOVE_DUPLICATES _compiler_FLAGS)
 			SEPARATE_ARGUMENTS(_compiler_FLAGS)
+
 			ADD_CUSTOM_COMMAND(
 				OUTPUT ${precompiled_header}
-				COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header ${_source}
+				COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} ${pch_flags} -Winvalid-pch
 				DEPENDS ${_source} IMPLICIT_DEPENDS CXX ${_source})
 				ADD_CUSTOM_TARGET(${TARGET_NAME}_${EXT_HP} DEPENDS ${precompiled_header})
 
 			ADD_DEPENDENCIES(${TARGET_NAME} ${TARGET_NAME}_${EXT_HP})
-			SET_TARGET_PROPERTIES(${TARGET_NAME}_${EXT_HP} PROPERTIES COMPILE_FLAGS "-include ${_name} -Winvalid-pch")
+
+			foreach(file ${Elise_Src_Files})
+				if (NOT ${file} MATCHES "tiff/el_dcraw.c" AND
+					NOT ${file} MATCHES "mullgesuhlig/muvmblock.cpp" AND
+					NOT ${file} MATCHES "mullgesuhlig/mubasic.cpp" AND
+					NOT ${file} MATCHES "mullgesuhlig/muflaguer.cpp" AND
+					NOT ${file} MATCHES "mullgesuhlig/mufmueller.cpp")
+					set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${pch_include_flag}")
+				endif()
+			endforeach()
 		endfunction(enable_precompiled_headers_GCC)
 	endif()
 endif()
