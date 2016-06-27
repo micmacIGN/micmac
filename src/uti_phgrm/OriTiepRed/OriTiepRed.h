@@ -129,9 +129,11 @@ if (X,Y) is one point then (X,Y,1) is the direction of the bundle in the camera 
 
 */
 
+#define IndMergePrec 0
+#define IndMergeNew  1
 
 
-typedef cVarSizeMergeTieP<Pt2df>  tMerge;
+typedef cVarSizeMergeTieP<Pt2df,cCMT_U_INT1>  tMerge;
 typedef cStructMergeTieP<tMerge>  tMergeStr;
 
 class cCameraTiepRed
@@ -172,6 +174,8 @@ class cCameraTiepRed
 
         void MakeImPds();
         bool  IsMaster() const;
+        bool Alive() const;
+        void SetDead();
 
     private :
         void SaveHom( cCameraTiepRed*,const std::list<int> & aLBox);
@@ -195,6 +199,7 @@ class cCameraTiepRed
         Pt2di               mSzPds;
         Im2D<U_INT1,INT4>   mIMasqM;
         TIm2D<U_INT1,INT4>  mTMasqM;
+        bool                mAlive;
 };
 
 class cLnk2ImTiepRed
@@ -205,22 +210,34 @@ class cLnk2ImTiepRed
         cCameraTiepRed &     Cam2();
         std::vector<Pt2df>&  VP1();
         std::vector<Pt2df>&  VP2();
+        std::vector<Pt2df>&  VPPrec1();
+        std::vector<Pt2df>&  VPPrec2();
 
         void Add2Merge(tMergeStr *);
         const ElRotation3D &    R2On1() const;
         CamStenope &        CsRel1();
         CamStenope &        CsRel2();
         cElHomographie &    Hom();
+        bool  HasOriRel() const;
+        std::vector<Pt2df> & VSelP1();
+        std::vector<Pt2df> & VSelP2();
+        std::vector<U_INT1> & VSelNb();
         
      private :
         cCameraTiepRed *    mCam1;
         cCameraTiepRed *    mCam2;
         std::vector<Pt2df>  mVP1;
         std::vector<Pt2df>  mVP2;
+        std::vector<Pt2df>  mVPPrec1;
+        std::vector<Pt2df>  mVPPrec2;
         CamStenope *        mCsRel1;
         CamStenope *        mCsRel2;
         cElHomographie *    mHom;
         double              mResiduH;
+        // En mode image, on conserve en version non modifiee
+        std::vector<Pt2df>  mVSelP1;
+        std::vector<Pt2df>  mVSelP2;
+        std::vector<U_INT1> mVSelNb;
 };
 
 
@@ -246,6 +263,7 @@ class cPMulTiepRed
        void SetSelected();
        void SetDistVonGruber(const double & aDist,const cAppliTiepRed &);
        void ModifDistVonGruber(const double & aDist,const cAppliTiepRed &);
+       bool HasPrec() const;
      private :
        tMerge * mMerge;
        Pt2dr    mP;   // mP + Z => 3D coordinate
@@ -259,7 +277,7 @@ class cPMulTiepRed
        int      mNbCamCur;
        std::vector<U_INT1> mVConserved;
        double   mDMin;
-       
+       bool     mHasPrec;
 };
 
 
@@ -311,7 +329,9 @@ class cAppliTiepRed
           cCameraTiepRed * KthCam(int aK);
           const double & StdPrec() const;
           std::vector<int>  & BufICam();
-          std::string NameHomol(const std::string &,const std::string &,int aK) const;
+          std::string NameHomol    (const std::string &,const std::string &,int aK) const;
+          std::string NameHomolGlob(const std::string &,const std::string &) const;
+
           cInterfChantierNameManipulateur* ICNM();
           const std::string & StrOut() const;
           bool  VerifNM() const;
@@ -322,6 +342,9 @@ class cAppliTiepRed
           bool ModeIm() const;
           cCameraTiepRed & CamMaster();
 
+          cLnk2ImTiepRed * LnkOfCams(cCameraTiepRed * aCam1,cCameraTiepRed * aCam2);
+          bool   Debug() const;
+          double   DefResidual() const;
      private :
 
           void MkDirSubir();
@@ -376,6 +399,7 @@ class cAppliTiepRed
           double                           mResolQT;
           cXml_ParamBoxReducTieP           mXmlParBox;
           std::list<cLnk2ImTiepRed *>      mLnk2Im;
+          std::vector<std::vector<cLnk2ImTiepRed *> > mVVLnk;
           tMergeStr *                      mMergeStruct;
           const std::list<tMerge *> *      mLMerge;
           // std::list<cPMulTiepRed *>        mLPMul;
@@ -396,6 +420,8 @@ class cAppliTiepRed
           int                              mIntOrLevel;
           eLevelOr                         mOrLevel;
           cCameraTiepRed *                 mCamMaster;
+          bool                             mDebug;
+          double                           mDefResidual;
 };
 
 
@@ -431,6 +457,8 @@ class cAttSomGrRedTP
         int &    NumBox0();
         int &    NumBox1();
         const cMetaDataPhoto &  MTD() const;
+        int & NumSom();
+        Pt2dr Hom2Cam(const Pt2df & ) const;
      private :
 
         cAppliGrRedTieP *    mAppli;
@@ -444,6 +472,8 @@ class cAttSomGrRedTP
         double               mSzDec;
         int                  mNumBox0;
         int                  mNumBox1;
+        int                  mNumSom;
+        CamStenope *         mCalCam;
 };
 
 class cAttArcSymGrRedTP
@@ -451,8 +481,12 @@ class cAttArcSymGrRedTP
      public :
          cAttArcSymGrRedTP(const cXml_Ori2Im & );
          const cXml_Ori2Im & Ori() const;
+         std::vector<Pt2df> & VP1();
+         std::vector<Pt2df> & VP2();
      private :
          cXml_Ori2Im    mOri;
+         std::vector<Pt2df>                 mVP1;
+         std::vector<Pt2df>                 mVP2;
          
 };
 
@@ -465,6 +499,8 @@ class cAttArcASymGrRedTP
          double & Recouv()   ;
          const Box2dr & Box() const;
          const double & Foc() const;
+         std::vector<Pt2df> & VP1();
+         std::vector<Pt2df> & VP2();
      private :
          cAttArcSymGrRedTP* mASym;
          bool               mDirect;
@@ -482,11 +518,17 @@ class cV2ParGRT
           std::vector<tSomGRTP *> mVSom;
 };
 
+// Ratafia
+
+typedef cVarSizeMergeTieP<Pt2df,cCMT_NoVal>  tMergeRat;
+typedef cStructMergeTieP<tMergeRat>  tMergeStrRat;
+
 class cAppliGrRedTieP : public cElemAppliSetFile
 {
       public :
            cAppliGrRedTieP(int argc,char ** argv);
            double  SzPixDec() const;
+           cVirtInterf_NewO_NameManager * NoNM();
       private :
            std::string ComOfKBox(int aKBox);
 
@@ -499,6 +541,11 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            void CreateBoxOfSet(cV2ParGRT *);
            void CreateBoxOfSom(tSomGRTP *);
 
+           void ExeSelec();
+           void ExeSelecOfSet(cV2ParGRT *);
+           void FusionSelec(cAttSomGrRedTP&,cAttSomGrRedTP&,int aKBox);
+
+           void DoExport();
 
            bool                               mUseOr;
            int                                mIntOrLevel;
@@ -525,6 +572,10 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            double                             mSzPixDec;
            int                                mNumBox;
            bool                               mTestExeOri;
+           tMergeStrRat *                     mMergeStruct;
+           std::string                        mOut;
+           double                             mDistPMul;
+           double                             mMulVonGruber;
 };
 
 /*

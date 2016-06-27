@@ -275,7 +275,7 @@ void cAppliTiepRed::DoReduce(){
 			// Add all tie-points to merging structure
 			for (std::size_t aKP=0 ; aKP<vP1.size() ; aKP++){
 				// Add elementary connection
-				mMergeStruct->AddArc(vP1[aKP],aKImage1,vP2[aKP],aKImage2);
+				mMergeStruct->AddArc(vP1[aKP],aKImage1,vP2[aKP],aKImage2,cCMT_NoVal());
 			}
 		}
 

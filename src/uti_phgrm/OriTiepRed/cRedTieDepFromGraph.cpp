@@ -134,10 +134,10 @@ cAttArcSymGrRedTP::cAttArcSymGrRedTP(const cXml_Ori2Im & anOri) :
 {
 }
 
-const cXml_Ori2Im & cAttArcSymGrRedTP::Ori() const
-{
-   return mOri;
-}
+const cXml_Ori2Im & cAttArcSymGrRedTP::Ori() const { return mOri; }
+std::vector<Pt2df> & cAttArcSymGrRedTP::VP1() { return mVP1; }
+std::vector<Pt2df> & cAttArcSymGrRedTP::VP2() { return mVP2; }
+
 
 /**********************************************************************/
 /*                                                                    */
@@ -167,6 +167,9 @@ const double & cAttArcASymGrRedTP::Foc() const
 {
    return mDirect ? mASym->Ori().Foc1() : mASym->Ori().Foc2();
 }
+
+std::vector<Pt2df> & cAttArcASymGrRedTP::VP1() { return mASym->VP1();}
+std::vector<Pt2df> & cAttArcASymGrRedTP::VP2() { return mASym->VP2();}
 
 /**********************************************************************/
 /*                                                                    */
@@ -212,7 +215,9 @@ cAttSomGrRedTP::cAttSomGrRedTP(cAppliGrRedTieP & anAppli,const std::string & aNa
    mMTD       (cMetaDataPhoto::CreateExiv2(mName)),
    mSzDec     (anAppli.SzPixDec()/mMTD.FocPix()),
    mNumBox0   (-1),
-   mNumBox1   (-1)
+   mNumBox1   (-1),
+   mNumSom    (-1),
+   mCalCam    (anAppli.NoNM()->CalibrationCamera(aName))
 {
 }
 
@@ -226,6 +231,13 @@ double  cAttSomGrRedTP::SzDec() const {return mSzDec;}
 int & cAttSomGrRedTP::NumBox0() {return mNumBox0;}
 int & cAttSomGrRedTP::NumBox1() {return mNumBox1;}
 const cMetaDataPhoto & cAttSomGrRedTP::MTD() const {return mMTD;}
+int & cAttSomGrRedTP::NumSom() {return mNumSom;}
+
+Pt2dr cAttSomGrRedTP::Hom2Cam(const Pt2df & aP) const
+{
+  Pt3dr aQ(aP.x,aP.y,1.0);
+  return mCalCam->L3toF2(aQ);
+}
 
 /**********************************************************************/
 /*                                                                    */
@@ -413,7 +425,8 @@ double  cAppliGrRedTieP::SzPixDec() const
 std::string cAppliGrRedTieP::ComOfKBox(int aKBox)
 {
 
-   return MM3dBinFile("OriRedTieP") + " " + mPatImage + " OriCalib=" + mCalib + " KBox=" + ToString(aKBox);
+   return MM3dBinFile("OriRedTieP") + " " + mPatImage + " OriCalib=" + mCalib + " KBox=" + ToString(aKBox)
+          + " DistPMul=" + ToString(mDistPMul) + " MVG=" + ToString(mMulVonGruber);
 }
 
 
@@ -486,6 +499,219 @@ void cAppliGrRedTieP::CreateBox()
     }
 }
 
+        // ------------------ Execution of command ------------
+
+void cAppliGrRedTieP::FusionSelec(cAttSomGrRedTP& anAtr1,cAttSomGrRedTP& anAtr2,int aKBox)
+{
+    const std::string & aN1 = anAtr1.Name();
+    const std::string & aN2 = anAtr2.Name();
+    if (aN1>=aN2)
+       return;
+    std::string aNameHomBox =  mAppliTR->NameHomol(aN1,aN2,aKBox);
+
+    bool Exist = ELISE_fp::exist_file(aNameHomBox);
+    if (! Exist) return;
+
+
+    std::string aNameHomGlob = mAppliTR->NameHomolGlob(aN1,aN2);
+
+    std::vector<Pt2df> aVPGlob1,aVPGlob2;
+    
+    if (ELISE_fp::exist_file(aNameHomGlob))
+    {
+         mNoNM->GenLoadHomFloats(aNameHomGlob,&aVPGlob1,&aVPGlob2,false);
+    }
+
+    std::vector<Pt2df> aVPLoc1,aVPLoc2;
+    mNoNM->GenLoadHomFloats(aNameHomBox,&aVPLoc1,&aVPLoc2,false);
+
+    for (int aK=0 ; aK<int(aVPLoc1.size()) ; aK++)
+    {
+        aVPGlob1.push_back(aVPLoc1[aK]);
+        aVPGlob2.push_back(aVPLoc2[aK]);
+    }
+    tCVUI1 aVNb(aVPGlob1.size(),2);
+
+    mNoNM->WriteCouple(aNameHomGlob,aVPGlob1,aVPGlob2,aVNb);
+
+    ELISE_fp::RmFile(aNameHomBox);
+}
+
+void cAppliGrRedTieP::ExeSelecOfSet(cV2ParGRT * aPart)
+{
+    const std::vector<tSomGRTP *> & aVS = aPart->VSom();
+
+
+    // Execution des commandes individuelles
+    std::list<std::string> aLCom;
+    for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
+    {
+        cAttSomGrRedTP & anAttr = *(aVS[aKS]->attr());
+        for (int aKB=anAttr.NumBox0() ; aKB<anAttr.NumBox1() ; aKB++)
+        {
+               std::string aCom = ComOfKBox(aKB);
+
+               aLCom.push_back(aCom);
+        }
+    }
+    cEl_GPAO::DoComInParal(aLCom);
+
+
+    // Fusion des pts homologues
+    for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
+    {
+        tSomGRTP * aSom = aVS[aKS];
+        cAttSomGrRedTP & anAttr0 = *(aSom->attr());
+        for (int aKB=anAttr0.NumBox0() ; aKB<anAttr0.NumBox1() ; aKB++)
+        {
+            for (tIterArcGRTP  itA1=aSom->begin(mSubAll) ; itA1.go_on(); itA1++)
+            {
+                cAttSomGrRedTP & anAttr1 = *(itA1->s2().attr());
+                FusionSelec(anAttr0,anAttr1,aKB);
+                FusionSelec(anAttr1,anAttr0,aKB);
+                for (tIterArcGRTP  itA2=aSom->begin(mSubAll) ; itA2.go_on(); itA2++)
+                {
+                    cAttSomGrRedTP & anAttr2 = *(itA2->s2().attr());
+                    FusionSelec(anAttr1,anAttr2,aKB);
+                }
+            }
+        }
+    }
+}
+   
+
+void cAppliGrRedTieP::ExeSelec()
+{
+    for (int aKP=0; aKP<int(mPartParal.size()) ; aKP++)
+    {
+        ExeSelecOfSet(mPartParal[aKP]);
+        std::cout << "=======    Done " << aKP <<  "  Part on " << mPartParal.size() << " ================\n";
+    }
+}
+
+
+void cAppliGrRedTieP::DoExport()
+{
+    mMergeStruct = new tMergeStrRat(mNbSom,true);
+
+    // Lit les hom et les met ds une structur de merge
+    // On passe par la structure merge pour supprimer d'eventuelles incoherences
+    for (int aKS=0 ; aKS<int(mVSom.size()) ; aKS++)
+    {
+        tSomGRTP & aS1 = *(mVSom[aKS]);
+        const std::string & aN1 = aS1.attr()->Name();
+        int aI1 = aS1.attr()->NumSom();
+        for (tIterArcGRTP  itA=aS1.begin(mSubAll) ; itA.go_on(); itA++)
+        {
+            tSomGRTP & aS2 = (*itA).s2();
+            const std::string & aN2 = aS2.attr()->Name();
+            if (aN1 < aN2)
+            {
+                int aI2 = aS2.attr()->NumSom();
+                std::string aNameHomGlob = mAppliTR->NameHomolGlob(aN1,aN2);
+                if (ELISE_fp::exist_file(aNameHomGlob))
+                {
+                    std::vector<Pt2df> aVP1,aVP2;
+                    mNoNM->GenLoadHomFloats(aNameHomGlob,&aVP1,&aVP2,false);
+
+                    for (int aKP=0 ; aKP<int(aVP1.size()) ; aKP++)
+                    {
+                        mMergeStruct->AddArc(aVP1[aKP],aI1,aVP2[aKP],aI2,cCMT_NoVal());
+                    }
+                }
+            }
+        }
+    }
+
+    // Passe de du merge au point homologue flottant
+    mMergeStruct->DoExport();
+    const std::list<tMergeRat *> & aLMerge =  mMergeStruct->ListMerged();
+
+    std::vector<int> aVH;
+    double aNbP=0;
+    for (std::list<tMergeRat *>::const_iterator itM=aLMerge.begin() ; itM!=aLMerge.end() ; itM++)
+    {
+        const std::vector<Pt2dUi2> &  aVP = (*itM)->Edges();
+        for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
+        {
+           // Histo
+           int aNbS = (*itM)->NbSom();
+           for (int aK= int(aVH.size()) ; aK <= aNbS ; aK++)
+           {
+               aVH.push_back(0);
+           }
+           aVH[aNbS]++;
+           aNbP++;
+
+           // 
+           int aKC1 = aVP[aKCple].x;
+           int aKC2 = aVP[aKCple].y;
+           if (aKC1 >aKC2)
+           {
+               ElSwap(aKC1,aKC2);
+           }
+           
+           tSomGRTP & aS1 = *(mVSom[aKC1]);
+           tArcGRTP * anA12 = 0;
+           for (tIterArcGRTP  itA=aS1.begin(mSubAll) ; itA.go_on(); itA++)
+           {
+                if ((*itA).s2().attr()->NumSom() == aKC2)
+                {
+                    anA12 = &(*itA);
+                }
+           }
+           ELISE_ASSERT(anA12!=0,"Canno get arc in cAppliGrRedTieP::DoExport\n");
+           anA12->attr()->VP1().push_back((*itM)->GetVal(aKC1));
+           anA12->attr()->VP2().push_back((*itM)->GetVal(aKC2));
+        }
+    }
+
+    for (int aKH=0 ; aKH<int(aVH.size()) ; aKH++)
+    {
+         if (aVH[aKH])
+            std::cout << " For muliplicity " << aKH << " %=" << ((100.0*aVH[aKH])/aNbP) << "\n";
+    }
+
+    std::string aKeyH = "NKS-Assoc-CplIm2Hom@"+ mOut + "@dat";
+    // On genere l'export 
+    for (int aKS=0 ; aKS<int(mVSom.size()) ; aKS++)
+    {
+        tSomGRTP & aS1 = *(mVSom[aKS]);
+        int aI1 = aS1.attr()->NumSom();
+        const std::string & aN1 = aS1.attr()->Name();
+        for (tIterArcGRTP  itA=aS1.begin(mSubAll) ; itA.go_on(); itA++)
+        {
+            tSomGRTP & aS2 = (*itA).s2();
+            int aI2 = aS2.attr()->NumSom();
+            const std::string & aN2 = aS2.attr()->Name();
+            if (aI1 < aI2)
+            {
+                std::vector<Pt2df> & aVP1 = (*itA).attr()->VP1();
+                std::vector<Pt2df> & aVP2 = (*itA).attr()->VP2();
+
+                ElPackHomologue aPack12;
+                ElPackHomologue aPack21;
+
+                for (int aKp=0 ; aKp<int(aVP1.size()) ; aKp++)
+                {
+                    Pt2dr aP1 = aS1.attr()->Hom2Cam(aVP1[aKp]);
+                    Pt2dr aP2 = aS2.attr()->Hom2Cam(aVP2[aKp]);
+                    aPack12.Cple_Add(ElCplePtsHomologues(aP1,aP2,1.0));
+                    aPack21.Cple_Add(ElCplePtsHomologues(aP2,aP1,1.0));
+                }
+
+                aPack12.StdPutInFile(mICNM->Assoc1To2(aKeyH,aN1,aN2,true));
+                aPack21.StdPutInFile(mICNM->Assoc1To2(aKeyH,aN2,aN1,true));
+            }
+        }
+    }
+}
+
+cVirtInterf_NewO_NameManager * cAppliGrRedTieP::NoNM()
+{
+   return mNoNM;
+}
+
 cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     mIntOrLevel  (eLevO_ByCple),
     mQuick       (true),
@@ -497,7 +723,11 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     mAppliTR     (0),
     mSzPixDec    (4000),
     mNumBox      (0),
-    mTestExeOri  (false)
+    mTestExeOri  (false),
+    mMergeStruct (NULL),
+    mOut         ("-Ratafia"),
+    mDistPMul    (200.0),
+    mMulVonGruber(2)
 {
    // Read parameters 
    MMD_InitArgcArgv(argc,argv);
@@ -512,6 +742,9 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
                      << EAM(mShowPart,"ShowP",true,"Show Partition (def=false)")
                      << EAM(mSzPixDec,"SzPixDec",true,"Sz of decoupe in pixel")
                      << EAM(mTestExeOri,"TEO",true,"Test Execution OriRedTieP ()")
+                     << EAM(mOut,"Out",true,"Folder dest => Def=-Ratafia")
+                     << EAM(mDistPMul,"DistPMul",true,"Average dist")
+                     << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber, Def=" + ToString(mMulVonGruber))
    );
 
    mOrLevel = (eLevelOr) mIntOrLevel;
@@ -545,6 +778,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
         tSomGRTP & aSom = mGr.new_som(new cAttSomGrRedTP(*this,aName));
         mDicoSom[aName] = &aSom;
         mVSom.push_back(&aSom);
+        aSom.attr()->NumSom() = aK;
     }
     mNbSom = mVSom.size();
 
@@ -632,6 +866,11 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     {
        Show();
     }
+
+    // Lancement de la selection
+    ExeSelec();
+    // Genere les homologue
+    DoExport();
 }
 
 NS_OriTiePRed_END

@@ -64,9 +64,18 @@ cLnk2ImTiepRed::cLnk2ImTiepRed(cCameraTiepRed * aC1 ,cCameraTiepRed * aC2) :
     }
 }
 
+bool cLnk2ImTiepRed::HasOriRel() const
+{
+   return (mCsRel1!=0) && (mCsRel2!=0);
+}
+
 CamStenope & cLnk2ImTiepRed::CsRel1()
 {
-   ELISE_ASSERT(mCsRel1!=0,"cLnk2ImTiepRed::CsRel1");
+   if (mCsRel1==0)
+   {
+       std::cout << "NAMME " << mCam1->NameIm() << " " << mCam2->NameIm() << "\n";
+       ELISE_ASSERT(false,"cLnk2ImTiepRed::CsRel1");
+   }
    return *mCsRel1;
 }
 CamStenope & cLnk2ImTiepRed::CsRel2()
@@ -88,6 +97,23 @@ cCameraTiepRed &     cLnk2ImTiepRed::Cam1() {return *mCam1;}
 cCameraTiepRed &     cLnk2ImTiepRed::Cam2() {return *mCam2;}
 std::vector<Pt2df>&  cLnk2ImTiepRed::VP1()  {return mVP1;}
 std::vector<Pt2df>&  cLnk2ImTiepRed::VP2()  {return mVP2;}
+std::vector<Pt2df>&  cLnk2ImTiepRed::VPPrec1()  {return mVPPrec1;}
+std::vector<Pt2df>&  cLnk2ImTiepRed::VPPrec2()  {return mVPPrec2;}
+
+
+std::vector<Pt2df> & cLnk2ImTiepRed::VSelP1()
+{
+    return mVSelP1;
+}
+std::vector<Pt2df> & cLnk2ImTiepRed::VSelP2()
+{
+    return mVSelP2;
+}
+std::vector<U_INT1> & cLnk2ImTiepRed::VSelNb()
+{
+    return mVSelNb;
+}
+
 
 // Add all the tie points to the merging structur
 void cLnk2ImTiepRed::Add2Merge(tMergeStr * aMergeStr)
@@ -99,8 +125,12 @@ void cLnk2ImTiepRed::Add2Merge(tMergeStr * aMergeStr)
     // Parse the point 
     for (int aKP=0 ; aKP<int(mVP1.size()) ; aKP++)
     {
-         // And add elementay connexions
-         aMergeStr->AddArc(mVP1[aKP],aKCam1,mVP2[aKP],aKCam2);
+         aMergeStr->AddArc(mVP1[aKP],aKCam1,mVP2[aKP],aKCam2,cCMT_U_INT1(IndMergeNew));
+    }
+
+    for (int aKP=0 ; aKP<int(mVPPrec1.size()) ; aKP++)
+    {
+         aMergeStr->AddArc(mVPPrec1[aKP],aKCam1,mVPPrec2[aKP],aKCam2,cCMT_U_INT1(IndMergePrec));
     }
 }
 
