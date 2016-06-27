@@ -44,7 +44,7 @@ ADD_DEFINITIONS(${QT_DEFINITIONS})
 
 message(STATUS "Opengl libraries : " ${OPENGL_LIBRARIES})
 message(STATUS "librairies X11 : "${X11_LIBRARIES})
-message(STATUS "librairies Qt : "${QT_LIBRARIES})
+message(STATUS "librairies Qt : "${QT_CMAKE_LIBRARIES})
 
 ADD_EXECUTABLE(interfaceMicmac ${interfaceMicmac_SOURCES}
                                ${interfaceMicmac_HEADERS_MOC})

@@ -1742,7 +1742,7 @@ bool cImageGL::isPtInside(const QPointF &pt)
 		glGetIntegerv(GL_UNPACK_ALIGNMENT, &glInt);
 		aStream << aPrefix << "GL_UNPACK_ALIGNMENT = " << glInt << endl;
 
-		__check_gl_error("printPixelStoreParameters");
+		CHECK_GL_ERROR("printPixelStoreParameters");
 	}
 
 	void fillShade( U_INT1 *aData, size_t aWidth, size_t aHeight, size_t aNbChannels )
@@ -1857,7 +1857,7 @@ bool cImageGL::isPtInside(const QPointF &pt)
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, (GLint)aImage.mNbChannels, (GLsizei)aImage.mWidth, (GLsizei)aImage.mHeight, 0, format, type, aImage.mData); // 0 = mipmap level, 0 = border
-		__check_gl_error("cImageGL::ImageToTexture");
+		CHECK_GL_ERROR("cImageGL::ImageToTexture");
 
 		#ifdef WRITE_LOADED_TEXTURE
 			#ifdef WRITE_SOURCE_IMAGE
@@ -1874,7 +1874,7 @@ bool cImageGL::isPtInside(const QPointF &pt)
 			writeTiff(ss.str());
 			cout << "loaded texture written to [" << ss.str() << ']' << endl;
 
-			__check_gl_error("cImageGL::ImageToTexture (2)");
+			CHECK_GL_ERROR("cImageGL::ImageToTexture (2)");
 		#endif
 
 		//~ GLenum glErrorT = glGetError();
