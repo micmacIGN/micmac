@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<!--
+
+   mm3d Apero /home/ubuntu/MMM/culture3d/include/XML_MicMac/Stereo-Apero-EstimBlock.xml DirectoryChantier=/home/ubuntu/Desktop/Data/NewTestBlockRigid/  +Ori=Basc +PatternIm=DSCF.*.jpg +Out=Stereo-Bloc_Fuji.xml
+-->
+<ParamApero>
+     <DicoLoc>
+          <Symb>Ori=XXX </Symb>
+          <Symb>PatternIm=XXX</Symb>
+          <Symb>Out=XXX </Symb>
+     </DicoLoc>
+     <SectionBDD_Observation>
+          <BDD_Orient>
+               <Id>Or-Init</Id>
+               <KeySet>NKS-Set-Orient@-${Ori}</KeySet>
+               <KeyAssoc>NKS-Assoc-Im2Orient@-${Ori}</KeyAssoc>
+          </BDD_Orient>
+     </SectionBDD_Observation>
+     <SectionInconnues>
+          <CalibrationCameraInc>
+               <Name>GenerateKC-Others</Name>
+               <CalValueInit>
+                    <CalFromFileExtern>
+                         <NameFile>####</NameFile>
+                         <NameTag>CalibrationInternConique</NameTag>
+                         <AutorizeNonExisting>true</AutorizeNonExisting>
+                    </CalFromFileExtern>
+               </CalValueInit>
+               <CalibPerPose>
+                    <KeyPose2Cal>NKS-Assoc-FromFocMm@TheKeyCalib_@</KeyPose2Cal>
+                    <KeyInitFromPose>NKS-Assoc-FromFocMm@Ori-${Ori}/AutoCal@.xml</KeyInitFromPose>
+               </CalibPerPose>
+          </CalibrationCameraInc>
+          <PoseCameraInc>
+               <PatternName> ${PatternIm}</PatternName>
+               <CalcNameCalib>GenerateKC-Others</CalcNameCalib>
+               <PosValueInit>
+                    <PosFromBDOrient>Or-Init</PosFromBDOrient>
+               </PosValueInit>
+          </PoseCameraInc>
+          <BlockCamera>
+              <NameFile>  Tmp-MM-Dir/Stereo-Bloc_Naming.xml </NameFile>
+              <Id> TheBlock </Id> 
+          </BlockCamera>
+
+     </SectionInconnues>
+     <SectionChantier>
+          <DirectoryChantier>./</DirectoryChantier>
+     </SectionChantier>
+     <SectionSolveur>
+          <ModeResolution>eSysL2BlocSym</ModeResolution>
+     </SectionSolveur>
+     <SectionCompensation>
+          <EtapeCompensation>
+               <IterationsCompensation>
+                    <SectionContraintes>
+                         <ContraintesCamerasInc>
+                              <Val>eAllParamFiges</Val>
+                         </ContraintesCamerasInc>
+                         <ContraintesPoses>
+                              <NamePose>.*</NamePose>
+                              <ByPattern>true</ByPattern>
+                              <Val>ePoseFigee</Val>
+                         </ContraintesPoses>
+                    </SectionContraintes>
+               </IterationsCompensation>
+               <IterationsCompensation>
+                    <EstimateOrientationInitBlockCamera>
+                         <Id>   TheBlock </Id>
+                         <Show> true </Show>
+                    </EstimateOrientationInitBlockCamera>
+               </IterationsCompensation>
+<!--
+-->
+
+               <SectionObservations>
+               </SectionObservations>
+
+               <SectionExport>
+                     <ExportBlockCamera>
+                         <Id> TheBlock</Id>
+                         <NameFile> ${Out} </NameFile>
+                     </ExportBlockCamera>
+<!--
+-->
+               </SectionExport>
+          </EtapeCompensation>
+     </SectionCompensation>
+</ParamApero>
