@@ -224,7 +224,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     int aNbIterFin = 4;
 
     int aNbLiais=100;
-
+    double aPdsGBRot=0.002;
 
 
     ElInitArgMain
@@ -263,6 +263,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]")
                     << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
                     << EAM(aNbLiais,"NbLiais",true,"Param for relative weighting for tie points")
+                    << EAM(aPdsGBRot,"PdsGBRot",true,"Weighting of the global rotation constraint (Generic bundle Def=0.02)")
 
     );
 
@@ -300,6 +301,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                            +  std::string(" +NbMinIterFin=") + ToString(aNbIterFin) + " "
                            +  std::string(" +NbMaxIterFin=") + ToString(aNbIterFin) + " "
                            +  std::string(" +NbLiais=") + ToString(aNbLiais) + " "
+                           +  std::string(" +aPdsGBRot=") + ToString(aPdsGBRot) + " "
                           ;
 
         if (CPI1 || CPI2) mCom       += " +CPI=true ";

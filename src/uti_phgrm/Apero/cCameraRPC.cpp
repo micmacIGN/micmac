@@ -110,6 +110,7 @@ void CameraRPC::CropRPC(const std::string &aNameDir,
                         const std::string &aNameXML, 
                         const std::vector<Pt3dr> &aBounds)
 {
+    mRPC->Show();
     /* Some metadata from the Xml */
     cXml_CamGenPolBundle aXml = StdGetFromSI(aNameXML,Xml_CamGenPolBundle);
     const std::string aNameRPC = "Crop-" + NameWithoutDir(aXml.NameCamSsCor());
@@ -141,11 +142,16 @@ void CameraRPC::CropRPC(const std::string &aNameDir,
     /* Create the 2D grid corresponding to your 3D grid */
     int aK;
     Pt2dr aP;
-    std::vector<Pt3dr> aGrid2D;
+    std::vector<Pt3dr> aGrid2D, aGrid3D_;
     for(aK=0; aK<int(aGrid3D.size()); aK++)
     {
         aP = Ter2Capteur(aGrid3D.at(aK));
-        aGrid2D.push_back(Pt3dr(aP.x, aP.y, aGrid3D.at(aK).z));
+        if( aP.x >=0 && aP.y >=0 &&
+            aP.x < mRPC->mImCols[1] && aP.y < mRPC->mImRows[1] )
+        {
+            aGrid2D.push_back(Pt3dr(aP.x, aP.y, aGrid3D.at(aK).z));
+            aGrid3D_.push_back(aGrid3D.at(aK));
+        }
     }
     
     /* Shift the 2D grid to be compliant with the cropped img */
@@ -163,7 +169,7 @@ void CameraRPC::CropRPC(const std::string &aNameDir,
     }
 
     /* Calculate RPCs */
-    mRPC->CalculRPC(aGrid3D, aGrid2D,
+    mRPC->CalculRPC(aGrid3D_, aGrid2D,
                     mRPC->mDirSNum, mRPC->mDirLNum, mRPC->mDirSDen, mRPC->mDirLDen,
                     mRPC->mInvSNum, mRPC->mInvLNum, mRPC->mInvSDen, mRPC->mInvLDen,
                     1);
@@ -900,6 +906,7 @@ void cRPC::Initialize(const std::string &aName,
         mPol = cPolynomial_BGC3M2D::NewFromFile(aName);
         
         mRefine = eRP_Poly;
+
     }
     
     if(aChSys)
@@ -1962,9 +1969,9 @@ void cRPC::NewGrOffScal(const std::vector<Pt3dr> & aGrid)
 
     GetGridExt(aGrid,aExtMin,aExtMax,aSumXYZ);
 
-    mGrOff[0] = double(aSumXYZ.x)/aGrid.size();
-    mGrOff[1] = double(aSumXYZ.y)/aGrid.size();
-    mGrOff[2] = double(aSumXYZ.z)/aGrid.size();
+    mGrOff[0] = aExtMin.x + double(aExtMax.x-aExtMin.x)/2;//double(aSumXYZ.x)/aGrid.size();
+    mGrOff[1] = aExtMin.y + double(aExtMax.y-aExtMin.y)/2;//double(aSumXYZ.y)/aGrid.size();
+    mGrOff[2] = aExtMin.z + double(aExtMax.z-aExtMin.z)/2;//double(aSumXYZ.z)/aGrid.size();
 
     std::abs(aExtMax.x - mGrOff[0]) > std::abs(aExtMin.x - mGrOff[0]) ?
         mGrScal[0] = std::abs(aExtMax.x - mGrOff[0]) :
@@ -1998,9 +2005,9 @@ void cRPC::GetGridExt(const std::vector<Pt3dr> & aGrid,
 
     for(aK=0; aK<int(aGrid.size()); aK++)
     {
-        aEX+=aGrid.at(aK).x;
-        aEY+=aGrid.at(aK).y;
-        aEZ+=aGrid.at(aK).z;
+        aEX+=abs(aGrid.at(aK).x);
+        aEY+=abs(aGrid.at(aK).y);
+        aEZ+=abs(aGrid.at(aK).z);
 
         if(aGrid.at(aK).x > X_max)
             X_max = aGrid.at(aK).x;
