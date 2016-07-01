@@ -48,6 +48,7 @@ if ( NOT ${qt_version} EQUAL 0 )
 
     if (WIN32)
 		add_executable(SaisieQT WIN32 ${saisieQT_SRCS} ${QM_FILES})
+		set_target_properties(SaisieQT PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
     else()
       add_executable(SaisieQT ${saisieQT_SRCS} ${QM_FILES})
     endif()

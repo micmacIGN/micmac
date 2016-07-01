@@ -84,17 +84,17 @@ QApplication & getQApplication()
 	return *result;
 }
 
-#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION >= 4 ) )
-int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
-{
-    Win32CommandLineConverter cmd_line;
-    int argc = cmd_line.argc();
-    char **argv = cmd_line.argv();
-#else
+//~ #if ( ( defined WIN32 ) && ( ELISE_QT_VERSION >= 4 ) )
+//~ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
+//~ {
+    //~ Win32CommandLineConverter cmd_line;
+    //~ int argc = cmd_line.argc();
+    //~ char **argv = cmd_line.argv();
+//~ #else
 int main(int argc, char *argv[])
 {
 	//~ gDefaultDebugErrorHandler->setAction(MessageHandler::CIN_GET);
-#endif
+//~ #endif
 
     MMD_InitArgcArgv( argc, argv );
     initQtLibraryPath();

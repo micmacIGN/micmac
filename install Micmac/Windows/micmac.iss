@@ -7,7 +7,7 @@
 ;#define install64 false
 
 ; Definir la revision
-#define revision "5355"
+#define revision "6702"
 
 #if install64
   #define archExt "x64"
@@ -68,14 +68,18 @@ Source: "..\..\bin\*.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "..\..\bin\*.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "..\..\bin\platforms\*.dll"; DestDir: "{app}\bin\platforms"; Flags: ignoreversion
 Source: "..\..\bin\imageformats\*.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
-Source: "..\..\binaire-aux\*.exe"; DestDir: "{app}\binaire-aux"; Flags: ignoreversion
-Source: "..\..\binaire-aux\*.dll"; DestDir: "{app}\binaire-aux"; Flags: ignoreversion
+Source: "..\..\binaire-aux\windows\*"; DestDir: "{app}\binaire-aux\windows"; Flags: ignoreversion recursesubdirs
 Source: "..\..\data\*"; DestDir: "{app}\data"; Flags: ignoreversion
 Source: "..\..\data\Tabul\*"; DestDir: "{app}\data\Tabul"; Flags: ignoreversion
 Source: "..\..\include\XML_MicMac\*"; DestDir: "{app}\include\XML_MicMac"; Flags: ignoreversion
 Source: "..\..\include\XML_GEN\*"; DestDir: "{app}\include\XML_GEN"; Flags: ignoreversion
 Source: "..\..\include\qt\*"; DestDir: "{app}\include\qt"; Flags: ignoreversion
 Source: "..\..\include\qt\translations\*"; DestDir: "{app}\include\qt\translations"; Flags: ignoreversion
+Source: "..\..\InterfaceCEREMA\AperoDeDenis-*-amd64.msi"; DestDir: "{app}\InterfaceCEREMA"; Flags: ignoreversion
+Source: "..\..\InterfaceCEREMA\Documentation_Interface_graphique_micMac.pdf"; DestDir: "{app}\InterfaceCEREMA"; Flags: ignoreversion
+Source: "..\..\InterfaceCEREMA\historique des versions.txt"; DestDir: "{app}\InterfaceCEREMA"; Flags: ignoreversion
+Source: "..\..\InterfaceCEREMA\logoCerema.jpg"; DestDir: "{app}\InterfaceCEREMA"; Flags: ignoreversion
+Source: "..\..\InterfaceCEREMA\logoIGN.jpg"; DestDir: "{app}\InterfaceCEREMA"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
