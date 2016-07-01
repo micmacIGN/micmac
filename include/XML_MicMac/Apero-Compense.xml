@@ -83,6 +83,7 @@
            <eSymb> DR3Free= SupEq ${DRMax} 3 </eSymb>
 
            <Symb> AcceptGB=true </Symb>
+           <Symb> PdsGBRot=0.002</Symb>
            <Symb> SetHom=""  </Symb>
 
            <Symb> WithBloc=false </Symb>
@@ -489,9 +490,9 @@
                           <#WHEN VTEST=${AcceptGB}> <!-- Generik Bundle -->
                               <ContrCamGenInc>
                                    <PatternApply> .*  </PatternApply>
-                                   <PdsAttachToId>   1e-8     </PdsAttachToId>
+                                   <PdsAttachToId>   0     </PdsAttachToId>
                                    <PdsAttachToLast> 1e-6    </PdsAttachToLast>
-                                   <PdsAttachRGLob>  1e-2    </PdsAttachRGLob>
+                                   <PdsAttachRGLob>  ${PdsGBRot}    </PdsAttachRGLob>
                               </ContrCamGenInc>
                           </#WHEN>
 
