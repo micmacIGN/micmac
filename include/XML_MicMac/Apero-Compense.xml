@@ -490,7 +490,7 @@
                           <#WHEN VTEST=${AcceptGB}> <!-- Generik Bundle -->
                               <ContrCamGenInc>
                                    <PatternApply> .*  </PatternApply>
-                                   <PdsAttachToId>   1e-8     </PdsAttachToId>
+                                   <PdsAttachToId>   0     </PdsAttachToId>
                                    <PdsAttachToLast> 1e-6    </PdsAttachToLast>
                                    <PdsAttachRGLob>  ${PdsGBRot}    </PdsAttachRGLob>
                               </ContrCamGenInc>

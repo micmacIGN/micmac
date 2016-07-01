@@ -301,7 +301,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                            +  std::string(" +NbMinIterFin=") + ToString(aNbIterFin) + " "
                            +  std::string(" +NbMaxIterFin=") + ToString(aNbIterFin) + " "
                            +  std::string(" +NbLiais=") + ToString(aNbLiais) + " "
-                           +  std::string(" +aPdsGBRot=") + ToString(aPdsGBRot) + " "
+                           +  std::string(" +PdsGBRot=") + ToString(aPdsGBRot) + " "
                           ;
 
         if (CPI1 || CPI2) mCom       += " +CPI=true ";
