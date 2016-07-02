@@ -59,27 +59,108 @@ bool  MergeHasPrec(tMerge * aMerge)
     return false;
 }
 
-/*
-double  cPMulTiepRed::Residual(int aKC1,int aKC2,double aDef)
+double  cPMulTiepRed::Residual(int aKC1,int aKC2,double aDef,cAppliTiepRed & anAppli) const
 {
   cCameraTiepRed * aCam1 = anAppli.KthCam(aKC1);
   cCameraTiepRed * aCam2 = anAppli.KthCam(aKC2);
-  cLnk2ImTiepRed *  aLnk = anAppli.LnkOfCams(aCam1,aCam2);
-  if (aLnk->HasOriRel())
+  if (aCam1->NameIm() > aCam2->NameIm())
   {
-      Pt2dr aP1 =  aCam1->Hom2Cam(aPM->GetVal(aKC1));
-      Pt2dr aP2 =  aCam2->Hom2Cam(aPM->GetVal(aKC2));
-
-      CamStenope & aCS1 =  aLnk->CsRel1();
-      CamStenope & aCS2 =  aLnk->CsRel2();
-      Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
-      return  (euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer))) / 2.0;
+     ElSwap( aKC1, aKC2);
+     ElSwap(aCam1,aCam2);
   }
-  return aDef;
+  cLnk2ImTiepRed *  aLnk = anAppli.LnkOfCams(aCam1,aCam2,true);
+  if ((aLnk==0) || (! aLnk->HasOriRel()))
+     return aDef;
+
+
+  Pt2dr aP1 =  aCam1->Hom2Cam(mMerge->GetVal(aKC1));
+  Pt2dr aP2 =  aCam2->Hom2Cam(mMerge->GetVal(aKC2));
+
+  CamStenope & aCS1 =  aLnk->CsRel1();
+  CamStenope & aCS2 =  aLnk->CsRel2();
+  Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
+  return  (euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer))) / 2.0;
 }
-*/
+
+void cPMulTiepRed::CompleteArc(cAppliTiepRed & anAppli)
+{
+    const std::vector<U_INT2>  & aVInd = mMerge->VecInd() ;
+    if (aVInd.size() == 2) return;
+
+    const std::vector<Pt2dUi2> &  aVP = mMerge->Edges();
+    std::vector<int>  &  aBufCpt = anAppli.BufICam();
+    std::vector<int>  &  aBufSucc = anAppli.BufICam2();
+
+    // Calcul compteur et successeur
+
+    for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
+    {
+           int aKC1 = aVP[aKCple].x;
+           int aKC2 = aVP[aKCple].y;
+           aBufCpt[aKC1] ++;
+           aBufCpt[aKC2] ++;
+           aBufSucc[aKC1] = aKC2;
+           aBufSucc[aKC2] = aKC1;
+    }
 
 
+
+    double  aMoyRes =  MoyResidual(anAppli) ;
+    std::vector<int> aVSingl;
+    for (int aKSom=0 ; aKSom<int(aVInd.size()) ; aKSom++)
+    {
+        int anInd1 = aVInd[aKSom];
+        if (aBufCpt[anInd1]==1) 
+        {
+            double aResMin = 1e2;
+            int anIndMin = -1;
+            int anInd2 = aBufSucc[anInd1];
+            for (int aKSucc=0 ; aKSucc<int(aVInd.size()) ; aKSucc++)
+            {
+                int anInd3 = aVInd[aKSucc];
+                if (anInd3 != anInd2)
+                {
+                    double aRes = Residual(anInd1,anInd3,1e3,anAppli);
+                    if (aRes < aResMin)
+                    {
+                        aResMin = aRes;
+                        anIndMin = anInd3;
+                    }
+                }
+            }
+            if ((anIndMin >=0) && (aResMin < 1+2*aMoyRes))
+            {
+                mMerge->NC_Edges().push_back(Pt2dUi2(anInd1,anIndMin));
+            }
+        }
+    }
+
+    for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
+    {
+           int aKC1 = aVP[aKCple].x;
+           int aKC2 = aVP[aKCple].y;
+           aBufCpt[aKC1] = 0;
+           aBufCpt[aKC2] = 0;
+           aBufSucc[aKC1] = 0;
+           aBufSucc[aKC2] = 0;
+    }
+}
+
+double  cPMulTiepRed::MoyResidual(cAppliTiepRed & anAppli) const
+{
+   double aSomRes = 0;
+   double aNbRes = 0;
+
+   const std::vector<Pt2dUi2> &  aVP = mMerge->Edges();
+   for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
+   {
+       double aRes = Residual(aVP[aKCple].x,aVP[aKCple].y,anAppli.DefResidual(),anAppli);
+
+       aSomRes += aRes;
+       aNbRes ++;
+   }
+   return aSomRes / aNbRes;
+}
 
 
 cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
@@ -93,48 +174,10 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
 {
     if (anAppli.ModeIm())
     {
+       // CompleteArc(anAppli);
        mP = anAppli.CamMaster().Hom2Cam(aPM->GetVal(0)); 
        mZ = 0.0;  // Faut bien remplir les trou ?
-       mPrec = 1.0;
-
-
-       double aSomRes = 0;
-       double aNbRes = 0;
-
-       const std::vector<Pt2dUi2> &  aVP = aPM->Edges();
-       for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
-       {
-           int aKC1 = aVP[aKCple].x;
-           int aKC2 = aVP[aKCple].y;
-
-           cCameraTiepRed * aCam1 = anAppli.KthCam(aKC1);
-           cCameraTiepRed * aCam2 = anAppli.KthCam(aKC2);
-
-           if (aCam1->NameIm() > aCam2->NameIm())
-           {
-               ElSwap( aKC1, aKC2);
-               ElSwap(aCam1,aCam2);
-           }
-
-           cLnk2ImTiepRed *  aLnk = anAppli.LnkOfCams(aCam1,aCam2);
-           double aRes = anAppli.DefResidual();
-           if (aLnk->HasOriRel())
-           {
-               Pt2dr aP1 =  aCam1->Hom2Cam(aPM->GetVal(aKC1));
-               Pt2dr aP2 =  aCam2->Hom2Cam(aPM->GetVal(aKC2));
-
-               CamStenope & aCS1 =  aLnk->CsRel1();
-               CamStenope & aCS2 =  aLnk->CsRel2();
-               Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
-               aRes =  (euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer))) / 2.0;
-           }
-
-           aSomRes += aRes;
-           aNbRes ++;
-       }
-
-       mPrec = aSomRes / aNbRes;
-
+       mPrec = MoyResidual(anAppli);
     }
     else
     {
@@ -175,7 +218,7 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
 
 void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli)
 {
-    mGain =  mMerge->NbArc() * (1.0 /(1.0 + ElSquare(mPrec/(anAppli.ThresholdPrecMult() * anAppli.StdPrec()))));
+    mGain =  mMerge->Edges().size() * (1.0 /(1.0 + ElSquare(mPrec/(anAppli.ThresholdPrecMult() * anAppli.StdPrec()))));
     mGain *= (0.5+ mNbCamCur / double(mNbCam0));
 
     if (mHasPrec)

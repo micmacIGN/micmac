@@ -5,6 +5,7 @@ set(Morpho_cabl_Src_Files
 	${MORPHO_DIR}/skel_interface.cpp
 	${MORPHO_DIR}/skel_vein.cpp
 	${MORPHO_DIR}/graphe_region.cpp
+	${MORPHO_DIR}/class_morpho.cpp
 )
 
 SOURCE_GROUP(Morpho FILES ${Morpho_cabl_Src_Files})

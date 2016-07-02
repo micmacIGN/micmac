@@ -262,6 +262,7 @@ cCameraTiepRed * cAppliTiepRed::KthCam(int aK) {return mVecCam[aK];}
 const double & cAppliTiepRed::ThresholdPrecMult() const {return mThresholdPrecMult;}
 const double & cAppliTiepRed::StdPrec() const {return mStdPrec;}
 std::vector<int>  & cAppliTiepRed::BufICam() {return mBufICam;}
+std::vector<int>  & cAppliTiepRed::BufICam2() {return mBufICam2;}
 cInterfChantierNameManipulateur* cAppliTiepRed::ICNM() {return mICNM;}
 const std::string & cAppliTiepRed::StrOut() const {return mStrOut;}
 bool cAppliTiepRed::VerifNM() const {return mVerifNM;}
@@ -284,10 +285,10 @@ void cAppliTiepRed::AddLnk(cLnk2ImTiepRed * aLnk)
 }
 
 
-cLnk2ImTiepRed * cAppliTiepRed::LnkOfCams(cCameraTiepRed * aCam1,cCameraTiepRed * aCam2)
+cLnk2ImTiepRed * cAppliTiepRed::LnkOfCams(cCameraTiepRed * aCam1,cCameraTiepRed * aCam2,bool SVP)
 {
    cLnk2ImTiepRed * aRes = mVVLnk[aCam1->Num()][aCam2->Num()];
-   ELISE_ASSERT(aRes!=0,"cAppliTiepRed::LnkOfCams");
+   ELISE_ASSERT((aRes!=0 || SVP),"cAppliTiepRed::LnkOfCams");
    return aRes;
 }
 

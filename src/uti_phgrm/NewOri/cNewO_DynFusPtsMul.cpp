@@ -124,6 +124,14 @@ template <class TypeArc> const std::vector<Pt2dUi2> &  cComMergeTieP<TypeArc>::E
    return mEdges;
 }
 
+
+template <class TypeArc> std::vector<Pt2dUi2> &  cComMergeTieP<TypeArc>::NC_Edges() 
+{
+   return mEdges;
+}
+
+
+
 template <class TypeArc> const std::vector<TypeArc> &  cComMergeTieP<TypeArc>::ValArc() const
 {
    return mVecValArc;
