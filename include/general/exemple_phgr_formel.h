@@ -1066,6 +1066,7 @@ template <class TypeArc>  class cComMergeTieP
         void MemoCnx(int aK1,int aK2,const TypeArc& );
         void FusionneCnxInThis(const cComMergeTieP<TypeArc> &);
         const std::vector<Pt2dUi2> & Edges() const;
+        std::vector<Pt2dUi2> & NC_Edges() ;
         const std::vector<TypeArc> & ValArc() const;
     protected :
         cComMergeTieP();

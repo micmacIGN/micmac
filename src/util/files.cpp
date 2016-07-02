@@ -1723,7 +1723,8 @@ ElRotation3D ELISE_fp::read(ElRotation3D *)
 	Pt3dr aP = read((Pt3dr *)0);
 	ElMatrix<REAL> aMat = read((ElMatrix<REAL> *) 0);
 
-        ELISE_ASSERT(false,"agt::VERIFIER ElRotation3D(aP,aMat,true)\n");
+        // Supprime => fait planter calib loemi
+        // ELISE_ASSERT(false,"agt::VERIFIER ElRotation3D(aP,aMat,true)\n");
 	return ElRotation3D(aP,aMat,true);
 }
 

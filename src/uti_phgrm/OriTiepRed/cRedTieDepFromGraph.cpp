@@ -628,20 +628,23 @@ void cAppliGrRedTieP::DoExport()
     const std::list<tMergeRat *> & aLMerge =  mMergeStruct->ListMerged();
 
     std::vector<int> aVH;
+    std::vector<int> aVHA;
     double aNbP=0;
     for (std::list<tMergeRat *>::const_iterator itM=aLMerge.begin() ; itM!=aLMerge.end() ; itM++)
     {
         const std::vector<Pt2dUi2> &  aVP = (*itM)->Edges();
+        int aNbS = (*itM)->NbSom();
+        for (int aK= int(aVH.size()) ; aK <= aNbS ; aK++)
+        {
+               aVH.push_back(0);
+               aVHA.push_back(0);
+        }
+        aVH[aNbS]++;
+        aVHA[aNbS] += aVP.size();
+        aNbP++;
         for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
         {
            // Histo
-           int aNbS = (*itM)->NbSom();
-           for (int aK= int(aVH.size()) ; aK <= aNbS ; aK++)
-           {
-               aVH.push_back(0);
-           }
-           aVH[aNbS]++;
-           aNbP++;
 
            // 
            int aKC1 = aVP[aKCple].x;
@@ -669,7 +672,10 @@ void cAppliGrRedTieP::DoExport()
     for (int aKH=0 ; aKH<int(aVH.size()) ; aKH++)
     {
          if (aVH[aKH])
-            std::cout << " For muliplicity " << aKH << " %=" << ((100.0*aVH[aKH])/aNbP) << "\n";
+            std::cout << " For muliplicity " << aKH 
+                      << " %=" << ((100.0*aVH[aKH])/aNbP) 
+                      << " D=" << (aVHA[aKH]/double(aVH[aKH])) 
+                      << "\n";
     }
 
     std::string aKeyH = "NKS-Assoc-CplIm2Hom@"+ mOut + "@dat";
