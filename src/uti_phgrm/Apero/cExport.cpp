@@ -200,6 +200,8 @@ void cAppliApero::ExportSauvAutom()
 {
    std::string aStrS =  mParam.SauvAutom().ValWithDef("");
    std::string aPref = "";
+
+
    
    if (aStrS=="") 
    {
@@ -210,6 +212,7 @@ void cAppliApero::ExportSauvAutom()
    }
    std::string  aStrSSansMinus = "-Sauv-" + aStrS + "-" + ToString(mNumSauvAuto);
    aStrS = "-" + aStrSSansMinus;
+
    
    cExportPose anEP;
    // anEP.KeyAssoc() = "NKS-Assoc-Im2Orient@" + aStrS;
@@ -269,14 +272,14 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
           {
               static cElRegex anExpr (".*Ori-(.*)/Orientation-.*\\.xml",10);
 
-              if ( anEP.StdNameMMDir().IsInit())
+              if (  anEP.StdNameMMDir().IsInit())
               {
                 // MakeFileXML(anEP,"toto.xml");
-                 aGP->GenCurCam()->Save2XmlStdMMName( anEP.StdNameMMDir().Val());
+                 aGP->GenCurCam()->Save2XmlStdMMName( anEP.StdNameMMDir().Val(),aPref);
               }
               else if (anExpr.Match(aNXml) && anExpr.Replace(aNXml))
               {
-                 aGP->GenCurCam()->Save2XmlStdMMName(anExpr.KIemeExprPar(1));
+                 aGP->GenCurCam()->Save2XmlStdMMName(anExpr.KIemeExprPar(1),aPref);
               }
               else
               {

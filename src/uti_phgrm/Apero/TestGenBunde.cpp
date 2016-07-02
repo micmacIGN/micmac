@@ -147,7 +147,7 @@ cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,i
          MakeFileXML(mCSCur->StdExportCalibGlob(),mNameSaveCS0);
          
 	 cPolynomial_BGC3M2D aPol(0,mCSCur,mNameSaveCS0,mNameIm,mAppli->mDeg); // TAGG
-         aPol.Save2XmlStdMMName(aDest);
+         aPol.Save2XmlStdMMName(aDest,"");
      }
 }
 
@@ -607,7 +607,7 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
     }
 
     cPolynomial_BGC3M2D aPol(mChSys,mCamGen,mNameOutInit,mNameIm,mDegPol,0); // TAGG
-    aPol.Save2XmlStdMMName(mDest);
+    aPol.Save2XmlStdMMName(mDest,"");
     
 }
 

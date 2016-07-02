@@ -1471,7 +1471,7 @@ double cBasicGeomCap3D::GetVeryRoughInterProf() const
    return 1/600.0;
 }
 
-void cBasicGeomCap3D::Save2XmlStdMMName(const std::string &) const
+void cBasicGeomCap3D::Save2XmlStdMMName(const std::string &,const std::string & aPref) const
 {
     ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMName Not Suported");
 }

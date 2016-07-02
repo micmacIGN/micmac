@@ -1028,33 +1028,36 @@ cXml_CamGenPolBundle cPolynomial_BGC3M2D::ToXml() const
     return aRes;
 }
 
-std::string cPolynomial_BGC3M2D::DirSave(const std::string & aDirLoc) const
+std::string cPolynomial_BGC3M2D::DirSave(const std::string & aDirLoc,const std::string & aPref) const
 {
-     std::string aRes = DirOfFile(mNameIma) + "Ori-" + aDirLoc + "/";
+     std::string aRes = DirOfFile(mNameIma) + aPref + "Ori-" + aDirLoc + "/";
      ELISE_fp::MkDirSvp(aRes);
      return aRes;
 }
 
-std::string cPolynomial_BGC3M2D::NameSave(const std::string & aDirLoc) const
+std::string cPolynomial_BGC3M2D::NameSave(const std::string & aDirLoc,const std::string & aPref) const
 {
-    return DirSave(aDirLoc) +  "GB-Orientation-" + NameWithoutDir(mNameIma) + ".xml";
+    return DirSave(aDirLoc,aPref) +  "GB-Orientation-" + NameWithoutDir(mNameIma) + ".xml";
 }
 
-void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc) const
+void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc,const std::string &  aPref) const
 {
-     std::string aDirFull = DirSave(aDirLoc);
+
+     std::string aDirFull = DirSave(aDirLoc,aPref);
 
 
      cXml_CamGenPolBundle aXml = ToXml();
-     std::string aNameXml =  NameSave(aDirLoc);
+     std::string aNameXml =  NameSave(aDirLoc,aPref);
 
-     std::string aNameSsCor = aDirFull + NameWithoutDir(mNameFileCam0);
+     std::string aNameSsCor = aDirFull +   NameWithoutDir(mNameFileCam0);
      if (! ELISE_fp::exist_file(aNameSsCor))
      {
             ELISE_fp::CpFile(mNameFileCam0,aNameSsCor);
      }
 
-     aXml.NameCamSsCor() = aNameSsCor;
+     // Pour ne pas avoir le tmp mmdir ....
+     aXml.NameCamSsCor() = DirSave(aDirLoc,"") + NameWithoutDir(mNameFileCam0);
+
      if (mPtrChSys)
      {
         aXml.SysCible().SetVal(*mPtrChSys);
