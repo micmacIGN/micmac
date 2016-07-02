@@ -1028,10 +1028,11 @@ cXml_CamGenPolBundle cPolynomial_BGC3M2D::ToXml() const
     return aRes;
 }
 
-std::string cPolynomial_BGC3M2D::DirSave(const std::string & aDirLoc,const std::string & aPref) const
+std::string cPolynomial_BGC3M2D::DirSave(const std::string & aDirLoc,const std::string & aPref,bool Create) const
 {
      std::string aRes = DirOfFile(mNameIma) + aPref + "Ori-" + aDirLoc + "/";
-     ELISE_fp::MkDirSvp(aRes);
+     if (Create) 
+         ELISE_fp::MkDirSvp(aRes);
      return aRes;
 }
 
@@ -1056,7 +1057,7 @@ void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc,const st
      }
 
      // Pour ne pas avoir le tmp mmdir ....
-     aXml.NameCamSsCor() = DirSave(aDirLoc,"") + NameWithoutDir(mNameFileCam0);
+     aXml.NameCamSsCor() = DirSave(aDirLoc,"",false) + NameWithoutDir(mNameFileCam0);
 
      if (mPtrChSys)
      {

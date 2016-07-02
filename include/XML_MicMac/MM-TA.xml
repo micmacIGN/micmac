@@ -23,6 +23,16 @@
           <Symb>  IdAnam=TheSurf </Symb>
           <Symb>  UnUseAXC=false </Symb>
 
+
+          <Symb>  UseGenBundle=false </Symb>
+          <Symb>  ModeOriIm=eGeomImageOri </Symb>
+          <Symb>  ZIncIsProp=true </Symb>
+<!--
+          <Symb>  UseGenBundle=true </Symb>
+          <Symb>  ModeOriIm=eGeomGen </Symb>
+          <Symb>  ZIncIsProp=false </Symb>
+-->
+
   </DicoLoc>
 
 
@@ -31,7 +41,7 @@
 <Section_Terrain>    
       <IntervAltimetrie>
              <ZIncCalc>   0.01  </ZIncCalc>
-             <ZIncIsProp> true </ZIncIsProp>
+             <ZIncIsProp> ${ZIncIsProp} </ZIncIsProp>
              <#WHEN VTEST=${DoIncid}>
                    <ZMoyen> ${ZMoy}   </ZMoyen>
              </#WHEN>
@@ -43,16 +53,25 @@
 
 <!--  M3 : describe the set of images to match -->
 <Section_PriseDeVue >   
-     <GeomImages> eGeomImageOri </GeomImages>
+     <GeomImages> ${ModeOriIm} </GeomImages>
      <Images >
           <ImPat>  ${PatternAllIm} </ImPat>
      </Images>
 
-     <NomsGeometrieImage>
-         <FCND_Mode_GeomIm>
-               <FCND_GeomCalc> NKS-Assoc-Im2Orient@-${Aero} </FCND_GeomCalc>
-         </FCND_Mode_GeomIm>
-     </NomsGeometrieImage>
+      <#IF VTEST=${UseGenBundle}>
+           <NomsGeometrieImage>
+                   <NGI_StdDir>
+                        <StdDir>  ${Aero} </StdDir>
+                        <NGI_StdDir_Apply> .* </NGI_StdDir_Apply>
+                   </NGI_StdDir>
+           </NomsGeometrieImage>
+
+           <NomsGeometrieImage>
+               <FCND_Mode_GeomIm>
+                     <FCND_GeomCalc> NKS-Assoc-Im2Orient@-${Aero} </FCND_GeomCalc>
+               </FCND_Mode_GeomIm>
+           </NomsGeometrieImage>
+      </#IF>
 </Section_PriseDeVue>
 
 <Section_MEC >
