@@ -67,8 +67,9 @@ class cAppliTarama : public cAppliWithSetImage
 
 
 cAppliTarama::cAppliTarama(int argc,char ** argv) :
-    cAppliWithSetImage(argc-1,argv+1,0)
+    cAppliWithSetImage(argc-1,argv+1,     TheFlagNoOri)
 {
+
     NoInit = "XXXXXXXXXX";
 
     // MemoArg(argc,argv);
@@ -83,6 +84,7 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
     int    aKNadir = -1;
     double aIncidMax = 1e5;
     bool   UnUseAXC = false;
+
 
 
     ElInitArgMain
@@ -112,6 +114,19 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
 
         MMD_InitArgcArgv(argc,argv);
 
+        const cInterfChantierNameManipulateur::tSet * aSetIm = mEASF.SetIm();
+        bool IsGenBundle = false;
+       
+        for (int aKIm=0 ; aKIm<int(aSetIm->size()) ; aKIm++)
+        {
+            const std::string & aNameIm = (*aSetIm)[aKIm];
+            cBasicGeomCap3D * aCG =  ICNM()->StdCamGenOfNames(Aero,aNameIm);
+
+            if ((aCG!=0) && (aCG->DownCastCS()==0))
+                IsGenBundle = true;
+
+        }
+
         std::string aCom =  MM3dBinFile( "MICMAC" )
                 + MMDir() + std::string("include/XML_MicMac/MM-TA.xml ")
                 + std::string(" WorkDir=") +aDir +  std::string(" ")
@@ -120,6 +135,11 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
                 + std::string(" +Aero=") + Aero
                 + std::string(" +DirMEC=") + DirOut
                 ;
+
+        if (IsGenBundle)
+        {
+             aCom = aCom + " +UseGenBundle=true  +ModeOriIm=eGeomGen +ZIncIsProp=false ";
+        }
 
         if (EAMIsInit(&aIncidMax))
         {
