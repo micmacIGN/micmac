@@ -1508,7 +1508,7 @@ class cBasicGeomCap3D
 
 
        // Save using standard MicMac naming ; !! Not supported for now by Stenope camera; Def :  Fatal Error
-       virtual void Save2XmlStdMMName(const std::string &) const ;
+       virtual void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd) const ;
 
        Pt2dr Mil() const;
        double GlobResol() const;

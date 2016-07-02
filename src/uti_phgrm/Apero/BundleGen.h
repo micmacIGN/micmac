@@ -124,9 +124,9 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
 
 	   void Show() const;
 
-           void Save2XmlStdMMName(const std::string & aDir) const;
-           std::string DirSave(const std::string & aDirLoc) const;
-           std::string NameSave(const std::string & aDirLoc) const;
+           void Save2XmlStdMMName(const std::string & aDir,const std::string & aPref) const;
+           std::string DirSave(const std::string & aDirLoc,const std::string & aPref) const;
+           std::string NameSave(const std::string & aDirLoc,const std::string & aPref) const;
 
            cXml_CamGenPolBundle ToXml() const;
            static  cPolynomial_BGC3M2D * NewFromFile(const std::string &);
