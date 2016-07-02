@@ -139,6 +139,7 @@ void cAppliTiepRed::DoFilterCamAnLinks()
       mVecCam = aNewV; // Update member vector of cams
 
       mBufICam = std::vector<int>(mVecCam.size(),0);
+      mBufICam2 = std::vector<int>(mVecCam.size(),0);
 
 
       std::vector<cLnk2ImTiepRed *> aVL0(mVecCam.size(),0);

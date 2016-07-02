@@ -177,6 +177,7 @@ class cCameraTiepRed
         bool Alive() const;
         void SetDead();
 
+
     private :
         void SaveHom( cCameraTiepRed*,const std::list<int> & aLBox);
         cCameraTiepRed(const cCameraTiepRed &); // Not Implemented
@@ -264,6 +265,11 @@ class cPMulTiepRed
        void SetDistVonGruber(const double & aDist,const cAppliTiepRed &);
        void ModifDistVonGruber(const double & aDist,const cAppliTiepRed &);
        bool HasPrec() const;
+
+       double  Residual(int aKC1,int aKC2,double aDef,cAppliTiepRed & anAppli) const;
+       void    CompleteArc(cAppliTiepRed & anAppli);
+       double  MoyResidual(cAppliTiepRed & anAppli) const;
+
      private :
        tMerge * mMerge;
        Pt2dr    mP;   // mP + Z => 3D coordinate
@@ -329,6 +335,7 @@ class cAppliTiepRed
           cCameraTiepRed * KthCam(int aK);
           const double & StdPrec() const;
           std::vector<int>  & BufICam();
+          std::vector<int>  & BufICam2();
           std::string NameHomol    (const std::string &,const std::string &,int aK) const;
           std::string NameHomolGlob(const std::string &,const std::string &) const;
 
@@ -342,7 +349,7 @@ class cAppliTiepRed
           bool ModeIm() const;
           cCameraTiepRed & CamMaster();
 
-          cLnk2ImTiepRed * LnkOfCams(cCameraTiepRed * aCam1,cCameraTiepRed * aCam2);
+          cLnk2ImTiepRed * LnkOfCams(cCameraTiepRed * aCam1,cCameraTiepRed * aCam2,bool SVP=false);
           bool   Debug() const;
           double   DefResidual() const;
      private :
@@ -412,6 +419,7 @@ class cAppliTiepRed
           std::list<tPMulTiepRedPtr>       mListSel; // List of selected multi points
           double                           mStdPrec;
           std::vector<int>                 mBufICam;
+          std::vector<int>                 mBufICam2;
           cInterfChantierNameManipulateur* mICNM;
           bool                             mFromRatafiaGlob;
           bool                             mFromRatafiaBox;
