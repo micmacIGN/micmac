@@ -299,6 +299,20 @@ Pt3dr CameraRPC::ImEtProf2Terrain(const Pt2dr & aP,double aProf) const
     }
     else
     {
+// MPD pour corriger bug reproj epipo dans Saisie Appuis 
+// A terme il faudra changer avec une fonction specifique
+        Pt3dr aC  = OpticalCenterOfPixel(aP);
+        ElSeg3D   aSeg = Capteur2RayTer(aP);
+        Pt3dr aPTer = RoughCapteur2Terrain(aP);
+
+        double aProfTer = euclid(aPTer-aC);
+        double aProp = aProf / ProfondeurDeChamps(aPTer);
+        double aDist = aProfTer * (1 - aProp);
+        
+        return aPTer  + aSeg.TgNormee() * aDist;
+        //ElSeg3D aSeg(aC
+
+
         ELISE_ASSERT(false,"CameraRPC::ImEtProf2Terrain no data about the sensor positon");
 	
 	return(Pt3dr(0,0,0));

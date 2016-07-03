@@ -787,6 +787,17 @@ cBGC3_Modif2D::cBGC3_Modif2D(cBasicGeomCap3D * aCam0,const std::string & aName,c
 }
 
 
+Pt3dr cBGC3_Modif2D::ImEtProf2Terrain(const Pt2dr & aP,double aZ) const
+{
+   return mCam0->ImEtProf2Terrain(CurIm2CamInit(aP),aZ);
+}
+
+Pt3dr cBGC3_Modif2D::ImEtZ2Terrain(const Pt2dr & aP,double aZ) const
+{
+   return mCam0->ImEtZ2Terrain(CurIm2CamInit(aP),aZ);
+}
+
+
 ElSeg3D  cBGC3_Modif2D::Capteur2RayTer(const Pt2dr & aP) const
 {
     return mCam0->Capteur2RayTer(CurIm2CamInit(aP));
