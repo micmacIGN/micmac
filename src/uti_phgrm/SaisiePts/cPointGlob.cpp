@@ -159,6 +159,8 @@ Pt3dr cSP_PointGlob::Best3dEstim() const
    return Pt3dr(0,0,0);
 }
 
+extern bool ERupnik_MM();
+
 void cSP_PointGlob::ReCalculPoints()
 {
 
@@ -259,7 +261,9 @@ void cSP_PointGlob::ReCalculPoints()
             //double aProf = aCap3d->ProfondeurDeChamps(aCap3d->PMoyOfCenter());
             double aProf = aCap3d->ProfondeurDeChamps(aCap3d->RoughCapteur2Terrain(aPIm));
             // std::cout << "PIMMM " << aPIm   << " " << aCap3d->RoughCapteur2Terrain(aPIm) << "\n";
-            double aInc = 1+ mAppli.Param().IntervPercProf().Val()/100.0;
+
+            double aMul  = pow(1 + aCap3d->GetVeryRoughInterProf(),2) ;
+
 
             aPt = aCap3d->ImEtProf2Terrain(aPIm,aProf);
 
@@ -267,17 +271,21 @@ void cSP_PointGlob::ReCalculPoints()
             // mPG->PS1().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf*aInc));
             // mPG->PS2().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf/aInc));
 
-            int aNbKMoins = 20;
-            int aNbKPlus = 20;
+            int aNbSeg = 20;
             std::vector<Pt3dr> aVPt;
-            for (int aK= -aNbKMoins ; aK<= aNbKPlus ; aK++)
+            for (int aK= -aNbSeg ; aK<= aNbSeg ; aK++)
             {
-                double aProfK = aProf * pow(aInc,aK);
+                double aProfK = aProf * pow(aMul,aK/double(aNbSeg));
                 aVPt.push_back(aCap3d->ImEtProf2Terrain(aPIm,aProfK));
+
+if (MPD_MM() || ERupnik_MM())
+{
+    std::cout << "Check reproj " << aPIm << aCap3d->Ter2Capteur(aVPt.back()) << "\n";
+}
             }
             mPG->VPS() = aVPt;
-            mPG->PS1().SetVal(aVPt[aNbKMoins+1]);
-            mPG->PS2().SetVal(aVPt[aNbKPlus-1]);
+            mPG->PS1().SetVal(aVPt.back());
+            mPG->PS2().SetVal(aVPt[0]);
         }
 
 
@@ -328,6 +336,16 @@ void cSP_PointGlob::ReCalculPoints()
         mPG->VPS().clear();
         mPG->Mes3DExportable().SetVal(true);
 
+        for (int aK=0 ;aK<int(aVOK.size()) ; aK++)
+        {
+            cSP_PointeImage & aPointeIm = *(aVOK[aK]);
+            cImage &          anIm = *(aPointeIm.Image());
+            cBasicGeomCap3D *      aCap3d =  anIm.Capt3d();
+            ELISE_ASSERT(aCap3d!=0,"Internal problem in cSP_PointGlob::ReCalculPoints");
+            Pt2dr             aPIm = aCap3d->ImRef2Capteur(aPointeIm.Saisie()->PtIm());
+            Pt2dr aProj = aCap3d->Ter2Capteur(aPt);
+            std::cout << "DIST-Reproj= " << euclid(aPIm-aProj) << "\n";
+        }
 
         if (euclid(aPt-aP0)< 1e-9)
         {

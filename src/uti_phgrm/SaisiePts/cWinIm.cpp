@@ -357,17 +357,6 @@ void cWinIm::ShowPoint(const Pt2dr aP,eEtatPointeImage aState,cSP_PointGlob * aP
 
     if (aPG && aPG->HighLighted())
     {
-/*
-        Pt2dr aP1, aP2;
-        if (aPIm->BuildEpipolarLine(aP1, aP2))
-        {
-            aP1 = mScr->to_win(aP1);
-            aP2 = mScr->to_win(aP2);
-
-            mW.draw_seg(aP1,aP2,aLst);
-        }
-*/
-
 
         std::vector<Pt2dr> aVPt;
         std::vector<bool>  aVOkPt;
