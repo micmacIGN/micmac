@@ -90,6 +90,11 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
             Pt2dr ImRef2Capteur   (const Pt2dr & aP) ;
             double ResolImRefFromCapteur() const;
 
+
+           Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
+           Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
+
+
       protected  : 
             cBasicGeomCap3D * mCam0;
             std::string       mNameFileCam0;

@@ -278,10 +278,11 @@ void cSP_PointGlob::ReCalculPoints()
                 double aProfK = aProf * pow(aMul,aK/double(aNbSeg));
                 aVPt.push_back(aCap3d->ImEtProf2Terrain(aPIm,aProfK));
 
-if (MPD_MM() || ERupnik_MM())
-{
-    std::cout << "Check reproj " << aPIm << aCap3d->Ter2Capteur(aVPt.back()) << "\n";
-}
+                if ((MPD_MM() || ERupnik_MM()) && (aK==0))
+                {
+                    // std::cout << "Check-reproj " << aPIm - aCap3d->Ter2Capteur(aVPt.back()) 
+                              // <<  " " << aPIm -aCap3d->ImRef2Capteur(aPIm) << "\n";
+                }
             }
             mPG->VPS() = aVPt;
             mPG->PS1().SetVal(aVPt.back());
@@ -336,15 +337,19 @@ if (MPD_MM() || ERupnik_MM())
         mPG->VPS().clear();
         mPG->Mes3DExportable().SetVal(true);
 
-        for (int aK=0 ;aK<int(aVOK.size()) ; aK++)
+        if (1)
         {
-            cSP_PointeImage & aPointeIm = *(aVOK[aK]);
-            cImage &          anIm = *(aPointeIm.Image());
-            cBasicGeomCap3D *      aCap3d =  anIm.Capt3d();
-            ELISE_ASSERT(aCap3d!=0,"Internal problem in cSP_PointGlob::ReCalculPoints");
-            Pt2dr             aPIm = aCap3d->ImRef2Capteur(aPointeIm.Saisie()->PtIm());
-            Pt2dr aProj = aCap3d->Ter2Capteur(aPt);
-            std::cout << "DIST-Reproj= " << euclid(aPIm-aProj) << "\n";
+            std::cout << " ---------------- Pt=" << mPG->Name() << " -------------\n";
+            for (int aK=0 ;aK<int(aVOK.size()) ; aK++)
+            {
+                cSP_PointeImage & aPointeIm = *(aVOK[aK]);
+                cImage &          anIm = *(aPointeIm.Image());
+                cBasicGeomCap3D *      aCap3d =  anIm.Capt3d();
+                ELISE_ASSERT(aCap3d!=0,"Internal problem in cSP_PointGlob::ReCalculPoints");
+                Pt2dr             aPIm = aCap3d->ImRef2Capteur(aPointeIm.Saisie()->PtIm());
+                Pt2dr aProj = aCap3d->Ter2Capteur(aPt);
+                std::cout << "DIST-Reproj= " << euclid(aPIm-aProj) << " for im=" << anIm.Name()<< "\n";
+            }
         }
 
         if (euclid(aPt-aP0)< 1e-9)
