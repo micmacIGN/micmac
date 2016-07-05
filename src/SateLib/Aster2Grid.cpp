@@ -223,7 +223,7 @@ int Aster2Grid_main(int argc, char ** argv)
 	bool expGrid = true;
 	bool expDIMAP = false;
 	int nbLayers;
-	double aHMin = 0, aHMax = 3000;
+	double aHMin = -500, aHMax = 9000;
 	double stepPixel = 100.f;
 	double stepCarto = 1500.f;//equals to 100*image resolution in m
 
@@ -239,8 +239,8 @@ int Aster2Grid_main(int argc, char ** argv)
 		<< EAMC(nbLayers, "number of layers (min 4)")
 		<< EAMC(targetSyst, "targetSyst - target system in Proj4 format (ex : \"+proj=utm +zone=32 +north +datum=WGS84 +units=m +no_defs\""),
 		LArgMain()
-		<< EAM(aHMin, "HMin", true, "Min elipsoid height of scene (Def=0)")
-		<< EAM(aHMax, "HMax", true, "Max elipsoid height of scene (Def=3000)")
+		<< EAM(aHMin, "HMin", true, "Min elipsoid height of scene (Def=-500 for Dead Sea Shore)")
+		<< EAM(aHMax, "HMax", true, "Max elipsoid height of scene (Def=9000 for top of Everest)")
 		<< EAM(stepPixel, "stepPixel", true, "Step in pixel (Def=100pix)")
 		<< EAM(stepCarto, "stepCarto", true, "Step in m (carto) (Def=1500m, GSD*100)")
 		<< EAM(refineCoef, "refineCoef", true, "File of Coef to refine Grid")

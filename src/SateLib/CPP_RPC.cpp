@@ -55,7 +55,7 @@ extern Pt2di PT_BugZBB;
 
 
 //RPC2Grid transforms a loaded RPC to a .GRI (and GRIBin) file
-int RPC::RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef, std::string aNameIm, double stepPixel, double stepCarto, std::string targetSyst, std::string inputSyst, bool binaire)
+int RPC::RPC2Grid(int nbLayers, double altiMin, double altiMax, std::string refineCoef, std::string aNameIm, double stepPixel, double stepCarto, std::string targetSyst, std::string inputSyst, bool binaire)
 {
     //Creation d'un dossier pour les fichiers intermediaires
     ELISE_fp::MkDirSvp("processing");
@@ -65,7 +65,7 @@ int RPC::RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef
 
     std::vector<double> vAltitude;
     for (int i = 0; i<nbLayers; ++i)
-        vAltitude.push_back(altiMin + i*(altiMax - altiMin) / (nbLayers - 1));
+        vAltitude.push_back(altiMin + double(i)*(altiMax - altiMin) / (double(nbLayers) - 1));
 
 	if (refineCoef == "")
 	{
@@ -1263,7 +1263,7 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 			//cout << "aAngleIntersect = " << aAngleIntersect*180/M_PI << endl;
 
 			//for each layer of grid
-			for (u_int height = aHMin; height <= aHMax; height = height + (aHMax-aHMin)/(nbLayers-1))
+			for (double height = aHMin; height <= aHMax; height = height + (aHMax-aHMin)/(nbLayers-1))
 			{
 								
 
