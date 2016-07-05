@@ -352,6 +352,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mSzW = 3;
 
 
+      if (EAMIsInit(&mDoOrtho))
+      {
+           if (! EAMIsInit(&mOrthoF)) mOrthoF = mDoOrtho;
+           if (! EAMIsInit(&mOrthoQ)) mOrthoQ = mDoOrtho;
+      }
+
 
 
       std::string mFullModeOri = "eGeomImageOri";
@@ -691,6 +697,11 @@ if(0)
       {
           mCom =  mCom + " +ButDoOrtho=false";
       }
+
+{
+   std::cout << "GGGGGG " << mCom << "\n";
+   getchar();
+}
 
       if (EAMIsInit(&mMasqIm))
       {

@@ -57,7 +57,7 @@ extern const std::string PASTIS_IGNORE_MAX_NAME;
 extern const std::string PASTIS_IGNORE_MIN_NAME;
 extern const std::string PASTIS_IGNORE_UNKNOWN_NAME;
 
-int ExpTxt=0;
+bool ExpTxt=0;
 int	ByP=-1;
 string g_toolsOptions; // contains arguments to pass to Pastis concerning detecting and matching tools
 std::string aDir,aPat,aPatOri;
