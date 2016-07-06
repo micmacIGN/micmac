@@ -15,6 +15,7 @@ int command_renameImageSet( int argc, char **argv );
 int command_toto( int argc, char **argv );
 int command_makeSets( int argc, char **argv );
 int command_drawMatches( int argc, char **argv );
+int command_zmap2mesh( int argc, char **argv );
 
 command_t commands[] = {
 	{ "correctplanarpolygons", &command_correctPlanarPolygons },
@@ -23,6 +24,7 @@ command_t commands[] = {
 	{ "toto", &command_toto },
 	{ "makesets", &command_makeSets },
 	{ "drawmatches", &command_drawMatches },
+	{ "zmap2mesh", &command_zmap2mesh },
 	{ "", NULL }
 };
 
@@ -1132,6 +1134,120 @@ int command_drawMatches(int argc, char **argv)
 //~ 
 	//~ save_tiff(gray0, green0);
 	//~ save_tiff(gray1, green1);
+
+	return EXIT_SUCCESS;
+}
+
+//------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
+
+void missing_file_exit(const string &aFilename)
+{
+	if (ELISE_fp::exist_file(aFilename)) return;
+	cerr << "missing file [" << aFilename << "]" << endl;
+	exit(EXIT_FAILURE);
+}
+
+int command_zmap2mesh(int argc, char **argv)
+{
+	if (argc == 1)
+	{
+		string arg0 = argv[0];
+		if (arg0 == "-help" || arg0 == "--help")
+		{
+			cout << "usage: zmap2mesh zmap_tif zmap_xml" << endl;
+			cout << "ex: zmap2mesh PIMs-TmpBasc/PIMs-Merged_Prof.tif PIMs-TmpBasc/PIMs-ZNUM-Merged.xml";
+			return EXIT_SUCCESS;
+		}
+	}
+
+	string aZmapFilename = "PIMs-TmpBasc/PIMs-Merged_Prof.tif";
+	if (argc > 0) aZmapFilename = argv[0];
+	missing_file_exit(aZmapFilename);
+
+	//~ string aOrthoFilename = "PIMs-TmpBasc/PIMs-ZNUM-Merged.xml";
+	string aOrthoFilename = "PIMs-ORTHO/MTDOrtho.xml";
+	if (argc > 1) aZmapFilename = argv[1];
+	missing_file_exit(aZmapFilename);
+
+	string aPlyFilename = "mesh.ply";
+
+	Tiff_Im tiff(aZmapFilename.c_str());
+	cout << "[" << aZmapFilename << "]" << endl;
+	cout << '\t' << tiff.sz().x << 'x' << tiff.sz().y << 'x' << tiff.nb_chan() << ' ' << eToString(tiff.type_el()) << endl;
+	if (tiff.nb_chan() != 1)
+	{
+		cerr << "bad number of channels for a zmap" << endl;
+		return EXIT_FAILURE;
+	}
+	Im2D_REAL4 zmap(tiff.sz().x, tiff.sz().y);
+	ELISE_COPY(tiff.all_pts(), tiff.in(), zmap.out());
+
+	//~ Im2DGen zmap_gen = tiff.ReadIm();
+	//~ Im2D_REAL4 &zmap = *(Im2D_REAL4 *)&zmap_gen;
+
+	cFileOriMnt fileOriMNT_ortho = StdGetFromPCP(aOrthoFilename, FileOriMnt);
+	cout << '[' << aOrthoFilename << ']' << endl;
+	dump(fileOriMNT_ortho, "\t");
+	cout << endl;
+
+	Pt2di orthoSize = fileOriMNT_ortho.NombrePixels();
+
+	int deltaZMap = orthoSize.x / zmap.tx(), deltaZMap_y = orthoSize.y / zmap.ty();
+	if (deltaZMap != deltaZMap_y)
+	{
+		cerr << "invalid dz x -> " << deltaZMap << ", z -> " << deltaZMap_y << endl;
+		return EXIT_FAILURE;
+	}
+	cout << "--- deltaZMap = " << deltaZMap << endl;
+
+	int deltaMesh = deltaZMap, deltaZMapMesh = deltaMesh / deltaZMap;
+	Pt2di meshSize = orthoSize / deltaMesh; 
+
+	size_t nbVertices = meshSize.x * meshSize.y;
+	size_t nbFaces = (meshSize.x - 1) * (meshSize.y - 1) * 2;
+	cout << "--- deltaMesh = " << deltaMesh << ": " << nbVertices << " vertices, " << nbFaces << " faces" << endl;
+
+	ofstream f("mesh.ply");
+	f << "ply" << endl;
+	f << "format ascii 1.0" << endl;
+	f << "element vertex " << nbVertices << endl;
+	f << "property float x" << endl;
+	f << "property float y" << endl;
+	f << "property float z" << endl;
+	f << "element face " << nbFaces << endl;
+	f << "property list uchar int vertex_indices" << endl;
+	f << "end_header" << endl;
+
+	REAL4 **data = zmap.data();
+	size_t countV = 0;
+	for (int j = 0; j < meshSize.y; j++)
+		for (int i = 0; i < meshSize.x; i++)
+		{
+			Pt3dr p = ToMnt(fileOriMNT_ortho, Pt3dr(i * deltaMesh, j * deltaMesh, data[j * deltaZMapMesh][i * deltaZMapMesh]));
+			//~ p = p / 10.;
+			f << p.x << ' ' << p.y << ' ' << p.z << endl;
+			countV++;
+		}
+	cout << "--- vertices done." << endl;
+
+	size_t countF = 0;
+	for (int j = 0; j < meshSize.y - 1; j++)
+	{
+		int i0 = j * meshSize.x, i1 = i0 + 1, i2 = i0 + meshSize.x, i3 = i2 + 1;
+		for (int i = 0; i < meshSize.x - 1; i++)
+		{
+			f << 3 << ' ' << i0 << ' ' << i2 << ' ' << i1 << endl;
+			f << 3 << ' ' << i3 << ' ' << i1 << ' ' << i2 << endl;
+			i0++; i1++; i2++; i3++;
+			countF++;
+		}
+	}
+	cout << "--- faces done." << endl;
+
+	cout << "countV = " << countV << " countF = " << countF * 2 << endl;
+
+	f.close();
 
 	return EXIT_SUCCESS;
 }
