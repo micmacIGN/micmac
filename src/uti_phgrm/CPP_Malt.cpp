@@ -352,6 +352,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mSzW = 3;
 
 
+      if (EAMIsInit(&mDoOrtho))
+      {
+           if (! EAMIsInit(&mOrthoF)) mOrthoF = mDoOrtho;
+           if (! EAMIsInit(&mOrthoQ)) mOrthoQ = mDoOrtho;
+      }
+
 
 
       std::string mFullModeOri = "eGeomImageOri";
