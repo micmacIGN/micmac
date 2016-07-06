@@ -879,6 +879,8 @@ void RPC::WriteAirbusRPC(std::string aFileOut)
     fic << "\t\t</Global_RFM>" << endl;
     fic << "\t</Rational_Function_Model>" << endl;
     fic << "</Dimap_Document>";
+
+	fic.close();
 }
 
 void RPC::ReconstructValidity()
