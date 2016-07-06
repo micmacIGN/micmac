@@ -183,7 +183,7 @@ endif()
 INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB})
 
 if (${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_IS_CLANG))
-	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "")
+	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "-fPIC")
 	set(precompiled_header ${precompiled_header} PARENT_SCOPE)
 endif()
 
