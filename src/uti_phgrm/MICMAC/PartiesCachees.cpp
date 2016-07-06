@@ -342,7 +342,8 @@ void cAppliMICMAC::MakePartiesCachees
                        const cGenerePartiesCachees & aGPC,
                        double aZMin,
                        double aZMax,
-                       int    aCpt
+                       int    aCptModProcess,
+                       int    aCptDivProcess
                    )
 {
 
@@ -374,10 +375,14 @@ void cAppliMICMAC::MakePartiesCachees
    bool DoOrtho =  aGPC.MakeOrthoParImage().IsInit();
 
    double aResRelOrtho = 1.0;
+   std::string aDirOrtho ="XXXXXXXXX";
    if (DoOrtho)
    {
        cMakeOrthoParImage aMOPI = aGPC.MakeOrthoParImage().Val();
        aResRelOrtho  =  aMOPI.ResolRelOrhto().ValWithDef(1.0);
+
+       aDirOrtho = mICNM->Dir()+aMOPI.DirOrtho().Val();
+       ELISE_fp::MkDir(aDirOrtho);
    }
 
    std::string   anEntete = NamePC(true,aGPC,mCurEtape,aPdv);
@@ -859,30 +864,28 @@ void cAppliMICMAC::MakePartiesCachees
 
            if (aKBox==0)
            {
-                std::string aDir = mICNM->Dir()+aMOPI.DirOrtho().Val();
-                ELISE_fp::MkDir(aDir);
-                if (aCpt==0)
+                std::string aPref=ToString(aCptModProcess) + "-";
+                std::string aNameMTD = aDirOrtho+ aPref+aMOPI.FileMTD().Val();
+                if (! ELISE_fp::exist_file(aNameMTD))  
                 {
-// std::cout << " MMMMMM " << aDir+aMOPI.FileMTD().Val() << "\n";
-// getchar();
-                   MakeFileXML(anOriOrtho, aDir+aMOPI.FileMTD().Val());
-                   GenTFW(anOriOrtho,aDir+aMOPI.FileMTD().Val());
-                }
+                   MakeFileXML(anOriOrtho, aNameMTD);
+                   GenTFW(anOriOrtho,aDirOrtho+aPref+aMOPI.FileMTD().Val());
 
-                if (aMOPI.MakeMTDMaskOrtho().IsInit())
-                {
-                    const cMakeMTDMaskOrtho & aMMMO = aMOPI.MakeMTDMaskOrtho().Val();
-                    MakeFileXML(aMMMO.Mesures(),aDir+aMMMO.NameFileSauv().Val());
+                   if (aMOPI.MakeMTDMaskOrtho().IsInit())
+                   {
+                       const cMakeMTDMaskOrtho & aMMMO = aMOPI.MakeMTDMaskOrtho().Val();
+                       MakeFileXML(aMMMO.Mesures(),aDirOrtho+ aPref+aMMMO.NameFileSauv().Val());
+                   }
                 }
 		
                 cFileOriMnt anOriIm = anOriOrtho ;
                 anOriIm.NombrePixels() = aMetaData.Sz();
                 Pt2dr anOffs = Pt2dr(aMetaData.Offset());
                 anOriIm.OriginePlani() = anOriOrtho.OriginePlani() + anOffs.mcbyc(anOriOrtho.ResolutionPlani());
-                std::string aNameMtdIm = aDir + "MTD-"+ aPdv.Name() + ".xml";
+                std::string aNameMtdIm = aDirOrtho + "MTD-"+ aPdv.Name() + ".xml";
                 MakeFileXML(anOriIm,aNameMtdIm);
 		// generate tfw for the ortho
-		std::string aNameMtdOrt = aDir + "Ort_"+ StdPrefix(aPdv.Name()) + ".tfw";
+		std::string aNameMtdOrt = aDirOrtho + "Ort_"+ StdPrefix(aPdv.Name()) + ".tfw";
 		int aDzIm = mCurEtape->DeZoomIm();
 		// Pour le tfw et pour le XML, les conventions sont pas les mm, l'origine plani n'est pas correcte (pour tfw) si ZoomF!=1. Prise en compte du DzIm
 		anOriIm.OriginePlani() = anOriOrtho.OriginePlani() + anOffs.mcbyc(anOriOrtho.ResolutionPlani()*aDzIm); 
@@ -1308,6 +1311,7 @@ void cAppliMICMAC::MakePartiesCachees()
    }
    else
    {
+      int aNbP= Paral_Pc_NbProcess().ValWithDef(1);
       int aCpt=0;
       for 
       (
@@ -1315,23 +1319,62 @@ void cAppliMICMAC::MakePartiesCachees()
           itPdv!=mPrisesDeVue.end();
           itPdv++
       )
-     {
+      {
 
           if (aSetN->IsSetIn((*itPdv)->Name()))
           {
              bool DoIt = true;
+             int aCptModProcess = 0;
+             int aCptDivProcess = aCpt;
              if (Paral_Pc_IdProcess().IsInit())
              {
-                DoIt = ((aCpt%Paral_Pc_NbProcess().Val()) == Paral_Pc_IdProcess().Val());
+                aCptModProcess = aCpt % aNbP;
+                aCptDivProcess = aCpt / aNbP;
+                DoIt = (aCptModProcess == Paral_Pc_IdProcess().Val());
              }
 // std::cout << "IDPIsni" << Paral_Pc_IdProcess().IsInit() i
 // << " DoIt:: " << DoIt << " " << (*itPdv)->Name()  << "\n";
              if (DoIt) 
-                MakePartiesCachees(**itPdv,aGPC,aZMin,aZMax,aCpt);
+             {
+                MakePartiesCachees(**itPdv,aGPC,aZMin,aZMax,aCptModProcess,aCptDivProcess);
+             }
 
              aCpt++;
           }
-     }
+      }
+      if (aGPC.MakeOrthoParImage().IsInit())
+      {
+         for (int aKP=0 ; aKP<aNbP ; aKP++)
+         {
+             cMakeOrthoParImage aMOPI = aGPC.MakeOrthoParImage().Val();
+             std::string aPref=ToString(aKP) + "-";
+             std::string aDirOrtho = mICNM->Dir()+aMOPI.DirOrtho().Val();
+             std::string aNameMTDIn = aDirOrtho+ aPref+aMOPI.FileMTD().Val();
+             std::string aNameMTDOut = aDirOrtho+ aMOPI.FileMTD().Val();
+             std::string aNameTFWIn = StdPrefix(aNameMTDIn) + ".tfw";
+             std::string aNameTFWOut = StdPrefix(aNameMTDOut) + ".tfw";
+
+             if (ELISE_fp::exist_file(aNameMTDIn)) 
+             {
+                ELISE_fp::MvFile(aNameMTDIn,aNameMTDOut);
+             }
+             if (ELISE_fp::exist_file(aNameTFWIn)) 
+             {
+                ELISE_fp::MvFile(aNameTFWIn,aNameTFWOut);
+             }
+
+             if (aMOPI.MakeMTDMaskOrtho().IsInit())
+             {
+                 const cMakeMTDMaskOrtho & aMMMO = aMOPI.MakeMTDMaskOrtho().Val();
+                 std::string aNameMaskIn = aDirOrtho+ aPref+aMMMO.NameFileSauv().Val();
+                 std::string aNameMaskOut = aDirOrtho+ aMMMO.NameFileSauv().Val();
+                 if (ELISE_fp::exist_file(aNameMaskIn)) 
+                 {
+                    ELISE_fp::MvFile(aNameMaskIn,aNameMaskOut);
+                 }
+             }
+         }
+      }
    }
 }
 

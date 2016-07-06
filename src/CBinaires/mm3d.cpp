@@ -438,7 +438,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force development of all tif/xif file"));
        aRes.push_back(cMMCom("SetExif",CPP_SetExif,"Modification of exif file (requires exiv2)"));
-       aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ..."));
+       aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ...",cArgLogCom(2)));
     aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
 
    }
@@ -984,6 +984,8 @@ int main(int argc,char ** argv)
 }
 
 /*
+Bug Ortho PIMS
+Bug Gen Bundle => sub expr
 DoOrtho => Malt UrbaneMN
 
 Tapioca ExpTxt=true
