@@ -698,11 +698,6 @@ if(0)
           mCom =  mCom + " +ButDoOrtho=false";
       }
 
-{
-   std::cout << "GGGGGG " << mCom << "\n";
-   getchar();
-}
-
       if (EAMIsInit(&mMasqIm))
       {
           CorrecNameMasq(mDir,mFullName,mMasqIm);
