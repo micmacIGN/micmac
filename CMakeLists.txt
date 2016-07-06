@@ -243,9 +243,6 @@ if(${WITH_QT5} OR ${WITH_QT4})
 
 				set(QT_DEFINITIONS "-DQT_NO_DEBUG;${Qt5Core_DEFINITIONS};${Qt5Widgets_DEFINITIONS};${QtXml_DEFINITIONS};${Qt5Concurrent_DEFINITIONS};${Qt5OpenGL_DEFINITIONS}")
 				list(REMOVE_DUPLICATES QT_DEFINITIONS)
-
-				set(QT_COMPILE_FLAGS ${Qt5Core_EXECUTABLE_COMPILE_FLAGS})
-				add_compile_options(${QT_COMPILE_FLAGS})
 			elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
 			    message("WARNING QT 5 not found")
 			    message("Set Qt5_DIR to qt CMAKE directory")
@@ -291,7 +288,7 @@ if(${WITH_CPP11})
 	IF(NOT MSVC)
 		message("c++11")
 		# support c++11
-		add_compile_options("-std=c++11")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     endif()
 endif()
 
@@ -661,7 +658,8 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 # DEFINITION : des preprocesseurs G++
 IF (CMAKE_COMPILER_IS_GNUCC)
-	add_compile_options(-O2 -Wall)
+	#~ add_compile_options(-O2 -Wall) // pas gere par le cmake de la forge
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall")
 ENDIF()
 
 # DEFINITION : Windows : le projet debug est genere directement sous bin pour avoir les informations de Debug
