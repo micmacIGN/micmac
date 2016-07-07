@@ -563,6 +563,12 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
     mPostFix = IsPostfixed(mNameOrient) ?  StdPostfix(mNameOrient) : "";
     mEASF.Init(mNameIm);
 
+    if (mEASF.SetIm()->size()==0)
+    {
+        std::cout << "Cannot find " << mNameIm << "\n";
+        ELISE_ASSERT(false,"Not any image");
+    }
+
     if(aChSysStr=="") 
       mChSys=0;
     else

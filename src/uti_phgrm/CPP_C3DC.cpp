@@ -640,6 +640,14 @@ void cAppli_MPI2Mnt::DoOrtho()
            else
               aCom += " +RepereIsCart=true";
     }
+/*
+if (MPD_MM())
+{
+   std::cout << "EExxxxxxxxxxxxxxxxxxxxxxxxxxxitt \n";
+   std::cout << aCom << "\n";
+   exit(EXIT_SUCCESS);
+}
+*/
 
     ExeCom(aCom);
 

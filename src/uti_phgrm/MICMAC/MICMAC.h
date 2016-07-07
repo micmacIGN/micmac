@@ -3254,7 +3254,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
                  const cGenerePartiesCachees &,
                  double aZMin,
                  double aZMax,
-                 int aCpt
+                 int aCptModProcess,
+                 int aCptDivProcess
              );
        
         void MakeRedrLocAnamSA();
