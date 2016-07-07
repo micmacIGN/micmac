@@ -291,8 +291,6 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
     }
 
 #else
-    #include "../../CodeExterne/Poisson/include/PlyFile.h"
-
     int MergePly_main(int argc,char ** argv)
     {
         #ifdef _DEBUG

@@ -191,7 +191,7 @@ void ply_describe_element(PlyFile *, char *, int, int, PlyProperty *);
 void ply_describe_property(PlyFile *, char *, PlyProperty *);
 void ply_element_count(PlyFile *, char *, int);
 void ply_header_complete(PlyFile *);
-void ply_put_element_setup(PlyFile *, char *);
+void ply_put_element_setup(PlyFile *, const char *);
 void ply_put_element(PlyFile *, void *);
 void ply_put_comment(PlyFile *, char *);
 void ply_put_obj_info(PlyFile *, char *);

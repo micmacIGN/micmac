@@ -319,7 +319,7 @@ Pt3dr CameraRPC::ImEtProf2Terrain(const Pt2dr & aP,double aProf) const
     }
 }
 
-Pt3dr CameraRPC::ImEtZ2Terrain(const Pt2dr & aP, const double aZ) const
+Pt3dr CameraRPC::ImEtZ2Terrain(const Pt2dr & aP, double aZ) const
 {
     AssertRPCDirInit();
 

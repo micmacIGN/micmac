@@ -1,34 +1,45 @@
 cmake_minimum_required( VERSION 2.8.1 )
 
 if (${BUILD_POISSON})
-	include_directories ( ${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/include )
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+	set(POISSON_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-	set(POISSON_SRC_DIR ${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/src)
+	find_package(OpenMP)
 
-	add_executable( PoissonRecon
-					${POISSON_SRC_DIR}/CmdLineParser.cpp
-					${POISSON_SRC_DIR}/Factor.cpp
-					${POISSON_SRC_DIR}/Geometry.cpp
-					${POISSON_SRC_DIR}/MarchingCubes.cpp
-					${POISSON_SRC_DIR}/PlyFile.cpp
-					${POISSON_SRC_DIR}/PoissonRecon.cpp
-					${POISSON_SRC_DIR}/PTime.cpp
-					)
+	if (MSVC)
+		add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+	endif()
 
-	add_executable( SurfaceTrimmer
-					${POISSON_SRC_DIR}/CmdLineParser.cpp
-					${POISSON_SRC_DIR}/Factor.cpp
-					${POISSON_SRC_DIR}/Geometry.cpp
-					${POISSON_SRC_DIR}/MarchingCubes.cpp
-					${POISSON_SRC_DIR}/PlyFile.cpp
-					${POISSON_SRC_DIR}/SurfaceTrimmer.cpp
-					${POISSON_SRC_DIR}/PTime.cpp
-					)
+	add_library(poisson
+		${POISSON_SRC_DIR}/PoissonRecon.cpp
+		${POISSON_SRC_DIR}/CmdLineParser.cpp
+		${POISSON_SRC_DIR}/Factor.cpp
+		${POISSON_SRC_DIR}/Geometry.cpp
+		${POISSON_SRC_DIR}/MarchingCubes.cpp
+		${POISSON_SRC_DIR}/PlyFile.cpp)
 
-	INSTALL(TARGETS PoissonRecon RUNTIME DESTINATION ${BIN_AUX_FULL_PATH} )
-	IF (WIN32)
+	add_executable(PoissonRecon ${POISSON_SRC_DIR}/PoissonRecon.cpp)
+	target_link_libraries(PoissonRecon poisson)
+
+	add_executable(SurfaceTrimmer ${POISSON_SRC_DIR}/SurfaceTrimmer.cpp)
+	target_link_libraries(SurfaceTrimmer poisson)
+
+	if (OPENMP_FOUND)
+		message(STATUS "OpenMP found")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+	endif()
+
+	if(WIN32)
 		target_link_libraries(PoissonRecon Psapi)
-	ENDIF()
+	else()
+		if (OPENMP_FOUND)
+			target_link_libraries(PoissonRecon gomp)
+			target_link_libraries(SurfaceTrimmer gomp)
+		endif()
+	endif()
 
-	INSTALL(TARGETS SurfaceTrimmer RUNTIME DESTINATION ${BIN_AUX_FULL_PATH} )
+	if (BIN_AUX_FULL_PATH)
+		INSTALL(TARGETS PoissonRecon RUNTIME DESTINATION ${BIN_AUX_FULL_PATH})
+		INSTALL(TARGETS SurfaceTrimmer RUNTIME DESTINATION ${BIN_AUX_FULL_PATH})
+	endif()
 endif()

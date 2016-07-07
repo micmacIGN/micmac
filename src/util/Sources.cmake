@@ -59,6 +59,7 @@ set(Util_Src_Files
         ${UTIL_DIR}/errors.cpp
         ${UTIL_DIR}/MessageHandler.cpp
         ${UTIL_DIR}/HG_defines.cpp
+        ${UTIL_DIR}/PlyFile.cpp
 )
 
 SOURCE_GROUP(Util FILES ${Util_Src_Files})
