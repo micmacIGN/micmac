@@ -533,7 +533,15 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
                   for (aVoisR1.y=anY0 ; aVoisR1.y<=anY1 ; aVoisR1.y++)
                   {
                      if (mTImMasqInit.get(aVoisR1))
-                        aVVals.push_back( mTCBT.get(aVoisR1));
+                     {
+                        double aVal =  mTCBT.get(aVoisR1);
+                        // Rustine, devrait normalement aller voir pourquoi certaines valeurs sont nan !!!
+                        if (! std_isnan(aVal))
+                        {
+                           aVVals.push_back(aVal);
+                        }
+                        // aVVals.push_back( mTCBT.get(aVoisR1));
+                     }
                         // aVVals.push_back( mTImProf.get(aVoisR1));
                   }
              }

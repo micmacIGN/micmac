@@ -515,7 +515,7 @@ class cApppliConvertBundleGen
         double RandAngle() {return mPertubAng * NRrandC();}
 
 
-        std::string mNameIm,mNameOrient,mDest;
+        std::string mPatIm,mPatOrient,mDest;
         std::string mPostFix;
         cElemAppliSetFile mEASF;
         int mDegPol;
@@ -541,8 +541,8 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
    ElInitArgMain
    (
         argc,argv,
-        LArgMain()  << EAMC(mNameIm,"Name of Image")
-                    << EAMC(mNameOrient,"Name of input Orientation File")
+        LArgMain()  << EAMC(mPatIm,"Name of Image")
+                    << EAMC(mPatOrient,"Name of input Orientation File")
                     << EAMC(mDest,"Directory of output Orientation (MyDir -> Oi-MyDir)"),
         LArgMain()
 	            << EAM(aChSysStr,"ChSys", true, "Change coordinate file (MicMac XML convention)")
@@ -556,22 +556,19 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
     bool mModeHelp;
 
     StdReadEnum(mModeHelp,mType,mNameType,eTIGB_NbVals);
-
-
-    AutoDetermineTypeTIGB(mType,mNameOrient);
-
-    mPostFix = IsPostfixed(mNameOrient) ?  StdPostfix(mNameOrient) : "";
-    mEASF.Init(mNameIm);
-
+    mEASF.Init(mPatIm);
     if (mEASF.SetIm()->size()==0)
     {
-        std::cout << "Cannot find " << mNameIm << "\n";
+        std::cout << "Cannot find " << mPatIm << "\n";
         ELISE_ASSERT(false,"Not any image");
     }
 
     if(aChSysStr=="") 
+    {
       mChSys=0;
+    }
     else
+    {
         mChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
                      (
                          aChSysStr,
@@ -579,41 +576,50 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
                          "SystemeCoord",
                          "SystemeCoord"
                      ));
-
-
-
-    int aIntType = mType;
-    mCamGen = cBasicGeomCap3D::StdGetFromFile(mNameOrient,aIntType,mChSys);
-    mType = (eTypeImporGenBundle)  aIntType;
-    CamStenope * aCS = mCamGen->DownCastCS();
-    if (aCS)
-    {
-        if (mPertubAng != 0)
-        {
-            aCS = aCS->Dupl();
-            ElRotation3D  aR =aCS->Orient().inv();
-            ElMatrix<double> aMPert  = ElMatrix<double>::Rotation(RandAngle(),RandAngle(),RandAngle());
-            aR = ElRotation3D(aR.tr(),aR.Mat()*aMPert,true);
-            aCS->SetOrientation(aR.inv());
-        }
-
-   // int i = 3 +  5* 4;
-
-
-         mNameOutInit = mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorMMOrient@-"+mDest,NameWithoutDir(mNameIm),true);
-         
-         MakeFileXML(aCS->StdExportCalibGlob(),mNameOutInit);
-         
     }
-    else
+
+
+    cElRegex  anAutom(mPatIm.c_str(),10);
+
+    for (int aKIm=0  ; aKIm< mEASF.SetIm()->size() ; aKIm++)
     {
-         mNameOutInit =  mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorExternOrient@-"+mDest, eToString(mType) + "-" + NameWithoutDir(mNameOrient),true);
-         ELISE_fp::CpFile(mNameOrient,mNameOutInit);
+        std::string aNameIm = (*mEASF.SetIm())[aKIm];
+// std::string aNameOrient  =  mPatOrient;
+std::string aNameOrient  =  MatchAndReplace(anAutom,aNameIm,mPatOrient);
+        AutoDetermineTypeTIGB(mType,aNameOrient);
+        mPostFix = IsPostfixed(aNameOrient) ?  StdPostfix(aNameOrient) : "";
+
+
+       int aIntType = mType;
+       mCamGen = cBasicGeomCap3D::StdGetFromFile(aNameOrient,aIntType,mChSys);
+       mType = (eTypeImporGenBundle)  aIntType;
+       CamStenope * aCS = mCamGen->DownCastCS();
+       if (aCS)
+       {
+           if (mPertubAng != 0)
+           {
+               aCS = aCS->Dupl();
+               ElRotation3D  aR =aCS->Orient().inv();
+               ElMatrix<double> aMPert  = ElMatrix<double>::Rotation(RandAngle(),RandAngle(),RandAngle());
+               aR = ElRotation3D(aR.tr(),aR.Mat()*aMPert,true);
+               aCS->SetOrientation(aR.inv());
+           }
+
+            mNameOutInit = mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorMMOrient@-"+mDest,NameWithoutDir(aNameIm),true);
+         
+            MakeFileXML(aCS->StdExportCalibGlob(),mNameOutInit);
+         
+       }
+       else
+       {
+            mNameOutInit =  mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorExternOrient@-"+mDest, eToString(mType) + "-" + NameWithoutDir(aNameOrient),true);
+            ELISE_fp::CpFile(aNameOrient,mNameOutInit);
         
-    }
+       }
 
-    cPolynomial_BGC3M2D aPol(mChSys,mCamGen,mNameOutInit,mNameIm,mDegPol,0); // TAGG
-    aPol.Save2XmlStdMMName(mDest,"");
+       cPolynomial_BGC3M2D aPol(mChSys,mCamGen,mNameOutInit,aNameIm,mDegPol,0); // TAGG
+       aPol.Save2XmlStdMMName(mDest,"");
+    }
     
 }
 

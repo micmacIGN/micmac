@@ -986,11 +986,9 @@ int main(int argc,char ** argv)
 }
 
 /*
-Bug Ortho PIMS
-Bug Gen Bundle => sub expr
-DoOrtho => Malt UrbaneMN
+Gen Bundle => By Pattern
+MMTestOrient => Export Final
 
-Tapioca ExpTxt=true
 Tapioca 200000
 */
 
