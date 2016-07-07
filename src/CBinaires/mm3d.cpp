@@ -438,7 +438,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force development of all tif/xif file"));
        aRes.push_back(cMMCom("SetExif",CPP_SetExif,"Modification of exif file (requires exiv2)"));
-       aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ..."));
+       aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ...",cArgLogCom(2)));
     aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
 
    }
@@ -770,7 +770,7 @@ extern int SATvalid_main(int argc,char ** argv);
 extern int CPP_SATDef2D_main(int argc,char ** argv);
 extern int CPP_TestRPCDirectGen(int argc,char ** argv);
 extern int DoTile_main(int argc, char ** argv);
-extern int ASTERGT2MM_main(int argc, char ** argv);
+//~ extern int ASTERGT2MM_main(int argc, char ** argv);
 
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
@@ -783,7 +783,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
     aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
 	aRes.push_back(cMMCom("Aster2Grid", Aster2Grid_main, "Creates a Grid file from the meta-data of an Aster Images"));
-	aRes.push_back(cMMCom("ASTERGT2MM", ASTERGT2MM_main, "Convert ASTER geoTiff format to MicMac Xml, also destrip images"));
+	//~ aRes.push_back(cMMCom("ASTERGT2MM", ASTERGT2MM_main, "Convert ASTER geoTiff format to MicMac Xml, also destrip images"));
 	aRes.push_back(cMMCom("ApplyParralaxCor", ApplyParralaxCor_main, "Apply parralax correction from MMTestOrient to an image"));
     aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
@@ -986,6 +986,8 @@ int main(int argc,char ** argv)
 }
 
 /*
+Bug Ortho PIMS
+Bug Gen Bundle => sub expr
 DoOrtho => Malt UrbaneMN
 
 Tapioca ExpTxt=true
