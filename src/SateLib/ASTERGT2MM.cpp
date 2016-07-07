@@ -57,7 +57,7 @@ void ASTERGT2MM_Banniere()
 vector<Pt3dr> ReadCorTable(string nameFile)
 {
 	vector<Pt3dr> aCorTable;
-	std::fstream aFile(nameFile, std::ios_base::in);
+	std::fstream aFile(nameFile.c_str(), std::ios_base::in);
 	
 	// Make sure the file stream is good
 	if (!aFile) {
@@ -79,7 +79,7 @@ vector<Pt3dr> ReadCorTable(string nameFile)
 
 string ReadDate(string aNameFile)
 {
-	std::fstream aFile(aNameFile, std::ios_base::in);
+	std::fstream aFile(aNameFile.c_str(), std::ios_base::in);
 	string aDate ="0000000";
 
 	// Make sure the file stream is good
@@ -102,7 +102,14 @@ string ReadDate(string aNameFile)
 
 	struct tm * curtime = localtime(&_tm);
 	std::ostringstream oss;
-	oss << std::put_time(curtime, "%Y%m%d");
+	
+	#if __cplusplus < 201103L
+		char buffer[256];
+		strftime(buffer, 256, "%Y%m%d", curtime);
+		oss << buffer;
+	#else
+		oss << std::put_time(curtime, "%Y%m%d");
+	#endif
 	aDate=oss.str();
 
 return aDate;
@@ -207,7 +214,7 @@ vector<Pt2dr> ReadLatticePointsIm(string aNameFile)
 {
 	vector<Pt2dr> aLatticePoints;
 
-	std::fstream aFile(aNameFile, std::ios_base::in);
+	std::fstream aFile(aNameFile.c_str(), std::ios_base::in);
 
 	// Make sure the file stream is good
 	if (!aFile) {
@@ -230,7 +237,7 @@ vector<Pt3dr> ReadSattelitePos(string aNameFile)
 {
 	vector<Pt3dr> aSattelitePos;
 
-	std::fstream aFile(aNameFile, std::ios_base::in);
+	std::fstream aFile(aNameFile.c_str(), std::ios_base::in);
 
 	// Make sure the file stream is good
 	if (!aFile) {
@@ -254,8 +261,8 @@ vector<Pt3dr> ReadLatticeECEF(string aNameLonFile, string aNameLatFile)
 
 	vector<Pt3dr> aLatticeECEF;
 
-	std::fstream aLonFile(aNameLonFile, std::ios_base::in);
-	std::fstream aLatFile(aNameLonFile, std::ios_base::in);
+	std::fstream aLonFile(aNameLonFile.c_str(), std::ios_base::in);
+	std::fstream aLatFile(aNameLonFile.c_str(), std::ios_base::in);
 
 	// Make sure the file stream is good
 	if (!aLonFile || !aLatFile) {
