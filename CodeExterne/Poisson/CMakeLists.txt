@@ -4,7 +4,7 @@ if (${BUILD_POISSON})
 	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 	set(POISSON_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-	find_package(OpenMP)
+	find_package(OpenMP QUIET)
 
 	if (MSVC)
 		add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -25,7 +25,7 @@ if (${BUILD_POISSON})
 	target_link_libraries(SurfaceTrimmer poisson)
 
 	if (OPENMP_FOUND)
-		message(STATUS "OpenMP found")
+		message(STATUS "PoissonRecon/SurfaceTrimmer: OpenMP enabled")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 	endif()
 
