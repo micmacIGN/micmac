@@ -332,7 +332,7 @@ int Octree< Real >::SetTree( OrientedPointStream< PointReal >* pointStream , int
 				points[idx].weight *= Real( constraintWeight );
 			}
 #if FORCE_NEUMANN_FIELD
-#pragma message( "[WARNING] This is likely wrong as it only forces the normal component of the coefficient to be zero, not the actual vector-field" )
+//~ #pragma message( "[WARNING] This is likely wrong as it only forces the normal component of the coefficient to be zero, not the actual vector-field" )
 	if( !_dirichlet ) 
 		for( TreeOctNode* node=_tree.nextNode() ; node ; node=_tree.nextNode( node ) )
 		{
