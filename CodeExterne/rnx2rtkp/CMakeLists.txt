@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.1)
 
-include_directories (${CMAKE_SOURCE_DIR}/include)
-set(RNX2RTKP_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(RNX2RTKP_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_executable(Rnx2rtkp
 				${RNX2RTKP_SRC_DIR}/rnx2rtkp.c
