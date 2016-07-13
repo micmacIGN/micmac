@@ -105,6 +105,11 @@ class cFiltreInterpol_BiCub : public cFiltreInterpol
              return new cFiltreInterpol_BiCub(0.0);
          }
 
+         static cFiltreInterpol_BiCub * StdFromScaleNonNeg(double aSc)
+         {
+             return new cFiltreInterpol_BiCub(0.0);
+         }
+
      private :
 
          double  Val_0_1(double aV) const 
@@ -577,6 +582,16 @@ Fonc_Num  StdFoncChScale(Fonc_Num aFonc,Pt2dr aTr,Pt2dr aSc,Pt2dr aDilate)
                  aFonc,aTr,aSc,aDilate,
                  cFiltreInterpol_BiCub::StdFromScale(aSc.x),
                  cFiltreInterpol_BiCub::StdFromScale(aSc.y)
+           );
+}
+
+Fonc_Num  StdFoncChScale_BicubNonNeg(Fonc_Num aFonc,Pt2dr aTr,Pt2dr aSc,Pt2dr aDilate)
+{
+    return StdFoncChScale_Gen
+           (
+                 aFonc,aTr,aSc,aDilate,
+                 cFiltreInterpol_BiCub::StdFromScaleNonNeg(aSc.x),
+                 cFiltreInterpol_BiCub::StdFromScaleNonNeg(aSc.y)
            );
 }
 
