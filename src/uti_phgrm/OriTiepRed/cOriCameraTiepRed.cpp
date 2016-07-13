@@ -312,7 +312,7 @@ void cCameraTiepRed::AddCamBox(cCameraTiepRed* aCam2,int aKBox)
 void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
 {
 
-    std::pair<CamStenope*,CamStenope*>  aPC (0,0);
+    std::pair<CamStenope*,CamStenope*>  aPC((CamStenope *)NULL, (CamStenope *)NULL);
     if (mAppli.VerifNM())// (this != aCam2)
     {
        aPC = mAppli.NM().CamOriRel(NameIm(),aCam2->NameIm());

@@ -112,7 +112,7 @@ class cGenGaus3D
 
 double cGenGaus3D::FactCorrectif(int aNb)
 {
-    return sqrt(2) / (1 - 0.3333/(aNb+0.5));
+    return sqrt(2.) / (1 - 0.3333/(aNb+0.5));
 }
 
 /*
@@ -383,7 +383,8 @@ void TestEllips_0()
        {
            for (int aK3 =-aNb ; aK3<=aNb ; aK3++)
            {
-               double aFact =  sqrt(2) / (1 - 0.3333/(aNb+0.5));
+
+               double aFact =  sqrt(2.) / (1 - 0.3333/(aNb+0.5));
                double aL1 = InvErrFonc( (2*aK1) / double(2*aNb+1)) * aFact;
                double aL2 = InvErrFonc( (2*aK2) / double(2*aNb+1)) * aFact;
                double aL3 = InvErrFonc( (2*aK3) / double(2*aNb+1)) * aFact;

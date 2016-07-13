@@ -662,6 +662,12 @@ void Reset( void )
 	Octree< Real >::maxMemoryUsage = 0;
 }
 
+#define _MSC_VER_2013 1800
+#if defined MSVC && _MSC_VER < _MSC_VER_2013
+	#define isnan _isnan
+	#define isfinite _finite
+#endif
+
 #include "MultiGridOctreeData.inl"
 #include "MultiGridOctreeData.SortedTreeNodes.inl"
 #include "MultiGridOctreeData.WeightedSamples.inl"

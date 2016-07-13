@@ -328,7 +328,7 @@ void Octree< Real >::_MultiSplatPointData( const SparseNodeData< Real , WeightDe
 	TreeOctNode* temp = _spaceRoot;
 	while( _Depth( temp )<=depth )
 	{
-		_SplatPointData( temp , position , _v * Real( pow( 1<<_Depth( temp ) , dim ) ) , dataInfo , dataKey );
+		_SplatPointData( temp , position , _v * Real( pow( (double)(1<<_Depth( temp )) , (double)dim ) ) , dataInfo , dataKey );
 		if( _Depth( temp )<depth )
 		{
 			if( !temp->children ) temp->initChildren();
