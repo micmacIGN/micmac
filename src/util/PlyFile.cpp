@@ -43,6 +43,8 @@
 #include <iostream>
 #include <sstream>
 
+using namespace std;
+
 const char *type_names[] = {
     "invalid",
     "char",
