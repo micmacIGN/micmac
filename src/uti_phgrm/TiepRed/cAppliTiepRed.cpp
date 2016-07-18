@@ -165,7 +165,7 @@ void cAppliTiepRed::ExportSubcommands(std::vector<std::string> & aVSubcommands ,
   scFile << "[" << endl;
   for (std::size_t i = 0 ; i < aVSubcommands.size() ; i++){
     scFile << "    {" << endl;
-    scFile << "        \"task\": \"" << aVRelatedSubcommandsIndexes[i][0] << "\"," << endl;
+    scFile << "        \"id\": \"" << aVRelatedSubcommandsIndexes[i][0] << "\"," << endl;
     scFile << "        \"exclude\": [";
 
     for (std::size_t j = 1 ; j < aVRelatedSubcommandsIndexes[i].size() ; j++){
