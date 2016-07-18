@@ -31,8 +31,8 @@ def dynamic_exclusion_worker(display, n_threads):
         a = task()
         b = task()
 
-        update_hints(a, {'task': '1', 'exclude': ['2']})
-        update_hints(b, {'task': '2', 'exclude': ['1']})
+        update_hints(a, {'id': '1', 'exclude': ['2']})
+        update_hints(b, {'id': '2', 'exclude': ['1']})
 
         run(gather(a, b))
 
@@ -54,7 +54,7 @@ def dynamic_exclusion_worker(display, n_threads):
             key, job = yield
 
             if job.hints and 'exclude' in job.hints:
-                j = Job(task=job.hints['task'],
+                j = Job(task=job.hints['id'],
                         exclude=job.hints['exclude'],
                         state='waiting',
                         job=job,
@@ -122,7 +122,7 @@ def system_command(cmd, task):
 
 def make_job(cmd, task_id, exclude):
     j = system_command(cmd, task_id)
-    noodles.update_hints(j, {'task': str(task_id),
+    noodles.update_hints(j, {'id': str(task_id),
                              'exclude': [str(x) for x in exclude]})
     return j
 
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     os.makedirs(logFolder)
     input = json.load(open(args.target, 'r'))
     jobs = [make_job(td['command'],
-                     td['task'], td['exclude']) for td in input]
+                     td['id'], td['exclude']) for td in input]
     wf = noodles.gather(*jobs)
     with SimpleDisplay(error_filter) as display:
         run(wf, display=display, n_threads=args.n_threads)
