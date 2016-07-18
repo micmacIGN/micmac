@@ -40,6 +40,8 @@ extern "C" {
 #endif
 #endif //WIN32*/
 
+#include "ply_struct.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
