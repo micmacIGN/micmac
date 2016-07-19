@@ -321,8 +321,10 @@ void cAppliTiepRed::DoReduceBox()
 
 void cAppliTiepRed::DoExport()
 {
+    int aNbNew=0;
+    int aNbPrec=0;
 
-
+    cStatArc aStatA;
     int aNbCam = mVecCam.size();
     std::vector<std::vector<ElPackHomologue> > aVVH (aNbCam,std::vector<ElPackHomologue>(aNbCam));
     for (std::list<tPMulTiepRedPtr>::const_iterator itP=mListSel.begin(); itP!=mListSel.end();  itP++)
@@ -330,10 +332,14 @@ void cAppliTiepRed::DoExport()
          tMerge * aMerge = (*itP)->Merge();
          const std::vector<Pt2dUi2> &  aVE = aMerge->Edges();
          const std::vector<cCMT_U_INT1> &  aVA = aMerge->ValArc();
+
+         aStatA.Add(aMerge->NbSom(),aMerge->NbArc());
+         // std::cout << "SZZZZ " << aVE.size() << " " << aVA.size() << "\n";
          for (int aKCple=0 ; aKCple<int(aVE.size()) ; aKCple++)
          {
-              if (aVA[aKCple].mVal==IndMergeNew)
+              if (aVA[aKCple].mVal!=ORR_MergePrec)
               {
+                   aNbNew++;
                    int aKCam1 = aVE[aKCple].x;
                    int aKCam2 = aVE[aKCple].y;
 
@@ -346,6 +352,11 @@ void cAppliTiepRed::DoExport()
                    {
                        if (aCam1->NameIm() > aCam2->NameIm())
                        {
+                           if (MPD_MM()) 
+                           {
+                              ELISE_ASSERT(false,"Incoherence in name ordering");
+                           }
+//  std::cout << "GGGGGgg " << ORR_MergeCompl << "\n";
                            ElSwap(aKCam1,aKCam2);
                            ElSwap(aCam1,aCam2);
                        }
@@ -354,6 +365,12 @@ void cAppliTiepRed::DoExport()
                        aLnK->VSelP1().push_back(aP1);
                        aLnK->VSelP2().push_back(aP2);
                        aLnK->VSelNb().push_back(2);
+                       if (aVA[aKCple].mVal==ORR_MergeCompl)
+                       {
+                          // std::cout << "RRRRR_Compl=" << (*itP)->Residual(aKCam1,aKCam2,1000,*this) << "\n";
+                           // Pt2dr aQ1 = aCam1->Hom2Cam(aP1);
+                           // Pt2dr aQ2 = aCam2->Hom2Cam(aP2);
+                       }
                    }
                    else
                    {
@@ -375,6 +392,10 @@ void cAppliTiepRed::DoExport()
                        Verif(aP2);
                    }
               }
+              else
+              {
+                   aNbPrec++;
+              }
          }
     }
 
@@ -390,6 +411,14 @@ void cAppliTiepRed::DoExport()
                (*itL)->VSelNb()
            );
        }   
+
+       if (0)
+       {
+          std::cout << " Master=" << mMasterIm << "\n";
+          std::cout << " RatioNew " << aNbNew / double(aNbNew+aNbPrec) << "\n";
+          aStatA.Show();
+          getchar();
+       }
     }
     else
     {

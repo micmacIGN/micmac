@@ -125,12 +125,12 @@ void cLnk2ImTiepRed::Add2Merge(tMergeStr * aMergeStr)
     // Parse the point 
     for (int aKP=0 ; aKP<int(mVP1.size()) ; aKP++)
     {
-         aMergeStr->AddArc(mVP1[aKP],aKCam1,mVP2[aKP],aKCam2,cCMT_U_INT1(IndMergeNew));
+         aMergeStr->AddArc(mVP1[aKP],aKCam1,mVP2[aKP],aKCam2,cCMT_U_INT1(ORR_MergeNew));
     }
 
     for (int aKP=0 ; aKP<int(mVPPrec1.size()) ; aKP++)
     {
-         aMergeStr->AddArc(mVPPrec1[aKP],aKCam1,mVPPrec2[aKP],aKCam2,cCMT_U_INT1(IndMergePrec));
+         aMergeStr->AddArc(mVPPrec1[aKP],aKCam1,mVPPrec2[aKP],aKCam2,cCMT_U_INT1(ORR_MergePrec));
     }
 }
 
