@@ -1,0 +1,12 @@
+=================================================================
+mm3d MMByP -help 
+ PID : 25812 ;   [Beginning at ] Sun Jan  5 15:58:53 2014
+=================================================================
+/home/vince/culture3d/bin/mm3d SaisieAppuisInit -help 
+ PID : 22075 ;   [Beginning at ] Tue Jun 17 15:34:30 2014
+=================================================================
+"mm3d" "Tapioca" "Line" "-help" 
+ PID : 3709 ;   [Beginning at ] Wed Jan 14 09:55:42 2015
+=================================================================
+"/home/ubuntu/MMM/culture3d/bin/mm3d" "SaisieAppuisInit" "-help" 
+ PID : 11370 ;   [Beginning at ] Mon Feb 15 13:00:45 2016
