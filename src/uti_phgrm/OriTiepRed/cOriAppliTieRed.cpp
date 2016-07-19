@@ -68,7 +68,9 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
      mIntOrLevel              (eLevO_Glob),
      mCamMaster               (0),
      mDebug                   (false),
-     mDefResidual             (10.0)
+     mDefResidual             (10.0),
+     mDoCompleteArc           (false),
+     mUsePrec                 (true)
 {
    // Read parameters 
    if (! CalledFromInside)
@@ -91,6 +93,8 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
                      << EAM(mFromRatafiaBox,"FromRB",true,"(Internal) called by ratagia at box level")
                      << EAM(mIntOrLevel,"LevelOr",true,"(Internal when call by ratafia) level of orientation")
                      << EAM(mDebug,"Debug",true,"Debug, tunging purpose")
+                     << EAM(mDoCompleteArc,"DCA",true,"Do Complete Arc (Def=ModeIm)")
+                     << EAM(mUsePrec,"UseP",true,"Use precdente point to avoir redondance, Def=true, only for tuning")
    );
 
 
@@ -135,6 +139,11 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
        // anEASF.Init(mPatImage);
        mFilesIm = anEASF.SetIm();
    }
+   if (! EAMIsInit(&mDoCompleteArc))
+   {
+      mDoCompleteArc = mModeIm;
+   }
+
    mOrLevel = (eLevelOr) mIntOrLevel;
 
 
@@ -270,6 +279,8 @@ bool cAppliTiepRed::FromRatafiaBox() const {return mFromRatafiaBox;}
 const std::string  & cAppliTiepRed::Dir() const {return mDir;}
 bool cAppliTiepRed::ModeIm() const { return mModeIm; }
 bool cAppliTiepRed::Debug() const { return mDebug; }
+bool cAppliTiepRed::DoCompleteArc() const { return mDoCompleteArc; }
+bool cAppliTiepRed::UsePrec() const { return mUsePrec; }
 
 cCameraTiepRed & cAppliTiepRed::CamMaster()
 {
