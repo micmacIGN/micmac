@@ -1,6 +1,12 @@
 <?xml version="1.0" ?>
 
 <MMCameraDataBase>
+   <CameraEntry>
+        <Name> OnePlus One A0001 </Name>
+        <SzCaptMm> 3.6 4.8 </SzCaptMm>
+        <ShortName> OpOA0001 </ShortName>
+   </CameraEntry>
+
 <!-- Canon DSLR -->
    <CameraEntry>
         <Name>  Canon EOS 6D  </Name>

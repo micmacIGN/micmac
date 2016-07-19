@@ -300,7 +300,17 @@ template <class Type> double GetValPercOfHisto
 
 }
 
+inline bool IsOkData(const double & aVal)
+{
+    return ! std_isnan(aVal);
+}
 
+template <class TVal> void VerifData(TVal * Data,int aNb)
+{
+    for (int aK=0 ; aK<aNb ; aK++)
+       if (! IsOkData(Data[aK]))
+          ELISE_ASSERT(false,"VerifData");
+}
 
 /*
 */
@@ -387,6 +397,7 @@ template <class TVal> TVal MinTab(TVal * Data,int aNb)
 template <class TVal> TVal KthVal(TVal * Data,int aNb,int aKth)
 {
    ELISE_ASSERT(aKth>=0 && (aKth<=aNb-1),"KthVal");
+   VerifData(Data,aNb);
    SplitArrounKthValue(Data,aNb,aKth);
    return MinTab(Data+aKth,aNb-aKth);
 }
@@ -403,6 +414,7 @@ template <class TVal> TVal KthValGen(TVal * Data,int aNb,int aKth,const TVal & a
 
 template <class TVal> void SplitArrounKthValue(std::vector<TVal> & aV,int aKth)
 {
+   VerifData(VData(aV),(int)aV.size());
    SplitArrounKthValue(VData(aV), (int)aV.size(),aKth);
 }
 
