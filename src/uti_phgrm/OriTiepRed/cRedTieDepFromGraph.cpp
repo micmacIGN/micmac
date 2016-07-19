@@ -123,6 +123,58 @@ cRealDecoupageInterv2D::cRealDecoupageInterv2D(const Box2dr & aBox,const Pt2dr &
 {
 }
 
+    //  ===================== Histo =====================
+
+template <class Type> void HistoAdd(std::vector<Type> & aVec,int anInd,const Type & aVal)
+{
+   for (int aK= int(aVec.size()) ; aK <= anInd ; aK++)
+   {
+       aVec.push_back(Type(0));
+   }
+   aVec[anInd] += aVal;
+}
+
+/*
+class cStatArc
+{
+    public :
+       void Add(int aNbSom,int aNbArc);
+       cStatArc();
+       void Show();
+    private :
+       std::vector<int> mVH;
+       std::vector<int> mVHA;
+       int              mNbP;
+};
+*/
+
+
+cStatArc::cStatArc() :
+   mNbP (0)
+{
+}
+
+
+void cStatArc::Add(int aNbSom,int aNbArc)
+{
+   mNbP++;
+   HistoAdd(mVH,aNbSom,1);
+   HistoAdd(mVHA,aNbSom,aNbArc);
+}
+void cStatArc::Show()
+{
+    std::cout << "----------------------------- NbP=" << mNbP << " --------------------\n";
+    for (int aKH=0 ; aKH<int(mVH.size()) ; aKH++)
+    {
+         if (mVH[aKH])
+            std::cout << " For muliplicity " << aKH 
+                      << " %=" << ((100.0*mVH[aKH])/mNbP) 
+                      << " N=" << mVH[aKH] 
+                      << " D=" << (mVHA[aKH]/double(mVH[aKH])) 
+                      << "\n";
+    }
+}
+
 /**********************************************************************/
 /*                                                                    */
 /*                         cAttArcSymGrRedTP                          */
@@ -425,8 +477,14 @@ double  cAppliGrRedTieP::SzPixDec() const
 std::string cAppliGrRedTieP::ComOfKBox(int aKBox)
 {
 
-   return MM3dBinFile("OriRedTieP") + " " + mPatImage + " OriCalib=" + mCalib + " KBox=" + ToString(aKBox)
-          + " DistPMul=" + ToString(mDistPMul) + " MVG=" + ToString(mMulVonGruber);
+   return MM3dBinFile("OriRedTieP") + " " + mPatImage 
+             + " OriCalib=" + mCalib 
+             + " KBox=" + ToString(aKBox)
+             + " DistPMul=" + ToString(mDistPMul) 
+             + " MVG=" + ToString(mMulVonGruber)
+             + " DCA=" + ToString(mDoCompleteArc)
+             + " UseP=" + ToString(mUsePrec)
+          ;
 }
 
 
@@ -554,7 +612,10 @@ void cAppliGrRedTieP::ExeSelecOfSet(cV2ParGRT * aPart)
                aLCom.push_back(aCom);
         }
     }
-    cEl_GPAO::DoComInParal(aLCom);
+    if (mInParal)
+        cEl_GPAO::DoComInParal(aLCom);
+    else
+        cEl_GPAO::DoComInSerie(aLCom);
 
 
     // Fusion des pts homologues
@@ -579,6 +640,8 @@ void cAppliGrRedTieP::ExeSelecOfSet(cV2ParGRT * aPart)
     }
 }
    
+
+
 
 void cAppliGrRedTieP::ExeSelec()
 {
@@ -627,21 +690,28 @@ void cAppliGrRedTieP::DoExport()
     mMergeStruct->DoExport();
     const std::list<tMergeRat *> & aLMerge =  mMergeStruct->ListMerged();
 
-    std::vector<int> aVH;
-    std::vector<int> aVHA;
-    double aNbP=0;
+    cStatArc  aStatA;
     for (std::list<tMergeRat *>::const_iterator itM=aLMerge.begin() ; itM!=aLMerge.end() ; itM++)
     {
-        const std::vector<Pt2dUi2> &  aVP = (*itM)->Edges();
+        std::vector<Pt2dUi2>  aVP = (*itM)->Edges();
         int aNbS = (*itM)->NbSom();
-        for (int aK= int(aVH.size()) ; aK <= aNbS ; aK++)
+
+
+/*
+        if ( aNbS <= mLimFullTieP)
         {
-               aVH.push_back(0);
-               aVHA.push_back(0);
+           aVP.clear();
+           const std::vector<U_INT2>  &  aVInd = (*itM)->VecInd();
+           for (int aKS1=0 ; aKS1<int(aVInd.size()) ; aKS1++)
+           {
+               for (int aKS2=aKS1+1 ; aKS2<int(aVInd.size()) ; aKS2++)
+               {
+                   aVP.push_back(Pt2dUi2(aVInd[aKS1],aVInd[aKS2]));
+               }
+           }
         }
-        aVH[aNbS]++;
-        aVHA[aNbS] += aVP.size();
-        aNbP++;
+*/
+        aStatA.Add(aNbS,int(aVP.size()));
         for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
         {
            // Histo
@@ -669,14 +739,7 @@ void cAppliGrRedTieP::DoExport()
         }
     }
 
-    for (int aKH=0 ; aKH<int(aVH.size()) ; aKH++)
-    {
-         if (aVH[aKH])
-            std::cout << " For muliplicity " << aKH 
-                      << " %=" << ((100.0*aVH[aKH])/aNbP) 
-                      << " D=" << (aVHA[aKH]/double(aVH[aKH])) 
-                      << "\n";
-    }
+    aStatA.Show();
 
     std::string aKeyH = "NKS-Assoc-CplIm2Hom@"+ mOut + "@dat";
     // On genere l'export 
@@ -719,21 +782,25 @@ cVirtInterf_NewO_NameManager * cAppliGrRedTieP::NoNM()
 }
 
 cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
-    mIntOrLevel  (eLevO_ByCple),
-    mQuick       (true),
-    mNbP         (-1),
-    mFlagSel     (mGr.alloc_flag_som()),
-    mFlagCur     (mGr.alloc_flag_som()),
-    mRecMax      (DefRecMaxModeIm),
-    mShowPart    (false),
-    mAppliTR     (0),
-    mSzPixDec    (10000),
-    mNumBox      (0),
-    mTestExeOri  (false),
-    mMergeStruct (NULL),
-    mOut         ("-Ratafia"),
-    mDistPMul    (200.0),
-    mMulVonGruber(2)
+    mIntOrLevel      (eLevO_ByCple),
+    mQuick           (true),
+    mNbP             (-1),
+    mFlagSel         (mGr.alloc_flag_som()),
+    mFlagCur         (mGr.alloc_flag_som()),
+    mRecMax          (DefRecMaxModeIm),
+    mShowPart        (false),
+    mAppliTR         (0),
+    mSzPixDec        (10000),
+    mNumBox          (0),
+    mTestExeOri      (false),
+    mMergeStruct     (NULL),
+    mOut             ("-Ratafia"),
+    mDistPMul        (200.0),
+    mMulVonGruber    (2),
+    mLimFullTieP     (3),
+    mInParal         (true),
+    mDoCompleteArc   (false), // Pour l'instant comprends pas pourquoi cela genere probleme dans Tapas ?
+    mUsePrec         (true)
 {
    // Read parameters 
    MMD_InitArgcArgv(argc,argv);
@@ -751,6 +818,10 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
                      << EAM(mOut,"Out",true,"Folder dest => Def=-Ratafia")
                      << EAM(mDistPMul,"DistPMul",true,"Average dist")
                      << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber, Def=" + ToString(mMulVonGruber))
+                     << EAM(mInParal,"Paral",true,"Do it in parallel" )
+                     << EAM(mDoCompleteArc,"DCA",true,"Do Complete Arc (Def=true)")
+                     << EAM(mUsePrec,"UseP",true,"Use prec to avoid redundancy (Def=true), tuning only")
+
    );
 
    mOrLevel = (eLevelOr) mIntOrLevel;

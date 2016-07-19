@@ -53,7 +53,7 @@ bool  MergeHasPrec(tMerge * aMerge)
 
     for (int aKa=0 ; aKa<int(aVA.size()) ; aKa++)
     {
-        if (aVA[aKa].mVal == IndMergePrec)
+        if (aVA[aKa].mVal == ORR_MergePrec)
            return true;
     }
     return false;
@@ -90,7 +90,8 @@ void cPMulTiepRed::CompleteArc(cAppliTiepRed & anAppli)
     const std::vector<Pt2dUi2> &  aVP = mMerge->Edges();
     std::vector<int>  &  aBufCpt = anAppli.BufICam();
     std::vector<int>  &  aBufSucc = anAppli.BufICam2();
-
+ 
+    // int aNbIn = aVP.size();
     // Calcul compteur et successeur
 
     for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
@@ -101,6 +102,8 @@ void cPMulTiepRed::CompleteArc(cAppliTiepRed & anAppli)
            aBufCpt[aKC2] ++;
            aBufSucc[aKC1] = aKC2;
            aBufSucc[aKC2] = aKC1;
+           // std::cout << "KccccCcc  " << aKC1 << " " << aKC2 << "\n";
+           // ELISE_ASSERT(aKC1>aKC2,"Internal coherence in complete Arc");
     }
 
 
@@ -128,9 +131,20 @@ void cPMulTiepRed::CompleteArc(cAppliTiepRed & anAppli)
                     }
                 }
             }
+            // std::cout << "RESmin " << aResMin  << " " << aMoyRes << "\n";
             if ((anIndMin >=0) && (aResMin < 1+2*aMoyRes))
             {
+                //set_min_max(anInd1,anIndMin);
+                // Important car suppose que les noms soit ordonnes
+                if (anAppli.KthCam(anInd1)->NameIm() > anAppli.KthCam(anIndMin)->NameIm())
+                {
+                   ElSwap(anInd1,anIndMin);
+                }
+                aBufCpt[anInd1] ++;
+                aBufCpt[anIndMin] ++;
+
                 mMerge->NC_Edges().push_back(Pt2dUi2(anInd1,anIndMin));
+                mMerge->NC_ValArc().push_back(ORR_MergeCompl);
             }
         }
     }
@@ -144,6 +158,8 @@ void cPMulTiepRed::CompleteArc(cAppliTiepRed & anAppli)
            aBufSucc[aKC1] = 0;
            aBufSucc[aKC2] = 0;
     }
+    // std::cout << "Coompleete " <<  aNbIn << " " <<  aVP.size() << "\n";
+    //getchar();
 }
 
 double  cPMulTiepRed::MoyResidual(cAppliTiepRed & anAppli) const
@@ -174,10 +190,11 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
 {
     if (anAppli.ModeIm())
     {
-       // CompleteArc(anAppli);
        mP = anAppli.CamMaster().Hom2Cam(aPM->GetVal(0)); 
        mZ = 0.0;  // Faut bien remplir les trou ?
        mPrec = MoyResidual(anAppli);
+       if (anAppli.DoCompleteArc())
+           CompleteArc(anAppli);
     }
     else
     {

@@ -129,8 +129,9 @@ if (X,Y) is one point then (X,Y,1) is the direction of the bundle in the camera 
 
 */
 
-#define IndMergePrec 0
-#define IndMergeNew  1
+#define ORR_MergePrec   0
+#define ORR_MergeNew    1
+#define ORR_MergeCompl  2
 
 
 typedef cVarSizeMergeTieP<Pt2df,cCMT_U_INT1>  tMerge;
@@ -347,11 +348,13 @@ class cAppliTiepRed
           eLevelOr OrLevel() const;
           const std::string  & Dir() const;
           bool ModeIm() const;
+          bool DoCompleteArc() const;
           cCameraTiepRed & CamMaster();
 
           cLnk2ImTiepRed * LnkOfCams(cCameraTiepRed * aCam1,cCameraTiepRed * aCam2,bool SVP=false);
           bool   Debug() const;
           double   DefResidual() const;
+          bool   UsePrec() const;
      private :
 
           void MkDirSubir();
@@ -430,6 +433,8 @@ class cAppliTiepRed
           cCameraTiepRed *                 mCamMaster;
           bool                             mDebug;
           double                           mDefResidual;
+          bool                             mDoCompleteArc;
+          bool                             mUsePrec;
 };
 
 
@@ -584,7 +589,27 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            std::string                        mOut;
            double                             mDistPMul;
            double                             mMulVonGruber;
+           int                                mLimFullTieP;
+           bool                               mInParal;
+           bool                               mDoCompleteArc;
+           bool                               mUsePrec;
 };
+
+template <class Type> void HistoAdd(std::vector<Type> & aVec,int anInd,const Type & aVal);
+
+class cStatArc
+{
+    public :
+       void Add(int aNbSom,int aNbArc);
+       cStatArc();
+       void Show();
+    private :
+       std::vector<int> mVH;
+       std::vector<int> mVHA;
+       int              mNbP;
+};
+
+
 
 /*
 inline bool ImTest(const std::string & aName)

@@ -2,10 +2,21 @@
 #define KUGELHUPF_H
 
 
+class cOneHypMarkFid
+{
+    public :
+
+        cOneHypMarkFid (const cOneMesureAF1I &);
+
+        cOneMesureAF1I   mMes;
+        Pt2di            mTargetSize;
+        
+};
+
 class cQuickCorrelPackIm
 {
     public :
-          cQuickCorrelPackIm(Pt2di aSzBufIm,Pt2di aSzMarqq,double aResol);
+          cQuickCorrelPackIm(Pt2di aSzBufIm,Pt2di aSzMarqq,double aResol,bool Debug);
           void InitByReduce(const cQuickCorrelPackIm & aPack,double aDil);
           void FinishLoad();
           Pt2di               mSzIm;  // Taille de la ss res en fft, interet a ce que ce soit une puis de 2
@@ -18,18 +29,20 @@ class cQuickCorrelPackIm
           double              mSomPds;
           Video_Win * mW;
 
-          Pt2di   DecFFT(double & aCorr);
+          std::list<Pt3dr>    DecFFT();
 
           double Correl(const Pt2dr & aP,eModeInterpolation  aMode);
           Pt2di OptimizeInt(const Pt2di aP0,int aSzW);
-          Pt2dr OptimizeReel(const Pt2dr aP0,double aStep,int aSzW);
+          Pt2dr OptimizeReel(const Pt2dr aP0,double aStep,int aSzW,double & aMaxCor);
+          bool  mDebug;
 };
 
 
 class cOneSol_QuickCor
 {
     public :
-        Pt2dr            mPOut;
+        Pt2dr               mPOut;
+        std::list<Pt3dr>    mLSols;
 };
 
 
@@ -43,7 +56,8 @@ class cQuickCorrelOneFidMark
               Fonc_Num            aFoncMasq,
               Box2di              aBoxRef,
               Pt2di               aIncLoc,
-              int                 aSzFFT
+              int                 aSzFFT,
+              bool                Debug
            );
 
            cOneSol_QuickCor TestCorrel(const Pt2dr & aMes);
@@ -69,6 +83,7 @@ class cQuickCorrelOneFidMark
 
           Pt2di  mCurDecIm;
           Pt2di  mCurDecRef;
+          bool   mDebug;
 
 };
 
@@ -86,6 +101,8 @@ class cAppli_FFTKugelhupf_main :  public cAppliWithSetImage
         void DoResearch();
     private :
         cOneSol_FFTKu Research1(const cOneMesureAF1I &);
+
+        void  TestOneSolCombine(int aK1,int aK2,int aK3);
 
 
         std::string mFullPattern;
@@ -106,8 +123,16 @@ class cAppli_FFTKugelhupf_main :  public cAppliWithSetImage
         bool                        mWithMasq;
         std::vector<cOneSol_FFTKu>  mVSols;
         ElPackHomologue             mPackH;
+        bool                        mDebug;
 
         static const std::string    TheKeyOI;
+
+        std::list<cOneHypMarkFid>   mListHMF;
+
+        bool                        mValSim;
+        double                      mPdsCorr;
+        double                      mBestCostComb;
+        std::vector<Pt2dr>          mBestSolComb;
 };
 
 

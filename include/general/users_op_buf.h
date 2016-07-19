@@ -592,6 +592,7 @@ Fonc_Num  create_op_buf_simple_tpl
     //  double Inverse(double aV)  const { return  (aV-mTr)/mSc ; }
 
 Fonc_Num  StdFoncChScale(Fonc_Num aFonc,Pt2dr aTr,Pt2dr aSc,Pt2dr aDilate=Pt2dr(1,1));
+Fonc_Num  StdFoncChScale_BicubNonNeg(Fonc_Num aFonc,Pt2dr aTr,Pt2dr aSc,Pt2dr aDilate=Pt2dr(1,1));
 Fonc_Num  StdFoncChScale_Bilin(Fonc_Num aFonc,Pt2dr aTr,Pt2dr aSc,Pt2dr aDilate=Pt2dr(1,1));
 
            // some derivative
