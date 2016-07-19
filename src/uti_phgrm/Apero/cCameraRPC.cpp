@@ -2833,7 +2833,7 @@ void cRPC::ReadXML(const std::string &aFile)
     mGrC2[1] = *std::max_element(aLatMM.begin(),aLatMM.end());
 
     ISINV=true;
-
+    
     ReconstructValidityH();
 
 
@@ -2987,7 +2987,7 @@ void cRPC::ReconstructValidityXY()
 
 void cRPC::ReconstructValidityH()
 {
-    ELISE_ASSERT(ISDIR, "cRPC::ReconstructValidityH() RPCs need to be initialised" );
+    ELISE_ASSERT(ISINV, "cRPC::ReconstructValidityH() RPCs need to be initialised" );
 
     mGrC3[0] = -1 * mGrScal[2] + mGrOff[2];
     mGrC3[1] =  1 * mGrScal[2] + mGrOff[2];
