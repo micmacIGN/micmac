@@ -280,7 +280,7 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
     {
        std::string aNH = mAppli.NameHomolGlob(mNameIm,aCam2.mNameIm);
 
-       if (ELISE_fp::exist_file(aNH))
+       if (ELISE_fp::exist_file(aNH) && mAppli.UsePrec())
        {
          
            mAppli.NM().GenLoadHomFloats(aNH,&(aLnk->VPPrec1()),&(aLnk->VPPrec2()),false);  // would have worked for I2 > I1 

@@ -55,6 +55,16 @@ Header-MicMac-eLiSe-25/06/2007*/
  *  2 search levels, or dezoom ?
  * */
 
+/***************************************************************/
+/*                                                             */
+/*             cOneHypMarkFid                                  */
+/*                                                             */
+/***************************************************************/
+
+cOneHypMarkFid::cOneHypMarkFid (const cOneMesureAF1I & aMes) :
+   mMes (aMes)
+{
+}
 
 // "PAquet" d'image correspondant a une resolution
 
@@ -118,9 +128,9 @@ Pt2di cQuickCorrelPackIm::OptimizeInt(const Pt2di aP0,int aSzW)
 
 
 
-Pt2dr cQuickCorrelPackIm::OptimizeReel(const Pt2dr aP0,double aStep,int aSzW)
+Pt2dr cQuickCorrelPackIm::OptimizeReel(const Pt2dr aP0,double aStep,int aSzW,double & aMaxCor)
 {
-    double aMaxCor = -1e9;
+    aMaxCor = -1e9;
     Pt2dr aPMax(0,0);
 
     for (int aDx=-aSzW ; aDx<=aSzW ; aDx++)
@@ -147,7 +157,7 @@ void ReducePackIm( TIm2D<REAL4,REAL8>  ImOut, TIm2D<REAL4,REAL8> ImIn,double aSs
    ELISE_COPY
    (
          ImOut.all_pts(),
-         StdFoncChScale(ImIn.in(0),Pt2dr(0,0),Pt2dr(1/aSsRes,1/aSsRes),Pt2dr(aDil,aDil)),
+         StdFoncChScale_BicubNonNeg(ImIn.in(0),Pt2dr(0,0),Pt2dr(1/aSsRes,1/aSsRes),Pt2dr(aDil,aDil)),
          ImOut.out()
    );
 
@@ -156,9 +166,10 @@ void ReducePackIm( TIm2D<REAL4,REAL8>  ImOut, TIm2D<REAL4,REAL8> ImIn,double aSs
 void cQuickCorrelPackIm::InitByReduce(const cQuickCorrelPackIm & aPack,double aDil)
 {
     double aSsRes = mResol / aPack.mResol;
-    ReducePackIm(mTIm,aPack.mTIm,aSsRes,aDil);
-    ReducePackIm(mTRef,aPack.mTRef,aSsRes,aDil);
-    ReducePackIm(mTMasq,aPack.mTMasq,aSsRes,aDil);
+
+    ReducePackIm(mTIm  , aPack.mTIm  , aSsRes, aDil);
+    ReducePackIm(mTRef , aPack.mTRef , aSsRes, aDil);
+    ReducePackIm(mTMasq, aPack.mTMasq, aSsRes, aDil);
 }
 
 void cQuickCorrelPackIm::FinishLoad()
@@ -166,21 +177,68 @@ void cQuickCorrelPackIm::FinishLoad()
    ELISE_COPY(mTMasq.all_pts(),mTMasq.in(),sigma(mSomPds));
 }
 
-cQuickCorrelPackIm::cQuickCorrelPackIm(Pt2di aSzBuf,Pt2di aSzMarq,double aResol) :
+cQuickCorrelPackIm::cQuickCorrelPackIm(Pt2di aSzBuf,Pt2di aSzMarq,double aResol,bool Debug) :
     mSzIm    (round_ni(Pt2dr(aSzBuf)*aResol)),
     mSzMarq  (round_ni(Pt2dr(aSzMarq)*aResol)),
     mResol   (aResol),
     mTIm     (mSzIm),
     mTRef    (mSzMarq),
     mTMasq   (mSzMarq),
-    mW       (0)
+    mW       (0),
+    mDebug   (Debug)
 {
     ELISE_COPY(mTMasq._the_im.all_pts(),1.0,mTMasq._the_im.out());
 }
 
 
-Pt2di cQuickCorrelPackIm::DecFFT(double & aCorr)
+std::list<Pt3dr>  cQuickCorrelPackIm::DecFFT()
 {
+    bool VisuFFT=mDebug;
+    if (VisuFFT)
+    {
+        if (mW==0)
+           mW = Video_Win::PtrWStd(Pt2di(512,512));
+    }
+    if (false)  // mettre 1 si on veut visualiser les FFT
+    {
+
+        ELISE_COPY(mW->all_pts(),Min(255,Max(0,mTIm._the_im.in(0))),mW->ogray());
+        double aVMin,aVMax;
+        ELISE_COPY
+        (
+            mTIm._the_im.all_pts(),
+            mTIm._the_im.in(),
+            VMax(aVMax) | VMin(aVMin)
+        );
+        std::cout << "MAX MIN " << aVMin << " " << aVMax << "\n";
+        mW->clik_in();
+
+        ELISE_COPY(mW->all_pts(),Min(255,Max(0,mTRef._the_im.in(0))),mW->ogray());
+        ELISE_COPY
+        (
+            mTRef._the_im.all_pts(),
+            mTRef._the_im.in(),
+            VMax(aVMax) | VMin(aVMin)
+        );
+        std::cout << "MAX MIN " << aVMin << " " << aVMax << "\n";
+        mW->clik_in();
+
+
+
+        ELISE_COPY(mW->all_pts(),Min(255,Max(0,mTMasq._the_im.in(0))),mW->ogray());
+        ELISE_COPY
+        (
+            mTMasq._the_im.all_pts(),
+            mTMasq._the_im.in(),
+            VMax(aVMax) | VMin(aVMin)
+        );
+        std::cout << "MAX MIN " << aVMin << " " << aVMax << "\n";
+
+        ELISE_COPY(mW->all_pts(),mTMasq._the_im.in(0),mW->odisc());
+        mW->clik_in();
+    }
+
+// if (mDebug) std::cout << "RUNNNN DecFFT\n";
     ElTimer aChrono;
     Im2D_REAL8 aRes = ElFFTPonderedCorrelNCPadded
                       (
@@ -192,10 +250,34 @@ Pt2di cQuickCorrelPackIm::DecFFT(double & aCorr)
                            1e-5,
                            mSomPds * 0.99
                       );
-    TIm2D<REAL8,REAL8> aTRes(aRes);
-    Pt2di aPMax;
-    ELISE_COPY(aRes.all_pts(),aRes.in(),aPMax.WhichMax());
-    aCorr = aTRes.get(aPMax);
+    Im2D_REAL8 aVisuRes = aRes.dup();
+
+    std::list<Pt3dr> aLRes;
+    bool Cont = true;
+    double aBestCorr = -1;
+    int aCpt = 0;
+    while (Cont)
+    {
+        TIm2D<REAL8,REAL8> aTRes(aRes);
+        Pt2di aPMax;
+        ELISE_COPY(aRes.all_pts(),aRes.in(),aPMax.WhichMax());
+        double aCorr = aTRes.get(aPMax);
+        aBestCorr = ElMax(aBestCorr,aCorr);
+        Cont = (aCpt<2) || ((aCorr > (aBestCorr - 0.3)) && (aCpt<5));
+        aCpt++;
+        if (Cont)
+        {
+            aLRes.push_back(Pt3dr(aPMax.x,aPMax.y,aCorr));
+            int aDist=10;
+            Pt2di aPDist(aDist,aDist);
+            ELISE_COPY
+            (
+                 rectangle(aPMax-aPDist,aPMax+aPDist).chc(Virgule(mod(FX,aRes.sz().x),mod(FY,aRes.sz().y))),
+                 0,
+                 aRes.out()
+            );
+        }
+    }
 
 /*
     Pt2di aSz = aRes.sz();
@@ -209,25 +291,27 @@ Pt2di cQuickCorrelPackIm::DecFFT(double & aCorr)
     }
 */
 
-    bool VisuFFT=false;
-    if (VisuFFT)  // mettre 1 si on veut visualiser les FFT
-    {
-        if (mW==0)
-           mW = Video_Win::PtrWStd(aRes.sz());
-    }
-
-
     if (VisuFFT &&(mW!=0))
     {
-         Fonc_Num aF = (1.0+aRes.in())*128;
+         Fonc_Num aF = (1.0+aVisuRes.in(0))*128;
          // ELISE_COPY(mW->all_pts(),mTIm.in(0) ,mW->ogray());
          ELISE_COPY(mW->all_pts(),Max(0.0,Min(255.0,aF)) ,mW->ogray());
-         mW->draw_circle_loc(Pt2dr(aPMax),5.0,mW->pdisc()(P8COL::red));
+         bool First= true;
+         for (std::list<Pt3dr>::iterator itP=aLRes.begin() ; itP!=aLRes.end() ; itP++)
+         {
+            // std::cout << "Correl=" << itP->z << "\n";
+            mW->draw_circle_loc(Pt2dr(itP->x,itP->y),5.0,mW->pdisc()(First ? P8COL::red : P8COL::green));
+
+            Pt2di aP(round_ni(itP->x),round_ni(itP->y));
+            aP =  DecFFT2DecIm(aRes,aP);
+            itP->x = aP.x;
+            itP->y = aP.y;
+            First = false;
+         }
          mW->clik_in();
     }
-    aPMax =  DecFFT2DecIm(aRes,aPMax);
 
-    return aPMax;
+    return aLRes;
 }
 
 
@@ -241,7 +325,8 @@ cQuickCorrelOneFidMark::cQuickCorrelOneFidMark
               Fonc_Num            aFoncMasq,
               Box2di              aBoxRef,
               Pt2di               aIncLoc,
-              int                 aSzFFT
+              int                 aSzFFT,
+              bool                Debug
 ) :
     mFoncFileIm     (aFoncIm),
     mFoncRef        (aFoncRef),
@@ -254,13 +339,14 @@ cQuickCorrelOneFidMark::cQuickCorrelOneFidMark
     mSzSsResFFT     (aSzFFT),
     mSsRes          (double(mSzSsResFFT) / dist8(mSzBuf)),
     mNbNiv          (3),
-    mSsResByNiv     (pow(mSsRes,1.0/(mNbNiv-1)))
+    mSsResByNiv     (pow(mSsRes,1.0/(mNbNiv-1))),
+    mDebug          (Debug)
 {
     // Pour l'instant on met en dur une pyram a trois niveau
     
     for (int aK=0 ; aK<mNbNiv ; aK++)
     {
-         mPyram.push_back(cQuickCorrelPackIm(mSzBuf,mSzRef,pow(mSsResByNiv,aK)));
+         mPyram.push_back(cQuickCorrelPackIm(mSzBuf,mSzRef,pow(mSsResByNiv,aK),Debug));
     }
 }
 
@@ -273,29 +359,56 @@ cOneSol_QuickCor  cQuickCorrelOneFidMark::TestCorrel(const Pt2dr & aP0)
 
 
     LoadIm();
-    double aCorFFT;
-    Pt2di aPDec = mPyram[mNbNiv-1].DecFFT(aCorFFT);
+    std::list<Pt3dr> aLDecCor  = mPyram[mNbNiv-1].DecFFT();
 
-    // std::cout << "DECC " << aPDec << "\n";
-    for (int aK=mNbNiv-2 ;  aK>=0 ; aK--)
+    double aBestCor=-1;
+    Pt2dr  aBestP(0,0);
+
+    for (std::list<Pt3dr>::iterator itP=aLDecCor.begin() ; itP!=aLDecCor.end() ; itP++)
     {
-          aPDec = round_ni(Pt2dr(aPDec) /mSsResByNiv);
-          Pt2di aPOpt =  mPyram[aK].OptimizeInt(aPDec,1+round_up(2/mSsResByNiv));
+        Pt3dr & aDecCor0 = *itP;
+    
+        Pt2di aPDec(aDecCor0.x,aDecCor0.y);
+
+        // std::cout << "DECC " << aPDec << "\n";
+        for (int aK=mNbNiv-2 ;  aK>=0 ; aK--)
+        {
+              aPDec = round_ni(Pt2dr(aPDec) /mSsResByNiv);
+              Pt2di aPOpt =  mPyram[aK].OptimizeInt(aPDec,1+round_up(2/mSsResByNiv));
  
-          aPDec = aPOpt;
-    }
+              aPDec = aPOpt;
+        }
 
-    Pt2dr aRPDec = Pt2dr(aPDec);
-    for (double aStep=0.5 ; aStep>0.1 ; aStep/=2)
-    {
-       aRPDec =  mPyram[0].OptimizeReel(aRPDec,aStep,2);
+        Pt2dr aRPDec = Pt2dr(aPDec);
+        double aNewCor;
+        for (double aStep=0.5 ; aStep>0.01 ; aStep/=2)
+        {
+           aRPDec =  mPyram[0].OptimizeReel(aRPDec,aStep,2,aNewCor);
+        }
+        // std::cout << "Coorel " << aDecCor0.z << " => " << aNewCor << "\n";
+
+        aRPDec = aRPDec + aP0 +  Pt2dr(mCurDecIm-mCurDecRef);
+
+        itP->x = aRPDec.x;
+        itP->y = aRPDec.y;
+        itP->z = aNewCor;
+
+        if (aNewCor > aBestCor)
+        {
+            aBestP = aRPDec;
+            aBestCor = aNewCor;
+        }
     }
+    //   std::cout << "==#=#=#=#=#=#=#*******************ppppp\n";
 
     cOneSol_QuickCor aRes;
     // aPInc   = aP0 - mCurDecRef + mCurDecIm + aPDec
     // 
 
-    aRes.mPOut =  aP0 + aRPDec + Pt2dr(mCurDecIm-mCurDecRef) ;
+    aRes.mPOut = aBestP;
+    aRes.mLSols =  aLDecCor;
+
+    // aRes.mPOut =  aP0 + aBestP + Pt2dr(mCurDecIm-mCurDecRef) ;
     return aRes;
 }
 
@@ -333,17 +446,22 @@ cAppli_FFTKugelhupf_main::cAppli_FFTKugelhupf_main(int argc,char ** argv) :
   cAppliWithSetImage      (argc-1,argv+1,TheFlagNoOri),
   mTargetHalfSzPx         (150,150),
   mSearchIncertitudePx    (500),
-  mExtMasq                ("NONE")
+  mExtMasq                ("NONE"),
+  mDebug                  (false),
+  mValSim                 (false),
+  mPdsCorr                (10.0)
 {
     ElInitArgMain
     (
          argc,argv,
          LArgMain()  << EAMC(mFullPattern, "Pattern of scanned images",  eSAM_IsPatFile)
                      << EAMC(mFiducPtsFileName, "2d fiducial points of an image", eSAM_IsExistFile),
-         LArgMain()  << EAM(mTargetHalfSzPx,"TargetHalfSize",true,"Target half size in pixels (Def=150)")
-                     << EAM(mExtMasq,"Masq",true,"Masq extension for ref image, Def=NONE (means unused)")
-                     << EAM(mSearchIncertitudePx,"SearchIncertitude",true,"Def=500")
+         LArgMain()  << EAM(mTargetHalfSzPx,"TargetHalfSize",true,"Target half size in pixels (Def= computed from mask or 150)")
+                     << EAM(mExtMasq,"Masq",true,"Masq extension for ref image, Def=NONE (means unused), USE OF MASK IS STRONGLY RECOMMANDED !!!!")
+                     << EAM(mSearchIncertitudePx,"SearchIncertitude",true,"Def 3*Targ HalfSz")
                      << EAM(mSzFFT,"SzFFT",true,"Sz of initial fft research, power of recomanded, Def=256 or 128 depending other")
+                     << EAM(mDebug,"Debug",true,"Debugin/Tuning option")
+                     << EAM(mValSim,"ValSim",true,"Validation by similitude/affinity (Def size depent, affinity if NbPoint>=6)")
 /*
                      << EAM(aSearchIncertitudePx,"SearchIncertitude",true,"Search incertitude in pixels (Def=5)")
                      << EAM(aSearchStepPx,"SearchStep",true,"Search step in pixels (Def=0.5)")
@@ -369,14 +487,14 @@ cAppli_FFTKugelhupf_main::cAppli_FFTKugelhupf_main(int argc,char ** argv) :
      }
 
 
-     if (! EAMIsInit(&mSzFFT))
-     {
-          double aNb = 2*sqrt(double((mTargetHalfSzPx.x+mSearchIncertitudePx)*(mTargetHalfSzPx.y+mSearchIncertitudePx)));
-          mSzFFT = (aNb > 5200) ? 256 : 128;
-     }
 
 
      mDico = StdGetFromPCP(mFiducPtsFileName,MesureAppuiFlottant1Im);
+
+     if (! EAMIsInit(&mValSim))
+     {
+           mValSim = (mDico.OneMesureAF1I().size() <6);
+     }
 
      mNameIm2Parse = (*aSetIm)[0]; 
      mNameImRef    = mDico.NameIm();
@@ -392,6 +510,81 @@ cAppli_FFTKugelhupf_main::cAppli_FFTKugelhupf_main(int argc,char ** argv) :
         mWithMasq = false;
      }
 
+     // Initialisation des resultats, calcul eventuel de la taille des vignettes
+    Pt2di  aCompTHSP(0,0);
+    for 
+    (
+        std::list<cOneMesureAF1I>::const_iterator itM=mDico.OneMesureAF1I().begin() ;
+        itM!=mDico.OneMesureAF1I().end() ;
+        itM++
+    )
+    {
+          Pt2di aTHSP =  mTargetHalfSzPx;
+          if (mWithMasq)
+          {
+               Tiff_Im aTifM(mNameFileMasq.c_str());
+
+               Pt2di aC = Pt2di(itM->PtIm());
+               Pt2di aP0 = aC - aTHSP;
+               Pt2di aP1 = aC + aTHSP;
+               Pt2di aSzIm = aP1 - aP0;
+               Pt2di aGerm = aSzIm / 2;
+
+               Im2D_Bits<1> anIm(aSzIm.x,aSzIm.y,0);
+               TIm2DBits<1>  aTM(anIm);
+               ELISE_COPY(anIm.all_pts(),trans(aTifM.in(0),aP0),anIm.out());
+
+               int aValC = aTM.get(aGerm);
+               if (aValC!=1)
+               {
+                   std::cout << "For pt= " << itM->NamePt() << " image=" <<  mNameFileMasq << "\n";
+                   ELISE_ASSERT(false,"Centre of target not in masq ");
+               }
+               Pt2di pmax,pmin;
+               ELISE_COPY
+               (
+                    conc(aGerm,anIm.neigh_test_and_set(Neighbourhood::v4(),1,0,2)),
+                    Virgule(FX,FY),
+                    pmax.VMax() | pmin.VMin()
+               );
+
+               aTHSP = Sup(pmax-aGerm,aGerm-pmin) + Pt2di(2,2);
+
+               aCompTHSP  = Sup(aCompTHSP,aTHSP);
+
+          }
+          cOneHypMarkFid aHMF(*itM);
+          aHMF.mTargetSize = aTHSP;
+          mListHMF.push_back(aHMF);
+    }
+    if ( mWithMasq && (! EAMIsInit(&mTargetHalfSzPx)))
+    {
+       mTargetHalfSzPx = Inf(aCompTHSP,mTargetHalfSzPx);
+    }
+
+    if (! EAMIsInit(&mSearchIncertitudePx))
+    {
+         mSearchIncertitudePx = ElMax(30, 3 * dist8(mTargetHalfSzPx));
+    }
+    if (mDebug)
+        std::cout << "Computed Target 1/2 size= " << mTargetHalfSzPx << "\n";
+   
+    if (! EAMIsInit(&mSzFFT))
+    {
+          double aNb = 2*sqrt(double((mTargetHalfSzPx.x+mSearchIncertitudePx)*(mTargetHalfSzPx.y+mSearchIncertitudePx)));
+          if (aNb < 200)
+             mSzFFT = 64;
+          else if (aNb < 1200)
+             mSzFFT = 128;
+          else if (aNb < 2400)
+             mSzFFT = 256;
+          else 
+             mSzFFT = 512;
+
+        if (mDebug) 
+           std::cout << "SzFFT= " << mSzFFT << "\n";
+    }
+
      mQCor = new cQuickCorrelOneFidMark
                  (
                       Tiff_Im::StdConvGen(mNameIm2Parse,1,true).in(0),
@@ -399,7 +592,8 @@ cAppli_FFTKugelhupf_main::cAppli_FFTKugelhupf_main(int argc,char ** argv) :
                       mWithMasq ?  Tiff_Im::StdConvGen(mNameFileMasq,1,true).in(0) : 1,
                       Box2di(-mTargetHalfSzPx,mTargetHalfSzPx),
                       Pt2di(mSearchIncertitudePx,mSearchIncertitudePx),
-                      mSzFFT
+                      mSzFFT,
+                      mDebug
                  );
 
     DoResearch();
@@ -412,6 +606,7 @@ void cAppli_FFTKugelhupf_main::DoResearch()
     cMesureAppuiFlottant1Im aRes;
     aRes.NameIm() = mNameIm2Parse;
     
+    // Recherche pour chaque point d'une ou plusieurs solutions
     for 
     (
         std::list<cOneMesureAF1I>::const_iterator itM=mDico.OneMesureAF1I().begin() ;
@@ -424,15 +619,112 @@ void cAppli_FFTKugelhupf_main::DoResearch()
         cOneSol_FFTKu aSol = Research1(*itM);
         aMes.PtIm() = aSol.mOut.mPOut;
         aRes.OneMesureAF1I().push_back(aMes);
+
+        if (mDebug)
+        {
+             std::cout << "FftKgh : " << aMes.NamePt() << " "<< aMes.PtIm() -itM->PtIm()  << "\n";
+        }
     }
+
+
+    mBestCostComb = 1e20;
+    // Recherche combinatoire avec approche de type Ransac
+    for (int aKS1=0 ; aKS1<int(mVSols.size()) ; aKS1++)
+    {
+         for (int aKS2=aKS1+1 ; aKS2<int(mVSols.size()) ; aKS2++)
+         {
+              if (mValSim)
+              {
+                  TestOneSolCombine(aKS1,aKS2,-1);
+              }
+              else
+              {
+                 for (int aKS3=aKS2+1 ; aKS3<int(mVSols.size()) ; aKS3++)
+                 {
+                     Pt2dr aV12 = mVSols[aKS1].mOut.mPOut-mVSols[aKS2].mOut.mPOut;
+                     Pt2dr aV13 = mVSols[aKS1].mOut.mPOut-mVSols[aKS3].mOut.mPOut;
+
+                     double aDet = (vunit(aV12) ^ vunit(aV13));
+                     if (ElAbs(aDet) > 0.1)
+                     {
+                         TestOneSolCombine(aKS1,aKS2,aKS3);
+                     }
+                 }
+              }
+         }
+    }
+
+    int aKComb=0;
+    ElPackHomologue aNewPack;
+    for 
+    (
+        std::list<cOneMesureAF1I>::iterator itM=aRes.OneMesureAF1I().begin() ;
+        itM!=aRes.OneMesureAF1I().end() ;
+        itM++
+    )
+    {
+        aNewPack.Cple_Add(ElCplePtsHomologues(mBestSolComb[aKComb],mVSols[aKComb].mIn.PtIm()));
+        itM->PtIm() = mBestSolComb[aKComb];
+        aKComb++;
+    }
+    ELISE_ASSERT(aKComb==int(mBestSolComb.size()),"Incohe in combine");
    
     double     aResidu;
-    ElAffin2D  anAff = ElAffin2D::L2Fit(mPackH,&aResidu);
+    ElAffin2D  anAff = ElAffin2D::L2Fit(aNewPack,&aResidu);
     aRes.PrecPointeByIm().SetVal(aResidu);
 
     MakeFileXML(aRes,mEASF.mICNM->Assoc2To1(TheKeyOI,mNameIm2Parse,true).second);
     std::cout << "RESIDU = " << aResidu << " for " << mNameIm2Parse << "\n";
 }
+
+
+void  cAppli_FFTKugelhupf_main::TestOneSolCombine(int aKS1,int aKS2,int aKS3)
+{
+   ElPackHomologue aPack;
+   aPack.Cple_Add(ElCplePtsHomologues(mVSols[aKS1].mOut.mPOut,mVSols[aKS1].mIn.PtIm()));
+   aPack.Cple_Add(ElCplePtsHomologues(mVSols[aKS2].mOut.mPOut,mVSols[aKS2].mIn.PtIm()));
+   if (aKS3 >= 0)
+   {
+       aPack.Cple_Add(ElCplePtsHomologues(mVSols[aKS3].mOut.mPOut,mVSols[aKS3].mIn.PtIm()));
+   }
+   cElHomographie aHom (aPack,true);
+
+   double aCostGlob = 0;
+   std::vector<Pt2dr> aVPtsOut;
+   for (int aKS=0 ; aKS<int(mVSols.size()) ; aKS++)
+   {
+       double aCostMin = 1e20;
+       Pt2dr aPOutMin(-1,-1);
+       Pt2dr aPIn= mVSols[aKS].mIn.PtIm();
+       const std::list<Pt3dr> & aLP = mVSols[aKS].mOut.mLSols;
+       for (std::list<Pt3dr>::const_iterator itP=aLP.begin(); itP!=aLP.end() ; itP++)
+       {
+            Pt2dr aPOut (itP->x,itP->y);
+// std::cout << "HHHHH  " << aPOut << " " << mVSols[aKS].mOut.mPOut << "\n";
+            double aCost = euclid(aHom.Direct(aPOut)-aPIn) + (1-ElMin(1.0,itP->z)) * mPdsCorr;
+            if (aCost < aCostMin)
+            {
+               aCostMin = aCost;
+               aPOutMin = aPOut;
+            }
+       }
+       aVPtsOut.push_back(aPOutMin);
+       aCostGlob += aCostMin;
+       // std::cout << "COST MIN " << aCostMin  << "\n";
+   }
+
+   if (aCostGlob<mBestCostComb)
+   {
+       mBestCostComb = aCostGlob;
+       mBestSolComb  = aVPtsOut;
+   }
+    
+/*
+    for (int aKS1=0 ; aKS1<int(mVSols.size()) ; aKS1++)
+*/
+}
+
+
 cOneSol_FFTKu cAppli_FFTKugelhupf_main::Research1(const cOneMesureAF1I & aMes)
 {
     cOneSol_FFTKu aSol;

@@ -1274,6 +1274,7 @@ double cObsLiaisonMultiple::AddObsLM
 */
                    }
 
+
                    aSEr2 += aPdsIm * aResidu;
                    aSPds2 += aPdsIm ;
   
@@ -1356,6 +1357,10 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                    aPM->MemPds() = aPdsIm;
                 }
 
+                if (0 && MPD_MM() && (aPdsIm==0))
+                {
+                   std::cout << "OUTLAYER=RESIDU " << aResidu  << "\n";
+                }
 
                 if (((aPdsIm >0) &&  (Add2C)) && isInF3D)
                 {

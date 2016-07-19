@@ -1068,6 +1068,7 @@ template <class TypeArc>  class cComMergeTieP
         const std::vector<Pt2dUi2> & Edges() const;
         std::vector<Pt2dUi2> & NC_Edges() ;
         const std::vector<TypeArc> & ValArc() const;
+        std::vector<TypeArc> & NC_ValArc() ;
     protected :
         cComMergeTieP();
         bool  mOk;
