@@ -112,6 +112,8 @@ void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraT
     if (aVK1K2.size() ==0) 
        return;
 
+    // Pour tous les points visant I1I2, on initialise la distance et un gain
+    // les points deja retenu sont mis dans le QDT
     double aDistMax = euclid(mBoxLocQT.sz());
     int aNbInside=0;
     for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
@@ -125,6 +127,8 @@ void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraT
         }
     }
 
+    // Tous les points non selectionne  sont modifie 
+    // la dist moy est une heuristique de recherche
 
     double aDistMoy = sqrt(mBoxLocQT.surf()/(1+aNbInside));
 
@@ -146,12 +150,14 @@ void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraT
     bool Cont=true;
     double aSeuilDist = mDistPMul * mResolQT * mMulVonGruber;
 
+    // boucle de recherhe
     int aNbPVG=0;
     while (Cont)
     {
         double aMaxDist  = 0;
         double aGainMax  = 0;
         tPMulTiepRedPtr aMaxSom = 0;
+        // Recherche du point ayant le meilleur gain, calcul du point le plus loin
         for (int aKP=0 ; aKP<int(aVK1K2.size()) ; aKP++)
         {
              tPMulTiepRedPtr aSom = aVK1K2[aKP];
@@ -166,6 +172,8 @@ void cAppliTiepRed::VonGruber(const std::vector<tPMulTiepRedPtr> & aVK1,cCameraT
              }
         }
 
+        // si la distance du point le plus loin est plus gde que le seuil,
+        // on met a jour avec le meilleur point
         if ((aMaxDist> aSeuilDist) && aMaxSom)
         {
            aMaxSom->SetSelected();
