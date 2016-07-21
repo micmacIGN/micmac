@@ -819,7 +819,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
                      << EAM(mDistPMul,"DistPMul",true,"Average dist")
                      << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber, Def=" + ToString(mMulVonGruber))
                      << EAM(mInParal,"Paral",true,"Do it in parallel" )
-                     << EAM(mDoCompleteArc,"DCA",true,"Do Complete Arc (Def=true)")
+                     << EAM(mDoCompleteArc,"DCA",true,"Do Complete Arc (Def=false)")
                      << EAM(mUsePrec,"UseP",true,"Use prec to avoid redundancy (Def=true), tuning only")
 
    );
