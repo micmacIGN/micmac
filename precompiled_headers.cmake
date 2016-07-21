@@ -36,6 +36,7 @@ if(WITH_HEADER_PRECOMP)
 		function(enable_precompiled_headers_GCC HEADER_NAME TARGET_NAME EXTRA_CXX_FLAGS)
 			GET_FILENAME_COMPONENT(_name ${HEADER_NAME} NAME)
 			SET(_source "${PROJECT_SOURCE_DIR}/include/${HEADER_NAME}")
+			set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES _source)
 
 			if(CMAKE_CXX_COMPILER_IS_CLANG)
 				set(precompiled_header "${CMAKE_SOURCE_DIR}/include/${HEADER_NAME}.pch")
