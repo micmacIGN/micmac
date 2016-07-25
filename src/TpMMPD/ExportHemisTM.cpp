@@ -232,30 +232,30 @@ cEHTM_Appli::cEHTM_Appli(int argc,char ** argv)
      {
 
 		 //-------------Reading of a Binary Hemisphere Message---------------------------------------------//
-		 if(fread(&msg.bin,sizeof(msg.bin),1,aSource));               			//IN
-		 if( fread(&msg.blockid,sizeof(msg.blockid),1,aSource));      			//n°
-		 if(fread(&msg.datalength,sizeof(msg.datalength),1,aSource));			//size
-		 char data[msg.datalength];
-		 
+		 fread(&msg.bin,sizeof(msg.bin),1,aSource);               			//IN
+		 fread(&msg.blockid,sizeof(msg.blockid),1,aSource);      			//n°
+		 fread(&msg.datalength,sizeof(msg.datalength),1,aSource);			//size
+		 char *data = new char[msg.datalength];
+
 		 //if the message is a Bin01 containing TimeMark
 		 if (msg.blockid==1)
 		 {
 			countbin1++;
-			if(fread(&msg1.AgeOfDiff,sizeof(msg1.AgeOfDiff),1,aSource));
-			if(fread(&msg1.NumOfSats,sizeof(msg1.NumOfSats),1,aSource));
-			if(fread(&msg1.GPSWeek,sizeof(msg1.GPSWeek),1,aSource));
-			if(fread(&msg1.GPSTimeOfWeek,sizeof(msg1.GPSTimeOfWeek),1,aSource));
-			if(fread(&msg1.Latitude,sizeof(msg1.Latitude),1,aSource));
-			if(fread(&msg1.Longitude,sizeof(msg1.Longitude),1,aSource));
-			if(fread(&msg1.Height,sizeof(msg1.Height),1,aSource));
-			if(fread(&msg1.VNorth,sizeof(msg1.VNorth),1,aSource));
-			if(fread(&msg1.VEast,sizeof(msg1.VEast),1,aSource));
-			if(fread(&msg1.VUp,sizeof(msg1.VUp),1,aSource));
-			if(fread(&msg1.StdDevResid,sizeof(msg1.StdDevResid),1,aSource));
-			if(fread(&msg1.NavMode,sizeof(msg1.NavMode),1,aSource));                
-			if(fread(&msg1.extAgeOfDiff,sizeof(msg1.extAgeOfDiff),1,aSource));
-			if(fread(&msg1.CheckSum,sizeof(msg1.CheckSum),1,aSource));
-			if(fread(&msg1.CRLF,sizeof(msg1.CRLF),1,aSource));
+			fread(&msg1.AgeOfDiff,sizeof(msg1.AgeOfDiff),1,aSource);
+			fread(&msg1.NumOfSats,sizeof(msg1.NumOfSats),1,aSource);
+			fread(&msg1.GPSWeek,sizeof(msg1.GPSWeek),1,aSource);
+			fread(&msg1.GPSTimeOfWeek,sizeof(msg1.GPSTimeOfWeek),1,aSource);
+			fread(&msg1.Latitude,sizeof(msg1.Latitude),1,aSource);
+			fread(&msg1.Longitude,sizeof(msg1.Longitude),1,aSource);
+			fread(&msg1.Height,sizeof(msg1.Height),1,aSource);
+			fread(&msg1.VNorth,sizeof(msg1.VNorth),1,aSource);
+			fread(&msg1.VEast,sizeof(msg1.VEast),1,aSource);
+			fread(&msg1.VUp,sizeof(msg1.VUp),1,aSource);
+			fread(&msg1.StdDevResid,sizeof(msg1.StdDevResid),1,aSource);
+			fread(&msg1.NavMode,sizeof(msg1.NavMode),1,aSource);                
+			fread(&msg1.extAgeOfDiff,sizeof(msg1.extAgeOfDiff),1,aSource);
+			fread(&msg1.CheckSum,sizeof(msg1.CheckSum),1,aSource);
+			fread(&msg1.CRLF,sizeof(msg1.CRLF),1,aSource);
 			
 			Msg1 aMsg1;
 			
@@ -284,12 +284,13 @@ cEHTM_Appli::cEHTM_Appli(int argc,char ** argv)
 		 
 		 else
 		 {
-			if(fread(&data,msg.datalength,1,aSource));                   		//Data
-			if(fread(&msg.checksum,sizeof(msg.checksum),1,aSource));     		//checksum
-			if(fread(&msg.cr,sizeof(msg.cr),1,aSource));                 		//CR
-			if(fread(&msg.lf,sizeof(msg.lf),1,aSource));                 		//LF
+			fread(&data,msg.datalength,1,aSource);                   		//Data
+			fread(&msg.checksum,sizeof(msg.checksum),1,aSource);     		//checksum
+			fread(&msg.cr,sizeof(msg.cr),1,aSource);                 		//CR
+			fread(&msg.lf,sizeof(msg.lf),1,aSource);                 		//LF
 		 }
 
+		 delete [] data;
     }
     
 	fclose(aSource);
