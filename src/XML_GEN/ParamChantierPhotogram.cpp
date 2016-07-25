@@ -6445,6 +6445,122 @@ void xml_init(cDicoAppuisFlottant & anObj,cElXMLTree * aTree)
 std::string  Mangling( cDicoAppuisFlottant *) {return "19E38C257C947DA2FE3F";};
 
 
+std::string & cCpleImgTime::NameIm()
+{
+   return mNameIm;
+}
+
+const std::string & cCpleImgTime::NameIm()const 
+{
+   return mNameIm;
+}
+
+
+double & cCpleImgTime::TimeIm()
+{
+   return mTimeIm;
+}
+
+const double & cCpleImgTime::TimeIm()const 
+{
+   return mTimeIm;
+}
+
+void  BinaryUnDumpFromFile(cCpleImgTime & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameIm(),aFp);
+    BinaryUnDumpFromFile(anObj.TimeIm(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cCpleImgTime & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameIm());
+    BinaryDumpInFile(aFp,anObj.TimeIm());
+}
+
+cElXMLTree * ToXMLTree(const cCpleImgTime & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CpleImgTime",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameIm"),anObj.NameIm())->ReTagThis("NameIm"));
+   aRes->AddFils(::ToXMLTree(std::string("TimeIm"),anObj.TimeIm())->ReTagThis("TimeIm"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cCpleImgTime & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameIm(),aTree->Get("NameIm",1)); //tototo 
+
+   xml_init(anObj.TimeIm(),aTree->Get("TimeIm",1)); //tototo 
+}
+
+std::string  Mangling( cCpleImgTime *) {return "3983A3244BD3F380FDBF";};
+
+
+std::list< cCpleImgTime > & cDicoImgsTime::CpleImgTime()
+{
+   return mCpleImgTime;
+}
+
+const std::list< cCpleImgTime > & cDicoImgsTime::CpleImgTime()const 
+{
+   return mCpleImgTime;
+}
+
+void  BinaryUnDumpFromFile(cDicoImgsTime & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cCpleImgTime aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.CpleImgTime().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cDicoImgsTime & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.CpleImgTime().size());
+    for(  std::list< cCpleImgTime >::const_iterator iT=anObj.CpleImgTime().begin();
+         iT!=anObj.CpleImgTime().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cDicoImgsTime & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"DicoImgsTime",eXMLBranche);
+  for
+  (       std::list< cCpleImgTime >::const_iterator it=anObj.CpleImgTime().begin();
+      it !=anObj.CpleImgTime().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("CpleImgTime"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cDicoImgsTime & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.CpleImgTime(),aTree->GetAll("CpleImgTime",false,1));
+}
+
+std::string  Mangling( cDicoImgsTime *) {return "F6510E9501996A87FE3F";};
+
+
 Pt3dr & cOneGpsDGF::Pt()
 {
    return mPt;
@@ -6478,12 +6594,12 @@ const int & cOneGpsDGF::TagPt()const
 }
 
 
-std::string & cOneGpsDGF::TimePt()
+double & cOneGpsDGF::TimePt()
 {
    return mTimePt;
 }
 
-const std::string & cOneGpsDGF::TimePt()const 
+const double & cOneGpsDGF::TimePt()const 
 {
    return mTimePt;
 }
@@ -6547,7 +6663,7 @@ void xml_init(cOneGpsDGF & anObj,cElXMLTree * aTree)
    xml_init(anObj.Incertitude(),aTree->Get("Incertitude",1)); //tototo 
 }
 
-std::string  Mangling( cOneGpsDGF *) {return "806C22E5DAE79AA1F73F";};
+std::string  Mangling( cOneGpsDGF *) {return "20235A6E7B4562C4F93F";};
 
 
 std::list< cOneGpsDGF > & cDicoGpsFlottant::OneGpsDGF()
@@ -6606,7 +6722,7 @@ void xml_init(cDicoGpsFlottant & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneGpsDGF(),aTree->GetAll("OneGpsDGF",false,1));
 }
 
-std::string  Mangling( cDicoGpsFlottant *) {return "CAB977134441B784FB3F";};
+std::string  Mangling( cDicoGpsFlottant *) {return "1AE5BDDB27CEC480FD3F";};
 
 
 std::string & cOneModifIPF::KeyName()

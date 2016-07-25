@@ -703,12 +703,20 @@
        </OneAppuisDAF>
    </DicoAppuisFlottant>
    
+   <DicoImgsTime Nb="1" Class="true">
+		<CpleImgTime Nb="*">
+			<NameIm Nb="1" Type="std::string"> </NameIm>
+			<TimeIm Nb="1" Type="double">      </TimeIm>
+		</CpleImgTime>
+   </DicoImgsTime>
+
+   
    <DicoGpsFlottant Nb="1" Class="true">
 		<OneGpsDGF Nb="*">
 			<Pt Nb="1" Type="Pt3dr"> </Pt>
 			<NamePt Nb="1" Type="std::string"> </NamePt>
 			<TagPt Nb="1" Type="int"> </TagPt>
-			<TimePt Nb="1" Type="std::string"> </TimePt>
+			<TimePt Nb="1" Type="double"> </TimePt>
 			<Incertitude Nb="1" Type="Pt3dr">	</Incertitude>
 		</OneGpsDGF>
    </DicoGpsFlottant>

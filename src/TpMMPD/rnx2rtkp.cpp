@@ -178,6 +178,7 @@ int rnx2rtkp_main(int argc,char ** argv)
 {
 	std::string aDir, aMode, aFileR, aFileB, aFileN, aFileG, aFileP, aFileA;
 	std::string aOut, aXmlOut;
+	bool aAscii=false;
 	std::string aStrChSys;
 	std::string aFreq="l1";
 	std::string aSolType="combined";
@@ -260,7 +261,8 @@ int rnx2rtkp_main(int argc,char ** argv)
 					 << EAMC(aFileB,"Rinex file of base station ; NONE if single or PPP pos mode", eSAM_IsExistFile)
 					 << EAMC(aFileN,"Navigation file for GPS satellites ephemerides", eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"output txt file name ; Def = Output_mode.txt", eSAM_IsOutputFile)
-					 << EAM(aXmlOut,"Xml",true,"output xml Gps Trajectory file ; Def = Output_mode.xml", eSAM_IsBool)
+					 << EAM(aXmlOut,"Xml",false,"output xml Gps Trajectory file ; Def = Output_mode.xml", eSAM_IsOutputFile)
+					 << EAM(aAscii,"Ascii",false,"ASCII file export of result ; Format = (t,X,Y,Z) ; Def = Output_mode_txyz.txt", eSAM_IsBool)
 					 << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
 					 << EAM(aFreq,"Freq",true,"Freq to be used ; Def = l1",eSAM_None,ListOfVal(eNbTypeGpsFreq))
 					 << EAM(aSolType,"SolStrg",true,"Filter strategy ; Def = combined",eSAM_None,ListOfVal(eNbTypeGpsSol))
@@ -732,6 +734,11 @@ int rnx2rtkp_main(int argc,char ** argv)
 				+ aOut + std::string(" ")
 				+ std::string("ChSys=")
 				+ aStrChSys;
+	 }
+	 
+	 if(aAscii)
+	 {
+		 aCom1 = aCom1 + std::string(" ") + std::string("tXYZ=true");
 	 }
 	 
 	 std::cout << "aCom = " << aCom1 << std::endl;

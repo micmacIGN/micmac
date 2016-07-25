@@ -48,7 +48,7 @@ class  cReadPosGps : public cReadObject
                mInc3(-1,-1,-1),
                mInc (-1)
         {
-              AddString("N",&mTime,true);
+              AddString("N",&mName,true);
               AddPt3dr("XYZ",&mPt,true);
               AddDouble("Ix",&mInc3.x,false);
               AddDouble("Iy",&mInc3.y,false);
@@ -56,7 +56,7 @@ class  cReadPosGps : public cReadObject
               AddDouble("I",&mInc,false);
         }
 
-        std::string     mTime;
+        std::string mName;
         Pt3dr       mPt;
         Pt3dr       mInc3;
         double      mInc;
@@ -126,7 +126,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv)
 
         std::vector<Pt3dr> aVPts;
         std::vector<Pt3dr> aVInc;
-        std::vector<std::string> aVTime;
+        std::vector<std::string> aVName;
         
         std::cout << "Comment=[" << aCom<<"]\n";
         std::cout << "Format=[" << aFormat<<"]\n";
@@ -140,7 +140,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv)
 				aVPts.push_back(aReadPosGps.mPt);
                 double  aInc = aReadPosGps.GetDef(aReadPosGps.mInc,1);
                 aVInc.push_back(aReadPosGps.GetDef(aReadPosGps.mInc3,aInc));
-                aVTime.push_back(aReadPosGps.mTime);
+                aVName.push_back(aReadPosGps.mName);
             }
             aCpt ++;
         }
@@ -160,7 +160,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv)
 			aOAD.Pt() = aVPts[aKP];
 			aOAD.Incertitude() = aVInc[aKP];
 			aOAD.TagPt() = 1;
-			aOAD.TimePt() = aVTime[aKP];
+			aOAD.TimePt() = 0;
 
 			aDico.OneGpsDGF().push_back(aOAD);
 		}
