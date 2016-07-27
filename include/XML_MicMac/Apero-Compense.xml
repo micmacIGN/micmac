@@ -84,6 +84,8 @@
 
            <Symb> AcceptGB=true </Symb>
            <Symb> PdsGBRot=0.002</Symb>
+           <Symb> PdsGBId=0.0</Symb>
+           <Symb> PdsGBIter=1e-6</Symb>
            <Symb> SetHom=""  </Symb>
 
            <Symb> WithBloc=false </Symb>
@@ -490,8 +492,8 @@
                           <#WHEN VTEST=${AcceptGB}> <!-- Generik Bundle -->
                               <ContrCamGenInc>
                                    <PatternApply> .*  </PatternApply>
-                                   <PdsAttachToId>   0     </PdsAttachToId>
-                                   <PdsAttachToLast> 1e-6    </PdsAttachToLast>
+                                   <PdsAttachToId>   ${PdsGBId}     </PdsAttachToId>
+                                   <PdsAttachToLast> ${PdsGBIter}    </PdsAttachToLast>
                                    <PdsAttachRGLob>  ${PdsGBRot}    </PdsAttachRGLob>
                               </ContrCamGenInc>
                           </#WHEN>
