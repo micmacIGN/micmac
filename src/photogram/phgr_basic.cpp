@@ -1587,6 +1587,9 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
 
        if ((aPost=="xml") || (aPost=="XML"))
        {
+           std::string aPost2 = StdPostfix(aName.substr(0,aName.size()-4));
+           if( aPost2 != "txt" && aPost2 != "TXT" && aPost2 != "Txt" && aPost2 != "rpc")
+           {
            cElXMLTree * aTree = new cElXMLTree(aName);
 
            cElXMLTree * aXmlMETADATA_FORMAT = aTree->Get("METADATA_FORMAT");
@@ -1638,10 +1641,13 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                aType = eTIGB_MMDGlobe;
                return;
            }
+           }
+           else
+               aType = eTIGB_MMIkonos;
 
        }
 
-       if ((aPost=="txt") || (aPost=="TXT"))
+       if ((aPost=="txt") || (aPost=="TXT") || (aPost=="rpc"))
        {
             std::string line;
             std::ifstream aFile(aName.c_str());
@@ -1691,7 +1697,11 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
              return BasicCamOrientGenFromFile(aName);
         }
     }
-    else if (aType==eTIGB_MMDimap2 || aType==eTIGB_MMDGlobe || aType==eTIGB_MMEuclid || aType==eTIGB_MMOriGrille )
+    else if (aType==eTIGB_MMDimap2 || 
+             aType==eTIGB_MMDGlobe || 
+             aType==eTIGB_MMEuclid || 
+             aType==eTIGB_MMIkonos || 
+             aType==eTIGB_MMOriGrille )
     {
 	
 	return CameraRPC::CamRPCOrientGenFromFile(aName, aType, aChSys);
@@ -1715,6 +1725,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
                 case eTIGB_MMDGlobe : 
                 case eTIGB_MMDimap2 :
                 case eTIGB_MMEuclid :
+                case eTIGB_MMIkonos :
                 case eTIGB_MMOriGrille :
                       return  CameraRPC::CamRPCOrientGenFromFile(aName,aTrueType,aChSys);
 

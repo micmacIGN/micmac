@@ -225,6 +225,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
     int aNbLiais=100;
     double aPdsGBRot=0.002;
+    double aPdsGBId=0.0;
+    double aPdsGBIter=1e-6;
 
 
     ElInitArgMain
@@ -263,7 +265,9 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]")
                     << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
                     << EAM(aNbLiais,"NbLiais",true,"Param for relative weighting for tie points")
-                    << EAM(aPdsGBRot,"PdsGBRot",true,"Weighting of the global rotation constraint (Generic bundle Def=0.02)")
+                    << EAM(aPdsGBRot,"PdsGBRot",true,"Weighting of the global rotation constraint (Generic bundle Def=0.002)")
+                    << EAM(aPdsGBId,"PdsGBId",true,"Weighting of the global deformation constraint (Generic bundle Def=0.0)")
+                    << EAM(aPdsGBIter,"PdsGBIter",true,"Weighting of the change of the global rotation constraint between iterations (Generic bundle Def=1e-6)")
 
     );
 
@@ -302,6 +306,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                            +  std::string(" +NbMaxIterFin=") + ToString(aNbIterFin) + " "
                            +  std::string(" +NbLiais=") + ToString(aNbLiais) + " "
                            +  std::string(" +PdsGBRot=") + ToString(aPdsGBRot) + " "
+                           +  std::string(" +PdsGBId=") + ToString(aPdsGBId) + " "
+                           +  std::string(" +PdsGBIter=") + ToString(aPdsGBIter) + " "
                           ;
 
         if (CPI1 || CPI2) mCom       += " +CPI=true ";
