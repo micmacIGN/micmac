@@ -1580,14 +1580,14 @@ cBasicGeomCap3D * Polynomial_BGC3M2DNewFromFile (const std::string & aName);
 void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName)
 {               
    if (aType != eTIGB_Unknown) return;
-
    if (IsPostfixed(aName))
    {
        std::string aPost = StdPostfix(aName);
 
        if ((aPost=="xml") || (aPost=="XML"))
        {
-           std::string aPost2 = StdPostfix(aName.substr(0,aName.size()-4));
+           std::string aPost2 = aName.substr(aName.size()-7,3);// StdPostfix(aName.substr(0,aName.size()-4));
+
            if( aPost2 != "txt" && aPost2 != "TXT" && aPost2 != "Txt" && aPost2 != "rpc")
            {
            cElXMLTree * aTree = new cElXMLTree(aName);
