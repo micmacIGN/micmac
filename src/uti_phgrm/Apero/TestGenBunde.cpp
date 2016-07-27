@@ -581,7 +581,7 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
 
     cElRegex  anAutom(mPatIm.c_str(),10);
 
-    for (int aKIm=0  ; aKIm< mEASF.SetIm()->size() ; aKIm++)
+    for (size_t aKIm=0  ; aKIm< mEASF.SetIm()->size() ; aKIm++)
     {
         std::string aNameIm = (*mEASF.SetIm())[aKIm];
 // std::string aNameOrient  =  mPatOrient;
