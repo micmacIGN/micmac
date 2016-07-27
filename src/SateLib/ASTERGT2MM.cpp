@@ -151,7 +151,7 @@ void DestripASTER(string aDir, string aNameFile)
 
 
 
-	for (int aX = 0; aX < Cor_3N.size(); aX++)
+	for (size_t aX = 0; aX < Cor_3N.size(); aX++)
 	{
 		for (int aY = 0; aY < aSz_3N.y; aY++)
 		{
@@ -159,7 +159,7 @@ void DestripASTER(string aDir, string aNameFile)
 		}
 	}
 
-	for (int aX = 0; aX < Cor_3B.size(); aX++)
+	for (size_t aX = 0; aX < Cor_3B.size(); aX++)
 	{
 		for (int aY = 0; aY < aSz_3B.y; aY++)
 		{
@@ -330,7 +330,7 @@ void ASTERXMLWrite(string aNameFile, string aDate, vector<Pt2dr> aLatticePointsI
 
 	fic << "\t<LatticePoints>" << endl;
 	fic << "\t\t<NbLattice>"<< aLatticePointsIm.size() << "</NbLattice>" << endl;
-	for (int i = 0; i<aLatticePointsIm.size(); i++)
+	for (size_t i = 0; i<aLatticePointsIm.size(); i++)
 	{
 		fic << "\t\t<LatticePoint_" << i + 1 << ">" << aLatticePointsIm[i].x << " " << aLatticePointsIm[i].y << "</LatticePoint_" << i + 1 << ">" << endl;
 	}
@@ -338,7 +338,7 @@ void ASTERXMLWrite(string aNameFile, string aDate, vector<Pt2dr> aLatticePointsI
 
 	fic << "\t<SatellitePositions>" << endl;
 	fic << "\t\t<NbSatPos>" << aSatellitePosition.size() << "</NbSatPos>" << endl;
-	for (int i = 0; i<aSatellitePosition.size(); i++)
+	for (size_t i = 0; i<aSatellitePosition.size(); i++)
 	{
 		fic << "\t\t<SatPos_" << i + 1 << ">" << aSatellitePosition[i].x << " " << aSatellitePosition[i].y << " " << aSatellitePosition[i].z << "</SatPos_" << i + 1 << ">" << endl;
 	}
@@ -346,7 +346,7 @@ void ASTERXMLWrite(string aNameFile, string aDate, vector<Pt2dr> aLatticePointsI
 
 	fic << "\t<ECEFs>" << endl;
 	fic << "\t\t<NbECEF>" << aLatticeECEF.size() << "</NbECEF>" << endl;
-	for (int i = 0; i<aLatticeECEF.size(); i++)
+	for (size_t i = 0; i<aLatticeECEF.size(); i++)
 	{
 		fic << "\t\t<ECEF_" << i + 1 << ">" << aLatticeECEF[i].x << " " << aLatticeECEF[i].y << " " << aLatticeECEF[i].z << "</ECEF_" << i + 1 << ">" << endl;
 	}
