@@ -70,9 +70,9 @@ cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
     ElInitArgMain
     (
          argc, argv,
-         LArgMain() << EAMC(aFullName,"Orientation file (RPC/SPICE) full name (Dir+Pat)", eSAM_IsExistFile),
-	 LArgMain() << EAM(aCSysOut,"proj","true", "Output cartographic coordinate system (proj format)")
-                    << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[10,10]", eSAM_NoInit)
+         LArgMain() << EAMC(aFullName,"Orientation file (RPC/SPICE) full name (Dir+Pat)", eSAM_IsExistFile)
+	            << EAM(aCSysOut,"proj","true", "Output cartographic coordinate system (proj format)"),
+         LArgMain() << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[10,10]", eSAM_NoInit)
 		    << EAM(mValidByGCP, "VGCP", true, "Validate the prj fn with the provided GCPs [GrMes.xml,ImMes.xml]; optical centers not retrieved", eSAM_NoInit )
     );		      
 
@@ -158,7 +158,6 @@ int SATtoBundle_main(int argc,char ** argv)
  
 int SATtoOpticalCenter_main(cSatI_Appli &aApps)
 {
-
 
     for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
 		                         itL != aApps.mListFile.end(); 
