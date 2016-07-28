@@ -258,7 +258,55 @@
 		<SzCaptMm>   4.55 6.17  </SzCaptMm>
 		<ShortName> OlMu790  </ShortName>
 	</CameraEntry>
-   
+	
+<!-- Panasonic -->
+	
+	<CameraEntry>
+		<Name>  DMC-G2 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G6  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-G3 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G6  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-G5 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G6  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-G6 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G6  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-G7 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G7  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GH3 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GH3  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GH4 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GH4  </ShortName>
+	</CameraEntry>
+   	<CameraEntry>
+		<Name>  DMC-GX8 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GX8  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GX80 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GX80  </ShortName>
+	</CameraEntry>
+
 <!-- GoPro -->
 
 	<CameraEntry>
@@ -329,6 +377,11 @@
         <Name> ASUS_Z00ED </Name>
         <SzCaptMm> 3.52 4.69 </SzCaptMm>
         <ShortName> Asus Zenfone 2 Laser </ShortName>
+   </CameraEntry>   
+   <CameraEntry>
+        <Name> LG-H815 </Name>
+        <SzCaptMm> 3.35 5.95 </SzCaptMm>
+        <ShortName> LG G4 Europe </ShortName>
    </CameraEntry>   
 
 
