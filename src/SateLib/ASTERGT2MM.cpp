@@ -262,7 +262,7 @@ vector<Pt3dr> ReadLatticeECEF(string aNameLonFile, string aNameLatFile)
 	vector<Pt3dr> aLatticeECEF;
 
 	std::fstream aLonFile(aNameLonFile.c_str(), std::ios_base::in);
-	std::fstream aLatFile(aNameLonFile.c_str(), std::ios_base::in);
+	std::fstream aLatFile(aNameLatFile.c_str(), std::ios_base::in);
 
 	// Make sure the file stream is good
 	if (!aLonFile || !aLatFile) {
@@ -299,6 +299,8 @@ vector<Pt3dr> ReadLatticeECEF(string aNameLonFile, string aNameLatFile)
 	b = (1 - 1 / 298.257223563)*a;
 	for (u_int i = 0; i < aLatitudes[0].size(); i++)
 	{
+		//cout << aLatitudes[i] << endl;
+		//cout << aLongitudes[i] << endl;
 		for (u_int j = 0; j < aLatitudes.size(); j++)
 		{
 			double aSinLat = sin(aLatitudes[j][i]* M_PI / 180);
@@ -310,6 +312,7 @@ vector<Pt3dr> ReadLatticeECEF(string aNameLonFile, string aNameLatFile)
 			double y = r*aCosLat*aSinLon;
 			double z = r*aSinLat;
 			Pt3dr aPt(x, y, z);
+			//cout << aPt << endl;
 			aLatticeECEF.push_back(aPt);
 		}
 
