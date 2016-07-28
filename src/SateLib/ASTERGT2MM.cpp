@@ -169,7 +169,7 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 
 
 	//Output
-	string aNameOut_3N = aOutDir + aNameFile + ".3N_Destrip.tif";
+	string aNameOut_3N = aOutDir + aNameFile + "_3N.tif";
 
 	Tiff_Im  aTOut_3N
 	(
@@ -189,7 +189,7 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 	);
 
 
-	string aNameOut_3B = aOutDir + aNameFile + ".3B_Destrip.tif";
+	string aNameOut_3B = aOutDir + aNameFile + "_3B.tif";
 	Tiff_Im  aTOut_3B
 	(
 		aNameOut_3B.c_str(),
