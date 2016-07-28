@@ -3203,11 +3203,13 @@ int RecalRPC_main(int argc,char ** argv)
     std::string aName;
     std::list<std::string> aListFile;
 
+    bool aVf=false;
+
     ElInitArgMain
     (
         argc, argv,
         LArgMain() << EAMC(aFullName,"Orientation file (or pattern) in cXml_CamGenPolBundle format"),
-        LArgMain()
+        LArgMain() << EAM(aVf,"Vf", "Verification of the re-calculation on all tie points (Def = false)")
      );
 
     SplitDirAndFile(aDir, aName, aFullName);
@@ -3219,7 +3221,12 @@ int RecalRPC_main(int argc,char ** argv)
     {
         cRPC::Save2XmlStdMMName(aDir + (*itL),"");
     }
-
+    
+    if(aVf)
+    {
+    
+    }
+    
     return EXIT_SUCCESS;
 }
 
