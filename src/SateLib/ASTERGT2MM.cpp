@@ -397,8 +397,8 @@ int ASTERGT2MM_main(int argc, char ** argv)
 
 
 	//Write XML
-	ASTERXMLWrite(aNameFile + "_3N.xml", aDate, aLatticePointsIm_3N, aSatellitePosition_3N, aLatticeECEF_3N);
-	ASTERXMLWrite(aNameFile + "_3B.xml", aDate, aLatticePointsIm_3B, aSatellitePosition_3B, aLatticeECEF_3B);
+	ASTERXMLWrite(aOutDir + aNameFile + "_3N.xml", aDate, aLatticePointsIm_3N, aSatellitePosition_3N, aLatticeECEF_3N);
+	ASTERXMLWrite(aOutDir + aNameFile + "_3B.xml", aDate, aLatticePointsIm_3B, aSatellitePosition_3B, aLatticeECEF_3B);
 
 
 
