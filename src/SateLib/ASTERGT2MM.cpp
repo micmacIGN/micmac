@@ -297,16 +297,16 @@ vector<Pt3dr> ReadLatticeECEF(string aNameLonFile, string aNameLatFile)
 	// Convert points to ECEF(geocentric euclidian)
 	a = 6378137;
 	b = (1 - 1 / 298.257223563)*a;
-	for (u_int i = 0; i < aLatitudes[0].size(); i++)
+	for (u_int i = 0; i < aLatitudes.size(); i++)
 	{
 		//cout << aLatitudes[i] << endl;
 		//cout << aLongitudes[i] << endl;
-		for (u_int j = 0; j < aLatitudes.size(); j++)
+		for (u_int j = 0; j < aLatitudes[0].size(); j++)
 		{
-			double aSinLat = sin(aLatitudes[j][i]* M_PI / 180);
-			double aCosLat = cos(aLatitudes[j][i]* M_PI / 180);
-			double aSinLon = sin(aLongitudes[j][i]* M_PI / 180);
-			double aCosLon = cos(aLongitudes[j][i]* M_PI / 180);
+			double aSinLat = sin(aLatitudes[i][j]* M_PI / 180);
+			double aCosLat = cos(aLatitudes[i][j] * M_PI / 180);
+			double aSinLon = sin(aLongitudes[i][j] * M_PI / 180);
+			double aCosLon = cos(aLongitudes[i][j] * M_PI / 180);
 			double r = sqrt(a*a*b*b / (a*a*aSinLat*aSinLat + b*b*aCosLat*aCosLat));
 			double x = r*aCosLat*aCosLon;
 			double y = r*aCosLat*aSinLon;
