@@ -295,7 +295,7 @@ void cAppliTiepRed::DoReduce(){
 		int nY = mNumCellsY;
 		// Images with few related images will use grids with more cells (max factor is 2)
 		if (mAdaptive == true){
-			double ft = std::min(sqrt(mMaxNumRelated / (mImages.size()-1)), 2.0);
+			double ft = std::min(sqrt((double)(mMaxNumRelated / (mImages.size()-1))), 2.0);
 			nX = std::floor(ft * mNumCellsX);
 			nY = std::floor(ft * mNumCellsY);
 		}
@@ -305,7 +305,7 @@ void cAppliTiepRed::DoReduce(){
 			int ngY = nY;
 			if (mAdaptive == true && i > 0){
 				cImageTiepRed & homolImage = *(mImages[i]);
-				double fr = std::min(sqrt(mMaxNumHomol / homolImage.NbPtsHom2Im()),2.0);
+				double fr = std::min(sqrt((double)(mMaxNumHomol / homolImage.NbPtsHom2Im())),2.0);
 				ngX = std::floor(fr * nX);
 				ngY = std::floor(fr * nY);
 			}

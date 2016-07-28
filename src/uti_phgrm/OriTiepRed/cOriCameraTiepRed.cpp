@@ -280,7 +280,7 @@ void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
     {
        std::string aNH = mAppli.NameHomolGlob(mNameIm,aCam2.mNameIm);
 
-       if (ELISE_fp::exist_file(aNH))
+       if (ELISE_fp::exist_file(aNH) && mAppli.UsePrec())
        {
          
            mAppli.NM().GenLoadHomFloats(aNH,&(aLnk->VPPrec1()),&(aLnk->VPPrec2()),false);  // would have worked for I2 > I1 
@@ -312,7 +312,7 @@ void cCameraTiepRed::AddCamBox(cCameraTiepRed* aCam2,int aKBox)
 void cCameraTiepRed::SaveHom(cCameraTiepRed* aCam2,const std::list<int> & aLBox)
 {
 
-    std::pair<CamStenope*,CamStenope*>  aPC (0,0);
+    std::pair<CamStenope*,CamStenope*>  aPC((CamStenope *)NULL, (CamStenope *)NULL);
     if (mAppli.VerifNM())// (this != aCam2)
     {
        aPC = mAppli.NM().CamOriRel(NameIm(),aCam2->NameIm());

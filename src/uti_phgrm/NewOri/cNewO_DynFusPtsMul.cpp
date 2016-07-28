@@ -137,6 +137,11 @@ template <class TypeArc> const std::vector<TypeArc> &  cComMergeTieP<TypeArc>::V
    return mVecValArc;
 }
 
+template <class TypeArc> std::vector<TypeArc> &  cComMergeTieP<TypeArc>::NC_ValArc() 
+{
+   return mVecValArc;
+}
+
 
 
 template <class TypeArc> void cComMergeTieP<TypeArc>::FusionneCnxInThis(const cComMergeTieP<TypeArc> & aC2)

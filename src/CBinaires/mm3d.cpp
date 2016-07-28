@@ -255,7 +255,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Drunk", Drunk_main," Images distortion removing tool"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using GCP",cArgLogCom(2)));
-       aRes.push_back(cMMCom("GCPCtrl",GCPCtrl_main," Control accuracy with GCP"));
+       aRes.push_back(cMMCom("GCPCtrl",GCPCtrl_main," Control accuracy with GCP",cArgLogCom(2)));
        aRes.push_back(cMMCom("GCPVisib",GCPVisib_main," Print a list of GCP visibility in images"));
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Relative to absolute using embedded GPS",cArgLogCom(2)));
@@ -507,6 +507,7 @@ extern int TD_Match2_main(int argc,char ** argv);
 extern int TD_Match3_main(int argc,char ** argv);
 extern int TestER_main(int argc,char ** argv);
 extern int TestER_grille_main(int argc,char ** argv);
+extern int TestER_rpc_main(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -529,14 +530,17 @@ int MatchCenters_main( int argc,char ** argv);
 int Panache_main(int argc,char ** argv);
 int rnx2rtkp_main(int argc,char ** argv);
 int GPS_Txt2Xml_main(int argc,char ** argv);
-int  CheckOri_main(int argc,char ** argv);
-int  NLD_main(int argc,char ** argv);
-int  ResToTxt_main(int argc,char ** argv);
-int  SelTieP_main(int argc,char ** argv);
-int  Ortho2TieP_main(int argc,char ** argv);
-int  Idem_main(int argc,char ** argv);
-// int RHH_main(int argc,char **argv);
+int ExportHemisTM_main(int argc,char ** argv);
+int MatchinImgTM_main(int argc,char ** argv);
 int CorrLA_main(int argc,char ** argv);
+int CheckOri_main(int argc,char ** argv);
+int NLD_main(int argc,char ** argv);
+int ResToTxt_main(int argc,char ** argv);
+int SelTieP_main(int argc,char ** argv);
+int Ortho2TieP_main(int argc,char ** argv);
+int Idem_main(int argc,char ** argv);
+// int RHH_main(int argc,char **argv);
+
 
 extern int BasculePtsInRepCam_main(int argc,char ** argv);
 extern int BasculeCamsInRepCam_main(int argc,char ** argv);
@@ -629,7 +633,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
        aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
-       aRes.push_back(cMMCom("TestER",TestER_grille_main,"ER test workplace"));
+       aRes.push_back(cMMCom("TestER",TestER_rpc_main,"ER test workplace"));
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
@@ -652,7 +656,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercise for correlation in epipolar "));
        aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation  "));
        aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
-   
+	   aRes.push_back(cMMCom("MatchImTM",MatchinImgTM_main,"Matching a Pattern of Images with a GPS TimeMark File",cArgLogCom(2)));
        aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images",cArgLogCom(2)));
        aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning",cArgLogCom(2)));
        aRes.push_back(cMMCom("ScaleModel",ScaleModel_main,"Tool for simple scaling a model",cArgLogCom(2)));
@@ -664,7 +668,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("GpsProc",rnx2rtkp_main,"Tool using rnx2rtkp from RTKlib to do GNSS processing",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CorrLA",CorrLA_main,"Tool to correct camera centers from Lever-Arm offset",cArgLogCom(2)));
-
+	   aRes.push_back(cMMCom("ExportHTM",ExportHemisTM_main,"Tool to export TimeMark Data from Hemisphere Bin01 file",cArgLogCom(2)));
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
 
@@ -986,11 +990,9 @@ int main(int argc,char ** argv)
 }
 
 /*
-Bug Ortho PIMS
-Bug Gen Bundle => sub expr
-DoOrtho => Malt UrbaneMN
+Gen Bundle => By Pattern
+MMTestOrient => Export Final
 
-Tapioca ExpTxt=true
 Tapioca 200000
 */
 

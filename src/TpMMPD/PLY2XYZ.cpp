@@ -96,8 +96,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 		
 	
 #else
-	#include "../../CodeExterne/Poisson/include/PlyFile.h"
-	
 	int PLY2XYZ_main(int argc,char ** argv)
 	{
 		std::string aPly, aOut, aDir;

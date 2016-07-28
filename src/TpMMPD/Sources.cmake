@@ -35,6 +35,9 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/MatchCenters.cpp
     ${TDPPMD_DIR}/rnx2rtkp.cpp
     ${TDPPMD_DIR}/CPP_GPS_txt2Xml.cpp
+    ${TDPPMD_DIR}/ExportHemisTM.cpp
+    ${TDPPMD_DIR}/MatchImgTM.cpp
+    
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

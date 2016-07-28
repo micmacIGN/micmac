@@ -73,8 +73,8 @@ class CameraRPC : public cBasicGeomCap3D
 		bool  HasRoughCapteur2Terrain() const;
 		Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
 
-		Pt3dr ImEtZ2Terrain(const Pt2dr & aP, const double aZ) const;
-        Pt3dr ImEtProf2Terrain(const Pt2dr & aP,const double aProf) const;
+		Pt3dr ImEtZ2Terrain(const Pt2dr & aP, double aZ) const;
+        Pt3dr ImEtProf2Terrain(const Pt2dr & aP, double aProf) const;
 		double ResolSolOfPt(const Pt3dr &) const ;
 		bool  CaptHasData(const Pt2dr &) const;
 

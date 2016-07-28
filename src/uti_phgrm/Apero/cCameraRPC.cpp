@@ -319,7 +319,7 @@ Pt3dr CameraRPC::ImEtProf2Terrain(const Pt2dr & aP,double aProf) const
     }
 }
 
-Pt3dr CameraRPC::ImEtZ2Terrain(const Pt2dr & aP, const double aZ) const
+Pt3dr CameraRPC::ImEtZ2Terrain(const Pt2dr & aP, double aZ) const
 {
     AssertRPCDirInit();
 
@@ -929,7 +929,7 @@ void cRPC::Initialize(const std::string &aName,
     if(aType==eTIGB_MMDimap2)
     {
         ReadDimap(aNameRPC);
-       
+	//Show();       
         Initialize_(aChSys);
 
     }
@@ -940,27 +940,31 @@ void cRPC::Initialize(const std::string &aName,
     else if(aType==eTIGB_MMDGlobe)
     {
         ReadXML(aNameRPC);
-        
+    	
+	SetRecGrid();
+	    
         InvToDirRPC();
-        
+        //Show(); 
         Initialize_(aChSys);
 
     }
     else if(aType==eTIGB_MMIkonos)
     {
-     ReadASCII(aNameRPC);
+        ReadASCII(aNameRPC);
 	    
-        ReadASCIIMeta("Metafile.txt", aNameRPC);
-	    
-        InvToDirRPC();
+        //ReadASCIIMeta("Metafile.txt", aNameRPC);
 
+	SetRecGrid();
+    
+        InvToDirRPC();
+	//Show();
         Initialize_(aChSys);
 
     }
     else if(aType==eTIGB_MMEuclid)
     {
         ReadEUCLIDIUM(aNameRPC);
-        Show(); 
+        //Show(); 
         Initialize_(aChSys);
     
     }
@@ -1251,17 +1255,23 @@ void cRPC::Save2XmlStdMMName(const std::string &aName,const std::string & aPref)
 
 bool cRPC::AutoDetermineGRIDFile(const std::string &aFile) const
 {
-    cElXMLTree * aTree = new cElXMLTree(aFile);
+    std::string aPost = StdPostfix(aFile.substr(0,aFile.size()-4));
+    if( aPost != "txt" && aPost != "TXT" && aPost != "Txt" && aPost != "rpc" )
+    { 
+        cElXMLTree * aTree = new cElXMLTree(aFile);
 
-    cElXMLTree * aFirstChild = aTree->Get("trans_coord");
+        cElXMLTree * aFirstChild = aTree->Get("trans_coord");
     
-    if(aFirstChild)
-    {
-        return true;
+        if(aFirstChild)
+        {
+            return true;
+        }
+        else
+            return false;
     }
     else
-        return false;
-    /*
+	return false; 
+   /*
     XercesDOMParser* parser = new XercesDOMParser();
     parser->parse(aFile.c_str());
     DOMNode* doc = parser->getDocument();
@@ -1284,7 +1294,8 @@ bool cRPC::AutoDetermineRPCFile(const std::string &aFile) const
         (aFile.substr(aFile.size()-3,3) == "xml"))
     {
         if( (aFile.substr(aFile.size()-7,3) != "TXT") &&
-            (aFile.substr(aFile.size()-7,3) != "txt"))
+            (aFile.substr(aFile.size()-7,3) != "txt") &&
+            (aFile.substr(aFile.size()-7,3) != "rpc"))
         {
             cElXMLTree * aTree = new cElXMLTree(aFile);
 
@@ -1514,6 +1525,16 @@ void cRPC::InvToDirRPC()
         aGridIm.push_back(Pt3dr(aP.x, aP.y, aGridGr.at(aK).z));
     }
     
+if(0)
+{
+    Pt3dr aPMin, aPMax, aPSum;
+    GetGridExt(aGridIm, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+
+    GetGridExt(aGridGr, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+}
+
     //learn the RPC parameters
     LearnParam(aGridGr, aGridIm,
                 mDirSNum, mDirLNum,
@@ -2471,8 +2492,10 @@ void cRPC::ReadASCII(const std::string &aFile)
 
     ISINV=true;
 
+    ReconstructValidityxy();
+    ReconstructValidityXY();
     ReconstructValidityH();
-
+  
 
 }
 
@@ -2677,65 +2700,65 @@ void cRPC::ReadXML(const std::string &aFile)
     {
         aNodes = aTree.GetUnique(std::string("NUMROWS"));
         mImRows[0] = 0;
-        mImRows[1] = std::atof(aNodes->GetUniqueVal().c_str()) - 1;
+        mImRows[1] = std::atof(aNodes->GetUniqueVal().c_str());
     }
 
     {
         aNodes = aTree.GetUnique(std::string("NUMCOLUMNS"));
         mImCols[0] = 0;
-        mImCols[1] = std::atof(aNodes->GetUniqueVal().c_str()) - 1;
+        mImCols[1] = std::atof(aNodes->GetUniqueVal().c_str());
     }
 
     {
         aNodes = aTree.GetUnique(std::string("SAMPOFFSET"));
-        mImOff[0] = std::atof(aNodes->GetUniqueVal().c_str()) - 1; 
+        mImOff[0] = std::atof(aNodes->GetUniqueVal().c_str()); 
     }
 
     {
         aNodes = aTree.GetUnique(std::string("LINEOFFSET"));
-        mImOff[1] = std::atof(aNodes->GetUniqueVal().c_str()) - 1; 
+        mImOff[1] = std::atof(aNodes->GetUniqueVal().c_str()); 
     }
 
     
     {
         aNodes = aTree.GetUnique(std::string("LONGOFFSET"));
-        mGrOff[0] = std::atof(aNodes->GetUniqueVal().c_str()) - 1; 
+        mGrOff[0] = std::atof(aNodes->GetUniqueVal().c_str()); 
     }
 
     {
         aNodes = aTree.GetUnique(std::string("LATOFFSET"));
-        mGrOff[1] = std::atof(aNodes->GetUniqueVal().c_str()) - 1; 
+        mGrOff[1] = std::atof(aNodes->GetUniqueVal().c_str()); 
     }
 
     {
         aNodes = aTree.GetUnique(std::string("HEIGHTOFFSET"));
-        mGrOff[2] = std::atof(aNodes->GetUniqueVal().c_str()) - 1; 
+        mGrOff[2] = std::atof(aNodes->GetUniqueVal().c_str()); 
     }
 
 
     {
         aNodes = aTree.GetUnique(std::string("SAMPSCALE"));
-        mImScal[0] = std::atof(aNodes->GetUniqueVal().c_str()) - 1; 
+        mImScal[0] = std::atof(aNodes->GetUniqueVal().c_str()); 
     }
 
     {
         aNodes = aTree.GetUnique(std::string("LINESCALE"));
-        mImScal[1] = std::atof(aNodes->GetUniqueVal().c_str()) - 1; 
+        mImScal[1] = std::atof(aNodes->GetUniqueVal().c_str()); 
     }
 
     {
         aNodes = aTree.GetUnique(std::string("LONGSCALE"));
-        mGrScal[0] = std::atof(aNodes->GetUniqueVal().c_str()) - 1; 
+        mGrScal[0] = std::atof(aNodes->GetUniqueVal().c_str()); 
     }
 
     {
         aNodes = aTree.GetUnique(std::string("LATSCALE"));
-        mGrScal[1] = std::atof(aNodes->GetUniqueVal().c_str()) - 1; 
+        mGrScal[1] = std::atof(aNodes->GetUniqueVal().c_str()); 
     }
 
     {
         aNodes = aTree.GetUnique(std::string("HEIGHTSCALE"));
-        mGrScal[2] = std::atof(aNodes->GetUniqueVal().c_str()) - 1; 
+        mGrScal[2] = std::atof(aNodes->GetUniqueVal().c_str()); 
     }
 
     aNodes = aTree.GetUnique(std::string("LINENUMCOEF"));
@@ -2833,7 +2856,7 @@ void cRPC::ReadXML(const std::string &aFile)
     mGrC2[1] = *std::max_element(aLatMM.begin(),aLatMM.end());
 
     ISINV=true;
-
+    
     ReconstructValidityH();
 
 
@@ -2965,6 +2988,8 @@ void cRPC::ReadDimap(const std::string &aFile)
 
 void cRPC::ReconstructValidityxy()
 {
+    ELISE_ASSERT(ISINV, "cRPC::ReconstructValidityxy() RPCs need to be initialised" );
+    
     mImRows[0] = -1 * mImScal[1] + mImOff[1];
     mImRows[1] = 1 * mImScal[1] + mImOff[1];
 
@@ -2975,7 +3000,7 @@ void cRPC::ReconstructValidityxy()
 
 void cRPC::ReconstructValidityXY()
 {
-    ELISE_ASSERT(ISDIR, "cRPC::ReconstructValidityH() RPCs need to be initialised" );
+    ELISE_ASSERT(ISINV, "cRPC::ReconstructValidityXY() RPCs need to be initialised" );
 
     mGrC1[0] = -1 * mGrScal[0] + mGrOff[0];
     mGrC1[1] =  1 * mGrScal[0] + mGrOff[0];
@@ -2987,7 +3012,7 @@ void cRPC::ReconstructValidityXY()
 
 void cRPC::ReconstructValidityH()
 {
-    ELISE_ASSERT(ISDIR, "cRPC::ReconstructValidityH() RPCs need to be initialised" );
+    ELISE_ASSERT(ISINV, "cRPC::ReconstructValidityH() RPCs need to be initialised" );
 
     mGrC3[0] = -1 * mGrScal[2] + mGrOff[2];
     mGrC3[1] =  1 * mGrScal[2] + mGrOff[2];

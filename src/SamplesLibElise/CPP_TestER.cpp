@@ -772,19 +772,56 @@ int TestER_main2(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-int TestER_rpc(int argc,char ** argv)
+int TestER_rpc_main(int argc,char ** argv)
 {
-    std::string aFullName;
+    std::string aFullName1,aFullName2;
+    Pt2dr aP1, aP2, aP1_, aP2_;
+
+    std::vector<double> aVPds;
+    std::vector<ElSeg3D> aVS;
+    
     ElInitArgMain
     (
         argc, argv,
-        LArgMain() << EAMC(aFullName,"Orientation file"),
+        LArgMain() << EAMC(aFullName1,"Orientation file1")
+                   << EAMC(aFullName2,"Orientation file2")
+                   << EAMC(aP1,"P1")
+                   << EAMC(aP2,"P2"),
         LArgMain()
     );
+    std::cout << "in: " << aP1 << ", " << aP2 << "\n";
 
-    cRPC aRPC(aFullName);
-    aRPC.Show();
+    CameraRPC aRPC1(aFullName1);
+    CameraRPC aRPC2(aFullName2);
+
+    const cRPC * arpc = aRPC1.GetRPC();
+    double aZ1 = 100;//aRPC1.GetAltiSol() + double(arpc->GetGrC32() - arpc->GetGrC31())/2;
+
+    Pt3dr aPt1El1 = aRPC1.ImEtZ2Terrain(aP1,aZ1);
+    Pt3dr aPt2El1 = aRPC1.ImEtZ2Terrain(aP1,aZ1+10);
+    Pt3dr aPt1El2 = aRPC2.ImEtZ2Terrain(aP2,aZ1);
+    Pt3dr aPt2El2 = aRPC2.ImEtZ2Terrain(aP2,aZ1+10);
+
+    ElSeg3D aElS1(aPt1El1,aPt2El1); //aRPC1.Capteur2RayTer(aP1);
+    ElSeg3D aElS2(aPt1El2,aPt2El2); //aRPC2.Capteur2RayTer(aP2);
+    std::cout << "el: " << aElS1.P0() << " " << aRPC1.ImEtZ2Terrain(aP1,aZ1) << ", " << aElS1.P1() << "\n";
+    std::cout << "el: " << aElS2.P0() << " " << aRPC2.ImEtZ2Terrain(aP2,aZ1) << ", " << aElS2.P1() << "\n";
     
+    aVS.push_back(aElS1);
+    aVS.push_back(aElS2);
+    aVPds.push_back(1.0);
+    aVPds.push_back(1.0);
+
+    bool aIsOK;
+    Pt3dr aRes = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
+
+    aP1_ = aRPC1.Ter2Capteur(aRes);        
+    aP2_ = aRPC2.Ter2Capteur(aRes);        
+
+    std::cout << "in: " << aP1 << ", pred: " << aP1_ << "\n"
+                 "    " << aP2 << ", pred: " << aP2_ << "\n"
+                 "R3= " << aRes << "\n" ;
+
     return EXIT_SUCCESS;
 }
 

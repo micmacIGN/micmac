@@ -2226,6 +2226,58 @@ std::string  Mangling( cDicoAppuisFlottant *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cCpleImgTime
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCpleImgTime & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        double & TimeIm();
+        const double & TimeIm()const ;
+    private:
+        std::string mNameIm;
+        double mTimeIm;
+};
+cElXMLTree * ToXMLTree(const cCpleImgTime &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCpleImgTime &);
+
+void  BinaryUnDumpFromFile(cCpleImgTime &,ELISE_fp &);
+
+std::string  Mangling( cCpleImgTime *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cDicoImgsTime
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cDicoImgsTime & anObj,cElXMLTree * aTree);
+
+
+        std::list< cCpleImgTime > & CpleImgTime();
+        const std::list< cCpleImgTime > & CpleImgTime()const ;
+    private:
+        std::list< cCpleImgTime > mCpleImgTime;
+};
+cElXMLTree * ToXMLTree(const cDicoImgsTime &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cDicoImgsTime &);
+
+void  BinaryUnDumpFromFile(cDicoImgsTime &,ELISE_fp &);
+
+std::string  Mangling( cDicoImgsTime *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cOneGpsDGF
 {
     public:
@@ -2243,8 +2295,8 @@ class cOneGpsDGF
         int & TagPt();
         const int & TagPt()const ;
 
-        std::string & TimePt();
-        const std::string & TimePt()const ;
+        double & TimePt();
+        const double & TimePt()const ;
 
         Pt3dr & Incertitude();
         const Pt3dr & Incertitude()const ;
@@ -2252,7 +2304,7 @@ class cOneGpsDGF
         Pt3dr mPt;
         std::string mNamePt;
         int mTagPt;
-        std::string mTimePt;
+        double mTimePt;
         Pt3dr mIncertitude;
 };
 cElXMLTree * ToXMLTree(const cOneGpsDGF &);

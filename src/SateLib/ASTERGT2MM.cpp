@@ -57,7 +57,7 @@ void ASTERGT2MM_Banniere()
 vector<Pt3dr> ReadCorTable(string nameFile)
 {
 	vector<Pt3dr> aCorTable;
-	std::fstream aFile(nameFile, std::ios_base::in);
+	std::fstream aFile(nameFile.c_str(), std::ios_base::in);
 	
 	// Make sure the file stream is good
 	if (!aFile) {
@@ -79,7 +79,7 @@ vector<Pt3dr> ReadCorTable(string nameFile)
 
 string ReadDate(string aNameFile)
 {
-	std::fstream aFile(aNameFile, std::ios_base::in);
+	std::fstream aFile(aNameFile.c_str(), std::ios_base::in);
 	string aDate ="0000000";
 
 	// Make sure the file stream is good
@@ -102,7 +102,14 @@ string ReadDate(string aNameFile)
 
 	struct tm * curtime = localtime(&_tm);
 	std::ostringstream oss;
-	oss << std::put_time(curtime, "%Y%m%d");
+	
+	#if __cplusplus < 201103L
+		char buffer[256];
+		strftime(buffer, 256, "%Y%m%d", curtime);
+		oss << buffer;
+	#else
+		oss << std::put_time(curtime, "%Y%m%d");
+	#endif
 	aDate=oss.str();
 
 return aDate;
@@ -144,7 +151,7 @@ void DestripASTER(string aDir, string aNameFile)
 
 
 
-	for (int aX = 0; aX < Cor_3N.size(); aX++)
+	for (size_t aX = 0; aX < Cor_3N.size(); aX++)
 	{
 		for (int aY = 0; aY < aSz_3N.y; aY++)
 		{
@@ -152,7 +159,7 @@ void DestripASTER(string aDir, string aNameFile)
 		}
 	}
 
-	for (int aX = 0; aX < Cor_3B.size(); aX++)
+	for (size_t aX = 0; aX < Cor_3B.size(); aX++)
 	{
 		for (int aY = 0; aY < aSz_3B.y; aY++)
 		{
@@ -207,7 +214,7 @@ vector<Pt2dr> ReadLatticePointsIm(string aNameFile)
 {
 	vector<Pt2dr> aLatticePoints;
 
-	std::fstream aFile(aNameFile, std::ios_base::in);
+	std::fstream aFile(aNameFile.c_str(), std::ios_base::in);
 
 	// Make sure the file stream is good
 	if (!aFile) {
@@ -230,7 +237,7 @@ vector<Pt3dr> ReadSattelitePos(string aNameFile)
 {
 	vector<Pt3dr> aSattelitePos;
 
-	std::fstream aFile(aNameFile, std::ios_base::in);
+	std::fstream aFile(aNameFile.c_str(), std::ios_base::in);
 
 	// Make sure the file stream is good
 	if (!aFile) {
@@ -254,8 +261,8 @@ vector<Pt3dr> ReadLatticeECEF(string aNameLonFile, string aNameLatFile)
 
 	vector<Pt3dr> aLatticeECEF;
 
-	std::fstream aLonFile(aNameLonFile, std::ios_base::in);
-	std::fstream aLatFile(aNameLonFile, std::ios_base::in);
+	std::fstream aLonFile(aNameLonFile.c_str(), std::ios_base::in);
+	std::fstream aLatFile(aNameLonFile.c_str(), std::ios_base::in);
 
 	// Make sure the file stream is good
 	if (!aLonFile || !aLatFile) {
@@ -323,7 +330,7 @@ void ASTERXMLWrite(string aNameFile, string aDate, vector<Pt2dr> aLatticePointsI
 
 	fic << "\t<LatticePoints>" << endl;
 	fic << "\t\t<NbLattice>"<< aLatticePointsIm.size() << "</NbLattice>" << endl;
-	for (int i = 0; i<aLatticePointsIm.size(); i++)
+	for (size_t i = 0; i<aLatticePointsIm.size(); i++)
 	{
 		fic << "\t\t<LatticePoint_" << i + 1 << ">" << aLatticePointsIm[i].x << " " << aLatticePointsIm[i].y << "</LatticePoint_" << i + 1 << ">" << endl;
 	}
@@ -331,7 +338,7 @@ void ASTERXMLWrite(string aNameFile, string aDate, vector<Pt2dr> aLatticePointsI
 
 	fic << "\t<SatellitePositions>" << endl;
 	fic << "\t\t<NbSatPos>" << aSatellitePosition.size() << "</NbSatPos>" << endl;
-	for (int i = 0; i<aSatellitePosition.size(); i++)
+	for (size_t i = 0; i<aSatellitePosition.size(); i++)
 	{
 		fic << "\t\t<SatPos_" << i + 1 << ">" << aSatellitePosition[i].x << " " << aSatellitePosition[i].y << " " << aSatellitePosition[i].z << "</SatPos_" << i + 1 << ">" << endl;
 	}
@@ -339,7 +346,7 @@ void ASTERXMLWrite(string aNameFile, string aDate, vector<Pt2dr> aLatticePointsI
 
 	fic << "\t<ECEFs>" << endl;
 	fic << "\t\t<NbECEF>" << aLatticeECEF.size() << "</NbECEF>" << endl;
-	for (int i = 0; i<aLatticeECEF.size(); i++)
+	for (size_t i = 0; i<aLatticeECEF.size(); i++)
 	{
 		fic << "\t\t<ECEF_" << i + 1 << ">" << aLatticeECEF[i].x << " " << aLatticeECEF[i].y << " " << aLatticeECEF[i].z << "</ECEF_" << i + 1 << ">" << endl;
 	}

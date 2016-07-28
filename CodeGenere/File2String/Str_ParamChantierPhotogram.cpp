@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[2000]) = {
+const char * (theNameVar_ParamChantierPhotogram[2008]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -705,12 +705,20 @@ const char * (theNameVar_ParamChantierPhotogram[2000]) = {
 "       </OneAppuisDAF>\n",
 "   </DicoAppuisFlottant>\n",
 "   \n",
+"   <DicoImgsTime Nb=\"1\" Class=\"true\">\n",
+"		<CpleImgTime Nb=\"*\">\n",
+"			<NameIm Nb=\"1\" Type=\"std::string\"> </NameIm>\n",
+"			<TimeIm Nb=\"1\" Type=\"double\">      </TimeIm>\n",
+"		</CpleImgTime>\n",
+"   </DicoImgsTime>\n",
+"\n",
+"   \n",
 "   <DicoGpsFlottant Nb=\"1\" Class=\"true\">\n",
 "		<OneGpsDGF Nb=\"*\">\n",
 "			<Pt Nb=\"1\" Type=\"Pt3dr\"> </Pt>\n",
 "			<NamePt Nb=\"1\" Type=\"std::string\"> </NamePt>\n",
 "			<TagPt Nb=\"1\" Type=\"int\"> </TagPt>\n",
-"			<TimePt Nb=\"1\" Type=\"std::string\"> </TimePt>\n",
+"			<TimePt Nb=\"1\" Type=\"double\"> </TimePt>\n",
 "			<Incertitude Nb=\"1\" Type=\"Pt3dr\">	</Incertitude>\n",
 "		</OneGpsDGF>\n",
 "   </DicoGpsFlottant>\n",

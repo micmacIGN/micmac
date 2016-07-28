@@ -26,14 +26,16 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
 DAMAGE.
 */
 
-#include <ctime>
+#ifndef MY_TIME_INCLUDED
+#define MY_TIME_INCLUDED
+
 #include <string.h>
 #include <sys/timeb.h>
 #ifndef WIN32
 #include <sys/time.h>
 #endif // WIN32
 
-double PTime( void )
+inline double Time( void )
 {
 #ifdef WIN32
 	struct _timeb t;
@@ -45,3 +47,5 @@ double PTime( void )
 	return t.tv_sec + double( t.tv_usec ) / 1000000;
 #endif // WIN32
 }
+
+#endif // MY_TIME_INCLUDED

@@ -1,6 +1,5 @@
 ﻿#include "Cloud.h"
-#include "../../CodeExterne/Poisson/include/PlyFile.h"
-
+#include "general/PlyFile.h"
 /*!
     Read a ply file, store the point cloud
 */

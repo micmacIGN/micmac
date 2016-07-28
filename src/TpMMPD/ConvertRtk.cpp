@@ -39,159 +39,392 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-int ConvertRtk_main(int argc,char ** argv)
+const double JD2000 = 2451545.0; 	// J2000 in jd
+const double J2000 = 946728000.0; 	// J2000 in seconds starting from 1970-01-01T00:00:00
+const double MJD2000 = 51544.5; 	// J2000 en mjd
+const double GPS0 = 315964800.0; 	// 1980-01-06T00:00:00 in seconds starting from 1970-01-01T00:00:00
+const int LeapSecond = 17;			// GPST-UTC=17s
+
+//class
+class cRPG_Appli;
+
+//struct
+struct PosGPS{
+	
+	//Positions
+    Pt3dr Pos;
+    
+    //Name or Number
+    std::string Name;
+    
+    //vector of Quality
+    int Flag;
+    
+    //Time expressed in Modified Julian day
+    double Time;
+    
+    //Uncertainty
+    Pt3dr Ic;
+    
+    //Correclation terms of Var-CoVar Matrix
+    Pt3dr VarCoVar;
+    
+    //Number of satellites
+    int NS;
+    
+    //Age of Age
+    double Age;
+    
+    //Ratio Factor
+    double Ratio;
+};
+
+//struct
+struct hmsTime{
+	double Year;
+	double Month;
+	double Day;
+	double Hour;
+	double Minute;
+	double Second;
+};
+
+//struct
+struct towTime{
+	double GpsWeek;
+	double Tow; //or wsec
+};
+
+class cRPG_Appli
 {
-	std::string aDir, aFile, aOut;
-	bool aShowH=false;
-	bool aXYZ=false;
-	std::string aStrChSys;
+     public :
+          cRPG_Appli(int argc,char ** argv);
+          double hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys);
+          double towTime2MJD(const towTime & Time, const std::string & TimeSys);
+          void ShowHmsTime(const hmsTime & Time);
+          void ShowTowTime(const towTime & Time);
+     private :
+		std::string mDir; 			
+		std::string mFile;
+		std::string mOut;
+		std::string mStrChSys;
+};
+
+template <typename T> string NumberToString(T Number)
+{
+	ostringstream ss;
+    ss << Number;
+    return ss.str();
+}
+
+void cRPG_Appli::ShowTowTime(const towTime & Time)
+{
+	std::cout << "Time.GpsWeek ==> " << Time.GpsWeek << std::endl;
+	std::cout << "Time.Tow     ==> " << Time.Tow  << std::endl;
+}
+
+void cRPG_Appli::ShowHmsTime(const hmsTime & Time)
+{
+	std::cout << "Time.Year   ==> " << Time.Year << std::endl;
+	std::cout << "Time.Month  ==> " << Time.Month << std::endl;
+	std::cout << "Time.Day    ==> " << Time.Day << std::endl;
+	std::cout << "Time.Hour   ==> " << Time.Hour << std::endl;
+	std::cout << "Time.Minute ==> " << Time.Minute << std::endl;
+	std::cout << "Time.Second ==> " << Time.Second << std::endl;
+}
+
+double cRPG_Appli::hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys)
+{
+	
+	double aYear;
+	double aMonth;
+	double aSec = Time.Second;
+	
+	//std::cout << "aSec = " << aSec << std::endl;
+	
+	if(TimeSys == "UTC")
+	{
+		aSec -= LeapSecond;
+	}
+	
+	//std::cout << "aSec = " << aSec << std::endl;
+	
+	//2 or 4 digits year management
+	if(Time.Year < 80)
+	{
+		aYear = Time.Year + 2000;
+	}
+	else if(Time.Year < 100)
+	{
+		aYear = Time.Year + 1900;
+	}
+	else
+	{
+		aYear = Time.Year;
+	}
+	
+	//months
+	if(Time.Month <= 2)
+	{
+		aMonth = Time.Month + 12;
+		aYear = Time.Year - 1;
+	}
+	else
+	{
+		aMonth = Time.Month;
+	}
+	
+	//std::cout << "aYear = " << aYear << std::endl;
+	//std::cout << "aMonth = " << aMonth << std::endl;
+	
+	double aC = floor(aYear / 100);
+	//std::cout << "aC = " << aC << std::endl;
+	
+	double aB = 2 - aC + floor(aC / 4);
+	//std::cout << "aB = " << aB << std::endl;
+	
+	double aT = (Time.Hour/24) + (Time.Minute/1440) + (aSec/86400);
+	//printf("aT = %.15f \n", aT);
+	
+	double aJD = floor(365.25 * (aYear+4716)) + floor(30.6001 * (aMonth+1)) + Time.Day + aT + aB - 1524.5;
+	//printf("aJD = %.15f \n", aJD);
+	
+	double aS1970 = (aJD - JD2000) * 86400 + J2000; // seconds starting from 1970-01-01T00:00:00
+	//printf("aS1970 = %.15f \n", aS1970);
+	
+	double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
+	//printf("aMJD = %.15f \n", aMJD);
+	
+	return aMJD;
+	
+}
+
+double cRPG_Appli::towTime2MJD(const towTime & Time, const std::string & TimeSys)
+{
+	double aSec = Time.Tow;
+	
+	if(TimeSys == "UTC")
+	{
+		aSec -= LeapSecond;
+	}
+	
+	double aS1970 = Time.GpsWeek * 7 * 86400 + aSec + GPS0;
+	
+	double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
+	
+	return aMJD;
+}
+
+cRPG_Appli::cRPG_Appli(int argc,char ** argv)
+{
+	bool aShowH = false;
+	bool aXYZ = false;
+	std::string aTimeSys="";
+	int aCompt = 0;
+	double aTimeF = 0;
+	
+	
+	std::vector<PosGPS> aVPosGPS;
+	std::vector<Pt3dr> aVSauvPosGPS;
+	
 	
 	ElInitArgMain
     (
           argc, argv,
-          LArgMain() << EAMC(aDir, "Directory")
-					 << EAMC(aFile, "Rtk Output.txt file",  eSAM_IsExistFile),
-          LArgMain() << EAM(aOut,"Out",false,"output txt file name ; Def=Output.xml")
-					 << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
-					 << EAM(aShowH,"ShowH",false,"Show header informations ; Def = false", eSAM_IsBool)
-					 << EAM(aXYZ,"XYZ",false,"Export XYZ format data ; Def = false", eSAM_IsBool)
+          LArgMain() << EAMC(mDir, "Directory")
+					 << EAMC(mFile, "RTKlib Output (MyFile.txt) file",  eSAM_IsExistFile),
+          LArgMain() << EAM(mOut,"Out",false,"Output file name ; Def=MyFile.xml")
+					 << EAM(mStrChSys,"ChSys",true,"Change coordinate file")
+					 << EAM(aShowH,"ShowH",true,"Show header informations ; Def = false", eSAM_IsBool)
+					 << EAM(aXYZ,"tXYZ",false,"Export tXYZ format ASCII data ; Def = false", eSAM_IsBool)
     );
     
-    std::string aFullName = aDir+aFile;
+    std::string aFullName = mDir+mFile;
     
     //name output (.xml) file
-    if (aOut=="")
+    if (mOut=="")
     {
-		aOut = StdPrefixGen(aFile) + ".xml";
+		mOut = StdPrefixGen(mFile) + ".xml";
     }
     
-    std::vector<Pt3dr> aPosList;
-    std::vector<Pt3dr> aIcList;
-    std::vector<int> Flag;
-    std::vector<std::string> Time;
-    
     //read rtk input file
-    ifstream fichier(aFullName.c_str());
+    ifstream aFichier(aFullName.c_str());
 
-    if(fichier)
+    if(aFichier)
     {
-
-		std::string ligne; 												
+		std::string aLigne;
         
-        while(!fichier.eof())
+        while(!aFichier.eof())
         {
-			getline(fichier,ligne);
+			getline(aFichier,aLigne);
             
-            if(ligne.compare(0,1,"%") == 0)								
+            //if first string = % ==> it is a comment
+            if(aLigne.compare(0,1,"%") == 0)						
             {
+				
+				//check time system (second comparaison to avoid all other lines starting also with '%')
+				if(aLigne.compare(0,6,"%  UTC") == 0 && aLigne.compare(1,2,"  ") == 0)
+				{
+					aTimeSys = "UTC";
+				}
+				else if(aLigne.compare(0,7,"%  GPST") == 0 && aLigne.compare(1,2,"  ") == 0)
+				{
+					aTimeSys = "GPST";
+				}
+				else
+				{
+					aTimeSys = "NONE";
+				}
+				
+				//show header infos
 				if(aShowH)
-					std::cout << ligne << std::endl;			
+				{
+					std::cout << aLigne << std::endl;
+				}
             }
-            
-            //if line is not empty
-            else if(ligne.size() != 0)       							
-            {
-				std::string s = ligne;
-                std::vector<string> coord;                 
-                int lowmark=-1;
-                int uppermark=-1;
-                
-                for(unsigned int i=0;i<s.size()+1;i++)     				
-                {
-					if(std::isspace(s[i]) && (lowmark!=-1))
-                    {                             
-						string token = s.substr(lowmark,uppermark);                             
-                        coord.push_back(token);
-                        
-                        //nouveau mot
-                        lowmark=-1;
-                        uppermark=-1;
-                    }
-                    else
-                        if(!(std::isspace(s[i])) && (lowmark==-1))
-                        {
-							lowmark=i;
-                            uppermark=i+1;
-                        }
-                        else if(!(std::isspace(s[i])) && (lowmark!=-1))
-                        {
-                              uppermark++;
-                        }
-                        else
-                        {
-                              lowmark=-1;
-                              uppermark=-1;
-                        }
-                }
 
-                Pt3dr Pt;											
-                Pt3dr Ic;
+            //if the line is not empty, read data
+            //%  GPST                            x-ecef(m)      y-ecef(m)      z-ecef(m)   Q  ns   sdx(m)   sdy(m)   sdz(m)  sdxy(m)  sdyz(m)  sdzx(m) age(s)  ratio
+			//2016/06/13 15:05:09.249187296   4214354.4165    172234.1963   4768501.6929   1   6   0.0147   0.0078   0.0133   0.0071   0.0020   0.0083   0.08  147.8
+            if(!aLigne.empty() && aLigne.compare(0,1,"%") != 0)
+            {	
+				if(aTimeSys == "NONE")
+				{
+					ELISE_ASSERT(false,"Time System Not Supported");
+				}
+				
+				char *aBuffer = strdup((char*)aLigne.c_str());
+                std::string aTimeP1 = strtok(aBuffer," ");
+                std::string aTimeP2 = strtok( NULL, " " );
+                char *aX = strtok( NULL, " " );
+                char *aY = strtok( NULL, " " );
+                char *aZ = strtok( NULL, " " );
+                char *aQ = strtok( NULL, " " );
+                char *aNS = strtok( NULL, " " );
+                char *aSDX = strtok( NULL, " " );
+                char *aSDY = strtok( NULL, " " );
+                char *aSDZ = strtok( NULL, " " );
+                char *aSDXY = strtok( NULL, " " );
+                char *aSDYZ = strtok( NULL, " " );
+                char *aSDZX = strtok( NULL, " " );
+                char *aAGE = strtok( NULL, " " );
+                char *aRATIO = strtok( NULL, " " );
                 
-                std::string tps = coord[0];
+                aCompt++;
                 
-                Pt.x = atof(coord[2].c_str());
-                Pt.y = atof (coord[3].c_str());
-                Pt.z = atof (coord[4].c_str());
+                //check output format : hms OR tow ?
+                if(aTimeP1.size() > 4)
+                {
+					//std::cout << "Detected Time Format = hms" << std::endl;
+					
+					hmsTime aHmsTps;
+					aHmsTps.Year = atof(aTimeP1.substr(0,4).c_str());
+					//std::cout << "aHmsTps.Year == " << aHmsTps.Year << std::endl;
+					aHmsTps.Month = atof(aTimeP1.substr(5,2).c_str());
+					//std::cout << "aHmsTps.Month == " << aHmsTps.Month << std::endl;
+					aHmsTps.Day = atof(aTimeP1.substr(8,02).c_str());
+					//std::cout << "aHmsTps.Day == " << aHmsTps.Day << std::endl;
+					aHmsTps.Hour = atof(aTimeP2.substr(0,2).c_str());
+					//std::cout << "aHmsTps.Hour == " << aHmsTps.Hour << std::endl;
+					aHmsTps.Minute = atof(aTimeP2.substr(3,2).c_str());
+					//std::cout << "aHmsTps.Minute == " << aHmsTps.Minute << std::endl;
+					aHmsTps.Second = atof(aTimeP2.substr(6,aTimeP2.size()-6).c_str());
+					//std::cout << "aHmsTps.Second == " << aHmsTps.Second << std::endl;
+					
+					aTimeF = hmsTime2MJD(aHmsTps,aTimeSys);
+					
+				}
+				
+				else if(aTimeP1.size() == 4)
+				{
+					//std::cout << "Detected Time Format = tow" << std::endl;
+					
+					towTime aTowTps;
+					aTowTps.GpsWeek = atof(aTimeP1.c_str());
+					aTowTps.Tow = atof(aTimeP2.c_str());
+					
+					aTimeF = towTime2MJD(aTowTps,aTimeSys);
+				}
+				
+				else
+				{
+					ELISE_ASSERT(false,"Time Format Not Supported");
+				}
                 
-                int f_q = atoi(coord[5].c_str());
+                Pt3dr aPt(atof(aX),atof(aY),atof(aZ));
+                Pt3dr aInc(atof(aSDX),atof(aSDY),atof(aSDZ));
+                Pt3dr aVar(atof(aSDXY),atof(aSDYZ),atof(aSDZX));
                 
-                Ic.x = atof(coord[7].c_str());
-                Ic.y = atof(coord[8].c_str());
-                Ic.z = atof(coord[9].c_str());
+                //printf("aTimeF = %.15f \n", aTimeF);
                 
-                aPosList.push_back(Pt);                      
-                aIcList.push_back(Ic);
-                Flag.push_back(f_q);
-                Time.push_back(tps);                
-            }
-        }
-      
-        fichier.close();  												
+                PosGPS aPosC;
+                aPosC.Pos = aPt;
+                aPosC.Name = NumberToString(aCompt);
+                aPosC.Flag = atoi(aQ);
+                aPosC.Time = aTimeF;
+                aPosC.Ic = aInc;
+                aPosC.VarCoVar = aVar;
+                aPosC.NS = atoi(aNS);
+                aPosC.Age = atof(aAGE);
+                aPosC.Ratio = atof(aRATIO);
+                
+                aVPosGPS.push_back(aPosC);
+                aVSauvPosGPS.push_back(aPt);
+                
+			}
+            
+		}
+		
+		std::cout << "Detected Time System = " << aTimeSys << std::endl;
+        aFichier.close();  												
     }
     
     else
-    
-		std::cout<< "Erreur à l'ouverture !" << '\n';
-		
-		
+    {
+		std::cout<< "Error While opening file" << '\n';
+	}
+			
 	 //if changing coordinates system
      cChSysCo * aCSC = 0;
-     if (aStrChSys!="")
-		aCSC = cChSysCo::Alloc(aStrChSys,"");
+     
+     if (mStrChSys!="")
+		aCSC = cChSysCo::Alloc(mStrChSys,"");
 		
 	 if (aCSC!=0)
      {
-		aPosList = aCSC->Src2Cibl(aPosList);
+		aVSauvPosGPS = aCSC->Src2Cibl(aVSauvPosGPS);
      }
 	
 	cDicoGpsFlottant  aDico;
 	
-    for (int aKP=0 ; aKP<int(aPosList.size()) ; aKP++)
+    for (int aKP=0 ; aKP<int(aVSauvPosGPS.size()) ; aKP++)
     {
 		cOneGpsDGF aOAD;
-        aOAD.Pt() = aPosList[aKP];
-        aOAD.Incertitude() = aIcList[aKP];
-        aOAD.TagPt() = Flag[aKP];
-        aOAD.TimePt() = Time[aKP];
+        aOAD.Pt() = aVSauvPosGPS[aKP];
+        aOAD.NamePt() = aVPosGPS[aKP].Name;
+        aOAD.Incertitude() = aVPosGPS[aKP].Ic;
+        aOAD.TagPt() = aVPosGPS[aKP].Flag;
+        aOAD.TimePt() = aVPosGPS[aKP].Time;
 
         aDico.OneGpsDGF().push_back(aOAD);
 	}
 
-    MakeFileXML(aDico,aOut);
+    MakeFileXML(aDico,mOut);
     
+    //if (.txt) file export
     if(aXYZ)
     {
 		if (!MMVisualMode)
 		{
-			std::string aTxtOut = StdPrefixGen(aFile) + ".xyz";
+			std::string aTxtOut = StdPrefixGen(mFile) + "_txyz.txt";
 			
 			FILE * aFP = FopenNN(aTxtOut,"w","ConvertRtk_main");
 				
-			cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aTxtOut);
+			cElemAppliSetFile aEASF(mDir + ELISE_CAR_DIR + aTxtOut);
 				
-			for (unsigned int aK=0 ; aK<aPosList.size() ; aK++)
+			for (unsigned int aK=0 ; aK<aVSauvPosGPS.size() ; aK++)
 			{
-				fprintf(aFP,"%lf %lf %lf \n",aPosList[aK].x,aPosList[aK].y,aPosList[aK].z);
+				fprintf(aFP,"%lf %lf %lf %lf \n",aVPosGPS[aK].Time,aVSauvPosGPS[aK].x,aVSauvPosGPS[aK].y,aVSauvPosGPS[aK].z);
 			}
 			
 		ElFclose(aFP);
@@ -199,9 +432,13 @@ int ConvertRtk_main(int argc,char ** argv)
 		}
 	}
     
-   	return EXIT_SUCCESS;
 }
 
+int ConvertRtk_main(int argc,char ** argv)
+{
+	 cRPG_Appli anAppli(argc,argv);
+     return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

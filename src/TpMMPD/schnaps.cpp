@@ -102,8 +102,8 @@ cPicSize::cPicSize(Pt2di aSz,int aNumWindows) :
     mPicSz(aSz)
 {
     float aXYratio=((float)aSz.x)/aSz.y;
-    mNbWin.x=sqrt(aNumWindows)*sqrt(aXYratio)+1;
-    mNbWin.y=sqrt(aNumWindows)/sqrt(aXYratio)+1;
+    mNbWin.x=sqrt((double)aNumWindows)*sqrt(aXYratio)+1;
+    mNbWin.y=sqrt((double)aNumWindows)/sqrt(aXYratio)+1;
     mWinSz.x=((float)mPicSz.x)/mNbWin.x+0.5;
     mWinSz.y=((float)mPicSz.y)/mNbWin.y+0.5;
     mUsageBuffer=mNbWin.x/20;//where the arbitrary buffer size is calculated

@@ -682,9 +682,13 @@ set(ELISE_DIR src)
 # CONSTRUCTION : Librairie ANN
 add_subdirectory(${PROJECT_SOURCE_DIR}/CodeExterne/ANN)
 # CONSTRUCTION : Librairie POISSON
-add_subdirectory(${PROJECT_SOURCE_DIR}/CodeExterne/Poisson)
+if (${BUILD_POISSON})
+	add_subdirectory(${PROJECT_SOURCE_DIR}/CodeExterne/Poisson)
+endif()
 # CONSTRUCTION : Librairie Rnx2rtkp
-add_subdirectory(${PROJECT_SOURCE_DIR}/CodeExterne/rnx2rtkp)
+if (${BUILD_RNX2RTKP})
+	add_subdirectory(${PROJECT_SOURCE_DIR}/CodeExterne/rnx2rtkp)
+endif()
 # CONSTRUCTION : Librairie ELISE
 set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere)
 include(${code_genere_dir}/Sources.cmake)
