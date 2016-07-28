@@ -115,7 +115,7 @@ string ReadDate(string aNameFile)
 return aDate;
 }
 
-void DestripASTER(string aDir, string aNameFile)
+void DestripASTER(string aDir, string aNameFile, string aOutDir)
 {
 
 	//Reading correction tables
@@ -169,7 +169,7 @@ void DestripASTER(string aDir, string aNameFile)
 
 
 	//Output
-	string aNameOut_3N = aDir + aNameFile + ".3N_Corrected.tif";
+	string aNameOut_3N = aOutDir + aNameFile + ".3N_Destrip.tif";
 
 	Tiff_Im  aTOut_3N
 	(
@@ -189,7 +189,7 @@ void DestripASTER(string aDir, string aNameFile)
 	);
 
 
-	string aNameOut_3B = aDir + aNameFile + ".3B_Corrected.tif";
+	string aNameOut_3B = aOutDir + aNameFile + ".3B_Destrip.tif";
 	Tiff_Im  aTOut_3B
 	(
 		aNameOut_3B.c_str(),
@@ -361,7 +361,7 @@ int ASTERGT2MM_main(int argc, char ** argv)
 {
 	//std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
 	std::string aNameFile;
-	std::string aNameOut = "";
+	std::string aOutDir = "../";
 	//Reading the arguments
 	ElInitArgMain
 	(
@@ -369,14 +369,14 @@ int ASTERGT2MM_main(int argc, char ** argv)
 		LArgMain()
 		<< EAMC(aNameFile, "Name of ASTER scene", eSAM_IsPatFile),
 		LArgMain()
-		//<< EAM(aNameOut, "Out", true, "Name of output image (Def=ImName_corrected.tif")
+		<< EAM(aOutDir, "DirOut", true, "Output folder (end with /) , def is ../")
 	);
 
 	std::string aDir, aPatIm;
 	SplitDirAndFile(aDir, aPatIm, aNameFile);
 
 	//Destripping the images using RadiommetricCorrectionTable
-	//DestripASTER(aDir, aNameFile);
+	DestripASTER(aDir, aNameFile, aOutDir);
 	
 	string aDate = ReadDate(aNameFile + ".VNIR_Band3N.ObservationTime.txt");
 
