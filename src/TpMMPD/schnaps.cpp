@@ -637,8 +637,8 @@ std::vector<int> cPic::getStats(bool before)
             numHomolMultiplicity.resize(multi+1,0);
         numHomolMultiplicity[multi]++;
 
-        if (multi>4)
-            (itPointOnPic->second)->getHomol()->print();
+        //if (multi>4)
+        //    (itPointOnPic->second)->getHomol()->print();
     }
     return numHomolMultiplicity;
 }
@@ -805,11 +805,11 @@ int schnaps_main(int argc,char ** argv)
         cInterfChantierNameManipulateur * homolICNM=cInterfChantierNameManipulateur::BasicAlloc(aCKin.getDir(pic1->getName(),aPatIm));
         std::list<std::string> aSetPac = homolICNM->StdGetListOfFile(aCKin.getFile(pic1->getName(),aPatIm),2,false);
                 
-        std::cout<<"Found "<<aSetPac.size()<<" pacs."<<endl;
+        std::cout<<"Found "<<aSetPac.size()<<" pacs and ";
         
-        //if (i==20) return 0;
         i++;
         std::list<std::string>::iterator itPacName;
+        long nb_homol_raw=0;
         for (itPacName=aSetPac.begin();itPacName!=aSetPac.end();++itPacName)
         {
             itPic2=allPics.find( (*itPacName) );
@@ -823,19 +823,18 @@ int schnaps_main(int argc,char ** argv)
                 //cout<<aNameIn1<<"  Pack size: "<<aPackIn1.size()<<"\n";
                 for (ElPackHomologue::const_iterator itP=aPackIn1.begin(); itP!=aPackIn1.end() ; ++itP)
                 {
+                    nb_homol_raw++;
+                    
                     Pt2dr aP1 = itP->P1();
                     Pt2dr aP2 = itP->P2();
-
 
                     #ifdef ReductHomolImage_DEBUG
                     std::cout<<" On "<<aNameIn1<<" for pair : "<<aP1<<" "<<aP2<<" => ";
                     #endif
                     
-
                     //search if already exists :
                     cPointOnPic *aPointOnPic1=pic1->findPointOnPic(aP1);
                     cPointOnPic *aPointOnPic2=pic2->findPointOnPic(aP2);
-                    
                     
                     #ifdef ReductHomolImage_DEBUG
                     std::cout<<" Result Homol: "<<aPointOnPic1<<" "<<aPointOnPic2<<std::endl;
@@ -931,6 +930,7 @@ int schnaps_main(int argc,char ** argv)
                 }
             }
         }
+        std::cout<<nb_homol_raw<<" raw homol couples."<<std::endl;
     }
 
     ELISE_ASSERT(allHomolsIn.size()>0,"ERROR: No pack found!");

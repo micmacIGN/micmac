@@ -472,9 +472,12 @@ int InitOriLinear_main(int argc,char ** argv)
             aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirRefImages);
             const std::vector<std::string> aSetRefImages = *(aICNM->Get(aPatRefImages));
 
+            std::cout<<"\nRef images ("<<aPatRefImages<<"):\n";
+            for (unsigned int k=0;k<aSetRefImages.size();k++)
+                std::cout<<" - "<<aSetRefImages[k]<<"\n";
+            
             ELISE_ASSERT(aSetRefImages.size()>1,"Number of reference image must be > 1");   //pour chaque camera, il fault au moins 2 images pour caculer vector de deplacement
 
-            std::cout<<"\nRef images:\n";
             //Read orientation initial (first image in series)
             string aOriRefImage="Ori-"+aOriRef+"/Orientation-"+aSetRefImages.back()+".xml";
             cOrientationConique aOriConiqueRef=StdGetFromPCP(aOriRefImage,OrientationConique);
