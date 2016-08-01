@@ -130,16 +130,20 @@ bool cAppliTiepRed::DoLoadTiePoints(){
 				NM().LoadHomFloats(masterImage.ImageName(), homolImage.ImageName(), &masterImageTiePoints, &homolImageTiePoints);
 			}
 
-			// Update counter of tie-points in master
-			masterImage.SetNbPtsHom2Im(masterImage.NbPtsHom2Im() + masterImageTiePoints.size());
-			// Set number of tie-points for this homol image
-			homolImage.SetNbPtsHom2Im(masterImageTiePoints.size());
+			if (masterImageTiePoints.size() > ((std::size_t) mMinNumHomol)){
 
-			// Set the maximum number of homol points between a image-pair
-			if (homolImage.NbPtsHom2Im() > mMaxNumHomol) mMaxNumHomol = homolImage.NbPtsHom2Im();
+				// Update counter of tie-points in master
+				masterImage.SetNbPtsHom2Im(masterImage.NbPtsHom2Im() + masterImageTiePoints.size());
+				
+				// Set number of tie-points for this homol image
+				homolImage.SetNbPtsHom2Im(masterImageTiePoints.size());
 
-			// Add to image pair map
-			mImagePairsMap.insert(make_pair(make_pair(masterImage.ImageId(), homolImage.ImageId()), imagePairLink));
+				// Set the maximum number of homol points between a image-pair
+				if (homolImage.NbPtsHom2Im() > mMaxNumHomol) mMaxNumHomol = homolImage.NbPtsHom2Im();
+
+				// Add to image pair map
+				mImagePairsMap.insert(make_pair(make_pair(masterImage.ImageId(), homolImage.ImageId()), imagePairLink));
+			}
 		}
 	}else{
 		std::cout << "#InitialHomolPoints:" << mNumInit << ". All related images already processed, nothing else to be done here!" << endl;
@@ -240,8 +244,9 @@ void cAppliTiepRed::DoExport(){
 			// If there are tie-points we write to the related files
 			if (aPack1.size()) aPack1.StdPutInFile(NameHomol(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
 			if (aPack2.size()) aPack2.StdPutInFile(NameHomol(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
-			if (aPack1Temp.size()) aPack1Temp.StdPutInFile(NameHomolTemp(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
-			if (aPack2Temp.size()) aPack2Temp.StdPutInFile(NameHomolTemp(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
+			// We always stre the temp files, even if they are empty. This indicates other tasks that these image pairs were processed
+			aPack1Temp.StdPutInFile(NameHomolTemp(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
+			aPack2Temp.StdPutInFile(NameHomolTemp(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
 		}
 	}
 	// Log the reduction
