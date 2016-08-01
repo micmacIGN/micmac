@@ -1,0 +1,333 @@
+<Global
+    Subst="@$#1"
+>
+   <ParamApero>
+<DicoLoc>
+   <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>   F([0-9]{3})_IMG_(${PatternNumero})_.*.tif  </PatternTransform>
+                <CalcName>  TheKeyCalib_$1_$2 </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Cal-Var </Key>
+    </KeyedNamesAssociations>
+
+</DicoLoc>
+
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+
+           <BDD_PtsAppuis>
+                  <Id>  IdAppuisCartes </Id>
+                  <KeySet>   Key-Set-All-Appuis-Cartes       </KeySet>
+                  <KeyAssoc> Key-Assoc-Carte2Appuis  </KeyAssoc>
+                  <BddApp_AutoNum >
+                      <DistFusion> 1e-8 </DistFusion>
+                      <DistAmbiguite> 1e-9 </DistAmbiguite>
+                  </BddApp_AutoNum>
+
+             </BDD_PtsAppuis>
+
+            <BDD_Orient>
+                  <Id>  IdOrFinale </Id>
+                  <KeySet>   Key-Set-OrFinale       </KeySet>
+                  <KeyAssoc> Key-Assoc-Im2OrFinale  </KeyAssoc>
+             </BDD_Orient>
+
+
+
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_050 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   AutoCalInit-050.xml    </NameFile>
+			   <NameTag>    Interne </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+                   <CalibPerPose>
+                           <KeyPose2Cal> Key-Assoc-Cal-Var </KeyPose2Cal>
+                           <KeyInitFromPose> Key-Assoc-Im2OrFinale </KeyInitFromPose>
+                    </CalibPerPose>
+              </CalibrationCameraInc>
+              <CalibrationCameraInc>
+                   <Name> TheKeyCalib_100 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+                           <NameFile>  AutoCalDRad-Canon-100.xml    </NameFile>
+                           <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+
+              <PoseCameraInc>
+<!--
+	           <PatternName>   F050_IMG_[0-9]{4}_MpDcraw8B_GR.tif </PatternName> 
+-->
+	           <PatternName>   F050_IMG_((541[6-9])|(544[0-5]))_MpDcraw8B_GR.tif </PatternName> 
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+                       <PosFromBDOrient>  IdOrFinale </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+            <PoseCameraInc>
+<!--
+                   <PatternName>   F100_IMG_[0-9]{4}_MpDcraw8B_GR.tif </PatternName>
+-->
+                   <PatternName>   F100_IMG_((546[7-9])|(547[0-1]))_MpDcraw8B_GR.tif </PatternName>
+                   <AutoRefutDupl> true </AutoRefutDupl>
+
+                   <InitNow> false </InitNow>
+                   <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+
+
+
+
+                   <MEP_SPEC_MST>
+                           <Show> true </Show>
+                           <MontageOnInit> true </MontageOnInit> 
+                   </MEP_SPEC_MST>
+
+
+                   <PosValueInit>
+                        <PoseFromLiaisons>
+                             <LiaisonsInit>
+                                 <NameCam> ###   </NameCam>
+                                 <IdBD> Id_Pastis_Hom  </IdBD>
+                             </LiaisonsInit>
+                        </PoseFromLiaisons>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+              <EtapeCompensation>
+                    <IterationsCompensation>
+                       <Pose2Init>
+                             <ProfMin> [2] </ProfMin>
+                             <Show> true </Show>
+                       </Pose2Init>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+
+		          </ContraintesCamerasInc>
+                          <ContraintesPoses>
+                             <NamePose>   F050.*</NamePose>
+                             <ByPattern> true </ByPattern>
+                             <Val>      ePoseFigee   </Val>
+                          </ContraintesPoses>
+
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+                    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                  <EcartMax> 15 </EcartMax>
+                                  <SigmaPond> 5 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                           </ObsLiaisons>
+                           <ObsAppuis>
+                              <NameRef> IdAppuisCartes </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  100.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   10    </NbMax>
+                                 <ModePonderation>  eL1Secured </ModePonderation>
+                                 <SigmaPond> 20.0 </SigmaPond>
+                                 <EcartMax> 500.0 </EcartMax>
+                              </Pond>
+                           </ObsAppuis>
+
+                    </SectionObservations>
+              </EtapeCompensation>
+
+
+
+	      <EtapeCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_1  </Val>
+                              <PatternNameApply> TheKeyCalib_100 </PatternNameApply>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR1      </Val>
+                              <PatternNameApply> TheKeyCalib_100 </PatternNameApply>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR2      </Val>
+                              <PatternNameApply> TheKeyCalib_100 </PatternNameApply>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR3      </Val>
+                              <PatternNameApply> TheKeyCalib_100 </PatternNameApply>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLib_PP_CD_01      </Val>
+                              <PatternNameApply> TheKeyCalib_100 </PatternNameApply>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLib_PP_CD_11      </Val>
+                              <PatternNameApply> TheKeyCalib_100 </PatternNameApply>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+
+                           <ObsAppuis>
+                              <NameRef> IdAppuisCartes </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  100.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   10    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 20.0 </SigmaPond>
+				 <EcartMax> 500.0 </EcartMax>
+                              </Pond>
+                           </ObsAppuis>
+		    </SectionObservations>
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <SectionExport>
+                        <ExportPose>
+                            <PatternSel> F100(.*).tif </PatternSel>
+                            <KeyAssoc>  Key-Assoc-Im2OrInit </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+			    <NbVerif>  10 </NbVerif>
+			    <TolWhenVerif> 1e-3 </TolWhenVerif>
+                        </ExportPose>
+                         <ExportCalib>
+                             <PatternSel> TheKeyCalib_100 </PatternSel>
+                             <KeyAssoc>  AutoCalInit-100.xml </KeyAssoc>
+                             <KeyIsName> true </KeyIsName>
+                        </ExportCalib>
+
+                    </SectionExport>
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+
+                           <ObsAppuis>
+                              <NameRef> IdAppuisCartes </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  100.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   10    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 20.0 </SigmaPond>
+				 <EcartMax> 500.0 </EcartMax>
+                              </Pond>
+                           </ObsAppuis>
+		    </SectionObservations>
+	      </EtapeCompensation>
+
+
+
+
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
