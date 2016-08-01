@@ -844,7 +844,32 @@ void cImDigeo::orientateAndDescribe()
 		{
 			cImInMem &image = *images[iLevel];
 
-			image.orientate();
+			#ifdef DIGEO_NO_ANGLE
+				const cPtsCaracDigeo *itSrc = image.featurePoints().data();
+				image.orientedPoints().resize(image.featurePoints().size());
+				DigeoPoint *itDst = image.orientedPoints().data();
+				size_t iFeature = image.featurePoints().size();
+				while ( iFeature-- )
+				{
+					const cPtsCaracDigeo &srcPoint = *itSrc++;
+					DigeoPoint &dstPoint = *itDst++;
+
+					dstPoint.x = srcPoint.mPt.x;
+					dstPoint.y = srcPoint.mPt.y;
+					dstPoint.scale = srcPoint.mScale;
+
+					dstPoint.entries.resize(1);
+					dstPoint.entries[0].angle = 0.;
+					switch (srcPoint.mType)
+					{
+					case eSiftMaxDog: dstPoint.type = DigeoPoint::DETECT_LOCAL_MAX; break;
+					case eSiftMinDog: dstPoint.type = DigeoPoint::DETECT_LOCAL_MIN; break;
+					default: dstPoint.type=DigeoPoint::DETECT_UNKNOWN; break;
+					}
+				}
+			#else
+				image.orientate();
+			#endif
 			image.describe();
 
 			if ( mAppli.doSaveGradients() )

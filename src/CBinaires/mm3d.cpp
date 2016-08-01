@@ -925,13 +925,6 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
 	// use suggestion if there is only one and no exact match has been found
 
-  // MPD  : personnellement je desaprouve cette facilite qui est en fait source de confusion
-	if ( (!MPD_MM())  &&  (toExecute == NULL && PrefMach->mRes.size() == 1))
-	{
-		toExecute = &PrefMach->mRes.front();
-		cout << "using [" << toExecute->mName << ']' << endl;
-	}
-
 	if (toExecute != NULL)
 	{
 		cArgLogCom aLog = toExecute->mLog;
