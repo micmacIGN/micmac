@@ -1,0 +1,161 @@
+<!--
+    Pattron pour le calcul de MNT a partir d'un ensemble de vue convergentes simples.
+ 
+    N Images , toutes convergentes vers la meme zones, angle suffisant pour que l'on puisse
+    faire une mise en place directe.
+-->
+
+<Global>
+   <ChantierDescripteur
+        Subst="@$#1"
+        NameDecl="@$#1"
+
+        PrefixImages="DSC"
+        PostfixRAW="ARW"
+        PostfixDraw="_MpDcraw8B_GR"
+        PatternNumeroGlob="[0-9]{5}"
+        TypeCal="PhgrStd"
+        Focale="028"
+        NumCentreApero="00486"
+        NumRefDraw="0149"
+        PatWithIgi="(004[7-9])|(005[0-2])|(009[6-8])"
+
+
+        ImRefDraw="F028_Niv2_OuvB_DSC00514.ARW"
+        PatternAllIm="F[0-9]{3}_Niv._Ouv._${PrefixImages}${PatternNumeroGlob}${PostfixDraw}\.tif"
+
+        SzSiftInit="500"
+        SzSift="1500"
+        NbJob="7"
+   >
+
+<!--   BATCH  -->
+
+        <BatchChantDesc>
+              <Key> Batch </Key>
+
+<!-- 1- Renommage des images pour avoir la focale dans le Nom -->
+              <Line>  bin/MyRename  "${ThisDir}(${PrefixImages}.*).${PostfixRAW}"   "F\$2_\$1.${PostfixRAW}" AddFoc=1 Exe=1 </Line>
+
+
+ 
+<!-- 2- Derawtisation -->
+              <Line> bin/MapCmd  bin/MpDcraw "P=${ThisDir}(F[0-9]{3}_Niv._Ouv..*).${PostfixRAW}" 16B=0 Offset=4100   GR=1 Cal=Key-Assoc-Calib-Coul BiCubParam=-0.5  ImRef=${ImRefDraw}  Dyn=0.005  Gamma=2  WB=[1,0.36,0.4]  M=MkToto  "T=\$1${PostfixDraw}.tif" </Line>
+ 
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+<!-- 3  HOMOMOLGUES -->
+             
+    <!-- 3-A  Multi-Echelle et en l'Air -->
+
+       <!-- 3-A-1 Basse Resol -->
+              <Line> bin/Pastis  ${ThisDir}  Key-Rel-Init-All-Cples ${SzSift} MkF=MkToto FiltreOnlyDupl=1  NbMinPtsExp=2 </Line>
+
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+
+
+
+               <Line> bin/Apero  ${ThisDir}Apero-EnLair-0.xml  </Line>
+               <Line> bin/Apero  ${ThisDir}Apero-EnLair-1.xml  </Line>
+
+    <!-- 3-B:  Avec Igi -->
+
+        </BatchChantDesc>
+
+
+<!--  HOMOLOGUES  -->
+
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> ${PatternAllIm}  </PatternAccepteur>
+          </Sets>
+          <Key> Key-Set-All-Im </Key>
+    </KeyedSetsOfNames>
+
+   <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  Key-Set-All-Im   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-Init-All-Cples </Key>
+    </KeyedSetsORels>
+
+<!--     CALIBRATIONS  INIT-->
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> F([0-9]{3})_.* </PatternTransform>
+                       <CalcName>  Bayer-Sony-$1.xml </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-Calib-Coul </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> F([0-9]{3})_.*.(tif|TIF) </PatternTransform>
+                <CalcName> Calib-Sony-$1-${TypeCal}.xml </CalcName>
+             </Direct>
+
+        </Calcs>
+        <Key>   Key-Assoc-CalibOfIm </Key>
+    </KeyedNamesAssociations>
+
+<!--     EXPORT CALIBRATIONS  CALC -->
+
+  <KeyedNamesAssociations>
+         <Calcs>
+             <Arrite>  1 1 </Arrite>
+             <Direct>
+                  <PatternTransform> ^TheKeyCalib_(.*)  </PatternTransform>
+                  <CalcName>  Ori-F/F$1_AutoCalFinale.xml </CalcName>
+              </Direct>
+          </Calcs>
+          <Key>   Key-Assoc-CleCal2AutoCalFinale-Niv </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                 <PatternTransform> ^F[0-9]{3}_Niv(.)_.*  </PatternTransform>
+                 <CalcName>  Ori-F/F$1_AutoCalFinale.xml </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Im2AutoCalFinale-Niv </Key>
+    </KeyedNamesAssociations>
+
+<!-- -->
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform>  ^F028_Niv0_OuvA.*\.tif </PatternTransform>
+                       <CalcName>  NoEau.tif  </CalcName>
+                 </Direct>
+            </Calcs>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform>  ^(F028_.*)\.tif </PatternTransform>
+                       <CalcName>  $1_MasqEau.tif  </CalcName>
+                 </Direct>
+            </Calcs>
+            <Key>   Key-Assoc-Masque-Eau </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+  </ChantierDescripteur>
+</Global>
