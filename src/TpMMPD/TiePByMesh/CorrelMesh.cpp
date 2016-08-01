@@ -113,17 +113,17 @@ pic* CorrelMesh::chooseImgMaitre(bool assum1er = true)
 //}
 
 
-/*=====Search for homol in specific triangle - search b/w PicM & all others pic========
- * indTri: index du triangle 3D sur le mesh
- * 1. reproject tri3D => 2 tri2D on image
- * 2. cherche les pack homol init => des couple imgM + imgs2nd
- * 2. Pour chaque couple :choisir un image maitraisse
- * 3. prendre imagette imget1 autour tri2D d'image maitraisse
- * 4. chercher affine b/w 2 tri2D
- * 5. prendre imagette imget2 autour tri2D d'image 2nd par affine
- * 6. correlation pour chaque pts d'interet dans imget1 avec pts dans imget2
- * 7. sort -> prendre pts correlation plus fort
-*/
+///*=====Search for homol in specific triangle - search b/w PicM & all others pic========
+// * indTri: index du triangle 3D sur le mesh
+// * 1. reproject tri3D => 2 tri2D on image
+// * 2. cherche les pack homol init => des couple imgM + imgs2nd
+// * 2. Pour chaque couple :choisir un image maitraisse
+// * 3. prendre imagette imget1 autour tri2D d'image maitraisse
+// * 4. chercher affine b/w 2 tri2D
+// * 5. prendre imagette imget2 autour tri2D d'image 2nd par affine
+// * 6. correlation pour chaque pts d'interet dans imget1 avec pts dans imget2
+// * 7. sort -> prendre pts correlation plus fort
+//*/
 //void CorrelMesh::correlInTri(int indTri)
 //{
 //    mSzW=3; //size correlation each pts interest
