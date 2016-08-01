@@ -142,7 +142,7 @@ bool cAppliTiepRed::DoLoadTiePoints(){
 
 				// Update counter of tie-points in master
 				masterImage.SetNbPtsHom2Im(masterImage.NbPtsHom2Im() + masterImageTiePoints.size());
-				
+
 				// Set number of tie-points for this homol image
 				homolImage.SetNbPtsHom2Im(masterImageTiePoints.size());
 
@@ -252,8 +252,9 @@ void cAppliTiepRed::DoExport(){
 			// If there are tie-points we write to the related files
 			if (aPack1.size()) aPack1.StdPutInFile(NameHomol(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
 			if (aPack2.size()) aPack2.StdPutInFile(NameHomol(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
-			if (aPack1Temp.size()) aPack1Temp.StdPutInFile(NameHomolTemp(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
-			if (aPack2Temp.size()) aPack2Temp.StdPutInFile(NameHomolTemp(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
+			// Always save the temp files, to indicate other tasks that this has been done
+			aPack1Temp.StdPutInFile(NameHomolTemp(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
+			aPack2Temp.StdPutInFile(NameHomolTemp(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
 		}
 	}
 	// Log the reduction
