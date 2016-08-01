@@ -73,7 +73,7 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aMultiTiePointRaw, cAppliTiepRed & anAppli) 
 				double acc;
 				cLnk2ImTiepRed * imagePair = anAppli.ImagePairsMap()[std::make_pair(0,aVecInd[i])];
 				(imagePair->Cam1()).PseudoInterPixPrec(ToPt2dr(mMultiTiePointRaw->GetVal(0)),imagePair->Cam2(),ToPt2dr(mMultiTiePointRaw->GetVal(aVecInd[i])),acc);
-		    accuracies.push_back(acc);
+				accuracies.push_back(acc);
 			}
 		}
 		mAcc = *(std::max_element(accuracies.begin(), accuracies.end()));
