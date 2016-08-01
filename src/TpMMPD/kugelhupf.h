@@ -144,8 +144,8 @@ class cCorrelImage
 {
   public :
     cCorrelImage();
-    Im2D<REAL4,REAL8> * getIm(){return &mIm;}
-    TIm2D<REAL4,REAL8> * getImT(){return &mTIm;}
+    Im2D<U_INT1,INT4> * getIm(){return &mIm;}
+    TIm2D<U_INT1,INT4> * getImT(){return &mTIm;}
     double CrossCorrelation(const cCorrelImage & aIm2);
     double Covariance(const cCorrelImage & aIm2);
     int getSzW();
@@ -159,8 +159,8 @@ class cCorrelImage
     void prepare();//prepare for correlation (when mTifIm is set)
 
     Pt2di mSz;
-    TIm2D<REAL4,REAL8> mTIm; //the picture
-    Im2D<REAL4,REAL8>  mIm;
+    TIm2D<U_INT1,INT4> mTIm; //the picture
+    Im2D<U_INT1,INT4>  mIm;
     TIm2D<REAL4,REAL8> mTImS1; //the sum picture
     Im2D<REAL4,REAL8>  mImS1;
     TIm2D<REAL4,REAL8> mTImS2; //the sum² picture

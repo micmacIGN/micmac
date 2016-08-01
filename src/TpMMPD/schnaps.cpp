@@ -815,16 +815,15 @@ int schnaps_main(int argc,char ** argv)
             itPic2=allPics.find( (*itPacName) );
             if (itPic2==allPics.end()) continue; //if the pic has been removed after Tapioca
             cPic *pic2=(*itPic2).second; 
-            
+
             std::string aNameIn1= aDirImages + aCKin.get(pic1->getName(),pic2->getName());
             //if (ELISE_fp::exist_file(aNameIn1))
             {
                 ElPackHomologue aPackIn1 =  ElPackHomologue::FromFile(aNameIn1);
                 //cout<<aNameIn1<<"  Pack size: "<<aPackIn1.size()<<"\n";
+                nb_homol_raw+=aPackIn1.size();
                 for (ElPackHomologue::const_iterator itP=aPackIn1.begin(); itP!=aPackIn1.end() ; ++itP)
                 {
-                    nb_homol_raw++;
-                    
                     Pt2dr aP1 = itP->P1();
                     Pt2dr aP2 = itP->P2();
 
