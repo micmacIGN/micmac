@@ -239,6 +239,7 @@ class cAppliTiepRed {
 		bool mDesc; //Indicates if the user wishes to use descending order in sorting the images, instead of ascending
 		int mSubcommandIndex; // Subcommand index
 		int mGainMode; // Mode to compute the Gain of a multi-tie-point
+		int mMinNumHomol; // Minimum number of homol points for a pair not to be excluded
 		int mMaxNumRelated; // Maximum number of related images for an image
 		int	mMaxNumHomol; // Maximum number of tie-points in a image-pair (used for adaptive grids)
 		int mNumInit; // Initial number of tie-points in the master image

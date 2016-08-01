@@ -56,6 +56,7 @@ The project is funded by the Netherlands eScience Center
 cPMulTiepRed::cPMulTiepRed(tMerge * aMultiTiePointRaw, cAppliTiepRed & anAppli)  :
 	mMultiTiePointRaw (aMultiTiePointRaw),
 	mAcc(0),
+	mGain(0),
 	mRemoved (false)
 {
 	// If Gain is 1, we need to compute the accuracy of this multi-tie-point
