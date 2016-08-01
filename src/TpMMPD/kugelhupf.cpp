@@ -824,14 +824,14 @@ void cCorrelImage::prepare()
   ELISE_COPY
     (
      mIm.all_pts(),
-     rect_som(mIm.in_proj(),mSzW) / ElSquare(1+2*mSzW),
+     rect_som(mIm.in_proj(),mSzW) / ElSquare(1.0+2*mSzW),
      mImS1.out()
     );
 
   ELISE_COPY
     (
      mIm.all_pts(),
-     rect_som(Square(mIm.in_proj()),mSzW) / ElSquare(1+2*mSzW),
+     rect_som(Square(mIm.in_proj()),mSzW) / ElSquare(1.0+2*mSzW),
      mImS2.out()
     );
 
@@ -866,8 +866,8 @@ double cCorrelImage::Covariance( const cCorrelImage & aIm2 )
   Pt2di aPIm1(mSzW,mSzW);
   if (1) // A test to check the low level access to data - pixel access
   {
-    float ** aRaw2 = mIm.data();
-    float *  aRaw1 = mIm.data_lin();
+    unsigned char ** aRaw2 = mIm.data();
+    unsigned char *  aRaw1 = mIm.data_lin();
     ELISE_ASSERT(mTIm.get(aPIm1)==aRaw2[aPIm1.y][aPIm1.x],"iiiii");
     ELISE_ASSERT((aRaw1+aPIm1.y*mSz.x) ==aRaw2[aPIm1.y],"iiiii");
   }
