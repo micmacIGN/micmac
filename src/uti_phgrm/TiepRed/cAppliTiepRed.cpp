@@ -98,7 +98,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv)  :
                 << EAM(mWeightAccGain,"WeightAccGain",true,"Weight of median accuracy with respect to multiplicity (NumPairs) when computing Gain of multi-tie-point, i.e. K in formula Gain=NumPairs*(1/1 + (K*Acc/AccMed)^2) (if K=0 then Gain is NumPairs), def=0.5")
                 << EAM(mMinNumHomol,"MinNumHomol",true,"Ignore tie-points from image pairs with lesser number of tie-points than the value indicated with this parameters, def=20")
 
-  );
+	);
 	// if mSubcommandIndex was set, this is not the parent process.
   // This is child running a task/subcommand, i.e. a tie-point reduction task of a master image and its related images
 	mCallBack = EAMIsInit(&mSubcommandIndex);

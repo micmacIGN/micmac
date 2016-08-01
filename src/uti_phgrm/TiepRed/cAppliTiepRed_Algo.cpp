@@ -111,9 +111,17 @@ bool cAppliTiepRed::DoLoadTiePoints(){
 			// Get related image name
 			cImageTiepRed & homolImage = *(mImages[i]);
 			// Get the camera pair
-			std::pair<CamStenope*,CamStenope*> cameraPair = NM().CamOriRel(masterImage.ImageName(),homolImage.ImageName());
-			// Create a image pair instance with initially no tie-points
-			cLnk2ImTiepRed * imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage, &(*(cameraPair.first)), &(*(cameraPair.second)));
+			cLnk2ImTiepRed * imagePairLink;
+			if (masterImage.ImageName() > homolImage.ImageName()){
+				std::pair<CamStenope*,CamStenope*> cameraPair = NM().CamOriRel(homolImage.ImageName(),masterImage.ImageName());
+				// Create a image pair instance with initially no tie-points
+				imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage, cameraPair.second, cameraPair.first);
+			}else{
+				std::pair<CamStenope*,CamStenope*> cameraPair = NM().CamOriRel(masterImage.ImageName(),homolImage.ImageName());
+				// Create a image pair instance with initially no tie-points
+				imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage, cameraPair.first, cameraPair.second);
+			}
+
 			// Get references to the empty list of tie-points in both images
 			std::vector<Pt2df> & masterImageTiePoints = imagePairLink->VP1();
 			std::vector<Pt2df> & homolImageTiePoints = imagePairLink->VP2();
@@ -244,9 +252,8 @@ void cAppliTiepRed::DoExport(){
 			// If there are tie-points we write to the related files
 			if (aPack1.size()) aPack1.StdPutInFile(NameHomol(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
 			if (aPack2.size()) aPack2.StdPutInFile(NameHomol(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
-			// We always stre the temp files, even if they are empty. This indicates other tasks that these image pairs were processed
-			aPack1Temp.StdPutInFile(NameHomolTemp(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
-			aPack2Temp.StdPutInFile(NameHomolTemp(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
+			if (aPack1Temp.size()) aPack1Temp.StdPutInFile(NameHomolTemp(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
+			if (aPack2Temp.size()) aPack2Temp.StdPutInFile(NameHomolTemp(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
 		}
 	}
 	// Log the reduction
