@@ -535,6 +535,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv);
 int ExportHemisTM_main(int argc,char ** argv);
 int MatchinImgTM_main(int argc,char ** argv);
 int CorrLA_main(int argc,char ** argv);
+int InterpImgPos_main(int argc,char ** argv);
 int CheckOri_main(int argc,char ** argv);
 int NLD_main(int argc,char ** argv);
 int ResToTxt_main(int argc,char ** argv);
@@ -671,6 +672,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CorrLA",CorrLA_main,"Tool to correct camera centers from Lever-Arm offset",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ExportHTM",ExportHemisTM_main,"Tool to export TimeMark Data from Hemisphere Bin01 file",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("InterpImTM",InterpImgPos_main,"Toll to interpolate image position based on TimeMark GPS trajectory",cArgLogCom(2)));	   
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
 
