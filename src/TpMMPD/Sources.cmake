@@ -27,7 +27,6 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ImageSimpleProjection.cpp
 	${TDPPMD_DIR}/PLY2XYZ.cpp
     ${TDPPMD_DIR}/ExportXmlGcp2Txt.cpp
-    ${TDPPMD_DIR}/PHO_MI.cpp
     ${TDPPMD_DIR}/Panache.cpp
     ${TDPPMD_DIR}/TestStephane.cpp
     ${TDPPMD_DIR}/TD_Exo.cpp
@@ -37,6 +36,17 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/CPP_GPS_txt2Xml.cpp
     ${TDPPMD_DIR}/ExportHemisTM.cpp
     ${TDPPMD_DIR}/MatchImgTM.cpp
+
+    ${TDPPMD_DIR}/TiePByMesh/PHO_MI.cpp
+    ${TDPPMD_DIR}/TiePByMesh/InitOutil.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TiePByMesh_main.cpp
+    ${TDPPMD_DIR}/TiePByMesh/Pic.cpp
+    ${TDPPMD_DIR}/TiePByMesh/Triangle.cpp
+    ${TDPPMD_DIR}/TiePByMesh/Fast.cpp
+    ${TDPPMD_DIR}/TiePByMesh/display.cpp
+    ${TDPPMD_DIR}/TiePByMesh/DrawOnMesh.cpp
+    ${TDPPMD_DIR}/TiePByMesh/Detector.cpp
+    ${TDPPMD_DIR}/TiePByMesh/CorrelMesh.cpp
     
 )
 
