@@ -1,0 +1,26 @@
+all: Gri2Bin DemoGri
+
+Gri2Bin: Gri2Bin.o cOrientationGrille.o
+	g++ -o Gri2Bin Gri2Bin.o cOrientationGrille.o ../../bin/elise.a
+
+DemoGri: DemoGri.o cOrientationGrille.o
+	g++ -o DemoGri DemoGri.o cOrientationGrille.o ../../bin/elise.a
+
+DemoGri.o: DemoGri.cpp
+	g++ -c -o DemoGri.o DemoGri.cpp
+
+Gri2Bin.o: Gri2Bin.cpp cOrientationGrille.h
+	g++ -c -o Gri2Bin.o Gri2Bin.cpp
+
+cOrientationGrille.o: cOrientationGrille.cpp
+	g++ -c -o cOrientationGrille.o cOrientationGrille.cpp -I../../include/
+
+testGri.o: testGri.cpp cOrientationGrille.h
+	g++ -c -o testGri.o testGri.cpp
+
+testGri: testGri.o cOrientationGrille.o
+	g++ -o testGri testGri.o cOrientationGrille.o ../../bin/elise.a
+
+
+#MakePyram: MakePyram.cpp
+#	g++ -o MakePyram MakePyram.cpp -I../../include/ ../../bin/elise.a
