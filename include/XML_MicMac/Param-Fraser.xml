@@ -1,0 +1,102 @@
+
+                   <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <DoIt> ${DoDR1} </DoIt>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR1      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  DR1 </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <DoIt> ${DoDR2} </DoIt>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR2      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  DR2 </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <DoIt> ${DoFoc} </DoIt>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberteFocale_1      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  FOCALE </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <DoIt> ${DoDR3} </DoIt>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR3      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  DR3 </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+
+                    <IterationsCompensation>
+                       <DoIt> ${DoPPorCD} </DoIt>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLib_PP_CD_11      </Val>
+                          </ContraintesCamerasInc>
+                          <ContraintesCamerasInc>
+                              <Val> eLib_PP_CD_Lies      </Val>
+                              <TolContrainte>  ${TolLinkPPCD} </TolContrainte>
+                          </ContraintesCamerasInc>
+
+                       </SectionContraintes>
+                       <Messages>   PP CD  Lies </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                   <IterationsCompensation>
+                       <SectionContraintes>
+
+                          <ContraintesCamerasInc>
+                              <Val> ${ValAff}      </Val>
+                          </ContraintesCamerasInc>
+                          <ContraintesCamerasInc>
+                              <Val> ${ValAffPP}      </Val>
+                          </ContraintesCamerasInc>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR3      </Val>
+                          </ContraintesCamerasInc>
+
+                       </SectionContraintes>
+                       <Messages>   Affine  </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> ${ValDec}      </Val>
+                          </ContraintesCamerasInc>
+                          <ContraintesCamerasInc>
+                              <Val>    ${ValDecPP}   </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>   Decentr  </Messages>
+                   </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+
+
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
