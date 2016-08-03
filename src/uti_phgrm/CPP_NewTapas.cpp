@@ -39,6 +39,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 
+void UseRegulDist(std::vector<double> & aVRegulDist,std::string & aCom)
+{
+   if (EAMIsInit(&aVRegulDist))
+   {
+      ELISE_ASSERT(aVRegulDist.size()>=3,"Not enough parameter in RegulDist")
+      double aNbCase = (aVRegulDist.size() >= 4) ? round_ni(aVRegulDist[3])  : 7;
+      double aSeuilNbPts = (aVRegulDist.size() >= 5) ? aVRegulDist[4]  : 5.0;
+      aCom = aCom  + std::string(" +UseRegulDist=true")
+                   + std::string(" +RegDist0=") + ToString(aVRegulDist[0])
+                   + std::string(" +RegDist1=") + ToString(aVRegulDist[1])
+                   + std::string(" +RegDist2=") + ToString(aVRegulDist[2])
+                   + std::string(" +RegDistNbCase=") + ToString(aNbCase)
+                   + std::string(" +RegDistSeuil=") + ToString(aSeuilNbPts);
+   }
+}
+
 namespace NEW_TAPAS
 {
 
