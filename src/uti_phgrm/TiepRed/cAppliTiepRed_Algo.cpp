@@ -113,11 +113,15 @@ bool cAppliTiepRed::DoLoadTiePoints(){
 			// Get the camera pair
 			cLnk2ImTiepRed * imagePairLink;
 			if (masterImage.ImageName() > homolImage.ImageName()){
+
 				std::pair<CamStenope*,CamStenope*> cameraPair = NM().CamOriRel(homolImage.ImageName(),masterImage.ImageName());
 				// Create a image pair instance with initially no tie-points
+ELISE_ASSERT((cameraPair.first!=0)&&(cameraPair.second!=0)," std::pair<CamStenope*,CamStenope*>");
+
 				imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage, cameraPair.second, cameraPair.first);
 			}else{
 				std::pair<CamStenope*,CamStenope*> cameraPair = NM().CamOriRel(masterImage.ImageName(),homolImage.ImageName());
+ELISE_ASSERT((cameraPair.first!=0)&&(cameraPair.second!=0)," std::pair<CamStenope*,CamStenope*>");
 				// Create a image pair instance with initially no tie-points
 				imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage, cameraPair.first, cameraPair.second);
 			}
