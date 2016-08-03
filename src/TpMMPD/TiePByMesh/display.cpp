@@ -236,3 +236,146 @@ void dispAllPtsInteret(vector<Pt2dr> listPtsInteret)
         mW6->draw_circle_loc(ptsDraw, 2 ,lstLineB);
     }
 }
+
+/*=========== Function ecrit Aout 2016=============*/
+extern Video_Win * display_image( Im2D<U_INT1,INT4> *ImgIm2D,
+                    string nameFenetre, Video_Win *thisVWin, double zoomF=1)
+{
+    //zoomF = 2 => 2 fois plus grand, 1/2 => reduire 2 fois
+    Pt2dr scale(zoomF, zoomF);
+    Pt2di size_disp = Pt2di((int)ImgIm2D->sz().x*zoomF , (int)ImgIm2D->sz().y*zoomF);
+    if (thisVWin==0)
+    {
+        thisVWin = Video_Win::PtrWStd(size_disp, 1, scale);
+    }
+    else
+    {
+        if(thisVWin->sz().x != (int)ImgIm2D->sz().x*zoomF)
+        {   //si taille different => ouvrir nouveau fenetre
+            thisVWin = 0;
+            thisVWin = Video_Win::PtrWStd(size_disp, 1, scale);
+        }
+    }
+    thisVWin->set_title(nameFenetre.c_str());
+    thisVWin->clear();
+    ELISE_COPY(thisVWin->all_pts(), ImgIm2D->in_proj() ,thisVWin->ogray());
+    return thisVWin;
+    thisVWin->clik_in();
+}
+
+extern void display_2image( Im2D<U_INT1,INT4> *Img1,
+                            Im2D<U_INT1,INT4> *Img2,
+                            Video_Win *Win1, Video_Win *Win2,
+                            string nameFenetre,
+                            double zoomF)
+{
+    Pt2dr scale(zoomF, zoomF);
+    Pt2di size_disp = Pt2di((int)Img1->sz().x*zoomF , (int)Img1->sz().y*zoomF);
+    if (Win1)
+    {   //imagette global
+        if (Win1==0)
+            {Win1 = Video_Win::PtrWStd(size_disp, 1, scale);}
+        if (Win1 != 0)
+        {
+            if(Win1->sz().x != (int)Img1->sz().x*zoomF)
+            {
+                Win1=0;
+                Win1 = Video_Win::PtrWStd(size_disp, 1, scale);
+            }
+        }
+        Win1->set_title(nameFenetre.c_str());
+        Win1->clear();
+        ELISE_COPY(Win1->all_pts(), Img1->in_proj(), Win1->ogray());
+        if (Win2==0)
+        {
+            Win2 = new Video_Win(*Win1,Video_Win::eDroiteH, size_disp);
+        }
+        if (Win2 != 0)
+        {
+            if(Win2->sz().x != (int)Img1->sz().x*zoomF)
+            {
+                Win2=0;
+                Win2 = new Video_Win(*Win1,Video_Win::eDroiteH,size_disp);
+            }
+        }
+        Win2->clear();
+        ELISE_COPY(Win2->all_pts(), Img2->in()[Virgule(FX/zoomF,FY/zoomF)],Win2->ogray());
+        Win2->clik_in();
+    }
+}
+
+extern Video_Win* draw_polygon_onVW(vector<Pt2dr> pts, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true)
+{
+    Disc_Pal Pdisc = Disc_Pal::P8COL();
+    Gray_Pal Pgr (30);
+    Circ_Pal Pcirc = Circ_Pal::PCIRC6(30);
+    RGB_Pal Prgb (255,1,1);
+    Elise_Set_Of_Palette SOP(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+    Line_St lstLineG(Pdisc(P8COL::green),1);
+    Line_St lstLineB(Pdisc(P8COL::blue),1);
+    Line_St lstLineR(Pdisc(P8COL::red),1);
+
+    if (VW==0)
+        cout<<"WARN : Video win not found to draw polygon"<<endl;
+    else
+    {
+        VW->set_sop(SOP);
+        VW->draw_poly(pts, lstLineG, isFerme);
+        VW->clik_in();
+    }
+    return VW;
+}
+
+extern Video_Win* draw_polygon_onVW(Tri2d &aTri, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true)
+{
+    Disc_Pal Pdisc = Disc_Pal::P8COL();
+    Gray_Pal Pgr (30);
+    Circ_Pal Pcirc = Circ_Pal::PCIRC6(30);
+    RGB_Pal Prgb (255,1,1);
+    Elise_Set_Of_Palette SOP(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+    Line_St lstLineG(Pdisc(P8COL::green),1);
+    Line_St lstLineB(Pdisc(P8COL::blue),1);
+    Line_St lstLineR(Pdisc(P8COL::red),1);
+
+    vector<Pt2dr> pts;
+    pts.push_back(aTri.sommet1[0]);
+    pts.push_back(aTri.sommet1[1]);
+    pts.push_back(aTri.sommet1[2]);
+    if (VW==0)
+        cout<<"WARN : Video win not found to draw polygon "<<VW<<endl;
+    else
+    {
+        VW->set_sop(SOP);
+        VW->draw_poly(pts, lstLineG, isFerme);
+        VW->clik_in();
+    }
+    return VW;
+}
+
+extern Video_Win* draw_polygon_onVW(Pt2dr ptHGCaree, int szCaree, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true)
+{
+    Disc_Pal Pdisc = Disc_Pal::P8COL();
+    Gray_Pal Pgr (30);
+    Circ_Pal Pcirc = Circ_Pal::PCIRC6(30);
+    RGB_Pal Prgb (255,1,1);
+    Elise_Set_Of_Palette SOP(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+    Line_St lstLineG(Pdisc(P8COL::green),1);
+    Line_St lstLineB(Pdisc(P8COL::blue),1);
+    Line_St lstLineC(Pdisc(P8COL::cyan),1);
+
+    vector<Pt2dr> pts;
+    pts.push_back(ptHGCaree);
+    pts.push_back(ptHGCaree + Pt2dr(szCaree,0));
+    pts.push_back(ptHGCaree + Pt2dr(szCaree,szCaree));
+    pts.push_back(ptHGCaree + Pt2dr(0,szCaree));
+    if (VW==0)
+        cout<<"WARN : Video win not found to draw polygon "<<VW<<endl;
+    else
+    {
+        VW->set_sop(SOP);
+        VW->draw_poly(pts, lstLineC, isFerme);
+        VW->clik_in();
+    }
+    return VW;
+}
+

@@ -57,9 +57,11 @@ int TiePByMesh_main(int argc,char ** argv)
 
     string pathPlyFileS ;
     string method="SubCoor";string aTypeD="HOMOLINIT";
-    std::string aFullPattern, aOriInput;
-    bool disp = 0;bool disp_glob = 0; bool disp_TriOnPic=0; bool assum1er=0; bool dispPtsInteret=0;
-    int SizeWinCorr = 2;int indTri=-1;double corl_seuil = 0.9;bool Test=0;
+    string aFullPattern, aOriInput;
+    string aHomolOut = "_Filtered";
+    bool disp = 0; bool assum1er=0;
+    int SzPtCorr = 1;int indTri=-1;double corl_seuil_glob = 0.8;bool Test=0;
+    int SzAreaCorr = 5; double corl_seuil_pt = 0.9;
 
 
     ElInitArgMain
@@ -71,22 +73,23 @@ int TiePByMesh_main(int argc,char ** argv)
                 << EAMC(pathPlyFileS, "path to mesh(.ply) file - created by Inital Ori", eSAM_IsExistFile),
                 //optional arguments
                 LArgMain()
-                << EAM(disp_glob, "disp_glob", true, "display imagette global (of triangle), click on imagette 2 to continue, default = false")
-                << EAM(disp, "disp", true, "display imagette for sub-pxl corellation, click on imagette 2 to continue, default = false")
-                << EAM(disp_TriOnPic, "disp_TriOnPic", true, "draw Triangle reprojected on image, default = false")
-                << EAM(dispPtsInteret, "dispPtsInteret", true, "display pts interest detected on imagette master, default = false")
-                << EAM(corl_seuil, "corl_seuil", true, "corellation threshold for imagette global, default = 0.9")
+                << EAM(disp, "disp", true, "display")
+                << EAM(corl_seuil_glob, "corl_glob", true, "corellation threshold for imagette global, default = 0.8")
+                << EAM(corl_seuil_pt, "corl_pt", true, "corellation threshold for pt interest, default = 0.9")
                 << EAM(method, "method", true, "Coor, SubCoor, default=SubCoor")
-                << EAM(SizeWinCorr, "SzW", true, "1->3*3,2->5*5 size of sub-pxl correlation windows default=2 (5*5)")
+                << EAM(SzPtCorr, "SzPtCorr", true, "1->3*3,2->5*5 size of cor wind for each pt interet  default=1 (3*3)")
+                << EAM(SzAreaCorr, "SzAreaCorr", true, "1->3*3,2->5*5 size of zone autour pt interet for search default=5 (11*11)")
                 << EAM(indTri, "indTri", true, "process one triangle")
                 << EAM(assum1er, "assum1er", true, "always use 1er pose as img master, default=0")
                 << EAM(Test, "Test", true, "Test new method - fix size imagette of triangle")
-                << EAM(aTypeD, "aTypeD", true, "FAST, DIGEO, HOMOLINIT")
+                << EAM(aTypeD, "aTypeD", true, "FAST, DIGEO, HOMOLINIT - default = HOMOLINIT")
+                << EAM(aHomolOut, "HomolOut", true, "default = _Filtered")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
     vector<double> aParamD; //need to to on arg enter
-    InitOutil *aChain = new InitOutil(aFullPattern, aOriInput, aTypeD,  aParamD);
+    InitOutil *aChain = new InitOutil(aFullPattern, aOriInput, aTypeD,  aParamD, aHomolOut,
+                                      SzPtCorr, SzAreaCorr, corl_seuil_glob, corl_seuil_pt, disp);
     aChain->initAll(pathPlyFileS);
 
     cout<<endl<<" +++ Verify init: +++"<<endl;
@@ -104,11 +107,21 @@ int TiePByMesh_main(int argc,char ** argv)
     }
 
     vector<triangle*> PtrTri = aChain->getmPtrListTri();
+    cout<<PtrTri.size()<<" tri"<<endl;
+    CorrelMesh aCorrel(aChain);
     for (uint i=0; i<PtrTri.size(); i++)
     {
-        CorrelMesh aCorrel(aChain);
-        //aCorrel.correlInTri(i);
+        aCorrel.correlInTri(i);
     }
+    cout<<endl<<"Tri has pt inside: ";
+    for (uint i=0; i<aCorrel.mTriHavePtInteret.size(); i++)
+        cout<<" "<<aCorrel.mTriHavePtInteret[i];
+    cout<<endl<<endl<<"Tri has Correl super: ";
+    for (uint i=0; i<aCorrel.mTriCorrelSuper.size(); i++)
+        cout<<" "<<aCorrel.mTriCorrelSuper[i];
+
+    cout<<endl<<"Total "<<aCorrel.countPts<<" cpl homo"<<endl;
+    cout<<endl;
 
     return EXIT_SUCCESS;
 }

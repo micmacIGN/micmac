@@ -48,7 +48,7 @@ typedef struct ImgetOfTri {
     Pt2dr centre_geo;   //centre-geo of this tri in coor of aPic
     Pt2dr ptOriginImaget;   //pts origin of this imaget in coor of aPic
     cCorrelImage * imaget;  //imaget of this tri
-    int szW;    //size of imaget
+    int szW;    //size of imaget -- need *2+1 to have whole size
 }ImgetOfTri;
 
 /* ==== TRIANGLE : ==========
@@ -64,13 +64,15 @@ public:
     Vertex getSommetV(int i) {return *this->mPtrSommetV[i]; }             //get sommet i dans cette triangle sous type Vertex
     Tri2d **getReprSurImg() {return mResultTriReprSurAllImg;}       //pointer vers bloque de memoire contient reprojection de cette triange sur tout les images.
     ImgetOfTri create_Imagette_autour_triangle (pic* aPic);
+    ImgetOfTri create_Imagette_autour_triangle_A2016 (pic* aPic);
     cCorrelImage* create_Imagette_adapt_triangle    ( pic * PicMaitre, Tri2d &triangle,
                                                       Pt2dr &centre_geo, bool & ok_in,
                                                       Pt2dr &PtOrigin);
     pic* getPicPlusProche(vector<pic*>PtrListPic, Pt3dr & VecNormal, Pt3dr & PtsOrg, vector<pic*>&ptrListPicViewable, bool assum1er);
     //chercher image plus proche au vector normal du triangle 3d
     Pt3dr CalVecNormal(Pt3dr & returnPtOrg);
-    matAffine CalAffine(pic* pic1 , pic* pic2);
+    matAffine CalAffine(pic* pic1 , pic* pic2, bool & affineResolu);
+
     ImgetOfTri get_Imagette_by_affine_n(ImgetOfTri &ImgetMaitre,
                                         pic* Img2nd,
                                         matAffine &matrixAffine,
@@ -81,9 +83,11 @@ public:
     vector<PtInteretInTriangle> getPtsInteret2DInImagetteDuTri()
         {return mPtsInteret2DInImagetteDuTri;}
     bool check_inside_triangle (Pt2dr v, Tri2d aTri2D);
+    bool check_inside_triangle_A2016 (Pt2dr aPt, Tri2d & aTri);
 
     int mIndex;                                                           //index of this triangle in PtrListTri
 private:
+    Pt2dr expPtInRepTri2D(Pt2dr aPt, Tri2d & aTri);
     cCorrelImage * create_Imagette_autour_triangle_i(pic * PicMaitre,
                                                    Tri2d & triangle,
                                                    Pt2dr &centre_geo,

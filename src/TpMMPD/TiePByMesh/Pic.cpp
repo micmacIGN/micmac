@@ -66,6 +66,34 @@ void pic::AddPtsToPack(pic* Pic2nd, const Pt2dr & Pts1, const Pt2dr& Pts2)
     cout<<" - Add to Pack";
     mPackHomoWithAnotherPic[Pic2nd->mIndex].aPack.Cple_Add(ElCplePtsHomologues(Pts1, Pts2)); //ERROR ? mIndex se melange ?
 }
+void pic::AddVectorPtsToPack(pic* Pic2nd, vector<Pt2dr> & Pts1, vector<Pt2dr> & Pts2)
+{
+    //Si P2 = (-1,-1) => not added
+    int count = 0;
+    for (uint i=0; i<Pts1.size(); i++)
+    {
+        if ( (Pts2[i].x != -1) && (Pts2[i].y != -1) )
+        {
+            cout<<" - Add to Pack : ";
+            mPackHomoWithAnotherPic[Pic2nd->mIndex].aPack.Cple_Add(ElCplePtsHomologues(Pts1[i], Pts2[i]));
+            cout<< Pts1[i]<< Pts2[i]<<endl;
+            count++;
+        }
+    }
+    cout<<" - Total "<<count<<" pts / "<<Pts1.size()<<" interet added"<<endl;
+}
+void pic::AddVectorCplHomoToPack(pic* Pic2nd, vector<ElCplePtsHomologues> aHomo)
+{
+    int count = 0;
+    for (uint i=0; i<aHomo.size(); i++)
+    {
+        cout<<" - Add to Pack : ";
+        mPackHomoWithAnotherPic[Pic2nd->mIndex].aPack.Cple_Add(aHomo[i]);
+        cout<< aHomo[i].P1()<< aHomo[i].P2()<<endl;
+        count++;
+    }
+    cout<<" - Total "<<count<<" pts added"<<endl;
+}
 
 
 bool pic::checkInSide(Pt2dr aPoint)
@@ -92,7 +120,7 @@ vector<Pt2dr> pic::getPtsHomoInThisTri(triangle* aTri)
     {
         for (uint i=0; i<this->mListPtsInterestFAST.size(); i++)
         {
-            bool in = aTri->check_inside_triangle(mListPtsInterestFAST[i],
+            bool in = aTri->check_inside_triangle_A2016(mListPtsInterestFAST[i],
                                                   *aTri->getReprSurImg()[this->mIndex]);
             if (in)
                 result.push_back(mListPtsInterestFAST[i]);

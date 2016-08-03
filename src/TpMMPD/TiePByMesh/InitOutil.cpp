@@ -47,7 +47,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 InitOutil::InitOutil   ( string aFullPattern, string aOriInput,
-                         string aTypeD, vector<double> aParamD)
+                         string aTypeD, vector<double> aParamD,
+                         string aHomolOutput,
+                         int SzPtCorr, int SzAreaCorr, double corl_seuil_glob, double corl_seuil_pt, bool disp)
 {
     cout<<"Init MicMac, lire pattern, former le cle.."<<endl;
     this->mOriInput = aOriInput;
@@ -62,7 +64,7 @@ InitOutil::InitOutil   ( string aFullPattern, string aOriInput,
     ELISE_ASSERT(mSetIm.size()>0,"ERROR: No image found!");
     //============================================================
        //anExt = ExpTxt ? "txt" : "dat";
-       mHomolOutput = "_FilteredPly";
+       mHomolOutput = aHomolOutput;
        mNameHomol = "Homol";
        mKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
                            +  std::string(mHomolOutput)
@@ -78,6 +80,11 @@ InitOutil::InitOutil   ( string aFullPattern, string aOriInput,
                           +  std::string(mNameHomol)
                           +  std::string("@")
                           +  std::string("dat");
+       mSzPtCorr = SzPtCorr;
+       mSzAreaCorr = SzAreaCorr;
+       mCorl_seuil_glob = corl_seuil_glob ;
+       mCorl_seuil_pt = corl_seuil_pt;
+       mDisp = disp;
 }
 
 PlyFile* InitOutil::read_file(string pathPlyFileS)
@@ -324,7 +331,60 @@ string InitOutil::getPrivMember(string aName)
         return this->mOriInput;
     if (aName == "mTypeD")
         return this->mTypeD;
+    else
+        return "NON";
 }
+
+//=============write pack homo of pic 1 && pic 2 to folder aHomolOut==========//
+void InitOutil::writeToHomolFile(   pic * pic1,
+                                    pic * pic2,
+                                    vector<ElCplePtsHomologues> ptsHomo,
+                                    string aHomolOut)
+{
+    string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOut)
+                        +  std::string("@")
+                        +  std::string("dat");
+    ElPackHomologue packHomoOut;
+    string cleNomHomolOut = mICNM->Assoc1To2(aKHOutDat, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
+    for (uint i=0; i<ptsHomo.size(); i++)
+        packHomoOut.Cple_Add(ptsHomo[i]);
+    packHomoOut.StdPutInFile(cleNomHomolOut);
+}
+
+//=============add to existed pack homo of pic 1 && pic 2 in folder aHomolOut==========//
+void InitOutil::addToExistHomolFile(    pic * pic1,
+                                        pic * pic2,
+                                        vector<ElCplePtsHomologues> ptsHomo,
+                                        string aHomolOut)
+{
+    string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(aHomolOut)
+                       +  std::string("@")
+                       +  std::string("dat");
+    string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOut)
+                        +  std::string("@")
+                        +  std::string("dat");
+    string aHomoIn = mICNM->Assoc1To2(aKHIn, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
+    //StdCorrecNameHomol_G(aHomoIn, mDirImages);
+    ElPackHomologue aPackIn;
+    bool Exist= ELISE_fp::exist_file(aHomoIn);
+    if (Exist)
+    {
+        aPackIn =  ElPackHomologue::FromFile(aHomoIn);
+        cout<<" + Found Pack Homo "<<aPackIn.size()<<" pts"<<endl;
+    }
+    ElPackHomologue packHomoOut;
+    for (uint i=0; i<ptsHomo.size(); i++)
+        packHomoOut.Cple_Add(ptsHomo[i]);
+    aPackIn.Add(packHomoOut);
+    string cleNomHomolOut = mICNM->Assoc1To2(aKHOutDat, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
+    cout<<" + Add "<<packHomoOut.size()<<" pts => write "<<aPackIn.size()<<" pts"<<endl;
+    aPackIn.StdPutInFile(cleNomHomolOut);
+}
+
+
 
 //========les fonction outil supplementaire ===========//
 std::string intToString ( int number )
