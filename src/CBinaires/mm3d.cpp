@@ -242,7 +242,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SimplePredict",SimplePredict_main," Project ground points on oriented cameras"));
        aRes.push_back(cMMCom("Schnaps",schnaps_main," Reduction of homologue points in image geometry"));
        aRes.push_back(cMMCom("MergeHomol",mergeHomol_main," Merge Homol dir"));
-       aRes.push_back(cMMCom("Zlimit",Zlimit_main," Crop Depth image in Z"));
+       aRes.push_back(cMMCom("Zlimit",Zlimit_main," Crop Depth image (or DEM) in Z"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));
