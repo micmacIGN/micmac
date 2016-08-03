@@ -146,7 +146,7 @@ int Detector::detect()
         this->importFromHomolInit(mPic2);
         this->saveResultToDiskTypeDigeo();
     }
-    cout<<mTypeDetector<<" : "<<mPtsInterest.size()<<" Pts in "<<mNameImg<<endl;
+    cout<<" "<<mTypeDetector<<" : "<<mPtsInterest.size()<<" Pts in "<<mNameImg<<endl;
     return temp;
 }
 

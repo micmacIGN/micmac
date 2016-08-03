@@ -20,6 +20,9 @@ public:
     CorrelMesh(InitOutil * aChain);
     void reloadTriandPic();
     void correlInTri(int indTri);
+    vector<int> mTriHavePtInteret;
+    vector<int> mTriCorrelSuper;
+    double countPts;
 private:
     pic* chooseImgMaitre(bool assum1er);
     InitOutil * mChain;

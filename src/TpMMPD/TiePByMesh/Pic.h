@@ -34,6 +34,8 @@ public:
     bool checkInSide(Pt2dr aPoint);                   //verifie si point est dans pic
     string getNameImgInStr(){return mNameImg->c_str();}
     void AddPtsToPack(pic* Pic2nd, const Pt2dr &Pts1, const Pt2dr &Pts2);
+    void AddVectorPtsToPack(pic* Pic2nd, vector<Pt2dr> & Pts1, vector<Pt2dr> & Pts2);
+    void AddVectorCplHomoToPack(pic* Pic2nd, vector<ElCplePtsHomologues> aHomo);
 
     vector<Pt2dr> getPtsHomoInThisTri(triangle* aTri);
 

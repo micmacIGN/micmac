@@ -1,6 +1,7 @@
 #include "../../uti_phgrm/NewOri/NewOri.h"
 #include "Triangle.h"
 #include "Pic.h"
+#include "InitOutil.h"
 
 PlyProperty face_props[2] =
 {
@@ -90,18 +91,18 @@ void triangle::reproject(pic *aPic, bool &reprOK, Tri2d &result, int ind=-1)
 
 /*=====Calcule affine transformation b/w 2 triangle 2D on 2 image========
 */
-matAffine triangle::CalAffine(pic* pic1 , pic* pic2)
+matAffine triangle::CalAffine(pic* pic1 , pic* pic2, bool & affineResolu)
 {
     matAffine result;
     //cout<<"  Affine :"<<triangle1[0]<<triangle1[1]<<triangle1[2]<<triangle2[0]<<triangle2[1]<<triangle2[2]<<endl;
     //check if there is pts (0,0,0)
     Tri2d triangle1 = *this->getReprSurImg()[pic1->mIndex];
     Tri2d triangle2 = *this->getReprSurImg()[pic2->mIndex];
-    bool triInImg = true;
-    if(triangle1.insidePic && triangle2.insidePic)
-        triInImg = false;
+    cout<<" + Affine:"<<endl;
+          cout<<"       "<<triangle1.sommet1[0]<<triangle1.sommet1[1]<<triangle1.sommet1[2]<<endl;
+          cout<<"       "<<triangle2.sommet1[0]<<triangle2.sommet1[1]<<triangle2.sommet1[2]<<endl;
     double* aData1 = NULL;
-    if (triInImg)
+    if (triangle1.insidePic && triangle2.insidePic)
     {
         L2SysSurResol aSys1(6);
         double aEq1[6] = {triangle1.sommet1[0].x, triangle1.sommet1[0].y, 1, 0, 0, 0};
@@ -122,8 +123,7 @@ matAffine triangle::CalAffine(pic* pic1 , pic* pic2)
         aSys1.AddEquation(1, aEq5, aC5);
         aSys1.AddEquation(1, aEq6, aC6);
 
-        bool ok;
-        Im1D_REAL8 aResol1 = aSys1.GSSR_Solve(&ok);
+        Im1D_REAL8 aResol1 = aSys1.GSSR_Solve(&affineResolu);
         aData1 = aResol1.data();
         result.el_00 = aData1[0];
         result.el_01 = aData1[1];
@@ -131,8 +131,15 @@ matAffine triangle::CalAffine(pic* pic1 , pic* pic2)
         result.el_10 = aData1[3];
         result.el_11 = aData1[4];
         result.el_12 = aData1[5];
+//            for(int i=0; i<6; i++)
+//            {
+//                cout<<"  "<<aData1[i]<<" ";
+//            }
+//            cout<<endl;
     }
-    delete aData1;
+//    delete aData1;
+    //cout<<"  "<<result.el_00<<" "<<result.el_01<<" "<<result.el_02<<" "<<
+    //      result.el_10<<" "<<result.el_11<<" "<<result.el_12 <<endl;
     return result;
 }
 
@@ -219,15 +226,17 @@ ImgetOfTri triangle::create_Imagette_autour_triangle (pic* aPic)
     szWindows = coteLong/2;
     aImagette.szW = szWindows;
     cCorrelImage::setSzW(szWindows);
-    cCorrelImage *ImgetteMaitre = new cCorrelImage();
+    cCorrelImage * ImgetteMaitre = new cCorrelImage();
+        cout<<" ++ Get imgetM :"<<" szW: "<<coteLong<<" "<<szWindows<<" - centreGeo: "<<centre_geo<<endl;
     //check if rectangle is inside img
-    ok_in = ok_in && aPic->checkInSide(Pt2dr(centre_geo.x-szWindows, centre_geo.y-szWindows))
-    && aPic->checkInSide(Pt2dr(centre_geo.x-szWindows, centre_geo.y+szWindows))
-    && aPic->checkInSide(Pt2dr(centre_geo.x+szWindows, centre_geo.y-szWindows))
-    && aPic->checkInSide(Pt2dr(centre_geo.x+szWindows, centre_geo.y+szWindows));
+    ok_in =     aPic->checkInSide(Pt2dr(centre_geo.x-szWindows, centre_geo.y-szWindows))
+             && aPic->checkInSide(Pt2dr(centre_geo.x-szWindows, centre_geo.y+szWindows))
+             && aPic->checkInSide(Pt2dr(centre_geo.x+szWindows, centre_geo.y-szWindows))
+             && aPic->checkInSide(Pt2dr(centre_geo.x+szWindows, centre_geo.y+szWindows));
     //creat imagette autour triangle (imagette avec centre_geo et szWindows)
     if (ok_in)
     {
+        cout<<" -imaget inside pic"<<endl;
         /*
         Tiff_Im PicMaitre_Tiff( Tiff_Im::StdConvGen(PicMaitre->aICNM_NameChantier->Dir()+*PicMaitre->nameImg,1,false));  //read Tiff header
 
@@ -241,12 +250,100 @@ ImgetOfTri triangle::create_Imagette_autour_triangle (pic* aPic)
     }
     else
         ImgetteMaitre = NULL;
+    cout<<" ++ Get imgetM :"<<&ImgetteMaitre<<endl;
     Pt2dr PtOrigin = Pt2dr (centre_geo.x-szWindows, centre_geo.y-szWindows);
     aImagette.ptOriginImaget = PtOrigin;
     aImagette.imaget = ImgetteMaitre;
     return aImagette;
 }
 
+ImgetOfTri triangle::create_Imagette_autour_triangle_A2016 (pic* aPic)
+{
+    bool ok_in = true;
+    ImgetOfTri aImagette;
+    /*creat a rectangle autour triangle on master picture*/
+    Tri2d triangle = *this->getReprSurImg()[aPic->mIndex];
+    Pt2dr PtHG = triangle.sommet1[0];
+    Pt2dr PtBD = triangle.sommet1[1];
+    //cout<<" + Creat Img Autour:"<<triangle.sommet1[0]<<triangle.sommet1[1]<<triangle.sommet1[2]<<endl;
+    for (uint i=0; i<=2; i++)
+    {
+        if (triangle.sommet1[i].x > PtBD.x)
+            PtBD.x = triangle.sommet1[i].x;
+        if (triangle.sommet1[i].y > PtBD.y)
+            PtBD.y = triangle.sommet1[i].y;
+        if (triangle.sommet1[i].x > PtBD.x)
+            PtBD.x = triangle.sommet1[i].x;
+        if (triangle.sommet1[i].y > PtBD.y)
+            PtBD.y = triangle.sommet1[i].y;
+        if (triangle.sommet1[i].x < PtHG.x)
+            PtHG.x = triangle.sommet1[i].x;
+        if (triangle.sommet1[i].y < PtHG.y)
+            PtHG.y = triangle.sommet1[i].y;
+        if (triangle.sommet1[i].x < PtHG.x)
+            PtHG.x = triangle.sommet1[i].x;
+        if (triangle.sommet1[i].y < PtHG.y)
+            PtHG.y = triangle.sommet1[i].y;
+    }
+    /*
+       PtHG     P1---------P2  -------> X
+                |          |
+                |          |
+                P4---------P3   PtBD
+                |
+                |
+                v
+                Y
+    */
+    Pt2dr P1 = PtHG;
+    Pt2dr P3 = PtBD;
+    Pt2dr P2(PtBD.x, PtHG.y);
+    Pt2dr P4(PtHG.x, PtBD.y);
+    double coteX = P2.x - P1.x;
+    double coteY = P4.y - P1.y;
+    double differ = abs(coteX - coteY)/2;
+    if (coteX > coteY)
+    {   //ajout au cote Y
+        P1 = P1 - Pt2dr(0,differ);
+        P2 = P2 - Pt2dr(0,differ);
+        P3 = P3 + Pt2dr(0,differ);
+        P4 = P4 + Pt2dr(0,differ);
+    }
+    else
+    {   //ajout au cote X
+        P1 = P1 - Pt2dr(differ,0);
+        P2 = P2 + Pt2dr(differ,0);
+        P3 = P3 + Pt2dr(differ,0);
+        P4 = P4 - Pt2dr(differ,0);
+    }
+    int szWindows = ceil(abs(P4.x - P3.x)/2);
+    //cout<<" + P1: "<<P1<<" + P2:" <<P2<<" + P3: "<<P3<<" + P4: "<<P4<<" +Sz :"<<szWindows<<endl;
+    cCorrelImage::setSzW(szWindows);
+    Pt2dr centre_geo = (P3-P1)/2 + P1;
+    cCorrelImage * ImgetteMaitre = new cCorrelImage();
+    //cout<<" ++ Get imgetM :"<<" szW: "<<P4.x - P3.x<<" "<<szWindows<<" - centreGeo: "<<centre_geo<<endl;
+    //check if rectangle is inside img
+    ok_in =     aPic->checkInSide(P1)
+             && aPic->checkInSide(P2)
+             && aPic->checkInSide(P3)
+             && aPic->checkInSide(P4);
+    //creat imagette autour triangle (imagette avec centre_geo et szWindows)
+    if (ok_in)
+    {
+        cout<<" -imaget inside pic"<<endl;
+        ImgetteMaitre->getFromIm(aPic->mPic_Im2D, int(centre_geo.x), int(centre_geo.y));
+    }
+    else
+        ImgetteMaitre = NULL;
+    cout<<" ++ Get imgetM :"<<&ImgetteMaitre<<endl;
+    aImagette.aPic = aPic;
+    aImagette.aTri = triangle;
+    aImagette.ptOriginImaget = P1;
+    aImagette.imaget = ImgetteMaitre;
+    aImagette.centre_geo = centre_geo;
+    aImagette.szW = szWindows;
+    return aImagette;
+}
 
 /*=======Creer un imagette de la triangle - taille fix======
  * 1. Taille fenetre fixer à 11*11 (szWindows = 5)
@@ -433,6 +530,8 @@ ImgetOfTri triangle::get_Imagette_by_affine_n( ImgetOfTri &ImgetMaitre,
                                                bool & getImgetteFalse
                                              )
 {
+    cout<<"  "<<matrixAffine.el_00<<" "<<matrixAffine.el_01<<" "<<matrixAffine.el_02<<" "<<
+          matrixAffine.el_10<<" "<<matrixAffine.el_11<<" "<<matrixAffine.el_12 <<endl;
     ImgetOfTri imget2nd;
     Pt2dr centre_geo_master = ImgetMaitre.centre_geo;
     double SzW = ((ImgetMaitre.imaget->getmSz().x-1)/2);
@@ -508,6 +607,26 @@ vector<Pt3dr> triangle::ptsInTri2Dto3D(vector<Pt2dr> pts2DinTri, pic *img)
     }
     return result;
 }
+// ============     check pt is inside triangle 2d - Aout 2016========
+Pt2dr triangle::expPtInRepTri2D(Pt2dr aPt, Tri2d & aTri)
+{
+    Pt2dr vec_i = aTri.sommet1[1] - aTri.sommet1[0];
+    Pt2dr vec_j = aTri.sommet1[2] - aTri.sommet1[0];
+    Pt2dr aP = aPt - aTri.sommet1[0];
+    double alpha = (aP.x*vec_j.y - aP.y*vec_j.x)/(vec_i.x*vec_j.y-vec_j.x*vec_i.y);
+    double beta = (aP.y-alpha*vec_i.y)/vec_j.y;
+    return Pt2dr(alpha,beta);
+}
+bool triangle::check_inside_triangle_A2016 (Pt2dr aPt, Tri2d & aTri)
+{
+   Pt2dr AB = this->expPtInRepTri2D(aPt, aTri);
+   if ( (AB.x > 0) && (AB.y > 0) && (AB.x + AB.y <1) )
+       return true;
+   else
+       return false;
+}
+//========================================================
+
 /*=====Sauvgarder un pts dans la triangle======
  * aPoint : pts2D interet dans la triangle
  * img : image ou on se trouve la point et la triangle
