@@ -202,7 +202,8 @@ class cAppliOptimTriplet
           int              mNbMaxSel;
           int              mTKNbMaxSel;
           int              mNbMaxInit;
-          bool             mShow;
+          bool             mAotShow;
+          bool             mCalledBySerie;
           bool             mQuick;
           std::string      mPrefHom;
           double           mPds3;
@@ -472,7 +473,7 @@ void cAppliOptimTriplet::TestOPA(cPairOfTriplet & aPair)
 
 bool cAppliOptimTriplet::Show()
 {
-   return mShow;
+   return mAotShow;
 }
 
 double cAppliOptimTriplet::ResiduTriplet(const ElRotation3D & aR1,const ElRotation3D & aR2,const ElRotation3D & aR3)
@@ -535,7 +536,8 @@ double cAppliOptimTriplet::ResiduGlob()
 cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
     mDir      ("./"),
     // mNbMaxSel (StdDefNbMaxSel),
-    mShow     (true),
+    mAotShow  (false),
+    mCalledBySerie  (false),
     mQuick    (false),
     mPrefHom   (""),
     mQuitExist (QuitExist),
@@ -557,7 +559,8 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
                    << EAM(mDir,"Dir",true,"Directory, Def=./ ",eSAM_IsDir)
                    << EAM(mSzShow,"SzShow",true,"Sz of window to show the result in window (Def=none)")
                    << EAM(mNbMaxSel,"NbPts",true,"Nb of selected points")
-                   << EAM(mShow,"Show",true,"Show Message")
+                   << EAM(mAotShow,"Show",true,"Show Message")
+                   << EAM(mCalledBySerie,"CalledBySerie",true,"Called by non paral")
                    << EAM(mQuick,"Quick",true,"Quick version")
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
                    << EAM(mBugTK,"BugTK",true,"Debug Tomasi Kanade")
@@ -588,13 +591,16 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
    {
       std::string  aNameLON = mNM->NameTripletsOfCple(mNoIm1,mNoIm2,true);
       cListOfName aLON  = StdGetFromPCP(aNameLON,ListOfName);
+
+
       for (std::list<std::string>::const_iterator itN =aLON.Name().begin() ; itN!=aLON.Name().end() ; itN++)
       {
-         if (mShow) 
+         if (mAotShow || mCalledBySerie) 
          {
-             // std::cout << "============= RUN with  Im3= " << *itN << " ======================\n";
+             std::cout << "============= RUN with  Im3= " << *itN << " ======================\n";
          }
          mN3 = *itN;
+
          m3S = cTplTriplet<std::string> (mN1,mN2,mN3);
          Execute();
       }
@@ -633,6 +639,11 @@ void cAppliOptimTriplet::TestTomasiKanade()
 
 void cAppliOptimTriplet::Execute()
 {
+   if (MPD_MM() && (mN1=="DSC01582.JPG") && (mN2=="DSC01583.JPG") && (mN3=="DSC01606.JPG"))
+   {
+      std::cout << "Generate bug for testing \n";
+      *((double *) 0) = 0;
+   }
    ElTimer aChrono;
    if (! EAMIsInit(&mNbMaxSel))
    {
@@ -640,15 +651,15 @@ void cAppliOptimTriplet::Execute()
    }
    mTKNbMaxSel = mQuick ? QuicTKNbMaxSel : StdTKNbMaxSel;
 
-   if (mShow) 
+   if (mAotShow) 
       mQuitExist = false;
 
 
    mNbMaxInit = mQuick ? QuickNbMaxInit   : StdNbMaxInit ;
 
 
-   if (! EAMIsInit(&mShow))
-       mShow  = EAMIsInit(&mSzShow);
+   if (! EAMIsInit(&mAotShow))
+       mAotShow  = EAMIsInit(&mSzShow);
 
 
    if (MMVisualMode) return;
@@ -695,7 +706,7 @@ void cAppliOptimTriplet::Execute()
       mNbMaxSel = ModeShowNbMaxSel;
    }
 
-   if (mShow) 
+   if (mAotShow) 
       std::cout << "Time load " << aChrono.uval() << "\n";
 
    int aNbFull3 = mIm2->VFullPtOf3().size() ;
@@ -730,7 +741,7 @@ void cAppliOptimTriplet::Execute()
    TestOPA(*mP12);
 */
 
-   if (mShow) 
+   if (mAotShow) 
    {
       std::cout << "Time reduc " << aChrono.uval()   << "  Pds3=" << mPds3 << "\n";
    }
@@ -740,7 +751,7 @@ void cAppliOptimTriplet::Execute()
        TestOPA(*(mPairs[aKP]));
    }
 
-   if (mShow) 
+   if (mAotShow) 
    {
       std::cout << "Time opa " << aChrono.uval()   << "\n";
    }
@@ -748,7 +759,7 @@ void cAppliOptimTriplet::Execute()
 
     TestTomasiKanade();
 
-   if (mShow)
+   if (mAotShow)
    {
       std::cout << "NB TRIPLE " << mIm2->VFullPtOf3().size()  << " Resi3: " <<  ResiduTriplet() << " F " << mFoc << "\n";
       std::cout << "RESIDU/PAIRES " << mP12->ResiduMoy() << " " << mP13->ResiduMoy() << " " << mP23->ResiduMoy() << " " << "\n";
@@ -825,7 +836,7 @@ void cAppliOptimTriplet::Execute()
 
 
 
-   if (mShow)
+   if (mAotShow)
    {
       std::cout << "NB TRIPLE " << mIm2->VFullPtOf3().size()  << " Resi3: " <<  ResiduTriplet() << " F " << mFoc << "\n";
       std::cout << "RESIDU/PAIRES " << mP12->ResiduMoy() << " " << mP13->ResiduMoy() << " " << mP23->ResiduMoy() << " " << "\n";
@@ -937,6 +948,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
                 }
                 else
                 {
+                    aCom += " CalledBySerie=true";
                     std::cout << "COM " << aCom << "\n";
                     System(aCom);
                 }

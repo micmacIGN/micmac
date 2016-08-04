@@ -2647,20 +2647,23 @@ const std::vector<bool> & ElCamera::DistComplIsDir() const
 
 Pt2dr ElCamera::DComplC2M(Pt2dr aP) const
 {
+
    aP = mGlobOrImaC2M(aP);
     if (mCRAP)
       aP = mCRAP->CorrC2M(aP);
+
    for (int aK=0 ; aK<int(mDistCompl.size()) ; aK++)
    {
         aP = mDComplIsDirect[aK]         ?
          mDistCompl[aK]->Inverse(aP) :
          mDistCompl[aK]->Direct(aP)  ;
    }
-   return Pt2dr
+   Pt2dr aRes
           (
                (aP.x-mTrN.x)/mScN,
                (aP.y-mTrN.y)/mScN
           );
+   return aRes;
 }
 Pt2dr ElCamera::NormC2M(Pt2dr aP) const
 {

@@ -191,8 +191,6 @@ void cEHTM_Appli::WriteTMInFile(
 
 bool fread_one(void *aDst, size_t aSize, FILE *aStream)
 {
-	cout << "fread_one(aStream, aDst, " << aSize << ")" << endl;
-
 	return fread(aDst, aSize, 1, aStream) == 1;
 }
 
@@ -290,7 +288,7 @@ cEHTM_Appli::cEHTM_Appli(int argc,char ** argv)
 		 
 		 else
 		 {
-			fread_one(&data,msg.datalength,aSource);                   		//Data
+			fread_one(data,msg.datalength,aSource);                   		//Data
 			fread_one(&msg.checksum,sizeof(msg.checksum),aSource);     		//checksum
 			fread_one(&msg.cr,sizeof(msg.cr),aSource);                 		//CR
 			fread_one(&msg.lf,sizeof(msg.lf),aSource);                 		//LF

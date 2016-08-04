@@ -40,7 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 /**
- * Zlimit: crop a MNT in depth
+ * Zlimit: crop a DEM in depth
+ * Maintained by Luc Girod on 2016-08-03
  * */
 
 //
@@ -48,82 +49,125 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int Zlimit_main(int argc,char ** argv)
 {
-    std::string aNameOriMNT;
+    std::string aNameOriDEM;
     std::string aMasqSup="?";
     std::string aCorrelIm="?";
-    double aMaxZ,aMinZ;
-    
-    cout<<endl<<"Zlimit: create masq for depth image."<<endl<<endl;
-    ElInitArgMain
-    (
-    argc,argv,
-    //mandatory arguments
-    LArgMain()  << EAMC(aNameOriMNT, "MNT xml file name", eSAM_IsExistFile)
-                << EAMC(aMinZ, "Min Z (m)")
-                << EAMC(aMaxZ, "Max Z (m)"),
-    //optional arguments
-    LArgMain()  << EAM(aMasqSup,"MasqSup",true,"Supplementary masq")
-                << EAM(aCorrelIm,"CorrelIm",true,"Use correl image as a masq")
-    );
+	double aMaxZ, aMinZ, aCorThr=0.02;
+	bool aBoolDEM=true;
+
+    cout<<endl<<"Zlimit: create mask for depth image and resulting masked depth image."<<endl<<endl;
+	ElInitArgMain
+		(
+		argc, argv,
+		//mandatory arguments
+		LArgMain() << EAMC(aNameOriDEM, "DEM xml file name (such as Z_NumX_DeZoomX_STD-MALT.xml)", eSAM_IsExistFile)
+		<< EAMC(aMinZ, "Min Z (m)")
+		<< EAMC(aMaxZ, "Max Z (m)"),
+		//optional arguments
+		LArgMain() << EAM(aMasqSup, "MasqSup", true, "Supplementary mask")
+		<< EAM(aCorrelIm, "CorrelIm", true, "Use correl image as a mask")
+		<< EAM(aCorThr, "CorrelThr", true, "Correl Threshold for acceptance (def=0.02)")
+		<< EAM(aBoolDEM, "DEM", true, "Output masked DEM (def=true)")
+		);
 
     if (MMVisualMode) return EXIT_SUCCESS;
     
     ELISE_ASSERT(aMinZ<aMaxZ,"Please try with MinZ<MaxZ...");
     
-    string aMasqTifName=aNameOriMNT+"_MasqZminmax.tif";
-    string aMasqXmlName=aNameOriMNT+"_MasqZminmax.xml";
-    
-    cFileOriMnt aOriMnt = StdGetFromPCP(aNameOriMNT,FileOriMnt);
-    //cout<<aOriMnt.OriginePlani()<<" "<<aOriMnt.ResolutionPlani()<<endl;
+	string aMasqName = StdPrefix(aNameOriDEM) + "_MasqZminmax";
+	string aFileDEMCorName = StdPrefix(aNameOriDEM) + "_Masked";
 
-    string aNameFileMnt=aOriMnt.NameFileMnt();
+	// Read DEM
+	cFileOriMnt aOriDEM = StdGetFromPCP(aNameOriDEM, FileOriMnt);
+
+	string aNameFileDEM = aOriDEM.NameFileMnt();
     string aNameFileMasque="";
     
-    if (aOriMnt.NameFileMasque().IsInit())
-        aNameFileMasque=aOriMnt.NameFileMasque().Val();
-    double aOrigineAlti=aOriMnt.OrigineAlti();
-    double aResolutionAlti=aOriMnt.ResolutionAlti();
-    cout<<"z: *"<<aResolutionAlti<<" +"<<aOrigineAlti<<endl;
+	if (aOriDEM.NameFileMasque().IsInit())
+		aNameFileMasque = aOriDEM.NameFileMasque().Val();
+
+	double aOrigineAlti = aOriDEM.OrigineAlti();
+	double aResolutionAlti = aOriDEM.ResolutionAlti();
+	//cout << "z: *" << aResolutionAlti << " +" << aOrigineAlti << endl;
     cout<<"MinZ: "<<aMinZ<<"    MaxZ:"<<aMaxZ<<endl;
     
-    Tiff_Im aFileMnt(aNameFileMnt.c_str());
-    TIm2D<U_INT1,INT4> tmpImage1T(aOriMnt.NombrePixels());//image for max
+	// Create image objects
+	Tiff_Im aFileDEM(aNameFileDEM.c_str());
+	//image for max
+	TIm2D<U_INT1, INT4> tmpImage1T(aOriDEM.NombrePixels());
     Im2D<U_INT1,INT4>  tmpImage1(tmpImage1T._the_im);
-    TIm2D<U_INT1,INT4> tmpImage2T(aOriMnt.NombrePixels());//image for min
+	//image for min
+	TIm2D<U_INT1, INT4> tmpImage2T(aOriDEM.NombrePixels());
     Im2D<U_INT1,INT4>  tmpImage2(tmpImage2T._the_im);
-
-    TIm2D<U_INT1,INT4> masqImageT(aOriMnt.NombrePixels());//image for masq
+	//image for masq
+	TIm2D<U_INT1, INT4> masqImageT(aOriDEM.NombrePixels());
     Im2D<U_INT1,INT4>  masqImage(masqImageT._the_im);
 
-    ELISE_COPY(tmpImage1.all_pts(),((1/(aFileMnt.in()*aResolutionAlti+aOrigineAlti))<aMaxZ),tmpImage1.out());
-    ELISE_COPY(tmpImage2.all_pts(),((1/(aFileMnt.in()*aResolutionAlti+aOrigineAlti))>aMinZ),tmpImage2.out());
+	// Compute min and max masks
+	ELISE_COPY(tmpImage1.all_pts(), ((aFileDEM.in()*aResolutionAlti + aOrigineAlti)<aMaxZ), tmpImage1.out());
+	ELISE_COPY(tmpImage2.all_pts(), ((aFileDEM.in()*aResolutionAlti + aOrigineAlti)>aMinZ), tmpImage2.out());
  
+	// Multiply min and max masks to creat a minmax mask
     ELISE_COPY(masqImage.all_pts(),(tmpImage1.in()*tmpImage2.in()),masqImage.out());
+
+	// Apply external mask
     if (aMasqSup!="?")
     {
       cout<<"Using MasqSup: "<<aMasqSup<<endl;
       Tiff_Im aFileMasqSup(aMasqSup.c_str());
-      ELISE_ASSERT(aFileMasqSup.sz()==aOriMnt.NombrePixels(),"Masq Sup and MNT must have the same size!");
+	  ELISE_ASSERT(aFileMasqSup.sz() == aOriDEM.NombrePixels(), "Masq Sup and DEM must have the same size!");
       TIm2D<U_INT1,INT4> aMasqSupImT(aFileMasqSup.sz());//image for masq sup
       Im2D<U_INT1,INT4>  aMasqSupIm(aMasqSupImT._the_im);
       ELISE_COPY(aMasqSupIm.all_pts(),(aFileMasqSup.in()>0),aMasqSupIm.out());
       ELISE_COPY(masqImage.all_pts(),(masqImage.in()*aMasqSupIm.in()),masqImage.out());
     }
+
+	// Apply mask from correl (out if cor<0.02 (5/255) or <aCorThr)
     if (aCorrelIm!="?")
     {
       cout<<"Using CorrelIm: "<<aCorrelIm<<endl;
       Tiff_Im aFileCorrelIm(aCorrelIm.c_str());
-      ELISE_ASSERT(aFileCorrelIm.sz()==aOriMnt.NombrePixels(),"Correl Image and MNT must have the same size!");
+	  ELISE_ASSERT(aFileCorrelIm.sz() == aOriDEM.NombrePixels(), "Correl Image and DEM must have the same size!");
       TIm2D<U_INT1,INT4> aCorrelImImT(aFileCorrelIm.sz());//image for Correl Im
       Im2D<U_INT1,INT4>  aCorrelImIm(aCorrelImImT._the_im);
-      ELISE_COPY(aCorrelImIm.all_pts(),(aFileCorrelIm.in()>5),aCorrelImIm.out());
-      ELISE_COPY(masqImage.all_pts(),(masqImage.in()*aCorrelImIm.in()),masqImage.out());
+	  ELISE_COPY(aCorrelImIm.all_pts(), (aFileCorrelIm.in() > (aCorThr * 255)), aCorrelImIm.out());
+	  ELISE_COPY(masqImage.all_pts(), (masqImage.in()*aCorrelImIm.in()), masqImage.out());
     }
 
-    ELISE_COPY(masqImage.all_pts(),(masqImage.in()*255),masqImage.out());
+	// Output masked DEM
+	if (aBoolDEM) 
+	{
+		Tiff_Im  aDEMout
+			(
+			(aFileDEMCorName + ".tif").c_str(),
+			aFileDEM.sz(),
+			GenIm::real4,
+			Tiff_Im::No_Compr,
+			Tiff_Im::BlackIsZero
+			);
 
 
-    Tiff_Im::CreateFromIm(masqImage,aMasqTifName);
+		ELISE_COPY
+			(
+			aDEMout.all_pts(),
+			aFileDEM.in()*masqImage.in(),
+			//(aFileDEM.in()*aResolutionAlti + aOrigineAlti)*(masqImage.in()),
+			aDEMout.out()
+			);
+
+
+		cFileOriMnt anOriMaskedDEM = aOriDEM;
+		anOriMaskedDEM.NameFileMnt() = aFileDEMCorName + ".tif";
+		MakeFileXML(anOriMaskedDEM, aFileDEMCorName + ".xml");
+		GenTFW(anOriMaskedDEM, (aFileDEMCorName + ".tfw").c_str());
+
+		cout << "Masked DEM created: " << aFileDEMCorName + ".tif/.tfw/.xml" << endl;
+
+	}
+
+	// Output mask
+	ELISE_COPY(masqImage.all_pts(), (masqImage.in() * 255), masqImage.out());
+	Tiff_Im::CreateFromIm(masqImage, aMasqName + ".tif");
 
     //for debug
     /*ELISE_COPY(tmpImage1.all_pts(),((1/(aFileMnt.in()*aResolutionAlti+aOrigineAlti))<aMaxZ)*255,tmpImage1.out());
@@ -132,18 +176,16 @@ int Zlimit_main(int argc,char ** argv)
     Tiff_Im::CreateFromIm(tmpImage2,"tmp2.tif");*/
 
     
-    cFileOriMnt anOriMasq;
-    anOriMasq.NameFileMnt() = aMasqTifName;
-    anOriMasq.NombrePixels() = aOriMnt.NombrePixels();
-    anOriMasq.OriginePlani() = Pt2dr(0,0);
-    anOriMasq.ResolutionPlani() = Pt2dr(1.0,1.0);
-    anOriMasq.OrigineAlti() = 0.0;
-    anOriMasq.ResolutionAlti() = 1.0;
-    anOriMasq.Geometrie() = eGeomMNTFaisceauIm1PrCh_Px1D;
-    MakeFileXML(anOriMasq,aMasqXmlName);
+	cFileOriMnt anOriMasq = aOriDEM;
+	anOriMasq.NameFileMnt() = aMasqName + ".tif";
+	MakeFileXML(anOriMasq, aMasqName + ".xml");
+	GenTFW(anOriMasq, (aMasqName + ".tfw").c_str());
     
-    cout<<"New masq created: "<<aMasqTifName<<endl;
-    cout<<"Zlimit finished."<<endl<<endl;
+	cout << "New masq created: " << aMasqName + ".tif/.tfw/.xml" << endl;
+	cout << "Zlimit finished." << endl << endl;
+
+
+
     //for debug
     /*TIm2D<REAL4,REAL8> mDepthImageT(aFileMnt.sz());
     Im2D<REAL4,REAL8>  mDepthImage(mDepthImageT._the_im);
