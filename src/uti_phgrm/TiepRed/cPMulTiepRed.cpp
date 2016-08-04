@@ -72,10 +72,9 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aMultiTiePointRaw, cAppliTiepRed & anAppli) 
 			if (aVecInd[i] != 0){
 				double acc;
 				cLnk2ImTiepRed * imagePair = anAppli.ImagePairsMap()[std::make_pair(0,aVecInd[i])];
-if (&(imagePair->Cam1())==0)
-{
-   ELISE_ASSERT(false,"NUL CAMERA POINTER");
-}
+				// if (&(imagePair->Cam1())==0){
+				//    ELISE_ASSERT(false,"NUL CAMERA POINTER");
+				// }
 				(imagePair->Cam1()).PseudoInterPixPrec(ToPt2dr(mMultiTiePointRaw->GetVal(0)),imagePair->Cam2(),ToPt2dr(mMultiTiePointRaw->GetVal(aVecInd[i])),acc);
 				accuracies.push_back(acc);
 			}
