@@ -106,7 +106,7 @@ cPicSize::cPicSize(Pt2di aSz,int aNumWindows) :
     mNbWin.y=sqrt((double)aNumWindows)/sqrt(aXYratio)+1;
     mWinSz.x=((float)mPicSz.x)/mNbWin.x+0.5;
     mWinSz.y=((float)mPicSz.y)/mNbWin.y+0.5;
-    mUsageBuffer=mNbWin.x/20;//where the arbitrary buffer size is calculated
+    mUsageBuffer=mNbWin.x/10;//where the arbitrary buffer size is calculated
 }
 
 //----------------------------------------------------------------------------
@@ -182,7 +182,7 @@ class cPic
     bool removeHomolPoint(cPointOnPic* aPointOnPic);
     void printHomols();
     bool addSelectedPointOnPicUnique(cPointOnPic* aPointOnPic);
-    float getPercentWinUsed();
+    float getPercentWinUsed(int nbWin);
     //void incNbWinUsed(){mNbWinUsed++;}
     void setWinUsed(int _x,int _y);
     cPointOnPic * findPointOnPic(Pt2dr & aPt);
@@ -491,12 +491,14 @@ void cPic::setWinUsed(int _x,int _y)
     
 }
 
-float cPic::getPercentWinUsed()
+float cPic::getPercentWinUsed(int nbWin)
 {
     //return 100.0*((float)mNbWinUsed)/(mPicSize->getNbWin().x*mPicSize->getNbWin().y);
     int nbWinUsed=0;
     for (int i=0;i<mPicSize->getNbWin().x*mPicSize->getNbWin().y;i++)
         if (mWinUsed[i]) nbWinUsed++;
+    if (getAllSelectedPointsOnPicSize()<nbWin)
+        nbWinUsed*=(sqrt((float)(getAllSelectedPointsOnPicSize())/nbWin));
     return 100.0*((float)nbWinUsed)/(mPicSize->getNbWin().x*mPicSize->getNbWin().y);
 }
 
@@ -1122,6 +1124,7 @@ int schnaps_main(int argc,char ** argv)
 
     std::cout<<"Write new Packs:\n";
     std::ofstream aFileBadPictureNames;
+    int nbBadPictures=0;
     aFileBadPictureNames.open(aPoubelleName.c_str());
     if (!aFileBadPictureNames.is_open())
     {
@@ -1131,9 +1134,14 @@ int schnaps_main(int argc,char ** argv)
     for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
     {
         cPic* pic1=(*itPic1).second;
-        std::cout<<" - "<<pic1->getName()<<": "<<pic1->getPercentWinUsed()<<"% of the picture covered ("<<pic1->getAllSelectedPointsOnPicSize()<<" points)"<<endl;
-        if (pic1->getPercentWinUsed()<aMinPercentCoverage)
+        std::cout<<" - "<<pic1->getName()<<": "<<pic1->getPercentWinUsed(aNumWindows)<<"% of the picture covered ("<<pic1->getAllSelectedPointsOnPicSize()<<" points)";
+        if (pic1->getPercentWinUsed(aNumWindows)<aMinPercentCoverage)
+        {
+            nbBadPictures++;
             aFileBadPictureNames<<pic1->getName()<<"\n";
+            cout<<" rejected!";
+        }
+        std::cout<<std::endl;
         for (itPic2=itPic1;itPic2!=allPics.end();++itPic2)
         {
             if (itPic2==itPic1) continue; //with c++11: itPic2=next(itPic1)
@@ -1171,6 +1179,7 @@ int schnaps_main(int argc,char ** argv)
         }
     }
 
+    std::cout<<nbBadPictures<<" pictures rejected."<<std::endl;
     std::cout<<"\nYou can look at \""<<aPoubelleName<<"\" for a list of suspicious pictures.\n";
   
    

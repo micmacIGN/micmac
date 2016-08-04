@@ -27,6 +27,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ImageSimpleProjection.cpp
 	${TDPPMD_DIR}/PLY2XYZ.cpp
     ${TDPPMD_DIR}/ExportXmlGcp2Txt.cpp
+    ${TDPPMD_DIR}/InterpImgPos.cpp
     ${TDPPMD_DIR}/PHO_MI.cpp
     ${TDPPMD_DIR}/Panache.cpp
     ${TDPPMD_DIR}/TestStephane.cpp
