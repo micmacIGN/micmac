@@ -165,6 +165,8 @@ bool cAppliTiepRed::DoLoadTiePoints(){
 
 					// Add to image pair map
 					mImagePairsMap.insert(make_pair(make_pair(masterImage.ImageId(), homolImage.ImageId()), imagePairLink));
+				}else{
+					homolImagesIgnored.push_back(homolImage.ImageName());
 				}
 			}else{
 				homolImagesIgnored.push_back(homolImage.ImageName());
@@ -172,7 +174,7 @@ bool cAppliTiepRed::DoLoadTiePoints(){
 		}
 
 		if (homolImagesIgnored.size() > 0){
-			std::cout << "Related Images ignored (not enough homol points to orient pair): ";
+			std::cout << "Related Images ignored (not enough homol points): ";
 			for (std::size_t i = 0 ; i<homolImagesIgnored.size() ; i++){
 				std::cout << homolImagesIgnored[i] << " ";
 			}
