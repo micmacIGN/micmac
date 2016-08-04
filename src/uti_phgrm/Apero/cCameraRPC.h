@@ -98,6 +98,7 @@ class CameraRPC : public cBasicGeomCap3D
 
 
         const  cRPC * GetRPC() const;
+        cRPC   GetRPCCpy() const;
         void   CropRPC(const std::string &, const std::string &, const std::vector<Pt3dr>&);
 
         void   ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
@@ -191,12 +192,20 @@ class cRPC
         static void Save2XmlStdMMName(const std::string &aName,const std::string& aPref);
         /* Save non-existing RPCs in original coordinate system */
         static void Save2XmlStdMMName_(cRPC &, const std::string &);
+        static std::string NameSave(const std::string & aDirLoc);
         void Show();
 
         /* 2D<->3D projections */
         Pt3dr DirectRPC(const Pt2dr &aP, const double &aZ) const;
         Pt2dr InverseRPC(const Pt3dr &aP) const;
         void  InvToDirRPC();
+
+        /* Noralize / denormalize */
+        Pt2dr NormIm(const Pt2dr &aP, bool aDENORM=0) const;
+        vector<Pt3dr> NormImAll(const vector<Pt3dr> &aP, bool aDENORM=0) const;
+        Pt3dr NormGr(const Pt3dr &aP, bool aDENORM=0) const;
+        vector<Pt3dr> NormGrAll(const vector<Pt3dr> &aP, bool aDENORM=0) const;
+        double NormGrZ(const double &aZ, bool aDENORM=0) const;
 
 
         double GetGrC31() const;
@@ -213,8 +222,12 @@ class cRPC
         bool IsInv() const;
         bool IsMetric() const;    
       
+        /* Grid creation */
         static void SetRecGrid_(const bool  &, const Pt3dr &, const Pt3dr &, Pt3di &);
         static void GenGridAbs_(const Pt3dr &aPMin, const Pt3dr &aPMax, const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
+        void GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
+        void GenGridAbs(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
+        
         static void GetGridExt(const std::vector<Pt3dr> & aGrid, 
                          Pt3dr & aExtMin,
                          Pt3dr & aExtMax,
@@ -255,6 +268,8 @@ class cRPC
                         bool PRECISIONTEST=1);
 
 
+
+
         /* Fill-in a cubic polynomials */
         void CubicPolyFil(const Pt3dr &aP, double (&aPTerms)[20]) const;
         void DifCubicPolyFil(const Pt3dr &aP, double &aB, double (&aPTerms)[39]) const;
@@ -266,7 +281,9 @@ class cRPC
                          double (&aSol1)[20], double (&aSol2)[20],
                          double (&aSol3)[20], double (&aSol4)[20]);
         
-        void CalculRPC( const vector<Pt3dr> &, 
+        void CalculRPC(     const vector<Pt3dr> &, 
+                            const vector<Pt3dr> &, 
+                            const vector<Pt3dr> &, 
                             const vector<Pt3dr> &, 
                             double (&aDirSNum)[20], double (&aDirLNum)[20],
                             double (&aDirSDen)[20], double (&aDirLDen)[20],
@@ -280,12 +297,6 @@ class cRPC
         void ReconstructValidityXY();
         void ReconstructValidityH();
 
-        /* Noralize / denormalize */
-        Pt2dr NormIm(const Pt2dr &aP, bool aDENORM=0) const;
-        vector<Pt3dr> NormImAll(const vector<Pt3dr> &aP, bool aDENORM=0) const;
-        Pt3dr NormGr(const Pt3dr &aP, bool aDENORM=0) const;
-        vector<Pt3dr> NormGrAll(const vector<Pt3dr> &aP, bool aDENORM=0) const;
-        double NormGrZ(const double &aZ, bool aDENORM=0) const;
 
         /* Update scales, offsets */
         void NewImOffScal(const std::vector<Pt3dr> & aGrid);
@@ -303,9 +314,7 @@ class cRPC
         void GetGrOff(vector<double>& aOff) const;
         void GetGrScal(vector<double>& aSca) const;
 
-        /* Grid creation */
-        void GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
-        void GenGridAbs(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
+
 
 
         void SetRecGrid();
@@ -314,7 +323,7 @@ class cRPC
         
         bool AutoDetermineRPCFile(const std::string &) const;
         bool AutoDetermineGRIDFile(const std::string &) const;
-        std::string NameSave(const std::string & aDirLoc) const;
+
         template <typename T>
         void FilLineNumCoeff(T& , double (&)[20] ) const;
         template <typename T>
@@ -353,6 +362,25 @@ class cRPC
 
         std::string mName;
 
+
+};
+
+class cRPCVerf
+{
+    public:
+        cRPCVerf(const CameraRPC &aCam, const Pt3di &aSz);
+        
+        void Do(const std::vector<Pt3dr> &aGrid=std::vector<Pt3dr>());
+        void Compare2D(std::vector<Pt2dr> &aGrid2d) const;
+        void Compare3D(std::vector<Pt3dr> &aGrid3d) const;
+
+        std::vector<Pt3dr> mGrid3dFP; //forward projected grid
+        std::vector<Pt2dr> mGrid2dBP;  //backward projected grid
+    
+    private:
+        const Pt3di mSz;
+        const CameraRPC * mCam;
+        std::vector<Pt3dr> mGrid3d;   //input grid unnormalized
 
 };
 
