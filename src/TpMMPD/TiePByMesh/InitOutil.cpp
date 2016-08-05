@@ -90,6 +90,19 @@ InitOutil::InitOutil   ( string aFullPattern, string aOriInput,
        mDisp = disp;
 }
 
+InitOutil::InitOutil(string aFullPattern, string aOriInput)
+{
+    cout<<"Init MicMac, lire pattern, former le cle.."<<endl;
+    this->mOriInput = aOriInput;
+    this->mFullPattern = aFullPattern;
+    SplitDirAndFile(mDirImages, mPatIm, mFullPattern); //Working dir, Images pattern
+    StdCorrecNameOrient(mOriInput, mDirImages);//remove "Ori-" if needed
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirImages);
+    mSetIm = *(mICNM->Get(mPatIm));
+    ELISE_ASSERT(mSetIm.size()>0,"ERROR: No image found!");
+}
+
+
 PlyFile* InitOutil::read_file(string pathPlyFileS)
 {
     cout<<" ++ Import mesh: "<<endl;

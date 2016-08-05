@@ -239,7 +239,7 @@ void dispAllPtsInteret(vector<Pt2dr> listPtsInteret)
 
 /*=========== Function ecrit Aout 2016=============*/
 extern Video_Win * display_image( Im2D<U_INT1,INT4> *ImgIm2D,
-                    string nameFenetre, Video_Win *thisVWin, double zoomF=1)
+                    string nameFenetre, Video_Win *thisVWin, double zoomF=1, bool click=true)
 {
     //zoomF = 2 => 2 fois plus grand, 1/2 => reduire 2 fois
     Pt2dr scale(zoomF, zoomF);
@@ -260,7 +260,8 @@ extern Video_Win * display_image( Im2D<U_INT1,INT4> *ImgIm2D,
     thisVWin->clear();
     ELISE_COPY(thisVWin->all_pts(), ImgIm2D->in_proj() ,thisVWin->ogray());
     return thisVWin;
-    thisVWin->clik_in();
+    if (click)
+        thisVWin->clik_in();
 }
 
 extern void display_2image( Im2D<U_INT1,INT4> *Img1,
@@ -304,7 +305,7 @@ extern void display_2image( Im2D<U_INT1,INT4> *Img1,
     }
 }
 
-extern Video_Win* draw_polygon_onVW(vector<Pt2dr> pts, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true)
+extern Video_Win* draw_polygon_onVW(vector<Pt2dr> pts, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true, bool click = true)
 {
     Disc_Pal Pdisc = Disc_Pal::P8COL();
     Gray_Pal Pgr (30);
@@ -321,12 +322,13 @@ extern Video_Win* draw_polygon_onVW(vector<Pt2dr> pts, Video_Win* VW, Pt3di colo
     {
         VW->set_sop(SOP);
         VW->draw_poly(pts, lstLineG, isFerme);
-        VW->clik_in();
+        if (click)
+            VW->clik_in();
     }
     return VW;
 }
 
-extern Video_Win* draw_polygon_onVW(Tri2d &aTri, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true)
+extern Video_Win* draw_polygon_onVW(Tri2d &aTri, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true, bool click = true)
 {
     Disc_Pal Pdisc = Disc_Pal::P8COL();
     Gray_Pal Pgr (30);
@@ -347,12 +349,13 @@ extern Video_Win* draw_polygon_onVW(Tri2d &aTri, Video_Win* VW, Pt3di color=Pt3d
     {
         VW->set_sop(SOP);
         VW->draw_poly(pts, lstLineG, isFerme);
-        VW->clik_in();
+        if (click)
+            VW->clik_in();
     }
     return VW;
 }
 
-extern Video_Win* draw_polygon_onVW(Pt2dr ptHGCaree, int szCaree, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true)
+extern Video_Win* draw_polygon_onVW(Pt2dr ptHGCaree, int szCaree, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true, bool click = true)
 {
     Disc_Pal Pdisc = Disc_Pal::P8COL();
     Gray_Pal Pgr (30);
@@ -374,7 +377,8 @@ extern Video_Win* draw_polygon_onVW(Pt2dr ptHGCaree, int szCaree, Video_Win* VW,
     {
         VW->set_sop(SOP);
         VW->draw_poly(pts, lstLineC, isFerme);
-        VW->clik_in();
+        if (click)
+            VW->clik_in();
     }
     return VW;
 }

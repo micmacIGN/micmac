@@ -145,6 +145,7 @@ public :
 
 extern int PHO_MI_main(int , char **);
 extern int TiePByMesh_main(int , char **);
+extern int MeshProjOnImg_main(int , char **);
 extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
 extern int TestRegEx_main(int , char **);
@@ -237,6 +238,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("InitOriLinear",InitOriLinear_main," Initialize orientation for linear acquisition"));
        aRes.push_back(cMMCom("PHO_MI",PHO_MI_main," Filter homologue points from initial orientation to reduce number of observations"));
        aRes.push_back(cMMCom("TiePByMesh",TiePByMesh_main," Raffiner pts homologue par mesh"));
+       aRes.push_back(cMMCom("MeshProjOnImg",MeshProjOnImg_main," Reproject mesh on image"));
        aRes.push_back(cMMCom("ExtractMesure2D",ExtractMesure2D_main," Extract points from a 2D measures xml file"));
        aRes.push_back(cMMCom("ExtractAppui3D",ExtractAppui3D_main," Extract points from a 3D appui points xml file"));
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
