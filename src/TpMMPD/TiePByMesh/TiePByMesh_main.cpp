@@ -54,6 +54,9 @@ int TiePByMesh_main(int argc,char ** argv)
     cout<<"********************************************************"<<endl;
     cout<<"*    Search for tie-point using mesh + correlation     *"<<endl;
     cout<<"********************************************************"<<endl;
+    cout<<"dParam : param of detector : "<<endl;
+    cout<<"     [FAST_Threshold]"<<endl;
+    cout<<"     NO"<<endl;
 
     string pathPlyFileS ;
     string method="SubCoor";string aTypeD="HOMOLINIT";
@@ -62,7 +65,8 @@ int TiePByMesh_main(int argc,char ** argv)
     bool disp = 0; bool assum1er=0;
     int SzPtCorr = 1;int indTri=-1;double corl_seuil_glob = 0.8;bool Test=0;
     int SzAreaCorr = 5; double corl_seuil_pt = 0.9;
-
+    vector<string> dParam; dParam.push_back("NO");
+    bool useExistHomoStruct = false;
 
     ElInitArgMain
             (
@@ -83,13 +87,16 @@ int TiePByMesh_main(int argc,char ** argv)
                 << EAM(assum1er, "assum1er", true, "always use 1er pose as img master, default=0")
                 << EAM(Test, "Test", true, "Test new method - fix size imagette of triangle")
                 << EAM(aTypeD, "aTypeD", true, "FAST, DIGEO, HOMOLINIT - default = HOMOLINIT")
+                << EAM(dParam,"dParam",true,"[param1, param2, ..] (selon detector - NO if don't have)", eSAM_NoInit)
                 << EAM(aHomolOut, "HomolOut", true, "default = _Filtered")
+                << EAM(useExistHomoStruct, "useExist", true, "use exist homol struct - default = false")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
-    vector<double> aParamD; //need to to on arg enter
+    vector<double> aParamD = parse_dParam(dParam); //need to to on arg enter
     InitOutil *aChain = new InitOutil(aFullPattern, aOriInput, aTypeD,  aParamD, aHomolOut,
-                                      SzPtCorr, SzAreaCorr, corl_seuil_glob, corl_seuil_pt, disp);
+                                      SzPtCorr, SzAreaCorr,
+                                      corl_seuil_glob, corl_seuil_pt, disp, useExistHomoStruct);
     aChain->initAll(pathPlyFileS);
 
     cout<<endl<<" +++ Verify init: +++"<<endl;
@@ -111,7 +118,10 @@ int TiePByMesh_main(int argc,char ** argv)
     CorrelMesh aCorrel(aChain);
     for (uint i=0; i<PtrTri.size(); i++)
     {
-        aCorrel.correlInTri(i);
+        if (useExistHomoStruct)
+            aCorrel.correlByCplExist(i);
+        else
+            aCorrel.correlInTri(i);
     }
     cout<<endl<<"Tri has pt inside: ";
     for (uint i=0; i<aCorrel.mTriHavePtInteret.size(); i++)

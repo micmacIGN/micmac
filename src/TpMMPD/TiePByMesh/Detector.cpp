@@ -74,11 +74,23 @@ Detector::Detector( string typeDetector, vector<double> paramDetector,
         cout<<"ERROR creat Detector: Il fault avoir (nameImg + mICNM) ou Im2D"<<endl;
 }
 
+Detector::Detector( string typeDetector, vector<double> paramDetector,
+                    pic * aPic,
+                    InitOutil * aChain
+                    )
+{
+    mTypeDetector = typeDetector;
+    mParamDetector = paramDetector;
+    mNameImg = aPic->getNameImgInStr();
+    mChain = aChain;
+    mImg = aPic->mPic_Im2D;
+}
+
 Detector::Detector( InitOutil * aChain , pic * pic1 , pic * pic2)    //from pack homo Init
 {
     mChain = aChain;
-    this->mNameImg = pic1->getNameImgInStr();
-    this->mPic2 = pic2;
+    mNameImg = pic1->getNameImgInStr();
+    mPic2 = pic2;
     this->mTypeDetector = "HOMOLINIT";
 }
 

@@ -193,9 +193,17 @@ void CorrelMesh::correlInTri(int indTri)
             cout<<" ++ SommetTri2nd:"<<tri2D2nd.sommet1[0]<<tri2D2nd.sommet1[1]<<tri2D2nd.sommet1[2]<<endl;
         if (mPicMaitre->mListPtsInterestFAST.size() == 0) //detector pt interest if not detected yet
         {
-            Detector aDetectImgM(mChain, mPicMaitre, pic2nd);      //now using HOMOLINIT
-            aDetectImgM.detect();
-            aDetectImgM.saveToPicTypeVector(mPicMaitre);
+            Detector * aDetectImgM;
+            if (mChain->getPrivMember("mTypeD") == "HOMOLINIT")
+                aDetectImgM = new Detector(mChain, mPicMaitre, pic2nd);
+            else
+                aDetectImgM = new Detector(   mChain->getPrivMember("mTypeD"),
+                                              mChain->getParamD(),
+                                              mPicMaitre,
+                                              mChain
+                                            );
+            aDetectImgM->detect();
+            aDetectImgM->saveToPicTypeVector(mPicMaitre);
         }
         if (tri2DMaitre.insidePic && tri2D2nd.insidePic)
         {
@@ -237,11 +245,32 @@ void CorrelMesh::correlInTri(int indTri)
                             this->countPts++;
                         }
                     }
-                   mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2Correl, "_Filtered");
+                   mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2Correl,
+                                               mChain->getPrivMember("mHomolOutput"));
                 }
             }
         }
     }
+    }
+}
+
+void CorrelMesh::correlByCplExist(int indTri)
+{
+    vector<CplPic> homoExist = this->mChain->getmCplHomolExist();
+    if (homoExist.size() <= 0)
+        cout<<"WARN : No data homol exist found !"<<endl;
+    else
+    {
+        for (uint i=0; i<homoExist.size(); i++)
+        {
+            vector<pic*> mPtrListPicT;
+            CplPic thisHomoPack = homoExist[i];
+            mPtrListPicT.push_back(thisHomoPack.pic1);
+            mPtrListPicT.push_back(thisHomoPack.pic2);
+            mPtrListPic = mPtrListPicT;
+            this->correlInTri(indTri);
+            reloadTriandPic();
+        }
     }
 }
 

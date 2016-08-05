@@ -20,6 +20,7 @@ public:
     CorrelMesh(InitOutil * aChain);
     void reloadTriandPic();
     void correlInTri(int indTri);
+    void correlByCplExist(int indTri);
     vector<int> mTriHavePtInteret;
     vector<int> mTriCorrelSuper;
     double countPts;
