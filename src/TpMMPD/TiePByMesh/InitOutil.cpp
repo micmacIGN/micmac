@@ -49,13 +49,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 InitOutil::InitOutil   ( string aFullPattern, string aOriInput,
                          string aTypeD, vector<double> aParamD,
                          string aHomolOutput,
-                         int SzPtCorr, int SzAreaCorr, double corl_seuil_glob, double corl_seuil_pt, bool disp)
+                         int SzPtCorr, int SzAreaCorr,
+                         double corl_seuil_glob, double corl_seuil_pt,
+                         bool disp, bool aCplPicExistHomol)
 {
     cout<<"Init MicMac, lire pattern, former le cle.."<<endl;
     this->mOriInput = aOriInput;
     this->mFullPattern = aFullPattern;
     this->mTypeD = aTypeD;
     this->mParamD = aParamD;
+    this->mCplPicExistHomol = aCplPicExistHomol;
     // Initialize name manipulator & files
     SplitDirAndFile(mDirImages, mPatIm, mFullPattern); //Working dir, Images pattern
     StdCorrecNameOrient(mOriInput, mDirImages);//remove "Ori-" if needed
@@ -305,7 +308,9 @@ void InitOutil::initAll(string pathPlyFileS)
     this->load_Im();
     this->load_tri();
     this->reprojectAllTriOnAllImg();
-    this->initHomoPackVide();
+    if (mCplPicExistHomol)
+        loadCplPicExistHomol();
+    //this->initHomoPackVide();
     cout<<"Init done..!"<<endl;
 }
 
@@ -384,7 +389,38 @@ void InitOutil::addToExistHomolFile(    pic * pic1,
     aPackIn.StdPutInFile(cleNomHomolOut);
 }
 
-
+vector<CplPic> InitOutil::loadCplPicExistHomol()
+{
+    cout<<" ++ Creat couple image depends on exist homol structure: "<<endl;
+    vector<CplPic> result;
+    string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(mNameHomol)
+                       +  std::string("@")
+                       +  std::string("dat");
+    for (uint i=0; i<mPtrListPic.size()-1; i++)
+    {
+        for (uint j=i+1; j<mPtrListPic.size(); j++)
+        {
+            pic * pic1 = mPtrListPic[i];
+            pic * pic2 = mPtrListPic[j];
+            string aHomoIn = mICNM->Assoc1To2(aKHIn, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
+            StdCorrecNameHomol_G(aHomoIn, mDirImages);
+            cout<<"     ++ "<<aHomoIn;
+            bool Exist= ELISE_fp::exist_file(aHomoIn);
+            if (Exist)
+            {
+                CplPic aCplHomo;
+                aCplHomo.pic1 = pic1;
+                aCplHomo.pic2 = pic2;
+                result.push_back(aCplHomo);
+                cout<<"..exist!";
+            }
+            cout<<endl;
+        }
+    }
+    this->mCplHomolExist = result;
+    return result;
+}
 
 //========les fonction outil supplementaire ===========//
 std::string intToString ( int number )
@@ -399,4 +435,20 @@ std::string constStringToString(const string * aCString)
     return aCString->c_str();
 }
 
+vector<double> parse_dParam(vector<string> dParam)
+{
+    vector<double> result;
+    if (dParam[0] != "NO")
+    {
+        for (uint i=0; i<dParam.size(); i++)
+        {
+            result.push_back(RequireFromString<double>(dParam[i],"p1"));
+        }
+    }
+    cout<<"Parse detector param: "<<result.size()<<" params : ";
+    for (uint i=0; i<result.size(); i++)
+            cout<<result[i]<<" , ";
+    cout<<endl;
+    return result;
+}
 

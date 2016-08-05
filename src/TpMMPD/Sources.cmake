@@ -46,6 +46,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/DrawOnMesh.cpp
     ${TDPPMD_DIR}/TiePByMesh/Detector.cpp
     ${TDPPMD_DIR}/TiePByMesh/CorrelMesh.cpp
+    ${TDPPMD_DIR}/TiePByMesh/MeshProjOnImg_main.cpp
     
 )
 

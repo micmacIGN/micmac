@@ -9,13 +9,18 @@
 class Detector
 {
     public:
+        Detector();
         Detector( string typeDetector, vector<double> paramDetector,
                         string nameImg,
                         Im2D<unsigned char, int> * img,
                         InitOutil * aChain
                         );
         Detector( InitOutil * aChain , pic * pic1 , pic * pic2);   //from pack homo Init
-
+        Detector(string typeDetector,
+                 vector<double> paramDetector,
+                 pic * aPic,
+                 InitOutil * aChain
+                );
         int detect();
         vector<Pt2dr> readResultDetectFromFileDigeo(string filename);
         vector<Pt2dr> importFromHomolInit(pic* pic2);
