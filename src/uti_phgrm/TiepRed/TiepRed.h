@@ -170,7 +170,6 @@ class cAppliTiepRed {
 		std::map<pair<int, int>, cLnk2ImTiepRed * > & ImagePairsMap() {return mImagePairsMap;} // Gets the map of image pairs. The key is the pair of image ids within the current subcommand/task (only used by children)
 		int  & GainMode() {return mGainMode;} // Get the Gain mode (0 is WeightAccGain; 1 otherwise). If Gain mode is 0, then Gain is multiplicity (only used by children)
 		double & StdAcc() {return mStdAcc;}  // Gets the median of the accuracy of all the multi-tie-points in the current subcommand being executed (only used by children)
-
 	private :
 
 		/* Generates the list of subcommands/tasks. For each subcommand/task it generates a configuration file.
@@ -240,7 +239,7 @@ class cAppliTiepRed {
 		bool mDesc; //Indicates if the user wishes to use descending order in sorting the images, instead of ascending
 		int mSubcommandIndex; // Subcommand index
 		int mGainMode; // Mode to compute the Gain of a multi-tie-point
-		int	mMinNumHomol; // Minimum number of tie-points per image pair, image pairs with fewer points are ignored
+		int mMinNumHomol; // Minimum number of homol points for a pair not to be excluded
 		int mMaxNumRelated; // Maximum number of related images for an image
 		int	mMaxNumHomol; // Maximum number of tie-points in a image-pair (used for adaptive grids)
 		int mNumInit; // Initial number of tie-points in the master image
