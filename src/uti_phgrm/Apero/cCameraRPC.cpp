@@ -111,7 +111,7 @@ cRPC CameraRPC::GetRPCCpy() const
     return (*mRPC);
 }
 
-void CameraRPC::CropRPC(const std::string &aNameDir, 
+int CameraRPC::CropRPC(const std::string &aNameDir, 
                         const std::string &aNameXML, 
                         const std::vector<Pt3dr> &aBounds)
 {
@@ -155,7 +155,10 @@ void CameraRPC::CropRPC(const std::string &aNameDir,
             aP.x < mRPC->mImCols[1] && aP.y < mRPC->mImRows[1] )
             aGrid2DRough.push_back(Pt3dr(aP.x, aP.y, aGrid3DRough.at(aK).z));
     }
-    cRPC::GetGridExt(aGrid2DRough, aPI1, aPI2, aNeverMind);
+    if( aGrid2DRough.size() > 0 )
+        cRPC::GetGridExt(aGrid2DRough, aPI1, aPI2, aNeverMind);
+    else
+        return 0;
     
 
     /* Create your 2D grid */
@@ -245,7 +248,8 @@ void CameraRPC::CropRPC(const std::string &aNameDir,
 
     TopSystem(aCom1.c_str());
     ELISE_fp::RmFile(aTmpChSys); 
-    
+   
+    return 0;
 }
 
 Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
@@ -1915,9 +1919,38 @@ void cRPC::SetRecGrid()
     
 }
 
-void cRPC::GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
+void cRPC::GenGridNorm_(const Pt2dr aRange, const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
 {
     int aK1, aK2, aK3;
+    double aExt = aRange.y - aRange.x;
+    double aSh = aRange.y;
+
+    double aZS = double(aExt)/aSz.z;
+    double aXS = double(aExt)/aSz.x;
+    double aYS = double(aExt)/aSz.y;
+
+    for (aK1 = 0; aK1 <= aSz.x; aK1++)
+    {
+        for (aK2 = 0; aK2 <= aSz.y; aK2++)
+        {
+            for(aK3 = 0; aK3 <= aSz.z; aK3++ )
+            {
+                Pt3dr aPt;
+                aPt.x = aK1*aXS -aSh;
+                aPt.y = aK2*aYS -aSh;
+                aPt.z = aK3*aZS -aSh;
+                aGrid.push_back(aPt);
+            }
+        }
+    }
+}
+
+void cRPC::GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
+{
+    Pt2dr aRng(-1,1);
+    cRPC::GenGridNorm_(aRng,aSz,aGrid);
+
+    /*int aK1, aK2, aK3;
 
     double aZS = double(2)/aSz.z;
     double aXS = double(2)/aSz.x;
@@ -1936,7 +1969,7 @@ void cRPC::GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
                 aGrid.push_back(aPt);
             }
         }
-    }
+    }*/
 }
 
 void cRPC::GenGridAbs(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
@@ -3393,7 +3426,7 @@ void cRPCVerf::Do(const std::vector<Pt3dr> &aG)
 
     int aK1;
     int aGSz = mSz.x*mSz.y*mSz.z;
-    Pt3dr aStep(2.0/mSz.x, 2.0/mSz.y, 2.0/mSz.z);
+    Pt2dr aRange(-0.9,-0.9);//verification will take place on 80% of the validity space
     Pt3dr aPt;
    
     //to be able to access some class functions
@@ -3403,9 +3436,10 @@ void cRPCVerf::Do(const std::vector<Pt3dr> &aG)
     {
         std::vector<Pt3dr> aGrid2dN,aGrid2d;
         
-        aRPC.GenGridNorm(mSz, aGrid2dN);
+        cRPC::GenGridNorm_(aRange, mSz, aGrid2dN);
         aGrid2d = aRPC.NormImAll(aGrid2dN,1);
     
+
         //forward project the points
         for(aK1=0; aK1<aGSz; aK1++)
             mGrid3d.push_back(mCam->ImEtZ2Terrain(
@@ -3444,7 +3478,7 @@ void cRPCVerf::Do(const std::vector<Pt3dr> &aG)
     }
 
 if(0)
-    std::cout << "\n---\n" 
+    std::cout << "---\n" 
               << "RPC TEST IN 3D" << "\n"
               << "plan moy =" << aDistPlanMoy/aGSz << ", max=" << aDistPlanMax << "\n" 
               << "alt moy  =" << aDistAltMoy/aGSz <<  ", max=" << aDistAltMax << "\n"
@@ -3485,7 +3519,7 @@ void cRPCVerf::Compare2D(std::vector<Pt2dr> &aGrid2d) const
     }
 
 
-    std::cout << "\nrow moy =" << aMoy.x/aCnt << ", max=" << aMax.x << "\n"
+    std::cout << "row moy =" << aMoy.x/aCnt << ", max=" << aMax.x << "\n"
               << "col moy =" << aMoy.y/aCnt << ", max=" << aMax.y << "\n"
               << "discrepancies>" << aRep << "->" << aRepCnt << " out of " << aCnt << "\n" ;
 }
@@ -3526,7 +3560,7 @@ void cRPCVerf::Compare3D(std::vector<Pt3dr> &aGrid3d) const
     //to be able to say the units
     const cRPC * aRPC = mCam->GetRPC();
     
-    std::cout << "\nX moy =" << aMoy.x/aCnt << ", max=" << aMax.x << "\n"
+    std::cout << "X moy =" << aMoy.x/aCnt << ", max=" << aMax.x << "\n"
               << "Y moy =" << aMoy.y/aCnt << ", max=" << aMax.y << "\n"
               << "Z moy =" << aMoy.z/aCnt << ", max=" << aMax.z << "\n"
               << "discrepancies>" << aRep << "->" << aRepCnt << " out of " << aCnt << "\n" 

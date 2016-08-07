@@ -99,7 +99,7 @@ class CameraRPC : public cBasicGeomCap3D
 
         const  cRPC * GetRPC() const;
         cRPC   GetRPCCpy() const;
-        void   CropRPC(const std::string &, const std::string &, const std::vector<Pt3dr>&);
+        int   CropRPC(const std::string &, const std::string &, const std::vector<Pt3dr>&);
 
         void   ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
         void   Save2XmlStdMMName(const std::string &aName,const std::string & aPref) const;
@@ -226,6 +226,7 @@ class cRPC
         static void SetRecGrid_(const bool  &, const Pt3dr &, const Pt3dr &, Pt3di &);
         static void GenGridAbs_(const Pt3dr &aPMin, const Pt3dr &aPMax, const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
         void GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
+        static void GenGridNorm_(const Pt2dr aRange, const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
         void GenGridAbs(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
         
         static void GetGridExt(const std::vector<Pt3dr> & aGrid, 
