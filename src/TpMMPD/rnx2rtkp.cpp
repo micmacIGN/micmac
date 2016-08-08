@@ -262,7 +262,7 @@ int rnx2rtkp_main(int argc,char ** argv)
 					 << EAMC(aFileN,"Navigation file for GPS satellites ephemerides", eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"output txt file name ; Def = Output_mode.txt", eSAM_IsOutputFile)
 					 << EAM(aXmlOut,"Xml",false,"output xml Gps Trajectory file ; Def = Output_mode.xml", eSAM_IsOutputFile)
-					 << EAM(aAscii,"Ascii",false,"ASCII file export of result ; Format = (t,X,Y,Z) ; Def = Output_mode_txyz.txt", eSAM_IsBool)
+					 << EAM(aAscii,"Ascii",false,"ASCII file export of result ; Format = (t,X,Y,Z,Q) ; Def = Output_mode_txyz.txt", eSAM_IsBool)
 					 << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
 					 << EAM(aFreq,"Freq",true,"Freq to be used ; Def = l1",eSAM_None,ListOfVal(eNbTypeGpsFreq))
 					 << EAM(aSolType,"SolStrg",true,"Filter strategy ; Def = combined",eSAM_None,ListOfVal(eNbTypeGpsSol))
