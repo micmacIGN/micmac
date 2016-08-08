@@ -738,7 +738,7 @@ int rnx2rtkp_main(int argc,char ** argv)
 	 
 	 if(aAscii)
 	 {
-		 aCom1 = aCom1 + std::string(" ") + std::string("tXYZ=true");
+		 aCom1 = aCom1 + std::string(" ") + std::string("tXYZQ=true");
 	 }
 	 
 	 std::cout << "aCom = " << aCom1 << std::endl;
