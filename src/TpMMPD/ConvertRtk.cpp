@@ -236,7 +236,7 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
           LArgMain() << EAM(mOut,"Out",false,"Output file name ; Def=MyFile.xml")
 					 << EAM(mStrChSys,"ChSys",true,"Change coordinate file")
 					 << EAM(aShowH,"ShowH",true,"Show header informations ; Def = false", eSAM_IsBool)
-					 << EAM(aXYZ,"tXYZ",false,"Export tXYZ format ASCII data ; Def = false", eSAM_IsBool)
+					 << EAM(aXYZ,"tXYZQ",false,"Export tXYZQ format ASCII data ; Def = false", eSAM_IsBool)
     );
     
     std::string aFullName = mDir+mFile;
@@ -424,7 +424,7 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
 				
 			for (unsigned int aK=0 ; aK<aVSauvPosGPS.size() ; aK++)
 			{
-				fprintf(aFP,"%lf %lf %lf %lf \n",aVPosGPS[aK].Time,aVSauvPosGPS[aK].x,aVSauvPosGPS[aK].y,aVSauvPosGPS[aK].z);
+				fprintf(aFP,"%lf %lf %lf %lf %d \n",aVPosGPS[aK].Time,aVSauvPosGPS[aK].x,aVSauvPosGPS[aK].y,aVSauvPosGPS[aK].z, aVPosGPS[aK].Flag);
 			}
 			
 		ElFclose(aFP);
