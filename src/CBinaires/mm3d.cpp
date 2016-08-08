@@ -592,6 +592,7 @@ int TestStephane_Main(int argc,char ** argv);
 int TestDupBigTiff(int argc,char ** argv);
 int Test_TomCan(int argc,char ** argv);
 
+extern int PackHomolToPly_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -650,6 +651,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("DocI0",DocEx_Intro0_main,"Introduction 0 of example from DocElise  "));
        aRes.push_back(cMMCom("DocID2",DocEx_Introd2_main,"Introduction to D2 of example from DocElise  "));
        aRes.push_back(cMMCom("DocIntrofiltre",DocEx_Introfiltr_main,"Introduction to filter example from DocElise  "));
+
+       aRes.push_back(cMMCom("PackHomolToPly",PackHomolToPly_main,"Creat Ply of pts in pack homologue"));
 #if (ELISE_UNIX)
        aRes.push_back(cMMCom("DocIntroanalyse",DocEx_Introanalyse_main,"Introduction to image analysis from DocElise  "));
 #endif

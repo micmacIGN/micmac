@@ -31,7 +31,6 @@ extern Video_Win * draw_polygon_onVW(Tri2d &aTri, Video_Win* VW, Pt3di color=Pt3
 extern Video_Win* draw_polygon_onVW(Pt2dr ptHGCaree, int szCaree, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true, bool click = true);
 extern vector<double> parse_dParam(vector<string> dParam);
 
-
 extern std::string intToString ( int number );
 class InitOutil
 {
@@ -42,7 +41,7 @@ class InitOutil
                              int SzPtCorr, int SzAreaCorr,
                              double corl_seuil_glob, double corl_seuil_pt,
                              bool disp, bool aCplPicExistHomol);
-        InitOutil           (string aFullPattern, string aOriInput);
+        InitOutil           (string aFullPattern, string aOriInput, string aHomolInput = "Homol");
         PlyFile* read_file  (string pathPlyFileS);
         vector<pic*> load_Im();
         vector<triangle *> load_tri ();
@@ -59,7 +58,7 @@ class InitOutil
         void addToExistHomolFile(   pic * pic1,
                                     pic * pic2,
                                     vector<ElCplePtsHomologues> ptsHomo,
-                                    string aHomolOut);
+                                    string aHomolOut, bool addInverse = false);
         void writeToHomolFile(   pic * pic1,
                                  pic * pic2,
                                  vector<ElCplePtsHomologues> ptsHomo,

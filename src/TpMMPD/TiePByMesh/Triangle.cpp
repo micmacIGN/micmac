@@ -30,17 +30,17 @@ triangle::triangle(Face* aFace, vector<Vertex*> VertexList, int num_pic, int ind
     mSommet[0].x = VertexList[aFace->verts[0]]->x;
     mSommet[0].y = VertexList[aFace->verts[0]]->y;
     mSommet[0].z = VertexList[aFace->verts[0]]->z;
-    mPtrSommetV[0] = VertexList[aFace->verts[0]];
+    //mPtrSommetV[0] = VertexList[aFace->verts[0]];
 
     mSommet[1].x = VertexList[aFace->verts[1]]->x;
     mSommet[1].y = VertexList[aFace->verts[1]]->y;
     mSommet[1].z = VertexList[aFace->verts[1]]->z;
-    mPtrSommetV[1] = VertexList[aFace->verts[1]];
+    //mPtrSommetV[1] = VertexList[aFace->verts[1]];
 
     mSommet[2].x = VertexList[aFace->verts[2]]->x;
     mSommet[2].y = VertexList[aFace->verts[2]]->y;
     mSommet[2].z = VertexList[aFace->verts[2]]->z;
-    mPtrSommetV[2] = VertexList[aFace->verts[2]];
+    //mPtrSommetV[2] = VertexList[aFace->verts[2]];
     Pt2dr a[3];
     mResultTriReprSurAllImg = (Tri2d**) malloc (sizeof(a) * num_pic);
     mIndex = index;
@@ -99,8 +99,8 @@ matAffine triangle::CalAffine(pic* pic1 , pic* pic2, bool & affineResolu)
     Tri2d triangle1 = *this->getReprSurImg()[pic1->mIndex];
     Tri2d triangle2 = *this->getReprSurImg()[pic2->mIndex];
     cout<<" + Affine:"<<endl;
-          cout<<"       "<<triangle1.sommet1[0]<<triangle1.sommet1[1]<<triangle1.sommet1[2]<<endl;
-          cout<<"       "<<triangle2.sommet1[0]<<triangle2.sommet1[1]<<triangle2.sommet1[2]<<endl;
+          //cout<<"       "<<triangle1.sommet1[0]<<triangle1.sommet1[1]<<triangle1.sommet1[2]<<endl;
+          //cout<<"       "<<triangle2.sommet1[0]<<triangle2.sommet1[1]<<triangle2.sommet1[2]<<endl;
     double* aData1 = NULL;
     if (triangle1.insidePic && triangle2.insidePic)
     {
@@ -530,8 +530,8 @@ ImgetOfTri triangle::get_Imagette_by_affine_n( ImgetOfTri &ImgetMaitre,
                                                bool & getImgetteFalse
                                              )
 {
-    cout<<"  "<<matrixAffine.el_00<<" "<<matrixAffine.el_01<<" "<<matrixAffine.el_02<<" "<<
-          matrixAffine.el_10<<" "<<matrixAffine.el_11<<" "<<matrixAffine.el_12 <<endl;
+    cout<<"     ["<<matrixAffine.el_00<<" "<<matrixAffine.el_01<<" "<<matrixAffine.el_02<<" "<<
+          matrixAffine.el_10<<" "<<matrixAffine.el_11<<" "<<matrixAffine.el_12 <<"]"<<endl;
     ImgetOfTri imget2nd;
     Pt2dr centre_geo_master = ImgetMaitre.centre_geo;
     double SzW = ((ImgetMaitre.imaget->getmSz().x-1)/2);
@@ -627,55 +627,55 @@ bool triangle::check_inside_triangle_A2016 (Pt2dr aPt, Tri2d & aTri)
 }
 //========================================================
 
-/*=====Sauvgarder un pts dans la triangle======
- * aPoint : pts2D interet dans la triangle
- * img : image ou on se trouve la point et la triangle
- *
- * => on peut savoir: coor des pts d'interet dans ce triangle sur certain image
-*/
-void triangle::savePtInteret2D(Pt2dr aPoint, pic*img)
-{
-    PtInteretInTriangle aPts;
-    aPts.aPoint = aPoint; aPts.imageContainPtAndTriangle = img;
-    mPtsInteret2DInImagetteDuTri.push_back(aPts);
-}
+//*=====Sauvgarder un pts dans la triangle======
+// * aPoint : pts2D interet dans la triangle
+// * img : image ou on se trouve la point et la triangle
+// *
+// * => on peut savoir: coor des pts d'interet dans ce triangle sur certain image
+//*/
+//void triangle::savePtInteret2D(Pt2dr aPoint, pic*img)
+//{
+//    PtInteretInTriangle aPts;
+//    aPts.aPoint = aPoint; aPts.imageContainPtAndTriangle = img;
+//    mPtsInteret2DInImagetteDuTri.push_back(aPts);
+//}
 
-vector<Vertex> triangle::toTriangle(Face * aFace, vector<Vertex*> VertexList)
-{
-    vector<Vertex> result;
-    Vertex aVertex;
-    aVertex.x = VertexList[aFace->verts[0]]->x;
-    aVertex.y = VertexList[aFace->verts[0]]->y;
-    aVertex.z = VertexList[aFace->verts[0]]->z;
-    result.push_back(aVertex);
-    aVertex.x = VertexList[aFace->verts[1]]->x;
-    aVertex.y = VertexList[aFace->verts[1]]->y;
-    aVertex.z = VertexList[aFace->verts[1]]->z;
-    result.push_back(aVertex);
-    aVertex.x = VertexList[aFace->verts[2]]->x;
-    aVertex.y = VertexList[aFace->verts[2]]->y;
-    aVertex.z = VertexList[aFace->verts[2]]->z;
-    result.push_back(aVertex);
-    return result;
-}
+//vector<Vertex> triangle::toTriangle(Face * aFace, vector<Vertex*> VertexList)
+//{
+//    vector<Vertex> result;
+//    Vertex aVertex;
+//    aVertex.x = VertexList[aFace->verts[0]]->x;
+//    aVertex.y = VertexList[aFace->verts[0]]->y;
+//    aVertex.z = VertexList[aFace->verts[0]]->z;
+//    result.push_back(aVertex);
+//    aVertex.x = VertexList[aFace->verts[1]]->x;
+//    aVertex.y = VertexList[aFace->verts[1]]->y;
+//    aVertex.z = VertexList[aFace->verts[1]]->z;
+//    result.push_back(aVertex);
+//    aVertex.x = VertexList[aFace->verts[2]]->x;
+//    aVertex.y = VertexList[aFace->verts[2]]->y;
+//    aVertex.z = VertexList[aFace->verts[2]]->z;
+//    result.push_back(aVertex);
+//    return result;
+//}
 
 
 //==========determine if point is inside triangle 2D ========//
 double triangle::det(Pt2dr u, Pt2dr v)
     {return (u.x*v.y-u.y*v.x);}
-bool triangle::check_inside_triangle (Pt2dr v, Tri2d aTri2D)
-{
-    Pt2dr a = aTri2D.sommet1[0];
-    Pt2dr b = aTri2D.sommet1[1];
-    Pt2dr c = aTri2D.sommet1[2];
-    bool inside = false;
-    Pt2dr v2 = b-a;
-    Pt2dr v1 = c-a;
-    Pt2dr v0 = a;
-    double alpha = (det(v,v2) - det(v0,v2))/det(v1,v2);
-    double beta = (det(v,v1) - det(v0,v1))/det(v1,v2);
-    if ( (alpha > 0) && (beta > 0) && ((alpha+beta)<1) )
-        {inside = true;}
-    return inside;
-}
+//bool triangle::check_inside_triangle (Pt2dr v, Tri2d aTri2D)
+//{
+//    Pt2dr a = aTri2D.sommet1[0];
+//    Pt2dr b = aTri2D.sommet1[1];
+//    Pt2dr c = aTri2D.sommet1[2];
+//    bool inside = false;
+//    Pt2dr v2 = b-a;
+//    Pt2dr v1 = c-a;
+//    Pt2dr v0 = a;
+//    double alpha = (det(v,v2) - det(v0,v2))/det(v1,v2);
+//    double beta = (det(v,v1) - det(v0,v1))/det(v1,v2);
+//    if ( (alpha > 0) && (beta > 0) && ((alpha+beta)<1) )
+//        {inside = true;}
+//    return inside;
+//}
 //=============================================================//

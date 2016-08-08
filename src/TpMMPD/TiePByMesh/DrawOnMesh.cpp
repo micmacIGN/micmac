@@ -59,25 +59,12 @@ Pt3dr DrawOnMesh::InterFaisce_cpy_cPI_Appli  (
 
 DrawOnMesh::DrawOnMesh(InitOutil *aChain)
 {
+    this->mChain = aChain;
     this->mPtrListPic = aChain->getmPtrListPic();
     this->mPtrListTri = aChain->getmPtrListTri();
 }
 
-double DrawOnMesh::countPtsSurImg(pic* img)
-{
-    double count = 0;
-    for (uint i=0; i<mPtrListTri.size(); i++)
-    {
-        vector<PtInteretInTriangle> databasePtsOnTri = mPtrListTri[i]->getPtsInteret2DInImagetteDuTri();
-        for (uint j=0; j<databasePtsOnTri.size(); j++)
-        {
-               string nameImg = databasePtsOnTri[j].imageContainPtAndTriangle->getNameImgInStr();
-               if ( nameImg.compare(img->getNameImgInStr()) == 0 )
-               {count++;}
-        }
-    }
-    return count;
-}
+
 
 vector<Pt3dr> DrawOnMesh::drawPt3DByPt2DAndTriangle(
                                                     triangle *tri,
@@ -127,9 +114,9 @@ Pt3dr DrawOnMesh::drawPt3DByInterPts2DManyImgs(
     return pts3D;
 }
 
-vector<Pt3dr> DrawOnMesh::drawPackHomoOnMesh(
-                                                ElPackHomologue aPack,
-                                                pic* pic1, pic* pic2
+vector<Pt3dr> DrawOnMesh::drawPackHomoOnMesh(   ElPackHomologue aPack,
+                                                pic* pic1, pic* pic2,
+                                                Pt3dr color = Pt3dr(0,255,0) , string suffix=""
                                             )
 {
     vector<Pt3dr> resultPts3d;
@@ -140,40 +127,15 @@ vector<Pt3dr> DrawOnMesh::drawPackHomoOnMesh(
         Pt3dr pts3D= cam1->ElCamera::PseudoInter(itP->P1(), *cam2, itP->P2());
         resultPts3d.push_back(pts3D);
     }
+    string aPlyOutDir;
+    aPlyOutDir=mChain->getPrivmICNM()->Dir()+"PlyVerify/";
+    if(!(ELISE_fp::IsDirectory(aPlyOutDir)))
+        ELISE_fp::MkDir(aPlyOutDir);
+    string aPlyFileName = pic1->getNameImgInStr() + pic2->getNameImgInStr() + suffix + "_HOMOPack.ply";
+    creatPLYPts3D(resultPts3d, aPlyOutDir+aPlyFileName, Pt3dr(0,255,255));
     return resultPts3d;
 }
 
-void DrawOnMesh::drawTri3DAndAllPts3DInTri(triangle * tri, pic *img)
-{
-    //system("mkdir VerifPLY");
-    //cout<<"Draw pts in tri "<<tri->index;
-    //draw triangle 2D in 3D
-//    Tri2d* aTri = tri->getReprSurImg()[img->index];
-//    vector<Pt2dr> sommet;
-//    sommet.push_back(aTri->sommet1[0]);
-//    sommet.push_back(aTri->sommet1[1]);
-//    sommet.push_back(aTri->sommet1[2]);
-    vector<Pt3dr> aTri3D;
-    aTri3D.push_back(tri->getSommet(0));
-    aTri3D.push_back(tri->getSommet(1));
-    aTri3D.push_back(tri->getSommet(2));
-//    cout<<endl;
-    //draw pts interet in tri by this img
-    vector<Pt3dr> listPts3Dby1img =
-            this->drawPt3DByPt2DAndTriangle (tri,
-                                             tri->getPtsInteret2DInImagetteDuTri(),
-                                             img);
-    //cout<<endl;
-    //draw pts interet in 3D by intersection
-
-    //creat fichier PLY
-    string fileName = "pts_" + intToString(tri->mIndex) + ".ply";
-    creatPLYPts3D(listPts3Dby1img, fileName, Pt3dr(255,0,0));               // draw pts in triangle
-    fileName = "tri_" + intToString(tri->mIndex) + ".ply";
-    vector<Pt3dr> listFace3D;
-    listFace3D.push_back(Pt3dr(0,1,2));
-    creatPLYPts3D(aTri3D, listFace3D, fileName, Pt3dr(0,0,255));            //draw triangle
-}
 
 
 void DrawOnMesh::creatPLYPts3D(vector<Pt3dr> pts3DAllTri,
