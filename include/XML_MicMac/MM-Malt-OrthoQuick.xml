@@ -1,0 +1,13 @@
+           <MakeOrthoParImage >
+                             <ResolRelOrhto> 1.0 </ResolRelOrhto>
+                             <OrthoBiCub> -0.5  </OrthoBiCub>
+                             <ScaleBiCub >  8 </ScaleBiCub>
+                             <DirOrtho> ${DirQO}/ </DirOrtho>
+                             <KeyCalcInput>    NKS-Assoc-Id  </KeyCalcInput>
+                             <KeyCalcOutput >  NKS-Assoc-AddDirAndPref@${DirQO}@Ort_ </KeyCalcOutput>
+                             <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirQO}@Incid_ </KeyCalcIncidHor>
+                             <ResolIm> 1.0 </ResolIm>
+                             <CalcIncAZMoy> true </CalcIncAZMoy>
+           </MakeOrthoParImage>
+
+

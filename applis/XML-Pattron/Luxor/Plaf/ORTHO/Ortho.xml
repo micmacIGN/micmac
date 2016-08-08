@@ -1,0 +1,97 @@
+<CreateOrtho>
+        <!-- Truc +ou- genreaux a ttes les applis -->
+        <DicoLoc >
+
+         <KeyedNamesAssociations>
+            <Calcs>
+                <Arrite>  1 1 </Arrite>
+                <Direct>
+                    <PatternTransform> Ort_F008(.*) </PatternTransform>
+                    <CalcName>  1.0  </CalcName>
+                 </Direct>
+            </Calcs>
+            <Calcs>
+                <Arrite>  1 1 </Arrite>
+                <Direct>
+                    <PatternTransform> Ort_F005(.*) </PatternTransform>
+                    <CalcName>  2.0  </CalcName>
+                 </Direct>
+            </Calcs>
+            <Key>   Key-Loc-Priorite-Ortho </Key>
+       </KeyedNamesAssociations>
+
+
+          <KeyedSetsOfNames >
+                   <Sets>
+                      <PatternAccepteur>  ^Ort_F008(.*)\.tif</PatternAccepteur>
+                   </Sets>
+                   <Key> Key-Ortho-OK </Key>
+          </KeyedSetsOfNames>
+
+
+        </DicoLoc>
+        <WorkDir>  ThisDir  </WorkDir>
+        <KBox0> 0 </KBox0>
+
+        <SectionEntree>
+           <FileMNT> ../GeoOrtho/Z_Num1_DeZoom1_Geom-Ortho.xml </FileMNT>
+           <KeySetIm>   Key-Ortho-OK </KeySetIm>
+<!--
+           <KeySetIm>  Key-OrthtoSet-All-OpIm </KeySetIm>
+-->
+           <KeyAssocMetaData > Key-Orthto-Assoc-OpIm2Mtd </KeyAssocMetaData>
+           <KeyAssocNamePC > Key-Assoc-OpIm2PC </KeyAssocNamePC>
+           <KeyAssocNameIncH> Key-Assoc-OpIm2Incid </KeyAssocNameIncH>
+           <KeyAssocPriorite> Key-Loc-Priorite-Ortho </KeyAssocPriorite>
+
+        </SectionEntree>
+
+        <SectionFiltrageIn>
+             <SzDilatPC >   1 </SzDilatPC>
+             <SzOuvPC >     2 </SzOuvPC>
+             <BoucheTrou>
+                <SeuilVisib > 50  </SeuilVisib>
+                <SeuilVisibBT > 10 </SeuilVisibBT>
+                <CoeffPondAngul > 3.14 </CoeffPondAngul>
+             </BoucheTrou>
+
+        </SectionFiltrageIn>
+
+        <SectionEgalisation >
+               <PeriodEchant >  45  </PeriodEchant>
+               <SzVois >  20  </SzVois>
+               <NameFileMesures >  MesuresEgales.dat </NameFileMesures>
+               <UseFileMesure > false </UseFileMesure>
+
+               <DegresEgalVois>  -1 -1  </DegresEgalVois>
+               <DegresEgalVois>  1 0  </DegresEgalVois>
+               <EgaliseSomCh> false </EgaliseSomCh>
+               <PdsRappelInit>  0.001 </PdsRappelInit>
+
+               <GlobRappInit>
+                    <DoGlob> true </DoGlob>
+                    <Degres>  0 0   </Degres>
+                    <Degres>  4 0 </Degres>
+<!--
+                    <PatternApply >  Ort_F008_IMG_0702_Gray.tif </PatternApply>
+-->
+               </GlobRappInit>
+         </SectionEgalisation>
+
+
+
+
+        <SectionSorties>
+           <SzDalle>    1000            </SzDalle>
+           <SzBrd>      100             </SzBrd>
+           <!-- 
+           <BoxCalc>   0 0 31439 2000    </BoxCalc> 
+           <BoxCalc>   0 0 4000 2000    </BoxCalc> 
+            -->
+           <NameOrtho>  Ortho-Test-Redr.tif</NameOrtho>
+           <NameLabels>  Label-Test-Redr.tif</NameLabels>
+        </SectionSorties>
+
+
+</CreateOrtho>
+
