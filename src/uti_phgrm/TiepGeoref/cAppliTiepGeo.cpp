@@ -49,10 +49,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 /**********************************************************************/
 
 cAppliTiepGeo::cAppliTiepGeo(int argc,char **argv) :
-    mCor(0.6),
-    mZoom0(32)
+    mMasterImStr(""),
+	mCor(0.6),
+    mZoom0(32),
+	mNum(1)
 {
-    ElInitArgMain
+
+    
+	ElInitArgMain
         (
             argc,argv,
             LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile)
@@ -61,22 +65,104 @@ cAppliTiepGeo::cAppliTiepGeo(int argc,char **argv) :
                         << EAM(mCor, "Cor", true, "Corelation threshold (def 0.6)")
          );
 
+
     mDir = DirOfFile(mPatImage);
+	//correct names ble -> Ori-ble
+	if (EAMIsInit(&mOri))
+	{
+		StdCorrecNameOrient(mOri,mDir);
+	}
+
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
     cElemAppliSetFile anEASF(mPatImage);
     mFilesIm = anEASF.SetIm();
 
-    std::cout << "Images consistent with the pattern: " << "\n";
-    for(int aK=0; aK<int(mFilesIm->size()); aK++)
-            std::cout << "\t" << mFilesIm->at(aK) << "\n";
-    
-    // parse the images
-    // - :
+
+
+
+    //pairse the images
+	std::string aName;
+	Pt2dr aPInf( 1E50, 1E50);
+	Pt2dr aPSup(-1E50,-1E50);
+	int aImSom = mFilesIm->size();
+
+    std::cout << "Images:" << aImSom << "\n";
+    for(int aK=0; aK<aImSom; aK++)
+	{
+		aName = mICNM->StdNameCamGenOfNames(mOri,mFilesIm->at(aK));
+		std::cout << aK << " " << aName << "\n";
+
+		cImageTiepGeo * aC = new cImageTiepGeo(aName);
+		aC->SetNum(aK);
+
+		mVIm.push_back( aC );
+		mMapIm[aName] = aC;
+
+		//footprint
+		const Box2dr aBox = mVIm.at(aK)->BoxSol();
+		aPInf = Inf(aBox._p0,aPInf);
+		aPSup = Sup(aBox._p1,aPSup);	
+    }
+	mGlobBox = Box2dr(aPInf,aPSup);
+
+
+
+
+	//connectivity graph
+	std::cout << "Connectivity graph:" << "\n";
+	for (int aK1=0 ; aK1<aImSom ; aK1++)
+	{
+		for (int aK2=aK1+1 ; aK2<aImSom ; aK2++)
+		{
+			if (mVIm[aK1]->HasInter(*(mVIm[aK2])))
+			{
+				std::cout << aK1 << "->" << aK2 << "\n";
+				cLnk2ImTiepGeo *aLnk = new cLnk2ImTiepGeo(mVIm[aK1], mVIm[aK2],
+											LocPxFileMatch(mDir, mNum, mZoom0),
+											LocPx2FileMatch(mDir, mNum, mZoom0));
+				AddLnk(aLnk);
+			}
+		}
+	}
+	std::vector<cLnk2ImTiepGeo *> aV0(mVIm.size(),0);
+	mVVLnk = std::vector<std::vector<cLnk2ImTiepGeo *> >(mVIm.size(),aV0);
+	for (std::list<cLnk2ImTiepGeo *>::const_iterator itL = mLnk2Im.begin(); itL!=mLnk2Im.end() ; itL++)
+	{
+		cImageTiepGeo & aI1 = (*itL)->Im1();
+		cImageTiepGeo & aI2 = (*itL)->Im2();
+
+		mVVLnk[aI1.Num()][aI2.Num()] = *itL;
+	}
+
+
+
+	//do master
+	DoMaster();
+	
+}
+
+//this must be implemented, 
+//for the moment I take the first image
+void cAppliTiepGeo::DoMaster()
+{
+	mMasterImStr = mMapIm.begin()->first;
+	mMasterIm    = mMapIm[mMasterImStr];
+}
+
+void cAppliTiepGeo::AddLnk(cLnk2ImTiepGeo *aLnk)
+{
+	mLnk2Im.push_back(aLnk);
 }
 
 void cAppliTiepGeo::DoPx1Px2()
 {
+	int aK;
+	for(aK=0; aK<int(mLnk2Im.size()); aK++)
+	{
+		
+	}
 
+		
 }
 
 void cAppliTiepGeo::DoTapioca()
