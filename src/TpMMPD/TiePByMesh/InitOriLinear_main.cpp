@@ -37,6 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include "InitOriLinear.h"
+
 double ToDecimal(string aString)
 {
     uint mLength = aString.length();
@@ -323,6 +325,81 @@ struct Section
     double angle;
     bool isReference;
 };
+
+bool checkNumParam(vector<string>aVecPatternNewImages_E , vector<string>aVecPatternRefImages_E ,
+                vector<string>aPatPoseTurn , vector<double>aPatAngle)
+{
+    bool ok;
+    if (aVecPatternNewImages_E.size() == aVecPatternRefImages_E.size())
+    {
+        cout<<"Number of pattern new image and pattern reference image is good (same)"<<endl;
+        ok = true;
+        if (aPatPoseTurn.size() > 0 || aPatAngle.size() > 0)
+        {
+            if (aPatPoseTurn.size() == aPatAngle.size())
+            {
+                cout<<"Number of pose turn and angle is good (same)"<<endl;
+                ok = true;
+            }
+            else
+            {
+                cout<<"ERROR : Number of pose turn and angle is NOT the same"<<endl;
+                cout<<"ERROR - quit - goodbye !"<<endl;
+                ok = false;
+            }
+            cout<<" ++ Pose turn: "<<aPatPoseTurn.size()<<" poses"<<endl;
+            for (uint i=0; i<aPatPoseTurn.size(); i++)
+                cout<<" ++ "<<aPatPoseTurn[i]<<endl;
+            cout<<" ++ Angle: "<<aPatAngle.size()<<" angls"<<endl;
+            for (uint i=0; i<aPatAngle.size(); i++)
+                cout<<" ++ "<<aPatAngle[i]<<endl;
+        }
+    }
+    else
+    {
+        cout<<"ERROR : Number of pattern new image and pattern reference image is NOT the same"<<endl;
+        cout<<"ERROR - quit - goodbye !"<<endl;
+        ok = false;
+    }
+    cout<<" ++ Pattern of new images: "<<aVecPatternNewImages_E.size()<<" pats"<<endl;
+    for (uint i=0; i<aVecPatternNewImages_E.size(); i++)
+        cout<<"     ++ "<<aVecPatternNewImages_E[i]<<endl;
+    cout<<" ++ Pattern of Ref images: "<<aVecPatternRefImages_E.size()<<" pats"<<endl;
+    for (uint i=0; i<aVecPatternRefImages_E.size(); i++)
+        cout<<"     ++ "<<aVecPatternRefImages_E[i]<<endl;
+    return ok;
+}
+
+vector<string> parseParam(string aParam)
+{
+    cout<<"Parse param..";
+    vector<string> result;
+    std::size_t pos = aParam.find(",");
+    if(pos == std::string::npos)
+    {
+        cout << "WARN: can't parse "<<aParam<<" - just 1 cam or not seperat by ,"<<endl;
+        result.push_back(aParam);
+    }
+    while(pos!=std::string::npos)
+    {
+        pos = aParam.find(",");
+        string temp;
+        if (pos!=std::string::npos)
+        {
+            string temp = aParam.substr(0,pos);
+            result.push_back(temp);
+            temp = aParam.substr(pos+1,aParam.length());
+            aParam = temp;
+        }
+        else
+        {
+            result.push_back(aParam);
+            break;
+        }
+    }
+    cout<<result.size()<<" params"<<endl;
+    return result;
+}
 //----------------------------------------------------------------------------
 
 int InitOriLinear_main(int argc,char ** argv)
@@ -334,14 +411,12 @@ int InitOriLinear_main(int argc,char ** argv)
     cout<<"*  X : For Acquisition *"<<endl;
     cout<<"*  X : Linear          *"<<endl;
     cout<<"************************"<<endl;
-    vector<std::string> aVecPatternNewImages;
-    vector<std::string> aVecPatternRefImages;
-    std::string aFullPatternNewImages, aFullPatternRefImages, aOriRef,
-            aPatternCam1, aPatternCam2, aPatternCam3, aPatternCam4,
-            aPatternRef1, aPatternRef2, aPatternRef3, aPatternRef4;//pattern of all files
-    std::string aVecPatternNewImages_E, aVecPatternRefImages_E, aPatPoseTurn, aPatAngle, aAxeOrient;
+
+    string aVecPatNEW, aVecPatREF;
+    vector<string> aVecPoseTurn, aPatAngle;
+    string aAxeOrient, aOriRef;
     aAxeOrient = "x";
-    string aOriOut = "InitOut";
+    string aOriOut = "Ori-InitOut";
     bool bWithOriIdentity = false;
     bool forceInPlan = false;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
@@ -349,11 +424,11 @@ int InitOriLinear_main(int argc,char ** argv)
     argc,argv,
     //mandatory arguments
     LArgMain()  << EAMC(aOriRef,"Reference Orientation Ori folder",  eSAM_IsExistDirOri)
-                << EAMC(aOriOut, "Output initialized ori folder", eSAM_None)
-                << EAMC(aVecPatternNewImages_E, "Vector pattern of new images to orientate Pat Cam 1, Pat Cam 2,..", eSAM_None)
-                << EAMC(aVecPatternRefImages_E, "Vector pattern of Reference Image Pat Ref 1, Pat Ref 2,..", eSAM_None),
+                << EAMC(aOriOut, "Output initialized ori folder - default = Ori-InitOut", eSAM_None)
+                << EAMC(aVecPatNEW, "Vector pattern of new images to orientate Pat Cam 1, Pat Cam 2,..", eSAM_None)
+                << EAMC(aVecPatREF, "Vector pattern of Reference Image Pat Ref 1, Pat Ref 2,..", eSAM_None),
     //optional arguments
-    LArgMain()  <<EAM(aPatPoseTurn, "PatTurn", true, "Vector of images when the serie change acquisition direction pose1,pose2...")
+    LArgMain()  <<EAM(aVecPoseTurn, "PatTurn", true, "Vector of images when the serie change acquisition direction pose1,pose2...")
                 <<EAM(aPatAngle,    "PatAngle", true, "Vector of turn angle apha1,alpha2,...")
                 <<EAM(bWithOriIdentity,    "WithIdent", true, "Initialize with orientation identique (default = false)")
                 <<EAM(aAxeOrient,    "Axe", true, "Which axe to calcul rotation about")
@@ -361,6 +436,52 @@ int InitOriLinear_main(int argc,char ** argv)
     );
     if (MMVisualMode) return EXIT_SUCCESS;
 
+    vector<string>aVecPatNEWImg = parseParam(aVecPatNEW);
+    vector<string>aVecPatREFImg = parseParam(aVecPatREF);
+    vector<double>aVecAngleTurn = parse_dParam(aPatAngle);
+
+    bool isNumParamOK = checkNumParam(aVecPatNEWImg, aVecPatREFImg, aVecPoseTurn , aVecAngleTurn);
+    vector<SerieCamLinear*> aSystem;
+    if (isNumParamOK)
+    {
+        bool Exist = ELISE_fp::IsDirectory(aOriOut);
+        if (!Exist)
+        {
+            cout<<"Dir "<<aOriOut<<" not exist! Create..";
+            ELISE_fp::MkDir(aOriOut);
+            cout<<"done"<<endl;
+        }
+        for (uint i=0; i<aVecPatREFImg.size(); i++)
+        {
+            string aPatImgRef = aVecPatREFImg[i];
+            string aPatImgNew = aVecPatNEWImg[i];
+            SerieCamLinear * aCam = new SerieCamLinear(aPatImgRef , aPatImgNew, aOriRef, aOriOut, i);
+            aSystem.push_back(aCam);
+        }
+    }
+    else
+        return EXIT_SUCCESS;
+    cout<<"System has "<<aSystem.size()<<" cams"<<endl;
+    if (isNumParamOK)
+    {
+        SerieCamLinear * cam0 = aSystem[0];
+        cam0->saveSystem(aSystem);
+        cam0->calPosRlt();
+        for (uint i=0; i<aSystem.size(); i++)
+        {
+            SerieCamLinear * cam = aSystem[i];
+            cam->calVecMouvement();
+        }
+        Pt3dr vecMouvCam0 = cam0->mVecMouvement;
+        cam0->initSerie(vecMouvCam0 , aVecPoseTurn, aVecAngleTurn);
+        for (uint i=1; i<aSystem.size(); i++)
+        {
+             SerieCamLinear * cam = aSystem[i];
+             cam->initSerieByRefSerie(cam0);
+        }
+    }
+
+/*
     //separate pattern camera
     std::size_t pos = aVecPatternNewImages_E.find(",");
     std::size_t pos1 = aVecPatternRefImages_E.find(",");
@@ -745,9 +866,10 @@ int InitOriLinear_main(int argc,char ** argv)
                 }
         }
     }
-    }*/
-
+    }
+    */
     return EXIT_SUCCESS;
+
 }
 
 /* Footer-MicMac-eLiSe-25/06/2007

@@ -480,17 +480,20 @@ std::string constStringToString(const string * aCString)
 vector<double> parse_dParam(vector<string> dParam)
 {
     vector<double> result;
-    if (dParam[0] != "NO")
+    if (dParam.size() > 0)
     {
-        for (uint i=0; i<dParam.size(); i++)
+        if (dParam[0] != "NO")
         {
-            result.push_back(RequireFromString<double>(dParam[i],"p1"));
+            for (uint i=0; i<dParam.size(); i++)
+            {
+                result.push_back(RequireFromString<double>(dParam[i],"p1"));
+            }
         }
+        cout<<"Parse param: "<<result.size()<<" params : ";
+        for (uint i=0; i<result.size(); i++)
+                cout<<result[i]<<" , ";
+        cout<<endl;
     }
-    cout<<"Parse detector param: "<<result.size()<<" params : ";
-    for (uint i=0; i<result.size(); i++)
-            cout<<result[i]<<" , ";
-    cout<<endl;
     return result;
 }
 

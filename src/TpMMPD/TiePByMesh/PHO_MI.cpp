@@ -1086,11 +1086,11 @@ int PHO_MI_main(int argc,char ** argv)
     cout<<"* P : Points        *"<<endl;
     cout<<"* H : Homologues    *"<<endl;
     cout<<"* O : ObservÃ©s sur  *"<<endl;
-    cout<<"* M : ModÃ¨le        *"<<endl;
+    cout<<"* M : Modele        *"<<endl;
     cout<<"* I : Initial       *"<<endl;
     cout<<"*********************"<<endl;
 
-    std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="_Filtered/", bStrategie = "6";
+    std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="_Filtered/", bStrategie = "7";
     double aDistRepr=10, aDistHom=20, aPropDiag =1 ,aCorel = 0.7, aSizeVignette=5, aTauxGood = 0.5, aSizeSearchAutour=0;
     bool ExpTxt = false, aDisplayVignette = false, aFiltreBy1Img=true;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
