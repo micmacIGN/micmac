@@ -3091,6 +3091,7 @@ class   cCS_MapIm2PlanProj : public ElDistortion22_Gen
 };
 
 std::string LocPxFileMatch(const std::string & aDir,int aNum,int aDeZoom);
+std::string LocPx2FileMatch(const std::string & aDir,int aNum,int aDeZoom);
 std::string LocMasqFileMatch(const std::string & aDirM,int aNum);
 
 

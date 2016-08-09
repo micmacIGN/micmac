@@ -56,7 +56,15 @@ cLnk2ImTiepGeo::cLnk2ImTiepGeo(cImageTiepGeo *aIm1, cImageTiepGeo *aIm2,
     //mPx2(Tiff_Im::StdConvGen(aPx2Name,1,true))
 {}
 
+cImageTiepGeo & cLnk2ImTiepGeo::Im1()
+{
+	return *mIm1;
+}
 
+cImageTiepGeo & cLnk2ImTiepGeo::Im2()
+{
+	return *mIm2;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

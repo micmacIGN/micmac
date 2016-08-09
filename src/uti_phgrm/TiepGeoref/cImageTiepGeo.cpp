@@ -46,11 +46,35 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                                    */
 /**********************************************************************/
 cImageTiepGeo::cImageTiepGeo(const std::string & aName)
-{}
+{
+	mCamRPC = new CameraRPC(aName);
 
+}
 
+const Box2dr & cImageTiepGeo::BoxSol() const
+{
+	return mCamRPC->BoxSol();	
+}
 
+bool cImageTiepGeo::HasInter(const cImageTiepGeo & aIm2) const
+{
+	const cElPolygone &  aPol1 = mCamRPC->EmpriseSol();
+	const cElPolygone &  aPol2 = aIm2.mCamRPC->EmpriseSol();	
+	const cElPolygone &  aInter= aPol1 * aPol2;
 
+	if( aInter.Surf() <= 0 ) return false;
+	else return true;
+}
+
+void cImageTiepGeo::SetNum(int &aNum)
+{
+	mNum = aNum;
+}
+
+const int & cImageTiepGeo::Num() const
+{
+	return mNum;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

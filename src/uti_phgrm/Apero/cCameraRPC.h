@@ -95,7 +95,9 @@ class CameraRPC : public cBasicGeomCap3D
         void SetAltiSol(double aZ);
 		double GetAltiSol() const;
 		bool AltisSolIsDef() const;
-
+		const std::vector<Pt2dr> &  ContourUtile();
+		const cElPolygone &  EmpriseSol() const;
+		const Box2dr & BoxSol() const;
 
         const  cRPC * GetRPC() const;
         cRPC   GetRPCCpy() const;
@@ -115,6 +117,10 @@ class CameraRPC : public cBasicGeomCap3D
 		double mProfondeur;
 		bool   mAltisSolIsDef;
 		double mAltiSol;
+        std::vector<Pt2dr>  mContourUtile;
+		cElPolygone mEmpriseSol;
+		Box2dr      mBoxSol;
+
 
 		bool   mOptCentersIsDef;
 
@@ -122,7 +128,7 @@ class CameraRPC : public cBasicGeomCap3D
 		std::vector<Pt3dr> * mOpticalCenters;
 		
 		Pt2di        mGridSz;
-        std::string  mInputName; 
+		std::string  mInputName; 
 
 		
         ElSeg3D F2toRayonLPH(const Pt2dr &aP, const double &aZ0, const double &aZP1) const;
@@ -225,9 +231,10 @@ class cRPC
         /* Grid creation */
         static void SetRecGrid_(const bool  &, const Pt3dr &, const Pt3dr &, Pt3di &);
         static void GenGridAbs_(const Pt3dr &aPMin, const Pt3dr &aPMax, const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
+        void GenGridAbs(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
         void GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
         static void GenGridNorm_(const Pt2dr aRange, const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
-        void GenGridAbs(const Pt3di &aSz, std::vector<Pt3dr> &aGrid);
+
         
         static void GetGridExt(const std::vector<Pt3dr> & aGrid, 
                          Pt3dr & aExtMin,

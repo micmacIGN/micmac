@@ -383,8 +383,68 @@ bool CameraRPC::ProfIsDef() const
 
 void CameraRPC::SetAltiSol(double aZ)
 {
-    mAltiSol = aZ;
+	int aK;
+    
+	mAltiSol = aZ;
     mAltisSolIsDef = true;
+	
+
+
+	Box2dr aBox(Pt2dr(0,0),Pt2dr(SzBasicCapt3D()));
+	Pt2dr aP4Im[4];
+	aBox.Corners(aP4Im);
+
+
+	if (mContourUtile.empty())
+	{
+		for (aK=0 ; aK<4 ; aK++)
+			mContourUtile.push_back(aP4Im[aK]);
+	}
+
+
+
+	Pt2dr aP0,aP1;
+	std::vector<Pt2dr>  aCont;	
+
+	for (aK=0 ; aK<int(ContourUtile().size()) ; aK++)
+	{
+		Pt2dr aCk= ContourUtile()[aK];
+
+		Pt3dr aPTer = ImEtZ2Terrain(aCk,aZ);
+		Pt2dr aP2T(aPTer.x,aPTer.y);
+		if (aK==0)
+		{
+			aP0 = aP2T;
+			aP1 = aP2T;
+		}
+		else
+		{
+			aP0.SetInf(aP2T);
+			aP1.SetSup(aP2T);
+		}
+		aCont.push_back(aP2T);
+	}
+	mBoxSol = Box2dr(aP0,aP1);
+	mEmpriseSol = cElPolygone();
+	mEmpriseSol.AddContour(aCont,false);
+}
+
+const cElPolygone &  CameraRPC::EmpriseSol() const
+{
+	return mEmpriseSol;
+}
+
+const Box2dr &  CameraRPC::BoxSol() const
+{
+	return mBoxSol;
+}
+
+const std::vector<Pt2dr> &  CameraRPC::ContourUtile()
+{
+	ELISE_ASSERT(!mContourUtile.empty(),"CameraRPC::ContourUtile non init");
+
+	return mContourUtile;
+
 }
 
 double CameraRPC::GetAltiSol() const

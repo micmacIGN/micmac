@@ -56,15 +56,26 @@ class cImageTiepGeo
     public:
 
         cImageTiepGeo(const std::string & aName);
+		
+		const Box2dr & BoxSol() const;
+		bool		   HasInter(const cImageTiepGeo & aIm2) const;
+		
+		const int & Num() const;
+		void SetNum(int &aNum);
 
     private:
-        CameraRPC * aCamRPC;
+        CameraRPC * mCamRPC;
+		int         mNum;	
 };
 
 class cLnk2ImTiepGeo
 {
     public:
         cLnk2ImTiepGeo(cImageTiepGeo *aIm1, cImageTiepGeo *aIm2, const std::string &aPx1Name, const std::string &aPx2Name);
+
+
+		cImageTiepGeo & Im1();
+		cImageTiepGeo & Im2();
 
     private:
         cImageTiepGeo * mIm1;
@@ -86,18 +97,27 @@ class cAppliTiepGeo
         void Exe();
 
     private :
+		void DoMaster();
         void DoPx1Px2();
         void DoTapioca();
         
         const std::string  & Dir() const;
 
-        Box2dr aGlobBox; //global footprint
+		void AddLnk(cLnk2ImTiepGeo *);
 
-        std::list<cLnk2ImTiepGeo *>      mLnk2Im;
+
+        Box2dr mGlobBox; //global footprint, necessary maybe later
+
+		std::string									mMasterImStr;
+		cImageTiepGeo *								mMasterIm;
+		std::map<std::string,cImageTiepGeo *>		mMapIm;//not yet sure if necessary
+		std::vector<cImageTiepGeo *>				mVIm;
+        std::list<cLnk2ImTiepGeo *>					mLnk2Im;//not yet sure if necessary
         std::vector<std::vector<cLnk2ImTiepGeo *> > mVVLnk;
     
         double mCor;
         int mZoom0;
+		int mNum;
 
         cInterfChantierNameManipulateur* mICNM;
         const std::vector<std::string> * mFilesIm;
