@@ -78,17 +78,49 @@ Pt3dr SerieCamLinear::calVecMouvement()
 void SerieCamLinear::initSerie(Pt3dr vecMouvCam0 , vector<string> aVecPoseTurn, vector<double> aVecAngleTurn)
 {
     cout<<"Init serie Cam : "<<this->mIndexCam<<endl;
-    cOrientationConique aOriLastImg = this->mSetOriREF.back();
-    for (uint i=0; i<this->mSetImgNEW.size(); i++)
+    if (aVecPoseTurn.size() == 0)
     {
-        cOrientationConique aOriInitImg = aOriLastImg;
-        aOriInitImg.Externe().Centre() = aOriLastImg.Externe().Centre() + this->mVecMouvement;
-        string aOriInitImgXML = this->mOriOut + "/Orientation-"+this->mSetImgNEW[i]+".xml";
-        MakeFileXML(aOriInitImg, aOriInitImgXML);
-        aOriLastImg = aOriInitImg;
-        cout<<" ++ "<<aOriInitImg.Externe().Centre()<<endl;
-        cout<<" ++ Write: "<<aOriInitImgXML<<endl;
-        this->mSetOriNEW.push_back(aOriInitImg);
+        cOrientationConique aOriLastImg = this->mSetOriREF.back();
+        for (uint i=0; i<this->mSetImgNEW.size(); i++)
+        {
+            cOrientationConique aOriInitImg = aOriLastImg;
+            aOriInitImg.Externe().Centre() = aOriLastImg.Externe().Centre() + this->mVecMouvement;
+            string aOriInitImgXML = this->mOriOut + "/Orientation-"+this->mSetImgNEW[i]+".xml";
+            MakeFileXML(aOriInitImg, aOriInitImgXML);
+            aOriLastImg = aOriInitImg;
+            cout<<" ++ "<<aOriInitImg.Externe().Centre()<<endl;
+            cout<<" ++ Write: "<<aOriInitImgXML<<endl;
+            this->mSetOriNEW.push_back(aOriInitImg);
+        }
+    }
+    else
+    {
+        //partage section
+        int k=0;
+        vector<string> setImgNEW = this->mSetImgNEW;
+        for (uint i=0; i<aVecPoseTurn.size(); i++)
+        {
+            vector<string> aSection;
+            string imgTurn = aVecPoseTurn[i];
+            for (uint j=k; j<setImgNEW.size(); j++)
+            {
+                if (setImgNEW[j] != imgTurn)
+                {
+                    aSection.push_back(setImgNEW[j]);
+                }
+                else
+                {
+                    aSection.push_back(setImgNEW[j]);
+                    k = j+1;
+                    break;
+                }
+            }
+            cout<<"Section : "<<endl;
+            for (uint i=0; i<aSection.size(); i++)
+            {
+                cout<<" ++"<<aSection[i]<<endl;
+            }
+        }
     }
 }
 

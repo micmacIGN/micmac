@@ -474,11 +474,11 @@ int InitOriLinear_main(int argc,char ** argv)
         }
         Pt3dr vecMouvCam0 = cam0->mVecMouvement;
         cam0->initSerie(vecMouvCam0 , aVecPoseTurn, aVecAngleTurn);
-        for (uint i=1; i<aSystem.size(); i++)
-        {
-             SerieCamLinear * cam = aSystem[i];
-             cam->initSerieByRefSerie(cam0);
-        }
+//        for (uint i=1; i<aSystem.size(); i++)
+//        {
+//             SerieCamLinear * cam = aSystem[i];
+//             cam->initSerieByRefSerie(cam0);
+//        }
     }
 
 /*
