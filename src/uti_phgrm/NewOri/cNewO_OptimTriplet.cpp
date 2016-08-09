@@ -206,6 +206,7 @@ class cAppliOptimTriplet
           bool             mCalledBySerie;
           bool             mQuick;
           std::string      mPrefHom;
+          std::string      mExtName;
           double           mPds3;
           double           mBestResidu;
           std::string      mN1,mN2,mN3;
@@ -476,6 +477,7 @@ bool cAppliOptimTriplet::Show()
    return mAotShow;
 }
 
+
 double cAppliOptimTriplet::ResiduTriplet(const ElRotation3D & aR1,const ElRotation3D & aR2,const ElRotation3D & aR3)
 {
     std::vector<double> aVRes;
@@ -489,6 +491,14 @@ double cAppliOptimTriplet::ResiduTriplet(const ElRotation3D & aR1,const ElRotati
         bool OkI;
         Pt3dr aI = InterSeg(aW1,aW2,OkI);
 
+if (MPD_MM() && std_isnan(aI.x))
+{
+     std::cout << " " << aI <<   "\n";
+     for (int aKP=0 ; aKP<int(aW1.size()) ; aKP++)
+         std::cout << aW1[aKP] << " " << aW2[aKP] << "\n";
+
+    std::cout << "********************************************************\n";
+}
         if (OkI)
         {
             double aRes1 = Residu(mIm1->Im(),aR1,aI,mIm1->VFullPtOf3()[aK]);
@@ -540,6 +550,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
     mCalledBySerie  (false),
     mQuick    (false),
     mPrefHom   (""),
+    mExtName   (""),
     mQuitExist (QuitExist),
     m3S        ("a","b","c"),
     mNoIm1     (0),
@@ -563,6 +574,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
                    << EAM(mCalledBySerie,"CalledBySerie",true,"Called by non paral")
                    << EAM(mQuick,"Quick",true,"Quick version")
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(mBugTK,"BugTK",true,"Debug Tomasi Kanade")
                    << EAM(mNameModeNO,"ModeNO",true,"Mode New Orient (Def=Std)")
    );
@@ -577,13 +589,20 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
       mQuitExist = false;
    }
 
+/*
+   if (mCalledBySerie)
+   {
+      mQuitExist = false;
+   }
+*/
+
    StdCorrecNameOrient(mNameOriCalib,mDir);
 
 
    std::string aNameMin = (mN1<mN2) ? mN1 : mN2;
    std::string aNameMax = (mN1>mN2) ? mN1 : mN2;
 
-   mNM = new cNewO_NameManager(mPrefHom,mQuick,mDir,mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mDir,mNameOriCalib,"dat");
    mNoIm1 = new cNewO_OneIm(*mNM,aNameMin);
    mNoIm2 = new cNewO_OneIm(*mNM,aNameMax);
 
@@ -642,8 +661,10 @@ void cAppliOptimTriplet::Execute()
    if (MPD_MM() && (mN1=="DSC01582.JPG") && (mN2=="DSC01583.JPG") && (mN3=="DSC01606.JPG"))
    {
       std::cout << "Generate bug for testing \n";
-      *((double *) 0) = 0;
+      ELISE_ASSERT(false,"Generate bug for testing triplet");
    }
+
+
    ElTimer aChrono;
    if (! EAMIsInit(&mNbMaxSel))
    {
@@ -882,9 +903,11 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    bool inParal=true;
    bool Quick = false;
    std::string aPrefHom="";
+   std::string aExtName="";
    bool Debug  = false;
    std::string aNameModeNO = TheStdModeNewOri;
    bool aShow = false;
+   int  aNb0=0;
 
    ElInitArgMain
    (
@@ -894,9 +917,11 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
                    << EAM(inParal,"Paral",true,"Execute in parallel ", eSAM_IsBool)
                    << EAM(Quick,"Quick",true,"Quick version", eSAM_IsBool)
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(aExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(Debug,"Debug",true,"Debugging mode (tuning purpose)", eSAM_IsBool)
                    << EAM(aNameModeNO,"ModeNO",true,"Mode (Def=Std)")
                    << EAM(aShow,"Show",true,"Print command of each triplet")
+                   << EAM(aNb0,"Nb0",true,"Num first pair to execute, tuning, Def=0")
     );
 
    cElemAppliSetFile anEASF(aFullPat);
@@ -906,7 +931,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    std::set<std::string> aSetName(aVIm->begin(),aVIm->end());
    std::string aDir = anEASF.mDir;
 
-   cNewO_NameManager * aNM =  new cNewO_NameManager(aPrefHom,Quick,aDir,aNameCalib,"dat");
+   cNewO_NameManager * aNM =  new cNewO_NameManager(aExtName,aPrefHom,Quick,aDir,aNameCalib,"dat");
 
    cSauvegardeNamedRel aLCpl =  StdGetFromPCP(aNM->NameCpleOfTopoTriplet(true),SauvegardeNamedRel);
    std::list<std::string> aLCom;
@@ -917,7 +942,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
        aNb++;
        const std::string & aN1 = itC->N1();
        const std::string & aN2 = itC->N2();
-       if (aSetN->SetBasicIsIn(aN1) && aSetN->SetBasicIsIn(aN2))
+       if (aSetN->SetBasicIsIn(aN1) && aSetN->SetBasicIsIn(aN2) && (aNb>=(aNb0+1)))
        {
             std::string aCom =   MM3dBinFile("TestLib NO_OneImOptTrip") 
                             + " " + aN1
@@ -928,6 +953,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
 
             aCom += " Quick=" + ToString(Quick);
             aCom += " PrefHom=" + aPrefHom;
+            aCom += " ExtName=" + aExtName;
             aCom += " ModeNO=" + aNameModeNO;
 
             if (aShow)

@@ -247,6 +247,7 @@ class cAppli_GenPTripleOneImage
            std::vector<std::vector<Pt2df> >  mVP2;
            bool                              mQuick;
            std::string                       mPrefHom;
+           std::string                       mExtName;
            bool                              mSkWhenExist;
            std::string                       mNameModeNO;
            eTypeModeNO                       mModeNO;
@@ -264,6 +265,7 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
     mSeuilNbArc  (1),  // Change car : existe des cas a forte assymetrie + 2 genere des plantage lorsque + de triplets que de couples
     mQuick       (false),
     mPrefHom     (""),
+    mExtName     (""),
     mSkWhenExist (true),
     mNameModeNO      (TheStdModeNewOri)
 {
@@ -275,6 +277,7 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
                    << EAM(mQuick,"Quick",true,"Quick version", eSAM_IsBool)
                    << EAM(mSkWhenExist,"SWE",true,"Skip when file alreay exist (Def=true, tuning purpose)", eSAM_IsBool)
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(mNameModeNO,"ModeNO",true,"Mode (Def=Std)")
 
    );
@@ -284,7 +287,7 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
    if (MMVisualMode) return;
 
    SplitDirAndFile(mDir,mName,mFullName);
-   mNM  = new cNewO_NameManager(mPrefHom,mQuick,mDir,mOriCalib,"dat");
+   mNM  = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mDir,mOriCalib,"dat");
    mDir3P = mNM->Dir3P(false);
    ELISE_ASSERT(ELISE_fp::IsDirectory(mDir3P),"Dir point triple");
 
@@ -550,6 +553,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
    bool aQuick;
    bool aSkWhenExist;
    std::string aPrefHom="";
+   std::string aExtName="";
    std::string aNameModeNO  = TheStdModeNewOri;
    ElInitArgMain
    (
@@ -559,6 +563,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
                    << EAM(aQuick,"Quick",true,"Quick version")
                    << EAM(aSkWhenExist,"SWE",true,"Skip when file alreay exist (Def=true, tuning purpose)", eSAM_IsBool)
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(aExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(aNameModeNO,"ModeNO",true,"Mode (Def=Std)")
    );
 
@@ -568,7 +573,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
       MakeXmlXifInfo(aFullName,anEASF.mICNM);
    }
 
-   cNewO_NameManager aNM(aPrefHom,aQuick,anEASF.mDir,anOriCalib,"dat");
+   cNewO_NameManager aNM(aExtName,aPrefHom,aQuick,anEASF.mDir,anOriCalib,"dat");
    aNM.Dir3P(true);
    const cInterfChantierNameManipulateur::tSet * aSetIm = anEASF.SetIm();
 
@@ -583,6 +588,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
             aCom += " Quick=" +ToString(aQuick);
             aCom += " SWE=" +ToString(aSkWhenExist);
             aCom += " PrefHom=" +aPrefHom;
+            aCom += " ExtName=" +aExtName;
             aCom += " ModeNO=" +aNameModeNO;
 
             //           std::cout << "COM= " << aCom << "\n";

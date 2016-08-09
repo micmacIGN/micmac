@@ -806,6 +806,7 @@ static cNO_CmpSomByGainBy3 TheCmp3;
 cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mQuick      (true),
     mPrefHom    (""),
+    mExtName    (""),
     mTest       (true),
     mSimul      (false),
     mWithOriTest(false),
@@ -842,6 +843,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
         LArgMain() << EAM(mOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(mQuick,"Quick",true,"Quick version",eSAM_IsBool)
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(mTest,"Test",true,"Test for tuning",eSAM_IsBool)
                    << EAM(aNameT1,"Test1",true,"Name of first test image",eSAM_IsBool)
                    << EAM(aNameT2,"Test2",true,"Name of second test image",eSAM_IsBool)
@@ -860,7 +862,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
    cTplTriplet<std::string> aKTest2(aNameT1,aNameT2,aNameT4);
 
    mEASF.Init(mFullPat);
-   mNM = new cNewO_NameManager(mPrefHom,mQuick,mEASF.mDir,mOriCalib,"dat");
+   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mOriCalib,"dat");
    const cInterfChantierNameManipulateur::tSet * aVIm = mEASF.SetIm();
 
    if (EAMIsInit(&mOriTest))

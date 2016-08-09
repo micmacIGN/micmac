@@ -111,6 +111,7 @@ class cNewAppli_GenTripletOfCple
            std::string mDir;
            bool        mQuick;
            std::string mPrefHom;
+           std::string mExtName;
            std::string mNameOriCalib;
 
 
@@ -261,7 +262,8 @@ int cNewAppli_GenTripletOfCple::ToIndexVP1(const Pt2df &  aP0) const
 cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple(int argc,char ** argv) :
     mDir        ("./"),
     mQuick      (true),
-    mPrefHom    ("")
+    mPrefHom    (""),
+    mExtName    ("")
 {
    ElInitArgMain
    (
@@ -272,6 +274,7 @@ cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple(int argc,char ** argv) :
                    << EAM(mDir,"Dir",true,"Directory, Def=./ ",eSAM_IsDir)
                    << EAM(mQuick,"Quick",true,"Quick version")
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mExtName,"ExtName",true,"User's added Prefix , def=\"\"")
 
    );
 
@@ -281,7 +284,7 @@ cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple(int argc,char ** argv) :
    }
 
 
-   mNM = new cNewO_NameManager(mPrefHom,mQuick,mDir,mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mDir,mNameOriCalib,"dat");
 
    mI1 = new cNewO_OneIm(*mNM,mN1);
    mI2 = new cNewO_OneIm(*mNM,mN2);

@@ -589,6 +589,9 @@ int TestStephane_Main(int argc,char ** argv);
 int TestDupBigTiff(int argc,char ** argv);
 int Test_TomCan(int argc,char ** argv);
 
+int TestMartini_Main(int argc,char ** argv);
+
+
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -745,6 +748,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("RTI_RRB1",RTI_RecalRadionmBeton_main,"Recal Radiom On Image"));
         aRes.push_back(cMMCom("RTI_CLumOmbr",RTI_PosLumFromOmbre_main,"COmpute Centre Light based on shadow"));
         aRes.push_back(cMMCom("TestTomKan",Test_TomCan,"Test Tomasi Kanade"));
+        aRes.push_back(cMMCom("TestMartini",TestMartini_Main,"Test Martini with simulation"));
     }
 
     cCmpMMCom CmpMMCom;
