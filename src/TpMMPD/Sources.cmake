@@ -13,7 +13,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ReprojImg.cpp
 	${TDPPMD_DIR}/schnaps.cpp
 	${TDPPMD_DIR}/TestRegEx.cpp
-	${TDPPMD_DIR}/InitOriLinear.cpp
+	#${TDPPMD_DIR}/InitOriLinear.cpp
 	${TDPPMD_DIR}/extractMesure2D.cpp
 	${TDPPMD_DIR}/extractAppui3D.cpp
 	${TDPPMD_DIR}/kugelhupf.cpp
@@ -47,7 +47,9 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/Detector.cpp
     ${TDPPMD_DIR}/TiePByMesh/CorrelMesh.cpp
     ${TDPPMD_DIR}/TiePByMesh/MeshProjOnImg_main.cpp
-    ${TDPPMD_DIR}/TiePByMesh/PackHomolToPly_main.cpp
+    ${TDPPMD_DIR}/TiePByMesh/PackHomolToPly_main
+    ${TDPPMD_DIR}/TiePByMesh/InitOriLinear.cpp
+    ${TDPPMD_DIR}/TiePByMesh/InitOriLinear_main.cpp
     
 )
 

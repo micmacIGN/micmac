@@ -47,7 +47,7 @@ Detector::Detector( string typeDetector, vector<double> paramDetector,
                     string nameImg,
                     Im2D<unsigned char, int> * img = NULL ,
                     InitOutil * aChain = NULL
-                    )
+                   )
 {
     mTypeDetector = typeDetector;
     mParamDetector = paramDetector;
@@ -182,6 +182,8 @@ int Detector::detect(bool useTypeFileDigeo)
     {
         if (mTypeDetector == "FAST")
         {
+            if (mParamDetector.size() == 0)
+                {cout<<"ERROR : please saisir parameter for FAST detector (dParam)"<<endl;}
             Fast aDetecteur(mParamDetector[0], 3);
             aDetecteur.detect(*mImg, mPtsInterest);
             if (useTypeFileDigeo)
