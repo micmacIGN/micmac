@@ -593,6 +593,7 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            bool                               mInParal;
            bool                               mDoCompleteArc;
            bool                               mUsePrec;
+           double                             mProbaSel;
 };
 
 template <class Type> void HistoAdd(std::vector<Type> & aVec,int anInd,const Type & aVal);

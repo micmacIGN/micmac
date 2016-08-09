@@ -542,6 +542,7 @@ class cNO_AppliOneCple
          bool                 mGenOri;
          bool                 mQuick;
          std::string          mPrefHom;
+         std::string          mExtName;
          std::string          mNameIm1;
          std::string          mNameIm2;
          std::string          mNameOriCalib;
@@ -573,6 +574,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
    mGenOri  (true),
    mQuick   (false),
    mPrefHom (""),
+   mExtName (""),
    mShow    (false),
    mHPP     (true),
    mMergeStr (2,false),
@@ -591,6 +593,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
                    << EAM(mQuick,"Quick",true,"Quick option adapted for UAV or easy acquisition, def = true")
                    << EAM(mGenOri,"GenOri",true,"Generate Ori, Def=true, false for quick process to RedTieP")
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(mHPP,"HPP",true,"Homograhic Planar Patch")
                    << EAM(mNameModeNO,"ModeNO",true,"Mode New Ori")
    );
@@ -601,7 +604,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
    if (MMVisualMode) return;
 
-   mNM = new cNewO_NameManager(mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,"dat");
 
 
    mIm1 = new cNewO_OneIm(*mNM,mNameIm1);
@@ -699,6 +702,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    bool aQuick=true;
    bool aGenOri=true;
    std::string aPrefHom;
+   std::string aExtName;
    std::string  aNameModeNO = TheStdModeNewOri;
    std::string aNameIm1;
    std::string aPatGlob;
@@ -712,6 +716,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                    << EAM(aQuick,"Quick",true,"Quick option, adapted to simple acquisition (def=false)")
                    << EAM(aGenOri,"GenOri",true,"Set false to accelarate pre process for RedTieP)")
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous")
+                   << EAM(aExtName,"ExtName",true,"User's added Prefix")
                    << EAM(aNameModeNO,"ModeNO",true,"Mode New Ori")
                    << EAM(aNameIm1,"NameIm1",true,"Name of Image1, internal purpose")
                    << EAM(aPatGlob,"PatGlob",true,"Name of Image1, internal purpose")
@@ -725,7 +730,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    cElemAppliSetFile anEASF(aPat);
    const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
    std::string aDir = anEASF.mDir;
-   cNewO_NameManager * aNM =  new cNewO_NameManager(aPrefHom,aQuick,aDir,aNameOriCalib,"dat");
+   cNewO_NameManager * aNM =  new cNewO_NameManager(aExtName,aPrefHom,aQuick,aDir,aNameOriCalib,"dat");
    cInterfChantierNameManipulateur* anICNM = anEASF.mICNM;
 
    if (!aModeIm1)
@@ -778,6 +783,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                         aCom = aCom + " Quick=" + ToString(aQuick);
                         aCom = aCom + " GenOri=" + ToString(aGenOri);
                         aCom = aCom + " PrefHom=" + aPrefHom;
+                        aCom = aCom + " ExtName=" + aExtName;
                         aCom = aCom + " ModeNO=" + aNameModeNO;
 
                         System(aCom);

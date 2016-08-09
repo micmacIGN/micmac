@@ -242,6 +242,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
      public :
            cNewO_NameManager
            (
+               const std::string  & anExt, // => mis en premier pour forcer la re-compile
                const std::string  & aPrefHom, // => mis en premier pour forcer la re-compile
                bool  Quick,
                const std::string  & aDir,
@@ -341,6 +342,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            std::string                        mPrefOriCal;
            std::string                        mPostHom;
            std::string                        mPrefHom;
+           std::string                        mExtName;
            // std::map<std::string,CamStenope *> mDicoCam;
            static const std::string           PrefixDirTmp;
            std::string                        mDirTmp;
