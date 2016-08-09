@@ -106,11 +106,17 @@ const cRPC * CameraRPC::GetRPC() const
     return mRPC;
 }
 
-void CameraRPC::CropRPC(const std::string &aNameDir, 
+cRPC CameraRPC::GetRPCCpy() const
+{
+    return (*mRPC);
+}
+
+int CameraRPC::CropRPC(const std::string &aNameDir, 
                         const std::string &aNameXML, 
                         const std::vector<Pt3dr> &aBounds)
 {
-    mRPC->Show();
+    int aK;
+
     /* Some metadata from the Xml */
     cXml_CamGenPolBundle aXml = StdGetFromSI(aNameXML,Xml_CamGenPolBundle);
     const std::string aNameRPC = "Crop-" + NameWithoutDir(aXml.NameCamSsCor());
@@ -126,50 +132,80 @@ void CameraRPC::CropRPC(const std::string &aNameDir,
     cRPC::GetGridExt(aBounds, aExtMin, aExtMax, aNeverMind);
 
     
-    /* Set your grid for RPC recalculation */
+    /* Set your grid for RPC size for recalculation */
     Pt3di aRecGrid;
     const Pt3dr aPMin(aExtMin.x, aExtMin.y, mRPC->GetGrC31());
     const Pt3dr aPMax(aExtMax.x, aExtMax.y, mRPC->GetGrC32());
     
     cRPC::SetRecGrid_(mRPC->ISMETER, aPMin, aPMax, aRecGrid);
 
+    /* Get the first "rough" 3D grid
+     * backproject the grid to get the min and max in image space 
+     * (this is to recalculate RPC starting from a regular grid in image space -> importnt for numerical stability )*/
+    std::vector<Pt3dr> aGrid3DRough;
+    cRPC::GenGridAbs_(aPMin, aPMax, aRecGrid, aGrid3DRough);
     
-    /* Create the 3D grid corresponding to your crop */
-    std::vector<Pt3dr> aGrid3D;
-    cRPC::GenGridAbs_(aPMin, aPMax, Pt3di(2*aRecGrid.x,2*aRecGrid.y,2*aRecGrid.z), aGrid3D);
-
-
-    /* Create the 2D grid corresponding to your 3D grid */
-    int aK;
     Pt2dr aP;
-    std::vector<Pt3dr> aGrid2D, aGrid3D_;
-    for(aK=0; aK<int(aGrid3D.size()); aK++)
+    Pt3dr aPI1, aPI2;
+    std::vector<Pt3dr> aGrid2DRough;
+    for(aK=0; aK<int(aGrid3DRough.size()); aK++)
     {
-        aP = Ter2Capteur(aGrid3D.at(aK));
+        aP = Ter2Capteur(aGrid3DRough.at(aK));
         if( aP.x >=0 && aP.y >=0 &&
             aP.x < mRPC->mImCols[1] && aP.y < mRPC->mImRows[1] )
-        {
-            aGrid2D.push_back(Pt3dr(aP.x, aP.y, aGrid3D.at(aK).z));
-            aGrid3D_.push_back(aGrid3D.at(aK));
-        }
+            aGrid2DRough.push_back(Pt3dr(aP.x, aP.y, aGrid3DRough.at(aK).z));
     }
+    if( aGrid2DRough.size() > 0 )
+        cRPC::GetGridExt(aGrid2DRough, aPI1, aPI2, aNeverMind);
+    else
+        return 0;
     
-    /* Shift the 2D grid to be compliant with the cropped img */
-    aExtMin = Pt3dr(0,0,0); 
-    aExtMax = Pt3dr(0,0,0); 
-    aNeverMind = Pt3dr(0,0,0);
 
-    cRPC::GetGridExt(aGrid2D, aExtMin, aExtMax, aNeverMind);
-   
+    /* Create your 2D grid */
+    std::vector<Pt3dr> aGrid2D, aGrid2D_;
+    cRPC::GenGridAbs_(Pt3dr(int(aPI1.x),int(aPI1.y),mRPC->GetGrC31()), 
+                      Pt3dr(int(aPI2.x),int(aPI2.y),mRPC->GetGrC32()), 
+                      aRecGrid, aGrid2D);
+
+    /* Create your 2D grid for precision testing */
+    std::vector<Pt3dr> aGrid2DTest, aGrid2DTest_;
+    Pt3dr aPI1Test( aPI1.x + double(0.5*(aPI2.x-aPI1.x))/aRecGrid.x, 
+                    aPI1.y + double(0.5*(aPI2.y-aPI1.y))/aRecGrid.y, 
+                    mRPC->GetGrC31() + double(0.5*(mRPC->GetGrC32()-mRPC->GetGrC31()))/aRecGrid.z );
+    Pt3dr aPI2Test( aPI2.x - double(0.5*(aPI2.x-aPI1.x))/aRecGrid.x,
+                    aPI2.y - double(0.5*(aPI2.y-aPI1.y))/aRecGrid.y,
+                    mRPC->GetGrC32() - double(0.5*(mRPC->GetGrC32()-mRPC->GetGrC31()))/aRecGrid.z );
+    cRPC::GenGridAbs_(aPI1Test, aPI2Test, Pt3di(aRecGrid.x-1,aRecGrid.y-1,aRecGrid.z-1), aGrid2DTest);
+
+    
+
+
+    /* Create your 3D grid */
+    std::vector<Pt3dr> aGrid3D;
     for(aK=0; aK<int(aGrid2D.size()); aK++)
-    {
-        aGrid2D.at(aK) = Pt3dr(aGrid2D.at(aK).x - int(aExtMin.x) +1,
-                               aGrid2D.at(aK).y - int(aExtMin.y) +1,
-                               aGrid2D.at(aK).z); 
-    }
+        aGrid3D.push_back(ImEtZ2Terrain(Pt2dr(aGrid2D.at(aK).x,aGrid2D.at(aK).y),aGrid2D.at(aK).z));
+
+    /* Create your 3D grid for precision testing */
+    std::vector<Pt3dr> aGrid3DTest;
+    for(aK=0; aK<int(aGrid2DTest.size()); aK++)
+        aGrid3DTest.push_back(ImEtZ2Terrain(Pt2dr(aGrid2DTest.at(aK).x, aGrid2DTest.at(aK).y), aGrid2DTest.at(aK).z));
+
+    /* Shift your 2D grid to the origin of the img */
+    for(aK=0; aK<int(aGrid2D.size()); aK++)
+        aGrid2D_.push_back(Pt3dr(aGrid2D.at(aK).x - int(aPI1.x),
+                                 aGrid2D.at(aK).y - int(aPI1.y),
+                                 aGrid2D.at(aK).z));
+
+    /* Shift the 2D test grid too */
+    for(aK=0; aK<int(aGrid2DTest.size()); aK++)
+        aGrid2DTest_.push_back(Pt3dr(aGrid2DTest.at(aK).x - int(aPI1.x),
+                                    aGrid2DTest.at(aK).y - int(aPI1.y),
+                                    aGrid2DTest.at(aK).z));
+
 
     /* Calculate RPCs */
-    mRPC->CalculRPC(aGrid3D_, aGrid2D,
+    mRPC->CalculRPC(aGrid3D, aGrid2D_,
+                    aGrid3DTest, aGrid2DTest_,
                     mRPC->mDirSNum, mRPC->mDirLNum, mRPC->mDirSDen, mRPC->mDirLDen,
                     mRPC->mInvSNum, mRPC->mInvLNum, mRPC->mInvSDen, mRPC->mInvLDen,
                     1);
@@ -179,7 +215,9 @@ void CameraRPC::CropRPC(const std::string &aNameDir,
    
 
     /* Save the cropped image*/
-    Pt2di aSzI(aExtMax.x - aExtMin.x, aExtMax.y - aExtMin.y);
+    Pt3dr aCI1, aCI2;
+    cRPC::GetGridExt(aGrid2D, aCI1, aCI2, aNeverMind);
+    Pt2di aSzI(aCI2.x - aCI1.x, aCI2.y - aCI1.y);
     Tiff_Im aTiffIm(Tiff_Im::StdConvGen(aXml.NameIma().c_str(),1,false));
 
     Tiff_Im aTiffCrop
@@ -194,7 +232,7 @@ void CameraRPC::CropRPC(const std::string &aNameDir,
     ELISE_COPY
         (
             aTiffCrop.all_pts(),
-            trans(aTiffIm.in(),Pt2di(aExtMin.x,aExtMin.y)),
+            trans(aTiffIm.in(),Pt2di(aCI1.x,aCI1.y)),
             aTiffCrop.out()
          );
 
@@ -210,7 +248,8 @@ void CameraRPC::CropRPC(const std::string &aNameDir,
 
     TopSystem(aCom1.c_str());
     ELISE_fp::RmFile(aTmpChSys); 
-    
+   
+    return 0;
 }
 
 Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
@@ -344,8 +383,68 @@ bool CameraRPC::ProfIsDef() const
 
 void CameraRPC::SetAltiSol(double aZ)
 {
-    mAltiSol = aZ;
+	int aK;
+    
+	mAltiSol = aZ;
     mAltisSolIsDef = true;
+	
+
+
+	Box2dr aBox(Pt2dr(0,0),Pt2dr(SzBasicCapt3D()));
+	Pt2dr aP4Im[4];
+	aBox.Corners(aP4Im);
+
+
+	if (mContourUtile.empty())
+	{
+		for (aK=0 ; aK<4 ; aK++)
+			mContourUtile.push_back(aP4Im[aK]);
+	}
+
+
+
+	Pt2dr aP0,aP1;
+	std::vector<Pt2dr>  aCont;	
+
+	for (aK=0 ; aK<int(ContourUtile().size()) ; aK++)
+	{
+		Pt2dr aCk= ContourUtile()[aK];
+
+		Pt3dr aPTer = ImEtZ2Terrain(aCk,aZ);
+		Pt2dr aP2T(aPTer.x,aPTer.y);
+		if (aK==0)
+		{
+			aP0 = aP2T;
+			aP1 = aP2T;
+		}
+		else
+		{
+			aP0.SetInf(aP2T);
+			aP1.SetSup(aP2T);
+		}
+		aCont.push_back(aP2T);
+	}
+	mBoxSol = Box2dr(aP0,aP1);
+	mEmpriseSol = cElPolygone();
+	mEmpriseSol.AddContour(aCont,false);
+}
+
+const cElPolygone &  CameraRPC::EmpriseSol() const
+{
+	return mEmpriseSol;
+}
+
+const Box2dr &  CameraRPC::BoxSol() const
+{
+	return mBoxSol;
+}
+
+const std::vector<Pt2dr> &  CameraRPC::ContourUtile()
+{
+	ELISE_ASSERT(!mContourUtile.empty(),"CameraRPC::ContourUtile non init");
+
+	return mContourUtile;
+
 }
 
 double CameraRPC::GetAltiSol() const
@@ -941,7 +1040,7 @@ void cRPC::Initialize(const std::string &aName,
     {
         ReadXML(aNameRPC);
     	
-	SetRecGrid();
+	    SetRecGrid();
 	    
         InvToDirRPC();
         //Show(); 
@@ -954,7 +1053,7 @@ void cRPC::Initialize(const std::string &aName,
 	    
         //ReadASCIIMeta("Metafile.txt", aNameRPC);
 
-	SetRecGrid();
+	    SetRecGrid();
     
         InvToDirRPC();
 	//Show();
@@ -1007,7 +1106,9 @@ void cRPC::Initialize(const std::string &aName,
         
 
         /* Learn parameters */
+        std::vector<Pt3dr> aGrid2DTest, aGrid3DTest;//vectors empty so no test will be done
         CalculRPC(aGrid3D, aGrid2D,
+                  aGrid3DTest, aGrid2DTest,
                   mDirSNum, mDirLNum, mDirSDen, mDirLDen,
                   mInvSNum, mInvLNum, mInvSDen, mInvLDen, 1);
 
@@ -1046,10 +1147,13 @@ void cRPC::Initialize_(const cSystemeCoord *aChSys)
         ChSysRPC(mChSys);
 }
 
-std::string cRPC::NameSave(const std::string & aName) const
+std::string cRPC::NameSave(const std::string & aName)
 {
-    std::string aNameXml = DirOfFile(aName) + "NEW-" + StdPrefix(NameWithoutDir(aName)) + ".xml";
+    std::string aNewDir = DirOfFile(aName)+ "NEW/";
+    ELISE_fp::MkDirSvp(aNewDir);
 
+    std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
+    
     return aNameXml;
 }
 
@@ -1243,13 +1347,34 @@ void cRPC::Save2XmlStdMMName(const std::string &aName,const std::string & aPref)
 {
     /* Create new RPC */
     cRPC aRPCSauv(aName);
-
-   /* Save to XML */
-   std::string aNameXml = aRPCSauv.NameSave(aRPCSauv.mName);
-
-
+   
+    std::string aNameXml = cRPC::NameSave(aRPCSauv.mName);
+    std::string aNewDirLoc = DirOfFile(aNameXml); 
   
-   cRPC::Save2XmlStdMMName_(aRPCSauv,aNameXml);
+    /* Save the new RPC to XML file */
+    cRPC::Save2XmlStdMMName_(aRPCSauv,aNameXml);
+
+    /* Save the new cXml_CamGenPolBundle file :
+     * - read the old cXml_CamGenPolBundle,
+     * - copy it (partially) to the new cXml_CamGenPolBundle, 
+     * - save the new cXml_CamGenPolBundle */
+    cXml_CamGenPolBundle aXML =  StdGetFromSI(aName,Xml_CamGenPolBundle);
+
+    int aType = eTIGB_Unknown;
+    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aNameXml,aType,aXML.SysCible().PtrCopy());
+    const cSystemeCoord * aCh = aXML.SysCible().PtrCopy();
+
+    
+    cPolynomial_BGC3M2D aPolNew(aCh,aCamSsCor,aNameXml,aXML.NameIma(),0);
+    std::string aNameGenXml =  aPolNew.NameSave("","");
+    ELISE_fp::RmDir(DirOfFile(aNameGenXml));
+
+    
+    cXml_CamGenPolBundle aXMLNew = aPolNew.ToXml();
+
+
+    MakeFileXML(aXMLNew,aNewDirLoc+NameWithoutDir(aNameGenXml));
+
 
 }
 
@@ -1555,7 +1680,7 @@ void cRPC::ChSysRPC(const cSystemeCoord &aChSys)
     ChSysRPC_(aChSys, mRecGrid, 
                mDirSNum, mDirLNum, mDirSDen, mDirLDen,
                mInvSNum, mInvLNum, mInvSDen, mInvLDen,
-               1);
+               0);
 
 }
 
@@ -1568,7 +1693,7 @@ void cRPC::ChSysRPC(const cSystemeCoord &aChSys,
     ChSysRPC_(aChSys, mRecGrid,
                aDirSNum, aDirLNum, aDirSDen, aDirLDen,
                aInvSNum, aInvLNum, aInvSDen, aInvLDen,
-               1);
+               0);
 }
 
 void cRPC::ChSysRPC_(const cSystemeCoord &aChSys, 
@@ -1580,7 +1705,7 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
                       bool PRECISIONTEST)
 {
     int aK;
-    Pt2dr aP;
+    Pt3dr aP;
 
     cCs2Cs * aToCorSys=0;
     if(!ISMETER)
@@ -1592,29 +1717,54 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
                   " +to +proj=longlat +datum=WGS84 ");
     }
 
-    vector<Pt3dr> aGridOrg, aGridCorSys, aGridCorSysN,
-                  aGridImg, aGridImgN;
-    vector<Pt3dr> aGCNLearn, aGINLearn;
+    vector<Pt3dr> aGridOrg, aGridCorSys, aGridOrgTest, aGridCorSysTest,
+                  aGridImg, aGridImgN, aGridImgTest;
 
-    /* Create grids*/
-    GenGridAbs(Pt3di(2*aSz.x,2*aSz.y,2*aSz.z), aGridOrg);
-    
-    /* Normalise */
-    //aGridOrgN = NormGrAll(aGridOrg);
-    
-    /* Transform grids */
-    aGridCorSys  = aToCorSys->Chang(aGridOrg);
-    
-    /* Geo grid to image space 
-     * (given the nature of the implementation it can be as well
-     * the cartographic grid to image space) */
-    for(aK=0; aK<int(aGridOrg.size()); aK++)
+    /* Create the image grids */
+    GenGridNorm(aSz,aGridImgN);
+    aGridImg = NormImAll(aGridImgN,1);
+
+    Pt3dr aPMin, aPMax, aPSum;
+    GetGridExt(aGridImg, aPMin, aPMax, aPSum);
+    cRPC::GenGridAbs_( Pt3dr(aPMin.x + double(0.5*(aPMax.x - aPMin.x))/aSz.x,
+                             aPMin.y + double(0.5*(aPMax.y - aPMin.y))/aSz.y,
+                             aPMin.z + double(0.5*(aPMax.z - aPMin.z))/aSz.z),
+                       Pt3dr(aPMax.x - double(0.5*(aPMax.x - aPMin.x))/aSz.x,
+                             aPMax.y - double(0.5*(aPMax.y - aPMin.y))/aSz.y,
+                             aPMax.z - double(0.5*(aPMax.z - aPMin.z))/aSz.z),
+                       Pt3di(aSz.x-1,aSz.y-1,aSz.z-1), aGridImgTest); 
+
+
+if(0)
+{
+    std::cout << "ewelina check norm/unnorm" << "\n";
+    Pt3dr aPMin, aPMax, aPSum;
+    GetGridExt(aGridImgN, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+    GetGridExt(aGridImg, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+
+}
+
+    /* Pass the image grid to object space grid */
+    for(aK=0; aK<int(aGridImg.size()); aK++)
     {
-        aP = InverseRPC(aGridOrg.at(aK));
-        aGridImg.push_back(Pt3dr(aP.x, aP.y, aGridOrg.at(aK).z));
+        aP = DirectRPC(Pt2dr(aGridImg.at(aK).x,aGridImg.at(aK).y), aGridImg.at(aK).z);
+        aGridOrg.push_back(aP);
     }
 
+    for(aK=0; aK<int(aGridImgTest.size()); aK++)
+    {
+        aP = DirectRPC(Pt2dr(aGridImgTest.at(aK).x,aGridImgTest.at(aK).y), aGridImgTest.at(aK).z);
+        aGridOrgTest.push_back(aP);
+    }
+
+    /* Transform the object grids */
+    aGridCorSys  = aToCorSys->Chang(aGridOrg);
+    aGridCorSysTest  = aToCorSys->Chang(aGridOrgTest);
+
     CalculRPC( aGridCorSys, aGridImg,
+               aGridCorSysTest, aGridImgTest,
                aDirSNum, aDirLNum, aDirSDen, aDirLDen,
                aInvSNum, aInvLNum, aInvSDen, aInvLDen,
                PRECISIONTEST);
@@ -1632,18 +1782,17 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
         
 }
 
-/* REMARK : every other point of the grid 
- * will be used for computation */
-void cRPC::CalculRPC(const vector<Pt3dr> &aGridGround, 
+
+void cRPC::CalculRPC( const vector<Pt3dr> &aGridGround, 
                       const vector<Pt3dr> &aGridImg,
+                      const vector<Pt3dr> &aGridGroundTest, 
+                      const vector<Pt3dr> &aGridImgTest,
                       double (&aDirSNum)[20], double (&aDirLNum)[20],
                       double (&aDirSDen)[20], double (&aDirLDen)[20],
                       double (&aInvSNum)[20], double (&aInvLNum)[20],
                       double (&aInvSDen)[20], double (&aInvLDen)[20],
                       bool PRECISIONTEST)
 {
-    int aK;
-    vector<Pt3dr> aGCNLearn, aGINLearn;
 
     /* Update offset/scale */
     NewImOffScal(aGridImg);
@@ -1656,59 +1805,52 @@ void cRPC::CalculRPC(const vector<Pt3dr> &aGridGround,
     vector<Pt3dr> aGridGroundN = NormGrAll(aGridGround);
 
 
-    /* Take all even grid points for learning (odd for control)*/
-    for(aK=0; aK<int(aGridGroundN.size()); aK+=2)
-        aGCNLearn.push_back(aGridGroundN.at(aK));
-
-    for(aK=0; aK<int(aGridImgN.size()); aK+=2)
-        aGINLearn.push_back(aGridImgN.at(aK));
-
 if(0)
 {
+    std::cout << "ewelina learn" << "\n";
     Pt3dr aPMin, aPMax, aPSum;
-    GetGridExt(aGINLearn, aPMin, aPMax, aPSum);
+    GetGridExt(aGridImgN, aPMin, aPMax, aPSum);
     std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
 
-    GetGridExt(aGCNLearn, aPMin, aPMax, aPSum);
+    GetGridExt(aGridGroundN, aPMin, aPMax, aPSum);
     std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
 }
 
     /* Learn direct RPC */
-    LearnParam(aGCNLearn, aGINLearn,
+    LearnParam(aGridGroundN, aGridImgN,
                 aDirSNum, aDirLNum,
                 aDirSDen, aDirLDen);
 
     /* Learn inverse RPC */
-    LearnParam(aGINLearn,aGCNLearn,
+    LearnParam(aGridImgN, aGridGroundN,
                 aInvSNum, aInvLNum,
                 aInvSDen, aInvLDen);
 
 
     if(PRECISIONTEST)
     {
-        Pt2dr aPDifMoy(0,0);
-        for(aK=1; aK<int(aGridGroundN.size()); aK+=2)
-        {
-            Pt2dr aPB = InverseRPCN(aGridGroundN.at(aK));
-            Pt2dr aPDif = Pt2dr(abs(aGridImgN.at(aK).x-aPB.x),
-                                abs(aGridImgN.at(aK).y-aPB.y));
+        int aK;
 
-            //upscale
-            aPDif.x = aPDif.x*mImScal[0];
-            aPDif.y = aPDif.y*mImScal[1];
+        Pt2dr aPDifMoy(0,0);
+        for(aK=0; aK<int(aGridGroundTest.size()); aK++)
+        {
+            Pt2dr aPB = InverseRPC(aGridGroundTest.at(aK));
+            Pt2dr aPDif = Pt2dr(abs(aGridImgTest.at(aK).x-aPB.x),
+                                abs(aGridImgTest.at(aK).y-aPB.y));
+
 
             aPDifMoy.x += aPDif.x;
             aPDifMoy.y += aPDif.y;
         }
 
 
-        if( (2*double(aPDifMoy.x)/(aGridGround.size())) > 1 || (2*double(aPDifMoy.y)/(aGridGround.size())) > 1 )
+        if( (double(aPDifMoy.x)/(aGridGroundTest.size())) > 1 || (double(aPDifMoy.y)/(aGridGroundTest.size())) > 1 )
             std::cout << "RPC recalculation"
-                <<  " precision: " << 2*double(aPDifMoy.x)/(aGridGround.size()) << " "
-                << 2*double(aPDifMoy.y)/(aGridGround.size()) << " [pix] \n xXXXXXXXXX ATTENTION XXXXXXXXXXXXXXXXX\n"
-                <<                                                       " x          very badly estimated RPCs X\n"
-                <<                                                       " x          choose a larger crop      X\n"
-                <<                                                       " xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
+                <<  " precision: " << double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
+                << double(aPDifMoy.y)/(aGridGroundTest.size()) << " [pix] \n xXXXXXXXXX ATTENTION XXXXXXXXXXXXXXXXX\n"
+                <<                                                       " x          badly estimated RPCs          X\n"
+                <<                                                       " x          choose a larger crop          X\n"
+                <<                                                       " xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
     }
     
         
@@ -1821,7 +1963,7 @@ void cRPC::SetRecGrid_(const bool &aMETER, const Pt3dr &aPMin, const Pt3dr &aPMa
 
     aSz = Pt3di(aSamplX,aSamplY,aSamplZ);
 
-    if(1)
+    if(0)
         std::cout <<"RPC grid: " << aSz << "\n";
 
 }
@@ -1837,9 +1979,38 @@ void cRPC::SetRecGrid()
     
 }
 
-void cRPC::GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
+void cRPC::GenGridNorm_(const Pt2dr aRange, const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
 {
     int aK1, aK2, aK3;
+    double aExt = aRange.y - aRange.x;
+    double aSh = aRange.y;
+
+    double aZS = double(aExt)/aSz.z;
+    double aXS = double(aExt)/aSz.x;
+    double aYS = double(aExt)/aSz.y;
+
+    for (aK1 = 0; aK1 <= aSz.x; aK1++)
+    {
+        for (aK2 = 0; aK2 <= aSz.y; aK2++)
+        {
+            for(aK3 = 0; aK3 <= aSz.z; aK3++ )
+            {
+                Pt3dr aPt;
+                aPt.x = aK1*aXS -aSh;
+                aPt.y = aK2*aYS -aSh;
+                aPt.z = aK3*aZS -aSh;
+                aGrid.push_back(aPt);
+            }
+        }
+    }
+}
+
+void cRPC::GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
+{
+    Pt2dr aRng(-1,1);
+    cRPC::GenGridNorm_(aRng,aSz,aGrid);
+
+    /*int aK1, aK2, aK3;
 
     double aZS = double(2)/aSz.z;
     double aXS = double(2)/aSz.x;
@@ -1858,7 +2029,7 @@ void cRPC::GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
                 aGrid.push_back(aPt);
             }
         }
-    }
+    }*/
 }
 
 void cRPC::GenGridAbs(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
@@ -1979,13 +2150,20 @@ void cRPC::NewImOffScal(const std::vector<Pt3dr> & aGrid)
 
    GetGridExt(aGrid,aExtMin,aExtMax,aSumXYZ);
 
-   mImOff[0] = double(aSumXYZ.x)/aGrid.size();
-   mImOff[1] = double(aSumXYZ.y)/aGrid.size();
+if(0)
+{
+    std::cout << "ewelinaa cRPC::NewImOffScal " << "\n";
+    std::cout << "Min " << aExtMin << " \n Max " << aExtMax << "\n";
+}
+
+   mImOff[0] = aExtMin.x + double(aExtMax.x - aExtMin.x)/2;
+   mImOff[1] = aExtMin.y + double(aExtMax.y - aExtMin.y)/2;
 
    mImScal[0] =abs(aExtMax.x - mImOff[0]);
    mImScal[1] =abs(aExtMax.y - mImOff[1]);
 
    ReconstructValidityxy();
+    
 }
 
 void cRPC::NewGrC(double &aGrC1min, double &aGrC1max,
@@ -2010,17 +2188,17 @@ void cRPC::NewGrOffScal(const std::vector<Pt3dr> & aGrid)
     mGrOff[1] = aExtMin.y + double(aExtMax.y-aExtMin.y)/2;//double(aSumXYZ.y)/aGrid.size();
     mGrOff[2] = aExtMin.z + double(aExtMax.z-aExtMin.z)/2;//double(aSumXYZ.z)/aGrid.size();
 
-    std::abs(aExtMax.x - mGrOff[0]) > std::abs(aExtMin.x - mGrOff[0]) ?
-        mGrScal[0] = std::abs(aExtMax.x - mGrOff[0]) :
-        mGrScal[0] = std::abs(aExtMin.x - mGrOff[0]);
+    //std::abs(aExtMax.x - mGrOff[0]) > std::abs(aExtMin.x - mGrOff[0]) ?
+        mGrScal[0] = std::abs(aExtMax.x - mGrOff[0]);// :
+        //mGrScal[0] = std::abs(aExtMin.x - mGrOff[0]);
 
-    std::abs(aExtMax.y - mGrOff[1]) > std::abs(aExtMin.y - mGrOff[1]) ?
-        mGrScal[1] = std::abs(aExtMax.y - mGrOff[1]) :
-        mGrScal[1] = std::abs(aExtMin.y - mGrOff[1]);
+    //std::abs(aExtMax.y - mGrOff[1]) > std::abs(aExtMin.y - mGrOff[1]) ?
+        mGrScal[1] = std::abs(aExtMax.y - mGrOff[1]);// :
+        //mGrScal[1] = std::abs(aExtMin.y - mGrOff[1]);
 
-    std::abs(aExtMax.z - mGrOff[2]) > std::abs(aExtMin.x - mGrOff[2]) ?
-        mGrScal[2] = std::abs(aExtMax.z - mGrOff[2]) :
-        mGrScal[2] = std::abs(aExtMin.z - mGrOff[2]);
+    //std::abs(aExtMax.z - mGrOff[2]) > std::abs(aExtMin.x - mGrOff[2]) ?
+        mGrScal[2] = std::abs(aExtMax.z - mGrOff[2]);// :
+       // mGrScal[2] = std::abs(aExtMin.z - mGrOff[2]);
 
     
     NewGrC(aExtMin.x,aExtMax.x,
@@ -3179,7 +3357,7 @@ int CropRPC_main(int argc,char ** argv)
     
     //for every image : 
     //  read
-    //  backproject the 3D bounds and find define 2D bounds (this will be the cut & 2d grid bounds)
+    //  backproject the 3D bounds and define 2D bounds (this will be the cut & 2d grid bounds)
     //  create grids in 2d and 3d and pass to CalculRPC
     //  save IMG + RPC (in original coords)
 
@@ -3222,11 +3400,38 @@ int RecalRPC_main(int argc,char ** argv)
         cRPC::Save2XmlStdMMName(aDir + (*itL),"");
     }
     
+   
+    //- in euclid (geod can be added)
     if(aVf)
     {
-    
+
+        Pt3di aSz(100,100,100);
+
+        itL=aListFile.begin();
+        for( ; itL !=aListFile.end(); itL++ )
+        {
+            std::cout << (*itL) <<"\n";
+            
+            /* In euclid sys 
+             * -read cameras (input with the poly & recalculated) */
+            CameraRPC aCamIni(aDir + (*itL));
+            CameraRPC aCamRec(cRPC::NameSave(aDir + (*itL)));
+       
+            /* -verify independently */
+            cRPCVerf aVfIni(aCamIni,aSz);
+            cRPCVerf aVfRec(aCamRec,aSz);
+        
+            aVfIni.Do();
+            aVfRec.Do(aVfIni.mGrid3dFP);
+
+            /* -compare image coordinates & object coordinates */
+            aVfIni.Compare2D(aVfRec.mGrid2dBP);
+            aVfIni.Compare3D(aVfRec.mGrid3dFP);
+        }
     }
-    
+
+
+
     return EXIT_SUCCESS;
 }
 
@@ -3262,6 +3467,165 @@ int TestCamRPC(int argc,char** argv)
    }
 
    return EXIT_SUCCESS;
+}
+
+/******************************************************/
+/*                                                    */
+/*                    cRPCVerf                        */
+/*                                                    */
+/******************************************************/
+
+cRPCVerf::cRPCVerf(const CameraRPC &aCam, const Pt3di &aSz) :
+    mSz(aSz),
+    mCam(&aCam)
+{}
+
+void cRPCVerf::Do(const std::vector<Pt3dr> &aG)
+{
+    ELISE_ASSERT((int(aG.size())==0 || int(aG.size())==(mSz.x*mSz.y*mSz.z)),"cRPCVerf::Do(); incoherent grid size"); 
+
+    int aK1;
+    int aGSz = mSz.x*mSz.y*mSz.z;
+    Pt2dr aRange(-0.9,-0.9);//verification will take place on 80% of the validity space
+    Pt3dr aPt;
+   
+    //to be able to access some class functions
+    cRPC aRPC = mCam->GetRPCCpy();
+    
+    if( aG.size() == 0)
+    {
+        std::vector<Pt3dr> aGrid2dN,aGrid2d;
+        
+        cRPC::GenGridNorm_(aRange, mSz, aGrid2dN);
+        aGrid2d = aRPC.NormImAll(aGrid2dN,1);
+    
+
+        //forward project the points
+        for(aK1=0; aK1<aGSz; aK1++)
+            mGrid3d.push_back(mCam->ImEtZ2Terrain(
+                              Pt2dr(aGrid2d.at(aK1).x,aGrid2d.at(aK1).y),
+                              aGrid2d.at(aK1).z));
+
+    }
+    else
+        mGrid3d = aG;
+
+
+    //backproject all points of the grid to image space
+    for(aK1=0; aK1<aGSz; aK1++)
+        mGrid2dBP.push_back(mCam->Ter2Capteur(mGrid3d.at(aK1)));
+    
+    //forward project to object space
+    double aDistPlanMoy=0, aDistAltMoy=0;
+    double aDistPlanMax=0,  aDistAltMax=0;
+    double aTmp1, aTmp2;
+
+    for(aK1=0; aK1<int(mGrid2dBP.size()); aK1++)
+    {
+        mGrid3dFP.push_back(mCam->ImEtZ2Terrain(
+                            Pt2dr(mGrid2dBP.at(aK1).x,mGrid2dBP.at(aK1).y), 
+                            mGrid3d.at(aK1).z));
+        aTmp1 = sqrt(std::pow(abs(mGrid3dFP.at(aK1).x - mGrid3d.at(aK1).x),2) +
+                     std::pow(abs(mGrid3dFP.at(aK1).y - mGrid3d.at(aK1).y),2));
+        aTmp2 = abs(mGrid3dFP.at(aK1).z - mGrid3d.at(aK1).z);
+
+        if( aDistPlanMax<aTmp1 ) aDistPlanMax=aTmp1;
+        if( aDistAltMax<aTmp2 ) aDistAltMax=aTmp2;
+
+        aDistPlanMoy += aTmp1;
+        aDistAltMoy  += aTmp2;
+
+    }
+
+if(0)
+    std::cout << "---\n" 
+              << "RPC TEST IN 3D" << "\n"
+              << "plan moy =" << aDistPlanMoy/aGSz << ", max=" << aDistPlanMax << "\n" 
+              << "alt moy  =" << aDistAltMoy/aGSz <<  ", max=" << aDistAltMax << "\n"
+              << "UNIT METRIC=" << aRPC.IsMetric() << ", DEGREE=" << !(aRPC.IsMetric()) << "\n";
+
+
+}
+
+void cRPCVerf::Compare2D(std::vector<Pt2dr> &aGrid2d) const
+{
+   ELISE_ASSERT(aGrid2d.size()==mGrid2dBP.size(),"cRPCVerf::Compare2D ; incoherent grid size to compare to"); 
+    std::cout << "\n---\nRPC COMAPRISON IN 2D (before and after Recal)" << "\n";
+
+    int aK=0;
+    int aCnt=int(mGrid2dBP.size());
+    Pt2dr aMoy(0,0);
+    Pt2dr aMax(0,0);
+    double aTmp1, aTmp2;
+    int aRep=10, aRepCnt=0;
+
+
+    for(aK=0; aK<aCnt; aK++)
+    {
+        aTmp1 = abs(aGrid2d.at(aK).x - mGrid2dBP.at(aK).x);
+        aTmp2 = abs(aGrid2d.at(aK).y - mGrid2dBP.at(aK).y);
+
+        aMoy.x += aTmp1;
+        aMoy.y += aTmp2;
+
+        if(aTmp1>aMax.x) aMax.x=aTmp1;
+        if(aTmp2>aMax.y) aMax.y=aTmp2;
+
+        if(aTmp1>aRep || aTmp2>aRep)
+        {
+            //std::cout << "(" << aTmp1 << "," << aTmp2 << "):" << mGrid2dBP.at(aK) << " ";
+            aRepCnt++;
+        }
+    }
+
+
+    std::cout << "row moy =" << aMoy.x/aCnt << ", max=" << aMax.x << "\n"
+              << "col moy =" << aMoy.y/aCnt << ", max=" << aMax.y << "\n"
+              << "discrepancies>" << aRep << "->" << aRepCnt << " out of " << aCnt << "\n" ;
+}
+
+void cRPCVerf::Compare3D(std::vector<Pt3dr> &aGrid3d) const
+{
+   ELISE_ASSERT(aGrid3d.size()==mGrid3dFP.size(),"cRPCVerf::Compare3D ; incoherent grid size to compare to"); 
+    std::cout << "\n---\nRPC COMAPRISON IN 3D  (before and after Recal)" << "\n";
+
+    int aK=0;
+    int aCnt=int(mGrid3dFP.size());
+    Pt3dr aMoy(0,0,0);
+    Pt3dr aMax(0,0,0);
+    double aTmp1, aTmp2, aTmp3;
+    int aRep=10, aRepCnt=0;
+
+    for(aK=0; aK<aCnt; aK++)
+    {
+        aTmp1 = abs(aGrid3d.at(aK).x - mGrid3dFP.at(aK).x);
+        aTmp2 = abs(aGrid3d.at(aK).y - mGrid3dFP.at(aK).y);
+        aTmp3 = abs(aGrid3d.at(aK).z - mGrid3dFP.at(aK).z);
+
+        aMoy.x += aTmp1;
+        aMoy.y += aTmp2;
+        aMoy.z += aTmp3;
+
+        if(aTmp1>aMax.x) aMax.x=aTmp1;
+        if(aTmp2>aMax.y) aMax.y=aTmp2;
+        if(aTmp3>aMax.z) aMax.z=aTmp3;
+
+        if(aTmp1>aRep || aTmp2>aRep)
+        {
+            //std::cout << "(" << aTmp1 << "," << aTmp2 << "):" << mGrid3dFP.at(aK) << " ";
+            aRepCnt++;
+        }
+    }
+
+    //to be able to say the units
+    const cRPC * aRPC = mCam->GetRPC();
+    
+    std::cout << "X moy =" << aMoy.x/aCnt << ", max=" << aMax.x << "\n"
+              << "Y moy =" << aMoy.y/aCnt << ", max=" << aMax.y << "\n"
+              << "Z moy =" << aMoy.z/aCnt << ", max=" << aMax.z << "\n"
+              << "discrepancies>" << aRep << "->" << aRepCnt << " out of " << aCnt << "\n" 
+              << "UNIT METRIC=" << aRPC->IsMetric() << ", DEGREE=" << !(aRPC->IsMetric()) << "\n";
+
 }
 
 

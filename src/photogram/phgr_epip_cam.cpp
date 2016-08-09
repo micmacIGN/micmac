@@ -903,6 +903,11 @@ std::string LocPxFileMatch(const std::string & aDir,int aNum,int aDeZoom)
     return  aDir + "Px1_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom) +"_LeChantier.tif";
 }
 
+std::string LocPx2FileMatch(const std::string & aDir,int aNum,int aDeZoom)
+{
+	return  aDir + "Px2_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom)+ "_Geom-Im.tif";
+}
+
 std::string cCpleEpip::LocPxFileMatch(bool Im1,int aNum,int aDeZoom)
 {
     //return LocDirMatch(Im1) + "Px1_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom) +"_LeChantier.tif";

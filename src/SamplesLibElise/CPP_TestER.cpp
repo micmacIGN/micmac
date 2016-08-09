@@ -794,8 +794,7 @@ int TestER_rpc_main(int argc,char ** argv)
     CameraRPC aRPC1(aFullName1);
     CameraRPC aRPC2(aFullName2);
 
-    const cRPC * arpc = aRPC1.GetRPC();
-    double aZ1 = 100;//aRPC1.GetAltiSol() + double(arpc->GetGrC32() - arpc->GetGrC31())/2;
+    double aZ1 = 100;//aRPC1.GetAltiSol() + double(aRPC1->GetGrC32() - aRPC1->GetGrC31())/2;
 
     Pt3dr aPt1El1 = aRPC1.ImEtZ2Terrain(aP1,aZ1);
     Pt3dr aPt2El1 = aRPC1.ImEtZ2Terrain(aP1,aZ1+10);

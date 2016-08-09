@@ -89,6 +89,7 @@ cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv)
     std::string AeroIn= "";
     std::string AeroInSsMinus= "";
     std::string aDir="./";
+    std::string aDirMEC="GeoI-Px/";
     int Zoom0=32;
     int ZoomF=2;
 
@@ -117,6 +118,7 @@ cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv)
                     << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
                     << EAM(ShowCom,"ShowCom",true,"Show MicMac command (tuning purpose)")
                     << EAM(ExportDepl,"ExportDepl",true,"Export result as displacement maps")
+                    << EAM(aDirMEC,"DirMEC",true,"Output directory (Def GeoI-Px/)")
     );
 
     // cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(anIm1));
@@ -185,6 +187,7 @@ cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv)
                        +  std::string(" +AeroInSsMinus=") + AeroIn + " "
                        +  std::string(" +Zoom0=") + ToString(Zoom0) + " "
                        +  std::string(" +ZoomF=") + ToString(ZoomF) + " "
+                       +  std::string(" +DirMEC=") + aDirMEC + " "
                       ;
 
     if (mModePB)

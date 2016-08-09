@@ -443,7 +443,8 @@ void cAppli_HomCorOri::Load()
          mImPxT.all_pts(),
          StdFoncChScale
          (
-             Tiff_Im::StdConv(mDirMatch+ "Px2_Num"+ ToString(mNumFinal) + "_DeZoom"+ ToString(mZoomFinal)+ "_Geom-Im.tif").in(0),
+             //Tiff_Im::StdConv(mDirMatch+ "Px2_Num"+ ToString(mNumFinal) + "_DeZoom"+ ToString(mZoomFinal)+ "_Geom-Im.tif").in(0),
+             Tiff_Im::StdConv(LocPx2FileMatch(mDirMatch, mNumFinal, mZoomFinal)).in(0),
              Pt2dr(0,0),
              Pt2dr(mDownSize,mDownSize)
          ),

@@ -105,95 +105,57 @@ bool cAppliTiepRed::DoLoadTiePoints(){
 	// initialize to 0 the variable that holds the maximum number of tie-points in an image pair
 	mMaxNumHomol = 0;
 
-	std::vector<std::string> homolImagesIgnored;
-
 	if (stopProcessing == false){
 		// Load tie-points. For each image that is not the master image we load its shared tie-points with the master
 		for (std::size_t i = 1 ; i<mImages.size() ; i++){
 			// Get related image name
 			cImageTiepRed & homolImage = *(mImages[i]);
-			// To check validity of camera pair
-			bool validCameraPair = true;
 			// Get the camera pair
-			cLnk2ImTiepRed * imagePairLink;
-			// Create a image pair instance with initially no tie-points
+			cLnk2ImTiepRed * imagePairLink ;
 			if (masterImage.ImageName() > homolImage.ImageName()){
 				std::pair<CamStenope*,CamStenope*> cameraPair = NM().CamOriRel(homolImage.ImageName(),masterImage.ImageName());
-				// ELISE_ASSERT((cameraPair.first!=0)&&(cameraPair.second!=0)," std::pair<CamStenope*,CamStenope*>");
-				if ((cameraPair.first!=0)&&(cameraPair.second!=0)){
-					imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage, cameraPair.second, cameraPair.first);
-				}else{
-					validCameraPair = false;
-				}
+				// Create a image pair instance with initially no tie-points
+				imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage, &(*(cameraPair.second)), &(*(cameraPair.first)));
 			}else{
 				std::pair<CamStenope*,CamStenope*> cameraPair = NM().CamOriRel(masterImage.ImageName(),homolImage.ImageName());
-				// ELISE_ASSERT((cameraPair.first!=0)&&(cameraPair.second!=0)," std::pair<CamStenope*,CamStenope*>");
-				if ((cameraPair.first!=0)&&(cameraPair.second!=0)){
-					imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage, cameraPair.first, cameraPair.second);
-				}else{
-					validCameraPair = false;
-				}
+				// Create a image pair instance with initially no tie-points
+				imagePairLink = new cLnk2ImTiepRed(&masterImage, &homolImage, &(*(cameraPair.first)), &(*(cameraPair.second)));
 			}
 
-			if (validCameraPair == true){
-				// Get references to the empty list of tie-points in both images
-				std::vector<Pt2df> & masterImageTiePoints = imagePairLink->VP1();
-				std::vector<Pt2df> & homolImageTiePoints = imagePairLink->VP2();
-				if (homolImage.ImageBeenMaster() == true){
-					// If the homol image has been already a master image before we load the point from the result of a previous step
-					std::string aName = NameHomolTemp(masterImage.ImageName(), homolImage.ImageName());
-					ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
-					for (ElPackHomologue::iterator itPt = aPack.begin(); itPt != aPack.end(); itPt++ ){
-						masterImageTiePoints.push_back(ToPt2df(itPt->P1()));
-						homolImageTiePoints.push_back(ToPt2df(itPt->P2()));
-					}
-				}else{
-					// Load tie-points from Homol folder
-					NM().LoadHomFloats(masterImage.ImageName(), homolImage.ImageName(), &masterImageTiePoints, &homolImageTiePoints);
-				}
-
-				if (masterImageTiePoints.size() > ((std::size_t) mMinNumHomol)){
-
-					// Update counter of tie-points in master
-					masterImage.SetNbPtsHom2Im(masterImage.NbPtsHom2Im() + masterImageTiePoints.size());
-
-					// Set number of tie-points for this homol image
-					homolImage.SetNbPtsHom2Im(masterImageTiePoints.size());
-
-					// Set the maximum number of homol points between a image-pair
-					if (homolImage.NbPtsHom2Im() > mMaxNumHomol) mMaxNumHomol = homolImage.NbPtsHom2Im();
-
-					// Add to image pair map
-					mImagePairsMap.insert(make_pair(make_pair(masterImage.ImageId(), homolImage.ImageId()), imagePairLink));
-				}else{
-					homolImagesIgnored.push_back(homolImage.ImageName());
+			// Get references to the empty list of tie-points in both images
+			std::vector<Pt2df> & masterImageTiePoints = imagePairLink->VP1();
+			std::vector<Pt2df> & homolImageTiePoints = imagePairLink->VP2();
+			if (homolImage.ImageBeenMaster() == true){
+				// If the homol image has been already a master image before we load the point from the result of a previous step
+				std::string aName = NameHomolTemp(masterImage.ImageName(), homolImage.ImageName());
+				ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
+				for (ElPackHomologue::iterator itPt = aPack.begin(); itPt != aPack.end(); itPt++ ){
+					masterImageTiePoints.push_back(ToPt2df(itPt->P1()));
+					homolImageTiePoints.push_back(ToPt2df(itPt->P2()));
 				}
 			}else{
-				homolImagesIgnored.push_back(homolImage.ImageName());
+				// Load tie-points from Homol folder
+				NM().LoadHomFloats(masterImage.ImageName(), homolImage.ImageName(), &masterImageTiePoints, &homolImageTiePoints);
 			}
-		}
 
-		if (homolImagesIgnored.size() > 0){
-			std::cout << "Related Images ignored (not enough homol points): ";
-			for (std::size_t i = 0 ; i<homolImagesIgnored.size() ; i++){
-				std::cout << homolImagesIgnored[i] << " ";
-			}
-			std::cout << endl;
-		}
 
-		if (homolImagesIgnored.size() >= homolImagesNotBeenMaster.size()){
-			// Check if all the related images that have not been master are in the ignored list
-			// if so, we can stop processing
-			stopProcessing = true;
-			for (std::size_t i = 0 ; i<homolImagesNotBeenMaster.size() ; i++){
-					if (std::find(homolImagesIgnored.begin(), homolImagesIgnored.end(), homolImagesNotBeenMaster[i]) == homolImagesIgnored.end()){
-						stopProcessing = false;
-					}
+			if (masterImageTiePoints.size() > mMinNumHomol){
+				// Update counter of tie-points in master
+				masterImage.SetNbPtsHom2Im(masterImage.NbPtsHom2Im() + masterImageTiePoints.size());
+				// Set number of tie-points for this homol image
+				homolImage.SetNbPtsHom2Im(masterImageTiePoints.size());
+
+				// Set the maximum number of homol points between a image-pair
+				if (homolImage.NbPtsHom2Im() > mMaxNumHomol) mMaxNumHomol = homolImage.NbPtsHom2Im();
+
+				// Add to image pair map
+				mImagePairsMap.insert(make_pair(make_pair(masterImage.ImageId(), homolImage.ImageId()), imagePairLink));
 			}
 		}
 	}else{
 		std::cout << "#InitialHomolPoints:" << mNumInit << ". All related images already processed, nothing else to be done here!" << endl;
 	}
+
 	return stopProcessing;
 }
 
@@ -289,7 +251,7 @@ void cAppliTiepRed::DoExport(){
 			// If there are tie-points we write to the related files
 			if (aPack1.size()) aPack1.StdPutInFile(NameHomol(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
 			if (aPack2.size()) aPack2.StdPutInFile(NameHomol(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
-			// Always save the temp files, to indicate other tasks that this has been done
+			// We always write the temp files, so next task knows these were processed already
 			aPack1Temp.StdPutInFile(NameHomolTemp(mImages[0]->ImageName(),mImages[aKImage1]->ImageName()));
 			aPack2Temp.StdPutInFile(NameHomolTemp(mImages[aKImage1]->ImageName(),mImages[0]->ImageName()));
 		}

@@ -1643,16 +1643,29 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
            }
            }
            else
-               aType = eTIGB_MMIkonos;
+           {
+                std::string aLine;
+                std::ifstream aFile(aName.c_str());
+            
+                std::getline(aFile, aLine);
+                std::getline(aFile, aLine);
+                if( aLine.find("<Xml_RPC>") != string::npos )//verify if it's not Xml_RPC
+                    aType = eTIGB_MMDimap2;
+                else
+                    aType = eTIGB_MMIkonos;
 
+
+           }
        }
 
        if ((aPost=="txt") || (aPost=="TXT") || (aPost=="rpc"))
        {
-            std::string line;
+            
+            std::string aLine;
             std::ifstream aFile(aName.c_str());
-            std::getline(aFile, line);
-            if( line.find("DATE_GENERATION") != string::npos )
+            
+            std::getline(aFile, aLine);
+            if( aLine.find("DATE_GENERATION") != string::npos )
                 aType = eTIGB_MMEuclid;
             else
                 aType = eTIGB_MMIkonos;

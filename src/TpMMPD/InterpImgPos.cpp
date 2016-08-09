@@ -289,6 +289,7 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv)
 	}
 }
 
+
 int InterpImgPos_main(int argc,char ** argv)
 {
 	cIIP_Appli anAppli(argc,argv);
