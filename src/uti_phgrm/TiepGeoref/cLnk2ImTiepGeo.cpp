@@ -47,9 +47,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                                    */
 /**********************************************************************/
 cLnk2ImTiepGeo::cLnk2ImTiepGeo(cImageTiepGeo *aIm1, cImageTiepGeo *aIm2,
-                                const std::string &aPx1Name, const std::string &aPx2Name) :
+                               const std::string &aCorName,
+							   const std::string &aPx1Name, 
+                               const std::string &aPx2Name) :
     mIm1(aIm1),
     mIm2(aIm2),
+	mCorName(aCorName),
     mPx1Name(aPx1Name),
     mPx2Name(aPx2Name)
     //mPx1(Tiff_Im::StdConvGen(aPx1Name,1,true)),
@@ -64,6 +67,21 @@ cImageTiepGeo & cLnk2ImTiepGeo::Im1()
 cImageTiepGeo & cLnk2ImTiepGeo::Im2()
 {
 	return *mIm2;
+}
+
+void cLnk2ImTiepGeo::LoadCor()
+{
+	
+}
+
+void cLnk2ImTiepGeo::LoadPx1()
+{
+
+}
+
+void cLnk2ImTiepGeo::LoadPx2()
+{
+
 }
 
 
