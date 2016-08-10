@@ -1789,7 +1789,7 @@ void cElMatCreuseBlocSym::CalculCholesky()
                                static bool First = true;
                                if (First)
                                {
-                                     std::cout << " Warn tape enter to continue\n";
+                                     std::cout << " Warn tape enter to continue" << std::endl;
                                      getchar();
                                }
                                First = false;
