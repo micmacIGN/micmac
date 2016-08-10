@@ -55,38 +55,58 @@ class cImageTiepGeo
 {
     public:
 
-        cImageTiepGeo(const std::string & aName);
+        cImageTiepGeo(cAppliTiepGeo & aAppli, const std::string & aNameOri, std::string aNameIm="");
 		
 		const Box2dr & BoxSol() const;
 		bool		   HasInter(const cImageTiepGeo & aIm2) const;
-		
+		double		   AltiSol() const;
+		int			   AltiSolInc() const;
+	
+		const std::string & NameIm();
 		const int & Num() const;
 		void SetNum(int &aNum);
 
+
     private:
+		cAppliTiepGeo & mAppli;
+
         CameraRPC * mCamRPC;
-		int         mNum;	
+		int         mNum;
+
+		std::string mNameIm;	
 };
 
 class cLnk2ImTiepGeo
 {
     public:
-        cLnk2ImTiepGeo(cImageTiepGeo *aIm1, cImageTiepGeo *aIm2, const std::string &aPx1Name, const std::string &aPx2Name);
+        cLnk2ImTiepGeo(cImageTiepGeo *aIm1, cImageTiepGeo *aIm2, 
+                       const std::string &aCorName, 
+                       const std::string &aPx1Name, 
+                       const std::string &aPx2Name);
 
 
 		cImageTiepGeo & Im1();
 		cImageTiepGeo & Im2();
-
-    private:
+		
+		void LoadCor();
+		void LoadPx1();
+		void LoadPx2();
+    
+	private:
         cImageTiepGeo * mIm1;
         cImageTiepGeo * mIm2;
         
-        //Tiff_Im         mPx1;
-        //Tiff_Im         mPx2;
+        Tiff_Im		  * mCor;
+        Tiff_Im       * mPx1;
+        Tiff_Im       * mPx2;
+        const std::string mCorName;
         const std::string mPx1Name;
         const std::string mPx2Name;
 
-        //add found homol points
+        //homologous points (consistent with tMergeStr)
+		std::vector<Pt2df> mVP1; 
+		std::vector<Pt2df> mVP2; 
+
 };
 
 class cAppliTiepGeo
@@ -100,8 +120,11 @@ class cAppliTiepGeo
 		void DoMaster();
         void DoPx1Px2();
         void DoTapioca();
+		void DoStereo();
         
         const std::string  & Dir() const;
+		const std::string    NamePxDir(const std::string & aIm1,const std::string & aIm2) const;
+
 
 		void AddLnk(cLnk2ImTiepGeo *);
 

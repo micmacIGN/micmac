@@ -94,6 +94,7 @@ class CameraRPC : public cBasicGeomCap3D
         bool ProfIsDef() const;
         void SetAltiSol(double aZ);
 		double GetAltiSol() const;
+		double GetAltiSolInc() const;
 		bool AltisSolIsDef() const;
 		const std::vector<Pt2dr> &  ContourUtile();
 		const cElPolygone &  EmpriseSol() const;
