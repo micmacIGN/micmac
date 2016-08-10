@@ -41,6 +41,35 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+bool BadValue(const double & aVal)
+{
+    return BadNumber(aVal);
+}
+
+bool BadValue(const Pt2dr & aP)
+{
+   return BadNumber(aP.x) || BadNumber(aP.y);
+}
+
+bool BadValue(const Pt3dr & aP)
+{
+   return BadNumber(aP.x) || BadNumber(aP.y) || BadNumber(aP.z);
+}
+
+bool BadValue(const ElRotation3D & aR)
+{
+   if (BadValue(aR.tr())) return true;
+
+   for (int aK=0 ; aK<3 ; aK++)
+   {
+      Pt3dr aCol;
+      aR.Mat().GetCol(aK,aCol);
+      if (BadValue(aCol)) return true;
+   }
+
+   return false;
+}
+
 
 double cos(int x) {return cos(double(x));}
 double sin(int x) {return sin(double(x));}
@@ -1382,6 +1411,7 @@ std::vector<Pt3dr> GetDistribRepresentative(Pt3dr & aCdg,const std::vector<Pt2dr
 
     return TplGetDistribRepre(aCdg,aV,aNb,(std::vector<Pt3dr> *)0);
 }
+
 
 
 

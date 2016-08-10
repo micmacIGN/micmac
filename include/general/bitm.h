@@ -1279,6 +1279,8 @@ template <class Type> class TplElRotation3D
 };
 
 typedef TplElRotation3D<REAL> ElRotation3D;
+bool BadValue(const ElRotation3D &);
+
 
    class cRepereCartesien;
 
