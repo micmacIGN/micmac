@@ -381,6 +381,10 @@ void cAppliOptimTriplet::ShowPointSel(cImOfTriplet * aIm,const std::vector<Pt2df
 
 void cAppliOptimTriplet::TestSol(const  std::vector<ElRotation3D> & aVR)
 {
+    // Test un peu heuristique suite au pb de div par zero de la base
+    if (BadValue(aVR[0]) || BadValue(aVR[1]) ||  BadValue(aVR[2]))
+       return;
+
     double aResidu = ResiduGlob(aVR[0],aVR[1],aVR[2]);
 
     // std::cout << "cAppliOptimTriplet::TestSol " << aResidu << "\n";
@@ -451,6 +455,9 @@ void cAppliOptimTriplet::TestOPA(cPairOfTriplet & aPair)
        // aVR[aK] =  aVR[aK] * aR0.inv() ;
     }
     double aFact = euclid(aVR[1].tr());
+
+    if (aFact < 1e-60) return;
+
     aVR[1] = ElRotation3D(aVR[1].tr()/aFact,aVR[1].Mat(),true);
     aVR[2] = ElRotation3D(aVR[2].tr()/aFact,aVR[2].Mat(),true);
 
@@ -477,9 +484,19 @@ bool cAppliOptimTriplet::Show()
    return mAotShow;
 }
 
+void ShowRot(const std::string & aMes,const ElRotation3D & aR)
+{
+   std::cout << aMes
+             << " O=" << aR.ImAff(Pt3dr(0,0,0))
+             << " X=" << aR.ImVect(Pt3dr(1,0,0))
+             << " Y=" << aR.ImVect(Pt3dr(0,1,0))
+             << " Z=" << aR.ImVect(Pt3dr(0,0,1))
+             << "\n";
+}
 
 double cAppliOptimTriplet::ResiduTriplet(const ElRotation3D & aR1,const ElRotation3D & aR2,const ElRotation3D & aR3)
 {
+    
     std::vector<double> aVRes;
     for (int aK=0 ; aK<int(mIm1->VFullPtOf3().size()) ; aK++)
     {
@@ -491,22 +508,11 @@ double cAppliOptimTriplet::ResiduTriplet(const ElRotation3D & aR1,const ElRotati
         bool OkI;
         Pt3dr aI = InterSeg(aW1,aW2,OkI);
 
-if (MPD_MM() && std_isnan(aI.x))
-{
-     std::cout << " " << aI <<   "\n";
-     for (int aKP=0 ; aKP<int(aW1.size()) ; aKP++)
-         std::cout << aW1[aKP] << " " << aW2[aKP] << "\n";
-
-    std::cout << "********************************************************\n";
-}
         if (OkI)
         {
             double aRes1 = Residu(mIm1->Im(),aR1,aI,mIm1->VFullPtOf3()[aK]);
             double aRes2 = Residu(mIm2->Im(),aR2,aI,mIm2->VFullPtOf3()[aK]);
             double aRes3 = Residu(mIm3->Im(),aR3,aI,mIm3->VFullPtOf3()[aK]);
-/*
-            double aRes2 = Residu(mIm2->Im(),R2(),aI,mVP2[aK]);
-*/
 
             aVRes.push_back((aRes1+aRes2+aRes3)/3.0);
         }
@@ -658,7 +664,7 @@ void cAppliOptimTriplet::TestTomasiKanade()
 
 void cAppliOptimTriplet::Execute()
 {
-   if (MPD_MM() && (mN1=="DSC01582.JPG") && (mN2=="DSC01583.JPG") && (mN3=="DSC01606.JPG"))
+   if (0 && MPD_MM() && (mN1=="DSC01582.JPG") && (mN2=="DSC01583.JPG") && (mN3=="DSC01606.JPG"))
    {
       std::cout << "Generate bug for testing \n";
       ELISE_ASSERT(false,"Generate bug for testing triplet");
