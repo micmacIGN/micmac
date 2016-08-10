@@ -492,4 +492,3 @@ void SerieCamLinear::initSerieByRefSerie(SerieCamLinear* REFSerie)
 }
 
 
-

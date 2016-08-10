@@ -137,16 +137,16 @@ int InitOriLinear_main(int argc,char ** argv)
     (
     argc,argv,
     //mandatory arguments
-    LArgMain()  << EAMC(aOriRef,"Reference Orientation Ori folder",  eSAM_IsExistDirOri)
-                << EAMC(aOriOut, "Output initialized ori folder - default = Ori-InitOut", eSAM_None)
-                << EAMC(aVecPatNEW, "Vector pattern of new images to orientate PatCam1, PatCam2,..", eSAM_None)
-                << EAMC(aVecPatREF, "Vector pattern of Reference Image = PatRef1, PatRef2,..", eSAM_None),
+    LArgMain()  << EAMC(aOriRef,"Ori folder of reference images",  eSAM_IsExistDirOri)
+                << EAMC(aOriOut, "Folder for output initialized orientation- default = Ori-InitOut", eSAM_None)
+                << EAMC(aVecPatNEW, "Pattern of new images to orientate PatCam1, PatCam2,..", eSAM_None)
+                << EAMC(aVecPatREF, "Pattern of Reference Image = PatRef1, PatRef2,..", eSAM_None),
     //optional arguments
-    LArgMain()  <<EAM(aVecPoseTurn, "PatTurn", true, "Vector of images when the serie change acquisition direction [pose1,pose2...]")
-                <<EAM(aPatAngle,    "PatAngle", true, "Vector of turn angle [apha1,alpha2,...]")
-                <<EAM(aMulF,    "mulF", true, "vector for multiplication factor for each section [mul1,mul2,...]")
+    LArgMain()  <<EAM(aVecPoseTurn, "PatTurn", true, "Images when acquisition have turn [poseTurn1,poseTurn2...]")
+                <<EAM(aPatAngle,    "PatAngle", true, "Turn angle [angle1,angle2,...] - + => turn left, - => turn right")
+                <<EAM(aMulF,    "mulF", true, "Multiplication factor for adjustment each turn [mul1,mul2,...]")
+                 <<EAM(aAxeOrient,    "Axe", true, "Which axe to calcul rotation about - default = z")
                 <<EAM(bWithOriIdentity,    "WithIdent", true, "Initialize with orientation identique (default = false)")
-                <<EAM(aAxeOrient,    "Axe", true, "Which axe to calcul rotation about - default = z")
                 <<EAM(forceInPlan,   "Plan", true, "Force using vector [0,0,1] to initialize (garantie all poses will be in a same plan) - (default = false)")
     );
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -217,8 +217,11 @@ int InitOriLinear_main(int argc,char ** argv)
         cam0->partageSection(aVecPoseTurn, aVecAngleTurn);
         Pt3dr vecMouv0 = cam0->calVecMouvement();
         cam0->initSerieWithTurn(vecMouv0, aVecPoseTurn, aVecAngleTurn);
-
-
+        for (uint i=1; i<aSystem.size(); i++)
+        {
+             SerieCamLinear * cam = aSystem[i];
+             cam->initSerieByRefSerie(cam0);
+        }
     }
 
 /*
