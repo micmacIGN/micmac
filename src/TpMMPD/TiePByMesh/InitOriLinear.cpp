@@ -205,13 +205,14 @@ void RotationParAxe(Pt3dr AxeDirection, double angle, matrix result)
 
 SerieCamLinear::SerieCamLinear(string aPatImgREF, string aPatImgNEW,
                                string aOri, string aOriOut,
-                               string aAxeOrient, int index)
+                               string aAxeOrient, vector<double> aMulF, int index)
 {
     this->mOriOut = aOriOut;
     this->mIndexCam = index;
     this->mPatImgNEW = aPatImgNEW;
     this->mPatImgREF = aPatImgREF;
     this->mOri = aOri;
+    this->mMulF = aMulF;
     this->mAxeOrient = aAxeOrient;
     string aDirNEW,aDirREF, aPatNEW,aPatREF;
     SplitDirAndFile(aDirNEW, aPatNEW, mPatImgNEW);
@@ -412,49 +413,63 @@ void SerieCamLinear::initSerieWithTurn(     Pt3dr vecMouvCam0 ,
                                             vector<string> aVecPoseTurn,
                                             vector<double> aVecAngleTurn    )
 {
-    cout<<"Init serie with turn Cam : "<<this->mIndexCam<<endl;
-    if (aVecPoseTurn.size() != 0)
+    if (this->mMulF.size() == aVecAngleTurn.size())
     {
-        cOrientationConique aOriREFLastImg = this->mSetOriREF.back();
-        for (uint i=0; i<this->mSections.size(); i++)
+        cout<<"Init serie with turn Cam : "<<this->mIndexCam<<endl;
+        if (aVecPoseTurn.size() != 0)
         {
-            vector<string> poseInSection = mSections[i];
-            if (i==0) //section 0 is same direction with reference pose
+            cOrientationConique aOriREFLastImg = this->mSetOriREF.back();
+            for (uint i=0; i<this->mSections.size(); i++)
             {
-                for (uint j=0; j<poseInSection.size(); j++)
+                vector<string> poseInSection = mSections[i];
+                if (i==0) //section 0 is same direction with reference pose
                 {
-                    cOrientationConique aOriInitImg = aOriREFLastImg;
-                    aOriInitImg.Externe().Centre() = aOriREFLastImg.Externe().Centre() + this->mVecMouvement;
-                    string aOriInitImgXML = this->mOriOut + "/Orientation-"+poseInSection[j]+".xml";
-                    MakeFileXML(aOriInitImg, aOriInitImgXML);
-                    aOriREFLastImg = aOriInitImg;
-                    cout<<" ++ "<<aOriInitImg.Externe().Centre()<<endl;
-                    cout<<" ++ Write: "<<aOriInitImgXML<<endl;
-                    this->mSetOriNEW.push_back(aOriInitImg);
+                    for (uint j=0; j<poseInSection.size(); j++)
+                    {
+                        cOrientationConique aOriInitImg = aOriREFLastImg;
+                        aOriInitImg.Externe().Centre() = aOriREFLastImg.Externe().Centre() + this->mVecMouvement;
+                        string aOriInitImgXML = this->mOriOut + "/Orientation-"+poseInSection[j]+".xml";
+                        MakeFileXML(aOriInitImg, aOriInitImgXML);
+                        aOriREFLastImg = aOriInitImg;
+                        cout<<" ++ "<<aOriInitImg.Externe().Centre()<<endl;
+                        cout<<" ++ Write: "<<aOriInitImgXML<<endl;
+                        this->mSetOriNEW.push_back(aOriInitImg);
+                    }
                 }
-            }
-            else
-            {
-                cTypeCodageMatr ref(aOriREFLastImg.Externe().ParamRotation().CodageMatr().Val());
-                cTypeCodageMatr out;
-                cout<<" Mat Rot org= "<<ref.L1()<<ref.L2()<<ref.L3()<<endl;
-                calCodageMatrRot(ref, aVecAngleTurn[i-1]*PI/180, out ,this->mAxeOrient);
-                Pt3dr vecMouvSection = calVecMouvementTurn(this->mVecMouvement, aVecAngleTurn[i-1]*PI/180, this->mAxeOrient);
-                cout<<" Mat Rot sec= "<<out.L1()<<out.L2()<<out.L3()<<endl;
-                for (uint j=0; j<poseInSection.size(); j++)
+                else
                 {
-                    cOrientationConique aOriInitImg = aOriREFLastImg;
-                    aOriInitImg.Externe().Centre() = aOriREFLastImg.Externe().Centre() + vecMouvSection;
-                    aOriInitImg.Externe().ParamRotation().CodageMatr().Val() = out;
-                    string aOriInitImgXML = this->mOriOut + "/Orientation-"+poseInSection[j]+".xml";
-                    MakeFileXML(aOriInitImg, aOriInitImgXML);
-                    aOriREFLastImg = aOriInitImg;
-                    cout<<" ++ "<<aOriInitImg.Externe().Centre()<<endl;
-                    cout<<" ++ Write: "<<aOriInitImgXML<<endl;
-                    this->mSetOriNEW.push_back(aOriInitImg);
+                    cTypeCodageMatr ref(aOriREFLastImg.Externe().ParamRotation().CodageMatr().Val());
+                    cTypeCodageMatr out;
+                    cout<<" Mat Rot org= "<<ref.L1()<<ref.L2()<<ref.L3()<<endl;
+                    calCodageMatrRot(ref, aVecAngleTurn[i-1]*PI/180, out ,this->mAxeOrient);
+                    Pt3dr vecMouvSection = calVecMouvementTurn(this->mVecMouvement, aVecAngleTurn[i-1]*PI/180, this->mAxeOrient);
+                    Pt3dr vecAdjLastPos = this->mVecMouvement;
+                    cout<<" Mat Rot sec= "<<out.L1()<<out.L2()<<out.L3()<<endl;
+                    for (uint j=0; j<poseInSection.size(); j++)
+                    {
+                        cOrientationConique aOriInitImg = aOriREFLastImg;
+                        if (j==0)
+                        {
+                            aOriInitImg.Externe().Centre() = aOriREFLastImg.Externe().Centre() + vecMouvSection*mMulF[i-1] + vecAdjLastPos*mMulF[i-1];
+                            vecAdjLastPos = vecMouvSection;
+                        }
+                        else
+                            aOriInitImg.Externe().Centre() = aOriREFLastImg.Externe().Centre() + vecMouvSection;
+                        aOriInitImg.Externe().ParamRotation().CodageMatr().Val() = out;
+                        string aOriInitImgXML = this->mOriOut + "/Orientation-"+poseInSection[j]+".xml";
+                        MakeFileXML(aOriInitImg, aOriInitImgXML);
+                        aOriREFLastImg = aOriInitImg;
+                        cout<<" ++ "<<aOriInitImg.Externe().Centre()<<endl;
+                        cout<<" ++ Write: "<<aOriInitImgXML<<endl;
+                        this->mSetOriNEW.push_back(aOriInitImg);
+                    }
                 }
             }
         }
+    }
+    else
+    {
+        cout<<"mMulF != aVecAngleTurn - QUIT"<<endl;
     }
 }
 

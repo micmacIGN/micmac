@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "InitOriLinear.h"
 
 bool checkNumParam(vector<string>aVecPatternNewImages_E , vector<string>aVecPatternRefImages_E ,
-                vector<string>aPatPoseTurn , vector<double>aPatAngle)
+                vector<string>aPatPoseTurn , vector<double>aPatAngle, vector<double>aMulF)
 {
     bool ok;
     if (aVecPatternNewImages_E.size() == aVecPatternRefImages_E.size())
@@ -132,17 +132,19 @@ int InitOriLinear_main(int argc,char ** argv)
     string aOriOut = "Ori-InitOut";
     bool bWithOriIdentity = false;
     bool forceInPlan = false;
+    vector<string> aMulF;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
     argc,argv,
     //mandatory arguments
     LArgMain()  << EAMC(aOriRef,"Reference Orientation Ori folder",  eSAM_IsExistDirOri)
                 << EAMC(aOriOut, "Output initialized ori folder - default = Ori-InitOut", eSAM_None)
-                << EAMC(aVecPatNEW, "Vector pattern of new images to orientate Pat Cam 1, Pat Cam 2,..", eSAM_None)
-                << EAMC(aVecPatREF, "Vector pattern of Reference Image Pat Ref 1, Pat Ref 2,..", eSAM_None),
+                << EAMC(aVecPatNEW, "Vector pattern of new images to orientate PatCam1, PatCam2,..", eSAM_None)
+                << EAMC(aVecPatREF, "Vector pattern of Reference Image = PatRef1, PatRef2,..", eSAM_None),
     //optional arguments
-    LArgMain()  <<EAM(aVecPoseTurn, "PatTurn", true, "Vector of images when the serie change acquisition direction pose1,pose2...")
-                <<EAM(aPatAngle,    "PatAngle", true, "Vector of turn angle apha1,alpha2,...")
+    LArgMain()  <<EAM(aVecPoseTurn, "PatTurn", true, "Vector of images when the serie change acquisition direction [pose1,pose2...]")
+                <<EAM(aPatAngle,    "PatAngle", true, "Vector of turn angle [apha1,alpha2,...]")
+                <<EAM(aMulF,    "mulF", true, "vector for multiplication factor for each section [mul1,mul2,...]")
                 <<EAM(bWithOriIdentity,    "WithIdent", true, "Initialize with orientation identique (default = false)")
                 <<EAM(aAxeOrient,    "Axe", true, "Which axe to calcul rotation about - default = z")
                 <<EAM(forceInPlan,   "Plan", true, "Force using vector [0,0,1] to initialize (garantie all poses will be in a same plan) - (default = false)")
@@ -152,8 +154,16 @@ int InitOriLinear_main(int argc,char ** argv)
     vector<string>aVecPatNEWImg = parseParam(aVecPatNEW);
     vector<string>aVecPatREFImg = parseParam(aVecPatREF);
     vector<double>aVecAngleTurn = parse_dParam(aPatAngle);
+    vector<double>MulF;
+    if (aMulF.size() > 0)
+        MulF = parse_dParam(aMulF);
+    if (MulF.size() != aPatAngle.size())
+    {
+        for (uint i=0; i<(aPatAngle.size() - aMulF.size()); i++)
+            MulF.push_back(1.0);
+    }
 
-    bool isNumParamOK = checkNumParam(aVecPatNEWImg, aVecPatREFImg, aVecPoseTurn , aVecAngleTurn);
+    bool isNumParamOK = checkNumParam(aVecPatNEWImg, aVecPatREFImg, aVecPoseTurn , aVecAngleTurn, MulF);
     vector<SerieCamLinear*> aSystem;
 
     //creat serie cam
@@ -170,7 +180,7 @@ int InitOriLinear_main(int argc,char ** argv)
         {
             string aPatImgRef = aVecPatREFImg[i];
             string aPatImgNew = aVecPatNEWImg[i];
-            SerieCamLinear * aCam = new SerieCamLinear(aPatImgRef , aPatImgNew, aOriRef, aOriOut, aAxeOrient, i);
+            SerieCamLinear * aCam = new SerieCamLinear(aPatImgRef , aPatImgNew, aOriRef, aOriOut, aAxeOrient, MulF, i);
             aSystem.push_back(aCam);
         }
     }

@@ -11,7 +11,7 @@ class SerieCamLinear
 
     SerieCamLinear( string aPatImgREF, string aPatImgNEW,
                     string aOri, string aOriOut,
-                    string aAxeOrient, int index);
+                    string aAxeOrient, vector<double>aMulF, int index);
     void calPosRlt();
     void saveSystem(vector<SerieCamLinear*> aSystem){this->mSystem = aSystem;}
     Pt3dr calVecMouvement();
@@ -42,5 +42,6 @@ class SerieCamLinear
     vector<SerieCamLinear*> mSystem;
     Pt3dr mVecMouvement;
     vector< vector<string> >mSections;
+    vector<double> mMulF; //multipli factor pour le deplacement entre les sections
 };
 #endif
