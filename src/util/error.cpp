@@ -66,6 +66,7 @@ char * TheCharPtrFuckingReturnValue=0;
 bool TheExitOnBrkp  = false;
 // bool TheExitOnBrkp  = false;
 bool TheExitOnNan   = false;
+bool TheExitOnWarn  = false;
 bool TheMajickFile  = false;
 int  TheNbIterProcess = 1;
 

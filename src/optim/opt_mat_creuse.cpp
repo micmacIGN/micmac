@@ -1790,7 +1790,10 @@ void cElMatCreuseBlocSym::CalculCholesky()
                                if (First)
                                {
                                      std::cout << " Warn tape enter to continue" << std::endl;
-                                     getchar();
+                                     if (TheExitOnWarn)
+                                         ElEXIT(1,"aScal<=0 in Cholesky");
+                                     else
+                                         getchar();
                                }
                                First = false;
                                // ELISE_ASSERT(false,"Cholesly Diag, Beg");

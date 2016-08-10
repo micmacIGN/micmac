@@ -209,6 +209,7 @@ class ElEM   // Elise Erreur Message
 
 extern bool TheExitOnBrkp;
 extern bool TheExitOnNan;
+extern bool TheExitOnWarn;
 extern bool TheMajickFile;
 extern int  TheNbIterProcess;
 
