@@ -452,6 +452,11 @@ double CameraRPC::GetAltiSol() const
     return(mAltiSol);
 }
 
+double CameraRPC::GetAltiSolInc() const
+{
+    return( abs(mRPC->GetGrC32() - mRPC->GetGrC31())*0.5 );
+}
+
 bool CameraRPC::AltisSolIsDef() const
 {
     return(mAltisSolIsDef);

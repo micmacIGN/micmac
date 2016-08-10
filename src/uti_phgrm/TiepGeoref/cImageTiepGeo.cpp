@@ -45,9 +45,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                            cImageTiepGeo                           */
 /*                                                                    */
 /**********************************************************************/
-cImageTiepGeo::cImageTiepGeo(const std::string & aName)
+cImageTiepGeo::cImageTiepGeo(cAppliTiepGeo & aAppli, const std::string & aNameOri, std::string aNameIm) :
+	mAppli(aAppli),
+	mNameIm(aNameIm)
 {
-	mCamRPC = new CameraRPC(aName);
+	mCamRPC = new CameraRPC(aNameOri);
 
 }
 
@@ -74,6 +76,21 @@ void cImageTiepGeo::SetNum(int &aNum)
 const int & cImageTiepGeo::Num() const
 {
 	return mNum;
+}
+
+const std::string & cImageTiepGeo::NameIm()
+{
+	return mNameIm;
+}
+
+double cImageTiepGeo::AltiSol() const
+{
+	return mCamRPC->GetAltiSol();
+}
+
+int cImageTiepGeo::AltiSolInc() const
+{
+	return mCamRPC->GetAltiSolInc();
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

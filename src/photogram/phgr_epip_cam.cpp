@@ -848,7 +848,6 @@ std::string cCpleEpip::LocMasqFileMatch(const std::string & aIm,int aNum)
 }
 
 
-
 bool cCpleEpip::IsLeft(const std::string & aName) {return  IsLeft(IsIm1(aName));}
 
 bool cCpleEpip::IsLeft(bool Im1) {return  mFirstIsLeft ? Im1 : (!Im1) ;}
@@ -906,6 +905,11 @@ std::string LocPxFileMatch(const std::string & aDir,int aNum,int aDeZoom)
 std::string LocPx2FileMatch(const std::string & aDir,int aNum,int aDeZoom)
 {
 	return  aDir + "Px2_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom)+ "_Geom-Im.tif";
+}
+
+std::string LocCorFileMatch(const std::string & aDir,int aNum)
+{
+	return aDir + "Correl_Geom-Im_Num_" + ToString(aNum) + ".tif";
 }
 
 std::string cCpleEpip::LocPxFileMatch(bool Im1,int aNum,int aDeZoom)
