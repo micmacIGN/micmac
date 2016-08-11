@@ -37,6 +37,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/ExportHemisTM.cpp
     ${TDPPMD_DIR}/MatchImgTM.cpp
     ${TDPPMD_DIR}/InterpImgPos.cpp
+    ${TDPPMD_DIR}/CompareOriTieP.cpp
     ${TDPPMD_DIR}/TiePByMesh/PHO_MI.cpp
     ${TDPPMD_DIR}/TiePByMesh/InitOutil.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiePByMesh_main.cpp

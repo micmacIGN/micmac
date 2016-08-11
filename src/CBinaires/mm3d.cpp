@@ -524,8 +524,9 @@ extern int VisuCoupeEpip_main(int,char **);
 
 int ExoSimulTieP_main(int argc,char** argv);
 int ExoMCI_main(int argc,char** argv);
-int PseudoIntersect_main(int argc,char** argv);
 int ExoCorrelEpip_main(int argc,char ** argv);
+
+int PseudoIntersect_main(int argc,char** argv);
 int ScaleModel_main(int argc,char ** argv);
 int PLY2XYZ_main(int argc,char ** argv);
 int ExportXmlGcp2Txt_main(int argc,char ** argv);
@@ -538,6 +539,8 @@ int ExportHemisTM_main(int argc,char ** argv);
 int MatchinImgTM_main(int argc,char ** argv);
 int CorrLA_main(int argc,char ** argv);
 int InterpImgPos_main(int argc,char ** argv);
+int CompareOriTieP_main(int argc,char ** argv);
+
 int CheckOri_main(int argc,char ** argv);
 int NLD_main(int argc,char ** argv);
 int ResToTxt_main(int argc,char ** argv);
@@ -664,6 +667,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercise for correlation in epipolar "));
        aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation  "));
        aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
+       
 	   aRes.push_back(cMMCom("MatchImTM",MatchinImgTM_main,"Matching a Pattern of Images with a GPS TimeMark File",cArgLogCom(2)));
        aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images",cArgLogCom(2)));
        aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning",cArgLogCom(2)));
@@ -677,7 +681,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CorrLA",CorrLA_main,"Tool to correct camera centers from Lever-Arm offset",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ExportHTM",ExportHemisTM_main,"Tool to export TimeMark Data from Hemisphere Bin01 file",cArgLogCom(2)));
-	   aRes.push_back(cMMCom("InterpImTM",InterpImgPos_main,"Toll to interpolate image position based on TimeMark GPS trajectory",cArgLogCom(2)));	   
+	   aRes.push_back(cMMCom("InterpImTM",InterpImgPos_main,"Tool to interpolate image position based on TimeMark GPS trajectory",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("CmpTieP",CompareOriTieP_main,"Tool to compare deviations between 2 Ori-XXX folders on 3D tie points positions",cArgLogCom(2)));
+	   
+	      
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
 
