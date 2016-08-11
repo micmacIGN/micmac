@@ -30,6 +30,7 @@ extern Video_Win * draw_polygon_onVW(vector<Pt2dr> pts, Video_Win* VW, Pt3di col
 extern Video_Win * draw_polygon_onVW(Tri2d &aTri, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true, bool click = true);
 extern Video_Win* draw_polygon_onVW(Pt2dr ptHGCaree, int szCaree, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true, bool click = true);
 extern vector<double> parse_dParam(vector<string> dParam);
+extern Video_Win* draw_pts_onVW(vector<Pt2dr> lstPts, Video_Win* VW, Pt3di color=Pt3di(0,255,255));
 
 extern std::string intToString ( int number );
 class InitOutil
