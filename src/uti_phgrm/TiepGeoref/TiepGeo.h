@@ -88,17 +88,11 @@ class cLnk2ImTiepGeo
 		cImageTiepGeo & Im1();
 		cImageTiepGeo & Im2();
 		
-		void LoadCor();
-		void LoadPx1();
-		void LoadPx2();
     
 	private:
         cImageTiepGeo * mIm1;
         cImageTiepGeo * mIm2;
         
-        Tiff_Im		  * mCor;
-        Tiff_Im       * mPx1;
-        Tiff_Im       * mPx2;
         const std::string mCorName;
         const std::string mPx1Name;
         const std::string mPx2Name;

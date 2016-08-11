@@ -69,20 +69,6 @@ cImageTiepGeo & cLnk2ImTiepGeo::Im2()
 	return *mIm2;
 }
 
-void cLnk2ImTiepGeo::LoadCor()
-{
-	
-}
-
-void cLnk2ImTiepGeo::LoadPx1()
-{
-
-}
-
-void cLnk2ImTiepGeo::LoadPx2()
-{
-
-}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
