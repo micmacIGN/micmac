@@ -61,6 +61,7 @@ class cAppli_Martini
           bool        mExe;
           bool        mQuick;
           std::string mPrefHom;
+          std::string mExtName;
           std::string mNameModeNO;
           eTypeModeNO mModeNO;
           ElTimer     aChrono;
@@ -75,6 +76,7 @@ void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
     aFullCom = aFullCom + aPost;
 
     aFullCom = aFullCom + " PrefHom=" + mPrefHom;
+    aFullCom = aFullCom + " ExtName=" + mExtName;
     aFullCom = aFullCom + " ModeNO=" + mNameModeNO;
 
 
@@ -147,6 +149,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
     mExe     (true),
     mQuick   (Quick),
     mPrefHom (""),
+    mExtName     (""),
     mNameModeNO  (TheStdModeNewOri)
 {
    ElInitArgMain
@@ -156,6 +159,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(mExe,"Exe",true,"Execute commands, def=true (if false, only print)")
                    << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes 
+                   << EAM(mExtName,"ExtName",true,"User's added Prefix , Def=\"\"")  // SH par homogeneite avec autre commandes 
                    << EAM(mNameModeNO,"ModeNO",true,"Mode Def=Std")  
                    // << EAM(mQuick,"Quick",true,"Quick version")
    );
@@ -166,7 +170,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
     cElemAppliSetFile anEASF(mPat);
     StdCorrecNameOrient(mNameOriCalib,anEASF.mDir);
 
-    cNewO_NameManager aNM(mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,"dat");
+    cNewO_NameManager aNM(mExtName,mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,"dat");
     const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
     for (int aK=0 ; aK<int(aVIm->size()) ; aK++)
     {
@@ -196,6 +200,94 @@ int CPP_MartiniGin_main(int argc,char ** argv)
     return CPP_Gene_Martini_main(argc,argv,false);
 }
 
+
+/**************************************************************/
+
+
+class cAppliTestMartini
+{
+      public :
+          void OneTest(int aKIter);
+          cAppliTestMartini(int argc,char ** argv) ;
+      private :
+          std::string mPat;
+          std::string mNameOriCalib;
+          std::string mExtHom;
+          int         mK0;
+          int         mKIter;
+          double      mDist;
+          double      mVGFact;
+          double      mProbaSel;
+};
+
+
+void cAppliTestMartini::OneTest(int aKIter) 
+{
+   mKIter = aKIter;
+   mDist  = 2000 * ElSquare(NRrandom3());
+   mVGFact = 0.5 + 2 * NRrandom3();
+
+   double aExpProba = 2.0;
+   mProbaSel =  ElMax(0.0,ElMin(1.0,NRrandom3()));
+   
+   if (mProbaSel < 0.5)
+       mProbaSel = pow(mProbaSel,aExpProba);
+   else
+       mProbaSel = 1.0- pow(1.0-mProbaSel,aExpProba);
+   
+
+   std::string aComRat =    MMBinFile(MM3DStr) + " Ratafia " 
+                        + mPat 
+                        + " Out=" + mExtHom
+                        + " DistPMul=" + ToString(mDist)
+                        + " MVG=" + ToString(mVGFact)
+                        + " OriCalib=" + mNameOriCalib
+                        + " ProbaSel=" + ToString(mProbaSel) ;
+
+   std::cout << "RAAT " << aComRat << "\n";
+
+   std::string aComMartini =    MMBinFile(MM3DStr) 
+                                    + " Martini " 
+                                    +  mPat
+                                    + " ExtName=TM" 
+                                    + " SH=" + mExtHom
+                                    + " OriCalib=" + mNameOriCalib;
+   std::string aDirPurge = "NewOriTmpTM"+mExtHom+mNameOriCalib + "Quick/";
+   
+   if (aKIter>= mK0)
+   {
+       System(aComRat);
+       System(aComMartini);
+
+       ELISE_fp::PurgeDirRecursif(aDirPurge);
+   }
+
+   std::cout << aKIter << " Purge=[" << aDirPurge << "]\n";
+
+}
+
+cAppliTestMartini::cAppliTestMartini(int argc,char ** argv) :
+    mNameOriCalib     (""),
+    mExtHom ("TestMartini"),
+    mK0     (0)
+{
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain() << EAMC(mPat,"Image Pat", eSAM_IsPatFile),
+        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
+                   << EAM(mK0,"K0",true,"K fisrt iter executed")
+   );
+}
+
+int TestMartini_Main(int argc,char ** argv)
+{
+    cAppliTestMartini anAppli(argc,argv);
+    for (int aK=0; true; aK++)
+    {
+       anAppli.OneTest(aK);
+    }
+}
 
 
 

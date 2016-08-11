@@ -492,7 +492,6 @@ void cAppliGrRedTieP::CreateBoxOfSom(tSomGRTP *aSom)
 {
     cAttSomGrRedTP & anAtr =  *(aSom->attr());
     anAtr.NumBox0() = mNumBox;
-    // std::cout << "HHHHHH  " << aSom->attr()->Name() << " " << aSom->attr()->BoxIm() << " " << aSom->attr()->SzDec() << "\n";    
     Box2dr aBox = anAtr.BoxIm();
     Pt2dr aNbR = aBox.sz() / anAtr.SzDec();
     Pt2di aNbI = round_up(aNbR);
@@ -693,49 +692,33 @@ void cAppliGrRedTieP::DoExport()
     cStatArc  aStatA;
     for (std::list<tMergeRat *>::const_iterator itM=aLMerge.begin() ; itM!=aLMerge.end() ; itM++)
     {
-        std::vector<Pt2dUi2>  aVP = (*itM)->Edges();
-        int aNbS = (*itM)->NbSom();
-
-
-/*
-        if ( aNbS <= mLimFullTieP)
+        if ((mProbaSel>1.0) ||  (NRrandom3() < mProbaSel))
         {
-           aVP.clear();
-           const std::vector<U_INT2>  &  aVInd = (*itM)->VecInd();
-           for (int aKS1=0 ; aKS1<int(aVInd.size()) ; aKS1++)
-           {
-               for (int aKS2=aKS1+1 ; aKS2<int(aVInd.size()) ; aKS2++)
+            std::vector<Pt2dUi2>  aVP = (*itM)->Edges();
+            int aNbS = (*itM)->NbSom();
+            aStatA.Add(aNbS,int(aVP.size()));
+            for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
+            {
+               // Histo
+               int aKC1 = aVP[aKCple].x;
+               int aKC2 = aVP[aKCple].y;
+               if (aKC1 >aKC2)
                {
-                   aVP.push_back(Pt2dUi2(aVInd[aKS1],aVInd[aKS2]));
+                   ElSwap(aKC1,aKC2);
                }
-           }
-        }
-*/
-        aStatA.Add(aNbS,int(aVP.size()));
-        for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
-        {
-           // Histo
-
-           // 
-           int aKC1 = aVP[aKCple].x;
-           int aKC2 = aVP[aKCple].y;
-           if (aKC1 >aKC2)
-           {
-               ElSwap(aKC1,aKC2);
-           }
-           
-           tSomGRTP & aS1 = *(mVSom[aKC1]);
-           tArcGRTP * anA12 = 0;
-           for (tIterArcGRTP  itA=aS1.begin(mSubAll) ; itA.go_on(); itA++)
-           {
-                if ((*itA).s2().attr()->NumSom() == aKC2)
-                {
-                    anA12 = &(*itA);
-                }
-           }
-           ELISE_ASSERT(anA12!=0,"Canno get arc in cAppliGrRedTieP::DoExport\n");
-           anA12->attr()->VP1().push_back((*itM)->GetVal(aKC1));
-           anA12->attr()->VP2().push_back((*itM)->GetVal(aKC2));
+               tSomGRTP & aS1 = *(mVSom[aKC1]);
+               tArcGRTP * anA12 = 0;
+               for (tIterArcGRTP  itA=aS1.begin(mSubAll) ; itA.go_on(); itA++)
+               {
+                    if ((*itA).s2().attr()->NumSom() == aKC2)
+                    {
+                        anA12 = &(*itA);
+                    }
+               }
+               ELISE_ASSERT(anA12!=0,"Canno get arc in cAppliGrRedTieP::DoExport\n");
+               anA12->attr()->VP1().push_back((*itM)->GetVal(aKC1));
+               anA12->attr()->VP2().push_back((*itM)->GetVal(aKC2));
+            }
         }
     }
 
@@ -800,7 +783,8 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     mLimFullTieP     (3),
     mInParal         (true),
     mDoCompleteArc   (false), // Pour l'instant comprends pas pourquoi cela genere probleme dans Tapas ?
-    mUsePrec         (true)
+    mUsePrec         (true),
+    mProbaSel        (10.0)
 {
    // Read parameters 
    MMD_InitArgcArgv(argc,argv);
@@ -821,6 +805,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
                      << EAM(mInParal,"Paral",true,"Do it in parallel" )
                      << EAM(mDoCompleteArc,"DCA",true,"Do Complete Arc (Def=false)")
                      << EAM(mUsePrec,"UseP",true,"Use prec to avoid redundancy (Def=true), tuning only")
+                     << EAM(mProbaSel,"ProbaSel",true,"tuning only, generate a random selection at the end")
 
    );
 
@@ -865,6 +850,8 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
                              mNoNM->NameListeCpleConnected(true)   ;
 
     cSauvegardeNamedRel  aLCple = StdGetFromPCP(aNameCple,SauvegardeNamedRel);
+
+    ELISE_ASSERT(aLCple.Cple().size() !=0,"No hom from Martini in Ratafia");
 
     for (std::vector<cCpleString>::const_iterator itCp=aLCple.Cple().begin() ; itCp!=aLCple.Cple().end() ; itCp++)
     {

@@ -55,6 +55,7 @@ const std::string  cNewO_NameManager::PrefixDirTmp = "NewOriTmp";
 
 cNewO_NameManager::cNewO_NameManager
 (
+     const std::string  & aExtName,
      const std::string  & aPrefHom,
      bool                 Quick,
      const std::string  & aDir,
@@ -67,14 +68,15 @@ cNewO_NameManager::cNewO_NameManager
     mPrefOriCal  (anOriCal),
     mPostHom     (aPostHom),
     mPrefHom     (aPrefHom),
+    mExtName     (aExtName),
     mQuick       (Quick),
     mOriOut      (aOriOut)
 {
    if (mOriOut=="") 
-      mOriOut = (mQuick ? "Martini" : "MartiniGin") + mPrefHom + anOriCal;
+      mOriOut = (mQuick ? "Martini" : "MartiniGin") + mExtName +mPrefHom + anOriCal;
 
    StdCorrecNameOrient(mPrefOriCal,mDir);
-   mPostfixDir    =   mPrefHom +  mPrefOriCal + std::string(mQuick ? "Quick" : "Std");
+   mPostfixDir    =   mExtName + mPrefHom +  mPrefOriCal + std::string(mQuick ? "Quick" : "Std");
    mDirTmp      =   std::string(PrefixDirTmp) + mPostfixDir + "/";
 
    ELISE_fp::MkDir(mDir+"Ori-"+mOriOut+"/");
@@ -84,7 +86,7 @@ cNewO_NameManager::cNewO_NameManager
 cVirtInterf_NewO_NameManager * cVirtInterf_NewO_NameManager::StdAlloc(const std::string & aDir,const std::string  & anOri,bool  Quick)
 {
 
-   return new cNewO_NameManager("",Quick,aDir,anOri,"dat");
+   return new cNewO_NameManager("","",Quick,aDir,anOri,"dat");
 }
 
 const std::string & cNewO_NameManager::Dir() const

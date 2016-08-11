@@ -437,6 +437,7 @@ class cAppli_GenTriplet
        double                        mTimeSelec;
        bool                          mQuick;
        std::string                   mPrefHom;
+       std::string                   mExtName;
        double                        mRamAllowed;
        cMemorySwap<cSwappablePairVPts>  mAllocSwap;
        int                           mKS0;
@@ -1081,6 +1082,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     mTimeSelec  (0.0),
     mQuick      (true), 
     mPrefHom    (""),
+    mExtName    (""),
     mRamAllowed (4e9),
     mAllocSwap  (mRamAllowed),
     mKS0        (0),
@@ -1101,6 +1103,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                    << EAM(mDebug,"Debug",true,"Debug .... tuning purpose .... Def=false", eSAM_IsBool)
                    << EAM(mKS0,"KS0",true,"Tuning Def=0", eSAM_IsBool)
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mExtName,"ExtName",true,"User's added prefix, def=\"\"")
                    << EAM(mNameModeNO,"ModeNO",true,"Mode (Def=Std)")
 
    );
@@ -1114,7 +1117,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
    mEASF.Init(mFullName);
    StdCorrecNameOrient(mNameOriCalib,mEASF.mDir);
 
-   mNM = new cNewO_NameManager(mPrefHom,mQuick,mEASF.mDir,mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mNameOriCalib,"dat");
 
    cInterfChantierNameManipulateur::tSet  aVIm = *(mEASF.SetIm());
    std::sort(aVIm.begin(),aVIm.end());

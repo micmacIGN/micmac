@@ -57,6 +57,8 @@ extern const std::string PASTIS_IGNORE_MAX_NAME;
 extern const std::string PASTIS_IGNORE_MIN_NAME;
 extern const std::string PASTIS_IGNORE_UNKNOWN_NAME;
 
+extern int TiepGeoref_main(int argc,char **argv);
+
 bool ExpTxt=0;
 int	ByP=-1;
 string g_toolsOptions; // contains arguments to pass to Pastis concerning detecting and matching tools
@@ -77,8 +79,8 @@ bool ignoreMin = false,
 
 std::string StrMkT() { return (ByP ? (" \"MkF=" + MkFT +"\" ") : "") ; }
 
-#define aNbType 5
-std::string  Type[aNbType] = {"MulScale","All","Line","File","Graph"};
+#define aNbType 6
+std::string  Type[aNbType] = {"MulScale","All","Line","File","Graph","Georef"};
 
 /*
 void StdAdapt2Crochet(std::string & aStr)
@@ -487,7 +489,12 @@ int Line(int argc,char ** argv, const std::string &aArg="")
     return 0;
 }
 
+int Georef(int argc,char ** argv, const std::string &aArg="")
+{
+    TiepGeoref_main(argc,argv);
 
+    return 0;
+}
 
 int File(int argc,char ** argv, const std::string &aArg="")
 {
@@ -1049,6 +1056,13 @@ int Tapioca_main(int argc,char ** argv)
     else if (TheType == Type[4])
     {
         int aRes = Graph_(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
+        BanniereMM3D();
+        return aRes;
+    }
+    else if (TheType == Type[5])
+    {
+        int aRes = Georef(argc, argv, TheType);
         Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;

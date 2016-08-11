@@ -36,74 +36,116 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-/*
-The RedTieP tool has been developed by Oscar Martinez-Rubi within the project
-Improving Open-Source Photogrammetric Workflows for Processing Big Datasets
-The project is funded by the Netherlands eScience Center
-*/
 
-#include "TiepRed.h"
-
-#if (!BUG_PUSH_XML_TIEP)
+#ifndef _TiepGeo_H_
+#define _TiepGeo_H_
 
 
-/**********************************************************************/
-/*                                                                    */
-/*                            cPMulTiepRed                            */
-/*                                                                    */
-/**********************************************************************/
+#include "StdAfx.h"
 
-cPMulTiepRed::cPMulTiepRed(tMerge * aMultiTiePointRaw, cAppliTiepRed & anAppli)  :
-	mMultiTiePointRaw (aMultiTiePointRaw),
-	mAcc(0),
-	mGain(0),
-	mRemoved (false)
+
+class cLnk2ImTiepGeo;
+class cImageTiepGeo;
+//AAAAAclass cPMulTiepGeo;
+class cAppliTiepGeo;
+
+//class cImageGridGeo;
+
+class cImageTiepGeo
 {
-	// If Gain is 1, we need to compute the accuracy of this multi-tie-point
-	// The accuracy of a multi-tie-point is computed as the worse (highest) accuracy of the related tie-points.
-	// And the accuracy of a related tie-point is computed from the relative orientation of the image pair
-  if (anAppli.GainMode() == 1){
-		// Create list of accuracies for the related tie-points
-		std::vector<double> accuracies;
-		// Get the list of images where the multi-tie-point has related tie-points
-		const std::vector<U_INT2>  &  aVecInd = mMultiTiePointRaw->VecInd() ;
-		// we get accuracy for all the image pais between the master and each of the images where the multi-tie-point has related tie-points
-		for (int i=0 ; i<int(aVecInd.size()) ; i++){
-			if (aVecInd[i] != 0){
-				double acc;
-				cLnk2ImTiepRed * imagePair = anAppli.ImagePairsMap()[std::make_pair(0,aVecInd[i])];
-				// if (&(imagePair->Cam1())==0){
-				//    ELISE_ASSERT(false,"NUL CAMERA POINTER");
-				// }
-				(imagePair->Cam1()).PseudoInterPixPrec(ToPt2dr(mMultiTiePointRaw->GetVal(0)),imagePair->Cam2(),ToPt2dr(mMultiTiePointRaw->GetVal(aVecInd[i])),acc);
-				accuracies.push_back(acc);
-			}
-		}
-		mAcc = *(std::max_element(accuracies.begin(), accuracies.end()));
-	}
-}
+    public:
+
+        cImageTiepGeo(cAppliTiepGeo & aAppli, const std::string & aNameOri, std::string aNameIm="");
+		
+		const Box2dr & BoxSol() const;
+		bool		   HasInter(const cImageTiepGeo & aIm2) const;
+		double		   AltiSol() const;
+		int			   AltiSolInc() const;
+	
+		const std::string & NameIm();
+		const int & Num() const;
+		void SetNum(int &aNum);
 
 
-void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli){
-	if (anAppli.GainMode() == 0){
-		mGain = mMultiTiePointRaw->NbArc();
-	}else{
-		mGain = mMultiTiePointRaw->NbArc() * (1.0 /(1.0 + ElSquare((anAppli.WeightAccGain() * mAcc)/anAppli.StdAcc())));
-	}
-}
+    private:
+		cAppliTiepGeo & mAppli;
 
+        CameraRPC * mCamRPC;
+		int         mNum;
 
-bool cPMulTiepRed::Removed() const
+		std::string mNameIm;	
+};
+
+class cLnk2ImTiepGeo
 {
-   return mRemoved;
-}
+    public:
+        cLnk2ImTiepGeo(cImageTiepGeo *aIm1, cImageTiepGeo *aIm2, 
+                       const std::string &aCorName, 
+                       const std::string &aPx1Name, 
+                       const std::string &aPx2Name);
 
 
-void cPMulTiepRed::Remove()
+		cImageTiepGeo & Im1();
+		cImageTiepGeo & Im2();
+		
+    
+	private:
+        cImageTiepGeo * mIm1;
+        cImageTiepGeo * mIm2;
+        
+        const std::string mCorName;
+        const std::string mPx1Name;
+        const std::string mPx2Name;
+
+        //homologous points (consistent with tMergeStr)
+		std::vector<Pt2df> mVP1; 
+		std::vector<Pt2df> mVP2; 
+
+};
+
+class cAppliTiepGeo
 {
-    mRemoved = true;
-}
-#endif
+    public:
+        cAppliTiepGeo(int argc,char **argv);
+
+        void Exe();
+
+    private :
+		void DoMaster();
+        void DoPx1Px2();
+        void DoTapioca();
+		void DoStereo();
+        
+        const std::string  & Dir() const;
+		const std::string    NamePxDir(const std::string & aIm1,const std::string & aIm2) const;
+
+
+		void AddLnk(cLnk2ImTiepGeo *);
+
+
+        Box2dr mGlobBox; //global footprint, necessary maybe later
+
+		std::string									mMasterImStr;
+		cImageTiepGeo *								mMasterIm;
+		std::map<std::string,cImageTiepGeo *>		mMapIm;//not yet sure if necessary
+		std::vector<cImageTiepGeo *>				mVIm;
+        std::list<cLnk2ImTiepGeo *>					mLnk2Im;//not yet sure if necessary
+        std::vector<std::vector<cLnk2ImTiepGeo *> > mVVLnk;
+    
+        double mCor;
+        int mZoom0;
+		int mNum;
+
+        cInterfChantierNameManipulateur* mICNM;
+        const std::vector<std::string> * mFilesIm;
+
+        std::string  mPatImage;
+        std::string  mOri;
+        std::string  mDir;
+};
+
+
+#endif 
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
@@ -136,4 +178,4 @@ sécurité de leurs systèmes et ou de leurs données et, plus généralement,
 Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
-Footer-MicMac-eLiSe-25/06/2007*/
+footer-MicMac-eLiSe-25/06/2007*/

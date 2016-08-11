@@ -816,6 +816,9 @@ inline double SomCoord(const Pt3dr & aP) { return aP.x+aP.y+aP.z;}
 inline double SomCoord(const Pt2dr & aP) { return aP.x+aP.y;}
 
 
+bool BadValue(const Pt3dr &);
+bool BadValue(const Pt2dr &);
+bool BadValue(const double &);
 
 
 template <class Type> typename ElStdTypeScal<Type>::TypeScalReel  square_euclid(const Pt3d<Type> & p)
