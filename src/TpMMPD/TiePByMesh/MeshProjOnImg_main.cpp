@@ -59,6 +59,7 @@ int MeshProjOnImg_main(int argc,char ** argv)
     string aFullPattern, aOriInput;
     double zoomF = 0.2;
     bool click = false;
+    string PtsInteret;string HomoP;
 
     ElInitArgMain
             (
@@ -72,6 +73,8 @@ int MeshProjOnImg_main(int argc,char ** argv)
                 LArgMain()
                 << EAM(zoomF, "zoomF", true, "1 -> sz origin, 0.2 -> 1/5 size - default = 0.2")
                 << EAM(click, "click", true, "true => draw each triangle by each click - default = false")
+                << EAM(PtsInteret, "ptsInteret", true, "pack pts d'interet - give it with 1 img only")
+                << EAM(HomoP, "HomolP", true, "pack homol - give it with 2 image only")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -94,6 +97,49 @@ int MeshProjOnImg_main(int argc,char ** argv)
                          aVW, zoomF, false));
     }
 
+    vector<Pt2dr>lstPtHomo1;
+    vector<Pt2dr>lstPtHomo2;
+    cout<<"Check pts interet file : "<<PtsInteret;
+    bool Exist= ELISE_fp::exist_file(PtsInteret);
+    bool ExistHomo= ELISE_fp::exist_file(HomoP);
+    if (ExistHomo)
+    {
+        ElPackHomologue aPackIn;
+        aPackIn =  ElPackHomologue::FromFile(HomoP);
+        cout<<" + Found Pack Homo "<<aPackIn.size()<<" pts"<<endl;
+        for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
+        {
+            lstPtHomo1.push_back(itP->P1());
+            lstPtHomo2.push_back(itP->P2());
+        }
+    }
+
+
+
+    vector<Pt2dr> lstPtsInteret;
+    bool ok = false;
+    if (Exist)
+    {
+        cout<<" ...found"<<endl;
+        DigeoPoint fileDigeo;
+        vector<DigeoPoint> listPtDigeo;
+        ok = fileDigeo.readDigeoFile(PtsInteret, 1,listPtDigeo);
+        for (uint i=0; i<listPtDigeo.size(); i++)
+        {
+            lstPtsInteret.push_back(Pt2dr(listPtDigeo[i].x, listPtDigeo[i].y));
+        }
+        if (!ok)
+            cout<<" DIGEO File read error ! "<<endl;
+        if  (ptrPic.size() != 1)
+        {
+            cout<<"ERROR : 1 image for 1 file Pts Interest - not draw pts interet"<<endl;
+            ok = false;
+        }
+    }
+    else
+        cout<<"...not found !"<<endl;
+
+
     for (uint i=0; i<ptrPic.size(); i++)
     {
         pic * aPic = ptrPic[i];
@@ -105,8 +151,18 @@ int MeshProjOnImg_main(int argc,char ** argv)
             if (aTri2D.insidePic)
                 draw_polygon_onVW(aTri2D, aVW, Pt3di(0,255,0), true, click);
         }
-        aVW->clik_in();
+        if (Exist && ok)
+            draw_pts_onVW(lstPtsInteret,aVW);
+        if (i==ptrPic.size()-1)
+            aVW->clik_in();
     }
+
+    if (ExistHomo && ptrPic.size() == 2)
+    {
+        draw_pts_onVW(lstPtHomo1,VWPic[0]);
+        draw_pts_onVW(lstPtHomo2,VWPic[1]);
+    }
+
 
     return EXIT_SUCCESS;
 }

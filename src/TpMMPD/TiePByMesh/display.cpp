@@ -383,3 +383,25 @@ extern Video_Win* draw_polygon_onVW(Pt2dr ptHGCaree, int szCaree, Video_Win* VW,
     return VW;
 }
 
+extern Video_Win* draw_pts_onVW(vector<Pt2dr> lstPts, Video_Win* VW, Pt3di color=Pt3di(0,255,255))
+{
+    Disc_Pal Pdisc = Disc_Pal::P8COL();
+    Gray_Pal Pgr (30);
+    Circ_Pal Pcirc = Circ_Pal::PCIRC6(30);
+    RGB_Pal Prgb (255,1,1);
+    Elise_Set_Of_Palette SOP(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+    Line_St lstLineR(Pdisc(P8COL::red),1);
+    if (VW==0)
+        cout<<"WARN : Video win not found to draw polygon "<<VW<<endl;
+    else
+    {
+        VW->set_sop(SOP);
+        for (uint i=0; i<lstPts.size(); i++)
+        {
+            Pt2dr ptsDraw(lstPts[i].x, lstPts[i].y);
+            VW->draw_circle_loc(ptsDraw, 2 ,lstLineR);
+        }
+    }
+    return VW;
+}
+
