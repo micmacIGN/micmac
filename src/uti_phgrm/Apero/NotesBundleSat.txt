@@ -1,0 +1,19 @@
+Dans cManipPt3TerInc, le seul appel a camera se fait via     :
+
+       std::vector<cCameraFormelle *>   mVCamVis;
+
+mVCamVis est utilise dans :
+
+    mVCamVis[aKC]->IntervAppuisPtsInc()  : => Peute etre a mettre dans la classe mere cCameraFormelle ?
+
+
+Dans  VCamCur() :
+std::vector<CamStenope *> VCamCur(){
+
+  aRes.push_back(mVCamVis[aK]->NC_CameraCourante());
+}
+
+Sans doute que VCamCur return un std::vector< cBasicGeomCap3D *> plutot ?
+
+
+
