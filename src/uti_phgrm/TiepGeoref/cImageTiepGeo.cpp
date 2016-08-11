@@ -78,6 +78,11 @@ const int & cImageTiepGeo::Num() const
 	return mNum;
 }
 
+const Pt2di cImageTiepGeo::SzBasicCapt3D() const
+{
+	return mCamRPC->SzBasicCapt3D();
+}
+
 const std::string & cImageTiepGeo::NameIm()
 {
 	return mNameIm;
@@ -92,6 +97,24 @@ int cImageTiepGeo::AltiSolInc() const
 {
 	return mCamRPC->GetAltiSolInc();
 }
+
+std::string cImageTiepGeo::ComCreateImDownScale(double aScale) const
+{
+	std::string aNameRes = NameFileDownScale(aScale);
+	
+	if (ELISE_fp::exist_file(aNameRes)) return "";
+
+	return    MM3dBinFile("ScaleIm ")
+			+  mAppli.mDir + mNameIm
+			+  " "  + ToString(aScale)
+			+  " Out="  + aNameRes;
+}
+
+std::string cImageTiepGeo::NameFileDownScale(double aScale) const
+{
+	return mAppli.mDir + "Tmp-MM-Dir/" + StdPrefix(mNameIm) + "_DeZoom" + ToString(aScale) + ".tif";
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
