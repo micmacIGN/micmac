@@ -47,17 +47,80 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                                    */
 /**********************************************************************/
 cLnk2ImTiepGeo::cLnk2ImTiepGeo(cImageTiepGeo *aIm1, cImageTiepGeo *aIm2,
-                               const std::string &aCorName,
-							   const std::string &aPx1Name, 
-                               const std::string &aPx2Name) :
-    mIm1(aIm1),
+							   const double &aMinCor,
+							   const Pt2di  &aGrid,
+							   const int    &aNbPtsCell) :
+	mIm1(aIm1),
     mIm2(aIm2),
-	mCorName(aCorName),
-    mPx1Name(aPx1Name),
-    mPx2Name(aPx2Name)
+	mMinCor(aMinCor),
+	mGrid(aGrid),
+    NbPtsCell(aNbPtsCell)
     //mPx1(Tiff_Im::StdConvGen(aPx1Name,1,true)),
     //mPx2(Tiff_Im::StdConvGen(aPx2Name,1,true))
 {}
+
+void cLnk2ImTiepGeo::BestScoresInGrid()
+{
+	int aK1, aK2;
+	Pt2di aStep( mIm1->SzBasicCapt3D().x/mGrid.x, mIm1->SzBasicCapt3D().y/mGrid.y );
+
+	std::vector<tMultiResPts> aMRPts;
+
+
+	for(aK1=0; aK1<mGrid.x; aK1++)
+	{
+		for(aK2=0; aK2<mGrid.y; aK2++)
+		{
+			Pt2di aP(aK1*aStep.x, aK2*aStep.y);
+			BestScoresInCell(aP, mGrid, aMRPts);
+		}
+	}	
+
+	//check all scores in overlapping images (multipoints), tMultiResPts as input
+	//retreive all overlapping imgs with img1 (img->appli->links)
+	//treat these points as master points (as best scores but at all zoomes already) and search for homologous
+
+	//save the highest resolution points
+}
+
+void cLnk2ImTiepGeo::BestScoresInCell(Pt2di & aOrg, Pt2di & aSz,
+									  std::vector<tMultiResPts> & aMRPts)
+{
+	//method1 : iterate over all pix in a cell at lowest zoom and find	the maxes
+	//    iterate over your maxes and...
+	//method2 : for an obs in im1+dezoom upgrade to higher zoom
+	//		method 2a : correlate the two new windows from scratch (include uncertainty from Px1 and Px2)
+	//					if the centroid in im1 is known (eg when searching for multipts), 
+	//					immediately correlate the the point with a margin against left img 
+
+	int aK1, aK2;
+
+	double aCorBest=0;
+	double aCorWorst=1;
+
+	std::map<double,Pt2dr> aPtsInCell;
+
+	for(aK1=0; aK1<aSz.x; aK1++)
+	{
+		for(aK2=0; aK2<aSz.y; aK2++)
+		{
+
+			if(int(aPtsInCell.size())<NbPtsCell)
+			{
+				
+			}
+			
+		}
+	}
+
+
+}
+
+void cLnk2ImTiepGeo::LoadGeom(tGeoInfo * aGeometry)
+{
+	if(mGeometry==0)
+		mGeometry=aGeometry;
+}
 
 cImageTiepGeo & cLnk2ImTiepGeo::Im1()
 {
@@ -68,7 +131,6 @@ cImageTiepGeo & cLnk2ImTiepGeo::Im2()
 {
 	return *mIm2;
 }
-
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
