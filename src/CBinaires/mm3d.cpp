@@ -246,7 +246,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SimplePredict",SimplePredict_main," Project ground points on oriented cameras"));
        aRes.push_back(cMMCom("Schnaps",schnaps_main," Reduction of homologue points in image geometry"));
        aRes.push_back(cMMCom("MergeHomol",mergeHomol_main," Merge Homol dir"));
-       aRes.push_back(cMMCom("Zlimit",Zlimit_main," Crop Depth image in Z"));
+       aRes.push_back(cMMCom("Zlimit",Zlimit_main," Crop Depth image (or DEM) in Z"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));
@@ -537,6 +537,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv);
 int ExportHemisTM_main(int argc,char ** argv);
 int MatchinImgTM_main(int argc,char ** argv);
 int CorrLA_main(int argc,char ** argv);
+int InterpImgPos_main(int argc,char ** argv);
 int CheckOri_main(int argc,char ** argv);
 int NLD_main(int argc,char ** argv);
 int ResToTxt_main(int argc,char ** argv);
@@ -592,7 +593,9 @@ int TestStephane_Main(int argc,char ** argv);
 int TestDupBigTiff(int argc,char ** argv);
 int Test_TomCan(int argc,char ** argv);
 
-extern int PackHomolToPly_main(int argc,char ** argv);
+int TestMartini_Main(int argc,char ** argv);
+
+
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -651,8 +654,6 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("DocI0",DocEx_Intro0_main,"Introduction 0 of example from DocElise  "));
        aRes.push_back(cMMCom("DocID2",DocEx_Introd2_main,"Introduction to D2 of example from DocElise  "));
        aRes.push_back(cMMCom("DocIntrofiltre",DocEx_Introfiltr_main,"Introduction to filter example from DocElise  "));
-
-       aRes.push_back(cMMCom("PackHomolToPly",PackHomolToPly_main,"Creat Ply of pts in pack homologue"));
 #if (ELISE_UNIX)
        aRes.push_back(cMMCom("DocIntroanalyse",DocEx_Introanalyse_main,"Introduction to image analysis from DocElise  "));
 #endif
@@ -676,6 +677,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CorrLA",CorrLA_main,"Tool to correct camera centers from Lever-Arm offset",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ExportHTM",ExportHemisTM_main,"Tool to export TimeMark Data from Hemisphere Bin01 file",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("InterpImTM",InterpImgPos_main,"Toll to interpolate image position based on TimeMark GPS trajectory",cArgLogCom(2)));	   
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
 
@@ -750,6 +752,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("RTI_RRB1",RTI_RecalRadionmBeton_main,"Recal Radiom On Image"));
         aRes.push_back(cMMCom("RTI_CLumOmbr",RTI_PosLumFromOmbre_main,"COmpute Centre Light based on shadow"));
         aRes.push_back(cMMCom("TestTomKan",Test_TomCan,"Test Tomasi Kanade"));
+        aRes.push_back(cMMCom("TestMartini",TestMartini_Main,"Test Martini with simulation"));
     }
 
     cCmpMMCom CmpMMCom;
@@ -931,13 +934,6 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    }
 
 	// use suggestion if there is only one and no exact match has been found
-
-  // MPD  : personnellement je desaprouve cette facilite qui est en fait source de confusion
-	if ( (!MPD_MM())  &&  (toExecute == NULL && PrefMach->mRes.size() == 1))
-	{
-		toExecute = &PrefMach->mRes.front();
-		cout << "using [" << toExecute->mName << ']' << endl;
-	}
 
 	if (toExecute != NULL)
 	{

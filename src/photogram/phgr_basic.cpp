@@ -1643,16 +1643,29 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
            }
            }
            else
-               aType = eTIGB_MMIkonos;
+           {
+                std::string aLine;
+                std::ifstream aFile(aName.c_str());
+            
+                std::getline(aFile, aLine);
+                std::getline(aFile, aLine);
+                if( aLine.find("<Xml_RPC>") != string::npos )//verify if it's not Xml_RPC
+                    aType = eTIGB_MMDimap2;
+                else
+                    aType = eTIGB_MMIkonos;
 
+
+           }
        }
 
        if ((aPost=="txt") || (aPost=="TXT") || (aPost=="rpc"))
        {
-            std::string line;
+            
+            std::string aLine;
             std::ifstream aFile(aName.c_str());
-            std::getline(aFile, line);
-            if( line.find("DATE_GENERATION") != string::npos )
+            
+            std::getline(aFile, aLine);
+            if( aLine.find("DATE_GENERATION") != string::npos )
                 aType = eTIGB_MMEuclid;
             else
                 aType = eTIGB_MMIkonos;
@@ -2647,20 +2660,23 @@ const std::vector<bool> & ElCamera::DistComplIsDir() const
 
 Pt2dr ElCamera::DComplC2M(Pt2dr aP) const
 {
+
    aP = mGlobOrImaC2M(aP);
     if (mCRAP)
       aP = mCRAP->CorrC2M(aP);
+
    for (int aK=0 ; aK<int(mDistCompl.size()) ; aK++)
    {
         aP = mDComplIsDirect[aK]         ?
          mDistCompl[aK]->Inverse(aP) :
          mDistCompl[aK]->Direct(aP)  ;
    }
-   return Pt2dr
+   Pt2dr aRes
           (
                (aP.x-mTrN.x)/mScN,
                (aP.y-mTrN.y)/mScN
           );
+   return aRes;
 }
 Pt2dr ElCamera::NormC2M(Pt2dr aP) const
 {

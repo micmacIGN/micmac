@@ -368,6 +368,7 @@ class cAppli_NewSolGolInit
         cNewO_NameManager  * mNM;
         bool                 mQuick;
         std::string          mPrefHom;
+        std::string          mExtName;
         bool                 mTest;
         bool                 mSimul;
         std::string          mOriTest;

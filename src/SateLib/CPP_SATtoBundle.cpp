@@ -366,17 +366,13 @@ int CPP_TestRPCDirectGen(int argc,char ** argv)
     std::string aFullName;
     std::string aDir;
     std::string aPat;
-    std::string aChSysStr = "";
-
-    std::string aNameType;
-    eTypeImporGenBundle aType;
+    Pt3di aSz(100,100,10);
 
     ElInitArgMain
     (
          argc, argv,
-         LArgMain()  << EAMC(aFullName,"Orientation file full name (Dir+Pat)", eSAM_IsExistFile)
-                     << EAMC(aNameType,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_")),
-         LArgMain()  << EAM(aChSysStr,"ChSys",true,"Coordinate system change (xml)")
+         LArgMain() << EAMC(aFullName,"Orientation file (or pattern) in cXml_CamGenPolBundle format"),
+         LArgMain() << EAM(aSz,"Sz",true,"Size of the verification grid (Def = [100,100,10])")
     );		      
 
     SplitDirAndFile(aDir, aPat, aFullName);
@@ -384,38 +380,15 @@ int CPP_TestRPCDirectGen(int argc,char ** argv)
     aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     aListFile = aICNM->StdGetListOfFile(aPat);
     
-    bool aModeHelp;
-    StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
- 
-    cSystemeCoord * aChSys = 0;
-    if(aChSysStr!="")
-        aChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
-                    (
-                        aChSysStr,
-                        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-                        "SystemeCoord",
-                        "SystemeCoord"
-                    ));
-        
-    
     for(std::list<std::string>::iterator itL = aListFile.begin(); 
-		                         itL != aListFile.end(); 
-					 itL++ )   
+		                                 itL != aListFile.end(); 
+					                     itL++ )   
     {
-	//Earth satellite
-	if(aType!=eTIGB_Unknown && aType!=eTIGB_MMSten)
-	{
         
-        CameraRPC aCRPC(*itL,aType,aChSys);
-        //create TestDirectRPCGen to make it work
-	    //aCRPC.TestDirectRPCGen();
-
+        CameraRPC aCRPC(aDir + (*itL));
+        cRPCVerf aVf(aCRPC, aSz);
 	    
-	}
-	//other planets or stenope camera
-	else
-            ELISE_ASSERT(false,"No eTypeImporGenBundle");
-
+        aVf.Do();
     }
 
     return EXIT_SUCCESS;

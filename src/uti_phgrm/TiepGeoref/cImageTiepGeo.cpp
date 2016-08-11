@@ -36,74 +36,62 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-/*
-The RedTieP tool has been developed by Oscar Martinez-Rubi within the project
-Improving Open-Source Photogrammetric Workflows for Processing Big Datasets
-The project is funded by the Netherlands eScience Center
-*/
 
-#include "TiepRed.h"
 
-#if (!BUG_PUSH_XML_TIEP)
-
+#include "TiepGeo.h"
 
 /**********************************************************************/
 /*                                                                    */
-/*                            cPMulTiepRed                            */
+/*                            cImageTiepGeo                           */
 /*                                                                    */
 /**********************************************************************/
-
-cPMulTiepRed::cPMulTiepRed(tMerge * aMultiTiePointRaw, cAppliTiepRed & anAppli)  :
-	mMultiTiePointRaw (aMultiTiePointRaw),
-	mAcc(0),
-	mGain(0),
-	mRemoved (false)
+cImageTiepGeo::cImageTiepGeo(cAppliTiepGeo & aAppli, const std::string & aNameOri, std::string aNameIm) :
+	mAppli(aAppli),
+	mNameIm(aNameIm)
 {
-	// If Gain is 1, we need to compute the accuracy of this multi-tie-point
-	// The accuracy of a multi-tie-point is computed as the worse (highest) accuracy of the related tie-points.
-	// And the accuracy of a related tie-point is computed from the relative orientation of the image pair
-  if (anAppli.GainMode() == 1){
-		// Create list of accuracies for the related tie-points
-		std::vector<double> accuracies;
-		// Get the list of images where the multi-tie-point has related tie-points
-		const std::vector<U_INT2>  &  aVecInd = mMultiTiePointRaw->VecInd() ;
-		// we get accuracy for all the image pais between the master and each of the images where the multi-tie-point has related tie-points
-		for (int i=0 ; i<int(aVecInd.size()) ; i++){
-			if (aVecInd[i] != 0){
-				double acc;
-				cLnk2ImTiepRed * imagePair = anAppli.ImagePairsMap()[std::make_pair(0,aVecInd[i])];
-				// if (&(imagePair->Cam1())==0){
-				//    ELISE_ASSERT(false,"NUL CAMERA POINTER");
-				// }
-				(imagePair->Cam1()).PseudoInterPixPrec(ToPt2dr(mMultiTiePointRaw->GetVal(0)),imagePair->Cam2(),ToPt2dr(mMultiTiePointRaw->GetVal(aVecInd[i])),acc);
-				accuracies.push_back(acc);
-			}
-		}
-		mAcc = *(std::max_element(accuracies.begin(), accuracies.end()));
-	}
+	mCamRPC = new CameraRPC(aNameOri);
+
 }
 
-
-void  cPMulTiepRed::InitGain(cAppliTiepRed & anAppli){
-	if (anAppli.GainMode() == 0){
-		mGain = mMultiTiePointRaw->NbArc();
-	}else{
-		mGain = mMultiTiePointRaw->NbArc() * (1.0 /(1.0 + ElSquare((anAppli.WeightAccGain() * mAcc)/anAppli.StdAcc())));
-	}
-}
-
-
-bool cPMulTiepRed::Removed() const
+const Box2dr & cImageTiepGeo::BoxSol() const
 {
-   return mRemoved;
+	return mCamRPC->BoxSol();	
 }
 
-
-void cPMulTiepRed::Remove()
+bool cImageTiepGeo::HasInter(const cImageTiepGeo & aIm2) const
 {
-    mRemoved = true;
+	const cElPolygone &  aPol1 = mCamRPC->EmpriseSol();
+	const cElPolygone &  aPol2 = aIm2.mCamRPC->EmpriseSol();	
+	const cElPolygone &  aInter= aPol1 * aPol2;
+
+	if( aInter.Surf() <= 0 ) return false;
+	else return true;
 }
-#endif
+
+void cImageTiepGeo::SetNum(int &aNum)
+{
+	mNum = aNum;
+}
+
+const int & cImageTiepGeo::Num() const
+{
+	return mNum;
+}
+
+const std::string & cImageTiepGeo::NameIm()
+{
+	return mNameIm;
+}
+
+double cImageTiepGeo::AltiSol() const
+{
+	return mCamRPC->GetAltiSol();
+}
+
+int cImageTiepGeo::AltiSolInc() const
+{
+	return mCamRPC->GetAltiSolInc();
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
@@ -136,4 +124,4 @@ sécurité de leurs systèmes et ou de leurs données et, plus généralement,
 Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
-Footer-MicMac-eLiSe-25/06/2007*/
+footer-MicMac-eLiSe-25/06/2007*/
