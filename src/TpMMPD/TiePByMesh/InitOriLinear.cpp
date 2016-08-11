@@ -314,9 +314,7 @@ void SerieCamLinear::partageSection(vector<string> aVecPoseTurn,
             for (uint j=k; j<setImgNEW.size(); j++)
             {
                 if (setImgNEW[j] != imgTurn)
-                {
                     aSection.push_back(setImgNEW[j]);
-                }
                 else
                 {
                     aSection.push_back(setImgNEW[j]);
@@ -421,7 +419,11 @@ void SerieCamLinear::initSerieWithTurn(     Pt3dr vecMouvCam0 ,
             cOrientationConique aOriREFLastImg = this->mSetOriREF.back();
             for (uint i=0; i<this->mSections.size(); i++)
             {
+                cout<<"REF Section:"<<aOriREFLastImg.Externe().ParamRotation().CodageMatr().Val().L1()
+                                    <<aOriREFLastImg.Externe().ParamRotation().CodageMatr().Val().L2()
+                                    <<aOriREFLastImg.Externe().ParamRotation().CodageMatr().Val().L3()<<endl;
                 vector<string> poseInSection = mSections[i];
+                //section 0
                 if (i==0) //section 0 is same direction with reference pose
                 {
                     for (uint j=0; j<poseInSection.size(); j++)
@@ -431,11 +433,12 @@ void SerieCamLinear::initSerieWithTurn(     Pt3dr vecMouvCam0 ,
                         string aOriInitImgXML = this->mOriOut + "/Orientation-"+poseInSection[j]+".xml";
                         MakeFileXML(aOriInitImg, aOriInitImgXML);
                         aOriREFLastImg = aOriInitImg;
-                        cout<<" ++ "<<aOriInitImg.Externe().Centre()<<endl;
-                        cout<<" ++ Write: "<<aOriInitImgXML<<endl;
+                        //cout<<" ++ "<<aOriInitImg.Externe().Centre()<<endl;
+                        //cout<<" ++ Write: "<<aOriInitImgXML<<endl;
                         this->mSetOriNEW.push_back(aOriInitImg);
                     }
                 }
+                //autre section
                 else
                 {
                     cTypeCodageMatr ref(aOriREFLastImg.Externe().ParamRotation().CodageMatr().Val());
@@ -444,6 +447,7 @@ void SerieCamLinear::initSerieWithTurn(     Pt3dr vecMouvCam0 ,
                     calCodageMatrRot(ref, aVecAngleTurn[i-1]*PI/180, out ,this->mAxeOrient);
                     Pt3dr vecMouvSection = calVecMouvementTurn(this->mVecMouvement, aVecAngleTurn[i-1]*PI/180, this->mAxeOrient);
                     Pt3dr vecAdjLastPos = this->mVecMouvement;
+
                     cout<<" Mat Rot sec= "<<out.L1()<<out.L2()<<out.L3()<<endl;
                     for (uint j=0; j<poseInSection.size(); j++)
                     {
@@ -459,10 +463,11 @@ void SerieCamLinear::initSerieWithTurn(     Pt3dr vecMouvCam0 ,
                         string aOriInitImgXML = this->mOriOut + "/Orientation-"+poseInSection[j]+".xml";
                         MakeFileXML(aOriInitImg, aOriInitImgXML);
                         aOriREFLastImg = aOriInitImg;
-                        cout<<" ++ "<<aOriInitImg.Externe().Centre()<<endl;
-                        cout<<" ++ Write: "<<aOriInitImgXML<<endl;
+                        //cout<<" ++ "<<aOriInitImg.Externe().Centre()<<endl;
+                        //cout<<" ++ Write: "<<aOriInitImgXML<<endl;
                         this->mSetOriNEW.push_back(aOriInitImg);
                     }
+                    this->mVecMouvement = vecMouvSection;
                 }
             }
         }
