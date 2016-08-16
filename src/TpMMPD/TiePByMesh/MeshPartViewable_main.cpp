@@ -63,9 +63,10 @@ int MeshPartViewable_main(int argc,char ** argv)
 {
     cout<<"**********************************************************"<<endl;
     cout<<"*       Which part of mesh is viewable by an image	    *"<<endl;
+    cout<<"*       under a specified angle (not consider ZBuffer)	*"<<endl;
     cout<<"**********************************************************"<<endl;
 
-    string aMeshIn; string aPicIn; string aOriIn; double mulFactor = 0.05;
+    string aMeshIn; string aPicIn; string aOriIn; double mulFactor = 0.05; double angleF = 60;
     ElInitArgMain
             (
                 argc,argv,
@@ -73,7 +74,8 @@ int MeshPartViewable_main(int argc,char ** argv)
                 LArgMain()
                 << EAMC(aMeshIn, "Mesh",  eSAM_IsExistFile)
                 << EAMC(aPicIn, "Image",  eSAM_IsPatFile)
-                << EAMC(aOriIn, "Ori",  eSAM_IsExistDirOri),
+                << EAMC(aOriIn, "Ori",  eSAM_IsExistDirOri)
+                << EAMC(angleF, "filter angle (b/w rayon (camera-centre-geo, vecNormal))",  eSAM_None),
                 //optional arguments
                 LArgMain()
                 << EAM(mulFactor, "mF", true, "adjust length of vector - default = 0.05")
@@ -82,9 +84,23 @@ int MeshPartViewable_main(int argc,char ** argv)
     if (MMVisualMode) return EXIT_SUCCESS;
     bool Exist= ELISE_fp::exist_file(aMeshIn);
     InitOutil aChain(aPicIn, aOriIn);
-    aChain.load_Im();
+    aChain.initAll(aMeshIn);
     vector<pic*>lstPic = aChain.getmPtrListPic();
+    vector<triangle*>lstTri = aChain.getmPtrListTri();
+    angleF = pow(cos(angleF*PI/180),2);
+if (lstPic.size() == 1)
+{
     vector<Pt3dr> listPts;
+    string aPlyOutDir;
+    aPlyOutDir="./PlyVerify/";
+    if(!(ELISE_fp::IsDirectory(aPlyOutDir)))
+        ELISE_fp::MkDir(aPlyOutDir);
+
+    vector<Pt3dr> centre_ge;
+    vector<Pt3dr> centre_ca;
+    vector<Pt3dr> vec_nor;
+    vector<triangle*> triVisible;
+
     for (uint i=0; i<lstPic.size(); i++)
     {
         pic * aPic = lstPic[i];
@@ -93,29 +109,34 @@ int MeshPartViewable_main(int argc,char ** argv)
         cout<<" ++ VraiOpticalCenter :"<<aCamPic->VraiOpticalCenter()<<endl;
         cout<<" ++ Point Prespective :"<<aCamPic->PP()<<endl;
         cout<<" ++ PP toDirRayonR3 :"<<aCamPic->F2toDirRayonR3(aCamPic->PP())<<endl;
-        Pt3dr P1; Pt3dr P2; aCamPic->F2toRayonR3(aCamPic->PP(), P1, P2);
-        cout<<" ++ PP toRayonR3 :"<<P1<<P2<<endl;
-        listPts.push_back(P1);listPts.push_back(P2);
+        Pt3dr centre_cam = aCamPic->VraiOpticalCenter();
+        for (uint j=0; j<lstTri.size(); j++)
+        {
+            triangle * aTri = lstTri[j];
+            Pt3dr centre_geo = (aTri->getSommet(0) + aTri->getSommet(1) + aTri->getSommet(2))/ 3;
+            Pt3dr Vec1 = centre_geo - centre_cam;
+            Pt3dr aVecNor = aTri->CalVecNormal(centre_geo, mulFactor);
+            Pt3dr Vec2 = aVecNor - centre_geo;
+            double angle_deg = aTri->calAngle(Vec1, Vec2);
+            cout<<angle_deg<<endl;
+            if (angle_deg<angleF)
+            {
+                centre_ge.push_back(centre_geo);
+                centre_ca.push_back(centre_cam);
+                vec_nor.push_back(aVecNor);
+                triVisible.push_back(aTri);
+            }
+        }
     }
     DrawOnMesh aDraw;
-    aDraw.creatPLYPts3D(listPts, "./PlyVerify/camVerif.ply", Pt3dr(0,255,255));
-//    vector<Pt3dr> centre_ge;
-//    vector<Pt3dr> vecNormal;
-//    if (Exist)
-//    {
-//        InitOutil * aChain = new InitOutil(aMeshIn);
-//        vector<triangle*> aListTri = aChain->getmPtrListTri();
-//        for(uint i=0; i<aListTri.size(); i++)
-//        {
-//            triangle * atri = aListTri[i];
-//            Pt3dr centre_geo;
-//            Pt3dr aVecNor = atri->CalVecNormal(centre_geo, mulFactor);
-//            centre_ge.push_back(centre_geo);
-//            vecNormal.push_back(aVecNor);
-//        }
-//    }
-//    else
-//        cout<<"Mesh not existed ! "<<aMeshIn<<endl;
+    aDraw.drawEdge_p1p2(centre_ge, vec_nor, aPlyOutDir + aPicIn + "_vecNor.ply", Pt3dr(0,255,0), Pt3dr(0,255,0));
+    aDraw.drawEdge_p1p2(centre_ge, centre_ca, aPlyOutDir + aPicIn + "_CamRay.ply", Pt3dr(255,255,0), Pt3dr(255,255,0));
+    aDraw.drawListTriangle(triVisible, aPlyOutDir + aPicIn + "_meshViewable.ply", Pt3dr(0,255,0));
+}
+else
+{
+    cout<<"Too much image or image not found. Give just 1 image. Bye!"<<endl;
+}
     return EXIT_SUCCESS;
 }
 
