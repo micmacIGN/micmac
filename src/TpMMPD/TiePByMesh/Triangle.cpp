@@ -58,14 +58,19 @@ triangle::triangle(Face* aFace, vector<Vertex*> VertexList, int num_pic, int ind
 */
 void triangle::reproject(pic *aPic, bool &reprOK, Tri2d &result, int ind=-1)
 {
-    Pt2dr result1[3];
+    Pt2dr result1[3];        
     Pt2dr Som0Repro = aPic->mOriPic->ElCamera::R3toF2(mSommet[0]);
     bool inside = aPic->checkInSide(Som0Repro);
     Pt2dr Som1Repro = aPic->mOriPic->ElCamera::R3toF2(mSommet[1]);
     bool inside2 = aPic->checkInSide(Som1Repro);
     Pt2dr Som2Repro = aPic->mOriPic->ElCamera::R3toF2(mSommet[2]);
     bool inside3 = aPic->checkInSide(Som2Repro);
-    if (inside && inside2 && inside3)
+    if (
+            inside && inside2 && inside3 &&
+            aPic->mOriPic->ElCamera::Devant(mSommet[0]) &&
+            aPic->mOriPic->ElCamera::Devant(mSommet[1]) &&
+            aPic->mOriPic->ElCamera::Devant(mSommet[2])
+       )
         {reprOK = true; }
     else
         {reprOK = false;}
@@ -384,7 +389,7 @@ cCorrelImage* triangle::create_Imagette_adapt_triangle(pic * PicMaitre,
  * 3. Direction du vector normal ?
  * 4. Peut tracer et verifier sur mesh :-) tres bon idee
 */
-Pt3dr triangle::CalVecNormal(Pt3dr & returnPtOrg)
+Pt3dr triangle::CalVecNormal(Pt3dr & returnPtOrg, double mulFactor)
 {
     Pt3dr vecNormal;
     Pt3dr centre_geo = Pt3dr (
@@ -399,8 +404,12 @@ Pt3dr triangle::CalVecNormal(Pt3dr & returnPtOrg)
     vecNormal = Pt3dr   ( Vec1.y*Vec2.z - Vec1.z*Vec2.y,
                           Vec1.z*Vec2.x - Vec1.x*Vec2.z,
                           Vec1.x*Vec2.y - Vec1.y*Vec2.x  );
+    //normalize = 1
+    vecNormal = vecNormal/sqrt(pow(vecNormal.x, 2) + pow(vecNormal.y, 2) + pow(vecNormal.z, 2));
+    Pt3dr VecOrg = centre_geo + vecNormal*mulFactor;
     returnPtOrg=centre_geo;
-    return vecNormal;
+    cout<<"Org: "<<VecOrg<<" - Cote : "<<centre_geo<<endl;
+    return (VecOrg);
 }
 
 /*=====Chercher image maitraisse et image viewable======
@@ -423,15 +432,16 @@ pic* triangle::getPicPlusProche(vector<pic*>PtrListPic,
 {
     if (!assum1er)
     {
-        VecNormal=this->CalVecNormal(PtsOrg);
+        VecNormal=this->CalVecNormal(PtsOrg, 0.05);
         double min_angle = 0;
         pic * picMaitraiss = NULL;
         for (uint i=0; i<PtrListPic.size(); i++)
         {
-            double angle = abs(this->calAngle
-                                (PtrListPic[i]->mOriPic->VraiOpticalCenter(),
-                                VecNormal,
-                                PtsOrg));   //ERROR ? abs of angle ?
+              double angle;
+//            double angle = this->calAngle
+//                                (PtrListPic[i]->mOriPic->VraiOpticalCenter(),
+//                                VecNormal,
+//                                PtsOrg);   //ERROR ? abs of angle ?
             if(i == 0)
             {
                 min_angle = angle;
@@ -466,15 +476,16 @@ pic* triangle::getPicPlusProche(vector<pic*>PtrListPic,
 }
 
 /*=====Calcul Angle entre 2 vector======
+ * Calcul angle b/w 2 vector in 3D space.
+ * Donne Vec1 Vec2.
+ * Return Angle. (sign ?)
 */
-double triangle::calAngle(Pt3dr Vec1, Pt3dr Vec2, Pt3dr PtsOrg)
+double triangle::calAngle(Pt3dr Vec1, Pt3dr Vec2)
 {
     double angle;
-    Pt3dr Vec1Org = Vec1-PtsOrg;
-    Pt3dr Vec2Org = Vec2-PtsOrg;
     angle = acos(
-                (Vec1Org.x*Vec2Org.x + Vec1Org.y*Vec2Org.y)/
-                (sqrt(pow(Vec1Org.x,2) + pow(Vec1Org.y,2) + pow(Vec1Org.z,2))*sqrt(pow(Vec2Org.x,2) + pow(Vec2Org.y,2) + pow(Vec2Org.z,2)))
+                (Vec1.x*Vec2.x + Vec1.y*Vec2.y)/
+                (sqrt(pow(Vec1.x,2) + pow(Vec1.y,2) + pow(Vec1.z,2))*sqrt(pow(Vec2.x,2) + pow(Vec2.y,2) + pow(Vec2.z,2)))
                 );
     return angle;
 }

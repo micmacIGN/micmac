@@ -101,9 +101,18 @@ InitOutil::InitOutil(string aFullPattern, string aOriInput, string aHomolInPut)
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirImages);
     mSetIm = *(mICNM->Get(mPatIm));
     ELISE_ASSERT(mSetIm.size()>0,"ERROR: No image found!");
+    mKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(aHomolInPut)
+                       +  std::string("@")
+                       +  std::string("dat");
     cout<<"Init done !"<<endl;
 }
 
+InitOutil::InitOutil (string aMeshToRead)
+{
+    this->read_file(aMeshToRead);
+    this->load_tri();
+}
 
 PlyFile* InitOutil::read_file(string pathPlyFileS)
 {
@@ -255,8 +264,11 @@ vector<triangle*> InitOutil::load_tri()
         triangle *aTri = new triangle(mFaceList[i], mVertexList, mPtrListPic.size(), i );
         mPtrListTri.push_back(aTri);
     }
-    for (uint i=0; i<mPtrListPic.size(); i++)
-        {mPtrListPic[i]->allTriangle = mPtrListTri;}
+    if (mPtrListPic.size() > 0)
+    {
+        for (uint i=0; i<mPtrListPic.size(); i++)
+            {mPtrListPic[i]->allTriangle = mPtrListTri;}
+    }
     cout<<"Free mem mFaceList : ...";
     for (uint i=0; i<mFaceList.size(); i++)
         free(mFaceList[i]);

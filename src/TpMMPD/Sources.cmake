@@ -50,7 +50,8 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/PackHomolToPly_main
     ${TDPPMD_DIR}/TiePByMesh/InitOriLinear.cpp
     ${TDPPMD_DIR}/TiePByMesh/InitOriLinear_main.cpp
-    
+    ${TDPPMD_DIR}/TiePByMesh/DrawVectorNormalMesh_main.cpp
+    ${TDPPMD_DIR}/TiePByMesh/MeshPartViewable_main.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})
