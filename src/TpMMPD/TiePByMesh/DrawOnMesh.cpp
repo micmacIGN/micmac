@@ -64,6 +64,9 @@ DrawOnMesh::DrawOnMesh(InitOutil *aChain)
     this->mPtrListTri = aChain->getmPtrListTri();
 }
 
+DrawOnMesh::DrawOnMesh()
+{}
+
 
 
 vector<Pt3dr> DrawOnMesh::drawPt3DByPt2DAndTriangle(
@@ -214,7 +217,60 @@ void DrawOnMesh::creatPLYPts3D(vector<Pt3dr> pts3DAllTri,
       myfile.close();
 }
 
+void DrawOnMesh::drawEdge_p1p2(vector<Pt3dr> &p1Vec,
+                               vector<Pt3dr> &p2Vec,
+                               string filename,
+                               Pt3dr colorRGBVer, Pt3dr colorRGBEdge)
+{
+    ofstream myfile;
+    myfile.open (filename.c_str());
 
+    myfile<<"ply\n";
+    myfile<<"format ascii 1.0\n";
+    myfile<<"element vertex ";myfile<<p1Vec.size()+p2Vec.size();myfile<<"\n";
+    myfile<<"property float x\n";
+    myfile<<"property float y\n";
+    myfile<<"property float z\n";
+    myfile<<"property uchar red\n";
+    myfile<<"property uchar green\n";
+    myfile<<"property uchar blue\n";
+    myfile<<"element edge ";myfile<<p1Vec.size();myfile<<"\n";
+    myfile<<"property int vertex1\n";
+    myfile<<"property int vertex2\n";
+    myfile<<"property uchar red\n";
+    myfile<<"property uchar green\n";
+    myfile<<"property uchar blue\n";
+    myfile<<"end_header\n";
 
+    for (double i=0; i<p1Vec.size(); i++)
+    {
+        myfile<<p1Vec[i].x;myfile<<" ";myfile<<p1Vec[i].y;myfile<<" ";myfile<<p1Vec[i].z;myfile<<" ";
+        myfile<<colorRGBVer.x;myfile<<" ";
+        myfile<<colorRGBVer.y;myfile<<" ";
+        myfile<<colorRGBVer.z;myfile<<"\n";
+        myfile<<p2Vec[i].x;myfile<<" ";myfile<<p2Vec[i].y;myfile<<" ";myfile<<p2Vec[i].z;myfile<<" ";
+        myfile<<colorRGBVer.x;myfile<<" ";
+        myfile<<colorRGBVer.y;myfile<<" ";
+        myfile<<colorRGBVer.z;myfile<<"\n";
+    }
+    double count = 0;
+    for (double i=0; i<p1Vec.size(); i++)
+    {
+        myfile<<count;myfile<<" ";count++;myfile<<count<<" ";count++;
+        myfile<<colorRGBEdge.x;myfile<<" ";
+        myfile<<colorRGBEdge.y;myfile<<" ";
+        myfile<<colorRGBEdge.z;myfile<<"\n";
+    }
+    myfile.close();
+}
+
+void DrawOnMesh::drawListPtsOnPly(
+                                    vector<Pt3dr> lstPts,
+                                    string filename,
+                                    Pt3dr colorRGB
+                                    )
+{
+    creatPLYPts3D(lstPts, filename, colorRGB);
+}
 
 

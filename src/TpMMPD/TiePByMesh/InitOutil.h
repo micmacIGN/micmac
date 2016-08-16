@@ -43,6 +43,7 @@ class InitOutil
                              double corl_seuil_glob, double corl_seuil_pt,
                              bool disp, bool aCplPicExistHomol);
         InitOutil           (string aFullPattern, string aOriInput, string aHomolInput = "Homol");
+        InitOutil           (string aMeshToRead);
         PlyFile* read_file  (string pathPlyFileS);
         vector<pic*> load_Im();
         vector<triangle *> load_tri ();

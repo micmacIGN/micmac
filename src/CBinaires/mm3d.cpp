@@ -238,7 +238,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("InitOriLinear",InitOriLinear_main," Initialize orientation for linear acquisition"));
        aRes.push_back(cMMCom("PHO_MI",PHO_MI_main," Filter homologue points from initial orientation to reduce number of observations"));
        aRes.push_back(cMMCom("TiePByMesh",TiePByMesh_main," Raffiner pts homologue par mesh"));
-       aRes.push_back(cMMCom("MeshProjOnImg",MeshProjOnImg_main," Reproject mesh on image"));
+       aRes.push_back(cMMCom("MeshProjOnImg",MeshProjOnImg_main," Reproject mesh on image"));       
        aRes.push_back(cMMCom("ExtractMesure2D",ExtractMesure2D_main," Extract points from a 2D measures xml file"));
        aRes.push_back(cMMCom("ExtractAppui3D",ExtractAppui3D_main," Extract points from a 3D appui points xml file"));
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
@@ -593,6 +593,8 @@ int TestDupBigTiff(int argc,char ** argv);
 int Test_TomCan(int argc,char ** argv);
 
 extern int PackHomolToPly_main(int argc,char ** argv);
+extern int DrawVectorNormalMesh_main(int argc,char ** argv);
+extern int MeshPartViewable_main(int , char **);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -653,6 +655,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("DocIntrofiltre",DocEx_Introfiltr_main,"Introduction to filter example from DocElise  "));
 
        aRes.push_back(cMMCom("PackHomolToPly",PackHomolToPly_main,"Creat Ply of pts in pack homologue"));
+       aRes.push_back(cMMCom("DrawVecNormalMesh",DrawVectorNormalMesh_main,"Calcul and draw vector normal on each triangle of mesh"));
+       aRes.push_back(cMMCom("MeshPartViewable",MeshPartViewable_main,"Filter to show which part of mesh is viewable by an image with specified angle"));
 #if (ELISE_UNIX)
        aRes.push_back(cMMCom("DocIntroanalyse",DocEx_Introanalyse_main,"Introduction to image analysis from DocElise  "));
 #endif

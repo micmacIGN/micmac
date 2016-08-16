@@ -70,14 +70,14 @@ public:
                                                       Pt2dr &PtOrigin);
     pic* getPicPlusProche(vector<pic*>PtrListPic, Pt3dr & VecNormal, Pt3dr & PtsOrg, vector<pic*>&ptrListPicViewable, bool assum1er);
     //chercher image plus proche au vector normal du triangle 3d
-    Pt3dr CalVecNormal(Pt3dr & returnPtOrg);
+    Pt3dr CalVecNormal(Pt3dr & returnPtOrg, double mulFactor);
     matAffine CalAffine(pic* pic1 , pic* pic2, bool & affineResolu);
 
     ImgetOfTri get_Imagette_by_affine_n(ImgetOfTri &ImgetMaitre,
                                         pic* Img2nd,
                                         matAffine &matrixAffine,
                                         bool &getImgetteFalse);
-    double calAngle(Pt3dr Vec1, Pt3dr Vec2, Pt3dr PtsOrg);
+    double calAngle(Pt3dr Vec1, Pt3dr Vec2);
     vector<Pt3dr> ptsInTri2Dto3D(vector<Pt2dr> pts2DinTri, pic *img);
     //void savePtInteret2D(Pt2dr aPoint, pic*img);
     //vector<PtInteretInTriangle> getPtsInteret2DInImagetteDuTri(){return mPtsInteret2DInImagetteDuTri;}
