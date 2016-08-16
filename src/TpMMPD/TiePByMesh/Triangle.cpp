@@ -408,7 +408,6 @@ Pt3dr triangle::CalVecNormal(Pt3dr & returnPtOrg, double mulFactor)
     vecNormal = vecNormal/sqrt(pow(vecNormal.x, 2) + pow(vecNormal.y, 2) + pow(vecNormal.z, 2));
     Pt3dr VecOrg = centre_geo + vecNormal*mulFactor;
     returnPtOrg=centre_geo;
-    cout<<"Org: "<<VecOrg<<" - Cote : "<<centre_geo<<endl;
     return (VecOrg);
 }
 
@@ -477,17 +476,13 @@ pic* triangle::getPicPlusProche(vector<pic*>PtrListPic,
 
 /*=====Calcul Angle entre 2 vector======
  * Calcul angle b/w 2 vector in 3D space.
- * Donne Vec1 Vec2.
- * Return Angle. (sign ?)
 */
 double triangle::calAngle(Pt3dr Vec1, Pt3dr Vec2)
 {
-    double angle;
-    angle = acos(
-                (Vec1.x*Vec2.x + Vec1.y*Vec2.y)/
-                (sqrt(pow(Vec1.x,2) + pow(Vec1.y,2) + pow(Vec1.z,2))*sqrt(pow(Vec2.x,2) + pow(Vec2.y,2) + pow(Vec2.z,2)))
-                );
-    return angle;
+    double cos_angle_pow2;
+    cos_angle_pow2 =pow((Vec1.x*Vec2.x+Vec1.y*Vec2.y+Vec1.z*Vec2.z),2)/
+                    ((pow(Vec1.x,2)+pow(Vec1.y,2)+pow(Vec1.z,2))*(pow(Vec2.x,2)+pow(Vec2.y,2)+pow(Vec2.z,2)));
+    return cos_angle_pow2;
 }
 
 /*=====Prendre imagette sur 2eme image grace a imagette maitre et Affine transform======

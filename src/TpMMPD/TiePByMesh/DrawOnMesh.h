@@ -24,6 +24,11 @@ public:
                             string filename,
                             Pt3dr colorRGBVer
                          , Pt3d<double> colorRGBEdge);
+    void drawListTriangle(
+                           vector<triangle*> listTri,
+                           string fileName,
+                           Pt3dr colorRGB
+                          );
     void drawListPtsOnPly(
                             vector<Pt3dr> lstPts,
                             string filename,
