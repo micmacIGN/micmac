@@ -18,9 +18,12 @@ class CorrelMesh
 {
 public:
     CorrelMesh(InitOutil * aChain);
-    void reloadTriandPic();
+    void reloadPic();
+    void reloadTri();
+    void correlInTriWithViewAngle(int indTri, double angleF);
     void correlInTri(int indTri);
     void correlByCplExist(int indTri);
+    void correlByCplExistWithViewAngle(int indTri, double angleF);
     vector<int> mTriHavePtInteret;
     vector<int> mTriCorrelSuper;
     double countPts;

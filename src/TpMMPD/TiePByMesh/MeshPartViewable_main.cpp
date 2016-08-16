@@ -67,6 +67,8 @@ int MeshPartViewable_main(int argc,char ** argv)
     cout<<"**********************************************************"<<endl;
 
     string aMeshIn; string aPicIn; string aOriIn; double mulFactor = 0.05; double angleF = 60;
+    vector<string> colorIn;
+    Pt3dr color(0,255,0);
     ElInitArgMain
             (
                 argc,argv,
@@ -79,15 +81,22 @@ int MeshPartViewable_main(int argc,char ** argv)
                 //optional arguments
                 LArgMain()
                 << EAM(mulFactor, "mF", true, "adjust length of vector - default = 0.05")
+                << EAM(colorIn, "color", true, "color RGB color=[R,G,B]")
             );
 
     if (MMVisualMode) return EXIT_SUCCESS;
+    if (colorIn.size() > 0)
+    {
+        vector<double> a = parse_dParam(colorIn);
+        color.x = a[0]; color.y = a[1]; color.z = a[2];
+    }
     bool Exist= ELISE_fp::exist_file(aMeshIn);
     InitOutil aChain(aPicIn, aOriIn);
     aChain.initAll(aMeshIn);
     vector<pic*>lstPic = aChain.getmPtrListPic();
     vector<triangle*>lstTri = aChain.getmPtrListTri();
-    angleF = pow(cos(angleF*PI/180),2);
+    //angleF = pow(cos(angleF*PI/180),2);
+
 if (lstPic.size() == 1)
 {
     vector<Pt3dr> listPts;
@@ -114,12 +123,13 @@ if (lstPic.size() == 1)
         {
             triangle * aTri = lstTri[j];
             Pt3dr centre_geo = (aTri->getSommet(0) + aTri->getSommet(1) + aTri->getSommet(2))/ 3;
-            Pt3dr Vec1 = centre_geo - centre_cam;
+            Pt3dr Vec1 = centre_cam - centre_geo;
             Pt3dr aVecNor = aTri->CalVecNormal(centre_geo, mulFactor);
             Pt3dr Vec2 = aVecNor - centre_geo;
-            double angle_deg = aTri->calAngle(Vec1, Vec2);
+            bool devant = aCamPic->Devant(centre_geo);
+            double angle_deg = (aTri->calAngle(Vec1, Vec2))*180/PI;
             cout<<angle_deg<<endl;
-            if (angle_deg<angleF)
+            if ( (angle_deg<angleF) && devant )
             {
                 centre_ge.push_back(centre_geo);
                 centre_ca.push_back(centre_cam);
@@ -131,7 +141,7 @@ if (lstPic.size() == 1)
     DrawOnMesh aDraw;
     aDraw.drawEdge_p1p2(centre_ge, vec_nor, aPlyOutDir + aPicIn + "_vecNor.ply", Pt3dr(0,255,0), Pt3dr(0,255,0));
     aDraw.drawEdge_p1p2(centre_ge, centre_ca, aPlyOutDir + aPicIn + "_CamRay.ply", Pt3dr(255,255,0), Pt3dr(255,255,0));
-    aDraw.drawListTriangle(triVisible, aPlyOutDir + aPicIn + "_meshViewable.ply", Pt3dr(0,255,0));
+    aDraw.drawListTriangle(triVisible, aPlyOutDir + aPicIn + "_meshViewable.ply", color);
 }
 else
 {

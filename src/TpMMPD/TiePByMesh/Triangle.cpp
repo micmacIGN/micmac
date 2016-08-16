@@ -480,8 +480,15 @@ pic* triangle::getPicPlusProche(vector<pic*>PtrListPic,
 double triangle::calAngle(Pt3dr Vec1, Pt3dr Vec2)
 {
     double cos_angle_pow2;
-    cos_angle_pow2 =pow((Vec1.x*Vec2.x+Vec1.y*Vec2.y+Vec1.z*Vec2.z),2)/
-                    ((pow(Vec1.x,2)+pow(Vec1.y,2)+pow(Vec1.z,2))*(pow(Vec2.x,2)+pow(Vec2.y,2)+pow(Vec2.z,2)));
+//    cos_angle_pow2 =pow((Vec1.x*Vec2.x+Vec1.y*Vec2.y+Vec1.z*Vec2.z),2)/
+//                    ((pow(Vec1.x,2)+pow(Vec1.y,2)+pow(Vec1.z,2))*(pow(Vec2.x,2)+pow(Vec2.y,2)+pow(Vec2.z,2)));
+    cos_angle_pow2 =acos(
+                            (Vec1.x*Vec2.x+Vec1.y*Vec2.y+Vec1.z*Vec2.z)/
+                            (
+                                sqrt(pow(Vec1.x,2)+pow(Vec1.y,2)+pow(Vec1.z,2))*
+                                sqrt(pow(Vec2.x,2)+pow(Vec2.y,2)+pow(Vec2.z,2))
+                            )
+                        );
     return cos_angle_pow2;
 }
 
