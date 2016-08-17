@@ -24,11 +24,14 @@ public:
     void correlInTri(int indTri);
     void correlByCplExist(int indTri);
     void correlByCplExistWithViewAngle(int indTri, double angleF);
+    void sortDescend(vector<Pt2dr> & input);
     vector<int> mTriHavePtInteret;
     vector<int> mTriCorrelSuper;
     double countPts;
 private:
     pic* chooseImgMaitre(bool assum1er);
+    vector<ElCplePtsHomologues> choosePtsHomoFinal(vector<Pt2dr> &scorePtsInTri, triangle* aTri,
+                                     vector<ElCplePtsHomologues> &P1P2Correl);
     InitOutil * mChain;
     vector<pic*> mPtrListPic;
     vector<triangle*> mPtrListTri;
@@ -39,7 +42,9 @@ private:
                                    ImgetOfTri imgetMaitre, ImgetOfTri imget2nd,
                                    matAffine & affine,
                                    bool & foundMaxCorr,
+                                   double & score,
                                    double seuil_corel);
+    //static bool comparatorPt2dr (const Pt2dr &l, const Pt2dr &r);
 };
 
 
