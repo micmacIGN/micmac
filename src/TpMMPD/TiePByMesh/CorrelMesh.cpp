@@ -73,11 +73,37 @@ pic* CorrelMesh::chooseImgMaitre(bool assum1er = true)
     return mPicMaitre;
 }
 
+typedef bool(*dsPt2drCompFunc)( Pt2dr const &,  Pt2dr const &);
+static bool comparatorPt2dr ( Pt2dr const &l,  Pt2dr const &r)
+   { return l.x > r.x; }
+
+void CorrelMesh::sortDescend(vector<Pt2dr> & input)
+{
+   sort(input.begin(), input.end(), static_cast<dsPt2drCompFunc>(&comparatorPt2dr));
+}
+
+vector<ElCplePtsHomologues> CorrelMesh::choosePtsHomoFinal(vector<Pt2dr>&scorePtsInTri,triangle* aTri,
+                                 vector<ElCplePtsHomologues>&P1P2Correl)
+{
+    vector<ElCplePtsHomologues> result;
+    if (scorePtsInTri.size() < 3)
+        result = P1P2Correl;
+    else
+    {
+        for (uint i=0; i<3; i++)
+        {
+            int ind = scorePtsInTri[i].y;
+            result.push_back(P1P2Correl[ind]);
+        }
+    }
+    return result;
+}
 
 Pt2dr CorrelMesh::correlPtsInteretInImaget(Pt2dr ptInt1,
                                            ImgetOfTri imgetMaitre, ImgetOfTri imget2nd,
                                            matAffine & affine,
                                            bool & foundMaxCorr,
+                                           double & scoreR,
                                            double seuil_corel = 0.9)
 {
     /*
@@ -144,6 +170,7 @@ Pt2dr CorrelMesh::correlPtsInteretInImaget(Pt2dr ptInt1,
     {
         ptInt2 = ApplyAffine(max_corel_coor, affine);
         foundMaxCorr = true;
+        scoreR = corelScore[ind];
         //cout<<" + "<<"P1: "<<ptInt1<<" - P2: "<<ptInt2<<" - Sc: "<<corelScore[ind]<<endl;
     }
     else
@@ -218,6 +245,7 @@ void CorrelMesh::correlInTri(int indTri)
             if (ptsInThisTri.size() > 0)
                 mTriHavePtInteret.push_back(aTri->mIndex);
             vector<ElCplePtsHomologues> P1P2Correl;
+            vector<Pt2dr> scorePtsInTri;
             bool affineResolu;
             matAffine affineM_2ND = aTri->CalAffine(mPicMaitre, pic2nd, affineResolu);
             if (ptsInThisTri.size() > 0 && affineResolu)
@@ -237,20 +265,29 @@ void CorrelMesh::correlInTri(int indTri)
                 {
                     mTriCorrelSuper.push_back(aTri->mIndex);
                     cCorrelImage::setSzW(mChain->mSzPtCorr); //for correlation each point interest inside imaget
+                    int ind = 0;
                     for (uint j=0; j<ptsInThisTri.size(); j++)
                     {
                         bool foundMaxCorr = false;
+                        double score;
                         Pt2dr P1 = ptsInThisTri[j];
                         Pt2dr P2 = this->correlPtsInteretInImaget(P1, imgetMaitre,
                                                                   imget2nd, affineM_2ND, foundMaxCorr,
+                                                                  score,
                                                                   mChain->mCorl_seuil_pt);
                         if (foundMaxCorr == true)
                         {
                             ElCplePtsHomologues aCpl(P1, P2);
                             P1P2Correl.push_back(aCpl);
-                            this->countPts++;
+                            Pt2dr scorePt;
+                            scorePt.x = score; scorePt.y = ind;
+                            scorePtsInTri.push_back(scorePt);
+                            ind++;
                         }
                     }
+                   this->sortDescend(scorePtsInTri);
+                   vector<ElCplePtsHomologues> P1P2CorrelF = this->choosePtsHomoFinal(scorePtsInTri, aTri, P1P2Correl);
+                   this->countPts = this->countPts + P1P2CorrelF.size();
                    mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2Correl,
                                                mChain->getPrivMember("mHomolOutput"));
                    mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2Correl,
@@ -334,6 +371,7 @@ void CorrelMesh::correlInTriWithViewAngle(int indTri, double angleF)
             if (ptsInThisTri.size() > 0)
                 mTriHavePtInteret.push_back(aTri->mIndex);
             vector<ElCplePtsHomologues> P1P2Correl;
+            vector<Pt2dr> scorePtsInTri;
             bool affineResolu;
             matAffine affineM_2ND = aTri->CalAffine(mPicMaitre, pic2nd, affineResolu);
             if (ptsInThisTri.size() > 0 && affineResolu)
@@ -353,23 +391,32 @@ void CorrelMesh::correlInTriWithViewAngle(int indTri, double angleF)
                 {
                     mTriCorrelSuper.push_back(aTri->mIndex);
                     cCorrelImage::setSzW(mChain->mSzPtCorr); //for correlation each point interest inside imaget
+                    int ind = 0;
                     for (uint j=0; j<ptsInThisTri.size(); j++)
                     {
                         bool foundMaxCorr = false;
+                        double score;
                         Pt2dr P1 = ptsInThisTri[j];
                         Pt2dr P2 = this->correlPtsInteretInImaget(P1, imgetMaitre,
                                                                   imget2nd, affineM_2ND, foundMaxCorr,
+                                                                  score,
                                                                   mChain->mCorl_seuil_pt);
                         if (foundMaxCorr == true)
                         {
                             ElCplePtsHomologues aCpl(P1, P2);
                             P1P2Correl.push_back(aCpl);
-                            this->countPts++;
+                            Pt2dr scorePt;
+                            scorePt.x = score; scorePt.y = ind;
+                            scorePtsInTri.push_back(scorePt);
+                            ind++;
                         }
                     }
-                   mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2Correl,
+                   this->sortDescend(scorePtsInTri);
+                   vector<ElCplePtsHomologues> P1P2CorrelF = this->choosePtsHomoFinal(scorePtsInTri, aTri, P1P2Correl);
+                   this->countPts = this->countPts + P1P2CorrelF.size();
+                   mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2CorrelF,
                                                mChain->getPrivMember("mHomolOutput"));
-                   mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2Correl,
+                   mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2CorrelF,
                                                mChain->getPrivMember("mHomolOutput"), true);
                 }
                 delete imget2nd.imaget;
