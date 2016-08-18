@@ -49,7 +49,7 @@ class InitOutil
         vector<triangle *> load_tri ();
         void reprojectAllTriOnAllImg();
         void initHomoPackVide(bool creatLikeHomoPackInit);
-        void initAll(string pathPlyFileS);
+        void initAll(string pathPlyFileS = "NO");
         vector<pic*> getmPtrListPic(){return mPtrListPic;}
         vector<triangle*> getmPtrListTri(){return mPtrListTri;}
 		

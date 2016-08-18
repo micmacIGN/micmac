@@ -240,7 +240,8 @@ void CorrelMesh::correlInTri(int indTri)
         }
         if (tri2DMaitre.insidePic && tri2D2nd.insidePic)
         {
-            vector<Pt2dr> ptsInThisTri = mPicMaitre->getPtsHomoInThisTri(aTri);
+            vector<Pt2dr> ptsInThisTri;
+            mPicMaitre->getPtsHomoInThisTri(aTri, ptsInThisTri);
             cout<<" ++ "<<ptsInThisTri.size()<<" pts in this tri"<<endl;
             if (ptsInThisTri.size() > 0)
                 mTriHavePtInteret.push_back(aTri->mIndex);
@@ -366,7 +367,8 @@ void CorrelMesh::correlInTriWithViewAngle(int indTri, double angleF)
         }
         if (tri2DMaitre.insidePic && tri2D2nd.insidePic)
         {
-            vector<Pt2dr> ptsInThisTri = mPicMaitre->getPtsHomoInThisTri(aTri);
+            vector<Pt2dr> ptsInThisTri;
+            mPicMaitre->getPtsHomoInThisTri(aTri,ptsInThisTri);
             cout<<" ++ "<<ptsInThisTri.size()<<" pts in this tri"<<endl;
             if (ptsInThisTri.size() > 0)
                 mTriHavePtInteret.push_back(aTri->mIndex);
