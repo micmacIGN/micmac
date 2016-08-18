@@ -339,10 +339,14 @@ void InitOutil::initHomoPackVide(bool creatLikeHomoPackInit = true)
 void InitOutil::initAll(string pathPlyFileS)
 {
     cout<<"Init all.."<<endl;
-    this->read_file(pathPlyFileS);
+    if (pathPlyFileS!="NO")
+        this->read_file(pathPlyFileS);
     this->load_Im();
-    this->load_tri();
-    this->reprojectAllTriOnAllImg();
+    if (pathPlyFileS!="NO")
+    {
+        this->load_tri();
+        this->reprojectAllTriOnAllImg();
+    }
     if (mCplPicExistHomol)
         loadCplPicExistHomol();
     //this->initHomoPackVide();

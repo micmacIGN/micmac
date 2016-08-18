@@ -595,6 +595,7 @@ int Test_TomCan(int argc,char ** argv);
 extern int PackHomolToPly_main(int argc,char ** argv);
 extern int DrawVectorNormalMesh_main(int argc,char ** argv);
 extern int MeshPartViewable_main(int , char **);
+extern int TestGiang_main(int , char **);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -657,6 +658,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("PackHomolToPly",PackHomolToPly_main,"Creat Ply of pts in pack homologue"));
        aRes.push_back(cMMCom("DrawVecNormalMesh",DrawVectorNormalMesh_main,"Calcul and draw vector normal on each triangle of mesh"));
        aRes.push_back(cMMCom("MeshPartViewable",MeshPartViewable_main,"Filter to show which part of mesh is viewable by an image with specified angle"));
+       aRes.push_back(cMMCom("TestGiang",TestGiang_main,"Giang test"));
 #if (ELISE_UNIX)
        aRes.push_back(cMMCom("DocIntroanalyse",DocEx_Introanalyse_main,"Introduction to image analysis from DocElise  "));
 #endif

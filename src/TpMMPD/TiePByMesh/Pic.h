@@ -36,9 +36,7 @@ public:
     void AddPtsToPack(pic* Pic2nd, const Pt2dr &Pts1, const Pt2dr &Pts2);
     void AddVectorPtsToPack(pic* Pic2nd, vector<Pt2dr> & Pts1, vector<Pt2dr> & Pts2);
     void AddVectorCplHomoToPack(pic* Pic2nd, vector<ElCplePtsHomologues> aHomo);
-
-    vector<Pt2dr> getPtsHomoInThisTri(triangle* aTri);
-
+    void getPtsHomoInThisTri(triangle* aTri , vector<Pt2dr> & result);
     int mIndex;
     CamStenope * mOriPic;                                                                    //orientation
     cInterfChantierNameManipulateur * mICNM;                                   //name manipulator
