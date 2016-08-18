@@ -269,11 +269,28 @@ int mergeHomol_main(int argc,char ** argv)
     long aNumCopiedFiles=0;
     long aNumMergedFiles=0;
 
-    std::cout<<"Merging."<<std::flush;
+
+
+    int waitbarupdate=aHomolOutDirlist.size()/100;
+    int waitbarsize=0;
+    if (aHomolOutDirlist.size()<100)
+    {
+	    waitbarsize=aHomolOutDirlist.size();
+	    waitbarupdate=1;
+    }else{
+    	waitbarsize=aHomolOutDirlist.size()/waitbarupdate+1;
+    }
+    std::cout<<aHomolOutDirlist.size()<<" subdirectories to create..."<<std::endl;
+    std::cout<<"          ";
+    for (int i=0;i<waitbarsize;i++)
+	    std::cout<<"_";
+    std::cout<<" \n";
+
+    std::cout<<"Merging: |"<<std::flush;
     //for each directory, for each input, copy if does not already exist, or merge
     for (unsigned int aNumDir=0;aNumDir<aHomolOutDirlist.size();aNumDir++)
     {
-        if (aNumDir%10) cout<<"."<<flush;
+	if (aNumDir%waitbarupdate==0) cout<<"."<<flush;
 
         string aDirName=aHomolOutDirlist[aNumDir];
         ELISE_fp::MkDir(aHomolOutDirName+"/"+aDirName);
@@ -311,7 +328,7 @@ int mergeHomol_main(int argc,char ** argv)
             }
         }
     }
-    cout<<" Finished!\n"<<aNumCopiedFiles<<" copied files, "<<aNumMergedFiles<<" merged files."<<endl;
+    cout<<"| Finished!\n"<<aNumCopiedFiles<<" copied files, "<<aNumMergedFiles<<" merged files."<<endl;
 
     std::cout<<"Quit"<<std::endl;
 
