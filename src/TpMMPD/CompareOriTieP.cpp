@@ -46,6 +46,10 @@ class cCmpTieP_Appli
 		std::vector<CamStenope *> readOri(std::string Ori, const std::vector<std::string> aSetOfIm, cInterfChantierNameManipulateur * ICNM);
 		Pt3dr IntersectionFaisceaux(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D);
 		std::vector<Pt3dr> CalcDev(std::vector<Pt3dr> aVPt3d1, std::vector<Pt3dr> aVPt3d2);
+		double CalcMean(std::vector<double> & aV);
+		double CalcMin(std::vector<double> & aV);
+		double CalcMax(std::vector<double> & aV);
+		double CalcStd(std::vector<double> & aV);
 	private :
 		std::string mFullPattern;
 		std::string mOri1;
@@ -57,18 +61,114 @@ std::vector<Pt3dr> cCmpTieP_Appli::CalcDev(std::vector<Pt3dr> aVPt3d1, std::vect
 	ELISE_ASSERT(aVPt3d1.size() == aVPt3d2.size(),"ERROR: Not Same Homol Size!");
 	
 	std::vector<Pt3dr> aResDev;
+	std::vector<double> aResX;
+	std::vector<double> aResY;
+	std::vector<double> aResZ;
 	
 	for(unsigned int aK=0; aK<aVPt3d1.size(); aK++)
 	{
-		Pt3dr aPt;
-		aPt.x = aVPt3d1.at(aK).x - aVPt3d2.at(aK).x;
-		aPt.y = aVPt3d1.at(aK).y - aVPt3d2.at(aK).y;
-		aPt.z = aVPt3d1.at(aK).z - aVPt3d2.at(aK).z;
 		
+		aResX.push_back(aVPt3d1.at(aK).x - aVPt3d2.at(aK).x);
+		aResY.push_back(aVPt3d1.at(aK).y - aVPt3d2.at(aK).y);
+		aResZ.push_back(aVPt3d1.at(aK).z - aVPt3d2.at(aK).z);
+
+		Pt3dr aPt;
+		aPt.x = aResX.at(aK);
+		aPt.y = aResY.at(aK);
+		aPt.z = aResZ.at(aK);
+
 		aResDev.push_back(aPt);
+
 	}
 	
+	//some statistics
+	//calc mean
+	std::cout << "***** Mean ***********" << std::endl;
+	std::cout << "Mean X = " << CalcMean(aResX) << std::endl;
+	std::cout << "Mean Y = " << CalcMean(aResY) << std::endl;
+	std::cout << "Mean Z = " << CalcMean(aResZ) << std::endl;
+	std::cout << "**********************" << std::endl;
+	
+	//calc min
+	std::cout <<  "***** Min ***********" << std::endl;
+	std::cout << "Min X = " << CalcMin(aResX) << std::endl;
+	std::cout << "Min X = " << CalcMin(aResY) << std::endl;
+	std::cout << "Min X = " << CalcMin(aResZ) << std::endl;
+	std::cout <<  "*********************" << std::endl;
+	
+	//calc max
+	std::cout <<  "***** Max ***********" << std::endl;
+	std::cout << "Max X = " << CalcMax(aResX) << std::endl;
+	std::cout << "Max X = " << CalcMax(aResY) << std::endl;
+	std::cout << "Max X = " << CalcMax(aResZ) << std::endl;
+	std::cout <<  "*********************" << std::endl;
+	
+	//calc std
+	std::cout <<  "***** Std ***********" << std::endl;
+	std::cout << "Std X = " << CalcStd(aResX) << std::endl;
+	std::cout << "Std X = " << CalcStd(aResY) << std::endl;
+	std::cout << "Std X = " << CalcStd(aResZ) << std::endl;
+	std::cout <<  "*********************" << std::endl;
+	
 	return aResDev;
+}
+
+double cCmpTieP_Appli::CalcStd(std::vector<double> & aV)
+{
+	double aVar=0;
+	double aStd=0;
+	
+	int aN=0;
+	int aSize=aV.size();
+	
+	while(aN < aSize)
+	{
+		aVar = aVar + ((aV[aN] - CalcMean(aV)) * (aV[aN] - CalcMean(aV)));
+		aN++; 
+	}
+	
+	aVar /= aSize;
+	aStd = sqrt(aVar);
+	
+	return aStd;
+}
+
+double cCmpTieP_Appli::CalcMax(std::vector<double> & aV)
+{
+	double aMax = aV[0];
+	
+	for(unsigned aK=0; aK<aV.size(); aK++)
+	{
+		if(aV[aK] > aMax)
+		{
+			aMax = aV[aK];
+		}	
+	}
+	return aMax;
+}
+
+double cCmpTieP_Appli::CalcMin(std::vector<double> & aV)
+{
+	double aMin = aV[0];
+	
+	for(unsigned aK=0; aK<aV.size(); aK++)
+	{
+		if(aV[aK] < aMin)
+		{
+			aMin = aV[aK];
+		}	
+	}
+	return aMin;
+}
+
+double cCmpTieP_Appli::CalcMean(std::vector<double>& aV)
+{
+	double aSum = 0.0;
+	
+	for(unsigned int aK=0; aK< aV.size(); aK++)
+		aSum += aV[aK];
+	
+	return aSum / static_cast<double>(aV.size());
 }
 
 std::vector<CamStenope *> cCmpTieP_Appli::readOri(std::string Ori, const std::vector<std::string> aSetOfIm, cInterfChantierNameManipulateur * ICNM)
@@ -87,7 +187,6 @@ std::vector<CamStenope *> cCmpTieP_Appli::readOri(std::string Ori, const std::ve
 
 Pt3dr cCmpTieP_Appli::IntersectionFaisceaux(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D)
 {
-	//vecteur d'éléments segments 3d
 	std::vector<ElSeg3D> aVSeg;
 	
 	for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
@@ -107,7 +206,7 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
 	std::string aDirImages, aPatIm, aOut;
 	std::string aInHomolDirName="";
 	bool ExpTxt=false;
-	bool veryStrict=false;
+	int aMultMin=2;
 	
 	ElInitArgMain
     (
@@ -118,8 +217,10 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
           LArgMain() << EAM(aOut,"Out",false,"output txt file name ; Def=DeviationsOnTieP.txt")
                      << EAM(aInHomolDirName, "HomolIn", true, "Input Homol directory suffix (without \"Homol\")")
                      << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
-                     //~ << EAM(veryStrict,"VeryStrict",true,"Be very strict with homols (remove any suspect), def=false")
+                     << EAM(aMultMin,"MultMin",false,"Minimum Value for Tie Points Multiplicity ; Def=2")
     );
+    
+    ELISE_ASSERT(aMultMin > 1,"ERROR: Bad Tie Points Multiplicity Value!");
     
     //name output (.txt) file
     if (aOut=="")
@@ -136,7 +237,7 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
     
     //read Homol Directory
-    // Init Keys for homol files
+    //Init Keys for homol files
     std::list<cHomol> allHomols;
     std::string anExt = ExpTxt ? "txt" : "dat";
     std::string aKH =   std::string("NKS-Assoc-CplIm2Hom@")
@@ -154,62 +255,7 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
     std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
 
-    computeAllHomol(aICNM,aDirImages,aPatIm,aSetIm,allHomols,aCK,allPics,allPicSizes,veryStrict,0);
-    
-    if (veryStrict)
-    {
-        //check if homol apear everywhere they should
-        cout<<"Checking Homol integrity..";
-        //for every homol
-        int nbInconsistantHomol=0;
-        for (std::list<cHomol>::iterator itHomol=allHomols.begin();itHomol!=allHomols.end();++itHomol)
-        {
-            cHomol &aHomol=(*itHomol);
-            cPic *aPic1=0;
-            cPic *aPic2=0;
-            #ifdef ReductHomolImage_VeryStrict_DEBUG
-            cout<<"For ";
-            aHomol.print();
-            #endif
-            //for every combination of PointOnPic
-            for (unsigned int i=0;i<aHomol.getPointOnPicsSize();i++)
-            {
-                aPic1=aHomol.getPointOnPic(i)->getPic();
-                for (unsigned int j=i+1;j<aHomol.getPointOnPicsSize();j++)
-                {
-                    //if the pack exist
-                    aPic2=aHomol.getPointOnPic(j)->getPic();
-                    //std::string aNameIn = aDirImages + aICNM->Assoc1To2(aKHIn,aPic1->getName(),aPic2->getName(),true);
-                    std::string aNameIn=aCK.get(aPic1->getName(),aPic2->getName());
-                    if (ELISE_fp::exist_file(aNameIn))
-                    {
-                        #ifdef ReductHomolImage_VeryStrict_DEBUG
-                        cout<<"   "<<aNameIn<<": ";
-                        #endif
-                        //check that homol has been seen in this couple of pictures
-                        if (!aHomol.appearsOnCouple2way(aPic1,aPic2))
-                        {
-                            #ifdef ReductHomolImage_VeryStrict_DEBUG
-                            cout<<"No!\n";
-                            #endif
-                            aHomol.setBad();
-                            i=aHomol.getPointOnPicsSize();//end second loop
-                            nbInconsistantHomol++;
-                            break;
-                        }
-                        #ifdef ReductHomolImage_VeryStrict_DEBUG
-                        else cout<<"OK!\n";
-                        #endif
-
-                    }
-                }
-                if (aHomol.isBad()) break;
-            }
-            if ((aHomol.getId()%1000)==0) cout<<"."<<flush;
-        }
-        std::cout<<"Done.\n"<<nbInconsistantHomol<<" inconsistant homols found."<<endl;
-    }
-    
+    computeAllHomol(aICNM,aDirImages,aPatIm,aSetIm,allHomols,aCK,allPics,allPicSizes,false,0);
     
     std::vector<Pt3dr> aVPt3DO1;
     std::vector<Pt3dr> aVPt3DO2;
@@ -222,13 +268,11 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
 		
 		std::vector<Pt2dr> vPt2d;
 		
-        unsigned int aNbr = itHomol->getPointOnPicsSize();
-        
-        //~ std::cout << "Homol ID = " << itHomol->getId() << " | PointOnPicsSize() = " << aNbr << std::endl;
-        
-        if(aNbr > 1)
+        int aNbr = itHomol->getPointOnPicsSize();
+                
+        if(aNbr >= aMultMin)
         {
-			for(unsigned int aK=0; aK<aNbr; aK++)
+			for(int aK=0; aK<aNbr; aK++)
 			{
 				cPointOnPic* aPointOnPic = itHomol->getPointOnPic(aK);
 				cPic* aPic = aPointOnPic->getPic();
@@ -251,22 +295,14 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
 		aVPt3DO2.push_back(aPt3DO2);
 		
 		}
-		else
-		{
-			//std::cout << "For Homol id = " << itHomol->getId() << " Not enough images! Bad Homol!" << std::endl; 
-		}
         
         if ((itHomol)->isBad()) aNumBadHomol++;
     }
 
     std::cout<<"Found "<<allHomols.size()<<" Homol points (incl. "<<aNumBadHomol<<" bad ones): "<<100*aNumBadHomol/allHomols.size()<<"% bad!\n";
     
-    
     //compute deviations
-    std::vector<Pt3dr> aVDev = CalcDev(aVPt3DO1,aVPt3DO2);
-    
-    //compute statistics
-    
+    std::vector<Pt3dr> aVDev = CalcDev(aVPt3DO1,aVPt3DO2);    
     
     //export residuals in .txt format
     if (!MMVisualMode)
@@ -289,6 +325,12 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
 int CompareOriTieP_main(int argc,char ** argv)
 {   
 	cCmpTieP_Appli anAppli(argc,argv);
+	return EXIT_SUCCESS;
+}
+
+int StatsOnFile_main(int argc,char ** argv)
+{
+	
 	return EXIT_SUCCESS;
 }
 

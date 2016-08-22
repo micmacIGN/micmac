@@ -328,6 +328,34 @@ extern Video_Win* draw_polygon_onVW(vector<Pt2dr> pts, Video_Win* VW, Pt3di colo
     return VW;
 }
 
+extern Video_Win* draw_polygon_onVW(Pt2dr pts, Video_Win* VW, std::string aColor, bool isFerme = true, bool click = true)
+{
+    Disc_Pal Pdisc = Disc_Pal::P8COL();
+    Gray_Pal Pgr (30);
+    Circ_Pal Pcirc = Circ_Pal::PCIRC6(30);
+    RGB_Pal Prgb (255,1,1);
+    Elise_Set_Of_Palette SOP(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+    Line_St lstLineG(Pdisc(P8COL::green),1);
+    Line_St lstLineB(Pdisc(P8COL::blue),1);
+    Line_St lstLineR(Pdisc(P8COL::red),1);
+
+    if (VW==0)
+        cout<<"WARN : Video win not found to draw polygon"<<endl;
+    else
+    {
+        VW->set_sop(SOP);
+        if(aColor == "red")
+			VW->draw_circle_loc(pts, 5, lstLineR);
+		else if(aColor =="blue")
+			VW->draw_circle_loc(pts, 5, lstLineB);
+		else
+			VW->draw_circle_loc(pts, 5, lstLineG);
+        if (click)
+            VW->clik_in();
+    }
+    return VW;
+}
+
 extern Video_Win* draw_polygon_onVW(Tri2d &aTri, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true, bool click = true)
 {
     Disc_Pal Pdisc = Disc_Pal::P8COL();
