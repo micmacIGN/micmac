@@ -530,6 +530,7 @@ int PseudoIntersect_main(int argc,char** argv);
 int ScaleModel_main(int argc,char ** argv);
 int PLY2XYZ_main(int argc,char ** argv);
 int ExportXmlGcp2Txt_main(int argc,char ** argv);
+int ExportXmlGps2Txt_main(int argc,char ** argv);
 int ConvertRtk_main(int argc,char ** argv);
 int MatchCenters_main( int argc,char ** argv);
 int Panache_main(int argc,char ** argv);
@@ -540,6 +541,9 @@ int MatchinImgTM_main(int argc,char ** argv);
 int CorrLA_main(int argc,char ** argv);
 int InterpImgPos_main(int argc,char ** argv);
 int CompareOriTieP_main(int argc,char ** argv);
+int CmpOrthos_main(int argc,char ** argv);
+int CorrOri_main(int argc,char ** argv);
+
 
 int CheckOri_main(int argc,char ** argv);
 int NLD_main(int argc,char ** argv);
@@ -673,7 +677,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning",cArgLogCom(2)));
        aRes.push_back(cMMCom("ScaleModel",ScaleModel_main,"Tool for simple scaling a model",cArgLogCom(2)));
        aRes.push_back(cMMCom("Ply2Xyz",PLY2XYZ_main,"Tool to export in TxT file XYZ columns only from a .ply file",cArgLogCom(2)));
-       aRes.push_back(cMMCom("ExportXmlGcp2Txt",ExportXmlGcp2Txt_main,"Tool to export xml GCPs file to Txt file",cArgLogCom(2)));
+       aRes.push_back(cMMCom("XmlGcp2Txt",ExportXmlGcp2Txt_main,"Tool to export .xml GCPs file to .txt file",cArgLogCom(2)));
+       aRes.push_back(cMMCom("XmlGps2Txt",ExportXmlGps2Txt_main,"Tool to export .xml GPS file to .txt file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Panache",Panache_main,"Tool to export profile along axis given a line draw on Orthoimage",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ConvRtk",ConvertRtk_main,"Tool to extract X_Y_Z_Ix_Iy_Iz from Rtklib output file",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("MatchCenters",MatchCenters_main,"Tool to match Gps positions and Camera Centers",cArgLogCom(2)));
@@ -683,7 +688,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("ExportHTM",ExportHemisTM_main,"Tool to export TimeMark Data from Hemisphere Bin01 file",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("InterpImTM",InterpImgPos_main,"Tool to interpolate image position based on TimeMark GPS trajectory",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CmpTieP",CompareOriTieP_main,"Tool to compare deviations between 2 Ori-XXX folders on 3D tie points positions",cArgLogCom(2)));
-	   
+	   aRes.push_back(cMMCom("CmpOrthos",CmpOrthos_main,"Tool to compute displacement vectors between 2 Orthos based on Tie Points",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("CorrOri",CorrOri_main,"Tool to correct images centers from a bias and generate new Ori folder",cArgLogCom(2)));
+
 	      
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
