@@ -294,7 +294,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                 << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
                 << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
                 << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
-                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default=0.6, lower is more exigeant)"),
+                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default="+ToString(ann_closeness_ratio)+"), lower is more exigeant)"),
                 aArg
                 );
 
@@ -376,7 +376,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
                 << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
                 << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
-                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default=0.6, lower is more exigeant)"),
+                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default="+ToString(ann_closeness_ratio)+"), lower is more exigeant)"),
                 aArg
                 );
 
@@ -440,7 +440,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                 << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
                 << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
                 << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
-                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default=0.6, lower is more exigeant)"),
+                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default="+ToString(ann_closeness_ratio)+"), lower is more exigeant)"),
                 aArg
                 );
 
@@ -525,7 +525,7 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
                 << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
                 << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
-                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default=0.6, lower is more exigeant)"),
+                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default="+ToString(ann_closeness_ratio)+"), lower is more exigeant)"),
                 aArg
                 );
 
