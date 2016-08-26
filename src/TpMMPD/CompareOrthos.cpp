@@ -249,9 +249,11 @@ int CmpOrthos_main(int argc,char ** argv)
     {
 		aOut = StdPrefixGen(aOrtho1) + "_" + StdPrefixGen(aOrtho2) + ".tif";
 	}
-	
-	VW->DumpImage(aOut);
-	
+
+	#if ELISE_X11
+		VW->DumpImage(aOut);
+	#endif
+
 	//~ Im2D<U_INT1,INT> aResIm = I;
             //~ 
     //~ ELISE_COPY
