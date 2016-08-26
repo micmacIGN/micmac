@@ -25,9 +25,9 @@ void ann_usage()
 	exit(EXIT_FAILURE);
 }
 
-void match_and_filter( vector<DigeoPoint> &io_array0, vector<DigeoPoint> &io_array1, list<V2I> &io_matchedCoupleIndices )
+void match_and_filter( vector<DigeoPoint> &io_array0, vector<DigeoPoint> &io_array1, list<V2I> &io_matchedCoupleIndices, double ann_closeness_ratio )
 {
-	match_lebris( io_array0, io_array1, io_matchedCoupleIndices );
+    match_lebris( io_array0, io_array1, io_matchedCoupleIndices,ann_closeness_ratio );
 
 	if ( !io_matchedCoupleIndices.empty() )
 	{
@@ -70,7 +70,7 @@ void write_matches( const string &aFilename, const vector<DigeoPoint> &aPoints0,
 }
 
 bool process_couple( const string &i_inFilename0, const string &i_inFilename1, string i_outFilename,
-                     bool i_removeMin, bool i_removeMax, bool i_removeUnknown, bool i_noSplitTypes, bool i_useNewFormat )
+                     bool i_removeMin, bool i_removeMax, bool i_removeUnknown, bool i_noSplitTypes, bool i_useNewFormat, double ann_closeness_ratio )
 {
 	if ( i_outFilename.length()==0 )
 	{
@@ -94,7 +94,7 @@ bool process_couple( const string &i_inFilename0, const string &i_inFilename1, s
 	if ( i_noSplitTypes )
 	{
 		list<V2I> matchedCoupleIndices;
-		match_and_filter( allPointsArray0, allPointsArray1, matchedCoupleIndices );
+        match_and_filter( allPointsArray0, allPointsArray1, matchedCoupleIndices, ann_closeness_ratio );
 		//~ write_matches_ascii( i_outFilename, allPointsArray0, allPointsArray1, matchedCoupleIndices );
 		write_matches(i_outFilename, allPointsArray0, allPointsArray1, matchedCoupleIndices, version);
 		totalMatches = matchedCoupleIndices.size();
@@ -108,7 +108,7 @@ bool process_couple( const string &i_inFilename0, const string &i_inFilename1, s
 		{
 			vector<DigeoPoint> &array0 = typedVectors0.m_points[iType],
 			                   &array1 = typedVectors1.m_points[iType];
-			if ( array0.size()!=0 && array1.size()!=0 ) match_and_filter( array0, array1, matchedCoupleIndices[iType] );
+            if ( array0.size()!=0 && array1.size()!=0 ) match_and_filter( array0, array1, matchedCoupleIndices[iType], ann_closeness_ratio );
 			cout << DetectType_to_string( (DigeoPoint::DetectType)iType ) << " : " << matchedCoupleIndices[iType].size() << " matches" << endl;
 
 			//~ write_matches_ascii( i_outFilename, array0, array1, matchedCoupleIndices[iType], iType!=0 );
@@ -137,6 +137,7 @@ int Ann_main( int argc, char **argv )
 	     noSplitTypes = false,
 	     useNewFormat = false;
 	string name0, name1, output_name;
+    float ann_closeness_ratio=SIFT_ANN_DEFAULT_CLOSENESS_RATIO;
 
 	// process arguments
 	for ( int i=1; i<argc; i++ )
@@ -145,8 +146,13 @@ int Ann_main( int argc, char **argv )
 		else if ( strcmp( argv[i], "-ignoreMax" )==0 ) removeMax = true;
 		else if ( strcmp( argv[i], "-ignoreUnknown" )==0 ) removeUnknown = true;
 		else if ( strcmp( argv[i], "-noSplitTypes" )==0 ) noSplitTypes = true;
-		else if ( strcmp( argv[i], "-newFormat" )==0 ) useNewFormat = true;
-		else if ( name0.length()==0 ) name0 = argv[i];
+        else if ( strcmp( argv[i], "-newFormat" )==0 ) useNewFormat = true;
+        else if ( strcmp( argv[i], "-ratio" )==0 )
+        {
+            i++;
+            ann_closeness_ratio=atof(argv[i]);
+        }
+        else if ( name0.length()==0 ) name0 = argv[i];
 		else if ( name1.length()==0 ) name1 = argv[i];
 		else if ( output_name.length()==0 ) output_name = argv[i];
 		else ann_usage();
@@ -170,7 +176,7 @@ int Ann_main( int argc, char **argv )
 			{
 				cout << "processing " << *itFilename0 << ' ' << *itFilename1 << endl;
 
-				if ( !process_couple(directory+*itFilename0, directory+*itFilename1, output_name, removeMin, removeMax, removeUnknown, noSplitTypes, useNewFormat) ) return EXIT_FAILURE;
+                if ( !process_couple(directory+*itFilename0, directory+*itFilename1, output_name, removeMin, removeMax, removeUnknown, noSplitTypes, useNewFormat, ann_closeness_ratio) ) return EXIT_FAILURE;
 
 				itFilename1++;
 			}
@@ -185,5 +191,5 @@ int Ann_main( int argc, char **argv )
 		return EXIT_SUCCESS;
 	}
 
-	return ( process_couple(name0, name1, output_name, removeMin, removeMax, removeUnknown, true, useNewFormat)?EXIT_SUCCESS:EXIT_FAILURE ); // true = noSplitTypes
+    return ( process_couple(name0, name1, output_name, removeMin, removeMax, removeUnknown, true, useNewFormat, ann_closeness_ratio)?EXIT_SUCCESS:EXIT_FAILURE ); // true = noSplitTypes
 }

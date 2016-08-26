@@ -230,6 +230,7 @@ class cAppliPastis : public cAppliBatch
        bool          mIgnoreMin;
        bool          mIgnoreMax;
        bool          mIgnoreUnknown;
+       double         mAnnClosenessRatio;
 
        Pt2dr Homogr1to2(const Pt2dr & aP1)
        {
@@ -294,7 +295,8 @@ void cAppliPastis::GenerateMatch(const std::string & aNI1,const std::string & aN
     aCom =	protect_spaces(g_externalToolHandler.get( mMatchingTool ).callName()) + " " + mMatchingArguments + ' ' +
             protected_named_key1 + std::string(" ") +
             protected_named_key2 + std::string(" ") +
-            mNameAPM;
+            mNameAPM +
+            std::string(" -ratio ") + ToString(mAnnClosenessRatio);
   }
   else if (mModeBin==eModeAutopano)
   {
@@ -936,7 +938,8 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
    mMatchingTool     ( TheStrAnnPP ),
    mIgnoreMin        (false),
    mIgnoreMax        (false),
-   mIgnoreUnknown    (false)
+   mIgnoreUnknown    (false),
+   mAnnClosenessRatio(SIFT_ANN_DEFAULT_CLOSENESS_RATIO)
 {
     mOutputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():DirChantier() );
     std::string aKG12="";
@@ -993,6 +996,8 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
                       << EAM(mIgnoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
                       << EAM(mIgnoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
                       << EAM(mIgnoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
+                      << EAM(mAnnClosenessRatio,"ratio",true)
+
     );
 
     if ( !process_pastis_tool_string( mDetectingTool, mDetectingArguments ) ){
