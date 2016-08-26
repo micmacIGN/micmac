@@ -166,7 +166,7 @@ extern int CPP_Martini_main(int , char **);
 extern int CPP_MartiniGin_main(int , char **);
 
 extern int CPP_SetExif(int argc,char **argv);
-
+extern int CPP_SetGpsExif(int argc,char **argv);
 extern int GenerateAppLiLiaison_main(int argc,char **argv);
 extern int TestNameCalib_main(int argc,char ** argv);
 extern int Init3App_Main(int argc,char ** argv);
@@ -184,7 +184,7 @@ int TiePAll_main(int argc,char ** argv);
 int  OneReechFid_main(int argc,char ** argv);
 
 int TNR_main(int argc,char ** argv);
-int  Apero2NVM_main(int argc,char ** argv);
+int Apero2NVM_main(int argc,char ** argv);
 
 int Vino_Main(int argc, char ** argv);
 int XifGps2Txt_main(int argc,char ** argv);
@@ -442,8 +442,9 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force development of all tif/xif file"));
        aRes.push_back(cMMCom("SetExif",CPP_SetExif,"Modification of exif file (requires exiv2)"));
+       aRes.push_back(cMMCom("SetGpsExif",CPP_SetGpsExif,"Add GPS infos in images exif meta-data",cArgLogCom(2)));
        aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ...",cArgLogCom(2)));
-    aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
+	   aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
 
    }
 
