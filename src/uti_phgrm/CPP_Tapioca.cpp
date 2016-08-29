@@ -273,6 +273,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
     int DoLowRes = 1;
     string detectingTool, matchingTool;
     string ignoreMinMaxStr;
+    double ann_closeness_ratio=SIFT_ANN_DEFAULT_CLOSENESS_RATIO;
 
     ElInitArgMain
             (
@@ -292,7 +293,8 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
 
                 << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
                 << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
-                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
+                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default="+ToString(ann_closeness_ratio)+"), lower is more exigeant)"),
                 aArg
                 );
 
@@ -338,6 +340,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                 +  std::string("ForceByDico=1 ")
                 +  g_toolsOptions
                 +  ignoreMinMaxStr + ' '
+                +  " ratio=" + ToString(ann_closeness_ratio) + ' '
                 +  NKS();
 
         System(aSFR,true);
@@ -355,6 +358,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
 int All(int argc,char ** argv, const std::string &aArg="")
 {
     string detectingTool, matchingTool, ignoreMinMaxStr;
+    double ann_closeness_ratio=SIFT_ANN_DEFAULT_CLOSENESS_RATIO;
 
     ElInitArgMain
             (
@@ -371,7 +375,8 @@ int All(int argc,char ** argv, const std::string &aArg="")
 
                 << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
                 << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
-                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
+                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default="+ToString(ann_closeness_ratio)+"), lower is more exigeant)"),
                 aArg
                 );
 
@@ -391,6 +396,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 +  std::string("ForceByDico=1 ")
                 +  g_toolsOptions
                 +  ignoreMinMaxStr + ' '
+                +  " ratio=" + ToString(ann_closeness_ratio) + ' '
                 +  NKS();
 
 
@@ -413,6 +419,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
     int isCirc = 0;
     string detectingTool, matchingTool, ignoreMinMaxStr;
     std::vector<int> aLineJump;
+    double ann_closeness_ratio=SIFT_ANN_DEFAULT_CLOSENESS_RATIO;
 
     ElInitArgMain
             (
@@ -432,7 +439,8 @@ int Line(int argc,char ** argv, const std::string &aArg="")
 
                 << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
                 << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
-                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
+                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default="+ToString(ann_closeness_ratio)+"), lower is more exigeant)"),
                 aArg
                 );
 
@@ -479,6 +487,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                 +  std::string("ForceByDico=1 ")
                 +  g_toolsOptions
                 +  ignoreMinMaxStr + ' '
+                +  " ratio=" + ToString(ann_closeness_ratio) + ' '
                 +  NKS();
 
         std::cout << aSFR << "\n";
@@ -499,6 +508,7 @@ int Georef(int argc,char ** argv, const std::string &aArg="")
 int File(int argc,char ** argv, const std::string &aArg="")
 {
     string detectingTool, matchingTool, ignoreMinMaxStr;
+    double ann_closeness_ratio=SIFT_ANN_DEFAULT_CLOSENESS_RATIO;
 
     ElInitArgMain
             (
@@ -514,7 +524,8 @@ int File(int argc,char ** argv, const std::string &aArg="")
 
                 << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
                 << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
-                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
+                << EAM(ann_closeness_ratio,"Ratio",true,"ANN closeness ration (default="+ToString(ann_closeness_ratio)+"), lower is more exigeant)"),
                 aArg
                 );
 
@@ -531,6 +542,7 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 +  std::string("ForceByDico=1 ")
                 +  g_toolsOptions
                 +  ignoreMinMaxStr + ' '
+                +  " ratio=" + ToString(ann_closeness_ratio) + ' '
                 +  NKS();
 
 

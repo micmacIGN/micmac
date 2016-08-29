@@ -166,7 +166,7 @@ extern int CPP_Martini_main(int , char **);
 extern int CPP_MartiniGin_main(int , char **);
 
 extern int CPP_SetExif(int argc,char **argv);
-
+extern int CPP_SetGpsExif(int argc,char **argv);
 extern int GenerateAppLiLiaison_main(int argc,char **argv);
 extern int TestNameCalib_main(int argc,char ** argv);
 extern int Init3App_Main(int argc,char ** argv);
@@ -184,7 +184,7 @@ int TiePAll_main(int argc,char ** argv);
 int  OneReechFid_main(int argc,char ** argv);
 
 int TNR_main(int argc,char ** argv);
-int  Apero2NVM_main(int argc,char ** argv);
+int Apero2NVM_main(int argc,char ** argv);
 
 int Vino_Main(int argc, char ** argv);
 int XifGps2Txt_main(int argc,char ** argv);
@@ -442,8 +442,9 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force development of all tif/xif file"));
        aRes.push_back(cMMCom("SetExif",CPP_SetExif,"Modification of exif file (requires exiv2)"));
+       aRes.push_back(cMMCom("SetGpsExif",CPP_SetGpsExif,"Add GPS infos in images exif meta-data",cArgLogCom(2)));
        aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ...",cArgLogCom(2)));
-    aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
+	   aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
 
    }
 
@@ -524,11 +525,13 @@ extern int VisuCoupeEpip_main(int,char **);
 
 int ExoSimulTieP_main(int argc,char** argv);
 int ExoMCI_main(int argc,char** argv);
-int PseudoIntersect_main(int argc,char** argv);
 int ExoCorrelEpip_main(int argc,char ** argv);
+
+int PseudoIntersect_main(int argc,char** argv);
 int ScaleModel_main(int argc,char ** argv);
 int PLY2XYZ_main(int argc,char ** argv);
 int ExportXmlGcp2Txt_main(int argc,char ** argv);
+int ExportXmlGps2Txt_main(int argc,char ** argv);
 int ConvertRtk_main(int argc,char ** argv);
 int MatchCenters_main( int argc,char ** argv);
 int Panache_main(int argc,char ** argv);
@@ -538,6 +541,11 @@ int ExportHemisTM_main(int argc,char ** argv);
 int MatchinImgTM_main(int argc,char ** argv);
 int CorrLA_main(int argc,char ** argv);
 int InterpImgPos_main(int argc,char ** argv);
+int CompareOriTieP_main(int argc,char ** argv);
+int CmpOrthos_main(int argc,char ** argv);
+int CorrOri_main(int argc,char ** argv);
+
+
 int CheckOri_main(int argc,char ** argv);
 int NLD_main(int argc,char ** argv);
 int ResToTxt_main(int argc,char ** argv);
@@ -664,12 +672,14 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercise for correlation in epipolar "));
        aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation  "));
        aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
+       
 	   aRes.push_back(cMMCom("MatchImTM",MatchinImgTM_main,"Matching a Pattern of Images with a GPS TimeMark File",cArgLogCom(2)));
        aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images",cArgLogCom(2)));
        aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning",cArgLogCom(2)));
        aRes.push_back(cMMCom("ScaleModel",ScaleModel_main,"Tool for simple scaling a model",cArgLogCom(2)));
        aRes.push_back(cMMCom("Ply2Xyz",PLY2XYZ_main,"Tool to export in TxT file XYZ columns only from a .ply file",cArgLogCom(2)));
-       aRes.push_back(cMMCom("ExportXmlGcp2Txt",ExportXmlGcp2Txt_main,"Tool to export xml GCPs file to Txt file",cArgLogCom(2)));
+       aRes.push_back(cMMCom("XmlGcp2Txt",ExportXmlGcp2Txt_main,"Tool to export .xml GCPs file to .txt file",cArgLogCom(2)));
+       aRes.push_back(cMMCom("XmlGps2Txt",ExportXmlGps2Txt_main,"Tool to export .xml GPS file to .txt file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Panache",Panache_main,"Tool to export profile along axis given a line draw on Orthoimage",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ConvRtk",ConvertRtk_main,"Tool to extract X_Y_Z_Ix_Iy_Iz from Rtklib output file",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("MatchCenters",MatchCenters_main,"Tool to match Gps positions and Camera Centers",cArgLogCom(2)));
@@ -677,7 +687,12 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CorrLA",CorrLA_main,"Tool to correct camera centers from Lever-Arm offset",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ExportHTM",ExportHemisTM_main,"Tool to export TimeMark Data from Hemisphere Bin01 file",cArgLogCom(2)));
-	   aRes.push_back(cMMCom("InterpImTM",InterpImgPos_main,"Toll to interpolate image position based on TimeMark GPS trajectory",cArgLogCom(2)));	   
+	   aRes.push_back(cMMCom("InterpImTM",InterpImgPos_main,"Tool to interpolate image position based on TimeMark GPS trajectory",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("CmpTieP",CompareOriTieP_main,"Tool to compare deviations between 2 Ori-XXX folders on 3D tie points positions",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("CmpOrthos",CmpOrthos_main,"Tool to compute displacement vectors between 2 Orthos based on Tie Points",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("CorrOri",CorrOri_main,"Tool to correct images centers from a bias and generate new Ori folder",cArgLogCom(2)));
+
+	      
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
 

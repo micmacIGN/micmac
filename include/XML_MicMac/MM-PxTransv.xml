@@ -405,9 +405,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
 -->
 <Section_WorkSpace >
      <WorkDir >  XXX </WorkDir> 
-     <TmpPyr > GeoI-Px/ </TmpPyr>
-     <TmpResult > GeoI-Px/ </TmpResult>
-     <TmpMEC > GeoI-Px/ </TmpMEC>
+     <TmpPyr > ${DirMEC} </TmpPyr>
+     <TmpResult > ${DirMEC} </TmpResult>
+     <TmpMEC > ${DirMEC} </TmpMEC>
 
      <AvalaibleMemory> 1024 </AvalaibleMemory>
      <SzDalleMin>  400 </SzDalleMin>

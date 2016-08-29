@@ -50,19 +50,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cAppliTiepGeo::cAppliTiepGeo(int argc,char **argv) :
     mMasterImStr(""),
-	mCor(0.6),
-    mZoom0(32),
-	mNum(1)
+    mZoom0(16),
+	mNum(6)
 {
-
+	Pt2di aGrid(25,25);
+	double aCor=0.6;
+	int aNbPtsCell=5;
     
 	ElInitArgMain
         (
             argc,argv,
             LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile)
                         << EAMC(mOri,"Orientation directory", eSAM_IsDir),
-            LArgMain()  << EAM(mZoom0, "Zoom0", true, "Zoom init, pow of 2, (Def 32)")
-                        << EAM(mCor, "Cor", true, "Corelation threshold (def 0.6)")
+            LArgMain()  << EAM(aGrid, "Grid", true, "Tie points grid (def [25,25])")
+                        << EAM(mZoom0, "Zoom0", true, "Zoom init, pow of 2, (Def 16)")
+                        << EAM(aCor, "Cor", true, "Corelation threshold (def 0.6)")
          );
 
 
@@ -92,7 +94,7 @@ cAppliTiepGeo::cAppliTiepGeo(int argc,char **argv) :
 		aName = mICNM->StdNameCamGenOfNames(mOri,mFilesIm->at(aK));
 		std::cout << aK << " " << aName << "\n";
 
-		cImageTiepGeo * aC = new cImageTiepGeo(aName);
+		cImageTiepGeo * aC = new cImageTiepGeo( *(this), aName, mFilesIm->at(aK));
 		aC->SetNum(aK);
 
 		mVIm.push_back( aC );
@@ -118,20 +120,23 @@ cAppliTiepGeo::cAppliTiepGeo(int argc,char **argv) :
 			{
 				std::cout << aK1 << "->" << aK2 << "\n";
 				cLnk2ImTiepGeo *aLnk = new cLnk2ImTiepGeo(mVIm[aK1], mVIm[aK2],
-											LocPxFileMatch(mDir, mNum, mZoom0),
-											LocPx2FileMatch(mDir, mNum, mZoom0));
+											aCor, aGrid, aNbPtsCell);
 				AddLnk(aLnk);
 			}
 		}
 	}
+
+
 	std::vector<cLnk2ImTiepGeo *> aV0(mVIm.size(),0);
 	mVVLnk = std::vector<std::vector<cLnk2ImTiepGeo *> >(mVIm.size(),aV0);
-	for (std::list<cLnk2ImTiepGeo *>::const_iterator itL = mLnk2Im.begin(); itL!=mLnk2Im.end() ; itL++)
+	std::list<cLnk2ImTiepGeo *>::const_iterator itL;
+	for (itL = mLnk2Im.begin(); itL!=mLnk2Im.end() ; itL++)
 	{
 		cImageTiepGeo & aI1 = (*itL)->Im1();
 		cImageTiepGeo & aI2 = (*itL)->Im2();
 
 		mVVLnk[aI1.Num()][aI2.Num()] = *itL;
+		
 	}
 
 
@@ -152,25 +157,135 @@ void cAppliTiepGeo::DoMaster()
 void cAppliTiepGeo::AddLnk(cLnk2ImTiepGeo *aLnk)
 {
 	mLnk2Im.push_back(aLnk);
+
 }
 
 void cAppliTiepGeo::DoPx1Px2()
 {
-	int aK;
-	for(aK=0; aK<int(mLnk2Im.size()); aK++)
+	ELISE_ASSERT(mVVLnk.size()>1,"cAppliTiepGeo::DoPx1Px2(); You're trying to process a single image? You need at least a stereo pair");
+
+	//run
+	int aK1, aK2;
+	for(aK1=0; aK1<int(mVVLnk.size()); aK1++)
 	{
+		for(aK2=0; aK2<int(mVVLnk[aK1].size()); aK2++)
+		{
+
+			if( mVVLnk[aK1][aK2] )
+			{
+			
+				std::string aCom;
+				if( mVVLnk[aK1][aK2]->Im1().Num() < mVVLnk[aK1][aK2]->Im2().Num() )
+				{
+					aCom += MM3dBinFile_quotes("MMTestOrient") + 
+                               " "      + mVVLnk[aK1][aK2]->Im1().NameIm() +
+                               " "      + mVVLnk[aK1][aK2]->Im2().NameIm() +
+                               " "      + mOri + " " +
+							   "Zoom0=" + ToString(mZoom0) + " " +  
+							   "ZoomF=" + ToString(mZoom0/2) + " " +
+							   "GB=1 "  + 
+							   "ZMoy="  + ToString(mVVLnk[aK1][aK2]->Im1().AltiSol()) + " " +
+							   "ZInc="  + ToString(mVVLnk[aK1][aK2]->Im1().AltiSolInc()) + " " +
+                               "DirMEC="+ NamePxDir(mVVLnk[aK1][aK2]->Im1().NameIm(),
+													mVVLnk[aK1][aK2]->Im2().NameIm());
+				
+					TopSystem(aCom.c_str());
+				}
+			}
+		
+		}
+
+	}
+
+	//load the Corr, Px1, Px2		
+	/*for(aK1=0; aK1<int(mVVLnk.size()); aK1++)
+	{
+		for(aK2=0; aK2<int(mVVLnk[aK1].size()); aK2++)
+		{
+
+			if( mVVLnk[aK1][aK2] )
+			{
+			
+				if( mVVLnk[aK1][aK2]->Im1().Num() < mVVLnk[aK1][aK2]->Im2().Num() )
+				{
+					mVVLnk[aK1][aK2]->LoadCor();						
+					mVVLnk[aK1][aK2]->LoadPx1();						
+					mVVLnk[aK1][aK2]->LoadPx2();						
+				}
+			}
+		}
+	}*/
+}
+
+const std::string cAppliTiepGeo::NamePxDir(const std::string & aIm1,const std::string & aIm2) const
+{
+	return "GeoI-Px_" + aIm1 + "_" + aIm2 + "/";
+}
+
+void cAppliTiepGeo::GenerateDownScale(int aZoomBegin,int aZoomEnd) const
+{
+	int aZoom, aK;
+	std::list<std::string> aLCom;
+	for (aZoom = aZoomBegin ; aZoom >= aZoomEnd ; aZoom /=2)
+	{
+		for(aK=0; aK<int(mVIm.size()); aK++)
+		{
+			
+			std::string aCom1 = mVIm.at(aK)->ComCreateImDownScale(aZoom);
+			
+			if (aCom1!="") aLCom.push_back(aCom1);
+		}
+
+
 		
 	}
 
+	cEl_GPAO::DoComInParal(aLCom);
+}
+
+void cAppliTiepGeo::DoStereo()
+{
+
+	//generate downscaled images
+	GenerateDownScale(mZoom0/4,2);
+
+	//load the geometry at the lowest pyramid
+	std::map<std::string,tGeoInfo* > aMapGeom;
+
+	//each stereo link
+	std::list<cLnk2ImTiepGeo *>::const_iterator itL = mLnk2Im.begin();
+	for( ; itL != mLnk2Im.end(); itL++)
+	{
+		std::string aIm = (*itL)->Im1().NameIm();
+		std::string aGeoIx = mDir + NamePxDir((*itL)->Im1().NameIm(), (*itL)->Im2().NameIm());
+		std::string aCor = LocCorFileMatch(aGeoIx, mNum);
+		std::string aPx1 = LocPxFileMatch(aGeoIx, mNum, mZoom0/2);
+		std::string aPx2 = LocPx2FileMatch(aGeoIx, mNum, mZoom0/2);
 		
+		aMapGeom[aIm] = new tGeoInfo( aCor, aPx1, aPx2);
+		
+		(*itL)->LoadGeom(aMapGeom[aIm]);
+
+		(*itL)->BestScoresInGrid();		
+
+	}
 }
 
 void cAppliTiepGeo::DoTapioca()
-{}
+{
+	/* very simple to start with ..
+		(a) process pairs (and all their links) independently 
+		(b) merge the points topologically into multiple points */
+
+	DoStereo();
+
+
+}
 
 void cAppliTiepGeo::Exe()
 {
-    DoPx1Px2();
+	if(0)//done for my test dataset
+		DoPx1Px2();
 
     DoTapioca();
 }

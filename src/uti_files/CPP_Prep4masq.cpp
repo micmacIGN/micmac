@@ -171,6 +171,351 @@ int CPP_SetExif(int argc,char **argv)
 }
 
 
+/***********************************************************************/
+/*
+--> GPS Version ID                  : 2.2.0.0
+--> GPS Latitude Ref                : North
+--> GPS Longitude Ref               : East
+--> GPS Altitude Ref                : Above Sea Level
+GPS Time Stamp                  : 12:21:40
+GPS Status                      : Unknown ()
+GPS Measure Mode                : 3-Dimensional Measurement
+GPS Dilution Of Precision       : 0
+GPS Speed Ref                   : Unknown ()
+GPS Speed                       : 0
+GPS Track Ref                   : Unknown ()
+GPS Track                       : 0
+GPS Img Direction Ref           : Magnetic North
+GPS Img Direction               : 29.7
+GPS Map Datum                   : WGS-84
+GPS Dest Latitude Ref           : Unknown ()
+GPS Dest Latitude               : 0 deg 0' 0.00"
+GPS Dest Longitude Ref          : Unknown ()
+GPS Dest Longitude              : 0 deg 0' 0.00"
+GPS Dest Bearing Ref            : Unknown ()
+GPS Dest Bearing                : 0
+GPS Dest Distance Ref           : Unknown ()
+GPS Dest Distance               : 0
+GPS Date Stamp                  : 2013:08:23
+--> GPS Altitude                    : 201.7 m Above Sea Level
+GPS Date/Time                   : 2013:08:23 12:21:40Z
+--> GPS Latitude                    : 43 deg 26' 44.80" N
+--> GPS Longitude                   : 1 deg 22' 40.63" E
+GPS Position                    : 43 deg 26' 44.80" N, 1 deg 22' 40.63" E
+*/
+/***********************************************************************/
+
+class cAppli_AddGpsData2Xif
+{
+	public :
+		cAppli_AddGpsData2Xif(int argc,char ** argv);
+		std::vector<CamStenope *> readOri(std::string Ori, const std::vector<std::string> aSetOfIm, cInterfChantierNameManipulateur * ICNM);
+		std::vector<Pt3dr> Cam2Pos(std::vector<CamStenope *> aVCam);
+		std::vector<std::string> Cart2Geo(std::vector<Pt3dr> aVPts, std::string aFormat);
+		std::vector<std::string> Geo2Geo(std::vector<Pt3dr> aVPts, std::string aFormat);
+		std::string GenXifPosFromData(double aLat, double aLon);
+		std::string GetLat(std::string aS);
+		std::string GetLon(std::string aS);
+		std::string GetAlt(double aVal);
+		std::string SigneOfLL(double aVal, std::string aL);
+		
+	private :
+		std::string mFormat;
+		std::string mFullPat;
+		std::string mOri;
+};
+
+std::string cAppli_AddGpsData2Xif::GetAlt(double aVal)
+{
+	std::string aSAlt;
+	int aMult=1000;
+	
+	char aBuffer[100];
+	
+	sprintf(aBuffer,"%d/%d",static_cast<unsigned int>(aVal*aMult),aMult);
+	
+	aSAlt=aBuffer;
+	
+	return aSAlt;
+}
+
+std::string cAppli_AddGpsData2Xif::GetLat(std::string aS)
+{
+	std::string aSLat;
+	
+	std::size_t aPos = aS.find(",");
+	
+	aSLat = aS.substr(0,aPos);
+	
+	return aSLat;
+}
+
+std::string cAppli_AddGpsData2Xif::GetLon(std::string aS)
+{
+	std::string aSLat;
+	
+	std::size_t aPos = aS.find(",");
+	
+	aSLat = aS.substr(aPos+1,aS.size());
+	
+	return aSLat;
+}
+
+std::string cAppli_AddGpsData2Xif::SigneOfLL(double aVal, std::string aL)
+{
+	std::string aS = "";
+	
+	if(aVal < 0 && aL == "Lat")
+	{
+		aS = "S";
+	}
+	else if(aVal > 0 && aL == "Lat")
+	{
+		aS = "N";
+	}
+	else if(aVal < 0 && aL == "Lon")
+	{
+		aS = "W";
+	}
+	else if(aVal > 0 && aL == "Lon")
+	{
+		aS = "E";
+	}
+	else
+	{
+		ELISE_ASSERT(false,"Bad value in cAppli_AddGpsData2Xif::SigneOfLL");
+	}
+	
+	return aS;
+}
+
+std::string cAppli_AddGpsData2Xif::GenXifPosFromData(double aLat, double aLon)
+{
+	std::string aS;
+	
+	int aMult=1000000;
+	
+	double aLatD = trunc(aLat);
+	//~ std::cout << "aLatD = " << aLatD << std::endl;
+	double aLatM = trunc((aLat - aLatD)*60);
+	//~ std::cout << "aLatM = " << aLatM << std::endl;
+	double aLatS = ((aLat-aLatD)*60 - aLatM)*60;
+	//~ std::cout << "aLatS = " << aLatS << std::endl;
+	
+	double aLonD = trunc(aLon);
+	//~ std::cout << "aLonD = " << aLonD << std::endl;
+	double aLonM = trunc((aLon-aLonD)*60);
+	//~ std::cout << "aLonM = " << aLonM << std::endl;
+	double aLonS = ((aLon-aLonD)*60 - aLonM)*60;
+	//~ std::cout << "aLonS = " << aLonS << std::endl;
+	
+	char aBuffer[100];
+	sprintf(
+			aBuffer, 
+			"%d/1 %d/1 %d/%d, %d/1 %d/1 %d/%d",
+	         static_cast<unsigned int>(abs(aLatD)),
+	         static_cast<unsigned int>(abs(aLatM)),
+	         static_cast<unsigned int>(abs(aLatS*aMult)),
+	         aMult,
+	         static_cast<unsigned int>(abs(aLonD)),
+	         static_cast<unsigned int>(abs(aLonM)),
+	         static_cast<unsigned int>(abs(aLonS*aMult)),
+	         aMult
+	         );
+	
+	aS = aBuffer;
+	std::cout << "aS = " << aS << std::endl;
+	return aS;
+}
+
+std::vector<std::string> cAppli_AddGpsData2Xif::Geo2Geo(std::vector<Pt3dr> aVPts, std::string aFormat)
+{
+	std::vector<std::string> aVS;
+	
+	if(aFormat=="WGS84_deg")
+	{
+		for(unsigned int aK=0; aK<aVPts.size(); aK++)
+		{
+			std::string aS = GenXifPosFromData(aVPts.at(aK).x,aVPts.at(aK).y);
+			aVS.push_back(aS);
+		}
+	}
+	
+	else if(aFormat=="WGS84_rad")
+	{
+		for(unsigned int aK=0; aK<aVPts.size(); aK++)
+		{
+			std::string aS = GenXifPosFromData(aVPts.at(aK).x*180/PI,aVPts.at(aK).y*180/PI);
+			aVS.push_back(aS);
+		}
+	}
+	
+	else
+	{
+		ELISE_ASSERT(false,"Bad format value in cAppli_AddGpsData2Xif::Geo2Geo");
+	}
+	
+	return aVS;
+}
+
+std::vector<std::string> cAppli_AddGpsData2Xif::Cart2Geo(std::vector<Pt3dr> aVPts, std::string aFormat)
+{
+	std::vector<std::string> aVS;
+	
+	if(aFormat=="GeoC")
+	{
+		cChSysCo * aCSC = 0;
+		aCSC = cChSysCo::Alloc("GeoC@WGS84","");
+	    if(aCSC!=0)
+		{
+			aVPts = aCSC->Src2Cibl(aVPts);
+		}
+		else
+		{
+			ELISE_ASSERT(false,"Bad format value in cChSysCo::Alloc");
+		}
+		
+		aVS = Geo2Geo(aVPts,"WGS84_deg");
+	}
+	
+	else
+	{
+		ELISE_ASSERT(false,"Bad format value in cAppli_AddGpsData2Xif::Cart2Geo");
+	}
+	
+	return aVS;
+}
+
+std::vector<Pt3dr> cAppli_AddGpsData2Xif::Cam2Pos(std::vector<CamStenope *> aVCam)
+{
+	std::vector<Pt3dr> aVPts;
+	
+	for (unsigned int aK=0; aK<aVCam.size(); aK++)
+	{
+		Pt3dr aPt;
+		aPt.x = aVCam.at(aK)->PseudoOpticalCenter().x;
+		aPt.y = aVCam.at(aK)->PseudoOpticalCenter().y;
+		aPt.z = aVCam.at(aK)->PseudoOpticalCenter().z;
+		
+		aVPts.push_back(aPt);
+	}
+	
+	return aVPts;
+}
+
+std::vector<CamStenope *> cAppli_AddGpsData2Xif::readOri(std::string Ori, const std::vector<std::string> aSetOfIm, cInterfChantierNameManipulateur * ICNM)
+{
+	std::vector<std::string> aVOriFiles(aSetOfIm.size());
+    std::vector<CamStenope *> aVCam(aSetOfIm.size());
+    
+    for (unsigned int aK=0; aK<aSetOfIm.size(); aK++)
+    {
+		aVOriFiles.at(aK) = Ori+"Orientation-"+aSetOfIm.at(aK)+".xml";
+		aVCam.at(aK) = CamOrientGenFromFile(aVOriFiles.at(aK),ICNM);
+	}
+	
+	return aVCam;
+}
+
+cAppli_AddGpsData2Xif::cAppli_AddGpsData2Xif(int argc,char ** argv)
+{
+	std::string aDirImages, aPatIm, aGpsVId="2.2.0.0", aGpsTimeStamp="", aGpsLatRef="", aGpsLonRef=""; 
+	bool aGpsAltRef=0; 
+	bool aPurge=true;
+	
+	ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(mFormat, "Input positions format : WGS84_rad ? WGS84_deg ? GeoC")
+					<< EAMC(mFullPat,"Pattern of images", eSAM_IsPatFile)
+					<< EAMC(mOri,"Input Ori-folder",eSAM_IsExistDirOri),
+        LArgMain()  << EAM(aGpsVId,"GpsVId",false,"GPS Version ID ; Def=2.2.0.0")
+					<< EAM(aGpsLatRef,"LatRef",false,"GPS Latitude Ref")
+					<< EAM(aGpsLonRef,"LonRef",false,"GPS Longitude Ref")
+					<< EAM(aGpsAltRef,"AltRef",false,"GPS Altitude Ref ; Def=0 Above Sea Level (1=Below)",eSAM_IsBool)
+					<< EAM(aGpsTimeStamp,"TimeStamp",false,"GPS Time Stamp ; (In Dev)")
+					<< EAM(aPurge,"Purge",true,"Purge .xml & .dmp created files in Tmp-MM-Dir")
+    );
+    
+    if(mFormat != "WGS84_rad" && mFormat != "WGS84_deg" && mFormat !="GeoC")
+	{
+		ELISE_ASSERT(false,"The value of Sys is incorrect ; try 'WGS84_rad' or 'WGS84_deg' or 'GeoC'");
+	}
+    
+    SplitDirAndFile(aDirImages,aPatIm,mFullPat);
+    
+    std::cout<<"Working dir: "<<aDirImages<<std::endl;
+    std::cout<<"Images pattern: "<<aPatIm<<std::endl;
+    
+    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
+    
+    //read ori directory
+    std::vector<CamStenope *> aVCam = readOri(mOri, aSetIm, aICNM);
+    
+    //get positions
+    std::vector<Pt3dr> aVPts = Cam2Pos(aVCam);
+    
+    //check their format
+    std::vector<std::string> aVS;
+    
+    if(mFormat=="GeoC")
+    {
+		aVS = Cart2Geo(aVPts,mFormat);
+	}
+	else if(mFormat=="WGS84_deg")
+	{
+		aVS = Geo2Geo(aVPts,mFormat);
+	}
+	else if(mFormat=="WGS84_rad")
+	{
+		aVS = Geo2Geo(aVPts,mFormat);
+	}
+	else
+	{
+		ELISE_ASSERT(false,"The value of Sys is incorrect ; try 'WGS84_rad' or 'WGS84_deg' or 'GeoC'");
+	}
+		
+	//if Ref Given same for all images
+	if(aGpsLatRef == "")
+	{
+		aGpsLatRef = SigneOfLL(aVPts.at(0).x,"Lat");
+	}
+	
+	if(aGpsLonRef == "")
+	{
+		aGpsLonRef = SigneOfLL(aVPts.at(0).y,"Lon");
+	}
+    
+    //build good exiv2 format commands
+    for(unsigned int aK=0; aK<aSetIm.size(); aK++)
+    {
+		
+		std::string aCom = "exiv2 -M" +
+							std::string("\"set Exif.GPSInfo.GPSLatitude ") +
+							GetLat(aVS.at(aK)) + std::string("\" -M") +
+							std::string("\"set Exif.GPSInfo.GPSLongitude ") +
+							GetLon(aVS.at(aK)) + "\" -M" +
+							std::string("\"set Exif.GPSInfo.GPSLatitudeRef ") +
+							aGpsLatRef + "\" -M" +
+							std::string("\"set Exif.GPSInfo.GPSLongitudeRef ") +
+							aGpsLonRef + std::string("\" -M") +
+							std::string("\"set Exif.GPSInfo.GPSAltitude ") +
+							GetAlt(aVPts.at(aK).z) + std::string("\" ") +
+							//std::string("\"set Exif.GPSInfo.GPSAltitudeRef ") +
+							
+							aSetIm.at(aK);
+		
+		System(aCom);				
+		//~ std::cout << "aCom = " << aCom << std::endl;
+	}
+}
+
+int CPP_SetGpsExif(int argc,char **argv)
+{
+	cAppli_AddGpsData2Xif anAppli(argc,argv);
+	return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
