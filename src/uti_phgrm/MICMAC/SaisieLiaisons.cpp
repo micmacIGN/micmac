@@ -586,7 +586,7 @@ void  TestScroller::Profil(Im2D_REAL4 aIm,Pt2dr aP0,Pt2dr aP1,INT aCoul)
    std::vector<Pt2dr> aVPts;
    for (INT aK=0 ; aK<=aNb ; aK++)
    {
-       REAL aY = aSzWP.y * (0.5 + (aVVals[aK]-aS1)/aS2 * 0.3);
+       REAL aY = aSzWP.y * (0.5 + (aVVals[aK]-aS1)/aS2 * 0.2);
        aVPts.push_back(Pt2dr(aK,aY));
    }
    for (INT aK=0 ; aK<aNb ; aK++)
