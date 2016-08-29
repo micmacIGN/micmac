@@ -91,6 +91,23 @@ int Blinis_main(int argc,char ** argv)
 }
 
 
+/***********************************************************************/
+
+class cOneImBrion
+{
+    public :
+    private :
+        std::string  mName; 
+        CamStenope   * mCalib;
+};
+
+class cAppli_Brion   // Block Rigid Initialisation des Orientation Normale
+{
+    public :
+    private :
+       cStructBlockCam  mBlock;
+};
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
