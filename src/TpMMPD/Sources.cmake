@@ -4,7 +4,6 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/TD_Exemple.cpp
 	${TDPPMD_DIR}/cTD_Im.cpp
 	${TDPPMD_DIR}/ExoMM_CorrelMulImage.cpp
-	#${TDPPMD_DIR}/cExoMM_CorrelMulImage.cpp 
 	${TDPPMD_DIR}/Match1.cpp
 	${TDPPMD_DIR}/ExoMM_SimulTieP.cpp
 	${TDPPMD_DIR}/ServiceGeoSud.cpp
@@ -26,7 +25,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ScaleModel.cpp
 	${TDPPMD_DIR}/ImageSimpleProjection.cpp
 	${TDPPMD_DIR}/PLY2XYZ.cpp
-    ${TDPPMD_DIR}/ExportXmlGcp2Txt.cpp
+    ${TDPPMD_DIR}/ExportXml2Txt.cpp
     ${TDPPMD_DIR}/Panache.cpp
     ${TDPPMD_DIR}/TestStephane.cpp
     ${TDPPMD_DIR}/TD_Exo.cpp
@@ -37,6 +36,8 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/ExportHemisTM.cpp
     ${TDPPMD_DIR}/MatchImgTM.cpp
     ${TDPPMD_DIR}/InterpImgPos.cpp
+    ${TDPPMD_DIR}/CompareOriTieP.cpp
+    ${TDPPMD_DIR}/CompareOrthos.cpp
     ${TDPPMD_DIR}/TiePByMesh/PHO_MI.cpp
     ${TDPPMD_DIR}/TiePByMesh/InitOutil.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiePByMesh_main.cpp

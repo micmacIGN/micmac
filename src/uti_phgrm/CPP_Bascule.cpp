@@ -386,7 +386,9 @@ class cAppliCorrecCamFromLA_main : public cAppliWithSetImage
     public :
           cAppliCorrecCamFromLA_main(int argc,char ** argv);
     private :
-         std::string mDir,mPat,mOriFull;
+         std::string mDir;
+         std::string mPat;
+         std::string mOriFull;
          Pt3dr mLA;
          std::string mOriOut;
          std::string mOri2;
@@ -411,6 +413,7 @@ cAppliCorrecCamFromLA_main::cAppliCorrecCamFromLA_main(int argc,char ** argv) :
    SplitDirAndFile(mDir,mPat,mEASF.mFullName);
    
    StdCorrecNameOrient(mOriFull,mDir);
+   
    if(mOriOut == "")
    {
 		mOriOut = mOriFull + "-CorrLA" ;
@@ -432,8 +435,8 @@ cAppliCorrecCamFromLA_main::cAppliCorrecCamFromLA_main(int argc,char ** argv) :
        MakeFileXML(anOC,aNameOut);
    }
    
-   
    mICNM2 = mEASF.mICNM;
+   
    if(EAMIsInit(&mOri2))
    {
        mICNM2 = cInterfChantierNameManipulateur::BasicAlloc(mOri2);
@@ -467,6 +470,67 @@ int CorrLA_main(int argc,char ** argv)
 {
     cAppliCorrecCamFromLA_main anAppli(argc,argv);
     return EXIT_SUCCESS;
+}
+
+//  =============================================
+
+class cAppliCorrOriFromBias_main : public cAppliWithSetImage
+{
+	public :
+		cAppliCorrOriFromBias_main(int argc,char ** argv);
+	private :
+		std::string mDir;
+		std::string mPat;
+		std::string mOriFull;
+		Pt3dr mBias;
+		std::string mOriOut;
+		cInterfChantierNameManipulateur * mICNM2;
+};
+
+cAppliCorrOriFromBias_main::cAppliCorrOriFromBias_main(int argc,char ** argv) :
+	cAppliWithSetImage(argc-1,argv+1,0)
+{
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)",eSAM_IsPatFile)
+                    << EAMC(mOriFull,"Directory orientation", eSAM_IsExistDirOri)
+                    << EAMC(mBias,"Bias value"),
+        LArgMain()  << EAM(mOriOut,"OriOut",true,"Output Ori Name of corrected mandatory Ori ; Def=OriName-Corr")
+   );
+   
+   SplitDirAndFile(mDir,mPat,mEASF.mFullName);
+   
+   StdCorrecNameOrient(mOriFull,mDir);
+   
+   if(mOriOut == "")
+   {
+		mOriOut = mOriFull + "-Corr" ;
+   }
+   
+   std::string aKey = "NKS-Assoc-Im2Orient@-" + mOriOut;
+   
+	for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+	{
+       CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;
+       
+       Pt3dr aPtCorr;
+       aPtCorr.x = mBias.x + aCS->PseudoOpticalCenter().x;
+       aPtCorr.y = mBias.y + aCS->PseudoOpticalCenter().y;
+       aPtCorr.z = mBias.z + aCS->PseudoOpticalCenter().z;
+       
+       ElRotation3D anOriC(aPtCorr,aCS->Orient().Mat().transpose(),false);
+       aCS->SetOrientation(anOriC.inv());
+       cOrientationConique  anOC = aCS->StdExportCalibGlob();
+       std::string aNameOut = mEASF.mICNM->Assoc1To1(aKey,mVSoms[aK]->attr().mIma->mNameIm,true);
+       MakeFileXML(anOC,aNameOut);
+	}
+}
+
+int CorrOri_main(int argc,char ** argv)
+{
+	cAppliCorrOriFromBias_main anAppli(argc,argv);
+	return EXIT_SUCCESS;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -44,49 +44,102 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+//AAAAAclass cPMulTiepGeo;
+struct cMultiResPts;
 class cLnk2ImTiepGeo;
 class cImageTiepGeo;
-//AAAAAclass cPMulTiepGeo;
 class cAppliTiepGeo;
 
-//class cImageGridGeo;
+
+
+struct tMultiResPts
+{
+	std::vector<Pt2dr> mPt;
+	std::vector<int>   mDeZoom;
+};
+
+class tGeoInfo
+{
+	public:
+		tGeoInfo(std::string &aCorName, std::string &aPx1Name, std::string &aPx2Name): 
+			mCor(aCorName.c_str()),
+			mPx1(aPx1Name.c_str()),
+			mPx2(aPx2Name.c_str())
+			{};
+
+		Tiff_Im mCor;
+		Tiff_Im mPx1;
+		Tiff_Im mPx2;
+};
 
 class cImageTiepGeo
 {
     public:
 
-        cImageTiepGeo(const std::string & aName);
+        cImageTiepGeo(cAppliTiepGeo & aAppli, const std::string & aNameOri, std::string aNameIm="");
 		
 		const Box2dr & BoxSol() const;
 		bool		   HasInter(const cImageTiepGeo & aIm2) const;
-		
+		double		   AltiSol() const;
+		int			   AltiSolInc() const;
+	
+		const Pt2di SzBasicCapt3D() const;
+		const std::string & NameIm();
 		const int & Num() const;
 		void SetNum(int &aNum);
 
+		std::string ComCreateImDownScale(double aScale) const;
+
     private:
+		std::string NameFileDownScale(double aScale) const;
+
+		cAppliTiepGeo & mAppli;
+
         CameraRPC * mCamRPC;
-		int         mNum;	
+		int         mNum;
+
+		std::string mNameIm;	
 };
+
 
 class cLnk2ImTiepGeo
 {
     public:
-        cLnk2ImTiepGeo(cImageTiepGeo *aIm1, cImageTiepGeo *aIm2, const std::string &aPx1Name, const std::string &aPx2Name);
+        cLnk2ImTiepGeo(cImageTiepGeo *aIm1, cImageTiepGeo *aIm2, 
+					   const double &aMinCor,
+					   const Pt2di  &aGrid,
+					   const int    &aNbPtsCell);
+
+		void	BestScoresInGrid();
 
 
 		cImageTiepGeo & Im1();
 		cImageTiepGeo & Im2();
+		
+		void LoadGeom(tGeoInfo * aGeometry);
+    
+	private:
 
-    private:
-        cImageTiepGeo * mIm1;
-        cImageTiepGeo * mIm2;
+
+		void BestScoresInCell(Pt2di & aOrg, Pt2di & aSz,
+							  std::vector<tMultiResPts> & aMRPts);
         
-        //Tiff_Im         mPx1;
-        //Tiff_Im         mPx2;
-        const std::string mPx1Name;
-        const std::string mPx2Name;
 
-        //add found homol points
+
+		cImageTiepGeo * mIm1;
+        cImageTiepGeo * mIm2;
+		
+		tGeoInfo * mGeometry; 
+
+		double mMinCor;
+		Pt2di mGrid;
+		int NbPtsCell;
+		
+        //homologous points (consistent with tMergeStr)
+		std::vector<Pt2df> mVP1; 
+		std::vector<Pt2df> mVP2; 
+		std::vector<Pt2df>  mVPPrec1;
+		std::vector<Pt2df>  mVPPrec2;
 };
 
 class cAppliTiepGeo
@@ -96,12 +149,19 @@ class cAppliTiepGeo
 
         void Exe();
 
+        std::string  mDir;
+		
     private :
 		void DoMaster();
         void DoPx1Px2();
         void DoTapioca();
+		void DoStereo();
+
+		void GenerateDownScale(int aZoomBegin,int aZoomEnd) const;
         
         const std::string  & Dir() const;
+		const std::string    NamePxDir(const std::string & aIm1,const std::string & aIm2) const;
+
 
 		void AddLnk(cLnk2ImTiepGeo *);
 
@@ -115,16 +175,17 @@ class cAppliTiepGeo
         std::list<cLnk2ImTiepGeo *>					mLnk2Im;//not yet sure if necessary
         std::vector<std::vector<cLnk2ImTiepGeo *> > mVVLnk;
     
-        double mCor;
+
         int mZoom0;
 		int mNum;
+
 
         cInterfChantierNameManipulateur* mICNM;
         const std::vector<std::string> * mFilesIm;
 
         std::string  mPatImage;
         std::string  mOri;
-        std::string  mDir;
+
 };
 
 

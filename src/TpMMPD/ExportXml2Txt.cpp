@@ -41,34 +41,39 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int ExportXmlGcp2Txt_main(int argc,char ** argv)
 {
-	std::string aFile, aDir, aOut="Output.txt";
+	std::string aFile, aDir, aOut;
 	bool addInc = false;
 	
 	ElInitArgMain
     (
           argc, argv,
           LArgMain() << EAMC(aDir, "Directory")
-					 << EAMC(aFile, "xml Gcps file",  eSAM_IsExistFile),
-          LArgMain() << EAM(aOut,"Out",false,"output txt file name : def=Output.txt")
-					 << EAM(addInc,"addInc",false,"export also uncertainty values : def=flase",eSAM_IsBool)
+					 << EAMC(aFile, ".xml GCPs file",  eSAM_IsExistFile),
+          LArgMain() << EAM(aOut,"Out",false,"Output .txt file name ; Def=File.txt")
+					 << EAM(addInc,"addInc",false,"Export also uncertainty values ; Def=false",eSAM_IsBool)
     );
+    
+    if(aOut=="")
+    {
+		aOut = StdPrefixGen(aFile) + ".txt";
+	}
     
     //read .xml file
     cDicoAppuisFlottant aDico = StdGetFromPCP(aFile,DicoAppuisFlottant);
 	std::list<cOneAppuisDAF> aOneAppuisDAFList = aDico.OneAppuisDAF();
 	
 	//write data in .txt file
-	if (!MMVisualMode)
+	if(!MMVisualMode)
 	{
-		FILE * aFP = FopenNN(aOut,"w","OrthoShifting_main");
+		FILE * aFP = FopenNN(aOut,"w","ExportXmlGcp2Txt_main");
 		cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOut);
 		
 		for (std::list<cOneAppuisDAF>::iterator itP=aOneAppuisDAFList.begin(); itP != aOneAppuisDAFList.end(); itP ++)
 		{
-			fprintf(aFP,"%s %.5f %.5f %.5f", itP->NamePt().c_str(), itP->Pt().x, itP->Pt().y, itP->Pt().z);
+			fprintf(aFP,"%s %lf %lf %lf", itP->NamePt().c_str(), itP->Pt().x, itP->Pt().y, itP->Pt().z);
 			
 			if(addInc)
-				fprintf(aFP,"%.5f %.5f %.5f\n", itP->Incertitude().x, itP->Incertitude().y, itP->Incertitude().z);
+				fprintf(aFP,"%lf %lf %lf\n", itP->Incertitude().x, itP->Incertitude().y, itP->Incertitude().z);
 			else
 				fprintf(aFP,"\n");
 		}
@@ -76,6 +81,55 @@ int ExportXmlGcp2Txt_main(int argc,char ** argv)
 		ElFclose(aFP);
 	}
     
+	return EXIT_SUCCESS;
+}
+
+int ExportXmlGps2Txt_main(int argc,char ** argv)
+{
+	std::string aFile, aDir, aOut;
+	bool addInc = false;
+	bool addQI = false;
+	
+	ElInitArgMain
+    (
+          argc, argv,
+          LArgMain() << EAMC(aDir, "Directory")
+					 << EAMC(aFile, "xml GPS file",  eSAM_IsExistFile),
+          LArgMain() << EAM(aOut,"Out",false,"output txt file name : def=File.txt")
+					 << EAM(addInc,"addInc",false,"Export also uncertainty values ; Def=false",eSAM_IsBool)
+					 << EAM(addQI,"addQI",false,"Export also Quality Indicator values ; Def=false",eSAM_IsBool)
+    );
+    
+    //read .xml file
+    cDicoGpsFlottant aDico = StdGetFromPCP(aFile,DicoGpsFlottant);
+    std::list<cOneGpsDGF> aOneGpsDAFList = aDico.OneGpsDGF();
+    
+    //write data in .txt file
+    if(!MMVisualMode)
+    {
+		FILE * aFP = FopenNN(aOut,"w","ExportXmlGps2Txt_main");
+		cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOut);
+		
+		for (std::list<cOneGpsDGF>::iterator itP=aOneGpsDAFList.begin(); itP != aOneGpsDAFList.end(); itP ++)
+		{
+			fprintf(aFP, "%s %lf %lf %lf %lf",itP->NamePt().c_str(), itP->TimePt(), itP->Pt().x, itP->Pt().y, itP->Pt().z);
+			
+			if(addInc)
+			{
+				fprintf(aFP,"%lf %lf %lf\n", itP->Incertitude().x, itP->Incertitude().y, itP->Incertitude().z);
+			}
+			else if(addQI)
+			{
+				fprintf(aFP,"%d", itP->TagPt());
+			}
+			else
+				fprintf(aFP,"\n");
+		}
+		
+		ElFclose(aFP);
+		
+	}
+	
 	return EXIT_SUCCESS;
 }
 

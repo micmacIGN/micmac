@@ -47,7 +47,7 @@ Detector::Detector( string typeDetector, vector<double> paramDetector,
                     string nameImg,
                     Im2D<unsigned char, int> * img = NULL ,
                     InitOutil * aChain = NULL
-                    )
+                   )
 {
     mTypeDetector = typeDetector;
     mParamDetector = paramDetector;
@@ -135,28 +135,82 @@ void Detector::saveResultToDiskTypeDigeo(string aDir = "./")
     if ( !DigeoPoint::writeDigeoFile(aPtsInteretOutDirName + outDigeoFile, points))
         ELISE_ERROR_EXIT("failed to write digeo file [" << outDigeoFile << "]");
 }
-int Detector::detect()
+
+void Detector::saveResultToDiskTypeElHomo(string aDir = "./")
+{
+    if (mPtsInterest.size() == 0)
+        cout<<"+++ +++ WARNING +++ +++ : NO POINTS INTEREST TO SAVE"<<endl;
+    string outElHomoFile =  mNameImg + "_" + mTypeDetector + ".dat";
+     ElPackHomologue aPackOut;
+    for (uint i=0; i<mPtsInterest.size(); i++)
+    {
+        ElCplePtsHomologues aCplPts(mPtsInterest[i], mPtsInterest[i]);
+        aPackOut.Cple_Add(aCplPts);
+    }
+    string aPtsInteretOutDirName;
+    if (mChain != NULL)
+        aPtsInteretOutDirName=mChain->getPrivmICNM()->Dir()+"PtsInteret/";
+    else
+        aPtsInteretOutDirName = aDir + "PtsInteret/";
+    if(!(ELISE_fp::IsDirectory(aPtsInteretOutDirName)))
+        ELISE_fp::MkDir(aPtsInteretOutDirName);
+    aPackOut.StdPutInFile(aPtsInteretOutDirName + outElHomoFile);
+}
+
+int Detector::detect(bool useTypeFileDigeo)
 {
     int temp=0;
-    if (mTypeDetector == "FAST")
+
+    string outDigeoFile =  mNameImg + "_" + mTypeDetector + ".dat";
+    string aPtsInteretOutDirName; string aDir = "./";
+    if (mChain != NULL)
+        aDir = mChain->getPrivmICNM()->Dir();
+    else
+        aDir = "./";
+    aPtsInteretOutDirName=aDir+"PtsInteret/";
+    string aHomoIn = aPtsInteretOutDirName + outDigeoFile;
+    bool Exist= ELISE_fp::exist_file(aHomoIn);
+    if (Exist)
     {
-        Fast aDetecteur(mParamDetector[0], 3);
-        aDetecteur.detect(*mImg, mPtsInterest);
-        this->saveResultToDiskTypeDigeo();
+        cout<<" Found Pack Pts Interet : "<< aHomoIn<<endl;
+        if (useTypeFileDigeo)
+            readResultDetectFromFileDigeo(aHomoIn);
+        else
+            readResultDetectFromFileElHomo(aHomoIn);
     }
-    if (mTypeDetector == "DIGEO")
+    else
     {
-        string outDigeoFile =  mNameImg + "_DIGEO.dat";
-        string command_Digeo = "mm3d Digeo "+mNameImg+" -o "+outDigeoFile;
-        temp = system(command_Digeo.c_str());
-        readResultDetectFromFileDigeo(outDigeoFile);
-        this->saveResultToDiskTypeDigeo();
-        ELISE_fp::RmFileIfExist(outDigeoFile);
-    }
-    if (mTypeDetector == "HOMOLINIT")
-    {
-        this->importFromHomolInit(mPic2);
-        this->saveResultToDiskTypeDigeo();
+        if (mTypeDetector == "FAST")
+        {
+            if (mParamDetector.size() == 0)
+                {cout<<"ERROR : please saisir parameter for FAST detector (dParam)"<<endl;}
+            Fast aDetecteur(mParamDetector[0], 3);
+            aDetecteur.detect(*mImg, mPtsInterest);
+            if (useTypeFileDigeo)
+                this->saveResultToDiskTypeDigeo();
+            else
+                this->saveResultToDiskTypeElHomo();
+        }
+        if (mTypeDetector == "DIGEO")
+        {
+            string outDigeoFile =  mNameImg + "_DIGEO.dat";
+            string command_Digeo = "mm3d Digeo "+mNameImg+" -o "+outDigeoFile;
+            temp = system(command_Digeo.c_str());
+            readResultDetectFromFileDigeo(outDigeoFile);
+            if (useTypeFileDigeo)
+                this->saveResultToDiskTypeDigeo();
+            else
+                this->saveResultToDiskTypeElHomo();
+            ELISE_fp::RmFileIfExist(outDigeoFile);
+        }
+        if (mTypeDetector == "HOMOLINIT")
+        {
+            this->importFromHomolInit(mPic2);
+            if (useTypeFileDigeo)
+                this->saveResultToDiskTypeDigeo();
+            else
+                this->saveResultToDiskTypeElHomo();
+        }
     }
     cout<<" "<<mTypeDetector<<" : "<<mPtsInterest.size()<<" Pts in "<<mNameImg<<endl;
     return temp;
@@ -181,14 +235,39 @@ void Detector::saveToPicTypePackHomol(pic* aPic)
 
 
 
-vector<Pt2dr> Detector::readResultDetectFromFileDigeo(string filename)
+int Detector::readResultDetectFromFileDigeo(string filename)
 {
     DigeoPoint fileDigeo;
     vector<DigeoPoint> listPtDigeo;
-    fileDigeo.readDigeoFile(filename, 0,listPtDigeo);
+    cout<<"Read : "<<filename<<endl;
+    bool ok = fileDigeo.readDigeoFile(filename, 1,listPtDigeo);
     for (uint i=0; i<listPtDigeo.size(); i++)
-        {mPtsInterest.push_back(Pt2dr(listPtDigeo[i].x, listPtDigeo[i].y));}
-    return mPtsInterest;
+    {
+        mPtsInterest.push_back(Pt2dr(listPtDigeo[i].x, listPtDigeo[i].y));
+    }
+    if (!ok)
+        cout<<" DIGEO File read error ! "<<endl;
+    cout<<"Nb : "<<listPtDigeo.size()<<endl;
+    return listPtDigeo.size();
+}
+
+
+int Detector::readResultDetectFromFileElHomo(string filename)
+{
+    ElPackHomologue aPackIn;
+    bool Exist= ELISE_fp::exist_file(filename);
+    if (Exist)
+    {
+        aPackIn =  ElPackHomologue::FromFile(filename);
+        cout<<" + Found Pack Homo "<<aPackIn.size()<<" pts"<<endl;
+        for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
+            mPtsInterest.push_back(itP->P1());
+    }
+    else
+    {
+        cout<<" Elhomo File read error ! "<<filename<<endl;
+    }
+    return mPtsInterest.size();
 }
 
 

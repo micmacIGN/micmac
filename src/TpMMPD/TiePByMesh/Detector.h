@@ -21,12 +21,14 @@ class Detector
                  pic * aPic,
                  InitOutil * aChain
                 );
-        int detect();
-        vector<Pt2dr> readResultDetectFromFileDigeo(string filename);
+        int detect(bool useTypeFileDigeo  = true);
+        int readResultDetectFromFileDigeo(string filename);
+        int readResultDetectFromFileElHomo(string filename);
         vector<Pt2dr> importFromHomolInit(pic* pic2);
         void saveToPicTypeVector(pic* aPic);
         void saveToPicTypePackHomol(pic* aPic);
         void saveResultToDiskTypeDigeo(string aDir);
+        void saveResultToDiskTypeElHomo(string aDir);
     private:
         string mNameImg;
         string mTypeDetector;           //FAST, DIGEO, HOMOLINIT

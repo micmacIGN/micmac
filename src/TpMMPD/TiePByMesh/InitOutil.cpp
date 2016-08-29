@@ -90,16 +90,18 @@ InitOutil::InitOutil   ( string aFullPattern, string aOriInput,
        mDisp = disp;
 }
 
-InitOutil::InitOutil(string aFullPattern, string aOriInput)
+InitOutil::InitOutil(string aFullPattern, string aOriInput, string aHomolInPut)
 {
     cout<<"Init MicMac, lire pattern, former le cle.."<<endl;
     this->mOriInput = aOriInput;
     this->mFullPattern = aFullPattern;
+    mNameHomol = aHomolInPut;
     SplitDirAndFile(mDirImages, mPatIm, mFullPattern); //Working dir, Images pattern
     StdCorrecNameOrient(mOriInput, mDirImages);//remove "Ori-" if needed
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirImages);
     mSetIm = *(mICNM->Get(mPatIm));
     ELISE_ASSERT(mSetIm.size()>0,"ERROR: No image found!");
+    cout<<"Init done !"<<endl;
 }
 
 
@@ -255,6 +257,14 @@ vector<triangle*> InitOutil::load_tri()
     }
     for (uint i=0; i<mPtrListPic.size(); i++)
         {mPtrListPic[i]->allTriangle = mPtrListTri;}
+    cout<<"Free mem mFaceList : ...";
+    for (uint i=0; i<mFaceList.size(); i++)
+        free(mFaceList[i]);
+    cout<<"done"<<endl;
+    cout<<"Free mem mVertexList : ...";
+    for (uint i=0; i<mVertexList.size(); i++)
+        free(mVertexList[i]);
+    cout<<"done"<<endl;
     return mPtrListTri;
 }
 
@@ -374,7 +384,8 @@ void InitOutil::writeToHomolFile(   pic * pic1,
 void InitOutil::addToExistHomolFile(    pic * pic1,
                                         pic * pic2,
                                         vector<ElCplePtsHomologues> ptsHomo,
-                                        string aHomolOut)
+                                        string aHomolOut,
+                                        bool addInverse)
 {
     string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aHomolOut)
@@ -384,7 +395,11 @@ void InitOutil::addToExistHomolFile(    pic * pic1,
                         +  std::string(aHomolOut)
                         +  std::string("@")
                         +  std::string("dat");
-    string aHomoIn = mICNM->Assoc1To2(aKHIn, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
+    string aHomoIn;
+    if (addInverse == false)
+        aHomoIn= mICNM->Assoc1To2(aKHIn, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
+    else
+        aHomoIn = mICNM->Assoc1To2(aKHIn, pic2->getNameImgInStr(), pic1->getNameImgInStr(), true);
     //StdCorrecNameHomol_G(aHomoIn, mDirImages);
     ElPackHomologue aPackIn;
     bool Exist= ELISE_fp::exist_file(aHomoIn);
@@ -394,10 +409,24 @@ void InitOutil::addToExistHomolFile(    pic * pic1,
         cout<<" + Found Pack Homo "<<aPackIn.size()<<" pts"<<endl;
     }
     ElPackHomologue packHomoOut;
-    for (uint i=0; i<ptsHomo.size(); i++)
-        packHomoOut.Cple_Add(ptsHomo[i]);
+    for (uint i=0; i<ptsHomo.size(); i++)   
+    {
+        ElCplePtsHomologues aCplPts = ptsHomo[i];
+        if (addInverse == false)
+            aCplPts = ptsHomo[i];
+        else
+        {
+            aCplPts.P1() = ptsHomo[i].P2();
+            aCplPts.P2() = ptsHomo[i].P1();
+        }
+        packHomoOut.Cple_Add(aCplPts);
+    }
     aPackIn.Add(packHomoOut);
-    string cleNomHomolOut = mICNM->Assoc1To2(aKHOutDat, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
+    string cleNomHomolOut;
+    if (addInverse == false)
+        cleNomHomolOut = mICNM->Assoc1To2(aKHOutDat, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
+    else
+        cleNomHomolOut = mICNM->Assoc1To2(aKHOutDat, pic2->getNameImgInStr(), pic1->getNameImgInStr(), true);
     cout<<" + Add "<<packHomoOut.size()<<" pts => write "<<aPackIn.size()<<" pts"<<endl;
     aPackIn.StdPutInFile(cleNomHomolOut);
 }
@@ -451,17 +480,20 @@ std::string constStringToString(const string * aCString)
 vector<double> parse_dParam(vector<string> dParam)
 {
     vector<double> result;
-    if (dParam[0] != "NO")
+    if (dParam.size() > 0)
     {
-        for (uint i=0; i<dParam.size(); i++)
+        if (dParam[0] != "NO")
         {
-            result.push_back(RequireFromString<double>(dParam[i],"p1"));
+            for (uint i=0; i<dParam.size(); i++)
+            {
+                result.push_back(RequireFromString<double>(dParam[i],"p1"));
+            }
         }
+        cout<<"Parse param: "<<result.size()<<" params : ";
+        for (uint i=0; i<result.size(); i++)
+                cout<<result[i]<<" , ";
+        cout<<endl;
     }
-    cout<<"Parse detector param: "<<result.size()<<" params : ";
-    for (uint i=0; i<result.size(); i++)
-            cout<<result[i]<<" , ";
-    cout<<endl;
     return result;
 }
 

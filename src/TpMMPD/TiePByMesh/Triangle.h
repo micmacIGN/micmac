@@ -61,7 +61,7 @@ public:
     triangle(Face* aFace, vector<Vertex*> VertexList, int num_pic, int index);      //definir triangle par ELEMENT face et VERTEX list
     void reproject(pic *aPic, bool &reprOK, Tri2d &result, int ind);    //reprojecter triangle 3d ver un pic
     Pt3dr getSommet(int i) {return mSommet[i];}                     //get sommet i dans cette triangle (une triangle a 3 sommet)
-    Vertex getSommetV(int i) {return *this->mPtrSommetV[i]; }             //get sommet i dans cette triangle sous type Vertex
+    //Vertex getSommetV(int i) {return *this->mPtrSommetV[i]; }             //get sommet i dans cette triangle sous type Vertex
     Tri2d **getReprSurImg() {return mResultTriReprSurAllImg;}       //pointer vers bloque de memoire contient reprojection de cette triange sur tout les images.
     ImgetOfTri create_Imagette_autour_triangle (pic* aPic);
     ImgetOfTri create_Imagette_autour_triangle_A2016 (pic* aPic);
@@ -79,10 +79,10 @@ public:
                                         bool &getImgetteFalse);
     double calAngle(Pt3dr Vec1, Pt3dr Vec2, Pt3dr PtsOrg);
     vector<Pt3dr> ptsInTri2Dto3D(vector<Pt2dr> pts2DinTri, pic *img);
-    void savePtInteret2D(Pt2dr aPoint, pic*img);
-    vector<PtInteretInTriangle> getPtsInteret2DInImagetteDuTri()
-        {return mPtsInteret2DInImagetteDuTri;}
-    bool check_inside_triangle (Pt2dr v, Tri2d aTri2D);
+    //void savePtInteret2D(Pt2dr aPoint, pic*img);
+    //vector<PtInteretInTriangle> getPtsInteret2DInImagetteDuTri(){return mPtsInteret2DInImagetteDuTri;}
+
+    //bool check_inside_triangle (Pt2dr v, Tri2d aTri2D);
     bool check_inside_triangle_A2016 (Pt2dr aPt, Tri2d & aTri);
 
     int mIndex;                                                           //index of this triangle in PtrListTri
@@ -97,15 +97,15 @@ private:
                                           pic* Img2nd,
                                           matAffine &matrixAffine, Pt2dr &centre_geo_master,
                                           bool &getImgetteFalse);         //get imagette of 2nd pic by affine and imagette from pic master
-    vector<Vertex> toTriangle(Face* aFace, vector<Vertex*> VertexList ); //creer triangle a partir de face qui a plus de 3 vertex
+    //vector<Vertex> toTriangle(Face* aFace, vector<Vertex*> VertexList ); //creer triangle a partir de face qui a plus de 3 vertex
     double det(Pt2dr u, Pt2dr v);
 
 
     Pt3dr mSommet[3];                                                     //sommet du triangle en Pt3d
-    Vertex* mPtrSommetV[3];                                               //sommet du triangle en Vertex
-    vector<Pt2dr*> resultAffine;                                         //matrix de affine transformation sur tout les pic
+    //Vertex* mPtrSommetV[3];                                               //sommet du triangle en Vertex
+    //vector<Pt2dr*> resultAffine;                                         //matrix de affine transformation sur tout les pic
     Tri2d ** mResultTriReprSurAllImg;                                     //pointer vers bloque de memoire contient reprojection de cette triange sur tout les images
-    vector<PtInteretInTriangle> mPtsInteret2DInImagetteDuTri;
+    //vector<PtInteretInTriangle> mPtsInteret2DInImagetteDuTri;
 };
 
 typedef struct Rect {

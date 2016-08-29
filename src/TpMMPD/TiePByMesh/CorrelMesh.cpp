@@ -91,10 +91,10 @@ Pt2dr CorrelMesh::correlPtsInteretInImaget(Pt2dr ptInt1,
     cCorrelImage * P1 = new cCorrelImage();
     cCorrelImage * P2 = new cCorrelImage();
     P1->getFromIm(imgetMaitre.imaget->getIm(), P1_rlt.x, P1_rlt.y);
-    cout<<" + Sz ImagetM:"<<imgetMaitre.imaget->getIm()->sz()
-        <<" - PtOrg: "<<imgetMaitre.ptOriginImaget
-        <<" - Sz ImgetP1:"<<P1->getIm()->sz()<<endl;
-    cout<<" + P1_rtl: "<<P1_rlt;
+//    cout<<" + Sz ImagetM:"<<imgetMaitre.imaget->getIm()->sz()
+//        <<" - PtOrg: "<<imgetMaitre.ptOriginImaget
+//        <<" - Sz ImgetP1:"<<P1->getIm()->sz()<<endl;
+//    cout<<" + P1_rtl: "<<P1_rlt;
     //--determiner la region de correlation autour 5pxl de Pt interet
     Pt2di PtHG;
     Pt2di PtBD;
@@ -114,7 +114,7 @@ Pt2dr CorrelMesh::correlPtsInteretInImaget(Pt2dr ptInt1,
         PtBD.y=(int)(P1_rlt.y + areaSearch);
     else
         PtBD.y=imget2nd.szW*2+1;
-    cout<<PtHG<<PtBD<<endl;
+//    cout<<PtHG<<PtBD<<endl;
     //--parcourir la region de correlation---
     vector<double> corelScore;
     int counter=0;
@@ -123,29 +123,30 @@ Pt2dr CorrelMesh::correlPtsInteretInImaget(Pt2dr ptInt1,
         counter ++;
         for (int j=PtHG.y + szPtCorr; j<=PtBD.y-szPtCorr; j++)
         {
-            cout<<" + Crl: "<<"["<<i<<","<<j<<"]";
+            //cout<<" + Crl: "<<"["<<i<<","<<j<<"]";
             P2->getFromIm(imget2nd.imaget->getIm(), i, j);
-            cout <<" - Sz ImgetP2:"<<P2->getIm()->sz();
+            //cout <<" - Sz ImgetP2:"<<P2->getIm()->sz();
             double score = P1->CrossCorrelation(*P2);
-            cout<<" -Sc: "<<score<<endl;
+            //cout<<" -Sc: "<<score<<endl;
             corelScore.push_back(score);
         }
     }
     vector<double>::iterator max_corel = max_element(corelScore.begin(), corelScore.end());
     int ind = distance(corelScore.begin(), max_corel);
-    cout<<" + Max Cor of Pt: "<<corelScore[ind]<<" - Posti: "<<ind;
+//    cout<<" + Max Cor of Pt: "<<corelScore[ind]<<" - Posti: "<<ind;
     Pt2dr max_corel_coor = Pt2dr(ind/counter + PtHG.x,  ind%counter + PtHG.y) + imgetMaitre.ptOriginImaget;
 //    cout<<" + P1: "<<ptInt1<< " +P2o: "<<max_corel_coor<<" +P2: "<< ApplyAffine(max_corel_coor, affine)<<endl;
     if (corelScore[ind] > seuil_corel)
     {
         ptInt2 = ApplyAffine(max_corel_coor, affine);
         foundMaxCorr = true;
-        cout<<" + "<<"P1: "<<ptInt1<<" - P2: "<<ptInt2<<" - Sc: "<<corelScore[ind]<<endl;
+        //cout<<" + "<<"P1: "<<ptInt1<<" - P2: "<<ptInt2<<" - Sc: "<<corelScore[ind]<<endl;
     }
     else
     {
         foundMaxCorr = false;
     }
+    delete P1; delete P2;
     return ptInt2;
 }
 
@@ -204,6 +205,7 @@ void CorrelMesh::correlInTri(int indTri)
                                             );
             aDetectImgM->detect();
             aDetectImgM->saveToPicTypeVector(mPicMaitre);
+            delete aDetectImgM;
         }
         if (tri2DMaitre.insidePic && tri2D2nd.insidePic)
         {
@@ -247,11 +249,15 @@ void CorrelMesh::correlInTri(int indTri)
                     }
                    mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2Correl,
                                                mChain->getPrivMember("mHomolOutput"));
+                   mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2Correl,
+                                               mChain->getPrivMember("mHomolOutput"), true);
                 }
+                delete imget2nd.imaget;
             }
         }
     }
     }
+    delete imgetMaitre.imaget;
 }
 
 void CorrelMesh::correlByCplExist(int indTri)
