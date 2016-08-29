@@ -2410,6 +2410,7 @@ class cAppliApero : public NROptF1vND
                  const cExportMesuresFromCarteProf&,const cCartes2Export &
               );
         cSetOfMesureAppuisFlottants StdGetMAF(const std::string &);
+        cDicoAppuisFlottant StdGetDAF(const std::string &);
 
         cAperoPointeMono CreatePointeMono(const cSetOfMesureAppuisFlottants &,const std::string & aNamePt,const cAperoPointeMono * aDef=0);
         cAperoPointeStereo CreatePointeStereo(const cSetOfMesureAppuisFlottants &,const std::string & aNamePt);

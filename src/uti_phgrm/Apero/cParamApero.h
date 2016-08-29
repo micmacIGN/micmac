@@ -5841,18 +5841,26 @@ class cNuagePutCam
         double & StepSeg();
         const double & StepSeg()const ;
 
+        cTplValGesInit< std::string > & KeyCalName();
+        const cTplValGesInit< std::string > & KeyCalName()const ;
+
         cTplValGesInit< double > & StepImage();
         const cTplValGesInit< double > & StepImage()const ;
 
-        cTplValGesInit< std::string > & KeyCalName();
-        const cTplValGesInit< std::string > & KeyCalName()const ;
+        cTplValGesInit< std::string > & HomolRay();
+        const cTplValGesInit< std::string > & HomolRay()const ;
+
+        cTplValGesInit< Pt3di > & ColRayHomol();
+        const cTplValGesInit< Pt3di > & ColRayHomol()const ;
     private:
         Pt3di mColCadre;
         cTplValGesInit< Pt3di > mColRay;
         double mLong;
         double mStepSeg;
-        cTplValGesInit< double > mStepImage;
         cTplValGesInit< std::string > mKeyCalName;
+        cTplValGesInit< double > mStepImage;
+        cTplValGesInit< std::string > mHomolRay;
+        cTplValGesInit< Pt3di > mColRayHomol;
 };
 cElXMLTree * ToXMLTree(const cNuagePutCam &);
 
@@ -5861,6 +5869,43 @@ void  BinaryDumpInFile(ELISE_fp &,const cNuagePutCam &);
 void  BinaryUnDumpFromFile(cNuagePutCam &,ELISE_fp &);
 
 std::string  Mangling( cNuagePutCam *);
+
+class cNuagePutInterPMul
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cNuagePutInterPMul & anObj,cElXMLTree * aTree);
+
+
+        std::string & NamePMul();
+        const std::string & NamePMul()const ;
+
+        double & StepDr();
+        const double & StepDr()const ;
+
+        cTplValGesInit< double > & RabDr();
+        const cTplValGesInit< double > & RabDr()const ;
+
+        Pt3di & ColRayInter();
+        const Pt3di & ColRayInter()const ;
+
+        cTplValGesInit< double > & Epais();
+        const cTplValGesInit< double > & Epais()const ;
+    private:
+        std::string mNamePMul;
+        double mStepDr;
+        cTplValGesInit< double > mRabDr;
+        Pt3di mColRayInter;
+        cTplValGesInit< double > mEpais;
+};
+cElXMLTree * ToXMLTree(const cNuagePutInterPMul &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cNuagePutInterPMul &);
+
+void  BinaryUnDumpFromFile(cNuagePutInterPMul &,ELISE_fp &);
+
+std::string  Mangling( cNuagePutInterPMul *);
 
 class cExportNuage
 {
@@ -5924,14 +5969,38 @@ class cExportNuage
         double & StepSeg();
         const double & StepSeg()const ;
 
-        cTplValGesInit< double > & StepImage();
-        const cTplValGesInit< double > & StepImage()const ;
-
         cTplValGesInit< std::string > & KeyCalName();
         const cTplValGesInit< std::string > & KeyCalName()const ;
 
+        cTplValGesInit< double > & StepImage();
+        const cTplValGesInit< double > & StepImage()const ;
+
+        cTplValGesInit< std::string > & HomolRay();
+        const cTplValGesInit< std::string > & HomolRay()const ;
+
+        cTplValGesInit< Pt3di > & ColRayHomol();
+        const cTplValGesInit< Pt3di > & ColRayHomol()const ;
+
         cTplValGesInit< cNuagePutCam > & NuagePutCam();
         const cTplValGesInit< cNuagePutCam > & NuagePutCam()const ;
+
+        std::string & NamePMul();
+        const std::string & NamePMul()const ;
+
+        double & StepDr();
+        const double & StepDr()const ;
+
+        cTplValGesInit< double > & RabDr();
+        const cTplValGesInit< double > & RabDr()const ;
+
+        Pt3di & ColRayInter();
+        const Pt3di & ColRayInter()const ;
+
+        cTplValGesInit< double > & Epais();
+        const cTplValGesInit< double > & Epais()const ;
+
+        cTplValGesInit< cNuagePutInterPMul > & NuagePutInterPMul();
+        const cTplValGesInit< cNuagePutInterPMul > & NuagePutInterPMul()const ;
     private:
         std::string mNameOut;
         cTplValGesInit< cExportNuageByImage > mExportNuageByImage;
@@ -5946,6 +6015,7 @@ class cExportNuage
         cTplValGesInit< double > mLimBSurH;
         cTplValGesInit< std::string > mImExpoRef;
         cTplValGesInit< cNuagePutCam > mNuagePutCam;
+        cTplValGesInit< cNuagePutInterPMul > mNuagePutInterPMul;
 };
 cElXMLTree * ToXMLTree(const cExportNuage &);
 

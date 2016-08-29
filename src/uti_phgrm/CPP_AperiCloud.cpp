@@ -62,11 +62,15 @@ int AperiCloud_main(int argc,char ** argv)
     double aLimBsH;
     bool   WithPoints = true;
     bool   WithCam = true;
+    double aStepIm = -1;
+    double aProfCam = 0.3;
     Pt2dr  aFocs;
     Pt3di aColCadre(255,0,0);
     Pt3di aColRay(0,255,0);
     std::string aSetHom="";
     std::string aKeyCalcName;
+
+    std::string aNameBundle;
 
     ElInitArgMain
     (
@@ -84,10 +88,13 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=false)",eSAM_IsBool)
                     << EAM(aFocs,"Focs",true,"Interval of Focal")
                     << EAM(WithCam,"WithCam",true,"With Camera (Def=true)")
+                    << EAM(aStepIm,"StepIm",true,"If image in camera are wanted, indicate reduction factor")
                     << EAM(aColCadre,"ColCadre",true,"Col of camera rect Def= 255 0 0 (Red)")
                     << EAM(aColRay,"ColRay",true,"Col of camera rect Def=  0 255 0 (Green)")
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
                     << EAM(aKeyCalcName,"KeyName",true,"Key to compute printed string (Def contain only digit)")
+                    << EAM(aProfCam,"ProfCam",true,"Depth of pyramid representing camera (Def=0.3)")
+                    << EAM(aNameBundle,"NameBundle",true,"Name of input GCP to add bundle intersection schema")
     );
 
     if (!MMVisualMode)
@@ -146,6 +153,12 @@ int AperiCloud_main(int argc,char ** argv)
             aCom = aCom + " +WithCam=" + ToString(WithCam) ;
         }
 
+        if (EAMIsInit(&aStepIm))
+        {
+            aCom = aCom + " +StepIm=" + ToString(aStepIm) ;
+        }
+
+
         if (EAMIsInit(&aColCadre))
         {
             aCom = aCom + " +ColCadre=" + StrP2Coul(aColCadre) ;
@@ -153,6 +166,10 @@ int AperiCloud_main(int argc,char ** argv)
         if (EAMIsInit(&aColRay))
         {
             aCom = aCom + " +ColRay=" + StrP2Coul(aColRay) ;
+        }
+        if (EAMIsInit(&aProfCam))
+        {
+            aCom = aCom + " +LongRay=" + ToString(aProfCam) ;
         }
 
         if (! WithPoints)
@@ -163,7 +180,8 @@ int AperiCloud_main(int argc,char ** argv)
         if (EAMIsInit(&aSetHom))
             aCom = aCom + std::string(" +SetHom=") + aSetHom;
 
-
+        if (aKeyCalcName=="NONE") 
+           aKeyCalcName= "NKS-Assoc-Empty";
         if (EAMIsInit(&aKeyCalcName))
         {
               aCom = aCom + " +WithCalcName=true +CalcName=" + aKeyCalcName;
@@ -172,6 +190,11 @@ int AperiCloud_main(int argc,char ** argv)
 
         if (EAMIsInit(&aLimBsH))
             aCom = aCom + std::string(" +LimBsH=") + ToString(aLimBsH);
+
+        if (EAMIsInit(&aNameBundle))
+        {
+            aCom = aCom + " +WithSchemaPMul=true +NameSchemaPMul=" + aNameBundle;
+        }
 
         std::cout << "Com = " << aCom << "\n";
         int aRes = System(aCom.c_str());

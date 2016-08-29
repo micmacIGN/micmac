@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1707]) = {
+const char * (theNameVar_ParamApero[1718]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1591,9 +1591,20 @@ const char * (theNameVar_ParamApero[1707]) = {
 "                              <ColRay Nb=\"?\" Type=\"Pt3di\"> </ColRay>\n",
 "                              <Long Nb=\"1\" Type=\"double\"> </Long>\n",
 "                              <StepSeg Nb=\"1\" Type=\"double\"> </StepSeg>\n",
-"                              <StepImage Nb=\"?\" Type=\"double\" Def=\"-1.0\"> </StepImage>\n",
 "                              <KeyCalName Nb=\"?\" Type=\"std::string\"> </KeyCalName> \n",
+"\n",
+"                              <StepImage Nb=\"?\" Type=\"double\" Def=\"-1.0\"> </StepImage>\n",
+"                              <HomolRay  Nb=\"?\" Type=\"std::string\"> </HomolRay>\n",
+"                              <ColRayHomol Nb=\"?\" Type=\"Pt3di\"> </ColRayHomol>\n",
 "                          </NuagePutCam>\n",
+"\n",
+"                          <NuagePutInterPMul Nb=\"?\">\n",
+"                               <NamePMul Nb=\"1\" Type=\"std::string\"> </NamePMul>\n",
+"                               <StepDr   Nb=\"1\" Type=\"double\">      </StepDr>\n",
+"                               <RabDr    Nb=\"?\" Type=\"double\" Def=\"0.0\">      </RabDr>\n",
+"                               <ColRayInter    Nb=\"1\" Type=\"Pt3di\">      </ColRayInter>\n",
+"                               <Epais     Nb=\"?\" Type=\"double\">      </Epais>\n",
+"                          </NuagePutInterPMul>\n",
 "                     </ExportNuage>\n",
 "\n",
 "                     <ChoixImMM Nb=\"?\">\n",

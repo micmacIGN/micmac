@@ -1319,6 +1319,21 @@ Pt2dr  cAppliApero::GetVecHor(const cHorFOP &  aH)
 std::string AddDirIfRequired(const std::string & aDir,const std::string & aFile);
 
 
+
+cDicoAppuisFlottant cAppliApero::StdGetDAF(const std::string & aName)
+{
+   return StdGetObjFromFile<cDicoAppuisFlottant>
+          (
+              AddDirIfRequired(mDC,aName),
+              //mDC+aName,
+              StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+              "DicoAppuisFlottant",
+              "DicoAppuisFlottant"
+          );
+
+}
+
+
 cSetOfMesureAppuisFlottants cAppliApero::StdGetMAF(const std::string & aName)
 {
    return StdGetObjFromFile<cSetOfMesureAppuisFlottants>

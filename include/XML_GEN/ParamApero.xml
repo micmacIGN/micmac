@@ -1589,9 +1589,20 @@ normalises en echelle et/ou en translation -->
                               <ColRay Nb="?" Type="Pt3di"> </ColRay>
                               <Long Nb="1" Type="double"> </Long>
                               <StepSeg Nb="1" Type="double"> </StepSeg>
-                              <StepImage Nb="?" Type="double" Def="-1.0"> </StepImage>
                               <KeyCalName Nb="?" Type="std::string"> </KeyCalName> 
+
+                              <StepImage Nb="?" Type="double" Def="-1.0"> </StepImage>
+                              <HomolRay  Nb="?" Type="std::string"> </HomolRay>
+                              <ColRayHomol Nb="?" Type="Pt3di"> </ColRayHomol>
                           </NuagePutCam>
+
+                          <NuagePutInterPMul Nb="?">
+                               <NamePMul Nb="1" Type="std::string"> </NamePMul>
+                               <StepDr   Nb="1" Type="double">      </StepDr>
+                               <RabDr    Nb="?" Type="double" Def="0.0">      </RabDr>
+                               <ColRayInter    Nb="1" Type="Pt3di">      </ColRayInter>
+                               <Epais     Nb="?" Type="double">      </Epais>
+                          </NuagePutInterPMul>
                      </ExportNuage>
 
                      <ChoixImMM Nb="?">

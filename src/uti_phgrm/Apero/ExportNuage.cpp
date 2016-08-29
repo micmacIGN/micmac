@@ -139,6 +139,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
     }
 
     eModeAGP aLastMode = eModeAGPNone;
+    const cNuagePutCam * aNPC = anEN.NuagePutCam().PtrVal();
 
     for 
     (
@@ -184,7 +185,9 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
            if (aSelector->IsSetIn(aPC->Name()) && (aMode != eModeAGPNoPoint))
            {
                 if (aMode==eModeAGPIm)
+                {
                    anAGP.InitFileColor(aNameFile,-1,aImExpoRef,aNbChan);
+                }
                 else if (aMode==eModeAGPHypso)
                    anAGP.InitColiorageDirec(anEN.DirCol().Val(),anEN.PerCol().Val());
                 else if (aMode==eModeAGPNormale)
@@ -207,14 +210,54 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
        }
     }
 
-    if (anEN.NuagePutCam().IsInit())
+    if (anEN.NuagePutInterPMul().IsInit())
     {
-        cNuagePutCam aNPC = anEN.NuagePutCam().Val();
-        double aStIm =  aNPC.StepImage().Val() ;
+        const cNuagePutInterPMul & aNPIM = anEN.NuagePutInterPMul().Val();
+        std::string aPrefix = StdPrefixGen(aNPIM.NamePMul());
+        cSetOfMesureAppuisFlottants aSMAF =  StdGetMAF(aPrefix+"-S2D.xml");
+        cDicoAppuisFlottant         aDAF =   StdGetDAF(aPrefix+"-S3D.xml");
+
+        for 
+        (
+            std::list<cOneAppuisDAF>::const_iterator itP=aDAF.OneAppuisDAF().begin() ; 
+            itP!=aDAF.OneAppuisDAF().end(); 
+            itP++
+        )
+        {
+            cOneAppuisDAF aP = *itP;
+            for 
+            (
+                std::list<cMesureAppuiFlottant1Im>::const_iterator itM=aSMAF.MesureAppuiFlottant1Im().begin() ;
+                itM!=aSMAF.MesureAppuiFlottant1Im().end(); 
+                itM++
+            )
+            {
+                const cOneMesureAF1I *  aMes =  PtsOfName(*itM,aP.NamePt());
+                if (aMes)
+                {
+                    cPoseCam *  aPC =  PoseFromName (itM->NameIm());
+                    const CamStenope *  aCS = aPC->CurCam();
+
+
+                    ElSeg3D aSeg = aCS->Capteur2RayTer( aMes->PtIm());
+                    Pt3dr aPProj = aSeg.ProjOrtho(aP.Pt());
+                    Pt3dr aC = aCS->PseudoOpticalCenter();
+                    anAGP.AddSeg(aC,aPProj,aNPIM.StepDr(),aNPIM.ColRayInter());
+                }
+            }
+        }
+
+    }
+
+    if (aNPC)
+    {
+        // cNuagePutCam aNPC = anEN.NuagePutCam().Val();
+        double aStepImage =  aNPC->StepImage().Val() ;
         for (int aKP=0 ; aKP<int(mVecPose.size()) ; aKP++)
         {
             cPoseCam *  aPC =  mVecPose[aKP]; 
             const CamStenope *  aCS = aPC->CurCam();
+            Pt2dr aSzC = Pt2dr(aCS->Sz());
 
 
 
@@ -233,7 +276,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
             Pt3dr aC3D[4];
             for (int aKC=0 ; aKC<4 ; aKC++)
             {
-               aC3D[aKC] = aCS->ImEtProf2Terrain(Pt2dr(aTabC[aKC]),aNPC.Long());
+               aC3D[aKC] = aCS->ImEtProf2Terrain(Pt2dr(aTabC[aKC]),aNPC->Long());
             }
 
             double aSomD = 0;
@@ -241,7 +284,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
             {
                aSomD += euclid(aC3D[aKC]-aC3D[(aKC+1)%4]);
             }
-            double aProf = aNPC.Long() * ((4*aNPC.Long()) / aSomD);
+            double aProf = aNPC->Long() * ((4*aNPC->Long()) / aSomD);
 
            
             for (int aKC=0 ; aKC<4 ; aKC++)
@@ -252,15 +295,16 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
             Pt3dr aCo = aCS->PseudoOpticalCenter();
             for (int aKC=0 ; aKC<4 ; aKC++)
             {
-               anAGP.AddSeg(aC3D[aKC],aC3D[(aKC+1)%4],aNPC.StepSeg(),aNPC.ColCadre());
-               anAGP.AddSeg(aCo,aC3D[aKC],aNPC.StepSeg(),aNPC.ColRay().ValWithDef(aNPC.ColCadre()));
+               anAGP.AddSeg(aC3D[aKC],aC3D[(aKC+1)%4],aNPC->StepSeg(),aNPC->ColCadre());
+               anAGP.AddSeg(aCo,aC3D[aKC],aNPC->StepSeg(),aNPC->ColRay().ValWithDef(aNPC->ColCadre()));
             }
+
 
             {
                 cElBitmFont & aFont =  cElBitmFont::BasicFont_10x8();
                 std::string   aNum ;
-                if (aNPC.KeyCalName().IsInit())
-                   aNum =  mICNM->Assoc1To1(aNPC.KeyCalName().Val(),aPC->Name(),true);
+                if (aNPC->KeyCalName().IsInit())
+                   aNum =  mICNM->Assoc1To1(aNPC->KeyCalName().Val(),aPC->Name(),true);
                 else
                     aNum = ExtractDigit(StdPrefixGen(aPC->Name()),"0000");
 
@@ -281,7 +325,6 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                     ElSetMax(aSzFY,aSz.y);
                     aC++;
                 }
-                Pt2dr aSzC = Pt2dr(aCS->Sz());
            
                 int aKC=0;
                 double aProp = 0.8;
@@ -326,13 +369,14 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                 }
             }
 
-            if (aStIm >0)
+            if (aStepImage >0)
             {
-                std::string aNameFile = mDC+mICNM->Assoc1To1(anEN.KeyFileColImage(),aPC->Name(),true);
-                anAGP.InitFileColor(aNameFile,aStIm,aImExpoRef,aNbChan);
+                // std::string aNameFile = mDC+mICNM->Assoc1To1(anEN.KeyFileColImage(),aPC->Name(),true);
+                std::string aNameFile = mDC+mICNM->Assoc1To1("NKS-Assoc-Id",aPC->Name(),true);
+                anAGP.InitFileColor(aNameFile,aStepImage,aImExpoRef,aNbChan);
 
                 Pt2dr aSZR1 = Pt2dr(aCS->Sz());
-                Pt2di aNb = round_up(aSZR1/aStIm); 
+                Pt2di aNb = round_up(aSZR1/aStepImage); 
                 Pt2dr aSt2 = aSZR1.dcbyc(Pt2dr(aNb));
                 for (int aX=0 ; aX<=aNb.x ;aX++)
                 {

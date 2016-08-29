@@ -803,6 +803,20 @@
              <Key>   NKS-Assoc-Id </Key>
     </KeyedNamesAssociations>
     <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-Empty </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+    <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
         <Calcs>
             <Arrite>  1 1 </Arrite>
