@@ -11,12 +11,19 @@
             <Symb>  FocMin=0 </Symb>
             <Symb>  FocMax=1000000 </Symb>
             <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
+
             <Symb>  WithCam=true </Symb>
             <Symb>  ColCadre="255 0 0" </Symb>
             <Symb>  ColRay="0 255 0" </Symb>
+            <Symb>  LongRay=0.3 </Symb>
+            <Symb>  StepIm=-1 </Symb>
+
             <Symb>  SetHom=""   </Symb>
             <Symb>  WithCalcName=false   </Symb>
             <Symb>  CalcName=""   </Symb>
+
+            <Symb>  WithSchemaPMul=false </Symb>
+            <Symb>  NameSchemaPMul=XXXX </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -156,12 +163,21 @@
                                        <NuagePutCam >
                                            <ColCadre > ${ColCadre} </ColCadre>
                                            <ColRay >  ${ColRay} </ColRay>
-                                           <Long > 0.3 </Long>
+                                           <Long > ${LongRay}  </Long>
                                            <StepSeg > 0.01 </StepSeg>
                                            <#WHEN VTEST=${WithCalcName}>
                                                 <KeyCalName> ${CalcName} </KeyCalName>
                                            </#WHEN>
+                                           <StepImage> ${StepIm} </StepImage>
                                        </NuagePutCam>
+                                   </#WHEN>
+                                   <#WHEN VTEST=${WithSchemaPMul}>
+                                        <NuagePutInterPMul>
+                                             <NamePMul > ${NameSchemaPMul} </NamePMul>
+                                             <StepDr   >  0.01    </StepDr>
+                                             <RabDr    >  0.0    </RabDr>
+                                             <ColRayInter>  255 0 0   </ColRayInter>
+                                        </NuagePutInterPMul>
                                    </#WHEN>
                              </ExportNuage>
                     </SectionExport>

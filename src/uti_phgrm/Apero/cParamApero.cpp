@@ -21215,6 +21215,17 @@ const double & cNuagePutCam::StepSeg()const
 }
 
 
+cTplValGesInit< std::string > & cNuagePutCam::KeyCalName()
+{
+   return mKeyCalName;
+}
+
+const cTplValGesInit< std::string > & cNuagePutCam::KeyCalName()const 
+{
+   return mKeyCalName;
+}
+
+
 cTplValGesInit< double > & cNuagePutCam::StepImage()
 {
    return mStepImage;
@@ -21226,14 +21237,25 @@ const cTplValGesInit< double > & cNuagePutCam::StepImage()const
 }
 
 
-cTplValGesInit< std::string > & cNuagePutCam::KeyCalName()
+cTplValGesInit< std::string > & cNuagePutCam::HomolRay()
 {
-   return mKeyCalName;
+   return mHomolRay;
 }
 
-const cTplValGesInit< std::string > & cNuagePutCam::KeyCalName()const 
+const cTplValGesInit< std::string > & cNuagePutCam::HomolRay()const 
 {
-   return mKeyCalName;
+   return mHomolRay;
+}
+
+
+cTplValGesInit< Pt3di > & cNuagePutCam::ColRayHomol()
+{
+   return mColRayHomol;
+}
+
+const cTplValGesInit< Pt3di > & cNuagePutCam::ColRayHomol()const 
+{
+   return mColRayHomol;
 }
 
 void  BinaryUnDumpFromFile(cNuagePutCam & anObj,ELISE_fp & aFp)
@@ -21252,6 +21274,14 @@ void  BinaryUnDumpFromFile(cNuagePutCam & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.KeyCalName().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.KeyCalName().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.KeyCalName().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.StepImage().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.StepImage().ValForcedForUnUmp(),aFp);
         }
@@ -21260,10 +21290,18 @@ void  BinaryUnDumpFromFile(cNuagePutCam & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.KeyCalName().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.KeyCalName().ValForcedForUnUmp(),aFp);
+             anObj.HomolRay().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.HomolRay().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.KeyCalName().SetNoInit();
+        else  anObj.HomolRay().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ColRayHomol().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ColRayHomol().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ColRayHomol().SetNoInit();
   } ;
 }
 
@@ -21274,10 +21312,14 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cNuagePutCam & anObj)
     if (anObj.ColRay().IsInit()) BinaryDumpInFile(aFp,anObj.ColRay().Val());
     BinaryDumpInFile(aFp,anObj.Long());
     BinaryDumpInFile(aFp,anObj.StepSeg());
-    BinaryDumpInFile(aFp,anObj.StepImage().IsInit());
-    if (anObj.StepImage().IsInit()) BinaryDumpInFile(aFp,anObj.StepImage().Val());
     BinaryDumpInFile(aFp,anObj.KeyCalName().IsInit());
     if (anObj.KeyCalName().IsInit()) BinaryDumpInFile(aFp,anObj.KeyCalName().Val());
+    BinaryDumpInFile(aFp,anObj.StepImage().IsInit());
+    if (anObj.StepImage().IsInit()) BinaryDumpInFile(aFp,anObj.StepImage().Val());
+    BinaryDumpInFile(aFp,anObj.HomolRay().IsInit());
+    if (anObj.HomolRay().IsInit()) BinaryDumpInFile(aFp,anObj.HomolRay().Val());
+    BinaryDumpInFile(aFp,anObj.ColRayHomol().IsInit());
+    if (anObj.ColRayHomol().IsInit()) BinaryDumpInFile(aFp,anObj.ColRayHomol().Val());
 }
 
 cElXMLTree * ToXMLTree(const cNuagePutCam & anObj)
@@ -21289,10 +21331,14 @@ cElXMLTree * ToXMLTree(const cNuagePutCam & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ColRay"),anObj.ColRay().Val())->ReTagThis("ColRay"));
    aRes->AddFils(::ToXMLTree(std::string("Long"),anObj.Long())->ReTagThis("Long"));
    aRes->AddFils(::ToXMLTree(std::string("StepSeg"),anObj.StepSeg())->ReTagThis("StepSeg"));
-   if (anObj.StepImage().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("StepImage"),anObj.StepImage().Val())->ReTagThis("StepImage"));
    if (anObj.KeyCalName().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("KeyCalName"),anObj.KeyCalName().Val())->ReTagThis("KeyCalName"));
+   if (anObj.StepImage().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("StepImage"),anObj.StepImage().Val())->ReTagThis("StepImage"));
+   if (anObj.HomolRay().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("HomolRay"),anObj.HomolRay().Val())->ReTagThis("HomolRay"));
+   if (anObj.ColRayHomol().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ColRayHomol"),anObj.ColRayHomol().Val())->ReTagThis("ColRayHomol"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21311,12 +21357,139 @@ void xml_init(cNuagePutCam & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.StepSeg(),aTree->Get("StepSeg",1)); //tototo 
 
+   xml_init(anObj.KeyCalName(),aTree->Get("KeyCalName",1)); //tototo 
+
    xml_init(anObj.StepImage(),aTree->Get("StepImage",1),double(-1.0)); //tototo 
 
-   xml_init(anObj.KeyCalName(),aTree->Get("KeyCalName",1)); //tototo 
+   xml_init(anObj.HomolRay(),aTree->Get("HomolRay",1)); //tototo 
+
+   xml_init(anObj.ColRayHomol(),aTree->Get("ColRayHomol",1)); //tototo 
 }
 
-std::string  Mangling( cNuagePutCam *) {return "17BAEBC11A614C88FF3F";};
+std::string  Mangling( cNuagePutCam *) {return "E6197C8F606628A3FCBF";};
+
+
+std::string & cNuagePutInterPMul::NamePMul()
+{
+   return mNamePMul;
+}
+
+const std::string & cNuagePutInterPMul::NamePMul()const 
+{
+   return mNamePMul;
+}
+
+
+double & cNuagePutInterPMul::StepDr()
+{
+   return mStepDr;
+}
+
+const double & cNuagePutInterPMul::StepDr()const 
+{
+   return mStepDr;
+}
+
+
+cTplValGesInit< double > & cNuagePutInterPMul::RabDr()
+{
+   return mRabDr;
+}
+
+const cTplValGesInit< double > & cNuagePutInterPMul::RabDr()const 
+{
+   return mRabDr;
+}
+
+
+Pt3di & cNuagePutInterPMul::ColRayInter()
+{
+   return mColRayInter;
+}
+
+const Pt3di & cNuagePutInterPMul::ColRayInter()const 
+{
+   return mColRayInter;
+}
+
+
+cTplValGesInit< double > & cNuagePutInterPMul::Epais()
+{
+   return mEpais;
+}
+
+const cTplValGesInit< double > & cNuagePutInterPMul::Epais()const 
+{
+   return mEpais;
+}
+
+void  BinaryUnDumpFromFile(cNuagePutInterPMul & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NamePMul(),aFp);
+    BinaryUnDumpFromFile(anObj.StepDr(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.RabDr().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.RabDr().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.RabDr().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.ColRayInter(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Epais().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Epais().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Epais().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cNuagePutInterPMul & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NamePMul());
+    BinaryDumpInFile(aFp,anObj.StepDr());
+    BinaryDumpInFile(aFp,anObj.RabDr().IsInit());
+    if (anObj.RabDr().IsInit()) BinaryDumpInFile(aFp,anObj.RabDr().Val());
+    BinaryDumpInFile(aFp,anObj.ColRayInter());
+    BinaryDumpInFile(aFp,anObj.Epais().IsInit());
+    if (anObj.Epais().IsInit()) BinaryDumpInFile(aFp,anObj.Epais().Val());
+}
+
+cElXMLTree * ToXMLTree(const cNuagePutInterPMul & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"NuagePutInterPMul",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NamePMul"),anObj.NamePMul())->ReTagThis("NamePMul"));
+   aRes->AddFils(::ToXMLTree(std::string("StepDr"),anObj.StepDr())->ReTagThis("StepDr"));
+   if (anObj.RabDr().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("RabDr"),anObj.RabDr().Val())->ReTagThis("RabDr"));
+   aRes->AddFils(::ToXMLTree(std::string("ColRayInter"),anObj.ColRayInter())->ReTagThis("ColRayInter"));
+   if (anObj.Epais().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Epais"),anObj.Epais().Val())->ReTagThis("Epais"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cNuagePutInterPMul & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NamePMul(),aTree->Get("NamePMul",1)); //tototo 
+
+   xml_init(anObj.StepDr(),aTree->Get("StepDr",1)); //tototo 
+
+   xml_init(anObj.RabDr(),aTree->Get("RabDr",1),double(0.0)); //tototo 
+
+   xml_init(anObj.ColRayInter(),aTree->Get("ColRayInter",1)); //tototo 
+
+   xml_init(anObj.Epais(),aTree->Get("Epais",1)); //tototo 
+}
+
+std::string  Mangling( cNuagePutInterPMul *) {return "5845359DC19F0CEBFBBF";};
 
 
 std::string & cExportNuage::NameOut()
@@ -21517,17 +21690,6 @@ const double & cExportNuage::StepSeg()const
 }
 
 
-cTplValGesInit< double > & cExportNuage::StepImage()
-{
-   return NuagePutCam().Val().StepImage();
-}
-
-const cTplValGesInit< double > & cExportNuage::StepImage()const 
-{
-   return NuagePutCam().Val().StepImage();
-}
-
-
 cTplValGesInit< std::string > & cExportNuage::KeyCalName()
 {
    return NuagePutCam().Val().KeyCalName();
@@ -21539,6 +21701,39 @@ const cTplValGesInit< std::string > & cExportNuage::KeyCalName()const
 }
 
 
+cTplValGesInit< double > & cExportNuage::StepImage()
+{
+   return NuagePutCam().Val().StepImage();
+}
+
+const cTplValGesInit< double > & cExportNuage::StepImage()const 
+{
+   return NuagePutCam().Val().StepImage();
+}
+
+
+cTplValGesInit< std::string > & cExportNuage::HomolRay()
+{
+   return NuagePutCam().Val().HomolRay();
+}
+
+const cTplValGesInit< std::string > & cExportNuage::HomolRay()const 
+{
+   return NuagePutCam().Val().HomolRay();
+}
+
+
+cTplValGesInit< Pt3di > & cExportNuage::ColRayHomol()
+{
+   return NuagePutCam().Val().ColRayHomol();
+}
+
+const cTplValGesInit< Pt3di > & cExportNuage::ColRayHomol()const 
+{
+   return NuagePutCam().Val().ColRayHomol();
+}
+
+
 cTplValGesInit< cNuagePutCam > & cExportNuage::NuagePutCam()
 {
    return mNuagePutCam;
@@ -21547,6 +21742,72 @@ cTplValGesInit< cNuagePutCam > & cExportNuage::NuagePutCam()
 const cTplValGesInit< cNuagePutCam > & cExportNuage::NuagePutCam()const 
 {
    return mNuagePutCam;
+}
+
+
+std::string & cExportNuage::NamePMul()
+{
+   return NuagePutInterPMul().Val().NamePMul();
+}
+
+const std::string & cExportNuage::NamePMul()const 
+{
+   return NuagePutInterPMul().Val().NamePMul();
+}
+
+
+double & cExportNuage::StepDr()
+{
+   return NuagePutInterPMul().Val().StepDr();
+}
+
+const double & cExportNuage::StepDr()const 
+{
+   return NuagePutInterPMul().Val().StepDr();
+}
+
+
+cTplValGesInit< double > & cExportNuage::RabDr()
+{
+   return NuagePutInterPMul().Val().RabDr();
+}
+
+const cTplValGesInit< double > & cExportNuage::RabDr()const 
+{
+   return NuagePutInterPMul().Val().RabDr();
+}
+
+
+Pt3di & cExportNuage::ColRayInter()
+{
+   return NuagePutInterPMul().Val().ColRayInter();
+}
+
+const Pt3di & cExportNuage::ColRayInter()const 
+{
+   return NuagePutInterPMul().Val().ColRayInter();
+}
+
+
+cTplValGesInit< double > & cExportNuage::Epais()
+{
+   return NuagePutInterPMul().Val().Epais();
+}
+
+const cTplValGesInit< double > & cExportNuage::Epais()const 
+{
+   return NuagePutInterPMul().Val().Epais();
+}
+
+
+cTplValGesInit< cNuagePutInterPMul > & cExportNuage::NuagePutInterPMul()
+{
+   return mNuagePutInterPMul;
+}
+
+const cTplValGesInit< cNuagePutInterPMul > & cExportNuage::NuagePutInterPMul()const 
+{
+   return mNuagePutInterPMul;
 }
 
 void  BinaryUnDumpFromFile(cExportNuage & anObj,ELISE_fp & aFp)
@@ -21635,6 +21896,14 @@ void  BinaryUnDumpFromFile(cExportNuage & anObj,ELISE_fp & aFp)
         }
         else  anObj.NuagePutCam().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NuagePutInterPMul().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NuagePutInterPMul().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NuagePutInterPMul().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cExportNuage & anObj)
@@ -21666,6 +21935,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cExportNuage & anObj)
     if (anObj.ImExpoRef().IsInit()) BinaryDumpInFile(aFp,anObj.ImExpoRef().Val());
     BinaryDumpInFile(aFp,anObj.NuagePutCam().IsInit());
     if (anObj.NuagePutCam().IsInit()) BinaryDumpInFile(aFp,anObj.NuagePutCam().Val());
+    BinaryDumpInFile(aFp,anObj.NuagePutInterPMul().IsInit());
+    if (anObj.NuagePutInterPMul().IsInit()) BinaryDumpInFile(aFp,anObj.NuagePutInterPMul().Val());
 }
 
 cElXMLTree * ToXMLTree(const cExportNuage & anObj)
@@ -21699,6 +21970,8 @@ cElXMLTree * ToXMLTree(const cExportNuage & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ImExpoRef"),anObj.ImExpoRef().Val())->ReTagThis("ImExpoRef"));
    if (anObj.NuagePutCam().IsInit())
       aRes->AddFils(ToXMLTree(anObj.NuagePutCam().Val())->ReTagThis("NuagePutCam"));
+   if (anObj.NuagePutInterPMul().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.NuagePutInterPMul().Val())->ReTagThis("NuagePutInterPMul"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21734,9 +22007,11 @@ void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.ImExpoRef(),aTree->Get("ImExpoRef",1)); //tototo 
 
    xml_init(anObj.NuagePutCam(),aTree->Get("NuagePutCam",1)); //tototo 
+
+   xml_init(anObj.NuagePutInterPMul(),aTree->Get("NuagePutInterPMul",1)); //tototo 
 }
 
-std::string  Mangling( cExportNuage *) {return "7AC802516E8905CBFF3F";};
+std::string  Mangling( cExportNuage *) {return "401315FDE6EC9BDCF8BF";};
 
 
 cTplValGesInit< std::string > & cChoixImSec::KeyExistingFile()
@@ -23222,7 +23497,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportResiduXml(),aTree->Get("ExportResiduXml",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "830D9B77369249CFFE3F";};
+std::string  Mangling( cSectionExport *) {return "2C15B37B0C0EB497FE3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -23964,7 +24239,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "31F4B239C0DFB19EFF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "48EEBC06373C20AAFF3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -24023,7 +24298,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "98F4464EA7DC37DAFD3F";};
+std::string  Mangling( cSectionCompensation *) {return "C0D2FB9CE83BEEFAFA3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -25023,7 +25298,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "F3D98064C5A33293FE3F";};
+std::string  Mangling( cParamApero *) {return "AB6A488189CF8A92FD3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()
