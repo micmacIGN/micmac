@@ -76,7 +76,7 @@ class cPI_Appli
 
 cPI_Appli::cPI_Appli(int argc,char ** argv)
 {
-     bool aShowArgs=true;
+     bool aShowArgs=false;
      bool aXmlExport=true;
      Pt3dr aInc(1,1,1);
      
@@ -88,9 +88,10 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 					 << EAMC(a2dPtsFile, ".xml file of 2d points", eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"Name output file (def=3DCoords.txt)")
                      << EAM(aXmlExport,"XmlOut",true,"Export in .xml format to use as GCP file (Def=true)")
-                     << EAM(aShowArgs,"Show",true,"Gives details on arguments (Def=true)")
+                     << EAM(aShowArgs,"Show",true,"Gives details on arguments (Def=false)")
      );
 
+     MakeFileDirCompl(aOriIn);
      SplitDirAndFile(mDir, mPat, mFullName);
      mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
      mLFile = mICNM->StdGetListOfFile(mPat);
@@ -102,7 +103,7 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 		aOut = "3DCoords.txt";
 	}
     
-    
+    /*
     //vecteur de noms de caméras
     std::vector<string> OriFiles(mLFile.size());
     
@@ -112,17 +113,22 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
     //initialisation du compteur
     int cmpt1=0;
     
+    std::cout<<"Reading cameras..."<<std::flush;
     for (std::list<std::string>::iterator itS=mLFile.begin(); itS != mLFile.end(); itS ++)
     {
 		//remplissage avec les noms des fichiers orientations
 		OriFiles.at(cmpt1) = aOriIn+"Orientation-"+*itS+".xml";
 		
-		//génération des caméras à partir des fichiers d'orientations
+        if (!ELISE_fp::exist_file(OriFiles.at(cmpt1)))
+            continue;
+
+        //génération des caméras à partir des fichiers d'orientations
 		aCamRep.at(cmpt1) = CamOrientGenFromFile(OriFiles.at(cmpt1),mICNM);
 		
 		//incrémentation du compteur
 		cmpt1++;
 	}
+    std::cout<<"done!"<<std::endl;*/
     
     cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(a2dPtsFile,SetOfMesureAppuisFlottants);
     
@@ -135,6 +141,7 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
     //contient la liste des points à transformer en 3d
     std::vector<string> vNamePts;		
     
+    std::cout<<"Reading points..."<<std::flush;
     for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
     {
 		
@@ -146,13 +153,17 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 			vNamePts.push_back(aNamePt);
 		}
 	}
-	
+    std::cout<<"done!"<<std::endl;
+
+    std::cout<<"Sorting points..."<<std::flush;
 	//tri
 	std::sort(vNamePts.begin() , vNamePts.end());
 	
 	//on vire les doublons
 	vNamePts.erase(std::unique(vNamePts.begin(), vNamePts.end()),vNamePts.end());	
-	
+    std::cout<<"done!"<<std::endl;
+
+    std::cout<<"Intersecting..."<<std::flush;
 	//boucle sur le nombre de points à projeter en 3D
 	for (unsigned int aKNP=0; aKNP<vNamePts.size(); aKNP++)
 	{
@@ -177,6 +188,7 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 				if(vNamePts.at(aKNP) == iT2->NamePt())
 				{
 					std::string oriNameFile = aOriIn+"Orientation-"+iT1->NameIm()+".xml";
+                    if (!ELISE_fp::exist_file(oriNameFile)) continue;
 					CamStenope * cameraCourante = CamOrientGenFromFile(oriNameFile,mICNM);
 					Pt2dr coordCourant = iT2->PtIm();
 					CamCoord aCameraEtCoord;
@@ -189,7 +201,8 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 		
 		aPtsAL.CAC = vCameraEtCoord;
 		vPtsAI.push_back(aPtsAL);
-	}
+    }
+    std::cout<<"done!"<<std::endl;
 	
 	//le vecteur des points 3d à exporter
 	std::vector<Pt3dr> Pts3d;
@@ -226,7 +239,8 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 			//~ std::cout << vPtsAI.at(aVP).nom << " " << Pts3d.at(aVP).x << " " << Pts3d.at(aVP).y << " " << Pts3d.at(aVP).z << "\n" ;
 		}
 		
-	ElFclose(aFP);
+        ElFclose(aFP);
+        std::cout<<aOut<<" written."<<std::endl;
 	}
 	
 	
@@ -248,7 +262,10 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 		}
 
 		MakeFileXML(aDico,aOutXml);
+        std::cout<<aOutXml<<" written."<<std::endl;
 	}
+
+    std::cout<<"Finished!"<<std::endl;
 		
 }
 
