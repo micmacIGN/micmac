@@ -208,8 +208,10 @@ void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_
 		{
 			Type aMinV, aMaxV;
 			mIm.getMinMax(aMinV, aMaxV);
-
-			aMul = (aMaxT - 1) / (aMaxV - aMinV);
+			if (fabs(aMaxV - aMinV)>0.0001)
+				aMul = (aMaxT - 1) / (aMaxV - aMinV);
+			else
+				aMul = 1;
 			mIm.ramp(aMinV, aMul);
 		}
 
