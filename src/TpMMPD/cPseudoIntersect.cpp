@@ -161,9 +161,9 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 	
 	//on vire les doublons
 	vNamePts.erase(std::unique(vNamePts.begin(), vNamePts.end()),vNamePts.end());	
-    std::cout<<"done!"<<std::endl;
+    std::cout<<"done! "<<vNamePts.size()<<" points found."<<std::endl;
 
-    std::cout<<"Intersecting..."<<std::flush;
+    std::cout<<"Making bundles groups..."<<std::flush;
 	//boucle sur le nombre de points à projeter en 3D
 	for (unsigned int aKNP=0; aKNP<vNamePts.size(); aKNP++)
 	{
@@ -185,7 +185,7 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 			{
 				
 				//si je tombe sur le point courant je dois ajouter la camera + coord dans cette caméra
-				if(vNamePts.at(aKNP) == iT2->NamePt())
+                if(namePt == iT2->NamePt())
 				{
 					std::string oriNameFile = aOriIn+"Orientation-"+iT1->NameIm()+".xml";
                     if (!ELISE_fp::exist_file(oriNameFile)) continue;
@@ -201,13 +201,14 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 		
 		aPtsAL.CAC = vCameraEtCoord;
 		vPtsAI.push_back(aPtsAL);
+        std::cout<<aPtsAL.CAC.size()<<" ";
     }
     std::cout<<"done!"<<std::endl;
 	
 	//le vecteur des points 3d à exporter
 	std::vector<Pt3dr> Pts3d;
 	
-	//boucle sur le nombre de points à projeter en 3d
+    //boucle sur le nombre de points à projeter en 3d
 	for(unsigned int aHG=0 ; aHG<vPtsAI.size() ; aHG++)
 	{
 		//vecteur de caméras
@@ -298,7 +299,7 @@ Pt3dr cPI_Appli::IntersectionFaisceaux
 		ElSeg3D aSeg = aVCS.at(aKR)->F2toRayonR3(aNPts2D.at(aKR));
 		aVSeg.push_back(aSeg);
 	}
-	
+    std::cout<<"Intersect "<<aVSeg.size()<<" bundles...\n";
 	Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
     return aRes;
 }
@@ -311,35 +312,35 @@ int PseudoIntersect_main(int argc,char **argv)
 }
 
 
-/*Footer-MicMac-eLiSe-25/06/2007
+/* Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant \C3  la mise en
-correspondances d'images pour la reconstruction du relief.
+   Ce logiciel est un programme informatique servant a  la mise en
+   correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
-respectant les principes de diffusion des logiciels libres. Vous pouvez
-utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
-sur le site "http://www.cecill.info".
+   Ce logiciel est regi par la licence CeCILL-B soumise au droit francais et
+   respectant les principes de diffusion des logiciels libres. Vous pouvez
+   utiliser, modifier et/ou redistribuer ce programme sous les conditions
+   de la licence CeCILL-B telle que diffusee par le CEA, le CNRS et l'INRIA
+   sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
+   En contrepartie de l'accessibilite au code source et des droits de copie,
+   de modification et de redistribution accordes par cette licence, il n'est
+   offert aux utilisateurs qu'une garantie limitee.  Pour les mêmes raisons,
+   seule une responsabilite restreinte pese sur l'auteur du programme,  le
+   titulaire des droits patrimoniaux et les concedants successifs.
 
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  \C3  l'utilisation,  \C3  la modification et/ou au
-développement et \C3  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe \C3
-manipuler et qui le réserve donc \C3  des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités \C3  charger  et  tester  l'adéquation  du
-logiciel \C3  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-\C3  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+   A cet egard  l'attention de l'utilisateur est attiree sur les risques
+   associes au chargement,  a  l'utilisation,  a  la modification et/ou au
+   developpement et a  la reproduction du logiciel par l'utilisateur etant
+   donne sa specificite de logiciel libre, qui peut le rendre complexe a
+   manipuler et qui le reserve donc a  des developpeurs et des professionnels
+   avertis possedant  des  connaissances  informatiques approfondies.  Les
+   utilisateurs sont donc invites a  charger  et  tester  l'adequation  du
+   logiciel a  leurs besoins dans des conditions permettant d'assurer la
+   securite de leurs systemes et ou de leurs donnees et, plus generalement,
+   a l'utiliser et l'exploiter dans les memes conditions de securite.
 
-Le fait que vous puissiez accéder \C3  cet en-tête signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
-termes.
-Footer-MicMac-eLiSe-25/06/2007*/
+   Le fait que vous puissiez acceder a cet en-tete signifie que vous avez
+   pris connaissance de la licence CeCILL-B, et que vous en avez accepte les
+   termes.
+   Footer-MicMac-eLiSe-25/06/2007/*/

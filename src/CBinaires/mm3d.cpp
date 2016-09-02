@@ -156,6 +156,7 @@ extern int TestElParseDir_main(int , char **);
 extern int Kugelhupf_main(int , char **);
 extern int FFTKugelhupf_main(int , char **);
 extern int SimplePredict_main(int , char **);
+extern int ProjImPtOnOtherImages_main(int , char **);
 extern int schnaps_main(int , char **);
 extern int mergeHomol_main(int , char **);
 extern int Zlimit_main(int , char **);
@@ -673,6 +674,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation  "));
        aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
        
+       aRes.push_back(cMMCom("ProjImPtOnOtherImages",ProjImPtOnOtherImages_main," Project image points on other images"));
+
 	   aRes.push_back(cMMCom("MatchImTM",MatchinImgTM_main,"Matching a Pattern of Images with a GPS TimeMark File",cArgLogCom(2)));
        aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images",cArgLogCom(2)));
        aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning",cArgLogCom(2)));
