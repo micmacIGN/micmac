@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[197]) = {
+const char * (theNameVar_ParamDigeo[199]) = {
 "<GenCpp>\n",
 "	<Verbatim  File=\".h\">\n",
 "	#ifndef Define_NotDigeo\n",
@@ -131,6 +131,8 @@ const char * (theNameVar_ParamDigeo[197]) = {
 "			</SiftCarac>\n",
 "		</SectionCaracImages>\n",
 "\n",
+"        <AutoAnnMinDist Nb=\"?\" Def=\"0.0\" Type=\"double\"> </AutoAnnMinDist>\n",
+"        \n",
 "		<!-- Cette section gère les fonctionnalites permettant de faire\n",
 "		des tests de perfomances ou de bon fonctionnement\n",
 "		-->\n",

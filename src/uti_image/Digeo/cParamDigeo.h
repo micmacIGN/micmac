@@ -958,6 +958,9 @@ class cParamDigeo
         cSectionCaracImages & SectionCaracImages();
         const cSectionCaracImages & SectionCaracImages()const ;
 
+        cTplValGesInit< double > & AutoAnnMinDist();
+        const cTplValGesInit< double > & AutoAnnMinDist()const ;
+
         cTplValGesInit< bool > & VerifExtrema();
         const cTplValGesInit< bool > & VerifExtrema()const ;
 
@@ -1060,6 +1063,7 @@ class cParamDigeo
         cTplValGesInit< cChantierDescripteur > mDicoLoc;
         cDigeoSectionImages mDigeoSectionImages;
         cSectionCaracImages mSectionCaracImages;
+        cTplValGesInit< double > mAutoAnnMinDist;
         cTplValGesInit< cSectionTest > mSectionTest;
         cSectionWorkSpace mSectionWorkSpace;
 };

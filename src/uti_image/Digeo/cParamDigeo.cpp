@@ -3402,6 +3402,17 @@ const cSectionCaracImages & cParamDigeo::SectionCaracImages()const
 }
 
 
+cTplValGesInit< double > & cParamDigeo::AutoAnnMinDist()
+{
+   return mAutoAnnMinDist;
+}
+
+const cTplValGesInit< double > & cParamDigeo::AutoAnnMinDist()const 
+{
+   return mAutoAnnMinDist;
+}
+
+
 cTplValGesInit< bool > & cParamDigeo::VerifExtrema()
 {
    return SectionTest().Val().VerifExtrema();
@@ -3779,6 +3790,14 @@ void  BinaryUnDumpFromFile(cParamDigeo & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.AutoAnnMinDist().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.AutoAnnMinDist().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.AutoAnnMinDist().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.SectionTest().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.SectionTest().ValForcedForUnUmp(),aFp);
         }
@@ -3793,6 +3812,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cParamDigeo & anObj)
     if (anObj.DicoLoc().IsInit()) BinaryDumpInFile(aFp,anObj.DicoLoc().Val());
     BinaryDumpInFile(aFp,anObj.DigeoSectionImages());
     BinaryDumpInFile(aFp,anObj.SectionCaracImages());
+    BinaryDumpInFile(aFp,anObj.AutoAnnMinDist().IsInit());
+    if (anObj.AutoAnnMinDist().IsInit()) BinaryDumpInFile(aFp,anObj.AutoAnnMinDist().Val());
     BinaryDumpInFile(aFp,anObj.SectionTest().IsInit());
     if (anObj.SectionTest().IsInit()) BinaryDumpInFile(aFp,anObj.SectionTest().Val());
     BinaryDumpInFile(aFp,anObj.SectionWorkSpace());
@@ -3806,6 +3827,8 @@ cElXMLTree * ToXMLTree(const cParamDigeo & anObj)
       aRes->AddFils(ToXMLTree(anObj.DicoLoc().Val())->ReTagThis("DicoLoc"));
    aRes->AddFils(ToXMLTree(anObj.DigeoSectionImages())->ReTagThis("DigeoSectionImages"));
    aRes->AddFils(ToXMLTree(anObj.SectionCaracImages())->ReTagThis("SectionCaracImages"));
+   if (anObj.AutoAnnMinDist().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("AutoAnnMinDist"),anObj.AutoAnnMinDist().Val())->ReTagThis("AutoAnnMinDist"));
    if (anObj.SectionTest().IsInit())
       aRes->AddFils(ToXMLTree(anObj.SectionTest().Val())->ReTagThis("SectionTest"));
    aRes->AddFils(ToXMLTree(anObj.SectionWorkSpace())->ReTagThis("SectionWorkSpace"));
@@ -3825,10 +3848,12 @@ void xml_init(cParamDigeo & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SectionCaracImages(),aTree->Get("SectionCaracImages",1)); //tototo 
 
+   xml_init(anObj.AutoAnnMinDist(),aTree->Get("AutoAnnMinDist",1),double(0.0)); //tototo 
+
    xml_init(anObj.SectionTest(),aTree->Get("SectionTest",1)); //tototo 
 
    xml_init(anObj.SectionWorkSpace(),aTree->Get("SectionWorkSpace",1)); //tototo 
 }
 
-std::string  Mangling( cParamDigeo *) {return "A64F722F98747E93FCBF";};
+std::string  Mangling( cParamDigeo *) {return "0E5371A137C71EA6FF3F";};
 

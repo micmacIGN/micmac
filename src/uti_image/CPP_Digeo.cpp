@@ -39,6 +39,64 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo/Digeo.h"
 
+//inspired from from CPP_Ann.cpp
+//remove ambiguous points from a list<DigeoPoint>
+void self_match_lebris( list<DigeoPoint> &i_list,
+                        double _min_dist,  	// min distance of second best point to avoid abiguity
+                        int i_nbMaxPriPoints    = SIFT_ANN_DEFAULT_MAX_PRI_POINTS ) 	// max number of point per search (with annkPriSearch)
+{
+    if ( i_list.size()==0 ) return;
+
+    vector<DigeoPoint> i_array;
+    i_array.reserve(i_list.size());
+    for (list<DigeoPoint>::const_iterator it=i_list.begin();it!=i_list.end();it++)
+        i_array.push_back(*it);
+
+    AnnArray dataArray( i_array, SIFT_ANN_DESC_SEARCH );
+
+    AnnSearcher anns;
+    anns.setNbNeighbours( 2 );
+    anns.setErrorBound( 0. );
+    anns.setMaxVisitedPoints( i_nbMaxPriPoints );
+    anns.createTree( dataArray );
+
+    ANNdist min_dist=_min_dist;
+
+    const ANNidx *neighIndices   = anns.getNeighboursIndices();
+    const ANNdist *neighDistances = anns.getNeighboursDistances();
+
+    DigeoPoint *itQuery = &i_array[0];
+    int         nbQueries = (int)i_array.size(),
+                iQuery;
+
+    vector<size_t> to_remove;
+    for ( iQuery=0; iQuery<nbQueries; iQuery++ )
+    {
+        anns.search( itQuery->descriptor(0) );
+
+        if ( itQuery->type==i_array[neighIndices[0]].type && // matchings of points of different types are discarded
+             neighDistances[1]<min_dist )
+            to_remove.push_back(neighIndices[0]);
+
+        itQuery++;
+    }
+
+    list<DigeoPoint>::iterator it=i_list.begin();
+    unsigned int j=0;
+    for (unsigned int i=0;i<to_remove.size();i++)
+    {
+        while(to_remove[i]>j)
+        {
+            j++;
+            it++;
+        }
+        it=i_list.erase(it);
+        j++;
+    }
+}
+
+
+
 // add i_v to the coordinates of the i_nbPoints last points of io_points
 void translate_points( list<DigeoPoint> &io_points, size_t i_nbPoints, const Pt2di &i_v )
 {
@@ -134,8 +192,24 @@ int Digeo_main( int argc, char **argv )
 	else if ( appli.isVerbose() && ( appli.nbSlowConvolutionsUsed<U_INT2>()!=0 || appli.nbSlowConvolutionsUsed<REAL4>()!=0 ) )
 		cout << "skipping convolution code generation" << endl;
 
+    cout << total_list.size() << " points" << endl;
+
+    float ann_auto_min_dist=appli.Params().AutoAnnMinDist().Val();
+    cout<<"AutoAnnMinDist is "<<appli.Params().AutoAnnMinDist().Val()<<std::endl;
+    if (ann_auto_min_dist>0.0)
+    {
+        std::cout<<"JM: Removing ambiguous points..."<<std::endl;
+        size_t nb_before=total_list.size();
+        if (nb_before>0)
+        {
+            //compute matching between points of the same image
+            self_match_lebris( total_list, ann_auto_min_dist );
+            std::cout<<"JM: Ambiguous points removed !"<<std::endl;
+            cout << "Before: "<<nb_before<<", after : "<<total_list.size() << " points (-" <<100.0*(nb_before-total_list.size())/nb_before << "%)" << endl;
+        }
+    }
+
 	ElTimer chronoSave;
-	cout << total_list.size() << " points" << endl;
 	if ( !DigeoPoint::writeDigeoFile( outputName, total_list ) ) cerr << "Digeo: ERROR: unable to save points to file " << outputName << endl;
 	double saveTime = chronoSave.uval();
 
