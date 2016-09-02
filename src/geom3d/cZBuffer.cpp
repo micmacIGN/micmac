@@ -142,6 +142,9 @@ bool DEBUG_ZBB = false;
 Pt2di PT_BugZBB;
 bool ERupnik_MM();
 
+bool MMUseRPC = false; // Pour limiter l'impact de la verif au cas RPC et ne
+                       // pas risquer de perturber d'autre code
+
 Im2D_REAL4 cZBuffer::Basculer
            (
                Pt2di & aOffset_Out_00,
@@ -151,6 +154,8 @@ Im2D_REAL4 cZBuffer::Basculer
                bool * isOk
            )
 {
+
+
     if (isOk) 
     {
         *isOk = true;
@@ -190,7 +195,14 @@ Im2D_REAL4 cZBuffer::Basculer
 
 static int aCpt=0; aCpt++;
 
-    // double a
+    // fait pour verifier par cher que le gradient est raisonnable
+    
+    Pt2di aLastPIn = aP0In - Pt2di(100000,100);
+    Pt3dr aLastP3Out(0,0,0);
+    double aMaxGrad = 0.0;
+    double aNbBadGrad = 0.0;
+    double aNbGrad = 0.0;
+
     for (int anXDal0 = aP0In.x ;  anXDal0< aP1In.x ; anXDal0 += SzDalleDef  )
     {
         int anXDal1 = ElMin(aP1In.x,anXDal0+SzDalleDef);
@@ -213,6 +225,19 @@ static int aCpt=0; aCpt++;
 //if (aCpt>10600000)std::cout << "OooUuutt " << aCpt << "\n";
 				Pt2dr aP2Out(aP3Out.x,aP3Out.y);
 
+                                double aDist8 =  dist8(aPIn-aLastPIn);
+                                if ( aDist8 < 10)
+                                {
+                                    double aGrad = euclid(aP3Out-aLastP3Out) / aDist8;
+                                    aNbGrad ++;
+                                    if (aGrad>1.5)
+                                        aNbBadGrad++;
+                                    if (aGrad > aMaxGrad)
+                                    {
+                                        aMaxGrad = aGrad;
+                                    }
+                                }
+
 
 				if (SelectPBascul(aP2Out))
 				{
@@ -227,7 +252,7 @@ if (0 &&(MPD_MM() || ERupnik_MM()))
 //  std::cout << "pppppppppppppp " << aP2Out << "\n";
 if (euclid(aP2Out) > 1e5  )
 {
-   ELISE_ASSERT(false,"Probable error in RPC");
+   // ELISE_ASSERT(false,"Probable error in RPC");
    std::cout << "STEPIN " << mStepIn << " OOOO " << aZofXY << "\n";
    DEBUG_ZBB = true;
    for (int aDx = -1 ; aDx<=1 ; aDx++)
@@ -236,10 +261,10 @@ if (euclid(aP2Out) > 1e5  )
        {
            PT_BugZBB =  Pt2di(aDx,aDy);
            Pt2di aPV = aPIn + PT_BugZBB;
-           //std::cout << "uuu DEBUG_ZBB " << aPV << " " << aZofXY << "\n";
+           std::cout << "uuu DEBUG_ZBB " << aPV << " " << aZofXY << "\n";
            // mGeom.Objet2ImageInit_Euclid(Pt2dr(aPV),&aZofXY);
-           //std::cout << " ZzzZzz " <<  ProjDisc(aPV,&aZofXY) << " " << aZofXY << "\n";
-            ProjDisc(aPV,&aZofXY);
+           std::cout << " ZzzZzz " <<  ProjDisc(aPV,&aZofXY) << " " << aZofXY << "\n";
+           //  ProjDisc(aPV,&aZofXY);
 
        }
    }
@@ -263,9 +288,12 @@ if (euclid(aP2Out) > 1e5  )
 				   mImOkTer.set(aPIn.x-mP0In.x,aPIn.y-mP0In.y,1);
                                    if (mDynEtire >0) aVZofXY.push_back(aZofXY);
 				}
+                                aLastPIn = aPIn;
+                                aLastP3Out = aP3Out;
 			}
                 }
             }
+
             if (mDynEtire >0)
             {
                 // Pt2di anIndexDef((anXDal0-aP0In.x)/SzDalleDef,(anYDal0-aP0In.y)/SzDalleDef);
@@ -298,6 +326,11 @@ if (euclid(aP2Out) > 1e5  )
             }
         }
     } 
+    if (MMUseRPC && (aMaxGrad > 100))
+    {
+        std::cout << "GRAD=" << aMaxGrad << " PropBadGrad " << aNbBadGrad / aNbGrad << "\n";
+        ELISE_ASSERT(false,"probable instability in RPCi due to bad heigth interval");
+    }
     aOffset_Out_00 = mOffet_Out_00 = round_down(aPInf);
     if (mWihBuf)
     {
@@ -452,6 +485,7 @@ void cZBuffer::AddImAttr(Im2DGen * anIm)
 }
 
 
+
 void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 {
 
@@ -461,6 +495,7 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
         || (! mTImOkTer.get(C-mP0In))
       )
       return;
+  
 
      Pt3dr A3  =  ProjDisc(A);
      Pt3dr B3  =  ProjDisc(B);
@@ -474,11 +509,6 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
      Pt2dr AB = B2-A2;
      Pt2dr AC = C2-A2;
      REAL aDet = AB^AC;
-
-if (0 && MPD_MM())
-{
-    std::cout << "DETBasc = " << aDet  << " N " << euclid(AB)  << " " << euclid (AC) << " S " << scal(vunit(AB),vunit(AC)) << "\n";
-}
 
 
 	 //Calcul de l'etirement du triangle
@@ -575,7 +605,6 @@ getchar();
          mAttrC.push_back(mImAttrIn[aKA]->GetR(C));
      }
 
-
      for (INT x=aP0.x ; x<= aP1.x ; x++)
      {
          for (INT y=aP0.y ; y<= aP1.y ; y++)
@@ -586,6 +615,7 @@ getchar();
 		 REAL aPdsB = (AP^AC) / aDet;
 		 REAL aPdsC = (AB^AP) / aDet;
 		 REAL aPdsA = 1 - aPdsB - aPdsC;
+
 		 if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
 		 {
                     REAL4 aZ = (float) (zA *aPdsA  + zB* aPdsB + zC *aPdsC);
