@@ -92,6 +92,8 @@
 			<RefinementMethod> eRefine3D </RefinementMethod>
 		</SiftCarac>
 	</SectionCaracImages>
+	
+	<AutoAnnMinDist> 0.0 </AutoAnnMinDist>
 
 	<!-- Cette section gère les fonctionnalites permettant de faire
 	des tests de perfomances ou de bon fonctionnement
