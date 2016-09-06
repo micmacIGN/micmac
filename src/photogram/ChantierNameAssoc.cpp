@@ -3766,19 +3766,23 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
 
             if (! ELISE_fp::exist_file(mFullNameFinal))
             {
-                Im2D_REAL4 aImInit(aSzInit.x,aSzInit.y);
-                ELISE_COPY
-                    (
-                    aImInit.all_pts(),
-                    trans(aFileInit.in(0),mBox._p0),
-                    aImInit.out()
-                    );
 
-                Im2D_REAL4 aImTurn = aImInit;
+// std::cout << "Aaaaaaaa " << aSzInit << aSzTurn << " Scale " << mScale << "Teta " << mTeta   << "\n";
+
+                Fonc_Num fRes =  trans(aFileInit.in(0),mBox._p0);
+                Pt2di aSzRes = aSzInit;
 
                 if (mTeta !=0)
                 {
-                    aImTurn = Im2D_REAL4(aSzTurn.x,aSzTurn.y);
+                    Im2D_REAL4 aImInit(aSzInit.x,aSzInit.y);
+                    ELISE_COPY
+                    (
+                        aImInit.all_pts(),
+                        trans(aFileInit.in(0),mBox._p0),
+                        aImInit.out()
+                    );
+
+                    Im2D_REAL4 aImTurn(aSzTurn.x,aSzTurn.y);
                     TIm2D<REAL4,REAL8> aTT(aImTurn);
 
                     Pt2di aP;
@@ -3790,40 +3794,44 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
                             aTT.oset(aP,aTI.getr(mRTr_R2I(Pt2dr(aP)),0.0));
                         }
                     }
+                    fRes = aImTurn.in(0);
+                    aSzRes = aImTurn.sz();
                 }
 
                 // std::cout << "SCALE = " << mScale << "\n";
                 if (mScale !=1.0)
                 {
-                    Pt2di aSzS =  round_ni(Pt2dr(aSzTurn)/mScale);
+                    Pt2di aSzS =  round_ni(Pt2dr(aSzRes)/mScale);
+// std::cout << "Bbbbbbb sssssss " << aSzS << "\n";
                     Im2D_REAL4  aImScale(aSzS.x,aSzS.y);
 
                     ELISE_COPY
-                        (
+                    (
                         aImScale.all_pts(),
                         StdFoncChScale
                         (
-                        aImTurn.in(0),
+                        fRes,
                         Pt2dr(0,0),
                         Pt2dr(mScale,mScale)
                         ),
                         aImScale.out()
-                        );
+                    );
 
-                    aImTurn = aImScale;
+                    fRes = aImScale.in(0);
+                    aSzRes = aImScale.sz();
                 }
                 Tiff_Im aNewF
                     (
                     mFullNameFinal.c_str(),
-                    aImTurn.sz(),
+                    aSzRes,
                     aFileInit.type_el(),
                     Tiff_Im::No_Compr,
                     Tiff_Im::BlackIsZero
                     );
                 ELISE_COPY
                     (
-                    aImTurn.all_pts(),
-                    Tronque(aNewF.type_el(),aImTurn.in()),
+                    aNewF.all_pts(),
+                    Tronque(aNewF.type_el(),fRes),
                     aNewF.out()
                     );
             }

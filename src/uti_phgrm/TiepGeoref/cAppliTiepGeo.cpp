@@ -197,24 +197,6 @@ void cAppliTiepGeo::DoPx1Px2()
 
 	}
 
-	//load the Corr, Px1, Px2		
-	/*for(aK1=0; aK1<int(mVVLnk.size()); aK1++)
-	{
-		for(aK2=0; aK2<int(mVVLnk[aK1].size()); aK2++)
-		{
-
-			if( mVVLnk[aK1][aK2] )
-			{
-			
-				if( mVVLnk[aK1][aK2]->Im1().Num() < mVVLnk[aK1][aK2]->Im2().Num() )
-				{
-					mVVLnk[aK1][aK2]->LoadCor();						
-					mVVLnk[aK1][aK2]->LoadPx1();						
-					mVVLnk[aK1][aK2]->LoadPx2();						
-				}
-			}
-		}
-	}*/
 }
 
 const std::string cAppliTiepGeo::NamePxDir(const std::string & aIm1,const std::string & aIm2) const
