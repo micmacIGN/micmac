@@ -303,6 +303,8 @@ std::istream & VStrElStdRead
         else
             vec.back() += (char) c;
     }
+    ELISE_ASSERT (is.get()==-1,"Expected End Of String param vector (did you forget a space between two parameters?)");
+
     if ((vec.size()==1) && (vec[0]==""))
         vec.pop_back();
     return is;
