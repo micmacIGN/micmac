@@ -95,8 +95,11 @@ void cLnk2ImTiepGeo::BestScoresInCell(Pt2di & aOrg, Pt2di & aSz,
 
 	int aK1, aK2;
 
-	double aCorBest=0;
-	double aCorWorst=1;
+	//commented out becuase causing warnings, to be uncommented
+    //during implementation
+    //
+    //double aCorBest=0;
+	//double aCorWorst=1;
 
 	std::map<double,Pt2dr> aPtsInCell;
 
