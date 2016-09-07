@@ -103,9 +103,17 @@ int Zlimit_main(int argc,char ** argv)
 	TIm2D<U_INT1, INT4> masqImageT(aOriDEM.NombrePixels());
     Im2D<U_INT1,INT4>  masqImage(masqImageT._the_im);
 
-	// Compute min and max masks
-	ELISE_COPY(tmpImage1.all_pts(), ((aFileDEM.in()*aResolutionAlti + aOrigineAlti)<aMaxZ), tmpImage1.out());
-	ELISE_COPY(tmpImage2.all_pts(), ((aFileDEM.in()*aResolutionAlti + aOrigineAlti)>aMinZ), tmpImage2.out());
+    // Compute min and max masks
+    if ((aOriDEM.Geometrie()==eGeomMNTFaisceauPrChSpherik)||
+        (aOriDEM.Geometrie()==eGeomMNTFaisceauIm1PrCh_Px1D)||
+        (aOriDEM.Geometrie()==eGeomMNTFaisceauIm1PrCh_Px2D))
+    {
+        ELISE_COPY(tmpImage1.all_pts(), (1.0/(aFileDEM.in()*aResolutionAlti + aOrigineAlti)<aMaxZ), tmpImage1.out());
+        ELISE_COPY(tmpImage2.all_pts(), (1.0/(aFileDEM.in()*aResolutionAlti + aOrigineAlti)>aMinZ), tmpImage2.out());
+    }else{
+        ELISE_COPY(tmpImage1.all_pts(), ((aFileDEM.in()*aResolutionAlti + aOrigineAlti)<aMaxZ), tmpImage1.out());
+        ELISE_COPY(tmpImage2.all_pts(), ((aFileDEM.in()*aResolutionAlti + aOrigineAlti)>aMinZ), tmpImage2.out());
+    }
  
 	// Multiply min and max masks to creat a minmax mask
     ELISE_COPY(masqImage.all_pts(),(tmpImage1.in()*tmpImage2.in()),masqImage.out());
