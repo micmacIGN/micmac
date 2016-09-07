@@ -298,6 +298,7 @@
           La valeur eGeomMNTFaisceauIm1PrCh_Px2D est utilisable avec 2 image,
         il y a alors correction des Pax transverses.
      -->
+     <!-- Pour les geom faisceau on a des 1/z -->
            <eGeomMNTFaisceauIm1PrCh_Px1D > </eGeomMNTFaisceauIm1PrCh_Px1D>
            <eGeomMNTFaisceauIm1PrCh_Px2D > </eGeomMNTFaisceauIm1PrCh_Px2D>
      <!-- Les "verticales" sont les rayons issus de l'image1, le Z est la profondeur de champs;
