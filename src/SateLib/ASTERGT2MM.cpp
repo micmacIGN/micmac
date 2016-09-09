@@ -121,15 +121,23 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 	//Reading correction tables
 	vector<Pt3dr> Cor_3N = ReadCorTable(aDir + aNameFile + ".VNIR_Band3N.RadiometricCorrTable.txt");
 	vector<Pt3dr> Cor_3B = ReadCorTable(aDir + aNameFile + ".VNIR_Band3B.RadiometricCorrTable.txt");
+	vector<Pt3dr> Cor_1 = ReadCorTable(aDir + aNameFile + ".VNIR_Band1.RadiometricCorrTable.txt");
+	vector<Pt3dr> Cor_2 = ReadCorTable(aDir + aNameFile + ".VNIR_Band2.RadiometricCorrTable.txt");
 
 	//Reading the image and applying correction tables
 	Tiff_Im aTF_3N = Tiff_Im::StdConvGen(aDir + aNameFile + ".VNIR_Band3N.ImageData.tif", 1, false);
 	Tiff_Im aTF_3B = Tiff_Im::StdConvGen(aDir + aNameFile + ".VNIR_Band3B.ImageData.tif", 1, false);
+	Tiff_Im aTF_1 = Tiff_Im::StdConvGen(aDir + aNameFile + ".VNIR_Band1.ImageData.tif", 1, false);
+	Tiff_Im aTF_2 = Tiff_Im::StdConvGen(aDir + aNameFile + ".VNIR_Band2.ImageData.tif", 1, false);
 
 	Pt2di aSz_3N = aTF_3N.sz(); cout << "size of image 3N = " << aSz_3N << endl;
 	Im2D_U_INT1  aIm_3N(aSz_3N.x, aSz_3N.y);
 	Pt2di aSz_3B = aTF_3B.sz(); cout << "size of image 3B = " << aSz_3B << endl;
 	Im2D_U_INT1  aIm_3B(aSz_3B.x, aSz_3B.y);
+	Pt2di aSz_1 = aTF_1.sz(); cout << "size of image 1 = " << aSz_1 << endl;
+	Im2D_U_INT1  aIm_1(aSz_1.x, aSz_1.y);
+	Pt2di aSz_2 = aTF_2.sz(); cout << "size of image 2 = " << aSz_2 << endl;
+	Im2D_U_INT1  aIm_2(aSz_2.x, aSz_2.y);
 
 	ELISE_COPY
 	(
@@ -148,6 +156,24 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 	);
 
 	U_INT1 ** aData_3B = aIm_3B.data();
+	
+	ELISE_COPY
+	(
+		aTF_1.all_pts(),
+		aTF_1.in(),
+		aIm_1.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
+	);
+
+	U_INT1 ** aData_1 = aIm_1.data();
+
+	ELISE_COPY
+	(
+		aTF_2.all_pts(),
+		aTF_2.in(),
+		aIm_2.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
+	);
+
+	U_INT1 ** aData_2 = aIm_2.data();
 
 
 
@@ -156,6 +182,8 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 		for (int aY = 0; aY < aSz_3N.y; aY++)
 		{
 			aData_3N[aY][aX] = Cor_3N[aX].y*double(aData_3N[aY][aX]) / Cor_3N[aX].z + Cor_3N[aX].x;
+			aData_1[aY][aX]  = Cor_1[aX].y*double(aData_1[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x;
+			aData_2[aY][aX]  = Cor_2[aX].y*double(aData_2[aY][aX]) / Cor_2[aX].z + Cor_2[aX].x;
 		}
 	}
 
@@ -205,6 +233,24 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 		aTOut_3B.all_pts(),
 		aIm_3B.in(),
 		aTOut_3B.out()
+	);
+
+	string aNameOut_FC = aOutDir + "FalseColor_" + aNameFile + ".tif";
+	Tiff_Im  aTOut_FC
+	(
+		aNameOut_FC.c_str(),
+		aSz_1,
+		GenIm::u_int1,
+		Tiff_Im::No_Compr,
+		Tiff_Im::RGB
+	);
+
+
+	ELISE_COPY
+	(
+		aTOut_FC.all_pts(),
+		Virgule(aIm_3N.in(), aIm_2.in(), aIm_1.in()),
+		aTOut_FC.out()
 	);
 
 
@@ -400,6 +446,7 @@ int ASTERGT2MM_main(int argc, char ** argv)
 
 
 	//Write XML
+	ASTERXMLWrite(aOutDir + "FalseColor_" + aNameFile + ".xml", aDate, aLatticePointsIm_3N, aSatellitePosition_3N, aLatticeECEF_3N);
 	ASTERXMLWrite(aOutDir + aNameFile + "_3N.xml", aDate, aLatticePointsIm_3N, aSatellitePosition_3N, aLatticeECEF_3N);
 	ASTERXMLWrite(aOutDir + aNameFile + "_3B.xml", aDate, aLatticePointsIm_3B, aSatellitePosition_3B, aLatticeECEF_3B);
 
