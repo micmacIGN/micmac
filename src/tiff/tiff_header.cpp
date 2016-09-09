@@ -752,8 +752,10 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
     }
     else // (aIntBigTif==0)
     {
-      mUseFileTile = 0;
-      mBigTiff =  aSzNCompr > aMaxSzFile;
+       
+       std::cout << "BIGTIF suspended momentally \n";
+      // mUseFileTile = 0;
+      // mBigTiff =  aSzNCompr > aMaxSzFile;
     }
 
     ELISE_fp fp(name,ELISE_fp::WRITE);
