@@ -558,7 +558,7 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
     //read all homol points --------------------------------------------
 
 
-    std::cout<<"Read Homol points:"<<endl;
+    std::cout<<"Read packs of homol points:"<<endl;
 
     std::map<std::string,cPic*>::iterator itPic1,itPic2;
     int i=0;
@@ -571,14 +571,14 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
 
         if (!ELISE_fp::IsDirectory(aCKin.getDir(pic1->getName(),aPatIm)))
         {
-            std::cout<<"No pacs."<<endl;
+            std::cout<<"No homol file."<<endl;
             continue;
         }
 
         cInterfChantierNameManipulateur * homolICNM=cInterfChantierNameManipulateur::BasicAlloc(aCKin.getDir(pic1->getName(),aPatIm));
         std::list<std::string> aSetPac = homolICNM->StdGetListOfFile(aCKin.getFile(pic1->getName(),aPatIm),2,false);
 
-        std::cout<<"Found "<<aSetPac.size()<<" pacs and ";
+        std::cout<<"Found "<<aSetPac.size()<<" homol files and ";
 
         i++;
         std::list<std::string>::iterator itPacName;
@@ -705,7 +705,7 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
         std::cout<<nb_homol_raw<<" raw homol couples."<<std::endl;
     }
 
-    ELISE_ASSERT(allHomolsIn.size()>0,"ERROR: No pack found!");
+    ELISE_ASSERT(allHomolsIn.size()>0,"ERROR: No homol file found!");
 
 }
 
@@ -748,6 +748,7 @@ int schnaps_main(int argc,char ** argv)
 
     if (MMVisualMode) return EXIT_SUCCESS;
 
+
     std::cout<<"Number of searching windows: "<<aNumWindows<<std::endl;
 
     // Initialize name manipulator & files
@@ -757,6 +758,9 @@ int schnaps_main(int argc,char ** argv)
     SplitDirAndFile(aDirImages,aPatIm,aFullPattern);
     std::cout<<"Working dir: "<<aDirImages<<std::endl;
     std::cout<<"Images pattern: "<<aPatIm<<std::endl;
+
+    StdCorrecNameHomol(aInHomolDirName,aDirImages);
+    StdCorrecNameHomol(aOutHomolDirName,aDirImages);
 
 
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
