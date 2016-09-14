@@ -303,6 +303,93 @@ int TestDistM2C_main(int argc,char ** argv)
 }
 
 
+class cStrPtCamForInter
+{
+    public :
+       cStrPtCamForInter(const std::vector<std::string> & aVS)
+       {
+            int aType= eTIGB_Unknown;
+            ELISE_ASSERT(aVS.size()==3,"cStrPtCamForInter");
+            mCam = cBasicGeomCap3D::StdGetFromFile(aVS[0],aType);
+       }
+       ElSeg3D           Seg() {return mCam->Capteur2RayTer(mPt);};
+       cBasicGeomCap3D * mCam;
+       Pt2dr             mPt;
+};
+
+
+class cAppli_TestBundleInter_main
+{
+   public :
+
+       void AddPtCam(std::vector<std::string> & aVS)
+       {
+            if (! EAMIsInit(&aVS)) return;
+            int aType= eTIGB_Unknown;
+            ELISE_ASSERT(aVS.size()==3,"cStrPtCamForInter");
+
+            cBasicGeomCap3D * aCam = cBasicGeomCap3D::StdGetFromFile(aVS[0],aType);
+            mVCam.push_back(aCam);
+
+            Pt2dr aP;
+            FromString(aP.x,aVS[1]);
+            FromString(aP.y,aVS[2]);
+            mVPt.push_back(aP);
+            mVSeg.push_back(aCam->Capteur2RayTer(aP));
+            std::cout << "cAppli_TestBundleInter_main " << aP << "\n";
+       }
+
+       std::vector<cBasicGeomCap3D *> mVCam;
+       std::vector<Pt2dr>             mVPt;
+       std::vector<ElSeg3D>         mVSeg;
+   
+       cAppli_TestBundleInter_main (int argc,char ** argv)
+       {
+           std::vector<std::string> aVS1;
+           std::vector<std::string> aVS2;
+           std::vector<std::string> aVS3;
+
+           ElInitArgMain
+           (
+             argc,argv,
+             LArgMain()  << EAMC(aVS1,"[Cam1,x1,y1]")
+                         << EAMC(aVS2,"[Cam2,x2,y2]"),
+             LArgMain()
+                        << EAM(aVS3,"[Cam3,x3,y3]")
+           );
+
+
+           AddPtCam(aVS1);
+           AddPtCam(aVS2);
+
+           bool Ok;
+           Pt3dr  aPI = InterSeg(mVSeg,Ok);
+
+           std::cout << "Inter= " << aPI << "\n";
+           for (int aK=0 ; aK<int(mVSeg.size()) ; aK++)
+           {
+               Pt2dr aProj = mVCam[aK]->Ter2Capteur(aPI);
+               std::cout << " D=" << euclid(aProj,mVPt[aK]) << "\n";
+           }
+       }
+};
+
+/*
+mm3d TestBundleInter [Ori-C35/Orientation-F35_MG_0150.CR2.xml,3941.00320404687682,1863.818403035158] [Ori-C35/Orientation-F35_MG_0151.CR2.xml,4062.24841818221648,1829.81156999058044]
+
+*/
+
+
+int TestBundleInter_main(int argc,char ** argv)
+{
+    cAppli_TestBundleInter_main anAppli(argc,argv);
+
+    return EXIT_SUCCESS;
+}
+
+
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant Ã  la mise en
