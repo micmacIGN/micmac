@@ -1507,6 +1507,12 @@ class cBasicGeomCap3D
        virtual double GetVeryRoughInterProf() const;
 
 
+       virtual  double GetAltiSol() const ;
+       virtual  Pt2dr GetAltiSolMinMax() const ;
+       virtual   bool AltisSolIsDef() const ;
+       virtual   bool AltisSolMinMaxIsDef() const;
+
+
        // Save using standard MicMac naming ; !! Not supported for now by Stenope camera; Def :  Fatal Error
        virtual void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd) const ;
 
