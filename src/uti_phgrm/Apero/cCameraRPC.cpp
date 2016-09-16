@@ -57,6 +57,7 @@ extern bool MMUseRPC ;
 CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
     mProfondeurIsDef(false),
 	mAltisSolIsDef(true),
+    mAltisSolMinMaxIsDef(false),
 	mAltiSol(aAltiSol),
 	mOptCentersIsDef(false),
 	mOpticalCenters(new std::vector<Pt3dr>()),
@@ -67,7 +68,10 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
     mRPC = new cRPC(aNameFile);
 
     /* Mean Z */
-    SetAltiSol( abs(mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
+    SetAltiSol( (mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
+    /* Z Min/Max */
+    SetAltisSolMinMax(Pt2dr(mRPC->GetGrC31(),mRPC->GetGrC32()));
+
 }
 
 /* Constructor that takes original RPC fiels as input */
@@ -77,6 +81,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
                      const double aAltiSol) : 
 	mProfondeurIsDef(false),
 	mAltisSolIsDef(true),
+    mAltisSolMinMaxIsDef(false),
 	mAltiSol(aAltiSol),
 	mOptCentersIsDef(false),
 	mOpticalCenters(new std::vector<Pt3dr>()),
@@ -87,7 +92,10 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     mRPC = new cRPC(aNameFile,aType,aChSys);
     
     /* Mean Z */
-    SetAltiSol( abs(mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
+    SetAltiSol( (mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
+    /* Z Min/Max */
+    SetAltisSolMinMax(Pt2dr(mRPC->GetGrC31(),mRPC->GetGrC32()));
+
 }
 
 cBasicGeomCap3D * CameraRPC::CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
@@ -433,6 +441,12 @@ void CameraRPC::SetAltiSol(double aZ)
 	mEmpriseSol.AddContour(aCont,false);
 }
 
+void CameraRPC::SetAltisSolMinMax(Pt2dr aP)
+{
+    mAltisSolMinMax = aP;
+    mAltisSolMinMaxIsDef = true;
+}
+
 const cElPolygone &  CameraRPC::EmpriseSol() const
 {
 	return mEmpriseSol;
@@ -456,14 +470,25 @@ double CameraRPC::GetAltiSol() const
     return(mAltiSol);
 }
 
+//er prob unnecessaire mnt
 double CameraRPC::GetAltiSolInc() const
 {
     return( abs(mRPC->GetGrC32() - mRPC->GetGrC31())*0.5 );
 }
 
+Pt2dr CameraRPC::GetAltiSolMinMax()
+{
+    return mAltisSolMinMax;
+}
+
 bool CameraRPC::AltisSolIsDef() const
 {
-    return(mAltisSolIsDef);
+    return mAltisSolIsDef;
+}
+
+bool CameraRPC::AltisSolMinMaxIsDef() const
+{
+    return mAltisSolMinMaxIsDef;
 }
 
 double CameraRPC::ResolSolOfPt(const Pt3dr & aP) const
@@ -1011,7 +1036,7 @@ cRPC::cRPC(const std::string &aName, const eTypeImporGenBundle &aType, const cSy
 {
     /* Initialize the class variables */
     Initialize(aName,aType,aChSys);
-
+    //Show();
 
 }
 
@@ -1122,7 +1147,7 @@ void cRPC::Initialize(const std::string &aName,
                   mDirSNum, mDirLNum, mDirSDen, mDirLDen,
                   mInvSNum, mInvLNum, mInvSDen, mInvLDen, 1);
 
-        Show();
+        //Show();
 
         ISDIR=true;
         ISINV=true;
@@ -3149,7 +3174,7 @@ void cRPC::ReadDimap(const std::string &aFile)
             {
                 mImRows[0] = std::atof((*aIt)->GetUnique("FIRST_ROW")->GetUniqueVal().c_str());
                 mImRows[1] = std::atof((*aIt)->GetUnique("LAST_ROW")->GetUniqueVal().c_str());
-                mImCols[0] = std::atof((*aIt)->GetUnique("FIRST_COL")->GetUniqueVal().c_str());
+                mImCols[0] = 1;//std::atof((*aIt)->GetUnique("FIRST_COL")->GetUniqueVal().c_str());
                 mImCols[1] = std::atof((*aIt)->GetUnique("LAST_COL")->GetUniqueVal().c_str());
             }
         //}
