@@ -93,10 +93,14 @@ class CameraRPC : public cBasicGeomCap3D
 		double GetProfondeur() const;
         bool ProfIsDef() const;
         void SetAltiSol(double aZ);
+        void SetAltisSolMinMax(Pt2dr);
 		double GetAltiSol() const;
 		double GetAltiSolInc() const;
+        Pt2dr GetAltiSolMinMax();
 		bool AltisSolIsDef() const;
-		const std::vector<Pt2dr> &  ContourUtile();
+        bool AltisSolMinMaxIsDef() const;
+        
+        const std::vector<Pt2dr> &  ContourUtile();
 		const cElPolygone &  EmpriseSol() const;
 		const Box2dr & BoxSol() const;
 
@@ -117,7 +121,9 @@ class CameraRPC : public cBasicGeomCap3D
 		bool   mProfondeurIsDef;
 		double mProfondeur;
 		bool   mAltisSolIsDef;
+        bool   mAltisSolMinMaxIsDef;
 		double mAltiSol;
+        Pt2dr mAltisSolMinMax;
         std::vector<Pt2dr>  mContourUtile;
 		cElPolygone mEmpriseSol;
 		Box2dr      mBoxSol;
