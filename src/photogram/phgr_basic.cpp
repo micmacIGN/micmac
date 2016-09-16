@@ -1576,6 +1576,26 @@ Pt3dr cBasicGeomCap3D::PreciseCapteur2Terrain   (const Pt2dr & aP) const
 
 cBasicGeomCap3D * Polynomial_BGC3M2DNewFromFile (const std::string & aName);
 
+double cBasicGeomCap3D::GetAltiSol() const 
+{
+   ELISE_ASSERT(false,"cBasicGeomCap3D::GetAltiSol");
+   return 0.0;
+}
+Pt2dr cBasicGeomCap3D::GetAltiSolMinMax() const 
+{
+   ELISE_ASSERT(false,"cBasicGeomCap3D::GetAltiSolMinMax");
+   return Pt2dr(0,0);
+}
+bool cBasicGeomCap3D::AltisSolIsDef() const 
+{
+    return false;
+}
+bool cBasicGeomCap3D::AltisSolMinMaxIsDef() const
+{
+    return false;
+}
+
+
 
 void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName)
 {               
