@@ -96,7 +96,7 @@ class CameraRPC : public cBasicGeomCap3D
         void SetAltisSolMinMax(Pt2dr);
 		double GetAltiSol() const;
 		double GetAltiSolInc() const;
-        Pt2dr GetAltiSolMinMax();
+        Pt2dr GetAltiSolMinMax() const; // MPD => const, sinon ca ne surcharge pas la methode
 		bool AltisSolIsDef() const;
         bool AltisSolMinMaxIsDef() const;
         

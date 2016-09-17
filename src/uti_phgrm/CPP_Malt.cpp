@@ -458,6 +458,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
 
 
+      int aNbAltiSol=0;
+      int aNbAltiSolMinMax=0;
+      double AltiSol =0;
+      Pt2dr  AltiSolMinMax (0,0);
+
       bool hasNewGenImage =false;
       if (! mModePB)
       {
@@ -466,29 +471,23 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
           {
               const std::string & aNameIm = (*mSetIm)[aKIm];
-
-/*
-              std::string aNameOri = mICNM->Assoc1To1(aKeyOri,aNameIm,true);
-
-              //ToDo: Faire evoluer ce code pour pouvoir gerer d'autres type d'orientation (Grille et RTO).
-              // utilisation d'une ElCamera (avec cCameraModuleOrientation pour le cas des ModuleOrientation)
-
-              CamStenope *  aCS = CamOrientGenFromFile(aNameOri,mICNM);
-*/
               cBasicGeomCap3D * aCG =  mICNM->StdCamGenOfNames(mOri,aNameIm);
+
+              if (aCG->AltisSolMinMaxIsDef())
+              {
+                  aNbAltiSolMinMax ++;
+                  AltiSolMinMax= AltiSolMinMax + aCG->GetAltiSolMinMax();
+              }
+              if (aCG->AltisSolIsDef())
+              {
+                  aNbAltiSol ++;
+                  AltiSol += aCG->GetAltiSol();
+              }
+
 
               if (aCG->DownCastCS() == 0)
               {
                  hasNewGenImage = true;
-/*
-                 Pt2dr aPMil = aCG->SzBasicCapt3D()/2.0;
-                 Pt3dr aCOpt = aCG->OpticalCenterOfPixel()
-
-
-                 std::cout << "IIIPPPP " << aCG->GetVeryRoughInterProf() 
-                           << " P0 " << aCG->PMoyOfCenter()
-                           << "\n"; getchar();
-*/
               }
 
               if (aCG->HasRoughCapteur2Terrain())
@@ -513,17 +512,45 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mSzGlob = mSzGlob / double(mNbIm);
       }
 
+      bool ZMoyInit = EAMIsInit(&mZMoy)  && (mType != eGeomImage);
+      bool IncMaxInit = EAMIsInit(&mIncidMax)  && (mType != eGeomImage);
+
+       // Si les deux sont definis on fixe d'abord ZMoy pour avoir une coherence
+      if (aNbAltiSolMinMax)
+      {
+          AltiSolMinMax = AltiSolMinMax / aNbAltiSolMinMax;
+          if (!ZMoyInit)
+          {
+             ZMoyInit  = true;
+             mZMoy = (AltiSolMinMax.x+AltiSolMinMax.y) / 2.0;
+          }
+          if (! IncMaxInit)
+          {
+               IncMaxInit = true;
+               mZincCalc = (AltiSolMinMax.y-AltiSolMinMax.x) / 2.0;
+          }
+      }
+
+      if (aNbAltiSol)
+      {
+          AltiSol = AltiSol / aNbAltiSol;
+          if (!ZMoyInit)
+          {
+             ZMoyInit  = true;
+             mZMoy = AltiSol;
+          }
+      }
+
+std::cout << "Iiiiiiiiiiiiinbc = Moy=" <<  mZMoy << " Inc=" << mZincCalc << "\n";
+std::cout << "ALTISSSOLL " << AltiSol << " " << AltiSolMinMax << "\n"; getchar();
+
+
+
+
       if (hasNewGenImage)
          mFullModeOri= "eGeomGen";
 
-if(0)
-{
-   for (int aK=0 ; aK<10 ; aK++) std::cout << "HASNEWIMAGE " << hasNewGenImage << "\n";
-   getchar();
-}
 
-      bool ZMoyInit = EAMIsInit(&mZMoy)  && (mType != eGeomImage);
-      bool IncMaxInit = EAMIsInit(&mIncidMax)  && (mType != eGeomImage);
       if (!ZMoyInit)
       {
           if (IncMaxInit)

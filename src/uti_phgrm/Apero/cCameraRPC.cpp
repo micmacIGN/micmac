@@ -67,8 +67,11 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
     MMUseRPC = true;
     mRPC = new cRPC(aNameFile);
 
+
     /* Mean Z */
-    SetAltiSol( (mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
+    // SetAltiSol( (mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
+    // MPD ?? 
+    SetAltiSol( (mRPC->GetGrC31() + mRPC->GetGrC32())*0.5 );
     /* Z Min/Max */
     SetAltisSolMinMax(Pt2dr(mRPC->GetGrC31(),mRPC->GetGrC32()));
 
@@ -92,7 +95,9 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     mRPC = new cRPC(aNameFile,aType,aChSys);
     
     /* Mean Z */
-    SetAltiSol( (mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
+    //  SetAltiSol( (mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
+    //  ?? MPD : GetGrC31-> ZMin  GetGrC32-> ZMax
+    SetAltiSol( (mRPC->GetGrC31() + mRPC->GetGrC32())*0.5 );
     /* Z Min/Max */
     SetAltisSolMinMax(Pt2dr(mRPC->GetGrC31(),mRPC->GetGrC32()));
 
@@ -476,7 +481,7 @@ double CameraRPC::GetAltiSolInc() const
     return( abs(mRPC->GetGrC32() - mRPC->GetGrC31())*0.5 );
 }
 
-Pt2dr CameraRPC::GetAltiSolMinMax()
+Pt2dr CameraRPC::GetAltiSolMinMax() const
 {
     return mAltisSolMinMax;
 }

@@ -94,6 +94,10 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
            Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
            Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
 
+           double GetAltiSol() const ;
+           Pt2dr GetAltiSolMinMax() const ;
+           bool AltisSolIsDef() const ;
+           bool AltisSolMinMaxIsDef() const;
 
       protected  : 
             cBasicGeomCap3D * mCam0;
