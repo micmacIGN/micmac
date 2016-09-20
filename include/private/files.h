@@ -2235,6 +2235,10 @@ template <class Type> Type * OptionalGetObjFromFile_WithLC
                           const std::string & aNameTagType
                       )
 {
+   if (! ELISE_fp::exist_file(aNameFileObj)) 
+   {
+       return 0;
+   }
    if (IsFileDmp(aNameFileObj))
    {
         Type aRes;
@@ -2329,7 +2333,9 @@ double PolonaiseInverse(const std::string & aStr);
 
 void  XMLPushContext(const cGlobXmlGen & aGXml);
 void  XMLPopContext(const cGlobXmlGen & aGXml);
+ 
 
+// ===============  ParamChantierPhotogram.xml
 
 #define StdGetFromPCP(aStr,aObj)\
 StdGetObjFromFile<c##aObj>\
@@ -2340,6 +2346,18 @@ StdGetObjFromFile<c##aObj>\
         #aObj \
      )
 
+#define OptStdGetFromPCP(aStr,aObj)\
+OptionalGetObjFromFile_WithLC<c##aObj>\
+    (\
+        0,0,\
+        aStr,\
+        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),\
+        #aObj ,\
+        #aObj \
+     )
+
+// ===============  SuperposImage.xml
+
 #define StdGetFromSI(aStr,aObj)\
 StdGetObjFromFile<c##aObj>\
     (\
@@ -2349,6 +2367,17 @@ StdGetObjFromFile<c##aObj>\
         #aObj \
      )
 
+#define OptStdGetFromSI(aStr,aObj)\
+OptionalGetObjFromFile_WithLC<c##aObj>\
+    (\
+        0,0,\
+        aStr,\
+        StdGetFileXMLSpec("SuperposImage.xml"),\
+        #aObj ,\
+        #aObj \
+     )
+
+// ===============  ParamMICMAC.xml
 
 #define StdGetFromMM(aStr,aObj)\
 StdGetObjFromFile<c##aObj>\
@@ -2359,6 +2388,20 @@ StdGetObjFromFile<c##aObj>\
         #aObj \
      )
 
+#define OptStdGetFromMM(aStr,aObj)\
+OptionalGetObjFromFile_WithLC<c##aObj>\
+    (\
+        0,0,\
+        aStr,\
+        StdGetFileXMLSpec("ParamMICMAC.xml"),\
+        #aObj ,\
+        #aObj \
+     )
+
+
+// ===============  ParamApero.xml
+
+
 #define StdGetFromAp(aStr,aObj)\
 StdGetObjFromFile<c##aObj>\
     (\
@@ -2368,6 +2411,16 @@ StdGetObjFromFile<c##aObj>\
         #aObj \
      )
 
+
+#define OptStdGetFromAp(aStr,aObj)\
+OptionalGetObjFromFile_WithLC<c##aObj>\
+    (\
+        0,0,\
+        aStr,\
+        StdGetFileXMLSpec("ParamApero.xml"),\
+        #aObj ,\
+        #aObj \
+     )
 
 
 

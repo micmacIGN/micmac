@@ -98,6 +98,8 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
            Pt2dr GetAltiSolMinMax() const ;
            bool AltisSolIsDef() const ;
            bool AltisSolMinMaxIsDef() const;
+           bool IsRPC() const;
+
 
       protected  : 
             cBasicGeomCap3D * mCam0;

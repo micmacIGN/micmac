@@ -51,7 +51,6 @@ bool DEBUG_EWELINA=false;
 
 /* create a new constructuor for SPICE */
 
-extern bool MMUseRPC ;
 
 /* Constructor that takes the RPC in Xml_CamGenPolBundle format */
 CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
@@ -64,7 +63,6 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
 	mGridSz(Pt2di(10,10)),
     mInputName(aNameFile)
 {
-    MMUseRPC = true;
     mRPC = new cRPC(aNameFile);
 
 
@@ -91,7 +89,6 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 	mGridSz(Pt2di(10,10)),
 	mInputName(aNameFile)
 {
-    MMUseRPC = true;
     mRPC = new cRPC(aNameFile,aType,aChSys);
     
     /* Mean Z */
@@ -494,6 +491,11 @@ bool CameraRPC::AltisSolIsDef() const
 bool CameraRPC::AltisSolMinMaxIsDef() const
 {
     return mAltisSolMinMaxIsDef;
+}
+
+bool CameraRPC::IsRPC() const
+{
+    return true;
 }
 
 double CameraRPC::ResolSolOfPt(const Pt3dr & aP) const
@@ -991,7 +993,6 @@ cRPC::cRPC(const std::string &aName) :
     mRecGrid(Pt3di(0,0,0)),
     mName("")
 {
-    MMUseRPC = true;
     if( AutoDetermineRPCFile(aName) )
     {
         /* Read Xml_CamGenPolBundle */

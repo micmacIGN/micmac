@@ -693,6 +693,10 @@ void cAppliMICMAC::MakePartiesCachees
                        aImZ,
                        aImMasq
                 );
+
+           double aZMin = mCurEtape->GeomTer().PxMin(0);
+           double aZMax = mCurEtape->GeomTer().PxMax(0);
+           aMmZB->SetRPC(aPdv.Geom().IsRPC(),aZMin,aZMax);
            aMmZB->SetWithBufXYZ(aGPC.BufXYZ().Val());
 
            float aZDef = -1e15f;

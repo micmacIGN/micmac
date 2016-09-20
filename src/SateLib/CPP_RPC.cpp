@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "hassan/reechantillonnage.h"
 #include "RPC.h"
 
-extern bool MMUseRPC;
 
 //Important note:
 //pt.x is either the column in image space or the longitude in geographic coordinates or the easting  in projected coordinates
@@ -56,7 +55,6 @@ extern bool MMUseRPC;
 //RPC2Grid transforms a loaded RPC to a .GRI (and GRIBin) file
 int RPC::RPC2Grid(int nbLayers, double altiMin, double altiMax, std::string refineCoef, std::string aNameIm, double stepPixel, double stepCarto, std::string targetSyst, std::string inputSyst, bool binaire)
 {
-     MMUseRPC = true;
     //Creation d'un dossier pour les fichiers intermediaires
     ELISE_fp::MkDirSvp("processing");
 
@@ -138,7 +136,6 @@ int RPC::RPC2Grid(int nbLayers, double altiMin, double altiMax, std::string refi
 //From Image coordinates to geographic
 Pt3dr RPC::DirectRPC(Pt3dr Pimg)const
 {
-    MMUseRPC = true;
     Pt3dr PimgNorm;
     //Converting into normalized coordinates
     PimgNorm.x = (Pimg.x - samp_off) / samp_scale;
@@ -159,7 +156,6 @@ Pt3dr RPC::DirectRPC(Pt3dr Pimg)const
 
 Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
 {
-    MMUseRPC = true;
     double X = PimgNorm.x, Y = PimgNorm.y, Z = PimgNorm.z;
 	double vecteurD[] = { 1, X, Y, Z, Y*X, X*Z, Y*Z, X*X, Y*Y, Z*Z, X*Y*Z, X*X*X, Y*Y*X, X*Z*Z, X*X*Y, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z };
 	//double vecteurD[] = { 1, Y, X, Z, X*Y, Y*Z, X*Z, Y*Y, X*X, Z*Z, Y*X*Z, Y*Y*Y, X*X*Y, Y*Z*Z, Y*Y*X, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };\\From pleiades doc section C.3.1 - incorrect
