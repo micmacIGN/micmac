@@ -912,6 +912,18 @@ if (0 && MPD_MM())
   delete aFileExt;
 }
 
+double  cGeomDiscFPx::PxMin(int aK) const
+{
+   return mV0Px[aK] - mEcPxInitMoins[aK];
+}
+double  cGeomDiscFPx::PxMax(int aK) const
+{
+   return mV0Px[aK] + mEcPxInitPlus[aK];
+}
+
+
+
+
 double  cGeomDiscFPx::CorrectDerivee() const
 {
    return mCorrectDerivee;

@@ -203,6 +203,12 @@ static int aCpt=0; aCpt++;
     double aNbBadGrad = 0.0;
     double aNbGrad = 0.0;
 
+double aDebugMaxGr =0 ;
+Pt3dr aPtOutMaxGrad(0,0,0);
+Pt2di aPtInMaxGrad(0,0);
+Pt3dr aLastPtOutMaxGrad(0,0,0);
+Pt2di aLastPtInMaxGrad(0,0);
+
     for (int anXDal0 = aP0In.x ;  anXDal0< aP1In.x ; anXDal0 += SzDalleDef  )
     {
         int anXDal1 = ElMin(aP1In.x,anXDal0+SzDalleDef);
@@ -231,7 +237,22 @@ static int aCpt=0; aCpt++;
                                     double aGrad = euclid(aP3Out-aLastP3Out) / aDist8;
                                     aNbGrad ++;
                                     if (aGrad>1.5)
+                                    {
+                                        if ((MPD_MM() || ERupnik_MM()) && ((aZofXY>40) && (aZofXY<250)))
+                                        {
+                                            // std::cout << "ZZZZZZzBadGraddd  " << aZofXY  << " " << aP3Out << "\n";
+                                            if (aGrad>aDebugMaxGr)
+                                            {
+                                               aDebugMaxGr = aGrad;
+                                               aPtOutMaxGrad  = aP3Out;
+                                               aPtInMaxGrad = aPIn;
+
+                                               aLastPtOutMaxGrad  = aLastP3Out;
+                                               aLastPtInMaxGrad = aLastPIn;
+                                            }
+                                        }
                                         aNbBadGrad++;
+                                    }
                                     if (aGrad > aMaxGrad)
                                     {
                                         aMaxGrad = aGrad;
@@ -326,6 +347,54 @@ if (euclid(aP2Out) > 1e5  )
             }
         }
     } 
+
+if (MPD_MM())
+{
+   std::cout.precision(17);
+   std::cout <<"----------------------------------\n";
+   std::cout << "PB GRAD IN STD Z " << aDebugMaxGr  << " Pt=" << aPtOutMaxGrad << "\n";
+   std::string aNameCam= "Ori-RPC-d0/GB-Orientation-IMG_PHR1B_P_201607181048548_SEN_1878123101-001_R1C1.JP2.tif.xml";
+
+   int aType = eTIGB_Unknown;
+   cBasicGeomCap3D * aBGC = cBasicGeomCap3D::StdGetFromFile(aNameCam,aType);
+
+   //Pt3dr aPTer = aBGC->ImEtZ2Terrain(Pt2dr(aPtOutMaxGrad.x,aPtOutMaxGrad.y),aPtOutMaxGrad.z);
+
+   // Pt3dr OriPlani(564518,4834761.5,0);
+
+   // std::cout << "TER " << aPTer  << " => " << (aPTer - OriPlani ) << " PIN " << aPtInMaxGrad << "\n";
+
+   std::cout << aPtInMaxGrad   << " DIF " << aPtInMaxGrad - aLastPtInMaxGrad << "\n";
+   std::cout << aPtOutMaxGrad  << " DIF " << aPtOutMaxGrad - aLastPtOutMaxGrad << "\n";
+
+   double  aValZofXY = ZofXY(aPtInMaxGrad);
+
+   Pt3dr aPIn0(aPtInMaxGrad.x,aPtInMaxGrad.y,aValZofXY);
+
+   Pt3dr aPIn1 
+         (
+             mOrigineIn.x+ aPIn0.x*mStepIn.x,
+             mOrigineIn.y+ aPIn0.y*mStepIn.y,
+	     aPIn0.z
+	 );
+
+   Pt3dr aPIn2 = ProjTerrain(aPIn1);
+   Pt3dr aPIn3 = Pt3dr
+                 (
+	             (aPIn2.x-mOrigineOut.x)/mStepOut.x -mOffet_Out_00.x,
+	             (aPIn2.y-mOrigineOut.y)/mStepOut.y -mOffet_Out_00.y,
+	             aPIn2.z
+                  );
+
+   std::cout << "Imm0=" <<  aPIn0   << "\n";
+   std::cout << "Imm1=" <<  aPIn1   << "\n";
+   std::cout << "Imm2=" <<  aPIn2   << "\n";
+   std::cout << "Imm3=" <<  aPIn3   << "\n";
+
+   std::cout <<"----------------------------------\n";
+/*
+*/
+}
     if (MMUseRPC && (aMaxGrad > 100))
     {
         std::cout << "GRAD=" << aMaxGrad << " PropBadGrad " << aNbBadGrad / aNbGrad << "\n";

@@ -541,8 +541,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           }
       }
 
-std::cout << "Iiiiiiiiiiiiinbc = Moy=" <<  mZMoy << " Inc=" << mZincCalc << "\n";
-std::cout << "ALTISSSOLL " << AltiSol << " " << AltiSolMinMax << "\n"; getchar();
+// std::cout << "Iiiiiiiiiiiiinbc = Moy=" <<  mZMoy << " Inc=" << mZincCalc << "\n";
+// std::cout << "ALTISSSOLL " << AltiSol << " " << AltiSolMinMax << "\n"; getchar();
 
 
 

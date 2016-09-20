@@ -927,6 +927,9 @@ class cGeomDiscFPx : public  cGeomDiscR2
          double RatioPasCompUser(int aD) const;
 
 
+         double  PxMin(int aK) const;
+         double  PxMax(int aK) const;
+
 
 
 
