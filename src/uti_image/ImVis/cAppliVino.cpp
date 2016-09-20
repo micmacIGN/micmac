@@ -77,7 +77,8 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mNbHisto           (mNbHistoMax),
     mHisto             (mNbHistoMax),
     mHistoLisse        (mNbHistoMax),
-    mHistoCum          (mNbHistoMax)
+    mHistoCum          (mNbHistoMax),
+    mIsMnt             (true)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -127,10 +128,10 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
                     << EAM(LargAsc(),"WS",true,"Width Scroller")
                     << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
                     << EAM(ForceGray(),"Gray",true,"Force gray images (def=false)")
+                    << EAM(mIsMnt,"IsMnt",true,"Display altitude if true, def exist of Mnt Meta data")
+                    << EAM(mFileMnt,"FileMnt",true,"Default toto.tif -> toto.xml")
                     // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
     );
-
-
 
 
 // Files
@@ -168,6 +169,13 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
           mCurStats->Type() = eDynVinoMaxMin;
     }
     SaveState();
+
+//  MNT
+   mFileMnt = StdPrefix(mNameIm) + ".xml";
+   mFOM     = OptStdGetFromPCP(mFileMnt,FileOriMnt);
+   if ((mNbChan!=1) || (mFOM==0))
+       mIsMnt = false;
+
 // window
 
     mRatioFulXY = Pt2dr(SzW()).dcbyc(Pt2dr(mTifSz));
@@ -390,7 +398,12 @@ void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
     for (int aK=0 ; aK<mNbChan; aK++)
     {
         if (aK!=0) aMesV = aMesV + " ";
-        aMesV = aMesV  + StrNbChifApresVirg(aStat.Soms()[aK],3) ;
+        double aVal = aStat.Soms()[aK];
+        if (mIsMnt)
+        {
+           aVal = ToMnt(*mFOM,aVal);
+        }
+        aMesV = aMesV  + StrNbChifApresVirg(aVal,3) ;
     }
         // aMesV = aMesV  + StrNbChifSign(aStat.Soms()[aK],3) + " ";
         // aMesV = aMesV  + SimplString(ToString(aStat.Soms()[aK])) + " ";

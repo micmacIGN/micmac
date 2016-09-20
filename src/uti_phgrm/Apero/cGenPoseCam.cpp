@@ -786,6 +786,29 @@ cBGC3_Modif2D::cBGC3_Modif2D(cBasicGeomCap3D * aCam0,const std::string & aName,c
 {
 }
 
+double cBGC3_Modif2D::GetAltiSol() const 
+{
+   return mCam0->GetAltiSol();
+}
+Pt2dr cBGC3_Modif2D::GetAltiSolMinMax() const 
+{
+   Pt2dr  aRes = mCam0->GetAltiSolMinMax();
+   return aRes;
+}
+bool cBGC3_Modif2D::AltisSolIsDef() const 
+{
+   return mCam0->AltisSolIsDef();
+}
+bool cBGC3_Modif2D::AltisSolMinMaxIsDef() const
+{
+   return mCam0->AltisSolMinMaxIsDef();
+}
+
+bool cBGC3_Modif2D::IsRPC() const
+{
+   return mCam0->IsRPC();
+}
+
 
 Pt3dr cBGC3_Modif2D::ImEtProf2Terrain(const Pt2dr & aP,double aZ) const
 {

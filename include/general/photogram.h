@@ -1511,6 +1511,9 @@ class cBasicGeomCap3D
        virtual  Pt2dr GetAltiSolMinMax() const ;
        virtual   bool AltisSolIsDef() const ;
        virtual   bool AltisSolMinMaxIsDef() const;
+       // RPC have some limit in validity, which require some special careness, but don't want to
+       // modify existing code that work well, so we need to know if the underline camera is RPC
+       virtual   bool IsRPC() const;
 
 
        // Save using standard MicMac naming ; !! Not supported for now by Stenope camera; Def :  Fatal Error

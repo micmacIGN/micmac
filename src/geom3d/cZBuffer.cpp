@@ -79,8 +79,16 @@ cZBuffer::cZBuffer
    mTImDef_00  (Pt2di(1,1)),
    mTImDef_10  (Pt2di(1,1)),
    mTImDef_01  (Pt2di(1,1)),
-   mTImDef_11  (Pt2di(1,1))
+   mTImDef_11  (Pt2di(1,1)),
+   mIsRPC      (false)
 {
+}
+
+void cZBuffer::SetRPC(bool IsRPC,double aZMin,double aZMax)
+{
+   mIsRPC = IsRPC;
+   mZMinRPC = aZMin;
+   mZMaxRPC = aZMax;
 }
 
 
@@ -142,9 +150,6 @@ bool DEBUG_ZBB = false;
 Pt2di PT_BugZBB;
 bool ERupnik_MM();
 
-bool MMUseRPC = false; // Pour limiter l'impact de la verif au cas RPC et ne
-                       // pas risquer de perturber d'autre code
-
 Im2D_REAL4 cZBuffer::Basculer
            (
                Pt2di & aOffset_Out_00,
@@ -199,9 +204,16 @@ static int aCpt=0; aCpt++;
     
     Pt2di aLastPIn = aP0In - Pt2di(100000,100);
     Pt3dr aLastP3Out(0,0,0);
+    double aLastZofXY=1e20;
     double aMaxGrad = 0.0;
     double aNbBadGrad = 0.0;
     double aNbGrad = 0.0;
+
+double aDebugMaxGr =0 ;
+Pt3dr aPtOutMaxGrad(0,0,0);
+Pt2di aPtInMaxGrad(0,0);
+Pt3dr aLastPtOutMaxGrad(0,0,0);
+Pt2di aLastPtInMaxGrad(0,0);
 
     for (int anXDal0 = aP0In.x ;  anXDal0< aP1In.x ; anXDal0 += SzDalleDef  )
     {
@@ -225,13 +237,34 @@ static int aCpt=0; aCpt++;
 //if (aCpt>10600000)std::cout << "OooUuutt " << aCpt << "\n";
 				Pt2dr aP2Out(aP3Out.x,aP3Out.y);
 
-                                double aDist8 =  dist8(aPIn-aLastPIn);
-                                if ( aDist8 < 10)
+                                double aDist2 =  square_euclid(aPIn-aLastPIn);
+                                if ( aDist2 < 10)
                                 {
-                                    double aGrad = euclid(aP3Out-aLastP3Out) / aDist8;
+                                    double aDist3 = sqrt(aDist2+ElSquare(aZofXY-aLastZofXY));
+                                    double aGrad = euclid(aP3Out-aLastP3Out) / aDist3;
                                     aNbGrad ++;
+if (aGrad>10)
+{
+   std::cout <<  " aDist3 " << aDist3 << " Z:" << aZofXY << " " << aLastZofXY << "\n";
+   getchar();
+}
                                     if (aGrad>1.5)
+                                    {
+                                        if ((MPD_MM() || ERupnik_MM()) && ((aZofXY>40) && (aZofXY<250)))
+                                        {
+                                            // std::cout << "ZZZZZZzBadGraddd  " << aZofXY  << " " << aP3Out << "\n";
+                                            if (aGrad>aDebugMaxGr)
+                                            {
+                                               aDebugMaxGr = aGrad;
+                                               aPtOutMaxGrad  = aP3Out;
+                                               aPtInMaxGrad = aPIn;
+
+                                               aLastPtOutMaxGrad  = aLastP3Out;
+                                               aLastPtInMaxGrad = aLastPIn;
+                                            }
+                                        }
                                         aNbBadGrad++;
+                                    }
                                     if (aGrad > aMaxGrad)
                                     {
                                         aMaxGrad = aGrad;
@@ -247,12 +280,10 @@ static int aCpt=0; aCpt++;
 if (0 &&(MPD_MM() || ERupnik_MM()))
 {
 
-// mm3d MPDTest Ori-RPC/GB-Orientation-S6P--2014042116840914CP.tif.xm
 
 //  std::cout << "pppppppppppppp " << aP2Out << "\n";
 if (euclid(aP2Out) > 1e5  )
 {
-   // ELISE_ASSERT(false,"Probable error in RPC");
    std::cout << "STEPIN " << mStepIn << " OOOO " << aZofXY << "\n";
    DEBUG_ZBB = true;
    for (int aDx = -1 ; aDx<=1 ; aDx++)
@@ -290,6 +321,7 @@ if (euclid(aP2Out) > 1e5  )
 				}
                                 aLastPIn = aPIn;
                                 aLastP3Out = aP3Out;
+                                aLastZofXY = aZofXY;
 			}
                 }
             }
@@ -326,7 +358,16 @@ if (euclid(aP2Out) > 1e5  )
             }
         }
     } 
-    if (MMUseRPC && (aMaxGrad > 100))
+
+
+if (MPD_MM())
+{
+    std::cout << "aMaxGradaMaxGradaMaxGrad " << aMaxGrad << "\n";
+
+}
+
+
+    if (mIsRPC && (aMaxGrad > 100))
     {
         std::cout << "GRAD=" << aMaxGrad << " PropBadGrad " << aNbBadGrad / aNbGrad << "\n";
         ELISE_ASSERT(false,"probable instability in RPCi due to bad heigth interval");
@@ -694,6 +735,10 @@ Pt3dr cZBuffer::ProjDisc(const Pt2di & aPInDisc,double * aPtrValZofXY) const
     }
  
     double  aValZofXY = ZofXY(aPInDisc);
+    if (mIsRPC)
+    {
+         aValZofXY = ElMax(mZMinRPC,ElMin(mZMaxRPC,aValZofXY));
+    }
     if (aPtrValZofXY) *aPtrValZofXY = aValZofXY;
     return ProjDisc(Pt3dr(aPInDisc.x,aPInDisc.y,aValZofXY));
     // return ProjDisc(Pt3dr(aPInDisc.x,aPInDisc.y,ZofXY(aPInDisc)));
