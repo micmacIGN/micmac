@@ -575,6 +575,7 @@ void cApply_CreateEpip_main::DoEpipGen()
 
 
 cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
+   mDegre    (-1),
    mForceGen (false),
    mNumKer   (5),
    mDebug    (false),
