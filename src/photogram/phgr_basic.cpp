@@ -1486,6 +1486,12 @@ bool   cBasicGeomCap3D::HasRoughCapteur2Terrain() const
     return true;
 }
 
+bool cBasicGeomCap3D::IsRPC() const
+{
+   return false;
+}
+
+
 Pt2dr cBasicGeomCap3D::OrGlbImaM2C(const Pt2dr & aP) const
 {
    return aP;

@@ -927,6 +927,9 @@ class cGeomDiscFPx : public  cGeomDiscR2
          double RatioPasCompUser(int aD) const;
 
 
+         double  PxMin(int aK) const;
+         double  PxMax(int aK) const;
+
 
 
 
@@ -1058,6 +1061,8 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
         bool  UseMasqTerAnamSA();
         virtual bool IsInMasqAnamSA(Pt2dr aPTer);
         virtual double IncidTerrain(Pt2dr aPTer);
+
+        virtual bool IsRPC() const;
 
         virtual bool MasqImNadirIsDone();
         virtual void DoMasImNadir(TIm2D<REAL4,REAL8> &,cGeomDiscFPx &);

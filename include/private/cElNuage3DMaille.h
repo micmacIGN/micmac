@@ -668,6 +668,8 @@ class cZBuffer
 
         void AddImAttr(Im2DGen *);
         std::vector<Im2DGen *> AttrOut();
+        void SetRPC(bool IsRPC,double aZMin,double aZMax);
+
    private :
 
         Pt2di ToPtIndexDef(const Pt2di & aPt) const;
@@ -731,6 +733,9 @@ class cZBuffer
         TIm2D<REAL8,REAL8>   mTImDef_10;
         TIm2D<REAL8,REAL8>   mTImDef_01;
         TIm2D<REAL8,REAL8>   mTImDef_11;
+        bool                 mIsRPC;
+        double               mZMinRPC;
+        double               mZMaxRPC;
 };
 
 class cArgBacule
