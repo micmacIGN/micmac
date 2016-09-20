@@ -181,9 +181,18 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 	{
 		for (int aY = 0; aY < aSz_3N.y; aY++)
 		{
-			aData_3N[aY][aX] = Cor_3N[aX].y*double(aData_3N[aY][aX]) / Cor_3N[aX].z + Cor_3N[aX].x;
-			aData_1[aY][aX]  = Cor_1[aX].y*double(aData_1[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x;
-			aData_2[aY][aX]  = Cor_2[aX].y*double(aData_2[aY][aX]) / Cor_2[aX].z + Cor_2[aX].x;
+			if (Cor_1[aX].y*double(aData_1[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x > 255)
+				aData_1[aY][aX] = 255;
+			else
+				aData_1[aY][aX]  = Cor_1[aX].y*double(aData_1[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x;
+			if (Cor_2[aX].y*double(aData_2[aY][aX]) / Cor_2[aX].z + Cor_2[aX].x > 255)
+				aData_2[aY][aX] = 255;
+			else
+				aData_2[aY][aX]  = Cor_2[aX].y*double(aData_2[aY][aX]) / Cor_2[aX].z + Cor_2[aX].x;
+			if (Cor_3N[aX].y*double(aData_3N[aY][aX]) / Cor_3N[aX].z + Cor_3N[aX].x > 255)
+				aData_3N[aY][aX] = 255;
+			else
+				aData_3N[aY][aX] = Cor_3N[aX].y*double(aData_3N[aY][aX]) / Cor_3N[aX].z + Cor_3N[aX].x;
 		}
 	}
 
@@ -191,7 +200,10 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 	{
 		for (int aY = 0; aY < aSz_3B.y; aY++)
 		{
-			aData_3B[aY][aX] = Cor_3B[aX].y*double(aData_3B[aY][aX]) / Cor_3B[aX].z + Cor_3B[aX].x;
+			if (Cor_3B[aX].y*double(aData_3B[aY][aX]) / Cor_3B[aX].z + Cor_3B[aX].x > 255)
+				aData_3B[aY][aX] = 255;
+			else
+				aData_3B[aY][aX] = Cor_3B[aX].y*double(aData_3B[aY][aX]) / Cor_3B[aX].z + Cor_3B[aX].x;
 		}
 	}
 
