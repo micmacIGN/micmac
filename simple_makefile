@@ -1,0 +1,33 @@
+include elise_files
+
+build_directories = obj lib bin ui rc moc
+qt_defines = -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_XML_LIB
+defines = -D__DEBUG
+includes = -I$(micmac_dir)/kakadu/all_includes -I$(micmac_dir)/include -I$(micmac_dir)/src/uti_image/Sift -I$(micmac_dir)/src/uti_image/Ann -I$(micmac_dir)/src/saisieQT/include_QT
+CXX_FLAGS = $(qt_compile_flags)
+ANN_FLAGS = -I$(micmac_dir)/CodeExterne/ANN/include $(CXX_FLAGS) $(CXXFLAGS)
+ALL_FLAGS = $(defines) $(qt_defines) $(includes) $(qt_includes) $(CXX_FLAGS) $(CXXFLAGS)
+ALL_LIB_FLAGS = -Llib -lelise -lANN -lQt5Concurrent -lQt5Xml -lQt5OpenGL -lQt5Widgets -lQt5Gui -lQt5Core -lX11 -lGL -ldl -L $(kakadu_dir)/lib -lkdu_v64R -pthread
+
+$(precompiled_header): $(micmac_dir)/include/StdAfx.h
+	mkdir -p $(build_directories)
+	$(CXX) $(ALL_FLAGS) $(micmac_dir)/include/StdAfx.h
+
+lib/libelise.a: $(micmac_dir)/include/StdAfx.h.gch $(qt_generated_files) $(elise_object_files) $(elise_qt_object_files)
+	ar cr lib/libelise.a $(elise_object_files) $(elise_qt_object_files)
+
+lib/libANN.a: $(ANN_object_files)
+	ar cr lib/libANN.a $(ANN_object_files)
+
+obj/mm3d.o: $(micmac_dir)/src/CBinaires/mm3d.cpp
+	$(CXX) -c $(ALL_FLAGS) $(micmac_dir)/src/CBinaires/mm3d.cpp -o obj/mm3d.o
+
+bin/mm3d: lib/libelise.a lib/libANN.a obj/mm3d.o
+	$(CXX) -o bin/mm3d obj/mm3d.o $(ALL_LIB_FLAGS)
+
+obj/src_saisieQT_Settings.cpp.o: ui/ui_Help.h ui/ui_Settings.h
+obj/src_saisieQT_saisieQT_window.o: ui/ui_saisieQT_window.h
+obj/src_saisieQT_WorkbenchWidget.o: ui/ui_WorkbenchWidget.h
+
+clean:
+	rm -fr $(build_directories) $(precompiled_header)
