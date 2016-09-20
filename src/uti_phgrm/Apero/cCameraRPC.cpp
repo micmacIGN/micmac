@@ -3476,35 +3476,128 @@ int RecalRPC_main(int argc,char ** argv)
 }
 
 
-// mm3d TestPbRPC Ori-RPC/GB-Orientation-S6P--2014042116840914CP.tif.xml 
-void OneTestCamRPC(CameraRPC & aCam ,const Pt3dr & aP)
+double TestGradBCG
+     (
+           cBasicGeomCap3D * aBGC,
+           Pt3dr aPIm,
+           Pt3dr& aPTer,
+           Pt3dr&  aGImX,
+           Pt3dr&  aGImY,
+           Pt3dr&  aGImZ,
+           Pt2dr&  aGTerX,
+           Pt2dr&  aGTerY,
+           Pt2dr&  aGTerZ
+     )
 {
-   std::cout << "P=" << aP << "Proj="  << aCam.Ter2Capteur(aP) << "\n";
+   Pt2dr aP2Im(aPIm.x,aPIm.y);
+   double aZ = aPIm.z;
+
+   aPTer = aBGC->ImEtZ2Terrain(aP2Im,aZ);
+
+   double aEps = 1e-2;
+   Pt2dr aDx(aEps,0);
+   Pt2dr aDy(0,aEps);
+
+   aGImX =  (aBGC->ImEtZ2Terrain(aP2Im+aDx,aZ) -  aBGC->ImEtZ2Terrain(aP2Im-aDx,aZ)) / (2*aEps);
+   aGImY =  (aBGC->ImEtZ2Terrain(aP2Im+aDy,aZ) -  aBGC->ImEtZ2Terrain(aP2Im-aDy,aZ)) / (2*aEps);
+   aGImZ =  (aBGC->ImEtZ2Terrain(aP2Im,aZ+aEps) -  aBGC->ImEtZ2Terrain(aP2Im,aZ-aEps)) / (2*aEps);
+
+   Pt3dr aDxT(aEps,0,0);
+   Pt3dr aDyT(0,aEps,0);
+   Pt3dr aDzT(0,0,aEps);
+   aGTerX  =  (aBGC->Ter2Capteur(aPTer+aDxT)-aBGC->Ter2Capteur(aPTer-aDxT)) / (2*aEps);
+   aGTerY  =  (aBGC->Ter2Capteur(aPTer+aDyT)-aBGC->Ter2Capteur(aPTer-aDyT)) / (2*aEps);
+   aGTerZ  =  (aBGC->Ter2Capteur(aPTer+aDzT)-aBGC->Ter2Capteur(aPTer-aDzT)) / (2*aEps);
+
+   Pt2dr aPImAgain = aBGC->Ter2Capteur(aPTer);
+
+   return euclid(aP2Im,aPImAgain);
 }
+
 int TestCamRPC(int argc,char** argv)
 {
-   std::string aName;
+   std::string aPat;
+   int aNbZ = 100;
+   int aNbXY = 100;
    ElInitArgMain
    (
         argc,argv,
-        LArgMain()  << EAMC(aName,"Name camera"),
+        LArgMain()  << EAMC(aPat,"Name camera"),
         LArgMain()
    );
 
-   double anAlti = 4400;
-   CameraRPC aCam(aName,anAlti);
-   Pt3dr aP0 (355936.0,3127508.8,6571.52);//6571.52
-   Pt2dr aStepIn(12.8,-12.8);
-
-   DEBUG_EWELINA = true;
-
-   for (int anX=-1 ; anX<=1 ; anX++)
+  
+   cElemAppliSetFile anEASF(aPat);
+   const cInterfChantierNameManipulateur::tSet * aSetIm = anEASF.SetIm();
+   for (int aKIm=0 ; aKIm<int(aSetIm->size()) ; aKIm++)
    {
-       for (int anY=-1 ; anY<=1 ; anY++)
+       std::string aName = anEASF.mDir + (*aSetIm)[aKIm];
+       int aType = eTIGB_Unknown;
+
+       cBasicGeomCap3D * aBGC = cBasicGeomCap3D::StdGetFromFile(aName,aType);
+
+       Pt2dr aSzIm = Pt2dr(aBGC->SzBasicCapt3D());
+       Pt2dr aZInt = aBGC->GetAltiSolMinMax();
+       double aZ0 = aZInt.x;
+
+       double aDZ = aZInt.y - aZ0;
+
+       // double Epsil = 1e-2;
+       Pt3dr aPIm0(aSzIm.x/2.0,aSzIm.y/2.0,aZ0+aDZ/2.0);
+       // double aZMil = aZ0 + aDZ /2.0;
+       // Pt3dr  aPTerMil = aBGC->ImEtZ2Terrain(aPImMil,aZMil);
+
+       Pt3dr aPTer0,aGImX0,aGImY0,aGImZ0;
+       Pt2dr aGTerX0,aGTerY0,aGTerZ0;
+       TestGradBCG(aBGC,aPIm0,aPTer0,aGImX0,aGImY0,aGImZ0,aGTerX0,aGTerY0,aGTerZ0);
+
+       double aMaxDifRepr = 0;
+       double aMaxVarGrad = 0;
+       double aMoyVarGrad = 0;
+       int aNbTest=0;
+
+       for (int  aKZ=0 ; aKZ<=aNbZ ; aKZ++)
        {
-            OneTestCamRPC(aCam,aP0 + Pt3dr(aStepIn.x*anX,aStepIn.y*anY,0.0));
+           double aZ = aZ0 + (aDZ * aKZ) / aNbZ;
+           for (int  aKX=0 ; aKX<=aNbXY ; aKX++)
+           {
+               double anX = (aKX * aSzIm.x) / double (aNbXY);
+               for (int  aKY=0 ; aKY<=aNbXY ; aKY++)
+               {
+                   double anY = (aKY * aSzIm.y) / double (aNbXY);
+
+                   Pt3dr aPTer,aGImX,aGImY,aGImZ;
+                   Pt2dr aGTerX,aGTerY,aGTerZ;
+                   double aDistReproj =  TestGradBCG(aBGC,Pt3dr(anX,anY,aZ),aPTer,aGImX,aGImY,aGImZ,aGTerX,aGTerY,aGTerZ);
+
+                   double aD =    euclid(aGImX-aGImX0) /  euclid(aGImX0)
+                               +  euclid(aGImY-aGImY0) / euclid(aGImY0)
+                               +  euclid(aGImZ-aGImZ0) / euclid(aGImZ0)
+                               +  euclid(aGTerX-aGTerX0) / euclid(aGTerX0)
+                               +  euclid(aGTerY-aGTerY0) / euclid(aGTerY0)
+                               +  euclid(aGTerZ-aGTerZ0) / euclid(aGTerZ0)
+                               ;
+                   aMoyVarGrad += aD;
+                   aMaxVarGrad = ElMax(aD,aMaxVarGrad);
+                   aNbTest++;
+                   
+
+                   // std::cout << "dddd  " << aD  << " " << euclid(aGImX) << "\n";
+               
+                   if (aDistReproj>aMaxDifRepr)
+                   {
+                        aMaxDifRepr = aDistReproj;
+                   }
+
+               }
+           }
        }
+       aMoyVarGrad /= aNbTest;
+       std::cout << "####### " << aName << "\n";
+       std::cout << "  Size=" << aSzIm <<  " Z-Interv=" << aZInt << "\n";
+       std::cout << "  MaxDistReproj= " << aMaxDifRepr << " MaxGrad=" << aMaxVarGrad << " MoyGrad=" << aMoyVarGrad << "\n";
    }
+
 
    return EXIT_SUCCESS;
 }

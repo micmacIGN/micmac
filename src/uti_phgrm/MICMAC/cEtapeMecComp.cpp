@@ -1190,39 +1190,6 @@ double cEtapeMecComp::LoadNappesAndSetGeom
 
    Fonc_Num aFoncMasq = FoncMasqIn();
 
-/*
-   Fonc_Num aFoncMasq = mAppli.FoncMasqOfResol(DeZoomTer());
-   if (mPrec && mPrec->mArgMaskAuto && mPrec->mArgMaskAuto->ReInjectMask().Val())
-   {
-      
-      Tiff_Im aTFM =   mPrec->FileMaskAuto();
-
-      double aRatio  = DeZoomTer() / double(mPrec->DeZoomTer());
-
-      Fonc_Num  aFMAuto = StdFoncChScale_Bilin (
-                               aTFM.in(0),
-                               Pt2dr(0,0),
-                               Pt2dr(aRatio,aRatio),
-                               Pt2dr(1,1)
-                          );
-      aFMAuto = aFMAuto > 0.5;
-      int aNbErod = mPrec->mArgMaskAuto->Erod32Mask().ValWithDef((aRatio<1.0) ? 2 : 0);
-      if (aNbErod != 0)
-      {
-          aFMAuto = dilat_32(aFMAuto,aNbErod);
-      }
-
-      if (0)
-      {
-         Video_Win aW = Video_Win::WStd(aIMasq.sz(),1);
-         ELISE_COPY(aW.all_pts(),trans(aFMAuto+2*aFoncMasq,aBoxIn._p0),aW.odisc());
-         std::cout << "FGjhuyiyuyyyyyyyyyyyyy\n"; getchar();
-      }
-
-      aFoncMasq =    aFoncMasq && aFMAuto;
-   }
-*/
-
    ELISE_COPY
    (
           aIMasq.all_pts(),
@@ -1416,13 +1383,16 @@ void cEtapeMecComp::SauvNappes
 			 aVNappes.ImOneDefCorr().sz()
                       );
 
+   Im2D_Bits<1> aImMasqMnt(1,1);
+   bool  DoMasqMnt=false;
+
    for (int aK=0 ; aK< int(mFilesPx.size()) ; aK++)
    {
       
       cOneNappePx & aNP = aVNappes.KthNap(aK);
-      Im2DGen aIResult =  mIsOptimCont ? 
-                          Im2DGen(aNP.mPxRedr) : 
-			  Im2DGen(aNP.mPxRes);
+      // Im2DGen & aIResult =  *( mIsOptimCont ?  new Im2DGen(aNP.mPxRedr) : new Im2DGen(aNP.mPxRes));
+      // Im2DGen * aPIResult =  ( mIsOptimCont ?  (Im2DGen *)& aNP.mPxRedr :  (Im2DGen *)&aNP.mPxRes);
+      Im2DGen & aIResult =  *( mIsOptimCont ?  (Im2DGen *)& aNP.mPxRedr :  (Im2DGen *)&aNP.mPxRes);
 
       if ((aK==0) && (mEtape.DoStatResult().IsInit()))
       {
@@ -1467,6 +1437,8 @@ void cEtapeMecComp::SauvNappes
 	     aNP.mPxRes.data(),
 	     aNP.mPxRes.sz()
 	  );
+
+          
       }
 
       if (0)
@@ -1497,11 +1469,40 @@ void cEtapeMecComp::SauvNappes
           aBoxOut,
           aBoxIn
       );
-
-      
       mFilesPx[aK]->SauvResulPxRel(aNP.mPxRes,aNP.mPxInit,aBoxOut,aBoxIn);
 
+      // Calcul du masque debordant du ZMin/ZMax pour eviter le pb d'instab RPC
+      if (DoMasqMnt &&  (aK==0))
+      {
+          Pt2di aSzIn = aIResult.sz();
+          aImMasqMnt = Im2D_Bits<1>(aSzIn.x,aSzIn.y);
+          TIm2DBits<1> aTMasqMnt(aImMasqMnt);
+          double aPxDisc[2];
+          double aPxReal[2];
+          Pt2di aP;
+          double aZMin = mGeomTer.PxMin(0);
+          double aZMax = mGeomTer.PxMax(0);
+          double aRab = (aZMax-aZMin) * 1e-4;
+          aZMin -= aRab;
+          aZMax += aRab;
+          for (aP.x=0 ; aP.x<aSzIn.x ; aP.x++)
+          {
+              for (aP.y=0 ; aP.y<aSzIn.y ; aP.y++)
+              {
+                   aPxDisc[1] = 0;
+                   aPxDisc[0] =  aIResult.GetR(aP);
+                   mGeomTer.PxDisc2PxReel(aPxReal,aPxDisc);
+                   double aZ = aPxReal[0];
+                   aTMasqMnt.oset(aP,(aZ>=aZMin) && (aZ<=aZMax));
+              }
+          }
+          // PxDisc2PxReel(REAL *,const int *) const;
 
+          Tiff_Im::Create8BFromFonc("RPCMasq.tif",aSzIn,255*aImMasqMnt.in());
+std::cout <<  "FFffffFf== " << mFilesPx[aK]->NameFile()  << " www " << mGeomTer.ResolutionAlti() 
+          << " " << aZMin << " " << aZMax << "\n";
+getchar() ;
+      }
    }
    if (mGenImageCorrel)
    {
@@ -1546,13 +1547,21 @@ void cEtapeMecComp::SauvNappes
    cSurfaceOptimiseur * aSO =mAppli.SurfOpt();
    if (aSO && aSO->MaskCalcDone())
    {
+      Fonc_Num aFonc = aSO->MaskCalc().in();
+/*
+      if (DoMasqMnt )
+      {
+           aFonc = aFonc && aImMasqMnt.in();
+      }
+*/
       ELISE_COPY
       (
           rectangle(aBoxOut._p0,aBoxOut._p1),
-          trans(aSO->MaskCalc().in(),-aBoxIn._p0),
+          trans(aFonc,-aBoxIn._p0),
           FileMaskAuto().out()
       );
    }
+
 
 }
 
