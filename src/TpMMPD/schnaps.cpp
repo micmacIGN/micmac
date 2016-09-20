@@ -760,8 +760,6 @@ int schnaps_main(int argc,char ** argv)
     std::cout<<"Images pattern: "<<aPatIm<<std::endl;
 
     StdCorrecNameHomol(aInHomolDirName,aDirImages);
-    StdCorrecNameHomol(aOutHomolDirName,aDirImages);
-
 
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
