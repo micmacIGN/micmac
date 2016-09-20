@@ -129,6 +129,11 @@ cGeomImage::cGeomImage
 
 }
 
+bool cGeomImage::IsRPC() const 
+{
+    return false;
+}
+
 std::string cGeomImage::NameMasqImNadir(int aKB)
 {
     return mAppli.FullDirPyr() + "MasqNadir_K" + ToString(aKB) +  "_" + mPDV.Name() + ".tif";
@@ -2805,6 +2810,11 @@ class cGeomImage_cBasic : public cGeomImage
               cGeomImage (anAppli,aPDV,eTagGeomBundleGen,aBGC3D->SzBasicCapt3D(),1),
               mBGC3D (aBGC3D)
        {
+       }
+
+       bool IsRPC() const 
+       {
+            return mBGC3D->IsRPC();
        }
 
      private :

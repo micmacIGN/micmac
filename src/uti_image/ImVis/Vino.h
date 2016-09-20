@@ -337,6 +337,9 @@ class cAppli_Vino : public cXml_EnvVino,
         Im1D_REAL8  mHistoLisse;
         Im1D_REAL8  mHistoCum;
         std::string mNameHisto;
+        bool        mIsMnt;
+        std::string mFileMnt;
+        cFileOriMnt *mFOM;
 };
 
 Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);

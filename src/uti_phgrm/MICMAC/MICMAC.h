@@ -1062,6 +1062,8 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
         virtual bool IsInMasqAnamSA(Pt2dr aPTer);
         virtual double IncidTerrain(Pt2dr aPTer);
 
+        virtual bool IsRPC() const;
+
         virtual bool MasqImNadirIsDone();
         virtual void DoMasImNadir(TIm2D<REAL4,REAL8> &,cGeomDiscFPx &);
         std::string NameMasqImNadir(int aBK);

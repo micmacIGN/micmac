@@ -804,6 +804,10 @@ bool cBGC3_Modif2D::AltisSolMinMaxIsDef() const
    return mCam0->AltisSolMinMaxIsDef();
 }
 
+bool cBGC3_Modif2D::IsRPC() const
+{
+   return mCam0->IsRPC();
+}
 
 
 Pt3dr cBGC3_Modif2D::ImEtProf2Terrain(const Pt2dr & aP,double aZ) const

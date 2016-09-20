@@ -99,6 +99,7 @@ class CameraRPC : public cBasicGeomCap3D
         Pt2dr GetAltiSolMinMax() const; // MPD => const, sinon ca ne surcharge pas la methode
 		bool AltisSolIsDef() const;
         bool AltisSolMinMaxIsDef() const;
+        bool IsRPC() const;
         
         const std::vector<Pt2dr> &  ContourUtile();
 		const cElPolygone &  EmpriseSol() const;
