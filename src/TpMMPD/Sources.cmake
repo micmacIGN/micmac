@@ -50,8 +50,10 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/Detector.cpp
     ${TDPPMD_DIR}/TiePByMesh/CorrelMesh.cpp
     ${TDPPMD_DIR}/TiePByMesh/MeshProjOnImg_main.cpp
-
-    
+    ${TDPPMD_DIR}/TiePByMesh/DrawVectorNormalMesh_main.cpp
+    ${TDPPMD_DIR}/TiePByMesh/MeshPartViewable_main.cpp
+    ${TDPPMD_DIR}/TiePByMesh/PackHomolToPly_main.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TestGiang_main.cpp 
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})
