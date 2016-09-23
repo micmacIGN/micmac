@@ -111,9 +111,8 @@ bool pic::checkInSide(Pt2dr aPoint)
     return result;
 }
 
-vector<Pt2dr> pic::getPtsHomoInThisTri(triangle* aTri)
+void pic::getPtsHomoInThisTri(triangle* aTri , vector<Pt2dr> & result)
 {
-    vector<Pt2dr> result;
     if (this->mListPtsInterestFAST.size() == 0)
         cout<<"+++ WARN +++ : pic don't have pts interest saved";
     else
@@ -126,6 +125,5 @@ vector<Pt2dr> pic::getPtsHomoInThisTri(triangle* aTri)
                 result.push_back(mListPtsInterestFAST[i]);
         }
     }
-    return result;
 }
 

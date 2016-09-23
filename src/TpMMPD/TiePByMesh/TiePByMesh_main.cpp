@@ -52,7 +52,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 int TiePByMesh_main(int argc,char ** argv)
 {
     cout<<"********************************************************"<<endl;
-    cout<<"*    Search for tie-point using mesh + correlation     *"<<endl;
+    cout<<"*    Search for tie-point using mesh + correlation  A    *"<<endl;
     cout<<"********************************************************"<<endl;
     cout<<"dParam : param of detector : "<<endl;
     cout<<"     [FAST_Threshold]"<<endl;
@@ -67,6 +67,7 @@ int TiePByMesh_main(int argc,char ** argv)
     int SzAreaCorr = 5; double corl_seuil_pt = 0.9;
     vector<string> dParam; dParam.push_back("NO");
     bool useExistHomoStruct = false;
+    double aAngleF = 90;
 
     ElInitArgMain
             (
@@ -90,6 +91,7 @@ int TiePByMesh_main(int argc,char ** argv)
                 << EAM(dParam,"dParam",true,"[param1, param2, ..] (selon detector - NO if don't have)", eSAM_NoInit)
                 << EAM(aHomolOut, "HomolOut", true, "default = _Filtered")
                 << EAM(useExistHomoStruct, "useExist", true, "use exist homol struct - default = false")
+                << EAM(aAngleF, "angleV", true, "limit view angle - default = 90 (all triangle is viewable)")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -116,12 +118,26 @@ int TiePByMesh_main(int argc,char ** argv)
     vector<triangle*> PtrTri = aChain->getmPtrListTri();
     cout<<PtrTri.size()<<" tri"<<endl;
     CorrelMesh aCorrel(aChain);
-    for (uint i=0; i<PtrTri.size(); i++)
+    if (aAngleF == 90)
     {
-        if (useExistHomoStruct)
-            aCorrel.correlByCplExist(i);
-        else
-            aCorrel.correlInTri(i);
+        for (uint i=0; i<PtrTri.size(); i++)
+        {
+            if (useExistHomoStruct)
+                aCorrel.correlByCplExist(i);
+            else
+                aCorrel.correlInTri(i);
+        }
+    }
+    else
+    {
+        cout<<"Use condition angle view"<<endl;
+        for (uint i=0; i<PtrTri.size(); i++)
+        {
+            if (useExistHomoStruct)
+                aCorrel.correlByCplExistWithViewAngle(i, aAngleF);
+            else
+                aCorrel.correlInTriWithViewAngle(i, aAngleF);
+        }
     }
     cout<<endl<<"Tri has pt inside: ";
     for (uint i=0; i<aCorrel.mTriHavePtInteret.size(); i++)

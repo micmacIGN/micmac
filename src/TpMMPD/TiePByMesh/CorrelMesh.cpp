@@ -48,13 +48,17 @@ CorrelMesh::CorrelMesh(InitOutil *aChain)
 {
     mChain = aChain;
     this->countPts = 0;
-    reloadTriandPic();
+    reloadTri();
+    reloadPic();
 }
 
-void CorrelMesh::reloadTriandPic()
+void CorrelMesh::reloadTri()
+{
+    mPtrListTri = mChain->getmPtrListTri();
+}
+void CorrelMesh::reloadPic()
 {
     mPtrListPic = mChain->getmPtrListPic();
-    mPtrListTri = mChain->getmPtrListTri();
 }
 
 pic* CorrelMesh::chooseImgMaitre(bool assum1er = true)
@@ -69,11 +73,37 @@ pic* CorrelMesh::chooseImgMaitre(bool assum1er = true)
     return mPicMaitre;
 }
 
+typedef bool(*dsPt2drCompFunc)( Pt2dr const &,  Pt2dr const &);
+static bool comparatorPt2dr ( Pt2dr const &l,  Pt2dr const &r)
+   { return l.x > r.x; }
+
+void CorrelMesh::sortDescend(vector<Pt2dr> & input)
+{
+   sort(input.begin(), input.end(), static_cast<dsPt2drCompFunc>(&comparatorPt2dr));
+}
+
+vector<ElCplePtsHomologues> CorrelMesh::choosePtsHomoFinal(vector<Pt2dr>&scorePtsInTri,triangle* aTri,
+                                 vector<ElCplePtsHomologues>&P1P2Correl)
+{
+    vector<ElCplePtsHomologues> result;
+    if (scorePtsInTri.size() < 3)
+        result = P1P2Correl;
+    else
+    {
+        for (uint i=0; i<3; i++)
+        {
+            int ind = scorePtsInTri[i].y;
+            result.push_back(P1P2Correl[ind]);
+        }
+    }
+    return result;
+}
 
 Pt2dr CorrelMesh::correlPtsInteretInImaget(Pt2dr ptInt1,
                                            ImgetOfTri imgetMaitre, ImgetOfTri imget2nd,
                                            matAffine & affine,
                                            bool & foundMaxCorr,
+                                           double & scoreR,
                                            double seuil_corel = 0.9)
 {
     /*
@@ -140,6 +170,7 @@ Pt2dr CorrelMesh::correlPtsInteretInImaget(Pt2dr ptInt1,
     {
         ptInt2 = ApplyAffine(max_corel_coor, affine);
         foundMaxCorr = true;
+        scoreR = corelScore[ind];
         //cout<<" + "<<"P1: "<<ptInt1<<" - P2: "<<ptInt2<<" - Sc: "<<corelScore[ind]<<endl;
     }
     else
@@ -209,11 +240,13 @@ void CorrelMesh::correlInTri(int indTri)
         }
         if (tri2DMaitre.insidePic && tri2D2nd.insidePic)
         {
-            vector<Pt2dr> ptsInThisTri = mPicMaitre->getPtsHomoInThisTri(aTri);
+            vector<Pt2dr> ptsInThisTri;
+            mPicMaitre->getPtsHomoInThisTri(aTri, ptsInThisTri);
             cout<<" ++ "<<ptsInThisTri.size()<<" pts in this tri"<<endl;
             if (ptsInThisTri.size() > 0)
                 mTriHavePtInteret.push_back(aTri->mIndex);
             vector<ElCplePtsHomologues> P1P2Correl;
+            vector<Pt2dr> scorePtsInTri;
             bool affineResolu;
             matAffine affineM_2ND = aTri->CalAffine(mPicMaitre, pic2nd, affineResolu);
             if (ptsInThisTri.size() > 0 && affineResolu)
@@ -233,20 +266,29 @@ void CorrelMesh::correlInTri(int indTri)
                 {
                     mTriCorrelSuper.push_back(aTri->mIndex);
                     cCorrelImage::setSzW(mChain->mSzPtCorr); //for correlation each point interest inside imaget
+                    int ind = 0;
                     for (uint j=0; j<ptsInThisTri.size(); j++)
                     {
                         bool foundMaxCorr = false;
+                        double score;
                         Pt2dr P1 = ptsInThisTri[j];
                         Pt2dr P2 = this->correlPtsInteretInImaget(P1, imgetMaitre,
                                                                   imget2nd, affineM_2ND, foundMaxCorr,
+                                                                  score,
                                                                   mChain->mCorl_seuil_pt);
                         if (foundMaxCorr == true)
                         {
                             ElCplePtsHomologues aCpl(P1, P2);
                             P1P2Correl.push_back(aCpl);
-                            this->countPts++;
+                            Pt2dr scorePt;
+                            scorePt.x = score; scorePt.y = ind;
+                            scorePtsInTri.push_back(scorePt);
+                            ind++;
                         }
                     }
+                   this->sortDescend(scorePtsInTri);
+                   vector<ElCplePtsHomologues> P1P2CorrelF = this->choosePtsHomoFinal(scorePtsInTri, aTri, P1P2Correl);
+                   this->countPts = this->countPts + P1P2CorrelF.size();
                    mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2Correl,
                                                mChain->getPrivMember("mHomolOutput"));
                    mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2Correl,
@@ -258,6 +300,135 @@ void CorrelMesh::correlInTri(int indTri)
     }
     }
     delete imgetMaitre.imaget;
+}
+
+void CorrelMesh::correlInTriWithViewAngle(int indTri, double angleF)
+{
+    cout<<"Tri "<<indTri<<endl;
+    triangle * aTri = mPtrListTri[indTri];
+    this->chooseImgMaitre(true);    //assume 1er image est image maitre
+        cout<<" ++ PicM: "<<mPicMaitre->getNameImgInStr()<<endl;
+    //=====critere angle visible du PicMaitre=======
+    Pt3dr centre_geo = (aTri->getSommet(0) + aTri->getSommet(1) + aTri->getSommet(2))/ 3;
+    Pt3dr centre_cam = mPicMaitre->mOriPic->VraiOpticalCenter();
+    Pt3dr Vec1 = centre_cam - centre_geo;
+    Pt3dr aVecNor = aTri->CalVecNormal(centre_geo, 0.09);
+    Pt3dr Vec2 = aVecNor - centre_geo;
+    double angle_deg = (aTri->calAngle(Vec1, Vec2))*180/PI;
+    //===============================================
+    if (angle_deg<angleF)
+    {
+    Tri2d tri2DMaitre = *aTri->getReprSurImg()[mPicMaitre->mIndex];
+        cout<<" ++ SommetTriM:"<<tri2DMaitre.sommet1[0]<<tri2DMaitre.sommet1[1]<<tri2DMaitre.sommet1[2]<<endl;
+        cout<<" "<<mListPic2nd.size()<<" pic2nd"<<endl;
+
+    ImgetOfTri imgetMaitre = aTri->create_Imagette_autour_triangle_A2016(mPicMaitre);
+
+//    VWImg1 = display_image(mPicMaitre->mPic_Im2D,"Img1 - Tri " + intToString(indTri),VWImg1, 0.2);
+//    VWImg1 = draw_polygon_onVW(tri2DMaitre, VWImg1);
+//    VWImg1 = draw_polygon_onVW(imgetMaitre.ptOriginImaget, imgetMaitre.szW*2+1, VWImg1);
+
+//    Video_Win *VWget1;
+//    Im2D<U_INT1,INT4> imgetDisp(300,300);
+//    imgetDisp = imgetMaitre.imaget->getIm()->AugmentSizeTo(Pt2di(300,300));
+//    VWget1 = display_image(&imgetDisp,"Imget1 - Tri " + intToString(indTri),VWget1, 1);
+
+
+    if (imgetMaitre.imaget != NULL)
+    {
+    for (uint i=0; i<mListPic2nd.size(); i++)
+    {
+        pic * pic2nd = mListPic2nd[i];
+        //=====critere angle visible du Pic2nd=======
+        centre_cam = pic2nd->mOriPic->VraiOpticalCenter();
+        Vec1 = centre_cam - centre_geo;
+        Vec2 = aVecNor - centre_geo;
+        angle_deg = (aTri->calAngle(Vec1, Vec2))*180/PI;
+        //===============================================
+        if (angle_deg<angleF)
+        {
+        Tri2d tri2D2nd = *aTri->getReprSurImg()[pic2nd->mIndex];
+            cout<<" ++ Pic2nd: "<<pic2nd->getNameImgInStr()<<endl;
+            cout<<" ++ SommetTri2nd:"<<tri2D2nd.sommet1[0]<<tri2D2nd.sommet1[1]<<tri2D2nd.sommet1[2]<<endl;
+        if (mPicMaitre->mListPtsInterestFAST.size() == 0) //detector pt interest if not detected yet
+        {
+            Detector * aDetectImgM;
+            if (mChain->getPrivMember("mTypeD") == "HOMOLINIT")
+                aDetectImgM = new Detector(mChain, mPicMaitre, pic2nd);
+            else
+                aDetectImgM = new Detector(   mChain->getPrivMember("mTypeD"),
+                                              mChain->getParamD(),
+                                              mPicMaitre,
+                                              mChain
+                                            );
+            aDetectImgM->detect();
+            aDetectImgM->saveToPicTypeVector(mPicMaitre);
+            delete aDetectImgM;
+        }
+        if (tri2DMaitre.insidePic && tri2D2nd.insidePic)
+        {
+            vector<Pt2dr> ptsInThisTri;
+            mPicMaitre->getPtsHomoInThisTri(aTri,ptsInThisTri);
+            cout<<" ++ "<<ptsInThisTri.size()<<" pts in this tri"<<endl;
+            if (ptsInThisTri.size() > 0)
+                mTriHavePtInteret.push_back(aTri->mIndex);
+            vector<ElCplePtsHomologues> P1P2Correl;
+            vector<Pt2dr> scorePtsInTri;
+            bool affineResolu;
+            matAffine affineM_2ND = aTri->CalAffine(mPicMaitre, pic2nd, affineResolu);
+            if (ptsInThisTri.size() > 0 && affineResolu)
+            {
+                bool getImaget2ndSucces;
+                ImgetOfTri imget2nd = aTri->get_Imagette_by_affine_n(imgetMaitre,
+                                                                     pic2nd,
+                                                                     affineM_2ND,
+                                                                     getImaget2ndSucces);
+
+//                VWImg2 = display_image(pic2nd->mPic_Im2D, "Img2 - Tri " + intToString(indTri),VWImg2, 0.2);
+//                VWImg2 = draw_polygon_onVW(tri2D2nd, VWImg2);
+
+                double score_glob = imgetMaitre.imaget->CrossCorrelation(*imget2nd.imaget);
+                cout<<" -   ScGlob: "<<score_glob<<endl;
+                if (score_glob > mChain->mCorl_seuil_glob)
+                {
+                    mTriCorrelSuper.push_back(aTri->mIndex);
+                    cCorrelImage::setSzW(mChain->mSzPtCorr); //for correlation each point interest inside imaget
+                    int ind = 0;
+                    for (uint j=0; j<ptsInThisTri.size(); j++)
+                    {
+                        bool foundMaxCorr = false;
+                        double score;
+                        Pt2dr P1 = ptsInThisTri[j];
+                        Pt2dr P2 = this->correlPtsInteretInImaget(P1, imgetMaitre,
+                                                                  imget2nd, affineM_2ND, foundMaxCorr,
+                                                                  score,
+                                                                  mChain->mCorl_seuil_pt);
+                        if (foundMaxCorr == true)
+                        {
+                            ElCplePtsHomologues aCpl(P1, P2);
+                            P1P2Correl.push_back(aCpl);
+                            Pt2dr scorePt;
+                            scorePt.x = score; scorePt.y = ind;
+                            scorePtsInTri.push_back(scorePt);
+                            ind++;
+                        }
+                    }
+                   this->sortDescend(scorePtsInTri);
+                   vector<ElCplePtsHomologues> P1P2CorrelF = this->choosePtsHomoFinal(scorePtsInTri, aTri, P1P2Correl);
+                   this->countPts = this->countPts + P1P2CorrelF.size();
+                   mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2CorrelF,
+                                               mChain->getPrivMember("mHomolOutput"));
+                   mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2CorrelF,
+                                               mChain->getPrivMember("mHomolOutput"), true);
+                }
+                delete imget2nd.imaget;
+            }
+        }
+    }
+    }
+    }
+    delete imgetMaitre.imaget;
+    }
 }
 
 void CorrelMesh::correlByCplExist(int indTri)
@@ -275,10 +446,30 @@ void CorrelMesh::correlByCplExist(int indTri)
             mPtrListPicT.push_back(thisHomoPack.pic2);
             mPtrListPic = mPtrListPicT;
             this->correlInTri(indTri);
-            reloadTriandPic();
+            reloadPic();
         }
     }
 }
+void CorrelMesh::correlByCplExistWithViewAngle(int indTri, double angleF)
+{
+    vector<CplPic> homoExist = this->mChain->getmCplHomolExist();
+    if (homoExist.size() <= 0)
+        cout<<"WARN : No data homol exist found !"<<endl;
+    else
+    {
+        for (uint i=0; i<homoExist.size(); i++)
+        {
+            vector<pic*> mPtrListPicT;
+            CplPic thisHomoPack = homoExist[i];
+            mPtrListPicT.push_back(thisHomoPack.pic1);
+            mPtrListPicT.push_back(thisHomoPack.pic2);
+            mPtrListPic = mPtrListPicT;
+            this->correlInTriWithViewAngle(indTri, angleF);
+            reloadPic();
+        }
+    }
+}
+
 
 
 
