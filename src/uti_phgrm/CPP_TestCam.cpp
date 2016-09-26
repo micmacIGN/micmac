@@ -355,7 +355,7 @@ class cAppli_TestBundleInter_main
              LArgMain()  << EAMC(aVS1,"[Cam1,x1,y1]")
                          << EAMC(aVS2,"[Cam2,x2,y2]"),
              LArgMain()
-                        << EAM(aVS3,"[Cam3,x3,y3]")
+                        << EAM(aVS3,"Cam3",true,"[Cam3,x3,y3]")
            );
 
 
