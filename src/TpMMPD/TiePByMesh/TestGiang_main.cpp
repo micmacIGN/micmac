@@ -44,11 +44,42 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Triangle.h"
 #include <stdio.h>
 
+void Test_Xml()
+{
+    cXml_TriAngulationImMaster aTriangulation = StdGetFromSI("Tri0.xml",Xml_TriAngulationImMaster);
+
+    std::cout << "Name master " << aTriangulation.NameMaster() << "\n";
+    cXml_Triangle3DForTieP aTri;
+    aTri.P1() = Pt3dr(1,1,1);
+    aTri.P2() = Pt3dr(1,1,2);
+    aTri.P3() = Pt3dr(1,1,3);
+    aTri.NumImSec().push_back(1);
+
+    aTriangulation.Tri().push_back(aTri);
+    
+
+    aTriangulation.NameSec().push_back("toto.tif");
+
+    MakeFileXML(aTriangulation,"Tri1.xml");
+    MakeFileXML(aTriangulation,"Tri1.dmp");
+
+    aTriangulation = StdGetFromSI("Tri1.dmp",Xml_TriAngulationImMaster);
+
+     std::cout << "Nb tri " <<  aTriangulation.Tri().size()  << " UnPt " << aTriangulation.Tri()[1].P2() << "\n";
+
+
+    exit(EXIT_SUCCESS);
+}
+
     /******************************************************************************
     The main function.
     ******************************************************************************/
 int TestGiang_main(int argc,char ** argv)
 {
+
+    Test_Xml();
+
+
     cout<<"********************************************************"<<endl;
     cout<<"*    TestGiang                                         *"<<endl;
     cout<<"********************************************************"<<endl;
