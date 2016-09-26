@@ -37,13 +37,12 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include <stdio.h>
-#include "StdAfx.h"
-#include "Triangle.h"
-#include "Pic.h"
 #include "InitOutil.h"
 #include "DrawOnMesh.h"
 #include "CorrelMesh.h"
+#include <stdio.h>
+#include "Triangle.h"
+#include "Pic.h"
 #include "PHO_MI.h"
 
     /******************************************************************************

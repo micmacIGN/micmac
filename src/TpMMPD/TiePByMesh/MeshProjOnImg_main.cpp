@@ -37,11 +37,11 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "InitOutil.h"
 #include <stdio.h>
 #include "StdAfx.h"
 #include "Triangle.h"
 #include "Pic.h"
-#include "InitOutil.h"
 #include "DrawOnMesh.h"
 #include "CorrelMesh.h"
 #include "PHO_MI.h"
@@ -177,7 +177,10 @@ int MeshProjOnImg_main(int argc,char ** argv)
         {
             triangle * aTri = ptrTri[j];
             Tri2d aTri2D = *aTri->getReprSurImg()[aPic->mIndex];
-            if (aTri2D.insidePic)
+            bool devant = aPic->mOriPic->Devant(aTri->getSommet(0)) &&
+            aPic->mOriPic->Devant(aTri->getSommet(0)) &&
+            aPic->mOriPic->Devant(aTri->getSommet(0));
+            if (aTri2D.insidePic && devant)
                 draw_polygon_onVW(aTri2D, aVW, Pt3di(0,255,0), true, click);
         }
         if (lstPtsInteret.size() > 0)

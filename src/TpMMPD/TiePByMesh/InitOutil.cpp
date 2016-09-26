@@ -37,21 +37,19 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
-#include "../../uti_phgrm/NewOri/NewOri.h"
 #include "InitOutil.h"
+#include "../../uti_phgrm/NewOri/NewOri.h"
 #include "Detector.h"
 #include "PHO_MI.h"
 
-//using namespace cv;
 
 
-InitOutil::InitOutil   ( string aFullPattern, string aOriInput,
+InitOutil::InitOutil   (string aFullPattern, string aOriInput,
                          string aTypeD, vector<double> aParamD,
                          string aHomolOutput,
                          int SzPtCorr, int SzAreaCorr,
                          double corl_seuil_glob, double corl_seuil_pt,
-                         bool disp, bool aCplPicExistHomol)
+                         bool disp, bool aCplPicExistHomol, double pas, bool assume1er)
 {
     cout<<"Init MicMac, lire pattern, former le cle.."<<endl;
     this->mOriInput = aOriInput;
@@ -85,9 +83,11 @@ InitOutil::InitOutil   ( string aFullPattern, string aOriInput,
                           +  std::string("dat");
        mSzPtCorr = SzPtCorr;
        mSzAreaCorr = SzAreaCorr;
+       mPas = pas;
        mCorl_seuil_glob = corl_seuil_glob ;
        mCorl_seuil_pt = corl_seuil_pt;
        mDisp = disp;
+       mAssume1er = assume1er;
 }
 
 InitOutil::InitOutil(string aFullPattern, string aOriInput, string aHomolInPut)
@@ -97,7 +97,10 @@ InitOutil::InitOutil(string aFullPattern, string aOriInput, string aHomolInPut)
     this->mFullPattern = aFullPattern;
     mNameHomol = aHomolInPut;
     SplitDirAndFile(mDirImages, mPatIm, mFullPattern); //Working dir, Images pattern
-    StdCorrecNameOrient(mOriInput, mDirImages);//remove "Ori-" if needed
+    if (aOriInput != "NONE")
+    {
+        StdCorrecNameOrient(mOriInput, mDirImages);//remove "Ori-" if needed
+    }
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirImages);
     mSetIm = *(mICNM->Get(mPatIm));
     ELISE_ASSERT(mSetIm.size()>0,"ERROR: No image found!");
@@ -107,6 +110,7 @@ InitOutil::InitOutil(string aFullPattern, string aOriInput, string aHomolInPut)
                        +  std::string("dat");
     cout<<"Init done !"<<endl;
 }
+
 
 InitOutil::InitOutil (string aMeshToRead)
 {
@@ -422,15 +426,13 @@ void InitOutil::addToExistHomolFile(    pic * pic1,
     if (Exist)
     {
         aPackIn =  ElPackHomologue::FromFile(aHomoIn);
-        cout<<" + Found Pack Homo "<<aPackIn.size()<<" pts"<<endl;
+        //cout<<" + Found Pack Homo "<<aPackIn.size()<<" pts"<<endl;
     }
     ElPackHomologue packHomoOut;
     for (uint i=0; i<ptsHomo.size(); i++)   
     {
         ElCplePtsHomologues aCplPts = ptsHomo[i];
-        if (addInverse == false)
-            aCplPts = ptsHomo[i];
-        else
+        if (addInverse == true)
         {
             aCplPts.P1() = ptsHomo[i].P2();
             aCplPts.P2() = ptsHomo[i].P1();
@@ -480,6 +482,42 @@ vector<CplPic> InitOutil::loadCplPicExistHomol()
     return result;
 }
 
+//========creat job process for correlation with verification 3rd =======//
+void InitOutil::creatJobCorrel(double angleF)
+{
+    cout<<"Creat job correl ..."<<endl;
+    if (mPtrListPic.size() == 0 && mPtrListTri.size() == 0)
+        cout<<"No Pic no Tri read to creat job , exit.."<<endl;
+    else
+    {
+        for (uint i=0; i<mPtrListTri.size(); i++)
+        {
+            triangle * aTri = mPtrListTri[i];
+            vector<Pt2dr> lstAngle_v;
+            for (uint j=0; j<mPtrListPic.size(); j++)
+            {
+                pic * aPic = mPtrListPic[j];
+                double angle_view = aPic->calAngleViewToTri(aTri);
+                if (angle_view < angleF)
+                {
+                    Pt2dr aAngle(angle_view, j);
+                    lstAngle_v.push_back(aAngle);
+                }
+            }
+            if (lstAngle_v.size() > 2)
+            {
+                sortAscendPt2drX(lstAngle_v);
+                AJobCorel aJob;
+                aJob.picM = mPtrListPic[lstAngle_v[0].y];
+                aJob.pic2nd = mPtrListPic[lstAngle_v[1].y];
+                for (uint k=2; k<lstAngle_v.size(); k++)
+                    aJob.lstPic3rd.push_back(mPtrListPic[lstAngle_v[k].y]);
+                mLstJobCorrel.push_back(aJob);
+            }
+        }
+    }
+}
+
 //========les fonction outil supplementaire ===========//
 std::string intToString ( int number )
 {
@@ -493,7 +531,7 @@ std::string constStringToString(const string * aCString)
     return aCString->c_str();
 }
 
-vector<double> parse_dParam(vector<string> dParam)
+extern vector<double> parse_dParam(vector<string> dParam)
 {
     vector<double> result;
     if (dParam.size() > 0)

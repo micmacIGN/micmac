@@ -37,11 +37,10 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "InitOutil.h"
 #include <stdio.h>
-#include "StdAfx.h"
 #include "Triangle.h"
 #include "Pic.h"
-#include "InitOutil.h"
 #include "DrawOnMesh.h"
 #include "CorrelMesh.h"
 #include "PHO_MI.h"
@@ -92,7 +91,10 @@ int MeshPartViewable_main(int argc,char ** argv)
     }
     bool Exist= ELISE_fp::exist_file(aMeshIn);
     InitOutil aChain(aPicIn, aOriIn);
-    aChain.initAll(aMeshIn);
+    if (Exist)
+        aChain.initAll(aMeshIn);
+    else
+        cout<<"Mesh not Existed :"<<aMeshIn<<endl;
     vector<pic*>lstPic = aChain.getmPtrListPic();
     vector<triangle*>lstTri = aChain.getmPtrListTri();
     //angleF = pow(cos(angleF*PI/180),2);
@@ -149,6 +151,5 @@ else
 }
     return EXIT_SUCCESS;
 }
-
 
 

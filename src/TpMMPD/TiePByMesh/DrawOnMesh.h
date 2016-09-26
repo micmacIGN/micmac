@@ -1,9 +1,8 @@
 #ifndef DRAWONMESH_H
 #define DRAWONMESH_H
 
-#include <stdio.h>
-#include "StdAfx.h"
 #include "InitOutil.h"
+#include <stdio.h>
 
 class DrawOnMesh
 {

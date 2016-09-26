@@ -36,8 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
 #include "InitOriLinear.h"
+#include "StdAfx.h"
 
 bool checkNumParam(vector<string>aVecPatternNewImages_E , vector<string>aVecPatternRefImages_E ,
                 vector<string>aPatPoseTurn , vector<double>aPatAngle, vector<double>aMulF)

@@ -37,9 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
-#include "../../uti_phgrm/NewOri/NewOri.h"
 #include "InitOutil.h"
+#include "../../uti_phgrm/NewOri/NewOri.h"
 #include "DrawOnMesh.h"
 
 Pt3dr DrawOnMesh::InterFaisce_cpy_cPI_Appli  (

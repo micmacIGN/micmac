@@ -59,11 +59,14 @@ triangle::triangle(Face* aFace, vector<Vertex*> VertexList, int num_pic, int ind
 void triangle::reproject(pic *aPic, bool &reprOK, Tri2d &result, int ind=-1)
 {
     Pt2dr result1[3];        
-    Pt2dr Som0Repro = aPic->mOriPic->ElCamera::R3toF2(mSommet[0]);
+    //Pt2dr Som0Repro = aPic->mOriPic->ElCamera::R3toF2(mSommet[0]);
+    Pt2dr Som0Repro = aPic->mOriPic->Ter2Capteur(mSommet[0]);
     bool inside = aPic->checkInSide(Som0Repro);
-    Pt2dr Som1Repro = aPic->mOriPic->ElCamera::R3toF2(mSommet[1]);
+    //Pt2dr Som1Repro = aPic->mOriPic->ElCamera::R3toF2(mSommet[1]);
+    Pt2dr Som1Repro = aPic->mOriPic->Ter2Capteur(mSommet[1]);
     bool inside2 = aPic->checkInSide(Som1Repro);
-    Pt2dr Som2Repro = aPic->mOriPic->ElCamera::R3toF2(mSommet[2]);
+    //Pt2dr Som2Repro = aPic->mOriPic->ElCamera::R3toF2(mSommet[2]);
+    Pt2dr Som2Repro = aPic->mOriPic->Ter2Capteur(mSommet[2]);
     bool inside3 = aPic->checkInSide(Som2Repro);
     if (
             inside && inside2 && inside3 &&
@@ -262,6 +265,16 @@ ImgetOfTri triangle::create_Imagette_autour_triangle (pic* aPic)
     return aImagette;
 }
 
+extern void sortPt2drDescendx(vector<Pt2dr> & input)
+{
+   sort(input.begin(), input.end(), static_cast<dsPt2drCompFunc>(&comparatorPt2dr));
+}
+
+extern void sortPt2drDescendY(vector<Pt2dr> & input)
+{
+   sort(input.begin(), input.end(), static_cast<dsPt2drCompFunc>(&comparatorPt2drY));
+}
+
 ImgetOfTri triangle::create_Imagette_autour_triangle_A2016 (pic* aPic)
 {
     bool ok_in = true;
@@ -308,38 +321,46 @@ ImgetOfTri triangle::create_Imagette_autour_triangle_A2016 (pic* aPic)
     double coteY = P4.y - P1.y;
     double differ = abs(coteX - coteY)/2;
     if (coteX > coteY)
-    {   //ajout au cote Y
+    {
         P1 = P1 - Pt2dr(0,differ);
         P2 = P2 - Pt2dr(0,differ);
         P3 = P3 + Pt2dr(0,differ);
         P4 = P4 + Pt2dr(0,differ);
     }
     else
-    {   //ajout au cote X
+    {
         P1 = P1 - Pt2dr(differ,0);
         P2 = P2 + Pt2dr(differ,0);
         P3 = P3 + Pt2dr(differ,0);
         P4 = P4 - Pt2dr(differ,0);
     }
+
     int szWindows = ceil(abs(P4.x - P3.x)/2);
-    //cout<<" + P1: "<<P1<<" + P2:" <<P2<<" + P3: "<<P3<<" + P4: "<<P4<<" +Sz :"<<szWindows<<endl;
-    cCorrelImage::setSzW(szWindows);
     Pt2dr centre_geo = (P3-P1)/2 + P1;
+    //centre_geo.x = round(centre_geo.x);
+    //centre_geo.y = round(centre_geo.y);
+    P1 = centre_geo - Pt2dr((double)szWindows,(double)szWindows);
+    cCorrelImage::setSzW(szWindows);
     cCorrelImage * ImgetteMaitre = new cCorrelImage();
-    //cout<<" ++ Get imgetM :"<<" szW: "<<P4.x - P3.x<<" "<<szWindows<<" - centreGeo: "<<centre_geo<<endl;
     //check if rectangle is inside img
-    ok_in =     aPic->checkInSide(P1)
-             && aPic->checkInSide(P2)
-             && aPic->checkInSide(P3)
-             && aPic->checkInSide(P4);
+    bool P1in = aPic->checkInSide(P1);
+    bool P2in = aPic->checkInSide(P2);
+    bool P3in = aPic->checkInSide(P3);
+    bool P4in = aPic->checkInSide(P4);
+    ok_in =     P1in
+             && P2in
+             && P3in
+             && P4in;
     //creat imagette autour triangle (imagette avec centre_geo et szWindows)
     if (ok_in)
     {
         cout<<" -imaget inside pic"<<endl;
-        ImgetteMaitre->getFromIm(aPic->mPic_Im2D, int(centre_geo.x), int(centre_geo.y));
+        ImgetteMaitre->getFromIm(aPic->mPic_Im2D, centre_geo.x, centre_geo.y);
     }
     else
-        ImgetteMaitre = NULL;
+    {
+        ImgetteMaitre=NULL;
+    }
     cout<<" ++ Get imgetM :"<<&ImgetteMaitre<<endl;
     aImagette.aPic = aPic;
     aImagette.aTri = triangle;
@@ -549,6 +570,14 @@ ImgetOfTri triangle::get_Imagette_by_affine_n( ImgetOfTri &ImgetMaitre,
     Pt2dr centre_geo_master = ImgetMaitre.centre_geo;
     double SzW = ((ImgetMaitre.imaget->getmSz().x-1)/2);
     imget2nd.szW = SzW;
+//    //---Interpolateur---
+    U_INT1 ** aRaw2 = Img2nd->mPic_Im2D->data();
+    int aSzApod = 10;
+    cSinCardApodInterpol1D *aKer1 = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,aSzApod,aSzApod,1e-4,false);
+    cInterpolateurIm2D<U_INT1> * aKer2 = new cTabIM2D_FromIm2D<U_INT1>(aKer1,1000,false);
+//    //-------------------
+
+
     //Pour imagette de triangle dans image master, get imagette correspondance dans Img2nd par affine Transforme
     TIm2D<U_INT1,INT4> Imgette_2nd(Pt2di(SzW*2+1, SzW*2+1));
     for (int i=-SzW; i<=SzW; i++)
@@ -559,12 +588,19 @@ ImgetOfTri triangle::get_Imagette_by_affine_n( ImgetOfTri &ImgetMaitre,
             Pt2di aVois(i,j);
             Pt2dr pix_ImgMaitre(centre_geo_master.x+i, centre_geo_master.y+j);
             Pt2dr pix_Img2nd = ApplyAffine(pix_ImgMaitre, matrixAffine);
-            if (Img2nd->checkInSide(pix_Img2nd))
+            //-----Interpolateur-----
+            if (Img2nd->checkInSide(pix_Img2nd,aSzApod+1))
             {
-                //INT4 val = Pic2nd_TIm2D.getr(pix_Img2nd, -1);
-                INT4 val = Img2nd->mPic_TIm2D->getr(pix_Img2nd, -1);
+                INT val = aKer2->GetVal(aRaw2,pix_Img2nd);
                 Imgette_2nd.oset_svp(aVois+Pt2di(SzW,SzW),val);
             }
+            //----------------------
+//            if (Img2nd->checkInSide(pix_Img2nd))
+//            {
+//                INT4 val_o = ImgetMaitre.imaget->getImT()->get(Pt2di(i+SzW, j+SzW),0);
+//                INT4 val = Img2nd->mPic_TIm2D->getr(pix_Img2nd, 0);
+//                Imgette_2nd.oset_svp(aVois+Pt2di(SzW,SzW),val);
+//            }
             else
                 {getImgetteFalse=true; break; }
         }
@@ -692,3 +728,17 @@ double triangle::det(Pt2dr u, Pt2dr v)
 //    return inside;
 //}
 //=============================================================//
+
+
+// ============   Calcul angle entre direction visee du camera avec vector normal du triangle - Aout 2016========
+//angle retoune en degree
+double triangle::angleToVecNormalImg(pic* aPic)
+{
+    Pt3dr centre_geo = (this->getSommet(0) + this->getSommet(1) + this->getSommet(2))/ 3;
+    Pt3dr centre_cam = aPic->mOriPic->VraiOpticalCenter();
+    Pt3dr Vec1 = centre_cam - centre_geo;
+    Pt3dr aVecNor = this->CalVecNormal(centre_geo, 0.09);
+    Pt3dr Vec2 = aVecNor - centre_geo;
+    return ((this->calAngle(Vec1, Vec2))*180/PI);
+}
+// ===============================================================================================================

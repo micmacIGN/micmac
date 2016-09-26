@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include "StdAfx.h"
-
 #include "../kugelhupf.h"
 
 /* ** PlyFile.h est maintenante inclus dans StdAfx.f du MicMac, dans include/general */
@@ -29,6 +28,10 @@ struct Face {
 };
 
 extern PlyProperty face_props[2];
+extern bool comparatorPt2dr ( Pt2dr const &l,  Pt2dr const &r);
+extern bool comparatorPt2drY ( Pt2dr const &l,  Pt2dr const &r);
+extern void sortPt2drDescendx(vector<Pt2dr> & input);
+extern void sortPt2drDescendY(vector<Pt2dr> & input);
 
 typedef struct matAffine {
     double el_00;double el_01;double el_02;
@@ -46,7 +49,7 @@ typedef struct ImgetOfTri {
     Tri2d aTri;     //coor 2D of this tri
     pic * aPic;     //in which image this tri2D is exprime
     Pt2dr centre_geo;   //centre-geo of this tri in coor of aPic
-    Pt2dr ptOriginImaget;   //pts origin of this imaget in coor of aPic
+    Pt2dr ptOriginImaget;   //pts origin of this imaget in coor of aPic (pt Haut Gauche)
     cCorrelImage * imaget;  //imaget of this tri
     int szW;    //size of imaget -- need *2+1 to have whole size
 }ImgetOfTri;
@@ -84,7 +87,7 @@ public:
 
     //bool check_inside_triangle (Pt2dr v, Tri2d aTri2D);
     bool check_inside_triangle_A2016 (Pt2dr aPt, Tri2d & aTri);
-
+    double angleToVecNormalImg(pic* aPic);
     int mIndex;                                                           //index of this triangle in PtrListTri
 private:
     Pt2dr expPtInRepTri2D(Pt2dr aPt, Tri2d & aTri);

@@ -38,10 +38,11 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include <stdio.h>
-#include "StdAfx.h"
 #include "Triangle.h"
 #include "Pic.h"
 #include "../kugelhupf.h"
+#include "StdAfx.h"
+
     /******************************************************************************
     Display function.
     ******************************************************************************/
@@ -383,6 +384,31 @@ extern Video_Win* draw_polygon_onVW(Pt2dr ptHGCaree, int szCaree, Video_Win* VW,
     return VW;
 }
 
+extern Video_Win* draw_pts_onVW(Pt2dr aPts, Video_Win* VW, string colorName)
+{
+    Disc_Pal Pdisc = Disc_Pal::P8COL();
+    Gray_Pal Pgr (30);
+    Circ_Pal Pcirc = Circ_Pal::PCIRC6(30);
+    RGB_Pal Prgb (255,1,1);
+    Elise_Set_Of_Palette SOP(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+    Line_St lstLineR(Pdisc(P8COL::red),1);
+    Line_St lstLineG(Pdisc(P8COL::green),1);
+    Line_St lstLineB(Pdisc(P8COL::blue),1);
+    if (VW==0)
+        cout<<"WARN : Video win not found to draw polygon "<<VW<<endl;
+    else
+    {
+        VW->set_sop(SOP);
+        if (colorName == "red")
+            VW->draw_circle_loc(aPts, 2 ,lstLineR);
+        else if (colorName == "green")
+            VW->draw_circle_loc(aPts, 2 ,lstLineG);
+        else
+            VW->draw_circle_loc(aPts, 2 ,lstLineB);
+    }
+    return VW;
+}
+
 extern Video_Win* draw_pts_onVW(vector<Pt2dr> lstPts, Video_Win* VW, Pt3di color=Pt3di(0,255,255))
 {
     Disc_Pal Pdisc = Disc_Pal::P8COL();
@@ -404,4 +430,6 @@ extern Video_Win* draw_pts_onVW(vector<Pt2dr> lstPts, Video_Win* VW, Pt3di color
     }
     return VW;
 }
+
+
 

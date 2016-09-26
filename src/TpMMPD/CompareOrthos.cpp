@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "TiePByMesh/InitOutil.h"
 
+
+
 bool IsFileExists( const char * FileName )
 {
 	#if (ELISE_unix)
@@ -239,8 +241,8 @@ int CmpOrthos_main(int argc,char ** argv)
 		Pt2dr aPt(xDep,yDep);
 		aVC.push_back(aPt);
 		
-		VW = draw_polygon_onVW(aPoints1.at(aK),VW,"red", false,false);
-		VW = draw_polygon_onVW(aPt,VW,"blue", false,false);
+        VW = draw_pts_onVW(aPoints1.at(aK),VW,"red");
+        VW = draw_pts_onVW(aPt,VW,"blue");
 		VW = draw_polygon_onVW(aVC,VW,Pt3di(0,255,0), false,false);
 	}
 	
