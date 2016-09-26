@@ -243,14 +243,9 @@ Pt2di aLastPtInMaxGrad(0,0);
                                     double aDist3 = sqrt(aDist2+ElSquare(aZofXY-aLastZofXY));
                                     double aGrad = euclid(aP3Out-aLastP3Out) / aDist3;
                                     aNbGrad ++;
-if (aGrad>10)
-{
-   std::cout <<  " aDist3 " << aDist3 << " Z:" << aZofXY << " " << aLastZofXY << "\n";
-   getchar();
-}
                                     if (aGrad>1.5)
                                     {
-                                        if ((MPD_MM() || ERupnik_MM()) && ((aZofXY>40) && (aZofXY<250)))
+                                        if (0 && ((MPD_MM() || ERupnik_MM()) && ((aZofXY>40) && (aZofXY<250))))
                                         {
                                             // std::cout << "ZZZZZZzBadGraddd  " << aZofXY  << " " << aP3Out << "\n";
                                             if (aGrad>aDebugMaxGr)
@@ -359,12 +354,6 @@ if (euclid(aP2Out) > 1e5  )
         }
     } 
 
-
-if (MPD_MM())
-{
-    std::cout << "aMaxGradaMaxGradaMaxGrad " << aMaxGrad << "\n";
-
-}
 
 
     if (mIsRPC && (aMaxGrad > 100))

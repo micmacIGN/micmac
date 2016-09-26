@@ -391,7 +391,6 @@ void cGeomDiscFPx::PostInit()
   }
 
 
-
   if (mAp->RatioAltiPlani().IsInit())
      mRatioResAltPlani[0] = mAp->RatioAltiPlani().Val();
 
@@ -558,6 +557,7 @@ void cGeomDiscFPx::PostInit()
          }
      }
 
+
      mEcPxInit[0]  = mAp->ZIncCalc();
 
 
@@ -603,6 +603,7 @@ void cGeomDiscFPx::PostInit()
       {
 // PXXXXX 14.5776 0.0685982
 // AAAAAAAAAAlllllmmmmmm[-5.58743,6.90435,-23.1572] [0.913081,-0.403743,0.057229]
+
 
            double aPxMin =  1/(mV0Px[0]*mAp->IntervSpecialZInv().Val().MulZMax());
            double aPxMax =  1/(mV0Px[0]*mAp->IntervSpecialZInv().Val().MulZMin());
