@@ -37,13 +37,14 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "InitOutil.h"
 #include <stdio.h>
 #include "StdAfx.h"
 #include "Triangle.h"
 #include "Pic.h"
-#include "InitOutil.h"
 #include "DrawOnMesh.h"
 #include "CorrelMesh.h"
+#include "PHO_MI.h"
 
     /******************************************************************************
     The main function.
@@ -59,6 +60,7 @@ int MeshProjOnImg_main(int argc,char ** argv)
     string aFullPattern, aOriInput;
     double zoomF = 0.2;
     bool click = false;
+    string PtsInteret="NO";string SH="NO";
 
     ElInitArgMain
             (
@@ -72,10 +74,12 @@ int MeshProjOnImg_main(int argc,char ** argv)
                 LArgMain()
                 << EAM(zoomF, "zoomF", true, "1 -> sz origin, 0.2 -> 1/5 size - default = 0.2")
                 << EAM(click, "click", true, "true => draw each triangle by each click - default = false")
+                << EAM(PtsInteret, "ptsInteret", true, "pack pts d'interet - give it with 1 img only")
+                << EAM(SH, "SH", true, "pack homol - give it with 2 image only")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
-    InitOutil aChain(aFullPattern, aOriInput);
+    InitOutil aChain(aFullPattern, aOriInput, SH);
     cout<<"Init all.."<<endl;
     aChain.read_file(pathPlyFileS);
     aChain.load_Im();
@@ -88,12 +92,83 @@ int MeshProjOnImg_main(int argc,char ** argv)
     for (uint i=0; i<ptrPic.size(); i++)
     {
         pic * aPic = ptrPic[i];
-        Video_Win * aVW;
+        Video_Win * aVW = 0;
         VWPic.push_back(display_image
                         (aPic->mPic_Im2D, "IMG" + intToString(i),
                          aVW, zoomF, false));
     }
-
+    bool Exist = false;
+    if (PtsInteret != "NO")
+    {
+        cout<<"Check pts interet file : "<<PtsInteret;
+        Exist= ELISE_fp::exist_file(PtsInteret);
+    }
+    vector<Pt2dr> lstPtsInteret;
+    bool ok = false;
+    if (Exist)
+    {
+        cout<<" ...found"<<endl;
+        DigeoPoint fileDigeo;
+        vector<DigeoPoint> listPtDigeo;
+        ok = fileDigeo.readDigeoFile(PtsInteret, 1,listPtDigeo);
+        for (uint i=0; i<listPtDigeo.size(); i++)
+        {
+            lstPtsInteret.push_back(Pt2dr(listPtDigeo[i].x, listPtDigeo[i].y));
+        }
+        if (!ok)
+            cout<<" DIGEO File read error ! "<<endl;
+        if  (ptrPic.size() != 1)
+        {
+            cout<<"ERROR : 1 image for 1 file Pts Interest - not draw pts interet"<<endl;
+            ok = false;
+        }
+    }
+    else
+        cout<<"...not found !"<<endl;
+    vector<Pt2dr> lstPtHomo1;
+    vector<Pt2dr> lstPtHomo2;
+    bool ExistHomo = false;
+    string HomoIn;
+    if (SH != "NO")
+    {
+        string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                           +  std::string(SH)
+                           +  std::string("@")
+                           +  std::string("dat");
+        HomoIn = aChain.getPrivmICNM()->Assoc1To2(aKHIn,
+                                         ptrPic[0]->getNameImgInStr(),
+                                         ptrPic[1]->getNameImgInStr(), true);
+        ExistHomo= ELISE_fp::exist_file(HomoIn);
+        if (!ExistHomo)
+        {
+            cout<<"Pack HOMO not found "<<HomoIn<<endl;
+            StdCorrecNameHomol_G(HomoIn, aChain.getPrivmICNM()->Dir());
+            HomoIn = aChain.getPrivmICNM()->Assoc1To2(aKHIn,
+                                                 ptrPic[0]->getNameImgInStr(),
+                                                 ptrPic[1]->getNameImgInStr(), true);
+            ExistHomo= ELISE_fp::exist_file(HomoIn);
+            if (!ExistHomo)
+            {
+                cout<<"Pack HOMO not found "<<HomoIn<<endl;
+                HomoIn = SH + "/Pastis"+ ptrPic[0]->getNameImgInStr()
+                        +"/"+ptrPic[1]->getNameImgInStr()+".dat";
+                ExistHomo= ELISE_fp::exist_file(HomoIn);
+                if (!ExistHomo)
+                    cout<<"Pack HOMO not found "<<HomoIn<<endl;
+            }
+        }
+    }
+    if (ExistHomo)
+    {
+         ElPackHomologue aPackIn;
+         aPackIn =  ElPackHomologue::FromFile(HomoIn);
+         cout<<" + Found Pack Homo "<<aPackIn.size()<<" pts"<<endl;
+         for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
+         {
+             lstPtHomo1.push_back(itP->P1());
+             lstPtHomo2.push_back(itP->P2());
+         }
+    }
     for (uint i=0; i<ptrPic.size(); i++)
     {
         pic * aPic = ptrPic[i];
@@ -102,12 +177,24 @@ int MeshProjOnImg_main(int argc,char ** argv)
         {
             triangle * aTri = ptrTri[j];
             Tri2d aTri2D = *aTri->getReprSurImg()[aPic->mIndex];
-            if (aTri2D.insidePic)
+            bool devant = aPic->mOriPic->Devant(aTri->getSommet(0)) &&
+            aPic->mOriPic->Devant(aTri->getSommet(0)) &&
+            aPic->mOriPic->Devant(aTri->getSommet(0));
+            if (aTri2D.insidePic && devant)
                 draw_polygon_onVW(aTri2D, aVW, Pt3di(0,255,0), true, click);
         }
-        aVW->clik_in();
+        if (lstPtsInteret.size() > 0)
+            draw_pts_onVW(lstPtsInteret,aVW);
+        if ((lstPtHomo1.size() > 0) && (lstPtHomo2.size() > 0))
+        {
+            if (i==0)
+                draw_pts_onVW(lstPtHomo1,aVW);
+            if (i==1)
+                draw_pts_onVW(lstPtHomo2,aVW);
+        }
+        if (i==ptrPic.size()-1)
+            aVW->clik_in();
     }
-
     return EXIT_SUCCESS;
 }
 

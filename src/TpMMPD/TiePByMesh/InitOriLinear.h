@@ -1,9 +1,9 @@
 #ifndef INITORILINEAR_H
 #define INITORILINEAR_H
 
+#include "InitOutil.h"
 #include <stdio.h>
 #include "StdAfx.h"
-#include "InitOutil.h"
 
 class SerieCamLinear
 {
@@ -27,12 +27,12 @@ class SerieCamLinear
     Pt3dr calVecMouvementTurn(Pt3dr vecRef, double angle, string axe);
 
 
-	vector<string> mSetImgREF;
-	vector<string> mSetImgNEW;
+    vector<string> mSetImgREF;
+    vector<string> mSetImgNEW;
     vector<cOrientationConique> mSetOriREF;
     vector<cOrientationConique> mSetOriNEW;
-	string mPatImgREF;
-	string mPatImgNEW;
+    string mPatImgREF;
+    string mPatImgNEW;
     string mOri;
     string mOriOut;
     string mAxeOrient;

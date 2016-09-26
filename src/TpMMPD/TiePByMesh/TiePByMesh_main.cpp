@@ -38,10 +38,9 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include <stdio.h>
-#include "StdAfx.h"
+#include "InitOutil.h"
 #include "Triangle.h"
 #include "Pic.h"
-#include "InitOutil.h"
 #include "DrawOnMesh.h"
 #include "CorrelMesh.h"
 
@@ -67,6 +66,8 @@ int TiePByMesh_main(int argc,char ** argv)
     int SzAreaCorr = 5; double corl_seuil_pt = 0.9;
     vector<string> dParam; dParam.push_back("NO");
     bool useExistHomoStruct = false;
+    double aAngleF = 90;
+    bool justFil = false;
 
     ElInitArgMain
             (
@@ -90,9 +91,16 @@ int TiePByMesh_main(int argc,char ** argv)
                 << EAM(dParam,"dParam",true,"[param1, param2, ..] (selon detector - NO if don't have)", eSAM_NoInit)
                 << EAM(aHomolOut, "HomolOut", true, "default = _Filtered")
                 << EAM(useExistHomoStruct, "useExist", true, "use exist homol struct - default = false")
+                << EAM(aAngleF, "angleV", true, "limit view angle - default = 90 (all triangle is viewable)")
+                << EAM(justFil, "justFil", true, "just do filter.")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
+    if (justFil)
+    {
+        useExistHomoStruct = true;
+        aTypeD = "HOMOLINIT";
+    }
     vector<double> aParamD = parse_dParam(dParam); //need to to on arg enter
     InitOutil *aChain = new InitOutil(aFullPattern, aOriInput, aTypeD,  aParamD, aHomolOut,
                                       SzPtCorr, SzAreaCorr,
@@ -116,12 +124,40 @@ int TiePByMesh_main(int argc,char ** argv)
     vector<triangle*> PtrTri = aChain->getmPtrListTri();
     cout<<PtrTri.size()<<" tri"<<endl;
     CorrelMesh aCorrel(aChain);
-    for (uint i=0; i<PtrTri.size(); i++)
+    if (!justFil)
     {
-        if (useExistHomoStruct)
-            aCorrel.correlByCplExist(i);
+        if (aAngleF == 90)
+        {
+            for (uint i=0; i<PtrTri.size(); i++)
+            {
+                if (useExistHomoStruct)
+                    aCorrel.correlByCplExist(i);
+                else
+                    aCorrel.correlInTri(i);
+            }
+        }
         else
-            aCorrel.correlInTri(i);
+        {
+            cout<<"Use condition angle view"<<endl;
+            for (uint i=0; i<PtrTri.size(); i++)
+            {
+                if (useExistHomoStruct)
+                    aCorrel.correlByCplExistWithViewAngle(i, aAngleF);
+                else
+                    aCorrel.correlInTriWithViewAngle(i, aAngleF);
+            }
+        }
+    }
+    else
+    {
+        cout<<"Filter pt homo exist by verif couple pt homo in same triangulation !"<<endl;
+        double  pct = PtrTri.size()/100;
+        for (uint i=0; i<PtrTri.size(); i++)
+        {
+           pct = i/PtrTri.size()*100;
+           aCorrel.verifCplHomoByTriangulation(i, aAngleF);
+           cout<<pct<<" %";
+        }
     }
     cout<<endl<<"Tri has pt inside: ";
     for (uint i=0; i<aCorrel.mTriHavePtInteret.size(); i++)

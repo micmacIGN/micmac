@@ -1,6 +1,5 @@
-#include <stdio.h>
-#include "StdAfx.h"
 #include "InitOriLinear.h"
+#include <stdio.h>
 
 double ToDecimal(string aString)
 {

@@ -37,9 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
-#include "../../uti_phgrm/NewOri/NewOri.h"
 #include "Detector.h"
+#include "../../uti_phgrm/NewOri/NewOri.h"
 #include "PHO_MI.h"
 
 
@@ -112,6 +111,11 @@ vector<Pt2dr> Detector::importFromHomolInit(pic* pic2)
     return mPtsInterest;
 }
 
+void Detector::getmPtsInterest(vector<Pt2dr> & ptsInteret)
+{
+    ptsInteret = this->mPtsInterest;
+}
+
 void Detector::saveResultToDiskTypeDigeo(string aDir = "./")
 {
     if (mPtsInterest.size() == 0)
@@ -160,7 +164,6 @@ void Detector::saveResultToDiskTypeElHomo(string aDir = "./")
 int Detector::detect(bool useTypeFileDigeo)
 {
     int temp=0;
-
     string outDigeoFile =  mNameImg + "_" + mTypeDetector + ".dat";
     string aPtsInteretOutDirName; string aDir = "./";
     if (mChain != NULL)
@@ -170,47 +173,56 @@ int Detector::detect(bool useTypeFileDigeo)
     aPtsInteretOutDirName=aDir+"PtsInteret/";
     string aHomoIn = aPtsInteretOutDirName + outDigeoFile;
     bool Exist= ELISE_fp::exist_file(aHomoIn);
-    if (Exist)
+    if (mTypeDetector != "HOMOLINIT")
     {
-        cout<<" Found Pack Pts Interet : "<< aHomoIn<<endl;
-        if (useTypeFileDigeo)
-            readResultDetectFromFileDigeo(aHomoIn);
+        if (Exist)
+        {
+            cout<<" Found Pack Pts Interet : "<< aHomoIn<<endl;
+            if (useTypeFileDigeo)
+                readResultDetectFromFileDigeo(aHomoIn);
+            else
+                readResultDetectFromFileElHomo(aHomoIn);
+        }
         else
-            readResultDetectFromFileElHomo(aHomoIn);
+        {
+            if (mTypeDetector == "FAST")
+            {
+                if (mParamDetector.size() == 0)
+                {cout<<"ERROR : please saisir parameter for FAST detector (dParam)"<<endl;}
+                Fast aDetecteur(mParamDetector[0], 3);
+                aDetecteur.detect(*mImg, mPtsInterest);
+                if (useTypeFileDigeo)
+                    this->saveResultToDiskTypeDigeo();
+                else
+                    this->saveResultToDiskTypeElHomo();
+            }
+            if (mTypeDetector == "DIGEO")
+            {
+                string outDigeoFile =  mNameImg + "_DIGEO.dat";
+                string command_Digeo = "mm3d Digeo "+mNameImg+" -o "+outDigeoFile;
+                temp = system(command_Digeo.c_str());
+                readResultDetectFromFileDigeo(outDigeoFile);
+                if (useTypeFileDigeo)
+                    this->saveResultToDiskTypeDigeo();
+                else
+                    this->saveResultToDiskTypeElHomo();
+                ELISE_fp::RmFileIfExist(outDigeoFile);
+            }
+        }
     }
     else
     {
-        if (mTypeDetector == "FAST")
+        if (Exist)
         {
-            if (mParamDetector.size() == 0)
-                {cout<<"ERROR : please saisir parameter for FAST detector (dParam)"<<endl;}
-            Fast aDetecteur(mParamDetector[0], 3);
-            aDetecteur.detect(*mImg, mPtsInterest);
-            if (useTypeFileDigeo)
-                this->saveResultToDiskTypeDigeo();
-            else
-                this->saveResultToDiskTypeElHomo();
+            string command_rm = "rm "+aHomoIn;
+            int temp = system(command_rm.c_str()); cout<<" -- "<<temp<<" -- "<<endl;
+            //ELISE_fp::RmFileIfExist(aHomoIn);     //bug par hasard if using this ??? WHY
         }
-        if (mTypeDetector == "DIGEO")
-        {
-            string outDigeoFile =  mNameImg + "_DIGEO.dat";
-            string command_Digeo = "mm3d Digeo "+mNameImg+" -o "+outDigeoFile;
-            temp = system(command_Digeo.c_str());
-            readResultDetectFromFileDigeo(outDigeoFile);
-            if (useTypeFileDigeo)
-                this->saveResultToDiskTypeDigeo();
-            else
-                this->saveResultToDiskTypeElHomo();
-            ELISE_fp::RmFileIfExist(outDigeoFile);
-        }
-        if (mTypeDetector == "HOMOLINIT")
-        {
-            this->importFromHomolInit(mPic2);
-            if (useTypeFileDigeo)
-                this->saveResultToDiskTypeDigeo();
-            else
-                this->saveResultToDiskTypeElHomo();
-        }
+        this->importFromHomolInit(mPic2);
+        if (useTypeFileDigeo)
+            this->saveResultToDiskTypeDigeo();
+        else
+            this->saveResultToDiskTypeElHomo();
     }
     cout<<" "<<mTypeDetector<<" : "<<mPtsInterest.size()<<" Pts in "<<mNameImg<<endl;
     return temp;

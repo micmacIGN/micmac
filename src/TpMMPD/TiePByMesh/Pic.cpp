@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../uti_phgrm/NewOri/NewOri.h"
 #include "Pic.h"
 
-//using namespace cv;
 
 
 pic::pic(const string *nameImg, string nameOri, cInterfChantierNameManipulateur * aICNM, int indexInListPic)
@@ -53,7 +52,10 @@ pic::pic(const string *nameImg, string nameOri, cInterfChantierNameManipulateur 
     */
     mNameImg = nameImg;
     mIndex = indexInListPic;
-    mOriPic = mICNM->StdCamOfNames(*nameImg , nameOri);
+    if (nameOri != "NONE")
+    {
+        mOriPic = mICNM->StdCamOfNames(*nameImg , nameOri);
+    }
     mPicTiff = new Tiff_Im ( Tiff_Im::StdConvGen(mICNM->Dir()+*mNameImg,1,false));
     mImgSz = mPicTiff->sz();
     mPic_TIm2D = new TIm2D<U_INT1,INT4> (mPicTiff->sz());
@@ -96,14 +98,14 @@ void pic::AddVectorCplHomoToPack(pic* Pic2nd, vector<ElCplePtsHomologues> aHomo)
 }
 
 
-bool pic::checkInSide(Pt2dr aPoint)
+bool pic::checkInSide(Pt2dr aPoint,int aRab)
 {
     bool result;
     //Pt2di size = mOriPic->Sz();
     Pt2di size = mImgSz;
     if (
-         (aPoint.x >= 0) && (aPoint.y >= 0) &&
-         (aPoint.x <= size.x) && (aPoint.y <= size.y)
+         (aPoint.x >= aRab) && (aPoint.y >= aRab) &&
+         (aPoint.x < size.x -aRab) && (aPoint.y < size.y -aRab)
         )
         {result=true;}
     else
@@ -111,21 +113,187 @@ bool pic::checkInSide(Pt2dr aPoint)
     return result;
 }
 
-vector<Pt2dr> pic::getPtsHomoInThisTri(triangle* aTri)
+void pic::getPtsHomoInThisTri(triangle* aTri , vector<Pt2dr> & lstPtsInteret, vector<Pt2dr> & result)
 {
-    vector<Pt2dr> result;
-    if (this->mListPtsInterestFAST.size() == 0)
-        cout<<"+++ WARN +++ : pic don't have pts interest saved";
+    if (lstPtsInteret.size() == 0)
+        cout<<"+++ WARN +++ : don't have pts interest";
     else
     {
-        for (uint i=0; i<this->mListPtsInterestFAST.size(); i++)
+        for (uint i=0; i<lstPtsInteret.size(); i++)
         {
-            bool in = aTri->check_inside_triangle_A2016(mListPtsInterestFAST[i],
+            bool in = aTri->check_inside_triangle_A2016(lstPtsInteret[i],
                                                   *aTri->getReprSurImg()[this->mIndex]);
             if (in)
-                result.push_back(mListPtsInterestFAST[i]);
+                result.push_back(lstPtsInteret[i]);
         }
     }
+}
+
+void pic::getPtsHomoOfTriInPackExist( string aKHIn
+                                     ,triangle * aTri, pic * pic1st, pic* pic2nd ,
+                                     vector<ElCplePtsHomologues> & result)
+{
+    string HomoIn = mICNM->Assoc1To2(aKHIn,
+                                    *pic1st->mNameImg,
+                                    *pic2nd->mNameImg,true);
+    bool Exist = ELISE_fp::exist_file(HomoIn);
+    ElPackHomologue apackInit;
+    bool Exist1 = 0;
+    if (!Exist)
+    {
+        StdCorrecNameHomol_G(HomoIn,mICNM->Dir());
+        Exist1 = ELISE_fp::exist_file(HomoIn);
+    }
+    if (Exist || Exist1)
+    {
+        apackInit =  ElPackHomologue::FromFile(HomoIn);
+        for (ElPackHomologue::const_iterator itP=apackInit.begin(); itP!=apackInit.end() ; itP++)
+        {
+            Pt2dr aP1 = itP->P1();
+            Tri2d aTri2d = *aTri->getReprSurImg()[pic1st->mIndex];
+            bool in = aTri->check_inside_triangle_A2016(aP1, aTri2d);
+            if (in)
+            {
+                ElCplePtsHomologues aCpl(itP->P1(), itP->P2());
+                result.push_back(aCpl);
+            }
+        }
+        cout<<HomoIn<<" - "<<apackInit.size()<<"/"<<result.size()<<endl;
+    }
+}
+
+double pic::calAngleViewToTri(triangle *aTri)
+{
+    CamStenope * aCamPic = this->mOriPic;
+    Pt3dr centre_cam = aCamPic->VraiOpticalCenter();
+    //Tri2d aTri2d = *aTri->getReprSurImg()[this->mIndex];
+    Pt3dr centre_geo = (aTri->getSommet(0) + aTri->getSommet(1) + aTri->getSommet(2))/ 3;
+    Pt3dr Vec1 = centre_cam - centre_geo;
+    Pt3dr aVecNor = aTri->CalVecNormal(centre_geo, 0.05);
+    Pt3dr Vec2 = aVecNor - centre_geo;
+    //bool devant = aCamPic->Devant(centre_geo);
+    double angle_deg = (aTri->calAngle(Vec1, Vec2))*180/PI;
+    return angle_deg;
+}
+
+void pic::getTriVisible(vector<triangle*> & lstTri, double angleF, bool Zbuf)
+{
+    CamStenope * aCamPic = this->mOriPic;
+    Pt3dr centre_cam = aCamPic->VraiOpticalCenter();
+    if (this->triVisible.size() == 0)
+    {
+        for (uint j=0; j<lstTri.size(); j++)
+        {
+            triangle * aTri = lstTri[j];
+            Tri2d aTri2d = *aTri->getReprSurImg()[this->mIndex];
+            Pt3dr centre_geo = (aTri->getSommet(0) + aTri->getSommet(1) + aTri->getSommet(2))/ 3;
+            Pt3dr Vec1 = centre_cam - centre_geo;
+            Pt3dr aVecNor = aTri->CalVecNormal(centre_geo, 0.05);
+            Pt3dr Vec2 = aVecNor - centre_geo;
+            bool devant = aCamPic->Devant(centre_geo);
+            double angle_deg = (aTri->calAngle(Vec1, Vec2))*180/PI;
+            cout<<angle_deg<<endl;
+            if ( (angle_deg<angleF) && devant &&  aTri2d.insidePic)
+            {
+                triVisible.push_back(aTri);
+                triVisibleInd.push_back(aTri->mIndex);
+            }
+        }
+        if (Zbuf)
+        {
+            for (uint i=0; i<triVisible.size(); i++)
+            {
+                bool found = false;
+                triangle * aTri = triVisible[i];
+                Tri2d aTri2D = *aTri->getReprSurImg()[this->mIndex];
+                Pt2dr ctr_geo2D = (aTri2D.sommet1[0] + aTri2D.sommet1[1] + aTri2D.sommet1[2])/3;
+                vector<triangle*> triCollision;
+                whichTrianglecontainPt(ctr_geo2D, triVisible, triCollision, found);
+                if (found)
+                    cout<<"Tri "<<aTri->mIndex<<" has "<<triCollision.size()<<" triangles collision "<<endl;
+            }
+        }
+    }
+}
+
+double pic::distDuTriauCtrOpt(triangle * aTri)
+{
+    Pt3dr opticCentre = this->mOriPic->VraiOpticalCenter();
+    Pt3dr triCentre = (aTri->getSommet(0) + aTri->getSommet(1) + aTri->getSommet(2))/3;
+    Pt3dr temp = triCentre - opticCentre;
+    double dist = sqrt(temp.x*temp.x + temp.y*temp.y + temp.z*temp.z);
+    return dist;
+}
+
+void pic::whichTrianglecontainPt(Pt2dr aPt, vector<triangle*>lstTri, vector<triangle*> result, bool & found)
+{
+    for (uint i=0; i<lstTri.size(); i++)
+    {
+        triangle * aTri = lstTri[i];
+        bool in = aTri->check_inside_triangle_A2016(aPt, *aTri->getReprSurImg()[this->mIndex]);
+        if (in)
+        {
+            result.push_back(aTri);
+            found = true;
+        }
+    }
+}
+
+void pic::getTriVisibleWithPic(vector<triangle*> & lstTri, double angleF,
+                               pic * pic2, vector<triangle*> & triVisblEnsmbl, bool Zbuf)
+{
+    if (this->triVisible.size() == 0)
+        this->getTriVisible(lstTri, angleF , Zbuf);
+    if (pic2->triVisible.size() == 0)
+        pic2->getTriVisible(lstTri, angleF, Zbuf);
+    vector<double> intersect;
+    std::set_intersection(  this->triVisibleInd.begin(), this->triVisibleInd.end(),
+                            pic2->triVisibleInd.begin(), pic2->triVisibleInd.end(),
+                            std::back_inserter(intersect) );
+    for (uint i=0; i<intersect.size(); i++)
+    {
+        triVisblEnsmbl.push_back(lstTri[intersect[i]]);
+    }
+}
+
+triangle * pic::whichTriangle(Pt2dr & ptClick, bool & found)
+{
+    found = false;
+    triangle * result = NULL;
+    vector<triangle*> lstTriCollision;
+    if (this->triVisible.size() > 0)
+    {
+        for (uint i=0; i<triVisible.size(); i++)
+        {
+            triangle * aTri = triVisible[i];
+            //check if Pt in this tri or not
+            bool in = aTri->check_inside_triangle_A2016(ptClick, *aTri->getReprSurImg()[this->mIndex]);
+            if (in)
+            {
+                result =  aTri;
+                lstTriCollision.push_back(aTri);
+                found = true;
+                //break;
+            }
+        }
+    }
+    else
+    {
+        cout<<"No triangle visible for this img"<<endl;
+        result = NULL;
+    }
+    cout<<"There is "<<lstTriCollision.size()<<" triangle collision"<<endl;
     return result;
 }
+
+void pic::roundPtInteret()
+{
+    for (uint i=0; i<this->mListPtsInterestFAST.size(); i++)
+    {
+        this->mListPtsInterestFAST[i].x = round(this->mListPtsInterestFAST[i].x);
+        this->mListPtsInterestFAST[i].y = round(this->mListPtsInterestFAST[i].y);
+    }
+}
+
+
 

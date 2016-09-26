@@ -2,9 +2,10 @@
 #define INITOUTIL_H
 
 #include <stdio.h>
-#include "StdAfx.h"
 #include "Triangle.h"
 #include "Pic.h"
+#include "StdAfx.h"
+
 
 /* ** PlyFile.h est maintenante inclus dans StdAfx.f du MicMac, dans include/general */
 /*
@@ -19,6 +20,16 @@ typedef struct CplPic
     pic * pic2;
 }CplPic;
 
+typedef struct AJobCorel
+{
+    triangle * tri;
+    pic * picM;
+    pic * pic2nd;
+    vector<pic*> lstPic3rd;
+}AJobCorel;
+
+typedef bool(*dsPt2drCompFunc)( Pt2dr const &,  Pt2dr const &);
+
 extern void dispTriSurImg(Tri2d TriMaitre, pic * ImgMaitre ,Tri2d Tri2nd, pic * Img2nd, Pt2dr centre, double size, vector<Pt2dr> & listPtsInteret, bool dispAllPtsInteret = false);
 extern Video_Win * display_image( Im2D<U_INT1,INT4> *ImgIm2D,
                     string nameFenetre, Video_Win *thisVWin, double zoomF=1, bool click=true);
@@ -30,8 +41,19 @@ extern Video_Win * draw_polygon_onVW(vector<Pt2dr> pts, Video_Win* VW, Pt3di col
 extern Video_Win * draw_polygon_onVW(Tri2d &aTri, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true, bool click = true);
 extern Video_Win* draw_polygon_onVW(Pt2dr ptHGCaree, int szCaree, Video_Win* VW, Pt3di color=Pt3di(0,255,0), bool isFerme = true, bool click = true);
 extern vector<double> parse_dParam(vector<string> dParam);
-extern Video_Win* draw_polygon_onVW(Pt2dr pts, Video_Win* VW, std::string aColor, bool isFerme = true, bool click = true);
+extern Video_Win* draw_pts_onVW(vector<Pt2dr> lstPts, Video_Win* VW, Pt3di color=Pt3di(0,255,255));
+extern Video_Win* draw_pts_onVW(Pt2dr aPts, Video_Win* VW, string colorName);
+extern bool comparatorPt2dr ( Pt2dr const &l,  Pt2dr const &r);
+extern bool comparatorPt2drY ( Pt2dr const &l,  Pt2dr const &r);
+extern bool comparatorPt2drAsc ( Pt2dr const &l,  Pt2dr const &r);
+extern bool comparatorPt2drYAsc ( Pt2dr const &l,  Pt2dr const &r);
+extern void sortDescendPt2drX(vector<Pt2dr> & input);
+extern void sortDescendPt2drY(vector<Pt2dr> & input);
+extern void sortAscendPt2drX(vector<Pt2dr> & input);
+extern void sortAscendPt2drY(vector<Pt2dr> & input);
 extern std::string intToString ( int number );
+
+
 class InitOutil
 {
 	public:
@@ -40,14 +62,15 @@ class InitOutil
                              string aHomolOutput,
                              int SzPtCorr, int SzAreaCorr,
                              double corl_seuil_glob, double corl_seuil_pt,
-                             bool disp, bool aCplPicExistHomol);
+                             bool disp, bool aCplPicExistHomol, double pas = 0.5, bool assume1er=false);
         InitOutil           (string aFullPattern, string aOriInput, string aHomolInput = "Homol");
+        InitOutil           (string aMeshToRead);
         PlyFile* read_file  (string pathPlyFileS);
         vector<pic*> load_Im();
         vector<triangle *> load_tri ();
         void reprojectAllTriOnAllImg();
         void initHomoPackVide(bool creatLikeHomoPackInit);
-        void initAll(string pathPlyFileS);
+        void initAll(string pathPlyFileS = "NO");
         vector<pic*> getmPtrListPic(){return mPtrListPic;}
         vector<triangle*> getmPtrListTri(){return mPtrListTri;}
 		
@@ -64,13 +87,18 @@ class InitOutil
                                  vector<ElCplePtsHomologues> ptsHomo,
                                  string aHomolOut);
         vector<CplPic> getmCplHomolExist(){return mCplHomolExist;}
-        vector<CplPic> loadCplPicExistHomol();
+        vector<CplPic> loadCplPicExistHomol(); 
+        void getLstJobCorrel(vector<AJobCorel> & jobCorrel){jobCorrel = mLstJobCorrel;}
+        void creatJobCorrel(double angleF);
 
         int mSzPtCorr;
         int mSzAreaCorr;
+        double mPas;
         double mCorl_seuil_glob;
         double mCorl_seuil_pt;
         bool mDisp;
+        bool mDebugByClick;
+        bool mAssume1er;
 	private:
         string mOriInput;
         string mFullPattern;
@@ -87,7 +115,10 @@ class InitOutil
         vector<pic*> mPtrListPic;
         vector<triangle*> mPtrListTri;
         vector<CplPic> mCplHomolExist;
+
         bool mCplPicExistHomol;
+
+        vector<AJobCorel> mLstJobCorrel; //list process for method correlation with verification by 3rd img
 };
 
 
