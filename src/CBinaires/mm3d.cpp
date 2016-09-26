@@ -609,6 +609,8 @@ int TestMartini_Main(int argc,char ** argv);
 
 int TestGiang_main(int argc,char ** argv);
 
+int TiepTri_Main(int argc,char ** argv);
+
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -776,6 +778,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestMartini",TestMartini_Main,"Test Martini with simulation"));
 
         aRes.push_back(cMMCom("TestGiang",TestGiang_main,"Test Correlation by Mesh"));
+        aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));
    }
 
     cCmpMMCom CmpMMCom;

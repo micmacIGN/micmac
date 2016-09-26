@@ -8,6 +8,7 @@ set(UTI_PHGRM_TieRed_DIR ${UTI_PHGRM_DIR}/TiepRed)
 set(UTI_PHGRM_OriTieRed_DIR ${UTI_PHGRM_DIR}/OriTiepRed)
 set(UTI_PHGRM_TieGeo_DIR ${UTI_PHGRM_DIR}/TiepGeoref)
 
+set(UTI_PHGRM_TiePTri_DIR ${UTI_PHGRM_DIR}/TiepTri)
 
 set(UTI_PHGRM_PORTO_DIR ${UTI_PHGRM_DIR}/Porto)
 set(UTI_PHGRM_SAISIEPTS_DIR ${UTI_PHGRM_DIR}/SaisiePts)
@@ -42,6 +43,7 @@ INCLUDE (${UTI_PHGRM_TieGeo_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_NEW_ORI}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_SAT_PHYS_MOD}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_TEXT_DIR}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_TiePTri_DIR}/Sources.cmake)
 
 #define __CUDA_API_VERSION 0x5050
 
