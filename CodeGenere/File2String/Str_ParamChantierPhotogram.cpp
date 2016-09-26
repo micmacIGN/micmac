@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[2008]) = {
+const char * (theNameVar_ParamChantierPhotogram[2009]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -300,6 +300,7 @@ const char * (theNameVar_ParamChantierPhotogram[2008]) = {
 "          La valeur eGeomMNTFaisceauIm1PrCh_Px2D est utilisable avec 2 image,\n",
 "        il y a alors correction des Pax transverses.\n",
 "     -->\n",
+"     <!-- Pour les geom faisceau on a des 1/z -->\n",
 "           <eGeomMNTFaisceauIm1PrCh_Px1D > </eGeomMNTFaisceauIm1PrCh_Px1D>\n",
 "           <eGeomMNTFaisceauIm1PrCh_Px2D > </eGeomMNTFaisceauIm1PrCh_Px2D>\n",
 "     <!-- Les \"verticales\" sont les rayons issus de l'image1, le Z est la profondeur de champs;\n",

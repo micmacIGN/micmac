@@ -26701,4 +26701,220 @@ void xml_init(cXml_ParamRTI & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXml_ParamRTI *) {return "60E93832EE5251D2FE3F";};
 
+
+Pt3dr & cXml_Triangle3DForTieP::P1()
+{
+   return mP1;
+}
+
+const Pt3dr & cXml_Triangle3DForTieP::P1()const 
+{
+   return mP1;
+}
+
+
+Pt3dr & cXml_Triangle3DForTieP::P2()
+{
+   return mP2;
+}
+
+const Pt3dr & cXml_Triangle3DForTieP::P2()const 
+{
+   return mP2;
+}
+
+
+Pt3dr & cXml_Triangle3DForTieP::P3()
+{
+   return mP3;
+}
+
+const Pt3dr & cXml_Triangle3DForTieP::P3()const 
+{
+   return mP3;
+}
+
+
+std::vector< int > & cXml_Triangle3DForTieP::NumImSec()
+{
+   return mNumImSec;
+}
+
+const std::vector< int > & cXml_Triangle3DForTieP::NumImSec()const 
+{
+   return mNumImSec;
+}
+
+void  BinaryUnDumpFromFile(cXml_Triangle3DForTieP & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.P1(),aFp);
+    BinaryUnDumpFromFile(anObj.P2(),aFp);
+    BinaryUnDumpFromFile(anObj.P3(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             int aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.NumImSec().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Triangle3DForTieP & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.P1());
+    BinaryDumpInFile(aFp,anObj.P2());
+    BinaryDumpInFile(aFp,anObj.P3());
+    BinaryDumpInFile(aFp,(int)anObj.NumImSec().size());
+    for(  std::vector< int >::const_iterator iT=anObj.NumImSec().begin();
+         iT!=anObj.NumImSec().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_Triangle3DForTieP & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_Triangle3DForTieP",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("P1"),anObj.P1())->ReTagThis("P1"));
+   aRes->AddFils(::ToXMLTree(std::string("P2"),anObj.P2())->ReTagThis("P2"));
+   aRes->AddFils(::ToXMLTree(std::string("P3"),anObj.P3())->ReTagThis("P3"));
+  for
+  (       std::vector< int >::const_iterator it=anObj.NumImSec().begin();
+      it !=anObj.NumImSec().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("NumImSec"),(*it))->ReTagThis("NumImSec"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_Triangle3DForTieP & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.P1(),aTree->Get("P1",1)); //tototo 
+
+   xml_init(anObj.P2(),aTree->Get("P2",1)); //tototo 
+
+   xml_init(anObj.P3(),aTree->Get("P3",1)); //tototo 
+
+   xml_init(anObj.NumImSec(),aTree->GetAll("NumImSec",false,1));
+}
+
+std::string  Mangling( cXml_Triangle3DForTieP *) {return "28F0DE7DEAFB27B8FD3F";};
+
+
+std::string & cXml_TriAngulationImMaster::NameMaster()
+{
+   return mNameMaster;
+}
+
+const std::string & cXml_TriAngulationImMaster::NameMaster()const 
+{
+   return mNameMaster;
+}
+
+
+std::vector< std::string > & cXml_TriAngulationImMaster::NameSec()
+{
+   return mNameSec;
+}
+
+const std::vector< std::string > & cXml_TriAngulationImMaster::NameSec()const 
+{
+   return mNameSec;
+}
+
+
+std::vector< cXml_Triangle3DForTieP > & cXml_TriAngulationImMaster::Tri()
+{
+   return mTri;
+}
+
+const std::vector< cXml_Triangle3DForTieP > & cXml_TriAngulationImMaster::Tri()const 
+{
+   return mTri;
+}
+
+void  BinaryUnDumpFromFile(cXml_TriAngulationImMaster & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameMaster(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             std::string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.NameSec().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_Triangle3DForTieP aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Tri().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_TriAngulationImMaster & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameMaster());
+    BinaryDumpInFile(aFp,(int)anObj.NameSec().size());
+    for(  std::vector< std::string >::const_iterator iT=anObj.NameSec().begin();
+         iT!=anObj.NameSec().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.Tri().size());
+    for(  std::vector< cXml_Triangle3DForTieP >::const_iterator iT=anObj.Tri().begin();
+         iT!=anObj.Tri().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_TriAngulationImMaster & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_TriAngulationImMaster",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameMaster"),anObj.NameMaster())->ReTagThis("NameMaster"));
+  for
+  (       std::vector< std::string >::const_iterator it=anObj.NameSec().begin();
+      it !=anObj.NameSec().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("NameSec"),(*it))->ReTagThis("NameSec"));
+  for
+  (       std::vector< cXml_Triangle3DForTieP >::const_iterator it=anObj.Tri().begin();
+      it !=anObj.Tri().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Tri"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_TriAngulationImMaster & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameMaster(),aTree->Get("NameMaster",1)); //tototo 
+
+   xml_init(anObj.NameSec(),aTree->GetAll("NameSec",false,1));
+
+   xml_init(anObj.Tri(),aTree->GetAll("Tri",false,1));
+}
+
+std::string  Mangling( cXml_TriAngulationImMaster *) {return "BC8DF001535FDEB4FF3F";};
+
 // };
