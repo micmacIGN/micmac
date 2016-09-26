@@ -8273,5 +8273,73 @@ std::string  Mangling( cXml_ParamRTI *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_Triangle3DForTieP
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Triangle3DForTieP & anObj,cElXMLTree * aTree);
+
+
+        Pt3dr & P1();
+        const Pt3dr & P1()const ;
+
+        Pt3dr & P2();
+        const Pt3dr & P2()const ;
+
+        Pt3dr & P3();
+        const Pt3dr & P3()const ;
+
+        std::vector< int > & NumImSec();
+        const std::vector< int > & NumImSec()const ;
+    private:
+        Pt3dr mP1;
+        Pt3dr mP2;
+        Pt3dr mP3;
+        std::vector< int > mNumImSec;
+};
+cElXMLTree * ToXMLTree(const cXml_Triangle3DForTieP &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Triangle3DForTieP &);
+
+void  BinaryUnDumpFromFile(cXml_Triangle3DForTieP &,ELISE_fp &);
+
+std::string  Mangling( cXml_Triangle3DForTieP *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_TriAngulationImMaster
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_TriAngulationImMaster & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameMaster();
+        const std::string & NameMaster()const ;
+
+        std::vector< std::string > & NameSec();
+        const std::vector< std::string > & NameSec()const ;
+
+        std::vector< cXml_Triangle3DForTieP > & Tri();
+        const std::vector< cXml_Triangle3DForTieP > & Tri()const ;
+    private:
+        std::string mNameMaster;
+        std::vector< std::string > mNameSec;
+        std::vector< cXml_Triangle3DForTieP > mTri;
+};
+cElXMLTree * ToXMLTree(const cXml_TriAngulationImMaster &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_TriAngulationImMaster &);
+
+void  BinaryUnDumpFromFile(cXml_TriAngulationImMaster &,ELISE_fp &);
+
+std::string  Mangling( cXml_TriAngulationImMaster *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm

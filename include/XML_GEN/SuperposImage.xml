@@ -1814,6 +1814,26 @@
      <ParamOmbre  Nb="?"  RefType="Xml_RTI_Ombre"> </ParamOmbre>
 </Xml_ParamRTI>
 
+<!--  ********************  TieP MESH ******************************* -->
+<!--  ********************  TieP MESH ******************************* -->
+<!--  ********************  TieP MESH ******************************* -->
+
+     <!-- Triangulation -->
+
+<Xml_Triangle3DForTieP   Nb="1" Class="true" ToReference="true">
+     <P1 Nb="1" Type="Pt3dr">  </P1>
+     <P2 Nb="1" Type="Pt3dr">  </P2>
+     <P3 Nb="1" Type="Pt3dr">  </P3>
+     <NumImSec Nb="*" Type="int"   Container="std::vector"> </NumImSec>
+</Xml_Triangle3DForTieP>
+
+
+<Xml_TriAngulationImMaster Nb="1" Class="true" ToReference="true">
+    <NameMaster Nb="1" Type="std::string"> </NameMaster>
+    <NameSec Nb="*" Type="std::string"  Container="std::vector"> </NameSec>
+    <Tri  RefType="Xml_Triangle3DForTieP" Nb="*"  Container="std::vector"> </Tri>
+</Xml_TriAngulationImMaster>
+
 
 <Verbatim File=".h.cpp">
 // };
