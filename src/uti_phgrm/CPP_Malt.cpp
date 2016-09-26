@@ -511,11 +511,13 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mSzGlob = mSzGlob / double(mNbIm);
       }
 
-      bool ZMoyInit = EAMIsInit(&mZMoy)  && (mType != eGeomImage);
-      bool IncMaxInit = EAMIsInit(&mIncidMax)  && (mType != eGeomImage);
+      bool TypeForZInit = (mType != eGeomImage);
+
+      bool ZMoyInit = EAMIsInit(&mZMoy)  && TypeForZInit;
+      bool IncMaxInit = EAMIsInit(&mIncidMax)  && TypeForZInit;
 
        // Si les deux sont definis on fixe d'abord ZMoy pour avoir une coherence
-      if (aNbAltiSolMinMax)
+      if (aNbAltiSolMinMax && TypeForZInit)
       {
           AltiSolMinMax = AltiSolMinMax / aNbAltiSolMinMax;
           if (!ZMoyInit)
@@ -530,7 +532,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           }
       }
 
-      if (aNbAltiSol)
+      if (aNbAltiSol && TypeForZInit)
       {
           AltiSol = AltiSol / aNbAltiSol;
           if (!ZMoyInit)

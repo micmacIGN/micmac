@@ -1089,7 +1089,11 @@ Pt3dr cGeomImage::Restit2Euclid(const Pt2dr & aP,double * aPax) const
 
 bool cGeomImage::GetPxMoyenne_Euclid(double * aPxMoy,bool MakeInvIfNeeded) const
 {
-    return GetPxMoyenne_NonEuclid(aPxMoy,MakeInvIfNeeded);
+    bool aRes =  GetPxMoyenne_NonEuclid(aPxMoy,MakeInvIfNeeded);
+
+    // std::cout << "Qqqqqqqqqqqqqqqqq " << aRes << " " << aPxMoy[0] << "\n";
+
+    return aRes;
 }
 
    //-----------------------------
@@ -2494,6 +2498,7 @@ class cGeomImage_Id_Ori : public cGeomImage_Id
     protected :
       bool GetPxMoyenne_NonEuclid(double * aPxMoy,bool MakeInvIfNeeded) const
       {
+
            // Calcul d'un point "central"
 	   //
 	   // OO double aProf = mOriRef.profondeur();
