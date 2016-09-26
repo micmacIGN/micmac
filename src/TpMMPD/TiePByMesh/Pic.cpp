@@ -166,12 +166,12 @@ double pic::calAngleViewToTri(triangle *aTri)
 {
     CamStenope * aCamPic = this->mOriPic;
     Pt3dr centre_cam = aCamPic->VraiOpticalCenter();
-    Tri2d aTri2d = *aTri->getReprSurImg()[this->mIndex];
+    //Tri2d aTri2d = *aTri->getReprSurImg()[this->mIndex];
     Pt3dr centre_geo = (aTri->getSommet(0) + aTri->getSommet(1) + aTri->getSommet(2))/ 3;
     Pt3dr Vec1 = centre_cam - centre_geo;
     Pt3dr aVecNor = aTri->CalVecNormal(centre_geo, 0.05);
     Pt3dr Vec2 = aVecNor - centre_geo;
-    bool devant = aCamPic->Devant(centre_geo);
+    //bool devant = aCamPic->Devant(centre_geo);
     double angle_deg = (aTri->calAngle(Vec1, Vec2))*180/PI;
     return angle_deg;
 }
@@ -259,7 +259,7 @@ void pic::getTriVisibleWithPic(vector<triangle*> & lstTri, double angleF,
 triangle * pic::whichTriangle(Pt2dr & ptClick, bool & found)
 {
     found = false;
-    triangle * result;
+    triangle * result = NULL;
     vector<triangle*> lstTriCollision;
     if (this->triVisible.size() > 0)
     {
