@@ -76,6 +76,7 @@ class cAppliTieTri
            bool  WithW() const;
            Pt2di  SzW() const;
            int    ZoomW() const;
+           cImMasterTieTri * Master();
 
       private  :
          void DoOneTri(const cXml_Triangle3DForTieP & );
@@ -96,6 +97,9 @@ typedef double tElTiepTri ;
 class cImTieTri
 {
       public :
+            friend class cImMasterTieTri;
+            friend class cImSecTieTri;
+
            cImTieTri(cAppliTieTri & ,const std::string& aNameIm);
       protected :
            void LoadTri(const cXml_Triangle3DForTieP & );
@@ -107,17 +111,25 @@ class cImTieTri
            Pt2dr          mP1Glob;
            Pt2dr          mP2Glob;
            Pt2dr          mP3Glob;
+
+           Pt2dr          mP1Loc;
+           Pt2dr          mP2Loc;
+           Pt2dr          mP3Loc;
  
            Pt2di          mDecal;
            Pt2di          mSzIm;
 
            Im2D<tElTiepTri,tElTiepTri>   mImInit;
            TIm2D<tElTiepTri,tElTiepTri>  mTImInit;
+
+           Im2D_Bits<1>                  mMasqTri;
+           TIm2DBits<1>                  mTMasqTri;
+
            int                           mRab;
            Video_Win *                   mW;
 };
 
-class cImMasterTieTri : cImTieTri
+class cImMasterTieTri : public cImTieTri
 {
     public :
            cImMasterTieTri(cAppliTieTri & ,const std::string& aNameIm);
@@ -125,7 +137,7 @@ class cImMasterTieTri : cImTieTri
     private :
 };
 
-class cImSecTieTri : cImTieTri
+class cImSecTieTri : public cImTieTri
 {
     public :
            cImSecTieTri(cAppliTieTri & ,const std::string& aNameIm);
@@ -133,6 +145,9 @@ class cImSecTieTri : cImTieTri
     private :
            Im2D<tElTiepTri,tElTiepTri>   mImReech;
            TIm2D<tElTiepTri,tElTiepTri>  mTImReech;
+           Pt2di                         mSzReech;
+           ElAffin2D                     mAffMas2Sec;
+           cImMasterTieTri *             mMaster;
 };
 
 #endif //  _TiePTri_

@@ -41,60 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "TiepTri.h"
 
 
-/************************************************/
-/*                                              */
-/*          cImTieTri                           */
-/*                                              */
-/************************************************/
-
-cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
-   mAppli   (anAppli),
-   mNameIm  (aNameIm),
-   mTif     (Tiff_Im::StdConv(mAppli.Dir() + mNameIm)),
-   mCam     (mAppli.ICNM()->StdCamOfNames(aNameIm,mAppli.Ori())),
-   mImInit   (1,1),
-   mTImInit  (mImInit),
-   mRab      (20),
-   mW        (0)
-{
-
-    std::cout << "OK " << mNameIm << " F=" << mCam->Focale() << "\n";
-}
-
-void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
-{
-    mP1Glob = mCam->R3toF2(aTri.P1());
-    mP2Glob = mCam->R3toF2(aTri.P2());
-    mP3Glob = mCam->R3toF2(aTri.P3());
-
-    Pt2dr aP0 = Inf(Inf(mP1Glob,mP2Glob),mP3Glob) - Pt2dr(mRab,mRab);
-    Pt2dr aP1 = Sup(Sup(mP1Glob,mP2Glob),mP3Glob) + Pt2dr(mRab,mRab);
-
-    mDecal = round_down(aP0);
-    mSzIm  = round_up(aP1-aP0);
-
-    mImInit.Resize(mSzIm);
-    mTImInit =  TIm2D<tElTiepTri,tElTiepTri>(mImInit);
-
-    ELISE_COPY(mImInit.all_pts(),trans(mTif.in(0),mDecal),mImInit.out());
-
-    std::cout << "   LOAD " << mDecal << " " << mSzIm << "\n";
-    if ((mW ==0) && (mAppli.WithW()))
-    {
-         int aZ = mAppli.ZoomW();
-         mW = Video_Win::PtrWStd(mAppli.SzW()*aZ,true,Pt2dr(aZ,aZ));
-    }
-
-   
-    if (mW)
-    {
-         ELISE_COPY(mImInit.all_pts(),Min(255,Max(0,mImInit.in())),mW->ogray());
-         mW->clik_in();
-    }
-}
-  
-
-
 
 /************************************************/
 /*                                              */
