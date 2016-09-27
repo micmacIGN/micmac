@@ -56,6 +56,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/DrawVectorNormalMesh_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/MeshPartViewable_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/TestGiang_main.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TaskCorrel.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

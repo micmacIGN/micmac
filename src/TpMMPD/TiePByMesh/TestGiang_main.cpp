@@ -47,7 +47,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 void Test_Xml()
 {
     cXml_TriAngulationImMaster aTriangulation = StdGetFromSI("Tri0.xml",Xml_TriAngulationImMaster);
-
     std::cout << "Name master " << aTriangulation.NameMaster() << "\n";
     cXml_Triangle3DForTieP aTri;
     aTri.P1() = Pt3dr(1,1,1);
@@ -189,9 +188,9 @@ int TestGiang_main(int argc,char ** argv)
             cout<<"There is "<<lstJobCorrel.size()<<" jobs"<<endl;
             for (uint i=0; i<lstJobCorrel.size(); i++)
             {
-//                AJobCorel aJob =  lstJobCorrel[i];
-//                CorrelJob * aCorrel = new CorrelJob(aChain, aJob);
-//                aCorrel->correlAJob();
+                AJobCorel aJob =  lstJobCorrel[i];
+
+
             }
         }
         cout<<endl<<"Total "<<aCorrel.countPts<<" cpl NEW & "<<aCorrel.countCplOrg<<" cpl ORG"<<endl;

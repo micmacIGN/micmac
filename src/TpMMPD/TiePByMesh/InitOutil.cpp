@@ -273,14 +273,10 @@ vector<triangle*> InitOutil::load_tri()
         for (uint i=0; i<mPtrListPic.size(); i++)
             {mPtrListPic[i]->allTriangle = mPtrListTri;}
     }
-    cout<<"Free mem mFaceList : ...";
     for (uint i=0; i<mFaceList.size(); i++)
         free(mFaceList[i]);
-    cout<<"done"<<endl;
-    cout<<"Free mem mVertexList : ...";
     for (uint i=0; i<mVertexList.size(); i++)
         free(mVertexList[i]);
-    cout<<"done"<<endl;
     return mPtrListTri;
 }
 
@@ -483,6 +479,75 @@ vector<CplPic> InitOutil::loadCplPicExistHomol()
 }
 
 //========creat job process for correlation with verification 3rd =======//
+void InitOutil::creatJobCorrel(double angleF, vector<cXml_TriAngulationImMaster>  & lstJobTriAngulationImMaster )
+{
+    cout<<"Creat job correl ..."<<endl;
+    if (mPtrListPic.size() == 0 && mPtrListTri.size() == 0)
+        cout<<"No Pic no Tri read to creat job , exit.."<<endl;
+    else
+    {
+        for (uint i=0; i<mPtrListTri.size(); i++)
+        {
+            triangle * aTri = mPtrListTri[i];
+            vector<Pt2dr> lstAngle_v;
+            for (uint j=0; j<mPtrListPic.size(); j++)
+            {
+                pic * aPic = mPtrListPic[j];
+                double angle_view = aPic->calAngleViewToTri(aTri);
+                if (angle_view < angleF)
+                {
+                    Pt2dr aAngle(angle_view, j);
+                    lstAngle_v.push_back(aAngle);
+                }
+            }
+            if (lstAngle_v.size() > 1)
+            {
+                sortAscendPt2drX(lstAngle_v);
+                AJobCorel aJob;
+                aJob.picM = mPtrListPic[lstAngle_v[0].y];
+                aJob.tri = aTri;
+                for (uint k=1; k<lstAngle_v.size(); k++)
+                {
+                    aJob.lstPic3rd.push_back(mPtrListPic[lstAngle_v[k].y]);
+                }
+                mLstJobCorrel.push_back(aJob);
+            }
+        }
+    }
+    cout<<mLstJobCorrel.size()<<" job correl "<<endl;
+    if (mLstJobCorrel.size() > 0)
+    {
+        for (uint i=0; i<mPtrListPic.size(); i++)
+        {
+            pic* aPicMas = mPtrListPic[i];
+            cXml_TriAngulationImMaster aTriAngulationImMaster;
+            aTriAngulationImMaster.NameMaster() = aPicMas->getNameImgInStr();
+            for (uint l=0; l<mPtrListPic.size(); l++)
+            {
+                aTriAngulationImMaster.NameSec().push_back(mPtrListPic[l]->getNameImgInStr());
+            }
+            for (uint j=0; j<mLstJobCorrel.size(); j++)
+            {
+                AJobCorel aJob = mLstJobCorrel[j];
+                if (aJob.picM->mIndex == aPicMas->mIndex)
+                {
+                    cXml_Triangle3DForTieP aTriangle3DForTieP;
+                    triangle * atri = aJob.tri;
+                    aTriangle3DForTieP.P1() = atri->getSommet(0);
+                    aTriangle3DForTieP.P2() = atri->getSommet(1);
+                    aTriangle3DForTieP.P3() = atri->getSommet(2);
+                    for (uint k=0; k<aJob.lstPic3rd.size(); k++)
+                    {
+                        aTriangle3DForTieP.NumImSec().push_back(aJob.lstPic3rd[k]->mIndex);
+                    }
+                    aTriAngulationImMaster.Tri().push_back(aTriangle3DForTieP);
+                }
+            }
+            lstJobTriAngulationImMaster.push_back(aTriAngulationImMaster);
+        }
+    }
+}
+
 void InitOutil::creatJobCorrel(double angleF)
 {
     cout<<"Creat job correl ..."<<endl;
@@ -509,8 +574,7 @@ void InitOutil::creatJobCorrel(double angleF)
                 sortAscendPt2drX(lstAngle_v);
                 AJobCorel aJob;
                 aJob.picM = mPtrListPic[lstAngle_v[0].y];
-                aJob.pic2nd = mPtrListPic[lstAngle_v[1].y];
-                for (uint k=2; k<lstAngle_v.size(); k++)
+                for (uint k=1; k<lstAngle_v.size(); k++)
                     aJob.lstPic3rd.push_back(mPtrListPic[lstAngle_v[k].y]);
                 mLstJobCorrel.push_back(aJob);
             }
