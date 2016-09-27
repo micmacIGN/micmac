@@ -43,62 +43,77 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /************************************************/
 /*                                              */
-/*          cImSecTieTri                        */
+/*          cImTieTri                           */
 /*                                              */
 /************************************************/
 
-cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
-   cImTieTri  (anAppli,aNameIm),
-   mImReech   (1,1),
-   mTImReech  (mImReech),
-   mAffMas2Sec (ElAffin2D::Id()),
-   mMaster     (anAppli.Master())
+cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
+   mAppli   (anAppli),
+   mNameIm  (aNameIm),
+   mTif     (Tiff_Im::StdConv(mAppli.Dir() + mNameIm)),
+   mCam     (mAppli.ICNM()->StdCamOfNames(aNameIm,mAppli.Ori())),
+   mImInit   (1,1),
+   mTImInit  (mImInit),
+   mMasqTri  (1,1),
+   mTMasqTri (mMasqTri),
+   mRab      (20),
+   mW        (0)
 {
+
+    std::cout << "OK " << mNameIm << " F=" << mCam->Focale() << "\n";
 }
 
-
-void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
+void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
-   cImTieTri::LoadTri(aTri);
+    mP1Glob = mCam->R3toF2(aTri.P1());
+    mP2Glob = mCam->R3toF2(aTri.P2());
+    mP3Glob = mCam->R3toF2(aTri.P3());
+
+    Pt2dr aP0 = Inf(Inf(mP1Glob,mP2Glob),mP3Glob) - Pt2dr(mRab,mRab);
+    Pt2dr aP1 = Sup(Sup(mP1Glob,mP2Glob),mP3Glob) + Pt2dr(mRab,mRab);
+
+    mDecal = round_down(aP0);
+    mSzIm  = round_up(aP1-aP0);
+
+    mP1Loc = mP1Glob - Pt2dr(mDecal);
+    mP2Loc = mP2Glob - Pt2dr(mDecal);
+    mP3Loc = mP3Glob - Pt2dr(mDecal);
+
+    // Charge l'image
+    mImInit.Resize(mSzIm);
+    mTImInit =  TIm2D<tElTiepTri,tElTiepTri>(mImInit);
+    ELISE_COPY(mImInit.all_pts(),trans(mTif.in(0),mDecal),mImInit.out());
+
+    // Remplit l'image de masque avec les point qui sont dans le triangle
+    mMasqTri =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,0);
+    mTMasqTri = TIm2DBits<1> (mMasqTri);
+    ElList<Pt2di>  aLTri;
+    aLTri = aLTri + round_ni(mP1Glob-Pt2dr(mDecal));
+    aLTri = aLTri + round_ni(mP2Glob-Pt2dr(mDecal));
+    aLTri = aLTri + round_ni(mP3Glob-Pt2dr(mDecal));
+    ELISE_COPY(polygone(aLTri),1,mMasqTri.oclip());
+
+    std::cout << "   LOAD " << mDecal << " " << mSzIm << "\n";
+    if ((mW ==0) && (mAppli.WithW()))
+    {
+         int aZ = mAppli.ZoomW();
+         mW = Video_Win::PtrWStd(mAppli.SzW()*aZ,true,Pt2dr(aZ,aZ));
+         mW->set_title(mNameIm.c_str());
+    }
+
+   
+    if (mW)
+    {
+         ELISE_COPY(mImInit.all_pts(),Min(255,Max(0,255-mImInit.in())),mW->ogray());
+
+         ELISE_COPY(select(mImInit.all_pts(),mMasqTri.in()),Min(255,Max(0,mImInit.in())),mW->ogray());
 
 
-   // Reechantillonage des images
-
-   mAffMas2Sec = ElAffin2D::FromTri2Tri
-                 (
-                      mMaster->mP1Loc,mMaster->mP2Loc,mMaster->mP3Loc,
-                      mP1Loc,mP2Loc,mP3Loc
-                 );
-
-   mSzReech = mMaster->mSzIm;
-
-   mImReech.Resize(mSzReech);
-   mTImReech =  TIm2D<tElTiepTri,tElTiepTri>(mImReech);
-
-
-   Pt2di aPSec;
-   for (aPSec.x=0 ; aPSec.x<mSzReech.x ; aPSec.x++)
-   {
-       for (aPSec.y=0 ; aPSec.y<mSzReech.y ; aPSec.y++)
-       {
-           Pt2dr aPMast = mAffMas2Sec(Pt2dr(aPSec));
-           double aVal = mTImInit.getr(aPMast,-1);
-           mTImReech.oset(aPSec,aVal);
-       }
-   }
-
-   if (mW)
-   {
-      ELISE_COPY
-      (
-          mImReech.all_pts(),
-          Max(0,Min(255,Virgule(mImReech.in(),mMaster->mImInit.in(0),mMaster->mImInit.in(0)))),
-          mW->orgb()
-      );
-      mW->clik_in();
-   }
-
+         mW->clik_in();
+    }
 }
+  
+
 
 
 

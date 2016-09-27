@@ -74,9 +74,9 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
 void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri )
 {
     mMasIm->LoadTri(aTri);
-    for (int aK=0 ; aK<int(mImSec.size()) ; aK++)
+    for (int aK=0 ; aK<int(aTri.NumImSec().size()) ; aK++)
     {
-        mImSec[aK]->LoadTri(aTri);
+        mImSec[aTri.NumImSec()[aK]]->LoadTri(aTri);
     }
 }
 
@@ -98,6 +98,10 @@ const std::string &               cAppliTieTri::Dir() const {return mDir;}
 Pt2di cAppliTieTri::SzW() const {return mSzW;}
 int   cAppliTieTri::ZoomW() const {return mZoomW;}
 bool  cAppliTieTri::WithW() const {return mWithW;}
+
+
+cImMasterTieTri * cAppliTieTri::Master() {return mMasIm;}
+
 
 
 
