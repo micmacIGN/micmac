@@ -48,10 +48,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                              */
 /************************************************/
 
+
 cImMasterTieTri::cImMasterTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
-   cImTieTri (anAppli,aNameIm)
+   cImTieTri   (anAppli,aNameIm)
 {
 }
+
+
+
 
 void cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
@@ -60,6 +64,7 @@ void cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
    /// Im2D_U_INT1 
 }
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -40,6 +40,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepTri.h"
 
+class cCmpPt2diOnEuclid
+{
+   public : 
+       bool operator () (const Pt2di & aP1, const Pt2di & aP2)
+       {
+                   return euclid(aP1) < euclid(aP2) ;
+       }
+};
+
+
 
 cAppliTieTri::cAppliTieTri
 (
@@ -48,10 +58,12 @@ cAppliTieTri::cAppliTieTri
               const std::string & anOri,
               const cXml_TriAngulationImMaster & aTriang
 )  :
-     mICNM  (anICNM),
-     mDir   (aDir),
-     mOri   (anOri),
-     mWithW (false)
+     mICNM       (anICNM),
+     mDir        (aDir),
+     mOri        (anOri),
+     mWithW      (false),
+     mDisExtrema (3.0)
+
 {
    mMasIm = new cImMasterTieTri(*this,aTriang.NameMaster());
 
@@ -59,6 +71,20 @@ cAppliTieTri::cAppliTieTri
    {
       mImSec.push_back(new cImSecTieTri(*this,aTriang.NameSec()[aK]));
    }
+
+   int aDE = round_up(mDisExtrema);
+   Pt2di aP;
+   for (aP.x=-aDE ; aP.x <= aDE ; aP.x++)
+   {
+       for (aP.y=-aDE ; aP.y <= aDE ; aP.y++)
+       {
+            if (euclid(aP) <= mDisExtrema)
+               mVoisExtr.push_back(aP);
+       }
+   }
+   cCmpPt2diOnEuclid aCmp;
+   std::sort(mVoisExtr.begin(),mVoisExtr.end(),aCmp);
+
 }
 
 
