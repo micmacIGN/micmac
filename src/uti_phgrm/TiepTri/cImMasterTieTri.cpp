@@ -56,6 +56,9 @@ cImMasterTieTri::cImMasterTieTri(cAppliTieTri & anAppli ,const std::string& aNam
 void cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
    cImTieTri::LoadTri(aTri);
+
+
+   /// Im2D_U_INT1 
 }
 
 
