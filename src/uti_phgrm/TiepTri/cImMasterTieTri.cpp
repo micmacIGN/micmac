@@ -60,16 +60,38 @@ cImMasterTieTri::cImMasterTieTri(cAppliTieTri & anAppli ,const std::string& aNam
 void cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
    cImTieTri::LoadTri(aTri);
+   mLIP.clear();
 
    if (mAppli.Debug())
    {
         Tiff_Im::CreateFromIm(mImInit,"MasterInit.tif");
    }
 
-   MakeInterestPoint(mTMasqTri,mTImInit);
+   MakeInterestPoint(&mLIP,0,mTMasqTri,mTImInit);
 
 
    /// Im2D_U_INT1 
+}
+
+cIntTieTriInterest cImMasterTieTri::GetPtsInteret()
+{
+   ELISE_ASSERT(mW!=0,"Cannot get point without window");
+   Clik aClik = mW->clik_in();
+   const cIntTieTriInterest * aRes=0;
+   double aDistMin = 1e30;
+
+   for (std::list<cIntTieTriInterest>::const_iterator itI=mLIP.begin(); itI!=mLIP.end() ; itI++)
+   {
+       double aDist = euclid(aClik._pt-Pt2dr(itI->mPt));
+       if (aDist < aDistMin)
+       {
+           aDistMin = aDist;
+           aRes = & (*itI);
+       }
+   }
+   ELISE_ASSERT(aRes!=0,"cannot fin in GetPtsInteret");
+   mW->draw_circle_loc(Pt2dr(aRes->mPt),1.0,mW->pdisc()(P8COL::green));
+   return *aRes;
 }
 
 

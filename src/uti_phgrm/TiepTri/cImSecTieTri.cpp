@@ -48,9 +48,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 /************************************************/
 
 cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
-   cImTieTri  (anAppli,aNameIm),
-   mImReech   (1,1),
-   mTImReech  (mImReech),
+   cImTieTri   (anAppli,aNameIm),
+   mImReech    (1,1),
+   mTImReech   (mImReech),
+   mImLabelPC  (1,1),
+   mTImLabelPC (mImLabelPC),
    mAffMas2Sec (ElAffin2D::Id()),
    mMaster     (anAppli.Master())
 {
@@ -75,6 +77,10 @@ void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    mImReech.Resize(mSzReech);
    mTImReech =  TIm2D<tElTiepTri,tElTiepTri>(mImReech);
 
+   mImLabelPC.Resize(mSzReech);
+   mImLabelPC.raz();
+   mTImLabelPC = TIm2D<U_INT1,INT>(mImLabelPC);
+
 
    Pt2di aPSec;
    for (aPSec.x=0 ; aPSec.x<mSzReech.x ; aPSec.x++)
@@ -97,15 +103,47 @@ void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
           mW->orgb()
       );
 */
+      mW->clear();
       ELISE_COPY
       (
           mImReech.all_pts(),
-          Max(0,Min(255,mImReech.in())),
+          Max(0,Min(255,255-mImReech.in())),
           mW->ogray()
       );
-      mW->clik_in();
+      ELISE_COPY(select(mImReech.all_pts(),mMaster->mMasqTri.in()),Min(255,Max(0,mImReech.in())),mW->ogray());
+
+      // mW->clik_in();
    }
 
+   MakeInterestPoint(0,&mTImLabelPC,mMaster->mTMasqTri,mTImReech);
+
+}
+
+void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,bool Interactif)
+{
+    double aD= mAppli.DistRechHom();
+    Pt2di aP0 = aPI.mPt;
+    eTypeTieTri aLab = aPI.mType;
+
+    
+    const std::vector<Pt2di> &   aVH = mAppli.VoisHom();
+    for (int aKH=0 ; aKH<int(aVH.size()) ; aKH++)
+    {
+        if (mTImLabelPC.get(aP0+aVH[aKH],-1)==aLab)
+        {
+           Pt2di aPV = aP0+aVH[aKH];
+           if (Interactif)
+           {
+               mW->draw_circle_loc(Pt2dr(aPV),2.0,ColOfType(aLab));
+           }
+        }
+    }
+
+    if (Interactif)
+    {
+        mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));
+        mW->draw_circle_loc(Pt2dr(aP0),aD,mW->pdisc()(P8COL::yellow));
+    }
 }
 
 

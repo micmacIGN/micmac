@@ -78,7 +78,9 @@ class cAppliTieTri
            int    ZoomW() const;
            cImMasterTieTri * Master();
            const std::vector<Pt2di> &   VoisExtr() const;
+           const std::vector<Pt2di> &   VoisHom() const;
            bool  & Debug() ;
+           const double & DistRechHom() const;
 
 
       private  :
@@ -89,17 +91,39 @@ class cAppliTieTri
          std::string                       mOri;
          cImMasterTieTri *                 mMasIm;
          std::vector<cImSecTieTri *>       mImSec;
+         std::vector<cImSecTieTri *>       mLoadedImSec;
          Pt2di                             mSzW;
          int                               mZoomW;
          bool                              mWithW;
 
          double                            mDisExtrema;
+         double                            mDistRechHom;
+
+
          std::vector<Pt2di>                mVoisExtr;
+         std::vector<Pt2di>                mVoisHom;
          bool                              mDebug;
 };
 
+typedef enum eTypeTieTri
+{
+    eTTTNoLabel = 0,
+    eTTTMax = 1,
+    eTTTMin = 2
+}  eTypeTieTri;
 
 typedef double tElTiepTri ;
+typedef TIm2D<tElTiepTri,tElTiepTri>  tTImTiepTri;
+
+
+class cIntTieTriInterest
+{
+    public :
+       cIntTieTriInterest(const Pt2di & aP,eTypeTieTri aType);
+       Pt2di        mPt;
+       eTypeTieTri  mType;
+};
+
 
 class cImTieTri
 {
@@ -108,11 +132,19 @@ class cImTieTri
             friend class cImSecTieTri;
 
            cImTieTri(cAppliTieTri & ,const std::string& aNameIm);
+           Video_Win *        W();
       protected :
            bool IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> &,Pt2di aP,bool aMax);
-           void MakeInterestPoint(const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> &);
+           void MakeInterestPoint
+                (
+                     std::list<cIntTieTriInterest> *,
+                     TIm2D<U_INT1,INT>  *,
+                     const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> &
+                );
 
            void LoadTri(const cXml_Triangle3DForTieP & );
+
+           Col_Pal  ColOfType(eTypeTieTri);
 
            cAppliTieTri & mAppli;
            std::string    mNameIm;
@@ -139,17 +171,13 @@ class cImTieTri
            Video_Win *                   mW;
 };
 
-class cIntTieTriInterest
-{
-    public :
-       Pt2di mPt;
-};
-
 class cImMasterTieTri : public cImTieTri
 {
     public :
            cImMasterTieTri(cAppliTieTri & ,const std::string& aNameIm);
            void LoadTri(const cXml_Triangle3DForTieP & );
+
+           cIntTieTriInterest  GetPtsInteret();
 
     private :
 
@@ -162,9 +190,13 @@ class cImSecTieTri : public cImTieTri
     public :
            cImSecTieTri(cAppliTieTri & ,const std::string& aNameIm);
            void LoadTri(const cXml_Triangle3DForTieP & );
+
+           void RechHomPtsInteret(const cIntTieTriInterest & aP,bool Interactif);
     private :
            Im2D<tElTiepTri,tElTiepTri>   mImReech;
            TIm2D<tElTiepTri,tElTiepTri>  mTImReech;
+           Im2D<U_INT1,INT>              mImLabelPC;
+           TIm2D<U_INT1,INT>             mTImLabelPC;
            Pt2di                         mSzReech;
            ElAffin2D                     mAffMas2Sec;
            cImMasterTieTri *             mMaster;
