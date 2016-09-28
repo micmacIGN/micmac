@@ -61,6 +61,13 @@ void cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
    cImTieTri::LoadTri(aTri);
 
+   if (mAppli.Debug())
+   {
+        Tiff_Im::CreateFromIm(mImInit,"MasterInit.tif");
+   }
+
+   MakeInterestPoint(mTMasqTri,mTImInit);
+
 
    /// Im2D_U_INT1 
 }
