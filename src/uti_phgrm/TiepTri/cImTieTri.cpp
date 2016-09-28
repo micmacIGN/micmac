@@ -113,6 +113,36 @@ void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     }
 }
   
+/*
+bool cImMasterTieTri::IsExtrema(Pt2di aP,bool aMax)
+{
+
+    return true;
+}
+
+*/
+
+void  cImTieTri::MakeInterestPoint(const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> & anIm)
+{
+    Pt2di aP;
+    Pt2di aSzIm = anIm.sz();
+
+    // Calcul des maxima et minima
+    for (aP.x=0 ; aP.x<aSzIm.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<aSzIm.y ; aP.y++)
+        {
+            if (aMasq.get(aP))
+            {
+                bool IsMax = anIm.get(aP) >  anIm.get(aP+Pt2di(1,0));
+                // if (IsExtrema(aP,IsMax))
+                {
+                }
+            }
+        }
+    }
+}
+
 
 
 

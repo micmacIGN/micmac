@@ -89,6 +89,9 @@ class cAppliTieTri
          Pt2di                             mSzW;
          int                               mZoomW;
          bool                              mWithW;
+
+         double                        mDisExtrema;
+         std::vector<Pt2di>            mVoisExtr;
 };
 
 
@@ -102,6 +105,9 @@ class cImTieTri
 
            cImTieTri(cAppliTieTri & ,const std::string& aNameIm);
       protected :
+           bool IsExtrema(const Im2D<tElTiepTri,tElTiepTri> &,Pt2di aP,bool aMax);
+           void MakeInterestPoint(const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> &);
+
            void LoadTri(const cXml_Triangle3DForTieP & );
 
            cAppliTieTri & mAppli;
@@ -129,12 +135,22 @@ class cImTieTri
            Video_Win *                   mW;
 };
 
+class cIntTieTriInterest
+{
+    public :
+       Pt2di mPt;
+};
+
 class cImMasterTieTri : public cImTieTri
 {
     public :
            cImMasterTieTri(cAppliTieTri & ,const std::string& aNameIm);
            void LoadTri(const cXml_Triangle3DForTieP & );
+
     private :
+
+           std::list<cIntTieTriInterest> mLIP;
+           
 };
 
 class cImSecTieTri : public cImTieTri
