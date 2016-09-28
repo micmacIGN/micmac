@@ -113,14 +113,32 @@ void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     }
 }
   
-/*
-bool cImMasterTieTri::IsExtrema(Pt2di aP,bool aMax)
+bool cImTieTri::IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> & anIm,Pt2di aP,bool aMax)
 {
+bool aPSpec = (aP==Pt2di(90,69));
+    tElTiepTri aValCentr = anIm.get(aP);
+    const std::vector<Pt2di> &  aVE = mAppli.VoisExtr();
+
+
+    for (int aKP=0 ; aKP<int(aVE.size()) ; aKP++)
+    {
+        tElTiepTri aValV = anIm.get(aP+aVE[aKP]);
+if (aPSpec)  std::cout << "VALLS " << aValV << " " << aValCentr << " " << aMax << "\n";
+        if (aMax)
+        {
+           if (aValCentr <= aValV) 
+              return false; 
+        }
+        else
+        {
+           if (aValCentr >= aValV) 
+              return false;
+        }
+    }
 
     return true;
 }
 
-*/
 
 void  cImTieTri::MakeInterestPoint(const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> & anIm)
 {
@@ -132,14 +150,27 @@ void  cImTieTri::MakeInterestPoint(const TIm2DBits<1> & aMasq,const TIm2D<tElTie
     {
         for (aP.y=0 ; aP.y<aSzIm.y ; aP.y++)
         {
+bool aPSpec = (aP==Pt2di(90,69));
+
+
+if (aPSpec)
+std::cout << "MASQ=" << aMasq.get(aP) << "\n";
             if (aMasq.get(aP))
             {
                 bool IsMax = anIm.get(aP) >  anIm.get(aP+Pt2di(1,0));
-                // if (IsExtrema(aP,IsMax))
+                if (IsExtrema(anIm,aP,IsMax))
                 {
+                   if (mW)
+                   {
+                       mW->draw_circle_loc(Pt2dr(aP),2.0,mW->pdisc()(IsMax ? P8COL::red : P8COL::blue));
+                   }
                 }
             }
         }
+    }
+    if (mW) 
+    {
+       mW->clik_in();
     }
 }
 
