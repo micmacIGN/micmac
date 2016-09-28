@@ -92,7 +92,10 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
      );
 
      MakeFileDirCompl(aOriIn);
+     ELISE_ASSERT(ELISE_fp::IsDirectory(aOriIn),"ERROR: Input orientation not found!");
+
      SplitDirAndFile(mDir, mPat, mFullName);
+
      mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
      mLFile = mICNM->StdGetListOfFile(mPat);
 
@@ -104,10 +107,10 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 	}
     
     /*
-    //vecteur de noms de caméras
+    //vecteur de noms de cameras
     std::vector<string> OriFiles(mLFile.size());
     
-    //vecteur de caméras
+    //vecteur de cameras
     std::vector<CamStenope *> aCamRep(mLFile.size());
     
     //initialisation du compteur
@@ -122,10 +125,10 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
         if (!ELISE_fp::exist_file(OriFiles.at(cmpt1)))
             continue;
 
-        //génération des caméras à partir des fichiers d'orientations
+        //generation des cameras à partir des fichiers d'orientations
 		aCamRep.at(cmpt1) = CamOrientGenFromFile(OriFiles.at(cmpt1),mICNM);
 		
-		//incrémentation du compteur
+        //incrementation du compteur
 		cmpt1++;
 	}
     std::cout<<"done!"<<std::endl;*/
@@ -138,7 +141,7 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
     
     std::vector<PtAllInfos> vPtsAI;
     
-    //contient la liste des points à transformer en 3d
+    //contient la liste des points a transformer en 3d
     std::vector<string> vNamePts;		
     
     std::cout<<"Reading points..."<<std::flush;
@@ -174,20 +177,22 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 		std::string namePt = vNamePts.at(aKNP);
 		
 		aPtsAL.nom = namePt;
-		
+        //std::cout<<"Recherche du point "<<namePt<<"\n";
 		//boucle sur les images
 		for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
 		{
 			std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
-			
+            //std::cout<<" Image "<<iT1->NameIm()<<":\n";
 			//boucle sur tous les points saisis sur l'image courante
 			for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
 			{
 				
-				//si je tombe sur le point courant je dois ajouter la camera + coord dans cette caméra
+                //std::cout<<"  - pt "<<iT2->NamePt()<<": ";
+                //si je tombe sur le point courant je dois ajouter la camera + coord dans cette camera
                 if(namePt == iT2->NamePt())
 				{
 					std::string oriNameFile = aOriIn+"Orientation-"+iT1->NameIm()+".xml";
+                    //std::cout<<"ok "<<oriNameFile<<" ";
                     if (!ELISE_fp::exist_file(oriNameFile)) continue;
 					CamStenope * cameraCourante = CamOrientGenFromFile(oriNameFile,mICNM);
 					Pt2dr coordCourant = iT2->PtIm();
@@ -195,8 +200,10 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 					aCameraEtCoord.Cam = cameraCourante;
 					aCameraEtCoord.coord2d=coordCourant;
 					vCameraEtCoord.push_back(aCameraEtCoord);
-				}
-			}
+                    //std::cout<<"("<<vCameraEtCoord.size()<<")\n";
+                }
+                //else std::cout<<"non\n";
+            }
 		}
 		
 		aPtsAL.CAC = vCameraEtCoord;
@@ -205,16 +212,16 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
     }
     std::cout<<"done!"<<std::endl;
 	
-	//le vecteur des points 3d à exporter
+    //le vecteur des points 3d a exporter
 	std::vector<Pt3dr> Pts3d;
 	
-    //boucle sur le nombre de points à projeter en 3d
+    //boucle sur le nombre de points a projeter en 3d
 	for(unsigned int aHG=0 ; aHG<vPtsAI.size() ; aHG++)
 	{
-		//vecteur de caméras
+        //vecteur de cameras
 		std::vector<CamStenope *> vCSPt;
 		
-		//vecteur de coordonnées 2d
+        //vecteur de coordonnees 2d
 		std::vector<Pt2dr> vC2d;
 		
 		for(unsigned int aHF=0 ; aHF<vPtsAI.at(aHG).CAC.size() ; aHF++)
