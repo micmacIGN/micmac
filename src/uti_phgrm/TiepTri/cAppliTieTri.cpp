@@ -78,7 +78,8 @@ cAppliTieTri::cAppliTieTri
    {
        for (aP.y=-aDE ; aP.y <= aDE ; aP.y++)
        {
-            if (euclid(aP) <= mDisExtrema)
+            double aD = euclid(aP);
+            if ((aD <= mDisExtrema) && (aD>0))
                mVoisExtr.push_back(aP);
        }
    }
@@ -128,7 +129,10 @@ bool  cAppliTieTri::WithW() const {return mWithW;}
 
 cImMasterTieTri * cAppliTieTri::Master() {return mMasIm;}
 
+const std::vector<Pt2di> &   cAppliTieTri::VoisExtr() const { return mVoisExtr; }
 
+
+bool &   cAppliTieTri::Debug() {return mDebug;}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
