@@ -89,6 +89,7 @@ class InitOutil
         vector<CplPic> getmCplHomolExist(){return mCplHomolExist;}
         vector<CplPic> loadCplPicExistHomol(); 
         void getLstJobCorrel(vector<AJobCorel> & jobCorrel){jobCorrel = mLstJobCorrel;}
+        void creatJobCorrel(double angleF , vector<cXml_TriAngulationImMaster> &lstJobTriAngulationImMaster);
         void creatJobCorrel(double angleF);
 
         int mSzPtCorr;
