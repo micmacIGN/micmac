@@ -77,6 +77,9 @@ class cAppliTieTri
            Pt2di  SzW() const;
            int    ZoomW() const;
            cImMasterTieTri * Master();
+           const std::vector<Pt2di> &   VoisExtr() const;
+           bool  & Debug() ;
+
 
       private  :
          void DoOneTri(const cXml_Triangle3DForTieP & );
@@ -90,8 +93,9 @@ class cAppliTieTri
          int                               mZoomW;
          bool                              mWithW;
 
-         double                        mDisExtrema;
-         std::vector<Pt2di>            mVoisExtr;
+         double                            mDisExtrema;
+         std::vector<Pt2di>                mVoisExtr;
+         bool                              mDebug;
 };
 
 
@@ -105,7 +109,7 @@ class cImTieTri
 
            cImTieTri(cAppliTieTri & ,const std::string& aNameIm);
       protected :
-           bool IsExtrema(const Im2D<tElTiepTri,tElTiepTri> &,Pt2di aP,bool aMax);
+           bool IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> &,Pt2di aP,bool aMax);
            void MakeInterestPoint(const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> &);
 
            void LoadTri(const cXml_Triangle3DForTieP & );

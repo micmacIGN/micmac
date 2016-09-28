@@ -45,12 +45,14 @@ int TiepTri_Main(int argc,char ** argv)
 {
    std::string aFullNameXML,anOri;
    Pt3di       aSzW;
+   bool        aDebug=false;
    ElInitArgMain
    (
          argc,argv,
          LArgMain()  << EAMC(aFullNameXML, "Name XML for Triangu",  eSAM_IsPatFile)
                      << EAMC(anOri, "Orientation dir"),
          LArgMain()   << EAM(aSzW,"SzW",true,"if visu [x,y,Zoom]")
+                      << EAM(aDebug,"Debug",true,"If true do debuggibg")
    );
 
    std::string aDir,aNameXML;
@@ -61,6 +63,7 @@ int TiepTri_Main(int argc,char ** argv)
 
    cXml_TriAngulationImMaster aTriang =   StdGetFromSI(aFullNameXML,Xml_TriAngulationImMaster);;
    cAppliTieTri  anAppli(anICNM,aDir,anOri,aTriang);
+   anAppli.Debug() = aDebug;
    if (EAMIsInit(&aSzW))
    {
         anAppli.SetSzW(Pt2di(aSzW.x,aSzW.y),aSzW.z);

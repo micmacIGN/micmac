@@ -89,11 +89,19 @@ void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
    if (mW)
    {
+/*
       ELISE_COPY
       (
           mImReech.all_pts(),
           Max(0,Min(255,Virgule(mImReech.in(),mMaster->mImInit.in(0),mMaster->mImInit.in(0)))),
           mW->orgb()
+      );
+*/
+      ELISE_COPY
+      (
+          mImReech.all_pts(),
+          Max(0,Min(255,mImReech.in())),
+          mW->ogray()
       );
       mW->clik_in();
    }
