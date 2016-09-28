@@ -37,142 +37,44 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
 #include "TiepTri.h"
 
-class cCmpPt2diOnEuclid
-{
-   public : 
-       bool operator () (const Pt2di & aP1, const Pt2di & aP2)
-       {
-                   return euclid(aP1) < euclid(aP2) ;
-       }
-};
+const double TT_DefCorrel = -2;
 
-std::vector<Pt2di> VoisinDisk(double aDistMin,double aDistMax)
+template <class Type> bool inside_window(const Type & Im1, const Pt2di & aP1,const int &   aSzW)
 {
-   std::vector<Pt2di> aResult;
-   int aDE = round_up(aDistMax);
-   Pt2di aP;
-   for (aP.x=-aDE ; aP.x <= aDE ; aP.x++)
-   {
-       for (aP.y=-aDE ; aP.y <= aDE ; aP.y++)
-       {
-            double aD = euclid(aP);
-            if ((aD <= aDistMax) && (aD>aDistMin))
-               aResult.push_back(aP);
-       }
-   }
-   return aResult;
+   return Im1.inside(aP1-Pt2di(aSzW,aSzW)) && Im1.inside(aP1+Pt2di(aSzW,aSzW));
 }
 
 
-cAppliTieTri::cAppliTieTri
-(
-              cInterfChantierNameManipulateur * anICNM,
-              const std::string & aDir,
-              const std::string & anOri,
-              const cXml_TriAngulationImMaster & aTriang
-)  :
-     mICNM        (anICNM),
-     mDir         (aDir),
-     mOri         (anOri),
-     mWithW       (false),
-     mDisExtrema  (3.0),
-     mDistRechHom (10.0)
-
+double TT_CorrelBasique
+                             (
+                                const tTImTiepTri & Im1,
+                                const Pt2di & aP1,
+                                const tTImTiepTri & Im2,
+                                const Pt2di & aP2,
+                                const int   aSzW
+                             )
 {
-   mMasIm = new cImMasterTieTri(*this,aTriang.NameMaster());
+ 
+     if (! (inside_window(Im1,aP1,aSzW) && inside_window(Im2,aP2,aSzW))) return TT_DefCorrel;
 
-   for (int aK=0 ; aK<int(aTriang.NameSec().size()) ; aK++)
-   {
-      mImSec.push_back(new cImSecTieTri(*this,aTriang.NameSec()[aK]));
-   }
+     Pt2di aVois;
+     RMat_Inertie aMatr;
 
-   mVoisExtr = VoisinDisk(0.5,mDisExtrema);
-   cCmpPt2diOnEuclid aCmp;
-   std::sort(mVoisExtr.begin(),mVoisExtr.end(),aCmp);
-
-   mVoisHom = VoisinDisk(-1,mDistRechHom);
-}
-
-
-void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
-{
-    for (int aK=0 ; aK<int(aTriang.Tri().size()) ; aK++)
-    {
-        DoOneTri(aTriang.Tri()[aK]);
-    }
-    
-}
-
-
-void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri )
-{
-    mMasIm->LoadTri(aTri);
-    mLoadedImSec.clear();
-    for (int aKTri=0 ; aKTri<int(aTri.NumImSec().size()) ; aKTri++)
-    {
-        int aKIm = aTri.NumImSec()[aKTri];
-        mImSec[aKIm]->LoadTri(aTri);
-        mLoadedImSec.push_back(mImSec[aKIm]);
-    }
-
-    if (1)
-    {
-         while (1 && mWithW) 
-         {
-              cIntTieTriInterest aPI= mMasIm->GetPtsInteret();
-              for (int aKIm=0 ; aKIm<int(mLoadedImSec.size()) ; aKIm++)
-              {
-                  mLoadedImSec[aKIm]->RechHomPtsInteret(aPI,true);
-              }
-         }
-    }
-
-    if (mMasIm->W())
-    {
-        mMasIm->W()->disp().clik();
-    }
-}
-
-
-void  cAppliTieTri::SetSzW(Pt2di aSzW, int aZoom)
-{
-    mSzW = aSzW;
-    mZoomW = aZoom;
-    mWithW = true;
+     for  (aVois.x = -aSzW ; aVois.x<=aSzW  ; aVois.x++)
+     {
+          for  (aVois.y = -aSzW ; aVois.y<=aSzW  ; aVois.y++)
+          {
+               aMatr.add_pt_en_place(Im1.get(aP1+aVois),Im2.get(aP1+aVois));
+          }
+     }
+     
+     return aMatr.correlation();
 }
 
 
 
-
-cInterfChantierNameManipulateur * cAppliTieTri::ICNM()      {return mICNM;}
-const std::string &               cAppliTieTri::Ori() const {return mOri;}
-const std::string &               cAppliTieTri::Dir() const {return mDir;}
-
-Pt2di cAppliTieTri::SzW() const {return mSzW;}
-int   cAppliTieTri::ZoomW() const {return mZoomW;}
-bool  cAppliTieTri::WithW() const {return mWithW;}
-
-
-cImMasterTieTri * cAppliTieTri::Master() {return mMasIm;}
-
-const std::vector<Pt2di> &   cAppliTieTri::VoisExtr() const { return mVoisExtr; }
-const std::vector<Pt2di> &   cAppliTieTri::VoisHom() const { return mVoisHom; }
-
-
-bool &   cAppliTieTri::Debug() {return mDebug;}
-const double &   cAppliTieTri::DistRechHom() const {return mDistRechHom;}
-
-
-/***************************************************************************/
-
-cIntTieTriInterest::cIntTieTriInterest(const Pt2di & aP,eTypeTieTri aType) :
-   mPt   (aP),
-   mType (aType)
-{
-}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

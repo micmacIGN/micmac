@@ -98,6 +98,7 @@ void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     {
          int aZ = mAppli.ZoomW();
          mW = Video_Win::PtrWStd(mAppli.SzW()*aZ,true,Pt2dr(aZ,aZ));
+         mW = mW-> PtrChc(Pt2dr(0,0),Pt2dr(aZ,aZ),true);
          mW->set_title(mNameIm.c_str());
     }
 
@@ -109,13 +110,13 @@ void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
          ELISE_COPY(select(mImInit.all_pts(),mMasqTri.in()),Min(255,Max(0,mImInit.in())),mW->ogray());
 
 
-         mW->clik_in();
+         // mW->clik_in();
     }
 }
   
 bool cImTieTri::IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> & anIm,Pt2di aP,bool aMax)
 {
-bool aPSpec = (aP==Pt2di(90,69));
+// bool aPSpec = (aP==Pt2di(90,69));
     tElTiepTri aValCentr = anIm.get(aP);
     const std::vector<Pt2di> &  aVE = mAppli.VoisExtr();
 
@@ -123,7 +124,7 @@ bool aPSpec = (aP==Pt2di(90,69));
     for (int aKP=0 ; aKP<int(aVE.size()) ; aKP++)
     {
         tElTiepTri aValV = anIm.get(aP+aVE[aKP]);
-if (aPSpec)  std::cout << "VALLS " << aValV << " " << aValCentr << " " << aMax << "\n";
+        // if (aPSpec)  std::cout << "VALLS " << aValV << " " << aValCentr << " " << aMax << "\n";
         if (aMax)
         {
            if (aValCentr <= aValV) 
@@ -139,8 +140,25 @@ if (aPSpec)  std::cout << "VALLS " << aValV << " " << aValCentr << " " << aMax <
     return true;
 }
 
+Col_Pal  cImTieTri::ColOfType(eTypeTieTri aType)
+{
+    switch (aType)
+    {
+          case eTTTMax : return mW->pdisc()(P8COL::red);
+          case eTTTMin : return mW->pdisc()(P8COL::blue);
+          default :;
+    }
+   return mW->pdisc()(P8COL::yellow);
+}
 
-void  cImTieTri::MakeInterestPoint(const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> & anIm)
+
+
+void  cImTieTri::MakeInterestPoint
+      (
+            std::list<cIntTieTriInterest> * aListPI,
+            TIm2D<U_INT1,INT>  * aImLabel,
+            const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> & anIm
+      )
 {
     Pt2di aP;
     Pt2di aSzIm = anIm.sz();
@@ -150,30 +168,34 @@ void  cImTieTri::MakeInterestPoint(const TIm2DBits<1> & aMasq,const TIm2D<tElTie
     {
         for (aP.y=0 ; aP.y<aSzIm.y ; aP.y++)
         {
-bool aPSpec = (aP==Pt2di(90,69));
+             // bool aPSpec = (aP==Pt2di(90,69));
 
 
-if (aPSpec)
-std::cout << "MASQ=" << aMasq.get(aP) << "\n";
+             // if (aPSpec) std::cout << "MASQ=" << aMasq.get(aP) << "\n";
             if (aMasq.get(aP))
             {
                 bool IsMax = anIm.get(aP) >  anIm.get(aP+Pt2di(1,0));
                 if (IsExtrema(anIm,aP,IsMax))
                 {
+                   eTypeTieTri aType = IsMax ? eTTTMax : eTTTMin;
                    if (mW)
                    {
-                       mW->draw_circle_loc(Pt2dr(aP),2.0,mW->pdisc()(IsMax ? P8COL::red : P8COL::blue));
+                       // mW->draw_circle_loc(Pt2dr(aP),2.0,mW->pdisc()(IsMax ? P8COL::red : P8COL::blue));
+                       mW->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(aType));
+                   }
+                   if  (aImLabel) 
+                        aImLabel->oset(aP,aType);
+                   if (aListPI)
+                   {
+                        aListPI->push_back(cIntTieTriInterest(aP,aType));
                    }
                 }
             }
         }
     }
-    if (mW) 
-    {
-       mW->clik_in();
-    }
 }
 
+Video_Win * cImTieTri::W() {return mW;}
 
 
 
