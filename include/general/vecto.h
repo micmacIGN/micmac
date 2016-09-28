@@ -219,8 +219,10 @@ class  Optim2DParam
               return mFreelyOpt;
          }
          void reset();
+         int  NbStep2Do() const;
            
 
+         void  optim_step_fixed (Pt2dr aValInit,int aNbMaxStep);
 
      protected :
          Optim2DParam
@@ -238,7 +240,7 @@ class  Optim2DParam
 
      private :
          virtual REAL Op2DParam_ComputeScore(REAL,REAL) = 0;
-         void  optim_step_fixed ();
+         void  optim_step_fixed (int aNbMaxStep=1000000000);
 
          REAL       _step_lim;
          REAL       _step_cur;
@@ -254,6 +256,7 @@ class  Optim2DParam
          REAL       mStepInit;
          INT        mSzVoisInit;
          REAL       mScOpt;
+         int        mNbStep2Do;
 };
 
 

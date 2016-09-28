@@ -319,13 +319,15 @@ void Optim2DParam::reset()
 }
 
 
-void  Optim2DParam::optim_step_fixed ()
+void  Optim2DParam::optim_step_fixed (int aNbMaxStep)
 {
+     mNbStep2Do  = aNbMaxStep;
      REAL score_opt = _def_out;
      INT last_k = ElTAB_MEM_K_POSSIBLE::k0();
 
      for(;;)
      {
+          mNbStep2Do--;
           ElMEM_K_POSSIBLE & kpos = ElTAB_MEM_K_POSSIBLE::kpos(last_k);
           last_k                  = ElTAB_MEM_K_POSSIBLE::no_k();
 
@@ -353,7 +355,7 @@ void  Optim2DParam::optim_step_fixed ()
                       mFreelyOpt = false;
               }
           }
-          if (last_k == ElTAB_MEM_K_POSSIBLE::no_k())
+          if ((last_k == ElTAB_MEM_K_POSSIBLE::no_k()) || (mNbStep2Do==0))
           {
              mScOpt = score_opt;
              return ;
@@ -404,6 +406,13 @@ void  Optim2DParam::optim(Pt2dr aPInit)
            optim_step_fixed ();
           _step_cur *=  _lambda;
      }
+}
+
+void   Optim2DParam::optim_step_fixed (Pt2dr aPInit,int aNbMaxStep)
+{
+    reset();
+    _param = aPInit;
+    optim_step_fixed (aNbMaxStep);
 }
 
 
