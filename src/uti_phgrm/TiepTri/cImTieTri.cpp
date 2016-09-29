@@ -136,7 +136,6 @@ bool cImTieTri::IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> & anIm,Pt2di aP,boo
               return false;
         }
     }
-
     return true;
 }
 
@@ -194,6 +193,8 @@ void  cImTieTri::MakeInterestPoint
         }
     }
 }
+
+
 
 Video_Win * cImTieTri::W() {return mW;}
 

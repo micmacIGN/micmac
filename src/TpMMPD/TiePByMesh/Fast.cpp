@@ -46,13 +46,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 const static Pt2di pxlPosition[17]=
 {
 /*
-       11 12 13
-     10 - -  - 14
-    9 - - -  - - 15
-    8 - - 16 - - 0
-    7 - - -  - - 1
-      6 - -  - 2
-        5 4  3
+       11  12 13
+     10 -  -  - 14
+    9 - -  -  - - 15
+    8 - -  16 - - 0
+    7 - -  -  - - 1
+      6 -  -  - 2
+        5  4  3
 */
     Pt2di(0,3),	//0
     Pt2di(1,3),
@@ -73,8 +73,9 @@ const static Pt2di pxlPosition[17]=
     Pt2di(0,0)	//16
 };
 
+
 Video_Win *mWTest;
-Fast::Fast(double threshold, int radius = 1)
+Fast::Fast(double threshold, double radius = 2)
 {
     this->threshold = threshold;
     this->radius = radius;
@@ -138,7 +139,6 @@ bool Fast::isConsecutive(vector<int> &pxlValidIndx)
 
 void Fast::detect(Im2D<U_INT1,INT4> &pic, std::vector<Pt2dr> &resultCorner)
 {
-    //cv::KeyPoint aPts;
     for(int i=this->radius; i<pic.sz().x-this->radius; i++)
     {
         for (int j=this->radius; j<pic.sz().y-this->radius; j++)
@@ -146,8 +146,6 @@ void Fast::detect(Im2D<U_INT1,INT4> &pic, std::vector<Pt2dr> &resultCorner)
             if (this->isCorner( Pt2di(i,j), pic, this->threshold))
             {
                 resultCorner.push_back(Pt2dr(i,j));
-                //aPts.pt.x=i; aPts.pt.y=j;
-                //keypoints_FASTG.push_back(aPts);
             }
         }
     }
@@ -198,5 +196,111 @@ void Fast::dispPtIntertFAST(Im2D<U_INT1,INT4> pic, vector<Pt2dr> pts, int zoomF,
     );
     */
 }
+
+FastNew::FastNew(const TIm2D<tPxl, tPxl> & anIm, double threshold, double radius, const TIm2DBits<1> & anMasq):
+    mThres     (threshold),
+    mRad       (radius),
+    mImInit    (anIm._the_im),
+    mTImInit   (anIm),
+    mImMasq    (anMasq._the_im),
+    mTImMasq   (mImMasq)
+{
+    cout<<"Info FAST : "<<
+          endl<< "  ++Img: "<<mImInit.sz()<<endl;
+
+    /*
+    Video_Win * mW;
+    if (mW ==0)
+    {
+         int aZ = 2;
+         mW = Video_Win::PtrWStd(ToPt2di(mImInit.sz()/aZ),true,Pt2dr(1/double(aZ),1/double(aZ)));
+    }
+    cout<<"Win Created!"<<endl;
+    if (mW)
+    {
+         ELISE_COPY(mImInit.all_pts(), mImInit.in(), mW->ogray());
+         mW->clik_in();
+    }
+    */
+    getVoisinInteret(mRad);
+}
+
+void FastNew::sortCWfor_mVoisin(vector<Pt2di> & mVoisin)
+{
+    deque<Pt2di> aVoisin;
+    for (uint aK=0; aK<mRad; aK++)
+        aVoisin.push_back(mVoisin[aK]);
+    for (uint aK=mRad; aK<mVoisin.size()-mRad; aK=aK+2)
+    {
+        aVoisin.push_front(mVoisin[aK]);
+        aVoisin.push_back(mVoisin[aK+1]);
+    }
+    for (uint aK=mVoisin.size()-1; aK>=mVoisin.size()-mRad; aK--)
+        aVoisin.push_back(mVoisin[aK]);
+    mVoisin.clear();
+    for (uint aK=0; aK<aVoisin.size(); aK++)
+        mVoisin.push_back(aVoisin[aK]);
+}
+
+
+void FastNew::getVoisinInteret(double radius)
+{
+    Pt2di aP;
+    if (radius >= 2)
+    {
+        for (aP.x=-radius; aP.x<=radius; aP.x++)
+        {
+            for (aP.y=-radius; aP.y<=radius; aP.y++)
+            {
+                double dst=euclid(aP);
+                if (dst<=radius+0.5 && dst>radius-0.5)
+                    mVoisin.push_back(aP);
+            }
+        }
+
+
+
+        for (uint i=0; i<mVoisin.size(); i++)
+            cout<<mVoisin[i]<<endl;
+        sortCWfor_mVoisin(mVoisin);
+        cout<<endl;
+        for (uint i=0; i<mVoisin.size(); i++)
+            cout<<mVoisin[i]<<endl;
+
+
+
+    }
+    else
+        cout<<"FAST Err : radius < 2"<<endl;
+}
+
+void FastNew::detect(
+                        Pt2dr aPt,
+                        const TIm2D<tPxl, tPxl> & anIm,
+                        const TIm2DBits<1> anMasq,
+                        vector<Pt2dr> & lstPt
+                    )
+{
+    Pt2di aP;
+    Pt2di szIm = anIm.sz();
+    for (aP.x=mRad; aP.x<=szIm.x-mRad; aP.x++)
+    {
+        for (aP.y=mRad; aP.y<=szIm.y-mRad; aP.y++)
+        {
+            if ( anMasq.get(aP) )
+            {
+                vector<double> diffCentreVoisin;
+                for (uint aK=0; aK<mVoisin.size(); aK++)
+                {
+                    double subVal = anIm.get(aP) - anIm.get(aP+mVoisin[aK]);
+                    diffCentreVoisin.push_back(subVal);
+                }
+            }
+        }
+    }
+}
+
+
+
 
 

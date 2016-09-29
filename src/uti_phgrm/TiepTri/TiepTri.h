@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _TiePTri_
 
 #include "StdAfx.h"
-
+#include "../../TpMMPD/TiePByMesh/Fast.h"
 // Header du header
 class cAppliTieTri;
 class cImTieTri;
@@ -71,7 +71,7 @@ class cAppliTieTri
            cInterfChantierNameManipulateur * ICNM();
            const std::string &               Ori() const;
            const std::string &               Dir() const;
-           void DoAllTri(const cXml_TriAngulationImMaster &);
+           void DoAllTri              (const cXml_TriAngulationImMaster &);
 
            bool  WithW() const;
            Pt2di  SzW() const;
@@ -84,7 +84,8 @@ class cAppliTieTri
 
 
       private  :
-         void DoOneTri(const cXml_Triangle3DForTieP & );
+         void DoOneTri        (const cXml_Triangle3DForTieP & );
+
 
          cInterfChantierNameManipulateur * mICNM;
          std::string                       mDir;

@@ -136,7 +136,6 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri )
     }
 }
 
-
 void  cAppliTieTri::SetSzW(Pt2di aSzW, int aZoom)
 {
     mSzW = aSzW;

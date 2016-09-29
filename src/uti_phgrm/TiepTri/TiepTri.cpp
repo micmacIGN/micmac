@@ -69,8 +69,6 @@ int TiepTri_Main(int argc,char ** argv)
         anAppli.SetSzW(Pt2di(aSzW.x,aSzW.y),aSzW.z);
    }
    anAppli.DoAllTri(aTriang);
-
-
    return EXIT_SUCCESS;
 
 }
