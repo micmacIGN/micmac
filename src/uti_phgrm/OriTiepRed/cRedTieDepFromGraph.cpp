@@ -163,7 +163,7 @@ void cStatArc::Add(int aNbSom,int aNbArc)
 }
 void cStatArc::Show()
 {
-    std::cout << "----------------------------- NbP=" << mNbP << " --------------------\n";
+    std::cout << "----------------------------- NbP=" << mNbP << " --------------------"<<std::endl;
     for (int aKH=0 ; aKH<int(mVH.size()) ; aKH++)
     {
          if (mVH[aKH])
@@ -171,7 +171,7 @@ void cStatArc::Show()
                       << " %=" << ((100.0*mVH[aKH])/mNbP) 
                       << " N=" << mVH[aKH] 
                       << " D=" << (mVHA[aKH]/double(mVH[aKH])) 
-                      << "\n";
+                      << std::endl;
     }
 }
 
@@ -461,7 +461,7 @@ void cAppliGrRedTieP::Show()
     std::cout 
               << "NbCl " << mPartParal.size()
               << " Rec=" << aRecGr
-              << "\n";
+              << std::endl;
    getchar();
 }
 
@@ -527,7 +527,7 @@ void cAppliGrRedTieP::CreateBoxOfSom(tSomGRTP *aSom)
 
          if (mTestExeOri)
          {
-             std::cout <<  "GGG " << ComOfKBox(mNumBox) << "\n";
+             std::cout <<  "GGG " << ComOfKBox(mNumBox) << std::endl;
              System(ComOfKBox(mNumBox));
          }
          mNumBox++;
@@ -647,7 +647,7 @@ void cAppliGrRedTieP::ExeSelec()
     for (int aKP=0; aKP<int(mPartParal.size()) ; aKP++)
     {
         ExeSelecOfSet(mPartParal[aKP]);
-        std::cout << "=======    Done " << aKP <<  "  Part on " << mPartParal.size() << " ================\n";
+        std::cout << "=======    Done " << aKP <<  "  Part on " << mPartParal.size() << " ================" << std::endl;
     }
 }
 
