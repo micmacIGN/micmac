@@ -70,14 +70,30 @@ void Test_Xml()
     exit(EXIT_SUCCESS);
 }
 
+void Test_FAST()
+{
+    Tiff_Im * mPicTiff = new Tiff_Im ( Tiff_Im::StdConvGen("./Test.tif",1,false));
+    Pt2di mImgSz = mPicTiff->sz();
+    TIm2D<double,double> * mPic_TIm2D = new TIm2D<double,double> (mPicTiff->sz());
+    ELISE_COPY(mPic_TIm2D->all_pts(), mPicTiff->in(), mPic_TIm2D->out());
+    //Im2D<double,double> * mPic_Im2D = new Im2D<double, double> (mPic_TIm2D->_the_im);
+
+    Im2D_Bits<1> aMasq0  = Im2D_Bits<1>(mImgSz.x,mImgSz.y,1);
+    TIm2DBits<1> TaMasq0 = TIm2DBits<1> (aMasq0);
+
+    FastNew (*mPic_TIm2D , 10 , 3 , TaMasq0);
+
+
+}
+
     /******************************************************************************
     The main function.
     ******************************************************************************/
 int TestGiang_main(int argc,char ** argv)
 {
 
-    Test_Xml();
-
+    //Test_Xml();
+    Test_FAST();
 
     cout<<"********************************************************"<<endl;
     cout<<"*    TestGiang                                         *"<<endl;
