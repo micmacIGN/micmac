@@ -136,6 +136,15 @@ void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,bool Interac
            if (Interactif)
            {
                mW->draw_circle_loc(Pt2dr(aPV),2.0,ColOfType(aLab));
+               int aSzRech = 2;
+
+               cResulRechCorrel<int> aCRC = TT_RechMaxCorrelBasique(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
+
+               cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,5);
+
+               std::cout  << "  glob  " << aCRC.mCorrel << " " << aCRC.mPt + aVH[aKH] << " " << aCRC.mPt << "\n";
+               std::cout  << "--loc-- " << aCRCLoc.mCorrel << " " << aCRCLoc.mPt + aVH[aKH] << " " << aCRCLoc.mPt << "\n";
+
            }
         }
     }
@@ -144,6 +153,7 @@ void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,bool Interac
     {
         mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));
         mW->draw_circle_loc(Pt2dr(aP0),aD,mW->pdisc()(P8COL::yellow));
+        std::cout << "==================== " << P0 << " "  << (int) aLab << "\n";
     }
 }
 

@@ -53,11 +53,12 @@ double TT_CorrelBasique
                                 const Pt2di & aP1,
                                 const tTImTiepTri & Im2,
                                 const Pt2di & aP2,
-                                const int   aSzW
+                                const int   aSzW,
+                                const int   aStep
                              )
 {
  
-     if (! (inside_window(Im1,aP1,aSzW) && inside_window(Im2,aP2,aSzW))) return TT_DefCorrel;
+     if (! (inside_window(Im1,aP1,aSzW*aStep) && inside_window(Im2,aP2,aSzW*aStep))) return TT_DefCorrel;
 
      Pt2di aVois;
      RMat_Inertie aMatr;
@@ -66,15 +67,98 @@ double TT_CorrelBasique
      {
           for  (aVois.y = -aSzW ; aVois.y<=aSzW  ; aVois.y++)
           {
-               aMatr.add_pt_en_place(Im1.get(aP1+aVois),Im2.get(aP1+aVois));
+               aMatr.add_pt_en_place(Im1.get(aP1+aVois*aStep),Im2.get(aP2+aVois*aStep));
           }
      }
      
      return aMatr.correlation();
 }
 
+cResulRechCorrel<int> TT_RechMaxCorrelBasique
+                      (
+                             const tTImTiepTri & Im1,
+                             const Pt2di & aP1,
+                             const tTImTiepTri & Im2,
+                             const Pt2di & aP2,
+                             const int   aSzW,
+                             const int   aStep,
+                             const int   aSzRech
+                      )
+{
+    double aCorrelMax = TT_DefCorrel;
+    Pt2di  aDecMax;
+    Pt2di  aP;
+    for (aP.x=-aSzRech ; aP.x<= aSzRech ; aP.x++)
+    {
+        for (aP.y=-aSzRech ; aP.y<= aSzRech ; aP.y++)
+        {
+             double aCorrel = TT_CorrelBasique(Im1,aP1,Im2,aP2+aP,aSzW,aStep);
+             if (aCorrel> aCorrelMax)
+             {
+                 aCorrelMax = aCorrel;
+                 aDecMax = aP;
+             }
+        }
+     }
 
+     return cResulRechCorrel<int>(aDecMax,aCorrelMax);
 
+}
+ 
+class cTT_MaxLocCorrelBasique : public Optim2DParam
+{
+    public :
+         REAL Op2DParam_ComputeScore(REAL aDx,REAL aDy) 
+         {
+              return  TT_CorrelBasique(mIm1,mP1,mIm2,mP2+Pt2di(round_ni(aDx),round_ni(aDy)),mSzW,mStep);
+         }
+ 
+         cTT_MaxLocCorrelBasique 
+         ( 
+              const tTImTiepTri & aIm1,
+              const Pt2di &       aP1,
+              const tTImTiepTri & aIm2,
+              const Pt2di &       aP2,
+              const int           aSzW,
+              const int           aStep
+         )  :
+            Optim2DParam ( 0.9, TT_DefCorrel ,1e-5, true),
+            mIm1 (aIm1),
+            mP1  (aP1),
+            mIm2 (aIm2),
+            mP2  (aP2),
+            mSzW (aSzW),
+            mStep (aStep)
+         {
+         }
+            
+
+         const tTImTiepTri & mIm1;
+         const Pt2di & mP1;
+         const tTImTiepTri & mIm2;
+         const Pt2di & mP2;
+         const int   mSzW;
+         const int   mStep;
+};
+
+cResulRechCorrel<int> TT_RechMaxCorrelLocale
+                      (
+                             const tTImTiepTri & aIm1,
+                             const Pt2di & aP1,
+                             const tTImTiepTri & aIm2,
+                             const Pt2di & aP2,
+                             const int   aSzW,
+                             const int   aStep,
+                             const int   aSzRechMax
+                      )
+
+{
+   cTT_MaxLocCorrelBasique  anOpt(aIm1,aP1,aIm2,aP2,aSzW,aStep);
+   anOpt.optim_step_fixed(Pt2dr(0,0),aSzRechMax);
+
+   return cResulRechCorrel<int>(round_ni(anOpt.param()),anOpt.ScOpt());
+
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

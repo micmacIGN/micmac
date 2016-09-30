@@ -209,6 +209,56 @@ class cImSecTieTri : public cImTieTri
            cImMasterTieTri *             mMaster;
 };
 
+//  ====================================  Correlation ==========================
+
+template<class Type> class cResulRechCorrel
+{
+     public :
+          cResulRechCorrel(const Pt2d<Type>& aPt,double aCorrel)  :
+              mPt     (aPt),
+              mCorrel (aCorrel)
+          {
+          }
+
+          Pt2d<Type>  mPt;
+          double      mCorrel;
+
+};
+
+
+double TT_CorrelBasique
+                             (
+                                const tTImTiepTri & Im1,
+                                const Pt2di & aP1,
+                                const tTImTiepTri & Im2,
+                                const Pt2di & aP2,
+                                const int   aSzW,
+                                const int   aStep
+                             );
+
+cResulRechCorrel<int> TT_RechMaxCorrelBasique
+                      (
+                             const tTImTiepTri & Im1,
+                             const Pt2di & aP1,
+                             const tTImTiepTri & Im2,
+                             const Pt2di & aP2,
+                             const int   aSzW,
+                             const int   aStep,
+                             const int   aSzRech
+                      );
+
+cResulRechCorrel<int> TT_RechMaxCorrelLocale
+                      (
+                             const tTImTiepTri & aIm1,
+                             const Pt2di & aP1,
+                             const tTImTiepTri & aIm2,
+                             const Pt2di & aP2,
+                             const int   aSzW,
+                             const int   aStep,
+                             const int   aSzRechMax
+                      );
+
+
 #endif //  _TiePTri_
 
 
