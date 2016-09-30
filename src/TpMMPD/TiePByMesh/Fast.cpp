@@ -208,21 +208,28 @@ FastNew::FastNew(const TIm2D<tPxl, tPxl> & anIm, double threshold, double radius
     cout<<"Info FAST : "<<
           endl<< "  ++Img: "<<mImInit.sz()<<endl;
 
-    /*
-    Video_Win * mW;
-    if (mW ==0)
-    {
-         int aZ = 2;
-         mW = Video_Win::PtrWStd(ToPt2di(mImInit.sz()/aZ),true,Pt2dr(1/double(aZ),1/double(aZ)));
-    }
-    cout<<"Win Created!"<<endl;
-    if (mW)
-    {
-         ELISE_COPY(mImInit.all_pts(), mImInit.in(), mW->ogray());
-         mW->clik_in();
-    }
-    */
+
+//    Video_Win * mW;
+//    if (mW ==0)
+//    {
+//         int aZ = 2;
+//         mW = Video_Win::PtrWStd(ToPt2di(mImInit.sz()/aZ),true,Pt2dr(1/double(aZ),1/double(aZ)));
+//    }
+//    cout<<"Win Created!"<<endl;
+//    if (mW)
+//    {
+//         ELISE_COPY(mImInit.all_pts(), mImInit.in(), mW->ogray());
+//         mW->clik_in();
+//    }
+
     getVoisinInteret(mRad);
+    detect(mTImInit, mTImMasq, mLstPt);
+
+//    for (uint i=0; i<mLstPt.size(); i++)
+//    {
+//        mW->draw_circle_loc(mLstPt[i],2.0,mW->pdisc()(P8COL::green));
+//    }
+//    mW->clik_in();
 }
 
 void FastNew::sortCWfor_mVoisin(vector<Pt2di> & mVoisin)
@@ -257,25 +264,39 @@ void FastNew::getVoisinInteret(double radius)
                     mVoisin.push_back(aP);
             }
         }
-
-
-
-        for (uint i=0; i<mVoisin.size(); i++)
-            cout<<mVoisin[i]<<endl;
         sortCWfor_mVoisin(mVoisin);
-        cout<<endl;
-        for (uint i=0; i<mVoisin.size(); i++)
-            cout<<mVoisin[i]<<endl;
-
-
-
     }
     else
         cout<<"FAST Err : radius < 2"<<endl;
 }
 
+#define tBrighter 2
+#define tDarker   1
+#define tSame     0
+
+bool FastNew::isContinue(vector<int> & label , int typeExtreme)
+{
+    for (uint aK=0; aK<label.size(); aK++)
+    {
+        if (label[aK] == typeExtreme)
+        {
+            bool isCont = true;
+            for (uint offset=0; offset<round(label.size()*3/4); offset++)
+            {
+                int indexVoisin = aK+offset;
+                if (indexVoisin >= label.size())
+                    indexVoisin = label.size() - indexVoisin;
+                if(label[indexVoisin] != typeExtreme)
+                    {isCont = false;break;}
+            }
+            if (isCont == true)
+                return true;
+        }
+    }
+    return false;
+}
+
 void FastNew::detect(
-                        Pt2dr aPt,
                         const TIm2D<tPxl, tPxl> & anIm,
                         const TIm2DBits<1> anMasq,
                         vector<Pt2dr> & lstPt
@@ -283,17 +304,35 @@ void FastNew::detect(
 {
     Pt2di aP;
     Pt2di szIm = anIm.sz();
-    for (aP.x=mRad; aP.x<=szIm.x-mRad; aP.x++)
+    for (aP.x=mRad; aP.x<szIm.x-mRad; aP.x++)
     {
-        for (aP.y=mRad; aP.y<=szIm.y-mRad; aP.y++)
+        for (aP.y=mRad; aP.y<szIm.y-mRad; aP.y++)
         {
             if ( anMasq.get(aP) )
             {
                 vector<double> diffCentreVoisin;
+                vector<int> label;
+                double nbBrighter=0; double nbDarker=0; double nbSame=0;
                 for (uint aK=0; aK<mVoisin.size(); aK++)
                 {
                     double subVal = anIm.get(aP) - anIm.get(aP+mVoisin[aK]);
                     diffCentreVoisin.push_back(subVal);
+                    if (subVal > mThres)
+                        {nbBrighter++;label.push_back(tBrighter);}
+                    else if (subVal < -mThres)
+                        {nbDarker++;label.push_back(tDarker);}
+                    else
+                        {nbSame++;label.push_back(tSame);}
+                }
+                bool isExtreme = (
+                                     nbBrighter > round(diffCentreVoisin.size()*3/4)
+                                  || nbDarker   > round(diffCentreVoisin.size()*3/4)
+                                 ) ? true : false;
+                if (isExtreme)
+                {
+                    int  typeExtreme = (nbBrighter > diffCentreVoisin.size()*3/4) ? tBrighter : tDarker;
+                    if (isContinue(label, typeExtreme))
+                        lstPt.push_back(ToPt2dr(aP));
                 }
             }
         }

@@ -195,6 +195,28 @@ void  cImTieTri::MakeInterestPoint
 }
 
 
+void  cImTieTri::MakeInterestPointFAST
+      (
+            std::list<cIntTieTriInterest> * aListPI,
+            TIm2D<U_INT1,INT>  * aImLabel,
+            const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> & anIm
+      )
+{
+    FastNew *aDec = new FastNew(anIm, 15, 3, aMasq);
+    eTypeTieTri aType = eTTTMax;
+    vector<Pt2dr> lstPt = aDec->lstPt();
+    for (uint i=0; i<lstPt.size(); i++)
+    {
+        Pt2di aP = ToPt2di(lstPt[i]);
+        if (mW)
+            mW->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(aType));
+        if (aImLabel)
+            aImLabel->oset(aP,aType);
+        if (aListPI)
+            aListPI->push_back(cIntTieTriInterest(aP,aType));
+    }
+}
+
 
 Video_Win * cImTieTri::W() {return mW;}
 

@@ -81,9 +81,8 @@ void Test_FAST()
     Im2D_Bits<1> aMasq0  = Im2D_Bits<1>(mImgSz.x,mImgSz.y,1);
     TIm2DBits<1> TaMasq0 = TIm2DBits<1> (aMasq0);
 
-    FastNew (*mPic_TIm2D , 10 , 3 , TaMasq0);
-
-
+    FastNew *aDec = new FastNew(*mPic_TIm2D , 15 , 3 , TaMasq0);
+    cout<<aDec->lstPt().size()<<" pts detected "<<endl;
 }
 
     /******************************************************************************

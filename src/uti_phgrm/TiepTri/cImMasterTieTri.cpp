@@ -68,6 +68,8 @@ void cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    }
 
    MakeInterestPoint(&mLIP,0,mTMasqTri,mTImInit);
+   //MakeInterestPointFAST(&mLIP,0,mTMasqTri,mTImInit);
+
 
 
    /// Im2D_U_INT1 

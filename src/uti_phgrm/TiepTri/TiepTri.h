@@ -142,6 +142,12 @@ class cImTieTri
                      TIm2D<U_INT1,INT>  *,
                      const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> &
                 );
+           void  MakeInterestPointFAST
+                 (
+                      std::list<cIntTieTriInterest> *,
+                      TIm2D<U_INT1,INT>  *,
+                      const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> &
+                 );
 
            void LoadTri(const cXml_Triangle3DForTieP & );
 
