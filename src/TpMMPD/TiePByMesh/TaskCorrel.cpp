@@ -56,14 +56,14 @@ int TaskCorrel_main(int argc,char ** argv)
         string aFullPattern, aOriInput;
         string aHomolOut = "_Filtered";
         bool assum1er=false;
-        int SzPtCorr = 1;int indTri=-1;double corl_seuil_glob = 0.8;bool Test=false;
+        int SzPtCorr = 1;double corl_seuil_glob = 0.8;
         int SzAreaCorr = 5; double corl_seuil_pt = 0.9;
         double PasCorr=0.5;
         vector<string> dParam; dParam.push_back("NO");
         bool useExistHomoStruct = false;
         double aAngleF = 90;
-        bool debugByClick = false;
         vector<double> aParamD;
+        string aDirXML = "XML_TiepTri";
         ElInitArgMain
                 (
                     argc,argv,
@@ -76,6 +76,7 @@ int TaskCorrel_main(int argc,char ** argv)
                     << EAM(assum1er, "assum1er", true, "always use 1er pose as img master, default=0")
                     << EAM(useExistHomoStruct, "useExist", true, "use exist homol struct - default = false")
                     << EAM(aAngleF, "angleV", true, "limit view angle - default = 90 (all triangle is viewable)")
+                    << EAM(aDirXML, "OutXML", true, "Output directory for XML File. Default = XML_TiepTri")
                     );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -88,34 +89,25 @@ int TaskCorrel_main(int argc,char ** argv)
         cout<<"Process has " <<PtrPic.size()<<" PIC && "<<PtrTri.size()<<" TRI "<<endl;
         CorrelMesh aCorrel(aChain);
 
-        cout<<"********** Method TEST **********"<<endl;
         vector<cXml_TriAngulationImMaster> lstJobTriAngulationImMaster;
         aChain->creatJobCorrel(aAngleF , lstJobTriAngulationImMaster);
-
-
 
         cout<<"There is "<<lstJobTriAngulationImMaster.size()<<" jobs xml"<<endl;
         for (uint i=0; i<lstJobTriAngulationImMaster.size(); i++)
         {
             cXml_TriAngulationImMaster aTriAngulationImMaster =  lstJobTriAngulationImMaster[i];
-
-            cout<<"Master = "<<aTriAngulationImMaster.NameMaster()<<endl;
-
-            cout<<"Img2nd = "<<endl;
-            for (uint j=0; j<aTriAngulationImMaster.NameSec().size(); j++)
-                  cout<<"   ++ "<<aTriAngulationImMaster.NameSec()[j]<<endl;
-
-            cout<<"There is "<<aTriAngulationImMaster.Tri().size()<<" tri get same master : "<<endl;
             for (uint ii=0; ii<aTriAngulationImMaster.Tri().size(); ii++)
             {
                 cXml_Triangle3DForTieP aTriangle3DForTieP = aTriAngulationImMaster.Tri()[ii];
-                for (uint kk=0; kk<aTriangle3DForTieP.NumImSec().size(); kk++)
-                    cout<<aTriangle3DForTieP.NumImSec()[kk]<<" ";
             }
-            cout<<endl;
         }
-        MakeFileXML(lstJobTriAngulationImMaster[1],"TriTest.xml");
 
+        ELISE_fp::MkDirSvp(aDirXML);
+        for (uint aK=0; aK<lstJobTriAngulationImMaster.size(); aK++)
+        {
+            string fileXML =  aChain->getPrivmICNM()->Dir() + aDirXML + "/" + lstJobTriAngulationImMaster[aK].NameMaster() + ".xml";
+            MakeFileXML(lstJobTriAngulationImMaster[aK], fileXML);
+        }
         cout<<endl;
 
 
