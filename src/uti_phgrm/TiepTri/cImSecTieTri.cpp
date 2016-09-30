@@ -116,6 +116,7 @@ void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    }
 
    MakeInterestPoint(0,&mTImLabelPC,mMaster->mTMasqTri,mTImReech);
+   //MakeInterestPointFAST(0,&mTImLabelPC,mMaster->mTMasqTri,mTImReech);
 
 }
 

@@ -33,15 +33,18 @@ public:
                             double threshold, double radius,
                             const TIm2DBits<1> & anMasq
               );
-    void detect(Pt2dr aPt, const TIm2D<tPxl, tPxl> & anIm, const TIm2DBits<1> anMasq, vector<Pt2dr> & lstPt);
+    void detect(const TIm2D<tPxl, tPxl> & anIm, const TIm2DBits<1> anMasq, vector<Pt2dr> & lstPt);
     const double & radius()    const {return mRad;}
     const double & threshold() const {return mThres;}
+    const vector<Pt2dr> & lstPt() const {return mLstPt;}
 private:
-    void getVoisinInteret(double radius);
-    void sortCWfor_mVoisin(vector<Pt2di> &);
+    void getVoisinInteret     (double radius);
+    void sortCWfor_mVoisin    (vector<Pt2di> &);
+    bool isContinue           (vector<int> & label , int typeExtreme);
     const double           mThres;
     const double           mRad;
     vector<Pt2di>          mVoisin;
+    vector<Pt2dr>          mLstPt;
     Im2D  <tPxl, tPxl>     mImInit;
     TIm2D  <tPxl, tPxl>    mTImInit;
     Im2D_Bits  <1>         mImMasq;
