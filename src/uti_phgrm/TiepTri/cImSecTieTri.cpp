@@ -153,7 +153,7 @@ void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,bool Interac
     {
         mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));
         mW->draw_circle_loc(Pt2dr(aP0),aD,mW->pdisc()(P8COL::yellow));
-        std::cout << "==================== " << P0 << " "  << (int) aLab << "\n";
+        //std::cout << "==================== " << P0 << " "  << (int) aLab << "\n";
     }
 }
 
