@@ -190,7 +190,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     mNameRTA   ("SauvRTA.xml"),
     mWithBlock (false)
 {
-    mStr0 = MakeStrFromArgcARgv(argc,argv);
+    mStr0 = MakeStrFromArgcARgv(argc,argv,true);
     MMD_InitArgcArgv(argc,argv);
 
     std::string aFullDir= "";
