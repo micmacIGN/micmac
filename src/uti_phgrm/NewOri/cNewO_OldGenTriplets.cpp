@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+#include "Extern_NewO.h"
 
 class cNewO_NameManager;
 
@@ -60,29 +61,6 @@ class cArgCreateSPV
          cNewO_OneIm *       mI2;
 };
 
-class cBaseSwappable
-{
-     public :
-         int & Swap_HeapIndex() {return mHeapIndex;}
-         const int & Swap_HeapIndex() const {return mHeapIndex;}
-         _INT8 & Swap_IndLastLoaded() {return mIndLastLoaded;}
-         const _INT8 & Swap_IndLastLoaded() const {return mIndLastLoaded;}
-         bool& Swap_Deletable() {return mDeletable;}
-         int & Swap_NbCreate() {return mNbCreate;}
-
-        cBaseSwappable() :
-             mHeapIndex (HEAP_NO_INDEX),
-             mDeletable (false),
-             mNbCreate (0)
-        {
-        }
-
-      private:
-         int mHeapIndex;
-         _INT8 mIndLastLoaded;
-         bool mDeletable;
-         int  mNbCreate;
-};
 
 class cSwappablePairVPts : public cBaseSwappable
 {
@@ -139,111 +117,6 @@ void cSwappablePairVPts::Swap_Create(const Swap_tArgCreate & anArg)
     }
 }
 
-
-
-
-//  x => Id ; y => Prio ; z => Heap Index
-
-
-template <class Type> class cHeapSwapIndex
-{
-     public :
-        static void SetIndex(Type * aP,int i) { aP->Swap_HeapIndex()=i;}
-        static int  Index(const Type *aP) { return aP->Swap_HeapIndex(); }
-};
-
-template <class Type> class cHeapSwapCmpIndLoad
-{
-    public :
-      bool operator() (const Type * aP1,const Type * aP2) {return aP1->Swap_IndLastLoaded() < aP2->Swap_IndLastLoaded();}
-};
-
-
-
-
-template <class Type> class cMemorySwap
-{
-    public :
-
-        typedef typename Type::Swap_tArgCreate  tCreate;
-        cMemorySwap(double aSzRam);
-        void  ReAllocateObject(Type *,const tCreate & anArg);
-    
-    private :
-        _INT8       mSzRam;
-        _INT8       mSzLoaded;
-        cHeapSwapCmpIndLoad<Type> mCmp;
-        ElHeap<Type *,cHeapSwapCmpIndLoad<Type>,cHeapSwapIndex<Type> > mHeap;
-        unsigned long int     mCpt;
-};
-
-
-
-
-
-
-template <class Type>    cMemorySwap<Type>::cMemorySwap(double aSzRam) :
-    mSzRam         (aSzRam),
-    mSzLoaded      (0),
-    mCmp           (),
-    mHeap          (mCmp),
-    mCpt           (0)
-{
-}
-
-template <class Type> void cMemorySwap<Type>::ReAllocateObject(Type * anObj,const tCreate & anArg)
-{
-    anObj->Swap_IndLastLoaded() =  mCpt++;
-    int aCurCpt =  anObj->Swap_IndLastLoaded() ;
-    mHeap.MajOrAdd(anObj);
-    
-
-    if (anObj->Swap_Loaded())
-    {
-         return;
-    }
-
-    anObj->Swap_Create(anArg);
-    anObj->Swap_NbCreate()++;
-    anObj->Swap_Deletable() = false;
-    mSzLoaded += anObj->Swap_SizeOf();
-
-    bool Cont = true;
-    while (Cont)
-    {
-       if (mSzLoaded <mSzRam)
-       {
-          Cont = false;
-       }
-       else
-       {
-          Type * aPop;
-          bool aGot = mHeap.pop(aPop);
-          ELISE_ASSERT(aGot,"Heap empty in cMemorySwap<Type>::ReAllocateObject");
-          if (aPop->Swap_Deletable())
-          {
-              mSzLoaded -= anObj->Swap_SizeOf();
-              anObj->Swap_Delete();
-          }
-          else
-          {
-               if (aPop->Swap_IndLastLoaded() >= aCurCpt)
-               {
-                   Cont = false;
-               }
-               aPop->Swap_IndLastLoaded() =  mCpt++;
-               mHeap.MajOrAdd(aPop);
-          }
-       }
-    }
-}
-
-
-
-void TestF()
-{
-    cMemorySwap<cSwappablePairVPts>  aMS(1e6);
-}
 
 
 
@@ -439,7 +312,6 @@ class cAppli_GenTriplet
        std::string                   mPrefHom;
        std::string                   mExtName;
        double                        mRamAllowed;
-       cMemorySwap<cSwappablePairVPts>  mAllocSwap;
        int                           mKS0;
        std::string                   mNameModeNO;
        eTypeModeNO                   mModeNO;
@@ -1084,7 +956,6 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     mPrefHom    (""),
     mExtName    (""),
     mRamAllowed (4e9),
-    mAllocSwap  (mRamAllowed),
     mKS0        (0),
     mNameModeNO     (TheStdModeNewOri)
 {

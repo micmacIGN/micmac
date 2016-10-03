@@ -78,8 +78,8 @@ cAppliTieTri::cAppliTieTri
      mDir         (aDir),
      mOri         (anOri),
      mWithW       (false),
-     mDisExtrema  (3.0),
-     mDistRechHom (10.0)
+     mDisExtrema  (TT_DIST_EXTREMA),
+     mDistRechHom (TT_DIST_RECH_HOM)
 
 {
    mMasIm = new cImMasterTieTri(*this,aTriang.NameMaster());

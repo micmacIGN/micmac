@@ -49,6 +49,9 @@ class cImTieTri;
 class cImMasterTieTri;
 class cImSecTieTri;
 
+#define TT_DefCorrel -2.0
+#define TT_DIST_RECH_HOM 12.0  // Seuil de recherche des homologues
+#define TT_DIST_EXTREMA  3.0   // calcul des extrema locaux
 
 //  =====================================
 
@@ -211,6 +214,9 @@ class cImSecTieTri : public cImTieTri
 
 //  ====================================  Correlation ==========================
 
+// inline const double & MyDeCorrel() {static double aR=-2.0; return aR;}
+
+
 template<class Type> class cResulRechCorrel
 {
      public :
@@ -218,6 +224,23 @@ template<class Type> class cResulRechCorrel
               mPt     (aPt),
               mCorrel (aCorrel)
           {
+          }
+          bool IsInit() const {return mCorrel > TT_DefCorrel;}
+
+          cResulRechCorrel() :
+              mPt     (0,0),
+              mCorrel (TT_DefCorrel)
+          {
+          }
+
+          void Merge(const cResulRechCorrel & aRRC)
+          {
+              if (aRRC.mCorrel > mCorrel)
+              {
+                    // mCorrel = aRRC.mCorrel;
+                    // mPt     =  aRRC.mPt;
+                  *this = aRRC;
+              }
           }
 
           Pt2d<Type>  mPt;
@@ -247,6 +270,16 @@ cResulRechCorrel<int> TT_RechMaxCorrelBasique
                              const int   aSzRech
                       );
 
+
+double TT_CorrelBilin
+       (
+               const tTImTiepTri & Im1,
+               const Pt2di & aP1,
+               const tTImTiepTri & Im2,
+               const Pt2dr & aP2,
+               const int   aSzW
+       );
+
 cResulRechCorrel<int> TT_RechMaxCorrelLocale
                       (
                              const tTImTiepTri & aIm1,
@@ -257,6 +290,16 @@ cResulRechCorrel<int> TT_RechMaxCorrelLocale
                              const int   aStep,
                              const int   aSzRechMax
                       );
+
+cResulRechCorrel<double> TT_RechMaxCorrelMultiScaleBilin
+                      (
+                             const tTImTiepTri & aIm1,
+                             const Pt2di & aP1,
+                             const tTImTiepTri & aIm2,
+                             const Pt2dr & aP2,
+                             const int   aSzW
+                      );
+
 
 
 #endif //  _TiePTri_

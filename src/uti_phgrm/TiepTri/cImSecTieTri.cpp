@@ -120,14 +120,26 @@ void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
 }
 
+/*
+ glob  -0.0861334 [-9,7] [-2,2]
+--loc-- -0.259069 [-8,5] [-1,0]
+  glob  0.346995 [4,-8] [2,-1]
+--loc-- 0.267576 [3,-8] [1,-1]
+  glob  0.840767 [4,7] [2,-2]
+--loc-- 0.781191 [3,8] [1,-1]
+==================== [333,157] 2
+
+*/
+
 void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,bool Interactif)
 {
     double aD= mAppli.DistRechHom();
     Pt2di aP0 = aPI.mPt;
     eTypeTieTri aLab = aPI.mType;
 
-    
     const std::vector<Pt2di> &   aVH = mAppli.VoisHom();
+                   
+    cResulRechCorrel<int> aCRCMax;
     for (int aKH=0 ; aKH<int(aVH.size()) ; aKH++)
     {
         if (mTImLabelPC.get(aP0+aVH[aKH],-1)==aLab)
@@ -136,14 +148,22 @@ void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,bool Interac
            if (Interactif)
            {
                mW->draw_circle_loc(Pt2dr(aPV),2.0,ColOfType(aLab));
-               int aSzRech = 2;
+               int aSzRech = 3;
 
-               cResulRechCorrel<int> aCRC = TT_RechMaxCorrelBasique(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
+               // cResulRechCorrel<int> aCRC = TT_RechMaxCorrelBasique(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
 
-               cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,5);
+               cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
+               if (aCRCLoc.mCorrel > 0.7)
+               {
+                   aPV = aPV+ aCRCLoc.mPt;
+                   aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,6,1,aSzRech);
+                   
+                   // aPV = aPV+ aCRCLoc.mPt;
+                   aCRCLoc.mPt = aPV+ aCRCLoc.mPt;  // Contient la coordonnee directe dans Im2
 
-               std::cout  << "  glob  " << aCRC.mCorrel << " " << aCRC.mPt + aVH[aKH] << " " << aCRC.mPt << "\n";
-               std::cout  << "--loc-- " << aCRCLoc.mCorrel << " " << aCRCLoc.mPt + aVH[aKH] << " " << aCRCLoc.mPt << "\n";
+                   // std::cout  << "--loc-- " << aCRCLoc.mCorrel << " " << aPV - aP0 << "\n";
+                   aCRCMax.Merge(aCRCLoc);
+               }
 
            }
         }
@@ -153,7 +173,45 @@ void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,bool Interac
     {
         mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));
         mW->draw_circle_loc(Pt2dr(aP0),aD,mW->pdisc()(P8COL::yellow));
-        std::cout << "==================== " << P0 << " "  << (int) aLab << "\n";
+        if (aCRCMax.IsInit())
+        {
+            std::cout  << "-- CORREL INT -- " << aCRCMax.mCorrel << " " << aCRCMax.mPt- aP0 << "\n";
+
+            double aCorrelMax= -2;
+            Pt2dr  aPMax(0,0);
+            double aStep = 0.125;
+            for (double aDx= -1.5 ; aDx <=1.5 ; aDx+=aStep)
+            {
+                 for (double aDy= -1.5 ; aDy <=1.5 ; aDy+=aStep)
+                 {
+                      Pt2dr aPIm2 = Pt2dr(aCRCMax.mPt) + Pt2dr(aDx,aDy);
+                      double aC =  TT_CorrelBilin
+                                   (
+                                        mMaster->mTImInit,
+                                        aP0,
+                                        mTImReech,
+                                        aPIm2,
+                                        6
+                                    );
+                      if (aC>aCorrelMax)
+                      {
+                         aCorrelMax = aC;
+                         aPMax = aPIm2;
+                      }
+
+                      // std::cout << "Correl = " << aPIm2 << " " << aC << "\n";
+                 }
+            }
+            std::cout << "CorrelMax  = " << aPMax -Pt2dr(aP0) << " " << aCorrelMax << "\n";
+
+            cResulRechCorrel<double> aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,aP0,mTImReech,Pt2dr(aCRCMax.mPt),6);
+
+            std::cout << "MulScale  = " << aRes.mPt  << " " << aRes.mCorrel << "\n\n";
+        // std::cout << "==================== " << aP0 << " "  << (int) aLab << "\n";
+        }
+        else
+            std::cout  << "- NO POINT \n";
+
     }
 }
 

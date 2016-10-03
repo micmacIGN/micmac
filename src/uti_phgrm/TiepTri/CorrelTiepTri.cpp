@@ -39,13 +39,49 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepTri.h"
 
-const double TT_DefCorrel = -2;
-
 template <class Type> bool inside_window(const Type & Im1, const Pt2di & aP1,const int &   aSzW)
 {
    return Im1.inside(aP1-Pt2di(aSzW,aSzW)) && Im1.inside(aP1+Pt2di(aSzW,aSzW));
 }
 
+/********************************************************************************/
+/*                                                                              */
+/*                  Correlation sub-pixel, interpol bilin basique               */
+/*                                                                              */
+/********************************************************************************/
+
+
+double TT_CorrelBilin
+                             (
+                                const tTImTiepTri & Im1,
+                                const Pt2di & aP1,
+                                const tTImTiepTri & Im2,
+                                const Pt2dr & aP2,
+                                const int   aSzW
+                             )
+{
+ 
+     if (! (inside_window(Im1,aP1,aSzW) && inside_window(Im2,round_ni(aP2),aSzW+1))) return TT_DefCorrel;
+
+     Pt2di aVois;
+     RMat_Inertie aMatr;
+
+     for  (aVois.x = -aSzW ; aVois.x<=aSzW  ; aVois.x++)
+     {
+          for  (aVois.y = -aSzW ; aVois.y<=aSzW  ; aVois.y++)
+          {
+               aMatr.add_pt_en_place(Im1.get(aP1+aVois),Im2.getr(aP2+Pt2dr(aVois)));
+          }
+     }
+     
+     return aMatr.correlation();
+}
+
+/********************************************************************************/
+/*                                                                              */
+/*                  Correlation entiere                                         */
+/*                                                                              */
+/********************************************************************************/
 
 double TT_CorrelBasique
                              (
@@ -73,6 +109,9 @@ double TT_CorrelBasique
      
      return aMatr.correlation();
 }
+
+
+
 
 cResulRechCorrel<int> TT_RechMaxCorrelBasique
                       (
@@ -104,25 +143,52 @@ cResulRechCorrel<int> TT_RechMaxCorrelBasique
      return cResulRechCorrel<int>(aDecMax,aCorrelMax);
 
 }
+
+/********************************************************************************/
+/*                                                                              */
+/*                  Optimisation                                                */
+/*                                                                              */
+/********************************************************************************/
+typedef enum eTypeModeCorrel
+{
+    eTMCInt = 0,
+    eTMCBilinStep1 = 1
+}  eTypeModeCorrel;
+
+
  
 class cTT_MaxLocCorrelBasique : public Optim2DParam
 {
     public :
          REAL Op2DParam_ComputeScore(REAL aDx,REAL aDy) 
          {
-              return  TT_CorrelBasique(mIm1,mP1,mIm2,mP2+Pt2di(round_ni(aDx),round_ni(aDy)),mSzW,mStep);
+            if (mMode == eTMCInt)
+            {
+               double aRes =  TT_CorrelBasique(mIm1,Pt2di(mP1),mIm2,Pt2di(mP2)+Pt2di(round_ni(aDx),round_ni(aDy)),mSzW,mStep);
+               return aRes;
+            }
+            if (mMode == eTMCBilinStep1)
+            {
+               double aRes =  TT_CorrelBilin(mIm1,Pt2di(mP1),mIm2,mP2+Pt2dr(aDx,aDy),mSzW);
+               return aRes;
+            }
+
+            return 0;
          }
  
          cTT_MaxLocCorrelBasique 
          ( 
+              eTypeModeCorrel     aMode,
               const tTImTiepTri & aIm1,
-              const Pt2di &       aP1,
+              Pt2dr               aP1,
               const tTImTiepTri & aIm2,
-              const Pt2di &       aP2,
+              Pt2dr               aP2,
               const int           aSzW,
-              const int           aStep
+              const int           aStep,
+              double              aStepRechCorrel
          )  :
-            Optim2DParam ( 0.9, TT_DefCorrel ,1e-5, true),
+            Optim2DParam ( aStepRechCorrel, TT_DefCorrel ,1e-5, true),
+            mMode (aMode),
             mIm1 (aIm1),
             mP1  (aP1),
             mIm2 (aIm2),
@@ -132,13 +198,13 @@ class cTT_MaxLocCorrelBasique : public Optim2DParam
          {
          }
             
-
+         eTypeModeCorrel     mMode;
          const tTImTiepTri & mIm1;
-         const Pt2di & mP1;
+         Pt2dr               mP1;
          const tTImTiepTri & mIm2;
-         const Pt2di & mP2;
-         const int   mSzW;
-         const int   mStep;
+         Pt2dr               mP2;
+         const int           mSzW;
+         const int           mStep;
 };
 
 cResulRechCorrel<int> TT_RechMaxCorrelLocale
@@ -153,12 +219,31 @@ cResulRechCorrel<int> TT_RechMaxCorrelLocale
                       )
 
 {
-   cTT_MaxLocCorrelBasique  anOpt(aIm1,aP1,aIm2,aP2,aSzW,aStep);
+   cTT_MaxLocCorrelBasique  anOpt(eTMCInt,aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),aSzW,aStep,0.9);
    anOpt.optim_step_fixed(Pt2dr(0,0),aSzRechMax);
 
    return cResulRechCorrel<int>(round_ni(anOpt.param()),anOpt.ScOpt());
-
 }
+
+cResulRechCorrel<double> TT_RechMaxCorrelMultiScaleBilin
+                      (
+                             const tTImTiepTri & aIm1,
+                             const Pt2di & aP1,
+                             const tTImTiepTri & aIm2,
+                             const Pt2dr & aP2,
+                             const int   aSzW
+                      )
+
+{
+   cTT_MaxLocCorrelBasique  anOpt(eTMCBilinStep1,aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),aSzW,1,0.1);
+   anOpt.optim();
+
+   return cResulRechCorrel<double>(anOpt.param(),anOpt.ScOpt());
+}
+
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -243,10 +243,10 @@ class  ElTAB_MEM_K_POSSIBLE
        public :
             static INT k0()   {return 9;}
             static INT no_k() {return -1;}
-            static ElTAB_MEM_K_POSSIBLE  THE_ONE;
+            static ElTAB_MEM_K_POSSIBLE  &  THE_ONE();
 
             static ElMEM_K_POSSIBLE & kpos(INT k)
-            {return THE_ONE._mem_kpos[k];}
+            {return THE_ONE()._mem_kpos[k];}
 
        private :
 
@@ -263,10 +263,22 @@ void ElMEM_K_POSSIBLE::init(Pt2di p)
     _nbk = 0;
     for (INT k =0; k<9; k++)
        if ( dist8(VOIS_9[k]+p) > 1)
+       {
           _kpos[_nbk++] = k;
+       }
 }                         
 
-ElTAB_MEM_K_POSSIBLE  ElTAB_MEM_K_POSSIBLE::THE_ONE;
+ElTAB_MEM_K_POSSIBLE &  ElTAB_MEM_K_POSSIBLE::THE_ONE ()
+{
+   static ElTAB_MEM_K_POSSIBLE * aRes=0;
+   if (aRes==0)
+   {
+       aRes = new ElTAB_MEM_K_POSSIBLE;
+   }
+   return *aRes;
+}
+
+
 
 ElTAB_MEM_K_POSSIBLE::ElTAB_MEM_K_POSSIBLE()
 {
