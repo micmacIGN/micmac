@@ -140,7 +140,7 @@ cResulRechCorrel<int> TT_RechMaxCorrelBasique
         }
      }
 
-     return cResulRechCorrel<int>(aDecMax,aCorrelMax);
+     return cResulRechCorrel<int>(aP2+aDecMax,aCorrelMax);
 
 }
 
@@ -222,7 +222,7 @@ cResulRechCorrel<int> TT_RechMaxCorrelLocale
    cTT_MaxLocCorrelBasique  anOpt(eTMCInt,aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),aSzW,aStep,0.9);
    anOpt.optim_step_fixed(Pt2dr(0,0),aSzRechMax);
 
-   return cResulRechCorrel<int>(round_ni(anOpt.param()),anOpt.ScOpt());
+   return cResulRechCorrel<int>(aP2+round_ni(anOpt.param()),anOpt.ScOpt());
 }
 
 cResulRechCorrel<double> TT_RechMaxCorrelMultiScaleBilin
@@ -238,7 +238,7 @@ cResulRechCorrel<double> TT_RechMaxCorrelMultiScaleBilin
    cTT_MaxLocCorrelBasique  anOpt(eTMCBilinStep1,aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),aSzW,1,0.1);
    anOpt.optim();
 
-   return cResulRechCorrel<double>(anOpt.param(),anOpt.ScOpt());
+   return cResulRechCorrel<double>(aP2+anOpt.param(),anOpt.ScOpt());
 }
 
 

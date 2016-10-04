@@ -71,6 +71,12 @@ void cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    //MakeInterestPointFAST(&mLIP,0,mTMasqTri,mTImInit);
 
 
+   if (1)
+   {
+       int aCpt;
+       ELISE_COPY(mMasqTri.all_pts(), mMasqTri.in(),sigma(aCpt));
+       std::cout << " Nb In Masq= " << aCpt << "\n";
+   }
 
    /// Im2D_U_INT1 
 }
@@ -95,6 +101,11 @@ cIntTieTriInterest cImMasterTieTri::GetPtsInteret()
    mW->draw_circle_loc(Pt2dr(aRes->mPt),1.0,mW->pdisc()(P8COL::green));
    return *aRes;
 }
+
+bool  cImMasterTieTri::IsMaster() const {return true;}
+const std::list<cIntTieTriInterest> & cImMasterTieTri::LIP() const {return mLIP;}
+
+
 
 
 

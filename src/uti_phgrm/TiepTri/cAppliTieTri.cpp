@@ -79,7 +79,9 @@ cAppliTieTri::cAppliTieTri
      mOri         (anOri),
      mWithW       (false),
      mDisExtrema  (TT_DIST_EXTREMA),
-     mDistRechHom (TT_DIST_RECH_HOM)
+     mDistRechHom (TT_DIST_RECH_HOM),
+     mNivInterac  (0),
+     mCurPlan     (Pt3dr(0,0,0),Pt3dr(1,0,0),Pt3dr(0,1,0))
 
 {
    mMasIm = new cImMasterTieTri(*this,aTriang.NameMaster());
@@ -109,6 +111,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
 
 void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri )
 {
+    mCurPlan = cElPlan3D(aTri.P1(),aTri.P2(),aTri.P3());
     mMasIm->LoadTri(aTri);
     mLoadedImSec.clear();
     for (int aKTri=0 ; aKTri<int(aTri.NumImSec().size()) ; aKTri++)
@@ -118,16 +121,29 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri )
         mLoadedImSec.push_back(mImSec[aKIm]);
     }
 
-    if (1)
+    if (1 && (mNivInterac==2))
     {
-         while (1 && mWithW) 
+         while (mWithW) 
          {
               cIntTieTriInterest aPI= mMasIm->GetPtsInteret();
               for (int aKIm=0 ; aKIm<int(mLoadedImSec.size()) ; aKIm++)
               {
-                  mLoadedImSec[aKIm]->RechHomPtsInteret(aPI,true);
+                  mLoadedImSec[aKIm]->RechHomPtsInteret(aPI,mNivInterac);
               }
          }
+    }
+    else
+    {
+         const std::list<cIntTieTriInterest> & aLIP =  mMasIm->LIP();
+         ElTimer aChrono;
+         for (std::list<cIntTieTriInterest>::const_iterator itI=aLIP.begin(); itI!=aLIP.end() ; itI++)
+         {
+              for (int aKIm=0 ; aKIm<int(mLoadedImSec.size()) ; aKIm++)
+              {
+                  mLoadedImSec[aKIm]->RechHomPtsInteret(*itI,mNivInterac);
+              }
+         }
+         std::cout << "Time =" << aChrono.uval() << "\n";
     }
 
     if (mMasIm->W())
@@ -163,6 +179,9 @@ const std::vector<Pt2di> &   cAppliTieTri::VoisHom() const { return mVoisHom; }
 
 bool &   cAppliTieTri::Debug() {return mDebug;}
 const double &   cAppliTieTri::DistRechHom() const {return mDistRechHom;}
+
+int  &   cAppliTieTri::NivInterac() {return mNivInterac;}
+const cElPlan3D & cAppliTieTri::CurPlan() const {return mCurPlan;}
 
 
 /***************************************************************************/

@@ -53,6 +53,8 @@ class cImSecTieTri;
 #define TT_DIST_RECH_HOM 12.0  // Seuil de recherche des homologues
 #define TT_DIST_EXTREMA  3.0   // calcul des extrema locaux
 
+#define TT_SEUIL_CORREL_1PIXSUR2  0.7   // calcul des extrema locaux
+
 //  =====================================
 
 
@@ -84,10 +86,14 @@ class cAppliTieTri
            const std::vector<Pt2di> &   VoisHom() const;
            bool  & Debug() ;
            const double & DistRechHom() const;
+           int & NivInterac();
+           const cElPlan3D & CurPlan() const;
 
 
       private  :
          void DoOneTri        (const cXml_Triangle3DForTieP & );
+
+         
 
 
          cInterfChantierNameManipulateur * mICNM;
@@ -107,6 +113,8 @@ class cAppliTieTri
          std::vector<Pt2di>                mVoisExtr;
          std::vector<Pt2di>                mVoisHom;
          bool                              mDebug;
+         int                               mNivInterac;
+         cElPlan3D                         mCurPlan;
 };
 
 typedef enum eTypeTieTri
@@ -137,8 +145,9 @@ class cImTieTri
 
            cImTieTri(cAppliTieTri & ,const std::string& aNameIm);
            Video_Win *        W();
+           virtual bool IsMaster() const = 0;
       protected :
-           bool IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> &,Pt2di aP,bool aMax);
+           int  IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> &,Pt2di aP);
            void MakeInterestPoint
                 (
                      std::list<cIntTieTriInterest> *,
@@ -188,6 +197,8 @@ class cImMasterTieTri : public cImTieTri
            void LoadTri(const cXml_Triangle3DForTieP & );
 
            cIntTieTriInterest  GetPtsInteret();
+           virtual bool IsMaster() const ;
+           const std::list<cIntTieTriInterest> & LIP() const;
 
     private :
 
@@ -201,14 +212,18 @@ class cImSecTieTri : public cImTieTri
            cImSecTieTri(cAppliTieTri & ,const std::string& aNameIm);
            void LoadTri(const cXml_Triangle3DForTieP & );
 
-           void RechHomPtsInteret(const cIntTieTriInterest & aP,bool Interactif);
+           void RechHomPtsInteret(const cIntTieTriInterest & aP,int aNivInterac);
+           virtual bool IsMaster() const ;
     private :
+           void  DecomposeVecHom(const Pt2dr & aPSH1,const Pt2dr & aPSH2,Pt2dr & aDirProf,Pt2dr & aNewCoord);
+
            Im2D<tElTiepTri,tElTiepTri>   mImReech;
            TIm2D<tElTiepTri,tElTiepTri>  mTImReech;
            Im2D<U_INT1,INT>              mImLabelPC;
            TIm2D<U_INT1,INT>             mTImLabelPC;
            Pt2di                         mSzReech;
            ElAffin2D                     mAffMas2Sec;
+           ElAffin2D                     mAffSec2Mas;
            cImMasterTieTri *             mMaster;
 };
 
