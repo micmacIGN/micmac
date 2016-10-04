@@ -54,6 +54,7 @@ cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
    mImLabelPC  (1,1),
    mTImLabelPC (mImLabelPC),
    mAffMas2Sec (ElAffin2D::Id()),
+   mAffSec2Mas (ElAffin2D::Id()),
    mMaster     (anAppli.Master())
 {
 }
@@ -71,6 +72,8 @@ void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
                       mMaster->mP1Loc,mMaster->mP2Loc,mMaster->mP3Loc,
                       mP1Loc,mP2Loc,mP3Loc
                  );
+
+   mAffSec2Mas = mAffMas2Sec.inv();
 
    mSzReech = mMaster->mSzIm;
 
@@ -131,7 +134,30 @@ void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
 */
 
-void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,bool Interactif)
+void  cImSecTieTri::DecomposeVecHom(const Pt2dr & aPSH1,const Pt2dr & aPSH2,Pt2dr & aDir,Pt2dr & aDecompos)
+{
+       bool Ok;
+       Pt3dr aPTer =  mAppli.CurPlan().Inter(mCam->Capteur2RayTer(aPSH1) , &Ok);
+
+       double aProf = mMaster->mCam->ProfondeurDeChamps(aPTer);
+       Pt2dr aPM1 = mMaster->mCam->Ter2Capteur(aPTer);
+       Pt3dr aPTerMod =  mMaster->mCam->ImEtProf2Terrain(aPM1,aProf*(1+1e-3));
+       Pt2dr aPSH1Mod =  mCam->Ter2Capteur(aPTerMod);
+
+       aDir = vunit(aPSH1Mod -aPSH1);
+       aDecompos = (aPSH2-aPSH1) / aDir;
+
+       
+
+       std::cout << "GGGGGg  " << aDecompos << "\n";
+       // Pt2dr aDirProf =  vunit(aPSH1Mod- aPSH1);
+}
+
+
+
+
+
+void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,int aNivInter)
 {
     double aD= mAppli.DistRechHom();
     Pt2di aP0 = aPI.mPt;
@@ -145,43 +171,52 @@ void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,bool Interac
         if (mTImLabelPC.get(aP0+aVH[aKH],-1)==aLab)
         {
            Pt2di aPV = aP0+aVH[aKH];
-           if (Interactif)
+           if (aNivInter>=2)
            {
                mW->draw_circle_loc(Pt2dr(aPV),2.0,ColOfType(aLab));
-               int aSzRech = 3;
 
+           }
                // cResulRechCorrel<int> aCRC = TT_RechMaxCorrelBasique(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
 
-               cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
-               if (aCRCLoc.mCorrel > 0.7)
-               {
-                   aPV = aPV+ aCRCLoc.mPt;
-                   aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,6,1,aSzRech);
+           int aSzRech = 6;
+           cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
+           if (aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2)
+           {
+               // aPV = aPV+ aCRCLoc.mPt;
+               aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aCRCLoc.mPt,6,1,aSzRech);
                    
-                   // aPV = aPV+ aCRCLoc.mPt;
-                   aCRCLoc.mPt = aPV+ aCRCLoc.mPt;  // Contient la coordonnee directe dans Im2
+               // aCRCLoc.mPt = aPV+ aCRCLoc.mPt;  // Contient la coordonnee directe dans Im2
 
-                   // std::cout  << "--loc-- " << aCRCLoc.mCorrel << " " << aPV - aP0 << "\n";
-                   aCRCMax.Merge(aCRCLoc);
-               }
-
+               aCRCMax.Merge(aCRCLoc);
            }
         }
     }
 
-    if (Interactif)
+    if (aNivInter>=2)
     {
         mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));
         mW->draw_circle_loc(Pt2dr(aP0),aD,mW->pdisc()(P8COL::yellow));
-        if (aCRCMax.IsInit())
-        {
-            std::cout  << "-- CORREL INT -- " << aCRCMax.mCorrel << " " << aCRCMax.mPt- aP0 << "\n";
+    }
 
-            double aCorrelMax= -2;
-            Pt2dr  aPMax(0,0);
-            double aStep = 0.125;
-            for (double aDx= -1.5 ; aDx <=1.5 ; aDx+=aStep)
-            {
+    if (! aCRCMax.IsInit())
+    {
+        if (aNivInter>=2)
+            std::cout  << "- NO POINT for Correl Int\n";
+       return;
+    }
+
+   
+    if (aNivInter>=2)
+    {
+          std::cout  << "-- CORREL INT -- " << aCRCMax.mCorrel << " " << aCRCMax.mPt- aP0 << "\n";
+
+          if (1)
+          {
+              double aCorrelMax= -2;
+              Pt2dr  aPMax(0,0);
+              double aStep = 0.125;
+              for (double aDx= -1.5 ; aDx <=1.5 ; aDx+=aStep)
+              {
                  for (double aDy= -1.5 ; aDy <=1.5 ; aDy+=aStep)
                  {
                       Pt2dr aPIm2 = Pt2dr(aCRCMax.mPt) + Pt2dr(aDx,aDy);
@@ -200,21 +235,32 @@ void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,bool Interac
                       }
 
                       // std::cout << "Correl = " << aPIm2 << " " << aC << "\n";
-                 }
-            }
-            std::cout << "CorrelMax  = " << aPMax -Pt2dr(aP0) << " " << aCorrelMax << "\n";
-
-            cResulRechCorrel<double> aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,aP0,mTImReech,Pt2dr(aCRCMax.mPt),6);
-
-            std::cout << "MulScale  = " << aRes.mPt  << " " << aRes.mCorrel << "\n\n";
-        // std::cout << "==================== " << aP0 << " "  << (int) aLab << "\n";
-        }
-        else
-            std::cout  << "- NO POINT \n";
-
+                   }
+              }
+              std::cout << "CorrelMaxGrid  = " << aPMax -Pt2dr(aP0) << " " << aCorrelMax << "\n";
+          }
     }
+    
+    cResulRechCorrel<double> aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,aP0,mTImReech,Pt2dr(aCRCMax.mPt),6);
+
+    if (aNivInter >=1)
+    {
+        Pt2dr aDepl = aRes.mPt - Pt2dr(aP0);
+
+        mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::yellow));
+        mW->draw_seg(Pt2dr(aP0),Pt2dr(aP0) + aDepl * 3  ,mW->pdisc()(P8COL::green));
+    }
+
+
+    Pt2dr aDir,aNewDec;
+
+    DecomposeVecHom(mAffMas2Sec(Pt2dr(aP0)),mAffMas2Sec(aRes.mPt),aDir,aNewDec);
+
+    // std::cout << "MulScale  = " << aRes.mPt -Pt2dr(aP0)  << " " << aRes.mCorrel << "\n\n";
+        // std::cout << "==================== " << aP0 << " "  << (int) aLab << "\n";
 }
 
+bool  cImSecTieTri::IsMaster() const {return false;}
 
 
 

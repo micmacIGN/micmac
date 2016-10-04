@@ -287,6 +287,8 @@ int TestMartini_Main(int argc,char ** argv)
     {
        anAppli.OneTest(aK);
     }
+
+    return EXIT_SUCCESS;
 }
 
 

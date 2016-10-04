@@ -99,7 +99,8 @@ void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
          int aZ = mAppli.ZoomW();
          mW = Video_Win::PtrWStd(mAppli.SzW()*aZ,true,Pt2dr(aZ,aZ));
          mW = mW-> PtrChc(Pt2dr(0,0),Pt2dr(aZ,aZ),true);
-         mW->set_title(mNameIm.c_str());
+         std::string aTitle = std::string(IsMaster() ? "*** " : "") + mNameIm;
+         mW->set_title(aTitle.c_str());
     }
 
    
@@ -113,30 +114,45 @@ void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
          // mW->clik_in();
     }
 }
+
+template <class Type> int  CmpValAndDec(const Type & aV1,const Type & aV2, const Pt2di & aDec)
+{
+   //    aV1 =>   aV1 + eps * aDec.x + eps * esp * aDec
+
+   if (aV1 < aV2) return -1;
+   if (aV1 > aV2) return  1;
+
+   if (aDec.x<0)  return -1;
+   if (aDec.x>0)  return  1;
+
+   if (aDec.y<0)  return -1;
+   if (aDec.y>0)  return  1;
+
+   return 0;
+}
+
   
-bool cImTieTri::IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> & anIm,Pt2di aP,bool aMax)
+int cImTieTri::IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> & anIm,Pt2di aP)
 {
 // bool aPSpec = (aP==Pt2di(90,69));
     tElTiepTri aValCentr = anIm.get(aP);
     const std::vector<Pt2di> &  aVE = mAppli.VoisExtr();
 
 
+
+    int aCmp0 =0;
     for (int aKP=0 ; aKP<int(aVE.size()) ; aKP++)
     {
-        tElTiepTri aValV = anIm.get(aP+aVE[aKP]);
-        // if (aPSpec)  std::cout << "VALLS " << aValV << " " << aValCentr << " " << aMax << "\n";
-        if (aMax)
+        int aCmp = CmpValAndDec(aValCentr,anIm.get(aP+aVE[aKP]),aVE[aKP]);
+        if (aKP==0) 
         {
-           if (aValCentr <= aValV) 
-              return false; 
+            aCmp0 = aCmp;
+            if (aCmp0==0) return 0;
         }
-        else
-        {
-           if (aValCentr >= aValV) 
-              return false;
-        }
+
+        if (aCmp!=aCmp0) return 0;
     }
-    return true;
+    return aCmp0;
 }
 
 Col_Pal  cImTieTri::ColOfType(eTypeTieTri aType)
@@ -173,10 +189,11 @@ void  cImTieTri::MakeInterestPoint
              // if (aPSpec) std::cout << "MASQ=" << aMasq.get(aP) << "\n";
             if (aMasq.get(aP))
             {
-                bool IsMax = anIm.get(aP) >  anIm.get(aP+Pt2di(1,0));
-                if (IsExtrema(anIm,aP,IsMax))
+                int aCmp0 =  IsExtrema(anIm,aP);
+
+                if (aCmp0)
                 {
-                   eTypeTieTri aType = IsMax ? eTTTMax : eTTTMin;
+                   eTypeTieTri aType = (aCmp0==1)  ? eTTTMax : eTTTMin;
                    if (mW)
                    {
                        // mW->draw_circle_loc(Pt2dr(aP),2.0,mW->pdisc()(IsMax ? P8COL::red : P8COL::blue));
