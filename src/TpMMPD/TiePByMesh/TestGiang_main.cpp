@@ -92,7 +92,7 @@ int TestGiang_main(int argc,char ** argv)
 {
 
     //Test_Xml();
-    Test_FAST();
+    //Test_FAST();
 
     cout<<"********************************************************"<<endl;
     cout<<"*    TestGiang                                         *"<<endl;
