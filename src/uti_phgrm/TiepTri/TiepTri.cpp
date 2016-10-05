@@ -51,10 +51,10 @@ int TiepTri_Main(int argc,char ** argv)
    (
          argc,argv,
          LArgMain()  << EAMC(aFullNameXML, "Name XML for Triangu",  eSAM_IsPatFile)
-                     << EAMC(anOri, "Orientation dir"),
-         LArgMain()   << EAM(aSzW,"SzW",true,"if visu [x,y,Zoom]")
-                      << EAM(aDebug,"Debug",true,"If true do debuggibg")
-                      << EAM(aNivInterac,"Interaction",true,"0 none,  2 step by step")
+                     << EAMC(anOri,        "Orientation dir"),
+         LArgMain()   << EAM(aSzW,         "SzW",true,"if visu [x,y,Zoom]")
+                      << EAM(aDebug,       "Debug",true,"If true do debuggibg")
+                      << EAM(aNivInterac,  "Interaction",true,"0 none,  2 step by step")
    );
 
    std::string aDir,aNameXML;

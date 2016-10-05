@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Pic.h"
-#include "Fast.h"
+#include "Detector.h"
 #include <stdio.h>
 
 extern vector<double> parse_dParam(vector<string> dParam);
@@ -48,13 +48,21 @@ extern vector<double> parse_dParam(vector<string> dParam);
     ******************************************************************************/
 int FAST_main(int argc,char ** argv)
 {
-    cout<<"********************************************************"<<endl;
-    cout<<"*    FAST - Detector interest point FAST               *"<<endl;
-    cout<<"********************************************************"<<endl;
+    cout<<"**********************************************************"<<endl;
+    cout<<"*Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)*"<<endl;
+    cout<<"**********************************************************"<<endl;
+    cout<<"*******************Parameters detector********************"<<endl;
+    cout<<"++ default is FAST , dParam=[20,3]  (threshold=20, radius=3pxl (fix))"<<endl;
+    cout<<"++ FAST_NEW , dParam=[20,3,3]  (threshold=20, radius=3)"<<endl;
+    cout<<"++ DIGEO & EXTREME - param default"<<endl<<endl;
+
         string aFullPattern;
         string aDirOut = "PtsInteret";
-        vector<string> dParam; dParam.push_back("20");dParam.push_back("3");
+        string aTypeD="FAST";
+        vector<string> dParam;
         vector<double> aParamD;
+        bool display;
+        double aZoomF;
         ElInitArgMain
                 (
                     argc,argv,
@@ -62,12 +70,27 @@ int FAST_main(int argc,char ** argv)
                     LArgMain()  << EAMC(aFullPattern, "Pattern of images",  eSAM_IsPatFile),
                     //optional arguments
                     LArgMain()
+                    << EAM(aTypeD, "aTypeD", true, "Type detector pts Interet (FAST, DIGEO, EXTREMA)")
                     << EAM(aDirOut, "aDirOut", true, "Output directory for pts interest file, default=PtsInteret")
-                    << EAM(dParam, "dParam", true, "detector parameter, default=[20,3]")
+                    << EAM(dParam, "dParam", true, "detector parameter")
+                    << EAM(display, "display", true, "display result")
+                    << EAM(aZoomF, "zoomF", true, "zoomF for display")
                  );
 
         if (MMVisualMode) return EXIT_SUCCESS;
 
+        if (EAMIsInit(&display) && !EAMIsInit(&aZoomF))
+        {
+            aZoomF=0.3;
+        }
+        if (!EAMIsInit(&display) && EAMIsInit(&aZoomF))
+        {
+            display=true;
+        }
+        if (!EAMIsInit(&dParam))
+        {
+            dParam.push_back("20");dParam.push_back("3");
+        }
         string aDirImages, aPatIm;
         SplitDirAndFile(aDirImages, aPatIm, aFullPattern); //Working dir, Images pattern
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
@@ -81,33 +104,39 @@ int FAST_main(int argc,char ** argv)
             aPtrListPic.push_back(aPic);
         }
 
-        aParamD = parse_dParam(dParam); //need to to on arg enter
-
+        aParamD = parse_dParam(dParam);
+        Video_Win * mW = 0;
         for (uint i=0; i<aPtrListPic.size(); i++)
         {
-            pic * aPic = aPtrListPic[i];
-            Fast aDetecteur(aParamD[0], aParamD[1]);
-            vector<Pt2dr> aPtsInterest;
-            aDetecteur.detect(*aPic->mPic_Im2D, aPtsInterest);
+            pic* aPic=aPtrListPic[i];
 
+            string aPtInteretIn = aICNM->Dir() + "PtsInteret/" +
+                             aPic->getNameImgInStr() + "_" +
+                             aTypeD + ".dat";
+            ELISE_fp::RmFileIfExist(aPtInteretIn);
 
-            string outDigeoFile =  aPic->getNameImgInStr() + "_" + "FAST" + ".dat";
-            vector<DigeoPoint> points;
-            for (uint j=0; j<aPtsInterest.size(); j++)
+            Detector * aDecPic = new Detector( aTypeD, aParamD, aPic, aICNM );
+            aDecPic->detect();
+            vector<Pt2dr> lstPt;
+            aDecPic->getmPtsInterest(lstPt);
+            cout<<" ++ "<<aTypeD<<" : "<<lstPt.size()<<" pts detected!"<<endl;
+            if (display)
             {
-                DigeoPoint aPt;
-                aPt.x = aPtsInterest[j].x;
-                aPt.y = aPtsInterest[j].y;
-                points.push_back(aPt);
+                if (mW==0)
+                {
+                    mW=Video_Win::PtrWStd(Pt2di(aPic->mImgSz*aZoomF), true, Pt2dr(aZoomF,aZoomF));
+                    mW->set_title(aPic->getNameImgInStr().c_str());
+                }
+                if (mW)
+                {
+                    ELISE_COPY(aPic->mPic_Im2D->all_pts(), aPic->mPic_Im2D->in(), mW->ogray());
+                    for (uint aK=0; aK<lstPt.size(); aK++)
+                    {
+                        mW->draw_circle_loc(lstPt[aK],2.0,mW->pdisc()(P8COL::green));
+                    }
+                    mW->clik_in();
+                }
             }
-            string aPtsInteretOutDirName;
-            aPtsInteretOutDirName = aDirImages + aDirOut + "/";
-            if(!(ELISE_fp::IsDirectory(aPtsInteretOutDirName)))
-                ELISE_fp::MkDir(aPtsInteretOutDirName);
-            if ( !DigeoPoint::writeDigeoFile(aPtsInteretOutDirName + outDigeoFile, points))
-                ELISE_ERROR_EXIT("failed to write digeo file [" << outDigeoFile << "]");
         }
-
-
         return EXIT_SUCCESS;
     }

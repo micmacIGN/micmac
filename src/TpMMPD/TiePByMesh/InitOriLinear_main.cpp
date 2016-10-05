@@ -477,7 +477,7 @@ int InitOriLinear_main(int argc,char ** argv)
     }
 
 
-/*
+
     //===========Old Code stable=================//
     cout<<"System with "<<aVecPatternNewImages.size()<<" cameras"<<endl;
     if (aVecPatternNewImages.size() >= 1)

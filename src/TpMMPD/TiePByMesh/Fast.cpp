@@ -206,7 +206,7 @@ FastNew::FastNew(const TIm2D<tPxl, tPxl> & anIm, double threshold, double radius
     mTImMasq   (mImMasq)
 {
     cout<<"Info FAST : "<<
-          endl<< "  ++Img: "<<mImInit.sz()<<endl;
+          endl<< "  ++Img: "<<mImInit.sz()<<" -Thres: "<<mThres<<" -Radius: "<< mRad<<endl;
 
 
 //    Video_Win * mW;
@@ -284,7 +284,7 @@ bool FastNew::isContinue(vector<int> & label , int typeExtreme)
             for (uint offset=0; offset<round(label.size()*3/4); offset++)
             {
                 int indexVoisin = aK+offset;
-                if (indexVoisin >= label.size())
+                if (indexVoisin >= int(label.size()))
                     indexVoisin = label.size() - indexVoisin;
                 if(label[indexVoisin] != typeExtreme)
                     {isCont = false;break;}

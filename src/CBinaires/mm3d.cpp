@@ -785,7 +785,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestGiang",TestGiang_main,"Test Correlation by Mesh"));
         aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));
         aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri"));
-        aRes.push_back(cMMCom("FAST",FAST_main,"FAST detector"));
+        aRes.push_back(cMMCom("FAST",FAST_main,"Some Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)"));
 
    }
 

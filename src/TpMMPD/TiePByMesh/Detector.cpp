@@ -41,6 +41,112 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../uti_phgrm/NewOri/NewOri.h"
 #include "PHO_MI.h"
 
+ExtremePoint::ExtremePoint(double radiusVoisin)
+{
+    mVoisin = ExtremePoint::getVoisinInteret(0.5,radiusVoisin);
+}
+
+bool ExtremePoint::isAllVoisinInside(
+                                      const TIm2D<unsigned char,int> &anIm,
+                                      Pt2di aP,
+                                      vector<Pt2di> &  aVE
+                                    )
+{
+    for (uint aK=0; aK<aVE.size(); aK++)
+    {
+        if ( !anIm.inside(aP + aVE[aK]) )
+        {
+            return false;
+            break;
+        }
+    }
+    return true;
+}
+
+void ExtremePoint::detect(
+                            const TIm2D<unsigned char,int> &anIm,
+                            vector<Pt2dr> &lstPt,
+                            const TIm2DBits<1> * aMasq
+                          )
+{
+    Pt2di aP;
+    Pt2di aSzIm = anIm.sz();
+    for (aP.x=0 ; aP.x<aSzIm.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<aSzIm.y ; aP.y++)
+        {
+
+            bool get;
+            if (aMasq == NULL)
+                get=1;
+            else
+                get = aMasq->get(aP);
+            if (get && isAllVoisinInside(anIm, aP, mVoisin))
+            {
+                int aCmp0 =  ExtremePoint::IsExtrema(anIm,aP);
+                if (aCmp0)
+                {
+                    lstPt.push_back(ToPt2dr(aP));
+                }
+            }
+        }
+    }
+
+
+}
+
+vector<Pt2di> ExtremePoint::getVoisinInteret(double minR, double maxR)
+{
+    std::vector<Pt2di> aResult;
+    int aDE = ceil(maxR);
+    Pt2di aP;
+    for (aP.x=-aDE ; aP.x <= aDE ; aP.x++)
+    {
+        for (aP.y=-aDE ; aP.y <= aDE ; aP.y++)
+        {
+             double aD = euclid(aP);
+             if ((aD <= maxR) && (aD>minR))
+                aResult.push_back(aP);
+        }
+    }
+    return aResult;
+}
+
+template <class Type> int  CmpValAndDec(const Type & aV1,const Type & aV2, const Pt2di & aDec)
+{
+   //    aV1 =>   aV1 + eps * aDec.x + eps * esp * aDec
+
+   if (aV1 < aV2) return -1;
+   if (aV1 > aV2) return  1;
+
+   if (aDec.x<0)  return -1;
+   if (aDec.x>0)  return  1;
+
+   if (aDec.y<0)  return -1;
+   if (aDec.y>0)  return  1;
+
+   return 0;
+}
+
+int ExtremePoint::IsExtrema(const TIm2D<unsigned char,int> & anIm,Pt2di aP)
+{
+    int aValCentr = anIm.get(aP);
+    const std::vector<Pt2di> &  aVE = this->mVoisin;
+    int aCmp0 =0;
+    for (int aKP=0 ; aKP<int(aVE.size()) ; aKP++)
+    {
+        int aCmp = CmpValAndDec(aValCentr,anIm.get(aP+aVE[aKP]),aVE[aKP]);
+        if (aKP==0)
+        {
+            aCmp0 = aCmp;
+            if (aCmp0==0) return 0;
+        }
+
+        if (aCmp!=aCmp0) return 0;
+    }
+    return aCmp0;
+}
+
 
 Detector::Detector( string typeDetector, vector<double> paramDetector,
                     string nameImg,
@@ -51,13 +157,14 @@ Detector::Detector( string typeDetector, vector<double> paramDetector,
     mTypeDetector = typeDetector;
     mParamDetector = paramDetector;
     mChain = aChain;
+    mICNM = aChain->getPrivmICNM();
     if ((img == NULL))
     {
         string aDir;
         if (mChain == NULL)
             aDir = "./";
         else
-            aDir = mChain->getPrivmICNM()->Dir();
+            aDir = mICNM->Dir();
         Tiff_Im * mPicTiff = new Tiff_Im
                             ( Tiff_Im::StdConvGen(aDir+mNameImg,1,false) );
         TIm2D<U_INT1,INT4> * mPic_TIm2D = new TIm2D<U_INT1,INT4> (mPicTiff->sz());
@@ -82,15 +189,32 @@ Detector::Detector( string typeDetector, vector<double> paramDetector,
     mParamDetector = paramDetector;
     mNameImg = aPic->getNameImgInStr();
     mChain = aChain;
+    mICNM = aChain->getPrivmICNM();
     mImg = aPic->mPic_Im2D;
 }
 
 Detector::Detector( InitOutil * aChain , pic * pic1 , pic * pic2)    //from pack homo Init
 {
     mChain = aChain;
+    mICNM = aChain->getPrivmICNM();
     mNameImg = pic1->getNameImgInStr();
     mPic2 = pic2;
     this->mTypeDetector = "HOMOLINIT";
+}
+
+Detector::Detector  (
+                        string typeDetector,
+                        vector<double> paramDetector,
+                        pic * aPic,
+                        cInterfChantierNameManipulateur * aICNM
+                    )
+{
+    mNameImg=aPic->getNameImgInStr();
+    mImg=aPic->mPic_Im2D;
+    mTypeDetector = typeDetector;
+    mParamDetector = paramDetector;
+    mICNM = aICNM;
+    mChain = NULL;
 }
 
 vector<Pt2dr> Detector::importFromHomolInit(pic* pic2)
@@ -116,7 +240,7 @@ void Detector::getmPtsInterest(vector<Pt2dr> & ptsInteret)
     ptsInteret = this->mPtsInterest;
 }
 
-void Detector::saveResultToDiskTypeDigeo(string aDir = "./")
+void Detector::saveResultToDiskTypeDigeo(string aDir)
 {
     if (mPtsInterest.size() == 0)
         cout<<"+++ +++ WARNING +++ +++ : NO POINTS INTEREST TO SAVE"<<endl;
@@ -132,7 +256,9 @@ void Detector::saveResultToDiskTypeDigeo(string aDir = "./")
     string aPtsInteretOutDirName;
     if (mChain != NULL)
         aPtsInteretOutDirName=mChain->getPrivmICNM()->Dir()+"PtsInteret/";
-    else
+    if (mICNM != NULL)
+        aPtsInteretOutDirName=mICNM->Dir()+"PtsInteret/";
+    if (mChain == NULL && mICNM == NULL)
         aPtsInteretOutDirName = aDir + "PtsInteret/";
     if(!(ELISE_fp::IsDirectory(aPtsInteretOutDirName)))
         ELISE_fp::MkDir(aPtsInteretOutDirName);
@@ -140,7 +266,7 @@ void Detector::saveResultToDiskTypeDigeo(string aDir = "./")
         ELISE_ERROR_EXIT("failed to write digeo file [" << outDigeoFile << "]");
 }
 
-void Detector::saveResultToDiskTypeElHomo(string aDir = "./")
+void Detector::saveResultToDiskTypeElHomo(string aDir)
 {
     if (mPtsInterest.size() == 0)
         cout<<"+++ +++ WARNING +++ +++ : NO POINTS INTEREST TO SAVE"<<endl;
@@ -154,7 +280,9 @@ void Detector::saveResultToDiskTypeElHomo(string aDir = "./")
     string aPtsInteretOutDirName;
     if (mChain != NULL)
         aPtsInteretOutDirName=mChain->getPrivmICNM()->Dir()+"PtsInteret/";
-    else
+    if (mICNM != NULL)
+        aPtsInteretOutDirName=mICNM->Dir()+"PtsInteret/";
+    if (mChain == NULL && mICNM == NULL)
         aPtsInteretOutDirName = aDir + "PtsInteret/";
     if(!(ELISE_fp::IsDirectory(aPtsInteretOutDirName)))
         ELISE_fp::MkDir(aPtsInteretOutDirName);
@@ -168,11 +296,12 @@ int Detector::detect(bool useTypeFileDigeo)
     string aPtsInteretOutDirName; string aDir = "./";
     if (mChain != NULL)
         aDir = mChain->getPrivmICNM()->Dir();
-    else
-        aDir = "./";
+    if (mICNM != NULL)
+        aDir=mICNM->Dir();
     aPtsInteretOutDirName=aDir+"PtsInteret/";
     string aHomoIn = aPtsInteretOutDirName + outDigeoFile;
     bool Exist= ELISE_fp::exist_file(aHomoIn);
+
     if (mTypeDetector != "HOMOLINIT")
     {
         if (Exist)
@@ -188,7 +317,7 @@ int Detector::detect(bool useTypeFileDigeo)
             if (mTypeDetector == "FAST")
             {
                 if (mParamDetector.size() == 0)
-                {cout<<"ERROR : please saisir parameter for FAST detector (dParam)"<<endl;}
+                    {cout<<"ERROR : please saisir parameter for FAST detector (dParam)"<<endl;}
                 Fast aDetecteur(mParamDetector[0], 3);
                 aDetecteur.detect(*mImg, mPtsInterest);
                 if (useTypeFileDigeo)
@@ -207,6 +336,42 @@ int Detector::detect(bool useTypeFileDigeo)
                 else
                     this->saveResultToDiskTypeElHomo();
                 ELISE_fp::RmFileIfExist(outDigeoFile);
+            }
+            if (mTypeDetector == "EXTREMA")
+            {
+                ExtremePoint * aDetecteur = new ExtremePoint(3.5);
+                TIm2D<unsigned char, int> mTImg(*mImg);
+                aDetecteur->detect(mTImg, mPtsInterest , NULL); //0 -> pas de masque
+                if (useTypeFileDigeo)
+                    this->saveResultToDiskTypeDigeo();
+                else
+                    this->saveResultToDiskTypeElHomo();
+                delete aDetecteur;
+            }
+            if (mTypeDetector == "FAST_NEW")
+            {
+                if (mParamDetector.size() == 0)
+                    {cout<<"ERROR : please saisir parameter for FAST detector (dParam)"<<endl;}
+                cout<<mParamDetector[0]<<endl;
+                TIm2D<unsigned char, int> anIm(*mImg);
+                TIm2D<double, double> anImdbl(mImg->sz());
+                Pt2di aP;
+                for (aP.x=0; aP.x<anIm.sz().x; aP.x++)
+                {
+                    for (aP.y=0; aP.y<anIm.sz().y; aP.y++)
+                    {
+                        int Val = anIm.get(aP);
+                        anImdbl.oset(aP, (double)Val);
+                    }
+                }
+                TIm2DBits<1> anMasq(mImg->sz(), 1); //masque with default=1
+                FastNew *aDetecteur = new FastNew(anImdbl, mParamDetector[0], mParamDetector[1], anMasq);
+                aDetecteur->detect(anImdbl, anMasq, mPtsInterest);
+                if (useTypeFileDigeo)
+                    this->saveResultToDiskTypeDigeo();
+                else
+                    this->saveResultToDiskTypeElHomo();
+                delete aDetecteur;
             }
         }
     }
