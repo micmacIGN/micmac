@@ -210,8 +210,8 @@ vector<ElCplePtsHomologues> CorrelMesh::choosePtsHomoFinal(vector<Pt2dr>&scorePt
             else
                 ptInTri3.push_back(aCpl);
         }
-        cout<<"Tri 1: "<<ptInTri1.size()<<" Tri 2: "<<ptInTri2.size()<<" Tri 3: "<<ptInTri3.size()
-           <<" NbCorrel:"<<P1P2Correl.size()<<" NbPtO: "<<nbPtInTriS<<endl;
+        //cout<<"Tri 1: "<<ptInTri1.size()<<" Tri 2: "<<ptInTri2.size()<<" Tri 3: "<<ptInTri3.size()
+        //   <<" NbCorrel:"<<P1P2Correl.size()<<" NbPtO: "<<nbPtInTriS<<endl;
         if (ptInTri1.size() >= 1 && ptInTri1.size()<=nbPtInTriS)
             result.insert(result.end(), ptInTri1.begin(), ptInTri1.end());
         if (ptInTri2.size() >= 1 && ptInTri2.size()<=nbPtInTriS)
@@ -439,11 +439,9 @@ Pt2dr CorrelMesh::correlSubPixelPtsIntInImaget(Pt2dr ptInt1, ImgetOfTri imgetMai
         ptIndScr.y=0;
         for (double j=PtHG.y+szPtCorr; j<=PtBD.y-szPtCorr; j=j+pas)
         {
-            //cout<<"Get :"<<i<<" "<<j;
             P2->getFromIm(imget2nd.imaget->getIm(), i, j);
             double score = P1->CrossCorrelation(*P2);
             corelScore.push_back(score);
-            //cout<<" "<<ptIndScr<<score<<endl;
             ptIndScr.y++;
         }
         ptIndScr.x++;
@@ -463,7 +461,7 @@ Pt2dr CorrelMesh::correlSubPixelPtsIntInImaget(Pt2dr ptInt1, ImgetOfTri imgetMai
     {
         foundMaxCorr = false;
     }
-    cout<<" Correl: P1 : "<<ptInt1<<" - P2 CorEnt:"<<max_corel_coor<<" -Scr:"<<corelScore[ind]<<"-OK:"<< foundMaxCorr<<"- int: "<<Pt2dr((ind/counter)*pas, (ind%counter)*pas)<<endl;
+    //cout<<" Correl: P1 : "<<ptInt1<<" - P2 CorEnt:"<<max_corel_coor<<" -Scr:"<<corelScore[ind]<<"-OK:"<< foundMaxCorr<<"- int: "<<Pt2dr((ind/counter)*pas, (ind%counter)*pas)<<endl;
     delete P1;
     delete P2;
     }
@@ -593,19 +591,11 @@ void CorrelMesh::correlInTriWithViewAngle(int indTri, double angleF, bool debugB
     double angle_deg;
     this->chooseImgMaitre(indTri, angle_deg, angleF, this->mChain->mAssume1er);
         cout<<" ++ PicM: "<<mPicMaitre->getNameImgInStr()<<" - "<<angle_deg<<"°"<<endl;
-//    //=====critere angle visible du PicMaitre=======
-//    Pt3dr centre_geo = (aTri->getSommet(0) + aTri->getSommet(1) + aTri->getSommet(2))/ 3;
-//    Pt3dr centre_cam = mPicMaitre->mOriPic->VraiOpticalCenter();
-//    Pt3dr Vec1 = centre_cam - centre_geo;
-//    Pt3dr aVecNor = aTri->CalVecNormal(centre_geo, 0.09);
-//    Pt3dr Vec2 = aVecNor - centre_geo;
-//    double angle_deg = (aTri->calAngle(Vec1, Vec2))*180/PI;
-//    //===============================================
     if (angle_deg<angleF)
     {
     Tri2d tri2DMaitre = *aTri->getReprSurImg()[mPicMaitre->mIndex];
-        cout<<" ++ SommetTriM:"<<tri2DMaitre.sommet1[0]<<tri2DMaitre.sommet1[1]<<tri2DMaitre.sommet1[2]<<endl;
-        cout<<" "<<mListPic2nd.size()<<" pic2nd"<<endl;
+        //cout<<" ++ SommetTriM:"<<tri2DMaitre.sommet1[0]<<tri2DMaitre.sommet1[1]<<tri2DMaitre.sommet1[2]<<endl;
+        //cout<<" "<<mListPic2nd.size()<<" pic2nd"<<endl;
 
     ImgetOfTri imgetMaitre = aTri->create_Imagette_autour_triangle_A2016(mPicMaitre);
 
@@ -614,17 +604,9 @@ void CorrelMesh::correlInTriWithViewAngle(int indTri, double angleF, bool debugB
         for (uint i=0; i<mListPic2nd.size(); i++)
         {
             pic * pic2nd = mListPic2nd[i];
-            //=====critere angle visible du Pic2nd=======
-            //angle_deg = aTri->angleToVecNormalImg(pic2nd);
-
-//            centre_cam = pic2nd->mOriPic->VraiOpticalCenter();
-//            Vec1 = centre_cam - centre_geo;
-//            Vec2 = aVecNor - centre_geo;
-//            angle_deg = (aTri->calAngle(Vec1, Vec2))*180/PI;
-            //===============================================
                 Tri2d tri2D2nd = *aTri->getReprSurImg()[pic2nd->mIndex];
                 cout<<" ++ Pic2nd: "<<pic2nd->getNameImgInStr()<<endl;
-                cout<<" ++ SommetTri2nd:"<<tri2D2nd.sommet1[0]<<tri2D2nd.sommet1[1]<<tri2D2nd.sommet1[2]<<endl;
+                //cout<<" ++ SommetTri2nd:"<<tri2D2nd.sommet1[0]<<tri2D2nd.sommet1[1]<<tri2D2nd.sommet1[2]<<endl;
                 if (mChain->getPrivMember("mTypeD") != "HOMOLINIT")
                 {
                     if(mPicMaitre->mListPtsInterestFAST.size() == 0) //detector pt interest if not detected yet
@@ -653,7 +635,7 @@ void CorrelMesh::correlInTriWithViewAngle(int indTri, double angleF, bool debugB
                 {
                     vector<Pt2dr> ptsInThisTri;
                     mPicMaitre->getPtsHomoInThisTri(aTri,mPicMaitre->mListPtsInterestFAST, ptsInThisTri);
-                    cout<<" ++ "<<ptsInThisTri.size()<<" pts in this tri"<<endl;
+                    //cout<<" ++ "<<ptsInThisTri.size()<<" pts in this tri"<<endl;
                     bool getPtPckHomoDirect = false;
                     if (ptsInThisTri.size() == 0)
                     {
@@ -672,7 +654,7 @@ void CorrelMesh::correlInTriWithViewAngle(int indTri, double angleF, bool debugB
                                                                              affineM_2ND,
                                                                              getImaget2ndSucces);
                         double score_glob = imgetMaitre.imaget->CrossCorrelation(*imget2nd.imaget);
-                        cout<<" -   ScGlob: "<<score_glob<<endl;
+                        //cout<<" -   ScGlob: "<<score_glob<<endl;
                         vector<Pt2dr>Pdisp2;
                         mTriCorrelSuper.push_back(aTri->mIndex);
                         cCorrelImage::setSzW(mChain->mSzPtCorr); //for correlation each point interest inside imaget
@@ -720,7 +702,7 @@ void CorrelMesh::correlInTriWithViewAngle(int indTri, double angleF, bool debugB
                                                     mChain->getPrivMember("mHomolOutput"));
                         mChain->addToExistHomolFile(mPicMaitre, pic2nd,  P1P2CorrelF,
                                                     mChain->getPrivMember("mHomolOutput"), true);
-                        cout<<"  "<<P1P2CorrelF.size()<<" pts OK/"<<P1P2Correl.size()<<" pts match/"<<ptsInThisTri.size()<<" pts in Tri"<<endl;
+                        //cout<<"  "<<P1P2CorrelF.size()<<" pts OK/"<<P1P2Correl.size()<<" pts match/"<<ptsInThisTri.size()<<" pts in Tri"<<endl;
                         delete imget2nd.imaget;
                     }
 //                    else

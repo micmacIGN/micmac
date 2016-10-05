@@ -457,7 +457,7 @@ pic* triangle::getPicPlusProche(vector<pic*>PtrListPic,
         pic * picMaitraiss = NULL;
         for (uint i=0; i<PtrListPic.size(); i++)
         {
-              double angle = 0;
+              double angle;
 //            double angle = this->calAngle
 //                                (PtrListPic[i]->mOriPic->VraiOpticalCenter(),
 //                                VecNormal,
