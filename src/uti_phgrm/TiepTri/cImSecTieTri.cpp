@@ -139,6 +139,10 @@ void  cImSecTieTri::DecomposeVecHom(const Pt2dr & aPSH1,const Pt2dr & aPSH2,Pt2d
        bool Ok;
        Pt3dr aPTer =  mAppli.CurPlan().Inter(mCam->Capteur2RayTer(aPSH1) , &Ok);
 
+
+std::cout << "Veriiff , reproj: " << euclid(mCam->Ter2Capteur(aPTer)-aPSH1) 
+          << " Ter "<<  mAppli.CurPlan().Proj(aPTer) - aPTer  << "\n";
+
        double aProf = mMaster->mCam->ProfondeurDeChamps(aPTer);
        Pt2dr aPM1 = mMaster->mCam->Ter2Capteur(aPTer);
        Pt3dr aPTerMod =  mMaster->mCam->ImEtProf2Terrain(aPM1,aProf*(1+1e-3));
@@ -159,6 +163,18 @@ void  cImSecTieTri::DecomposeVecHom(const Pt2dr & aPSH1,const Pt2dr & aPSH2,Pt2d
 
 void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,int aNivInter)
 {
+{
+   Pt2dr aP1(763.4705,1260.2509);
+   Pt2dr aP2(836.3564,1265.2243);
+
+   Pt2dr aDir,aNewDec;
+   DecomposeVecHom(aP1-Pt2dr(mDecal),aP2-Pt2dr(mDecal),aDir,aNewDec);
+    
+   std::cout << "Ggggggggggggggggg\n";
+   getchar();
+}
+
+
     double aD= mAppli.DistRechHom();
     Pt2di aP0 = aPI.mPt;
     eTypeTieTri aLab = aPI.mType;
@@ -248,7 +264,7 @@ void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,int aNivInte
         Pt2dr aDepl = aRes.mPt - Pt2dr(aP0);
 
         mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::yellow));
-        mW->draw_seg(Pt2dr(aP0),Pt2dr(aP0) + aDepl * 3  ,mW->pdisc()(P8COL::green));
+        mW->draw_seg(Pt2dr(aP0),Pt2dr(aP0) + aDepl * 3  ,mW->pdisc()(P8COL::red));
     }
 
 
@@ -260,7 +276,10 @@ void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,int aNivInte
         // std::cout << "==================== " << aP0 << " "  << (int) aLab << "\n";
 }
 
-bool  cImSecTieTri::IsMaster() const {return false;}
+bool  cImSecTieTri::IsMaster() const 
+{
+    return false;
+}
 
 
 
