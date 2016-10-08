@@ -197,7 +197,10 @@ void  cImTieTri::MakeInterestPoint
                    if (mW)
                    {
                        // mW->draw_circle_loc(Pt2dr(aP),2.0,mW->pdisc()(IsMax ? P8COL::red : P8COL::blue));
-                       mW->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(aType));
+                       if ((IsMaster()) || (mAppli.NivInterac()>=2))
+                       {
+                           mW->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(aType));
+                       }
                    }
                    if  (aImLabel) 
                         aImLabel->oset(aP,aType);
