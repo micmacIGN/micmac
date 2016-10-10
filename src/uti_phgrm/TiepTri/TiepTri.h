@@ -57,6 +57,9 @@ class cImSecTieTri;
 
 //  =====================================
 
+typedef double                          tElTiepTri ;
+typedef TIm2D<tElTiepTri,tElTiepTri>    tTImTiepTri;
+typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
 
 class cAppliTieTri
 {
@@ -90,6 +93,8 @@ class cAppliTieTri
            const cElPlan3D & CurPlan() const;
 
 
+           tInterpolTiepTri * Interpol();
+
       private  :
          void DoOneTri        (const cXml_Triangle3DForTieP & );
 
@@ -115,6 +120,7 @@ class cAppliTieTri
          bool                              mDebug;
          int                               mNivInterac;
          cElPlan3D                         mCurPlan;
+         tInterpolTiepTri *                mInterpol;
 };
 
 typedef enum eTypeTieTri
@@ -124,9 +130,6 @@ typedef enum eTypeTieTri
     eTTTMin = 2
 }  eTypeTieTri;
 
-typedef double                          tElTiepTri ;
-typedef TIm2D<tElTiepTri,tElTiepTri>    tTImTiepTri;
-typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
 
 
 class cIntTieTriInterest
@@ -315,6 +318,21 @@ cResulRechCorrel<double> TT_RechMaxCorrelMultiScaleBilin
                              const Pt2dr & aP2,
                              const int   aSzW
                       );
+
+cResulRechCorrel<double> TT_MaxLocCorrelDS1R
+                         (
+                              tInterpolTiepTri *  anInterpol,
+                              cElMap2D *          aMap,
+                              const tTImTiepTri & aIm1,
+                              Pt2dr               aPC1,
+                              const tTImTiepTri & aIm2,
+                              Pt2dr               aPC2,
+                              const int           aSzW,
+                              const int           aNbByPix,
+                              double              aStep0,
+                              double              aStepEnd
+                         );
+
 
 
 
