@@ -149,6 +149,7 @@ extern int MeshProjOnImg_main(int , char **);
 extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
 extern int TestRegEx_main(int , char **);
+extern int PatFromOri_main(int argc,char ** argv);
 extern int InitOriLinear_main(int , char **);
 extern int ExtractMesure2D_main(int , char **);
 extern int ExtractAppui3D_main(int , char **);
@@ -239,6 +240,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
        
        aRes.push_back(cMMCom("TestRegEx",TestRegEx_main," Test regular expression"));
+       aRes.push_back(cMMCom("PatFromOri",PatFromOri_main, "Get pattern of images from Ori folder"));
        aRes.push_back(cMMCom("InitOriLinear",InitOriLinear_main," Initialize orientation for linear acquisition"));
        aRes.push_back(cMMCom("PHO_MI",PHO_MI_main," Filter homologue points from initial orientation to reduce number of observations"));
        aRes.push_back(cMMCom("TiePByMesh",TiePByMesh_main," Raffiner pts homologue par mesh"));
@@ -445,8 +447,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 
        aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force development of all tif/xif file"));
-       aRes.push_back(cMMCom("SetExif",CPP_SetExif,"Modification of exif file (requires exiv2)"));
-       aRes.push_back(cMMCom("SetGpsExif",CPP_SetGpsExif,"Add GPS infos in images exif meta-data",cArgLogCom(2)));
+       aRes.push_back(cMMCom("SetExif",CPP_SetExif,"Modification of exif file (requires exiv2)",cArgLogCom(2)));
+       aRes.push_back(cMMCom("SetGpsExif",CPP_SetGpsExif,"Add GPS infos in images exif meta-data (requires exiv2)",cArgLogCom(2)));
        aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ...",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
 

@@ -46,14 +46,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 int TestRegEx_main(int argc,char ** argv)
 {
     std::string aFullPattern;//pattern of all files
+    bool aDispPatt=false;
+    
     ElInitArgMain
     (
     argc,argv,
     //mandatory arguments
     LArgMain()  << EAMC(aFullPattern, "Pattern of files",  eSAM_IsPatFile),
+    
     //optional arguments
-    LArgMain()  
+    LArgMain()  << EAM(aDispPatt, "DispPat", false, "Display Pattern to use in cmd line ; Def=false", eSAM_IsBool)
+  
     );
+    
     if (MMVisualMode) return EXIT_SUCCESS;
     
     // Initialize name manipulator & files
@@ -66,16 +71,74 @@ int TestRegEx_main(int argc,char ** argv)
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
     
-    
+    std::vector<std::string> aVIm;
     
     std::cout<<"Selected files:"<<std::endl;
     for (unsigned int i=0;i<aSetIm.size();i++)
     {
         std::cout<<" - "<<aSetIm[i]<<std::endl;
+        aVIm.push_back(aSetIm[i]);
     }
     std::cout<<"Total: "<<aSetIm.size()<<" files."<<std::endl;
+	
+	if(aDispPatt)
+	{
+		std::string aPat="";
+		
+		for(unsigned int i=0;i<aVIm.size()-1;i++)
+		{
+			aPat = aPat + aVIm.at(i) + "|";
+		}
+		
+		aPat = aPat + aVIm.at(aVIm.size()-1);
+		
+		std::cout << "Pat = \"" << aPat << "\"" << std::endl;
+	}
+    return EXIT_SUCCESS;
+}
 
+//----------------------------------------------------------------------------
 
+int PatFromOri_main(int argc,char ** argv)
+{
+	std::string aOri;
+	 
+	ElInitArgMain
+    (
+    argc,argv,
+    //mandatory arguments
+	LArgMain()  << EAMC(aOri, "Ori Folder", eSAM_IsExistDirOri),
+	
+	LArgMain()
+	);
+	
+	if (MMVisualMode) return EXIT_SUCCESS;
+	
+	std::string aFullName="Orientation-*.*xml";
+    cInterfChantierNameManipulateur *ManC=cInterfChantierNameManipulateur::BasicAlloc(aOri);
+    std::list<std::string> aFiles=ManC->StdGetListOfFile(aFullName);
+    
+    std::vector<std::string> aNameIm;
+    
+    for(std::list<std::string>::iterator I=aFiles.begin();I!=aFiles.end();I++)
+    {	
+        std::cout << " - " << *I << std::endl;
+        aNameIm.push_back(I->substr(12,I->size()-16));
+    }
+    std::cout<<"Total: "<<aNameIm.size()<<" files."<<std::endl;
+    
+    std::string aPat="";
+    
+    for(unsigned int i=0;i<aNameIm.size()-1;i++)
+	{
+		aPat = aPat + aNameIm.at(i) + "|";
+	}
+		
+	aPat = aPat + aNameIm.at(aNameIm.size()-1);
+		
+	std::cout << "Pat = \"" << aPat << "\"" << std::endl;
+    
+    
     return EXIT_SUCCESS;
 }
 
