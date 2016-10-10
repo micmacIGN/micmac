@@ -124,8 +124,9 @@ typedef enum eTypeTieTri
     eTTTMin = 2
 }  eTypeTieTri;
 
-typedef double tElTiepTri ;
-typedef TIm2D<tElTiepTri,tElTiepTri>  tTImTiepTri;
+typedef double                          tElTiepTri ;
+typedef TIm2D<tElTiepTri,tElTiepTri>    tTImTiepTri;
+typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
 
 
 class cIntTieTriInterest
