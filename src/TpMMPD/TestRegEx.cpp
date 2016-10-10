@@ -142,6 +142,48 @@ int PatFromOri_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+
+int GenFilePairs_main(int argc,char ** argv)
+{
+	std::string aImg, aFullPat, aOut="NameCple.xml";
+	
+	ElInitArgMain
+    (
+    argc,argv,
+    //mandatory arguments
+    LArgMain()  << EAMC(aImg, "Image Name")
+                << EAMC(aFullPat, "Pattern of Images", eSAM_IsPatFile),
+                
+    //optional arguments
+    LArgMain()  << EAM(aOut, "Out", false, "Output .xml file ; Def=NameCple.xml")
+  
+    );
+    
+    if (MMVisualMode) return EXIT_SUCCESS;
+    
+    // Initialize name manipulator & files
+    std::string aDirImages,aPatIm;
+    SplitDirAndFile(aDirImages,aPatIm,aFullPat);
+    std::cout<<"Working dir: "<<aDirImages<<std::endl;
+    std::cout<<"Image:"<<aImg<<std::endl;
+    std::cout<<"Images pattern: "<<aPatIm<<std::endl;
+    
+    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
+    
+    cSauvegardeNamedRel  aRelIm;
+    
+    for(unsigned i=0; i<aSetIm.size(); i++)
+    {
+		cCpleString aCpl(aImg,aSetIm.at(i));
+		aRelIm.Cple().push_back(aCpl);
+	}
+    
+      MakeFileXML(aRelIm,aDirImages+aOut);
+	
+	return EXIT_SUCCESS;
+}
 /******************************************************/
 
 
