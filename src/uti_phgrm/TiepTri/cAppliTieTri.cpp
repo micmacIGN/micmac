@@ -96,6 +96,10 @@ cAppliTieTri::cAppliTieTri
    std::sort(mVoisExtr.begin(),mVoisExtr.end(),aCmp);
 
    mVoisHom = VoisinDisk(-1,mDistRechHom);
+
+   cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
+   mInterpol = new cTabIM2D_FromIm2D<tElTiepTri>(aSinC,1000,false);
+
 }
 
 
@@ -182,6 +186,7 @@ const double &   cAppliTieTri::DistRechHom() const {return mDistRechHom;}
 
 int  &   cAppliTieTri::NivInterac() {return mNivInterac;}
 const cElPlan3D & cAppliTieTri::CurPlan() const {return mCurPlan;}
+tInterpolTiepTri * cAppliTieTri::Interpol() {return mInterpol;}
 
 
 /***************************************************************************/

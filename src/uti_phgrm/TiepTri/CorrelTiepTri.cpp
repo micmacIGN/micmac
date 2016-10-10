@@ -256,14 +256,27 @@ cResulRechCorrel<double> TT_RechMaxCorrelMultiScaleBilin
 
 class cTT_MaxLocCorrelDS1R : public Optim2DParam
 {
-     public :
+     private :
 
+         REAL Op2DParam_ComputeScore(REAL aDx,REAL aDy) ;
+         double               mStep0;
          std::vector<double>  mVals1; // Les valeurs interpolees de l'image 1 sont stockees une fois pour toute
          const tTImTiepTri & mIm1;
          
          std::vector<Pt2dr> mVois2; // Les voisin de l'images 2 sont stockes une fois pour toute
          const tTImTiepTri & mIm2;
+         tElTiepTri **       mData2;
+         Pt2dr               mDecInit;
+         tInterpolTiepTri *  mInterpol;
+         double              mSzInterp;
+         Pt2dr               mPInf2;
+         Pt2dr               mPSup2;
+         Pt2di               mSzIm1;
+         Pt2di               mSzIm2;
+         bool                mOkIm1;
 
+     public :
+         bool   OkIm1() const {return mOkIm1;}
          cTT_MaxLocCorrelDS1R 
          ( 
               tInterpolTiepTri *  anInterpol,
@@ -271,32 +284,110 @@ class cTT_MaxLocCorrelDS1R : public Optim2DParam
               const tTImTiepTri & aIm1,
               Pt2dr               aPC1,
               const tTImTiepTri & aIm2,
+              Pt2dr               aPC2,
               const int           aSzW,
               const int           aNbByPix,
               double              aStep0,
               double              aStepEnd
          )  :
             Optim2DParam ( aStepEnd/aStep0 , TT_DefCorrel ,1e-5, true),
-            mIm1 (aIm1),
-            mIm2 (aIm2)
+            mStep0    (aStep0),
+            mIm1      (aIm1),
+            mIm2      (aIm2),
+            mData2    (aIm2._the_im.data()),
+            mInterpol (anInterpol),
+            mSzInterp (anInterpol->SzKernel()+1),
+            mPInf2    (1e30,1e30),
+            mPSup2    (-1e30,-1e30),
+            mSzIm1    (aIm1.sz()),
+            mSzIm2    (aIm2.sz()),
+            mOkIm1    (true)
          {
             tElTiepTri ** aData1 = aIm1._the_im.data();
             int aNbVTot = aSzW * aNbByPix;
+            mDecInit = aPC2 - (*aMap)(aPC1);
             for (int aKx = -aNbVTot ; aKx<=aNbVTot ; aKx++)
             {
                for (int aKy = -aNbVTot ; aKy<=aNbVTot ; aKy++)
                {
                    Pt2dr aVois(aKx/double(aNbByPix),aKy/double(aNbByPix));
                    Pt2dr aP1 = aPC1 + aVois;
-                   mVals1.push_back(anInterpol->GetVal(aData1,aP1));
-                   Pt2dr aP2 = (*aMap)(aP1);
+                   if (
+                            (aP1.x <= mSzInterp)
+                         || (aP1.y <= mSzInterp)
+                         || (aP1.x >= mSzIm1.x+mSzInterp)
+                         || (aP1.y >= mSzIm1.y+mSzInterp)
+                      )
+                   {
+                       mOkIm1 = false;
+                   }
+                   else
+                   {
+                       mVals1.push_back(anInterpol->GetVal(aData1,aP1));
+                   }
+                   Pt2dr aP2 = (*aMap)(aP1) + mDecInit;
                    mVois2.push_back(aP2);
+                   mPInf2 = Inf(mPInf2,aP2);
+                   mPSup2 = Sup(mPSup2,aP2);
                }
             }
+            mPInf2 = mPInf2 - Pt2dr(mSzInterp,mSzInterp);
+            mPSup2 = mPSup2 + Pt2dr(mSzInterp,mSzInterp);
          }
 };
 
+REAL cTT_MaxLocCorrelDS1R::Op2DParam_ComputeScore(REAL aDx,REAL aDy) 
+{
+    ELISE_ASSERT(mOkIm1,"cTT_MaxLocCorrelDS1R::Op2DParam_ComputeScore not ok Im1");
+    aDx *= mStep0;
+    aDy *= mStep0;
 
+    if (
+             (mPInf2.x + aDx <=0) 
+          || (mPInf2.y + aDy <=0) 
+          || (mPSup2.x + aDx >=mSzIm2.x) 
+          || (mPSup2.y + aDy >=mSzIm2.y) 
+        )
+        return TT_DefCorrel;
+
+     Pt2dr aDec(aDx,aDy);
+     RMat_Inertie aMatr;
+     for (int aKV=0 ; aKV<int(mVals1.size()) ; aKV++)
+     {
+         aMatr.add_pt_en_place
+         (
+              mVals1[aKV],
+              mInterpol->GetVal(mData2,mVois2[aKV] + aDec)
+         );
+     }
+     double aRes =  aMatr.correlation();
+     return aRes;
+}
+
+cResulRechCorrel<double> TT_MaxLocCorrelDS1R 
+                         ( 
+                              tInterpolTiepTri *  anInterpol,
+                              cElMap2D *          aMap,
+                              const tTImTiepTri & aIm1,
+                              Pt2dr               aPC1,
+                              const tTImTiepTri & aIm2,
+                              Pt2dr               aPC2,
+                              const int           aSzW,
+                              const int           aNbByPix,
+                              double              aStep0,
+                              double              aStepEnd
+                         )
+{
+
+   cTT_MaxLocCorrelDS1R anOptim(anInterpol,aMap,aIm1,aPC1,aIm2,aPC2,aSzW,aNbByPix,aStep0,aStepEnd);
+
+   cResulRechCorrel<double> aResult;
+   if (!anOptim.OkIm1()) return aResult;
+
+   anOptim.optim();
+
+   return cResulRechCorrel<double>(aPC2+anOptim.param() * aStep0,anOptim.ScOpt());
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

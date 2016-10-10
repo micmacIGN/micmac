@@ -134,10 +134,10 @@ void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
 */
 
-void  cImSecTieTri::DecomposeVecHom(const Pt2dr & aPSH1Ori,const Pt2dr & aPSH2Ori,Pt2dr & aDir,Pt2dr & aDecompos)
+void  cImSecTieTri::DecomposeVecHom(const Pt2dr & aPSH1Local,const Pt2dr & aPSH2Local,Pt2dr & aDir,Pt2dr & aDecompos)
 {
-       Pt2dr aPSH1 = aPSH1Ori  + Pt2dr(mDecal);
-       Pt2dr aPSH2 = aPSH2Ori  + Pt2dr(mDecal);
+       Pt2dr aPSH1 = aPSH1Local  + Pt2dr(mDecal);
+       Pt2dr aPSH2 = aPSH2Local  + Pt2dr(mDecal);
 
        bool Ok;
        Pt3dr aPTer =  mAppli.CurPlan().Inter(mCam->Capteur2RayTer(aPSH1) , &Ok);
@@ -264,6 +264,26 @@ if (0)
     
     cResulRechCorrel<double> aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,aP0,mTImReech,Pt2dr(aCRCMax.mPt),6);
 
+
+    cResulRechCorrel<double> aRes2 =  TT_MaxLocCorrelDS1R
+                                      (
+                                           mAppli.Interpol(),
+                                           &mAffMas2Sec,
+                                           mMaster->mTImInit,
+                                           Pt2dr(aP0),
+                                           mTImInit,
+                                           mAffMas2Sec(aRes.mPt),
+                                           6,  // SzW
+                                           5,  // NbByPix
+                                           0.125,   // Step0
+                                           1.0/ 32.0
+                                       );
+
+
+    std::cout << "AFFINE " << aRes.mCorrel << " => " << aRes2.mCorrel << " ; " << aRes.mPt << " " << mAffSec2Mas(aRes2.mPt) << "\n"; 
+                                       
+
+
     Pt2dr aDir,aNewDec;
     DecomposeVecHom(mAffMas2Sec(Pt2dr(aP0)),mAffMas2Sec(aRes.mPt),aDir,aNewDec);
 
@@ -273,7 +293,8 @@ if (0)
 
         // mW->draw_seg(Pt2dr(aP0),Pt2dr(aP0) + aDepl * 3  ,mW->pdisc()(P8COL::red));
 
-        mW->draw_seg(Pt2dr(aP0),Pt2dr(aP0) + Pt2dr(aNewDec.y*5,0)  ,mW->pdisc()(P8COL::red));
+        mW->draw_seg(Pt2dr(aP0),Pt2dr(aP0) + Pt2dr(0,aNewDec.y*5)  ,mW->pdisc()(P8COL::red));
+        mW->draw_seg(Pt2dr(aP0),Pt2dr(aP0) + Pt2dr(aNewDec.x*5,0)  ,mW->pdisc()(P8COL::green));
 
         mW->draw_circle_loc(Pt2dr(aP0),0.5,mW->pdisc()(P8COL::yellow));
     }
