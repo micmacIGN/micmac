@@ -150,6 +150,7 @@ extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
 extern int TestRegEx_main(int , char **);
 extern int PatFromOri_main(int argc,char ** argv);
+extern int GenFilePairs_main(int argc,char ** argv);
 extern int InitOriLinear_main(int , char **);
 extern int ExtractMesure2D_main(int , char **);
 extern int ExtractAppui3D_main(int , char **);
@@ -241,6 +242,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        
        aRes.push_back(cMMCom("TestRegEx",TestRegEx_main," Test regular expression"));
        aRes.push_back(cMMCom("PatFromOri",PatFromOri_main, "Get pattern of images from Ori folder"));
+       aRes.push_back(cMMCom("GenPairsFile", GenFilePairs_main, "Generate pairs files between one image and a pattern"));
        aRes.push_back(cMMCom("InitOriLinear",InitOriLinear_main," Initialize orientation for linear acquisition"));
        aRes.push_back(cMMCom("PHO_MI",PHO_MI_main," Filter homologue points from initial orientation to reduce number of observations"));
        aRes.push_back(cMMCom("TiePByMesh",TiePByMesh_main," Raffiner pts homologue par mesh"));
