@@ -152,7 +152,8 @@ cResulRechCorrel<int> TT_RechMaxCorrelBasique
 typedef enum eTypeModeCorrel
 {
     eTMCInt = 0,
-    eTMCBilinStep1 = 1
+    eTMCBilinStep1 = 1,
+    eTMCOther = 2
 }  eTypeModeCorrel;
 
 
@@ -242,6 +243,58 @@ cResulRechCorrel<double> TT_RechMaxCorrelMultiScaleBilin
 }
 
 
+/********************************************************************/
+/*                                                                  */
+/*                                                                  */
+/*           Correlation avec  :                                    */
+/*                        *   interpol SinC                         */
+/*                        *   fenetre dense                         */
+/*                        *   1 seul reech                          */
+/*                                                                  */
+/*                                                                  */
+/********************************************************************/
+
+class cTT_MaxLocCorrelDS1R : public Optim2DParam
+{
+     public :
+
+         std::vector<double>  mVals1; // Les valeurs interpolees de l'image 1 sont stockees une fois pour toute
+         const tTImTiepTri & mIm1;
+         
+         std::vector<Pt2dr> mVois2; // Les voisin de l'images 2 sont stockes une fois pour toute
+         const tTImTiepTri & mIm2;
+
+         cTT_MaxLocCorrelDS1R 
+         ( 
+              tInterpolTiepTri *  anInterpol,
+              cElMap2D *          aMap,
+              const tTImTiepTri & aIm1,
+              Pt2dr               aPC1,
+              const tTImTiepTri & aIm2,
+              const int           aSzW,
+              const int           aNbByPix,
+              double              aStep0,
+              double              aStepEnd
+         )  :
+            Optim2DParam ( aStepEnd/aStep0 , TT_DefCorrel ,1e-5, true),
+            mIm1 (aIm1),
+            mIm2 (aIm2)
+         {
+            tElTiepTri ** aData1 = aIm1._the_im.data();
+            int aNbVTot = aSzW * aNbByPix;
+            for (int aKx = -aNbVTot ; aKx<=aNbVTot ; aKx++)
+            {
+               for (int aKy = -aNbVTot ; aKy<=aNbVTot ; aKy++)
+               {
+                   Pt2dr aVois(aKx/double(aNbByPix),aKy/double(aNbByPix));
+                   Pt2dr aP1 = aPC1 + aVois;
+                   mVals1.push_back(anInterpol->GetVal(aData1,aP1));
+                   Pt2dr aP2 = (*aMap)(aP1);
+                   mVois2.push_back(aP2);
+               }
+            }
+         }
+};
 
 
 
