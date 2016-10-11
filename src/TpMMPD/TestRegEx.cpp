@@ -143,7 +143,7 @@ int PatFromOri_main(int argc,char ** argv)
 }
 
 //----------------------------------------------------------------------------
-
+//to add : toutes les pairs possibles (en option)
 int GenFilePairs_main(int argc,char ** argv)
 {
 	std::string aImg, aFullPat, aOut="NameCple.xml";
@@ -152,7 +152,7 @@ int GenFilePairs_main(int argc,char ** argv)
     (
     argc,argv,
     //mandatory arguments
-    LArgMain()  << EAMC(aImg, "Image Name")
+    LArgMain()  << EAMC(aImg, "Image Name or Pattern")
                 << EAMC(aFullPat, "Pattern of Images", eSAM_IsPatFile),
                 
     //optional arguments
@@ -163,24 +163,35 @@ int GenFilePairs_main(int argc,char ** argv)
     if (MMVisualMode) return EXIT_SUCCESS;
     
     // Initialize name manipulator & files
-    std::string aDirImages,aPatIm;
-    SplitDirAndFile(aDirImages,aPatIm,aFullPat);
-    std::cout<<"Working dir: "<<aDirImages<<std::endl;
-    std::cout<<"Image:"<<aImg<<std::endl;
-    std::cout<<"Images pattern: "<<aPatIm<<std::endl;
+    std::string aDirImages1,aPatIm1, aDirImages2,aPatIm2;
     
-    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
-    const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
+    SplitDirAndFile(aDirImages1,aPatIm1,aImg);
+    SplitDirAndFile(aDirImages2,aPatIm2,aFullPat);
+    
+    std::cout<<"Working dir 1: "<<aDirImages1<<std::endl;
+    std::cout<<"Working dir 2: "<<aDirImages2<<std::endl;
+    
+    std::cout<<"Image/Pat 1:"<<aPatIm1<<std::endl;
+    std::cout<<"Images pattern 2: "<<aPatIm2<<std::endl;
+    
+    cInterfChantierNameManipulateur * aICNM1=cInterfChantierNameManipulateur::BasicAlloc(aDirImages1);
+    cInterfChantierNameManipulateur * aICNM2=cInterfChantierNameManipulateur::BasicAlloc(aDirImages2);
+    
+    const std::vector<std::string> aSetIm1 = *(aICNM1->Get(aPatIm1));
+    const std::vector<std::string> aSetIm2 = *(aICNM2->Get(aPatIm2));
     
     cSauvegardeNamedRel  aRelIm;
     
-    for(unsigned i=0; i<aSetIm.size(); i++)
+    for(unsigned i=0; i<aSetIm1.size(); i++)
     {
-		cCpleString aCpl(aImg,aSetIm.at(i));
-		aRelIm.Cple().push_back(aCpl);
+		for(unsigned j=0; j<aSetIm2.size(); j++)
+		{
+			cCpleString aCpl(aSetIm1.at(i),aSetIm2.at(j));
+			aRelIm.Cple().push_back(aCpl);
+		}
 	}
     
-      MakeFileXML(aRelIm,aDirImages+aOut);
+      MakeFileXML(aRelIm,aDirImages1+aOut);
 	
 	return EXIT_SUCCESS;
 }
