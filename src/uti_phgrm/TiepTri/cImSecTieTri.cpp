@@ -164,27 +164,26 @@ void  cImSecTieTri::DecomposeVecHom(const Pt2dr & aPSH1Local,const Pt2dr & aPSH2
 
 
 
-void cImSecTieTri::RechHomPtsInteret(const cIntTieTriInterest & aPI,int aNivInter)
+cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriInterest & aPI,int aNivInter)
 {
-
-if (0)
-{
-   Pt2dr aP1(763.4705,1260.2509);
-   Pt2dr aP2(836.3564,1265.2243);
-
-   Pt2dr aDir,aNewDec;
-   DecomposeVecHom(aP1-Pt2dr(mDecal),aP2-Pt2dr(mDecal),aDir,aNewDec);
-    
-   std::cout << "Ggggggggggggggggg\n";
-   getchar();
-}
-
 
     double aD= mAppli.DistRechHom();
     Pt2di aP0 = aPI.mPt;
     eTypeTieTri aLab = aPI.mType;
 
     const std::vector<Pt2di> &   aVH = mAppli.VoisHom();
+
+    /*
+         Pour tous les voisins au sens de VH, si ils ont la meme etiquette que aPI :
+
+             1-  on fait une recherche d'optimisation locale, avec un pixel sur deux et en correlation 
+                 entiere.
+             2- si on est superieur au seuil TT_SEUIL_CORREL_1PIXSUR2, on reoptimise avec tous les pixels;
+
+          Comme il y a en general plusieurs voisins ayant le meme  label, on ne selectionn dans aCRCMax celui qui
+        donne le meilleur resultat.
+             
+    */
                    
     cResulRechCorrel<int> aCRCMax;
     for (int aKH=0 ; aKH<int(aVH.size()) ; aKH++)
@@ -223,7 +222,7 @@ if (0)
     {
         if (aNivInter>=2)
             std::cout  << "- NO POINT for Correl Int\n";
-       return;
+       return cResulRechCorrel<double>(Pt2dr(aCRCMax.mPt),aCRCMax.mCorrel);
     }
 
    
@@ -265,6 +264,15 @@ if (0)
     cResulRechCorrel<double> aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,aP0,mTImReech,Pt2dr(aCRCMax.mPt),6);
 
 
+    return aRes;
+}
+
+
+// On passe des coordonnees master au coordonnees secondaire
+
+cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const cResulRechCorrel<double> & aPIn)
+{
+
     cResulRechCorrel<double> aRes2 =  TT_MaxLocCorrelDS1R
                                       (
                                            mAppli.Interpol(),
@@ -272,17 +280,24 @@ if (0)
                                            mMaster->mTImInit,
                                            Pt2dr(aP0),
                                            mTImInit,
-                                           mAffMas2Sec(aRes.mPt),
+                                           mAffMas2Sec(aPIn.mPt),
                                            6,  // SzW
                                            5,  // NbByPix
                                            0.125,   // Step0
                                            1.0/ 32.0
                                        );
+    if (mAppli.NivInterac() >=2)
+    {
+       std::cout << "AFFINE " << aPIn.mCorrel << " => " << aRes2.mCorrel << " ; " << aPIn.mPt << " " << mAffSec2Mas(aRes2.mPt) << "\n"; 
+    }
+
+    return aRes2;
+}
 
 
-    std::cout << "AFFINE " << aRes.mCorrel << " => " << aRes2.mCorrel << " ; " << aRes.mPt << " " << mAffSec2Mas(aRes2.mPt) << "\n"; 
                                        
 
+/*
 
     Pt2dr aDir,aNewDec;
     DecomposeVecHom(mAffMas2Sec(Pt2dr(aP0)),mAffMas2Sec(aRes.mPt),aDir,aNewDec);
@@ -298,12 +313,12 @@ if (0)
 
         mW->draw_circle_loc(Pt2dr(aP0),0.5,mW->pdisc()(P8COL::yellow));
     }
+*/
 
 
 
     // std::cout << "MulScale  = " << aRes.mPt -Pt2dr(aP0)  << " " << aRes.mCorrel << "\n\n";
         // std::cout << "==================== " << aP0 << " "  << (int) aLab << "\n";
-}
 
 bool  cImSecTieTri::IsMaster() const 
 {
