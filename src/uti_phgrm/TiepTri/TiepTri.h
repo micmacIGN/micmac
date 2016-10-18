@@ -48,18 +48,27 @@ class cAppliTieTri;
 class cImTieTri;
 class cImMasterTieTri;
 class cImSecTieTri;
+template<class Type> class cResulRechCorrel;
+template<class Type> class cResulMultiImRechCorrel;
 
 #define TT_DefCorrel -2.0
+#define TT_MaxCorrel 1.0
 #define TT_DIST_RECH_HOM 12.0  // Seuil de recherche des homologues
 #define TT_DIST_EXTREMA  3.0   // calcul des extrema locaux
 
 #define TT_SEUIL_CORREL_1PIXSUR2  0.7   // calcul des extrema locaux
+#define TT_DefSeuilDensiteResul   100
+#define TT_DefStepDense           5
 
 //  =====================================
 
 typedef double                          tElTiepTri ;
 typedef TIm2D<tElTiepTri,tElTiepTri>    tTImTiepTri;
 typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
+
+
+
+
 
 class cAppliTieTri
 {
@@ -95,6 +104,14 @@ class cAppliTieTri
 
            tInterpolTiepTri * Interpol();
 
+           void FiltrageSpatialRMIRC(const double & aDist);
+           void  RechHomPtsDense(cResulMultiImRechCorrel<double> &);
+           double &   SeuilDensite();
+           int    &   DefStepDense();
+
+           void PutInGlobCoord(cResulMultiImRechCorrel<double> & aRMIRC);
+
+
       private  :
          void DoOneTri        (const cXml_Triangle3DForTieP & );
 
@@ -121,6 +138,11 @@ class cAppliTieTri
          int                               mNivInterac;
          cElPlan3D                         mCurPlan;
          tInterpolTiepTri *                mInterpol;
+         double                            mSeuilDensite;
+         int                               mDefStepDense; 
+
+         std::vector<cResulMultiImRechCorrel<double>*> mVCurMIRMC;
+         std::vector<cResulMultiImRechCorrel<double>*> mVGlobMIRMC;
 };
 
 typedef enum eTypeTieTri
@@ -150,6 +172,7 @@ class cImTieTri
            cImTieTri(cAppliTieTri & ,const std::string& aNameIm);
            Video_Win *        W();
            virtual bool IsMaster() const = 0;
+           const Pt2di  &   Decal() const;
       protected :
            int  IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> &,Pt2di aP);
            void MakeInterestPoint
@@ -204,6 +227,7 @@ class cImMasterTieTri : public cImTieTri
            virtual bool IsMaster() const ;
            const std::list<cIntTieTriInterest> & LIP() const;
 
+
     private :
 
            std::list<cIntTieTriInterest> mLIP;
@@ -216,7 +240,9 @@ class cImSecTieTri : public cImTieTri
            cImSecTieTri(cAppliTieTri & ,const std::string& aNameIm);
            void LoadTri(const cXml_Triangle3DForTieP & );
 
-           void RechHomPtsInteret(const cIntTieTriInterest & aP,int aNivInterac);
+            cResulRechCorrel<double>  RechHomPtsInteretBilin(const cIntTieTriInterest & aP,int aNivInterac);
+            cResulRechCorrel<double>  RechHomPtsDense(const Pt2di & aP0,const cResulRechCorrel<double> & aPIn);
+
            virtual bool IsMaster() const ;
     private :
            void  DecomposeVecHom(const Pt2dr & aPSH1,const Pt2dr & aPSH2,Pt2dr & aDirProf,Pt2dr & aNewCoord);
@@ -265,6 +291,46 @@ template<class Type> class cResulRechCorrel
           Pt2d<Type>  mPt;
           double      mCorrel;
 
+};
+
+template<class Type> class cResulMultiImRechCorrel
+{
+    public :
+         cResulMultiImRechCorrel(const cIntTieTriInterest & aPMaster) :
+                mPMaster (aPMaster),
+                mScore   (TT_MaxCorrel),
+                mIsInit  (true)
+          {
+          }
+
+          double square_dist(const cResulMultiImRechCorrel & aR2) const
+          {
+               return square_euclid(mPMaster.mPt,aR2.mPMaster.mPt);
+          }
+          void AddResul(const cResulRechCorrel<double> aRRC)
+          {
+              if (aRRC.IsInit())
+              {
+                  mScore = ElMin(mScore,aRRC.mCorrel);
+                  mVRRC.push_back(aRRC);
+              }
+              else
+              {
+                   mIsInit = false;
+              }
+          }
+          void SetNoInit() {mIsInit=false;}
+          bool IsInit() const  {return mIsInit;}
+          double Score() const {return mScore;}
+          const std::vector<cResulRechCorrel<double> > & VRRC() const {return mVRRC;}
+          std::vector<cResulRechCorrel<double> > & VRRC() {return mVRRC;}
+          const cIntTieTriInterest & PMaster() const {return  mPMaster;}
+          cIntTieTriInterest & PMaster() {return  mPMaster;}
+    private :
+         cIntTieTriInterest                     mPMaster;
+         double                                 mScore;
+         bool                                   mIsInit;
+         std::vector<cResulRechCorrel<double> > mVRRC;
 };
 
 
