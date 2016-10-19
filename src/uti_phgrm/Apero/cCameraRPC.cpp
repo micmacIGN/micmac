@@ -3476,6 +3476,71 @@ int RecalRPC_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+int CalcBsurH_main(int argc,char ** argv)
+{
+    
+    cInterfChantierNameManipulateur * aICNM;
+    std::string aFullName;
+    std::string aDir;
+    std::string aName;
+    std::list<std::string> aListFile;
+
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aFullName,"Orientation file (or pattern) in cXml_CamGenPolBundle format"),
+        LArgMain()
+     );
+
+    SplitDirAndFile(aDir, aName, aFullName);
+    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    aListFile = aICNM->StdGetListOfFile(aName);
+
+    /* Print out the b sur h */
+    int i=0, j=0;
+    std::list<std::string>::iterator it1=aListFile.begin();
+    for( ; it1 !=aListFile.end(); it1++, i++ )
+    {
+        CameraRPC aCam1( aDir+(*it1));
+
+
+        Pt2dr aCentIm1(double(aCam1.SzBasicCapt3D().x)/2,double(aCam1.SzBasicCapt3D().y)/2);
+        Pt3dr aTer = aCam1.ImEtZ2Terrain(aCentIm1, aCam1.GetAltiSol());
+        Pt3dr a01 = aCam1.OpticalCenterOfPixel(aCentIm1);
+
+
+        std::list<std::string>::iterator it2=aListFile.begin();
+        j=i;
+        for( it2=it1; it2 !=aListFile.end(); it2++, j++)
+        {
+            if( (*it1)!=(*it2))
+            {
+                CameraRPC aCam2( aDir+(*it2) );
+            
+                Pt2dr aTerBPrj = aCam2.Ter2Capteur(aTer);
+                Pt3dr a02 = aCam2.OpticalCenterOfPixel(aTerBPrj);
+
+                std::cout << " (" << i << "," << j << ")" 
+                          << sqrt(std::pow((a02.x - a01.x),2) + std::pow((a02.y - a01.y),2) + std::pow((a02.z - a01.z),2))/(a01.z - aCam1.GetAltiSol());
+            }
+            else
+                std::cout << " (" << i << "," << j << ")0.0";
+
+        }
+
+
+        std::cout << "\n";
+        
+    }
+
+    /* Print out the list of images */
+    i=0;
+    for( it1=aListFile.begin(); it1 !=aListFile.end(); it1++, i++ )
+        std::cout << i << " " << (*it1) << "\n";
+
+    return EXIT_SUCCESS;
+}
 
 double TestGradBCG
      (
