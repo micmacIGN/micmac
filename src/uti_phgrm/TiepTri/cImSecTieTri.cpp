@@ -60,9 +60,9 @@ cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
 }
 
 
-void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
+bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
-   cImTieTri::LoadTri(aTri);
+   if (! cImTieTri::LoadTri(aTri)) return false;
 
 
    // Reechantillonage des images
@@ -120,6 +120,8 @@ void cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
    MakeInterestPoint(0,&mTImLabelPC,mMaster->mTMasqTri,mTImReech);
    //MakeInterestPointFAST(0,&mTImLabelPC,mMaster->mTMasqTri,mTImReech);
+
+   return true;
 
 }
 
@@ -323,6 +325,12 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
 bool  cImSecTieTri::IsMaster() const 
 {
     return false;
+}
+
+
+ElPackHomologue & cImSecTieTri::PackH()  
+{
+   return mPackH;
 }
 
 

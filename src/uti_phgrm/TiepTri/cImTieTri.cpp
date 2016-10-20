@@ -63,11 +63,27 @@ cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
     std::cout << "OK " << mNameIm << " F=" << mCam->Focale() << "\n";
 }
 
-void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
+bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
+    if (
+               (!mCam->PIsVisibleInImage(aTri.P1()))
+            || (!mCam->PIsVisibleInImage(aTri.P2()))
+            || (!mCam->PIsVisibleInImage(aTri.P3()))
+       )
+       return  false;
+
     mP1Glob = mCam->R3toF2(aTri.P1());
     mP2Glob = mCam->R3toF2(aTri.P2());
     mP3Glob = mCam->R3toF2(aTri.P3());
+
+    double aSurf =  (mP1Glob-mP2Glob) ^ (mP1Glob-mP3Glob);
+
+
+
+    if (ElAbs(aSurf) < TT_SEUIL_SURF_TRI_PIXEL) return false;
+    // std::cout << "SURF = " << aSurf  << " " << mP1Glob << mP2Glob << mP3Glob << "\n";
+
+
 
     Pt2dr aP0 = Inf(Inf(mP1Glob,mP2Glob),mP3Glob) - Pt2dr(mRab,mRab);
     Pt2dr aP1 = Sup(Sup(mP1Glob,mP2Glob),mP3Glob) + Pt2dr(mRab,mRab);
@@ -93,7 +109,10 @@ void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     aLTri = aLTri + round_ni(mP3Glob-Pt2dr(mDecal));
     ELISE_COPY(polygone(aLTri),1,mMasqTri.oclip());
 
-    std::cout << "   LOAD " << mDecal << " " << mSzIm << "\n";
+    if (mAppli.NivInterac() > 0)
+    {
+        std::cout << "   LOAD " << mDecal << " " << mSzIm << "\n";
+    }
     if ((mW ==0) && (mAppli.WithW()))
     {
          int aZ = mAppli.ZoomW();
@@ -113,6 +132,7 @@ void cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
          // mW->clik_in();
     }
+    return true;
 }
 
 template <class Type> int  CmpValAndDec(const Type & aV1,const Type & aV2, const Pt2di & aDec)

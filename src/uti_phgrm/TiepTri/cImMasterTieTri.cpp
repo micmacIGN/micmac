@@ -57,9 +57,9 @@ cImMasterTieTri::cImMasterTieTri(cAppliTieTri & anAppli ,const std::string& aNam
 
 
 
-void cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
+bool  cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
-   cImTieTri::LoadTri(aTri);
+   if (! cImTieTri::LoadTri(aTri)) return false;
    mLIP.clear();
 
    if (mAppli.Debug())
@@ -71,12 +71,14 @@ void cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    //MakeInterestPointFAST(&mLIP,0,mTMasqTri,mTImInit);
 
 
-   if (1)
+   if (mAppli.NivInterac() > 0)
    {
        int aCpt;
        ELISE_COPY(mMasqTri.all_pts(), mMasqTri.in(),sigma(aCpt));
        std::cout << " Nb In Masq= " << aCpt << "\n";
    }
+
+   return true;
 
    /// Im2D_U_INT1 
 }
