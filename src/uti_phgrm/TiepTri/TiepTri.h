@@ -50,6 +50,7 @@ class cImMasterTieTri;
 class cImSecTieTri;
 template<class Type> class cResulRechCorrel;
 template<class Type> class cResulMultiImRechCorrel;
+class cOneTriMultiImRechCorrel;
 
 #define TT_DefCorrel -2.0
 #define TT_MaxCorrel 1.0
@@ -59,6 +60,7 @@ template<class Type> class cResulMultiImRechCorrel;
 #define TT_SEUIL_CORREL_1PIXSUR2  0.7   // calcul des extrema locaux
 #define TT_DefSeuilDensiteResul   100
 #define TT_DefStepDense           5
+#define TT_SEUIL_SURF_TRI_PIXEL   100.0
 
 //  =====================================
 
@@ -113,9 +115,7 @@ class cAppliTieTri
 
 
       private  :
-         void DoOneTri        (const cXml_Triangle3DForTieP & );
-
-         
+         void DoOneTri  (const cXml_Triangle3DForTieP & ,int aKT);
 
 
          cInterfChantierNameManipulateur * mICNM;
@@ -142,7 +142,12 @@ class cAppliTieTri
          int                               mDefStepDense; 
 
          std::vector<cResulMultiImRechCorrel<double>*> mVCurMIRMC;
-         std::vector<cResulMultiImRechCorrel<double>*> mVGlobMIRMC;
+         std::vector<cOneTriMultiImRechCorrel>         mVGlobMIRMC;
+
+         int       mNbTri;
+         int       mNbPts;
+         double    mTimeCorInit;
+         double    mTimeCorDense;
 };
 
 typedef enum eTypeTieTri
@@ -188,7 +193,7 @@ class cImTieTri
                       const TIm2DBits<1> & aMasq,const TIm2D<tElTiepTri,tElTiepTri> &
                  );
 
-           void LoadTri(const cXml_Triangle3DForTieP & );
+           bool LoadTri(const cXml_Triangle3DForTieP & );
 
            Col_Pal  ColOfType(eTypeTieTri);
 
@@ -221,7 +226,7 @@ class cImMasterTieTri : public cImTieTri
 {
     public :
            cImMasterTieTri(cAppliTieTri & ,const std::string& aNameIm);
-           void LoadTri(const cXml_Triangle3DForTieP & );
+           bool LoadTri(const cXml_Triangle3DForTieP & );
 
            cIntTieTriInterest  GetPtsInteret();
            virtual bool IsMaster() const ;
@@ -238,12 +243,13 @@ class cImSecTieTri : public cImTieTri
 {
     public :
            cImSecTieTri(cAppliTieTri & ,const std::string& aNameIm);
-           void LoadTri(const cXml_Triangle3DForTieP & );
+           bool LoadTri(const cXml_Triangle3DForTieP & );
 
             cResulRechCorrel<double>  RechHomPtsInteretBilin(const cIntTieTriInterest & aP,int aNivInterac);
             cResulRechCorrel<double>  RechHomPtsDense(const Pt2di & aP0,const cResulRechCorrel<double> & aPIn);
 
            virtual bool IsMaster() const ;
+           ElPackHomologue & PackH() ;
     private :
            void  DecomposeVecHom(const Pt2dr & aPSH1,const Pt2dr & aPSH2,Pt2dr & aDirProf,Pt2dr & aNewCoord);
 
@@ -255,6 +261,7 @@ class cImSecTieTri : public cImTieTri
            ElAffin2D                     mAffMas2Sec;
            ElAffin2D                     mAffSec2Mas;
            cImMasterTieTri *             mMaster;
+           ElPackHomologue               mPackH;
 };
 
 //  ====================================  Correlation ==========================
@@ -332,6 +339,27 @@ template<class Type> class cResulMultiImRechCorrel
          bool                                   mIsInit;
          std::vector<cResulRechCorrel<double> > mVRRC;
 };
+
+
+class cOneTriMultiImRechCorrel
+{
+    public :
+       cOneTriMultiImRechCorrel(int aKT,const std::vector<cResulMultiImRechCorrel<double>*> & aVMultiC,const std::vector<int> & aVIndex) :
+           mKT      (aKT),
+           mVMultiC (aVMultiC),
+           mVIndex  (aVIndex)
+       {
+       }
+       const std::vector<cResulMultiImRechCorrel<double>*>&  VMultiC() const {return  mVMultiC;}
+       const std::vector<int> &                              Index()   const {return  mVIndex;}
+       const int  &  KT()   const {return  mKT;}
+    private :
+        
+        int mKT;
+        std::vector<cResulMultiImRechCorrel<double>*>  mVMultiC;
+        std::vector<int>                       mVIndex;
+};
+
 
 
 double TT_CorrelBasique

@@ -83,8 +83,11 @@ cAppliTieTri::cAppliTieTri
      mNivInterac    (0),
      mCurPlan       (Pt3dr(0,0,0),Pt3dr(1,0,0),Pt3dr(0,1,0)),
      mSeuilDensite  (TT_DefSeuilDensiteResul),
-     mDefStepDense  (TT_DefStepDense)
-
+     mDefStepDense  (TT_DefStepDense),
+     mNbTri         (0),
+     mNbPts         (0),
+     mTimeCorInit   (0.0),
+     mTimeCorDense  (0.0)
 {
    mMasIm = new cImMasterTieTri(*this,aTriang.NameMaster());
 
@@ -107,11 +110,54 @@ cAppliTieTri::cAppliTieTri
 
 void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
 {
+    int aNbTri = aTriang.Tri().size();
+
     for (int aK=0 ; aK<int(aTriang.Tri().size()) ; aK++)
     {
-        DoOneTri(aTriang.Tri()[aK]);
+        DoOneTri(aTriang.Tri()[aK],aK);
+        if ( (aK%20)==0)
+        {
+            std::cout << "Av = "  << (aNbTri-aK) * (100.0/aNbTri) << "% "
+                      << " NbP/Tri " << double(mNbPts) / mNbTri
+                      << "\n";
+        }
     }
-    
+
+    for (int aKT= 0; aKT< int(mVGlobMIRMC.size()) ; aKT++)
+    {
+        cOneTriMultiImRechCorrel & aTMIRC = mVGlobMIRMC[aKT];
+        const std::vector<int> &   aVInd = aTMIRC.Index();
+        int aNbIm = aVInd.size();
+        const std::vector<cResulMultiImRechCorrel<double>*>& aVMC = aTMIRC.VMultiC() ;
+        for (int aKP=0 ; aKP<int(aVMC.size()) ; aKP++)
+        {
+             cResulMultiImRechCorrel<double> & aRMIRC =  *(aVMC[aKP]);
+             Pt2dr aPMaster (aRMIRC.PMaster().mPt);
+             ELISE_ASSERT(aNbIm==int(aRMIRC.VRRC().size()),"Incoh size in cAppliTieTri::DoAllTri");
+             for (int aKI=0 ; aKI<aNbIm ; aKI++)
+             {
+                 const cResulRechCorrel<double> & aRRC = aRMIRC.VRRC()[aKI];
+
+                 // std::cout << "Corr " << aRRC.mCorrel << " " << aRMIRC.IsInit() << " KT=" << aTMIRC.KT() << "\n";
+                 if (aRRC.IsInit())
+                 {
+                    cImSecTieTri * anIm = mImSec[aVInd[aKI]];
+                    
+                    anIm->PackH().Cple_Add(ElCplePtsHomologues(aPMaster,aRRC.mPt)) ;
+                 }
+                 else
+                 {
+                      ELISE_ASSERT(false,"Incoh init in cAppliTieTri::DoAllTri");
+                      // getchar();
+                 }
+             }
+        }
+    }
+
+    for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
+    {
+          
+    }
 }
 
 void cAppliTieTri::RechHomPtsDense(cResulMultiImRechCorrel<double> & aRMIRC)
@@ -136,17 +182,35 @@ void cAppliTieTri::PutInGlobCoord(cResulMultiImRechCorrel<double> & aRMIRC)
      }
 }
 
-void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri )
+void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
 {
+
+ // if (505!=aKT) return;
+    
+    // Verification du triangle  
+
+     // std::cout << "TRI " << aTri.P1() << aTri.P2() << aTri.P3() << "\n";
+
+    // 
+    if (!  mMasIm->LoadTri(aTri)) return;
+
+    mNbTri++;
+
     mCurPlan = cElPlan3D(aTri.P1(),aTri.P2(),aTri.P3());
-    mMasIm->LoadTri(aTri);
     mLoadedImSec.clear();
-    for (int aKTri=0 ; aKTri<int(aTri.NumImSec().size()) ; aKTri++)
+    std::vector<int> aVIndLoaded;
+    for (int aKNumIm=0 ; aKNumIm<int(aTri.NumImSec().size()) ; aKNumIm++)
     {
-        int aKIm = aTri.NumImSec()[aKTri];
-        mImSec[aKIm]->LoadTri(aTri);
-        mLoadedImSec.push_back(mImSec[aKIm]);
+        int aKIm = aTri.NumImSec()[aKNumIm];
+        if ( mImSec[aKIm]->LoadTri(aTri))
+        {
+            mLoadedImSec.push_back(mImSec[aKIm]);
+            aVIndLoaded.push_back(aKIm);
+        }
     }
+
+    if (mLoadedImSec.size() == 0)
+       return;
 
     if (0 && (mNivInterac==2))  // Version interactive
     {
@@ -181,7 +245,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri )
                   delete aRMIRC;
               }
          }
-         std::cout << "Time CInit =" << aChrono.uval() << "\n";
+         mTimeCorInit += aChrono.uval();
     }
 
     FiltrageSpatialRMIRC(mSeuilDensite);
@@ -192,7 +256,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri )
        {
             RechHomPtsDense(*mVCurMIRMC[aKR]);
        }
-       std::cout << "Time Dense =" << aChrono.uval() << "\n";
+       mTimeCorDense += aChrono.uval();
     }
 
 
@@ -204,8 +268,12 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri )
     for (int aKp=0 ; aKp<int(mVCurMIRMC.size()) ; aKp++)
     {
         PutInGlobCoord(*mVCurMIRMC[aKp]);
-        mVGlobMIRMC.push_back(mVCurMIRMC[aKp]); 
+        // mVGlobMIRMC.push_back(mVCurMIRMC[aKp]); 
     }
+
+//   std::cout << "NBPPSS " << mVCurMIRMC.size() << "\n";
+    mNbPts += mVCurMIRMC.size();
+    mVGlobMIRMC.push_back(cOneTriMultiImRechCorrel(aKT,mVCurMIRMC,aVIndLoaded));
     mVCurMIRMC.clear();
 }
 
