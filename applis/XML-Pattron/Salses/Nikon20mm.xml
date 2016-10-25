@@ -1,0 +1,16 @@
+<CalibrationInternConique>
+      <KnownConv>eConvApero_DistM2C</KnownConv>
+      <PP>1439.84224009397553 2128.88661336354926</PP>
+      <F>3697.24537978311992</F>
+      <SzIm>2848 4288</SzIm>
+      <CalibDistortion>
+            <ModRad>
+                   <CDist>1439.84224009397553 2128.88661336354926</CDist>
+                   <CoeffDist>-8.44224607183466338e-09</CoeffDist>
+                   <CoeffDist>7.33755556805891768e-16</CoeffDist>
+                   <CoeffDist>-6.86408726481679048e-23</CoeffDist>
+                   <CoeffDist>8.37232839463515492e-30</CoeffDist>
+                   <CoeffDist>-4.55505223376186968e-37</CoeffDist>
+            </ModRad>
+      </CalibDistortion>
+</CalibrationInternConique>
