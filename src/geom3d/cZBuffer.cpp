@@ -260,8 +260,20 @@ Pt2di aLastPtInMaxGrad(0,0);
                                         }
                                         aNbBadGrad++;
                                     }
+if (MPD_MM())
+{
+}
                                     if (aGrad > aMaxGrad)
                                     {
+
+if (MPD_MM())
+{
+   std::cout << "GRAD " << aGrad  << " D2="<< aDist2 << " D3=" << aDist3  << "\n";
+   std::cout << " IN=" <<  aPIn << aLastPIn <<  aPIn- aLastPIn<< "\n";
+   std::cout << " OUT=" <<  aP3Out << aLastP3Out << aP3Out-aLastP3Out << "\n";
+   std::cout << "\n";
+   // getchar();
+}
                                         aMaxGrad = aGrad;
                                     }
                                 }
@@ -272,12 +284,12 @@ Pt2di aLastPtInMaxGrad(0,0);
 				   aNbOkIm++;
 
 
-if (0 &&(MPD_MM() || ERupnik_MM()))
+if (0 && (aMaxGrad>400)  &&(MPD_MM() || ERupnik_MM()))
 {
 
 
 //  std::cout << "pppppppppppppp " << aP2Out << "\n";
-if (euclid(aP2Out) > 1e5  )
+// if (euclid(aP2Out) > 1e5  )
 {
    std::cout << "STEPIN " << mStepIn << " OOOO " << aZofXY << "\n";
    DEBUG_ZBB = true;

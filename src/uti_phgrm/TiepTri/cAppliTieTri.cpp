@@ -193,8 +193,9 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
 
      // std::cout << "TRI " << aTri.P1() << aTri.P2() << aTri.P3() << "\n";
 
-    // 
+printf("DoOneTri AVANT MASTER LOAD\n"); 
     if (!  mMasIm->LoadTri(aTri)) return;
+printf("DoOneTri APPRRRESSS  MASTER LOAD\n"); 
 
     mNbTri++;
 
@@ -207,6 +208,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
         {
             mLoadedImSec.push_back(mImSec[aKIm]);
         }
+printf("DoOneTri SEC NUM %d\n",aKNumIm); 
     }
 
     if (mLoadedImSec.size() == 0)
