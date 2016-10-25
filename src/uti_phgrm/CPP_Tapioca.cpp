@@ -1294,6 +1294,24 @@ int TiePLine_main(int argc,char ** argv)
 
 
 
+/***********************************************************************************/
+
+class cAppliMakeFileHom
+{
+    public :
+         cAppliMakeFileHom(int argc,char **argv,int SzExecute);
+    private :
+         void Add(std::string aS1,std::string aS2);
+         std::set<std::pair<std::string,std::string> > mRes;
+         bool                                          mSym;
+};
+
+
+
+
+
+
+
 /* Footer-MicMac-eLiSe-25/06/2007
 
    Ce logiciel est un programme informatique servant a  la mise en
