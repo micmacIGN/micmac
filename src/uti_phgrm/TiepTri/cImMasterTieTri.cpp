@@ -50,7 +50,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 cImMasterTieTri::cImMasterTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
-   cImTieTri   (anAppli,aNameIm)
+   cImTieTri   (anAppli,aNameIm,-1)
 {
 }
 

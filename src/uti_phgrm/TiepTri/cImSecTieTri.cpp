@@ -47,8 +47,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                              */
 /************************************************/
 
-cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
-   cImTieTri   (anAppli,aNameIm),
+cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum) :
+   cImTieTri   (anAppli,aNameIm,aNum),
    mImReech    (1,1),
    mTImReech   (mImReech),
    mImLabelPC  (1,1),

@@ -174,10 +174,11 @@ class cImTieTri
             friend class cImMasterTieTri;
             friend class cImSecTieTri;
 
-           cImTieTri(cAppliTieTri & ,const std::string& aNameIm);
+           cImTieTri(cAppliTieTri & ,const std::string& aNameIm,int aNum);
            Video_Win *        W();
            virtual bool IsMaster() const = 0;
            const Pt2di  &   Decal() const;
+           const int & Num() const;
       protected :
            int  IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> &,Pt2di aP);
            void MakeInterestPoint
@@ -220,6 +221,7 @@ class cImTieTri
 
            int                           mRab;
            Video_Win *                   mW;
+           int                           mNum;
 };
 
 class cImMasterTieTri : public cImTieTri
@@ -242,7 +244,7 @@ class cImMasterTieTri : public cImTieTri
 class cImSecTieTri : public cImTieTri
 {
     public :
-           cImSecTieTri(cAppliTieTri & ,const std::string& aNameIm);
+           cImSecTieTri(cAppliTieTri & ,const std::string& aNameIm,int aNum);
            bool LoadTri(const cXml_Triangle3DForTieP & );
 
             cResulRechCorrel<double>  RechHomPtsInteretBilin(const cIntTieTriInterest & aP,int aNivInterac);
@@ -306,7 +308,7 @@ template<class Type> class cResulMultiImRechCorrel
          cResulMultiImRechCorrel(const cIntTieTriInterest & aPMaster) :
                 mPMaster (aPMaster),
                 mScore   (TT_MaxCorrel),
-                mIsInit  (true)
+                mAllInit  (true)
           {
           }
 
@@ -314,50 +316,50 @@ template<class Type> class cResulMultiImRechCorrel
           {
                return square_euclid(mPMaster.mPt,aR2.mPMaster.mPt);
           }
-          void AddResul(const cResulRechCorrel<double> aRRC)
+          void AddResul(const cResulRechCorrel<double> aRRC,int aNumIm)
           {
               if (aRRC.IsInit())
               {
                   mScore = ElMin(mScore,aRRC.mCorrel);
                   mVRRC.push_back(aRRC);
+                  mVIndex.push_back(aNumIm);
               }
               else
               {
-                   mIsInit = false;
+                   mAllInit = false;
               }
           }
-          void SetNoInit() {mIsInit=false;}
-          bool IsInit() const  {return mIsInit;}
+          bool AllInit() const  {return mAllInit ;}
+          bool IsInit() const  {return mAllInit && (mVRRC.size() !=0) ;}
           double Score() const {return mScore;}
           const std::vector<cResulRechCorrel<double> > & VRRC() const {return mVRRC;}
           std::vector<cResulRechCorrel<double> > & VRRC() {return mVRRC;}
           const cIntTieTriInterest & PMaster() const {return  mPMaster;}
           cIntTieTriInterest & PMaster() {return  mPMaster;}
+          const std::vector<int> &                              VIndex()   const {return  mVIndex;}
     private :
          cIntTieTriInterest                     mPMaster;
          double                                 mScore;
-         bool                                   mIsInit;
+         bool                                   mAllInit;
          std::vector<cResulRechCorrel<double> > mVRRC;
+         std::vector<int>                       mVIndex;
 };
 
 
 class cOneTriMultiImRechCorrel
 {
     public :
-       cOneTriMultiImRechCorrel(int aKT,const std::vector<cResulMultiImRechCorrel<double>*> & aVMultiC,const std::vector<int> & aVIndex) :
+       cOneTriMultiImRechCorrel(int aKT,const std::vector<cResulMultiImRechCorrel<double>*> & aVMultiC) :
            mKT      (aKT),
-           mVMultiC (aVMultiC),
-           mVIndex  (aVIndex)
+           mVMultiC (aVMultiC)
        {
        }
        const std::vector<cResulMultiImRechCorrel<double>*>&  VMultiC() const {return  mVMultiC;}
-       const std::vector<int> &                              Index()   const {return  mVIndex;}
        const int  &  KT()   const {return  mKT;}
     private :
         
         int mKT;
         std::vector<cResulMultiImRechCorrel<double>*>  mVMultiC;
-        std::vector<int>                       mVIndex;
 };
 
 
