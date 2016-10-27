@@ -268,8 +268,15 @@ if (MPD_MM())
 
 if (MPD_MM())
 {
+   std::cout.precision(12);
    std::cout << "GRAD " << aGrad  << " D2="<< aDist2 << " D3=" << aDist3  << "\n";
    std::cout << " IN=" <<  aPIn << aLastPIn <<  aPIn- aLastPIn<< "\n";
+   double  aValZofXY = ZofXY(aPIn);
+   double  aLastValZofXY = ZofXY(aLastPIn);
+   Pt3dr anAbsIn = ToCoordInAbs(Pt3dr(aPIn.x,aPIn.y,aValZofXY));
+   Pt3dr aPLastIn = ToCoordInAbs(Pt3dr(aLastPIn.x,aLastPIn.y,aLastValZofXY));
+
+   std::cout << " IN-ABS=" <<  anAbsIn << aPLastIn <<   "\n";
    std::cout << " OUT=" <<  aP3Out << aLastP3Out << aP3Out-aLastP3Out << "\n";
    std::cout << "\n";
    // getchar();
@@ -689,25 +696,48 @@ getchar();
     }
 }
 
+Pt3dr cZBuffer::ToCoordInAbs(const Pt3dr & aPInDisc) const
+{
+   return  Pt3dr 
+           (
+               mOrigineIn.x+ aPInDisc.x*mStepIn.x,
+               mOrigineIn.y+ aPInDisc.y*mStepIn.y,
+               aPInDisc.z
+           );
+}
+
+Pt3dr cZBuffer::ToCoordOutLoc(const Pt3dr & aPOutTer) const
+{
+   return Pt3dr
+          (
+	      (aPOutTer.x-mOrigineOut.x)/mStepOut.x -mOffet_Out_00.x,
+	      (aPOutTer.y-mOrigineOut.y)/mStepOut.y -mOffet_Out_00.y,
+	      aPOutTer.z
+          );
+}
+
 Pt3dr cZBuffer::ProjDisc(const Pt3dr & aPInDisc) const
 {
+/*
    Pt3dr aPInTer 
          (
              mOrigineIn.x+ aPInDisc.x*mStepIn.x,
              mOrigineIn.y+ aPInDisc.y*mStepIn.y,
 	     aPInDisc.z
 	 );
-
+*/
+   Pt3dr aPInTer =  ToCoordInAbs(aPInDisc);
    Pt3dr aPOutTer = ProjTerrain(aPInTer);
+   return  ToCoordOutLoc(aPOutTer);
 
-
+/*
    return Pt3dr
           (
 	      (aPOutTer.x-mOrigineOut.x)/mStepOut.x -mOffet_Out_00.x,
 	      (aPOutTer.y-mOrigineOut.y)/mStepOut.y -mOffet_Out_00.y,
 	      aPOutTer.z
 	  );
-         
+*/
 }
 
 Pt3dr cZBuffer::ProjDisc(const Pt2di & aPInDisc,double * aPtrValZofXY) const

@@ -658,6 +658,9 @@ class cZBuffer
         Pt3dr ProjDisc(const Pt3dr &) const;
         void SetWithBufXYZ(bool);
 
+        Pt3dr ToCoordInAbs(const Pt3dr & aPInDisc) const;
+        Pt3dr ToCoordOutLoc(const Pt3dr & aPOutTer) const;
+
 
         void InitDynEtirement(double);
         Im2D_U_INT1    ImEtirement();
