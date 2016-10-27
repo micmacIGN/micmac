@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<Xml_EnvVino>
+     <SpeedZoomGrab Type="int">  </SpeedZoomGrab>
+     <SpeedZoomMolette Type="double"></SpeedZoomMolette>
+     <Stats>
+          <IntervDyn Type="Pt2dr"> </IntervDyn>
+          <MulDyn Type="double"> </MulDyn>
+     </Stats>
+</Xml_EnvVino>
