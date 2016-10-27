@@ -80,7 +80,7 @@ bool  cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
    return true;
 
-   /// Im2D_U_INT1 
+   // Im2D_U_INT1
 }
 
 cIntTieTriInterest cImMasterTieTri::GetPtsInteret()
