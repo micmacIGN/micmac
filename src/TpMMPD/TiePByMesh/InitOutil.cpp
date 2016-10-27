@@ -214,8 +214,9 @@ PlyFile* InitOutil::read_file(string pathPlyFileS)
         {cout<<ply->elems[i]->props[j]->name<<"   ";  }
         cout<<endl;
     }
-    cout<<"Display items in elements ? [y/n] new"<<endl;
-    char ch = static_cast<char>(getc(stdin));
+    cout<<"Display items in elements ? [y/n]"<<endl;
+    //char ch = static_cast<char>(getc(stdin));
+    char ch = 'n';
     if (ch == 'y')
     {
         cout<<"Yes "<<endl;
