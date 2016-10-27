@@ -115,6 +115,7 @@ class cAppliTieTri
 
 
       private  :
+         cAppliTieTri(const cAppliTieTri &); // N.I.
          void DoOneTri  (const cXml_Triangle3DForTieP & ,int aKT);
 
 
@@ -123,7 +124,7 @@ class cAppliTieTri
          std::string                       mOri;
          cImMasterTieTri *                 mMasIm;
          std::vector<cImSecTieTri *>       mImSec;
-         std::vector<cImSecTieTri *>       mLoadedImSec;
+         std::vector<cImSecTieTri *>       mImSecLoaded;
          Pt2di                             mSzW;
          int                               mZoomW;
          bool                              mWithW;
@@ -180,6 +181,7 @@ class cImTieTri
            const Pt2di  &   Decal() const;
            const int & Num() const;
       protected :
+           cImTieTri(const cImTieTri &) ; // N.I.
            int  IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> &,Pt2di aP);
            void MakeInterestPoint
                 (
@@ -236,7 +238,7 @@ class cImMasterTieTri : public cImTieTri
 
 
     private :
-
+           cImMasterTieTri(const cImMasterTieTri&) ; // N.I.
            std::list<cIntTieTriInterest> mLIP;
            
 };
@@ -253,6 +255,7 @@ class cImSecTieTri : public cImTieTri
            virtual bool IsMaster() const ;
            ElPackHomologue & PackH() ;
     private :
+           cImSecTieTri(const cImSecTieTri&); // N.I.
            void  DecomposeVecHom(const Pt2dr & aPSH1,const Pt2dr & aPSH2,Pt2dr & aDirProf,Pt2dr & aNewCoord);
 
            Im2D<tElTiepTri,tElTiepTri>   mImReech;
@@ -338,6 +341,9 @@ template<class Type> class cResulMultiImRechCorrel
           cIntTieTriInterest & PMaster() {return  mPMaster;}
           const std::vector<int> &                              VIndex()   const {return  mVIndex;}
     private :
+
+         cResulMultiImRechCorrel(const cResulMultiImRechCorrel<Type> & aPMaster) ; // N.I.
+        
          cIntTieTriInterest                     mPMaster;
          double                                 mScore;
          bool                                   mAllInit;
@@ -357,6 +363,8 @@ class cOneTriMultiImRechCorrel
        const std::vector<cResulMultiImRechCorrel<double>*>&  VMultiC() const {return  mVMultiC;}
        const int  &  KT()   const {return  mKT;}
     private :
+
+         // cOneTriMultiImRechCorrel(const cOneTriMultiImRechCorrel &); // N.I.
         
         int mKT;
         std::vector<cResulMultiImRechCorrel<double>*>  mVMultiC;

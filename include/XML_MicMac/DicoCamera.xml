@@ -1,6 +1,15 @@
 <?xml version="1.0" ?>
 
 <MMCameraDataBase>
+
+
+   <CameraEntry>
+        <Name> RP_imx219 </Name>
+        <SzCaptMm> 2.75 3.67 </SzCaptMm>
+        <ShortName> RP_imx219 </ShortName>
+   </CameraEntry>
+
+
    <CameraEntry>
         <Name> OnePlus One A0001 </Name>
         <SzCaptMm> 3.6 4.8 </SzCaptMm>

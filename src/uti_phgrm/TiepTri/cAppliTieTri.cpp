@@ -147,7 +147,10 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
                  }
                  else
                  {
-                      ELISE_ASSERT(false,"Incoh init in cAppliTieTri::DoAllTri");
+                      // Ce cas peut sans doute se produire legitimment si la valeur entiere etait trop proche
+                      // de la frontiere et que toute les  tentative etaient en dehors
+
+                      // ELISE_ASSERT(false,"Incoh init in cAppliTieTri::DoAllTri");
                       // getchar();
                  }
              }
@@ -169,7 +172,9 @@ void cAppliTieTri::RechHomPtsDense(cResulMultiImRechCorrel<double> & aRMIRC)
      {
          cResulRechCorrel<double> & aRRC = aVRRC[aKNumIm];
          int aKIm = aRMIRC.VIndex()[aKNumIm];
-         aRRC = mLoadedImSec[aKIm]->RechHomPtsDense(aRMIRC.PMaster().mPt,aRRC);
+
+         // aRRC = mImSecLoaded[aKIm]->RechHomPtsDense(aRMIRC.PMaster().mPt,aRRC);
+         aRRC = mImSec[aKIm]->RechHomPtsDense(aRMIRC.PMaster().mPt,aRRC);
      }
 }
 
@@ -177,10 +182,11 @@ void cAppliTieTri::PutInGlobCoord(cResulMultiImRechCorrel<double> & aRMIRC)
 {
      aRMIRC.PMaster().mPt = aRMIRC.PMaster().mPt + mMasIm->Decal();
      std::vector<cResulRechCorrel<double> > & aVRRC = aRMIRC.VRRC();
-     for (int aKIm=0 ; aKIm<int(mLoadedImSec.size()) ; aKIm++)
+     for (int aKNumIm=0 ; aKNumIm<int(aVRRC.size()) ; aKNumIm++)
      {
-         cResulRechCorrel<double> & aRRC = aVRRC[aKIm];
-         aRRC.mPt = aRRC.mPt + Pt2dr(mLoadedImSec[aKIm]->Decal());
+         cResulRechCorrel<double> & aRRC = aVRRC[aKNumIm];
+         int aKIm = aRMIRC.VIndex()[aKNumIm];
+         aRRC.mPt = aRRC.mPt + Pt2dr(mImSec[aKIm]->Decal());
      }
 }
 
@@ -193,25 +199,22 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
 
      // std::cout << "TRI " << aTri.P1() << aTri.P2() << aTri.P3() << "\n";
 
-printf("DoOneTri AVANT MASTER LOAD\n"); 
     if (!  mMasIm->LoadTri(aTri)) return;
-printf("DoOneTri APPRRRESSS  MASTER LOAD\n"); 
 
     mNbTri++;
 
     mCurPlan = cElPlan3D(aTri.P1(),aTri.P2(),aTri.P3());
-    mLoadedImSec.clear();
+    mImSecLoaded.clear();
     for (int aKNumIm=0 ; aKNumIm<int(aTri.NumImSec().size()) ; aKNumIm++)
     {
         int aKIm = aTri.NumImSec()[aKNumIm];
         if ( mImSec[aKIm]->LoadTri(aTri))
         {
-            mLoadedImSec.push_back(mImSec[aKIm]);
+            mImSecLoaded.push_back(mImSec[aKIm]);
         }
-printf("DoOneTri SEC NUM %d\n",aKNumIm); 
     }
 
-    if (mLoadedImSec.size() == 0)
+    if (mImSecLoaded.size() == 0)
        return;
 
     if (0 && (mNivInterac==2))  // Version interactive
@@ -219,9 +222,9 @@ printf("DoOneTri SEC NUM %d\n",aKNumIm);
          while (mWithW) 
          {
               cIntTieTriInterest aPI= mMasIm->GetPtsInteret();
-              for (int aKIm=0 ; aKIm<int(mLoadedImSec.size()) ; aKIm++)
+              for (int aKIm=0 ; aKIm<int(mImSecLoaded.size()) ; aKIm++)
               {
-                  mLoadedImSec[aKIm]->RechHomPtsInteretBilin(aPI,mNivInterac);
+                  mImSecLoaded[aKIm]->RechHomPtsInteretBilin(aPI,mNivInterac);
               }
          }
     }
@@ -232,12 +235,12 @@ printf("DoOneTri SEC NUM %d\n",aKNumIm);
          for (std::list<cIntTieTriInterest>::const_iterator itI=aLIP.begin(); itI!=aLIP.end() ; itI++)
          {
               cResulMultiImRechCorrel<double> * aRMIRC = new cResulMultiImRechCorrel<double>(*itI);
-              for (int aKIm=0 ; (aKIm<int(mLoadedImSec.size()))  ; aKIm++)
+              for (int aKIm=0 ; (aKIm<int(mImSecLoaded.size()))  ; aKIm++)
               {
-                  cResulRechCorrel<double> aRes = mLoadedImSec[aKIm]->RechHomPtsInteretBilin(*itI,mNivInterac);
+                  cResulRechCorrel<double> aRes = mImSecLoaded[aKIm]->RechHomPtsInteretBilin(*itI,mNivInterac);
                   if (aRes.IsInit())
                   {
-                     aRMIRC->AddResul(aRes,mLoadedImSec[aKIm]->Num());
+                     aRMIRC->AddResul(aRes,mImSecLoaded[aKIm]->Num());
                   }
               }
               if (aRMIRC->IsInit())
@@ -258,7 +261,7 @@ printf("DoOneTri SEC NUM %d\n",aKNumIm);
        ElTimer aChrono;
        for (int aKR = 0 ; aKR<int(mVCurMIRMC.size()) ; aKR++)
        {
-            RechHomPtsDense(*mVCurMIRMC[aKR]);
+            RechHomPtsDense(*(mVCurMIRMC[aKR]));
        }
        mTimeCorDense += aChrono.uval();
     }

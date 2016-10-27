@@ -64,6 +64,8 @@ int TiepTri_Main(int argc,char ** argv)
    StdCorrecNameOrient(anOri,aDir);
 
    cXml_TriAngulationImMaster aTriang =   StdGetFromSI(aFullNameXML,Xml_TriAngulationImMaster);;
+
+
    cAppliTieTri  anAppli(anICNM,aDir,anOri,aTriang);
    anAppli.Debug() = aDebug;
 

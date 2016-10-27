@@ -96,6 +96,7 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     mP2Loc = mP2Glob - Pt2dr(mDecal);
     mP3Loc = mP3Glob - Pt2dr(mDecal);
 
+
     // Charge l'image
     mImInit.Resize(mSzIm);
     mTImInit =  TIm2D<tElTiepTri,tElTiepTri>(mImInit);
@@ -109,6 +110,7 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     aLTri = aLTri + round_ni(mP2Glob-Pt2dr(mDecal));
     aLTri = aLTri + round_ni(mP3Glob-Pt2dr(mDecal));
     ELISE_COPY(polygone(aLTri),1,mMasqTri.oclip());
+
 
     if (mAppli.NivInterac() > 0)
     {

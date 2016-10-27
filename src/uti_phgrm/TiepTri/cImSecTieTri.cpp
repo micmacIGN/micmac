@@ -62,7 +62,14 @@ cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,in
 
 bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
-   if (! cImTieTri::LoadTri(aTri)) return false;
+   // std::cout << "111111111  cImSecTieTri::LoadTri\n";
+
+   if (! cImTieTri::LoadTri(aTri)) 
+   {
+        // std::cout << "22222222222  cImSecTieTri::LoadTri\n";
+        return false;
+   }
+   // std::cout << "3333333333333  cImSecTieTri::LoadTri\n";
 
 
    // Reechantillonage des images
@@ -292,6 +299,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
     {
        std::cout << "AFFINE " << aPIn.mCorrel << " => " << aRes2.mCorrel << " ; " << aPIn.mPt << " " << mAffSec2Mas(aRes2.mPt) << "\n"; 
     }
+
 
     return aRes2;
 }

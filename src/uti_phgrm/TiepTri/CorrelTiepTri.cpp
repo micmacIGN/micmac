@@ -296,7 +296,7 @@ class cTT_MaxLocCorrelDS1R : public Optim2DParam
             mIm2      (aIm2),
             mData2    (aIm2._the_im.data()),
             mInterpol (anInterpol),
-            mSzInterp (anInterpol->SzKernel()+1),
+            mSzInterp (anInterpol->SzKernel()+2),
             mPInf2    (1e30,1e30),
             mPSup2    (-1e30,-1e30),
             mSzIm1    (aIm1.sz()),
@@ -348,7 +348,11 @@ REAL cTT_MaxLocCorrelDS1R::Op2DParam_ComputeScore(REAL aDx,REAL aDy)
           || (mPSup2.x + aDx >=mSzIm2.x) 
           || (mPSup2.y + aDy >=mSzIm2.y) 
         )
+     {
+// std::cout << "RRRRr OOUTTTtttttttttttt\n";
         return TT_DefCorrel;
+     }
+// std::cout << "RRRRr IIIIIiiinnnnnnnnnnn\n";
 
      Pt2dr aDec(aDx,aDy);
      RMat_Inertie aMatr;
