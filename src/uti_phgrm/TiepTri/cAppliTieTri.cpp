@@ -138,7 +138,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
              {
                  const cResulRechCorrel<double> & aRRC = aRMIRC.VRRC()[aKI];
 
-                 // std::cout << "Corr " << aRRC.mCorrel << " " << aRMIRC.IsInit() << " KT=" << aTMIRC.KT() << "\n";
+                 //std::cout << "Corr " << aRRC.mCorrel << " " << aRMIRC.IsInit() << " KT=" << aTMIRC.KT() << "\n";
                  if (aRRC.IsInit())
                  {
                     cImSecTieTri * anIm = mImSec[aVInd[aKI]];
@@ -147,16 +147,25 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
                  }
                  else
                  {
-                      ELISE_ASSERT(false,"Incoh init in cAppliTieTri::DoAllTri");
+                      //ELISE_ASSERT(false,"Incoh init in cAppliTieTri::DoAllTri");
                       // getchar();
                  }
              }
         }
     }
 
+    cout<<"Write pts homo to disk:..."<<endl;
     for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
     {
-          
+       cImSecTieTri* aImSec = mImSec[aKIm];
+       cout<<"  ++ Im2nd : "<<aImSec->Num();
+       string aKhOut = std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string("_TiepTri")
+                        +  std::string("@")
+                        +  std::string("dat");
+       string aHomolOut = mICNM->Assoc1To2(aKhOut, Master()->NameIm(), aImSec->NameIm(), true);
+       cout<<" - Nb Pts= "<<aImSec->PackH().size()<<enl;
+       aImSec->PackH().StdPutInFile(aHomolOut);
     }
 }
 
@@ -193,9 +202,9 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
 
      // std::cout << "TRI " << aTri.P1() << aTri.P2() << aTri.P3() << "\n";
 
-printf("DoOneTri AVANT MASTER LOAD\n"); 
+printf("DoOneTri : %d : AVANT MASTER LOAD\n", aKT);
     if (!  mMasIm->LoadTri(aTri)) return;
-printf("DoOneTri APPRRRESSS  MASTER LOAD\n"); 
+printf("DoOneTri : APPRRRESSS  MASTER LOAD\n");
 
     mNbTri++;
 
@@ -204,11 +213,11 @@ printf("DoOneTri APPRRRESSS  MASTER LOAD\n");
     for (int aKNumIm=0 ; aKNumIm<int(aTri.NumImSec().size()) ; aKNumIm++)
     {
         int aKIm = aTri.NumImSec()[aKNumIm];
+printf("DoOneTri : load SEC NUM %d",aKIm);
         if ( mImSec[aKIm]->LoadTri(aTri))
         {
             mLoadedImSec.push_back(mImSec[aKIm]);
         }
-printf("DoOneTri SEC NUM %d\n",aKNumIm); 
     }
 
     if (mLoadedImSec.size() == 0)

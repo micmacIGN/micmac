@@ -61,7 +61,7 @@ cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum
    mNum      (aNum)
 {
 
-    std::cout << "OK " << mNameIm << " F=" << mCam->Focale() << "\n";
+    std::cout << "OK " << mNameIm << " F=" << mCam->Focale() << " Num="<<mNum<<"\n";
 }
 
 bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
@@ -71,7 +71,10 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
             || (!mCam->PIsVisibleInImage(aTri.P2()))
             || (!mCam->PIsVisibleInImage(aTri.P3()))
        )
-       return  false;
+    {
+        return  false;
+    }
+
 
     mP1Glob = mCam->R3toF2(aTri.P1());
     mP2Glob = mCam->R3toF2(aTri.P2());
@@ -81,7 +84,11 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
 
 
-    if (ElAbs(aSurf) < TT_SEUIL_SURF_TRI_PIXEL) return false;
+    if (ElAbs(aSurf) < TT_SEUIL_SURF_TRI_PIXEL)
+    {
+        return  false;
+    }
+
     // std::cout << "SURF = " << aSurf  << " " << mP1Glob << mP2Glob << mP3Glob << "\n";
 
 
@@ -101,6 +108,7 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     mTImInit =  TIm2D<tElTiepTri,tElTiepTri>(mImInit);
     ELISE_COPY(mImInit.all_pts(),trans(mTif.in(0),mDecal),mImInit.out());
 
+
     // Remplit l'image de masque avec les point qui sont dans le triangle
     mMasqTri =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,0);
     mTMasqTri = TIm2DBits<1> (mMasqTri);
@@ -109,6 +117,7 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     aLTri = aLTri + round_ni(mP2Glob-Pt2dr(mDecal));
     aLTri = aLTri + round_ni(mP3Glob-Pt2dr(mDecal));
     ELISE_COPY(polygone(aLTri),1,mMasqTri.oclip());
+
 
     if (mAppli.NivInterac() > 0)
     {
