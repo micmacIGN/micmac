@@ -179,6 +179,7 @@ class cImTieTri
            virtual bool IsMaster() const = 0;
            const Pt2di  &   Decal() const;
            const int & Num() const;
+           string NameIm() {return mNameIm;}
       protected :
            int  IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> &,Pt2di aP);
            void MakeInterestPoint
