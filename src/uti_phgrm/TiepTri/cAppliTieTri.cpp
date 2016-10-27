@@ -138,7 +138,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
              {
                  const cResulRechCorrel<double> & aRRC = aRMIRC.VRRC()[aKI];
 
-                 // std::cout << "Corr " << aRRC.mCorrel << " " << aRMIRC.IsInit() << " KT=" << aTMIRC.KT() << "\n";
+                 //std::cout << "Corr " << aRRC.mCorrel << " " << aRMIRC.IsInit() << " KT=" << aTMIRC.KT() << "\n";
                  if (aRRC.IsInit())
                  {
                     cImSecTieTri * anIm = mImSec[aVInd[aKI]];
@@ -149,17 +149,28 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
                  {
                       // Ce cas peut sans doute se produire legitimment si la valeur entiere etait trop proche
                       // de la frontiere et que toute les  tentative etaient en dehors
-
-                      // ELISE_ASSERT(false,"Incoh init in cAppliTieTri::DoAllTri");
+                      //ELISE_ASSERT(false,"Incoh init in cAppliTieTri::DoAllTri");
                       // getchar();
                  }
              }
         }
     }
 
+    cout<<"Write pts homo to disk:..."<<endl;
     for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
     {
-          
+       cImSecTieTri* aImSec = mImSec[aKIm];
+       if (aImSec->NameIm() != Master()->NameIm())
+       {
+           cout<<"  ++ Im2nd : "<<aImSec->Num();
+           string aKhOut = std::string("NKS-Assoc-CplIm2Hom@")
+                            +  std::string("_TiepTri")
+                            +  std::string("@")
+                            +  std::string("dat");
+           string aHomolOut = mICNM->Assoc1To2(aKhOut, Master()->NameIm(), aImSec->NameIm(), true);
+           cout<<" - Nb Pts= "<<aImSec->PackH().size()<<endl;
+           aImSec->PackH().StdPutInFile(aHomolOut);
+       }
     }
 }
 
