@@ -357,6 +357,49 @@ int SATvalid_main(int argc,char ** argv)
 
 }
 
+int CPP_TestRPCBackProj(int argc,char ** argv)
+{
+
+    cInterfChantierNameManipulateur * aICNM;
+    std::list<std::string> aListFile;
+
+    std::string aFullName;
+    std::string aDir;
+    std::string aPat;
+
+    Pt3dr aPIn;
+    Pt2dr aPOut;
+
+    ElInitArgMain
+    (
+         argc, argv,
+         LArgMain() << EAMC(aFullName,"Orientation file (or pattern) in cXml_CamGenPolBundle format")
+                    << EAMC(aPIn,"3D point in target CS"),
+         LArgMain() 
+    );		      
+
+    SplitDirAndFile(aDir, aPat, aFullName);
+
+    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    aListFile = aICNM->StdGetListOfFile(aPat);
+    
+    std::cout << "aPIn " << aPIn << "\n";
+    for(std::list<std::string>::iterator itL = aListFile.begin(); 
+		                                 itL != aListFile.end();
+                                         itL++)
+    {
+        CameraRPC aCamRPC(aDir + (*itL));
+
+        aPOut = aCamRPC.Ter2Capteur(aPIn);
+
+        std::cout << *itL << " " << aPOut << "\n";
+        
+    }
+
+
+    return EXIT_SUCCESS;
+}
+
 int CPP_TestRPCDirectGen(int argc,char ** argv)
 {
 
