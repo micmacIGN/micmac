@@ -822,6 +822,7 @@ extern int SATvalid_main(int argc,char ** argv);
 extern int CalcBsurH_main(int argc,char ** argv);
 extern int CPP_SATDef2D_main(int argc,char ** argv);
 extern int CPP_TestRPCDirectGen(int argc,char ** argv);
+extern int CPP_TestRPCBackProj(int argc,char ** argv);
 extern int DoTile_main(int argc, char ** argv);
 extern int ASTERGT2MM_main(int argc, char ** argv);
 
@@ -847,6 +848,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     aRes.push_back(cMMCom("BsurH", CalcBsurH_main, "Calculate the b/h ratio for a pattern of images"));
     aRes.push_back(cMMCom("SATD2D", CPP_SATDef2D_main, "Visualize 2D deformation fields of a pushbroom image"));
     aRes.push_back(cMMCom("TestRPC", CPP_TestRPCDirectGen, "Test the calculation of direct RPCs"));
+    aRes.push_back(cMMCom("TestRPCBackprj", CPP_TestRPCBackProj, "Backproject a point to images"));
     aRes.push_back(cMMCom("ImageTiling", DoTile_main, "Tile an image pair to selected size"));
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);

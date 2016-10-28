@@ -206,14 +206,14 @@ int CameraRPC::CropRPC(const std::string &aNameDir,
 
     /* Shift your 2D grid to the origin of the img */
     for(aK=0; aK<int(aGrid2D.size()); aK++)
-        aGrid2D_.push_back(Pt3dr(aGrid2D.at(aK).x - int(aPI1.x),
-                                 aGrid2D.at(aK).y - int(aPI1.y),
+        aGrid2D_.push_back(Pt3dr(aGrid2D.at(aK).x - int(aPI1.x -1),
+                                 aGrid2D.at(aK).y - int(aPI1.y -1),
                                  aGrid2D.at(aK).z));
 
     /* Shift the 2D test grid too */
     for(aK=0; aK<int(aGrid2DTest.size()); aK++)
-        aGrid2DTest_.push_back(Pt3dr(aGrid2DTest.at(aK).x - int(aPI1.x),
-                                    aGrid2DTest.at(aK).y - int(aPI1.y),
+        aGrid2DTest_.push_back(Pt3dr(aGrid2DTest.at(aK).x - int(aPI1.x -1),
+                                    aGrid2DTest.at(aK).y  - int(aPI1.y -1),
                                     aGrid2DTest.at(aK).z));
 
 
@@ -231,7 +231,7 @@ int CameraRPC::CropRPC(const std::string &aNameDir,
     /* Save the cropped image*/
     Pt3dr aCI1, aCI2;
     cRPC::GetGridExt(aGrid2D, aCI1, aCI2, aNeverMind);
-    Pt2di aSzI(aCI2.x - aCI1.x, aCI2.y - aCI1.y);
+    Pt2di aSzI(aCI2.x - aCI1.x +1, aCI2.y - aCI1.y +1);
     Tiff_Im aTiffIm(Tiff_Im::StdConvGen(aXml.NameIma().c_str(),1,false));
 
     Tiff_Im aTiffCrop
@@ -276,8 +276,6 @@ Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
 bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage *) const
 {
     // (1) Check if aP is within the RPC validity zone
-    //if( (aP.x < mRPC->first_lo) || (aP.x > mRPC->last_lon) || 
-    //    (aP.y < mRPC->first_lat) || (aP.y > mRPC->last_lat) || 
 	if((aP.z < mRPC->GetGrC31()) || (aP.z > mRPC->GetGrC32()))
         return false;
 
@@ -293,6 +291,17 @@ bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisib
     	return  true;
     else
 	    return  false;
+
+    // (3) check "aller-retour"
+    double aDif = 10;
+    Pt3dr aPInv = ImEtZ2Terrain(aPtProj, aP.z);
+    if( sqrt((aPInv.x - aP.x)*(aPInv.x - aP.x) + 
+        (aPInv.y - aP.y)*(aPInv.y - aP.y) + 
+        (aPInv.z - aP.z)*(aPInv.z - aP.z)) < aDif )
+        return true;
+    else
+        return  false;
+
 }
 
 ElSeg3D  CameraRPC::Capteur2RayTer(const Pt2dr & aP) const
@@ -301,11 +310,11 @@ ElSeg3D  CameraRPC::Capteur2RayTer(const Pt2dr & aP) const
 
     //beginning of the height validity zone
     double aZ0 = mRPC->GetGrC31()+1;
-    if(AltisSolIsDef())
-        aZ0 = mAltiSol;
+    //if(AltisSolIsDef())
+    //    aZ0 = mAltiSol;
     
     //middle of the height validity zones
-    double aZ1 = aZ0+double(mRPC->GetGrC32() - mRPC->GetGrC31())/2;
+    double aZ1 = double(mRPC->GetGrC31() + mRPC->GetGrC32())/2;
 
     return F2toRayonLPH(aP, aZ0, aZ1);
 }
@@ -556,9 +565,7 @@ void CameraRPC::OpticalCenterOfImg()
             
 	    //second height in validity zone
 	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL), 
-			           (mRPC->GetGrC31()+1) +
-				   double(mRPC->GetGrC32() - 
-					  mRPC->GetGrC31())/2);
+			           double(mRPC->GetGrC31() + mRPC->GetGrC32())/2);
 
 	    aPGeoC2 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
 	    
@@ -618,7 +625,7 @@ void CameraRPC::OpticalCenterGrid(const Pt2di& aGrid, bool aIfSave) const
             
 	        //second height in validity zone
 	        aP2 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y), 
-			           (mRPC->GetGrC31()+1)+double(mRPC->GetGrC32() - mRPC->GetGrC31())/2);
+			           double(mRPC->GetGrC31() + mRPC->GetGrC32())/2);
 
 	        //collect for intersection
 	        aVS.push_back(ElSeg3D(aP1,aP2));
@@ -701,8 +708,7 @@ Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
             
 	        //second height in validity zone
 	        aP2 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y), 
-			           (mRPC->GetGrC31()+1) + 
-				   double(mRPC->GetGrC32() - mRPC->GetGrC31())/2);
+			           double(mRPC->GetGrC31() + mRPC->GetGrC32())/2);
 
 	    
 	        //collect for intersection
@@ -1349,17 +1355,17 @@ void cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
    aRPC.GetGrScal(aGrScal);
 
    /* Direct */
-   aXml_Val.FIRST_ROW() = aRPC.GetImRow1();
-   aXml_Val.LAST_ROW() = aRPC.GetImRow2();
+   aXml_Val.FIRST_ROW() = 1+aRPC.GetImRow1();
+   aXml_Val.LAST_ROW() = 1+aRPC.GetImRow2();
 
-   aXml_Val.FIRST_COL() = aRPC.GetImCol1();
-   aXml_Val.LAST_COL() = aRPC.GetImCol2();
+   aXml_Val.FIRST_COL() = 1+aRPC.GetImCol1();
+   aXml_Val.LAST_COL() = 1+aRPC.GetImCol2();
 
-   aXml_Val.SAMP_SCALE() = aImScal.at(0);
-   aXml_Val.SAMP_OFF() = aImOff.at(0);
+   aXml_Val.SAMP_SCALE() = 1+aImScal.at(0);
+   aXml_Val.SAMP_OFF() = 1+aImOff.at(0);
  
-   aXml_Val.LINE_SCALE() = aImScal.at(1);
-   aXml_Val.LINE_OFF() = aImOff.at(1);
+   aXml_Val.LINE_SCALE() = 1+aImScal.at(1);
+   aXml_Val.LINE_OFF() = 1+aImOff.at(1);
    
    /* Inverse */
    aXml_Val.FIRST_LON() = aGrC1.at(0);
@@ -1762,7 +1768,8 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
                   aGridImg, aGridImgN, aGridImgTest;
 
     /* Create the image grids */
-    GenGridNorm(aSz,aGridImgN);
+    Pt2dr aRng(-1.0,1.0);//100% of the image
+    cRPC::GenGridNorm_(aRng,aSz,aGridImgN);
     aGridImg = NormImAll(aGridImgN,1);
 
     Pt3dr aPMin, aPMax, aPSum;
@@ -2051,26 +2058,6 @@ void cRPC::GenGridNorm(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
     Pt2dr aRng(-1,1);
     cRPC::GenGridNorm_(aRng,aSz,aGrid);
 
-    /*int aK1, aK2, aK3;
-
-    double aZS = double(2)/aSz.z;
-    double aXS = double(2)/aSz.x;
-    double aYS = double(2)/aSz.y;
-
-    for (aK1 = 0; aK1 <= aSz.x; aK1++)
-    {
-        for (aK2 = 0; aK2 <= aSz.y; aK2++)
-        {
-            for(aK3 = 0; aK3 <= aSz.z; aK3++ )
-            {
-                Pt3dr aPt;
-                aPt.x = aK1*aXS -1;
-                aPt.y = aK2*aYS -1;
-                aPt.z = aK3*aZS -1;
-                aGrid.push_back(aPt);
-            }
-        }
-    }*/
 }
 
 void cRPC::GenGridAbs(const Pt3di &aSz, std::vector<Pt3dr> &aGrid)
@@ -2229,20 +2216,14 @@ void cRPC::NewGrOffScal(const std::vector<Pt3dr> & aGrid)
     mGrOff[1] = aExtMin.y + double(aExtMax.y-aExtMin.y)/2;//double(aSumXYZ.y)/aGrid.size();
     mGrOff[2] = aExtMin.z + double(aExtMax.z-aExtMin.z)/2;//double(aSumXYZ.z)/aGrid.size();
 
-    //std::abs(aExtMax.x - mGrOff[0]) > std::abs(aExtMin.x - mGrOff[0]) ?
-        mGrScal[0] = std::abs(aExtMax.x - mGrOff[0]);// :
-        //mGrScal[0] = std::abs(aExtMin.x - mGrOff[0]);
+    mGrScal[0] = std::abs(aExtMax.x - mGrOff[0]);// :
 
-    //std::abs(aExtMax.y - mGrOff[1]) > std::abs(aExtMin.y - mGrOff[1]) ?
-        mGrScal[1] = std::abs(aExtMax.y - mGrOff[1]);// :
-        //mGrScal[1] = std::abs(aExtMin.y - mGrOff[1]);
+    mGrScal[1] = std::abs(aExtMax.y - mGrOff[1]);// :
 
-    //std::abs(aExtMax.z - mGrOff[2]) > std::abs(aExtMin.x - mGrOff[2]) ?
-        mGrScal[2] = std::abs(aExtMax.z - mGrOff[2]);// :
-       // mGrScal[2] = std::abs(aExtMin.z - mGrOff[2]);
+    mGrScal[2] = std::abs(aExtMax.z - mGrOff[2]);// :
 
     
-    NewGrC(aExtMin.x,aExtMax.x,
+    NewGrC( aExtMin.x,aExtMax.x,
             aExtMin.y,aExtMax.y,
             aExtMin.z,aExtMax.z);
 }
@@ -3084,6 +3065,8 @@ void cRPC::ReadXML(const std::string &aFile)
 
 void cRPC::ReadDimap(const std::string &aFile)
 {
+
+
     int aK;
     cElXMLTree aTree(aFile.c_str());
 
@@ -3155,12 +3138,13 @@ void cRPC::ReadDimap(const std::string &aFile)
 
         
         {
+            //-1 because img CS for Pleiades starts at (1,1)
             for(aIt=aNoeudsRFM.begin(); aIt!=aNoeudsRFM.end(); aIt++)
             {
-                mImScal[0] = std::atof((*aIt)->GetUnique("SAMP_SCALE")->GetUniqueVal().c_str());
-                mImScal[1] = std::atof((*aIt)->GetUnique("LINE_SCALE")->GetUniqueVal().c_str());
-                mImOff[0] = std::atof((*aIt)->GetUnique("SAMP_OFF")->GetUniqueVal().c_str());
-                mImOff[1] = std::atof((*aIt)->GetUnique("LINE_OFF")->GetUniqueVal().c_str());
+                mImScal[0] = -1 + std::atof((*aIt)->GetUnique("SAMP_SCALE")->GetUniqueVal().c_str());
+                mImScal[1] = -1 + std::atof((*aIt)->GetUnique("LINE_SCALE")->GetUniqueVal().c_str());
+                mImOff[0] = -1 + std::atof((*aIt)->GetUnique("SAMP_OFF")->GetUniqueVal().c_str());
+                mImOff[1] = -1 + std::atof((*aIt)->GetUnique("LINE_OFF")->GetUniqueVal().c_str());
 
                 mGrScal[0] = std::atof((*aIt)->GetUnique("LONG_SCALE")->GetUniqueVal().c_str());
                 mGrScal[1] = std::atof((*aIt)->GetUnique("LAT_SCALE")->GetUniqueVal().c_str());
@@ -3171,23 +3155,16 @@ void cRPC::ReadDimap(const std::string &aFile)
                 mGrOff[2] = std::atof((*aIt)->GetUnique("HEIGHT_OFF")->GetUniqueVal().c_str());
             }
                 
-        //}
-
-        //{
-          //  std::list<cElXMLTree*> aNoeudsDirVal = aTree.GetAll(std::string("Direct_Model_Validity_Domain"));
 
             for(aIt=aNoeudsRFM.begin(); aIt!=aNoeudsRFM.end(); aIt++)
             {
-                mImRows[0] = std::atof((*aIt)->GetUnique("FIRST_ROW")->GetUniqueVal().c_str());
-                mImRows[1] = std::atof((*aIt)->GetUnique("LAST_ROW")->GetUniqueVal().c_str());
-                mImCols[0] = 1;//std::atof((*aIt)->GetUnique("FIRST_COL")->GetUniqueVal().c_str());
-                mImCols[1] = std::atof((*aIt)->GetUnique("LAST_COL")->GetUniqueVal().c_str());
+                mImRows[0] = -1 + std::atof((*aIt)->GetUnique("FIRST_ROW")->GetUniqueVal().c_str());
+                mImRows[1] = -1 + std::atof((*aIt)->GetUnique("LAST_ROW")->GetUniqueVal().c_str());
+                mImCols[0] = -1 + std::atof((*aIt)->GetUnique("FIRST_COL")->GetUniqueVal().c_str());
+                mImCols[1] = -1 + std::atof((*aIt)->GetUnique("LAST_COL")->GetUniqueVal().c_str());
             }
-        //}
-
-        //{
-          //  std::list<cElXMLTree*> aNoeudsInvVal = aTree.GetAll(std::string("Inverse_Model_Validity_Domain"));
-
+            
+            
             for(aIt=aNoeudsRFM.begin(); aIt!=aNoeudsRFM.end(); aIt++)
             {
                 mGrC1[0] = std::atof((*aIt)->GetUnique("FIRST_LON")->GetUniqueVal().c_str());
