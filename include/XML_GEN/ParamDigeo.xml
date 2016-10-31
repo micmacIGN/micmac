@@ -1,0 +1,197 @@
+<GenCpp>
+	<Verbatim  File=".h">
+	#ifndef Define_NotDigeo
+	#define Define_NotDigeo
+	</Verbatim>
+
+	<Verbatim File=".cpp">
+	#include "StdAfx.h"
+	#include "cParamDigeo.h"
+	</Verbatim>
+
+	<Verbatim File=".h">
+	#include "XML_GEN/all.h"
+	</Verbatim>
+
+	<Verbatim File=".h.cpp">
+	//
+	</Verbatim>
+
+	<enum Name="eTypeTopolPt">
+		<eTtpSommet>     </eTtpSommet>
+		<eTtpCuvette>    </eTtpCuvette>
+		<eTtpCol>        </eTtpCol>
+		<eTtpCorner>      </eTtpCorner>
+		<eSiftMaxDog>     </eSiftMaxDog>
+		<eSiftMinDog>     </eSiftMinDog>
+	</enum>
+
+	<enum Name="eReducDemiImage">
+		<eRDI_121>     </eRDI_121>  
+		<eRDI_010>     </eRDI_010>  
+		<eRDI_11>     </eRDI_11>  
+	</enum>
+
+	<enum Name="ePointRefinement">
+		<eRefine2D>     </eRefine2D>
+		<eRefine3D>     </eRefine3D>
+		<eRefineNone>     </eRefineNone>
+	</enum>
+
+	<ParamDigeo  Nb="1" Class="true">
+		<DicoLoc Nb="?" RefType="ChantierDescripteur" RefFile="ParamChantierPhotogram.xml">
+		</DicoLoc>
+
+		<DigeoSectionImages Nb="1">
+			<ImageDigeo Nb="1">
+				<!-- ResolInit=0.5 signifie des images deux fois plus grandes -->
+				<ResolInit Nb="?" Type="double" Def="1.0"> </ResolInit>
+
+				<!-- Si la taille mémoire de l'image est inférieure a ce seuil, le fichier est lu en 1 bloc-->
+				<NbOctetLimitLoadImageOnce Nb="?" Type="double" Def="1e8"> </NbOctetLimitLoadImageOnce>
+			</ImageDigeo>
+
+			<PyramideImage Nb="1">
+				<TypeNumeriqueOfNiv Nb="*">
+					<Type  Nb="1"  Type="eTypeNumerique"> </Type>
+					<Niv Nb="1" Type="int"> </Niv>
+				</TypeNumeriqueOfNiv>
+
+				<!-- En maximisant la dynamique compatible avec le type d'image,
+				permet d'avoir une plus grande precision; Def = true pour (u_)?int[12] -->
+				<MaximDyn Nb="?" Type="bool"> </MaximDyn>
+
+				<!-- Parfois l'image contient des valeurs "parasites" qui 
+				rendent inoperante la MaximDyn, si c'est le cas on peut fixer un 
+				max theorique (par ex 1<<12) en cam Dyn
+				-->
+				<ValMaxForDyn Nb="?" Type="double"> </ValMaxForDyn>
+
+				<ReducDemiImage Nb="?" Type="eReducDemiImage" Def="eRDI_121"> </ReducDemiImage>
+
+				<TypePyramide Nb="1" UnionType="true">
+					<NivPyramBasique Nb="?" Type="int"> </NivPyramBasique>
+
+					<PyramideGaussienne  Nb="?">
+						<NbByOctave Def="3" Nb="?"  Type="int"> </NbByOctave>
+
+						<Sigma0 Nb="?" Type="double" Def="1.6"> </Sigma0>
+						<!-- le papier de Lowe semble indiquer un smooting identique à chaque octave -->
+						<SigmaN Nb="?" Type="double"> </SigmaN>
+
+						<NbInLastOctave Nb="?"  Type="int"> </NbInLastOctave>
+						<!-- Pour la premiere octave on peut supprimer ou rajouter 
+						(avec val<0) des frequence grace a ce tag -->
+						<IndexFreqInFirstOctave Nb="?" Type="int" Def="0"> </IndexFreqInFirstOctave>
+						<NivOctaveMax  Nb="1"  Type="int">  </NivOctaveMax> <!-- Par ex 8, 32 ..-->
+
+						<SampledConvolutionKernels Nb="?" Type="bool" Def="false"> </SampledConvolutionKernels>
+
+						<!-- A priori ca me semble + "logique" du point de vue de la continuite
+						vis a vis de l'echelle que la toute premiere image soit convoluee
+						par le sigma initial, mais c'est pas tres clair, donc ce parametre
+						permet de regler ca :
+						- si il vaut 0 pas de convolution;
+						- si il vaut -1 : convolution par le sigma initial (1.0 si
+						IndexFreqInFirstOctave est pas specifie)
+						- si >0 convolution par la valeur
+						- sinon erreur
+						-->
+						<ConvolFirstImage Nb="?" Type="double" Def="-1"> </ConvolFirstImage>
+
+						<EpsilonGauss Nb="?" Type="double" Def="1e-3"> </EpsilonGauss> <!-- résidu maximal du noyau de convolution -->
+						<NbShift  Nb="?" Type="int" Def="15"> </NbShift> <!-- 2^NbShift = norme du noyau de convolution -->
+						<SurEchIntegralGauss Nb="?" Type="int" Def="10"> </SurEchIntegralGauss>
+						<!-- est-ce que la convolution est réalisée à partir de l'image de base (plus précis) ou de l'image précédente (plus rapide) ? -->
+						<ConvolIncrem Nb="?" Type="bool" Def="true"> </ConvolIncrem>
+					</PyramideGaussienne>
+				</TypePyramide>
+			</PyramideImage>
+		</DigeoSectionImages>
+
+		<SectionCaracImages Nb="1">
+			<!-- Juste pour pouvoir eventuellement squeezer en amont tout le calcul -->
+			<ComputeCarac Nb="1" Type="bool"> </ComputeCarac>
+			<CaracTopo Nb="?">
+				<OneCarac Nb="*">
+					<Type Nb="1" Type="eTypeTopolPt"> </Type>
+				</OneCarac>
+			</CaracTopo>
+			<SiftCarac Nb="?">
+				<DoMax Nb="?" Type="bool" Def="true"> </DoMax>
+				<DoMin Nb="?" Type="bool" Def="true"> </DoMin>
+
+				<NivEstimGradMoy Nb="?" Def="4" Type="int"></NivEstimGradMoy>
+				<!-- 8 Correspond a peu pres a la valeur 10 de Tr 2 / det de Lowe -->
+				<RatioAllongMin Nb="?" Def="8.0" Type="double"> </RatioAllongMin>
+				<RatioGrad Nb="?" Def="0.01" Type="double"> </RatioGrad>
+				<RefinementMethod Nb="?" Type="ePointRefinement" Def="eRefine3D"> </RefinementMethod>
+			</SiftCarac>
+		</SectionCaracImages>
+
+        <AutoAnnMinDist Nb="?" Def="0.0" Type="double"> </AutoAnnMinDist>
+        
+		<!-- Cette section gère les fonctionnalites permettant de faire
+		des tests de perfomances ou de bon fonctionnement
+		-->
+
+		<SectionTest Nb="?">
+			<VerifExtrema Nb="?" Type="bool" Def="false"></VerifExtrema>
+
+			<DigeoTestOutput Nb="?">
+				<OutputGaussians Nb="?" Type="bool" Def="false"></OutputGaussians>
+				<OutputGaussiansDirectory Nb="?" Type="std::string" Def="gaussians"></OutputGaussiansDirectory>
+				<OutputTiles Nb="?" Type="bool" Def="false"></OutputTiles>
+				<OutputTilesDirectory Nb="?" Type="std::string" Def="tiles"></OutputTilesDirectory>
+				<OutputGradients Nb="?" Type="bool" Def="false"></OutputGradients>
+				<OutputGradientsNormDirectory Nb="?" Type="std::string" Def="gradients/norm"></OutputGradientsNormDirectory>
+				<OutputGradientsAngleDirectory Nb="?" Type="std::string" Def="gradients/angle"></OutputGradientsAngleDirectory>
+				<MergeTiles Nb="?" Type="bool" Def="true"> </MergeTiles> <!-- this option modifies OutputGaussians, OutputTiles, OutputGradient -->
+				<SuppressTiles Nb="?" Type="bool" Def="true"> </SuppressTiles> <!-- tiles are not suppressed if MergeTiles is not true -->
+				<!-- There is no need to compute gradient if there's no point to orientate or describe.
+				     With this option, the gradient is computed nonetheless. It may be useful for saving it or for time comparison -->
+				<ForceGradientComputation Nb="?" Type="bool" Def="false"></ForceGradientComputation>
+				<!-- plots final points on tiles, this option is useless if OutputTiles is false -->
+				<PlotPointsOnTiles Nb="?" Type="bool" Def="false"></PlotPointsOnTiles>
+				<RawOutput Nb="?" Type="bool" Def="false"></RawOutput>
+			</DigeoTestOutput>
+		</SectionTest>
+
+		<SectionWorkSpace Nb="1">
+			<SauvPyram Nb="?">
+				<Dir Nb="?" Type="std::string" Def=""> </Dir>
+				<Glob Nb="?" Type="bool" Def="true"> </Glob>
+				<Key Nb="?" Type="std::string" Def="Key-Assoc-Pyram-MM"> </Key>
+				<!-- <=0 si pas used -->
+				<StripTifFile Nb="?" Type="int" Def="100"> </StripTifFile>
+				<Force8B Nb="?" Type="bool" Def="false">   </Force8B>
+				<Dyn  Nb="?" Type="double" Def="1.0"> </Dyn>
+			</SauvPyram>
+
+			<DigeoDecoupageCarac Nb="?">
+				<SzDalle Nb="1" Type="int"> </SzDalle>
+				<Bord Nb="1" Type="int">    </Bord>
+			</DigeoDecoupageCarac>
+
+			<!-- A priori, on a interet a ce que tous les convol soit compilees; on se fait
+			insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment -->
+			<ExigeCodeCompile Nb="?" Type="bool" Def="true"></ExigeCodeCompile>
+
+			<GenereCodeConvol Nb="?">
+				<DirectoryCodeConvol Nb="?" Type="std::string" Def="src/uti_image/Digeo/"> </DirectoryCodeConvol>
+				<FileBaseCodeConvol Nb="?" Type="std::string" Def="GenConvolSpec"> </FileBaseCodeConvol>
+			</GenereCodeConvol>
+
+			<ShowTimes Nb="?" Type="int" Def="0"> </ShowTimes>
+
+			<!-- Pas de raison, hors mis au point/test, de changer cette val -->
+			<ShowConvolSpec Nb="?" Type="bool" Def="false"> </ShowConvolSpec>
+
+			<Verbose Nb="?" Type="bool" Def="false"> </Verbose>
+		</SectionWorkSpace>
+	</ParamDigeo>
+
+	<Verbatim File=".h">
+	#endif // Define_NotDigeo
+	</Verbatim>
+</GenCpp>

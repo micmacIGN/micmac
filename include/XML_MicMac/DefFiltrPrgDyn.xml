@@ -1,0 +1,12 @@
+<ParamFiltreDepthByPrgDyn>
+        <CostNonAff> 0.5   </CostNonAff>
+        <CostTrans>  10    </CostTrans>
+<!--   -->
+        <CostRegul>  0.3   </CostRegul>
+<!--  Seuil critique StepZi, tous les DZ sont multiplie par cela -->
+        <StepZ>      1.0   </StepZ>
+        <DzMax>      10.0  </DzMax>
+        <NbDir>      9     </NbDir>
+</ParamFiltreDepthByPrgDyn>
+
+
