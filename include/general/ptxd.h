@@ -1517,6 +1517,24 @@ inline std::string to_yes_no( bool aBoolean ){ return aBoolean ? "yes" : "no"; }
 
 inline std::string to_true_false( bool aBoolean ){ return aBoolean ? "true" : "false"; }
 
+template <class Type,class TypePt> inline int  CmpValAndDec(const Type & aV1,const Type & aV2, const TypePt & aDec)
+{
+   //    aV1 =>   aV1 + eps * aDec.x + eps * esp * aDec
+
+   if (aV1 < aV2) return -1;
+   if (aV1 > aV2) return  1;
+
+   if (aDec.x<0)  return -1;
+   if (aDec.x>0)  return  1;
+
+   if (aDec.y<0)  return -1;
+   if (aDec.y>0)  return  1;
+
+   return 0;
+}
+
+
+
 
 #endif //  _ELISE_INCLUDE_GENERAL_PTXD_H_
 

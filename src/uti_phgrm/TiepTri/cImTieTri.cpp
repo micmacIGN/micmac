@@ -146,6 +146,7 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     return true;
 }
 
+/*
 template <class Type> int  CmpValAndDec(const Type & aV1,const Type & aV2, const Pt2di & aDec)
 {
    //    aV1 =>   aV1 + eps * aDec.x + eps * esp * aDec
@@ -161,6 +162,7 @@ template <class Type> int  CmpValAndDec(const Type & aV1,const Type & aV2, const
 
    return 0;
 }
+*/
 
   
 int cImTieTri::IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> & anIm,Pt2di aP)
