@@ -150,6 +150,9 @@ int CameraRPC::CropRPC(const std::string &aNameDir,
     Pt3di aRecGrid;
     const Pt3dr aPMin(aExtMin.x, aExtMin.y, mRPC->GetGrC31());
     const Pt3dr aPMax(aExtMax.x, aExtMax.y, mRPC->GetGrC32());
+   
+    if(0)
+        std::cout << "ewelina setrec " << aPMax-aPMin << " " << " " << "\n";
     
     cRPC::SetRecGrid_(mRPC->ISMETER, aPMin, aPMax, aRecGrid);
 
@@ -175,10 +178,15 @@ int CameraRPC::CropRPC(const std::string &aNameDir,
         return 0;
     
 
+    aPI1.x = int(aPI1.x); 
+    aPI2.x = int(aPI2.x); 
+    aPI1.y = int(aPI1.y); 
+    aPI2.y = int(aPI2.y); 
+
     /* Create your 2D grid */
     std::vector<Pt3dr> aGrid2D, aGrid2D_;
-    cRPC::GenGridAbs_(Pt3dr(int(aPI1.x),int(aPI1.y),mRPC->GetGrC31()), 
-                      Pt3dr(int(aPI2.x),int(aPI2.y),mRPC->GetGrC32()), 
+    cRPC::GenGridAbs_(Pt3dr((aPI1.x),(aPI1.y),mRPC->GetGrC31()), 
+                      Pt3dr((aPI2.x),(aPI2.y),mRPC->GetGrC32()), 
                       aRecGrid, aGrid2D);
 
     /* Create your 2D grid for precision testing */
@@ -206,16 +214,28 @@ int CameraRPC::CropRPC(const std::string &aNameDir,
 
     /* Shift your 2D grid to the origin of the img */
     for(aK=0; aK<int(aGrid2D.size()); aK++)
-        aGrid2D_.push_back(Pt3dr(aGrid2D.at(aK).x - int(aPI1.x -1),
-                                 aGrid2D.at(aK).y - int(aPI1.y -1),
+        aGrid2D_.push_back(Pt3dr(aGrid2D.at(aK).x - aPI1.x,
+                                 aGrid2D.at(aK).y - aPI1.y,
                                  aGrid2D.at(aK).z));
 
     /* Shift the 2D test grid too */
     for(aK=0; aK<int(aGrid2DTest.size()); aK++)
-        aGrid2DTest_.push_back(Pt3dr(aGrid2DTest.at(aK).x - int(aPI1.x -1),
-                                    aGrid2DTest.at(aK).y  - int(aPI1.y -1),
+        aGrid2DTest_.push_back(Pt3dr(aGrid2DTest.at(aK).x - aPI1.x,
+                                    aGrid2DTest.at(aK).y  - aPI1.y,
                                     aGrid2DTest.at(aK).z));
 
+if(0)
+{
+    Pt3dr aPMin, aPMax, aPSum;
+    cRPC::GetGridExt( aGrid2D, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+
+    cRPC::GetGridExt(aGrid2D_, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+    
+    cRPC::GetGridExt( aGrid3D, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+}
 
     /* Calculate RPCs */
     mRPC->CalculRPC(aGrid3D, aGrid2D_,
@@ -1361,10 +1381,10 @@ void cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
    aXml_Val.FIRST_COL() = 1+aRPC.GetImCol1();
    aXml_Val.LAST_COL() = 1+aRPC.GetImCol2();
 
-   aXml_Val.SAMP_SCALE() = 1+aImScal.at(0);
+   aXml_Val.SAMP_SCALE() = aImScal.at(0);
    aXml_Val.SAMP_OFF() = 1+aImOff.at(0);
  
-   aXml_Val.LINE_SCALE() = 1+aImScal.at(1);
+   aXml_Val.LINE_SCALE() = aImScal.at(1);
    aXml_Val.LINE_OFF() = 1+aImOff.at(1);
    
    /* Inverse */
@@ -1511,6 +1531,80 @@ void cRPC::CubicPolyFil(const Pt3dr &aP, double (&aPTerms)[20]) const
     aPTerms[18] = aP.y*aP.y*aP.z;
     aPTerms[19] = aP.z*aP.z*aP.z;
     
+}
+
+void cRPC::FilBD(double (&ab)[20], double (&aU)[20], double (&aB)) const
+{
+    aB = ab[0]*aU[0] + 
+         ab[1]*aU[1] +
+         ab[2]*aU[2] +
+         ab[3]*aU[3] +
+         ab[4]*aU[4] +
+         ab[5]*aU[5] +
+         ab[6]*aU[6] +
+         ab[7]*aU[7] +
+         ab[8]*aU[8] +
+         ab[9]*aU[9] +
+         ab[10]*aU[10] +
+         ab[11]*aU[11] +
+         ab[12]*aU[12] +
+         ab[13]*aU[13] +
+         ab[14]*aU[14] +
+         ab[15]*aU[15] +
+         ab[16]*aU[16] +
+         ab[17]*aU[17] +
+         ab[18]*aU[18] +
+         ab[19]*aU[19];
+}
+
+void cRPC::DifCubicPolyFil(double &aB, double &aDenomApprox, double(&aU)[20], double (&aPTerms)[39]) const
+{
+
+
+
+    aPTerms[0] = aU[0]/aDenomApprox;
+    aPTerms[1] = aU[1]/aDenomApprox;
+    aPTerms[2] = aU[2]/aDenomApprox;
+    aPTerms[3] = aU[3]/aDenomApprox;
+    aPTerms[4] = aU[4]/aDenomApprox;
+    aPTerms[5] = aU[5]/aDenomApprox;
+    aPTerms[6] = aU[6]/aDenomApprox;
+    aPTerms[7] = aU[7]/aDenomApprox;
+    aPTerms[8] = aU[8]/aDenomApprox;
+    aPTerms[9] = aU[9]/aDenomApprox;
+    aPTerms[10] = aU[10]/aDenomApprox;
+    aPTerms[11] = aU[11]/aDenomApprox;
+    aPTerms[12] = aU[12]/aDenomApprox;
+    aPTerms[13] = aU[13]/aDenomApprox;
+    aPTerms[14] = aU[14]/aDenomApprox;
+    aPTerms[15] = aU[15]/aDenomApprox;
+    aPTerms[16] = aU[16]/aDenomApprox;
+    aPTerms[17] = aU[17]/aDenomApprox;
+    aPTerms[18] = aU[18]/aDenomApprox;
+    aPTerms[19] = aU[19]/aDenomApprox;
+  
+    aPTerms[20] = -aB * aU[1]/aDenomApprox;
+    aPTerms[21] = -aB * aU[2]/aDenomApprox;
+    aPTerms[22] = -aB * aU[3]/aDenomApprox;
+    aPTerms[23] = -aB * aU[4]/aDenomApprox;
+    aPTerms[24] = -aB * aU[5]/aDenomApprox;
+    aPTerms[25] = -aB * aU[6]/aDenomApprox;
+    aPTerms[26] = -aB * aU[7]/aDenomApprox;
+    aPTerms[27] = -aB * aU[8]/aDenomApprox;
+    aPTerms[28] = -aB * aU[9]/aDenomApprox;
+    aPTerms[29] = -aB * aU[10]/aDenomApprox; 
+    aPTerms[30] = -aB * aU[11]/aDenomApprox;
+    aPTerms[31] = -aB * aU[12]/aDenomApprox;
+    aPTerms[32] = -aB * aU[13]/aDenomApprox;
+    aPTerms[33] = -aB * aU[14]/aDenomApprox;
+    aPTerms[34] = -aB * aU[15]/aDenomApprox;
+    aPTerms[35] = -aB * aU[16]/aDenomApprox;
+    aPTerms[36] = -aB * aU[17]/aDenomApprox;
+    aPTerms[37] = -aB * aU[18]/aDenomApprox;
+    aPTerms[38] = -aB * aU[19]/aDenomApprox;
+                            
+
+
 }
 
 void cRPC::DifCubicPolyFil(const Pt3dr &aP, double &aB, double (&aPTerms)[39]) const
@@ -1708,7 +1802,7 @@ if(0)
 }
 
     //learn the RPC parameters
-    LearnParam(aGridGr, aGridIm,
+    LearnParamNEW(aGridGr, aGridIm,
                 mDirSNum, mDirLNum,
                 mDirSDen, mDirLDen);
 
@@ -1727,7 +1821,7 @@ void cRPC::ChSysRPC(const cSystemeCoord &aChSys)
     ChSysRPC_(aChSys, mRecGrid, 
                mDirSNum, mDirLNum, mDirSDen, mDirLDen,
                mInvSNum, mInvLNum, mInvSDen, mInvLDen,
-               0);
+               1);
 
 }
 
@@ -1740,7 +1834,7 @@ void cRPC::ChSysRPC(const cSystemeCoord &aChSys,
     ChSysRPC_(aChSys, mRecGrid,
                aDirSNum, aDirLNum, aDirSDen, aDirLDen,
                aInvSNum, aInvLNum, aInvSDen, aInvLDen,
-               0);
+               1);
 }
 
 void cRPC::ChSysRPC_(const cSystemeCoord &aChSys, 
@@ -1783,23 +1877,16 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
                        Pt3di(aSz.x-1,aSz.y-1,aSz.z-1), aGridImgTest); 
 
 
-if(0)
-{
-    std::cout << "ewelina check norm/unnorm" << "\n";
-    Pt3dr aPMin, aPMax, aPSum;
-    GetGridExt(aGridImgN, aPMin, aPMax, aPSum);
-    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
-    GetGridExt(aGridImg, aPMin, aPMax, aPSum);
-    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
-
-}
 
     /* Pass the image grid to object space grid */
     for(aK=0; aK<int(aGridImg.size()); aK++)
     {
+        
         aP = DirectRPC(Pt2dr(aGridImg.at(aK).x,aGridImg.at(aK).y), aGridImg.at(aK).z);
         aGridOrg.push_back(aP);
+
     }
+
 
     for(aK=0; aK<int(aGridImgTest.size()); aK++)
     {
@@ -1807,10 +1894,31 @@ if(0)
         aGridOrgTest.push_back(aP);
     }
 
+if(0)
+{
+    std::cout << "ewelina image norm" << "\n";
+    Pt3dr aPMin, aPMax, aPSum;
+    GetGridExt(aGridImgN, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+    std::cout << "ewelina image unnorm" << "\n";
+    GetGridExt(aGridImg, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+    std::cout << "ewelina gridorg unnorm" << "\n";
+    GetGridExt(aGridOrg, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+    std::cout << "ewelina gridorgtest unnorm" << "\n";
+    GetGridExt(aGridOrgTest, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+
+}
     /* Transform the object grids */
     aGridCorSys  = aToCorSys->Chang(aGridOrg);
     aGridCorSysTest  = aToCorSys->Chang(aGridOrgTest);
 
+    if( ISMETER==true ) 
+    if(aGridCorSys.size() < 1500)
+        std::cout << aGridCorSys << "\n";
+    
     CalculRPC( aGridCorSys, aGridImg,
                aGridCorSysTest, aGridImgTest,
                aDirSNum, aDirLNum, aDirSDen, aDirLDen,
@@ -1865,12 +1973,12 @@ if(0)
 }
 
     /* Learn direct RPC */
-    LearnParam(aGridGroundN, aGridImgN,
+    LearnParamNEW(aGridGroundN, aGridImgN,
                 aDirSNum, aDirLNum,
                 aDirSDen, aDirLDen);
 
     /* Learn inverse RPC */
-    LearnParam(aGridImgN, aGridGroundN,
+    LearnParamNEW(aGridImgN, aGridGroundN,
                 aInvSNum, aInvLNum,
                 aInvSDen, aInvLDen);
 
@@ -1902,6 +2010,107 @@ if(0)
     }
     
         
+}
+
+void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn, 
+                    std::vector<Pt3dr> &aGridOut, 
+                    double (&aSol1)[20], double (&aSol2)[20],
+                    double (&aSol3)[20], double (&aSol4)[20])
+{
+
+
+    int    aK, aNPts = int(aGridIn.size()), iter=0;
+    double aSeuil=1e-8;
+    double aReg=0.00001;
+    double aV1=1, aV0=2;
+    
+    //initialized to 0
+    double ab[20]={1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    double ad[20]={1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+
+    /* Iterative least square */
+    //std::cout << "EWW calc RPC, iter/abs(aV0-aV1)=";
+    while( (abs(aV0-aV1) > aSeuil) && (iter < 50))
+    {
+        //std::cout << "/" << abs(aV0-aV1) << "...";
+        iter++; 
+
+        aV0=aV1;
+
+        L2SysSurResol aSys1(39), aSys2(39);
+        
+        for(aK=0; aK<aNPts; aK++)
+        {
+            double aEq1[39];
+            double aEq2[39];
+            double aU[20];
+            double aB, aD;
+            double aC1, aC2;
+
+            aC1 = aGridIn.at(aK).x;
+            aC2 = aGridIn.at(aK).y;
+
+            CubicPolyFil(aGridOut.at(aK), aU);
+
+            FilBD(ab,aU,aB);
+            FilBD(ad,aU,aD);
+            
+
+            //std::cout << aB << " " << aD << " ";
+            DifCubicPolyFil(aC1, aB, aU, aEq1);
+            DifCubicPolyFil(aC2, aD, aU, aEq2);
+            //DifCubicPolyFil(aGridOut.at(aK), aC1, aEq1);
+            //DifCubicPolyFil(aGridOut.at(aK), aC2, aEq2);
+             
+        
+            aSys1.AddEquation(1, aEq1, aC1/aB);
+            aSys2.AddEquation(1, aEq2, aC2/aD);
+            //aSys1.AddEquation(double(1)/aB, aEq1, aC1);
+            //aSys2.AddEquation(double(1)/aD, aEq2, aC2);
+        
+        }
+
+
+        /* Add regularizer */
+        for(aK=0; aK<39; aK++)
+            aSys1.AddTermQuad(aK,aK,aReg);
+      
+        bool ok;
+        Im1D_REAL8 aResol1 = aSys1.GSSR_Solve(&ok);
+        Im1D_REAL8 aResol2 = aSys2.GSSR_Solve(&ok);
+        
+        double* aData1 = aResol1.data();
+        double* aData2 = aResol2.data();
+        
+        for(aK=0; aK<20; aK++)
+        {
+            aSol1[aK] = aData1[aK];
+            aSol2[aK] = aData2[aK];
+        }
+    
+        
+        ab[0] = 1;
+        ab[0] = 1;
+        
+        for(aK=20; aK<39; aK++)
+        {
+            ab[aK-19] = aData1[aK];
+            ad[aK-19] = aData2[aK];
+        }
+
+        /* Residuals */
+        aV1 = (aSys1.ResiduOfSol(aResol1.data()) + aSys2.ResiduOfSol(aResol2.data()))/78;
+
+    }
+    //std::cout << "iter=" << iter << "\n";
+
+    /* Ultimate solution of the denominators */
+    for(aK=0; aK<20; aK++)
+    {
+        aSol3[aK] = ab[aK];
+        aSol4[aK] = ad[aK];
+    }
 }
 
 /* ground_coord_1 * mDirSDen - mDirSNum =0
@@ -1974,7 +2183,7 @@ void cRPC::SetRecGrid_(const bool &aMETER, const Pt3dr &aPMin, const Pt3dr &aPMa
     int aSamplX, aSamplY, aSamplZ;
 
     //grid spacing in 3D
-    int aHorizM = 500, aVertM = 100;
+    int aHorizM = 1000, aVertM = 500;
 
     if(aMETER)
     {
@@ -1995,11 +2204,10 @@ void cRPC::SetRecGrid_(const bool &aMETER, const Pt3dr &aPMin, const Pt3dr &aPMa
     }
 
 
-    //if there is less than 5 layers in Z ([Tao & Hu, 2001] suggest min of 3)
+    //[Tao & Hu, 2001] suggest min of 3)
     while (aSamplZ<4)
         aSamplZ++;
 
-    //if planar grid smaller than 15 (to avoid bad estimations in cropped images)
     while (aSamplX<15)
         aSamplX++;
     while (aSamplY<15)
@@ -2007,8 +2215,10 @@ void cRPC::SetRecGrid_(const bool &aMETER, const Pt3dr &aPMin, const Pt3dr &aPMa
 
     //if the grid does not suffice to calculate 78 coefficients of the RPCs
     while ( (aSamplX*aSamplY*aSamplZ)<80 )
+    {    
         aSamplX++;
-
+        aSamplY++;
+    }
     aSz = Pt3di(aSamplX,aSamplY,aSamplZ);
 
     if(0)
@@ -2211,6 +2421,10 @@ void cRPC::NewGrOffScal(const std::vector<Pt3dr> & aGrid)
     Pt3dr aExtMin, aExtMax, aSumXYZ;
 
     GetGridExt(aGrid,aExtMin,aExtMax,aSumXYZ);
+
+    if(0)
+        std::cout << "ewelina RRRRRRRRRRRRRRRRRR " << aExtMax.x - aExtMin.x << " " << aExtMax.y - aExtMin.y << " "  
+                                            << aExtMax.z - aExtMin.z << " " << "\n"; 
 
     mGrOff[0] = aExtMin.x + double(aExtMax.x-aExtMin.x)/2;//double(aSumXYZ.x)/aGrid.size();
     mGrOff[1] = aExtMin.y + double(aExtMax.y-aExtMin.y)/2;//double(aSumXYZ.y)/aGrid.size();
@@ -3143,8 +3357,8 @@ void cRPC::ReadDimap(const std::string &aFile)
             {
                 mImScal[0] = -1 + std::atof((*aIt)->GetUnique("SAMP_SCALE")->GetUniqueVal().c_str());
                 mImScal[1] = -1 + std::atof((*aIt)->GetUnique("LINE_SCALE")->GetUniqueVal().c_str());
-                mImOff[0] = -1 + std::atof((*aIt)->GetUnique("SAMP_OFF")->GetUniqueVal().c_str());
-                mImOff[1] = -1 + std::atof((*aIt)->GetUnique("LINE_OFF")->GetUniqueVal().c_str());
+                mImOff[0] = std::atof((*aIt)->GetUnique("SAMP_OFF")->GetUniqueVal().c_str());
+                mImOff[1] = std::atof((*aIt)->GetUnique("LINE_OFF")->GetUniqueVal().c_str());
 
                 mGrScal[0] = std::atof((*aIt)->GetUnique("LONG_SCALE")->GetUniqueVal().c_str());
                 mGrScal[1] = std::atof((*aIt)->GetUnique("LAT_SCALE")->GetUniqueVal().c_str());
@@ -3362,6 +3576,34 @@ int CropRPC_main(int argc,char ** argv)
 
     CameraRPC aCamCrop(aCropName);
     const double aZ = aCamCrop.GetAltiSol(); 
+
+    vector<CameraRPC*> aCamVec;
+
+    //for every image check if it fully projects to image space; 
+    //if not, reduce the volume
+    std::list<std::string>::iterator itL=aListFile.begin();
+    for( ; itL !=aListFile.end(); itL++ )
+    {
+        aCamVec.push_back(new CameraRPC(aDir + (*itL)));
+        
+        while( ! (aCamVec.at( aCamVec.size()-1 )->PIsVisibleInImage( aCamCrop.ImEtZ2Terrain(aO,aZ) )) )
+        { 
+            aO.x += 100; 
+            aO.y += 100; 
+        };
+        
+        while( ! aCamVec.at( aCamVec.size()-1 )->PIsVisibleInImage( aCamCrop.ImEtZ2Terrain(Pt2dr(aO.x+aSz.x,aO.y),aZ) ) )
+        { 
+            aSz.x -= 100; 
+        };
+
+        while( ! aCamVec.at( aCamVec.size()-1 )->PIsVisibleInImage( aCamCrop.ImEtZ2Terrain(Pt2dr(aO.x,aO.y+aSz.y),aZ) ) )
+        { 
+            aSz.y -= 100; 
+        };
+    }
+    std::cout << "Org=" << aO << ", Sz=" << aSz << "\n";
+
     const Pt2dr a0(aO.x,aO.y);
     const Pt2dr a1(a0.x+aSz.x,a0.y);
     const Pt2dr a2(a0.x+aSz.x,a0.y+aSz.y);
@@ -3372,19 +3614,22 @@ int CropRPC_main(int argc,char ** argv)
     aBounds.push_back(aCamCrop.ImEtZ2Terrain(a2,aZ));
     aBounds.push_back(aCamCrop.ImEtZ2Terrain(a3,aZ));
 
-    
     //for every image : 
     //  read
     //  backproject the 3D bounds and define 2D bounds (this will be the cut & 2d grid bounds)
     //  create grids in 2d and 3d and pass to CalculRPC
     //  save IMG + RPC (in original coords)
 
-    std::list<std::string>::iterator itL=aListFile.begin();
-    for( ; itL !=aListFile.end(); itL++ )
+    std::cout << "***************************************\n";
+    itL=aListFile.begin();
+    for( int aK=0; itL !=aListFile.end(); itL++, aK++ )
     {
 
-        CameraRPC aCamCropTMP(aDir + (*itL));
-        aCamCropTMP.CropRPC(aDirSav, aDir + (*itL), aBounds);
+        //CameraRPC aCamCropTMP(aDir + (*itL));
+        aCamVec.at(aK)->CropRPC(aDirSav, aDir + (*itL), aBounds);
+//        aCamCropTMP.CropRPC(aDirSav, aDir + (*itL), aBounds);
+        std::cout << "***************************************";
+        std::cout << "\n";
     }
 
 
