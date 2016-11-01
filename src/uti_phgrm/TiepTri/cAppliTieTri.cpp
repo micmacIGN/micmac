@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepTri.h"
 
+/*
 class cCmpPt2diOnEuclid
 {
    public : 
@@ -65,6 +66,7 @@ std::vector<Pt2di> VoisinDisk(double aDistMin,double aDistMax)
    }
    return aResult;
 }
+*/
 
 
 cAppliTieTri::cAppliTieTri
@@ -96,11 +98,11 @@ cAppliTieTri::cAppliTieTri
       mImSec.push_back(new cImSecTieTri(*this,aTriang.NameSec()[aK],aK));
    }
 
-   mVoisExtr = VoisinDisk(0.5,mDisExtrema);
-   cCmpPt2diOnEuclid aCmp;
-   std::sort(mVoisExtr.begin(),mVoisExtr.end(),aCmp);
+   mVoisExtr = SortedVoisinDisk(0.5,mDisExtrema,true);
+   // cCmpPt2diOnEuclid aCmp;
+   // std::sort(mVoisExtr.begin(),mVoisExtr.end(),aCmp);
 
-   mVoisHom = VoisinDisk(-1,mDistRechHom);
+   mVoisHom = SortedVoisinDisk(-1,mDistRechHom,false);
 
    cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
    mInterpol = new cTabIM2D_FromIm2D<tElTiepTri>(aSinC,1000,false);

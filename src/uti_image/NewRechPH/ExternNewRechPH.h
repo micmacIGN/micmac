@@ -38,75 +38,70 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-#include "NewRechPH.h"
+#ifndef _ExternNewRechPH_H_
+#define _ExternNewRechPH_H_
 
-void  cAppli_NewRechPH::Clik()
+template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
 {
-   if (mW1) mW1->clik_in();
-}
+    Pt2di aSz = anIm.sz();
+    Im2D_U_INT1 aRes(aSz.x,aSz.y);
+    TIm2D<U_INT1,INT> aTRes(aRes);
+    TIm2D<T1,T2> aTIm(anIm);
 
-void cAppli_NewRechPH::AddScale(cOneScaleImRechPH * aI1,cOneScaleImRechPH *)
-{
-    mVI1.push_back(aI1);
-}
-
-cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
-    mPowS     (pow(2.0,1/5.0)),
-    mNbS      (30),
-    mW1       (0),
-    mModeTest (ModeTest),
-    mDistMinMax (3.0),
-    mDoMin      (true),
-    mDoMax      (true)
-{
-   ElInitArgMain
-   (
-         argc,argv,
-         LArgMain()  << EAMC(mName, "Name Image",  eSAM_IsPatFile),
-         LArgMain()   << EAM(mPowS,         "PowS",true,"Scale Pow")
-                      << EAM(mNbS,       "NbS",true,"If true do debugging")
-   );
-
-   AddScale(cOneScaleImRechPH::FromFile(*this,mName,Pt2di(0,0),Pt2di(-1,-1)),0);
-
-   mSzIm = mVI1.back()->Im().sz();
-   if (mModeTest)
-   {
-      mW1 = Video_Win::PtrWStd(mSzIm);
-      ELISE_COPY(mW1->all_pts(),mVI1.back()->Im().in(),mW1->ogray());
-   }
-
-   for (int aK=1 ; aK<mNbS ; aK++)
-   {
-        AddScale
-        (
-              cOneScaleImRechPH::FromScale(*this,*mVI1.back(),pow(mPowS,aK)),
-              0
-        );
-        if (mW1)
+    Pt2di aP;
+    for (aP.x=1 ; aP.x<aSz.x-1 ; aP.x++)
+    {
+        for (aP.y=1 ; aP.y<aSz.y-1 ; aP.y++)
         {
-           ELISE_COPY(mW1->all_pts(),mVI1.back()->Im().in(),mW1->ogray());
+            T1 aV1 = aTIm.get(aP);
+            int aFlag=0;
+            for (int aKV=0 ; aKV<8 ; aKV++)
+            {
+                 Pt2di aV = TAB_8_NEIGH[aKV];
+                 T1 aV2 = aTIm.get(aP+aV);
+                 if (CmpValAndDec(aV1,aV2,aV)==-1)
+                 {
+                    aFlag |= (1<<aKV);
+                 }
+            }
+            aTRes.oset(aP,aFlag);
         }
+    }
 
-        if (aK==mNbS/2)
-        {
-           mVI1.back()->CalcPtsCarac();
-        }
-   }
-
-   Clik();
+    return aRes;
 }
 
-
-
-int Test_NewRechPH(int argc,char ** argv)
+typedef enum eTypePtRemark
 {
-   cAppli_NewRechPH anAppli(argc,argv,true);
+    eTPR_NoLabel = 0,
+    eTPR_Max     = 1,
+    eTPR_Min     = 2,
+    eTPR_Corner  = 3,
+    eTPR_MaxLapl = 4,
+    eTPR_MinLapl = 5
+}  eTypePtRemark;
 
-   return EXIT_SUCCESS;
 
-}
 
+int  * TabTypePOfFlag();
+
+class cIntPtRemark
+{
+    public :
+       cIntPtRemark(const Pt2di & aPt,eTypePtRemark aType) :
+           mPt   (aPt),
+           mType (aType)
+       {
+       }
+
+       Pt2di          mPt;
+       eTypePtRemark  mType;
+};
+
+// std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort);
+
+
+#endif //  _NewRechPH_H_
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

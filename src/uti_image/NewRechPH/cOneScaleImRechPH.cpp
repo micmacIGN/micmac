@@ -40,70 +40,104 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
-void  cAppli_NewRechPH::Clik()
+/*****************************************************/
+/*                                                   */
+/*            Constructeur                           */
+/*                                                   */
+/*****************************************************/
+
+
+cOneScaleImRechPH::cOneScaleImRechPH(cAppli_NewRechPH &anAppli,const Pt2di & aSz,const double & aScale,const int & aNiv) :
+   mAppli (anAppli),
+   mSz    (aSz),
+   mIm    (aSz.x,aSz.y),
+   mTIm   (mIm),
+   mScale (aScale),
+   mNiv   (aNiv)
 {
-   if (mW1) mW1->clik_in();
 }
 
-void cAppli_NewRechPH::AddScale(cOneScaleImRechPH * aI1,cOneScaleImRechPH *)
+cOneScaleImRechPH* cOneScaleImRechPH::FromFile(cAppli_NewRechPH & anAppli,const std::string & aName,const Pt2di & aP0,const Pt2di & aP1Init)
 {
-    mVI1.push_back(aI1);
+   Tiff_Im aTifF = Tiff_Im::StdConvGen(aName,1,true);
+   Pt2di aP1 = (aP1Init.x > 0) ? aP1Init : aTifF.sz();
+   cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aP1-aP0,1.0,0);
+
+   ELISE_COPY ( aRes->mIm.all_pts(),trans(aTifF.in_proj(),-aP0),aRes->mIm.out());
+
+   return aRes;
 }
 
-cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
-    mPowS     (pow(2.0,1/5.0)),
-    mNbS      (30),
-    mW1       (0),
-    mModeTest (ModeTest),
-    mDistMinMax (3.0),
-    mDoMin      (true),
-    mDoMax      (true)
+cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneScaleImRechPH & anIm,const double & aSigma)
 {
-   ElInitArgMain
-   (
-         argc,argv,
-         LArgMain()  << EAMC(mName, "Name Image",  eSAM_IsPatFile),
-         LArgMain()   << EAM(mPowS,         "PowS",true,"Scale Pow")
-                      << EAM(mNbS,       "NbS",true,"If true do debugging")
-   );
 
-   AddScale(cOneScaleImRechPH::FromFile(*this,mName,Pt2di(0,0),Pt2di(-1,-1)),0);
+// MakeFlagMontant(anIm.mIm);
+// template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
 
-   mSzIm = mVI1.back()->Im().sz();
-   if (mModeTest)
+     cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,anIm.mSz,aSigma,anIm.mNiv+1);
+
+     // Pour reduire le temps de calcul, si deja plusieurs iters la fon de convol est le resultat
+     // de plusieurs iters ...
+     int aNbIter = 4;
+     if (aRes->mNiv==2) aNbIter = 3;
+     if (aRes->mNiv==1) aNbIter = 2;
+
+     // anIm.mIm.dup(aRes->mIm);
+     aRes->mIm.dup(anIm.mIm);
+     double aParamG = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(anIm.mScale)));
+     FilterGauss(aRes->mIm,aParamG,aNbIter);
+
+     return aRes;
+}
+
+tImNRPH cOneScaleImRechPH::Im() {return mIm;}
+
+
+bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
+{
+    tElNewRechPH aV0 =  mTIm.get(aP);
+    for (int aKV=0 ; aKV<int(aVVois.size()) ; aKV++)
+    {
+        const Pt2di & aV = aVVois[aKV];
+        tElNewRechPH aV1 =  mTIm.get(aP+aV);
+        if (CmpValAndDec(aV0,aV1,aV) == aValCmp)
+           return false;
+    }
+    return true;
+}
+
+
+
+void cOneScaleImRechPH::CalcPtsCarac()
+{
+   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(),true);
+
+   bool DoMin = mAppli.DoMin();
+   bool DoMax = mAppli.DoMax();
+
+   Im2D_U_INT1 aIFlag = MakeFlagMontant(mIm);
+   TIm2D<U_INT1,INT> aTF(aIFlag);
+   Pt2di aP ;
+   for (aP.x = 0 ; aP.x <mSz.x ; aP.x++)
    {
-      mW1 = Video_Win::PtrWStd(mSzIm);
-      ELISE_COPY(mW1->all_pts(),mVI1.back()->Im().in(),mW1->ogray());
-   }
+       for (aP.y = 0 ; aP.y <mSz.y ; aP.y++)
+       {
+           int aFlag = aTF.get(aP);
+           eTypePtRemark aLab = eTPR_NoLabel;
+           
+           if (DoMax &&  (aFlag == 0) && SelectVois(aP,aVoisMinMax,1))
+           {
+               aLab = eTPR_Max;
+           }
+           if (DoMin &&  (aFlag == 255) && SelectVois(aP,aVoisMinMax,-1))
+           {
+               aLab = eTPR_Min;
+           }
 
-   for (int aK=1 ; aK<mNbS ; aK++)
-   {
-        AddScale
-        (
-              cOneScaleImRechPH::FromScale(*this,*mVI1.back(),pow(mPowS,aK)),
-              0
-        );
-        if (mW1)
-        {
-           ELISE_COPY(mW1->all_pts(),mVI1.back()->Im().in(),mW1->ogray());
-        }
-
-        if (aK==mNbS/2)
-        {
-           mVI1.back()->CalcPtsCarac();
+           if (aLab!=eTPR_NoLabel)
+              mLIPM.push_back(cIntPtRemark(aP,aLab));
         }
    }
-
-   Clik();
-}
-
-
-
-int Test_NewRechPH(int argc,char ** argv)
-{
-   cAppli_NewRechPH anAppli(argc,argv,true);
-
-   return EXIT_SUCCESS;
 
 }
 

@@ -1533,6 +1533,9 @@ template <class Type,class TypePt> inline int  CmpValAndDec(const Type & aV1,con
    return 0;
 }
 
+std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort);
+
+
 
 
 

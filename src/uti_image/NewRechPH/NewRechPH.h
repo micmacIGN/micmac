@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _NewRechPH_H_
 #define _NewRechPH_H_
 
+#include "ExternNewRechPH.h"
+
 typedef float   tElNewRechPH ;
 typedef double  tElBufNRPH ;
 
@@ -48,16 +50,60 @@ typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
 typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
 
 
+class cAppli_NewRechPH;
+class cOneScaleImRechPH;
+
+
+/************************************************************************/
+
+
 class cOneScaleImRechPH
 {
       public :
-          cOneScaleImRechPH(Fonc_Num aFonc,Pt2di aSz);
+          static cOneScaleImRechPH* FromFile (cAppli_NewRechPH &,const std::string &,const Pt2di & aP0,const Pt2di & aP1);
+          static cOneScaleImRechPH* FromScale(cAppli_NewRechPH &,cOneScaleImRechPH &,const double & aSigma);
+          tImNRPH Im();
+
+          void CalcPtsCarac();
       private :
+          cOneScaleImRechPH(cAppli_NewRechPH &,const Pt2di & aSz,const double & aScale,const int & aNiv);
+          bool  SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp);
+          std::list<cIntPtRemark>  mLIPM;
    
-          tImNRPH  mIm;
+          cAppli_NewRechPH & mAppli;
+          Pt2di     mSz;
+          tImNRPH   mIm;
           tTImNRPH  mTIm;
+          double    mScale;
+          int       mNiv;
            
 };
+class cAppli_NewRechPH
+{
+    public :
+        cAppli_NewRechPH(int argc,char ** argv,bool ModeTest);
+
+        const double &      DistMinMax() const  {return mDistMinMax;}
+        const bool   &      DoMin() const       {return mDoMin;}
+        const bool   &      DoMax() const       {return mDoMax;}
+    private :
+        void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
+        void Clik();
+
+        std::string mName;
+        double      mPowS;
+        int         mNbS;
+        Pt2di       mSzIm;
+
+        std::vector<cOneScaleImRechPH *> mVI1;
+        Video_Win  * mW1;
+        bool         mModeTest;
+
+        double       mDistMinMax;
+        bool         mDoMin;
+        bool         mDoMax;
+};
+
 
 
 #endif //  _NewRechPH_H_

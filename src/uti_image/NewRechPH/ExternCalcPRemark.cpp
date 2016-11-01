@@ -40,73 +40,42 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
-void  cAppli_NewRechPH::Clik()
+/*****************************************************/
+/*                                                   */
+/*                                                   */
+/*                                                   */
+/*****************************************************/
+class cCmpPt2diOnEuclid
 {
-   if (mW1) mW1->clik_in();
-}
+   public : 
+       bool operator () (const Pt2di & aP1, const Pt2di & aP2)
+       {
+                   return square_euclid(aP1) < square_euclid(aP2) ;
+       }
+};
 
-void cAppli_NewRechPH::AddScale(cOneScaleImRechPH * aI1,cOneScaleImRechPH *)
+std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort)
 {
-    mVI1.push_back(aI1);
-}
-
-cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
-    mPowS     (pow(2.0,1/5.0)),
-    mNbS      (30),
-    mW1       (0),
-    mModeTest (ModeTest),
-    mDistMinMax (3.0),
-    mDoMin      (true),
-    mDoMax      (true)
-{
-   ElInitArgMain
-   (
-         argc,argv,
-         LArgMain()  << EAMC(mName, "Name Image",  eSAM_IsPatFile),
-         LArgMain()   << EAM(mPowS,         "PowS",true,"Scale Pow")
-                      << EAM(mNbS,       "NbS",true,"If true do debugging")
-   );
-
-   AddScale(cOneScaleImRechPH::FromFile(*this,mName,Pt2di(0,0),Pt2di(-1,-1)),0);
-
-   mSzIm = mVI1.back()->Im().sz();
-   if (mModeTest)
+   std::vector<Pt2di> aResult;
+   int aDE = round_up(aDistMax);
+   Pt2di aP;
+   for (aP.x=-aDE ; aP.x <= aDE ; aP.x++)
    {
-      mW1 = Video_Win::PtrWStd(mSzIm);
-      ELISE_COPY(mW1->all_pts(),mVI1.back()->Im().in(),mW1->ogray());
+       for (aP.y=-aDE ; aP.y <= aDE ; aP.y++)
+       {
+            double aD = euclid(aP);
+            if ((aD <= aDistMax) && (aD>aDistMin))
+               aResult.push_back(aP);
+       }
+   }
+   if (Sort)
+   {
+      cCmpPt2diOnEuclid aCmp;
+      std::sort(aResult.begin(),aResult.end(),aCmp);
    }
 
-   for (int aK=1 ; aK<mNbS ; aK++)
-   {
-        AddScale
-        (
-              cOneScaleImRechPH::FromScale(*this,*mVI1.back(),pow(mPowS,aK)),
-              0
-        );
-        if (mW1)
-        {
-           ELISE_COPY(mW1->all_pts(),mVI1.back()->Im().in(),mW1->ogray());
-        }
-
-        if (aK==mNbS/2)
-        {
-           mVI1.back()->CalcPtsCarac();
-        }
-   }
-
-   Clik();
+   return aResult;
 }
-
-
-
-int Test_NewRechPH(int argc,char ** argv)
-{
-   cAppli_NewRechPH anAppli(argc,argv,true);
-
-   return EXIT_SUCCESS;
-
-}
-
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

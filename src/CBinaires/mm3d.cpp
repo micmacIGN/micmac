@@ -619,6 +619,9 @@ int TaskCorrel_main(int argc,char ** argv);
 
 int FAST_main(int argc,char ** argv);
 
+int Test_NewRechPH(int argc,char ** argv);
+
+
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -791,6 +794,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri"));
         aRes.push_back(cMMCom("FAST",FAST_main,"Some Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)"));
 
+        aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
    }
 
     cCmpMMCom CmpMMCom;
