@@ -289,9 +289,17 @@ class cRPC
         /* Fill-in a cubic polynomials */
         void CubicPolyFil(const Pt3dr &aP, double (&aPTerms)[20]) const;
         void DifCubicPolyFil(const Pt3dr &aP, double &aB, double (&aPTerms)[39]) const;
+        
+        //for alternative equations
+        void FilBD(double (&ab)[20], double (&aU)[20], double (&aB)) const;
+        void DifCubicPolyFil(double &aB, double &aDenomApprox, double(&aU)[20], double (&aPTerms)[39]) const;
 
 
         /* Learn RPCs */
+        void LearnParamNEW(std::vector<Pt3dr> &aGridIn,
+                         std::vector<Pt3dr> &aGridOut,
+                         double (&aSol1)[20], double (&aSol2)[20],
+                         double (&aSol3)[20], double (&aSol4)[20]);
         void LearnParam(std::vector<Pt3dr> &aGridIn,
                          std::vector<Pt3dr> &aGridOut,
                          double (&aSol1)[20], double (&aSol2)[20],
