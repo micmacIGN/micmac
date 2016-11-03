@@ -2260,6 +2260,11 @@ if (MPD_MM())
       bool IsId() const {return true;}
       const cGeomImage * GeoTerrainIntrinseque() const 
        {return mGeoRef->GeoTerrainIntrinseque();}
+
+       bool IsRPC() const 
+       {
+            return mGeoRef->IsRPC();
+       }
 };
 
 
