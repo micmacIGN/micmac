@@ -2357,6 +2357,11 @@ class cGeomFaisZTerEsclave : public cGeomFaisZTerMaitre
        const cGeomImage * GeoTerrainIntrinseque() const
        {return mGeom->GeoTerrainIntrinseque();}
 
+
+       bool IsRPC() const 
+       {
+            return mGeom->IsRPC();
+       }
 };
 
 void cGeomFaisZTerEsclave::TestPHom(Pt2dr aP1,Pt2dr aP2)

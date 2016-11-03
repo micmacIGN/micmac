@@ -241,7 +241,7 @@ Pt2di aLastPtInMaxGrad(0,0);
                                 if ( aDist2 < 10)
                                 {
                                     double aDist3 = sqrt(aDist2+ElSquare(aZofXY-aLastZofXY));
-                                    double aGrad = euclid(aP3Out-aLastP3Out) / aDist3;
+                                    double aGrad = euclid(aP2Out-Pt2dr(aLastP3Out.x,aLastP3Out.y)) / aDist3;
                                     aNbGrad ++;
                                     if (aGrad>1.5)
                                     {
