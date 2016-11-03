@@ -1974,9 +1974,18 @@ void cEtapeMecComp::RemplitXMLNuage
         // aIP.Masq() = NameWithoutDir(mAppli.NameImageMasqOfResol(DeZoomTer()));
         aIP.Masq() = NameWithoutDir(NameMasqCarteProf());
 
-        if (mGenImageCorrel)
+
+        // Gestion du cas particulier dernier fichier
+        bool AddCorr = mGenImageCorrel;
+        std::string  aFileCorrel = NameWithoutDir(NameFileCorrel());
+        if ((! AddCorr) && mPrec && mPrec->mGenImageCorrel && (DeZoomTer() == mPrec->DeZoomTer()))
         {
-           aIP.Correl().SetVal(NameWithoutDir(NameFileCorrel()));
+               AddCorr = true;
+               aFileCorrel = NameWithoutDir(mPrec->NameFileCorrel());
+        }
+        if (AddCorr)
+        {
+           aIP.Correl().SetVal(aFileCorrel);
         }
         else
         {
@@ -1985,8 +1994,6 @@ void cEtapeMecComp::RemplitXMLNuage
         aIP.OrigineAlti() =  mGeomTer.OrigineAlti4Export();
         aIP.ResolutionAlti() =    mGeomTer.ResolutionAlti();
         aIP.GeomRestit() = mAppli.GeomMNT();
-
-   
 
         aNuage.Image_Profondeur().SetVal(aIP);
     }

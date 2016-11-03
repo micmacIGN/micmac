@@ -77,6 +77,20 @@ std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort)
    return aResult;
 }
 
+Pt3di CoulOfType(eTypePtRemark aType)
+{
+    switch(aType)
+    {
+         case eTPR_Max : return Pt3di(255,0,0);
+         case eTPR_Min : return Pt3di(0,0,255);
+
+         default :;
+    }
+
+    return  Pt3di(128,128,128);
+}
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

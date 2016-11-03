@@ -98,9 +98,9 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
     tElNewRechPH aV0 =  mTIm.get(aP);
     for (int aKV=0 ; aKV<int(aVVois.size()) ; aKV++)
     {
-        const Pt2di & aV = aVVois[aKV];
-        tElNewRechPH aV1 =  mTIm.get(aP+aV);
-        if (CmpValAndDec(aV0,aV1,aV) == aValCmp)
+        const Pt2di & aVois = aVVois[aKV];
+        tElNewRechPH aV1 =  mTIm.get(aP+aVois,aV0);
+        if (CmpValAndDec(aV0,aV1,aVois) != aValCmp)
            return false;
     }
     return true;
@@ -111,6 +111,7 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
 void cOneScaleImRechPH::CalcPtsCarac()
 {
    std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(),true);
+
 
    bool DoMin = mAppli.DoMin();
    bool DoMax = mAppli.DoMax();
@@ -125,12 +126,14 @@ void cOneScaleImRechPH::CalcPtsCarac()
            int aFlag = aTF.get(aP);
            eTypePtRemark aLab = eTPR_NoLabel;
            
-           if (DoMax &&  (aFlag == 0) && SelectVois(aP,aVoisMinMax,1))
+           if (/*DoMax &&  (aFlag == 0) &&*/ SelectVois(aP,aVoisMinMax,1))
            {
+std::cout << "DAxx "<< DoMax << " " << aFlag << "\n";
                aLab = eTPR_Max;
            }
-           if (DoMin &&  (aFlag == 255) && SelectVois(aP,aVoisMinMax,-1))
+           if (/*DoMin &&  (aFlag == 255) &&*/ SelectVois(aP,aVoisMinMax,-1))
            {
+std::cout << "DInnn "<< DoMin << " " << aFlag << "\n";
                aLab = eTPR_Min;
            }
 
@@ -140,6 +143,37 @@ void cOneScaleImRechPH::CalcPtsCarac()
    }
 
 }
+
+void cOneScaleImRechPH::Show(Video_Win* aW)
+{
+   if (! aW) return;
+
+   Im2D_U_INT1 aIR(mSz.x,mSz.y);
+   Im2D_U_INT1 aIV(mSz.x,mSz.y);
+   Im2D_U_INT1 aIB(mSz.x,mSz.y);
+
+   ELISE_COPY(mIm.all_pts(),Max(0,Min(255,mIm.in())),aIR.out()|aIV.out()|aIB.out());
+
+   for (std::list<cIntPtRemark>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
+   {
+       Pt3di aC = CoulOfType(itIPM->mType);
+
+       ELISE_COPY
+       (
+          disc(Pt2dr(itIPM->mPt),2.0),
+          Virgule(aC.x,aC.y,aC.z),
+          Virgule(aIR.oclip(),aIV.oclip(),aIB.oclip())
+       );
+   }
+
+   ELISE_COPY
+   (
+      mIm.all_pts(),
+      Virgule(aIR.in(),aIV.in(),aIB.in()),
+      aW->orgb()
+   );
+}
+
 
 
 

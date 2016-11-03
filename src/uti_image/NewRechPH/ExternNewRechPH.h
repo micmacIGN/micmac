@@ -81,6 +81,8 @@ typedef enum eTypePtRemark
     eTPR_MinLapl = 5
 }  eTypePtRemark;
 
+Pt3di CoulOfType(eTypePtRemark);
+
 
 
 int  * TabTypePOfFlag();
