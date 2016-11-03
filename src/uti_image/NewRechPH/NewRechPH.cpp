@@ -73,25 +73,23 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    if (mModeTest)
    {
       mW1 = Video_Win::PtrWStd(mSzIm);
-      ELISE_COPY(mW1->all_pts(),mVI1.back()->Im().in(),mW1->ogray());
+        
+      // ELISE_COPY(mW1->all_pts(),mVI1.back()->Im().in(),mW1->ogray());
    }
+   // mVI1.back()->Show(mW1);
 
-   for (int aK=1 ; aK<mNbS ; aK++)
+   for (int aK=0 ; aK<mNbS ; aK++)
    {
-        AddScale
-        (
+        if (aK!=0)
+        {
+           AddScale
+           (
               cOneScaleImRechPH::FromScale(*this,*mVI1.back(),pow(mPowS,aK)),
               0
-        );
-        if (mW1)
-        {
-           ELISE_COPY(mW1->all_pts(),mVI1.back()->Im().in(),mW1->ogray());
+           );
         }
-
-        if (aK==mNbS/2)
-        {
-           mVI1.back()->CalcPtsCarac();
-        }
+        mVI1.back()->CalcPtsCarac();
+        mVI1.back()->Show(mW1);
    }
 
    Clik();

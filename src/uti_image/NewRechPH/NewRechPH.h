@@ -65,6 +65,8 @@ class cOneScaleImRechPH
           tImNRPH Im();
 
           void CalcPtsCarac();
+
+          void Show(Video_Win* aW);
       private :
           cOneScaleImRechPH(cAppli_NewRechPH &,const Pt2di & aSz,const double & aScale,const int & aNiv);
           bool  SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp);
