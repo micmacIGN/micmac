@@ -1063,6 +1063,8 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
         virtual double IncidTerrain(Pt2dr aPTer);
 
         virtual bool IsRPC() const;
+        virtual Pt2dr RPCGetAltiSolMinMax() const;
+        virtual bool RPCIsVisible(const Pt3dr &) const;
 
         virtual bool MasqImNadirIsDone();
         virtual void DoMasImNadir(TIm2D<REAL4,REAL8> &,cGeomDiscFPx &);
