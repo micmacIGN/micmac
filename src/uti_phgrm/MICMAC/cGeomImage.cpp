@@ -129,6 +129,17 @@ cGeomImage::cGeomImage
 
 }
 
+bool cGeomImage::RPCIsVisible(const Pt3dr &) const
+{
+   return true;
+}
+
+Pt2dr cGeomImage::RPCGetAltiSolMinMax() const
+{
+   ELISE_ASSERT(false,"cGeomImage::RPCGetAltiSolMinMax");
+   return Pt2dr(0,0);
+}
+
 bool cGeomImage::IsRPC() const 
 {
     return false;
@@ -2265,6 +2276,21 @@ if (MPD_MM())
        {
             return mGeoRef->IsRPC();
        }
+       bool RPCIsVisible(const Pt3dr & aP) const
+       {
+            if (! IsRPC()) return true;
+           
+            if ((aP.x<0) || (aP.y<0)  || (aP.x>mSzImInit.x) || (aP.y> mSzImInit.y)) return false;
+
+            Pt2dr aZInt =  mGeoRef->RPCGetAltiSolMinMax() ;
+
+            return  (aP.z >=aZInt.x) && (aP.z <= aZInt.y);
+       }
+       Pt2dr RPCGetAltiSolMinMax() const
+       {
+           return mGeoRef->RPCGetAltiSolMinMax();
+       }
+
 };
 
 
@@ -2365,7 +2391,32 @@ class cGeomFaisZTerEsclave : public cGeomFaisZTerMaitre
 
        bool IsRPC() const 
        {
-            return mGeom->IsRPC();
+            return mGeoRef->IsRPC() || mGeom->IsRPC();
+       }
+       Pt2dr RPCGetAltiSolMinMax() const
+       {
+           Pt2dr aRes(-1e60,1e60);
+           if (mGeoRef->IsRPC())
+           {
+               aRes = mGeoRef->RPCGetAltiSolMinMax();
+           }
+
+           if (mGeom->IsRPC())
+           {
+               Pt2dr aR2 = mGeom->RPCGetAltiSolMinMax();
+               aRes = Pt2dr(ElMax(aR2.x,aRes.x),ElMin(aR2.y,aRes.y));
+           }
+
+           return aRes;
+       }
+       bool RPCIsVisible(const Pt3dr & aP) const
+       {
+            if (! IsRPC()) return true;
+            if (!  cGeomFaisZTerMaitre::RPCIsVisible(aP)) return false;
+            static double aVPx[2] = {0,0};
+            aVPx[0] = aP.z;
+            Pt2dr aQ =  mGeoRef->ImageAndPx2Obj_Euclid(Pt2dr(aP.x,aP.y),aVPx);
+            return mGeom->RPCIsVisible(Pt3dr(aQ.x,aQ.y,aP.z));
        }
 };
 
@@ -2830,6 +2881,14 @@ class cGeomImage_cBasic : public cGeomImage
        bool IsRPC() const 
        {
             return mBGC3D->IsRPC();
+       }
+       Pt2dr RPCGetAltiSolMinMax() const
+       {
+            return mBGC3D->GetAltiSolMinMax();
+       }
+       bool RPCIsVisible(const Pt3dr & aP) const
+       {
+            return mBGC3D->PIsVisibleInImage(aP);
        }
 
      private :
