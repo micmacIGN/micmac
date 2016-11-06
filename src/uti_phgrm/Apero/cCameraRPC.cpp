@@ -3915,6 +3915,10 @@ cAppli_TestCamRPC::cAppli_TestCamRPC(int argc,char** argv) :
        int aDenPosYTer = 0;
        int aDenPosXIm = 0;
        int aDenPosYIm = 0;
+       int aNumPosXTer = 0;
+       int aNumPosYTer = 0;
+       int aNumPosXIm = 0;
+       int aNumPosYIm = 0;
 
        double MaxDenXIm = -1e5,MaxDenYIm = -1e5,MaxDenXTer = -1e5,MaxDenYTer = -1e5;
        double MinDenXIm = +1e5,MinDenYIm = +1e5,MinDenXTer = +1e5,MinDenYTer = +1e5;
@@ -3965,43 +3969,65 @@ cAppli_TestCamRPC::cAppli_TestCamRPC(int argc,char** argv) :
                           aPlyErr.AddPt(Pt3di(255,255,255),Pt3dr(aKX,aKY,aKZ));
                        }
                    }
-                   DEBUG_MPD_ONLY_DEN = true;
 
-                   Pt3dr aTestPTer = aBGC->ImEtZ2Terrain(Pt2dr(anX,anY),aZ);
+                   // Analyse des denominateurs
+                   {
+                        DEBUG_MPD_ONLY_DEN = true;
 
-                   aDenPosXTer += (aTestPTer.x) > 0;
-                   aDenPosYTer += (aTestPTer.y) > 0;
-                   ElSetMax(MaxDenXTer,aTestPTer.x);
-                   ElSetMin(MinDenXTer,aTestPTer.x);
-                   ElSetMax(MaxDenYTer,aTestPTer.y);
-                   ElSetMin(MinDenYTer,aTestPTer.y);
+                        Pt3dr aTestPTer = aBGC->ImEtZ2Terrain(Pt2dr(anX,anY),aZ);
+
+                        aDenPosXTer += (aTestPTer.x) > 0;
+                        aDenPosYTer += (aTestPTer.y) > 0;
+                        ElSetMax(MaxDenXTer,aTestPTer.x);
+                        ElSetMin(MinDenXTer,aTestPTer.x);
+                        ElSetMax(MaxDenYTer,aTestPTer.y);
+                        ElSetMin(MinDenYTer,aTestPTer.y);
 
                    // == 
 
-                   Pt2dr aTestPIm = aBGC->Ter2Capteur(aPTer);
-                   aDenPosXIm += (aTestPIm.x) > 0;
-                   aDenPosYIm += (aTestPIm.y) > 0;
+                        Pt2dr aTestPIm = aBGC->Ter2Capteur(aPTer);
+                        aDenPosXIm += (aTestPIm.x) > 0;
+                        aDenPosYIm += (aTestPIm.y) > 0;
 
-                   ElSetMax(MaxDenXIm,aTestPIm.x);
-                   ElSetMin(MinDenXIm,aTestPIm.x);
-                   ElSetMax(MaxDenYIm,aTestPIm.y);
-                   ElSetMin(MinDenYIm,aTestPIm.y);
+                        ElSetMax(MaxDenXIm,aTestPIm.x);
+                        ElSetMin(MinDenXIm,aTestPIm.x);
+                        ElSetMax(MaxDenYIm,aTestPIm.y);
+                        ElSetMin(MinDenYIm,aTestPIm.y);
 
-                   if (mDoPlySignXTer||mDoPlySignYTer||mDoPlySignXIm||mDoPlySignYIm)
-                   {
-                      bool Pos=false;
-                      if (mDoPlySignXTer) Pos = (aTestPTer.x) > 0;
-                      if (mDoPlySignYTer) Pos = (aTestPTer.y) > 0;
-                      if (mDoPlySignXIm ) Pos = (aTestPIm.x)  > 0;
-                      if (mDoPlySignYIm ) Pos = (aTestPIm.y)  > 0;
+                        if (mDoPlySignXTer||mDoPlySignYTer||mDoPlySignXIm||mDoPlySignYIm)
+                        {
+                           bool Pos=false;
+                           if (mDoPlySignXTer) Pos = (aTestPTer.x) > 0;
+                           if (mDoPlySignYTer) Pos = (aTestPTer.y) > 0;
+                           if (mDoPlySignXIm ) Pos = (aTestPIm.x)  > 0;
+                           if (mDoPlySignYIm ) Pos = (aTestPIm.y)  > 0;
 
-                      aPlyErr.AddPt(Pos?Pt3di(196,196,196):Pt3di(64,64,64),Pt3dr(aKX,aKY,aKZ));
+                           aPlyErr.AddPt(Pos?Pt3di(196,196,196):Pt3di(64,64,64),Pt3dr(aKX,aKY,aKZ));
+                        }
+
+
+                        DEBUG_MPD_ONLY_DEN = false;
                    }
 
+                   // Analyse des numerateurs
+                   {
+                       DEBUG_MPD_ONLY_NUM = true;
 
-                   DEBUG_MPD_ONLY_DEN = false;
-//DEBUG_MPD_ONLY_DEN
-//DEBUG_MPD_ONLY_NUM
+                       // =========================
+
+                        Pt3dr aTestPTer = aBGC->ImEtZ2Terrain(Pt2dr(anX,anY),aZ);
+
+                        aNumPosXTer += (aTestPTer.x) > 0;
+                        aNumPosYTer += (aTestPTer.y) > 0;
+
+                       // =========================
+
+                        Pt2dr aTestPIm = aBGC->Ter2Capteur(aPTer);
+                        aNumPosXIm += (aTestPIm.x) > 0;
+                        aNumPosYIm += (aTestPIm.y) > 0;
+
+                       DEBUG_MPD_ONLY_NUM = false;
+                   }
 
                }
            }
@@ -4015,9 +4041,12 @@ cAppli_TestCamRPC::cAppli_TestCamRPC(int argc,char** argv) :
 
        std::cout << " SignDenTer " << (aDenPosXTer*100.0) / aNbTest << " " << (aDenPosYTer*100.0) / aNbTest << "\n";
        std::cout << " SignDenIm  " << (aDenPosXIm*100.0) / aNbTest << " " << (aDenPosYIm*100.0) / aNbTest << "\n";
+       std::cout << " SignNumTer " << (aNumPosXTer*100.0) / aNbTest << " " << (aNumPosYTer*100.0) / aNbTest << "\n";
+       std::cout << " SignNumIm  " << (aNumPosXIm*100.0) / aNbTest << " " << (aNumPosYIm*100.0) / aNbTest << "\n";
 
 
-       std::cout << " InDenIM  X:[" << MinDenXIm << "," << MaxDenXIm  << "] Y:[" << MinDenYIm << "," << MaxDenYIm << "]\n";
+       std::cout << " Interv Den IM  X:[" << MinDenXIm << "," << MaxDenXIm  << "] Y:[" << MinDenYIm << "," << MaxDenYIm << "]\n";
+       std::cout << " Interv Den Ter  X:[" << MinDenXTer << "," << MaxDenXTer  << "] Y:[" << MinDenYTer << "," << MaxDenYTer << "]\n";
        // double MaxDenXIm = -1e5,MaxDenYIm = -1e5,MaxDenXTer = -1e5,MaxDenYTer = -1e5;
        // double MinDenXIm = +1e5,MinDenYIm = +1e5,MinDenXTer = +1e5,MinDenYTer = +1e5;
        if (mDoPlyErr||mDoPlySignXTer||mDoPlySignYTer||mDoPlySignXIm||mDoPlySignYIm)
