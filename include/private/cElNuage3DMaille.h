@@ -673,6 +673,9 @@ class cZBuffer
         std::vector<Im2DGen *> AttrOut();
         void SetRPC(bool IsRPC,double aZMin,double aZMax);
 
+        virtual bool RPCIsBascVisible(const Pt3dr & aP) const;
+
+
    private :
 
         Pt2di ToPtIndexDef(const Pt2di & aPt) const;
