@@ -106,7 +106,10 @@ class cMicMacZbuf : public cZBuffer
 
 
 
-        bool SelectPBascul(const Pt2dr & aP)   const;
+         bool SelectPBascul(const Pt2dr & aP)   const;
+
+
+         bool RPCIsBascVisible(const Pt3dr &) const;
 
 
         //const  cAppliMICMAC &            mAppli;
@@ -118,6 +121,11 @@ class cMicMacZbuf : public cZBuffer
         Im2D_Bits<1>     mImMasq;
         TIm2DBits<1>     mTImMasq;
 };
+
+bool cMicMacZbuf::RPCIsBascVisible(const Pt3dr & aP) const
+{
+    return mGeom.RPCIsVisible(aP);
+}
 
 
 Pt3dr cMicMacZbuf::ProjTerrain(const Pt3dr & aPTer) const
@@ -172,7 +180,6 @@ cMicMacZbuf::cMicMacZbuf
 {
 
 
-
   ELISE_COPY(mImTer.all_pts(),trans(aImZInit.in(),mTrGT),mImTer.out());
 
   if (aDoDequant)
@@ -187,6 +194,26 @@ cMicMacZbuf::cMicMacZbuf
           mImTer.out()
      );
   }
+
+   // return ( mTImMasq.get(aP+mTrGT,0)!=0 );
+  Pt2di aSzT =  mImTer.sz();
+  Pt2di aP;
+  for (aP.x =0 ; aP.x<aSzT.x ; aP.x++)
+  {
+      for (aP.y =0 ; aP.y<aSzT.y ; aP.y++)
+      {
+          Pt2di aPM = aP + mTrGT;
+          if (mTImMasq.inside(aPM))
+          {
+              Pt3dr aPT(aP.x,aP.y,ZofXY(aP));
+              aPT = ToCoordInAbs(aPT);
+              if (!RPCIsBascVisible(aPT))
+                 mTImMasq.oset(aPM,0);
+            // Pt3dr aP = ToCoordInAbs
+          }
+      }
+  }
+
 }
 
 double cMicMacZbuf::ZInterpofXY(const Pt2dr & aP,bool & OK) const

@@ -997,6 +997,44 @@ void cPlyCloud::AddSphere(const tCol& aCol,const Pt3dr & aC,const double & aRay,
     }
 }
 
+Pt3dr Corner(const Pt3dr & aP1,const Pt3dr &aP2, int aNum)
+{
+   return Pt3dr
+          (
+             (aNum&1) ? aP1.x : aP2.x,
+             (aNum&2) ? aP1.y : aP2.y,
+             (aNum&4) ? aP1.z : aP2.z
+          );
+}
+
+void cPlyCloud::AddCube
+     (
+          const tCol & aColP0,const tCol &aColP,const tCol & aColSeg,
+          const Pt3dr & aP1,const Pt3dr &aP2,const double & aRay,
+          const int & aNb
+     )
+{
+    AddSphere(aColP0,Corner(aP1,aP2,0),aRay,5);
+    for (int aFlag=0 ; aFlag <8 ; aFlag++)
+    {
+        AddSphere(aColP,Corner(aP1,aP2,aFlag),aRay,5);
+    }
+
+    for (int aFlag1=0 ; aFlag1 <8 ; aFlag1++)
+    {
+        for (int aFlag2=aFlag1+1 ; aFlag2 <8 ; aFlag2++)
+        {
+            int aDF = aFlag1 ^ aFlag2;
+            if ((aDF==1) || (aDF==2) || (aDF==4))
+            {
+                tCol aCol = ((aFlag1&4) || (aFlag2&4)) ? aColSeg : aColP0;
+                AddSeg(aCol,Corner(aP1,aP2,aFlag1),Corner(aP1,aP2,aFlag2),aNb);
+            }
+        }
+    }
+}
+
+
 void  cPlyCloud::AddSeg(const tCol & aCol,const Pt3dr & aP1,const Pt3dr & aP2,const int & aNb)
 {
      for (int aK=0 ; aK<= aNb ; aK++)

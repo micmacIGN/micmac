@@ -92,6 +92,12 @@ void cZBuffer::SetRPC(bool IsRPC,double aZMin,double aZMax)
 }
 
 
+bool cZBuffer::RPCIsBascVisible(const Pt3dr & aP) const
+{
+   return true;
+}
+
+
 void cZBuffer::SetEpsilonInterpoleInverse(double anEps)
 {
    mEpsIntInv = anEps;
@@ -260,13 +266,10 @@ Pt2di aLastPtInMaxGrad(0,0);
                                         }
                                         aNbBadGrad++;
                                     }
-if (MPD_MM())
-{
-}
                                     if (aGrad > aMaxGrad)
                                     {
 
-if (MPD_MM())
+if (0 && MPD_MM())
 {
    std::cout.precision(12);
    std::cout << "GRAD " << aGrad  << " D2="<< aDist2 << " D3=" << aDist3  << "\n";
@@ -275,6 +278,8 @@ if (MPD_MM())
    double  aLastValZofXY = ZofXY(aLastPIn);
    Pt3dr anAbsIn = ToCoordInAbs(Pt3dr(aPIn.x,aPIn.y,aValZofXY));
    Pt3dr aPLastIn = ToCoordInAbs(Pt3dr(aLastPIn.x,aLastPIn.y,aLastValZofXY));
+
+std::cout << "RPCCVISSSSSSSSSSSSSSSss " << RPCIsBascVisible(anAbsIn) <<  " " << RPCIsBascVisible(aPLastIn)  << "\n";
 
    std::cout << " IN-ABS=" <<  anAbsIn << aPLastIn <<   "\n";
    std::cout << " OUT=" <<  aP3Out << aLastP3Out << aP3Out-aLastP3Out << "\n";

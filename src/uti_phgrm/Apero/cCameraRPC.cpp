@@ -42,6 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 bool DEBUG_EWELINA=false;
 
+bool DEBUG_MPD_ONLY_NUM = false;
+bool DEBUG_MPD_ONLY_DEN = false;
+
 /* Image coordinates order: [Line, Sample] = [row, col] =  [y, x]*/
 /******************************************************/
 /*                                                    */
@@ -1676,6 +1679,8 @@ Pt3dr cRPC::DirectRPC(const Pt2dr &aP, const double &aZ) const
     //apply direct RPCs
     aPGr_ = DirectRPCN(aPIm, aZGr);
 
+    if (DEBUG_MPD_ONLY_NUM|| DEBUG_MPD_ONLY_DEN) return aPGr_;
+
     //denormalize
     aPGr = NormGr(aPGr_, true);
 
@@ -1706,6 +1711,15 @@ Pt3dr cRPC::DirectRPCN(const Pt2dr &aP, const double &aZ) const
     }
 
     ELISE_ASSERT( !(aGrC1Den==0 || aGrC2Den==0), "Pt3dr cRPC::DirectRPCN division by 0" );
+
+    if (DEBUG_MPD_ONLY_DEN)
+    {
+        return Pt3dr(aGrC1Den,aGrC2Den,0);
+    }
+    if (DEBUG_MPD_ONLY_NUM)
+    {
+        return Pt3dr(aGrC1Num,aGrC2Num,0);
+    }
         
     return( Pt3dr( aGrC1Num/aGrC1Den,
                    aGrC2Num/aGrC2Den,
@@ -1724,6 +1738,8 @@ Pt2dr cRPC::InverseRPC(const Pt3dr &aP) const
 
     //apply inverse RPCs
     aPIm_ = InverseRPCN(aPGr);
+
+    if (DEBUG_MPD_ONLY_NUM|| DEBUG_MPD_ONLY_DEN) return aPIm_;
 
     //denormalize
     aPIm = NormIm(aPIm_, true);
@@ -1766,10 +1782,20 @@ Pt2dr cRPC::InverseRPCN(const Pt3dr &aP) const
     
     ELISE_ASSERT(!(aImSDen==0 || aImLDen==0), "Pt3dr cRPC::InverseRPCN division by 0" );
 
+    if (DEBUG_MPD_ONLY_DEN)
+    {
+        return Pt2dr(aImSDen,aImLDen);
+    }
+    if (DEBUG_MPD_ONLY_NUM)
+    {
+        return Pt2dr(aImSNum,aImLNum);
+    }
+
     return( Pt2dr(aImSNum/aImSDen,
                   aImLNum/aImLDen) );
-
 }
+
+
 
 void cRPC::InvToDirRPC()
 {
@@ -3802,16 +3828,51 @@ double TestGradBCG
    return euclid(aP2Im,aPImAgain);
 }
 
-int TestCamRPC(int argc,char** argv)
+class cAppli_TestCamRPC
+{
+    public :
+          cAppli_TestCamRPC(int argc,char** argv);
+    private :
+         int mNbZ;
+         int mNbXY;
+         double mSeuilShowDistRP;
+         double mSeuilShowGrad;
+         bool   mPrintErr;
+         bool   mDoPlyErr;
+
+         bool   mDoPlySignXTer;
+         bool   mDoPlySignYTer;
+         bool   mDoPlySignXIm;
+         bool   mDoPlySignYIm;
+};
+
+cAppli_TestCamRPC::cAppli_TestCamRPC(int argc,char** argv) :
+    mNbZ  (100),
+    mNbXY (100),
+    mSeuilShowDistRP (0.1),
+    mSeuilShowGrad   (0.1),
+    mPrintErr        (false),
+    mDoPlyErr        (false),
+    mDoPlySignXTer   (false),
+    mDoPlySignYTer   (false),
+    mDoPlySignXIm    (false),
+    mDoPlySignYIm    (false)
 {
    std::string aPat;
-   int aNbZ = 100;
-   int aNbXY = 100;
    ElInitArgMain
-   (
+   ( 
         argc,argv,
         LArgMain()  << EAMC(aPat,"Name camera"),
-        LArgMain()
+        LArgMain()  << EAM(mNbZ,"NbZ", true, "Number of Z Layer")
+                    << EAM(mNbXY,"NbXY", true,"Number of XY layers")
+                    << EAM(mSeuilShowDistRP,"SeuilRP", true,"Thresols for dist reproj")
+                    << EAM(mSeuilShowGrad,"SeuilGrad", true,"Thresols for grad")
+                    << EAM(mPrintErr,"PrErr", true,"Print high residual")
+                    << EAM(mDoPlyErr,"PlyErr", true,"Make ply of high residual")
+                    << EAM(mDoPlySignXTer,"PlySXTer", true,"Make ply of sign XTer")
+                    << EAM(mDoPlySignYTer,"PlySYTer", true,"Make ply of sign YTer")
+                    << EAM(mDoPlySignXIm,"PlySXIm", true,"Make ply of sign XIm")
+                    << EAM(mDoPlySignYIm,"PlySYIm", true,"Make ply of sign YIm")
    );
 
   
@@ -3823,6 +3884,8 @@ int TestCamRPC(int argc,char** argv)
        int aType = eTIGB_Unknown;
 
        cBasicGeomCap3D * aBGC = cBasicGeomCap3D::StdGetFromFile(aName,aType);
+
+       // std::cout << "RESOL " << aBGC
 
        Pt2dr aSzIm = Pt2dr(aBGC->SzBasicCapt3D());
        Pt2dr aZInt = aBGC->GetAltiSolMinMax();
@@ -3842,17 +3905,31 @@ int TestCamRPC(int argc,char** argv)
        double aMaxDifRepr = 0;
        double aMaxVarGrad = 0;
        double aMoyVarGrad = 0;
+       double aMoyDistReproj = 0;
        int aNbTest=0;
 
-       for (int  aKZ=0 ; aKZ<=aNbZ ; aKZ++)
+       cPlyCloud aPlyErr;
+
+       
+       int aDenPosXTer = 0;
+       int aDenPosYTer = 0;
+       int aDenPosXIm = 0;
+       int aDenPosYIm = 0;
+
+       double MaxDenXIm = -1e5,MaxDenYIm = -1e5,MaxDenXTer = -1e5,MaxDenYTer = -1e5;
+       double MinDenXIm = +1e5,MinDenYIm = +1e5,MinDenXTer = +1e5,MinDenYTer = +1e5;
+       // double MaxDenXIm = -1e5;
+
+
+       for (int  aKZ=0 ; aKZ<=mNbZ ; aKZ++)
        {
-           double aZ = aZ0 + (aDZ * aKZ) / aNbZ;
-           for (int  aKX=0 ; aKX<=aNbXY ; aKX++)
+           double aZ = aZ0 + (aDZ * aKZ) / mNbZ;
+           for (int  aKX=0 ; aKX<=mNbXY ; aKX++)
            {
-               double anX = (aKX * aSzIm.x) / double (aNbXY);
-               for (int  aKY=0 ; aKY<=aNbXY ; aKY++)
+               double anX = (aKX * aSzIm.x) / double (mNbXY);
+               for (int  aKY=0 ; aKY<=mNbXY ; aKY++)
                {
-                   double anY = (aKY * aSzIm.y) / double (aNbXY);
+                   double anY = (aKY * aSzIm.y) / double (mNbXY);
 
                    Pt3dr aPTer,aGImX,aGImY,aGImZ;
                    Pt2dr aGTerX,aGTerY,aGTerZ;
@@ -3867,8 +3944,8 @@ int TestCamRPC(int argc,char** argv)
                                ;
                    aMoyVarGrad += aD;
                    aMaxVarGrad = ElMax(aD,aMaxVarGrad);
+                   aMoyDistReproj += aDistReproj;
                    aNbTest++;
-                   
 
                    // std::cout << "dddd  " << aD  << " " << euclid(aGImX) << "\n";
                
@@ -3876,17 +3953,89 @@ int TestCamRPC(int argc,char** argv)
                    {
                         aMaxDifRepr = aDistReproj;
                    }
+                   if ((aDistReproj > mSeuilShowDistRP) || (aD>mSeuilShowGrad))
+                   {
+                       if (mPrintErr)
+                       {
+                          std::cout << "Reproj " << aDistReproj <<  " Grad " << aD 
+                                    << " P=" << aKX << " " << aKY << " " << aKZ << "\n";
+                       }
+                       if (mDoPlyErr)
+                       {
+                          aPlyErr.AddPt(Pt3di(255,255,255),Pt3dr(aKX,aKY,aKZ));
+                       }
+                   }
+                   DEBUG_MPD_ONLY_DEN = true;
+
+                   Pt3dr aTestPTer = aBGC->ImEtZ2Terrain(Pt2dr(anX,anY),aZ);
+
+                   aDenPosXTer += (aTestPTer.x) > 0;
+                   aDenPosYTer += (aTestPTer.y) > 0;
+                   ElSetMax(MaxDenXTer,aTestPTer.x);
+                   ElSetMin(MinDenXTer,aTestPTer.x);
+                   ElSetMax(MaxDenYTer,aTestPTer.y);
+                   ElSetMin(MinDenYTer,aTestPTer.y);
+
+                   // == 
+
+                   Pt2dr aTestPIm = aBGC->Ter2Capteur(aPTer);
+                   aDenPosXIm += (aTestPIm.x) > 0;
+                   aDenPosYIm += (aTestPIm.y) > 0;
+
+                   ElSetMax(MaxDenXIm,aTestPIm.x);
+                   ElSetMin(MinDenXIm,aTestPIm.x);
+                   ElSetMax(MaxDenYIm,aTestPIm.y);
+                   ElSetMin(MinDenYIm,aTestPIm.y);
+
+                   if (mDoPlySignXTer||mDoPlySignYTer||mDoPlySignXIm||mDoPlySignYIm)
+                   {
+                      bool Pos=false;
+                      if (mDoPlySignXTer) Pos = (aTestPTer.x) > 0;
+                      if (mDoPlySignYTer) Pos = (aTestPTer.y) > 0;
+                      if (mDoPlySignXIm ) Pos = (aTestPIm.x)  > 0;
+                      if (mDoPlySignYIm ) Pos = (aTestPIm.y)  > 0;
+
+                      aPlyErr.AddPt(Pos?Pt3di(196,196,196):Pt3di(64,64,64),Pt3dr(aKX,aKY,aKZ));
+                   }
+
+
+                   DEBUG_MPD_ONLY_DEN = false;
+//DEBUG_MPD_ONLY_DEN
+//DEBUG_MPD_ONLY_NUM
 
                }
            }
        }
        aMoyVarGrad /= aNbTest;
+       aMoyDistReproj /= aNbTest;
        std::cout << "####### " << aName << "\n";
        std::cout << "  Size=" << aSzIm <<  " Z-Interv=" << aZInt << "\n";
-       std::cout << "  MaxDistReproj= " << aMaxDifRepr << " MaxGrad=" << aMaxVarGrad << " MoyGrad=" << aMoyVarGrad << "\n";
+       std::cout << " DistReproj Max= " << aMaxDifRepr << " Moy=" << aMoyDistReproj << "\n";
+       std::cout << " Grad Max=" << aMaxVarGrad << " Moy=" << aMoyVarGrad << "\n";
+
+       std::cout << " SignDenTer " << (aDenPosXTer*100.0) / aNbTest << " " << (aDenPosYTer*100.0) / aNbTest << "\n";
+       std::cout << " SignDenIm  " << (aDenPosXIm*100.0) / aNbTest << " " << (aDenPosYIm*100.0) / aNbTest << "\n";
+
+
+       std::cout << " InDenIM  X:[" << MinDenXIm << "," << MaxDenXIm  << "] Y:[" << MinDenYIm << "," << MaxDenYIm << "]\n";
+       // double MaxDenXIm = -1e5,MaxDenYIm = -1e5,MaxDenXTer = -1e5,MaxDenYTer = -1e5;
+       // double MinDenXIm = +1e5,MinDenYIm = +1e5,MinDenXTer = +1e5,MinDenYTer = +1e5;
+       if (mDoPlyErr||mDoPlySignXTer||mDoPlySignYTer||mDoPlySignXIm||mDoPlySignYIm)
+       {
+          double aD = sqrt(ElSquare(mNbZ)+ElSquare(mNbXY));
+          aPlyErr.AddCube(cPlyCloud::Green,cPlyCloud::Red,cPlyCloud::Blue,Pt3dr(0,0,0),Pt3dr(mNbXY,mNbXY,mNbZ),aD*0.04,200);
+
+
+          aPlyErr.PutFile(StdPrefix(aName) +"-Err.ply");
+       }
    }
 
 
+}
+
+int TestCamRPC(int argc,char** argv)
+{
+   cAppli_TestCamRPC(argc,argv);
    return EXIT_SUCCESS;
 }
 

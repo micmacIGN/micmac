@@ -121,6 +121,8 @@ class cPlyCloud
          void AddPt(const tCol &,const Pt3dr & aPt);
          void AddCercle(const tCol &,const Pt3dr & aC,const Pt3dr &aNorm,const double & aRay,const int & aNb);
 
+         void AddCube(const tCol & aColP0,const tCol &aColP,const tCol & aSeg,const Pt3dr & aP1,const Pt3dr &P2,const double & aRay,const int & aNb);
+
          static const tCol Red;
          static const tCol Green;
          static const tCol Blue;
