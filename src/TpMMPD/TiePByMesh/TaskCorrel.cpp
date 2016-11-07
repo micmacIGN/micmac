@@ -131,53 +131,17 @@ int TaskCorrel_main(int argc,char ** argv)
             pic * apic = PtrPic[aIndp];
             cElPlan3D * aPlan = new cElPlan3D(atri->getSommet(0) , atri->getSommet(1), atri->getSommet(2));
             ElRotation3D    aRot_PE = aPlan->CoordPlan2Euclid();
-            ElMatrix<REAL>  aRot_EP = aRot_PE.inv().Mat();
-            ElMatrix<REAL>  aPt(3,3);
-            for (uint akPt=0; akPt<3; akPt++)
-            {
-                aPt(akPt,0) = atri->getSommet(akPt).x;
-                aPt(akPt,1) = atri->getSommet(akPt).y;
-                aPt(akPt,2) = atri->getSommet(akPt).z;
-            }
-            ElMatrix<REAL> aPtP(3,3);
-            aPtP = aRot_EP*aPt;
+            ElRotation3D    aRot_EP = aRot_PE.inv();
+
+            Pt3dr aPtP0 = aRot_EP.ImAff(atri->getSommet(0));
+            Pt3dr aPtP1 = aRot_EP.ImAff(atri->getSommet(1));
+            Pt3dr aPtP2 = aRot_EP.ImAff(atri->getSommet(2));
+
             cout<<"Euclid: "<<atri->getSommet(0)<<atri->getSommet(1)<<atri->getSommet(2)<<endl;
-            Pt3dr aPt0P;Pt3dr aPt1P;Pt3dr aPt2P;
-            aPtP.GetCol(0, aPt0P);
-            aPtP.GetCol(1, aPt1P);
-            aPtP.GetCol(2, aPt2P);
-            cout<<"Plan: "<<aPt0P<<aPt1P<<aPt2P<<endl;
-            ElAffin2D aAffPlan2Img (ElAffin2D::Id());
-            Tri2d aPtT = *atri->getReprSurImg()[apic->mIndex];
-            aAffPlan2Img = ElAffin2D::FromTri2Tri
-                             (
-                                  Pt2dr(aPt0P.x, aPt0P.y),
-                                  Pt2dr(aPt1P.x, aPt1P.y),
-                                  Pt2dr(aPt2P.x, aPt2P.y),
-                                  aPtT.sommet1[0],
-                                  aPtT.sommet1[1],
-                                  aPtT.sommet1[2]
-                             );
-
-             cout<<"Aff :"<<aAffPlan2Img.I01()<<aAffPlan2Img.I10()<<aAffPlan2Img.I00()<<endl;
-
-             ElMatrix<REAL> affineVerif(2,2);
-             ElMatrix<REAL> ptVerif (1,2);
-
-             affineVerif(0,0) = aAffPlan2Img.I01().x;
-             affineVerif(0,1) = aAffPlan2Img.I01().y;
-             affineVerif(1,0) = aAffPlan2Img.I10().x;
-             affineVerif(1,1) = aAffPlan2Img.I10().y;
-
-             ptVerif(0,0) = aPt0P.x;
-             ptVerif(0,1) = aPt0P.y;
-
-             ElMatrix<REAL> ptVerifAff(1,1);
-             ptVerifAff = affineVerif*ptVerif;
+            cout<<"Plan:   "<<aPtP0<<aPtP1<<aPtP2<<endl;
 
 
-             cout<<"Verif : ptPlan :" <<aPt0P<<" - PtIm :"<<aAffPlan2Img(Pt2dr(aPt0P.x, aPt0P.y))<<" -PtImOrg :"<<aPtT.sommet1[0]<<endl;
-             cout<<"Verif : ptPlan :" <<aPt0P<<" - PtIm :"<<Pt2dr(ptVerifAff(0,0) , ptVerifAff(0,1))<<" -PtImOrg :"<<aPtT.sommet1[0]<<endl;
+
 
 
 
