@@ -228,7 +228,13 @@ ElAffin2D ElAffin2D::FromTri2Tri
 {
      ElAffin2D aA(a0,a1-a0,a2-a0);
      ElAffin2D aB(b0,b1-b0,b2-b0);
-     return aB * aA.inv();
+     
+//	std::cout << "a1-a0 " << a1-a0 << " a2-a0 " << a2-a0 << "\n";
+//	std::cout << "b1-b0 " << b1-b0 << " b2-b0 " << b2-b0 << "\n";
+//	std::cout << "aA.inv() " << aA.inv().I00() << "  " << aA.inv().I10() << " " << aA.inv().I01() << "\n";
+//	std::cout << "aB.inv() " << aB.I00() << "  " << aB.I10() << " " << aB.I01() << "\n";
+//	std::cout << "aBaA.inv() " << (aB * aA.inv()).I00() << "  " << (aB * aA.inv()).I10() << " " << (aB * aA.inv()).I01() << "\n";
+	return aB * aA.inv();
 }
 
 cElHomographie ElAffin2D::ToHomographie() const
