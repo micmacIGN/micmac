@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Triangle.h"
 #include <stdio.h>
 
-const double TT_SEUIL_SURF = 10;
+const double TT_SEUIL_SURF = 100;
 
     /******************************************************************************
     The main function.
@@ -128,7 +128,11 @@ int TaskCorrel_main(int argc,char ** argv)
 
             double min_cur = DBL_MIN;
             pic * picMaster = NULL;
-
+            double cmptMas [int(PtrPic.size())];
+            for (uint acP = 0; acP<PtrPic.size(); acP++)
+            {
+                cmptMas[acP] = 0;
+            }
             for (uint aIT = 0; aIT<PtrTri.size(); aIT++)
             {
                 cout<<" + TRI : "<<aIT<<endl;
@@ -142,7 +146,8 @@ int TaskCorrel_main(int argc,char ** argv)
                     Pt2dr aPtI0 = aTriIm.sommet1[0];
                     Pt2dr aPtI1 = aTriIm.sommet1[1];
                     Pt2dr aPtI2 = aTriIm.sommet1[2];
-                    if ((aPtI0.x*(aPtI1.y - aPtI2.y) + aPtI1.x*(aPtI2.y - aPtI0.y) + aPtI2.x*(aPtI0.y - aPtI1.y))/ (2.0) > TT_SEUIL_SURF)
+                    double aSurf =  (aPtI0-aPtI1) ^ (aPtI0-aPtI2);
+                    if (ElAbs(aSurf) > TT_SEUIL_SURF)
                     {
                         cElPlan3D * aPlanLoc = new cElPlan3D(atri->getSommet(0) , atri->getSommet(1), atri->getSommet(2));
 
@@ -195,12 +200,23 @@ int TaskCorrel_main(int argc,char ** argv)
                             picMaster = apic;
                         }
                     }
+                    else
+                    {
+                        cout<<" surf :"<<aSurf<<endl;
+                    }
 
                 }
                 if (picMaster != NULL)
+                {
                     cout<<" ++ min_cur :"<<min_cur<<endl<<" ++ picMaster :"<<picMaster->getNameImgInStr()<<endl;
-            }
+                    cmptMas[picMaster->mIndex]++;
+                }
 
+            }
+            for (uint acP = 0; acP<PtrPic.size(); acP++)
+            {
+                cout<<cmptMas[acP]<<endl;
+            }
 
 
 
