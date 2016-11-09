@@ -380,7 +380,7 @@ void cAppliMICMAC::DoOneEtapeMEC(cEtapeMecComp & anEtape)
     std::list<std::string> aLStrProcess;
     if (mShowMes)
     {
-        mCout << "-------- BEGIN ETAPE,  "
+        mCout << "-------- BEGIN STEP,  "
            << ", Num = " << anEtape.Num()
            << ", DeZoomTer = " << anEtape.DeZoomTer()
            << ", DeZoomIm = " << anEtape.DeZoomIm()

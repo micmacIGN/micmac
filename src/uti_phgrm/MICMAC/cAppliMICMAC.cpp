@@ -2110,11 +2110,11 @@ void cAppliMICMAC::ExeProcessParallelisable
        )
        {
            std::string commande = ToAdd  + " "+ (*itStr);
-         mCout << " ---Lance Process="<<commande<< "\n";  
+         mCout << " ---Launch Process="<<commande<< "\n";  
 	int aCodeRetour = system_call(commande.c_str());
          if (StopOnEchecFils().Val())
          {
-             ELISE_ASSERT(aCodeRetour==0,"Erreur dans processus fils");
+             ELISE_ASSERT(aCodeRetour==0,"Error in child process");
          }
          mCout << " ---End Process\n";
 
@@ -2208,13 +2208,13 @@ void cAppliMICMAC::ExeProcessParallelisable
            }
        } 
        fic.close();
-       mCout << " ---Lance les Process avec le Makefile\n";
+       mCout << " ---Launch processes through the Makefile\n";
 
 	bool makeSucceeded = launchMake( nomMakefile, "", ByProcess().Val() );
 
        if (StopOnEchecFils().Val())
         {    
-            ELISE_ASSERT(makeSucceeded,"Erreur dans processus fils");
+            ELISE_ASSERT(makeSucceeded,"Error in child process");
         }
 	    mCout << " ---End Process\n";
     }//else 

@@ -2825,6 +2825,7 @@ void RPC::TestDirectRPCGen()
     
 }
 
+/*
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                             Function for RPC2D                                             //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3186,6 +3187,7 @@ vector<Pt3dr> RPC2D::filterOutOfBound(vector<Pt3dr> aVectorGeoNormIN, vector<vec
 
 	return aVectorGeoNormOUT;
 }
+*/
 
 int RPC_main(int argc, char ** argv)
 {

@@ -683,8 +683,9 @@ double OrientationGrille::GetResolMoyenne() const
 
 bool OrientationGrille::GetPxMoyenne(double * aPxMoy) const
 {
-    std::cout << "GetPxMoyenne" << std::endl;
-    std::cout << "Attention on n'a pas d'info sur l'altitude moyenne du sol dans les fichiers GRI"<< std::endl;
+	//These comments are non informative (ZMoy is a compulsory agument when using GRI files)
+    //std::cout << "GetPxMoyenne" << std::endl;
+    //std::cout << "Attention on n'a pas d'info sur l'altitude moyenne du sol dans les fichiers GRI"<< std::endl;
     aPxMoy[0]=0.;
     return true;
 }

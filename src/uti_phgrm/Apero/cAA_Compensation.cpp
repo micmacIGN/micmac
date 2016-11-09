@@ -1129,7 +1129,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC,bool L
 
                 if (ShowMes())
                 {
-	            COUT()  << "--- End Iter " << mNbIterDone << " ETAPE " << mNbEtape << "\n\n";
+	            COUT()  << "--- End Iter " << mNbIterDone << " STEP " << mNbEtape << "\n\n";
                 }
 
                 TestInteractif(anIter.TestInteractif(),false);
