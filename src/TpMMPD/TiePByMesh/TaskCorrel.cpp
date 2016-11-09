@@ -43,6 +43,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Triangle.h"
 #include <stdio.h>
 
+const double TT_SEUIL_SURF = 100;
+
     /******************************************************************************
     The main function.
     ******************************************************************************/
@@ -122,26 +124,99 @@ int TaskCorrel_main(int argc,char ** argv)
             aChain->initAll(pathPlyFileS);
             vector<pic*> PtrPic = aChain->getmPtrListPic();
             vector<triangle*> PtrTri = aChain->getmPtrListTri();
-            cout<<"Process has " <<PtrPic.size()<<" PIC && "<<PtrTri.size()<<" TRI "<<endl;
+            cout<<"Process has " <<PtrPic.size()<<" PIC && "<<PtrTri.size()<<" TRI "<<endl<<endl;
+
+            double min_cur = DBL_MIN;
+            pic * picMaster = NULL;
+            double cmptMas [int(PtrPic.size())];
+            for (uint acP = 0; acP<PtrPic.size(); acP++)
+            {
+                cmptMas[acP] = 0;
+            }
+            for (uint aIT = 0; aIT<PtrTri.size(); aIT++)
+            {
+                cout<<" + TRI : "<<aIT<<endl;
+                min_cur = DBL_MIN;
+                picMaster = NULL;
+                for (uint aIP = 0; aIP<PtrPic.size(); aIP++)
+                {
+                    triangle * atri = PtrTri[aIT];
+                    pic * apic = PtrPic[aIP];
+                    Tri2d aTriIm = *atri->getReprSurImg()[apic->mIndex];
+                    Pt2dr aPtI0 = aTriIm.sommet1[0];
+                    Pt2dr aPtI1 = aTriIm.sommet1[1];
+                    Pt2dr aPtI2 = aTriIm.sommet1[2];
+                    double aSurf =  (aPtI0-aPtI1) ^ (aPtI0-aPtI2);
+                    if (ElAbs(aSurf) > TT_SEUIL_SURF)
+                    {
+                        cElPlan3D * aPlanLoc = new cElPlan3D(atri->getSommet(0) , atri->getSommet(1), atri->getSommet(2));
+
+                        ElRotation3D    aRot_PE = aPlanLoc->CoordPlan2Euclid();
+                        ElRotation3D    aRot_EP = aRot_PE.inv();
+
+                        Pt3dr aPtP0 = aRot_EP.ImAff(atri->getSommet(0));
+                        Pt3dr aPtP1 = aRot_EP.ImAff(atri->getSommet(1));
+                        Pt3dr aPtP2 = aRot_EP.ImAff(atri->getSommet(2));
+
+                        cout<<"Euclid: "<<atri->getSommet(0)<<atri->getSommet(1)<<atri->getSommet(2)<<endl;
+                        cout<<"Image : "<<aPtI0<<aPtI1<<aPtI2<<endl;
+                        cout<<"PlanLoc:"<<aPtP0<<aPtP1<<aPtP2<<endl;
 
 
-            int aInd =0;
-            int aIndp=0;
-            triangle * atri = PtrTri[aInd];
-            pic * apic = PtrPic[aIndp];
-            cElPlan3D * aPlan = new cElPlan3D(atri->getSommet(0) , atri->getSommet(1), atri->getSommet(2));
-            ElRotation3D    aRot_PE = aPlan->CoordPlan2Euclid();
-            ElRotation3D    aRot_EP = aRot_PE.inv();
 
-            Pt3dr aPtP0 = aRot_EP.ImAff(atri->getSommet(0));
-            Pt3dr aPtP1 = aRot_EP.ImAff(atri->getSommet(1));
-            Pt3dr aPtP2 = aRot_EP.ImAff(atri->getSommet(2));
+                        cElPlan3D * aPlanIm = new cElPlan3D (   Pt3dr(aPtI0.x, aPtI0.y, 0),
+                                                                Pt3dr(aPtI1.x, aPtI1.y, 0),
+                                                                Pt3dr(aPtI2.x, aPtI2.y, 0)   );
+                        ElRotation3D aRot_EPIm = aPlanIm->CoordPlan2Euclid().inv();
 
-            cout<<"Euclid: "<<atri->getSommet(0)<<atri->getSommet(1)<<atri->getSommet(2)<<endl;
-            cout<<"Plan:   "<<aPtP0<<aPtP1<<aPtP2<<endl;
+                        Pt3dr aPtPIm0 = aRot_EPIm.ImAff(Pt3dr(aPtI0.x, aPtI0.y, 0));
+                        Pt3dr aPtPIm1 = aRot_EPIm.ImAff(Pt3dr(aPtI1.x, aPtI1.y, 0));
+                        Pt3dr aPtPIm2 = aRot_EPIm.ImAff(Pt3dr(aPtI2.x, aPtI2.y, 0) );
 
 
 
+                        ElAffin2D aAffLc2Im;
+                        aAffLc2Im = aAffLc2Im.FromTri2Tri(  Pt2dr(aPtP0.x, aPtP0.y),
+                                                            Pt2dr(aPtP1.x, aPtP1.y),
+                                                            Pt2dr(aPtP2.x, aPtP2.y),
+                                                            Pt2dr(aPtPIm0.x, aPtPIm0.y),
+                                                            Pt2dr(aPtPIm1.x, aPtPIm1.y),
+                                                            Pt2dr(aPtPIm2.x, aPtPIm2.y)
+                                                            );
+
+
+                        cout<<"PlanIm :"<<aPtPIm0<<aPtPIm1<<aPtPIm2<<endl;
+                        cout<<"Aff    :"<<aAffLc2Im.I10()<<aAffLc2Im.I01()<<aAffLc2Im.I00()<<endl;
+
+                        double vecA_cr =  aAffLc2Im.I10().x*aAffLc2Im.I10().x + aAffLc2Im.I10().y*aAffLc2Im.I10().y;
+                        double vecB_cr =  aAffLc2Im.I01().x*aAffLc2Im.I01().x + aAffLc2Im.I01().y*aAffLc2Im.I01().y;
+                        double AB_cr   =  pow(aAffLc2Im.I10().x*aAffLc2Im.I01().x,2) + pow(aAffLc2Im.I10().y*aAffLc2Im.I01().y,2);
+                        double theta_max =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(0.5);
+                        double theta_min =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(-0.5);
+                        cout<<"theta_max : "<<theta_max<<" - theta_min : "<<theta_min<<endl;
+                        if (theta_min > min_cur)
+                        {
+                            min_cur = theta_min;
+                            picMaster = apic;
+                        }
+                    }
+                    else
+                    {
+                        cout<<" surf :"<<aSurf<<endl;
+                    }
+
+                }
+                if (picMaster != NULL)
+                {
+                    cout<<" ++ min_cur :"<<min_cur<<endl<<" ++ picMaster :"<<picMaster->getNameImgInStr()<<endl;
+                    cmptMas[picMaster->mIndex]++;
+                }
+
+            }
+            for (uint acP = 0; acP<PtrPic.size(); acP++)
+            {
+                cout<<cmptMas[acP]<<endl;
+            }
 
 
 

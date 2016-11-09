@@ -228,6 +228,7 @@ ElAffin2D ElAffin2D::FromTri2Tri
 {
      ElAffin2D aA(a0,a1-a0,a2-a0);
      ElAffin2D aB(b0,b1-b0,b2-b0);
+
      return aB * aA.inv();
 }
 
