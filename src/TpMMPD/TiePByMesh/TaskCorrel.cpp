@@ -128,7 +128,9 @@ int TaskCorrel_main(int argc,char ** argv)
 
             double min_cur = DBL_MIN;
             pic * picMaster = NULL;
-            double cmptMas [int(PtrPic.size())];
+            //double cmptMas [int(PtrPic.size())];
+			//Maybe this (compile error!!! at least on MS visual studio)
+			vector<double> cmptMas(PtrPic.size());
             for (uint acP = 0; acP<PtrPic.size(); acP++)
             {
                 cmptMas[acP] = 0;
