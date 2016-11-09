@@ -1,0 +1,85 @@
+<SetOfMesureAppuisFlottants>
+<!--   Point1 -->
+     <MesureAppuiFlottant1Im>
+          <NameIm> F005_DD00248c.tif </NameIm>
+          <OneMesureAF1I>
+               <NamePt>  point1 </NamePt>
+               <PtIm> 1836 2359 </PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm>F005_DD00248a.tif </NameIm>
+          <OneMesureAF1I>
+               <NamePt>  point1 </NamePt>
+               <PtIm> 2465 2577    </PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+
+<!--   Point5 -->
+
+     <MesureAppuiFlottant1Im>
+          <NameIm> F005_DD0342.tif </NameIm>
+          <OneMesureAF1I>
+               <NamePt>  point5 </NamePt>
+               <PtIm> 242 318  </PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm> F005_DD0341.tif </NameIm>
+          <OneMesureAF1I>
+               <NamePt>  point5 </NamePt>
+               <PtIm> 330   258   </PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm> F005_DD0344.tif </NameIm>
+          <OneMesureAF1I>
+               <NamePt>  point5 </NamePt>
+               <PtIm>  630   900   </PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+
+<!--   Point4 -->
+
+     <MesureAppuiFlottant1Im>
+          <NameIm> F005_DD0556.tif </NameIm>
+          <OneMesureAF1I>
+               <NamePt>  point4 </NamePt>
+               <PtIm>  1182 893   </PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm> F005_DD0559.tif </NameIm>
+          <OneMesureAF1I>
+               <NamePt>  point4 </NamePt>
+               <PtIm>  662 655   </PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+
+     <MesureAppuiFlottant1Im>
+          <NameIm> F005_DD0551.tif </NameIm>
+          <OneMesureAF1I>
+               <NamePt>  point4 </NamePt>
+               <PtIm>  672 423  </PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+
+<!--  Point 6 -->
+
+     <MesureAppuiFlottant1Im>
+          <NameIm> F005_DD0410.tif </NameIm>
+          <OneMesureAF1I>
+               <NamePt>  point6 </NamePt>
+               <PtIm>  1208 1470 </PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm> F005_DD0406.tif </NameIm>
+          <OneMesureAF1I>
+               <NamePt>  point6 </NamePt>
+               <PtIm>   905  846  </PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+
+</SetOfMesureAppuisFlottants>
+
