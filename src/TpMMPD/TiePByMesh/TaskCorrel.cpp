@@ -131,13 +131,14 @@ int TaskCorrel_main(int argc,char ** argv)
             //double cmptMas [int(PtrPic.size())];
 			//Maybe this (compile error!!! at least on MS visual studio)
 			vector<double> cmptMas(PtrPic.size());
+            double cmptDel=0;
             for (uint acP = 0; acP<PtrPic.size(); acP++)
             {
                 cmptMas[acP] = 0;
             }
             for (uint aIT = 0; aIT<PtrTri.size(); aIT++)
             {
-                cout<<" + TRI : "<<aIT<<endl;
+                //cout<<" + TRI : "<<aIT<<endl;
                 min_cur = DBL_MIN;
                 picMaster = NULL;
                 for (uint aIP = 0; aIP<PtrPic.size(); aIP++)
@@ -160,9 +161,9 @@ int TaskCorrel_main(int argc,char ** argv)
                         Pt3dr aPtP1 = aRot_EP.ImAff(atri->getSommet(1));
                         Pt3dr aPtP2 = aRot_EP.ImAff(atri->getSommet(2));
 
-                        cout<<"Euclid: "<<atri->getSommet(0)<<atri->getSommet(1)<<atri->getSommet(2)<<endl;
-                        cout<<"Image : "<<aPtI0<<aPtI1<<aPtI2<<endl;
-                        cout<<"PlanLoc:"<<aPtP0<<aPtP1<<aPtP2<<endl;
+                        //cout<<"Euclid: "<<atri->getSommet(0)<<atri->getSommet(1)<<atri->getSommet(2)<<endl;
+                        //cout<<"Image : "<<aPtI0<<aPtI1<<aPtI2<<endl;
+                        //cout<<"PlanLoc:"<<aPtP0<<aPtP1<<aPtP2<<endl;
 
 
 
@@ -187,15 +188,15 @@ int TaskCorrel_main(int argc,char ** argv)
                                                             );
 
 
-                        cout<<"PlanIm :"<<aPtPIm0<<aPtPIm1<<aPtPIm2<<endl;
-                        cout<<"Aff    :"<<aAffLc2Im.I10()<<aAffLc2Im.I01()<<aAffLc2Im.I00()<<endl;
+                        //cout<<"PlanIm :"<<aPtPIm0<<aPtPIm1<<aPtPIm2<<endl;
+                        //cout<<"Aff    :"<<aAffLc2Im.I10()<<aAffLc2Im.I01()<<aAffLc2Im.I00()<<endl;
 
                         double vecA_cr =  aAffLc2Im.I10().x*aAffLc2Im.I10().x + aAffLc2Im.I10().y*aAffLc2Im.I10().y;
                         double vecB_cr =  aAffLc2Im.I01().x*aAffLc2Im.I01().x + aAffLc2Im.I01().y*aAffLc2Im.I01().y;
                         double AB_cr   =  pow(aAffLc2Im.I10().x*aAffLc2Im.I01().x,2) + pow(aAffLc2Im.I10().y*aAffLc2Im.I01().y,2);
                         double theta_max =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(0.5);
                         double theta_min =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(-0.5);
-                        cout<<"theta_max : "<<theta_max<<" - theta_min : "<<theta_min<<endl;
+                        //cout<<"theta_max : "<<theta_max<<" - theta_min : "<<theta_min<<endl;
                         if (theta_min > min_cur)
                         {
                             min_cur = theta_min;
@@ -204,21 +205,24 @@ int TaskCorrel_main(int argc,char ** argv)
                     }
                     else
                     {
-                        cout<<" surf :"<<aSurf<<endl;
+                        //cout<<" surf :"<<aSurf<<endl;
                     }
 
                 }
                 if (picMaster != NULL)
                 {
-                    cout<<" ++ min_cur :"<<min_cur<<endl<<" ++ picMaster :"<<picMaster->getNameImgInStr()<<endl;
+                    //cout<<" ++ min_cur :"<<min_cur<<endl<<" ++ picMaster :"<<picMaster->getNameImgInStr()<<endl;
                     cmptMas[picMaster->mIndex]++;
                 }
+                else
+                    cmptDel++;
 
             }
             for (uint acP = 0; acP<PtrPic.size(); acP++)
             {
                 cout<<cmptMas[acP]<<endl;
             }
+            cout<<"cmptDel "<<cmptDel<<endl;
 
 
 
