@@ -357,6 +357,10 @@ class cRPC
         template <typename T>
         void FilSampDenCoeff(T& , double (&)[20] ) const;
 
+        void UpdateRPC(double (&aDirSNum)[20], double (&aDirLNum)[20],
+                       double (&aDirSDen)[20], double (&aDirLDen)[20],
+                       double (&aInvSNum)[20], double (&aInvLNum)[20],
+                       double (&aInvSDen)[20], double (&aInvLDen)[20]);
 
         bool ISDIR;
         bool ISINV;
