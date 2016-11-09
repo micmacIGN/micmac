@@ -1098,7 +1098,7 @@ void cRPC::Initialize(const std::string &aName,
     if(aType==eTIGB_MMDimap2)
     {
         ReadDimap(aNameRPC);
-	//Show();       
+	    //Show();       
         Initialize_(aChSys);
 
     }
@@ -2013,10 +2013,19 @@ if(0)
     {
         int aK;
 
+        /* Copy the rpc and update coefficients
+         * - this way it works with static instantiations too */
+        cRPC * aCopyRPC = this;
+        aCopyRPC->UpdateRPC(aDirSNum, aDirLNum,
+                            aDirSDen, aDirLDen,
+                            aInvSNum, aInvLNum,
+                            aInvSDen, aInvLDen);
+        aCopyRPC->mRefine = eRP_None;
+
         Pt2dr aPDifMoy(0,0);
         for(aK=0; aK<int(aGridGroundTest.size()); aK++)
         {
-            Pt2dr aPB = InverseRPC(aGridGroundTest.at(aK));
+            Pt2dr aPB = aCopyRPC->InverseRPC(aGridGroundTest.at(aK));
             Pt2dr aPDif = Pt2dr(abs(aGridImgTest.at(aK).x-aPB.x),
                                 abs(aGridImgTest.at(aK).y-aPB.y));
 
@@ -2036,6 +2045,185 @@ if(0)
     }
     
         
+}
+
+void cRPC::UpdateRPC( double (&aDirSNum)[20], double (&aDirLNum)[20],
+                      double (&aDirSDen)[20], double (&aDirLDen)[20],
+                      double (&aInvSNum)[20], double (&aInvLNum)[20],
+                      double (&aInvSDen)[20], double (&aInvLDen)[20] )
+{
+    mDirSNum[0] =  aDirSNum[0]; 
+    mDirSNum[1] =  aDirSNum[1]; 
+    mDirSNum[2] =  aDirSNum[2]; 
+    mDirSNum[3] =  aDirSNum[3]; 
+    mDirSNum[4] =  aDirSNum[4]; 
+    mDirSNum[5] =  aDirSNum[5]; 
+    mDirSNum[6] =  aDirSNum[6]; 
+    mDirSNum[7] =  aDirSNum[7]; 
+    mDirSNum[8] =  aDirSNum[8]; 
+    mDirSNum[9] =  aDirSNum[9]; 
+    mDirSNum[10] = aDirSNum[10]; 
+    mDirSNum[11] = aDirSNum[11]; 
+    mDirSNum[12] = aDirSNum[12]; 
+    mDirSNum[13] = aDirSNum[13]; 
+    mDirSNum[14] = aDirSNum[14]; 
+    mDirSNum[15] = aDirSNum[15]; 
+    mDirSNum[16] = aDirSNum[16]; 
+    mDirSNum[17] = aDirSNum[17]; 
+    mDirSNum[18] = aDirSNum[18]; 
+    mDirSNum[19] = aDirSNum[19]; 
+        
+        
+    mDirSDen[0]  = aDirSDen[0];  
+    mDirSDen[1]  = aDirSDen[1];  
+    mDirSDen[2]  = aDirSDen[2];  
+    mDirSDen[3]  = aDirSDen[3];  
+    mDirSDen[4]  = aDirSDen[4];  
+    mDirSDen[5]  = aDirSDen[5];  
+    mDirSDen[6]  = aDirSDen[6];  
+    mDirSDen[7]  = aDirSDen[7];  
+    mDirSDen[8]  = aDirSDen[8];  
+    mDirSDen[9]  = aDirSDen[9];  
+    mDirSDen[10] = aDirSDen[10]; 
+    mDirSDen[11] = aDirSDen[11]; 
+    mDirSDen[12] = aDirSDen[12]; 
+    mDirSDen[13] = aDirSDen[13]; 
+    mDirSDen[14] = aDirSDen[14]; 
+    mDirSDen[15] = aDirSDen[15]; 
+    mDirSDen[16] = aDirSDen[16]; 
+    mDirSDen[17] = aDirSDen[17]; 
+    mDirSDen[18] = aDirSDen[18]; 
+    mDirSDen[19] = aDirSDen[19]; 
+        
+        
+    mDirLNum[0]  = aDirLNum[0];  
+    mDirLNum[1]  = aDirLNum[1];  
+    mDirLNum[2]  = aDirLNum[2];  
+    mDirLNum[3]  = aDirLNum[3];  
+    mDirLNum[4]  = aDirLNum[4];  
+    mDirLNum[5]  = aDirLNum[5];  
+    mDirLNum[6]  = aDirLNum[6];  
+    mDirLNum[7]  = aDirLNum[7];  
+    mDirLNum[8]  = aDirLNum[8];  
+    mDirLNum[9]  = aDirLNum[9];  
+    mDirLNum[10] = aDirLNum[10]; 
+    mDirLNum[11] = aDirLNum[11]; 
+    mDirLNum[12] = aDirLNum[12]; 
+    mDirLNum[13] = aDirLNum[13]; 
+    mDirLNum[14] = aDirLNum[14]; 
+    mDirLNum[15] = aDirLNum[15]; 
+    mDirLNum[16] = aDirLNum[16]; 
+    mDirLNum[17] = aDirLNum[17]; 
+    mDirLNum[18] = aDirLNum[18]; 
+    mDirLNum[19] = aDirLNum[19]; 
+        
+    mDirLDen[0]  = aDirLDen[0]; 
+    mDirLDen[1]  = aDirLDen[1]; 
+    mDirLDen[2]  = aDirLDen[2]; 
+    mDirLDen[3]  = aDirLDen[3]; 
+    mDirLDen[4]  = aDirLDen[4]; 
+    mDirLDen[5]  = aDirLDen[5]; 
+    mDirLDen[6]  = aDirLDen[6]; 
+    mDirLDen[7]  = aDirLDen[7]; 
+    mDirLDen[8]  = aDirLDen[8]; 
+    mDirLDen[9]  = aDirLDen[9]; 
+    mDirLDen[10] = aDirLDen[10];
+    mDirLDen[11] = aDirLDen[11];
+    mDirLDen[12] = aDirLDen[12];
+    mDirLDen[13] = aDirLDen[13];
+    mDirLDen[14] = aDirLDen[14];
+    mDirLDen[15] = aDirLDen[15];
+    mDirLDen[16] = aDirLDen[16];
+    mDirLDen[17] = aDirLDen[17];
+    mDirLDen[18] = aDirLDen[18];
+    mDirLDen[19] = aDirLDen[19];
+
+    mInvSNum[0]  = aInvSNum[0];  
+    mInvSNum[1]  = aInvSNum[1];  
+    mInvSNum[2]  = aInvSNum[2];  
+    mInvSNum[3]  = aInvSNum[3];  
+    mInvSNum[4]  = aInvSNum[4];  
+    mInvSNum[5]  = aInvSNum[5];  
+    mInvSNum[6]  = aInvSNum[6];  
+    mInvSNum[7]  = aInvSNum[7];  
+    mInvSNum[8]  = aInvSNum[8];  
+    mInvSNum[9]  = aInvSNum[9];  
+    mInvSNum[10] = aInvSNum[10]; 
+    mInvSNum[11] = aInvSNum[11]; 
+    mInvSNum[12] = aInvSNum[12]; 
+    mInvSNum[13] = aInvSNum[13]; 
+    mInvSNum[14] = aInvSNum[14]; 
+    mInvSNum[15] = aInvSNum[15]; 
+    mInvSNum[16] = aInvSNum[16]; 
+    mInvSNum[17] = aInvSNum[17]; 
+    mInvSNum[18] = aInvSNum[18]; 
+    mInvSNum[19] = aInvSNum[19]; 
+        
+    mInvSDen[0]  = aInvSDen[0]; 
+    mInvSDen[1]  = aInvSDen[1]; 
+    mInvSDen[2]  = aInvSDen[2]; 
+    mInvSDen[3]  = aInvSDen[3]; 
+    mInvSDen[4]  = aInvSDen[4]; 
+    mInvSDen[5]  = aInvSDen[5]; 
+    mInvSDen[6]  = aInvSDen[6]; 
+    mInvSDen[7]  = aInvSDen[7]; 
+    mInvSDen[8]  = aInvSDen[8]; 
+    mInvSDen[9]  = aInvSDen[9]; 
+    mInvSDen[10] = aInvSDen[10];
+    mInvSDen[11] = aInvSDen[11];
+    mInvSDen[12] = aInvSDen[12];
+    mInvSDen[13] = aInvSDen[13];
+    mInvSDen[14] = aInvSDen[14];
+    mInvSDen[15] = aInvSDen[15];
+    mInvSDen[16] = aInvSDen[16];
+    mInvSDen[17] = aInvSDen[17];
+    mInvSDen[18] = aInvSDen[18];
+    mInvSDen[19] = aInvSDen[19];
+        
+    mInvLNum[0]  = aInvLNum[0]; 
+    mInvLNum[1]  = aInvLNum[1]; 
+    mInvLNum[2]  = aInvLNum[2]; 
+    mInvLNum[3]  = aInvLNum[3]; 
+    mInvLNum[4]  = aInvLNum[4]; 
+    mInvLNum[5]  = aInvLNum[5]; 
+    mInvLNum[6]  = aInvLNum[6]; 
+    mInvLNum[7]  = aInvLNum[7]; 
+    mInvLNum[8]  = aInvLNum[8]; 
+    mInvLNum[9]  = aInvLNum[9]; 
+    mInvLNum[10] = aInvLNum[10];
+    mInvLNum[11] = aInvLNum[11];
+    mInvLNum[12] = aInvLNum[12];
+    mInvLNum[13] = aInvLNum[13];
+    mInvLNum[14] = aInvLNum[14];
+    mInvLNum[15] = aInvLNum[15];
+    mInvLNum[16] = aInvLNum[16];
+    mInvLNum[17] = aInvLNum[17];
+    mInvLNum[18] = aInvLNum[18];
+    mInvLNum[19] = aInvLNum[19];
+        
+        
+    mInvLDen[0]  = aInvLDen[0]; 
+    mInvLDen[1]  = aInvLDen[1]; 
+    mInvLDen[2]  = aInvLDen[2]; 
+    mInvLDen[3]  = aInvLDen[3]; 
+    mInvLDen[4]  = aInvLDen[4]; 
+    mInvLDen[5]  = aInvLDen[5]; 
+    mInvLDen[6]  = aInvLDen[6]; 
+    mInvLDen[7]  = aInvLDen[7]; 
+    mInvLDen[8]  = aInvLDen[8]; 
+    mInvLDen[9]  = aInvLDen[9]; 
+    mInvLDen[10] = aInvLDen[10];
+    mInvLDen[11] = aInvLDen[11];
+    mInvLDen[12] = aInvLDen[12];
+    mInvLDen[13] = aInvLDen[13];
+    mInvLDen[14] = aInvLDen[14];
+    mInvLDen[15] = aInvLDen[15];
+    mInvLDen[16] = aInvLDen[16];
+    mInvLDen[17] = aInvLDen[17];
+    mInvLDen[18] = aInvLDen[18];
+    mInvLDen[19] = aInvLDen[19];
+
+
 }
 
 void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn, 
@@ -2106,6 +2294,7 @@ void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn,
             aSys1.AddTermQuad(aK,aK,aReg);
             aSys2.AddTermQuad(aK,aK,aReg);
         }
+
         bool ok;
         Im1D_REAL8 aResol1 = aSys1.GSSR_Solve(&ok);
         Im1D_REAL8 aResol2 = aSys2.GSSR_Solve(&ok);
