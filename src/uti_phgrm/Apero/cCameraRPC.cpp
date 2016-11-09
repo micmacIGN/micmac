@@ -2043,7 +2043,7 @@ void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn,
                     double (&aSol1)[20], double (&aSol2)[20],
                     double (&aSol3)[20], double (&aSol4)[20])
 {
-
+    //double aBMin=1e+15, aBMax=1e-15, aDMin=1e+15, aDMax=1e-15;
 
     int    aK, aNPts = int(aGridIn.size()), iter=0;
     double aSeuil=1e-8;
@@ -2056,7 +2056,6 @@ void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn,
 
 
     /* Iterative least square */
-    //std::cout << "EWW calc RPC, iter/abs(aV0-aV1)=";
     while( (abs(aV0-aV1) > aSeuil) && (iter < 50))
     {
         //std::cout << "/" << abs(aV0-aV1) << "...";
@@ -2081,27 +2080,32 @@ void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn,
 
             FilBD(ab,aU,aB);
             FilBD(ad,aU,aD);
-            
+         
+            //ElSetMin(aBMin,aB);
+            //ElSetMax(aBMax,aB);
+            //ElSetMin(aDMin,aD);
+            //ElSetMax(aDMax,aD);
 
-            //std::cout << aB << " " << aD << " ";
+
+
             DifCubicPolyFil(aC1, aB, aU, aEq1);
             DifCubicPolyFil(aC2, aD, aU, aEq2);
-            //DifCubicPolyFil(aGridOut.at(aK), aC1, aEq1);
-            //DifCubicPolyFil(aGridOut.at(aK), aC2, aEq2);
              
         
             aSys1.AddEquation(1, aEq1, aC1/aB);
             aSys2.AddEquation(1, aEq2, aC2/aD);
-            //aSys1.AddEquation(double(1)/aB, aEq1, aC1);
-            //aSys2.AddEquation(double(1)/aD, aEq2, aC2);
         
         }
-
-
+        //std::cout << "aBInt " << aBMin << " " << aBMax << "\n";
+        //std::cout << "aDInt " << aDMin << " " << aDMax << "\n";
+        
+        
         /* Add regularizer */
         for(aK=0; aK<39; aK++)
+        {    
             aSys1.AddTermQuad(aK,aK,aReg);
-      
+            aSys2.AddTermQuad(aK,aK,aReg);
+        }
         bool ok;
         Im1D_REAL8 aResol1 = aSys1.GSSR_Solve(&ok);
         Im1D_REAL8 aResol2 = aSys2.GSSR_Solve(&ok);
@@ -2127,9 +2131,9 @@ void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn,
 
         /* Residuals */
         aV1 = (aSys1.ResiduOfSol(aResol1.data()) + aSys2.ResiduOfSol(aResol2.data()))/78;
+        //std::cout << "res: " << aV1 << " it:"<< iter << "\n";
 
     }
-    //std::cout << "iter=" << iter << "\n";
 
     /* Ultimate solution of the denominators */
     for(aK=0; aK<20; aK++)
@@ -3976,6 +3980,7 @@ cAppli_TestCamRPC::cAppli_TestCamRPC(int argc,char** argv) :
 
                         Pt3dr aTestPTer = aBGC->ImEtZ2Terrain(Pt2dr(anX,anY),aZ);
 
+
                         aDenPosXTer += (aTestPTer.x) > 0;
                         aDenPosYTer += (aTestPTer.y) > 0;
                         ElSetMax(MaxDenXTer,aTestPTer.x);
@@ -3986,6 +3991,7 @@ cAppli_TestCamRPC::cAppli_TestCamRPC(int argc,char** argv) :
                    // == 
 
                         Pt2dr aTestPIm = aBGC->Ter2Capteur(aPTer);
+
                         aDenPosXIm += (aTestPIm.x) > 0;
                         aDenPosYIm += (aTestPIm.y) > 0;
 
