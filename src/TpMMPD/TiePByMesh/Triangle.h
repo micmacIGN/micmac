@@ -71,7 +71,7 @@ public:
     cCorrelImage* create_Imagette_adapt_triangle    ( pic * PicMaitre, Tri2d &triangle,
                                                       Pt2dr &centre_geo, bool & ok_in,
                                                       Pt2dr &PtOrigin);
-    pic* getPicPlusProche(vector<pic*>PtrListPic, Pt3dr & VecNormal, Pt3dr & PtsOrg, vector<pic*>&ptrListPicViewable, bool assum1er);
+    //pic* getPicPlusProche(vector<pic*>PtrListPic, Pt3dr & VecNormal, Pt3dr & PtsOrg, vector<pic*>&ptrListPicViewable, bool assum1er);
     //chercher image plus proche au vector normal du triangle 3d
     Pt3dr CalVecNormal(Pt3dr & returnPtOrg, double mulFactor);
     matAffine CalAffine(pic* pic1 , pic* pic2, bool & affineResolu);

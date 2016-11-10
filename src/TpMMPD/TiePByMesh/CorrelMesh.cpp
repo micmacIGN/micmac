@@ -653,7 +653,7 @@ void CorrelMesh::correlInTriWithViewAngle(int indTri, double angleF, bool debugB
                                                                              pic2nd,
                                                                              affineM_2ND,
                                                                              getImaget2ndSucces);
-                        double score_glob = imgetMaitre.imaget->CrossCorrelation(*imget2nd.imaget);
+                        //double score_glob = imgetMaitre.imaget->CrossCorrelation(*imget2nd.imaget);
                         //cout<<" -   ScGlob: "<<score_glob<<endl;
                         vector<Pt2dr>Pdisp2;
                         mTriCorrelSuper.push_back(aTri->mIndex);
