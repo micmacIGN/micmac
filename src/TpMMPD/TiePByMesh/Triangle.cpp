@@ -444,56 +444,63 @@ Pt3dr triangle::CalVecNormal(Pt3dr & returnPtOrg, double mulFactor)
  * 3. Si angle < PI/2 (a fixer) => pic est viewable
  * 4. ? direction de la vec-normal
 */
+/*
 pic* triangle::getPicPlusProche(vector<pic*>PtrListPic,
                                 Pt3dr & VecNormal,
                                 Pt3dr & PtsOrg,
                                 vector<pic*>&ptrListPicViewable,
                                 bool assum1er)
 {
-    if (!assum1er)
+    if (PtrListPic.size() > 0)
     {
-        VecNormal=this->CalVecNormal(PtsOrg, 0.05);
-        double min_angle = 0;
-        pic * picMaitraiss = NULL;
-        for (uint i=0; i<PtrListPic.size(); i++)
+        if (!assum1er)
         {
-              double angle;
-//            double angle = this->calAngle
-//                                (PtrListPic[i]->mOriPic->VraiOpticalCenter(),
-//                                VecNormal,
-//                                PtsOrg);   //ERROR ? abs of angle ?
-            if(i == 0)
+            VecNormal=this->CalVecNormal(PtsOrg, 0.05);
+            double min_angle = 0;
+            pic * picMaitraiss = NULL;
+            for (uint i=0; i<PtrListPic.size(); i++)
             {
-                min_angle = angle;
-                picMaitraiss = PtrListPic[i];
-                if (angle<=PI/2)
-                    {ptrListPicViewable.push_back(PtrListPic[i]);}
-            }
-            else
-            {
-                if (angle<=PI/2)
+                double angle;
+//                double angle = this->calAngle
+//                        (PtrListPic[i]->mOriPic->VraiOpticalCenter(),
+//                         VecNormal,
+//                         PtsOrg);   //ERROR ? abs of angle ?
+                if(i == 0)
                 {
-                    ptrListPicViewable.push_back(PtrListPic[i]);
-                    if (angle<min_angle)
+                    min_angle = angle;
+                    picMaitraiss = PtrListPic[i];
+                    if (angle<=PI/2)
+                    {ptrListPicViewable.push_back(PtrListPic[i]);}
+                }
+                else
+                {
+                    if (angle<=PI/2)
                     {
-                        min_angle = angle;
-                        picMaitraiss = PtrListPic[i];
+                        ptrListPicViewable.push_back(PtrListPic[i]);
+                        if (angle<min_angle)
+                        {
+                            min_angle = angle;
+                            picMaitraiss = PtrListPic[i];
+                        }
                     }
                 }
             }
-        }
-        if (min_angle >= PI/2)
+            if (min_angle >= PI/2)
             {picMaitraiss = NULL;cout<<"== No Pic Mai =="<<min_angle/PI*180<<"° ";}
-        else
+            else
             { cout<<"== Pic Mai = "<<*picMaitraiss->mNameImg<<"=== View = "<<min_angle/PI*180<<"°"; }
-        return picMaitraiss;
+            return picMaitraiss;
+        }
+        else
+        {
+            ptrListPicViewable = PtrListPic;
+            return PtrListPic[0];
+        }
     }
     else
-    {
-        ptrListPicViewable = PtrListPic;
-        return PtrListPic[0];
-    }
+        return NULL;
 }
+*/
 
 /*=====Calcul Angle entre 2 vector======
  * Calcul angle b/w 2 vector in 3D space.

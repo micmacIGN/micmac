@@ -129,8 +129,8 @@ int TaskCorrel_main(int argc,char ** argv)
             double min_cur = DBL_MIN;
             pic * picMaster = NULL;
             //double cmptMas [int(PtrPic.size())];
-			//Maybe this (compile error!!! at least on MS visual studio)
-			vector<double> cmptMas(PtrPic.size());
+            //Maybe this (compile error!!! at least on MS visual studio)
+            vector<double> cmptMas(PtrPic.size());
             double cmptDel=0;
             for (uint acP = 0; acP<PtrPic.size(); acP++)
             {
@@ -194,7 +194,7 @@ int TaskCorrel_main(int argc,char ** argv)
                         double vecA_cr =  aAffLc2Im.I10().x*aAffLc2Im.I10().x + aAffLc2Im.I10().y*aAffLc2Im.I10().y;
                         double vecB_cr =  aAffLc2Im.I01().x*aAffLc2Im.I01().x + aAffLc2Im.I01().y*aAffLc2Im.I01().y;
                         double AB_cr   =  pow(aAffLc2Im.I10().x*aAffLc2Im.I01().x,2) + pow(aAffLc2Im.I10().y*aAffLc2Im.I01().y,2);
-                        double theta_max =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(0.5);
+                        //double theta_max =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(0.5);
                         double theta_min =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(-0.5);
                         //cout<<"theta_max : "<<theta_max<<" - theta_min : "<<theta_min<<endl;
                         if (theta_min > min_cur)
