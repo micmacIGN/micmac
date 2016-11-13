@@ -42,6 +42,8 @@ Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/ma
                    <FixedName> Ech1 </FixedName>
                    <FixedName> Ech2 </FixedName>
                    <NameAuto> Plan </NameAuto>
+<!--
+-->
               </#WHEN>
               <#WHEN VTEST=${ModeCyl}>
                    <FixedName> Top </FixedName>

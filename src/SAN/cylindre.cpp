@@ -973,8 +973,11 @@ cParamISAPly::cParamISAPly() :
 
 void cPlyCloud::AddPt(const tCol & aCol,const Pt3dr & aPt)
 {
-    mVCol.push_back(aCol);
-    mVPt.push_back(aPt);
+    if (aCol.x>=0)
+    {
+       mVCol.push_back(aCol);
+       mVPt.push_back(aPt);
+    }
 }
 
 

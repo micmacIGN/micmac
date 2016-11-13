@@ -21,6 +21,7 @@
             <Symb>  SetHom=""   </Symb>
             <Symb>  WithCalcName=false   </Symb>
             <Symb>  CalcName=""   </Symb>
+            <Symb>  RabDrNPIM=0.0   </Symb>
 
             <Symb>  WithSchemaPMul=false </Symb>
             <Symb>  NameSchemaPMul=XXXX </Symb>
@@ -175,7 +176,7 @@
                                         <NuagePutInterPMul>
                                              <NamePMul > ${NameSchemaPMul} </NamePMul>
                                              <StepDr   >  0.01    </StepDr>
-                                             <RabDr    >  0.0    </RabDr>
+                                             <RabDr    >  ${RabDrNPIM}   </RabDr>
                                              <ColRayInter>  255 0 0   </ColRayInter>
                                         </NuagePutInterPMul>
                                    </#WHEN>
