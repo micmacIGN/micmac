@@ -221,6 +221,7 @@ void cArgGetPtsTerrain::AddPts(Pt3dr aP1,Pt3di aCoul)
 
 void cArgGetPtsTerrain::AddSeg(Pt3dr aP1,Pt3dr aP2,double aStep,Pt3di aCoul)
 {
+   if (aCoul.x<0) return;
    double aD = euclid(aP1-aP2);
    int aNb = round_up(aD/aStep);
    for (int aKP=0 ; aKP<=aNb ; aKP++)
