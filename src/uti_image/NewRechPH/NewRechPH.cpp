@@ -50,31 +50,51 @@ void cAppli_NewRechPH::AddScale(cOneScaleImRechPH * aI1,cOneScaleImRechPH *)
     mVI1.push_back(aI1);
 }
 
+
+
 cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mPowS     (pow(2.0,1/5.0)),
     mNbS      (30),
+    mS0       (1.0),
     mW1       (0),
     mModeTest (ModeTest),
     mDistMinMax (3.0),
     mDoMin      (true),
-    mDoMax      (true)
+    mDoMax      (true),
+    mDoPly      (false),
+    mPlyC       (0)
 {
    ElInitArgMain
    (
          argc,argv,
          LArgMain()  << EAMC(mName, "Name Image",  eSAM_IsPatFile),
-         LArgMain()   << EAM(mPowS,         "PowS",true,"Scale Pow")
-                      << EAM(mNbS,       "NbS",true,"If true do debugging")
+         LArgMain()   << EAM(mPowS, "PowS",true,"Scale Pow")
+                      << EAM(mNbS,  "NbS",true,"Number of level")
+                      << EAM(mS0,   "S0",true,"ScaleInit, Def=1")
+                      << EAM(mDoPly, "DoPly",true,"Generate ply file, for didactic purpose")
    );
 
-   AddScale(cOneScaleImRechPH::FromFile(*this,mName,Pt2di(0,0),Pt2di(-1,-1)),0);
+   if (mDoPly)
+   {
+      mPlyC = new cPlyCloud;
+   }
+
+   AddScale(cOneScaleImRechPH::FromFile(*this,mS0,mName,Pt2di(0,0),Pt2di(-1,-1)),0);
 
    mSzIm = mVI1.back()->Im().sz();
+   mBufLnk  = std::vector<std::vector<cPtRemark *> >(mSzIm.y,std::vector<cPtRemark *>(mSzIm.x,(cPtRemark *)0));
+
+   double aScaleMax = mS0*pow(mPowS,mNbS);
+   mVoisLnk = SortedVoisinDisk(-1,aScaleMax+2,true);
+
+
+   if (! EAMIsInit(&mDZPlyLay))
+   {
+      mDZPlyLay = ElMin(mSzIm.x,mSzIm.y)/ double(mNbS);
+   }
    if (mModeTest)
    {
       mW1 = Video_Win::PtrWStd(mSzIm);
-        
-      // ELISE_COPY(mW1->all_pts(),mVI1.back()->Im().in(),mW1->ogray());
    }
    // mVI1.back()->Show(mW1);
 
@@ -84,7 +104,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
         {
            AddScale
            (
-              cOneScaleImRechPH::FromScale(*this,*mVI1.back(),pow(mPowS,aK)),
+              cOneScaleImRechPH::FromScale(*this,*mVI1.back(),mS0*pow(mPowS,aK)),
               0
            );
         }
@@ -93,6 +113,11 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    }
 
    Clik();
+
+   if (mPlyC)
+   {
+       mPlyC->PutFile("NewH.ply");
+   }
 }
 
 

@@ -112,7 +112,14 @@ void cVirtualInterface::InitVNameCase()
              )
     {
         std::vector<std::string> aNew;
-        if (ELISE_fp::exist_file(*itN)) aNew = mAppli->ICNM()->StdGetVecStr(*itN);
+        if (ELISE_fp::exist_file(*itN)) 
+        {
+            aNew = mAppli->ICNM()->StdGetVecStr(*itN);
+        }
+        else
+        {
+           aNew.push_back(*itN);
+        }
 
         for (int aK=0 ; aK< (int)aNew.size(); aK++)
         {

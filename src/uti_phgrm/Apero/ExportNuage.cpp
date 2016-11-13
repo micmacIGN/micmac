@@ -235,14 +235,15 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                 const cOneMesureAF1I *  aMes =  PtsOfName(*itM,aP.NamePt());
                 if (aMes)
                 {
-                    cPoseCam *  aPC =  PoseFromName (itM->NameIm());
-                    const CamStenope *  aCS = aPC->CurCam();
-
-
-                    ElSeg3D aSeg = aCS->Capteur2RayTer( aMes->PtIm());
-                    Pt3dr aPProj = aSeg.ProjOrtho(aP.Pt());
-                    Pt3dr aC = aCS->PseudoOpticalCenter();
-                    anAGP.AddSeg(aC,aPProj,aNPIM.StepDr(),aNPIM.ColRayInter());
+                    cPoseCam *  aPC =  PoseFromNameSVP (itM->NameIm());
+                    if (aPC)
+                    {
+                       const CamStenope *  aCS = aPC->CurCam();
+                       ElSeg3D aSeg = aCS->Capteur2RayTer( aMes->PtIm());
+                       Pt3dr aPProj = aSeg.ProjOrtho(aP.Pt()) + aSeg.TgNormee() * aNPIM.RabDr().ValWithDef(0.0) ;
+                       Pt3dr aC = aCS->PseudoOpticalCenter();
+                       anAGP.AddSeg(aC,aPProj,aNPIM.StepDr(),aNPIM.ColRayInter());
+                    }
                 }
             }
         }
@@ -295,8 +296,8 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
             Pt3dr aCo = aCS->PseudoOpticalCenter();
             for (int aKC=0 ; aKC<4 ; aKC++)
             {
-               anAGP.AddSeg(aC3D[aKC],aC3D[(aKC+1)%4],aNPC->StepSeg(),aNPC->ColCadre());
-               anAGP.AddSeg(aCo,aC3D[aKC],aNPC->StepSeg(),aNPC->ColRay().ValWithDef(aNPC->ColCadre()));
+                anAGP.AddSeg(aC3D[aKC],aC3D[(aKC+1)%4],aNPC->StepSeg(),aNPC->ColCadre());
+                anAGP.AddSeg(aCo,aC3D[aKC],aNPC->StepSeg(),aNPC->ColRay().ValWithDef(aNPC->ColCadre()));
             }
 
 

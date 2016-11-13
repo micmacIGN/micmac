@@ -71,6 +71,7 @@ int AperiCloud_main(int argc,char ** argv)
     std::string aKeyCalcName;
 
     std::string aNameBundle;
+    double RabDrBundle = 0.0;
 
     ElInitArgMain
     (
@@ -89,12 +90,13 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(aFocs,"Focs",true,"Interval of Focal")
                     << EAM(WithCam,"WithCam",true,"With Camera (Def=true)")
                     << EAM(aStepIm,"StepIm",true,"If image in camera are wanted, indicate reduction factor")
-                    << EAM(aColCadre,"ColCadre",true,"Col of camera rect Def= 255 0 0 (Red)")
-                    << EAM(aColRay,"ColRay",true,"Col of camera rect Def=  0 255 0 (Green)")
+                    << EAM(aColCadre,"ColCadre",true,"Col of camera rect Def= 255 0 0 (Red), R<0  if none")
+                    << EAM(aColRay,"ColRay",true,"Col of camera rect Def=  0 255 0 (Green), R<0 if none")
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
-                    << EAM(aKeyCalcName,"KeyName",true,"Key to compute printed string (Def contain only digit)")
+                    << EAM(aKeyCalcName,"KeyName",true,"Key to compute printed string (Def contain only digit, NONE if unused)")
                     << EAM(aProfCam,"ProfCam",true,"Depth of pyramid representing camera (Def=0.3)")
                     << EAM(aNameBundle,"NameBundle",true,"Name of input GCP to add bundle intersection schema")
+                    << EAM(RabDrBundle,"RabDrBundle",true,"Lenght to add in budle drawing (Def=0.0)")
     );
 
     if (!MMVisualMode)
@@ -193,7 +195,7 @@ int AperiCloud_main(int argc,char ** argv)
 
         if (EAMIsInit(&aNameBundle))
         {
-            aCom = aCom + " +WithSchemaPMul=true +NameSchemaPMul=" + aNameBundle;
+            aCom = aCom + " +WithSchemaPMul=true +NameSchemaPMul=" + aNameBundle + " +RabDrNPIM="+ToString(RabDrBundle);
         }
 
         std::cout << "Com = " << aCom << "\n";
