@@ -73,12 +73,12 @@ template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
 
 typedef enum eTypePtRemark
 {
-    eTPR_NoLabel = 0,
-    eTPR_Max     = 1,
-    eTPR_Min     = 2,
-    eTPR_Corner  = 3,
-    eTPR_MaxLapl = 4,
-    eTPR_MinLapl = 5
+    eTPR_Max     = 0,
+    eTPR_Min     = 1,
+    eTPR_Corner  = 2,
+    eTPR_MaxLapl = 3,
+    eTPR_MinLapl = 4,
+    eTPR_NoLabel = 255
 }  eTypePtRemark;
 
 Pt3di CoulOfType(eTypePtRemark);
@@ -87,18 +87,31 @@ Pt3di CoulOfType(eTypePtRemark);
 
 int  * TabTypePOfFlag();
 
-class cIntPtRemark
+class cPtRemark
 {
     public :
-       cIntPtRemark(const Pt2di & aPt,eTypePtRemark aType) :
-           mPt   (aPt),
-           mType (aType)
+       cPtRemark(const Pt2dr & aPt,eTypePtRemark aType) :
+           mPtR   (aPt),
+           mType  (aType),
+           mUp    (0),
+           mDown  (0)
        {
        }
 
-       Pt2di          mPt;
-       eTypePtRemark  mType;
+       const Pt2dr & Pt() const          {return mPtR;}
+       const eTypePtRemark & Type() const {return mType;}
+       
+       void Link(cPtRemark * anUp);
+
+    private :
+       cPtRemark(const cPtRemark &); // N.I.
+       Pt2dr           mPtR;
+       eTypePtRemark   mType;
+       cPtRemark     * mUp;
+       cPtRemark     * mDown;
 };
+
+typedef cPtRemark * tPtrPtRemark;
 
 // std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort);
 

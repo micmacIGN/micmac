@@ -60,7 +60,7 @@ class cOneScaleImRechPH;
 class cOneScaleImRechPH
 {
       public :
-          static cOneScaleImRechPH* FromFile (cAppli_NewRechPH &,const std::string &,const Pt2di & aP0,const Pt2di & aP1);
+          static cOneScaleImRechPH* FromFile (cAppli_NewRechPH &,const double & aS0,const std::string &,const Pt2di & aP0,const Pt2di & aP1);
           static cOneScaleImRechPH* FromScale(cAppli_NewRechPH &,cOneScaleImRechPH &,const double & aSigma);
           tImNRPH Im();
 
@@ -70,7 +70,7 @@ class cOneScaleImRechPH
       private :
           cOneScaleImRechPH(cAppli_NewRechPH &,const Pt2di & aSz,const double & aScale,const int & aNiv);
           bool  SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp);
-          std::list<cIntPtRemark>  mLIPM;
+          std::list<cPtRemark *>  mLIPM;
    
           cAppli_NewRechPH & mAppli;
           Pt2di     mSz;
@@ -88,6 +88,13 @@ class cAppli_NewRechPH
         const double &      DistMinMax() const  {return mDistMinMax;}
         const bool   &      DoMin() const       {return mDoMin;}
         const bool   &      DoMax() const       {return mDoMax;}
+        cPlyCloud * PlyC()  const {return mPlyC;}
+        const double & DZPlyLay() const {return  mDZPlyLay;}
+
+        bool Inside(const Pt2di & aP) const;
+        tPtrPtRemark & PtOfBuf(const Pt2di &);
+        tPtrPtRemark  NearestPoint(const Pt2di &);
+
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
@@ -95,6 +102,7 @@ class cAppli_NewRechPH
         std::string mName;
         double      mPowS;
         int         mNbS;
+        double      mS0;
         Pt2di       mSzIm;
 
         std::vector<cOneScaleImRechPH *> mVI1;
@@ -104,6 +112,12 @@ class cAppli_NewRechPH
         double       mDistMinMax;
         bool         mDoMin;
         bool         mDoMax;
+        bool         mDoPly;
+        cPlyCloud *  mPlyC;
+        double       mDZPlyLay;
+
+        std::vector<std::vector<cPtRemark *> >  mBufLnk;
+        std::vector<Pt2di>                      mVoisLnk;
 };
 
 

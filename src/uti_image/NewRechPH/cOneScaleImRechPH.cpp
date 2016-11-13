@@ -40,6 +40,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+void FilterGaussProgr(tImNRPH anIm,double  aSTarget,double  aSInit,int aNbIter)
+{
+    aSTarget = ElSquare(aSTarget);
+    aSInit = ElSquare(aSInit);
+    if (aSTarget > aSInit)
+    {
+        FilterGauss(anIm,sqrt(aSTarget-aSInit),aNbIter);
+    }
+    else if (aSTarget==aSInit)
+    {
+    }
+    else
+    {
+      ELISE_ASSERT(false,"FilterGaussProgr");
+    }
+}
 /*****************************************************/
 /*                                                   */
 /*            Constructeur                           */
@@ -57,16 +73,26 @@ cOneScaleImRechPH::cOneScaleImRechPH(cAppli_NewRechPH &anAppli,const Pt2di & aSz
 {
 }
 
-cOneScaleImRechPH* cOneScaleImRechPH::FromFile(cAppli_NewRechPH & anAppli,const std::string & aName,const Pt2di & aP0,const Pt2di & aP1Init)
+cOneScaleImRechPH* cOneScaleImRechPH::FromFile
+(
+     cAppli_NewRechPH & anAppli,
+     const double & aS0,
+     const std::string & aName,
+     const Pt2di & aP0,
+     const Pt2di & aP1Init
+)
 {
    Tiff_Im aTifF = Tiff_Im::StdConvGen(aName,1,true);
    Pt2di aP1 = (aP1Init.x > 0) ? aP1Init : aTifF.sz();
-   cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aP1-aP0,1.0,0);
+   cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aP1-aP0,aS0,0);
 
    ELISE_COPY ( aRes->mIm.all_pts(),trans(aTifF.in_proj(),-aP0),aRes->mIm.out());
 
+   FilterGaussProgr(aRes->mIm,aS0,1.0,4);
+
    return aRes;
 }
+
 
 cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneScaleImRechPH & anIm,const double & aSigma)
 {
@@ -84,8 +110,9 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneS
 
      // anIm.mIm.dup(aRes->mIm);
      aRes->mIm.dup(anIm.mIm);
-     double aParamG = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(anIm.mScale)));
-     FilterGauss(aRes->mIm,aParamG,aNbIter);
+     // double aParamG = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(anIm.mScale)));
+     // FilterGauss(aRes->mIm,aParamG,aNbIter);
+     FilterGaussProgr(aRes->mIm,aSigma,anIm.mScale,aNbIter);
 
      return aRes;
 }
@@ -119,26 +146,35 @@ void cOneScaleImRechPH::CalcPtsCarac()
    Im2D_U_INT1 aIFlag = MakeFlagMontant(mIm);
    TIm2D<U_INT1,INT> aTF(aIFlag);
    Pt2di aP ;
-   for (aP.x = 0 ; aP.x <mSz.x ; aP.x++)
+   for (aP.x = 1 ; aP.x <mSz.x-1 ; aP.x++)
    {
-       for (aP.y = 0 ; aP.y <mSz.y ; aP.y++)
+       for (aP.y = 1 ; aP.y <mSz.y-1 ; aP.y++)
        {
            int aFlag = aTF.get(aP);
            eTypePtRemark aLab = eTPR_NoLabel;
            
-           if (/*DoMax &&  (aFlag == 0) &&*/ SelectVois(aP,aVoisMinMax,1))
+           if (DoMax &&  (aFlag == 0)  && SelectVois(aP,aVoisMinMax,1))
            {
-std::cout << "DAxx "<< DoMax << " " << aFlag << "\n";
+              // std::cout << "DAxx "<< DoMax << " " << aFlag << "\n";
                aLab = eTPR_Max;
            }
-           if (/*DoMin &&  (aFlag == 255) &&*/ SelectVois(aP,aVoisMinMax,-1))
+           if (DoMin &&  (aFlag == 255) && SelectVois(aP,aVoisMinMax,-1))
            {
-std::cout << "DInnn "<< DoMin << " " << aFlag << "\n";
+               // std::cout << "DInnn "<< DoMin << " " << aFlag << "\n";
                aLab = eTPR_Min;
            }
 
            if (aLab!=eTPR_NoLabel)
-              mLIPM.push_back(cIntPtRemark(aP,aLab));
+           {
+              mLIPM.push_back(new cPtRemark(Pt2dr(aP),aLab));
+              cPlyCloud *  aPlyC = mAppli.PlyC();
+              if (aPlyC)
+              {
+                 double aDistZ = mAppli.DZPlyLay();
+                 Pt3di aCol = CoulOfType(aLab);
+                 aPlyC->AddSphere(aCol,Pt3dr(aP.x,aP.y,aDistZ*mNiv),aDistZ/6.0,3);
+              }
+           }
         }
    }
 
@@ -154,13 +190,13 @@ void cOneScaleImRechPH::Show(Video_Win* aW)
 
    ELISE_COPY(mIm.all_pts(),Max(0,Min(255,mIm.in())),aIR.out()|aIV.out()|aIB.out());
 
-   for (std::list<cIntPtRemark>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
+   for (std::list<cPtRemark*>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
    {
-       Pt3di aC = CoulOfType(itIPM->mType);
+       Pt3di aC = CoulOfType((*itIPM)->Type());
 
        ELISE_COPY
        (
-          disc(Pt2dr(itIPM->mPt),2.0),
+          disc((*itIPM)->Pt(),2.0),
           Virgule(aC.x,aC.y,aC.z),
           Virgule(aIR.oclip(),aIV.oclip(),aIB.oclip())
        );
