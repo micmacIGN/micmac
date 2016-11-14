@@ -85,7 +85,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    mBufLnk  = std::vector<std::vector<cPtRemark *> >(mSzIm.y,std::vector<cPtRemark *>(mSzIm.x,(cPtRemark *)0));
 
    double aScaleMax = mS0*pow(mPowS,mNbS);
-   mVoisLnk = SortedVoisinDisk(-1,aScaleMax+2,true);
+   mVoisLnk = SortedVoisinDisk(-1,aScaleMax+4,true);
 
 
    if (! EAMIsInit(&mDZPlyLay))
@@ -119,6 +119,38 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
        mPlyC->PutFile("NewH.ply");
    }
 }
+
+bool cAppli_NewRechPH::Inside(const Pt2di & aP) const
+{
+    return (aP.x>=0) && (aP.y>=0) && (aP.x<mSzIm.x) && (aP.y<mSzIm.y);
+}
+
+tPtrPtRemark &  cAppli_NewRechPH::PtOfBuf(const Pt2di & aP)
+{
+     
+    ELISE_ASSERT(Inside(aP),"cAppli_NewRechPH::PtOfBuf"); 
+
+    return mBufLnk[aP.y][aP.x];
+}
+
+tPtrPtRemark  cAppli_NewRechPH::NearestPoint(const Pt2di & aP,const double & aDist)
+{
+   double aD2 = ElSquare(aDist);
+   for (int aKV=0 ; aKV<int(mVoisLnk.size()) ; aKV++)
+   {
+       const Pt2di & aVois = mVoisLnk[aKV];
+       if (square_euclid(aVois) > aD2)
+          return 0;
+       Pt2di aPV = aP + aVois;
+       if (Inside(aPV))
+       {
+           tPtrPtRemark  aRes = mBufLnk[aPV.y][aPV.x];
+           if (aRes) return aRes;
+       }
+   }
+   return 0;
+}
+
 
 
 

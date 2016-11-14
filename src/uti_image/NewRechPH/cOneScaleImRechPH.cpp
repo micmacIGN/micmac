@@ -210,6 +210,46 @@ void cOneScaleImRechPH::Show(Video_Win* aW)
    );
 }
 
+void cOneScaleImRechPH::InitBuf(const eTypePtRemark & aType, bool Init)
+{
+   for (std::list<cPtRemark *>::iterator itP=mLIPM.begin() ; itP!=mLIPM.end() ; itP++)
+   {
+       if ((*itP)->Type()==aType)
+       {
+           Pt2di aPi = round_ni((*itP)->Pt());
+           if (mAppli.Inside(aPi))
+           {
+               mAppli.PtOfBuf(aPi) = Init ? *itP : 0;
+           }
+       }
+   }
+}
+
+void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aLR,const eTypePtRemark & aType)
+{
+   aLR.InitBuf(aType,true);
+   double aDist = mScale+2;
+  
+   for (std::list<cPtRemark *>::iterator itP=mLIPM.begin() ; itP!=mLIPM.end() ; itP++)
+   {
+       if ((*itP)->Type()==aType)
+       {
+           // Pt2di aPi = round_ni((*itP)->Pt());
+           tPtrPtRemark aNearest  =  mAppli.NearestPoint(round_ni((*itP)->Pt()),aDist);
+           if (aNearest)
+              (*itP)->Link(aNearest);
+
+       }
+   }
+   aLR.InitBuf(aType,false);
+}
+
+void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aLR)
+{
+    for (int aK=0 ; aK<eTPR_NoLabel ; aK++)
+       CreateLink(aLR,eTypePtRemark(aK));
+}
+
 
 
 

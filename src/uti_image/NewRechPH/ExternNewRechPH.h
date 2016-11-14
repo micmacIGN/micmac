@@ -78,7 +78,7 @@ typedef enum eTypePtRemark
     eTPR_Corner  = 2,
     eTPR_MaxLapl = 3,
     eTPR_MinLapl = 4,
-    eTPR_NoLabel = 255
+    eTPR_NoLabel = 5
 }  eTypePtRemark;
 
 Pt3di CoulOfType(eTypePtRemark);
@@ -90,25 +90,20 @@ int  * TabTypePOfFlag();
 class cPtRemark
 {
     public :
-       cPtRemark(const Pt2dr & aPt,eTypePtRemark aType) :
-           mPtR   (aPt),
-           mType  (aType),
-           mUp    (0),
-           mDown  (0)
-       {
-       }
+       cPtRemark(const Pt2dr & aPt,eTypePtRemark aType) ;
 
        const Pt2dr & Pt() const          {return mPtR;}
        const eTypePtRemark & Type() const {return mType;}
        
-       void Link(cPtRemark * anUp);
+       void Link(cPtRemark * aHR /*Higher Resol */);
 
     private :
+
        cPtRemark(const cPtRemark &); // N.I.
        Pt2dr           mPtR;
        eTypePtRemark   mType;
-       cPtRemark     * mUp;
-       cPtRemark     * mDown;
+       cPtRemark     * mHR; // Higher Resol
+       cPtRemark     * mLR; // Lower Resol
 };
 
 typedef cPtRemark * tPtrPtRemark;

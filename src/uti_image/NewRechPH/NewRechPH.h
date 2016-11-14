@@ -65,9 +65,13 @@ class cOneScaleImRechPH
           tImNRPH Im();
 
           void CalcPtsCarac();
-
           void Show(Video_Win* aW);
+          void CreateLink(cOneScaleImRechPH & aLR);
       private :
+          void CreateLink(cOneScaleImRechPH & aLR,const eTypePtRemark & aType);
+          void InitBuf(const eTypePtRemark & aType, bool Init);
+
+
           cOneScaleImRechPH(cAppli_NewRechPH &,const Pt2di & aSz,const double & aScale,const int & aNiv);
           bool  SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp);
           std::list<cPtRemark *>  mLIPM;
@@ -93,7 +97,7 @@ class cAppli_NewRechPH
 
         bool Inside(const Pt2di & aP) const;
         tPtrPtRemark & PtOfBuf(const Pt2di &);
-        tPtrPtRemark  NearestPoint(const Pt2di &);
+        tPtrPtRemark  NearestPoint(const Pt2di &,const double & aDist);
 
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);

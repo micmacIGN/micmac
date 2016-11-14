@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /*****************************************************/
 /*                                                   */
-/*                                                   */
+/*                 ::                                */
 /*                                                   */
 /*****************************************************/
 class cCmpPt2diOnEuclid
@@ -89,6 +89,41 @@ Pt3di CoulOfType(eTypePtRemark aType)
 
     return  Pt3di(128,128,128);
 }
+
+/*****************************************************/
+/*                                                   */
+/*                  cPtRemark                        */
+/*                                                   */
+/*****************************************************/
+
+cPtRemark::cPtRemark(const Pt2dr & aPt,eTypePtRemark aType) :
+           mPtR   (aPt),
+           mType  (aType),
+           mHR    (0),
+           mLR    (0)
+{
+}
+
+/*
+  mLR      this
+    \
+    aHR    
+*/
+
+void cPtRemark::Link(cPtRemark * aHR)
+{
+   if (aHR->mHR)
+   {
+        if (euclid(aHR->mLR->mPtR-mHR->mPtR) < euclid(mPtR-mHR->mPtR))
+           return;
+
+         aHR->mLR->mHR=0;
+         aHR->mLR=0;
+   }
+   mHR = aHR;
+   aHR->mLR = this;
+}
+
 
 
 
