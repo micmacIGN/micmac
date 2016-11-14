@@ -1,0 +1,111 @@
+<!--
+
+   Pattron pour mise en place de vue convergente a partir de longue focale.
+
+   Toute les vues convergent vers le meme point, on calcule tout les couples
+   homologues.
+
+   Focale trop longue pour mise en place directes, on utilise une prise
+   de vue grand angles "annexe" (eventuellement a resolution plus basse)
+   pour faire une mise en place initiale par points d'appuis
+
+Gr-SalleNordFE-091021_0006-00-00005_0000001.tif
+Gr-SalleNordFE-091021_0007-00-00007_0000001.tif
+
+-->
+
+<Global>
+
+  <ChantierDescripteur
+     Subst="@$#1"
+     NameDecl="@$#1"
+
+     PrefixImages="Gr-SalleNordFE-091021_"
+     PostfixImages="_0000001"
+     NbJob="2"
+
+
+     SzPastis="1500"
+     PatPose="000[0-9]"
+     PatOri="0000[0-9]"
+     SepPoseOri="-00-"
+     PatNumero="${PatPose}${SepPoseOri}${PatOri}"
+     PatternAllImTif="${PrefixImages}${PatNumero}${PostfixImages}\.tif"
+  >
+
+       <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+                  <ExeRequired>
+                       <Exe> bin/Pastis </Exe>
+                       <Make> Makefile </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/ImProfAndL2App </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/Apero </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/MICMAC </Exe>
+                       <Make> MakeMICMAC </Make>
+                  </ExeRequired>
+
+              </Requirement>
+               
+
+
+              <Line> bin/Pastis  ${ThisDir} Key-Rel-All-Cple ${SzPastis}  FiltreOnlyDupl=1 MkF=MkToto  NbMinPtsExp=2 </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+        </BatchChantDesc>
+
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ^${PatternAllImTif} </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-Im </Key>
+  </KeyedSetsOfNames>
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+  <KeyedSetsORels >
+       <Sets>
+           <ByAdjacence>
+               <KeySets >  Key-Set-All-Im </KeySets>
+               <DeltaMax > 10000  </DeltaMax>
+               <DeltaMin > -10000 </DeltaMin>
+           </ByAdjacence>
+       </Sets>
+       <Key>  Key-Rel-All-Cple</Key>
+   </KeyedSetsORels>
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ^${PatternAllImTif} </PatternTransform>
+                       <CalcName> Cal-Init-Nikon-10.xml </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+  </ChantierDescripteur>
+</Global>
