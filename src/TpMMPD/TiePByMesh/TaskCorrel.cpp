@@ -136,6 +136,8 @@ int TaskCorrel_main(int argc,char ** argv)
             {
                 cmptMas[acP] = 0;
             }
+            ElRotation3D    aRot_EP(ElRotation3D::Id);
+            vector <ElAffin2D> VaAffLc2Im;
             for (uint aIT = 0; aIT<PtrTri.size(); aIT++)
             {
                 //cout<<" + TRI : "<<aIT<<endl;
@@ -155,7 +157,7 @@ int TaskCorrel_main(int argc,char ** argv)
                         cElPlan3D * aPlanLoc = new cElPlan3D(atri->getSommet(0) , atri->getSommet(1), atri->getSommet(2));
 
                         ElRotation3D    aRot_PE = aPlanLoc->CoordPlan2Euclid();
-                        ElRotation3D    aRot_EP = aRot_PE.inv();
+                                        aRot_EP = aRot_PE.inv();
 
                         Pt3dr aPtP0 = aRot_EP.ImAff(atri->getSommet(0));
                         Pt3dr aPtP1 = aRot_EP.ImAff(atri->getSommet(1));
@@ -186,6 +188,7 @@ int TaskCorrel_main(int argc,char ** argv)
                                                             Pt2dr(aPtPIm1.x, aPtPIm1.y),
                                                             Pt2dr(aPtPIm2.x, aPtPIm2.y)
                                                             );
+                        VaAffLc2Im.push_back(aAffLc2Im);
 
 
                         //cout<<"PlanIm :"<<aPtPIm0<<aPtPIm1<<aPtPIm2<<endl;
@@ -218,6 +221,59 @@ int TaskCorrel_main(int argc,char ** argv)
                     cmptDel++;
 
             }
+
+
+
+            //draw resultat: elipse affinité
+            //Pour chaque triangle: creer une cercle se situe dans le plan du triangle
+            double aNbPt =20;
+            vector<Pt3dr> ptCrlP (aNbPt);
+            vector< vector<Pt2dr> > VptCrlI;
+            for (uint aKP =0; aKP<aNbPt; aKP++)
+                {
+                    Pt2dr aPtCrl;
+                    aPtCrl = Pt2dr::FromPolar(1, aKP*2*PI/aNbPt);
+                    Pt3dr aPtCrlP = aRot_EP.ImAff(Pt3dr(aPtCrl.x, aPtCrl.y, 0));
+                    cout<<aPtCrl<<" -> "<<aPtCrlP<<endl;
+                    ptCrlP.push_back(aPtCrlP);
+                }
+            cout<<"Result : "<<endl;
+            cout<<" ++Cercle on Plan Triangle :"<<endl;
+            for (uint aKP=0; aKP<aNbPt; aKP++)
+            {
+                cout<<ptCrlP[aKP]<<endl;
+            }
+
+/*
+            for (uint aKI =0; aKI<PtrPic.size(); aKI++)
+                {
+                    pic * aPic = PtrPic[aKI];
+                    ElAffin2D aAffLc2Im = VaAffLc2Im[aKI];
+                    for (uint aKP = 0; aKP<aNbPt; aKP++)
+                    {
+                        VptCrlI[aKI].push_back(aAffLc2Im(Pt2dr(ptCrlP[aKP].x, ptCrlP[aKP].y)));
+                    }
+                }
+
+
+
+            for (uint aKC=0; aKC<VptCrlI.size(); aKC++)
+            {
+                cout<<endl<<" ++Img: "<<PtrPic[aKC]->getNameImgInStr()<<endl;
+                for (uint aKP=0; aKP<aNbPt; aKP++)
+                {
+                    cout<<VptCrlI[aKC][aKP]<<endl;
+                }
+            }
+
+*/
+
+            //Samplizer le cercle (prendre Nb point dans le cercle (from polar(&, aK2pi/Nb))
+            //Pour chaque image :
+                //calcule coordonne le cercle affinité (coor les point simplizé du cercle )
+                //draw seg entre chaque point pour créer une ellipse .
+
+
             for (uint acP = 0; acP<PtrPic.size(); acP++)
             {
                 cout<<cmptMas[acP]<<endl;
