@@ -170,27 +170,6 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
         std::string aHomolOut = "_TiepTri";
         aPack.writeToDisk(aHomolOut);
     }
-
-
-/*
-    cout<<"Write pts homo to disk:..."<<endl;
-    for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
-    {
-       cImSecTieTri* aImSec = mImSec[aKIm];
-       if (aImSec->NameIm() != Master()->NameIm())
-       {
-           cout<<"  ++ Im2nd : "<<aImSec->Num();
-           string aKhOut = std::string("NKS-Assoc-CplIm2Hom@")
-                            +  std::string("_TiepTri")
-                            +  std::string("@")
-                            +  std::string("dat");
-           string aHomolOut = mICNM->Assoc1To2(aKhOut, Master()->NameIm(), aImSec->NameIm(), true);
-           cout<<" - Nb Pts= "<<aImSec->PackH().size()<<endl;
-           aImSec->PackH().StdPutInFile(aHomolOut);
-       }
-    }
-    */
-
 }
 
 void cAppliTieTri::RechHomPtsDense(cResulMultiImRechCorrel<double> & aRMIRC)
