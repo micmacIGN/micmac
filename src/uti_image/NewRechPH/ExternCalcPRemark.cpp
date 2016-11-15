@@ -110,11 +110,11 @@ cPtRemark::cPtRemark(const Pt2dr & aPt,eTypePtRemark aType) :
     aHR    
 */
 
-void cPtRemark::Link(cPtRemark * aHR)
+void cPtRemark::MakeLink(cPtRemark * aHR)
 {
-   if (aHR->mHR)
+   if (aHR->mLR)
    {
-        if (euclid(aHR->mLR->mPtR-mHR->mPtR) < euclid(mPtR-mHR->mPtR))
+        if (euclid(aHR->mLR->mPtR-aHR->mPtR) < euclid(mPtR-aHR->mPtR))
            return;
 
          aHR->mLR->mHR=0;
@@ -124,6 +124,25 @@ void cPtRemark::Link(cPtRemark * aHR)
    aHR->mLR = this;
 }
 
+/*****************************************************/
+/*                                                   */
+/*                  cBrinPtRemark                    */
+/*                                                   */
+/*****************************************************/
+
+cBrinPtRemark::cBrinPtRemark(cPtRemark * aP0,int aNiv0) :
+    mP0    (aP0),
+    mPLast (mP0),
+    mNiv0  (aNiv0),
+    mLong  (0)
+{
+   ELISE_ASSERT(mP0->HR()==0,"Incoh in cBrinPtRemark");
+   while (mPLast->LR())
+   {
+       mPLast  = mPLast->LR();
+       mLong++;
+   }
+}
 
 
 

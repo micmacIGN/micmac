@@ -167,17 +167,40 @@ void cOneScaleImRechPH::CalcPtsCarac()
            if (aLab!=eTPR_NoLabel)
            {
               mLIPM.push_back(new cPtRemark(Pt2dr(aP),aLab));
-              cPlyCloud *  aPlyC = mAppli.PlyC();
-              if (aPlyC)
-              {
-                 double aDistZ = mAppli.DZPlyLay();
-                 Pt3di aCol = CoulOfType(aLab);
-                 aPlyC->AddSphere(aCol,Pt3dr(aP.x,aP.y,aDistZ*mNiv),aDistZ/6.0,3);
-              }
            }
         }
    }
 
+}
+
+Pt3dr cOneScaleImRechPH::PtPly(const cPtRemark & aP)
+{
+   return Pt3dr(aP.Pt().x,aP.Pt().y,mNiv*mAppli.DZPlyLay());
+}
+
+void cOneScaleImRechPH::AddPly(cOneScaleImRechPH * aHR, cPlyCloud *  aPlyC)
+{
+   mNbExLR = 0;
+   mNbExHR = 0;
+   for (std::list<cPtRemark*>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
+   {
+       cPtRemark & aP = **itIPM;
+       Pt3di aCol = CoulOfType(aP.Type());
+       double aDistZ = mAppli.DZPlyLay();
+       if ((!aP.HR()) ||  (!aP.LR()))
+       {
+          aPlyC->AddSphere(aCol,PtPly(aP),aDistZ/6.0,3);
+       }
+       if (aHR && aP.HR())
+       {
+          aPlyC->AddSeg(aCol,PtPly(aP),aHR->PtPly(*(aP.HR())),20);
+       }
+ 
+       if (!aP.HR()) mNbExHR ++;
+       if (!aP.LR()) mNbExLR ++;
+   }
+
+   std::cout << "NIV=" << mNiv << " HR " << mNbExHR << " LR " << mNbExLR << "\n";
 }
 
 void cOneScaleImRechPH::Show(Video_Win* aW)
@@ -221,14 +244,19 @@ void cOneScaleImRechPH::InitBuf(const eTypePtRemark & aType, bool Init)
            {
                mAppli.PtOfBuf(aPi) = Init ? *itP : 0;
            }
+           else
+           {
+           }
        }
    }
 }
 
-void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aLR,const eTypePtRemark & aType)
+
+void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark & aType)
 {
-   aLR.InitBuf(aType,true);
-   double aDist = mScale+2;
+   aHR.InitBuf(aType,true);
+   double aDist = mScale * 1.5 + 4;
+
   
    for (std::list<cPtRemark *>::iterator itP=mLIPM.begin() ; itP!=mLIPM.end() ; itP++)
    {
@@ -237,19 +265,32 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aLR,const eTypePtRemark &
            // Pt2di aPi = round_ni((*itP)->Pt());
            tPtrPtRemark aNearest  =  mAppli.NearestPoint(round_ni((*itP)->Pt()),aDist);
            if (aNearest)
-              (*itP)->Link(aNearest);
-
+           {
+              // std::cout << "LEVS " << mNiv << " " << aHR.mNiv << "\n";
+              (*itP)->MakeLink(aNearest);
+           }
+           else
+           {
+           }
        }
    }
-   aLR.InitBuf(aType,false);
+   aHR.InitBuf(aType,false);
 }
 
 void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aLR)
 {
     for (int aK=0 ; aK<eTPR_NoLabel ; aK++)
+    {
        CreateLink(aLR,eTypePtRemark(aK));
+       std::cout << " == \n";
+    }
+
+   std::cout << "*************************\n";
 }
 
+
+const int &  cOneScaleImRechPH::NbExLR() const {return mNbExLR;}
+const int &  cOneScaleImRechPH::NbExHR() const {return mNbExHR;}
 
 
 
