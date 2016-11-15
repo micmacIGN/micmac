@@ -5,6 +5,7 @@ set(uti_image_TiePTri
     ${UTI_PHGRM_TiePTri_DIR}/cImSecTieTri.cpp
     ${UTI_PHGRM_TiePTri_DIR}/cImTieTri.cpp
     ${UTI_PHGRM_TiePTri_DIR}/CorrelTiepTri.cpp
+    ${UTI_PHGRM_TiePTri_DIR}/cHomolPackTiepTri.cpp
 )
 
 

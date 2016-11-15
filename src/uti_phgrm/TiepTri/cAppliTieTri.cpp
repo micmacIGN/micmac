@@ -144,7 +144,6 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
                  if (aRRC.IsInit())
                  {
                     cImSecTieTri * anIm = mImSec[aVInd[aKI]];
-
                     anIm->PackH().Cple_Add(ElCplePtsHomologues(aPMaster,aRRC.mPt)) ;
                  }
                  else
@@ -161,6 +160,22 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     cout<<"Write pts homo to disk:..."<<endl;
     for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
     {
+        cImSecTieTri* aImSec = mImSec[aKIm];
+        cout<<"  ++ Im2nd : "<<aImSec->Num();
+        cout<<" - Nb Pts= "<<aImSec->PackH().size()<<endl;
+        std::string pic1 = Master()->NameIm();
+        std::string pic2 = aImSec->NameIm();
+        cHomolPackTiepTri aPack(pic1, pic2, aKIm, mICNM);
+        aPack.Pack() = aImSec->PackH();
+        std::string aHomolOut = "_TiepTri";
+        aPack.writeToDisk(aHomolOut);
+    }
+
+
+/*
+    cout<<"Write pts homo to disk:..."<<endl;
+    for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
+    {
        cImSecTieTri* aImSec = mImSec[aKIm];
        if (aImSec->NameIm() != Master()->NameIm())
        {
@@ -174,6 +189,8 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
            aImSec->PackH().StdPutInFile(aHomolOut);
        }
     }
+    */
+
 }
 
 void cAppliTieTri::RechHomPtsDense(cResulMultiImRechCorrel<double> & aRMIRC)

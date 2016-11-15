@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../../TpMMPD/TiePByMesh/Fast.h"
 // Header du header
+class cHomolPackTiepTri;
 class cAppliTieTri;
 class cImTieTri;
 class cImMasterTieTri;
@@ -67,7 +68,6 @@ class cOneTriMultiImRechCorrel;
 typedef double                          tElTiepTri ;
 typedef TIm2D<tElTiepTri,tElTiepTri>    tTImTiepTri;
 typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
-
 
 
 
@@ -438,6 +438,23 @@ cResulRechCorrel<double> TT_MaxLocCorrelDS1R
                               double              aStepEnd
                          );
 
+//  ====================================  cHomolPackTiepTri ==========================
+
+class cHomolPackTiepTri
+{
+    public:
+        cHomolPackTiepTri (std::string img1, std::string img2, int index, cInterfChantierNameManipulateur * aICNM);
+        void writeToDisk(std::string aHomolOut);
+        ElPackHomologue & Pack() {return mPack;}
+        std::string & Img1() {return mImg1;}
+        std::string & Img2() {return mImg2;}
+    private:
+        std::string mImg1;
+        std::string mImg2;
+        int mIndex;
+        cInterfChantierNameManipulateur * mICNM;
+        ElPackHomologue mPack;
+};
 
 
 

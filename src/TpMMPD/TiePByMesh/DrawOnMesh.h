@@ -17,12 +17,12 @@ public:
     Pt3dr InterFaisce_cpy_cPI_Appli(
                                     const std::vector<CamStenope *> & aVCS,
                                     const std::vector<Pt2dr> & aNPts2D
-                                    );   //copy appli Mehdi
-    void drawEdge_p1p2  (vector<Pt3dr> &p1Vec,
+                                   );   //copy appli Mehdi
+    void drawEdge_p1p2  (   vector<Pt3dr> &p1Vec,
                             vector<Pt3dr> &p2Vec,
                             string filename,
-                            Pt3dr colorRGBVer
-                         , Pt3d<double> colorRGBEdge);
+                            Pt3dr colorRGBVer,
+                            Pt3d<double> colorRGBEdge);
     void drawListTriangle(
                            vector<triangle*> listTri,
                            string fileName,
