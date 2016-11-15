@@ -61,7 +61,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mDistMinMax (3.0),
     mDoMin      (true),
     mDoMax      (true),
-    mDoPly      (false),
+    mDoPly      (true),
     mPlyC       (0)
 {
    ElInitArgMain
@@ -107,15 +107,25 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
               cOneScaleImRechPH::FromScale(*this,*mVI1.back(),mS0*pow(mPowS,aK)),
               0
            );
+
         }
         mVI1.back()->CalcPtsCarac();
         mVI1.back()->Show(mW1);
+        if (aK!=0)
+        {
+           mVI1[aK]->CreateLink(*(mVI1[aK-1]));
+        }
    }
+
 
    Clik();
 
    if (mPlyC)
    {
+       for (int aK=0 ; aK<mNbS ; aK++)
+       {
+           mVI1[aK]->AddPly((aK!=0) ? mVI1[aK-1] : 0,mPlyC);
+       }
        mPlyC->PutFile("NewH.ply");
    }
 }
@@ -151,7 +161,7 @@ tPtrPtRemark  cAppli_NewRechPH::NearestPoint(const Pt2di & aP,const double & aDi
    return 0;
 }
 
-
+const Pt2di & cAppli_NewRechPH::SzIm() const  {return mSzIm;}
 
 
 int Test_NewRechPH(int argc,char ** argv)
