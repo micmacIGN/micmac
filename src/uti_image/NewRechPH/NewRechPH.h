@@ -67,7 +67,13 @@ class cOneScaleImRechPH
           void CalcPtsCarac();
           void Show(Video_Win* aW);
           void CreateLink(cOneScaleImRechPH & aLR);
+          void AddPly(cOneScaleImRechPH* aHR,cPlyCloud *  aPlyC);
+
+          const int &  NbExLR() const ;
+          const int &  NbExHR() const ;
       private :
+          Pt3dr PtPly(const cPtRemark & aP);
+
           void CreateLink(cOneScaleImRechPH & aLR,const eTypePtRemark & aType);
           void InitBuf(const eTypePtRemark & aType, bool Init);
 
@@ -82,8 +88,11 @@ class cOneScaleImRechPH
           tTImNRPH  mTIm;
           double    mScale;
           int       mNiv;
-           
+          int       mNbExLR; 
+          int       mNbExHR;
 };
+
+
 class cAppli_NewRechPH
 {
     public :
@@ -96,6 +105,7 @@ class cAppli_NewRechPH
         const double & DZPlyLay() const {return  mDZPlyLay;}
 
         bool Inside(const Pt2di & aP) const;
+        const Pt2di & SzIm() const ;
         tPtrPtRemark & PtOfBuf(const Pt2di &);
         tPtrPtRemark  NearestPoint(const Pt2di &,const double & aDist);
 
@@ -122,6 +132,7 @@ class cAppli_NewRechPH
 
         std::vector<std::vector<cPtRemark *> >  mBufLnk;
         std::vector<Pt2di>                      mVoisLnk;
+
 };
 
 
