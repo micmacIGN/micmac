@@ -75,10 +75,13 @@ typedef enum eTypePtRemark
 {
     eTPR_Max     = 0,
     eTPR_Min     = 1,
+    eTPR_NoLabel = 2
+/*
     eTPR_Corner  = 2,
     eTPR_MaxLapl = 3,
     eTPR_MinLapl = 4,
     eTPR_NoLabel = 5
+*/
 }  eTypePtRemark;
 
 Pt3di CoulOfType(eTypePtRemark);
@@ -95,7 +98,9 @@ class cPtRemark
        const Pt2dr & Pt() const          {return mPtR;}
        const eTypePtRemark & Type() const {return mType;}
        
-       void Link(cPtRemark * aHR /*Higher Resol */);
+       void MakeLink(cPtRemark * aHR /*Higher Resol */);
+       cPtRemark * HR() {return mHR;}
+       cPtRemark * LR() {return mLR;}
 
     private :
 
@@ -104,6 +109,21 @@ class cPtRemark
        eTypePtRemark   mType;
        cPtRemark     * mHR; // Higher Resol
        cPtRemark     * mLR; // Lower Resol
+};
+
+class cBrinPtRemark
+{
+    public :
+        cBrinPtRemark(cPtRemark * aP0,int aNiv0);
+        cPtRemark * P0() {return mP0;}
+        cPtRemark * PLast() {return mPLast;}
+        int   Niv0() {return mNiv0;}
+        int   Long() {return mLong;}
+    private :
+        cPtRemark * mP0;
+        cPtRemark * mPLast;
+        int         mNiv0;
+        int         mLong;
 };
 
 typedef cPtRemark * tPtrPtRemark;
