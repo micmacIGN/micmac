@@ -69,6 +69,8 @@ int TaskCorrel_main(int argc,char ** argv)
         vector<double> aParamD;
         string aDirXML = "XML_TiepTri";
         bool Test=false;
+        bool nInteraction = false;
+        double aZ = 0.25;
         ElInitArgMain
                 (
                     argc,argv,
@@ -83,6 +85,8 @@ int TaskCorrel_main(int argc,char ** argv)
                     << EAM(aAngleF, "angleV", true, "limit view angle - default = 90 (all triangle is viewable)")
                     << EAM(aDirXML, "OutXML", true, "Output directory for XML File. Default = XML_TiepTri")
                     << EAM(Test, "Test", true, "Test stretching")
+                    << EAM(nInteraction, "nInt", true, "nInteraction")
+                    << EAM(aZ, "aZ", true, "aZoom image display")
                     );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -176,18 +180,25 @@ int TaskCorrel_main(int argc,char ** argv)
             ElRotation3D    aRot_PE(ElRotation3D::Id);
             ElRotation3D    aRot_EP(ElRotation3D::Id);
             vector <ElAffin2D> VaAffLc2Im;
+            vector<Video_Win * > VVW (PtrPic.size());
+            if (nInteraction)
+            {
+                for (uint aKVW=0; aKVW<PtrPic.size(); aKVW++)
+                    VVW[aKVW] = Video_Win::PtrWStd(Pt2di(PtrPic[aKVW]->mImgSz*aZ),true,Pt2dr(aZ,aZ));
+            }
             for (uint aIT = 0; aIT<PtrTri.size(); aIT++)
             {
 
                 cXml_Triangle3DForTieP jobATri;
                 triangle * atri = PtrTri[aIT];
-                //cout<<" + TRI : "<<aIT<<endl;
+                cout<<"+ TRI : "<<aIT<<endl;
                 min_cur = DBL_MIN;
                 picMaster = NULL;
                 jobATri.P1() = atri->getSommet(0);
                 jobATri.P2() = atri->getSommet(1);
                 jobATri.P3() = atri->getSommet(2);
-                vector<pic*> VPic2nd;
+                vector<pic*> VPicAcpt;
+                vector<vector<Pt2dr> >VVCl (PtrPic.size());
                 for (uint aIP = 0; aIP<PtrPic.size(); aIP++)
                 {
                     pic * apic = PtrPic[aIP];
@@ -196,84 +207,131 @@ int TaskCorrel_main(int argc,char ** argv)
                     Pt2dr aPtI1 = aTriIm.sommet1[1];
                     Pt2dr aPtI2 = aTriIm.sommet1[2];
                     double aSurf =  (aPtI0-aPtI1) ^ (aPtI0-aPtI2);
-                    if (ElAbs(aSurf) > TT_SEUIL_SURF)
+                    if (ElAbs(aSurf) > TT_SEUIL_SURF && aTriIm.insidePic)
                     {
+                        //creer plan 3D local contient triangle
                         cElPlan3D * aPlanLoc = new cElPlan3D(atri->getSommet(0) , atri->getSommet(1), atri->getSommet(2));
 
                         aRot_PE = aPlanLoc->CoordPlan2Euclid();
                         aRot_EP = aRot_PE.inv();
-
+                        //calcul coordonne sommet triangle dans plan 3D local (devrait avoir meme Z)
                         Pt3dr aPtP0 = aRot_EP.ImAff(atri->getSommet(0)); //sommet triangle on plan local
                         Pt3dr aPtP1 = aRot_EP.ImAff(atri->getSommet(1));
                         Pt3dr aPtP2 = aRot_EP.ImAff(atri->getSommet(2));
 
 
+
+
+
+                        //creer translation entre coordonne image global -> coordonne image local du triangle (plan image)
+                        ElAffin2D aAffImG2ImL(ElAffin2D::trans(aPtI0));
+                        Pt2dr aPtPIm0 = aAffImG2ImL(aPtI0);
+                        Pt2dr aPtPIm1 = aAffImG2ImL(aPtI1);
+                        Pt2dr aPtPIm2 = aAffImG2ImL(aPtI2);
+
+/*
+                        //creer plan 2D local dans plan image (deplacer origin haut gauche d'image -> origin avec 1 sommet de triangle)
                         cElPlan3D * aPlanIm = new cElPlan3D (   Pt3dr(aPtI0.x, aPtI0.y, 0),
                                                                 Pt3dr(aPtI1.x, aPtI1.y, 0),
                                                                 Pt3dr(aPtI2.x, aPtI2.y, 0)   );
 
                         ElRotation3D aRot_EPIm = aPlanIm->CoordPlan2Euclid().inv();
-
-
-                        Pt3dr aPtPIm0 = aRot_EPIm.ImAff(Pt3dr(aPtI0.x, aPtI0.y, 0));    //sommet triangle on plan image local (plan dans le plan image avec origin local)
+                        //calcul coordonne sommet triangle dans plan 2D local
+                        Pt3dr aPtPIm0 = aRot_EPIm.ImAff(Pt3dr(aPtI0.x, aPtI0.y, 0));
                         Pt3dr aPtPIm1 = aRot_EPIm.ImAff(Pt3dr(aPtI1.x, aPtI1.y, 0));
                         Pt3dr aPtPIm2 = aRot_EPIm.ImAff(Pt3dr(aPtI2.x, aPtI2.y, 0) );
 
+                        cout<<"aPtPIm0 "<<aPtPIm0<<aPtPIm1<<aPtPIm2<<endl;
+*/
 
-
+                        //calcul affine entre plan 3D local (elimine Z) et plan 2D local
                         ElAffin2D aAffLc2Im;
                         aAffLc2Im = aAffLc2Im.FromTri2Tri(  Pt2dr(aPtP0.x, aPtP0.y),
                                                             Pt2dr(aPtP1.x, aPtP1.y),
                                                             Pt2dr(aPtP2.x, aPtP2.y),
-                                                            Pt2dr(aPtPIm0.x, aPtPIm0.y),
-                                                            Pt2dr(aPtPIm1.x, aPtPIm1.y),
-                                                            Pt2dr(aPtPIm2.x, aPtPIm2.y)
-                                                            );
-
-
+                                                            aPtPIm0,aPtPIm1,aPtPIm2
+                                                         );
                         VaAffLc2Im.push_back(aAffLc2Im);
 
+                        //calcul le cercle discretize dans le plan 3D local
+                        double rho1 = sqrt(aPtP1.x*aPtP1.x + aPtP1.y*aPtP1.y);
+                        double rho2 = sqrt(aPtP2.x*aPtP2.x + aPtP2.y*aPtP2.y);
+                        double rho;
+                        if (rho1 > rho2)
+                            rho = rho1;
+                        else
+                            rho = rho2;
+                        double aNbPt = 100;
+                        vector<Pt2dr> VCl;
+                        for (uint aKP=0; aKP<aNbPt; aKP++)
+                        {
+                            Pt2dr ptCrlImg;
+                            ptCrlImg = aAffLc2Im(Pt2dr::FromPolar(rho, aKP*2*PI/aNbPt));
+                            VCl.push_back(ptCrlImg);
+                        }
+                        VVCl[aIP] = VCl;
 
+                        //calcul vector max min pour choisir img master
                         double vecA_cr =  aAffLc2Im.I10().x*aAffLc2Im.I10().x + aAffLc2Im.I10().y*aAffLc2Im.I10().y;
                         double vecB_cr =  aAffLc2Im.I01().x*aAffLc2Im.I01().x + aAffLc2Im.I01().y*aAffLc2Im.I01().y;
                         double AB_cr   =  pow(aAffLc2Im.I10().x*aAffLc2Im.I01().x,2) + pow(aAffLc2Im.I10().y*aAffLc2Im.I01().y,2);
                         //double theta_max =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(0.5);
                         double theta_min =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(-0.5);
-                        //cout<<"theta_max : "<<theta_max<<" - theta_min : "<<theta_min<<endl;
+                        cout<<" ++ theta_min : "<<theta_min<<" - "<<apic->getNameImgInStr()<<endl;
                         if (theta_min > min_cur)
                         {
                             min_cur = theta_min;
                             picMaster = apic;
                         }
                         if (theta_min > TT_SEUIL_RESOLUTION)
-                            VPic2nd.push_back(apic);
-
+                            VPicAcpt.push_back(apic);
                     }
                     else
                     {
-                        //cout<<" surf :"<<aSurf<<endl;
+                        cout<<" ++surf :"<<aSurf<<endl;
                     }
 
                 }
-                if (picMaster != NULL)
+                if (picMaster != NULL && VPicAcpt.size() > 1)
                 {
                     //cout<<" ++ min_cur :"<<min_cur<<endl<<" ++ picMaster :"<<picMaster->getNameImgInStr()<<endl;
                     cmptMas[picMaster->mIndex]++;
-                    for (uint aKP=0; aKP<VPic2nd.size(); aKP++)
+                    for (uint aKP=0; aKP<VPicAcpt.size(); aKP++)
                     {
-                        if (VPic2nd[aKP]->mIndex != picMaster->mIndex)
+                        if (VPicAcpt[aKP]->mIndex != picMaster->mIndex)
                         {
-                            jobATri.NumImSec().push_back(VPic2nd[aKP]->mIndex);
+                            jobATri.NumImSec().push_back(VPicAcpt[aKP]->mIndex);
                         }
                     }
                     VjobImMaster[picMaster->mIndex].Tri().push_back(jobATri);
                     VtriOfImMaster[picMaster->mIndex].push_back(atri);
+                    cout<<" +Mas : "<<picMaster->getNameImgInStr()<<endl;
+                    //display ellipse
+                    if (nInteraction)
+                    {
+                        for (uint aKC=0; aKC<VVCl.size(); aKC++)
+                        {
+                            Video_Win * aVW = VVW[aKC];
+                            Disc_Pal Pdisc = Disc_Pal::P8COL();
+                            Gray_Pal Pgr (30);
+                            Circ_Pal Pcirc = Circ_Pal::PCIRC6(30);
+                            RGB_Pal Prgb (255,1,1);
+                            Elise_Set_Of_Palette SOP(NewLElPal(Pdisc) +Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+                            Line_St lstLineG(Pdisc(P8COL::green),1);
+                            pic * aPic = PtrPic[aKC];
+                            aVW->set_sop(SOP);
+                            aVW->set_title(aPic->getNameImgInStr().c_str());
+                            ELISE_COPY(aVW->all_pts(), aPic->mPic_Im2D->in_proj() ,aVW->ogray());
+                            aVW->draw_poly_ferm(VVCl[aKC], lstLineG);
+                            if (aKC == VVCl.size()-1)
+                                aVW->clik_in();
+                        }
+                    }
                 }
                 else
                     cmptDel++;
 
             }
-
             aDirXML = aDirXML + "Test";
             ELISE_fp::MkDirSvp(aDirXML);
             for (uint aKP=0; aKP<VjobImMaster.size(); aKP++)
@@ -283,73 +341,18 @@ int TaskCorrel_main(int argc,char ** argv)
             }
             cout<<endl;
 
-
-
-            //draw resultat: elipse affinité
-            //Pour chaque triangle: creer une cercle se situe dans le plan du triangle
-            double aNbPt =20;
-            vector<Pt3dr> ptCrlP (aNbPt);
-            vector< vector<Pt2dr> > VptCrlI (int(PtrPic.size()));
-            Pt3dr ctr_crlE = aRot_PE.ImAff(Pt3dr(0.0,0.0,0.0));
-            cout<<" ctr_crlE :"<<ctr_crlE<<endl;
-            for (uint aKP =0; aKP<aNbPt; aKP++)
-                {
-                    Pt2dr aPtCrl;
-                    aPtCrl = Pt2dr::FromPolar(1, aKP*2*PI/aNbPt);
-                    Pt3dr aPtCrlP = aRot_EP.ImAff(Pt3dr(aPtCrl.x, aPtCrl.y, 0));
-                    cout<<aPtCrl<<" -> "<<aPtCrlP<<endl;
-                    ptCrlP[aKP] = aPtCrlP;
-                }
-            cout<<"Result : "<<endl;
-            cout<<" ++Cercle on Plan Triangle :"<<endl;
-            for (uint aKP=0; aKP<aNbPt; aKP++)
-            {
-                cout<<ptCrlP[aKP]<<endl;
-            }
-
-            for (uint aKI =0; aKI<PtrPic.size(); aKI++)
-                {
-                    pic * aPic = PtrPic[aKI];
-                    ElAffin2D aAffLc2Im = VaAffLc2Im[aKI];
-                    cout<<" ++Im : "<<aPic->getNameImgInStr()<<endl;
-                    cout<<" ++Aff : "<<aAffLc2Im.I01()<<aAffLc2Im.I10()<<aAffLc2Im.I00()<<endl;
-                    for (uint aKP = 0; aKP<aNbPt; aKP++)
-                    {
-                        VptCrlI[aKI].push_back(aAffLc2Im(Pt2dr(ptCrlP[aKP].x, ptCrlP[aKP].y)));
-                        cout<<Pt2dr(ptCrlP[aKP].x, ptCrlP[aKP].y)<<" -> "<<aAffLc2Im(Pt2dr(ptCrlP[aKP].x, ptCrlP[aKP].y))<<endl;
-                    }
-                }
-/*
-            for (uint aKC=0; aKC<VptCrlI.size(); aKC++)
-            {
-                cout<<endl<<" ++Img: "<<PtrPic[aKC]->getNameImgInStr()<<endl;
-                for (uint aKP=0; aKP<aNbPt; aKP++)
-                {
-                    cout<<VptCrlI[aKC][aKP]<<endl;
-                }
-            }
-*/
-
-
-            //Samplizer le cercle (prendre Nb point dans le cercle (from polar(&, aK2pi/Nb))
-            //Pour chaque image :
-                //calcule coordonne le cercle affinité (coor les point simplizé du cercle )
-                //draw seg entre chaque point pour créer une ellipse .
-
-
             for (uint acP = 0; acP<PtrPic.size(); acP++)
             {
                 cout<<cmptMas[acP]<<endl;
             }
             cout<<"cmptDel "<<cmptDel<<endl;
             //export mesh correspond with each image:
-
             ELISE_fp::MkDirSvp("PLYVerif");
             for (uint akP=0; akP<VtriOfImMaster.size(); akP++)
             {
                 DrawOnMesh aDraw;
                 std::string filename = aChain->getPrivmICNM()->Dir() + "PLYVerif/" + PtrPic[akP]->getNameImgInStr() + ".ply";
-                Pt3dr color(round(akP*255.0/double(VtriOfImMaster.size())), 50, 30);
+                Pt3dr color(round(akP*255.0/double(VtriOfImMaster.size())), round(akP*200.0/double(VtriOfImMaster.size())), round(akP*150.0/double(VtriOfImMaster.size())));
                 aDraw.drawListTriangle(VtriOfImMaster[akP], filename, color);
                 cout<<"Draw "<<VtriOfImMaster[akP].size()<<" Tri "<<filename<<endl;
             }
