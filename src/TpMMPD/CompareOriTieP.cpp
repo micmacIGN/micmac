@@ -250,7 +250,7 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
     //create pictures list, and pictures size list
     std::map<std::string,cPic*> allPics;
     
-    std::vector<cPicSize> allPicSizes;
+    std::vector<cPicSize*> allPicSizes;
 
     std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
@@ -320,6 +320,15 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
 	ElFclose(aFP);
 		
 	}
+
+    //cleaning
+    std::map<std::string,cPic*>::iterator itPic1;
+    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+        delete itPic1->second;
+    allPics.clear();
+    for (unsigned int i=0;i<allPicSizes.size();i++)
+        delete allPicSizes[i];
+    allPicSizes.clear();
 }
 
 int CompareOriTieP_main(int argc,char ** argv)

@@ -54,6 +54,12 @@ cPicSize::cPicSize(Pt2di aSz,int aNumWindows) :
     mWinSz.x=((float)mPicSz.x)/mNbWin.x+0.5;
     mWinSz.y=((float)mPicSz.y)/mNbWin.y+0.5;
     mUsageBuffer=mNbWin.x/10;//where the arbitrary buffer size is calculated
+    //std::cout<<"Size constr: "<<this<<"   "<<aSz<<" => "<<mNbWin<<std::endl;
+}
+
+cPicSize::cPicSize(const cPicSize &other) : mPicSz(other.mPicSz),mNbWin(other.mNbWin),mWinSz(other.mWinSz)
+{
+   //std::cout<<"Size copy constr: "<<&other<<"->"<<this<<"   "<<mPicSz<<" => "<<mNbWin<<std::endl;
 }
 
 int cPointOnPic::mPointOnPicCounter=0;
@@ -248,24 +254,25 @@ bool cHomol::checkMerge(cHomol* aHomol)
 
 //----------------------------------------------------------------------------
 
-cPic::cPic(std::string aDir,std::string aName,std::vector<cPicSize> & allSizes,int aNumWindows) :
+cPic::cPic(std::string aDir,std::string aName,std::vector<cPicSize*> & allSizes,int aNumWindows) :
     mName(aName),mPicSize(0)//,mNbWinUsed(0)
 {
     Tiff_Im aPic( Tiff_Im::StdConvGen(aDir+"/"+aName,1,false)); //to read file in Tmp-MM-Dir if needed
     Pt2di aPicSize=aPic.sz();
     bool found=false;
     for (unsigned int i=0;i<allSizes.size();i++)
-      if (allSizes[i].getPicSz()==aPicSize)
+      if (allSizes[i]->getPicSz()==aPicSize)
       {
         found=true;
-        mPicSize=&allSizes[i];
+        mPicSize=allSizes[i];
         break;
       }
     if (!found)
     {
-      allSizes.push_back(cPicSize(aPicSize,aNumWindows));
-      mPicSize=&allSizes.back();
+      allSizes.push_back(new cPicSize(aPicSize,aNumWindows));
+      mPicSize=allSizes.back();
     }
+    //cout<<"Pic windows: "<<mPicSize->getNbWin().x<<" "<<mPicSize->getNbWin().y<<endl;
     mWinUsed.resize(mPicSize->getNbWin().x*mPicSize->getNbWin().y,false);
 }
 
@@ -350,14 +357,16 @@ bool cPic::removeHomolPoint(cPointOnPic* aPointOnPic)
 
 void cPic::selectHomols()
 {
+    //cout<<"On pic "<<getName()<<"\n";
+    //cout<<"Pic windows: "<<mPicSize->getNbWin().x<<" "<<mPicSize->getNbWin().y<<endl;
     std::vector< std::vector<cPointOnPic*> > winBestPoP;
     std::vector< std::vector<unsigned int> > winBestMulti;
-    winBestPoP.resize(mPicSize->getNbWin().y);
+    winBestPoP.resize(getPicSize()->getNbWin().y);
     for (unsigned int i=0;i<winBestPoP.size();i++)
-        winBestPoP[i].resize(mPicSize->getNbWin().x,0);
-    winBestMulti.resize(mPicSize->getNbWin().y);
+        winBestPoP[i].resize(getPicSize()->getNbWin().x,0);
+    winBestMulti.resize(getPicSize()->getNbWin().y);
     for (unsigned int i=0;i<winBestMulti.size();i++)
-        winBestMulti[i].resize(mPicSize->getNbWin().x,0);
+        winBestMulti[i].resize(getPicSize()->getNbWin().x,0);
     
     std::map<double,cPointOnPic*>::iterator itHomolPoint;
     int x,y;
@@ -394,7 +403,7 @@ void cPic::selectHomols()
         if (y>=getPicSize()->getNbWin().y) y=getPicSize()->getNbWin().y-1;
         //cout<<"old "<<x<<" "<<y<<" "<<aPoP->getHomol()->getPointOnPics().size()<<endl;
 
-        if (winBestMulti[y][x]<aPoP->getHomol()->getPointOnPicsSize())
+        if (winBestMulti[y][x]<aPoP->getHomol()->getPointOnPicsSize()) //plante ici
         {
             winBestMulti[y][x]=aPoP->getHomol()->getPointOnPicsSize();
             winBestPoP[y][x]=aPoP;
@@ -531,7 +540,7 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
                      std::list<cHomol> &allHomolsIn,
                      CompiledKey2 &aCKin,
                      std::map<std::string,cPic*> &allPics,
-                     std::vector<cPicSize> &allPicSizes,
+                     std::vector<cPicSize*> &allPicSizes,
                      bool veryStrict,
                      int aNumWindows)
 {
@@ -544,6 +553,7 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
         std::cout<<aPicSize<<"\n";*/
         //allPics.push_back(new cPic(aDirImages,aSetIm[i],allPicSizes,aNumWindows));
         allPics.insert(std::make_pair<std::string,cPic*>(aSetIm[i]+aCKin.getSuffix(),new cPic(aDirImages,aSetIm[i],allPicSizes,aNumWindows)));
+        cPic* aPic=allPics[aSetIm[i]+aCKin.getSuffix()];
     }
 
     ELISE_ASSERT(aSetIm.size()>0,"ERROR: No image found!");
@@ -551,9 +561,8 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
     std::cout<<"All sizes: \n";
     for (unsigned int i=0;i<allPicSizes.size();i++)
     {
-        std::cout<<"  * "<<allPicSizes[i].getPicSz()<<" => "<<allPicSizes[i].getNbWin()<<" windows of "<<allPicSizes[i].getWinSz()<<" pixels"<<endl;
+        std::cout<<"  * "<<allPicSizes[i]->getPicSz()<<" => "<<allPicSizes[i]->getNbWin()<<" windows of "<<allPicSizes[i]->getWinSz()<<" pixels"<<endl;
     }
-
 
     //read all homol points --------------------------------------------
 
@@ -785,7 +794,7 @@ int schnaps_main(int argc,char ** argv)
     //std::vector<cPic*> allPics;
     std::map<std::string,cPic*> allPics;
     
-    std::vector<cPicSize> allPicSizes;
+    std::vector<cPicSize*> allPicSizes;
 
     std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
@@ -1038,6 +1047,13 @@ int schnaps_main(int argc,char ** argv)
     std::cout<<nbBadPictures<<" pictures rejected."<<std::endl;
     std::cout<<"\nYou can look at \""<<aPoubelleName<<"\" for a list of suspicious pictures.\n";
   
+    //cleaning
+    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+        delete itPic1->second;
+    allPics.clear();
+    for (unsigned int i=0;i<allPicSizes.size();i++)
+        delete allPicSizes[i];
+    allPicSizes.clear();
    
     std::cout<<"Quit"<<std::endl;
 

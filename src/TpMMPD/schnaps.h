@@ -85,6 +85,7 @@ class cPicSize
     (
         Pt2di aSz,int aNumWindows
     );
+    cPicSize(const cPicSize &other);
     Pt2di getPicSz(){return mPicSz;}
     Pt2di getWinSz(){return mWinSz;}
     Pt2di getNbWin(){return mNbWin;}
@@ -162,7 +163,7 @@ class cHomol
 class cPic
 {
   public:
-    cPic(std::string aDir,std::string aName,std::vector<cPicSize> & allSizes,int aNumWindows);
+    cPic(std::string aDir, std::string aName, std::vector<cPicSize *> &allSizes, int aNumWindows);
     cPic(cPic* aPic);
     std::string getName(){return mName;}
     cPicSize * getPicSize(){return mPicSize;}
@@ -214,7 +215,7 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
                      std::list<cHomol> &allHomolsIn,
                      CompiledKey2 &aCKin,
                      std::map<std::string,cPic*> &allPics,
-                     std::vector<cPicSize> &allPicSizes,
+                     std::vector<cPicSize *> &allPicSizes,
                      bool veryStrict,
                      int aNumWindows);
 
