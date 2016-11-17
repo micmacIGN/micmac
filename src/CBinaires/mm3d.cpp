@@ -621,6 +621,9 @@ int FAST_main(int argc,char ** argv);
 
 int Test_NewRechPH(int argc,char ** argv);
 
+int Homol2Way_main(int argc,char ** argv);
+
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -793,6 +796,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));
         aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri"));
         aRes.push_back(cMMCom("FAST",FAST_main,"Some Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)"));
+        aRes.push_back(cMMCom("Homol2Way",Homol2Way_main ,"Creat same pack homol in 2 way by combination 2 pack of each way"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
    }
