@@ -552,7 +552,7 @@ int InterpImgPos_main(int argc,char ** argv);
 int CompareOriTieP_main(int argc,char ** argv);
 int CmpOrthos_main(int argc,char ** argv);
 int CorrOri_main(int argc,char ** argv);
-
+int ConvP4dIm2MM_main(int argc,char ** argv);
 
 int CheckOri_main(int argc,char ** argv);
 int NLD_main(int argc,char ** argv);
@@ -714,7 +714,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("CmpTieP",CompareOriTieP_main,"Tool to compare deviations between 2 Ori-XXX folders on 3D tie points positions",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CmpOrthos",CmpOrthos_main,"Tool to compute displacement vectors between 2 Orthos based on Tie Points",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CorrOri",CorrOri_main,"Tool to correct images centers from a bias and generate new Ori folder",cArgLogCom(2)));
-
+	   aRes.push_back(cMMCom("ConvP4dIm2MM",ConvP4dIm2MM_main,"Tool to convert Pix4D GCPs images measurements into MicMac .xml format",cArgLogCom(2)));
 	      
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
