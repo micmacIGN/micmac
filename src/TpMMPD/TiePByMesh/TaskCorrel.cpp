@@ -71,6 +71,8 @@ int TaskCorrel_main(int argc,char ** argv)
         bool Test=false;
         bool nInteraction = false;
         double aZ = 0.25;
+        double aSclElps = -1;
+        Pt3dr clIni(255.0,255.0,255.0);
         ElInitArgMain
                 (
                     argc,argv,
@@ -87,6 +89,8 @@ int TaskCorrel_main(int argc,char ** argv)
                     << EAM(Test, "Test", true, "Test stretching")
                     << EAM(nInteraction, "nInt", true, "nInteraction")
                     << EAM(aZ, "aZ", true, "aZoom image display")
+                    << EAM(aSclElps, "aZEl", true, "fix size ellipse display (in pxl)")
+                    << EAM(clIni, "clIni", true, "color mesh (=[255,255,255])")
                     );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -254,13 +258,22 @@ int TaskCorrel_main(int argc,char ** argv)
                         VaAffLc2Im.push_back(aAffLc2Im);
 
                         //calcul le cercle discretize dans le plan 3D local
-                        double rho1 = sqrt(aPtP1.x*aPtP1.x + aPtP1.y*aPtP1.y);
-                        double rho2 = sqrt(aPtP2.x*aPtP2.x + aPtP2.y*aPtP2.y);
                         double rho;
-                        if (rho1 > rho2)
-                            rho = rho1;
+                        if (aSclElps == -1)
+                        {
+                            double rho1 = sqrt(aPtP1.x*aPtP1.x + aPtP1.y*aPtP1.y);
+                            double rho2 = sqrt(aPtP2.x*aPtP2.x + aPtP2.y*aPtP2.y);
+                            if (rho1 > rho2)
+                                rho = rho1;
+                            else
+                                rho = rho2;
+
+                        }
                         else
-                            rho = rho2;
+                        {
+                            double scale = euclid ( aAffLc2Im.inv()(Pt2dr(0,0)) - aAffLc2Im.inv()(Pt2dr(aSclElps,0)) );
+                            rho = scale;
+                        }
                         double aNbPt = 100;
                         vector<Pt2dr> VCl;
                         for (uint aKP=0; aKP<aNbPt; aKP++)
@@ -352,7 +365,7 @@ int TaskCorrel_main(int argc,char ** argv)
             {
                 DrawOnMesh aDraw;
                 std::string filename = aChain->getPrivmICNM()->Dir() + "PLYVerif/" + PtrPic[akP]->getNameImgInStr() + ".ply";
-                Pt3dr color(round(akP*255.0/double(VtriOfImMaster.size())), round(akP*200.0/double(VtriOfImMaster.size())), round(akP*150.0/double(VtriOfImMaster.size())));
+                Pt3dr color(round(akP*clIni.x/double(VtriOfImMaster.size())), round(akP*clIni.y/double(VtriOfImMaster.size())), round(akP*clIni.z/double(VtriOfImMaster.size())));
                 aDraw.drawListTriangle(VtriOfImMaster[akP], filename, color);
                 cout<<"Draw "<<VtriOfImMaster[akP].size()<<" Tri "<<filename<<endl;
             }
