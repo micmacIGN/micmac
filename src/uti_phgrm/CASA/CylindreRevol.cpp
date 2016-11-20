@@ -129,7 +129,7 @@ void cAppli_Casa::EstimeCylindreRevolution
         }
     }
 
-    aSurf.mISAF = &(mSetEq.AllocCylindre(*mBestCyl));
+    aSurf.mISAF = &(mSetEq.AllocCylindre("Casa",*mBestCyl));
     std::cout << "End Ransac \n";
 
 

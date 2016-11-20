@@ -414,6 +414,20 @@ class cCmpNbNNPose
       }
 };
 
+
+const std::string & TheNameMatrCorrel()
+{
+    static std::string TMV="Sensib-MatriceCorrel.tif";
+    return TMV;
+}
+const std::string & TheNameMatrCov()
+{
+    static std::string TMC="Sensib-MatriceCov.tif";
+    return TMC;
+}
+
+
+
 void cAppliApero::OneIterationCompensation(const cIterationsCompensation & anIter,const cEtapeCompensation & anEC,bool IsLast)
 {
     if (mSqueezeDOCOAC)
@@ -493,6 +507,36 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
     // std::cout  << "=========SOM-POND-ERR " << aSO.SomErPond() << "\n";
     // mSetEq.SolveResetUpdate(aSO.SomErPond());
     // mSetEq.Solve(aSO.SomErPond());
+
+    Im1D_REAL4 aMVar(1);
+    if (mESPA)
+    {
+       cGenSysSurResol * aSys = mSetEq.Sys();   
+       int aNbV = aSys->NbVar();
+       Im2D_REAL4 aMCov(aNbV,aNbV);
+       aMVar = Im1D_REAL4(aNbV);
+       REAL4 ** aDC = aMCov.data();
+       REAL4 *  aDV = aMVar.data();
+
+
+       for (int aKx=0 ; aKx<aNbV ; aKx++)
+       {
+            for (int aKy=0 ; aKy<=aKx ; aKy++)
+            {
+                aDC[aKy][aKx] = aDC[aKx][aKy] = aSys->GetElemQuad(aKx,aKy);
+            }
+            aDV[aKx] =  aDC[aKx][aKx];
+       }
+
+       Tiff_Im::CreateFromFonc
+       (
+            DC()+mESPA->Dir() + TheNameMatrCorrel(),
+            Pt2di(aNbV,aNbV),
+            aMCov.in()/sqrt(Max(1e-60,aMVar.in()[FX]*aMVar.in()[FY])),
+            GenIm::real4
+       );
+       Tiff_Im::CreateFromIm(aMCov,DC()+mESPA->Dir() + TheNameMatrCov());
+    }
 
     mSetEq.Solve(aSO.SomErPond(),(bool *)0);
     mScoreLambda0 = aSO.SomErPond();
@@ -835,6 +879,7 @@ void cAppliApero::DoContraintesAndCompens
       ExportSauvAutom();
       return;
    }
+   ELISE_ASSERT(mESPA==0,"Mix Sensib && Erreur Tournante");
 
   std::cout << "-------------  MESURE ERREUR EXTRAPOLATION  ------------------------\n"; 
 
@@ -954,6 +999,12 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC,bool L
         bool kIterLast = (aK==((int)anEC.IterationsCompensation().size()-1));
 	const cIterationsCompensation &  anIter  = anEC.IterationsCompensation()[aK];
 
+        mESPA =0;
+        if (kIterLast && anEC.SectionExport().IsInit())
+        {
+            mESPA = anEC.SectionExport().Val().ExportSensibParamAero().PtrVal();
+        }
+
         if (anIter.DoIt().Val())
         {
             bool GoOnIter= true;
@@ -1021,6 +1072,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC,bool L
 
                 if (anIter.Pose2Init().IsInit())
                 {
+                   ELISE_ASSERT(mESPA==0,"Mix Sensib && Init Pose");
                    const cPose2Init & aP2I = anIter.Pose2Init().Val();
                    bool aShow = aP2I.Show().Val();
                    std::vector<int> mVProfs = aP2I.ProfMin();

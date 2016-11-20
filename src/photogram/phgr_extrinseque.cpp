@@ -76,11 +76,11 @@ cPolynome1VarFormel::cPolynome1VarFormel
     for (INT aK=0 ; aK<= mDegre ; aK++)
         mValsCur.push_back(0.0);
 
-    mFonc =  aSet.Alloc().NewF(mV0);
+    mFonc =  aSet.Alloc().NewF("PolVarF","V0",mV0);
 
     for (INT aK=1 ; aK<= mDegre ; aK++)
     {
-        mFonc = mFonc +  aSet.Alloc().NewF(&(mValsCur[aK])) * PowI(aVarTime,aK);
+        mFonc = mFonc +  aSet.Alloc().NewF("PolVarF","V"+ToString(aK),&(mValsCur[aK])) * PowI(aVarTime,aK);
     }
 }
 

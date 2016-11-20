@@ -743,6 +743,7 @@ cCylindreRevolution cCylindreRevolution::FromXml
 
 cCylindreRevolFormel::cCylindreRevolFormel
 (
+     const std::string & aName,
      cSetEqFormelles & aSet,
      const cCylindreRevolution &aCyl
 )  :
@@ -759,13 +760,13 @@ cCylindreRevolFormel::cCylindreRevolFormel
    mRayCur    (mRay0),
    
    mIndDir   (mSet.Alloc().CurInc()),
-   mDirPlkF  (mSet.Alloc().NewPt3(mDirPlkCur)),
+   mDirPlkF  (mSet.Alloc().NewPt3("DirCyl-"+aName,mDirPlkCur)),
 
    mIndOri   (mSet.Alloc().CurInc()),
-   mOriPlkF  (mSet.Alloc().NewPt3(mOriPlkCur)),
+   mOriPlkF  (mSet.Alloc().NewPt3("OriCyl-"+aName,mOriPlkCur)),
 
    mIndRay   (mSet.Alloc().CurInc()),
-   mRayF     (mSet.Alloc().NewF(&mRayCur)),
+   mRayF     (mSet.Alloc().NewF("Cyl-"+aName,"Ray",&mRayCur)),
 
 
    mFcteurNormDir (cElCompiledFonc::FoncFixeNormEucl(&mSet,mIndDir,3,1.0)),
@@ -835,13 +836,14 @@ cMultiContEQF cCylindreRevolFormel::StdContraintes()
 
 cCylindreRevolFormel & cSetEqFormelles::AllocCylindre
                        (
+                             const std::string & aName,
                              const  cCylindreRevolution & aCR,
                              bool GenCode 
                        )
 {
    AssertUnClosed();
 
-   cCylindreRevolFormel * aCRF = new cCylindreRevolFormel(*this,aCR);
+   cCylindreRevolFormel * aCRF = new cCylindreRevolFormel(aName,*this,aCR);
 
    aCRF->CloseEEF();
    AddObj2Kill(aCRF);

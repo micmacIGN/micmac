@@ -143,13 +143,13 @@ cIncParamIntrinseque::cIncParamIntrinseque
     mIsPPFree     (isPPFree),
     mPP           (aPP),
     mIndFoc       (anAlloc.CurInc()),
-    fFocale       (isFocaleFree ?  anAlloc.NewF(&mFocale)   : 0),
-    fPP           (isPPFree     ?  anAlloc.NewPt2(mPP) : Pt2d<Fonc_Num>(0,0)),
+    fFocale       (isFocaleFree ?  anAlloc.NewF("cIncParamIntrinseque","F",&mFocale)   : 0),
+    fPP           (isPPFree     ?  anAlloc.NewPt2("cIncParamIntrinseque:PP",mPP) : Pt2d<Fonc_Num>(0,0)),
     mWithDR       (pDistRad != 0),
     mDR           (mWithDR ? (*pDistRad) :  ElDistRadiale_PolynImpair(1.0,Pt2dr(0,0))),
     mDRInit       (mDR),
     mIndCrd       (anAlloc.CurInc()),
-    mCentreDR     (mWithDR ? anAlloc.NewPt2(mDR.Centre()) :  Pt2d<Fonc_Num>(0,0)),
+    mCentreDR     (mWithDR ? anAlloc.NewPt2("cIncParamIntrinseque:CD",mDR.Centre()) :  Pt2d<Fonc_Num>(0,0)),
     mFoncRCD      (),
     mFoncRFoc     (0),
     mFoncsAux     ()
@@ -160,7 +160,7 @@ cIncParamIntrinseque::cIncParamIntrinseque
    {
       for (INT aK=0 ; aK<INT(mDR.NbCoeff()) ; aK++)
       {
-           mCoeffDR.push_back(anAlloc.NewF(&mDR.Coeff(aK)));
+           mCoeffDR.push_back(anAlloc.NewF("cIncParamIntrinseque","R"+ToString(3+2*aK),&mDR.Coeff(aK)));
       }
    }
 

@@ -162,14 +162,15 @@ void cElFaisceauDr2D::CalibrDistRadiale
 	 std::vector<REAL> &  Coeffs
      )
 {
+    std::string NameGroupe = "GrpElFaisceauDr2D"; // Groupe Bidon pour classe desuete
     AllocateurDInconnues anAlloc;
 
     Pt2d<Fonc_Num> fCentre = CentreMobile ? 
-                             anAlloc.NewPt2(&aC0.x,&aC0.y) :  
+                             anAlloc.NewPt2(NameGroupe,&aC0.x,&aC0.y) :  
                              Pt2d<Fonc_Num>(aC0.x,aC0.y);
 
-    Fonc_Num fTeta = anAlloc.NewF(&TetaEpip);
-    Fonc_Num fPhi = anAlloc.NewF(&PhiEpip);
+    Fonc_Num fTeta = anAlloc.NewF(NameGroupe,"Teta",&TetaEpip);
+    Fonc_Num fPhi = anAlloc.NewF(NameGroupe,"Phi",&PhiEpip);
 
     Pt3d<Fonc_Num> fPPEpi =  Pt3d<Fonc_Num>::TyFromSpherique(1,fTeta,fPhi);
     Pt2d<Fonc_Num> fEpi(fPPEpi.x,fPPEpi.y);
@@ -177,7 +178,7 @@ void cElFaisceauDr2D::CalibrDistRadiale
     std::vector<Fonc_Num> fCoeff;
     for (INT aK=0 ; aK <INT(Coeffs.size()) ; aK++)
     {
-        fCoeff.push_back(anAlloc.NewF(&Coeffs[aK]));
+        fCoeff.push_back(anAlloc.NewF(NameGroupe,"Coef:"+ToString(aK),&Coeffs[aK]));
     }
 
     PtsKD aPInit = anAlloc.PInits();

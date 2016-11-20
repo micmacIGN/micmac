@@ -358,7 +358,7 @@ cTFI_AttrSom::cTFI_AttrSom
     mDim     ((int)mValsInc.size())
 {
   for (int aK=0 ; aK<mDim ; aK++)
-      mIncs.push_back(aSet.Alloc().NewF(&(mValsInc[aK])));
+      mIncs.push_back(aSet.Alloc().NewF("cTFI_AttrSom","P"+ToString(aK),&(mValsInc[aK])));
    mInterv.Close();
 }
 

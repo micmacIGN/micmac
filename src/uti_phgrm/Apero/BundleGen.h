@@ -99,6 +99,7 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
            bool AltisSolIsDef() const ;
            bool AltisSolMinMaxIsDef() const;
            bool IsRPC() const;
+           const std::string & NameIma() const;
 
 
       protected  : 

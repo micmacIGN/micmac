@@ -149,7 +149,9 @@ void cGridIncImageMnt::InitIncs(REAL anEps)
 
         for (INT aY=0 ; aY<mSzI1.y ; aY++)
             for (INT aX=0 ; aX<mSzI1.x ; aX++)
-                mDNZI[aY][aX] = pSetIncs->Alloc().NewInc(&mDCurZ[aY][aX]);
+            {
+                mDNZI[aY][aX] = pSetIncs->Alloc().NewInc("Mnt","x"+ToString(aX)+":y"+ToString(aY),&mDCurZ[aY][aX]);
+            }
 
         pSetIncs->SetClosed();
         // pSetIncs->FQC()->SetEpsB(0) ;

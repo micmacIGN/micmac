@@ -283,6 +283,7 @@ template <class Type>  void   self_gaussj(ElMatrix<Type> & m)
     gaussj(m.data(),m.tx());
 }
 
+
 template <class Type>  bool   self_gaussj_svp(ElMatrix<Type> & m)
 {
     ELISE_ASSERT(m.tx()==m.ty(),"Non Square Matrice in Gaussj");

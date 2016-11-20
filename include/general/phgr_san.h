@@ -337,6 +337,7 @@ class cCylindreRevolFormel  : public cInterfSurfAn_Formelle
     private :
          cCylindreRevolFormel
          (
+               const std::string & aName,
                cSetEqFormelles & mSet,
                const cCylindreRevolution &
          );

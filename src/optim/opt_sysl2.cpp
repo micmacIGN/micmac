@@ -57,6 +57,15 @@ cGenSysSurResol::~cGenSysSurResol()
 {
 }
 
+
+bool  cGenSysSurResol::InverseIsComputedAfterSolve() {return false;}
+tSysCho   cGenSysSurResol::GetElemInverseQuad(int i,int j) const 
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::GetElemInverseQuad");
+    return 0;
+}
+
+
 cGenSysSurResol::cGenSysSurResol
 (
      bool CstrAssumed,
@@ -602,6 +611,14 @@ void   L2SysSurResol::GSSR_AddEquationPoint3D(const Pt3dr & aP,const Pt3dr &  an
 
 
 
+bool  L2SysSurResol::InverseIsComputedAfterSolve() {return true;}
+tSysCho   L2SysSurResol::GetElemInverseQuad(int i,int j) const 
+{
+    return mDatatLi_Li[j][i];
+}
+
+
+
 
 
 Im2D_REAL8   L2SysSurResol::tLi_Li()
@@ -726,6 +743,7 @@ Pt3dr ElSeg3D::L2InterFaisceaux
 
 Im1D_REAL8  L2SysSurResol::V_GSSR_Solve(bool * aResOk)
 {
+
    return Solve(aResOk);
 }
 

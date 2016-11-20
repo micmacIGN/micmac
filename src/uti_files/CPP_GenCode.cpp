@@ -674,7 +674,7 @@ void   GenCodeSurf()
         ElSeg3D aSeg(Pt3dr(0,0,0),Pt3dr(1,0,0));
         cCylindreRevolution aCyl(true,aSeg,Pt3dr(0,1,0));
         cSetEqFormelles  aSet;
-        aSet.AllocCylindre(aCyl,true);
+        aSet.AllocCylindre("GenCode",aCyl,true);
    }
 
    if (1) 

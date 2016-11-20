@@ -246,11 +246,11 @@ cHomogFormelle::cComp::cComp
      cSetEqFormelles &         aSet,
      bool                   IsDenom
 )   :
-    mX        (aSet.Alloc().NewF(&aComp.CoeffX())),
-    mY        (aSet.Alloc().NewF(&aComp.CoeffY())),
+    mX        (aSet.Alloc().NewF("Hom","X",&aComp.CoeffX())),
+    mY        (aSet.Alloc().NewF("Hom","Y",&aComp.CoeffY())),
     m1        (IsDenom ?
                     Fonc_Num(1) :
-                    aSet.Alloc().NewF(&aComp.Coeff1())
+                    aSet.Alloc().NewF("Hom","Z",&aComp.Coeff1())
               )
 {
 }

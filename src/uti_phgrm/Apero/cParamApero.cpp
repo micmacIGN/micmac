@@ -22818,6 +22818,47 @@ void xml_init(cChoixImMM & anObj,cElXMLTree * aTree)
 std::string  Mangling( cChoixImMM *) {return "51B8116A46BBCFC9FD3F";};
 
 
+std::string & cExportSensibParamAero::Dir()
+{
+   return mDir;
+}
+
+const std::string & cExportSensibParamAero::Dir()const 
+{
+   return mDir;
+}
+
+void  BinaryUnDumpFromFile(cExportSensibParamAero & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Dir(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cExportSensibParamAero & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Dir());
+}
+
+cElXMLTree * ToXMLTree(const cExportSensibParamAero & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ExportSensibParamAero",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Dir"),anObj.Dir())->ReTagThis("Dir"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cExportSensibParamAero & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Dir(),aTree->Get("Dir",1)); //tototo 
+}
+
+std::string  Mangling( cExportSensibParamAero *) {return "0E03D19D3C1397E9FD3F";};
+
+
 std::list< cExportCalib > & cSectionExport::ExportCalib()
 {
    return mExportCalib;
@@ -23202,6 +23243,28 @@ const cTplValGesInit< std::string > & cSectionExport::ExportResiduXml()const
    return mExportResiduXml;
 }
 
+
+std::string & cSectionExport::Dir()
+{
+   return ExportSensibParamAero().Val().Dir();
+}
+
+const std::string & cSectionExport::Dir()const 
+{
+   return ExportSensibParamAero().Val().Dir();
+}
+
+
+cTplValGesInit< cExportSensibParamAero > & cSectionExport::ExportSensibParamAero()
+{
+   return mExportSensibParamAero;
+}
+
+const cTplValGesInit< cExportSensibParamAero > & cSectionExport::ExportSensibParamAero()const 
+{
+   return mExportSensibParamAero;
+}
+
 void  BinaryUnDumpFromFile(cSectionExport & anObj,ELISE_fp & aFp)
 {
    { int aNb;
@@ -23318,6 +23381,14 @@ void  BinaryUnDumpFromFile(cSectionExport & anObj,ELISE_fp & aFp)
         }
         else  anObj.ExportResiduXml().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ExportSensibParamAero().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ExportSensibParamAero().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ExportSensibParamAero().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionExport & anObj)
@@ -23388,6 +23459,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionExport & anObj)
     if (anObj.ChoixImMM().IsInit()) BinaryDumpInFile(aFp,anObj.ChoixImMM().Val());
     BinaryDumpInFile(aFp,anObj.ExportResiduXml().IsInit());
     if (anObj.ExportResiduXml().IsInit()) BinaryDumpInFile(aFp,anObj.ExportResiduXml().Val());
+    BinaryDumpInFile(aFp,anObj.ExportSensibParamAero().IsInit());
+    if (anObj.ExportSensibParamAero().IsInit()) BinaryDumpInFile(aFp,anObj.ExportSensibParamAero().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSectionExport & anObj)
@@ -23460,6 +23533,8 @@ cElXMLTree * ToXMLTree(const cSectionExport & anObj)
       aRes->AddFils(ToXMLTree(anObj.ChoixImMM().Val())->ReTagThis("ChoixImMM"));
    if (anObj.ExportResiduXml().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ExportResiduXml"),anObj.ExportResiduXml().Val())->ReTagThis("ExportResiduXml"));
+   if (anObj.ExportSensibParamAero().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.ExportSensibParamAero().Val())->ReTagThis("ExportSensibParamAero"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -23495,9 +23570,11 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ChoixImMM(),aTree->Get("ChoixImMM",1)); //tototo 
 
    xml_init(anObj.ExportResiduXml(),aTree->Get("ExportResiduXml",1)); //tototo 
+
+   xml_init(anObj.ExportSensibParamAero(),aTree->Get("ExportSensibParamAero",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "2C15B37B0C0EB497FE3F";};
+std::string  Mangling( cSectionExport *) {return "688DD9664E27DFE4F93F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -24094,6 +24171,28 @@ const cTplValGesInit< std::string > & cEtapeCompensation::ExportResiduXml()const
 }
 
 
+std::string & cEtapeCompensation::Dir()
+{
+   return SectionExport().Val().ExportSensibParamAero().Val().Dir();
+}
+
+const std::string & cEtapeCompensation::Dir()const 
+{
+   return SectionExport().Val().ExportSensibParamAero().Val().Dir();
+}
+
+
+cTplValGesInit< cExportSensibParamAero > & cEtapeCompensation::ExportSensibParamAero()
+{
+   return SectionExport().Val().ExportSensibParamAero();
+}
+
+const cTplValGesInit< cExportSensibParamAero > & cEtapeCompensation::ExportSensibParamAero()const 
+{
+   return SectionExport().Val().ExportSensibParamAero();
+}
+
+
 cTplValGesInit< cSectionExport > & cEtapeCompensation::SectionExport()
 {
    return mSectionExport;
@@ -24239,7 +24338,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "48EEBC06373C20AAFF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "94AEDAA712C3D49AFE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -24298,7 +24397,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "C0D2FB9CE83BEEFAFA3F";};
+std::string  Mangling( cSectionCompensation *) {return "86B4E6A7C4574C8DFD3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -25298,7 +25397,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "AB6A488189CF8A92FD3F";};
+std::string  Mangling( cParamApero *) {return "22AC47E402C67CA0FCBF";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

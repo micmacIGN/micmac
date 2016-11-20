@@ -291,6 +291,63 @@ int MyRename_main(int argc,char ** argv)
 }
 
 
+int UnWindows(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv);
+    std::string aPat;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain() << EAMC(aPat,"Pattern", eSAM_IsPatFile),
+        LArgMain()
+    );
+
+    cElemAppliSetFile anEASF(aPat);
+    const cInterfChantierNameManipulateur::tSet * aSet = anEASF.SetIm();
+
+    for (int aK=0 ; aK<int(aSet->size()) ; aK++)
+    {
+         std::string aName=(*aSet)[aK];
+         std::string aNameRes = aName +".NoBill";
+         std::string aNameOld = aName +".BeurkBill";
+         int aNb = sizeofile(aName.c_str());
+         Im1D_U_INT1 aImIn(aNb);
+         {
+             ELISE_fp aFileIn(aName.c_str(),ELISE_fp::READ);
+             aFileIn.read(aImIn.data(),sizeof(U_INT1),aNb);
+             aFileIn.close();
+         }
+
+         std::vector<U_INT1> aRes;
+         aRes.reserve(aNb);
+         U_INT1 * aD = aImIn.data();
+
+         for (int aK=0 ; aK<aNb ; aK++)
+         {
+             if (aD[aK] != 13)
+             {
+                aRes.push_back(aD[aK]);
+             }
+         }
+        
+         {
+             ELISE_fp aFileOut(aNameRes.c_str(),ELISE_fp::WRITE);
+             aFileOut.write(VData(aRes),sizeof(U_INT1),aRes.size());
+             aFileOut.close();
+         }
+
+         ELISE_fp::MvFile(aName,aNameOld);
+         ELISE_fp::MvFile(aNameRes,aName);
+
+/*
+        std::cout << "A:" << int('A')  << "\n";
+         for (int aK=0 ; aK<aNb ; aK++)
+             std::cout << "T : "  << int(aImIn.data()[aK]) << " " << aK << "\n";
+*/
+    }
+
+    return EXIT_SUCCESS;
+}
 
 
 

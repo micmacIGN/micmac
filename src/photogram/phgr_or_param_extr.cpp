@@ -271,11 +271,11 @@ class cIncRotatVectLibre
 
       cIncRotatVectLibre(AllocateurDInconnues & anAlloc,ElRotation3D  anOrientInit) :
           mA01       (anOrientInit.teta01()),
-          fAlpha01   (anAlloc.NewF(&mA01)),
+          fAlpha01   (anAlloc.NewF("cIncRotatVectLibre","A01",&mA01)),
           mA02       (anOrientInit.teta02()),
-          fAlpha02   (anAlloc.NewF(&mA02)),
+          fAlpha02   (anAlloc.NewF("cIncRotatVectLibre","A02",&mA02)),
           mA12       (anOrientInit.teta12()),
-          fAlpha12   (anAlloc.NewF(&mA12)),
+          fAlpha12   (anAlloc.NewF("cIncRotatVectLibre","A12",&mA12)),
           fOmega     (ElMatrix<Fonc_Num>::Rotation(fAlpha01,fAlpha02,fAlpha12))
       {
       }
@@ -323,8 +323,8 @@ class cIncVectUnite
            mTeta0     (mTeta),
            mPhi0      (mPhi),
 	   mIndTeta   (anAlloc.CurInc()),
-           fTeta      (anAlloc.NewF(&mTeta)),
-           fPhi       (anAlloc.NewF(&mPhi))
+           fTeta      (anAlloc.NewF("cIncVectUnite","Teta",&mTeta)),
+           fPhi       (anAlloc.NewF("cIncVectUnite","Phi",&mPhi))
       {
           mNVL[0].Init("Extr1",fTeta,fPhi);
           mNVL[1].Init("Extr2",fTeta,fPhi);
@@ -398,7 +398,7 @@ class cIncVectLibre
            mPt        (anOrientInit.tr()),
            mPt0       (mPt),
            mIndX      (anAlloc.CurInc()),
-           fPt        (anAlloc.NewPt3(mPt))
+           fPt        (anAlloc.NewPt3("cIncVectLibre",mPt))
       {
           aFCO.push_back(cElCompiledFonc::FoncSetVar(PtrNOSET(),mIndX));
           aFCO.push_back(cElCompiledFonc::FoncSetVar(PtrNOSET(),mIndX+1));

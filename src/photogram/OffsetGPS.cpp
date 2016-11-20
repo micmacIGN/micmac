@@ -68,7 +68,7 @@ class cEqOffsetGPS;
 cBaseGPS::cBaseGPS  (cSetEqFormelles & aSet,const Pt3dr & aV0) :
      cElemEqFormelle (aSet,false),
      mV0             (aV0),
-     mBaseInc        (mSet.Alloc().NewPt3(mV0))
+     mBaseInc        (mSet.Alloc().NewPt3("cBaseGPS",mV0))
 {
 }
 

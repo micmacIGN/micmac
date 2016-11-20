@@ -97,7 +97,7 @@ cEqAffine::cEqAffine(cSetEqFormelles * aSet,int aNbInc,bool GenCode)
 /*                                                            */
 /**************************************************************/
 cSomBilin::cSomBilin(cSetEqFormelles & aSet,Pt2dr & aPt,const cIncIntervale & anInt)  :
-   mPtF        (aSet.Alloc().NewPt2(aPt)),
+   mPtF        (aSet.Alloc().NewPt2("cSomBilin",aPt)),
    mInterv     (anInt)
 {
 }

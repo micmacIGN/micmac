@@ -291,6 +291,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
          void VerifIndexVar(int aK);
 
 	 static const int mDegrePolyn[NbVar];
+	 static const std::string mNamePolyn[NbVar];
          cPIF_Unif(bool isDistC2M,tCam *,cSetEqFormelles &);
 
          int     mIndInc0;

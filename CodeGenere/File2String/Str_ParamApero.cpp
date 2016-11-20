@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1718]) = {
+const char * (theNameVar_ParamApero[1722]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1643,6 +1643,10 @@ const char * (theNameVar_ParamApero[1718]) = {
 "                     </ChoixImMM>\n",
 "\n",
 "                     <ExportResiduXml Nb=\"?\" Type=\"std::string\"> </ExportResiduXml>\n",
+"\n",
+"                     <ExportSensibParamAero Nb=\"?\"> \n",
+"                         <Dir Nb=\"1\"  Type=\"std::string\"> </Dir>\n",
+"                     </ExportSensibParamAero>\n",
 "\n",
 "\n",
 "		 </SectionExport>\n",
