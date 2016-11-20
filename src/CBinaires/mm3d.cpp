@@ -621,6 +621,7 @@ int FAST_main(int argc,char ** argv);
 
 int Test_NewRechPH(int argc,char ** argv);
 
+int UnWindows(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -639,6 +640,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Exo8",TD_Exo8,"Some stuff "));
        aRes.push_back(cMMCom("Exo9",TD_Exo9,"Some stuff "));
 
+       aRes.push_back(cMMCom("NoBill",UnWindows,"Supress the big shit in file resulting from (f**king) Windows editing"));
 
        aRes.push_back(cMMCom("DupBigTiff",TestDupBigTiff,"Duplicate a tiff file, handling the big tif option"));
        aRes.push_back(cMMCom("Stephane",TestStephane_Main,"In test funtction for Stephane Guinard "));

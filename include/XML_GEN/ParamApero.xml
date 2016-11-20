@@ -1642,6 +1642,10 @@ normalises en echelle et/ou en translation -->
 
                      <ExportResiduXml Nb="?" Type="std::string"> </ExportResiduXml>
 
+                     <ExportSensibParamAero Nb="?"> 
+                         <Dir Nb="1"  Type="std::string"> </Dir>
+                     </ExportSensibParamAero>
+
 
 		 </SectionExport>
 

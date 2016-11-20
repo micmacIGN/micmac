@@ -2604,6 +2604,7 @@ class cAppliApero : public NROptF1vND
         cXmlSauvExportAperoGlob                mXMLExport;
         const cXmlSLM_RappelOnPt *             mXmlSMLRop;
         const cXmlPondRegDist *                mCurXmlPondRegDist;
+        const cExportSensibParamAero *         mESPA;
 
         
     public :

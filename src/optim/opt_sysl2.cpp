@@ -726,6 +726,7 @@ Pt3dr ElSeg3D::L2InterFaisceaux
 
 Im1D_REAL8  L2SysSurResol::V_GSSR_Solve(bool * aResOk)
 {
+
    return Solve(aResOk);
 }
 
