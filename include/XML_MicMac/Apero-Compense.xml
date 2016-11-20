@@ -111,6 +111,10 @@
 
           
            <Symb> UseHom=true  </Symb>
+ 
+	   <Symb> ModeResolSysLin=eSysL2BlocSym </Symb> 
+	   <Symb> ExportSensib=false </Symb> 
+	   <Symb> DirExportSensib=XXXXX </Symb> 
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -263,7 +267,7 @@
         </SectionChantier>
 
         <SectionSolveur>
-	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+	      <ModeResolution> ${ModeResolSysLin} </ModeResolution> 
 
               <SLMGlob> 
                  <RappelOnAngles>
@@ -557,6 +561,11 @@
                             </#WHEN>
 
                             <ExportResiduXml> Ori${AeroOut}/Residus.xml </ExportResiduXml>
+                            <#WHEN  VTEST=${ExportSensib}>
+                               <ExportSensibParamAero Nb="?">
+                                     <Dir> ${DirExportSensib} </Dir>
+                               </ExportSensibParamAero>
+                            </#WHEN>
 
                     </SectionExport>
 	      </EtapeCompensation>

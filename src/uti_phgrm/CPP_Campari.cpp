@@ -227,6 +227,9 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     double aPdsGBRot=0.002;
     double aPdsGBId=0.0;
     double aPdsGBIter=1e-6;
+    bool   aExportSensib = false;
+
+    bool   aUseGaussJ = false;
 
 
     ElInitArgMain
@@ -269,6 +272,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aPdsGBId,"PdsGBId",true,"Weighting of the global deformation constraint (Generic bundle Def=0.0)")
                     << EAM(aPdsGBIter,"PdsGBIter",true,"Weighting of the change of the global rotation constraint between iterations (Generic bundle Def=1e-6)")
 
+                    << EAM(aExportSensib,"ExportSensib",true,"Export sensiblity (accuracy) estimator : correlation , varaiance, inverse matrix variance ... ")
+                    << EAM(aUseGaussJ,"UseGaussJ",true,"Use GaussJ instead of Cholesky (Def depend of others) ")
     );
 
 
@@ -292,6 +297,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
             aSetIm =  "NKS-Set-OfPatternAndInterv@" + mPat + "@" + aImMinMax[0] + "@" + aImMinMax[1];
         }
 
+        if (! EAMIsInit(&aUseGaussJ)) 
+           aUseGaussJ = aExportSensib ;
 
 
 
@@ -423,6 +430,16 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
            {
                mCom += std::string(" +WBG_Stricte=true ");
            }
+        }
+        if (aUseGaussJ)
+        {
+           mCom +=   std::string(" +ModeResolSysLin=eSysPlein");
+        }
+
+        if (aExportSensib) 
+        {
+           mCom +=   std::string(" +ExportSensib=true") 
+                   + std::string(" +DirExportSensib=/Ori-")+ AeroOut + std::string("/");
         }
 
         mExe = (! EAMIsInit(&mMulRTA)) || (EAMIsInit(&GCPRTA));

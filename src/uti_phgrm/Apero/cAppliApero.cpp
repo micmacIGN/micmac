@@ -94,7 +94,8 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mHasEqDr           (false),
    mStatLastIter      (false),
    mSqueezeDOCOAC     (0),
-   mXmlSMLRop         (0)
+   mXmlSMLRop         (0),
+   mESPA              (0)
 {
      mIsLastIter = false;
      mIsLastEtape = false;

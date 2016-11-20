@@ -6210,6 +6210,27 @@ void  BinaryUnDumpFromFile(cChoixImMM &,ELISE_fp &);
 
 std::string  Mangling( cChoixImMM *);
 
+class cExportSensibParamAero
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cExportSensibParamAero & anObj,cElXMLTree * aTree);
+
+
+        std::string & Dir();
+        const std::string & Dir()const ;
+    private:
+        std::string mDir;
+};
+cElXMLTree * ToXMLTree(const cExportSensibParamAero &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cExportSensibParamAero &);
+
+void  BinaryUnDumpFromFile(cExportSensibParamAero &,ELISE_fp &);
+
+std::string  Mangling( cExportSensibParamAero *);
+
 class cSectionExport
 {
     public:
@@ -6322,6 +6343,12 @@ class cSectionExport
 
         cTplValGesInit< std::string > & ExportResiduXml();
         const cTplValGesInit< std::string > & ExportResiduXml()const ;
+
+        std::string & Dir();
+        const std::string & Dir()const ;
+
+        cTplValGesInit< cExportSensibParamAero > & ExportSensibParamAero();
+        const cTplValGesInit< cExportSensibParamAero > & ExportSensibParamAero()const ;
     private:
         std::list< cExportCalib > mExportCalib;
         std::list< cExportPose > mExportPose;
@@ -6336,6 +6363,7 @@ class cSectionExport
         std::list< cExportNuage > mExportNuage;
         cTplValGesInit< cChoixImMM > mChoixImMM;
         cTplValGesInit< std::string > mExportResiduXml;
+        cTplValGesInit< cExportSensibParamAero > mExportSensibParamAero;
 };
 cElXMLTree * ToXMLTree(const cSectionExport &);
 
@@ -6514,6 +6542,12 @@ class cEtapeCompensation
 
         cTplValGesInit< std::string > & ExportResiduXml();
         const cTplValGesInit< std::string > & ExportResiduXml()const ;
+
+        std::string & Dir();
+        const std::string & Dir()const ;
+
+        cTplValGesInit< cExportSensibParamAero > & ExportSensibParamAero();
+        const cTplValGesInit< cExportSensibParamAero > & ExportSensibParamAero()const ;
 
         cTplValGesInit< cSectionExport > & SectionExport();
         const cTplValGesInit< cSectionExport > & SectionExport()const ;
