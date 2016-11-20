@@ -1130,6 +1130,29 @@ bool cElMatCreuseBlocSym::DirectInverse(const tSysCho * aDIn,tSysCho * aDOut)
         mMChol->SolveLowerSys(aDTmp,aDEr,1.0);
         mMChol->SolveUperSys(aDMInvEr,aDTmp,1.0);
 
+// getchar();
+/*
+   a 0 0   a b d      a*a 
+   b c 0 * 0 c e          b2+c2
+   d e f   0 0 f                 d2+e2+f2
+
+
+   a b c   1/a   -b/ad
+   0 d e   0     1/d    -e/fd
+   0 0 f   0     0      1/f
+*/
+/*
+if (MPD_MM())
+{
+    for (int aK=0 ; aK<mNbCol ; aK++)
+    {
+       double aSom=0;
+       for (int aI=0 ; aI<mNbCol ; aI++)
+           aSom += ElSquare(mMChol->SimpleGet(aK,aI));
+       std::cout << "DIAGCHO " <<  aSom  << " " << mNbEl << " " << mNbCol << "\n";
+    }
+}
+*/
         for (int aK=0 ; aK<mNbEl ; aK++)
         {
             aDOut[aK] += aDMInvEr[aK];
@@ -1800,7 +1823,7 @@ void cElMatCreuseBlocSym::CalculCholesky()
                                aScal = 1;
                            }
                            mMChol->LowSetElem(anX,anY,sqrt(aScal));
-   // std::cout << " X=" << anX << " Y=" << anY << " Sc=" << aScal << " Chol=" << mMChol->LowGetElem(anX,anY) << "\n";
+
                       }
                  }
             }
@@ -1809,7 +1832,8 @@ void cElMatCreuseBlocSym::CalculCholesky()
    }
    mMChol->ChainageBlocs();
    mMChol->cElMatCreuseGen::PrepPreCond();
-// getchar();
+
+
 }
 
 

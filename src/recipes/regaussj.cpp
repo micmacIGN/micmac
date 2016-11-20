@@ -72,6 +72,7 @@ template void  NR_InitVect(ElFilo<REAL16> & V,INT n);
 template <class Type> bool gaussj_svp(Type **A,INT n)
 {
 
+
 	int i,icol=0,irow=0,j,k=0,l,ll;
 	Type big,dum,pivinv;
         
@@ -138,6 +139,18 @@ template <class Type> bool gaussj_svp(Type **A,INT n)
 				SWAP(a[k][indxr[l]],a[k][indxc[l]]);
 	}
 
+/*
+if (MPD_MM())
+{
+    if ( n > 10)
+    {    
+         std::cout << "GaussjSZ=" << n << "\n";
+         for (int aK=0 ; aK<n  ; aK++)
+             std::cout << "kk gaussj_svp  " << A[aK][aK] << "\n";
+    }
+}
+*/
+
         return true;
 }
 
@@ -148,6 +161,7 @@ template <class Type> void gaussj(Type **A,INT n)
        ELISE_ASSERT(false,"Singular Matrix");
     }
 }
+
 
 template bool gaussj_svp(REAL **A,INT n);
 template void gaussj(REAL **A,INT n);

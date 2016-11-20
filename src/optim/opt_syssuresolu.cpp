@@ -857,23 +857,34 @@ void AllocateurDInconnues::PushVar(REAL * anAdr)
     mValsVar.push_back(*anAdr);
 }
 
-Fonc_Num AllocateurDInconnues::NewF(REAL * anAdr,bool HasAlwaysInitialValue)
+Fonc_Num AllocateurDInconnues::NewF(const std::string & aNameBloc,const std::string & aName,REAL * anAdr,bool HasAlwaysInitialValue)
 {
-    return  kth_coord(NewInc(anAdr),HasAlwaysInitialValue,*anAdr);
+    return  kth_coord(NewInc(aNameBloc,aName,anAdr),HasAlwaysInitialValue,*anAdr);
 }
 
-INT AllocateurDInconnues::NewInc(REAL * anAdr)
+INT AllocateurDInconnues::NewInc(const std::string & aNameBloc,const std::string & aName,REAL * anAdr)
 {
+    mVNamesInc.push_back(aName);
+    mVNamesBlocInc.push_back(aNameBloc);
     PushVar(anAdr);
     return  mIdInc++;
 }
 
 Pt3d<Fonc_Num>   AllocateurDInconnues::NewPt3
-                 (REAL * adrX,REAL * adrY,REAL * adrZ,bool HasAlwaysInitialValue)
+                 (const std::string & aNameBloc,REAL * adrX,REAL * adrY,REAL * adrZ,bool HasAlwaysInitialValue)
 {
     PushVar(adrX);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("x");
+
     PushVar(adrY);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("y");
+
     PushVar(adrZ);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("z");
+
 
     mIdInc += 3;
     return Pt3d<Fonc_Num>
@@ -884,27 +895,33 @@ Pt3d<Fonc_Num>   AllocateurDInconnues::NewPt3
            );
 }
 
-std::vector<Fonc_Num>   AllocateurDInconnues::NewVectInc(std::vector<double> & aV)
+std::vector<Fonc_Num>   AllocateurDInconnues::NewVectInc(const std::string & aNameBloc,const std::vector<std::string> & aVNameInc,std::vector<double> & aV)
 {
     std::vector<Fonc_Num> aRes;
     for (int aK=0; aK<int(aV.size()) ; aK++)
     {
-       aRes.push_back(NewF(&(aV[aK])));
+       aRes.push_back(NewF(aNameBloc,aVNameInc[aK],&(aV[aK])));
     }
     return aRes;
 }
 
 
-Pt3d<Fonc_Num>   AllocateurDInconnues::NewPt3(Pt3dr & aP,bool HasAlwaysInitialValue)
+Pt3d<Fonc_Num>   AllocateurDInconnues::NewPt3(const std::string & aNameBloc,Pt3dr & aP,bool HasAlwaysInitialValue)
 {
-      return   NewPt3(&aP.x,&aP.y,&aP.z,HasAlwaysInitialValue);
+      return   NewPt3(aNameBloc,&aP.x,&aP.y,&aP.z,HasAlwaysInitialValue);
 }
 
 
-Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(REAL * adrX,REAL * adrY,bool HasAlwaysInitialValue)
+Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(const std::string & aNameBloc,REAL * adrX,REAL * adrY,bool HasAlwaysInitialValue)
 {
     PushVar(adrX);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("x");
+
     PushVar(adrY);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("y");
+
     mIdInc += 2;
     return Pt2d<Fonc_Num>
            (
@@ -913,13 +930,14 @@ Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(REAL * adrX,REAL * adrY,bool HasAl
            );
 }
 
-Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(Pt2dr & aP,bool HasAlwaysInitialValue)
+Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(const std::string & aNameBloc,Pt2dr & aP,bool HasAlwaysInitialValue)
 {
-      return   NewPt2(&aP.x,&aP.y,HasAlwaysInitialValue);
+      return   NewPt2(aNameBloc,&aP.x,&aP.y,HasAlwaysInitialValue);
 }
 
 TplElRotation3D<Fonc_Num> AllocateurDInconnues::NewRot
                         (
+                            const std::string & aNameBloc,
 			    REAL * adrTrX, REAL * adrTrY, REAL * adrTrZ,
 			    REAL * adrTeta01,
 			    REAL * adrTeta02,
@@ -928,11 +946,29 @@ TplElRotation3D<Fonc_Num> AllocateurDInconnues::NewRot
 {
     mIdInc += 6;
     PushVar(adrTrX);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("Cx");
+
     PushVar(adrTrY);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("Cy");
+
     PushVar(adrTrZ);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("Cz");
+
     PushVar(adrTeta01);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("Tz");
+
     PushVar(adrTeta02);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("Ty");
+
     PushVar(adrTeta12);
+    mVNamesBlocInc.push_back(aNameBloc);
+    mVNamesInc.push_back("Tx");
+
 
     return  TplElRotation3D<Fonc_Num>
             (

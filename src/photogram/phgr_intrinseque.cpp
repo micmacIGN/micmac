@@ -227,7 +227,8 @@ cPolynFormelXY::cPolynFormelXY
 {
      for (INT aK = 0  ; aK<mPolCur.NbMonome() ; aK++)
      {
-        vCOeffs.push_back(aSet.Alloc().NewF(&mPolCur.Coeff(aK)));
+        std::string aNameMon = "X"+ToString(mPolCur.DegreX(aK)) + "Y"+ToString(mPolCur.DegreX(aK));
+        vCOeffs.push_back(aSet.Alloc().NewF("cPolynFormelXY",aNameMon,&mPolCur.Coeff(aK)));
 	mFige.push_back(true);
      }
      CloseEEF();
@@ -297,7 +298,7 @@ cDistRadialeFormelle::cDistRadialeFormelle
      mDistInit    (mDistInitStd.DRad()),
      mCurDist     (mCurDistStd.DRad()),
      mIndCentre   (aSet.Alloc().CurInc()),
-     mFCentre     (aSet.Alloc().NewPt2(mCurDist.Centre())),
+     mFCentre     (aSet.Alloc().NewPt2("cDistRadialeFormelle",mCurDist.Centre())),
      mTolCDist    (cContrainteEQF::theContrStricte),
      mTolCoeffs   (cContrainteEQF::theContrStricte)
 {
@@ -310,7 +311,7 @@ cDistRadialeFormelle::cDistRadialeFormelle
    }
    for (INT aK=0 ; aK<INT(mCurDist.NbCoeff()) ; aK++)
    {
-       mFCoeffs.push_back(aSet.Alloc().NewF(&(mCurDist.Coeff(aK))));
+       mFCoeffs.push_back(aSet.Alloc().NewF("cDistRadialeFormelle","R"+ToString(3+2*aK),&(mCurDist.Coeff(aK))));
    }
 
    CloseEEF(asIntervBlock);
@@ -484,6 +485,14 @@ Pt2d<Fonc_Num>  cDistRadialeFormelle::FCentre() const
 /*                                                          */
 /************************************************************/
 
+std::vector<std::string>   StdVectorOfName(const std::string & aPref,int aNb)
+{
+   std::vector<std::string> aRes;
+   for (int aK=0 ; aK<aNb ;aK++)
+       aRes.push_back(aPref+":"+ToString(aK));
+   return aRes;
+}
+
 cParamIntrinsequeFormel::cParamIntrinsequeFormel
 (
     bool              isDC2M,
@@ -508,17 +517,17 @@ cParamIntrinsequeFormel::cParamIntrinsequeFormel
    mAFocInit       (mCamInit->ParamAF()),
    mCurAFoc        (mAFocInit),
    mFFoc           (  ParamVar ?
-		      aSet.Alloc().NewF(&mCurFocale) :
+		      aSet.Alloc().NewF(aCamInit->IdCam(),"F",&mCurFocale) :
 		      Fonc_Num(mFocaleInit)
 		   ),
    mIndPP          (aSet.Alloc().CurInc()),
    mFPP            (
 		        ParamVar ?
-		        aSet.Alloc().NewPt2(mCurPP) :
+		        aSet.Alloc().NewPt2(aCamInit->IdCam()+":PP",mCurPP) :
 		        Pt2d<Fonc_Num>(mPPInit.x,mPPInit.y)
                    ),
    mIndAF          (aSet.Alloc().CurInc()),
-   mFAFoc           (aSet.Alloc().NewVectInc(mCurAFoc)),
+   mFAFoc           (aSet.Alloc().NewVectInc("AFoc",StdVectorOfName("D",mCurAFoc.size()),mCurAFoc)),
    mParamVar        (ParamVar),
    mTolFoc          (cContrainteEQF::theContrStricte),
    mTolPP           (cContrainteEQF::theContrStricte),
@@ -1353,10 +1362,10 @@ cParamIFDistStdPhgr::cParamIFDistStdPhgr
     mInitDStd          (mDRF.DistInitStd()),
     mParamDecentreFree (false),
     mParamAffineFree   (false),
-    mFP1               (aSet.Alloc().NewF(&(mDStd.P1()))),
-    mFP2               (aSet.Alloc().NewF(&(mDStd.P2()))),
-    mFb1               (aSet.Alloc().NewF(&(mDStd.b1()))),
-    mFb2               (aSet.Alloc().NewF(&(mDStd.b2()))),
+    mFP1               (aSet.Alloc().NewF(aCam->IdCam(),"P1",&(mDStd.P1()))),
+    mFP2               (aSet.Alloc().NewF(aCam->IdCam(),"P2",&(mDStd.P2()))),
+    mFb1               (aSet.Alloc().NewF(aCam->IdCam(),"b1",&(mDStd.b1()))),
+    mFb2               (aSet.Alloc().NewF(aCam->IdCam(),"b2",&(mDStd.b2()))),
     mTol_Dec_PhgStdPIF (cContrainteEQF::theContrStricte),
     mTol_Aff_PhgStdPIF (cContrainteEQF::theContrStricte),
     mCurPIF            (0)

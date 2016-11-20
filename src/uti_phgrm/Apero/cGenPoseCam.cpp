@@ -63,9 +63,11 @@ cOneEq_PBGC3M2DF::cOneEq_PBGC3M2DF(cPolynBGC3M2D_Formelle & aPF,std::vector<doub
    mPF     (&aPF),
    mCamCur (&(aPF.mCamCur))
 {
+    std::string aNameGrp = "Cam:" + mCamCur->NameIma();
     for (int aK=0 ; aK<int(aCoef.size()) ; aK++)
     {
-        mVFCoef.push_back(aPF.Set().Alloc().NewF(&(aCoef[aK])));
+        std::string aMonome = "X" + ToString(mCamCur->DegX(aK)) + "Y" + ToString(mCamCur->DegY(aK));
+        mVFCoef.push_back(aPF.Set().Alloc().NewF(aNameGrp,aMonome,&(aCoef[aK])));
     }
 
     CloseEEF();
@@ -901,6 +903,8 @@ cBasicGeomCap3D *   cBGC3_Modif2D::CamSsCor()
 
 Pt2dr  cBGC3_Modif2D::ImRef2Capteur   (const Pt2dr & aP) {return aP;}
 double cBGC3_Modif2D::ResolImRefFromCapteur() const {return 1.0;}
+const std::string & cBGC3_Modif2D::NameIma() const {return mNameIma;}
+
 
 
 // ==========================================================

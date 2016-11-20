@@ -216,22 +216,26 @@ class cStateAllocI
 };
 
 
+std::vector<std::string>   StdVectorOfName(const std::string & aPref,int aNb);
+
+
+
 class AllocateurDInconnues
 {
       public :
         void AssertUsable(const cStateAllocI &) const;
         void RestoreState(const cStateAllocI &);
         AllocateurDInconnues();
-        Fonc_Num        NewF(REAL *,bool HasAlwaysInitialValue=false);
-        INT             NewInc(REAL *);
-        Pt3d<Fonc_Num>  NewPt3(REAL *,REAL*,REAL*,bool HasAlwaysInitialValue=false);
-        Pt3d<Fonc_Num>            NewPt3(Pt3dr &,bool HasAlwaysInitialValue=false);
-        Pt2d<Fonc_Num>            NewPt2(REAL*,REAL*,bool HasAlwaysInitialValue=false);
-        Pt2d<Fonc_Num>            NewPt2(Pt2dr &,bool HasAlwaysInitialValue=false);
+        Fonc_Num        NewF(const std::string & aNameBloc,const std::string & aNameInc,REAL *,bool HasAlwaysInitialValue=false);
+        INT             NewInc(const std::string & aNameBloc,const std::string & aNameInc,REAL *);
+        Pt3d<Fonc_Num>  NewPt3(const std::string & aNameBloc,REAL *,REAL*,REAL*,bool HasAlwaysInitialValue=false);
+        Pt3d<Fonc_Num>            NewPt3(const std::string & aNameBloc,Pt3dr &,bool HasAlwaysInitialValue=false);
+        Pt2d<Fonc_Num>            NewPt2(const std::string & aNameBloc,REAL*,REAL*,bool HasAlwaysInitialValue=false);
+        Pt2d<Fonc_Num>            NewPt2(const std::string & aNameBloc,Pt2dr &,bool HasAlwaysInitialValue=false);
 
-        std::vector<Fonc_Num>            NewVectInc(std::vector<double> &);
+        std::vector<Fonc_Num>            NewVectInc(const std::string & aNameBloc,const std::vector<std::string> & aNameInc,std::vector<double> &);
 
-        TplElRotation3D<Fonc_Num> NewRot(REAL *,REAL*,REAL*,REAL *,REAL*,REAL*);
+        TplElRotation3D<Fonc_Num> NewRot(const std::string & aNameBloc,REAL *,REAL*,REAL*,REAL *,REAL*,REAL*);
         INT CurInc() const;
 
 	PtsKD PInits();
@@ -247,6 +251,11 @@ class AllocateurDInconnues
 	void PushVar(REAL *);
 	std::vector<REAL *>  mAdrVar;
 	std::vector<REAL  >  mValsVar;
+	std::vector<std::string>  mVNamesInc;
+	std::vector<std::string>  mVNamesBlocInc;
+
+
+
         INT GetNewInc();
         INT mIdInc;
         AllocateurDInconnues (const AllocateurDInconnues &);
@@ -571,6 +580,9 @@ class cGenSysSurResol
          virtual void  SetElemLin(int i,const tSysCho& ) ;
          virtual tSysCho SomQuad() const;
 
+         virtual bool  InverseIsComputedAfterSolve();
+         virtual tSysCho   GetElemInverseQuad(int i,int j) const;
+
           
          virtual void LVM_Mul(const tSysCho& aLambda) ;  // Levenberg Marquad modif
          virtual void LVM_Mul(const tSysCho& aLambda,int aK) ;  // Levenberg Marquad modif sur une seule inconnue
@@ -859,6 +871,8 @@ class cFormQuadCreuse : public cVectMatMul,
 class L2SysSurResol : public cGenSysSurResol
 {
      public :
+         virtual bool  InverseIsComputedAfterSolve();
+         virtual tSysCho   GetElemInverseQuad(int i,int j) const;
          virtual double  ResiduOfSol(const double *);
          void  GSSR_Add_EqInterPlan3D(const Pt3dr& aDirOrtho,const Pt3dr& aP0,double aPds=1.0);
          void  GSSR_Add_EqInterDroite3D(const Pt3dr& aDirDroite,const Pt3dr& aP0,double aPds=1.0);

@@ -797,6 +797,7 @@ class cSetEqFormelles : public cNameSpaceEqF
 
                 cCylindreRevolFormel & AllocCylindre
                                        (
+                                         const std::string & aName,
                                          const  cCylindreRevolution &,
 				         bool GenCode = false
                                        );

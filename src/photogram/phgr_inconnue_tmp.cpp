@@ -401,7 +401,7 @@ cEqf1IncTmp::cEqf1IncTmp
    mVal     (0.0) ,
    mAlloc   (aSet.Alloc()),
    mCurInc  (mAlloc.CurInc()),
-   mF       (mAlloc.NewF(&mVal))
+   mF       (mAlloc.NewF("cEqf1IncTmp","?",&mVal))
 {
 }
 

@@ -64,6 +64,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mDoPly      (true),
     mPlyC       (0)
 {
+   MMD_InitArgcArgv(argc,argv);
    ElInitArgMain
    (
          argc,argv,

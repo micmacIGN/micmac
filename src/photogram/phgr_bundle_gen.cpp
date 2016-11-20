@@ -50,7 +50,7 @@ extern bool AllowUnsortedVarIn_SetMappingCur;
 cPt3dEEF::cPt3dEEF(cSetEqFormelles & aSet,const Pt3dr & aP0,bool HasValCste) :
           cElemEqFormelle (aSet,false),
           mP0     (aP0),
-          mP      (aSet.Alloc().NewPt3(mP0,HasValCste))
+          mP      (aSet.Alloc().NewPt3("cPt3dEEF",mP0,HasValCste))
 {
            CloseEEF();
            aSet.AddObj2Kill(this);
@@ -60,7 +60,7 @@ cPt3dEEF::cPt3dEEF(cSetEqFormelles & aSet,const Pt3dr & aP0,bool HasValCste) :
 cScalEEF::cScalEEF(cSetEqFormelles & aSet,double aV0,bool HasValCste) :
           cElemEqFormelle (aSet,false),
           mS0     (aV0),
-          mS      (aSet.Alloc().NewF(&mS0,HasValCste))
+          mS      (aSet.Alloc().NewF("cScalEEF","Scale",&mS0,HasValCste))
 {
            CloseEEF();
            aSet.AddObj2Kill(this);

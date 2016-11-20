@@ -57,6 +57,13 @@ const std::string TheRaffineQuickMac();
 const std::string TheRaffineQuickMac(const std::string &);
 
 
+const std::string & TheNameMatrCorrel();
+const std::string & TheNameMatrCov();
+const std::string & TheNameFileVarName();
+const std::string & TheNameFileSensibVar();
+
+
+
 extern const std::string ExtTxtXml;
 extern const std::string ExtBinDmp;
 const std::string & ExtXml(bool Bin);
