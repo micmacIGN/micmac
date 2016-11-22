@@ -68,11 +68,17 @@ void triangle::reproject(pic *aPic, bool &reprOK, Tri2d &result, int ind=-1)
     //Pt2dr Som2Repro = aPic->mOriPic->ElCamera::R3toF2(mSommet[2]);
     Pt2dr Som2Repro = aPic->mOriPic->Ter2Capteur(mSommet[2]);
     bool inside3 = aPic->checkInSide(Som2Repro);
+//    if (
+//            inside && inside2 && inside3 &&
+//            aPic->mOriPic->ElCamera::Devant(mSommet[0]) &&
+//            aPic->mOriPic->ElCamera::Devant(mSommet[1]) &&
+//            aPic->mOriPic->ElCamera::Devant(mSommet[2])
+//       )
     if (
             inside && inside2 && inside3 &&
-            aPic->mOriPic->ElCamera::Devant(mSommet[0]) &&
-            aPic->mOriPic->ElCamera::Devant(mSommet[1]) &&
-            aPic->mOriPic->ElCamera::Devant(mSommet[2])
+            aPic->mOriPic->ElCamera::PIsVisibleInImage(mSommet[0]) &&
+            aPic->mOriPic->ElCamera::PIsVisibleInImage(mSommet[1]) &&
+            aPic->mOriPic->ElCamera::PIsVisibleInImage(mSommet[2])
        )
         {reprOK = true; }
     else

@@ -129,7 +129,7 @@ int TestGiang_main(int argc,char ** argv)
                     << EAM(PasCorr, "PasCorr", true, "step correlation (default = 0.5 pxl)")
                     << EAM(indTri, "indTri", true, "process one triangle")
                     << EAM(assum1er, "assum1er", true, "always use 1er pose as img master, default=0")
-                    << EAM(Test, "Test", true, "Test new method - multi correl")
+                    << EAM(Test, "Test", true, "Test new method - correl by XML")
                     << EAM(aTypeD, "aTypeD", true, "FAST, DIGEO, HOMOLINIT - default = HOMOLINIT")
                     << EAM(dParam,"dParam",true,"[param1, param2, ..] (selon detector - NO if don't have)", eSAM_NoInit)
                     << EAM(aHomolOut, "HomolOut", true, "default = _Filtered")
@@ -196,17 +196,9 @@ int TestGiang_main(int argc,char ** argv)
         }
         if(Test)
         {
-            cout<<"********** Method TEST **********"<<endl;
-            aChain->creatJobCorrel(aAngleF);
-            vector<AJobCorel> lstJobCorrel;
-            aChain->getLstJobCorrel(lstJobCorrel);
-            cout<<"There is "<<lstJobCorrel.size()<<" jobs"<<endl;
-            for (uint i=0; i<lstJobCorrel.size(); i++)
-            {
-                AJobCorel aJob =  lstJobCorrel[i];
 
 
-            }
+
         }
         cout<<endl<<"Total "<<aCorrel.countPts<<" cpl NEW & "<<aCorrel.countCplOrg<<" cpl ORG"<<endl;
         cout<<endl;

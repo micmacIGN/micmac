@@ -211,7 +211,7 @@ int TaskCorrel_main(int argc,char ** argv)
                     Pt2dr aPtI1 = aTriIm.sommet1[1];
                     Pt2dr aPtI2 = aTriIm.sommet1[2];
                     double aSurf =  (aPtI0-aPtI1) ^ (aPtI0-aPtI2);
-                    if (ElAbs(aSurf) > TT_SEUIL_SURF && aTriIm.insidePic)
+                    if (-aSurf > TT_SEUIL_SURF && aTriIm.insidePic)
                     {
                         //creer plan 3D local contient triangle
                         cElPlan3D * aPlanLoc = new cElPlan3D(atri->getSommet(0) , atri->getSommet(1), atri->getSommet(2));
@@ -296,7 +296,7 @@ int TaskCorrel_main(int argc,char ** argv)
                             min_cur = theta_min;
                             picMaster = apic;
                         }
-                        if (theta_min > TT_SEUIL_RESOLUTION)
+                        if (theta_min > TT_SEUIL_RESOLUTION)        //condition de choisir image 2nd : pour l'instant, choisir tout les reste comme 2nd
                             VPicAcpt.push_back(apic);
                     }
                     else

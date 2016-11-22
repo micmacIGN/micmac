@@ -98,8 +98,13 @@ void pic::AddVectorCplHomoToPack(pic* Pic2nd, vector<ElCplePtsHomologues> aHomo)
 }
 
 
-bool pic::checkInSide(Pt2dr aPoint,int aRab)
+bool pic::checkInSide(Pt2dr aPoint,int aRab) //default aRab=0
 {
+    return    (aPoint.x - aRab >= 0)
+           && (aPoint.y - aRab >= 0)
+           && (aPoint.x + aRab < this->mImgSz.x)
+           && (aPoint.y + aRab < this->mImgSz.y);
+/*
     bool result;
     //Pt2di size = mOriPic->Sz();
     Pt2di size = mImgSz;
@@ -110,7 +115,8 @@ bool pic::checkInSide(Pt2dr aPoint,int aRab)
         {result=true;}
     else
         {result = false;}
-    return result;
+    return result;    
+*/
 }
 
 void pic::getPtsHomoInThisTri(triangle* aTri , vector<Pt2dr> & lstPtsInteret, vector<Pt2dr> & result)
