@@ -586,6 +586,8 @@ class cGenSysSurResol
 
          virtual bool  InverseIsComputedAfterSolve();
          virtual tSysCho   GetElemInverseQuad(int i,int j) const;
+         virtual bool  ResiduIsComputedAfterSolve();
+         virtual tSysCho   ResiduAfterSol() const;
 
           
          virtual void LVM_Mul(const tSysCho& aLambda) ;  // Levenberg Marquad modif
@@ -877,6 +879,8 @@ class L2SysSurResol : public cGenSysSurResol
      public :
          virtual bool  InverseIsComputedAfterSolve();
          virtual tSysCho   GetElemInverseQuad(int i,int j) const;
+         virtual bool  ResiduIsComputedAfterSolve();
+         virtual tSysCho   ResiduAfterSol() const;
          virtual double  ResiduOfSol(const double *);
          void  GSSR_Add_EqInterPlan3D(const Pt3dr& aDirOrtho,const Pt3dr& aP0,double aPds=1.0);
          void  GSSR_Add_EqInterDroite3D(const Pt3dr& aDirDroite,const Pt3dr& aP0,double aPds=1.0);
@@ -966,6 +970,7 @@ class L2SysSurResol : public cGenSysSurResol
         REAL8 *      mDataSolL2;
         INT          mNbEq; // Debug
         double       mMaxBibi; // Debug
+        double       mResiduAfterSol;
 };
 
 // Classe Adaptee au contexte bcp d'equations, (relativement) peu de variable
