@@ -110,6 +110,11 @@ class cAppliTieTri
            void  RechHomPtsDense(cResulMultiImRechCorrel<double> &);
            double &   SeuilDensite();
            int    &   DefStepDense();
+           void SetPtsSelect(const Pt2dr & aP);
+           void SetNumSelectImage(const std::vector<int> & aNum);
+           bool HasPtSelecTri() const;
+           const Pt2dr & PtsSelectTri() const;
+           bool NumImageIsSelect(const int aNum) const;
 
            void PutInGlobCoord(cResulMultiImRechCorrel<double> & aRMIRC);
 
@@ -145,10 +150,17 @@ class cAppliTieTri
          std::vector<cResulMultiImRechCorrel<double>*> mVCurMIRMC;
          std::vector<cOneTriMultiImRechCorrel>         mVGlobMIRMC;
 
-         int       mNbTri;
+         int       mNbTriLoaded;
          int       mNbPts;
          double    mTimeCorInit;
          double    mTimeCorDense;
+
+
+
+         bool               mHasPtSelecTri;
+         Pt2dr              mPtsSelectTri;
+         bool               mHasNumSelectImage;
+         std::vector<int>   mNumSelectImage;
 };
 
 typedef enum eTypeTieTri
@@ -208,6 +220,7 @@ class cImTieTri
            Pt2dr          mP1Glob;
            Pt2dr          mP2Glob;
            Pt2dr          mP3Glob;
+           std::vector<Pt2dr> mVTriGlob;
 
            Pt2dr          mP1Loc;
            Pt2dr          mP2Loc;

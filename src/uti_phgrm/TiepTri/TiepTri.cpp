@@ -47,6 +47,8 @@ int TiepTri_Main(int argc,char ** argv)
    Pt3di       aSzW;
    bool        aDebug=false;
    int         aNivInterac = 0;
+   Pt2dr       aPtsSel;
+   std::vector<int> aNumSel;
    ElInitArgMain
    (
          argc,argv,
@@ -55,13 +57,21 @@ int TiepTri_Main(int argc,char ** argv)
          LArgMain()   << EAM(aSzW,         "SzW",true,"if visu [x,y,Zoom]")
                       << EAM(aDebug,       "Debug",true,"If true do debuggibg")
                       << EAM(aNivInterac,  "Interaction",true,"0 none,  2 step by step")
+                      << EAM(aPtsSel,  "PSelectT",true,"for selecting triangle")
+                      << EAM(aNumSel,  "NumSelIm",true,"for selecting imade")
    );
 
    std::string aDir,aNameXML;
 
    SplitDirAndFile(aDir,aNameXML,aFullNameXML);
+
+   if (!  StdCorrecNameOrient(anOri,aDir,true))
+   {
+      StdCorrecNameOrient(anOri,"./");
+      aDir = "./";
+   }
+
    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-   StdCorrecNameOrient(anOri,aDir);
 
    cXml_TriAngulationImMaster aTriang =   StdGetFromSI(aFullNameXML,Xml_TriAngulationImMaster);;
 
@@ -70,6 +80,10 @@ int TiepTri_Main(int argc,char ** argv)
    anAppli.Debug() = aDebug;
 
 
+   if (EAMIsInit(&aPtsSel)) 
+      anAppli.SetPtsSelect(aPtsSel);
+   if (EAMIsInit(&aNumSel)) 
+      anAppli.SetNumSelectImage(aNumSel);
 
    if (EAMIsInit(&aSzW))
    {

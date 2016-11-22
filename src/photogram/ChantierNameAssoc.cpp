@@ -4043,9 +4043,9 @@ bool  cInterfChantierNameManipulateur::TestStdOrient
 }
 
 
-void cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri)
+bool cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri,bool SVP)
 {
-    if (aNameOri=="NONE") return;
+    if (aNameOri=="NONE") return true;
 
     int aL = (int)strlen(aNameOri.c_str());
     if (aL && (aNameOri[aL-1]==ELISE_CAR_DIR))
@@ -4054,16 +4054,21 @@ void cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri)
     }
 
     if  (TestStdOrient("Ori-","",aNameOri,false))
-        return;
+        return true;
 
     if  (TestStdOrient("","Ori-",aNameOri,false))
-        return;
+        return true;
 
     if  (TestStdOrient("Ori","-",aNameOri,true))
-        return;
+        return true;
 
-     std::cout << "############## For Value " << aNameOri << " ############ \n";
-     ELISE_ASSERT(false,"Ori name is not a valid existing directory");
+    if (!SVP)
+    {
+        std::cout << "############## For Value " << aNameOri << " ############ \n";
+        ELISE_ASSERT(false,"Ori name is not a valid existing directory");
+    }
+
+     return false;
 }
 
 
@@ -4224,11 +4229,11 @@ void StdCorrecNameHomol(std::string & aNameH,const std::string & aDir)
 }
 
 
-void StdCorrecNameOrient(std::string & aNameOri,const std::string & aDir)
+bool StdCorrecNameOrient(std::string & aNameOri,const std::string & aDir,bool SVP)
 {
-    if (aNameOri =="") return;
+    if (aNameOri =="") return true;
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    return anICNM->CorrecNameOrient(aNameOri);
+    return anICNM->CorrecNameOrient(aNameOri,SVP);
 }
 
 

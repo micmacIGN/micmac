@@ -79,6 +79,22 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     mP1Glob = mCam->R3toF2(aTri.P1());
     mP2Glob = mCam->R3toF2(aTri.P2());
     mP3Glob = mCam->R3toF2(aTri.P3());
+    mVTriGlob.clear();
+    mVTriGlob.push_back(mP1Glob);
+    mVTriGlob.push_back(mP2Glob);
+    mVTriGlob.push_back(mP3Glob);
+
+    if (IsMaster() && mAppli.HasPtSelecTri())
+    {
+         if (!PointInPoly(mVTriGlob,mAppli.PtsSelectTri()))
+            return false;
+
+         for (int aK=0 ; aK<int(mVTriGlob.size()) ; aK++)
+             std::cout << "PTRI=" << mVTriGlob[aK] << "\n";
+         std::cout << "PLOC " << mCam->R3toL3(aTri.P1()) << "\n";
+         std::cout << "SIGNTRI= " <<  ((mP2Glob-mP1Glob) ^(mP3Glob-mP1Glob)) << "\n";
+         getchar();
+    }
 
     double aSurf =  (mP1Glob-mP2Glob) ^ (mP1Glob-mP3Glob);
 
@@ -124,7 +140,7 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     {
         std::cout << "   LOAD " << mDecal << " " << mSzIm << "\n";
     }
-    if ((mW ==0) && (mAppli.WithW()))
+    if ((mW ==0) && (mAppli.WithW()) && (IsMaster() || (mAppli.NumImageIsSelect(mNum))))
     {
          int aZ = mAppli.ZoomW();
          mW = Video_Win::PtrWStd(mAppli.SzW()*aZ,true,Pt2dr(aZ,aZ));

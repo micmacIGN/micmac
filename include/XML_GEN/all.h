@@ -394,7 +394,7 @@ class cInterfChantierNameManipulateur
 
           static cInterfChantierNameManipulateur * Glob();
 
-          void CorrecNameOrient(std::string & aNameOri) ;
+          bool CorrecNameOrient(std::string & aNameOri,bool SVP=false) ;
 
 
      private :
