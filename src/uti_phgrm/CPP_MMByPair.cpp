@@ -1920,7 +1920,7 @@ void cAppliMMByPair::DoMDTRIE(bool ForTieP)
             int aZoom =  mZoomF;
 
             cImaMM & anIm = *((*anITS).attr().mIma);
-            std::string aCom =     MMBinFile("MICMAC")
+            std::string aCom =     MMBinFile("mm3d MICMAC")
                                 +  XML_MM_File("MM-GenMTDFusionImage.xml")
                                 +  std::string(" WorkDir=") + mEASF.mDir          + BLANK
                                 +  std::string(" +Ori=") + mOri + BLANK
