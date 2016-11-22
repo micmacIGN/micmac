@@ -438,7 +438,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
         if (aExportSensib) 
         {
-           mCom +=   std::string(" +ExportSensib=true") 
+           mCom +=   std::string(" +NormaliseEqSc=false")
+                   + std::string(" +ExportSensib=true") 
                    + std::string(" +DirExportSensib=/Ori-")+ AeroOut + std::string("/");
         }
 
