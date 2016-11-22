@@ -95,7 +95,9 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mStatLastIter      (false),
    mSqueezeDOCOAC     (0),
    mXmlSMLRop         (0),
-   mESPA              (0)
+   mESPA              (0),
+   mNumCalib          (0),
+   mNumImage          (0)
 {
      mIsLastIter = false;
      mIsLastEtape = false;
@@ -1079,6 +1081,19 @@ const cXmlPondRegDist * cAppliApero::CurXmlPondRegDist()
 {
    return mCurXmlPondRegDist;
 }
+
+std::string cAppliApero::GetNewIdCalib(const std::string & aLongName) 
+{
+   mNamesIdCalib.push_back(aLongName);
+   return IdOfCalib(mNumCalib++);
+}
+std::string cAppliApero::GetNewIdIma(const std::string & aLongName) 
+{
+    mNamesIdIm.push_back(aLongName);
+    return IdOfIma(mNumImage++);
+}
+std::string cAppliApero::IdOfCalib(const int & aNum) const {return "Cal"+ToString(aNum);}
+std::string cAppliApero::IdOfIma(const int & aNum) const   {return "Ima"+ToString(aNum);}
 
  
 

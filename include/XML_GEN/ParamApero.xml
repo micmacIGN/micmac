@@ -1707,6 +1707,13 @@ normalises en echelle et/ou en translation -->
       <RTA Nb="*"  RefType="XmlOneResultRTA"> </RTA>
 </XmlResultRTA>
 
+<XmlNameSensibs Nb="1"   Class="true" ToReference="true">
+    <SensibDateOneInc Nb="*" Container="std::vector">
+         <NameBloc Nb="1" Type="std::string"> </NameBloc>
+         <NameInc  Nb="1" Type="std::string"> </NameInc>
+         <SensibParam  Nb="1" Type="double"> </SensibParam>
+    </SensibDateOneInc>
+</XmlNameSensibs>
 
 
 <Verbatim File=".h.cpp">

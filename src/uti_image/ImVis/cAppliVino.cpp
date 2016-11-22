@@ -78,7 +78,8 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mHisto             (mNbHistoMax),
     mHistoLisse        (mNbHistoMax),
     mHistoCum          (mNbHistoMax),
-    mIsMnt             (true)
+    mIsMnt             (true),
+    mWithBundlExp      (false)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -234,6 +235,16 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
 
     InitMenu();
     mW->set_title(mTitle.c_str());
+
+    if ((mNameIm==TheNameMatrCorrel() ) || (mNameIm==TheNameMatrCov()))
+    {
+        std::string aNameSens = mDir+"Sensib-Data.dmp";
+        if (ELISE_fp::exist_file(aNameSens))
+        {
+           mBundlExp = StdGetFromAp(aNameSens,XmlNameSensibs);
+           mWithBundlExp = true;
+        }
+    }
 }
 
 void cAppli_Vino::PostInitVirtual()
@@ -394,6 +405,15 @@ void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
     //std::cout << "PPPPP " << aP << " " << mSom[0] << "\n";
 
     std::string aMesXY = " x=" + ToString(aP.x) + " y=" + ToString(aP.y);
+
+    if (mWithBundlExp)
+    {
+         cSensibDateOneInc aSX = mBundlExp.SensibDateOneInc()[aP.x];
+         cSensibDateOneInc aSY = mBundlExp.SensibDateOneInc()[aP.y];
+         aMesXY =    "[" + aSX.NameBloc()  + ":" + aSX.NameInc()  + "] " 
+                   + "[" +  aSY.NameBloc()  + ":" + aSY.NameInc() + "]"
+                   +  "  (P=" + ToString(aP.x) + ","  + ToString(aP.y) +")"  ;
+    }
     std::string aMesV =  " V=";
     for (int aK=0 ; aK<mNbChan; aK++)
     {

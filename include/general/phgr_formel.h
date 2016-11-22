@@ -1090,7 +1090,8 @@ class cDistRadialeFormelle : public cElemEqFormelle,
 		int aDegFig,
 		const ElDistRadiale_PolynImpair &,
 		cSetEqFormelles &,
-                cCamStenopeModStdPhpgr * aDP = 0
+                cCamStenopeModStdPhpgr * aDP = 0,
+                const std::string & aNameId = "DefId::cDistRadialeFormelle"
 	   );
 
 
@@ -1442,7 +1443,9 @@ class  cPolynome1VarFormel
                 cSetEqFormelles    &,
                 cVarSpec           aVarTime,
                 REAL *             aV0,
-                INT                aDegre
+                INT                aDegre,
+                const std::string & aGrpName,
+                const std::string & aName
         );
         Fonc_Num  Fonc();
         REAL  Val(REAL aTime);
@@ -1539,7 +1542,7 @@ class cRotationFormelle : public cElemEqFormelle,
 
 
 
-           cPolynome1VarFormel  * AllocPol(REAL * ValCste);
+           cPolynome1VarFormel  * AllocPol(REAL * ValCste,const std::string & aGrpName,const std::string & aName);
            void AssertDegre0() const;
 
 

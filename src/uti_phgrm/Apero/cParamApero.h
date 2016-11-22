@@ -7083,5 +7083,61 @@ std::string  Mangling( cXmlResultRTA *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cSensibDateOneInc
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cSensibDateOneInc & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameBloc();
+        const std::string & NameBloc()const ;
+
+        std::string & NameInc();
+        const std::string & NameInc()const ;
+
+        double & SensibParam();
+        const double & SensibParam()const ;
+    private:
+        std::string mNameBloc;
+        std::string mNameInc;
+        double mSensibParam;
+};
+cElXMLTree * ToXMLTree(const cSensibDateOneInc &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSensibDateOneInc &);
+
+void  BinaryUnDumpFromFile(cSensibDateOneInc &,ELISE_fp &);
+
+std::string  Mangling( cSensibDateOneInc *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlNameSensibs
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlNameSensibs & anObj,cElXMLTree * aTree);
+
+
+        std::vector< cSensibDateOneInc > & SensibDateOneInc();
+        const std::vector< cSensibDateOneInc > & SensibDateOneInc()const ;
+    private:
+        std::vector< cSensibDateOneInc > mSensibDateOneInc;
+};
+cElXMLTree * ToXMLTree(const cXmlNameSensibs &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlNameSensibs &);
+
+void  BinaryUnDumpFromFile(cXmlNameSensibs &,ELISE_fp &);
+
+std::string  Mangling( cXmlNameSensibs *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotApero

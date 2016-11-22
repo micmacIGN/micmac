@@ -26102,4 +26102,136 @@ void xml_init(cXmlResultRTA & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXmlResultRTA *) {return "BAE07F625BE4E1EBFE3F";};
 
+
+std::string & cSensibDateOneInc::NameBloc()
+{
+   return mNameBloc;
+}
+
+const std::string & cSensibDateOneInc::NameBloc()const 
+{
+   return mNameBloc;
+}
+
+
+std::string & cSensibDateOneInc::NameInc()
+{
+   return mNameInc;
+}
+
+const std::string & cSensibDateOneInc::NameInc()const 
+{
+   return mNameInc;
+}
+
+
+double & cSensibDateOneInc::SensibParam()
+{
+   return mSensibParam;
+}
+
+const double & cSensibDateOneInc::SensibParam()const 
+{
+   return mSensibParam;
+}
+
+void  BinaryUnDumpFromFile(cSensibDateOneInc & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameBloc(),aFp);
+    BinaryUnDumpFromFile(anObj.NameInc(),aFp);
+    BinaryUnDumpFromFile(anObj.SensibParam(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cSensibDateOneInc & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameBloc());
+    BinaryDumpInFile(aFp,anObj.NameInc());
+    BinaryDumpInFile(aFp,anObj.SensibParam());
+}
+
+cElXMLTree * ToXMLTree(const cSensibDateOneInc & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SensibDateOneInc",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameBloc"),anObj.NameBloc())->ReTagThis("NameBloc"));
+   aRes->AddFils(::ToXMLTree(std::string("NameInc"),anObj.NameInc())->ReTagThis("NameInc"));
+   aRes->AddFils(::ToXMLTree(std::string("SensibParam"),anObj.SensibParam())->ReTagThis("SensibParam"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cSensibDateOneInc & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameBloc(),aTree->Get("NameBloc",1)); //tototo 
+
+   xml_init(anObj.NameInc(),aTree->Get("NameInc",1)); //tototo 
+
+   xml_init(anObj.SensibParam(),aTree->Get("SensibParam",1)); //tototo 
+}
+
+std::string  Mangling( cSensibDateOneInc *) {return "9C0BEAD692931E85FE3F";};
+
+
+std::vector< cSensibDateOneInc > & cXmlNameSensibs::SensibDateOneInc()
+{
+   return mSensibDateOneInc;
+}
+
+const std::vector< cSensibDateOneInc > & cXmlNameSensibs::SensibDateOneInc()const 
+{
+   return mSensibDateOneInc;
+}
+
+void  BinaryUnDumpFromFile(cXmlNameSensibs & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cSensibDateOneInc aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.SensibDateOneInc().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlNameSensibs & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.SensibDateOneInc().size());
+    for(  std::vector< cSensibDateOneInc >::const_iterator iT=anObj.SensibDateOneInc().begin();
+         iT!=anObj.SensibDateOneInc().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXmlNameSensibs & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlNameSensibs",eXMLBranche);
+  for
+  (       std::vector< cSensibDateOneInc >::const_iterator it=anObj.SensibDateOneInc().begin();
+      it !=anObj.SensibDateOneInc().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("SensibDateOneInc"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlNameSensibs & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.SensibDateOneInc(),aTree->GetAll("SensibDateOneInc",false,1));
+}
+
+std::string  Mangling( cXmlNameSensibs *) {return "00DA8980467C01BBF6BF";};
+
 // };

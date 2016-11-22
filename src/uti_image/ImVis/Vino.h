@@ -340,6 +340,8 @@ class cAppli_Vino : public cXml_EnvVino,
         bool        mIsMnt;
         std::string mFileMnt;
         cFileOriMnt *mFOM;
+        cXmlNameSensibs mBundlExp;
+        bool            mWithBundlExp;
 };
 
 Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);

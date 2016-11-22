@@ -68,19 +68,22 @@ cPolynome1VarFormel::cPolynome1VarFormel
     cSetEqFormelles    & aSet,
     cVarSpec           aVarTime,
     REAL *             aV0,
-    INT                aDegre
+    INT                aDegre,
+    const std::string& aGrp,
+    const std::string& aName0
 )  :
     mV0    (aV0),
     mDegre (aDegre)
 {
+    std::string aName = aName0 + ((aDegre==0) ? "" : ToString(aDegre));
     for (INT aK=0 ; aK<= mDegre ; aK++)
         mValsCur.push_back(0.0);
 
-    mFonc =  aSet.Alloc().NewF("PolVarF","V0",mV0);
+    mFonc =  aSet.Alloc().NewF(aGrp,aName,mV0);
 
     for (INT aK=1 ; aK<= mDegre ; aK++)
     {
-        mFonc = mFonc +  aSet.Alloc().NewF("PolVarF","V"+ToString(aK),&(mValsCur[aK])) * PowI(aVarTime,aK);
+        mFonc = mFonc +  aSet.Alloc().NewF(aGrp,aName,&(mValsCur[aK])) * PowI(aVarTime,aK);
     }
 }
 
@@ -117,9 +120,9 @@ cRotationFormelle::~cRotationFormelle()
 {
 }
 
-cPolynome1VarFormel  * cRotationFormelle::AllocPol(REAL * aValCste)
+cPolynome1VarFormel  * cRotationFormelle::AllocPol(REAL * aValCste,const std::string & aGrp,const std::string  &aName)
 {
-   return new cPolynome1VarFormel(mSet,mVarTime,aValCste,mDegre);
+   return new cPolynome1VarFormel(mSet,mVarTime,aValCste,mDegre,aGrp,aName);
 }
 
 INT  cRotationFormelle::Degre() const
@@ -157,9 +160,9 @@ cRotationFormelle::cRotationFormelle
   mCurTeta02      (mTeta02Init),
   mCurTeta12      (mTeta12Init),
 
-  mPolTeta01      (AllocPol(&mCurTeta01)),
-  mPolTeta02      (AllocPol(&mCurTeta02)),
-  mPolTeta12      (AllocPol(&mCurTeta12)),
+  mPolTeta01      (AllocPol(&mCurTeta01,aName,"T01")),
+  mPolTeta02      (AllocPol(&mCurTeta02,aName,"T02")),
+  mPolTeta12      (AllocPol(&mCurTeta12,aName,"T12")),
 
   mFTeta01        (mPolTeta01->Fonc()),
   mFTeta02        (mPolTeta02->Fonc()),
@@ -170,9 +173,9 @@ cRotationFormelle::cRotationFormelle
   mCOptInit       (aRC2MInit.tr()),
   mCurCOpt        (mCOptInit),
   mIndAllocCOpt   (mSet.Alloc().CurInc()),
-  mPolCoptX       (AllocPol(&mCurCOpt.x)),
-  mPolCoptY       (AllocPol(&mCurCOpt.y)),
-  mPolCoptZ       (AllocPol(&mCurCOpt.z)),
+  mPolCoptX       (AllocPol(&mCurCOpt.x,aName,"Cx")),
+  mPolCoptY       (AllocPol(&mCurCOpt.y,aName,"Cy")),
+  mPolCoptZ       (AllocPol(&mCurCOpt.z,aName,"Cz")),
   mFCOpt          (mPolCoptX->Fonc(),mPolCoptY->Fonc(),mPolCoptZ->Fonc()),
 
   pRotAttach      (aRAtt),
