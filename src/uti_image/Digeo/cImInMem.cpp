@@ -206,6 +206,8 @@ void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_
 		}
 		else
 		{
+			// Doesn't compile because fabs is overloaded and compiler can't assume which one to use in a template function
+			/*
 			Type aMinV, aMaxV;
 			mIm.getMinMax(aMinV, aMaxV);
 			if (fabs(aMaxV - aMinV)>0.0001)
@@ -213,6 +215,7 @@ void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_
 			else
 				aMul = 1;
 			mIm.ramp(aMinV, aMul);
+			*/
 		}
 
 		mImGlob.SetDyn(aMul);
