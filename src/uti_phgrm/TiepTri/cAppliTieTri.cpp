@@ -86,10 +86,12 @@ cAppliTieTri::cAppliTieTri
      mCurPlan       (Pt3dr(0,0,0),Pt3dr(1,0,0),Pt3dr(0,1,0)),
      mSeuilDensite  (TT_DefSeuilDensiteResul),
      mDefStepDense  (TT_DefStepDense),
-     mNbTri         (0),
+     mNbTriLoaded   (0),
      mNbPts         (0),
      mTimeCorInit   (0.0),
-     mTimeCorDense  (0.0)
+     mTimeCorDense  (0.0),
+     mHasPtSelecTri (false),
+     mHasNumSelectImage (false)
 {
    mMasIm = new cImMasterTieTri(*this,aTriang.NameMaster());
 
@@ -120,10 +122,11 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
         if ( (aK%20)==0)
         {
             std::cout << "Av = "  << (aNbTri-aK) * (100.0/aNbTri) << "% "
-                      << " NbP/Tri " << double(mNbPts) / mNbTri
+                      << " NbP/Tri " << double(mNbPts) / mNbTriLoaded
                       << "\n";
         }
     }
+    std::cout << "NB TRI LOADED = " << mNbTriLoaded << "\n";
 
     for (int aKT= 0; aKT< int(mVGlobMIRMC.size()) ; aKT++)
     {
@@ -210,7 +213,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
 
     if (!  mMasIm->LoadTri(aTri)) return;
 
-    mNbTri++;
+    mNbTriLoaded++;
 
     mCurPlan = cElPlan3D(aTri.P1(),aTri.P2(),aTri.P3());
     mImSecLoaded.clear();
@@ -226,7 +229,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
     if (mImSecLoaded.size() == 0)
        return;
 
-    if (0 && (mNivInterac==2))  // Version interactive
+    if (mNivInterac==2)  // Version interactive
     {
          while (mWithW)
          {
@@ -341,6 +344,29 @@ void  cAppliTieTri::SetSzW(Pt2di aSzW, int aZoom)
     mSzW = aSzW;
     mZoomW = aZoom;
     mWithW = true;
+}
+
+
+void cAppliTieTri::SetPtsSelect(const Pt2dr & aP)
+{
+    mHasPtSelecTri = true;
+    mPtsSelectTri = aP;
+}
+
+bool cAppliTieTri::HasPtSelecTri() const {return mHasPtSelecTri;}
+const Pt2dr & cAppliTieTri::PtsSelectTri() const {return mPtsSelectTri;}
+
+bool cAppliTieTri::NumImageIsSelect(const int aNum) const
+{
+   if (!mHasNumSelectImage) return true;
+   return BoolFind(mNumSelectImage,aNum);
+}
+
+
+void cAppliTieTri::SetNumSelectImage(const std::vector<int> & aVNum)
+{
+     mHasNumSelectImage = true;
+     mNumSelectImage = aVNum;
 }
 
 

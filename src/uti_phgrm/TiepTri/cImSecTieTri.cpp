@@ -62,6 +62,8 @@ cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,in
 
 bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
+   if (! mAppli.NumImageIsSelect(mNum)) 
+      return false;
    // std::cout << "111111111  cImSecTieTri::LoadTri\n";
 
    if (! cImTieTri::LoadTri(aTri)) 
@@ -200,10 +202,9 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
         if (mTImLabelPC.get(aP0+aVH[aKH],-1)==aLab)
         {
            Pt2di aPV = aP0+aVH[aKH];
-           if (aNivInter>=2)
+           if (mW && (aNivInter>=2))
            {
                mW->draw_circle_loc(Pt2dr(aPV),2.0,ColOfType(aLab));
-
            }
                // cResulRechCorrel<int> aCRC = TT_RechMaxCorrelBasique(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
 
@@ -221,7 +222,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
         }
     }
 
-    if (aNivInter>=2)
+    if (mW&& (aNivInter>=2))
     {
         mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));
         mW->draw_circle_loc(Pt2dr(aP0),aD,mW->pdisc()(P8COL::yellow));

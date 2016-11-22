@@ -1025,6 +1025,7 @@ TestScroller::TestScroller
 
              case 1 :
              {
+                 std::cout << "P1=" << mScrol.Scr1().to_user(cl1._pt) << "\n";
                  mModeIncr = true;
                  IncrustFromBegin(Pt2di(cl1._pt),Pt2di(0,0));
                  W.grab(*this);
