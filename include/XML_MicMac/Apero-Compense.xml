@@ -115,6 +115,7 @@
 	   <Symb> ModeResolSysLin=eSysL2BlocSym </Symb> 
 	   <Symb> ExportSensib=false </Symb> 
 	   <Symb> DirExportSensib=XXXXX </Symb> 
+	   <Symb> NormaliseEqSc=true </Symb> 
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -268,7 +269,10 @@
 
         <SectionSolveur>
 	      <ModeResolution> ${ModeResolSysLin} </ModeResolution> 
-
+              <NormaliseEqSc > ${NormaliseEqSc} </NormaliseEqSc>
+<!--
+              <NormaliseEqTr > ${NormaliseEq} </NormaliseEqTr>
+-->
               <SLMGlob> 
                  <RappelOnAngles>
                       <ParamF >

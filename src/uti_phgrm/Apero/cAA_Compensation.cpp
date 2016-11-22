@@ -564,7 +564,8 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
             cSensibDateOneInc aSDOI;
             aSDOI.NameBloc() = anAlloc.NamesBlocInc(aKx);
             aSDOI.NameInc()  = anAlloc.NamesInc(aKx);
-            aSDOI.SensibParam()  = 0.0;
+            aSDOI.SensibParamInv()  = 0.0;
+            aSDOI.SensibParamDir()  = 0.0;
             aXmlS.SensibDateOneInc().push_back(aSDOI);
        }
        // getchar();
@@ -592,12 +593,14 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         if (aSys->InverseIsComputedAfterSolve())
         {
             int aNbV = aSys->NbVar();
+            double aReSS = aSys->ResiduAfterSol();
             for (int aK=0 ; aK<aNbV ; aK++)
             {
                 // std::cout << "GGGGG "<< aSys->GetElemInverseQuad(aK,aK) << " " << aMVar.data()[aK] << "\n";
-                double aVal = aSys->GetElemInverseQuad(aK,aK);
-                aVal *= aMVar.data()[aK];
-                aXmlS.SensibDateOneInc()[aK].SensibParam() = 1/aVal;
+                // double aVal = aSys->GetElemInverseQuad(aK,aK);
+                // aVal *= aMVar.data()[aK];
+                aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aReSS*aSys->GetElemInverseQuad(aK,aK));
+                aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aReSS/aMVar.data()[aK]);
             }
         }
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(false));

@@ -57,6 +57,12 @@ cGenSysSurResol::~cGenSysSurResol()
 {
 }
 
+bool  cGenSysSurResol::ResiduIsComputedAfterSolve() {return false;}
+tSysCho   cGenSysSurResol:: ResiduAfterSol() const
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::ResiduAfterSol");
+    return 0;
+}
 
 bool  cGenSysSurResol::InverseIsComputedAfterSolve() {return false;}
 tSysCho   cGenSysSurResol::GetElemInverseQuad(int i,int j) const 
@@ -1305,18 +1311,22 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
 
     if (Ok)
     {
-            for (INT k=0; k<6; k++)
+       for (INT k=0; k<6; k++)
+       {
             aGP.amelior_sol();
-            for (INT kx=0;kx <mNbVar ; kx++)
+       }
+       for (INT kx=0;kx <mNbVar ; kx++)
             mSolL2.data()[kx] = x(0,kx);
     }
-        else
-        {
+    else
+    {
            ELISE_ASSERT(aResOk,"Singular Matrix in  L2SysSurResol::Solve");
-        }
+    }
 
         return mSolL2;
    }
+
+
     GaussjPrec aGP(mNbVar,1);
     ElMatrix<REAL> & M  = aGP.M();
     ElMatrix<REAL> & b  = aGP.b();
@@ -1335,6 +1345,7 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
 
 
     bool Ok = aGP.init_rec();
+
 
 
     ELISE_ASSERT(mInvtLi_Li.sz()==Pt2di(mNbVar,mNbVar),"Incohe in L2:Solve");
@@ -1375,8 +1386,22 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
          for (INT kx=0;kx <mNbVar ; kx++)
          mSolL2.data()[kx] = x(0,kx);
     }
-     return mSolL2;
+    mResiduAfterSol  =  ResiduOfSol(mSolL2.data());
+    return mSolL2;
 }
+
+tSysCho    L2SysSurResol::ResiduAfterSol() const
+{
+    return mResiduAfterSol;
+}
+
+bool  L2SysSurResol::ResiduIsComputedAfterSolve() 
+{
+   return true;
+}
+
+
+
 
 /*********************************************************************/
 /*                                                                   */
