@@ -425,6 +425,16 @@ const std::string & TheNameMatrCov()
     static std::string TMC="Sensib-MatriceCov.tif";
     return TMC;
 }
+const std::string & TheNameFileTxtConvName()
+{
+    static std::string TMC="Sensib-ConvName.txt";
+    return TMC;
+}
+std::string  TheNameFileExpSens(bool Bin)
+{
+    return "Sensib-Data" + std::string(Bin ? ".dmp" : ".xml");
+}
+
 
 
 
@@ -509,9 +519,33 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
     // mSetEq.Solve(aSO.SomErPond());
 
     Im1D_REAL4 aMVar(1);
+    cXmlNameSensibs aXmlS;
+    std::string aPrefESPA;
     if (mESPA)
     {
+       aPrefESPA =  DC()+mESPA->Dir();
        cGenSysSurResol * aSys = mSetEq.Sys();   
+       AllocateurDInconnues &  anAlloc = mSetEq.Alloc();
+       std::string aNameConv =  aPrefESPA + TheNameFileTxtConvName();
+
+       ofstream  aStdConvTxt (aNameConv.c_str());
+       ELISE_ASSERT(aStdConvTxt.is_open(),"Open file txt in Analysis Bundle");
+
+// const char* filename, ios_base::openmode mode = ios_base::out);
+       //FILE * aFConvTxt = FopenNN(aNameConv.c_str(),"w","Export Sensibilty Analysis in Bundle");
+
+       // fprintf(aFile,"###############  Intrinseque Calibration Correspondance ##############\n")
+       aStdConvTxt << "##############  Intrinseque Calibration Correspondance ##############\n";
+       for (int aK=0 ; aK<int(mNamesIdCalib.size()) ; aK++)
+       {
+          aStdConvTxt<< " " << IdOfCalib(aK) << " => " << mNamesIdCalib[aK]  << "\n";
+       }
+       aStdConvTxt << "##############  Extrinseque Calibration Correspondance ##############\n";
+       for (int aK=0 ; aK<int(mNamesIdIm.size()) ; aK++)
+       {
+          aStdConvTxt<< " " << IdOfIma(aK) << " => " << mNamesIdIm[aK]  << "\n";
+       }
+
        int aNbV = aSys->NbVar();
        Im2D_REAL4 aMCov(aNbV,aNbV);
        aMVar = Im1D_REAL4(aNbV);
@@ -521,24 +555,56 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
 
        for (int aKx=0 ; aKx<aNbV ; aKx++)
        {
+            // std::cout << "NAMESSSS " << anAlloc.NamesBlocInc(aKx) << " => " << anAlloc.NamesInc(aKx) << "\n";
             for (int aKy=0 ; aKy<=aKx ; aKy++)
             {
                 aDC[aKy][aKx] = aDC[aKx][aKy] = aSys->GetElemQuad(aKx,aKy);
             }
             aDV[aKx] =  aDC[aKx][aKx];
+            cSensibDateOneInc aSDOI;
+            aSDOI.NameBloc() = anAlloc.NamesBlocInc(aKx);
+            aSDOI.NameInc()  = anAlloc.NamesInc(aKx);
+            aSDOI.SensibParam()  = 0.0;
+            aXmlS.SensibDateOneInc().push_back(aSDOI);
        }
+       // getchar();
 
        Tiff_Im::CreateFromFonc
        (
-            DC()+mESPA->Dir() + TheNameMatrCorrel(),
+            aPrefESPA + TheNameMatrCorrel(),
             Pt2di(aNbV,aNbV),
             aMCov.in()/sqrt(Max(1e-60,aMVar.in()[FX]*aMVar.in()[FY])),
             GenIm::real4
        );
-       Tiff_Im::CreateFromIm(aMCov,DC()+mESPA->Dir() + TheNameMatrCov());
+       Tiff_Im::CreateFromIm(aMCov, aPrefESPA + TheNameMatrCov());
+
+       //fclose(aFConvTxt);
+       aStdConvTxt.close();
     }
 
     mSetEq.Solve(aSO.SomErPond(),(bool *)0);
+
+
+    if (mESPA)
+    {
+        cGenSysSurResol * aSys = mSetEq.Sys();   
+
+        if (aSys->InverseIsComputedAfterSolve())
+        {
+            int aNbV = aSys->NbVar();
+            for (int aK=0 ; aK<aNbV ; aK++)
+            {
+                // std::cout << "GGGGG "<< aSys->GetElemInverseQuad(aK,aK) << " " << aMVar.data()[aK] << "\n";
+                double aVal = aSys->GetElemInverseQuad(aK,aK);
+                aVal *= aMVar.data()[aK];
+                aXmlS.SensibDateOneInc()[aK].SensibParam() = 1/aVal;
+            }
+        }
+        MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(false));
+        MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(true));
+    }
+
+
     mScoreLambda0 = aSO.SomErPond();
 
    double aLambdaReset = 1.0;

@@ -614,7 +614,7 @@ void   L2SysSurResol::GSSR_AddEquationPoint3D(const Pt3dr & aP,const Pt3dr &  an
 bool  L2SysSurResol::InverseIsComputedAfterSolve() {return true;}
 tSysCho   L2SysSurResol::GetElemInverseQuad(int i,int j) const 
 {
-    return mDatatLi_Li[j][i];
+    return mDataInvtLi_Li[j][i];
 }
 
 
@@ -1335,6 +1335,20 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
 
 
     bool Ok = aGP.init_rec();
+
+
+    ELISE_ASSERT(mInvtLi_Li.sz()==Pt2di(mNbVar,mNbVar),"Incohe in L2:Solve");
+    ElMatrix<REAL> & MInv  = aGP.Minv();
+    for (INT ky=0;ky <mNbVar ; ky++)
+    {
+           for (INT kx=0;kx <mNbVar ; kx++)
+           {
+               mDataInvtLi_Li[kx][ky]=  MInv(kx,ky);
+               // M(kx,ky) = mtLi_Li.data()[kx][ky];
+           }
+    }
+
+ 
 
     if (aResOk)
        *aResOk = Ok;

@@ -1959,6 +1959,12 @@ class cCompiledObsRelGPS
 class cAppliApero : public NROptF1vND
 {
     public :
+
+        std::string GetNewIdCalib(const std::string & aLongName);
+        std::string GetNewIdIma(const std::string & aLongName);
+        std::string IdOfCalib(const int &) const;
+        std::string IdOfIma(const int &) const;
+
         void AddEcPtsFlot(const Pt3dr &) ;
 
         void AddStatCam(cGenPoseCam *,double aRes,double aPerc);
@@ -2621,6 +2627,10 @@ class cAppliApero : public NROptF1vND
          Pt3dr  mSomAbsEcPtsFlot;
          Pt3dr  mMaxAbsEcPtsFlot;
 
+         int   mNumCalib;
+         std::vector<std::string> mNamesIdCalib;
+         int   mNumImage;
+         std::vector<std::string> mNamesIdIm;
 };
 
 

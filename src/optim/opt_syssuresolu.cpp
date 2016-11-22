@@ -912,15 +912,15 @@ Pt3d<Fonc_Num>   AllocateurDInconnues::NewPt3(const std::string & aNameBloc,Pt3d
 }
 
 
-Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(const std::string & aNameBloc,REAL * adrX,REAL * adrY,bool HasAlwaysInitialValue)
+Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(const std::string & aNameBloc,REAL * adrX,REAL * adrY,bool HasAlwaysInitialValue, const std::string & aNameX,const std::string & aNameY)
 {
     PushVar(adrX);
     mVNamesBlocInc.push_back(aNameBloc);
-    mVNamesInc.push_back("x");
+    mVNamesInc.push_back(aNameX);
 
     PushVar(adrY);
     mVNamesBlocInc.push_back(aNameBloc);
-    mVNamesInc.push_back("y");
+    mVNamesInc.push_back(aNameY);
 
     mIdInc += 2;
     return Pt2d<Fonc_Num>
@@ -930,9 +930,14 @@ Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(const std::string & aNameBloc,REAL
            );
 }
 
+Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(const std::string & aNameBloc,REAL * adrX,REAL * adrY,bool HasAlwaysInitialValue)
+{
+     return NewPt2(aNameBloc,adrX,adrY,HasAlwaysInitialValue,"x","y");
+}
+
 Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(const std::string & aNameBloc,Pt2dr & aP,bool HasAlwaysInitialValue)
 {
-      return   NewPt2(aNameBloc,&aP.x,&aP.y,HasAlwaysInitialValue);
+      return   NewPt2(aNameBloc,&aP.x,&aP.y,HasAlwaysInitialValue,"x","y");
 }
 
 TplElRotation3D<Fonc_Num> AllocateurDInconnues::NewRot
@@ -1030,6 +1035,11 @@ void AllocateurDInconnues::SetVarPt(Pt2dr aP,INT aK)
     SetVar(aP.x,aK  );
     SetVar(aP.y,aK+1);
 }
+
+const std::string &  AllocateurDInconnues::NamesInc (int aK) const { return mVNamesInc.at(aK); }
+const std::string &  AllocateurDInconnues::NamesBlocInc (int aK) const { return mVNamesBlocInc.at(aK); }
+
+
 
 
 

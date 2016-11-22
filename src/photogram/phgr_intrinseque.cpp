@@ -288,7 +288,8 @@ cDistRadialeFormelle::cDistRadialeFormelle
      int aDegFig,
      const ElDistRadiale_PolynImpair & aDist,
      cSetEqFormelles &                    aSet,
-     cCamStenopeModStdPhpgr * aDP
+     cCamStenopeModStdPhpgr * aDP,
+     const std::string &      anIdAlloc
 )  :
      cElemEqFormelle(aSet,false),
      mCentreFige  (isCFige),
@@ -298,7 +299,7 @@ cDistRadialeFormelle::cDistRadialeFormelle
      mDistInit    (mDistInitStd.DRad()),
      mCurDist     (mCurDistStd.DRad()),
      mIndCentre   (aSet.Alloc().CurInc()),
-     mFCentre     (aSet.Alloc().NewPt2("cDistRadialeFormelle",mCurDist.Centre())),
+     mFCentre     (aSet.Alloc().NewPt2(anIdAlloc,mCurDist.Centre())),
      mTolCDist    (cContrainteEQF::theContrStricte),
      mTolCoeffs   (cContrainteEQF::theContrStricte)
 {
@@ -311,7 +312,7 @@ cDistRadialeFormelle::cDistRadialeFormelle
    }
    for (INT aK=0 ; aK<INT(mCurDist.NbCoeff()) ; aK++)
    {
-       mFCoeffs.push_back(aSet.Alloc().NewF("cDistRadialeFormelle","R"+ToString(3+2*aK),&(mCurDist.Coeff(aK))));
+       mFCoeffs.push_back(aSet.Alloc().NewF(anIdAlloc,"R"+ToString(3+2*aK),&(mCurDist.Coeff(aK))));
    }
 
    CloseEEF(asIntervBlock);
@@ -523,7 +524,14 @@ cParamIntrinsequeFormel::cParamIntrinsequeFormel
    mIndPP          (aSet.Alloc().CurInc()),
    mFPP            (
 		        ParamVar ?
-		        aSet.Alloc().NewPt2(aCamInit->IdCam()+":PP",mCurPP) :
+/*
+		        Pt2d<Fonc_Num>
+                        (
+		             aSet.Alloc().NewF(aCamInit->IdCam(),"PPx",&mCurPP.x) ,
+		             aSet.Alloc().NewF(aCamInit->IdCam(),"PPy",&mCurPP.y)  
+                        ):
+*/
+		        aSet.Alloc().NewPt2(aCamInit->IdCam(),&(mCurPP.x),&(mCurPP.y),false,"PPx","PPy") :
 		        Pt2d<Fonc_Num>(mPPInit.x,mPPInit.y)
                    ),
    mIndAF          (aSet.Alloc().CurInc()),
@@ -1219,7 +1227,7 @@ cParamIFDistRadiale::cParamIFDistRadiale
   mCDistPPLie              (false),
   mFoncEqPPCDistX          (0),
   mFoncEqPPCDistY          (0),
-  mDRF                     (false,true,aDegFig,SetToDeg(aCam->DRad(),5),aSet,aDP),
+  mDRF                     (false,true,aDegFig,SetToDeg(aCam->DRad(),5),aSet,aDP, aDP?aDP->IdCam(): (aCam?aCam->IdCam():"NoId::ParamIFDistRadiale")),
   mCurPIF                  (0)
 {
   NV_UpdateCurPIF();

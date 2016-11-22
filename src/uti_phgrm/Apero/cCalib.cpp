@@ -1285,7 +1285,6 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
              // ELISE_ASSERT(false,"Calib Per Pose Autom to implement");
              ELISE_ASSERT(aPC,"hh ; Internal errour in cCalibCam::Alloc")
              aNameIm = aPC->Name();
-// std::cout << "sdrekiI " << aKeyId << " " << aNameIm << "\n";  getchar();
         }
         else
         {
@@ -1348,10 +1347,13 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
     cCalibDistortion  aCD = aCIC.CalibDistortion().back();
     AdaptDist2PPaEqPPs(aCD);
 
+    std::string aNameIdCam = anAppli.GetNewIdCalib(aTestFullName);
+
 
     if (aCD.ModRad().IsInit())
     {
 	cCamStenopeDistRadPol * aCam = Std_Cal_DRad_C2M(aCIC,aConv);
+        aCam->SetIdCam(aNameIdCam );
         anAppli.NormaliseScTr(*aCam);
         cParamIFDistRadiale * aPIF = aCam->AllocDRadInc(aCam->DistIsC2M(),anAppli.SetEq());
 
@@ -1364,6 +1366,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
     else if (aCD.ModPhgrStd().IsInit())
     {
         cCamStenopeModStdPhpgr * aCam =  Std_Cal_PS_C2M(aCIC,aConv);
+        aCam->SetIdCam(aNameIdCam );
 
         anAppli.NormaliseScTr(*aCam);
         cParamIFDistStdPhgr *  aPIF = aCam->AllocPhgrStdInc(aCam->DistIsC2M(),anAppli.SetEq());
@@ -1375,6 +1378,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
        cCamera_Param_Unif_Gen * aCam = Std_Cal_Unif(aCIC,aConv);
 // std::cout << "CCaaaam "<< aCam << "\n";
        anAppli.NormaliseScTr(*aCam);
+       aCam->SetIdCam(aNameIdCam );
 
        cPIF_Unif_Gen * aPIF = aCam->PIF_Gen(aCam->DistIsC2M(),anAppli.SetEq());
 
@@ -1383,6 +1387,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
     else if (aCD.ModGridDef().IsInit())
     {
         cCamStenopeBilin * aCBL =  Std_Cal_Bilin(aCIC,aConv);
+        aCBL->SetIdCam(aNameIdCam );
         anAppli.NormaliseScTr(*aCBL);
 
         cPIF_Bilin *  aPIF = anAppli.SetEq().NewPIFBilin(aCBL);

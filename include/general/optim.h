@@ -232,6 +232,7 @@ class AllocateurDInconnues
         Pt3d<Fonc_Num>            NewPt3(const std::string & aNameBloc,Pt3dr &,bool HasAlwaysInitialValue=false);
         Pt2d<Fonc_Num>            NewPt2(const std::string & aNameBloc,REAL*,REAL*,bool HasAlwaysInitialValue=false);
         Pt2d<Fonc_Num>            NewPt2(const std::string & aNameBloc,Pt2dr &,bool HasAlwaysInitialValue=false);
+        Pt2d<Fonc_Num>            NewPt2(const std::string & aNameBloc,REAL*,REAL*,bool HasAlwaysInitialValue,const std::string& aNameX,const std::string & aNameY);
 
         std::vector<Fonc_Num>            NewVectInc(const std::string & aNameBloc,const std::vector<std::string> & aNameInc,std::vector<double> &);
 
@@ -246,6 +247,9 @@ class AllocateurDInconnues
 	void  SetVarPt(Pt2dr  aVal,INT aK);
 	REAL * ValsVar();
         void Reinit(INT aK);
+
+	const std::string &  NamesInc (int aK) const;
+	const std::string &  NamesBlocInc (int aK) const;
 
       private :
 	void PushVar(REAL *);
