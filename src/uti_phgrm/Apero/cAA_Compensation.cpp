@@ -529,7 +529,11 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
        std::string aNameConv =  aPrefESPA + TheNameFileTxtConvName();
 
        ofstream  aStdConvTxt (aNameConv.c_str());
-       ELISE_ASSERT(aStdConvTxt.is_open(),"Open file txt in Analysis Bundle");
+       if (! aStdConvTxt.is_open())
+       {
+		    std::cout << "FILE=" << aNameConv << "\n";
+            ELISE_ASSERT(aStdConvTxt.is_open(),"Open file txt in Analysis Bundle");
+       }
 
 // const char* filename, ios_base::openmode mode = ios_base::out);
        //FILE * aFConvTxt = FopenNN(aNameConv.c_str(),"w","Export Sensibilty Analysis in Bundle");
