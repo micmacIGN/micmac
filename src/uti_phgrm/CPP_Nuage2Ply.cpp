@@ -353,7 +353,108 @@ int PlyGCP_main(int argc,char ** argv)
 }
 
 
+/**************************************************************/
+/*                                                            */
+/*             cApply_PlyCamOrthoC                            */
+/*                                                            */
+/**************************************************************/
 
+class cApply_PlyCamOrthoC
+{
+     public :
+         cApply_PlyCamOrthoC(int argc,char ** argv);
+     private :
+
+         int  mNbPoints;
+         int  mNbTeta;
+         std::vector<Pt3dr> mPts;
+         Pt3dr mDirCam1;
+         Pt3dr mDirCam2;
+         Pt3dr mNorm;
+         double mDist;
+
+         void MakePlySec(double aTeta,const std::string & aName,Pt3di aCoul);
+         void AddFaisceauMaster(std::vector<ElSeg3D> & aRes,Pt3dr  aDir,const std::string & aName,Pt3di aCou);
+         void MakePly(const std::vector<ElSeg3D> & aVS,const std::string & aName,Pt3di aCoul);
+
+         vector<ElSeg3D> mMast;
+         vector<ElSeg3D> mSec1;
+};
+
+void cApply_PlyCamOrthoC::MakePlySec(double aTeta,const std::string & aName,Pt3di aCoul)
+{
+   ElMatrix<REAL>  aR =  VectRotationArroundAxe(mNorm,aTeta);
+
+   vector<ElSeg3D> aNew;
+   for (int aK=0 ; aK<int(mSec1.size()) ; aK++)
+   {
+         aNew.push_back(ElSeg3D(aR*mSec1[aK].P0(),aR*mSec1[aK].P1()));
+   }
+   MakePly(aNew,aName,aCoul);
+}
+
+
+
+void cApply_PlyCamOrthoC::MakePly(const std::vector<ElSeg3D> & aVS,const std::string & aName,Pt3di aCoul)
+{
+   cPlyCloud aPC;
+
+   for (int aK=0 ; aK<int(aVS.size()) ; aK++)
+   {
+       aPC.AddSeg(aCoul,aVS[aK].P0(),aVS[aK].P1(),200);
+       aPC.AddSphere(aCoul,aVS[aK].P0(),0.1,5);
+   }
+   
+   aPC.PutFile(aName);
+}
+
+void cApply_PlyCamOrthoC::AddFaisceauMaster(std::vector<ElSeg3D> & aRes,Pt3dr  aDir,const std::string & aName,Pt3di aCoul)
+{
+    aDir = vunit(aDir);
+
+    ElSeg3D aSeg(Pt3dr(0,0,0),aDir);
+
+    for (int aK=0 ; aK<mNbPoints ; aK++)
+    {
+          Pt3dr aProj = mPts[aK]-aSeg.ProjOrtho(mPts[aK]); // Proj sur le plan ortho
+
+          aRes.push_back(ElSeg3D(aProj-aDir*mDist,aProj+aDir*mDist));
+    }
+    MakePly(aRes,aName,aCoul);
+}
+
+cApply_PlyCamOrthoC::cApply_PlyCamOrthoC(int argc,char ** argv)  :
+    mNbPoints (6),
+    mNbTeta   (10),
+    mDirCam1  (vunit(Pt3dr(1,0,0))),
+    mDirCam2  (vunit(Pt3dr(1,1,0))),
+    mNorm     (mDirCam1^mDirCam2),
+    mDist     (5.0)
+{
+    cPlyCloud aPC;
+     for (int aK=0 ; aK< mNbPoints ; aK++)
+     {
+          mPts.push_back(Pt3dr(NRrandC(),NRrandC(),NRrandC()));
+          aPC.AddSphere(Pt3di(0,255,0),mPts.back(),0.02,5);
+     }
+     aPC.PutFile("Inter12.ply");
+
+     AddFaisceauMaster(mMast,mDirCam1,"Cam1.ply",Pt3di(255,0,0));
+     AddFaisceauMaster(mSec1,mDirCam2,"Cam2.ply",Pt3di(0,0,255));
+
+     MakePlySec(0.4,"Cam3.ply",Pt3di(0,128,255));
+     MakePlySec(1.7,"Cam4.ply",Pt3di(128,0,255));
+
+     cPlyCloud aPC2;
+     aPC2.AddSeg(Pt3di(0,255,0),mNorm*mDist*2,mNorm*mDist*-2,4000);
+     aPC2.PutFile("Axe.ply");
+}
+
+int MakePly_CamOrthoC(int argc,char ** argv)
+{
+    cApply_PlyCamOrthoC anAply(argc,argv);
+    return EXIT_SUCCESS;
+}
 
 
 
