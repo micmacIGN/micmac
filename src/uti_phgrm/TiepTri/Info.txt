@@ -1,0 +1,22 @@
+@Giang :
+
+   1 - mCam->PIsVisibleInImage(Pt3dr)  pour point visible
+   2- orientation triangle :
+
+         ((mP2Glob-mP1Glob) ^(mP3Glob-mP1Glob)) 
+
+
+=================
+Suppression des erreurs :
+
+* (1)  Nouveau critere de ressemblance, different de la correlation maximisee, 
+* (1Bis) Supression des points qui auto-correlent
+* (2)  Gestion de la multi correlation, en privilegiant les points triples ou quadruple
+* (3)  Utilisation des orientations (paralaxe tranverse etc ...)
+* (4)  Utilisation de masque (goutte ...)
+
+
+Pouvoir lancer en mode visuel avec un triangle specifique
+
+=> Pourquoi un point a parfois plusieurs homologue ?
+
