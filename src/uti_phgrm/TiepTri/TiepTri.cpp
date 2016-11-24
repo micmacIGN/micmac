@@ -65,41 +65,45 @@ int TiepTri_Main(int argc,char ** argv)
 
    SplitDirAndFile(aDir,aNameXML,aFullNameXML);
 
+
    if (!  StdCorrecNameOrient(anOri,aDir,true))
    {
       StdCorrecNameOrient(anOri,"./");
       aDir = "./";
    }
 
+
    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-   cXml_TriAngulationImMaster aTriang =   StdGetFromSI(aFullNameXML,Xml_TriAngulationImMaster);;
+
+       cXml_TriAngulationImMaster aTriang =   StdGetFromSI(aFullNameXML,Xml_TriAngulationImMaster);;
 
 
-   cAppliTieTri  anAppli(anICNM,aDir,anOri,aTriang);
-   anAppli.Debug() = aDebug;
+       cAppliTieTri  anAppli(anICNM,aDir,anOri,aTriang);
+       anAppli.Debug() = aDebug;
 
 
-   if (EAMIsInit(&aPtsSel)) 
-      anAppli.SetPtsSelect(aPtsSel);
-   if (EAMIsInit(&aNumSel)) 
-      anAppli.SetNumSelectImage(aNumSel);
+       if (EAMIsInit(&aPtsSel))
+           anAppli.SetPtsSelect(aPtsSel);
+       if (EAMIsInit(&aNumSel))
+           anAppli.SetNumSelectImage(aNumSel);
 
-   if (EAMIsInit(&aSzW))
-   {
-       anAppli.SetSzW(Pt2di(aSzW.x,aSzW.y),aSzW.z);
-      if (! EAMIsInit(&aNivInterac)) 
-          aNivInterac = 2;
-   }
-   else
-   {
-     aNivInterac = 0;
-   }
+       if (EAMIsInit(&aSzW))
+       {
+           anAppli.SetSzW(Pt2di(aSzW.x,aSzW.y),aSzW.z);
+           if (! EAMIsInit(&aNivInterac))
+               aNivInterac = 2;
+       }
+       else
+       {
+           aNivInterac = 0;
+       }
 
-   anAppli.NivInterac() = aNivInterac;
+       anAppli.NivInterac() = aNivInterac;
 
 
-   anAppli.DoAllTri(aTriang);
+       anAppli.DoAllTri(aTriang);
+
    return EXIT_SUCCESS;
 
 }
