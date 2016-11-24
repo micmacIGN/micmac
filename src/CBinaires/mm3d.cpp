@@ -613,6 +613,8 @@ int TestMartini_Main(int argc,char ** argv);
 
 int TestGiang_main(int argc,char ** argv);
 
+int TiepTriPrl_main(int argc,char ** argv);
+
 int TiepTri_Main(int argc,char ** argv);
 
 int TaskCorrel_main(int argc,char ** argv);
@@ -796,6 +798,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestMartini",TestMartini_Main,"Test Martini with simulation"));
 
         aRes.push_back(cMMCom("TestGiang",TestGiang_main,"Test Correlation by Mesh"));
+        aRes.push_back(cMMCom("TiepTriPrl",TiepTriPrl_main,"Paralelliser version of TiepTri"));
         aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));
         aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri"));
         aRes.push_back(cMMCom("FAST",FAST_main,"Some Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)"));

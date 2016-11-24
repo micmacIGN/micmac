@@ -60,6 +60,8 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel.cpp
     ${TDPPMD_DIR}/TiePByMesh/FAST_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/Homol2Way_main.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TiepTriPrl.cpp
+
 
 
 

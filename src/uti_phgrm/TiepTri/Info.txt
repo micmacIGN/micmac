@@ -1,7 +1,7 @@
 @Giang :
 
-   1 - mCam->PIsVisibleInImage(Pt3dr)  pour point visible
-   2- orientation triangle :
+   1 - mCam->PIsVisibleInImage(Pt3dr)  pour point visible (done in TaskCOrrel!)
+   2- orientation triangle :                              (done in TaskCOrrel!)
 
          ((mP2Glob-mP1Glob) ^(mP3Glob-mP1Glob)) 
 
@@ -18,5 +18,7 @@ Suppression des erreurs :
 
 Pouvoir lancer en mode visuel avec un triangle specifique
 
-=> Pourquoi un point a parfois plusieurs homologue ?
+=> Pourquoi un point a parfois plusieurs homologue ?       (au moins on peut voir les plusieurs homo disparaitre apres 2 modif @Giang 1 2 !)
 
+======24/11/2016=====
+Mise en place outil TiepTriPrl -- lancer TiepTri avec pattern de XML en paralelle. Pourvoir tester sur plusieur img.
