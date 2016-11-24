@@ -1353,10 +1353,15 @@ std::cout << "TEST MEPS STD " << mName  << " L2 " << L2
 
 
     double aLMG = mAppli.Param().LimModeGL().Val();
-    if ((aLMG>0) && (GuimbalAnalyse(aRot,false)<aLMG))
+    double aGVal = GuimbalAnalyse(aRot,false);
+    if ((aLMG>0) && (aGVal<aLMG))
     {
-       std::cout << "GUIMBAL-INIT " << mName << "\n";
+       std::cout << "GUIMBAL-INIT " << mName << " " << aGVal<< "\n";
        mCF->SetGL(true);
+    }
+    else
+    {
+       std::cout << "NO GUIMBAL " << mName  << " " << aGVal<< "\n";
     }
 
     mCF->SetCurRot(aRot);

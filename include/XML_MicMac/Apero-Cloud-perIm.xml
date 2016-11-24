@@ -13,7 +13,7 @@
                  <Id>    Id_Pastis_Hom  </Id>
                  <KeySet> NKS-Set-Homol@@${Ext}  </KeySet>
                  <KeyAssoc>  NKS-Assoc-CplIm2Hom@@${Ext}   </KeyAssoc>
-   </BDD_PtsLiaisons>
+           </BDD_PtsLiaisons>
            <BDD_Orient>
                   <Id>  Or-Init   </Id>
                   <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
