@@ -15,6 +15,7 @@ before_install:
 - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update && brew install qt5 && export CMAKE_MODULE_PATH=$CMAKE_MODULE_PATH:`brew --prefix qt5`; fi
 
 script:
+- echo $CMAKE_MODULE_PATH
 - sh travis_build_script.sh
 
 #after_success:
