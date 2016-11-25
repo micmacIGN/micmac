@@ -1,0 +1,27 @@
+
+
+mm3d SplitMPO DSCF329.*MPO
+
+
+mm3d TestNameCalib DSCF3297_L.jpg 
+
+Tapioca All D.*jpg 1500
+
+Tapas Figee D.*jpg InCal=Calib Out=AllRel
+
+GCPBascule D.*jpg  AllRel Basc AllGCP-RTL.xml MesuresFinales-S2D.xml
+
+
+mm3d Blinis DSCF329.*jpg Ori-Basc/ Loc-Assoc-Im2Block Blinis.xml
+
+Campari DSCF329.*jpg Basc Cmp GCP=[AllGCP-RTL.xml,1.0,MesuresFinales-S2D.xml,0.5] BlocTimeRel=[Blinis.xml,1e-3,1e-2,0.01]
+
+
+
+
+"mm3d" "Campari" "DSCF32.*jpg" "Basc" "Cmp" "GCP=[AllGCP-RTL.xml,0.3,MesuresFinales-S2D.xml,0.3]" "BlocGlob=[Blinis.xml,1e-3,1e-2,1e-4]" 
+
+"mm3d" "Campari" "DSCF32.*jpg" "Basc" "Cmp" "GCP=[AllGCP-RTL.xml,0.3,MesuresFinales-S2D.xml,0.3]" "BlocGlob=[Blinis.xml,1e-3,1e-2,1e-4]"  "OptBlocG=[-1,-1]"
+"mm3d" "Campari" "DSCF32.*jpg" "Basc" "Cmp" "GCP=[AllGCP-RTL.xml,0.3,MesuresFinales-S2D.xml,0.3]" "BlocGlob=[Blinis.xml,1e-3,1e-2,1e-4]"  "OptBlocG=[-2,-2]"
+
+"mm3d" "Campari" "DSCF32.*jpg" "Basc" "Cmp" "GCP=[AllGCP-RTL.xml,0.3,MesuresFinales-S2D.xml,0.3]" "BlocGlob=[Blinis.xml,1e-3,1e-2,1e-4,Glob.xml]"  "OptBlocG=[0.1,0.1]"

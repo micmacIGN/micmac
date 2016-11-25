@@ -1,0 +1,47 @@
+
+SimulAnalogImages.cpp :
+
+   - Orientation Analog dans MicMac
+
+Bug Param Tawny
+
+Correlation "multi ponctuelle"
+
+En cours ReducHom
+
+
+=======================================================
+Bug point appuis   ?? (Ponderation !!!!)
+exiftool
+
+bin/GCPBascule
+bin/SBGlobBascule
+
+Malt
+
+Ortho ; faire acquisition a vincennes
+
+tawny 
+
+Doc dans -help
+
+Orientation in mm, PhotoModeler, Bingo
+
+
+Mesh dans Nuage 2 ply
+
+   - voir cAppliSM::DumpImage  dans SaisieMasq.cpp
+
+Geo Ref et proj4
+
+Pb NEF regle (pb RAF ??)
+
+//=========================
+Docu outil interactifs
+
+SaisieAppuisInit
+SaisieBasc
+SaisieAppuisPredic
+ ============
+
+Pb MAJ dans Nuage 2 ply : faire conversion  tif en regardant dates de modif

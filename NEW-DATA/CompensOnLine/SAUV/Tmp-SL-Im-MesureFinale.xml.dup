@@ -1,0 +1,500 @@
+<?xml version="1.0" ?>
+<SetOfSaisiePointeIm>
+     <SaisiePointeIm>
+          <NameIm>Abbey-IMG_0204.jpg</NameIm>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_1_A</NamePt>
+               <PtIm>233.001090786158926 196.724980137055923</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_1_B</NamePt>
+               <PtIm>278.550103949307072 144.750205523193671</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_2_A</NamePt>
+               <PtIm>244.496586410260846 328.371776032306457</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_2_B</NamePt>
+               <PtIm>130.535619675254566 63.6727414521281219</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_3_A</NamePt>
+               <PtIm>381.409257239527392 19.0471094133466501</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_4_A</NamePt>
+               <PtIm>1056.93915832339917 436.436562817487641</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_4_B</NamePt>
+               <PtIm>1089.52860948516332 488.968562722313436</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_5_A</NamePt>
+               <PtIm>1213.8608798322764 527.592927046886984</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_5_B</NamePt>
+               <PtIm>1309.72185639286681 427.162504761423236</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_7_A</NamePt>
+               <PtIm>179.2989304230355 802.196206517457085</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_7_B</NamePt>
+               <PtIm>58.2989761860630153 731.191802050204501</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_8_A</NamePt>
+               <PtIm>372.619983040758484 613.018125662926309</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_8_B</NamePt>
+               <PtIm>516.483004021600095 554.105473839146271</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_9_A</NamePt>
+               <PtIm>990.029355104724459 571.325724418567233</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_9_B</NamePt>
+               <PtIm>926.039550798076675 610.57090587885034</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_10_A</NamePt>
+               <PtIm>997.659028247376568 566.463942597399296</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_10_B</NamePt>
+               <PtIm>1052.02622089014699 671.489943210469619</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_11_A</NamePt>
+               <PtIm>437.789050473270436 257.134257200487923</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_11_B</NamePt>
+               <PtIm>467.235274534482016 327.781487084386868</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_13_A</NamePt>
+               <PtIm>673.248239464457583 197.896484985913986</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_14_A</NamePt>
+               <PtIm>719.84888246171613 42.149315388850809</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_14_B</NamePt>
+               <PtIm>773.444488148052756 136.406739169986253</PtIm>
+          </OneSaisie>
+     </SaisiePointeIm>
+     <SaisiePointeIm>
+          <NameIm>Abbey-IMG_0205.jpg</NameIm>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_1_A</NamePt>
+               <PtIm>269.646253099383046 297.536877044619359</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_1_B</NamePt>
+               <PtIm>322.466214221631105 249.614697445270082</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_2_A</NamePt>
+               <PtIm>262.959154686501165 433.365464137524043</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_2_B</NamePt>
+               <PtIm>185.20376094285038 149.757338602816901</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_3_A</NamePt>
+               <PtIm>444.575022200405158 119.526387133980379</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_3_B</NamePt>
+               <PtIm>794.794734746883023 21.6065422498854858</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_4_A</NamePt>
+               <PtIm>1059.34213049668915 640.043524753731504</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_4_B</NamePt>
+               <PtIm>1084.17864479109812 697.00547793208716</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_5_A</NamePt>
+               <PtIm>1202.04020720727112 756.545544435434522</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_5_B</NamePt>
+               <PtIm>1311.36611753600596 682.527595820919032</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_6_A</NamePt>
+               <PtIm>1325.26338896919219 58.0720136986652093</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_6_B</NamePt>
+               <PtIm>1378.69022409706872 163.400431134137591</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_7_A</NamePt>
+               <PtIm>136.583190448567052 876.265528616192796</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_7_B</NamePt>
+               <PtIm>26.3091342038366349 787.808706313836637</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_8_A</NamePt>
+               <PtIm>351.45612558326053 737.272313222644129</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_8_B</NamePt>
+               <PtIm>503.355170402017393 691.716594529981194</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_9_A</NamePt>
+               <PtIm>973.437952759523114 762.110308243889563</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_9_B</NamePt>
+               <PtIm>904.079376944027786 792.740792624965934</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_10_A</NamePt>
+               <PtIm>981.687712273903912 758.812325409594223</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_10_B</NamePt>
+               <PtIm>1020.56668354413694 870.87029088124018</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_11_A</NamePt>
+               <PtIm>467.204921360569529 373.615030113952344</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_11_B</NamePt>
+               <PtIm>486.804262245136215 448.305556671668626</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_13_A</NamePt>
+               <PtIm>707.746856745938771 374.996901502706919</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_13_B</NamePt>
+               <PtIm>1374.52920985088986 176.086662864850581</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_14_A</NamePt>
+               <PtIm>777.159300863606859 218.584333781680868</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_14_B</NamePt>
+               <PtIm>816.925709410525542 325.227001653579464</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_15_A</NamePt>
+               <PtIm>201.238666865883204 60.6267834716184808</PtIm>
+          </OneSaisie>
+     </SaisiePointeIm>
+     <SaisiePointeIm>
+          <NameIm>Abbey-IMG_0206.jpg</NameIm>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_1_A</NamePt>
+               <PtIm>265.659334560131526 495.40060114395925</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_1_B</NamePt>
+               <PtIm>320.094622822360805 446.443057012725546</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_2_A</NamePt>
+               <PtIm>255.407668783899027 634.208687017092302</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_2_B</NamePt>
+               <PtIm>184.356980002514632 344.756577667352474</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_3_A</NamePt>
+               <PtIm>446.837298432886314 300.46194150012559</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_3_B</NamePt>
+               <PtIm>801.739898038384922 209.465290402750952</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_4_A</NamePt>
+               <PtIm>1050.67152540333814 847.761861648052786</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_4_B</NamePt>
+               <PtIm>1073.99440374497294 905.578617688065947</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_5_B</NamePt>
+               <PtIm>1302.04683555909673 913.395453577206467</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_6_A</NamePt>
+               <PtIm>1334.66213422968394 283.035890973972698</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_6_B</NamePt>
+               <PtIm>1385.24895516766651 401.308802975277899</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_8_B</NamePt>
+               <PtIm>490.611326481490153 895.255121163621538</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_11_A</NamePt>
+               <PtIm>462.8182087203175 563.812493523938883</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_11_B</NamePt>
+               <PtIm>480.58749787408334 639.297348522260791</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_13_A</NamePt>
+               <PtIm>703.9719999166864 599.93711812935851</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_13_B</NamePt>
+               <PtIm>1380.68494595208585 408.870312605960635</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_14_A</NamePt>
+               <PtIm>778.092329515259621 437.948154946316379</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_14_B</NamePt>
+               <PtIm>815.169381918208728 550.695471340102131</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_15_A</NamePt>
+               <PtIm>203.020627175285028 246.597987006421761</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_15_B</NamePt>
+               <PtIm>176.923402871554174 18.7947735847621686</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_16_A</NamePt>
+               <PtIm>190.284616013377473 74.3557863643492709</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_16_B</NamePt>
+               <PtIm>394.830709005715903 72.1239220774039467</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_17_A</NamePt>
+               <PtIm>1194.60592435031162 136.344358691256048</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_17_B</NamePt>
+               <PtIm>1270.71356646912068 129.639041059267697</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_18_A</NamePt>
+               <PtIm>894.328537468442732 67.77864350703274</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_18_B</NamePt>
+               <PtIm>887.703307537150636 11.5359049067567412</PtIm>
+          </OneSaisie>
+     </SaisiePointeIm>
+     <SaisiePointeIm>
+          <NameIm>Abbey-IMG_0207.jpg</NameIm>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_1_A</NamePt>
+               <PtIm>263.578054998269351 681.448862962381668</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_1_B</NamePt>
+               <PtIm>320.089537018393116 632.240809867318944</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_2_A</NamePt>
+               <PtIm>248.145195542910159 822.4103639301984</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_2_B</NamePt>
+               <PtIm>187.431990703134232 527.760657730246749</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_3_A</NamePt>
+               <PtIm>454.159589189502015 471.150345867794101</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_3_B</NamePt>
+               <PtIm>814.423950878354617 391.526541218898444</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_6_A</NamePt>
+               <PtIm>1346.74845917890912 510.801858401782624</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_6_B</NamePt>
+               <PtIm>1391.76451362312787 643.133960606621827</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_11_A</NamePt>
+               <PtIm>459.785269765965324 743.391668875649884</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_11_B</NamePt>
+               <PtIm>474.793240043820163 819.479851092913123</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_13_A</NamePt>
+               <PtIm>698.047863944071764 819.280459773942994</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_13_B</NamePt>
+               <PtIm>1387.16250253416183 645.055097769047279</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_14_A</NamePt>
+               <PtIm>779.312533104559179 652.918554716373137</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_14_B</NamePt>
+               <PtIm>811.805604031441817 772.103250774484081</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_15_A</NamePt>
+               <PtIm>210.409938016385041 420.58572767587151</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_15_B</NamePt>
+               <PtIm>192.384457102467678 188.260051130795233</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_16_A</NamePt>
+               <PtIm>203.873009541171712 244.791979285911424</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_16_B</NamePt>
+               <PtIm>410.25911437659056 241.140787604965254</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_17_A</NamePt>
+               <PtIm>1211.91307520346209 355.50422567395799</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_17_B</NamePt>
+               <PtIm>1289.55649607136502 344.100212718125249</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_18_A</NamePt>
+               <PtIm>913.467146964391077 250.323882394832111</PtIm>
+          </OneSaisie>
+          <OneSaisie>
+               <Etat>eEPI_Valide</Etat>
+               <NamePt>P_18_B</NamePt>
+               <PtIm>909.118147999316193 192.672275621547101</PtIm>
+          </OneSaisie>
+     </SaisiePointeIm>
+</SetOfSaisiePointeIm>

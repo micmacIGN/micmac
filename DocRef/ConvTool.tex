@@ -1,0 +1,754 @@
+\chapter{Data exchange with other tools}
+
+\section{Generalities}
+
+As many developers, in {\tt MicMac/Apero}, I often could not resist to
+define my own format, sometime because I thought that existing
+format were not suited for what I needed and sometime just because I was in
+hurry and thought that the format question was a minor issue that could be
+dealt with later \dots In fact, often, there were no ideal solution, because
+photogrammetry has such a long history and in many case it is often difficult to
+know what is "the" standard.
+
+\vspace{\baselineskip}
+By the way, now that the user community is developing, it appears that the format issue
+is not a minor one. There are two chapters dealing with the format issue:
+
+\begin{itemize}
+   \item  the chapter~\ref{Chap:GeoLoc} describes the internal format used
+          by {\tt Apero/MicMac} ; as all these
+          format are open format and most of them in text mode, it should theoretically be sufficient
+          to create interface at any point of the process;
+
+   \item  this chapter, which describes some facilities that have been developed to communicate
+          with some existing \emph{de facto} standard;
+\end{itemize}
+
+The directory {\tt TestPM/} on {\tt ExempleDoc/} contains example that will be used for
+illustrating this chapter.
+
+
+%=======================================================================================================
+\section{Orientation's convention}
+
+Basically there are two conventions in {\tt MicMac/Apero}, that can create
+difficulties for importing orientations :
+
+\begin{itemize}
+    \item for internal orientation, all the calibration are given in pixel;
+          although this is quite natural with digital camera, this is
+          not the "photogrammetric tradition" which, dealing initially with
+          analog images, rather work in millimeters;
+
+    \item for external orientation, I store directly the rotation matrix which
+          has few ambiguities \footnote{even if internally I use $3$ angles in
+          optimization step} ; however many softwares use angles, the problem
+          with angles being that almost each software has its own convention \dots
+\end{itemize}
+
+This section describes how calibration in millimeters and some orientation in angles
+can be directly imported in {\tt Apero/MicMac}. If you have data that cannot be
+imported with the facilities described here, I may be open to add the facilities in
+{\tt MicMac/Apero} if I am convinced that I can do it easily and that it will
+be usefull to others; concretely it means that at least the following conditions should apply :
+
+\begin{itemize}
+      \item  you have some document that describe formally the convention/format;
+      \item  you have a reasonably small data-set (image+meta data) that can  be used
+             to validate the import/export;
+      \item  these data can be distributed, with acknowledgment, as open data on the
+             MicMac/Apero site;
+\end{itemize}
+ %------------------------------------------
+
+\subsection{Internal orientation}
+
+For using angle in external orientation, you can use the {\tt  <CodageAngulaire> }
+option under the {\tt <ParamRotation>}. On {\tt Ori-OMApero/} from data set
+{\tt TestPM/} we can open for example the file {\tt Orientation-DSC\_6443.jpg.xml} :
+
+\begin{verbatim}
+ExportAPERO>
+     <OrientationConique>
+...
+          <FileInterne> Ori-OMApero/AutoCal350.xml</FileInterne>
+          <RelativeNameFI>true</RelativeNameFI>
+          <Externe>
+...
+               <Centre>   852.7267 374.238 663.2607   </Centre>
+               <ParamRotation>
+                    <CodageAngulaire>   -1.824705 48.7837 90.50795 </CodageAngulaire>
+               </ParamRotation>
+          </Externe>
+          <ConvOri>
+               <KnownConv> eConvAngPhotoMDegre </KnownConv>
+          </ConvOri>
+     </OrientationConique>
+</ExportAPERO>
+
+\end{verbatim}
+
+Inside the {\tt  <CodageAngulaire>} tag, there are three angles. As there are many
+conventions for coding rotation by three angles, a very important part is :
+
+\begin{itemize}
+      \item {\tt <KnownConv> eConvAngPhotoMDegre </KnownConv>}
+\end{itemize}
+
+Here this tag means that the angles are coded using the photo modeler software convention.
+The convention that have been recently tested and worked correctly are :
+
+\begin{itemize}
+      \item {\tt eConvAngPhotoMDegre}  works for {\tt PhotoModeler} and {\tt Bingo};
+      \item {\tt eConvAngPhotoMGrade}  same as previous with angle in grade;
+\end{itemize}
+
+There exist convention that I have not tested for a long time, and I do not have dataset to
+check if they work. You can give it a try, if it works perfect, else you can contact me:
+
+\begin{itemize}
+    \item {\tt eConvAngErdas}
+    \item {\tt eConvAngErdas\_Grade}
+    \item {\tt eConvAngLPSDegre}
+\end{itemize}
+
+ %------------------------------------------
+
+\subsection{External orientation}
+
+When you use a calibration in mm, and do not want to "translate" by hand the values
+in pixel, the optional {\tt <OrIntGlob>},  of {\tt <CalibrationInternConique>} allows
+to add an affinity to the internal orientation. In some way it is redundant with the
+{\tt <OrIntImaM2C>} described in~\ref{Image:Int:Ori}; however the {\tt <OrIntImaM2C>}
+must be defined for each image and is rather convenient when dealing with the
+scanning of analog image. In the file {\tt  Ori-OMApero/AutoCal350.xml} of  data set
+{\tt TestPM/}  we find the import of a calibration that was made with {\tt PhotoModeler} :
+
+\begin{verbatim}
+<ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>12.0347079589749999 8.02237118679700068</PP>
+          <F>37.7672246925810029</F>
+          <SzIm>3872 2592</SzIm>
+          <OrIntGlob>
+               <Affinite>
+                    <I00>0 0</I00>
+                    <V10>0.00619834710000000035 0</V10>
+                    <V01>0 0.00619834710000000035</V01>
+               </Affinite>
+               <C2M>true</C2M>
+          </OrIntGlob>
+          <CalibDistortion>
+               <ModPhgrStd>
+                    <RadialePart>
+                         <CDist>12.0347079589749999 8.02237118679700068</CDist>
+                         <CoeffDist>-6.64705e-05</CoeffDist>
+                         <CoeffDist>6.03669999999999873e-08</CoeffDist>
+                         <CoeffDist>-6.19999999999999798e-11</CoeffDist>
+                    </RadialePart>
+                    <P1>1.31971999999999996e-05</P1>
+                    <P2>8.07707000000000058e-06</P2>
+                    <b1>0</b1>
+                    <b2>0</b2>
+               </ModPhgrStd>
+          </CalibDistortion>
+     </CalibrationInternConique>
+</ExportAPERO>
+\end{verbatim}
+
+
+The tag {\tt <C2M>} mean that the affinity is given from camera coordinate to word coordinate.
+For example here , to transform a pixel $x,y$ in milimeter we use $x*0.0061\dots,y*0.0061\dots$.
+You can check the files {\tt AutoCal350-V0.xml} and {\tt AutoCal350-V1.xml},
+they define exactly the same calibration, the first with {\tt C2M=true } and the second {\tt C2M=false}.
+The files {\tt AutoCal350-V2.xml} and {\tt AutoCal350-V3.xml} define also the same
+calibration than  {\tt AutoCal350-V0.xml}, using the tag {\tt <I00>}, they correspond to the case
+where  {\tt  <CDist>} and {\tt <PP>} are defined relatively to the center of sensor (instead of $(0,0)$).
+
+
+The following commands were used to test the import of orientation :
+
+\begin{verbatim}
+Tapioca All ".*jpg" 1200
+AperiCloud  ".*jpg" OMApero
+Malt  GeomImage "DSC_64(56|57|43).jpg" OMApero  Master=DSC_6457.jpg
+\end{verbatim}
+
+%=======================================================================================================
+\section{Conversion tools}
+
+These section describes some conversion tools  written to transform
+datas from some text format to the {\tt Xml} format used in {\tt Apero/MicMac}.
+
+\subsection{Ground Control Point Convertion: {\tt GCPConvert} }
+\label{GCPConvert}
+
+The command {\tt GCPConvert} is used to:
+\begin{itemize}
+ \item transform a set of ground control points from most text format to {\tt MicMac}'s {\tt Xml} format
+\item transform the ground control points into an euclidean coordinate system, suitable for {\tt MicMac}.
+\end{itemize}
+
+\subsubsection{File format conversion with GCPConvert}
+
+Consider the file {\tt CP3D.txt}
+of directory {\tt TestPM/}, here are two lines extracted :
+
+
+\begin{verbatim}
+157     233.28   144.03    103.05  0.00332    0.0034    0.0039
+158     317.011  -0.00000  0.0000  0.0053     0.0060    0.0071
+...
+\end{verbatim}
+
+The format should be quite obvious to human, each line contains the name of point,
+then $X,Y,Z$ , then accuracy on $X,Y,Z$. However, we have to specify this format to the computer.
+One way to do it, is to add first line in the file that specifies the format.
+This is done in the file {\tt CP3D\_Format.txt}, the beginning is :
+
+
+\begin{verbatim}
+#F= N X Y Z  Ix Iy Iz
+157     233.28   144.03    103.05  0.00332    0.0034    0.0039
+158     317.011  -0.00000  0.0000  0.0053     0.0060    0.0071
+...
+\end{verbatim}
+
+The first line must be interpreted like :
+
+\begin{itemize}
+   \item  the first character {\tt \#}  means that  all line beginning by a {\tt \#} will be
+          a comment;
+   \item  the two characters {\tt F=}  mean that this is really a format specification;
+   \item  {\tt N}  means the first string of each line is the name of the point;
+   \item  {\tt X Y Z}  means that this strings number $2$, $3$ and $4$ are the coordinates;
+   \item  {\tt Ix Iy Iz}  means that this strings number $5$, $6$ and $7$ are the accuracy;
+\end{itemize}
+
+
+Here is another example with the {\tt app} format used in some IGN's process :
+
+\begin{verbatim}
+#F= N S X Y Z
+300     3       94.208685       658.506787      42.39556
+301     3       95.323427       656.409116      43.502239
+302     3       97.008135       654.424482      45.084237
+...
+\end{verbatim}
+
+In this case  the {\tt S} means that there is a string that won't be interpreted. It can
+also be seen that the accuracy is not mandatory.
+Once the file has been modified, the following command can be used:
+
+\begin{verbatim}
+GCPConvert AppInFile CP3D_Format.txt
+\end{verbatim}
+
+For the first arg, the key word {\tt AppInFile} means that the format specification is given
+at the first line of the file. If you don't want to modify the file it is possible to
+give the format specification directly on the command line. If the first argument is not
+a known keyword, then it will try to interpret it as a format specification. The syntax
+is a bit ugly because it is not possible to give white space in the shell, so they must
+be replaced by {\tt \_}. Here is an example:
+
+\begin{verbatim}
+GCPConvert  "#F=N_X_Y_Z_Ix_Iy_Iz" CP3D.txt
+\end{verbatim}
+
+As usual, to have the full syntax:
+
+\begin{verbatim}
+ GCPConvert -help
+Valid Types for enum value:
+   AppEgels
+   AppGeoCub
+   AppInFile
+   AppXML
+*****************************
+*  Help for Elise Arg main  *
+*****************************
+Unamed args :
+  * string :: {Format specification}
+  * string :: {GCP  File}
+Named args :
+  * [Name=Out] string :: {Xml Out File}
+  * [Name=ChSys] string :: {Change coordinate file}
+\end{verbatim}
+
+
+For the format arg, its values can be:
+
+\begin{itemize}
+   \item  {\tt AppEgels}, the format  is {\tt \#F= N S X Y Z};
+   \item  {\tt AppGeoCub}, the format  is {\tt \#F= N X Y Z};
+   \item  {\tt AppInFile}, format is in the file, as seen above;
+   \item  {\tt AppXML}, format is already {\tt MicMac}'s {\tt Xml} format (do nothing);
+   \item  any other value, it is a format specification, as seen above;
+\end{itemize}
+
+\vspace{\baselineskip}
+The meaning of the other arguments is:
+
+\begin{itemize}
+    \item first arg, contains the format specification, as seen above;
+    \item second arg, is the name of the file containing the GCP data;
+    \item third optional arg {\tt Out}, is the name of the xml output file;
+    \item optional arg {\tt ChSys}, is the specification for coordinate system transform;
+\end{itemize}
+\vspace{\baselineskip}
+The optional arg {\tt ChSys} can describe a file for coordinate change as described in~\ref{Coordinat:System}
+
+
+\subsection{Orientations convertion for {\tt PMVS}: {\tt Apero2PMVS} }
+
+Thanks to Luc Girod, we have got a tool which converts orientations generated with Apero (or Tapas) into PMVS orientations and builds the whole repository structure for {\tt PMVS}.
+It also corrects images from distortion, as PMVS needs undistorted images as input.
+Here is an example for calling the {\tt Apero2PMVS} command:
+
+\begin{verbatim}
+mm3d Apero2PMVS "myDirectory\IMG_[0-9]{4}.tif" RadialExtended
+\end{verbatim}
+
+To get the general syntax, one can type:
+
+\begin{verbatim}
+mm3d Apero2PMVS -help
+*****************************
+*  Help for Elise Arg main  *
+*****************************
+Unamed args :
+  * string :: {Images' name pattern}
+  * string :: {Orientation name}
+\end{verbatim}
+
+The two mandatory arguments are:
+\begin{itemize}
+    \item first arg, the pattern for images' name for which orientation has to be converted;
+    \item second arg, the orientation name (where orientation {\tt xml} files are stored, for example {\tt Ori-RadialExtended});
+\end{itemize}
+
+\vspace{\baselineskip}
+NB: it is quite obvious that orientations stored in the {\tt Ori-RadialExtended} folder should match the images' name pattern.
+
+\vspace{\baselineskip}
+{\tt Apero2PMVS} builds the needed folders for PMVS in a folder with {\tt pmvs-} as suffix, followed by the orientation name (for example {\tt pmvs-RadialExtended}):
+\begin{itemize}
+     \item the {\tt visualize} folder contains images corrected from distortion, computed with the {\tt DRUNK} tool, and renamed with the PMVS convention,
+     \item the {\tt txt} folder contains orientation files,
+     \item the {\tt models} folder is empty, it is the folder where {\tt PMVS} will store output models.
+\end{itemize}
+
+\subsubsection{Distortion removing with {\tt DRUNK} }
+
+The {\tt DRUNK} tool, also written by Luc Girod, allows to remove distortion from images, knowing internal orientations. This tool is called by {\tt Apero2PMVS} to prepare data in the {\tt PMVS} way, but one can call it alone. The {\tt DRUNK} command can be called the same way as {\tt Apero2PMVS}:
+
+\begin{verbatim}
+mm3d Drunk "myDirectory\IMG_[0-9]{4}.tif" RadialExtended
+\end{verbatim}
+
+To get the general syntax, as always:
+
+\begin{verbatim}
+mm3d Drunk -help
+*****************************
+*  Help for Elise Arg main  *
+*****************************
+Unamed args :
+  * string :: {Images Pattern}
+  * string :: {Orientation name}
+Named args :
+  * [Name=Out] string :: {Output folder (end with /) and/or prefix (end with another char)}
+  * [Name=Talk] bool :: {Turn on-off commentaries}
+\end{verbatim}
+
+The two mandatory arguments are:
+\begin{itemize}
+    \item first arg, the pattern for images' name for which distortion has to be removed;
+    \item second arg, the orientation name (where orientation {\tt xml} files are stored, for example {\tt Ori-RadialExtended})
+\end{itemize}
+
+\vspace{\baselineskip}
+The two optional arguments are:
+\begin{itemize}
+    \item first arg, is understood as the output folder name, if it ends with \textbackslash, or as a prefix which will be followed by the orientation name, if it ends with another char;
+    \item second arg, a boolean to allow or avoid commentaries
+\end{itemize}
+
+\subsection{Apero2NVM}
+
+Orientations convertion for Computer Vision Based software : Apero2NVM
+
+Apero2NVM is a tool which takes in input the orientations generated with Apero accompanied with its dataset. The Output is a file .nvm which is directly usable in input of the dense-matching part of four photogrammetric tool : VisualSFM, MVE, SURE, MeshRecon. This file .nvm includes mainly a bloc of orientation data and a sparse cloud. The sparse cloud understands not only its 3 D coordinate but also its feature measurements on the picture, which is also associated with an image index.
+Are also exported the dataset removed from the distortion and the shift among the image centre and the principal point.
+
+Here is an example for calling the Apero2NVM command:
+{\tt mm3d Apero2NVM ".*.jpg" RadialStd ExpTxt=1 ExpApeCloud=1}
+
+In order to display the help type :
+
+\begin{verbatim}
+mm3d Apero2NVM -help
+*****************************
+*  Help for Elise Arg main  *
+*****************************
+Mandatory unnamed args : 
+  * string :: {Images Pattern}
+  * string :: {Orientation name}
+Named args : 
+  * [Name=Nom] string :: {NVM file name}
+  * [Name=Out] string :: {Output folder (end with /)}
+  * [Name=ExpTxt] bool :: {Point in txt format ? (Def=false)}
+  * [Name=ExpApeCloud] bool :: {Exporte Ply? (Def=false)}
+  * [Name=ExpTiePt] bool :: {Export list of Tie Points uncorrected of the distortion ?(Def=false)}
+  * [Name=KpImCen] bool :: {Dont add a little rotation for pass from Image Centre to PP ?(To be right fix LibPP=0 in tapas before)(Def=false)}
+\end{verbatim}
+
+The two mandatory arguments are:
+\begin{itemize}
+ \item  first arg, the pattern for images’ name for which orientation has to be converted;
+ \item  second arg, the orientation name (where orientation xml files are stored, for example Ori-RadialStd).
+\end{itemize}
+
+Six optional argument can be used which allow the user to get more results in the desirated folder.
+\begin{itemize}
+ \item first argument, name of the .nvm file of Output, by default is Ori.nvm;
+ \item second argument is the name of the folder of Output, a char is expected with a «/» to the end, by default it's data/ ;
+ \item third argument regard the extention of the list of tie point measurement located in every Homol/PastisImageName.. folder, this extension has to be chosen in the Tapioca step. Here it's a simple boolean, 0 for .dat file and 1 for .txt.
+
+ \item  fourth arguments let the user obtain the sparse cloud in .ply, for the colour a medium gey is settle. In comparison the classic AperiCloud, the camera are not represented but all the redundancy of the tie points has been removed;
+ \item  fith argument is for getting the list of tie point measurement and associated image index in the original image coordinate system;
+ \item  sixth argument allows the user to get the result of the conversion keeping in consideration only the distorsion, the shift between image centre and principal point is simply ignored, in this case the final image are only undistorted.
+\end{itemize}
+
+	In the file .nvm the coordinate of the feature are substracted from the image centre, based on the final corrected dataset. By default the list based on the undistorted image system is exported. Nota bene that the user can obtain undistorted images directly using the «DRUNK» module. Is also exported a list of straight line (3 coordinates for the optical center and 3 coordinates for the director vector) of every feature and the list of its 3D coordinate.
+
+
+
+\subsection{Embedded GPS Conversion: {\tt OriConvert}}\label{OriConvert}
+
+The tool {\tt OriConvert} is a versatile command used to:
+\begin{itemize}
+\item transform embedded GPS data from text format to {\tt MicMac}'s {\tt Xml} orientation format.
+\item transform the GPS coordinate system, potentially into an euclidean coordinate system.
+\item generate image pattern for selecting a sample of the image block.
+\item compute relative speed of each camera in order to determine and correct GPS systematic error (delay).
+\item importing external orientation from others software: {\tt to come}.
+\end{itemize}
+
+\subsubsection{File format conversion with {\tt OriConvert}}
+
+GPS and attitude extracted from telemetry logs are generally structured as followed:
+
+\begin{verbatim}
+image	latitude	longitude	altitude	yaw	pitch	roll
+R0040438.JPG	50.5860992029	4.7957755452	375.046	319.9	8.2	-2.1
+R0040439.JPG	50.5864719060	4.7953921650	376.604	319.4	10.1	3.6
+...
+\end{verbatim}
+
+
+In this example (from the UAS Grand-Leez data set, file {\tt GPS\_WPK\_Grand-Leez.csv}), column titles are specified on the first line. Nevertheless, {\tt MicMac} has its own convention regarding column title. We have to add columns specs as explained in previous section (\ref{GCPConvert}) but with the symbols $K$, $W$, $P$ standing for kappa, omega and phi.
+
+\begin{verbatim}
+#F=N Y X Z K W P
+#
+#image	latitude	longitude	altitude	yaw	pitch	roll
+R0040438.JPG	50.5860992029	4.7957755452	375.046	319.9	8.2	-2.1
+R0040439.JPG	50.5864719060	4.7953921650	376.604	319.4	10.1	3.6
+...
+\end{verbatim}
+
+Once the file has been modified, the following command can be used:
+
+\begin{verbatim}
+mm3d OriConvert OriTxtInFile GPS_WPK_Grand-Leez.csv Nav-Brut NameCple=FileImagesNeighbour.xml
+\end{verbatim}
+
+Which will produce an orientation database named {\tt Nav-Brut} (for raw-navigation) containing the database of the center, this is the position of each camera during the shooting. For the first arg, {\tt OriTxtInFile} means that the format specification is given at the first line of the file. If the optional argument {\tt NameCple} is used, image pairs file will be generated and stored in a xml file (here {\tt FileImagesNeighbour.xml}).
+One may require to transform the orientation into a euclidean coordinate system, which is achieved by using the optional argument {\tt ChSys} with the appropriate file {\tt SysCoRTL.xml} that specified the locally tangent repair (as presented in section ~\ref{Coordinat:System}):
+
+\begin{verbatim}
+mm3d OriConvert OriTxtInFile GPS_WPK_Grand-Leez.csv Nav-Brut-RTL ChSys=DegreeWGS84@SysCoRTL.xml
+\end{verbatim}
+
+As usual, to display the succinct help, type {\tt mm3d OriConvert -help}:
+
+\begin{verbatim}
+mm3d OriConvert -help
+*****************************
+*  Help for Elise Arg main  *
+*****************************
+Unamed args :
+  * string :: {Format specification}
+  * string :: {Orientation   File}
+  * string :: {Targeted orientation}
+Named args :
+  * [Name=ChSys] string :: {Change coordinate file}
+        ...
+  * [Name=ImC] string :: {Image "Center" for computing AltiSol}
+  * [Name=NbImC] INT :: {Number of neigboor around Image "Center" (Def=50)}
+        ...
+  * [Name=CalcV] bool :: {Calcul speed (def = false)}
+  * [Name=Delay] REAL :: {Delay to take into account after speed estimate}
+        ...
+  * [Name=NameCple] string :: {Name of XML file to save couples}
+        ...
+  * [Name=MTD1] bool :: {Compute Metadata only for first image (tuning)}
+        ...
+\end{verbatim}
+
+Here is the meaning of some of the optional arguments:
+
+\begin{itemize}
+    \item {\tt ChSys}, enable to change (and define) the coordinate system;
+    \item {\tt ImC}, is the name of the image which will be considered as the central image of the sub-block;
+    \item {\tt NbImC}, is the number of neighbour images of {\tt ImC} that will be selected and gathered in a image pattern {\tt PATC}, referring to a sub-block potentially used for determining the delay;
+                \item {\tt CalcV}, based on the camera trajectory analysis, enable the computation of the relative speed of the platform during the shooting;
+                \item {\tt Delay}, once the eventual delay is determined, its will be used through this argument for correcting GPS data;
+                \item {\tt NameCple}, is the name of the file containing the images pairs that is used for the computation of tie points;
+                \item {\tt MTD1}, indicate if image metadata has to be extracted only from one image's exifs (appropriate if only one sensor and one focal length).
+\end{itemize}
+\vspace{\baselineskip}
+
+\subsubsection{Taking into account a GPS delay with {\tt OriConvert}}\label{OriConvert:GPSdelay}
+% oriconvert  -----------------------
+
+GPS data of small platform as mini-UAS may possibly be marred by a systematic error which follow flight trajectory, due among other to the lap of time between GPS position recording by the autopilot system (at the exact time of camera triggering) and the image shot (a few time after camera triggering). Not considering this delay may of course impact the accuracy of the georeferencing. In particular, the scale of the model will be underestimated. Correction for this delay may be performed by means of the joint use of {\tt OriConvert} and {\tt CenterBascule}. The delay is determined with {\tt CenterBascule} by a modified bascule tool that solves the delay in addition to the 7 parameters of the global transformation. An orientation is so required and may be obtained with these commands:
+
+\begin{verbatim}
+mm3d OriConvert OriTxtInFile GPS_WPK_Grand-Leez.csv Nav-Brut-RTL MTD1=1\
+ChSys=DegreeWGS84@SysCoRTL.xml NameCple=FileImagesNeighbour.xml CalcV=1
+\end{verbatim}
+
+As delay determination use trajectory information, the argument {\tt CalcV} is set to $1$, which means that relative speed of the camera will be computed. The relative time is defined a the time require for the camera to move from one pose to the next pose.
+Image pairs file is subsequently used in the classic pipeline:
+
+\begin{verbatim}
+Tapioca File ``FileImagesNeighbour.xml'' -1
+Tapas RadialBasic ``R.*.JPG'' Out=All-Rel
+\end{verbatim}
+
+Then, delay is determined with {\tt CenterBascule} using the options {\tt CalcV}.  :
+
+\begin{verbatim}
+CenterBascule ``R.*.JPG'' All-Rel Nav-Brut-RTL tmp CalcV=1
+\end{verbatim}
+
+The resulting orientation is not interesting, so it is named {\tt tmp} and is subsequently send to the bin. The result of {\tt CenterBascule} is located somewhere in terminal messages and normally looks like that:
+
+\begin{verbatim}
+....
+END AMD
+delay init :::    -0.0854304
+Basc-Residual R0040439.JPG [4.12465,-8.48416,60.1676]
+....
+\end{verbatim}
+
+The value of the delay is eventually utilized back again in {\tt OriConvert} by means of the optional argument {\tt Delay}:
+
+\begin{verbatim}
+mm3d OriConvert OriTxtInFile GPS_WPK_Grand-Leez.csv Nav-adjusted-RTL \
+        ChSys=DegreeWGS84@SysCoRTL.xml 	MTD1=1 Delay=-0.0854304
+\end{verbatim}
+
+It is important to notice that the orientation {\tt  Nav-adjusted-RTL} is different than {\tt Nav-Brut}, hopefully, and this can be visualized by using the commands {\tt grep Centre Ori-Nav-Brut-RTL/*} and {\tt grep Centre Ori-Nav-adjusted-RTL/*}. The orientation {\tt  Nav-adjusted-RTL} is subsequently used for georeferencing a project by the means of {\tt CenterBascule}:
+
+\begin{verbatim}
+CenterBascule "R.*.JPG" All-Rel Nav-adjusted-RTL All-RTL
+\end{verbatim}
+
+In this example, the image pairs file used in {\tt Tapioca} has been generated on the basis of the uncorrected embedded GPS data. In some cases, the delay may be very important, due either to inappropriate GPS position extraction from telemetry logs, high platform speed (strong wind) or very small base (high overlap combined with low altitude), and the images pairs determination may be strongly affected by this delay. In such specific cases, considering that there may have too many images for generating tie points with {\tt Tapioca MulScale}, one could compute the delay on a sub-block of images. Images pattern of a sub-block may be generated with {\tt OriConvert}.
+
+\subsubsection{Selection of a image sub-block with {\tt OriConvert}}\label{OriConvert:subbloc}
+
+When dealing with numerous images, it is often appropriate to select a sample of the data set, e.g. for camera calibration. The options {\tt ImC} and {\tt NumC} enable the generation of a image pattern corresponding to a sample of {\tt NumC} images centered on the central image {\tt ImC}.
+
+\begin{verbatim}
+mm3d OriConvert OriTxtInFile GPS_WPK_Grand-Leez.csv Nav-Brut-RTL ImC=R0040536.JPG NbImC=25 \
+ChSys=DegreeWGS84@SysCoRTL.xml
+\end{verbatim}
+
+In the terminal, just before the end of the processing, a message containing the sub-block image pattern will be delivered:
+
+\begin{verbatim}
+....
+PATC = R0040536.JPG|R0040537.JPG|R0040535.JPG|R0040578.JPG|R0040498.JPG|R0040499.JPG|
+R0040579.JPG|R0040538.JPG|R0040577.JPG|R0040534.JPG|R0040497.JPG|R0040500.JPG|R0040580.JPG
+|R0040456.JPG|R0040616.JPG|R0040576.JPG|R0040496.JPG|R0040617.JPG|R0040455.JPG|R0040457.JPG
+|R0040615.JPG|R0040539.JPG|R0040501.JPG|R0040581.JPG|R0040533.JPG
+....
+\end{verbatim}
+
+This pattern may be utilized advantageously with {\tt Tapiocas} and {\tt Tapas} for example. Attention must be paid when using {\tt OriConvert} for the selection of a sub-block that coordinate system is an euclidean coordinate system, as well as for the image pairs file generation.
+
+
+
+\subsection{Extracting Gps from exif}
+
+Often the Gps information is not in separate files but directly embeded in the exif
+metadat. The tools {\tt XifGps2Xml} and {\tt XifGps2Txt} allow to do extract this 
+information and convert it to texte or xml file.
+
+\subsubsection{Extracting Gps from exif with {\tt XifGps2Xml}}
+
+
+For example, with {\tt mm3d XifGps2Xml .*jpg Test}  :
+
+\begin{itemize}
+  \item for each  image,  containing gps data in exif, a file is created containing the gps information
+        in xml micmac format;
+  \item for example for {\tt Image100.jpg},  {\tt Ori-Test/Orientation-Image100.jpg.xml} is created; 
+        in xml micmac format;
+  \item the coordinate system is a local tangent sytem, with origin at centre of images;
+  \item  the file {\tt RTLFromExif.xml} contains the definition of this system in MicMac format;
+\end{itemize}
+
+\begin{verbatim}
+mm3d XifGps2Xml
+*****************************
+*  Help for Elise Arg main  *
+*****************************
+Mandatory unnamed args : 
+  * string :: {Full Name}
+  * string :: {Orientation}
+Named args : 
+  * [Name=DoRTL] bool :: {Do Local Tangent RTL (def=true)}
+  * [Name=RTL] string :: {Name RTL}
+  * [Name=SysCo] string :: {System of coordinates, by default RTL created (RTLFromExif.xml)}
+  * [Name=DefZ] REAL
+\end{verbatim}
+
+Some options :
+
+\begin{itemize}
+   \item {\tt DefZ} will allow to specify the altitude value , not implemanted for now;
+
+   \item {\tt SysCo}  allow to change the coordinate system;
+
+\end{itemize}
+
+\subsubsection{Extracting Gps from exif with {\tt XifGps2Txt}}
+
+For example, with {\tt mm3d XifGps2Txt .*jpg Test}   file {\tt GpsCoordinatesFromExif.txt}
+is created in standard txt format :
+
+\begin{verbatim}
+mm> cat GpsCoordinatesFromExif.txt
+2016-04-02_12-22-07.jpg 1.908783 47.902767 161.000000 
+2016-04-02_12-22-18.jpg 1.908758 47.902861 161.000000 
+2016-04-02_12-22-29.jpg 1.908717 47.902964 159.000000 
+2016-04-02_12-22-56.jpg 1.908556 47.902828 154.000000 
+2016-04-02_12-23-07.jpg 1.908506 47.902789 157.000000 
+2016-04-02_12-23-12.jpg 1.908511 47.902722 157.000000 
+...
+\end{verbatim}
+
+The default export coordinate is {\tt WGS84\_deg} :
+
+
+\begin{verbatim}
+mm3d XifGps2Txt
+*****************************
+*  Help for Elise Arg main  *
+*****************************
+Mandatory unnamed args : 
+  * string :: {Full Name}
+Named args : 
+  * [Name=OutTxtFile] string :: {Def file created : 'GpsCoordinatesFromExif.txt' }
+  * [Name=Sys] string :: {System to express output coordinates : WGS84_deg/WGS84_rad/GeoC ; Def=WGS84_deg}
+  * [Name=DefZ] REAL
+\end{verbatim}
+
+\subsection{Exporting external oriention to Omega-Phi-Kapa}
+
+The tool {\tt OriExport} can convert MicMac external oriention to the \emph{de facto} standard
+codification using omega-phi-kapa.
+
+
+\begin{verbatim}
+mm3d OriExport
+*****************************
+*  Help for Elise Arg main  *
+*****************************
+Mandatory unnamed args :
+  * string :: {Full Directory (Dir+Pattern)}
+  * string :: {Results}
+Named args :
+  * [Name=AddF] bool :: {Add format as first line of header, def= false}
+  * [Name=ModeExp] string :: {Mode export, def=WPK (Omega Phi Kapa)}
+\end{verbatim}
+
+For now it's quite basic and all the options are not implemented. However, it should solve the
+majority of problem relative to exporting resuls in classical photogrammetric softwares.
+
+An example with Cuxha data set :
+
+\begin{verbatim}
+mm3d OriExport Ori-All-Rel/Orientation-Abbey-IMG_034.*.jpg.xml  res.txt
+\end{verbatim}
+
+Will generate the file {\tt res.txt}  containinig :
+
+\begin{verbatim}
+Abbey-IMG_0340.jpg -4.304443 11.785803 136.229854 -5.491274 2.702560 -0.004106
+Abbey-IMG_0341.jpg -3.775959 11.249636 137.040260 -6.109496 2.042527 0.097497
+Abbey-IMG_0342.jpg -3.849398 11.231276 137.533559 -6.707432 1.351133 0.224315
+Abbey-IMG_0343.jpg -3.921196 11.302498 137.899618 -7.334180 0.668316 0.362218
+\end{verbatim}
+
+Matrix R gives rotation terms to compute parameters in matrix encoding with respect to Omega-Phi-Kappa angles given by the tool {\tt OriExport}:
+\newline
+
+
+$R =
+\begin{bmatrix}
+    cos(\phi)*cos(\kappa) &  cos(\phi)*sin(\kappa) & -sin(\phi)\\
+    cos(\omega)*sin(\kappa)+sin(\omega)*sin(\phi)*cos(\kappa) &  -cos(\omega)*cos(\kappa)+sin(\omega)*sin(\phi)*sin(\kappa) & sin(\omega)*cos(\phi)\\
+    sin(\omega)*sin(\kappa)-cos(\omega)*sin(\phi)*cos(\kappa)  & -sin(\omega)*cos(\kappa)-cos(\omega)*sin(\phi)*sin(\kappa) & -cos(\omega)*cos(\phi)
+\end{bmatrix}$
+\newline
+
+
+For example {\tt OriExport} will give in degree:
+\newline
+
+
+\begin{itemize}
+\item $\omega=-5.819826$  
+\item $\phi=-7.058795$  
+\item $\kappa=-12.262634$\newline
+\end{itemize}
+
+
+
+The corresponding matrix encoding using $R$ is:
+
+
+\begin{verbatim}
+<ParamRotation>
+    <CodageMatr>
+        <L1>0.969777798578237427 -0.210783330505758815 0.122887790140630643</L1>
+        <L2>-0.199121821850641506 -0.974794184828703614 -0.100631989382226852</L2>
+        <L3>0.141001849092942777 0.0731210284736428379 -0.987305319416100224</L3>
+	</CodageMatr>
+</ParamRotation>
+\end{verbatim}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

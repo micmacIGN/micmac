@@ -1,0 +1,106 @@
+\chapter{G\'en\'eralit\'es}
+
+%---------------------------------------------
+
+\section{Notations G\'eom\'etriques}
+
+On est dans la contexte ou l'on dispose de $N$ images
+not\'ees $Im_k(u,v)_{k\in [1,N]}$ .
+
+On adopte les notations suivantes :
+
+\begin{itemize}
+   \item \ETer,  avec  $\ETer = \RR ^2$, l'espace "terrain", au sens assez large,
+         c'est l'espace dans lequel est restitu\'e le "MNT";
+
+   \item \EPx, avec  $\EPx = \RR$ ou avec  $\EPx = \RR ^2$ suivant les cas,
+         l'espace des parallaxes; on notera \DimPx la dimension de l'espace
+         des parallaxes;
+
+   \item \EIm l'espace de la k\EME image;
+\end{itemize}
+
+En interne, MICMAC voit la g\'eom\'etrie  \`a travers une seule
+fonction $\pi_k$ par image:
+
+\begin{equation}
+   \pi_k :   \ETer \otimes \EPx \rightarrow \EIm
+\end{equation}
+\begin{equation}
+              (x,y,p_x)  \stackrel{\pi_k}{\rightarrow}  (u,v)
+\end{equation}
+
+Avec $p_x=z$ lorsque $\EPx = \RR$ et   $p_x=(p_{x_1},p_{x_2})$
+lorsque $\EPx = \RR^2$. A  $p_x$ fix\'ee les fonctions $\pi_k$,
+ consid\'er\'ees comme des fonction de \ETer dans  \EIm,
+sont injectives sur leur domaine d'int\'er\^et et on note
+abusivement  $\pi_k^{-1}$ la fonction "inverse" d\'efinie par  :
+
+\begin{equation}
+   \pi_k^{-1} :   \EIm \otimes \EPx \rightarrow \ETer
+\end{equation}
+
+\begin{equation}
+   \pi_k^{-1}(\pi_k(x,y,p_x),p_x) = (x,y)
+\end{equation}
+
+
+Le r\'esultat de la mise en correspondance est un fonction  \FPx de
+\ETer dans \EPx:
+
+\begin{equation}
+   \FPx :   \ETer  \rightarrow  \EPx
+\end{equation}
+
+On note ${\FPx}^d,d\in [1,\DimPx]$ les diff\'erentes composantes de\FPx.
+
+
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\section{Discr\'etisation et quantification}
+
+\label{Disc:Quant:fr}
+
+Dans la tr\`es grande majorit\'e des cas,
+MicMac  fonctionne par discr\'etisation
+des espaces \ETer et \EPx (par opposition par exemple aux
+approches variationnelles). A chaque \'etape
+de l'approche multi-r\'esolution (voir~\ref{Appr:Multi:Resol}), sont
+d\'efinis des pas de discr\'etisation  $\Delta^{xy}$ pour \ETer ,
+et $\Delta^{px}_k, k \in [1,\DimPx]$ pour  \EPx.
+
+A une \'etape donn\'ee, on se donne en plus un pas de
+discr\'etisation de l'espace image \DeltaI; dans
+la  majorit\'e des cas \DeltaI est choisi
+de mani\`ere \`a ce que la r\'esolution image obtenue soit
+\'egale \`a  $\Delta^{xy}$,
+mais il peut y avoir des exceptions. Pour chaque pas $\DeltaI$
+utilis\'e MicMac calcule des images sous-r\'esolues d'un facteur
+$\DeltaI$, on note $Im_k(\frac{}{\DeltaI})$ ces images et
+$\EIm*\DeltaI$ leur espace associ\'e.
+
+
+Pour des pas de discr\'etisation donn\'es,
+on d\'efinit $p_k$ la version discr\`ete de $\pi_k$ par
+\footnote{avec modification imm\'ediate de~\ref{EQ:Disc:Proj:fr}
+lorsque $\DimPx=1$}:
+
+\begin{equation}
+   p_k : \ZZ^2 \otimes\ZZ^{\DimPx} \rightarrow \EIm*\DeltaI
+\end{equation}
+
+\begin{equation}
+   \breve\pi_k(i,j,u,v) = \pi_k(i*\Delta^{xy},j*\Delta^{xy},u*\Delta^{px}_1,v*\Delta^{px}_2)*\DeltaI
+\label{EQ:Disc:Proj:fr}
+\end{equation}
+
+Pour des pas   $\Delta^{xy}$ et $\Delta^{px}_k$ donn\'es, le travail
+du corr\'elateur est de rechercher un tableau $F_{px}$ de $\ZZ^2$ dans
+$\ZZ^{\DimPx}$, version discr\`ete de \FPx:
+
+\begin{equation}
+   F_{px}(i,j)^k = \frac{\FPx(i*\Delta^{xy},j*\Delta^{xy})}{\Delta^{px}_k}
+\end{equation}
+
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+

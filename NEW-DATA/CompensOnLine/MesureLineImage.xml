@@ -1,0 +1,291 @@
+<?xml version="1.0" ?>
+<SetOfMesureSegDr>
+     <MesureAppuiSegDr1Im>
+          <NameIm>Abbey-IMG_0204.jpg</NameIm>
+          <OneMesureSegDr>
+               <NamePt>P_1_A</NamePt>
+               <NamePt>P_1_B</NamePt>
+               <Pt1Im>233.13057150732169 196.577233109580902</Pt1Im>
+               <Pt2Im>232.981161072834766 196.747721405992564</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_2_A</NamePt>
+               <NamePt>P_2_B</NamePt>
+               <Pt1Im>130.403559804066759 63.366003790877123</Pt1Im>
+               <Pt2Im>130.397695691868677 63.3523831198529308</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_4_A</NamePt>
+               <NamePt>P_4_B</NamePt>
+               <Pt1Im>1057.29151205374501 437.004533294716907</Pt1Im>
+               <Pt2Im>1057.01128950819907 436.552833428313136</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_5_A</NamePt>
+               <NamePt>P_5_B</NamePt>
+               <Pt1Im>1214.81513537565093 526.59318460081704</Pt1Im>
+               <Pt2Im>1214.47187026641677 526.952812273235395</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_7_A</NamePt>
+               <NamePt>P_7_B</NamePt>
+               <Pt1Im>178.036904235412521 801.455632535926839</Pt1Im>
+               <Pt2Im>178.569706060429183 801.768287830079203</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_8_A</NamePt>
+               <NamePt>P_8_B</NamePt>
+               <Pt1Im>373.574670595359237 612.627176167209996</Pt1Im>
+               <Pt2Im>373.020857218848448 612.853965611803119</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_9_A</NamePt>
+               <NamePt>P_9_B</NamePt>
+               <Pt1Im>989.464874307767332 571.671922559778409</Pt1Im>
+               <Pt2Im>989.148672325020584 571.865850394461745</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_10_A</NamePt>
+               <NamePt>P_10_B</NamePt>
+               <Pt1Im>997.724622518892716 566.590656957026795</Pt1Im>
+               <Pt2Im>997.748162050442829 566.636130389345567</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_11_A</NamePt>
+               <NamePt>P_11_B</NamePt>
+               <Pt1Im>438.276413816973502 258.303536837428965</Pt1Im>
+               <Pt2Im>438.152179702332205 258.005474986162596</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_14_A</NamePt>
+               <NamePt>P_14_B</NamePt>
+               <Pt1Im>772.981451479591442 135.592406671520166</Pt1Im>
+               <Pt2Im>773.275503880580914 136.109550221238095</Pt2Im>
+          </OneMesureSegDr>
+     </MesureAppuiSegDr1Im>
+     <MesureAppuiSegDr1Im>
+          <NameIm>Abbey-IMG_0205.jpg</NameIm>
+          <OneMesureSegDr>
+               <NamePt>P_1_A</NamePt>
+               <NamePt>P_1_B</NamePt>
+               <Pt1Im>270.141236131811525 297.087791788313154</Pt1Im>
+               <Pt2Im>270.457644384105038 296.800722794490298</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_2_A</NamePt>
+               <NamePt>P_2_B</NamePt>
+               <Pt1Im>185.140362335831441 149.526095994009211</Pt1Im>
+               <Pt2Im>185.291579469377609 150.077651400379494</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_3_A</NamePt>
+               <NamePt>P_3_B</NamePt>
+               <Pt1Im>445.655943879819858 119.224166329758532</Pt1Im>
+               <Pt2Im>444.399912755348339 119.575346941448174</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_4_A</NamePt>
+               <NamePt>P_4_B</NamePt>
+               <Pt1Im>1083.79805205833941 696.132597576718354</Pt1Im>
+               <Pt2Im>1083.92595173437121 696.425932433264393</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_5_A</NamePt>
+               <NamePt>P_5_B</NamePt>
+               <Pt1Im>1202.11993048065483 756.491568638343438</Pt1Im>
+               <Pt2Im>1201.98708235219124 756.581512055385133</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_6_A</NamePt>
+               <NamePt>P_6_B</NamePt>
+               <Pt1Im>1325.20384797021143 57.9546315033665209</Pt1Im>
+               <Pt2Im>1325.42533977113294 58.3912918597241699</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_7_A</NamePt>
+               <NamePt>P_7_B</NamePt>
+               <Pt1Im>136.351295031903959 876.079512681320693</Pt1Im>
+               <Pt2Im>137.04849906711263 876.638777984068497</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_8_A</NamePt>
+               <NamePt>P_8_B</NamePt>
+               <Pt1Im>351.809766095032501 737.166253650697286</Pt1Im>
+               <Pt2Im>351.234053976279483 737.33891424485148</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_9_A</NamePt>
+               <NamePt>P_9_B</NamePt>
+               <Pt1Im>972.67421413559191 762.447594350423515</Pt1Im>
+               <Pt2Im>973.614041845997917 762.03254289260417</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_10_A</NamePt>
+               <NamePt>P_10_B</NamePt>
+               <Pt1Im>982.168809488520878 760.1989561074422</Pt1Im>
+               <Pt2Im>982.125543044322853 760.074252455271676</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_11_A</NamePt>
+               <NamePt>P_11_B</NamePt>
+               <Pt1Im>467.607668977667743 375.149848645253996</Pt1Im>
+               <Pt2Im>467.092139603766441 373.185233578888187</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_13_A</NamePt>
+               <NamePt>P_13_B</NamePt>
+               <Pt1Im>709.170641856404359 374.572167052592931</Pt1Im>
+               <Pt2Im>708.953676610058437 374.636890734504789</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_14_A</NamePt>
+               <NamePt>P_14_B</NamePt>
+               <Pt1Im>777.066172563400187 218.334589066195861</Pt1Im>
+               <Pt2Im>777.024054953576183 218.221641117408154</Pt2Im>
+          </OneMesureSegDr>
+     </MesureAppuiSegDr1Im>
+     <MesureAppuiSegDr1Im>
+          <NameIm>Abbey-IMG_0206.jpg</NameIm>
+          <OneMesureSegDr>
+               <NamePt>P_1_A</NamePt>
+               <NamePt>P_1_B</NamePt>
+               <Pt1Im>266.598249486283294 494.556167865474265</Pt1Im>
+               <Pt2Im>266.566278161671619 494.584921962046167</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_2_A</NamePt>
+               <NamePt>P_2_B</NamePt>
+               <Pt1Im>255.442564488759473 634.350847994731453</Pt1Im>
+               <Pt2Im>255.37056180801946 634.057517582648416</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_3_A</NamePt>
+               <NamePt>P_3_B</NamePt>
+               <Pt1Im>446.507051043682907 300.54661658135791</Pt1Im>
+               <Pt2Im>446.546379612009559 300.536532778043579</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_4_A</NamePt>
+               <NamePt>P_4_B</NamePt>
+               <Pt1Im>1051.23880922368994 849.168142200834154</Pt1Im>
+               <Pt2Im>1050.64193360220338 847.688504409639336</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_6_A</NamePt>
+               <NamePt>P_6_B</NamePt>
+               <Pt1Im>1334.8924642813372 283.5744068448127</Pt1Im>
+               <Pt2Im>1334.60139318945767 282.893877311671872</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_11_A</NamePt>
+               <NamePt>P_11_B</NamePt>
+               <Pt1Im>462.894501650032169 564.136589816540891</Pt1Im>
+               <Pt2Im>463.123071197182753 565.10756501844071</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_13_A</NamePt>
+               <NamePt>P_13_B</NamePt>
+               <Pt1Im>704.529778418272031 599.779631920306429</Pt1Im>
+               <Pt2Im>703.936829768842244 599.947048259759754</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_14_A</NamePt>
+               <NamePt>P_14_B</NamePt>
+               <Pt1Im>777.976204389885311 437.595030967917126</Pt1Im>
+               <Pt2Im>778.470461306134894 439.098012928580602</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_15_A</NamePt>
+               <NamePt>P_15_B</NamePt>
+               <Pt1Im>202.992471811968301 246.352218254773788</Pt1Im>
+               <Pt2Im>203.066038957852385 246.994387400411966</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_16_A</NamePt>
+               <NamePt>P_16_B</NamePt>
+               <Pt1Im>190.452317860814475 74.3539565187693654</Pt1Im>
+               <Pt2Im>190.097340331292855 74.3578297859592539</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_17_A</NamePt>
+               <NamePt>P_17_B</NamePt>
+               <Pt1Im>1195.28432509548452 136.284589496579628</Pt1Im>
+               <Pt2Im>1195.08251752666388 136.302369364826887</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_18_A</NamePt>
+               <NamePt>P_18_B</NamePt>
+               <Pt1Im>894.348025057043174 67.9440770637499298</Pt1Im>
+               <Pt2Im>894.253149930713107 67.1386654802744687</Pt2Im>
+          </OneMesureSegDr>
+     </MesureAppuiSegDr1Im>
+     <MesureAppuiSegDr1Im>
+          <NameIm>Abbey-IMG_0207.jpg</NameIm>
+          <OneMesureSegDr>
+               <NamePt>P_1_A</NamePt>
+               <NamePt>P_1_B</NamePt>
+               <Pt1Im>264.440302059967053 680.698050956107068</Pt1Im>
+               <Pt2Im>263.512768222227692 681.505712208358204</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_2_A</NamePt>
+               <NamePt>P_2_B</NamePt>
+               <Pt1Im>248.185050462692772 822.603785450863597</Pt1Im>
+               <Pt2Im>247.881311280505543 821.129696559837953</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_3_A</NamePt>
+               <NamePt>P_3_B</NamePt>
+               <Pt1Im>454.744530268242613 471.021065153025575</Pt1Im>
+               <Pt2Im>454.190819166474967 471.143443576448874</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_6_A</NamePt>
+               <NamePt>P_6_B</NamePt>
+               <Pt1Im>1346.74460696000756 510.790534170201227</Pt1Im>
+               <Pt2Im>1346.97997429676821 511.482435200810187</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_11_A</NamePt>
+               <NamePt>P_11_B</NamePt>
+               <Pt1Im>459.723762877490458 743.079838078330226</Pt1Im>
+               <Pt2Im>459.675368523334271 742.834485884186051</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_13_A</NamePt>
+               <NamePt>P_13_B</NamePt>
+               <Pt1Im>698.483041166522867 819.170436122039519</Pt1Im>
+               <Pt2Im>698.161570699163235 819.25171187125909</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_14_A</NamePt>
+               <NamePt>P_14_B</NamePt>
+               <Pt1Im>779.677662328393581 654.257849966814774</Pt1Im>
+               <Pt2Im>779.402033302906375 653.246841752127693</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_15_A</NamePt>
+               <NamePt>P_15_B</NamePt>
+               <Pt1Im>210.329807633353624 419.552948271066953</Pt1Im>
+               <Pt2Im>210.307738386966918 419.268503566256129</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_16_A</NamePt>
+               <NamePt>P_16_B</NamePt>
+               <Pt1Im>203.867630533178556 244.792074446335391</Pt1Im>
+               <Pt2Im>204.374640831596764 244.78310489005051</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_17_A</NamePt>
+               <NamePt>P_17_B</NamePt>
+               <Pt1Im>1212.93095523839725 355.354722767258011</Pt1Im>
+               <Pt2Im>1212.12884496207516 355.472534114065411</Pt2Im>
+          </OneMesureSegDr>
+          <OneMesureSegDr>
+               <NamePt>P_18_A</NamePt>
+               <NamePt>P_18_B</NamePt>
+               <Pt1Im>913.455802333506426 250.173494638017019</Pt1Im>
+               <Pt2Im>913.385406042386194 249.240300740626651</Pt2Im>
+          </OneMesureSegDr>
+     </MesureAppuiSegDr1Im>
+</SetOfMesureSegDr>

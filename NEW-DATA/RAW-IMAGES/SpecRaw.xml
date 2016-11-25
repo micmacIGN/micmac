@@ -1,0 +1,11 @@
+<SpecifFormatRaw>
+          <Sz>  2448  2048 </Sz>
+          <MSBF>  true </MSBF>
+          <NbBitsParPixel> 8  </NbBitsParPixel>
+          <IntegerType> true </IntegerType>
+          <SignedType>  false </SignedType>
+          <FocalEqui35> 48 </FocalEqui35>
+          <Focalmm> 48 </Focalmm>
+          <BayPat> RGGB </BayPat>
+          <Camera> DelairTech </Camera>
+</SpecifFormatRaw>

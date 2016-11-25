@@ -1,0 +1,32 @@
+sigtpp_tgi/mm3d Sift:
+	- nb_points (uint32)
+	- descriptor_dimension (uint32)
+	- nb_points *
+		- x, y, scale, angle (4*float32)
+		- descriptor (descriptor_dimension*uint8) : each element must be divided by 512 to get its real value
+
+mm3d Digeo:
+	see about_versioned_file_formats.txt
+
+ann_mec_filtre/mm3d Ann:
+	a list of pairs of 2d coordinates in ascii format
+	ex:
+		977.341 250.979 998.159 241.58
+		658.53 220.051 683.462 243.427
+		628.658 233.718 653.92 257.031
+		848.233 268.231 862.79 268.714
+		848.233 268.231 862.79 268.714
+		569.454 258.498 597.505 282.958
+		727.294 282.396 740.968 289.916
+		730.386 283.109 744.01 290.185
+
+Pastis:
+	ascii format (same has Ann)
+	binary format:
+		- nb_dimensions (int = int32 in most cases)
+			- list_size (int)
+			- list_size *
+				- vector_size (int = 2)
+				- pds (real64)
+				- vector_size x
+					x, y (real64)

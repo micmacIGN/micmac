@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP> 18 12</PP>
+          <F>50 </F>
+          <SzIm>36 24</SzIm>
+<!--
+          <RayonUtile> 25 </RayonUtile>
+-->
+
+          <ScannedAnalogik> true </ScannedAnalogik>
+          <CalibDistortion>
+               <ModRad>
+                    <CDist>18 12</CDist>
+                    <PPaEqPPs>true</PPaEqPPs>
+               </ModRad>
+          </CalibDistortion>
+     </CalibrationInternConique>
+</ExportAPERO>

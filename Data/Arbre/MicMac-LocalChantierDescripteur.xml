@@ -1,0 +1,91 @@
+
+<Global>
+
+
+  <ChantierDescripteur >
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*_R.jpg </PatternTransform>
+                       <CalcName> 6.4 </CalcName>
+                 </Direct>
+             </Calcs>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> -1 </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   NKS-Assoc-STD-FOC  </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+             <Direct>
+                <PatternTransform> DSCF([0-9]{4})_(.)\.jpg   </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+             </Direct>
+             <Inverse>
+                <PatternTransform> (.*)%(.*) </PatternTransform>
+                <CalcName> DSCF$1_$2.jpg  </CalcName>
+                <Separateur > % </Separateur>
+             </Inverse>
+        </Calcs>
+        <Key>  Loc-Assoc-Im2Block </Key>
+        <SubDirAutoMake> Homol#1 </SubDirAutoMake>
+        <SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*_(.)\.jpg </PatternTransform>
+                       <CalcName> Ori-Init/Calib-$1.xml </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   Loc-Key-CalInit-LR  </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+            <IsParametrized>  true </IsParametrized>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> #1_([LR])\.jpg </PatternTransform>
+                       <CalcName> Ori-Init/Orientation-$1.xml </CalcName>
+                 </Direct>
+                 <Inverse>
+                       <PatternTransform> Ori-Init/Orientation-([LR]).xml </PatternTransform>
+                       <CalcName> #1_$1.jpg </CalcName>
+                 </Inverse>
+             </Calcs>
+
+             <Key>   Loc-Key-OriInit-LR  </Key>
+    </KeyedNamesAssociations>
+      
+   <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets>
+                 <PatternAccepteur> Orientation-[LR]\.xml  </PatternAccepteur>
+                 <SubDir>   Ori-Init/ </SubDir>
+          </Sets>
+          <Key> Loc-Key-SetOri-LR </Key>
+    </KeyedSetsOfNames>
+
+
+
+
+
+
+  </ChantierDescripteur>
+</Global>

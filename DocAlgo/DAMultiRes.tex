@@ -1,0 +1,54 @@
+%---------------------------------------------
+
+\chapter{Approche multi-r\'esolution}
+
+\label{CHAP:Multi:Resol}
+
+\section{Motivations}
+
+
+
+\section{Mod\`ele pr\'edictif}
+
+
+\label{Appr:Multi:Resol}
+
+Afin de limiter la combinatoire MicMac utilise une approche 
+multi-r\'esolution o\`u, \`a chaque \'etape, la solution de
+l'\'etape pr\'ec\'edente est utilis\'ee comme un pr\'edicteur
+autour duquel l'exploration se fera dans un voisinage limit\'e.
+
+Notons de mani\`ere g\'en\'erique $X'$ ($F_{px}'^k$,$\Delta'^{xy}$ \dots) 
+la valeur de $X$ \`a l'\'etape pr\'ec\'edente. 
+
+
+\begin{equation}
+   \rho ^{xy} = \frac{\Delta'^{xy}}{\Delta^{xy}} ;
+   \rho ^{px}_k = \frac{\Delta'^{px}_k}{\Delta^{px}_k}
+\end{equation}
+
+On d\'efini le pr\'edicteur $Pred_{px}$ par :
+
+\begin{equation}
+   Pred_{px}(i,j)^k = F_{px}'^k(\frac{i,j}{\rho^{xy}}) * \rho^{px}_k
+\end{equation}
+
+Ensuite on se donne des valeurs $\delta_{A}^k$ et  $\delta_{P}^k$ 
+repr\'esentant l'incertitude "altim\'etrique" et planim\'etrique.
+Au sens de la morpho-math, notons $\oplus$ la dilatation et $\ominus$ l'\'erosion .
+On d\'efinit alors ${F^+_{px}}^k$ et ${F^-_{px}}^k$ 
+les "nappes englobantes" qui encadrent l'intervale de
+recherche de $ F_{px}^k$ \`a l'\'etape courante par :
+
+
+\begin{equation}
+   {F^-_{px}}^k =  Pred_{px}^k \ominus \delta_{P}^k - \delta_{A}^k
+\end{equation}
+
+\begin{equation}
+   {F^+_{px}}^k =  Pred_{px}^k \oplus \delta_{P}^k + \delta_{A}^k
+\end{equation}
+
+\section{Noyaux utilis\'es pour la sous-r\'esolution}
+
+

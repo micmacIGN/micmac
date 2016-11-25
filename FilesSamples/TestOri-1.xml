@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<ExportAPERO>
+     <OrientationConique>
+          <OrIntImaM2C>
+               <I00>0 0</I00>
+               <V10>1 0</V10>
+               <V01>0 1</V01>
+          </OrIntImaM2C>
+          <TypeProj>eProjStenope</TypeProj>
+          <Interne>
+                 <KnownConv>eConvApero_DistM2C</KnownConv>
+                  <PP> 1500 1000 </PP>
+                  <F> 1000 </F>
+                  <SzIm>3000 2000 </SzIm>
+                  <CalibDistortion>
+                       <ModRad>
+                            <CDist> 1500 1000 </CDist>
+                       </ModRad>
+                  </CalibDistortion>
+          </Interne>
+          <Externe>
+               <KnownConv>eConvApero_DistM2C</KnownConv>
+               <Centre>10 0 0 </Centre>
+               <ParamRotation>
+                    <CodageMatr>
+                         <L1>0.393889130227377704 -0.7570249227968876 0.521310482680989562</L1>
+                         <L2>-0.495955175373507029 -0.652557496089783751 -0.572884960805627896</L2>
+                         <L3>0.773873256489041483 -0.0328934729300236345 -0.632485732906006404</L3>
+                    </CodageMatr>
+               </ParamRotation>
+          </Externe>
+          <ConvOri>
+               <KnownConv>eConvApero_DistM2C</KnownConv>
+          </ConvOri>
+     </OrientationConique>
+</ExportAPERO>

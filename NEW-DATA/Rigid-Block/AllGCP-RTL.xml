@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<DicoAppuisFlottant>
+     <OneAppuisDAF>
+          <Pt>-3.77158304587510429e-11 0 0</Pt>
+          <NamePt>1</NamePt>
+          <Incertitude>0.003 0.003 0.003</Incertitude>
+     </OneAppuisDAF>
+
+     <OneAppuisDAF>
+          <Pt>2.81630105619309834 0.237719086930155754 0.425754619762301445</Pt>
+          <NamePt>7</NamePt>
+          <Incertitude>0.003 0.003 0.003</Incertitude>
+     </OneAppuisDAF>
+
+     <OneAppuisDAF>
+          <Pt>2.81411924231505939 0.190176371019333601 -0.935286499559879303</Pt>
+          <NamePt>9</NamePt>
+          <Incertitude>0.003 0.003 0.003</Incertitude>
+     </OneAppuisDAF>
+
+     <OneAppuisDAF>
+          <Pt>1.6302257502717723 -1.42951580975204706 -0.341570712625980377</Pt>
+          <NamePt>11</NamePt>
+          <Incertitude>0.003 0.003 0.003</Incertitude>
+     </OneAppuisDAF>
+     <OneAppuisDAF>
+          <Pt>1.62429241796067991 -1.36982314195483923 0.330128313973546028</Pt>
+          <NamePt>10</NamePt>
+          <Incertitude>0.003 0.003 0.003</Incertitude>
+     </OneAppuisDAF>
+          <OneAppuisDAF>
+          <Pt>2.81216017543826879 0.227412750013172626 -0.153637848794460297</Pt>
+          <NamePt>8</NamePt>
+          <Incertitude>0.003 0.003 0.003</Incertitude>
+     </OneAppuisDAF>
+          <OneAppuisDAF>
+          <Pt>1.42321961396769647 -0.285768726374953985 -0.285463071428239346</Pt>
+          <NamePt>6</NamePt>
+          <Incertitude>0.003 0.003 0.003</Incertitude>
+     </OneAppuisDAF>
+</DicoAppuisFlottant>

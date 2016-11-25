@@ -1,0 +1,243 @@
+
+        <EtapeMEC Nb="+" DeltaPrec="1">
+
+             <!------ GEOMETRIE ET NAPPES ---------->
+             <!------ GEOMETRIE ET NAPPES ---------->
+             <!------ GEOMETRIE ET NAPPES ---------->
+
+            <DeZoom  Nb="1" Type="int">                    </DeZoom>
+            <RatioDeZoomImage Nb="?" Type="double"> </RatioDeZoomImage> <!-- Def = 1  -->
+
+
+                     <!-- Pas -->
+
+            <ZPas  Nb="?"  Type="double">     </ZPas>
+            <Px1Pas  Nb="?"  Type="double">     </Px1Pas>
+            <Px2Pas  Nb="?"  Type="double">     </Px2Pas>
+
+                     <!-- Dilatatation -->
+
+	    <ZDilatAlti   Nb="?" Type="int">   </ZDilatAlti>
+            <ZDilatPlani  Nb="?" Type="int">   </ZDilatPlani>
+
+	    <Px1DilatAlti   Nb="?" Type="int">   </Px1DilatAlti>
+            <Px1DilatPlani  Nb="?" Type="int">   </Px1DilatPlani>
+
+	    <Px2DilatAlti   Nb="?" Type="int">   </Px2DilatAlti>
+            <Px2DilatPlani  Nb="?" Type="int">   </Px2DilatPlani>
+
+
+            <SzGeomDerivable Nb="?" Type="int"> </SzGeomDerivable>
+
+                                <!--   Redressement par MNT -->
+            <ZRedrPx Nb="?" Type="bool">      </ZRedrPx>
+            <ZDeqRedr Nb="?" Type="bool">      </ZDeqRedr>
+
+            <Px1RedrPx Nb="?" Type="bool">      </Px1RedrPx>
+            <Px1DeqRedr Nb="?" Type="bool">      </Px1DeqRedr> <!-- Def true-->
+
+            <Px2RedrPx Nb="?" Type="bool">      </Px2RedrPx>
+            <Px2DeqRedr Nb="?" Type="bool">      </Px2DeqRedr> <!-- Def true-->
+
+             <!-- AUTRES ENTREES  -->
+             <!-- AUTRES ENTREES  -->
+             <!-- AUTRES ENTREES  -->
+             <!-- AUTRES ENTREES  -->
+
+            <ModeInterpolation Nb="?" Type="eModeInterpolation"> </ModeInterpolation>
+
+                     <!-- Selection des images -->
+
+            <ImageSelecteur Nb="?">
+                   <ModeExclusion Nb="1" Type="bool"> </ModeExclusion>
+                   <PatternSel Nb="*" Type="std::string"> </PatternSel>
+            </ImageSelecteur>
+
+
+             <!------ ALGORITHMIE  ---------->
+             <!------ ALGORITHMIE  ---------->
+             <!------ ALGORITHMIE  ---------->
+
+            <SzW    Nb="?"  Type="int">      </SzW>
+            <SzWInt    Nb="?"  Type="int">      </SzWInt>
+
+            <DynamiqueCorrel Nb="?" Type="eModeDynamiqueCorrel"> </DynamiqueCorrel>
+            <AggregCorr Nb="?" Type="eModeAggregCorr"> </AggregCorr>
+
+	    <AlgoRegul Nb="?" Type="eAlgoRegul"> </AlgoRegul>
+	    <AlgoWenCxRImpossible Nb="?" Type="eAlgoRegul"> </AlgoWenCxRImpossible>
+
+            <SsResolOptim Nb="?" Type="int" > </SsResolOptim> <!-- Def = 1  -->
+
+
+            <Px1Regul Nb="?"  Type="double">     </Px1Regul>
+            <Px2Regul Nb="?"  Type="double">     </Px2Regul>
+            <ZRegul Nb="?"  Type="double">     </ZRegul>
+                                <!--   Cx-Roy -->
+
+            <CoxRoy8Cnx Nb="?" Type="bool"> </CoxRoy8Cnx>     <!-- Def=false-->
+            <CoxRoyUChar Nb="?" Type="bool"> </CoxRoyUChar>   <!-- Def=true-->
+
+                                <!--   Prog Dyn -->
+
+            <ModulationProgDyn Nb="?">
+                <EtapeProgDyn  Nb="*">
+                     <Px1MultRegul Nb="?" Type="std::vector<double>"> </Px1MultRegul>
+                     <Px2MultRegul Nb="?" Type="std::vector<double>"> </Px2MultRegul>
+                     <NbDir Nb="?" Type="int" Def="2">             </NbDir>
+                     <ModeAgreg Type="eModeAggregProgDyn" Nb="1">  </ModeAgreg>
+                     <Teta0 Nb="?" Type="double" Def="0.0">         </Teta0>
+                </EtapeProgDyn>
+                <Px1PenteMax Nb="?" Type="double" Def="10.0"> </Px1PenteMax>
+                <Px2PenteMax Nb="?" Type="double" Def="10.0"> </Px2PenteMax>
+            </ModulationProgDyn>
+
+
+                               <!--  Post Filtrage -->
+            <PostFiltragePx Nb="?">
+                  <OneFitragePx Nb="*">
+                      <TypeFiltrage Nb="1" Type="eTypeFiltrage">   </TypeFiltrage>
+                      <SzFiltrage   Nb="1"  Type="int">            </SzFiltrage>
+                      <PxApply      Nb="1"  Type="ePxApply">       </PxApply>
+                  </OneFitragePx>
+            </PostFiltragePx>
+                             <!-- Option non implantees -->
+	    <UseContours Nb="?" Type="bool" Def="false">   </UseContours>
+
+                             <!-- Generation de resultats  -->
+                             <!-- Generation de resultats  -->
+                             <!-- Generation de resultats  -->
+                             <!-- Generation de resultats  -->
+
+                    <!-- Images en 8 Bits -->
+            <Gen8Bits_Px1 Nb="?" Type="bool">    </Gen8Bits_Px1>
+            <Offset8Bits_Px1 Nb="?" Type="int">  </Offset8Bits_Px1>
+            <Dyn8Bits_Px1 Nb="?" Type="double">  </Dyn8Bits_Px1>
+            <Gen8Bits_Px2 Nb="?" Type="bool">    </Gen8Bits_Px2>
+            <Offset8Bits_Px2 Nb="?" Type="int">  </Offset8Bits_Px2>
+            <Dyn8Bits_Px2 Nb="?" Type="double">  </Dyn8Bits_Px2>
+
+
+            <GenFilePxRel Nb="?" Type="bool">    </GenFilePxRel>
+
+             <!-- Generation d'image des coeff de correlation, 
+              defaut=false sauf pour la derniere etape 
+              -->
+             <GenImagesCorrel Nb="?" Type="bool"> </GenImagesCorrel>
+
+
+
+
+
+
+
+
+            <!--
+                  Generation des modeles analytiques
+            -->
+            <ModelesAnalytiques Nb="?">
+                 <OneModeleAnalytique Nb="*">
+
+                   <!-- Type de modele : Hom-polynome, matrice rotation etc -->
+                      <TypeModele   Nb="1" Type="eTypeModeleAnalytique"> </TypeModele>
+                   <!-- En mode Hom-polynome-->
+                      <!-- degre du polynome -->
+                      <DegrePol Nb="?" Type="int"> </DegrePol>
+                   <!-- En modee rotation--> 
+                        <!--Liste des  numeros d'angles bloques,   0 : teta_01, 1 : teta_02 , 2 : teta_12
+                         1 et 2 figes donne rotation horizontale -->
+                      <NumsAngleFiges Nb="*" Type="int"></NumsAngleFiges>
+                         <!-- Estimation en mode L1 des orientation -->
+                      <L1CalcOri Nb="?" Type="bool" Def="false"> </L1CalcOri>
+
+
+                   <!-- Noms des fichiers Ori a l'export -->
+                      <AutomSelExportOri Nb="?" Type="std::string"> </AutomSelExportOri>
+                      <AutomNamesExportOri1 Nb="?" Type="std::string"> </AutomNamesExportOri1>
+                      <AutomNamesExportOri2 Nb="?" Type="std::string"> </AutomNamesExportOri2>
+
+                   <!-- Noms des fichiers d'homologues , format binaire et xml -->
+                      <AutomNamesExportHomXml Nb="?" Type="std::string"> </AutomNamesExportHomXml>
+                      <AutomNamesExportHomBin Nb="?" Type="std::string"> </AutomNamesExportHomBin>
+ 
+   
+                   <!-- Utilise en mode Ori, si une Valeur S est donnee, avant export 
+                        des points homologues sont ceux ci sont pondere par S2/(E2+S2) ou E est le 
+                        residu d'intersection (en pixel) des rayons perspectifs
+                   -->
+                      <SigmaPixPdsExport Nb="?" Type="double">           </SigmaPixPdsExport>
+
+
+                   <!--  Si FiltreByCorrel est vrai, la correlation est utilisee pour ponderer les point
+                      Homologues en entree, soit S le seuil donnee par SeuilFiltreCorrel, la ponderation
+                      est binaire (C>S) si UseFCBySeuil est vrai, sinon c'est (C-S) tronque a 0
+                    -->
+                      <FiltreByCorrel   Nb="?" Def="false" Type="bool">  </FiltreByCorrel>
+                      <SeuilFiltreCorrel Nb="?" Def="0.2" Type="double"> </SeuilFiltreCorrel>
+                      <UseFCBySeuil   Nb="?" Def="true" Type="bool">  </UseFCBySeuil>
+
+                    <!-- La correlation dense donne un homologue pour chaque point, c'est inutile
+                    et couteux pour calculer des modeles analytique, on regroupe donc entree les points
+                    selon un grille reguliere de pas PasCalcul -->
+                      <PasCalcul Nb="1" Type="int">                     </PasCalcul>
+                      <!-- Pas utilise actuellement 
+                          <PasDebug Nb="?" Type="int">                     </PasDebug>
+                          <EcartPond Nb="*" Type="double"> </EcartPond>
+                      -->
+                      <!--  
+                       -->
+                      <!-- Est ce que le modele calcule devra etre reimporte comme predicteur, si oui-->
+                      <ReuseModele Nb="?" Type="bool">          </ReuseModele>
+                      <!-- Permet de ne pas refaire le calcul, utilise en mise au point, 
+                           le calcul etant effectue une premiere fois pour qu'il y'ait les bonnes
+                           structures sans  perte de temps-->
+                      <MakeExport Nb="?" Type="bool"  Def="true">          </MakeExport>
+
+                       <!-- nom des fichiers d'exports -->
+                      <NameExport Nb="?" Type="std::string" Def="ModeleAnalytique"> </NameExport>
+                      <!-- Export d'une version "image" de la //axe analytique, Mise au point-->
+                      <ExportImage Nb="?" Type="bool" Def="false"> </ExportImage>
+                      <!--
+                          Si true, alors on exporte une image de difference entre le modele
+                         et les fichiers de //axes, qui sera utilisee commme paralaxe de
+                         "residuelle" / au modele analytique
+                      -->
+                      <ReuseResiduelle Nb="?" Type="bool" Def="false"></ReuseResiduelle>
+
+                      <!-- Faut-il generer un modele de grille de la transfo, il integrera 
+                        le modele initial et le modele correctif, la valeur par defaut est
+                        de ne pas le faire sauf pour la derniere etape -->
+                      <ExportModeleGlobal Nb="?" Type="bool" Def="false">   </ExportModeleGlobal>
+                      <ExportModeleGlobalLast Nb="?" Type="bool" Def="true"> </ExportModeleGlobalLast>
+
+                      <!-- Maille de Grille dans le cas ExportModeleGlobal -->
+                      <MailleExport Nb="?" Type="double" Def="10.0"></MailleExport>
+                      <UseHomologueReference Nb="?" Type="bool" Def="false"> </UseHomologueReference>
+                      <MakeImagePxRef Nb="?" Type="bool" Def="false"> </MakeImagePxRef>
+                      <NbPtMinValideEqOriRel Nb="?" Type="int" Def="6"> </NbPtMinValideEqOriRel>
+                 </OneModeleAnalytique>
+            </ModelesAnalytiques>
+
+
+
+                             <!-- DIVERS  -->
+                             <!-- DIVERS  -->
+                             <!-- DIVERS  -->
+
+
+	    <SzRecouvrtDalles Nb="?"  Type="int"> </SzRecouvrtDalles>
+	    <SzDalleMin       Nb="?"  Type="int"> </SzDalleMin>
+	    <SzDalleMax       Nb="?"  Type="int"> </SzDalleMax>
+
+
+             <!-------------------------------------------->
+
+
+
+        </EtapeMEC>
+
+
+
+
+
+

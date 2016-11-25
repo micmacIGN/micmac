@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<ExportAPERO>
+     <OrientationConique>
+          <OrIntImaM2C>
+               <I00>0 0</I00>
+               <V10>2 0</V10>
+               <V01>0 1</V01>
+          </OrIntImaM2C>
+          <TypeProj>eProjStenope</TypeProj>
+          <Interne>
+                 <KnownConv>eConvApero_DistM2C</KnownConv>
+                  <PP> 1500 1000 </PP>
+                  <F> 1000 </F>
+                  <SzIm>3000 2000 </SzIm>
+                  <CalibDistortion>
+                     <ModUnif>
+                          <TypeModele>eModelePolyDeg2</TypeModele>
+                          <Params> 0.1 </Params>
+                          <Params> 0 </Params>
+                          <Params> 0</Params>
+                          <Params> 0 </Params>
+                          <Params> 0 </Params>
+                          <Params> 0</Params>
+                          <Etats>  1000 </Etats>
+                          <Etats>  1500 </Etats>
+                          <Etats>  1000 </Etats>
+                     </ModUnif>
+
+                  </CalibDistortion>
+          </Interne>
+          <Externe>
+               <KnownConv>eConvApero_DistM2C</KnownConv>
+               <Centre>0 0 0 </Centre>
+               <ParamRotation>
+                    <CodageMatr>
+                         <L1> 1 0 0 </L1>
+                         <L2> 0 1 0 </L2>
+                         <L3> 0 0 1</L3>
+                    </CodageMatr>
+               </ParamRotation>
+          </Externe>
+          <ConvOri>
+               <KnownConv>eConvApero_DistM2C</KnownConv>
+          </ConvOri>
+     </OrientationConique>
+</ExportAPERO>

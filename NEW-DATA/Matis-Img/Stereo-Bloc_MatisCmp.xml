@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<StructBlockCam>
+     <KeyIm2TimeCam>Loc-Assoc-Im2Block</KeyIm2TimeCam>
+     <LiaisonsSHC>
+          <ParamOrientSHC>
+               <IdGrp>301</IdGrp>
+               <Vecteur>-4.96088019148869911e-13 -5.16758353280072877e-15 3.30725346099246641e-13</Vecteur>
+               <Rot>
+                    <L1>1 4.01481310433533911e-35 -1.38826389965123672e-17</L1>
+                    <L2>-3.50169080797679256e-35 1 3.69614376983694702e-19</L2>
+                    <L3>1.38826389965123672e-17 -3.69614376983694702e-19 1</L3>
+                    <TrueRot>true</TrueRot>
+               </Rot>
+          </ParamOrientSHC>
+          <ParamOrientSHC>
+               <IdGrp>302</IdGrp>
+               <Vecteur>0.138419202188763607 0.00748646400737388012 -0.0465009197789847603</Vecteur>
+               <Rot>
+                    <L1>-0.00519614334625246622 -0.0105835195517895719 0.999930492188443099</L1>
+                    <L2>-0.00727118288671870644 0.99991795672193462 0.0105456021383023707</L2>
+                    <L3>-0.9999600641994425 -0.00721588102232564171 -0.00527267174386567613</L3>
+                    <TrueRot>true</TrueRot>
+               </Rot>
+          </ParamOrientSHC>
+     </LiaisonsSHC>
+</StructBlockCam>

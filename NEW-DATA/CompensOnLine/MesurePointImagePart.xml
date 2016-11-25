@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<SetOfMesureAppuisFlottants>
+     <MesureAppuiFlottant1Im>
+          <NameIm>Abbey-IMG_0204.jpg</NameIm>
+          <OneMesureAF1I>
+               <NamePt>P_1_A</NamePt>
+               <PtIm>233.001090786158926 196.724980137055923</PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm>Abbey-IMG_0205.jpg</NameIm>
+          <OneMesureAF1I>
+               <NamePt>P_1_A</NamePt>
+               <PtIm>269.646253099383046 297.536877044619359</PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm>Abbey-IMG_0206.jpg</NameIm>
+          <OneMesureAF1I>
+               <NamePt>P_1_A</NamePt>
+               <PtIm>265.659334560131526 495.40060114395925</PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm>Abbey-IMG_0207.jpg</NameIm>
+          <OneMesureAF1I>
+               <NamePt>P_1_A</NamePt>
+               <PtIm>263.578054998269351 681.448862962381668</PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+</SetOfMesureAppuisFlottants>
