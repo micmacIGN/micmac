@@ -88,7 +88,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv)
            argc,argv,
            LArgMain() << EAMC(aStrType,"Format specification")
                       << EAMC(aFilePtsIn,"GPS input  File", eSAM_IsExistFile),
-           LArgMain() << EAM(aFilePtsOut,"Out",true,"Xml Out File")
+           LArgMain() << EAM(aFilePtsOut,"Out",true,"Xml Out File",eSAM_IsOutputFile)
                       << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
     );
 
@@ -174,7 +174,63 @@ int GPS_Txt2Xml_main(int argc,char ** argv)
 }
 
 
+int CalcTF_main(int argc,char ** argv)
+{
+	std::string aInputFile;
+	bool aFilter=false;
+	std::string aOut="";
+	
+	ElInitArgMain
+    (
+           argc,argv,
+           LArgMain() << EAMC(aInputFile,"GPS .xml input  File", eSAM_IsExistFile),
+           LArgMain() << EAM(aFilter,"Filter",false,"Generate New GPS file and keep only fixed positions ; Def=false",eSAM_IsBool)
+                      << EAM(aOut,"Out",false,"Name output file with only fixed positions ; Def=InputFile_Fixed.xml",eSAM_IsOutputFile)
+    );
+    
+    //name output .xml file
+    if (aOut=="")
+    {
+		aOut =StdPrefixGen(aInputFile) + "_Fixed" + ".xml";
+    }
+    
+    //read the .xml input file
+	cDicoGpsFlottant aFile =  StdGetFromPCP(aInputFile,DicoGpsFlottant);
+	std::list <cOneGpsDGF> & aVP = aFile.OneGpsDGF();
+	
+	int aCompQ1 = 0;
+	cDicoGpsFlottant  aDico;
+	
+	for(std::list<cOneGpsDGF>::iterator iT=aVP.begin(); iT!=aVP.end(); iT++)
+	{
+		if(iT->TagPt() == 1)
+		{
+			cOneGpsDGF aOAD;
+			
+			aOAD.Pt() = iT->Pt();
+			aOAD.Incertitude() = iT->Incertitude();
+			aOAD.NamePt() = iT->NamePt();
+			aOAD.TagPt() = iT->TagPt();
+			aOAD.TimePt() = iT->TimePt();
 
+			aDico.OneGpsDGF().push_back(aOAD);
+			
+			aCompQ1++;
+		}
+	}
+	
+	double aTF = double(aCompQ1)/aVP.size();
+	
+	std::cout << " Taux Fixation = " <<  aTF*100 << " %" << std::endl;
+	
+	//generate file with only Q1
+	if(aFilter)
+	{
+		MakeFileXML(aDico,aOut);
+	}
+    
+	return EXIT_SUCCESS;
+}
 
 
 
