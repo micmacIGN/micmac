@@ -22,3 +22,5 @@ Pouvoir lancer en mode visuel avec un triangle specifique
 
 ======24/11/2016=====
 Mise en place outil TiepTriPrl -- lancer TiepTri avec pattern de XML en paralelle. Pourvoir tester sur plusieur img.
+Test avec 84 mages, residue 1.6 (org=0.3)
+* (1) entre 2 imgs consecutive, il n'y a que pt homologues sur 1 endroit.
