@@ -1,0 +1,247 @@
+\chapter{Sensibility Analysis}
+
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\section{Theoreticall consideration}
+
+\subsection{some tricks}
+
+\subsubsection{tricks}
+When $A$ and $B$ are vector, $^t A  B$ is as scalar so :
+
+
+\begin{equation}
+     ^t A B = ^t (^t A B) = ^t B A  \label{Trick:tABEqtBA}
+\end{equation}
+
+Then  :
+
+\begin{equation}
+     (^t A  B) ^2 =  ^t A B ^t B A  = ^t A (B ^t B) A \label{Trick:tAB2}
+\end{equation}
+
+So the term can interpred as the application of the quadratic form $B ^t B$  \footnote{of rank $1$}  to vector $A$.
+
+\subsubsection{tricks}
+
+If $A$ is a symetric positive matrix,
+the minimum of quadratic form $F(X) = ^t X A X - 2^t B X$ is reached for $X=A^{-1} B$.
+If we write $X' = X + \delta $ :
+
+\begin{equation}
+  F(X') -F(X)  = ^t (A^{-1} B+\delta) A (A^{-1} B+\delta) -  2^t B (A^{-1} B + \delta) -F(X)
+          =  ^t \delta A \delta 
+\end{equation}
+
+Which is always positive as $A$ is positive.
+
+\subsubsection{tricks}
+We have also the well known block matrix inverse identity :
+
+\begin{equation}
+\left( \begin{array}{cc} 
+              A & B \\ 
+              C  & D\\ 
+        \end{array} 
+\right) ^{-1}
+= 
+\left( \begin{array}{cc} 
+              A' & B' \\ 
+              C'  & D'\\ 
+        \end{array} 
+\right) 
+= 
+\left( \begin{array}{cc} 
+              (A-BD^{-1}C)^{-1} & -(A-BD^{-1}C)^{-1} BD^{-1} \\ 
+              -D^{-1}C(A-BD^{-1}C)^{-1}  &  D^{-1}+D^{-1}C(A-BD^{-1}C) BD^{-1}\\ 
+        \end{array} 
+\right) 
+\label{Eq:BlockInv}
+\end{equation}
+
+
+%------------------------------------------------------------------
+
+\subsection{Least square notation}
+
+Suppose we have $M$ equation of observation with $N$ unknown, $M>N$ :
+
+\begin{equation}
+    \sum\limits_{i=1}^N l_i^ m x_i = o_m \; ; \label{Eq:LeastSq:1}
+\end{equation}
+
+Noting :
+\begin{equation}
+    L^m = ^t (l_1^m \;  l_2^m \dots l_N^m)  m \in [1,M] ;  X= ^t (x_1 \; x_2 \dots x_N) 
+\end{equation}
+
+Equation~\ref{Eq:LeastSq:1} writes :
+
+\begin{equation}
+     ^t L^m  X  = o_m \; ,  m \in [1,M] ;
+\end{equation}
+
+
+As $M>N$ it is generally impossible to annulate all the term , instead we minimise the square of residual $R_2(X)$  :
+
+\begin{equation}
+    R^2(X) = \sum\limits_{m=1}^M ( ^tL^m   X - o_m) ^2  
+\end{equation}
+
+Using tricks \ref{Trick:tABEqtBA} and \ref{Trick:tAB2} we can write :
+
+\begin{equation}
+    R^2(X) = \sum\limits_{m=1}^M  ( (^tL^m   X)^2 - 2 o_m {^tL^m} X + o_m ^ 2) 
+           = \sum\limits_{m=1}^M  ( {^t X ({L^m} ^t{L^m}) X} - (2 o_m {^tL^m} )X + o_m ^2)
+\end{equation}
+
+
+Noting the $N \times N$ matrix A, $B$ the $N$ vector and the scalar C :
+
+\begin{equation}
+           A = \sum\limits_{m=1}^M { ({L^m} ^t{L^m}) } 
+       ;\; B = \sum\limits_{m=1}^M  ( o_m {L^m} ) 
+       ;\; C = \sum\limits_{m=1}^M  o_m ^2
+\end{equation}
+
+We have :
+
+\begin{equation}
+    R^2(X) = ^t X A X - 2^t B X + C
+\end{equation}
+
+Obviously $A$ is positive as being the some of squares. The minimum is reached for :
+
+\begin{equation}
+     \hat{X}  =  A^{-1} B
+\end{equation}
+
+\subsection{uncertainty}
+
+The system being not exactly inverible, for each observation $m$,  
+the equation~\ref{Eq:LeastSq:1} is only approximatively satisified by $\hat{X}$,
+so we introduce the  residual $\epsilon$  to modelize this uncertainty:
+
+\begin{equation}
+     ^tL^m X = o_m + {\epsilon}_m
+\end{equation}
+
+To evaluate variance on $X$ we consider  ${\epsilon}_m$  as the realization of random variable. Here I consider that 
+each ${\epsilon}_m$ is an indepandant variable, of average $0$ and variance $r_m^2$ \footnote{well  it's probably an heresy
+for stastician} where $r_m^2$ is the empirical residual :
+
+
+\begin{equation}
+      r_m  = ^tL^m \hat{X} - o_m  ; Var({\epsilon}_m) = r_m^2
+\end{equation}
+
+We can then modelize the probabilistic aspect of evaluation of $X$ :
+
+\begin{equation}
+     X  =  A^{-1}  \sum\limits_{i=1}^M   {L^m}  (o_m + {\epsilon}_m) 
+\end{equation}
+
+As $o_m$ is deterministic the variance is :
+
+\begin{equation}
+     Var(X)  =  Var (A^{-1}  \sum\limits_{i=1}^M   {L^m}  {\epsilon}_m)
+\end{equation}
+
+
+Noting the element of $A^{-1}$ :
+
+\begin{equation}
+     A^{-1} = ( {a'}_i^j)
+\end{equation}
+
+\begin{equation}
+     Var(x_i)  =   Var({\sum\limits_{m=1}^M}  {\sum\limits_{i=1}^N}  {a'}_i^j   {l^m_i}   {\epsilon}_m)
+\end{equation}
+
+
+\begin{equation}
+     Var(x_i)  =   \sum\limits_{m=1}^M  Var({\epsilon}_m)  (\sum\limits_{i=1}^N    {l^m_i}  {a'}_i^j ) ^2 
+\end{equation}
+
+
+
+\begin{equation}
+     Var(x_i)  =   \sum\limits_{m=1}^M  (^tL^m \hat{X} - o_m )^2  (\sum\limits_{i=1}^N    {l^m_i}  {a'}_i^j ) ^2 
+\end{equation}
+
+
+\subsection{Sensibility}
+
+
+\begin{equation}
+F(X) = ^t X M X = F(y,Z)= 
+\left( \begin{array}{cc} 
+              y &  ^t Z \\ 
+        \end{array} 
+\right)
+\left( \begin{array}{cc} 
+              a & B \\ 
+              ^t B  & D\\ 
+        \end{array} 
+\right)
+\left( \begin{array}{c} 
+              y \\ 
+              Z \\ 
+        \end{array} 
+\right)
+= a y^2 + 2y^t B Z + ^t Z D Z
+\label{EqSensib1}
+\end{equation}
+
+For a given $y$, $F(y,Z)$ is minimal for :
+
+\begin{equation}
+Z_{min}(y) = -y  D^{-1} B
+\end{equation}
+
+And the minimal value is :
+
+\begin{equation}
+V_{min}(y) = F(y,Z_{min}(y)) =  y^2 (a- ^t B D^{-1} B)
+\end{equation}
+
+
+In our  case where $A=a$ is a $1$ dimensionnal (scalar) we can then write :
+
+\begin{equation}
+V_{min}(y) =   y^2 (a- ^t B D^{-1} B) = \frac{x^2}{a'}
+\end{equation}
+
+So using equation ~\ref{Eq:BlockInv}, $V_{min}(x)$ can be easily computed  from the inverse matric. If
+we have a "bad" value of $y$, we have two estimation of the impact
+on  $F$ :
+
+\begin{itemize}
+   \item a "pessimistic" $a y^2$;
+   \item a "optimistic" $\frac{y^2}{a'}$.
+\end{itemize}
+
+So know, if we explain the empirical least square error $R$, by
+a bad estimation on $y$, we have two estimation of the sensibility/accuracy of $y$ :
+
+
+\begin{itemize}
+   \item a "optimistic"   $\sqrt{\frac{a}{R}}$;
+   \item a "pessimistic"  $\sqrt{a'R}$.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
