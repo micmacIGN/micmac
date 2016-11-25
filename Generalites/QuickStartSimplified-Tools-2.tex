@@ -1209,7 +1209,7 @@ The two most relevant statistics are: the mean transverse parallax which is very
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{The Viabon dataset}
-The directory {\tt Viabon/} in {\tt /micmac\_data/ExempleDoc/} contains a set of data which will allow us to perform a direct-georeferencing of images based on embedded GPS data. Below we will detail all the necessary steps to achieve maximum ground accuracy, here, in the range of {\tt 1-2 cm}. First, we will compute different GPS trajectories in order to make comparisons and in a second time we will be interested in the fusion of these results with the photogrammetric processing part.\newline
+The directory {\tt Viabon/} in {\tt /micmac\_data/ExempleDoc/} contains a set of data which will allow us to perform a direct-georeferencing\footnote{To be more precise, this dataset deals with Integrated Sensor Orientation (ISO) because no inertial measurements are available} of images based on embedded GPS data. Below we will detail all the necessary steps to achieve maximum ground accuracy, here, in the range of {\tt 1-2 cm}. First, we will compute different GPS trajectories in order to make comparisons and in a second time we will be interested in the fusion of these results with the photogrammetric processing part.\newline
 
 This UAS acquisition has been performed by the surveying service of {\tt Vinci-Construction-Terrassement}\footnote{\url{http://www.vinci-construction-terrassement.com/}}. A {\tt DJI-F550}\footnote{\url{http://dl.djicdn.com/downloads/flamewheel/en/F550_User_Manual_v2.0_en.pdf}} hexa-copter has been used to achieve the flight. The images were acquired by the {\tt IGN} panchromatic light camera developed at the {\tt LOEMI}\footnote{Opto-Electronics, Instrumentation and Metrology Laboratory} laboratory. The GPS on-board raw measurements were acquired by the {\tt GeoCube}, a multi-sensor geo-monitoring system developed at the same laboratory.\newline
 
@@ -1379,7 +1379,7 @@ Here we start by comparing raw similarity transformations using different GPS pr
 
 \begin{verbatim}
 mm3d CenterBascule "image_002_00*.*tif" Ori-All-RS/ Ori-Nav-Code/ Bascule-RS-Code
-mm3d GCPCtrl "image_002_00*.*tif" Ori-Bascule-RS-Code/ AllPts.xml MesImages.xml
+mm3d GCPCtrl "image_002_00*.*tif" Ori-Bascule-RS-Code/ AllPts-RTL.xml MesImages.xml
 
 ============================= ERRROR MAX PTS FL ======================
    ||    Value=140.12 for Cam=image_002_00100.tif and Pt=7 ; MoyErr=130.967
@@ -1395,7 +1395,7 @@ Here for differential code trajectory processed:
 
 \begin{verbatim}
 mm3d CenterBascule "image_002_00*.*tif" Ori-All-RS/ Ori-Nav-DCode/ Bascule-RS-DCode
-mm3d GCPCtrl "image_002_00*.*tif" Ori-Bascule-RS-DCode/ AllPts.xml MesImages.xml
+mm3d GCPCtrl "image_002_00*.*tif" Ori-Bascule-RS-DCode/ AllPts-RTL.xml MesImages.xml
 
 ============================= ERRROR MAX PTS FL ======================
    ||    Value=71.3855 for Cam=image_002_00058.tif and Pt=1 ; MoyErr=53.4976
@@ -1412,7 +1412,7 @@ Here for differential carrier-phase trajectory processed:
 
 \begin{verbatim}
 mm3d CenterBascule "image_002_00*.*tif" Ori-All-RS/ Ori-Nav-Dphase/ Bascule-RS-DPhase
-mm3d GCPCtrl "image_002_00*.*tif" Ori-Bascule-RS-DPhase/ AllPts.xml MesImages.xml
+mm3d GCPCtrl "image_002_00*.*tif" Ori-Bascule-RS-DPhase/ AllPts-RTL.xml MesImages.xml
 
 ============================= ERRROR MAX PTS FL ======================
    ||    Value=40.8538 for Cam=image_002_00076.tif and Pt=4 ; MoyErr=21.3675
@@ -1457,7 +1457,19 @@ mm3d Campari "image_002_00*.*tif" Ori-Bascule-RS-DCode/ Compense-RS-DCode-La
      EmGPS=[Ori-Nav-DCode/,0.8,1] GpsLa=[0,0,0]
      
 mm3d GCPCtrl "image_002_00*.*tif" Ori-Compense-RS-DCode-La/ AllPts-RTL.xml MesImages.xml
+
+LA: [0.254068,0.106455,-2.40184]
+
+
+============================= ERRROR MAX PTS FL ======================
+   ||    Value=82.723 for Cam=image_002_00093.tif and Pt=9 ; MoyErr=72.9078
+======================================================================
+=== GCP STAT ===  Dist,  Moy=1.29547 Max=1.43259
 \end{verbatim}
+% XYZ , MoyAbs=[0.205049,0.323538,1.22785] 
+%       Max=[0.351445,0.477211,1.4209] 
+%       Bias=[-0.205049,-0.323538,1.22785]
+
 
 Here using differential carrier-phase measurements estimated GPS trajectory where planimetric uncertainty is fixed to $1.5\ cm$ and vertical component uncertainty is fixed to $2.5\ cm$:
 \begin{verbatim}
@@ -1608,7 +1620,7 @@ LA: [0.0931686,-0.0576498,-0.148083]
 %       Bias=[0.0343737,0.0236073,0.0975746]
 
 
-\subsubsection{Direct georeferencing using embedded GPS and 1 GCP}
+\subsubsection{Integrated Sensor Orientation using embedded GPS and 1 GCP}
 
 We perform the same processing by releasing the same internal parameters as above and introducing a constraint using 1 GCP using the optional argument {\tt GCP}. The value $0.1$ is a multiplicative factor of the uncertainty field already given in the file {\tt GCP\_LA\_Calib-RTL.xml} and whose value is fixed at $1\ cm$ for planimetric components and $2\ cm$ for vertical component. On the hand, as the number of tie points is more important in the compensation, one should sometimes try to give more weight to external measurement, special when its number is very low, as here, we have only one GCP measurements. That is why the value $0.1$ means that weight of this measurement is more important ($10$ times) in order to constraint the parameters estimation during the compensation. We can verify with a value of $1$ instead of $0.1$ that the accuracy on check points is two times worse.
 
