@@ -7102,11 +7102,15 @@ class cSensibDateOneInc
 
         double & SensibParamInv();
         const double & SensibParamInv()const ;
+
+        double & SensibParamVar();
+        const double & SensibParamVar()const ;
     private:
         std::string mNameBloc;
         std::string mNameInc;
         double mSensibParamDir;
         double mSensibParamInv;
+        double mSensibParamVar;
 };
 cElXMLTree * ToXMLTree(const cSensibDateOneInc &);
 

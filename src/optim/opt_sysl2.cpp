@@ -1085,6 +1085,14 @@ void L2SysSurResol::V_GSSR_AddNewEquation_Indexe
            REAL aB
      )
 {
+// Test provisoire qui permet de verifier que la formule de variance est bien en racine de N
+static int aCpt=0 ; aCpt++;
+int aNb=1;
+for (int aK=0 ; aK<aNb ; aK++)
+{
+
+if ((aK==aNb-1) &&((aCpt%10)==0) && (aNb>1) ) std::cout << "V_GSSR_AddNewEquation_IndexeKKKK " << aK << " " << aCpt<< "\n";
+
      mVarCurResidu = 0.0;
      mVarCurSomLjAp = 0;
      // std::vector<int> 
@@ -1203,6 +1211,7 @@ void L2SysSurResol::V_GSSR_AddNewEquation_Indexe
      mBibi += aPds * ElSquare(aB);
      mMaxBibi = ElMax(mMaxBibi,aPds * ElSquare(aB));
      mNbEq ++;
+}
 }
 
 void L2SysSurResol::V_GSSR_EqMatIndexee

@@ -1713,6 +1713,7 @@ normalises en echelle et/ou en translation -->
          <NameInc  Nb="1" Type="std::string"> </NameInc>
          <SensibParamDir  Nb="1" Type="double"> </SensibParamDir>
          <SensibParamInv  Nb="1" Type="double"> </SensibParamInv>
+         <SensibParamVar  Nb="1" Type="double"> </SensibParamVar>
     </SensibDateOneInc>
 </XmlNameSensibs>
 

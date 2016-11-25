@@ -524,6 +524,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
     if (mESPA)
     {
        aPrefESPA =  DC()+mESPA->Dir();
+       ELISE_fp::MkDir(aPrefESPA);
        cGenSysSurResol * aSys = mSetEq.Sys();   
        AllocateurDInconnues &  anAlloc = mSetEq.Alloc();
        std::string aNameConv =  aPrefESPA + TheNameFileTxtConvName();
@@ -597,16 +598,15 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         if (aSys->InverseIsComputedAfterSolve())
         {
             int aNbV = aSys->NbVar();
-            // double aReSS = aSys->ResiduAfterSol();
+            double aReSS = aSys->ResiduAfterSol();
             for (int aK=0 ; aK<aNbV ; aK++)
             {
                 // std::cout << "GGGGG "<< aSys->GetElemInverseQuad(aK,aK) << " " << aMVar.data()[aK] << "\n";
                 // double aVal = aSys->GetElemInverseQuad(aK,aK);
                 // aVal *= aMVar.data()[aK];
-                // aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aReSS*aSys->GetElemInverseQuad(aK,aK));
-                // aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aReSS/aMVar.data()[aK]);
-                aXmlS.SensibDateOneInc()[aK].SensibParamDir() = aSys->Variance(aK);
-                aXmlS.SensibDateOneInc()[aK].SensibParamInv() = aSys->Variance(aK);
+                aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aReSS*aSys->GetElemInverseQuad(aK,aK));
+                aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aReSS/aMVar.data()[aK]);
+                aXmlS.SensibDateOneInc()[aK].SensibParamVar() = aSys->Variance(aK);
             }
         }
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(false));
