@@ -12,7 +12,7 @@ matrix:
 
 before_install:
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get update -qq && sudo apt-get install -qq qtbase5-dev; fi
-- id [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update && brew install qt5; fi
+- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update && brew install qt5; fi
 
 script:
 - sh travis_build_script.sh
