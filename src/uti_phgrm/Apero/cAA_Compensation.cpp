@@ -597,14 +597,16 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         if (aSys->InverseIsComputedAfterSolve())
         {
             int aNbV = aSys->NbVar();
-            double aReSS = aSys->ResiduAfterSol();
+            // double aReSS = aSys->ResiduAfterSol();
             for (int aK=0 ; aK<aNbV ; aK++)
             {
                 // std::cout << "GGGGG "<< aSys->GetElemInverseQuad(aK,aK) << " " << aMVar.data()[aK] << "\n";
                 // double aVal = aSys->GetElemInverseQuad(aK,aK);
                 // aVal *= aMVar.data()[aK];
-                aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aReSS*aSys->GetElemInverseQuad(aK,aK));
-                aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aReSS/aMVar.data()[aK]);
+                // aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aReSS*aSys->GetElemInverseQuad(aK,aK));
+                // aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aReSS/aMVar.data()[aK]);
+                aXmlS.SensibDateOneInc()[aK].SensibParamDir() = aSys->Variance(aK);
+                aXmlS.SensibDateOneInc()[aK].SensibParamInv() = aSys->Variance(aK);
             }
         }
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(false));
@@ -1076,6 +1078,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC,bool L
         if (kIterLast && anEC.SectionExport().IsInit())
         {
             mESPA = anEC.SectionExport().Val().ExportSensibParamAero().PtrVal();
+            mSetEq.Sys()->SetCalculVariance(true);
         }
 
         if (anIter.DoIt().Val())
