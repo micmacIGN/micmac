@@ -17,8 +17,8 @@ before_install:
 script:
 - mkdir build
 - cd build
-- if [ "${TRAVIS_OS_NAME}" = "linux" ]; cmake .. -DWITH_QT5=On; fi
-- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; cmake .. -DCMAKE_PREFIX_PATH=$(brew --prefix qt5) -DWITH_QT5=On; fi
+- if [ "${TRAVIS_OS_NAME}" = "linux" ]; then cmake .. -DWITH_QT5=On; fi
+- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then cmake .. -DCMAKE_PREFIX_PATH=$(brew --prefix qt5) -DWITH_QT5=On; fi
 - make
 - make install
 
