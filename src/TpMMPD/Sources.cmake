@@ -57,14 +57,14 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/DrawVectorNormalMesh_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/MeshPartViewable_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/TestGiang_main.cpp
-    ${TDPPMD_DIR}/TiePByMesh/TaskCorrel.cpp
+
     ${TDPPMD_DIR}/TiePByMesh/FAST_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/Homol2Way_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiepTriPrl.cpp
-
-
-
-
+    ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cAppliTaskCorrel.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cImgForTiepTri.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cTriForTiepTri.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/TaskCorrel.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

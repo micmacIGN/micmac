@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1730]) = {
+const char * (theNameVar_ParamApero[1731]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1715,6 +1715,7 @@ const char * (theNameVar_ParamApero[1730]) = {
 "         <NameInc  Nb=\"1\" Type=\"std::string\"> </NameInc>\n",
 "         <SensibParamDir  Nb=\"1\" Type=\"double\"> </SensibParamDir>\n",
 "         <SensibParamInv  Nb=\"1\" Type=\"double\"> </SensibParamInv>\n",
+"         <SensibParamVar  Nb=\"1\" Type=\"double\"> </SensibParamVar>\n",
 "    </SensibDateOneInc>\n",
 "</XmlNameSensibs>\n",
 "\n",

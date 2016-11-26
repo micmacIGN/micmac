@@ -71,6 +71,20 @@ tSysCho   cGenSysSurResol::GetElemInverseQuad(int i,int j) const
     return 0;
 }
 
+bool  cGenSysSurResol::CanCalculVariance() const {return false;}
+void  cGenSysSurResol::SetCalculVariance(bool)
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::SetCalculVariance");
+}
+double  cGenSysSurResol::Variance(int aK)
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::Variance");
+    return 0.0;
+}
+
+
+
+
 
 cGenSysSurResol::cGenSysSurResol
 (
@@ -772,6 +786,8 @@ void L2SysSurResol::V_GSSR_AddNewEquation(REAL aPds,REAL * aCoeff,REAL aB)
 
      // ================================
 
+
+
 bool L2SYM = false;
 // DebugPbCondFaisceau
 
@@ -784,21 +800,41 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
          IsSym, (! IsSym),     // MPD 05-04_2015 ; avant L2SYM, sous optimale pour subsitution, voit pas pourquoi cela serait bien ???
         true
     ),
-    mNbVar           (aNbVar),
-    mtLi_Li          (mNbVar,mNbVar,0.0),
-    mDatatLi_Li      (mtLi_Li.data()),
-    mInvtLi_Li       (mNbVar,mNbVar,0.0),
-    mDataInvtLi_Li   (mInvtLi_Li.data()),
-    mbi_Li           (aNbVar,0.0),
-    mDatabi_Li       (mbi_Li.data()),
-    mBibi            (0.0),
-    mSolL2           (aNbVar),
-    mDataSolL2       (mSolL2.data()),
-    mNbEq            (0),
-    mMaxBibi         (0)
+    mNbVar             (aNbVar),
+    mtLi_Li            (mNbVar,mNbVar,0.0),
+    mDatatLi_Li        (mtLi_Li.data()),
+    mInvtLi_Li         (mNbVar,mNbVar,0.0),
+    mDataInvtLi_Li     (mInvtLi_Li.data()),
+    mbi_Li             (aNbVar,0.0),
+    mDatabi_Li         (mbi_Li.data()),
+    mBibi              (0.0),
+    mSolL2             (aNbVar),
+    mDataSolL2         (mSolL2.data()),
+    mNbEq              (0),
+    mMaxBibi           (0),
+    mDoCalculVariance  (false),
+    mVariance          (aNbVar),
+    mDVar              (mVariance.data())
 {
     // std::cout << "L2SysSurResol::L2SysSurResol " << IsSym << "\n";
 }
+
+void L2SysSurResol::SetCalculVariance(bool aDo)
+{
+   mDoCalculVariance = aDo;
+}
+bool L2SysSurResol::CanCalculVariance() const
+{
+  return true;
+}
+double  L2SysSurResol::Variance(int aK)
+{
+   return sqrt(mDVar[aK]);
+}
+
+
+
+
 
 void L2SysSurResol::SetSize(INT aNbVar)
 {
@@ -814,12 +850,16 @@ void L2SysSurResol::SetSize(INT aNbVar)
     mDatabi_Li = mbi_Li.data();
     mSolL2 =mSolL2.AugmentSizeTo(mNbVar,0.0);;
     mDataSolL2 = mSolL2.data();
+
+    mVariance = mVariance.AugmentSizeTo(aNbVar,0.0); 
+    mDVar     = mVariance.data();
 }
 
 void L2SysSurResol::Reset()
 {
    mtLi_Li.raz();
    mbi_Li.raz();
+   mVariance.raz();
    mBibi = 0.0;
    mNbEq = 0;
    mMaxBibi = 0;
@@ -834,11 +874,11 @@ void L2SysSurResol::AddEquation(REAL aPds,REAL * aCoeff,REAL aB)
 
      for (INT iVar1=0 ; iVar1<mNbVar ; iVar1++)
      {
-     if (aCoeff[iVar1] != 0.0)  // Acceleration pour les formes creuses
-     {
-         VInd.push_back(iVar1);
-         VALS.push_back(aCoeff[iVar1]);
-     }
+         if (aCoeff[iVar1] != 0.0)  // Acceleration pour les formes creuses
+         {
+             VInd.push_back(iVar1);
+             VALS.push_back(aCoeff[iVar1]);
+         }
      }
      L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,VInd,aPds,&VALS[0],aB);
 }
@@ -1045,15 +1085,20 @@ void L2SysSurResol::V_GSSR_AddNewEquation_Indexe
            REAL aB
      )
 {
-// static int aCpt=0; aCpt++;
-//std::cout << "L2:VANI "  << aCpt << "\n";
-// bool aBug = (aCpt==44984);
-/*
-if ((aNbTot>10) && (aCpt%97==0))
-std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
-*/
+// Test provisoire qui permet de verifier que la formule de variance est bien en racine de N
+static int aCpt=0 ; aCpt++;
+int aNb=1;
+for (int aK=0 ; aK<aNb ; aK++)
+{
 
+if ((aK==aNb-1) &&((aCpt%10)==0) && (aNb>1) ) std::cout << "V_GSSR_AddNewEquation_IndexeKKKK " << aK << " " << aCpt<< "\n";
 
+     mVarCurResidu = 0.0;
+     mVarCurSomLjAp = 0;
+     // std::vector<int> 
+
+     std::vector<int> aVarIndGlob;
+     std::vector<int> aVarIndCoeff;
 
      if  (aVSB ) //  && (int(aVInd.size())==aNbTot))
      {
@@ -1103,54 +1148,15 @@ std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
 
               for (int YOut=aI0y ; YOut<aI1y ; YOut++)
               {
-                     mDatabi_Li [YOut] +=  aPB * aFullCoef[yin++];
+                  if (mDoCalculVariance)
+                  {
+                     aVarIndGlob.push_back(YOut);
+                     aVarIndCoeff.push_back(yin);
+                  }
+                  mDatabi_Li [YOut] +=  aPB * aFullCoef[yin++];
               }
               Y0InBloc += aBlY.Nb();
          }
-
-/*
-         int yin =0;
-         int aNbBl = aVSB->size();
-         for (int aKBly=0 ; aKBly <aNbBl ; aKBly++)
-         {
-             const cSsBloc & aBlY = (*aVSB)[aKBly];
-             int aI0y = aBlY.I0AbsSolve();
-             int aI1y = aBlY.I1AbsSolve();
-
-             int aDebBlx =  mOptSym  ? aKBly : 0;
-             int X0InBloc = 0;
-             for (int aKBlx=0  ; aKBlx <aDebBlx ; aKBlx++)
-                 X0InBloc += (*aVSB)[aKBlx].Nb();
-
-
-             for (int YOut=aI0y ; YOut<aI1y ; YOut++)
-             {
-                 double aPCV1 =   aPds * aFullCoef[yin++];
-                 if (aPCV1)
-                 {
-                     mDatabi_Li [YOut] +=  aB * aPCV1;
-                     double * aLineOut = mDatatLi_Li[YOut];
-
-                     int xin = X0InBloc;
-
-                     for (int aKBlx=aDebBlx  ; aKBlx <aNbBl ; aKBlx++)
-                     {
-                         const cSsBloc & aBlX = (*aVSB)[aKBlx];
-                         int aI0x = aBlX.I0AbsSolve();
-
-                         int aDebX  = (mOptSym && (aKBlx==aKBly)) ? YOut : aI0x;
-                         int aI1X = aBlX.I1AbsSolve();
-                         xin += aDebX-aI0x;
-
-                         for (int XOut = aDebX ; XOut<aI1X ; XOut++)
-                         {
-                                aLineOut[XOut] += aPCV1 * aFullCoef[xin++];
-                         }
-                     }
-                 }
-             }
-         }
-*/
      }
      else
      {
@@ -1160,16 +1166,43 @@ std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
             int iVar1 = aVInd[Ind1];
             double aPCV1 =   aPds * aCoeff[Ind1];
             mDatabi_Li [iVar1] +=  aB * aPCV1;
+            if (mDoCalculVariance)
+            {
+               aVarIndGlob.push_back(iVar1);
+               aVarIndCoeff.push_back(Ind1);
+            }
 
             // Si mOptSym o n remplit la partie telle que  Ind2 >= Ind1
             // donc x >= y, donc  partie "superieure"
             int aDebInd2 = mOptSym  ? Ind1 : 0;
             for (INT Ind2 =aDebInd2 ; Ind2<NbInd ; Ind2++)
-        {
+            {
                  int iVar2 = aVInd[Ind2];
                  mDatatLi_Li[iVar1][iVar2] +=  aPCV1 * aCoeff[Ind2];
+            }
         }
-        }
+     }
+
+
+     if (mDoCalculVariance)
+     {
+         double * aLocCoeff = (aVSB ? aFullCoef : aCoeff);
+         double aResidual = -aB;
+         for (int aK=0 ; aK<int(aVarIndCoeff.size()) ; aK++ )
+         {
+             aResidual+=  aLocCoeff[aVarIndCoeff[aK]]  * mDataSolL2[aVarIndGlob[aK]];
+         }
+         for (int aKI=0 ; aKI<int(aVarIndCoeff.size()) ; aKI++ )
+         {
+             double aSomApL = 0;
+             for (int aKJ=0 ; aKJ<int(aVarIndCoeff.size()) ; aKJ++ )
+             {
+                 aSomApL += aLocCoeff[aVarIndCoeff[aKJ]] *  mDataInvtLi_Li[aVarIndGlob[aKI]][aVarIndGlob[aKJ]];
+
+             }
+             mDVar[aVarIndGlob[aKI]] += ElSquare(aSomApL *aPds * aResidual);
+         }
+
      }
 
 
@@ -1178,6 +1211,7 @@ std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
      mBibi += aPds * ElSquare(aB);
      mMaxBibi = ElMax(mMaxBibi,aPds * ElSquare(aB));
      mNbEq ++;
+}
 }
 
 void L2SysSurResol::V_GSSR_EqMatIndexee
@@ -1238,23 +1272,6 @@ void L2SysSurResol::AddTermQuad(INT aK1,INT aK2,REAL aVal)
     mDatatLi_Li[aK1][aK2] += aVal;
 }
 
-
-/*
-void L2SysSurResol::GetMatr(ElMatrix<REAL> & M,ElMatrix<REAL> & tB)
-{
-    M.set_to_size(mNbVar,mNbVar);
-    tB.set_to_size(mNbVar,1);
-
-    for (INT kx=0;kx <mNbVar ; kx++)
-    {
-        tB(kx,0) = mbi_Li.data()[kx];
-        for (INT ky=0;ky <mNbVar ; ky++)
-        {
-            M(kx,ky) = mtLi_Li.data()[kx][ky];
-        }
-    }
-}
-*/
 
 Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
 {
@@ -1363,21 +1380,6 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
 
     if (aResOk)
        *aResOk = Ok;
-/*
-    cout << "L2SysSurResol::Solve GP " << Ok << "\n";
-    if (! Ok)
-    {
-         for (INT ky=0;ky <mNbVar ; ky++)
-         {
-             for (INT kx=0;kx <mNbVar ; kx++)
-             {
-                 cout <<  mtLi_Li.data()[kx][ky] << " ";
-             }
-             cout << "\n";
-         }
-         cout << "----------------\n";
-    }
-*/
     if (Ok)
     {
         for (INT k=0; k<6; k++)

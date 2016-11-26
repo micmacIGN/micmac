@@ -67,7 +67,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
     mInputName(aNameFile)
 {
     mRPC = new cRPC(aNameFile);
-
+ 
 
     /* Mean Z */
     // SetAltiSol( (mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );

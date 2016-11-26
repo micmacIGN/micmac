@@ -524,6 +524,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
     if (mESPA)
     {
        aPrefESPA =  DC()+mESPA->Dir();
+       ELISE_fp::MkDir(aPrefESPA);
        cGenSysSurResol * aSys = mSetEq.Sys();   
        AllocateurDInconnues &  anAlloc = mSetEq.Alloc();
        std::string aNameConv =  aPrefESPA + TheNameFileTxtConvName();
@@ -605,6 +606,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
                 // aVal *= aMVar.data()[aK];
                 aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aReSS*aSys->GetElemInverseQuad(aK,aK));
                 aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aReSS/aMVar.data()[aK]);
+                aXmlS.SensibDateOneInc()[aK].SensibParamVar() = aSys->Variance(aK);
             }
         }
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(false));
@@ -1076,6 +1078,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC,bool L
         if (kIterLast && anEC.SectionExport().IsInit())
         {
             mESPA = anEC.SectionExport().Val().ExportSensibParamAero().PtrVal();
+            mSetEq.Sys()->SetCalculVariance(true);
         }
 
         if (anIter.DoIt().Val())

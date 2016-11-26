@@ -584,6 +584,9 @@ class cGenSysSurResol
          virtual void  SetElemLin(int i,const tSysCho& ) ;
          virtual tSysCho SomQuad() const;
 
+         virtual bool    CanCalculVariance() const;
+         virtual void SetCalculVariance(bool);
+         virtual double  Variance(int aK);
          virtual bool  InverseIsComputedAfterSolve();
          virtual tSysCho   GetElemInverseQuad(int i,int j) const;
          virtual bool  ResiduIsComputedAfterSolve();
@@ -877,6 +880,10 @@ class cFormQuadCreuse : public cVectMatMul,
 class L2SysSurResol : public cGenSysSurResol
 {
      public :
+         virtual bool    CanCalculVariance() const;
+         virtual void    SetCalculVariance(bool);
+         virtual double  Variance(int aK);
+
          virtual bool  InverseIsComputedAfterSolve();
          virtual tSysCho   GetElemInverseQuad(int i,int j) const;
          virtual bool  ResiduIsComputedAfterSolve();
@@ -971,6 +978,12 @@ class L2SysSurResol : public cGenSysSurResol
         INT          mNbEq; // Debug
         double       mMaxBibi; // Debug
         double       mResiduAfterSol;
+
+        bool         mDoCalculVariance;
+        Im1D_REAL8   mVariance;
+        REAL8 *      mDVar;
+        double       mVarCurResidu;
+        double       mVarCurSomLjAp;
 };
 
 // Classe Adaptee au contexte bcp d'equations, (relativement) peu de variable
