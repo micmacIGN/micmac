@@ -40,7 +40,7 @@ if(WITH_HEADER_PRECOMP)
 
 			if(CMAKE_CXX_COMPILER_IS_CLANG)
 				set(precompiled_header "${CMAKE_SOURCE_DIR}/include/${HEADER_NAME}.pch")
-				set(pch_flags -x c++-header ${_source} -o ${precompiled_header})
+				set(pch_flags -std=c++11 -x c++-header ${_source} -o ${precompiled_header})
 				set(pch_include_flag "-include-pch ${precompiled_header}")
 			elseif(CMAKE_COMPILER_IS_GNUCXX)
 				set(precompiled_header "${CMAKE_SOURCE_DIR}/include/${HEADER_NAME}.gch")
