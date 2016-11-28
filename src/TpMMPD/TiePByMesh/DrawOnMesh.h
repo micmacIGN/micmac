@@ -28,6 +28,10 @@ public:
                            string fileName,
                            Pt3dr colorRGB
                           );
+    void drawListTriangle(  vector<cXml_Triangle3DForTieP> listTri,
+                            string fileName,
+                            Pt3dr colorRGB
+                         );
     void drawListPtsOnPly(
                             vector<Pt3dr> lstPts,
                             string filename,
