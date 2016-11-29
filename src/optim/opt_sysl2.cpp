@@ -81,6 +81,12 @@ double  cGenSysSurResol::Variance(int aK)
     ELISE_ASSERT(false,"cGenSysSurResol::Variance");
     return 0.0;
 }
+double  cGenSysSurResol::CoVariance(int aK1,int aK2)
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::CoVariance");
+    return 0.0;
+}
+
 
 
 
@@ -813,8 +819,10 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
     mNbEq              (0),
     mMaxBibi           (0),
     mDoCalculVariance  (false),
-    mVariance          (aNbVar),
-    mDVar              (mVariance.data())
+    mVariance          (aNbVar,0.0),
+    mDVar              (mVariance.data()),
+    mCoVariance        (aNbVar,aNbVar,0.0),
+    mDCoVar            (mCoVariance.data())
 {
     // std::cout << "L2SysSurResol::L2SysSurResol " << IsSym << "\n";
 }
@@ -830,6 +838,10 @@ bool L2SysSurResol::CanCalculVariance() const
 double  L2SysSurResol::Variance(int aK)
 {
    return sqrt(mDVar[aK]);
+}
+double  L2SysSurResol::CoVariance(int aK1,int aK2)
+{
+   return mDCoVar[aK1][aK2];
 }
 
 
@@ -853,6 +865,9 @@ void L2SysSurResol::SetSize(INT aNbVar)
 
     mVariance = mVariance.AugmentSizeTo(aNbVar,0.0); 
     mDVar     = mVariance.data();
+
+    mCoVariance = mCoVariance.AugmentSizeTo(Pt2di(aNbVar,aNbVar),0.0); 
+    mDCoVar     = mCoVariance.data();
 }
 
 void L2SysSurResol::Reset()
@@ -860,6 +875,7 @@ void L2SysSurResol::Reset()
    mtLi_Li.raz();
    mbi_Li.raz();
    mVariance.raz();
+   mCoVariance.raz();
    mBibi = 0.0;
    mNbEq = 0;
    mMaxBibi = 0;
@@ -1188,6 +1204,8 @@ if ((aK==aNb-1) &&((aCpt%10)==0) && (aNb>1) ) std::cout << "V_GSSR_AddNewEquatio
      {
          double * aLocCoeff = (aVSB ? aFullCoef : aCoeff);
          double aResidual = -aB;
+         std::vector<double> aVSomAPl(aVarIndCoeff.size());
+
          for (int aK=0 ; aK<int(aVarIndCoeff.size()) ; aK++ )
          {
              aResidual+=  aLocCoeff[aVarIndCoeff[aK]]  * mDataSolL2[aVarIndGlob[aK]];
@@ -1200,9 +1218,15 @@ if ((aK==aNb-1) &&((aCpt%10)==0) && (aNb>1) ) std::cout << "V_GSSR_AddNewEquatio
                  aSomApL += aLocCoeff[aVarIndCoeff[aKJ]] *  mDataInvtLi_Li[aVarIndGlob[aKI]][aVarIndGlob[aKJ]];
 
              }
+             aVSomAPl[aKI] = aSomApL;
              mDVar[aVarIndGlob[aKI]] += ElSquare(aSomApL *aPds * aResidual);
          }
 
+         for (int aKI=0 ; aKI<int(aVarIndCoeff.size()) ; aKI++ )
+             for (int aKJ=0 ; aKJ<int(aVarIndCoeff.size()) ; aKJ++ )
+             {
+                 mDCoVar[aVarIndGlob[aKI]][aVarIndGlob[aKJ]] +=  ElSquare(aPds * aResidual) * aVSomAPl[aKI] * aVSomAPl[aKJ];
+             }
      }
 
 

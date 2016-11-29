@@ -57,8 +57,12 @@ const std::string TheRaffineQuickMac();
 const std::string TheRaffineQuickMac(const std::string &);
 
 
-const std::string & TheNameMatrCorrel();
+const std::string & TheNameMatrCorrelDir();
+const std::string & TheNameMatrCorrelInv();
 const std::string & TheNameMatrCov();
+const std::string & TheNameMatrCorrel();
+bool IsMatriceExportBundle(const std::string &);
+
 const std::string & TheNameFileVarName();
 const std::string & TheNameFileSensibVar();
 

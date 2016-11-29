@@ -587,6 +587,7 @@ class cGenSysSurResol
          virtual bool    CanCalculVariance() const;
          virtual void SetCalculVariance(bool);
          virtual double  Variance(int aK);
+         virtual double  CoVariance(int aK1,int aK2);
          virtual bool  InverseIsComputedAfterSolve();
          virtual tSysCho   GetElemInverseQuad(int i,int j) const;
          virtual bool  ResiduIsComputedAfterSolve();
@@ -883,6 +884,7 @@ class L2SysSurResol : public cGenSysSurResol
          virtual bool    CanCalculVariance() const;
          virtual void    SetCalculVariance(bool);
          virtual double  Variance(int aK);
+         virtual double  CoVariance(int aK1,int aK2);
 
          virtual bool  InverseIsComputedAfterSolve();
          virtual tSysCho   GetElemInverseQuad(int i,int j) const;
@@ -982,6 +984,8 @@ class L2SysSurResol : public cGenSysSurResol
         bool         mDoCalculVariance;
         Im1D_REAL8   mVariance;
         REAL8 *      mDVar;
+        Im2D_REAL8   mCoVariance;
+        REAL8 **     mDCoVar;
         double       mVarCurResidu;
         double       mVarCurSomLjAp;
 };

@@ -434,6 +434,29 @@ std::string  TheNameFileExpSens(bool Bin)
 {
     return "Sensib-Data" + std::string(Bin ? ".dmp" : ".xml");
 }
+const std::string & TheNameMatrCorrelInv()
+{
+    static std::string TMV="Sensib-MatriceCorrelInv.tif";
+    return TMV;
+}
+const std::string & TheNameMatrCorrelDir()
+{
+    static std::string TMV="Sensib-MatriceCorrelDir.tif";
+    return TMV;
+}
+
+bool IsMatriceExportBundle(const std::string & aNameIm)
+{
+   return    (aNameIm==TheNameMatrCorrel()) 
+          || (aNameIm==TheNameMatrCov()) 
+          || (aNameIm==TheNameMatrCorrelInv())
+          || (aNameIm==TheNameMatrCorrelDir());
+}
+
+Fonc_Num Correl(Fonc_Num Cov,Fonc_Num Var1, Fonc_Num Var2)
+{
+   return Max(-1,Min(1,Cov/sqrt(Max(1e-10,Var1*Var2))));
+}
 
 
 
@@ -519,13 +542,25 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
     // mSetEq.Solve(aSO.SomErPond());
 
     Im1D_REAL4 aMVar(1);
+    Im1D_U_INT1 isCstr(1);
     cXmlNameSensibs aXmlS;
     std::string aPrefESPA;
+// IsCstrUniv   bool IsCstrUniv(int anX,double & aVal);
+
     if (mESPA)
     {
+       cGenSysSurResol * aSys = mSetEq.Sys();   
+       int aNbV = aSys->NbVar();
+       isCstr = Im1D_U_INT1(aNbV);
+       for (int aKx=0 ; aKx<aNbV ; aKx++)
+       {
+           double aVal;
+           isCstr.data()[aKx] =  aSys->IsCstrUniv(aKx,aVal);
+           //  std::cout << "ISCTRE " << int(isCstr.data()[aKx]) << " " << aKx << "\n";
+       }
+
        aPrefESPA =  DC()+mESPA->Dir();
        ELISE_fp::MkDir(aPrefESPA);
-       cGenSysSurResol * aSys = mSetEq.Sys();   
        AllocateurDInconnues &  anAlloc = mSetEq.Alloc();
        std::string aNameConv =  aPrefESPA + TheNameFileTxtConvName();
 
@@ -551,7 +586,6 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
           aStdConvTxt<< " " << IdOfIma(aK) << " => " << mNamesIdIm[aK]  << "\n";
        }
 
-       int aNbV = aSys->NbVar();
        Im2D_REAL4 aMCov(aNbV,aNbV);
        aMVar = Im1D_REAL4(aNbV);
        REAL4 ** aDC = aMCov.data();
@@ -577,9 +611,10 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
 
        Tiff_Im::CreateFromFonc
        (
-            aPrefESPA + TheNameMatrCorrel(),
+            aPrefESPA + TheNameMatrCorrelDir(),
             Pt2di(aNbV,aNbV),
-            aMCov.in()/sqrt(Max(1e-60,aMVar.in()[FX]*aMVar.in()[FY])),
+            // aMCov.in()/sqrt(Max(1e-60,aMVar.in()[FX]*aMVar.in()[FY])),
+            Correl(aMCov.in(),aMVar.in()[FX],aMVar.in()[FY]),
             GenIm::real4
        );
        Tiff_Im::CreateFromIm(aMCov, aPrefESPA + TheNameMatrCov());
@@ -608,9 +643,51 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
                 aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aReSS/aMVar.data()[aK]);
                 aXmlS.SensibDateOneInc()[aK].SensibParamVar() = aSys->Variance(aK);
             }
+            Im2D_REAL4 aMCov(aNbV,aNbV);
+            REAL4 ** aDC = aMCov.data();
+            Im2D_REAL4 aMCorInv(aNbV,aNbV);
+            REAL4 ** aDCI = aMCorInv.data();
+            Im1D_REAL4 aMVarI = Im1D_REAL4(aNbV);
+            REAL4 *  aDMI = aMVarI.data();
+            for (int aKx=0 ; aKx<aNbV ; aKx++)
+            {
+                for (int aKy=0 ; aKy<=aKx ; aKy++)
+                {
+                    aDCI[aKy][aKx] = aDCI[aKx][aKy] = aSys->GetElemInverseQuad(aKx,aKy);
+                    aDC[aKy][aKx]  = aDC[aKx][aKy] = aSys->CoVariance(aKx,aKy);
+
+                }
+                aDMI[aKx] = aDCI[aKx][aKx];
+
+// std::cout << "TEST COVV " << aDC[aKx][aKx] << " " << aSys->Variance(aKx) << "\n";
+            }
+            for (int aKx=0 ; aKx<aNbV ; aKx++)
+            {
+                for (int aKy=0 ; aKy<=aKx ; aKy++)
+                {
+                    // double aCor = aDC[aKy][aKx] / sqrt(ElMax(1e-10,(double)aDC[aKx][aKx] *aDC[aKy][aKy] ));
+                }
+            }
+            Tiff_Im::CreateFromFonc
+            (
+                aPrefESPA + TheNameMatrCorrelInv(),
+                Pt2di(aNbV,aNbV),
+                // aMCorInv.in()/sqrt(Max(1e-60,aMVarI.in()[FX]*aMVarI.in()[FY])),
+                Correl(aMCorInv.in(),aMVarI.in()[FX],aMVarI.in()[FY]),
+                GenIm::real4
+            );
+            Tiff_Im::CreateFromFonc
+            (
+                aPrefESPA + TheNameMatrCorrel(),
+                Pt2di(aNbV,aNbV),
+                // aMCov.in()/sqrt(Max(1e-60,aMCov.in()[Virgule(FX,FX)]*aMCov.in()[Virgule(FY,FY)])),
+                Correl(aMCov.in(),aMCov.in()[Virgule(FX,FX)],aMCov.in()[Virgule(FY,FY)]),
+                GenIm::real4
+            );
         }
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(false));
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(true));
+
     }
 
 

@@ -63,6 +63,7 @@ std::string  cAppli_Vino::CalculName(const std::string & aName,INT aZoom)
 /*
 */
 
+
 extern Video_Win * TheWinAffRed ;
 
 // bool TreeMatchSpecif(const std::string & aNameFile,const std::string & aNameSpecif,const std::string & aNameObj);
@@ -236,7 +237,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     InitMenu();
     mW->set_title(mTitle.c_str());
 
-    if ((mNameIm==TheNameMatrCorrel() ) || (mNameIm==TheNameMatrCov()))
+    if (IsMatriceExportBundle(mNameIm))
     {
         std::string aNameSens = mDir+"Sensib-Data.dmp";
         if (ELISE_fp::exist_file(aNameSens))
