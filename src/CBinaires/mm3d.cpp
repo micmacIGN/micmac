@@ -613,6 +613,8 @@ int TestMartini_Main(int argc,char ** argv);
 
 int TestGiang_main(int argc,char ** argv);
 
+int CplFromHomol_main(int argc,char ** argv);
+
 int TiepTriPrl_main(int argc,char ** argv);
 
 int TiepTri_Main(int argc,char ** argv);
@@ -804,6 +806,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri"));
         aRes.push_back(cMMCom("FAST",FAST_main,"Some Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)"));
         aRes.push_back(cMMCom("Homol2Way",Homol2Way_main ,"Creat same pack homol in 2 way by combination 2 pack of each way"));
+        aRes.push_back(cMMCom("CplFromHomol",CplFromHomol_main ,"Creat xml of pair images from Homol Folder"));
 
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));

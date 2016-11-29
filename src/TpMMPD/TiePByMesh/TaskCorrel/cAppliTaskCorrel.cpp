@@ -120,6 +120,7 @@ void cAppliTaskCorrel::DoAllTri()
     }
 }
 
+
 void cAppliTaskCorrel::ExportXML(Pt3dr clIni)
 {
     cout<<"Write XML to "<<mICNM->Dir() + mDirXML.c_str() + "/"<<endl;
