@@ -17,7 +17,7 @@ int TaskCorrel_main(int argc,char ** argv)
         double aAngleF = 90;
         string aDirXML = "XML_TiepTri";
         bool Test=false;
-        bool nInteraction = false;
+        int nInteraction = 0;
         double aZ = 0.25;
         double aSclElps = -1;
         Pt3dr clIni(255.0,255.0,255.0);
@@ -51,6 +51,11 @@ int TaskCorrel_main(int argc,char ** argv)
 
         cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg);
         aAppli->lireMesh(pathPlyFileS);
+        aAppli->SetNInter(nInteraction, aZ);
+        aAppli->DoAllTri();
+        aAppli->ExportXML(clIni);
+
+
 
 
 

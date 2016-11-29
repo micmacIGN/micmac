@@ -1,5 +1,9 @@
 #include "TaskCorrel.h"
-cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel & aAppli, triangle * aTri3d):
+
+//  ============================== cTriForTiepTri ==========================
+
+
+cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel *aAppli, triangle * aTri3d):
     mNumImg (-1),
     mPt1    (Pt2dr(0.0,0.0)),
     mPt2    (Pt2dr(0.0,0.0)),
@@ -11,7 +15,7 @@ cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel & aAppli, triangle * aTri3d):
 
 bool cTriForTiepTri::reprj(int aNumImg)
 {
-    cImgForTiepTri * aImg = mAppli.VImgs()[aNumImg];
+    cImgForTiepTri * aImg = mAppli->VImgs()[aNumImg];
 
     Pt3dr Pt1 = mTri3D->getSommet(0);
     Pt3dr Pt2 = mTri3D->getSommet(1);
@@ -29,15 +33,24 @@ bool cTriForTiepTri::reprj(int aNumImg)
               &&  aImg->Cam()->PIsVisibleInImage(Pt2)
               &&  aImg->Cam()->PIsVisibleInImage(Pt3)
             )
+    {
+        mrprjOK = true;
         return true;
+    }
     else
-        return false;
+        {
+            mrprjOK = false;
+            return false;
+        }
 }
 
-double cTriForTiepTri::valElipse()
+double cTriForTiepTri::valElipse(int & aNInter)
 {
-    if (mrprjOK || mNumImg == -1)
+    if (!mrprjOK || mNumImg == -1)
+    {
+        cout<<"Projection error !"<<endl;
         return DBL_MIN;
+    }
     else
     {
         double aSurf =  (mPt1-mPt2) ^ (mPt1-mPt3);
@@ -71,6 +84,42 @@ double cTriForTiepTri::valElipse()
             double vecB_cr =  aAffLc2Im.I01().x*aAffLc2Im.I01().x + aAffLc2Im.I01().y*aAffLc2Im.I01().y;
             double AB_cr   =  pow(aAffLc2Im.I10().x*aAffLc2Im.I01().x,2) + pow(aAffLc2Im.I10().y*aAffLc2Im.I01().y,2);
             //double theta_max =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(0.5);
+            //Interaction : disp ellipse on image:
+            if (aNInter != 0)
+            {
+                //calcul le cercle discretize dans le plan 3D local
+                Video_Win * aVW = mAppli->VVW()[mNumImg];
+                double rho;
+                double aSclElps=-1;
+                if (aSclElps == -1)
+                {
+                    double rho1 = sqrt(aPtP1.x*aPtP1.x + aPtP1.y*aPtP1.y);
+                    double rho2 = sqrt(aPtP2.x*aPtP2.x + aPtP2.y*aPtP2.y);
+                    if (rho1 > rho2)
+                        rho = rho1;
+                    else
+                        rho = rho2;
+
+                }
+                else
+                {
+                    double scale = euclid ( aAffLc2Im.inv()(Pt2dr(0,0)) - aAffLc2Im.inv()(Pt2dr(aSclElps,0)) );
+                    rho = scale;
+                }
+                double aNbPt = 100;
+                vector<Pt2dr> VCl;
+                for (uint aKP=0; aKP<aNbPt; aKP++)
+                {
+                    Pt2dr ptCrlImg;
+                    ptCrlImg = aAffLc2Im(Pt2dr::FromPolar(rho, aKP*2*PI/aNbPt));
+                    VCl.push_back(ptCrlImg);
+                }
+                Line_St lstLineG(aVW->pdisc()(P8COL::green),1);
+                ELISE_COPY(aVW->all_pts(), mAppli->VImgs()[mNumImg]->Tif().in_proj(), aVW->ogray());
+                aVW->draw_poly_ferm(VCl, lstLineG);
+                if (mNumImg == int(mAppli->VVW().size() - 1))
+                    aVW->clik_in();
+            }
             return (vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(-0.5));
         }
         else
