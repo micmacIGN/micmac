@@ -1,0 +1,7 @@
+# scripts to run before build
+before_build:
+  - echo Running cmake...
+  - mkdir build
+  - cd build
+  - cmake ..
+  - cmake --build . --target INSTALL
