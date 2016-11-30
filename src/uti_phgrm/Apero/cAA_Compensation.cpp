@@ -1155,7 +1155,8 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC,bool L
         if (kIterLast && anEC.SectionExport().IsInit())
         {
             mESPA = anEC.SectionExport().Val().ExportSensibParamAero().PtrVal();
-            mSetEq.Sys()->SetCalculVariance(true);
+            if (mESPA)
+               mSetEq.Sys()->SetCalculVariance(true);
         }
 
         if (anIter.DoIt().Val())

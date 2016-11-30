@@ -817,6 +817,8 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
     mSolL2             (aNbVar),
     mDataSolL2         (mSolL2.data()),
     mNbEq              (0),
+    mNbIncReel         (mNbVar),
+    mRedundancy        (1.0),
     mMaxBibi           (0),
     mDoCalculVariance  (false),
     mVariance          (aNbVar,0.0),
@@ -877,7 +879,10 @@ void L2SysSurResol::Reset()
    mVariance.raz();
    mCoVariance.raz();
    mBibi = 0.0;
+   mRedundancy = 1.0 - mNbIncReel / double(mNbEq);
    mNbEq = 0;
+   mNbIncReel = mNbVar;
+
    mMaxBibi = 0;
 }
 
@@ -1026,6 +1031,14 @@ void  L2SysSurResol::Indexee_QuadSet0
     }
 }
 
+// Classe permettant de faire communiquer V_GSSR_AddNewEquation_Indexe et SoutraitProduc3x3 (ou DoSubst ?)
+// pour le calcul de variance covariance en cas d'elimination d'inconnues (complement de Schurr)
+// En effet lorsque l'on effectue la substitution  on a, pour l'instant, perdu trace du detail des
+// obsevation qui ont amene au calcul
+
+class cParamCalcVarUnkEl
+{
+};
 
 void  L2SysSurResol::SoutraitProduc3x3
      (
@@ -1036,6 +1049,8 @@ void  L2SysSurResol::SoutraitProduc3x3
 
      )
 {
+
+   mNbIncReel += 3;
    double ** aData1 = aM1.data();
    double ** aData2 = aM2.data();
 
@@ -1089,6 +1104,10 @@ void  L2SysSurResol::SoutraitProduc3x3
         Y0InBloc += aBlY.Nb();
    }
 }
+
+
+
+
 
 
 void L2SysSurResol::V_GSSR_AddNewEquation_Indexe
@@ -1227,8 +1246,22 @@ if ((aK==aNb-1) &&((aCpt%10)==0) && (aNb>1) ) std::cout << "V_GSSR_AddNewEquatio
              {
                  mDCoVar[aVarIndGlob[aKI]][aVarIndGlob[aKJ]] +=  ElSquare(aPds * aResidual) * aVSomAPl[aKI] * aVSomAPl[aKJ];
              }
-     }
 
+
+/*
+if ((MPD_MM()) && (int(aVarIndCoeff.size()) > 10) )
+{
+    int aNbV = aVarIndCoeff.size();
+    std::cout << "NbbbBbbU: " << aNbV << "\n";
+    for (int aK=0 ; aK< 3; aK++)
+    {
+        // std::cout << "PppptInc :" <<  aLocCoeff[aVarIndCoeff[ aNbV-3 + aK]]  << "\n";
+        std::cout << "PppptInc :" <<  mDataSolL2[aVarIndGlob[aNbV-3 +  aK]]  << "\n";
+    }
+    std::cout << "==============\n";
+}
+*/
+     }
 
 // std::cout << "L2SR:VG " << mDatabi_Li[0] << "\n";
 

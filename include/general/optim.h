@@ -978,6 +978,8 @@ class L2SysSurResol : public cGenSysSurResol
         Im1D_REAL8   mSolL2;
         REAL8 *      mDataSolL2;
         INT          mNbEq; // Debug
+        INT          mNbIncReel; // Ajoute celle qui sont eliminees
+        double       mRedundancy;
         double       mMaxBibi; // Debug
         double       mResiduAfterSol;
 
