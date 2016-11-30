@@ -1,0 +1,35 @@
+
+<!--  NIKON D3X - Pixel 6 micron - focale 51 mm -->
+<ExportAPERO>
+    <CalibrationInternConique>
+        <KnownConv>eConvApero_DistM2C</KnownConv>
+        <OrIntGlob>
+              <Affinite> 
+                  <I00>  -18.144 12.096 </I00>
+                  <V10> 0.006 0      </V10>
+                  <V01> 0     -0.006 </V01>
+              </Affinite>
+              <C2M> true </C2M>
+        </OrIntGlob>
+
+        <PP> 0.1759 -0.1212 </PP>
+        <F> 51.7456 </F>
+        <SzIm> 6048 4032 </SzIm>
+        <CalibDistortion>
+          <ModPhgrStd>
+               <RadialePart>
+                  <CDist> 0.1759 -0.1212 </CDist>
+                  <CoeffDist> 4.261e-05 </CoeffDist>
+                  <CoeffDist> 8.420e-09 </CoeffDist>
+                  <CoeffDist> -3.846e-011 </CoeffDist>
+<!--
+-->
+               </RadialePart>
+               <P1> -3.031e-006 </P1>
+               <P2> 8.293e-006 </P2>
+<!--
+-->
+           </ModPhgrStd>
+        </CalibDistortion>
+    </CalibrationInternConique>
+</ExportAPERO>

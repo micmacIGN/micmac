@@ -1,0 +1,7 @@
+M. Pierrot-Deseilligny, N. Paparoditis. 
+
+A multiresolution and optimization-based image matching approach:
+An application to surface reconstruction from SPOT5-HRS stereo imagery.
+
+In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space 
+(With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.

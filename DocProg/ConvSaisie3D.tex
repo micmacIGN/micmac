@@ -1,0 +1,106 @@
+\section{Conventions for 3D selection tool}
+\label{Conv:selection}
+
+{\tt SaisieMasqQT} allows to open ply files and to do some manual segmentation with a polygonal selection tool.
+User can mainly perform 2 actions:
+\begin{itemize}
+\item move camera around point cloud (rotate and/or translate)
+\item draw a polygon and select/deselect points inside polygon\\*
+\end{itemize}
+
+{\tt SaisieMasqQT} can store an xml file (selectionInfo.xml) with polygonal selection information (camera position, and viewport coordinates of polygon vertex).\\*
+
+For each pair of camera pose and polygonal selection, xml file contains a tag {\tt <Item> } with:
+\begin{itemize}
+\item camera pose matrix
+\item openGL viewport size (4 parameters)
+\item a list of polygon vertex viewport coordinates
+\item selection mode (add, remove, invert, etc.)\\*
+\end{itemize}
+
+Two camera pose matrix are stored using openGL conventions:
+
+\begin{itemize}
+\item model-view matrix (16 parameters)
+\item projection matrix (16 parameters)\\*
+\end{itemize}
+
+For more information on these matrix: \url{http://www.glprogramming.com/red/chapter03.html}\\*
+
+How to transform polygon viewport coordinates (as stored) into world coordinates:
+
+\begin{itemize}
+\item In  : point in viewport coordinates P(x,y)
+\item Out : point in world coordinates P'(x',y',z')\\*
+\end{itemize}
+
+First, we map x and y from viewport coordinates to [-1,1]
+
+\begin{eqnarray*}
+        & x = 2 * ( x - viewport[0] ) / viewport[2] - 1\\
+    & y = 2 * ( y - viewport[1] ) / viewport[3] - 1
+\end{eqnarray*}
+
+We compute global projection matrix from camera to world coordinates:
+
+\begin{equation*}
+        M  = ModelViewMatrix * ProjectionMatrix
+\end{equation*}
+
+Let's define a point $P_h$ in homogeneous coordinates in the image plane:
+
+\begin{eqnarray*}
+        & Ph[0] = x\\
+        & Ph[1] = y\\
+        & Ph[2] = 0\\
+        & Ph[3] = 1
+\end{eqnarray*}
+
+Projection point $P_r$ will be:
+
+\begin{equation*}
+        P_r = P_h*M
+\end{equation*}
+
+And final point in world coordinates is:
+
+\begin{eqnarray*}
+        & x' = P_{r}[0]/P_{r}[3] \\
+        & y' = P_{r}[1]/P_{r}[3] \\
+        & z' = P_{r}[2]/P_{r}[3]
+\end{eqnarray*}
+
+
+These operations are performed in function {\tt getInverseProjection} from {\tt saisieQT/MatrixManager.cpp }
+
+a function to convert a polygon stored in {\tt selectInfo.xml} (filename) into point cloud local frame looks like:
+
+\begin{verbatim}
+
+#include MatrixManager.h
+
+HistoryManager *HM = new HistoryManager();
+MatrixManager  *MM = new MatrixManager();
+
+HM->load(filename);
+QVector <selectInfos> vInfos = HM->getSelectInfos();
+
+for (int aK=0; aK< vInfos.size();++aK)
+{
+    selectInfos &Infos = vInfos[aK];
+    MM->importMatrices(Infos);
+
+    for (int bK=0;bK < Infos.poly.size();++bK)
+    {
+        QPointF pt = Infos.poly[bK];
+        Pt3dr pt3d;
+        MM->getInverseProjection(pt3d, pt, 0.f);
+
+        std::cout << pt3d.x  << " " << pt3d.y << " " << pt3d.z << std::endl;
+    }
+}
+
+\end{verbatim}
+
+
+

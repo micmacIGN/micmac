@@ -1,0 +1,338 @@
+\documentclass[a4paper]{book}
+
+\usepackage[english,french]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{rotating}
+\usepackage{multicol}
+\usepackage{color}
+\usepackage{verbatim}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{listings}
+%\usepackage{cprotect}
+\usepackage{fancyvrb}
+\usepackage{color}
+
+
+
+%\usepackage{subfigure}
+
+
+\setlength{\oddsidemargin}{0.5 cm}
+\setlength{\evensidemargin}{-0.5 cm}
+\setlength{\textwidth}{16.0 cm}
+\setlength{\textheight}{23.7 cm}
+\setlength{\marginparwidth}{0.0 cm}
+\setlength{\topmargin}{-1.0 cm}
+
+
+%\usepackage{mathabx}
+%\usepackage{amstext}
+%\usepackage{amssymb}
+%\usepackage{ae}
+
+%\includeonly{DocRef/GeoLocalisation}
+%\includeonly{DocRef/Advanced-MicMac2}
+%\includeonly{Generalites/QuickStartSimplified-Tools}
+
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+
+
+%---------------------------------------------
+\newcommand{\CPP}{\mbox{\tt C\hspace{-0.05em}\raisebox{0.2ex}{\small ++} }}
+\newcommand{\SiftPP}{\mbox{\tt Sift\hspace{-0.05em}\raisebox{0.2ex}{\small ++} }}
+
+
+\newcommand{\tran}{\ensuremath {^{t} }}
+\newcommand{\trans}{\ensuremath {^{t} \!}}
+\newcommand{\transs}{\ensuremath {^{t} \!\!}}
+\newcommand{\transss}{\ensuremath {^{t} \!\!\!}}
+
+
+\newcommand{\transL}{{\transs L}}
+\newcommand{\transK}{{\transs K}}
+\newcommand{\transX}{{\transs X}}
+\newcommand{\transY}{{\transs Y}}
+
+\newcommand{\transLm}{\ensuremath {\transs L^m}}
+\newcommand{\transKm}{\ensuremath {\transs K^m}}
+\newcommand{\KmtKm}{\ensuremath { K^m \, \transKm}}
+\newcommand{\LmtLm}{\ensuremath { L^m \, \transLm}}
+
+\newcommand{\KTH}{\ensuremath {^{th}}}
+\newcommand{\EME}{\ensuremath {^{i\grave eme}}}
+\newcommand{\ETer}{\ensuremath {\mathcal T}}
+\newcommand{\EIm}{\ensuremath {{\mathcal I}_k}}
+\newcommand{\EPx}{\ensuremath{{\mathcal E}_{px}}}
+
+\newcommand{\FPx}{\ensuremath{{\mathcal F}_{px}}}
+
+\newcommand{\Ok}{\ensuremath{{\mathcal O}_{k}}}
+
+\newcommand{\Ess}{\ensuremath{{\mathcal E}}}
+
+\newcommand{\DimPx}{\ensuremath{D_{px}}}
+
+\newcommand{\PiI}{\ensuremath{\dot{\pi}}}
+\newcommand{\PxMoy}{\ensuremath{\tilde{P_x}}}
+\newcommand{\PxZone}{\ensuremath{P_x^Z}}
+
+\newcommand{\RR}{\ensuremath{\mathbb{R}}}
+\newcommand{\ZZ}{\ensuremath{\mathbb{Z}}}
+\newcommand{\NN}{\ensuremath{\mathbb{N}}}
+\newcommand{\Ind}{\ensuremath{\mathbb{I}^{nd}}}
+
+\newcommand{\Ress}{\ensuremath{{\mathcal A}}}
+\newcommand{\Reg}{\ensuremath{{\mathcal R}^{eg}}}
+\newcommand{\Energ}{\ensuremath{{\mathcal E}}}
+\newcommand{\Echant}{\ensuremath{{\mathcal E}}}
+\newcommand{\PZero}{\ensuremath{{\mathcal P}^0}}
+\newcommand{\SUn}{\ensuremath{{\mathcal S}^1}}
+
+\newcommand{\DeltaI}{\ensuremath{\Delta^{\imath}}}
+
+\newcommand{\DdSt}{\ensuremath{d^2}_{/\mathcal{S}^3}}
+\newcommand{\DeuxExtre}{\ensuremath{\unrhd}}
+%\newcommand{\DeuxExtre}{\ensuremath{\nabla}}
+\newcommand{\RefFantome}{{\bf ?2Def?}}
+\newcommand{\PourLecteurAverti}{{\Large \bf \emph{Ce paragraphe peut
+facilement \^etre omis
+en premi\`ere lecture.}}}
+\newcommand{\COM}[1]
+
+%  \verb|\|
+
+
+\newcommand{\ELISE}
+{\mbox{{\bf $\mathcal{E}$}\hspace{-0.15em}\raisebox{-0.4ex}{L}\hspace{-0.3em}\raisebox{0.3ex}{i}\raisebox{-0.4ex}{S}\raisebox{0.0ex}{e}}}
+
+%\newcommand{\UNCLEAR}[1]{\textcolor{red}{\textbf{#1}}}
+\newcommand{\UNCLEAR}{}
+\newcommand{\ISITCLEAR}{}
+
+%---------------------------------------------
+\begin{document}
+\selectlanguage{english}
+
+%\title{MicMac, Apero, Pastis and Other Beverages. The documentation!}
+\title{MicMac, Apero, Pastis and Other Beverages in a Nutshell!}
+%\author{MPD}
+
+\maketitle
+
+\tableofcontents
+
+
+%---------------------------------------------
+%--------------- PART I ----------------------
+%---------------------------------------------
+
+\part{Generalities}
+
+
+
+
+\include{Generalites/Intro}
+
+% -------------------
+% -------------------
+% -------------------
+
+
+\include{Generalites/SomReal}
+% -------------------
+\include{Generalites/QuickStartSimplified-Tools}
+\include{Generalites/QuickStartSimplified-Tools-2}
+\include{Generalites/QuickStart}
+\include{Generalites/QuickStart_Apero}
+\include{Generalites/QuickStartOthers}
+
+\include{Generalites/InteractiveTool}
+
+\include{Generalites/FullAutomaticTools}
+
+% -------------------
+
+\include{Generalites/ParamSpec}
+
+\include{Generalites/NameFileSpec}
+
+\include{Generalites/UseCase2D}
+
+%---------------------------------------------
+%--------------- PART II ----------------------
+%---------------------------------------------
+
+\part{Reference documentation}
+
+\include{DocRef/ConvTool}
+\include{DocRef/GeoLocalisation}
+
+\include{DocRef/Advanced-TieP}
+\include{DocRef/Advanced-Apero1}
+\include{DocRef/Advanced-MicMac1}
+\include{DocRef/Advanced-MicMac2}
+
+\include{DocRef/Satellite}
+
+
+
+%---------------------------------------------
+%--------------- PART I ----------------------
+%---------------------------------------------
+
+%\COM{
+\part{Algorithmic Documentation}
+
+I think this part will not evolve very soon, as  I do not have
+so much time and  user's documentation is a priority.  There are two files
+from conferences that may give some information
+{\tt ankara2006-pierrot.pdf}  and {\tt ARCH3D-MPD-V14.pdf}
+before I find some time to complete this part.
+
+
+
+
+
+
+MasqIsToujours1 : supprimm\'e
+
+MasqueTerrain
+
+PrefixMasqImRes
+
+MasqImageIn
+
+ValSpecNotImage
+
+
+
+\include{DocAlgo/DAGeneralites}
+%\chapter{G\'en\'eralit\'es}
+
+
+
+
+
+%---------------------------------------------
+\include{DocAlgo/DAMultiRes}
+
+%---------------------------------------------
+
+\include{DocAlgo/DACorrel}
+
+%---------------------------------------------
+\chapter{Algorithmes de filtrages rapides}
+
+%---------------------------------------------
+\include{DocAlgo/DAEnergetik}
+\include{DocAlgo/DAOrient}
+\include{DocAlgo/DSensibility}
+
+%---------------------------------------------
+%--------------- PART II ---------------------
+%---------------------------------------------
+
+\part{Documentation utilisateur}
+
+% \include{DocUtil/DUGen}
+
+%---------------------------------------------
+
+\include{DocUtil/DUMecaGen} %\chapter{G\'en\'eralit\'es}
+
+
+%---------------------------------------------
+%\chapter{Autres Sections}
+\include{DocUtil/DUAutreSec} %\chapter{G\'en\'eralit\'es}
+
+%---------------------------------------------
+\include{DocUtil/DUMec}
+
+
+%---------------------------------------------
+\chapter{Cas d'utilisation}
+
+Cette section pr\'esentera et commentera des param\'etrages types
+adapt\'es aux configurations les plus courantes d'utilisation de
+MICMAC.
+
+\section{MNT Spots}
+\section{MNE Urbains}
+\section{Superposition d'images color\'ees}
+\section{Points homologues pour l'a\'ero-triangulation}
+
+%---------------------------------------------
+
+\include{DocUtil/DUBins}
+%---------------------------------------------
+%--------------- PART III --------------------
+%---------------------------------------------
+
+\part{Documentation programmeur}
+
+\chapter{Ateliers}
+
+\include{DocProg/Doc0CPP}
+\include{DocProg/MMCourse_day_4-5_matching}
+\include{DocProg/Doc_Qt_tools}
+\include{DocProg/ConvSaisie3D}
+
+\chapter{G\'en\'eration automatique de code}
+
+\label{PROG:GENEAUTO}
+
+
+%---------------------------------------------
+%--------------- ANNEXES ---------------------
+%---------------------------------------------
+
+
+
+\part{Annexes}
+
+\appendix
+
+\include{Annexes/Formats}
+
+\include{Annexes/Vrac}
+%}
+
+\include{Annexes/Vrac2}
+\include{Annexes/Vrac3}
+
+%\COM{
+
+\chapter{R\'ef\'erence bibliographique}
+
+
+\begin{thebibliography}{AAA}
+   \bibitem[Tomasi Kanabe 98]{TomKan}   S. Roy, I.J. Cox , 1998, "Shape and Motion from Image 
+            Streams under Orthography: a Factorization Method", International Journal of Computer Vision, 
+            9:2, 137-154 (1992)
+
+
+   \bibitem[Cox-Roy 98]{CoxRoy}   S. Roy, I.J. Cox , 1998, "A Maximum-Flow
+            formulation of the N-camera Stereo Correspondence
+      Problem", \emph{Proc. IEEE Internation Conference on
+      Computer Vision}, pp 492--499, Bombay.
+
+   \bibitem[Fraser C. 97]{Fraser}  C. Fraser, 1997, "Digital camera self-calibration",
+   \emph{ISPRS Journal of Photogrammetry and Remote Sensing}, vol. 52, issue 4, pp. 149-159,
+   \bibitem[Penard L. 2006 ]{Penard}   L. Pénard, N. Paparoditis, M. Pierrot-Deseilligny.
+           "Reconstruction 3D automatique de façades de bâtiments en multi-vues.",
+            RFIA (Reconnaissance des Formes et Intelligence Artificielle),
+            Tours, France, January 2006.
+\end{thebibliography}
+%}
+
+
+
+\end{document}
+
+
+
+

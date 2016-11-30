@@ -1,0 +1,170 @@
+0- Donnees :
+
+  - fichier MPO
+  - MicMac-LocalChantierDescripteur.xml => 6.3 6.4, deux calib differente
+  //   - fichier Ori-OldCal  (?) pas necessaire
+  - image 61, 62 = > on voit bien la regle
+
+1- Developpement des images stereo
+
+mm3d SplitMPO DSC.*.MPO
+
+2- Chaine standard 
+
+mm3d Tapioca All .*jpg 1200
+
+
+Pour l'orientation en 3 etapes :
+
+Tapas FraserBasic .*L.jpg Out=AllL
+Tapas FraserBasic .*L.jpg Out=AllL2 InCal=AllL
+Tapas FraserBasic .*L.jpg Out=AllL4 InCal=AllL2
+
+Idem R
+
+
+// Tous dans le meme repere
+cp Ori-AllL4/AutoCal63.xml  Ori-AllR4/
+Tapas FraserBasic .*jpg InOri=AllR4  Out=UnScaledLR
+
+// Mise a l'echelle ; Line1 / Line2 et Masq pas utile pour exo, mais sinon MicMac plante
+SaisieBasc "DSCF276[12].*jpg" Ori-UnScaledLR/ MesDist.xml
+SaisieMasq DSCF2761_L.jpg 
+SBGlobBascule DSCF27.*jpg Ori-UnScaledLR/ MesDist-S2D.xml ScaledLR DistFS=0.2
+
+
+3- Estimation de la valeur initiale des block
+
+Apero Apero-EstimBlock.xml 
+
+
+
+
+
+
+"/home/marc/MMM/culture3d/bin/mm3d" "Tapas" "FraserBasic" ".*R.jpg" "Out=AllR"
+| |  RESIDU LIAISON MOYENS = 1.15594 pour Id_Pastis_Hom Evol, Moy=3.37028e-14 ,Max=1.95609e-10
+
+
+Tapas FraserBasic .*R.jpg Out=AllR2 InCal=AllR
+| |  RESIDU LIAISON MOYENS = 0.920238 pour Id_Pastis_Hom Evol, Moy=3.52608e-14 ,Max=1.70176e-10
+
+
+Tapas FraserBasic .*R.jpg InCal=Ori-Old/ Out=AllR3
+| |  RESIDU LIAISON MOYENS = 0.919515 pour Id_Pastis_Hom Evol, Moy=7.16311e-14 ,Max=1.60705e-09
+
+
+Tapas FraserBasic .*R.jpg Out=AllR4 InCal=AllR2
+=ESIDU LIAISON MOYENS = 0.919509 pour Id_Pastis_Hom Evol, Moy=1.05539e-13 ,Max=8.04423e-10
+
+CmpCalib Ori-AllR4/AutoCal64.xml Ori-AllR3/AutoCal64.xml  => 0.015588 3.55737 MicroRadians 
+
+
+==========================
+Tapas FraserBasic .*L.jpg InCal=Ori-Old/ Out=AllL3
+| |  RESIDU LIAISON MOYENS = 0.919557 pour Id_Pastis_Hom Evol, Moy=7.05009e-14 ,Max=1.74421e-09
+
+
+
+Tapas FraserBasic .*L.jpg Out=AllL
+RESIDU LIAISON MOYENS = 1.15952 pour Id_Pastis_Hom Evol, Moy=5.82342e-14 ,Max=5.0631e-10
+
+Tapas FraserBasic .*L.jpg Out=AllL2 InCal=AllL
+| |  RESIDU LIAISON MOYENS = 0.920941 pour Id_Pastis_Hom Evol, Moy=5.75107e-14 ,Max=8.82606e-10
+
+
+Tapas FraserBasic .*L.jpg Out=AllL4 InCal=AllL2
+| |  RESIDU LIAISON MOYENS = 0.919192 pour Id_Pastis_Hom Evol, Moy=5.01936e-14 ,Max=5.00945e-10
+
+
+CmpCalib Ori-AllL4/AutoCal63.xml Ori-AllL3/AutoCal63.xml => 0.387896 89.5963 MicroRadians 
+
+On admet que L4 est meilleur ?? 
+
+
+
+
+
+"/home/marc/MMM/culture3d/bin/mm3d" "Tapas" "FraserBasic" ".*R.jpg" "Out=AllR"
+
+
+RES:[DSCF2752_R.jpg] ER2 1.13556 Nn 99.5062 Of 9721 Mul 7320 Mul-NN 7279 Time 0.430051
+RES:[DSCF2753_R.jpg] ER2 1.12777 Nn 99.3246 Of 8735 Mul 6382 Mul-NN 6336 Time 0.365847
+RES:[DSCF2754_R.jpg] ER2 1.1272 Nn 99.3656 Of 7408 Mul 4896 Mul-NN 4870 Time 0.273906
+RES:[DSCF2755_R.jpg] ER2 1.15932 Nn 99.2893 Of 7598 Mul 5284 Mul-NN 5243 Time 0.314693
+RES:[DSCF2756_R.jpg] ER2 1.15719 Nn 99.3488 Of 6450 Mul 3842 Mul-NN 3822 Time 0.224198
+RES:[DSCF2757_R.jpg] ER2 1.19051 Nn 99.3761 Of 9938 Mul 7155 Mul-NN 7110 Time 0.419899
+RES:[DSCF2758_R.jpg] ER2 1.16654 Nn 99.1528 Of 7672 Mul 5568 Mul-NN 5524 Time 0.337632
+RES:[DSCF2759_R.jpg] ER2 1.18622 Nn 99.4074 Of 8438 Mul 6225 Mul-NN 6187 Time 0.368556
+RES:[DSCF2760_R.jpg] ER2 1.10676 Nn 99.468 Of 6579 Mul 4442 Mul-NN 4425 Time 0.256971
+RES:[DSCF2761_R.jpg] ER2 1.1956 Nn 99.0271 Of 3392 Mul 1652 Mul-NN 1640 Time 0.118883
+RES:[DSCF2762_R.jpg] ER2 1.02683 Nn 99.6808 Of 2506 Mul 1052 Mul-NN 1049 Time 0.084054
+RES:[DSCF2763_R.jpg] ER2 1.21912 Nn 99.3214 Of 6631 Mul 4994 Mul-NN 4955 Time 0.303545
+RES:[DSCF2764_R.jpg] ER2 1.20671 Nn 99.2713 Of 7273 Mul 4673 Mul-NN 4631 Time 0.273291
+RES:[DSCF2765_R.jpg] ER2 1.15224 Nn 99.493 Of 5720 Mul 3104 Mul-NN 3085 Time 0.19238
+RES:[DSCF2766_R.jpg] ER2 1.2119 Nn 99.3906 Of 6892 Mul 4996 Mul-NN 4959 Time 0.290862
+RES:[DSCF2768_R.jpg] ER2 1.15869 Nn 99.5187 Of 10597 Mul 7545 Mul-NN 7501 Time 0.444121
+RES:[DSCF2769_R.jpg] ER2 1.15264 Nn 99.5457 Of 8364 Mul 5786 Mul-NN 5761 Time 0.316178
+RES:[DSCF2770_R.jpg] ER2 1.14775 Nn 99.5579 Of 8596 Mul 5890 Mul-NN 5857 Time 0.341947
+RES:[DSCF2771_R.jpg] ER2 1.21868 Nn 99.3279 Of 8481 Mul 6239 Mul-NN 6200 Time 0.361335
+RES:[DSCF2772_R.jpg] ER2 1.14435 Nn 99.51 Of 8776 Mul 5570 Mul-NN 5543 Time 0.311317
+RES:[DSCF2773_R.jpg] ER2 1.06253 Nn 99.4036 Of 6372 Mul 3672 Mul-NN 3651 Time 0.197452
+| |  RESIDU LIAISON MOYENS = 1.15594 pour Id_Pastis_Hom Evol, Moy=3.37028e-14 ,Max=1.95609e-10
+--- End Iter 3 ETAPE 3
+
+
+Tapas FraserBasic .*R.jpg Out=AllR2 InCal=AllR
+
+
+RES:[DSCF2752_R.jpg] ER2 0.952258 Nn 99.5679 Of 9721 Mul 7320 Mul-NN 7282 Time 0.448638
+RES:[DSCF2753_R.jpg] ER2 0.925637 Nn 99.439 Of 8735 Mul 6382 Mul-NN 6342 Time 0.399105
+RES:[DSCF2754_R.jpg] ER2 0.869284 Nn 99.568 Of 7408 Mul 4896 Mul-NN 4874 Time 0.289606
+RES:[DSCF2755_R.jpg] ER2 0.939706 Nn 99.3156 Of 7598 Mul 5284 Mul-NN 5243 Time 0.315367
+RES:[DSCF2756_R.jpg] ER2 0.902226 Nn 99.5659 Of 6450 Mul 3842 Mul-NN 3825 Time 0.244922
+RES:[DSCF2757_R.jpg] ER2 0.967178 Nn 99.5069 Of 9938 Mul 7155 Mul-NN 7114 Time 0.442646
+RES:[DSCF2758_R.jpg] ER2 0.961966 Nn 99.244 Of 7672 Mul 5568 Mul-NN 5526 Time 0.346235
+RES:[DSCF2759_R.jpg] ER2 0.967872 Nn 99.5023 Of 8438 Mul 6225 Mul-NN 6188 Time 0.387706
+RES:[DSCF2760_R.jpg] ER2 0.902145 Nn 99.6656 Of 6579 Mul 4442 Mul-NN 4426 Time 0.266271
+RES:[DSCF2761_R.jpg] ER2 0.885701 Nn 99.7052 Of 3392 Mul 1652 Mul-NN 1643 Time 0.12553
+RES:[DSCF2762_R.jpg] ER2 0.817653 Nn 99.8005 Of 2506 Mul 1052 Mul-NN 1050 Time 0.0798762
+RES:[DSCF2763_R.jpg] ER2 1.00644 Nn 99.2761 Of 6631 Mul 4994 Mul-NN 4953 Time 0.319286
+RES:[DSCF2764_R.jpg] ER2 0.956153 Nn 99.3675 Of 7273 Mul 4673 Mul-NN 4635 Time 0.288181
+RES:[DSCF2765_R.jpg] ER2 0.891904 Nn 99.5804 Of 5720 Mul 3104 Mul-NN 3086 Time 0.201902
+RES:[DSCF2766_R.jpg] ER2 0.962264 Nn 99.4922 Of 6892 Mul 4996 Mul-NN 4966 Time 0.304826
+RES:[DSCF2768_R.jpg] ER2 0.963641 Nn 99.5848 Of 10597 Mul 7545 Mul-NN 7507 Time 0.463843
+RES:[DSCF2769_R.jpg] ER2 0.886935 Nn 99.6772 Of 8364 Mul 5786 Mul-NN 5766 Time 0.328918
+RES:[DSCF2770_R.jpg] ER2 0.960652 Nn 99.5579 Of 8596 Mul 5890 Mul-NN 5856 Time 0.352469
+RES:[DSCF2771_R.jpg] ER2 0.956637 Nn 99.5048 Of 8481 Mul 6239 Mul-NN 6210 Time 0.373038
+RES:[DSCF2772_R.jpg] ER2 0.838326 Nn 99.6468 Of 8776 Mul 5570 Mul-NN 5551 Time 0.306253
+RES:[DSCF2773_R.jpg] ER2 0.773407 Nn 99.5292 Of 6372 Mul 3672 Mul-NN 3653 Time 0.198118
+| |  RESIDU LIAISON MOYENS = 0.920238 pour Id_Pastis_Hom Evol, Moy=3.52608e-14 ,Max=1.70176e-10
+--- End Iter 8 ETAPE 3
+
+
+
+Tapas FraserBasic .*R.jpg InCal=Ori-Old/ Out=AllR3
+
+RES:[DSCF2752_R.jpg] ER2 0.95265 Nn 99.5679 Of 9721 Mul 7320 Mul-NN 7282 Time 0.423847
+RES:[DSCF2753_R.jpg] ER2 0.925091 Nn 99.439 Of 8735 Mul 6382 Mul-NN 6342 Time 0.363017
+RES:[DSCF2754_R.jpg] ER2 0.86731 Nn 99.568 Of 7408 Mul 4896 Mul-NN 4874 Time 0.263789
+RES:[DSCF2755_R.jpg] ER2 0.938824 Nn 99.3024 Of 7598 Mul 5284 Mul-NN 5242 Time 0.297993
+RES:[DSCF2756_R.jpg] ER2 0.901347 Nn 99.5659 Of 6450 Mul 3842 Mul-NN 3825 Time 0.229296
+RES:[DSCF2757_R.jpg] ER2 0.967663 Nn 99.5069 Of 9938 Mul 7155 Mul-NN 7114 Time 0.426691
+RES:[DSCF2758_R.jpg] ER2 0.96168 Nn 99.244 Of 7672 Mul 5568 Mul-NN 5526 Time 0.32477
+RES:[DSCF2759_R.jpg] ER2 0.968217 Nn 99.5023 Of 8438 Mul 6225 Mul-NN 6188 Time 0.367741
+RES:[DSCF2760_R.jpg] ER2 0.902005 Nn 99.6656 Of 6579 Mul 4442 Mul-NN 4426 Time 0.252792
+RES:[DSCF2761_R.jpg] ER2 0.883118 Nn 99.7052 Of 3392 Mul 1652 Mul-NN 1643 Time 0.118978
+RES:[DSCF2762_R.jpg] ER2 0.816879 Nn 99.8005 Of 2506 Mul 1052 Mul-NN 1050 Time 0.0767322
+RES:[DSCF2763_R.jpg] ER2 1.00649 Nn 99.2761 Of 6631 Mul 4994 Mul-NN 4953 Time 0.30316
+RES:[DSCF2764_R.jpg] ER2 0.955701 Nn 99.3675 Of 7273 Mul 4673 Mul-NN 4635 Time 0.267587
+RES:[DSCF2765_R.jpg] ER2 0.891357 Nn 99.5804 Of 5720 Mul 3104 Mul-NN 3086 Time 0.227975
+RES:[DSCF2766_R.jpg] ER2 0.961231 Nn 99.4922 Of 6892 Mul 4996 Mul-NN 4966 Time 0.291815
+RES:[DSCF2768_R.jpg] ER2 0.963799 Nn 99.5848 Of 10597 Mul 7545 Mul-NN 7507 Time 0.441688
+RES:[DSCF2769_R.jpg] ER2 0.88551 Nn 99.6772 Of 8364 Mul 5786 Mul-NN 5766 Time 0.311609
+RES:[DSCF2770_R.jpg] ER2 0.960767 Nn 99.5579 Of 8596 Mul 5890 Mul-NN 5856 Time 0.331855
+RES:[DSCF2771_R.jpg] ER2 0.954213 Nn 99.493 Of 8481 Mul 6239 Mul-NN 6209 Time 0.347316
+RES:[DSCF2772_R.jpg] ER2 0.836423 Nn 99.6468 Of 8776 Mul 5570 Mul-NN 5551 Time 0.296112
+RES:[DSCF2773_R.jpg] ER2 0.771844 Nn 99.5292 Of 6372 Mul 3672 Mul-NN 3653 Time 0.193659
+| |  RESIDU LIAISON MOYENS = 0.919515 pour Id_Pastis_Hom Evol, Moy=7.16311e-14 ,Max=1.60705e-09
+--- End Iter 10 ETAPE 3
+

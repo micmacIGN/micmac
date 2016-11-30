@@ -1,0 +1,71 @@
+# Workflow for forest Canopy Surface Model generation from UAS imagery using MicMac. This dataset is kindly provided by  "l’Unité Gestion des Ressources Forestières et des Milieux Naturels (GRFMN), Université de Liège". Contact: jo.lisein@ulg.ac.be
+# this is the second version of the workflow, edited in october 2015
+
+# OriConvert is used for 3 purposes:
+# 1) Conversion of the embedded GPS data into the micmac orientation format 
+# 2) Generate the image pairs file
+# 3) Change the coordinate system (from WGS84 to Belgian Lambert 72, aka BL72)
+
+mm3d OriConvert OriTxtInFile GPS_WPK_Grand-Leez.csv GPS-BL72 ChSys=DegreeWGS84@SysCoBL72_EPSG31370.xml MTD1=1 NameCple=FileImagesNeighbour.xml
+
+# Tie Point Generation with Tapioca:
+Tapioca File FileImagePairs.xml -1
+
+# Initialization of the image block orientation
+
+mm3d Martini "R.*.JPG"
+AperiCloud "R.*.JPG" Martini Out=Martini-cam.ply WithPoints=0
+
+# Refining Orientation estimates (camera poses and camera calibration)
+Tapas RadialBasic "R.*.JPG" Out=Rel InOri=Martini
+AperiCloud "R.*.JPG" Rel Out=Rel-cam.ply WithPoints=0
+
+# Georefenrencing the aerotriangulated model with CenterBascule
+CenterBascule "R.*.JPG" Rel GPS-BL72 BL72
+
+# Refinement of the Aerotriangulation model by means of constrained bundle block adjustment with embedded GPS information (improve the camera calibration)
+Campari "R.*.JPG" BL72 BL72-Campari EmGPS=[GPS-BL72,2] FocFree=1 PPFree=1
+AperiCloud "R.*.JPG" BL72-Campari Out=BL72-campari.ply WithPoints=1
+
+# Optionnaly, if meshlab is installed:
+meshlab BL72-campari.ply
+
+# Dense-matching in image geometry with Per Image Matching (PIMs) in order to finely reconstruct abrut vertical changes of the canopy relief
+mm3d PIMs Forest "R00.*.JPG" BL72-Campari/ 
+
+# Merge the depth maps in a unique Digital Elevation Model and compute the orthoimage
+mm3d PIMs2Mnt Forest DoOrtho=1
+
+# mosaicking of individual orthoimages without radiometric equalization
+Tawny PIMs-Ortho/ RadiomEgal=0 Out=Orthophotomosaic.tif
+
+# export the dense point cloud and color it with Nuage2Ply:
+Nuage2Ply "PIMs-TmpBasc/PIMs-Merged.xml" Scale=2 Attr="PIMs-Ortho/Orthophotomosaic.tif" RatioAttrCarte=2 Out=CanopySurfaceModel.ply
+
+# Optionnaly, if meshlab is installed:
+meshlab CanopySurfaceModel.ply
+
+# Enjoy!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,852 @@
+\chapter{Sections hors mise en correspondance}
+
+\label{UTIL:AUTRESEC}
+
+
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+
+\section{Section Terrain}
+
+\begin{verbatim}
+<Section_Terrain Nb="1">
+       <IntervAltimetrie Nb="?">  ... </IntervAltimetrie>
+       <IntervParalaxe Nb="?">    ... </IntervParalaxe>
+       <Planimetrie Nb="?">       ... </Planimetrie>
+       <RugositeMNT Nb="?">       ... <RugositeMNT>
+</Section_Terrain>
+\end{verbatim}
+
+Cette section contient les informations li\'ees au terrain lui 
+m\^eme, ind\'epdendemment de la fa\c{c}on dont il est imag\'e.
+
+            % - - - - - - - - - - - - - - - - - - - -
+
+\subsection{ {\tt <IntervParalaxe>} et {\tt <IntervAltimetrie>} }
+
+\label{SEC:Interv:Px}
+
+\begin{verbatim}
+...
+      <IntervAltimetrie Nb="?">
+             <ZMoyen Nb="?" Type="double">       </ZMoyen>
+             <ZIncCalc Nb="1" Type="double">     </ZIncCalc>
+             <ZIncZonage Nb="?" Type="double">   </ZIncZonage>
+             <MNT_Init Nb="?"> ... </MNT_Init>
+       </IntervAltimetrie>
+
+       <IntervParalaxe Nb="?">
+             <Px1Moy Nb="?" Type="double">      </Px1Moy>
+             <Px2Moy Nb="?" Type="double">      </Px2Moy>
+             <Px1IncCalc Nb="1" Type="double">      </Px1IncCalc>
+             <Px2IncCalc Nb="1" Type="double">      </Px2IncCalc>
+             <Px1IncZonage Nb="?" Type="double">    </Px1IncZonage>
+             <Px2IncZonage Nb="?" Type="double">    </Px2IncZonage>
+       </IntervParalaxe>
+...
+\end{verbatim}
+
+
+
+Ces deux sections jouent le m\^eme r\^ole, {\tt <IntervParalaxe>}
+est utilis\'e lorsque la parallaxe est de dimension $2$ et 
+{\tt <IntervAltimetrie>} lorsqu'elle est de dimension $1$ .
+Elle ne diff\`erent que par {\tt <MNT\_Init>}, sp\'ecifique \`a  
+{\tt <IntervAltimetrie>} et d\'ecrit en~\ref{MNT:INIT}.
+
+
+\begin{figure}
+\begin{tabular} {  c c c c  } \\  \hline
+               & Z & Px1 & Px2\\ \hline
+       Moyenne & ZMoyen & Px1Moy & Px2Moy\\ \hline
+       Incert-Calc & ZIncCalc & Px1IncCalc & Px2IncCalc\\ \hline
+       Incert-Zone & ZIncZonage & Px1IncZonage & Px2IncZonage\\ \hline
+\end{tabular}
+\caption {Equivalence de noms sur les intervalles de parallaxe}
+\label{TAB:EQUIV:IntervPx}
+\end{figure}
+
+
+L'unit\'e  des valeurs exprim\'ees dans cette section 
+est celle donn\'ee par le tableau~\ref{TAB:DIM:PX} sauf lorsque 
+cette unit\'es est du  M\`etre$^{-1}$ auquel cas les valeurs  sont exprim\'ee
+en m\`etre.
+
+     %    -   -   -   -   -   -
+
+
+\subsubsection{Valeurs moyennes de parallaxe}
+Les tags sont  {\tt   <ZMoyen>} ($d=1$) ou {\tt <Px1Moy>} et
+{\tt <Px2Moy>} ($d=2$).
+
+Ces tags fixent la valeur moyenne de la parallaxe; elles ont donc
+une influence directe sur la zone de recherche explor\'ee lors
+du premier niveau de la pyramide de r\'esolution. Accessoirement,
+elles ont une influence sur le formatage du r\'esultat (le contenu
+des fichiers est exprim\'e en relatif par rapport \`a cette valeur moyenne).
+
+Dans le fichier de sp\'ecifications, on peut voir que
+l'arit\'e de ces valeurs est "?"; ces valeurs sont optionnelle lorsque
+la g\'eom\'etrie intrins\`eque  fournit  une valeur moyenne par d\'efaut.
+Plus pr\'ecis\'ement :
+
+\begin{itemize}
+    \item optionnelle pour les g\'eom\'etries purement image, la valeur
+          par d\'efaut est $0$  les param\`etres annexes (par ex : distorsion
+          et homographie) \'etant suppos\'es
+          fournir une bonne pr\'ediction;
+
+    \item optionnelle pour {\tt eGeomImageOri}, le format {\tt Ori} contenant
+          une information d'altitude moyenne;
+
+    \item pour {\tt <eGeomImageModule>} ca d\'epend de ce qui est impl\'ement\'e
+          dans la librairie dynamique \dots  ; obligatoire pour l'impl\'ementation
+          actuelle du format grille d'IGN-espace;
+\end{itemize}
+
+On notera \PxMoy cette valeur.
+
+
+     %    -   -   -   -   -   -
+
+\subsubsection{Incertitude de calcul}
+
+Les tags sont  {\tt   <ZIncCalc>} ($d=1$) ou {\tt <Px1IncCalc>} et
+{\tt <Px2IncCalc>} ($d=2$) et  ils sont obligatoires. Ces valeur
+permettent de d\'efinir les deux nappes encadrantes utilis\'ees
+pour d\'efinir la zone de recherche au premier niveau de la pyramide.
+
+Par exemple, pour $d=1$, la nappe initiale est d\'efinie par 
+l'intervalle {\tt [ZMoyen-ZIncCalc , ZMoyen+ZIncCalc]}.
+
+     %    -   -   -   -   -   -
+
+\subsubsection{Incertitude pour le calcul d'emprise}
+
+Les tags sont  {\tt   <ZIncZonage>} ($d=1$) ou {\tt <Px1IncZonage>} et
+{\tt <Px2IncZonage>} ($d=2$). Il sont facultatifs et lorsqu'ils sont
+omis, ils prennent la m\^eme valeur que {\tt   <ZIncCalc>} \dots .
+
+Ces valeurs servent \`a contr\^oler l'emprise du chantier lorsqu'elle celle
+ci est calcul\'ee automatiquement par MicMac voir~\ref{Plani:Def:EmpriseTerrain}
+
+On notera \PxZone cette valeur.
+
+     %    -   -   -   -   -   -
+
+\subsubsection{MNT initial}
+
+\label{MNT:INIT}
+
+\begin{verbatim}
+<MNT_Init Nb="?">
+     <MNT_Init_Image Nb="1" Type="std::string"> </MNT_Init_Image>
+     <MNT_Init_Xml Nb="1" Type="std::string">   </MNT_Init_Xml>
+     <MNT_Offset Nb="?"  Type="double" Def="0.0"> </MNT_Offset>
+</MNT_Init>
+\end{verbatim}
+
+Cette structure permet d'utiliser un MNT pour initialiser le
+calcul. La structure est fille de {\tt <IntervAltimetrie>} et
+n'est accesible qu'en dimension $1$. Les trois champs qui
+la composent sont :
+
+
+\begin{itemize}
+   \item {\tt <MNT\_Init\_Image>} le nom du fichier image contenant le MNT;
+
+   \item {\tt <MNT\_Init\_Xml>} le nom du fichier {\tt xml} contenant
+         le g\'eor\'ef\'erencement du MNT au format {\tt <FileOriMnt>} 
+         (d\'ecrit en ~\ref{Format:MNT}); les contraintes sont les 
+         m\^emes qu'en~\ref{Masq:Ter:Util};
+
+   \item {\tt <MNT\_Offset>} un \'eventuel offset rajout\'e au MNT
+          avant de l'utiliser comme valeur initiale;
+         cette valeur est utile lorsque , un fois
+         le MNT connu, les  intervalle d'incertitude
+         sur le relief sont asym\'etriques; typiquement, les altitudes
+         attendues au dessus du MNT peuvent \^etre \'elev\'ee car elle
+         sont dues \`a tous le sursol, alors que celle en dessous
+         restent faible car elles ne
+         refl\'etenet que  l'erreur sur le MNT lui m\^eme ;
+         si par exemple, l'intervalle d'incertitude est $[-20,80]$,
+         on pourra fixer  {\tt <MNT\_Offset>}  \`a $30$ et {\tt <ZIncCalc>}
+         \`a $50$;
+\end{itemize}
+
+            % - - - - - - - - - - - - - - - - - - - -
+
+\subsection{Planim\'etrie}
+
+\label{Autresec:Planimetrie}
+
+\begin{verbatim}
+   <Planimetrie Nb="?">
+         <BoxTerrain Nb="?" Type="Box2dr"> </BoxTerrain>
+         <ListePointsInclus Nb="*">
+              <Pt Nb="+" Type="Pt2dr"> </Pt>
+              <Im Nb="1" Type="std::string"> </Im>
+         </ListePointsInclus>
+         <ResolutionTerrain Nb="?" Type="double"> </ResolutionTerrain>
+         <MasqueTerrain Nb="?">  ... </MasqueTerrain>
+         <RecouvrementMinimal Nb="?" Type="double">  </RecouvrementMinimal>
+   </Planimetrie>
+\end{verbatim}
+
+La section {\tt <Planimetrie>} ainsi que tous ses sous-sections
+sont optionnelles.
+
+\subsubsection{Calcul de l'emprise sp\'ecifi\'ee}
+
+L'emprise est sp\'ecifi\'ee par l'utilisateur lorsque le
+champs {\tt <BoxTerrain>} a une valeur ou que la liste
+{\tt <ListePointsInclus>} est non vide.
+
+Chaque \'el\'ement $l$ de la liste $L$ de {\tt <ListePointsInclus>},
+permet de sp\'ecifier  une image $I_l$, et un point $P_l$ 
+de cette image dont on souhaite que l'homologue terrain soit pr\'esent
+dans l'emprise terrain.
+
+On note $B^T$ la bo\^ite englobante qui vaut {\tt <BoxTerrain>} 
+quand elle est d\'efinie et $\emptyset$ sinon.
+
+Lorsque l'emprise est sp\'ecifi\'ee elle vaut:
+
+\begin{equation}
+   B^T + \sum_{l \in L} B^x(\pi_{I_l}^{-1}(P_l,\PxMoy))
+\end{equation}
+
+Conventionnellement, si {\tt Im} vaut \emph{Terrain} il s'agit
+d'un point terrain (au sens de la g\'eom\'etrie intrins\`eque).
+
+            % - - - - - - - - - - - - - - - - - - - -
+
+\subsubsection{Calcul de l'emprise par d\'efaut}
+
+Lorsqu'aucune emprise terrain n'est donn\'ee MicMac
+en calcule une selon les sp\'ecifications suivantes: la 
+bo\^ite englobante de l'ensemble des points terrains
+qui, compte-tenu des incertitudes sur la parallaxes,
+soient succeptibles d'\^etre vus dans au moins $2$ images.
+
+\label{Plani:Def:EmpriseTerrain}
+
+Formellement on calcule cette bo\^ite par la formule suivante :
+
+\begin{equation}
+   \DeuxExtre_{k\in[1,N]}(B^x(\pi_k^{-1}(\EIm ,\PxZone)) +B^x(\pi_k^{-1}(\EIm ,-\PxZone)))
+\end{equation}
+
+            % - - - - - - - - - - - - - - - - - - - -
+
+\subsubsection{R\'esolution terrain}
+
+\label{Autresec:Resol:Terr}
+Le tag {\tt <ResolutionTerrain>} permet de sp\'ecifier la
+r\'esolution \`a laquelle l'espace terrain est discr\'etis\'e.
+Cette valeur est exprim\'ee dans l'unit\'e terrain associ\'ee
+\`a la g\'eom\'etrie de restitution telle qu'exprim\'ee 
+en~\ref{TAB:DIM:PX}.
+
+Lorsque cette valeur  est omise, une valeur est calcul\'ee en
+faisant la moyenne des r\'esolution qui sont indiqu\'ees
+par les prises de vues. Ces valeurs par d\'efaut sont les suivantes:
+
+\begin{itemize}
+   \item pour les g\'eom\'etrie  purement images, la valeur
+         par d\'efaut est $1.0$;
+
+   \item pour  la g\'eom\'etrie  {\tt eGeomImageOri} une 
+         valeur est calcul\'ee en tenant compte de la focale, de la
+         hauteur de vol et de l'altitude sol;
+
+    \item pour {\tt <eGeomImageModule>} ca d\'epend de ce qui est impl\'ement\'e
+          dans la librairie dynamique \dots  ; dans l'impl\'ementation
+         actuelle des g\'eom\'etries grilles, une valeur est 
+         calcul\'ee en utilisant la grille au centre de l'image;
+\end{itemize}
+
+
+            % - - - - - - - - - - - - - - - - - - - -
+
+\subsubsection{Masque terrain}
+
+\begin{verbatim}
+    <MasqueTerrain Nb="?">
+         <MT_Image Nb="1" Type="std::string"> </MT_Image>
+         <MT_Xml Nb="1" Type="std::string"> </MT_Xml>
+    </MasqueTerrain>
+\end{verbatim}
+
+
+\label{Masq:Ter:Util}
+
+La structure {\tt <ImMasqImported>} permet de sp\'ecifier un masque 
+utilisateur qui va se superposer au masque calcul\'e automatiquement
+par MicMac (voir~\ref{MEC:Masq}). Ce masque doit utiliser le m\^eme
+syst\`eme de coordonn\'ees que la g\'eom\'etrie utilis\'ee sur
+le chantier (par exemple m\^eme zone lambert \dots), par
+contre il n'a pas n\'ec\'essairement la m\^eme origine ou
+la m\^eme \'echelle que le chantier.
+
+Le tag {\tt <MT\_Image>} sp\'ecifie un nom de fichier image
+et le tag {\tt <MT\_Xml>} un nom de fichier {\tt xml} permettant
+de g\'eo-r\'ef\'erencer le fichier image. Le fichier  {\tt xml} 
+doit \^etre au format {\tt <FileOriMnt>} (voir~\ref{Format:MNT},
+ceci implique qu'un r\'esolution et un origine alti doivent \^etre
+sp\'ecifi\'ees m\^eme si elles ne seront pas utilis\'ees).
+
+            % - - - - - - - - - - - - - - - - - - - -
+
+\subsubsection{Recouvrement minimal}
+
+Ce tag permet de sp\'ecifier une valeur minimale de l'emprise
+terrain. Cette valeur est sp\'ecifi\'ee en proportion de la
+taille de la premi\`ere image (par exemple, $0.01$ correspond
+\`a $160 Ko$ avec des images $4000*4000$).
+
+Ce tag a \'et\'e rajout\'e lors de l'utilisation de MicMac pour
+le calcul automatique de points homologues, il permet d'arr\^eter MicMac
+au plus t\^ot lorsque la zone de recouvrement est trop petite
+et risque de cr\'eer des d\'eg\'enrescences ult\'erieure.
+
+D\`es que la taille de zone a \'et\'e calcul\'ee, si elle est inf\'erieure
+\`a la valeur seuil, MicMac s'arr\^etre en g\'en\'erant l'erreur
+catalogu\'ee {\tt eErrRecouvrInsuffisant} (voir~\ref{Err:Catal}).
+
+
+            % - - - - - - - - - - - - - - - - - - - -
+            % - - - - - - - - - - - - - - - - - - - -
+
+\subsection{Param\`etres li\'es \`a la "rugosit\'e"}
+
+\begin{verbatim}
+<RugositeMNT Nb="?">
+  <EnergieExpCorrel Nb="?" Type="double" Def="-2.0">      </EnergieExpCorrel>
+  <EnergieExpRegulPlani Nb="?" Type="double" Def="-1.0">  </EnergieExpRegulPlani>
+  <EnergieExpRegulAlti Nb="?" Type="double" Def="-1.0">   </EnergieExpRegulAlti>
+</RugositeMNT>
+\end{verbatim}
+
+
+Trois param\`etres li\'es \`a la rugosit\'e du terrain
+qui permettent de sp\'ecifier comment les param\`etre
+de  r\'egularisation doivent \'evoluer en fonction du facteur
+d'\'echelle. 
+
+Non d\'etaill\'es pour l'instant, car je ne suis pas convaincu
+qu'il y ait le moindre int\'er\^et \`a utiliser autre chose
+que les valeurs par d\'efaut.
+
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+
+\section{Section Prise de Vue}
+
+\begin{verbatim}
+ <Section_PriseDeVue Nb="1">
+        <Images Nb="1"> ...  </Images>
+
+        <ValSpecNotImage/ Nb="?" Type="int">
+        <PrefixMasqImRes Nb="?" Type="std::string" Def="MasqIm">  
+        <DirMasqueImages Nb="?" Type="std::string" Def=""> 
+        <MasqImageIn Nb="*">
+               <OneMasqueImage Nb="*"> ... </OneMasqueImage>
+        </MasqImageIn>
+
+        <GeomImages/ Nb="1">
+        <NomsGeometrieImage Nb="+">...  </NomsGeometrieImage>
+        <ModuleGeomImage Nb="?">... </ModuleGeomImage>
+        <NomsHomomologues Nb="?"> ...  </NomsHomomologues>
+ </Section_PriseDeVue>
+\end{verbatim}
+
+Cette section d\'ecrit l'ensemble des caract\'eristiques du chantier
+li\'ees \`a la prise de vue, c'est \`a dire \`a l'ensembles des images et
+de leur g\'eom\'etrie.
+
+\label{UTIL:AUTRES:PDV:GI}
+            % - - - - - - - - - - - - - - - - - - - -
+
+\subsection{Images}
+            %    -   -   -   -   -   -
+\subsubsection{Ensemble des images}
+
+\begin{verbatim}
+        <Images Nb="1">
+            <Im1 Nb="?" Type="std::string">   </Im1>     
+            <Im2 Nb="?" Type="std::string">   </Im2>
+            <ImPat Nb="*" Type="std::string">   </ImPat>
+        </Images>
+\end{verbatim}
+
+Cette section permet de sp\'ecifier l'ensemble des images qui
+constituent le chantier. Les noms et patron de noms sont toujours
+indiqu\'es en relatif par rapport \`a la directory  d'instalation
+des images (voir~\ref{DU:Dir:Images}).
+
+
+{\tt <Im1>} et {\tt <Im2>} (facultatifs) sont des noms d'images tandis que {\tt <ImPat>}
+correspond \`a une liste de pattern de s\'election.  C'est l'ensemble
+des images sp\'ecifi\'ees qui constituera la s\'election retenu pour
+le chantier.  Les noms sp\'ecifi\'es peuvent	 se retrouver en plusieurs endroit,
+MicMac supprimera les duplicatas. La seule contrainte r\'eelle est qu'il
+y ait en tout au moins $2$ noms d'images diff\'erents.
+
+{\tt <Im1>} et {\tt <Im2>}  peuvent para\^itre redondants compte-tenu du m\'ecanisme
+assez souple offert par les patrons {\tt <ImPat>}. Les raison qui justifient
+la pr\'esence de ces tags sont les suivantes :
+
+\begin{itemize}
+   \item Si la g\'eom\'etrie s\'electionn\'ee contient la notion d'images ma\^itresse 
+         la pr\'esence de {\tt <Im1>} permet de sp\'ecifier laquelle des images sera
+         ma\^itresse;
+ 
+   \item lorsque MicMac est rappel\'e  par un programme \emph{ma\^itre} pour g\'en\'erer
+         des mises en correspondances sur un grand nombre de couples (a\'erotriangulation,
+         superposition multi-spectrale), la pr\'esence de {\tt <Im1>} et {\tt <Im2>}
+         permet de sp\'ecifier chaque couple d'image par ligne de commande (ce qui ne
+         serait pas possible aujourd'hui avec les {\tt <ImPat>} \`a cause de son
+         arit\'e, voir~\ref{DU:Modif:LC});
+
+   \item  en g\'eom\'etrie image, il est plus naturel de sp\'ecifier 
+         explicitement quelles sont {\tt <Im1>} et {\tt <Im2>}  plut\^ot que
+         de reposer sur l'ordre des noms  \dots
+\end{itemize}
+
+Supposons par exemple que la directory images contienne des fichiers
+{\tt Im000.tif Im001.tif \dots Im999.tif}, le code ci dessous s\'electionnera
+les images de num\'eros compris entre $200$ et $299$ ou $400$ et $499$, et
+l'image ma\^itresse sera $293$ (si cela  a un sens pour la g\'eom\'etrie).
+
+\begin{verbatim}
+        <Images>
+            <Im1> Im293.tif  </Im1>     
+            <ImPat> Im2..\.tif  </ImPat>
+            <ImPat> Im4..\.tif  </ImPat>
+        </Images>
+\end{verbatim}
+
+            %    -   -   -   -   -   -
+\subsubsection{Masque images}
+
+{\small
+\begin{verbatim}
+<PrefixMasqImRes Nb="?" Type="std::string" Def="MasqIm">    </PrefixMasqImRes>
+<ValSpecNotImage Nb="?" Type="int"> </ValSpecNotImage>
+
+<DirMasqueImages Nb="?" Type="std::string" Def=""> </DirMasqueImages>
+<MasqImageIn Nb="*">
+      <!-- En cas de match multiple, c'est le dernier qui compte -->
+      <OneMasqueImage Nb="*">
+          <PatternSel Nb="1" Type="cElRegex_Ptr">    </PatternSel>
+                   <!-- Si NomMasq=PasDeMasqImage -> Valeur Tag
+                        pour ne pas aller chercher de masque -->
+          <NomMasq Nb="1"  Type="std::string">      </NomMasq>
+      </OneMasqueImage>
+</MasqImageIn>
+\end{verbatim}
+}
+
+MicMac maintient pour chaque image
+un masque binaire indiquant la zone valide de l'image.
+Lors du calcul d'un score de corr\'elation, dans 
+la phase de  mise en correspondance, pour chaque point et chaque parallaxe
+seules seront conserv\'ees les images telles que tous les points
+de la vignette se projettent en des points valides.
+Le masque est repr\'esent\'e et m\'emoris\'e explicitement 
+par une pyramide d'image.  Les pyramide cr\'e\'ees sont stock\'ees
+dans le r\'epertoire {\tt <TmpPyr>} et les 
+noms des fichiers de masque  sont construits
+en rajoutant au nom du fichier image le pr\'efixe  {\tt <PrefixMasqImRes>}
+(qui par d\'efaut vaut {\tt MasqIm}).
+
+On peut sp\'ecifier plusieurs masques qui se superposent.
+Soit par exemple $Im$ une image, l'ensemble des  
+masques se superposant est construit de la mani\`ere suivante :
+
+\begin{itemize}
+
+   \item  si on ne sp\'ecifie rien, toute la zone de l'image est valide.
+
+   \item  si l'on sp\'ecifie une valeur $Val$ dans {\tt <ValSpecNotImage>} ,
+          un premier masque est construit correspondant aux 
+          seuls points ayant une radiom\'etrie diff\'erente de $Val$ dans l'image
+          $Im$ seront valides (m\'ethode un peu archa\"ique, maintenue surtout
+          par compatibilit\'e);
+
+    \item \`a cet \'eventuel masque, on peut superposer autant de masque que 
+          l'on veut via la liste  {\tt  <MasqImageIn >}; le fonctionnement de
+           {\tt  <MasqImageIn >} est le suivant :
+
+    \begin{itemize}
+          \item  chaque \'element de la liste  {\tt  <MasqImageIn >} doit permettre
+                 de calculer  le masque image associ\'e \`a $Im$;
+
+          \item  on parcourt la liste {\tt <OneMasqueImage>} ; soit 
+                 le dernier \'el\'ement pour lequel l'expression r\'eguli\`ere 
+                 {\tt <PatternSel>} est  appariable sur le nom $Im$, on
+                 utilise alors {\tt <NomMasq>} pour calculer le masque
+                 associ\'e selon le m\'ecanisme habituel (voir~\ref{DU:Regex});
+                 ces images sont recherch\'ees dans {\tt   <DirMasqueImages>};
+
+          \item  si aucune expression r\'eguli\`ere n'est appariable, une
+                 erreur est g\'en\'er\'ee; il est cependant possible
+                 de sp\'ecifier qu'aucun masque n'est associ\'e en faisant
+                 que {\tt <NomMasq>} renvoie la valeur cl\'e {\tt "PasDeMasqImage"}
+
+     \end{itemize}
+\end{itemize}
+
+L'extrait ci-dessous est un exemple d'utilisation r\'eel des masques:
+
+\begin{itemize}
+  \item pour toutes les images, les points valant $0$ sont hors masques;
+
+  \item pour l'image {\tt 299.tif}, c'est le seul masque utilis\'e; 
+
+  \item pour les autres images {\tt Im.tif}, on va superposer en plus l'image
+        de nom {\tt Im.masque.tif} dans le r\'epertoire {\tt masques/};
+        
+\end{itemize}
+
+
+\begin{verbatim}
+     <ValSpecNotImage> 0 </ValSpecNotImage>
+     <DirMasqueImages> masques/ </DirMasqueImages>
+
+     <MasqImageIn>
+        <OneMasqueImage>
+              <PatternSel> (.*)\.tif</PatternSel>
+              <NomMasq>   $1.masque.tif </NomMasq>
+        </OneMasqueImage>
+        <OneMasqueImage>
+              <PatternSel> 299.tif </PatternSel>
+              <NomMasq>  PasDeMasqImage  </NomMasq>
+        </OneMasqueImage>
+     </MasqImageIn>
+\end{verbatim}
+
+
+\subsubsection{Gestionnaire de pyramide d'image}
+
+\begin{verbatim}
+<NomsGeometrieImage Nb="+">
+      ...
+      <ModuleImageLoader Nb="?">
+           <NomModule Nb="1" Type="std::string"> </NomModule>
+           <NomLoader Nb="1" Type="std::string"> </NomLoader>
+      </ModuleImageLoader>
+      ...
+</NomsGeometrieImage>
+\end{verbatim}
+
+Le tag {\tt <ModuleImageLoader>} permet de sp\'ecifier  un gestionnaire
+de pyramide d'image. Ce tag a \'et\'e mis comme fils du tag
+{\tt <NomsGeometrieImage>} pour factoriser le m\'ecanisme de s\'election
+par le nom de l'image (voir~\ref{Assoc:Image:Geom}) et pouvoir, si n\'ecessaire, associer
+diff\'erents gestionnaires en fonction du nom de l'image.
+
+Si rien n'est sp\'ecifi\'e, c'est le gestionnaire par d\'efaut de MicMac
+qui est utilis\'e;  ce gestionnaire s'attend \`a ce que le nom de l'image
+soit un fichier {\tt tif} (ou thom) contenant l'image \`a r\'esolution
+$1$, il g\'en\'era sa propre pyramide au fur et a mesure des besoins.
+
+S'il est sp\'ecifi\'e,  alors {\tt <NomModule>} est le nom d'une
+librairie dynamique et {\tt <NomLoader>} est une entr\'ee dans cette
+librairie (selon le m\'ecanisme d\'ecrit en ~\ref{Lib:Dyn}).
+Gr\'egoire Maillet a commenc\'e \`a \'ecrire un module 
+utilisant une librairie  JPEG-2000 pour en faire un gestionnaire
+de pyramide utilisable dans MicMac. Ce gestionnaire s'attend 
+\`a ce que le nom de l'image soit un fichier JPEG-2000 et
+utilise ce seul fichier pour retrouver tous les niveaux de
+la pyramide.
+
+Il serait possible d'\'ecrire une gestionnaire pour utiliser
+le format {\tt DMR} utilis\'e par IGN-espace.
+
+
+            % - - - - - - - - - - - - - - - - - - - -
+
+\subsection{G\'eom\'etrie (intrins\`eque)}
+
+
+\subsubsection{Type de G\'eom\'etrie}
+
+\begin{verbatim}
+        <GeomImages Nb="1" Type="eModeGeomImage"> </GeomImages>
+        <ModuleGeomImage Nb="?">            
+           <NomModule Nb="1" Type="std::string"> </NomModule>
+           <NomGeometrie Nb="1" Type="std::string"> </NomGeometrie>    
+        </ModuleGeomImage>
+\end{verbatim}
+
+Ce tag obligatoire sp\'ecifie le format de g\'eom\'etrie intrins\`eque
+utilis\'ee. Il doit avoir une valeur dans l'\'enumeration {\tt eModeGeomImage}
+(voir~\ref{DuMeca:Geom:IntrinGene}).
+
+Si le {\tt GeomImages} a la valeur {\tt eGeomImageModule}, alors
+{\tt ModuleGeomImage} doit avoir une valeur pour sp\'ecifier
+une librairie dynamique (fichier {\tt <NomModule>} , 
+entr\'ee {\tt NomGeometrie}) permettant de charger le code
+utilisateur d\'ecrivant la g\'eom\'etrie (voir~\ref{Lib:Dyn}
+et~\ref{DU:Meca:Geo:Mod}).
+
+{\bf MODIF:} Aujourd'hui il n'est pas possible de m\'elanger plusieurs
+formats de g\'eom\'etrie dans un m\^eme chantier. Ajouter cette 
+possibilit\'e ne devrait pas poser de vrai probl\`eme  il est
+pr\'evu de le faire \`a terme (priorit\'e \emph{a priori} assez
+basse).
+
+
+            % - - - - - - - - - - - - - - - - - - - -
+\subsubsection{Association images/g\'eom\'etries, cas standard}
+
+\label{Assoc:Image:Geom}
+
+\begin{verbatim}
+       <NomsGeometrieImage Nb="+">
+        ...
+            <PatternSel Nb="1" Type="std::string">    </PatternSel>
+            <PatNameGeom Nb="1" Type="std::string">   </PatNameGeom>
+         ...
+        </NomsGeometrieImage>
+\end{verbatim}
+
+La liste non vide (arit\'e ="+") {\tt NomsGeometrieImage} contient
+les informations pour calculer automatiquement le nom du fichier
+de  g\'eom\'etrie \`a partir du nom de fichier image. Le m\'ecanisme
+a \'et\'e mise en place avec l'objectif d'\^etre suffisamment souple
+pour qu'il ne soit jamais n\'ecessaire
+de renommer les fichier en entr\'ee  de MicMac.
+
+Soit une image de nom de fichier {\tt UnNomImage}, pour calculer
+le nom de la g\'eom\'etrie, MicMac proc\`ede ainsi :
+
+\begin{itemize}
+   \item la liste {\tt NomsGeometrieImage} est parcourue dans l'ordre;
+   \item MicMac s'arr\^ete au premier \'el\'ement tel que {\tt UnNomImage}
+         soit appariable sur l'expression r\'eguli\`ere {\tt <PatternSel>} ;
+   \item  \`a partir de cet appariement, le pattern {\tt PatNameGeom} 
+          est utilis\'e pour calculer le nom de la g\'eom\'trie selon
+           (voir~\ref{DU:Regex});
+   \item  si aucun appariement n'est trouv\'e, une erreur se produit;
+\end{itemize}
+
+Dans la majorit\'e des cas, {\tt <NomsGeometrieImage>} ne contiendra
+qu'un seul \'el\'ement parce que l'association "image/g\'eom\'etrie"
+est compl\`etement syst\'ematique.
+
+
+            % - - - - - - - - - - - - - - - - - - - -
+
+\subsubsection{Nom calcul\'e sur Im1-Im2}
+\PourLecteurAverti
+
+
+\begin{verbatim}
+       <NomsGeometrieImage Nb="+">
+        ...
+            <PatternNameIm1Im2 Nb="?" Type="std::string"> </PatternNameIm1Im2>
+            <AddNumToNameGeom Type="bool" Nb="?" Def="false"> </AddNumToNameGeom>
+        ...
+        </NomsGeometrieImage>
+\end{verbatim}
+
+La fonctionnalit\'e d\'ecrite ici est apparue en 
+utilisant MicMac lors du calcul automatique de points 
+homologues pour l'a\'erotriangulation. Dans ce contexte,
+on veut utiliser MicMac de la mani\`ere suivante :
+
+\begin{itemize}
+   \item MicMac est appel\'e avec un grand nombre de couples;
+         la m\^eme image se retrouvant en g\'en\'eral dans 
+          plusieurs couples;
+
+   \item pour chaque couple, MicMac est appel\'e en plusieurs \'etapes; 
+         une premi\`ere fois en utilisant en entr\'ee des orientations 
+         \emph{a priori}, \'eventuellement assez "grossi\`ere"; 
+
+   \item ensuite MicMac est rappel\'e dans diff\'erentes \'etapes de 
+         "raffinement" successif o\`u chaque \'etape g\'en\`ere une nouvelle
+          orientation qui servira d'entr\'ees \`a l'\'etape suivante
+          (le principe \'etant que, sauf bug, la pr\'ecision des orientations
+          relatives s'am\'eliorant \`a chaque \'etape, on peut relancer le
+          calcul avec des contraintes de plus en plus fortes sur les parallaxes
+          transverses);
+\end{itemize}
+
+Pour \'eviter tout conflit de nom entre les nombreux chantiers qui vont
+\^etre cr\'e\'es (surtout dans le cas o\`u le calcul est parall\'elis\'e
+par un outil de calcul distribu\'e), il importe que chaque calcul
+puisse sp\'ecifier ses propres noms de fichiers d'orientation.
+Supposons  que les images mises en correspondance
+soit {\tt Im1=ImAA.tif} et {\tt Im2=ImBB.tif} et qu'apr\`es l'\'etape $3$,
+soit g\'en\'er\'es deux fichiers d'orientation relative, selon le
+m\'ecanisme d\'ecrit en~\RefFantome, qui s'appellent 
+{\tt Ori\_Etap3\_Im1\_AABB.ori} et {\tt  Ori\_Etap3\_Im2\_AABB.ori};
+toujours pour \'eviter les
+les conflits de noms, ceux-ci sont choisis de mani\`ere \`a \^etre
+diff\'erent du cas "sym\'etrique" {\tt Im2=ImAA.tif}  et {\tt Im1=ImBB.tif}.
+
+Ensuite \`a l'\'etape $4$ il faut pouvoir calculer le nom
+des fichier d'orientation en entr\'ee d'une part en prenant en compte 
+le nom de {\tt Im1} et {\tt Im2} et d'autre part en pouvant sp\'ecifier
+une construction qui soit diff\'erente pour chacune des deux images (la
+s\'election \'etant bas\'ee ici sur leur rang et non sur leur nom).
+Ces possibilit\'es sont  offertes par  les tags {\tt <PatternNameIm1Im2>}
+et {\tt <AddNumToNameGeom>} :
+
+\begin{itemize}
+   \item  si le tag {\tt <PatternNameIm1Im2>} est sp\'ecifi\'e , alors
+          pour c'est la concatenation {\tt Im1@Im2}  (voir~ \ref{DU:Regex:CatNames})
+          qui sera appari\'ee
+          sur sa valeur consid\'er\'ee comme une expression r\'eguliere
+          qui sera utilis\'ee pour \'etendre {\tt <PatNameGeom>} (mais
+          c'est toujours sur l'expression {\tt PatternSel} et sur le nom
+          d'une seule image que sera faite la s\'election;
+
+   \item  si le tag {\tt <AddNumToNameGeom>} est  sp\'ecifi\'e \`a vrai,
+          alors {\tt <PatNameGeom>} n'est pas appari\'e sur le nom
+          tout seul, mais sur une concat\'enation du nom suivi de {\tt @k}
+          o\`u {\tt k} est le rang de l'image (en commen\c{c}ant \`a $0$);
+\end{itemize}
+
+Dans notre exemple, les bon nom de fichiers pourraient alors
+\^etre calcul\'es par quelque chose comme :
+
+\begin{verbatim}
+  </Section_PriseDeVue>
+      ...
+      <NomsGeometrieImage>
+            <AddNumToNameGeom> true          </AddNumToNameGeom>
+            <PatternSel>    (.*)\.tif@0  </PatternSel>
+            <PatternNameIm1Im2>
+                    Im(.*)\.tif@Im(.*)\.tif
+            </PatternNameIm1Im2>
+            <PatNameGeom>  Ori_Etap3_Im1_$1$2.ori  </PatNameGeom>
+       </NomsGeometrieImage>
+
+       <NomsGeometrieImage>
+            <AddNumToNameGeom> true          </AddNumToNameGeom>
+            <PatternSel>    (.*)\.tif@1  </PatternSel>
+            <PatternNameIm1Im2>
+                    Im(.*)\.tif@Im(.*)\.tif
+            </PatternNameIm1Im2>
+            <PatNameGeom>  Ori_Etap3_Im2_$1$2.ori  </PatNameGeom>
+       </NomsGeometrieImage>
+       ...
+  </Section_PriseDeVue>
+\end{verbatim}
+
+            % - - - - - - - - - - - - - - - - - - - -
+
+
+\subsubsection{Points homologues}
+
+\begin{verbatim}
+       <NomsHomomologues Nb="?">
+              <PatternSel Nb="1" Type="std::string">    </PatternSel>
+              <PatNameGeom Nb="1" Type="std::string">   </PatNameGeom>
+              <SeparateurHom Nb="?" Type="std::string" Def="">   </SeparateurHom>
+        </NomsHomomologues>
+
+\end{verbatim}
+
+
+Ce tag permet de calculer le fichier de points homologues utilis\'e
+pour calculer, le cas \'ech\'eant, l'homographie de passage de 
+{\tt Im1} \`a {\tt Im2} (voir~\ref{Lec:Param:Geom}). Ce nom
+de fichier est cacul\'e par appariement sur la concat\'enation
+des noms (voir~\ref{DU:Regex:CatNames}) :
+
+\begin{itemize}
+    \item {\tt <PatternSel>} est l'expression sur laquelle est 
+         appari\'ee la concat\'enation;
+
+    \item {\tt <PatNameGeom>} est le patron qui g\'en\`ere le nom
+          defichier;
+    \item {\tt <SeparateurHom>} est un \'eventuel s\'eparateur;
+
+\end{itemize}
+
+Voici un exemple pris d'un param\`etrage pour de la superposition
+multi-canal:
+
+\begin{verbatim}
+     <Images >
+          <Im1 > FD0027_r.047_3113 </Im1>
+          <Im2 > FD0027_v.047_3113 </Im2>
+     </Images>
+  ....
+     <NomsHomomologues >
+              <PatternSel > FD0027_(.)\.(.*)_(.*)@FD0027_(.)\.(.*)_(.*) </PatternSel>
+              <PatNameGeom > Liaison_$1$4.xml  </PatNameGeom>
+              <SeparateurHom > @  </SeparateurHom>
+      </NomsHomomologues>
+\end{verbatim}
+
+Dans cet exemple, le nom de fichier de points homologues 
+calcul\'e sera {\tt Liaison\_rv.xml}; l'objectif \'etait
+bien d'avoir un nom qui d\'epend de la natures des canaux
+ (ici rouge et vert) mais pas du num\'ero des images.
+
+
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+
+\section{G\'en\'eration de R\'esultat}
+
+Cette section, ainsi que~\ref{Model:Analytik},
+d\'ecrit des tags permettant de g\'en\'erer des
+r\'esultat interm\'ediaires. Ils sont dans la descendance
+de {\tt EtapeMEC} afin de pouvoir, \'eventuellement,
+g\'en\'erer ces r\'esultat \`a chaque \'etape dans une
+phase de mise au point. Ils sont d\'ecrit ici car ils ne
+sont en g\'en\'eral pas logiquement actif sur le processus
+de mise en correspondance.
+
+
+\subsection{Image 8 Bits}
+
+\subsection{Image de corr\'elation}
+
+\subsection{Basculement dans une autre g\'eom\'etrie}
+
+\begin{verbatim}
+   <BasculeRes Nb="*">                   
+        <Ori Nb="1" RefType="FileOriMnt"> </Ori>
+   </BasculeRes>
+\end{verbatim}
+
+Ce tag permet de g\'en\'er \`a chaque \'etape un (ou plusieurs) basculement
+dans une g\'eom\'etrie diff\'erente de l'acquisition. Le tag {\tt Ori}
+est du type d\'efini en~\ref{Def:FOM}.
+
+
+\subsection{Paralaxe relative ??}
+
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+
+\section{Mod\`eles analytiques}
+\label{Model:Analytik}
+
+
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+
+\section{Section Espace de travail}
+
+\subsection{Directory Image}
+\label{DU:Dir:Images}
+
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+\section{Section dite "Vrac"}
