@@ -33,6 +33,7 @@ public:
     vector<triangle*> & VTri() {return mVTri;}
     cImgForTiepTri* DoOneTri(int aNumT);
     void DoAllTri();
+    void DoCplParCpl();
     int  NInter()    {return mNInter;}
     void SetNInter(int & aNInter, double &aZoomF);
     vector<Video_Win*> & VVW() {return mVVW;}

@@ -65,6 +65,8 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cImgForTiepTri.cpp
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cTriForTiepTri.cpp
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/TaskCorrel.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cplfromhomol.cpp
+
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

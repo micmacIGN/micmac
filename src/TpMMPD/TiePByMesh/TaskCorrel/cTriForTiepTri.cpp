@@ -123,7 +123,10 @@ double cTriForTiepTri::valElipse(int & aNInter)
             return (vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(-0.5));
         }
         else
+        {
+            mrprjOK = false;
             return DBL_MIN;
+        }
     }
 }
 
