@@ -16722,14 +16722,25 @@ void xml_init(cExportApero2MM & anObj,cElXMLTree * aTree)
 std::string  Mangling( cExportApero2MM *) {return "AF8050D32387CCA1FE3F";};
 
 
-int & cXmlXifInfo::HGRev()
+cTplValGesInit< int > & cXmlXifInfo::HGRev()
 {
    return mHGRev;
 }
 
-const int & cXmlXifInfo::HGRev()const 
+const cTplValGesInit< int > & cXmlXifInfo::HGRev()const 
 {
    return mHGRev;
+}
+
+
+cTplValGesInit< std::string > & cXmlXifInfo::GITRev()
+{
+   return mGITRev;
+}
+
+const cTplValGesInit< std::string > & cXmlXifInfo::GITRev()const 
+{
+   return mGITRev;
 }
 
 
@@ -16899,7 +16910,22 @@ const cTplValGesInit< int > & cXmlXifInfo::NbBits()const
 
 void  BinaryUnDumpFromFile(cXmlXifInfo & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.HGRev(),aFp);
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.HGRev().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.HGRev().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.HGRev().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.GITRev().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.GITRev().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.GITRev().SetNoInit();
+  } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -17024,7 +17050,10 @@ void  BinaryUnDumpFromFile(cXmlXifInfo & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlXifInfo & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.HGRev());
+    BinaryDumpInFile(aFp,anObj.HGRev().IsInit());
+    if (anObj.HGRev().IsInit()) BinaryDumpInFile(aFp,anObj.HGRev().Val());
+    BinaryDumpInFile(aFp,anObj.GITRev().IsInit());
+    if (anObj.GITRev().IsInit()) BinaryDumpInFile(aFp,anObj.GITRev().Val());
     BinaryDumpInFile(aFp,anObj.FocMM().IsInit());
     if (anObj.FocMM().IsInit()) BinaryDumpInFile(aFp,anObj.FocMM().Val());
     BinaryDumpInFile(aFp,anObj.Foc35().IsInit());
@@ -17061,7 +17090,10 @@ cElXMLTree * ToXMLTree(const cXmlXifInfo & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlXifInfo",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("HGRev"),anObj.HGRev())->ReTagThis("HGRev"));
+   if (anObj.HGRev().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("HGRev"),anObj.HGRev().Val())->ReTagThis("HGRev"));
+   if (anObj.GITRev().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("GITRev"),anObj.GITRev().Val())->ReTagThis("GITRev"));
    if (anObj.FocMM().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("FocMM"),anObj.FocMM().Val())->ReTagThis("FocMM"));
    if (anObj.Foc35().IsInit())
@@ -17104,6 +17136,8 @@ void xml_init(cXmlXifInfo & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.HGRev(),aTree->Get("HGRev",1)); //tototo 
 
+   xml_init(anObj.GITRev(),aTree->Get("GITRev",1)); //tototo 
+
    xml_init(anObj.FocMM(),aTree->Get("FocMM",1)); //tototo 
 
    xml_init(anObj.Foc35(),aTree->Get("Foc35",1)); //tototo 
@@ -17135,7 +17169,7 @@ void xml_init(cXmlXifInfo & anObj,cElXMLTree * aTree)
    xml_init(anObj.NbBits(),aTree->Get("NbBits",1)); //tototo 
 }
 
-std::string  Mangling( cXmlXifInfo *) {return "FED4D8709619C6DBFE3F";};
+std::string  Mangling( cXmlXifInfo *) {return "64C3CBB5EC6519B3FF3F";};
 
 
 double & cMIC_IndicAutoCorrel::AutoC()

@@ -5441,8 +5441,11 @@ class cXmlXifInfo
         friend void xml_init(cXmlXifInfo & anObj,cElXMLTree * aTree);
 
 
-        int & HGRev();
-        const int & HGRev()const ;
+        cTplValGesInit< int > & HGRev();
+        const cTplValGesInit< int > & HGRev()const ;
+
+        cTplValGesInit< std::string > & GITRev();
+        const cTplValGesInit< std::string > & GITRev()const ;
 
         cTplValGesInit< double > & FocMM();
         const cTplValGesInit< double > & FocMM()const ;
@@ -5489,7 +5492,8 @@ class cXmlXifInfo
         cTplValGesInit< int > & NbBits();
         const cTplValGesInit< int > & NbBits()const ;
     private:
-        int mHGRev;
+        cTplValGesInit< int > mHGRev;
+        cTplValGesInit< std::string > mGITRev;
         cTplValGesInit< double > mFocMM;
         cTplValGesInit< double > mFoc35;
         cTplValGesInit< double > mExpTime;
