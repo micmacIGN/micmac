@@ -441,7 +441,8 @@ typedef REAL8  tSysCho ;
 
 
 // Version int de __HG_REV__
-int NumHgRev();
+// is doesn't work with the new Git Version
+//int NumHgRev();
 
 #if ELISE_PTR_SIZE==4
     #define ELISE_PTR_U_INT U_INT4

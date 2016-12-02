@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[2009]) = {
+const char * (theNameVar_ParamChantierPhotogram[2012]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1462,7 +1462,10 @@ const char * (theNameVar_ParamChantierPhotogram[2009]) = {
 "    </ExportApero2MM>\n",
 "\n",
 "    <XmlXifInfo Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
-"        <HGRev Nb=\"1\" Type=\"int\">        </HGRev>\n",
+"        <!-- Mercurial revision number (no more used with GitHub)-->\n",
+"	<HGRev Nb=\"?\" Type=\"int\">        </HGRev>\n",
+"	<!-- GIT revision id (from GitHub)-->\n",
+"        <GITRev Nb=\"?\" Type=\"std::string\"></GITRev>\n",
 "        <FocMM  Nb=\"?\" Type=\"double\">    </FocMM>\n",
 "        <Foc35  Nb=\"?\" Type=\"double\">    </Foc35>\n",
 "        <ExpTime  Nb=\"?\" Type=\"double\">  </ExpTime>\n",

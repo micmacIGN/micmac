@@ -1,35 +1,26 @@
 language: cpp
-
 matrix:
   include:
-# trusty is needed for Qt5
-    - os: linux
-      dist: trusty
-      sudo: required
-      compiler: gcc
-#    - os: osx
-#      osx_image: xcode8
-#      compiler: clang
-
+  - os: linux
+    dist: trusty
+    sudo: required
+    compiler: gcc
 before_install:
-- if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get update -qq && sudo apt-get install -qq qtbase5-dev; fi
-#- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update && brew install qt5 && export CMAKE_MODULE_PATH=$CMAKE_MODULE_PATH:`brew --prefix qt5`; fi
-
+- if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get update -qq && sudo apt-get
+  install -qq qtbase5-dev; fi
 script:
 - mkdir build
 - cd build
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then cmake .. -DWITH_QT5=On; fi
-#- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then cmake .. -DCMAKE_PREFIX_PATH=$(brew --prefix qt5) -DWITH_QT5=On; fi
 - make
 - make install
-
-#after_success:
-#- sh travis_after_success_script.sh 
-
-#deploy:
-#  provider: releases
-#  api_key:
-#    secure: OEbjkpKMVDiYZMXfpgKkww3JkZMMF+P1FJokTrip+fnra8vUfKfKOroqM1jWmHv9RhiUcGJK0tl4gz+xzCIADNOHerWrwAQLS+WG/2LisyLH08Xuw/3DFJQPqpRG/WNcrcu4iqWGaFqteQQyXk2kqDXJNEWSM6y2U/1/UapLMxUXY7NF3k3vRUId7j+w7Jw06fm0LCzIKU5stBUaAMxi/CZj1W1Bgl/GUVfpBSg5TMOq2VM0iKIewMT0+f1+tpbF7wu4Yts1i575oCkHxQ1VSzseheflHtuQfaFzqf/5/DoW+zpHRlSOzUSj1Wu9xjdjPXL65WzFXxUJxORNXSpbLKTrvz8aLozaaXB9p5BpdGwgyNy0k6opADWGpaf9JdrjRGHGXP48I9jDZXrzBoUzJdQOsixr/3WRirfcLSHN2Po4qal0+iRRemZd6lGLfIxvchtMOibFyGQQvTqAsum7EDyZ+flejBy8ifmK4UEPfscqY6keX7ZmUtoPIsf0FzszpBtBuyql2U5+Nxfbj/DMRG5WTqW43sWupuAm+Y3kuQ2HLr/HBAcivAB4FFnVp04G89YF9VpFrjcqZ2CxFokvhPPIv5N2+o1iyHTZ+HUf5HeLQETOmPNxcxkJfXdxQBx6ou9zlVKAPl60l/KrLESijQkLV0qRBJwlo4OSA2glNbk=
-#  file: build/micmac_${TRAVIS_OS_NAME}_${TRAVIS_TAG}.tar.gz
-#  on:
-#    repo: gmaillet/micmac
+after_success:
+- pwd && sh ../script_create_bin_dist.sh ${TRAVIS_OS_NAME} && ls
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: jjfFy8Z+KgbKH1RKzi2b9iyLEtWioyQIphMuVKjL5bB6XC/wjxLUbnV8rM+N57wMySBHQqamQhMM4eMdMOjo/ElDvppiu8a5TBeCT1NOsLh1vA3g1UcPNAwWLN9dtKrt2yImUH/V/Zz7Hu/LDPostU+01+/piThB79mj+PuBH8YShL2r9JrL6qsnL5FUUDZyrShraiEuDIHx111r8R1hAa6VcwwPjxReAIw4vCbWIahOLk+C4krASal1XQ6GAPGM0eOcrbFzEzb8+73RsYGjbu2IJiWzORJmb5/ItX5RTqGdOh/lLVDk4AyvP4mWApsMwzxRhN/cmtXN7FPsa4yp0n4eZOoPE7fgApggaPxxi5j8+jXbZB0lWAftVjhfo8PtZgHD71GNTkNeGD/EIBH7Kf/2dFWsZPh4I8//foCy8phc5SfoUfZA+8Vw63hM9mRC6L+5XxTh06ilJDcU168Db4Aa8tUNW4enD9j4eUbHuW04dHO711T/iOSQgli+mtX2oavgTvLM8GF8A6PjLvpfxkfYhMmZKmHPVTZ/bkXFzU02JMy01+4X/Pf6XbO0Pky924tBW1ROFRetnCAKnhZERHl6aMLz5vN8hAHWSRYfQlNWv+q7u5q5hdi7aZfNuSmkYTTM8Osg/bWseFASgm2AuOUs+NFth9MFFaU9h25vz48=
+  file: micmac_${TRAVIS_OS_NAME}.tgz
+  on:
+    repo: gmaillet/micmac

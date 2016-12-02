@@ -31,7 +31,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _appMode(mode),
         _bSaved(false),
         _devIOCamera(NULL),
-        _hg_revision(69),
+        _git_revision("Unknown"),
         _banniere("No comment"),
         _workBench(NULL)
 {
@@ -830,16 +830,13 @@ void SaisieQtWindow::on_actionAbout_triggered()
         qStr.replace( "**", "  " );
 #endif
 
-    QString version;
-    version.setNum(_hg_revision);
-
     QString adressbit(" " + QString::number(sizeof(int*)*8) + " bits");
 
     GlExtensions glExtensions;
     qStr += "\n" + tr("Application") + "\t" + QApplication::applicationName() + adressbit +
             + "\n" +  tr("Built with \tQT ") + QT_VERSION_STR  +
             + "\n" +  "OpenGL     \t[" + glExtensions.version().c_str() + "] [" + glExtensions.vendor().c_str() + "]" +
-            + "\n" +  tr("Revision\t") + version + "\n";
+            + "\n" +  tr("Revision\t") + _git_revision + "\n";
 
     msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
@@ -1791,15 +1788,14 @@ void SaisieQtWindow::setBanniere(const QString& banniere)
     _banniere = banniere;
 }
 
-int SaisieQtWindow::hg_revision() const
+QString SaisieQtWindow::git_revision() const
 {
-    return _hg_revision;
+    return _git_revision;
 }
 
-void SaisieQtWindow::setHg_revision(QString hg_revision)
+void SaisieQtWindow::setGit_revision(QString git_revision)
 {
-    if (hg_revision.contains("+")) hg_revision.resize(hg_revision.size()-1);
-    _hg_revision = hg_revision.toInt();
+    _git_revision = git_revision;
 }
 
 deviceIOImage* SaisieQtWindow::devIOImage() const

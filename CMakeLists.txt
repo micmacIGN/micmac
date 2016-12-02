@@ -374,52 +374,32 @@ if (${WITH_ETALONPOLY})
 	set(ETA_POLYGON 1)
 endif()
 
-# MERCURIAL
-find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 
-if (NOT HG_REVISION_DIST)
-	if(NOT MERCURIAL_EXECUTABLE OR NOT EXISTS "${PROJECT_SOURCE_DIR}/.hg")
-		message(STATUS "Mercurial (hg) cannot be found")
-		set(rev_file "${PROJECT_SOURCE_DIR}/include/rev")
-		if(EXISTS ${rev_file})
-			message(STATUS "using rev file")
-			EXECUTE_PROCESS(
-				COMMAND
-				cat ${rev_file}
-				RESULT_VARIABLE cat_result
-				OUTPUT_VARIABLE HG_REVISION_DIST
-				ERROR_QUIET
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-		else()
-			message(STATUS "hg revision cannot be retrieved")
-			set( HG_REVISION_DIST "unknown_no_hg" )
-		endif()
-	else()
-		EXECUTE_PROCESS(
-			COMMAND
-			${MERCURIAL_EXECUTABLE} identify --num
-			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-			RESULT_VARIABLE hg_result
-			OUTPUT_VARIABLE HG_REVISION_DIST
-			ERROR_QUIET
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-
-		if ( ${hg_result} )
-			set(HG_REVISION_DIST "unknown_hg_failed")
-		endif()
-	endif()
+# GIT
+if (NOT GIT_REVISION_DIST)
+	find_package(Git)
+	if (GIT_FOUND)
+		message(STATUS "-- Git executable found")
+		set(HAS_DYN_VERSION)
+                execute_process(COMMAND ${GIT_EXECUTABLE} describe --always --dirty --long
+                OUTPUT_VARIABLE GIT_REVISION_DIST
+                ERROR_VARIABLE git_rev_error
+                RESULT_VARIABLE git_rev_result
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+	else (GIT_FOUND)
+		message(STATUS "-- Git executable NOT found")
+	endif(GIT_FOUND)
 endif()
-message( STATUS "Derniere revision mercurial de MicMac : " ${HG_REVISION_DIST})
+message( STATUS "Derniere revision git de MicMac : " ${GIT_REVISION_DIST})
 
-set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
+set(GIT_REV ${GIT_REVISION_DIST} CACHE STRING "Revision" FORCE)
 
-set( HG_REVISION_DIST \"${HG_REVISION_DIST}\" )
+set(GIT_REVISION_DIST \"${GIT_REVISION_DIST}\" )
 CONFIGURE_FILE (
-	"src/util/HG_defines.cpp.in"
-	"${CMAKE_SOURCE_DIR}/src/util/HG_defines.cpp"
+        "src/util/GIT_defines.cpp.in"
+        "${CMAKE_SOURCE_DIR}/src/util/GIT_defines.cpp"
 )
+
 
 #~ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 

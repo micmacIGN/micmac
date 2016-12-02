@@ -2089,7 +2089,9 @@ void xml_init
 template <class Type> void BinDumpObj(const Type & anObj,const std::string & aFile)
 {
     ELISE_fp aFPOut(aFile.c_str(),ELISE_fp::WRITE);
-    BinaryDumpInFile(aFPOut,NumHgRev());
+    // NumHgRev doesn't work with the new Git version
+    //BinaryDumpInFile(aFPOut,NumHgRev());
+    BinaryDumpInFile(aFPOut,0);
     BinaryDumpInFile(aFPOut,Mangling((Type*)0));
     BinaryDumpInFile(aFPOut,anObj);
     aFPOut.close();
@@ -2101,9 +2103,10 @@ template <class Type> void BinUndumpObj(Type & anObj,const std::string & aFile)
      int aNum;
 
      BinaryUnDumpFromFile(aNum,aFPIn);
-     if (aNum!=NumHgRev())
-     {
-     }
+     // NumHgRev doesn't work with the new Git version
+     //if (aNum!=NumHgRev())
+     //{
+     //}
 
      std::string aVerifMangling;
      BinaryUnDumpFromFile(aVerifMangling,aFPIn);

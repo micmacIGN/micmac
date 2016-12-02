@@ -1460,7 +1460,10 @@
     </ExportApero2MM>
 
     <XmlXifInfo Nb="1" Class="true" ToReference="true">
-        <HGRev Nb="1" Type="int">        </HGRev>
+        <!-- Mercurial revision number (no more used with GitHub)-->
+	<HGRev Nb="?" Type="int">        </HGRev>
+	<!-- GIT revision id (from GitHub)-->
+        <GITRev Nb="?" Type="std::string"></GITRev>
         <FocMM  Nb="?" Type="double">    </FocMM>
         <Foc35  Nb="?" Type="double">    </Foc35>
         <ExpTime  Nb="?" Type="double">  </ExpTime>
