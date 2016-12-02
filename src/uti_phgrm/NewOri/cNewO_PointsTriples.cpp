@@ -89,7 +89,7 @@ bool cNewO_NameManager::LoadTriplet(const std::string & anI1,const std::string &
 
 
    ELISE_fp aFile(aName3.c_str(),ELISE_fp::READ,false);
-   int aRev = aFile.read_INT4();
+   /*int aRev = */aFile.read_INT4();
    // NumHgRev doesn't work
    //if (aRev>NumHgRev())
    //{
@@ -141,7 +141,7 @@ void cNewO_NameManager::GenLoadHomFloats(const std::string &  aNameH,std::vector
 
    ELISE_fp aFile(aNameH.c_str(),ELISE_fp::READ,false);
    // FILE *  aFP = aFile.FP() ;
-   int aRev = aFile.read_INT4();
+   /*int aRev = */aFile.read_INT4();
    // NumHgRev doesn't work
    //if (aRev>NumHgRev())
    //{

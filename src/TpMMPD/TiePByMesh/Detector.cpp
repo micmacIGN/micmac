@@ -158,7 +158,7 @@ Detector::Detector( string typeDetector, vector<double> paramDetector,
     mParamDetector = paramDetector;
     mChain = aChain;
     mICNM = aChain->getPrivmICNM();
-    if ((img == NULL))
+    if (img == NULL)
     {
         string aDir;
         if (mChain == NULL)

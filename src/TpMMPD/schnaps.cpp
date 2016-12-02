@@ -57,7 +57,7 @@ cPicSize::cPicSize(Pt2di aSz,int aNumWindows) :
     //std::cout<<"Size constr: "<<this<<"   "<<aSz<<" => "<<mNbWin<<std::endl;
 }
 
-cPicSize::cPicSize(const cPicSize &other) : mPicSz(other.mPicSz),mNbWin(other.mNbWin),mWinSz(other.mWinSz)
+cPicSize::cPicSize(const cPicSize &other) : mPicSz(other.mPicSz),mWinSz(other.mWinSz),mNbWin(other.mNbWin)
 {
    //std::cout<<"Size copy constr: "<<&other<<"->"<<this<<"   "<<mPicSz<<" => "<<mNbWin<<std::endl;
 }
@@ -553,7 +553,7 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
         std::cout<<aPicSize<<"\n";*/
         //allPics.push_back(new cPic(aDirImages,aSetIm[i],allPicSizes,aNumWindows));
         allPics.insert(std::make_pair<std::string,cPic*>(aSetIm[i]+aCKin.getSuffix(),new cPic(aDirImages,aSetIm[i],allPicSizes,aNumWindows)));
-        cPic* aPic=allPics[aSetIm[i]+aCKin.getSuffix()];
+        //cPic* aPic=allPics[aSetIm[i]+aCKin.getSuffix()];
     }
 
     ELISE_ASSERT(aSetIm.size()>0,"ERROR: No image found!");
