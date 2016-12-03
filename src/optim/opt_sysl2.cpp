@@ -72,6 +72,7 @@ tSysCho   cGenSysSurResol::GetElemInverseQuad(int i,int j) const
 }
 
 bool  cGenSysSurResol::CanCalculVariance() const {return false;}
+bool  cGenSysSurResol::IsCalculingVariance() const {return false;}
 void  cGenSysSurResol::SetCalculVariance(bool)
 {
     ELISE_ASSERT(false,"cGenSysSurResol::SetCalculVariance");
@@ -820,6 +821,8 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
     mNbIncReel         (mNbVar),
     mRedundancy        (1.0),
     mMaxBibi           (0),
+    mIsTmp             (aNbVar),
+    mDIsTmp            (mIsTmp.data()),
     mDoCalculVariance  (false),
     mVariance          (aNbVar,0.0),
     mDVar              (mVariance.data()),
@@ -846,6 +849,10 @@ double  L2SysSurResol::CoVariance(int aK1,int aK2)
    return mDCoVar[aK1][aK2];
 }
 
+bool L2SysSurResol::IsCalculingVariance() const
+{
+   return mDoCalculVariance;
+}
 
 
 
@@ -865,11 +872,15 @@ void L2SysSurResol::SetSize(INT aNbVar)
     mSolL2 =mSolL2.AugmentSizeTo(mNbVar,0.0);;
     mDataSolL2 = mSolL2.data();
 
+    mIsTmp = mIsTmp.AugmentSizeTo(mNbVar,0);
+    mDIsTmp = mIsTmp.data();
+
     mVariance = mVariance.AugmentSizeTo(aNbVar,0.0); 
     mDVar     = mVariance.data();
 
     mCoVariance = mCoVariance.AugmentSizeTo(Pt2di(aNbVar,aNbVar),0.0); 
     mDCoVar     = mCoVariance.data();
+
 }
 
 void L2SysSurResol::Reset()
@@ -878,6 +889,7 @@ void L2SysSurResol::Reset()
    mbi_Li.raz();
    mVariance.raz();
    mCoVariance.raz();
+   mIsTmp.raz();
    mBibi = 0.0;
    mRedundancy = 1.0 - mNbIncReel / double(mNbEq);
    mNbEq = 0;

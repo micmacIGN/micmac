@@ -584,6 +584,7 @@ class cGenSysSurResol
          virtual void  SetElemLin(int i,const tSysCho& ) ;
          virtual tSysCho SomQuad() const;
 
+         virtual bool    IsCalculingVariance () const;
          virtual bool    CanCalculVariance() const;
          virtual void SetCalculVariance(bool);
          virtual double  Variance(int aK);
@@ -881,6 +882,7 @@ class cFormQuadCreuse : public cVectMatMul,
 class L2SysSurResol : public cGenSysSurResol
 {
      public :
+         virtual bool    IsCalculingVariance () const;
          virtual bool    CanCalculVariance() const;
          virtual void    SetCalculVariance(bool);
          virtual double  Variance(int aK);
@@ -957,7 +959,10 @@ class L2SysSurResol : public cGenSysSurResol
          virtual tSysCho  GetElemLin(int i) const;
          virtual void  SetElemLin(int i,const tSysCho& ) ;
 
-	  Im2D_REAL8   tLi_Li(); // Sigma des trans(Li) Li
+         Im2D_REAL8   tLi_Li(); // Sigma des trans(Li) Li
+ 
+         bool  IsTmp(int aK) const;
+         void SetTemp(int aK);
 
      private :
 	  virtual void V_GSSR_AddNewEquation_Indexe
@@ -982,7 +987,8 @@ class L2SysSurResol : public cGenSysSurResol
         double       mRedundancy;
         double       mMaxBibi; // Debug
         double       mResiduAfterSol;
-
+        Im1D_U_INT1  mIsTmp;
+        U_INT1 *     mDIsTmp;
         bool         mDoCalculVariance;
         Im1D_REAL8   mVariance;
         REAL8 *      mDVar;
