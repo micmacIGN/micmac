@@ -7,19 +7,19 @@ matrix:
       dist: trusty
       sudo: required
       compiler: gcc
-    - os: osx
-      osx_image: xcode8
-      compiler: clang
+#    - os: osx
+#      osx_image: xcode8
+#      compiler: clang
 
 before_install:
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get update -qq && sudo apt-get install -qq qtbase5-dev; fi
-- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update && brew install qt5 && export CMAKE_MODULE_PATH=$CMAKE_MODULE_PATH:`brew --prefix qt5`; fi
+#- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update && brew install qt5 && export CMAKE_MODULE_PATH=$CMAKE_MODULE_PATH:`brew --prefix qt5`; fi
 
 script:
 - mkdir build
 - cd build
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then cmake .. -DWITH_QT5=On; fi
-- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then cmake .. -DCMAKE_PREFIX_PATH=$(brew --prefix qt5) -DWITH_QT5=On; fi
+#- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then cmake .. -DCMAKE_PREFIX_PATH=$(brew --prefix qt5) -DWITH_QT5=On; fi
 - make
 - make install
 
