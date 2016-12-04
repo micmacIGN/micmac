@@ -14,6 +14,12 @@
  * Si il trouve pas OpenCV sharedlib => export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
  */
 
+typedef struct CplString
+{
+    string img1;
+    string img2;
+}CplString;
+
 typedef struct CplPic
 {
     pic * pic1;

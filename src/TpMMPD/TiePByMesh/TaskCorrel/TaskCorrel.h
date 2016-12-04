@@ -12,6 +12,7 @@ const double TT_SEUIL_SURF_TRIANGLE = 100;   //min surface du triangle projecte 
 const double TT_SEUIL_RESOLUTION = DBL_MIN;  //min resolution du triangle reprojecte on img
 
 class cAppliTaskCorrel;
+class cAppliTaskCorrelByXML;
 class cImgForTiepTri;
 class cTriForTiepTri;
 
@@ -26,14 +27,14 @@ public:
                      );
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
-    void lireMesh(std::string & aNameMesh);
+    void lireMesh(std::string & aNameMesh, vector<triangle*> &, vector<cTriForTiepTri*> &);
     PlyFile * Ply() {return mPly;}
     const std::string Ori() {return mOri;}
     const std::string Dir() {return mDir;}
     vector<triangle*> & VTri() {return mVTri;}
+    vector<cTriForTiepTri*> & VTriF() {return mVTriF;}
     cImgForTiepTri* DoOneTri(int aNumT);
     void DoAllTri();
-    void DoCplParCpl();
     int  NInter()    {return mNInter;}
     void SetNInter(int & aNInter, double &aZoomF);
     vector<Video_Win*> & VVW() {return mVVW;}
@@ -57,6 +58,40 @@ private:
     string mDirXML;
     int cptDel;
 };
+//  ============================= cAppliTaskCorrelByXML==========================
+class cAppliTaskCorrelByXML
+{
+public:
+    cAppliTaskCorrelByXML(const std::string & xmlFile,
+                          cInterfChantierNameManipulateur * aICNM,
+                          const std::string & aDir,
+                          const std::string & anOri,
+                          const std::string & aPatImg);
+    vector<cImgForTiepTri*> VImgs() {return mVImgs;}
+    vector<triangle*> VTri() {return mVTri;}
+    vector<cTriForTiepTri*> VTriF() {return mVTriF;}
+    vector<cXml_TriAngulationImMaster> Cur_VTask() {return Cur_mVTask;}
+    cInterfChantierNameManipulateur * ICNM() {return mICNM;}
+    vector<string> VNImgs() {return mVNImgs;}
+    void importXML(string XmlFile);
+    void DoAllCpl();
+    vector<cXml_TriAngulationImMaster> DoACpl(CplString aCpl);
+private:
+    cInterfChantierNameManipulateur * mICNM;
+    vector<cImgForTiepTri*> mVImgs;
+    vector<triangle*> mVTri;
+    vector<cTriForTiepTri*> mVTriF;
+    vector<cXml_TriAngulationImMaster> Cur_mVTask;
+    vector<string> mVNImgs;
+    vector<CplString> mVCplImg;
+    string mXmlFile;
+    string mDir;
+    string mOri;
+
+
+
+};
+
 
 //  ============================== cImgForTiepTri ==========================
 class cImgForTiepTri

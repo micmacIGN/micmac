@@ -13,6 +13,7 @@ int TiepTriPrl_main(int argc,char ** argv)
          LArgMain()  << EAMC(aFullNameXML, "Pattern of XML for Triangu",  eSAM_IsPatFile)
                      << EAMC(anOri,        "Orientation dir"),
          LArgMain()
+
    );
 
    std::string aDir,aNameXML;

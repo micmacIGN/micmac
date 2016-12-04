@@ -16,6 +16,7 @@ int TaskCorrel_main(int argc,char ** argv)
         bool useExistHomoStruct = false;
         double aAngleF = 90;
         string aDirXML = "XML_TiepTri";
+        string xmlCpl = "PairHomol.xml";
         bool Test=false;
         int nInteraction = 0;
         double aZ = 0.25;
@@ -31,6 +32,7 @@ int TaskCorrel_main(int argc,char ** argv)
                     << EAMC(pathPlyFileS, "path to mesh(.ply) file - created by Inital Ori", eSAM_IsExistFile),
                     //optional arguments
                     LArgMain()
+                    << EAM(xmlCpl, "xmlCpl", true, "file contain couple of image - processe by couple")
                     << EAM(assum1er, "assum1er", true, "always use 1er pose as img master, default=0")
                     << EAM(useExistHomoStruct, "useExist", true, "use exist homol struct - default = false")
                     << EAM(aAngleF, "angleV", true, "limit view angle - default = 90 (all triangle is viewable)")
@@ -49,11 +51,22 @@ int TaskCorrel_main(int argc,char ** argv)
         StdCorrecNameOrient(aOriInput,aDir);
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-        cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg);
-        aAppli->lireMesh(pathPlyFileS);
-        aAppli->SetNInter(nInteraction, aZ);
-        aAppli->DoAllTri();
-        aAppli->ExportXML(clIni);
+        if (EAMIsInit(& xmlCpl))
+        {
+            //creat xml file couple by couple
+            cAppliTaskCorrelByXML * aAppli = new cAppliTaskCorrelByXML(xmlCpl, aICNM, aDir, aOriInput, aNameImg);
+
+
+        }
+        else
+        {
+            cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg);
+            aAppli->lireMesh(pathPlyFileS, aAppli->VTri(), aAppli->VTriF());
+            aAppli->SetNInter(nInteraction, aZ);
+            aAppli->DoAllTri();
+            aAppli->ExportXML(clIni);
+        }
+
 
 
 

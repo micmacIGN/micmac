@@ -51,7 +51,7 @@ void cAppliTaskCorrel::SetNInter(int & aNInter, double & aZoomF)
     }
 }
 
-void cAppliTaskCorrel::lireMesh(std::string & aNameMesh)
+void cAppliTaskCorrel::lireMesh(std::string & aNameMesh, vector<triangle*> & tri, vector<cTriForTiepTri*> & triF)
 {
     InitOutil * aPly = new InitOutil (aNameMesh);
     mVTri = aPly->getmPtrListTri();
@@ -140,5 +140,84 @@ void cAppliTaskCorrel::ExportXML(Pt3dr clIni)
     }
     cout<<"Del : "<<cptDel<<endl;
 }
+
+//  ============================= cAppliTaskCorrelByXML =============================
+
+cAppliTaskCorrelByXML::cAppliTaskCorrelByXML(   const std::string & xmlFile,
+                                                cInterfChantierNameManipulateur * aICNM,
+                                                const std::string & aDir,
+                                                const std::string & anOri,
+                                                const std::string & aPatImg):
+          mICNM    (aICNM),
+          mXmlFile (xmlFile),
+          mDir     (aDir),
+          mOri     (anOri)
+
+{
+    cAppliTaskCorrelByXML::importXML(mXmlFile);
+    vector<std::string> VNameImgs = *(aICNM->Get(aPatImg));
+}
+
+void cAppliTaskCorrelByXML::importXML(string XmlFile)
+{
+    cout<<"importXML"<<endl;
+    string line;
+    ifstream file (XmlFile.c_str());
+    if (file.is_open())
+    {
+        while ( getline (file,line) )
+        {
+            stringstream ss(line);
+            string temp = "";
+            //cout<<ss.str()<<endl;
+            getline(ss, temp, '>'); //get "<TagName"
+            if (temp.find("Cple") != std::string::npos)
+            {
+                string cpl;
+                getline(ss, cpl, '<');
+
+                stringstream ssCpl(cpl);
+                string nImg1;
+                getline(ssCpl, nImg1, ' ');
+                cout<<nImg1<<endl;
+
+
+
+
+            }
+        }
+        file.close();
+    }
+    else cout << "Unable to open XML file";
+}
+
+vector<cXml_TriAngulationImMaster> cAppliTaskCorrelByXML::DoACpl(CplString aCpl)
+{
+    string nImg1 = aCpl.img1;
+    string nImg2 = aCpl.img2;
+
+    std::string aDir,aNameImg;
+    std::string aFullPattern = nImg1+"|"+nImg2; //creat a fake pattern (contain just 2 img)
+    SplitDirAndFile(aDir,aNameImg,aFullPattern);
+
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM, aDir, mOri, aFullPattern);
+    aAppli->VTri() = mVTri;
+    aAppli->VTriF() = mVTriF;
+    aAppli->DoAllTri();
+    return aAppli->VTask();
+}
+
+void cAppliTaskCorrelByXML::DoAllCpl()
+{
+    for (uint aKCpl=0; aKCpl<mVCplImg.size(); aKCpl++)
+    {
+        CplString aCpl = mVCplImg[aKCpl];
+        Cur_mVTask = DoACpl(aCpl);
+    }
+}
+
+
+
 
 
