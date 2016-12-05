@@ -138,14 +138,14 @@ void cAppliTaskCorrel::DoAllTri()
 }
 
 
-void cAppliTaskCorrel::ExportXML(Pt3dr clIni)
+void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
 {
-    cout<<"Write XML to "<<mICNM->Dir() + mDirXML.c_str() + "/"<<endl;
-    ELISE_fp::MkDirSvp(mDirXML);
+    cout<<"Write XML to "<<mICNM->Dir() + aDirXML.c_str() + "/"<<endl;
+    ELISE_fp::MkDirSvp(aDirXML);
     for (uint aKI=0; aKI<mVImgs.size(); aKI++)
     {
         cImgForTiepTri * aImg = mVImgs[aKI];
-        string fileXML = mICNM->Dir() + mDirXML + "/" + mVImgs[aKI]->Name() + ".xml";
+        string fileXML = mICNM->Dir() + aDirXML + "/" + mVImgs[aKI]->Name() + ".xml";
         MakeFileXML(aImg->Task(), fileXML);
         //export mesh correspond with each image:
         DrawOnMesh aDraw;
@@ -177,9 +177,20 @@ cAppliTaskCorrelByXML::cAppliTaskCorrelByXML(   const std::string & xmlFile,
 {
     mVNImgs = *(aICNM->Get(aPatImg));
     cout<<"Read Pattern : "<<mVNImgs.size()<<" images"<<endl;
+    mVTask.resize(mVNImgs.size());
+    for (uint aKI = 0; aKI<mVNImgs.size(); aKI++)
+    {
+        cXml_TriAngulationImMaster aTask;
+        aTask.NameMaster() = mVNImgs[aKI];
+        for (uint aKIi = 0; aKIi<mVNImgs.size(); aKIi++)
+        {
+            aTask.NameSec().push_back(mVNImgs[aKIi]);
+        }
+        mVTask[aKI] = aTask;
+    }
     cAppliTaskCorrelByXML::importXML(mXmlFile);
     cAppliTaskCorrelByXML::filterCplProcess(mVCplImg, mVNImgs); //get cpl that have both imgs in pattern
-    cout<<"Nb Cpl Valid: "<<mVCplImg.size()<<" cpls"<<endl;
+    cout<<"Nb Cpl Valid: "<<mCplValidIndex.size()<<" cpls"<<endl;
 }
 
 
@@ -218,20 +229,27 @@ void cAppliTaskCorrelByXML::importXML(string XmlFile)
 void cAppliTaskCorrelByXML::filterCplProcess(vector<CplString> & mVCplImg, vector<string> & mVNImgs)
 {
     vector<CplString> cplValid;
+    vector<Pt2di> cplIndex;
     for (uint aKCpl=0; aKCpl<mVCplImg.size(); aKCpl++)
     {
         CplString aCpl = mVCplImg[aKCpl];
         string nImg1 = aCpl.img1;
         string nImg2 = aCpl.img2;
-        if     (std::find(mVNImgs.begin(), mVNImgs.end(), nImg1) != mVNImgs.end()
-             && std::find(mVNImgs.begin(), mVNImgs.end(), nImg2) != mVNImgs.end())
+        std::vector<string>::iterator itImg1;
+        std::vector<string>::iterator itImg2;
+
+        itImg1 = std::find(mVNImgs.begin(), mVNImgs.end(), nImg1);
+        itImg2 = std::find(mVNImgs.begin(), mVNImgs.end(), nImg2);
+
+        if  (   itImg1 != mVNImgs.end()
+             && itImg2 != mVNImgs.end() )
         {
+            mCplValidIndex.push_back(Pt2di(itImg1-mVNImgs.begin(), itImg2-mVNImgs.begin()));
             cplValid.push_back(aCpl);
         }
     }
     mVCplImg.clear();
     mVCplImg = cplValid;
-
 }
 
 
@@ -259,7 +277,8 @@ void cAppliTaskCorrelByXML::DoAllCpl()
     for (uint aKCpl=0; aKCpl<mVCplImg.size(); aKCpl++)
     {
         CplString aCpl = mVCplImg[aKCpl];
-        cout<<"Cpl "<<aKCpl<<" "<<aCpl.img1<<" "<<aCpl.img2<<endl;
+        Pt2di aCplInd = mCplValidIndex[aKCpl];
+        cout<<"Cpl "<<aKCpl<<" "<<aCpl.img1<<" "<<aCpl.img2<<" -Ind : "<<aCplInd<<endl;
         //lire mesh initialize:
         if (aKCpl == 0)
         {
@@ -274,15 +293,30 @@ void cAppliTaskCorrelByXML::DoAllCpl()
         Cur_mVTask = DoACpl(aCpl);
         for (uint aKTask=0; aKTask<Cur_mVTask.size(); aKTask++)
         {
-            cXml_TriAngulationImMaster aTask =  Cur_mVTask[aKTask];
+            cXml_TriAngulationImMaster aTask =  Cur_mVTask[aKTask]; 
             cout<<"Task: Mas= "<<aTask.NameMaster()<<" - NbTri: "<<aTask.Tri().size()<<" - Nb2nd: "<<aTask.NameSec().size()<<endl;
-            //fusion Task to correct mVTask
-
-            //****......
-
-            //
+            //change NumImSec in Tri
+            for (uint aKTgl = 0; aKTgl<aTask.Tri().size(); aKTgl++)
+            {
+                cXml_Triangle3DForTieP aTgl = aTask.Tri()[aKTgl];
+                aTgl.NumImSec()[0] = aCplInd.y;
+            }
+            //concate all Tri() in aTask to right position in mVTask
+            mVTask[aCplInd.x].Tri().insert(mVTask[aCplInd.x].Tri().end(), aTask.Tri().begin(), aTask.Tri().end());
         }
         Cur_mVTask.clear();
+    }
+}
+
+void cAppliTaskCorrelByXML::ExportXML(string & aXMLOut)
+{
+    cout<<"Write XML to "<<mICNM->Dir() + aXMLOut.c_str() + "/"<<endl;
+    ELISE_fp::MkDirSvp(aXMLOut);
+    for (uint aKTask=0; aKTask<mVTask.size(); aKTask++)
+    {
+        cXml_TriAngulationImMaster aTask = mVTask[aKTask];
+        string fileXML = mICNM->Dir() + aXMLOut + "/" + aTask.NameMaster() + ".xml";
+        MakeFileXML(aTask, fileXML);
     }
 }
 

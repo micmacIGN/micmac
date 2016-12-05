@@ -16,6 +16,7 @@ class cAppliTaskCorrelByXML;
 class cImgForTiepTri;
 class cTriForTiepTri;
 
+
 //  ============================= cAppliTaskCorrel ==========================
 class cAppliTaskCorrel
 {
@@ -41,7 +42,7 @@ public:
     vector<Video_Win*> & VVW() {return mVVW;}
     vector<cXml_TriAngulationImMaster> & VTask() {return mVTask;}
     vector<int> & Cur_Img2nd() {return mCur_Img2nd;}
-    void ExportXML(Pt3dr clIni = Pt3dr(255,255,255));
+    void ExportXML(string aDirXML, Pt3dr clIni = Pt3dr(255,255,255));
 
 private:
     cInterfChantierNameManipulateur * mICNM;
@@ -77,7 +78,9 @@ public:
     vector<cXml_TriAngulationImMaster> & VTask() {return mVTask;}
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     vector<string> VNImgs() {return mVNImgs;}
+    vector<Pt2di> & CplValidIndex() {return mCplValidIndex;}
     void importXML(string XmlFile);
+    void ExportXML(string & aXMLOut);
     void DoAllCpl();
     vector<cXml_TriAngulationImMaster> DoACpl(CplString aCpl);
     void filterCplProcess(vector<CplString> & mVCplImg, vector<string> & mVNImgs);
@@ -90,6 +93,7 @@ private:
     vector<cXml_TriAngulationImMaster> mVTask;
     vector<string> mVNImgs;
     vector<CplString> mVCplImg;
+    vector<Pt2di> mCplValidIndex;
     string mXmlFile;
     string mDir;
     string mOri;

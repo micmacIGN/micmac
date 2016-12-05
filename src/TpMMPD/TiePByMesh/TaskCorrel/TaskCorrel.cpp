@@ -56,7 +56,7 @@ int TaskCorrel_main(int argc,char ** argv)
             //creat xml file couple by couple
             cAppliTaskCorrelByXML * aAppli = new cAppliTaskCorrelByXML(xmlCpl, aICNM, aDir, aOriInput, aNameImg, pathPlyFileS);
             aAppli->DoAllCpl();
-
+            aAppli->ExportXML(aDirXML);
         }
         else
         {
@@ -64,7 +64,7 @@ int TaskCorrel_main(int argc,char ** argv)
             aAppli->lireMesh(pathPlyFileS, aAppli->VTri(), aAppli->VTriF());
             aAppli->SetNInter(nInteraction, aZ);
             aAppli->DoAllTri();
-            aAppli->ExportXML(clIni);
+            aAppli->ExportXML(aDirXML, clIni);
         }
 
 
