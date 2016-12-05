@@ -54,8 +54,8 @@ int TaskCorrel_main(int argc,char ** argv)
         if (EAMIsInit(& xmlCpl))
         {
             //creat xml file couple by couple
-            cAppliTaskCorrelByXML * aAppli = new cAppliTaskCorrelByXML(xmlCpl, aICNM, aDir, aOriInput, aNameImg);
-
+            cAppliTaskCorrelByXML * aAppli = new cAppliTaskCorrelByXML(xmlCpl, aICNM, aDir, aOriInput, aNameImg, pathPlyFileS);
+            aAppli->DoAllCpl();
 
         }
         else

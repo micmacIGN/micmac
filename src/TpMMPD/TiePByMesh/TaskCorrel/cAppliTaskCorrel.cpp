@@ -1,7 +1,8 @@
 #include "TaskCorrel.h"
 
-//  ============================= cAppliTaskCorrel ==========================
-
+//  ============================= **************** =============================
+//  *                             cAppliTaskCorrel                             *
+//  ============================= **************** =============================
 cAppliTaskCorrel::cAppliTaskCorrel (
                                      cInterfChantierNameManipulateur * aICNM,
                                      const std::string & aDir,
@@ -17,6 +18,7 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     cptDel (0)
 {
     vector<std::string> VNameImgs = *(aICNM->Get(aPatImg));
+    mVTask.resize(VNameImgs.size());
     for (uint aKI = 0; aKI<VNameImgs.size(); aKI++)
     {
         cImgForTiepTri* aImg = new cImgForTiepTri(this, VNameImgs[aKI], aKI);
@@ -29,7 +31,9 @@ cAppliTaskCorrel::cAppliTaskCorrel (
         {
             aImg->Task().NameSec().push_back(mVImgs[aKIi]->Name());
         }
+        mVTask[aKI] = aImg->Task();
     }
+
 }
 
 void cAppliTaskCorrel::SetNInter(int & aNInter, double & aZoomF)
@@ -55,6 +59,15 @@ void cAppliTaskCorrel::lireMesh(std::string & aNameMesh, vector<triangle*> & tri
 {
     InitOutil * aPly = new InitOutil (aNameMesh);
     mVTri = aPly->getmPtrListTri();
+    for (uint aKT=0; aKT<mVTri.size(); aKT++)
+        mVTriF.push_back(new cTriForTiepTri(this, mVTri[aKT]));
+}
+
+void cAppliTaskCorrel::updateVTriFWithNewAppli(vector<triangle*> & tri)
+{
+    mVTri.clear();
+    mVTri = tri;
+    mVTriF.clear();
     for (uint aKT=0; aKT<mVTri.size(); aKT++)
         mVTriF.push_back(new cTriForTiepTri(this, mVTri[aKT]));
 }
@@ -86,16 +99,17 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(int aNumT)
         return imgMas;
     else
     {
-        cout<<"No master "<<"valElipse "<<cur_valElipse<<"  TT_SEUIL_RESOLUTION "<<TT_SEUIL_RESOLUTION<<endl;
+        //cout<<"No master "<<"valElipse "<<cur_valElipse<<"  TT_SEUIL_RESOLUTION "<<TT_SEUIL_RESOLUTION<<endl;
         return NULL;
     }
 }
 
 void cAppliTaskCorrel::DoAllTri()
 {
+    cout<<"Nb Img: "<<mVImgs.size()<<" -Nb Tri: "<<mVTriF.size()<<endl;
     for (uint aKT=0; aKT<mVTri.size(); aKT++)
     {
-        cout<<endl<<"Tri "<<aKT<<endl;
+        //cout<<endl<<"Tri "<<aKT<<endl;
         cImgForTiepTri * aImgMas = DoOneTri(aKT);
 
         cXml_Triangle3DForTieP aTaskTri;
@@ -104,14 +118,17 @@ void cAppliTaskCorrel::DoAllTri()
         aTaskTri.P3() = mVTri[aKT]->getSommet(2);
         if (aImgMas != NULL && Cur_Img2nd().size() != 0)
         {
-            cout<<" ++ImMas: "<<aImgMas->Tif().name()<<" - Num2nd : "<<Cur_Img2nd().size()<<endl;
+            //cout<<" ++ImMas: "<<aImgMas->Tif().name()<<" - Num2nd : "<<Cur_Img2nd().size()<<endl;
             for (uint aKT2nd=0; aKT2nd<Cur_Img2nd().size(); aKT2nd++)
             {
                 if (Cur_Img2nd()[aKT2nd] != aImgMas->Num() )
                     aTaskTri.NumImSec().push_back(Cur_Img2nd()[aKT2nd]);
             }
             if (aTaskTri.NumImSec().size() != 0)
+            {
                 aImgMas->Task().Tri().push_back(aTaskTri);
+                mVTask[aImgMas->Num()].Tri().push_back(aTaskTri);
+            }
             else
                 cptDel++;
         }
@@ -141,26 +158,34 @@ void cAppliTaskCorrel::ExportXML(Pt3dr clIni)
     cout<<"Del : "<<cptDel<<endl;
 }
 
-//  ============================= cAppliTaskCorrelByXML =============================
+//  ============================= **************** =============================
+//  *                           cAppliTaskCorrelByXML                          *
+//  ============================= **************** =============================
 
 cAppliTaskCorrelByXML::cAppliTaskCorrelByXML(   const std::string & xmlFile,
                                                 cInterfChantierNameManipulateur * aICNM,
                                                 const std::string & aDir,
                                                 const std::string & anOri,
-                                                const std::string & aPatImg):
+                                                const std::string & aPatImg,
+                                                const std::string & aPathMesh):
           mICNM    (aICNM),
           mXmlFile (xmlFile),
           mDir     (aDir),
-          mOri     (anOri)
+          mOri     (anOri),
+          mPathMesh(aPathMesh)
 
 {
+    mVNImgs = *(aICNM->Get(aPatImg));
+    cout<<"Read Pattern : "<<mVNImgs.size()<<" images"<<endl;
     cAppliTaskCorrelByXML::importXML(mXmlFile);
-    vector<std::string> VNameImgs = *(aICNM->Get(aPatImg));
+    cAppliTaskCorrelByXML::filterCplProcess(mVCplImg, mVNImgs); //get cpl that have both imgs in pattern
+    cout<<"Nb Cpl Valid: "<<mVCplImg.size()<<" cpls"<<endl;
 }
+
+
 
 void cAppliTaskCorrelByXML::importXML(string XmlFile)
 {
-    cout<<"importXML"<<endl;
     string line;
     ifstream file (XmlFile.c_str());
     if (file.is_open())
@@ -169,27 +194,46 @@ void cAppliTaskCorrelByXML::importXML(string XmlFile)
         {
             stringstream ss(line);
             string temp = "";
-            //cout<<ss.str()<<endl;
             getline(ss, temp, '>'); //get "<TagName"
             if (temp.find("Cple") != std::string::npos)
             {
                 string cpl;
                 getline(ss, cpl, '<');
-
                 stringstream ssCpl(cpl);
-                string nImg1;
+                string nImg1, nImg2;
                 getline(ssCpl, nImg1, ' ');
-                cout<<nImg1<<endl;
-
-
-
-
+                getline(ssCpl, nImg2, '\n');
+                CplString aCpl;
+                aCpl.img1 = nImg1;
+                aCpl.img2 = nImg2;
+                mVCplImg.push_back(aCpl);
             }
         }
         file.close();
     }
     else cout << "Unable to open XML file";
+    cout<<"ImportXML : "<<mVCplImg.size()<<" cpl"<<endl;
 }
+
+void cAppliTaskCorrelByXML::filterCplProcess(vector<CplString> & mVCplImg, vector<string> & mVNImgs)
+{
+    vector<CplString> cplValid;
+    for (uint aKCpl=0; aKCpl<mVCplImg.size(); aKCpl++)
+    {
+        CplString aCpl = mVCplImg[aKCpl];
+        string nImg1 = aCpl.img1;
+        string nImg2 = aCpl.img2;
+        if     (std::find(mVNImgs.begin(), mVNImgs.end(), nImg1) != mVNImgs.end()
+             && std::find(mVNImgs.begin(), mVNImgs.end(), nImg2) != mVNImgs.end())
+        {
+            cplValid.push_back(aCpl);
+        }
+    }
+    mVCplImg.clear();
+    mVCplImg = cplValid;
+
+}
+
 
 vector<cXml_TriAngulationImMaster> cAppliTaskCorrelByXML::DoACpl(CplString aCpl)
 {
@@ -202,18 +246,43 @@ vector<cXml_TriAngulationImMaster> cAppliTaskCorrelByXML::DoACpl(CplString aCpl)
 
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM, aDir, mOri, aFullPattern);
-    aAppli->VTri() = mVTri;
-    aAppli->VTriF() = mVTriF;
+
+    aAppli->updateVTriFWithNewAppli(mVTri);
     aAppli->DoAllTri();
+    cout<<aAppli->VTask().size()<<" task"<<endl;
     return aAppli->VTask();
 }
 
 void cAppliTaskCorrelByXML::DoAllCpl()
 {
+    cout<<"DoallCpl"<<endl;
     for (uint aKCpl=0; aKCpl<mVCplImg.size(); aKCpl++)
     {
         CplString aCpl = mVCplImg[aKCpl];
+        cout<<"Cpl "<<aKCpl<<" "<<aCpl.img1<<" "<<aCpl.img2<<endl;
+        //lire mesh initialize:
+        if (aKCpl == 0)
+        {
+            std::string aDir,aNameImg;
+            std::string aFullPattern = aCpl.img1+"|"+aCpl.img2;
+            SplitDirAndFile(aDir,aNameImg,aFullPattern);
+            cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+            cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM, aDir, mOri, aFullPattern);
+            aAppli->lireMesh(mPathMesh, aAppli->VTri(), aAppli->VTriF());
+            mVTri = aAppli->VTri();
+        }
         Cur_mVTask = DoACpl(aCpl);
+        for (uint aKTask=0; aKTask<Cur_mVTask.size(); aKTask++)
+        {
+            cXml_TriAngulationImMaster aTask =  Cur_mVTask[aKTask];
+            cout<<"Task: Mas= "<<aTask.NameMaster()<<" - NbTri: "<<aTask.Tri().size()<<" - Nb2nd: "<<aTask.NameSec().size()<<endl;
+            //fusion Task to correct mVTask
+
+            //****......
+
+            //
+        }
+        Cur_mVTask.clear();
     }
 }
 

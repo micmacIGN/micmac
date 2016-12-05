@@ -28,6 +28,7 @@ public:
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
     void lireMesh(std::string & aNameMesh, vector<triangle*> &, vector<cTriForTiepTri*> &);
+    void updateVTriFWithNewAppli(vector<triangle*> & tri);
     PlyFile * Ply() {return mPly;}
     const std::string Ori() {return mOri;}
     const std::string Dir() {return mDir;}
@@ -57,6 +58,7 @@ private:
     vector<int> mCur_Img2nd;
     string mDirXML;
     int cptDel;
+
 };
 //  ============================= cAppliTaskCorrelByXML==========================
 class cAppliTaskCorrelByXML
@@ -66,30 +68,32 @@ public:
                           cInterfChantierNameManipulateur * aICNM,
                           const std::string & aDir,
                           const std::string & anOri,
-                          const std::string & aPatImg);
+                          const std::string & aPatImg,
+                          const std::string & aPathMesh);
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
-    vector<triangle*> VTri() {return mVTri;}
-    vector<cTriForTiepTri*> VTriF() {return mVTriF;}
+    vector<triangle*> & VTri() {return mVTri;}
+    vector<cTriForTiepTri*> & VTriF() {return mVTriF;}
     vector<cXml_TriAngulationImMaster> Cur_VTask() {return Cur_mVTask;}
+    vector<cXml_TriAngulationImMaster> & VTask() {return mVTask;}
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     vector<string> VNImgs() {return mVNImgs;}
     void importXML(string XmlFile);
     void DoAllCpl();
     vector<cXml_TriAngulationImMaster> DoACpl(CplString aCpl);
+    void filterCplProcess(vector<CplString> & mVCplImg, vector<string> & mVNImgs);
 private:
     cInterfChantierNameManipulateur * mICNM;
     vector<cImgForTiepTri*> mVImgs;
     vector<triangle*> mVTri;
     vector<cTriForTiepTri*> mVTriF;
     vector<cXml_TriAngulationImMaster> Cur_mVTask;
+    vector<cXml_TriAngulationImMaster> mVTask;
     vector<string> mVNImgs;
     vector<CplString> mVCplImg;
     string mXmlFile;
     string mDir;
     string mOri;
-
-
-
+    string mPathMesh;
 };
 
 
@@ -99,6 +103,7 @@ class cImgForTiepTri
 public:
         cImgForTiepTri(cAppliTaskCorrel* , string aNameIm, int aNum);
         CamStenope * Cam() {return mCam;}
+        cAppliTaskCorrel * Appli() {return mAppli;}
         bool inside(Pt2dr aPt, double aRab = 0);
         Tiff_Im Tif() {return mTif;}
         Pt2di Sz() {return mSz;}
