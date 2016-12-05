@@ -291,19 +291,25 @@ void cAppliTaskCorrelByXML::DoAllCpl()
             mVTri = aAppli->VTri();
         }
         Cur_mVTask = DoACpl(aCpl);
-        for (uint aKTask=0; aKTask<Cur_mVTask.size(); aKTask++)
+        ELISE_ASSERT(Cur_mVTask.size()==2, "ERROR : Nb Task not coherent (1 cpl => 2 Task)");
+        //Task1 => Mas=img1 , 2nd=img2
+        cXml_TriAngulationImMaster aTaskImg1 =  Cur_mVTask[0];
+        cout<<"Task: Mas= "<<aTaskImg1.NameMaster()<<" - NbTri: "<<aTaskImg1.Tri().size()<<" - Nb2nd: "<<aTaskImg1.NameSec().size()<<endl;
+        for (uint aKTgl = 0; aKTgl<aTaskImg1.Tri().size(); aKTgl++)
         {
-            cXml_TriAngulationImMaster aTask =  Cur_mVTask[aKTask]; 
-            cout<<"Task: Mas= "<<aTask.NameMaster()<<" - NbTri: "<<aTask.Tri().size()<<" - Nb2nd: "<<aTask.NameSec().size()<<endl;
-            //change NumImSec in Tri
-            for (uint aKTgl = 0; aKTgl<aTask.Tri().size(); aKTgl++)
-            {
-                cXml_Triangle3DForTieP aTgl = aTask.Tri()[aKTgl];
-                aTgl.NumImSec()[0] = aCplInd.y;
-            }
-            //concate all Tri() in aTask to right position in mVTask
-            mVTask[aCplInd.x].Tri().insert(mVTask[aCplInd.x].Tri().end(), aTask.Tri().begin(), aTask.Tri().end());
+            cXml_Triangle3DForTieP aTgl = aTaskImg1.Tri()[aKTgl];
+            aTgl.NumImSec()[0] = aCplInd.y;
         }
+        mVTask[aCplInd.x].Tri().insert(mVTask[aCplInd.x].Tri().end(), aTaskImg1.Tri().begin(), aTaskImg1.Tri().end());
+        //Task2 => Mas=img2 , 2nd=img1
+        cXml_TriAngulationImMaster aTaskImg2 =  Cur_mVTask[1];
+        cout<<"Task: Mas= "<<aTaskImg2.NameMaster()<<" - NbTri: "<<aTaskImg2.Tri().size()<<" - Nb2nd: "<<aTaskImg2.NameSec().size()<<endl;
+        for (uint aKTgl = 0; aKTgl<aTaskImg2.Tri().size(); aKTgl++)
+        {
+            cXml_Triangle3DForTieP aTgl = aTaskImg2.Tri()[aKTgl];
+            aTgl.NumImSec()[0] = aCplInd.x;
+        }
+        mVTask[aCplInd.y].Tri().insert(mVTask[aCplInd.x].Tri().end(), aTaskImg2.Tri().begin(), aTaskImg2.Tri().end());
         Cur_mVTask.clear();
     }
 }
