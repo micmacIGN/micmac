@@ -256,7 +256,7 @@ double cTest_PBGC3M2DF::AddBundle(const  std::vector<cSetCTest_PBGC3M2DF *> & aV
               cParamPtProj aPPP(1.0,1.0,false,-1);
               aPPP.mTer = aPImTer;
 
-              Pt2dr aPAp = aSet->mVCams[aKC]->mFPC.AddEqAppuisInc(aPIm,0,aPPP,false);
+              Pt2dr aPAp = aSet->mVCams[aKC]->mFPC.AddEqAppuisInc(aPIm,0,aPPP,false,NullPCVU);
               anEr += euclid(aPAp);
           }
           anEr /= aNbCam;
@@ -270,9 +270,9 @@ double cTest_PBGC3M2DF::AddBundle(const  std::vector<cSetCTest_PBGC3M2DF *> & aV
                   Pt2dr aPIm = aSet->mVP[aKC][aKP];
                   cParamPtProj aPPP(1.0,1.0,false,-1);
                   aPPP.mTer = aPImTer;
-                  aSet->mVCams[aKC]->mFPC.AddEqAppuisInc(aPIm,aPds,aPPP,false);
+                  aSet->mVCams[aKC]->mFPC.AddEqAppuisInc(aPIm,aPds,aPPP,false,NullPCVU);
               }
-              aSet->mBufSub->DoSubst();
+              aSet->mBufSub->DoSubstBloc(NullPCVU);
           }
        }
     }

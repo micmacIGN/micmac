@@ -47,6 +47,8 @@ cVectPreCond::~cVectPreCond()
 {
 }
 
+cParamCalcVarUnkEl * NullPCVU = 0;
+
 /****************************************************/
 /*                                                  */
 /*            cGenSysSurResol                       */
@@ -87,10 +89,26 @@ double  cGenSysSurResol::CoVariance(int aK1,int aK2)
     ELISE_ASSERT(false,"cGenSysSurResol::CoVariance");
     return 0.0;
 }
+bool    cGenSysSurResol::IsTmp(int aK) const
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::IsTmp");
+   return false;
+}
 
-
-
-
+void cGenSysSurResol::SetTmp(const std::vector<cSsBloc> &  aVx,const std::vector<cSsBloc> &  aVy,bool ForSet)
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::SetTmp");
+}
+int    cGenSysSurResol::NumTmp(int aK) const
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::NumTmp");
+   return -1;
+}
+int    cGenSysSurResol::NumNonTmp(int aK) const
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::NumNonTmp");
+   return -1;
+}
 
 
 cGenSysSurResol::cGenSysSurResol
@@ -293,7 +311,7 @@ void cGenSysSurResol::TraitementContrainteUniVar(const std::vector<int> * aVA2S)
 // std::cout << "KVVVV " << aKV << " KI " << aKI << "\n";
               aVInd.push_back(aKI);
               double aCoef1 = 1.0;
-              Basic_GSSR_AddNewEquation_Indexe(0,0,0,aVInd,1.0,&aCoef1,mValCstr.data()[aKV]);
+              Basic_GSSR_AddNewEquation_Indexe(0,0,0,aVInd,1.0,&aCoef1,mValCstr.data()[aKV],NullPCVU);
 // std::cout << "PB QUand on passe par indexee \n";
         }
     }
@@ -444,7 +462,8 @@ void cGenSysSurResol::Basic_GSSR_AddNewEquation_Indexe
          const std::vector<cSsBloc> * aVSB,
          double * aFullC,int aNbTot,
          const std::vector<INT> & aVInd ,
-         REAL aPds,REAL * aCoeff,REAL aB
+         REAL aPds,REAL * aCoeff,REAL aB,
+         cParamCalcVarUnkEl *    aPCVU
      )
 {
 /*
@@ -460,7 +479,7 @@ void cGenSysSurResol::Basic_GSSR_AddNewEquation_Indexe
 
      AssertPhaseEquation();
     // mSetEqEmpty = false;
-     V_GSSR_AddNewEquation_Indexe(aVSB,aFullC,aNbTot,aVInd,aPds,aCoeff,aB);
+     V_GSSR_AddNewEquation_Indexe(aVSB,aFullC,aNbTot,aVInd,aPds,aCoeff,aB,aPCVU);
 
 /*
     if (BugUPL )
@@ -486,11 +505,12 @@ void cGenSysSurResol::GSSR_AddNewEquation_Indexe
          const std::vector<cSsBloc> * aVSB,
          double * aFullC,int aNbTot,
          const std::vector<INT> & aVInd ,
-         REAL aPds,REAL * aCoeff,REAL aB
+         REAL aPds,REAL * aCoeff,REAL aB,
+         cParamCalcVarUnkEl * aPCVU
      )
 {
      // Done in Basic_GSSR_AddNewEquation_Indexe  -> AssertPhaseEquation();
-     Basic_GSSR_AddNewEquation_Indexe(aVSB,aFullC,aNbTot,aVInd,aPds,aCoeff,aB);
+     Basic_GSSR_AddNewEquation_Indexe(aVSB,aFullC,aNbTot,aVInd,aPds,aCoeff,aB,aPCVU);
 }
 
 
@@ -517,7 +537,8 @@ void cGenSysSurResol::V_GSSR_AddNewEquation_Indexe
          const std::vector<cSsBloc> * aVSB,
          double *,int aNb,
          const std::vector<INT> & aVInd ,
-         REAL aPds,REAL * aCoeff,REAL aB
+         REAL aPds,REAL * aCoeff,REAL aB,
+         cParamCalcVarUnkEl *
      )
 {
     ELISE_ASSERT(false,"No V_GSSR_AddNewEquation_Indexe");
@@ -612,7 +633,7 @@ void L2SysSurResol::GSSR_Add_EqInterPlan3D(const Pt3dr& aDirOrtho,const Pt3dr& a
    aCoeff[2] =  aDirOrtho.z;
 
    //GSSR_AddNewEquation(aPds,aCoeff,scal(aDirOrtho,aP0),0);
-    L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,aVInd,aPds,&(aCoeff[0]),scal(aDirOrtho,aP0));
+    L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,aVInd,aPds,&(aCoeff[0]),scal(aDirOrtho,aP0),NullPCVU);
 }
 
 void L2SysSurResol::GSSR_AddEquationFitOneVar(int aNumVar,double aVal,double aPds)
@@ -623,7 +644,7 @@ void L2SysSurResol::GSSR_AddEquationFitOneVar(int aNumVar,double aVal,double aPd
 
     double aCoef1 = 1.0;
 
-    L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,aVInd,aPds,&aCoef1,aVal);
+    L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,aVInd,aPds,&aCoef1,aVal,NullPCVU);
 }
 
 void   L2SysSurResol::GSSR_AddEquationPoint3D(const Pt3dr & aP,const Pt3dr &  anInc)
@@ -821,8 +842,11 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
     mNbIncReel         (mNbVar),
     mRedundancy        (1.0),
     mMaxBibi           (0),
-    mIsTmp             (aNbVar),
-    mDIsTmp            (mIsTmp.data()),
+    mNumTmp            (aNbVar,-1),
+    // mDIsTmp
+    mDNumTmp           (mNumTmp.data()),
+    mNumNonTmp         (aNbVar,-1),
+    mDNumNonTmp        (mNumNonTmp.data()),
     mDoCalculVariance  (false),
     mVariance          (aNbVar,0.0),
     mDVar              (mVariance.data()),
@@ -831,6 +855,44 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
 {
     // std::cout << "L2SysSurResol::L2SysSurResol " << IsSym << "\n";
 }
+
+
+void L2SysSurResol::SetNum(INT4 * aData,const std::vector<cSsBloc> &  aVx,bool ForSet)
+{
+    int aNum=0;
+    for (int aKx=0 ; aKx <int(aVx.size()) ; aKx++)
+    {
+        const cSsBloc & aBlX = aVx[aKx];
+        int aI0x = aBlX.I0AbsSolve();
+        int aI1x = aBlX.I1AbsSolve();
+        for (int aX=aI0x ; aX<aI1x ; aX++)
+        {
+             aData[aX] = ForSet ? aNum : -1 ;
+             aNum++;
+        }
+    }
+}
+
+void L2SysSurResol::SetTmp(const std::vector<cSsBloc> &  aVx,const std::vector<cSsBloc> &  aVy,bool ForSet)
+{
+// std::cout << "XxxxL2SysSurResol::SetTm\n";
+    SetNum(mDNumTmp,aVx,ForSet);
+    SetNum(mDNumNonTmp,aVy,ForSet);
+}
+
+bool    L2SysSurResol::IsTmp(int aK) const
+{
+   return mDNumTmp[aK]!=-1;
+}
+int    L2SysSurResol::NumTmp(int aK) const
+{
+   return mDNumTmp[aK];
+}
+int    L2SysSurResol::NumNonTmp(int aK) const
+{
+   return mDNumNonTmp[aK];
+}
+
 
 void L2SysSurResol::SetCalculVariance(bool aDo)
 {
@@ -872,8 +934,10 @@ void L2SysSurResol::SetSize(INT aNbVar)
     mSolL2 =mSolL2.AugmentSizeTo(mNbVar,0.0);;
     mDataSolL2 = mSolL2.data();
 
-    mIsTmp = mIsTmp.AugmentSizeTo(mNbVar,0);
-    mDIsTmp = mIsTmp.data();
+    mNumTmp = mNumTmp.AugmentSizeTo(mNbVar,-1);
+    mDNumTmp = mNumTmp.data();
+    mNumNonTmp = mNumNonTmp.AugmentSizeTo(mNbVar,-1);
+    mDNumNonTmp = mNumNonTmp.data();
 
     mVariance = mVariance.AugmentSizeTo(aNbVar,0.0); 
     mDVar     = mVariance.data();
@@ -889,7 +953,8 @@ void L2SysSurResol::Reset()
    mbi_Li.raz();
    mVariance.raz();
    mCoVariance.raz();
-   mIsTmp.raz();
+   ELISE_COPY(mNumTmp.all_pts(),-1,mNumTmp.out());
+   ELISE_COPY(mNumNonTmp.all_pts(),-1,mNumNonTmp.out());
    mBibi = 0.0;
    mRedundancy = 1.0 - mNbIncReel / double(mNbEq);
    mNbEq = 0;
@@ -913,7 +978,7 @@ void L2SysSurResol::AddEquation(REAL aPds,REAL * aCoeff,REAL aB)
              VALS.push_back(aCoeff[iVar1]);
          }
      }
-     L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,VInd,aPds,&VALS[0],aB);
+     L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,VInd,aPds,&VALS[0],aB,NullPCVU);
 }
 
 
@@ -953,6 +1018,8 @@ double  L2SysSurResol::ResiduOfSol(const double * aData)
    return aRes;
 }
 
+
+ 
 
 void L2SysSurResol::Indexee_EcrireDansMatrWithQuad
      (
@@ -1043,14 +1110,6 @@ void  L2SysSurResol::Indexee_QuadSet0
     }
 }
 
-// Classe permettant de faire communiquer V_GSSR_AddNewEquation_Indexe et SoutraitProduc3x3 (ou DoSubst ?)
-// pour le calcul de variance covariance en cas d'elimination d'inconnues (complement de Schurr)
-// En effet lorsque l'on effectue la substitution  on a, pour l'instant, perdu trace du detail des
-// obsevation qui ont amene au calcul
-
-class cParamCalcVarUnkEl
-{
-};
 
 void  L2SysSurResol::SoutraitProduc3x3
      (
@@ -1119,6 +1178,11 @@ void  L2SysSurResol::SoutraitProduc3x3
 
 
 
+// Classe permettant de faire communiquer V_GSSR_AddNewEquation_Indexe et SoutraitProduc3x3 (ou DoSubst ?)
+// pour le calcul de variance covariance en cas d'elimination d'inconnues (complement de Schurr)
+// En effet lorsque l'on effectue la substitution  on a, pour l'instant, perdu trace du detail des
+// obsevation qui ont amene au calcul
+
 
 
 
@@ -1129,16 +1193,20 @@ void L2SysSurResol::V_GSSR_AddNewEquation_Indexe
            const std::vector<INT> & aVInd ,
            REAL aPds,
            REAL * aCoeff,
-           REAL aB
+           REAL aB,
+           cParamCalcVarUnkEl *aCalcUKn
      )
 {
-// Test provisoire qui permet de verifier que la formule de variance est bien en racine de N
-static int aCpt=0 ; aCpt++;
-int aNb=1;
-for (int aK=0 ; aK<aNb ; aK++)
-{
 
-if ((aK==aNb-1) &&((aCpt%10)==0) && (aNb>1) ) std::cout << "V_GSSR_AddNewEquation_IndexeKKKK " << aK << " " << aCpt<< "\n";
+// ==================================
+
+/*
+tPCVU aBufCalcUKn;
+tPCVU * aCalcUKn = &aBufCalcUKn;
+aCalcUKn = 0;
+*/
+ 
+// ==================================
 
      mVarCurResidu = 0.0;
      mVarCurSomLjAp = 0;
@@ -1233,6 +1301,11 @@ if ((aK==aNb-1) &&((aCpt%10)==0) && (aNb>1) ) std::cout << "V_GSSR_AddNewEquatio
 
      if (mDoCalculVariance)
      {
+         if (aCalcUKn)
+         {
+            aCalcUKn->NewEl(aB,aPds);
+         }
+
          double * aLocCoeff = (aVSB ? aFullCoef : aCoeff);
          double aResidual = -aB;
          std::vector<double> aVSomAPl(aVarIndCoeff.size());
@@ -1240,39 +1313,36 @@ if ((aK==aNb-1) &&((aCpt%10)==0) && (aNb>1) ) std::cout << "V_GSSR_AddNewEquatio
          for (int aK=0 ; aK<int(aVarIndCoeff.size()) ; aK++ )
          {
              aResidual+=  aLocCoeff[aVarIndCoeff[aK]]  * mDataSolL2[aVarIndGlob[aK]];
+             if (aCalcUKn)
+             {
+                 aCalcUKn->AddVal(aLocCoeff[aVarIndCoeff[aK]],aVarIndGlob[aK]);
+             }
          }
-         for (int aKI=0 ; aKI<int(aVarIndCoeff.size()) ; aKI++ )
+         if (aCalcUKn)
          {
-             double aSomApL = 0;
-             for (int aKJ=0 ; aKJ<int(aVarIndCoeff.size()) ; aKJ++ )
-             {
-                 aSomApL += aLocCoeff[aVarIndCoeff[aKJ]] *  mDataInvtLi_Li[aVarIndGlob[aKI]][aVarIndGlob[aKJ]];
-
-             }
-             aVSomAPl[aKI] = aSomApL;
-             mDVar[aVarIndGlob[aKI]] += ElSquare(aSomApL *aPds * aResidual);
+              aCalcUKn->SetResidu(aResidual);
          }
+         else
+         {
+            for (int aKI=0 ; aKI<int(aVarIndCoeff.size()) ; aKI++ )
+            {
+                double aSomApL = 0;
+                for (int aKJ=0 ; aKJ<int(aVarIndCoeff.size()) ; aKJ++ )
+                {
+                    aSomApL += aLocCoeff[aVarIndCoeff[aKJ]] *  mDataInvtLi_Li[aVarIndGlob[aKI]][aVarIndGlob[aKJ]];
+                }
+                aVSomAPl[aKI] = aSomApL;
+                mDVar[aVarIndGlob[aKI]] += ElSquare(aSomApL *aPds * aResidual);
+            }
 
-         for (int aKI=0 ; aKI<int(aVarIndCoeff.size()) ; aKI++ )
-             for (int aKJ=0 ; aKJ<int(aVarIndCoeff.size()) ; aKJ++ )
-             {
-                 mDCoVar[aVarIndGlob[aKI]][aVarIndGlob[aKJ]] +=  ElSquare(aPds * aResidual) * aVSomAPl[aKI] * aVSomAPl[aKJ];
-             }
-
-
-/*
-if ((MPD_MM()) && (int(aVarIndCoeff.size()) > 10) )
-{
-    int aNbV = aVarIndCoeff.size();
-    std::cout << "NbbbBbbU: " << aNbV << "\n";
-    for (int aK=0 ; aK< 3; aK++)
-    {
-        // std::cout << "PppptInc :" <<  aLocCoeff[aVarIndCoeff[ aNbV-3 + aK]]  << "\n";
-        std::cout << "PppptInc :" <<  mDataSolL2[aVarIndGlob[aNbV-3 +  aK]]  << "\n";
-    }
-    std::cout << "==============\n";
-}
-*/
+            for (int aKI=0 ; aKI<int(aVarIndCoeff.size()) ; aKI++ )
+            {
+                for (int aKJ=0 ; aKJ<int(aVarIndCoeff.size()) ; aKJ++ )
+                {
+                    mDCoVar[aVarIndGlob[aKI]][aVarIndGlob[aKJ]] +=  ElSquare(aPds * aResidual) * aVSomAPl[aKI] * aVSomAPl[aKJ];
+                }
+            }
+         }
      }
 
 // std::cout << "L2SR:VG " << mDatabi_Li[0] << "\n";
@@ -1280,7 +1350,6 @@ if ((MPD_MM()) && (int(aVarIndCoeff.size()) > 10) )
      mBibi += aPds * ElSquare(aB);
      mMaxBibi = ElMax(mMaxBibi,aPds * ElSquare(aB));
      mNbEq ++;
-}
 }
 
 void L2SysSurResol::V_GSSR_EqMatIndexee

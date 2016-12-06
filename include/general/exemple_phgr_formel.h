@@ -536,6 +536,7 @@ class cBufSubstIncTmp
 
 	 double DoSubst
 	      (
+                  cParamCalcVarUnkEl * aPCVU,
                   cSetEqFormelles * aSet,
                   const std::vector<cSsBloc> &  aSBlTmp,
                   const std::vector<cSsBloc> &  aSBlNonTmp,
@@ -574,7 +575,7 @@ class cSubstitueBlocIncTmp
          cSubstitueBlocIncTmp(cEqfBlocIncTmp &);
 	 void AddInc(const cIncListInterv &);
 	 void Close();
-	 void DoSubst(bool Raz=true,double LimCond=-1);
+	 void DoSubstBloc(cParamCalcVarUnkEl * aPCVU,bool Raz=true,double LimCond=-1);
 
          void RazNonTmp();
 

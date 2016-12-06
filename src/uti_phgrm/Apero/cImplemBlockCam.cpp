@@ -315,7 +315,7 @@ const std::vector<double> &  cEqObsBlockCam::AddObs(const double & aPdsTr,const 
   // Compute the values and its derivative (in class cCodeBlockCam here)
   // Link it to the real index of the variable
   // fill the covariance stuff taking into account these values
-  return mSet->VAddEqFonctToSys(mFoncEqResidu,aVPds,false);
+  return mSet->VAddEqFonctToSys(mFoncEqResidu,aVPds,false,NullPCVU);
 }
 
 void GenerateCodeBlockCam()

@@ -556,6 +556,16 @@ void cEqfBlocIncNonTmp::SetVal(int aK,const double & aVal)
 /*                                                          */
 /************************************************************/
 
+
+// Classe permettant de faire communiquer V_GSSR_AddNewEquation_Indexe et SoutraitProduc3x3 (ou DoSubst ?)
+// pour le calcul de variance covariance en cas d'elimination d'inconnues (complement de Schurr)
+// En effet lorsque l'on effectue la substitution  on a, pour l'instant, perdu trace du detail des
+// obsevation qui ont amene au calcul
+
+
+
+
+
 cBufSubstIncTmp::cBufSubstIncTmp
 (
       cSetEqFormelles * aSet,
@@ -695,6 +705,7 @@ double CondMat(ElMatrix<tSysCho> & aMat,bool Sym3,bool SSym)
 
 double cBufSubstIncTmp::DoSubst
      (  // X et Y notation de la doc, pas ligne ou colonnes
+          cParamCalcVarUnkEl * aCalcUKn,
           cSetEqFormelles * aSet,
           const std::vector<cSsBloc> &  aX_SBlTmp,
           const std::vector<cSsBloc> &  aY_SBlNonTmp,
@@ -705,6 +716,16 @@ double cBufSubstIncTmp::DoSubst
           double                   aLimCond
      )
 {
+
+//std::cout << "Dooooooo "<< aCalcUKn << " " << (aCalcUKn ? int(aCalcUKn->VEq().size()) : -1) << "\n";
+
+/*
+cParamCalcVarUnkEl aBufCalcUKn;
+cParamCalcVarUnkEl * aCalcUKn = 0;
+if (MPD_MM()) 
+   aCalcUKn = &aBufCalcUKn;
+*/
+  
 
 if(DebugCamBil)
 {
@@ -718,6 +739,12 @@ if(DebugCamBil)
   getchar();
 }
    cGenSysSurResol & aSys =  *(aSet->Sys());
+   if (aCalcUKn) 
+   {
+      aSys.SetTmp(aX_SBlTmp,aY_SBlNonTmp,true);
+   }
+
+
    int aNbX = aX_SBlTmp[0].Nb();
    Resize(aSet,aNbX,aNbBloc);
 
@@ -815,6 +842,13 @@ if(DebugCamBil)
        }
        ElMatrix<tSysCho> aBpLA =  mBpL * mA;
        aSys.Indexee_SoustraitMatrColInLin(aBpLA,aY_SBlNonTmp);
+
+       if (aCalcUKn)
+       {
+           // Teta = Som Lm tKm   , Teta Lambda-1 = mBpL
+           // std::cout << "SzzZZzmBl " << mBpL.tx()  << " " << mBpL.ty() << "\n";  3 36
+           // ElMatrix<tSysCho> aMat
+       }
    }
    if (DebugPbCondFaisceau)
    {
@@ -831,6 +865,10 @@ if(DebugCamBil)
        aSys.Indexee_QuadSet0(aY_SBlNonTmp,aX_SBlTmp);
    }
 
+   if (aCalcUKn) 
+   {
+      aSys.SetTmp(aX_SBlTmp,aY_SBlNonTmp,false);
+   }
    return aCond;
 }
 
@@ -965,11 +1003,12 @@ void cSubstitueBlocIncTmp::RazNonTmp()
 }
     
 
-void cSubstitueBlocIncTmp::DoSubst(bool doRaz,double LimCond)
+void cSubstitueBlocIncTmp::DoSubstBloc(cParamCalcVarUnkEl * aPCVU,bool doRaz,double LimCond)
 {
 
    mCond = cBufSubstIncTmp::TheBuf()->DoSubst
            (
+              aPCVU,
               mBlocTmp.Set(),
               mVSBlTmp,mSBlNonTmp,mNbBloc,
               doRaz,
@@ -1566,6 +1605,8 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               const cRapOnZ *      aRAZ
                            )
 {
+   cParamCalcVarUnkEl aPCVU;
+   cParamCalcVarUnkEl * aPCVUPtr =    mSet.Sys()->IsCalculingVariance() ? &aPCVU : NullPCVU;
    double aLimBsHOKBehind = 1e-2;
    double aCondMax = -1;
    if (anArg.mRop)
@@ -1731,13 +1772,9 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
        double aPds= (AddEq?aVPdsIm[aK]:0) * mMulGlobPds;
        if (aVPdsIm[aK]>0)
        {
-           Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP,aNuple.IsDr(aK));
-
-
-
+           Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP,aNuple.IsDr(aK),aPCVUPtr);
 
            mResidus.mEcIm.push_back(anEr);
-if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << " " << mMulGlobPds << "\n";
 
            mResidus.mSomPondEr += aVPdsIm[aK] * mMulGlobPds * square_euclid(anEr);
         }
@@ -1781,13 +1818,8 @@ if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << "
 	    {
 	        double aPds = (1/ElSquare(aVInc[aK])) * mMulGlobPds;
 		const std::vector<REAL> &  aV =   AddEq                                     ?
-                                                  mSet.VAddEqFonctToSys(aFR[aK],aPds,false) :
+                                                  mSet.VAddEqFonctToSys(aFR[aK],aPds,false,aPCVUPtr) :
                                                   mSet.VResiduSigne(aFR[aK])                ;
-                if (UPL_DCC())  
-                {
-                   std::cout  << "y====y===y===yyyyyy " 
-                              << aPds << " " << aK <<  " " << aFR[aK]  << " " << aV[0] << "\n";
-                }
                 mResidus.mSomPondEr +=  aPds * ElSquare(aV[0]);
 	    }
 	}
@@ -1797,7 +1829,7 @@ if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << "
     if (UPL_DCC()) std::cout << "HHHHHHHHhhhhhhhhhh " << AddEq << "\n";
     if (AddEq)
     {
-       mSubst.DoSubst(true,(mPPP.mProjIsInit?aCondMax:-1));
+       mSubst.DoSubstBloc(aPCVUPtr,true,(mPPP.mProjIsInit?aCondMax:-1));
     }
 
     return mResidus;

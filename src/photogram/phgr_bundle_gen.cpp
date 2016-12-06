@@ -204,7 +204,7 @@ Pt2dr cGlobEqLineraiseAngle::AddEquationGen(const Pt3dr & aP1,const Pt3dr & aP2,
     aVPds.push_back(aPds);
     aVPds.push_back(aPds);
     const std::vector<REAL> & aResidu =      WithEq                                              ?
-                                             mSetEq->VAddEqFonctToSys(mFoncEqResidu,aVPds,false) :
+                                             mSetEq->VAddEqFonctToSys(mFoncEqResidu,aVPds,false,NullPCVU) :
                                              mSetEq->VResiduSigne(mFoncEqResidu)                 ;
 
     Pt2dr aResult(aResidu[0],aResidu[1]);

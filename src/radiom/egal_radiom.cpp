@@ -729,7 +729,8 @@ void cER_OneIm::AddRappelValInit(double aPds,int aKCh,double aVal,cGenSysSurReso
   aSys->GSSR_AddNewEquation_Indexe
   (
           &aSBl, &mCoeff[0], aSBl[0].Nb(),
-          aVInd, aPds,(double *) 0 ,aVal
+          aVInd, aPds,(double *) 0 ,aVal,
+          NullPCVU
   );
 
 }
@@ -754,7 +755,8 @@ void cER_OneIm::AddEqValsEgal(double aPds,int aKCh,cER_OneIm &  anI2,cGenSysSurR
   aSys->GSSR_AddNewEquation_Indexe
   (
           &aSBl, &aCoefs[0], aSBl[0].Nb(),
-          aVInd, aPds,(double *) 0 ,0.0
+          aVInd, aPds,(double *) 0 ,0.0,
+          NullPCVU
   );
 }
 

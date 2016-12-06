@@ -2148,7 +2148,8 @@ void cFormQuadCreuse::V_GSSR_AddNewEquation_Indexe
                          const std::vector<cSsBloc> * aVSB,
                          double * aFullCoeff,int aNbTot,
                          const std::vector<INT> & aVInd,
-		         REAL aPds,REAL * aCoeff,REAL aB
+		         REAL aPds,REAL * aCoeff,REAL aB,
+                         cParamCalcVarUnkEl *
                       ) 
 {
   mV0 += aPds * ElSquare(aB);

@@ -166,7 +166,7 @@ Pt3dr  cEqOffsetGPS::AddObs(const Pt3dr & aGPS,const Pt3dr & aPds)
      aVPds.push_back(aPds.y);
      aVPds.push_back(aPds.z);
 
-     const std::vector<REAL> & aResidu =  mSet->VAddEqFonctToSys(mFoncEqResidu,aVPds,false);
+     const std::vector<REAL> & aResidu =  mSet->VAddEqFonctToSys(mFoncEqResidu,aVPds,false,NullPCVU);
 
      return Pt3dr(aResidu.at(0),aResidu.at(1),aResidu.at(2));
 }
@@ -321,7 +321,7 @@ Pt3dr    cEqRelativeGPS::AddObs(const Pt3dr & aDif12,const Pt3dr & aPds)
      aVPds.push_back(aPds.y);
      aVPds.push_back(aPds.z);
 
-     const std::vector<REAL> & aResidu =  mSet->VAddEqFonctToSys(mFoncEqResidu,aVPds,false);
+     const std::vector<REAL> & aResidu =  mSet->VAddEqFonctToSys(mFoncEqResidu,aVPds,false,NullPCVU);
      return Pt3dr(aResidu.at(0),aResidu.at(1),aResidu.at(2));
 }
 

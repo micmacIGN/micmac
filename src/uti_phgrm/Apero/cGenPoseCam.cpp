@@ -401,12 +401,12 @@ void cPolynBGC3M2D_Formelle::AddEqRot(const Pt2di & aP0,const Pt2di &aP1,double 
 
                 mEqP3I->InitEqP3iVal(Pt3dr(0,0,0));
 
-                mSet.VAddEqFonctToSys(mFoncEqRot,aPds/aNbOk,false) ;
+                mSet.VAddEqFonctToSys(mFoncEqRot,aPds/aNbOk,false,NullPCVU) ;
             }
        }
     }
 
-    mBufSubRot->DoSubst();
+    mBufSubRot->DoSubstBloc(NullPCVU);
 
 }
 /*
@@ -666,7 +666,7 @@ void cPolynBGC3M2D_Formelle::AddEqAttach(Pt2dr aPIm,double aPds,bool Cur,CamSten
    }
    mFixedVal.SetEtat(aValFix);
 
-   mSet.VAddEqFonctToSys(mFoncEqAttach,aPds,false) ;
+   mSet.VAddEqFonctToSys(mFoncEqAttach,aPds,false,NullPCVU) ;
 }
 
 void cPolynBGC3M2D_Formelle::AddEqAttachGlob(double aPds,bool Cur,int aNbPts,CamStenope * aKnownSol)
@@ -694,7 +694,7 @@ void cPolynBGC3M2D_Formelle::AddEqAttachGlob(double aPds,bool Cur,int aNbPts,Cam
 
 
 
-Pt2dr cPolynBGC3M2D_Formelle::AddEqAppuisInc(const Pt2dr & aPixObsIm,double aPds, cParamPtProj & aPPP,bool IsEqDroite)
+Pt2dr cPolynBGC3M2D_Formelle::AddEqAppuisInc(const Pt2dr & aPixObsIm,double aPds, cParamPtProj & aPPP,bool IsEqDroite, cParamCalcVarUnkEl*)
 {
    ELISE_ASSERT(!IsEqDroite,"cPolynBGC3M2D_Formelle::AddEqAppuisInc do not handle lines equation");
 /*
@@ -748,7 +748,7 @@ CS :
 
     if (aPds>0)
     {
-       aVRes = mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,false) ;
+       aVRes = mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,false,NullPCVU) ;
     }
     else
     {

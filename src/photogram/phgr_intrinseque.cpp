@@ -685,7 +685,7 @@ void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aP
     mRegulDistKnownVal->SetEtat(aP);
     std::vector<double> aRes;
 
-    aRes = mSet.VAddEqFonctToSys(mFER_Val,aVPv,false);
+    aRes = mSet.VAddEqFonctToSys(mFER_Val,aVPv,false,NullPCVU);
 
     double aEps = CurFocale() / 50.0;
 
@@ -697,14 +697,14 @@ void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aP
     mRegulDistDxP1->SetEtat(aP+Pt2dr( aEps,0));
     mRegulDistDxP2->SetEtat(aP+Pt2dr(-aEps,0));
     mRegulDistKnownDer->SetEtat(Pt2dr(2*aEps,0));
-    aRes = mSet.VAddEqFonctToSys(mFER_Dx,aVPGrad,false);
+    aRes = mSet.VAddEqFonctToSys(mFER_Dx,aVPGrad,false,NullPCVU);
 
 
      // y 
     mRegulDistDxP1->SetEtat(aP+Pt2dr(0, aEps));
     mRegulDistDxP2->SetEtat(aP+Pt2dr(0,-aEps));
     mRegulDistKnownDer->SetEtat(Pt2dr(0,2*aEps));
-    aRes = mSet.VAddEqFonctToSys(mFER_Dx,aVPGrad,false);
+    aRes = mSet.VAddEqFonctToSys(mFER_Dx,aVPGrad,false,NullPCVU);
 
     if (Show) 
         std::cout << aRes.size() << "GG " <<  aRes[0]/aEps << " " << aRes[1]/aEps << "\n";
@@ -715,7 +715,7 @@ void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aP
     mRegulDistDxxP1->SetEtat(aP+Pt2dr( aEps,0));
     mRegulDistDxxP2->SetEtat(aP+Pt2dr(-aEps,0));
     mRegulDistDxxP3->SetEtat(aP);
-    aRes= mSet.VAddEqFonctToSys(mFER_Dxx,aVPCourb,false);
+    aRes= mSet.VAddEqFonctToSys(mFER_Dxx,aVPCourb,false,NullPCVU);
     if (Show) 
         std::cout << aRes.size() << "Dxxxx " <<  aRes[0]/ElSquare(aEps) << " " <<  aRes[1]/ElSquare(aEps) << "\n";
 
@@ -723,7 +723,7 @@ void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aP
     mRegulDistDxxP1->SetEtat(aP+Pt2dr(0, aEps));
     mRegulDistDxxP2->SetEtat(aP+Pt2dr(0,-aEps));
     mRegulDistDxxP3->SetEtat(aP);
-    aRes = mSet.VAddEqFonctToSys(mFER_Dxx,aVPCourb,false);
+    aRes = mSet.VAddEqFonctToSys(mFER_Dxx,aVPCourb,false,NullPCVU);
     if (Show) 
         std::cout << aRes.size() << "Dyyy " <<  aRes[0]/ElSquare(aEps) << " " <<  aRes[1]/ElSquare(aEps) << "\n";
 
@@ -732,7 +732,7 @@ void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aP
     mRegulDistDxyP2->SetEtat(aP+Pt2dr(-aEps,-aEps));
     mRegulDistDxyP3->SetEtat(aP+Pt2dr(-aEps, aEps));
     mRegulDistDxyP4->SetEtat(aP+Pt2dr( aEps,-aEps));
-    aRes = mSet.VAddEqFonctToSys(mFER_DxDy,aVPCourb,false);
+    aRes = mSet.VAddEqFonctToSys(mFER_DxDy,aVPCourb,false,NullPCVU);
     if (Show) 
        std::cout << aRes.size() << "DXXYY " <<  aRes[0]/ElSquare(aEps) << " " <<  aRes[1]/ElSquare(aEps) << "\n";
 }

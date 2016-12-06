@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_UTIL_H
 #define _ELISE_UTIL_H
 
+class cParamCalcVarUnkEl;
+extern cParamCalcVarUnkEl * NullPCVU;
 class tFileOffset;
 
 extern const  std::string  TheFileMMDIR;  // MicMacInstalDir
