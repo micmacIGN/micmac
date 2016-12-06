@@ -274,10 +274,13 @@ vector<cXml_TriAngulationImMaster> cAppliTaskCorrelByXML::DoACpl(CplString aCpl)
 void cAppliTaskCorrelByXML::DoAllCpl()
 {
     cout<<"DoallCpl"<<endl;
+    ELISE_ASSERT(mVCplImg.size()== mCplValidIndex.size(), "ERROR : Nb mVCplImg & Nb mCplValidIndex not coherent");
     for (uint aKCpl=0; aKCpl<mVCplImg.size(); aKCpl++)
     {
         CplString aCpl = mVCplImg[aKCpl];
         Pt2di aCplInd = mCplValidIndex[aKCpl];
+        int indTask1 = aCplInd.x;
+        int indTask2 = aCplInd.y;
         cout<<"Cpl "<<aKCpl<<" "<<aCpl.img1<<" "<<aCpl.img2<<" -Ind : "<<aCplInd<<endl;
         //lire mesh initialize:
         if (aKCpl == 0)
@@ -290,26 +293,45 @@ void cAppliTaskCorrelByXML::DoAllCpl()
             aAppli->lireMesh(mPathMesh, aAppli->VTri(), aAppli->VTriF());
             mVTri = aAppli->VTri();
         }
+
         Cur_mVTask = DoACpl(aCpl);
         ELISE_ASSERT(Cur_mVTask.size()==2, "ERROR : Nb Task not coherent (1 cpl => 2 Task)");
+
         //Task1 => Mas=img1 , 2nd=img2
         cXml_TriAngulationImMaster aTaskImg1 =  Cur_mVTask[0];
+        if (aTaskImg1.NameMaster() == aCpl.img1)
+        {
+            indTask1 = aCplInd.x;
+            indTask2 = aCplInd.y;
+        }
+        else
+        {
+            indTask1 = aCplInd.y;
+            indTask2 = aCplInd.x;
+        }
         cout<<"Task: Mas= "<<aTaskImg1.NameMaster()<<" - NbTri: "<<aTaskImg1.Tri().size()<<" - Nb2nd: "<<aTaskImg1.NameSec().size()<<endl;
+        ELISE_ASSERT(aTaskImg1.NameSec().size()==2, "ERROR : Nb img2nd not coherent (1 cpl => 2 img)");
         for (uint aKTgl = 0; aKTgl<aTaskImg1.Tri().size(); aKTgl++)
         {
             cXml_Triangle3DForTieP aTgl = aTaskImg1.Tri()[aKTgl];
-            aTgl.NumImSec()[0] = aCplInd.y;
+            ELISE_ASSERT(aTgl.NumImSec().size()==1, "ERROR :NumImSec not coherent (must = 1)");
+            aTgl.NumImSec()[0] = indTask2;
         }
-        mVTask[aCplInd.x].Tri().insert(mVTask[aCplInd.x].Tri().end(), aTaskImg1.Tri().begin(), aTaskImg1.Tri().end());
+        mVTask[indTask1].Tri().insert(mVTask[indTask1].Tri().end(), aTaskImg1.Tri().begin(), aTaskImg1.Tri().end());
+
         //Task2 => Mas=img2 , 2nd=img1
         cXml_TriAngulationImMaster aTaskImg2 =  Cur_mVTask[1];
         cout<<"Task: Mas= "<<aTaskImg2.NameMaster()<<" - NbTri: "<<aTaskImg2.Tri().size()<<" - Nb2nd: "<<aTaskImg2.NameSec().size()<<endl;
+        ELISE_ASSERT(aTaskImg2.NameSec().size()==2, "ERROR : Nb img2nd not coherent (1 cpl => 2 img)");
         for (uint aKTgl = 0; aKTgl<aTaskImg2.Tri().size(); aKTgl++)
         {
             cXml_Triangle3DForTieP aTgl = aTaskImg2.Tri()[aKTgl];
-            aTgl.NumImSec()[0] = aCplInd.x;
+            ELISE_ASSERT(aTgl.NumImSec().size()==1, "ERROR :NumImSec not coherent (must = 1)");
+            aTgl.NumImSec()[0] = indTask1;
         }
-        mVTask[aCplInd.y].Tri().insert(mVTask[aCplInd.x].Tri().end(), aTaskImg2.Tri().begin(), aTaskImg2.Tri().end());
+
+        //fusion to collection task
+        mVTask[indTask2].Tri().insert(mVTask[indTask2].Tri().end(), aTaskImg2.Tri().begin(), aTaskImg2.Tri().end());
         Cur_mVTask.clear();
     }
 }
@@ -317,6 +339,7 @@ void cAppliTaskCorrelByXML::DoAllCpl()
 void cAppliTaskCorrelByXML::ExportXML(string & aXMLOut)
 {
     cout<<"Write XML to "<<mICNM->Dir() + aXMLOut.c_str() + "/"<<endl;
+    cout<<"Nb Task: "<<mVTask.size()<<endl;
     ELISE_fp::MkDirSvp(aXMLOut);
     for (uint aKTask=0; aKTask<mVTask.size(); aKTask++)
     {
