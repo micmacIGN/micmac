@@ -57,7 +57,7 @@ class cOneEqCalcVarUnkEl
             mVI.push_back(anI);
          }
          void SetResidu(double aRes) {mRes=aRes;}
-     private :
+     // private :
 
          std::vector<double>  mVL;  //  le Lk tLk de la doc
          std::vector<int>     mVI;  //  les indexes
@@ -635,12 +635,14 @@ class cGenSysSurResol
          virtual void SetTmp(const std::vector<cSsBloc> &  aBlTmp,const std::vector<cSsBloc> &  aBlTNonmp,bool IsTmp);
          virtual int    NumTmp(int aK) const;
          virtual int    NumNonTmp(int aK) const;
+         virtual int    InvNumNonTmp(int aK) const;
 
          virtual bool    IsCalculingVariance () const;
+         virtual double    Redundancy () const;
          virtual bool    CanCalculVariance() const;
          virtual void SetCalculVariance(bool);
          virtual double  Variance(int aK);
-         virtual double  CoVariance(int aK1,int aK2);
+         virtual double *  CoVariance(int aK1,int aK2);
          virtual bool  InverseIsComputedAfterSolve();
          virtual tSysCho   GetElemInverseQuad(int i,int j) const;
          virtual bool  ResiduIsComputedAfterSolve();
@@ -934,14 +936,16 @@ class cFormQuadCreuse : public cVectMatMul,
 class L2SysSurResol : public cGenSysSurResol
 {
      public :
+         virtual double    Redundancy () const;
          virtual bool    IsCalculingVariance () const;
          virtual bool    CanCalculVariance() const;
          virtual void    SetCalculVariance(bool);
          virtual double  Variance(int aK);
-         virtual double  CoVariance(int aK1,int aK2);
+         virtual double  * CoVariance(int aK1,int aK2);
          virtual bool    IsTmp(int aK) const;
          virtual int    NumTmp(int aK) const;
          virtual int    NumNonTmp(int aK) const;
+         virtual int    InvNumNonTmp(int aK) const;
          virtual void    SetTmp(const std::vector<cSsBloc> &  aBlTmp,const std::vector<cSsBloc> &  aBlTNonmp,bool IsTmp);
 
          virtual bool  InverseIsComputedAfterSolve();
@@ -1019,7 +1023,7 @@ class L2SysSurResol : public cGenSysSurResol
  
 
      private :
-          void SetNum(INT4 *  mDNumNonTmp,const std::vector<cSsBloc> &  aBlTmp,bool SetNum /* ou UnSet*/);
+          void SetNum(INT4 * mDataInvNum,INT4 *  mDNumNonTmp,const std::vector<cSsBloc> &  aBlTmp,bool SetNum /* ou UnSet*/);
 
 
 	  virtual void V_GSSR_AddNewEquation_Indexe
@@ -1048,11 +1052,11 @@ class L2SysSurResol : public cGenSysSurResol
         INT4 *       mDNumTmp;
         Im1D_INT4    mNumNonTmp;
         INT4 *       mDNumNonTmp;
+        Im1D_INT4    mInvNumNonTmp;
+        INT4 *       mInvDNumNonTmp;
 
 
         bool         mDoCalculVariance;
-        Im1D_REAL8   mVariance;
-        REAL8 *      mDVar;
         Im2D_REAL8   mCoVariance;
         REAL8 **     mDCoVar;
         double       mVarCurResidu;

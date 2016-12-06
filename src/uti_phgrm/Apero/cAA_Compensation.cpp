@@ -455,7 +455,7 @@ bool IsMatriceExportBundle(const std::string & aNameIm)
 
 Fonc_Num Correl(Fonc_Num Cov,Fonc_Num Var1, Fonc_Num Var2)
 {
-   return Max(-1,Min(1,Cov/sqrt(Max(1e-10,Var1*Var2))));
+   return Max(-1,Min(1,Cov/sqrt(Max(1e-40,Var1*Var2))));
 }
 
 
@@ -641,10 +641,10 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
                 // aVal *= aMVar.data()[aK];
                 aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aReSS*aSys->GetElemInverseQuad(aK,aK));
                 aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aReSS/aMVar.data()[aK]);
-                aXmlS.SensibDateOneInc()[aK].SensibParamVar() = aSys->Variance(aK);
+                aXmlS.SensibDateOneInc()[aK].SensibParamVar() = sqrt(aSys->Variance(aK) / aSys->Redundancy());
             }
-            Im2D_REAL4 aMCov(aNbV,aNbV);
-            REAL4 ** aDC = aMCov.data();
+            Im2D_REAL8 aMCov(aNbV,aNbV);
+            REAL8 ** aDC = aMCov.data();
             Im2D_REAL4 aMCorInv(aNbV,aNbV);
             REAL4 ** aDCI = aMCorInv.data();
             Im1D_REAL4 aMVarI = Im1D_REAL4(aNbV);
@@ -654,12 +654,10 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
                 for (int aKy=0 ; aKy<=aKx ; aKy++)
                 {
                     aDCI[aKy][aKx] = aDCI[aKx][aKy] = aSys->GetElemInverseQuad(aKx,aKy);
-                    aDC[aKy][aKx]  = aDC[aKx][aKy] = aSys->CoVariance(aKx,aKy);
+                    aDC[aKy][aKx]  = aDC[aKx][aKy] = *(aSys->CoVariance(aKx,aKy));
 
                 }
                 aDMI[aKx] = aDCI[aKx][aKx];
-
-// std::cout << "TEST COVV " << aDC[aKx][aKx] << " " << aSys->Variance(aKx) << "\n";
             }
             for (int aKx=0 ; aKx<aNbV ; aKx++)
             {

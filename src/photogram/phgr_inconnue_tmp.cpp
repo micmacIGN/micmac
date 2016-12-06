@@ -717,15 +717,6 @@ double cBufSubstIncTmp::DoSubst
      )
 {
 
-//std::cout << "Dooooooo "<< aCalcUKn << " " << (aCalcUKn ? int(aCalcUKn->VEq().size()) : -1) << "\n";
-
-/*
-cParamCalcVarUnkEl aBufCalcUKn;
-cParamCalcVarUnkEl * aCalcUKn = 0;
-if (MPD_MM()) 
-   aCalcUKn = &aBufCalcUKn;
-*/
-  
 
 if(DebugCamBil)
 {
@@ -846,7 +837,65 @@ if(DebugCamBil)
        if (aCalcUKn)
        {
            // Teta = Som Lm tKm   , Teta Lambda-1 = mBpL
-           // std::cout << "SzzZZzmBl " << mBpL.tx()  << " " << mBpL.ty() << "\n";  3 36
+           
+           const std::vector<cOneEqCalcVarUnkEl> &  aVEq = aCalcUKn->VEq();
+           for (int aKEq=0 ; aKEq<int(aVEq.size()) ; aKEq++)
+           {
+               const cOneEqCalcVarUnkEl & anEq = aVEq[aKEq];
+               int aNbU =   anEq.mVI.size();
+               int aNbTmp = 0;
+               int aNbNonTmp = 0;
+
+               ElMatrix<tSysCho> aLm(1,mBpL.ty(),tSysCho(0.0));
+               ElMatrix<tSysCho> aKm(1,mBpL.tx(),tSysCho(0.0));
+               std::vector<int>  aIndNgNt;  // Num Glob Non Tmp
+               std::vector<tSysCho>  aCoeffNgNt;  // Num Glob Non Tmp
+
+               for (int aKu=0 ; aKu<aNbU ; aKu++)
+               {
+                   int aNumGlob = anEq.mVI[aKu];
+                   tSysCho aCoeff = anEq.mVL[aKu];
+                   
+                   if (aSys.IsTmp(aNumGlob))
+                   {
+                      aKm(0,aSys.NumTmp(aNumGlob)) = aCoeff;
+                      aNbTmp ++;
+                   }
+                   else
+                   {
+                      aIndNgNt.push_back(aNumGlob);
+                      aCoeffNgNt.push_back(anEq.mVL[aKu]);
+                      aLm(0,aSys.NumNonTmp(aNumGlob)) = anEq.mVL[aKu];
+                      aNbNonTmp++;
+                   }
+               }
+               aLm = aLm - mBpL * aKm;
+               ELISE_ASSERT(mBpL.tx()==aNbTmp,"CheckTmp in DoSubst");
+
+               std::vector<double> aVAbrLbr;  // Vector Sigma des breve(a) breve(l) en 26.43
+               int aNbTot = mBpL.ty();
+               for (int aK1=0 ; aK1<aNbTot ; aK1++)
+               {
+                    double aSom = 0;
+                    for (int aK2=0 ; aK2<aNbTot ; aK2++)
+                    {
+                         aSom +=  aLm(0,aK2) * aSys.GetElemInverseQuad(aSys.InvNumNonTmp(aK1),aSys.InvNumNonTmp(aK2));
+                    }
+                    aVAbrLbr.push_back(aSom);
+               }
+               for (int aK1=0 ; aK1<aNbTot ; aK1++)
+               {
+                   for (int aK2=0 ; aK2<aNbTot ; aK2++)
+                   {
+                       *(aSys.CoVariance(aSys.InvNumNonTmp(aK1),aSys.InvNumNonTmp(aK2))) += ElSquare(anEq.mRes) * aVAbrLbr[aK1] * aVAbrLbr[aK2];
+                   }
+               }
+/*
+*/
+
+               // ELISE_ASSERT(mBpL.tx()==aNbTmp,"CheckTmp in DoSubst");
+           }
+ 
            // ElMatrix<tSysCho> aMat
        }
    }

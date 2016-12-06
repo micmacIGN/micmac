@@ -79,15 +79,20 @@ void  cGenSysSurResol::SetCalculVariance(bool)
 {
     ELISE_ASSERT(false,"cGenSysSurResol::SetCalculVariance");
 }
+double  cGenSysSurResol::Redundancy() const
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::Redundancy");
+    return 0.0;
+}
 double  cGenSysSurResol::Variance(int aK)
 {
     ELISE_ASSERT(false,"cGenSysSurResol::Variance");
     return 0.0;
 }
-double  cGenSysSurResol::CoVariance(int aK1,int aK2)
+double * cGenSysSurResol::CoVariance(int aK1,int aK2)
 {
     ELISE_ASSERT(false,"cGenSysSurResol::CoVariance");
-    return 0.0;
+    return 0;
 }
 bool    cGenSysSurResol::IsTmp(int aK) const
 {
@@ -107,6 +112,11 @@ int    cGenSysSurResol::NumTmp(int aK) const
 int    cGenSysSurResol::NumNonTmp(int aK) const
 {
     ELISE_ASSERT(false,"cGenSysSurResol::NumNonTmp");
+   return -1;
+}
+int    cGenSysSurResol::InvNumNonTmp(int aK) const
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::InvNumNonTmp");
    return -1;
 }
 
@@ -847,9 +857,9 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
     mDNumTmp           (mNumTmp.data()),
     mNumNonTmp         (aNbVar,-1),
     mDNumNonTmp        (mNumNonTmp.data()),
+    mInvNumNonTmp      (aNbVar,-1),
+    mInvDNumNonTmp     (mInvNumNonTmp.data()),
     mDoCalculVariance  (false),
-    mVariance          (aNbVar,0.0),
-    mDVar              (mVariance.data()),
     mCoVariance        (aNbVar,aNbVar,0.0),
     mDCoVar            (mCoVariance.data())
 {
@@ -857,7 +867,7 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
 }
 
 
-void L2SysSurResol::SetNum(INT4 * aData,const std::vector<cSsBloc> &  aVx,bool ForSet)
+void L2SysSurResol::SetNum(INT4 * aDataInv,INT4 * aData,const std::vector<cSsBloc> &  aVx,bool ForSet)
 {
     int aNum=0;
     for (int aKx=0 ; aKx <int(aVx.size()) ; aKx++)
@@ -868,6 +878,10 @@ void L2SysSurResol::SetNum(INT4 * aData,const std::vector<cSsBloc> &  aVx,bool F
         for (int aX=aI0x ; aX<aI1x ; aX++)
         {
              aData[aX] = ForSet ? aNum : -1 ;
+             if (aDataInv)
+             {
+                aDataInv[aNum]  = ForSet  ? aX : -1;
+             }
              aNum++;
         }
     }
@@ -876,8 +890,8 @@ void L2SysSurResol::SetNum(INT4 * aData,const std::vector<cSsBloc> &  aVx,bool F
 void L2SysSurResol::SetTmp(const std::vector<cSsBloc> &  aVx,const std::vector<cSsBloc> &  aVy,bool ForSet)
 {
 // std::cout << "XxxxL2SysSurResol::SetTm\n";
-    SetNum(mDNumTmp,aVx,ForSet);
-    SetNum(mDNumNonTmp,aVy,ForSet);
+    SetNum(0,mDNumTmp,aVx,ForSet);
+    SetNum(mInvDNumNonTmp,mDNumNonTmp,aVy,ForSet);
 }
 
 bool    L2SysSurResol::IsTmp(int aK) const
@@ -892,6 +906,10 @@ int    L2SysSurResol::NumNonTmp(int aK) const
 {
    return mDNumNonTmp[aK];
 }
+int    L2SysSurResol::InvNumNonTmp(int aK) const
+{
+   return mInvDNumNonTmp[aK];
+}
 
 
 void L2SysSurResol::SetCalculVariance(bool aDo)
@@ -904,11 +922,11 @@ bool L2SysSurResol::CanCalculVariance() const
 }
 double  L2SysSurResol::Variance(int aK)
 {
-   return sqrt(mDVar[aK]);
+   return mDCoVar[aK][aK];
 }
-double  L2SysSurResol::CoVariance(int aK1,int aK2)
+double * L2SysSurResol::CoVariance(int aK1,int aK2)
 {
-   return mDCoVar[aK1][aK2];
+   return &mDCoVar[aK1][aK2];
 }
 
 bool L2SysSurResol::IsCalculingVariance() const
@@ -916,6 +934,10 @@ bool L2SysSurResol::IsCalculingVariance() const
    return mDoCalculVariance;
 }
 
+double   L2SysSurResol::Redundancy() const
+{
+    return mRedundancy;
+}
 
 
 
@@ -938,9 +960,8 @@ void L2SysSurResol::SetSize(INT aNbVar)
     mDNumTmp = mNumTmp.data();
     mNumNonTmp = mNumNonTmp.AugmentSizeTo(mNbVar,-1);
     mDNumNonTmp = mNumNonTmp.data();
-
-    mVariance = mVariance.AugmentSizeTo(aNbVar,0.0); 
-    mDVar     = mVariance.data();
+    mInvNumNonTmp = mInvNumNonTmp.AugmentSizeTo(mNbVar,-1);
+    mInvDNumNonTmp = mInvNumNonTmp.data();
 
     mCoVariance = mCoVariance.AugmentSizeTo(Pt2di(aNbVar,aNbVar),0.0); 
     mDCoVar     = mCoVariance.data();
@@ -951,10 +972,10 @@ void L2SysSurResol::Reset()
 {
    mtLi_Li.raz();
    mbi_Li.raz();
-   mVariance.raz();
    mCoVariance.raz();
    ELISE_COPY(mNumTmp.all_pts(),-1,mNumTmp.out());
    ELISE_COPY(mNumNonTmp.all_pts(),-1,mNumNonTmp.out());
+   ELISE_COPY(mInvNumNonTmp.all_pts(),-1,mInvNumNonTmp.out());
    mBibi = 0.0;
    mRedundancy = 1.0 - mNbIncReel / double(mNbEq);
    mNbEq = 0;
@@ -1332,7 +1353,6 @@ aCalcUKn = 0;
                     aSomApL += aLocCoeff[aVarIndCoeff[aKJ]] *  mDataInvtLi_Li[aVarIndGlob[aKI]][aVarIndGlob[aKJ]];
                 }
                 aVSomAPl[aKI] = aSomApL;
-                mDVar[aVarIndGlob[aKI]] += ElSquare(aSomApL *aPds * aResidual);
             }
 
             for (int aKI=0 ; aKI<int(aVarIndCoeff.size()) ; aKI++ )
