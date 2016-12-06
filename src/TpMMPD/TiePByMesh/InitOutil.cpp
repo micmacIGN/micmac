@@ -139,20 +139,20 @@ PlyFile* InitOutil::read_file(string pathPlyFileS)
     strcpy( pathPlyFile, pathPlyFileS.c_str() );
 
     ply = ply_open_for_reading(pathPlyFile, &nelems, &elist, &file_type, &version);
-    cout<<"Object has "<<ply->nelems<<" elements "<<" , type = "<<file_type<<" ,version = "<<version<<endl;;
+    //cout<<"Object has "<<ply->nelems<<" elements "<<" , type = "<<file_type<<" ,version = "<<version<<endl;;
     for (int i=0; i<ply->nelems; i++)
     {   /*
                 ply->elems[i]->name :name of elements types in file
                 ply->elems[i]->num : number of element of this type
                 ply->elems[i]->nprops : number of properties of this element type
             */
-        cout<<" ++ "<<ply->elems[i]->name<<" : "<<ply->elems[i]->num<<" items, each has "<<ply->elems[i]->nprops<<" properties "<<endl;
+        //cout<<" ++ "<<ply->elems[i]->name<<" : "<<ply->elems[i]->num<<" items, each has "<<ply->elems[i]->nprops<<" properties "<<endl;
         /*
                 elems[i]->props[k]->name : name of property k of element type i
             */
-        for (int k=0; k<ply->elems[i]->nprops; k++)
-        {cout<<"     "<<ply->elems[i]->props[k]->name;}
-        cout<<endl;
+//        for (int k=0; k<ply->elems[i]->nprops; k++)
+//        {cout<<"     "<<ply->elems[i]->props[k]->name;}
+//        cout<<endl;
     }
     for (int i = 0; i < ply->nelems; i++)
     {   //scan through each element type
@@ -195,26 +195,26 @@ PlyFile* InitOutil::read_file(string pathPlyFileS)
     }
     ply_get_comments (ply, &num_comments);
     ply_get_obj_info (ply, &num_obj_info);
-    cout << "There are "<<num_comments<<" comments"<<endl;
+    //cout << "There are "<<num_comments<<" comments"<<endl;
     fclose (ply->fp);
 
     //-----------
 
-    for (int i=0; i<ply->num_comments; i++)
-    {cout<<ply->comments[i]<<endl;}
-    cout << "There are "<<ply->num_obj_info<<" object info"<<endl;
-    for (int i=0; i<ply->num_obj_info; i++)
-    {cout<<ply->obj_info[i]<<endl;}
-    cout<<"There are "<<ply->nelems<<" elements in file"<<endl;
-    for (int i=0; i<ply->nelems; i++)
-    {
-        cout<<"Element "<<i<<" is "<<ply->elems[i]->name<<" have "<<ply->elems[i]->nprops<<" properties, "<<ply->elems[i]->num<<" items"<<endl;
-        cout<<"  Properties: ";
-        for (int j=0; j<ply->elems[i]->nprops; j++)
-        {cout<<ply->elems[i]->props[j]->name<<"   ";  }
-        cout<<endl;
-    }
-    cout<<"Display items in elements ? [y/n]"<<endl;
+//    for (int i=0; i<ply->num_comments; i++)
+//        {cout<<ply->comments[i]<<endl;}
+//    cout << "There are "<<ply->num_obj_info<<" object info"<<endl;
+//    for (int i=0; i<ply->num_obj_info; i++)
+//        {cout<<ply->obj_info[i]<<endl;}
+//    cout<<"There are "<<ply->nelems<<" elements in file"<<endl;
+//    for (int i=0; i<ply->nelems; i++)
+//    {
+//        cout<<"Element "<<i<<" is "<<ply->elems[i]->name<<" have "<<ply->elems[i]->nprops<<" properties, "<<ply->elems[i]->num<<" items"<<endl;
+//        cout<<"  Properties: ";
+//        for (int j=0; j<ply->elems[i]->nprops; j++)
+//        {cout<<ply->elems[i]->props[j]->name<<"   ";  }
+//        cout<<endl;
+//    }
+//    cout<<"Display items in elements ? [y/n]"<<endl;
     //char ch = static_cast<char>(getc(stdin));
     char ch = 'n';
     if (ch == 'y')
