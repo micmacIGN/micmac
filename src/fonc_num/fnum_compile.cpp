@@ -952,6 +952,9 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
          cParamCalcVarUnkEl * aPCVU
      )
 {
+
+
+
   int aSzPds = (int)aVPds.size();
   ELISE_ASSERT((aSzPds==1) || (aSzPds==mDimOut),"Taille Pds incohe in cElCompiledFonc::SVD_And_AddEqSysSurResol");
 
@@ -1000,7 +1003,7 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
             for (INT aK=0 ; aK< mNbCompVar ; aK++)
             {
                  double aDdk = mCompDer[aD][aK];
-                 if (aDdk)
+                 if (aDdk)  // (PCVU)  Provisoie, + propre de ne pas annuler tte les var tmp
                  {
                      int anInd = aVIndInit[aK];
                     

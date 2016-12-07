@@ -870,7 +870,32 @@ if(DebugCamBil)
                    }
                }
                aLm = aLm - mBpL * aKm;
-               ELISE_ASSERT(mBpL.tx()==aNbTmp,"CheckTmp in DoSubst");
+               // A priori ce check est inutile,
+               if (0 && (mBpL.tx() != aNbTmp) )
+               {
+                   std::cout << "Taille Matr=" << mBpL.tx() << " NbTmp " << aNbTmp << "\n";
+                   if (MPD_MM())
+                   {
+                       for (int aY=0 ; aY<mB.ty(); aY++)
+                       {
+                          for (int aX=0 ; aX<mB.tx(); aX++)
+                          {
+                              std::cout <<  mB(aX,aY) << " ";
+                          }
+                           std::cout << "\n";
+                       }
+                       for (int aY=0 ; aY<aSauvL.ty(); aY++)
+                       {
+                          for (int aX=0 ; aX<aSauvL.tx(); aX++)
+                          {
+                              std::cout <<  aSauvL(aX,aY) << " ";
+                          }
+                          std::cout << "\n";
+                       }
+                   }
+                   getchar();
+                   // ELISE_ASSERT(mBpL.tx()==aNbTmp,"CheckTmp in DoSubst");
+               }
 
                std::vector<double> aVAbrLbr;  // Vector Sigma des breve(a) breve(l) en 26.43
                int aNbTot = mBpL.ty();

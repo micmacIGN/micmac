@@ -1342,6 +1342,13 @@ aCalcUKn = 0;
          if (aCalcUKn)
          {
               aCalcUKn->SetResidu(aResidual);
+/*
+if (MPD_MM() && aVarIndCoeff.size() == 1)
+{
+std::cout << "HHHHHHhhhhhhhhhhhhhhhhhhhhhhKKkkk\n";
+getchar();
+}
+*/
          }
          else
          {
