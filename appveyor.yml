@@ -5,6 +5,10 @@ before_build:
   - cd build
   - cmake ..
   - cmake --build . --target INSTALL
-  - dir
-  - cd Win32
-  - dir
+
+after_build:
+  - 7z a micmac_win.zip *
+  
+artifacts:
+  path: build\micmac_win.zip
+  name: micmac_win
