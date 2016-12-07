@@ -4,7 +4,7 @@ before_build:
   - mkdir build
   - cd build
   - cmake ..
-  - cmake --build . --target INSTALL --config Release
+  - cmake --build . --target INSTALL --config Win32
   - dir
-  - cd Release
+  - cd Win32
   - dir
