@@ -99,8 +99,8 @@ public:
     deviceIOImage* devIOImage() const;
     void setDevIOImage(deviceIOImage* devIOImage);
 
-    int hg_revision() const;
-    void setHg_revision(QString hg_revision);
+    QString git_revision() const;
+    void setGit_revision(QString git_revision);
 
     QString banniere() const;
     void setBanniere(const QString& banniere);
@@ -296,7 +296,7 @@ private:
 
     deviceIOTieFile*		_devIOTieFile;
 
-    int						_hg_revision;
+    QString					_git_revision;
 
     QString					_banniere;
 

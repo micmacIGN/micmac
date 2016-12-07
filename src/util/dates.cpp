@@ -41,13 +41,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-int NumHgRev()
-{
-   static int aRes=-1;
-   if (aRes<0) FromString(aRes,mercurialRevision());
-
-   return aRes;
-}
+// This Num Revision is designed to check if dump/undump binary files are consistent 
+// but it, in fact, it doesn't work
+//int NumHGRev()
+//{
+//   static int aRes=-1;
+//   if (aRes<0) FromString(aRes,mercurialRevision());
+//
+//   return aRes;
+//}
 
 static const std::string HRevXif = "4227";
 
@@ -81,7 +83,8 @@ cXmlXifInfo MDT2Xml(const cMetaDataPhoto & aMTD)
 
    cXmlXifInfo aRes;
 
-   aRes.HGRev() = NumHgRev();
+   //aRes.HGRev() = NumHgRev();
+   aRes.GITRev() = gitRevision();
 
    SetIfPos(aRes.FocMM(),aMTD.FocMm(true));
    SetIfPos(aRes.Foc35(),aMTD.Foc35(true));
