@@ -639,6 +639,8 @@ class cGenSysSurResol
 
          virtual bool    IsCalculingVariance () const;
          virtual double    Redundancy () const;
+         virtual void Show () const;
+         virtual double    R2Pond () const;
          virtual bool    CanCalculVariance() const;
          virtual void SetCalculVariance(bool);
          virtual double  Variance(int aK);
@@ -937,6 +939,8 @@ class L2SysSurResol : public cGenSysSurResol
 {
      public :
          virtual double    Redundancy () const;
+         virtual void Show () const;
+         virtual double    R2Pond () const;
          virtual bool    IsCalculingVariance () const;
          virtual bool    CanCalculVariance() const;
          virtual void    SetCalculVariance(bool);
@@ -1061,6 +1065,8 @@ class L2SysSurResol : public cGenSysSurResol
         REAL8 **     mDCoVar;
         double       mVarCurResidu;
         double       mVarCurSomLjAp;
+        double       mSomPds;
+        double       mSomR2Pds;
 };
 
 // Classe Adaptee au contexte bcp d'equations, (relativement) peu de variable

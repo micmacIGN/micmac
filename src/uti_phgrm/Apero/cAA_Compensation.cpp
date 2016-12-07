@@ -93,7 +93,10 @@ void cAppliApero::AddObservations
         mFpRT = 0;
    }
 
-
+int aNbIter= MPD_MM() ? 1 : 1;  // Completement artificiel, pour tester resultat incertitudes
+for (int aK=0 ; aK<aNbIter; aK++)
+{
+   if (aNbIter!=1) std::cout << "ITERRRRRRRR AddObs=" << aK << "\n";
    // On les mets avant pour que AddLevenbergMarkard sache de manier precise si le centre a
    // ete fixe sur CETTE iteration
    {
@@ -156,6 +159,7 @@ void cAppliApero::AddObservations
    {
        AddObservationsContrCamGenInc(anSO.ContrCamGenInc(),IsLastIter,aSO);
    }
+}
 
    MajAddCoeffMatrix();
    if (NumIterDebug())  MessageDebug("Fin iter Obs");
@@ -633,14 +637,16 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         if (aSys->InverseIsComputedAfterSolve())
         {
             int aNbV = aSys->NbVar();
-            double aReSS = aSys->ResiduAfterSol();
+            double aRes1 = aSys->ResiduAfterSol();
+            double aRes2 = aSys->R2Pond() / aSys->Redundancy();
             for (int aK=0 ; aK<aNbV ; aK++)
             {
                 // std::cout << "GGGGG "<< aSys->GetElemInverseQuad(aK,aK) << " " << aMVar.data()[aK] << "\n";
                 // double aVal = aSys->GetElemInverseQuad(aK,aK);
                 // aVal *= aMVar.data()[aK];
-                aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aReSS*aSys->GetElemInverseQuad(aK,aK));
-                aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aReSS/aMVar.data()[aK]);
+                if (0) std::cout << "=============== RESSSS " << aRes2 << " " << aRes1 << "\n";
+                aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aRes2*aSys->GetElemInverseQuad(aK,aK));
+                aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aRes2/aMVar.data()[aK]);
                 aXmlS.SensibDateOneInc()[aK].SensibParamVar() = sqrt(aSys->Variance(aK) / aSys->Redundancy());
             }
             Im2D_REAL8 aMCov(aNbV,aNbV);
@@ -686,6 +692,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(false));
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(true));
 
+        //aSys->Show();
     }
 
 

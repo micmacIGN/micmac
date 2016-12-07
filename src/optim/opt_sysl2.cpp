@@ -84,6 +84,18 @@ double  cGenSysSurResol::Redundancy() const
     ELISE_ASSERT(false,"cGenSysSurResol::Redundancy");
     return 0.0;
 }
+
+void cGenSysSurResol::Show() const
+{
+}
+
+double  cGenSysSurResol::R2Pond() const
+{
+    ELISE_ASSERT(false,"cGenSysSurResol::R2Pond");
+    return 0.0;
+}
+
+
 double  cGenSysSurResol::Variance(int aK)
 {
     ELISE_ASSERT(false,"cGenSysSurResol::Variance");
@@ -861,7 +873,9 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
     mInvDNumNonTmp     (mInvNumNonTmp.data()),
     mDoCalculVariance  (false),
     mCoVariance        (aNbVar,aNbVar,0.0),
-    mDCoVar            (mCoVariance.data())
+    mDCoVar            (mCoVariance.data()),
+    mSomPds            (0.0),
+    mSomR2Pds          (0.0)
 {
     // std::cout << "L2SysSurResol::L2SysSurResol " << IsSym << "\n";
 }
@@ -939,7 +953,17 @@ double   L2SysSurResol::Redundancy() const
     return mRedundancy;
 }
 
+void L2SysSurResol::Show() const
+{
+   std::cout << "NbEq =" << mNbEq << "\n";
+   std::cout  << "R2P=" << mSomR2Pds << "SP=" << mSomPds << "\n";
+   std::cout << " RAS=" << ResiduAfterSol() << "\n";
+}
 
+double   L2SysSurResol::R2Pond() const
+{
+    return mSomR2Pds / mSomPds;
+}
 
 void L2SysSurResol::SetSize(INT aNbVar)
 {
@@ -982,6 +1006,8 @@ void L2SysSurResol::Reset()
    mNbIncReel = mNbVar;
 
    mMaxBibi = 0;
+   mSomPds = 0;
+   mSomR2Pds = 0;
 }
 
 void L2SysSurResol::AddEquation(REAL aPds,REAL * aCoeff,REAL aB)
@@ -1339,16 +1365,12 @@ aCalcUKn = 0;
                  aCalcUKn->AddVal(aLocCoeff[aVarIndCoeff[aK]],aVarIndGlob[aK]);
              }
          }
+         mSomR2Pds += ElSquare(aResidual) * aPds;
+         mSomPds   += aPds;
+
          if (aCalcUKn)
          {
               aCalcUKn->SetResidu(aResidual);
-/*
-if (MPD_MM() && aVarIndCoeff.size() == 1)
-{
-std::cout << "HHHHHHhhhhhhhhhhhhhhhhhhhhhhKKkkk\n";
-getchar();
-}
-*/
          }
          else
          {
