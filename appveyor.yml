@@ -8,7 +8,7 @@ before_build:
   - cd ..
 
 after_build:
-  - 7z a micmac_win.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_MicMac\
+  - 7z a micmac_win.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\
   
 artifacts:
   path: micmac_win.zip
