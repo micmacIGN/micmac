@@ -5,10 +5,20 @@ before_build:
   - cd build
   - cmake ..
   - cmake --build . --target INSTALL
+  - cd ..
 
 after_build:
-  - 7z a micmac_win.zip *
+  - 7z a micmac_win.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\
   
 artifacts:
-  path: build\micmac_win.zip
+  path: micmac_win.zip
   name: micmac_win
+
+deploy:
+  description: 'AppVeyor build'
+  artifact: micmac_win
+  auth_token:
+    secure: /bJuMkK+l78lspexK/xcdi0TsITsIuiuW7nNnY8Aw1cI+k33h4epHXs2z/f6sJjJ
+  provider: GitHub
+  on:
+    appveyor_repo_tag: true
