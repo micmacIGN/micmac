@@ -962,7 +962,8 @@ void L2SysSurResol::Show() const
 
 double   L2SysSurResol::R2Pond() const
 {
-    return mSomR2Pds / mSomPds;
+    // return mSomR2Pds / mSomPds;
+    return (mSomR2Pds / mNbEq) / mRedundancy ;
 }
 
 void L2SysSurResol::SetSize(INT aNbVar)

@@ -648,6 +648,8 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
                 aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aRes2*aSys->GetElemInverseQuad(aK,aK));
                 aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aRes2/aMVar.data()[aK]);
                 aXmlS.SensibDateOneInc()[aK].SensibParamVar() = sqrt(aSys->Variance(aK) / aSys->Redundancy());
+
+//   std::cout << " TEST-FUV " << aXmlS.SensibDateOneInc()[aK].SensibParamVar() / sqrt(aSys->GetElemInverseQuad(aK,aK)) << "\n";
             }
             Im2D_REAL8 aMCov(aNbV,aNbV);
             REAL8 ** aDC = aMCov.data();
@@ -692,7 +694,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(false));
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(true));
 
-        //aSys->Show();
+        aSys->Show();
     }
 
 
