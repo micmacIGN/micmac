@@ -13,3 +13,12 @@ after_build:
 artifacts:
   path: micmac_win.zip
   name: micmac_win
+
+deploy:
+  description: 'AppVeyor build'
+  artifact: micmac_win
+  auth_token:
+    secure: /bJuMkK+l78lspexK/xcdi0TsITsIuiuW7nNnY8Aw1cI+k33h4epHXs2z/f6sJjJ
+  provider: GitHub
+  on:
+    appveyor_repo_tag: true
