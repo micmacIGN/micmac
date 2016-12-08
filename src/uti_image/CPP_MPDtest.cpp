@@ -1061,8 +1061,142 @@ void TestXmlX11();
 
 void TestEllips();
 
+/*
+cElXMLTree * GetRemanentFromFileAndTag(const std::string & aNameFile,const std::string & aNameTag)
+{
+   static std::map<std::string,cElXMLTree *> DicoHead;
+   if (DicoHead[aNameFile] ==0)
+       DicoHead[aNameFile] = new cElXMLTree(aNameFile);
+
+   return DicoHead[aNameFile]->GetOneOrZero(aNameTag);
+}
+
+template <class Type> bool InitObjFromXml
+                           (
+                                 Type & anObj,
+                                 const std::string & aNameFile,
+                                 const std::string& aFileSpec,
+                                 const std::string & aNameTagObj,
+                                 const std::string & aNameTagType
+                           )
+{
+   if (GetRemanentFromFileAndTag(StdGetFileXMLSpec(aFileSpec),aNameTagType))
+   {
+       anObj = StdGetObjFromFile<Type>(aNameFile,StdGetFileXMLSpec(aFileSpec),aNameTagObj,aNameTagType);
+       return true;
+   }
+   return false;
+}
+
+template <class Type> bool StdInitObjFromXml
+                           (
+                                 Type & anObj,
+                                 const std::string & aNameFile,
+                                 const std::string & aNameTagObj,
+                                 const std::string & aNameTagType
+                           )
+{
+     return 
+              InitObjFromXml(anObj,aNameFile,"ParamApero.xml",aNameTagObj,aNameTagType)
+         ||   InitObjFromXml(anObj,aNameFile,"ParamMICMAC.xml",aNameTagObj,aNameTagType)
+         ||   InitObjFromXml(anObj,aNameFile,"SuperposImage.xml",aNameTagObj,aNameTagType)
+         ||   InitObjFromXml(anObj,aNameFile,"ParamChantierPhotogram.xml",aNameTagObj,aNameTagType)
+     ;
+}
+
+
+
+template <class Type> void MyBinUndumpObj
+                          (
+                              Type & anObj,
+                              const std::string & aFile,
+                              const std::string & aNameTagObj,
+                              const std::string & aNameTagType
+                          )
+{
+     ELISE_fp aFPIn(aFile.c_str(),ELISE_fp::READ);
+     int aNum;
+
+     BinaryUnDumpFromFile(aNum,aFPIn);
+     // NumHgRev doesn't work with the new Git version
+     //if (aNum!=NumHgRev())
+     //{
+     //}
+
+     std::string aVerifMangling;
+     BinaryUnDumpFromFile(aVerifMangling,aFPIn);
+     if (aVerifMangling!=Mangling((Type*)0))
+     {
+        std::string aXmlName = StdPrefix(aFile)+".xml";
+        if (ELISE_fp::exist_file(aXmlName))
+        {
+           std::cout << "Dump version problem for "<<  aFile << " , try to recover from xml\n";
+           if (StdInitObjFromXml(anObj,aXmlName,aNameTagObj,aNameTagType))
+           {
+               MakeFileXML(anObj,aFile);
+               std::cout << "    OK recovered " << aFile << "\n";
+               return;
+           }
+        }
+        std::cout << "For file " << aFile << "\n";
+        ELISE_ASSERT(false,"Type has changed between Dump/Undump")
+     }
+
+
+     BinaryUnDumpFromFile(anObj,aFPIn);
+     aFPIn.close();
+}
+
+*/
+
+void TestUnDump()
+{
+    std::string aNameFile = "/home/ubuntu/Desktop/Data/Amphorus//Tmp-MM-Dir/IMG_20160716_194704.jpg-MDT-4227.dmp";
+
+    cXmlXifInfo aV;
+    // MyBinUndumpObj(aV,aNameFile,"XmlXifInfo","XmlXifInfo");
+
+
+/*
+    ELISE_fp aFPIn(aNameFile.c_str(),ELISE_fp::READ);
+    int aNum;
+
+     BinaryUnDumpFromFile(aNum,aFPIn);
+     std::cout << "NUM=" << aNum << "\n";
+     std::string aVerifMangling;
+     BinaryUnDumpFromFile(aVerifMangling,aFPIn);
+     std::cout << "MnglDmp=" << aVerifMangling <<"\n";
+     std::cout << "MnglCalc=" << Mangling((cXmlXifInfo*)0) <<"\n";
+
+     bool Ok= 
+     StdInitObjFromXml
+     (
+             aV,
+            "/home/ubuntu/Desktop/Data/Amphorus//Tmp-MM-Dir/IMG_20160716_194704.jpg-MDT-4227.xml",
+             "XmlXifInfo",
+             "XmlXifInfo"
+     );
+
+     std::cout << "VVVVV " << Ok << "\n";
+
+     MakeFileXML(aV,"toto.xml");
+*/
+
+/*
+  StdGetFromPCP
+  (
+        "/home/ubuntu/Desktop/Data/Amphorus//Tmp-MM-Dir/IMG_20160716_194704.jpg-MDT-4227.dmp",
+        XmlXifInfo
+  );
+*/
+}
+
 int MPDtest_main (int argc,char** argv)
 {
+    {
+       TestUnDump();
+       exit(EXIT_SUCCESS);
+    }
     {
        TestEllips();
        exit(EXIT_SUCCESS);

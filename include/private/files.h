@@ -1935,31 +1935,9 @@ void xml_init(DoubleSubst &,cElXMLTree * aTree);
 void xml_init(Pt2diSubst &,cElXMLTree * aTree);
 void xml_init(Pt2drSubst &,cElXMLTree * aTree);
 
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const bool   &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const double &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const int    &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Box2dr &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Box2di &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2di &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2dr &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const std::string & anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const std::vector<double> & anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const std::vector<int> & anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const std::vector<std::string> & anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt3dr &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt3di &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const cElRegex_Ptr &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const XmlXml &      anObj);
 
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const cCpleString   &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const cMonomXY   &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const IntSubst   &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const BoolSubst   &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const DoubleSubst   &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2diSubst   &      anObj);
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2drSubst   &      anObj);
-template <class T1,class T2>
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<T1,T2> &      anObj);
+
+
 
 #define TypeForDump(aType)\
 void BinaryDumpInFile(ELISE_fp &,const aType &);\
@@ -2097,29 +2075,7 @@ template <class Type> void BinDumpObj(const Type & anObj,const std::string & aFi
     aFPOut.close();
 }
 
-template <class Type> void BinUndumpObj(Type & anObj,const std::string & aFile)
-{
-     ELISE_fp aFPIn(aFile.c_str(),ELISE_fp::READ);
-     int aNum;
 
-     BinaryUnDumpFromFile(aNum,aFPIn);
-     // NumHgRev doesn't work with the new Git version
-     //if (aNum!=NumHgRev())
-     //{
-     //}
-
-     std::string aVerifMangling;
-     BinaryUnDumpFromFile(aVerifMangling,aFPIn);
-     if (aVerifMangling!=Mangling((Type*)0))
-     {
-        std::cout << "For file " << aFile << "\n";
-        ELISE_ASSERT(false,"Type has changed between Dump/Undump")
-     }
-
-
-     BinaryUnDumpFromFile(anObj,aFPIn);
-     aFPIn.close();
-}
 
 
 bool IsFileDmp(const std::string &);
@@ -2141,7 +2097,7 @@ template <class Type> Type StdGetObjFromFile_WithLC
    if (IsFileDmp(aNameFileObj))
    {
         Type aRes;
-        BinUndumpObj(aRes,aNameFileObj);
+        BinUndumpObj(aRes,aNameFileObj,aNameTagObj,aNameTagType);
         return aRes;
    }
 
@@ -2245,7 +2201,7 @@ template <class Type> Type * OptionalGetObjFromFile_WithLC
    if (IsFileDmp(aNameFileObj))
    {
         Type aRes;
-        BinUndumpObj(aRes,aNameFileObj);
+        BinUndumpObj(aRes,aNameFileObj,aNameTagObj,aNameTagType);
         return new Type(aRes);
    }
    cElXMLTree aFullTreeParam(aNameFileObj);
@@ -2268,6 +2224,34 @@ template <class Type> Type * OptionalGetObjFromFile_WithLC
 
 
 std::string  GetValLC(int,char **,const std::string & aKey, const std::string & aDef);
+
+cElXMLTree * ToXMLTree(const Pt3dr &      anObj);  // Pour CPP_GrapheHom.cpp
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const bool   &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const double &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const int    &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Box2dr &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Box2di &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2di &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2dr &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const std::string & anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const std::vector<double> & anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const std::vector<int> & anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const std::vector<std::string> & anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt3dr &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt3di &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const cElRegex_Ptr &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const XmlXml &      anObj);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const cCpleString   &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const cMonomXY   &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const IntSubst   &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const BoolSubst   &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const DoubleSubst   &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2diSubst   &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2drSubst   &      anObj);
+template <class T1,class T2>
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<T1,T2> &      anObj);
+
 
         
 
@@ -2437,6 +2421,87 @@ OptionalGetObjFromFile_WithLC<c##aObj>\
 
 
 //template <class Type> Type eFromString(const std::string & aName);
+
+inline cElXMLTree * GetRemanentFromFileAndTag(const std::string & aNameFile,const std::string & aNameTag)
+{
+   static std::map<std::string,cElXMLTree *> DicoHead;
+   if (DicoHead[aNameFile] ==0)
+       DicoHead[aNameFile] = new cElXMLTree(aNameFile);
+
+   return DicoHead[aNameFile]->GetOneOrZero(aNameTag);
+}
+
+template <class Type> bool InitObjFromXml
+                           (
+                                 Type & anObj,
+                                 const std::string & aNameFile,
+                                 const std::string& aFileSpec,
+                                 const std::string & aNameTagObj,
+                                 const std::string & aNameTagType
+                           )
+{
+   if (GetRemanentFromFileAndTag(StdGetFileXMLSpec(aFileSpec),aNameTagType))
+   {
+       anObj = StdGetObjFromFile<Type>(aNameFile,StdGetFileXMLSpec(aFileSpec),aNameTagObj,aNameTagType);
+       return true;
+   }
+   return false;
+}
+template <class Type> bool StdInitObjFromXml
+                           (
+                                 Type & anObj,
+                                 const std::string & aNameFile,
+                                 const std::string & aNameTagObj,
+                                 const std::string & aNameTagType
+                           )
+{
+     return
+              InitObjFromXml(anObj,aNameFile,"ParamApero.xml",aNameTagObj,aNameTagType)
+         ||   InitObjFromXml(anObj,aNameFile,"ParamMICMAC.xml",aNameTagObj,aNameTagType)
+         ||   InitObjFromXml(anObj,aNameFile,"SuperposImage.xml",aNameTagObj,aNameTagType)
+         ||   InitObjFromXml(anObj,aNameFile,"ParamChantierPhotogram.xml",aNameTagObj,aNameTagType)
+     ;
+}
+
+
+template <class Type> void BinUndumpObj(Type & anObj,const std::string & aFile, const std::string & aNameTagObj="", const std::string & aNameTagType="")
+{
+     ELISE_fp aFPIn(aFile.c_str(),ELISE_fp::READ);
+     int aNum;
+
+     BinaryUnDumpFromFile(aNum,aFPIn);
+     // NumHgRev doesn't work with the new Git version
+     //if (aNum!=NumHgRev())
+     //{
+     //}
+
+     std::string aVerifMangling;
+     BinaryUnDumpFromFile(aVerifMangling,aFPIn);
+     if (aVerifMangling!=Mangling((Type*)0))
+     {
+        std::string aXmlName = StdPrefix(aFile)+".xml";
+        if (ELISE_fp::exist_file(aXmlName))
+        {
+           std::cout << "Dump version problem for "<<  aFile << " , try to recover from xml\n";
+           if (StdInitObjFromXml(anObj,aXmlName,aNameTagObj,aNameTagType))
+           {
+               MakeFileXML(anObj,aFile);
+               std::cout << "    OK recovered " << aFile << "\n";
+               return;
+           }
+        }
+
+        std::cout << "For file " << aFile << " TagO="  << aNameTagObj << " TagT=" << aNameTagType << "\n";
+        ELISE_ASSERT(false,"Type has changed between Dump/Undump")
+     }
+
+
+     BinaryUnDumpFromFile(anObj,aFPIn);
+     aFPIn.close();
+}
+
+
+
 
 
 #endif //  _ELISE_PRIVATE_FILES_H
