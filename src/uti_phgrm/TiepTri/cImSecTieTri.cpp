@@ -191,7 +191,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
                  entiere.
              2- si on est superieur au seuil TT_SEUIL_CORREL_1PIXSUR2, on reoptimise avec tous les pixels;
 
-          Comme il y a en general plusieurs voisins ayant le meme  label, on ne selectionn dans aCRCMax celui qui
+          Comme il y a en general plusieurs voisins ayant le meme label, on ne selectionn dans aCRCMax celui qui
         donne le meilleur resultat.
              
     */
@@ -209,11 +209,11 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
                // cResulRechCorrel<int> aCRC = TT_RechMaxCorrelBasique(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
 
            int aSzRech = 6;
-           cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
+           cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech); //(aSzW aStep, aSzRechMax)
            if (aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2)
            {
                // aPV = aPV+ aCRCLoc.mPt;
-               aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aCRCLoc.mPt,6,1,aSzRech);
+               aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aCRCLoc.mPt,6,1,aSzRech);   // Correlation entiere
                    
                // aCRCLoc.mPt = aPV+ aCRCLoc.mPt;  // Contient la coordonnee directe dans Im2
 
@@ -271,7 +271,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
           }
     }
     
-    cResulRechCorrel<double> aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,aP0,mTImReech,Pt2dr(aCRCMax.mPt),6);
+    cResulRechCorrel<double> aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,aP0,mTImReech,Pt2dr(aCRCMax.mPt),6); // Correlation sub-pixel, interpol bilin basique (step=1, step RCorell=0.1)
 
 
     return aRes;
