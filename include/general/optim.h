@@ -42,6 +42,52 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_GENERAL_OPTIM_H
 #define _ELISE_GENERAL_OPTIM_H
 
+class cOneEqCalcVarUnkEl
+{
+     public :
+         cOneEqCalcVarUnkEl(double anO,double aPds) :
+            mO   (anO*aPds),
+            mPds (aPds)
+         {
+         }
+
+         void Add(double anL,int anI)
+         {
+            mVL.push_back(anL*mPds);
+            mVI.push_back(anI);
+         }
+         void SetResidu(double aRes) {mRes=aRes;}
+     // private :
+
+         std::vector<double>  mVL;  //  le Lk tLk de la doc
+         std::vector<int>     mVI;  //  les indexes
+         double               mO;   // le mOk  de la doc => 
+         double               mPds;   // le mOk  de la doc => 
+         double               mRes;
+};
+
+class cParamCalcVarUnkEl
+{
+    public :
+       void NewEl(double anO,double aPds)
+       {
+           mVEq.push_back(cOneEqCalcVarUnkEl(anO,aPds));
+       }
+       void AddVal(double anL,int anI)
+       {
+           mVEq.back().Add(anL,anI);
+       }
+       void SetResidu(double aRes)
+       {
+          mVEq.back().SetResidu(aRes);
+       }
+       const std::vector<cOneEqCalcVarUnkEl> & VEq() const {return mVEq;}
+    private :
+       std::vector<cOneEqCalcVarUnkEl> mVEq;
+};
+
+
+
 class NROptF1vND;
 class NROptF1vDer;
 
@@ -567,7 +613,8 @@ class cGenSysSurResol
                                           double *  FullCoeff,
                                           int aNbTot,
                                           const std::vector<INT> & aVInd ,
-			                REAL aPds,REAL * aCoeff,REAL aB);
+			                REAL aPds,REAL * aCoeff,REAL aB,
+                                        cParamCalcVarUnkEl *);
          // GSSR_AddNewEquation_Indexe fait des pretraitement de prise en compte des contraintes
          // qu'on ne doit pas faire toujours
 	 void Basic_GSSR_AddNewEquation_Indexe(
@@ -575,7 +622,7 @@ class cGenSysSurResol
                                         double *  FullCoeff,
                                         int aNbTot,
                                         const std::vector<INT> & aVInd ,
-			                REAL aPds,REAL * aCoeff,REAL aB);
+			                REAL aPds,REAL * aCoeff,REAL aB,cParamCalcVarUnkEl *);
 
          // Def = Erreur fatale, n'a pas de sens pout systeme L1
          virtual tSysCho   GetElemQuad(int i,int j) const;
@@ -584,10 +631,20 @@ class cGenSysSurResol
          virtual void  SetElemLin(int i,const tSysCho& ) ;
          virtual tSysCho SomQuad() const;
 
+         virtual bool    IsTmp(int aK) const;
+         virtual void SetTmp(const std::vector<cSsBloc> &  aBlTmp,const std::vector<cSsBloc> &  aBlTNonmp,bool IsTmp);
+         virtual int    NumTmp(int aK) const;
+         virtual int    NumNonTmp(int aK) const;
+         virtual int    InvNumNonTmp(int aK) const;
+
+         virtual bool    IsCalculingVariance () const;
+         virtual double    Redundancy () const;
+         virtual void Show () const;
+         virtual double    R2Pond () const;
          virtual bool    CanCalculVariance() const;
          virtual void SetCalculVariance(bool);
          virtual double  Variance(int aK);
-         virtual double  CoVariance(int aK1,int aK2);
+         virtual double *  CoVariance(int aK1,int aK2);
          virtual bool  InverseIsComputedAfterSolve();
          virtual tSysCho   GetElemInverseQuad(int i,int j) const;
          virtual bool  ResiduIsComputedAfterSolve();
@@ -672,7 +729,7 @@ class cGenSysSurResol
                         double *  FullCoeff,
                         int aNbTot,
                         const std::vector<INT> & aVInd ,
-			REAL aPds,REAL * aCoeff,REAL aB);
+			REAL aPds,REAL * aCoeff,REAL aB, cParamCalcVarUnkEl *);
  
          virtual Im1D_REAL8  V_GSSR_Solve(bool * aResOk) = 0;
          virtual void V_GSSR_Reset() = 0;
@@ -825,7 +882,7 @@ class cFormQuadCreuse : public cVectMatMul,
                         double *  FullCoeff,
                         int aNbTot,
                         const std::vector<INT> & aVInd ,
-			REAL aPds,REAL * aCoeff,REAL aB);
+			REAL aPds,REAL * aCoeff,REAL aB, cParamCalcVarUnkEl *);
 	 virtual INT NbVar() const ;
          virtual Im1D_REAL8  V_GSSR_Solve(bool * aResOk) ;
          virtual void V_GSSR_Reset() ;
@@ -881,10 +938,19 @@ class cFormQuadCreuse : public cVectMatMul,
 class L2SysSurResol : public cGenSysSurResol
 {
      public :
+         virtual double    Redundancy () const;
+         virtual void Show () const;
+         virtual double    R2Pond () const;
+         virtual bool    IsCalculingVariance () const;
          virtual bool    CanCalculVariance() const;
          virtual void    SetCalculVariance(bool);
          virtual double  Variance(int aK);
-         virtual double  CoVariance(int aK1,int aK2);
+         virtual double  * CoVariance(int aK1,int aK2);
+         virtual bool    IsTmp(int aK) const;
+         virtual int    NumTmp(int aK) const;
+         virtual int    NumNonTmp(int aK) const;
+         virtual int    InvNumNonTmp(int aK) const;
+         virtual void    SetTmp(const std::vector<cSsBloc> &  aBlTmp,const std::vector<cSsBloc> &  aBlTNonmp,bool IsTmp);
 
          virtual bool  InverseIsComputedAfterSolve();
          virtual tSysCho   GetElemInverseQuad(int i,int j) const;
@@ -957,15 +1023,19 @@ class L2SysSurResol : public cGenSysSurResol
          virtual tSysCho  GetElemLin(int i) const;
          virtual void  SetElemLin(int i,const tSysCho& ) ;
 
-	  Im2D_REAL8   tLi_Li(); // Sigma des trans(Li) Li
+         Im2D_REAL8   tLi_Li(); // Sigma des trans(Li) Li
+ 
 
      private :
+          void SetNum(INT4 * mDataInvNum,INT4 *  mDNumNonTmp,const std::vector<cSsBloc> &  aBlTmp,bool SetNum /* ou UnSet*/);
+
+
 	  virtual void V_GSSR_AddNewEquation_Indexe
                       (  const std::vector<cSsBloc> * aVSB,
                         double *  FullCoeff,
                         int aNbTot,
 		         const std::vector<INT> & aVInd ,
-			REAL aPds,REAL * aCoeff,REAL aB);
+			REAL aPds,REAL * aCoeff,REAL aB,cParamCalcVarUnkEl *);
 
         INT          mNbVar;
 	Im2D_REAL8   mtLi_Li; // Sigma des trans(Li) Li
@@ -982,14 +1052,21 @@ class L2SysSurResol : public cGenSysSurResol
         double       mRedundancy;
         double       mMaxBibi; // Debug
         double       mResiduAfterSol;
+        Im1D_INT4    mNumTmp;
+        INT4 *       mDNumTmp;
+        Im1D_INT4    mNumNonTmp;
+        INT4 *       mDNumNonTmp;
+        Im1D_INT4    mInvNumNonTmp;
+        INT4 *       mInvDNumNonTmp;
+
 
         bool         mDoCalculVariance;
-        Im1D_REAL8   mVariance;
-        REAL8 *      mDVar;
         Im2D_REAL8   mCoVariance;
         REAL8 **     mDCoVar;
         double       mVarCurResidu;
         double       mVarCurSomLjAp;
+        double       mSomPds;
+        double       mSomR2Pds;
 };
 
 // Classe Adaptee au contexte bcp d'equations, (relativement) peu de variable

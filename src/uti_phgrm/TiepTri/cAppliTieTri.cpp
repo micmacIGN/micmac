@@ -236,7 +236,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
               cIntTieTriInterest aPI= mMasIm->GetPtsInteret();
               for (int aKIm=0 ; aKIm<int(mImSecLoaded.size()) ; aKIm++)
               {
-                  mImSecLoaded[aKIm]->RechHomPtsInteretBilin(aPI,mNivInterac);
+                  mImSecLoaded[aKIm]->RechHomPtsInteretBilin(aPI,mNivInterac);  //1pxl/2 -> pxl entier-> sub pxl
               }
          }
     }
@@ -273,7 +273,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
        ElTimer aChrono;
        for (int aKR = 0 ; aKR<int(mVCurMIRMC.size()) ; aKR++)
        {
-            RechHomPtsDense(*(mVCurMIRMC[aKR]));
+            RechHomPtsDense(*(mVCurMIRMC[aKR]));    //recherche dense with Interpolation sin, 0.125->1/32
        }
        mTimeCorDense += aChrono.uval();
     }

@@ -7,12 +7,17 @@ int TiepTriPrl_main(int argc,char ** argv)
     cout<<"*********************************"<<endl;
 
    std::string aFullNameXML,anOri;
+   std::string KeyMasqIm = "NONE";
+   int nInt = 0;
    ElInitArgMain
    (
          argc,argv,
          LArgMain()  << EAMC(aFullNameXML, "Pattern of XML for Triangu",  eSAM_IsPatFile)
                      << EAMC(anOri,        "Orientation dir"),
          LArgMain()
+                     << EAM(KeyMasqIm, "KeyMasqIm", true, "Key Masq, def=NONE")
+                     << EAM(nInt, "nInt", true, "display command")
+
    );
 
    std::string aDir,aNameXML;
@@ -23,7 +28,7 @@ int TiepTriPrl_main(int argc,char ** argv)
       StdCorrecNameOrient(anOri,"./");
       aDir = "./";
    }
-   cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+   cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirXML);
    vector<string> aVXML =  *(anICNM->Get(aNameXML));
    cout<<aVXML.size()<<" xml file"<<endl;
 
@@ -32,11 +37,12 @@ int TiepTriPrl_main(int argc,char ** argv)
    for (int aK=0 ; aK<int(aVXML.size()) ; aK++)
    {
         std::string aNameFile =  aVXML[aK];
-        if (ELISE_fp::exist_file(aNameFile))
+        if (ELISE_fp::exist_file(aDirXML+aNameFile))
         {
-            std::string aCom = MM3DStr + " TestLib TiepTri " + aDirXML + aNameFile + " " + anOri;
+            std::string aCom = MM3DStr + " TestLib TiepTri " + aDirXML + aNameFile + " " + anOri + " " + KeyMasqIm;
             aLCom.push_back(aCom);
-            //std::cout << aCom << "\n\n";
+            if (nInt != 0)
+                std::cout << aCom << "\n\n";
          }
    }
    cEl_GPAO::DoComInParal(aLCom);

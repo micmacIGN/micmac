@@ -880,7 +880,7 @@ Pt2dr cCameraFormelle::cEqAppui::Residu(Pt3dr aPTer,Pt2dr aPIm,REAL aPds)
     // std::cout <<  "cEA::RES " <<  mNameType << "\n";
 
    std::vector<double> aRes = (aPds > 0)   ?
-                            mCam.mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,false) :
+                            mCam.mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,false,NullPCVU) :
                             mCam.mSet.VResiduSigne(mFoncEqResidu);
 /*
    if (aPds > 0)
@@ -896,7 +896,7 @@ Pt2dr cCameraFormelle::cEqAppui::Residu(Pt3dr aPTer,Pt2dr aPIm,REAL aPds)
 }
 
 
-Pt2dr cCameraFormelle::cEqAppui::ResiduPInc(Pt2dr aPIm,REAL aPds,const cParamPtProj & aPPP)
+Pt2dr cCameraFormelle::cEqAppui::ResiduPInc(Pt2dr aPIm,REAL aPds,const cParamPtProj & aPPP,cParamCalcVarUnkEl * aPCVU)
 {
   // std::cout <<"DEBUG33 " << mNameType << "\n";
   // std::cout <<  "WWWW : " << mNameType << "\n";
@@ -928,7 +928,7 @@ Pt2dr cCameraFormelle::cEqAppui::ResiduPInc(Pt2dr aPIm,REAL aPds,const cParamPtP
 
     const std::vector<REAL> & aVals = 
                   (aPds > 0)                                             ?
-                  mCam.mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,false)   :
+                  mCam.mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,false,aPCVU)   :
 		  mCam.mSet.VResiduSigne(mFoncEqResidu)                  ;
 
     Pt2dr aRes(aVals[0], mEqDroite ? 0.0 : aVals[1]);
@@ -1011,7 +1011,7 @@ cCameraFormelle::~cCameraFormelle(){
 	//if ( mEqAppuiTerGL_II!=NULL ) delete mEqAppuiTerNoGL;
 }
 
-Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtProj & aPPP,bool IsEqDroite)
+Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtProj & aPPP,bool IsEqDroite,cParamCalcVarUnkEl * aPCVU)
 {
      cCamStenopeGrid * aCSG = mIntr.CamGrid();
      if ( aCSG)
@@ -1031,7 +1031,7 @@ Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtPro
         aPPP.wDist = true;
 
      cEqAppui*  anEq = AddForUseFctrEqAppuisInc ( false, aPPP.mProjIsInit, aPPP.wDist,IsEqDroite);
-     Pt2dr aRes = anEq->ResiduPInc(CorrigePFromDAdd(aPIm,true,IsEqDroite),aPds,aPPP);
+     Pt2dr aRes = anEq->ResiduPInc(CorrigePFromDAdd(aPIm,true,IsEqDroite),aPds,aPPP,aPCVU);
 
 
 
@@ -1811,7 +1811,7 @@ Pt2dr   cAppuiGridEq::AddAppui(Pt3dr aPTer,Pt2dr aPIm,REAL aPds)
         return Pt2dr(aV[0],aV[1]);
      }
      
-     const std::vector<REAL> &  aV = mSet.VAddEqFonctToSys(mFoncEq,aPds,false);
+     const std::vector<REAL> &  aV = mSet.VAddEqFonctToSys(mFoncEq,aPds,false,NullPCVU);
      return Pt2dr(aV[0],aV[1]);
 }
 

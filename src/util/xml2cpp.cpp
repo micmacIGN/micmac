@@ -1660,12 +1660,15 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const cMonomXY & aMon)
 }
 
 
+cElXMLTree * ToXMLTree(const Pt3dr & aP)
+{
+    ELISE_ASSERT(false,"ToXMLTree(const Pt3dr & aP)");
+    return 0;
+}
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt3dr & aP)
 {
    DEBUG_2XMLT
-   // sprintf (aBuf,"%lf %lf %lf",aP.x,aP.y,aP.z);
-   //  return  cElXMLTree::ValueNode(aNameTag,aBuf);
    std::ostringstream anOS;
    XML_PRECISION(anOS);
    anOS << aP.x << " " << aP.y  << " " << aP.z ;

@@ -93,7 +93,8 @@ Im1D_REAL8 DeConvol(int aC2,int aSz2,Im1D_REAL8 aI1,int aC1,Im1D_REAL8 aI3,int a
                 aVInd,
                 1.0,
                 &(aVCoef.data()[0]),
-                aI3.data()[aK3]
+                aI3.data()[aK3],
+                NullPCVU
           );
        }
    }

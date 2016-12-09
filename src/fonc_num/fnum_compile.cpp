@@ -932,10 +932,11 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
 	 REAL *       Pts,
          cGenSysSurResol & aSys,
          cSetEqFormelles & aSet,
-	 bool EnPtsCur
+	 bool EnPtsCur,
+         cParamCalcVarUnkEl * aPCVU
      )
 {
-   SVD_And_AddEqSysSurResol(isCstr,aVIndInit,MakeVec1(aPds),Pts, aSys,aSet,EnPtsCur);
+   SVD_And_AddEqSysSurResol(isCstr,aVIndInit,MakeVec1(aPds),Pts, aSys,aSet,EnPtsCur,aPCVU);
 }
 
 
@@ -947,9 +948,13 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
 	 REAL *       Pts,
          cGenSysSurResol & aSys,
          cSetEqFormelles & aSet,
-	 bool EnPtsCur
+	 bool EnPtsCur,
+         cParamCalcVarUnkEl * aPCVU
      )
 {
+
+
+
   int aSzPds = (int)aVPds.size();
   ELISE_ASSERT((aSzPds==1) || (aSzPds==mDimOut),"Taille Pds incohe in cElCompiledFonc::SVD_And_AddEqSysSurResol");
 
@@ -998,7 +1003,7 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
             for (INT aK=0 ; aK< mNbCompVar ; aK++)
             {
                  double aDdk = mCompDer[aD][aK];
-                 if (aDdk)
+                 if (aDdk)  // (PCVU)  Provisoie, + propre de ne pas annuler tte les var tmp
                  {
                      int anInd = aVIndInit[aK];
                     
@@ -1042,7 +1047,8 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
                        aVInd,
                        aPdsCur,
                        ( ( aDer.size()==0 )?NULL:&(aDer[0]) ),
-                       aB 
+                       aB ,
+                       aPCVU
                 );
             }
        }
@@ -1056,11 +1062,12 @@ void cElCompiledFonc::Std_AddEqSysSurResol
 	 REAL *       Pts,
          cGenSysSurResol & aSys,
          cSetEqFormelles & aSet,
-	 bool EnPtsCur
+	 bool EnPtsCur,
+         cParamCalcVarUnkEl * aPCVU
      )
 
 {
-    SVD_And_AddEqSysSurResol(isCstr,mMapComp2Real,aVPds,Pts,aSys,aSet,EnPtsCur);
+    SVD_And_AddEqSysSurResol(isCstr,mMapComp2Real,aVPds,Pts,aSys,aSet,EnPtsCur,aPCVU);
 }
 
 void cElCompiledFonc::Std_AddEqSysSurResol
@@ -1070,10 +1077,11 @@ void cElCompiledFonc::Std_AddEqSysSurResol
 	 REAL *       Pts,
          cGenSysSurResol & aSys,
          cSetEqFormelles & aSet,
-	 bool EnPtsCur
+	 bool EnPtsCur,
+         cParamCalcVarUnkEl * aPCVU
      )
 {
-   return Std_AddEqSysSurResol(isCstr,MakeVec1(aPds),Pts,aSys,aSet,EnPtsCur);
+   return Std_AddEqSysSurResol(isCstr,MakeVec1(aPds),Pts,aSys,aSet,EnPtsCur,aPCVU);
 }
 
 

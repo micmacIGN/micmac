@@ -89,10 +89,11 @@ bool cNewO_NameManager::LoadTriplet(const std::string & anI1,const std::string &
 
 
    ELISE_fp aFile(aName3.c_str(),ELISE_fp::READ,false);
-   int aRev = aFile.read_INT4();
-   if (aRev>NumHgRev())
-   {
-   }
+   /*int aRev = */aFile.read_INT4();
+   // NumHgRev doesn't work
+   //if (aRev>NumHgRev())
+   //{
+   //}
    int aNb = aFile.read_INT4();
    for (int aK=0 ; aK<3 ; aK++)
    {
@@ -140,10 +141,11 @@ void cNewO_NameManager::GenLoadHomFloats(const std::string &  aNameH,std::vector
 
    ELISE_fp aFile(aNameH.c_str(),ELISE_fp::READ,false);
    // FILE *  aFP = aFile.FP() ;
-   int aRev = aFile.read_INT4();
-   if (aRev>NumHgRev())
-   {
-   }
+   /*int aRev = */aFile.read_INT4();
+   // NumHgRev doesn't work
+   //if (aRev>NumHgRev())
+   //{
+   //}
    int aNb = aFile.read_INT4();
    aVP1->reserve(aNb);
    aVP2->reserve(aNb);
@@ -174,7 +176,9 @@ void cNewO_NameManager::WriteTriplet
 {
     int aNb = (int)aVP1.size();
     ELISE_fp aFile(aNameFile.c_str(),ELISE_fp::WRITE,false);
-    aFile.write_INT4(NumHgRev());
+    // NumHgRev doesn't work
+    //aFile.write_INT4(NumHgRev());
+    aFile.write_INT4(0);
     aFile.write_INT4(aNb);
     aFile.write(&(aVP1[0]),sizeof(aVP1[0]),aNb);
     aFile.write(&(aVP2[0]),sizeof(aVP2[0]),aNb);

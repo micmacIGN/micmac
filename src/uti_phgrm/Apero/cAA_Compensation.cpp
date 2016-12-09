@@ -93,7 +93,10 @@ void cAppliApero::AddObservations
         mFpRT = 0;
    }
 
-
+int aNbIter= MPD_MM() ? 1 : 1;  // Completement artificiel, pour tester resultat incertitudes
+for (int aK=0 ; aK<aNbIter; aK++)
+{
+   if (aNbIter!=1) std::cout << "ITERRRRRRRR AddObs=" << aK << "\n";
    // On les mets avant pour que AddLevenbergMarkard sache de manier precise si le centre a
    // ete fixe sur CETTE iteration
    {
@@ -156,6 +159,7 @@ void cAppliApero::AddObservations
    {
        AddObservationsContrCamGenInc(anSO.ContrCamGenInc(),IsLastIter,aSO);
    }
+}
 
    MajAddCoeffMatrix();
    if (NumIterDebug())  MessageDebug("Fin iter Obs");
@@ -455,7 +459,7 @@ bool IsMatriceExportBundle(const std::string & aNameIm)
 
 Fonc_Num Correl(Fonc_Num Cov,Fonc_Num Var1, Fonc_Num Var2)
 {
-   return Max(-1,Min(1,Cov/sqrt(Max(1e-10,Var1*Var2))));
+   return Max(-1,Min(1,Cov/sqrt(Max(1e-40,Var1*Var2))));
 }
 
 
@@ -633,18 +637,22 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         if (aSys->InverseIsComputedAfterSolve())
         {
             int aNbV = aSys->NbVar();
-            double aReSS = aSys->ResiduAfterSol();
+            double aRes1 = aSys->ResiduAfterSol();
+            double aRes2 = aSys->R2Pond() / aSys->Redundancy();
             for (int aK=0 ; aK<aNbV ; aK++)
             {
                 // std::cout << "GGGGG "<< aSys->GetElemInverseQuad(aK,aK) << " " << aMVar.data()[aK] << "\n";
                 // double aVal = aSys->GetElemInverseQuad(aK,aK);
                 // aVal *= aMVar.data()[aK];
-                aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aReSS*aSys->GetElemInverseQuad(aK,aK));
-                aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aReSS/aMVar.data()[aK]);
-                aXmlS.SensibDateOneInc()[aK].SensibParamVar() = aSys->Variance(aK);
+                if (0) std::cout << "=============== RESSSS " << aRes2 << " " << aRes1 << "\n";
+                aXmlS.SensibDateOneInc()[aK].SensibParamInv() = sqrt(aRes2*aSys->GetElemInverseQuad(aK,aK));
+                aXmlS.SensibDateOneInc()[aK].SensibParamDir() = sqrt(aRes2/aMVar.data()[aK]);
+                aXmlS.SensibDateOneInc()[aK].SensibParamVar() = sqrt(aSys->Variance(aK) / aSys->Redundancy());
+
+//   std::cout << " TEST-FUV " << aXmlS.SensibDateOneInc()[aK].SensibParamVar() / sqrt(aSys->GetElemInverseQuad(aK,aK)) << "\n";
             }
-            Im2D_REAL4 aMCov(aNbV,aNbV);
-            REAL4 ** aDC = aMCov.data();
+            Im2D_REAL8 aMCov(aNbV,aNbV);
+            REAL8 ** aDC = aMCov.data();
             Im2D_REAL4 aMCorInv(aNbV,aNbV);
             REAL4 ** aDCI = aMCorInv.data();
             Im1D_REAL4 aMVarI = Im1D_REAL4(aNbV);
@@ -654,12 +662,10 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
                 for (int aKy=0 ; aKy<=aKx ; aKy++)
                 {
                     aDCI[aKy][aKx] = aDCI[aKx][aKy] = aSys->GetElemInverseQuad(aKx,aKy);
-                    aDC[aKy][aKx]  = aDC[aKx][aKy] = aSys->CoVariance(aKx,aKy);
+                    aDC[aKy][aKx]  = aDC[aKx][aKy] = *(aSys->CoVariance(aKx,aKy));
 
                 }
                 aDMI[aKx] = aDCI[aKx][aKx];
-
-// std::cout << "TEST COVV " << aDC[aKx][aKx] << " " << aSys->Variance(aKx) << "\n";
             }
             for (int aKx=0 ; aKx<aNbV ; aKx++)
             {
@@ -688,6 +694,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(false));
         MakeFileXML(aXmlS,aPrefESPA+TheNameFileExpSens(true));
 
+        aSys->Show();
     }
 
 

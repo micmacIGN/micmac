@@ -611,7 +611,7 @@ double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const 
          aFlag |= (1<<aK);
          mI1.SetEtat(ProjStenope(aVDir[aK]));
          const std::vector<REAL> & aVRES =      WithEq                                              ?
-                                                mSetEq->VAddEqFonctToSys(mVFEsResid[aK],aVPds,false) :
+                                                mSetEq->VAddEqFonctToSys(mVFEsResid[aK],aVPds,false,NullPCVU) :
                                                 mSetEq->VResiduSigne(mVFEsResid[aK])                 ;
 
          aRes += euclid(Pt2dr(aVRES[0],aVRES[1]));
@@ -630,7 +630,7 @@ double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const 
       // if (aFlag== 3) mSBIT12->DoSubst();
       cSubstitueBlocIncTmp * aBuf = mMapBufSub[aFlag];
       ELISE_ASSERT(aBuf!=0," Flag in cEqBundleBase::AddEquationGen");
-      aBuf->DoSubst();
+      aBuf->DoSubstBloc(NullPCVU);
    }
 
 if (BugTK)

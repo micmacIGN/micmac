@@ -436,7 +436,8 @@ double cSetEqFormelles::AddEqLineaire
    mSys->GSSR_AddNewEquation_Indexe
    (
       &aVSsBl, &aCoefFiltre[0], (int)aCoefFiltre.size(),
-      aIndFiltre, aPds, &aCoefFiltre[0], aB
+      aIndFiltre, aPds, &aCoefFiltre[0], aB,
+      NullPCVU
    );
   
    return aRes;
@@ -826,7 +827,8 @@ void  cSetEqFormelles::AddContrainte(const cContrainteEQF & aContr,bool Stricte)
                  mAlloc.ValsVar(),
                  *mSys,
                  *this,
-                 true
+                 true,
+                 NullPCVU
             );
        }
      }
@@ -837,7 +839,7 @@ void  cSetEqFormelles::AddContrainte(const cContrainteEQF & aContr,bool Stricte)
 
             double anEc = ElAbs(ResiduSigne(aFonct));
             double aPds = aContr.PdsOfEcart(anEc);
-            VAddEqFonctToSys(aFonct,aPds,false);
+            VAddEqFonctToSys(aFonct,aPds,false,NullPCVU);
         }
      }
 }
@@ -944,7 +946,8 @@ const std::vector<REAL> & cSetEqFormelles::AddEqIndexeToSys
           mAlloc.ValsVar(),
           *mSys,
           *this,
-          true
+          true,
+          NullPCVU
      );
      return aFonct->Vals();
 }
@@ -962,13 +965,12 @@ const std::vector<REAL> & cSetEqFormelles::VAddEqFonctToSys
      (
                   cElCompiledFonc * aFonct,
                   const std::vector<double> & aVPds,
-                  bool WithDerSec
+                  bool WithDerSec,
+                  cParamCalcVarUnkEl * aPCVU
      )
 {
 
      AssertClosed();
-if (1)
-{
    aFonct->Std_AddEqSysSurResol
    (
         false,
@@ -976,9 +978,9 @@ if (1)
         mAlloc.ValsVar(),
         *mSys,
         *this,
-        true
+        true,
+        aPCVU
    );
-}
      const std::vector<REAL> & aRes = aFonct->Vals();
 
      return aRes;
@@ -988,10 +990,11 @@ const std::vector<REAL> & cSetEqFormelles::VAddEqFonctToSys
      (
                   cElCompiledFonc * aFonct,
                   REAL aPds,
-                  bool WithDerSec
+                  bool WithDerSec,
+                  cParamCalcVarUnkEl * aPCVU
      )
 {
-    return VAddEqFonctToSys(aFonct,MakeVec1(aPds),WithDerSec);
+    return VAddEqFonctToSys(aFonct,MakeVec1(aPds),WithDerSec,aPCVU);
 }
 
 REAL cSetEqFormelles::AddEqFonctToSys
@@ -1001,7 +1004,7 @@ REAL cSetEqFormelles::AddEqFonctToSys
                   bool WithDerSec
      )
 {
-    REAL aRes = VAddEqFonctToSys(aFonct,aPds,WithDerSec)[0];
+    REAL aRes = VAddEqFonctToSys(aFonct,aPds,WithDerSec,NullPCVU)[0];
 
 
    return aRes;

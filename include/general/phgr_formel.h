@@ -821,20 +821,21 @@ class cSetEqFormelles : public cNameSpaceEqF
 	  void AddContrainte(const cContrainteEQF &,bool Strictes);
 	  void AddContrainte(const cMultiContEQF &,bool Strictes);
 
-	  // VAddEqFonctToSys est la plus utile,
 	  // AddEqFonctToSys est connservee pour compatibilite
 
 	  const std::vector<REAL> & VAddEqFonctToSys
                (
                   cElCompiledFonc * aFonct,
                   const std::vector<double> & aVPds,
-                  bool WithDerSec
+                  bool WithDerSec,
+                  cParamCalcVarUnkEl*
                );
 	  const std::vector<REAL> & VAddEqFonctToSys
                (
                   cElCompiledFonc * aFonct,
                   REAL aPds,
-                  bool WithDerSec
+                  bool WithDerSec,
+                  cParamCalcVarUnkEl*
                );
 
 
@@ -1613,7 +1614,7 @@ class cGenPDVFormelle : public cNameSpaceEqF ,
     public :
 	  virtual const cBasicGeomCap3D * GPF_CurBGCap3D() const =0;
 	  virtual cBasicGeomCap3D * GPF_NC_CurBGCap3D() =0;
-	  virtual Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite)=0;
+	  virtual Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite,cParamCalcVarUnkEl*)=0;
 	  virtual cIncListInterv & IntervAppuisPtsInc() =0; 
 
           cGenPDVFormelle(cSetEqFormelles & aSet);
@@ -1677,7 +1678,7 @@ class cCameraFormelle :  public cGenPDVFormelle
 	   cEqAppui * AddFctrEqAppuisInc(bool aGenCode,bool Proj,bool isGL,bool wDist,bool EqDr);  // Initialise si nec le fcteur
 	   cEqAppui * AddForUseFctrEqAppuisInc(bool aGenCode,bool Proj,bool wDist,bool IsEqDr);  // Initialise si nec le fcteur
 	   cIncListInterv & IntervAppuisPtsInc(); 
-	   Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite);
+	   Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite,cParamCalcVarUnkEl*);
            virtual void Update_0F2D();
            void TestVB10(const std::string& aMes) const;
            void SetGL(bool aModeGL);
@@ -1705,7 +1706,7 @@ class cCameraFormelle :  public cGenPDVFormelle
 
 		      // Si P <0, n'ajoute pas au sys
 		      Pt2dr Residu(Pt3dr aP1,Pt2dr aP2,REAL Pds);
-		      Pt2dr ResiduPInc(Pt2dr aP2,REAL Pds,const cParamPtProj & aPPP);
+		      Pt2dr ResiduPInc(Pt2dr aP2,REAL Pds,const cParamPtProj & aPPP,cParamCalcVarUnkEl *);
 		  private :
 
                       cCameraFormelle & mCam;

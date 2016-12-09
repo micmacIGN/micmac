@@ -5,11 +5,7 @@
 /******************************************************************************
 The main function.
 ******************************************************************************/
-typedef struct CplString
-{
-    string img1;
-    string img2;
-}CplString;
+
 
 void MakeXMLPairImg(vector<CplString> & cplImg, string & outXML)
 {

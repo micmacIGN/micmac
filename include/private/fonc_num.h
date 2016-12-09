@@ -145,7 +145,8 @@ class cElCompiledFonc
                    REAL *       Pts,
                    cGenSysSurResol & aSys,
                    cSetEqFormelles & aSet,
-                   bool EnPtsCur
+                   bool EnPtsCur,
+                   cParamCalcVarUnkEl *
               );
 	 void SVD_And_AddEqSysSurResol
               (
@@ -155,7 +156,8 @@ class cElCompiledFonc
                    REAL *       Pts,
                    cGenSysSurResol & aSys,
                    cSetEqFormelles & aSet,
-                   bool EnPtsCur
+                   bool EnPtsCur,
+                   cParamCalcVarUnkEl *
               );
 
 
@@ -167,7 +169,8 @@ class cElCompiledFonc
                    REAL *       Pts,
                    cGenSysSurResol & aSys,
                    cSetEqFormelles & aSet,
-                   bool EnPtsCur
+                   bool EnPtsCur,
+                   cParamCalcVarUnkEl *
               );
 	 void Std_AddEqSysSurResol
               (
@@ -176,7 +179,8 @@ class cElCompiledFonc
                    REAL *       Pts,
                    cGenSysSurResol & aSys,
                    cSetEqFormelles & aSet,
-                   bool EnPtsCur
+                   bool EnPtsCur,
+                   cParamCalcVarUnkEl *
               );
 
 

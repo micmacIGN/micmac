@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_UTIL_H
 #define _ELISE_UTIL_H
 
+class cParamCalcVarUnkEl;
+extern cParamCalcVarUnkEl * NullPCVU;
 class tFileOffset;
 
 extern const  std::string  TheFileMMDIR;  // MicMacInstalDir
@@ -1653,7 +1655,9 @@ inline char toS(const T &v)
 	return (v < 2 ? '\0' : 's');
 }
 
-std::string mercurialRevision();
+// GIT Revision : {last tag}-{nb commit since the last tag}-{id of the last commit}-{dirty if modified since the last commit}
+// ex: version_1.0.beta4-1-gbd6bc8d-dirty
+std::string gitRevision();
 
 #endif /* ! _ELISE_UTIL_H */
 

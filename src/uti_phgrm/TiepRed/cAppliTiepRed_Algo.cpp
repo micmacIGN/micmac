@@ -139,7 +139,7 @@ bool cAppliTiepRed::DoLoadTiePoints(){
 			}
 
 
-			if (masterImageTiePoints.size() > mMinNumHomol){
+			if (masterImageTiePoints.size() > (size_t)mMinNumHomol){
 				// Update counter of tie-points in master
 				masterImage.SetNbPtsHom2Im(masterImage.NbPtsHom2Im() + masterImageTiePoints.size());
 				// Set number of tie-points for this homol image

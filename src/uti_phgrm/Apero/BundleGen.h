@@ -227,7 +227,7 @@ class cPolynBGC3M2D_Formelle : public cGenPDVFormelle
          void PostInit();
          const cBasicGeomCap3D * GPF_CurBGCap3D() const ;
          cBasicGeomCap3D * GPF_NC_CurBGCap3D() ;
-         Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite);
+         Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite,cParamCalcVarUnkEl*);
          
          const cPolynomial_BGC3M2D *  TypedCamCur() const { return & mCamCur; }
          cPolynomial_BGC3M2D *  TypedCamCur() { return & mCamCur; }

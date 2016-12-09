@@ -556,6 +556,16 @@ void cEqfBlocIncNonTmp::SetVal(int aK,const double & aVal)
 /*                                                          */
 /************************************************************/
 
+
+// Classe permettant de faire communiquer V_GSSR_AddNewEquation_Indexe et SoutraitProduc3x3 (ou DoSubst ?)
+// pour le calcul de variance covariance en cas d'elimination d'inconnues (complement de Schurr)
+// En effet lorsque l'on effectue la substitution  on a, pour l'instant, perdu trace du detail des
+// obsevation qui ont amene au calcul
+
+
+
+
+
 cBufSubstIncTmp::cBufSubstIncTmp
 (
       cSetEqFormelles * aSet,
@@ -695,6 +705,7 @@ double CondMat(ElMatrix<tSysCho> & aMat,bool Sym3,bool SSym)
 
 double cBufSubstIncTmp::DoSubst
      (  // X et Y notation de la doc, pas ligne ou colonnes
+          cParamCalcVarUnkEl * aCalcUKn,
           cSetEqFormelles * aSet,
           const std::vector<cSsBloc> &  aX_SBlTmp,
           const std::vector<cSsBloc> &  aY_SBlNonTmp,
@@ -705,6 +716,7 @@ double cBufSubstIncTmp::DoSubst
           double                   aLimCond
      )
 {
+
 
 if(DebugCamBil)
 {
@@ -718,6 +730,12 @@ if(DebugCamBil)
   getchar();
 }
    cGenSysSurResol & aSys =  *(aSet->Sys());
+   if (aCalcUKn) 
+   {
+      aSys.SetTmp(aX_SBlTmp,aY_SBlNonTmp,true);
+   }
+
+
    int aNbX = aX_SBlTmp[0].Nb();
    Resize(aSet,aNbX,aNbBloc);
 
@@ -815,6 +833,96 @@ if(DebugCamBil)
        }
        ElMatrix<tSysCho> aBpLA =  mBpL * mA;
        aSys.Indexee_SoustraitMatrColInLin(aBpLA,aY_SBlNonTmp);
+
+       if (aCalcUKn)
+       {
+           // Teta = Som Lm tKm   , Teta Lambda-1 = mBpL
+           
+           const std::vector<cOneEqCalcVarUnkEl> &  aVEq = aCalcUKn->VEq();
+           for (int aKEq=0 ; aKEq<int(aVEq.size()) ; aKEq++)
+           {
+               const cOneEqCalcVarUnkEl & anEq = aVEq[aKEq];
+               int aNbU =   anEq.mVI.size();
+               int aNbTmp = 0;
+               int aNbNonTmp = 0;
+
+               ElMatrix<tSysCho> aLm(1,mBpL.ty(),tSysCho(0.0));
+               ElMatrix<tSysCho> aKm(1,mBpL.tx(),tSysCho(0.0));
+               std::vector<int>  aIndNgNt;  // Num Glob Non Tmp
+               std::vector<tSysCho>  aCoeffNgNt;  // Num Glob Non Tmp
+
+               for (int aKu=0 ; aKu<aNbU ; aKu++)
+               {
+                   int aNumGlob = anEq.mVI[aKu];
+                   tSysCho aCoeff = anEq.mVL[aKu];
+                   
+                   if (aSys.IsTmp(aNumGlob))
+                   {
+                      aKm(0,aSys.NumTmp(aNumGlob)) = aCoeff;
+                      aNbTmp ++;
+                   }
+                   else
+                   {
+                      aIndNgNt.push_back(aNumGlob);
+                      aCoeffNgNt.push_back(anEq.mVL[aKu]);
+                      aLm(0,aSys.NumNonTmp(aNumGlob)) = anEq.mVL[aKu];
+                      aNbNonTmp++;
+                   }
+               }
+               aLm = aLm - mBpL * aKm;
+               // A priori ce check est inutile,
+               if (0 && (mBpL.tx() != aNbTmp) )
+               {
+                   std::cout << "Taille Matr=" << mBpL.tx() << " NbTmp " << aNbTmp << "\n";
+                   if (MPD_MM())
+                   {
+                       for (int aY=0 ; aY<mB.ty(); aY++)
+                       {
+                          for (int aX=0 ; aX<mB.tx(); aX++)
+                          {
+                              std::cout <<  mB(aX,aY) << " ";
+                          }
+                           std::cout << "\n";
+                       }
+                       for (int aY=0 ; aY<aSauvL.ty(); aY++)
+                       {
+                          for (int aX=0 ; aX<aSauvL.tx(); aX++)
+                          {
+                              std::cout <<  aSauvL(aX,aY) << " ";
+                          }
+                          std::cout << "\n";
+                       }
+                   }
+                   getchar();
+                   // ELISE_ASSERT(mBpL.tx()==aNbTmp,"CheckTmp in DoSubst");
+               }
+
+               std::vector<double> aVAbrLbr;  // Vector Sigma des breve(a) breve(l) en 26.43
+               int aNbTot = mBpL.ty();
+               for (int aK1=0 ; aK1<aNbTot ; aK1++)
+               {
+                    double aSom = 0;
+                    for (int aK2=0 ; aK2<aNbTot ; aK2++)
+                    {
+                         aSom +=  aLm(0,aK2) * aSys.GetElemInverseQuad(aSys.InvNumNonTmp(aK1),aSys.InvNumNonTmp(aK2));
+                    }
+                    aVAbrLbr.push_back(aSom);
+               }
+               for (int aK1=0 ; aK1<aNbTot ; aK1++)
+               {
+                   for (int aK2=0 ; aK2<aNbTot ; aK2++)
+                   {
+                       *(aSys.CoVariance(aSys.InvNumNonTmp(aK1),aSys.InvNumNonTmp(aK2))) += ElSquare(anEq.mRes) * aVAbrLbr[aK1] * aVAbrLbr[aK2];
+                   }
+               }
+/*
+*/
+
+               // ELISE_ASSERT(mBpL.tx()==aNbTmp,"CheckTmp in DoSubst");
+           }
+ 
+           // ElMatrix<tSysCho> aMat
+       }
    }
    if (DebugPbCondFaisceau)
    {
@@ -831,6 +939,10 @@ if(DebugCamBil)
        aSys.Indexee_QuadSet0(aY_SBlNonTmp,aX_SBlTmp);
    }
 
+   if (aCalcUKn) 
+   {
+      aSys.SetTmp(aX_SBlTmp,aY_SBlNonTmp,false);
+   }
    return aCond;
 }
 
@@ -965,11 +1077,12 @@ void cSubstitueBlocIncTmp::RazNonTmp()
 }
     
 
-void cSubstitueBlocIncTmp::DoSubst(bool doRaz,double LimCond)
+void cSubstitueBlocIncTmp::DoSubstBloc(cParamCalcVarUnkEl * aPCVU,bool doRaz,double LimCond)
 {
 
    mCond = cBufSubstIncTmp::TheBuf()->DoSubst
            (
+              aPCVU,
               mBlocTmp.Set(),
               mVSBlTmp,mSBlNonTmp,mNbBloc,
               doRaz,
@@ -1566,6 +1679,8 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               const cRapOnZ *      aRAZ
                            )
 {
+   cParamCalcVarUnkEl aPCVU;
+   cParamCalcVarUnkEl * aPCVUPtr =    mSet.Sys()->IsCalculingVariance() ? &aPCVU : NullPCVU;
    double aLimBsHOKBehind = 1e-2;
    double aCondMax = -1;
    if (anArg.mRop)
@@ -1731,13 +1846,9 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
        double aPds= (AddEq?aVPdsIm[aK]:0) * mMulGlobPds;
        if (aVPdsIm[aK]>0)
        {
-           Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP,aNuple.IsDr(aK));
-
-
-
+           Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP,aNuple.IsDr(aK),aPCVUPtr);
 
            mResidus.mEcIm.push_back(anEr);
-if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << " " << mMulGlobPds << "\n";
 
            mResidus.mSomPondEr += aVPdsIm[aK] * mMulGlobPds * square_euclid(anEr);
         }
@@ -1781,13 +1892,8 @@ if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << "
 	    {
 	        double aPds = (1/ElSquare(aVInc[aK])) * mMulGlobPds;
 		const std::vector<REAL> &  aV =   AddEq                                     ?
-                                                  mSet.VAddEqFonctToSys(aFR[aK],aPds,false) :
+                                                  mSet.VAddEqFonctToSys(aFR[aK],aPds,false,aPCVUPtr) :
                                                   mSet.VResiduSigne(aFR[aK])                ;
-                if (UPL_DCC())  
-                {
-                   std::cout  << "y====y===y===yyyyyy " 
-                              << aPds << " " << aK <<  " " << aFR[aK]  << " " << aV[0] << "\n";
-                }
                 mResidus.mSomPondEr +=  aPds * ElSquare(aV[0]);
 	    }
 	}
@@ -1797,7 +1903,7 @@ if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << "
     if (UPL_DCC()) std::cout << "HHHHHHHHhhhhhhhhhh " << AddEq << "\n";
     if (AddEq)
     {
-       mSubst.DoSubst(true,(mPPP.mProjIsInit?aCondMax:-1));
+       mSubst.DoSubstBloc(aPCVUPtr,true,(mPPP.mProjIsInit?aCondMax:-1));
     }
 
     return mResidus;

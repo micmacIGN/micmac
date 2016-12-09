@@ -1,35 +1,30 @@
 language: cpp
-
 matrix:
   include:
-# trusty is needed for Qt5
-    - os: linux
-      dist: trusty
-      sudo: required
-      compiler: gcc
-    - os: osx
-      osx_image: xcode8
-      compiler: clang
-
+  - os: linux
+    dist: trusty
+    sudo: required
+    compiler: gcc
 before_install:
-- if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get update -qq && sudo apt-get install -qq qtbase5-dev; fi
-- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update && brew install qt5 && export CMAKE_MODULE_PATH=$CMAKE_MODULE_PATH:`brew --prefix qt5`; fi
-
+- if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get update -qq && sudo apt-get
+  install -qq qtbase5-dev; fi
 script:
 - mkdir build
 - cd build
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then cmake .. -DWITH_QT5=On; fi
-- if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then cmake .. -DCMAKE_PREFIX_PATH=$(brew --prefix qt5) -DWITH_QT5=On; fi
-- make
+- make -j2
 - make install
-
-#after_success:
-#- sh travis_after_success_script.sh 
-
-#deploy:
-#  provider: releases
-#  api_key:
-#    secure: OEbjkpKMVDiYZMXfpgKkww3JkZMMF+P1FJokTrip+fnra8vUfKfKOroqM1jWmHv9RhiUcGJK0tl4gz+xzCIADNOHerWrwAQLS+WG/2LisyLH08Xuw/3DFJQPqpRG/WNcrcu4iqWGaFqteQQyXk2kqDXJNEWSM6y2U/1/UapLMxUXY7NF3k3vRUId7j+w7Jw06fm0LCzIKU5stBUaAMxi/CZj1W1Bgl/GUVfpBSg5TMOq2VM0iKIewMT0+f1+tpbF7wu4Yts1i575oCkHxQ1VSzseheflHtuQfaFzqf/5/DoW+zpHRlSOzUSj1Wu9xjdjPXL65WzFXxUJxORNXSpbLKTrvz8aLozaaXB9p5BpdGwgyNy0k6opADWGpaf9JdrjRGHGXP48I9jDZXrzBoUzJdQOsixr/3WRirfcLSHN2Po4qal0+iRRemZd6lGLfIxvchtMOibFyGQQvTqAsum7EDyZ+flejBy8ifmK4UEPfscqY6keX7ZmUtoPIsf0FzszpBtBuyql2U5+Nxfbj/DMRG5WTqW43sWupuAm+Y3kuQ2HLr/HBAcivAB4FFnVp04G89YF9VpFrjcqZ2CxFokvhPPIv5N2+o1iyHTZ+HUf5HeLQETOmPNxcxkJfXdxQBx6ou9zlVKAPl60l/KrLESijQkLV0qRBJwlo4OSA2glNbk=
-#  file: build/micmac_${TRAVIS_OS_NAME}_${TRAVIS_TAG}.tar.gz
-#  on:
-#    repo: gmaillet/micmac
+after_success:
+- pwd && sh ../script_create_bin_dist.sh ${TRAVIS_OS_NAME} && ls
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: J3HImuvqT5PuPyLWdx+ujkR2sPKGORxldFM4blV81jEaijTLm8Vyuu2iWS1EsJnNWu1w4Heu9LmSF9a5l4IrG1q678CCXOVUkRBGO0mMXfXtGq5qXcui8RIdGW8Tm7uU5iaXIBj8tqiGULtYgy0AelgqpWY8jp6tkZTOYOhadOM6iWOw5YBQfwZ8xLJS6K/HI1jt9MDr/Zm5SJywGnntexcS7PiV9picLen+D8wfkrcB9EPkXxeBSMvflOOVZvQm0AF6obAZuzB6d6beeJUdCuG/4TzOlYZSlH9ETNi11/iA7y+astvSkb/oPe2f+pCSJ/w4+RLWrP8E3droKJ6H8r0C+si6R37akdrARamC16FS88+KP3Qg8lLKK/F/A6CuOWBxJdDoO6MS0fw2fTjB1EMxOwmfZeuF+/Hl1yxh/ZlqBtNeuA0ea5/84nMyytGEnDT0AhjlSR5XVIkNj/SpTuL7d5l1Z8rVvuEdcaD9G0WHfIiF3cR4CTHLq1Rok+ek3vOBJNyUOSO/ZapelMZwF1XchkdRNHAj5fjzMvTf0/KlWtj/oZgybtuB7Zln1HhJ4YjyUt1BFgYkSgchizVm+YP+Ecp0VZxh3LM8iAnx8U6XC2154Mt+8jIFZlWHrFqcYpgscIvOm0qmeVJTjyNerHVUSLmU1xVsZiN/VkhKiTk=
+  file: micmac_${TRAVIS_OS_NAME}.tgz
+  on:
+# Travis release bug : https://github.com/travis-ci/travis-ci/issues/2498
+# it's important to use these options
+    tags: true
+    all_branches: true
+    repo: micmacIGN/micmac

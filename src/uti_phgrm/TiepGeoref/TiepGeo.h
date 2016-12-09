@@ -83,14 +83,14 @@ class tGeoInfo
 	public:
 		tGeoInfo(std::string &aCorName, std::string &aPx1Name, std::string &aPx2Name) :
                 mCorTif(aCorName.c_str()),
-                mCorIm(mCorTIm._the_im),
                 mCorTIm(mCorTif.sz()),
+		mCorIm(mCorTIm._the_im),
                 mPx1Tif(aPx1Name.c_str()),
-                mPx1Im(mPx1TIm._the_im),
                 mPx1TIm(mPx1Tif.sz()),
+		mPx1Im(mPx1TIm._the_im),
                 mPx2Tif(aPx2Name.c_str()),
-                mPx2Im(mPx2TIm._the_im),
-                mPx2TIm(mPx2Tif.sz())
+                mPx2TIm(mPx2Tif.sz()),
+		mPx2Im(mPx2TIm._the_im)
 		{
                 ELISE_COPY(mCorIm.all_pts(),mCorTif.in(),mCorIm.out());
                 ELISE_COPY(mPx1Im.all_pts(),mPx1Tif.in(),mPx1Im.out());
@@ -98,16 +98,16 @@ class tGeoInfo
         };
 
         Tiff_Im             mCorTif;
+	TIm2D<U_INT1,INT4>  mCorTIm;
         Im2D<U_INT1,INT4>   mCorIm;
-        TIm2D<U_INT1,INT4>  mCorTIm;
 
         Tiff_Im             mPx1Tif;
+	TIm2D<U_INT1,INT4>  mPx1TIm;
         Im2D<U_INT1,INT4>   mPx1Im;
-        TIm2D<U_INT1,INT4>  mPx1TIm;
 
         Tiff_Im             mPx2Tif;
+	TIm2D<U_INT1,INT4>  mPx2TIm;
         Im2D<U_INT1,INT4>   mPx2Im;
-        TIm2D<U_INT1,INT4>  mPx2TIm;
 
 };
 

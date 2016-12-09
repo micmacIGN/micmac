@@ -402,7 +402,7 @@ const std::vector<REAL> &  cEqCalibCroisee::AddObservation
     mP1.SetEtat(aPIm1);
     mN2.SetEtat(aDir2/euclid(aDir2));
 
-    return mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,WithD2);
+    return mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,WithD2,NullPCVU);
 }
 
 
@@ -593,7 +593,7 @@ cEqDirecteDistorsion::AddObservation
     mP1.SetEtat(aPIm1);
     mP2.SetEtat(aPIm2);
 
-    return mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,WithD2);
+    return mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,WithD2,NullPCVU);
 }
 
 cEqDirecteDistorsion::~cEqDirecteDistorsion()
@@ -897,7 +897,7 @@ double  cEqPlanInconnuFormel::DoResiduPInc(double aPds)
 {
   const std::vector<REAL> & aVals =
                       (aPds > 0)                                             ?
-                       mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,false)   :
+                       mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,false,NullPCVU)   :
                        mSet.VResiduSigne(mFoncEqResidu)                  ;
    return aVals[0];
 }

@@ -176,7 +176,7 @@ REAL  cEqVueLaserImage::AddAllEquations(std::vector<Pt3dr> Pts,REAL aPds,REAL aT
 	    )
 	 {
              const std::vector<REAL> & vVal =  
-		     mSet.VAddEqFonctToSys(mFoncEq,aPds,false);
+		     mSet.VAddEqFonctToSys(mFoncEq,aPds,false,NullPCVU);
 	     for (INT aK=0 ; aK<INT(vVal.size()) ; aK++)
 	     {
 	         aRes += ElSquare(vVal[aK]);
