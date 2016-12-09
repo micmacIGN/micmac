@@ -452,7 +452,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SetExif",CPP_SetExif,"Modification of exif file (requires exiv2)",cArgLogCom(2)));
        aRes.push_back(cMMCom("SetGpsExif",CPP_SetGpsExif,"Add GPS infos in images exif meta-data (requires exiv2)",cArgLogCom(2)));
        aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ...",cArgLogCom(2)));
-	   aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
+       aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
+       aRes.push_back(cMMCom("VisuRedHom",VisuResiduHom," Create a visualisation of residual on tie points"));
 
    }
 
