@@ -84,7 +84,9 @@ class CameraRPC : public cBasicGeomCap3D
         /* Optical centers for a user-defined grid */
 		void  OpticalCenterGrid(const Pt2di& aGrid, bool aIfSave) const;
         void  OpticalCenterOfImg();
+        void  OpticalCenterOfImg(std::vector<Pt3dr>* aOC) const;
 		Pt3dr OpticalCenterOfPixel(const Pt2dr & aP) const ;
+		Pt3dr OpticalCenterOfPixel(const std::vector<Pt3dr>* aOC, const Pt2dr & aP) const ;
         bool  HasOpticalCenterOfPixel() const;
 
 		
