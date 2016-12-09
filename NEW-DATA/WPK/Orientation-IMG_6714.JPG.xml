@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<OrientationConique>
+     <OrIntImaM2C>
+          <I00>0 0</I00>
+          <V10>1 0</V10>
+          <V01>0 1</V01>
+     </OrIntImaM2C>
+     <TypeProj>eProjStenope</TypeProj>
+     <ZoneUtileInPixel>false</ZoneUtileInPixel>
+     <Interne>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>1728 1152</PP>
+          <F>2716.80000000000018</F>
+          <SzIm>3456 2304</SzIm>
+          <ScannedAnalogik>false</ScannedAnalogik>
+          <CalibDistortion>
+               <ModRad>
+                    <CDist>1728 1152</CDist>
+                    <RatioDistInv>1.30000000000000004</RatioDistInv>
+                    <PPaEqPPs>true</PPaEqPPs>
+               </ModRad>
+          </CalibDistortion>
+     </Interne>
+     <RelativeNameFI>false</RelativeNameFI>
+     <Externe>
+          <Time>0</Time>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <Centre>100 200 300</Centre>
+          <VitesseFiable>true</VitesseFiable>
+          <ParamRotation>
+               <CodageAngulaire>11 2.2 -33.3</CodageAngulaire>
+
+          </ParamRotation>
+     </Externe>
+     <ConvOri>
+          <KnownConv>eConvAngPhotoMDegre</KnownConv>
+<!--
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+-->
+     </ConvOri>
+</OrientationConique>

@@ -1,0 +1,77 @@
+MicMac : Summer School/ Permanent Position/ Update.
+
+
+French Version bellow.
+
+
+***************************************************************************
+
+You receive this mail as a potentiel user of the free open source suite MicMac Apero. If these mail bother you just tell me and I will suppress you from the list.
+=====================================================
+Dear Colleagues,
+
+3 points in this letter :
+
+[1] Announcment of a Summer School on free open source sofware for satellite image processing
+[2] Annoucent  of permanent research position on photogrammetry at IGN
+[3] Update on MicMac software.
+
+
+
+            ****  [1] Summer School **********
+
+SFPT, CNES, IGN/ENSG organise their first summer school on  free open source sofware (OTB & MicMac)  for satelitte image processing from 4 to 8 of jully. See the detail in  "SummerSchool-OTB-MicMac-V2.odt"
+
+            ****  [2]  Permanent Research Position at IGN in photogrammetry **********
+
+IGN open a permanent junior research position in photogrammetry. It's  a civil servant position ("Chargé de recherche"). See the detail in  "poste-CR2-photogrammetrie-2016.doc" attached. Also the announce is redacted in french it is open to non french speaking candidate without any restriction of nationality. 
+
+            ****  [3]  Main update on MicMac **********
+
+[3.1]  The photogrammetric processing of satellite images is now complete in MicMac with a bundle adjustment adapted to push broom sensor. It works with RPC from Pleiade and many other satellite. See chapter 19 of the documentation. It's relatively new and may still contains some bugs, but has been tested on several data-set.
+
+[3.2] The tool Martini, for fast orientation is partly operationnel. It lack a correct final bundle but it can already be used and sometime it will solve orientation not correclty handled by Tapas (and sometime the contrary !)
+
+[3.3] Tie point reduction for big data set is a job in progress due to the funding of  eScience-Center (Netherdland). A very first draft, adapted to aerial acquisition can be found  with command OriRedTieP (require Martini was run before).  
+
+
+Best regards,
+Marc
+
+
+****************************** FRENCH - FRENCH *********************************************
+****************************** FRENCH - FRENCH *********************************************
+****************************** FRENCH - FRENCH *********************************************
+
+Vous recevez ce mail en en tant qu'utilisateur ou prescritpteur potentiel des outils de photogrammétrie libres open-source Apero/MicMac. Si ces mails vous importunent, indiquez le moi et je vous supprimerai de la liste.
+=====================================================
+
+Chers Collègues,
+
+3 sujet dans cette lettre
+
+[1] Annonce d'une école d'été sur les logiciels libres pour le traitement d'images satellites
+[2] Annonce de l'ouverture d'un poste de chargé de recherche en photogrammétrie à l'IGN
+[3] Evolution récente de MicMac
+
+            ****  [1] Ecole d'été **********
+
+La SFPT, le CNES et l'IGN/ENSG organisent leur première école d'été sur les logiciels libres (OTB & MicMac) pour le traitement d'images satellite. Voir le detail dans le document "Ecole-Ete-OTB-MicMac-V2.odt".
+
+            ****  [2]  Poste de chargé de reherche en photogrammétrie à l'IGN  **********
+
+L'IGN ouvre un poste de chargé de chargé de recherche en photogrammétrie. Il s'agit d'un poste de fonctionnaire dans le corps des chercheurs de l'équipement. Voir le détail dans "poste-CR2-photogrammetrie-2016.doc".
+
+
+            ****  [3]  Evolutions recentes de  MicMac **********
+
+[3.1]  Le pipeline de traitement photogrammetrique des images satellite est maintenant complet dans MicMac avec un ajustement de faisceau adapté aux images push-brum. Il fonctionne avec les RPC de Pleiade et de bien d'autres satellite. Comme il est relativement neuf il peut contenir plusieurs bugs, il a toutefois été testé avec succès sur plusieurs jeux de données.
+
+[3.2] L'outil Martini , pour l'orientation rapide est partiellement opérationnel. Il manque une ajustement de faisceau correct mais il peut deja etre  utilise car il arrive parfois à résoudre des chantiers mal géré par Tapas (l'inverse étant aussi vrai ...)
+
+[3.3] La réduction des point de liaison pour traiter de grand jeux de données est en cours de développement grace à un soutien de la fondation eScience-Center (Hollande). Un tout premier proto adapte aux chantier aerien est disponible avec la commande OriRedTieP (il est nécessaire que Martini ait ete lance d'abord).
+
+
+Best regards,
+Marc
+

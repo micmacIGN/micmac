@@ -1,0 +1,225 @@
+\chapter{Names Convention Organization}
+
+This chapter describes how the user can specify the names convention
+and organization and how the different programs communicate
+and share the naming. To be honest, the mechanism is certainly more
+complex than it could and should be; the idea, when building these
+mechanisms, was to be able to integrate any name convention without having
+to rename files. This objective is not completely satisfied, but the
+complexity is here. It has to be assumed \dots
+
+
+
+\label{Chap:NFS}
+
+%=============================================================
+%=============================================================
+%=============================================================
+
+\section{General Organization}
+
+\subsection{Requirements}
+
+We suppose, in all this document, that all the initial images necessary
+for the process are located in the same directory. Although it may
+not be required for all the steps, I cannot guarantee that this can be avoided,
+and I am quite sure that it is a good idea to do it this way.
+
+We will call this directory the project directory and
+we will refer to it as {\tt ProjDIR}.
+
+
+\subsection{The \UNCLEAR{struct} {\tt ChantierDescripteur}}
+
+The XML \UNCLEAR{struct} describing the name convention is named {\tt ChantierDescripteur}.
+Its formal specification can be found in the file {\tt ParamChantierPhotogram.xml}.
+The main parts of a {\tt ChantierDescripteur}  are:
+
+\begin{itemize}
+   \item  {\tt KeyedSetsOfNames}, it allows to describe sets of strings, and to give them
+          a key identifier that will be used to reference them;
+
+   \item  {\tt KeyedNamesAssociations}, it allows to describe string mapping,  and
+          to reference them by key; when these mappings are invertible, the user can
+          specify the \UNCLEAR{invert} function %inverted
+           (which is often required);
+
+   \item  {\tt KeyedSetsORels}, it allows to describe relations between  strings;
+          these relations are always given between existing sets of strings
+          (created by a {\tt KeyedSetsOfNames}); of course, to these relations are
+          given key identifier used to reference them.
+\end{itemize}
+
+{\tt ChantierDescripteur} contains also many other structures, some are 
+obsolete, others are not so often used and will be introduced at the end of the chapter.
+
+
+\subsection{The Files Containing {\tt ChantierDescripteur}}
+
+The programs using {\tt ChantierDescripteur}\footnote{almost all now} expect to
+find it in 3 possible locations:
+
+
+\begin{itemize}
+
+   \item {\tt micmac/include/XML\_GEN/DefautChantierDescripteur.xml}, this file contains the
+         predefined conventions; the conventions defined in this file are known \UNCLEAR{from} all the
+         tools; the objective is that, in a short future these predefined and "standard"
+         conventions should be sufficient in $95\%$  of projects; it is a good idea
+         to use these conventions when they exist; \emph{user should never modify this file};
+    
+
+   \item {\tt ProjDIR/MicMac-LocalChantierDescripteur.xml}, this file contains conventions
+         specific to the project; the name of this file
+         must be exactly {\tt MicMac-LocalChantierDescripteur.xml}, this is how the
+         tools recognize this special file; the existence of this file is not mandatory
+         and simple projects using standard conventions will  omit it;
+
+   \item {\tt DicoLoc}, for some tools (including {\tt MicMac} and {\tt Apero}) it is possible
+         to define conventions directly in the parameters file, this may be convenient if
+         a convention that will be used only once is required.
+
+\end{itemize}
+
+\subsection{Overriding and Priority} 
+
+Is was seen before that conventions are given keys (or names), overriding
+of key is possible but must obey certain rules:
+
+\begin{itemize}
+   \item it is not possible to define twice a key in the same file; for example
+         if you try to define two sets, with the same name {\tt Key-My-Set} in 
+         {\tt ProjDIR/MicMac-LocalChantierDescripteur.xml}  you will get an error;
+
+   \item it is possible to override a key between different files; the priority rule
+         is naturally to favor the more local definition; that is: 
+
+\begin{itemize}
+             \item definitions of {\tt DicoLoc} override definitions of 
+                    {\tt MicMac-LocalChantierDescripteur.xml};
+             \item definitions of {\tt MicMac-LocalChantierDescripteur.xml}
+                   override definitions of \newline {\tt DefautChantierDescripteur.xml}.
+\end{itemize}
+
+\end{itemize}
+
+It is sometimes useful to override in {\tt MicMac-LocalChantierDescripteur.xml} the
+definition of a default key given in {\tt DefautChantierDescripteur.xml} because this is 
+the easiest way for parameterizing a tool. For example:
+
+\begin{itemize}
+    \item the tool {\tt bin/MpDcraw}, for demosaicing image, expects, in certain 
+          condition, to get for each image a "chromatic aberration calibration file";
+
+    \item  for 	a given image, {\tt bin/MpDcraw} computes the name of chromatic calibration file
+           using the rule associated to the key {\tt Key-Assoc-Calib-Coul};
+
+    \item  {\tt Key-Assoc-Calib-Coul} is defined in  {\tt DefautChantierDescripteur.xml} 
+           with a rule that is convenient for my camera but that may be inapropriate
+           for the user, so it may be override in \newline {\tt MicMac-LocalChantierDescripteur.xml}.
+\end{itemize}
+
+
+%=============================================================
+%=============================================================
+%=============================================================
+
+\section{Regular Expression and Substitution}
+
+\subsection{Regular Expression}
+
+Regular expressions are a very powerful tool for concise description of string subsets.
+For example the expression:
+
+\begin{verbatim}
+                                ^.*_(..?)x[0-9]{3}.*
+\end{verbatim}
+
+Means a string that contains a {\tt \_}, followed by 1 or 2 characters,
+followed by {\tt x}, followed by $3$ digits and ending by anything.
+
+It is also a standard, in fact \UNCLEAR{as current} in \UNCLEAR{informatics}, %computer science
+ it is a standard with a
+lot of variants \dots The regular expressions used are the so called "posix-regular expressions".
+This standard has two advantages:
+
+\begin{itemize}
+   \item there exists standard library that made the implementation easy for me;
+
+    \item the user can easily find a complete description of regex. On Unix, one
+         may type {\tt man regex}. Of course, this is not very didactic and you may
+          prefer to search on the web, you will get a lot of interesting pages
+          by simply typing "regular expression" on your favorite browser.  Be
+          sure to refer to the posix page, and not the other variants
+          who may be different (pearl regular expression is a current one).
+         
+\end{itemize}
+
+
+\subsection{Substitution}
+
+%=============================================================
+\section{Helps tools in names manipulation}
+
+
+\subsection{TestKey}
+
+The command {\tt mm3d TestKey aPat} will print on the console the set
+of name corresponding to a pattern  {\tt aPat}  (or more generally to key of subset). By
+default it is limited to $10$ Name, the {\tt Nb} optionale parameters can
+increase this default value.
+
+\subsection{TestMTD}
+
+The {\tt TestMTD} will print the meta data as understood by MicMac :
+
+\begin{verbatim}
+mm3d TestMTD _MG_0082.CR2 
+FocMm 35
+Foc35 34.2
+Cam   [Canon EOS 5D Mark II]
+\end{verbatim}
+
+
+\subsection{TestNameCalib}
+\label{TestNameCalib}
+
+The {\tt TestNameCalib} will print the computed name of internal calibration which by default associated
+an image :
+
+
+\begin{verbatim}
+mm3d TestNameCalib _MG_0082.CR2
+./Ori-TestNameCalib/AutoCal_Foc-35000_Cam-Canon_EOS_5D_Mark_II.xml
+\end{verbatim}
+
+
+
+%=============================================================
+%=============================================================
+
+\section{Describing String Sets}
+
+%=============================================================
+%=============================================================
+%=============================================================
+
+\section{Describing String Mapping}
+
+\label{Ref:Key:Map}
+
+%=============================================================
+%=============================================================
+%=============================================================
+
+\section{Describing String Relations}
+
+%=============================================================
+%=============================================================
+
+\section{Filters and In-File Definition}
+
+
+
+
+

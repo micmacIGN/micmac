@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>2673.87007974044127 1686.43244050766657</PP>
+          <F>15886.5594189999138</F>
+          <SzIm>4094 4096</SzIm>
+          <CalibDistortion>
+               <ModRad>
+                    <CDist>2047 2048</CDist>
+                    <CoeffDist>4.10680450599079508e-11</CoeffDist>
+                    <CoeffDist>-9.28794081721903209e-19</CoeffDist>
+               </ModRad>
+          </CalibDistortion>
+          <CalibDistortion>
+               <ModUnif>
+                    <TypeModele>eModelePolyDeg4</TypeModele>
+                    <Params>0.0520766389028084198</Params>
+                    <Params>-0.000882715038274703673</Params>
+                    <Params>0.00425796840378714347</Params>
+                    <Params>0.00210277708240118105</Params>
+                    <Params>0.00151689366059288904</Params>
+                    <Params>-0.0020828530930918597</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Etats>12866.5931835240845</Etats>
+                    <Etats>2047</Etats>
+                    <Etats>2048</Etats>
+               </ModUnif>
+          </CalibDistortion>
+     </CalibrationInternConique>
+</ExportAPERO>

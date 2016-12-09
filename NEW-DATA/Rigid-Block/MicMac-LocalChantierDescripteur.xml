@@ -1,0 +1,40 @@
+
+<Global>
+
+  <ChantierDescripteur >
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite> 1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  DSCF([0-9]{4})_(.)\.jpg </PatternTransform>
+                <CalcName> Fuji-$2 </CalcName>
+                </Direct>
+        </Calcs>
+        <Key> NKS-Assoc-StdIdAdditionnelCam </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+             <Direct>
+                <PatternTransform> DSCF([0-9]{4})_(.)\.jpg   </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+             </Direct>
+             <Inverse>
+                <PatternTransform> (.*)%(.*) </PatternTransform>
+                <CalcName> DSCF$1_$2.jpg  </CalcName>
+                <Separateur > % </Separateur>
+             </Inverse>
+        </Calcs>
+        <Key>  Loc-Assoc-Im2Block </Key>
+    </KeyedNamesAssociations>
+
+
+
+  </ChantierDescripteur>
+</Global>

@@ -1,0 +1,14 @@
+ <ChantierDescripteur >
+
+<KeyedNamesAssociations>
+<Calcs>
+<Arrite> 1 1 </Arrite>
+<Direct>
+<PatternTransform> .* </PatternTransform>
+<CalcName> SFS </CalcName>
+</Direct>
+</Calcs>
+<Key> NKS-Assoc-SFS </Key>
+</KeyedNamesAssociations>
+
+ </ChantierDescripteur>

@@ -1,0 +1,68 @@
+
+Algorithme pour l'orientation absolue avec "GPS" (en fait
+connaissance des centre optiques).
+================================
+
+On note ~ la reciproque d'un appli .
+
+On a N Pose, pour chaque pose k,on cherche Ak=(Tk,Rk) telle que :
+
+   Ak(Pk) = P , avec P coordonnees terrain et Pk coordonnees dans
+                le repere lie a k (convention "nomale"  Cam->Monde)
+
+   ou  RkPk + Tk = P
+
+
+On cherche a calculer A0, l'orientation absolue de la camera 0,
+on dispose de points de liaison avec les autres cameras, et des
+coordonnes des centres optiques Ck = Ak(0) = Tk.
+
+
+Pour chaque , camera on utilise un algorithme donnant l'orientation
+relative / a la camera 0. Cet algorithme donne une orientation a
+un facteur d'echelle pres (base unite).   Il donne A01 tel que :
+
+     A01(P0) = P1   (Doc  de  include/general/photogram.h)
+
+
+On a donc :
+
+        A0 = A1 A01
+
+
+Pour resoudre l'ambiguite sur la base Tr01 on ecrit :
+
+    Tr01 = A01 (0) = R1~ R0 (0);
+
+On 
+
+    |Tr01| = | R1~ R0 (0)|  = d(0,R1~ R0 (0)) = d(R1(0),R0(0)) = d(C1,C0)
+
+
+On retrouve le resultat intuitvement evident selon lequel la longueur de
+la base doit etre egal a la distance C0,C1.
+
+On connait donc les orientation relative sans ambiguites d'echelle.
+
+On connait Tr0 = C0.
+
+On a :
+    
+   A1 (0) = C1
+
+Donc :
+
+      A0 A01~ (0) = C1
+
+Donc   Tr0 + R0 A01~ (0) = C1
+
+     R0 A01~ (0) = C1-Tr0
+
+Dans cette equation tout est connu sauf R0 .
+Si on une deuxieme image
+
+     R0 A02~ (0) = C2-Tr2
+
+
+
+

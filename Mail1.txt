@@ -1,0 +1,111 @@
+
+
+  Si vous souhaitez ne plus recevoir ces mails, n'hesitez pas a m'en informer.
+
+     *********************
+Bonjour,
+
+Qq infos sur les evolutions recentes de MicMac  a la suite
+des formations auxquelles vous avez assisté. 
+
+-1- J'ai ajoute le  jeux de donnees Draix-Drone-Village a "ExempleDoc/".
+
+    Il s'agit d'une  dizaines d'images en JPG . Le traitement
+   proposé permet d'aller jusqu'a la generation d'un ortho photo
+   egalisee sommairement et un nuage de point colore. Il utilise
+   au maximum les outils simplifiés.
+
+    La liste des commande que j'ai utilisee se trouvent dans "Readme.txt".
+  Sauf erreur de ma part, les fichier xml necessaires sont aussi ajoutes
+  au versionnement.
+
+
+2- Ces principales evolutions concernent :
+
+   - l'outil simplifié Tapioca , qui est un interface a Pastis;
+
+   - la possibilite de traiter directement les images Raw (ou Jpg) sans
+   avoir a les convertir explicitement; c'est les outils qui génèrent à la
+   volée les images tif dont ils ont besoin et  maintiennent le lien;
+
+   - l'outil Tapas qui est une interface simplifiée a Apero; cet outil
+    permet d'accéder aux principales fonctionnalité d'orientation
+    relative et de calibration;
+  
+   - l'outil Bascule qui est  une interface simplifiee aux fonction
+     de bascule d'Apero (pour l'instant juste sur un plan);
+
+3- La liste de commande est :
+
+/home/mpd/micmac/bin/Tapioca All ".*.JPG" 1200
+/home/mpd/micmac/bin/Tapas Fraser .*.JPG
+/home/mpd/micmac/bin/SaisieMasq P4090133.JPG
+/home/mpd/micmac/bin/SaisieMasq P4090153.JPG
+/home/mpd/micmac/bin/Bascule ".*.JPG"  Fraser Basc ImPl=[0133,0153]
+/home/mpd/micmac/bin/MICMAC ParamMM.xml
+/home/mpd/micmac/bin/Porto ORTHO/Param-Porto-Eg.xml
+/home/mpd/micmac/bin/Nuage2Ply MM-Ter/NuageImProf_LeChantier_Etape_6.xml Attr=ORTHO/Ortho-Eg-Test-Redr.tif
+
+3-1- Pour Tapioca, il est documenté. La seule remarque est la possibilité
+évoqué + haut de passer directement les image jpeg.
+
+3-2 La ligne :
+   Tapas Fraser .*.JPG
+
+Crée une orientation relative de toutes les images correspondant au pattern
+donne en deuxieme argument.
+Les calibration initiales sont calculées a partir des métadonnées xif, cela
+fonctionne parce qu'ici les meta donnée xif contiennent une info sur la
+focale equivalent 35mm. Lorque ce  n'est pas le cas, il faudra que la
+caméra soit connue :
+ 
+   - cree un fichier include/XML_User/DicoCamera.xml en s'inspirant de
+    include/XML_MicMac/DicoCamera.xml (ne pas ecrire dans include/XML_MicMac/
+    sous risque de voir modif ecrasees au prochain commit);
+
+
+Le parametre Fraser est un mot cle indiquanr que le modele de calibration
+choisi est le modele dit "photogrammétrique standard" par Fraser (i.e.
+radial+decentrique+affine).
+
+Par defaut les resultat seront stockes dans Ori-Fraser/.
+
+
+3-3 La ligne :
+     Bascule ".*.JPG"  Fraser Basc ImPl=[0133,0153]
+
+Creer une bascule d'orientation sur toute les images ".*.JPG", 
+les orientation d'entree sont dans Ori-Fraser/, celle de sortie dans Ori-Basc/.
+
+Les plans sont recherches sur toutes les images dont le nom contient 0133 ou 0153.
+Un erreur est "evidemment" generee si une de ces images n'a pas d'image de masque associe
+(selon le mecanisme par defaut P4090133.JPG -> P4090153_Masq.tif)
+
+
+3-4 Pour 
+     /home/mpd/micmac/bin/MICMAC ParamMM.xml
+
+Le fichier est parametre pour generer des MNT urbain (on cherche les
+grande discontinuité) avec les pametres   <SeuilAttenZRegul> et 
+<AttenRelatifSeuilZ> (pas encore documentés).
+
+3-5 Pour l'ortho, il y a deux jeux de paramètres :
+
+bin/Porto ORTHO/Param-Porto-NonEg.xml  : ortho sans egalisation
+bin/Porto ORTHO/Param-Porto-Eg.xml     : ortho avec egalisation
+
+Sur vos jeux de données, vous pouvez essayer  Param-Porto-NonEg.xml qui sera
+en général plus "joli", mais  si les comportement deviennet eratique,
+Param-Porto-Eg.xml assure un service minimal.
+
+
+Cordialement
+MPD
+
+
+
+
+
+
+
+

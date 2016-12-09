@@ -1,0 +1,650 @@
+\documentclass[a4paper]{book}
+
+\usepackage[english,french]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{rotating}
+\usepackage{multicol}
+\usepackage{color}
+\usepackage{verbatim}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{listings}
+%\usepackage{cprotect}
+\usepackage{fancyvrb}
+\usepackage{color}
+
+
+
+%\usepackage{subfigure}
+
+
+\setlength{\oddsidemargin}{0.5 cm}
+\setlength{\evensidemargin}{-0.5 cm}
+\setlength{\textwidth}{16.0 cm}
+\setlength{\textheight}{23.7 cm}
+\setlength{\marginparwidth}{0.0 cm}
+\setlength{\topmargin}{-1.0 cm}
+
+
+%\usepackage{mathabx}
+%\usepackage{amstext}
+%\usepackage{amssymb}
+%\usepackage{ae}
+
+%\includeonly{DocRef/GeoLocalisation}
+%\includeonly{DocRef/Advanced-MicMac2}
+%\includeonly{Generalites/QuickStartSimplified-Tools}
+
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+
+
+%---------------------------------------------
+\newcommand{\CPP}{\mbox{\tt C\hspace{-0.05em}\raisebox{0.2ex}{\small ++} }}
+\newcommand{\SiftPP}{\mbox{\tt Sift\hspace{-0.05em}\raisebox{0.2ex}{\small ++} }}
+
+
+\newcommand{\KTH}{\ensuremath {^{th}}}
+\newcommand{\EME}{\ensuremath {^{i\grave eme}}}
+\newcommand{\ETer}{\ensuremath {\mathcal T}}
+\newcommand{\EIm}{\ensuremath {{\mathcal I}_k}}
+\newcommand{\EPx}{\ensuremath{{\mathcal E}_{px}}}
+
+\newcommand{\FPx}{\ensuremath{{\mathcal F}_{px}}}
+
+\newcommand{\Ok}{\ensuremath{{\mathcal O}_{k}}}
+
+\newcommand{\Ess}{\ensuremath{{\mathcal E}}}
+
+\newcommand{\DimPx}{\ensuremath{D_{px}}}
+
+\newcommand{\PiI}{\ensuremath{\dot{\pi}}}
+\newcommand{\PxMoy}{\ensuremath{\tilde{P_x}}}
+\newcommand{\PxZone}{\ensuremath{P_x^Z}}
+
+\newcommand{\RR}{\ensuremath{\mathbb{R}}}
+\newcommand{\ZZ}{\ensuremath{\mathbb{Z}}}
+\newcommand{\NN}{\ensuremath{\mathbb{N}}}
+\newcommand{\Ind}{\ensuremath{\mathbb{I}^{nd}}}
+
+\newcommand{\Ress}{\ensuremath{{\mathcal A}}}
+\newcommand{\Reg}{\ensuremath{{\mathcal R}^{eg}}}
+\newcommand{\Energ}{\ensuremath{{\mathcal E}}}
+\newcommand{\Echant}{\ensuremath{{\mathcal E}}}
+\newcommand{\PZero}{\ensuremath{{\mathcal P}^0}}
+\newcommand{\SUn}{\ensuremath{{\mathcal S}^1}}
+
+\newcommand{\DeltaI}{\ensuremath{\Delta^{\imath}}}
+
+\newcommand{\DdSt}{\ensuremath{d^2}_{/\mathcal{S}^3}}
+\newcommand{\DeuxExtre}{\ensuremath{\unrhd}}
+%\newcommand{\DeuxExtre}{\ensuremath{\nabla}}
+\newcommand{\RefFantome}{{\bf ?2Def?}}
+\newcommand{\PourLecteurAverti}{{\Large \bf \emph{Ce paragraphe peut
+facilement \^etre omis
+en premi\`ere lecture.}}}
+\newcommand{\COM}[1]
+
+%  \verb|\|
+
+
+\newcommand{\ELISE}
+{\mbox{{\bf $\mathcal{E}$}\hspace{-0.15em}\raisebox{-0.4ex}{L}\hspace{-0.3em}\raisebox{0.3ex}{i}\raisebox{-0.4ex}{S}\raisebox{0.0ex}{e}}}
+
+%\newcommand{\UNCLEAR}[1]{\textcolor{red}{\textbf{\#1}}}
+\newcommand{\UNCLEAR}{}
+\newcommand{\ISITCLEAR}{}
+
+%--------------------------------------------
+\begin{document}
+\selectlanguage{english}
+\chapter{Outil TripleSec : Test de non RegressIon Pour Les nouvElles verSions dE miCmac}
+
+\section{Description}
+The TripleSec allows you to test new micmac implementations and to identify bugs and errors. The tool process a dataset and compare files, directories, calibrations, orientations or images with a reference repertory processed with a stable version of micmac. The command TripleSec take a XML file with specific tags as argument, and it returns two files : one report and one errors report.
+
+\section{Prerequisites}
+Before using TripleSec, you have to run micmac tools (Tapioca, Tapas, Malt, etc...) with a dataset. This gonna be your reference directory. Then you have to write a XML file as it's specified bellow, which specify the dataset, the commands and the file to compare. So to resume, in your working directory, you should have :
+\begin{itemize}
+\item Reference directory (Def = TNR-Ref-Project\_Name).
+\item The XML file.
+\end{itemize}
+
+NB : Now we will use the shorcut "Ref" for the reference directory usually named "TNR-Ref-\#Name\#" and "Exe" for the execution directory where we are processing with a new micmac version, usually named "TNR-Exe-\#Name\#".
+
+\section{Test structure}
+Now we will explain how to write the XML test file.
+The dataset, the commands, and the particular test you wish to evaluate must be specified in a XML file at the same level as the work directory named "TNR-Exe-\#Name\#".
+To initialize this file, you must use a $<XmlTNR\_GlobTest>$ tag and specify the project name (\#Name\#) with a $<Name>$ tag as the following example :
+
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<XmlTNR_GlobTest>
+	<Name>Fontaine</Name>
+</XmlTNR_GlobTest>
+\end{lstlisting}
+
+\subsection{Dataset}
+First you have to specify the necessary data for processing (images, mask, calibration, GCP, etc.) via a $<PatFileInit>$ tag with the pattern of each files. Then you can make a purge of the execution directory with the $<PurgeExe>$ tag (use true for yes) for instance if you have a tools error, it's good to start again from this command, and not from the beginning. So, For example :
+
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<XmlTNR_GlobTest>
+	<Name>Fontaine</Name> < !-- ProjectName -->
+	<PatFileInit>A*JPG</PatFileInit> < !-- Pattern -->
+	<PatFileInit>AIMG_2470_Masq.tif</PatFileInit> < !-- Mask -->
+	<PatFileInit>AIMG_2470_Masq.xml</PatFileInit> < !-- Mask →
+	<PurgeExe>false</PurgeExe> < !-- Purge -->
+</XmlTNR_GlobTest>
+\end{lstlisting}
+
+NB : You can also copy a complete directory with a $<DirInit>$ tag.
+
+First TripleSec will create a repertory named "TNR-Exe-\#Name\#" and copy files and directories specified by tags, inside.
+
+\subsection{Single test}
+The TripleSec tools process global test, but inside the XML file, you can specify as many single test as you want. Each single test can contain a command, and type test (file, directory, etc...). So it provide to test files between each command. To initialize a single test yo can use the $<Tests>$ tag and add several arguments.
+
+\subsubsection{Commands tests}
+To test command, you can specify in a $<Cmd>$ tag. However, you must use one unique tag per single test. The command are those you are usually running with micmac. For example :
+
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<Cmd>mm3d Tapioca All ".*JPG" 1000</Cmd> < !--Tapioca command -->
+\end{lstlisting}
+
+Tips : To choose your commands, you can use the file mm3d-logfile.txt in the Ref directory.
+NB : the tools change the working directory to the Exe directory for each Cmd tag.
+
+\subsubsection{Files tests}
+This test provide you to check for files in Ref and Exe and compare it bit to bit. This is the syntax for a file test :
+
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<TestFiles> 
+	<NameFile>AperiCloud_MEP.ply</NameFile> < !--File path --> 
+</TestFiles>
+\end{lstlisting}
+
+\subsubsection{Directories tests}
+This tests provide you to check for directories in Ref and Exe and compare all the inside files bit to bit. This is the syntax for a directory test :
+
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<TestDir> 
+           <NameDir>MM-Malt-Img-AIMG_2470/</NameDir> < !--directory path-->
+</TestDir>
+\end{lstlisting}
+
+\subsubsection{Calibrations tests}
+To compare two internal calibrations, you can use the following syntax :
+
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<TestCalib> 
+	<NameTestCalib>Ori-MEP/AutoCal_Foc-18000_Cam-Canon_EOS_70D.xml</NameTestCalib> 
+</TestCalib>
+\end{lstlisting}
+
+Via this tag, you can execute the CmpCalib which can compare two calibrations :
+\begin{verbatim}
+mm3d CmpCalib Calib1 Calib2
+\end{verbatim}
+
+This command return radial offsets for each ray and planimetrics offsets.
+
+\subsubsection{Orientations tests}
+For comparing two orientations, you can use the following syntax :
+
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<TestOri> 
+	<NameTestOri>Ori-MEP</NameTestOri>
+	<PatternTestOri>.*JPG</PatternTestOri>
+</TestOri>
+\end{lstlisting}
+
+With this tag, you are running the CmpOri command which compare two orientations :
+\begin{verbatim}
+mm3d CmpOri pattern_images ori1 ori2
+\end{verbatim}
+The command return : the average distance between rotation center and average distance between rotation matrix.
+
+\subsubsection{Image comparison}
+To compare two images, you can use the following syntax :
+
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<TestImg> 
+	<NameTestImg>Ori-MEP</NameTestImg>
+</TestImg>
+\end{lstlisting}
+
+Via this tag, you are running the command CmpIm, which compare two images :
+\begin{verbatim}
+mm3d CmpIm Img1 Img2
+\end{verbatim}
+This command return : the different pixels number, the difference sum, the average difference and the maximal difference.
+
+\subsection{Synthesis}
+So this is a example for a global test :
+
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<XmlTNR_GlobTest>
+	<Name>  Fontaine      </Name>  
+	<PatFileInit> A*JPG </PatFileInit>
+	<PatFileInit> AIMG_2470_Masq.tif </PatFileInit>
+	<PatFileInit> AIMG_2470_Masq.xml </PatFileInit>
+     
+<!-- Test de la commande Tapioca + existence des fichiers Pastis -->
+	<Tests>
+		<Cmd>mm3d Tapioca All ".*JPG" 1000</Cmd>
+		<TestDir>
+			<NameDir>Homol</NameDir>
+		</TestDir>
+	</Tests>
+     
+<!-- Test de la commande Tapas-->
+	<Tests>
+		<Cmd>mm3d Tapas RadialStd  ".*JPG" Out=MEP</Cmd>
+		<TestDir>
+			<NameDir>Ori-MEP</NameDir>
+		</TestDir>
+		<TestCalib>
+			<NameTestCalib>Ori-MEP/AutoCal_Foc-18000_Cam-Canon_EOS_70D.xml</NameTestCalib>
+		</TestCalib>
+		<TestOri>
+			<NameTestOri>Ori-MEP</NameTestOri>
+			<PatternTestOri>.*JPG</PatternTestOri>
+		</TestOri>
+	</Tests> 
+
+<!-- Test de la commande AperiCloud-->
+	<Tests>
+		<Cmd>mm3d AperiCloud ".*JPG" MEP</Cmd>
+		<TestFiles>
+			<NameFile>AperiCloud_MEP.ply</NameFile>
+		</TestFiles>
+	</Tests>
+     
+<!-- Test de la commande Malt GeomImage-->
+	 <Tests>
+		<Cmd>mm3d Malt GeomImage ".*JPG" Ori-MEP Master=AIMG_2470.JPG ZoomF=8</Cmd>
+		<TestDir>
+			<NameDir>MM-Malt-Img-AIMG_2470/</NameDir>
+		</TestDir>
+	</Tests>
+     
+<!-- Test de la commande to8Bits-->
+     <Tests>
+	<Cmd>mm3d to8Bits MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALT.tif Circ=1 Coul=1</Cmd>
+	<TestImg>
+		<NameTestImg>MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALT_8Bits.tif</NameTestImg>
+	</TestImg>
+     </Tests>
+
+<!-- Test de la commande GrShade-->
+     <Tests>
+           <Cmd>mm3d GrShade MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALT.tif ModeOmbre=IgnE</Cmd>
+     		<TestImg>
+			<NameTestImg>MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALTShade.tif</NameTestImg>
+           	</TestImg>
+     </Tests>
+
+<!-- Test de la commande Nuage2Ply-->  
+	<Tests>
+		<Cmd>mm3d Nuage2Ply MM-Malt-Img-AIMG_2470/NuageImProf_STD-MALT_Etape_5.xml Attr=TNR-Exe-Fontaine/AIMG_2470.JPG  RatioAttrCarte=8 Out=TNR-Exe-Fontaine/fontaine.ply</Cmd>
+		<TestFiles>
+			<NameFile>fontaine.ply</NameFile>
+		</TestFiles>
+	</Tests>
+
+
+	<PurgeExe>  false </PurgeExe>
+</XmlTNR_GlobTest>
+\end{lstlisting}
+
+\section{Running TripleSec}
+To run the TripleSec command, you can open a terminal and launch :
+\begin{verbatim}
+mm3d TripleSec Fichier.xml
+\end{verbatim}
+To know the different options, just type :
+\begin{verbatim}
+mm3d TripleSec -help
+\end{verbatim}
+
+\subsection{Mandatory unnamed arguments}
+You must specify a minima, the pattern of the XML file and if you are not using the InDir option, be sure that the directory containing the dataset is named « TNR-Ref-\#Name\# » :
+
+\subsection{Mandatory named arguments}
+This is the different options :
+\begin{itemize}
+\item OutReportXml : XML report file (Def=GlobTest.xml)
+\item OutErrorsXml : XML errors file (Def=ErrorsReport.xml)
+\item InRefDir : Input Reference Directory (Def=TNR-Ref-Name)
+\end{itemize}
+
+\section{Outfile}
+If you are not using the option OutReportXml or OutErrorsXml, the files will be named « GlobTest.xml » and "ErrorsReport.xml" . It contains several types of tags disposed like the entry XML file. The first file will contain, all the information and all single tests reporting. The second one will contain only the single test which failed. Both files have the same structure described bellow.
+
+\subsection{GlobTestReport}
+This is the first test level, you can get easy informations about the results of the test via the $<Bilan>$ tag. If everything happened correctly it would contains \textbf{true} otherwise it would contains \textbf{false} .
+You can also know how many single test failed with the $<NbTest>$ and $<NbTestOk>$ tags. If they are fails, you can check each single test individually.
+Example :
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<?xml version="1.0" ?>
+<XmlTNR_GlobTestReport>
+     <Bilan>true</Bilan> < !-- true = 0 fails-->
+     <NbTest>4</NbTest> < !-- Single test nb-->
+     <NbTestOk>4</NbTestOk> < !-- single test without fails nb-->
+\end{lstlisting}
+
+The tag $<XmlTNR\_GlobTestReport>$ contain several tags $<XmlTNR\_OneTestReport>$ corresponding to each test you have specified in the XML file.
+ 
+\subsection{The tag OneTestReport}
+This tags correspond to the single tests, they contains all types of tests discribe in the part one. You can check individually each single test, if it fail (\textbf{true}) or not (\textbf{false}) with the tag $<TestOK>$.
+Exemple :
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<XmlTNR_OneTestReport>
+          <TestOK>true</TestOK>
+\end{lstlisting}
+Inside this tags you found the results of the tests.
+
+\subsection{Les balises de tests}
+A l’int\'erieur des balises <XmlTNR\_OneTestReport> vous retrouvez les diff\'erentes balise de test :
+\begin{itemize}
+\item Command : $<XmlTNR\_TestCmdReport>$
+\item File : $<XmlTNR\_TestFileReport>$
+\item Directory : $<XmlTNR\_TestDirReport>$
+\item Calibration : $<XmlTNR\_CalibReport>$
+\item Orientation : $<XmlTNR\_OriReport>$
+\item Images : $<XmlTNR\_TestImgReport>$
+\end{itemize}
+
+\subsubsection{Command report tag}
+\begin{itemize}
+\item $<CmdName>$ : command name
+\item $<TestCmd>$ :  ok (true) or fail (false)\\
+\end{itemize}
+
+Example : 
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<XmlTNR_TestCmdReport>
+	<CmdName>mm3d AperiCloud ".*JPG" MEP</CmdName>
+	<TestCmd>true</TestCmd>
+</XmlTNR_TestCmdReport>
+\end{lstlisting}
+
+\subsubsection{File report tag}
+\begin{itemize}
+\item $<FileName>$ : file name
+\item $<TestFileDiff>$ : Comparison between Ref and Exe file (=,true,!=,false)
+\item $<TestExeFile>$ : file exist in Exe
+\item $<TestRefFile>$ : file exist in Ref
+\item $<ExeFileSize>$ : size in Exe
+\item $<RefFileSize>$ : size in Ref\\
+\end{itemize}
+
+Example : 
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<XmlTNR_TestFileReport>
+	<FileName>AperiCloud_MEP.ply</FileName>
+	<TestFileDiff>true</TestFileDiff>
+	<TestExeFile>true</TestExeFile>
+	<TestRefFile>true</TestRefFile>
+	<ExeFileSize>377693</ExeFileSize>
+	<RefFileSize>377693</RefFileSize>
+</XmlTNR_TestFileReport>
+\end{lstlisting}
+
+\subsubsection{Directory report tag}
+\begin{itemize}
+\item $<DirName>$ : directory name
+\item $<TestDirDiff>$ : Comparison between Ref and Exe directory (=,true,!=,false)
+\item $<TestExeDir>$ : directory exist in Exe
+\item $<TestRefDir>$ : directory exist in Ref
+\item $<ExeDirSize>$ : size in Exe
+\item $<RefDirSize>$ : size in Ref
+\item $<MissingRefFile>$ : file found in Exe and not in Ref
+\item $<MissingExeFile>$ : file found in Ref and not in Exe
+\item $<FileDiff>$ : file differents
+\end{itemize}
+
+Example : 
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<XmlTNR_TestDirReport>
+	<DirName>Homol/PastisAIMG_2474.JPG</DirName>
+	<TestDirDiff>true</TestDirDiff>
+	<TestExeDir>true</TestExeDir>
+	<TestRefDir>true</TestRefDir>
+	<ExeDirSize>426568</ExeDirSize>
+	<RefDirSize>426568</RefDirSize>
+	<MissingRefFile>MM-Malt-Img-AIMG_2470/MakefileParallelisation</MissingRefFile>
+	<MissingExeFile>MM-Malt-Img-AIMG_2470/MakefileParallelisation</MissingExeFile>
+	<FileDiff>MM-Malt-Img-AIMG_2470/Z_Num4_DeZoom8_STD-MALT.xml</FileDiff>
+</XmlTNR_TestDirReport>
+\end{lstlisting}
+
+\subsubsection{Calibration report tag}
+\begin{itemize}
+\item $<CalibName>$ : calibratrion name
+\item $<TestCalibDiff>$ : Comparison between calibrations (Ref,Exe)
+\item $<EcartRadiaux>$ : radial offset between rays
+\item $<rEcartsPlani>$ : planimetric offsets between pixels
+\begin{itemize}
+\item $<CoordPx>$ : pixel coordinates
+\item $<UxUyE>$ : offset\\
+\end{itemize}
+\end{itemize}
+
+Example :
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<XmlTNR_CalibReport>
+	<CalibName>Ori-MEP/AutoCal_Foc-18000_Cam-Canon_EOS_70D.xml</CalibName>
+	<TestCalibDiff>true</TestCalibDiff>
+	<EcartsRadiaux>3278.26276322315834 0</EcartsRadiaux>
+	<rEcartsPlani>
+		<CoordPx>5362.55999999999949 3575.03999999999996</CoordPx>
+		<UxUyE>0 0 0</UxUyE>
+	</rEcartsPlani>
+</XmlTNR_TestDirReport>
+\end{lstlisting}
+
+NB : A $<XmlTNR_CalibReport>$ contain $<EcartsRadiaux>$ or $<rEcartsPlani>$ only if the offset is different from 0.
+
+\subsubsection{Orientation report tag}
+\begin{itemize}
+\item $<OriName>$ : orientation name
+\item $<TestOriDiff>$ : orientation comparison
+\item $<DistCenter>$ : average distance between rotation centers
+\item $<DistMatrix>$ : average distance between rotation matrix\\
+\end{itemize}
+
+Example : 
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<XmlTNR_OriReport>
+	<OriName>MEP</OriName>
+	<TestOriDiff>true</TestOriDiff>
+	<DistCenter>0</DistCenter>
+	<DistMatrix>0</DistMatrix>
+</XmlTNR_OriReport>
+\end{lstlisting}
+
+\subsubsection{Image report tag}
+\begin{itemize}
+\item $<ImgName>$ : image name
+\item $<TestImgDiff>$ : Comparison between image in Ref and Exe (=,true,!=,false)
+\item $<NbPxDiff>$ : number of different pixels
+\item $<SumDiff>$ : difference sum
+\item $<MoyDiff>$ : average difference
+\item $<DiffMaxi>$ : maximal difference and coordinates
+\end{itemize}
+
+Example : 
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<XmlTNR_ImgReport>
+	<ImgName>MM-Malt-Img-AIMG_2470/Z_Num7_DeZoom2_STD-MALT_8Bits.tif</ImgName>
+	<TestImgDiff>false</TestImgDiff>
+	<NbPxDiff>3.51130082984273881e-316</NbPxDiff>
+	<SumDiff>6.95262359057922614e-310</SumDiff>
+	<MoyDiff>6.95262359057922614e-310</MoyDiff>
+	<DiffMaxi>0 0 0</DiffMaxi>
+</XmlTNR_ImgReport>
+\end{lstlisting}
+
+\section{Report synthesis}
+A example of a GlobTest.xml file :
+\lstset{language=XML, tagstyle=\color{blue}, commentstyle=\color{red}, linewidth = \linewidth ,breaklines= true, basicstyle=\footnotesize}
+\begin{lstlisting}
+<?xml version="1.0" ?>
+<XmlTNR_GlobTestReport>
+     <Bilan>false</Bilan>
+     <NbTest>7</NbTest>
+     <NbTestOk>4</NbTestOk>
+     <XmlTNR_OneTestReport>
+          <TestOK>true</TestOK>
+          <XmlTNR_TestCmdReport>
+               <CmdName>mm3d Tapioca All ".*JPG" 1000</CmdName>
+               <TestCmd>true</TestCmd>
+          </XmlTNR_TestCmdReport>
+          <XmlTNR_TestDirReport>
+               <DirName>Homol</DirName>
+               <TestDirDiff>true</TestDirDiff>
+               <TestExeDir>true</TestExeDir>
+               <TestRefDir>true</TestRefDir>
+               <ExeDirSize>2323530</ExeDirSize>
+               <RefDirSize>2323536</RefDirSize>
+          </XmlTNR_TestDirReport>
+     </XmlTNR_OneTestReport>
+     <XmlTNR_OneTestReport>
+          <TestOK>true</TestOK>
+          <XmlTNR_TestCmdReport>
+               <CmdName>mm3d Tapas RadialStd  ".*JPG" Out=MEP</CmdName>
+               <TestCmd>true</TestCmd>
+          </XmlTNR_TestCmdReport>
+          <XmlTNR_TestDirReport>
+               <DirName>Ori-MEP</DirName>
+               <TestDirDiff>true</TestDirDiff>
+               <TestExeDir>true</TestExeDir>
+               <TestRefDir>true</TestRefDir>
+               <ExeDirSize>88439</ExeDirSize>
+               <RefDirSize>88440</RefDirSize>
+          </XmlTNR_TestDirReport>
+          <XmlTNR_CalibReport>
+               <CalibName>Ori-MEP/AutoCal_Foc-18000_Cam-Canon_EOS_70D.xml</CalibName>
+               <TestCalibDiff>true</TestCalibDiff>
+          </XmlTNR_CalibReport>
+          <XmlTNR_OriReport>
+               <OriName>MEP</OriName>
+               <TestOriDiff>true</TestOriDiff>
+               <DistCenter>6.95280409125905074e-310</DistCenter>
+               <DistMatrix>6.95280409125905074e-310</DistMatrix>
+          </XmlTNR_OriReport>
+     </XmlTNR_OneTestReport>
+     <XmlTNR_OneTestReport>
+          <TestOK>true</TestOK>
+          <XmlTNR_TestCmdReport>
+               <CmdName>mm3d AperiCloud ".*JPG" MEP</CmdName>
+               <TestCmd>true</TestCmd>
+          </XmlTNR_TestCmdReport>
+          <XmlTNR_TestFileReport>
+               <FileName>AperiCloud_MEP.ply</FileName>
+               <TestFileDiff>true</TestFileDiff>
+               <TestExeFile>true</TestExeFile>
+               <TestRefFile>true</TestRefFile>
+               <ExeFileSize>377693</ExeFileSize>
+               <RefFileSize>377693</RefFileSize>
+          </XmlTNR_TestFileReport>
+     </XmlTNR_OneTestReport>
+     <XmlTNR_OneTestReport>
+          <TestOK>false</TestOK>
+          <XmlTNR_TestCmdReport>
+               <CmdName>mm3d Malt GeomImage ".*JPG" Ori-MEP Master=AIMG_2470.JPG ZoomF=8</CmdName>
+               <TestCmd>true</TestCmd>
+          </XmlTNR_TestCmdReport>
+          <XmlTNR_TestDirReport>
+               <DirName>MM-Malt-Img-AIMG_2470/</DirName>
+               <TestDirDiff>false</TestDirDiff>
+               <TestExeDir>true</TestExeDir>
+               <TestRefDir>true</TestRefDir>
+               <ExeDirSize>29660548</ExeDirSize>
+               <RefDirSize>35817319</RefDirSize>
+               <MissingRefFile>MM-Malt-Img-AIMG_2470/MakefileParallelisation24770_928_828_900</MissingRefFile>
+               <MissingExeFile>MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALTShade.tif</MissingExeFile>
+               <MissingExeFile>MM-Malt-Img-AIMG_2470/MakefileParallelisation23506_852_849_910</MissingExeFile>
+               <MissingExeFile>MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALT_8Bits.tif</MissingExeFile>
+               <MissingExeFile>MM-Malt-Img-AIMG_2470/NuageImProf_STD-MALT_Etape_5.ply</MissingExeFile>
+               <MissingExeFile>MM-Malt-Img-AIMG_2470/MakefileParallelisation23506_880_380_384</MissingExeFile>
+               <FileDiff>MM-Malt-Img-AIMG_2470/Z_Num4_DeZoom8_STD-MALT.xml</FileDiff>
+               <FileDiff>MM-Malt-Img-AIMG_2470/Z_Num2_DeZoom32_STD-MALT.xml</FileDiff>
+               <FileDiff>MM-Malt-Img-AIMG_2470/param_STD-MALT_Compl.xml</FileDiff>
+               <FileDiff>MM-Malt-Img-AIMG_2470/TA_STD-MALT.xml</FileDiff>
+               <FileDiff>MM-Malt-Img-AIMG_2470/Z_Num3_DeZoom16_STD-MALT.xml</FileDiff>
+               <FileDiff>MM-Malt-Img-AIMG_2470/Z_Num1_DeZoom32_STD-MALT.xml</FileDiff>
+               <FileDiff>MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALT.xml</FileDiff>
+          </XmlTNR_TestDirReport>
+     </XmlTNR_OneTestReport>
+     <XmlTNR_OneTestReport>
+          <TestOK>false</TestOK>
+          <XmlTNR_TestCmdReport>
+               <CmdName>mm3d to8Bits MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALT.tif Circ=1 Coul=1</CmdName>
+               <TestCmd>true</TestCmd>
+          </XmlTNR_TestCmdReport>
+          <XmlTNR_ImgReport>
+               <ImgName>MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALT_8Bits.tif</ImgName>
+               <TestImgDiff>false</TestImgDiff>
+               <NbPxDiff>311904</NbPxDiff>
+               <SumDiff>43303016</SumDiff>
+               <MoyDiff>138.834436236790793</MoyDiff>
+               <DiffMaxi>676 0 216</DiffMaxi>
+          </XmlTNR_ImgReport>
+     </XmlTNR_OneTestReport>
+     <XmlTNR_OneTestReport>
+          <TestOK>false</TestOK>
+          <XmlTNR_TestCmdReport>
+               <CmdName>mm3d GrShade MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALT.tif ModeOmbre=IgnE</CmdName>
+               <TestCmd>true</TestCmd>
+          </XmlTNR_TestCmdReport>
+          <XmlTNR_ImgReport>
+               <ImgName>MM-Malt-Img-AIMG_2470/Z_Num5_DeZoom8_STD-MALT_8Bits.tif</ImgName>
+               <TestImgDiff>false</TestImgDiff>
+               <NbPxDiff>311904</NbPxDiff>
+               <SumDiff>43303016</SumDiff>
+               <MoyDiff>138.834436236790793</MoyDiff>
+               <DiffMaxi>676 0 216</DiffMaxi>
+          </XmlTNR_ImgReport>
+     </XmlTNR_OneTestReport>
+     <XmlTNR_OneTestReport>
+          <TestOK>true</TestOK>
+          <XmlTNR_TestCmdReport>
+               <CmdName>mm3d Nuage2Ply MM-Malt-Img-AIMG_2470/NuageImProf_STD-MALT_Etape_5.xml Attr=AIMG_2470.JPG  RatioAttrCarte=8 Out=fontaine.ply</CmdName>
+               <TestCmd>true</TestCmd>
+          </XmlTNR_TestCmdReport>
+          <XmlTNR_TestFileReport>
+               <FileName>fontaine.ply</FileName>
+               <TestFileDiff>true</TestFileDiff>
+               <TestExeFile>true</TestExeFile>
+               <TestRefFile>true</TestRefFile>
+               <ExeFileSize>4057944</ExeFileSize>
+               <RefFileSize>4057944</RefFileSize>
+          </XmlTNR_TestFileReport>
+     </XmlTNR_OneTestReport>
+</XmlTNR_GlobTestReport>
+
+\end{lstlisting}
+
+\end{document}
+
+

@@ -63,11 +63,11 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
 	mAltiSol(aAltiSol),
 	mOptCentersIsDef(false),
 	mOpticalCenters(new std::vector<Pt3dr>()),
-	mGridSz(Pt2di(10,10)),
+	mGridSz(Pt2di(20,10)),
     mInputName(aNameFile)
 {
     mRPC = new cRPC(aNameFile);
- 
+   
 
     /* Mean Z */
     // SetAltiSol( (mRPC->GetGrC31() - mRPC->GetGrC32())*0.5 );
@@ -89,7 +89,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 	mAltiSol(aAltiSol),
 	mOptCentersIsDef(false),
 	mOpticalCenters(new std::vector<Pt3dr>()),
-	mGridSz(Pt2di(10,10)),
+	mGridSz(Pt2di(20,10)),
 	mInputName(aNameFile)
 {
     mRPC = new cRPC(aNameFile,aType,aChSys);
@@ -565,46 +565,51 @@ Pt2di CameraRPC::SzBasicCapt3D() const
  	               mRPC->GetImRow2()));
 }
 
- 
-void CameraRPC::OpticalCenterOfImg()
+void  CameraRPC::OpticalCenterOfImg(std::vector<Pt3dr>* aOC) const
 {
+
     int aL, aS, aAd = 1;
     double aSStep = double(SzBasicCapt3D().x)/(mGridSz.x+aAd);
-    Pt3dr aPWGS84, aPGeoC1, aPGeoC2;
+    Pt3dr aP1, aP2;
     
     for( aL=0; aL<SzBasicCapt3D().y; aL++)
     {
         std::vector<double> aVPds;
-	std::vector<ElSeg3D> aVS;
+	    std::vector<ElSeg3D> aVS;
 
-	for( aS=aAd; aS<mGridSz.x+aAd; aS++)
-	{
+	    for( aS=aAd; aS<mGridSz.x+aAd; aS++)
+	    {
     
 	
-	    //first height in validity zone
-	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL),
-			                  mRPC->GetGrC31()+1);
-	    aPGeoC1 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
-            
-	    //second height in validity zone
-	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL), 
-			           double(mRPC->GetGrC31() + mRPC->GetGrC32())/2);
+	        //first height in validity zone
+	        aP1 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL),
+			                        mRPC->GetGrC31()+1);
+	        
+            //second height in validity zone
+	        aP2 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL), 
+			                        double(mRPC->GetGrC31() + mRPC->GetGrC32())/2);
 
-	    aPGeoC2 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
 	    
-	    //collect for intersection
-	    aVS.push_back(ElSeg3D(aPGeoC1,aPGeoC2));
-	    aVPds.push_back(1);
-	}
+	        //collect for intersection
+	        aVS.push_back(ElSeg3D(aP1,aP2));
+	        aVPds.push_back(1);
+	    }
 
         
-	bool aIsOK;
-	mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
+	    bool aIsOK;
+	    aOC->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
+        
 
-	if(aIsOK==false)
-	    std::cout << "not intersected in CameraRPC::OpticalCenterOfImg()" << std::endl;
-
+	    if(aIsOK==false)
+	        std::cout << "not intersected in CameraRPC::OpticalCenterOfImg(std::vector<Pt3dr>& aOC)" << std::endl;
     }
+    
+}
+
+void CameraRPC::OpticalCenterOfImg()
+{
+    OpticalCenterOfImg( mOpticalCenters );
+
 
     mOptCentersIsDef=true; 
 }
@@ -682,78 +687,54 @@ void CameraRPC::OpticalCenterGrid(const Pt2di& aGrid, bool aIfSave) const
 
 }
 
+Pt3dr CameraRPC::OpticalCenterOfPixel(const std::vector<Pt3dr>* aOC, const Pt2dr & aP) const 
+{
+	int aLnPre, aLnPost;
+	double aA, aB, aC, aABC, aT; 
+
+	(aP.y > 1) ? (aLnPre = round_down(aP.y) - 1) : aLnPre = 0;
+	
+	(aP.y < (SzBasicCapt3D().y-2)) ? (aLnPost = round_up(aP.y) + 1) : 
+		                         (aLnPost = SzBasicCapt3D().y-1);
+        
+    aA = aOC->at(aLnPre).x - aOC->at(aLnPost).x;
+    aB = aOC->at(aLnPre).y - aOC->at(aLnPost).y;
+    aC = aOC->at(aLnPre).z - aOC->at(aLnPost).z;
+	
+
+	aABC = std::sqrt(aA*aA + aB*aB + aC*aC);
+
+    aA /= aABC;
+    aB /= aABC;
+    aC /= aABC;
+
+	aT = double(aP.y - aLnPre)/(aLnPost - aLnPre);
+
+    //std::cout << "aOC->at(aLnPre) " << aOC->at(aLnPre) << ", aOC->at(aLnPost) " << aOC->at(aLnPost)  
+    //          << "CenterOfPix " << Pt3dr(aOC->at(aLnPre).x + aT*aA,aOC->at(aLnPre).y + aT*aB,aOC->at(aLnPre).z + aT*aC) << "\n";
+	    
+    return Pt3dr(aOC->at(aLnPre).x + aT*aA,
+		         aOC->at(aLnPre).y + aT*aB,
+		         aOC->at(aLnPre).z + aT*aC);
+    
+}
 
 Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
 {
-    if(mOptCentersIsDef==true)
+    if(HasOpticalCenterOfPixel())
     {
-	    int aLnPre, aLnPost;
-	    double aA, aB, aC, aABC, aT; 
-
-	    (aP.y > 1) ? (aLnPre = round_down(aP.y) - 1) : aLnPre = 0;
-	
-	    (aP.y < (SzBasicCapt3D().y-2)) ? (aLnPost = round_up(aP.y) + 1) : 
-		                         (aLnPost = SzBasicCapt3D().y-1);
-        
-        aA = mOpticalCenters->at(aLnPre).x - mOpticalCenters->at(aLnPost).x;
-        aB = mOpticalCenters->at(aLnPre).y - mOpticalCenters->at(aLnPost).y;
-        aC = mOpticalCenters->at(aLnPre).z - mOpticalCenters->at(aLnPost).z;
-	
-	    aABC = std::sqrt(aA*aA + aB*aB + aC*aC);
-
-        aA /= aABC;
-        aB /= aABC;
-        aC /= aABC;
-
-	    aT = double(aP.y - aLnPre)/(aLnPost - aLnPre);
-
-	    
-        return Pt3dr(mOpticalCenters->at(aLnPre).x + aT*aA,
-		            mOpticalCenters->at(aLnPre).y + aT*aB,
-		            mOpticalCenters->at(aLnPre).z + aT*aC);
+        return (OpticalCenterOfPixel(mOpticalCenters, aP));
     }
     else
-    { 
-        int aS, aAd = 1;
-        double aSStep = double(SzBasicCapt3D().x)/(mGridSz.x+aAd);
-        Pt3dr aP1, aP2;
+    {
+        std::vector<Pt3dr>* aOC = new std::vector<Pt3dr>();
+        OpticalCenterOfImg( aOC );
 
-        std::vector<double> aVPds;
-        std::vector<ElSeg3D> aVS;
 
-        for(aS=aAd; aS<mGridSz.x+aAd; aS++)
-        {
-    
-            //first height in validity zone
-    	    aP1 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y),
-	 		            mRPC->GetGrC31()+1);
-	    
-            
-	        //second height in validity zone
-	        aP2 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y), 
-			           double(mRPC->GetGrC31() + mRPC->GetGrC32())/2);
-
-	    
-	        //collect for intersection
-	        aVS.push_back(ElSeg3D(aP1,aP2));
-	        aVPds.push_back(1);
-        }
-
-        bool aIsOK;
-        Pt3dr aRes = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
-
-        if(aIsOK==false)
-            std::cout << "not intersected in CameraRPC::OpticalCenterOfPixel" << std::endl;
-
-//	std::cout << aRes << " " << "\n";	
-        return aRes;
+        return( OpticalCenterOfPixel( aOC, aP) );
     }
 }
 
-/*void CameraRPC::TestDirectRPCGen()
-{
-    mRPC->TestDirectRPCGen();
-}*/
 
 bool CameraRPC::HasOpticalCenterOfPixel() const
 {
@@ -1031,6 +1012,7 @@ cRPC::cRPC(const std::string &aName) :
         ELISE_ASSERT(ELISE_fp::exist_file(aNameRPC),"cRPC::cRPC; the file with the polyn does not exist!");
 
         eTypeImporGenBundle aType;
+        AutoDetermineTypeTIGB(aType,aNameRPC);
         bool aModeHelp;
        
         /* Retrieve the coordinate system for the computations */
@@ -1080,6 +1062,7 @@ void cRPC::Initialize(const std::string &aName,
                       const cSystemeCoord *aChSys
                       )
 {
+
     std::string aNameRPC=aName;
     if(AutoDetermineRPCFile(aName))
     {
@@ -1215,6 +1198,7 @@ void cRPC::Initialize_(const cSystemeCoord *aChSys)
 
     if(aChSys)
         ChSysRPC(mChSys);
+
 }
 
 std::string cRPC::NameSave(const std::string & aName)
@@ -3948,6 +3932,7 @@ int CalcBsurH_main(int argc,char ** argv)
 
         Pt2dr aCentIm1(double(aCam1.SzBasicCapt3D().x)/2,double(aCam1.SzBasicCapt3D().y)/2);
         Pt3dr aTer = aCam1.ImEtZ2Terrain(aCentIm1, aCam1.GetAltiSol());
+        
         Pt3dr a01 = aCam1.OpticalCenterOfPixel(aCentIm1);
 
 
@@ -3960,13 +3945,23 @@ int CalcBsurH_main(int argc,char ** argv)
                 CameraRPC aCam2( aDir+(*it2) );
             
                 Pt2dr aTerBPrj = aCam2.Ter2Capteur(aTer);
+                
                 Pt3dr a02 = aCam2.OpticalCenterOfPixel(aTerBPrj);
 
+                //H within the "epipolar plane"
+                double aA = sqrt(std::pow(a01.x - aTer.x,2) + std::pow(a01.y - aTer.y,2) + std::pow(a01.z - aTer.z,2) );
+                double aB = sqrt(std::pow(a02.x - aTer.x,2) + std::pow(a02.y - aTer.y,2) + std::pow(a02.z - aTer.z,2) );
+                double aC = sqrt(std::pow(a02.x - a01.x,2)  + std::pow(a02.y - a01.y,2)  + std::pow(a02.z - a01.z,2)  );
+                double aH = sqrt( aA*aB*(aA+aB+aC)*(aA+aB-aC) )/(aA+aB);
+                
+                //std::cout << "\n a01 " << a01 << ", a02 " << a02 << ", aCentIm1 " << aCentIm1 << ", aTerBPrj " << aTerBPrj << ", aTer " << aTer << "\n";
+                //std::cout << " aA " << aA << ", aB " << aB << ", aC " << aC << ", aH " << aH << "\n";
+
                 std::cout << " (" << i << "," << j << ")" 
-                          << sqrt(std::pow((a02.x - a01.x),2) + std::pow((a02.y - a01.y),2) + std::pow((a02.z - a01.z),2))/(a01.z - aCam1.GetAltiSol());
+                          << aC/aH;
             }
             else
-                std::cout << " (" << i << "," << j << ")0.0";
+                std::cout << " (" << i << "," << j << ")0.0 ";
 
         }
 

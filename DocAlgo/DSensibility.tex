@@ -1,0 +1,462 @@
+\chapter{Sensibility Analysis}
+
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\section{Theoreticall consideration}
+
+\subsection{some tricks}
+
+\subsubsection{tricks}
+When $A$ and $B$ are vector, $ \transs A  B$ is as scalar so :
+
+
+\begin{equation}
+     \transs A B =  \transs ( \transs A B) =  \transss B A  \label{Trick:tABEqtBA}
+\end{equation}
+
+Then  :
+
+\begin{equation}
+     (^t A  B) ^2 =  ^t A B ^t B A  = ^t A (B ^t B) A \label{Trick:tAB2}
+\end{equation}
+
+So the term can interpred as the application of the quadratic form $B ^t B$  \footnote{of rank $1$}  to vector $A$.
+
+\subsubsection{tricks}
+
+If $A$ is a symetric positive matrix,
+the minimum of quadratic form $F(X) = ^t X A X - 2^t B X$ is reached for $X=A^{-1} B$.
+If we write $X' = X + \delta $ :
+
+\begin{equation}
+  F(X') -F(X)  = ^t (A^{-1} B+\delta) A (A^{-1} B+\delta) -  2^t B (A^{-1} B + \delta) -F(X)
+          =  ^t \delta A \delta 
+\end{equation}
+
+Which is always positive as $A$ is positive.
+
+\subsubsection{tricks}
+We have also the well known block matrix inverse identity :
+
+\begin{equation}
+\left( \begin{array}{cc} 
+              A & B \\ 
+              C  & D\\ 
+        \end{array} 
+\right) ^{-1}
+= 
+\left( \begin{array}{cc} 
+              A' & B' \\ 
+              C'  & D'\\ 
+        \end{array} 
+\right) 
+= 
+\left( \begin{array}{cc} 
+              (A-BD^{-1}C)^{-1} & -(A-BD^{-1}C)^{-1} BD^{-1} \\ 
+              -D^{-1}C(A-BD^{-1}C)^{-1}  &  D^{-1}+D^{-1}C(A-BD^{-1}C) BD^{-1}\\ 
+        \end{array} 
+\right) 
+\label{Eq:BlockInv}
+\end{equation}
+
+
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Least square notation}
+
+Suppose we have $M$ equation of observation with $N$ unknown, $M>N$ :
+
+\begin{equation}
+    \sum\limits_{i=1}^N l_i^ m x_i = o_m \; ; \label{Eq:LeastSq:1}
+\end{equation}
+
+Noting :
+\begin{equation}
+    L^m = ^t (l_1^m \;  l_2^m \dots l_N^m)  m \in [1,M] ;  X= ^t (x_1 \; x_2 \dots x_N) 
+\end{equation}
+
+Equation~\ref{Eq:LeastSq:1} writes :
+
+\begin{equation}
+     ^t L^m  X  = o_m \; ,  m \in [1,M] ;
+\end{equation}
+
+
+As $M>N$ it is generally impossible to annulate all the term , instead we minimise the square of residual $R_2(X)$  :
+
+\begin{equation}
+    R^2(X) = \sum\limits_{m=1}^M ( ^tL^m   X - o_m) ^2  
+\end{equation}
+
+Using tricks \ref{Trick:tABEqtBA} and \ref{Trick:tAB2} we can write :
+
+\begin{equation}
+    R^2(X) = \sum\limits_{m=1}^M  ( (^tL^m   X)^2 - 2 o_m {^tL^m} X + o_m ^ 2) 
+           = \sum\limits_{m=1}^M  ( {^t X ({L^m} ^t{L^m}) X} - (2 o_m {^tL^m} )X + o_m ^2)
+\end{equation}
+
+
+Noting the $N \times N$ matrix A, $B$ the $N$ vector and the scalar C :
+
+\begin{equation}
+           A = \sum\limits_{m=1}^M { ({L^m} ^t{L^m}) } 
+       ;\; B = \sum\limits_{m=1}^M  ( o_m {L^m} ) 
+       ;\; C = \sum\limits_{m=1}^M  o_m ^2
+ \label{LeastSq:ABC}
+\end{equation}
+
+We have :
+
+\begin{equation}
+    R^2(X) = ^t X A X - 2^t B X + C
+\end{equation}
+
+Obviously $A$ is positive as being the some of squares. The minimum is reached for :
+
+\begin{equation}
+     \hat{X}  =  A^{-1} B
+\end{equation}
+
+%------------------------ Variance ------------------------------------------
+
+\subsection{Variance}
+\label{Sec:VarLsq}
+
+The system being not exactly invertible, for each observation $m$,  
+the equation~\ref{Eq:LeastSq:1} is only approximatively satisified by $\hat{X}$,
+so we introduce the  residual $\epsilon$  to modelize this uncertainty:
+
+\begin{equation}
+     ^tL^m X = o_m + {\epsilon}_m
+\end{equation}
+
+To evaluate variance on $X$ we consider  ${\epsilon}_m$  as the realization of random variable. Here I consider that 
+each ${\epsilon}_m$ is an indepandant variable, of average $0$ and variance $r_m^2$ \footnote{well  it's probably an heresy
+for stasticall point of view to try ro extract information from a single realisation ?} where $r_m^2$ is the empirical residual :
+
+
+\begin{equation}
+      r_m  = ^tL^m \hat{X} - o_m  ; Var({\epsilon}_m) = r_m^2
+      \label{Eq:Empir:Var}
+\end{equation}
+
+We can then modelize the probabilistic aspect of evaluation of $X$ by the random vector $\tilde X$ :
+
+\begin{equation}
+     \tilde X  =  A^{-1}  \sum\limits_{i=1}^M   {L^m}  (o_m + {\epsilon}_m) 
+\end{equation}
+
+As $o_m$ is deterministic the variance is :
+
+\begin{equation}
+     Var(\tilde X)  =  Var (A^{-1}  \sum\limits_{i=1}^M   {L^m}  {\epsilon}_m)
+\end{equation}
+
+
+Noting the element of $A^{-1}$ :
+
+\begin{equation}
+     A^{-1} = ( {a'}_i^j)
+\end{equation}
+
+\begin{equation}
+     Var( \tilde x_i)  =   Var({\sum\limits_{m=1}^M}  {\sum\limits_{j=1}^N}  {a'}_i^j   {l^m_j}   {\epsilon}_m)
+\end{equation}
+
+
+\begin{equation}
+     Var( \tilde x_i)  =   \sum\limits_{m=1}^M  Var({\epsilon}_m)  (\sum\limits_{j=1}^N   {a'}_i^j  {l^m_j}   ) ^2 
+\end{equation}
+
+
+
+\begin{equation}
+     Var(\tilde x_i) = \sum\limits_{m=1}^M (^tL^m \hat{X} - o_m )^2 (\sum\limits_{j=1}^N {a'}_i^j {l^m_j})^2 
+\end{equation}
+
+%------------------------ Co-Variance ------------------------------------------
+
+\subsection{Covariance}
+\label{Sec:CovLsq}
+
+Similarly, we can compute the covariance :
+
+\begin{equation}
+     Cov(\tilde x_i \tilde x_j)  =   \mathbb{E} (
+                            ({\sum\limits_{m=1}^M}  {\sum\limits_{k=1}^N}  {a'}_i^k   {l^m_k}   {\epsilon}_m)
+                            ({\sum\limits_{n=1}^M}  {\sum\limits_{k=1}^n}  {a'}_i^k   {l^n_k}   {\epsilon}_n)
+                       )
+\end{equation}
+
+Under the independance hyopthesis, we have
+
+
+\begin{equation} 
+  \forall m,n ,  m\neq n : \mathbb{E} ({\epsilon}_m {\epsilon}_n) = 0 
+\end{equation}
+
+
+\begin{equation}
+     Cov(\tilde x_i \tilde x_j)  =     \sum\limits_{m=1}^M  Var({\epsilon}_m) 
+                         (\sum\limits_{k=1}^N  {a'}^k_j   {l^m_k}  )
+                         (\sum\limits_{k=1}^N  {a'}^k_i   {l^m_k}  )
+\end{equation}
+
+
+%------------------------ Unown substitution ------------------------------------------
+
+\subsection{Unknown elimination}
+
+Computation of variance and co-variance  requires some additional precaution when using
+the schurr complement technique as  described in~\ref{UnkAux:Algeb} and~\ref{UnkAux:Var}.
+The computation of this paragraph are rather destinated to understant the code modification
+impacted by unkown elimination.
+
+
+We separate the unkown in $X$ and $Y$, where $X$ is the unknown we want to eliminate.
+
+\begin{equation}
+     \transK ^m X +  \transL ^m Y  = o_m 
+\end{equation}
+
+And the residual  writes : 
+
+\begin{equation}
+      R^2 (X,Y) =  \transX (\sum\limits_{m=1}^M  K^m {\transKm} ) X    
+                  + 2 (\sum\limits_{m=1}^M  (\transLm Y - o_m  )  \transKm ) X
+                  +   \sum\limits_{m=1}^M  (\transLm Y - o_m  ) ^2
+\end{equation}
+
+We split $R^2$  in $R^2_y(Y)$ and $r_Y(X)$, where  $R^2_y$ is the part that do not depends of $X$   : 
+
+\begin{equation}
+       \Lambda = \sum\limits_{m=1}^M  \KmtKm                       \;\;\;  ; \;
+       \Gamma(Y)  = \sum\limits_{m=1}^M  (\transLm Y - o_m  ) K  
+\end{equation}
+\begin{equation}
+       r_Y (X) =  ^tX  \Lambda  X    + 2   ^t \Gamma(Y)  X   \;\;\;  ; \;
+       R_y^2 (Y) =  \sum\limits_{m=1}^M  (\transLm Y - o_m  ) ^2 
+\end{equation}
+
+\begin{equation}
+      R^2 (X,Y) =   r_Y(X) +    R_y^2 (Y)  
+\end{equation}
+
+
+
+To eliminate $X$ in the minimisation, we set $X$  to the value that minimize $r_Y(X)$ for a given  $Y$,
+that is :
+
+\begin{equation}
+    \hat{X}(Y) = -  \Lambda^{-1}  \Gamma(Y)
+    \label{Eq:XHatOfY}
+\end{equation}
+
+And the minimum value is :
+
+\begin{equation}
+    r_Y(\hat{X}(Y)) 
+    = ^t\hat{X}(Y)  \Lambda  \hat{X}(Y)    + 2   ^t \Gamma(Y)  \hat{X}(Y) 
+   =   - ^t \Gamma(Y) \Lambda^{-1} \Gamma(Y)
+\end{equation}
+
+
+In unkown elimination we suppose that $X=\hat{X}(Y)$ and compute only : 
+
+\begin{equation}
+      \breve{R}^2 (Y) = R^2(\hat{X}(Y),Y)  =     R_y^2 (Y)   -  ^t \Gamma(Y) \Lambda^{-1} \Gamma(Y)
+\end{equation}
+
+We develop :
+
+\begin{equation}    \breve{R}^2 (Y) =
+                       \sum\limits_{m=1}^M  (\trans L^m Y - o_m  ) ^2
+                  -    (\sum\limits_{m=1}^M  (\trans L^m Y - o_m  )  \trans K^m )  
+                       \Lambda^{-1}
+                       (\sum\limits_{m=1}^M  (\trans L^m Y - o_m  )  K^m ) 
+\end{equation}
+
+Noting :
+
+
+\begin{equation}  
+     \breve{A} =  \sum\limits_{m=1}^M{L^m}{\trans L^m}
+               -(\sum\limits_{m=1}^M {L^m} \trans {K^m})   \Lambda^{-1}  (\sum\limits_{m=1}^M   {K^m} \trans {L^m} ) 
+\end{equation}  
+
+\begin{equation}  
+     \breve{B}  =   \sum\limits_{m=1}^M (o_m L^m ) 
+                - (\sum\limits_{m=1}^M  {L^m}  \trans K^m) \Lambda^{-1}  (\sum\limits_{m=1}^M o_m K^m )
+\label{Var:BChap}
+\end{equation}  
+
+We have :
+
+\begin{equation}  
+      \breve{R}^2 (Y) = \trans Y \breve{A} Y - 2  \trans \breve{B}  Y + Cste
+\end{equation}
+
+
+And the estimation of $\breve{Y}$ of $Y$ by least square : 
+
+
+\begin{equation}  
+      \breve{Y} =  \breve{A}^{-1}  \breve{B}
+\end{equation}
+
+We write :
+
+\begin{equation}  
+     \Theta =  \sum\limits_{m=1}^M {L^m} \trans {K^m}   
+\end{equation}  
+
+
+\begin{equation}  
+     \breve{A} =  \sum\limits_{m=1}^M{L^m}{\trans {L^m}} - \Theta \Lambda^{-1}   {\trans} \Theta 
+     \label{FinalBreveA}
+\end{equation}  
+
+\begin{equation}  
+     \breve{B}  =   \sum\limits_{m=1}^M (o_m L^m ) 
+                - \Theta \Lambda^{-1}  (\sum\limits_{m=1}^M o_m K^m )
+               = \sum\limits_{m=1}^M  o_m (L^m -\Theta \Lambda^{-1} K^m)
+     \label{FinalBreveB}
+\end{equation}  
+
+Defining $\breve{L}^m$, we have :
+
+\begin{equation}  
+     \breve{L}^m   =   (L^m  - \Theta  \Lambda^{-1} K^m)
+\end{equation}  
+
+\begin{equation}  
+     \breve{B}  = \sum\limits_{m=1}^M  o_m \breve{L}^m
+\end{equation}  
+
+
+Using $\breve{A}$, $\breve{B}$  and $\breve{L}^m$ we finaly can compute the variance and
+covariance of $\breve Y$ with formula equivalent to~\ref{Sec:VarLsq} and~\ref{Sec:CovLsq}~.
+We consider the random vector $\tilde Y$ :
+
+\begin{equation}  
+     \tilde{Y}  =   \breve{A}^{-1}  \sum\limits_{m=1}^M  (o_m + \epsilon _m) \breve{L}^m
+\end{equation}  
+
+We have :
+
+\begin{equation}
+     Var(\tilde{y}_i) =  \sum\limits_{m=1}^M  Var(\epsilon _m)  (\sum\limits_{j=1}^N {\breve {a}'}{_i^j}  {\breve l}{^m_j})^2 
+\end{equation}
+
+\subsection{Practicle aspects on unknown elimination in MicMac}
+
+Practically, in MicMac, the unkwon elimination is essentially used  to eliminate, for each tie points, 
+the $3$d point that project on each image. This is done "à la volée" (on the flight ?) with
+the following procedure, for each tie point :
+
+\begin{itemize}
+    \item the unknown of the $3d$ point are always located to the same place (say they are unknown $1,2,3$)
+    \item the observation are used in accumulator matrix $A,B,C$ using equation \ref{LeastSq:ABC} (ignoring
+          for now the future elimination);
+    \item  then $\Lambda$ and $\Theta$ are computed and equations \ref{FinalBreveA} and \ref{FinalBreveB} to
+           modify the accumulator $A,B,C$
+    \item the part of the accumulator $A,B,C$  corresponding to unknow $[1-3]$ are reseted;
+\end{itemize}
+
+So at the end, the accumulator $A$ and $B$ contains the  global $\breve A$  and $\breve B$ and allow to
+compute the optimal value $\breve Y$ . For variance-covariance,
+this way of proceeding ,  raise a probleme for computing the residual for estimation of $Var(\epsilon _m)$  that
+require the value of unknowns as shown in \ref{Eq:Empir:Var}, we know the value for $Y$, but not for $X$.
+There is two possibility :
+
+\begin{itemize}
+   \item  use  formula \ref{Eq:XHatOfY} , with  $\breve Y$  as value, this create an iteration offset;
+   \item use the value computed from bundle intersection, which is also an approximation.
+\end{itemize}
+
+For now the second solution is used .
+
+
+
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\subsection{Sensibility}
+
+
+\begin{equation}
+F(X) = ^t X M X = F(y,Z)= 
+\left( \begin{array}{cc} 
+              y &  ^t Z \\ 
+        \end{array} 
+\right)
+\left( \begin{array}{cc} 
+              a & B \\ 
+              ^t B  & D\\ 
+        \end{array} 
+\right)
+\left( \begin{array}{c} 
+              y \\ 
+              Z \\ 
+        \end{array} 
+\right)
+= a y^2 + 2y^t B Z + ^t Z D Z
+\label{EqSensib1}
+\end{equation}
+
+For a given $y$, $F(y,Z)$ is minimal for :
+
+\begin{equation}
+Z_{min}(y) = -y  D^{-1} B
+\end{equation}
+
+And the minimal value is :
+
+\begin{equation}
+V_{min}(y) = F(y,Z_{min}(y)) =  y^2 (a- ^t B D^{-1} B)
+\end{equation}
+
+
+In our  case where $A=a$ is a $1$ dimensionnal (scalar) we can then write :
+
+\begin{equation}
+V_{min}(y) =   y^2 (a- ^t B D^{-1} B) = \frac{x^2}{a'}
+\end{equation}
+
+So using equation ~\ref{Eq:BlockInv}, $V_{min}(x)$ can be easily computed  from the inverse matric. If
+we have a "bad" value of $y$, we have two estimation of the impact
+on  $F$ :
+
+\begin{itemize}
+   \item a "pessimistic" $a y^2$;
+   \item a "optimistic" $\frac{y^2}{a'}$.
+\end{itemize}
+
+So know, if we explain the empirical least square error $R$, by
+a bad estimation on $y$, we have two estimation of the sensibility/accuracy of $y$ :
+
+
+\begin{itemize}
+   \item a "optimistic"   $\sqrt{\frac{a}{R}}$;
+   \item a "pessimistic"  $\sqrt{a'R}$.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

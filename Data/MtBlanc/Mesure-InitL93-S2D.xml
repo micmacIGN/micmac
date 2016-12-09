@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<SetOfMesureAppuisFlottants>
+     <MesureAppuiFlottant1Im>
+          <NameIm>T0-_MG_0001.JPG</NameIm>
+          <OneMesureAF1I>
+               <NamePt>Megev1055</NamePt>
+               <PtIm>1189.32188537332104 2365.73434175065222</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Carroz1002</NamePt>
+               <PtIm>1395.38751581008842 862.673280912829</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>ColMidi532</NamePt>
+               <PtIm>2952.19612054353274 2158.03336413213492</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>RdPoint2LesMouilles</NamePt>
+               <PtIm>2850.13890428859258 1671.23753003209163</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>V2LePlanet1386</NamePt>
+               <PtIm>3188.46670399260211 1115.5700654139705</PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm>T0-_MG_0002.JPG</NameIm>
+          <OneMesureAF1I>
+               <NamePt>Megev1055</NamePt>
+               <PtIm>1703.75004653847122 2356.52137674056758</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Carroz1002</NamePt>
+               <PtIm>1872.70867622042897 849.874687754920728</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>ColMidi532</NamePt>
+               <PtIm>3466.98916396419781 2111.03024594079716</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>RdPoint2LesMouilles</NamePt>
+               <PtIm>3338.48811512534257 1634.65114661043049</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>V2LePlanet1386</NamePt>
+               <PtIm>3652.04806221262561 1082.45886186030066</PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm>T0-_MG_0003.JPG</NameIm>
+          <OneMesureAF1I>
+               <NamePt>Megev1055</NamePt>
+               <PtIm>593.209025376677005 2351.09013115043808</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Carroz1002</NamePt>
+               <PtIm>799.623561010055482 864.063073463870751</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>ColMidi532</NamePt>
+               <PtIm>2324.82707012300079 2137.09576977347888</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>RdPoint2LesMouilles</NamePt>
+               <PtIm>2237.70444273417706 1657.85191887558835</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>V2LePlanet1386</NamePt>
+               <PtIm>2570.33775892395761 1106.05980075093748</PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+</SetOfMesureAppuisFlottants>

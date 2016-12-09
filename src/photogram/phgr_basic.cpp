@@ -1616,57 +1616,57 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
 
            if( aPost2 != "txt" && aPost2 != "TXT" && aPost2 != "Txt" && aPost2 != "rpc")
            {
-           cElXMLTree * aTree = new cElXMLTree(aName);
+                cElXMLTree * aTree = new cElXMLTree(aName);
 
-           cElXMLTree * aXmlMETADATA_FORMAT = aTree->Get("METADATA_FORMAT");
-           if (aXmlMETADATA_FORMAT)
-           {
-               std::string aStrMETADATA_FORMAT = aXmlMETADATA_FORMAT->GetUniqueVal() ;
-               if (aStrMETADATA_FORMAT == "DIMAP")
-               {
-                    std::string aStrVersion = aXmlMETADATA_FORMAT->ValAttr("version","-1");
-                    if (aStrVersion =="2.0")
+                cElXMLTree * aXmlMETADATA_FORMAT = aTree->Get("METADATA_FORMAT");
+                if (aXmlMETADATA_FORMAT)
+                {
+                    std::string aStrMETADATA_FORMAT = aXmlMETADATA_FORMAT->GetUniqueVal() ;
+                    if (aStrMETADATA_FORMAT == "DIMAP")
                     {
-                         //std::cout << "GOT DIMAP2 \n"; getchar();
-                        aType = eTIGB_MMDimap2;
-                        return;
-                    }
-                    else
-                    {
-                        cElXMLTree * aXmlMETADATA_VERSION = aTree->Get("METADATA_VERSION");
-                        if(aXmlMETADATA_VERSION)
+                        std::string aStrVersion = aXmlMETADATA_FORMAT->ValAttr("version","-1");
+                        if (aStrVersion =="2.0")
                         {
-                            std::string aStrMETADATA_VERSION = aXmlMETADATA_VERSION->GetUniqueVal() ;
-                            if(aStrMETADATA_VERSION == "2.0")
+                             //std::cout << "GOT DIMAP2 \n"; getchar();
+                            aType = eTIGB_MMDimap2;
+                            return;
+                        }
+                        else
+                        {
+                            cElXMLTree * aXmlMETADATA_VERSION = aTree->Get("METADATA_VERSION");
+                            if(aXmlMETADATA_VERSION)
                             {
-                                aType = eTIGB_MMDimap2;
-                                return;
+                                std::string aStrMETADATA_VERSION = aXmlMETADATA_VERSION->GetUniqueVal() ;
+                                if(aStrMETADATA_VERSION == "2.0")
+                                {
+                                    aType = eTIGB_MMDimap2;
+                                    return;
+                                }
                             }
                         }
                     }
-               }
-           }
+                }
 
-           if (     (aTree->Get("NUMROWS") !=0)
-                &&  (aTree->Get("NUMCOLUMNS") !=0)
-                &&  (aTree->Get("ERRBIAS") !=0)
-                &&  (aTree->Get("LINEOFFSET") !=0)
-                &&  (aTree->Get("SAMPOFFSET") !=0)
-                &&  (aTree->Get("LATOFFSET") !=0)
-                &&  (aTree->Get("LONGOFFSET") !=0)
-                &&  (aTree->Get("HEIGHTOFFSET") !=0)
-                &&  (aTree->Get("LINESCALE") !=0)
-                &&  (aTree->Get("SAMPSCALE") !=0)
-                &&  (aTree->Get("LATSCALE") !=0)
-                &&  (aTree->Get("LONGSCALE") !=0)
-                &&  (aTree->Get("HEIGHTSCALE") !=0)
-                &&  (aTree->Get("LINENUMCOEF") !=0)
-                &&  (aTree->Get("LINEDENCOEF") !=0)
-              )
-           {
-               aType = eTIGB_MMDGlobe;
-               return;
-           }
+                if (     (aTree->Get("NUMROWS") !=0)
+                    &&  (aTree->Get("NUMCOLUMNS") !=0)
+                    &&  (aTree->Get("ERRBIAS") !=0)
+                    &&  (aTree->Get("LINEOFFSET") !=0)
+                    &&  (aTree->Get("SAMPOFFSET") !=0)
+                    &&  (aTree->Get("LATOFFSET") !=0)
+                    &&  (aTree->Get("LONGOFFSET") !=0)
+                    &&  (aTree->Get("HEIGHTOFFSET") !=0)
+                    &&  (aTree->Get("LINESCALE") !=0)
+                    &&  (aTree->Get("SAMPSCALE") !=0)
+                    &&  (aTree->Get("LATSCALE") !=0)
+                    &&  (aTree->Get("LONGSCALE") !=0)
+                    &&  (aTree->Get("HEIGHTSCALE") !=0)
+                    &&  (aTree->Get("LINENUMCOEF") !=0)
+                    &&  (aTree->Get("LINEDENCOEF") !=0)
+                    )
+                {
+                    aType = eTIGB_MMDGlobe;
+                    return;
+                }
            }
            else
            {
@@ -1677,9 +1677,11 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                 std::getline(aFile, aLine);
                 if( aLine.find("<Xml_RPC>") != string::npos )//verify if it's not Xml_RPC
                     aType = eTIGB_MMDimap2;
+                else if(aLine.find("TYPE_OBJET") != string::npos)
+                    aType = eTIGB_MMEuclid;
                 else
                     aType = eTIGB_MMIkonos;
-
+                
 
            }
        }

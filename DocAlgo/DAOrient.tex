@@ -1,0 +1,292 @@
+\chapter{Algorithm on orientation}
+
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\section{Tomasi-Kanabe}
+
+This section gives a brief description of the Tomasi-Kanabe algorithm
+that is (will be) used in Martini as a suplementary test of
+orientation for long focal camera. See~\cite{TomKan} , the original paper,
+for more details.
+
+
+Let $C_1,C_2, \dots C_N$ be $N$ camera with infinite focal lentgh, classically
+the projection fonction are ortho centric projection, and there is a strict redundancy between principal-point/origin and  focal/origin. The projection fonction $\pi_n$ on camera $C_n$ is given by :
+
+\begin{equation}
+   \pi_n(P) =  (A_n,B_n)   + S_n * (i_n . P , j_n.P) \label{TomKanProj}
+\end{equation}
+
+Where :
+
+\begin{itemize}
+   \item  $i_n$ and $j_n$ are the axes of the camera they are the two first vector
+          of an othonormal repair $||i_n|| = ||j_n|| = 1$ , $i_n . j_n = 0 $ ,
+          we note $k_n = i_n \wedge j_n$.
+   \item  the translation $(A_n,B_n)$ represent the "principal point/origin" on $i_n,j_n$;
+   \item  the scaling factor $S_n$ represent the "focal length/origin" on $k_n$.
+\end{itemize}
+
+
+Having $M$ point seen in the $N$ camera  (we know the projection of these 
+point but not their $3d$ coordinates in some common ground space) we note :
+
+\begin{itemize}
+    \item $P_m , m \in[1,M]$  the unknown $3d$ coordinates of the $m^{th}$ points;
+    \item $(u_{n,m},v_{n,m}), m \in[1,M], n \in [1,N] $   the $2d$ coordinates of projection
+          of $P_m$ points on $C_n$ ;
+    \item we have :
+\end{itemize}
+
+\begin{equation}
+    \pi_n(P_m) = (u_{n,m},v_{n,m})
+\end{equation}
+As the repair in which we want to express $P_k$ is arbirtrary, we decide to  set the 
+origin at the center of mass; we then have   :
+
+
+\begin{equation}
+   \sum_{m=1}^{M} P_m = 0 \label{TomKanCDM}
+\end{equation}
+
+As equation~\ref{TomKanProj} is linear : 
+
+
+\begin{equation}
+     \forall n : \sum_{m=1}^{M} \pi_n(P_m)  
+     =  (A_n,B_n) * M + S *(i_n. \sum_{m=1}^{M} P_m,j_n. \sum_{m=1}^{M} P_m)
+     = (A_n,B_n) * M
+     = \sum_{m=1}^{M} (u_{n,m},v_{n,m})
+\end{equation}
+
+So we see that $A_n,B_n$ can easily be computed by  :
+
+
+\begin{equation}
+   A_n = \frac{\sum_{m=1}^{M}u_{n,m}}{M} ;
+   B_n = \frac{\sum_{m=1}^{M}v_{n,m}}{M} ; \label{TomKanAB}
+\end{equation}
+
+As in~\cite{TomKan}, to ligthen notation, we suppose we begin by normalise $u_{n,m}$ and $v_{n,m}$ 
+by substracting the center of mass, and equation~\ref{TomKanAB} resume to $A_n=B_n=0$ and
+equation~\ref{TomKanProj} can be writen :
+
+
+\begin{equation}
+   (u_{n,m},v_{n,m}) =  \pi_n(P_m) =   S_n * (i_n . P_m, j_n.P_m) \label{TomKanProj2}
+\end{equation}
+
+
+We note $M^u_v$ the matrix :
+
+
+\begin{equation}
+M^u_v=
+\left( \begin{array}{cccc} 
+             u_{1,1} & u_{2,1}  & \dots & u_{N,1} \\ 
+             u_{1,2} & u_{2,2}  & \dots & u_{N,2} \\
+              \dots &  \dots  & \dots &   \dots   \\
+             u_{1,M} & u_{2,M}  & \dots & u_{N,M} \\
+             v_{1,1} & v_{2,1}  & \dots & v_{N,1} \\ 
+              \dots &  \dots  & \dots &   \dots   \\
+             v_{1,M} & v_{2,M}  & \dots & v_{N,M} 
+        \end{array} 
+\right)
+\label{TomKanMuv}
+\end{equation}
+
+Using equation~\ref{TomKanProj2}, equation~\ref{TomKanMuv} can be writen :
+
+
+\begin{equation}
+   M^u_v= \left( \begin{array}{ccc} 
+             S_1*i^x_1 & S_1*i^y_1 & S_1*i^z_1 \\
+             S_2*i^x_2 & S_2*i^y_2 & S_2*i^z_2 \\
+             \dots & \dots & \dots \\
+             S_M*i^x_M & S_M*i^y_M & S_M*i^z_M \\
+             S_1*j^x_1 & S_1* j^y_1 & S_1* j^z_1 \\
+             \dots & \dots & \dots \\
+             S_M*j^x_M & S_M*j^y_M & S_M*j^z_M 
+        \end{array} 
+\right)
+       *
+        \left( \begin{array}{cccc} 
+             P^x_1 & P^x_2 &  \dots & P^x_N \\
+             P^y_1 & P^y_2 &  \dots & P^y_N \\
+             P^z_1 & P^z_2 &  \dots & P^z_N \
+        \end{array} 
+        \right)
+     = M^i_j * M^P
+    \label{TomKanFactMUV}
+\end{equation}
+
+
+
+We can still
+suppose that $M^i_j$ is a square Matrix by padding is with $0$ column or lines.
+Padding it with $0$ column correspond to add the projection of a point of coordinate
+ $(0,0,0)$, padding with $0$ line correspond to add a camera with scaling factor $0$.
+Using a singular value decomposition, $M^u_v$ can be written :
+
+
+\begin{equation}
+   M^u_v=   ^t R_1 \Delta R_2
+\end{equation}
+
+With  :
+
+\begin{itemize}
+   \item  $R_1 ^t R_1 = Id$  
+   \item  $R_2 ^t R_2 = Id$  
+   \item  $\Delta$ diagonal matrix.
+\end{itemize}
+
+As $M^i_j$ (or $M^p$) is of rank $3$, $M^u_v$ is also of rank $3$.  So  theoretically, $\Delta$  has only $3$
+non zero value, due to measurement  error in $u_{n,m},v_{n,m}$ (and also numerical error in computation), the value may be not exactly equal to zero; however,
+ $\Delta$  can be best approximated by the $3*3$ matrix corresponding to the highest eigen values (in
+absolute values). Suppressing
+the corresponding void row of $R_1$ and void column of $R_2$ we obtain a
+decomposition of $M^u_v$ in the form :
+
+\begin{equation}
+   M^u_v=   r_1  \delta r_2
+\end{equation}
+
+With $\delta$ a $3*3$ matrix, $r_1$ a $N*3$ matrix and $r_2$ a $3*N$ matrix, seting arbirtarily 
+$r'_2 =  \delta r_2$, we can write  :
+
+\begin{equation}
+   M^u_v=   r_1   r'_2
+\end{equation}
+
+
+Also this formula is close to~\ref{TomKanFactMUV}, we cannot identify $M^i_j=r_1$ and $ M^P=r'_2$
+because the decomposition is far from unique; in fact for any $3*3$ invertible 
+matrix $Q$, we still have :
+
+\begin{equation}
+   M^u_v=   (r_1 Q) ( Q^{-1}  r'_2)
+\end{equation}
+
+To determine $Q$ we are now using the fact that  the $(i_m,j_m)$ are orthonormal, remember we have : 
+
+
+\begin{equation}
+   M^i_j=   ^t \left( \begin{array}{ccccccc} i_1, i_2 \dots & i_M & j_1 & \dots & j_M 
+        \end{array} 
+\right)
+\end{equation}
+
+
+We can write the metric constraints :
+
+\begin{itemize}
+   \item  $  ^t i_1 Q ^t Q i_1 = 1 $
+   \item  $  ^t j_1 Q ^t Q j_1 = 1 $
+   \item  $\forall n :  ^t i_n Q ^t Q j_n = 0 $
+   \item  $\forall n \neq 1 :  ^t i_n Q ^t Q i_n =  ^t j_n Q ^t Q j_n   $
+\end{itemize}
+
+Note that, as there is a global arbirtrary scaling, we make the camera $1$ play a particular
+role setting its scaling to $1$, for the other we just impose to have the same scaling
+in $x$ and $y$.
+
+As $W=Q ^t Q$ is a symetric matrix, we can estimate $W$  by least mean square using the
+above linear equation (there is $6$ unknow on $Q$, we have  $1+2*N$ equations and   $N\geq 3$ ). 
+Knowing $W$, it's easy to recover $Q$, we do a singular
+value decomposition of $W$ :
+
+\begin{equation}
+    W =  ^t R D R
+\end{equation}
+
+When all the eigen value are positive, 
+\footnote{we see just after when it is not the case}
+we can compute a possible value of $Q$ by 
+
+\begin{equation}
+    Q  =  ^t R  \sqrt{D}
+\end{equation}
+
+This value is not unique, because for any rotation $r$, $Q' = Qr$ will be also a solution. This
+non unicity simply reflect the fact that the orientation of the camera can only be computed
+up to a global rotation. We will use this fact for processing the case with negative values.
+
+When there exist negative value, the computation is still easy, also we have to use hermitian produce
+and hermitian matrices to prove the validity, we can write : 
+
+\begin{equation}
+    Q  =  ^t R  \sqrt{|D|} \mathbb{I} = Q' \mathbb{I} 
+\end{equation}
+
+Where $\mathbb{I}$  is a diagonal complex matrix containing only $1$ or $i$. We still have :
+
+\begin{equation}
+    W= ^t \overline{Q}  Q
+\end{equation}
+
+And $\mathbb{I}$ is a hermitian unitary matrix as : 
+
+\begin{equation}
+     ^t  \overline{\mathbb{I}}  \mathbb{I} = Id
+\end{equation}
+
+
+As $Q$ is defined up to a global unitary matrix, we can use $Q'$ instead of $Q$.
+
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\section{Triplet selection algorithm}
+
+This section describe the method and code use for selecting triplet, 
+as last time I had to go back to it, it seemed to me quite obscure ....
+It is implemnted in file {\tt src/uti\_phgrm/cNewO\_OldGenTriplets.cpp}.
+
+Le $S_1$ , $S_2$ be images,
+
+The idea is to select a subset of images, with have a maximum of triple
+point, that these point cover the cloud of 
+
+Let :
+\begin{itemize}
+    \item  $Depth$ = {\tt mHautBase} be the average depth of the scene
+    \item  $B_H = \frac{B}{H} $ be base to height ratio
+    \item  $B_H^{Lim} = 0.15 $ = {\tt TBSurHLim} be the a constant seting when $\frac{B}{H}$ 
+           ratio becomes big;
+\end{itemize}
+
+Also the code is obscured by the fact that all computation are done in
+integer.
+
+\begin{itemize}
+    \item  $Q=30$ = {\tt TQuant} be the constant of quantification.
+
+    \item  $Q_{Bh}=100$ = {\tt TQuantBsH} be the constant of quantification for $\frac{B}{H} $
+
+    \item $Nb_{P1} = 6 $ = {\tt TNbCaseP1} , use for digitalizing the image space
+
+    \item $Nb_{C} = Nb_{P1} * Nb_{P1} $ = {\tt TNbCaseP1},  for efficiency the $2d$ 
+          distribution are stored in $1$ board of size $Nb_C$
+    
+\end{itemize}
+
+
+The gain when adding a summit is controled by the distance to others,
+thi gains is controled by the function :
+
+\begin{itemize}
+    \item $B_H(S_1,S_2)  = d(S_1,S_2) / Depth$  
+
+    \item $GB_H(S1,S2) = Q_{Bh} * \frac{B_H}{B_H + B_H^{Lim}}$ 
+\end{itemize}
+
+
+
+
+
+
+

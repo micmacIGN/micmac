@@ -1,0 +1,77 @@
+
+-----------------------------------------------------
+------- GESTION GLOBALE DU PROJET -------------------
+-----------------------------------------------------
+
+Site WEB : refonte complète, sur le pattron des projets
+open source IGN, priorités :
+
+   P1- Donner (enfin) un accès directe aux infos utiles
+   P2- Faire une meilleure publicite sur les outils :
+         * Montrer ce que l'on peut faire
+         * donner la possibilite aux utilisateurs de
+           pouvoir deposer des realisation
+
+   P2 : Gerer la doc de manière collaborative . En plus ou a la place (?)
+        de la doc existante.
+
+  P3 : Mettre en place un systeme d'incription, pour
+       compter les utilisateur ?? A voir, mais la question
+       sur le nombre d'utilisateur est (peniblement ...) 
+       récurente.
+
+Portage Windows
+
+Distrib Binaire (+ aller vers le binaire unique).
+
+
+
+Test de non regression : compilation, link, execution.
+
+------------------------------------------------
+------- OPTIMISATION NON GPU -------------------
+------------------------------------------------
+
+Calcul du tableau d'assemblage (paires d'images a apparier),
+(en reprennat eventuellement ce qu'avait fait Arnaud), on
+calcul tous les points sift, on les fout en vrac dans un gros
+dictionnaire, on utilise un ANN rapide pour trouver les paires 
+d'image a apparier (possible de raffiner avec une approche de type
+graphe).
+
+
+Filtrage des points homologues : en conserver un petit nombre,
+bien repartis et multiples. (Voir I Clery)
+
+Fusion des cartes de profondeurs. (Voir Esbeta Gardon)
+
+
+Automatisation totale de le reconstruction 3D,
+le masquage automatique etant + ou - operationnel,
+c'est surtout une question d'assemblage d'un pipeline :
+
+   - choix des images maitresse : A FAIRE
+   - choix des images secondaire : A FAIRE
+   - calcul de l'appariement et des masques indiv à basse resol : 
+   - fusion et calcul de masque non redondants
+   - calcul a haute resol
+
+--------------------------------------------
+------- OPTIMISATION GPU -------------------
+--------------------------------------------
+
+   - P1- passage en GPU  de la correlation;
+   - P1- passage en GPU  de l'optimisation;
+   - P2- passage en GPU  des points SIIFT en utilisant 
+         une version open source dispo
+   - P3- passage en GPU  d'Apero par generation de code
+
+
+
+
+
+
+
+
+
+

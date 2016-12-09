@@ -1,0 +1,4 @@
+=================================================================
+1 occurence of warn type [Planarity in Masq3D ]
+First context message :  Error=0.000558
+First detected at line :  264 of File /opt/micmac/culture3d/src/geom3d/cMasq3D.cpp

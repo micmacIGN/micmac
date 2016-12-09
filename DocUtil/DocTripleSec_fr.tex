@@ -1,0 +1,455 @@
+\documentclass[a4paper]{book}
+
+\usepackage[english,french]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{rotating}
+\usepackage{multicol}
+\usepackage{color}
+\usepackage{verbatim}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{listings}
+%\usepackage{cprotect}
+\usepackage{fancyvrb}
+\usepackage{color}
+
+
+
+%\usepackage{subfigure}
+
+
+\setlength{\oddsidemargin}{0.5 cm}
+\setlength{\evensidemargin}{-0.5 cm}
+\setlength{\textwidth}{16.0 cm}
+\setlength{\textheight}{23.7 cm}
+\setlength{\marginparwidth}{0.0 cm}
+\setlength{\topmargin}{-1.0 cm}
+
+
+%\usepackage{mathabx}
+%\usepackage{amstext}
+%\usepackage{amssymb}
+%\usepackage{ae}
+
+%\includeonly{DocRef/GeoLocalisation}
+%\includeonly{DocRef/Advanced-MicMac2}
+%\includeonly{Generalites/QuickStartSimplified-Tools}
+
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+
+
+%---------------------------------------------
+\newcommand{\CPP}{\mbox{\tt C\hspace{-0.05em}\raisebox{0.2ex}{\small ++} }}
+\newcommand{\SiftPP}{\mbox{\tt Sift\hspace{-0.05em}\raisebox{0.2ex}{\small ++} }}
+
+
+\newcommand{\KTH}{\ensuremath {^{th}}}
+\newcommand{\EME}{\ensuremath {^{i\grave eme}}}
+\newcommand{\ETer}{\ensuremath {\mathcal T}}
+\newcommand{\EIm}{\ensuremath {{\mathcal I}_k}}
+\newcommand{\EPx}{\ensuremath{{\mathcal E}_{px}}}
+
+\newcommand{\FPx}{\ensuremath{{\mathcal F}_{px}}}
+
+\newcommand{\Ok}{\ensuremath{{\mathcal O}_{k}}}
+
+\newcommand{\Ess}{\ensuremath{{\mathcal E}}}
+
+\newcommand{\DimPx}{\ensuremath{D_{px}}}
+
+\newcommand{\PiI}{\ensuremath{\dot{\pi}}}
+\newcommand{\PxMoy}{\ensuremath{\tilde{P_x}}}
+\newcommand{\PxZone}{\ensuremath{P_x^Z}}
+
+\newcommand{\RR}{\ensuremath{\mathbb{R}}}
+\newcommand{\ZZ}{\ensuremath{\mathbb{Z}}}
+\newcommand{\NN}{\ensuremath{\mathbb{N}}}
+\newcommand{\Ind}{\ensuremath{\mathbb{I}^{nd}}}
+
+\newcommand{\Ress}{\ensuremath{{\mathcal A}}}
+\newcommand{\Reg}{\ensuremath{{\mathcal R}^{eg}}}
+\newcommand{\Energ}{\ensuremath{{\mathcal E}}}
+\newcommand{\Echant}{\ensuremath{{\mathcal E}}}
+\newcommand{\PZero}{\ensuremath{{\mathcal P}^0}}
+\newcommand{\SUn}{\ensuremath{{\mathcal S}^1}}
+
+\newcommand{\DeltaI}{\ensuremath{\Delta^{\imath}}}
+
+\newcommand{\DdSt}{\ensuremath{d^2}_{/\mathcal{S}^3}}
+\newcommand{\DeuxExtre}{\ensuremath{\unrhd}}
+%\newcommand{\DeuxExtre}{\ensuremath{\nabla}}
+\newcommand{\RefFantome}{{\bf ?2Def?}}
+\newcommand{\PourLecteurAverti}{{\Large \bf \emph{Ce paragraphe peut
+facilement \^etre omis
+en premi\`ere lecture.}}}
+\newcommand{\COM}[1]
+
+%  \verb|\|
+
+
+\newcommand{\ELISE}
+{\mbox{{\bf $\mathcal{E}$}\hspace{-0.15em}\raisebox{-0.4ex}{L}\hspace{-0.3em}\raisebox{0.3ex}{i}\raisebox{-0.4ex}{S}\raisebox{0.0ex}{e}}}
+
+%\newcommand{\UNCLEAR}[1]{\textcolor{red}{\textbf{\#1}}}
+\newcommand{\UNCLEAR}{}
+\newcommand{\ISITCLEAR}{}
+
+%--------------------------------------------
+\begin{document}
+\selectlanguage{english}
+\chapter{Outil TripleSec : Test de non RegressIon Pour Les nouvElles verSions dE miCmac}
+
+\section{Description}
+L'outil TripleSec permet de tester les nouvelles versions de MicMac en identifiant facilement les diff\'erents beugs et erreurs qui peuvent appara\^itres. L'outil permet de reproduire le traitement d'un jeu de donn\'ees de r\'ef\'erence et de comparer des fichiers, des directory, des calibrations, des orientations et des images.
+
+\section{Pr\'eambule}
+Avant d'utiliser TripleSec, vous devez identifier un jeu de donn\'ees et le traiter en lui appliquant un ensemble de commande micmac. Usuellement, pour une mod\'elisation simple, on retrouve le pipeline : Tapioca, Tapas, Malt/C3DC, etc …
+Une fois que le jeux de donn\'ees est traite, renommez le dossier de travail « TNR-Ref-\#Nom\# ».
+
+D\'esormais nous utiliserons les termes Ref pour parler du dossier « TNR-Ref-\#Nom\# » contenant le jeu de donn\'ees traite avec une version de micmac stable (r\'ef\'erence). Et Exe pour parler du dossier « TNR-Exe-\#Nom\# » contenant les jeu de donn\'ees en cours de traitements avec la nouvelle version de micmac.
+
+\section{Structure d'un test}
+L'ensemble des donn\'ees, des commandes et des tests (fichier, directory, orientation, calibration et images) que vous souhaitez tester doivent \^etre d\'efinis dans un fichier XML qui sera plac\'e au m\^eme niveau que le dossier de travail« TNR-Ref-\#Nom\# ».
+Pour initialiser le test, vous devez placer une balise $<XmlTNR\_GlobTest>$ et indiquer le nom (\#Nom\#) du chantier via une balise $<Name>$ comme dans l'exemple ci-dessous :
+
+\begin{verbatim}
+<XmlTNR_GlobTest>
+	<Name>Fontaine</Name>
+</XmlTNR_GlobTest>
+\end{verbatim}
+
+\subsection{Les donn\'ees}
+Dans un premier temps, il s'agit d'indiquer les donn\'ees n\'ecessaires aux traitements (images, masques, calibration, points d'appui, etc.), via une balise $<PatFileInit>$ et en lui donnant le pattern des images ou des autres fichiers. Ensuite vous pouvez indiquer une purge ou non du dossier de traitement avec la nouvelle version micmac avec une balise $<PurgeExe>$. En reprenant l'exemple on obtient :
+
+\begin{verbatim}
+<XmlTNR_GlobTest>
+	<Name>Fontaine</Name> < !-- Nom du fichier -->
+	<PatFileInit>A*JPG</PatFileInit> < !-- Pattern des images -->
+	<PatFileInit>AIMG_2470_Masq.tif</PatFileInit> < !-- Masque -->
+	<PatFileInit>AIMG_2470_Masq.xml</PatFileInit> < !-- Masque →
+	<PurgeExe>false</PurgeExe> < !-- Purge du dossier ou non -->
+</XmlTNR_GlobTest>
+\end{verbatim}
+
+NB : vous pouvez \'egalement copier r\'ecursivement un directory en indiquant son chemin dans une balise $<DirInit>$.
+
+La première chose que l'outil vas effectuer lorsque vous le lancerez, sera de cr\'eer le dossier « TNR-Exe-\#Nom\# » et de copier les fichiers et dossiers indiques dans les $<PatFileInit>$ et $<DirInit>$ dedans. Si vous lui avez demande, il fera \'egalement la purge du dossier de travail Exe.
+
+\section{Les test unitaires}
+L'outil TripleSec permet donc de faire des tests globaux, mais dans le fichier XML vous devez indiquer les commandes que vous souhaitez reproduire au sein de test unitaires. Cela permet entre autre de tester les directeory entre les commandes car à la fin d'un traitement global ils peuvent avoir \'et\'e modifies. Pour initialiser un test unitaire, vous devez utiliser la balise $<Tests>$, ensuite vous pouvez lui donner plusieurs arguments.
+
+\subsection{Les commandes}
+Pour tester une commande, vous devez l'indiquer dans une balise $<Cmd>$. Par contre, vous devez obligatoirement mettre une unique balise $<Cmd>$, m\^eme vide, dans un test unitaire. Les commandes sont celles que vous utiliseriez pour micmac. Par exemple :
+
+\begin{verbatim}
+<Cmd>mm3d Tapioca All "TNR-Exe-Fontaine/.*JPG" 1000</Cmd> < !-- Commande Tapioca -->
+\end{verbatim}
+
+Astuce : Pour \'elaborer un test global, vous pouvez reprendre le fichier mm3d-logfile.txt et r\'ealiser un test unitaire pour chacune des commandes qui s'y trouvent.
+
+\subsubsection{Les tests de fichiers}
+Ces tests permettent de v\'erifier l’existence des fichiers dans Ref et Exe et de les comparer binairement. Voici la syntaxe pour un test de fichier :
+
+\begin{verbatim}
+<TestFiles> 
+	<NameFile>AperiCloud_MEP.ply</NameFile> < !-- indiquer le chemin du fichier --> 
+</TestFiles>
+\end{verbatim}
+
+\subsubsection{Les tests de directory}
+Ces tests permettent de v\'erifier l’existence des directory dans Ref et Exe et de les comparer binairement. Voici la syntaxe pour un test de fichier :
+
+\begin{verbatim}
+<TestDir> 
+           <NameDir>MM-Malt-Img-AIMG_2470/</NameDir> < !--indiquer le chemin du directory-->
+</TestDir>
+\end{verbatim}
+
+\subsubsection{Les tests de calibration}
+Pour comparer deux calibrations internes, vous pouvez utiliser la syntaxe suivante :
+
+\begin{verbatim}
+<TestCalib> 
+<NameTestCalib>Ori-MEP/AutoCal_Foc-18000_Cam-Canon_EOS_70D.xml</NameTestCalib> 
+</TestCalib>
+\end{verbatim}
+
+Via cette balise vous ex\'ecutez la commande CmpCalib qui permet de comparer deux calibration internes :
+\begin{verbatim}
+mm3d CmpCalib Calib1 Calib2
+\end{verbatim}
+En sortie, vous obtenez : les \'ecarts radiaux avec pour chacun des rayons les \'ecarts et les \'ecarts planim\'etriques.
+
+\subsubsection{Les tests d’orientation}
+Pour comparer deux orientations, vous pouvez utiliser la syntaxe suivante :
+
+\begin{verbatim}
+<TestOri> 
+	<NameTestOri>Ori-MEP</NameTestOri>
+	<PatternTestOri>.*JPG</PatternTestOri>
+</TestOri>
+\end{verbatim}
+
+Via cette balise vous ex\'ecutez la commande CmpOri qui permet de comparer deux orientations :
+\begin{verbatim}
+mm3d CmpOri pattern_images ori1 ori2
+\end{verbatim}
+En sortie, vous obtenez : la moyenne des distance entre les centres de rotation et la moyenne des distance entre matrices de rotation.
+
+\subsubsection{Les comparaisons d’images}
+Pour comparer deux images, vous pouvez utiliser la syntaxe suivante :
+
+\begin{verbatim}
+<TestImg> 
+	<NameTestImg>Ori-MEP</NameTestImg>
+</TestImg>
+\end{verbatim}
+
+Via cette balise vous ex\'ecutez la commande CmpIm qui permet de comparer deux images :
+\begin{verbatim}
+mm3d CmpIm Img1 Img2
+\end{verbatim}
+En sortie, vous obtenez : le nombre de px diff\'erents, la somme des diff\'erences, la moyenne des diff\'erences et les diff\'erences maximales.
+
+\subsection{Synthèse}
+En int\'egrant les \'el\'ements pr\'ec\'edents, on obtient :
+
+\begin{verbatim}
+<XmlTNR_GlobTest>
+	<Name>Fontaine</Name> < !-- Nom du chantier -->
+	<PatFileInit>A*JPG</PatFileInit> < !-- Pattern des images -->
+	<PatFileInit>AIMG_2470_Masq.tif</PatFileInit> < !-- Masque -->
+	<PatFileInit>AIMG_2470_Masq.xml</PatFileInit> < !-- Masque →
+	<PurgeExe>false</PurgeExe> < !-- Purge du dossier ou non -->
+
+<!-- Test de la commande Tapioca -->
+	<Tests>
+           		<Cmd>mm3d Tapioca All "TNR-Exe-Fontaine/.*JPG" 1000</Cmd>
+		< !-- Test dossier Pastis -->
+           		<TestDir>
+			<NameDir>Homol/PastisAIMG_2470.JPG</NameDir>
+           		</TestDir>
+     	</Tests> 
+
+<!-- Test de la commande Tapas-->
+	<Tests>
+     		<Cmd>mm3d Tapas RadialStd  "TNR-Exe-Fontaine/.*JPG" Out=MEP</Cmd>
+		<TestDir>
+			< !-- Test dossier MEP -->
+			<NameDir>Ori-MEP</NameDir>
+            	</TestDir>
+	</Tests>
+
+<!-- Test de la commande AperiCloud-->
+	<Tests>
+           		<Cmd>mm3d AperiCloud "TNR-Exe-Fontaine/.*JPG" TNR-Exe-Fontaine/MEP</Cmd>
+		< !-- Test fichier AperiCloud -->
+		<TestFiles>
+			<NameFile>AperiCloud_MEP.ply</NameFile>
+           		</TestFiles>
+     	</Tests>
+
+< !-- Test fichier Calibration -->
+	<Tests>
+		<Cmd></Cmd>
+           		<TestCalib>
+			<NameTestCalib>Ori-MEP/AutoCal_blablabla.xml</NameTestCalib>
+           		</TestCalib>
+     	</Tests>
+
+< !-- Test orientation -->
+     
+	<Tests>
+		<Cmd></Cmd>
+           		<TestOri>
+			<NameTestOri>Ori-MEP</NameTestOri>
+			<PatternTestOri>.*JPG</PatternTestOri>
+           		</TestOri>
+    	</Tests>
+
+
+< !-- Test image-->
+     
+	<Tests>
+		<Cmd></Cmd>
+           		<TestImg>
+			<NameTestImg>Ori-MEP</NameTestImg>
+
+           		</TestImg>
+    	</Tests>
+</XmlTNR_GlobTest>
+\end{verbatim}
+
+\section{Appel de la commande}
+Pour appeler la commande TripleSec, vous devez taper dans un terminal :
+\begin{verbatim}
+mm3d TripleSec Fichier.xml
+\end{verbatim}
+Pour connaître les options de la commande, vous pouvez taper :
+\begin{verbatim}
+mm3d TripleSec -help
+\end{verbatim}
+
+1. Options :
+Pour connaître les options de la commande, vous pouvez taper :
+\begin{verbatim}
+mm3d TripleSec -help
+\end{verbatim}
+
+Arguments obligatoires :
+Vous devez a minima sp\'ecifier le fichier de test et si vous n'utilisez pas l'option InDir, vous devez \'egalement vous assurez que le dossier contenant le jeux de donn\'ees traite se nomme bien « TNR-Ref-\#Nom\# ».
+
+Voici les diff\'erentes options :
+- OutXml : Via cette option, vous pouvez indiquer le fichier xml de sortie.
+- InDir : Via cette option, vous pouvez indiquer un r\'epertoire de r\'ef\'erence autre que « TNR-Ref-\#Nom\# ».
+
+\section{Fichier de sortie}
+Le fichier de sortie se nommera « GlobTest.xml » si vous navez pas utiliser loption OutXml.
+Ce fichier contient plusieurs types de balises imbriqu\'ees de la m\^eme façon que le fichier d’entr\'ee.
+
+\subsection{La balise GlobTestReport}
+C'est le premier niveau du test, en regardant le contenu de la balise $<Bilan>$ vous saurez directement si tout s'est bien d\'eroul\'e (true) ou au contraire ce qui ne s'est pas d\'eroul\'e correctement (false). Vous pouvez \'egalement savoir combien de test ont \'echou\'es grâce aux balises $<NbTest>$ et $<NbTestOk>$.
+Dans le cas d'un \'echec, vous pouvez regarder chaque test ind\'ependamment.
+Exemple :
+\begin{verbatim}
+<?xml version="1.0" ?>
+<XmlTNR_GlobTestReport>
+     <Bilan>true</Bilan> < !-- true indique un test global sans echec-->
+     <NbTest>4</NbTest> < !-- le nombre de test unitaires-->
+     <NbTestOk>4</NbTestOk> < !-- le nombre de test unitaires sans echec-->
+\end{verbatim}
+
+La balise $<XmlTNR\_GlobTestReport>$ contient plusieurs balises $<XmlTNR\_OneTestReport>$ correspondant à chaque test que vous avez indique dans le fichier d’entr\'ee.
+ 
+\subsection{La balise OneTestReport}
+Ces balises correspondent aux test unitaires, elles contiennent tous les types de tests d\'ecrits dans la partie I. . Vous pouvez donc v\'erifier que chaque test unitaire a aboutis (true) ou non (false), grâce au contenu de la balise $<TestOK>$.
+Exemple :
+\begin{verbatim}
+<XmlTNR_OneTestReport>
+          <TestOK>true</TestOK>
+\end{verbatim}
+A l’int\'erieur de ces balises on retrouve tous les r\'esultats des tests de commandes, de fichiers, de directory ,de calibration, etc. (cf part I.2.).
+
+\subsection{Les balises de tests}
+A l’int\'erieur des balises <XmlTNR\_OneTestReport> vous retrouvez les diff\'erentes balise de test :
+- Commande : $<XmlTNR\_TestCmdReport>$
+- Fichier : $<XmlTNR\_TestFileReport>$
+- Directory : $<XmlTNR\_TestDirReport>$
+- Calibration : $<XmlTNR\_CalibReport>$
+- Orientation : $<XmlTNR\_OriReport>$
+- Images : $<XmlTNR\_TestImgReport>$
+
+\subsubsection{Balise test commande}
+	- $<CmdName>$ : rappel de la commande
+	- $<TestCmd>$ : Commande ok (true) ou \'echec (false)
+
+Exemple : 
+\begin{verbatim}
+<XmlTNR_TestCmdReport>
+	<CmdName>mm3d AperiCloud "TNR-Exe-Fontaine/.*JPG" MEP</CmdName>
+	<TestCmd>true</TestCmd>
+</XmlTNR_TestCmdReport>
+\end{verbatim}
+
+\subsubsection{Balise test fichier}
+	- $<FileName>$ : Nom du fichier
+	- $<TestFileDiff>$ : Comparaison entre le fichier de Ref et le fichier de Exe (=,true,!=,false)
+	- $<TestExeFile>$ : Existence dans le dossier Exe
+	- $<TestRefFile>$ : Existence dans le dossier Ref
+	- $<ExeFileSize>$ : Taille dans Exe
+	- $<RefFileSize>$ : Taille dans Ref
+
+Exemple : 
+\begin{verbatim}
+<XmlTNR_TestFileReport>
+	<FileName>AperiCloud_MEP.ply</FileName>
+	<TestFileDiff>true</TestFileDiff>
+	<TestExeFile>true</TestExeFile>
+	<TestRefFile>true</TestRefFile>
+	<ExeFileSize>377693</ExeFileSize>
+	<RefFileSize>377693</RefFileSize>
+</XmlTNR_TestFileReport>
+\end{verbatim}
+
+\subsubsection{Balise test de directory}
+	- $<DirName>$ : Nom du dossier
+	- $<TestDirDiff>$ : Comparaison entre le dossier de Ref et le fichier de Exe (=,true,!=,false)
+	- $<TestExeDir>$ : Existence dans le dossier Exe
+	- $<TestRefDir>$ : Existence dans le dossier Ref
+	- $<ExeDirSize>$ : Taille dans Exe
+	- $<RefDirSize>$ : Taille dans Ref
+
+Exemple : 
+\begin{verbatim}
+<XmlTNR_TestDirReport>
+	<DirName>Homol/PastisAIMG_2474.JPG</DirName>
+	<TestDirDiff>true</TestDirDiff>
+	<TestExeDir>true</TestExeDir>
+	<TestRefDir>true</TestRefDir>
+	<ExeDirSize>426568</ExeDirSize>
+	<RefDirSize>426568</RefDirSize>
+</XmlTNR_TestDirReport>
+\end{verbatim}
+
+\subsubsection{Balise test de calibration}
+	- $<CalibName>$ : Nom de la calibration
+	- $<TestCalibDiff>$ : Comparaison entre les calibrations (Ref,Exe)
+	- $<EcartRadiaux>$ : \'ecarts en radians entre les diff\'erents faisceaux
+	- $<rEcartsPlani>$ : Existence dans le dossier Ref
+		- $<CoordPx>$ : Coordonn\'ees images
+		- $<UxUyE>$ : Deformation 3D
+
+Exemple :
+\begin{verbatim}
+<XmlTNR_CalibReport>
+	<CalibName>./TNR-Exe-Fontaine/Ori-MEP/AutoCal_Foc-18000_Cam-Canon_EOS_70D.xml</CalibName>
+	<TestCalibDiff>true</TestCalibDiff>
+	<EcartsRadiaux>3278.26276322315834 0</EcartsRadiaux>
+	<rEcartsPlani>
+		<CoordPx>5362.55999999999949 3575.03999999999996</CoordPx>
+		<UxUyE>0 0 0</UxUyE>
+	</rEcartsPlani>
+</XmlTNR_TestDirReport>
+\end{verbatim}
+
+\subsubsection{Balise test dorientation}
+	- $<OriName>$ : Nom de l’orientation
+	- $<TestOriDiff>$ : Comparaison des orientations.
+	- $<DistCenter>$ : Distance moyenne entre les centres 
+	- $<DistMatrix>$ : Existence dans le dossier Ref
+
+Exemple : 
+\begin{verbatim}
+<XmlTNR_OriReport>
+	<OriName>MEP</OriName>
+	<TestOriDiff>true</TestOriDiff>
+	<DistCenter>0</DistCenter>
+	<DistMatrix>0</DistMatrix>
+</XmlTNR_OriReport>
+\end{verbatim}
+
+\subsubsection{Balise test dimages}
+	- $<ImgName>$ : Nom de limage
+	- $<TestImgDiff>$ : Comparaison entre limage dans Ref et dans Exe (=,true,!=,false)
+	- $<NbPxDiff>$ : Nombre de pixels diff\'erents
+	- $<SumDiff>$ : Somme des diff\'erences
+	- $<MoyDiff>$ : Moyenne des diff\'erences
+	- $<DiffMaxi>$ : Diff\'erence maxi et coordonn\'ees
+
+Exemple : 
+\begin{verbatim}
+<XmlTNR_ImgReport>
+	<ImgName>MM-Malt-Img-AIMG_2470/Z_Num7_DeZoom2_STD-MALT_8Bits.tif</ImgName>
+	<TestImgDiff>false</TestImgDiff>
+	<NbPxDiff>3.51130082984273881e-316</NbPxDiff>
+	<SumDiff>6.95262359057922614e-310</SumDiff>
+	<MoyDiff>6.95262359057922614e-310</MoyDiff>
+	<DiffMaxi>0 0 0</DiffMaxi>
+</XmlTNR_ImgReport>
+\end{verbatim}
+\end{document}
+
+
