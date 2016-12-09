@@ -91,7 +91,8 @@ cAppliTieTri::cAppliTieTri
      mTimeCorInit   (0.0),
      mTimeCorDense  (0.0),
      mHasPtSelecTri (false),
-     mHasNumSelectImage (false)
+     mHasNumSelectImage (false),
+     mKeyMasqIm         ("NKS-Assoc-STD-Masq")
 {
    mMasIm = new cImMasterTieTri(*this,aTriang.NameMaster());
 
@@ -368,6 +369,17 @@ void cAppliTieTri::SetNumSelectImage(const std::vector<int> & aVNum)
      mHasNumSelectImage = true;
      mNumSelectImage = aVNum;
 }
+
+
+const std::string &  cAppliTieTri::KeyMasqIm() const
+{
+    return mKeyMasqIm;
+}
+void cAppliTieTri::SetMasqIm(const  std::string  & aKeyMasqIm)
+{
+    mKeyMasqIm = aKeyMasqIm;
+}
+
 
 
 

@@ -56,6 +56,8 @@ cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum
    mTImInit  (mImInit),
    mMasqTri  (1,1),
    mTMasqTri (mMasqTri),
+   mMasqIm   (1,1),
+   mTMasqIm  (mMasqIm),
    mRab      (20),
    mW        (0),
    mNum      (aNum)
@@ -129,12 +131,29 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     // Remplit l'image de masque avec les point qui sont dans le triangle
     mMasqTri =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,0);
     mTMasqTri = TIm2DBits<1> (mMasqTri);
+    mMasqIm =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,1);
+    mTMasqIm = TIm2DBits<1> (mMasqIm);
     ElList<Pt2di>  aLTri;
     aLTri = aLTri + round_ni(mP1Glob-Pt2dr(mDecal));
     aLTri = aLTri + round_ni(mP2Glob-Pt2dr(mDecal));
     aLTri = aLTri + round_ni(mP3Glob-Pt2dr(mDecal));
     ELISE_COPY(polygone(aLTri),1,mMasqTri.oclip());
 
+    const std::string & aKey = mAppli.KeyMasqIm();
+    if (aKey!="NONE")
+    {
+        std::string aName =  mAppli.ICNM()->Assoc1To1(aKey,mNameIm,true);
+        if (aName != "NONE")
+        {
+           Tiff_Im aTifM(aName.c_str());
+           ELISE_COPY
+           (
+              mMasqIm.all_pts(),
+              trans(aTifM.in(0),mDecal),
+              mMasqIm.out()
+           );
+        }
+    }
 
     if (mAppli.NivInterac() > 0)
     {

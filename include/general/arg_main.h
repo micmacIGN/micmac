@@ -769,6 +769,7 @@ extern int MMEnvStatute_main(int argc,char ** argv);
 
 
 
+int VisuResiduHom(int argc,char ** argv);
 
 
 

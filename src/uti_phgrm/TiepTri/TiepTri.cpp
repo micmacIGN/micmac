@@ -49,6 +49,7 @@ int TiepTri_Main(int argc,char ** argv)
    int         aNivInterac = 0;
    Pt2dr       aPtsSel;
    std::vector<int> aNumSel;
+   std::string      aKeyMasqIm;
    ElInitArgMain
    (
          argc,argv,
@@ -59,6 +60,7 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aNivInterac,  "Interaction",true,"0 none,  2 step by step")
                       << EAM(aPtsSel,  "PSelectT",true,"for selecting triangle")
                       << EAM(aNumSel,  "NumSelIm",true,"for selecting imade")
+                      << EAM(aKeyMasqIm,"KeyMasqIm",true,"Key for masq, Def=NKS-Assoc-STD-Masq, set NONE or key with NONE result")
    );
 
    std::string aDir,aNameXML;
@@ -98,6 +100,9 @@ int TiepTri_Main(int argc,char ** argv)
        {
            aNivInterac = 0;
        }
+
+       if (EAMIsInit(&aKeyMasqIm))
+          anAppli.SetMasqIm(aKeyMasqIm);
 
        anAppli.NivInterac() = aNivInterac;
 

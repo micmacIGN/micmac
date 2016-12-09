@@ -53,6 +53,8 @@ cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,in
    mTImReech   (mImReech),
    mImLabelPC  (1,1),
    mTImLabelPC (mImLabelPC),
+   mMasqReech  (1,1),
+   mTMasqReech (mMasqReech),
    mAffMas2Sec (ElAffin2D::Id()),
    mAffSec2Mas (ElAffin2D::Id()),
    mMaster     (anAppli.Master())
@@ -93,6 +95,9 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    mImLabelPC.raz();
    mTImLabelPC = TIm2D<U_INT1,INT>(mImLabelPC);
 
+   mMasqReech = Im2D_Bits<1>(mSzReech.x,mSzReech.y,0);
+   mTMasqReech =  TIm2DBits<1> (mMasqReech);
+
 
    Pt2di aPSec;
    for (aPSec.x=0 ; aPSec.x<mSzReech.x ; aPSec.x++)
@@ -102,6 +107,8 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
            Pt2dr aPMast = mAffMas2Sec(Pt2dr(aPSec));
            double aVal = mTImInit.getr(aPMast,-1);
            mTImReech.oset(aPSec,aVal);
+
+           mTMasqReech.oset(aPSec,mTMasqIm.get(round_ni(aPMast),0));
        }
    }
 
@@ -199,9 +206,9 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
     cResulRechCorrel<int> aCRCMax;
     for (int aKH=0 ; aKH<int(aVH.size()) ; aKH++)
     {
-        if (mTImLabelPC.get(aP0+aVH[aKH],-1)==aLab)
+        Pt2di aPV = aP0+aVH[aKH];
+        if ((mTImLabelPC.get(aPV,-1)==aLab) && InMasqReech(aPV))
         {
-           Pt2di aPV = aP0+aVH[aKH];
            if (mW && (aNivInter>=2))
            {
                mW->draw_circle_loc(Pt2dr(aPV),2.0,ColOfType(aLab));
@@ -210,7 +217,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
 
            int aSzRech = 6;
            cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
-           if (aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2)
+           if ((aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2) && InMasqReech(aCRCLoc.mPt))
            {
                // aPV = aPV+ aCRCLoc.mPt;
                aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aCRCLoc.mPt,6,1,aSzRech);
@@ -232,7 +239,8 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
     {
         if (aNivInter>=2)
             std::cout  << "- NO POINT for Correl Int\n";
-       return cResulRechCorrel<double>(Pt2dr(aCRCMax.mPt),aCRCMax.mCorrel);
+       // return cResulRechCorrel<double>(Pt2dr(aCRCMax.mPt),aCRCMax.mCorrel);
+       return cResulRechCorrel<double>(Pt2dr(aCRCMax.mPt),TT_DefCorrel);
     }
 
    
@@ -342,7 +350,14 @@ ElPackHomologue & cImSecTieTri::PackH()
    return mPackH;
 }
 
-
+bool cImSecTieTri::InMasqReech(const Pt2dr & aP) const
+{
+   return mTMasqReech.get(round_ni(aP),0);
+}
+bool cImSecTieTri::InMasqReech(const Pt2di & aP) const
+{
+   return mTMasqReech.get(aP,0);
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

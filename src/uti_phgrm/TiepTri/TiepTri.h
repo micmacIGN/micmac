@@ -118,6 +118,8 @@ class cAppliTieTri
 
            void PutInGlobCoord(cResulMultiImRechCorrel<double> & aRMIRC);
 
+            const std::string &  KeyMasqIm() const;
+            void SetMasqIm(const  std::string  & aKeyMasqIm);
 
       private  :
          cAppliTieTri(const cAppliTieTri &); // N.I.
@@ -161,6 +163,8 @@ class cAppliTieTri
          Pt2dr              mPtsSelectTri;
          bool               mHasNumSelectImage;
          std::vector<int>   mNumSelectImage;
+
+         std::string        mKeyMasqIm;
 };
 
 typedef enum eTypeTieTri
@@ -234,6 +238,8 @@ class cImTieTri
 
            Im2D_Bits<1>                  mMasqTri;
            TIm2DBits<1>                  mTMasqTri;
+           Im2D_Bits<1>                  mMasqIm;
+           TIm2DBits<1>                  mTMasqIm;
 
            int                           mRab;
            Video_Win *                   mW;
@@ -269,6 +275,9 @@ class cImSecTieTri : public cImTieTri
            virtual bool IsMaster() const ;
            ElPackHomologue & PackH() ;
     private :
+           bool InMasqReech(const Pt2dr &) const;
+           bool InMasqReech(const Pt2di &) const;
+
            cImSecTieTri(const cImSecTieTri&); // N.I.
            void  DecomposeVecHom(const Pt2dr & aPSH1,const Pt2dr & aPSH2,Pt2dr & aDirProf,Pt2dr & aNewCoord);
 
@@ -276,6 +285,11 @@ class cImSecTieTri : public cImTieTri
            TIm2D<tElTiepTri,tElTiepTri>  mTImReech;
            Im2D<U_INT1,INT>              mImLabelPC;
            TIm2D<U_INT1,INT>             mTImLabelPC;
+
+
+           Im2D_Bits<1>                  mMasqReech;
+           TIm2DBits<1>                  mTMasqReech;
+
            Pt2di                         mSzReech;
            ElAffin2D                     mAffMas2Sec;
            ElAffin2D                     mAffSec2Mas;
