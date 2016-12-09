@@ -216,13 +216,8 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
                // cResulRechCorrel<int> aCRC = TT_RechMaxCorrelBasique(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
 
            int aSzRech = 6;
-<<<<<<< HEAD
            cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
            if ((aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2) && InMasqReech(aCRCLoc.mPt))
-=======
-           cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech); //(aSzW aStep, aSzRechMax)
-           if (aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2)
->>>>>>> 90c70acd333c8cb7868ee0f3bb3e0e9327383a7d
            {
                // aPV = aPV+ aCRCLoc.mPt;
                aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aCRCLoc.mPt,6,1,aSzRech);   // Correlation entiere
