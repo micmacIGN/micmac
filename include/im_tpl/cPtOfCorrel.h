@@ -147,6 +147,151 @@ class cRepartPtInteret
        Im2D_REAL4  mLastImPond;
 };
 
+//=================================== Critere type fast pour selectionner les points favorables à la correl
+
+class cFastCriterCompute
+{
+     public :
+        cFastCriterCompute(Flux_Pts aFlux):
+             mNbPts (Flux2StdCont(mVPt,aFlux).size()),
+             mMaxSz ((1+mNbPts)/2),
+             mFRA   (OpMax,0,mNbPts,mMaxSz-mNbPts,mMaxSz)
+        {
+            cCmpPtOnAngle<Pt2di>  aCmp;
+            std::sort(mVPt.begin(),mVPt.end(),aCmp);
+        }
+
+
+        static cFastCriterCompute * Circle(double aRay)
+        {
+            return new cFastCriterCompute(circle(Pt2dr(0,0),aRay));
+        }
+        const  std::vector<Pt2di> & VPt() const {return mVPt;}
+        cFastReducAssoc<double> & FRA() {return mFRA;}
+     private :
+         cFastCriterCompute(const cFastCriterCompute&);
+         std::vector<Pt2di>       mVPt;
+         int                      mNbPts;
+         int                      mMaxSz;
+         cFastReducAssoc<double>  mFRA;
+  
+};
+
+template <class TIm> Pt2dr  FastQuality(TIm anIm,Pt2di aP,cFastCriterCompute & aCrit,bool IsMax,Pt2dr aProp)
+{
+   std::vector<double> aVVals;
+   const  std::vector<Pt2di> & aVPt = aCrit.VPt();
+   int aNbPts = aVPt.size();
+   typename TIm::tValueElem aDef =   IsMax ?
+                                     El_CTypeTraits<typename TIm::tValueElem>::MaxValue():
+                                     El_CTypeTraits<typename TIm::tValueElem>::MinValue();
+   double aSign = IsMax ? 1.0 : -1.0;
+   for (int aK=0 ; aK<aNbPts ; aK++)
+   {
+       typename TIm::tValueElem aVal = anIm.get(aP+aVPt[aK],aDef) * aSign;
+       aVVals.push_back(aVal);
+       aCrit.FRA().In(aK) = aVal;
+   }
+   typename TIm::tValueElem aV0 = anIm.getproj(aP)*aSign;
+
+   // Definition standard de Fast
+   std::vector<double> aFOut(aNbPts);
+   double aPropStd = aProp.x;
+   double aVPerc = KthValProp(aVVals,aPropStd);
+   double aResStd = (aV0 -aVPerc) ;
+
+   // Definition contignu
+   double aPropC = aProp.y;
+   int aNbC = round_up(aPropC * aNbPts);
+   int aNbMin = aNbC / 2;
+   aCrit.FRA().Compute(-aNbMin,aNbC-aNbMin,eCFR_Per);
+   typename TIm::tValueElem aVMin =   aCrit.FRA().Out(0);
+   for (int aK=1 ; aK<aNbPts ; aK++)
+   {
+      //std::cout << "HHHH " << aCrit.FRA().In(aK) << " " << aCrit.FRA().Out(aK) << "\n";
+       aVMin = ElMin(aVMin, aCrit.FRA().Out(aK));
+   }
+   double  aResC = (aV0-aVMin);
+
+   return Pt2dr(aResStd,aResC);
+}
+
+template <class TypeIm> class  cAutoCorrelDir
+{
+    public :
+        typedef typename TypeIm::tValueElem tElem;
+        typedef typename TypeIm::OutputFonc tBase;
+        cAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW) :
+           mTIm   (anIm),
+           mP0    (aP0),
+           mRho   (aRho),
+           mSzW   (aSzW)
+        {
+        }
+
+        Pt2dr DoIt()
+        {
+           double aStep0 = 1/mRho;
+           int aNb = round_up(PI/aStep0);
+           Pt2dr aRes0 = DoItOneStep(0.0,aNb,aStep0);
+           Pt2dr aRes1 = DoItOneStep(aRes0.x,3,aStep0/4.0);
+           Pt2dr aRes2 = DoItOneStep(aRes1.x,2,aStep0/10.0);
+           return aRes2;
+        }
+    private :
+        Pt2dr  DoItOneStep(double aTeta0,int aNb,double aStep)
+        {
+           double aScMax = -1e10;
+           double aTetaMax = 0;
+           for (int aK=-aNb; aK<aNb ; aK++)
+           {
+               double aTeta =  aTeta0 + aK * aStep;
+               double aVal =  CorrelTeta(aTeta) ;
+               if (aVal >aScMax)
+               {
+                  aScMax = aVal;
+                  aTetaMax = aTeta;
+               }
+           }
+           return Pt2dr(aTetaMax,aScMax);
+        }
+
+
+        double  CorrelOneOffset(const Pt2di & aP0,const Pt2dr & anOffset,int aSzW)
+        {
+            tBase aDef =   El_CTypeTraits<tBase>::MaxValue();
+            RMat_Inertie aMat;
+            for (int aDx=-aSzW ; aDx<=aSzW ; aDx++)
+            {
+                for (int aDy=-aSzW ; aDy<=aSzW ; aDy++)
+                {
+                    Pt2di aP1 = aP0 + Pt2di(aDx,aDy);
+                    tBase aV1 = mTIm.get(aP1,aDef);
+                    if (aV1==aDef) return -1;
+                    tBase aV2 = mTIm.getr(Pt2dr(aP1)+anOffset,aDef);
+                    if (aV2==aDef) return -1;
+                    aMat.add_pt_en_place(aV1,aV2);
+                }
+            }
+            return aMat.correlation();
+        }
+
+        double  CorrelTeta(double aTeta)
+        {
+            return CorrelOneOffset(mP0,Pt2dr::FromPolar(mRho,aTeta),mSzW);
+        }
+
+
+        TypeIm  mTIm;
+        Pt2di   mP0;
+        double  mRho;
+        int     mSzW;
+};
+
+
+
+
+
 
 
 

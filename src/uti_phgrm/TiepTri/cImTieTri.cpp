@@ -95,7 +95,7 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
              std::cout << "PTRI=" << mVTriGlob[aK] << "\n";
          std::cout << "PLOC " << mCam->R3toL3(aTri.P1()) << "\n";
          std::cout << "SIGNTRI= " <<  ((mP2Glob-mP1Glob) ^(mP3Glob-mP1Glob)) << "\n";
-         getchar();
+         // getchar();
     }
 
     double aSurf =  (mP1Glob-mP2Glob) ^ (mP1Glob-mP3Glob);

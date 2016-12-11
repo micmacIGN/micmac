@@ -878,10 +878,14 @@ template <class Type,class Type_Base> class Data_Liste_Pts;
 template <class Type,class Type_Base> class Liste_Pts : public Liste_Pts_Gen
 {
      public :
+        typedef Type      tEl;
+        typedef Type_Base tElBase;
+        typedef Im2D<Type,Type_Base> tImage;
+
         Liste_Pts(INT dim);
         Liste_Pts(INT dim,Type **,INT nb);
         Liste_Pts(Type * x,Type * y,INT nb);
-        Im2D<Type,Type_Base>  image() const;
+        tImage  image() const;
         void add_pt(Type *);
     private :
         Data_Liste_Pts<Type,Type_Base> * dlpt() const;
@@ -2074,6 +2078,61 @@ class cComputecKernelGraph
          double *        mDCostSom;
          int             mNb;
 };
+
+
+template <class TCont,class tListe_Pts> class cLpts2StdCont
+{
+    public :
+         typedef typename TCont::value_type  tPt;
+         typedef typename tPt::TypeScal      tPtScal;
+         typedef typename tListe_Pts::tEl    tElList;
+         typedef typename tListe_Pts::tImage tImList;
+
+ static void DoConv(TCont & aCont,const tListe_Pts & aLPt)
+ {
+    int aDim = DimPts((tPt *)0);
+
+    tImList anIm = aLPt.image();
+    ELISE_ASSERT(aDim==anIm.ty(),"Lpts2StdCont dim incoherent");
+
+    tElList ** aDataIm = anIm.data();
+    int aNbPts = anIm.tx();
+    tPtScal  aDPts[10];
+    for (int aKp=0 ; aKp< aNbPts ; aKp++)
+    {
+         for (int aKd=0 ; aKd<aDim ; aKd++)
+         {
+             aDPts[aKd] = aDataIm[aKd][aKp];
+         }
+         tPt aP = tPt::FromTab(&(aDPts[0]));
+         aCont.push_back(aP);
+    }
+ }
+};
+
+template <class TCont> class cFlux2StdCont
+{
+      public :
+         typedef typename TCont::value_type  tPt;
+         typedef typename tPt::TypeScal      tPtScal;
+         typedef Liste_Pts<tPtScal,tPtScal>  tList;
+
+ static void DoConv(TCont & aCont,Flux_Pts aFlux)
+ {
+       tList aList(DimPts((tPt *)0));
+       ELISE_COPY(aFlux,0,aList);
+
+       cLpts2StdCont<TCont,tList>::DoConv(aCont,aList);
+ }
+
+};
+
+template <class TCont> TCont &  Flux2StdCont(TCont &aCont,Flux_Pts aFlux)
+{
+    cFlux2StdCont<TCont>::DoConv(aCont,aFlux);
+    return aCont;
+}
+
 
 
 

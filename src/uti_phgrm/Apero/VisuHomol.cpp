@@ -41,21 +41,25 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cVisuResidHom
 {
       public :
-            cVisuResidHom(cBasicGeomCap3D *,cBasicGeomCap3D *,ElPackHomologue &,const std::string & aPrefOut);
+            cVisuResidHom(const std::string & aIm1,cBasicGeomCap3D *,cBasicGeomCap3D *,ElPackHomologue &,const std::string & aPrefOut);
       private :
 
             std::string NameFile(const std::string & aPost) {return mPrefOut + aPost;}
             void AddPair(const Pt2dr & aP1,const Pt2dr & aP2);
      
-            cBasicGeomCap3D * mCam1;
-            cBasicGeomCap3D * mCam2;
-            ElPackHomologue   mPack;
-            std::string       mPrefOut;
-            double            mResol;
-            Pt2di             mSzIm1;
-            Pt2di             mSzResol;
-            cPlyCloud         mPlyC;
+            cBasicGeomCap3D *   mCam1;
+            cBasicGeomCap3D *   mCam2;
+            ElPackHomologue     mPack;
+            std::string         mPrefOut;
+            double              mResol;
+            Pt2di               mSzIm1;
+            Pt2di               mSzResol;
+            Im2D_U_INT1         mImSsRes;
+            cPlyCloud           mPlyC;
+            std::vector<double> mVRes;
+            bool                mDoPly;
 };
+ 
 
 void cVisuResidHom::AddPair(const Pt2dr & aP1,const Pt2dr & aP2)
 {
@@ -73,14 +77,16 @@ void cVisuResidHom::AddPair(const Pt2dr & aP1,const Pt2dr & aP2)
 
     Pt2dr aDif = (aP1- aQA) / aDirEpi;
 
-    std::cout << "DIFFFF = " << aDif << "\n";
-
-    mPlyC.AddSphere(Pt3di(255,0,0),Pt3dr(aP1.x,aP1.y,aDif.y*1000),5,3);
-    
+    if (mDoPly)
+    {
+       mPlyC.AddSphere(Pt3di(255,0,0),Pt3dr(aP1.x,aP1.y,aDif.y*1000),5,3);
+    }
+    mVRes.push_back(ElAbs(aDif.y));
 }
 
 cVisuResidHom::cVisuResidHom
 (
+      const std::string & aIm1,
       cBasicGeomCap3D * aCam1,
       cBasicGeomCap3D * aCam2,
       ElPackHomologue & aPack,
@@ -92,14 +98,29 @@ cVisuResidHom::cVisuResidHom
    mPrefOut (aPrefOut),
    mResol   (10.0),
    mSzIm1   (aCam1->SzBasicCapt3D()),
-   mSzResol (round_up(Pt2dr(mSzIm1) / mResol))
+   mSzResol (round_up(Pt2dr(mSzIm1) / mResol)),
+   mImSsRes (mSzResol.x,mSzResol.y),
+   mDoPly   (1)
 {
-     double aStep = 20;
-     for (double aX =0 ; aX <mSzIm1.x ; aX+= aStep)
+     ELISE_fp::MkDirSvp(DirOfFile(aPrefOut));
+     if (mDoPly) 
      {
-         for (double aY =0 ; aY <mSzIm1.y ; aY+= aStep)
+         Tiff_Im aTif(aIm1.c_str());
+         ELISE_COPY
+         (
+             mImSsRes.all_pts(),
+             Max(0,Min(255,StdFoncChScale(aTif.in_proj(),Pt2dr(0,0),Pt2dr(mResol,mResol)))),
+             mImSsRes.out()
+         );
+
+     
+         for (int  aX =0 ; aX <mSzResol.x ; aX++)
          {
-              mPlyC.AddPt(Pt3di(128,128,128),Pt3dr(aX,aY,0));
+             for (int  aY =0 ; aY <mSzResol.y ; aY++)
+             {
+                  double aGr = mImSsRes.data()[aY][aX];
+                  mPlyC.AddPt(Pt3di(aGr,aGr,aGr),Pt3dr(aX*mResol,aY*mResol,0));
+             }
          }
      }
 
@@ -109,7 +130,22 @@ cVisuResidHom::cVisuResidHom
          AddPair(itP->P1(),itP->P2());
      }
 
-     mPlyC.PutFile("Test.ply");
+     if (mDoPly)
+     {
+        mPlyC.PutFile(aPrefOut+"-Nuage.ply");
+     }
+
+     std::sort(mVRes.begin(),mVRes.end());
+
+     FILE * aFp = FopenNN(aPrefOut+"-Stat.txt","w","VisuHom");
+     fprintf(aFp,"================= PERC  : RESIDU ==================\n");
+     int aNbPerc = 20;
+      
+     for (int aK=0 ; aK<=aNbPerc ; aK++)
+     {
+         double aRes = mVRes[(aK*(mVRes.size()-1))/aNbPerc];
+         fprintf(aFp,"Res[%f]=%f\n",(aK*100.0)/aNbPerc,aRes);
+     }
 }
 
 
@@ -142,7 +178,7 @@ int VisuResiduHom(int argc,char ** argv)
       
      ElPackHomologue  aPack = ElPackHomologue::FromFile(aNameH);
 
-     cVisuResidHom aVRH(aCam1,aCam2,aPack,"TestVisu/");
+     cVisuResidHom aVRH(aIm1,aCam1,aCam2,aPack,"Visu-Res/"+aIm1+aIm2);
 
      return EXIT_SUCCESS;
 }

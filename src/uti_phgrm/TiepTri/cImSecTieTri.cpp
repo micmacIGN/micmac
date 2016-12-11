@@ -202,7 +202,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
         donne le meilleur resultat.
              
     */
-                   
+
     cResulRechCorrel<int> aCRCMax;
     for (int aKH=0 ; aKH<int(aVH.size()) ; aKH++)
     {

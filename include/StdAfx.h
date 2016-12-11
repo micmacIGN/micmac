@@ -189,6 +189,8 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 #include "graphes/algo_pcc.h"
 
+#include "ext_stl/numeric.h"
+
 #include "im_tpl/correl_imget.h"
 #include "im_tpl/cPtOfCorrel.h"
 #include "im_tpl/max_loc.h"

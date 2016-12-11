@@ -57,6 +57,7 @@ class cOneTriMultiImRechCorrel;
 #define TT_MaxCorrel 1.0
 #define TT_DIST_RECH_HOM 12.0  // Seuil de recherche des homologues
 #define TT_DIST_EXTREMA  3.0   // calcul des extrema locaux
+#define TT_DIST_FAST  5.0   // Critere type Fast calcul des extrema locaux
 
 #define TT_SEUIL_CORREL_1PIXSUR2  0.7   // calcul des extrema locaux
 #define TT_DefSeuilDensiteResul   100
@@ -68,6 +69,11 @@ class cOneTriMultiImRechCorrel;
 typedef double                          tElTiepTri ;
 typedef TIm2D<tElTiepTri,tElTiepTri>    tTImTiepTri;
 typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
+
+// Prop.x => standard , Prop.y => contingu
+// extern Pt2dr   TestFastQuality(TIm2D<double,double> anIm,Pt2di aP,double aRay,bool IsMax,Pt2dr aProp);
+extern void TestcAutoCorrelDir(TIm2D<double,double> aTIm,const Pt2di & aP0);
+
 
 
 
@@ -260,6 +266,7 @@ class cImMasterTieTri : public cImTieTri
     private :
            cImMasterTieTri(const cImMasterTieTri&) ; // N.I.
            std::list<cIntTieTriInterest> mLIP;
+           cFastCriterCompute *          mFastCC;
            
 };
 
