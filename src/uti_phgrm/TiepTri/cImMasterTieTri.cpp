@@ -50,8 +50,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 cImMasterTieTri::cImMasterTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
-   cImTieTri   (anAppli,aNameIm,-1),
-   mFastCC     (cFastCriterCompute::Circle(TT_DIST_FAST))
+   cImTieTri   (anAppli,aNameIm,-1)
 {
 }
 
@@ -67,6 +66,7 @@ bool  cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    {
         Tiff_Im::CreateFromIm(mImInit,"MasterInit.tif");
    }
+   mCutACD.ResetIm(mTImInit);
 
    MakeInterestPoint(&mLIP,0,mTMasqTri,mTImInit);
    //MakeInterestPointFAST(&mLIP,0,mTMasqTri,mTImInit);
@@ -105,10 +105,15 @@ cIntTieTriInterest cImMasterTieTri::GetPtsInteret()
    // std::cout << "TestQualFast=" << TestFastQuality(mImInit,aRes->mPt,5.0,aRes->mType==eTTTMax,Pt2dr(0.75,0.6)) << "\n";
    std::cout << "TestQualFast=" << FastQuality(mTImInit,aRes->mPt,*mFastCC,aRes->mType==eTTTMax,Pt2dr(0.75,0.6)) << "\n";
 
-   cAutoCorrelDir<TIm2D<double,double> >  aACD(mTImInit,aRes->mPt,3.0,3);
+   cAutoCorrelDir<TIm2D<double,double> >  aACD(mTImInit,aRes->mPt,1.0,3);
    Pt2dr aAC = aACD.DoIt();
-   std::cout << "AutoCorrel=" << aAC.y << "\n";
+   std::cout << "AutoCorrel=" << aAC.y  << "\n";
 
+   cCutAutoCorrelDir<TIm2D<double,double> >  aCutACD(mTImInit,Pt2di(0,0),1.5,TT_SZ_AUTO_COR);
+   std::cout   << aRes->mPt << " Cut-AC: " << aCutACD.AutoCorrel(aRes->mPt,TT_SEUIL_CutAutoCorrel_INT,TT_SEUIL_CutAutoCorrel_REEL,TT_SEUIL_AutoCorrel) <<  " ACCC " << AutoCorrel(aRes->mPt) <<   "\n";
+
+
+ 
 
 
    return *aRes;
@@ -116,6 +121,8 @@ cIntTieTriInterest cImMasterTieTri::GetPtsInteret()
 
 bool  cImMasterTieTri::IsMaster() const {return true;}
 const std::list<cIntTieTriInterest> & cImMasterTieTri::LIP() const {return mLIP;}
+
+tTImTiepTri & cImMasterTieTri::ImRedr() {return mTImInit;}
 
 
 

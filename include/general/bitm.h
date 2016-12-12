@@ -2133,6 +2133,17 @@ template <class TCont> TCont &  Flux2StdCont(TCont &aCont,Flux_Pts aFlux)
     return aCont;
 }
 
+template <class TCont> TCont &  SortedAngleFlux2StdCont(TCont &aCont,Flux_Pts aFlux)
+{
+    Flux2StdCont(aCont,aFlux);
+
+    cCmpPtOnAngle<typename TCont::value_type>  aCmp;
+    std::sort(aCont.begin(),aCont.end(),aCmp);
+
+    return aCont;
+}
+
+
 
 
 

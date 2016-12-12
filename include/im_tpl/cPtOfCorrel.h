@@ -153,7 +153,7 @@ class cFastCriterCompute
 {
      public :
         cFastCriterCompute(Flux_Pts aFlux):
-             mNbPts (Flux2StdCont(mVPt,aFlux).size()),
+             mNbPts (SortedAngleFlux2StdCont(mVPt,aFlux).size()),
              mMaxSz ((1+mNbPts)/2),
              mFRA   (OpMax,0,mNbPts,mMaxSz-mNbPts,mMaxSz)
         {
@@ -238,7 +238,9 @@ template <class TypeIm> class  cAutoCorrelDir
            Pt2dr aRes2 = DoItOneStep(aRes1.x,2,aStep0/10.0);
            return aRes2;
         }
-    private :
+
+        void ResetIm(const TypeIm & aTIm) {mTIm=aTIm;}
+    protected :
         Pt2dr  DoItOneStep(double aTeta0,int aNb,double aStep)
         {
            double aScMax = -1e10;
@@ -257,7 +259,7 @@ template <class TypeIm> class  cAutoCorrelDir
         }
 
 
-        double  CorrelOneOffset(const Pt2di & aP0,const Pt2dr & anOffset,int aSzW)
+        double  RCorrelOneOffset(const Pt2di & aP0,const Pt2dr & anOffset,int aSzW)
         {
             tBase aDef =   El_CTypeTraits<tBase>::MaxValue();
             RMat_Inertie aMat;
@@ -276,9 +278,34 @@ template <class TypeIm> class  cAutoCorrelDir
             return aMat.correlation();
         }
 
+        double  ICorrelOneOffset(const Pt2di & aP0,const Pt2di & anOffset,int aSzW)
+        {
+            tBase aDef =   El_CTypeTraits<tBase>::MaxValue();
+            RMat_Inertie aMat;
+            for (int aDx=-aSzW ; aDx<=aSzW ; aDx++)
+            {
+                for (int aDy=-aSzW ; aDy<=aSzW ; aDy++)
+                {
+                    Pt2di aP1 = aP0 + Pt2di(aDx,aDy);
+                    tBase aV1 = mTIm.get(aP1,aDef);
+                    if (aV1==aDef) return -1;
+                    tBase aV2 = mTIm.get(aP1+anOffset,aDef);
+                    if (aV2==aDef) return -1;
+                    aMat.add_pt_en_place(aV1,aV2);
+                }
+            }
+            return aMat.correlation();
+        }
+
+
+
+
+
+
+
         double  CorrelTeta(double aTeta)
         {
-            return CorrelOneOffset(mP0,Pt2dr::FromPolar(mRho,aTeta),mSzW);
+            return RCorrelOneOffset(mP0,Pt2dr::FromPolar(mRho,aTeta),mSzW);
         }
 
 

@@ -44,6 +44,71 @@ template <class Type> bool inside_window(const Type & Im1, const Pt2di & aP1,con
    return Im1.inside(aP1-Pt2di(aSzW,aSzW)) && Im1.inside(aP1+Pt2di(aSzW,aSzW));
 }
 
+
+/********************************************************************************/
+/*                                                                              */
+/*                  Auto-Correlation                                            */
+/*                                                                              */
+/********************************************************************************/
+
+// Classe pour calculer de l'autocorrelation rapide
+/*
+template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
+{
+    public :
+         cCutAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW ) :
+             cAutoCorrelDir<TypeIm> (anIm,aP0,aRho,aSzW),
+             mNbPts                 (SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho)).size())
+         {
+         }
+
+         bool  AutoCorrel(double aRejetInt,double aRejetReel,double aSeuilAccept)
+         {
+               double aCorrMax = -2;
+               int    aKMax = -1;
+               for (int aK=0 ; aK<mNbPts ; aK++)
+               {
+                    double aCor = ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW); 
+                    if (aCor > aSeuilAccept) return true;
+                    if (aCor > aCorrMax)
+                    {
+                        aCorrMax = aCor;
+                        aKMax = aK;
+                    }
+               }
+               ELISE_ASSERT(aKMax!=1,"AutoCorrel no K");
+               if (aCorrMax < aRejetInt) return false;
+
+               Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
+
+               double aStep0 = 1/this->mRho;
+               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);
+
+               if (aRes1.y>aSeuilAccept)   return true;
+               if (aRes1.y<aRejetReel)     return false;
+
+               Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
+
+               return aRes2.y > aCorrMax;
+         }
+
+    private :
+         int mNbPts;
+         std::vector<Pt2di> mVPt;
+};
+*/
+
+
+void UUUU()
+{
+    TIm2D<double,double> anIm(Pt2di(1,1));
+
+    cCutAutoCorrelDir<TIm2D<double,double> > aCACD(anIm,Pt2di(1,1),3.0,3);
+}
+
+
+
+
 /********************************************************************************/
 /*                                                                              */
 /*                  Correlation sub-pixel, interpol bilin basique               */

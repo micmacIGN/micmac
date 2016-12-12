@@ -73,6 +73,7 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
         // std::cout << "22222222222  cImSecTieTri::LoadTri\n";
         return false;
    }
+
    // std::cout << "3333333333333  cImSecTieTri::LoadTri\n";
 
 
@@ -90,6 +91,8 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
    mImReech.Resize(mSzReech);
    mTImReech =  TIm2D<tElTiepTri,tElTiepTri>(mImReech);
+
+   mCutACD.ResetIm(mTImReech);
 
    mImLabelPC.Resize(mSzReech);
    mImLabelPC.raz();
@@ -215,16 +218,24 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
            }
                // cResulRechCorrel<int> aCRC = TT_RechMaxCorrelBasique(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
 
-           int aSzRech = 6;
-           cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
-           if ((aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2) && InMasqReech(aCRCLoc.mPt))
+           int aSzRech = TT_DemiFenetreCorrel;
+           cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,TT_DemiFenetreCorrel/2,2,aSzRech);
+
+// std::cout << "PT CORREL " << aCRCLoc.mPt - aPV << " " << aCRCLoc.mCorrel << "\n";
+           if (
+                      (aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2) 
+                   && InMasqReech(aCRCLoc.mPt) 
+                   && (euclid(aCRCLoc.mPt - aPV) < TT_SEUIl_DIST_Extrema_Entier)
+              )
            {
                // aPV = aPV+ aCRCLoc.mPt;
-               aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aCRCLoc.mPt,6,1,aSzRech);   // Correlation entiere
+               aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aCRCLoc.mPt,TT_DemiFenetreCorrel,1,aSzRech);   // Correlation entiere
                    
                // aCRCLoc.mPt = aPV+ aCRCLoc.mPt;  // Contient la coordonnee directe dans Im2
 
-               aCRCMax.Merge(aCRCLoc);
+
+               if (euclid(aCRCLoc.mPt - aPV) < TT_SEUIl_DIST_Extrema_Entier)
+                  aCRCMax.Merge(aCRCLoc);
            }
         }
     }
@@ -339,10 +350,10 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
     // std::cout << "MulScale  = " << aRes.mPt -Pt2dr(aP0)  << " " << aRes.mCorrel << "\n\n";
         // std::cout << "==================== " << aP0 << " "  << (int) aLab << "\n";
 
-bool  cImSecTieTri::IsMaster() const 
-{
-    return false;
-}
+bool  cImSecTieTri::IsMaster() const { return false; }
+
+tTImTiepTri & cImSecTieTri::ImRedr() {return mTImReech;}
+
 
 
 ElPackHomologue & cImSecTieTri::PackH()  

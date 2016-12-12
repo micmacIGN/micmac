@@ -138,6 +138,7 @@ cVisuResidHom::cVisuResidHom
      std::sort(mVRes.begin(),mVRes.end());
 
      FILE * aFp = FopenNN(aPrefOut+"-Stat.txt","w","VisuHom");
+     fprintf(aFp,"NbPts= %d\n",int(mVRes.size()));
      fprintf(aFp,"================= PERC  : RESIDU ==================\n");
      int aNbPerc = 20;
       
@@ -178,7 +179,7 @@ int VisuResiduHom(int argc,char ** argv)
       
      ElPackHomologue  aPack = ElPackHomologue::FromFile(aNameH);
 
-     cVisuResidHom aVRH(aIm1,aCam1,aCam2,aPack,"Visu-Res/"+aIm1+aIm2);
+     cVisuResidHom aVRH(aIm1,aCam1,aCam2,aPack,"Visu-Res"+aSetHom +"-" + Aero+ "/"+aIm1+aIm2);
 
      return EXIT_SUCCESS;
 }

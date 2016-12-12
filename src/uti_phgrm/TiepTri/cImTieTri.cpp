@@ -60,7 +60,9 @@ cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum
    mTMasqIm  (mMasqIm),
    mRab      (20),
    mW        (0),
-   mNum      (aNum)
+   mNum      (aNum),
+   mFastCC   (cFastCriterCompute::Circle(TT_DIST_FAST)),
+   mCutACD   (mTImInit,Pt2di(0,0),TT_SZ_AUTO_COR /2.0 ,TT_SZ_AUTO_COR)
 {
 
     std::cout << "OK " << mNameIm << " F=" << mCam->Focale() << " Num="<<mNum<<"\n";
@@ -95,7 +97,6 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
              std::cout << "PTRI=" << mVTriGlob[aK] << "\n";
          std::cout << "PLOC " << mCam->R3toL3(aTri.P1()) << "\n";
          std::cout << "SIGNTRI= " <<  ((mP2Glob-mP1Glob) ^(mP3Glob-mP1Glob)) << "\n";
-         // getchar();
     }
 
     double aSurf =  (mP1Glob-mP2Glob) ^ (mP1Glob-mP3Glob);
@@ -234,6 +235,11 @@ Col_Pal  cImTieTri::ColOfType(eTypeTieTri aType)
    return mW->pdisc()(P8COL::yellow);
 }
 
+bool cImTieTri::AutoCorrel(Pt2di aP)
+{
+     return mCutACD.AutoCorrel(aP,TT_SEUIL_CutAutoCorrel_INT,TT_SEUIL_CutAutoCorrel_REEL,TT_SEUIL_AutoCorrel);
+}
+
 
 
 void  cImTieTri::MakeInterestPoint
@@ -262,19 +268,33 @@ void  cImTieTri::MakeInterestPoint
                 if (aCmp0)
                 {
                    eTypeTieTri aType = (aCmp0==1)  ? eTTTMax : eTTTMin;
+                   Pt2dr aFastQual =  FastQuality(anIm,aP,*mFastCC,aType==eTTTMax,Pt2dr(TT_PropFastStd,TT_PropFastConsec));
+
+                   bool OkFast = (aFastQual.x > TT_SeuilFastStd) && ( aFastQual.y> TT_SeuilFastCons);
+                   bool OkAc =    OkFast && (!AutoCorrel(aP));
+
                    if (mW)
                    {
                        // mW->draw_circle_loc(Pt2dr(aP),2.0,mW->pdisc()(IsMax ? P8COL::red : P8COL::blue));
                        if ((IsMaster()) || (mAppli.NivInterac()>=2))
                        {
-                           mW->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(aType));
+                          if (OkAc) 
+                              mW->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(aType));
+                          else 
+                          {
+                              mW->draw_circle_loc(Pt2dr(aP),0.5,mW->pdisc()(OkFast ? P8COL::yellow : P8COL::cyan));
+                          }
                        }
                    }
-                   if  (aImLabel) 
-                        aImLabel->oset(aP,aType);
-                   if (aListPI)
+
+                   if (OkAc)
                    {
-                        aListPI->push_back(cIntTieTriInterest(aP,aType));
+                      if  (aImLabel) 
+                           aImLabel->oset(aP,aType);
+                      if (aListPI)
+                      {
+                           aListPI->push_back(cIntTieTriInterest(aP,aType));
+                      }
                    }
                 }
             }
