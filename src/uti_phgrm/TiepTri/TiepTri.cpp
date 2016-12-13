@@ -40,6 +40,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepTri.h"
 
+cParamAppliTieTri::cParamAppliTieTri():
+   mDistFiltr         (TT_DefSeuilDensiteResul),
+   mNumInterpolDense  (-1),
+   mDoRaffImInit      (true),
+   mNbByPix           (5)
+{
+}
+
 
 int TiepTri_Main(int argc,char ** argv)
 {
@@ -49,12 +57,21 @@ int TiepTri_Main(int argc,char ** argv)
    int         aNivInterac = 0;
    Pt2dr       aPtsSel;
    std::vector<int> aNumSel;
+   std::string      aKeyMasqIm;
+   cParamAppliTieTri aParam;
    ElInitArgMain
    (
          argc,argv,
          LArgMain()  << EAMC(aFullNameXML, "Name XML for Triangu",  eSAM_IsPatFile)
                      << EAMC(anOri,        "Orientation dir"),
-         LArgMain()   << EAM(aSzW,         "SzW",true,"if visu [x,y,Zoom]")
+         LArgMain()   
+                      << EAM(aParam.mDistFiltr,"DistF",true,"Average distance between tie points")
+                      << EAM(aParam.mNumInterpolDense,"IntDM",true," Interpol for Dense Match, -1=NONE, 0=BiL, 1=BiC, 2=SinC")
+                      << EAM(aParam.mDoRaffImInit,"DRInit",true," Do refinement on initial images, instead of resampled")
+                      << EAM(aParam.mNbByPix,"NbByPix",true," Number of point inside one pixel")
+                      << EAM(aKeyMasqIm,"KeyMasqIm",true,"Key for masq, Def=NKS-Assoc-STD-Masq, set NONE or key with NONE result")
+
+                      << EAM(aSzW,         "SzW",true,"if visu [x,y,Zoom]")
                       << EAM(aDebug,       "Debug",true,"If true do debuggibg")
                       << EAM(aNivInterac,  "Interaction",true,"0 none,  2 step by step")
                       << EAM(aPtsSel,  "PSelectT",true,"for selecting triangle")
@@ -79,7 +96,7 @@ int TiepTri_Main(int argc,char ** argv)
        cXml_TriAngulationImMaster aTriang =   StdGetFromSI(aFullNameXML,Xml_TriAngulationImMaster);;
 
 
-       cAppliTieTri  anAppli(anICNM,aDir,anOri,aTriang);
+       cAppliTieTri  anAppli(aParam,anICNM,aDir,anOri,aTriang);
        anAppli.Debug() = aDebug;
 
 
@@ -98,6 +115,9 @@ int TiepTri_Main(int argc,char ** argv)
        {
            aNivInterac = 0;
        }
+
+       if (EAMIsInit(&aKeyMasqIm))
+          anAppli.SetMasqIm(aKeyMasqIm);
 
        anAppli.NivInterac() = aNivInterac;
 

@@ -1535,6 +1535,21 @@ template <class Type,class TypePt> inline int  CmpValAndDec(const Type & aV1,con
 
 std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort);
 
+template <class Type> int DimPts(Pt2d<Type> *) {return 2;}
+template <class Type> int DimPts(Pt3d<Type> *) {return 3;}
+template <class Type> int DimPts(Pt4d<Type> *) {return 4;}
+
+
+template <class Type> class cCmpPtOnAngle
+{
+    public :
+         bool  operator()(const Type & aP1 ,const Type & aP2)
+         {    
+              Pt2dr aPol1 = Pt2dr::polar(Pt2dr(aP1),1);
+              Pt2dr aPol2 = Pt2dr::polar(Pt2dr(aP2),1);
+              return aPol1.y < aPol2.y;
+         }
+};
 
 
 

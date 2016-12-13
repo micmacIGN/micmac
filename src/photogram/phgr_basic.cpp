@@ -1601,6 +1601,27 @@ bool cBasicGeomCap3D::AltisSolMinMaxIsDef() const
     return false;
 }
 
+double  cBasicGeomCap3D::EpipolarEcart(const Pt2dr & aP1,const cBasicGeomCap3D & aCam2,const Pt2dr & aP2) const
+{
+    const cBasicGeomCap3D & aCam1 = *this;
+
+    ElSeg3D aSeg1 = aCam1.Capteur2RayTer(aP1);
+    ElSeg3D aSeg2 = aCam2.Capteur2RayTer(aP2);
+    ElSeg3D aSeg1Bis = aCam1.Capteur2RayTer(aP1+Pt2dr(0,1));
+
+    Pt3dr aPInter =  aSeg1.PseudoInter(aSeg2) ;
+    double aDist = ElMax(aSeg1Bis.DistDoite(aPInter),aSeg1.DistDoite(aPInter));
+     
+    Pt3dr aPI2 = aPInter + aSeg2.TgNormee() * aDist;
+
+    Pt2dr aQA = aCam1.Ter2Capteur(aPInter);
+    Pt2dr aQB = aCam1.Ter2Capteur(aPI2);
+
+    Pt2dr aDirEpi = vunit(aQB-aQA);
+
+    Pt2dr aDif = (aP1- aQA) / aDirEpi;
+}
+
 
 
 void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName)

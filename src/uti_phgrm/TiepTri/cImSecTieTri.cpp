@@ -53,6 +53,8 @@ cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,in
    mTImReech   (mImReech),
    mImLabelPC  (1,1),
    mTImLabelPC (mImLabelPC),
+   mMasqReech  (1,1),
+   mTMasqReech (mMasqReech),
    mAffMas2Sec (ElAffin2D::Id()),
    mAffSec2Mas (ElAffin2D::Id()),
    mMaster     (anAppli.Master())
@@ -71,6 +73,7 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
         // std::cout << "22222222222  cImSecTieTri::LoadTri\n";
         return false;
    }
+
    // std::cout << "3333333333333  cImSecTieTri::LoadTri\n";
 
 
@@ -89,9 +92,14 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    mImReech.Resize(mSzReech);
    mTImReech =  TIm2D<tElTiepTri,tElTiepTri>(mImReech);
 
+   mCutACD.ResetIm(mTImReech);
+
    mImLabelPC.Resize(mSzReech);
    mImLabelPC.raz();
    mTImLabelPC = TIm2D<U_INT1,INT>(mImLabelPC);
+
+   mMasqReech = Im2D_Bits<1>(mSzReech.x,mSzReech.y,0);
+   mTMasqReech =  TIm2DBits<1> (mMasqReech);
 
 
    Pt2di aPSec;
@@ -102,6 +110,8 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
            Pt2dr aPMast = mAffMas2Sec(Pt2dr(aPSec));
            double aVal = mTImInit.getr(aPMast,-1);
            mTImReech.oset(aPSec,aVal);
+
+           mTMasqReech.oset(aPSec,mTMasqIm.get(round_ni(aPMast),0));
        }
    }
 
@@ -195,29 +205,37 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
         donne le meilleur resultat.
              
     */
-                   
+
     cResulRechCorrel<int> aCRCMax;
     for (int aKH=0 ; aKH<int(aVH.size()) ; aKH++)
     {
-        if (mTImLabelPC.get(aP0+aVH[aKH],-1)==aLab)
+        Pt2di aPV = aP0+aVH[aKH];
+        if ((mTImLabelPC.get(aPV,-1)==aLab) && InMasqReech(aPV))
         {
-           Pt2di aPV = aP0+aVH[aKH];
            if (mW && (aNivInter>=2))
            {
                mW->draw_circle_loc(Pt2dr(aPV),2.0,ColOfType(aLab));
            }
                // cResulRechCorrel<int> aCRC = TT_RechMaxCorrelBasique(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
 
-           int aSzRech = 6;
-           cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech); //(aSzW aStep, aSzRechMax)
-           if (aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2)
+           int aSzRech = TT_DemiFenetreCorrel;
+           cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,TT_DemiFenetreCorrel/2,2,aSzRech);
+
+// std::cout << "PT CORREL " << aCRCLoc.mPt - aPV << " " << aCRCLoc.mCorrel << "\n";
+           if (
+                      (aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2) 
+                   && InMasqReech(aCRCLoc.mPt) 
+                   && (euclid(aCRCLoc.mPt - aPV) < TT_SEUIl_DIST_Extrema_Entier)
+              )
            {
                // aPV = aPV+ aCRCLoc.mPt;
-               aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aCRCLoc.mPt,6,1,aSzRech);   // Correlation entiere
+               aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aCRCLoc.mPt,TT_DemiFenetreCorrel,1,aSzRech);   // Correlation entiere
                    
                // aCRCLoc.mPt = aPV+ aCRCLoc.mPt;  // Contient la coordonnee directe dans Im2
 
-               aCRCMax.Merge(aCRCLoc);
+
+               if (euclid(aCRCLoc.mPt - aPV) < TT_SEUIl_DIST_Extrema_Entier)
+                  aCRCMax.Merge(aCRCLoc);
            }
         }
     }
@@ -232,7 +250,8 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
     {
         if (aNivInter>=2)
             std::cout  << "- NO POINT for Correl Int\n";
-       return cResulRechCorrel<double>(Pt2dr(aCRCMax.mPt),aCRCMax.mCorrel);
+       // return cResulRechCorrel<double>(Pt2dr(aCRCMax.mPt),aCRCMax.mCorrel);
+       return cResulRechCorrel<double>(Pt2dr(aCRCMax.mPt),TT_DefCorrel);
     }
 
    
@@ -282,17 +301,27 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
 
 cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const cResulRechCorrel<double> & aPIn)
 {
+    if ( mAppli.mNumInterpolDense < 0)
+    {
+       cResulRechCorrel<double> aRes2  = aPIn;
+       aRes2.mPt = mAffMas2Sec(aRes2.mPt);
+       return aRes2;
+    }
+    
+
+    ElAffin2D  aAffPred  = mAppli.mDoRaffImInit ? mAffMas2Sec : ElAffin2D::Id();
+    tTImTiepTri aImSec =   mAppli.mDoRaffImInit ? mTImInit    : mTImReech ;
 
     cResulRechCorrel<double> aRes2 =  TT_MaxLocCorrelDS1R
                                       (
                                            mAppli.Interpol(),
-                                           &mAffMas2Sec,
+                                           &aAffPred,
                                            mMaster->mTImInit,
                                            Pt2dr(aP0),
-                                           mTImInit,
-                                           mAffMas2Sec(aPIn.mPt),
+                                           aImSec,
+                                           aAffPred(aPIn.mPt),
                                            6,  // SzW
-                                           5,  // NbByPix
+                                           mAppli.mNbByPix,
                                            0.125,   // Step0
                                            1.0/ 32.0
                                        );
@@ -300,6 +329,9 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
     {
        std::cout << "AFFINE " << aPIn.mCorrel << " => " << aRes2.mCorrel << " ; " << aPIn.mPt << " " << mAffSec2Mas(aRes2.mPt) << "\n"; 
     }
+
+    if (!  mAppli.mDoRaffImInit)
+        aRes2.mPt = mAffMas2Sec(aRes2.mPt);
 
 
     return aRes2;
@@ -331,10 +363,10 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
     // std::cout << "MulScale  = " << aRes.mPt -Pt2dr(aP0)  << " " << aRes.mCorrel << "\n\n";
         // std::cout << "==================== " << aP0 << " "  << (int) aLab << "\n";
 
-bool  cImSecTieTri::IsMaster() const 
-{
-    return false;
-}
+bool  cImSecTieTri::IsMaster() const { return false; }
+
+tTImTiepTri & cImSecTieTri::ImRedr() {return mTImReech;}
+
 
 
 ElPackHomologue & cImSecTieTri::PackH()  
@@ -342,7 +374,14 @@ ElPackHomologue & cImSecTieTri::PackH()
    return mPackH;
 }
 
-
+bool cImSecTieTri::InMasqReech(const Pt2dr & aP) const
+{
+   return mTMasqReech.get(round_ni(aP),0);
+}
+bool cImSecTieTri::InMasqReech(const Pt2di & aP) const
+{
+   return mTMasqReech.get(aP,0);
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

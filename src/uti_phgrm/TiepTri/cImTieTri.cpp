@@ -56,9 +56,13 @@ cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum
    mTImInit  (mImInit),
    mMasqTri  (1,1),
    mTMasqTri (mMasqTri),
+   mMasqIm   (1,1),
+   mTMasqIm  (mMasqIm),
    mRab      (20),
    mW        (0),
-   mNum      (aNum)
+   mNum      (aNum),
+   mFastCC   (cFastCriterCompute::Circle(TT_DIST_FAST)),
+   mCutACD   (mTImInit,Pt2di(0,0),TT_SZ_AUTO_COR /2.0 ,TT_SZ_AUTO_COR)
 {
 
     std::cout << "OK " << mNameIm << " F=" << mCam->Focale() << " Num="<<mNum<<"\n";
@@ -93,7 +97,6 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
              std::cout << "PTRI=" << mVTriGlob[aK] << "\n";
          std::cout << "PLOC " << mCam->R3toL3(aTri.P1()) << "\n";
          std::cout << "SIGNTRI= " <<  ((mP2Glob-mP1Glob) ^(mP3Glob-mP1Glob)) << "\n";
-         getchar();
     }
 
     double aSurf =  (mP1Glob-mP2Glob) ^ (mP1Glob-mP3Glob);
@@ -129,12 +132,29 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     // Remplit l'image de masque avec les point qui sont dans le triangle
     mMasqTri =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,0);
     mTMasqTri = TIm2DBits<1> (mMasqTri);
+    mMasqIm =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,1);
+    mTMasqIm = TIm2DBits<1> (mMasqIm);
     ElList<Pt2di>  aLTri;
     aLTri = aLTri + round_ni(mP1Glob-Pt2dr(mDecal));
     aLTri = aLTri + round_ni(mP2Glob-Pt2dr(mDecal));
     aLTri = aLTri + round_ni(mP3Glob-Pt2dr(mDecal));
     ELISE_COPY(polygone(aLTri),1,mMasqTri.oclip());
 
+    const std::string & aKey = mAppli.KeyMasqIm();
+    if (aKey!="NONE")
+    {
+        std::string aName =  mAppli.ICNM()->Assoc1To1(aKey,mNameIm,true);
+        if (aName != "NONE")
+        {
+           Tiff_Im aTifM(aName.c_str());
+           ELISE_COPY
+           (
+              mMasqIm.all_pts(),
+              trans(aTifM.in(0),mDecal),
+              mMasqIm.out()
+           );
+        }
+    }
 
     if (mAppli.NivInterac() > 0)
     {
@@ -215,6 +235,20 @@ Col_Pal  cImTieTri::ColOfType(eTypeTieTri aType)
    return mW->pdisc()(P8COL::yellow);
 }
 
+bool cImTieTri::AutoCorrel(Pt2di aP)
+{
+     return mCutACD.AutoCorrel(aP,TT_SEUIL_CutAutoCorrel_INT,TT_SEUIL_CutAutoCorrel_REEL,TT_SEUIL_AutoCorrel);
+}
+
+
+class cCmpInterOnFast
+{
+    public :
+       bool operator () (const cIntTieTriInterest & aI1,const cIntTieTriInterest &aI2)
+       {
+             return aI1.mFastQual > aI2.mFastQual;
+       }
+};
 
 
 void  cImTieTri::MakeInterestPoint
@@ -243,23 +277,67 @@ void  cImTieTri::MakeInterestPoint
                 if (aCmp0)
                 {
                    eTypeTieTri aType = (aCmp0==1)  ? eTTTMax : eTTTMin;
+                   Pt2dr aFastQual =  FastQuality(anIm,aP,*mFastCC,aType==eTTTMax,Pt2dr(TT_PropFastStd,TT_PropFastConsec));
+
+                   bool OkFast = (aFastQual.x > TT_SeuilFastStd) && ( aFastQual.y> TT_SeuilFastCons);
+                   bool OkAc =    OkFast && (!AutoCorrel(aP));
+
                    if (mW)
                    {
                        // mW->draw_circle_loc(Pt2dr(aP),2.0,mW->pdisc()(IsMax ? P8COL::red : P8COL::blue));
                        if ((IsMaster()) || (mAppli.NivInterac()>=2))
                        {
-                           mW->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(aType));
+                          if (OkAc) 
+                              mW->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(aType));
+                          else 
+                          {
+                              mW->draw_circle_loc(Pt2dr(aP),0.5,mW->pdisc()(OkFast ? P8COL::yellow : P8COL::cyan));
+                          }
                        }
                    }
-                   if  (aImLabel) 
-                        aImLabel->oset(aP,aType);
-                   if (aListPI)
+
+                   if (OkAc)
                    {
-                        aListPI->push_back(cIntTieTriInterest(aP,aType));
+                      if  (aImLabel) 
+                           aImLabel->oset(aP,aType);
+                      if (aListPI)
+                      {
+                           aListPI->push_back(cIntTieTriInterest(aP,aType,aFastQual.x + 2 * aFastQual.y));
+                      }
                    }
                 }
             }
         }
+    }
+
+    // Filtrage spatial on conserve 1 point / disque de rayon donne 
+    if (IsMaster())
+    {
+         std::vector<cIntTieTriInterest> aVI(aListPI->begin(),aListPI->end());
+         aListPI->clear();
+         cCmpInterOnFast aCmp;
+         std::sort(aVI.begin(),aVI.end(),aCmp);
+
+         for (int aK1=0 ; aK1<int(aVI.size()) ; aK1++)
+         {
+             cIntTieTriInterest & aPI1= aVI[aK1];
+             if (aPI1.mSelected)
+             {
+                 aListPI->push_back(aPI1);
+                 double aSeuilD2 = ElSquare(mAppli.mDistFiltr/TT_RatioFastFiltrSpatial);
+                 if (mW)
+                 {
+                    mW->draw_circle_loc(Pt2dr(aPI1.mPt),0.75,ColOfType(aPI1.mType));
+                    mW->draw_circle_loc(Pt2dr(aPI1.mPt),sqrt(aSeuilD2),mW->pdisc()(P8COL::magenta));
+                 }
+                 for (int aK2=0 ; aK2<int(aVI.size()) ; aK2++)
+                 {
+                      cIntTieTriInterest & aPI2= aVI[aK2];
+                      if (square_euclid(aPI1.mPt-aPI2.mPt) < aSeuilD2) 
+                         aPI2.mSelected = false;
+                 }
+             }
+         }
     }
 }
 
@@ -282,7 +360,7 @@ void  cImTieTri::MakeInterestPointFAST
         if (aImLabel)
             aImLabel->oset(aP,aType);
         if (aListPI)
-            aListPI->push_back(cIntTieTriInterest(aP,aType));
+            aListPI->push_back(cIntTieTriInterest(aP,aType,0.0));
     }
 }
 

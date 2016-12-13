@@ -57,27 +57,120 @@ class cOneTriMultiImRechCorrel;
 #define TT_MaxCorrel 1.0
 #define TT_DIST_RECH_HOM 12.0  // Seuil de recherche des homologues
 #define TT_DIST_EXTREMA  3.0   // calcul des extrema locaux
+#define TT_DIST_FAST  4.0   // Critere type Fast calcul des extrema locaux
 
 #define TT_SEUIL_CORREL_1PIXSUR2  0.7   // calcul des extrema locaux
-#define TT_DefSeuilDensiteResul   100
-#define TT_DefStepDense           5
-#define TT_SEUIL_SURF_TRI_PIXEL   100.0
+#define TT_DefSeuilDensiteResul   50   // conserve 1 point / disque de rayon TT_DefSeuilDensiteResul
+#define TT_RatioFastFiltrSpatial  4     // Ratio par rapport a TT_DefSeuilDensiteResul     
+#define TT_SEUIL_SURF_TRI_PIXEL   100.0 //  Supprime les triangles trop petits
+
+#define TT_SEUIL_AutoCorrel  0.85          // Seuil d'elimination par auto-correlation
+#define TT_SEUIL_CutAutoCorrel_INT 0.65    // Seuil d'acceptation rapide par auto correl entiere
+#define TT_SEUIL_CutAutoCorrel_REEL 0.75   // Seuil d'acceptation rapide par auto correl reelle
+
+#define TT_SEUIl_DIST_Extrema_Entier  1.5  // Distance entre l'extrema init et le max de correl trouve
+
+#define TT_DemiFenetreCorrel 6
+
+#define TT_PropFastStd 0.75
+#define TT_PropFastConsec 0.6
+
+#define TT_SeuilFastStd  5
+#define TT_SeuilFastCons 3
+
+#define TT_SZ_AUTO_COR 3
+
+// #define  TT_SEUIL
+
+
+extern bool BugAC;
+
+
+/*
+template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
+{
+    public :
+         cCutAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW ) :
+             cAutoCorrelDir<TypeIm> (anIm,aP0,aRho,aSzW),
+             mNbPts                 (SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho)).size())
+         {
+         }
+         void ResetIm(const TypeIm & anIm) { cAutoCorrelDir<TypeIm>::ResetIm(anIm); }
+
+        bool  AutoCorrel(const Pt2di & aP0,double aRejetInt,double aRejetReel,double aSeuilAccept)
+         {
+               this->mP0 = aP0;
+               double aCorrMax = -2;
+               int    aKMax = -1;
+               for (int aK=0 ; aK<mNbPts ; aK++)
+               {
+                    double aCor = this->ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW);
+// if (BugAC) std::cout << "CCcccI " << aCor << " " << this->mTIm.sz() << "\n";
+                    if (aCor > aSeuilAccept) return true;
+                    if (aCor > aCorrMax)
+                    {   
+                        aCorrMax = aCor;
+                        aKMax = aK;
+                    }
+               }
+               ELISE_ASSERT(aKMax!=-1,"AutoCorrel no K");
+               if (aCorrMax < aRejetInt) return false;
+
+               Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
+
+               double aStep0 = 1/this->mRho;
+               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);
+
+               if (aRes1.y>aSeuilAccept)   return true;
+               if (aRes1.y<aRejetReel)     return false;
+
+               Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
+
+               return aRes2.y > aCorrMax;
+         }
+
+    private :
+         std::vector<Pt2di> mVPt;
+         int mNbPts;
+};
+*/
+
+
+
 
 //  =====================================
 
 typedef double                          tElTiepTri ;
+typedef Im2D<tElTiepTri,tElTiepTri>     tImTiepTri;
 typedef TIm2D<tElTiepTri,tElTiepTri>    tTImTiepTri;
 typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
 
+// Prop.x => standard , Prop.y => contingu
+// extern Pt2dr   TestFastQuality(TIm2D<double,double> anIm,Pt2di aP,double aRay,bool IsMax,Pt2dr aProp);
+extern void TestcAutoCorrelDir(TIm2D<double,double> aTIm,const Pt2di & aP0);
 
 
 
-class cAppliTieTri
+class cParamAppliTieTri
+{
+    public :
+        cParamAppliTieTri() ;
+
+        double   mDistFiltr; 
+        int      mNumInterpolDense; 
+        bool     mDoRaffImInit;
+        int      mNbByPix;
+};
+
+
+
+class cAppliTieTri : public cParamAppliTieTri
 {
       public :
 
            cAppliTieTri
            (
+              const cParamAppliTieTri &,
               cInterfChantierNameManipulateur *,
               const std::string & aDir,  
               const std::string & anOri,  
@@ -108,8 +201,6 @@ class cAppliTieTri
 
            void FiltrageSpatialRMIRC(const double & aDist);
            void  RechHomPtsDense(cResulMultiImRechCorrel<double> &);
-           double &   SeuilDensite();
-           int    &   DefStepDense();
            void SetPtsSelect(const Pt2dr & aP);
            void SetNumSelectImage(const std::vector<int> & aNum);
            bool HasPtSelecTri() const;
@@ -118,6 +209,8 @@ class cAppliTieTri
 
            void PutInGlobCoord(cResulMultiImRechCorrel<double> & aRMIRC);
 
+            const std::string &  KeyMasqIm() const;
+            void SetMasqIm(const  std::string  & aKeyMasqIm);
 
       private  :
          cAppliTieTri(const cAppliTieTri &); // N.I.
@@ -143,9 +236,9 @@ class cAppliTieTri
          bool                              mDebug;
          int                               mNivInterac;
          cElPlan3D                         mCurPlan;
-         tInterpolTiepTri *                mInterpol;
-         double                            mSeuilDensite;
-         int                               mDefStepDense; 
+         tInterpolTiepTri *                mInterpolSinC;
+         tInterpolTiepTri *                mInterpolBicub;
+         tInterpolTiepTri *                mInterpolBilin;
 
          std::vector<cResulMultiImRechCorrel<double>*> mVCurMIRMC;
          std::vector<cOneTriMultiImRechCorrel>         mVGlobMIRMC;
@@ -161,6 +254,8 @@ class cAppliTieTri
          Pt2dr              mPtsSelectTri;
          bool               mHasNumSelectImage;
          std::vector<int>   mNumSelectImage;
+
+         std::string        mKeyMasqIm;
 };
 
 typedef enum eTypeTieTri
@@ -175,9 +270,12 @@ typedef enum eTypeTieTri
 class cIntTieTriInterest
 {
     public :
-       cIntTieTriInterest(const Pt2di & aP,eTypeTieTri aType);
+       cIntTieTriInterest(const Pt2di & aP,eTypeTieTri aType,const double & aFastQual);
+
        Pt2di        mPt;
        eTypeTieTri  mType;
+       double       mFastQual;
+       bool         mSelected;
 };
 
 
@@ -190,9 +288,13 @@ class cImTieTri
            cImTieTri(cAppliTieTri & ,const std::string& aNameIm,int aNum);
            Video_Win *        W();
            virtual bool IsMaster() const = 0;
+           virtual tTImTiepTri & ImRedr() = 0; // C'est l'image init pour Mastre et Redr sinon
+
            const Pt2di  &   Decal() const;
            const int & Num() const;
            string NameIm() {return mNameIm;}
+           bool AutoCorrel(Pt2di aP);
+           
       protected :
            cImTieTri(const cImTieTri &) ; // N.I.
            int  IsExtrema(const TIm2D<tElTiepTri,tElTiepTri> &,Pt2di aP);
@@ -229,15 +331,19 @@ class cImTieTri
            Pt2di          mDecal;
            Pt2di          mSzIm;
 
-           Im2D<tElTiepTri,tElTiepTri>   mImInit;
-           TIm2D<tElTiepTri,tElTiepTri>  mTImInit;
+           tImTiepTri                    mImInit;
+           tTImTiepTri                   mTImInit;
 
            Im2D_Bits<1>                  mMasqTri;
            TIm2DBits<1>                  mTMasqTri;
+           Im2D_Bits<1>                  mMasqIm;
+           TIm2DBits<1>                  mTMasqIm;
 
            int                           mRab;
            Video_Win *                   mW;
            int                           mNum;
+           cFastCriterCompute *          mFastCC;
+           cCutAutoCorrelDir<tTImTiepTri> mCutACD;
 };
 
 class cImMasterTieTri : public cImTieTri
@@ -248,6 +354,7 @@ class cImMasterTieTri : public cImTieTri
 
            cIntTieTriInterest  GetPtsInteret();
            virtual bool IsMaster() const ;
+           virtual tTImTiepTri & ImRedr();
            const std::list<cIntTieTriInterest> & LIP() const;
 
 
@@ -267,15 +374,24 @@ class cImSecTieTri : public cImTieTri
             cResulRechCorrel<double>  RechHomPtsDense(const Pt2di & aP0,const cResulRechCorrel<double> & aPIn);
 
            virtual bool IsMaster() const ;
+           virtual tTImTiepTri & ImRedr();
            ElPackHomologue & PackH() ;
     private :
+           bool InMasqReech(const Pt2dr &) const;
+           bool InMasqReech(const Pt2di &) const;
+
            cImSecTieTri(const cImSecTieTri&); // N.I.
            void  DecomposeVecHom(const Pt2dr & aPSH1,const Pt2dr & aPSH2,Pt2dr & aDirProf,Pt2dr & aNewCoord);
 
-           Im2D<tElTiepTri,tElTiepTri>   mImReech;
-           TIm2D<tElTiepTri,tElTiepTri>  mTImReech;
+           tImTiepTri                    mImReech;
+           tTImTiepTri                   mTImReech;
            Im2D<U_INT1,INT>              mImLabelPC;
            TIm2D<U_INT1,INT>             mTImLabelPC;
+
+
+           Im2D_Bits<1>                  mMasqReech;
+           TIm2DBits<1>                  mTMasqReech;
+
            Pt2di                         mSzReech;
            ElAffin2D                     mAffMas2Sec;
            ElAffin2D                     mAffSec2Mas;
@@ -468,6 +584,8 @@ class cHomolPackTiepTri
         cInterfChantierNameManipulateur * mICNM;
         ElPackHomologue mPack;
 };
+
+
 
 
 

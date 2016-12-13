@@ -1,3 +1,23 @@
+================== Outlayer ============================================
+1-Critere Fast :
+
+    (1) Virer ceux vraiment trop faible (seuil a 5/3 ?)
+    (2) Ensuite selectionner ceux qui sont maxima locaux
+
+
+2- Critere auto correlation
+   regarder si un point correl avec lui meme dans une direction.
+
+3-Critere reciprocite
+   Une fois trouver un homologue (bilin) faire la recherche inverse, verifie que l'on retombe sur ces pattes
+
+3 Bis=> Critere d'homothetie sur la correl.
+
+4- Critere correlation multi echelle; multi vignette
+
+5- Critere SIFT ou correlation de gradient ?
+
+==============================================================
 @Giang :
 
    1 - mCam->PIsVisibleInImage(Pt3dr)  pour point visible (done in TaskCOrrel!)
