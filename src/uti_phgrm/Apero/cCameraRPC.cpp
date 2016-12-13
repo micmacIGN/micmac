@@ -128,6 +128,11 @@ cRPC CameraRPC::GetRPCCpy() const
     return (*mRPC);
 }
 
+void CameraRPC::SetGridSz(const Pt2di & aSz)
+{
+    mGridSz = aSz;
+}
+
 int CameraRPC::CropRPC(const std::string &aNameDir, 
                         const std::string &aNameXML, 
                         const std::vector<Pt3dr> &aBounds)
@@ -568,40 +573,14 @@ Pt2di CameraRPC::SzBasicCapt3D() const
 void  CameraRPC::OpticalCenterOfImg(std::vector<Pt3dr>* aOC) const
 {
 
-    int aL, aS, aAd = 1;
-    double aSStep = double(SzBasicCapt3D().x)/(mGridSz.x+aAd);
+    int aL;
     Pt3dr aP1, aP2;
     
     for( aL=0; aL<SzBasicCapt3D().y; aL++)
     {
-        std::vector<double> aVPds;
-	    std::vector<ElSeg3D> aVS;
-
-	    for( aS=aAd; aS<mGridSz.x+aAd; aS++)
-	    {
-    
-	
-	        //first height in validity zone
-	        aP1 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL),
-			                        mRPC->GetGrC31()+1);
-	        
-            //second height in validity zone
-	        aP2 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL), 
-			                        double(mRPC->GetGrC31() + mRPC->GetGrC32())/2);
-
-	    
-	        //collect for intersection
-	        aVS.push_back(ElSeg3D(aP1,aP2));
-	        aVPds.push_back(1);
-	    }
-
         
-	    bool aIsOK;
-	    aOC->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
-        
+        aOC->push_back(OpticalCenterOfLine(aL));
 
-	    if(aIsOK==false)
-	        std::cout << "not intersected in CameraRPC::OpticalCenterOfImg(std::vector<Pt3dr>& aOC)" << std::endl;
     }
     
 }
@@ -617,10 +596,10 @@ void CameraRPC::OpticalCenterOfImg()
 
 /* For a defined image grid, 
  * extrude to rays and intersect at the line of optical centers */
-void CameraRPC::OpticalCenterGrid(const Pt2di& aGrid, bool aIfSave) const
+void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 {
     srand(time(NULL));
-    int aL, aS;
+    int aL;
     int aCRand1 = rand() % 255, aCRand2 = rand() % 255, aCRand3 = rand() % 255;
  
     std::vector<Pt3dr> aOptCentersAtGrid;
@@ -635,43 +614,13 @@ void CameraRPC::OpticalCenterGrid(const Pt2di& aGrid, bool aIfSave) const
     ELISE_fp::MkDirSvp(aDir);
     
     int aAd=1;
-    Pt2dr aGridStep = Pt2dr( double(SzBasicCapt3D().x)/(aGrid.x+aAd) ,
-                             double(SzBasicCapt3D().y)/(aGrid.y+aAd));
+    double aPas = double(SzBasicCapt3D().y)/(mGridSz.y+aAd);
 
-    Pt3dr aP1, aP2;
-    for( aL=aAd; aL<aGrid.y+aAd; aL++)
+    for( aL=aAd; aL<mGridSz.y+aAd; aL++)
     {
-        std::vector<double> aVPds;
-        std::vector<ElSeg3D> aVS;
-	    
-	for( aS=aAd; aS<aGrid.x+aAd; aS++)
-        {
-            //first height in validity zone
-	        aP1 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y),
-			                  mRPC->GetGrC31()+1);
-	    
-            
-	        //second height in validity zone
-	        aP2 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y), 
-			           double(mRPC->GetGrC31() + mRPC->GetGrC32())/2);
-
-	        //collect for intersection
-	        aVS.push_back(ElSeg3D(aP1,aP2));
-	        aVPds.push_back(1);
-
-            aVCol.push_back(aCoul);
-	        aVCol.push_back(aCoul);
-
-        }
-        
-	bool aIsOK;
-	aOptCentersAtGrid.push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
-
-	if(aIsOK==false)
-	    std::cout << "not intersected in CameraRPC::OpticalCenterGrid" << std::endl;
-    
-
-     }
+        aOptCentersAtGrid.push_back(OpticalCenterOfLine(aL*aPas));
+        aVCol.push_back(aCoul);
+    }
 
     //save to ply
     cElNuage3DMaille::PlyPutFile
@@ -687,9 +636,41 @@ void CameraRPC::OpticalCenterGrid(const Pt2di& aGrid, bool aIfSave) const
 
 }
 
-Pt3dr CameraRPC::OpticalCenterOfPixel(const std::vector<Pt3dr>* aOC, const Pt2dr & aP) const 
+
+Pt3dr CameraRPC::OpticalCenterOfLine(const double & aL) const 
+{
+    int aS, aAd = 1;
+    double aSStep = double(SzBasicCapt3D().x)/(mGridSz.x+aAd);
+    Pt3dr aP1, aP2;
+        
+    std::vector<double> aVPds;
+    std::vector<ElSeg3D> aVS;
+    
+    for(aS=aAd; aS<mGridSz.x+aAd; aS++)
+    {
+        aP1 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL),
+                            mRPC->GetGrC31()+1);
+        aP2 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL),
+                            double(mRPC->GetGrC31() + mRPC->GetGrC32())/2);
+
+        aVS.push_back(ElSeg3D(aP1,aP2));
+        aVPds.push_back(1);
+
+    }
+    bool aIsOK;
+    Pt3dr aRes = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
+
+    if(aIsOK==false)
+        std::cout << "not intersected in CameraRPC::OpticalCenterOfPixel" << std::endl;
+
+    return aRes;
+
+}
+
+Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
 {
 	int aLnPre, aLnPost;
+    Pt3dr aOCPre, aOCPost;
 	double aA, aB, aC, aABC, aT; 
 
 	(aP.y > 1) ? (aLnPre = round_down(aP.y) - 1) : aLnPre = 0;
@@ -697,10 +678,22 @@ Pt3dr CameraRPC::OpticalCenterOfPixel(const std::vector<Pt3dr>* aOC, const Pt2dr
 	(aP.y < (SzBasicCapt3D().y-2)) ? (aLnPost = round_up(aP.y) + 1) : 
 		                         (aLnPost = SzBasicCapt3D().y-1);
         
-    aA = aOC->at(aLnPre).x - aOC->at(aLnPost).x;
-    aB = aOC->at(aLnPre).y - aOC->at(aLnPost).y;
-    aC = aOC->at(aLnPre).z - aOC->at(aLnPost).z;
-	
+
+    if(HasOpticalCenterOfPixel())
+    {
+        aOCPre  = mOpticalCenters->at(aLnPre);
+        aOCPost = mOpticalCenters->at(aLnPost);
+    }
+    else
+    {
+        aOCPre  = OpticalCenterOfLine(aLnPre);
+        aOCPost = OpticalCenterOfLine(aLnPost);
+
+    }
+        
+    aA = aOCPre.x - aOCPost.x;
+    aB = aOCPre.y - aOCPost.y;
+    aC = aOCPre.z - aOCPost.z;
 
 	aABC = std::sqrt(aA*aA + aB*aB + aC*aC);
 
@@ -710,29 +703,14 @@ Pt3dr CameraRPC::OpticalCenterOfPixel(const std::vector<Pt3dr>* aOC, const Pt2dr
 
 	aT = double(aP.y - aLnPre)/(aLnPost - aLnPre);
 
-    //std::cout << "aOC->at(aLnPre) " << aOC->at(aLnPre) << ", aOC->at(aLnPost) " << aOC->at(aLnPost)  
-    //          << "CenterOfPix " << Pt3dr(aOC->at(aLnPre).x + aT*aA,aOC->at(aLnPre).y + aT*aB,aOC->at(aLnPre).z + aT*aC) << "\n";
 	    
-    return Pt3dr(aOC->at(aLnPre).x + aT*aA,
-		         aOC->at(aLnPre).y + aT*aB,
-		         aOC->at(aLnPre).z + aT*aC);
+    return Pt3dr(aOCPre.x + aT*aA,
+		         aOCPre.y + aT*aB,
+		         aOCPre.z + aT*aC);
     
-}
-
-Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
-{
-    if(HasOpticalCenterOfPixel())
-    {
-        return (OpticalCenterOfPixel(mOpticalCenters, aP));
-    }
-    else
-    {
-        std::vector<Pt3dr>* aOC = new std::vector<Pt3dr>();
-        OpticalCenterOfImg( aOC );
 
 
-        return( OpticalCenterOfPixel( aOC, aP) );
-    }
+
 }
 
 
