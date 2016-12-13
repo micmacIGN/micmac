@@ -1494,6 +1494,8 @@ class cBasicGeomCap3D
       virtual double ProfondeurDeChamps(const Pt3dr & aP) const;
       virtual Pt3dr DirVisee() const;
 
+       double  EpipolarEcart(const Pt2dr & aP1,const cBasicGeomCap3D & aCam2,const Pt2dr & aP2) const;
+
 
        virtual double ResolutionAngulaire() const;  // OO
        /// This function calls existing virtual function; in many case it will be redundant with

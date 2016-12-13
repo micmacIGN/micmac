@@ -71,11 +71,13 @@ std::vector<Pt2di> VoisinDisk(double aDistMin,double aDistMax)
 
 cAppliTieTri::cAppliTieTri
 (
-              cInterfChantierNameManipulateur * anICNM,
-              const std::string & aDir,
-              const std::string & anOri,
-              const cXml_TriAngulationImMaster & aTriang
+   const cParamAppliTieTri & aParam,
+   cInterfChantierNameManipulateur * anICNM,
+   const std::string & aDir,
+   const std::string & anOri,
+   const cXml_TriAngulationImMaster & aTriang
 )  :
+     cParamAppliTieTri (aParam),
      mICNM          (anICNM),
      mDir           (aDir),
      mOri           (anOri),
@@ -84,8 +86,6 @@ cAppliTieTri::cAppliTieTri
      mDistRechHom   (TT_DIST_RECH_HOM),
      mNivInterac    (0),
      mCurPlan       (Pt3dr(0,0,0),Pt3dr(1,0,0),Pt3dr(0,1,0)),
-     mSeuilDensite  (TT_DefSeuilDensiteResul),
-     mDefStepDense  (TT_DefStepDense),
      mNbTriLoaded   (0),
      mNbPts         (0),
      mTimeCorInit   (0.0),
@@ -102,13 +102,15 @@ cAppliTieTri::cAppliTieTri
    }
 
    mVoisExtr = SortedVoisinDisk(0.5,mDisExtrema,true);
-   // cCmpPt2diOnEuclid aCmp;
-   // std::sort(mVoisExtr.begin(),mVoisExtr.end(),aCmp);
-
    mVoisHom = SortedVoisinDisk(-1,mDistRechHom,false);
 
    cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
-   mInterpol = new cTabIM2D_FromIm2D<tElTiepTri>(aSinC,1000,false);
+   mInterpolSinC = new cTabIM2D_FromIm2D<tElTiepTri>(aSinC,1000,false);
+
+
+   mInterpolBilin = new cInterpolBilineaire<tElTiepTri>;
+   mInterpolBicub = new cTplCIKTabul<tElTiepTri,tElTiepTri>(10,8,-0.5);
+
 
 }
 
@@ -268,7 +270,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
          mTimeCorInit += aChrono.uval();
     }
 
-    FiltrageSpatialRMIRC(mSeuilDensite);
+    FiltrageSpatialRMIRC(mDistFiltr);
 
     {
        ElTimer aChrono;
@@ -404,18 +406,27 @@ const double &   cAppliTieTri::DistRechHom() const {return mDistRechHom;}
 
 int  &   cAppliTieTri::NivInterac() {return mNivInterac;}
 const cElPlan3D & cAppliTieTri::CurPlan() const {return mCurPlan;}
-tInterpolTiepTri * cAppliTieTri::Interpol() {return mInterpol;}
 
-double &   cAppliTieTri::SeuilDensite() {return mSeuilDensite;}
-int    &   cAppliTieTri::DefStepDense() {return mDefStepDense;}
+tInterpolTiepTri * cAppliTieTri::Interpol() 
+{
+   if (mNumInterpolDense==0) return mInterpolBilin;
+   if (mNumInterpolDense==1) return mInterpolBicub;
+   if (mNumInterpolDense==2) return mInterpolSinC;
+
+   ELISE_ASSERT(false,"AppliTieTri::Interp");
+   return 0;
+}
+
 
 
 
 /***************************************************************************/
 
-cIntTieTriInterest::cIntTieTriInterest(const Pt2di & aP,eTypeTieTri aType) :
-   mPt   (aP),
-   mType (aType)
+cIntTieTriInterest::cIntTieTriInterest(const Pt2di & aP,eTypeTieTri aType,const double & aQualFast) :
+   mPt       (aP),
+   mType     (aType),
+   mFastQual (aQualFast),
+   mSelected (true)
 {
 }
 

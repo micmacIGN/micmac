@@ -60,8 +60,8 @@ class cOneTriMultiImRechCorrel;
 #define TT_DIST_FAST  4.0   // Critere type Fast calcul des extrema locaux
 
 #define TT_SEUIL_CORREL_1PIXSUR2  0.7   // calcul des extrema locaux
-#define TT_DefSeuilDensiteResul   100   // conserve 1 point / disque de rayon TT_DefSeuilDensiteResul
-#define TT_DefStepDense           5     //  Sert sans doute a rien => a supprimer ?
+#define TT_DefSeuilDensiteResul   50   // conserve 1 point / disque de rayon TT_DefSeuilDensiteResul
+#define TT_RatioFastFiltrSpatial  4     // Ratio par rapport a TT_DefSeuilDensiteResul     
 #define TT_SEUIL_SURF_TRI_PIXEL   100.0 //  Supprime les triangles trop petits
 
 #define TT_SEUIL_AutoCorrel  0.85          // Seuil d'elimination par auto-correlation
@@ -86,6 +86,7 @@ class cOneTriMultiImRechCorrel;
 extern bool BugAC;
 
 
+/*
 template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
 {
     public :
@@ -132,6 +133,7 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
          std::vector<Pt2di> mVPt;
          int mNbPts;
 };
+*/
 
 
 
@@ -149,14 +151,26 @@ extern void TestcAutoCorrelDir(TIm2D<double,double> aTIm,const Pt2di & aP0);
 
 
 
+class cParamAppliTieTri
+{
+    public :
+        cParamAppliTieTri() ;
+
+        double   mDistFiltr; 
+        int      mNumInterpolDense; 
+        bool     mDoRaffImInit;
+        int      mNbByPix;
+};
 
 
-class cAppliTieTri
+
+class cAppliTieTri : public cParamAppliTieTri
 {
       public :
 
            cAppliTieTri
            (
+              const cParamAppliTieTri &,
               cInterfChantierNameManipulateur *,
               const std::string & aDir,  
               const std::string & anOri,  
@@ -187,8 +201,6 @@ class cAppliTieTri
 
            void FiltrageSpatialRMIRC(const double & aDist);
            void  RechHomPtsDense(cResulMultiImRechCorrel<double> &);
-           double &   SeuilDensite();
-           int    &   DefStepDense();
            void SetPtsSelect(const Pt2dr & aP);
            void SetNumSelectImage(const std::vector<int> & aNum);
            bool HasPtSelecTri() const;
@@ -224,9 +236,9 @@ class cAppliTieTri
          bool                              mDebug;
          int                               mNivInterac;
          cElPlan3D                         mCurPlan;
-         tInterpolTiepTri *                mInterpol;
-         double                            mSeuilDensite;
-         int                               mDefStepDense; 
+         tInterpolTiepTri *                mInterpolSinC;
+         tInterpolTiepTri *                mInterpolBicub;
+         tInterpolTiepTri *                mInterpolBilin;
 
          std::vector<cResulMultiImRechCorrel<double>*> mVCurMIRMC;
          std::vector<cOneTriMultiImRechCorrel>         mVGlobMIRMC;
@@ -258,9 +270,12 @@ typedef enum eTypeTieTri
 class cIntTieTriInterest
 {
     public :
-       cIntTieTriInterest(const Pt2di & aP,eTypeTieTri aType);
+       cIntTieTriInterest(const Pt2di & aP,eTypeTieTri aType,const double & aFastQual);
+
        Pt2di        mPt;
        eTypeTieTri  mType;
+       double       mFastQual;
+       bool         mSelected;
 };
 
 
@@ -368,8 +383,8 @@ class cImSecTieTri : public cImTieTri
            cImSecTieTri(const cImSecTieTri&); // N.I.
            void  DecomposeVecHom(const Pt2dr & aPSH1,const Pt2dr & aPSH2,Pt2dr & aDirProf,Pt2dr & aNewCoord);
 
-           Im2D<tElTiepTri,tElTiepTri>   mImReech;
-           TIm2D<tElTiepTri,tElTiepTri>  mTImReech;
+           tImTiepTri                    mImReech;
+           tTImTiepTri                   mTImReech;
            Im2D<U_INT1,INT>              mImLabelPC;
            TIm2D<U_INT1,INT>             mTImLabelPC;
 

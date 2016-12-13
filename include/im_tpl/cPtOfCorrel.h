@@ -216,6 +216,12 @@ template <class TIm> Pt2dr  FastQuality(TIm anIm,Pt2di aP,cFastCriterCompute & a
    return Pt2dr(aResStd,aResC);
 }
 
+/*************************************************************/
+/*                                                           */
+/*           Auto Correlation directionnelle                 */
+/*                                                           */
+/*************************************************************/
+
 template <class TypeIm> class  cAutoCorrelDir
 {
     public :
@@ -297,12 +303,6 @@ template <class TypeIm> class  cAutoCorrelDir
             return aMat.correlation();
         }
 
-
-
-
-
-
-
         double  CorrelTeta(double aTeta)
         {
             return RCorrelOneOffset(mP0,Pt2dr::FromPolar(mRho,aTeta),mSzW);
@@ -313,6 +313,52 @@ template <class TypeIm> class  cAutoCorrelDir
         Pt2di   mP0;
         double  mRho;
         int     mSzW;
+};
+
+template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
+{
+    public :
+         cCutAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW ) :
+             cAutoCorrelDir<TypeIm> (anIm,aP0,aRho,aSzW),
+             mNbPts                 (SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho)).size())
+         {
+         }
+         void ResetIm(const TypeIm & anIm) { cAutoCorrelDir<TypeIm>::ResetIm(anIm); }
+        bool  AutoCorrel(const Pt2di & aP0,double aRejetInt,double aRejetReel,double aSeuilAccept)
+         {
+               this->mP0 = aP0;
+               double aCorrMax = -2;
+               int    aKMax = -1;
+               for (int aK=0 ; aK<mNbPts ; aK++)
+               {
+                    double aCor = this->ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW);
+// if (BugAC) std::cout << "CCcccI " << aCor << " " << this->mTIm.sz() << "\n";
+                    if (aCor > aSeuilAccept) return true;
+                    if (aCor > aCorrMax)
+                    {
+                        aCorrMax = aCor;
+                        aKMax = aK;
+                    }
+               }
+               ELISE_ASSERT(aKMax!=-1,"AutoCorrel no K");
+               if (aCorrMax < aRejetInt) return false;
+
+               Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
+
+               double aStep0 = 1/this->mRho;
+               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);
+
+               if (aRes1.y>aSeuilAccept)   return true;
+               if (aRes1.y<aRejetReel)     return false;
+
+               Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
+
+               return aRes2.y > aCorrMax;
+         }
+
+    private :
+         std::vector<Pt2di> mVPt;
+         int mNbPts;
 };
 
 

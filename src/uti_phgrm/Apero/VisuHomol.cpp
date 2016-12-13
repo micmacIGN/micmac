@@ -38,6 +38,12 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
 
+class cVisuPHom
+{
+     public :
+     private :
+};
+
 class cVisuResidHom
 {
       public :
@@ -59,6 +65,8 @@ class cVisuResidHom
             std::vector<double> mVRes;
             bool                mDoPly;
 };
+
+
  
 
 void cVisuResidHom::AddPair(const Pt2dr & aP1,const Pt2dr & aP2)

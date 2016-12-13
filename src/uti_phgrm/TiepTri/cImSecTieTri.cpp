@@ -301,17 +301,27 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
 
 cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const cResulRechCorrel<double> & aPIn)
 {
+    if ( mAppli.mNumInterpolDense < 0)
+    {
+       cResulRechCorrel<double> aRes2  = aPIn;
+       aRes2.mPt = mAffMas2Sec(aRes2.mPt);
+       return aRes2;
+    }
+    
+
+    ElAffin2D  aAffPred  = mAppli.mDoRaffImInit ? mAffMas2Sec : ElAffin2D::Id();
+    tTImTiepTri aImSec =   mAppli.mDoRaffImInit ? mTImInit    : mTImReech ;
 
     cResulRechCorrel<double> aRes2 =  TT_MaxLocCorrelDS1R
                                       (
                                            mAppli.Interpol(),
-                                           &mAffMas2Sec,
+                                           &aAffPred,
                                            mMaster->mTImInit,
                                            Pt2dr(aP0),
-                                           mTImInit,
-                                           mAffMas2Sec(aPIn.mPt),
+                                           aImSec,
+                                           aAffPred(aPIn.mPt),
                                            6,  // SzW
-                                           5,  // NbByPix
+                                           mAppli.mNbByPix,
                                            0.125,   // Step0
                                            1.0/ 32.0
                                        );
@@ -319,6 +329,9 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
     {
        std::cout << "AFFINE " << aPIn.mCorrel << " => " << aRes2.mCorrel << " ; " << aPIn.mPt << " " << mAffSec2Mas(aRes2.mPt) << "\n"; 
     }
+
+    if (!  mAppli.mDoRaffImInit)
+        aRes2.mPt = mAffMas2Sec(aRes2.mPt);
 
 
     return aRes2;

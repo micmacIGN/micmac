@@ -241,6 +241,15 @@ bool cImTieTri::AutoCorrel(Pt2di aP)
 }
 
 
+class cCmpInterOnFast
+{
+    public :
+       bool operator () (const cIntTieTriInterest & aI1,const cIntTieTriInterest &aI2)
+       {
+             return aI1.mFastQual > aI2.mFastQual;
+       }
+};
+
 
 void  cImTieTri::MakeInterestPoint
       (
@@ -293,12 +302,42 @@ void  cImTieTri::MakeInterestPoint
                            aImLabel->oset(aP,aType);
                       if (aListPI)
                       {
-                           aListPI->push_back(cIntTieTriInterest(aP,aType));
+                           aListPI->push_back(cIntTieTriInterest(aP,aType,aFastQual.x + 2 * aFastQual.y));
                       }
                    }
                 }
             }
         }
+    }
+
+    // Filtrage spatial on conserve 1 point / disque de rayon donne 
+    if (IsMaster())
+    {
+         std::vector<cIntTieTriInterest> aVI(aListPI->begin(),aListPI->end());
+         aListPI->clear();
+         cCmpInterOnFast aCmp;
+         std::sort(aVI.begin(),aVI.end(),aCmp);
+
+         for (int aK1=0 ; aK1<int(aVI.size()) ; aK1++)
+         {
+             cIntTieTriInterest & aPI1= aVI[aK1];
+             if (aPI1.mSelected)
+             {
+                 aListPI->push_back(aPI1);
+                 double aSeuilD2 = ElSquare(mAppli.mDistFiltr/TT_RatioFastFiltrSpatial);
+                 if (mW)
+                 {
+                    mW->draw_circle_loc(Pt2dr(aPI1.mPt),0.75,ColOfType(aPI1.mType));
+                    mW->draw_circle_loc(Pt2dr(aPI1.mPt),sqrt(aSeuilD2),mW->pdisc()(P8COL::magenta));
+                 }
+                 for (int aK2=0 ; aK2<int(aVI.size()) ; aK2++)
+                 {
+                      cIntTieTriInterest & aPI2= aVI[aK2];
+                      if (square_euclid(aPI1.mPt-aPI2.mPt) < aSeuilD2) 
+                         aPI2.mSelected = false;
+                 }
+             }
+         }
     }
 }
 
@@ -321,7 +360,7 @@ void  cImTieTri::MakeInterestPointFAST
         if (aImLabel)
             aImLabel->oset(aP,aType);
         if (aListPI)
-            aListPI->push_back(cIntTieTriInterest(aP,aType));
+            aListPI->push_back(cIntTieTriInterest(aP,aType,0.0));
     }
 }
 
