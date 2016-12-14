@@ -82,11 +82,11 @@ class CameraRPC : public cBasicGeomCap3D
 
 
         /* Optical centers for a user-defined grid */
-		void  OpticalCenterGrid(const Pt2di& aGrid, bool aIfSave) const;
+		void  OpticalCenterGrid(bool aIfSave) const;
         void  OpticalCenterOfImg();
         void  OpticalCenterOfImg(std::vector<Pt3dr>* aOC) const;
+		Pt3dr OpticalCenterOfLine(const double & aL) const ;
 		Pt3dr OpticalCenterOfPixel(const Pt2dr & aP) const ;
-		Pt3dr OpticalCenterOfPixel(const std::vector<Pt3dr>* aOC, const Pt2dr & aP) const ;
         bool  HasOpticalCenterOfPixel() const;
 
 		
@@ -109,7 +109,8 @@ class CameraRPC : public cBasicGeomCap3D
 
         const  cRPC * GetRPC() const;
         cRPC   GetRPCCpy() const;
-        int   CropRPC(const std::string &, const std::string &, const std::vector<Pt3dr>&);
+        int    CropRPC(const std::string &, const std::string &, const std::vector<Pt3dr>&);
+        void   SetGridSz(const Pt2di & aSz);
 
         void   ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
         void   Save2XmlStdMMName(const std::string &aName,const std::string & aPref) const;

@@ -174,7 +174,8 @@ int SATtoOpticalCenter_main(cSatI_Appli &aApps)
            
 
            CameraRPC aCamRPC(*itL, aApps.mType,aApps.mChSys);
-           aCamRPC.OpticalCenterGrid(aApps.mGridSz,true);
+           aCamRPC.SetGridSz(aApps.mGridSz);
+           aCamRPC.OpticalCenterGrid(true);
 	
 	
 	   /*Pt2dr aa(100.4,1000.0);
