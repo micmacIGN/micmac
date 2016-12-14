@@ -1,8 +1,0 @@
-=================================================================
-mm3d Tapioca All Abbey-IMG_020.*jpg 1200 
- PID : 11273 ;   [Beginning at ] Fri May 30 11:40:35 2014
- PID : 11273 ;   [Ending correctly at] Fri May 30 11:40:57 2014
-=================================================================
-mm3d Tapas AutoCal Abbey-IMG_020.*jpg InCal=Ori-CalibInitAnalogik/ Out=Rel 
- PID : 3296 ;   [Beginning at ] Fri May 30 17:14:10 2014
- PID : 3296 ;   [Ending correctly at] Fri May 30 17:14:25 2014

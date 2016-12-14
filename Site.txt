@@ -1,7 +1,0 @@
-Bonjour,
-    l'URL est http://www.micmac.ign.fr/typo3, le login toto et le mot 
-de passe micmac_cogadm./12
-
-    david
-
-

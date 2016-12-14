@@ -1,8 +1,0 @@
-=================================================================
-22 occurence of warn type [Focal length specified both by xif and NKS-Assoc-STD-FOC]
-First context message : Cam=./Toulouse-131010_0716-301-00001_0000000.tif
-First detected at line :  1053 of File /home/mpd/MMM/culture3d/src/util/dates.cpp
-=================================================================
-22 occurence of warn type [Camera name specified both by xif and NKS-Assoc-STD-FOC]
-First context message : Cam=./Toulouse-131010_0716-301-00001_0000000.tif
-First detected at line :  1069 of File /home/mpd/MMM/culture3d/src/util/dates.cpp

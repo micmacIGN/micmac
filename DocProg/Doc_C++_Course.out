@@ -1,9 +1,0 @@
-\BOOKMARK [1][-]{section.0.1}{C++ course under MicMac's library : Elise}{}% 1
-\BOOKMARK [2][-]{subsection.0.1.1}{Introduction and generalities}{section.0.1}% 2
-\BOOKMARK [2][-]{subsection.0.1.2}{How to create a new .cpp file and compile it using the library Elise?}{section.0.1}% 3
-\BOOKMARK [3][-]{subsubsection.0.1.2.1}{Hello World !}{subsection.0.1.2}% 4
-\BOOKMARK [2][-]{subsection.0.1.3}{Mandatory or Optionnal Argument?}{section.0.1}% 5
-\BOOKMARK [2][-]{subsection.0.1.4}{How to load an xml file and read its informations?}{section.0.1}% 6
-\BOOKMARK [2][-]{subsection.0.1.5}{How to get list of files in a folder?}{section.0.1}% 7
-\BOOKMARK [2][-]{subsection.0.1.6}{Epipolar geometry}{section.0.1}% 8
-\BOOKMARK [2][-]{subsection.0.1.7}{Multi Image Correlation}{section.0.1}% 9
