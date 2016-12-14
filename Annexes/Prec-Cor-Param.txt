@@ -1,3 +1,0 @@
-
-Matrice pour Cholesky : cElMatCreuseBlocSym
-
