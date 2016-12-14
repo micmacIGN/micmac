@@ -41,6 +41,18 @@ Pouvoir lancer en mode visuel avec un triangle specifique
 => Pourquoi un point a parfois plusieurs homologue ?       (au moins on peut voir les plusieurs homo disparaitre apres 2 modif @Giang 1 2 !)
 
 ======24/11/2016=====
-Mise en place outil TiepTriPrl -- lancer TiepTri avec pattern de XML en paralelle. Pourvoir tester sur plusieur img.
-Test avec 84 mages, residue 1.6 (org=0.3)
-* (1) entre 2 imgs consecutive, il n'y a que pt homologues sur 1 endroit.
+(1) Mise en place outil TiepTriPrl -- lancer TiepTri avec pattern de XML en paralelle. Pourvoir tester sur plusieur img.
+
+(2) Test avec chantier de 84 mages, mm3d Tapas Figee
+     
+    (a) residue 1.6 (origin = 0.3)
+
+(3) Entre 2 imgs consecutive, il n'y a que pt homologues sur 1 endroit 
+     => c'est normal parce que sur 1 gros chantier, il y a qu'une petit endroit "meilleur devant" camera est choisi et traité.
+======14/12/2016=====
+(1) Améliorer les critere FAST && auto correlation pour pts d'interet robust.
+
+(2) Test avec chantier de 84 mages, mm3d Tapas Figee
+
+
+

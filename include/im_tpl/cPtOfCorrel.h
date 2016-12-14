@@ -353,7 +353,7 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
 
                Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
 
-               return aRes2.y > aCorrMax;
+               return aRes2.y > aSeuilAccept;
          }
 
     private :
