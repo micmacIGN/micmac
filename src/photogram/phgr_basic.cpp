@@ -1620,6 +1620,7 @@ double  cBasicGeomCap3D::EpipolarEcart(const Pt2dr & aP1,const cBasicGeomCap3D &
     Pt2dr aDirEpi = vunit(aQB-aQA);
 
     Pt2dr aDif = (aP1- aQA) / aDirEpi;
+    return aDif.y;
 }
 
 

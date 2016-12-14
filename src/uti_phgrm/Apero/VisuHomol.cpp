@@ -38,10 +38,90 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
 
+
+Polynome2dReal LeasquarePol2DFit
+               (
+                    int                           aDegre,
+                    const std::vector<Pt2dr> &    aVP,
+                    const std::vector<double>     aVals,
+                    const std::vector<double> *   aVPds
+               )
+{
+    Polynome2dReal aRes(aDegre,1.0);
+    int aNbP =aVP.size();
+    int aNbM = aRes.NbMonome();
+    ELISE_ASSERT(int(aVals.size())==aNbP,"Size inc in LeasquarePol2DFit");
+    ELISE_ASSERT((aVPds==0) || (int(aVPds->size())==aNbP),"Size inc in LeasquarePol2DFit");
+
+    L2SysSurResol aSys(aNbM);
+    std::vector<double> aVCoef(aNbM,0.0);
+
+    for (int aKpt=0 ; aKpt< aNbP ; aKpt++)
+    {
+        for (int aKMon=0 ; aKMon< aNbM ; aKMon++)
+        {
+              const Monome2dReal &  aMon = aRes.KthMonome(aKMon);
+              aVCoef[aKMon] = aMon(aVP[aKpt]);
+              double aPds = aVPds ?  (*aVPds)[aKMon] : 1.0;
+              aSys.AddEquation(aPds,&(aVCoef[0]),aVals[aKpt]);
+        }
+    }
+    bool Ok;
+    Im1D_REAL8  aSol = aSys.GSSR_Solve(&Ok);
+    double * aD= aSol.data();
+    
+    return Polynome2dReal::FromVect(std::vector<double>(aD,aD+aNbM),1.0);
+}
+
+
+Polynome2dReal LeasquarePol2DFit
+               (
+                    int                           aDegre,
+                    const std::vector<Pt2dr> &    aVP,
+                    const std::vector<double>     aVals,
+                    const Polynome2dReal &        aLastPol,
+                    int                           aPropEr,
+                    double                        aFactEr,
+                    double                        aErMin
+               )
+{
+    int aNbPts = aVP.size();
+    std::vector<double>  aVErr;
+    for (int aKp=0 ; aKp<aNbPts ; aKp++)
+    {
+        Pt2dr aPt = aVP[aKp];
+        double anEr = ElAbs(aVals[aKp]-aLastPol(aPt));
+        aVErr.push_back(anEr);
+    }
+    std::vector<double> aVErSorted =  aVErr;
+    double aErStd = KthValProp(aVErSorted,aPropEr);
+
+   
+    std::vector<double>  aVPds;
+    for (int aKp=0 ; aKp<aNbPts ; aKp++)
+    {
+        double aPds = ((aVErr[aKp]+aErMin) / aErStd) * aFactEr;
+        aPds = 1 / (1 + ElSquare(aPds));
+        aVPds.push_back(aPds);
+    }
+    return LeasquarePol2DFit(aDegre,aVP,aVals,&aVPds);
+}
+
+
+
 class cVisuPHom
 {
      public :
-     private :
+        cVisuPHom(const Pt2dr & aP1,const Pt2dr & aP2,const double & aRes) :
+            mRes (aRes),
+            mP1  (aP1),
+            mP2  (aP2)
+        {
+        }
+
+        double  mRes;
+        Pt2dr   mP1;
+        Pt2dr   mP2;
 };
 
 class cVisuResidHom
@@ -53,43 +133,40 @@ class cVisuResidHom
             std::string NameFile(const std::string & aPost) {return mPrefOut + aPost;}
             void AddPair(const Pt2dr & aP1,const Pt2dr & aP2);
      
-            cBasicGeomCap3D *   mCam1;
-            cBasicGeomCap3D *   mCam2;
-            ElPackHomologue     mPack;
-            std::string         mPrefOut;
-            double              mResol;
-            Pt2di               mSzIm1;
-            Pt2di               mSzResol;
-            Im2D_U_INT1         mImSsRes;
-            cPlyCloud           mPlyC;
-            std::vector<double> mVRes;
-            bool                mDoPly;
+            cBasicGeomCap3D *      mCam1;
+            cBasicGeomCap3D *      mCam2;
+            ElPackHomologue        mPack;
+            std::string            mPrefOut;
+            double                 mResol;
+            Pt2di                  mSzIm1;
+            Pt2di                  mSzResol;
+            Im2D_U_INT1            mImSsRes;
+            cPlyCloud              mPlyC;
+            std::vector<double>    mVRes;
+            std::vector<cVisuPHom> mVPH;
+            std::vector<double>    mVEpi;
+            std::vector<Pt2dr>     mVP1;
+            bool                   mDoPly;
+
+            // std::vector<double>   DoOneDegree(int aDegre,double aSigma,
 };
+
 
 
  
 
 void cVisuResidHom::AddPair(const Pt2dr & aP1,const Pt2dr & aP2)
 {
-    ElSeg3D aSeg1 = mCam1->Capteur2RayTer(aP1);
-    ElSeg3D aSeg2 = mCam2->Capteur2RayTer(aP2);
-
-    Pt3dr aPInter =  aSeg1.PseudoInter(aSeg2) ; 
-
-    Pt3dr aPI2 = aPInter + aSeg2.TgNormee() * 1e-5;
-
-    Pt2dr aQA = mCam1->Ter2Capteur(aPInter);
-    Pt2dr aQB = mCam1->Ter2Capteur(aPI2);
-    
-    Pt2dr aDirEpi = vunit(aQB-aQA);
-
-    Pt2dr aDif = (aP1- aQA) / aDirEpi;
+    double aDif = mCam1->EpipolarEcart(aP1,*mCam2,aP2);
 
     if (mDoPly)
     {
-       mPlyC.AddSphere(Pt3di(255,0,0),Pt3dr(aP1.x,aP1.y,aDif.y*1000),5,3);
+       mPlyC.AddSphere(Pt3di(255,0,0),Pt3dr(aP1.x,aP1.y,aDif*1000),5,3);
     }
-    mVRes.push_back(ElAbs(aDif.y));
+    mVRes.push_back(ElAbs(aDif));
+    mVPH.push_back(cVisuPHom(aP1,aP2,aDif));
+    mVP1.push_back(aP1);
+    mVEpi.push_back(aDif);
 }
 
 cVisuResidHom::cVisuResidHom
@@ -154,6 +231,26 @@ cVisuResidHom::cVisuResidHom
      {
          double aRes = mVRes[(aK*(mVRes.size()-1))/aNbPerc];
          fprintf(aFp,"Res[%f]=%f\n",(aK*100.0)/aNbPerc,aRes);
+     }
+
+     Polynome2dReal aPol = Polynome2dReal::PolyDegre1(0,0,0);
+
+     for (int aDeg=0 ; aDeg<4 ; aDeg++)
+     {
+         std::vector<double> aVEr;
+         for (int aKp=0 ; aKp<int(mVP1.size()) ; aKp++)
+             aVEr.push_back(ElAbs(mVEpi[aKp]-aPol(mVP1[aKp])));
+         std::sort(aVEr.begin(),aVEr.end());
+
+         for (int aK=0 ; aK<=aNbPerc ; aK++)
+         {
+             double aRes = aVEr[(aK*(aVEr.size()-1))/aNbPerc];
+             fprintf(stdout,"Res[%f]=%f\n",(aK*100.0)/aNbPerc,aRes);
+         }
+
+         getchar();
+
+         aPol = LeasquarePol2DFit(aDeg,mVP1,mVEpi,aPol,0.75,2.0,0.5);
      }
 }
 

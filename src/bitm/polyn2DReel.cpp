@@ -183,6 +183,12 @@ Polynome2dReal Polynome2dReal::operator / (REAL aVal) const
 
 
 
+Polynome2dReal Polynome2dReal::PolyDegre1(REAL aV0,REAL aVX, REAL aVY)
+{
+    Polynome2dReal aRes(1,1.0);
+    aRes.SetDegre1(0,0,0,true);
+    return aRes;
+}
 
 
 
