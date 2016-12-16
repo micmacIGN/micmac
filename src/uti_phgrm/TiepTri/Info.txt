@@ -54,5 +54,7 @@ Pouvoir lancer en mode visuel avec un triangle specifique
 
 (2) Test avec chantier de 84 mages, mm3d Tapas Figee
 
+(3) Si Tapas ou Campari dit -nan sur 1 img, meme si ce img a homologue avec autre => pas affluence sur resultat, juste le statistique n'est pas content. Parce que il n'y a pas pts homo dans 1/2 sens
+
 
 

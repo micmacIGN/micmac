@@ -39,7 +39,7 @@ int TiepTriPrl_main(int argc,char ** argv)
         std::string aNameFile =  aVXML[aK];
         if (ELISE_fp::exist_file(aDirXML+aNameFile))
         {
-            std::string aCom = MM3DStr + " TestLib TiepTri " + aDirXML + aNameFile + " " + anOri + " " + KeyMasqIm;
+            std::string aCom = MM3DStr + " TestLib TiepTri " + aDirXML + aNameFile + " " + anOri + " KeyMasqIm=" + KeyMasqIm;
             aLCom.push_back(aCom);
             if (nInt != 0)
                 std::cout << aCom << "\n\n";
