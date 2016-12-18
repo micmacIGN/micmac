@@ -85,6 +85,7 @@ bool  cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 }
 
 cIntTieTriInterest cImMasterTieTri::GetPtsInteret()
+//==== Servir que pour version interactive =====//
 {
    ELISE_ASSERT(mW!=0,"Cannot get point without window");
    Clik aClik = mW->clik_in();

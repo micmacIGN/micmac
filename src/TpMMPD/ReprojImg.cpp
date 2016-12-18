@@ -51,6 +51,10 @@ Header-MicMac-eLiSe-25/06/2007*/
  *
  * */
 
+
+cInterfChantierNameManipulateur * aICNM = 0;
+
+
 //color value class
 class cReprojColor
 {
@@ -70,79 +74,186 @@ class cReprojColor
 
 //----------------------------------------------------------------------------
 
-//Color image
-//TODO: use std::vector<Im2DGen *>  aV = aFTmp.ReadVecOfIm();
-class cReprojColorImg
+// Image class
+class cImReprojImg
 {
   public:
-    cReprojColorImg(std::string filename);
-    cReprojColorImg(Pt2di sz);
-    ~cReprojColorImg();
+    cImReprojImg
+    (
+      std::string aOriImage,
+      std::string aNameImage,
+      std::string aDepthImageName, //xml file
+      std::string aAutoMaskImageName
+    );
+    cImReprojImg(Pt2di sz);
+    ~cImReprojImg();
     cReprojColor get(Pt2di pt);
     cReprojColor getr(Pt2dr pt);
+    float getDepth(Pt2dr pt); //< pt in full image coord
+    float getMask(Pt2di pt); //< pt in full image coord
     void set(Pt2di pt, cReprojColor color);
     void write(std::string filename);
-    Pt2di sz(){return mImgSz;}
+
+    Pt2di getSize(){return mImgSz;}
+    Pt2di getDepthSize(){return mDepthSz;}
+    Pt2di getMaskSize(){return mMaskSz;}
+    TIm2D<U_INT1,INT4> * getMaskIm(){return mMaskImageT;}
+    TIm2D<REAL4,REAL8> * getDepthIm(){return mDepthImageT;}
+    CamStenope         * getCam(){return mCam;}
+    TIm2D<U_INT1,INT4> * getImgGT(){return mImgGT;}
+    Im2D<U_INT1,INT4> * getImgG(){return mImgG;}
+    int getDepthScale(){return mDepthScale;}
+    int getMaskScale(){return mMaskScale;}
   protected:
-    std::string mImgName;
-    Pt2di mImgSz;
-    Im2D<U_INT1,INT4> *mImgR;
-    Im2D<U_INT1,INT4> *mImgG;
-    Im2D<U_INT1,INT4> *mImgB;
+    std::string        mNameImage;//reference image name
+    std::string        mDepthImageName;//reference image DEM file name ("" if unknown)
+    std::string        mAutoMaskImageName; //automask image filename ("" if unknown)
+    CamStenope         * mCam;
+    Pt2di              mImgSz;
+    Pt2di              mDepthSz;
+    Pt2di              mMaskSz;
+    Im2D<U_INT1,INT4>  *mImgR;
+    Im2D<U_INT1,INT4>  *mImgG; //only green if b&w
+    Im2D<U_INT1,INT4>  *mImgB;
+    Im2D<REAL4,REAL8>  *mDepthImage;
+    Im2D<U_INT1,INT4>  *mMaskImage;
     TIm2D<U_INT1,INT4> *mImgRT;
-    TIm2D<U_INT1,INT4> *mImgGT;
+    TIm2D<U_INT1,INT4> *mImgGT; //only green if b&w
     TIm2D<U_INT1,INT4> *mImgBT;
+    TIm2D<REAL4,REAL8> *mDepthImageT;
+    TIm2D<U_INT1,INT4> *mMaskImageT;
+    int mDepthScale;
+    int mMaskScale;
+    double mOrigineAlti;
+    double mResolutionAlti;
 };
 
-cReprojColorImg::cReprojColorImg(std::string filename) :
-  mImgName(filename)
+cImReprojImg::cImReprojImg
+(std::string aOriImage,
+  std::string aNameImage,
+  std::string aDepthImageName,
+  std::string aAutoMaskImageName
+) : mNameImage(aNameImage),mDepthImageName(aDepthImageName),
+    mAutoMaskImageName(aAutoMaskImageName),mCam(0),mImgSz(0,0),
+    mDepthSz(0,0),mMaskSz(0,0),
+    mImgR(0),mImgG(0),mImgB(0),mDepthImage(0),mMaskImage(0),
+    mImgRT(0),mImgGT(0),mImgBT(0),mDepthImageT(0),mMaskImageT(0),
+    mDepthScale(1),mMaskScale(1),mOrigineAlti(0),mResolutionAlti(1)
 {
-    Tiff_Im mTiffImg(mImgName.c_str());
-    mImgSz.x=mTiffImg.sz().x;
-    mImgSz.y=mTiffImg.sz().y;
+    std::cout<<"Create image from "<<aNameImage<<"."<<std::endl;
+
+    std::cout<<"Read orientation from "<<aOriImage<<".\n";
+    mCam=CamOrientGenFromFile(aOriImage,aICNM);
+
+    Tiff_Im tiffImg(aNameImage.c_str());
+    mImgSz.x=tiffImg.sz().x;
+    mImgSz.y=tiffImg.sz().y;
+    if (tiffImg.nb_chan()==3)
+    {
+        mImgR=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
+        mImgG=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
+        mImgB=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
+        mImgRT=new TIm2D<U_INT1,INT4>(*mImgR);
+        mImgGT=new TIm2D<U_INT1,INT4>(*mImgG);
+        mImgBT=new TIm2D<U_INT1,INT4>(*mImgB);
+        ELISE_COPY(mImgR->all_pts(),tiffImg.in(),Virgule(mImgR->out(),mImgG->out(),mImgB->out()));
+    }else{
+        mImgG=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
+        mImgGT=new TIm2D<U_INT1,INT4>(*mImgG);
+        ELISE_COPY(mImgG->all_pts(),tiffImg.in(),mImgG->out());
+    }
+    if (aDepthImageName!="")
+    {
+        //read xml
+        cFileOriMnt aDepthXML = StdGetFromPCP(aDepthImageName, FileOriMnt);
+        mOrigineAlti=aDepthXML.OrigineAlti();
+        mResolutionAlti=aDepthXML.ResolutionAlti();
+        std::cout<<"Read depth from "<<aDepthXML.NameFileMnt()<<".\n";
+        Tiff_Im tiffDepthImg(aDepthXML.NameFileMnt().c_str());
+        mDepthSz.x=tiffDepthImg.sz().x;
+        mDepthSz.y=tiffDepthImg.sz().y;
+        mDepthScale=tiffImg.sz().x/tiffDepthImg.sz().x;
+        mDepthImage=new Im2D<REAL4,REAL8>(tiffDepthImg.sz().x,tiffDepthImg.sz().y);
+        mDepthImageT=new TIm2D<REAL4,REAL8>(*mDepthImage);
+        ELISE_COPY(mDepthImage->all_pts(),tiffDepthImg.in(),mDepthImage->out());
+    }
+    if (aAutoMaskImageName!="")
+    {
+        std::cout<<"Read mask from "<<aAutoMaskImageName<<".\n";
+        Tiff_Im tiffMaskImg(aAutoMaskImageName.c_str());
+        mMaskSz.x=tiffMaskImg.sz().x;
+        mMaskSz.y=tiffMaskImg.sz().y;
+        mMaskScale=tiffImg.sz().x/tiffMaskImg.sz().x;
+        mMaskImage=new Im2D<U_INT1,INT4>(tiffMaskImg.sz().x,tiffMaskImg.sz().y);
+        mMaskImageT=new TIm2D<U_INT1,INT4>(*mMaskImage);
+        ELISE_COPY(mMaskImage->all_pts(),tiffMaskImg.in(),mMaskImage->out());
+    }
+}
+
+cImReprojImg::cImReprojImg(Pt2di sz) :
+    mNameImage(""),mDepthImageName(""),
+    mAutoMaskImageName(""),mCam(0),mImgSz(sz),
+    mImgR(0),mImgG(0),mImgB(0),mDepthImage(0),mMaskImage(0),
+    mImgRT(0),mImgGT(0),mImgBT(0),mDepthImageT(0),mMaskImageT(0),
+    mDepthScale(1),mMaskScale(1)
+{
+    std::cout<<"Create image from size."<<std::endl;
     mImgR=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
     mImgG=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
     mImgB=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
     mImgRT=new TIm2D<U_INT1,INT4>(*mImgR);
     mImgGT=new TIm2D<U_INT1,INT4>(*mImgG);
     mImgBT=new TIm2D<U_INT1,INT4>(*mImgB);
-    ELISE_COPY(mImgR->all_pts(),mTiffImg.in(),Virgule(mImgR->out(),mImgG->out(),mImgB->out()));
 }
 
 
-cReprojColorImg::cReprojColorImg(Pt2di sz) :
-  mImgName(""),
-  mImgSz(sz)
+
+cImReprojImg::~cImReprojImg()
 {
-    mImgR=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
-    mImgG=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
-    mImgB=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
-    mImgRT=new TIm2D<U_INT1,INT4>(*mImgR);
-    mImgGT=new TIm2D<U_INT1,INT4>(*mImgG);
-    mImgBT=new TIm2D<U_INT1,INT4>(*mImgB);
+    if (mImgR) delete mImgR;
+    if (mImgG) delete mImgG;
+    if (mImgB) delete mImgB;
+    if (mImgR) delete mImgRT;
+    if (mImgGT) delete mImgGT;
+    if (mImgBT) delete mImgBT;
+    if (mDepthImageT) delete mDepthImageT;
+    if (mMaskImageT) delete mMaskImageT;
 }
 
-cReprojColorImg::~cReprojColorImg()
+float cImReprojImg::getDepth(Pt2dr pt)
 {
-    delete mImgR;
-    delete mImgG;
-    delete mImgB;
-    delete mImgRT;
-    delete mImgGT;
-    delete mImgBT;
+    if (!mDepthImageT) return NAN;
+    Pt2dr aPtDepth(((float)pt.x)/getDepthScale(),
+                          ((float)pt.y)/getDepthScale());
+    if (aPtDepth.x>getDepthSize().x-1.0001)
+        aPtDepth.x=getDepthSize().x-1.0001;
+    if (aPtDepth.y>getDepthSize().y-1.0001)
+        aPtDepth.y=getDepthSize().y-1.0001;
+
+    return 1.0/(mDepthImageT->getr(aPtDepth)*mResolutionAlti + mOrigineAlti);
 }
 
-cReprojColor cReprojColorImg::get(Pt2di pt)
+
+float cImReprojImg::getMask(Pt2di pt)
+{
+    if (!mMaskImageT) return NAN;
+    Pt2di aPtMask(((float)pt.x)/getMaskScale(),
+                          ((float)pt.y)/getMaskScale());
+
+    return mMaskImageT->get(aPtMask);
+}
+
+cReprojColor cImReprojImg::get(Pt2di pt)
 {
     return cReprojColor(mImgRT->get(pt),mImgGT->get(pt),mImgBT->get(pt));
 }
 
-cReprojColor cReprojColorImg::getr(Pt2dr pt)
+cReprojColor cImReprojImg::getr(Pt2dr pt)
 {
     return cReprojColor(mImgRT->getr(pt),mImgGT->getr(pt),mImgBT->getr(pt));
 }
 
-void cReprojColorImg::set(Pt2di pt, cReprojColor color)
+void cImReprojImg::set(Pt2di pt, cReprojColor color)
 {
     U_INT1 ** aImRData=mImgR->data();
     U_INT1 ** aImGData=mImgG->data();
@@ -153,140 +264,74 @@ void cReprojColorImg::set(Pt2di pt, cReprojColor color)
 }
 
 
-void cReprojColorImg::write(std::string filename)
+void cImReprojImg::write(std::string filename)
 {
-    ELISE_COPY
-    (
-        mImgR->all_pts(),
-        Virgule( mImgR->in(), mImgG->in(), mImgB->in()) ,
-        Tiff_Im(
-            filename.c_str(),
-            mImgSz,
-            GenIm::u_int1,
-            Tiff_Im::No_Compr,
-            Tiff_Im::RGB,
-            Tiff_Im::Empty_ARG ).out()
-    );
+    if (mImgR)
+        ELISE_COPY
+        (
+            mImgR->all_pts(),
+            Virgule( mImgR->in(), mImgG->in(), mImgB->in()) ,
+            Tiff_Im(
+                filename.c_str(),
+                mImgSz,
+                GenIm::u_int1,
+                Tiff_Im::No_Compr,
+                Tiff_Im::RGB,
+                Tiff_Im::Empty_ARG ).out()
+        );
+    else
+        ELISE_COPY
+        (
+            mImgR->all_pts(),
+            mImgG->in(),
+            Tiff_Im(
+                filename.c_str() ).out()
+        );
 
-/*    ELISE_COPY
-    (
-        mChannels[0]->all_pts(),
-        Virgule( mChannels[0]->in(), mChannels[1]->in(), mChannels[2]->in()) ,
-        Tiff_Im(
-            i_filename.c_str(),
-            Pt2di( mWidth, mHeight ),
-            GenIm::u_int1,
-            Tiff_Im::No_Compr,
-            colorSpace,
-            Tiff_Im::Empty_ARG ).out()
-    );*/
 }
+
 
 
 //----------------------------------------------------------------------------
 
-// RefImage class
-class cRefImReprojImg
-{
-  public:
-    cRefImReprojImg
-    (
-      std::string aOriIn,std::string aDepthRefImageName,
-      std::string aNameRefImage,
-      std::string * aAutoMaskImageName,
-      cInterfChantierNameManipulateur * aICNM
-    );
-    Pt2di getSize(){return mRefImgSz;}
-    TIm2D<U_INT1,INT4> * getAutoMask(){return & mAutoMaskImageT;}
-    TIm2D<REAL4,REAL8> * getDepth(){return & mDepthImageT;}
-    CamStenope         * getCam(){return mCamRef;}
-  protected:
-    std::string        mNameRefImage;//reference image name
-    std::string        mDepthRefImageName;//reference image DEM file name
-    std::string        mAutoMaskImageName; //automask image filename
-    CamStenope         * mCamRef;
-    std::string        mNameRefImageTif;
-    Tiff_Im            mRefTiffIm;
-    Pt2di              mRefImgSz;
-    TIm2D<REAL4,REAL8> mDepthImageT;
-    Im2D<REAL4,REAL8>  mDepthImage;
-    TIm2D<U_INT1,INT4> mAutoMaskImageT;
-    Im2D<U_INT1,INT4>  mAutoMaskImage;
-};
 
 
-cRefImReprojImg::cRefImReprojImg
-      ( std::string aOriIn,std::string aDepthRefImageName,
-        std::string aNameRefImage,
-        std::string * aAutoMaskImageName,
-        cInterfChantierNameManipulateur * aICNM):
-  mNameRefImage     (aNameRefImage),
-  mDepthRefImageName(aDepthRefImageName),
-  mAutoMaskImageName(*aAutoMaskImageName),
-  mNameRefImageTif  (NameFileStd(mNameRefImage,3,false,true,true,true)),
-  mRefTiffIm        (mNameRefImageTif.c_str()),
-  mRefImgSz         (mRefTiffIm.sz()),
-  mDepthImageT      (mRefImgSz),
-  mDepthImage       (mDepthImageT._the_im),
-  mAutoMaskImageT   (mRefImgSz),
-  mAutoMaskImage    (mAutoMaskImageT._the_im)
-{
-  std::string aOriRef=aOriIn+"Orientation-"+mNameRefImage+".xml";
-  mCamRef=CamOrientGenFromFile(aOriRef,aICNM);
-
-  std::cout<<"DepthRefImageName: "<<mDepthRefImageName<<std::endl;
-  Tiff_Im aRefDepthTiffIm(mDepthRefImageName.c_str());
-  Pt2di aRefDepthImgSz=aRefDepthTiffIm.sz();
-  ELISE_ASSERT(mRefImgSz==aRefDepthImgSz,"Depth image is not at DeZoom 1!");
-  std::cout<<"mRefTiffIm.nb_chan(): "<<mRefTiffIm.nb_chan()<<std::endl;
-
-  ELISE_COPY(mDepthImage.all_pts(),aRefDepthTiffIm.in(),mDepthImage.out());
-
-  //automask part
-  if (EAMIsInit(aAutoMaskImageName))
-  {
-    std::cout<<"AutoMaskImageName: "<<mAutoMaskImageName<<std::endl;
-    Tiff_Im aAutoMaskTiffIm(mAutoMaskImageName.c_str());
-    Pt2di aAutoMaskImgSz=aAutoMaskTiffIm.sz();
-    ELISE_ASSERT(mRefImgSz==aAutoMaskImgSz,"AutoMask image is not at DeZoom 1!");
-    ELISE_COPY(mAutoMaskImage.all_pts(),aAutoMaskTiffIm.in(),mAutoMaskImage.out());
-  }else{
-    //if no automask given, suppose it's all white
-    std::cout<<"No AutoMask"<<std::endl;
-    ELISE_COPY(mAutoMaskImage.all_pts(),1,mAutoMaskImage.out());
-  }
+//TODO: use std::vector<Im2DGen *>  aV = aFTmp.ReadVecOfIm();
 
 
-}
+
+//----------------------------------------------------------------------------
+
 
 //----------------------------------------------------------------------------
 
 int ReprojImg_main(int argc,char ** argv)
 {
-    std::string aOriIn;//Orientation containing all images and calibrations
+    std::string aOriRefImage;//Orientation of ref image
     std::string aNameRefImage;//reference image name
+    std::string aOriRepImage;//Orientation of rep image
     std::string aNameRepImage;//name of image to reproject
-    std::string aDepthRefImageName;//reference image DEM file name
-    std::string aAutoMaskImageName; //automask image filename
+    std::string aDepthRefImageName="";//reference image DEM file name
+    std::string aDepthRepImageName="";//reference image DEM file name
+    std::string aAutoMaskImageName="";//automask image filename
+    bool aKeepLum=false;//Juste change colors, not luminosity
 
     ElInitArgMain
     (
     argc,argv,
     //mandatory arguments
-    LArgMain()  << EAMC(aOriIn, "Directory of input orientation",  eSAM_IsExistDirOri)
-                << EAMC(aDepthRefImageName, "Reference DEM filename", eSAM_IsExistFile)
+    LArgMain()  << EAMC(aOriRefImage, "Orientation of reference image (xml)",  eSAM_IsExistDirOri)
+                << EAMC(aDepthRefImageName, "Reference DEM filename (xml)", eSAM_IsExistFile)
                 << EAMC(aNameRefImage, "Reference image name",  eSAM_IsExistFile)
+                << EAMC(aOriRepImage, "Orientation of image to reproject (xml)",  eSAM_IsExistFile)
                 << EAMC(aNameRepImage, "Name of image to reproject",  eSAM_IsExistFile),
     //optional arguments
     LArgMain()  << EAM(aAutoMaskImageName,"AutoMask",true,"AutoMask filename", eSAM_IsExistFile)
+                << EAM(aDepthRepImageName,"DepthRepImage",true,"Image to reproject DEM file (xml), def=not used", eSAM_IsExistFile)
+                << EAM(aKeepLum,"KeepLum",true,"Keep original picture luminosity (only for colorization), def=false", eSAM_IsExistFile)
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
-
-    MakeFileDirCompl(aOriIn);
-    std::cout<<"OrinIn dir: "<<aOriIn<<std::endl;
-    //get orientation file name
-    std::string aOriRep=aOriIn+"Orientation-"+aNameRepImage+".xml";
 
     // Initialize name manipulator & files
     std::string aDir;
@@ -295,18 +340,17 @@ int ReprojImg_main(int argc,char ** argv)
     std::cout<<"Working dir: "<<aDir<<std::endl;
     std::cout<<"RefImgTmpName: "<<aRefImgTmpName<<std::endl;
 
-    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-    cRefImReprojImg aRefIm(aOriIn,aDepthRefImageName,aNameRefImage,&aAutoMaskImageName,aICNM);
-
-    CamStenope * aCamRep=CamOrientGenFromFile(aOriRep,aICNM);
+    std::string aNameRefImageTif = NameFileStd(aNameRefImage,1,false,true,true,true);
+    cImReprojImg aRefIm(aOriRefImage,aNameRefImageTif,aDepthRefImageName,aAutoMaskImageName);
 
     std::string aNameRepImageTif = NameFileStd(aNameRepImage,3,false,true,true,true);
-    cReprojColorImg aRepIm(aNameRepImageTif.c_str());
-    Pt2di aRepImgSz=aRepIm.sz();
+    cImReprojImg aRepIm(aOriRepImage,aNameRepImageTif,aDepthRepImageName,"");
+    Pt2di aRepImgSz=aRepIm.getSize();
 
     //Output image
-    cReprojColorImg aOutputIm(aRefIm.getSize());
+    cImReprojImg aOutputIm(aRefIm.getSize());
 
     //Mask of reprojected image
     Im2D_U_INT1 aMaskRepIm(aRefIm.getSize().x,aRefIm.getSize().y);
@@ -322,8 +366,10 @@ int ReprojImg_main(int argc,char ** argv)
               //create 2D point in Ref image
               Pt2di aPImRef(anX,anY);
 
+              float originalLum=aRefIm.getImgGT()->get(aPImRef);
               //check if depth exists
-              if (aRefIm.getAutoMask()->get(aPImRef)!=1)
+              if ((aRefIm.getMaskIm())&&
+                      (aRefIm.getMask(aPImRef)!=1))
               {
                 aOutputIm.set(aPImRef,black);
                 aMaskRepImData[anY][anX]=0;
@@ -331,74 +377,107 @@ int ReprojImg_main(int argc,char ** argv)
               }
 
               //get depth in aRefDepthTiffIm
-              float aProf=1/aRefIm.getDepth()->get(aPImRef);
+              float aProf=aRefIm.getDepth((Pt2dr)aPImRef);
               //get 3D point
               Pt3dr aPGround=aRefIm.getCam()->ImEtProf2Terrain((Pt2dr)aPImRef,aProf);
               //project 3D point into Rep image
-              Pt2dr aPImRep=aCamRep->R3toF2(aPGround);
+              Pt2dr aPImRep=aRepIm.getCam()->R3toF2(aPGround);
               //check that aPImRep is in Rep image
 
-              //debug
-              /*if ((anX==2115)&&(anY==912))
-              {
-                std::cout<<"For pixel ("<<anX<<" "<<anY<<"): z="<<aProf<<std::endl;
-                std::cout<<"Reprojection is ("<<aPImRep.x<<" "<<aPImRep.y<<")"<<std::endl;
-              }*/
-
-              //TODO: create output mask?
+              //output mask
               if ((aPImRep.x<0) ||(aPImRep.x>=aRepImgSz.x-1) ||(aPImRep.y<0) ||(aPImRep.y>=aRepImgSz.y-1))
               {
-                aOutputIm.set(aPImRef,black);
-                aMaskRepImData[anY][anX]=0;
-                continue;
+                  cReprojColor color(originalLum,originalLum,originalLum);
+                  aOutputIm.set(aPImRef,color);
+                  aMaskRepImData[anY][anX]=0;
+                  continue;
+              }
+
+              //std::cout<<aPImRef<<" "<<" "<<aProf<<" "<<aPGround<<" "<<aPImRep<<std::endl;
+              
+              if (aRepIm.getDepthIm())
+              {
+                  //get depth in aRepDepthTiffIm
+                  float anOtherProf=aRepIm.getDepth(aPImRep);
+
+                  //check distance between 3d point and Rep image
+                  float sqrDistRep=
+                          (aPGround.x-aRefIm.getCam()->VraiOpticalCenter().x)*(aPGround.x-aRefIm.getCam()->VraiOpticalCenter().x)
+                          +(aPGround.y-aRefIm.getCam()->VraiOpticalCenter().y)*(aPGround.y-aRefIm.getCam()->VraiOpticalCenter().y)
+                          +(aPGround.z-aRefIm.getCam()->VraiOpticalCenter().z)*(aPGround.z-aRefIm.getCam()->VraiOpticalCenter().z);
+
+                  //check of occlusion (DEM in Rep < 90% of real depth)
+                  if (anOtherProf*anOtherProf<sqrDistRep*0.9)
+                  {
+                      cReprojColor color(originalLum,originalLum,originalLum);
+                      aOutputIm.set(aPImRef,color);
+                      aMaskRepImData[anY][anX]=0;
+                      continue;
+                  }
               }
 
               //get color of this point in Rep image
-              cReprojColor color=aRepIm.getr(aPImRep);
+              cReprojColor otherColor=aRepIm.getr(aPImRep);
+              
+              if (aKeepLum)
+              {
+                float otherRedOnGreen=otherColor.r()/(otherColor.g()+0.01);
+                float otherBlueOnGreen=otherColor.b()/(otherColor.g()+0.01);
+                float newRed=otherRedOnGreen*originalLum;
+                if (newRed>255) newRed=255;
+                float newGreen=originalLum;
+                float newBlue=otherBlueOnGreen*originalLum;
+                if (newBlue>255) newBlue=255;
+                otherColor.setR(newRed);
+                otherColor.setG(newGreen);
+                otherColor.setB(newBlue);
+              }
+              
               //copy this color into output image
-              aOutputIm.set(aPImRef,color);
+              aOutputIm.set(aPImRef,otherColor);
               aMaskRepImData[anY][anX]=255;
          }
      }
 
-    std::cout<<"Write reproj image..."<<std::endl;
-    aOutputIm.write(aNameRefImage+"_"+aNameRepImage+".tif");
-    Tiff_Im::CreateFromIm(aMaskRepIm,aNameRefImage+"_"+aNameRepImage+"_mask.tif");//TODO: make a xml file? convert to indexed colors?
-    //TODO: create image difference!
-    //use MM2D for image analysis
+     std::string outFileName=std::string("Reproj_")+aNameRefImage+"_"+aNameRepImage;
+     std::cout<<"Write reproj image: "<<outFileName<<std::endl;
+     aOutputIm.write(outFileName+".tif");
+     Tiff_Im::CreateFromIm(aMaskRepIm,outFileName+"_mask.tif");//TODO: make a xml file? convert to indexed colors?
+     //TODO: create image difference!
+     //use MM2D for image analysis
 
-    return EXIT_SUCCESS;
+     return EXIT_SUCCESS;
 }
 
 /* Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant a la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+Ce logiciel est regi par la licence CeCILL-B soumise au droit francais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+de la licence CeCILL-B telle que diffusee par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
+En contrepartie de l'accessibilite au code source et des droits de copie,
+de modification et de redistribution accordes par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitee.  Pour les memes raisons,
+seule une responsabilite restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concedants successifs.
 
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+A cet egard  l'attention de l'utilisateur est attiree sur les risques
+associes au chargement,  a l'utilisation,  a la modification et/ou au
+developpement et a la reproduction du logiciel par l'utilisateur etant
+donne sa specificite de logiciel libre, qui peut le rendre complexe a
+manipuler et qui le reserve donc a des developpeurs et des professionnels
+avertis possedant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invites a charger  et  tester  l'adequation  du
+logiciel a leurs besoins dans des conditions permettant d'assurer la
+securite de leurs systèmes et ou de leurs donnees et, plus generalement,
+a l'utiliser et l'exploiter dans les memes conditions de securite.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+Le fait que vous puissiez acceder a cet en-tete signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepte les
 termes.
 Footer-MicMac-eLiSe-25/06/2007/*/

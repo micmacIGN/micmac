@@ -197,7 +197,7 @@ int VisuResiduHom(int argc,char ** argv)
     (
         argc,argv,
         LArgMain()  << EAMC(aIm1,"Name first image")
-                    << EAMC(aIm2,"Name first image")
+                    << EAMC(aIm2,"Name 2nd image")
                     << EAMC(Aero,"Orientation", eSAM_IsExistDirOri),
         LArgMain()
                     << EAM(aSetHom,"SH",true,"Set Homologue")
