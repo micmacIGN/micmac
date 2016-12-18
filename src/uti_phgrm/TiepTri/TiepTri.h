@@ -86,57 +86,6 @@ class cOneTriMultiImRechCorrel;
 extern bool BugAC;
 
 
-/*
-template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
-{
-    public :
-         cCutAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW ) :
-             cAutoCorrelDir<TypeIm> (anIm,aP0,aRho,aSzW),
-             mNbPts                 (SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho)).size())
-         {
-         }
-         void ResetIm(const TypeIm & anIm) { cAutoCorrelDir<TypeIm>::ResetIm(anIm); }
-
-        bool  AutoCorrel(const Pt2di & aP0,double aRejetInt,double aRejetReel,double aSeuilAccept)
-         {
-               this->mP0 = aP0;
-               double aCorrMax = -2;
-               int    aKMax = -1;
-               for (int aK=0 ; aK<mNbPts ; aK++)
-               {
-                    double aCor = this->ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW);
-// if (BugAC) std::cout << "CCcccI " << aCor << " " << this->mTIm.sz() << "\n";
-                    if (aCor > aSeuilAccept) return true;
-                    if (aCor > aCorrMax)
-                    {   
-                        aCorrMax = aCor;
-                        aKMax = aK;
-                    }
-               }
-               ELISE_ASSERT(aKMax!=-1,"AutoCorrel no K");
-               if (aCorrMax < aRejetInt) return false;
-
-               Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
-
-               double aStep0 = 1/this->mRho;
-               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);
-
-               if (aRes1.y>aSeuilAccept)   return true;
-               if (aRes1.y<aRejetReel)     return false;
-
-               Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
-
-               return aRes2.y > aCorrMax;
-         }
-
-    private :
-         std::vector<Pt2di> mVPt;
-         int mNbPts;
-};
-*/
-
-
-
 
 //  =====================================
 
@@ -160,6 +109,7 @@ class cParamAppliTieTri
         int      mNumInterpolDense; 
         bool     mDoRaffImInit;
         int      mNbByPix;
+        int      mSzWEnd;
 };
 
 
@@ -401,6 +351,30 @@ class cImSecTieTri : public cImTieTri
 
 //  ====================================  Correlation ==========================
 
+class cLSQAffineMatch
+{
+    public :
+        cLSQAffineMatch
+        (
+            Pt2dr              aPC1,
+            const tImTiepTri & aI1,
+            const tImTiepTri & aI2,
+            ElAffin2D          anAf1To2
+        );
+
+        bool OneIter(int aNbW,double aStep,bool AffineRadiom);
+        const ElAffin2D &    Af1To2() const;
+
+    private :
+        Pt2dr         mPC1;
+        tTImTiepTri   mTI1;
+        tTImTiepTri   mTI2;
+        ElAffin2D     mAf1To2;
+        double        mA;
+        double        mB;
+};
+
+
 // inline const double & MyDeCorrel() {static double aR=-2.0; return aR;}
 
 
@@ -547,7 +521,7 @@ cResulRechCorrel<int> TT_RechMaxCorrelLocale
 cResulRechCorrel<double> TT_RechMaxCorrelMultiScaleBilin
                       (
                              const tTImTiepTri & aIm1,
-                             const Pt2di & aP1,
+                             const Pt2dr & aP1,
                              const tTImTiepTri & aIm2,
                              const Pt2dr & aP2,
                              const int   aSzW
@@ -584,6 +558,8 @@ class cHomolPackTiepTri
         cInterfChantierNameManipulateur * mICNM;
         ElPackHomologue mPack;
 };
+
+
 
 
 

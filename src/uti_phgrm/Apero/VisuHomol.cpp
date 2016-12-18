@@ -38,77 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
 
-
-Polynome2dReal LeasquarePol2DFit
-               (
-                    int                           aDegre,
-                    const std::vector<Pt2dr> &    aVP,
-                    const std::vector<double>     aVals,
-                    const std::vector<double> *   aVPds
-               )
-{
-    Polynome2dReal aRes(aDegre,1.0);
-    int aNbP =aVP.size();
-    int aNbM = aRes.NbMonome();
-    ELISE_ASSERT(int(aVals.size())==aNbP,"Size inc in LeasquarePol2DFit");
-    ELISE_ASSERT((aVPds==0) || (int(aVPds->size())==aNbP),"Size inc in LeasquarePol2DFit");
-
-    L2SysSurResol aSys(aNbM);
-    std::vector<double> aVCoef(aNbM,0.0);
-
-    for (int aKpt=0 ; aKpt< aNbP ; aKpt++)
-    {
-        for (int aKMon=0 ; aKMon< aNbM ; aKMon++)
-        {
-              const Monome2dReal &  aMon = aRes.KthMonome(aKMon);
-              aVCoef[aKMon] = aMon(aVP[aKpt]);
-              double aPds = aVPds ?  (*aVPds)[aKMon] : 1.0;
-              aSys.AddEquation(aPds,&(aVCoef[0]),aVals[aKpt]);
-        }
-    }
-    bool Ok;
-    Im1D_REAL8  aSol = aSys.GSSR_Solve(&Ok);
-    double * aD= aSol.data();
-    
-    return Polynome2dReal::FromVect(std::vector<double>(aD,aD+aNbM),1.0);
-}
-
-
-Polynome2dReal LeasquarePol2DFit
-               (
-                    int                           aDegre,
-                    const std::vector<Pt2dr> &    aVP,
-                    const std::vector<double>     aVals,
-                    const Polynome2dReal &        aLastPol,
-                    int                           aPropEr,
-                    double                        aFactEr,
-                    double                        aErMin
-               )
-{
-    int aNbPts = aVP.size();
-    std::vector<double>  aVErr;
-    for (int aKp=0 ; aKp<aNbPts ; aKp++)
-    {
-        Pt2dr aPt = aVP[aKp];
-        double anEr = ElAbs(aVals[aKp]-aLastPol(aPt));
-        aVErr.push_back(anEr);
-    }
-    std::vector<double> aVErSorted =  aVErr;
-    double aErStd = KthValProp(aVErSorted,aPropEr);
-
-   
-    std::vector<double>  aVPds;
-    for (int aKp=0 ; aKp<aNbPts ; aKp++)
-    {
-        double aPds = ((aVErr[aKp]+aErMin) / aErStd) * aFactEr;
-        aPds = 1 / (1 + ElSquare(aPds));
-        aVPds.push_back(aPds);
-    }
-    return LeasquarePol2DFit(aDegre,aVP,aVals,&aVPds);
-}
-
-
-
 class cVisuPHom
 {
      public :
@@ -223,20 +152,27 @@ cVisuResidHom::cVisuResidHom
      std::sort(mVRes.begin(),mVRes.end());
 
      FILE * aFp = FopenNN(aPrefOut+"-Stat.txt","w","VisuHom");
+/*
      fprintf(aFp,"NbPts= %d\n",int(mVRes.size()));
      fprintf(aFp,"================= PERC  : RESIDU ==================\n");
-     int aNbPerc = 20;
       
      for (int aK=0 ; aK<=aNbPerc ; aK++)
      {
          double aRes = mVRes[(aK*(mVRes.size()-1))/aNbPerc];
          fprintf(aFp,"Res[%f]=%f\n",(aK*100.0)/aNbPerc,aRes);
      }
+*/
 
+     int aNbPerc = 20;
      Polynome2dReal aPol = Polynome2dReal::PolyDegre1(0,0,0);
 
-     for (int aDeg=0 ; aDeg<4 ; aDeg++)
+     for (int aDeg=0 ; aDeg<6 ; aDeg++)
      {
+         fprintf(aFp,"================= PERC  : RESIDU ==================\n");
+         if (aDeg==0)
+              fprintf(aFp,"    Initial     \n");
+         else
+              fprintf(aFp,"    Degree=%d     \n",aDeg-1);
          std::vector<double> aVEr;
          for (int aKp=0 ; aKp<int(mVP1.size()) ; aKp++)
              aVEr.push_back(ElAbs(mVEpi[aKp]-aPol(mVP1[aKp])));
@@ -245,13 +181,11 @@ cVisuResidHom::cVisuResidHom
          for (int aK=0 ; aK<=aNbPerc ; aK++)
          {
              double aRes = aVEr[(aK*(aVEr.size()-1))/aNbPerc];
-             fprintf(stdout,"Res[%f]=%f\n",(aK*100.0)/aNbPerc,aRes);
+             fprintf(aFp,"Res[%f]=%f\n",(aK*100.0)/aNbPerc,aRes);
          }
-
-         getchar();
-
          aPol = LeasquarePol2DFit(aDeg,mVP1,mVEpi,aPol,0.75,2.0,0.5);
      }
+     fclose(aFp);
 }
 
 

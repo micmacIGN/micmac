@@ -113,6 +113,28 @@ ElAffin2D ElAffin2D::operator * (const ElAffin2D & sim2) const
            );
 
 }
+ElAffin2D ElAffin2D::operator + (const ElAffin2D & sim2) const 
+{
+    return ElAffin2D
+           (
+               mI00 + sim2.mI00,
+               mI10 + sim2.mI10,
+               mI01 + sim2.mI01
+           );
+
+}
+
+ElAffin2D ElAffin2D::CorrectWithMatch(Pt2dr aPt,Pt2dr aRes) const
+{
+    Pt2dr aGot = (*this) (aPt);
+
+    return ElAffin2D
+           (
+               mI00 + aRes-aGot,
+               mI10,
+               mI01
+           );
+}
 
 
 ElAffin2D ElAffin2D::inv () const

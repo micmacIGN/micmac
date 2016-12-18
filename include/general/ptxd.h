@@ -577,6 +577,7 @@ class ElAffin2D : public cElMap2D
 
          // idem sim Aff1 * Aff2 renvoie l'affinite e composee (celle z-> Aff1(Aff2(z)))
        ElAffin2D operator * (const ElAffin2D & sim2) const;
+       ElAffin2D operator + (const ElAffin2D & sim2) const;
        ElAffin2D inv() const;
 
        Pt2dr I00() const {return mI00;}
@@ -590,6 +591,8 @@ class ElAffin2D : public cElMap2D
 
        cElHomographie ToHomographie() const;
 
+       // Ajoute une trans pout que aPt -> aRes
+       ElAffin2D CorrectWithMatch(Pt2dr aPt,Pt2dr aRes) const;
 
      private :
 

@@ -43,8 +43,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 cParamAppliTieTri::cParamAppliTieTri():
    mDistFiltr         (TT_DefSeuilDensiteResul),
    mNumInterpolDense  (-1),
-   mDoRaffImInit      (true),
-   mNbByPix           (5)
+   mDoRaffImInit      (false),
+   mNbByPix           (1),
+   mSzWEnd            (6)
 {
 }
 
@@ -65,6 +66,7 @@ int TiepTri_Main(int argc,char ** argv)
          LArgMain()  << EAMC(aFullNameXML, "Name XML for Triangu",  eSAM_IsPatFile)
                      << EAMC(anOri,        "Orientation dir"),
          LArgMain()   
+                      << EAM(aParam.mSzWEnd,  "SzWEnd",true,"SzW Final")
                       << EAM(aParam.mDistFiltr,"DistF",true,"Average distance between tie points")
                       << EAM(aParam.mNumInterpolDense,"IntDM",true," Interpol for Dense Match, -1=NONE, 0=BiL, 1=BiC, 2=SinC")
                       << EAM(aParam.mDoRaffImInit,"DRInit",true," Do refinement on initial images, instead of resampled")

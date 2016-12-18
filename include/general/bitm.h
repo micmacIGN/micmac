@@ -1505,6 +1505,27 @@ class Polynome2dReal
 };
 
 
+Polynome2dReal LeasquarePol2DFit
+               (
+                    int                           aDegre,
+                    const std::vector<Pt2dr> &    aVP,
+                    const std::vector<double>     aVals,
+                    const std::vector<double> *   aVPds
+               );
+Polynome2dReal LeasquarePol2DFit
+               (
+                    int                           aDegre,
+                    const std::vector<Pt2dr> &    aVP,
+                    const std::vector<double>     aVals,
+                    const Polynome2dReal &        aLastPol,
+                    double                        aPropEr,
+                    double                        aFactEr,
+                    double                        aErMin
+               );
+
+
+
+
             /***************************************/
             /*                                     */
             /*       FFT-FFT-FFT-FFT               */
