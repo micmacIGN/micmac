@@ -184,6 +184,14 @@ cVisuResidHom::cVisuResidHom
              fprintf(aFp,"Res[%f]=%f\n",(aK*100.0)/aNbPerc,aRes);
          }
          aPol = LeasquarePol2DFit(aDeg,mVP1,mVEpi,aPol,0.75,2.0,0.5);
+         //Dessiner fit avec cette polygone
+         cPlyCloud mPlyPolyN;
+         for (ElPackHomologue::iterator itP=mPack.begin() ; itP!=mPack.end() ; itP++)
+         {
+             double resFit = aPol(itP->P1());
+             mPlyPolyN.AddSphere(Pt3di(255,0,0),Pt3dr(itP->P1().x,itP->P1().y,resFit*1000),5,3);
+         }
+         mPlyPolyN.PutFile(aPrefOut+"-FitDeg" + ToString(aDeg) + ".ply");
      }
      fclose(aFp);
 }
