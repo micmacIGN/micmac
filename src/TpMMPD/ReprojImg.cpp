@@ -83,7 +83,8 @@ class cImReprojImg
       std::string aOriImage,
       std::string aNameImage,
       std::string aDepthImageName, //xml file
-      std::string aAutoMaskImageName
+      std::string aAutoMaskImageName,
+      int imageScale=1
     );
     cImReprojImg(Pt2di sz);
     ~cImReprojImg();
@@ -104,6 +105,7 @@ class cImReprojImg
     Im2D<U_INT1,INT4> * getImgG(){return mImgG;}
     int getDepthScale(){return mDepthScale;}
     int getMaskScale(){return mMaskScale;}
+    bool isInside(Pt2dr pt);
   protected:
     std::string        mNameImage;//reference image name
     std::string        mDepthImageName;//reference image DEM file name ("" if unknown)
@@ -126,19 +128,22 @@ class cImReprojImg
     int mMaskScale;
     double mOrigineAlti;
     double mResolutionAlti;
+    int mImageScale;
 };
 
 cImReprojImg::cImReprojImg
 (std::string aOriImage,
   std::string aNameImage,
   std::string aDepthImageName,
-  std::string aAutoMaskImageName
+  std::string aAutoMaskImageName,
+  int imageScale
 ) : mNameImage(aNameImage),mDepthImageName(aDepthImageName),
     mAutoMaskImageName(aAutoMaskImageName),mCam(0),mImgSz(0,0),
     mDepthSz(0,0),mMaskSz(0,0),
     mImgR(0),mImgG(0),mImgB(0),mDepthImage(0),mMaskImage(0),
     mImgRT(0),mImgGT(0),mImgBT(0),mDepthImageT(0),mMaskImageT(0),
-    mDepthScale(1),mMaskScale(1),mOrigineAlti(0),mResolutionAlti(1)
+    mDepthScale(1),mMaskScale(1),mOrigineAlti(0),mResolutionAlti(1),
+    mImageScale(imageScale)
 {
     std::cout<<"Create image from "<<aNameImage<<"."<<std::endl;
 
@@ -148,6 +153,7 @@ cImReprojImg::cImReprojImg
     Tiff_Im tiffImg(aNameImage.c_str());
     mImgSz.x=tiffImg.sz().x;
     mImgSz.y=tiffImg.sz().y;
+    std::cout<<"Image size: "<<mImgSz.x<<"x"<<mImgSz.y<<" (scale "<<mImageScale<<").\n";
     if (tiffImg.nb_chan()==3)
     {
         mImgR=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
@@ -172,7 +178,8 @@ cImReprojImg::cImReprojImg
         Tiff_Im tiffDepthImg(aDepthXML.NameFileMnt().c_str());
         mDepthSz.x=tiffDepthImg.sz().x;
         mDepthSz.y=tiffDepthImg.sz().y;
-        mDepthScale=tiffImg.sz().x/tiffDepthImg.sz().x;
+        mDepthScale=tiffImg.sz().x/tiffDepthImg.sz().x/mImageScale;
+        std::cout<<"DepthScale: "<<mDepthScale<<".\n";
         mDepthImage=new Im2D<REAL4,REAL8>(tiffDepthImg.sz().x,tiffDepthImg.sz().y);
         mDepthImageT=new TIm2D<REAL4,REAL8>(*mDepthImage);
         ELISE_COPY(mDepthImage->all_pts(),tiffDepthImg.in(),mDepthImage->out());
@@ -183,7 +190,7 @@ cImReprojImg::cImReprojImg
         Tiff_Im tiffMaskImg(aAutoMaskImageName.c_str());
         mMaskSz.x=tiffMaskImg.sz().x;
         mMaskSz.y=tiffMaskImg.sz().y;
-        mMaskScale=tiffImg.sz().x/tiffMaskImg.sz().x;
+        mMaskScale=tiffImg.sz().x/tiffMaskImg.sz().x/mImageScale;
         mMaskImage=new Im2D<U_INT1,INT4>(tiffMaskImg.sz().x,tiffMaskImg.sz().y);
         mMaskImageT=new TIm2D<U_INT1,INT4>(*mMaskImage);
         ELISE_COPY(mMaskImage->all_pts(),tiffMaskImg.in(),mMaskImage->out());
@@ -195,7 +202,7 @@ cImReprojImg::cImReprojImg(Pt2di sz) :
     mAutoMaskImageName(""),mCam(0),mImgSz(sz),
     mImgR(0),mImgG(0),mImgB(0),mDepthImage(0),mMaskImage(0),
     mImgRT(0),mImgGT(0),mImgBT(0),mDepthImageT(0),mMaskImageT(0),
-    mDepthScale(1),mMaskScale(1)
+    mDepthScale(1),mMaskScale(1),mImageScale(1)
 {
     std::cout<<"Create image from size."<<std::endl;
     mImgR=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
@@ -218,6 +225,16 @@ cImReprojImg::~cImReprojImg()
     if (mImgBT) delete mImgBT;
     if (mDepthImageT) delete mDepthImageT;
     if (mMaskImageT) delete mMaskImageT;
+}
+
+bool cImReprojImg::isInside(Pt2dr pt)
+{
+    return !(
+                (pt.x<0) ||
+                (pt.x*mImageScale>=mImgSz.x-1) ||
+                (pt.y<0) ||
+                (pt.y*mImageScale>=mImgSz.y-1)
+            );
 }
 
 float cImReprojImg::getDepth(Pt2dr pt)
@@ -245,16 +262,19 @@ float cImReprojImg::getMask(Pt2di pt)
 
 cReprojColor cImReprojImg::get(Pt2di pt)
 {
-    return cReprojColor(mImgRT->get(pt),mImgGT->get(pt),mImgBT->get(pt));
+    Pt2di pt2 = pt.mul(mImageScale);
+    return cReprojColor(mImgRT->get(pt2),mImgGT->get(pt2),mImgBT->get(pt2));
 }
 
 cReprojColor cImReprojImg::getr(Pt2dr pt)
 {
-    return cReprojColor(mImgRT->getr(pt),mImgGT->getr(pt),mImgBT->getr(pt));
+    Pt2dr pt2 = pt.mul(mImageScale);
+    return cReprojColor(mImgRT->getr(pt2),mImgGT->getr(pt2),mImgBT->getr(pt2));
 }
 
 void cImReprojImg::set(Pt2di pt, cReprojColor color)
 {
+    //no scale there, aImRData has the size of original image
     U_INT1 ** aImRData=mImgR->data();
     U_INT1 ** aImGData=mImgG->data();
     U_INT1 ** aImBData=mImgB->data();
@@ -314,6 +334,8 @@ int ReprojImg_main(int argc,char ** argv)
     std::string aDepthRefImageName="";//reference image DEM file name
     std::string aDepthRepImageName="";//reference image DEM file name
     std::string aAutoMaskImageName="";//automask image filename
+    std::string outFileName="Reproj.tif";//output image name
+    int aCoulourImgScale=1;//if color image is bigger than Ori
     bool aKeepLum=false;//Juste change colors, not luminosity
 
     ElInitArgMain
@@ -328,7 +350,9 @@ int ReprojImg_main(int argc,char ** argv)
     //optional arguments
     LArgMain()  << EAM(aAutoMaskImageName,"AutoMask",true,"AutoMask filename", eSAM_IsExistFile)
                 << EAM(aDepthRepImageName,"DepthRepImage",true,"Image to reproject DEM file (xml), def=not used", eSAM_IsExistFile)
-                << EAM(aKeepLum,"KeepLum",true,"Keep original picture luminosity (only for colorization), def=false", eSAM_IsExistFile)
+                << EAM(aKeepLum,"KeepLum",true,"Keep original picture luminosity (only for colorization), def=false")
+                << EAM(outFileName,"Out",true,"Output image name (tif), def=Reproj.tif")
+                << EAM(aCoulourImgScale,"CoulourImgScale",true,"CoulourImgScale (int, if color image is bigger than ori to reproject), def=1")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -346,8 +370,7 @@ int ReprojImg_main(int argc,char ** argv)
     cImReprojImg aRefIm(aOriRefImage,aNameRefImageTif,aDepthRefImageName,aAutoMaskImageName);
 
     std::string aNameRepImageTif = NameFileStd(aNameRepImage,3,false,true,true,true);
-    cImReprojImg aRepIm(aOriRepImage,aNameRepImageTif,aDepthRepImageName,"");
-    Pt2di aRepImgSz=aRepIm.getSize();
+    cImReprojImg aRepIm(aOriRepImage,aNameRepImageTif,aDepthRepImageName,"",aCoulourImgScale);
 
     //Output image
     cImReprojImg aOutputIm(aRefIm.getSize());
@@ -358,6 +381,9 @@ int ReprojImg_main(int argc,char ** argv)
     U_INT1 ** aMaskRepImData=aMaskRepIm.data();
 
     cReprojColor black(0,0,0);
+
+    std::cout<<"Reprojecting..."<<std::endl;
+
     //for each pixel of reference image,
      for (int anY=0 ; anY<aRefIm.getSize().y ; anY++)
      {
@@ -385,7 +411,8 @@ int ReprojImg_main(int argc,char ** argv)
               //check that aPImRep is in Rep image
 
               //output mask
-              if ((aPImRep.x<0) ||(aPImRep.x>=aRepImgSz.x-1) ||(aPImRep.y<0) ||(aPImRep.y>=aRepImgSz.y-1))
+
+              if (!aRepIm.isInside(aPImRep))
               {
                   cReprojColor color(originalLum,originalLum,originalLum);
                   aOutputIm.set(aPImRef,color);
@@ -439,8 +466,7 @@ int ReprojImg_main(int argc,char ** argv)
          }
      }
 
-     std::string outFileName=std::string("Reproj_")+aNameRefImage+"_"+aNameRepImage;
-     std::cout<<"Write reproj image: "<<outFileName<<std::endl;
+     std::cout<<"Write reproj image: "<<outFileName+".tif"<<std::endl;
      aOutputIm.write(outFileName+".tif");
      Tiff_Im::CreateFromIm(aMaskRepIm,outFileName+"_mask.tif");//TODO: make a xml file? convert to indexed colors?
      //TODO: create image difference!
