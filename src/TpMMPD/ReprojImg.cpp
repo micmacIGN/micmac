@@ -448,16 +448,31 @@ int ReprojImg_main(int argc,char ** argv)
               
               if (aKeepLum)
               {
-                float otherRedOnGreen=otherColor.r()/(otherColor.g()+0.01);
-                float otherBlueOnGreen=otherColor.b()/(otherColor.g()+0.01);
-                float newRed=otherRedOnGreen*originalLum;
-                if (newRed>255) newRed=255;
-                float newGreen=originalLum;
-                float newBlue=otherBlueOnGreen*originalLum;
-                if (newBlue>255) newBlue=255;
-                otherColor.setR(newRed);
-                otherColor.setG(newGreen);
-                otherColor.setB(newBlue);
+                  if (otherColor.g()<20)
+                  {
+                      float otherRedOnGreen=otherColor.r()-otherColor.g();
+                      float otherBlueOnGreen=otherColor.b()-otherColor.g();
+                      float newRed=otherRedOnGreen+originalLum;
+                      if (newRed>255) newRed=255;
+                      if (newRed<0) newRed=0;
+                      float newBlue=otherBlueOnGreen+originalLum;
+                      if (newBlue>255) newBlue=255;
+                      if (newBlue<0) newBlue=0;
+                      otherColor.setR(newRed);
+                      otherColor.setG(originalLum);
+                      otherColor.setB(newBlue);
+                  }else{
+                      float otherRedOnGreen=otherColor.r()/(otherColor.g()+0.01);
+                      float otherBlueOnGreen=otherColor.b()/(otherColor.g()+0.01);
+                      float newRed=otherRedOnGreen*(originalLum);
+                      if (newRed>255) newRed=255;
+                      float newGreen=originalLum;
+                      float newBlue=otherBlueOnGreen*(originalLum);
+                      if (newBlue>255) newBlue=255;
+                      otherColor.setR(newRed);
+                      otherColor.setG(newGreen);
+                      otherColor.setB(newBlue);
+                  }
               }
               
               //copy this color into output image
