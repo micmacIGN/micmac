@@ -1,0 +1,131 @@
+Prgram TiepTri:
+
+Faire triangulation, correlation par mesh.
+
+Fichier XML input: class cXml_TriAngulationImMaster
+		   class cXml_Triangle3DForTieP
+
+Structure XML input:
+ Chaque Img Master => 1 fichier XML
+ Dans fichier XML:
+   <NameMaster> Name Img Master
+   <NameSec>    Name Img 2nd (plusieur)
+   <Tri>
+      <P1> Point 3D sommet 1 du Tri
+      <P2> Point 3D sommet 2 du Tri
+      <P3> Point 3D sommet 3 du Tri
+      <NumImSec> Index du img 2nd pour correlation (index 			 correspondant avec list <NameSec>
+
+Creer cAppliTieTri: 
+ Creer img Master: cImMasterTieTri
+ Parcourir list img 2nd
+  Creer img 2nd: cImSecTieTri
+ Creer list voisin extrema mVoisExtr (TT_DIST_EXTREMA = 3pxl, pour decider si 1 point est 1 extrema local)
+ Creer list voisin homologue mVoisHom (TT_DIST_RECH_HOM = 12pxl, rayon de chercher point homologue dans img 2nd)
+ Creer interpolation pour corellation dense mInterpol (pour l'instant, Sinus)
+
+Appel method DoAllTri de cAppliTieTri:
+ Parcourir tout les triangle, dans chaque triangle:
+  Appel method DoOneTri:
+   Load triangle region in im master: Detect pts d'interet
+   Parcourir list img 2nd
+    Load triangle region in im 2nd.
+   Parcourir list point d'interet dans img master
+     Parcourir list img 2nd:
+      Correlation par RechHomPtsInteretBilin
+   Fimtrage spatial result de correlation tout les pt d'interet
+   Recherche homologue dense avec RechHomPtsDense
+      
+=======================================================================
+RechHomPtsInteretBilin:
+Recuperer list de voisinage de recherche homologue
+Parcourir la list de voisinage homologue
+ Pour chaque point, correlation par TT_RechMaxCorrelLocale (szW=3, step=2, szMax=6)
+ If result correl > TT_SEUIL_CORREL_1PIXSUR2 && pt correl nam trong masque img 2nd
+  Raffiner correlation par TT_RechMaxCorrelLocale (szW=6, step=1, szMax=6)
+
+========================================================================
+Ajout 13/12/2016:
+Les critere supplementaire pour choisir point d'interet robust sont heberger dans cPtOfCorrel.h
+
++++++====+++++ Analyse fonction cImTieTri::MakeInterestPoint +++++====+++++
+
+(1) Critere extrema 
+     
+    Implementation: fonction cImTieTri::IsExtrema
+    Examiner un point donné avec des voisin autour si 'est un point extrema (max/min) local
+    Les list de voisins	autour sont creer au moment de creer cAppliTieTri, avec rayon = TT_DIST_EXTREMA
+    Voir si valeur de tout les pts autour sont < ou > valeur de pt central
+    Fonction CmpValAndDec pour comparer val de 2 point 
+	Entrer value de PtCentral & PtVoisin => -1 si PtCentral < PtVoisin, 1 si l'inverse
+						-1 si 
+        (?????) À examiner en plus - pas encore comprendre programme
+    
+    
+       	
+(2) Critere FAST 
+
+   Implementation: class cFastCriterCompute && fonction FastQuality (dans cPtOfCorrel.h)
+   Critere basé sur fast detecteur : examiner les point autour pour choisir les pts plus contrasté.
+   2 critère à valider:
+
+     (a) TT_SeuilFastStd => un certain nombre de pts autour est > < seuil
+     (b) TT_SeuilFastCons => un certain nombre de pts autour est > < seuil && ce sont des pts consecutive
+
+   cFastCriterCompute est la class definir les points voisin pour calcul FAST
+   FastQuality est la fonction (hors class cFastCriterCompute), pour calcul 
+
+	(?????) À examiner en plus - pas encore comprendre programme, utilise les class et method difficile
+
+(3) Critere auto-corell 
+
+    (a) Implementation: class cCutAutoCorrelDir<Type_Img> && cAutoCorrelDir && fonction AutoCorrel (dans cPtOfCorrel.h)
+    (b) Examiner les imagette autour de l'imagette de pts d'interet.
+    (c) cAutoCorrelDir est class parent de cCutAutoCorrelDir. Il est creer quand cCutAutoCorrelDir est creer (dans le constructor)
+    (d) Pour chaque cImTieTri, on creer un cCutAutoCorrelDir avec:
+         Image => donne le Type
+         Point noyeau (0,0)     => avec Rho pour creer list voisin à examiner
+         Rho = TT_SZ_AUTO_COR/2 => taille radius pour examiner autour
+         SzW = TT_SZ_AUTO_COR   => taille fenetre corellation
+
+    (e) Pour 1 point d'interet à examiner :
+         Il y a 3 seuile : aRejetInt    = TT_SEUIL_CutAutoCorrel_INT
+                           aRejetReel   = TT_SEUIL_CutAutoCorrel_REEL
+                           aSeuilAccept = TT_SEUIL_AutoCorrel
+         Executer ICorrelOneOffset avec tout les imagette voisin pour chercher la maximal de correlation aCorrMax
+           ICorrelOneOffset est la fonction calcul valeur correlation entre 2 imagette (noyeau && voisin)
+         Si aCorrMax > aSeuilAccept => valid
+         Si aCorrMax < aRejetInt    => in-valid
+         Si aCorrMax se situe entre les 2 seuile => examiner la direction avec DoItOneStep en 2 étape.
+           La direction est l'angle theta de la voisin maximal
+           DoItOneStep est la fonction pour chercher max corellation en fonction d'angle (theta +- offset).
+           (Etape 1) : DoItOneStep avec offsset = 0.5/Rho, chercher la maximal de correl aRes1
+               Si aRes1 > aSeuilAccept  => valid
+               Si aRes1 < aRejetReel    => in-valid
+               Si aRes1 se situe entre les 2 seuile => (Etape 2)
+           (Etape 2) : DoItOneStep avec offsset = 0.2/Rho, chercher la maximal de correl aRes2
+	       Si aRes2 > aCorrMax  => valid
+               Si aRes2 < aCorrMax  => in-valid
+       
+(4) Filtrage spatial       
+    
+    Implementation: 1 morceaux de code à la fin de cImTieTri::MakeInterestPoint
+    Les point d'interet apres choisi par les 3 critere avant sont stocker dans list<cIntTieTriInterest> * aListPI
+    Chaque pts d'interet est sauvgarde sous avec :
+       Pt2di        mPt        => coordoneé
+       eTypeTieTri  mType      => eTTTNoLabel = 0, eTTTMax = 1,  eTTTMin = 2 (type pt d'interet, decider par IsExtrema)
+       double       mFastQual  => aFastQual.x + 2 * aFastQual.y (poids sur FAST consecutive (2)(b) plus que FAST Std (2)(a))
+       bool         mSelected  => si le pts est selecte ou rejet (decider apres Filtrage spatial)
+    => convertir ce std::list à std::vector aVI avant de filtrage (parce que vecteur peut facile trier,...), et puis reconvertir en list
+    Ce filtrage n'est appliqué que sur Image Master
+    Le rayon pour eliminer les pts autour 1 pts : aSeuilD2 = (TT_DefSeuilDensiteResul/TT_RatioFastFiltrSpatial).^2
+    TT_DefSeuilDensiteResul  = 50 pxl
+    TT_RatioFastFiltrSpatial = 4
+
+    
+    
+    
+    
+    
+    
+
