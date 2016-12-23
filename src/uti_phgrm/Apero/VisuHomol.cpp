@@ -165,7 +165,6 @@ cVisuResidHom::cVisuResidHom
 
      int aNbPerc = 20;
      Polynome2dReal aPol = Polynome2dReal::PolyDegre1(0,0,0);
-
      for (int aDeg=0 ; aDeg<6 ; aDeg++)
      {
          fprintf(aFp,"================= PERC  : RESIDU ==================\n");
@@ -184,6 +183,15 @@ cVisuResidHom::cVisuResidHom
              fprintf(aFp,"Res[%f]=%f\n",(aK*100.0)/aNbPerc,aRes);
          }
          aPol = LeasquarePol2DFit(aDeg,mVP1,mVEpi,aPol,0.75,2.0,0.5);
+         //Dessiner fit avec cette polygone
+         cPlyCloud mPlyPolyN;
+         Pt3di colorDeg(floor(rand()%256),floor(rand()%256),floor(rand()%256));
+         for (ElPackHomologue::iterator itP=mPack.begin() ; itP!=mPack.end() ; itP++)
+         {
+             double resFit = aPol(itP->P1());
+             mPlyPolyN.AddSphere(colorDeg,Pt3dr(itP->P1().x,itP->P1().y,resFit*1000),5,3);
+         }
+         mPlyPolyN.PutFile(aPrefOut+"-FitDeg" + ToString(aDeg) + ".ply");
      }
      fclose(aFp);
 }

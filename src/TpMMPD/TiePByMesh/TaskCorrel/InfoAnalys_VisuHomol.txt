@@ -1,0 +1,173 @@
+Program VisuRedHom:
+
+Utiliser pour visualiser residue des pts homologues entre 2 images. Ce sonts les residues de Ecart Epipolaire
+Cette command va dessiner en PLY 3D une plan image, position de point homologue et le residue répresente par Z
+Il sort aussi une fichier text, avec le "histogram" de residue (échantilonage sur les valeurs de residue trié))
+
+
+(1) Implementation : Dans /micmac/src/uti_phgrm/Apero/VisuHomol.cpp
+                      int VisuResiduHom(int argc,char ** argv)
+    main class pour le programme global : class cVisuResidHom
+
+
+(3) Dans class cVisuResidHom, il a recu:
+	    cBasicGeomCap3D *      mCam1;	=> CameraStenope de Img1. Ici il utilise cBasicGeomCap3D, c'est le parent de class CamStenope
+            cBasicGeomCap3D *      mCam2;
+            ElPackHomologue        mPack;	=> Pack homol entre 2 image
+            std::string            mPrefOut;	=> Le nom de fichier output
+            double                 mResol;	=> factor de Resolution pour faire le PLY avec plan image texture
+            Pt2di                  mSzIm1;	=> Taille Img1
+            Pt2di                  mSzResol;	=> Taille image dans le PLY : mSzIm1/mResol
+            Im2D_U_INT1            mImSsRes;	=> Image affiche dans PLY
+            cPlyCloud              mPlyC;	=> Fichier PLY. Utilise class cPlyCloud, class tres fort pour manipuler PLY
+            std::vector<double>    mVRes;	=> Residue aDif (epipolar ecart) de chaque cpl de pts homologue
+            std::vector<cVisuPHom> mVPH;	=> Des couple pts homologue affichier dans le PLY.
+						   Chaque couple defini par class cVisuPHom contient :
+							  double  mRes; => Epipolar Ecart aDif entre pts 1 et pts 2 (??? à expliquer)
+        						  Pt2dr   mP1;  => pts 1
+        						  Pt2dr   mP2;  => pts 2
+            std::vector<double>    mVEpi;
+            std::vector<Pt2dr>     mVP1;	=> Point pts 1 d'Img1 de chaque couple. Pour dessiner dans le PLY
+            bool                   mDoPly;	=> do PLY or not
+
+(4) Dans le constructor cVisuResidHom::cVisuResidHom
+    
+    (a) Tout le calcul d' ecart epypolaire et traitement principal sont ici.
+    (b) Re-echantillonage une image avec elise : => celle ci est utilisé pour affichier dans PLY
+    
+        Tiff_Im aTif(aIm1.c_str());	//image original
+        ELISE_COPY
+         (
+             mImSsRes.all_pts(),	//image re-ech (taille = origin_taille / mResol)
+             Max(0,Min(255,StdFoncChScale(aTif.in_proj(),Pt2dr(0,0),Pt2dr(mResol,mResol)))),  //prendre pxl dans origin, avec factor (pas) mResol
+             mImSsRes.out()
+         );
+         
+    (c) Acceder pixel (aX,aY), type Im2D : myIm2D.data()[aY][aX]
+    (d) Pour dessiner un point dans fichier PLY type cPlyCloud => AddPt(Pt3di(COLOR RGB),Pt3dr(my point));
+    (e) Pour sauvgarde PLY type cPlyCloud => PutFile(string filename)
+    (f) Apres calcul tout les residue de couple homol aDif par method AddPair :
+        Sauvgarde le PLY
+        Calcul le statistique et sauvgard dans fichier text:
+           On trie le vecteur de valeur de residue ascendent. ***===***IMPORTANT***===***
+           Echantilonner le residue aNbPerc (ici aNbPerc=20) fois sur le vecteur de resudue de tout les points
+           Ca veut dir qu'il ne sort pas tout les valeur de residue de tout les couple mais que 20 couple
+           Donc, regarde sur resultat, le dernier n'est pas compté (parce que c'est le residue de la point plus grand)
+           
+(5) Dans method cVisuResidHom::AddPair(const Pt2dr & aP1,const Pt2dr & aP2)
+
+    Pour calcul residue de chaque couple homol
+     
+    (a) Calcul Epipolair Ecarte aDif entre 2 point aP1 aP2 grace à ses 2 orientation d'image
+    (b) Réprésente ecart aDif*1000 de chaque point par la hauteur Z dans fichier ply
+    (c) Sauvgarde les couple homologue avec aDif (residue) correspondant
+
+(6) Estimer une coubre plan pour réprésent la tendance de résidue
+
+    Le but est estimer une Polynome pour réprésent la loi de la valeur de résidue par rapport à la position.
+    Si on voit le résidue (fichier PLY), on voit que c'est systematique (???)
+    
+    Implementation : fonction LeasquarePol2DFit dans VisuHomol
+    		     Utilise class Polynome2dReal (/micmac/include/general/bitm.h)
+
+    (a) class Polynome2dReal : 
+
+        (.) Un polynome peut déclarer par : 
+            Polynome2dReal (INT degree,REAL anAmpl); => Contient tous les monomes, avec un coeff 1.0
+
+        (.) Contient: 
+	    std::vector<Monome2dReal>  mMons; => les monomes, class Monome2dReal
+            std::vector<REAL>  mCoeff;	      => les coefficients
+
+            class Monome2dReal:
+			 INT mD0X; => degree de partie X
+         		 INT mD0Y; => degree de partie Y
+               (..)  Monome2dReal (INT d0X,INT d0Y,REAL ampl) => d0X : degree X, d0Y : degree Y
+
+	(.) Dans le constructor Polynome2dReal::Polynome2dReal(INT aDMax,REAL anAmpl)
+	       aDMax : degree max de la polynome
+
+	    Chaque degree de polynome va avoir (degree+1) monone (class Monome2dReal)
+
+	    => Polynome2dReal aRes(2,1.0) va avoir le forme de degree 2, et les coeff tout les monome = 1.0:
+	       
+			(const)   +          (y + x)          +         (x^2 + xy + y^2)
+			degree 0  +         degree 1          +              degree 2   
+            		Monm 0    + (Monm (0,1) + Monm (1,0)) + (Mon (2,0) + Mon (1,1) + Mon (0,2))
+
+    (b) Polynome2dReal aPol = Polynome2dReal::PolyDegre1(0,0,0); 
+	    => créer un polynome initial aPol, degree 1, tout coeff = 0
+		aPol = const + Ax + By
+
+    (b) Polynome2dReal LeasquarePol2DFit
+               	(
+                    int                           aDegre,
+                    const std::vector<Pt2dr> &    aVP,
+                    const std::vector<double>     aVals,
+                    const Polynome2dReal &        aLastPol,
+                    int                           aPropEr,	=> 0.75
+                    double                        aFactEr,	=> 2.0
+                    double                        aErMin	=> 0.5
+                )   
+
+	(.) Pour chaque degree (4 est maximal), appele cette fonction:
+		Calcul vecteur de poids  aVPds (??? - sert à quoi ?)
+
+		Estimer un polynom à cette degree
+			=> LeasquarePol2DFit(aDegre,aVP,aVals,&aVPds);
+
+	    Du coup, le polynome va être augmenté 1 dégree pour chaque iteration et être re-estimé.
+
+    (c) Polynome2dReal LeasquarePol2DFit
+               (
+                    int                           aDegre,	=> degree de polynome
+                    const std::vector<Pt2dr> &    aVP,		=> vecteur coordonee de pts (x,y)
+                    const std::vector<double>     aVals,	=> vecteur coordonee de valeur de résidue pour les pts aVP
+                    const std::vector<double> *   aVPds		=> vecteur de poids
+               )
+
+    	(.) Creer un polynom avec degree aDegre, coeff = 1
+	(.) Check cohérent entre aVP.size() && aVals.size() && aVPds.size()
+        (.) Declarer un Solveur d'equation L2SysSurResol aSys(aNbM); avec nombre d'inconnu = nb Monom
+        (.) On cherche coefficient de tout les Monome dans la polynome.
+	    
+            Par ex: 
+            Estimer un polynome à degree aDegre = 4 
+		=> const + Ax + By + Cx^2 + Dxy + Ey^2 + Fx^3 + Gx^2y + Hy^3 + Ixy^2 = aVals(x,y)
+            À estimer tout les coefficient (const,A,B,C,D,E,F,G,H,I)
+
+	    On former une system equation:
+
+	      |	aCoeff[x, y, x^2, xy, y^2, x^3, x^2y, y^3, xy^2] | |const|    | aB = aVals(x,y) |
+	      |		...					 | |  A  |    |		        |
+	      |		...					 | |  B  |    |     ...         |
+	      |	    total  aVP.size() equation  		 | |  C  |    |                 |
+	      |		...					 | |  D  |  = |     ...         |
+	      |		...					 | |  E  |    |                 |
+	      |		...					 | |  F  |    |                 |
+	      |		...					 | |  G  |    |     ...         |
+	      |		...					 | |  H  |    |                 |
+	      |	aCoeff[x, y, x^2, xy, y^2, x^3, x^2y, y^3, xy^2] | |  I	 |    |aB = aVals(x',y')|
+
+	    À donner dans System equation aSys:
+                Chaque equation correspondant avec point (x,y) contient : 
+		 Coefficient d'equation aCoeff pour chaque point (x, y, x^2, xy, y^2, x^3, x^2y, y^3, xy^2) 
+		 Valeur aVals (residue de point (x,y))
+	
+ 	    
+
+
+        
+
+
+
+    
+		
+		   
+
+		
+            
+
+    
+    
+    
