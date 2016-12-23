@@ -284,6 +284,30 @@ double cInterpolBilineaire<TypeEl>::IL_GetVal(TypeEl ** aTab,const Pt2dr &  aP) 
 }
 
 template <class TypeEl>
+Pt3dr cInterpolBilineaire<TypeEl>::GetValDer(TypeEl ** aTab,const Pt2dr &  aP) const
+{
+    INT xo   = round_down(aP.x) ;
+    INT yo   = round_down(aP.y) ;
+    REAL  px1 = aP.x - xo;
+    REAL  py1 = aP.y - yo;
+    REAL  px0 =  1.0 -px1;
+    REAL  py0 =  1.0 -py1;
+    TypeEl * l0 = aTab[yo]+xo;
+    TypeEl * l1 = aTab[yo+1]+xo;
+
+    return Pt3dr
+           (
+                  py0 * (l0[1]-l0[0]) +  py1 * (l1[1]-l1[0]),
+                  px0 * (l1[0]-l0[0]) +  px1 * (l1[1]-l0[1]),
+                  py0 * (px0*l0[0]+ px1*l0[1])
+                + py1 * (px0*l1[0]+ px1*l1[1])
+            );
+}
+
+
+
+
+template <class TypeEl>
 double cInterpolBilineaire<TypeEl>::GetVal(TypeEl ** aTab,const Pt2dr &  aP) const
 {
     return IL_GetVal(aTab,aP);

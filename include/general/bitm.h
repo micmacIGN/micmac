@@ -1929,6 +1929,7 @@ class cInterpolBilineaire : public cInterpolateurIm2D<TypeEl>
          double GetVal(TypeEl ** aTab,const Pt2dr &  aP) const ;
          virtual int  SzKernel() const;
          virtual void  GetVals(TypeEl ** aTab,const Pt2dr *  aP,double *,int Nb) const;
+         virtual Pt3dr GetValDer(TypeEl ** aTab,const Pt2dr &  aP) const ;
    private :
 };
 

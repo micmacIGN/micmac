@@ -45,6 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../TpMMPD/TiePByMesh/Fast.h"
 // Header du header
 class cHomolPackTiepTri;
+class cParamAppliTieTri;
 class cAppliTieTri;
 class cImTieTri;
 class cImMasterTieTri;
@@ -52,6 +53,9 @@ class cImSecTieTri;
 template<class Type> class cResulRechCorrel;
 template<class Type> class cResulMultiImRechCorrel;
 class cOneTriMultiImRechCorrel;
+class cIntTieTriInterest;
+class cLinkImTT;
+
 
 #define TT_DefCorrel -2.0
 #define TT_MaxCorrel 1.0
@@ -84,8 +88,12 @@ class cOneTriMultiImRechCorrel;
 
 
 extern bool BugAC;
+extern bool USE_SCOR_CORREL;
 
 
+
+
+//  =====================================
 
 //  =====================================
 
@@ -110,6 +118,7 @@ class cParamAppliTieTri
         bool     mDoRaffImInit;
         int      mNbByPix;
         int      mSzWEnd;
+        int      mNivLSQM;
 };
 
 
@@ -229,6 +238,17 @@ class cIntTieTriInterest
 };
 
 
+class cLinkImTT
+{
+      public :
+         cImTieTri * mIm1;
+         cImTieTri * mIm2;
+         bool        mLnkActif;
+      private :
+};
+
+
+
 class cImTieTri
 {
       public :
@@ -294,6 +314,7 @@ class cImTieTri
            int                           mNum;
            cFastCriterCompute *          mFastCC;
            cCutAutoCorrelDir<tTImTiepTri> mCutACD;
+           bool mLoaded;
 };
 
 class cImMasterTieTri : public cImTieTri
@@ -362,16 +383,36 @@ class cLSQAffineMatch
             ElAffin2D          anAf1To2
         );
 
-        bool OneIter(int aNbW,double aStep,bool AffineRadiom);
+        bool OneIter(tInterpolTiepTri *,int aNbW,double aStep,bool AffineGeom,bool AffineRadiom);
         const ElAffin2D &    Af1To2() const;
 
     private :
+        void CalcRect(tInterpolTiepTri *,double aStepTop);
+        void AddEqq(L2SysSurResol & aSys,const Pt2dr &PIm1,const Pt2dr & aPC1);
+
+
         Pt2dr         mPC1;
+        Pt2dr         mPInfIm1;
+        Pt2dr         mPSupIm1;
+        Pt2dr         mPInfIm2;
+        Pt2dr         mPSupIm2;
         tTImTiepTri   mTI1;
+        tElTiepTri**  mData1;
         tTImTiepTri   mTI2;
+        tElTiepTri**  mData2;
         ElAffin2D     mAf1To2;
         double        mA;
         double        mB;
+        bool          mAffineGeom;
+        bool          mAffineRadiom;
+        double        mCoeff[10];
+        int           NumAB;
+        int           NumTr;
+        int           NumAffGeom;
+        int           NumAfRad;
+        tInterpolTiepTri * mInterp;
+        double        mSomDiff;
+
 };
 
 
@@ -476,7 +517,7 @@ class cOneTriMultiImRechCorrel
 
 
 
-double TT_CorrelBasique
+Pt2dr TT_CorrelBasique
                              (
                                 const tTImTiepTri & Im1,
                                 const Pt2di & aP1,
@@ -498,7 +539,7 @@ cResulRechCorrel<int> TT_RechMaxCorrelBasique
                       );
 
 
-double TT_CorrelBilin
+Pt2dr TT_CorrelBilin
        (
                const tTImTiepTri & Im1,
                const Pt2di & aP1,

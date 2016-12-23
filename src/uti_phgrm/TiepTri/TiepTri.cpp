@@ -40,12 +40,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "TiepTri.h"
 
+
 cParamAppliTieTri::cParamAppliTieTri():
    mDistFiltr         (TT_DefSeuilDensiteResul),
    mNumInterpolDense  (-1),
    mDoRaffImInit      (false),
    mNbByPix           (1),
-   mSzWEnd            (6)
+   mSzWEnd            (6),
+   mNivLSQM           (-1)
 {
 }
 
@@ -60,6 +62,7 @@ int TiepTri_Main(int argc,char ** argv)
    std::vector<int> aNumSel;
    std::string      aKeyMasqIm;
    cParamAppliTieTri aParam;
+   bool              UseABCorrel = false;
    ElInitArgMain
    (
          argc,argv,
@@ -70,6 +73,7 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aParam.mDistFiltr,"DistF",true,"Average distance between tie points")
                       << EAM(aParam.mNumInterpolDense,"IntDM",true," Interpol for Dense Match, -1=NONE, 0=BiL, 1=BiC, 2=SinC")
                       << EAM(aParam.mDoRaffImInit,"DRInit",true," Do refinement on initial images, instead of resampled")
+                      << EAM(aParam.mNivLSQM,"LSQC",true,"Test LSQ,-1 None (Def), Flag 1=>Affine Geom, Flag 2=>Affin Radiom")
                       << EAM(aParam.mNbByPix,"NbByPix",true," Number of point inside one pixel")
                       << EAM(aKeyMasqIm,"KeyMasqIm",true,"Key for masq, Def=NKS-Assoc-STD-Masq, set NONE or key with NONE result")
 
@@ -78,7 +82,13 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aNivInterac,  "Interaction",true,"0 none,  2 step by step")
                       << EAM(aPtsSel,  "PSelectT",true,"for selecting triangle")
                       << EAM(aNumSel,  "NumSelIm",true,"for selecting imade")
+                      << EAM(UseABCorrel,  "UseABCorrel",true,"Tuning use correl in mode A*v1+B=v2 ")
    );
+
+   if ((aParam.mNivLSQM>=0) || UseABCorrel)
+   {
+      USE_SCOR_CORREL = false;
+   }
 
    std::string aDir,aNameXML;
 

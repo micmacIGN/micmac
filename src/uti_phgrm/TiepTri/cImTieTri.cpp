@@ -70,6 +70,7 @@ cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum
 
 bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
+    mLoaded = false;
     if (
                (!mCam->PIsVisibleInImage(aTri.P1()))
             || (!mCam->PIsVisibleInImage(aTri.P2()))
@@ -179,6 +180,7 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
          // mW->clik_in();
     }
+    mLoaded = true;
     return true;
 }
 

@@ -109,7 +109,10 @@ cAppliTieTri::cAppliTieTri
 
 
    mInterpolBilin = new cInterpolBilineaire<tElTiepTri>;
-   mInterpolBicub = new cTplCIKTabul<tElTiepTri,tElTiepTri>(10,8,-0.5);
+
+   cCubicInterpKernel * aBic = new cCubicInterpKernel(-0.5);
+   // mInterpolBicub = new cTplCIKTabul<tElTiepTri,tElTiepTri>(10,8,-0.5);
+   mInterpolBicub = new cTabIM2D_FromIm2D<tElTiepTri>(aBic,1000,false);
 
 
 }
@@ -207,6 +210,9 @@ void cAppliTieTri::PutInGlobCoord(cResulMultiImRechCorrel<double> & aRMIRC)
 
 void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
 {
+    for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
+    {
+    }
 
  // if (505!=aKT) return;
 
@@ -239,7 +245,12 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
               cIntTieTriInterest aPI= mMasIm->GetPtsInteret();
               for (int aKIm=0 ; aKIm<int(mImSecLoaded.size()) ; aKIm++)
               {
-                  mImSecLoaded[aKIm]->RechHomPtsInteretBilin(aPI,mNivInterac);  //1pxl/2 -> pxl entier-> sub pxl
+                  cResulRechCorrel<double> aRes =mImSecLoaded[aKIm]->RechHomPtsInteretBilin(aPI,mNivInterac);  //1pxl/2 -> pxl entier-> sub pxl
+                  if (aRes.IsInit())
+                  {
+                     mImSecLoaded[aKIm]->RechHomPtsDense(aPI.mPt,aRes);
+                  }
+  
               }
          }
     }

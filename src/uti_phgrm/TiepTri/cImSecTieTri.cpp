@@ -207,6 +207,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
     */
 
     cResulRechCorrel<int> aCRCMax;
+    double aCorMax = -2; // Uniquement pour affichage
     for (int aKH=0 ; aKH<int(aVH.size()) ; aKH++)
     {
         Pt2di aPV = aP0+aVH[aKH];
@@ -220,6 +221,9 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
 
            int aSzRech = TT_DemiFenetreCorrel;
            cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,TT_DemiFenetreCorrel/2,2,aSzRech);
+           
+
+           aCorMax = ElMax(aCRCLoc.mCorrel,aCorMax);
 
 // std::cout << "PT CORREL " << aCRCLoc.mPt - aPV << " " << aCRCLoc.mCorrel << "\n";
            if (
@@ -249,7 +253,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
     if (! aCRCMax.IsInit())
     {
         if (aNivInter>=2)
-            std::cout  << "- NO POINT for Correl Int\n";
+            std::cout  << "- NO POINT for Correl Int , Correl=" <<  aCorMax << "\n";
        // return cResulRechCorrel<double>(Pt2dr(aCRCMax.mPt),aCRCMax.mCorrel);
        return cResulRechCorrel<double>(Pt2dr(aCRCMax.mPt),TT_DefCorrel);
     }
@@ -276,7 +280,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
                                         mTImReech,
                                         aPIm2,
                                         6
-                                    );
+                                    ).x;
                       if (aC>aCorrelMax)
                       {
                          aCorrelMax = aC;
@@ -319,7 +323,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
         cLSQAffineMatch aMatchM2S(Pt2dr(aP0),mMaster->mImInit,mImInit,anAffOpt);
         for (int aK=0 ; aK<8 ; aK++)
         {
-            bool aOk = aMatchM2S.OneIter(6,1,false);
+            bool aOk = aMatchM2S.OneIter(mAppli.Interpol(),6,1,false,false);
         }
         anAffOpt = aMatchM2S.Af1To2();
         Pt2dr aNewP2 =  anAffOpt(Pt2dr(aP0));
@@ -360,6 +364,9 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
     tTImTiepTri aImSec =   mAppli.mDoRaffImInit ? mTImInit    : mTImReech ;
 
     int aSzWE = mAppli.mSzWEnd;
+    double aPrecInit = (mAppli.mNivLSQM >=0) ? 1/4.0 : 1/8.0;
+    double aPrecCible = (mAppli.NivInterac() >=2) ?  1e-3 : ((mAppli.mNivLSQM >=0) ? 1/16.0 : 1/128.0);
+    int aNbByPix = (mAppli.mNivLSQM >=0) ? 1 : mAppli.mNbByPix;
     cResulRechCorrel<double> aRes2 =  TT_MaxLocCorrelDS1R
                                       (
                                            mAppli.Interpol(),
@@ -369,13 +376,69 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
                                            aImSec,
                                            aAffPred(aPIn.mPt),
                                            aSzWE,  // SzW
-                                           mAppli.mNbByPix,
-                                           0.125,   // Step0
-                                           1.0/ 128.0
+                                           aNbByPix,
+                                           aPrecInit,
+                                           aPrecCible
                                        );
     if (mAppli.NivInterac() >=2)
     {
        std::cout << "AFFINE " << aPIn.mCorrel << " => " << aRes2.mCorrel << " ; " << aPIn.mPt << " " << mAffSec2Mas(aRes2.mPt) << "\n"; 
+
+       std::cout << "HHHH " << USE_SCOR_CORREL << " " << (mAppli.mNumInterpolDense==0) << "\n";
+    }
+
+    if (mAppli.mNivLSQM >=0)
+    {
+        // ElAffin2D anAffOpt =  ElAffin2D::trans(aRes2.mPt - mAffMas2Sec(Pt2dr(aP0)) ) * mAffMas2Sec;
+        Pt2dr aP0Init = Pt2dr(aP0);
+        if (mAppli.NivInterac() >=2)
+        {
+           Pt2dr aNoise = Pt2dr(NRrandC(),NRrandC()) * 0.25;
+           std::cout << "SIMUL PERTURB = " << aNoise << "\n";
+           aP0Init = aP0Init +  aNoise;
+        }
+        ElAffin2D anAffOpt =  mAffMas2Sec.CorrectWithMatch(aP0Init,aRes2.mPt);
+        cLSQAffineMatch aMatchM2S(Pt2dr(aP0),mMaster->mImInit,mImInit,anAffOpt);
+        bool aOk= true;
+        bool AffGeom   = ((mAppli.mNivLSQM  & 1) !=0);
+        bool AffRadiom = ((mAppli.mNivLSQM  & 2) !=0);
+        
+        for (int aK=0 ; aK<8 ; aK++)
+        {
+            Pt2dr aLastSol =  aMatchM2S.Af1To2()(Pt2dr(aP0));
+            aOk = aMatchM2S.OneIter
+                  (
+                      mAppli.Interpol(),
+                      aSzWE,
+                      1.0/mAppli.mNbByPix,
+                      AffGeom,
+                      AffRadiom
+                  );
+            Pt2dr aCurSol = aMatchM2S.Af1To2()(Pt2dr(aP0));
+            if (aOk  && (mAppli.NivInterac() >=2))
+            {
+                if (aK==0)
+                    std::cout << "#############################################\n";
+                std::cout << "DVar=" << euclid(aCurSol-aLastSol)  << " D2Lim=" << euclid(aRes2.mPt-aLastSol) << "\n";
+            }
+            aLastSol = aCurSol;
+        }
+        aRes2.mPt = aMatchM2S.Af1To2()(Pt2dr(aP0));
+
+        // Tentative inverse
+/*
+        if (1)
+        {
+             ElAffin2D anAff1To2 = aMatchM2S.Af1To2();
+             ElAffin2D anAffRec = anAff1To2.inv();
+             Pt2dr aPC2 = aMatchM2S.Af1To2()(Pt2dr(aP0));
+             cLSQAffineMatch aMatchM2SRec(aPC2,mImInit,mMaster->mImInit,anAffRec);
+             Box2dr aBox1(Pt2dr(0,0),Pt2dr(1,1));
+             Box2dr aImBox1 = aBox1.BoxImage(anAff1To2);
+                 
+        }
+*/
+    
     }
 
     if (0) //  (!  mAppli.mDoRaffImInit)
@@ -391,8 +454,8 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
                                            Pt2dr(aP0This),
                                            mMaster->mTImInit,
                                            aAffPredInv(aP0This),
-                                           aSzWE,  // SzW
-                                           mAppli.mNbByPix,
+                                           aSzWE* mAppli.mNbByPix,  // SzW
+                                           1.0/ mAppli.mNbByPix,
                                            0.25,   // Step0
                                            1.0/ 128.0
                                        );
@@ -460,7 +523,41 @@ bool cImSecTieTri::InMasqReech(const Pt2di & aP) const
    return mTMasqReech.get(aP,0);
 }
 
-// RECORD mm3d TestLib TiepTri XML_TiepTri/BIN_010-0117_14576019050_image_024_001_01313.thm.tif.xml Ori-TOrg/  NumSelIm=[15] IntDM=2 DRInit=1 NbByPix=1
+
+
+// mm3d TestLib TiepTri XML_TiepTri/BIN_010-0117_14576019050_image_024_001_01313.thm.tif.xml Ori-TOrg/  NumSelIm=[15] IntDM=2 DRInit=1 
+// Res[50.000000]=0.032987
+
+
+// mm3d TestLib TiepTri XML_TiepTri/BIN_010-0117_14576019050_image_024_001_01313.thm.tif.xml Ori-TOrg/  NumSelIm=[15] IntDM=2 DRInit=1 UseABCorrel=1
+// Res[50.000000]=0.034954
+
+
+// mm3d TestLib TiepTri XML_TiepTri/BIN_010-0117_14576019050_image_024_001_01313.thm.tif.xml Ori-TOrg/  NumSelIm=[15] IntDM=2 DRInit=1 LSQC=0
+// Res[50.000000]=0.035157
+
+
+// mm3d TestLib TiepTri XML_TiepTri/BIN_010-0117_14576019050_image_024_001_01313.thm.tif.xml Ori-TOrg/  NumSelIm=[15] IntDM=2 DRInit=1 LSQC=1
+// Res[50.000000]=0.032076
+
+
+// mm3d TestLib TiepTri XML_TiepTri/BIN_010-0117_14576019050_image_024_001_01313.thm.tif.xml Ori-TOrg/  NumSelIm=[15] IntDM=2 DRInit=1 LSQC=2
+// Res[50.000000]=0.034815
+
+// mm3d TestLib TiepTri XML_TiepTri/BIN_010-0117_14576019050_image_024_001_01313.thm.tif.xml Ori-TOrg/  NumSelIm=[15] IntDM=2 DRInit=1 LSQC=3
+// Res[50.000000]=0.032437
+
+
+// mm3d TestLib TiepTri XML_TiepTri/BIN_010-0117_14576019050_image_024_001_01313.thm.tif.xml Ori-TOrg/  NumSelIm=[15] IntDM=2 DRInit=1 LSQC=1 NbByPix=3
+
+// Res[50.000000]=   0.031831 
+
+
+// mm3d VisuRedHom BIN_010-0117_14576019050_image_024_001_01313.thm.tif  BIN_010-0116_14576019035_image_024_001_01312.thm.tif  Ori-TOrg/  SH=_TiepTri
+
+// Ss Rec => 0.035157
+// Av Rec => 0.034966
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
