@@ -575,6 +575,8 @@ int  NuageBascule_main(int argc,char ** argv)
          cArgBacule anArgBasc;
          anArgBasc.mDynEtir = 50.0;
 
+std::cout << "AAAAAAAAAaa " << AutoClipIn << "\n";
+
          if  (EAMIsInit(&aBoxIn))
          {
                anArgBasc.mBoxClipIn = new Box2di(aBoxIn);
@@ -582,7 +584,7 @@ int  NuageBascule_main(int argc,char ** argv)
          else if (AutoClipIn)
          {
                anArgBasc.mBoxClipIn = new Box2di(BoxEnglobMasq(aDirIn + aNuageIn.Image_Profondeur().Val().Masq()));
-               std::cout << "BoxClipIn " << anArgBasc.mBoxClipIn->_p0 << anArgBasc.mBoxClipIn->_p1;
+               std::cout << "BoxClipIn " << anArgBasc.mBoxClipIn->_p0 << anArgBasc.mBoxClipIn->_p1 << "\n";
          }
          anArgBasc.mAutoResize = AutoResize;
 
@@ -593,6 +595,7 @@ int  NuageBascule_main(int argc,char ** argv)
 
 
          cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,aDirIn,NameWithoutDir(aNameRes),anArgBasc);
+
 
          if (aN)
          {

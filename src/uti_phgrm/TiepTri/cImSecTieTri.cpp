@@ -225,7 +225,15 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
 
            aCorMax = ElMax(aCRCLoc.mCorrel,aCorMax);
 
-// std::cout << "PT CORREL " << aCRCLoc.mPt - aPV << " " << aCRCLoc.mCorrel << "\n";
+
+           if (0 && (aCRCLoc.mCorrel>0.8))
+           {
+              std::cout << "IIIII " << aCRCLoc.mCorrel 
+                        << " M=" << InMasqReech(aCRCLoc.mPt) 
+                        << " D=" << euclid(aCRCLoc.mPt - aPV) <<"\n";
+           }
+
+
            if (
                       (aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2) 
                    && InMasqReech(aCRCLoc.mPt) 
@@ -238,6 +246,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
                // aCRCLoc.mPt = aPV+ aCRCLoc.mPt;  // Contient la coordonnee directe dans Im2
 
 
+// std::cout << "GGGGgggggggggggggg " << euclid(aCRCLoc.mPt - aPV)  << "\n";
                if (euclid(aCRCLoc.mPt - aPV) < TT_SEUIl_DIST_Extrema_Entier)
                   aCRCMax.Merge(aCRCLoc);
            }
@@ -380,6 +389,11 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
                                            aPrecInit,
                                            aPrecCible
                                        );
+    if (!  mAppli.mDoRaffImInit)
+    {
+       aRes2.mPt = mAffMas2Sec(aRes2.mPt);
+    }
+
     if (mAppli.NivInterac() >=2)
     {
        std::cout << "AFFINE " << aPIn.mCorrel << " => " << aRes2.mCorrel << " ; " << aPIn.mPt << " " << mAffSec2Mas(aRes2.mPt) << "\n"; 
@@ -387,23 +401,26 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
        std::cout << "HHHH " << USE_SCOR_CORREL << " " << (mAppli.mNumInterpolDense==0) << "\n";
     }
 
+    ElAffin2D anAffOpt =  mAffMas2Sec.CorrectWithMatch(Pt2dr(aP0),aRes2.mPt);
+
     if (mAppli.mNivLSQM >=0)
     {
         // ElAffin2D anAffOpt =  ElAffin2D::trans(aRes2.mPt - mAffMas2Sec(Pt2dr(aP0)) ) * mAffMas2Sec;
         Pt2dr aP0Init = Pt2dr(aP0);
-        if (mAppli.NivInterac() >=2)
+        if (mAppli.mRandomize)
         {
-           Pt2dr aNoise = Pt2dr(NRrandC(),NRrandC()) * 0.25;
+           Pt2dr aNoise = Pt2dr(NRrandC(),NRrandC()) * 0.25 * mAppli.mRandomize;
            std::cout << "SIMUL PERTURB = " << aNoise << "\n";
            aP0Init = aP0Init +  aNoise;
+           anAffOpt =  mAffMas2Sec.CorrectWithMatch(aP0Init,aRes2.mPt);
         }
-        ElAffin2D anAffOpt =  mAffMas2Sec.CorrectWithMatch(aP0Init,aRes2.mPt);
         cLSQAffineMatch aMatchM2S(Pt2dr(aP0),mMaster->mImInit,mImInit,anAffOpt);
         bool aOk= true;
         bool AffGeom   = ((mAppli.mNivLSQM  & 1) !=0);
         bool AffRadiom = ((mAppli.mNivLSQM  & 2) !=0);
         
-        for (int aK=0 ; aK<8 ; aK++)
+        bool GoOn = true;
+        for (int aK=0 ; GoOn ; aK++)
         {
             Pt2dr aLastSol =  aMatchM2S.Af1To2()(Pt2dr(aP0));
             aOk = aMatchM2S.OneIter
@@ -415,17 +432,22 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
                       AffRadiom
                   );
             Pt2dr aCurSol = aMatchM2S.Af1To2()(Pt2dr(aP0));
+            double aDVar = euclid(aCurSol-aLastSol);
             if (aOk  && (mAppli.NivInterac() >=2))
             {
                 if (aK==0)
                     std::cout << "#############################################\n";
-                std::cout << "DVar=" << euclid(aCurSol-aLastSol)  << " D2Lim=" << euclid(aRes2.mPt-aLastSol) << "\n";
+                std::cout << "DVar=" << aDVar  << " D2Lim=" << euclid(aRes2.mPt-aLastSol) << "\n";
             }
             aLastSol = aCurSol;
+            if (aK>=7) 
+               GoOn = false;
+            if (aDVar<1e-2)
+               GoOn = false;
         }
+        anAffOpt = aMatchM2S.Af1To2();
         aRes2.mPt = aMatchM2S.Af1To2()(Pt2dr(aP0));
 
-        // Tentative inverse
 /*
         if (1)
         {
@@ -468,10 +490,6 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const c
 
     }
 
-    if (!  mAppli.mDoRaffImInit)
-    {
-       aRes2.mPt = mAffMas2Sec(aRes2.mPt);
-    }
 
 
     return aRes2;

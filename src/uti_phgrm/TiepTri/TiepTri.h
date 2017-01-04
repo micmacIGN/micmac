@@ -119,6 +119,7 @@ class cParamAppliTieTri
         int      mNbByPix;
         int      mSzWEnd;
         int      mNivLSQM;
+        double   mRandomize;
 };
 
 
@@ -487,7 +488,7 @@ template<class Type> class cResulMultiImRechCorrel
           const std::vector<int> &                              VIndex()   const {return  mVIndex;}
     private :
 
-         cResulMultiImRechCorrel(const cResulMultiImRechCorrel<Type> & aPMaster) ; // N.I.
+         cResulMultiImRechCorrel(const cResulMultiImRechCorrel<Type> & ) ; // N.I.
         
          cIntTieTriInterest                     mPMaster;
          double                                 mScore;
