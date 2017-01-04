@@ -52,6 +52,8 @@ int Zlimit_main(int argc,char ** argv)
     std::string aNameOriDEM;
     std::string aMasqSup="?";
     std::string aCorrelIm="?";
+    std::string aOriginIm="?";
+    int aOriginImMinVal=300;
 	double aMaxZ, aMinZ, aCorThr=0.02;
 	bool aBoolDEM=true;
 
@@ -66,13 +68,17 @@ int Zlimit_main(int argc,char ** argv)
 		//optional arguments
 		LArgMain() << EAM(aMasqSup, "MasqSup", true, "Supplementary mask")
 		<< EAM(aCorrelIm, "CorrelIm", true, "Use correl image as a mask")
-		<< EAM(aCorThr, "CorrelThr", true, "Correl Threshold for acceptance (def=0.02)")
-		<< EAM(aBoolDEM, "DEM", true, "Output masked DEM (def=true)")
+        << EAM(aCorThr, "CorrelThr", true, "Correl Threshold for acceptance (def=0.02)")
+        << EAM(aOriginIm, "OriginIm", true, "Original image (used only with OriginImMinVal)")
+        << EAM(aOriginImMinVal, "OriginImMinVal", true, "Minimal value for origin image (used only with OriginIm)")
+        << EAM(aBoolDEM, "DEM", true, "Output masked DEM (def=true)")
 		);
 
     if (MMVisualMode) return EXIT_SUCCESS;
     
     ELISE_ASSERT(aMinZ<aMaxZ,"Please try with MinZ<MaxZ...");
+
+    ELISE_ASSERT( !((aOriginIm=="?")^(aOriginImMinVal==300)),"Please set both OriginIm and OriginImMinVal.");
     
 	string aMasqName = StdPrefix(aNameOriDEM) + "_MasqZminmax";
 	string aFileDEMCorName = StdPrefix(aNameOriDEM) + "_Masked";
@@ -140,6 +146,26 @@ int Zlimit_main(int argc,char ** argv)
       Im2D<U_INT1,INT4>  aCorrelImIm(aCorrelImImT._the_im);
 	  ELISE_COPY(aCorrelImIm.all_pts(), (aFileCorrelIm.in() > (aCorThr * 255)), aCorrelImIm.out());
 	  ELISE_COPY(masqImage.all_pts(), (masqImage.in()*aCorrelImIm.in()), masqImage.out());
+    }
+
+
+    // Apply mask from value in original image (out if val<aOriginImMinVal)
+    if (aOriginIm!="?")
+    {
+      cout<<"Using OriginIm: "<<aOriginIm<<endl;
+      Tiff_Im aFileOriginIm(aOriginIm.c_str());
+      int dezoom_factor=aFileOriginIm.sz().x/aFileDEM.sz().x;
+      std::cout<<"Dezoom factor: "<<dezoom_factor<<"\n";
+
+      TIm2D<U_INT1,INT4> aOriginImImT(aFileOriginIm.sz());
+      Im2D<U_INT1,INT4>  aOriginImIm(aOriginImImT._the_im);
+      ELISE_COPY(aOriginImIm.all_pts(), (aFileOriginIm.in() ), aOriginImIm.out());
+
+      TIm2D<U_INT1,INT4> aOriginImMiniT(aFileOriginIm.sz()/dezoom_factor);
+      Im2D<U_INT1,INT4>  aOriginImMini(aOriginImMiniT._the_im);
+      ELISE_COPY(aOriginImMini.all_pts(), (aOriginImIm.in()[Virgule(FX*dezoom_factor,FY*dezoom_factor)])>aOriginImMinVal, aOriginImMini.out());
+
+      ELISE_COPY(masqImage.all_pts(), (masqImage.in()*aOriginImMini.in()), masqImage.out());
     }
 
 	// Output masked DEM
@@ -225,33 +251,33 @@ int Zlimit_main(int argc,char ** argv)
 
 /* Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant a la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+Ce logiciel est regi par la licence CeCILL-B soumise au droit francais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+de la licence CeCILL-B telle que diffusee par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
+En contrepartie de l'accessibilite au code source et des droits de copie,
+de modification et de redistribution accordes par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitee.  Pour les memes raisons,
+seule une responsabilite restreinte p�se sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concedants successifs.
 
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+A cet egard  l'attention de l'utilisateur est attiree sur les risques
+associes au chargement,  a l'utilisation,  a la modification et/ou au
+developpement et a la reproduction du logiciel par l'utilisateur etant
+donne sa specificite de logiciel libre, qui peut le rendre complexe a
+manipuler et qui le reserve donc a des developpeurs et des professionnels
+avertis possedant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invites a charger  et  tester  l'adequation  du
+logiciel a leurs besoins dans des conditions permettant d'assurer la
+securite de leurs syst�mes et ou de leurs donnees et, plus generalement,
+a l'utiliser et l'exploiter dans les memes conditions de securite.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+Le fait que vous puissiez acceder a cet en-tete signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepte les
 termes.
 Footer-MicMac-eLiSe-25/06/2007/*/

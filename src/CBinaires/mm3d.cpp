@@ -632,6 +632,8 @@ int UnWindows(int argc,char ** argv);
 
 int MakePly_CamOrthoC(int argc,char ** argv);
 
+int XMLDiffSeries_main(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -812,6 +814,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
+        aRes.push_back(cMMCom("XMLDiffSeries",XMLDiffSeries_main ,"Generate pair images for tapioca in part c"));
+
    }
 
     cCmpMMCom CmpMMCom;

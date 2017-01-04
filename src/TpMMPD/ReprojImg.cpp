@@ -405,13 +405,14 @@ int ReprojImg_main(int argc,char ** argv)
               //get depth in aRefDepthTiffIm
               float aProf=aRefIm.getDepth((Pt2dr)aPImRef);
               //get 3D point
-              Pt3dr aPGround=aRefIm.getCam()->ImEtProf2Terrain((Pt2dr)aPImRef,aProf);
+              Pt3dr aPGround=aRefIm.getCam()->ImEtProfSpherik2Terrain((Pt2dr)aPImRef,aProf);
+              //ImEtProfSpherik2Terrain, not ImEtProf2Terrain!! (here aProf is a real cartesian distance, not a deltaH)
+
               //project 3D point into Rep image
               Pt2dr aPImRep=aRepIm.getCam()->R3toF2(aPGround);
               //check that aPImRep is in Rep image
 
               //output mask
-
               if (!aRepIm.isInside(aPImRep))
               {
                   cReprojColor color(originalLum,originalLum,originalLum);
