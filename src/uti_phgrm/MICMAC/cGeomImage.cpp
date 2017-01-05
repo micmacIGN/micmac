@@ -342,7 +342,7 @@ getchar();
 
    aCam->SetScanImaC2M(anAffC2M);
 
-   aNuage.Orientation().Val() = aCam->StdExportCalibGlob();
+   aNuage.Orientation().SetVal(aCam->StdExportCalibGlob());
    if (aZUP)
        aNuage.Orientation().Val().ZoneUtileInPixel().SetVal(true); // RPCNuage
    if (ToDel)
