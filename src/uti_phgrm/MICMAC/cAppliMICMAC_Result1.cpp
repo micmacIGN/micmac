@@ -976,7 +976,7 @@ double ResolOfAff(const ElAffin2D & anAff)
 
 double ResolOfNu(const cXML_ParamNuage3DMaille & aNu)
 {
-     ElAffin2D aAfM2C = Xml2EL(aNu.Orientation().OrIntImaM2C());
+     ElAffin2D aAfM2C = Xml2EL(aNu.Orientation().Val().OrIntImaM2C()); // RPCNuage
      return ResolOfAff(aAfM2C.inv());
 }
 
@@ -984,7 +984,7 @@ Box2dr BoxTerOfNu(const cXML_ParamNuage3DMaille & aNu)
 {
      Box2dr aRes(Pt2dr(0,0),Pt2dr(aNu.NbPixel()));
 
-     ElAffin2D aAfM2C = Xml2EL(aNu.Orientation().OrIntImaM2C());
+     ElAffin2D aAfM2C = Xml2EL(aNu.Orientation().Val().OrIntImaM2C()); // RPCNuage
      return aRes.BoxImage(aAfM2C.inv());
 }
 

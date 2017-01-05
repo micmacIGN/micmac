@@ -568,11 +568,13 @@
           <!-- Les infos d'origine plani et alti sont contenus dans la similitude
                de l'Orientation
            -->
-          <Orientation  Nb="1"   
+                <!-- Modif suite pb nuage en RPC, l'orientation peut etre soit embarquee soit un nom -->
+          <Orientation  Nb="?"   
                         RefType="OrientationConique"
                         RefFile="ParamChantierPhotogram.xml"
            >
            </Orientation>
+           <NameOri Nb="?" Type="std::string"> </NameOri>
 
           <!-- Devrait tjrs etre init, mais pb compatibilite anterieure -->
            <RatioResolAltiPlani Nb="?" Type="double" Def="1.0"> </RatioResolAltiPlani>

@@ -401,11 +401,11 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
    cElNuage3DMaille_FromImProf<Type,TBase>(aNameFile,aDir,aNuage,aFMasq,aFProf,WithEmptyData,Dequant), 
    mProfIsZ   (aProfIsZ)
 {
-	mCentre	   = this->mCam->OrigineProf();
+	mCentre	   = this->mCam->OpticalCenterOfCenterImage();
 	mDirPl	   = this->Params().DirFaisceaux();
 	mZIsInv    = this->Params().ZIsInverse();
 	mIsSpherik = this->Params().IsSpherik().Val();
-	mCS        = (mIsSpherik ? this->mCam->CS() : 0);
+	mCS        = (mIsSpherik ? this->DownCastCS() : 0);
 	mProfC     = scal(mDirPl,mCentre);
 }
 
@@ -447,7 +447,7 @@ template <class Type,class TBase> cElNuage3DMaille * cElN3D_EpipGen<Type,TBase>:
    double aDifStd = 0.5;
    if (aNewParam.RatioResolAltiPlani().IsInit() && (aNewParam.Image_Profondeur().IsInit()))
    {
-        ElAffin2D aAfM2C = Xml2EL(this->mParams.Orientation().OrIntImaM2C());
+        ElAffin2D aAfM2C = Xml2EL(this->mParams.Orientation().Val().OrIntImaM2C());
         double aResol = (euclid(aAfM2C.I10()) + euclid(aAfM2C.I01()))/2.0;
 
         aDifStd  = (1/aResol) * (1/this->mParams.Image_Profondeur().Val().ResolutionAlti())   * (this->mParams.RatioResolAltiPlani().Val()) ;
@@ -483,7 +483,7 @@ template <class Type,class TBase>
   if (mProfIsZ) 
   {
        // std::cout << anInvProf << " " << anI << " "  << this->mCam->F2AndZtoR3(anI,anInvProf)  << "\n";
-      return  this->mCam->F2AndZtoR3(anI,anInvProf);
+      return  this->mCam->ImEtZ2Terrain(anI,anInvProf);
   }
 
    double aProf =   CorZInv(anInvProf);
@@ -495,7 +495,7 @@ template <class Type,class TBase>
    }
 
 
-    ElSeg3D aSeg =  this->mCam->F2toRayonR3(anI) ;
+    ElSeg3D aSeg =  this->mCam->Capteur2RayTer(anI) ;
     Pt3dr aRay =aSeg.Tgt();
     Pt3dr aC  = aSeg.P0();
 
@@ -507,7 +507,7 @@ template <class Type,class TBase>
 template <class Type,class TBase>
   Pt3dr cElN3D_EpipGen<Type,TBase>::Loc_Euclid2ProfAndIndex(const   Pt3dr & aPe) const
 {
-    Pt2dr aPIm =  this->mCam->R3toF2(aPe);
+    Pt2dr aPIm =  this->mCam->Ter2Capteur(aPe);
     return Pt3dr(aPIm.x,aPIm.y,ProfOfPtE(aPe));
 /*
     double aProf =   mIsSpherik                             ?
@@ -574,10 +574,10 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
 
        aParam.NbPixel() = aBox.sz();
 
-       ElAffin2D aAfM2C = Xml2EL(aParam.Orientation().OrIntImaM2C());
+       ElAffin2D aAfM2C = Xml2EL(aParam.Orientation().Val().OrIntImaM2C()); // RPCNuage
        
-        aAfM2C   =   ElAffin2D::trans(-Pt2dr(aBox._p0)) * aAfM2C;
-       aParam.Orientation().OrIntImaM2C().SetVal(El2Xml(aAfM2C));
+       aAfM2C   =   ElAffin2D::trans(-Pt2dr(aBox._p0)) * aAfM2C;
+       aParam.Orientation().Val().OrIntImaM2C().SetVal(El2Xml(aAfM2C)); // RPCNuage
        Dequant = aPMG->mDequant;
   }
 

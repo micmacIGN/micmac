@@ -291,9 +291,7 @@ void cGeomImage::RemplitOriXMLNuage
                 eModeExportNuage
            ) const
 {
-
-
-
+   // RPCNuageRPCNuageRPCNuage
 
 
    aNuage.PM3D_ParamSpecifs().NoParamSpecif().SetNoInit();
@@ -344,9 +342,9 @@ getchar();
 
    aCam->SetScanImaC2M(anAffC2M);
 
-   aNuage.Orientation() = aCam->StdExportCalibGlob();
+   aNuage.Orientation().Val() = aCam->StdExportCalibGlob();
    if (aZUP)
-       aNuage.Orientation().ZoneUtileInPixel().SetVal(true);
+       aNuage.Orientation().Val().ZoneUtileInPixel().SetVal(true); // RPCNuage
    if (ToDel)
       delete aCam;
 /*
@@ -2987,8 +2985,8 @@ class cGeomImage_Module : public cGeomImage
         {
             cModuleOrientationFile oriFile;
             oriFile.NameFileOri()=mModule->GetFilename();
-            aNuage.Orientation().ModuleOrientationFile().SetVal(oriFile);
-            aNuage.Orientation().TypeProj().SetVal(eProjGrid);
+            aNuage.Orientation().Val().ModuleOrientationFile().SetVal(oriFile); // RPCNuage
+            aNuage.Orientation().Val().TypeProj().SetVal(eProjGrid);            // RPCNuage
          }
     }
 

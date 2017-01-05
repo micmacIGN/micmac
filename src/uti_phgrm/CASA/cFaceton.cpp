@@ -192,10 +192,11 @@ cFaceton   cAccumFaceton::CompileF(const cElNuage3DMaille & aNuage)
 
   aVecp.GetCol(i0,aU);
 
-  ElCamera * aCam = aNuage.Cam();
+  cBasicGeomCap3D * aCam = aNuage.Cam();
 
-  Pt2dr aPIm = aCam->R3toF2(aCdg);
-  Pt3dr aDir = aCam->F2toDirRayonR3(aPIm);
+  Pt2dr aPIm = aCam->Ter2Capteur(aCdg);
+  // Pt3dr aDir = aCam->F2toDirRayonR3(aPIm);
+  Pt3dr aDir = aCam->Capteur2RayTer(aPIm).Tgt(); // RPCNuage
   // std::cout << scal(aDir,aU) << "\n";
   if (scal(aDir,aU) < 0) 
      aU = -aU;

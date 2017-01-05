@@ -55,11 +55,11 @@ REAL SqrDistSum(vector <Pt3dr> const & Sommets, cElNuage3DMaille* nuage)
 
     if (Sommets.size() == 3)
     {
-        ElCamera* aCam = nuage->Cam();
+        cBasicGeomCap3D* aCam = nuage->Cam();
 
-        Pt2dr A = aCam->R3toF2(Sommets[0]);
-        Pt2dr B = aCam->R3toF2(Sommets[1]);
-        Pt2dr C = aCam->R3toF2(Sommets[2]);
+        Pt2dr A = aCam->Ter2Capteur(Sommets[0]);
+        Pt2dr B = aCam->Ter2Capteur(Sommets[1]);
+        Pt2dr C = aCam->Ter2Capteur(Sommets[2]);
 
         Pt2dr AB = B-A;
         Pt2dr AC = C-A;
@@ -230,10 +230,13 @@ int TiPunch_main(int argc,char ** argv)
             if (ELISE_fp::exist_file(aNameXml) && ELISE_fp::exist_file(aNameMasqDepth))
             {
                 vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
-                vNuages.back()->Cam()->SetIdCam(aNameXml); //debug
+                CamStenope * aCS = vNuages.back()->Cam()->DownCastCS();
 
-                ElCamera * Cam = vNuages.back()->Cam();
-                cZBuf aZBuffer(Cam->Sz(), defValZBuf, aZBuffSSEch);
+                if (aCS)
+                   aCS->SetIdCam(aNameXml); //debug
+
+                cBasicGeomCap3D * Cam = vNuages.back()->Cam();
+                cZBuf aZBuffer(Cam->SzBasicCapt3D(), defValZBuf, aZBuffSSEch);
 
                 aZBuffer.BasculerUnMaillage(myMesh, *(dynamic_cast <CamStenope*> (Cam)));
 
@@ -284,11 +287,11 @@ int TiPunch_main(int argc,char ** argv)
                     vector <Pt3dr> Vertex;
                     Triangle->getVertexes(Vertex);
 
-                    ElCamera* Cam = vNuages[bK]->Cam();
+                    cBasicGeomCap3D * Cam = vNuages[bK]->Cam();
 
-                    A2 = Cam->R3toF2(Vertex[0]);
-                    B2 = Cam->R3toF2(Vertex[1]);
-                    C2 = Cam->R3toF2(Vertex[2]);
+                    A2 = Cam->Ter2Capteur(Vertex[0]);
+                    B2 = Cam->Ter2Capteur(Vertex[1]);
+                    C2 = Cam->Ter2Capteur(Vertex[2]);
 
                     TIm2DBits<1> im (vMasqImg[bK]);
 

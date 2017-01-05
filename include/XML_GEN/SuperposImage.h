@@ -2238,8 +2238,11 @@ class cXML_ParamNuage3DMaille
         cTplValGesInit< cXmlOneSurfaceAnalytique > & Anam();
         const cTplValGesInit< cXmlOneSurfaceAnalytique > & Anam()const ;
 
-        cOrientationConique & Orientation();
-        const cOrientationConique & Orientation()const ;
+        cTplValGesInit< cOrientationConique > & Orientation();
+        const cTplValGesInit< cOrientationConique > & Orientation()const ;
+
+        cTplValGesInit< std::string > & NameOri();
+        const cTplValGesInit< std::string > & NameOri()const ;
 
         cTplValGesInit< double > & RatioResolAltiPlani();
         const cTplValGesInit< double > & RatioResolAltiPlani()const ;
@@ -2278,7 +2281,8 @@ class cXML_ParamNuage3DMaille
         std::list< cAttributsNuage3D > mAttributsNuage3D;
         cTplValGesInit< cRepereCartesien > mRepereGlob;
         cTplValGesInit< cXmlOneSurfaceAnalytique > mAnam;
-        cOrientationConique mOrientation;
+        cTplValGesInit< cOrientationConique > mOrientation;
+        cTplValGesInit< std::string > mNameOri;
         cTplValGesInit< double > mRatioResolAltiPlani;
         cPM3D_ParamSpecifs mPM3D_ParamSpecifs;
         cTplValGesInit< double > mTolVerifNuage;

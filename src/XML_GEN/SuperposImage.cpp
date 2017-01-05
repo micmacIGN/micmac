@@ -6943,14 +6943,25 @@ const cTplValGesInit< cXmlOneSurfaceAnalytique > & cXML_ParamNuage3DMaille::Anam
 }
 
 
-cOrientationConique & cXML_ParamNuage3DMaille::Orientation()
+cTplValGesInit< cOrientationConique > & cXML_ParamNuage3DMaille::Orientation()
 {
    return mOrientation;
 }
 
-const cOrientationConique & cXML_ParamNuage3DMaille::Orientation()const 
+const cTplValGesInit< cOrientationConique > & cXML_ParamNuage3DMaille::Orientation()const 
 {
    return mOrientation;
+}
+
+
+cTplValGesInit< std::string > & cXML_ParamNuage3DMaille::NameOri()
+{
+   return mNameOri;
+}
+
+const cTplValGesInit< std::string > & cXML_ParamNuage3DMaille::NameOri()const 
+{
+   return mNameOri;
 }
 
 
@@ -7108,7 +7119,22 @@ void  BinaryUnDumpFromFile(cXML_ParamNuage3DMaille & anObj,ELISE_fp & aFp)
         }
         else  anObj.Anam().SetNoInit();
   } ;
-    BinaryUnDumpFromFile(anObj.Orientation(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Orientation().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Orientation().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Orientation().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NameOri().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NameOri().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NameOri().SetNoInit();
+  } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -7155,7 +7181,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXML_ParamNuage3DMaille & anObj)
     if (anObj.RepereGlob().IsInit()) BinaryDumpInFile(aFp,anObj.RepereGlob().Val());
     BinaryDumpInFile(aFp,anObj.Anam().IsInit());
     if (anObj.Anam().IsInit()) BinaryDumpInFile(aFp,anObj.Anam().Val());
-    BinaryDumpInFile(aFp,anObj.Orientation());
+    BinaryDumpInFile(aFp,anObj.Orientation().IsInit());
+    if (anObj.Orientation().IsInit()) BinaryDumpInFile(aFp,anObj.Orientation().Val());
+    BinaryDumpInFile(aFp,anObj.NameOri().IsInit());
+    if (anObj.NameOri().IsInit()) BinaryDumpInFile(aFp,anObj.NameOri().Val());
     BinaryDumpInFile(aFp,anObj.RatioResolAltiPlani().IsInit());
     if (anObj.RatioResolAltiPlani().IsInit()) BinaryDumpInFile(aFp,anObj.RatioResolAltiPlani().Val());
     BinaryDumpInFile(aFp,anObj.PM3D_ParamSpecifs());
@@ -7189,7 +7218,10 @@ cElXMLTree * ToXMLTree(const cXML_ParamNuage3DMaille & anObj)
       aRes->AddFils(ToXMLTree(anObj.RepereGlob().Val())->ReTagThis("RepereGlob"));
    if (anObj.Anam().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Anam().Val())->ReTagThis("Anam"));
-   aRes->AddFils(ToXMLTree(anObj.Orientation())->ReTagThis("Orientation"));
+   if (anObj.Orientation().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.Orientation().Val())->ReTagThis("Orientation"));
+   if (anObj.NameOri().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NameOri"),anObj.NameOri().Val())->ReTagThis("NameOri"));
    if (anObj.RatioResolAltiPlani().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("RatioResolAltiPlani"),anObj.RatioResolAltiPlani().Val())->ReTagThis("RatioResolAltiPlani"));
    aRes->AddFils(ToXMLTree(anObj.PM3D_ParamSpecifs())->ReTagThis("PM3D_ParamSpecifs"));
@@ -7227,6 +7259,8 @@ void xml_init(cXML_ParamNuage3DMaille & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Orientation(),aTree->Get("Orientation",1)); //tototo 
 
+   xml_init(anObj.NameOri(),aTree->Get("NameOri",1)); //tototo 
+
    xml_init(anObj.RatioResolAltiPlani(),aTree->Get("RatioResolAltiPlani",1),double(1.0)); //tototo 
 
    xml_init(anObj.PM3D_ParamSpecifs(),aTree->Get("PM3D_ParamSpecifs",1)); //tototo 
@@ -7236,7 +7270,7 @@ void xml_init(cXML_ParamNuage3DMaille & anObj,cElXMLTree * aTree)
    xml_init(anObj.VerifNuage(),aTree->GetAll("VerifNuage",false,1));
 }
 
-std::string  Mangling( cXML_ParamNuage3DMaille *) {return "0FECF3408122F79FFE3F";};
+std::string  Mangling( cXML_ParamNuage3DMaille *) {return "0AAC051872309DCAFE3F";};
 
 
 std::string & cMasqMesures::NameFile()
