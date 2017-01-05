@@ -187,31 +187,59 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
     ELISE_ASSERT(argc >= 2,"Not enough arg");
     ReadType(argv[1]);
 #endif
-
-    ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP))
-                    << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
-                    << EAMC(mOriFull,"Orientation", eSAM_IsExistDirOri),
-        LArgMain()
-                    << EAM(mMasq3D,"Masq3D",true,"3D masq for point selection",eSAM_IsExistFileRP)
-                    << EAM(mMergeOut,"Out",true,"final result (Def=C3DC.ply)")
-                    << EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (<=0 if none, Def=2 means 5x5) ")
-                    << EAM(mPlyCoul,"PlyCoul",true,"Colour in ply ? (Def = true)")
-                    << EAM(mTuning,"Tuning",true,"Will disappear one day ...",eSAM_InternalUse)
-                    << EAM(mPurge,"Purge",true,"Purge result, (Def=true)")
-                    << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends on mode")
-                    << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends on mode",eSAM_IsPowerOf2)
-                    << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
-                    << EAM(mDefCor,"DefCor",true,"Def correlation, context depend")
-                    << EAM(mZReg,"ZReg",true,"Regularisation, context depend")
-					<< EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for determining image pairs")
-                    << EAM(mFilePair,"FilePair",true,"Explicit pairs of images (as in Tapioca)", eSAM_IsExistFileRP)
-                    << EAM(mDebugMMByP,"DebugMMByP",true,"Debug MMByPair ...")
-                    << EAM(mBin,"Bin",true,"Generate Binary or Ascii (Def=true, Binary)")
-                    << EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
-    );
+	
+	//C3DC call case : general case
+    if(mDoMerge)
+    {
+		ElInitArgMain
+		(
+			argc,argv,
+			LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP))
+						<< EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
+						<< EAMC(mOriFull,"Orientation", eSAM_IsExistDirOri),
+			LArgMain()
+						<< EAM(mMasq3D,"Masq3D",true,"3D masq for point selection",eSAM_IsExistFileRP)
+						<< EAM(mMergeOut,"Out",true,"final result (Def=C3DC.ply)")
+						<< EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (<=0 if none, Def=2 means 5x5) ")
+						<< EAM(mPlyCoul,"PlyCoul",true,"Colour in ply ? (Def = true)")
+						<< EAM(mTuning,"Tuning",true,"Will disappear one day ...",eSAM_InternalUse)
+						<< EAM(mPurge,"Purge",true,"Purge result, (Def=true)")
+						<< EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends on mode")
+						<< EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends on mode",eSAM_IsPowerOf2)
+						<< EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
+						<< EAM(mDefCor,"DefCor",true,"Def correlation, context depend")
+						<< EAM(mZReg,"ZReg",true,"Regularisation, context depend")
+						<< EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for determining image pairs")
+						<< EAM(mFilePair,"FilePair",true,"Explicit pairs of images (as in Tapioca)", eSAM_IsExistFileRP)
+						<< EAM(mDebugMMByP,"DebugMMByP",true,"Debug MMByPair ...")
+						<< EAM(mBin,"Bin",true,"Generate Binary or Ascii (Def=true, Binary)")
+						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
+		);
+	}
+	//Pims call case : no need to have all export .ply options in the command display (source of confusion)
+	else
+	{
+		ElInitArgMain
+		(
+			argc,argv,
+			LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP))
+						<< EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
+						<< EAMC(mOriFull,"Orientation", eSAM_IsExistDirOri),
+			LArgMain()
+						<< EAM(mMasq3D,"Masq3D",true,"3D masq for point selection",eSAM_IsExistFileRP)
+						<< EAM(mTuning,"Tuning",true,"Will disappear one day ...",eSAM_InternalUse)
+						<< EAM(mPurge,"Purge",true,"Purge result, (Def=true)")
+						<< EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends on mode",eSAM_IsPowerOf2)
+						<< EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
+						<< EAM(mDefCor,"DefCor",true,"Def correlation, context depend")
+						<< EAM(mZReg,"ZReg",true,"Regularisation, context depend")
+						<< EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for determining image pairs")
+						<< EAM(mFilePair,"FilePair",true,"Explicit pairs of images (as in Tapioca)", eSAM_IsExistFileRP)
+						<< EAM(mDebugMMByP,"DebugMMByP",true,"Debug MMByPair ...")
+						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
+		);
+	}
+	
 
    if (MMVisualMode) return;
 
