@@ -401,7 +401,7 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
    cElNuage3DMaille_FromImProf<Type,TBase>(aNameFile,aDir,aNuage,aFMasq,aFProf,WithEmptyData,Dequant), 
    mProfIsZ   (aProfIsZ)
 {
-	mCentre	   = this->mCam->OpticalCenterOfCenterImage();
+	mCentre	   = this->mCam->OrigineProf();
 	mDirPl	   = this->Params().DirFaisceaux();
 	mZIsInv    = this->Params().ZIsInverse();
 	mIsSpherik = this->Params().IsSpherik().Val();

@@ -1479,7 +1479,9 @@ class cBasicGeomCap3D
       virtual bool     HasOpticalCenterOfPixel() const; // 1 - They are not alway defined
 // When they are, they may vary, as with push-broom, Def fatal erreur (=> Ortho cam)
       virtual Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ; 
-      Pt3dr    OpticalCenterOfCenterImage() const ; 
+   // Coincide avec le centre optique pour les camera stenope et RPC, est la position
+   // du centre origine pour les camera ortho (utilise pour la geom faisceau)
+      Pt3dr    OrigineProf() const ;  // Par defau OpticalCenterOfPixel(Milieu)
 
       virtual Pt3dr    ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
       virtual Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;

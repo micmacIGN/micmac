@@ -1106,7 +1106,7 @@ Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
                 if (mNormByCenter==1)
                    return aTgt * (-aFact);
                 else if (mNormByCenter==2)
-                   return mCam->OpticalCenterOfCenterImage();
+                   return mCam->OrigineProf();
 
         std::vector<Pt3dr> aVP;
         std::vector<double> aVPds;
