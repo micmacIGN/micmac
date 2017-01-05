@@ -64,7 +64,7 @@ cXML_ParamNuage3DMaille CropAndSousEch
     aRes.SsResolRef().SetVal(aRes.SsResolRef().Val() *aSc);
 
     ElAffin2D anAff = ElAffin2D::TransfoImCropAndSousEch(aP0,aSc,&aSz);
-    AddAffinite(aRes.Orientation(),anAff);
+    AddAffinite(aRes.Orientation().Val(),anAff); // RPCNuage
     aRes.NbPixel() = round_ni(aSz);
 
     aSz =  Pt2dr(aRes.NbPixel());
@@ -203,6 +203,7 @@ Pt2di TTT(const Pt2di & aP)
 }
 const std::string&  cElNuage3DMaille::NameFile() const {return mNameFile;}
 
+// static int TheTypeUnknown eTIGB_Unknown;
 
 cElNuage3DMaille::cElNuage3DMaille
 (
@@ -212,6 +213,7 @@ cElNuage3DMaille::cElNuage3DMaille
     const std::string & aNameFile,
     bool     WithEmpyData
 ) :
+   mITypeCam      (eTIGB_Unknown),
    mEmptyData     (WithEmpyData),
    mDir           (aDir),
    mICNM          (cInterfChantierNameManipulateur::StdAlloc(0,0,mDir,cTplValGesInit<std::string>(),0)),
@@ -223,7 +225,11 @@ cElNuage3DMaille::cElNuage3DMaille
    mTImDef        (mImDef),
    mImDefInterp   (mSzData.x,mSzData.y,0),
    mTImDefInterp  (mImDefInterp),
-   mCam           (Cam_Gen_From_XML(mParams.Orientation(),mICNM,aNameFile)),
+   mCam           (   // RPCNuage
+                       mParams.NameOri().IsInit()                                    ?
+                       cBasicGeomCap3D::StdGetFromFile(mParams.NameOri().Val(),mITypeCam)  :  
+                       Cam_Gen_From_XML(mParams.Orientation().Val(),mICNM,aNameFile)     
+                  ),
    mImEtire       (1,1),
    mVoisImDef     (mImDef),
    mTVoisImDef    (mVoisImDef),
@@ -567,7 +573,7 @@ Pt3dr  cElNuage3DMaille::Glob2Loc(const Pt3dr & aP) const
     return aP;
 }
 
-ElCamera *   cElNuage3DMaille::Cam() const
+cBasicGeomCap3D *   cElNuage3DMaille::Cam() const
 {
    return mCam;
 }
@@ -1074,13 +1080,13 @@ double cElNuage3DMaille::DiffDeSurface
     if (IndexIsOK(anI1))
     {
         Pt3dr  aPT1 = PtOfIndex(anI1);
-        Pt2dr  anI2  = aN2.mCam->R3toF2(aPT1);
+        Pt2dr  anI2  = aN2.mCam->Ter2Capteur(aPT1);
         if (aN2.IndexIsOKForInterpol(anI2))
         {
             isOk = true;
 // std::cout << anI1 << anI2 << "\n";
             Pt3dr  aPT2 = aN2.PtOfIndexInterpol(anI2);
-            ElSeg3D aSeg = aN2.mCam->F2toRayonR3(anI2);
+            ElSeg3D aSeg = aN2.mCam->Capteur2RayTer(anI2);
             return scal(aSeg.TgNormee(),aPT1-aPT2);
         }
     }
@@ -1100,7 +1106,7 @@ Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
                 if (mNormByCenter==1)
                    return aTgt * (-aFact);
                 else if (mNormByCenter==2)
-                   return Cam()->CS()->PseudoOpticalCenter();
+                   return mCam->OrigineProf();
 
         std::vector<Pt3dr> aVP;
         std::vector<double> aVPds;
@@ -1383,14 +1389,14 @@ Pt2dr  cElNuage3DMaille::Plani2Index(const Pt2dr & aP) const
 
 ElSeg3D cElNuage3DMaille::FaisceauFromIndex(const Pt2dr & aP) const
 {
-   ElSeg3D aRes = mCam->F2toRayonR3(aP);
+   ElSeg3D aRes = mCam->Capteur2RayTer(aP);
    return ElSeg3D(Loc2Glob(aRes.P0()),Loc2Glob(aRes.P1()));
 }
 
 
 Pt2dr   cElNuage3DMaille::Terrain2Index(const Pt3dr & aPt) const
 {
-    return mCam->R3toF2(Glob2Loc(aPt));
+    return mCam->Ter2Capteur(Glob2Loc(aPt));
 }
 
 
@@ -1933,7 +1939,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
 double Resol(const cXML_ParamNuage3DMaille & aNuage)
 {
-   ElAffin2D  aM2C =    Xml2EL(aNuage.Orientation().OrIntImaM2C());
+   ElAffin2D  aM2C =    Xml2EL(aNuage.Orientation().Val().OrIntImaM2C()); // RPCNuage
    ElAffin2D aC2M = aM2C.inv();
    return (euclid(aC2M.I10()) + euclid(aC2M.I01()))/2.0;
 }
@@ -2049,7 +2055,7 @@ cFileOriMnt ToFOM(const cXML_ParamNuage3DMaille & aXML,bool StdRound)
     double anOriA = anIP.OrigineAlti();
     double aResA = anIP.ResolutionAlti();
 
-    ElAffin2D  anAff = Xml2EL(aXML.Orientation().OrIntImaM2C());
+    ElAffin2D  anAff = Xml2EL(aXML.Orientation().Val().OrIntImaM2C()); // RPCNuage
     anAff = anAff.inv();
 
     Pt2dr anOriPlani = anAff.I00();

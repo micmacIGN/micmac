@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1850]) = {
+const char * (theNameVar_SuperposImage[1852]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -570,11 +570,13 @@ const char * (theNameVar_SuperposImage[1850]) = {
 "          <!-- Les infos d'origine plani et alti sont contenus dans la similitude\n",
 "               de l'Orientation\n",
 "           -->\n",
-"          <Orientation  Nb=\"1\"   \n",
+"                <!-- Modif suite pb nuage en RPC, l'orientation peut etre soit embarquee soit un nom -->\n",
+"          <Orientation  Nb=\"?\"   \n",
 "                        RefType=\"OrientationConique\"\n",
 "                        RefFile=\"ParamChantierPhotogram.xml\"\n",
 "           >\n",
 "           </Orientation>\n",
+"           <NameOri Nb=\"?\" Type=\"std::string\"> </NameOri>\n",
 "\n",
 "          <!-- Devrait tjrs etre init, mais pb compatibilite anterieure -->\n",
 "           <RatioResolAltiPlani Nb=\"?\" Type=\"double\" Def=\"1.0\"> </RatioResolAltiPlani>\n",

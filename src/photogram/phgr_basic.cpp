@@ -1492,9 +1492,80 @@ bool cBasicGeomCap3D::IsRPC() const
 }
 
 
+/*
 Pt2dr cBasicGeomCap3D::OrGlbImaM2C(const Pt2dr & aP) const
 {
    return aP;
+}
+*/
+
+void cBasicGeomCap3D::SetScanImaM2C(const tOrIntIma & aOrM2C)
+{
+   mScanOrImaM2C = aOrM2C;
+   mScanOrImaC2M = mScanOrImaM2C.inv();
+   ReCalcGlbOrInt();
+}
+void cBasicGeomCap3D::SetScanImaC2M(const tOrIntIma & aOrC2M)
+{
+    SetScanImaM2C(aOrC2M.inv());
+}
+void cBasicGeomCap3D::SetIntrImaM2C(const tOrIntIma & aOrM2C)
+{
+
+   mIntrOrImaM2C = aOrM2C;
+   mIntrOrImaC2M = mIntrOrImaM2C.inv();
+   ReCalcGlbOrInt();
+}
+void cBasicGeomCap3D::SetIntrImaC2M(const tOrIntIma & aOrC2M)
+{
+    SetIntrImaM2C(aOrC2M.inv());
+}
+
+
+Pt2dr  cBasicGeomCap3D::OrGlbImaM2C(const Pt2dr & aP) const
+{
+   return mGlobOrImaM2C(aP);
+}
+Pt2dr  cBasicGeomCap3D::OrGlbImaC2M(const Pt2dr & aP) const
+{
+   return mGlobOrImaC2M(aP);
+}
+Pt2dr  cBasicGeomCap3D::OrIntrImaC2M(const Pt2dr & aP) const
+{
+   return mIntrOrImaC2M(aP);
+}
+Pt2dr  cBasicGeomCap3D::OrScanImaM2C(const Pt2dr & aP) const
+{
+   return mScanOrImaM2C(aP);
+}
+void cBasicGeomCap3D::ReCalcGlbOrInt()
+{
+   mGlobOrImaM2C = mIntrOrImaM2C * mScanOrImaM2C;
+   mGlobOrImaC2M = mGlobOrImaM2C.inv();
+
+   mScaleAfnt = euclid(mGlobOrImaM2C.IVect(Pt2dr(1,1))) / euclid(Pt2dr(1,1));
+   // std::cout << "AAAAA XXXX " << this << mScaleAfnt << "\n"; getchar();
+}
+
+cBasicGeomCap3D::~cBasicGeomCap3D() 
+{
+}
+
+Pt3dr cBasicGeomCap3D::OrigineProf () const
+{
+   //return OpticalCenterOfPixel(Pt2dr(SzBasicCapt3D()) / 2.0);
+   return Pt3dr(SzBasicCapt3D().x / 2.0, SzBasicCapt3D().y / 2.0, 0);
+}
+
+cBasicGeomCap3D::cBasicGeomCap3D() :
+  mScanOrImaC2M  (tOrIntIma::Id()),
+  mIntrOrImaC2M  (tOrIntIma::Id()),
+  mGlobOrImaC2M  (tOrIntIma::Id()),
+  mScanOrImaM2C  (tOrIntIma::Id()),
+  mIntrOrImaM2C  (tOrIntIma::Id()),
+  mGlobOrImaM2C  (tOrIntIma::Id()),
+  mScaleAfnt       (1.0)
+{
 }
 
 double  cBasicGeomCap3D::GlobResol() const
@@ -1900,13 +1971,6 @@ std::cout << " " << aPTer << "\n";*/
 /*************************************************/
 
 ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
-    mScanOrImaC2M  (tOrIntIma::Id()),
-    mIntrOrImaC2M  (tOrIntIma::Id()),
-    mGlobOrImaC2M  (tOrIntIma::Id()),
-
-    mScanOrImaM2C  (tOrIntIma::Id()),
-    mIntrOrImaM2C  (tOrIntIma::Id()),
-    mGlobOrImaM2C  (tOrIntIma::Id()),
 
     mTrN       (0,0),
     mScN       (1.0),
@@ -1927,7 +1991,6 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     mDoneScanContU      (false),
     mParamGridIsInit (false),
     mTime            (TIME_UNDEF()),
-    mScaleAfnt       (1.0),
     mScanned         (false),
     mVitesse         (0,0,0),
     mVitesseIsInit   (false),
@@ -2376,35 +2439,10 @@ const CamStenope *  ElCamera::CS() const
     ELISE_ASSERT(mTypeProj==eProjectionStenope,"ElCamera::CS");
     return static_cast<const CamStenope * > (this);
 }
-Pt2dr  ElCamera::OrGlbImaM2C(const Pt2dr & aP) const
-{
-   return mGlobOrImaM2C(aP);
-}
-Pt2dr  ElCamera::OrGlbImaC2M(const Pt2dr & aP) const
-{
-   return mGlobOrImaC2M(aP);
-}
-
-Pt2dr  ElCamera::OrIntrImaC2M(const Pt2dr & aP) const
-{
-   return mIntrOrImaC2M(aP);
-}
 
 
-Pt2dr  ElCamera::OrScanImaM2C(const Pt2dr & aP) const
-{
-   return mScanOrImaM2C(aP);
-}
 
 
-void ElCamera::ReCalcGlbOrInt()
-{
-   mGlobOrImaM2C = mIntrOrImaM2C * mScanOrImaM2C;
-   mGlobOrImaC2M = mGlobOrImaM2C.inv();
-
-   mScaleAfnt = euclid(mGlobOrImaM2C.IVect(Pt2dr(1,1))) / euclid(Pt2dr(1,1));
-   // std::cout << "AAAAA XXXX " << this << mScaleAfnt << "\n"; getchar();
-}
 
 ElCamera::tOrIntIma  ElCamera::InhibeScaneOri()
 {
@@ -2433,29 +2471,8 @@ Pt2dr ElCamera::ResiduMond2Cam(const Pt2dr & aRes)const
 }
 
 
-void ElCamera::SetScanImaM2C(const tOrIntIma & aOrM2C)
-{
-   mScanOrImaM2C = aOrM2C;
-   mScanOrImaC2M = mScanOrImaM2C.inv();
-   ReCalcGlbOrInt();
-}
-void ElCamera::SetScanImaC2M(const tOrIntIma & aOrC2M)
-{
-    SetScanImaM2C(aOrC2M.inv());
-}
 
 
-void ElCamera::SetIntrImaM2C(const tOrIntIma & aOrM2C)
-{
-
-   mIntrOrImaM2C = aOrM2C;
-   mIntrOrImaC2M = mIntrOrImaM2C.inv();
-   ReCalcGlbOrInt();
-}
-void ElCamera::SetIntrImaC2M(const tOrIntIma & aOrC2M)
-{
-    SetIntrImaM2C(aOrC2M.inv());
-}
 
 
 

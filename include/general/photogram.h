@@ -1462,6 +1462,8 @@ class cArgOptionalPIsVisibleInImage
 class cBasicGeomCap3D
 {
     public :
+      typedef ElAffin2D tOrIntIma ;
+
       virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
       virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const =0;
       virtual Pt2di    SzBasicCapt3D() const = 0;
@@ -1477,6 +1479,9 @@ class cBasicGeomCap3D
       virtual bool     HasOpticalCenterOfPixel() const; // 1 - They are not alway defined
 // When they are, they may vary, as with push-broom, Def fatal erreur (=> Ortho cam)
       virtual Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ; 
+   // Coincide avec le centre optique pour les camera stenope et RPC, est la position
+   // du centre origine pour les camera ortho (utilise pour la geom faisceau)
+      Pt3dr    OrigineProf() const ;  // Par defau OpticalCenterOfPixel(Milieu)
 
       virtual Pt3dr    ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
       virtual Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
@@ -1525,12 +1530,41 @@ class cBasicGeomCap3D
        double GlobResol() const;
        Pt3dr  PMoyOfCenter() const;
        virtual bool  HasRoughCapteur2Terrain() const ;
-       virtual   Pt2dr OrGlbImaM2C(const Pt2dr &) const;
+       // virtual   Pt2dr OrGlbImaM2C(const Pt2dr &) const;
 
        virtual Pt2dr ImRef2Capteur   (const Pt2dr & aP) const;
        virtual double ResolImRefFromCapteur() const;
-      virtual bool  HasPreciseCapteur2Terrain() const ;
-      virtual Pt3dr PreciseCapteur2Terrain   (const Pt2dr & aP) const ;
+       virtual bool  HasPreciseCapteur2Terrain() const ;
+       virtual Pt3dr PreciseCapteur2Terrain   (const Pt2dr & aP) const ;
+
+  
+       void SetScanImaM2C(const tOrIntIma  &);
+       void SetScanImaC2M(const tOrIntIma &);
+       void SetIntrImaM2C(const tOrIntIma  &);
+       void SetIntrImaC2M(const tOrIntIma &);
+       Pt2dr OrGlbImaM2C(const Pt2dr &) const;
+       Pt2dr OrGlbImaC2M(const Pt2dr &) const;
+       Pt2dr OrScanImaM2C(const Pt2dr &) const;
+       Pt2dr OrIntrImaC2M(const Pt2dr &) const;
+       void ReCalcGlbOrInt();
+       virtual ~cBasicGeomCap3D();
+
+        cBasicGeomCap3D();
+
+    protected :
+
+         // Ces deux similitudes permettent d'implanter le crop-scale-rotate
+         // peut-etre a remplacer un jour par une ElAffin2D; sans changer
+         // l'interface
+         //
+         tOrIntIma                      mScanOrImaC2M;
+         tOrIntIma                      mIntrOrImaC2M;
+         tOrIntIma                      mGlobOrImaC2M;
+
+         tOrIntIma                      mScanOrImaM2C;
+         tOrIntIma                      mIntrOrImaM2C;
+         tOrIntIma                      mGlobOrImaM2C;
+         double               mScaleAfnt;  // Echelle de l'affinite !!
 };
 
 
@@ -1554,7 +1588,6 @@ class cCapture3D : public cBasicGeomCap3D
 class ElCamera : public cCapture3D
 {
      public :
-        typedef ElAffin2D tOrIntIma ;
 
          const bool &   IsScanned() const;
          void  SetScanned(bool mIsSC);
@@ -1784,17 +1817,9 @@ class ElCamera : public cCapture3D
           // Ajoute une transfo finale pour aller vers la
           // camera, typiquement pour un crop/scale
 
-          void SetScanImaM2C(const tOrIntIma  &);
-          void SetScanImaC2M(const tOrIntIma &);
-          void SetIntrImaM2C(const tOrIntIma  &);
-          void SetIntrImaC2M(const tOrIntIma &);
 
-          Pt2dr OrGlbImaM2C(const Pt2dr &) const;
-          Pt2dr OrGlbImaC2M(const Pt2dr &) const;
 
-          Pt2dr OrScanImaM2C(const Pt2dr &) const;
 
-          Pt2dr OrIntrImaC2M(const Pt2dr &) const;
 
           // const ElSimilitude & SimM2C();
           static const Pt2di   TheSzUndef ;
@@ -1831,20 +1856,8 @@ class ElCamera : public cCapture3D
          void RestoreScaneOri(const tOrIntIma &);
     protected :
 
-         // Ces deux similitudes permettent d'implanter le crop-scale-rotate
-         // peut-etre a remplacer un jour par une ElAffin2D; sans changer
-         // l'interface
-         //
-         tOrIntIma                      mScanOrImaC2M;
-         tOrIntIma                      mIntrOrImaC2M;
-         tOrIntIma                      mGlobOrImaC2M;
-
-         tOrIntIma                      mScanOrImaM2C;
-         tOrIntIma                      mIntrOrImaM2C;
-         tOrIntIma                      mGlobOrImaM2C;
 
 
-         void ReCalcGlbOrInt();
 
 
 
@@ -1911,7 +1924,6 @@ class ElCamera : public cCapture3D
          Pt2dr                mStepGrid;
          double               mRayonInvGrid;
          double               mTime;
-         double               mScaleAfnt;  // Echelle de l'affinite !!
          bool                 mScanned;
 
    private :
