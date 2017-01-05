@@ -44,6 +44,88 @@ template <class Type> bool inside_window(const Type & Im1, const Pt2di & aP1,con
    return Im1.inside(aP1-Pt2di(aSzW,aSzW)) && Im1.inside(aP1+Pt2di(aSzW,aSzW));
 }
 
+Pt2dr  DoubleSol(const  RMat_Inertie & aMatr)
+{
+   return Pt2dr
+          (
+              aMatr.correlation(),
+              LSQMoyResiduDroite(aMatr)
+          );
+}
+
+bool  USE_SCOR_CORREL = true;
+
+double STD_SCORE(const Pt2dr & a2Sol)
+{
+    return  USE_SCOR_CORREL ? a2Sol.x : (-a2Sol.y);
+}
+
+double DefScoreOpt() {return USE_SCOR_CORREL ? TT_DefCorrel : -1e20;}
+
+/********************************************************************************/
+/*                                                                              */
+/*                  Auto-Correlation                                            */
+/*                                                                              */
+/********************************************************************************/
+
+// Classe pour calculer de l'autocorrelation rapide
+/*
+template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
+{
+    public :
+         cCutAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW ) :
+             cAutoCorrelDir<TypeIm> (anIm,aP0,aRho,aSzW),
+             mNbPts                 (SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho)).size())
+         {
+         }
+
+         bool  AutoCorrel(double aRejetInt,double aRejetReel,double aSeuilAccept)
+         {
+               double aCorrMax = -2;
+               int    aKMax = -1;
+               for (int aK=0 ; aK<mNbPts ; aK++)
+               {
+                    double aCor = ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW); 
+                    if (aCor > aSeuilAccept) return true;
+                    if (aCor > aCorrMax)
+                    {
+                        aCorrMax = aCor;
+                        aKMax = aK;
+                    }
+               }
+               ELISE_ASSERT(aKMax!=1,"AutoCorrel no K");
+               if (aCorrMax < aRejetInt) return false;
+
+               Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
+
+               double aStep0 = 1/this->mRho;
+               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);
+
+               if (aRes1.y>aSeuilAccept)   return true;
+               if (aRes1.y<aRejetReel)     return false;
+
+               Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
+
+               return aRes2.y > aCorrMax;
+         }
+
+    private :
+         int mNbPts;
+         std::vector<Pt2di> mVPt;
+};
+*/
+
+
+void UUUU()
+{
+    TIm2D<double,double> anIm(Pt2di(1,1));
+
+    cCutAutoCorrelDir<TIm2D<double,double> > aCACD(anIm,Pt2di(1,1),3.0,3);
+}
+
+
+
+
 /********************************************************************************/
 /*                                                                              */
 /*                  Correlation sub-pixel, interpol bilin basique               */
@@ -51,7 +133,7 @@ template <class Type> bool inside_window(const Type & Im1, const Pt2di & aP1,con
 /********************************************************************************/
 
 
-double TT_CorrelBilin
+Pt2dr TT_CorrelBilin
                              (
                                 const tTImTiepTri & Im1,
                                 const Pt2di & aP1,
@@ -61,7 +143,7 @@ double TT_CorrelBilin
                              )
 {
  
-     if (! (inside_window(Im1,aP1,aSzW) && inside_window(Im2,round_ni(aP2),aSzW+1))) return TT_DefCorrel;
+     if (! (inside_window(Im1,aP1,aSzW) && inside_window(Im2,round_ni(aP2),aSzW+1))) return Pt2dr(TT_DefCorrel,1e20);
 
      Pt2di aVois;
      RMat_Inertie aMatr;
@@ -74,7 +156,7 @@ double TT_CorrelBilin
           }
      }
      
-     return aMatr.correlation();
+     return  DoubleSol(aMatr);
 }
 
 /********************************************************************************/
@@ -83,7 +165,7 @@ double TT_CorrelBilin
 /*                                                                              */
 /********************************************************************************/
 
-double TT_CorrelBasique
+Pt2dr TT_CorrelBasique
                              (
                                 const tTImTiepTri & Im1,
                                 const Pt2di & aP1,
@@ -94,7 +176,7 @@ double TT_CorrelBasique
                              )
 {
  
-     if (! (inside_window(Im1,aP1,aSzW*aStep) && inside_window(Im2,aP2,aSzW*aStep))) return TT_DefCorrel;
+     if (! (inside_window(Im1,aP1,aSzW*aStep) && inside_window(Im2,aP2,aSzW*aStep))) return Pt2dr(TT_DefCorrel,1e20);
 
      Pt2di aVois;
      RMat_Inertie aMatr;
@@ -107,7 +189,7 @@ double TT_CorrelBasique
           }
      }
      
-     return aMatr.correlation();
+     return DoubleSol(aMatr);
 }
 
 
@@ -124,23 +206,26 @@ cResulRechCorrel<int> TT_RechMaxCorrelBasique
                              const int   aSzRech
                       )
 {
-    double aCorrelMax = TT_DefCorrel;
+    double aScoreMax = -1e30;
     Pt2di  aDecMax;
+    Pt2dr  a2SolMax;
     Pt2di  aP;
     for (aP.x=-aSzRech ; aP.x<= aSzRech ; aP.x++)
     {
         for (aP.y=-aSzRech ; aP.y<= aSzRech ; aP.y++)
         {
-             double aCorrel = TT_CorrelBasique(Im1,aP1,Im2,aP2+aP,aSzW,aStep);
-             if (aCorrel> aCorrelMax)
+             Pt2dr a2Sol  = TT_CorrelBasique(Im1,aP1,Im2,aP2+aP,aSzW,aStep);
+       
+             if (STD_SCORE(a2Sol) > aScoreMax)
              {
-                 aCorrelMax = aCorrel;
+                 aScoreMax = STD_SCORE(a2Sol);
+                 a2SolMax = a2Sol;
                  aDecMax = aP;
              }
         }
      }
 
-     return cResulRechCorrel<int>(aP2+aDecMax,aCorrelMax);
+     return cResulRechCorrel<int>(aP2+aDecMax,a2SolMax.x);
 
 }
 
@@ -157,6 +242,34 @@ typedef enum eTypeModeCorrel
 }  eTypeModeCorrel;
 
 
+class c2Sol
+{
+     public :
+         c2Sol () :
+            mScoreMax (-1e20)
+         {
+         }
+
+         void Update(const Pt2dr& a2Sol)
+         {
+             mLastSol = a2Sol;
+             double aSc = STD_SCORE(a2Sol);
+             if (aSc>mScoreMax)
+             {
+                 mScoreMax = aSc;
+                 mSolMax = a2Sol;
+             }
+         }
+         double ScoreFinal() {return  mSolMax.x;}
+         double Score4Opt()  {return  STD_SCORE(mLastSol);}
+
+     private :
+
+         Pt2dr   mLastSol;
+         Pt2dr   mSolMax;
+         double  mScoreMax;
+};
+
  
 class cTT_MaxLocCorrelBasique : public Optim2DParam
 {
@@ -165,13 +278,13 @@ class cTT_MaxLocCorrelBasique : public Optim2DParam
          {
             if (mMode == eTMCInt)
             {
-               double aRes =  TT_CorrelBasique(mIm1,Pt2di(mP1),mIm2,Pt2di(mP2)+Pt2di(round_ni(aDx),round_ni(aDy)),mSzW,mStep);
-               return aRes;
+               m2Sol.Update(TT_CorrelBasique(mIm1,Pt2di(mP1),mIm2,Pt2di(mP2)+Pt2di(round_ni(aDx),round_ni(aDy)),mSzW,mStep));
+               return m2Sol.Score4Opt();
             }
             if (mMode == eTMCBilinStep1)
             {
-               double aRes =  TT_CorrelBilin(mIm1,Pt2di(mP1),mIm2,mP2+Pt2dr(aDx,aDy),mSzW);
-               return aRes;
+               m2Sol.Update(TT_CorrelBilin(mIm1,Pt2di(mP1),mIm2,mP2+Pt2dr(aDx,aDy),mSzW));
+               return m2Sol.Score4Opt();
             }
 
             return 0;
@@ -188,7 +301,7 @@ class cTT_MaxLocCorrelBasique : public Optim2DParam
               const int           aStep,
               double              aStepRechCorrel
          )  :
-            Optim2DParam ( aStepRechCorrel, TT_DefCorrel ,1e-5, true),
+            Optim2DParam ( aStepRechCorrel, DefScoreOpt() ,1e-5, true),
             mMode (aMode),
             mIm1 (aIm1),
             mP1  (aP1),
@@ -206,6 +319,7 @@ class cTT_MaxLocCorrelBasique : public Optim2DParam
          Pt2dr               mP2;
          const int           mSzW;
          const int           mStep;
+         c2Sol               m2Sol;
 };
 
 cResulRechCorrel<int> TT_RechMaxCorrelLocale
@@ -223,23 +337,23 @@ cResulRechCorrel<int> TT_RechMaxCorrelLocale
    cTT_MaxLocCorrelBasique  anOpt(eTMCInt,aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),aSzW,aStep,0.9);
    anOpt.optim_step_fixed(Pt2dr(0,0),aSzRechMax);
 
-   return cResulRechCorrel<int>(aP2+round_ni(anOpt.param()),anOpt.ScOpt());
+   return cResulRechCorrel<int>(aP2+round_ni(anOpt.param()),anOpt.m2Sol.ScoreFinal());
 }
 
 cResulRechCorrel<double> TT_RechMaxCorrelMultiScaleBilin
                       (
                              const tTImTiepTri & aIm1,
-                             const Pt2di & aP1,
+                             const Pt2dr & aP1,
                              const tTImTiepTri & aIm2,
                              const Pt2dr & aP2,
                              const int   aSzW
                       )
 
 {
-   cTT_MaxLocCorrelBasique  anOpt(eTMCBilinStep1,aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),aSzW,1,0.1);
+   cTT_MaxLocCorrelBasique  anOpt(eTMCBilinStep1,aIm1,aP1,aIm2,aP2,aSzW,1,0.01);
    anOpt.optim();
 
-   return cResulRechCorrel<double>(aP2+anOpt.param(),anOpt.ScOpt());
+   return cResulRechCorrel<double>(aP2+anOpt.param(),anOpt.m2Sol.ScoreFinal());
 }
 
 
@@ -276,6 +390,8 @@ class cTT_MaxLocCorrelDS1R : public Optim2DParam
          bool                mOkIm1;
 
      public :
+         c2Sol               m2Sol;
+
          bool   OkIm1() const {return mOkIm1;}
          cTT_MaxLocCorrelDS1R 
          ( 
@@ -290,7 +406,7 @@ class cTT_MaxLocCorrelDS1R : public Optim2DParam
               double              aStep0,
               double              aStepEnd
          )  :
-            Optim2DParam ( aStepEnd/aStep0 , TT_DefCorrel ,1e-5, true),
+            Optim2DParam ( aStepEnd/aStep0 , DefScoreOpt() ,1e-5, true),
             mStep0    (aStep0),
             mIm1      (aIm1),
             mIm2      (aIm2),
@@ -350,7 +466,7 @@ REAL cTT_MaxLocCorrelDS1R::Op2DParam_ComputeScore(REAL aDx,REAL aDy)
         )
      {
 // std::cout << "RRRRr OOUTTTtttttttttttt\n";
-        return TT_DefCorrel;
+        return DefScoreOpt();
      }
 // std::cout << "RRRRr IIIIIiiinnnnnnnnnnn\n";
 
@@ -364,8 +480,9 @@ REAL cTT_MaxLocCorrelDS1R::Op2DParam_ComputeScore(REAL aDx,REAL aDy)
               mInterpol->GetVal(mData2,mVois2[aKV] + aDec)
          );
      }
-     double aRes =  aMatr.correlation();
-     return aRes;
+     // double aRes =  aMatr.correlation();
+     m2Sol.Update(DoubleSol(aMatr));
+     return  m2Sol.Score4Opt();
 }
 
 cResulRechCorrel<double> TT_MaxLocCorrelDS1R 
@@ -390,7 +507,7 @@ cResulRechCorrel<double> TT_MaxLocCorrelDS1R
 
    anOptim.optim();
 
-   return cResulRechCorrel<double>(aPC2+anOptim.param() * aStep0,anOptim.ScOpt());
+   return cResulRechCorrel<double>(aPC2+anOptim.param() * aStep0, anOptim.m2Sol.ScoreFinal());
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

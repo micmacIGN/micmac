@@ -452,7 +452,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SetExif",CPP_SetExif,"Modification of exif file (requires exiv2)",cArgLogCom(2)));
        aRes.push_back(cMMCom("SetGpsExif",CPP_SetGpsExif,"Add GPS infos in images exif meta-data (requires exiv2)",cArgLogCom(2)));
        aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ...",cArgLogCom(2)));
-	   aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
+       aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
+       aRes.push_back(cMMCom("VisuRedHom",VisuResiduHom," Create a visualisation of residual on tie points"));
 
    }
 
@@ -631,6 +632,8 @@ int Homol2Way_main(int argc,char ** argv);
 int UnWindows(int argc,char ** argv);
 
 int MakePly_CamOrthoC(int argc,char ** argv);
+
+int XMLDiffSeries_main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -814,6 +817,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
+        aRes.push_back(cMMCom("XMLDiffSeries",XMLDiffSeries_main ,"Generate pair images for tapioca in part c"));
+
    }
 
     cCmpMMCom CmpMMCom;
@@ -846,6 +851,7 @@ extern int CalcBsurH_main(int argc,char ** argv);
 extern int CPP_SATDef2D_main(int argc,char ** argv);
 extern int CPP_TestRPCDirectGen(int argc,char ** argv);
 extern int CPP_TestRPCBackProj(int argc,char ** argv);
+extern int CPP_TestSystematicResiduals(int argc,char ** argv);
 extern int DoTile_main(int argc, char ** argv);
 extern int ASTERGT2MM_main(int argc, char ** argv);
 
@@ -872,6 +878,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     aRes.push_back(cMMCom("SATD2D", CPP_SATDef2D_main, "Visualize 2D deformation fields of a pushbroom image"));
     aRes.push_back(cMMCom("TestRPC", CPP_TestRPCDirectGen, "Test the calculation of direct RPCs"));
     aRes.push_back(cMMCom("TestRPCBackprj", CPP_TestRPCBackProj, "Backproject a point to images"));
+    aRes.push_back(cMMCom("TestRPCSystRes", CPP_TestSystematicResiduals, "Print mean residuals for a stereo pair"));
     aRes.push_back(cMMCom("ImageTiling", DoTile_main, "Tile an image pair to selected size"));
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);

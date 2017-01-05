@@ -394,7 +394,7 @@ template <class Type> class Mat_Inertie
                     );
        }
 
-       REAL  correlation(REAL epsilon = 1e-14)
+       REAL  correlation(REAL epsilon = 1e-14) const
        {
            #if ( ELISE_windows & ELISE_MinGW )
              Mat_Inertie<typename  Type::TypeReel> m =  normalize();
@@ -404,7 +404,7 @@ template <class Type> class Mat_Inertie
              return m.s12() / sqrt(ElMax(epsilon,m.s11()*m.s22()));
        }
 
-       REAL  correlation_with_def(REAL aDef)
+       REAL  correlation_with_def(REAL aDef) const
        {
             #if ( ELISE_windows & ELISE_MinGW )
               Mat_Inertie<typename  Type::TypeReel> m =  normalize();
@@ -457,6 +457,13 @@ void PtsOfSquare(ElFifo<Pt2dr> & pts,Pt2dr p0,Pt2dr p1);
 
 #define IMat_Inertie  Mat_Inertie<ElStdTypeScal<INT> >
 #define RMat_Inertie  Mat_Inertie<ElStdTypeScal<REAL> >
+
+
+Pt2dr  LSQSolDroite(const  RMat_Inertie & aMatr,double & aDelta);
+Pt2dr  LSQSolDroite(const  RMat_Inertie & aMatr);
+double   LSQResiduDroite(const  RMat_Inertie & aMatr);
+double   LSQMoyResiduDroite(const  RMat_Inertie & aMatr);
+
 
 inline Pt2dr MatCdg(const RMat_Inertie& aMat)
 {

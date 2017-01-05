@@ -174,7 +174,8 @@ int SATtoOpticalCenter_main(cSatI_Appli &aApps)
            
 
            CameraRPC aCamRPC(*itL, aApps.mType,aApps.mChSys);
-           aCamRPC.OpticalCenterGrid(aApps.mGridSz,true);
+           aCamRPC.SetGridSz(aApps.mGridSz);
+           aCamRPC.OpticalCenterGrid(true);
 	
 	
 	   /*Pt2dr aa(100.4,1000.0);
@@ -356,6 +357,129 @@ int SATvalid_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 
 }
+
+int CPP_TestSystematicResiduals(int argc,char ** argv)
+{
+    std::string aIm1, aIm2, aDir;
+    std::string aNameH, aIm1Name, aIm2Name;
+
+    Pt2dr  aZVal;
+    Pt3dr  aPt3D;
+    std::vector<double> aVPds;
+    bool aExpTxt=0;
+    bool aExpPly=0;
+
+    ElInitArgMain
+    (
+         argc, argv,
+         LArgMain() << EAMC(aIm1,"First image orientation file (in cXml_CamGenPolBundle format)")
+                    << EAMC(aIm2,"Second image orientation file (in cXml_CamGenPolBundle format)"),
+         LArgMain() << EAM(aExpTxt, "ExpTxt", true, "Homol in txt, def=false" )
+                    << EAM(aExpPly, "ExpPly", true, "Export the intersected tie points in ply, def=false" )
+    );
+    
+    aDir = DirOfFile(aIm1);
+    
+    std::cout << aIm1 << " " << aIm2 << "\n";
+
+    /* Read cameras */
+    CameraRPC aCamRPC1(aIm1);
+    CameraRPC aCamRPC2(aIm2);
+    
+    aZVal = aCamRPC1.GetAltiSolMinMax();
+    std::cout << "ZMinMax:" << aZVal << "\n";
+
+    cXml_CamGenPolBundle aXml1 = StdGetFromSI(aIm1,Xml_CamGenPolBundle);
+    cXml_CamGenPolBundle aXml2 = StdGetFromSI(aIm2,Xml_CamGenPolBundle);
+    
+    aIm1Name = aXml1.NameIma();
+    aIm2Name = aXml2.NameIma();
+    
+    /* Read Homol for both images*/
+    aNameH = "Homol/Pastis" + aIm1Name + "/" + aIm2Name + (aExpTxt ? ".txt" : ".dat"); 
+    ElPackHomologue aPack = ElPackHomologue::FromFile(aNameH);
+
+    
+
+    
+    /* Intersection + backprojection */
+    bool aIsOK;
+    Pt3dr aIm1P1, aIm1P2, aIm2P1, aIm2P2;
+    Pt2dr aP1B, aP2B;
+    Pt2dr aSomD1(0,0), aSomD2(0,0);
+    vector<Pt2dr> aRV1, aRV2;
+    
+
+    int aNum=0;
+    cPlyCloud aPly;
+    ElPackHomologue::iterator itPt=aPack.begin();
+    for( ; itPt != aPack.end(); itPt++, aNum++ )
+    {
+        std::vector<ElSeg3D> aVS;
+   
+
+        aIm1P1 = aCamRPC1.ImEtZ2Terrain(itPt->P1(),aZVal.x); 
+        aIm1P2 = aCamRPC1.ImEtZ2Terrain(itPt->P1(),aZVal.y); 
+        
+        aIm2P1 = aCamRPC2.ImEtZ2Terrain(itPt->P2(),aZVal.x); 
+        aIm2P2 = aCamRPC2.ImEtZ2Terrain(itPt->P2(),aZVal.y);
+        
+        aVPds.push_back(1);
+        aVS.push_back(ElSeg3D(aIm1P1,aIm1P2));
+        aVS.push_back(ElSeg3D(aIm2P1,aIm2P2));
+
+        aPt3D = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
+       
+        if( aExpPly==1 )
+            aPly.AddPt(Pt3di(255,255,255),aPt3D);
+        
+
+        //backproject
+        aP1B = aCamRPC1.Ter2Capteur(aPt3D);
+        aP2B = aCamRPC2.Ter2Capteur(aPt3D);
+        
+        aSomD1.x = (aSomD1.x + itPt->P1().x-aP1B.x);
+        aSomD1.y = (aSomD1.y + itPt->P1().y-aP1B.y);
+        
+        aSomD2.x = (aSomD2.x + itPt->P2().x-aP2B.x);
+        aSomD2.y = (aSomD2.y + itPt->P2().y-aP2B.y);
+        
+        //std::cout  << ",dif: " << itPt->P1().x-aP1B.x << "; " << aSomD << "\n";
+
+        aRV1.push_back( Pt2dr(itPt->P1().x-aP1B.x, itPt->P1().y-aP1B.y) );
+        aRV2.push_back( Pt2dr(itPt->P2().x-aP2B.x, itPt->P2().y-aP2B.y) );
+    }
+    
+    Pt2dr aMoy1 = (aSomD1)/aNum;
+    Pt2dr aMoy2 = (aSomD2)/aNum;
+    Pt2dr aStd1(0,0), aStd2(0,0);
+
+    
+    for(int aK=0; aK<int(aRV1.size()); aK++)
+    {
+        aStd1.x = aStd1.x + (aRV1.at(aK).x - aMoy1.x)*(aRV1.at(aK).x - aMoy1.x);
+        aStd1.y = aStd1.y + (aRV1.at(aK).y - aMoy1.y)*(aRV1.at(aK).y - aMoy1.y);
+        
+        aStd2.x = aStd2.x + (aRV2.at(aK).x - aMoy2.x)*(aRV2.at(aK).x - aMoy2.x);
+        aStd2.y = aStd2.y + (aRV2.at(aK).y - aMoy2.y)*(aRV2.at(aK).y - aMoy2.y);
+    }
+    aStd1.x = sqrt(double(aStd1.x)/aNum);
+    aStd1.y = sqrt(double(aStd1.y)/aNum);
+    aStd2.x = sqrt(double(aStd2.x)/aNum);
+    aStd2.y = sqrt(double(aStd2.y)/aNum);
+
+    std::cout << "aSom1=" << aSomD1 << ", aSom2=" << aSomD2 << ", Num=" << aNum << "\n";
+    std::cout << "mean1=" << aMoy1  << ", std_dev1=" << aStd1 
+              << "mean2=" << aMoy2  << ", std_dev2=" << aStd2 << "\n";
+
+
+    if( aExpPly==1 )
+        aPly.PutFile(aDir + "TiePts.ply");
+
+    return EXIT_SUCCESS;
+
+}
+
 
 int CPP_TestRPCBackProj(int argc,char ** argv)
 {

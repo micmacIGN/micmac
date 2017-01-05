@@ -66,6 +66,8 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cTriForTiepTri.cpp
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/TaskCorrel.cpp
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cplfromhomol.cpp
+    
+    ${TDPPMD_DIR}/TiePByMesh/XMLDiffSeries/cAppliXMLDiffSeries.cpp
 
 )
 

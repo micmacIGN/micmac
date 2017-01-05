@@ -577,6 +577,7 @@ class ElAffin2D : public cElMap2D
 
          // idem sim Aff1 * Aff2 renvoie l'affinite e composee (celle z-> Aff1(Aff2(z)))
        ElAffin2D operator * (const ElAffin2D & sim2) const;
+       ElAffin2D operator + (const ElAffin2D & sim2) const;
        ElAffin2D inv() const;
 
        Pt2dr I00() const {return mI00;}
@@ -590,6 +591,8 @@ class ElAffin2D : public cElMap2D
 
        cElHomographie ToHomographie() const;
 
+       // Ajoute une trans pout que aPt -> aRes
+       ElAffin2D CorrectWithMatch(Pt2dr aPt,Pt2dr aRes) const;
 
      private :
 
@@ -1535,6 +1538,21 @@ template <class Type,class TypePt> inline int  CmpValAndDec(const Type & aV1,con
 
 std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort);
 
+template <class Type> int DimPts(Pt2d<Type> *) {return 2;}
+template <class Type> int DimPts(Pt3d<Type> *) {return 3;}
+template <class Type> int DimPts(Pt4d<Type> *) {return 4;}
+
+
+template <class Type> class cCmpPtOnAngle
+{
+    public :
+         bool  operator()(const Type & aP1 ,const Type & aP2)
+         {    
+              Pt2dr aPol1 = Pt2dr::polar(Pt2dr(aP1),1);
+              Pt2dr aPol2 = Pt2dr::polar(Pt2dr(aP2),1);
+              return aPol1.y < aPol2.y;
+         }
+};
 
 
 

@@ -249,6 +249,109 @@ class OperAssocMixte : public OperBinMixte
      Id _id ;
 };
 
+inline double NeutreOpAss(const OperAssocMixte &  anOp,double *) {return anOp.rneutre();}
+inline int    NeutreOpAss(const OperAssocMixte &  anOp,int    *) {return anOp.ineutre();}
+
+typedef enum eComplFRA
+{
+    eCFR_None,
+    eCFR_Per,
+    eCFR_Neutre
+} eComplFRA;
+
+template <class Type> class cFastReducAssoc
+{
+     public :
+         cFastReducAssoc(const OperAssocMixte & anOp,INT   x_min, INT   x_max, INT  dx0, INT   dx1) :
+             mOp      (&anOp),
+             mNeutre  (NeutreOpAss(*mOp,(Type*)0)),
+             mXMin    (ElMin(x_min,x_max)),
+             mXMax    (ElMax(x_min,x_max)),
+             mDx0     (ElMin(dx0,dx1)),
+             mDx1     (ElMax(dx0,dx1)),
+             mPer     (mDx1-mDx0+1),
+             mNbEl    (mXMax-mXMin + mPer),
+             mOriX    (mXMin+mDx0),
+             mBufIn   (mNbEl),
+             mDIn     (mBufIn.data() - mOriX),
+             mBufOut  (mNbEl),
+             mDOut    (mBufOut.data() - mOriX),
+             mBufAv   (mNbEl),
+             mDAv     (mBufAv.data() - mOriX),
+             mBufAr   (mNbEl),
+             mDAr     (mBufAr.data() - mOriX)
+         {
+         }
+         void Compute(int aDx0,int aDx1,eComplFRA aModeC)
+         {
+             if (aModeC!=eCFR_None)
+             {
+                ComplemInput(aModeC==eCFR_Per,aDx0,aDx1);
+             }
+             VerifDx(aDx0,aDx1);
+             mOp->reduce_seg(mDOut,mDIn,mDAv,mDAr,mXMin,mXMax,aDx0,aDx1);
+         }
+
+         Type & In(int anX)
+         {
+            ELISE_ASSERT((anX>=mXMin+mDx0) && (anX<mXMax+mDx1),"cFastReducAssoc::SetIn");
+            return mDIn[anX] ;
+         }
+         const Type & Out(int anX)
+         {
+            ELISE_ASSERT((anX>=mXMin) && (anX<mXMax),"cFastReducAssoc::SetIn");
+            return mDOut[anX];
+         }
+
+     private :
+
+        void ComplemInput(bool Periodik,int aDx0,int aDx1)
+         {
+             VerifDx(aDx0,aDx1);
+             for (int aX=mXMin+aDx0; aX<mXMin ; aX++)
+                mDIn[aX]  = Complem(aX,Periodik);
+             for (int aX=mXMax; aX<mXMax+aDx1 ; aX++)
+                mDIn[aX]  = Complem(aX,Periodik);
+         }
+         void SetOp(const OperAssocMixte & anOp) {mOp = & anOp;}
+
+
+         const Type &  Complem(int aX,bool Per)
+         {
+             if (Per)
+             {
+                 int aXp = mXMin + mod((aX-mXMin),mXMax-mXMin);
+                 return mDIn[aXp];
+             }
+             return mNeutre;
+         }
+         void VerifDx(int aDx0,int aDx1)
+         {
+              ELISE_ASSERT((aDx0>=mDx0) && (aDx1<mDx1),"cFastReducAssoc::Compute");
+         }
+
+         const OperAssocMixte * mOp;
+         Type            mNeutre;
+         int             mXMin;
+         int             mXMax;
+         int             mDx0;
+         int             mDx1;
+         int             mPer;
+         int             mNbEl;
+         int             mOriX;
+         Im1D<Type,Type> mBufIn;
+         Type *          mDIn;
+         Im1D<Type,Type> mBufOut;
+         Type *          mDOut;
+         Im1D<Type,Type> mBufAv;
+         Type *          mDAv;
+         Im1D<Type,Type> mBufAr;
+         Type *          mDAr;
+};
+
+
+
+
 
         /***********************************************/
         /*         Unary operator                      */

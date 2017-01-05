@@ -1191,8 +1191,51 @@ void TestUnDump()
 */
 }
 
+void TestMemory()
+{
+    int aCpt=0;
+
+    while (1)
+    {
+        int aNbInc = 100;
+        L2SysSurResol aSys(aNbInc);
+
+        for (int aKEq=0 ; aKEq<(2*aNbInc) ; aKEq++)
+        {
+             std::vector<double> aVCoeff;
+             for (int aKInc=0 ; aKInc<aNbInc ; aKInc++)
+             {
+                 aVCoeff.push_back(NRrandC());
+             }
+             aSys.AddEquation(1.0,&(aVCoeff[0]),NRrandC());
+        }
+        aSys.Solve(0);
+
+        aCpt++;
+        if ((aCpt%100)==0) std::cout << "CPT=" << aCpt << "\n";
+    }
+}
+
+extern void TMA();
+
 int MPDtest_main (int argc,char** argv)
 {
+    {
+        double aU0 = 0.5;
+        for (int aK=1 ; aK< 100000 ; aK++)
+        {
+            aU0 = (exp(aU0)-1) / (exp(aU0) -aU0);
+            std::cout << aU0 << " " << aK << "\n";
+            getchar();
+        }
+    }
+
+
+    {
+       //TestMemory();
+       TMA();
+       exit(EXIT_SUCCESS);
+    }
     {
        TestUnDump();
        exit(EXIT_SUCCESS);
