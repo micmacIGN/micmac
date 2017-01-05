@@ -105,11 +105,11 @@ S_Appli::S_Appli(int argc, char ** argv )
 
         argc,argv,
         LArgMain()	<<EAMC(aDir,"Directory")
-					<<EAMC(aOri,"Orientations directory")
-					<<EAMC(aGpsFile,"Gps .xml file of trajectory")
-					<<EAMC(mFullName,"Pattern of images"),
+					<<EAMC(aOri,"Orientations directory", eSAM_IsExistDirOri)
+					<<EAMC(aGpsFile,"Gps .xml file of trajectory", eSAM_IsExistFile)
+					<<EAMC(mFullName,"Pattern of images", eSAM_IsPatFile),
         LArgMain()	<<EAM(nbr,"nbr",true,"Number of best solutions to display")
-					<<EAM(aOut,"Out",true,"output file")
+					<<EAM(aOut,"Out",true,"output file", eSAM_IsOutputFile)
     );
     
     
@@ -127,13 +127,12 @@ S_Appli::S_Appli(int argc, char ** argv )
     
     ManC=cInterfChantierNameManipulateur::BasicAlloc(mDir);
     aImgsFiles=ManC->StdGetListOfFile(mPat);
+   
     for(std::list<std::string>::iterator I=aImgsFiles.begin();I!=aImgsFiles.end();I++)
     {	
         //std::cout << "*I2 =" << *I << std::endl;
         aNameImgs.push_back(*I);
     }
-
-
 
     int nbr_i=0;
     nbr_i=int (nbr);
@@ -442,7 +441,7 @@ void S_Appli::affiche_max(std::vector<aSolution> solution , int dt_max)
 
 
 //la fonction cherche_max fournit la solution optimale pour un dt donnée:
- //en trouvant le coefficient le plus proche de 1 et la liste des points GPS qui correspond à ce coefficient ainsi que l'indice du 1er elélément
+//en trouvant le coefficient le plus proche de 1 et la liste des points GPS qui correspond à ce coefficient ainsi que l'indice du 1er elélément
 aSolution S_Appli::cherche_max(std::vector<aSolution> all_Solutions,int dt) 
 {
 

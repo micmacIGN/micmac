@@ -40,6 +40,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/CompareOriTieP.cpp
     ${TDPPMD_DIR}/CompareOrthos.cpp
     ${TDPPMD_DIR}/ConvP4dIm2MM.cpp
+    ${TDPPMD_DIR}/SplitConcateXml.cpp
     ${TDPPMD_DIR}/TiePByMesh/PHO_MI.cpp
     ${TDPPMD_DIR}/TiePByMesh/InitOutil.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiePByMesh_main.cpp
@@ -57,7 +58,6 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/DrawVectorNormalMesh_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/MeshPartViewable_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/TestGiang_main.cpp
-
     ${TDPPMD_DIR}/TiePByMesh/FAST_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/Homol2Way_main.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiepTriPrl.cpp
