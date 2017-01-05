@@ -68,6 +68,11 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cplfromhomol.cpp
     
     ${TDPPMD_DIR}/TiePByMesh/XMLDiffSeries/cAppliXMLDiffSeries.cpp
+    ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cAppliZBufferRaster.cpp
+    ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cImgZBuffer.cpp
+    ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cTri3D.cpp
+    ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cTri2D.cpp
+    ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/ZBufferRaster.cpp
 
 )
 
