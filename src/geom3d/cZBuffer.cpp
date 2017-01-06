@@ -167,9 +167,9 @@ Im2D_REAL4 cZBuffer::Basculer
 {
 if (MPD_MM())
 {
-   for (int aK=0 ; aK<100 ; aK++)
+   for (int aK=0 ; aK<3 ; aK++)
        std::cout << "FIX RrrrrrrrrrPpccc \n";
-   mIsRPC= 1;
+   // mIsRPC= 1;
 }
 
 

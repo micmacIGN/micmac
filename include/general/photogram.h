@@ -1481,7 +1481,7 @@ class cBasicGeomCap3D
       virtual Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ; 
    // Coincide avec le centre optique pour les camera stenope et RPC, est la position
    // du centre origine pour les camera ortho (utilise pour la geom faisceau)
-      Pt3dr    OrigineProf() const ;  // Par defau OpticalCenterOfPixel(Milieu)
+      virtual Pt3dr    OrigineProf() const ;  // Par defau OpticalCenterOfPixel(Milieu)
 
       virtual Pt3dr    ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
       virtual Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
