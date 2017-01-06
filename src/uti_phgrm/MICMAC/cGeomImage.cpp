@@ -2144,6 +2144,11 @@ class cGeomFaisZTerMaitre : public cGeomImage_Id
        void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
        {
            mGeoRef->RemplitOriXMLNuage(true,mtd,aGT,aNuage,mode);
+
+           if (IsRPC())
+           {
+               aNuage.NameOri().SetVal(mPDV.NameGeom());
+           }
        }
 
 
