@@ -110,7 +110,8 @@ int MasqMaker_main(int argc,char ** argv)
             aNameMasq.c_str(),
             aPicTiff.sz(),
             GenIm::bits1_msbf,
-            Tiff_Im::Group_4FAX_Compr,
+            //Tiff_Im::Group_4FAX_Compr,
+            Tiff_Im::No_Compr,
             Tiff_Im::BlackIsZero
             );
 
