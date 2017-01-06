@@ -79,6 +79,11 @@ int MasqMaker_main(int argc,char ** argv)
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
 
+    Tiff_Im *aMasqSupTif=0;
+    if (aMasqSup!="?")
+    {
+        aMasqSupTif=new Tiff_Im(aMasqSup.c_str());
+    }
 
     for (unsigned int i=0;i<aSetIm.size();i++)
     {
@@ -109,16 +114,14 @@ int MasqMaker_main(int argc,char ** argv)
             Tiff_Im::BlackIsZero
             );
 
-        if (aMasqSup!="?")
+        if (aMasqSupTif)
         {
-            Tiff_Im aMasqSupTif(aMasqSup.c_str());
-
-            ELISE_ASSERT(aPicTiff.sz() == aMasqSupTif.sz(), "Picture and MasqSup must have the same size!");
+            ELISE_ASSERT(aPicTiff.sz() == aMasqSupTif->sz(), "Picture and MasqSup must have the same size!");
 
             ELISE_COPY
                 (
                 aFileOut.all_pts(),
-                (aMasqImage.in()*aMasqSupTif.in())>0,
+                (aMasqImage.in()*aMasqSupTif->in())>0,
                 aFileOut.out()
                 );
         }else{
@@ -143,6 +146,8 @@ int MasqMaker_main(int argc,char ** argv)
 
         std::cout<<" done!"<<std::endl;
     }
+    if (aMasqSupTif) delete aMasqSupTif;
+
     std::cout<<"MasqMaker finished.\n";
 
     return EXIT_SUCCESS;
