@@ -157,6 +157,7 @@ extern int ExtractAppui3D_main(int , char **);
 extern int TestElParseDir_main(int , char **);
 extern int Kugelhupf_main(int , char **);
 extern int FFTKugelhupf_main(int , char **);
+extern int MasqMaker_main(int , char **);
 extern int SimplePredict_main(int , char **);
 extern int ProjImPtOnOtherImages_main(int , char **);
 extern int schnaps_main(int , char **);
@@ -255,6 +256,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Schnaps",schnaps_main," Reduction of homologue points in image geometry"));
        aRes.push_back(cMMCom("MergeHomol",mergeHomol_main," Merge Homol dir"));
        aRes.push_back(cMMCom("Zlimit",Zlimit_main," Crop Depth image (or DEM) in Z"));
+       aRes.push_back(cMMCom("MasqMaker",MasqMaker_main," Create Mask form image values"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));

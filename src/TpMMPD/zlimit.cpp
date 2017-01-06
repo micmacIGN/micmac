@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /**
  * Zlimit: crop a DEM in depth
- * Maintained by Luc Girod on 2016-08-03
  * */
 
 //
@@ -201,7 +200,7 @@ int Zlimit_main(int argc,char ** argv)
 
 	// Output mask
 	ELISE_COPY(masqImage.all_pts(), (masqImage.in() * 255), masqImage.out());
-	Tiff_Im::CreateFromIm(masqImage, aMasqName + ".tif");
+    Tiff_Im::CreateFromIm(masqImage, aMasqName + ".tif");
 
     //for debug
     /*ELISE_COPY(tmpImage1.all_pts(),((1/(aFileMnt.in()*aResolutionAlti+aOrigineAlti))<aMaxZ)*255,tmpImage1.out());
@@ -263,7 +262,7 @@ sur le site "http://www.cecill.info".
 En contrepartie de l'accessibilite au code source et des droits de copie,
 de modification et de redistribution accordes par cette licence, il n'est
 offert aux utilisateurs qu'une garantie limitee.  Pour les memes raisons,
-seule une responsabilite restreinte pèse sur l'auteur du programme,  le
+seule une responsabilite restreinte pese sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concedants successifs.
 
 A cet egard  l'attention de l'utilisateur est attiree sur les risques
@@ -274,7 +273,7 @@ manipuler et qui le reserve donc a des developpeurs et des professionnels
 avertis possedant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invites a charger  et  tester  l'adequation  du
 logiciel a leurs besoins dans des conditions permettant d'assurer la
-securite de leurs systèmes et ou de leurs donnees et, plus generalement,
+securite de leurs systemes et ou de leurs donnees et, plus generalement,
 a l'utiliser et l'exploiter dans les memes conditions de securite.
 
 Le fait que vous puissiez acceder a cet en-tete signifie que vous avez
