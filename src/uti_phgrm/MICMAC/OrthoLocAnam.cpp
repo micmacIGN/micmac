@@ -221,7 +221,7 @@ void cAppliMICMAC::MakeRedrLocAnamSA()
           aNuageFinal.Image_Profondeur().Val().Image() = aRLA.NameOut() + ".tif";
           aNuageFinal.Image_Profondeur().Val().Masq() = aRLA.NameMasq() + ".tif";
           ElAffin2D anAffC2M = ElAffin2D::TransfoImCropAndSousEch(aFOMFinale.OriginePlani(),aFOMFinale.ResolutionPlani());
-          aNuageFinal.Orientation().Val().OrIntImaM2C().SetVal( El2Xml(anAffC2M)); // RPCNuage
+          aNuageFinal.Orientation().OrIntImaM2C().SetVal( El2Xml(anAffC2M)); // RPCNuage
 
           MakeFileXML(aNuageFinal,FullDirResult() +aNNRed);
        }

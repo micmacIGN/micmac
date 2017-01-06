@@ -568,8 +568,9 @@
           <!-- Les infos d'origine plani et alti sont contenus dans la similitude
                de l'Orientation
            -->
-                <!-- Modif suite pb nuage en RPC, l'orientation peut etre soit embarquee soit un nom -->
-          <Orientation  Nb="?"   
+                <!-- Modif suite pb nuage en RPC, l'orientation peut etre soit embarquee soit un nom , comme il y a
+                     toujours une ori pour l'affinite, on le met obligatoire, pas tres beau ... -->
+          <Orientation  Nb="1"   
                         RefType="OrientationConique"
                         RefFile="ParamChantierPhotogram.xml"
            >

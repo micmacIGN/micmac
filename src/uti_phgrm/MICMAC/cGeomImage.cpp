@@ -316,39 +316,14 @@ void cGeomImage::RemplitOriXMLNuage
              );
 
 
-/*
-static int aCpt; aCpt++;  std::cout << "CCCCPT=" << aCpt<<"\n";
-if (aCpt==8)
-{
-   ShowAff(anAffC2M);
-   ElAffin2D aInv = anAffC2M.inv();
-   ShowAff(aInv);
-
-   double aXD=0.1;
-   float aXF=0.1;
-   printf("XXXXX %9.15f %9.15f %9.15f\n",aResol.x,aXD,aXF);
-   double X = (aResol.x *10 -1) /10;
-   std::cout << "OOOO " << anOrigine << anOrigine*X<< "\n";
-
-   std::cout << anAffC2M.I00() << anAffC2M.I00() - Pt2dr(round_ni(anAffC2M.I00())) << "\n";
-   std::cout << aInv.I00() << aInv.I00() - Pt2dr(round_ni(aInv.I00())) << "\n";
-
-    ElAffin2D anII = aInv.inv();
-   std::cout << anAffC2M.I00() - anII.I00() << "\n";
-getchar();
-}
-*/
-
-
    aCam->SetScanImaC2M(anAffC2M);
 
-   aNuage.Orientation().SetVal(aCam->StdExportCalibGlob());
+   // aNuage.Orientation().SetVal(aCam->StdExportCalibGlob());
+   aNuage.Orientation() = aCam->StdExportCalibGlob(); // RPCNuageRPCNuage
    if (aZUP)
-       aNuage.Orientation().Val().ZoneUtileInPixel().SetVal(true); // RPCNuage
+       aNuage.Orientation().ZoneUtileInPixel().SetVal(true); // RPCNuage
    if (ToDel)
       delete aCam;
-/*
-*/
 }
 
 
@@ -2166,36 +2141,8 @@ void cGeomImage_Terrain_Ori::InitAnamSA(double aResol,const Box2dr & )
 class cGeomFaisZTerMaitre : public cGeomImage_Id
 {
     public :
-/*
-    void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
-    {
-
-if (MPD_MM())
-{
-   std::cout << "RemplitOriXMLNuageRemplitOriXMLNuage \n";
-   CFM = true;
-   getchar();
-}
-        cGeomImage::RemplitOriXMLNuage(false,mtd,aGT,aNuage,mode);
-        if (CFM)
-        {
-            cModuleOrientationFile oriFile;
-            oriFile.NameFileOri()=mModule->GetFilename();
-            aNuage.Orientation().ModuleOrientationFile().SetVal(oriFile);
-            aNuage.Orientation().TypeProj().SetVal(eProjGrid);
-         }
-    }
-*/
        void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
        {
-/*
-if (MPD_MM())
-{
-   std::cout << "cGeomFaisZTerMaitre:: RemplitOriXMLNuageRemplitOriXMLNuage " << aNuage.Orientation().Interne().Val().PP() << " \n";
-   CFM = true;
-   getchar();
-}
-*/
            mGeoRef->RemplitOriXMLNuage(true,mtd,aGT,aNuage,mode);
        }
 
@@ -2985,8 +2932,8 @@ class cGeomImage_Module : public cGeomImage
         {
             cModuleOrientationFile oriFile;
             oriFile.NameFileOri()=mModule->GetFilename();
-            aNuage.Orientation().Val().ModuleOrientationFile().SetVal(oriFile); // RPCNuage
-            aNuage.Orientation().Val().TypeProj().SetVal(eProjGrid);            // RPCNuage
+            aNuage.Orientation().ModuleOrientationFile().SetVal(oriFile); // RPCNuage
+            aNuage.Orientation().TypeProj().SetVal(eProjGrid);            // RPCNuage
          }
     }
 

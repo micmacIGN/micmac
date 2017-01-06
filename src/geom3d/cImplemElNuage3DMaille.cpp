@@ -447,7 +447,7 @@ template <class Type,class TBase> cElNuage3DMaille * cElN3D_EpipGen<Type,TBase>:
    double aDifStd = 0.5;
    if (aNewParam.RatioResolAltiPlani().IsInit() && (aNewParam.Image_Profondeur().IsInit()))
    {
-        ElAffin2D aAfM2C = Xml2EL(this->mParams.Orientation().Val().OrIntImaM2C());
+        ElAffin2D aAfM2C = Xml2EL(this->mParams.Orientation().OrIntImaM2C());
         double aResol = (euclid(aAfM2C.I10()) + euclid(aAfM2C.I01()))/2.0;
 
         aDifStd  = (1/aResol) * (1/this->mParams.Image_Profondeur().Val().ResolutionAlti())   * (this->mParams.RatioResolAltiPlani().Val()) ;
@@ -574,10 +574,11 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
 
        aParam.NbPixel() = aBox.sz();
 
-       ElAffin2D aAfM2C = Xml2EL(aParam.Orientation().Val().OrIntImaM2C()); // RPCNuage
+       ElAffin2D aAfM2C = Xml2EL(aParam.Orientation().OrIntImaM2C()); // RPCNuage
        
        aAfM2C   =   ElAffin2D::trans(-Pt2dr(aBox._p0)) * aAfM2C;
-       aParam.Orientation().Val().OrIntImaM2C().SetVal(El2Xml(aAfM2C)); // RPCNuage
+       // aParam.Orientation().Val().OrIntImaM2C()= El2Xml(aAfM2C); // RPCNuage
+       aParam.Orientation().OrIntImaM2C().SetVal(El2Xml(aAfM2C));
        Dequant = aPMG->mDequant;
   }
 

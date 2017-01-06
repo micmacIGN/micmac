@@ -6943,12 +6943,12 @@ const cTplValGesInit< cXmlOneSurfaceAnalytique > & cXML_ParamNuage3DMaille::Anam
 }
 
 
-cTplValGesInit< cOrientationConique > & cXML_ParamNuage3DMaille::Orientation()
+cOrientationConique & cXML_ParamNuage3DMaille::Orientation()
 {
    return mOrientation;
 }
 
-const cTplValGesInit< cOrientationConique > & cXML_ParamNuage3DMaille::Orientation()const 
+const cOrientationConique & cXML_ParamNuage3DMaille::Orientation()const 
 {
    return mOrientation;
 }
@@ -7119,14 +7119,7 @@ void  BinaryUnDumpFromFile(cXML_ParamNuage3DMaille & anObj,ELISE_fp & aFp)
         }
         else  anObj.Anam().SetNoInit();
   } ;
-  { bool IsInit;
-       BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) {
-             anObj.Orientation().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.Orientation().ValForcedForUnUmp(),aFp);
-        }
-        else  anObj.Orientation().SetNoInit();
-  } ;
+    BinaryUnDumpFromFile(anObj.Orientation(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -7181,8 +7174,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXML_ParamNuage3DMaille & anObj)
     if (anObj.RepereGlob().IsInit()) BinaryDumpInFile(aFp,anObj.RepereGlob().Val());
     BinaryDumpInFile(aFp,anObj.Anam().IsInit());
     if (anObj.Anam().IsInit()) BinaryDumpInFile(aFp,anObj.Anam().Val());
-    BinaryDumpInFile(aFp,anObj.Orientation().IsInit());
-    if (anObj.Orientation().IsInit()) BinaryDumpInFile(aFp,anObj.Orientation().Val());
+    BinaryDumpInFile(aFp,anObj.Orientation());
     BinaryDumpInFile(aFp,anObj.NameOri().IsInit());
     if (anObj.NameOri().IsInit()) BinaryDumpInFile(aFp,anObj.NameOri().Val());
     BinaryDumpInFile(aFp,anObj.RatioResolAltiPlani().IsInit());
@@ -7218,8 +7210,7 @@ cElXMLTree * ToXMLTree(const cXML_ParamNuage3DMaille & anObj)
       aRes->AddFils(ToXMLTree(anObj.RepereGlob().Val())->ReTagThis("RepereGlob"));
    if (anObj.Anam().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Anam().Val())->ReTagThis("Anam"));
-   if (anObj.Orientation().IsInit())
-      aRes->AddFils(ToXMLTree(anObj.Orientation().Val())->ReTagThis("Orientation"));
+   aRes->AddFils(ToXMLTree(anObj.Orientation())->ReTagThis("Orientation"));
    if (anObj.NameOri().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NameOri"),anObj.NameOri().Val())->ReTagThis("NameOri"));
    if (anObj.RatioResolAltiPlani().IsInit())
@@ -7270,7 +7261,7 @@ void xml_init(cXML_ParamNuage3DMaille & anObj,cElXMLTree * aTree)
    xml_init(anObj.VerifNuage(),aTree->GetAll("VerifNuage",false,1));
 }
 
-std::string  Mangling( cXML_ParamNuage3DMaille *) {return "0AAC051872309DCAFE3F";};
+std::string  Mangling( cXML_ParamNuage3DMaille *) {return "FCE57CC5BCD9B0FCFD3F";};
 
 
 std::string & cMasqMesures::NameFile()

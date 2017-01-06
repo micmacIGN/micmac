@@ -2034,11 +2034,11 @@ void cEtapeMecComp::RemplitXMLNuage
     if ((mAppli.GeomMNT() == eGeomMNTFaisceauIm1PrCh_Px1D) || (mAppli.GeomMNT()==eGeomMNTFaisceauPrChSpherik) || (mAppli.GeomMNT() == eGeomMNTFaisceauIm1PrCh_Px2D))
     {
        ElAffin2D anAff =   ElAffin2D::TransfoImCropAndSousEch(aOriPlani,aResolPlani);
-       AddAffinite(aNuage.Orientation().Val(),anAff); // RPCNuage
+       AddAffinite(aNuage.Orientation(),anAff); // RPCNuage
     }
 
 
-    aNuage.Orientation().Val().Verif().SetNoInit(); // RPCNuage
+    aNuage.Orientation().Verif().SetNoInit(); // RPCNuage
 
     cVerifOrient aVerif;
     Box2dr aBoxDisc (Pt2dr(0,0),Pt2dr(aGT.SzDz()));

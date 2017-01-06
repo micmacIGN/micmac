@@ -1553,8 +1553,8 @@ cBasicGeomCap3D::~cBasicGeomCap3D()
 
 Pt3dr cBasicGeomCap3D::OrigineProf () const
 {
-   //return OpticalCenterOfPixel(Pt2dr(SzBasicCapt3D()) / 2.0);
-   return Pt3dr(SzBasicCapt3D().x / 2.0, SzBasicCapt3D().y / 2.0, 0);
+   return OpticalCenterOfPixel(Pt2dr(SzBasicCapt3D()) / 2.0);
+   // return Pt3dr(SzBasicCapt3D().x / 2.0, SzBasicCapt3D().y / 2.0, 0);
 }
 
 cBasicGeomCap3D::cBasicGeomCap3D() :

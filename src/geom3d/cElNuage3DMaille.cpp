@@ -64,7 +64,7 @@ cXML_ParamNuage3DMaille CropAndSousEch
     aRes.SsResolRef().SetVal(aRes.SsResolRef().Val() *aSc);
 
     ElAffin2D anAff = ElAffin2D::TransfoImCropAndSousEch(aP0,aSc,&aSz);
-    AddAffinite(aRes.Orientation().Val(),anAff); // RPCNuage
+    AddAffinite(aRes.Orientation(),anAff); // RPCNuage
     aRes.NbPixel() = round_ni(aSz);
 
     aSz =  Pt2dr(aRes.NbPixel());
@@ -228,7 +228,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mCam           (   // RPCNuage
                        mParams.NameOri().IsInit()                                    ?
                        cBasicGeomCap3D::StdGetFromFile(mParams.NameOri().Val(),mITypeCam)  :  
-                       Cam_Gen_From_XML(mParams.Orientation().Val(),mICNM,aNameFile)     
+                       Cam_Gen_From_XML(mParams.Orientation(),mICNM,aNameFile)     
                   ),
    mImEtire       (1,1),
    mVoisImDef     (mImDef),
@@ -1939,7 +1939,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
 double Resol(const cXML_ParamNuage3DMaille & aNuage)
 {
-   ElAffin2D  aM2C =    Xml2EL(aNuage.Orientation().Val().OrIntImaM2C()); // RPCNuage
+   ElAffin2D  aM2C =    Xml2EL(aNuage.Orientation().OrIntImaM2C()); // RPCNuage
    ElAffin2D aC2M = aM2C.inv();
    return (euclid(aC2M.I10()) + euclid(aC2M.I01()))/2.0;
 }
@@ -2055,7 +2055,7 @@ cFileOriMnt ToFOM(const cXML_ParamNuage3DMaille & aXML,bool StdRound)
     double anOriA = anIP.OrigineAlti();
     double aResA = anIP.ResolutionAlti();
 
-    ElAffin2D  anAff = Xml2EL(aXML.Orientation().Val().OrIntImaM2C()); // RPCNuage
+    ElAffin2D  anAff = Xml2EL(aXML.Orientation().OrIntImaM2C()); // RPCNuage
     anAff = anAff.inv();
 
     Pt2dr anOriPlani = anAff.I00();

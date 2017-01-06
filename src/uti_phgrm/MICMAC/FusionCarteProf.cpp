@@ -631,7 +631,7 @@ template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP,
                  )
               ),
   mIP         (mNuage.PN3M_Nuage().Image_Profondeur().Val()),
-  mAfM2CGlob  (Xml2EL(mNuage.Orientation().Val().OrIntImaM2C())), // RPCNuage
+  mAfM2CGlob  (Xml2EL(mNuage.Orientation().OrIntImaM2C())), // RPCNuage
   mAfC2MGlob  (mAfM2CGlob.inv()),
   mDirNuage   (DirOfFile(mNameNuage)),
 
@@ -906,7 +906,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
 
          //    (aP0.x, aP1.y)  +  (aP.x/R  - aP.y/R)
          ElAffin2D aAfC2M(Pt2dr(aP0.x,aP1.y),Pt2dr(aResol,0),Pt2dr(0,-aResol));
-         mNuage.Orientation().Val().OrIntImaM2C().SetVal(El2Xml(aAfC2M.inv())); // RPCNuage
+         mNuage.Orientation().OrIntImaM2C().SetVal(El2Xml(aAfC2M.inv())); // RPCNuage
          mNuage.NbPixel() = aNbPix;
 
          aSomResolAlti /=  mVC.size();
@@ -919,7 +919,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
 
         // Creation du TFW
         {
-            ElAffin2D aAfM2C = Xml2EL(mNuage.Orientation().Val().OrIntImaM2C()); // RPCNuage
+            ElAffin2D aAfM2C = Xml2EL(mNuage.Orientation().OrIntImaM2C()); // RPCNuage
             GenTFW(aAfM2C.inv(),StdPrefix(mNameTif) + ".tfw");
         }
     }
@@ -935,7 +935,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     mIP->Masq() =  NameWithoutDir(mNameMasq);
     mIP->Correl() =  NameWithoutDir(mNameCorrel);
 
-    mAfM2CGlob  = Xml2EL(mNuage.Orientation().Val().OrIntImaM2C()); // RPCNuage
+    mAfM2CGlob  = Xml2EL(mNuage.Orientation().OrIntImaM2C()); // RPCNuage
     mAfC2MGlob = mAfM2CGlob.inv();
     mSzGlob = mNuage.NbPixel();
 
