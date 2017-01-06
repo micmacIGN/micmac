@@ -183,7 +183,7 @@ class cElNuage3DMaille : public cCapture3D
 
 
 
-        ElCamera *   Cam() const;
+        cBasicGeomCap3D *   Cam() const;
         cRawNuage   GetRaw() const;
    // Lecture-Creation  globale
 
@@ -534,9 +534,7 @@ class cElNuage3DMaille : public cCapture3D
         void PlyPutDataOneFace(FILE *,const tTri& , bool aModeBin) const;
 
 
-        // CamStenope *                 CamS() ; // Erreur si TypeProj est pas compat
-        // ElCamera *                   Cam();
-
+        int                          mITypeCam; // RPCNuage
         bool                         mEmptyData;
         std::string                  mDir;
         cInterfChantierNameManipulateur * mICNM;
@@ -548,7 +546,7 @@ class cElNuage3DMaille : public cCapture3D
         TIm2DBits<1>                 mTImDef;
         Im2D_Bits<1>                 mImDefInterp;
         TIm2DBits<1>                 mTImDefInterp;
-        ElCamera *                   mCam;
+        cBasicGeomCap3D *            mCam;
         Im2D_U_INT1                  mImEtire;
 
 

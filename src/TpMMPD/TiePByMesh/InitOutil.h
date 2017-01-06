@@ -58,7 +58,8 @@ extern void sortDescendPt2drY(vector<Pt2dr> & input);
 extern void sortAscendPt2drX(vector<Pt2dr> & input);
 extern void sortAscendPt2drY(vector<Pt2dr> & input);
 extern std::string intToString ( int number );
-
+extern void MakeXMLPairImg(vector<CplString> & cplImg, string & outXML);
+extern vector<CplString> fsnPairImg(vector<CplString> & cplImg);
 
 class InitOutil
 {

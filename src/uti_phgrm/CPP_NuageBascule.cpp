@@ -166,8 +166,8 @@ std::cout << "mBoxLoc " << mBoxLoc << "\n";
 
     if (!mOK) return ;
 
-    ElAffin2D AffM2Gl  = Xml2EL(aNGlob.Orientation().OrIntImaM2C());
-    ElAffin2D AffM2Loc  = Xml2EL(mNuage.Orientation().OrIntImaM2C());
+    ElAffin2D AffM2Gl   = Xml2EL(aNGlob.Orientation().Val().OrIntImaM2C()); // RPCNuage
+    ElAffin2D AffM2Loc  = Xml2EL(mNuage.Orientation().Val().OrIntImaM2C()); // RPCNuage
 
     ElAffin2D Loc2Glob = AffM2Gl  * AffM2Loc.inv() ;
     mDecGlob = round_ni(Loc2Glob(Pt2dr(0,0)));
@@ -456,7 +456,7 @@ int  NuageBascule_main(int argc,char ** argv)
                std::ofstream aFtfw(aNameTFW.c_str());
                aFtfw.precision(10);
 
-               ElAffin2D aAfM2C = Xml2EL(aNewNuageOut.Orientation().OrIntImaM2C());
+               ElAffin2D aAfM2C = Xml2EL(aNewNuageOut.Orientation().Val().OrIntImaM2C()); // RPCNuage
 
 
                double resolutionX = 1./aAfM2C.I10().x;
@@ -575,6 +575,8 @@ int  NuageBascule_main(int argc,char ** argv)
          cArgBacule anArgBasc;
          anArgBasc.mDynEtir = 50.0;
 
+std::cout << "AAAAAAAAAaa " << AutoClipIn << "\n";
+
          if  (EAMIsInit(&aBoxIn))
          {
                anArgBasc.mBoxClipIn = new Box2di(aBoxIn);
@@ -582,7 +584,7 @@ int  NuageBascule_main(int argc,char ** argv)
          else if (AutoClipIn)
          {
                anArgBasc.mBoxClipIn = new Box2di(BoxEnglobMasq(aDirIn + aNuageIn.Image_Profondeur().Val().Masq()));
-               std::cout << "BoxClipIn " << anArgBasc.mBoxClipIn->_p0 << anArgBasc.mBoxClipIn->_p1;
+               std::cout << "BoxClipIn " << anArgBasc.mBoxClipIn->_p0 << anArgBasc.mBoxClipIn->_p1 << "\n";
          }
          anArgBasc.mAutoResize = AutoResize;
 
@@ -593,6 +595,7 @@ int  NuageBascule_main(int argc,char ** argv)
 
 
          cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,aDirIn,NameWithoutDir(aNameRes),anArgBasc);
+
 
          if (aN)
          {

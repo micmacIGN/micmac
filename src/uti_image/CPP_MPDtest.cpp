@@ -1221,6 +1221,17 @@ extern void TMA();
 int MPDtest_main (int argc,char** argv)
 {
     {
+        double aU0 = 0.5;
+        for (int aK=1 ; aK< 100000 ; aK++)
+        {
+            aU0 = (exp(aU0)-1) / (exp(aU0) -aU0);
+            std::cout << aU0 << " " << aK << "\n";
+            getchar();
+        }
+    }
+
+
+    {
        //TestMemory();
        TMA();
        exit(EXIT_SUCCESS);

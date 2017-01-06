@@ -165,6 +165,12 @@ Im2D_REAL4 cZBuffer::Basculer
                bool * isOk
            )
 {
+if (MPD_MM())
+{
+   for (int aK=0 ; aK<100 ; aK++)
+       std::cout << "FIX RrrrrrrrrrPpccc \n";
+   mIsRPC= 1;
+}
 
 
     if (isOk) 
@@ -232,6 +238,8 @@ Pt2di aLastPtInMaxGrad(0,0);
              {
                   for (aPIn.y=anYDal0 ; aPIn.y<anYDal1; aPIn.y++)
                   {
+
+bool TEST = (aPIn.x==2000) && (aPIn.y==2000) && MPD_MM();
 			aNbPts++;
 			if (SelectP(aPIn))
 			{
@@ -240,6 +248,19 @@ Pt2di aLastPtInMaxGrad(0,0);
 
 //static int aCpt=0; aCpt++; if (aCpt>10600000) std::cout << "Iiiinnnn " << aCpt << "\n";
 				Pt3dr aP3Out = ProjDisc(aPIn,&aZofXY);
+if (TEST)
+{
+    std::cout << "P3OUT " <<  aP3Out << "\n";
+   Pt3dr aPInTer =  ToCoordInAbs(Pt3dr(aPIn.x,aPIn.y,ZofXY(aPIn)));
+   Pt3dr aPOutTer = ProjTerrain(aPInTer);
+   Pt3dr  aPFIN = ToCoordOutLoc(aPOutTer);
+
+    std::cout << "TTTT " << aPIn << "\n";
+    std::cout << "TTTT " << aPInTer << "\n";
+    std::cout << "TTTT " << aPOutTer << "\n";
+    std::cout << "TTTT " << aPFIN << "\n";
+
+}
 //if (aCpt>10600000)std::cout << "OooUuutt " << aCpt << "\n";
 				Pt2dr aP2Out(aP3Out.x,aP3Out.y);
 
@@ -289,6 +310,11 @@ std::cout << "RPCCVISSSSSSSSSSSSSSSss " << RPCIsBascVisible(anAbsIn) <<  " " << 
                                         aMaxGrad = aGrad;
                                     }
                                 }
+
+if (TEST)
+{
+   std::cout << "OOOuut " << aP2Out << "\n";
+}
 
 
 				if (SelectPBascul(aP2Out))
@@ -398,6 +424,8 @@ if (0 && (aMaxGrad>400)  &&(MPD_MM() || ERupnik_MM()))
            }
        }
     }
+
+std::cout << "HHHHHHKKKKKllll " << mSzRes  << mOffet_Out_00 << " RPC=" << mIsRPC  << "\n";
 
     mSzRes = round_up(aPSup) - mOffet_Out_00;
 

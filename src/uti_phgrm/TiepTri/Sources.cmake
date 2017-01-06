@@ -7,6 +7,7 @@ set(uti_image_TiePTri
     ${UTI_PHGRM_TiePTri_DIR}/CorrelTiepTri.cpp
     ${UTI_PHGRM_TiePTri_DIR}/FineMultiCorrel.cpp
     ${UTI_PHGRM_TiePTri_DIR}/LsqCorrel.cpp
+    ${UTI_PHGRM_TiePTri_DIR}/FiltrageSpatialTiePTri.cpp
     ${UTI_PHGRM_TiePTri_DIR}/cHomolPackTiepTri.cpp
 )
 
