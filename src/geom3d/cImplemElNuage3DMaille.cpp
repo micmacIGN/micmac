@@ -405,7 +405,7 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
 	mDirPl	   = this->Params().DirFaisceaux();
 	mZIsInv    = this->Params().ZIsInverse();
 	mIsSpherik = this->Params().IsSpherik().Val();
-	mCS        = (mIsSpherik ? this->DownCastCS() : 0);
+	mCS        = (mIsSpherik ? this->mCam->DownCastCS() : 0);
 	mProfC     = scal(mDirPl,mCentre);
 }
 

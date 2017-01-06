@@ -2078,9 +2078,7 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIs
        ElDistortion22_Gen * aDPC = StaticDistPreCond();
        if (aDPC)
        {
- // std::cout << "WwwwwwwwWW   " << aDPC << "\n";
 /*
-           std::cout << "WwwwwwwwWW   " << euclid(aPQ, Dist().Direct(aPQ)) 
                      << " " <<  euclid(aPQ,aDPC->Direct(aPQ)) 
                      << " " <<  euclid(Dist().Direct(aPQ),aDPC->Direct(aPQ)) 
                      << "\n";
@@ -2836,6 +2834,7 @@ Pt3dr    ElCamera::F2toDirRayonL3(Pt2dr p) const
 {
    // std::cout << "CCCC " << euclid(p,DistDirecte(DistInverse(p))) << "\n";
    // std::cout << p <<  IsInZoneUtile(p) << "\n";
+
    return Proj().DirRayon(DistInverse(p));
 }
 Pt2dr    ElCamera::F2toPtDirRayonL3(Pt2dr p) const
