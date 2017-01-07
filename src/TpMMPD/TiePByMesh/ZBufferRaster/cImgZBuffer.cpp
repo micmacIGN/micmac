@@ -27,7 +27,10 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
     cTri2D aTri = aTri3D.reprj(mCam);
     if (aTri.IsInCam())
     {
+        //creat image Im2D from ImTif
         ELISE_COPY(mImZ.all_pts(),mTif.in(),mImZ.out());
+
+        //creat masque for triangle zone on image (255=triangle)
         mMasqTri =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,0);
         mTMasqTri = TIm2DBits<1> (mMasqTri);
         ElList<Pt2di>  aLSmTri;
@@ -36,6 +39,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         aLSmTri = aLSmTri + round_ni(aTri.P3());
         ELISE_COPY(polygone(aLSmTri), 1, mMasqTri.oclip());
 
+        //grab coordinate all pixel in triangle
         vector<Pt2dr> aVPtsInTri;
         Flux2StdCont(aVPtsInTri , select(mImZ.all_pts(),mMasqTri.in()) );
         cout<<"Nb Pts In Flux :"<<aVPtsInTri.size()<<endl;

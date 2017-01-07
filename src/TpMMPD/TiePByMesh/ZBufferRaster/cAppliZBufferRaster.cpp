@@ -25,11 +25,11 @@ cAppliZBufferRaster::cAppliZBufferRaster(
 
 void  cAppliZBufferRaster::DoAllIm()
 {
-    for (int aKIm=0; aKIm<mVImg.size(); aKIm++)
+    for (int aKIm=0; aKIm<int(mVImg.size()); aKIm++)
     {
        cout<<"Im "<<mVImg[aKIm]<<endl;
        cImgZBuffer * aZBuf =  new cImgZBuffer(this, mVImg[aKIm]);
-       for (int aKTri=0; aKTri<mVTri.size(); aKTri++)
+       for (int aKTri=0; aKTri<int(mVTri.size()); aKTri++)
           aZBuf->LoadTri(mVTri[aKTri]);
     }
 }

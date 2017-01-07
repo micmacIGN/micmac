@@ -1,5 +1,6 @@
 #include "../InitOutil.h"
 
+#define TT_DEFAULT_PROF_NOVISIBLE -1.0;
 
 typedef double                    tElZBuf;
 typedef Im2D<tElZBuf,tElZBuf>     tImZBuf;
@@ -66,8 +67,8 @@ public:
     const Pt2dr & P3() const {return mP3;}
     static cTri2D Default();
 
-    Pt3dr profOfPixel(Pt2dr ptInTri, cTri3D aTri3D, CamStenope * aCam);
-
+    Pt3dr pt3DFromVBasis(Pt2dr ptInTri2D, cTri3D aTri3D);
+    double profOfPixelInTri(Pt2dr ptInTri2D, cTri3D aTri3D, CamStenope * aCam);
 
 private:
     Pt2dr mP1;

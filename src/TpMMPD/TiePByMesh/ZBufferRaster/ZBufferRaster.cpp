@@ -30,7 +30,7 @@ int ZBufferRaster_main(int argc,char ** argv)
 
     vector<cTri3D> aVTri;
 
-    for (int aKTri=0; aKTri<aVTriMesh.size(); aKTri++)
+    for (int aKTri=0; aKTri<int(aVTriMesh.size()); aKTri++)
     {
         triangle * aTriMesh = aVTriMesh[aKTri];
         cTri3D aTri (   aTriMesh->getSommet(0),
