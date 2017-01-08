@@ -61,6 +61,7 @@ int MeshProjOnImg_main(int argc,char ** argv)
     double zoomF = 0.2;
     bool click = false;
     string PtsInteret="NO";string SH="NO";
+    bool oriTri = false;
 
     ElInitArgMain
             (
@@ -73,6 +74,7 @@ int MeshProjOnImg_main(int argc,char ** argv)
                 //optional arguments
                 LArgMain()
                 << EAM(zoomF, "zoomF", true, "1 -> sz origin, 0.2 -> 1/5 size - default = 0.2")
+                << EAM(oriTri, "oriTri", true, "consider orientation of triangle/cam")
                 << EAM(click, "click", true, "true => draw each triangle by each click - default = false")
                 << EAM(PtsInteret, "ptsInteret", true, "pack pts d'interet - give it with 1 img only")
                 << EAM(SH, "SH", true, "pack homol - give it with 2 image only")
@@ -176,11 +178,19 @@ int MeshProjOnImg_main(int argc,char ** argv)
         for (uint j=0; j<ptrTri.size(); j++)
         {
             triangle * aTri = ptrTri[j];
+            Pt3dr P1 = aTri->getSommet(0);
+            Pt3dr P2 = aTri->getSommet(1);
+            Pt3dr P3 = aTri->getSommet(2);
+
             Tri2d aTri2D = *aTri->getReprSurImg()[aPic->mIndex];
-            bool devant = aPic->mOriPic->Devant(aTri->getSommet(0)) &&
-            aPic->mOriPic->Devant(aTri->getSommet(0)) &&
-            aPic->mOriPic->Devant(aTri->getSommet(0));
-            if (aTri2D.insidePic && devant)
+            bool visible =
+                    aPic->mOriPic->PIsVisibleInImage(P1) &&
+                    aPic->mOriPic->PIsVisibleInImage(P2) &&
+                    aPic->mOriPic->PIsVisibleInImage(P3);
+            double signTri = (aTri2D.sommet1[0]-aTri2D.sommet1[1])^(aTri2D.sommet1[0]-aTri2D.sommet1[2]);
+
+
+            if (signTri < 0 && visible)
                 draw_polygon_onVW(aTri2D, aVW, Pt3di(0,255,0), true, click);
         }
         if (lstPtsInteret.size() > 0)

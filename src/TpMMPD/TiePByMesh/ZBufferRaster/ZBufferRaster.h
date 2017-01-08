@@ -1,6 +1,8 @@
 #include "../InitOutil.h"
 
-#define TT_DEFAULT_PROF_NOVISIBLE -1.0;
+const double TT_DEFAULT_PROF_NOVISIBLE  = -1.0;
+const double TT_SEUIL_SURF = 100;
+
 
 typedef double                    tElZBuf;
 typedef Im2D<tElZBuf,tElZBuf>     tImZBuf;
@@ -26,7 +28,7 @@ public:
     const std::string &               Dir() const {return mDir;}
     vector<cTri3D> &                  VTri() {return mVTri;}
     vector<string> &                  VImg() {return mVImg;}
-
+    int  &                            NInt() {return mNInt;}
     void                              DoAllIm();
 private:
     cInterfChantierNameManipulateur * mICNM;
@@ -34,7 +36,8 @@ private:
     std::string                       mOri;
     vector<cTri3D>                    mVTri;
     vector<string>                    mVImg;
-
+    int                               mNInt;
+    Video_Win *                       mW;
 
 };
 
@@ -67,8 +70,11 @@ public:
     const Pt2dr & P3() const {return mP3;}
     static cTri2D Default();
 
-    Pt3dr pt3DFromVBasis(Pt2dr ptInTri2D, cTri3D aTri3D);
-    double profOfPixelInTri(Pt2dr ptInTri2D, cTri3D aTri3D, CamStenope * aCam);
+    Pt3dr pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D);
+    double profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, CamStenope * aCam);
+
+    bool orientToCam(CamStenope * aCam);
+    double surf();
 
 private:
     Pt2dr mP1;
@@ -87,8 +93,12 @@ public:
     CamStenope * Cam() {return mCam;}
     tImZBuf & ImZ() {return mImZ;}
     tTImZBuf & TImZ() {return mTImZ;}
+    int CntTriValab() {return mCntTriValab;}
 
     void LoadTri(cTri3D);
+    bool updateZ(tImZBuf & ImZ, Pt2dr &pxl, double &prof_val);
+    void normalizeIm(tImZBuf & aIm, double valMin, double valMax);
+
 private:
     cAppliZBufferRaster * mAppli;
     std::string    mNameIm;
@@ -107,8 +117,7 @@ private:
 
     Video_Win *    mW;
     int            mCntTri;
-
-
+    int            mCntTriValab;
 };
 
 
