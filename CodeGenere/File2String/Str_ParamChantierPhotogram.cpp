@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[2012]) = {
+const char * (theNameVar_ParamChantierPhotogram[2013]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -493,6 +493,7 @@ const char * (theNameVar_ParamChantierPhotogram[2012]) = {
 "          <NbBitsParPixel Nb=\"1\" Type=\"int\"> </NbBitsParPixel>\n",
 "          <IntegerType Nb=\"1\" Type=\"bool\"> </IntegerType>\n",
 "          <SignedType  Nb=\"1\" Type=\"bool\"> </SignedType>\n",
+"          <Offset  Nb=\"1\" Type=\"int\"> </Offset>\n",
 "\n",
 "          <Camera Nb=\"?\" Type=\"std::string\"> </Camera>\n",
 "          <BayPat Nb=\"?\" Type=\"std::string\"> </BayPat>\n",

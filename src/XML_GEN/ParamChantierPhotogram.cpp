@@ -3345,6 +3345,17 @@ const bool & cSpecifFormatRaw::SignedType()const
 }
 
 
+int & cSpecifFormatRaw::Offset()
+{
+   return mOffset;
+}
+
+const int & cSpecifFormatRaw::Offset()const 
+{
+   return mOffset;
+}
+
+
 cTplValGesInit< std::string > & cSpecifFormatRaw::Camera()
 {
    return mCamera;
@@ -3403,6 +3414,7 @@ void  BinaryUnDumpFromFile(cSpecifFormatRaw & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.NbBitsParPixel(),aFp);
     BinaryUnDumpFromFile(anObj.IntegerType(),aFp);
     BinaryUnDumpFromFile(anObj.SignedType(),aFp);
+    BinaryUnDumpFromFile(anObj.Offset(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -3446,6 +3458,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSpecifFormatRaw & anObj)
     BinaryDumpInFile(aFp,anObj.NbBitsParPixel());
     BinaryDumpInFile(aFp,anObj.IntegerType());
     BinaryDumpInFile(aFp,anObj.SignedType());
+    BinaryDumpInFile(aFp,anObj.Offset());
     BinaryDumpInFile(aFp,anObj.Camera().IsInit());
     if (anObj.Camera().IsInit()) BinaryDumpInFile(aFp,anObj.Camera().Val());
     BinaryDumpInFile(aFp,anObj.BayPat().IsInit());
@@ -3467,6 +3480,7 @@ cElXMLTree * ToXMLTree(const cSpecifFormatRaw & anObj)
    aRes->AddFils(::ToXMLTree(std::string("NbBitsParPixel"),anObj.NbBitsParPixel())->ReTagThis("NbBitsParPixel"));
    aRes->AddFils(::ToXMLTree(std::string("IntegerType"),anObj.IntegerType())->ReTagThis("IntegerType"));
    aRes->AddFils(::ToXMLTree(std::string("SignedType"),anObj.SignedType())->ReTagThis("SignedType"));
+   aRes->AddFils(::ToXMLTree(std::string("Offset"),anObj.Offset())->ReTagThis("Offset"));
    if (anObj.Camera().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Camera"),anObj.Camera().Val())->ReTagThis("Camera"));
    if (anObj.BayPat().IsInit())
@@ -3497,6 +3511,8 @@ void xml_init(cSpecifFormatRaw & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SignedType(),aTree->Get("SignedType",1)); //tototo 
 
+   xml_init(anObj.Offset(),aTree->Get("Offset",1)); //tototo 
+
    xml_init(anObj.Camera(),aTree->Get("Camera",1)); //tototo 
 
    xml_init(anObj.BayPat(),aTree->Get("BayPat",1)); //tototo 
@@ -3506,7 +3522,7 @@ void xml_init(cSpecifFormatRaw & anObj,cElXMLTree * aTree)
    xml_init(anObj.FocalEqui35(),aTree->Get("FocalEqui35",1)); //tototo 
 }
 
-std::string  Mangling( cSpecifFormatRaw *) {return "1631189C8D02CBA8FB3F";};
+std::string  Mangling( cSpecifFormatRaw *) {return "CAE0D3E69D90F7B5FE3F";};
 
 eTotoModeGeomMEC  Str2eTotoModeGeomMEC(const std::string & aName)
 {
