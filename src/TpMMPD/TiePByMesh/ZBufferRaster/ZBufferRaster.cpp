@@ -2,6 +2,7 @@
 
 string aPatFIm, aMesh, aOri;
 int nInt = 0;
+Pt2di aSzW;
 int ZBufferRaster_main(int argc,char ** argv)
 {
     ElInitArgMain
@@ -15,6 +16,7 @@ int ZBufferRaster_main(int argc,char ** argv)
                 //optional arguments
                 LArgMain()
                 << EAM(nInt, "nInt", true, "niveau Interaction")
+                << EAM(aSzW,  "aSzw",true,"if visu [x,y]")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -48,7 +50,12 @@ int ZBufferRaster_main(int argc,char ** argv)
     cAppliZBufferRaster * aAppli = new cAppliZBufferRaster(aICNM, aDir, aOri, aVTri, vImg);
 
     aAppli->NInt() = nInt;
+    if (EAMIsInit(&aSzW))
+    {
+        aAppli->SzW() = aSzW;
+    }
     aAppli->DoAllIm();
+
 
     return EXIT_SUCCESS;
 }

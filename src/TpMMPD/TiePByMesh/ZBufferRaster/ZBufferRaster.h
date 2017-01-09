@@ -29,6 +29,7 @@ public:
     vector<cTri3D> &                  VTri() {return mVTri;}
     vector<string> &                  VImg() {return mVImg;}
     int  &                            NInt() {return mNInt;}
+    Pt2di &                           SzW() {return mSzW;}
     void                              DoAllIm();
 private:
     cInterfChantierNameManipulateur * mICNM;
@@ -38,6 +39,8 @@ private:
     vector<string>                    mVImg;
     int                               mNInt;
     Video_Win *                       mW;
+    Pt2di                             mSzW;
+
 
 };
 

@@ -1,0 +1,15 @@
+(*) Sauvgarder Image sur disque dur avec ELISE_COPY
+    
+       string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
+       ELISE_COPY
+               (
+                   Im2D.all_pts(),                     //Im2D : image type Im2D
+                   Im2D.inside() ,
+                   Tiff_Im(
+                       fileOut.c_str(),
+                       Im2D.sz(),
+                       GenIm::real8,			//Type pixel, coherant avec Im2D type d'image
+                       Tiff_Im::No_Compr,
+                       Tiff_Im::BlackIsZero,
+                       Tiff_Im::Empty_ARG ).out()
+                   );
