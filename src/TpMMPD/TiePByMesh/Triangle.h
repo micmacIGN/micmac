@@ -110,11 +110,12 @@ private:
     Tri2d ** mResultTriReprSurAllImg;                                     //pointer vers bloque de memoire contient reprojection de cette triange sur tout les images
     //vector<PtInteretInTriangle> mPtsInteret2DInImagetteDuTri;
 };
-
+/*
 typedef struct Rect {
     Pt2dr diag[2];  //2 point du diagonal de la rectangle
     vector<triangle*> desTriInRect;
 }Rect;
+*/
 
 /*======= Les fonction supplementaire =======*/
 

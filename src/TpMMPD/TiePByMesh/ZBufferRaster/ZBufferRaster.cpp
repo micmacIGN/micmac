@@ -1,6 +1,7 @@
 #include "ZBufferRaster.h"
 
 string aPatFIm, aMesh, aOri;
+int nInt = 0;
 int ZBufferRaster_main(int argc,char ** argv)
 {
     ElInitArgMain
@@ -13,6 +14,7 @@ int ZBufferRaster_main(int argc,char ** argv)
                 << EAMC(aOri, "Ori",       eSAM_IsExistDirOri),
                 //optional arguments
                 LArgMain()
+                << EAM(nInt, "nInt", true, "niveau Interaction")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -30,7 +32,7 @@ int ZBufferRaster_main(int argc,char ** argv)
 
     vector<cTri3D> aVTri;
 
-    for (int aKTri=0; aKTri<aVTriMesh.size(); aKTri++)
+    for (int aKTri=0; aKTri<int(aVTriMesh.size()); aKTri++)
     {
         triangle * aTriMesh = aVTriMesh[aKTri];
         cTri3D aTri (   aTriMesh->getSommet(0),
@@ -39,12 +41,13 @@ int ZBufferRaster_main(int argc,char ** argv)
                     );
         aVTri.push_back(aTri);
     }
-    //delete(aInitMesh);
+    delete(aInitMesh);
 
 
 
     cAppliZBufferRaster * aAppli = new cAppliZBufferRaster(aICNM, aDir, aOri, aVTri, vImg);
 
+    aAppli->NInt() = nInt;
     aAppli->DoAllIm();
 
     return EXIT_SUCCESS;

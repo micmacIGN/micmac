@@ -20,7 +20,7 @@ cTri2D cTri2D::Default()
    return cTri2D();
 }
 
-Pt3dr cTri2D::profOfPixel(Pt2dr ptInTri, cTri3D aTri3D, CamStenope * aCam)
+Pt3dr cTri2D::pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D)
 {
     //comme le method ptsInTri2Dto3D in triangle.cpp
     Pt3dr vec_I=aTri3D.P2() - aTri3D.P1();
@@ -29,7 +29,7 @@ Pt3dr cTri2D::profOfPixel(Pt2dr ptInTri, cTri3D aTri3D, CamStenope * aCam)
     Pt2dr vec_i = mP2 - mP1;
     Pt2dr vec_j = mP3 - mP1;
 
-    Pt2dr aP = ptInTri - mP1;
+    Pt2dr aP = ptInTri2D - mP1;
 
     double alpha = (aP.x*vec_j.y-aP.y*vec_j.x)/(vec_i.x*vec_j.y-vec_j.x*vec_i.y);
     double beta = (aP.y-alpha*vec_i.y)/vec_j.y;
@@ -38,6 +38,33 @@ Pt3dr cTri2D::profOfPixel(Pt2dr ptInTri, cTri3D aTri3D, CamStenope * aCam)
     pts3DInTri.x = alpha*vec_I.x + beta*vec_J.x;
     pts3DInTri.y = alpha*vec_I.y + beta*vec_J.y;
     pts3DInTri.z = alpha*vec_I.z + beta*vec_J.z;
-    return( pts3DInTri + aTri3D.P1() );
 
+    return( pts3DInTri + aTri3D.P1() );
+}
+
+
+double cTri2D::profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, CamStenope * aCam)
+{
+    Pt3dr aPt = cTri2D::pt3DFromVBasis(ptInTri2D, aTri3D);
+    if (aCam->PIsVisibleInImage(aPt))
+    {
+        //Can I use this method ?
+        return aCam->ProfondeurDeChamps(aPt);
+        //return(euclid((aCam->VraiOpticalCenter()-aPt).AbsP() ));
+    }
+    else
+        return TT_DEFAULT_PROF_NOVISIBLE;
+}
+
+bool cTri2D::orientToCam(CamStenope * aCam)
+{
+    if ( ((mP1-mP2) ^ (mP1-mP3)) > 0 )
+        return false;
+    else
+        return true;
+}
+
+double cTri2D::surf()
+{
+    return ((mP1-mP2) ^ (mP1-mP3));
 }
