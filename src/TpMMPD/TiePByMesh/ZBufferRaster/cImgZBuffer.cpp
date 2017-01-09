@@ -24,18 +24,26 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
 bool cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val)
 {
     Pt2di pxlI(pxl);
-/*
-    if (ImZ.GetI(pxlI) > prof_val)
+    double prof_old = ImZ.GetR(pxlI);
+
+    if (prof_old == TT_DEFAULT_PROF_NOVISIBLE)
+    {
+        ImZ.SetR(pxlI , prof_val);
+        return true;
+    }
+    else if (prof_old != TT_DEFAULT_PROF_NOVISIBLE && prof_old > prof_val)
     {
         ImZ.SetR(pxlI , prof_val);
         return true;
     }
     else
         return false;
-*/
 
+/*
     ImZ.SetR(pxlI , prof_val);
     return true;
+*/
+
 }
 
 void cImgZBuffer::LoadTri(cTri3D aTri3D)
@@ -54,17 +62,6 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         Pt2di mDecal = round_down(aPMin);
         Pt2di mSzRec  = round_up(aPMax-aPMin);
 
-
-        //creat masque for triangle zone on image (255=triangle)
-        mMasqTri =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,0);
-        mTMasqTri = TIm2DBits<1> (mMasqTri);
-        ElList<Pt2di>  aGlobTri;
-        aGlobTri = aGlobTri + round_ni(aTri.P1());
-        aGlobTri = aGlobTri + round_ni(aTri.P2());
-        aGlobTri = aGlobTri + round_ni(aTri.P3());
-        ELISE_COPY(polygone(aGlobTri), 1, mMasqTri.oclip());
-
-
         //creat masque local for triangle zone on rectangle (255=triangle)
         Im2D_Bits<1> mMasqLocalTri(mSzRec.x,mSzRec.y,0);
         ElList<Pt2di>  aLTri;
@@ -72,6 +69,15 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         aLTri = aLTri + round_ni(aTri.P2()-Pt2dr(mDecal));
         aLTri = aLTri + round_ni(aTri.P3()-Pt2dr(mDecal));
         ELISE_COPY(polygone(aLTri),1,mMasqLocalTri.oclip());
+
+        //creat masque global for triangle zone on image (255=triangle)
+        mMasqTri =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,0);
+        mTMasqTri = TIm2DBits<1> (mMasqTri);
+        ElList<Pt2di>  aGlobTri;
+        aGlobTri = aGlobTri + round_ni(aTri.P1());
+        aGlobTri = aGlobTri + round_ni(aTri.P2());
+        aGlobTri = aGlobTri + round_ni(aTri.P3());
+        ELISE_COPY(polygone(aGlobTri), 1, mMasqTri.oclip());
 
         //grab coordinate all pixel in triangle
         vector<Pt2dr> aVPtsInTri;
@@ -100,12 +106,12 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         }
         mCntTriValab++;
 
-
+        //Display masq Triangle global
         if (mAppli->NInt() > 1)
         {
             if (mW ==0)
             {
-                double aZ = 0.25;
+                double aZ = 0.5;
                 mW = Video_Win::PtrWStd(Pt2di(mSzIm*aZ), true, Pt2dr(aZ, aZ));
                 mW->set_sop(Elise_Set_Of_Palette::TheFullPalette());
             }

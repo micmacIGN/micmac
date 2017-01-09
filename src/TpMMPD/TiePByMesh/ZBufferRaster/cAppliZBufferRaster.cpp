@@ -42,7 +42,7 @@ void  cAppliZBufferRaster::DoAllIm()
        {
            if (mW ==0)
            {
-               double aZ = 0.25;
+               double aZ = 0.5;
                mW = Video_Win::PtrWStd(Pt2di(aZBuf->ImZ().sz()*aZ), true, Pt2dr(aZ, aZ));
                mW->set_sop(Elise_Set_Of_Palette::TheFullPalette());
            }
