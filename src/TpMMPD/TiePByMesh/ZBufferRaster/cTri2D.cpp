@@ -4,7 +4,8 @@ cTri2D::cTri2D(Pt2dr P1, Pt2dr P2, Pt2dr P3):
     mP1 (P1),
     mP2 (P2),
     mP3 (P3),
-    mIsInCam(true)
+    mIsInCam(true),
+    mReech (1.0)
 {
 }
 
@@ -18,6 +19,14 @@ cTri2D::cTri2D():
 cTri2D cTri2D::Default()
 {
    return cTri2D();
+}
+
+void cTri2D::SetReech(double & scale)
+{
+    mReech = scale;
+    mP1 = mP1*mReech;
+    mP2 = mP2*mReech;
+    mP3 = mP3*mReech;
 }
 
 Pt3dr cTri2D::pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D)
@@ -45,7 +54,8 @@ Pt3dr cTri2D::pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D)
 
 double cTri2D::profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, CamStenope * aCam)
 {
-    Pt3dr aPt = cTri2D::pt3DFromVBasis(ptInTri2D, aTri3D);
+    Pt2dr ptInTri2DGlob(ptInTri2D/mReech);
+    Pt3dr aPt = cTri2D::pt3DFromVBasis(ptInTri2DGlob, aTri3D);
     if (aCam->PIsVisibleInImage(aPt))
     {
         //Can I use this method ?
@@ -66,5 +76,5 @@ bool cTri2D::orientToCam(CamStenope * aCam)
 
 double cTri2D::surf()
 {
-    return ((mP1-mP2) ^ (mP1-mP3));
+    return ((mP1/mReech-mP2/mReech) ^ (mP1/mReech-mP3/mReech));
 }

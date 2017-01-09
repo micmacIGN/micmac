@@ -14,7 +14,8 @@ cAppliZBufferRaster::cAppliZBufferRaster(
     mVImg (aVImg),
     mNInt (0),
     mW    (0),
-    mSzW  (Pt2di(500,500))
+    mSzW  (Pt2di(500,500)),
+    mReech(1.0)
 {
 }
 
@@ -30,23 +31,44 @@ void  cAppliZBufferRaster::DoAllIm()
             cout<<"["<<(aKTri*100.0/mVTri.size())<<" %]"<<endl;
           aZBuf->LoadTri(mVTri[aKTri]);
        }
-       aZBuf->normalizeIm(aZBuf->ImZ(), 0.0, 255.0);
        //save Image ZBuffer to disk
        string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
+
+/*
+       Tiff_Im mTifIm
+               (
+                   fileOut.c_str(),
+                   aZBuf->ImZ().sz(),
+                   GenIm::real8,
+                   Tiff_Im::No_Compr,
+                   aZBuf->Tif().phot_interp()
+                   );
        ELISE_COPY
                (
                    aZBuf->ImZ().all_pts(),
-                   aZBuf->ImZ().inside() ,
+                   aZBuf->ImZ().in_proj(),
+                   mTifIm.out()
+               );
+               */
 
+       ELISE_COPY
+               (
+                   aZBuf->ImZ().all_pts(),
+                   aZBuf->ImZ().in_proj(),
                    Tiff_Im(
                        fileOut.c_str(),
                        aZBuf->ImZ().sz(),
                        GenIm::real8,
                        Tiff_Im::No_Compr,
-                       Tiff_Im::BlackIsZero,
-                       Tiff_Im::Empty_ARG ).out()
+                       aZBuf->Tif().phot_interp()
+                       ).out()
 
                    );
+
+
+
+
+       //=======================================
        if (mNInt != 0)
        {
            aZBuf->normalizeIm(aZBuf->ImZ(), 0.0, 255.0);
