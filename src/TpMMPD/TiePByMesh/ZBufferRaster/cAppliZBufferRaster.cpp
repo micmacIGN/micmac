@@ -15,14 +15,6 @@ cAppliZBufferRaster::cAppliZBufferRaster(
     mNInt (0),
     mW    (0)
 {
-    cout<<"cAppliZBufferRaster : "<<endl;
-    cout<<"mDir "<<mDir<<endl;
-    cout<<" mOri "<<mOri<<endl;
-    cout<<" nb Tri "<<mVTri.size()<<endl;
-    cout<<" nb Img "<<mVImg.size()<<endl;
-
-
-
 }
 
 void  cAppliZBufferRaster::DoAllIm()
@@ -38,8 +30,23 @@ void  cAppliZBufferRaster::DoAllIm()
           aZBuf->LoadTri(mVTri[aKTri]);
        }
        aZBuf->normalizeIm(aZBuf->ImZ(), 0.0, 255.0);
+       //save Image ZBuffer to disk
+       string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
+       ELISE_COPY
+       (
+           aZBuf->ImZ().all_pts(),
+           aZBuf->ImZ().inside() ,
+           Tiff_Im(
+               fileOut.c_str(),
+               aZBuf->ImZ().sz(),
+               GenIm::real8,
+               Tiff_Im::No_Compr,
+               Tiff_Im::BlackIsZero,
+               Tiff_Im::Empty_ARG ).out()
+       );
        if (mNInt != 0)
        {
+           aZBuf->normalizeIm(aZBuf->ImZ(), 0.0, 255.0);
            if (mW ==0)
            {
                double aZ = 0.5;

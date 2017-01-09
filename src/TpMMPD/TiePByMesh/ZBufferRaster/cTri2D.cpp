@@ -39,9 +39,6 @@ Pt3dr cTri2D::pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D)
     pts3DInTri.y = alpha*vec_I.y + beta*vec_J.y;
     pts3DInTri.z = alpha*vec_I.z + beta*vec_J.z;
 
-
-
-
     return( pts3DInTri + aTri3D.P1() );
 }
 

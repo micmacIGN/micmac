@@ -18,7 +18,6 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
     mCntTri   (0),
     mCntTriValab (0)
 {
-    cout<<"Dans constructor cImgZBuffer"<<endl;
 }
 
 bool cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val)
@@ -134,12 +133,16 @@ void cImgZBuffer::normalizeIm(tImZBuf & aImZ, double valMin, double valMax)
 {
     double minProf;
     double maxProf;
-    aImZ.substract(-1.0);
+
     aImZ.getMinMax(minProf, maxProf);
     cout<<"Min Max Prof : "<<minProf<<" "<<maxProf;
-    aImZ.multiply(255.0/maxProf);
+    aImZ.substract(minProf - valMin);
     aImZ.getMinMax(minProf, maxProf);
-    cout<<" - Norm "<<minProf<<" "<<maxProf<<endl;
+    aImZ.multiply(valMax/maxProf);
+
+
+    aImZ.getMinMax(minProf, maxProf);
+    cout<<" -> Norm "<<minProf<<" "<<maxProf<<endl;
 
 
 
