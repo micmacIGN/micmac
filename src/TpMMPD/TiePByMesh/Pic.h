@@ -66,6 +66,6 @@ public:
     vector<triangle*>triVisible;
     vector<double> triVisibleInd;
 private:
-    vector<Rect> mDesGrill;             //des grill d'image et index des rectangles dans chaque grill
+    //vector<Rect> mDesGrill;             //des grill d'image et index des rectangles dans chaque grill
 };
 #endif

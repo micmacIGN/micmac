@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "Triangle.h"
 #include "Pic.h"
-#include "StdAfx.h"
+
 
 
 /* ** PlyFile.h est maintenante inclus dans StdAfx.f du MicMac, dans include/general */
