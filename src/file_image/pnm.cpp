@@ -408,22 +408,22 @@ Elise_Tiled_File_Im_2D
 
    return Elise_Tiled_File_Im_2D
           (
-	       aSpec.NameFile().Val().c_str(),
-	       aSpec.Sz(),
-	       type_im
+	       aSpec.NameFile().Val().c_str(),  // Name
+	       aSpec.Sz(),                      // sz
+	       type_im                          // type
 	       (
 	            aSpec.IntegerType(),
 	            aSpec.NbBitsParPixel(),
 		    aSpec.SignedType(),
 		    false
 	       ),
-	       1,
-	       aSpec.Sz(),
-	       DefCLT,
-	       DefChunk,
-	       DefOffset0,
-	       DefCreate,
-	       aSpec.MSBF() == MSBF_PROCESSOR()
+	       1,                               // dim_out,
+	       aSpec.Sz(),                      // sz_tiles,
+	       DefCLT,                          // clip_last_tile,
+	       DefChunk,                                // chunk,
+	       aSpec.Offset().ValWithDef(DefOffset0),   // offset_0
+	       DefCreate,                               // create
+	       aSpec.MSBF() == MSBF_PROCESSOR()         // byte_ordered
 	  );
 }
 

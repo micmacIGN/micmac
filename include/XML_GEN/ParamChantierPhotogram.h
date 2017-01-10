@@ -1170,8 +1170,8 @@ class cSpecifFormatRaw
         bool & SignedType();
         const bool & SignedType()const ;
 
-        int & Offset();
-        const int & Offset()const ;
+        cTplValGesInit< int > & Offset();
+        const cTplValGesInit< int > & Offset()const ;
 
         cTplValGesInit< std::string > & Camera();
         const cTplValGesInit< std::string > & Camera()const ;
@@ -1191,7 +1191,7 @@ class cSpecifFormatRaw
         int mNbBitsParPixel;
         bool mIntegerType;
         bool mSignedType;
-        int mOffset;
+        cTplValGesInit< int > mOffset;
         cTplValGesInit< std::string > mCamera;
         cTplValGesInit< std::string > mBayPat;
         cTplValGesInit< double > mFocalmm;

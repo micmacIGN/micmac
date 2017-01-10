@@ -866,22 +866,26 @@ class tFileOffset
 
          const tLowLevelFileOffset & CKK_AbsLLO() const
          {
+               ELISE_ASSERT(mLLO.IsInit(),"AbsLLO :: NoInit");
                tLowLevelFileOffset aLLO = mLLO.Val();
                ELISE_ASSERT(aLLO>=0,"AbsLLO neg");
                return mLLO.Val();
          }
          tByte4AbsFileOffset   CKK_Byte4AbsLLO() const
          {
+               ELISE_ASSERT(mLLO.IsInit(),"Byte4AbsLLO :: NoInit");
                tLowLevelFileOffset aLLO = mLLO.Val();
                ELISE_ASSERT((aLLO>=0) && (aLLO<=0xFFFFFFFFll),"Byt4LLO too big");
                return (tByte4AbsFileOffset)aLLO;
          }
          const tLowLevelFileOffset & BasicLLO() const
          {
+               ELISE_ASSERT(mLLO.IsInit(),"BasicLLO :: NoInit");
                return mLLO.Val();
          }
          int  CKK_IntBasicLLO() const
          {
+               ELISE_ASSERT(mLLO.IsInit(),"CKKBasicLLO :: NoInit");
                tLowLevelFileOffset aLLO = mLLO.Val();
                ELISE_ASSERT((aLLO>-0x7FFFFFFFll) && (aLLO<0x7FFFFFFFll),"Byt4LLO too big");
                return (int)aLLO;

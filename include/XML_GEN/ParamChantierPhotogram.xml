@@ -491,7 +491,7 @@
           <NbBitsParPixel Nb="1" Type="int"> </NbBitsParPixel>
           <IntegerType Nb="1" Type="bool"> </IntegerType>
           <SignedType  Nb="1" Type="bool"> </SignedType>
-          <Offset  Nb="1" Type="int"> </Offset>
+          <Offset  Nb="?" Type="int"> </Offset>
 
           <Camera Nb="?" Type="std::string"> </Camera>
           <BayPat Nb="?" Type="std::string"> </BayPat>

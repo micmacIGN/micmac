@@ -2040,14 +2040,18 @@ void   TAG_TIF_TILE_OFFS::pseudo_read(DATA_Tiff_Ifd * Di,const Pseudo_Tiff_Arg &
     INT nb_ty = pta.nb_tile_y();
 
     for (INT pl = 0 ; pl <nb_plan ; pl++)
+    {
         for (INT y = 0; y<nb_ty ; y++)
+        {
              for (INT x = 0; x<nb_tx ; x++)
              {
-                  Di->_tiles_byte_count[k] = pta.byte_sz_tile(Pt2di(x,y));
-                  Di->_tiles_offset[k] = offs;
+                  Di->_tiles_byte_count[k] = tFileOffset(pta.byte_sz_tile(Pt2di(x,y)));
+                  Di->_tiles_offset[k] = tFileOffset(offs);
                   offs += Di->_tiles_byte_count[k];
                   k++;
              }
+        }
+    }
 }
 
 TAG_TIF_TILE_OFFS  TAG_TIF_TILE_OFFS::The_only_one;
