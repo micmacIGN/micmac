@@ -203,7 +203,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     bool  AffineFree = false;
     bool  AllFree = false;
 
-    bool  PoseFigee = false;
+    bool  AllPoseFigee = false;
+    std::string  PatPoseFigee;
 
     double aSigmaTieP = 1;
     double aFactResElimTieP = 5;
@@ -256,7 +257,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
                     << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters generiqs")
                     << EAM(aDrMax,"DRMax",true, "When specified degree of freedom of radial parameters")
- 		    << EAM(PoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
+ 		    << EAM(AllPoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
+ 		    << EAM(PatPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)")
                     << EAM(AcceptGB,"AcceptGB",true,"Accepte new Generik Bundle image, Def=true, set false for perfect backward compatibility")
                     << EAM(mMulRTA,"MulRTA",true,"Rolling Test Appuis , multiplier ")
                     << EAM(mNameRTA,"NameRTA",true,"Name for save results of Rolling Test Appuis , Def=SauvRTA.xml")
@@ -325,7 +327,12 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         if (AllFree) mCom    += " +AllFree=true ";
         if (ExpTxt) mCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
 
- 	if (PoseFigee) mCom    += " +PoseFigee=true ";
+ 	if (AllPoseFigee) mCom    += " +PoseFigee=true ";
+
+        if (EAMIsInit(&PatPoseFigee))
+        {
+            mCom    += " +WithPatPoseFigee=true +PatPoseFigee=" + PatPoseFigee + " ";
+        }
 
         if (EAMIsInit(&aFactResElimTieP))
            mCom =  mCom+ " +FactMaxRes=" + ToString(aFactResElimTieP);

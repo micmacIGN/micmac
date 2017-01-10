@@ -49,6 +49,9 @@
 
  	   <Symb>  PoseFigee=false </Symb>
 
+ 	   <Symb>  WithPatPoseFigee=false </Symb>
+ 	   <Symb>  PatPoseFigee=XXXX </Symb>
+
 
            <eSymb>  NotCPI=! ${CPI} </eSymb>
            <eSymb>  DetailAppuis=0 </eSymb>
@@ -308,11 +311,18 @@
                           </ContraintesCamerasInc>
 		          
  			<#WHEN VTEST=${PoseFigee}>
-			 <ContraintesPoses>
-			     <NamePose>   .* </NamePose>
-  			     <ByPattern>  true </ByPattern>
-			     <Val>      ePoseFigee   </Val>
-		          </ContraintesPoses>	
+			     <ContraintesPoses>
+			         <NamePose>   .* </NamePose>
+  			         <ByPattern>  true </ByPattern>
+			         <Val>      ePoseFigee   </Val>
+		              </ContraintesPoses>	
+			</#WHEN>
+ 			<#WHEN VTEST=${WithPatPoseFigee}>
+			     <ContraintesPoses>
+			         <NamePose>   ${PatPoseFigee} </NamePose>
+  			         <ByPattern>  true </ByPattern>
+			         <Val>      ePoseFigee   </Val>
+		              </ContraintesPoses>	
 			</#WHEN>
 
                        </SectionContraintes>
