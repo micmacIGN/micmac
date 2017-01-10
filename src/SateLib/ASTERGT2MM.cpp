@@ -268,7 +268,7 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 
 }
 
-vector<Pt2dr> ReadLatticePointsIm(string aNameFile)
+vector<Pt2dr> ReadLatticePointsIm(string aNameFile, bool doDistortionCorrection)
 {
 	vector<Pt2dr> aLatticePoints;
 
@@ -284,6 +284,12 @@ vector<Pt2dr> ReadLatticePointsIm(string aNameFile)
 	while (aFile >> a >> b)
 	{
 		Pt2dr aPt(a, b);
+		if (doDistortionCorrection)
+		{
+			//Actual function is upcoming
+			aPt.x = aPt.x;//x'=x+f1(x)
+			aPt.y = aPt.y;//y'=y+f2(x)
+		}
 		//cout << aPt << endl;
 		aLatticePoints.push_back(aPt);
 	}
@@ -441,9 +447,9 @@ int ASTERGT2MM_main(int argc, char ** argv)
 	
 	string aDate = ReadDate(aNameFile + ".VNIR_Band3N.ObservationTime.txt");
 
-	vector<Pt2dr> aLatticePointsIm_3N = ReadLatticePointsIm(aNameFile + ".VNIR_Band3N.LatticePoint.txt");
+	vector<Pt2dr> aLatticePointsIm_3N = ReadLatticePointsIm(aNameFile + ".VNIR_Band3N.LatticePoint.txt",false);
 	cout << "LatticePointsIm_3N read (" << aLatticePointsIm_3N.size() << " points)" << endl;
-	vector<Pt2dr> aLatticePointsIm_3B = ReadLatticePointsIm(aNameFile + ".VNIR_Band3B.LatticePoint.txt");
+	vector<Pt2dr> aLatticePointsIm_3B = ReadLatticePointsIm(aNameFile + ".VNIR_Band3B.LatticePoint.txt",true);
 	cout << "LatticePointsIm_3B read (" << aLatticePointsIm_3B.size() << " points)" << endl;
 
 	vector<Pt3dr> aSatellitePosition_3N = ReadSattelitePos(aNameFile + ".VNIR_Band3N.SatellitePosition.txt");

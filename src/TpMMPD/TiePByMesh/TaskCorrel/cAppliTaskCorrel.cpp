@@ -86,20 +86,29 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(int aNumT)
         {
             //contraint ellipse
             double valElipse = aTri2D->valElipse(mNInter);
+            if (mNInter!=0)
+            {
+                cout<<" ++"<<aImg->Name()<<" * "<<valElipse<<endl;
+            }
             if (valElipse >= cur_valElipse)
             {
                 cur_valElipse = valElipse;
                 imgMas = aImg;
             }
-            if (valElipse > TT_SEUIL_RESOLUTION)
+            if (valElipse > TT_SEUIL_RESOLUTION)  //à ajouter seuil de contraint ellipse ?
                 Cur_Img2nd().push_back(aKI);
         }
     }
-    if (cur_valElipse != DBL_MIN && cur_valElipse > TT_SEUIL_RESOLUTION)
+    if (cur_valElipse != DBL_MIN && cur_valElipse > TT_SEUIL_RESOLUTION) 
+    {
+        if (mNInter!=0)
+            cout<<endl;
         return imgMas;
+    }
     else
     {
-        //cout<<"No master "<<"valElipse "<<cur_valElipse<<"  TT_SEUIL_RESOLUTION "<<TT_SEUIL_RESOLUTION<<endl;
+        if (mNInter!=0)
+            cout<<"No master "<<"valElipse "<<cur_valElipse<<"  TT_SEUIL_RESOLUTION "<<TT_SEUIL_RESOLUTION<<endl<<endl;
         return NULL;
     }
 }
@@ -118,7 +127,8 @@ void cAppliTaskCorrel::DoAllTri()
         aTaskTri.P3() = mVTri[aKT]->getSommet(2);
         if (aImgMas != NULL && Cur_Img2nd().size() != 0)
         {
-            //cout<<" ++ImMas: "<<aImgMas->Tif().name()<<" - Num2nd : "<<Cur_Img2nd().size()<<endl;
+            if (mNInter!=0)
+                cout<<"=> ImMas: "<<aImgMas->Tif().name()<<" - Num2nd : "<<Cur_Img2nd().size()<<endl<<endl;
             for (uint aKT2nd=0; aKT2nd<Cur_Img2nd().size(); aKT2nd++)
             {
                 if (Cur_Img2nd()[aKT2nd] != aImgMas->Num() )

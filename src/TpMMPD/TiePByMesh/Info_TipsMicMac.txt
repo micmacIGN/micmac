@@ -1,0 +1,63 @@
+Je ecrit ici les commande utilisant pour affichier, sauvgarder ...image
+
+(*) Affichier un image sur fenetre Elise
+      Video_Win * mW;
+      double aZoom = 0.5;    => Image affichier 2 fois plus petit
+      if (mW ==0)
+           {
+               mW = Video_Win::PtrWStd(Im2D.sz()*aZoom, true, Pt2dr(aZoom, aZoom));
+               mW->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+           }
+
+       if (mW)
+           {
+               mW->set_title( (mVImg[aKIm] + "_ZBuf").c_str());
+               ELISE_COPY(   Im2D.all_pts(),
+                             Im2D.in(),
+                             mW->ogray()
+                             );
+               mW->clik_in();
+           }
+
+
+(*) Sauvgarder Image sur disque dur avec ELISE_COPY
+   //======================================================= 
+       string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
+       ELISE_COPY
+               (
+                   Im2D.all_pts(),                     //Im2D : image type Im2D
+                   Im2D.in_proj() ,
+                   Tiff_Im(
+                       fileOut.c_str(),
+                       Im2D.sz(),
+                       GenIm::real8,			//Type pixel, coherant avec Im2D type d'image
+                       Tiff_Im::No_Compr,
+                       Tiff_Im::BlackIsZero,
+                       Tiff_Im::Empty_ARG ).out()
+                   );
+   //=======================================================
+      Tiff_Im mTifIm
+             (
+                   fileOut.c_str(),
+                   aZBuf->ImZ().sz(),
+                   GenIm::real8,
+                   Tiff_Im::No_Compr,
+                   aZBuf->Tif().phot_interp()
+             );
+       ELISE_COPY
+               (
+                   aZBuf->ImZ().all_pts(),
+                   aZBuf->ImZ().in_proj(),
+                   mTifIm.out()
+               );
+               */
+   //=======================================================
+
+(*) Re-echantillonage image
+       Im2D<type, type>aIM_Org(SzWOrg);
+       double scale = 0.5;
+       Im2D<type, type>aIM_Reech(SzWOrg * scale);
+       ELISE_COPY(aIM_Reech->all_pts(), aIM_Org->in()[Virgule(FX/scale,FY/scale)] ,aIM_Reech->ogray());
+
+(*) Enlever temp du Vino (il fault) avant d'affichier
+      rm Tmp-MM-Dir/EnvVino.xml

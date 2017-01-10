@@ -1,0 +1,9 @@
+============= Dans Programme mm3d TestLib TaskCorrel ===============
+
+(*) Critere d'enlevement les triangles "non utilisable":
+    (.) Surface (TT_SEUIL_SURF_TRIANGLE)
+    (.) Orientation triangle (vector normal, calcul avec sign de surface aussi)
+    (.) Resolution (TT_SEUIL_RESOLUTION)
+	(!) Seuil sur valeur ellipse => seuil sur "la resolution"
+	(?) Quelle est le valeur ? Pour l'instant = DBL_MIN
+    (?) Critere de ZBuffer, on se met ou ?

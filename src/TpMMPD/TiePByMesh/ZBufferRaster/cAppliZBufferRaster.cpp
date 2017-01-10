@@ -13,7 +13,9 @@ cAppliZBufferRaster::cAppliZBufferRaster(
     mVTri (aVTri),
     mVImg (aVImg),
     mNInt (0),
-    mW    (0)
+    mW    (0),
+    mSzW  (Pt2di(500,500)),
+    mReech(1.0)
 {
 }
 
@@ -29,35 +31,69 @@ void  cAppliZBufferRaster::DoAllIm()
             cout<<"["<<(aKTri*100.0/mVTri.size())<<" %]"<<endl;
           aZBuf->LoadTri(mVTri[aKTri]);
        }
-       aZBuf->normalizeIm(aZBuf->ImZ(), 0.0, 255.0);
        //save Image ZBuffer to disk
        string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
+
+/*
+       Tiff_Im mTifIm
+               (
+                   fileOut.c_str(),
+                   aZBuf->ImZ().sz(),
+                   GenIm::real8,
+                   Tiff_Im::No_Compr,
+                   aZBuf->Tif().phot_interp()
+                   );
        ELISE_COPY
-       (
-           aZBuf->ImZ().all_pts(),
-           aZBuf->ImZ().inside() ,
-           Tiff_Im(
-               fileOut.c_str(),
-               aZBuf->ImZ().sz(),
-               GenIm::real8,
-               Tiff_Im::No_Compr,
-               Tiff_Im::BlackIsZero,
-               Tiff_Im::Empty_ARG ).out()
-       );
+               (
+                   aZBuf->ImZ().all_pts(),
+                   aZBuf->ImZ().in_proj(),
+                   mTifIm.out()
+               );
+               */
+
+       ELISE_COPY
+               (
+                   aZBuf->ImZ().all_pts(),
+                   aZBuf->ImZ().in_proj(),
+                   Tiff_Im(
+                       fileOut.c_str(),
+                       aZBuf->ImZ().sz(),
+                       GenIm::real8,
+                       Tiff_Im::No_Compr,
+                       aZBuf->Tif().phot_interp()
+                       ).out()
+
+                   );
+
+
+
+
+       //=======================================
        if (mNInt != 0)
        {
            aZBuf->normalizeIm(aZBuf->ImZ(), 0.0, 255.0);
+
+           if (aZBuf->ImZ().sz().x >= aZBuf->ImZ().sz().y)
+           {
+               double scale =  double(aZBuf->ImZ().sz().x) / double(aZBuf->ImZ().sz().y) ;
+               mSzW = Pt2di(mSzW.x , round_ni(mSzW.x/scale));
+           }
+           else
+           {
+               double scale = double(aZBuf->ImZ().sz().y) / double(aZBuf->ImZ().sz().x);
+               mSzW = Pt2di(round_ni(mSzW.y/scale) ,mSzW.y);
+           }
+           Pt2dr aZ(double(mSzW.x)/double(aZBuf->ImZ().sz().x) , double(mSzW.y)/double(aZBuf->ImZ().sz().y) );
+
            if (mW ==0)
            {
-               double aZ = 0.5;
-               mW = Video_Win::PtrWStd(Pt2di(aZBuf->ImZ().sz()*aZ), true, Pt2dr(aZ, aZ));
+               mW = Video_Win::PtrWStd(mSzW, true, aZ);
                mW->set_sop(Elise_Set_Of_Palette::TheFullPalette());
            }
 
            if (mW)
            {
                mW->set_title( (mVImg[aKIm] + "_ZBuf").c_str());
-               //ELISE_COPY(mImZ.all_pts(),mImZ.in(),mW->ogray());
                ELISE_COPY(   aZBuf->ImZ().all_pts(),
                              aZBuf->ImZ().in(),
                              mW->ogray()

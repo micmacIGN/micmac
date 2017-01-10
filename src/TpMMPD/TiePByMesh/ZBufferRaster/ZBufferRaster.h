@@ -29,6 +29,8 @@ public:
     vector<cTri3D> &                  VTri() {return mVTri;}
     vector<string> &                  VImg() {return mVImg;}
     int  &                            NInt() {return mNInt;}
+    Pt2di &                           SzW() {return mSzW;}
+    double &                          Reech() {return mReech;}
     void                              DoAllIm();
 private:
     cInterfChantierNameManipulateur * mICNM;
@@ -38,6 +40,9 @@ private:
     vector<string>                    mVImg;
     int                               mNInt;
     Video_Win *                       mW;
+    Pt2di                             mSzW;
+    double                            mReech;
+
 
 };
 
@@ -69,6 +74,8 @@ public:
     const Pt2dr & P2() const {return mP2;}
     const Pt2dr & P3() const {return mP3;}
     static cTri2D Default();
+    void SetReech(double & scale);
+
 
     Pt3dr pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D);
     double profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, CamStenope * aCam);
@@ -81,6 +88,7 @@ private:
     Pt2dr mP2;
     Pt2dr mP3;
     bool  mIsInCam;
+    double mReech;
 };
 
 class cImgZBuffer
@@ -94,6 +102,8 @@ public:
     tImZBuf & ImZ() {return mImZ;}
     tTImZBuf & TImZ() {return mTImZ;}
     int CntTriValab() {return mCntTriValab;}
+    Tiff_Im &  Tif() {return mTif;}
+
 
     void LoadTri(cTri3D);
     bool updateZ(tImZBuf & ImZ, Pt2dr &pxl, double &prof_val);

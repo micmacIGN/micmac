@@ -8,7 +8,7 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
     mTif      (Tiff_Im::StdConv(mAppli->Dir() + mNameIm)),
     mCam      (mAppli->ICNM()->StdCamOfNames(aNameIm,mAppli->Ori())),
     mSzIm     (mTif.sz()),
-    mImZ      (mSzIm.x, mSzIm.y, tElZBuf(-1.0)),
+    mImZ      (mSzIm.x*mAppli->Reech(), mSzIm.y*mAppli->Reech(), tElZBuf(-1.0)),
     mTImZ     (mImZ),
     mMasqTri  (1,1),
     mTMasqTri (mMasqTri),
@@ -48,6 +48,12 @@ bool cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val)
 void cImgZBuffer::LoadTri(cTri3D aTri3D)
 {
     cTri2D aTri = aTri3D.reprj(mCam);
+    if (mAppli->Reech() != 1.0)
+    {
+        //Reech coordonee dans aTri2D
+        aTri.SetReech(mAppli->Reech());
+    }
+
     if (
             aTri.IsInCam() &&
             //aTri.orientToCam(mCam) &&
@@ -80,7 +86,8 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
 
         //grab coordinate all pixel in triangle
         vector<Pt2dr> aVPtsInTri;
-        //Flux2StdCont(aVPtsInTri , select(mImZ.all_pts(),mMasqTri.in()) );
+        Flux2StdCont(aVPtsInTri , select(mImZ.all_pts(),mMasqTri.in()) );
+        /*
         for (int aKx=0; aKx<mMasqLocalTri.sz().x; aKx++)
         {
             for (int aKy=0; aKy<mMasqLocalTri.sz().y; aKy++)
@@ -94,6 +101,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
                 }
             }
         }
+        */
 
 
         //update ZBuffer
