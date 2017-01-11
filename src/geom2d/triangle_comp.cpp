@@ -42,12 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-class cSegEntierHor
-{
-    public :
-        Pt2di mP0;
-        int   mNb;
-};
 
 
 // Modifie l'intervale entier [aXMinLoc,aXMaxLoc [, 
@@ -79,7 +73,7 @@ void ModifInterv(int & aXMinLoc,int & aXMaxLoc,int aY,const SegComp & aSeg)
 }
 
 
-void RasterTriangle(const cElTriangleComp & aTri,std::vector<cSegEntierHor> & aRes)
+extern void RasterTriangle(const cElTriangleComp & aTri,std::vector<cSegEntierHor> & aRes)
 {
     aRes.clear();
 

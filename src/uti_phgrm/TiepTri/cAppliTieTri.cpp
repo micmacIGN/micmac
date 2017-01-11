@@ -310,6 +310,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
     mVCurMIRMC.clear();
 }
 
+
 class cCmpPtrRMIRC
 {
     public :

@@ -1,4 +1,6 @@
 #include "../InitOutil.h"
+#include "StdAfx.h"
+
 
 const double TT_DEFAULT_PROF_NOVISIBLE  = -1.0;
 const double TT_SEUIL_SURF = 100;

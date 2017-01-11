@@ -24,6 +24,7 @@ void  cAppliZBufferRaster::DoAllIm()
     for (int aKIm=0; aKIm<int(mVImg.size()); aKIm++)
     {
        cout<<"Im "<<mVImg[aKIm]<<endl;
+       ElTimer aChrono;
        cImgZBuffer * aZBuf =  new cImgZBuffer(this, mVImg[aKIm]);
        for (int aKTri=0; aKTri<int(mVTri.size()); aKTri++)
        {
@@ -33,24 +34,6 @@ void  cAppliZBufferRaster::DoAllIm()
        }
        //save Image ZBuffer to disk
        string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
-
-/*
-       Tiff_Im mTifIm
-               (
-                   fileOut.c_str(),
-                   aZBuf->ImZ().sz(),
-                   GenIm::real8,
-                   Tiff_Im::No_Compr,
-                   aZBuf->Tif().phot_interp()
-                   );
-       ELISE_COPY
-               (
-                   aZBuf->ImZ().all_pts(),
-                   aZBuf->ImZ().in_proj(),
-                   mTifIm.out()
-               );
-               */
-
        ELISE_COPY
                (
                    aZBuf->ImZ().all_pts(),
@@ -64,10 +47,6 @@ void  cAppliZBufferRaster::DoAllIm()
                        ).out()
 
                    );
-
-
-
-
        //=======================================
        if (mNInt != 0)
        {
@@ -101,7 +80,7 @@ void  cAppliZBufferRaster::DoAllIm()
                //mW->clik_in();
            }
        }
-       cout<<"Finish Img Cont..Nb mCntTriValab : "<<aZBuf->CntTriValab()<<endl;
+       cout<<"Finish Img Cont.. - Nb Tri Valab : "<<aZBuf->CntTriValab()<<" -Time: "<<aChrono.uval()<<endl;
        getchar();
     }
 }

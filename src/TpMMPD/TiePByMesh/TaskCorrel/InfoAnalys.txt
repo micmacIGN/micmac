@@ -122,7 +122,26 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
     TT_DefSeuilDensiteResul  = 50 pxl
     TT_RatioFastFiltrSpatial = 4
 
-    
+========================================================================
+11/12/2016:
+Raster Triangle Rapide => Recuper les point dans la triangle par calcul l'interval de la ligne parcouru
+
++++++====+++++ Dans src/geom2d/triangle_comp.cpp +++++====+++++
+(1) Raster triangle
+
+    triangle_comp.cpp
+    Class cSegEntierHor => une segment horizontal
+    class cElTriangleComp 
+	Quand creer un triangle, il regard si il est dans bon sens par calcul sign de triangle, et re-order si il n'est pas
+
+    equation droit pour l'intersection (y-y0)/(x-x0) = (y1-y0)/(x1-x0) => parcourir y, calcul x
+    Parcourir en ligne (y) et chercher l'interval de chaque ligne
+    Il fault voir parcour dans quelle sens 
+
+    Les segments sont S01 S20 S12
+
++++++====+++++ Autre probleme +++++====+++++
+(1) Mets un seuil de distance pour tout (ZBuf, TiepTri) pour les triangle trop loin sont viré
     
     
     
