@@ -42,6 +42,76 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+class cSegEntierHor
+{
+    public :
+        Pt2di mP0;
+        int   mNb;
+};
+
+
+// Modifie l'intervale entier [aXMinLoc,aXMaxLoc [, 
+// si aXMaxLoc <= aXMinLoc  -> intervalle vide
+
+void ModifInterv(int & aXMinLoc,int & aXMaxLoc,int aY,const SegComp & aSeg)
+{
+    double aY0 = aSeg.p0().y;
+    double aY1 = aSeg.p1().y;
+
+    double aX0 = aSeg.p0().x;
+    double aX1 = aSeg.p1().x;
+
+    if (aY0==aY1)
+    {
+        if (aX0==aX1) return;  // segment vide
+
+        if ((aX1>aX0) == (aY>=aY0)) return;  // le demi plan contient le segment
+
+         aXMaxLoc = aXMinLoc;  return;
+    }
+
+    int aXInter = round_ni(aX0 + ( (aY-aY0) / (aY1-aY0)  ) * (aX1-aX0));
+
+    if (aY1>aY0) 
+       ElSetMin(aXMaxLoc,aXInter);
+    else
+       ElSetMax(aXMinLoc,aXInter);
+}
+
+
+void RasterTriangle(const cElTriangleComp & aTri,std::vector<cSegEntierHor> & aRes)
+{
+    aRes.clear();
+
+    int aYMinGlob = round_ni(ElMin3(aTri.P0().y,aTri.P1().y,aTri.P2().y));
+    int aYMaxGlob = round_ni(ElMax3(aTri.P0().y,aTri.P1().y,aTri.P2().y));
+
+     
+    int aXMinGlob = round_ni(ElMin3(aTri.P0().x,aTri.P1().x,aTri.P2().x));
+    int aXMaxGlob = round_ni(ElMax3(aTri.P0().x,aTri.P1().x,aTri.P2().x));
+
+    for (int aY=aYMinGlob  ; aY<aYMaxGlob  ; aY++)
+    {
+        int aXMinLoc = aXMinGlob;
+        int aXMaxLoc = aXMaxGlob;
+
+        ModifInterv(aXMinLoc,aXMaxLoc,aY,aTri.S01());
+        ModifInterv(aXMinLoc,aXMaxLoc,aY,aTri.S12());
+        ModifInterv(aXMinLoc,aXMaxLoc,aY,aTri.S20());
+
+        if (aXMaxLoc>aXMinLoc)
+        {
+            cSegEntierHor aSH;
+            aSH.mP0 = Pt2di(aXMinLoc,aY);
+            aSH.mNb = aXMaxLoc - aXMinLoc;
+            aRes.push_back(aSH);
+        }
+    }
+}
+
+
+
+
 /*******************************************************/
 /*                                                     */
 /*              cElTriangleComp                        */

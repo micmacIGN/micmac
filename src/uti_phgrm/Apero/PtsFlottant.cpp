@@ -213,6 +213,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    if (ShowUnUsed)
        std::cout << "==== ADD Pts " << mName  << " Has Gr " << mHasGround << " Inc " << mInc << "\n";
 
+
+   // double anEcartGlob = anObs.PondIm().EcartMesureIndiv();  PrecPointeByIm
    double aPdsIm = 1 / ElSquare(anObs.PondIm().EcartMesureIndiv());
 
    //  cPonderateur aPdrtIm(anObs.PondIm(),mCams.size());

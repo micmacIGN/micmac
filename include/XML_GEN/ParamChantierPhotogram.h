@@ -2410,12 +2410,16 @@ class cOneMesureAF1I
         friend void xml_init(cOneMesureAF1I & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< double > & PrecPointe();
+        const cTplValGesInit< double > & PrecPointe()const ;
+
         std::string & NamePt();
         const std::string & NamePt()const ;
 
         Pt2dr & PtIm();
         const Pt2dr & PtIm()const ;
     private:
+        cTplValGesInit< double > mPrecPointe;
         std::string mNamePt;
         Pt2dr mPtIm;
 };
