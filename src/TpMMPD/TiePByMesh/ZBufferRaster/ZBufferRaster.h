@@ -60,7 +60,11 @@ public:
     const Pt3dr & P1() const {return mP1;}
     const Pt3dr & P2() const {return mP2;}
     const Pt3dr & P3() const {return mP3;}
+    Pt3dr & Vec_21() {return mVec_21;}
+    Pt3dr & Vec_31() {return mVec_31;}
+    bool  & HaveBasis() {return mHaveBasis;}
 
+    void calVBasis();
     cTri2D reprj(CamStenope * aCam);
     double dist2Cam(CamStenope * aCam);
 
@@ -71,6 +75,9 @@ private:
     Pt3dr mP3;
     Pt3dr mCtr;
     bool  mIsLoaded;
+    Pt3dr mVec_21;
+    Pt3dr mVec_31;
+    bool  mHaveBasis;
 };
 
 class cTri2D
@@ -83,9 +90,11 @@ public:
     const Pt2dr & P2() const {return mP2;}
     const Pt2dr & P3() const {return mP3;}
     static cTri2D Default();
+    bool & HaveBasis() {return mHaveBasis;}
+
     void SetReech(double & scale);
 
-
+    void calVBasis();
     Pt3dr pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D);
     double profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, CamStenope * aCam);
 
@@ -96,8 +105,11 @@ private:
     Pt2dr mP1;
     Pt2dr mP2;
     Pt2dr mP3;
+    Pt2dr mVec_21;
+    Pt2dr mVec_31;
     bool  mIsInCam;
     double mReech;
+    bool mHaveBasis;
 };
 
 class cImgZBuffer
@@ -115,7 +127,7 @@ public:
 
 
     void LoadTri(cTri3D);
-    bool updateZ(tImZBuf & ImZ, Pt2dr &pxl, double &prof_val);
+    void updateZ(tImZBuf & ImZ, Pt2dr &pxl, double &prof_val);
     void normalizeIm(tImZBuf & aIm, double valMin, double valMax);
 
 private:
