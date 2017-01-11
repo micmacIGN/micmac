@@ -53,8 +53,15 @@ bool cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val)
 
 void cImgZBuffer::LoadTri(cTri3D aTri3D)
 {
+    if (mAppli->DistMax() != TT_DISTMAX_NOLIMIT)
+    {
+        if (aTri3D.dist2Cam(mCam) > mAppli->DistMax())
+        {
+            return;
+        }
+    }
     cTri2D aTri = aTri3D.reprj(mCam);
-    if (mAppli->Reech() != 1.0)
+    if (mAppli->Reech() != TT_SCALE_1)
     {
         //Reech coordonee dans aTri2D
         aTri.SetReech(mAppli->Reech());

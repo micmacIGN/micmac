@@ -15,7 +15,8 @@ cAppliZBufferRaster::cAppliZBufferRaster(
     mNInt (0),
     mW    (0),
     mSzW  (Pt2di(500,500)),
-    mReech(1.0)
+    mReech(1.0),
+    mDistMax (TT_DISTMAX_NOLIMIT)
 {
 }
 
