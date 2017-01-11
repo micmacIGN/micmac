@@ -226,7 +226,16 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    int aNbOK=0;
    for (int aK=0 ; aK<int(mCams.size()) ; aK++)
    {
-        if (mCams[aK]->RotIsInit())
+        bool Ok = mCams[aK]->RotIsInit();
+        Ok = Ok && mCams[aK]->GenCurCam()->CaptHasData(mPts[aK]);
+        if (mHasGround)
+        {
+           cArgOptionalPIsVisibleInImage anArg;
+           anArg.mOkBehind = false;
+           Ok = Ok && mCams[aK]->GenCurCam()->PIsVisibleInImage(mPt,&anArg);
+        }
+
+        if (Ok)
         {
            double anEcart = (mEcartIm[aK] > 0) ? mEcartIm[aK] : anObs.PondIm().EcartMesureIndiv();
 	   mPdsIm[aK] =   1 / ElSquare(anEcart);
