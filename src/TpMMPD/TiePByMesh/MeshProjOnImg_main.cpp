@@ -189,9 +189,17 @@ int MeshProjOnImg_main(int argc,char ** argv)
                     aPic->mOriPic->PIsVisibleInImage(P3);
             double signTri = (aTri2D.sommet1[0]-aTri2D.sommet1[1])^(aTri2D.sommet1[0]-aTri2D.sommet1[2]);
 
+            if (oriTri == false)
+            {
+                 if (signTri < 0 && visible)
+                    draw_polygon_onVW(aTri2D, aVW, Pt3di(0,255,0), true, click);
+            }
+            else
+            {
+                if (signTri > 0 && visible)
+                    draw_polygon_onVW(aTri2D, aVW, Pt3di(0,255,0), true, click);
+            }
 
-            if (signTri < 0 && visible)
-                draw_polygon_onVW(aTri2D, aVW, Pt3di(0,255,0), true, click);
         }
         if (lstPtsInteret.size() > 0)
             draw_pts_onVW(lstPtsInteret,aVW);

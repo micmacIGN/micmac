@@ -54,7 +54,7 @@ Pt3dr cTri2D::pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D)
 
 double cTri2D::profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, CamStenope * aCam)
 {
-    Pt2dr ptInTri2DGlob(ptInTri2D/mReech);
+    Pt2dr ptInTri2DGlob(ptInTri2D.x/mReech, ptInTri2D.y/mReech);
     Pt3dr aPt = cTri2D::pt3DFromVBasis(ptInTri2DGlob, aTri3D);
     if (aCam->PIsVisibleInImage(aPt))
     {
