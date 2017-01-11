@@ -4,6 +4,9 @@ string aPatFIm, aMesh, aOri;
 int nInt = 0;
 Pt2di aSzW;
 double rech=1.0;
+double distMax = DBL_MAX;
+
+
 int ZBufferRaster_main(int argc,char ** argv)
 {
     ElInitArgMain
@@ -19,6 +22,7 @@ int ZBufferRaster_main(int argc,char ** argv)
                 << EAM(nInt, "nInt", true, "niveau Interaction")
                 << EAM(aSzW,  "aSzw",true,"if visu [x,y]")
                 << EAM(rech,  "rech",true,"cal ZBuff in img Resample - default =1.0 - 0.5 => 2 times <")
+                << EAM(distMax,  "distMax",true,"limit distant cover Maximum from camera - default = NO LIMIT")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -55,6 +59,10 @@ int ZBufferRaster_main(int argc,char ** argv)
     if (EAMIsInit(&aSzW))
     {
         aAppli->SzW() = aSzW;
+    }
+    if (EAMIsInit(&distMax))
+    {
+        aAppli->DistMax() = distMax;
     }
     aAppli->Reech() = rech;
     aAppli->DoAllIm();

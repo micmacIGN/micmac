@@ -28,31 +28,40 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
 bool cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val)
 {
     Pt2di pxlI(pxl);
-    /*
-    double prof_old = ImZ.GetR(pxlI);
+    if (ImZ.Inside(pxlI))
+    {
+        double prof_old = ImZ.GetR(pxlI);
 
-    if (prof_old == TT_DEFAULT_PROF_NOVISIBLE)
-    {
-        ImZ.SetR(pxlI , prof_val);
-        return true;
-    }
-    else if (prof_old != TT_DEFAULT_PROF_NOVISIBLE && prof_old > prof_val)
-    {
-        ImZ.SetR(pxlI , prof_val);
-        return true;
+        if (prof_old == TT_DEFAULT_PROF_NOVISIBLE)
+        {
+            ImZ.SetR_SVP(pxlI , prof_val);
+            return true;
+        }
+        else if (prof_old != TT_DEFAULT_PROF_NOVISIBLE && prof_old > prof_val)
+        {
+            ImZ.SetR_SVP(pxlI , prof_val);
+            return true;
+        }
+        else
+            return false;
     }
     else
+    {
         return false;
-        */
-
-    ImZ.SetR(pxlI , prof_val);
-    return true;
+    }
 }
 
 void cImgZBuffer::LoadTri(cTri3D aTri3D)
 {
+    if (mAppli->DistMax() != TT_DISTMAX_NOLIMIT)
+    {
+        if (aTri3D.dist2Cam(mCam) > mAppli->DistMax())
+        {
+            return;
+        }
+    }
     cTri2D aTri = aTri3D.reprj(mCam);
-    if (mAppli->Reech() != 1.0)
+    if (mAppli->Reech() != TT_SCALE_1)
     {
         //Reech coordonee dans aTri2D
         aTri.SetReech(mAppli->Reech());
@@ -60,38 +69,42 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
 
     if (
             aTri.IsInCam() &&
-            //aTri.orientToCam(mCam) &&
             -aTri.surf() > TT_SEUIL_SURF
        )
     {
-        //creat masq rectangle local autour triangle
-        Pt2dr aPMin = Inf(Inf(aTri.P1(),aTri.P2()),aTri.P3());
-        Pt2dr aPMax = Sup(Sup(aTri.P1(),aTri.P2()),aTri.P3());
+        if (mAppli->NInt() > 1)
+        {
+            //creat masq rectangle local autour triangle
+            Pt2dr aPMin = Inf(Inf(aTri.P1(),aTri.P2()),aTri.P3());
+            Pt2dr aPMax = Sup(Sup(aTri.P1(),aTri.P2()),aTri.P3());
 
-        Pt2di mDecal = round_down(aPMin);
-        Pt2di mSzRec  = round_up(aPMax-aPMin);
+            Pt2di mDecal = round_down(aPMin);
+            Pt2di mSzRec  = round_up(aPMax-aPMin);
 
-        //creat masque local for triangle zone on rectangle (255=triangle)
-        Im2D_Bits<1> mMasqLocalTri(mSzRec.x,mSzRec.y,0);
-        ElList<Pt2di>  aLTri;
-        aLTri = aLTri + round_ni(aTri.P1()-Pt2dr(mDecal));
-        aLTri = aLTri + round_ni(aTri.P2()-Pt2dr(mDecal));
-        aLTri = aLTri + round_ni(aTri.P3()-Pt2dr(mDecal));
-        ELISE_COPY(polygone(aLTri),1,mMasqLocalTri.oclip());
+            //creat masque local for triangle zone on rectangle (255=triangle)
+            Im2D_Bits<1> mMasqLocalTri(mSzRec.x,mSzRec.y,0);
+            ElList<Pt2di>  aLTri;
+            aLTri = aLTri + round_ni(aTri.P1()-Pt2dr(mDecal));
+            aLTri = aLTri + round_ni(aTri.P2()-Pt2dr(mDecal));
+            aLTri = aLTri + round_ni(aTri.P3()-Pt2dr(mDecal));
+            ELISE_COPY(polygone(aLTri),1,mMasqLocalTri.oclip());
 
-        //creat masque global for triangle zone on image (255=triangle)
-        mMasqTri =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,0);
-        mTMasqTri = TIm2DBits<1> (mMasqTri);
-        ElList<Pt2di>  aGlobTri;
-        aGlobTri = aGlobTri + round_ni(aTri.P1());
-        aGlobTri = aGlobTri + round_ni(aTri.P2());
-        aGlobTri = aGlobTri + round_ni(aTri.P3());
-        ELISE_COPY(polygone(aGlobTri), 1, mMasqTri.oclip());
+            //creat masque global for triangle zone on image (255=triangle)
+            mMasqTri =  Im2D_Bits<1>(mSzIm.x,mSzIm.y,0);
+            mTMasqTri = TIm2DBits<1> (mMasqTri);
+            ElList<Pt2di>  aGlobTri;
+            aGlobTri = aGlobTri + round_ni(aTri.P1());
+            aGlobTri = aGlobTri + round_ni(aTri.P2());
+            aGlobTri = aGlobTri + round_ni(aTri.P3());
+            ELISE_COPY(polygone(aGlobTri), 1, mMasqTri.oclip());
+        }
 
         //grab coordinate all pixel in triangle
-        vector<Pt2dr> aVPtsInTri;
-        Flux2StdCont(aVPtsInTri , select(mImZ.all_pts(),mMasqTri.in()) );
-        //Ou c'est mieux utiliser BRESHENHAM
+        /*===method 1====*/
+        //vector<Pt2dr> aVPtsInTri;
+        //Flux2StdCont(aVPtsInTri , select(mImZ.all_pts(),mMasqTri.in()) );
+
+        /*===method 2====*/
         /*
         for (int aKx=0; aKx<mMasqLocalTri.sz().x; aKx++)
         {
@@ -108,12 +121,20 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         }
         */
 
-        //update ZBuffer
-        for (uint aKPxl=0; aKPxl<aVPtsInTri.size(); aKPxl++)
+        /*===method 3====*/
+
+        cElTriangleComp aElTri(aTri.P1(), aTri.P2(), aTri.P3());
+        std::vector<cSegEntierHor> aRasTri;
+        RasterTriangle(aElTri, aRasTri);
+        for (uint aKSeg=0; aKSeg<aRasTri.size(); aKSeg++)
         {
-            Pt2dr pxlInTri = aVPtsInTri[aKPxl];
-            double prof = aTri.profOfPixelInTri(pxlInTri, aTri3D, mCam);
-            bool isUpdate = updateZ(mImZ, pxlInTri, prof);
+            cSegEntierHor aSeg = aRasTri[aKSeg];
+            for (uint aKPt=0; aKPt<aSeg.mNb; aKPt++)
+            {
+                Pt2dr aPtRas(aSeg.mP0.x + aKPt, aSeg.mP0.y);
+                double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCam);
+                bool isUpdate = updateZ(mImZ, aPtRas, prof);
+            }
         }
         mCntTriValab++;
 
@@ -134,7 +155,12 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
                               255,
                               mW->ogray()
                               );
-                //mW->clik_in();
+                for (uint aKSeg=0; aKSeg<aRasTri.size(); aKSeg++)
+                {
+                    cSegEntierHor aSeg = aRasTri[aKSeg];
+                    mW->draw_seg(Pt2dr(aSeg.mP0), Pt2dr(aSeg.mP0.x + aSeg.mNb, aSeg.mP0.y), mW->pdisc()(P8COL::green));
+                }
+                mW->clik_in();
             }
         }
     }
@@ -155,8 +181,5 @@ void cImgZBuffer::normalizeIm(tImZBuf & aImZ, double valMin, double valMax)
 
     aImZ.getMinMax(minProf, maxProf);
     cout<<" -> Norm "<<minProf<<" "<<maxProf<<endl;
-
-
-
 }
 

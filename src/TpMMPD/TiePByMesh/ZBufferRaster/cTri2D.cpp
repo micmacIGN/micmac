@@ -38,7 +38,9 @@ Pt3dr cTri2D::pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D)
     Pt2dr vec_i = mP2 - mP1;
     Pt2dr vec_j = mP3 - mP1;
 
-    Pt2dr aP = ptInTri2D - mP1;
+    vec_i = vec_i/mReech;
+    vec_j = vec_j/mReech;
+    Pt2dr aP = ptInTri2D - mP1/mReech;
 
     double alpha = (aP.x*vec_j.y-aP.y*vec_j.x)/(vec_i.x*vec_j.y-vec_j.x*vec_i.y);
     double beta = (aP.y-alpha*vec_i.y)/vec_j.y;

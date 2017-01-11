@@ -1,7 +1,11 @@
 #include "../InitOutil.h"
+#include "StdAfx.h"
+
 
 const double TT_DEFAULT_PROF_NOVISIBLE  = -1.0;
 const double TT_SEUIL_SURF = 100;
+const double TT_SCALE_1 = 1.0;
+const double TT_DISTMAX_NOLIMIT = -1.0;
 
 
 typedef double                    tElZBuf;
@@ -31,6 +35,7 @@ public:
     int  &                            NInt() {return mNInt;}
     Pt2di &                           SzW() {return mSzW;}
     double &                          Reech() {return mReech;}
+    double &                          DistMax() {return mDistMax;}
     void                              DoAllIm();
 private:
     cInterfChantierNameManipulateur * mICNM;
@@ -42,6 +47,7 @@ private:
     Video_Win *                       mW;
     Pt2di                             mSzW;
     double                            mReech;
+    double                            mDistMax;
 
 
 };
@@ -56,11 +62,14 @@ public:
     const Pt3dr & P3() const {return mP3;}
 
     cTri2D reprj(CamStenope * aCam);
+    double dist2Cam(CamStenope * aCam);
+
 
 private:
     Pt3dr mP1;
     Pt3dr mP2;
     Pt3dr mP3;
+    Pt3dr mCtr;
     bool  mIsLoaded;
 };
 
