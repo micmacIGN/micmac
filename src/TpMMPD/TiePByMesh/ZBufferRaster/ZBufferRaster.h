@@ -113,8 +113,8 @@ private:
     cAppliZBufferRaster * mAppli;
     std::string    mNameIm;
     Tiff_Im        mTif;
-    CamStenope *   mCam;
     Pt2di          mSzIm;
+    CamStenope *   mCam;
 
     tImZBuf        mImZ;
     tTImZBuf       mTImZ;

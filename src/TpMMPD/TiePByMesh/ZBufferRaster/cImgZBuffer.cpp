@@ -6,9 +6,9 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
 
     mNameIm   (aNameIm),
     mTif      (Tiff_Im::StdConv(mAppli->Dir() + mNameIm)),
-    mCam      (mAppli->ICNM()->StdCamOfNames(aNameIm,mAppli->Ori())),
     mSzIm     (mTif.sz()),
-    mImZ      (mSzIm.x*mAppli->Reech(), mSzIm.y*mAppli->Reech(), tElZBuf(-1.0)),
+    mCam      (mAppli->ICNM()->StdCamOfNames(aNameIm,mAppli->Ori())),
+    mImZ      (round_ni(mSzIm.x*mAppli->Reech()), round_ni(mSzIm.y*mAppli->Reech()), tElZBuf(-1.0)),
     mTImZ     (mImZ),
     mMasqTri  (1,1),
     mTMasqTri (mMasqTri),
@@ -18,11 +18,17 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
     mCntTri   (0),
     mCntTriValab (0)
 {
+    cout<<"Dans constructor cImgZBuffer : "<<mImZ.sz()<<mSzIm<<endl;
+    if (mAppli->Reech() != 1.0)
+    {
+       mSzIm = mImZ.sz();
+    }
 }
 
 bool cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val)
 {
     Pt2di pxlI(pxl);
+    /*
     double prof_old = ImZ.GetR(pxlI);
 
     if (prof_old == TT_DEFAULT_PROF_NOVISIBLE)
@@ -37,12 +43,10 @@ bool cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val)
     }
     else
         return false;
+        */
 
-/*
     ImZ.SetR(pxlI , prof_val);
     return true;
-*/
-
 }
 
 void cImgZBuffer::LoadTri(cTri3D aTri3D)
@@ -87,6 +91,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         //grab coordinate all pixel in triangle
         vector<Pt2dr> aVPtsInTri;
         Flux2StdCont(aVPtsInTri , select(mImZ.all_pts(),mMasqTri.in()) );
+        //Ou c'est mieux utiliser BRESHENHAM
         /*
         for (int aKx=0; aKx<mMasqLocalTri.sz().x; aKx++)
         {
@@ -102,7 +107,6 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
             }
         }
         */
-
 
         //update ZBuffer
         for (uint aKPxl=0; aKPxl<aVPtsInTri.size(); aKPxl++)
