@@ -566,6 +566,8 @@ int Ortho2TieP_main(int argc,char ** argv);
 int Idem_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 int ConvSensXml2Txt_main(int argc,char ** argv);
+int CleanTxtPS_main(int argc,char ** argv);
+int CheckPatCple_main(int argc,char ** argv);
 
 extern int BasculePtsInRepCam_main(int argc,char ** argv);
 extern int BasculeCamsInRepCam_main(int argc,char ** argv);
@@ -734,6 +736,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("SplitPts",SplitGCPsCPs_main,"Tool to split .xml ground points into GCPs and CPs",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ConcateMAF",ConcateMAF_main,"Tool to concatenate .xml ground points images coordinates",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("XmlSensib2Txt",ConvSensXml2Txt_main,"Tool to convert .xml Sensibility File 2 .txt file",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("CleanTxtPS", CleanTxtPS_main,"Tool to clean .txt file output of PhotoScan Aero",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("CheckPatCple", CheckPatCple_main,"Tool to check a Pattern and an .xml File Cple",cArgLogCom(2)));
 	      
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
