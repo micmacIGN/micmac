@@ -33,6 +33,7 @@ void  cAppliZBufferRaster::DoAllIm()
             cout<<"["<<(aKTri*100.0/mVTri.size())<<" %]"<<endl;
           aZBuf->LoadTri(mVTri[aKTri]);
        }
+       cout<<"Finish Img Cont.. - Nb Tri Valab : "<<aZBuf->CntTriValab()<<" -Time: "<<aChrono.uval()<<endl;
        //save Image ZBuffer to disk
        string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
        ELISE_COPY
@@ -81,7 +82,6 @@ void  cAppliZBufferRaster::DoAllIm()
                //mW->clik_in();
            }
        }
-       cout<<"Finish Img Cont.. - Nb Tri Valab : "<<aZBuf->CntTriValab()<<" -Time: "<<aChrono.uval()<<endl;
        getchar();
     }
 }

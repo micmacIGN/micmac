@@ -49,6 +49,8 @@ int ZBufferRaster_main(int argc,char ** argv)
                     );
         aVTri.push_back(aTri);
     }
+
+
     delete(aInitMesh);
 
 

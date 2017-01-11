@@ -25,29 +25,28 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
     }
 }
 
-bool cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val)
+void cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val)
 {
     Pt2di pxlI(pxl);
     if (ImZ.Inside(pxlI))
     {
         double prof_old = ImZ.GetR(pxlI);
-
         if (prof_old == TT_DEFAULT_PROF_NOVISIBLE)
         {
             ImZ.SetR_SVP(pxlI , prof_val);
-            return true;
+            return;
         }
         else if (prof_old != TT_DEFAULT_PROF_NOVISIBLE && prof_old > prof_val)
         {
             ImZ.SetR_SVP(pxlI , prof_val);
-            return true;
+            return;
         }
         else
-            return false;
+            return;
     }
     else
     {
-        return false;
+        return;
     }
 }
 
@@ -133,7 +132,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
             {
                 Pt2dr aPtRas(aSeg.mP0.x + aKPt, aSeg.mP0.y);
                 double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCam);
-                bool isUpdate = updateZ(mImZ, aPtRas, prof);
+                cImgZBuffer::updateZ(mImZ, aPtRas, prof);
             }
         }
         mCntTriValab++;

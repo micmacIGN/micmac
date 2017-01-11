@@ -5,7 +5,8 @@ cTri2D::cTri2D(Pt2dr P1, Pt2dr P2, Pt2dr P3):
     mP2 (P2),
     mP3 (P3),
     mIsInCam(true),
-    mReech (1.0)
+    mReech (1.0),
+    mHaveBasis (false)
 {
 }
 
@@ -13,7 +14,8 @@ cTri2D::cTri2D():
     mP1 (Pt2dr(0.0,0.0)),
     mP2 (Pt2dr(0.0,0.0)),
     mP3 (Pt2dr(0.0,0.0)),
-    mIsInCam(false)
+    mIsInCam(false),
+    mHaveBasis (false)
 {}
 
 cTri2D cTri2D::Default()
@@ -29,17 +31,26 @@ void cTri2D::SetReech(double & scale)
     mP3 = mP3*mReech;
 }
 
+void cTri2D::calVBasis()
+{
+    mVec_21=mP2 - mP1;
+    mVec_31=mP3 - mP1;
+    mHaveBasis = true;
+}
+
 Pt3dr cTri2D::pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D)
 {
     //comme le method ptsInTri2Dto3D in triangle.cpp
-    Pt3dr vec_I=aTri3D.P2() - aTri3D.P1();
-    Pt3dr vec_J=aTri3D.P3() - aTri3D.P1();
+    if (!aTri3D.HaveBasis())
+        aTri3D.calVBasis();
+    Pt3dr vec_I=aTri3D.Vec_21();
+    Pt3dr vec_J=aTri3D.Vec_31();
 
-    Pt2dr vec_i = mP2 - mP1;
-    Pt2dr vec_j = mP3 - mP1;
+    if (!mHaveBasis)
+        calVBasis();
+    Pt2dr vec_i = mVec_21/mReech;
+    Pt2dr vec_j = mVec_31/mReech;
 
-    vec_i = vec_i/mReech;
-    vec_j = vec_j/mReech;
     Pt2dr aP = ptInTri2D - mP1/mReech;
 
     double alpha = (aP.x*vec_j.y-aP.y*vec_j.x)/(vec_i.x*vec_j.y-vec_j.x*vec_i.y);
@@ -56,7 +67,7 @@ Pt3dr cTri2D::pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D)
 
 double cTri2D::profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, CamStenope * aCam)
 {
-    Pt2dr ptInTri2DGlob(ptInTri2D.x/mReech, ptInTri2D.y/mReech);
+    Pt2dr ptInTri2DGlob = ptInTri2D/mReech;
     Pt3dr aPt = cTri2D::pt3DFromVBasis(ptInTri2DGlob, aTri3D);
     if (aCam->PIsVisibleInImage(aPt))
     {
