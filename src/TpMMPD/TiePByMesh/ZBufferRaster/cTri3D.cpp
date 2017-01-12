@@ -11,6 +11,18 @@ cTri3D::cTri3D(Pt3dr P1, Pt3dr P2, Pt3dr P3):
 {
 }
 
+cTri3D::cTri3D(Pt3dr P1, Pt3dr P2, Pt3dr P3, int ind):
+    mP1 (P1),
+    mP2 (P2),
+    mP3 (P3),
+    mCtr ((P1 + P2 + P3)/3),
+    mIsLoaded (true),
+    mHaveBasis(false),
+    mInd (ind)
+{
+}
+
+
 cTri2D cTri3D::reprj(CamStenope * aCam)
 {
     Pt2dr P1, P2, P3;

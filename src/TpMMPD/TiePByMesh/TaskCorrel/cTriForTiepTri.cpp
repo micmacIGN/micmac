@@ -13,28 +13,22 @@ cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel *aAppli, triangle * aTri3d):
     mrprjOK (false)
 {}
 
-bool cTriForTiepTri::reprj(int aNumImg)
+bool cTriForTiepTri::reprj(cImgForTiepTri * aImg)
 {
-    cImgForTiepTri * aImg = mAppli->VImgs()[aNumImg];
-
+    mNumImg = aImg->Num();
     Pt3dr Pt1 = mTri3D->getSommet(0);
     Pt3dr Pt2 = mTri3D->getSommet(1);
     Pt3dr Pt3 = mTri3D->getSommet(2);
-
-    mPt1 = aImg->Cam()->Ter2Capteur(Pt1);
-    mPt2 = aImg->Cam()->Ter2Capteur(Pt2);
-    mPt3 = aImg->Cam()->Ter2Capteur(Pt3);
-
-    mNumImg = aNumImg;
-    if      (     aImg->inside(mPt1)
-              &&  aImg->inside(mPt2)
-              &&  aImg->inside(mPt3)
-              &&  aImg->Cam()->PIsVisibleInImage(Pt1)
+    if      (
+                  aImg->Cam()->PIsVisibleInImage(Pt1)
               &&  aImg->Cam()->PIsVisibleInImage(Pt2)
               &&  aImg->Cam()->PIsVisibleInImage(Pt3)
             )
     {
         mrprjOK = true;
+        mPt1 = aImg->Cam()->Ter2Capteur(Pt1);
+        mPt2 = aImg->Cam()->Ter2Capteur(Pt2);
+        mPt3 = aImg->Cam()->Ter2Capteur(Pt3);
         return true;
     }
     else

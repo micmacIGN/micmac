@@ -5,6 +5,7 @@ int nInt = 0;
 Pt2di aSzW;
 double rech=1.0;
 double distMax = DBL_MAX;
+bool withLbl = false;
 
 
 int ZBufferRaster_main(int argc,char ** argv)
@@ -23,6 +24,7 @@ int ZBufferRaster_main(int argc,char ** argv)
                 << EAM(aSzW,  "aSzw",true,"if visu [x,y]")
                 << EAM(rech,  "rech",true,"cal ZBuff in img Resample - default =1.0 - 0.5 => 2 times <")
                 << EAM(distMax,  "distMax",true,"limit distant cover Maximum from camera - default = NO LIMIT")
+                << EAM(withLbl,  "withLbl",true,"Do image label (image label of triangle in surface)")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -45,7 +47,8 @@ int ZBufferRaster_main(int argc,char ** argv)
         triangle * aTriMesh = aVTriMesh[aKTri];
         cTri3D aTri (   aTriMesh->getSommet(0),
                         aTriMesh->getSommet(1),
-                        aTriMesh->getSommet(2)
+                        aTriMesh->getSommet(2),
+                        aKTri
                     );
         aVTri.push_back(aTri);
     }
@@ -66,6 +69,7 @@ int ZBufferRaster_main(int argc,char ** argv)
     {
         aAppli->DistMax() = distMax;
     }
+    aAppli->WithImgLabel() = withLbl;
     aAppli->Reech() = rech;
     aAppli->DoAllIm();
 

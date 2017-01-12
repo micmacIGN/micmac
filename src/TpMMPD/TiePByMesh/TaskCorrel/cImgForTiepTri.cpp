@@ -23,3 +23,4 @@ bool cImgForTiepTri::inside(Pt2dr aPt, double aRab)
             && (aPt.y + aRab < mSz.y);
 }
 
+

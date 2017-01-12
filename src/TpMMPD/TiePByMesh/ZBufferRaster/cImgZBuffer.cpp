@@ -10,13 +10,15 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
     mCam      (mAppli->ICNM()->StdCamOfNames(aNameIm,mAppli->Ori())),
     mImZ      (round_ni(mSzIm.x*mAppli->Reech()), round_ni(mSzIm.y*mAppli->Reech()), tElZBuf(-1.0)),
     mTImZ     (mImZ),
+    mImInd    (round_ni(mSzIm.x*mAppli->Reech()), round_ni(mSzIm.y*mAppli->Reech()), tElZBuf(-1.0)),
     mMasqTri  (1,1),
     mTMasqTri (mMasqTri),
     mMasqIm   (1,1),
     mTMasqIm  (mMasqIm),
     mW        (0),
     mCntTri   (0),
-    mCntTriValab (0)
+    mCntTriValab (0),
+    mTriValid (mAppli->VTri().size(), false)    //initializer vector avec taille et valeur default
 {
     cout<<"Dans constructor cImgZBuffer : "<<mImZ.sz()<<mSzIm<<endl;
     if (mAppli->Reech() != 1.0)
@@ -25,20 +27,36 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
     }
 }
 
-void cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val)
+void cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val, double & ind_val)
 {
     Pt2di pxlI(pxl);
     if (ImZ.Inside(pxlI))
     {
         double prof_old = ImZ.GetR(pxlI);
+        double ind_old = 0;
+        if (mAppli->WithImgLabel())
+            ind_old =  mImInd.GetR(pxlI);
         if (prof_old == TT_DEFAULT_PROF_NOVISIBLE)
         {
             ImZ.SetR_SVP(pxlI , prof_val);
+            if (mAppli->WithImgLabel())
+            {
+                mImInd.SetR_SVP(pxlI, ind_val);
+                //ELISE_ASSERT(ind_old == -1.0, "index old error - initialize != -1.0");
+                mTriValid[ind_val] = true;
+            }
             return;
         }
         else if (prof_old != TT_DEFAULT_PROF_NOVISIBLE && prof_old > prof_val)
         {
             ImZ.SetR_SVP(pxlI , prof_val);
+            if (mAppli->WithImgLabel())
+            {
+                mImInd.SetR_SVP(pxlI, ind_val);
+                mTriValid[ind_val] = true;
+                //ELISE_ASSERT(ind_old != -1.0, "index old error - image label ZBuffer");
+                mTriValid[ind_old] = false;
+            }
             return;
         }
         else
@@ -132,7 +150,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
             {
                 Pt2dr aPtRas(aSeg.mP0.x + aKPt, aSeg.mP0.y);
                 double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCam);
-                cImgZBuffer::updateZ(mImZ, aPtRas, prof);
+                cImgZBuffer::updateZ(mImZ, aPtRas, prof, aTri3D.Ind());
             }
         }
         mCntTriValab++;

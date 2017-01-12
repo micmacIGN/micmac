@@ -20,6 +20,7 @@ cAppliZBufferRaster::cAppliZBufferRaster(
 {
 }
 
+
 void  cAppliZBufferRaster::DoAllIm()
 {
     for (int aKIm=0; aKIm<int(mVImg.size()); aKIm++)
@@ -35,6 +36,8 @@ void  cAppliZBufferRaster::DoAllIm()
        }
        cout<<"Finish Img Cont.. - Nb Tri Valab : "<<aZBuf->CntTriValab()<<" -Time: "<<aChrono.uval()<<endl;
        //save Image ZBuffer to disk
+       if (mNInt != 0)
+       {
        string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
        ELISE_COPY
                (
@@ -49,10 +52,23 @@ void  cAppliZBufferRaster::DoAllIm()
                        ).out()
 
                    );
+       string fileOutLbl = mVImg[aKIm] + "_Label.tif";
+       ELISE_COPY
+               (
+                   aZBuf->ImInd().all_pts(),
+                   aZBuf->ImInd().in_proj(),
+                   Tiff_Im(
+                       fileOutLbl.c_str(),
+                       aZBuf->ImInd().sz(),
+                       GenIm::real8,
+                       Tiff_Im::No_Compr,
+                       aZBuf->Tif().phot_interp()
+                       ).out()
+
+                   );
        //=======================================
-       if (mNInt != 0)
-       {
            aZBuf->normalizeIm(aZBuf->ImZ(), 0.0, 255.0);
+           aZBuf->normalizeIm(aZBuf->ImInd(), 0.0, 255.0);
 
            if (aZBuf->ImZ().sz().x >= aZBuf->ImZ().sz().y)
            {
@@ -70,6 +86,14 @@ void  cAppliZBufferRaster::DoAllIm()
            {
                mW = Video_Win::PtrWStd(mSzW, true, aZ);
                mW->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+               if (mWithImgLabel)
+               {
+                   if (mWLbl ==0)
+                   {
+                        mWLbl = Video_Win::PtrWStd(mSzW, true, aZ);
+                        mWLbl->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+                   }
+               }
            }
 
            if (mW)
@@ -81,7 +105,18 @@ void  cAppliZBufferRaster::DoAllIm()
                              );
                //mW->clik_in();
            }
+
+           if (mWithImgLabel && mWLbl)
+           {
+
+               mWLbl->set_title( (mVImg[aKIm] + "_Label").c_str());
+               ELISE_COPY(   aZBuf->ImInd().all_pts(),
+                             aZBuf->ImInd().in(),
+                             mWLbl->ogray()
+                             );
+
+           }
+           getchar();
        }
-       getchar();
     }
 }

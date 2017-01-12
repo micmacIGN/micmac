@@ -27,6 +27,7 @@ public:
                         vector<string> & aVImg
 
                        );
+
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     const std::string &               Ori() const {return mOri;}
     const std::string &               Dir() const {return mDir;}
@@ -36,6 +37,10 @@ public:
     Pt2di &                           SzW() {return mSzW;}
     double &                          Reech() {return mReech;}
     double &                          DistMax() {return mDistMax;}
+    double &                          WithImgLabel() {return mWithImgLabel;}
+    vector< vector<bool> >            TriValid() {return mTriValid;}
+    vector< vector<double> >          IndTriValid() {return mIndTriValid;}
+
     void                              DoAllIm();
 private:
     cInterfChantierNameManipulateur * mICNM;
@@ -45,17 +50,21 @@ private:
     vector<string>                    mVImg;
     int                               mNInt;
     Video_Win *                       mW;
+    Video_Win *                       mWLbl;
+
     Pt2di                             mSzW;
     double                            mReech;
     double                            mDistMax;
-
-
+    double                            mWithImgLabel;
+    vector< vector<bool> >            mTriValid;
+    vector< vector<double> >          mIndTriValid;
 };
 
 class cTri3D
 {
 public:
     cTri3D(Pt3dr P1, Pt3dr P2, Pt3dr P3);
+    cTri3D(Pt3dr P1, Pt3dr P2, Pt3dr P3, int ind);
     bool IsLoaded() {return mIsLoaded;}
     const Pt3dr & P1() const {return mP1;}
     const Pt3dr & P2() const {return mP2;}
@@ -63,6 +72,7 @@ public:
     Pt3dr & Vec_21() {return mVec_21;}
     Pt3dr & Vec_31() {return mVec_31;}
     bool  & HaveBasis() {return mHaveBasis;}
+    double   & Ind() {return mInd;}
 
     void calVBasis();
     cTri2D reprj(CamStenope * aCam);
@@ -78,6 +88,8 @@ private:
     Pt3dr mVec_21;
     Pt3dr mVec_31;
     bool  mHaveBasis;
+
+    double   mInd;
 };
 
 class cTri2D
@@ -122,13 +134,17 @@ public:
     CamStenope * Cam() {return mCam;}
     tImZBuf & ImZ() {return mImZ;}
     tTImZBuf & TImZ() {return mTImZ;}
+    tImZBuf & ImInd() {return mImInd;}
     int CntTriValab() {return mCntTriValab;}
     Tiff_Im &  Tif() {return mTif;}
 
+    vector<bool> &  TriValid() {return mTriValid;}
+    vector<double>  &  IndTriValid() {return mIndTriValid;}
 
     void LoadTri(cTri3D);
-    void updateZ(tImZBuf & ImZ, Pt2dr &pxl, double &prof_val);
+    void updateZ(tImZBuf & , Pt2dr & , double & prof_val, double & ind_val);
     void normalizeIm(tImZBuf & aIm, double valMin, double valMax);
+
 
 private:
     cAppliZBufferRaster * mAppli;
@@ -140,6 +156,8 @@ private:
     tImZBuf        mImZ;
     tTImZBuf       mTImZ;
 
+    tImZBuf        mImInd;
+
     Im2D_Bits<1>   mMasqTri;
     TIm2DBits<1>   mTMasqTri;
     Im2D_Bits<1>   mMasqIm;
@@ -147,8 +165,13 @@ private:
 
 
     Video_Win *    mW;
+
     int            mCntTri;
     int            mCntTriValab;
+
+    vector<bool>   mTriValid;
+    vector<double>    mIndTriValid;
+
 };
 
 

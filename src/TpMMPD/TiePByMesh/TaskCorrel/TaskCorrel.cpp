@@ -20,7 +20,8 @@ int TaskCorrel_main(int argc,char ** argv)
         bool Test=false;
         int nInteraction = 0;
         double aZ = 0.25;
-        double aSclElps = -1;
+        double aSclElps = -1.0;
+        double distMax = DBL_MAX;
         Pt3dr clIni(255.0,255.0,255.0);
         ElInitArgMain
                 (
@@ -42,6 +43,7 @@ int TaskCorrel_main(int argc,char ** argv)
                     << EAM(aZ, "aZ", true, "aZoom image display")
                     << EAM(aSclElps, "aZEl", true, "fix size ellipse display (in pxl)")
                     << EAM(clIni, "clIni", true, "color mesh (=[255,255,255])")
+                    << EAM(distMax, "distMax", true, "Limit distant process from camera")
                     );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -66,11 +68,6 @@ int TaskCorrel_main(int argc,char ** argv)
             aAppli->DoAllTri();
             aAppli->ExportXML(aDirXML, clIni);
         }
-
-
-
-
-
 
         return EXIT_SUCCESS;
     }

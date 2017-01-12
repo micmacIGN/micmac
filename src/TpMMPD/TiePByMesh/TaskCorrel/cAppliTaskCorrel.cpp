@@ -15,13 +15,15 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     mNInter(0),
     mZoomF (1),
     mDirXML("XML_TiepTriNEW"),
-    cptDel (0)
+    cptDel (0),
+    mDistMax(TT_DISTMAX_NOLIMIT),
+    mRech  (TT_DEF_SCALE_ZBUF)
 {
-    vector<std::string> VNameImgs = *(aICNM->Get(aPatImg));
-    mVTask.resize(VNameImgs.size());
-    for (uint aKI = 0; aKI<VNameImgs.size(); aKI++)
+    mVName = *(aICNM->Get(aPatImg));
+    mVTask.resize(mVName.size());
+    for (uint aKI = 0; aKI<mVName.size(); aKI++)
     {
-        cImgForTiepTri* aImg = new cImgForTiepTri(this, VNameImgs[aKI], aKI);
+        cImgForTiepTri* aImg = new cImgForTiepTri(this, mVName[aKI], aKI);
         mVImgs.push_back(aImg);
     }
     for (uint aKI = 0; aKI<mVImgs.size(); aKI++)
@@ -60,7 +62,15 @@ void cAppliTaskCorrel::lireMesh(std::string & aNameMesh, vector<triangle*> & tri
     InitOutil * aPly = new InitOutil (aNameMesh);
     mVTri = aPly->getmPtrListTri();
     for (uint aKT=0; aKT<mVTri.size(); aKT++)
-        mVTriF.push_back(new cTriForTiepTri(this, mVTri[aKT]));
+    {
+        triangle * aTriMesh = mVTri[aKT];
+        mVTriF.push_back(new cTriForTiepTri(this, aTriMesh));
+        cTri3D aTri (   aTriMesh->getSommet(0),
+                        aTriMesh->getSommet(1),
+                        aTriMesh->getSommet(2)
+                    );
+        mVcTri3D.push_back(aTri);
+    }
 }
 
 void cAppliTaskCorrel::updateVTriFWithNewAppli(vector<triangle*> & tri)
@@ -72,16 +82,35 @@ void cAppliTaskCorrel::updateVTriFWithNewAppli(vector<triangle*> & tri)
         mVTriF.push_back(new cTriForTiepTri(this, mVTri[aKT]));
 }
 
-cImgForTiepTri *cAppliTaskCorrel::DoOneTri(int aNumT)
+void cAppliTaskCorrel::ZBuffer()
+{
+    cAppliZBufferRaster * aAppliZBuf = new cAppliZBufferRaster(
+                                                                 mICNM,
+                                                                 mDir,
+                                                                 mOri,
+                                                                 mVcTri3D,
+                                                                 mVName
+                                                              );
+
+
+    aAppliZBuf->NInt() = 0;
+    aAppliZBuf->DistMax() = mDistMax;
+    aAppliZBuf->Reech() = mRech;
+    aAppliZBuf->WithImgLabel() = true; //include calcul Image label triangle valab
+    aAppliZBuf->DoAllIm();
+    mVTriValid =  aAppliZBuf->TriValid();
+    mVIndTriValid =  aAppliZBuf->IndTriValid();
+}
+
+cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
 {
     double cur_valElipse = DBL_MIN;
     cImgForTiepTri * imgMas = NULL;
-    cTriForTiepTri * aTri2D = mVTriF[aNumT];
     Cur_Img2nd().clear();
-    for (uint aKI = 0; aKI<mVImgs.size(); aKI++)
+    for (uint aKI = 0; aKI<mVImgs.size(); aKI++)    //if image is in-valid in this tri selon ZBuffer => skip
     {
         cImgForTiepTri * aImg = mVImgs[aKI];
-        aTri2D->reprj(aKI);
+        aTri2D->reprj(aImg);
         if (aTri2D->rprjOK())
         {
             //contraint ellipse
@@ -119,7 +148,7 @@ void cAppliTaskCorrel::DoAllTri()
     for (uint aKT=0; aKT<mVTri.size(); aKT++)
     {
         //cout<<endl<<"Tri "<<aKT<<endl;
-        cImgForTiepTri * aImgMas = DoOneTri(aKT);
+        cImgForTiepTri * aImgMas = DoOneTri(mVTriF[aKT]);
 
         cXml_Triangle3DForTieP aTaskTri;
         aTaskTri.P1() = mVTri[aKT]->getSommet(0);

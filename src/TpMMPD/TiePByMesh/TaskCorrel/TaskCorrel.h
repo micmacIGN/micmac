@@ -6,10 +6,13 @@
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../InitOutil.h"
 #include "../DrawOnMesh.h"
+#include "../ZBufferRaster/ZBufferRaster.h"
 
 
 const double TT_SEUIL_SURF_TRIANGLE = 100;   //min surface du triangle projecte en img
 const double TT_SEUIL_RESOLUTION = DBL_MIN;  //min resolution du triangle reprojecte on img
+const double TT_DEF_SCALE_ZBUF = 0.5;        //default reechantillonage pour calculer ZBuffer
+
 
 class cAppliTaskCorrel;
 class cAppliTaskCorrelByXML;
@@ -35,7 +38,7 @@ public:
     const std::string Dir() {return mDir;}
     vector<triangle*> & VTri() {return mVTri;}
     vector<cTriForTiepTri*> & VTriF() {return mVTriF;}
-    cImgForTiepTri* DoOneTri(int aNumT);
+    cImgForTiepTri* DoOneTri(cTriForTiepTri * aTri2D);
     void DoAllTri();
     int  NInter()    {return mNInter;}
     void SetNInter(int & aNInter, double &aZoomF);
@@ -44,6 +47,13 @@ public:
     vector<int> & Cur_Img2nd() {return mCur_Img2nd;}
     void ExportXML(string aDirXML, Pt3dr clIni = Pt3dr(255,255,255));
 
+    vector<cTri3D> & VcTri3D() {return mVcTri3D;}
+    double & DistMax() {return mDistMax;}
+    double & Rech() {return mRech;}
+
+    void ZBuffer();
+
+
 private:
     cInterfChantierNameManipulateur * mICNM;
     const string mDir;
@@ -51,6 +61,7 @@ private:
     int  mNInter;
     double  mZoomF;
     vector<cImgForTiepTri*> mVImgs;
+    vector<string> mVName;
     vector<triangle*> mVTri;
     vector<cTriForTiepTri*> mVTriF;
     PlyFile * mPly;
@@ -59,6 +70,12 @@ private:
     vector<int> mCur_Img2nd;
     string mDirXML;
     int cptDel;
+    vector<cTri3D> mVcTri3D;
+    double mDistMax;
+    double mRech;
+
+    vector< vector<bool> > mVTriValid;
+    vector< vector<double> > mVIndTriValid;
 
 };
 //  ============================= cAppliTaskCorrelByXML==========================
@@ -124,6 +141,9 @@ private:
         Pt2di mSz;
         string mName;
         cXml_TriAngulationImMaster mTask;
+
+        vector<bool>   mTriValid;
+        vector<int>    mIndTriValid;
 };
 
 //  ============================== cTriForTiepTri ==========================
@@ -131,7 +151,7 @@ class cTriForTiepTri
 {
 public:
         cTriForTiepTri(cAppliTaskCorrel* , triangle * aTri3d);
-        bool reprj(int aNumImg);
+        bool reprj(cImgForTiepTri *aImg);
         bool rprjOK() {return mrprjOK;}
         Pt2dr Pt1() {return mPt1;}
         Pt2dr Pt2() {return mPt2;}
