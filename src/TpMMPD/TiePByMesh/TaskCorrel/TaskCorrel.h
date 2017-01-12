@@ -132,6 +132,9 @@ public:
         string & Name() {return mName;}
         int Num() {return mNum;}
 
+        vector<bool> &  TriValid() {return mTriValid;}
+        vector<double>  &  IndTriValid() {return mIndTriValid;}
+
 
 private:
         int mNum;
@@ -143,19 +146,21 @@ private:
         cXml_TriAngulationImMaster mTask;
 
         vector<bool>   mTriValid;
-        vector<int>    mIndTriValid;
+        vector<double>    mIndTriValid;
 };
 
 //  ============================== cTriForTiepTri ==========================
 class cTriForTiepTri
 {
 public:
-        cTriForTiepTri(cAppliTaskCorrel* , triangle * aTri3d);
+
+        cTriForTiepTri(cAppliTaskCorrel* , triangle * aTri3d, double & ind);
         bool reprj(cImgForTiepTri *aImg);
         bool rprjOK() {return mrprjOK;}
         Pt2dr Pt1() {return mPt1;}
         Pt2dr Pt2() {return mPt2;}
         Pt2dr Pt3() {return mPt3;}
+        double & Ind() {return mInd;}
         double valElipse(int & aNInter);
 private:
         int mNumImg;
@@ -165,6 +170,7 @@ private:
         cAppliTaskCorrel * mAppli;
         triangle * mTri3D;
         bool mrprjOK;
+        double mInd;
 };
 #endif
 

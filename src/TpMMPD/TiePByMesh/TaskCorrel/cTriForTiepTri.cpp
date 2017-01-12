@@ -3,14 +3,15 @@
 //  ============================== cTriForTiepTri ==========================
 
 
-cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel *aAppli, triangle * aTri3d):
+cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel *aAppli, triangle * aTri3d, double & ind):
     mNumImg (-1),
     mPt1    (Pt2dr(0.0,0.0)),
     mPt2    (Pt2dr(0.0,0.0)),
     mPt3    (Pt2dr(0.0,0.0)),
     mAppli  (aAppli),
     mTri3D  (aTri3d),
-    mrprjOK (false)
+    mrprjOK (false),
+    mInd    (ind)
 {}
 
 bool cTriForTiepTri::reprj(cImgForTiepTri * aImg)

@@ -21,7 +21,8 @@ int TaskCorrel_main(int argc,char ** argv)
         int nInteraction = 0;
         double aZ = 0.25;
         double aSclElps = -1.0;
-        double distMax = DBL_MAX;
+        double distMax = TT_DISTMAX_NOLIMIT;
+        double rech = TT_DEF_SCALE_ZBUF;
         Pt3dr clIni(255.0,255.0,255.0);
         ElInitArgMain
                 (
@@ -44,6 +45,7 @@ int TaskCorrel_main(int argc,char ** argv)
                     << EAM(aSclElps, "aZEl", true, "fix size ellipse display (in pxl)")
                     << EAM(clIni, "clIni", true, "color mesh (=[255,255,255])")
                     << EAM(distMax, "distMax", true, "Limit distant process from camera")
+                    << EAM(rech, "rech", true, "calcul ZBuffer in Reechantilonage (def=0.5)")
                     );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -65,6 +67,8 @@ int TaskCorrel_main(int argc,char ** argv)
             cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg);
             aAppli->lireMesh(pathPlyFileS, aAppli->VTri(), aAppli->VTriF());
             aAppli->SetNInter(nInteraction, aZ);
+            aAppli->Rech() = rech;
+            aAppli->ZBuffer();
             aAppli->DoAllTri();
             aAppli->ExportXML(aDirXML, clIni);
         }

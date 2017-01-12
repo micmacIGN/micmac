@@ -25,19 +25,20 @@ void  cAppliZBufferRaster::DoAllIm()
 {
     for (int aKIm=0; aKIm<int(mVImg.size()); aKIm++)
     {
-       cout<<"Im "<<mVImg[aKIm]<<endl;
        ElTimer aChrono;
        cImgZBuffer * aZBuf =  new cImgZBuffer(this, mVImg[aKIm]);
        for (int aKTri=0; aKTri<int(mVTri.size()); aKTri++)
        {
-          if (aKTri % 200 == 0)
+          if (aKTri % 200 == 0 && mNInt != 0)
             cout<<"["<<(aKTri*100.0/mVTri.size())<<" %]"<<endl;
           aZBuf->LoadTri(mVTri[aKTri]);
        }
-       cout<<"Finish Img Cont.. - Nb Tri Valab : "<<aZBuf->CntTriValab()<<" -Time: "<<aChrono.uval()<<endl;
+       mTriValid.push_back(aZBuf->TriValid());
        //save Image ZBuffer to disk
        if (mNInt != 0)
        {
+       cout<<"Im "<<mVImg[aKIm]<<endl;
+       cout<<"Finish Img Cont.. - Nb Tri Valab : "<<aZBuf->CntTriValab()<<" -Time: "<<aChrono.uval()<<endl;
        string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
        ELISE_COPY
                (

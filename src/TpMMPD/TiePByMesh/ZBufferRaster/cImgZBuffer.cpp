@@ -20,7 +20,6 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
     mCntTriValab (0),
     mTriValid (mAppli->VTri().size(), false)    //initializer vector avec taille et valeur default
 {
-    cout<<"Dans constructor cImgZBuffer : "<<mImZ.sz()<<mSzIm<<endl;
     if (mAppli->Reech() != 1.0)
     {
        mSzIm = mImZ.sz();

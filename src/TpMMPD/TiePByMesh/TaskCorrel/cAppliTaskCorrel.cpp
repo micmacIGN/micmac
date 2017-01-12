@@ -59,18 +59,21 @@ void cAppliTaskCorrel::SetNInter(int & aNInter, double & aZoomF)
 
 void cAppliTaskCorrel::lireMesh(std::string & aNameMesh, vector<triangle*> & tri, vector<cTriForTiepTri*> & triF)
 {
+    cout<<"Lire mesh...";
+    ElTimer aChrono;
     InitOutil * aPly = new InitOutil (aNameMesh);
     mVTri = aPly->getmPtrListTri();
-    for (uint aKT=0; aKT<mVTri.size(); aKT++)
+    for (double aKT=0; aKT<mVTri.size(); aKT++)
     {
         triangle * aTriMesh = mVTri[aKT];
-        mVTriF.push_back(new cTriForTiepTri(this, aTriMesh));
+        mVTriF.push_back(new cTriForTiepTri(this, aTriMesh, aKT));
         cTri3D aTri (   aTriMesh->getSommet(0),
                         aTriMesh->getSommet(1),
                         aTriMesh->getSommet(2)
                     );
         mVcTri3D.push_back(aTri);
     }
+    cout<<"Finish - time "<<aChrono.uval()<<endl;
 }
 
 void cAppliTaskCorrel::updateVTriFWithNewAppli(vector<triangle*> & tri)
@@ -78,12 +81,14 @@ void cAppliTaskCorrel::updateVTriFWithNewAppli(vector<triangle*> & tri)
     mVTri.clear();
     mVTri = tri;
     mVTriF.clear();
-    for (uint aKT=0; aKT<mVTri.size(); aKT++)
-        mVTriF.push_back(new cTriForTiepTri(this, mVTri[aKT]));
+    for (double aKT=0; aKT<mVTri.size(); aKT++)
+        mVTriF.push_back(new cTriForTiepTri(this, mVTri[aKT], aKT));
 }
 
 void cAppliTaskCorrel::ZBuffer()
 {
+    cout<<"Cal ZBuf && Tri Valid for each Img ...- NBImg : "<<mVName.size()<<endl;
+    ElTimer aChrono;
     cAppliZBufferRaster * aAppliZBuf = new cAppliZBufferRaster(
                                                                  mICNM,
                                                                  mDir,
@@ -100,6 +105,25 @@ void cAppliTaskCorrel::ZBuffer()
     aAppliZBuf->DoAllIm();
     mVTriValid =  aAppliZBuf->TriValid();
     mVIndTriValid =  aAppliZBuf->IndTriValid();
+    ELISE_ASSERT(mVTriValid.size() == mVImgs.size(), "Sz VTriValid uncoherent Nb Img");
+
+    for (uint aKIm=0; aKIm<mVImgs.size(); aKIm++)
+    {
+        cImgForTiepTri * aImg = mVImgs[aKIm];
+        aImg->TriValid() = mVTriValid[aKIm];
+
+        int k=0;
+        for (uint i=0; i<aImg->TriValid().size(); i++)
+        {
+            if (aImg->TriValid()[i] == true)
+            {
+                cout<<i<<" ";
+                k++;
+            }
+        }
+        cout<<"Nb Tri Valid : "<<k<<endl;
+    }
+    cout<<" - time : "<<aChrono.uval()<<endl;
 }
 
 cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
@@ -107,25 +131,29 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
     double cur_valElipse = DBL_MIN;
     cImgForTiepTri * imgMas = NULL;
     Cur_Img2nd().clear();
-    for (uint aKI = 0; aKI<mVImgs.size(); aKI++)    //if image is in-valid in this tri selon ZBuffer => skip
+    for (uint aKI = 0; aKI<mVImgs.size(); aKI++)
     {
         cImgForTiepTri * aImg = mVImgs[aKI];
-        aTri2D->reprj(aImg);
-        if (aTri2D->rprjOK())
+        if (aImg->TriValid()[aTri2D->Ind()])    //if image is in-valid in this tri selon ZBuffer => skip
         {
-            //contraint ellipse
-            double valElipse = aTri2D->valElipse(mNInter);
-            if (mNInter!=0)
+            cout<<"Tri Valid"<<endl;
+            aTri2D->reprj(aImg);
+            if (aTri2D->rprjOK())
             {
-                cout<<" ++"<<aImg->Name()<<" * "<<valElipse<<endl;
+                //contraint ellipse
+                double valElipse = aTri2D->valElipse(mNInter);
+                if (mNInter!=0)
+                {
+                    cout<<" ++"<<aImg->Name()<<" * "<<valElipse<<endl;
+                }
+                if (valElipse >= cur_valElipse)
+                {
+                    cur_valElipse = valElipse;
+                    imgMas = aImg;
+                }
+                if (valElipse > TT_SEUIL_RESOLUTION)  //à ajouter seuil de contraint ellipse ?
+                    Cur_Img2nd().push_back(aKI);
             }
-            if (valElipse >= cur_valElipse)
-            {
-                cur_valElipse = valElipse;
-                imgMas = aImg;
-            }
-            if (valElipse > TT_SEUIL_RESOLUTION)  //à ajouter seuil de contraint ellipse ?
-                Cur_Img2nd().push_back(aKI);
         }
     }
     if (cur_valElipse != DBL_MIN && cur_valElipse > TT_SEUIL_RESOLUTION) 
@@ -149,7 +177,6 @@ void cAppliTaskCorrel::DoAllTri()
     {
         //cout<<endl<<"Tri "<<aKT<<endl;
         cImgForTiepTri * aImgMas = DoOneTri(mVTriF[aKT]);
-
         cXml_Triangle3DForTieP aTaskTri;
         aTaskTri.P1() = mVTri[aKT]->getSommet(0);
         aTaskTri.P2() = mVTri[aKT]->getSommet(1);
