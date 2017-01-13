@@ -103,8 +103,8 @@ void cAppliTaskCorrel::ZBuffer()
     aAppliZBuf->DistMax() = mDistMax;
     aAppliZBuf->Reech() = mRech;
     aAppliZBuf->WithImgLabel() = true; //include calcul Image label triangle valab
-    aAppliZBuf->DoAllIm();
-    mVTriValid =  aAppliZBuf->TriValid();
+    aAppliZBuf->DoAllIm(mVTriValid);
+
     ELISE_ASSERT(mVTriValid.size() == mVImgs.size(), "Sz VTriValid uncoherent Nb Img");
 
     for (uint aKIm=0; aKIm<mVImgs.size(); aKIm++)

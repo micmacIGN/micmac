@@ -1,7 +1,6 @@
 #include "../InitOutil.h"
 #include "StdAfx.h"
 
-
 const double TT_DEFAULT_PROF_NOVISIBLE  = -1.0;
 const double TT_SEUIL_SURF = 100;
 const double TT_SCALE_1 = 1.0;
@@ -12,6 +11,7 @@ typedef double                    tElZBuf;
 typedef Im2D<tElZBuf,tElZBuf>     tImZBuf;
 typedef TIm2D<tElZBuf,tElZBuf>    tTImZBuf;
 
+class cImgForTiepTri;
 class cImgZBuffer;
 class cTri3D;
 class cTri2D;
@@ -40,7 +40,12 @@ public:
     vector< vector<bool> >            TriValid() {return mTriValid;}
     vector< vector<double> >          IndTriValid() {return mIndTriValid;}
     bool &                            WithImgLabel(){return mWithImgLabel;}
+
     void                              DoAllIm();
+    void                              DoAllIm(vector<vector<bool> > &aVTriValid);
+    void                              DoAllIm(vector<cImgForTiepTri*> & aVImgTiepTri); //reserve for TaskCorrel
+
+
 private:
     cInterfChantierNameManipulateur * mICNM;
     std::string                       mDir;

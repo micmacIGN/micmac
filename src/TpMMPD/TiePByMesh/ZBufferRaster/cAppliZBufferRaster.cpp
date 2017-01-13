@@ -21,8 +21,7 @@ cAppliZBufferRaster::cAppliZBufferRaster(
 }
 
 
-
-void  cAppliZBufferRaster::DoAllIm()
+void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
 {
     for (int aKIm=0; aKIm<int(mVImg.size()); aKIm++)
     {
@@ -34,7 +33,7 @@ void  cAppliZBufferRaster::DoAllIm()
             cout<<"["<<(aKTri*100.0/mVTri.size())<<" %]"<<endl;
           aZBuf->LoadTri(mVTri[aKTri]);
        }
-       mTriValid.push_back(aZBuf->TriValid());
+       aVTriValid.push_back(aZBuf->TriValid());
        //save Image ZBuffer to disk
        if (mNInt != 0)
        {
@@ -129,3 +128,10 @@ void  cAppliZBufferRaster::DoAllIm()
     }
 
 }
+
+void cAppliZBufferRaster::DoAllIm()
+{
+    DoAllIm(mTriValid);
+}
+
+

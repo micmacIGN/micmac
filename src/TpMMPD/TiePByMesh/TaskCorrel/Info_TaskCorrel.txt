@@ -15,7 +15,7 @@
 
 (*) Creer une Im1D (un image plus vite) ou 1 vector de boolean pour marquer les triangle labeliser dans image ZBuffer
 
-(*) Dans ZBuffer, quand on update le Profondeur 1 pixel, on update aussi label de pixel ( label = index triangle 3D)
+
 
 ========================================================================
 (*) Erreur : vector<bool> false, true pour triangle valid, non valid  => ca marche ou pas ?
@@ -24,5 +24,12 @@
 (*) Erreur : index old error - initialize != -1.0 => Pourquoi pixel jamais mis a jour mais avoir le valeur != -1.0 ?
 	(FIX) OK, il manque une condition. (on set valeur label uniquement quand prof_new != -1). Ca veut dir le fonction calcul prof peut return -1
 
+(*) Does TaskCorrel work with Zbuffer Rech ? Oui ca marche
+========================================================================
+A Faire 13/1/2017
+
+(*) Im1D => plus vite que vector ?
+(*) aAppliZBuf->DoAllIm(mVTriValid); => peut optimiser plus vite par passer directement vector<cImgForTiepTri*> 
+(*) 
 
 
