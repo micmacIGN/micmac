@@ -32,16 +32,16 @@ void cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val, double 
     if (ImZ.Inside(pxlI))
     {
         double prof_old = ImZ.GetR(pxlI);
-        double ind_old = 0;
+        double ind_old = -1.0;
         if (mAppli->WithImgLabel())
             ind_old =  mImInd.GetR(pxlI);
         if (prof_old == TT_DEFAULT_PROF_NOVISIBLE)
         {
             ImZ.SetR_SVP(pxlI , prof_val);
-            if (mAppli->WithImgLabel())
+            if (mAppli->WithImgLabel() && prof_val!=TT_DEFAULT_PROF_NOVISIBLE)
             {
                 mImInd.SetR_SVP(pxlI, ind_val);
-                //ELISE_ASSERT(ind_old == -1.0, "index old error - initialize != -1.0");
+                ELISE_ASSERT(ind_old == -1.0, "index old error - initialize != -1.0");
                 mTriValid[ind_val] = true;
             }
             return;
@@ -53,7 +53,7 @@ void cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val, double 
             {
                 mImInd.SetR_SVP(pxlI, ind_val);
                 mTriValid[ind_val] = true;
-                //ELISE_ASSERT(ind_old != -1.0, "index old error - image label ZBuffer");
+                ELISE_ASSERT(ind_old != -1.0, "index old error - image label ZBuffer");
                 mTriValid[ind_old] = false;
             }
             return;
