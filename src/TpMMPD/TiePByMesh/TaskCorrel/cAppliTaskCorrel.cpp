@@ -69,7 +69,8 @@ void cAppliTaskCorrel::lireMesh(std::string & aNameMesh, vector<triangle*> & tri
         mVTriF.push_back(new cTriForTiepTri(this, aTriMesh, aKT));
         cTri3D aTri (   aTriMesh->getSommet(0),
                         aTriMesh->getSommet(1),
-                        aTriMesh->getSommet(2)
+                        aTriMesh->getSommet(2),
+                        aKT
                     );
         mVcTri3D.push_back(aTri);
     }
@@ -104,24 +105,12 @@ void cAppliTaskCorrel::ZBuffer()
     aAppliZBuf->WithImgLabel() = true; //include calcul Image label triangle valab
     aAppliZBuf->DoAllIm();
     mVTriValid =  aAppliZBuf->TriValid();
-    mVIndTriValid =  aAppliZBuf->IndTriValid();
     ELISE_ASSERT(mVTriValid.size() == mVImgs.size(), "Sz VTriValid uncoherent Nb Img");
 
     for (uint aKIm=0; aKIm<mVImgs.size(); aKIm++)
     {
         cImgForTiepTri * aImg = mVImgs[aKIm];
         aImg->TriValid() = mVTriValid[aKIm];
-
-        int k=0;
-        for (uint i=0; i<aImg->TriValid().size(); i++)
-        {
-            if (aImg->TriValid()[i] == true)
-            {
-                cout<<i<<" ";
-                k++;
-            }
-        }
-        cout<<"Nb Tri Valid : "<<k<<endl;
     }
     cout<<" - time : "<<aChrono.uval()<<endl;
 }
@@ -136,7 +125,6 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
         cImgForTiepTri * aImg = mVImgs[aKI];
         if (aImg->TriValid()[aTri2D->Ind()])    //if image is in-valid in this tri selon ZBuffer => skip
         {
-            cout<<"Tri Valid"<<endl;
             aTri2D->reprj(aImg);
             if (aTri2D->rprjOK())
             {

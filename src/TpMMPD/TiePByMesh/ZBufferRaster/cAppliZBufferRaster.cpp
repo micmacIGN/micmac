@@ -17,8 +17,9 @@ cAppliZBufferRaster::cAppliZBufferRaster(
     mSzW  (Pt2di(500,500)),
     mReech(1.0),
     mDistMax (TT_DISTMAX_NOLIMIT)
-{
+{    
 }
+
 
 
 void  cAppliZBufferRaster::DoAllIm()
@@ -38,7 +39,7 @@ void  cAppliZBufferRaster::DoAllIm()
        if (mNInt != 0)
        {
        cout<<"Im "<<mVImg[aKIm]<<endl;
-       cout<<"Finish Img Cont.. - Nb Tri Valab : "<<aZBuf->CntTriValab()<<" -Time: "<<aChrono.uval()<<endl;
+       cout<<"Finish Img Cont.. - Nb Tri Traiter : "<<aZBuf->CntTriTraite()<<" -Time: "<<aChrono.uval()<<endl;
        string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
        ELISE_COPY
                (
@@ -119,5 +120,12 @@ void  cAppliZBufferRaster::DoAllIm()
            }
            getchar();
        }
+       for (double i=0; i<aZBuf->TriValid().size(); i++)
+       {
+           if(aZBuf->TriValid()[i] == true)
+               aZBuf->CntTriValab()++;
+       }
+       cout<<"Nb Tri In ZBuf : "<<aZBuf->CntTriValab()<<endl;
     }
+
 }

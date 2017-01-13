@@ -37,10 +37,9 @@ public:
     Pt2di &                           SzW() {return mSzW;}
     double &                          Reech() {return mReech;}
     double &                          DistMax() {return mDistMax;}
-    double &                          WithImgLabel() {return mWithImgLabel;}
     vector< vector<bool> >            TriValid() {return mTriValid;}
     vector< vector<double> >          IndTriValid() {return mIndTriValid;}
-
+    bool &                            WithImgLabel(){return mWithImgLabel;}
     void                              DoAllIm();
 private:
     cInterfChantierNameManipulateur * mICNM;
@@ -55,7 +54,7 @@ private:
     Pt2di                             mSzW;
     double                            mReech;
     double                            mDistMax;
-    double                            mWithImgLabel;
+    bool                              mWithImgLabel;
     vector< vector<bool> >            mTriValid;
     vector< vector<double> >          mIndTriValid;
 };
@@ -135,11 +134,13 @@ public:
     tImZBuf & ImZ() {return mImZ;}
     tTImZBuf & TImZ() {return mTImZ;}
     tImZBuf & ImInd() {return mImInd;}
-    int CntTriValab() {return mCntTriValab;}
+    int & CntTriValab() {return mCntTriValab;}
+    int & CntTriTraite() {return mCntTriTraite;}
+
     Tiff_Im &  Tif() {return mTif;}
 
-    vector<bool> &  TriValid() {return mTriValid;}
-    vector<double>  &  IndTriValid() {return mIndTriValid;}
+    vector<bool> &   TriValid() {return mTriValid;}
+    vector<double> & IndTriValid() {return mIndTriValid;}
 
     void LoadTri(cTri3D);
     void updateZ(tImZBuf & , Pt2dr & , double & prof_val, double & ind_val);
@@ -168,9 +169,11 @@ private:
 
     int            mCntTri;
     int            mCntTriValab;
+    int            mCntTriTraite;
+
 
     vector<bool>   mTriValid;
-    vector<double>    mIndTriValid;
+    vector<double> mIndTriValid;
 
 };
 

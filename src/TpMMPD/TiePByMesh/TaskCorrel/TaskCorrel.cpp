@@ -68,6 +68,7 @@ int TaskCorrel_main(int argc,char ** argv)
             aAppli->lireMesh(pathPlyFileS, aAppli->VTri(), aAppli->VTriF());
             aAppli->SetNInter(nInteraction, aZ);
             aAppli->Rech() = rech;
+            aAppli->DistMax() = distMax;
             aAppli->ZBuffer();
             aAppli->DoAllTri();
             aAppli->ExportXML(aDirXML, clIni);

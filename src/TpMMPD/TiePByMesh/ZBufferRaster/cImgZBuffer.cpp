@@ -18,8 +18,9 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
     mW        (0),
     mCntTri   (0),
     mCntTriValab (0),
-    mTriValid (mAppli->VTri().size(), false)    //initializer vector avec taille et valeur default
+    mCntTriTraite (0)
 {
+    mTriValid.resize(mAppli->VTri().size(), false);    //initializer vector avec taille et valeur default
     if (mAppli->Reech() != 1.0)
     {
        mSzIm = mImZ.sz();
@@ -41,7 +42,8 @@ void cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val, double 
             if (mAppli->WithImgLabel() && prof_val!=TT_DEFAULT_PROF_NOVISIBLE)
             {
                 mImInd.SetR_SVP(pxlI, ind_val);
-                ELISE_ASSERT(ind_old == -1.0, "index old error - initialize != -1.0");
+                //ELISE_ASSERT(ind_old == -1.0, "index old error - initialize != -1.0");
+                //ELISE_ASSERT(ind_val > -1.0, "index negative");
                 mTriValid[ind_val] = true;
             }
             return;
@@ -52,8 +54,10 @@ void cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val, double 
             if (mAppli->WithImgLabel())
             {
                 mImInd.SetR_SVP(pxlI, ind_val);
+                //ELISE_ASSERT(ind_val > -1.0, "index negative");
                 mTriValid[ind_val] = true;
-                ELISE_ASSERT(ind_old != -1.0, "index old error - image label ZBuffer");
+                //ELISE_ASSERT(ind_old != -1.0, "index old error - image label ZBuffer");
+                //ELISE_ASSERT(ind_old > -1.0, "index old negative");
                 mTriValid[ind_old] = false;
             }
             return;
@@ -152,7 +156,6 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
                 cImgZBuffer::updateZ(mImZ, aPtRas, prof, aTri3D.Ind());
             }
         }
-        mCntTriValab++;
 
         //Display masq Triangle global
         if (mAppli->NInt() > 1)
@@ -179,6 +182,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
                 mW->clik_in();
             }
         }
+        mCntTriTraite++;
     }
     mCntTri++;
 }

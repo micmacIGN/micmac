@@ -19,7 +19,7 @@
 
 ========================================================================
 (*) Erreur : vector<bool> false, true pour triangle valid, non valid  => ca marche ou pas ?
-
+	(FIX) OK, initializer vector par .resize()
 
 (*) Erreur : index old error - initialize != -1.0 => Pourquoi pixel jamais mis a jour mais avoir le valeur != -1.0 ?
 	(FIX) OK, il manque une condition. (on set valeur label uniquement quand prof_new != -1). Ca veut dir le fonction calcul prof peut return -1
