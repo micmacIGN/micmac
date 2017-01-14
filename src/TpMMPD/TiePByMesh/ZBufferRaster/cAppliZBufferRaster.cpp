@@ -17,24 +17,28 @@ cAppliZBufferRaster::cAppliZBufferRaster(
     mSzW  (Pt2di(500,500)),
     mReech(1.0),
     mDistMax (TT_DISTMAX_NOLIMIT)
-{
+{    
 }
 
-void  cAppliZBufferRaster::DoAllIm()
+
+void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
 {
     for (int aKIm=0; aKIm<int(mVImg.size()); aKIm++)
     {
-       cout<<"Im "<<mVImg[aKIm]<<endl;
        ElTimer aChrono;
        cImgZBuffer * aZBuf =  new cImgZBuffer(this, mVImg[aKIm]);
        for (int aKTri=0; aKTri<int(mVTri.size()); aKTri++)
        {
-          if (aKTri % 200 == 0)
+          if (aKTri % 200 == 0 && mNInt != 0)
             cout<<"["<<(aKTri*100.0/mVTri.size())<<" %]"<<endl;
           aZBuf->LoadTri(mVTri[aKTri]);
        }
-       cout<<"Finish Img Cont.. - Nb Tri Valab : "<<aZBuf->CntTriValab()<<" -Time: "<<aChrono.uval()<<endl;
+       aVTriValid.push_back(aZBuf->TriValid());
        //save Image ZBuffer to disk
+       if (mNInt != 0)
+       {
+       cout<<"Im "<<mVImg[aKIm]<<endl;
+       cout<<"Finish Img Cont.. - Nb Tri Traiter : "<<aZBuf->CntTriTraite()<<" -Time: "<<aChrono.uval()<<endl;
        string fileOut = mVImg[aKIm] + "_ZBuffer.tif";
        ELISE_COPY
                (
@@ -49,10 +53,23 @@ void  cAppliZBufferRaster::DoAllIm()
                        ).out()
 
                    );
+       string fileOutLbl = mVImg[aKIm] + "_Label.tif";
+       ELISE_COPY
+               (
+                   aZBuf->ImInd().all_pts(),
+                   aZBuf->ImInd().in_proj(),
+                   Tiff_Im(
+                       fileOutLbl.c_str(),
+                       aZBuf->ImInd().sz(),
+                       GenIm::real8,
+                       Tiff_Im::No_Compr,
+                       aZBuf->Tif().phot_interp()
+                       ).out()
+
+                   );
        //=======================================
-       if (mNInt != 0)
-       {
            aZBuf->normalizeIm(aZBuf->ImZ(), 0.0, 255.0);
+           aZBuf->normalizeIm(aZBuf->ImInd(), 0.0, 255.0);
 
            if (aZBuf->ImZ().sz().x >= aZBuf->ImZ().sz().y)
            {
@@ -70,6 +87,14 @@ void  cAppliZBufferRaster::DoAllIm()
            {
                mW = Video_Win::PtrWStd(mSzW, true, aZ);
                mW->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+               if (mWithImgLabel)
+               {
+                   if (mWLbl ==0)
+                   {
+                        mWLbl = Video_Win::PtrWStd(mSzW, true, aZ);
+                        mWLbl->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+                   }
+               }
            }
 
            if (mW)
@@ -81,7 +106,32 @@ void  cAppliZBufferRaster::DoAllIm()
                              );
                //mW->clik_in();
            }
+
+           if (mWithImgLabel && mWLbl)
+           {
+
+               mWLbl->set_title( (mVImg[aKIm] + "_Label").c_str());
+               ELISE_COPY(   aZBuf->ImInd().all_pts(),
+                             aZBuf->ImInd().in(),
+                             mWLbl->ogray()
+                             );
+
+           }
+           getchar();
        }
-       getchar();
+       for (double i=0; i<aZBuf->TriValid().size(); i++)
+       {
+           if(aZBuf->TriValid()[i] == true)
+               aZBuf->CntTriValab()++;
+       }
+       cout<<"Nb Tri In ZBuf : "<<aZBuf->CntTriValab()<<endl;
     }
+
 }
+
+void cAppliZBufferRaster::DoAllIm()
+{
+    DoAllIm(mTriValid);
+}
+
+
