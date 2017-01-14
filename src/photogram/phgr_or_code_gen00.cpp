@@ -162,6 +162,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cImplEqRelativeGPS.h"
 
 #include "../../CodeGenere/photogram/cCodeBlockCam.h"
+#include "../../CodeGenere/photogram/cCodeDistBlockCam.h"
+
 #include "../../CodeGenere/photogram/cEqLinariseAngle.h"
 #include "../../CodeGenere/photogram/cEqLinariseAngle_AccelCsteCoord.h"
 
@@ -822,6 +824,7 @@ void cElCompiledFonc::InitEntries()
      
 
      AddEntry("cCodeBlockCam",cCodeBlockCam::Alloc);
+     AddEntry("cCodeDistBlockCam",cCodeBlockCam::Alloc);
      AddEntry("cEqLinariseAngle",cEqLinariseAngle::Alloc);
      AddEntry("cEqLinariseAngle_AccelCsteCoord",cEqLinariseAngle_AccelCsteCoord::Alloc);
      AddEntry("cEqBBCamFirst",cEqBBCamFirst::Alloc);

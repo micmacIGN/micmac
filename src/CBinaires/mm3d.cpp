@@ -1070,7 +1070,6 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
 int main(int argc,char ** argv)
 {
-
     return GenMain(argc,argv, getAvailableCommands());
 }
 

@@ -39,6 +39,35 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
 
 
+// ModifDIST ==> Tag Provisoire des modifs a rajouter si dist
+
+/****************************************************************************/
+/*                                                                          */
+/*        Rigid Block, distance equation                                    */
+/*                                                                          */
+/****************************************************************************/
+
+#define NUMPIVOT 0 // Numero , arbirtraire, de la camera "pivot" dans un bloc
+
+// IBC : suffix for Implement Block Cam
+
+class cIBC_ImsOneTime;  //  regroupe les pose acquise au meme temps T
+class cIBC_OneCam;      //  contient les info partagee par la meme tete de camera
+                        //  par exemple la rotation (ou le point) inconnue du bloc de camera
+
+
+class cImplemBlockCam;  //  contient toutes les infos  relatives au meme bloc rigide
+class cEqObsBlockCam ;  //  implemante l'equation  Ri Rj(-1) = Li Lj(-1)
+class cEqOBCDistRef;    //  implemante la conservation des distances par rapport a une reference, a une similitude pres
+// cStructBlockCam      //  XML structure du bloc  camera
+// cLiaisonsSHC         //  XML structure, incluse dans cStructBlockCam, contient dans la geometrie
+// cParamOrientSHC       //  XML structure, incluse dans cLiaisonsSHC, contient la geometrie d'une camera
+// cBlockGlobalBundle   //  XML structure de ParamApero.xml,  indique le rappel / a une calibration du bloc
+
+
+
+
+
 extern bool AllowUnsortedVarIn_SetMappingCur;
 
 #define HandleGL 1
@@ -83,16 +112,10 @@ extern bool AllowUnsortedVarIn_SetMappingCur;
       CamRi-1  CamLi  = (Wr-1,- Wr-1* Pr) X (Wl,Pl) = (Wr-1*Wl,-  Pr +  Wr-1* Pl)
 */
 
-class cIBC_ImsOneTime;
-class cIBC_OneCam;
-class cImplemBlockCam;
-class cEqObsBlockCam ;
 
-#define NUMPIVOT 0
 
-// IBC : suffix for Implement Block Cam
-// cIBC_ImsOneTime  : regroupe les pose acquise au meme temps T
-// cIBC_OneCam      : contient les info partagee par la meme tete de camera
+
+
 
 
 // Compute the parameter of the transformation of Point in L coordinate
@@ -123,12 +146,39 @@ void CalcParamEqRel
 
 }
 
+
+
+/***********************************************************/
+/*                                                         */
+/*          cEqObsBlockCam                                 */
+/*                                                         */
+/***********************************************************/
+
+class cEOBC_ModeRot
+{
+    public :
+
+       cEOBC_ModeRot() :
+          mMatR0("GL_MK0",3,3),
+          mMatL0("GL_MK1",3,3),
+          mMatR1("GL_MK2",3,3),
+          mMatL1("GL_MK3",3,3)
+       {
+       }
+
+       cMatr_Etat_PhgrF   mMatR0;
+       cMatr_Etat_PhgrF   mMatL0;
+       cMatr_Etat_PhgrF   mMatR1;
+       cMatr_Etat_PhgrF   mMatL1;
+};
+
 class cEqObsBlockCam  : public cNameSpaceEqF,
                         public cObjFormel2Destroy
 {
      public :
-         friend class   cSetEqFormelles;
-        const std::vector<double> &  AddObs(const double & aPdsTr,const double & aPdsMatr);
+        friend class   cSetEqFormelles;
+        const std::vector<double> &  AddObsRot(const double & aPdsTr,const double & aPdsMatr);
+        double  AddObsDist(const double & aPdsDist);
         void  DoAMD(cAMD_Interf * anAMD);
 
      private  :
@@ -139,13 +189,15 @@ class cEqObsBlockCam  : public cNameSpaceEqF,
              cRotationFormelle & aRotLT0,
              cRotationFormelle & aRotRT1,
              cRotationFormelle & aRotLT1,
-             bool                doGenerateCode
+             bool                doGenerateCode,
+             bool                ModeDistance
          );
 
           void GenerateCode();
           cEqObsBlockCam(const cEqObsBlockCam &); // Non Implemanted
 
           cSetEqFormelles *   mSet;
+          bool                mModeDistance;
           cRotationFormelle * mRotRT0;
           cRotationFormelle * mRotLT0;
           cRotationFormelle * mRotRT1;
@@ -154,10 +206,7 @@ class cEqObsBlockCam  : public cNameSpaceEqF,
           std::string         mNameType;
           cElCompiledFonc*    mFoncEqResidu;
 #if  (HandleGL)
-           cMatr_Etat_PhgrF   mMatR0;
-           cMatr_Etat_PhgrF   mMatL0;
-           cMatr_Etat_PhgrF   mMatR1;
-           cMatr_Etat_PhgrF   mMatL1;
+          cEOBC_ModeRot *     mModeR;
 #endif
 };
 
@@ -167,20 +216,19 @@ cEqObsBlockCam::cEqObsBlockCam
     cRotationFormelle & aRotLT0,
     cRotationFormelle & aRotRT1,
     cRotationFormelle & aRotLT1,
-    bool                doGenerateCode
+    bool                doGenerateCode,
+    bool                ModeDistance
 ) :
     mSet       (aRotRT0.Set()),
+    mModeDistance (ModeDistance),
     mRotRT0    (&aRotRT0),
     mRotLT0    (&aRotLT0),
     mRotRT1    (&aRotRT1),
     mRotLT1    (&aRotLT1),
-    mNameType  ("cCodeBlockCam"),
+    mNameType     (mModeDistance ? "cCodeDistBlockCam" : "cCodeBlockCam"),
     mFoncEqResidu  (0),
 #if  (HandleGL)
-    mMatR0("GL_MK0",3,3),
-    mMatL0("GL_MK1",3,3),
-    mMatR1("GL_MK2",3,3),
-    mMatL1("GL_MK3",3,3)
+    mModeR (ModeDistance ? 0  : new cEOBC_ModeRot)
 #endif
 
 {
@@ -214,16 +262,15 @@ cEqObsBlockCam::cEqObsBlockCam
    mFoncEqResidu->SetMappingCur(mLInterv,mSet);
 
 #if  (HandleGL)
-   mMatR0.InitAdr(*mFoncEqResidu);
-   mMatL0.InitAdr(*mFoncEqResidu);
-   mMatR1.InitAdr(*mFoncEqResidu);
-   mMatL1.InitAdr(*mFoncEqResidu);
-
+   if (!mModeDistance)
+   {
+       mModeR->mMatR0.InitAdr(*mFoncEqResidu);
+       mModeR->mMatL0.InitAdr(*mFoncEqResidu);
+       mModeR->mMatR1.InitAdr(*mFoncEqResidu);
+       mModeR->mMatL1.InitAdr(*mFoncEqResidu);
+   }
 #endif
-
    mSet->AddFonct(mFoncEqResidu);
-
-
 }
 
 
@@ -248,12 +295,13 @@ cEqObsBlockCam * cSetEqFormelles::NewEqBlockCal
                          cRotationFormelle & aRotLT0,
                          cRotationFormelle & aRotRT1,
                          cRotationFormelle & aRotLT1,
-                         bool                doGenerateCode
+                         bool                doGenerateCode,
+                         bool                ModeDistance
                  )
 {
      ELISE_ASSERT(aRotRT0.Set() == this,"cSetEqFormelles::NewEqBlockCal");
 
-     cEqObsBlockCam * aRes = new cEqObsBlockCam(aRotRT0,aRotLT0,aRotRT1,aRotLT1,doGenerateCode);
+     cEqObsBlockCam * aRes = new cEqObsBlockCam(aRotRT0,aRotLT0,aRotRT1,aRotLT1,doGenerateCode,ModeDistance);
 
      AddObj2Kill(aRes);
      return aRes;
@@ -261,28 +309,39 @@ cEqObsBlockCam * cSetEqFormelles::NewEqBlockCal
 
 void cEqObsBlockCam::GenerateCode()
 {
-    Pt3d<Fonc_Num>     aTrT0;
-    ElMatrix<Fonc_Num> aMatT0(3,3);
-    CalcParamEqRel(aTrT0,aMatT0,*mRotRT0,*mRotLT0,0,1);
-
-    Pt3d<Fonc_Num>     aTrT1;
-    ElMatrix<Fonc_Num> aMatT1(3,3);
-    CalcParamEqRel(aTrT1,aMatT1,*mRotRT1,*mRotLT1,2,3);
-
-
-    Pt3d<Fonc_Num> aResTr = aTrT1-aTrT0;
-    ElMatrix<Fonc_Num> aResMat = aMatT1-aMatT0;
-
     std::vector<Fonc_Num> aVF;
-    aVF.push_back(aResTr.x);
-    aVF.push_back(aResTr.y);
-    aVF.push_back(aResTr.z);
-    for (int aKi=0 ; aKi<3 ; aKi++)
+
+    if (mModeDistance)
     {
-        for (int aKj=0 ; aKj<3 ; aKj++)
+         Pt3d<Fonc_Num> aPRL0 = mRotRT0->COpt() - mRotLT0->COpt();
+         Pt3d<Fonc_Num> aPRL1 = mRotRT1->COpt() - mRotLT1->COpt();
+
+         Fonc_Num aF = euclid(aPRL0) - euclid(aPRL1);
+         aVF.push_back(aF);
+    }
+    else
+    {
+        Pt3d<Fonc_Num>     aTrT0;
+        ElMatrix<Fonc_Num> aMatT0(3,3);
+        CalcParamEqRel(aTrT0,aMatT0,*mRotRT0,*mRotLT0,0,1);
+
+        Pt3d<Fonc_Num>     aTrT1;
+        ElMatrix<Fonc_Num> aMatT1(3,3);
+        CalcParamEqRel(aTrT1,aMatT1,*mRotRT1,*mRotLT1,2,3);
+
+
+        Pt3d<Fonc_Num> aResTr = aTrT1-aTrT0;
+        ElMatrix<Fonc_Num> aResMat = aMatT1-aMatT0;
+
+        aVF.push_back(aResTr.x);
+        aVF.push_back(aResTr.y);
+        aVF.push_back(aResTr.z);
+        for (int aKi=0 ; aKi<3 ; aKi++)
         {
-           aVF.push_back(aResMat(aKi,aKj));
- 
+            for (int aKj=0 ; aKj<3 ; aKj++)
+            {
+               aVF.push_back(aResMat(aKi,aKj));
+            }
         }
     }
 
@@ -296,13 +355,20 @@ void cEqObsBlockCam::GenerateCode()
 
 }
 
-const std::vector<double> &  cEqObsBlockCam::AddObs(const double & aPdsTr,const double & aPdsMatr)
+double  cEqObsBlockCam::AddObsDist(const double & aPdsDist)
 {
+  ELISE_ASSERT(mModeDistance,"cEqObsBlockCam::AddObsRot in mode Distance");
+  return mSet->AddEqFonctToSys(mFoncEqResidu,aPdsDist,false);
+}
+
+const std::vector<double> &  cEqObsBlockCam::AddObsRot(const double & aPdsTr,const double & aPdsMatr)
+{
+  ELISE_ASSERT(!mModeDistance,"cEqObsBlockCam::AddObsRot in mode Distance");
 #if  (HandleGL)
-   mMatR0.SetEtat(mRotRT0->MGL());
-   mMatL0.SetEtat(mRotLT0->MGL());
-   mMatR1.SetEtat(mRotRT1->MGL());
-   mMatL1.SetEtat(mRotLT1->MGL());
+   mModeR->mMatR0.SetEtat(mRotRT0->MGL());
+   mModeR->mMatL0.SetEtat(mRotLT0->MGL());
+   mModeR->mMatR1.SetEtat(mRotRT1->MGL());
+   mModeR->mMatL1.SetEtat(mRotLT1->MGL());
 #endif
    //    mGPS.SetEtat(aGPS);
    std::vector<double> aVPds;
@@ -318,7 +384,7 @@ const std::vector<double> &  cEqObsBlockCam::AddObs(const double & aPdsTr,const 
   return mSet->VAddEqFonctToSys(mFoncEqResidu,aVPds,false,NullPCVU);
 }
 
-void GenerateCodeBlockCam()
+void GenerateCodeBlockCam(bool ModeDist)
 {
    cSetEqFormelles aSet;
 
@@ -329,10 +395,15 @@ void GenerateCodeBlockCam()
    cRotationFormelle * aRotLT1 = aSet.NewRotation (cNameSpaceEqF::eRotLibre,aRot);
 
 
-  cEqObsBlockCam * aEOBC = aSet.NewEqBlockCal (*aRotRT0,*aRotLT0,*aRotRT1,*aRotLT1,true);
+  cEqObsBlockCam * aEOBC = aSet.NewEqBlockCal (*aRotRT0,*aRotLT0,*aRotRT1,*aRotLT1,true,ModeDist);
   DoNothingButRemoveWarningUnused(aEOBC);
 }
 
+void GenerateCodeBlockCam()
+{
+    GenerateCodeBlockCam(false);
+    GenerateCodeBlockCam(true);
+}
 
 /***********************************************************/
 /*                                                         */
@@ -367,7 +438,9 @@ ElMatrix<double> ImportMat(const cTypeCodageMatr & aCM)
 
 /***********************************************************/
 /*                                                         */
-/*                                                         */
+/*                  cIBC_ImsOneTime                        */
+/*                  cIBC_OneCam                            */
+/*                  cImplemBlockCam                        */
 /*                                                         */
 /***********************************************************/
 
@@ -394,20 +467,22 @@ class cIBC_OneCam
           const int & CamNum() const;
           const std::string & NameCam() const;
           const bool & V0Init() const;
+          // L'initiation ne peut etre faite que quand toute les poses ont ete lues, donc pas
+          // complete dans le constructeur
           void Init0(const cParamOrientSHC & aPSH,cSetEqFormelles &,const cBlockGlobalBundle *);
           void AddContraintes(bool Stricte);
           cRotationFormelle & RF();
           cRotationFormelle * PtrRF();
       private :
           std::string mNameCam;
-          int               mCamNum;
-          Pt3dr             mC0;
-          ElMatrix<double>  mMat0;
-          bool              mV0Init;
+          int               mCamNum;  // Numero arbitraire (0,1,2...) , 0=PIVOT
+          bool              mV0Init;  // Est ce que la position dans le bloc a une valeur initiale 
+          Pt3dr             mC0;      // Valeur initiale du centre
+          ElMatrix<double>  mMat0;    // Valeur initiale de l'orientation
           cSetEqFormelles *   mSetEq;
-          cRotationFormelle * mRF;
-          bool                mStricteCstr;
-          bool                mHasCstr;
+          cRotationFormelle * mRF;       // Rotation inconnue
+          bool                mHasCstr;  // => L'image PIVOT dans un bloc, ou le premier bloc "virtuel"
+          bool                mStricteCstr;  // 
 };
 
 
@@ -505,12 +580,12 @@ cPoseCam * cIBC_ImsOneTime::Pose(int aKP)
 cIBC_OneCam::cIBC_OneCam(const std::string & aNameCam ,int aNum) :
     mNameCam (aNameCam ),
     mCamNum  (aNum),
-    mMat0    (1,1),
     mV0Init  (false),
+    mMat0    (1,1),
     mSetEq   (0),
     mRF      (0),
-    mStricteCstr (false),
-    mHasCstr     (false)
+    mHasCstr     (false),
+    mStricteCstr (false)
 {
 }
 
@@ -529,25 +604,32 @@ const int & cIBC_OneCam::CamNum() const {return mCamNum;}
 const std::string & cIBC_OneCam::NameCam() const { return mNameCam; }
 const bool & cIBC_OneCam::V0Init() const {return mV0Init;}
 
+
+/*
+    aPOS => geometrie de la calibration
+    aBGB => rappel / a cette geometrie
+*/
 void cIBC_OneCam::Init0(const cParamOrientSHC & aPOS,cSetEqFormelles & aSet,const cBlockGlobalBundle * aBGB)
 {
+    
     mV0Init = true;
     mC0   = aPOS.Vecteur();
     mMat0 = ImportMat(aPOS.Rot());
 
     mSetEq = & aSet;
+    // Si il y a une valeur de reference
     if (aBGB)
     {
+       // ModifDIST
        mRF = aSet.NewRotation(cNameSpaceEqF::eRotFigee,ElRotation3D(mC0,mMat0,true));
 
-       // Num =>  pose arbirtraire
-       if (mCamNum==NUMPIVOT)
+       if (mCamNum==NUMPIVOT)  // C'est la "premiere",  donc on la fige a sa valeur initiale (en general Id)
        {
           mStricteCstr = true;
           mHasCstr     = true;
        }
-       else
-       {
+       else // Sinon il y a peut etre un rappel a la V0, 
+       {    // Si elle existe, elle est SOIT stricte , SOIT ponderee par un sigma
           bool aInitSigm   = aBGB->SigmaV0().IsInit();
           bool aInitStrict = aBGB->V0Stricte().ValWithDef(false);
           ELISE_ASSERT(!(aInitSigm&&aInitStrict),"Both Stritct && Sigma in BlockGlobalBundle");
@@ -709,6 +791,7 @@ cImplemBlockCam::cImplemBlockCam
                                                          aCamL->RF(),
                                                          aPcR1->RF(),
                                                          aPcL1->RF(),
+                                                         false,
                                                          false
                                                       );
 
@@ -717,21 +800,7 @@ cImplemBlockCam::cImplemBlockCam
                    }
                }
           }
-/*
-          for 
-          (
-               std::list<cParamOrientSHC>::const_iterator itPOS=mLSHC->ParamOrientSHC().begin();
-               itPOS !=mLSHC->ParamOrientSHC().end();
-               itPOS++
-          )
-          {
-             cIBC_OneCam * aCam = mName2Cam[itPOS->IdGrp()];
-             ELISE_ASSERT(aCam!=0,"Cannot get cam from IdGrp");
-             ELISE_ASSERT(! aCam->V0Init(),"Multiple Init For IdGrp");
-
-             std::cout << "xxxxxxxxxxxxxxxx CCCaaaammm " << aCam << "\n";
-          }
-*/
+          // ModifDIST 
        }
        if (mRelTB)
        {
@@ -755,6 +824,7 @@ cImplemBlockCam::cImplemBlockCam
                                                          aPcL0->RF(),
                                                          aPcR1->RF(),
                                                          aPcL1->RF(),
+                                                         false,
                                                          false
                                                       );
 
@@ -785,7 +855,7 @@ void cImplemBlockCam::DoCompensation(const cObsBlockCamRig & anObs,const cRigidB
     for (int aKE=0 ; aKE<int(aVecEq.size()) ; aKE++)
     {
           cEqObsBlockCam &  anEQ = *(aVecEq[aKE]) ;
-          const std::vector<double> & aResidu = anEQ.AddObs(mAppli.RBW_PdsTr(aRBW),mAppli.RBW_PdsRot(aRBW));
+          const std::vector<double> & aResidu = anEQ.AddObsRot(mAppli.RBW_PdsTr(aRBW),mAppli.RBW_PdsRot(aRBW));
           // const std::vector<double> & aResidu = anEQ.AddObs(aRBW.PondOnTr(),aRBW.PondOnRot());
           double aSomEcartMat = 0;
           double aSomEcartPt = 0;
@@ -1186,6 +1256,11 @@ void  cAppliApero::AddObservationsRelGPS(const std::list<cObsRelGPS> & aLO)
     for (std::list<cObsRelGPS>::const_iterator itO=aLO.begin() ; itO!=aLO.end() ; itO++)
        AddOneObservationsRelGPS(*itO);
 }
+
+
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
