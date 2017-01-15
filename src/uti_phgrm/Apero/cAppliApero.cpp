@@ -903,12 +903,12 @@ double   cAppliApero::MoyGeomPdsIter(const double & aPds0, const cTplValGesInit<
 
 double   cAppliApero::RBW_PdsTr(const cRigidBlockWeighting  & aRBW) const
 {
-   return MoyGeomPdsIter(aRBW.PondOnTr(),aRBW.PondOnTrFinal());
+   return MoyGeomPdsIter(aRBW.PondOnTr(),aRBW.PondOnTrFinal().ValWithDef(aRBW.PondOnTr()));
 }
 
 double   cAppliApero::RBW_PdsRot(const cRigidBlockWeighting  & aRBW) const
 {
-   return MoyGeomPdsIter(aRBW.PondOnRot(),aRBW.PondOnRotFinal());
+   return MoyGeomPdsIter(aRBW.PondOnRot(),aRBW.PondOnRotFinal().ValWithDef(aRBW.PondOnRot()));
 }
 
 

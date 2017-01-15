@@ -499,7 +499,13 @@ class cImplemBlockCam
          void Export(const cExportBlockCamera &);
 
          void DoCompensation(const cObsBlockCamRig &);
-         void DoCompensation
+         void DoCompensationRot
+              (
+                  const cObsBlockCamRig & anObs,
+                  const cRigidBlockWeighting & aRBW,
+                  const std::vector<cEqObsBlockCam*>& aVecEq
+              );
+         void DoCompensationDist
               (
                   const cObsBlockCamRig & anObs,
                   const cRigidBlockWeighting & aRBW,
@@ -528,10 +534,13 @@ class cImplemBlockCam
          bool                                    mDoneIFC;
          const cUseForBundle *                   mUFB;
          const cBlockGlobalBundle *              mBlGB;
+         bool                                    mHasCstrGlob;
          bool                                    mRelTB;
-
+         bool                                    mRelDistTB;
+         bool                                    mGlobDistTB;
          std::vector<cEqObsBlockCam* >           mVecEqGlob;
          std::vector<cEqObsBlockCam* >           mVecEqRel;
+         std::vector<cEqObsBlockCam* >           mVecEqDistGlob;
 
          std::vector<cRotationFormelle *>        mRF0;
 };
@@ -617,9 +626,13 @@ void cIBC_OneCam::Init0(const cParamOrientSHC & aPOS,cSetEqFormelles & aSet,cons
     mMat0 = ImportMat(aPOS.Rot());
 
     mSetEq = & aSet;
+
     // Si il y a une valeur de reference
     if (aBGB)
     {
+       bool aInitSigm   = aBGB->SigmaV0().IsInit();
+       bool aInitStrict = aBGB->V0Stricte().ValWithDef(false);
+       ELISE_ASSERT(!(aInitSigm&&aInitStrict),"Both Stritct && Sigma in BlockGlobalBundle");
        // ModifDIST
        mRF = aSet.NewRotation(cNameSpaceEqF::eRotFigee,ElRotation3D(mC0,mMat0,true));
 
@@ -630,9 +643,6 @@ void cIBC_OneCam::Init0(const cParamOrientSHC & aPOS,cSetEqFormelles & aSet,cons
        }
        else // Sinon il y a peut etre un rappel a la V0, 
        {    // Si elle existe, elle est SOIT stricte , SOIT ponderee par un sigma
-          bool aInitSigm   = aBGB->SigmaV0().IsInit();
-          bool aInitStrict = aBGB->V0Stricte().ValWithDef(false);
-          ELISE_ASSERT(!(aInitSigm&&aInitStrict),"Both Stritct && Sigma in BlockGlobalBundle");
           if (aInitSigm)
           {
               mHasCstr  = true;
@@ -709,7 +719,10 @@ cImplemBlockCam::cImplemBlockCam
       mDoneIFC        (false),
       mUFB            (0),
       mBlGB           (0),
-      mRelTB          (false)
+      mHasCstrGlob    (false),
+      mRelTB          (false),
+      mRelDistTB      (false),
+      mGlobDistTB     (false)
 {
     const std::vector<cPoseCam*> & aVP = mAppli.VecAllPose();
 
@@ -737,7 +750,11 @@ cImplemBlockCam::cImplemBlockCam
     {
         ELISE_ASSERT(mLSHC!=0,"Compens without LiaisonsSHC");
         mBlGB = mUFB->BlockGlobalBundle().PtrVal();
+        mHasCstrGlob = (mBlGB!=0) && (mBlGB->SigmaV0().IsInit() || mBlGB->V0Stricte().ValWithDef(false));
         mRelTB = mUFB->RelTimeBundle();
+        mGlobDistTB = mUFB->GlobDistTimeBundle().Val();
+        mRelDistTB = mUFB->RelDistTimeBundle().Val();
+        ELISE_ASSERT(!mRelDistTB,"RelDistTimeBundle not handled for now");
         InitRF();
     }
     
@@ -769,7 +786,6 @@ cImplemBlockCam::cImplemBlockCam
 
     if (mUFB)
     {
-
        if (mBlGB)
        {
           for (int aKTime=0 ; aKTime<mNbTime ; aKTime++)
@@ -796,6 +812,38 @@ cImplemBlockCam::cImplemBlockCam
                                                       );
 
                           mVecEqGlob.push_back(anEq);
+                       }
+                   }
+               }
+          }
+          // ModifDIST 
+       }
+       if (mGlobDistTB)
+       {
+          for (int aKTime=0 ; aKTime<mNbTime ; aKTime++)
+          {
+               cIBC_ImsOneTime * aTim =  mNum2ITime[aKTime];
+               for (int aKCam1=0 ; aKCam1<mNbCam ; aKCam1++)
+               {
+                   for (int aKCam2=aKCam1+1 ; aKCam2<mNbCam ; aKCam2++)
+                   {
+                       cIBC_OneCam *  aCamR =  mNum2Cam[aKCam1];
+                       cIBC_OneCam *  aCamL =  mNum2Cam[aKCam2];
+                       cPoseCam * aPcR1 = aTim->Pose(aKCam1);
+                       cPoseCam * aPcL1 = aTim->Pose(aKCam2);
+                       if (aCamR && aCamL && aPcR1 &&aPcL1)
+                       {
+                          cEqObsBlockCam * anEq = mAppli.SetEq().NewEqBlockCal
+                                                      (
+                                                         aCamR->RF(),
+                                                         aCamL->RF(),
+                                                         aPcR1->RF(),
+                                                         aPcL1->RF(),
+                                                         false,
+                                                         true
+                                                      );
+
+                          mVecEqDistGlob.push_back(anEq);
                        }
                    }
                }
@@ -841,7 +889,12 @@ cImplemBlockCam::cImplemBlockCam
 
 // Rajouter structure compens dans SectionObservation
 
-void cImplemBlockCam::DoCompensation(const cObsBlockCamRig & anObs,const cRigidBlockWeighting & aRBW,const std::vector<cEqObsBlockCam*>& aVecEq)
+void cImplemBlockCam::DoCompensationRot
+     (
+            const cObsBlockCamRig & anObs,
+            const cRigidBlockWeighting & aRBW,
+            const std::vector<cEqObsBlockCam*>& aVecEq
+     )
 {
     std::cout << "ADR APLI " 
                  << mAppli.PdsAvIter() 
@@ -879,19 +932,42 @@ void cImplemBlockCam::DoCompensation(const cObsBlockCamRig & anObs,const cRigidB
               << " GlobXYZ    " <<  sqrt(aGlobEcPt/aVecEq.size()) <<" \n";
 }
 
+void cImplemBlockCam::DoCompensationDist
+     (
+            const cObsBlockCamRig & anObs,
+            const cRigidBlockWeighting & aRBW,
+            const std::vector<cEqObsBlockCam*>& aVecEq
+     )
+{
+    double aGlobEcDist = 0;
+    for (int aKE=0 ; aKE<int(aVecEq.size()) ; aKE++)
+    {
+          cEqObsBlockCam &  anEQ = *(aVecEq[aKE]) ;
+          double  aResidu = anEQ.AddObsDist(mAppli.RBW_PdsTr(aRBW));
+          aGlobEcDist += ElSquare(aResidu);
+    }
+    aGlobEcDist /= aVecEq.size();
+    std::cout << "Comp Dist = " << sqrt(aGlobEcDist) << "\n";
+}
 
 
 void cImplemBlockCam::DoCompensation(const cObsBlockCamRig & anObs)
 {
     if (anObs.GlobalPond().IsInit()) 
     {
-       ELISE_ASSERT(mBlGB,"Require GlobCompen, not specify at creation");
-       DoCompensation(anObs,anObs.GlobalPond().Val(),mVecEqGlob);
+       ELISE_ASSERT(mBlGB,"Required BlockGlobalBundle, not specify at creation");
+       DoCompensationRot(anObs,anObs.GlobalPond().Val(),mVecEqGlob);
     }
     if (anObs.RelTimePond().IsInit()) 
     {
-       ELISE_ASSERT(mRelTB,"Require RelCompen, not specify at creation");
-       DoCompensation(anObs,anObs.RelTimePond().Val(),mVecEqRel);
+       ELISE_ASSERT(mRelTB,"Required RelTimeBundle, not specify at creation");
+       DoCompensationRot(anObs,anObs.RelTimePond().Val(),mVecEqRel);
+    }
+    if (anObs.GlobalDistPond().IsInit()) 
+    {
+       ELISE_ASSERT(mGlobDistTB,"Required GlobDistTimeBundle, not specify at creation");
+       DoCompensationDist(anObs,anObs.GlobalDistPond().Val(),mVecEqDistGlob);
+
     }
 }
 
@@ -913,6 +989,7 @@ void  cImplemBlockCam::DoAMD(cAMD_Interf * anAMD)
 {
     DoAMD(anAMD,mVecEqRel);
     DoAMD(anAMD,mVecEqGlob);
+    DoAMD(anAMD,mVecEqDistGlob);
 }
 
 

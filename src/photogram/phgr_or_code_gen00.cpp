@@ -824,7 +824,7 @@ void cElCompiledFonc::InitEntries()
      
 
      AddEntry("cCodeBlockCam",cCodeBlockCam::Alloc);
-     AddEntry("cCodeDistBlockCam",cCodeBlockCam::Alloc);
+     AddEntry("cCodeDistBlockCam",cCodeDistBlockCam::Alloc);
      AddEntry("cEqLinariseAngle",cEqLinariseAngle::Alloc);
      AddEntry("cEqLinariseAngle_AccelCsteCoord",cEqLinariseAngle_AccelCsteCoord::Alloc);
      AddEntry("cEqBBCamFirst",cEqBBCamFirst::Alloc);
