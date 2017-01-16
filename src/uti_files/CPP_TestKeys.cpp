@@ -80,7 +80,7 @@ int TestSet_main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv,2);
 
-    std::string  aDir,aPat,aFullDir;
+    std::string  aDir,aPat,aFullDir,aKeyAssoc;
     int  aNbMax=10;
 
     ElInitArgMain
@@ -88,6 +88,7 @@ int TestSet_main(int argc,char ** argv)
         argc,argv,
         LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
         LArgMain()  << EAM(aNbMax,"Nb",true,"Nb Max printed (def=10)")
+                    << EAM(aKeyAssoc,"KeyAssoc",true,"Key for association")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -105,8 +106,12 @@ int TestSet_main(int argc,char ** argv)
     for (int aK=0 ; aK< aNb ; aK++)
     {
          std::string aName = (*mSetIm)[aK];
-         printf("%3d ",aK);
-         std::cout << aName ;
+         printf("Num=%3d ",aK);
+         std::cout << " Name=" << aName ;
+         if (EAMIsInit(&aKeyAssoc))
+         {
+             std::cout <<  " Key=" << aICNM->Assoc1To1(aKeyAssoc,aName,true) ;
+         }
          std::cout  << "\n";
     }
 
