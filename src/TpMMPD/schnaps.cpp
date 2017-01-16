@@ -241,6 +241,25 @@ bool cHomol::appearsOnCouple2way(cPic * aPicA,cPic * aPicB)
     return false;
 }
 
+bool cHomol::appearsOnCouple1way(cPic * aPicA,cPic * aPicB)
+{
+    for (unsigned int i=0;i<mAppearsOnCoupleA.size();i++)
+    {
+        //must be seen on both directions
+        if ((mAppearsOnCoupleA[i]==aPicA)&&(mAppearsOnCoupleB[i]==aPicB))
+        {
+            return true;
+        }
+        if ((mAppearsOnCoupleA[i]==aPicB)&&(mAppearsOnCoupleB[i]==aPicA))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
 //checks if the same picture is not in both Homol
 bool cHomol::checkMerge(cHomol* aHomol)
 {
@@ -842,7 +861,7 @@ int schnaps_main(int argc,char ** argv)
                         cout<<"   "<<aNameIn<<": ";
                         #endif
                         //check that homol has been seen in this couple of pictures
-                        if (!aHomol.appearsOnCouple2way(aPic1,aPic2))
+                        if (!aHomol.appearsOnCouple1way(aPic1,aPic2))
                         {
                             #ifdef ReductHomolImage_VeryStrict_DEBUG
                             cout<<"No!\n";

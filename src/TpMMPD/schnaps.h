@@ -72,8 +72,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //#define ReductHomolImage_DEBUG
 //#define ReductHomolImage_VeryStrict_DEBUG
-#define ReductHomolImage_UsefullPackSize 100
-#define ReductHomolImage_UselessPackSize 50
 
 
 //----------------------------------------------------------------------------
@@ -142,8 +140,9 @@ class cHomol
     cPointOnPic* getPointOnPic(unsigned int i){return (mPointOnPics.at(i));}
     unsigned int getPointOnPicsSize(){return mPointOnPics.size();}
     void addAppearsOnCouple(cPic * aPicA,cPic * aPicB);
-    bool appearsOnCouple(cPic * aPicA,cPic * aPicB);
-    bool appearsOnCouple2way(cPic * aPicA,cPic * aPicB);
+    bool appearsOnCouple(cPic * aPicA,cPic * aPicB);//exactly this order
+    bool appearsOnCouple2way(cPic * aPicA,cPic * aPicB);//both ways
+    bool appearsOnCouple1way(cPic * aPicA,cPic * aPicB);//one way is enougth
     cPic* getAppearsOnCoupleA(unsigned int i){return mAppearsOnCoupleA[i];}
     cPic* getAppearsOnCoupleB(unsigned int i){return mAppearsOnCoupleB[i];}
     int getAppearsOnCoupleSize(){return mAppearsOnCoupleA.size();}
