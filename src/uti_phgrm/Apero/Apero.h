@@ -1514,7 +1514,7 @@ class cOneAppuisFlottant
           cBdAppuisFlottant &
        );
 
-       void AddLiaison(const std::string & aNameIm,const cOneMesureAF1I &,const Pt2dr & anOffset,bool aModeDr);
+       void AddLiaison(const std::string & aNameIm,const cOneMesureAF1I &,const Pt2dr & anOffset,bool aModeDr,double anEcart);
        void Compile();
        double AddObs(const cObsAppuisFlottant &,cStatObs & aSO,std::string & aCamMaxErr);
 
@@ -1539,6 +1539,7 @@ class cOneAppuisFlottant
        cManipPt3TerInc *       mMP3TI;
        std::vector<Pt2dr>      mPts;
        std::vector<double>     mPdsIm;
+       std::vector<double>     mEcartIm;
        std::vector<cGenPoseCam *> mCams;
        std::vector<bool>       mIsDroite;
        bool mHasGround;
@@ -1556,7 +1557,7 @@ class cBdAppuisFlottant
     public :
        void ShowError();
        cBdAppuisFlottant(cAppliApero &);
-       void AddAFLiaison(const std::string & aNameIm,const cOneMesureAF1I &,const Pt2dr & anOffset,bool OkNoGr,bool ModeDr);
+       void AddAFLiaison(const std::string & aNameIm,const cOneMesureAF1I &,const Pt2dr & anOffset,bool OkNoGr,bool ModeDr,double anEcart);
        void AddAFDico(const cDicoAppuisFlottant &);
 
        void Compile();

@@ -112,7 +112,7 @@ class cAppli_Campari
      public :
        cAppli_Campari(int argc,char ** argv);
 
-       void AddParamBloc(std::vector<std::string> & aVBL,const std::string & aPref);
+       void AddParamBloc(std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot);
 
 
        int RTA();
@@ -135,15 +135,17 @@ class cAppli_Campari
        std::string               mNameOutputBloc;
        std::vector<std::string>  mVBlockRel;
        std::vector<std::string>  mVBlockGlob;
+       std::vector<std::string>  mVBlockDistGlob;
        std::vector<std::string>  mVOptGlob;
 };
 
 
-void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::string & aPref)
+void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot)
 {
+    int IndRot = ModeRot ? 1 : 0;
     if (!EAMIsInit(&aVBL)) return;
-    ELISE_ASSERT(aVBL.size() >= 3,"Not enough param in AddParamBloc");
-    ELISE_ASSERT(aVBL.size() <= 5,"Too many param in AddParamBloc");
+    ELISE_ASSERT(int(aVBL.size()) >= 2+IndRot ,"Not enough param in AddParamBloc");
+    ELISE_ASSERT(int(aVBL.size()) <= 4+IndRot,"Too many param in AddParamBloc");
 
 
     if (!mWithBlock)
@@ -159,16 +161,17 @@ void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::str
         ELISE_ASSERT(mNameInputBloc==aVBL[0],"Variable name in NameInputBloc");
     }
 
-    double aSigmaTr0,aSigmaRot0;
+    double aSigmaTr0,aSigmaRot0=1;
     FromString(aSigmaTr0,aVBL[1]);
-    FromString(aSigmaRot0,aVBL[2]);
+    if (ModeRot)
+       FromString(aSigmaRot0,aVBL[2]);
 
     double aMulFin = 1.0;
-    if (aVBL.size() >= 4)
-       FromString(aMulFin,aVBL[3]);
+    if (int(aVBL.size()) >= 3+IndRot)
+       FromString(aMulFin,aVBL[2+IndRot]);
 
-    if (aVBL.size()>=5) 
-       mNameOutputBloc = aVBL[4];
+    if (int(aVBL.size())>=4+IndRot)
+       mNameOutputBloc = aVBL[3+IndRot];
 
 
     double aSigmaTrFin = aSigmaTr0 * aMulFin;
@@ -176,9 +179,12 @@ void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::str
 
     mCom = mCom + " +WithBloc_" + aPref + "=true ";
     mCom = mCom + " +PdsBlocTr0_"  + aPref + "=" + ToString(1.0/ElSquare(aSigmaTr0))  + " ";
-    mCom = mCom + " +PdsBlocRot0_" + aPref + "=" + ToString(1.0/ElSquare(aSigmaRot0)) + " ";
     mCom = mCom + " +PdsBlocTrFin_"  + aPref + "=" + ToString(1.0/ElSquare(aSigmaTrFin))  + " ";
-    mCom = mCom + " +PdsBlocRotFin_" + aPref + "=" + ToString(1.0/ElSquare(aSigmaRotFin)) + " ";
+    if (ModeRot)
+    {
+       mCom = mCom + " +PdsBlocRot0_" + aPref + "=" + ToString(1.0/ElSquare(aSigmaRot0)) + " ";
+       mCom = mCom + " +PdsBlocRotFin_" + aPref + "=" + ToString(1.0/ElSquare(aSigmaRotFin)) + " ";
+    }
 
     mCom = mCom + " +NameOutputBloc=" + mNameOutputBloc +" ";
 }
@@ -203,7 +209,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     bool  AffineFree = false;
     bool  AllFree = false;
 
-    bool  PoseFigee = false;
+    bool  AllPoseFigee = false;
+    std::string  PatPoseFigee;
 
     double aSigmaTieP = 1;
     double aFactResElimTieP = 5;
@@ -256,7 +263,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
                     << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters generiqs")
                     << EAM(aDrMax,"DRMax",true, "When specified degree of freedom of radial parameters")
- 		    << EAM(PoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
+ 		    << EAM(AllPoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
+ 		    << EAM(PatPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)")
                     << EAM(AcceptGB,"AcceptGB",true,"Accepte new Generik Bundle image, Def=true, set false for perfect backward compatibility")
                     << EAM(mMulRTA,"MulRTA",true,"Rolling Test Appuis , multiplier ")
                     << EAM(mNameRTA,"NameRTA",true,"Name for save results of Rolling Test Appuis , Def=SauvRTA.xml")
@@ -265,6 +273,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aNbIterFin,"NbIterEnd",true,"Number of iteration at end, Def = 4")
                     // << EAM(GCP,"MulRTA",true,"Rolling Test Appuis , multiplier ")
                     << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
+                    << EAM(mVBlockDistGlob,"DistBlocGlob",true,"Param for Dist Glob bloc compute [File,SigmaDist,?MulFinal,?Export]")
                     << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]")
                     << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
                     << EAM(aNbLiais,"NbLiais",true,"Param for relative weighting for tie points")
@@ -325,7 +334,12 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         if (AllFree) mCom    += " +AllFree=true ";
         if (ExpTxt) mCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
 
- 	if (PoseFigee) mCom    += " +PoseFigee=true ";
+ 	if (AllPoseFigee) mCom    += " +PoseFigee=true ";
+
+        if (EAMIsInit(&PatPoseFigee))
+        {
+            mCom    += " +WithPatPoseFigee=true +PatPoseFigee=" + PatPoseFigee + " ";
+        }
 
         if (EAMIsInit(&aFactResElimTieP))
            mCom =  mCom+ " +FactMaxRes=" + ToString(aFactResElimTieP);
@@ -404,11 +418,12 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
             ELISE_ASSERT(EAMIsInit(&GCP),"RTA without GCP");
         }
 
-        AddParamBloc(mVBlockRel,"TimeRel");
-        AddParamBloc(mVBlockGlob,"Glob");
+        AddParamBloc(mVBlockRel,"TimeRel",true);
+        AddParamBloc(mVBlockGlob,"Glob",true);
+        AddParamBloc(mVBlockDistGlob,"DistGlob",false);
         if (EAMIsInit(&mVOptGlob))
         {
-           ELISE_ASSERT(EAMIsInit(&mVBlockGlob),"OptBlocG without BlocGlob");
+           ELISE_ASSERT(EAMIsInit(&mVBlockGlob)|| EAMIsInit(&mVBlockDistGlob),"OptBlocG without BlocGlob");
            ELISE_ASSERT(mVOptGlob.size()>=2,"Not enough arg in OptBlocG");
 
            double aSigTr,aSigRot;

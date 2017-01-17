@@ -122,7 +122,51 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
     TT_DefSeuilDensiteResul  = 50 pxl
     TT_RatioFastFiltrSpatial = 4
 
-    
+========================================================================
+11/12/2016:
+Raster Triangle Rapide => Recuper les point dans la triangle par calcul l'interval de la ligne parcouru
+
++++++====+++++ Dans src/geom2d/triangle_comp.cpp +++++====+++++
+(1) Raster triangle
+
+    triangle_comp.cpp
+    Class cSegEntierHor => une segment horizontal
+    class cElTriangleComp 
+	Quand creer un triangle, il regard si il est dans bon sens par calcul sign de triangle, et re-order si il n'est pas
+
+    equation droit pour l'intersection (y-y0)/(x-x0) = (y1-y0)/(x1-x0) => parcourir y, calcul x
+    Parcourir en ligne (y) et chercher l'interval de chaque ligne
+    Il fault voir parcour dans quelle sens 
+
+    Les segments sont S01 S20 S12
+
+
+
+(*) Class SegComp(P1, P2) => une ligne droite, 
+	(.) method .p0() et .p1() stocker 2 point P1, P2
+	(.) calcul _tangente, _normale, ....  
+	(.) peut creer ligne à partir de rho, theta ...
+(*) Class cElTriangleComp(P1, P2, P3) => un triangle
+	(.) Quand creer un triangle, il regard si il est dans bon sens par calcul sign de triangle, et re-order si il n'est pas
+	(.) Il creer 3 SegComp <=> 3 ligne droit de 3 cote du triangle
+(*) Class cSegEntierHor
+	(.) Juste pour stocker une segmentation rasterized (une point debut mP0 et nombre pixel en direction horizontal .mNb)
+
+(***) === Program RasterTriangle === (***)
+
+ (*) Chercher Ymax Ymin Xmax Xmin de triangle
+ (*) Ligne horizontal parcourir (de Ymin -> Ymax)
+ (*) Pour chaque ligne : 
+	(.) Chercher interval de X valab (entre 2 cote de la triangle) -- fonction ModifInterv
+		(..) 
+
+
+
+(***) === ModifInterv === (***)
+ 
+ (*) Prendre (int aY, const SegComp & aSeg) -- aY : la ligne, aSeg : 1 cote de triangle
+ (*) 
+
     
     
     

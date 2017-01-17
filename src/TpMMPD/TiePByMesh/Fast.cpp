@@ -180,7 +180,7 @@ void Fast::dispPtIntertFAST(Im2D<U_INT1,INT4> pic, vector<Pt2dr> pts, int zoomF,
             Pt2dr thisPts(pts[i].x, pts[i].y);
             mWTest->draw_circle_loc( thisPts , 2, lstLine);
         }
-    /* ===== write image to disk =======
+    /* ===== write image to disk // save image // ecrire ecrit image =======
     string fileOut = filename + "_FASTDETECTEUR";
     ELISE_COPY
     (

@@ -705,11 +705,11 @@ int GenCode_main(int argc,char ** argv)
     // GenCodeEqLinariseAngle();
 
 
-    // GenerateCodeBlockCam();
+    GenerateCodeBlockCam();
     // GenerateCodeEqOffsetGPS();
     //  GenCodeOneEqHom();
     //  GenCodeEqHom();
-     GenCodeAppui();
+     // GenCodeAppui();
     // GenEqPlanInc();
     // GenDirecteDistorsion();
     //   GencqCalibCroisee();

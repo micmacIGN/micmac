@@ -314,6 +314,213 @@ int ConvSensXml2Txt_main(int argc,char **argv)
 	return EXIT_SUCCESS;
 }
 
+struct ImgPS{
+	std::string Name;
+	Pt3dr Pos;
+	Pt3dr Ori;
+	double R11;
+	double R12;
+	double R13;
+	double R21;
+	double R22;
+	double R23;
+	double R31; 
+	double R32; 
+	double R33;
+};
+
+int CleanTxtPS_main(int argc,char ** argv)
+{
+	std::string aDir, aInFile, aOut;
+	bool aFormat=false;
+	
+	ElInitArgMain
+    (
+          argc, argv,
+          LArgMain() << EAMC(aDir, "Directory")
+					 << EAMC(aInFile, ".txt Output PhotoScan File", eSAM_IsExistFile),
+          LArgMain() << EAM(aOut,"Out",false,"Output File Name ; Def=FileName_NXYZWPK.txt")
+                     << EAM(aFormat, "Format", false, "Aff format in file ; Def=false", eSAM_IsBool)
+    );
+    
+    //name output (.xml) file
+    if (aOut=="")
+    {
+		aOut = StdPrefixGen(aInFile) + "_NXYZWPK.txt";
+    }
+    
+    std::vector<ImgPS> aVImgPS;
+    
+    //read input file
+    ifstream aFichier((aDir + aInFile).c_str());
+    
+    if(aFichier)
+    {
+		std::string aLine;
+        
+        while(!aFichier.eof())
+        {
+			getline(aFichier,aLine,'\n');
+			
+			if(aLine.size() != 0)
+			{
+				if (aLine.compare(0,1, "#") == 0)
+				{
+					std::cout << "SKIP COMMENT = " << aLine << std::endl;
+				}
+				//# PhotoID, X, Y, Z, Omega, Phi, Kappa, r11, r12, r13, r21, r22, r23, r31, r32, r33
+				else
+				{
+					char *aBuffer = strdup((char*)aLine.c_str());
+					std::string aName = strtok(aBuffer,"	");
+					char *aX = strtok( NULL, "	" );
+					char *aY = strtok( NULL, "	" );
+					char *aZ = strtok( NULL, "	" );
+					char *aO = strtok( NULL, "	" );
+					char *aP = strtok( NULL, "	" );
+					char *aK = strtok( NULL, "	" );
+					char *aR11 = strtok( NULL, "	" );
+					char *aR12 = strtok( NULL, "	" );
+					char *aR13 = strtok( NULL, "	" );
+					char *aR21 = strtok( NULL, "	" );
+					char *aR22 = strtok( NULL, "	" );
+					char *aR23 = strtok( NULL, "	" );
+					char *aR31 = strtok( NULL, "	" );
+					char *aR32 = strtok( NULL, "	" );
+					char *aR33 = strtok( NULL, "	" );
+					
+					ImgPS aImgPs;
+					
+					aImgPs.Name = aName;
+					Pt3dr aPos(atof(aX),atof(aY),atof(aZ));
+					aImgPs.Pos = aPos;
+					Pt3dr aOri(atof(aO),atof(aP),atof(aK));
+					aImgPs.Ori = aOri;
+					aImgPs.R11 = atof(aR11);
+					aImgPs.R12 = atof(aR12);
+					aImgPs.R13 = atof(aR13);
+					aImgPs.R21 = atof(aR21);
+					aImgPs.R22 = atof(aR22);
+					aImgPs.R23 = atof(aR23);
+					aImgPs.R31 = atof(aR31);
+					aImgPs.R32 = atof(aR32);
+					aImgPs.R33 = atof(aR33);
+					
+					aVImgPS.push_back(aImgPs);
+					
+				}
+			}
+			
+		}
+		
+		aFichier.close();
+		
+	}
+	
+	else
+    {
+		std::cout<< "Error While opening file" << '\n';
+	}
+	
+	
+	if (!MMVisualMode)
+	{			
+		FILE * aFP = FopenNN(aOut,"w","CleanTxtPS_main");
+				
+		cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOut);
+		
+		if (aFormat)
+		{
+			std::string aAddFormat = "#F=N_X_Y_Z_W_P_K";
+			
+			fprintf(aFP, "%s \n",  aAddFormat.c_str());
+		}
+				
+		for (unsigned int aK=0 ; aK<aVImgPS.size() ; aK++)
+		{
+			fprintf(aFP,"%s %lf %lf %lf %lf %lf %lf \n",aVImgPS[aK].Name.c_str(),aVImgPS[aK].Pos.x,aVImgPS[aK].Pos.y,aVImgPS[aK].Pos.z, aVImgPS[aK].Ori.x,aVImgPS[aK].Ori.y,aVImgPS[aK].Ori.z);
+		}
+		
+		ElFclose(aFP);
+			
+	}
+    
+	return EXIT_SUCCESS;
+}
+
+int CheckPatCple_main(int argc,char ** argv)
+{
+	std::string aFullName, aInFile, aOut, aDir, aPat;
+	
+	ElInitArgMain
+    (
+          argc, argv,
+          LArgMain() << EAMC(aFullName,"Full Name (Dir+Pat)")
+					 << EAMC(aInFile, ".xml Name Cple File", eSAM_IsExistFile),
+          LArgMain() << EAM(aOut,"Out",false,"Output File Name ; Def=Corr-NameFile.xml")
+    );
+    
+    SplitDirAndFile(aDir, aPat, aFullName);
+
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    std::list<std::string> aLFile = aICNM->StdGetListOfFile(aPat);
+    
+    //load .xml file
+    cSauvegardeNamedRel aDico = StdGetFromPCP(aInFile,SauvegardeNamedRel);
+    std::vector<cCpleString> & aVCple = aDico.Cple();
+    
+    std::cout << "aVCple.size() = " << aVCple.size() << std::endl;
+    
+    //list of images to add in .xml file
+    std::vector<std::string> aVImgs;
+    
+    //check for each img if it is present in the .xml file
+    for (std::list<std::string>::iterator iT1 = aLFile.begin() ; iT1 != aLFile.end() ; iT1++)
+    {
+		//~ std::cout << "Image = " << *iT1 << std::endl;
+		unsigned int aCmpt=0;
+		for (unsigned int aP=0; aP<aVCple.size(); aP++)
+		{
+			//std::cout << "Cple : " <<  aVCple.at(aP).N1() << " " << aVCple.at(aP).N2() << std::endl;
+			if(iT1->compare(aVCple.at(aP).N1())==0 || iT1->compare(aVCple.at(aP).N2())==0)
+			{
+				std::cout << "IMG PAT : " << *iT1 << " OK " << std::endl;
+				break;
+			}
+			aCmpt++;
+		}
+		//~ std::cout << "aCmpt = " << aCmpt << std::endl;
+		if(aCmpt == aVCple.size())
+		{
+			std::cout << "IMG PAT : " << *iT1 << " NOT OK " << std::endl;
+			aVImgs.push_back(*iT1);
+		}
+	}
+	
+	//generate all Cple for aVImgs
+	for (unsigned int aK=0; aK<aVImgs.size(); aK++)
+	{
+		for (std::list<std::string>::iterator iT2 = aLFile.begin() ; iT2 != aLFile.end() ; iT2++)
+		{
+			if(iT2->compare(aVImgs.at(aK)) != 0)
+			{
+				cCpleString aCpl(aVImgs.at(aK), *iT2);
+				aDico.Cple().push_back(aCpl);
+			}
+		}
+	}
+	
+	//generate new .xml file
+	if(aOut == "")
+    {
+		aOut = "Corr-" + StdPrefixGen(aInFile) + ".xml";
+	}
+	
+	MakeFileXML(aDico,aOut);
+    
+	return EXIT_SUCCESS;
+}
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant \C3  la mise en

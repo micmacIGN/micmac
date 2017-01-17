@@ -246,6 +246,7 @@
     <PondOnRotFinal Nb="?" Type="double"> </PondOnRotFinal>
 </RigidBlockWeighting>
 
+
 <GpsRelativeWeighting Nb="1" Class="true" ToReference="true">
 <!--  le sigma0 sera egal a SigmaPerSec*Time + SigmaMin,
       le poids sera 1/ Sigma0 ^ 2
@@ -652,13 +653,20 @@
                     <NameFile Nb="1" Type="std::string"> </NameFile>
                     <Id   Nb="?" Type="std::string"> </Id>
                     <UseForBundle Nb="?">
+                        <!-- Translation rotation -->
                         <BlockGlobalBundle Nb="?" >
-                              <!-- exclusif : si SigmaV0 alors V0Stricte undef ou false, sinon erreur -->
+                              <!-- exclusif : si V0Stricte true, alors SigmaV0, SigmaSimDist  Undef -->
                              <SigmaV0       Nb="?" RefType="Xml_SigmaRot"> </SigmaV0> 
                              <V0Stricte Nb="?" Type="bool"> </V0Stricte>
+                                 <!-- Sigma sur la similitude distance -->
+                             <SigmaSimDist       Nb="?" Type="double"> </SigmaSimDist> 
                         </BlockGlobalBundle>
+
                         <RelTimeBundle Nb="1" Type="bool">     </RelTimeBundle>
                         
+                        <!-- distance seulement -->
+                        <RelDistTimeBundle Nb="?" Type="bool" Def="false">     </RelDistTimeBundle>
+                        <GlobDistTimeBundle Nb="?" Type="bool" Def="false">    </GlobDistTimeBundle>
                     </UseForBundle>
               </BlockCamera>
 
@@ -1294,8 +1302,14 @@ normalises en echelle et/ou en translation -->
                      <ObsBlockCamRig Nb="*">
                          <Id Nb="1" Type="std::string"> </Id>
                          <Show Type="bool" Nb="?" Def="false"> </Show>
+                         <!-- Pour les rotation/translation -->
                          <GlobalPond Nb="?" RefType="RigidBlockWeighting"> </GlobalPond>
                          <RelTimePond Nb="?" RefType="RigidBlockWeighting"> </RelTimePond>
+
+                         <!-- Pour les distance, la partie rot est ignoree -->
+                         <GlobalDistPond Nb="?" RefType="RigidBlockWeighting"> </GlobalDistPond>
+                         <RelTimeDistPond Nb="?" RefType="RigidBlockWeighting"> </RelTimeDistPond>
+
                      </ObsBlockCamRig>
 
                       <!-- Ici il s'agit de point d'appuis "sur", -->

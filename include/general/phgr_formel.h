@@ -684,7 +684,8 @@ class cSetEqFormelles : public cNameSpaceEqF
                                                cRotationFormelle & aRotLT0,
                                                cRotationFormelle & aRotRT1,
                                                cRotationFormelle & aRotLT1,
-                                               bool                doGenerateCode
+                                               bool                doGenerateCode,
+                                               bool                ModeDistance
                                            );
 
 

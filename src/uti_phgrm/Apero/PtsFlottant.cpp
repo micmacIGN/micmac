@@ -83,7 +83,8 @@ void cOneAppuisFlottant::AddLiaison
           const std::string & aNameIm,
           const cOneMesureAF1I & aMes,
           const Pt2dr & anOffset,
-          bool  aModeDr
+          bool  aModeDr,
+          double anEcart
      )
 {
     cGenPoseCam * aPose = mAppli.PoseGenFromName(aNameIm);
@@ -110,7 +111,7 @@ void cOneAppuisFlottant::AddLiaison
     mPts.push_back(aP);
     mCams.push_back(aPose);
     mIsDroite.push_back(aModeDr);
-    
+    mEcartIm.push_back(anEcart);
 }
 
 void cOneAppuisFlottant::DoAMD(cAMD_Interf *)
@@ -213,7 +214,9 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    if (ShowUnUsed)
        std::cout << "==== ADD Pts " << mName  << " Has Gr " << mHasGround << " Inc " << mInc << "\n";
 
-   double aPdsIm = 1 / ElSquare(anObs.PondIm().EcartMesureIndiv());
+
+   // double anEcartGlob = anObs.PondIm().EcartMesureIndiv();  PrecPointeByIm
+   // double aPdsIm = 1 / ElSquare(anObs.PondIm().EcartMesureIndiv());
 
    //  cPonderateur aPdrtIm(anObs.PondIm(),mCams.size());
 
@@ -223,9 +226,19 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    int aNbOK=0;
    for (int aK=0 ; aK<int(mCams.size()) ; aK++)
    {
-        if (mCams[aK]->RotIsInit())
+        bool Ok = mCams[aK]->RotIsInit();
+        Ok = Ok && mCams[aK]->GenCurCam()->CaptHasData(mPts[aK]);
+        if (mHasGround)
         {
-	   mPdsIm[aK] = aPdsIm;
+           cArgOptionalPIsVisibleInImage anArg;
+           anArg.mOkBehind = false;
+           Ok = Ok && mCams[aK]->GenCurCam()->PIsVisibleInImage(mPt,&anArg);
+        }
+
+        if (Ok)
+        {
+           double anEcart = (mEcartIm[aK] > 0) ? mEcartIm[aK] : anObs.PondIm().EcartMesureIndiv();
+	   mPdsIm[aK] =   1 / ElSquare(anEcart);
            aNbOK++;
            aNbContrainte += mNupl->IsDr(aK) ? 0 : 2 ;
         }
@@ -261,21 +274,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    aUseAppAsInit = true;
 
 
-/*
-   const cResiduP3Inc &  aRes = mMP3TI->UsePointLiaisonWithConstr
-                                (
-                                    -1,
-                                    -1,
-				    0.0,  // Pds Pl
-                                    *mNupl,
-                                    mPdsIm,
-                                   aSO.AddEq(),
-				   // false,
-				    mPt,
-				    mInc,
-				    aUseAppAsInit
-				);
-*/
+   // 
+
    const cResiduP3Inc &  aRes = mMP3TI->UsePointLiaisonGen
                                 (
                                    mAppli.ArgUPL(),
@@ -292,17 +292,6 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
                                     0
 				);
 
-
-/*
-    aXmlAp.DistFaiscTerrain().SetNoInit();
-    aXmlAp.EcartFaiscTerrain() = Pt3dr(0,0,0);
-    aXmlAp.EcartImMoy() = -1;
-    aXmlAp.EcartImMax() = -1;
-    aXmlAp.NameImMax() = "";
-*/
-
-
-// std::cout << "  GGGGGGGGGGGGGGGGGGGgg " << mPt   << mInc << aUseAppAsInit << "\n";
 
    if (! aRes.mOKRP3I)
    {
@@ -414,11 +403,6 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
                        std::cout << " Ec-Im-Faisceau " << mCams[aK]->GenCurCam()->Ter2Capteur(aPFP)- mNupl->PK(aK);
 
                    std::cout << "\n";
-/*
-                   std::cout << " Proj-F " << mCams[aK]->CurCam()->R3toF2(aRes.mPTer)
-                             << " Proj-Ter " << mCams[aK]->CurCam()->R3toF2(mPt)
-                             << " mPdsIm Mes Im " << mNupl->PK(aK);
-*/
                }
                if (anEr>anObs.NivAlerteDetail().Val())
                {
@@ -441,24 +425,11 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
         }
         else
         {
+   // Probablement inutile de redifinir les poids ?
            mPdsIm[aK] = 0.0;
         }
    }
-/*
-   const cResiduP3Inc & aRes2 = mMP3TI->UsePointLiaisonWithConstr
-                                (
-                                   -1,
-                                   -1,
-                                   0.0,
-                                   *mNupl,
-                                   mPdsIm,
-                                   // true,
-                                   aSO.AddEq(),
-                                   mPt,
-                                   mInc,
-                                   aUseAppAsInit
-                                );
-*/
+
    mPtRes = aRes.mPTer;
    aSO.AddSEP(aRes.mSomPondEr);
 
@@ -614,7 +585,8 @@ void cBdAppuisFlottant::AddAFLiaison
             const cOneMesureAF1I & aMes,
             const Pt2dr & anOffset,
             bool  OkNoGr,
-            bool  aModeDr
+            bool  aModeDr,
+            double anEcart
      )
 {
     std::map<std::string,cOneAppuisFlottant *>::iterator iT = mApps.find(aMes.NamePt());
@@ -653,7 +625,7 @@ void cBdAppuisFlottant::AddAFLiaison
         }
     }
 */
-    anApp->AddLiaison(aNameIm,aMes,anOffset,aModeDr);
+    anApp->AddLiaison(aNameIm,aMes,anOffset,aModeDr,anEcart);
 }
 
 void cBdAppuisFlottant::Compile()
@@ -820,6 +792,7 @@ void cAppliApero::InitOneSetObsFlot
        itM++
    )
    {
+      double anEcGlob = itM->PrecPointeByIm().ValWithDef(-1);
       if (NamePoseGenIsKnown(itM->NameIm()))
       {
          for
@@ -830,7 +803,10 @@ void cAppliApero::InitOneSetObsFlot
          )
          {
              if (aSN->IsSetIn (it1->NamePt()))
-	        aBAF->AddAFLiaison(itM->NameIm(),*it1,anOffset,OkNoGr,false);
+             {
+                double anEcart = it1->PrecPointe().ValWithDef(anEcGlob);
+	        aBAF->AddAFLiaison(itM->NameIm(),*it1,anOffset,OkNoGr,false,anEcart);
+             }
          }
       }
    }
@@ -853,6 +829,7 @@ void cAppliApero::InitOneSetOnsDr
    )
    {
       std::string aNameIm = itIm->NameIm();
+      // double anEcGlob = itM->PrecPointeByIm().ValWithDef(-1);
       if (NamePoseGenIsKnown(aNameIm))
       {
 
@@ -882,7 +859,7 @@ void cAppliApero::InitOneSetOnsDr
              for (std::list<std::string>::const_iterator itPt=itMes->NamePt().begin() ;  itPt!=itMes->NamePt().end() ; itPt++)
              {
                 aMes.NamePt() = *itPt;
-	        aBAF->AddAFLiaison(itIm->NameIm(),aMes,anOffset,OkNoGr,true);
+	        aBAF->AddAFLiaison(itIm->NameIm(),aMes,anOffset,OkNoGr,true,-1);
              }
 /*
              std::cout << "aRhoTetaaRhoTeta " <<  aPEqDr << "\n";

@@ -1,0 +1,35 @@
+============= Dans Programme mm3d TestLib TaskCorrel ===============
+
+(*) Critere d'enlevement les triangles "non utilisable":
+    (.) Surface (TT_SEUIL_SURF_TRIANGLE)
+    (.) Orientation triangle (vector normal, calcul avec sign de surface aussi)
+    (.) Resolution (TT_SEUIL_RESOLUTION)
+	(!) Seuil sur valeur ellipse => seuil sur "la resolution"
+	(?) Quelle est le valeur ? Pour l'instant = DBL_MIN
+
+
+    (?) Critere de ZBuffer, on se met ou
+    (+) Il fault ajouter une critere de distant maximum (tranchant le mesh selon image)
+
+(*) Les triangle valabe avec 1 image sont les triangle labelisé dans le ZBuffer, bien oriente (il fault tester ca parce que une triangle peut valable dans ZBuffer mais peut mal orienter -- surface fermer) 
+
+(*) Creer une Im1D (un image plus vite) ou 1 vector de boolean pour marquer les triangle labeliser dans image ZBuffer
+
+
+
+========================================================================
+(*) Erreur : vector<bool> false, true pour triangle valid, non valid  => ca marche ou pas ?
+	(FIX) OK, initializer vector par .resize()
+
+(*) Erreur : index old error - initialize != -1.0 => Pourquoi pixel jamais mis a jour mais avoir le valeur != -1.0 ?
+	(FIX) OK, il manque une condition. (on set valeur label uniquement quand prof_new != -1). Ca veut dir le fonction calcul prof peut return -1
+
+(*) Does TaskCorrel work with Zbuffer Rech ? Oui ca marche
+========================================================================
+A Faire 13/1/2017
+
+(*) Im1D => plus vite que vector ?
+(*) aAppliZBuf->DoAllIm(mVTriValid); => peut optimiser plus vite par passer directement vector<cImgForTiepTri*> 
+(*) 
+
+

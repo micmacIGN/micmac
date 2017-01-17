@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[2012]) = {
+const char * (theNameVar_ParamChantierPhotogram[2014]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -493,6 +493,7 @@ const char * (theNameVar_ParamChantierPhotogram[2012]) = {
 "          <NbBitsParPixel Nb=\"1\" Type=\"int\"> </NbBitsParPixel>\n",
 "          <IntegerType Nb=\"1\" Type=\"bool\"> </IntegerType>\n",
 "          <SignedType  Nb=\"1\" Type=\"bool\"> </SignedType>\n",
+"          <Offset  Nb=\"?\" Type=\"int\"> </Offset>\n",
 "\n",
 "          <Camera Nb=\"?\" Type=\"std::string\"> </Camera>\n",
 "          <BayPat Nb=\"?\" Type=\"std::string\"> </BayPat>\n",
@@ -737,6 +738,7 @@ const char * (theNameVar_ParamChantierPhotogram[2012]) = {
 "         <NameIm Nb=\"1\" Type=\"std::string\"> </NameIm>\n",
 "         <PrecPointeByIm Nb=\"?\" Type=\"double\"> </PrecPointeByIm>\n",
 "         <OneMesureAF1I Nb=\"*\">\n",
+"            <PrecPointe Nb=\"?\" Type=\"double\"> </PrecPointe>\n",
 "            <NamePt Nb=\"1\" Type=\"std::string\"> </NamePt>\n",
 "            <PtIm   Nb=\"1\" Type=\"Pt2dr\"> </PtIm>\n",
 "         </OneMesureAF1I>\n",

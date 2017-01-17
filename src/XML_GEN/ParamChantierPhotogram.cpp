@@ -3345,6 +3345,17 @@ const bool & cSpecifFormatRaw::SignedType()const
 }
 
 
+cTplValGesInit< int > & cSpecifFormatRaw::Offset()
+{
+   return mOffset;
+}
+
+const cTplValGesInit< int > & cSpecifFormatRaw::Offset()const 
+{
+   return mOffset;
+}
+
+
 cTplValGesInit< std::string > & cSpecifFormatRaw::Camera()
 {
    return mCamera;
@@ -3406,6 +3417,14 @@ void  BinaryUnDumpFromFile(cSpecifFormatRaw & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.Offset().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Offset().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Offset().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.Camera().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.Camera().ValForcedForUnUmp(),aFp);
         }
@@ -3446,6 +3465,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSpecifFormatRaw & anObj)
     BinaryDumpInFile(aFp,anObj.NbBitsParPixel());
     BinaryDumpInFile(aFp,anObj.IntegerType());
     BinaryDumpInFile(aFp,anObj.SignedType());
+    BinaryDumpInFile(aFp,anObj.Offset().IsInit());
+    if (anObj.Offset().IsInit()) BinaryDumpInFile(aFp,anObj.Offset().Val());
     BinaryDumpInFile(aFp,anObj.Camera().IsInit());
     if (anObj.Camera().IsInit()) BinaryDumpInFile(aFp,anObj.Camera().Val());
     BinaryDumpInFile(aFp,anObj.BayPat().IsInit());
@@ -3467,6 +3488,8 @@ cElXMLTree * ToXMLTree(const cSpecifFormatRaw & anObj)
    aRes->AddFils(::ToXMLTree(std::string("NbBitsParPixel"),anObj.NbBitsParPixel())->ReTagThis("NbBitsParPixel"));
    aRes->AddFils(::ToXMLTree(std::string("IntegerType"),anObj.IntegerType())->ReTagThis("IntegerType"));
    aRes->AddFils(::ToXMLTree(std::string("SignedType"),anObj.SignedType())->ReTagThis("SignedType"));
+   if (anObj.Offset().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Offset"),anObj.Offset().Val())->ReTagThis("Offset"));
    if (anObj.Camera().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Camera"),anObj.Camera().Val())->ReTagThis("Camera"));
    if (anObj.BayPat().IsInit())
@@ -3497,6 +3520,8 @@ void xml_init(cSpecifFormatRaw & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SignedType(),aTree->Get("SignedType",1)); //tototo 
 
+   xml_init(anObj.Offset(),aTree->Get("Offset",1)); //tototo 
+
    xml_init(anObj.Camera(),aTree->Get("Camera",1)); //tototo 
 
    xml_init(anObj.BayPat(),aTree->Get("BayPat",1)); //tototo 
@@ -3506,7 +3531,7 @@ void xml_init(cSpecifFormatRaw & anObj,cElXMLTree * aTree)
    xml_init(anObj.FocalEqui35(),aTree->Get("FocalEqui35",1)); //tototo 
 }
 
-std::string  Mangling( cSpecifFormatRaw *) {return "1631189C8D02CBA8FB3F";};
+std::string  Mangling( cSpecifFormatRaw *) {return "F858336FF6E0C8A3FB3F";};
 
 eTotoModeGeomMEC  Str2eTotoModeGeomMEC(const std::string & aName)
 {
@@ -6866,6 +6891,17 @@ void xml_init(cModifIncPtsFlottant & anObj,cElXMLTree * aTree)
 std::string  Mangling( cModifIncPtsFlottant *) {return "2690A7453F107480FD3F";};
 
 
+cTplValGesInit< double > & cOneMesureAF1I::PrecPointe()
+{
+   return mPrecPointe;
+}
+
+const cTplValGesInit< double > & cOneMesureAF1I::PrecPointe()const 
+{
+   return mPrecPointe;
+}
+
+
 std::string & cOneMesureAF1I::NamePt()
 {
    return mNamePt;
@@ -6889,12 +6925,22 @@ const Pt2dr & cOneMesureAF1I::PtIm()const
 
 void  BinaryUnDumpFromFile(cOneMesureAF1I & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.NamePt(),aFp);
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PrecPointe().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PrecPointe().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PrecPointe().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.NamePt(),aFp);
     BinaryUnDumpFromFile(anObj.PtIm(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cOneMesureAF1I & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.PrecPointe().IsInit());
+    if (anObj.PrecPointe().IsInit()) BinaryDumpInFile(aFp,anObj.PrecPointe().Val());
     BinaryDumpInFile(aFp,anObj.NamePt());
     BinaryDumpInFile(aFp,anObj.PtIm());
 }
@@ -6903,6 +6949,8 @@ cElXMLTree * ToXMLTree(const cOneMesureAF1I & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OneMesureAF1I",eXMLBranche);
+   if (anObj.PrecPointe().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PrecPointe"),anObj.PrecPointe().Val())->ReTagThis("PrecPointe"));
    aRes->AddFils(::ToXMLTree(std::string("NamePt"),anObj.NamePt())->ReTagThis("NamePt"));
    aRes->AddFils(::ToXMLTree(std::string("PtIm"),anObj.PtIm())->ReTagThis("PtIm"));
   aRes->mGXml = anObj.mGXml;
@@ -6915,12 +6963,14 @@ void xml_init(cOneMesureAF1I & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.PrecPointe(),aTree->Get("PrecPointe",1)); //tototo 
+
    xml_init(anObj.NamePt(),aTree->Get("NamePt",1)); //tototo 
 
    xml_init(anObj.PtIm(),aTree->Get("PtIm",1)); //tototo 
 }
 
-std::string  Mangling( cOneMesureAF1I *) {return "2D0F23327C6B4F9AFE3F";};
+std::string  Mangling( cOneMesureAF1I *) {return "D8A76302F738DCF6FBBF";};
 
 
 std::string & cMesureAppuiFlottant1Im::NameIm()
@@ -7020,7 +7070,7 @@ void xml_init(cMesureAppuiFlottant1Im & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneMesureAF1I(),aTree->GetAll("OneMesureAF1I",false,1));
 }
 
-std::string  Mangling( cMesureAppuiFlottant1Im *) {return "6A9B6A8F705B2CF9FE3F";};
+std::string  Mangling( cMesureAppuiFlottant1Im *) {return "1CC3D7D51E47AFF1FE3F";};
 
 
 std::list< cMesureAppuiFlottant1Im > & cSetOfMesureAppuisFlottants::MesureAppuiFlottant1Im()
@@ -7079,7 +7129,7 @@ void xml_init(cSetOfMesureAppuisFlottants & anObj,cElXMLTree * aTree)
    xml_init(anObj.MesureAppuiFlottant1Im(),aTree->GetAll("MesureAppuiFlottant1Im",false,1));
 }
 
-std::string  Mangling( cSetOfMesureAppuisFlottants *) {return "E87596C417EE159FFF3F";};
+std::string  Mangling( cSetOfMesureAppuisFlottants *) {return "414028A06C25BE9FFF3F";};
 
 
 std::list< std::string > & cOneMesureSegDr::NamePt()

@@ -491,6 +491,7 @@
           <NbBitsParPixel Nb="1" Type="int"> </NbBitsParPixel>
           <IntegerType Nb="1" Type="bool"> </IntegerType>
           <SignedType  Nb="1" Type="bool"> </SignedType>
+          <Offset  Nb="?" Type="int"> </Offset>
 
           <Camera Nb="?" Type="std::string"> </Camera>
           <BayPat Nb="?" Type="std::string"> </BayPat>
@@ -735,6 +736,7 @@
          <NameIm Nb="1" Type="std::string"> </NameIm>
          <PrecPointeByIm Nb="?" Type="double"> </PrecPointeByIm>
          <OneMesureAF1I Nb="*">
+            <PrecPointe Nb="?" Type="double"> </PrecPointe>
             <NamePt Nb="1" Type="std::string"> </NamePt>
             <PtIm   Nb="1" Type="Pt2dr"> </PtIm>
          </OneMesureAF1I>

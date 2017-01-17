@@ -957,6 +957,17 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
     mExifTiff_Date (cElDate::NoDate)
 {
 
+/*
+if (MPD_MM() && (!pta._bidon))
+{
+   std::cout << "OfffsstPTA= " << pta._offs0.CKK_AbsLLO() << " " << int(aBigTiff)<< "\n";
+}
+else
+{
+     std::cout << "OfffssBiiiddddon \n";
+}
+*/
+
     mUseFileTile = false;
     mSzFileTile = Pt2di(-10000,-10000);
     _byte_ordered = byte_ordered;
@@ -984,7 +995,7 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
 
     _sz = Pt2di(-1,-1);
     //  _phot_interp = (Tiff_Im::PH_INTER_TYPE) -1;
-    _phot_interp = Tiff_Im::BlackIsZero;  // Be lenient because IFP stugart do not know standard
+    _phot_interp = Tiff_Im::BlackIsZero;  // Be lenient because standard is not well supported
     _tiles_offset = 0;
     _tiles_byte_count = 0;
     _palette = 0;

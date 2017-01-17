@@ -1825,9 +1825,13 @@ class cBlockGlobalBundle
 
         cTplValGesInit< bool > & V0Stricte();
         const cTplValGesInit< bool > & V0Stricte()const ;
+
+        cTplValGesInit< double > & SigmaSimDist();
+        const cTplValGesInit< double > & SigmaSimDist()const ;
     private:
         cTplValGesInit< cXml_SigmaRot > mSigmaV0;
         cTplValGesInit< bool > mV0Stricte;
+        cTplValGesInit< double > mSigmaSimDist;
 };
 cElXMLTree * ToXMLTree(const cBlockGlobalBundle &);
 
@@ -1851,14 +1855,25 @@ class cUseForBundle
         cTplValGesInit< bool > & V0Stricte();
         const cTplValGesInit< bool > & V0Stricte()const ;
 
+        cTplValGesInit< double > & SigmaSimDist();
+        const cTplValGesInit< double > & SigmaSimDist()const ;
+
         cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle();
         const cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle()const ;
 
         bool & RelTimeBundle();
         const bool & RelTimeBundle()const ;
+
+        cTplValGesInit< bool > & RelDistTimeBundle();
+        const cTplValGesInit< bool > & RelDistTimeBundle()const ;
+
+        cTplValGesInit< bool > & GlobDistTimeBundle();
+        const cTplValGesInit< bool > & GlobDistTimeBundle()const ;
     private:
         cTplValGesInit< cBlockGlobalBundle > mBlockGlobalBundle;
         bool mRelTimeBundle;
+        cTplValGesInit< bool > mRelDistTimeBundle;
+        cTplValGesInit< bool > mGlobDistTimeBundle;
 };
 cElXMLTree * ToXMLTree(const cUseForBundle &);
 
@@ -1888,11 +1903,20 @@ class cBlockCamera
         cTplValGesInit< bool > & V0Stricte();
         const cTplValGesInit< bool > & V0Stricte()const ;
 
+        cTplValGesInit< double > & SigmaSimDist();
+        const cTplValGesInit< double > & SigmaSimDist()const ;
+
         cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle();
         const cTplValGesInit< cBlockGlobalBundle > & BlockGlobalBundle()const ;
 
         bool & RelTimeBundle();
         const bool & RelTimeBundle()const ;
+
+        cTplValGesInit< bool > & RelDistTimeBundle();
+        const cTplValGesInit< bool > & RelDistTimeBundle()const ;
+
+        cTplValGesInit< bool > & GlobDistTimeBundle();
+        const cTplValGesInit< bool > & GlobDistTimeBundle()const ;
 
         cTplValGesInit< cUseForBundle > & UseForBundle();
         const cTplValGesInit< cUseForBundle > & UseForBundle()const ;
@@ -4630,11 +4654,19 @@ class cObsBlockCamRig
 
         cTplValGesInit< cRigidBlockWeighting > & RelTimePond();
         const cTplValGesInit< cRigidBlockWeighting > & RelTimePond()const ;
+
+        cTplValGesInit< cRigidBlockWeighting > & GlobalDistPond();
+        const cTplValGesInit< cRigidBlockWeighting > & GlobalDistPond()const ;
+
+        cTplValGesInit< cRigidBlockWeighting > & RelTimeDistPond();
+        const cTplValGesInit< cRigidBlockWeighting > & RelTimeDistPond()const ;
     private:
         std::string mId;
         cTplValGesInit< bool > mShow;
         cTplValGesInit< cRigidBlockWeighting > mGlobalPond;
         cTplValGesInit< cRigidBlockWeighting > mRelTimePond;
+        cTplValGesInit< cRigidBlockWeighting > mGlobalDistPond;
+        cTplValGesInit< cRigidBlockWeighting > mRelTimeDistPond;
 };
 cElXMLTree * ToXMLTree(const cObsBlockCamRig &);
 

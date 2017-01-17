@@ -49,6 +49,9 @@
 
  	   <Symb>  PoseFigee=false </Symb>
 
+ 	   <Symb>  WithPatPoseFigee=false </Symb>
+ 	   <Symb>  PatPoseFigee=XXXX </Symb>
+
 
            <eSymb>  NotCPI=! ${CPI} </eSymb>
            <eSymb>  DetailAppuis=0 </eSymb>
@@ -92,6 +95,9 @@
            <Symb> NameInputBloc=XXX </Symb>
            <Symb> NameOutputBloc=XXX </Symb>
 
+           <Symb> WithBloc_DistGlob=false  </Symb>
+           <Symb> PdsBlocTr0_DistGlob=XXXX  </Symb>
+           <Symb> PdsBlocTrFin_DistGlob=XXXX  </Symb>
            
            <Symb> WithBloc_TimeRel=false  </Symb>
            <Symb> PdsBlocTr0_TimeRel=XXX  </Symb>
@@ -109,6 +115,7 @@
            <Symb> WBG_Ang=xxxxx  </Symb>
            <Symb> WBG_Center=xxxxx  </Symb>
 
+           <eSymb> With_BlockGlobalBundle=Or ${WithBloc_Glob} ${WithBloc_DistGlob}  </eSymb>
           
            <Symb> UseHom=true  </Symb>
  
@@ -240,7 +247,7 @@
                       <NameFile>  ${NameInputBloc}  </NameFile>
                       <Id> TheBlock </Id>
                       <UseForBundle>
-                           <#WHEN  VTEST=${WithBloc_Glob}>
+                           <#WHEN  VTEST=${With_BlockGlobalBundle}>
                                <BlockGlobalBundle >   
                                    <#WHEN  VTEST=${WBG_Sigma}>
                                        <SigmaV0>
@@ -252,6 +259,7 @@
                                </BlockGlobalBundle>
                            </#WHEN>
                            <RelTimeBundle >  ${WithBloc_TimeRel}  </RelTimeBundle>
+                           <GlobDistTimeBundle >  ${WithBloc_DistGlob}  </GlobDistTimeBundle>
                       </UseForBundle>
                  </BlockCamera>
              </#WHEN>
@@ -308,11 +316,18 @@
                           </ContraintesCamerasInc>
 		          
  			<#WHEN VTEST=${PoseFigee}>
-			 <ContraintesPoses>
-			     <NamePose>   .* </NamePose>
-  			     <ByPattern>  true </ByPattern>
-			     <Val>      ePoseFigee   </Val>
-		          </ContraintesPoses>	
+			     <ContraintesPoses>
+			         <NamePose>   .* </NamePose>
+  			         <ByPattern>  true </ByPattern>
+			         <Val>      ePoseFigee   </Val>
+		              </ContraintesPoses>	
+			</#WHEN>
+ 			<#WHEN VTEST=${WithPatPoseFigee}>
+			     <ContraintesPoses>
+			         <NamePose>   ${PatPoseFigee} </NamePose>
+  			         <ByPattern>  true </ByPattern>
+			         <Val>      ePoseFigee   </Val>
+		              </ContraintesPoses>	
 			</#WHEN>
 
                        </SectionContraintes>
@@ -443,13 +458,6 @@
                         </CtrlTimeCompens>
                     </IterationsCompensation>
 
-<!--
-                    <#WHEN VTEST=${WithBloc}>
-                        <IterationsCompensation>
-                        </IterationsCompensation>
-                    </#WHEN>
--->
-
 		    <SectionObservations>
                           <#WHEN  VTEST=${UseHom}>
                               <ObsLiaisons>
@@ -526,6 +534,18 @@
                                            <PondOnRotFinal> ${PdsBlocRotFin_TimeRel} </PondOnRotFinal>
                                         </RelTimePond>
                                     </#WHEN>
+                                    <#WHEN VTEST=${WithBloc_DistGlob}>
+                                        <GlobalDistPond> 
+                                           <PondOnTr>      ${PdsBlocTr0_DistGlob}    </PondOnTr>
+                                           <PondOnTrFinal> ${PdsBlocTrFin_DistGlob}  </PondOnTrFinal>
+                                           <!-- PdsRot : Fake, unused values -->
+                                           <PondOnRot>  1.0 </PondOnRot>
+                                           <PondOnRotFinal> 1.0 </PondOnRotFinal>
+                                        </GlobalDistPond>
+                                    </#WHEN>
+
+
+
                                 </ObsBlockCamRig>
                           </#WHEN>
 
