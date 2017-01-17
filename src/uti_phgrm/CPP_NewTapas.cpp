@@ -135,7 +135,7 @@ void Tapas_Banniere()
 }
 
 
-#define  NbModele 27
+#define  NbModele 29
 
 const char * Modele[NbModele] = {
                                    "RadialBasic",     // 0
@@ -159,15 +159,17 @@ const char * Modele[NbModele] = {
                                    "AddFour15x2",         // 17
                                    "AddFour19x2",         // 18
 
-                                   "AddPolyDeg2",          // 19
-                                   "AddPolyDeg3",          // 20
-                                   "AddPolyDeg4",          // 21
-                                   "AddPolyDeg5",          // 22
-                                   "AddPolyDeg6",          // 23
-                                   "AddPolyDeg7",          // 24
+                                   "AddPolyDeg0",          // 19
+                                   "AddPolyDeg1",          // 20
+                                   "AddPolyDeg2",          // 21
+                                   "AddPolyDeg3",          // 22
+                                   "AddPolyDeg4",          // 23
+                                   "AddPolyDeg5",          // 24
+                                   "AddPolyDeg6",          // 25
+                                   "AddPolyDeg7",          // 26
 
-                                   "Ebner",                // 25
-                                   "Brown"                 // 26
+                                   "Ebner",                // 27
+                                   "Brown"                 // 28
 
                                 };
 
@@ -316,7 +318,7 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
         LocDegGen = 1;
         LocLibDec = false;
     }
-    else if ((aKModele>=15) && (aKModele<=24))
+    else if ((aKModele>=15) && (aKModele<=26))
     {
         ModeleAdditional= true;
         ModeleAddFour= (aKModele<=18);
@@ -333,13 +335,13 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
               LocDRadMaxUSer = 0;
               LocLibDec = false;
               LocLibCD = false;
-              LocDegGen = 2 + (aKModele-19);
+              LocDegGen =  (aKModele-19);
               TheModelAdd = "eModelePolyDeg" +  ToString(LocDegGen);
         }
         eModAutom = "eCalibAutomNone";
     }
-    else if (     (aMod==Modele[25]) // Ebner
-              ||  (aMod==Modele[26]) // Brown
+    else if (     (aMod==Modele[27]) // Ebner
+              ||  (aMod==Modele[28]) // Brown
            )
     {
         eModAutom = "eCalibAutom" + aMod;

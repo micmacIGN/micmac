@@ -1111,12 +1111,59 @@ class cDistRadialeFormelle : public cElemEqFormelle,
 	   double                     mTolCoeffs;
 };
 
+class cPIFRegulDist
+{
+    public :
+      cPIFRegulDist();
+      cP2d_Etat_PhgrF  *         mRegulDistDxyP1;
+      cP2d_Etat_PhgrF  *         mRegulDistDxyP2;
+      cP2d_Etat_PhgrF  *         mRegulDistDxyP3;
+      cP2d_Etat_PhgrF  *         mRegulDistDxyP4;
+
+      cP2d_Etat_PhgrF  *         mRegulDistDxxP1;
+      cP2d_Etat_PhgrF  *         mRegulDistDxxP2;
+      cP2d_Etat_PhgrF  *         mRegulDistDxxP3;
+
+      cP2d_Etat_PhgrF  *         mRegulDistDxP1;
+      cP2d_Etat_PhgrF  *         mRegulDistDxP2;
+      cP2d_Etat_PhgrF  *         mRegulDistKnownDer;
+
+      cP2d_Etat_PhgrF  *         mRegulDistValP1;
+      cP2d_Etat_PhgrF  *         mRegulDistKnownVal;
+
+      std::string                mNameRegDistDxDy;
+      std::string                mNameRegDistD2;  // Partage pour Dxx Dyy
+      std::string                mNameRegDistGrad;  // Partage pour Dx et Dy
+      std::string                mNameRegDistVal;  // Partage pour Dx et Dy
+
+      cElCompiledFonc *          mFER_DxDy; 
+      cElCompiledFonc *          mFER_Dxx; 
+      // cElCompiledFonc *          mFER_Dyy; 
+      cElCompiledFonc *          mFER_Dx; 
+      // cElCompiledFonc *          mFER_Dy; 
+      cElCompiledFonc *          mFER_Val; 
+      Im2D_REAL4                 mImPdsDef;
+};
+
+class cPIFRegulConseq
+{
+    public :
+        cPIFRegulConseq(cParamIntrinsequeFormel * aSuiv,bool WithR);
+
+        cParamIntrinsequeFormel * mSuiv;
+        bool                      mWithR;
+        std::string               mNameType;
+        cIncListInterv            mLInterv;
+        cEqfP3dIncTmp *           mEqP3I;
+};
 
 
 class cParamIntrinsequeFormel : public cElemEqFormelle,
                                 public cObjFormel2Destroy
 {
 	public  :
+
+           void AddRegulConseq(cParamIntrinsequeFormel*,bool WithR);
 
            void AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aPdsGrad,double aPdsD2);
            void AddCstrRegulGlob(int aNbEch,double aPdsVal,double aPdsGrad,double aPdsD2,Im2D_REAL4 * aFoncPds=0);
@@ -1226,6 +1273,7 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
 	    // Ne fait pas "Close", doit etre fait pres construction
 	    // des derives, donc est fait par l'allocateur static
 	    // de cSetEqFormelles
+            void AssertRegIsInit();
             virtual void Virtual_CloseEEF();
             cParamIntrinsequeFormel
 		    (
@@ -1268,45 +1316,8 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
 	     double                     mTolAF2;
              ElProjStenopeGen<Fonc_Num> mProjStenF;
 
-             cP2d_Etat_PhgrF  *         mRegulDistDxyP1;
-             cP2d_Etat_PhgrF  *         mRegulDistDxyP2;
-             cP2d_Etat_PhgrF  *         mRegulDistDxyP3;
-             cP2d_Etat_PhgrF  *         mRegulDistDxyP4;
-
-             cP2d_Etat_PhgrF  *         mRegulDistDxxP1;
-             cP2d_Etat_PhgrF  *         mRegulDistDxxP2;
-             cP2d_Etat_PhgrF  *         mRegulDistDxxP3;
-
-/*
-             cP2d_Etat_PhgrF  *         mRegulDistDyyP1;
-             cP2d_Etat_PhgrF  *         mRegulDistDyyP2;
-             cP2d_Etat_PhgrF  *         mRegulDistDyyP3;
-*/
-
-             cP2d_Etat_PhgrF  *         mRegulDistDxP1;
-             cP2d_Etat_PhgrF  *         mRegulDistDxP2;
-             cP2d_Etat_PhgrF  *         mRegulDistKnownDer;
-
-/*
-             cP2d_Etat_PhgrF  *         mRegulDistDyP1;
-             cP2d_Etat_PhgrF  *         mRegulDistDyP2;
-*/
-
-             cP2d_Etat_PhgrF  *         mRegulDistValP1;
-             cP2d_Etat_PhgrF  *         mRegulDistKnownVal;
-
-             std::string                mNameRegDistDxDy;
-             std::string                mNameRegDistD2;  // Partage pour Dxx Dyy
-             std::string                mNameRegDistGrad;  // Partage pour Dx et Dy
-             std::string                mNameRegDistVal;  // Partage pour Dx et Dy
-
-             cElCompiledFonc *          mFER_DxDy; 
-             cElCompiledFonc *          mFER_Dxx; 
-             // cElCompiledFonc *          mFER_Dyy; 
-             cElCompiledFonc *          mFER_Dx; 
-             // cElCompiledFonc *          mFER_Dy; 
-             cElCompiledFonc *          mFER_Val; 
-             Im2D_REAL4                 mImPdsDef;
+             cPIFRegulDist *            mReg;
+             cPIFRegulConseq *          mRegCons;
       private :
             virtual  Pt2d<Fonc_Num> VirtualDist(Pt2d<Fonc_Num>,bool UsePC=true,int aKCam=0);
             cIncListInterv mLInterv;
@@ -2958,6 +2969,10 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
           // cIncListInterv                               mLInterv;
           // cCamStenopeBilin                             
 };
+
+// Variable globale pour savoir si il faut initaliser la regul dist
+extern bool GlobUseRegulDist;
+extern bool GlobUseRegulCamConseq;
 
 
 

@@ -2916,6 +2916,12 @@ class cSectionChantier
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & UseRegulDist();
+        const cTplValGesInit< bool > & UseRegulDist()const ;
+
+        cTplValGesInit< bool > & UseRegulCamConseq();
+        const cTplValGesInit< bool > & UseRegulCamConseq()const ;
+
         cTplValGesInit< bool > & GBCamSupresStenCam();
         const cTplValGesInit< bool > & GBCamSupresStenCam()const ;
 
@@ -2982,6 +2988,8 @@ class cSectionChantier
         cTplValGesInit< double > & ThresholdWarnPointsBehind();
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
+        cTplValGesInit< bool > mUseRegulDist;
+        cTplValGesInit< bool > mUseRegulCamConseq;
         cTplValGesInit< bool > mGBCamSupresStenCam;
         cTplValGesInit< bool > mStenCamSupresGBCam;
         cTplValGesInit< bool > mIsAperiCloud;
@@ -6731,6 +6739,12 @@ class cParamApero
 
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
+
+        cTplValGesInit< bool > & UseRegulDist();
+        const cTplValGesInit< bool > & UseRegulDist()const ;
+
+        cTplValGesInit< bool > & UseRegulCamConseq();
+        const cTplValGesInit< bool > & UseRegulCamConseq()const ;
 
         cTplValGesInit< bool > & GBCamSupresStenCam();
         const cTplValGesInit< bool > & GBCamSupresStenCam()const ;

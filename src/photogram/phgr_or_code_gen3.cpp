@@ -101,6 +101,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CFraser_PPaEqPPs.cpp"
 
 
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CPolyn0.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CPolyn0.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CPolyn0.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CPolyn0.cpp"
+
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CPolyn1.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CPolyn1.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CPolyn1.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CPolyn1.cpp"
+
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CPolyn2.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CPolyn2.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CPolyn2.cpp"
@@ -156,6 +166,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CPolyn0.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CPolyn0.cpp"
+
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CPolyn1.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CPolyn1.cpp"
 
 #include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CPolyn2.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CPolyn2.cpp"

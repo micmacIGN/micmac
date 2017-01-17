@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1745]) = {
+const char * (theNameVar_ParamApero[1748]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -940,6 +940,9 @@ const char * (theNameVar_ParamApero[1745]) = {
 "\n",
 "\n",
 "        <SectionChantier Nb=\"1\">\n",
+"\n",
+"              <UseRegulDist  Type=\"bool\" Nb=\"?\" Def=\"false\"> </UseRegulDist>\n",
+"              <UseRegulCamConseq  Type=\"bool\" Nb=\"?\" Def=\"false\"> </UseRegulCamConseq>\n",
 "\n",
 "              <GBCamSupresStenCam  Type=\"bool\" Nb=\"?\" Def=\"true\"> </GBCamSupresStenCam>\n",
 "              <StenCamSupresGBCam  Type=\"bool\" Nb=\"?\" Def=\"false\"> </StenCamSupresGBCam>\n",

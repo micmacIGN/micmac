@@ -939,6 +939,9 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
         <SectionChantier Nb="1">
 
+              <UseRegulDist  Type="bool" Nb="?" Def="false"> </UseRegulDist>
+              <UseRegulCamConseq  Type="bool" Nb="?" Def="false"> </UseRegulCamConseq>
+
               <GBCamSupresStenCam  Type="bool" Nb="?" Def="true"> </GBCamSupresStenCam>
               <StenCamSupresGBCam  Type="bool" Nb="?" Def="false"> </StenCamSupresGBCam>
 

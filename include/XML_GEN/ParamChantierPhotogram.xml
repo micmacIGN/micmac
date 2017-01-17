@@ -366,6 +366,9 @@
         <eModeleRadFour11x2 >     </eModeleRadFour11x2>
         <eModeleRadFour15x2 >     </eModeleRadFour15x2>
         <eModeleRadFour19x2 >     </eModeleRadFour19x2>
+
+        <eModelePolyDeg0 >     </eModelePolyDeg0>
+        <eModelePolyDeg1 >     </eModelePolyDeg1>
    </enum>
 
 

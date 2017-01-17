@@ -41,6 +41,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define BDDL_FIRST 0
 
+bool GlobUseRegulDist = false;
+bool GlobUseRegulCamConseq = false;
+
 
 // Pt2dr BugIM(2591.0926,483.7226);
 // Pt3dr BugTER(921804.4349,3212619.4133,889.2173);
@@ -99,6 +102,10 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mNumCalib          (0),
    mNumImage          (0)
 {
+
+     GlobUseRegulDist =  mParam.UseRegulDist().Val() ;
+     GlobUseRegulCamConseq = mParam.UseRegulCamConseq().Val();
+
      mIsLastIter = false;
      mIsLastEtape = false;
 

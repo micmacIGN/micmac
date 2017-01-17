@@ -3511,9 +3511,6 @@ std::vector<ElRotation3D> OrientTomasiKanade
                              std::vector<ElRotation3D> * aVRotInit
                           );
 
-
-
-
 #endif // !  _ELISE_GENERAL_PHOTOGRAM_H
 
 

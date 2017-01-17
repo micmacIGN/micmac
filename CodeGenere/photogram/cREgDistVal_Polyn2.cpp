@@ -26,12 +26,9 @@ void cREgDistVal_Polyn2::ComputeVal()
    double tmp9_ = (tmp3_) * (tmp3_);
    double tmp10_ = (tmp1_) * (tmp1_);
 
-
   mVal[0] = (mLocPolyn2_State_1_0 + (((1 + tmp4_) * (tmp1_) + tmp5_ * (tmp3_)) - tmp6_ * 2 * tmp10_ + tmp8_ * tmp7_ + mCompCoord[7] * tmp9_) * mLocPolyn2_State_0_0) - mLocRegDistKnownVal_x;
 
   mVal[1] = (mLocPolyn2_State_2_0 + (((1 - tmp4_) * (tmp3_) + tmp5_ * (tmp1_) + tmp6_ * tmp7_) - tmp8_ * 2 * tmp9_ + mCompCoord[8] * tmp10_) * mLocPolyn2_State_0_0) - mLocRegDistKnownVal_y;
-
-
 
 }
 
@@ -74,7 +71,6 @@ void cREgDistVal_Polyn2::ComputeValDeriv()
   mCompDer[1][6] = -(2 * tmp6_) * mLocPolyn2_State_0_0;
   mCompDer[1][7] = 0;
   mCompDer[1][8] = tmp4_ * mLocPolyn2_State_0_0;
-
 }
 
 
