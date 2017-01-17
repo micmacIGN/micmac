@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-
+#include "Apero/Apero.h"
 #define DEF_OFSET -12349876
 
 //                   1  X  Y  X2 XY Y2
@@ -250,6 +250,144 @@ int GCPCtrl_main(int argc,char ** argv)
 
     }
     else return EXIT_SUCCESS;
+}
+
+//extern bool L2SYM;
+extern const char * theNameVar_ParamApero[];
+int GCPCtrlPly_main(int argc,char ** argv)
+{
+    
+    MMD_InitArgcArgv(argc,argv);
+    std::string  aDir,aPat,aFullDir;
+
+
+    std::string AeroIn;
+    std::string DicoPts;
+    std::string MesureIm;
+    bool        CPI = false;
+    bool ShowUnused = true;
+
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile)
+                    << EAMC(AeroIn,"Orientation in", eSAM_IsExistDirOri)
+                    << EAMC(DicoPts,"Ground Control Points File", eSAM_IsExistFile)
+                    << EAMC(MesureIm,"Image Measurements File", eSAM_IsExistFile),
+        LArgMain()
+                    <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
+                    <<  EAM(ShowUnused,"ShowU",true,"Show unused point (def=true)", eSAM_IsBool)
+    );
+
+    if (!MMVisualMode)
+    {
+    #if (ELISE_windows)
+        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+    #endif
+    }
+    SplitDirAndFile(aDir,aPat,aFullDir);
+    StdCorrecNameOrient(AeroIn,aDir);
+  
+
+    /* Prepare the input arguments */    
+    argc = 7;
+    char** n_argv = new char *[argc];
+
+    std::string aArg1 = "Apero";
+    std::string::iterator aArgIt=aArg1.begin();
+    char* aChr = &(*aArgIt);
+    n_argv[0] = aChr;
+    
+    std::string aArg3 = ( MMDir()+"include/XML_MicMac/Apero-GCP-Control.xml" );
+    std::string::iterator aArgIt3=aArg3.begin();
+    char* aChr3 = &(*aArgIt3);
+    n_argv[1] = aChr3;
+
+    std::string aArg4 = std::string("DirectoryChantier=") +aDir;
+    std::string::iterator aArgIt4=aArg4.begin();
+    char* aChr4 = &(*aArgIt4);
+    n_argv[2] = aChr4;
+
+    std::string aArg5 = std::string("+PatternAllIm=") + QUOTE(aPat);
+    std::string::iterator aArgIt5=aArg5.begin();
+    char* aChr5 = &(*aArgIt5);
+    n_argv[3] = aChr5;
+
+    std::string aArg6 = std::string("+AeroIn=") + AeroIn;
+    std::string::iterator aArgIt6=aArg6.begin();
+    char* aChr6 = &(*aArgIt6);
+    n_argv[4] = aChr6;
+
+    std::string aArg7 = std::string("+DicoApp=") +  DicoPts;
+    std::string::iterator aArgIt7=aArg7.begin();
+    char* aChr7 = &(*aArgIt7);
+    n_argv[5] = aChr7;
+
+    std::string aArg8 = std::string("+SaisieIm=") +  MesureIm;
+    std::string::iterator aArgIt8=aArg8.begin();
+    char* aChr8 = &(*aArgIt8);
+    n_argv[6] = aChr8;
+
+    MMD_InitArgcArgv(argc,n_argv);
+
+
+
+    AddEntryStringifie
+    (
+#if ELISE_windows
+        "include\\XML_GEN\\ParamApero.xml",
+#else
+        "include/XML_GEN/ParamApero.xml",
+#endif
+        theNameVar_ParamApero,
+        true
+     );
+
+    std::string aNameSauv = "SauvApero.xml";
+    if ( isUsingSeparateDirectories() ) aNameSauv=MMLogDirectory()+aNameSauv;
+
+    cResultSubstAndStdGetFile<cParamApero> aP2
+    (
+         argc-2,n_argv+2,
+         n_argv[1],
+         StdGetFileXMLSpec("ParamApero.xml"),
+         "ParamApero",
+         "ParamApero",
+         "DirectoryChantier",
+         "FileChantierNameDescripteur",
+         aNameSauv.c_str()
+    );
+    ::DebugPbCondFaisceau = aP2.mObj->DebugPbCondFaisceau().Val();
+
+    //L2SYM = aP2.mObj->AllMatSym().Val();
+    cAppliApero   anAppli (aP2);
+
+
+    if (anAppli.ModeMaping())
+    {
+        anAppli.DoMaping(argc,n_argv);
+    }
+    else
+    {
+        anAppli.DoCompensation();
+    }
+
+
+    cElWarning::ShowWarns( ( isUsingSeparateDirectories()?MMTemporaryDirectory():anAppli.DC() ) + "WarnApero.txt");
+    ShowFClose();
+    
+
+
+    /*delete aChr;
+    delete aChr3;
+    delete aChr4;
+    delete aChr5;
+    delete aChr6;
+    delete aChr7;
+    delete aChr8;
+*/
+    return 0;
 }
 
 
