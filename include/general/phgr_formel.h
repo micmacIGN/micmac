@@ -1163,8 +1163,8 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
 {
 	public  :
 
+           void AddRegulConseq(int aNbGrids,double aSigmaPix);
            void AddRegulConseq(cParamIntrinsequeFormel*,bool WithR);
-
            void AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aPdsGrad,double aPdsD2);
            void AddCstrRegulGlob(int aNbEch,double aPdsVal,double aPdsGrad,double aPdsD2,Im2D_REAL4 * aFoncPds=0);
 
@@ -1674,6 +1674,9 @@ class cCameraFormelle :  public cGenPDVFormelle
           const std::string & Name() const;
           eModeContrRot  ModeRot() const;
 	  void SetModeRot(eModeContrRot);
+          void SetNameIm(const std::string & aNameIm);
+          const std::string & NameIm() const ;
+
 
 
 
@@ -1780,6 +1783,7 @@ class cCameraFormelle :  public cGenPDVFormelle
           cParamIntrinsequeFormel &   mIntr;
           cRotationFormelle *         mRot;
 	  std::string                 mName;
+	  std::string                 mNameIm;
 
           cEqAppui *                    mEqAppuiTerNoGL;
           cEqAppui *                    mEqAppuiTerGL;

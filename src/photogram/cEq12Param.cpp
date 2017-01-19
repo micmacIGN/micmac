@@ -242,7 +242,7 @@ static std::string aTCS_PrefGen="TmpChSysCo";
 void AffinePose(ElCamera & aCam,const std::vector<Pt2dr> & aVIm,const std::vector<Pt3dr> & aVPts)
 {
 
-    std::string aNameCam =  aCam.IdCam() ;
+    std::string aNameCam =  aCam.NameIm() ;
     std::string aDirOriTmp = "-"+aTCS_PrefGen;
 
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::Glob();

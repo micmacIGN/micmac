@@ -4530,7 +4530,7 @@ CamStenope * Std_Cal_From_CIC
     {
         aRes->SetIntrImaC2M(AfGC2M(aCIC));
     }
-    aRes->SetIdCam(aNameFile);
+    aRes->SetIdentCam(aNameFile);
     return aRes;
 }
 
@@ -4624,7 +4624,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
                aRayonInv=aCIC.RayonUtile().Val();
          }
          CamStenope * aCS = Std_Cal_From_CIC(aCIC,aNameFile);
-         aCS->SetIdCam(aNameFile);
+         aCS->SetIdentCam(aNameFile);
 
 
 
@@ -4638,7 +4638,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
                   aStepGr =aCIC.ParamForGrid().Val().StepGrid();
              }
              aCS = cCamStenopeGrid::Alloc(aRayonInv,*aCS,aStepGr);
-             aCS->SetIdCam(aNameFile);
+             aCS->SetIdentCam(aNameFile);
          }
          aRes = aCS;
       }
@@ -4820,7 +4820,7 @@ ElCamera * Gen_Cam_Gen_From_File
        ElCamera * aRes = Gen_Cam_Gen_From_XML(CanUseGr,anOC,anICNM,DirOfFile(aNameFile),aNameFile);
 
 
-       aRes->SetIdCam(aNameFileOri);
+       aRes->SetIdentCam(aNameFileOri);
        return aRes;
    }
    if ((StdPostfix(aNameFile)=="ori") || (StdPostfix(aNameFile)=="ORI") )

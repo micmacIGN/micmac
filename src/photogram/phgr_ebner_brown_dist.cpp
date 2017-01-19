@@ -1245,7 +1245,7 @@ cPIF_Unif<TDistR,TDistF,NbVar,NbState>::cPIF_Unif
   for (int aK=0 ; aK< NbVar ; aK++)
   {
       mVarIsFree[aK] = true;
-      mVars[aK] =  aSet.Alloc().NewF(aCS->IdCam(),mNamePolyn[aK],&(mDistCur.KVar(aK)));
+      mVars[aK] =  aSet.Alloc().NewF(aCS->IdentCam(),mNamePolyn[aK],&(mDistCur.KVar(aK)));
       mTolCstr[aK] = cContrainteEQF::theContrStricte;
   }
 

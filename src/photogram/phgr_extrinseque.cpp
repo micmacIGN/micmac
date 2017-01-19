@@ -974,6 +974,7 @@ cCameraFormelle::cCameraFormelle
    mIntr       (anIntr),
    mRot        (mSet.NewRotation(aMode,aRot, ((pCamAttach==0) ? 0 : pCamAttach->mRot),aName)),
    mName       (aName),
+   mNameIm     (""),
 
    mEqAppuiTerNoGL(NULL),
    mEqAppuiTerGL(NULL),
@@ -1002,6 +1003,16 @@ cCameraFormelle::cCameraFormelle
 
 }
 
+
+void cCameraFormelle::SetNameIm(const std::string & aNameIm)
+{
+   mNameIm = aNameIm;
+}
+
+const std::string  & cCameraFormelle::NameIm() const
+{
+   return mNameIm;
+}
 
 
 cCameraFormelle::~cCameraFormelle(){
@@ -1303,7 +1314,8 @@ ElRotation3D cCameraFormelle::CurRot()
 CamStenope * cCameraFormelle::CalcCameraCourante()
 {
    CamStenope * aCS = mIntr.DupCurPIF();
-   aCS->SetIdCam(mName);
+   aCS->SetIdentCam(mName);
+   aCS->SetNameIm(mNameIm);
 // std::cout << "Hhhhhhhhhhhjkj  NAME = " << mName << "\n";
    aCS->Dist().SetName(mName.c_str());
    aCS->SetOrientation(CurRot().inv());

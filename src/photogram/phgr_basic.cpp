@@ -1987,7 +1987,7 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     // mAltiSol       (-1e30),
     mProfondeurIsDef (false),
     mProfondeur       (0),
-    mIdCam               ("NoCamName"),
+    mIdentCam         ("NoCamName"),
     //mPrecisionEmpriseSol (1e30),
     mRayonUtile (-1),
     mHasDomaineSpecial  (false),
@@ -2546,12 +2546,6 @@ const std::vector<Pt2dr> &  ElCamera::ContourUtile()
 
 const Pt2di & ElCamera::Sz() const
 {
-/*
-static int aCpt=0; aCpt++;
-std::cout << "SIZE " << aCpt  << " " << mIdCam << "\n";
-if (aCpt == 16) getchar();
-*/
-
    ELISE_ASSERT((mSz.x>0),"ElCamera::Sz non initialisee");
    return mSz;
 }
@@ -2636,15 +2630,32 @@ void ElCamera::TestCam( const std::string & aMes)
     std::cout << "TC " << aMes << " "  << this << " "  << mTrN  << mGlobOrImaC2M(Pt2dr(0,0)) << "\n";
 }
 
-
-
-const std::string &  ElCamera::IdCam() const
+const std::string &  ElCamera::NameIm() const
 {
-   return mIdCam;
+   return mNameIm;
 }
-void ElCamera::SetIdCam(const std::string & aName)
+void ElCamera::SetNameIm(const std::string & aName)
 {
-   mIdCam  = aName;
+    mNameIm = aName;
+}
+
+
+const std::string &  ElCamera::IdentCam() const
+{
+   return mIdentCam;
+}
+void ElCamera::SetIdentCam(const std::string & aName)
+{
+/*
+if (MPD_MM())
+{
+   {
+       std::cout  << mIdentCam << " ==*==MM== " << aName << " \n";
+       getchar();
+   }
+}
+*/
+   mIdentCam  = aName;
 }
 
 
@@ -2656,7 +2667,8 @@ void  ElCamera::HeritComplAndSz(const ElCamera & aCam)
 
 void  ElCamera::CamHeritGen(const ElCamera & aCam,bool WithCompl,bool WithOrientInterne)
 {
-   SetIdCam(aCam.IdCam());
+   SetIdentCam(aCam.IdentCam());
+   SetNameIm(aCam.NameIm());
  //  std::cout << "HHHHHH ii " << this << "\n"; dd
 
    if (WithOrientInterne)
@@ -4065,7 +4077,7 @@ bool CamStenope::CanExportDistAsGrid() const
 
 CamStenope * CamStenope::Dupl() const
 {
-  return NS_ParamChantierPhotogram::Cam_Gen_From_XML(StdExportCalibGlob(),0,IdCam())->CS();
+  return NS_ParamChantierPhotogram::Cam_Gen_From_XML(StdExportCalibGlob(),0,IdentCam())->CS();
 }
 
 

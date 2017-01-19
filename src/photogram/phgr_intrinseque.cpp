@@ -561,20 +561,13 @@ cParamIntrinsequeFormel::cParamIntrinsequeFormel
    mAFocInit       (mCamInit->ParamAF()),
    mCurAFoc        (mAFocInit),
    mFFoc           (  ParamVar ?
-		      aSet.Alloc().NewF(aCamInit->IdCam(),"F",&mCurFocale) :
+		      aSet.Alloc().NewF(aCamInit->IdentCam(),"F",&mCurFocale) :
 		      Fonc_Num(mFocaleInit)
 		   ),
    mIndPP          (aSet.Alloc().CurInc()),
    mFPP            (
 		        ParamVar ?
-/*
-		        Pt2d<Fonc_Num>
-                        (
-		             aSet.Alloc().NewF(aCamInit->IdCam(),"PPx",&mCurPP.x) ,
-		             aSet.Alloc().NewF(aCamInit->IdCam(),"PPy",&mCurPP.y)  
-                        ):
-*/
-		        aSet.Alloc().NewPt2(aCamInit->IdCam(),&(mCurPP.x),&(mCurPP.y),false,"PPx","PPy") :
+		        aSet.Alloc().NewPt2(aCamInit->IdentCam(),&(mCurPP.x),&(mCurPP.y),false,"PPx","PPy") :
 		        Pt2d<Fonc_Num>(mPPInit.x,mPPInit.y)
                    ),
    mIndAF          (aSet.Alloc().CurInc()),
@@ -593,6 +586,42 @@ cParamIntrinsequeFormel::cParamIntrinsequeFormel
   NV_UpdateCurPIF();
 }
 
+void  cParamIntrinsequeFormel::AddRegulConseq(int aNbGrids,double aSigmaPix)
+{
+    if (! mRegCons)
+    {
+        // std::cout << "RRetettttturnnn \n";
+        return;
+    }
+
+    CamStenope * aCamCur = CurPIF();
+    double aPds = 1/ElSquare(aSigmaPix/ aCamCur->ScaleCamNorm());
+    aPds /= 1/ElSquare(aNbGrids+1);
+
+ 
+    Pt2dr aP0 = aCamCur->NormC2M(Pt2dr(0,0));
+    Pt2dr aP1 = aCamCur->NormC2M(Pt2dr(mCamInit->Sz()));
+
+    for (int aKx=0 ; aKx<=aNbGrids ; aKx++)
+    {
+       for (int aKy=0 ; aKy<=aNbGrids ; aKy++)
+       {
+           Pt2dr aPProp(  (0.5+aKx)/(1+aNbGrids) , (0.5+aKy)/(1+aNbGrids)  );
+           Pt2dr aPIm (
+                          aP0.x * aPProp.x + aP1.x * (1-aPProp.x),
+                          aP0.y * aPProp.y + aP1.y * (1-aPProp.y)
+                      );
+            aPIm = aPProp.mcbyc(Pt2dr(mCamInit->Sz()));
+
+           Pt3dr aDirRay =   aCamCur->F2toDirRayonL3(aPIm);
+
+           std::cout << "PPIImmmMMm " << aPIm  <<  " " << aDirRay << " " <<  aCamCur->F2toC2(aPIm) << "\n";
+           std::cout << aCamCur->Focale() << " " <<  aCamCur->PP() << " INIT: " << mCamInit->Focale() << " " <<  mCamInit->PP()  << "\n";
+           // Pt2dr 
+       }
+    }
+}
+
 void cParamIntrinsequeFormel::AddRegulConseq(cParamIntrinsequeFormel* aSuiv,bool WithR)
 {
    ELISE_ASSERT
@@ -601,7 +630,8 @@ void cParamIntrinsequeFormel::AddRegulConseq(cParamIntrinsequeFormel* aSuiv,bool
       "Mix camera type in AddRegulConseq"
    );
    mRegCons = new cPIFRegulConseq(aSuiv,WithR);
-   mRegCons->mEqP3I = mSet.Pt3dIncTmp();
+   if (WithR)
+       mRegCons->mEqP3I = mSet.Pt3dIncTmp();
 }
 
 void  cParamIntrinsequeFormel::Virtual_CloseEEF()
@@ -1082,6 +1112,7 @@ Fonc_Num       cParamIntrinsequeFormel::FFoc()
 
 cMultiContEQF cParamIntrinsequeFormel::StdContraintes()
 {
+
     
 
     cMultiContEQF aRes;
@@ -1314,7 +1345,7 @@ cParamIFDistRadiale::cParamIFDistRadiale
   mCDistPPLie              (false),
   mFoncEqPPCDistX          (0),
   mFoncEqPPCDistY          (0),
-  mDRF                     (false,true,aDegFig,SetToDeg(aCam->DRad(),5),aSet,aDP, aDP?aDP->IdCam(): (aCam?aCam->IdCam():"NoId::ParamIFDistRadiale")),
+  mDRF                     (false,true,aDegFig,SetToDeg(aCam->DRad(),5),aSet,aDP, aDP?aDP->IdentCam(): (aCam?aCam->IdentCam():"NoId::ParamIFDistRadiale")),
   mCurPIF                  (0)
 {
   NV_UpdateCurPIF();
@@ -1457,10 +1488,10 @@ cParamIFDistStdPhgr::cParamIFDistStdPhgr
     mInitDStd          (mDRF.DistInitStd()),
     mParamDecentreFree (false),
     mParamAffineFree   (false),
-    mFP1               (aSet.Alloc().NewF(aCam->IdCam(),"P1",&(mDStd.P1()))),
-    mFP2               (aSet.Alloc().NewF(aCam->IdCam(),"P2",&(mDStd.P2()))),
-    mFb1               (aSet.Alloc().NewF(aCam->IdCam(),"b1",&(mDStd.b1()))),
-    mFb2               (aSet.Alloc().NewF(aCam->IdCam(),"b2",&(mDStd.b2()))),
+    mFP1               (aSet.Alloc().NewF(aCam->IdentCam(),"P1",&(mDStd.P1()))),
+    mFP2               (aSet.Alloc().NewF(aCam->IdentCam(),"P2",&(mDStd.P2()))),
+    mFb1               (aSet.Alloc().NewF(aCam->IdentCam(),"b1",&(mDStd.b1()))),
+    mFb2               (aSet.Alloc().NewF(aCam->IdentCam(),"b2",&(mDStd.b2()))),
     mTol_Dec_PhgStdPIF (cContrainteEQF::theContrStricte),
     mTol_Aff_PhgStdPIF (cContrainteEQF::theContrStricte),
     mCurPIF            (0)

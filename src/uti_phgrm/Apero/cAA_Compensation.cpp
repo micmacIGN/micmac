@@ -933,6 +933,17 @@ void cAppliApero::DoOneContraintesAndCompens
             bool  IsLastIter
      )
 {
+if (MPD_MM())
+{
+    for (tDiCal::iterator itD=mDicoCalib.begin(); itD!=mDicoCalib.end() ; itD++)
+    {
+         itD->second->PIF().AddRegulConseq(4,1.0);
+    }
+    std::cout << "AAGhyAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaa\n";
+    // getchar();
+
+}
+
    ReinitStatCondFaisceau();
 
    mResiduCentre.clear();

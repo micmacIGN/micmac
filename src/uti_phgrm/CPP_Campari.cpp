@@ -237,6 +237,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     bool   aExportSensib = false;
 
     bool   aUseGaussJ = false;
+    int    NormaliseEq = 3;
 
 
     ElInitArgMain
@@ -283,6 +284,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
                     << EAM(aExportSensib,"ExportSensib",true,"Export sensiblity (accuracy) estimator : correlation , varaiance, inverse matrix variance ... ")
                     << EAM(aUseGaussJ,"UseGaussJ",true,"Use GaussJ instead of Cholesky (Def depend of others) ")
+                    << EAM(NormaliseEq,"NormEq",true,"Flag for Norm Eq, 1->Sc, 2-Tr, Def=3 (All), tuning purpose ")
     );
 
 
@@ -456,6 +458,12 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
            mCom +=   std::string(" +NormaliseEqSc=false")
                    + std::string(" +ExportSensib=true") 
                    + std::string(" +DirExportSensib=/Ori-")+ AeroOut + std::string("/");
+        }
+        if (EAMIsInit(&NormaliseEq))
+        {
+           mCom +=   std::string(" +NormaliseEqSc=") + ToString((NormaliseEq&1) != 0)
+                   + std::string(" +NormaliseEqTr=") + ToString((NormaliseEq&2) != 0)
+                   + std::string(" ");
         }
 
         mExe = (! EAMIsInit(&mMulRTA)) || (EAMIsInit(&GCPRTA));

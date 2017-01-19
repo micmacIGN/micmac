@@ -233,7 +233,7 @@ int TiPunch_main(int argc,char ** argv)
                 CamStenope * aCS = vNuages.back()->Cam()->DownCastCS();
 
                 if (aCS)
-                   aCS->SetIdCam(aNameXml); //debug
+                   aCS->SetIdentCam(aNameXml); //debug
 
                 cBasicGeomCap3D * Cam = vNuages.back()->Cam();
                 cZBuf aZBuffer(Cam->SzBasicCapt3D(), defValZBuf, aZBuffSSEch);

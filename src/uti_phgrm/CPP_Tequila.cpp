@@ -216,7 +216,7 @@ int Tequila_main(int argc,char ** argv)
 
         ListCam.push_back(CamOrientGenFromFile(NOri,aICNM));
 
-        ListCam.back()->SetIdCam(NOri); //Debug only
+        ListCam.back()->SetIdentCam(NOri); //Debug only
 
         cout <<"Image "<<*itS<<", with ori : "<< NOri <<endl;
     }
@@ -745,7 +745,6 @@ int Tequila_main(int argc,char ** argv)
 
             int imgIdx = region->imgIdx;
 
-            //cout << "position dans l'image " << ListCam[imgIdx]->IdCam() << " = " << p0.x << " " << p0.y << endl;
 
             Fonc_Num aF0 = aVT[imgIdx].in_proj()  * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
 
@@ -861,7 +860,7 @@ int Tequila_main(int argc,char ** argv)
                         cout << "Pt3 = " << Pt3 << endl;
                         cout << "tx = " << tx << endl;
                         cout << "ty = " << ty << endl;
-                        cout << "idcam = " << Cam->IdCam() << endl;
+                        cout << "idcam = " << Cam->IdentCam() << endl;
                     }
                     //end debug
 
