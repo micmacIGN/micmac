@@ -28,7 +28,7 @@
 	    <Symb>  WithSchemaPGCP=false </Symb>
 	    <Symb>  NameSchemaPGCPIm=XXXX </Symb>
 	    <Symb>  NameSchemaPGCPTerr=XXXX </Symb>
-	    <Symb>  ScaleVecGCP=10.0 </Symb>
+	    <Symb>  ScaleVecGCP=5.0 </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>

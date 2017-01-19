@@ -255,7 +255,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
 		Pt3dr aDif = (aP.Pt() - aPPho);
 		aDif = aDif / euclid(aDif);
 		double aSc = aNPC.ScaleVec();
-		anAGP.AddSeg(aPPho,aPPho + Pt3dr(aSc*aDif.x,aSc*aDif.y,aSc*aDif.z),1.0,Pt3di(255,0,0));
+		anAGP.AddSeg(aPPho,aPPho + Pt3dr(aSc*aDif.x,aSc*aDif.y,aSc*aDif.z),0.5,Pt3di(255,0,0));
 		
 		std::cout << "Ctrl " << " " << aP.NamePt() << " " << aDif << "\n";
 	    }
