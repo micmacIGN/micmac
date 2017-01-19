@@ -73,6 +73,8 @@ int AperiCloud_main(int argc,char ** argv)
     std::string aNameBundle;
     double RabDrBundle = 0.0;
 
+    std::vector<std::string> aNameGCP;
+    
     ElInitArgMain
     (
                argc,argv,
@@ -97,6 +99,7 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(aProfCam,"ProfCam",true,"Depth of pyramid representing camera (Def=0.3)")
                     << EAM(aNameBundle,"NameBundle",true,"Name of input GCP to add bundle intersection schema")
                     << EAM(RabDrBundle,"RabDrBundle",true,"Lenght to add in budle drawing (Def=0.0)")
+                    << EAM(aNameGCP,"GCP",true,"[GCPTerr.xml,GCPIm.xml]", eSAM_NoInit)
     );
 
     if (!MMVisualMode)
@@ -196,6 +199,13 @@ int AperiCloud_main(int argc,char ** argv)
         if (EAMIsInit(&aNameBundle))
         {
             aCom = aCom + " +WithSchemaPMul=true +NameSchemaPMul=" + aNameBundle + " +RabDrNPIM="+ToString(RabDrBundle);
+        }
+
+        if (EAMIsInit(&aNameGCP))
+        {
+	    std::string aNameGCPTerr = aNameGCP[0];
+	    std::string aNameGCPIm   = aNameGCP[1];
+            aCom = aCom + " +WithSchemaPGCP=true +NameSchemaPGCPIm=" + aNameGCPIm + " +NameSchemaPGCPTerr=" + aNameGCPTerr;
         }
 
         std::cout << "Com = " << aCom << "\n";

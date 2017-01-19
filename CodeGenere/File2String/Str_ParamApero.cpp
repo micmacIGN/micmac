@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1748]) = {
+const char * (theNameVar_ParamApero[1759]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1622,6 +1622,17 @@ const char * (theNameVar_ParamApero[1748]) = {
 "                               <ColRayInter    Nb=\"1\" Type=\"Pt3di\">      </ColRayInter>\n",
 "                               <Epais     Nb=\"?\" Type=\"double\">      </Epais>\n",
 "                          </NuagePutInterPMul>\n",
+"				\n",
+"                          <NuagePutGCPCtrl Nb=\"?\">\n",
+"                               <NameGCPIm Nb=\"1\" Type=\"std::string\"> </NameGCPIm>\n",
+"                               <NameGCPTerr Nb=\"1\" Type=\"std::string\"> </NameGCPTerr>\n",
+"			       <ScaleVec Nb=\"1\" Type=\"double\"> </ScaleVec>\n",
+"                            <!--   <StepDr   Nb=\"1\" Type=\"double\">      </StepDr>\n",
+"                               <RabDr    Nb=\"?\" Type=\"double\" Def=\"0.0\">      </RabDr>\n",
+"                               <ColRayInter    Nb=\"1\" Type=\"Pt3di\">      </ColRayInter>\n",
+"                               <Epais     Nb=\"?\" Type=\"double\">      </Epais> -->\n",
+"                          </NuagePutGCPCtrl>\n",
+"\n",
 "                     </ExportNuage>\n",
 "\n",
 "                     <ChoixImMM Nb=\"?\">\n",
