@@ -101,7 +101,7 @@ OPTION(BUILD_ONLY_ELISE_MM3D "Projet Elise et MM3D uniquement" OFF )
 OPTION(WITH_ETALONPOLY  "Build etalonnage polygone" ON)
 
 # construire les binaires Poisson
-OPTION(BUILD_POISSON "Build Poisson binaries" OFF )
+OPTION(BUILD_POISSON "Build Poisson binaries" ON )
 
 # construire le binaire Rnx2rtkp
 OPTION(BUILD_RNX2RTKP "Build Rnx2rtkp binaries" OFF )
@@ -121,7 +121,7 @@ OPTION(TRACE_SYSTEM "print system calls" OFF )
 OPTION(BUILD_BENCH "compile low-level test bench" OFF )
 
 # Interfaces de saisie des paramètres
-OPTION(WITH_QT5 "compile Qt interfaces" OFF )
+OPTION(WITH_QT5 "compile Qt interfaces" ON )
 
 # Interfaces de saisie des paramètres
 OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )

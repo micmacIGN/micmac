@@ -5947,6 +5947,35 @@ void  BinaryUnDumpFromFile(cNuagePutInterPMul &,ELISE_fp &);
 
 std::string  Mangling( cNuagePutInterPMul *);
 
+class cNuagePutGCPCtrl
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cNuagePutGCPCtrl & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameGCPIm();
+        const std::string & NameGCPIm()const ;
+
+        std::string & NameGCPTerr();
+        const std::string & NameGCPTerr()const ;
+
+        double & ScaleVec();
+        const double & ScaleVec()const ;
+    private:
+        std::string mNameGCPIm;
+        std::string mNameGCPTerr;
+        double mScaleVec;
+};
+cElXMLTree * ToXMLTree(const cNuagePutGCPCtrl &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cNuagePutGCPCtrl &);
+
+void  BinaryUnDumpFromFile(cNuagePutGCPCtrl &,ELISE_fp &);
+
+std::string  Mangling( cNuagePutGCPCtrl *);
+
 class cExportNuage
 {
     public:
@@ -6041,6 +6070,18 @@ class cExportNuage
 
         cTplValGesInit< cNuagePutInterPMul > & NuagePutInterPMul();
         const cTplValGesInit< cNuagePutInterPMul > & NuagePutInterPMul()const ;
+
+        std::string & NameGCPIm();
+        const std::string & NameGCPIm()const ;
+
+        std::string & NameGCPTerr();
+        const std::string & NameGCPTerr()const ;
+
+        double & ScaleVec();
+        const double & ScaleVec()const ;
+
+        cTplValGesInit< cNuagePutGCPCtrl > & NuagePutGCPCtrl();
+        const cTplValGesInit< cNuagePutGCPCtrl > & NuagePutGCPCtrl()const ;
     private:
         std::string mNameOut;
         cTplValGesInit< cExportNuageByImage > mExportNuageByImage;
@@ -6056,6 +6097,7 @@ class cExportNuage
         cTplValGesInit< std::string > mImExpoRef;
         cTplValGesInit< cNuagePutCam > mNuagePutCam;
         cTplValGesInit< cNuagePutInterPMul > mNuagePutInterPMul;
+        cTplValGesInit< cNuagePutGCPCtrl > mNuagePutGCPCtrl;
 };
 cElXMLTree * ToXMLTree(const cExportNuage &);
 

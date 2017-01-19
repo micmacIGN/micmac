@@ -25,6 +25,10 @@
 
             <Symb>  WithSchemaPMul=false </Symb>
             <Symb>  NameSchemaPMul=XXXX </Symb>
+	    <Symb>  WithSchemaPGCP=false </Symb>
+	    <Symb>  NameSchemaPGCPIm=XXXX </Symb>
+	    <Symb>  NameSchemaPGCPTerr=XXXX </Symb>
+	    <Symb>  ScaleVecGCP=5.0 </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -179,6 +183,13 @@
                                              <RabDr    >  ${RabDrNPIM}   </RabDr>
                                              <ColRayInter>  255 0 0   </ColRayInter>
                                         </NuagePutInterPMul>
+                                   </#WHEN>
+                                   <#WHEN VTEST=${WithSchemaPGCP}>
+                                        <NuagePutGCPCtrl>
+                                             <NameGCPIm > ${NameSchemaPGCPIm} </NameGCPIm>
+                                             <NameGCPTerr > ${NameSchemaPGCPTerr} </NameGCPTerr>
+					     <ScaleVec > ${ScaleVecGCP} </ScaleVec>
+                                        </NuagePutGCPCtrl>
                                    </#WHEN>
                              </ExportNuage>
                     </SectionExport>
