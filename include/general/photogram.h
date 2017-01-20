@@ -1676,8 +1676,11 @@ class ElCamera : public cCapture3D
     // L'identifiant ou le nom d'un camera, est qq chose d'optionnel , rajoute a posteriori
     // pour la debugage-tracabilite
 
-         const std::string &  IdCam() const;
-         void SetIdCam(const std::string & aName);
+         const std::string &  IdentCam() const;
+         void SetIdentCam(const std::string & aName);
+
+         const std::string &  NameIm() const;
+         void SetNameIm(const std::string & aName);
 
      // ========================
 
@@ -1908,7 +1911,8 @@ class ElCamera : public cCapture3D
 
    private :
 
-         std::string  mIdCam;
+         std::string  mIdentCam;
+         std::string  mNameIm;
 
          //double      mPrecisionEmpriseSol;
          cElPolygone mEmpriseSol;
@@ -3510,9 +3514,6 @@ std::vector<ElRotation3D> OrientTomasiKanade
                              double              aPrecCible,
                              std::vector<ElRotation3D> * aVRotInit
                           );
-
-
-
 
 #endif // !  _ELISE_GENERAL_PHOTOGRAM_H
 

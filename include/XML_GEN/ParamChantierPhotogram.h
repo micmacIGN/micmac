@@ -743,7 +743,9 @@ typedef enum
   eModeleRadFour7x2,
   eModeleRadFour11x2,
   eModeleRadFour15x2,
-  eModeleRadFour19x2
+  eModeleRadFour19x2,
+  eModelePolyDeg0,
+  eModelePolyDeg1
 } eModelesCalibUnif;
 void xml_init(eModelesCalibUnif & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModelesCalibUnif & aVal);

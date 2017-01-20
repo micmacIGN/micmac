@@ -257,6 +257,7 @@
 
 
         <SectionChantier>
+             <UseRegulDist> ${UseRegulDist} </UseRegulDist>
 	     <DirectoryChantier> XXXX </DirectoryChantier>
              <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
              <SauvAutom>  ${SauvAutom} </SauvAutom>

@@ -1353,7 +1353,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
     if (aCD.ModRad().IsInit())
     {
 	cCamStenopeDistRadPol * aCam = Std_Cal_DRad_C2M(aCIC,aConv);
-        aCam->SetIdCam(aNameIdCam );
+        aCam->SetIdentCam(aNameIdCam );
         anAppli.NormaliseScTr(*aCam);
         cParamIFDistRadiale * aPIF = aCam->AllocDRadInc(aCam->DistIsC2M(),anAppli.SetEq());
 
@@ -1366,7 +1366,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
     else if (aCD.ModPhgrStd().IsInit())
     {
         cCamStenopeModStdPhpgr * aCam =  Std_Cal_PS_C2M(aCIC,aConv);
-        aCam->SetIdCam(aNameIdCam );
+        aCam->SetIdentCam(aNameIdCam );
 
         anAppli.NormaliseScTr(*aCam);
         cParamIFDistStdPhgr *  aPIF = aCam->AllocPhgrStdInc(aCam->DistIsC2M(),anAppli.SetEq());
@@ -1378,7 +1378,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
        cCamera_Param_Unif_Gen * aCam = Std_Cal_Unif(aCIC,aConv);
 // std::cout << "CCaaaam "<< aCam << "\n";
        anAppli.NormaliseScTr(*aCam);
-       aCam->SetIdCam(aNameIdCam );
+       aCam->SetIdentCam(aNameIdCam );
 
        cPIF_Unif_Gen * aPIF = aCam->PIF_Gen(aCam->DistIsC2M(),anAppli.SetEq());
 
@@ -1387,7 +1387,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
     else if (aCD.ModGridDef().IsInit())
     {
         cCamStenopeBilin * aCBL =  Std_Cal_Bilin(aCIC,aConv);
-        aCBL->SetIdCam(aNameIdCam );
+        aCBL->SetIdentCam(aNameIdCam );
         anAppli.NormaliseScTr(*aCBL);
 
         cPIF_Bilin *  aPIF = anAppli.SetEq().NewPIFBilin(aCBL);

@@ -152,9 +152,11 @@ cPoseCam::cPoseCam
     mPrec = this;
     mNext = this;
 
-    std::string anId =  mAppli.GetNewIdIma(aNamePose);
+    std::string anIdGlob =  mAppli.GetNewIdIma(aNamePose);
     mCalib = mAppli.CalibFromName(aNameCalib,this);
-    mCF	=  mCalib->PIF().NewCam(cNameSpaceEqF::eRotLibre,ElRotation3D::Id,mCamRF,anId,true,false,mAppli.HasEqDr());
+    // mCF	=  mCalib->PIF().NewCam(cNameSpaceEqF::eRotLibre,ElRotation3D::Id,mCamRF,aNamePose,true,false,mAppli.HasEqDr());
+    mCF	=  mCalib->PIF().NewCam(cNameSpaceEqF::eRotLibre,ElRotation3D::Id,mCamRF,anIdGlob,true,false,mAppli.HasEqDr());
+    mCF->SetNameIm(aNamePose);
     mRF = &mCF->RF();
 
    SetOrInt(mAppli.Param().GlobOrInterne());
@@ -1336,7 +1338,7 @@ std::cout << "TEST MEPS STD " << mName  << " L2 " << L2
         aCS->SetProfondeur(aProfPose);
         aCS->SetAltiSol(anAltiSol);
         aCS->SetOrientation(aRot.inv());
-        aCS->SetIdCam(mName);
+        aCS->SetIdentCam(mName);
         std::vector<ElCamera *> aVCam;
         aVCam.push_back(aCS);
         cTransfo3DIdent aTransfo;

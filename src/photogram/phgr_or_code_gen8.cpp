@@ -121,7 +121,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cREgDistVal_NoDist.cpp"
 
   // Polyn
+#include "../../CodeGenere/photogram/cREgDistDxDy_Polyn0.cpp"
+#include "../../CodeGenere/photogram/cREgDistDxx_Polyn0.cpp"
+#include "../../CodeGenere/photogram/cREgDistDx_Polyn0.cpp"
+#include "../../CodeGenere/photogram/cREgDistVal_Polyn0.cpp"
 
+#include "../../CodeGenere/photogram/cREgDistDxDy_Polyn1.cpp"
+#include "../../CodeGenere/photogram/cREgDistDxx_Polyn1.cpp"
+#include "../../CodeGenere/photogram/cREgDistDx_Polyn1.cpp"
+#include "../../CodeGenere/photogram/cREgDistVal_Polyn1.cpp"
 
 #include "../../CodeGenere/photogram/cREgDistDxDy_Polyn2.cpp"
 #include "../../CodeGenere/photogram/cREgDistDxx_Polyn2.cpp"

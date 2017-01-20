@@ -481,6 +481,22 @@ template <class Type> class cDistRadFour19x6_Generator : public cGeneratorElem,
 
 
 
+template <class Type> class cDistGen_Deg0_Generator : public cGeneratorElem,
+                                                      public cGeneratorElemStd,
+                                                      public cGeneratorState_FPP_ScaleTr
+{
+     public :
+
+         static Pt2d<Type>   DistElem(bool UsePC,const Pt2d<Type> &,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP);
+};
+template <class Type> class cDistGen_Deg1_Generator : public cGeneratorElem,
+                                                      public cGeneratorElemStd,
+                                                      public cGeneratorState_FPP_ScaleTr
+{
+     public :
+
+         static Pt2d<Type>   DistElem(bool UsePC,const Pt2d<Type> &,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP);
+};
 
 
 template <class Type> class cDistGen_Deg2_Generator : public cGeneratorElem,
@@ -661,6 +677,13 @@ typedef  cCamera_Param_Unif<cFraserModel_Generator<double>,cFraserModel_Generato
 typedef  cPIF_Unif<cFraserModel_Generator<double>,cFraserModel_Generator<Fonc_Num>,9,1> cPIF_Fraser_PPaEqPPs;
 // cDRadModel_Generator  cFraserModel_Generator
 
+typedef  cDist_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> cDist_Polyn0;
+typedef  cCamera_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> cCam_Polyn0;
+typedef  cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> cPIF_Polyn0;
+
+typedef  cDist_Param_Unif<cDistGen_Deg1_Generator<double>,cDistGen_Deg1_Generator<Fonc_Num>,2,3> cDist_Polyn1;
+typedef  cCamera_Param_Unif<cDistGen_Deg1_Generator<double>,cDistGen_Deg1_Generator<Fonc_Num>,2,3> cCam_Polyn1;
+typedef  cPIF_Unif<cDistGen_Deg1_Generator<double>,cDistGen_Deg1_Generator<Fonc_Num>,2,3> cPIF_Polyn1;
 
 typedef  cDist_Param_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3> cDist_Polyn2;
 typedef  cCamera_Param_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3> cCam_Polyn2;

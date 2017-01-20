@@ -486,6 +486,49 @@ Pt2d<Fonc_Num>  cDistRadialeFormelle::FCentre() const
 /*                                                          */
 /************************************************************/
 
+     // ============== cPIFRegulDist ====================
+
+cPIFRegulDist::cPIFRegulDist() :
+   mRegulDistDxyP1     (new cP2d_Etat_PhgrF("RegDistxy1")),
+   mRegulDistDxyP2     (new cP2d_Etat_PhgrF("RegDistxy2")),
+   mRegulDistDxyP3     (new cP2d_Etat_PhgrF("RegDistxy3")),
+   mRegulDistDxyP4     (new cP2d_Etat_PhgrF("RegDistxy4")),
+
+   mRegulDistDxxP1     (new cP2d_Etat_PhgrF("RegDistuu1")),
+   mRegulDistDxxP2     (new cP2d_Etat_PhgrF("RegDistuu2")),
+   mRegulDistDxxP3     (new cP2d_Etat_PhgrF("RegDistuu3")),
+
+   // mRegulDistDyyP1     (new cP2d_Etat_PhgrF("RegDistuu1")),
+   // mRegulDistDyyP2     (new cP2d_Etat_PhgrF("RegDistuu2")),
+   // mRegulDistDyyP3     (new cP2d_Etat_PhgrF("RegDistuu3")),
+
+   mRegulDistDxP1      (new cP2d_Etat_PhgrF("RegDistu1")),
+   mRegulDistDxP2      (new cP2d_Etat_PhgrF("RegDistu2")),
+   mRegulDistKnownDer  (new cP2d_Etat_PhgrF("RegDistu3")),
+
+   // mRegulDistDyP1      (new cP2d_Etat_PhgrF("RegDistu1")),
+   // mRegulDistDyP2      (new cP2d_Etat_PhgrF("RegDistu2")),
+
+   mRegulDistValP1     (new cP2d_Etat_PhgrF("RegDistValP1")),
+   mRegulDistKnownVal  (new cP2d_Etat_PhgrF("RegDistKnownVal")),
+
+   mFER_DxDy        (0),
+   mFER_Dxx         (0),
+   mFER_Dx          (0),
+   mFER_Val         (0),
+   mImPdsDef        (1,1,1.0)
+{
+}
+
+cPIFRegulConseq::cPIFRegulConseq(cParamIntrinsequeFormel * aSuiv,bool WithR) :
+   mSuiv     (aSuiv),
+   mWithR    (WithR),
+   mNameType ("cRegCamConseq_" + std::string(mWithR? "CompR_": "")  +  aSuiv->NameType())
+{
+}
+
+     // ============== cParamIntrinsequeFormel ====================
+
 std::vector<std::string>   StdVectorOfName(const std::string & aPref,int aNb)
 {
    std::vector<std::string> aRes;
@@ -518,20 +561,13 @@ cParamIntrinsequeFormel::cParamIntrinsequeFormel
    mAFocInit       (mCamInit->ParamAF()),
    mCurAFoc        (mAFocInit),
    mFFoc           (  ParamVar ?
-		      aSet.Alloc().NewF(aCamInit->IdCam(),"F",&mCurFocale) :
+		      aSet.Alloc().NewF(aCamInit->IdentCam(),"F",&mCurFocale) :
 		      Fonc_Num(mFocaleInit)
 		   ),
    mIndPP          (aSet.Alloc().CurInc()),
    mFPP            (
 		        ParamVar ?
-/*
-		        Pt2d<Fonc_Num>
-                        (
-		             aSet.Alloc().NewF(aCamInit->IdCam(),"PPx",&mCurPP.x) ,
-		             aSet.Alloc().NewF(aCamInit->IdCam(),"PPy",&mCurPP.y)  
-                        ):
-*/
-		        aSet.Alloc().NewPt2(aCamInit->IdCam(),&(mCurPP.x),&(mCurPP.y),false,"PPx","PPy") :
+		        aSet.Alloc().NewPt2(aCamInit->IdentCam(),&(mCurPP.x),&(mCurPP.y),false,"PPx","PPy") :
 		        Pt2d<Fonc_Num>(mPPInit.x,mPPInit.y)
                    ),
    mIndAF          (aSet.Alloc().CurInc()),
@@ -542,36 +578,60 @@ cParamIntrinsequeFormel::cParamIntrinsequeFormel
    mTolAF1          (cContrainteEQF::theContrStricte),
    mTolAF2          (cContrainteEQF::theContrStricte),
    mProjStenF       (mFFoc,mFPP.x,mFPP.y,mFAFoc),
-   mRegulDistDxyP1     (new cP2d_Etat_PhgrF("RegDistxy1")),
-   mRegulDistDxyP2     (new cP2d_Etat_PhgrF("RegDistxy2")),
-   mRegulDistDxyP3     (new cP2d_Etat_PhgrF("RegDistxy3")),
-   mRegulDistDxyP4     (new cP2d_Etat_PhgrF("RegDistxy4")),
-
-   mRegulDistDxxP1     (new cP2d_Etat_PhgrF("RegDistuu1")),
-   mRegulDistDxxP2     (new cP2d_Etat_PhgrF("RegDistuu2")),
-   mRegulDistDxxP3     (new cP2d_Etat_PhgrF("RegDistuu3")),
-
-   // mRegulDistDyyP1     (new cP2d_Etat_PhgrF("RegDistuu1")),
-   // mRegulDistDyyP2     (new cP2d_Etat_PhgrF("RegDistuu2")),
-   // mRegulDistDyyP3     (new cP2d_Etat_PhgrF("RegDistuu3")),
-
-   mRegulDistDxP1      (new cP2d_Etat_PhgrF("RegDistu1")),
-   mRegulDistDxP2      (new cP2d_Etat_PhgrF("RegDistu2")),
-   mRegulDistKnownDer  (new cP2d_Etat_PhgrF("RegDistu3")),
-
-   // mRegulDistDyP1      (new cP2d_Etat_PhgrF("RegDistu1")),
-   // mRegulDistDyP2      (new cP2d_Etat_PhgrF("RegDistu2")),
-
-   mRegulDistValP1     (new cP2d_Etat_PhgrF("RegDistValP1")),
-   mRegulDistKnownVal  (new cP2d_Etat_PhgrF("RegDistKnownVal")),
-
-   mFER_DxDy        (0),
-   mFER_Dxx         (0),
-   mFER_Dx          (0),
-   mFER_Val         (0),
-   mImPdsDef        (1,1,1.0)
+   mReg             (0),
+   mRegCons         (0)
 {
+  if (GlobUseRegulDist)
+      mReg = new  cPIFRegulDist;
   NV_UpdateCurPIF();
+}
+
+void  cParamIntrinsequeFormel::AddRegulConseq(int aNbGrids,double aSigmaPix)
+{
+    if (! mRegCons)
+    {
+        // std::cout << "RRetettttturnnn \n";
+        return;
+    }
+
+    CamStenope * aCamCur = CurPIF();
+    double aPds = 1/ElSquare(aSigmaPix/ aCamCur->ScaleCamNorm());
+    aPds /= 1/ElSquare(aNbGrids+1);
+
+ 
+    Pt2dr aP0 = aCamCur->NormC2M(Pt2dr(0,0));
+    Pt2dr aP1 = aCamCur->NormC2M(Pt2dr(mCamInit->Sz()));
+
+    for (int aKx=0 ; aKx<=aNbGrids ; aKx++)
+    {
+       for (int aKy=0 ; aKy<=aNbGrids ; aKy++)
+       {
+           Pt2dr aPProp(  (0.5+aKx)/(1+aNbGrids) , (0.5+aKy)/(1+aNbGrids)  );
+           Pt2dr aPIm (
+                          aP0.x * aPProp.x + aP1.x * (1-aPProp.x),
+                          aP0.y * aPProp.y + aP1.y * (1-aPProp.y)
+                      );
+            aPIm = aPProp.mcbyc(Pt2dr(mCamInit->Sz()));
+
+           Pt3dr aDirRay =   aCamCur->F2toDirRayonL3(aPIm);
+
+           std::cout << "PPIImmmMMm " << aPIm  <<  " " << aDirRay << " " <<  aCamCur->F2toC2(aPIm) << "\n";
+           std::cout << aCamCur->Focale() << " " <<  aCamCur->PP() << " INIT: " << mCamInit->Focale() << " " <<  mCamInit->PP()  << "\n";
+           // Pt2dr 
+       }
+    }
+}
+
+void cParamIntrinsequeFormel::AddRegulConseq(cParamIntrinsequeFormel* aSuiv,bool WithR)
+{
+   ELISE_ASSERT
+   (
+      NameType() == aSuiv->NameType(),
+      "Mix camera type in AddRegulConseq"
+   );
+   mRegCons = new cPIFRegulConseq(aSuiv,WithR);
+   if (WithR)
+       mRegCons->mEqP3I = mSet.Pt3dIncTmp();
 }
 
 void  cParamIntrinsequeFormel::Virtual_CloseEEF()
@@ -579,113 +639,165 @@ void  cParamIntrinsequeFormel::Virtual_CloseEEF()
     IncInterv().SetName("Intr");
     mLInterv.AddInterv(IncInterv());
 
-    mNameRegDistDxDy = "cREgDistDxDy_" +  NameType();
-    mNameRegDistD2   = "cREgDistDxx_"  +  NameType();
-    mNameRegDistGrad = "cREgDistDx_"   +  NameType();
-    mNameRegDistVal  = "cREgDistVal_"  +  NameType();
+
+    if (mReg)
+    {
+        mReg->mNameRegDistDxDy = "cREgDistDxDy_" +  NameType();
+        mReg->mNameRegDistD2   = "cREgDistDxx_"  +  NameType();
+        mReg->mNameRegDistGrad = "cREgDistDx_"   +  NameType();
+        mReg->mNameRegDistVal  = "cREgDistVal_"  +  NameType();
+
+        mReg->mFER_DxDy = cElCompiledFonc::AllocFromName(mReg->mNameRegDistDxDy);
+        mReg->mFER_Dxx  = cElCompiledFonc::AllocFromName(mReg->mNameRegDistD2);
+        mReg->mFER_Dx   = cElCompiledFonc::AllocFromName(mReg->mNameRegDistGrad);
+        mReg->mFER_Val  = cElCompiledFonc::AllocFromName(mReg->mNameRegDistVal);
+
+        bool OkFER = mReg->mFER_DxDy && mReg->mFER_Dxx && mReg->mFER_Dx && mReg->mFER_Val;
+
+        if (OkFER)
+        {
+           mReg->mFER_DxDy->SetMappingCur(mLInterv,&mSet);
+           mSet.AddFonct(mReg->mFER_DxDy);
+
+           mReg->mFER_Dxx->SetMappingCur(mLInterv,&mSet);
+           mSet.AddFonct(mReg->mFER_Dxx);
+
+       // mFER_Dyy  = cElCompiledFonc::AllocFromName(mNameRegDistD2);
+           mReg->mFER_Dx->SetMappingCur(mLInterv,&mSet);
+           mSet.AddFonct(mReg->mFER_Dx);
+
+       // mFER_Dy   = cElCompiledFonc::AllocFromName(mNameRegDistGrad);
+           mReg->mFER_Val->SetMappingCur(mLInterv,&mSet);
+           mSet.AddFonct(mReg->mFER_Val);
+        }
+
+        if (OkFER)
+        {
+           mReg->mRegulDistDxyP1->InitAdr(*mReg->mFER_DxDy);
+           mReg->mRegulDistDxyP2->InitAdr(*mReg->mFER_DxDy);
+           mReg->mRegulDistDxyP3->InitAdr(*mReg->mFER_DxDy);
+           mReg->mRegulDistDxyP4->InitAdr(*mReg->mFER_DxDy);
 
 
-    mFER_DxDy = cElCompiledFonc::AllocFromName(mNameRegDistDxDy);
-    mFER_DxDy->SetMappingCur(mLInterv,&mSet);
-    mSet.AddFonct(mFER_DxDy);
+           mReg->mRegulDistDxxP1->InitAdr(*mReg->mFER_Dxx);
+           mReg->mRegulDistDxxP2->InitAdr(*mReg->mFER_Dxx);
+           mReg->mRegulDistDxxP3->InitAdr(*mReg->mFER_Dxx);
 
-    mFER_Dxx  = cElCompiledFonc::AllocFromName(mNameRegDistD2);
-    mFER_Dxx->SetMappingCur(mLInterv,&mSet);
-    mSet.AddFonct(mFER_Dxx);
-    // mFER_Dyy  = cElCompiledFonc::AllocFromName(mNameRegDistD2);
-    mFER_Dx   = cElCompiledFonc::AllocFromName(mNameRegDistGrad);
-    mFER_Dx->SetMappingCur(mLInterv,&mSet);
-    mSet.AddFonct(mFER_Dx);
+           mReg->mRegulDistDxP1->InitAdr(*mReg->mFER_Dx);
+           mReg->mRegulDistDxP2->InitAdr(*mReg->mFER_Dx);
+           mReg->mRegulDistKnownDer->InitAdr(*mReg->mFER_Dx);
 
-    // mFER_Dy   = cElCompiledFonc::AllocFromName(mNameRegDistGrad);
-    mFER_Val  = cElCompiledFonc::AllocFromName(mNameRegDistVal);
-    mFER_Val->SetMappingCur(mLInterv,&mSet);
-    mSet.AddFonct(mFER_Val);
-
-    mRegulDistDxyP1->InitAdr(*mFER_DxDy);
-    mRegulDistDxyP2->InitAdr(*mFER_DxDy);
-    mRegulDistDxyP3->InitAdr(*mFER_DxDy);
-    mRegulDistDxyP4->InitAdr(*mFER_DxDy);
-
-    mRegulDistDxxP1->InitAdr(*mFER_Dxx);
-    mRegulDistDxxP2->InitAdr(*mFER_Dxx);
-    mRegulDistDxxP3->InitAdr(*mFER_Dxx);
-
-    mRegulDistDxP1->InitAdr(*mFER_Dx);
-    mRegulDistDxP2->InitAdr(*mFER_Dx);
-    mRegulDistKnownDer->InitAdr(*mFER_Dx);
-
-    mRegulDistValP1->InitAdr(*mFER_Val);
-    mRegulDistKnownVal->InitAdr(*mFER_Val);
+           mReg->mRegulDistValP1->InitAdr(*mReg->mFER_Val);
+           mReg->mRegulDistKnownVal->InitAdr(*mReg->mFER_Val);
+        }
+    }
 
     // std::cout << "cParamIntrinsequeFormel::Virtual_CloseEEF " << mFER_Dxx << " ## " << mFER_Dyy << "\n";
+/*
     ELISE_ASSERT
     (
          (mFER_DxDy!=0) && (mFER_Dxx!=0) && (mFER_Dx!=0) && (mFER_Val!=0),
          "cParamIntrinsequeFormel::Virtual_CloseEEF  cannot load regul fonctor"
     );
+*/
 
 }
+
+// DirRayMonde2Cam
 
 
 void cParamIntrinsequeFormel::GenEqRegulDist()
 {
+    AssertRegIsInit();
     // bool aUP=   Dist22Gen_UsePreConditionner();
 
-    Pt2d<Fonc_Num> aRegDistDxDy =     DistorM2C(mRegulDistDxyP1->PtF(),false) + DistorM2C(mRegulDistDxyP2->PtF(),false)
-                                   - (DistorM2C(mRegulDistDxyP3->PtF(),false) + DistorM2C(mRegulDistDxyP4->PtF(),false));
+    Pt2d<Fonc_Num> aRegDistDxDy =     DistorM2C(mReg->mRegulDistDxyP1->PtF(),false) + DistorM2C(mReg->mRegulDistDxyP2->PtF(),false)
+                                   - (DistorM2C(mReg->mRegulDistDxyP3->PtF(),false) + DistorM2C(mReg->mRegulDistDxyP4->PtF(),false));
     cElCompileFN::DoEverything
     (
         DIRECTORY_GENCODE_FORMEL,
-        mNameRegDistDxDy,
+        mReg->mNameRegDistDxDy,
         aRegDistDxDy.ToTab(),
         mLInterv
     );
 
-    Pt2d<Fonc_Num> aRegDistDxx =     DistorM2C(mRegulDistDxxP1->PtF(),false) + DistorM2C(mRegulDistDxxP2->PtF(),false)
-                                   - DistorM2C(mRegulDistDxxP3->PtF(),false)  * 2.0;
+    Pt2d<Fonc_Num> aRegDistDxx =     DistorM2C(mReg->mRegulDistDxxP1->PtF(),false) + DistorM2C(mReg->mRegulDistDxxP2->PtF(),false)
+                                   - DistorM2C(mReg->mRegulDistDxxP3->PtF(),false)  * 2.0;
     cElCompileFN::DoEverything
     (
         DIRECTORY_GENCODE_FORMEL,
-        mNameRegDistD2,
+        mReg->mNameRegDistD2,
         aRegDistDxx.ToTab(),
         mLInterv
     );
 
-    Pt2d<Fonc_Num> aRegDistGrad =     DistorM2C(mRegulDistDxP1->PtF(),false) - DistorM2C(mRegulDistDxP2->PtF(),false) - mRegulDistKnownDer->PtF();
+    Pt2d<Fonc_Num> aRegDistGrad =     DistorM2C(mReg->mRegulDistDxP1->PtF(),false) - DistorM2C(mReg->mRegulDistDxP2->PtF(),false) - mReg->mRegulDistKnownDer->PtF();
     cElCompileFN::DoEverything
     (
         DIRECTORY_GENCODE_FORMEL,
-        mNameRegDistGrad,
+        mReg->mNameRegDistGrad,
         aRegDistGrad.ToTab(),
         mLInterv
     );
 
-    Pt2d<Fonc_Num> aRegDistVal =     DistorM2C(mRegulDistValP1->PtF(),false) - mRegulDistKnownVal->PtF();
+    Pt2d<Fonc_Num> aRegDistVal =     DistorM2C(mReg->mRegulDistValP1->PtF(),false) - mReg->mRegulDistKnownVal->PtF();
     cElCompileFN::DoEverything
     (
         DIRECTORY_GENCODE_FORMEL,
-        mNameRegDistVal,
+        mReg->mNameRegDistVal,
         aRegDistVal.ToTab(),
         mLInterv
     );
+
+
+    if (mRegCons)
+    {
+        // mEqP3I      mCam.Set().Pt3dIncTmp()
+        mRegCons->mSuiv->IncInterv().SetName("Intr2");
+        mRegCons->mLInterv.AddInterv(IncInterv());
+        mRegCons->mLInterv.AddInterv(mRegCons->mSuiv->IncInterv() );
+        if (mRegCons->mWithR)
+           mRegCons->mLInterv.AddInterv(mRegCons->mEqP3I->IncInterv() );
+
+
+        cP3d_Etat_PhgrF mRayConseq1("Ray"); 
+
+        Pt3d<Fonc_Num>  aRay1 = mRayConseq1.PtF();
+        Pt3d<Fonc_Num>  aRay2 = aRay1;
+        if (mRegCons->mWithR)
+           aRay2 = aRay1 + (mRegCons->mEqP3I->PF() ^ aRay1);
+        Pt2d<Fonc_Num>  aP1 = DirRayMonde2Cam(aRay1,0);
+        Pt2d<Fonc_Num>  aP2 = mRegCons->mSuiv->DirRayMonde2Cam(aRay2,0);
+        Pt2d<Fonc_Num> aDif = aP1 - aP2;
+        cElCompileFN::DoEverything
+        (
+            DIRECTORY_GENCODE_FORMEL,
+            mRegCons->mNameType,
+            aDif.ToTab(),
+            mRegCons->mLInterv
+        );
+            // mLInterv.AddInterv(mCam.RF().IncInterv());
+            // mLInterv.AddInterv(mEqP3I->IncInterv());
+        mRegCons->mSuiv->IncInterv().SetName("Intr");
+    }
 }
 
 
 void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aPdsGrad,double aPdsD2)
 {
-   InitStateOfFoncteur(mFER_Val,0);
-   InitStateOfFoncteur(mFER_Dx,0);
-   InitStateOfFoncteur(mFER_DxDy,0);
-   InitStateOfFoncteur(mFER_Dxx,0);
+   AssertRegIsInit();
+   InitStateOfFoncteur(mReg->mFER_Val,0);
+   InitStateOfFoncteur(mReg->mFER_Dx,0);
+   InitStateOfFoncteur(mReg->mFER_DxDy,0);
+   InitStateOfFoncteur(mReg->mFER_Dxx,0);
    bool Show = false;
 // Val  
     std::vector<double> aVPv(2,aPdsVal);
-    mRegulDistValP1->SetEtat(aP);
-    mRegulDistKnownVal->SetEtat(aP);
+    mReg->mRegulDistValP1->SetEtat(aP);
+    mReg->mRegulDistKnownVal->SetEtat(aP);
     std::vector<double> aRes;
 
-    aRes = mSet.VAddEqFonctToSys(mFER_Val,aVPv,false,NullPCVU);
+    aRes = mSet.VAddEqFonctToSys(mReg->mFER_Val,aVPv,false,NullPCVU);
 
     double aEps = CurFocale() / 50.0;
 
@@ -694,17 +806,17 @@ void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aP
 //   Grad
     std::vector<double> aVPGrad(2,aPdsGrad/(2.0*ElSquare(aEps)));
      // x 
-    mRegulDistDxP1->SetEtat(aP+Pt2dr( aEps,0));
-    mRegulDistDxP2->SetEtat(aP+Pt2dr(-aEps,0));
-    mRegulDistKnownDer->SetEtat(Pt2dr(2*aEps,0));
-    aRes = mSet.VAddEqFonctToSys(mFER_Dx,aVPGrad,false,NullPCVU);
+    mReg->mRegulDistDxP1->SetEtat(aP+Pt2dr( aEps,0));
+    mReg->mRegulDistDxP2->SetEtat(aP+Pt2dr(-aEps,0));
+    mReg->mRegulDistKnownDer->SetEtat(Pt2dr(2*aEps,0));
+    aRes = mSet.VAddEqFonctToSys(mReg->mFER_Dx,aVPGrad,false,NullPCVU);
 
 
      // y 
-    mRegulDistDxP1->SetEtat(aP+Pt2dr(0, aEps));
-    mRegulDistDxP2->SetEtat(aP+Pt2dr(0,-aEps));
-    mRegulDistKnownDer->SetEtat(Pt2dr(0,2*aEps));
-    aRes = mSet.VAddEqFonctToSys(mFER_Dx,aVPGrad,false,NullPCVU);
+    mReg->mRegulDistDxP1->SetEtat(aP+Pt2dr(0, aEps));
+    mReg->mRegulDistDxP2->SetEtat(aP+Pt2dr(0,-aEps));
+    mReg->mRegulDistKnownDer->SetEtat(Pt2dr(0,2*aEps));
+    aRes = mSet.VAddEqFonctToSys(mReg->mFER_Dx,aVPGrad,false,NullPCVU);
 
     if (Show) 
         std::cout << aRes.size() << "GG " <<  aRes[0]/aEps << " " << aRes[1]/aEps << "\n";
@@ -712,36 +824,37 @@ void cParamIntrinsequeFormel::AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aP
 //   Deriv sec
     std::vector<double> aVPCourb(2,aPdsD2/ElSquare(aEps*aEps));
      // xx  P1 + P2 - 2* P3
-    mRegulDistDxxP1->SetEtat(aP+Pt2dr( aEps,0));
-    mRegulDistDxxP2->SetEtat(aP+Pt2dr(-aEps,0));
-    mRegulDistDxxP3->SetEtat(aP);
-    aRes= mSet.VAddEqFonctToSys(mFER_Dxx,aVPCourb,false,NullPCVU);
+    mReg->mRegulDistDxxP1->SetEtat(aP+Pt2dr( aEps,0));
+    mReg->mRegulDistDxxP2->SetEtat(aP+Pt2dr(-aEps,0));
+    mReg->mRegulDistDxxP3->SetEtat(aP);
+    aRes= mSet.VAddEqFonctToSys(mReg->mFER_Dxx,aVPCourb,false,NullPCVU);
     if (Show) 
         std::cout << aRes.size() << "Dxxxx " <<  aRes[0]/ElSquare(aEps) << " " <<  aRes[1]/ElSquare(aEps) << "\n";
 
      // yy
-    mRegulDistDxxP1->SetEtat(aP+Pt2dr(0, aEps));
-    mRegulDistDxxP2->SetEtat(aP+Pt2dr(0,-aEps));
-    mRegulDistDxxP3->SetEtat(aP);
-    aRes = mSet.VAddEqFonctToSys(mFER_Dxx,aVPCourb,false,NullPCVU);
+    mReg->mRegulDistDxxP1->SetEtat(aP+Pt2dr(0, aEps));
+    mReg->mRegulDistDxxP2->SetEtat(aP+Pt2dr(0,-aEps));
+    mReg->mRegulDistDxxP3->SetEtat(aP);
+    aRes = mSet.VAddEqFonctToSys(mReg->mFER_Dxx,aVPCourb,false,NullPCVU);
     if (Show) 
         std::cout << aRes.size() << "Dyyy " <<  aRes[0]/ElSquare(aEps) << " " <<  aRes[1]/ElSquare(aEps) << "\n";
 
      // yy
-    mRegulDistDxyP1->SetEtat(aP+Pt2dr( aEps, aEps));
-    mRegulDistDxyP2->SetEtat(aP+Pt2dr(-aEps,-aEps));
-    mRegulDistDxyP3->SetEtat(aP+Pt2dr(-aEps, aEps));
-    mRegulDistDxyP4->SetEtat(aP+Pt2dr( aEps,-aEps));
-    aRes = mSet.VAddEqFonctToSys(mFER_DxDy,aVPCourb,false,NullPCVU);
+    mReg->mRegulDistDxyP1->SetEtat(aP+Pt2dr( aEps, aEps));
+    mReg->mRegulDistDxyP2->SetEtat(aP+Pt2dr(-aEps,-aEps));
+    mReg->mRegulDistDxyP3->SetEtat(aP+Pt2dr(-aEps, aEps));
+    mReg->mRegulDistDxyP4->SetEtat(aP+Pt2dr( aEps,-aEps));
+    aRes = mSet.VAddEqFonctToSys(mReg->mFER_DxDy,aVPCourb,false,NullPCVU);
     if (Show) 
        std::cout << aRes.size() << "DXXYY " <<  aRes[0]/ElSquare(aEps) << " " <<  aRes[1]/ElSquare(aEps) << "\n";
 }
 
 void cParamIntrinsequeFormel::AddCstrRegulGlob(int aNbEch,double aPdsVal,double aPdsGrad,double aPdsD2,Im2D_REAL4 * aFoncPds)
 {
+    AssertRegIsInit();
     if (aFoncPds==0) 
     {
-       aFoncPds = &mImPdsDef;
+       aFoncPds = &mReg->mImPdsDef;
     }
     TIm2D<REAL4,REAL8> aTPds(*aFoncPds);
 
@@ -778,6 +891,10 @@ void cParamIntrinsequeFormel::AddCstrRegulGlob(int aNbEch,double aPdsVal,double 
 
 }
 
+void cParamIntrinsequeFormel::AssertRegIsInit()
+{
+   ELISE_ASSERT(mReg,"cParamIntrinsequeFormel::AssertRegIsIni");
+}
 
 
 void cParamIntrinsequeFormel::AddRapViscosite(double aTol)
@@ -995,6 +1112,7 @@ Fonc_Num       cParamIntrinsequeFormel::FFoc()
 
 cMultiContEQF cParamIntrinsequeFormel::StdContraintes()
 {
+
     
 
     cMultiContEQF aRes;
@@ -1227,7 +1345,7 @@ cParamIFDistRadiale::cParamIFDistRadiale
   mCDistPPLie              (false),
   mFoncEqPPCDistX          (0),
   mFoncEqPPCDistY          (0),
-  mDRF                     (false,true,aDegFig,SetToDeg(aCam->DRad(),5),aSet,aDP, aDP?aDP->IdCam(): (aCam?aCam->IdCam():"NoId::ParamIFDistRadiale")),
+  mDRF                     (false,true,aDegFig,SetToDeg(aCam->DRad(),5),aSet,aDP, aDP?aDP->IdentCam(): (aCam?aCam->IdentCam():"NoId::ParamIFDistRadiale")),
   mCurPIF                  (0)
 {
   NV_UpdateCurPIF();
@@ -1370,10 +1488,10 @@ cParamIFDistStdPhgr::cParamIFDistStdPhgr
     mInitDStd          (mDRF.DistInitStd()),
     mParamDecentreFree (false),
     mParamAffineFree   (false),
-    mFP1               (aSet.Alloc().NewF(aCam->IdCam(),"P1",&(mDStd.P1()))),
-    mFP2               (aSet.Alloc().NewF(aCam->IdCam(),"P2",&(mDStd.P2()))),
-    mFb1               (aSet.Alloc().NewF(aCam->IdCam(),"b1",&(mDStd.b1()))),
-    mFb2               (aSet.Alloc().NewF(aCam->IdCam(),"b2",&(mDStd.b2()))),
+    mFP1               (aSet.Alloc().NewF(aCam->IdentCam(),"P1",&(mDStd.P1()))),
+    mFP2               (aSet.Alloc().NewF(aCam->IdentCam(),"P2",&(mDStd.P2()))),
+    mFb1               (aSet.Alloc().NewF(aCam->IdentCam(),"b1",&(mDStd.b1()))),
+    mFb2               (aSet.Alloc().NewF(aCam->IdentCam(),"b2",&(mDStd.b2()))),
     mTol_Dec_PhgStdPIF (cContrainteEQF::theContrStricte),
     mTol_Aff_PhgStdPIF (cContrainteEQF::theContrStricte),
     mCurPIF            (0)

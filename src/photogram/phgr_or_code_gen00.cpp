@@ -265,7 +265,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CPolyn0.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CPolyn1.h"
 #include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CPolyn2.h"
+
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CPolyn0.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CPolyn1.h"
 #include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CPolyn2.h"
 
 #include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CPolyn3.h"
@@ -335,9 +340,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CPolyn0.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CPolyn1.h"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CPolyn2.h"
+
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CPolyn0.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CPolyn1.h"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CPolyn2.h"
+
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CPolyn0.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CPolyn1.h"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CPolyn2.h"
+
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CPolyn0.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CPolyn1.h"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CPolyn2.h"
 
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CPolyn3.h"
@@ -425,6 +441,8 @@ AddEntry("cEqAppui_AFocal_PProjInc_M2C"#aDist,cEqAppui_AFocal_PProjInc_M2C##aDis
 // HERE
 
 
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn0.h"
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn1.h"
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn2.h"
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn3.h"
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn4.h"
@@ -436,6 +454,8 @@ AddEntry("cEqAppui_AFocal_PProjInc_M2C"#aDist,cEqAppui_AFocal_PProjInc_M2C##aDis
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CDRad_PPaEqPPs.h"
 
 
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn0.h"
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn1.h"
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn2.h"
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn3.h"
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn4.h"
@@ -557,12 +577,14 @@ AddEntry("cEqAppui_AFocal_PProjInc_M2C"#aDist,cEqAppui_AFocal_PProjInc_M2C##aDis
 
 #include "../../CodeGenere/photogram/cCodeGenEqPlanInconnuFormel.h"
 
-
-#define NEW_ADD_ENTRY(aDist)\
+#define NEW_ADD_ENTRY_WITH_DIST(aDist)\
 AddEntry("cEqAppui_TerFix_M2C"#aDist,cEqAppui_TerFix_M2C##aDist::Alloc);\
 AddEntry("cEqAppui_GL__TerFix_M2C"#aDist,cEqAppui_GL__TerFix_M2C##aDist::Alloc);\
 AddEntry("cEqAppui_GL__PTInc_M2C"#aDist,cEqAppui_GL__PTInc_M2C##aDist::Alloc);\
-AddEntry("cEqAppui_GL__PProjInc_M2C"#aDist,cEqAppui_GL__PProjInc_M2C##aDist::Alloc);\
+AddEntry("cEqAppui_GL__PProjInc_M2C"#aDist,cEqAppui_GL__PProjInc_M2C##aDist::Alloc);
+
+#define NEW_ADD_ENTRY(aDist)\
+NEW_ADD_ENTRY_WITH_DIST(aDist)\
 AddEntry("cEqAppui_NoDist__GL__PTInc_M2C"#aDist,cEqAppui_NoDist__GL__PTInc_M2C##aDist::Alloc);\
 AddEntry("cEqAppui_NoDist__GL__PProjInc_M2C"#aDist,cEqAppui_NoDist__GL__PProjInc_M2C##aDist::Alloc);\
 AddEntry("cEqAppui_NoDist__PTInc_M2C"#aDist,cEqAppui_NoDist__PTInc_M2C##aDist::Alloc);\
@@ -597,6 +619,8 @@ AddEntry("cEqAppui_PProjInc_M2C"#aDist,cEqAppui_PProjInc_M2C##aDist::Alloc);
 
 
 
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CPolyn0.h"         
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CPolyn1.h"         
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CPolyn2.h"         
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CPolyn3.h"
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CPolyn4.h"
@@ -619,6 +643,8 @@ AddEntry("cEqAppui_PProjInc_M2C"#aDist,cEqAppui_PProjInc_M2C##aDist::Alloc);
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CDCBrown.h"                  
 
 
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CPolyn0.h"         
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CPolyn1.h"         
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CPolyn2.h"         
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CPolyn3.h"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CPolyn4.h"
@@ -713,6 +739,15 @@ AddEntry("cEqAppui_PProjInc_M2C"#aDist,cEqAppui_PProjInc_M2C##aDist::Alloc);
 
 
      //  =======  Polyn ==========
+#include "../../CodeGenere/photogram/cREgDistDxDy_Polyn0.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Polyn0.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Polyn0.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Polyn0.h"
+
+#include "../../CodeGenere/photogram/cREgDistDxDy_Polyn1.h"
+#include "../../CodeGenere/photogram/cREgDistDxx_Polyn1.h"
+#include "../../CodeGenere/photogram/cREgDistDx_Polyn1.h"
+#include "../../CodeGenere/photogram/cREgDistVal_Polyn1.h"
 
 #include "../../CodeGenere/photogram/cREgDistDxDy_Polyn2.h"
 #include "../../CodeGenere/photogram/cREgDistDxx_Polyn2.h"
@@ -779,6 +814,8 @@ void cElCompiledFonc::InitEntries()
       REGDIST_ADD_ENTRY(Fraser_PPaEqPPs)
       REGDIST_ADD_ENTRY(NoDist)
 
+      REGDIST_ADD_ENTRY(Polyn0)
+      REGDIST_ADD_ENTRY(Polyn1)
       REGDIST_ADD_ENTRY(Polyn2)
       REGDIST_ADD_ENTRY(Polyn3)
       REGDIST_ADD_ENTRY(Polyn4)
@@ -891,6 +928,9 @@ void cElCompiledFonc::InitEntries()
      NEW_ADD_ENTRY(FishEye_10_5_5)
      NEW_ADD_ENTRY(EquiSolid_FishEye_10_5_5)
      NEW_ADD_ENTRY(DRad_PPaEqPPs)
+
+     NEW_ADD_ENTRY(Polyn0)
+     NEW_ADD_ENTRY(Polyn1)
      NEW_ADD_ENTRY(Polyn2)
      NEW_ADD_ENTRY(Polyn3)
      NEW_ADD_ENTRY(Polyn4)
@@ -1031,6 +1071,8 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cEqAppui_PProjInc_M2CEbner",cEqAppui_PProjInc_M2CEbner::Alloc);
      AddEntry("cEqAppui_PProjInc_C2MEbner",cEqAppui_PProjInc_C2MEbner::Alloc);
 
+     AddEntry("cEqAppui_PTInc_M2CPolyn0",cEqAppui_PTInc_M2CPolyn0::Alloc);
+     AddEntry("cEqAppui_PTInc_M2CPolyn1",cEqAppui_PTInc_M2CPolyn1::Alloc);
      AddEntry("cEqAppui_PTInc_M2CPolyn2",cEqAppui_PTInc_M2CPolyn2::Alloc);
      AddEntry("cEqAppui_PTInc_M2CPolyn3",cEqAppui_PTInc_M2CPolyn3::Alloc);
      AddEntry("cEqAppui_PTInc_M2CPolyn4",cEqAppui_PTInc_M2CPolyn4::Alloc);
@@ -1042,6 +1084,8 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cEqAppui_PTInc_M2CDRad_PPaEqPPs",cEqAppui_PTInc_M2CDRad_PPaEqPPs::Alloc);
 
 
+     AddEntry("cEqAppui_PProjInc_M2CPolyn0",cEqAppui_PProjInc_M2CPolyn0::Alloc);
+     AddEntry("cEqAppui_PProjInc_M2CPolyn1",cEqAppui_PProjInc_M2CPolyn1::Alloc);
      AddEntry("cEqAppui_PProjInc_M2CPolyn2",cEqAppui_PProjInc_M2CPolyn2::Alloc);
      AddEntry("cEqAppui_PProjInc_M2CPolyn3",cEqAppui_PProjInc_M2CPolyn3::Alloc);
      AddEntry("cEqAppui_PProjInc_M2CPolyn4",cEqAppui_PProjInc_M2CPolyn4::Alloc);
@@ -1103,6 +1147,10 @@ void cElCompiledFonc::InitEntries()
 
 
 
+     AddEntry("cEqAppui_GL__PTInc_M2CPolyn0",cEqAppui_GL__PTInc_M2CPolyn0::Alloc);
+     AddEntry("cEqAppui_GL__PProjInc_M2CPolyn0",cEqAppui_GL__PProjInc_M2CPolyn0::Alloc);
+     AddEntry("cEqAppui_GL__PTInc_M2CPolyn1",cEqAppui_GL__PTInc_M2CPolyn1::Alloc);
+     AddEntry("cEqAppui_GL__PProjInc_M2CPolyn1",cEqAppui_GL__PProjInc_M2CPolyn1::Alloc);
 
      AddEntry("cEqAppui_GL__PTInc_M2CPolyn2",cEqAppui_GL__PTInc_M2CPolyn2::Alloc);
      AddEntry("cEqAppui_GL__PProjInc_M2CPolyn2",cEqAppui_GL__PProjInc_M2CPolyn2::Alloc);

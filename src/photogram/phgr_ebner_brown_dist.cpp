@@ -440,6 +440,23 @@ template <class Type>
 }
 
 
+template <class Type> 
+         Pt2d<Type> cDistGen_Deg0_Generator<Type>::DistElem(bool UsePC,const Pt2d<Type> &aP,const Type * V,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP)
+{
+    return aP;
+}
+
+
+template <class Type> 
+         Pt2d<Type> cDistGen_Deg1_Generator<Type>::DistElem(bool UsePC,const Pt2d<Type> &aP,const Type * V,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP)
+{
+   return Pt2d<Type>
+          (
+              (1+ V[ 0]) * aP.x + V[ 1] * aP.y,
+              (1- V[ 0]) * aP.y + V[ 1] * aP.x
+          );
+}
+
 
 
 
@@ -946,7 +963,27 @@ Pt2dr  cDist_Param_Unif<TDistR,TDistF,NbVar,NbState>::Direct(Pt2dr aP) const
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
 double & cDist_Param_Unif<TDistR,TDistF,NbVar,NbState>::KVar(int aK)
 {
-    ELISE_ASSERT((aK>=0)&&(aK<NbVar),"cDist_Param_Unif<TDistR,TDistF,NbVar,NbState>::KVar");
+    // Apparemment cela fonctionne donc on sort prematurement
+    if (NbVar==0)
+       return *((double *)0);
+    if ((aK<0) || (aK>=NbVar))
+    {
+       // Seul cas possible NbVar=0, deja pris en compte
+       if (0 && MPD_MM())
+       {
+            static bool First = true;
+         
+            std::cout << "LOCKED in  cDist_Param_Unif::KVar line " << __LINE__ << " of " << __FILE__ << "\n";
+            if (First)
+            {
+               First = false;
+               getchar();
+            }
+            if (NbVar==0)
+               return *((double *)0);
+       }
+       ELISE_ASSERT((aK>=0)&&(aK<NbVar),"cDist_Param_Unif<TDistR,TDistF,NbVar,NbState>::KVar");
+    }
     return mVars[aK];
 }
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
@@ -1208,7 +1245,7 @@ cPIF_Unif<TDistR,TDistF,NbVar,NbState>::cPIF_Unif
   for (int aK=0 ; aK< NbVar ; aK++)
   {
       mVarIsFree[aK] = true;
-      mVars[aK] =  aSet.Alloc().NewF(aCS->IdCam(),mNamePolyn[aK],&(mDistCur.KVar(aK)));
+      mVars[aK] =  aSet.Alloc().NewF(aCS->IdentCam(),mNamePolyn[aK],&(mDistCur.KVar(aK)));
       mTolCstr[aK] = cContrainteEQF::theContrStricte;
   }
 
@@ -1317,8 +1354,12 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
  cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> *
       cPIF_Unif<TDistR,TDistF,NbVar,NbState>::newCurPIFUnif()
 {
-	double * adrV0 = &mDistCur.KVar(0);
-	std::vector<double> aVV(adrV0,adrV0+NbVar);
+	std::vector<double> aVV ;
+        if (NbVar)
+        {
+	   double * adrV0 = &mDistCur.KVar(0);
+	   aVV = std::vector<double>(adrV0,adrV0+NbVar);
+        }
 
 	double * adrS0 = &mDistCur.KState(0);
 	std::vector<double> aVS(adrS0,adrS0+NbState);
@@ -1624,36 +1665,50 @@ template class cPIF_Unif<cDistRadFour19x2_Generator<double>,cDistRadFour19x2_Gen
 
 
     //=======================================================
+
+template <> const std::string  cDist_Polyn0::TheName="Polyn0";
+template <> const int   cDist_Polyn0::TheType= (int) eModelePolyDeg0;
+
+template <> const int 
+   cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3>::mDegrePolyn[0] = {};
+template <> const std::string 
+   cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3>::mNamePolyn[0] = {};
+template class cDist_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;
+template class cCamera_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;
+template class cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;
+/*
+*/
+
+        // -------------------------------------------------
+template <> const std::string  cDist_Polyn1::TheName="Polyn1";
+template <> const int   cDist_Polyn1::TheType= (int) eModelePolyDeg1;
+
+template <> const int 
+   cPIF_Unif<cDistGen_Deg1_Generator<double>,cDistGen_Deg1_Generator<Fonc_Num>,2,3>::mDegrePolyn[2]
+          = { 1,1};
+template <> const std::string 
+   cPIF_Unif<cDistGen_Deg1_Generator<double>,cDistGen_Deg1_Generator<Fonc_Num>,2,3>::mNamePolyn[2]
+          = {"0z_x/-y","1z_Z"};
+template class cDist_Param_Unif<cDistGen_Deg1_Generator<double>,cDistGen_Deg1_Generator<Fonc_Num>,2,3> ;
+template class cCamera_Param_Unif<cDistGen_Deg1_Generator<double>,cDistGen_Deg1_Generator<Fonc_Num>,2,3> ;
+template class cPIF_Unif<cDistGen_Deg1_Generator<double>,cDistGen_Deg1_Generator<Fonc_Num>,2,3> ;
+
+        // -------------------------------------------------
+
 template <> const std::string  cDist_Polyn2::TheName="Polyn2";
 template <> const int   cDist_Polyn2::TheType= (int) eModelePolyDeg2;
 
 template <> const int 
    cPIF_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3>::mDegrePolyn[6]
           = { 1,1,2,2,2,2};
-
-
 template <> const std::string 
    cPIF_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3>::mNamePolyn[6]
           = {"0z_x/-y","1z_Z","2z_XZ","3z_YZ","x_Y2","y_X2"};
-/*
-   Type aXOut =  (1+ V[ 0]) * x
-                 + V[ 1] * y
-		 - V[ 2] * 2* x2N
-		 + V[ 3] * xy
-		 + V[ 4] * y2N ;
-
-
-    Type aYOut =  (1- V[ 0]) * y
-                  + V[ 1] * x
-		  + V[ 2] * xy
-		  - V[ 3] * 2 *y2N
-		  + V[ 5] * x2N ;
-*/
-
-          
 template class cDist_Param_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3> ;
 template class cCamera_Param_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3> ;
 template class cPIF_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3> ;
+
+        // -------------------------------------------------
 
 
 

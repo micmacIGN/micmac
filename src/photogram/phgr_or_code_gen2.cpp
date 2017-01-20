@@ -73,6 +73,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CEbner.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_C2MEbner.cpp"  // 
 
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn0.cpp"  // 
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn1.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn2.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn3.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn4.cpp"  // 
@@ -85,6 +87,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CFraser_PPaEqPPs.cpp"  // 
 
 
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn0.cpp"  // 
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn1.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn2.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn3.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn4.cpp"  // 
@@ -165,6 +169,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CEbner.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CDCBrown.cpp"
 
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CPolyn0.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CPolyn1.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CPolyn2.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CPolyn3.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CPolyn4.cpp"
@@ -187,6 +193,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CEbner.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CDCBrown.cpp"
 
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CPolyn0.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CPolyn1.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CPolyn2.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CPolyn3.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CPolyn4.cpp"

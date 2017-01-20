@@ -210,6 +210,60 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
        }
     }
 
+    if (anEN.NuagePutGCPCtrl().IsInit())
+    {
+        const cNuagePutGCPCtrl & aNPC = anEN.NuagePutGCPCtrl().Val();
+        cSetOfMesureAppuisFlottants aSMAF = StdGetMAF(aNPC.NameGCPIm());
+        cDicoAppuisFlottant         aDAF  = StdGetDAF(aNPC.NameGCPTerr());
+	
+        for
+	(
+	    std::list<cOneAppuisDAF>::const_iterator itP=aDAF.OneAppuisDAF().begin() ;
+	    itP!=aDAF.OneAppuisDAF().end();
+	    itP++
+	)
+	{
+	    std::vector<ElSeg3D> aVSeg;
+	    std::vector<double> aVPds;
+	    cOneAppuisDAF aP = *itP;
+	    for
+	    (
+	        std::list<cMesureAppuiFlottant1Im>::const_iterator itM=aSMAF.MesureAppuiFlottant1Im().begin() ;
+		itM!=aSMAF.MesureAppuiFlottant1Im().end();
+		itM++
+	    )
+	    {
+		const cOneMesureAF1I *  aMes =  PtsOfName(*itM,aP.NamePt());
+		if (aMes)
+		{
+                    cPoseCam *  aPC =  PoseFromNameSVP (itM->NameIm());
+                    if (aPC)
+                    {
+                        const CamStenope *  aCS = aPC->CurCam();
+		        aVSeg.push_back(aCS->Capteur2RayTer( aMes->PtIm()));                     
+             		aVPds.push_back(1);           
+
+
+
+                    }
+		}
+	    }
+	    if( aVSeg.size() > 1 )
+	    {
+	    	bool aIsOK;
+	    	Pt3dr aPPho = ElSeg3D::L2InterFaisceaux(&aVPds, aVSeg, &aIsOK);
+		Pt3dr aDif = (aP.Pt() - aPPho);
+		aDif = aDif / euclid(aDif);
+		double aSc = aNPC.ScaleVec();
+		anAGP.AddSeg(aPPho,aPPho + Pt3dr(aSc*aDif.x,aSc*aDif.y,aSc*aDif.z),0.5,Pt3di(255,0,0));
+		
+		std::cout << "Ctrl " << " " << aP.NamePt() << " " << aDif << "\n";
+	    }
+	}
+	
+    }
+
+
     if (anEN.NuagePutInterPMul().IsInit())
     {
         const cNuagePutInterPMul & aNPIM = anEN.NuagePutInterPMul().Val();

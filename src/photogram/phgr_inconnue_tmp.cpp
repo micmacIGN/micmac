@@ -1319,7 +1319,7 @@ void InspectInterFaisc
         ElSeg3D   aSeg = aCam.F2toRayonR3(aPIm);
         Pt2dr aProj = aCam.R3toF2(aPTer);
 
-        std::cout << "SEG[" << aCam.IdCam() << "," << aPIm << "]="   <<   aProj << "  " << aSeg.P0() << " " << aSeg.TgNormee() << " " << aVPds[aK] << "\n";
+        std::cout << "SEG[" << aCam.IdentCam() << "," << aPIm << "]="   <<   aProj << "  " << aSeg.P0() << " " << aSeg.TgNormee() << " " << aVPds[aK] << "\n";
    }
 }
 
