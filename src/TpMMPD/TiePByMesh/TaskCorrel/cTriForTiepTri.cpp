@@ -103,15 +103,17 @@ double cTriForTiepTri::valElipse(int & aNInter)
                 }
                 double aNbPt = 100;
                 vector<Pt2dr> VCl;
+                vector<Pt2dr> VTri;VTri.push_back(mPt1);VTri.push_back(mPt2);VTri.push_back(mPt3);
                 for (uint aKP=0; aKP<aNbPt; aKP++)
                 {
                     Pt2dr ptCrlImg;
-                    ptCrlImg = aAffLc2Im(Pt2dr::FromPolar(rho, aKP*2*PI/aNbPt));
+                    ptCrlImg = aAffImG2ImL.inv()(aAffLc2Im(Pt2dr::FromPolar(rho, aKP*2*PI/aNbPt)));
                     VCl.push_back(ptCrlImg);
                 }
                 Line_St lstLineG(aVW->pdisc()(P8COL::green),1);
                 ELISE_COPY(aVW->all_pts(), mAppli->VImgs()[mNumImg]->Tif().in_proj(), aVW->ogray());
                 aVW->draw_poly_ferm(VCl, lstLineG);
+                aVW->draw_poly_ferm(VTri, aVW->pdisc()(P8COL::red));
                 if (mNumImg == int(mAppli->VVW().size() - 1))
                     aVW->clik_in();
             }

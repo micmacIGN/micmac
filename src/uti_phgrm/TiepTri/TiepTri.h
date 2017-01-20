@@ -107,7 +107,6 @@ typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
 extern void TestcAutoCorrelDir(TIm2D<double,double> aTIm,const Pt2di & aP0);
 
 
-
 class cParamAppliTieTri
 {
     public :
@@ -602,6 +601,14 @@ class cHomolPackTiepTri
 };
 
 
+class cCmpInterOnFast
+{
+    public :
+       bool operator () (const cIntTieTriInterest & aI1,const cIntTieTriInterest &aI2)
+       {
+             return aI1.mFastQual > aI2.mFastQual;
+       }
+};
 
 
 

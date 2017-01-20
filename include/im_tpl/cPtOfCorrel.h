@@ -181,7 +181,7 @@ template <class TIm> Pt2dr  FastQuality(TIm anIm,Pt2di aP,cFastCriterCompute & a
 {
    std::vector<double> aVVals;
    const  std::vector<Pt2di> & aVPt = aCrit.VPt();
-   int aNbPts = aVPt.size();
+   int aNbPts = aVPt.size();    //les voisins
    typename TIm::tValueElem aDef =   IsMax ?
                                      El_CTypeTraits<typename TIm::tValueElem>::MaxValue():
                                      El_CTypeTraits<typename TIm::tValueElem>::MinValue();
@@ -189,16 +189,16 @@ template <class TIm> Pt2dr  FastQuality(TIm anIm,Pt2di aP,cFastCriterCompute & a
    for (int aK=0 ; aK<aNbPts ; aK++)
    {
        typename TIm::tValueElem aVal = anIm.get(aP+aVPt[aK],aDef) * aSign;
-       aVVals.push_back(aVal);
+       aVVals.push_back(aVal); //valeur des voisins
        aCrit.FRA().In(aK) = aVal;
    }
    typename TIm::tValueElem aV0 = anIm.getproj(aP)*aSign;
 
    // Definition standard de Fast
    std::vector<double> aFOut(aNbPts);
-   double aPropStd = aProp.x;
+   double aPropStd = aProp.x;   //TT_PropFastStd (0.75)
    double aVPerc = KthValProp(aVVals,aPropStd);
-   double aResStd = (aV0 -aVPerc) ;
+   double aResStd = (aV0 -aVPerc) ; // > TT_SeuilFastStd = 5
 
    // Definition contignu
    double aPropC = aProp.y;
@@ -208,7 +208,7 @@ template <class TIm> Pt2dr  FastQuality(TIm anIm,Pt2di aP,cFastCriterCompute & a
    typename TIm::tValueElem aVMin =   aCrit.FRA().Out(0);
    for (int aK=1 ; aK<aNbPts ; aK++)
    {
-      //std::cout << "HHHH " << aCrit.FRA().In(aK) << " " << aCrit.FRA().Out(aK) << "\n";
+     // std::cout << "HHHH " << aCrit.FRA().In(aK) << " " << aCrit.FRA().Out(aK) << "\n";
        aVMin = ElMin(aVMin, aCrit.FRA().Out(aK));
    }
    double  aResC = (aV0-aVMin);

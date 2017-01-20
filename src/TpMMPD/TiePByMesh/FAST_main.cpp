@@ -63,6 +63,7 @@ int FAST_main(int argc,char ** argv)
         vector<double> aParamD;
         bool display;
         double aZoomF;
+        Pt3di mSzW;
         ElInitArgMain
                 (
                     argc,argv,
@@ -73,8 +74,7 @@ int FAST_main(int argc,char ** argv)
                     << EAM(aTypeD, "aTypeD", true, "Type detector pts Interet (FAST, DIGEO, EXTREMA)")
                     << EAM(aDirOut, "aDirOut", true, "Output directory for pts interest file, default=PtsInteret")
                     << EAM(dParam, "dParam", true, "detector parameter")
-                    << EAM(display, "display", true, "display result")
-                    << EAM(aZoomF, "zoomF", true, "zoomF for display")
+                    << EAM(mSzW, "mSzW", true, "display [x,y,dZoom]")
                  );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -120,23 +120,41 @@ int FAST_main(int argc,char ** argv)
             vector<Pt2dr> lstPt;
             aDecPic->getmPtsInterest(lstPt);
             cout<<" ++ "<<aTypeD<<" : "<<lstPt.size()<<" pts detected!"<<endl;
-            if (display)
+
+            if (EAMIsInit(&mSzW))
             {
-                if (mW==0)
+                if (aPic->mImgSz.x >= aPic->mImgSz.y)
                 {
-                    mW=Video_Win::PtrWStd(Pt2di(aPic->mImgSz*aZoomF), true, Pt2dr(aZoomF,aZoomF));
-                    mW->set_title(aPic->getNameImgInStr().c_str());
+                    double scale =  double(aPic->mImgSz.x) / double(aPic->mImgSz.y) ;
+                    mSzW.x = mSzW.x;
+                    mSzW.y = round_ni(mSzW.x/scale);
+                }
+                else
+                {
+                    double scale = double(aPic->mImgSz.y) / double(aPic->mImgSz.x);
+                    mSzW.x = round_ni(mSzW.y/scale);
+                    mSzW.y = mSzW.y;
+                }
+                Pt2dr aZ(double(mSzW.x)/double(aPic->mImgSz.x) , double(mSzW.y)/double(aPic->mImgSz.y) );
+
+                if (mW ==0)
+                {
+                    mW = Video_Win::PtrWStd(Pt2di(mSzW.x*mSzW.z, mSzW.y*mSzW.z), true, aZ*mSzW.z);
+                    mW->set_sop(Elise_Set_Of_Palette::TheFullPalette());
                 }
                 if (mW)
                 {
+                    mW->set_title(aPic->getNameImgInStr().c_str());
                     ELISE_COPY(aPic->mPic_Im2D->all_pts(), aPic->mPic_Im2D->in(), mW->ogray());
                     for (uint aK=0; aK<lstPt.size(); aK++)
                     {
-                        mW->draw_circle_loc(lstPt[aK],2.0,mW->pdisc()(P8COL::green));
+                        mW->draw_circle_loc(lstPt[aK],1.5,mW->pdisc()(P8COL::green));
                     }
                     mW->clik_in();
+
                 }
             }
-        }
-        return EXIT_SUCCESS;
+            return EXIT_SUCCESS;
     }
+        return EXIT_SUCCESS;
+}

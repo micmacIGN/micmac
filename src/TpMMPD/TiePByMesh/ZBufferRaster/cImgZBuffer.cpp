@@ -149,7 +149,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         for (uint aKSeg=0; aKSeg<aRasTri.size(); aKSeg++)
         {
             cSegEntierHor aSeg = aRasTri[aKSeg];
-            for (uint aKPt=0; aKPt<aSeg.mNb; aKPt++)
+            for (int aKPt=0; aKPt<aSeg.mNb; aKPt++)
             {
                 Pt2dr aPtRas(aSeg.mP0.x + aKPt, aSeg.mP0.y);
                 double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCam);

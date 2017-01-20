@@ -45,7 +45,6 @@ class Detector
         InitOutil * mChain;
         pic* mPic2;
         cInterfChantierNameManipulateur * mICNM;
-
 };
 
 class ExtremePoint
@@ -68,3 +67,4 @@ private:
 };
 
 #endif
+

@@ -204,9 +204,16 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
         //export mesh correspond with each image:
         DrawOnMesh aDraw;
         std::string fileMesh =  mICNM->Dir() + "PLYVerif/" + mVImgs[aKI]->Name() + ".ply";
+        /*
         Pt3dr color(round(aKI*clIni.x/double(mVImgs.size())),
                     round(aKI*clIni.y/double(mVImgs.size())),
                     round(aKI*clIni.z/double(mVImgs.size())));
+                    */
+        Pt3dr color(
+                    double( rand() % 255 ),
+                    double( rand() % 255 ),
+                    double( rand() % 255 )
+                   );
         aDraw.drawListTriangle(aImg->Task().Tri(), fileMesh, color);
     }
     cout<<"Del : "<<cptDel<<endl;
