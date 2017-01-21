@@ -59,9 +59,41 @@ void cAppliTaskCorrel::SetNInter(int & aNInter, double & aZoomF)
 
 void cAppliTaskCorrel::lireMesh(std::string & aNameMesh, vector<triangle*> & tri, vector<cTriForTiepTri*> & triF)
 {
+        cout<<"Lire mesh...";
+        ElTimer aChrono;
+        cMesh myMesh(aNameMesh, true);
+        const int nFaces = myMesh.getFacesNumber();
+        for (double aKTri=0; aKTri<nFaces; aKTri++)
+        {
+            cTriangle* aTri = myMesh.getTriangle(aKTri);
+            vector<Pt3dr> aSm;
+            aTri->getVertexes(aSm);
+            cTri3D aTri3D (   aSm[0],
+                              aSm[1],
+                              aSm[2],
+                              aKTri
+                          );
+            mVTriF.push_back(new cTriForTiepTri(this, aTri3D, aKTri));
+            mVcTri3D.push_back(aTri3D);
+        }
+        cout<<"Finish - time "<<aChrono.uval()<<endl;
+
+
+
+
+
+
+
+
+
+
+
+
+/*
     cout<<"Lire mesh...";
     ElTimer aChrono;
     InitOutil * aPly = new InitOutil (aNameMesh);
+    cout<<"Finish - time "<<aChrono.uval()<<endl;
     mVTri = aPly->getmPtrListTri();
     for (double aKT=0; aKT<mVTri.size(); aKT++)
     {
@@ -74,16 +106,14 @@ void cAppliTaskCorrel::lireMesh(std::string & aNameMesh, vector<triangle*> & tri
                     );
         mVcTri3D.push_back(aTri);
     }
-    cout<<"Finish - time "<<aChrono.uval()<<endl;
+    */
 }
 
-void cAppliTaskCorrel::updateVTriFWithNewAppli(vector<triangle*> & tri)
+void cAppliTaskCorrel::updateVTriFWithNewAppli(vector<cTri3D> & tri)
 {
-    mVTri.clear();
-    mVTri = tri;
     mVTriF.clear();
-    for (double aKT=0; aKT<mVTri.size(); aKT++)
-        mVTriF.push_back(new cTriForTiepTri(this, mVTri[aKT], aKT));
+    for (double aKT=0; aKT<tri.size(); aKT++)
+        mVTriF.push_back(new cTriForTiepTri(this, tri[aKT], aKT));
 }
 
 void cAppliTaskCorrel::ZBuffer()
@@ -162,14 +192,14 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
 void cAppliTaskCorrel::DoAllTri()
 {
     cout<<"Nb Img: "<<mVImgs.size()<<" -Nb Tri: "<<mVTriF.size()<<endl;
-    for (uint aKT=0; aKT<mVTri.size(); aKT++)
+    for (uint aKT=0; aKT<mVcTri3D.size(); aKT++)
     {
         //cout<<endl<<"Tri "<<aKT<<endl;
         cImgForTiepTri * aImgMas = DoOneTri(mVTriF[aKT]);
         cXml_Triangle3DForTieP aTaskTri;
-        aTaskTri.P1() = mVTri[aKT]->getSommet(0);
-        aTaskTri.P2() = mVTri[aKT]->getSommet(1);
-        aTaskTri.P3() = mVTri[aKT]->getSommet(2);
+        aTaskTri.P1() = mVcTri3D[aKT].P1();
+        aTaskTri.P2() = mVcTri3D[aKT].P2();
+        aTaskTri.P3() = mVcTri3D[aKT].P3();
         if (aImgMas != NULL && Cur_Img2nd().size() != 0)
         {
             if (mNInter!=0)
@@ -327,7 +357,7 @@ vector<cXml_TriAngulationImMaster> cAppliTaskCorrelByXML::DoACpl(CplString aCpl)
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM, aDir, mOri, aFullPattern);
 
-    aAppli->updateVTriFWithNewAppli(mVTri);
+    //aAppli->updateVTriFWithNewAppli(mVcTri3D);
     aAppli->DoAllTri();
     cout<<aAppli->VTask().size()<<" task"<<endl;
     return aAppli->VTask();

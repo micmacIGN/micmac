@@ -32,11 +32,11 @@ public:
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
     void lireMesh(std::string & aNameMesh, vector<triangle*> &, vector<cTriForTiepTri*> &);
-    void updateVTriFWithNewAppli(vector<triangle*> & tri);
+    void updateVTriFWithNewAppli(vector<cTri3D> &tri);
     PlyFile * Ply() {return mPly;}
     const std::string Ori() {return mOri;}
     const std::string Dir() {return mDir;}
-    string & NameMesh() {return mNameMesh;}
+    string NameMesh() {return mNameMesh;}
     vector<triangle*> & VTri() {return mVTri;}
     vector<cTriForTiepTri*> & VTriF() {return mVTriF;}
     cImgForTiepTri* DoOneTri(cTriForTiepTri * aTri2D);
@@ -156,7 +156,8 @@ class cTriForTiepTri
 {
 public:
 
-        cTriForTiepTri(cAppliTaskCorrel* , triangle * aTri3d, double & ind);
+        //cTriForTiepTri(cAppliTaskCorrel* , triangle * aTri3d, double & ind);
+        cTriForTiepTri(cAppliTaskCorrel* , cTri3D aTri3d, double & ind);
         bool reprj(cImgForTiepTri *aImg);
         bool rprjOK() {return mrprjOK;}
         Pt2dr Pt1() {return mPt1;}
@@ -171,6 +172,7 @@ private:
         Pt2dr mPt3;
         cAppliTaskCorrel * mAppli;
         triangle * mTri3D;
+        cTri3D mTri3D_;
         bool mrprjOK;
         double mInd;
 };

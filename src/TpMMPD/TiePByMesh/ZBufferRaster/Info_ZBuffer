@@ -10,3 +10,7 @@
 
 
 (*) Il fault re-ecrire method lire mesh directement au vector mVTriF => lireMesh cout 94s !!!
+    (.) Utiliser cMesh => work now ! 
+
+(*) Pourquoi TiepTriPrl not work ? (error make can't found mm3d command ) ?????
+	
