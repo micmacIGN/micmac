@@ -43,7 +43,7 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
         string fileOutLbl = path + mVImg[aKIm] + "_TriLabel_DeZoom" +  ToString(int(1.0/mReech)) + ".tif";
         ElTimer aChrono;
         cImgZBuffer * aZBuf;
-       if ( ELISE_fp::exist_file(fileOutLbl))
+       if ( ELISE_fp::exist_file(fileOutLbl) && ELISE_fp::exist_file(fileOutZBuf))
        {
            cout<<mVImg[aKIm]<<" existed in Tmp-ZBuffer ! . Skip"<<endl;
            aZBuf =  new cImgZBuffer(this, mVImg[aKIm]);
@@ -74,7 +74,9 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
                            ).out()
 
                        );
-           ELISE_COPY
+           if (mWithImgLabel)
+           {
+               ELISE_COPY
                    (
                        aZBuf->ImInd().all_pts(),
                        aZBuf->ImInd().in_proj(),
@@ -87,6 +89,7 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
                            ).out()
 
                        );
+           }
        }
        aVTriValid.push_back(aZBuf->TriValid());
        if (mNInt != 0)
@@ -146,12 +149,15 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
            }
            getchar();
        }
-       for (double i=0; i<aZBuf->TriValid().size(); i++)
+       if (mWithImgLabel)
        {
-           if(aZBuf->TriValid()[i] == true)
-               aZBuf->CntTriValab()++;
+           for (double i=0; i<aZBuf->TriValid().size(); i++)
+           {
+               if(aZBuf->TriValid()[i] == true)
+                   aZBuf->CntTriValab()++;
+           }
+           cout<<"Nb Tri In ZBuf : "<<aZBuf->CntTriValab()<<endl;
        }
-       cout<<"Nb Tri In ZBuf : "<<aZBuf->CntTriValab()<<endl;
     }
 
 }

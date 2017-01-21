@@ -31,7 +31,7 @@ public:
                      );
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
-    void lireMesh(std::string & aNameMesh, vector<triangle*> &, vector<cTriForTiepTri*> &);
+    void lireMesh(std::string & aNameMesh);
     void updateVTriFWithNewAppli(vector<cTri3D> &tri);
     PlyFile * Ply() {return mPly;}
     const std::string Ori() {return mOri;}

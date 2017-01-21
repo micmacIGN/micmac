@@ -68,7 +68,9 @@ int TaskCorrel_main(int argc,char ** argv)
         else
         {
             cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg);
-            aAppli->lireMesh(pathPlyFileS, aAppli->VTri(), aAppli->VTriF());
+            cout<<"end constructor, begin lireMesh"<<endl;
+            aAppli->lireMesh(pathPlyFileS/*, aAppli->VTri(), aAppli->VTriF()*/);
+            getchar();
             aAppli->SetNInter(nInteraction, aZ);
             aAppli->Rech() = 1.0/double (rech);
             aAppli->DistMax() = distMax;
