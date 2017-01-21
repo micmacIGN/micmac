@@ -198,6 +198,10 @@ void cImgZBuffer::normalizeIm(tImZBuf & aImZ, double valMin, double valMax)
     cout<<" -> Norm "<<minProf<<" "<<maxProf<<endl;
 }
 
+/***********************************************************************************/
+/*********************************** ImportResult***********************************/
+/***********************************************************************************/
+
 void cImgZBuffer::ImportResult(string & fileTriLbl, string & fileZBuf)
 {
     ELISE_ASSERT(ELISE_fp::exist_file(fileTriLbl),"File Img Label not found");

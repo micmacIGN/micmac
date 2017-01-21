@@ -1,5 +1,7 @@
 #include "ZBufferRaster.h"
-
+/***********************************************************************************/
+/*********************************** Constructor ***********************************/
+/***********************************************************************************/
 cAppliZBufferRaster::cAppliZBufferRaster(
                                             cInterfChantierNameManipulateur * aICNM,
                                             const std::string & aDir,
@@ -25,34 +27,40 @@ cAppliZBufferRaster::cAppliZBufferRaster(
     }
 }
 
+/***********************************************************************************/
+/*********************************** SetNameMesh ***********************************/
+/***********************************************************************************/
+
 void cAppliZBufferRaster::SetNameMesh(string & aNameMesh)
 {
     mNameMesh = aNameMesh;
-    if (!ELISE_fp::IsDirectory(mDir + "Tmp-ZBuffer/" + aNameMesh))
-        ELISE_fp::MkDir(mDir + "Tmp-ZBuffer/" + aNameMesh);
+    ELISE_fp::MkDirSvp(mDir + "Tmp-ZBuffer/" + aNameMesh);
 }
 
 
+/***********************************************************************************/
+/*********************************** DoAllIm ***************************************/
+/***********************************************************************************/
 
 void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
 {
     for (int aKIm=0; aKIm<int(mVImg.size()); aKIm++)
     {
+        if (aKIm % 10 == 0 && mVImg.size() > 30)
+             cout<<" ++ Im : ["<<(aKIm*100.0/mVImg.size())<<" %]"<<endl;
         string path = mDir + "Tmp-ZBuffer/" + mNameMesh + "/" + mVImg[aKIm] + "/";
         string fileOutZBuf = path + mVImg[aKIm] + "_ZBuffer_DeZoom" + ToString(int(1.0/mReech)) + ".tif";
         string fileOutLbl = path + mVImg[aKIm] + "_TriLabel_DeZoom" +  ToString(int(1.0/mReech)) + ".tif";
         ElTimer aChrono;
-        cImgZBuffer * aZBuf;
+        cImgZBuffer * aZBuf = new cImgZBuffer(this, mVImg[aKIm]);
        if ( ELISE_fp::exist_file(fileOutLbl) && ELISE_fp::exist_file(fileOutZBuf))
        {
            cout<<mVImg[aKIm]<<" existed in Tmp-ZBuffer ! . Skip"<<endl;
-           aZBuf =  new cImgZBuffer(this, mVImg[aKIm]);
            aZBuf->ImportResult(fileOutLbl, fileOutLbl);
            mIsTmpZBufExist = true;
        }
        else
        {
-           aZBuf =  new cImgZBuffer(this, mVImg[aKIm]);
            for (int aKTri=0; aKTri<int(mVTri.size()); aKTri++)
            {
                if (aKTri % 200 == 0 && mNInt != 0)
@@ -60,7 +68,7 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
                aZBuf->LoadTri(mVTri[aKTri]);
            }
            //save Image ZBuffer to disk
-           ELISE_fp::MkDir(path);
+           ELISE_fp::MkDirSvp(path);
            ELISE_COPY
                    (
                        aZBuf->ImZ().all_pts(),
@@ -158,13 +166,16 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
            }
            cout<<"Nb Tri In ZBuf : "<<aZBuf->CntTriValab()<<endl;
        }
+       delete aZBuf;
     }
 
 }
+/***********************************************************************************/
+/*********************************** DoAllIm ***************************************/
+/***********************************************************************************/
 
 void cAppliZBufferRaster::DoAllIm()
 {
     DoAllIm(mTriValid);
 }
-
 

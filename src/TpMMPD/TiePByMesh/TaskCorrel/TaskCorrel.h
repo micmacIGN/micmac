@@ -36,7 +36,7 @@ public:
     PlyFile * Ply() {return mPly;}
     const std::string Ori() {return mOri;}
     const std::string Dir() {return mDir;}
-    string NameMesh() {return mNameMesh;}
+    string & NameMesh() {return mNameMesh;}
     vector<triangle*> & VTri() {return mVTri;}
     vector<cTriForTiepTri*> & VTriF() {return mVTriF;}
     cImgForTiepTri* DoOneTri(cTriForTiepTri * aTri2D);

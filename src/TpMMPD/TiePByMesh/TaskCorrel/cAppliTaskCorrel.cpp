@@ -30,8 +30,6 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     }
     cout<<"Imgs creat "<<aChrono.uval()<<" sec" <<endl;
     aChrono.reinit();
-    getchar();
-
     for (uint aKI = 0; aKI<mVImgs.size(); aKI++)
     {
         cImgForTiepTri* aImg = mVImgs[aKI];
@@ -42,7 +40,6 @@ cAppliTaskCorrel::cAppliTaskCorrel (
         mVTask[aKI] = aImg->Task();
     }
     cout<<"Task creat "<<aChrono.uval()<<" sec" <<endl;
-    getchar();
 }
 
 void cAppliTaskCorrel::lireMesh(std::string & aNameMesh)
@@ -64,6 +61,7 @@ void cAppliTaskCorrel::lireMesh(std::string & aNameMesh)
             mVTriF.push_back(new cTriForTiepTri(this, aTri3D, aKTri));
             mVcTri3D.push_back(aTri3D);
         }
+        mNameMesh = aNameMesh;
         cout<<"Finish - time "<<aChrono.uval()<<endl;
 }
 
@@ -121,6 +119,7 @@ void cAppliTaskCorrel::ZBuffer()
         cImgForTiepTri * aImg = mVImgs[aKIm];
         aImg->TriValid() = mVTriValid[aKIm];
     }
+    delete aAppliZBuf;
     cout<<" - time : "<<aChrono.uval()<<endl;
 }
 
@@ -208,6 +207,12 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
     for (uint aKI=0; aKI<mVImgs.size(); aKI++)
     {
         cImgForTiepTri * aImg = mVImgs[aKI];
+        //====this thing is eat RAM so much ======
+        for (uint aKIi = 0; aKIi<mVImgs.size(); aKIi++)
+        {
+            aImg->Task().NameSec().push_back(mVImgs[aKIi]->Name());
+        }
+        //=========================================
         string fileXML = mICNM->Dir() + aDirXML + "/" + mVImgs[aKI]->Name() + ".xml";
         MakeFileXML(aImg->Task(), fileXML);
         //export mesh correspond with each image:
