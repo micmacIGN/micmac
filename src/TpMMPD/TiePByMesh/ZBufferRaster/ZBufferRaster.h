@@ -31,6 +31,7 @@ public:
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     const std::string &               Ori() const {return mOri;}
     const std::string &               Dir() const {return mDir;}
+    void                              SetNameMesh(string & aNameMesh);
     vector<cTri3D> &                  VTri() {return mVTri;}
     vector<string> &                  VImg() {return mVImg;}
     int  &                            NInt() {return mNInt;}
@@ -40,7 +41,7 @@ public:
     vector< vector<bool> >            TriValid() {return mTriValid;}
     vector< vector<double> >          IndTriValid() {return mIndTriValid;}
     bool &                            WithImgLabel(){return mWithImgLabel;}
-
+    bool &                            IsTmpZBufExist() {return mIsTmpZBufExist;}
     void                              DoAllIm();
     void                              DoAllIm(vector<vector<bool> > &aVTriValid);
     void                              DoAllIm(vector<cImgForTiepTri*> & aVImgTiepTri); //reserve for TaskCorrel
@@ -50,6 +51,7 @@ private:
     cInterfChantierNameManipulateur * mICNM;
     std::string                       mDir;
     std::string                       mOri;
+    std::string                       mNameMesh;
     vector<cTri3D>                    mVTri;
     vector<string>                    mVImg;
     int                               mNInt;
@@ -60,6 +62,7 @@ private:
     double                            mReech;
     double                            mDistMax;
     bool                              mWithImgLabel;
+    bool                              mIsTmpZBufExist;
     vector< vector<bool> >            mTriValid;
     vector< vector<double> >          mIndTriValid;
 };
@@ -150,6 +153,7 @@ public:
     void LoadTri(cTri3D);
     void updateZ(tImZBuf & , Pt2dr & , double & prof_val, double & ind_val);
     void normalizeIm(tImZBuf & aIm, double valMin, double valMax);
+    void ImportResult(string & fileTriLbl, string & fileImgZBuf);
 
 
 private:

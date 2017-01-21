@@ -11,7 +11,7 @@
 
 const double TT_SEUIL_SURF_TRIANGLE = 100;   //min surface du triangle projecte en img
 const double TT_SEUIL_RESOLUTION = DBL_MIN;  //min resolution du triangle reprojecte on img
-const double TT_DEF_SCALE_ZBUF = 0.5;        //default reechantillonage pour calculer ZBuffer
+const int TT_DEF_SCALE_ZBUF = 2;        //default deZoom pour calculer ZBuffer
 
 
 class cAppliTaskCorrel;
@@ -36,6 +36,7 @@ public:
     PlyFile * Ply() {return mPly;}
     const std::string Ori() {return mOri;}
     const std::string Dir() {return mDir;}
+    string & NameMesh() {return mNameMesh;}
     vector<triangle*> & VTri() {return mVTri;}
     vector<cTriForTiepTri*> & VTriF() {return mVTriF;}
     cImgForTiepTri* DoOneTri(cTriForTiepTri * aTri2D);
@@ -58,6 +59,7 @@ private:
     cInterfChantierNameManipulateur * mICNM;
     const string mDir;
     const string mOri;
+    string mNameMesh;
     int  mNInter;
     double  mZoomF;
     vector<cImgForTiepTri*> mVImgs;
