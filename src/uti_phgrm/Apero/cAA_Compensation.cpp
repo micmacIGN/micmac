@@ -149,6 +149,11 @@ for (int aK=0 ; aK<aNbIter; aK++)
    }
 
    {
+          if (anSO.ContrCamConseq().IsInit())
+             AddObservationsCamConseq(anSO.ContrCamConseq().Val());
+   }
+
+   {
        //  MajAddCoeffMatrix();
        //  if (NumIterDebug())  MessageDebug("Avant RigGrp");
 
@@ -260,6 +265,14 @@ void cAppliApero::AddObservationsAppuis(const std::list<cObsAppuis> & aL,bool Is
           DoRapportAppuis(*itOA,*pRAO,*pVResAp);
       }
    }
+}
+
+void cAppliApero::AddObservationsCamConseq(const cContrCamConseq &  aCCC)
+{
+    for (tDiCal::iterator itC=mDicoCalib.begin() ; itC!=mDicoCalib.end(); itC++)
+    {
+        itC->second->PIF().AddObsRegulConseq(aCCC.NbGrid(),aCCC.SigmaPix());
+    }
 }
 
 void cAppliApero::AddObservationsCentres(const std::list<cObsCentrePDV> & aL,bool IsLastIter,cStatObs & aSO)
@@ -933,16 +946,6 @@ void cAppliApero::DoOneContraintesAndCompens
             bool  IsLastIter
      )
 {
-if (MPD_MM())
-{
-    for (tDiCal::iterator itD=mDicoCalib.begin(); itD!=mDicoCalib.end() ; itD++)
-    {
-         itD->second->PIF().AddRegulConseq(4,1.0);
-    }
-    std::cout << "AAGhyAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaa\n";
-    // getchar();
-
-}
 
    ReinitStatCondFaisceau();
 

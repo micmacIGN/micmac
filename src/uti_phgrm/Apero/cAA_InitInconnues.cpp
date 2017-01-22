@@ -54,6 +54,7 @@ void cAppliApero::InitInconnues()
     InitPoses();
     InitSurf();
     InitBlockCameras();
+
 }
 
 
@@ -85,6 +86,64 @@ void cAppliApero::InitCalibCam()
         }
 
 	// std::cout << "CALIB=" << itC->Name() << "\n";
+    }
+    InitCalibConseq();
+}
+
+class cCreatCtsrConseq
+{
+    public :
+       bool operator < (const cCreatCtsrConseq & aC2) const
+       {
+            if (mNameEquiv< aC2.mNameEquiv) return true;
+            if (mNameEquiv> aC2.mNameEquiv) return false;
+            return mNameTime < aC2.mNameTime;
+       }
+       cCreatCtsrConseq(const std::string & aNE,const std::string & aNT,cPoseCam * aPC) :
+            mNameEquiv (aNE),
+            mNameTime  (aNT),
+            mPC        (aPC)
+       {
+       }
+       std::string mNameEquiv;
+       std::string mNameTime;
+       cPoseCam *  mPC;
+};
+
+void cAppliApero::InitCalibConseq()
+{
+    cDeclareObsCalConseq * aDOCC = mParam.DeclareObsCalConseq().PtrVal();
+    if (!aDOCC) return;
+
+    cSetName * aSel = mICNM->KeyOrPatSelector(aDOCC->PatternSel());
+    cSetName * aSelJ =  mICNM->KeyOrPatSelector(aDOCC->KeyJump());
+    std::vector<cCreatCtsrConseq> aVCCC;
+
+    for (int aKP=0 ; aKP<int(mVecPose.size()) ; aKP++)
+    {
+         cPoseCam * aPC = mVecPose[aKP];
+         if (aPC && aSel->IsSetIn(aPC->Name()))
+         {
+            std::pair<std::string,std::string> aPair = mICNM->Assoc2To1(aDOCC->Key(),aPC->Name(),true);
+            aVCCC.push_back(cCreatCtsrConseq(aPair.second,aPair.first,aPC));
+         }
+    }
+    
+    for (int aKC=0 ; aKC<int(aVCCC.size()-1) ; aKC++)
+    {
+       cCreatCtsrConseq aCCC1 = aVCCC[aKC];
+       cCreatCtsrConseq aCCC2 = aVCCC[aKC+1];
+       if (   
+                (aCCC1.mNameEquiv==aCCC2.mNameEquiv) 
+            &&  (aCCC1.mPC->CalibCam()!= aCCC2.mPC->CalibCam())
+            &&  (! aSelJ->IsSetIn(aCCC1.mPC->Name()))
+          )
+       {
+            cParamIntrinsequeFormel & aPIF1 = aCCC1.mPC->CalibCam()->PIF();
+            cParamIntrinsequeFormel & aPIF2 = aCCC2.mPC->CalibCam()->PIF();
+            aPIF1.AddRegulConseq(&aPIF2,aDOCC->AddFreeRot(),false);
+           // ===========
+       }
     }
 }
     

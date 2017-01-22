@@ -2270,6 +2270,7 @@ class cAppliApero : public NROptF1vND
 
 	void InitInconnues();
 	void InitCalibCam();
+	void InitCalibConseq();
 	void InitOffsGps();
 	void InitObsRelGPS ();
 	void InitPoses();
@@ -2378,6 +2379,9 @@ class cAppliApero : public NROptF1vND
         void AddObservationsLiaisons(const std::list<cObsLiaisons> &,bool IsLastIter,cStatObs & aSO);
         void AddObservationsAppuisFlottants(const std::list<cObsAppuisFlottant> &,bool IsLastIter,cStatObs & aSO);
         void AddObservationsCentres(const std::list<cObsCentrePDV> &,bool IsLastIter,cStatObs & aSO);
+
+        void AddObservationsCamConseq(const cContrCamConseq &  aCCC);
+
 
         void AddOneObservationsRelGPS(const cObsRelGPS &);
         void AddObservationsRelGPS(const std::list<cObsRelGPS> & aLO);

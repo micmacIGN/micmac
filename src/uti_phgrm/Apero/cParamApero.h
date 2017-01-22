@@ -1505,6 +1505,39 @@ void  BinaryUnDumpFromFile(cDeclareObsRelGPS &,ELISE_fp &);
 
 std::string  Mangling( cDeclareObsRelGPS *);
 
+class cDeclareObsCalConseq
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cDeclareObsCalConseq & anObj,cElXMLTree * aTree);
+
+
+        std::string & PatternSel();
+        const std::string & PatternSel()const ;
+
+        std::string & Key();
+        const std::string & Key()const ;
+
+        cTplValGesInit< std::string > & KeyJump();
+        const cTplValGesInit< std::string > & KeyJump()const ;
+
+        bool & AddFreeRot();
+        const bool & AddFreeRot()const ;
+    private:
+        std::string mPatternSel;
+        std::string mKey;
+        cTplValGesInit< std::string > mKeyJump;
+        bool mAddFreeRot;
+};
+cElXMLTree * ToXMLTree(const cDeclareObsCalConseq &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cDeclareObsCalConseq &);
+
+void  BinaryUnDumpFromFile(cDeclareObsCalConseq &,ELISE_fp &);
+
+std::string  Mangling( cDeclareObsCalConseq *);
+
 class cSectionBDD_Observation
 {
     public:
@@ -1542,6 +1575,21 @@ class cSectionBDD_Observation
 
         std::list< cDeclareObsRelGPS > & DeclareObsRelGPS();
         const std::list< cDeclareObsRelGPS > & DeclareObsRelGPS()const ;
+
+        std::string & PatternSel();
+        const std::string & PatternSel()const ;
+
+        std::string & Key();
+        const std::string & Key()const ;
+
+        cTplValGesInit< std::string > & KeyJump();
+        const cTplValGesInit< std::string > & KeyJump()const ;
+
+        bool & AddFreeRot();
+        const bool & AddFreeRot()const ;
+
+        cTplValGesInit< cDeclareObsCalConseq > & DeclareObsCalConseq();
+        const cTplValGesInit< cDeclareObsCalConseq > & DeclareObsCalConseq()const ;
     private:
         std::list< cBDD_PtsLiaisons > mBDD_PtsLiaisons;
         std::list< cBDD_PtsAppuis > mBDD_PtsAppuis;
@@ -1553,6 +1601,7 @@ class cSectionBDD_Observation
         cTplValGesInit< double > mLimInfBSurHPMoy;
         cTplValGesInit< double > mLimSupBSurHPMoy;
         std::list< cDeclareObsRelGPS > mDeclareObsRelGPS;
+        cTplValGesInit< cDeclareObsCalConseq > mDeclareObsCalConseq;
 };
 cElXMLTree * ToXMLTree(const cSectionBDD_Observation &);
 
@@ -2919,9 +2968,6 @@ class cSectionChantier
         cTplValGesInit< bool > & UseRegulDist();
         const cTplValGesInit< bool > & UseRegulDist()const ;
 
-        cTplValGesInit< bool > & UseRegulCamConseq();
-        const cTplValGesInit< bool > & UseRegulCamConseq()const ;
-
         cTplValGesInit< bool > & GBCamSupresStenCam();
         const cTplValGesInit< bool > & GBCamSupresStenCam()const ;
 
@@ -2989,7 +3035,6 @@ class cSectionChantier
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
         cTplValGesInit< bool > mUseRegulDist;
-        cTplValGesInit< bool > mUseRegulCamConseq;
         cTplValGesInit< bool > mGBCamSupresStenCam;
         cTplValGesInit< bool > mStenCamSupresGBCam;
         cTplValGesInit< bool > mIsAperiCloud;
@@ -4610,6 +4655,31 @@ void  BinaryUnDumpFromFile(cSectionTracage &,ELISE_fp &);
 
 std::string  Mangling( cSectionTracage *);
 
+class cContrCamConseq
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cContrCamConseq & anObj,cElXMLTree * aTree);
+
+
+        double & SigmaPix();
+        const double & SigmaPix()const ;
+
+        int & NbGrid();
+        const int & NbGrid()const ;
+    private:
+        double mSigmaPix;
+        int mNbGrid;
+};
+cElXMLTree * ToXMLTree(const cContrCamConseq &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cContrCamConseq &);
+
+void  BinaryUnDumpFromFile(cContrCamConseq &,ELISE_fp &);
+
+std::string  Mangling( cContrCamConseq *);
+
 class cContrCamGenInc
 {
     public:
@@ -5114,6 +5184,15 @@ class cSectionObservations
         friend void xml_init(cSectionObservations & anObj,cElXMLTree * aTree);
 
 
+        double & SigmaPix();
+        const double & SigmaPix()const ;
+
+        int & NbGrid();
+        const int & NbGrid()const ;
+
+        cTplValGesInit< cContrCamConseq > & ContrCamConseq();
+        const cTplValGesInit< cContrCamConseq > & ContrCamConseq()const ;
+
         std::list< cContrCamGenInc > & ContrCamGenInc();
         const std::list< cContrCamGenInc > & ContrCamGenInc()const ;
 
@@ -5144,6 +5223,7 @@ class cSectionObservations
         std::list< cObsRelGPS > & ObsRelGPS();
         const std::list< cObsRelGPS > & ObsRelGPS()const ;
     private:
+        cTplValGesInit< cContrCamConseq > mContrCamConseq;
         std::list< cContrCamGenInc > mContrCamGenInc;
         std::list< cObsBlockCamRig > mObsBlockCamRig;
         std::list< cObsAppuis > mObsAppuis;
@@ -6487,6 +6567,15 @@ class cEtapeCompensation
         cTplValGesInit< double > & MultSLMGlob();
         const cTplValGesInit< double > & MultSLMGlob()const ;
 
+        double & SigmaPix();
+        const double & SigmaPix()const ;
+
+        int & NbGrid();
+        const int & NbGrid()const ;
+
+        cTplValGesInit< cContrCamConseq > & ContrCamConseq();
+        const cTplValGesInit< cContrCamConseq > & ContrCamConseq()const ;
+
         std::list< cContrCamGenInc > & ContrCamGenInc();
         const std::list< cContrCamGenInc > & ContrCamGenInc()const ;
 
@@ -6734,6 +6823,21 @@ class cParamApero
         std::list< cDeclareObsRelGPS > & DeclareObsRelGPS();
         const std::list< cDeclareObsRelGPS > & DeclareObsRelGPS()const ;
 
+        std::string & PatternSel();
+        const std::string & PatternSel()const ;
+
+        std::string & Key();
+        const std::string & Key()const ;
+
+        cTplValGesInit< std::string > & KeyJump();
+        const cTplValGesInit< std::string > & KeyJump()const ;
+
+        bool & AddFreeRot();
+        const bool & AddFreeRot()const ;
+
+        cTplValGesInit< cDeclareObsCalConseq > & DeclareObsCalConseq();
+        const cTplValGesInit< cDeclareObsCalConseq > & DeclareObsCalConseq()const ;
+
         cSectionBDD_Observation & SectionBDD_Observation();
         const cSectionBDD_Observation & SectionBDD_Observation()const ;
 
@@ -6784,9 +6888,6 @@ class cParamApero
 
         cTplValGesInit< bool > & UseRegulDist();
         const cTplValGesInit< bool > & UseRegulDist()const ;
-
-        cTplValGesInit< bool > & UseRegulCamConseq();
-        const cTplValGesInit< bool > & UseRegulCamConseq()const ;
 
         cTplValGesInit< bool > & GBCamSupresStenCam();
         const cTplValGesInit< bool > & GBCamSupresStenCam()const ;

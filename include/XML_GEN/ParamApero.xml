@@ -544,6 +544,14 @@
                   <Id  Nb="1"  Type="std::string"> </Id>
               </DeclareObsRelGPS>
 
+              <DeclareObsCalConseq  Nb="?">
+                  <PatternSel Nb="1" Type="std::string"> </PatternSel>
+                  <!-- Meme structure que bloc, renvoit Time + Equiv -->
+                  <Key Nb="1" Type="std::string"> </Key>
+                  <!-- Key jump : les premieres images des couples ou la contrainte ne s'applique pas -->
+                  <KeyJump Nb="?" Type="std::string"> </KeyJump>
+                  <AddFreeRot Nb="1" Type="bool"> </AddFreeRot>
+              </DeclareObsCalConseq>
 
 	</SectionBDD_Observation>
 
@@ -940,8 +948,6 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
         <SectionChantier Nb="1">
 
               <UseRegulDist  Type="bool" Nb="?" Def="false"> </UseRegulDist>
-              <UseRegulCamConseq  Type="bool" Nb="?" Def="false"> </UseRegulCamConseq>
-
               <GBCamSupresStenCam  Type="bool" Nb="?" Def="true"> </GBCamSupresStenCam>
               <StenCamSupresGBCam  Type="bool" Nb="?" Def="false"> </StenCamSupresGBCam>
 
@@ -1293,6 +1299,11 @@ normalises en echelle et/ou en translation -->
 
                  <SectionObservations Nb="1">
 
+                     <ContrCamConseq Nb="?">
+                           <SigmaPix Nb="1" Type="double"> </SigmaPix>
+                           <NbGrid Nb="1" Type="int"> </NbGrid>
+                     </ContrCamConseq>
+                       
                      <ContrCamGenInc Nb="*">
                          <PatternApply Nb="?" Type="std::string">   </PatternApply>
                          <PdsAttachToId Nb="?" Type="double">       </PdsAttachToId>

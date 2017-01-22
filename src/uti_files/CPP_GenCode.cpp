@@ -314,7 +314,7 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
         if (TEST_NEW_REGUL_DIST)
         {
 	    cParamIntrinsequeFormel * aPIF2 = PIF_For_GC(C2M,aType,aSet,aPAF);
-            aPIF->AddRegulConseq(aPIF2,WITH_ROT);
+            aPIF->AddRegulConseq(aPIF2,WITH_ROT,true);
             aPIF->GenEqRegulDist();
             return;
         }
@@ -718,7 +718,6 @@ void GenerateCodeEqRelativeGPS();
 int GenCode_main(int argc,char ** argv)
 {
    GlobUseRegulDist = true;
-   GlobUseRegulCamConseq = true;
     // GenCodeEqProjGen();
     
     // GenerateCodeEqRelativeGPS();

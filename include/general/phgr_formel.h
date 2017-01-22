@@ -1148,13 +1148,20 @@ class cPIFRegulDist
 class cPIFRegulConseq
 {
     public :
-        cPIFRegulConseq(cParamIntrinsequeFormel * aSuiv,bool WithR);
+        cPIFRegulConseq(cParamIntrinsequeFormel * aPIF0,cParamIntrinsequeFormel * aSuiv,bool WithR,bool ForGenCode);
 
+        void InitInterv();
+        void ResetInterv();
+
+        cSetEqFormelles &         mSet;
+        cParamIntrinsequeFormel * mPIF0;
         cParamIntrinsequeFormel * mSuiv;
         bool                      mWithR;
         std::string               mNameType;
         cIncListInterv            mLInterv;
         cEqfP3dIncTmp *           mEqP3I;
+        cP3d_Etat_PhgrF *         mRayConseq;
+        cElCompiledFonc *         mFctr; 
 };
 
 
@@ -1163,8 +1170,8 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
 {
 	public  :
 
-           void AddRegulConseq(int aNbGrids,double aSigmaPix);
-           void AddRegulConseq(cParamIntrinsequeFormel*,bool WithR);
+           void AddObsRegulConseq(int aNbGrids,double aSigmaPix);
+           void AddRegulConseq(cParamIntrinsequeFormel*,bool WithR,bool ForGenCode);
            void AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aPdsGrad,double aPdsD2);
            void AddCstrRegulGlob(int aNbEch,double aPdsVal,double aPdsGrad,double aPdsD2,Im2D_REAL4 * aFoncPds=0);
 

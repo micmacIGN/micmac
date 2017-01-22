@@ -520,13 +520,41 @@ cPIFRegulDist::cPIFRegulDist() :
 {
 }
 
-cPIFRegulConseq::cPIFRegulConseq(cParamIntrinsequeFormel * aSuiv,bool WithR) :
+cPIFRegulConseq::cPIFRegulConseq(cParamIntrinsequeFormel * aPIF0,cParamIntrinsequeFormel * aSuiv,bool WithR,bool ForGenCode) :
+   mSet      (*aSuiv->Set()),
+   mPIF0     (aPIF0),
    mSuiv     (aSuiv),
    mWithR    (WithR),
-   mNameType ("cRegCamConseq_" + std::string(mWithR? "CompR_": "")  +  aSuiv->NameType())
+   mNameType ("cRegCamConseq_" + std::string(mWithR? "CompR_": "")  +  aSuiv->NameType()),
+   mRayConseq(new cP3d_Etat_PhgrF("Ray"))
 {
+   ELISE_ASSERT(aPIF0->Set()==aSuiv->Set(),"Different set in cPIFRegulConseq");
+   if (ForGenCode)
+   {
+      mFctr = cElCompiledFonc::AllocFromName(mNameType);
+      // mFctr->SetMappingCur(mLInterv,&mSet);
+      // mSet.AddFonct(mFctr);
+   }
+   InitInterv();
+   mLInterv.AddInterv(mPIF0->IncInterv());
+   mLInterv.AddInterv(mSuiv->IncInterv() );
+
+   if (mWithR)
+   {
+      mEqP3I = mSet.Pt3dIncTmp();
+      mLInterv.AddInterv(mEqP3I->IncInterv() );
+   }
 }
 
+void cPIFRegulConseq::InitInterv()
+{
+     mSuiv->IncInterv().SetName("Intr2");
+}
+
+void cPIFRegulConseq::ResetInterv()
+{
+     mSuiv->IncInterv().SetName("Intr");
+}
      // ============== cParamIntrinsequeFormel ====================
 
 std::vector<std::string>   StdVectorOfName(const std::string & aPref,int aNb)
@@ -586,7 +614,7 @@ cParamIntrinsequeFormel::cParamIntrinsequeFormel
   NV_UpdateCurPIF();
 }
 
-void  cParamIntrinsequeFormel::AddRegulConseq(int aNbGrids,double aSigmaPix)
+void  cParamIntrinsequeFormel::AddObsRegulConseq(int aNbGrids,double aSigmaPix)
 {
     if (! mRegCons)
     {
@@ -622,16 +650,14 @@ void  cParamIntrinsequeFormel::AddRegulConseq(int aNbGrids,double aSigmaPix)
     }
 }
 
-void cParamIntrinsequeFormel::AddRegulConseq(cParamIntrinsequeFormel* aSuiv,bool WithR)
+void cParamIntrinsequeFormel::AddRegulConseq(cParamIntrinsequeFormel* aSuiv,bool WithR,bool ForGenCode)
 {
    ELISE_ASSERT
    (
       NameType() == aSuiv->NameType(),
       "Mix camera type in AddRegulConseq"
    );
-   mRegCons = new cPIFRegulConseq(aSuiv,WithR);
-   if (WithR)
-       mRegCons->mEqP3I = mSet.Pt3dIncTmp();
+   mRegCons = new cPIFRegulConseq(this,aSuiv,WithR,ForGenCode);
 }
 
 void  cParamIntrinsequeFormel::Virtual_CloseEEF()
@@ -753,16 +779,17 @@ void cParamIntrinsequeFormel::GenEqRegulDist()
     if (mRegCons)
     {
         // mEqP3I      mCam.Set().Pt3dIncTmp()
-        mRegCons->mSuiv->IncInterv().SetName("Intr2");
+/*
         mRegCons->mLInterv.AddInterv(IncInterv());
         mRegCons->mLInterv.AddInterv(mRegCons->mSuiv->IncInterv() );
         if (mRegCons->mWithR)
            mRegCons->mLInterv.AddInterv(mRegCons->mEqP3I->IncInterv() );
 
+        mRegCons->mSuiv->IncInterv().SetName("Intr2");
+*/
+        mRegCons->InitInterv();
 
-        cP3d_Etat_PhgrF mRayConseq1("Ray"); 
-
-        Pt3d<Fonc_Num>  aRay1 = mRayConseq1.PtF();
+        Pt3d<Fonc_Num>  aRay1 = mRegCons->mRayConseq->PtF();
         Pt3d<Fonc_Num>  aRay2 = aRay1;
         if (mRegCons->mWithR)
            aRay2 = aRay1 + (mRegCons->mEqP3I->PF() ^ aRay1);
@@ -778,7 +805,8 @@ void cParamIntrinsequeFormel::GenEqRegulDist()
         );
             // mLInterv.AddInterv(mCam.RF().IncInterv());
             // mLInterv.AddInterv(mEqP3I->IncInterv());
-        mRegCons->mSuiv->IncInterv().SetName("Intr");
+        // mRegCons->mSuiv->IncInterv().SetName("Intr");
+        mRegCons->ResetInterv();
     }
 }
 
