@@ -11,7 +11,7 @@
 
 const double TT_SEUIL_SURF_TRIANGLE = 100;   //min surface du triangle projecte en img
 const double TT_SEUIL_RESOLUTION = DBL_MIN;  //min resolution du triangle reprojecte on img
-const double TT_DEF_SCALE_ZBUF = 0.5;        //default reechantillonage pour calculer ZBuffer
+const int TT_DEF_SCALE_ZBUF = 2;        //default deZoom pour calculer ZBuffer
 
 
 class cAppliTaskCorrel;
@@ -31,11 +31,12 @@ public:
                      );
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
-    void lireMesh(std::string & aNameMesh, vector<triangle*> &, vector<cTriForTiepTri*> &);
-    void updateVTriFWithNewAppli(vector<triangle*> & tri);
+    void lireMesh(std::string & aNameMesh);
+    void updateVTriFWithNewAppli(vector<cTri3D> &tri);
     PlyFile * Ply() {return mPly;}
     const std::string Ori() {return mOri;}
     const std::string Dir() {return mDir;}
+    string & NameMesh() {return mNameMesh;}
     vector<triangle*> & VTri() {return mVTri;}
     vector<cTriForTiepTri*> & VTriF() {return mVTriF;}
     cImgForTiepTri* DoOneTri(cTriForTiepTri * aTri2D);
@@ -58,6 +59,7 @@ private:
     cInterfChantierNameManipulateur * mICNM;
     const string mDir;
     const string mOri;
+    string mNameMesh;
     int  mNInter;
     double  mZoomF;
     vector<cImgForTiepTri*> mVImgs;
@@ -154,7 +156,8 @@ class cTriForTiepTri
 {
 public:
 
-        cTriForTiepTri(cAppliTaskCorrel* , triangle * aTri3d, double & ind);
+        //cTriForTiepTri(cAppliTaskCorrel* , triangle * aTri3d, double & ind);
+        cTriForTiepTri(cAppliTaskCorrel* , cTri3D aTri3d, double & ind);
         bool reprj(cImgForTiepTri *aImg);
         bool rprjOK() {return mrprjOK;}
         Pt2dr Pt1() {return mPt1;}
@@ -169,6 +172,7 @@ private:
         Pt2dr mPt3;
         cAppliTaskCorrel * mAppli;
         triangle * mTri3D;
+        cTri3D mTri3D_;
         bool mrprjOK;
         double mInd;
 };

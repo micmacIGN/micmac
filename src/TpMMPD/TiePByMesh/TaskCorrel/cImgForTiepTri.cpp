@@ -8,7 +8,7 @@ cImgForTiepTri::cImgForTiepTri(cAppliTaskCorrel * anAppli, string aNameIm, int a
     mAppli  (anAppli),
     mCam    (anAppli->ICNM()->StdCamOfNames(aNameIm, anAppli->Ori())),
     mTif    (Tiff_Im::StdConv(mAppli->Dir() + aNameIm)),
-    mSz     (mTif.sz()),
+    mSz     (mCam->Sz()),
     mName   (aNameIm)
 {
     mTask.NameMaster() = aNameIm;

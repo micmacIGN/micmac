@@ -3,9 +3,9 @@
 string aPatFIm, aMesh, aOri;
 int nInt = 0;
 Pt2di aSzW;
-double rech=1.0;
+int rech=1;
 double distMax = DBL_MAX;
-bool withLbl = false;
+bool withLbl = true;
 
 
 int ZBufferRaster_main(int argc,char ** argv)
@@ -22,7 +22,7 @@ int ZBufferRaster_main(int argc,char ** argv)
                 LArgMain()
                 << EAM(nInt, "nInt", true, "niveau Interaction")
                 << EAM(aSzW,  "aSzw",true,"if visu [x,y]")
-                << EAM(rech,  "rech",true,"cal ZBuff in img Resample - default =1.0 - 0.5 => 2 times <")
+                << EAM(rech,  "rech",true,"cal ZBuff in img Resample - default =1.0 - 2 => 2 times <")
                 << EAM(distMax,  "distMax",true,"limit distant cover Maximum from camera - default = NO LIMIT")
                 << EAM(withLbl,  "withLbl",true,"Do image label (image label of triangle in surface)")
                 );
@@ -36,27 +36,25 @@ int ZBufferRaster_main(int argc,char ** argv)
 
     StdCorrecNameOrient(aOri,aDir,true);
 
-    InitOutil * aInitMesh = new InitOutil(aMesh);
-
-    vector<triangle*> aVTriMesh = aInitMesh->getmPtrListTri();
-
     vector<cTri3D> aVTri;
 
-    for (int aKTri=0; aKTri<int(aVTriMesh.size()); aKTri++)
+    cout<<"Lire mesh...";
+    ElTimer aChrono;
+    cMesh myMesh(aMesh, true);
+    const int nFaces = myMesh.getFacesNumber();
+    for (double aKTri=0; aKTri<nFaces; aKTri++)
     {
-        triangle * aTriMesh = aVTriMesh[aKTri];
-        cTri3D aTri (   aTriMesh->getSommet(0),
-                        aTriMesh->getSommet(1),
-                        aTriMesh->getSommet(2),
-                        aKTri
-                    );
-        aVTri.push_back(aTri);
+        cTriangle* aTri = myMesh.getTriangle(aKTri);
+        vector<Pt3dr> aSm;
+        aTri->getVertexes(aSm);
+        cTri3D aTri3D (   aSm[0],
+                          aSm[1],
+                          aSm[2],
+                          aKTri
+                      );
+        aVTri.push_back(aTri3D);
     }
-
-
-    delete(aInitMesh);
-
-
+    cout<<"Finish - time "<<aChrono.uval()<<" - NbTri : "<<aVTri.size()<<endl;
 
     cAppliZBufferRaster * aAppli = new cAppliZBufferRaster(aICNM, aDir, aOri, aVTri, vImg);
 
@@ -70,7 +68,8 @@ int ZBufferRaster_main(int argc,char ** argv)
         aAppli->DistMax() = distMax;
     }
     aAppli->WithImgLabel() = withLbl;
-    aAppli->Reech() = rech;
+    aAppli->Reech() = 1.0/double(rech);
+    aAppli->SetNameMesh(aMesh);
     aAppli->DoAllIm();
 
 

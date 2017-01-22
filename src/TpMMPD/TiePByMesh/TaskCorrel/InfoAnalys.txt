@@ -69,13 +69,17 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
    Critere basé sur fast detecteur : examiner les point autour pour choisir les pts plus contrasté.
    2 critère à valider:
 
-     (a) TT_SeuilFastStd => un certain nombre de pts autour est > < seuil
-     (b) TT_SeuilFastCons => un certain nombre de pts autour est > < seuil && ce sont des pts consecutive
+     (a) TT_PropFastStd = 0.75 => examiner si 75% de points voisins ont valeurs inférieur/superieur de point candidat un différent TT_SeuilFastStd=5
+	 (*) Se faire par method KthValProp dans FastQuality : 
+	     (.) aVVals -> Les valeurs des points voisin
+	     (.) aV0 -> valeur de point candidat
+	     (.) aVPerc = TT_SeuilFastStd = 5 -> seuil de différent d'intensité entre pt candidat et pt autour
+  	     (.) double aVPerc = KthValProp(aVVals,aPropStd);	-> tri valeur dans aVVals, puis prendre élement à position aPropStd (75%)
+   	     (.) double aResStd = (aV0 -aVPerc) ; -> si val(pt candidat) > val(aVPerc) -> val(pt_candidat) > 75% valeurs des points autours
 
-   cFastCriterCompute est la class definir les points voisin pour calcul FAST
-   FastQuality est la fonction (hors class cFastCriterCompute), pour calcul 
-
-	(?????) À examiner en plus - pas encore comprendre programme, utilise les class et method difficile
+     (b) TT_PropFastConsec = 0.6 => examiner si 60% de points voisins consecutives ont valeurs inférieur/superieur de point candidat un différent TT_SeuilFastCons=3
+	 (*) cFastReduceAssoc : une method numerique pour vite examiner un certain nombre de point consecutive autour image
+ 	  ==> Pas encore comprendre
 
 (3) Critere auto-corell 
 

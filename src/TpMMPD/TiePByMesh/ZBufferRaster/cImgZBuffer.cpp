@@ -42,8 +42,6 @@ void cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val, double 
             if (mAppli->WithImgLabel() && prof_val!=TT_DEFAULT_PROF_NOVISIBLE)
             {
                 mImInd.SetR_SVP(pxlI, ind_val);
-                //ELISE_ASSERT(ind_old == -1.0, "index old error - initialize != -1.0");
-                //ELISE_ASSERT(ind_val > -1.0, "index negative");
                 mTriValid[ind_val] = true;
             }
             return;
@@ -54,10 +52,7 @@ void cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val, double 
             if (mAppli->WithImgLabel())
             {
                 mImInd.SetR_SVP(pxlI, ind_val);
-                //ELISE_ASSERT(ind_val > -1.0, "index negative");
                 mTriValid[ind_val] = true;
-                //ELISE_ASSERT(ind_old != -1.0, "index old error - image label ZBuffer");
-                //ELISE_ASSERT(ind_old > -1.0, "index old negative");
                 mTriValid[ind_old] = false;
             }
             return;
@@ -149,7 +144,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         for (uint aKSeg=0; aKSeg<aRasTri.size(); aKSeg++)
         {
             cSegEntierHor aSeg = aRasTri[aKSeg];
-            for (uint aKPt=0; aKPt<aSeg.mNb; aKPt++)
+            for (int aKPt=0; aKPt<aSeg.mNb; aKPt++)
             {
                 Pt2dr aPtRas(aSeg.mP0.x + aKPt, aSeg.mP0.y);
                 double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCam);
@@ -201,5 +196,31 @@ void cImgZBuffer::normalizeIm(tImZBuf & aImZ, double valMin, double valMax)
 
     aImZ.getMinMax(minProf, maxProf);
     cout<<" -> Norm "<<minProf<<" "<<maxProf<<endl;
+}
+
+/***********************************************************************************/
+/*********************************** ImportResult***********************************/
+/***********************************************************************************/
+
+void cImgZBuffer::ImportResult(string & fileTriLbl, string & fileZBuf)
+{
+    ELISE_ASSERT(ELISE_fp::exist_file(fileTriLbl),"File Img Label not found");
+    ELISE_ASSERT(ELISE_fp::exist_file(fileZBuf),"File Img ZBuf not found");
+    Tiff_Im aImInd = Tiff_Im::StdConv(fileTriLbl);
+    Tiff_Im aImZBuf = Tiff_Im::StdConv(fileZBuf);
+    ELISE_COPY(mImInd.all_pts(), aImInd.in(), mImInd.out());
+    ELISE_COPY(mImZ.all_pts(), aImZBuf.in(), mImZ.out());
+    Pt2di aP;
+    for (aP.x = 0; aP.x < mImInd.sz().x; aP.x++)
+    {
+        for (aP.y = 0; aP.y < mImInd.sz().y; aP.y++)
+        {
+            double aIndTri = mImInd.GetR(aP);
+            if (aIndTri  != tElZBuf(-1.0))
+            {
+               mTriValid[int(aIndTri)] = true;
+            }
+        }
+    }
 }
 

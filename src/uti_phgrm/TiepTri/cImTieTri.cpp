@@ -243,14 +243,6 @@ bool cImTieTri::AutoCorrel(Pt2di aP)
 }
 
 
-class cCmpInterOnFast
-{
-    public :
-       bool operator () (const cIntTieTriInterest & aI1,const cIntTieTriInterest &aI2)
-       {
-             return aI1.mFastQual > aI2.mFastQual;
-       }
-};
 
 
 void  cImTieTri::MakeInterestPoint

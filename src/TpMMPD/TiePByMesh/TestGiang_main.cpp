@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Pic.h"
 #include "Triangle.h"
 #include <stdio.h>
+#include "../../uti_phgrm/TiepTri/TiepTri.h"
 
 void Test_Xml()
 {
@@ -204,3 +205,162 @@ int TestGiang_main(int argc,char ** argv)
         cout<<endl;
         return EXIT_SUCCESS;
     }
+
+int IsExtrema(TIm2D<double,double> & anIm,Pt2di aP)
+{
+    double aValCentr = anIm.get(aP);
+    const std::vector<Pt2di> &  aVE = SortedVoisinDisk(0.5,TT_DIST_EXTREMA,true);
+    int aCmp0 =0;
+    for (int aKP=0 ; aKP<int(aVE.size()) ; aKP++)
+    {
+        int aCmp = CmpValAndDec(aValCentr,anIm.get(aP+aVE[aKP]),aVE[aKP]);
+        if (aKP==0)
+        {
+            aCmp0 = aCmp;
+            if (aCmp0==0) return 0;
+        }
+
+        if (aCmp!=aCmp0) return 0;
+    }
+    return aCmp0;
+}
+
+Col_Pal  ColOfType(Video_Win * mW, eTypeTieTri aType)
+{
+    switch (aType)
+    {
+          case eTTTMax : return mW->pdisc()(P8COL::red);    //max local => red
+          case eTTTMin : return mW->pdisc()(P8COL::blue);   //min local => bleu
+          default :;
+    }
+   return mW->pdisc()(P8COL::yellow);   //No Label => Jaune
+}
+
+int TestDetecteur_main(int argc,char ** argv)
+{
+    Pt3di mSzW;
+    string aImg;
+    ElInitArgMain
+            (
+                argc,argv,
+                //mandatory arguments
+                LArgMain()
+                << EAMC(aImg, "img",  eSAM_None)
+                << EAMC(mSzW, "mSzW", eSAM_None),
+                //optional arguments
+                LArgMain()
+                );
+
+
+
+    if (MMVisualMode) return EXIT_SUCCESS;
+    Tiff_Im * mPicTiff = new Tiff_Im ( Tiff_Im::StdConvGen(aImg,1,false));
+    Pt2di aSzIm = mPicTiff->sz();
+    TIm2D<double,double> mPic_TIm2D(mPicTiff->sz());
+    ELISE_COPY(mPic_TIm2D.all_pts(), mPicTiff->in(), mPic_TIm2D.out());
+    Im2D<double,double> * anIm = new Im2D<double, double> (mPic_TIm2D._the_im);
+
+    Im2D_Bits<1> aMasq0  = Im2D_Bits<1>(aSzIm.x,aSzIm.y,1);
+    TIm2DBits<1> TaMasq0 = TIm2DBits<1> (aMasq0);
+    /* video Win */
+    Video_Win * mW_Org = 0;
+    Video_Win * mW_F = 0;
+    Video_Win * mW_FAC = 0; //origin, fast, fast && autocorrel
+    Video_Win * mW_Final = 0;
+
+    if (EAMIsInit(&mSzW))
+    {
+        if (aSzIm.x >= aSzIm.y)
+        {
+            double scale =  double(aSzIm.x) / double(aSzIm.y) ;
+            mSzW.x = mSzW.x;
+            mSzW.y = round_ni(mSzW.x/scale);
+        }
+        else
+        {
+            double scale = double(aSzIm.y) / double(aSzIm.x);
+            mSzW.x = round_ni(mSzW.y/scale);
+            mSzW.y = mSzW.y;
+        }
+        Pt2dr aZ(double(mSzW.x)/double(aSzIm.x) , double(mSzW.y)/double(aSzIm.y) );
+
+        if (mW_Org ==0)
+        {
+            mW_Org = Video_Win::PtrWStd(Pt2di(mSzW.x*mSzW.z, mSzW.y*mSzW.z), true, aZ*mSzW.z);
+            mW_Org->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+            mW_Org->set_title((aImg+"_Extr").c_str());
+            ELISE_COPY(anIm->all_pts(), anIm->in(), mW_Org->ogray());
+        }
+        if (mW_F == 0)
+        {
+            mW_F = Video_Win::PtrWStd(Pt2di(mSzW.x*mSzW.z, mSzW.y*mSzW.z), true, aZ*mSzW.z);
+            mW_F->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+            mW_F->set_title((aImg+"_FAST").c_str());
+            ELISE_COPY(anIm->all_pts(), anIm->in(), mW_F->ogray());
+        }
+        if (mW_FAC == 0)
+        {
+            mW_FAC = Video_Win::PtrWStd(Pt2di(mSzW.x*mSzW.z, mSzW.y*mSzW.z), true, aZ*mSzW.z);
+            mW_FAC->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+            mW_FAC->set_title((aImg+"_ACORREL").c_str());
+            ELISE_COPY(anIm->all_pts(), anIm->in(), mW_FAC->ogray());
+        }
+        if (mW_Final == 0)
+        {
+            mW_Final = Video_Win::PtrWStd(Pt2di(mSzW.x*mSzW.z, mSzW.y*mSzW.z), true, aZ*mSzW.z);
+            mW_Final->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+            mW_Final->set_title((aImg+"_FINAL").c_str());
+            ELISE_COPY(anIm->all_pts(), anIm->in(), mW_Final->ogray());
+        }
+    }
+    mW_Final->clik_in();
+
+
+    Pt2di aP;
+    std::vector<cIntTieTriInterest> aListPI;
+    cFastCriterCompute * mFastCC   = cFastCriterCompute::Circle(TT_DIST_FAST);
+
+    cCutAutoCorrelDir< TIm2D<double,double> > mCutACD (mPic_TIm2D,Pt2di(0,0),TT_SZ_AUTO_COR /2.0 ,TT_SZ_AUTO_COR);
+    for (aP.x=5 ; aP.x<aSzIm.x-5 ; aP.x++)
+    {
+        for (aP.y=5 ; aP.y<aSzIm.y-5 ; aP.y++)
+        {
+            int aCmp0 =  IsExtrema(mPic_TIm2D,aP);
+            if (aCmp0)
+            {
+                eTypeTieTri aType = (aCmp0==1)  ? eTTTMax : eTTTMin;
+                bool OKAutoCorrel = !mCutACD.AutoCorrel(aP,TT_SEUIL_CutAutoCorrel_INT,TT_SEUIL_CutAutoCorrel_REEL,TT_SEUIL_AutoCorrel);
+                Pt2dr aFastQual =  FastQuality(mPic_TIm2D,aP,*mFastCC,aType==eTTTMax,Pt2dr(TT_PropFastStd,TT_PropFastConsec));
+                bool OkFast = (aFastQual.x > TT_SeuilFastStd) && ( aFastQual.y> TT_SeuilFastCons);
+                if (OkFast && OKAutoCorrel)
+                    aListPI.push_back(cIntTieTriInterest(aP,aType,aFastQual.x + 2 * aFastQual.y));
+                if (mW_Org)
+                {
+                    mW_Org->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(mW_Org, aType));    // cercle grand => extrema
+                    //mW_Org->draw_circle_loc(Pt2dr(aP),0.5,mW_Org->pdisc()(OkFast ? P8COL::yellow : P8COL::cyan)); //=> cercle petit => Fast : jaune  = valid ; cyan = non valid
+                }
+                if (mW_F)
+                {
+                    mW_F->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(mW_F, aType));
+                    if (!OkFast)
+                        mW_F->draw_circle_loc(Pt2dr(aP),1.5,mW_F->pdisc()(P8COL::cyan));
+                }
+                if (mW_FAC)
+                {
+                    mW_FAC->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(mW_FAC, aType));
+                    if (!OKAutoCorrel)
+                        mW_FAC->draw_circle_loc(Pt2dr(aP),1.5,mW_FAC->pdisc()(P8COL::yellow));
+                }
+                if (mW_Final && OKAutoCorrel && OkFast)
+                {
+                    mW_Final->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(mW_Final, aType));
+                }
+            }
+        }
+
+    }
+    cout<<"Nb Pts :"<<aListPI.size()<<endl;
+    mW_FAC->clik_in();
+    return EXIT_SUCCESS;
+}
+

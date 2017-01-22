@@ -1,0 +1,16 @@
+(*) Result calcul ZBuffer stocker sur disque-dur
+(*) Creer repertoire Tmp_ZBuffer_"nomMesh"
+(*) Nome Fichier ZBuffer Image : NomImg_ZBuffer_DeZoom_4
+(*) Nome Fichier Label Image : NomImg_TriLabel_DeZoom_4
+
+
+(*) Bug In display of result ZBufferRaster : 
+    mm3d TestLib ZBufferRaster fullMesh_smp.ply epoque1_f.tif Ori-All/ rech=2 withLbl=1 nInt=1
+    => withLbl=1 cause bug , why can't display this image ?
+
+
+(*) Il fault re-ecrire method lire mesh directement au vector mVTriF => lireMesh cout 94s !!!
+    (.) Utiliser cMesh => work now ! 
+
+(*) Pourquoi TiepTriPrl not work ? (error make can't found mm3d command ) ?????
+	

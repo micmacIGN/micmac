@@ -19,6 +19,8 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     mDistMax(TT_DISTMAX_NOLIMIT),
     mRech  (TT_DEF_SCALE_ZBUF)
 {
+    ElTimer aChrono;
+    cout<<"In constructor cAppliTaskCorrel : ";
     mVName = *(aICNM->Get(aPatImg));
     mVTask.resize(mVName.size());
     for (uint aKI = 0; aKI<mVName.size(); aKI++)
@@ -26,16 +28,41 @@ cAppliTaskCorrel::cAppliTaskCorrel (
         cImgForTiepTri* aImg = new cImgForTiepTri(this, mVName[aKI], aKI);
         mVImgs.push_back(aImg);
     }
+    cout<<"Imgs creat "<<aChrono.uval()<<" sec" <<endl;
+    aChrono.reinit();
     for (uint aKI = 0; aKI<mVImgs.size(); aKI++)
     {
         cImgForTiepTri* aImg = mVImgs[aKI];
-        for (uint aKIi = 0; aKIi<mVImgs.size(); aKIi++)
-        {
-            aImg->Task().NameSec().push_back(mVImgs[aKIi]->Name());
-        }
+//        for (uint aKIi = 0; aKIi<mVImgs.size(); aKIi++)
+//        {
+//            aImg->Task().NameSec().push_back(mVImgs[aKIi]->Name());
+//        }
         mVTask[aKI] = aImg->Task();
     }
+    cout<<"Task creat "<<aChrono.uval()<<" sec" <<endl;
+}
 
+void cAppliTaskCorrel::lireMesh(std::string & aNameMesh)
+{
+        cout<<"Lire mesh...";
+        ElTimer aChrono;
+        cMesh myMesh(aNameMesh, true);
+        const int nFaces = myMesh.getFacesNumber();
+        for (double aKTri=0; aKTri<nFaces; aKTri++)
+        {
+            cTriangle* aTri = myMesh.getTriangle(aKTri);
+            vector<Pt3dr> aSm;
+            aTri->getVertexes(aSm);
+            cTri3D aTri3D (   aSm[0],
+                              aSm[1],
+                              aSm[2],
+                              aKTri
+                          );
+            mVTriF.push_back(new cTriForTiepTri(this, aTri3D, aKTri));
+            mVcTri3D.push_back(aTri3D);
+        }
+        mNameMesh = aNameMesh;
+        cout<<"Finish - time "<<aChrono.uval()<<endl;
 }
 
 void cAppliTaskCorrel::SetNInter(int & aNInter, double & aZoomF)
@@ -57,33 +84,12 @@ void cAppliTaskCorrel::SetNInter(int & aNInter, double & aZoomF)
     }
 }
 
-void cAppliTaskCorrel::lireMesh(std::string & aNameMesh, vector<triangle*> & tri, vector<cTriForTiepTri*> & triF)
-{
-    cout<<"Lire mesh...";
-    ElTimer aChrono;
-    InitOutil * aPly = new InitOutil (aNameMesh);
-    mVTri = aPly->getmPtrListTri();
-    for (double aKT=0; aKT<mVTri.size(); aKT++)
-    {
-        triangle * aTriMesh = mVTri[aKT];
-        mVTriF.push_back(new cTriForTiepTri(this, aTriMesh, aKT));
-        cTri3D aTri (   aTriMesh->getSommet(0),
-                        aTriMesh->getSommet(1),
-                        aTriMesh->getSommet(2),
-                        aKT
-                    );
-        mVcTri3D.push_back(aTri);
-    }
-    cout<<"Finish - time "<<aChrono.uval()<<endl;
-}
 
-void cAppliTaskCorrel::updateVTriFWithNewAppli(vector<triangle*> & tri)
+void cAppliTaskCorrel::updateVTriFWithNewAppli(vector<cTri3D> & tri)
 {
-    mVTri.clear();
-    mVTri = tri;
     mVTriF.clear();
-    for (double aKT=0; aKT<mVTri.size(); aKT++)
-        mVTriF.push_back(new cTriForTiepTri(this, mVTri[aKT], aKT));
+    for (double aKT=0; aKT<tri.size(); aKT++)
+        mVTriF.push_back(new cTriForTiepTri(this, tri[aKT], aKT));
 }
 
 void cAppliTaskCorrel::ZBuffer()
@@ -103,6 +109,7 @@ void cAppliTaskCorrel::ZBuffer()
     aAppliZBuf->DistMax() = mDistMax;
     aAppliZBuf->Reech() = mRech;
     aAppliZBuf->WithImgLabel() = true; //include calcul Image label triangle valab
+    aAppliZBuf->SetNameMesh(mNameMesh);
     aAppliZBuf->DoAllIm(mVTriValid);
 
     ELISE_ASSERT(mVTriValid.size() == mVImgs.size(), "Sz VTriValid uncoherent Nb Img");
@@ -112,6 +119,7 @@ void cAppliTaskCorrel::ZBuffer()
         cImgForTiepTri * aImg = mVImgs[aKIm];
         aImg->TriValid() = mVTriValid[aKIm];
     }
+    delete aAppliZBuf;
     cout<<" - time : "<<aChrono.uval()<<endl;
 }
 
@@ -161,14 +169,14 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
 void cAppliTaskCorrel::DoAllTri()
 {
     cout<<"Nb Img: "<<mVImgs.size()<<" -Nb Tri: "<<mVTriF.size()<<endl;
-    for (uint aKT=0; aKT<mVTri.size(); aKT++)
+    for (uint aKT=0; aKT<mVcTri3D.size(); aKT++)
     {
         //cout<<endl<<"Tri "<<aKT<<endl;
         cImgForTiepTri * aImgMas = DoOneTri(mVTriF[aKT]);
         cXml_Triangle3DForTieP aTaskTri;
-        aTaskTri.P1() = mVTri[aKT]->getSommet(0);
-        aTaskTri.P2() = mVTri[aKT]->getSommet(1);
-        aTaskTri.P3() = mVTri[aKT]->getSommet(2);
+        aTaskTri.P1() = mVcTri3D[aKT].P1();
+        aTaskTri.P2() = mVcTri3D[aKT].P2();
+        aTaskTri.P3() = mVcTri3D[aKT].P3();
         if (aImgMas != NULL && Cur_Img2nd().size() != 0)
         {
             if (mNInter!=0)
@@ -199,14 +207,27 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
     for (uint aKI=0; aKI<mVImgs.size(); aKI++)
     {
         cImgForTiepTri * aImg = mVImgs[aKI];
+        //====this thing is eat RAM so much ======
+        for (uint aKIi = 0; aKIi<mVImgs.size(); aKIi++)
+        {
+            aImg->Task().NameSec().push_back(mVImgs[aKIi]->Name());
+        }
+        //=========================================
         string fileXML = mICNM->Dir() + aDirXML + "/" + mVImgs[aKI]->Name() + ".xml";
         MakeFileXML(aImg->Task(), fileXML);
         //export mesh correspond with each image:
         DrawOnMesh aDraw;
         std::string fileMesh =  mICNM->Dir() + "PLYVerif/" + mVImgs[aKI]->Name() + ".ply";
+        /*
         Pt3dr color(round(aKI*clIni.x/double(mVImgs.size())),
                     round(aKI*clIni.y/double(mVImgs.size())),
                     round(aKI*clIni.z/double(mVImgs.size())));
+                    */
+        Pt3dr color(
+                    double( rand() % 255 ),
+                    double( rand() % 255 ),
+                    double( rand() % 255 )
+                   );
         aDraw.drawListTriangle(aImg->Task().Tri(), fileMesh, color);
     }
     cout<<"Del : "<<cptDel<<endl;
@@ -319,7 +340,7 @@ vector<cXml_TriAngulationImMaster> cAppliTaskCorrelByXML::DoACpl(CplString aCpl)
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM, aDir, mOri, aFullPattern);
 
-    aAppli->updateVTriFWithNewAppli(mVTri);
+    //aAppli->updateVTriFWithNewAppli(mVcTri3D);
     aAppli->DoAllTri();
     cout<<aAppli->VTask().size()<<" task"<<endl;
     return aAppli->VTask();
@@ -344,7 +365,7 @@ void cAppliTaskCorrelByXML::DoAllCpl()
             SplitDirAndFile(aDir,aNameImg,aFullPattern);
             cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
             cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM, aDir, mOri, aFullPattern);
-            aAppli->lireMesh(mPathMesh, aAppli->VTri(), aAppli->VTriF());
+            aAppli->lireMesh(mPathMesh/*, aAppli->VTri(), aAppli->VTriF()*/);
             mVTri = aAppli->VTri();
         }
 

@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Detector.h"
 #include "../../uti_phgrm/NewOri/NewOri.h"
 #include "PHO_MI.h"
+#include "../../uti_phgrm/TiepTri/TiepTri.h"
+#include "../../../include/im_tpl/cPtOfCorrel.h"
 
 ExtremePoint::ExtremePoint(double radiusVoisin)
 {
@@ -372,6 +374,36 @@ int Detector::detect(bool useTypeFileDigeo)
                 else
                     this->saveResultToDiskTypeElHomo();
                 delete aDetecteur;
+            }
+            if (mTypeDetector == "TIEPTRI")
+            {
+                TIm2D<unsigned char, int> anIm(*mImg);
+                TIm2D<double, double> anImdbl(mImg->sz());
+                Pt2di aP;
+                Pt2di aSzIm = anIm.sz();
+                cFastCriterCompute * aCrit = cFastCriterCompute::Circle(TT_DIST_FAST);
+;
+                for (aP.x=0; aP.x<anIm.sz().x; aP.x++)
+                {
+                    for (aP.y=0; aP.y<anIm.sz().y; aP.y++)
+                    {
+                        int Val = anIm.get(aP);
+                        anImdbl.oset(aP, (double)Val);
+                    }
+                }
+                for (aP.x=0; aP.x<anIm.sz().x; aP.x++)
+                {
+                    for (aP.y=0; aP.y<anIm.sz().y; aP.y++)
+                    {
+                        Pt2dr aFastQual = FastQuality(anImdbl ,aP,
+                                                            *aCrit,
+                                                            1,
+                                                            Pt2dr(TT_PropFastStd,TT_PropFastConsec));
+                        bool OkFast = (aFastQual.x > TT_SeuilFastStd) && ( aFastQual.y> TT_SeuilFastCons);
+                        if (OkFast)
+                            mPtsInterest.push_back(Pt2dr(aP));
+                    }
+                }
             }
         }
     }
