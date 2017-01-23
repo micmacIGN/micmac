@@ -203,27 +203,10 @@ Pt2dr  ElDistortion22_Gen::ComputeInvFromDirByDiff
                      bool Reestim
        ) const
 {
-/*
-REPERE-222222
-{
-    std::cout << "PT " << aPt << " " << anEstim0 << "\n";
-    getchar();
-}
-*/
 
     Pt2dr aP00 = anEstim0;
 
 static int aCpt=0 ; aCpt++;
-/*
-bool Bug = (aCpt>=3381684) && MPD_MM();
-*/
-/*
- bool BugGravillon = (aCpt==146282);
- if (BugGravillon)
- {
-     std::cout << "ENTRE : Estim0 " << anEstim0 << "\n";
- }
-*/
 
      int aNbRee = 0;
      ElMatrix<REAL> aDiff = Diff(anEstim0);

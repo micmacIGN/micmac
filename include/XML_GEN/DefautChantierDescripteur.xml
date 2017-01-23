@@ -137,6 +137,15 @@
     <KeyedSetsOfNames>
           <IsParametrized>  true </IsParametrized>
           <Sets> 
+	  </Sets>
+          <Key> NKS-Set-Empty </Key>
+    </KeyedSetsOfNames>
+
+
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
                  <PatternAccepteur> #1  </PatternAccepteur>
                  <PatternRefuteur> #2  </PatternRefuteur>
 	  </Sets>

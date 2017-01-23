@@ -385,11 +385,15 @@ void cIncListInterv::AddInterv(const cIncIntervale & anInterv,bool CanOverlap)
       return;
    for (tCSetIII anIt =  mMap.begin() ; anIt!= mMap.end() ; anIt++)
    {
-       ELISE_ASSERT
-       (
-           anIt->Id() != anInterv.Id(),
-           "Ambiguous Key in cIncListInterv::AddInterv"
-       );
+       if (anIt->Id() == anInterv.Id())
+       {
+           std::cout << "For Id=" << anIt->Id() << "\n";
+           ELISE_ASSERT
+           (
+               anIt->Id() != anInterv.Id(),
+               "Ambiguous Key in cIncListInterv::AddInterv"
+           );
+       }
        if (CanOverlap)
           mMayOverlap = true;
        else

@@ -239,6 +239,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     bool   aUseGaussJ = false;
     int    NormaliseEq = 3;
 
+    std::vector<std::string> aParamCCCC;
+
 
     ElInitArgMain
     (
@@ -285,6 +287,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aExportSensib,"ExportSensib",true,"Export sensiblity (accuracy) estimator : correlation , varaiance, inverse matrix variance ... ")
                     << EAM(aUseGaussJ,"UseGaussJ",true,"Use GaussJ instead of Cholesky (Def depend of others) ")
                     << EAM(NormaliseEq,"NormEq",true,"Flag for Norm Eq, 1->Sc, 2-Tr, Def=3 (All), tuning purpose ")
+                    << EAM(aParamCCCC,"ContrCalCamCons",true,"Constraint on calibration for conseq camera [Key,Simga] ")
     );
 
 
@@ -464,6 +467,18 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
            mCom +=   std::string(" +NormaliseEqSc=") + ToString((NormaliseEq&1) != 0)
                    + std::string(" +NormaliseEqTr=") + ToString((NormaliseEq&2) != 0)
                    + std::string(" ");
+        }
+
+        if (EAMIsInit(&aParamCCCC))
+        {
+            ELISE_ASSERT(aParamCCCC.size() >=2,"ContrCalCamCons requires at least 2 vals");
+            std::string aKey = aParamCCCC[0];
+            double      aSigma ;
+            FromString(aSigma,aParamCCCC[1]);
+ 
+            mCom +=    std::string(" +With-ContrCamConseq=true")
+                     + std::string(" +Key-CCC=") + aKey
+                     + std::string(" +Sigma-CCC=") + ToString(aSigma) + " ";
         }
 
         mExe = (! EAMIsInit(&mMulRTA)) || (EAMIsInit(&GCPRTA));

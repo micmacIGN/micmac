@@ -55,6 +55,7 @@ void cAppliApero::InitInconnues()
     InitSurf();
     InitBlockCameras();
 
+    InitCalibConseq();
 }
 
 
@@ -87,7 +88,6 @@ void cAppliApero::InitCalibCam()
 
 	// std::cout << "CALIB=" << itC->Name() << "\n";
     }
-    InitCalibConseq();
 }
 
 class cCreatCtsrConseq
@@ -128,6 +128,7 @@ void cAppliApero::InitCalibConseq()
             aVCCC.push_back(cCreatCtsrConseq(aPair.second,aPair.first,aPC));
          }
     }
+    std::sort(aVCCC.begin(),aVCCC.end());
     
     for (int aKC=0 ; aKC<int(aVCCC.size()-1) ; aKC++)
     {

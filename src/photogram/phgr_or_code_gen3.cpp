@@ -199,6 +199,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CNoVar.cpp"
 
 
+#include "../../CodeGenere/photogram/cRegCamConseq_CompR_Polyn0.cpp"
+#include "../../CodeGenere/photogram/cRegCamConseq_CompR_Polyn1.cpp"
+#include "../../CodeGenere/photogram/cRegCamConseq_Polyn0.cpp"
+#include "../../CodeGenere/photogram/cRegCamConseq_Polyn1.cpp"
 
 #endif // ELISE_INSERT_CODE_GEN
 
