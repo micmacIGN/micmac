@@ -529,12 +529,6 @@ cPIFRegulConseq::cPIFRegulConseq(cParamIntrinsequeFormel * aPIF0,cParamIntrinseq
    mRayConseq(new cP3d_Etat_PhgrF("Ray"))
 {
    ELISE_ASSERT(aPIF0->Set()==aSuiv->Set(),"Different set in cPIFRegulConseq");
-   if (ForGenCode)
-   {
-      mFctr = cElCompiledFonc::AllocFromName(mNameType);
-      // mFctr->SetMappingCur(mLInterv,&mSet);
-      // mSet.AddFonct(mFctr);
-   }
    InitInterv();
    mLInterv.AddInterv(mPIF0->IncInterv());
    mLInterv.AddInterv(mSuiv->IncInterv() );
@@ -543,6 +537,13 @@ cPIFRegulConseq::cPIFRegulConseq(cParamIntrinsequeFormel * aPIF0,cParamIntrinseq
    {
       mEqP3I = mSet.Pt3dIncTmp();
       mLInterv.AddInterv(mEqP3I->IncInterv() );
+   }
+   if (!ForGenCode)
+   {
+      mFctr = cElCompiledFonc::AllocFromName(mNameType);
+      mFctr->SetMappingCur(mLInterv,&mSet);
+      mSet.AddFonct(mFctr);
+      mRayConseq->InitAdr(*mFctr);
    }
 }
 
@@ -614,21 +615,29 @@ cParamIntrinsequeFormel::cParamIntrinsequeFormel
   NV_UpdateCurPIF();
 }
 
-void  cParamIntrinsequeFormel::AddObsRegulConseq(int aNbGrids,double aSigmaPix)
+double  cParamIntrinsequeFormel::AddObsRegulConseq(int aNbGrids,double aSigmaPix)
 {
     if (! mRegCons)
     {
         // std::cout << "RRetettttturnnn \n";
-        return;
+        return 0;
     }
+    ELISE_ASSERT(!mRegCons->mWithR,"Rot not handled in AddObsRegulConseq");
+    // Pas sur de l'utilite InitStateOfFoncteur ....
+    InitStateOfFoncteur(mRegCons->mFctr,0);
+    // mRegCons->InitInterv();
 
     CamStenope * aCamCur = CurPIF();
-    double aPds = 1/ElSquare(aSigmaPix/ aCamCur->ScaleCamNorm());
+    double aPixFact =  aCamCur->ScaleCamNorm();
+    double aPds = 1/ElSquare(aSigmaPix/ aPixFact);
     aPds /= 1/ElSquare(aNbGrids+1);
 
  
     Pt2dr aP0 = aCamCur->NormC2M(Pt2dr(0,0));
     Pt2dr aP1 = aCamCur->NormC2M(Pt2dr(mCamInit->Sz()));
+
+    double aSomRes = 0;
+    double aNbRes = 0;
 
     for (int aKx=0 ; aKx<=aNbGrids ; aKx++)
     {
@@ -639,15 +648,20 @@ void  cParamIntrinsequeFormel::AddObsRegulConseq(int aNbGrids,double aSigmaPix)
                           aP0.x * aPProp.x + aP1.x * (1-aPProp.x),
                           aP0.y * aPProp.y + aP1.y * (1-aPProp.y)
                       );
-            aPIm = aPProp.mcbyc(Pt2dr(mCamInit->Sz()));
+           aPIm = aPProp.mcbyc(Pt2dr(mCamInit->Sz()));
 
            Pt3dr aDirRay =   aCamCur->F2toDirRayonL3(aPIm);
+           mRegCons->mRayConseq->SetEtat(aDirRay);
 
-           std::cout << "PPIImmmMMm " << aPIm  <<  " " << aDirRay << " " <<  aCamCur->F2toC2(aPIm) << "\n";
-           std::cout << aCamCur->Focale() << " " <<  aCamCur->PP() << " INIT: " << mCamInit->Focale() << " " <<  mCamInit->PP()  << "\n";
-           // Pt2dr 
+           std::vector<double>  aVRes = mSet.VAddEqFonctToSys(mRegCons->mFctr,aPds,false,NullPCVU);
+           aSomRes += ElSquare(aVRes.at(0)) + ElSquare(aVRes.at(1));
+           aNbRes ++;
        }
     }
+    aSomRes = sqrt(aSomRes*aNbRes) * aPixFact;
+ 
+    return aSomRes;
+    // mRegCons->ResetInterv();
 }
 
 void cParamIntrinsequeFormel::AddRegulConseq(cParamIntrinsequeFormel* aSuiv,bool WithR,bool ForGenCode)
@@ -1169,10 +1183,6 @@ cMultiContEQF cParamIntrinsequeFormel::StdContraintes()
 
     return aRes;
 }
-
-/*
-*/
-
 
 void cParamIntrinsequeFormel::InitStateOfFoncteur(cElCompiledFonc *,int aKCam)
 {

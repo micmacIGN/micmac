@@ -1170,7 +1170,7 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
 {
 	public  :
 
-           void AddObsRegulConseq(int aNbGrids,double aSigmaPix);
+           double AddObsRegulConseq(int aNbGrids,double aSigmaPix);
            void AddRegulConseq(cParamIntrinsequeFormel*,bool WithR,bool ForGenCode);
            void AddCstrRegulDist(Pt2dr aP,double aPdsVal,double aPdsGrad,double aPdsD2);
            void AddCstrRegulGlob(int aNbEch,double aPdsVal,double aPdsGrad,double aPdsD2,Im2D_REAL4 * aFoncPds=0);
