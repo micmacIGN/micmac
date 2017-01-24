@@ -437,6 +437,8 @@ int GenerateBorderCam_main(int argc,char **argv)
          }
     }
     MakeFileXML(aRes,aNameOut);
+
+	return 0;
 }
 
 
