@@ -1,19 +1,8 @@
 #include "TaskCorrel.h"
 
-//  ============================== cTriForTiepTri ==========================
-
-/*
-cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel *aAppli, triangle * aTri3d, double & ind):
-    mNumImg (-1),
-    mPt1    (Pt2dr(0.0,0.0)),
-    mPt2    (Pt2dr(0.0,0.0)),
-    mPt3    (Pt2dr(0.0,0.0)),
-    mAppli  (aAppli),
-    mTri3D  (aTri3d),
-    mrprjOK (false),
-    mInd    (ind)
-{}*/
-
+//  ============================= **************** =============================
+//  *                             cTriForTiepTri                               *
+//  ============================= **************** =============================
 cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel *aAppli, cTri3D aTri3d, double & ind):
     mNumImg (-1),
     mPt1    (Pt2dr(0.0,0.0)),
@@ -25,6 +14,9 @@ cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel *aAppli, cTri3D aTri3d, double &
     mInd    (ind)
 {}
 
+//  ============================= **************** =============================
+//  *                             reprj                                        *
+//  ============================= **************** =============================
 bool cTriForTiepTri::reprj(cImgForTiepTri * aImg)
 {
     mNumImg = aImg->Num();
@@ -50,6 +42,23 @@ bool cTriForTiepTri::reprj(cImgForTiepTri * aImg)
         }
 }
 
+//  ============================= **************** =============================
+//  *                             isCollinear                                  *
+//  ============================= **************** =============================
+bool isCollinear(Pt3dr & P1, Pt3dr & P2, Pt3dr & P3)
+{
+  Pt3dr u = P2-P1; //u
+  Pt3dr v = P3-P1; //v
+  Pt3dr croosPrd(u.x*v.z-u.z*v.y, u.z*v.x-u.x*v.z, u.x*v.y-u.x-v.x);
+  if (croosPrd.x < DBL_EPSILON && croosPrd.y < DBL_EPSILON && croosPrd.z < DBL_EPSILON)
+     return true;
+  else
+     return false;
+}
+
+//  ============================= **************** =============================
+//  *                             valElipse                                    *
+//  ============================= **************** =============================
 double cTriForTiepTri::valElipse(int & aNInter)
 {
     if (!mrprjOK || mNumImg == -1)
@@ -63,33 +72,34 @@ double cTriForTiepTri::valElipse(int & aNInter)
         Pt3dr Pt1 = mTri3D_.P1();
         Pt3dr Pt2 = mTri3D_.P2();
         Pt3dr Pt3 = mTri3D_.P3();
-        if (-aSurf > TT_SEUIL_SURF_TRIANGLE && mrprjOK)
+        bool isColnr = isCollinear(Pt1, Pt2, Pt3);  //si 3 point du triangle sont collinears
+        if (-aSurf > TT_SEUIL_SURF_TRIANGLE && mrprjOK && !isColnr)
         {
-            //creer plan 3D local contient triangle
-            cElPlan3D * aPlanLoc = new cElPlan3D(Pt1, Pt2, Pt3);
+        //creer plan 3D local contient triangle
+            cElPlan3D * aPlanLoc = new cElPlan3D(Pt1, Pt2, Pt3);    //ATTENTION : peut causer error vuunit si 3 point collinear
             ElRotation3D aRot_PE = aPlanLoc->CoordPlan2Euclid();
             ElRotation3D aRot_EP = aRot_PE.inv();
-            //calcul coordonne sommet triangle dans plan 3D local (devrait avoir meme Z)
+	    //calcul coordonne sommet triangle dans plan 3D local (devrait avoir meme Z)
             Pt3dr aPtP0 = aRot_EP.ImAff(Pt1); //sommet triangle on plan local
             Pt3dr aPtP1 = aRot_EP.ImAff(Pt2);
             Pt3dr aPtP2 = aRot_EP.ImAff(Pt3);
-            //creer translation entre coordonne image global -> coordonne image local du triangle (plan image)
+	    //creer translation entre coordonne image global -> coordonne image local du triangle (plan image)
             ElAffin2D aAffImG2ImL(ElAffin2D::trans(mPt1));
             Pt2dr aPtPIm0 = aAffImG2ImL(mPt1);
             Pt2dr aPtPIm1 = aAffImG2ImL(mPt2);
             Pt2dr aPtPIm2 = aAffImG2ImL(mPt3);
-            //calcul affine entre plan 3D local (elimine Z) et plan 2D local
+	    //calcul affine entre plan 3D local (elimine Z) et plan 2D local
             ElAffin2D aAffLc2Im;
             aAffLc2Im = aAffLc2Im.FromTri2Tri(  Pt2dr(aPtP0.x, aPtP0.y),
                                                 Pt2dr(aPtP1.x, aPtP1.y),
                                                 Pt2dr(aPtP2.x, aPtP2.y),
                                                 aPtPIm0,aPtPIm1,aPtPIm2
                                              );
-            //calcul vector max min pour choisir img master
+        //calcul vector max min pour choisir img master
             double vecA_cr =  aAffLc2Im.I10().x*aAffLc2Im.I10().x + aAffLc2Im.I10().y*aAffLc2Im.I10().y;
             double vecB_cr =  aAffLc2Im.I01().x*aAffLc2Im.I01().x + aAffLc2Im.I01().y*aAffLc2Im.I01().y;
             double AB_cr   =  pow(aAffLc2Im.I10().x*aAffLc2Im.I01().x,2) + pow(aAffLc2Im.I10().y*aAffLc2Im.I01().y,2);
-            //double theta_max =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(0.5);
+	    //double theta_max =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(0.5);
             //Interaction : disp ellipse on image:
             if (aNInter != 0)
             {
@@ -128,7 +138,7 @@ double cTriForTiepTri::valElipse(int & aNInter)
                 if (mNumImg == int(mAppli->VVW().size() - 1))
                     aVW->clik_in();
             }
-            return (vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(-0.5));
+            return (vecA_cr + vecB_cr - sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(0.5));
         }
         else
         {
