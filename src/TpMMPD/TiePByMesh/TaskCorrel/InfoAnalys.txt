@@ -126,6 +126,122 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
     TT_DefSeuilDensiteResul  = 50 pxl
     TT_RatioFastFiltrSpatial = 4
 
++++++====+++++ Analyse partie correlation dans TiepTri +++++====+++++
+Pour chaque point d'interet dans img Master :
+
+(1) mImSecLoaded[aKIm]->RechHomPtsInteretBilin(*itI,mNivInterac);
+    (.) *itI : point intéret selection dans image master
+    (.) Prendre les point de même label (minimal-maximal) sur 1 rayon de () pxl dans img 2nd
+
+(2) Correlation local (pour chaque couple de point) master - secondaire
+	cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale ( mMaster->mTImInit,
+								 aP0,		=> pt d'interet img Master 
+								 mTImReech,
+								 aPV,		=> pt d'interet img 2nd
+								 TT_DemiFenetreCorrel/2,
+								 2,				
+								 aSzRech    );
+	(.) aSzW = TT_DemiFenetreCorrel/2 = 3
+        (.) aStep = 2
+        (.) aSzRech = TT_DemiFenetreCorrel = 6
+
+
+    (a) Correlation 1PIX/2
+        (.) Appel dedans: 
+		cTT_MaxLocCorrelBasique  anOpt( eTMCInt,
+						aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),
+						aSzW,   => 3
+						aStep,	=> 2
+						0.9);	=> aStepRechCorrel
+  		anOpt.optim_step_fixed(Pt2dr(0,0),aSzRechMax);
+	(->) Je fait correlation en 2 pixel sur 1 pour former imagette 7x7, avec l'avancement de 0.9 pxl par chaque fois de correlation, avec taille region de recherche = 13x13
+	(->) Result correlation :aCRCLoc.mCorrel 
+
+    (b) Correlation 1PIX/1 (entière)
+	Executer si Correlation 1PIX/2 valid : 
+	(.) aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2 = 0.7 
+	(.) distance entre pt trouve par correl 2pix/1 et pt init aPV < 1.5
+
+        aCRCLoc = TT_RechMaxCorrelLocale( mMaster->mTImInit,
+					  aP0,
+					  mTImReech,
+					  aCRCLoc.mPt,
+  					  TT_DemiFenetreCorrel,  =6 = aSzW
+					  1,			 =    aStep
+					  aSzRech		 =6
+  					); 
+	(.) Appel dedans : 
+		cTT_MaxLocCorrelBasique  anOpt( eTMCInt,
+						aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),
+						aSzW,	= 6
+						aStep,	= 1
+						0.9	= aStepRechCorrel
+					      );
+   		anOpt.optim_step_fixed(Pt2dr(0,0),aSzRechMax);
+	(->) Je fait correlation en 1 pixel (aStep) sur 1 pour former imagette 13x13 (aSzW), avec l'avancement de 0.9 pxl par chaque fois de correlation, avec taille region de recherche = 13x13
+	(->) Result correlation :aCRCLoc.mCorrel 
+	(->) Mis a jour result aCRCMax.Merge si distance entre pt trouve par correl aCRCLoc.mPt et pt init aPV < 1.5
+
+    (c) Apres tout les couple (pt master)-(les points 2nd de meme label sur un rayon) sont examiner 
+	Fait Correlation sub-pixel, interpol bilin basique 
+	(.) Si il n'y a pas de point qui pass Correlation 1PIX/2 => point d'interet dans master non valid 
+	(.) Si il a trouver le point plus grand par Correlation 1PIX/1 
+	    cResulRechCorrel<double> aRes =TT_RechMaxCorrelMultiScaleBilin ( mMaster->mTImInit,
+									     Pt2dr(aP0),	=> pt d'interet img Master 
+									     mTImReech,
+									     Pt2dr(aCRCMax.mPt),=> result correl entier
+									     aSzWE              = 6 (SzW end , param entree du commande)
+ 									   ); 
+	(.) Appel dedans : 	
+	    	cTT_MaxLocCorrelBasique  anOpt( eTMCBilinStep1,      => mode update optim réel
+						aIm1,aP1,aIm2,aP2,   
+						aSzW,	=>  aSzWE = 6
+						1,	=> aStep (prendre 1 pixel par chaque)
+						0.01	=> aStepRechCorrel
+					      );
+   	    	anOpt.optim();
+		(.) Appel dedans : 
+		    m2Sol.Update(TT_CorrelBilin(mIm1,Pt2di(mP1),mIm2,mP2+Pt2dr(aDx,aDy),mSzW));
+
+	(->) Coeur du method est une optimisation 
+		void  Optim2DParam::optim(Pt2dr aPInit)
+		Optim2DParam::Optim2DParam
+
+	(->) Je fait une correlation par fenetre 13x13, step de prendre pixel 1, step de balayer jusqu'au 0.01
+
+
++++++====+++++ Des class et fonction servir dans correlation dans TiepTri +++++====+++++
+
+(2) class cTT_MaxLocCorrelBasique : public Optim2DParam
+    (.) De class Optim2DParam
+    (.)
+         cTT_MaxLocCorrelBasique
+         (
+              eTypeModeCorrel     aMode,	=> comment update valeur pour prochain etape d'optim (entière/réel)
+              const tTImTiepTri & aIm1,
+              Pt2dr               aP1,
+              const tTImTiepTri & aIm2,
+              Pt2dr               aP2,
+              const int           aSzW,		=> taille fenetre recherche
+              const int           aStep,	=> step de prendre valeur du pixel pour former imagette de correlation
+              double              aStepRechCorrel	=> step de balayer dans la fenetre recherche
+         )
+
+    (.) 2 mode d'optim : 
+	(.) eTMCInt => optim en recherche entière
+		(->) Appel TT_CorrelBasique
+		m2Sol.Update(TT_CorrelBasique(mIm1,Pt2di(mP1),mIm2,Pt2di(mP2)+Pt2di(round_ni(aDx),round_ni(aDy)),mSzW,mStep));
+               	return m2Sol.Score4Opt();
+
+ 	(.) eTMCBilinStep1 => optim en recherche (REAL aDx,REAL aDy)
+		(->) Appel TT_CorrelBilins
+		m2Sol.Update(TT_CorrelBilin(mIm1,Pt2di(mP1),mIm2,mP2+Pt2dr(aDx,aDy),mSzW));
+               	return m2Sol.Score4Opt();
+
+(3) class Optim2DParam
+	void  Optim2DParam::optim(Pt2dr aPInit)
+	void  Optim2DParam::optim_step_fixed(int aNbMaxStep)
+
 ========================================================================
 11/12/2016:
 Raster Triangle Rapide => Recuper les point dans la triangle par calcul l'interval de la ligne parcouru
@@ -170,6 +286,8 @@ Raster Triangle Rapide => Recuper les point dans la triangle par calcul l'interv
  
  (*) Prendre (int aY, const SegComp & aSeg) -- aY : la ligne, aSeg : 1 cote de triangle
  (*) 
+
+
 
     
     
