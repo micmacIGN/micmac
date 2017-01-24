@@ -26961,4 +26961,63 @@ void xml_init(cXmlNameSensibs & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXmlNameSensibs *) {return "0075E0AC8422AEF9F6BF";};
 
+
+std::vector< Pt2dr > & cXmlOneContourCamera::Pt()
+{
+   return mPt;
+}
+
+const std::vector< Pt2dr > & cXmlOneContourCamera::Pt()const 
+{
+   return mPt;
+}
+
+void  BinaryUnDumpFromFile(cXmlOneContourCamera & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             Pt2dr aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Pt().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlOneContourCamera & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Pt().size());
+    for(  std::vector< Pt2dr >::const_iterator iT=anObj.Pt().begin();
+         iT!=anObj.Pt().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXmlOneContourCamera & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlOneContourCamera",eXMLBranche);
+  for
+  (       std::vector< Pt2dr >::const_iterator it=anObj.Pt().begin();
+      it !=anObj.Pt().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("Pt"),(*it))->ReTagThis("Pt"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlOneContourCamera & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Pt(),aTree->GetAll("Pt",false,1));
+}
+
+std::string  Mangling( cXmlOneContourCamera *) {return "AA553F39973E9CC5FD3F";};
+
 // };

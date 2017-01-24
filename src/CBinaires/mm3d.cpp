@@ -202,6 +202,7 @@ int Contrast_main(int argc,char ** argv);
 
 int TestCamRPC(int argc,char** argv);
 int TestBundleInter_main(int argc,char ** argv);
+int GenerateBorderCam_main(int argc,char ** argv);
 
 int Ratafia_Main(int argc,char ** argv);
 
@@ -456,6 +457,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ...",cArgLogCom(2)));
        aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
        aRes.push_back(cMMCom("VisuRedHom",VisuResiduHom," Create a visualisation of residual on tie points"));
+       aRes.push_back(cMMCom("GenerateBorderCam",GenerateBorderCam_main," Generate the polygone of image contour undistorded"));
 
    }
 

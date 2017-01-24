@@ -389,6 +389,57 @@ int TestBundleInter_main(int argc,char ** argv)
 
 
 
+int GenerateBorderCam_main(int argc,char **argv)
+{
+    std::string aNameCam;
+    int  aNb;
+    double aInt=1.0;
+    std::string aNameOut;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  <<  EAMC(aNameCam,"Name Cam")
+                    <<  EAMC(aNb,"Nb Pts / size"),
+        LArgMain()  <<  EAM(aInt,"Int",true,"Interior to limit size with bad distorsion, Def=1.0")
+                    <<  EAM(aNameOut,"Out",true,"File for result, Def= Border-Input")
+    );
+
+    cElemAppliSetFile anEASF(aNameCam);
+    CamStenope * aCam =  CamOrientGenFromFile(aNameCam,anEASF.mICNM);
+    if (! EAMIsInit(&aNameOut))
+    {
+          aNameOut  = anEASF.mDir + "Border-"+ StdPrefix(NameWithoutDir(aNameCam)) + ".xml";
+    }
+
+
+
+    Pt2dr aP0 = aCam->Sz() * (1-aInt);
+    Pt2dr aP1 = aCam->Sz() * (aInt);
+    std::cout << "SZ " << aP0 << aP1 << "\n";
+    Box2dr aBox(aP0,aP1);
+    Pt2dr aC[4];
+    aBox.Corners(aC);
+
+
+    cXmlOneContourCamera aRes;
+    for (int aKC=0 ; aKC<4 ; aKC++)
+    {
+         Pt2dr aC1 = aC[aKC];
+         Pt2dr aC2 = aC[(aKC+1)%4];
+         for (int aKP=0 ; aKP<aNb ; aKP++)
+         {
+              double aPds = aKP/ double(aNb);
+              Pt2dr aP = aC1 * (1-aPds) + aC2 * aPds;
+              aP = aCam->F2toC2(aP);
+              aRes.Pt().push_back(aP);
+              // std::cout << aP << "\n";
+         }
+    }
+    MakeFileXML(aRes,aNameOut);
+}
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

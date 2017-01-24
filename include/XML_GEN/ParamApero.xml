@@ -1756,6 +1756,10 @@ normalises en echelle et/ou en translation -->
     </SensibDateOneInc>
 </XmlNameSensibs>
 
+<XmlOneContourCamera Nb="1"   Class="true" ToReference="true">
+    <Pt Nb="*" Type="Pt2dr"  Container="std::vector"> </Pt>
+</XmlOneContourCamera>
+
 
 <Verbatim File=".h.cpp">
 // };
