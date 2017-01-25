@@ -3416,9 +3416,11 @@ void cRPC::ReadXML(const std::string &aFile)
     }
 
     cElXMLTree* aNodesFilOne;
+    cElXMLTree* aIMD;
     std::vector<double> aLongMM, aLatMM;
 
-    aNodes = aTree.GetUnique(std::string("BAND_P"));
+    aIMD = aTree.GetUnique(std::string("IMD"));
+    aNodes = aIMD->GetUnique(std::string("BAND_P"));
     aNodesFilOne = aNodes->GetUnique("ULLON");
     aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
