@@ -1710,7 +1710,8 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
        {
            std::string aPost2 = aName.substr(aName.size()-7,3);// StdPostfix(aName.substr(0,aName.size()-4));
 
-           if( aPost2 != "txt" && aPost2 != "TXT" && aPost2 != "Txt" && aPost2 != "rpc")
+           //if( aPost2 != "txt" && aPost2 != "TXT" && aPost2 != "Txt" && aPost2 != "rpc")
+           if( aPost2 != "txt" && aPost2 != "TXT" && aPost2 != "Txt" )
            {
                 cElXMLTree * aTree = new cElXMLTree(aName);
 
