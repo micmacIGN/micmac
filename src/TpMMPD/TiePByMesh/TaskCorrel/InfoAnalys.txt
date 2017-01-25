@@ -33,7 +33,7 @@ Appel method DoAllTri de cAppliTieTri:
    Parcourir list point d'interet dans img master
      Parcourir list img 2nd:
       Correlation par RechHomPtsInteretBilin
-   Fimtrage spatial result de correlation tout les pt d'interet
+   Filtrage spatial result de correlation tout les pt d'interet
    Recherche homologue dense avec RechHomPtsDense
       
 =======================================================================
@@ -46,23 +46,23 @@ Parcourir la list de voisinage homologue
 
 ========================================================================
 Ajout 13/12/2016:
-Les critere supplementaire pour choisir point d'interet robust sont heberger dans cPtOfCorrel.h
+Les critere supplementaire pour choisir point d'interet robust sont heberger dans cPtOfCorrel.
+(->) Il sagit critère de contrast et critère auto-corrélation
 
 +++++====+++++ Analyse fonction cImTieTri::MakeInterestPoint +++++====+++++
 
 (1) Critere extrema 
      
-    Implementation: fonction cImTieTri::IsExtrema
-    Examiner un point donné avec des voisin autour si 'est un point extrema (max/min) local
-    Les list de voisins	autour sont creer au moment de creer cAppliTieTri, avec rayon = TT_DIST_EXTREMA
-    Voir si valeur de tout les pts autour sont < ou > valeur de pt central
-    Fonction CmpValAndDec pour comparer val de 2 point 
-	Entrer value de PtCentral & PtVoisin => -1 si PtCentral < PtVoisin, 1 si l'inverse
-						-1 si 
+    (*) Fonction cImTieTri::IsExtrema
+    (*) Examiner un point donné avec des voisin autour si 'est un point extrema (max/min) local
+    (*) Les list de voisins autour sont creer au moment de creer cAppliTieTri, avec rayon = TT_DIST_EXTREMA = 3 pxl
+    (*) Voir si valeur de tout les pts autour sont < ou > valeur de pt central
+    (*) Fonction CmpValAndDec pour comparer val de 2 point 
+	(-) Entrer value de PtCentral & PtVoisin => -1 si PtCentral < PtVoisin, 1 si l'inverse
+		                                    -1 si 
         (?????) À examiner en plus - pas encore comprendre programme
     
-    
-       	
+
 (2) Critere FAST 
 
    Implementation: class cFastCriterCompute && fonction FastQuality (dans cPtOfCorrel.h)
@@ -80,6 +80,7 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
      (b) TT_PropFastConsec = 0.6 => examiner si 60% de points voisins consecutives ont valeurs inférieur/superieur de point candidat un différent TT_SeuilFastCons=3
 	 (*) cFastReduceAssoc : une method numerique pour vite examiner un certain nombre de point consecutive autour image
  	  ==> Pas encore comprendre
+
 
 (3) Critere auto-corell 
 
@@ -111,6 +112,7 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
 	       Si aRes2 > aCorrMax  => valid
                Si aRes2 < aCorrMax  => in-valid
        
+
 (4) Filtrage spatial       
     
     Implementation: 1 morceaux de code à la fin de cImTieTri::MakeInterestPoint
@@ -127,93 +129,209 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
     TT_RatioFastFiltrSpatial = 4
 
 +++++====+++++ Analyse partie correlation dans TiepTri +++++====+++++
-Pour chaque point d'interet dans img Master :
+Dans 1 Triangle:
 
-(1) mImSecLoaded[aKIm]->RechHomPtsInteretBilin(*itI,mNivInterac);
-    (.) *itI : point intéret selection dans image master
-    (.) Prendre les point de même label (minimal-maximal) sur 1 rayon de () pxl dans img 2nd
+  (**--**) =========== Pour chaque point d'interet dans img triangle d'image master ============== (**--**) :
 
-(2) Correlation local (pour chaque couple de point) master - secondaire
-	cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale ( mMaster->mTImInit,
-								 aP0,		=> pt d'interet img Master 
-								 mTImReech,
-								 aPV,		=> pt d'interet img 2nd
-								 TT_DemiFenetreCorrel/2,
-								 2,				
-								 aSzRech    );
-	(.) aSzW = TT_DemiFenetreCorrel/2 = 3
-        (.) aStep = 2
-        (.) aSzRech = TT_DemiFenetreCorrel = 6
+	(1) mImSecLoaded[aKIm]->RechHomPtsInteretBilin(*itI,mNivInterac);
+		(.) *itI : point intéret selection dans image master
+		(.) Prendre les point de même label (minimal-maximal) sur 1 rayon de () pxl dans img 2nd
+
+	(2) Correlation local (pour chaque couple de point) master - secondaire
+		cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale ( mMaster->mTImInit,
+									 aP0,		=> pt d'interet img Master 
+									 mTImReech,
+									 aPV,		=> pt d'interet img 2nd
+									 TT_DemiFenetreCorrel/2,
+									 2,				
+									 aSzRech    );
+		(.) aSzW = TT_DemiFenetreCorrel/2 = 3
+		    (.) aStep = 2
+		    (.) aSzRech = TT_DemiFenetreCorrel = 6
 
 
-    (a) Correlation 1PIX/2
-        (.) Appel dedans: 
-		cTT_MaxLocCorrelBasique  anOpt( eTMCInt,
-						aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),
-						aSzW,   => 3
-						aStep,	=> 2
-						0.9);	=> aStepRechCorrel
-  		anOpt.optim_step_fixed(Pt2dr(0,0),aSzRechMax);
-	(->) Je fait correlation en 2 pixel sur 1 pour former imagette 7x7, avec l'avancement de 0.9 pxl par chaque fois de correlation, avec taille region de recherche = 13x13
-	(->) Result correlation :aCRCLoc.mCorrel 
+		(a) Correlation 1PIX/2
+		    (.) Appel dedans: 
+			cTT_MaxLocCorrelBasique  anOpt( eTMCInt,
+							aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),
+							aSzW,   => 3
+							aStep,	=> 2
+							0.9);	=> aStepRechCorrel
+	  		anOpt.optim_step_fixed(Pt2dr(0,0),aSzRechMax);
+		(->) Je fait correlation en 2 pixel sur 1 pour former imagette 7x7, avec l'avancement de 0.9 pxl par chaque fois de correlation, avec taille region de recherche = 13x13
+		(->) Result correlation :aCRCLoc.mCorrel 
 
-    (b) Correlation 1PIX/1 (entière)
-	Executer si Correlation 1PIX/2 valid : 
-	(.) aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2 = 0.7 
-	(.) distance entre pt trouve par correl 2pix/1 et pt init aPV < 1.5
+		(b) Correlation 1PIX/1 (entière)
+		Executer si Correlation 1PIX/2 valid : 
+		(.) aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2 = 0.7 
+		(.) distance entre pt trouve par correl 2pix/1 et pt init aPV < 1.5
 
-        aCRCLoc = TT_RechMaxCorrelLocale( mMaster->mTImInit,
-					  aP0,
-					  mTImReech,
-					  aCRCLoc.mPt,
-  					  TT_DemiFenetreCorrel,  =6 = aSzW
-					  1,			 =    aStep
-					  aSzRech		 =6
-  					); 
-	(.) Appel dedans : 
-		cTT_MaxLocCorrelBasique  anOpt( eTMCInt,
-						aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),
-						aSzW,	= 6
-						aStep,	= 1
-						0.9	= aStepRechCorrel
-					      );
-   		anOpt.optim_step_fixed(Pt2dr(0,0),aSzRechMax);
-	(->) Je fait correlation en 1 pixel (aStep) sur 1 pour former imagette 13x13 (aSzW), avec l'avancement de 0.9 pxl par chaque fois de correlation, avec taille region de recherche = 13x13
-	(->) Result correlation :aCRCLoc.mCorrel 
-	(->) Mis a jour result aCRCMax.Merge si distance entre pt trouve par correl aCRCLoc.mPt et pt init aPV < 1.5
-
-    (c) Apres tout les couple (pt master)-(les points 2nd de meme label sur un rayon) sont examiner 
-	Fait Correlation sub-pixel, interpol bilin basique 
-	(.) Si il n'y a pas de point qui pass Correlation 1PIX/2 => point d'interet dans master non valid 
-	(.) Si il a trouver le point plus grand par Correlation 1PIX/1 
-	    cResulRechCorrel<double> aRes =TT_RechMaxCorrelMultiScaleBilin ( mMaster->mTImInit,
-									     Pt2dr(aP0),	=> pt d'interet img Master 
-									     mTImReech,
-									     Pt2dr(aCRCMax.mPt),=> result correl entier
-									     aSzWE              = 6 (SzW end , param entree du commande)
- 									   ); 
-	(.) Appel dedans : 	
-	    	cTT_MaxLocCorrelBasique  anOpt( eTMCBilinStep1,      => mode update optim réel
-						aIm1,aP1,aIm2,aP2,   
-						aSzW,	=>  aSzWE = 6
-						1,	=> aStep (prendre 1 pixel par chaque)
-						0.01	=> aStepRechCorrel
-					      );
-   	    	anOpt.optim();
+		    aCRCLoc = TT_RechMaxCorrelLocale( mMaster->mTImInit,
+						  aP0,
+						  mTImReech,
+						  aCRCLoc.mPt,
+	  					  TT_DemiFenetreCorrel,  =6 = aSzW
+						  1,			 =    aStep
+						  aSzRech		 =6
+	  					); 
 		(.) Appel dedans : 
-		    m2Sol.Update(TT_CorrelBilin(mIm1,Pt2di(mP1),mIm2,mP2+Pt2dr(aDx,aDy),mSzW));
+			cTT_MaxLocCorrelBasique  anOpt( eTMCInt,
+							aIm1,Pt2dr(aP1),aIm2,Pt2dr(aP2),
+							aSzW,	= 6
+							aStep,	= 1
+							0.9	= aStepRechCorrel
+							  );
+	   		anOpt.optim_step_fixed(Pt2dr(0,0),aSzRechMax);
+		(->) Je fait correlation en 1 pixel (aStep) sur 1 pour former imagette 13x13 (aSzW), avec l'avancement de 0.9 pxl par chaque fois de correlation, avec taille region de recherche = 13x13
+		(->) Result correlation :aCRCLoc.mCorrel 
+		(->) Mis a jour result aCRCMax.Merge si distance entre pt trouve par correl aCRCLoc.mPt et pt init aPV < 1.5
 
-	(->) Coeur du method est une optimisation 
-		void  Optim2DParam::optim(Pt2dr aPInit)
-		Optim2DParam::Optim2DParam
+		(c) Apres tout les couple (pt master)-(les points 2nd de meme label sur un rayon) sont examiner 
+		Fait Correlation sub-pixel, interpol bilin basique 
+		(.) Si il n'y a pas de point qui pass Correlation 1PIX/2 => point d'interet dans master non valid 
+		(.) Si il a trouver le point plus grand par Correlation 1PIX/1 
+			cResulRechCorrel<double> aRes =TT_RechMaxCorrelMultiScaleBilin ( mMaster->mTImInit,
+											 Pt2dr(aP0),	=> pt d'interet img Master 
+											 mTImReech,
+											 Pt2dr(aCRCMax.mPt),=> result correl entier
+											 aSzWE              = 6 (SzW end , param entree du commande)
+	 									   ); 
+		(.) Appel dedans : 	
+				cTT_MaxLocCorrelBasique  anOpt( eTMCBilinStep1,      => mode update optim réel
+							aIm1,aP1,aIm2,aP2,   
+							aSzW,	=>  aSzWE = 6
+							1,	=> aStep (prendre 1 pixel par chaque)
+							0.01	=> aStepRechCorrel
+							  );
+	   	    	anOpt.optim();
+			(.) Appel dedans : 
+				m2Sol.Update(TT_CorrelBilin(mIm1,Pt2di(mP1),mIm2,mP2+Pt2dr(aDx,aDy),mSzW));
 
-	(->) Je fait une correlation par fenetre 13x13, step de prendre pixel 1, step de balayer jusqu'au 0.01
+		(->) Coeur du method est une optimisation 
+			void  Optim2DParam::optim(Pt2dr aPInit)
+			Optim2DParam::Optim2DParam
+
+		(->) Je fait une correlation par fenetre 13x13, step de prendre pixel 1, step de balayer jusqu'au 0.01
+
+  (**--**) ============== Apres on a fait avec tout les pts d'interet dans 1 triangle -> Filtrage spatial dans 1 triangle ================== (**--**) :
+
+	(*) FiltrageSpatialRMIRC(mDistFiltr);
+	(*) À analyser après
+
+  (**--**) ============== Recherche point homologue dense ============== (**--**) :
+	cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense( const Pt2di & aP0,						=> Point Master
+															const cResulRechCorrel<double> & aPIn	=> Point correl avec Master (Result correl initial)
+														  )
+	(*) Si Interpol (IntDM) for Dense Match = -1 (param entree du command) 
+		=> Juste rendre coordonne correlation à coordonne de img secondaire par affine : mAffMas2Sec(aPIn.mPt) 
+		=> Cela est resultat final
+
+	(*) Si Interpol (IntDM) for Dense Match != -1 &&  Do refinement on initial images, instead of resampled = 1 (param entree)
+		=> Prendre transformation affine Mas2Sec au aAffPred, sinon aAffPred=Affine::Id()
+		=> Si Do Refine = 0 => prendre directement image reechantilonnage (calcul dans loadtri, par gerR - interpolation sinC) / =1 => prendre image secondaire original (aImSec)
+
+    (*) LSQC => variable mNivLSQM. Test LSQ = Least Square Matching
+		=> Defini aPrecInit (aStep0 dans cTT_MaxLocCorrelDS1R - method correlation du RechHomPtsDense). 
+		=> Step initial ? = 1/4 si LSQC>=0 (1=>Affine Geom, Flag 2=>Affin Radiom); =1/8 si LSQC=-1 (None (Def))
+		=> Step final aPrecCible (aStepEnd dans cTT_MaxLocCorrelDS1R); =1/16 si LSQC>=0; =1/128 si LSQC=-1 (None (Def))
 
 
+    (*) Appel programme:
+		cResulRechCorrel<double> aRes2 =  TT_MaxLocCorrelDS1R
+														          (
+														               mAppli.Interpol(),	=> type d'interpolation
+														               &aAffPred,			=> transformation affine Mas2Sec ou Id()
+														               mMaster->mTImInit,	=> Img master
+														               Pt2dr(aP0),			=> Point Master
+														               aImSec,				=> img 2nd origin (Do Refine = 1) / image 2nd reechantilonnage dans géo de 1er
+														               aAffPred(aPIn.mPt),	=> Point correl avec point Master
+														               aSzWE,  // SzW		=> SzW Final - param entree du commande
+														               aNbByPix,			=> Number of point inside one pixel - param entree command
+														               aPrecInit,			=> aStep0 = 1/4 (avec LSQC) ou 1/8 (correl normal)
+														               aPrecCible			=> aStepEnd = 1/16 (avec LSQC) ou 1/128 (correl normal)
+														           );
+	    (.) Utilise class cTT_MaxLocCorrelDS1R => 
+
+   		cTT_MaxLocCorrelDS1R anOptim( anInterpol,	=> cInterpolateurIm2D<tElTiepTri> interpolateur utilisé
+									  aMap,			=> cElMap2D : un map de passer 1 point dans img1->img2 : transformation affine Mas2Sec ou Id()
+									  aIm1,			=> image Master 
+									  aPC1,			=> Point Master
+									  aIm2,			=> img 2nd
+									  aPC2,			=> Point correl avec point Master
+									  aSzW,			=> SzW Final - param entree du commande
+									  aNbByPix,		=> Number of point inside one pixel - param entree command
+								   	  aStep0,		=> aStep0 = 1/4 (avec LSQC) ou 1/8 (correl normal)
+									  aStepEnd		=> aStepEnd = 1/16 (avec LSQC) ou 1/128 (correl normal)
+									);
+	
 +++++====+++++ Des class et fonction servir dans correlation dans TiepTri +++++====+++++
+(1) Class 	cTT_MaxLocCorrelDS1R : public Optim2DParam
+
+	(*) Recherche point homol dense. Ca va "zoomer" imagette (imagette de point aPC1 du aIm1) de taille aSzW à taille aSzW*aNbByPix par une interpolation donné
+
+		cTT_MaxLocCorrelDS1R anOptim( anInterpol,	=> cInterpolateurIm2D<tElTiepTri> interpolateur utilisé
+									  aMap,			=> cElMap2D : un map de passer 1 point dans img1->img2 : transformation affine Mas2Sec ou Id()
+									  aIm1,			=> image Master 
+									  aPC1,			=> Point Master
+									  aIm2,			=> img 2nd
+									  aPC2,			=> Point correl avec point Master
+									  aSzW,			=> SzW Final - param entree du commande
+									  aNbByPix,		=> Number of point inside one pixel - pour zommer imagette - param entree command
+								   	  aStep0,		=> aStep0 = 1/4 (avec LSQC) ou 1/8 (correl normal)
+									  aStepEnd		=> aStepEnd = 1/16 (avec LSQC) ou 1/128 (correl normal)
+									);
+
+    (*) Method pour calcul correlation:
+		REAL Op2DParam_ComputeScore(REAL aDx,REAL aDy) ;
+		
+		(.) aDx *= mStep0; 	=> mStep0 = aStep0 = 1/8 (correl normal)
+    		aDy *= mStep0;
+		(.) Pour chaque valeur d'intensité imagette 1 "zommer" dans mVals1, prendre coordonné correspondance dans [aP2 (vecteur mVois2) + (aDx, aDy)]
+		(.) Ca veut dire faire correlation entre imagette 1 "zommer" et imagette 2 "zommer" décalé un distance (aDx, aDy)
+				
+
+	(*) OkIm1() - method retourner false si l'interpolateur ne peu pas prendre valeur d'un coordonné dans imagette 1.
+
+	(*) Creer method optim dans constructor : 
+		Optim2DParam ( aStepEnd/aStep0 , DefScoreOpt() ,1e-5, true), => Une optim param2D avec des pas = aStepEnd/aStep0. 
+
+	(*) Une vecteur stocker les valeur d'interpoler de chaque pixel aP1 dans imagette 1 "zoomer"
+		std::vector<double>  mVals1;
+		(.) Il y a un boucle dans constructor du cTT_MaxLocCorrelDS1R pour calculer la valeur de chaque pixel dans imagette 1 "zoomer" par une interpolateur donné.
+		(.) Seulement une method sample de parcourir tout les pixel (de pas 1/aNbByPix) 
+			
+			Pt2dr aVois(aKx/double(aNbByPix),aKy/double(aNbByPix)); //aKx,aKy sont les compteurs de x,y pour parcourir l'imagette
+            Pt2dr aP1 = aPC1 + aVois;
+ 			mVals1.push_back(anInterpol->GetVal(aData1,aP1));       // prendre valeur par interpolation, stocker dans vecteur mVals1
+
+	(*) Pour chaque aP1 dans imagette 1 calculer (valeur d'intensite d'interpolation), on calcul la coordonne pixel correspondance aP2 aussi, stocker dans vector mVois2
+		std::vector<Pt2dr> mVois2; 
+		(.) Calcul grace à coordonné aP1 et le fonction aMap (un map passer aP1->aP2)
+		(.) Cette fonction de map peut etre:
+			(->) une affine Mas2Sec si on veut faire un raffinement à partir d'image initial (on recalcul valeur d'intensité pixel à partir d'image 2 original et interpolateur donné)
+			(->) une affine Id() si on veut faire calcul  valeur d'intensité pixel à partir d'image 2 réechantilonage (fait par method LoadTri())
+
+			mDecInit = aPC2 - (*aMap)(aPC1);       //Un decalage initial
+			Pt2dr aP2 = (*aMap)(aP1) + mDecInit;   //Coordonne aP2 correspondance avec aP1
+            mVois2.push_back(aP2);				   //stocker aP2. 
+            mPInf2 = Inf(mPInf2,aP2);			   //chercher point aP2 minimal (en bas à droit)
+            mPSup2 = Sup(mPSup2,aP2);			   //chercher point aP2 maximal (en haut à gauche)
+
 
 (2) class cTT_MaxLocCorrelBasique : public Optim2DParam
     (.) De class Optim2DParam
+
+		Optim2DParam::Optim2DParam
+		(
+			   REAL     step_lim,
+			   REAL     def_out,
+			   REAL     epsilon,
+			   bool     Maxim,
+			   REAL     lambda,
+			   bool     optim_p1,
+			   bool     optim_p2
+		)
+
     (.)
          cTT_MaxLocCorrelBasique
          (
@@ -242,9 +360,6 @@ Pour chaque point d'interet dans img Master :
 	void  Optim2DParam::optim(Pt2dr aPInit)
 	void  Optim2DParam::optim_step_fixed(int aNbMaxStep)
 
-========================================================================
-11/12/2016:
-Raster Triangle Rapide => Recuper les point dans la triangle par calcul l'interval de la ligne parcouru
 
 +++++====+++++ Dans src/geom2d/triangle_comp.cpp +++++====+++++
 (1) Raster triangle
@@ -279,8 +394,6 @@ Raster Triangle Rapide => Recuper les point dans la triangle par calcul l'interv
  (*) Pour chaque ligne : 
 	(.) Chercher interval de X valab (entre 2 cote de la triangle) -- fonction ModifInterv
 		(..) 
-
-
 
 (***) === ModifInterv === (***)
  
