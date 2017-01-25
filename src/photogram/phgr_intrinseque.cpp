@@ -541,10 +541,16 @@ cPIFRegulConseq::cPIFRegulConseq(cParamIntrinsequeFormel * aPIF0,cParamIntrinseq
    if (!ForGenCode)
    {
       mFctr = cElCompiledFonc::AllocFromName(mNameType);
+      if (mFctr==0)
+      {
+          std::cout << "For Type =" << mNameType << "\n";
+          ELISE_ASSERT(false,"cPIFRegulConse cannot get Fctr");
+      }
       mFctr->SetMappingCur(mLInterv,&mSet);
       mSet.AddFonct(mFctr);
       mRayConseq->InitAdr(*mFctr);
    }
+   ResetInterv();
 }
 
 void cPIFRegulConseq::InitInterv()
@@ -620,7 +626,7 @@ double  cParamIntrinsequeFormel::AddObsRegulConseq(int aNbGrids,double aSigmaPix
     if (! mRegCons)
     {
         // std::cout << "RRetettttturnnn \n";
-        return 0;
+        return -1;
     }
     ELISE_ASSERT(!mRegCons->mWithR,"Rot not handled in AddObsRegulConseq");
     // Pas sur de l'utilite InitStateOfFoncteur ....
@@ -630,11 +636,10 @@ double  cParamIntrinsequeFormel::AddObsRegulConseq(int aNbGrids,double aSigmaPix
     CamStenope * aCamCur = CurPIF();
     double aPixFact =  aCamCur->ScaleCamNorm();
     double aPds = 1/ElSquare(aSigmaPix/ aPixFact);
-    aPds /= 1/ElSquare(aNbGrids+1);
+    aPds /= 1.0/ElSquare(aNbGrids+1);
+
 
  
-    Pt2dr aP0 = aCamCur->NormC2M(Pt2dr(0,0));
-    Pt2dr aP1 = aCamCur->NormC2M(Pt2dr(mCamInit->Sz()));
 
     double aSomRes = 0;
     double aNbRes = 0;
@@ -644,22 +649,20 @@ double  cParamIntrinsequeFormel::AddObsRegulConseq(int aNbGrids,double aSigmaPix
        for (int aKy=0 ; aKy<=aNbGrids ; aKy++)
        {
            Pt2dr aPProp(  (0.5+aKx)/(1+aNbGrids) , (0.5+aKy)/(1+aNbGrids)  );
-           Pt2dr aPIm (
-                          aP0.x * aPProp.x + aP1.x * (1-aPProp.x),
-                          aP0.y * aPProp.y + aP1.y * (1-aPProp.y)
-                      );
-           aPIm = aPProp.mcbyc(Pt2dr(mCamInit->Sz()));
+           Pt2dr aPIm = aPProp.mcbyc(Pt2dr(mCamInit->Sz()));
 
            Pt3dr aDirRay =   aCamCur->F2toDirRayonL3(aPIm);
            mRegCons->mRayConseq->SetEtat(aDirRay);
+
 
            std::vector<double>  aVRes = mSet.VAddEqFonctToSys(mRegCons->mFctr,aPds,false,NullPCVU);
            aSomRes += ElSquare(aVRes.at(0)) + ElSquare(aVRes.at(1));
            aNbRes ++;
        }
     }
-    aSomRes = sqrt(aSomRes*aNbRes) * aPixFact;
+    aSomRes = sqrt(aSomRes/aNbRes) * aPixFact;
  
+    // std::cout << "Hhhhhhhhhhh " << mRegCons->mNameType << " " << aSomRes << "\n";
     return aSomRes;
     // mRegCons->ResetInterv();
 }

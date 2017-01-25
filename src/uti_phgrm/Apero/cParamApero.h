@@ -7336,5 +7336,29 @@ std::string  Mangling( cXmlNameSensibs *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlOneContourCamera
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlOneContourCamera & anObj,cElXMLTree * aTree);
+
+
+        std::vector< Pt2dr > & Pt();
+        const std::vector< Pt2dr > & Pt()const ;
+    private:
+        std::vector< Pt2dr > mPt;
+};
+cElXMLTree * ToXMLTree(const cXmlOneContourCamera &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlOneContourCamera &);
+
+void  BinaryUnDumpFromFile(cXmlOneContourCamera &,ELISE_fp &);
+
+std::string  Mangling( cXmlOneContourCamera *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotApero

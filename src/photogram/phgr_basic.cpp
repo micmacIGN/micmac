@@ -2647,15 +2647,6 @@ const std::string &  ElCamera::IdentCam() const
 }
 void ElCamera::SetIdentCam(const std::string & aName)
 {
-/*
-if (MPD_MM())
-{
-   {
-       std::cout  << mIdentCam << " ==*==MM== " << aName << " \n";
-       getchar();
-   }
-}
-*/
    mIdentCam  = aName;
 }
 

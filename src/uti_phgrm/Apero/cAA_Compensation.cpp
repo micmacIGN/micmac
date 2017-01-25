@@ -269,9 +269,14 @@ void cAppliApero::AddObservationsAppuis(const std::list<cObsAppuis> & aL,bool Is
 
 void cAppliApero::AddObservationsCamConseq(const cContrCamConseq &  aCCC)
 {
+
     for (tDiCal::iterator itC=mDicoCalib.begin() ; itC!=mDicoCalib.end(); itC++)
     {
-        itC->second->PIF().AddObsRegulConseq(aCCC.NbGrid(),aCCC.SigmaPix());
+        double aRes = itC->second->PIF().AddObsRegulConseq(aCCC.NbGrid(),aCCC.SigmaPix());
+        if (aRes >=0)
+        {
+            std::cout << " ContCamConseq= " << aRes << " for " << itC->first << "\n";
+        }
     }
 }
 

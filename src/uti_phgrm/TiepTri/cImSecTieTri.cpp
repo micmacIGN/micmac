@@ -220,7 +220,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
                // cResulRechCorrel<int> aCRC = TT_RechMaxCorrelBasique(mMaster->mTImInit,aP0,mTImReech,aPV,3,2,aSzRech);
 
            int aSzRech = TT_DemiFenetreCorrel;
-           cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,TT_DemiFenetreCorrel/2,2,aSzRech);
+           cResulRechCorrel<int> aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,aPV,TT_DemiFenetreCorrel/2,2,aSzRech); // Correlation 1SUR2
            
 
            aCorMax = ElMax(aCRCLoc.mCorrel,aCorMax);

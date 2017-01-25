@@ -124,9 +124,25 @@
 	   <Symb> DirExportSensib=XXXXX </Symb> 
 	   <Symb> NormaliseEqSc=true </Symb> 
 	   <Symb> NormaliseEqTr=true </Symb> 
+
+
+           <Symb>  With-ContrCamConseq=false </Symb>
+           <Symb>  Key-CCC=XXX </Symb>
+           <Symb>  Sigma-CCC=1.0 </Symb>
+
        </DicoLoc>
 
        <SectionBDD_Observation>
+             <#WHEN  VTEST=${With-ContrCamConseq}>
+                 <DeclareObsCalConseq>
+                     <PatternSel > .* </PatternSel>
+                     <!-- Meme structure que bloc, renvoit Time + Equiv -->
+                     <Key> ${Key-CCC} </Key>
+                     <KeyJump> NKS-Set-Empty </KeyJump> 
+                     <AddFreeRot> false </AddFreeRot>
+                 </DeclareObsCalConseq>
+             </#WHEN>
+
              <#WHEN  VTEST=${UseHom}>
                  <BDD_PtsLiaisons>
                      <Id>    Id_Pastis_Hom  </Id>
@@ -548,8 +564,12 @@
                                 </ObsBlockCamRig>
                           </#WHEN>
 
-
-
+                          <#WHEN  VTEST=${With-ContrCamConseq}>
+                              <ContrCamConseq>
+                                  <SigmaPix> ${Sigma-CCC} </SigmaPix>
+                                  <NbGrid> 10 </NbGrid>
+                              </ContrCamConseq>
+                          </#WHEN>
 
 		    </SectionObservations>
 

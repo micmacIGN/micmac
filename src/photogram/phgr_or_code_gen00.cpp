@@ -788,6 +788,10 @@ AddEntry("cREgDistVal_"#aDist,cREgDistVal_##aDist::Alloc);
 
 
 
+#include "../../CodeGenere/photogram/cRegCamConseq_CompR_Polyn0.h"
+#include "../../CodeGenere/photogram/cRegCamConseq_CompR_Polyn1.h"
+#include "../../CodeGenere/photogram/cRegCamConseq_Polyn0.h"
+#include "../../CodeGenere/photogram/cRegCamConseq_Polyn1.h"
 
 
 
@@ -1116,6 +1120,10 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cEqAppui_PTInc_C2MNoDist",cEqAppui_PTInc_C2MNoDist::Alloc);
 
 
+     AddEntry("cRegCamConseq_Polyn0",cRegCamConseq_Polyn0::Alloc);
+     AddEntry("cRegCamConseq_Polyn1",cRegCamConseq_Polyn1::Alloc);
+     AddEntry("cRegCamConseq_CompR_Polyn0",cRegCamConseq_CompR_Polyn0::Alloc);
+     AddEntry("cRegCamConseq_CompR_Polyn1",cRegCamConseq_CompR_Polyn1::Alloc);
 // ====  GUIMBAL LOCK ============
 
 #if (0)
