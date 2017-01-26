@@ -69,7 +69,7 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
    Critere basé sur fast detecteur : examiner les point autour pour choisir les pts plus contrasté.
    2 critère à valider:
 
-     (a) TT_PropFastStd = 0.75 => examiner si 75% de points voisins ont valeurs inférieur/superieur de point candidat un différent TT_SeuilFastStd=5
+     (a) TT_PropFastStd = 0.75 => examiner si 75% de points voisins ont valeurs inférieur/superieur de point candidat un écart de TT_SeuilFastStd=5
 	 (*) Se faire par method KthValProp dans FastQuality : 
 	     (.) aVVals -> Les valeurs des points voisin
 	     (.) aV0 -> valeur de point candidat
@@ -77,7 +77,7 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
   	     (.) double aVPerc = KthValProp(aVVals,aPropStd);	-> tri valeur dans aVVals, puis prendre élement à position aPropStd (75%)
    	     (.) double aResStd = (aV0 -aVPerc) ; -> si val(pt candidat) > val(aVPerc) -> val(pt_candidat) > 75% valeurs des points autours
 
-     (b) TT_PropFastConsec = 0.6 => examiner si 60% de points voisins consecutives ont valeurs inférieur/superieur de point candidat un différent TT_SeuilFastCons=3
+     (b) TT_PropFastConsec = 0.6 => examiner si 60% de points voisins consecutives ont valeurs inférieur/superieur de point candidat un écart de TT_SeuilFastCons=3
 	 (*) cFastReduceAssoc : une method numerique pour vite examiner un certain nombre de point consecutive autour image
  	  ==> Pas encore comprendre
 
@@ -265,7 +265,7 @@ Dans 1 Triangle:
 									);
 	
 +++++====+++++ Des class et fonction servir dans correlation dans TiepTri +++++====+++++
-(1) Class 	cTT_MaxLocCorrelDS1R : public Optim2DParam
+(1) Class cTT_MaxLocCorrelDS1R : public Optim2DParam
 
 	(*) Recherche point homol dense. Ca va "zoomer" imagette (imagette de point aPC1 du aIm1) de taille aSzW à taille aSzW*aNbByPix par une interpolation donné
 
@@ -281,7 +281,7 @@ Dans 1 Triangle:
 									  aStepEnd		=> aStepEnd = 1/16 (avec LSQC) ou 1/128 (correl normal)
 									);
 
-    (*) Method pour calcul correlation:
+    	(*) Method pour calcul correlation:
 		REAL Op2DParam_ComputeScore(REAL aDx,REAL aDy) ;
 		
 		(.) aDx *= mStep0; 	=> mStep0 = aStep0 = 1/8 (correl normal)
@@ -399,6 +399,71 @@ Dans 1 Triangle:
  
  (*) Prendre (int aY, const SegComp & aSeg) -- aY : la ligne, aSeg : 1 cote de triangle
  (*) 
+
++++++====+++++ Dans ./include/im_tpl/cPtOfCorrel.h+++++====+++++
+(*) Critere type fast pour selectionner les points favorables à la correl
+
+(*) class cFastCriterCompute
+    
+    (.) Determiner la configuration de FAST utilisé (combien de point autour, ...)
+    (.) Calcul nombre de tout les points mNbPts dans un Flux de points entreé aFlux.
+    (.) Sort les coordonné de point de aFlux par un aCmp (cCmpPtOnAngle), puis stocker les coordonné trié dans mVPt
+    (.) Declarer un optim de vite calcul certain point autour ?
+	
+	cFastReducAssoc<double>  mFRA;	
+	mFRA   ( OpMax,		=> Optimiser Maximal
+		 0,		=> x_min
+		 mNbPts,	=> x_max
+		 mMaxSz-mNbPts,	=> dx0
+		 mMaxSz		=> dx1
+	       )
+
+(*) Fonction examiner qualité contrast d'un point:
+
+	template <class TIm> Pt2dr  FastQuality ( TIm anIm,			=> image entree
+						  Pt2di aP,			=> Point à examiner 
+						  cFastCriterCompute & aCrit,	=> configuration de FAST (class cFastCriterCompute)
+						  bool IsMax,			=> ce sont un point maximal/minimal 
+						  Pt2dr aProp			=> proportion
+						)
+	{
+	   std::vector<double> aVVals;				
+	   const  std::vector<Pt2di> & aVPt = aCrit.VPt();	//coordonne de flux de points voisin
+	   int aNbPts = aVPt.size();    			
+	   typename TIm::tValueElem aDef =   IsMax ?		//Set valeur default
+		                             El_CTypeTraits<typename TIm::tValueElem>::MaxValue():	
+		                             El_CTypeTraits<typename TIm::tValueElem>::MinValue();
+	   double aSign = IsMax ? 1.0 : -1.0;			//Max =1, Min=-1
+	   for (int aK=0 ; aK<aNbPts ; aK++)			//Pour tout les point dans flux
+	   {
+	       typename TIm::tValueElem aVal = anIm.get(aP+aVPt[aK],aDef) * aSign;	//prendre valeur pts voisin, mul avec sign (neg si min, posi si max)
+	       aVVals.push_back(aVal); 							//stocker valeur des pts voisins
+	       aCrit.FRA().In(aK) = aVal;						//Method In pour set valeur de quelque chose dans la buffer de cFastReducAssoc
+	   }
+	   typename TIm::tValueElem aV0 = anIm.getproj(aP)*aSign;			// Prendre valeur de pts central, mul avec sign (neg si min, posi si max)
+
+	   // Definition standard de Fast
+	   std::vector<double> aFOut(aNbPts);				// vector taille = aNbPts = Nb pts de tout les voisin autour
+	   double aPropStd = aProp.x;   				// TT_PropFastStd (0.75)		
+	   double aVPerc = KthValProp(aVVals,aPropStd);			// prendre valeur 75% ème dans aVVals trié
+	   double aResStd = (aV0 -aVPerc) ;   			 	// vois si ce valeur écart de valeur central 1 seuil = TT_SeuilFastStd = 5
+
+	   // Definition contignu
+	   double aPropC = aProp.y;					// TT_PropFastConsec (0.6)					
+	   int aNbC = round_up(aPropC * aNbPts);			// Nb de points voisin à examiner 
+	   int aNbMin = aNbC / 2;					//
+	   aCrit.FRA().Compute(-aNbMin,aNbC-aNbMin,eCFR_Per);		// Ca faitttt quoiiiiiiii ???? void Compute(int aDx0,int aDx1,eComplFRA aModeC)
+	   typename TIm::tValueElem aVMin =   aCrit.FRA().Out(0);	
+	   for (int aK=1 ; aK<aNbPts ; aK++)
+	   {
+	     // std::cout << "HHHH " << aCrit.FRA().In(aK) << " " << aCrit.FRA().Out(aK) << "\n";
+	       aVMin = ElMin(aVMin, aCrit.FRA().Out(aK));		// chercher valeur min dans aCrit.FRA()
+	   }
+	   double  aResC = (aV0-aVMin);					// vois si ce valeur écart de valeur central 1 seuil = TT_SeuilFastCons = 3
+
+	   return Pt2dr(aResStd,aResC);
+	}
+
 
 
 

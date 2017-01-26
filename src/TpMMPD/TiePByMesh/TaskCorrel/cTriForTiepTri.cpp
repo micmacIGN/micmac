@@ -3,7 +3,7 @@
 //  ============================= **************** =============================
 //  *                             cTriForTiepTri                               *
 //  ============================= **************** =============================
-cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel *aAppli, cTri3D aTri3d, double & ind):
+cTriForTiepTri::cTriForTiepTri(cAppliTaskCorrel *aAppli, cTri3D aTri3d, int & ind):
     mNumImg (-1),
     mPt1    (Pt2dr(0.0,0.0)),
     mPt2    (Pt2dr(0.0,0.0)),
@@ -64,7 +64,7 @@ double cTriForTiepTri::valElipse(int & aNInter)
     if (!mrprjOK || mNumImg == -1)
     {
         cout<<"Projection error !"<<endl;
-        return DBL_MIN;
+        return -1.0;
     }
     else
     {
@@ -143,7 +143,7 @@ double cTriForTiepTri::valElipse(int & aNInter)
         else
         {
             mrprjOK = false;
-            return DBL_MIN;
+            return -1.0;
         }
     }
 }

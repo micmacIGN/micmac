@@ -70,17 +70,17 @@ int TaskCorrel_main(int argc,char ** argv)
             aChain->creatJobCorrel(aAngleF , lstJobTriAngulationImMaster);
 
             cout<<"There is "<<lstJobTriAngulationImMaster.size()<<" jobs xml"<<endl;
-            for (uint i=0; i<lstJobTriAngulationImMaster.size(); i++)
+            for (int i=0; i<int(lstJobTriAngulationImMaster.size()); i++)
             {
                 cXml_TriAngulationImMaster aTriAngulationImMaster =  lstJobTriAngulationImMaster[i];
-                for (uint ii=0; ii<aTriAngulationImMaster.Tri().size(); ii++)
+                for (int ii=0; ii<int(aTriAngulationImMaster.Tri().size()); ii++)
                 {
                     cXml_Triangle3DForTieP aTriangle3DForTieP = aTriAngulationImMaster.Tri()[ii];
                 }
             }
 
             ELISE_fp::MkDirSvp(aDirXML);
-            for (uint aK=0; aK<lstJobTriAngulationImMaster.size(); aK++)
+            for (int aK=0; aK<int(lstJobTriAngulationImMaster.size()); aK++)
             {
                 string fileXML =  aChain->getPrivmICNM()->Dir() + aDirXML + "/" + lstJobTriAngulationImMaster[aK].NameMaster() + ".xml";
                 MakeFileXML(lstJobTriAngulationImMaster[aK], fileXML);
@@ -89,7 +89,7 @@ int TaskCorrel_main(int argc,char ** argv)
             vector< vector<triangle*> > VtriOfImMaster (int(PtrPic.size()));
             vector<AJobCorel> VJobCorrel;
             aChain->getLstJobCorrel(VJobCorrel);
-            for (uint aKJob = 0; aKJob<VJobCorrel.size(); aKJob++)
+            for (int aKJob = 0; aKJob<int(VJobCorrel.size()); aKJob++)
             {
                 AJobCorel ajob = VJobCorrel[aKJob];
                 VtriOfImMaster[ajob.picM->mIndex].push_back(ajob.tri);
@@ -99,7 +99,7 @@ int TaskCorrel_main(int argc,char ** argv)
             //export mesh correspond with each image:
 
             ELISE_fp::MkDirSvp("PLYVerif");
-            for (uint akP=0; akP<VtriOfImMaster.size(); akP++)
+            for (int akP=0; akP<int(VtriOfImMaster.size()); akP++)
             {
                 DrawOnMesh aDraw;
                 std::string filename = aChain->getPrivmICNM()->Dir() + "PLYVerif/" + PtrPic[akP]->getNameImgInStr() + ".ply";
@@ -125,17 +125,17 @@ int TaskCorrel_main(int argc,char ** argv)
             //Maybe this (compile error!!! at least on MS visual studio)
             vector<double> cmptMas(PtrPic.size());
             double cmptDel=0;
-            for (uint acP = 0; acP<PtrPic.size(); acP++)
+            for (int acP = 0; acP<int(PtrPic.size()); acP++)
             {
                 cmptMas[acP] = 0;
             }
             vector<cXml_TriAngulationImMaster> VjobImMaster (int(PtrPic.size()));
 
-            for (uint aKP=0; aKP<PtrPic.size(); aKP++)
+            for (int aKP=0; aKP<int(PtrPic.size()); aKP++)
             {
                 pic * aPic = PtrPic[aKP];
                 VjobImMaster[aKP].NameMaster() = aPic->getNameImgInStr();
-                for (uint aKP2=0; aKP2<PtrPic.size(); aKP2++)
+                for (int aKP2=0; aKP2<int(PtrPic.size()); aKP2++)
                 {
                     VjobImMaster[aKP].NameSec().push_back(PtrPic[aKP2]->getNameImgInStr());
                 }
@@ -147,10 +147,10 @@ int TaskCorrel_main(int argc,char ** argv)
             vector<Video_Win * > VVW (PtrPic.size());
             if (nInteraction)
             {
-                for (uint aKVW=0; aKVW<PtrPic.size(); aKVW++)
+                for (int aKVW=0; aKVW<int(PtrPic.size()); aKVW++)
                     VVW[aKVW] = Video_Win::PtrWStd(Pt2di(PtrPic[aKVW]->mImgSz*aZ),true,Pt2dr(aZ,aZ));
             }
-            for (uint aIT = 0; aIT<PtrTri.size(); aIT++)
+            for (int aIT = 0; aIT<int(PtrTri.size()); aIT++)
             {
 
                 cXml_Triangle3DForTieP jobATri;
@@ -163,7 +163,7 @@ int TaskCorrel_main(int argc,char ** argv)
                 jobATri.P3() = atri->getSommet(2);
                 vector<pic*> VPicAcpt;
                 vector<vector<Pt2dr> >VVCl (PtrPic.size());
-                for (uint aIP = 0; aIP<PtrPic.size(); aIP++)
+                for (int aIP = 0; aIP<int(PtrPic.size()); aIP++)
                 {
                     pic * apic = PtrPic[aIP];
                     Tri2d aTriIm = *atri->getReprSurImg()[apic->mIndex];
@@ -269,7 +269,7 @@ int TaskCorrel_main(int argc,char ** argv)
                 {
                     //cout<<" ++ min_cur :"<<min_cur<<endl<<" ++ picMaster :"<<picMaster->getNameImgInStr()<<endl;
                     cmptMas[picMaster->mIndex]++;
-                    for (uint aKP=0; aKP<VPicAcpt.size(); aKP++)
+                    for (int aKP=0; aKP<VPicAcpt.size(); aKP++)
                     {
                         if (VPicAcpt[aKP]->mIndex != picMaster->mIndex)
                         {
@@ -307,21 +307,21 @@ int TaskCorrel_main(int argc,char ** argv)
             }
             aDirXML = aDirXML + "Test";
             ELISE_fp::MkDirSvp(aDirXML);
-            for (uint aKP=0; aKP<VjobImMaster.size(); aKP++)
+            for (int aKP=0; aKP<int(VjobImMaster.size()); aKP++)
             {
                 string fileXML =  aChain->getPrivmICNM()->Dir() + aDirXML + "/" + VjobImMaster[aKP].NameMaster() + ".xml";
                 MakeFileXML(VjobImMaster[aKP], fileXML);
             }
             cout<<endl;
 
-            for (uint acP = 0; acP<PtrPic.size(); acP++)
+            for (int acP = 0; acP<int(PtrPic.size()); acP++)
             {
                 cout<<cmptMas[acP]<<endl;
             }
             cout<<"cmptDel "<<cmptDel<<endl;
             //export mesh correspond with each image:
             ELISE_fp::MkDirSvp("PLYVerif");
-            for (uint akP=0; akP<VtriOfImMaster.size(); akP++)
+            for (int akP=0; akP<int(VtriOfImMaster.size()); akP++)
             {
                 DrawOnMesh aDraw;
                 std::string filename = aChain->getPrivmICNM()->Dir() + "PLYVerif/" + PtrPic[akP]->getNameImgInStr() + ".ply";
@@ -330,11 +330,5 @@ int TaskCorrel_main(int argc,char ** argv)
                 cout<<"Draw "<<VtriOfImMaster[akP].size()<<" Tri "<<filename<<endl;
             }
         }
-
-
-
-
-
-
         return EXIT_SUCCESS;
     }

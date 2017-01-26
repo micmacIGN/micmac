@@ -25,7 +25,8 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     mVTask.resize(mVName.size());
     for (uint aKI = 0; aKI<mVName.size(); aKI++)
     {
-        cImgForTiepTri* aImg = new cImgForTiepTri(this, mVName[aKI], aKI);
+        cImgForTiepTri* aImg = new cImgForTiepTri(this, mVName[aKI], int(aKI));
+        ELISE_ASSERT(int(aKI) == aImg->Num(), "IN Constructor cAppli : Num() not coherence")
         mVImgs.push_back(aImg);
     }
     cout<<"Imgs creat "<<aChrono.uval()<<" sec" <<endl;
@@ -48,7 +49,7 @@ void cAppliTaskCorrel::lireMesh(std::string & aNameMesh)
         ElTimer aChrono;
         cMesh myMesh(aNameMesh, true);
         const int nFaces = myMesh.getFacesNumber();
-        for (double aKTri=0; aKTri<nFaces; aKTri++)
+        for (int aKTri=0; aKTri<nFaces; aKTri++)
         {
             cTriangle* aTri = myMesh.getTriangle(aKTri);
             vector<Pt3dr> aSm;
@@ -95,7 +96,7 @@ void cAppliTaskCorrel::SetNInter(int & aNInter, double & aZoomF)
 void cAppliTaskCorrel::updateVTriFWithNewAppli(vector<cTri3D> & tri)
 {
     mVTriF.clear();
-    for (double aKT=0; aKT<tri.size(); aKT++)
+    for (int aKT=0; aKT<int(tri.size()); aKT++)
         mVTriF.push_back(new cTriForTiepTri(this, tri[aKT], aKT));
 }
 
@@ -138,9 +139,10 @@ void cAppliTaskCorrel::ZBuffer()
 //  ============================= **************** =============================
 cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
 {
-    double cur_valElipse = DBL_MIN;
+    double cur_valElipse = -1.0;
     cImgForTiepTri * imgMas = NULL;
     Cur_Img2nd().clear();
+    vector<Pt2dr> valEl_img;
     for (uint aKI = 0; aKI<mVImgs.size(); aKI++)
     {
         cImgForTiepTri * aImg = mVImgs[aKI];
@@ -160,12 +162,42 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
                     cur_valElipse = valElipse;
                     imgMas = aImg;
                 }
-                if (valElipse > TT_SEUIL_RESOLUTION)  //à ajouter seuil de contraint ellipse ?
-                    Cur_Img2nd().push_back(aKI);
+                //Cur_Img2nd().push_back(int(aKI));
+                valEl_img.push_back(Pt2dr(double(aKI),valElipse));
             }
         }
     }
-    if (cur_valElipse != DBL_MIN && cur_valElipse > TT_SEUIL_RESOLUTION) 
+    sortDescendPt2drY(valEl_img);
+    if (valEl_img.size() > 1 && imgMas!=NULL && cur_valElipse != -1.0)
+    {
+        ELISE_ASSERT( valEl_img[0].y == cur_valElipse, "val Ellipse not coherent");
+        ELISE_ASSERT( int(valEl_img[0].x) == imgMas->Num(), "Num Img not coherent");
+        if (mNInter!=0)
+            cout<<endl;
+        if (valEl_img.size() > 4)
+        {
+            int get_lim = floor((double(valEl_img.size())-4.0)/2.0);
+            for (int aK=1; aK<get_lim; aK++)
+                Cur_Img2nd().push_back(int(valEl_img[aK].x));
+            imgMas = mVImgs[valEl_img[0].x];
+            return imgMas;
+        }
+        else
+        {
+            for (uint aK=1; aK<(valEl_img.size()); aK++)
+                Cur_Img2nd().push_back(int(valEl_img[aK].x));
+            imgMas = mVImgs[valEl_img[0].x];
+            return imgMas;
+        }
+    }
+    else
+    {
+        if (mNInter!=0)
+            cout<<"No master "<<"valElipse "<<cur_valElipse<<"  TT_SEUIL_RESOLUTION "<<TT_SEUIL_RESOLUTION<<endl<<endl;
+        return NULL;
+    }
+    /*
+    if (cur_valElipse != -1.0 && cur_valElipse > TT_SEUIL_RESOLUTION)
     {
         if (mNInter!=0)
             cout<<endl;
@@ -177,6 +209,7 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
             cout<<"No master "<<"valElipse "<<cur_valElipse<<"  TT_SEUIL_RESOLUTION "<<TT_SEUIL_RESOLUTION<<endl<<endl;
         return NULL;
     }
+    */
 }
 
 //  ============================= **************** =============================
