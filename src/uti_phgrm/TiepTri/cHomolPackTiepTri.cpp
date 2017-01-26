@@ -64,7 +64,11 @@ void cHomolPackTiepTri::writeToDisk (std::string aHomolOut)
             +  std::string("@")
             +  std::string("dat");
     std::string clePackHomolOut = mICNM->Assoc1To2(mKhOut, mImg1, mImg2, true);
-    mPack.StdPutInFile(clePackHomolOut);
+    if (mPack.size() > 0)
+        mPack.StdPutInFile(clePackHomolOut);
+    else
+        cout<<"Pack vide. Skip"<<endl;
+    return;
 }
 
 
