@@ -745,7 +745,7 @@ class cZBuffer
 class cArgBacule
 {
     public :
-        cArgBacule();
+        cArgBacule(double aSeuilEtir);
 
         double       mSeuilEtir;
         double       mDynEtir;

@@ -598,6 +598,7 @@ class cAppli_MPI2Mnt
          bool        mUseTA;
          void ExeCom(const std::string & aCom);
          double      mZReg;
+         double      mSeuilE;
 };
 
 void cAppli_MPI2Mnt::ExeCom(const std::string & aCom)
@@ -719,6 +720,8 @@ void cAppli_MPI2Mnt::DoBascule()
                              +   mDirApp+mDirBasc + NameBascOfIm(aNameIm,false) + BLANK
                              +   "Paral=0 ";
 
+              if (EAMIsInit(&mSeuilE))
+                  aCom = aCom+ " SeuilE=" + ToString(mSeuilE) + std::string(" ");
                aLCom.push_back(aCom);
                if (mDebug &&(aK<2)) 
                   std::cout << aCom << "\n\n";
@@ -774,7 +777,8 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mDebug       (false),
     mPurge       (true),
     mUseTA       (false),
-    mZReg        (0.02)
+    mZReg        (0.02),
+    mSeuilE      (5.0)
 {
    ElInitArgMain
    (
@@ -791,6 +795,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mDebug,"Debug",true,"Debug !!!",eSAM_InternalUse)
                     << EAM(mUseTA,"UseTA",true,"Use TA as filter when exist (Def=false)",eSAM_InternalUse)
                     << EAM(mResolIm,"RI",true,"Resol Im, def=1 ",eSAM_InternalUse)
+                    << EAM(mSeuilE,"SeuilE",true,"Seuil d'etirement des triangle, Def=5")
    );
 
    mResolIm  /= mDeZoom;

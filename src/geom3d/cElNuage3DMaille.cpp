@@ -345,14 +345,6 @@ ElSeg3D  cElNuage3DMaille::Capteur2RayTer(const Pt2dr & aP) const
 {
     AssertCamInit();
     return FaisceauFromIndex(aP);
-    /*
-   ElSeg3D aSeg = mCam->F2toRayonR3(aP);
-   return ElSeg3D
-          (
-              Loc2Glob(aSeg.P0()),
-              Loc2Glob(aSeg.P1())
-          );
-*/
 }
 
 // En fait peut avoir valeur par defaut
@@ -426,11 +418,6 @@ bool  cElNuage3DMaille::HasPreciseCapteur2Terrain() const
 
 Pt3dr cElNuage3DMaille::RoughCapteur2Terrain   (const Pt2dr & aP) const
 {
-{
-
-    // return Loc2Glob(Loc_PtOfIndexInterpol(aPR));
-    // return mCam->R3toF2(Glob2Loc(aPt));
-}
     return PtOfIndexInterpol(aP);
 }
 
@@ -1718,9 +1705,8 @@ cElNuage3DMaille *  cElNuage3DMaille::BasculementNewName
     return aRes;
 }
 
-
-cArgBacule::cArgBacule() :
-   mSeuilEtir    (0.3),
+cArgBacule::cArgBacule(double aSeuilEtir) :
+   mSeuilEtir    (aSeuilEtir),
    mDynEtir      (50.0),
    mAutoResize   (true),
    mBoxClipIn    (0),
@@ -1858,7 +1844,6 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
     }
 
 
-
     if (anArgBasc.mDynEtir>0)
     {
        Im2D_U_INT1 aImEt = aRes->ImEtirement();
@@ -1877,9 +1862,15 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        {
            for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
            {
-                 double anEtir = aTImEtir.get(aP) /anArgBasc.mDynEtir;
-                 double aCost = (anEtir-aSeuil)* aDynSeuil;
-                 anOLB->SetCost(aP,0.5+ aCost);
+                 //  aCoefEtire = ElMax(1,ElMin(253,round_ni(mDynEtire/aCoefEtirReel)));
+                 double anEtir = anArgBasc.mDynEtir / ElMax(1.0,double(aTImEtir.get(aP)));
+                 //  anEtir =  EtirReel
+                 anEtir = anEtir / aSeuil;
+                 if (anEtir > 1)  anEtir = 2- 1/anEtir;
+                 // double aCost = (anEtir-aSeuil)* aDynSeuil;
+                 // double aCost = (anEtir*aSeuil)* aDynSeuil;
+                 anOLB->SetCost(aP,0.5+ (1-anEtir)/2.0);
+                 // anOLB->SetCost(aP,double(aP.x)/aSz.x );
                  // anOLB->SetCost(aP,1);
            }
        }

@@ -572,10 +572,10 @@ int  NuageBascule_main(int argc,char ** argv)
 
 
 
-         cArgBacule anArgBasc;
-         anArgBasc.mDynEtir = 50.0;
+         cArgBacule anArgBasc(mSeuilEtir);
+         // anArgBasc.mSeuilEtir = mSeuilEtir;
+         anArgBasc.mDynEtir = 20.0;
 
-std::cout << "AAAAAAAAAaa " << AutoClipIn << "\n";
 
          if  (EAMIsInit(&aBoxIn))
          {
