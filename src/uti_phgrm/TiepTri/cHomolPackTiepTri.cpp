@@ -68,7 +68,7 @@ void cHomolPackTiepTri::writeToDisk (std::string aHomolOut)
         mPack.StdPutInFile(clePackHomolOut);
     else
         cout<<"Pack vide. Skip"<<endl;
-        return;
+    return;
 }
 
 
