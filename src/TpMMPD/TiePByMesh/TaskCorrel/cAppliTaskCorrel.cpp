@@ -7,7 +7,8 @@ cAppliTaskCorrel::cAppliTaskCorrel (
                                      cInterfChantierNameManipulateur * aICNM,
                                      const std::string & aDir,
                                      const std::string & aOri,
-                                     const std::string & aPatImg
+                                     const std::string & aPatImg,
+                                     bool & aNoTif
                                    ) :
     mICNM  (aICNM),
     mDir   (aDir),
@@ -17,7 +18,8 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     mDirXML("XML_TiepTriNEW"),
     cptDel (0),
     mDistMax(TT_DISTMAX_NOLIMIT),
-    mRech  (TT_DEF_SCALE_ZBUF)
+    mRech  (TT_DEF_SCALE_ZBUF),
+    mNoTif (aNoTif)
 {
     ElTimer aChrono;
     cout<<"In constructor cAppliTaskCorrel : ";
@@ -25,7 +27,7 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     mVTask.resize(mVName.size());
     for (uint aKI = 0; aKI<mVName.size(); aKI++)
     {
-        cImgForTiepTri* aImg = new cImgForTiepTri(this, mVName[aKI], int(aKI));
+        cImgForTiepTri* aImg = new cImgForTiepTri(this, mVName[aKI], int(aKI), mNoTif);
         ELISE_ASSERT(int(aKI) == aImg->Num(), "IN Constructor cAppli : Num() not coherence")
         mVImgs.push_back(aImg);
     }
@@ -112,7 +114,8 @@ void cAppliTaskCorrel::ZBuffer()
                                                                  mDir,
                                                                  mOri,
                                                                  mVcTri3D,
-                                                                 mVName
+                                                                 mVName,
+                                                                 mNoTif
                                                               );
 
 
@@ -290,17 +293,20 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
 //  *                           cAppliTaskCorrelByXML                          *
 //  ============================= **************** =============================
 
-cAppliTaskCorrelByXML::cAppliTaskCorrelByXML(   const std::string & xmlFile,
+cAppliTaskCorrelByXML::cAppliTaskCorrelByXML(const std::string & xmlFile,
                                                 cInterfChantierNameManipulateur * aICNM,
                                                 const std::string & aDir,
                                                 const std::string & anOri,
                                                 const std::string & aPatImg,
-                                                const std::string & aPathMesh):
+                                                const std::string & aPathMesh,
+                                                bool aNoTif
+                                             ):
           mICNM    (aICNM),
           mXmlFile (xmlFile),
           mDir     (aDir),
           mOri     (anOri),
-          mPathMesh(aPathMesh)
+          mPathMesh(aPathMesh),
+          mNoTif   (aNoTif)
 
 {
     mVNImgs = *(aICNM->Get(aPatImg));
@@ -391,7 +397,7 @@ vector<cXml_TriAngulationImMaster> cAppliTaskCorrelByXML::DoACpl(CplString aCpl)
     SplitDirAndFile(aDir,aNameImg,aFullPattern);
 
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM, aDir, mOri, aFullPattern);
+    cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM, aDir, mOri, aFullPattern, mNoTif);
 
     //aAppli->updateVTriFWithNewAppli(mVcTri3D);
     aAppli->DoAllTri();
@@ -417,7 +423,7 @@ void cAppliTaskCorrelByXML::DoAllCpl()
             std::string aFullPattern = aCpl.img1+"|"+aCpl.img2;
             SplitDirAndFile(aDir,aNameImg,aFullPattern);
             cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-            cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM, aDir, mOri, aFullPattern);
+            cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM, aDir, mOri, aFullPattern, mNoTif);
             aAppli->lireMesh(mPathMesh/*, aAppli->VTri(), aAppli->VTriF()*/);
             mVTri = aAppli->VTri();
         }

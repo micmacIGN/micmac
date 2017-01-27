@@ -27,8 +27,9 @@ public:
     cAppliTaskCorrel (cInterfChantierNameManipulateur *,
                        const std::string & aDir,
                        const std::string & anOri,
-                       const std::string & aPatImg
-                     );
+                       const std::string & aPatImg,
+                       bool &aNoTif
+                      );
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
     void lireMesh(std::string & aNameMesh);
@@ -75,6 +76,7 @@ private:
     vector<cTri3D> mVcTri3D;
     double mDistMax;
     double mRech;
+    bool   mNoTif;
 
     vector< vector<bool> > mVTriValid;
     vector< vector<int> > mVIndTriValid;
@@ -89,7 +91,9 @@ public:
                           const std::string & aDir,
                           const std::string & anOri,
                           const std::string & aPatImg,
-                          const std::string & aPathMesh);
+                          const std::string & aPathMesh,
+                          bool mNoTif
+                          );
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
     vector<triangle*> & VTri() {return mVTri;}
     vector<cTriForTiepTri*> & VTriF() {return mVTriF;}
@@ -117,6 +121,7 @@ private:
     string mDir;
     string mOri;
     string mPathMesh;
+    bool mNoTif;
 };
 
 
@@ -124,7 +129,7 @@ private:
 class cImgForTiepTri
 {
 public:
-        cImgForTiepTri(cAppliTaskCorrel* , string aNameIm, int aNum);
+        cImgForTiepTri(cAppliTaskCorrel* , string aNameIm, int aNum, bool aNoTif);
         CamStenope * Cam() {return mCam;}
         cAppliTaskCorrel * Appli() {return mAppli;}
         bool inside(Pt2dr aPt, double aRab = 0);
