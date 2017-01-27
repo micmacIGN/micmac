@@ -27,8 +27,9 @@ public:
     cAppliTaskCorrel (cInterfChantierNameManipulateur *,
                        const std::string & aDir,
                        const std::string & anOri,
-                       const std::string & aPatImg
-                     );
+                       const std::string & aPatImg,
+                       bool &aNoTif
+                      );
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
     void lireMesh(std::string & aNameMesh);
@@ -75,9 +76,10 @@ private:
     vector<cTri3D> mVcTri3D;
     double mDistMax;
     double mRech;
+    bool   mNoTif;
 
     vector< vector<bool> > mVTriValid;
-    vector< vector<double> > mVIndTriValid;
+    vector< vector<int> > mVIndTriValid;
 
 };
 //  ============================= cAppliTaskCorrelByXML==========================
@@ -89,7 +91,9 @@ public:
                           const std::string & aDir,
                           const std::string & anOri,
                           const std::string & aPatImg,
-                          const std::string & aPathMesh);
+                          const std::string & aPathMesh,
+                          bool mNoTif
+                          );
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
     vector<triangle*> & VTri() {return mVTri;}
     vector<cTriForTiepTri*> & VTriF() {return mVTriF;}
@@ -117,6 +121,7 @@ private:
     string mDir;
     string mOri;
     string mPathMesh;
+    bool mNoTif;
 };
 
 
@@ -124,7 +129,7 @@ private:
 class cImgForTiepTri
 {
 public:
-        cImgForTiepTri(cAppliTaskCorrel* , string aNameIm, int aNum);
+        cImgForTiepTri(cAppliTaskCorrel* , string aNameIm, int aNum, bool aNoTif);
         CamStenope * Cam() {return mCam;}
         cAppliTaskCorrel * Appli() {return mAppli;}
         bool inside(Pt2dr aPt, double aRab = 0);
@@ -135,7 +140,7 @@ public:
         int Num() {return mNum;}
 
         vector<bool> &  TriValid() {return mTriValid;}
-        vector<double>  &  IndTriValid() {return mIndTriValid;}
+        vector<int>  &  IndTriValid() {return mIndTriValid;}
 
 
 private:
@@ -148,7 +153,7 @@ private:
         cXml_TriAngulationImMaster mTask;
 
         vector<bool>   mTriValid;
-        vector<double>    mIndTriValid;
+        vector<int>    mIndTriValid;
 };
 
 //  ============================== cTriForTiepTri ==========================
@@ -157,13 +162,13 @@ class cTriForTiepTri
 public:
 
         //cTriForTiepTri(cAppliTaskCorrel* , triangle * aTri3d, double & ind);
-        cTriForTiepTri(cAppliTaskCorrel* , cTri3D aTri3d, double & ind);
+        cTriForTiepTri(cAppliTaskCorrel* , cTri3D aTri3d, int & ind);
         bool reprj(cImgForTiepTri *aImg);
         bool rprjOK() {return mrprjOK;}
         Pt2dr Pt1() {return mPt1;}
         Pt2dr Pt2() {return mPt2;}
         Pt2dr Pt3() {return mPt3;}
-        double & Ind() {return mInd;}
+        int & Ind() {return mInd;}
         double valElipse(int & aNInter);
 private:
         int mNumImg;
@@ -174,7 +179,7 @@ private:
         triangle * mTri3D;
         cTri3D mTri3D_;
         bool mrprjOK;
-        double mInd;
+        int mInd;
 };
 #endif
 

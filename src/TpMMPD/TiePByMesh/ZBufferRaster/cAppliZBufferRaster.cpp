@@ -2,13 +2,13 @@
 /***********************************************************************************/
 /*********************************** Constructor ***********************************/
 /***********************************************************************************/
-cAppliZBufferRaster::cAppliZBufferRaster(
-                                            cInterfChantierNameManipulateur * aICNM,
+cAppliZBufferRaster::cAppliZBufferRaster(cInterfChantierNameManipulateur * aICNM,
                                             const std::string & aDir,
                                             const std::string & anOri,
                                             vector<cTri3D> & aVTri,
-                                            vector<string> & aVImg
-                                        ):
+                                            vector<string> & aVImg,
+                                            bool aNoTif
+                                         ):
     mICNM (aICNM),
     mDir  (aDir),
     mOri  (anOri),
@@ -19,7 +19,8 @@ cAppliZBufferRaster::cAppliZBufferRaster(
     mSzW  (Pt2di(500,500)),
     mReech(1.0),
     mDistMax (TT_DISTMAX_NOLIMIT),
-    mIsTmpZBufExist (ELISE_fp::IsDirectory(aDir + "Tmp-ZBuffer/"))
+    mIsTmpZBufExist (ELISE_fp::IsDirectory(aDir + "Tmp-ZBuffer/")),
+    mNoTif (aNoTif)
 {    
     if ( !mIsTmpZBufExist)
     {
@@ -52,7 +53,7 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
         string fileOutZBuf = path + mVImg[aKIm] + "_ZBuffer_DeZoom" + ToString(int(1.0/mReech)) + ".tif";
         string fileOutLbl = path + mVImg[aKIm] + "_TriLabel_DeZoom" +  ToString(int(1.0/mReech)) + ".tif";
         ElTimer aChrono;
-        cImgZBuffer * aZBuf = new cImgZBuffer(this, mVImg[aKIm]);
+        cImgZBuffer * aZBuf = new cImgZBuffer(this, mVImg[aKIm], mNoTif);
        if ( ELISE_fp::exist_file(fileOutLbl) && ELISE_fp::exist_file(fileOutZBuf))
        {
            cout<<mVImg[aKIm]<<" existed in Tmp-ZBuffer ! . Skip"<<endl;
@@ -78,7 +79,8 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
                            aZBuf->ImZ().sz(),
                            GenIm::real8,
                            Tiff_Im::No_Compr,
-                           aZBuf->Tif().phot_interp()
+                           Tiff_Im::BlackIsZero
+                           //aZBuf->Tif().phot_interp()
                            ).out()
 
                        );
@@ -93,7 +95,8 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
                            aZBuf->ImInd().sz(),
                            GenIm::real8,
                            Tiff_Im::No_Compr,
-                           aZBuf->Tif().phot_interp()
+                           Tiff_Im::BlackIsZero
+                           //aZBuf->Tif().phot_interp()
                            ).out()
 
                        );

@@ -6,8 +6,6 @@
     The main function.
     ******************************************************************************/
 
-
-
 int TaskCorrel_main(int argc,char ** argv)
 {
     cout<<"********************************************************"<<endl;
@@ -27,6 +25,7 @@ int TaskCorrel_main(int argc,char ** argv)
         double distMax = TT_DISTMAX_NOLIMIT;
         int rech = TT_DEF_SCALE_ZBUF;
         Pt3dr clIni(255.0,255.0,255.0);
+        bool noTif = false;
         ElInitArgMain
                 (
                     argc,argv,
@@ -56,18 +55,41 @@ int TaskCorrel_main(int argc,char ** argv)
         std::string aDir,aNameImg;
         SplitDirAndFile(aDir,aNameImg,aFullPattern);
         StdCorrecNameOrient(aOriInput,aDir);
+
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+        //===========Modifier ou chercher l'image si l'image ne sont pas tif============//
+           std::size_t found = aFullPattern.find_last_of(".");
+           std::cout << " extension: " << aFullPattern.substr(found+1) << '\n';
+           string ext = aFullPattern.substr(found+1);
+           if (ext != "tif" || ext!= "TIF")
+           {
+               noTif = true;
+               cout<<" No Tif"<<endl;
+           }
+           if (noTif)
+           {
+               vector<string> mVName = *(aICNM->Get(aNameImg));
+               list<string> cmd;
+               for (uint aK=0; aK<mVName.size(); aK++)
+               {
+                    string aCmd = MM3DStr +  " PastDevlop "+  mVName[aK] + " Sz1=-1 Sz2=-1 Coul8B=0";
+                    cmd.push_back(aCmd);
+               }
+               cEl_GPAO::DoComInParal(cmd);
+           }
+        //===============================================================================/
 
         if (EAMIsInit(& xmlCpl))
         {
             //creat xml file couple by couple
-            cAppliTaskCorrelByXML * aAppli = new cAppliTaskCorrelByXML(xmlCpl, aICNM, aDir, aOriInput, aNameImg, pathPlyFileS);
+            cAppliTaskCorrelByXML * aAppli = new cAppliTaskCorrelByXML(xmlCpl, aICNM, aDir, aOriInput, aNameImg, pathPlyFileS, noTif);
             aAppli->DoAllCpl();
             aAppli->ExportXML(aDirXML);
         }
         else
         {
-            cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg);
+            cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg, noTif);
             aAppli->lireMesh(pathPlyFileS/*, aAppli->VTri(), aAppli->VTriF()*/);
             aAppli->SetNInter(nInteraction, aZ);
             aAppli->Rech() = 1.0/double (rech);

@@ -479,6 +479,10 @@ template <class Type,class TBase> cElNuage3DMaille * cElN3D_EpipGen<Type,TBase>:
 template <class Type,class TBase>  
          Pt3dr cElN3D_EpipGen<Type,TBase>::Loc_IndexAndProf2Euclid(const Pt2dr & anI,const double & anInvProf) const
 {
+if (MPD_MM())
+{
+    std::cout << "TTTttttttttttt " << mProfIsZ  << " " << anI << " " << anInvProf << "\n";
+}
 
   if (mProfIsZ) 
   {

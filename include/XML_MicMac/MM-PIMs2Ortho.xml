@@ -35,6 +35,7 @@ Pat=TS_35_50[0-5].CR2
    <Symb> DirOrthoF=PIMs-ORTHO/  </Symb>
    <eSymb> ResolRelOrhto= / 1.0 ${DeZoom} </eSymb>
 
+   <Symb> AngVisib=1.05  </Symb> <!-- CHG 1.05  -->
 </DicoLoc>
 <Section_Terrain>  
 
@@ -79,11 +80,10 @@ Pat=TS_35_50[0-5].CR2
                <FCND_GeomCalc>   NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>  
          </FCND_Mode_GeomIm>
      </NomsGeometrieImage>
-     
-          <#WHEN VTEST=${UseGlobMasqPerIm}>
+     <#WHEN VTEST=${UseGlobMasqPerIm}>
          <MasqImageIn>
              <OneMasqueImage>
-                 <PatternSel> ${Pat}   </PatternSel>
+                 <PatternSel> ${Pat}  </PatternSel>
                  <NomMasq>  ${GlobMasqPerIm}    </NomMasq>
              </OneMasqueImage>
          </MasqImageIn>
@@ -100,6 +100,9 @@ Pat=TS_35_50[0-5].CR2
 	elle permet de donner des valeur par defaut aux autres
 	parametres
 	-->
+<!--
+        <NbMinImagesVisibles>  2 </NbMinImagesVisibles> 
+-->
         <TypePyramImage>
                <Resol>   2            </Resol>
                <TypeEl>  eFloat32Bits </TypeEl>
@@ -185,7 +188,7 @@ Pat=TS_35_50[0-5].CR2
              </AnamSurfaceAnalytique>
              <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
              <!-- Limite +ou- Pi/3 -->
-             <AnamLimAngleVisib>  1.05 </AnamLimAngleVisib>
+             <AnamLimAngleVisib>  ${AngVisib}  </AnamLimAngleVisib> 
          </AnamorphoseGeometrieMNT>
     </#WHEN>
     <#WHEN VTEST=${RepereIsCart}>

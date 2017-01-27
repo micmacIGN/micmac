@@ -88,6 +88,7 @@ int HomFilterMasq_main(int argc,char ** argv)
     std::string aPostOut= "MasqFiltered";
     std::string aOriMasq3D,aNameMasq3D;
     cMasqBin3D * aMasq3D = 0;
+    double  aDistId=-1;
 
     Pt2dr  aSelecTer;
 
@@ -109,6 +110,7 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(aOriMasq3D,"OriMasq3D",true,"Orientation for Masq 3D")
                     << EAM(aNameMasq3D,"Masq3D",true,"File of Masq3D, Def=AperiCloud_${OriMasq3D}.ply")
                     << EAM(aSelecTer,"SelecTer",true,"[Per,Prop] Period of tiling on ground selection, Prop=proporion of selected")
+                    << EAM(aDistId,"DistId",true,"Supress pair such that d(P1,P2) < DistId, def unused")
     );
     bool aHasOri3D =  EAMIsInit(&aOriMasq3D);
     bool HasTerSelec = EAMIsInit(&aSelecTer);
@@ -124,7 +126,7 @@ int HomFilterMasq_main(int argc,char ** argv)
     }
 
     if (!EAMIsInit(&AcceptNoMask))
-       AcceptNoMask = EAMIsInit(&MasqGlob) || aHasOri3D;
+       AcceptNoMask = EAMIsInit(&MasqGlob) || aHasOri3D || EAMIsInit(&aDistId);
 
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -277,6 +279,12 @@ int HomFilterMasq_main(int argc,char ** argv)
                               aNbInTer += OkTer;
                           }
                       }  
+
+                      if (Ok && (aDistId>=0))
+                      {
+                         if (euclid(aP1,aP2)<aDistId)
+                            Ok = false;
+                      }
 
                       if (Ok)
                       {

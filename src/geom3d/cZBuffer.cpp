@@ -156,6 +156,8 @@ bool DEBUG_ZBB = false;
 Pt2di PT_BugZBB;
 bool ERupnik_MM();
 
+static Pt2di ORIG_BoxBug(735,484);
+
 Im2D_REAL4 cZBuffer::Basculer
            (
                Pt2di & aOffset_Out_00,
@@ -165,13 +167,6 @@ Im2D_REAL4 cZBuffer::Basculer
                bool * isOk
            )
 {
-if (MPD_MM())
-{
-   for (int aK=0 ; aK<3 ; aK++)
-       std::cout << "FIX RrrrrrrrrrPpccc \n";
-   // mIsRPC= 1;
-}
-
 
     if (isOk) 
     {
@@ -425,7 +420,6 @@ if (0 && (aMaxGrad>400)  &&(MPD_MM() || ERupnik_MM()))
        }
     }
 
-std::cout << "HHHHHHKKKKKllll " << mSzRes  << mOffet_Out_00 << " RPC=" << mIsRPC  << "\n";
 
     mSzRes = round_up(aPSup) - mOffet_Out_00;
 
@@ -570,6 +564,13 @@ void cZBuffer::AddImAttr(Im2DGen * anIm)
 
 void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 {
+/*
+bool Bug = MPD_MM()  && ((ORIG_BoxBug+A)==Pt2di(819,900));
+if (Bug)
+{
+   std::cout << "FfffffffffffffffFFFfffffffffffffffff \n";
+}
+*/
 
    if (
            (! mTImOkTer.get(A-mP0In))
@@ -578,7 +579,6 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
       )
       return;
   
-
      Pt3dr A3  =  ProjDisc(A);
      Pt3dr B3  =  ProjDisc(B);
      Pt3dr C3  =  ProjDisc(C);
@@ -663,6 +663,8 @@ getchar();
         if (aDet<0)
             aCoefEtire = 0;
      }
+
+// if (Bug) std::cout << "aCoefEtireaCoefEtire " << aCoefEtirReel << " " <<  aCoefEtire << "\n";
                 // BasculerUnTriangle(P00,P10,P11);
                 // BasculerUnTriangle(P00,P11,P01);
      // if (aDet<0) return;
@@ -701,6 +703,7 @@ getchar();
 		 if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
 		 {
                     REAL4 aZ = (float) (zA *aPdsA  + zB* aPdsB + zC *aPdsC);
+
                     if (aZ>mDataRes[y][x])
                     {
                          mDataRes[y][x] = aZ;

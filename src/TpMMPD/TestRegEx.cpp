@@ -42,7 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 //----------------------------------------------------------------------------
-
 int TestRegEx_main(int argc,char ** argv)
 {
     std::string aFullPattern;//pattern of all files
@@ -98,10 +97,10 @@ int TestRegEx_main(int argc,char ** argv)
 }
 
 //----------------------------------------------------------------------------
-
 int PatFromOri_main(int argc,char ** argv)
 {
 	std::string aOri;
+	bool aShow=false;
 	 
 	ElInitArgMain
     (
@@ -109,7 +108,7 @@ int PatFromOri_main(int argc,char ** argv)
     //mandatory arguments
 	LArgMain()  << EAMC(aOri, "Ori Folder", eSAM_IsExistDirOri),
 	
-	LArgMain()
+	LArgMain()  << EAM(aShow, "Show", false, "Display Pattern to use in cmd line ; Def=false",eSAM_IsBool)
 	);
 	
 	if (MMVisualMode) return EXIT_SUCCESS;
@@ -135,8 +134,9 @@ int PatFromOri_main(int argc,char ** argv)
 	}
 		
 	aPat = aPat + aNameIm.at(aNameIm.size()-1);
-		
-	std::cout << "Pat = \"" << aPat << "\"" << std::endl;
+	
+	if(aShow)
+		std::cout << "Pat = \"" << aPat << "\"" << std::endl;
     
     
     return EXIT_SUCCESS;
@@ -197,6 +197,88 @@ int GenFilePairs_main(int argc,char ** argv)
 }
 /******************************************************/
 
+//----------------------------------------------------------------------------
+int CleanPatByOri_main(int argc,char ** argv)
+{
+	std::string aFullName, aOri, aDir, aPat, aOut;
+	bool aShow=false;
+	 
+	ElInitArgMain
+    (
+    argc,argv,
+    //mandatory arguments
+	LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pat)")
+				<< EAMC(aOri, "Ori Folder", eSAM_IsExistDirOri),
+	
+	LArgMain()  << EAM(aShow, "Show", false, "Display Pattern to use in cmd line ; Def=false",eSAM_IsBool)
+				<< EAM(aOut, "Out", false, "Output Folder Name for Images NOT will be used")
+	);
+	
+	if (MMVisualMode) return EXIT_SUCCESS;
+	
+	MakeFileDirCompl(aOri);
+    ELISE_ASSERT(ELISE_fp::IsDirectory(aOri),"ERROR: Input orientation not found!");
+
+    SplitDirAndFile(aDir, aPat, aFullName);
+
+    cInterfChantierNameManipulateur *aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    std::list<std::string> aLFilePat = aICNM->StdGetListOfFile(aPat);
+     
+     
+	std::string aFullPatOri="Orientation-*.*xml";
+    cInterfChantierNameManipulateur *ManC=cInterfChantierNameManipulateur::BasicAlloc(aOri);
+    std::list<std::string> aLFilesOri=ManC->StdGetListOfFile(aFullPatOri);
+    
+    std::vector<std::string> aNameImOri;
+    
+    for(std::list<std::string>::iterator I=aLFilesOri.begin();I!=aLFilesOri.end();I++)
+    {	
+        //std::cout << " - " << *I << std::endl;
+        aNameImOri.push_back(I->substr(12,I->size()-16));
+    }
+    
+    std::cout<<"Total images "<<aOri<<" : "<<aNameImOri.size()<<" files."<<std::endl;
+    std::cout<<"Total images input Pattern: "<<aLFilePat.size()<<" files."<<std::endl;
+    
+    std::vector<std::string> aVImgsTrash;
+    
+    for(std::list<std::string>::iterator iT=aLFilePat.begin(); iT!=aLFilePat.end(); iT++)
+    {
+		unsigned int aCmpt=0;
+		for (unsigned aP=0; aP<aNameImOri.size(); aP++)
+		{
+			if(iT->compare(aNameImOri.at(aP)) == 0)
+				break;
+				
+			aCmpt++;
+		}
+		
+		if(aCmpt == aNameImOri.size())
+		{
+			std::cout << "IMG PAT : " << *iT << " NOT IN ORI " << std::endl;
+			aVImgsTrash.push_back(*iT);
+		}
+		
+	}
+	std::cout<<"Total images NOT OK: "<<aVImgsTrash.size()<<" files."<<std::endl;
+	
+	if(aOut == "")
+	{
+		aOut="TRASH";
+	}
+	
+	if(aVImgsTrash.size() > 0)
+	{
+		ELISE_fp::MkDirSvp(aOut);
+		for (unsigned aK=0; aK<aVImgsTrash.size(); aK++)
+		{
+			ELISE_fp::MvFile(aVImgsTrash.at(aK),aOut);
+		}
+	}
+
+	
+	return EXIT_SUCCESS;
+}
 
 class cTestElParseDir : public ElActionParseDir
 {

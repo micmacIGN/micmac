@@ -380,7 +380,7 @@ int Detector::detect(bool useTypeFileDigeo)
                 TIm2D<unsigned char, int> anIm(*mImg);
                 TIm2D<double, double> anImdbl(mImg->sz());
                 Pt2di aP;
-                Pt2di aSzIm = anIm.sz();
+                //Pt2di aSzIm = anIm.sz();
                 cFastCriterCompute * aCrit = cFastCriterCompute::Circle(TT_DIST_FAST);
 ;
                 for (aP.x=0; aP.x<anIm.sz().x; aP.x++)

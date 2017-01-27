@@ -24,8 +24,8 @@ public:
                         const std::string & aDir,
                         const std::string & anOri,
                         vector<cTri3D> & aVTri,
-                        vector<string> & aVImg
-
+                        vector<string> & aVImg,
+                        bool aNoTif
                        );
 
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
@@ -46,7 +46,6 @@ public:
     void                              DoAllIm(vector<vector<bool> > &aVTriValid);
     void                              DoAllIm(vector<cImgForTiepTri*> & aVImgTiepTri); //reserve for TaskCorrel
 
-
 private:
     cInterfChantierNameManipulateur * mICNM;
     std::string                       mDir;
@@ -65,6 +64,8 @@ private:
     bool                              mIsTmpZBufExist;
     vector< vector<bool> >            mTriValid;
     vector< vector<double> >          mIndTriValid;
+    bool                              mNoTif;
+
 };
 
 class cTri3D
@@ -134,7 +135,7 @@ private:
 class cImgZBuffer
 {
 public:
-    cImgZBuffer(cAppliZBufferRaster *anAppli , const std::string& aNameIm);
+    cImgZBuffer(cAppliZBufferRaster *anAppli , const std::string& aNameIm, bool & aNoTif);
 
     cAppliZBufferRaster * Appli() {return mAppli;}
     const string & NameIm() {return mNameIm;}
