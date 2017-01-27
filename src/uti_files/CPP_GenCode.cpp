@@ -180,7 +180,7 @@ static cCam_DCBrown * CamDCBrown(bool C2M,const tParamAFocal  & aPAF)
 static cCam_DRad_PPaEqPPs * CamDrPPaPPs(bool C2M,const tParamAFocal  & aPAF) { return  new cCam_DRad_PPaEqPPs(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
 static cCam_Fraser_PPaEqPPs * CamFraPPaPPs(bool C2M,const tParamAFocal  & aPAF) { return  new cCam_Fraser_PPaEqPPs(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
 
-static cCam_Polyn0 * CamPolyn0(bool C2M,const tParamAFocal  & aPAF) { return  new cCam_Polyn0(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
+//static cCam_Polyn0 * CamPolyn0(bool C2M,const tParamAFocal  & aPAF) { return  new cCam_Polyn0(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
 static cCam_Polyn1 * CamPolyn1(bool C2M,const tParamAFocal  & aPAF) { return  new cCam_Polyn1(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
 static cCam_Polyn2 * CamPolyn2(bool C2M,const tParamAFocal  & aPAF) { return  new cCam_Polyn2(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
 static cCam_Polyn3 * CamPolyn3(bool C2M,const tParamAFocal  & aPAF) { return  new cCam_Polyn3(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
@@ -264,7 +264,7 @@ cParamIntrinsequeFormel * PIF_For_GC
         return cPIF_DCBrown::Alloc(C2M,CamDCBrown(C2M,aPAF),aSet);
     }
 
-    if (aType == "Polyn0") { return cPIF_Polyn0::Alloc(C2M,CamPolyn0(C2M,aPAF),aSet); }
+    //if (aType == "Polyn0") { return cPIF_Polyn0::Alloc(C2M,CamPolyn0(C2M,aPAF),aSet); }
     if (aType == "Polyn1") { return cPIF_Polyn1::Alloc(C2M,CamPolyn1(C2M,aPAF),aSet); }
     if (aType == "Polyn2") { return cPIF_Polyn2::Alloc(C2M,CamPolyn2(C2M,aPAF),aSet); }
     if (aType == "Polyn3") { return cPIF_Polyn3::Alloc(C2M,CamPolyn3(C2M,aPAF),aSet); }

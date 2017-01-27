@@ -3254,7 +3254,7 @@ class cDistFromCIC
            cCam_Fraser_PPaEqPPs *   CamFraser_PPaEqPPs();
        cCam_DCBrown *           CamDCBrown();
 
-       cCam_Polyn0 *            CamPolyn0();
+//       cCam_Polyn0 *            CamPolyn0();
        cCam_Polyn1 *            CamPolyn1();
        cCam_Polyn2 *            CamPolyn2();
        cCam_Polyn3 *            CamPolyn3();
@@ -3285,7 +3285,7 @@ class cDistFromCIC
            cCam_DRad_PPaEqPPs *      mCamDR_PPas;
            cCam_Fraser_PPaEqPPs *    mCamFras_PPas;
        cCam_DCBrown *            mCamDCB;
-       cCam_Polyn0 *             mCamPolyn0;
+//       cCam_Polyn0 *             mCamPolyn0;
        cCam_Polyn1 *             mCamPolyn1;
        cCam_Polyn2 *             mCamPolyn2;
        cCam_Polyn3 *             mCamPolyn3;
@@ -3357,12 +3357,13 @@ cCam_DCBrown *  cDistFromCIC::CamDCBrown()
    ELISE_ASSERT(mCamDCB!=0,"cDistFromCIC::Cam");
    return mCamDCB;
 }
-
+/*
 cCam_Polyn0 *  cDistFromCIC::CamPolyn0()
 {
    ELISE_ASSERT(mCamPolyn0!=0,"cDistFromCIC::Cam");
    return mCamPolyn0;
 }
+*/
 cCam_Polyn1 *  cDistFromCIC::CamPolyn1()
 {
    ELISE_ASSERT(mCamPolyn1!=0,"cDistFromCIC::Cam");
@@ -3405,7 +3406,7 @@ cCamera_Param_Unif_Gen *  cDistFromCIC::CamUnif()
     if (mCamEb) return mCamEb;
     if (mCamDCB) return mCamDCB;
 
-    if (mCamPolyn0) return mCamPolyn0;
+//    if (mCamPolyn0) return mCamPolyn0;
     if (mCamPolyn1) return mCamPolyn1;
     if (mCamPolyn2) return mCamPolyn2;
     if (mCamPolyn3) return mCamPolyn3;
@@ -3565,7 +3566,7 @@ cDistFromCIC::cDistFromCIC
        mCamDR_PPas = 0;
        mCamFras_PPas = 0;
        mCamDCB = 0;
-       mCamPolyn0 = 0;
+//       mCamPolyn0 = 0;
        mCamPolyn1 = 0;
        mCamPolyn2 = 0;
        mCamPolyn3 = 0;
@@ -3791,7 +3792,7 @@ cDistFromCIC::cDistFromCIC
             mCam = mCamDCB;
                }
            break;
-
+		   /*
            case eModelePolyDeg0 :
            {
                     std::vector<double> aVE = StdEtat_F_PP(aCIU,aCIC);
@@ -3807,7 +3808,7 @@ cDistFromCIC::cDistFromCIC
                mCam = mCamPolyn0;
            };
            break;
-
+		   */
            case eModelePolyDeg1 :
            {
                     std::vector<double> aVE = StdEtat_F_PP(aCIU,aCIC);

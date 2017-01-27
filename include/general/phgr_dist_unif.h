@@ -677,9 +677,9 @@ typedef  cCamera_Param_Unif<cFraserModel_Generator<double>,cFraserModel_Generato
 typedef  cPIF_Unif<cFraserModel_Generator<double>,cFraserModel_Generator<Fonc_Num>,9,1> cPIF_Fraser_PPaEqPPs;
 // cDRadModel_Generator  cFraserModel_Generator
 
-typedef  cDist_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> cDist_Polyn0;
-typedef  cCamera_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> cCam_Polyn0;
-typedef  cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> cPIF_Polyn0;
+//typedef  cDist_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> cDist_Polyn0;
+//typedef  cCamera_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> cCam_Polyn0;
+//typedef  cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> cPIF_Polyn0;
 
 typedef  cDist_Param_Unif<cDistGen_Deg1_Generator<double>,cDistGen_Deg1_Generator<Fonc_Num>,2,3> cDist_Polyn1;
 typedef  cCamera_Param_Unif<cDistGen_Deg1_Generator<double>,cDistGen_Deg1_Generator<Fonc_Num>,2,3> cCam_Polyn1;
