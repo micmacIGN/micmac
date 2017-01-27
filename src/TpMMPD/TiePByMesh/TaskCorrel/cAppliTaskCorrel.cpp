@@ -76,7 +76,7 @@ void cAppliTaskCorrel::SetNInter(int & aNInter, double & aZoomF)
 {
     mNInter = aNInter;
     mZoomF = aZoomF;
-    if (mNInter != 0)
+    if (mNInter > 1)
     {
         mVVW.resize(int(mVImgs.size()));
         for (uint aKI = 0; aKI<mVImgs.size(); aKI++)
@@ -179,7 +179,7 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
             cout<<endl;
         if (valEl_img.size() > 4)
         {
-            int get_lim = floor((double(valEl_img.size())-4.0)/2.0);
+            int get_lim = 4 + floor((double(valEl_img.size())-4.0)/2.0);
             for (int aK=1; aK<get_lim; aK++)
                 Cur_Img2nd().push_back(int(valEl_img[aK].x));
             imgMas = mVImgs[valEl_img[0].x];
