@@ -36,15 +36,24 @@ int ZBufferRaster_main(int argc,char ** argv)
     vector<string>  vImg = *(aICNM->Get(aPatIm));
 
     //===========Modifier ou chercher l'image si l'image ne sont pas tif============//
-       std::size_t found = aPatFIm.find_last_of(".");
-       std::cout << " extension: " << aPatFIm.substr(found+1) << '\n';
-       string ext = aPatFIm.substr(found+1);
-       if (ext != "tif" || ext!= "TIF")
-       {
-           aNoTif = true;
-           cout<<" No Tif"<<endl;
-       }
-
+    std::size_t found = aPatFIm.find_last_of(".");
+    string ext = aPatFIm.substr(found+1);
+    cout<<"Ext : "<<ext<<endl;
+    if ( ext.compare("tif") )   //ext equal tif
+    {
+        aNoTif = true;
+        cout<<" No Tif"<<endl;
+    }
+    if (aNoTif)
+    {
+        list<string> cmd;
+        for (uint aK=0; aK<vImg.size(); aK++)
+        {
+             string aCmd = MM3DStr +  " PastDevlop "+  vImg[aK] + " Sz1=-1 Sz2=-1 Coul8B=0";
+             cmd.push_back(aCmd);
+        }
+        cEl_GPAO::DoComInParal(cmd);
+    }
     //===============================================================================//
 
     StdCorrecNameOrient(aOri,aDir,true);
