@@ -101,7 +101,7 @@ double cTriForTiepTri::valElipse(int & aNInter)
             double AB_cr   =  pow(aAffLc2Im.I10().x*aAffLc2Im.I01().x,2) + pow(aAffLc2Im.I10().y*aAffLc2Im.I01().y,2);
 	    //double theta_max =  vecA_cr + vecB_cr +sqrt((vecA_cr - vecB_cr) + 4*AB_cr)*(0.5);
             //Interaction : disp ellipse on image:
-            if (aNInter != 0)
+            if (aNInter > 1)
             {
                 //calcul le cercle discretize dans le plan 3D local
                 Video_Win * aVW = mAppli->VVW()[mNumImg];

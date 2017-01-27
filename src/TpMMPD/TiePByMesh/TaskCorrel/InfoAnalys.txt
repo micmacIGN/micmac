@@ -129,9 +129,11 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
     TT_RatioFastFiltrSpatial = 4
 
 +++++====+++++ Analyse partie correlation dans TiepTri +++++====+++++
-Dans 1 Triangle:
+Dans 1 Triangle: (DoOneTri)
 
   (**--**) =========== Pour chaque point d'interet dans img triangle d'image master ============== (**--**) :
+	(*) Tout d'abord, recherche tout les point d'interet dans img2nd qui se situe dans un rayon de mAppli.DistRechHom() = TT_DIST_RECH_HOM = 12pxl
+	    (.) Ca fait par le check de point aP0+aVH[aKH] avec  ( aVH=mAppli.VoisHom() -> Tout les homologues dans un rayon donné TT_DIST_RECH_HOM), aP0 est le point d'interet d'image master
 
 	(1) mImSecLoaded[aKIm]->RechHomPtsInteretBilin(*itI,mNivInterac);
 		(.) *itI : point intéret selection dans image master
@@ -219,9 +221,9 @@ Dans 1 Triangle:
 	(*) À analyser après
 
   (**--**) ============== Recherche point homologue dense ============== (**--**) :
-	cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense( const Pt2di & aP0,						=> Point Master
-															const cResulRechCorrel<double> & aPIn	=> Point correl avec Master (Result correl initial)
-														  )
+	cResulRechCorrel<double> cImSecTieTri::RechHomPtsDense( const Pt2di & aP0,			=> Point Master
+						                const cResulRechCorrel<double> & aPIn	=> Point correl avec Master (Result correl initial)
+							      )
 	(*) Si Interpol (IntDM) for Dense Match = -1 (param entree du command) 
 		=> Juste rendre coordonne correlation à coordonne de img secondaire par affine : mAffMas2Sec(aPIn.mPt) 
 		=> Cela est resultat final
@@ -238,18 +240,18 @@ Dans 1 Triangle:
 
     (*) Appel programme:
 		cResulRechCorrel<double> aRes2 =  TT_MaxLocCorrelDS1R
-														          (
-														               mAppli.Interpol(),	=> type d'interpolation
-														               &aAffPred,			=> transformation affine Mas2Sec ou Id()
-														               mMaster->mTImInit,	=> Img master
-														               Pt2dr(aP0),			=> Point Master
-														               aImSec,				=> img 2nd origin (Do Refine = 1) / image 2nd reechantilonnage dans géo de 1er
-														               aAffPred(aPIn.mPt),	=> Point correl avec point Master
-														               aSzWE,  // SzW		=> SzW Final - param entree du commande
-														               aNbByPix,			=> Number of point inside one pixel - param entree command
-														               aPrecInit,			=> aStep0 = 1/4 (avec LSQC) ou 1/8 (correl normal)
-														               aPrecCible			=> aStepEnd = 1/16 (avec LSQC) ou 1/128 (correl normal)
-														           );
+							 		(
+										mAppli.Interpol(),	=> type d'interpolation
+										&aAffPred,			=> transformation affine Mas2Sec ou Id()
+										mMaster->mTImInit,	=> Img master
+										Pt2dr(aP0),			=> Point Master
+										aImSec,				=> img 2nd origin (Do Refine = 1) / image 2nd reechantilonnage dans géo de 1er
+										aAffPred(aPIn.mPt),	=> Point correl avec point Master
+										aSzWE,  // SzW		=> SzW Final - param entree du commande
+										aNbByPix,			=> Number of point inside one pixel - param entree command
+										aPrecInit,			=> aStep0 = 1/4 (avec LSQC) ou 1/8 (correl normal)
+										aPrecCible			=> aStepEnd = 1/16 (avec LSQC) ou 1/128 (correl normal)
+									);
 	    (.) Utilise class cTT_MaxLocCorrelDS1R => 
 
    		cTT_MaxLocCorrelDS1R anOptim( anInterpol,	=> cInterpolateurIm2D<tElTiepTri> interpolateur utilisé

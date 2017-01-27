@@ -60,9 +60,9 @@ int TaskCorrel_main(int argc,char ** argv)
 
         //===========Modifier ou chercher l'image si l'image ne sont pas tif============//
            std::size_t found = aFullPattern.find_last_of(".");
-           std::cout << " extension: " << aFullPattern.substr(found+1) << '\n';
            string ext = aFullPattern.substr(found+1);
-           if (ext != "tif" || ext!= "TIF")
+           cout<<"Ext : "<<ext<<endl;
+           if ( ext.compare("tif") )   //ext equal tif
            {
                noTif = true;
                cout<<" No Tif"<<endl;
@@ -77,6 +77,7 @@ int TaskCorrel_main(int argc,char ** argv)
                     cmd.push_back(aCmd);
                }
                cEl_GPAO::DoComInParal(cmd);
+               mVName.clear();
            }
         //===============================================================================/
 

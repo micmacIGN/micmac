@@ -112,8 +112,6 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
 
             // Ter2Cam (x) = x + DifCorTer2Cal(x)
 
-            
-
 };
 
 
