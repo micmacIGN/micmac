@@ -80,13 +80,13 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
   // When they are, they may vary, as with push-broom, Def fatal erreur (=> Ortho cam)
            virtual Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ;
 
-           inline Pt2dr CamInit2CurIm(const Pt2dr & aP) const{return aP+DeltaCamInit2CurIm(aP);}
-           inline Pt2dr CurIm2CamInit(const Pt2dr & aP) const{return aP+DeltaCurIm2CamInit(aP);}
+           virtual inline Pt2dr CamInit2CurIm(const Pt2dr & aP) const{return aP+DeltaCamInit2CurIm(aP);}
+           virtual inline Pt2dr CurIm2CamInit(const Pt2dr & aP) const{return aP+DeltaCurIm2CamInit(aP);}
 
            cBasicGeomCap3D * CamSsCor();
 
             virtual Pt2dr DeltaCamInit2CurIm(const Pt2dr & aP) const = 0;
-            Pt2dr   DeltaCurIm2CamInit(const Pt2dr & aP) const ;
+            virtual Pt2dr DeltaCurIm2CamInit(const Pt2dr & aP) const ;
             Pt2dr ImRef2Capteur   (const Pt2dr & aP) ;
             double ResolImRefFromCapteur() const;
 
