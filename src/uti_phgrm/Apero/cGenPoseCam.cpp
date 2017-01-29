@@ -1290,6 +1290,30 @@ Pt2di cBGC3_Deform2D::SzBasicCapt3D() const
    return mSz;
 }
 
+
+
+cBasicGeomCap3D * DeformCameraAffine
+                  (
+                        const cAffinitePlane & aXmlApInit2Cur,
+                        cBasicGeomCap3D * aCam0,
+                        const std::string & aName,
+                        const std::string &aNameIma
+                   )
+{
+    ElAffin2D anAffInit2Cur = Xml2EL(aXmlApInit2Cur);
+    return new cBGC3_Deform2D
+               (
+                   new  ElAffin2D(anAffInit2Cur),
+                   new  ElAffin2D(anAffInit2Cur.inv()),
+                   aCam0,
+                   aName,
+                   aNameIma,
+                   true
+               );
+}
+ 
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

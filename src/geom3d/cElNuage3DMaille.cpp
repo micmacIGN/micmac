@@ -196,6 +196,15 @@ cLayerNuage3DM::~cLayerNuage3DM()
 /*                                             */
 /***********************************************/
 
+cBasicGeomCap3D * DeformCameraAffine
+                  (
+                        const cAffinitePlane & aXmlApInit2Cur,
+                        cBasicGeomCap3D * aCam0,
+                        const std::string & aName,
+                        const std::string &aNameIma
+                   );
+
+
 Pt2di TTT(const Pt2di & aP)
 {
    std::cout << "TTTTTTTTTTtt " << aP << "\n";
@@ -227,7 +236,13 @@ cElNuage3DMaille::cElNuage3DMaille
    mTImDefInterp  (mImDefInterp),
    mCam           (   // RPCNuage
                        mParams.NameOri().IsInit()                                    ?
-                       cBasicGeomCap3D::StdGetFromFile(mParams.NameOri().Val(),mITypeCam)  :  
+                       DeformCameraAffine
+                       (
+                           mParams.Orientation().OrIntImaM2C().Val(),
+                           cBasicGeomCap3D::StdGetFromFile(mParams.NameOri().Val(),mITypeCam),
+                           aNameFile,
+                           "toto203.tif"
+                       )  :  
                        Cam_Gen_From_XML(mParams.Orientation(),mICNM,aNameFile)     
                   ),
    mImEtire       (1,1),

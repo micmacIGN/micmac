@@ -87,7 +87,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(aP0,"P0",true,"Origin (to crop)")
                     << EAM(aNameOut,"Out",true,"Name of result (default toto.xml => toto.ply)")
                     << EAM(aSc,"Scale",true,"Do change the scale of result (def=1, 2 mean smaller)")
-                    << EAM(anAttr1,"Attr",true,"Image to colour the point", eSAM_IsExistFile)
+                    << EAM(anAttr1,"Attr",true,"Image to colour the point, or [R,G,B] when constant colour", eSAM_IsExistFile)
                     << EAM(aVCom,"Comments",true,"Commentary to add in the ply file (Def=None)", eSAM_NoInit )
                     << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
                     << EAM(aMask,"Mask",true,"Supplementary mask image", eSAM_IsExistFile)
@@ -129,11 +129,55 @@ int Nuage2Ply_main(int argc,char ** argv)
     if (aSz.x <0)
         aSz = Pt2dr(aNuage->SzUnique());
 
+    bool ColVect = false;
+    std::string aNameCoulTmp ;
+
+
     if ( ( anAttr1.length()!=0 ) && ( !ELISE_fp::exist_file( anAttr1 ) ) )
     {
-        cerr << "ERROR: colour image [" << anAttr1 << "] does not exist" << endl;
-        return EXIT_FAILURE;
+        if ((anAttr1[0] == '[') && (anAttr1[anAttr1.length()-1] == ']'))
+        {
+            std::vector<int> aVCoul;
+            FromString(aVCoul,anAttr1);
+            if (aVCoul.size()==3)
+            {
+                ColVect = true;
+                aNameCoulTmp = MMTemporaryDirectory() + "Tmp-CoulCstePly-"
+                              +ToString(aVCoul[0])+"-"
+                              +ToString(aVCoul[1])+"-"
+                              +ToString(aVCoul[2])+".tif";
+                Pt2di aSz = aNuage->SzUnique();
+                bool Create;
+                Tiff_Im aTF = Tiff_Im::CreateIfNeeded
+                              (
+                                  Create,
+                                  aNameCoulTmp,
+                                  aSz,
+                                  GenIm::u_int1,
+                                  Tiff_Im::No_Compr,
+                                  Tiff_Im::RGB
+                              );
+                if (Create)
+                {
+                   ELISE_COPY
+                   (
+                       aTF.all_pts(),
+                       Virgule(aVCoul[0],aVCoul[1],aVCoul[2]),
+                       aTF.out()
+                   );
+                }
+                anAttr1 = aNameCoulTmp;
+            }
+        }
+
+        if (! ColVect)
+        {
+           cerr << "ERROR: colour image [" << anAttr1 << "] does not exist" << endl;
+           return EXIT_FAILURE;
+        }
     }
+
+
 
     if (anAttr1!="")
     {
@@ -193,7 +237,7 @@ int Nuage2Ply_main(int argc,char ** argv)
            aRes->AddExportMesh();
        }
 
-        aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), DoNrm, DoublePrec, anOffset );
+       aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), DoNrm, DoublePrec, anOffset );
     }
     if (DoXYZ)
     {
@@ -201,6 +245,11 @@ int Nuage2Ply_main(int argc,char ** argv)
     }
 
     cElWarning::ShowWarns(DirOfFile(aNameNuage)  + "WarnNuage2Ply.txt");
+    if (ColVect)
+    {
+        // std::cout << "RRRRRRRrmmmmmmmmm Tmp Coul \n"; getchar();
+        ELISE_fp::RmFile(aNameCoulTmp);
+    }
     BanniereMM3D();
 
     return EXIT_SUCCESS;
