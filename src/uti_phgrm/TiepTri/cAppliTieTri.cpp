@@ -174,7 +174,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
         cout<<" - Nb Pts= "<<aImSec->PackH().size()<<endl;
         std::string pic1 = Master()->NameIm();
         std::string pic2 = aImSec->NameIm();
-        cHomolPackTiepTri aPack(pic1, pic2, aKIm, mICNM);
+        cHomolPackTiepTri aPack(pic1, pic2, aKIm, mICNM, true); //true = skipPackVide
         aPack.Pack() = aImSec->PackH();
         std::string aHomolOut = "_TiepTri";
         aPack.writeToDisk(aHomolOut);
@@ -310,7 +310,6 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
     mVCurMIRMC.clear();
 }
 
-
 class cCmpPtrRMIRC
 {
     public :
@@ -319,6 +318,7 @@ class cCmpPtrRMIRC
                return aRMIRC1->Score() > aRMIRC2->Score();
           }
 };
+
 
 void   cAppliTieTri::FiltrageSpatialRMIRC(const double & aDist)
 {

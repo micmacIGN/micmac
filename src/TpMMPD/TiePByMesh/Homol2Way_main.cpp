@@ -90,6 +90,7 @@ int Homol2Way_main(int argc,char ** argv)
     string aFullPattern;
     string aSHIn = "Homol";
     string aSHOut = "_2Way";
+    bool skipVide = false;
     cout<<"*************************************************************************"<<endl;
     cout<<"*    Creat same pack homol in 2 way by combination 2 pack of each way   *"<<endl;
     cout<<"*************************************************************************"<<endl;
@@ -102,6 +103,7 @@ int Homol2Way_main(int argc,char ** argv)
                     LArgMain()
                     << EAM(aSHIn, "SH", true, "Input homol folder (default = Homol)")
                     << EAM(aSHOut, "SHOut", true, "Output homol folder")
+                    << EAM(skipVide, "skipVide", true, "don't write out pack Homol vide")
                 );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -182,14 +184,23 @@ int Homol2Way_main(int argc,char ** argv)
             string aHmOut = aICNM->Assoc1To2(aKHOutDat, pic1, pic2, true);
             cout<<" ++ Pck Combine : "<<aPckCmbn.size()<<" Pts"<<endl;
             cout<<" ++ Wtite : "<<aHmOut<<endl;
-            aPckCmbn.StdPutInFile(aHmOut);
-            aHmOut = aICNM->Assoc1To2(aKHOutDat, pic2, pic1, true);
-            aPckCmbn.SelfSwap();
-            aPckCmbn.StdPutInFile(aHmOut);
+            if (skipVide)
+            {
+                if (aPckCmbn.size() > 0)
+                {
+                    aPckCmbn.StdPutInFile(aHmOut);
+                    aHmOut = aICNM->Assoc1To2(aKHOutDat, pic2, pic1, true);
+                    aPckCmbn.SelfSwap();
+                    aPckCmbn.StdPutInFile(aHmOut);
+                }
+            }
+            else
+            {
+                aPckCmbn.StdPutInFile(aHmOut);
+                aHmOut = aICNM->Assoc1To2(aKHOutDat, pic2, pic1, true);
+                aPckCmbn.SelfSwap();
+                aPckCmbn.StdPutInFile(aHmOut);
+            }
         }
-
-
-
-       
         return EXIT_SUCCESS;
     }
