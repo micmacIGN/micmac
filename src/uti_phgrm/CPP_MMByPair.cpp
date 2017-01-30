@@ -1043,6 +1043,11 @@ tSomAWSI * cAppliWithSetImage::ImOfName(const std::string & aName)
 cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
     cAppliWithSetImage (argc-1,argv+1,0)
 {
+  if (MPD_MM())
+  {
+      std::cout << "cAppliClipChantier \n";
+      getchar();
+  }
   std::string aPrefClip = "Cliped_";
   std::string aOriOut;
   double      aMinSz = 500;

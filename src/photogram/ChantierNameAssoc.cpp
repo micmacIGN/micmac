@@ -3582,7 +3582,10 @@ std::string PastisNameFileStd(const std::string & aFullNameOri)
        aNameSift = "SFS";
 
    if (aNameSift=="NONE") 
+   {
+if (MPD_MM()) std::cout << "WWWWWWWWWW\n";
       return  NameFileStd( aFullNameOri, 1, false, true, false );
+   }
       
    if (aNameSift=="SFS") 
       aNameSift =  std::string("Tmp-MM-Dir")+ELISE_CAR_DIR + aNameSsDir + "_sfs.tif";
@@ -3598,12 +3601,15 @@ std::string PastisNameFileStd(const std::string & aFullNameOri)
    return aNameSift;
 }
 
+Tiff_Im StdTiffFromName(const std::string & aFullNameOri);
+
 Tiff_Im PastisTif(const std::string &  aNameOri)
 {
     // SFS
     // return  Tiff_Im::StdConvGen(aName,1,false);
     std::string aName = PastisNameFileStd(aNameOri);
-    return  Tiff_Im(aName.c_str());
+    return  StdTiffFromName(aName);
+    // return  Tiff_Im(aName.c_str());
 }
 
     void DoSimplePastisSsResol(const std::string & aFullName,int aResol)
