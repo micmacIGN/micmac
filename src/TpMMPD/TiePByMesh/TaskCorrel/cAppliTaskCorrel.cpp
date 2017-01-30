@@ -243,6 +243,12 @@ void cAppliTaskCorrel::DoAllTri()
             {
                 aImgMas->Task().Tri().push_back(aTaskTri);
                 mVTask[aImgMas->Num()].Tri().push_back(aTaskTri);
+//                if (xmlPairOut)
+//                {
+//                    //ajout XML couple output
+//                    cCpleString aCpl( aImgMas->Name(), mVImgs[aTaskTri.NumImSec()[akIm2nd]]->Name() );
+//                    mRelIm.Cple().push_back(aCpl);
+//                }
             }
             else
                 cptDel++;
@@ -286,6 +292,11 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
                    );
         aDraw.drawListTriangle(aImg->Task().Tri(), fileMesh, color);
     }
+//    if (xmlPairOut)
+//    {
+//        string fileXML = mICNM->Dir() + xmlNamePairOut + ".xml";
+//        MakeFileXML(mRelIm,fileXML);
+//    }
     cout<<"Del : "<<cptDel<<endl;
 }
 

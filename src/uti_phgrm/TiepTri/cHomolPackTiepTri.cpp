@@ -48,12 +48,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 /************************************************/
 
 
-cHomolPackTiepTri::cHomolPackTiepTri (string img1, string img2, int index, cInterfChantierNameManipulateur * aICNM):
+cHomolPackTiepTri::cHomolPackTiepTri (string img1, string img2, int index, cInterfChantierNameManipulateur * aICNM, bool skipPackVide):
         mImg1  (img1),
         mImg2  (img2),
         mIndex (index),
         mICNM  (aICNM),
-        mPack  (ElPackHomologue())
+        mPack  (ElPackHomologue()),
+        mSkipVide (skipPackVide)
 {
 }
 
@@ -64,10 +65,13 @@ void cHomolPackTiepTri::writeToDisk (std::string aHomolOut)
             +  std::string("@")
             +  std::string("dat");
     std::string clePackHomolOut = mICNM->Assoc1To2(mKhOut, mImg1, mImg2, true);
-    if (mPack.size() > 0)
-        mPack.StdPutInFile(clePackHomolOut);
+    if (mSkipVide)
+    {
+        if (mPack.size() > 0)
+            mPack.StdPutInFile(clePackHomolOut);
+    }
     else
-        cout<<"Pack vide. Skip"<<endl;
+        mPack.StdPutInFile(clePackHomolOut);
     return;
 }
 

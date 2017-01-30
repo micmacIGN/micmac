@@ -138,6 +138,7 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    }
 
    MakeInterestPoint(0,&mTImLabelPC,mMaster->mTMasqTri,mTImReech);
+
    //MakeInterestPointFAST(0,&mTImLabelPC,mMaster->mTMasqTri,mTImReech);
 
    return true;
@@ -355,7 +356,6 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
 
     return aRes;
 }
-
 
 // On passe des coordonnees master au coordonnees secondaire
 

@@ -1211,7 +1211,107 @@ void GenCodeEqProjGen(int aDeg,bool GenCode,bool GenCodeAttach,bool GenCodeRot)
 /*                                                                     */
 /***********************************************************************/
 
+// Version adaptee a de grande deformation
 
+class  cBGC3_Deform2D  : public  cBGC3_Modif2D 
+{
+    public :
+
+        cBGC3_Deform2D
+        (
+            cElMap2D * aCompM2C,
+            cElMap2D * aCompC2M,
+            cBasicGeomCap3D * aCam0,
+            const std::string & aName,
+            const std::string &aNameIma,
+            bool RecalculSize
+        );
+
+    private :
+        Pt2dr DeltaCamInit2CurIm(const Pt2dr & aP) const ;
+        Pt2dr DeltaCurIm2CamInit(const Pt2dr & aP) const ;
+        Pt2dr CamInit2CurIm(const Pt2dr & aP) const ;
+        Pt2dr CurIm2CamInit(const Pt2dr & aP) const ;
+        Pt2di SzBasicCapt3D() const ;
+
+        cElMap2D *  mInit2CurIm;
+        cElMap2D *  mCurIm2Init;
+        Pt2di       mSz;
+};
+
+
+//=======================================================
+
+
+Pt2dr cBGC3_Deform2D::CamInit2CurIm(const Pt2dr & aP) const
+{
+   return  (*mInit2CurIm)(aP);
+}
+Pt2dr cBGC3_Deform2D::DeltaCamInit2CurIm(const Pt2dr & aP) const
+{
+    return (*mInit2CurIm)(aP) - aP;
+}
+
+
+Pt2dr cBGC3_Deform2D::CurIm2CamInit(const Pt2dr & aP) const
+{
+   return  (*mCurIm2Init)(aP);
+}
+Pt2dr cBGC3_Deform2D::DeltaCurIm2CamInit(const Pt2dr & aP) const
+{
+    return (*mCurIm2Init)(aP) - aP;
+}
+
+cBGC3_Deform2D:: cBGC3_Deform2D
+(
+   cElMap2D * aInit2CurIm,
+   cElMap2D * aCur2ImInit,
+   cBasicGeomCap3D * aCam0,
+   const std::string & aName,
+   const std::string &aNameIma,
+   bool RecalculSize
+) :
+    cBGC3_Modif2D  (aCam0,aName,aNameIma),
+    mInit2CurIm    (aInit2CurIm),
+    mCurIm2Init    (aCur2ImInit)
+{
+    mSz = aCam0->SzBasicCapt3D();
+
+    if (RecalculSize)
+    {
+         Box2dr aBox(Pt2dr(0,0),Pt2dr(mSz));
+         aBox = aBox.BoxImage(*mInit2CurIm);
+         mSz = round_ni(aBox._p1);
+    }
+}
+
+Pt2di cBGC3_Deform2D::SzBasicCapt3D() const 
+{
+   return mSz;
+}
+
+
+
+cBasicGeomCap3D * DeformCameraAffine
+                  (
+                        const cAffinitePlane & aXmlApInit2Cur,
+                        cBasicGeomCap3D * aCam0,
+                        const std::string & aName,
+                        const std::string &aNameIma
+                   )
+{
+    ElAffin2D anAffInit2Cur = Xml2EL(aXmlApInit2Cur);
+    return new cBGC3_Deform2D
+               (
+                   new  ElAffin2D(anAffInit2Cur),
+                   new  ElAffin2D(anAffInit2Cur.inv()),
+                   aCam0,
+                   aName,
+                   aNameIma,
+                   true
+               );
+}
+ 
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

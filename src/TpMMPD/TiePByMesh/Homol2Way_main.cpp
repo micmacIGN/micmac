@@ -44,11 +44,53 @@ Header-MicMac-eLiSe-25/06/2007*/
     /******************************************************************************
     The main function.
     ******************************************************************************/
+
+void cplExistInHomol ( vector<CplString> & VCpl,
+                       vector<string> & VImgs,
+                       string & Homol,
+                       cInterfChantierNameManipulateur * aICNM,
+                       bool  isTxtHomol )
+{
+    cout<<" ++ Creat couple image depends on exist homol structure: "<<endl;
+    string extHomol = isTxtHomol ? std::string("txt"):std::string("dat");
+    cout<<"Name Homol: "<<Homol<<" -Ext : "<<extHomol<<endl;
+    string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(Homol)
+                       +  std::string("@")
+                       +  extHomol;
+
+    for (uint i=0; i<VImgs.size()-1; i++)
+    {
+        for (uint j=i+1; j<VImgs.size(); j++)
+        {
+            string pic1 = VImgs[i];
+            string pic2 = VImgs[j];
+
+            string aHomoIn = aICNM->Assoc1To2(aKHIn, pic1, pic2, true);
+
+            StdCorrecNameHomol_G(aHomoIn, aICNM->Dir());
+
+            bool Exist= ELISE_fp::exist_file(aHomoIn);
+
+            if (Exist)
+            {
+                CplString aCplHomo;
+                aCplHomo.img1 = pic1;
+                aCplHomo.img2 = pic2;
+                VCpl.push_back(aCplHomo);
+                cout<<"..exist!";
+            }
+            cout<<endl;
+        }
+    }
+}
+
 int Homol2Way_main(int argc,char ** argv)
 {
     string aFullPattern;
     string aSHIn = "Homol";
     string aSHOut = "_2Way";
+    bool skipVide = false;
     cout<<"*************************************************************************"<<endl;
     cout<<"*    Creat same pack homol in 2 way by combination 2 pack of each way   *"<<endl;
     cout<<"*************************************************************************"<<endl;
@@ -61,13 +103,24 @@ int Homol2Way_main(int argc,char ** argv)
                     LArgMain()
                     << EAM(aSHIn, "SH", true, "Input homol folder (default = Homol)")
                     << EAM(aSHOut, "SHOut", true, "Output homol folder")
+                    << EAM(skipVide, "skipVide", true, "don't write out pack Homol vide")
                 );
 
         if (MMVisualMode) return EXIT_SUCCESS;
-        InitOutil * aChain = new InitOutil(aFullPattern, "NONE", aSHIn);
-        cInterfChantierNameManipulateur * mICNM = aChain->getPrivmICNM();
-        aChain->load_Im();
-        vector<CplPic> VCpl = aChain->loadCplPicExistHomol();
+
+        std::string aDir,aNameImg;
+        SplitDirAndFile(aDir,aNameImg,aFullPattern);
+        cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+        vector<string> VImgs = *(aICNM->Get(aNameImg));
+
+        vector<CplString> VCpl;
+        cplExistInHomol      ( VCpl,
+                               VImgs,
+                               aSHIn,
+                               aICNM,
+                               false );
+
+
         string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                            +  std::string(aSHIn)
                            +  std::string("@")
@@ -76,64 +129,78 @@ int Homol2Way_main(int argc,char ** argv)
                             +  std::string(aSHOut)
                             +  std::string("@")
                             +  std::string("dat");
+
         cout<<"ToTal: "<<VCpl.size()<<" cpl founed"<<endl;
+
+
         for (uint aKCpl=0; aKCpl<VCpl.size(); aKCpl++)
         {
-            CplPic aCpl = VCpl[aKCpl];
-            pic * pic1 = aCpl.pic1;
-            pic * pic2 = aCpl.pic2;
-            cout<<"Cpl : "<<aCpl.pic1->getNameImgInStr() <<" - "<< aCpl.pic2->getNameImgInStr()<<endl;
+            CplString aCpl = VCpl[aKCpl];
+            string pic1 = aCpl.img1;
+            string pic2 = aCpl.img2;
+            cout<<"Cpl : "<<pic1 <<" - "<< pic2<<endl;
+
             ElPackHomologue aPckCmbn;
-            string aHmIn= mICNM->Assoc1To2(aKHIn, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
-            string aHmInIv= mICNM->Assoc1To2(aKHIn, pic2->getNameImgInStr(), pic1->getNameImgInStr(), true);
+            string aHmIn= aICNM->Assoc1To2(aKHIn, pic1, pic2, true);
+            string aHmInIv= aICNM->Assoc1To2(aKHIn, pic2, pic1, true);
+
             bool Exist= ELISE_fp::exist_file(aHmIn);
             if (Exist)
             {
                 aPckCmbn =  ElPackHomologue::FromFile(aHmIn);
-                cout<<" ++"<<pic1->getNameImgInStr()<<" : "<<aPckCmbn.size()<<" Pts"<<endl;
+                cout<<" ++"<<pic1<<" : "<<aPckCmbn.size()<<" Pts"<<endl;
                 if (ELISE_fp::exist_file(aHmInIv))
                 {
                     ElPackHomologue aPck2 = ElPackHomologue::FromFile(aHmInIv);
                     aPck2.SelfSwap();
                     aPckCmbn.Add(aPck2);
-                    cout<<" ++"<<pic2->getNameImgInStr()<<" : "<<aPck2.size()<<" Pts"<<endl;
+                    cout<<" ++"<<pic2<<" : "<<aPck2.size()<<" Pts"<<endl;
                 }
             }
             else
             {
-                StdCorrecNameHomol_G(aSHIn, aChain->getPrivmICNM()->Dir());
+                StdCorrecNameHomol_G(aSHIn, aICNM->Dir());
                 aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                                    +  std::string(aSHIn)
                                    +  std::string("@")
                                    +  std::string("dat");
-                aHmIn= mICNM->Assoc1To2(aKHIn, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
-                aHmInIv= mICNM->Assoc1To2(aKHIn, pic2->getNameImgInStr(), pic1->getNameImgInStr(), true);
+                aHmIn= aICNM->Assoc1To2(aKHIn, pic1, pic2, true);
+                aHmInIv= aICNM->Assoc1To2(aKHIn, pic2, pic1, true);
                 Exist= ELISE_fp::exist_file(aHmIn);
                 if (Exist)
                 {
                     aPckCmbn =  ElPackHomologue::FromFile(aHmIn);
-                    cout<<" ++"<<pic1->getNameImgInStr()<<" : "<<aPckCmbn.size()<<" Pts"<<endl;
+                    cout<<" ++"<<pic1<<" : "<<aPckCmbn.size()<<" Pts"<<endl;
                     if (ELISE_fp::exist_file(aHmInIv))
                     {
                         ElPackHomologue aPck2 = ElPackHomologue::FromFile(aHmInIv);
                         aPck2.SelfSwap();
                         aPckCmbn.Add(aPck2);
-                        cout<<" ++"<<pic2->getNameImgInStr()<<" : "<<aPck2.size()<<" Pts"<<endl;
+                        cout<<" ++"<<pic2<<" : "<<aPck2.size()<<" Pts"<<endl;
                     }
                 }
             }
             //write aPckCmbn to disk
-            string aHmOut = mICNM->Assoc1To2(aKHOutDat, pic1->getNameImgInStr(), pic2->getNameImgInStr(), true);
+            string aHmOut = aICNM->Assoc1To2(aKHOutDat, pic1, pic2, true);
             cout<<" ++ Pck Combine : "<<aPckCmbn.size()<<" Pts"<<endl;
             cout<<" ++ Wtite : "<<aHmOut<<endl;
-            aPckCmbn.StdPutInFile(aHmOut);
-            aHmOut = mICNM->Assoc1To2(aKHOutDat, pic2->getNameImgInStr(), pic1->getNameImgInStr(), true);
-            aPckCmbn.SelfSwap();
-            aPckCmbn.StdPutInFile(aHmOut);
+            if (skipVide)
+            {
+                if (aPckCmbn.size() > 0)
+                {
+                    aPckCmbn.StdPutInFile(aHmOut);
+                    aHmOut = aICNM->Assoc1To2(aKHOutDat, pic2, pic1, true);
+                    aPckCmbn.SelfSwap();
+                    aPckCmbn.StdPutInFile(aHmOut);
+                }
+            }
+            else
+            {
+                aPckCmbn.StdPutInFile(aHmOut);
+                aHmOut = aICNM->Assoc1To2(aKHOutDat, pic2, pic1, true);
+                aPckCmbn.SelfSwap();
+                aPckCmbn.StdPutInFile(aHmOut);
+            }
         }
-
-
-
-       
         return EXIT_SUCCESS;
     }

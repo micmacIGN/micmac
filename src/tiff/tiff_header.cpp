@@ -56,6 +56,34 @@ int DefValueBigTif = 0;
 /***********************************************************************/
 /***********************************************************************/
 
+bool IsNamePxm(const std::string & post)
+{
+    return    (post == "PBM") || (post == "PGM") || (post == "PPM")
+           || (post == "pbm") || (post == "pgm") || (post == "ppm");
+}
+
+bool IsNameSunRaster(const std::string & post)
+{
+    return    (post == "RS") || (post == "rs");
+}
+
+bool IsNameHDR(const std::string & post)
+{
+   return  (post == "HDR");
+}
+bool IsNameXML(const std::string & post)
+{
+   return  (post == "xml");
+}
+
+bool IsTiffisablePost(const std::string & post)
+{
+    return
+                 IsNameHDR(post)
+              || IsNameXML(post)
+              || IsNameSunRaster(post)
+              || IsNamePxm(post);
+}
 
 bool IsKnownTifPost(const std::string & aPost)
 {
@@ -2357,6 +2385,54 @@ Tiff_Im  Tiff_Im::Dupl(const std::string& aName)
           );
 }
 
+Tiff_Im StdTiffFromName(const std::string & aFullNameOri)
+{
+   if (Tiff_Im::IsTiff(aFullNameOri.c_str(),true))
+      return Tiff_Im(aFullNameOri.c_str());
+
+   if (IsPostfixed(aFullNameOri))
+   {
+       ElSTDNS string post = StdPostfix(aFullNameOri);
+       if (IsNamePxm(post))
+       {
+           return Elise_File_Im::pnm(aFullNameOri.c_str()).to_tiff();
+       }
+       if (IsNameSunRaster(post))
+       {
+           return Elise_Tiled_File_Im_2D::sun_raster(aFullNameOri.c_str()).to_tiff();
+       }
+       if (IsNameHDR(post))
+       {
+           return Elise_Tiled_File_Im_2D::HDR(aFullNameOri.c_str()).to_tiff();
+       }
+       if (IsNameXML(post))
+       {
+           return Elise_Tiled_File_Im_2D::XML(aFullNameOri.c_str()).to_tiff();
+       }
+ //  static Elise_Tiled_File_Im_2D HDR(const std::string & aNameHdr);
+          //  static Elise_Tiled_File_Im_2D XML(const std::string & aNameHdr);
+
+   }
+
+
+   cInterfChantierNameManipulateur::Glob();
+   cSpecifFormatRaw *   aSFR = GetSFRFromString(aFullNameOri);
+   bool aRawTiff = aSFR && (!aSFR->BayPat().IsInit());
+
+   if (aRawTiff) 
+      return Tiff_Im (Elise_Tiled_File_Im_2D::XML(aFullNameOri).to_tiff() );
+
+   
+
+/*
+   Elise_File_Im 
+   std::cout << "Warrnnn  probable impossicle forcing to tiff file; in " << __FILE__ << " at " << __LINE__ << "\n";
+   std::cout << " For File " <<  aFullNameOri << "\n";
+*/
+
+   return Tiff_Im(aFullNameOri.c_str());
+}
+
 
 
 std::string NameFileStd
@@ -2371,13 +2447,30 @@ std::string NameFileStd
 {
    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::Glob();
    cSpecifFormatRaw *   aSFR = GetSFRFromString(aFullNameOri);
-
-
    bool aRawTiff = aSFR && (!aSFR->BayPat().IsInit());
+
+/*
+if (MPD_MM())
+{
+    std::cout << "RAWWWWWtif " << aRawTiff  << " " << aFullNameOri 
+                        << " NbC=" << aNbChanSpec 
+                        << " R16=" << RequireBits16 
+                        << " ENC=" << ExigNoCompr 
+                        << " Cre=" << Create 
+                        << " E8B=" <<  ExigB8
+                        << " PID=" << mm_getpid()
+                        << " TIF=" <<  Tiff_Im::IsTiff(aFullNameOri.c_str(),true)
+                        << "\n";
+    getchar();
+}
+*/
 
    if (IsPostfixed(aFullNameOri))
    {
-        ElSTDNS string post = StdPostfix(aFullNameOri);
+       ElSTDNS string post = StdPostfix(aFullNameOri);
+       if (IsTiffisablePost(post))
+          return aFullNameOri;
+/*
        if (
                  (post == "HDR")
               || (post == "xml")
@@ -2386,6 +2479,7 @@ std::string NameFileStd
               || (post == "pbm") || (post == "pgm") || (post == "ppm")
           )
           return aFullNameOri;
+*/
    }
 
    std::string Post8B= "";
@@ -2411,9 +2505,11 @@ std::string NameFileStd
 
    if (isTiff || aRawTiff )
    {
+       //  if (MPD_MM()) std::cout << "[[[ aaaaAA\n";
        aTif =   aRawTiff                                                           ?
                 new Tiff_Im (Elise_Tiled_File_Im_2D::XML(aFullNameOri).to_tiff() ) :
                 new Tiff_Im (aFullNameOri.c_str())                                 ;
+       //  if (MPD_MM()) std::cout << "]]] aaaaAA\n";
        if ((aTif->phot_interp()==Tiff_Im::RGBPalette) && (aNbChanSpec>=0))
        {
              std::cout << "WARRRRRNNNNNNNNNNN   Color Palette Tiff im may be wrongly interpreted\n";
@@ -2434,9 +2530,11 @@ std::string NameFileStd
        }
        else if (((aTif->mode_compr() == Tiff_Im::No_Compr)|| (!ExigNoCompr)) && (aNbChanIn==aNbChanSpec))
        {
+       //  if (MPD_MM()) std::cout << "YYyyyyYYYYYY\n";
            delete aTif;
            return aFullNameOri;
        }
+       //  if (MPD_MM()) std::cout << "ZZZzzz\n";
    }
    else
    {
