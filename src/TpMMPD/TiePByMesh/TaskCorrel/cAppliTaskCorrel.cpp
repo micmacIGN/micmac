@@ -242,6 +242,7 @@ void cAppliTaskCorrel::DoAllTri()
             if (aTaskTri.NumImSec().size() != 0)
             {
                 aImgMas->Task().Tri().push_back(aTaskTri);
+                //ajout XML couple output
                 mVTask[aImgMas->Num()].Tri().push_back(aTaskTri);
             }
             else
