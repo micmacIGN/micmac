@@ -151,8 +151,8 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
     private  :
          static const std::string  TheName;
 	 static const int          TheType;
-         double  mVars[NbVar];
-         double  mStates[NbState];
+         double  mVars[NbVar ? NbVar : 1];        // F..k les compilateur de m...e comme  WS qui ne supportent pas [0]
+         double  mStates[NbState ? NbState : 1];
          // TDistR  mTDist;
          Pt2dr GuessInv(const Pt2dr &)  const;
          bool OwnInverse(Pt2dr &) const ;
@@ -290,19 +290,19 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 
          void VerifIndexVar(int aK);
 
-	 static const int mDegrePolyn[NbVar];
-	 static const std::string mNamePolyn[NbVar];
+	 static const int mDegrePolyn[NbVar ? NbVar : 1];
+	 static const std::string mNamePolyn[NbVar ? NbVar : 1];
          cPIF_Unif(bool isDistC2M,tCam *,cSetEqFormelles &);
 
          int     mIndInc0;
          tDist   mDistInit;
          tDist   mDistCur;
-         Fonc_Num  mVars[NbVar];
-	 double    mTolCstr[NbVar];
-	 bool             mVarIsFree[NbVar];
+         Fonc_Num  mVars[NbVar  ? NbVar :1 ];
+	 double    mTolCstr[NbVar ? NbVar :1];
+	 bool             mVarIsFree[NbVar ? NbVar :1];
 
-         Fonc_Num  mStates[2][NbState];
-         std::string  mNameSt[2][NbState];
+         Fonc_Num  mStates[2][NbState ? NbState : 1];
+         std::string  mNameSt[2][NbState ? NbState : 1];
 
 	 tCam *  mCurPIF;
          // TDistR  mTDist;
@@ -613,9 +613,9 @@ template <class TPreC,const int NbRad,const int NbDec,const int NbPolyn,const in
 
         static ElDistortion22_Gen   *  DistPreCond(const double * aVar,const double *aState) ;
 // Les degres sont recalcule a chaque fois, c'est un perte de temps mineure mais un facilite de coherence
-         static int  mDegreRad[NBV];
-         static int  mDegreDec[NBV];
-         static int  mDegrePolyn[NBV];
+         static int  mDegreRad[NBV ? NBV : 1];
+         static int  mDegreDec[NBV ? NBV : 1];
+         static int  mDegrePolyn[NBV ? NBV : 1];
          static bool  isInit;
        
 
