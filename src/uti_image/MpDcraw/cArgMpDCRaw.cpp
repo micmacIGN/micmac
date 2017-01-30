@@ -341,13 +341,15 @@ void  cArgMpDCRaw::DevJpg()
                          +   std::string(" -depth ") + (En8B ? "8 " : "16 ")
                          +   aTmp;
 
-   //std::cout << aCom << "\n";
+   std::cout << aCom << "\n";
 
     VoidSystem(aCom.c_str());
 
     // Permet de forcer la creation de RGB meme si image en Niv Gris;  inhibe car gere au niveau du ply;
     // a remettre ei autre logiciel a probleme
-    if (0 && (! EnGray))
+	//LG 2017.01.30 Re activated because otherwise Drunk fails (no RGB image created with Convert on Windows)
+	//if (0 && (!EnGray))
+	if (1 && (!EnGray))
     {
         Tiff_Im aTF(aTmp.c_str());
         int aNbC = aTF.nb_chan();
