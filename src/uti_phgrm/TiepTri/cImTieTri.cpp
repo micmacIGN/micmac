@@ -50,7 +50,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum) :
    mAppli   (anAppli),
    mNameIm  (aNameIm),
-   mTif     (Tiff_Im::StdConv(mAppli.Dir() + mNameIm)),
+   mTif     (mAppli.mNoTif ? Tiff_Im::StdConv(mAppli.Dir() + "Tmp-MM-Dir/" + aNameIm + "_Ch1.tif"): Tiff_Im::StdConv(mAppli.Dir() + mNameIm)),
    mCam     (mAppli.ICNM()->StdCamStenOfNames(aNameIm,mAppli.Ori())),
    mImInit   (1,1),
    mTImInit  (mImInit),
@@ -296,7 +296,7 @@ void  cImTieTri::MakeInterestPoint
                            aImLabel->oset(aP,aType);
                       if (aListPI)
                       {
-                           aListPI->push_back(cIntTieTriInterest(aP,aType,aFastQual.x + 2 * aFastQual.y));
+                           aListPI->push_back(cIntTieTriInterest(aP,aType,aFastQual.x + 2 * aFastQual.y));  //les points d'interet sont mSelected=true au debut
                       }
                    }
                 }
@@ -310,7 +310,7 @@ void  cImTieTri::MakeInterestPoint
          std::vector<cIntTieTriInterest> aVI(aListPI->begin(),aListPI->end());
          aListPI->clear();
          cCmpInterOnFast aCmp;
-         std::sort(aVI.begin(),aVI.end(),aCmp);
+         std::sort(aVI.begin(),aVI.end(),aCmp); //sort by Fast Quality
 
          for (int aK1=0 ; aK1<int(aVI.size()) ; aK1++)
          {
@@ -327,11 +327,33 @@ void  cImTieTri::MakeInterestPoint
                  for (int aK2=0 ; aK2<int(aVI.size()) ; aK2++)
                  {
                       cIntTieTriInterest & aPI2= aVI[aK2];
-                      if (square_euclid(aPI1.mPt-aPI2.mPt) < aSeuilD2) 
+                      if (square_euclid(aPI1.mPt-aPI2.mPt) < aSeuilD2)
                          aPI2.mSelected = false;
                  }
              }
          }
+         //*********Filtre par FAST quality tri**********//
+//         std::vector<cIntTieTriInterest> aVI(aListPI->begin(),aListPI->end());
+//         aListPI->clear();
+//         cCmpInterOnFast aCmp;
+//         std::sort(aVI.begin(),aVI.end(),aCmp); //sort by Fast Quality
+////cout<<"Filtre by Fast"<<endl;
+//         double surf = aVI.size()/abs((mP1Glob-mP2Glob) ^ (mP1Glob-mP3Glob));
+//         double aSeuilD2 = 1/ElSquare(mAppli.mDistFiltr*2/TT_RatioFastFiltrSpatial); // mDistFiltr = TT_DefSeuilDensiteResul (50)
+//         double ratio = aSeuilD2/surf;
+//         ratio >= 1.0 ? ratio=1.0: ratio=ratio;
+////cout<<surf<<" "<<aSeuilD2<<" "<<ratio<<endl;
+//         for (uint aK1=0; aK1<uint(ratio*aVI.size()); aK1++)
+//         {
+//             cIntTieTriInterest & aPI1= aVI[aK1];
+//             aListPI->push_back(aPI1);
+//             if (mW)
+//             {
+//                mW->draw_circle_loc(Pt2dr(aPI1.mPt),0.75,ColOfType(aPI1.mType));
+//             }
+//         }
+
+         //**********************************************//
     }
 }
 

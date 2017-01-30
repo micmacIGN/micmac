@@ -19,7 +19,6 @@ class cAppliTaskCorrelByXML;
 class cImgForTiepTri;
 class cTriForTiepTri;
 
-
 //  ============================= cAppliTaskCorrel ==========================
 class cAppliTaskCorrel
 {
@@ -80,6 +79,7 @@ private:
 
     vector< vector<bool> > mVTriValid;
     vector< vector<int> > mVIndTriValid;
+    cSauvegardeNamedRel  mRelIm;
 
 };
 //  ============================= cAppliTaskCorrelByXML==========================

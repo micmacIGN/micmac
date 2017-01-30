@@ -119,6 +119,7 @@ class cParamAppliTieTri
         int      mSzWEnd;
         int      mNivLSQM;
         double   mRandomize;
+        bool     mNoTif;
 };
 
 
@@ -587,7 +588,7 @@ cResulRechCorrel<double> TT_MaxLocCorrelDS1R
 class cHomolPackTiepTri
 {
     public:
-        cHomolPackTiepTri (std::string img1, std::string img2, int index, cInterfChantierNameManipulateur * aICNM);
+        cHomolPackTiepTri (std::string img1, std::string img2, int index, cInterfChantierNameManipulateur * aICNM, bool skipPackVide);
         void writeToDisk(std::string aHomolOut);
         ElPackHomologue & Pack() {return mPack;}
         std::string & Img1() {return mImg1;}
@@ -598,6 +599,7 @@ class cHomolPackTiepTri
         int mIndex;
         cInterfChantierNameManipulateur * mICNM;
         ElPackHomologue mPack;
+        bool mSkipVide;
 };
 
 
