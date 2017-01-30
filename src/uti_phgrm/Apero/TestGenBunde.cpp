@@ -131,7 +131,7 @@ cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,i
    mAppli   (& anAppli),
    mIma     (& anIma),
    mNameIm  (mIma->mNameIm),
-   mCS0     (mIma->mCam),
+   mCS0     (mIma->CamSNN()),
    mMatPert (3,3),
    mCSCur   (mAppli->CamPerturb(mCS0,mMatPert)),
    mPolCam  (0,mCSCur,"Test","tutu",anAppli.mDeg,anAppli.mPerturbPol),  // TAGGG

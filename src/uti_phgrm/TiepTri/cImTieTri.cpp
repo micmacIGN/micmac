@@ -51,7 +51,7 @@ cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum
    mAppli   (anAppli),
    mNameIm  (aNameIm),
    mTif     (Tiff_Im::StdConv(mAppli.Dir() + mNameIm)),
-   mCam     (mAppli.ICNM()->StdCamOfNames(aNameIm,mAppli.Ori())),
+   mCam     (mAppli.ICNM()->StdCamStenOfNames(aNameIm,mAppli.Ori())),
    mImInit   (1,1),
    mTImInit  (mImInit),
    mMasqTri  (1,1),

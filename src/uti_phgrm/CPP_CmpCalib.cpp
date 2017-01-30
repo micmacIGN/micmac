@@ -558,7 +558,7 @@ cLibertOfCalib GetDefDegreeOfCalib(const cCalibDistortion & aCalib )
 }
 
 
-void GenerateMesure2D3D(CamStenope * aCamIn,int aNbXY,int aNbProf,const std::string & aNameIm,cDicoAppuisFlottant & aDAF,cMesureAppuiFlottant1Im & aMAF)
+void GenerateMesure2D3D(cBasicGeomCap3D * aCamIn,int aNbXY,int aNbProf,const std::string & aNameIm,cDicoAppuisFlottant & aDAF,cMesureAppuiFlottant1Im & aMAF)
 {
 
    Pt2dr aSzPix = aCamIn->SzPixel();
@@ -634,7 +634,7 @@ cAppli_GenerateAppuisLiaison::cAppli_GenerateAppuisLiaison(int argc, char** argv
           cImaMM * anIm = mVSoms[aK]->attr().mIma;
           cDicoAppuisFlottant aDAF;
           cMesureAppuiFlottant1Im aMAF;
-          GenerateMesure2D3D(anIm->mCam,mNbXY,mNbProf,anIm->mNameIm,aDAF,aMAF);
+          GenerateMesure2D3D(anIm->CamGen(),mNbXY,mNbProf,anIm->mNameIm,aDAF,aMAF);
           cSetOfMesureAppuisFlottants  aSMAF;
           aSMAF.MesureAppuiFlottant1Im().push_back(aMAF);
           MakeFileXML(aDAF, aPref+ anIm->mNameIm + "-Mes3D.xml");

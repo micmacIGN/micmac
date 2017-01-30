@@ -203,7 +203,7 @@ cAppliSimulTieP::cAppliSimulTieP(int argc, char** argv):    // cAppliWithSetImag
 cIma_TieP::cIma_TieP(cAppliSimulTieP& anAppli,tSomAWSI & aSom) :
    mAppli (anAppli),
    mNameIm (aSom.attr().mIma->mNameIm),
-   mCam   (aSom.attr().mIma->mCam)
+   mCam    (aSom.attr().mIma->CamSNN())
 {
 }
 

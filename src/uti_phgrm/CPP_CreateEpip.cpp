@@ -655,8 +655,8 @@ if (!MMVisualMode)
 
      if (mWithOri)
      {
-        mGenI1 = mICNM->StdCamGenOfNames(anOri,mName1);
-        mGenI2 = mICNM->StdCamGenOfNames(anOri,mName2);
+        mGenI1 = mICNM->StdCamGenerikOfNames(anOri,mName1);
+        mGenI2 = mICNM->StdCamGenerikOfNames(anOri,mName2);
      }
 
      if ((!mWithOri) || (mGenI1->DownCastCS()==0) || (mGenI2->DownCastCS()==0) || mForceGen)

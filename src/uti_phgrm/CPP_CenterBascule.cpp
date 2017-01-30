@@ -160,8 +160,8 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
        cImaMM * anIm = mVSoms[aK]->attr().mIma;
-       CamStenope * aCam1 =  anIm->mCam;
-       CamStenope * aCam2 = mICNM2->StdCamOfNames(anIm->mNameIm,mOri2);
+       CamStenope * aCam1 =  anIm->CamSNN();
+       CamStenope * aCam2 = mICNM2->StdCamStenOfNames(anIm->mNameIm,mOri2);
 
        Pt3dr aC1 = aCam1->PseudoOpticalCenter();
        Pt3dr aC2 = aCam2->PseudoOpticalCenter();

@@ -158,7 +158,7 @@ int HomFilterMasq_main(int argc,char ** argv)
     const std::vector<std::string> *  aVN = anICNM->Get(aPat);
     std::vector<Im2D_Bits<1> >  aVMasq;
 
-     std::vector<CamStenope *> aVCam;
+    std::vector<cBasicGeomCap3D *> aVCam;
 
 
     double aResolMoy = 0;
@@ -202,7 +202,7 @@ int HomFilterMasq_main(int argc,char ** argv)
         // Tiff_Im::CreateFromIm(aImMasq,"SousRes"+aNameMasq);
         if (aHasOri3D)
         {
-            aVCam.push_back(anICNM->StdCamOfNames(aNameIm,aOriMasq3D));
+            aVCam.push_back(anICNM->StdCamGenerikOfNames(aNameIm,aOriMasq3D));
             aResolMoy += aVCam.back()->GlobResol();
         }
     }
@@ -267,7 +267,10 @@ int HomFilterMasq_main(int argc,char ** argv)
 
                       if (Ok &&  aHasOri3D)
                       {
-                          Pt3dr  aPTer= aVCam[aKN1]->PseudoInter(aP1,*(aVCam[aKN2]),aP2);
+                          //  Pt3dr  aPTer= aVCam[aKN1]->PseudoInter(aP1,*(aVCam[aKN2]),aP2);
+                          ElSeg3D aSeg1 = aVCam[aKN1]->Capteur2RayTer(aP1);
+                          ElSeg3D aSeg2 = aVCam[aKN2]->Capteur2RayTer(aP2);
+                          Pt3dr  aPTer= aSeg1.PseudoInter(aSeg2);
                           if (aMasq3D && (! aMasq3D->IsInMasq(aPTer)))
                              Ok = false;
 

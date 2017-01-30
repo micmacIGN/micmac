@@ -185,7 +185,7 @@ cAppli_TestChantier::cAppli_TestChantier(int argc,char ** argv) :
     for (int aKS=0 ; aKS<int(mVSoms.size()) ; aKS++)
     {
        cImaMM & anI = *(mVSoms[aKS]->attr().mIma);
-       Chantier_TestOneCam(anI.mNameIm,anI.mCam,this);
+       Chantier_TestOneCam(anI.mNameIm,anI.CamSNN(),this);
     }
 }
 
