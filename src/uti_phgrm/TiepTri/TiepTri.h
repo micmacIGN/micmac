@@ -119,6 +119,7 @@ class cParamAppliTieTri
         int      mSzWEnd;
         int      mNivLSQM;
         double   mRandomize;
+        bool     mNoTif;
 };
 
 
