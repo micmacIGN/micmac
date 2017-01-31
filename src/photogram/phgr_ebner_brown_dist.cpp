@@ -1665,7 +1665,7 @@ template class cPIF_Unif<cDistRadFour19x2_Generator<double>,cDistRadFour19x2_Gen
 
 
     //=======================================================
-/*
+
 template <> const std::string  cDist_Polyn0::TheName="Polyn0";
 template <> const int   cDist_Polyn0::TheType= (int) eModelePolyDeg0;
 
@@ -1677,7 +1677,7 @@ template class cDist_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Ge
 template class cCamera_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;
 template class cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;
 
-*/
+
 
         // -------------------------------------------------
 template <> const std::string  cDist_Polyn1::TheName="Polyn1";
