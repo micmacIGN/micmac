@@ -114,17 +114,22 @@ class cImaMM
 
 
     public :
-       std::string mNameIm;
-       std::string mBande;
-       int         mNumInBande;
-       CamStenope * mCam;
-       Pt3dr        mC3;
-       Pt2dr        mC2;
+       CamStenope * CamSNN();
+       CamStenope * CamSSvp();
+       cBasicGeomCap3D *  CamGen();
        Tiff_Im  &   TiffStd();
        Tiff_Im  &   Tiff8BGr();
        Tiff_Im  &   Tiff8BCoul();
        Tiff_Im  &   Tiff16BGr();
     private :
+       cBasicGeomCap3D *     mCamGen;
+       CamStenope *          mCamS;
+    public :
+       std::string mNameIm;
+       std::string mBande;
+       int         mNumInBande;
+       Pt3dr        mC3;
+       Pt2dr        mC2;
        cAppliWithSetImage &  mAppli;
        Tiff_Im  *            mPtrTiffStd;
        Tiff_Im  *            mPtrTiff8BGr;
@@ -174,6 +179,7 @@ class cAppliWithSetImage
       std::vector<CamStenope*> VCamStenope();
       std::vector<ElCamera*>   VCam();
 
+      cBasicGeomCap3D * CamGenOfName(const std::string & aName);
       CamStenope * CamOfName(const std::string & aName);
       const std::string & Dir() const;
       const std::string & Ori() const;

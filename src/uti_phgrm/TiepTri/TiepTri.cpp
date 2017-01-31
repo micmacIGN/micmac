@@ -48,7 +48,8 @@ cParamAppliTieTri::cParamAppliTieTri():
    mNbByPix           (1),
    mSzWEnd            (6),
    mNivLSQM           (-1),
-   mRandomize         (0.0)
+   mRandomize         (0.0),
+   mNoTif             (false)
 {
 }
 
@@ -76,7 +77,7 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aParam.mDoRaffImInit,"DRInit",true," Do refinement on initial images, instead of resampled")
                       << EAM(aParam.mNivLSQM,"LSQC",true,"Test LSQ,-1 None (Def), Flag 1=>Affine Geom, Flag 2=>Affin Radiom")
                       << EAM(aParam.mNbByPix,"NbByPix",true," Number of point inside one pixel")
-                      << EAM(aParam.mRandomize,  "Randomize",true,"Level of random perturbationi, def=1.0 in interactive, else 0.0  ")
+                      << EAM(aParam.mRandomize,  "Randomize",true,"Level of random perturbationi, def=1.0 in interactive, else 0.0  ")               
                       << EAM(aKeyMasqIm,"KeyMasqIm",true,"Key for masq, Def=NKS-Assoc-STD-Masq, set NONE or key with NONE result")
 
                       << EAM(aSzW,         "SzW",true,"if visu [x,y,Zoom]")
@@ -85,6 +86,9 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aPtsSel,  "PSelectT",true,"for selecting triangle")
                       << EAM(aNumSel,  "NumSelIm",true,"for selecting imade")
                       << EAM(UseABCorrel,  "UseABCorrel",true,"Tuning use correl in mode A*v1+B=v2 ")
+
+                      << EAM(aParam.mNoTif,  "NoTif",true,"Not an image TIF - read img in Tmp-MM-Dir")
+
    );
 
    if (! EAMIsInit(&aParam.mDoRaffImInit))

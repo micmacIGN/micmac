@@ -887,7 +887,7 @@ void TestGridCam()
     cInterfChantierNameManipulateur*  anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     std::string aFullName = anICNM->NameOriStenope(aNameOri,aNameIm);
 
-    CamStenope * aCS0 =   anICNM->StdCamOfNames(aNameIm,aNameOri);
+    CamStenope * aCS0 =   anICNM->StdCamStenOfNames(aNameIm,aNameOri);
     CamStenope *aCSGrid =   CamStenope::StdCamFromFile(true,aFullName,anICNM);
 
     std::cout << "SZ " << aCS0->Sz() << " " << aCSGrid->Sz() << " ISGR " << aCSGrid->IsGrid() << "\n";

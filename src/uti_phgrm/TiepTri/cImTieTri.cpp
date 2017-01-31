@@ -50,8 +50,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum) :
    mAppli   (anAppli),
    mNameIm  (aNameIm),
-   mTif     (Tiff_Im::StdConv(mAppli.Dir() + mNameIm)),
-   mCam     (mAppli.ICNM()->StdCamOfNames(aNameIm,mAppli.Ori())),
+   mTif     (mAppli.mNoTif ? Tiff_Im::StdConv(mAppli.Dir() + "Tmp-MM-Dir/" + aNameIm + "_Ch1.tif"): Tiff_Im::StdConv(mAppli.Dir() + mNameIm)),
+   mCam     (mAppli.ICNM()->StdCamStenOfNames(aNameIm,mAppli.Ori())),
    mImInit   (1,1),
    mTImInit  (mImInit),
    mMasqTri  (1,1),

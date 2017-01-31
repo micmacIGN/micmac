@@ -120,7 +120,7 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
         for (int aKIm=0 ; aKIm<int(aSetIm->size()) ; aKIm++)
         {
             const std::string & aNameIm = (*aSetIm)[aKIm];
-            cBasicGeomCap3D * aCG =  ICNM()->StdCamGenOfNames(Aero,aNameIm);
+            cBasicGeomCap3D * aCG =  ICNM()->StdCamGenerikOfNames(Aero,aNameIm);
 
             if ((aCG!=0) && (aCG->DownCastCS()==0))
                 IsGenBundle = true;

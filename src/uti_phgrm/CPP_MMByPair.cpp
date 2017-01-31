@@ -293,11 +293,12 @@ std::string NameImage(tArcAWSI & anArc,bool Im1,bool ByEpi)
 /*****************************************************************/
 
 cImaMM::cImaMM(const std::string & aName,cAppliWithSetImage & anAppli) :
+   mCamGen     (anAppli.CamGenOfName(aName)),
+   mCamS       (mCamGen->DownCastCS()),
    mNameIm     (aName),
    mBande      (""),
    mNumInBande (-1),
-   mCam        (anAppli.CamOfName(mNameIm)),
-   mC3         (mCam->PseudoOpticalCenter()),
+   mC3         (mCamGen->OrigineProf()),
    mC2         (mC3.x,mC3.y),
    mAppli      (anAppli),
    mPtrTiffStd    (0),
@@ -306,6 +307,21 @@ cImaMM::cImaMM(const std::string & aName,cAppliWithSetImage & anAppli) :
    mPtrTiff16BGr  (0)
 {
 }
+
+CamStenope * cImaMM::CamSNN()
+{
+    ELISE_ASSERT(mCamS!=0,"cImaMM::CamSNN");
+    return mCamS;
+}
+CamStenope * cImaMM::CamSSvp()
+{
+    return mCamS;
+}
+cBasicGeomCap3D *  cImaMM::CamGen()
+{
+   return mCamGen;
+}
+
 
 Tiff_Im  &   cImaMM::TiffStd()
 {
@@ -391,7 +407,7 @@ std::vector<CamStenope*> cAppliWithSetImage::VCamStenope()
 
     for (int aK=0; aK<int(mVSoms.size()) ; aK++)
     {
-        aVC.push_back(mVSoms[aK]->attr().mIma->mCam);
+        aVC.push_back(mVSoms[aK]->attr().mIma->CamSNN());
     }
 
     return aVC;
@@ -402,7 +418,7 @@ std::vector<ElCamera *> cAppliWithSetImage::VCam()
     std::vector<ElCamera *> aVC;
     for (int aK=0; aK<int(mVSoms.size()) ; aK++)
     {
-        aVC.push_back(mVSoms[aK]->attr().mIma->mCam);
+        aVC.push_back(mVSoms[aK]->attr().mIma->CamSNN());
     }
 
     return aVC;
@@ -540,9 +556,9 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
 
            if (mWithOri)
            {
-               if (aNewIma->mCam->AltisSolIsDef())
+               if (aNewIma->CamGen()->AltisSolIsDef())
                {
-                    mSomAlti += aNewIma->mCam->GetAltiSol();
+                    mSomAlti += aNewIma->CamGen()->GetAltiSol();
                     mNbAlti++;
                }
            }
@@ -729,6 +745,11 @@ CamStenope * cAppliWithSetImage::CamOfName(const std::string & aNameIm)
    return   CamOrientGenFromFile(aNameOri,mEASF.mICNM);
 }
 
+cBasicGeomCap3D * cAppliWithSetImage::CamGenOfName(const std::string & aName)
+{
+    return mEASF.mICNM->StdCamGenerikOfNames(mOri,aName);
+}
+
 void  cAppliWithSetImage::MakeStripStruct(const std::string & aPairByStrip,bool StripIsFirst)
 {
 
@@ -842,7 +863,7 @@ void cAppliWithSetImage::ComputeStripPair(int aDif)
                     bool OK = true;
                     if (OK && EAMIsInit(&mTetaBande))
                     {
-                       Pt3dr aV3 = anI2.mCam->PseudoOpticalCenter() - anI1.mCam->PseudoOpticalCenter();
+                       Pt3dr aV3 = anI2.CamGen()->OrigineProf() - anI1.CamGen()->OrigineProf();
                        Pt2dr aV2(aV3.x,aV3.y);
                        aV2 = vunit(aV2);
                        Pt2dr aDirS = Pt2dr::FromPolar(1,mTetaBande * (PI/180));
@@ -1043,11 +1064,13 @@ tSomAWSI * cAppliWithSetImage::ImOfName(const std::string & aName)
 cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
     cAppliWithSetImage (argc-1,argv+1,0)
 {
+/*
   if (MPD_MM())
   {
       std::cout << "cAppliClipChantier \n";
       getchar();
   }
+*/
   std::string aPrefClip = "Cliped_";
   std::string aOriOut;
   double      aMinSz = 500;
@@ -1074,7 +1097,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
    mMasterIm  =  ImOfName(mNameMasterIm);
 
-   double aZ = mMasterIm->attr().mIma->mCam->GetAltiSol();
+   double aZ = mMasterIm->attr().mIma->CamGen()->GetAltiSol();
 
    Pt2di aCornIm[4];
    mBox.Corners(aCornIm);
@@ -1083,14 +1106,14 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
    for (int aK=0 ; aK < 4 ; aK++)
    {
-       mVIm.push_back(mMasterIm->attr().mIma->mCam->ImEtZ2Terrain(Pt2dr(aCornIm[aK]),aZ));
+       mVIm.push_back(mMasterIm->attr().mIma->CamGen()->ImEtZ2Terrain(Pt2dr(aCornIm[aK]),aZ));
    }
 
    // for (int aKIm = 0 ; aKIm <int(mImages.size()) ; aKIm++)
    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
        cImaMM & anI = *((*anITS).attr().mIma);
-       CamStenope * aCS = anI.mCam;
+       cBasicGeomCap3D * aCG = anI.CamGen();
        // Pt2dr aP1(0,0);
        // Pt2dr aP0 = Pt2dr(aCS->Sz());
        Pt2di aP0(1e9,1e9);
@@ -1098,67 +1121,75 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
        for (int aKP=0 ; aKP < 4 ; aKP++)
        {
-           Pt2di aPIm = round_ni(aCS->R3toF2(mVIm[aKP]));
+           Pt2di aPIm = round_ni(aCG->Ter2Capteur(mVIm[aKP]));
            aP0.SetInf(aPIm);
            aP1.SetSup(aPIm);
        }
        Box2di aBoxIm(aP0,aP1);
-       Box2di aBoxCam(Pt2di(0,0),Pt2di(aCS->SzPixel()));
+       Box2di aBoxCam(Pt2di(0,0),Pt2di(aCG->SzPixel()));
 
        if (! InterVide(aBoxIm,aBoxCam))
        {
-           Box2di aBoxRes = Inf(aBoxIm,aBoxCam);
-           Pt2di aDec = aBoxRes._p0;
-           Pt2di aSZ = aBoxRes.sz();
-           if ((aSZ.x>aMinSz) && (aSZ.y>aMinSz))
-           {
-                std::cout << "Box " << anI.mNameIm << aDec << aSZ << "\n";
+          CamStenope * aCS = anI.CamSSvp();
+          if (aCS)
+          {
+               Box2di aBoxRes = Inf(aBoxIm,aBoxCam);
+               Pt2di aDec = aBoxRes._p0;
+               Pt2di aSZ = aBoxRes.sz();
+               if ((aSZ.x>aMinSz) && (aSZ.y>aMinSz))
+               {
+                    std::cout << "Box " << anI.mNameIm << aDec << aSZ << "\n";
 
-                std::string aNewIm = aPrefClip + anI.mNameIm;
-                aNewIm = StdPrefix(aNewIm) + ".tif";
-                cOrientationConique  aCO = aCS->StdExportCalibGlob();
+                    std::string aNewIm = aPrefClip + anI.mNameIm;
+                    aNewIm = StdPrefix(aNewIm) + ".tif";
+                    cOrientationConique  aCO = aCS->StdExportCalibGlob();
 
-                std::string aNameOut =  mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-" + aOriOut,aNewIm,true);
-                cCalibrationInternConique * aCIO = aCO.Interne().PtrVal();
-                cCalibrationInterneRadiale * aMR =aCIO->CalibDistortion().back().ModRad().PtrVal();
-                if (1)
-                {
-                      ElAffin2D aM2C0 = Xml2EL(aCO.OrIntImaM2C());
-                      ElAffin2D  aM2CCliped = ElAffin2D::trans(-Pt2dr(aDec))   * aM2C0;
-                      aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
+                    std::string aNameOut =  mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-" + aOriOut,aNewIm,true);
+                    cCalibrationInternConique * aCIO = aCO.Interne().PtrVal();
+                    cCalibrationInterneRadiale * aMR =aCIO->CalibDistortion().back().ModRad().PtrVal();
+                    if (1)
+                    {
+                          ElAffin2D aM2C0 = Xml2EL(aCO.OrIntImaM2C());
+                          ElAffin2D  aM2CCliped = ElAffin2D::trans(-Pt2dr(aDec))   * aM2C0;
+                          aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
                       // Sinon ca ne marche pas pour le match
-                      aCO.Interne().Val().PixelSzIm().SetVal(Pt2dr(aSZ));
+                          aCO.Interne().Val().PixelSzIm().SetVal(Pt2dr(aSZ));
                 // aCO.Interne().Val().SzIm() = aSZ;
-                }
-                else
-                {
-                     if (aMR)
-                     {
-                         aCIO->PP() = aCIO->PP() - Pt2dr(aDec);
-                         aMR->CDist() = aMR->CDist() - Pt2dr(aDec);
-                         aCO.Interne().Val().SzIm() = aSZ;
-                     }
-                     else
-                     {
-                         cOrIntGlob anOIG;
-                         anOIG.Affinite() = El2Xml(ElAffin2D::trans(-Pt2dr(aDec)));
-                         anOIG.C2M() = false;
-                         aCO.Interne().Val().OrIntGlob().SetVal(anOIG);
-                     }
-                }
-                MakeFileXML(aCO,aNameOut);
+                    }
+                    else
+                    {
+                         if (aMR)
+                         {
+                             aCIO->PP() = aCIO->PP() - Pt2dr(aDec);
+                             aMR->CDist() = aMR->CDist() - Pt2dr(aDec);
+                             aCO.Interne().Val().SzIm() = aSZ;
+                         }
+                         else
+                         {
+                             cOrIntGlob anOIG;
+                             anOIG.Affinite() = El2Xml(ElAffin2D::trans(-Pt2dr(aDec)));
+                             anOIG.C2M() = false;
+                             aCO.Interne().Val().OrIntGlob().SetVal(anOIG);
+                         }
+                    }
+                    MakeFileXML(aCO,aNameOut);
 
 
-                std::string aCom =      MMBinFile(MM3DStr)
+                    std::string aCom =      MMBinFile(MM3DStr)
                                      + " ClipIm "
                                      + mEASF.mDir + anI.mNameIm + BLANK
                                      + ToString(aDec) + BLANK
                                      + ToString(aSZ) + BLANK
                                      + " Out=" + aNewIm;
 
-                std::cout << aCom << "\n";
-                System(aCom,false,true);
-            }
+                    std::cout << aCom << "\n";
+                    System(aCom,false,true);
+                }
+           }
+           else
+           {
+              ELISE_ASSERT(false,"Unfinished ClipChantier pour pushbroom");
+           }
        }
 
    }

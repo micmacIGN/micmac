@@ -213,13 +213,16 @@ class cInterfChantierNameManipulateur
         std::string  StdNameHomol(const std::string & anExt,const std::string & aI1,const std::string &aI2);
 
 
-         std::string NameOriStenope(const tKey & aKeyOri,const std::string & aNameIm);
-         std::string StdNameCalib(const std::string & anOri,const std::string & aNameIm);  // =>  Ori-XX/AutoCal ...
-         CamStenope *  StdCamOfNames(const std::string & anOri,const std::string & aNameIm);  // => Ori-XX/Orientation...
-         // Ori-XX/Orientation... exist, sinon  Ori-XX/GB-Orientation..
-         cBasicGeomCap3D * StdCamGenOfNames(const std::string & anOri,const std::string & aNameIm,bool SVP=false);
-         // return "" si rien trouve
+         std::string  NameOriStenope(const tKey & aKeyOri,const std::string & aNameIm);
+         std::string  StdNameCalib(const std::string & anOri,const std::string & aNameIm);  // =>  Ori-XX/AutoCal ...
          std::string  StdNameCamGenOfNames(const std::string & anOri,const std::string & aNameIm);
+
+         CamStenope *  StdCamStenOfNames(const std::string & anOri,const std::string & aNameIm);  // => Ori-XX/Orientation...
+         cBasicGeomCap3D *  StdCamGenerikOfNames(const std::string & anOri,const std::string & aNameIm,bool SVP=false);  // => Ori-XX/Orientation...
+
+         // Ori-XX/Orientation... exist, sinon  Ori-XX/GB-Orientation..
+         // cBasicGeomCap3D * StdCamGenOfNames(const std::string & anOri,const std::string & aNameIm,bool SVP=false);
+         // return "" si rien trouve
 
 
          CamStenope * GlobCalibOfName(const std::string  & aNameIm,const std::string & aPrefOriCal,bool ModeFraser /* Genre un Fraser Basixc ss dist*/ ); // No Dist if aPrefOriCal=""

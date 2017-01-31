@@ -471,7 +471,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
           {
               const std::string & aNameIm = (*mSetIm)[aKIm];
-              cBasicGeomCap3D * aCG =  mICNM->StdCamGenOfNames(mOri,aNameIm);
+              cBasicGeomCap3D * aCG =  mICNM->StdCamGenerikOfNames(mOri,aNameIm);
               if (aCG->AltisSolMinMaxIsDef())
               {
                   aNbAltiSolMinMax ++;

@@ -1463,6 +1463,8 @@ Pt2dr cCorrRefracAPost::CorrC2M(const Pt2dr & aP0) const
 /*                                               */
 /*************************************************/
 
+Pt2dr    cBasicGeomCap3D::SzPixel() const {return Pt2dr(SzBasicCapt3D());}
+
 Pt2dr  cBasicGeomCap3D::ImRef2Capteur   (const Pt2dr & aP) const {return aP;}
 double  cBasicGeomCap3D::ResolImRefFromCapteur() const  {return 1.0;}
 
@@ -1879,7 +1881,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
     return 0;
 }
 
-cBasicGeomCap3D * cInterfChantierNameManipulateur::StdCamGenOfNames(const std::string & anOri,const std::string & aName,bool SVP)
+cBasicGeomCap3D * cInterfChantierNameManipulateur::StdCamGenerikOfNames(const std::string & anOri,const std::string & aName,bool SVP)
 {
    std::string aRes = StdNameCamGenOfNames(anOri,aName);
    int aType = eTIGB_Unknown;

@@ -54,7 +54,7 @@ pic::pic(const string *nameImg, string nameOri, cInterfChantierNameManipulateur 
     mIndex = indexInListPic;
     if (nameOri != "NONE")
     {
-        mOriPic = mICNM->StdCamOfNames(*nameImg , nameOri);
+        mOriPic = mICNM->StdCamStenOfNames(*nameImg , nameOri);
     }
     mPicTiff = new Tiff_Im ( Tiff_Im::StdConvGen(mICNM->Dir()+*mNameImg,1,false));
     mImgSz = mPicTiff->sz();

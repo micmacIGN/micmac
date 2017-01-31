@@ -51,7 +51,7 @@ CamStenope * cAppli_RTI::OriMaster()
    if (mOriMaster==0)
    {
       
-      mOriMaster = mICNM->StdCamOfNames(mMasterIm->Name(),Ombr().OrientMaster()); // ,mMasterIm->Name());
+      mOriMaster = mICNM->StdCamStenOfNames(mMasterIm->Name(),Ombr().OrientMaster()); // ,mMasterIm->Name());
    }
    return mOriMaster;
 }

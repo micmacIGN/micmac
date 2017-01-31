@@ -9,6 +9,7 @@ int TiepTriPrl_main(int argc,char ** argv)
    std::string aFullNameXML,anOri;
    std::string KeyMasqIm = "NONE";
    int nInt = 0;
+   bool NoTif = false;
    ElInitArgMain
    (
          argc,argv,
@@ -16,6 +17,7 @@ int TiepTriPrl_main(int argc,char ** argv)
                      << EAMC(anOri,        "Orientation dir"),
          LArgMain()
                      << EAM(KeyMasqIm, "KeyMasqIm", true, "Key Masq, def=NONE")
+                     << EAM(NoTif, "NoTif", true, "No Img TIF, def=false")
                      << EAM(nInt, "nInt", true, "display command")
 
    );
@@ -31,7 +33,7 @@ int TiepTriPrl_main(int argc,char ** argv)
    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirXML);
    vector<string> aVXML =  *(anICNM->Get(aNameXML));
    cout<<aVXML.size()<<" xml file"<<endl;
-
+   string aNoTif = NoTif ? "true":"false";
    //paralelliser task
    std::list<std::string> aLCom;
    for (int aK=0 ; aK<int(aVXML.size()) ; aK++)
@@ -39,7 +41,7 @@ int TiepTriPrl_main(int argc,char ** argv)
         std::string aNameFile =  aVXML[aK];
         if (ELISE_fp::exist_file(aDirXML+aNameFile))
         {
-            std::string aCom = MM3DStr + " TestLib TiepTri " + aDirXML + aNameFile + " " + anOri + " KeyMasqIm=" + KeyMasqIm;
+            std::string aCom = MM3DStr + " TestLib TiepTri " + aDirXML + aNameFile + " " + anOri + " KeyMasqIm=" + KeyMasqIm + " NoTif=" + aNoTif;
             aLCom.push_back(aCom);
             if (nInt != 0)
                 std::cout << aCom << "\n\n";

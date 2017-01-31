@@ -1670,9 +1670,9 @@ template <> const std::string  cDist_Polyn0::TheName="Polyn0";
 template <> const int   cDist_Polyn0::TheType= (int) eModelePolyDeg0;
 
 template <> const int 
-   cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3>::mDegrePolyn[0] = {};
+   cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3>::mDegrePolyn[1] = {-11111};
 template <> const std::string 
-   cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3>::mNamePolyn[0] = {};
+   cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3>::mNamePolyn[1] = {"FuckWindows"};
 template class cDist_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;
 template class cCamera_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;
 template class cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;

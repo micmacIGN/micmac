@@ -245,8 +245,10 @@ cAppliDonuts::cAppliDonuts(int argc,char **argv) :
     std::vector<double> aVRho;
     for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
     {
-         CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;
-         Pt3dr aPE = aCS->PseudoOpticalCenter();
+         // CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;
+         cBasicGeomCap3D * aCG = mVSoms[aK]->attr().mIma->CamGen();
+         // Pt3dr aPE = aCS->PseudoOpticalCenter();
+         Pt3dr aPE = aCG->OrigineProf();
          Pt3dr aPCyl = aCyl.E2UVL(aPE);
          aVTeta.push_back(aPCyl.x);
          aVZ.push_back(aPCyl.y);
@@ -276,8 +278,10 @@ cAppliDonuts::cAppliDonuts(int argc,char **argv) :
         cInterfSurfaceAnalytique & aISA =  *(cInterfSurfaceAnalytique::FromXml(aXSA));
         for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
         {
-             CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;
-             Pt3dr aPE = aCS->ImEtProf2Terrain(Pt2dr(aCS->Sz())/2.0,aRhoMed);
+             // CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;
+             cBasicGeomCap3D * aCG = mVSoms[aK]->attr().mIma->CamGen();
+             // Pt3dr aPE = aCS->ImEtProf2Terrain(Pt2dr(aCS->Sz())/2.0,aRhoMed);
+             Pt3dr aPE = aCG->ImEtProf2Terrain(Pt2dr(aCG->SzBasicCapt3D())/2.0,aRhoMed);
              Pt3dr aPC = aISA.E2UVL(aPE);
              Pt3dr aPE2 = aISA.UVL2E(aPC);
 
@@ -309,7 +313,7 @@ cAppliDonuts::cAppliDonuts(int argc,char **argv) :
                         << " Dir " << EcartDir
                        ;
 
-             ElSeg3D aSeg = aCS->Capteur2RayTer(aCS->Sz()/2.0);
+             ElSeg3D aSeg = aCG->Capteur2RayTer(aCG->SzBasicCapt3D()/2.0);
              cTplValGesInit<Pt3dr> aTplPTer = aISA.InterDemiDroiteVisible(aSeg,0);
              if (aTplPTer.IsInit())
              {

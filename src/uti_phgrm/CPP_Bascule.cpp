@@ -355,7 +355,9 @@ cAppliBasculeCamsInRepCam_main::cAppliBasculeCamsInRepCam_main(int argc,char ** 
 
    tSomAWSI * aS0 = mDicIm[mCamC];
    // CamStenope * aCS0 = aS0->attr().mIma.mCam;  /// MtoC0
-   ElRotation3D anOri0 = aS0->attr().mIma->mCam->Orient();
+   
+   // La bascule n'a pas d'interet sur push broom, donc on s'embete pas 
+   ElRotation3D anOri0 = aS0->attr().mIma->CamSNN()->Orient();
    ELISE_ASSERT(aS0!=0,"cAppliBasculeCamsInRepCam_main No CamC");
 
    std::string aKey = "NKS-Assoc-Im2Orient@-" + mOriOut;
@@ -363,7 +365,7 @@ cAppliBasculeCamsInRepCam_main::cAppliBasculeCamsInRepCam_main(int argc,char ** 
    // MtoC * MtoC0  
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
-       CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;  // MtoC
+       CamStenope * aCS = mVSoms[aK]->attr().mIma->CamSNN();  // MtoC
        aCS->SetOrientation(aCS->Orient() * anOri0.inv());
        cOrientationConique  anOC = aCS->StdExportCalibGlob();
        std::string aNameOut = mEASF.mICNM->Assoc1To1(aKey,mVSoms[aK]->attr().mIma->mNameIm,true);
@@ -425,7 +427,8 @@ cAppliCorrecCamFromLA_main::cAppliCorrecCamFromLA_main(int argc,char ** argv) :
  
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
-       CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;
+       // Lever Arm, uniquement pour camera stenope
+       CamStenope * aCS = mVSoms[aK]->attr().mIma->CamSNN();
        Pt3dr aCorr2Add = aCS->Orient().IRecVect(mLA);
        aCorr.push_back(aCorr2Add);
        ElRotation3D anOriC(aCorr2Add - aCS->PseudoOpticalCenter(),0,0,0);
@@ -456,7 +459,7 @@ cAppliCorrecCamFromLA_main::cAppliCorrecCamFromLA_main(int argc,char ** argv) :
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
        cImaMM * anIm = mVSoms[aK]->attr().mIma;
-       CamStenope * aCam =  mICNM2->StdCamOfNames(anIm->mNameIm,mOri2);
+       CamStenope * aCam =  mICNM2->StdCamStenOfNames(anIm->mNameIm,mOri2);
 	   ElRotation3D anOriC(aCorr[aK] - aCam->PseudoOpticalCenter(),0,0,0);
 	   aCam->SetOrientation(anOriC);
 	   cOrientationConique  anOC = aCam->StdExportCalibGlob();
@@ -510,9 +513,9 @@ cAppliCorrOriFromBias_main::cAppliCorrOriFromBias_main(int argc,char ** argv) :
    
    std::string aKey = "NKS-Assoc-Im2Orient@-" + mOriOut;
    
-	for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
-	{
-       CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+   {
+       CamStenope * aCS = mVSoms[aK]->attr().mIma->CamSNN();
        
        Pt3dr aPtCorr;
        aPtCorr.x = mBias.x + aCS->PseudoOpticalCenter().x;
@@ -524,7 +527,7 @@ cAppliCorrOriFromBias_main::cAppliCorrOriFromBias_main(int argc,char ** argv) :
        cOrientationConique  anOC = aCS->StdExportCalibGlob();
        std::string aNameOut = mEASF.mICNM->Assoc1To1(aKey,mVSoms[aK]->attr().mIma->mNameIm,true);
        MakeFileXML(anOC,aNameOut);
-	}
+   }
 }
 
 int CorrOri_main(int argc,char ** argv)

@@ -219,8 +219,8 @@ int VisuResiduHom(int argc,char ** argv)
 
      cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-     cBasicGeomCap3D * aCam1 = aICNM->StdCamGenOfNames(Aero,aIm1);
-     cBasicGeomCap3D * aCam2 = aICNM->StdCamGenOfNames(Aero,aIm2);
+     cBasicGeomCap3D * aCam1 = aICNM->StdCamGenerikOfNames(Aero,aIm1);
+     cBasicGeomCap3D * aCam2 = aICNM->StdCamGenerikOfNames(Aero,aIm2);
 
      std::string aNameH = aICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+aSetHom+"@dat",aIm1,aIm2,true);
       

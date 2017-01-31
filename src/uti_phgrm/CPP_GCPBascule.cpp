@@ -458,7 +458,7 @@ int GCPVisib_main(int argc,char ** argv)
        )
     {
         
-        aBGC = aICNM->StdCamGenOfNames(aAeroIn, (*itL));
+        aBGC = aICNM->StdCamGenerikOfNames(aAeroIn, (*itL));
         
         for( aK=0; aK<aNb; aK++ )
         {
