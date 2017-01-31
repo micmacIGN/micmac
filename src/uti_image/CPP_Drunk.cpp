@@ -74,7 +74,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk)
         {
             string aFullName=ListIm.front();
             ListIm.pop_front();
-            cmdDRUNK=MMDir() + "bin/Drunk " + aNameDir + aFullName + " " + aOri + " Out=" + DirOut + " Talk=0";
+            cmdDRUNK=MMDir() + "bin/mm3d Drunk " + aNameDir + aFullName + " " + aOri + " Out=" + DirOut + " Talk=0";
             ListDrunk.push_back(cmdDRUNK);
         }
         cEl_GPAO::DoComInParal(ListDrunk,aNameDir + "MkDrunk");
@@ -164,7 +164,7 @@ int Drunk_main(int argc,char ** argv)
         argv[1]=(char*)"";//Compulsory to call MMD_InitArgcArgv
         MMD_InitArgcArgv(argc,argv);
         string cmdhelp;
-        cmdhelp=MMDir()+"bin/Drunk -help";
+        cmdhelp=MMDir()+"bin/mm3d Drunk -help";
         system_call(cmdhelp.c_str());
     }
     else
