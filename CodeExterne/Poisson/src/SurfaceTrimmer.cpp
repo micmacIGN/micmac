@@ -38,6 +38,7 @@ DAMAGE.
 #include "Ply.h"
 #include "MAT.h"
 #include "MyTime.h"
+#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
 
 cmdLineString In( "in" ) , Out( "out" );
 cmdLineInt Smooth( "smooth" , 5 );
