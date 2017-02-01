@@ -479,17 +479,49 @@ int ReprojImg_main(int argc,char ** argv)
               {
                   if (aUseLutSqrt)
                   {
-                      originalGreen=LUT8to12bits[(int)originalGreen];
-                      float otherRedOnGreen=LUT8to12bits[otherColor.r()]/(LUT8to12bits[otherColor.g()]+0.01);
-                      float otherBlueOnGreen=LUT8to12bits[otherColor.b()]/(LUT8to12bits[otherColor.g()]+0.01);
-                      int newRed=otherRedOnGreen*(originalGreen);
-                      if (newRed>4095) newRed=4095;
-                      int newGreen=originalGreen;
-                      int newBlue=otherBlueOnGreen*(originalGreen);
-                      if (newBlue>4095) newBlue=4095;
-                      otherColor.setR(LUT12to8bits[newRed]);
-                      otherColor.setG(LUT12to8bits[newGreen]);
-                      otherColor.setB(LUT12to8bits[newBlue]);
+                      if (otherColor.g()>5)
+                      {
+			      originalGreen=LUT8to12bits[(int)originalGreen];
+			      //std::cout<<(int)otherColor.r()<<" "<<(int)otherColor.g()<<" "<<(int)otherColor.b()<<"   ";
+			      //std::cout<<LUT8to12bits[otherColor.r()]<<" "<<LUT8to12bits[otherColor.g()]<<" ";
+			      //std::cout<<LUT8to12bits[otherColor.b()]<<"   "<<originalGreen<<"   ";
+			      float otherRedOnGreen=LUT8to12bits[otherColor.r()]/(LUT8to12bits[otherColor.g()]+0.01);
+			      float otherBlueOnGreen=LUT8to12bits[otherColor.b()]/(LUT8to12bits[otherColor.g()]+0.01);
+			      int newRed=otherRedOnGreen*(originalGreen);
+			      if (newRed<0) newRed=0;
+			      if (newRed>4095) newRed=4095;
+			      int newGreen=originalGreen;
+			      int newBlue=otherBlueOnGreen*(originalGreen);
+			      if (newBlue<0) newBlue=0;
+			      if (newBlue>4095) newBlue=4095;
+			      //std::cout<<otherRedOnGreen<<" "<<otherBlueOnGreen<<"   ";
+			      //std::cout<<newRed<<" "<<newGreen<<" "<<newBlue<<"   ";
+			      //std::cout<<(int)LUT12to8bits[newRed]<<" "<<(int)LUT12to8bits[newGreen]<<" "<<(int)LUT12to8bits[newBlue]<<"\n";
+			      otherColor.setR(LUT12to8bits[newRed]);
+			      otherColor.setG(LUT12to8bits[newGreen]);
+			      otherColor.setB(LUT12to8bits[newBlue]);
+                      }else{
+			      originalGreen=LUT8to12bits[(int)originalGreen];
+			      //std::cout<<(int)otherColor.r()<<" "<<(int)otherColor.g()<<" "<<(int)otherColor.b()<<"   ";
+			      //std::cout<<LUT8to12bits[otherColor.r()]<<" "<<LUT8to12bits[otherColor.g()]<<" ";
+			      //std::cout<<LUT8to12bits[otherColor.b()]<<"   "<<originalGreen<<"   ";
+			      float otherRedOnGreen=LUT8to12bits[otherColor.r()]-LUT8to12bits[otherColor.g()];
+			      float otherBlueOnGreen=LUT8to12bits[otherColor.b()]-LUT8to12bits[otherColor.g()];
+			      int newRed=otherRedOnGreen+originalGreen;
+			      if (newRed<0) newRed=0;
+			      if (newRed>4095) newRed=4095;
+			      int newGreen=originalGreen;
+			      int newBlue=otherBlueOnGreen+originalGreen;
+			      if (newBlue<0) newBlue=0;
+			      if (newBlue>4095) newBlue=4095;
+			      //std::cout<<otherRedOnGreen<<" "<<otherBlueOnGreen<<"   ";
+			      //std::cout<<newRed<<" "<<newGreen<<" "<<newBlue<<"   ";
+			      //std::cout<<(int)LUT12to8bits[newRed]<<" "<<(int)LUT12to8bits[newGreen]<<" "<<(int)LUT12to8bits[newBlue]<<"\n";
+			      otherColor.setR(LUT12to8bits[newRed]);
+			      otherColor.setG(LUT12to8bits[newGreen]);
+			      otherColor.setB(LUT12to8bits[newBlue]);
+
+                      }
                   }else{
                       if (otherColor.g()<20)
                       {
