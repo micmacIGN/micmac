@@ -1464,6 +1464,8 @@ class cBasicGeomCap3D
     public :
       typedef ElAffin2D tOrIntIma ;
 
+
+
       virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
       virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const =0;
       virtual Pt2di    SzBasicCapt3D() const = 0;
@@ -1525,7 +1527,9 @@ class cBasicGeomCap3D
 
 
        // Save using standard MicMac naming ; !! Not supported for now by Stenope camera; Def :  Fatal Error
-       virtual void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd) const ;
+       virtual void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd,const ElAffin2D & anOrIntImaM2C) const ;
+       void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd,const Pt2dr & aP0Clip) const ;
+       void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd) const ;
 
        Pt2dr Mil() const;
        double GlobResol() const;
@@ -1558,6 +1562,8 @@ class cBasicGeomCap3D
          // peut-etre a remplacer un jour par une ElAffin2D; sans changer
          // l'interface
          //
+ 
+         // A PRIORI INUTILISE DANS cBasicGeomCap3D
          tOrIntIma                      mScanOrImaC2M;
          tOrIntIma                      mIntrOrImaC2M;
          tOrIntIma                      mGlobOrImaC2M;
@@ -1567,6 +1573,16 @@ class cBasicGeomCap3D
          tOrIntIma                      mGlobOrImaM2C;
          double               mScaleAfnt;  // Echelle de l'affinite !!
 };
+
+
+class cAffinitePlane;
+cBasicGeomCap3D * DeformCameraAffine
+                  (
+                        const cAffinitePlane & aXmlApInit2Cur,
+                        cBasicGeomCap3D * aCam0,
+                        const std::string & aName,
+                        const std::string &aNameIma
+                   );
 
 
 
@@ -2067,10 +2083,12 @@ Pt3dr IntersectionRayonPerspectif
 
 // Camera a Stenope
 
+
 class CamStenope : public ElCamera
 {
       public :
          CamStenope * DownCastCS() ;
+         void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd,const ElAffin2D & anOrIntImaM2C) const ;
 
          double GetRoughProfondeur() const; // Tente Prof puis Alti
          const tParamAFocal   & ParamAF() const;
@@ -2082,7 +2100,6 @@ class CamStenope : public ElCamera
          static CamStenope * StdCamFromFile(bool UseGr,const std::string &,cInterfChantierNameManipulateur * anICNM);
 
          virtual const cCamStenopeDistRadPol * Debug_CSDRP() const;
-
 
 
 

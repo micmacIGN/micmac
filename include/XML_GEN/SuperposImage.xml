@@ -1615,10 +1615,11 @@
 
 
 <Xml_PolynXY  Nb="1" Class="true" ToReference="true">
-      <Monomes Nb="*" Type="cMonomXY"  Container="std::vector"> </Monomes>
+    <Monomes Nb="*" Type="cMonomXY"  Container="std::vector"> </Monomes>
 </Xml_PolynXY>
 
 <Xml_CamGenPolBundle Nb="1" Class="true" ToReference="true">
+    <OrIntImaM2C  Nb="?"  RefType="AffinitePlane"> </OrIntImaM2C>
     <NameCamSsCor  Type="std::string" Nb="1" > </NameCamSsCor>
     <NameIma  Type="std::string" Nb="1" > </NameIma>
     <SysCible Nb="?" RefType="SystemeCoord" RefFile="ParamChantierPhotogram.xml"> </SysCible> 

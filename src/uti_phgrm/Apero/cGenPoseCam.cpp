@@ -1079,8 +1079,9 @@ std::string cPolynomial_BGC3M2D::NameSave(const std::string & aDirLoc,const std:
     return DirSave(aDirLoc,aPref) +  "GB-Orientation-" + NameWithoutDir(mNameIma) + ".xml";
 }
 
-void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc,const std::string &  aPref) const
+void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc,const std::string &  aPref,const ElAffin2D & anOrIntImaM2C ) const
 {
+     ELISE_ASSERT(anOrIntImaM2C.IsId(),"Do not handle affinity in Save2XmlStdMMName");
 
      std::string aDirFull = DirSave(aDirLoc,aPref);
 
@@ -1216,6 +1217,8 @@ void GenCodeEqProjGen(int aDeg,bool GenCode,bool GenCodeAttach,bool GenCodeRot)
 class  cBGC3_Deform2D  : public  cBGC3_Modif2D 
 {
     public :
+
+        // void Save(const std::string & aName,const ElAffin2D & anOrIntImaM2C) ;
 
         cBGC3_Deform2D
         (

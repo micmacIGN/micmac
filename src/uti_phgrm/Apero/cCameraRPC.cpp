@@ -783,9 +783,9 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
     }
 }
 
-void CameraRPC::Save2XmlStdMMName(const std::string &aName,const std::string & aPref) const
+void CameraRPC::Save2XmlStdMMName(const std::string &aName,const std::string & aPref,const ElAffin2D & anOrIntImaM2C) const
 {
-    mRPC->Save2XmlStdMMName(aName,aPref);
+    mRPC->Save2XmlStdMMName(aName,aPref,anOrIntImaM2C);
 }
 
 /******************************************************/
@@ -1375,7 +1375,7 @@ void cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
     
 }
 
-void cRPC::Save2XmlStdMMName(const std::string &aName,const std::string & aPref)
+void cRPC::Save2XmlStdMMName(const std::string &aName,const std::string & aPref,const ElAffin2D & anOrIntImaM2C)
 {
     /* Create new RPC */
     cRPC aRPCSauv(aName);
@@ -3843,7 +3843,7 @@ int RecalRPC_main(int argc,char ** argv)
     std::list<std::string>::iterator itL=aListFile.begin();
     for( ; itL !=aListFile.end(); itL++ )
     {
-        cRPC::Save2XmlStdMMName(aDir + (*itL),"");
+        cRPC::Save2XmlStdMMName(aDir + (*itL),"",ElAffin2D::Id());
     }
     
    

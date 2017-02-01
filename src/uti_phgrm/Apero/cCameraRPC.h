@@ -113,7 +113,7 @@ class CameraRPC : public cBasicGeomCap3D
         void   SetGridSz(const Pt2di & aSz);
 
         void   ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
-        void   Save2XmlStdMMName(const std::string &aName,const std::string & aPref) const;
+        void   Save2XmlStdMMName(const std::string &aName,const std::string & aPref,const ElAffin2D & anOrIntImaM2C) const;
         static cBasicGeomCap3D * CamRPCOrientGenFromFile(
                 const std::string & aName, 
                 const eTypeImporGenBundle aType, 
@@ -206,7 +206,7 @@ class cRPC
         ~cRPC(){};
 
         /* Re-save in original coordinate system */
-        static void Save2XmlStdMMName(const std::string &aName,const std::string& aPref);
+        static void Save2XmlStdMMName(const std::string &aName,const std::string& aPref,const ElAffin2D & anOrIntImaM2C);
         /* Save non-existing RPCs in original coordinate system */
         static void Save2XmlStdMMName_(cRPC &, const std::string &);
         static std::string NameSave(const std::string & aDirLoc);

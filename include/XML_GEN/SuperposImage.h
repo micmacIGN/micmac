@@ -7329,6 +7329,9 @@ class cXml_CamGenPolBundle
         friend void xml_init(cXml_CamGenPolBundle & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< cAffinitePlane > & OrIntImaM2C();
+        const cTplValGesInit< cAffinitePlane > & OrIntImaM2C()const ;
+
         std::string & NameCamSsCor();
         const std::string & NameCamSsCor()const ;
 
@@ -7353,6 +7356,7 @@ class cXml_CamGenPolBundle
         cXml_PolynXY & CorY();
         const cXml_PolynXY & CorY()const ;
     private:
+        cTplValGesInit< cAffinitePlane > mOrIntImaM2C;
         std::string mNameCamSsCor;
         std::string mNameIma;
         cTplValGesInit< cSystemeCoord > mSysCible;

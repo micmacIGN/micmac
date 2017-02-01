@@ -3583,7 +3583,6 @@ std::string PastisNameFileStd(const std::string & aFullNameOri)
 
    if (aNameSift=="NONE") 
    {
-if (MPD_MM()) std::cout << "WWWWWWWWWW\n";
       return  NameFileStd( aFullNameOri, 1, false, true, false );
    }
       

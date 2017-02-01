@@ -1093,7 +1093,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
 
    if (!EAMIsInit(&aOriOut))
-      aOriOut = mOri;
+      aOriOut = mOri + "-Clip";
 
    mMasterIm  =  ImOfName(mNameMasterIm);
 
@@ -1130,18 +1130,19 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
        if (! InterVide(aBoxIm,aBoxCam))
        {
-          CamStenope * aCS = anI.CamSSvp();
-          if (aCS)
+          Box2di aBoxRes = Inf(aBoxIm,aBoxCam);
+          Pt2di aDec = aBoxRes._p0;
+          Pt2di aSZ = aBoxRes.sz();
+          std::string aNewIm = aPrefClip + anI.mNameIm;
+          aNewIm = StdPrefix(aNewIm) + ".tif";
+
+          if ((aSZ.x>aMinSz) && (aSZ.y>aMinSz))
           {
-               Box2di aBoxRes = Inf(aBoxIm,aBoxCam);
-               Pt2di aDec = aBoxRes._p0;
-               Pt2di aSZ = aBoxRes.sz();
-               if ((aSZ.x>aMinSz) && (aSZ.y>aMinSz))
+               CamStenope * aCS = anI.CamSSvp();
+               if (aCS)
                {
                     std::cout << "Box " << anI.mNameIm << aDec << aSZ << "\n";
 
-                    std::string aNewIm = aPrefClip + anI.mNameIm;
-                    aNewIm = StdPrefix(aNewIm) + ".tif";
                     cOrientationConique  aCO = aCS->StdExportCalibGlob();
 
                     std::string aNameOut =  mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-" + aOriOut,aNewIm,true);
@@ -1173,22 +1174,21 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                          }
                     }
                     MakeFileXML(aCO,aNameOut);
-
-
-                    std::string aCom =      MMBinFile(MM3DStr)
+                }
+                else
+                {
+                   std::cout << "CLIP ORIENT TO DO 4 Bundle Gen \n";
+                   // ELISE_ASSERT(false,"Unfinished ClipChantier pour pushbroom");
+                }
+                std::string aCom =      MMBinFile(MM3DStr)
                                      + " ClipIm "
                                      + mEASF.mDir + anI.mNameIm + BLANK
                                      + ToString(aDec) + BLANK
                                      + ToString(aSZ) + BLANK
                                      + " Out=" + aNewIm;
 
-                    std::cout << aCom << "\n";
-                    System(aCom,false,true);
-                }
-           }
-           else
-           {
-              ELISE_ASSERT(false,"Unfinished ClipChantier pour pushbroom");
+                // std::cout << aCom << "\n";
+                System(aCom,false,true);
            }
        }
 

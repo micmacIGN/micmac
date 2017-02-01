@@ -107,7 +107,7 @@ int Recal_RPC_main(int argc,char ** argv)
     
     SplitDirAndFile(aDir, aPat, aFullName);
 
-    cRPC::Save2XmlStdMMName(aPat,"");
+    cRPC::Save2XmlStdMMName(aPat,"",ElAffin2D::Id());
 
     
     return EXIT_SUCCESS;
