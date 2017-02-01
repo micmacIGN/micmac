@@ -1676,8 +1676,8 @@ template <> const std::string
 template class cDist_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;
 template class cCamera_Param_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;
 template class cPIF_Unif<cDistGen_Deg0_Generator<double>,cDistGen_Deg0_Generator<Fonc_Num>,0,3> ;
-/*
-*/
+
+
 
         // -------------------------------------------------
 template <> const std::string  cDist_Polyn1::TheName="Polyn1";

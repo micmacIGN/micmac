@@ -54,6 +54,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cInterfChantierNameManipulateur * aICNM = 0;
 
+U_INT2 LUT8to12bits[256];
+U_INT1 LUT12to8bits[4096];
 
 //color value class
 class cReprojColor
@@ -336,7 +338,8 @@ int ReprojImg_main(int argc,char ** argv)
     std::string aAutoMaskImageName="";//automask image filename
     std::string outFileName="Reproj.tif";//output image name
     int aCoulourImgScale=1;//if color image is bigger than Ori
-    bool aKeepLum=false;//Juste change colors, not luminosity
+    bool aKeepGreen=false;//Juste change colors, not luminosity
+    bool aUseLutSqrt=false;//if 8 bit values are sqrt of 12bits
 
     ElInitArgMain
     (
@@ -350,12 +353,37 @@ int ReprojImg_main(int argc,char ** argv)
     //optional arguments
     LArgMain()  << EAM(aAutoMaskImageName,"AutoMask",true,"AutoMask filename", eSAM_IsExistFile)
                 << EAM(aDepthRepImageName,"DepthRepImage",true,"Image to reproject DEM file (xml), def=not used", eSAM_IsExistFile)
-                << EAM(aKeepLum,"KeepLum",true,"Keep original picture luminosity (only for colorization), def=false")
+                << EAM(aKeepGreen,"KeepGreen",true,"Keep original picture green (only for colorization), def=false")
+                << EAM(aUseLutSqrt,"LutSqrt",true,"Use LUT sqrt (only for colorization), def=false")
                 << EAM(outFileName,"Out",true,"Output image name (tif), def=Reproj.tif")
                 << EAM(aCoulourImgScale,"CoulourImgScale",true,"CoulourImgScale (int, if color image is bigger than ori to reproject), def=1")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
+
+
+    if (aUseLutSqrt)
+    {
+        //init LUTs
+        int offset=16;
+        float sqrt_offset=sqrt(offset);
+        float kl = 256/(sqrt(4095+offset) - sqrt_offset);
+        float val;
+        for (unsigned int i=0;i<4096;i++)
+        {
+            val = (0.5+kl * (sqrt(i + offset) - sqrt_offset));
+            if (val>255) val=255;
+            LUT12to8bits[i]=val;
+        }
+        for (unsigned int i=0;i<256;i++)
+        {
+            val=(i * (sqrt(4095+offset)-sqrt_offset)/256 + sqrt_offset);
+            val=val*val-offset;
+            if (val>4095) val=4095;
+            if (val<0) val=0;
+            LUT8to12bits[i]= val;
+        }
+    }
 
     // Initialize name manipulator & files
     std::string aDir;
@@ -392,7 +420,7 @@ int ReprojImg_main(int argc,char ** argv)
               //create 2D point in Ref image
               Pt2di aPImRef(anX,anY);
 
-              float originalLum=aRefIm.getImgGT()->get(aPImRef);
+              float originalGreen=aRefIm.getImgGT()->get(aPImRef);
               //check if depth exists
               if ((aRefIm.getMaskIm())&&
                       (aRefIm.getMask(aPImRef)!=1))
@@ -415,7 +443,7 @@ int ReprojImg_main(int argc,char ** argv)
               //output mask
               if (!aRepIm.isInside(aPImRep))
               {
-                  cReprojColor color(originalLum,originalLum,originalLum);
+                  cReprojColor color(originalGreen,originalGreen,originalGreen);
                   aOutputIm.set(aPImRef,color);
                   aMaskRepImData[anY][anX]=0;
                   continue;
@@ -437,7 +465,7 @@ int ReprojImg_main(int argc,char ** argv)
                   //check of occlusion (DEM in Rep < 90% of real depth)
                   if (anOtherProf*anOtherProf<sqrDistRep*0.9)
                   {
-                      cReprojColor color(originalLum,originalLum,originalLum);
+                      cReprojColor color(originalGreen,originalGreen,originalGreen);
                       aOutputIm.set(aPImRef,color);
                       aMaskRepImData[anY][anX]=0;
                       continue;
@@ -447,32 +475,79 @@ int ReprojImg_main(int argc,char ** argv)
               //get color of this point in Rep image
               cReprojColor otherColor=aRepIm.getr(aPImRep);
               
-              if (aKeepLum)
+              if (aKeepGreen)
               {
-                  if (otherColor.g()<20)
+                  if (aUseLutSqrt)
                   {
-                      float otherRedOnGreen=otherColor.r()-otherColor.g();
-                      float otherBlueOnGreen=otherColor.b()-otherColor.g();
-                      float newRed=otherRedOnGreen+originalLum;
-                      if (newRed>255) newRed=255;
-                      if (newRed<0) newRed=0;
-                      float newBlue=otherBlueOnGreen+originalLum;
-                      if (newBlue>255) newBlue=255;
-                      if (newBlue<0) newBlue=0;
-                      otherColor.setR(newRed);
-                      otherColor.setG(originalLum);
-                      otherColor.setB(newBlue);
+                      if (otherColor.g()>5)
+                      {
+			      originalGreen=LUT8to12bits[(int)originalGreen];
+			      //std::cout<<(int)otherColor.r()<<" "<<(int)otherColor.g()<<" "<<(int)otherColor.b()<<"   ";
+			      //std::cout<<LUT8to12bits[otherColor.r()]<<" "<<LUT8to12bits[otherColor.g()]<<" ";
+			      //std::cout<<LUT8to12bits[otherColor.b()]<<"   "<<originalGreen<<"   ";
+			      float otherRedOnGreen=LUT8to12bits[otherColor.r()]/(LUT8to12bits[otherColor.g()]+0.01);
+			      float otherBlueOnGreen=LUT8to12bits[otherColor.b()]/(LUT8to12bits[otherColor.g()]+0.01);
+			      int newRed=otherRedOnGreen*(originalGreen);
+			      if (newRed<0) newRed=0;
+			      if (newRed>4095) newRed=4095;
+			      int newGreen=originalGreen;
+			      int newBlue=otherBlueOnGreen*(originalGreen);
+			      if (newBlue<0) newBlue=0;
+			      if (newBlue>4095) newBlue=4095;
+			      //std::cout<<otherRedOnGreen<<" "<<otherBlueOnGreen<<"   ";
+			      //std::cout<<newRed<<" "<<newGreen<<" "<<newBlue<<"   ";
+			      //std::cout<<(int)LUT12to8bits[newRed]<<" "<<(int)LUT12to8bits[newGreen]<<" "<<(int)LUT12to8bits[newBlue]<<"\n";
+			      otherColor.setR(LUT12to8bits[newRed]);
+			      otherColor.setG(LUT12to8bits[newGreen]);
+			      otherColor.setB(LUT12to8bits[newBlue]);
+                      }else{
+			      originalGreen=LUT8to12bits[(int)originalGreen];
+			      //std::cout<<(int)otherColor.r()<<" "<<(int)otherColor.g()<<" "<<(int)otherColor.b()<<"   ";
+			      //std::cout<<LUT8to12bits[otherColor.r()]<<" "<<LUT8to12bits[otherColor.g()]<<" ";
+			      //std::cout<<LUT8to12bits[otherColor.b()]<<"   "<<originalGreen<<"   ";
+			      float otherRedOnGreen=LUT8to12bits[otherColor.r()]-LUT8to12bits[otherColor.g()];
+			      float otherBlueOnGreen=LUT8to12bits[otherColor.b()]-LUT8to12bits[otherColor.g()];
+			      int newRed=otherRedOnGreen+originalGreen;
+			      if (newRed<0) newRed=0;
+			      if (newRed>4095) newRed=4095;
+			      int newGreen=originalGreen;
+			      int newBlue=otherBlueOnGreen+originalGreen;
+			      if (newBlue<0) newBlue=0;
+			      if (newBlue>4095) newBlue=4095;
+			      //std::cout<<otherRedOnGreen<<" "<<otherBlueOnGreen<<"   ";
+			      //std::cout<<newRed<<" "<<newGreen<<" "<<newBlue<<"   ";
+			      //std::cout<<(int)LUT12to8bits[newRed]<<" "<<(int)LUT12to8bits[newGreen]<<" "<<(int)LUT12to8bits[newBlue]<<"\n";
+			      otherColor.setR(LUT12to8bits[newRed]);
+			      otherColor.setG(LUT12to8bits[newGreen]);
+			      otherColor.setB(LUT12to8bits[newBlue]);
+
+                      }
                   }else{
-                      float otherRedOnGreen=otherColor.r()/(otherColor.g()+0.01);
-                      float otherBlueOnGreen=otherColor.b()/(otherColor.g()+0.01);
-                      float newRed=otherRedOnGreen*(originalLum);
-                      if (newRed>255) newRed=255;
-                      float newGreen=originalLum;
-                      float newBlue=otherBlueOnGreen*(originalLum);
-                      if (newBlue>255) newBlue=255;
-                      otherColor.setR(newRed);
-                      otherColor.setG(newGreen);
-                      otherColor.setB(newBlue);
+                      if (otherColor.g()<20)
+                      {
+                          float otherRedOnGreen=otherColor.r()-otherColor.g();
+                          float otherBlueOnGreen=otherColor.b()-otherColor.g();
+                          float newRed=otherRedOnGreen+originalGreen;
+                          if (newRed>255) newRed=255;
+                          if (newRed<0) newRed=0;
+                          float newBlue=otherBlueOnGreen+originalGreen;
+                          if (newBlue>255) newBlue=255;
+                          if (newBlue<0) newBlue=0;
+                          otherColor.setR(newRed);
+                          otherColor.setG(originalGreen);
+                          otherColor.setB(newBlue);
+                      }else{
+                          float otherRedOnGreen=otherColor.r()/(otherColor.g()+0.01);
+                          float otherBlueOnGreen=otherColor.b()/(otherColor.g()+0.01);
+                          float newRed=otherRedOnGreen*(originalGreen);
+                          if (newRed>255) newRed=255;
+                          float newGreen=originalGreen;
+                          float newBlue=otherBlueOnGreen*(originalGreen);
+                          if (newBlue>255) newBlue=255;
+                          otherColor.setR(newRed);
+                          otherColor.setG(newGreen);
+                          otherColor.setB(newBlue);
+                      }
                   }
               }
               

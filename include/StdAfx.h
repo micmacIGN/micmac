@@ -312,4 +312,8 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 #include "general/PlyFile.h"
 
+#ifndef uint
+	typedef unsigned uint;
+#endif
+
 #endif //_ELISE_STDAFX_H

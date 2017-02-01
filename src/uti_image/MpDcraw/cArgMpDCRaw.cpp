@@ -347,7 +347,7 @@ void  cArgMpDCRaw::DevJpg()
 
     // Permet de forcer la creation de RGB meme si image en Niv Gris;  inhibe car gere au niveau du ply;
     // a remettre ei autre logiciel a probleme
-    if (0 && (! EnGray))
+    if (1 && (! EnGray))
     {
         Tiff_Im aTF(aTmp.c_str());
         int aNbC = aTF.nb_chan();
