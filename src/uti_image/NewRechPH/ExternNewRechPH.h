@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ExternNewRechPH_H_
 #define _ExternNewRechPH_H_
 
+#include "../../../include/StdAfx.h"
+
 template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
 {
     Pt2di aSz = anIm.sz();

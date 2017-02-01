@@ -3363,6 +3363,7 @@ cCam_Polyn0 *  cDistFromCIC::CamPolyn0()
    ELISE_ASSERT(mCamPolyn0!=0,"cDistFromCIC::Cam");
    return mCamPolyn0;
 }
+
 cCam_Polyn1 *  cDistFromCIC::CamPolyn1()
 {
    ELISE_ASSERT(mCamPolyn1!=0,"cDistFromCIC::Cam");
@@ -3791,7 +3792,7 @@ cDistFromCIC::cDistFromCIC
             mCam = mCamDCB;
                }
            break;
-
+		   
            case eModelePolyDeg0 :
            {
                     std::vector<double> aVE = StdEtat_F_PP(aCIU,aCIC);
@@ -3807,7 +3808,7 @@ cDistFromCIC::cDistFromCIC
                mCam = mCamPolyn0;
            };
            break;
-
+		   
            case eModelePolyDeg1 :
            {
                     std::vector<double> aVE = StdEtat_F_PP(aCIU,aCIC);
