@@ -129,7 +129,7 @@ template <> inline std::istream & ElStdRead (std::istream &is, bool & aVal, cons
 }
 
 
-template <class Type>  std::istream & operator >> (std::istream &is,ElSTDNS vector<Type> & vec);
+// template <class Type>  std::istream & operator >> (std::istream &is,ElSTDNS vector<Type> & vec);
 
 template <class Type>  inline std::istream & VElStdRead (std::istream &is,ElSTDNS vector<Type> & vec, const ElGramArgMain & Gram)
 {
