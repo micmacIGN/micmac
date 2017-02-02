@@ -3,7 +3,7 @@ before_build:
   - echo Running cmake...
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake .. -DWITH_QT5=OFF
   - cmake --build . --target INSTALL
   - cd ..
 
