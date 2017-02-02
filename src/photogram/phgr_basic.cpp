@@ -1473,15 +1473,23 @@ double cBasicGeomCap3D::GetVeryRoughInterProf() const
    return 1/600.0;
 }
 
-void cBasicGeomCap3D::Save2XmlStdMMName(const std::string &,const std::string & aPref,const ElAffin2D & anOrIntImaM2C) const
+void cBasicGeomCap3D::Save2XmlStdMMName(const std::string & aOriOut,const std::string & aPref,const ElAffin2D & anOrIntInit2Cur) const
 {
     ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMName Not Suported");
 }
+
+
+
+
 void cBasicGeomCap3D::Save2XmlStdMMName(const std::string & anOri,const std::string & aPrefix) const
 {
     Save2XmlStdMMName(anOri,aPrefix,ElAffin2D::Id());
 }
 
+void cBasicGeomCap3D::Save2XmlStdMMName(const std::string & anOri,const std::string & aPrefix,const Pt2dr & aP) const
+{
+    Save2XmlStdMMName(anOri,aPrefix,ElAffin2D::trans(aP));
+}
 
 
 Pt2dr cBasicGeomCap3D::Mil() const
@@ -3633,10 +3641,33 @@ cCalibrationInternConique  ElCamera::ExportCalibInterne2XmlStruct(Pt2di aSzIm) c
 
 CamStenope * CamStenope::DownCastCS() { return this; }
 
-void CamStenope::Save2XmlStdMMName(const std::string &,const std::string & aDirAdd,const ElAffin2D & anOrIntImaM2C) const 
+void CamStenope::Save2XmlStdMMName(const std::string & aOriOut,const std::string & aPref,const ElAffin2D & anOrIntInit2Cur) const
 {
-   ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMNam to do");
+    ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMName Not Suported");
 }
+/*
+void CamStenope::Save2XmlStdMMName
+     (
+           cInterfChantierNameManipulateur * anICNM,
+           const std::string & aOriOut,
+           const std::string & aDirAdd,
+           const ElAffin2D & anOrIntInit2Cur
+     ) const 
+{
+cInterfChantierNameManipulateur * anICNM=0;
+std::string  aNameImClip ="toto.tif";
+
+    cOrientationConique  aCO = StdExportCalibGlob();
+    std::string aNameOut =  anICNM->Dir() + anICNM->NameOriStenope(aOriOut,aNameImClip);
+    cCalibrationInternConique * aCIO = aCO.Interne().PtrVal();
+    ELISE_ASSERT(aCIO!=0,"cCalibrationInternConique in CamStenope::Save2XmlStdMMName");
+    // cCalibrationInterneRadiale * aMR =aCIO->CalibDistortion().back().ModRad().PtrVal();
+    ElAffin2D aM2C0 = Xml2EL(aCO.OrIntImaM2C());
+    ElAffin2D  aM2CCliped =    anOrIntInit2Cur.inv() * aM2C0;
+    aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
+    aCO.Interne().Val().PixelSzIm().SetVal(Pt2dr(Tiff_Im::UnivConvStd(aNameImClip).sz()));
+}
+*/
 
 double  CamStenope::GetRoughProfondeur() const
 {
