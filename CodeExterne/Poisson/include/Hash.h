@@ -1,6 +1,7 @@
 #ifndef HASH_INCLUDED
 #define HASH_INCLUDED
 #ifdef WIN32
+#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
 #include <hash_map>
 using stdext::hash_map;
 #else // !WIN32
