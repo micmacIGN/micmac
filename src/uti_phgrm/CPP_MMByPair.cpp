@@ -1141,7 +1141,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                CamStenope * aCS = anI.CamSSvp();
                if (aCS)
                {
-                    aCS->cBasicGeomCap3D::Save2XmlStdMMName(mOri,mEASF.mDir,Pt2dr(aDec));
+                    aCS->cBasicGeomCap3D::Save2XmlStdMMName(mEASF.mICNM,mOri,aNewIm,Pt2dr(aDec));
                     std::cout << "Box " << anI.mNameIm << aDec << aSZ << "\n";
 
                     cOrientationConique  aCO = aCS->StdExportCalibGlob();

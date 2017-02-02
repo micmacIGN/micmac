@@ -1473,7 +1473,13 @@ double cBasicGeomCap3D::GetVeryRoughInterProf() const
    return 1/600.0;
 }
 
-void cBasicGeomCap3D::Save2XmlStdMMName(const std::string & aOriOut,const std::string & aPref,const ElAffin2D & anOrIntInit2Cur) const
+void cBasicGeomCap3D::Save2XmlStdMMName
+     (
+           cInterfChantierNameManipulateur * anICNM,
+           const std::string & aOriOut,
+           const std::string & aNameImClip,
+           const ElAffin2D & anOrIntInit2Cur
+     ) const
 {
     ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMName Not Suported");
 }
@@ -1481,14 +1487,25 @@ void cBasicGeomCap3D::Save2XmlStdMMName(const std::string & aOriOut,const std::s
 
 
 
-void cBasicGeomCap3D::Save2XmlStdMMName(const std::string & anOri,const std::string & aPrefix) const
+void  cBasicGeomCap3D::Save2XmlStdMMName
+      (
+           cInterfChantierNameManipulateur * anICNM,
+           const std::string & aOriOut,
+           const std::string & aNameImClip
+      ) const
 {
-    Save2XmlStdMMName(anOri,aPrefix,ElAffin2D::Id());
+    Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,ElAffin2D::Id());
 }
 
-void cBasicGeomCap3D::Save2XmlStdMMName(const std::string & anOri,const std::string & aPrefix,const Pt2dr & aP) const
+void  cBasicGeomCap3D::Save2XmlStdMMName
+      (
+           cInterfChantierNameManipulateur * anICNM,
+           const std::string & aOriOut,
+           const std::string & aNameImClip,
+           const Pt2dr & aP
+      )  const
 {
-    Save2XmlStdMMName(anOri,aPrefix,ElAffin2D::trans(aP));
+    Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,ElAffin2D::trans(aP));
 }
 
 
@@ -3641,22 +3658,21 @@ cCalibrationInternConique  ElCamera::ExportCalibInterne2XmlStruct(Pt2di aSzIm) c
 
 CamStenope * CamStenope::DownCastCS() { return this; }
 
+/*
 void CamStenope::Save2XmlStdMMName(const std::string & aOriOut,const std::string & aPref,const ElAffin2D & anOrIntInit2Cur) const
 {
     ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMName Not Suported");
 }
-/*
+*/
+
 void CamStenope::Save2XmlStdMMName
      (
            cInterfChantierNameManipulateur * anICNM,
            const std::string & aOriOut,
-           const std::string & aDirAdd,
+           const std::string & aNameImClip,
            const ElAffin2D & anOrIntInit2Cur
      ) const 
 {
-cInterfChantierNameManipulateur * anICNM=0;
-std::string  aNameImClip ="toto.tif";
-
     cOrientationConique  aCO = StdExportCalibGlob();
     std::string aNameOut =  anICNM->Dir() + anICNM->NameOriStenope(aOriOut,aNameImClip);
     cCalibrationInternConique * aCIO = aCO.Interne().PtrVal();
@@ -3667,7 +3683,6 @@ std::string  aNameImClip ="toto.tif";
     aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
     aCO.Interne().Val().PixelSzIm().SetVal(Pt2dr(Tiff_Im::UnivConvStd(aNameImClip).sz()));
 }
-*/
 
 double  CamStenope::GetRoughProfondeur() const
 {

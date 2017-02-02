@@ -134,7 +134,12 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
 
 	   void Show() const;
 
-           void Save2XmlStdMMName(const std::string & aDir,const std::string & aPref,const ElAffin2D & anOrIntImaM2C) const;
+           virtual void Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+                                        const std::string & aOriOut,
+                                        const std::string & aNameImClip,
+                                        const ElAffin2D & anOrIntInit2Cur
+                    ) const;
+
            std::string DirSave(const std::string & aDirLoc,const std::string & aPref,bool Create=true) const;
            std::string NameSave(const std::string & aDirLoc,const std::string & aPref) const;
 
