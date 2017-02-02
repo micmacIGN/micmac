@@ -178,7 +178,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 
 			Pt2dr ptOut;
 			ptOut.x = aX - aDatPar[aY][aX];// * cos(aAngleB);
-			ptOut.y = aY - aDatPar[aY][aX];// * sin(aAngleB);
+			ptOut.y = aY;// -aDatPar[aY][aX];// * sin(aAngleB);
 			aDataOut[aY][aX] = Reechantillonnage::biline(aData, aSz.x, aSz.y, ptOut);
 		}
 	}
