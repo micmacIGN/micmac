@@ -695,12 +695,13 @@ template <class Type> std::string ToString(const Type &);
 std::string  ToStringNBD(int aNb,int aNbDig);
 
 
+
+template <class Type>  std::istream & operator >> (std::istream &is,ElSTDNS vector<Type> & vec);
+
 template <class Type> bool FromString(Type& x,const std::string & s)
 {
-/// std::cout << "SSSS=["<<s<<"]\n";
    std::istringstream i(s);
    i >> x;
- // std::cout << "GOOOD="<<i.fail() << "::" << x <<"]\n";
    return ! i.fail();
 }
 
