@@ -1527,9 +1527,13 @@ class cBasicGeomCap3D
 
 
        // Save using standard MicMac naming ; !! Not supported for now by Stenope camera; Def :  Fatal Error
-       virtual void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd,const ElAffin2D & anOrIntImaM2C) const ;
-       void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd,const Pt2dr & aP0Clip) const ;
-       void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd) const ;
+       virtual void Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+                                        const std::string & aOriOut,
+                                        const std::string & aNameImClip,
+                                        const ElAffin2D & anOrIntInit2Cur
+                    ) const;
+       void Save2XmlStdMMName(cInterfChantierNameManipulateur*,const std::string &,const std::string&,const Pt2dr & aP0Clip) const ;
+       void Save2XmlStdMMName(cInterfChantierNameManipulateur*,const std::string &,const std::string&) const ;
 
        Pt2dr Mil() const;
        double GlobResol() const;
@@ -2088,7 +2092,11 @@ class CamStenope : public ElCamera
 {
       public :
          CamStenope * DownCastCS() ;
-         void Save2XmlStdMMName(const std::string &,const std::string & aDirAdd,const ElAffin2D & anOrIntImaM2C) const ;
+         virtual void Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+                                        const std::string & aOriOut,
+                                        const std::string & aNameImClip,
+                                        const ElAffin2D & anOrIntInit2Cur
+                    ) const;
 
          double GetRoughProfondeur() const; // Tente Prof puis Alti
          const tParamAFocal   & ParamAF() const;

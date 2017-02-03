@@ -582,6 +582,13 @@ Elise_Tiled_File_Im_2D Elise_Tiled_File_Im_2D::Saphir(const char * name_file,con
 
 }
 
+const bool Elise_Tiled_File_Im_2D::DefCLT         = false;
+const bool Elise_Tiled_File_Im_2D::DefChunk       = true;
+const int  Elise_Tiled_File_Im_2D::DefOffset0     = 0;
+const bool Elise_Tiled_File_Im_2D::DefCreate      = false;
+const bool Elise_Tiled_File_Im_2D::DefByteOrdered = true;
+ 
+
 
 void MakeFileThomVide
      (

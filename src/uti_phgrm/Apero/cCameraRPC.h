@@ -113,7 +113,12 @@ class CameraRPC : public cBasicGeomCap3D
         void   SetGridSz(const Pt2di & aSz);
 
         void   ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
-        void   Save2XmlStdMMName(const std::string &aName,const std::string & aPref,const ElAffin2D & anOrIntImaM2C) const;
+        virtual void Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+                                        const std::string & aOriOut,
+                                        const std::string & aNameImClip,
+                                        const ElAffin2D & anOrIntInit2Cur
+                    ) const;
+
         static cBasicGeomCap3D * CamRPCOrientGenFromFile(
                 const std::string & aName, 
                 const eTypeImporGenBundle aType, 
@@ -206,7 +211,11 @@ class cRPC
         ~cRPC(){};
 
         /* Re-save in original coordinate system */
-        static void Save2XmlStdMMName(const std::string &aName,const std::string& aPref,const ElAffin2D & anOrIntImaM2C);
+        static void Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+                                        const std::string & aOriOut,
+                                        const std::string & aNameImClip,
+                                        const ElAffin2D & anOrIntInit2Cur
+                    );
         /* Save non-existing RPCs in original coordinate system */
         static void Save2XmlStdMMName_(cRPC &, const std::string &);
         static std::string NameSave(const std::string & aDirLoc);

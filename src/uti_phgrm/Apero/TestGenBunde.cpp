@@ -147,7 +147,7 @@ cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,i
          MakeFileXML(mCSCur->StdExportCalibGlob(),mNameSaveCS0);
          
 	 cPolynomial_BGC3M2D aPol(0,mCSCur,mNameSaveCS0,mNameIm,mAppli->mDeg); // TAGG
-         aPol.Save2XmlStdMMName(aDest,"",ElAffin2D::Id());
+         aPol.Save2XmlStdMMName(0,"",aDest,ElAffin2D::Id());
      }
 }
 
@@ -618,7 +618,7 @@ std::string aNameOrient  =  MatchAndReplace(anAutom,aNameIm,mPatOrient);
        }
 
        cPolynomial_BGC3M2D aPol(mChSys,mCamGen,mNameOutInit,aNameIm,mDegPol,0); // TAGG
-       aPol.Save2XmlStdMMName(mDest,"",ElAffin2D::Id());
+       aPol.Save2XmlStdMMName(0,"",mDest,ElAffin2D::Id());
     }
     
 }

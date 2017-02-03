@@ -224,11 +224,11 @@ class Elise_Tiled_File_Im_2D : public ElGenFileIm
        2- To specify the paramater of a file to create.
    */
          virtual ~Elise_Tiled_File_Im_2D();
-     static const bool DefCLT         = false;
-     static const bool DefChunk       = true;
-     static const int  DefOffset0     = 0;
-     static const bool DefCreate      = false;
-     static const bool DefByteOrdered = true;
+     static const bool DefCLT         ;
+     static const bool DefChunk       ;
+     static const int  DefOffset0     ;
+     static const bool DefCreate      ;
+     static const bool DefByteOrdered ;
 
          Elise_Tiled_File_Im_2D
          (

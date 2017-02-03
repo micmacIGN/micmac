@@ -1079,15 +1079,28 @@ std::string cPolynomial_BGC3M2D::NameSave(const std::string & aDirLoc,const std:
     return DirSave(aDirLoc,aPref) +  "GB-Orientation-" + NameWithoutDir(mNameIma) + ".xml";
 }
 
-void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc,const std::string &  aPref,const ElAffin2D & anOrIntImaM2C ) const
+void cPolynomial_BGC3M2D::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+                                        const std::string & aOriOut,
+                                        const std::string & aNameImClip,
+                                        const ElAffin2D & anOrIntInit2Cur
+                    ) const
 {
-     ELISE_ASSERT(anOrIntImaM2C.IsId(),"Do not handle affinity in Save2XmlStdMMName");
+     ELISE_ASSERT(anOrIntInit2Cur.IsId(),"Do not handle affinity in Save2XmlStdMMName");
 
-     std::string aDirFull = DirSave(aDirLoc,aPref);
+     
+     std::string aNameXml;
+     if (anICNM)
+     {
+         aNameXml =   anICNM->Dir() + anICNM->Assoc1To1("NKS-Assoc-Im2GBOrient@-"+aOriOut,aNameImClip,true);
+     }
+     else
+     {
+         aNameXml = aNameImClip;
+     }
+     std::string aDirFull = DirOfFile(aNameXml);
 
 
      cXml_CamGenPolBundle aXml = ToXml();
-     std::string aNameXml =  NameSave(aDirLoc,aPref);
 
      std::string aNameSsCor = aDirFull +   NameWithoutDir(mNameFileCam0);
      if (! ELISE_fp::exist_file(aNameSsCor))
@@ -1096,7 +1109,7 @@ void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc,const st
      }
 
      // Pour ne pas avoir le tmp mmdir ....
-     aXml.NameCamSsCor() = DirSave(aDirLoc,"",false) + NameWithoutDir(mNameFileCam0);
+     aXml.NameCamSsCor() = aDirFull + NameWithoutDir(mNameFileCam0);
 
      if (mPtrChSys)
      {

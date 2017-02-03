@@ -783,9 +783,13 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
     }
 }
 
-void CameraRPC::Save2XmlStdMMName(const std::string &aName,const std::string & aPref,const ElAffin2D & anOrIntImaM2C) const
+void CameraRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+                               const std::string & aOriOut,
+                               const std::string & aNameImClip,
+                               const ElAffin2D & anOrIntInit2Cur
+                    ) const
 {
-    mRPC->Save2XmlStdMMName(aName,aPref,anOrIntImaM2C);
+    mRPC->Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,anOrIntInit2Cur);
 }
 
 /******************************************************/
@@ -1375,8 +1379,16 @@ void cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
     
 }
 
-void cRPC::Save2XmlStdMMName(const std::string &aName,const std::string & aPref,const ElAffin2D & anOrIntImaM2C)
+void cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+                               const std::string & aOriOut,
+                               const std::string & aNameImClip,
+                               const ElAffin2D & anOrIntInit2Cur
+                    )
+
 {
+  // aOriOut == "" => convention pour cas special appel a l'ancienne
+    std::string aName = (aOriOut=="")? aNameImClip  : anICNM->StdNameCamGenOfNames(aOriOut,aNameImClip);
+    std::string aPref = (aOriOut=="") ? "" :  anICNM->Dir() ;
     /* Create new RPC */
     cRPC aRPCSauv(aName);
    
@@ -3843,7 +3855,7 @@ int RecalRPC_main(int argc,char ** argv)
     std::list<std::string>::iterator itL=aListFile.begin();
     for( ; itL !=aListFile.end(); itL++ )
     {
-        cRPC::Save2XmlStdMMName(aDir + (*itL),"",ElAffin2D::Id());
+        cRPC::Save2XmlStdMMName(0,"",(*itL),ElAffin2D::Id());
     }
     
    

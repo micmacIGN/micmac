@@ -275,11 +275,11 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
               if (  anEP.StdNameMMDir().IsInit())
               {
                 // MakeFileXML(anEP,"toto.xml");
-                 aGP->GenCurCam()->Save2XmlStdMMName( anEP.StdNameMMDir().Val(),aPref);
+                 aGP->GenCurCam()->Save2XmlStdMMName(0,"",aPref+anEP.StdNameMMDir().Val());
               }
               else if (anExpr.Match(aNXml) && anExpr.Replace(aNXml))
               {
-                 aGP->GenCurCam()->Save2XmlStdMMName(anExpr.KIemeExprPar(1),aPref);
+                 aGP->GenCurCam()->Save2XmlStdMMName(0,"",aPref+anExpr.KIemeExprPar(1));
               }
               else
               {
