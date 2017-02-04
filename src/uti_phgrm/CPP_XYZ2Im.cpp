@@ -54,6 +54,7 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
     std::string XYZ = "X,Y,Z";
     std::string IJ = "I,J";
     bool aPoinIsImRef = true;
+    bool aInputImWithZ = false;
 
     if (Ter2Im)
     {
@@ -76,6 +77,7 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
                        << EAMC(aFilePtsOut,"File Out : " + (Ter2Im ? IJ : XYZ), eSAM_IsOutputFile),
            LArgMain()  << EAM(aFilteredInput,"FilterInput",true,"To generate a file of input superposable to output",eSAM_IsOutputFile)
                        << EAM(aPoinIsImRef,"PointIsImRef",true,"Point must be corrected from cloud resolution def = true")
+		       << EAM(aInputImWithZ,"InputImWithZ",false,"Input Im point with Z (for Im2XYZ) def=false")
        );
     }
 
@@ -101,7 +103,7 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
 
         if (! Ter2Im)
         {
-            if (aNuage)
+            if ( (aNuage==NULL) && !aInputImWithZ)
             {
                 std::cout  << "For name " << aFullNC << "\n";
                 ELISE_ASSERT(aNuage!=0,"Is not a MicMac Cloud -XML specif");
@@ -133,25 +135,43 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
             else
             {
                 Pt2dr aPIm;
+		double aInputZ;
                 int aNb = sscanf(aLine,"%lf %lf",&aPIm.x,&aPIm.y);
                 ELISE_ASSERT(aNb==2,"Could not read 2 double values");
-		std::cout << "2D Point: ["<<aPIm.x<< ","<<aPIm.y<<"]\n";
-                if (aPoinIsImRef)
-                    aPIm = aNuage->ImRef2Capteur (aPIm);/* ici il y a un bug sous linux, segmention core dumped*/
-		
-                if (aNuage->CaptHasData(aPIm))
-                {
-			 
-                   Pt3dr aP  = aNuage->PreciseCapteur2Terrain(aPIm);
-                   fprintf(aFOut,"%lf %lf %f\n",aP.x,aP.y,aP.z);
-                   aV2Ok.push_back(aPIm);
-                }
-                else
-                {
-		
-                    HasEmpty = true;
-                    std::cout << "Warn :: " << aPIm << " has no data in cloud\n";
-                }
+		if (aInputImWithZ)
+		{
+			int aNb = sscanf(aLine,"%lf %lf %lf",&aPIm.x,&aPIm.y,&aInputZ);
+                	ELISE_ASSERT(aNb==3,"Could not read 3 double values");
+			std::cout << "2D Point + Z: ["<<aPIm.x<< ","<<aPIm.y<<","<<aInputZ<<"]\n";
+		}
+		else
+		{
+			int aNb = sscanf(aLine,"%lf %lf",&aPIm.x,&aPIm.y);
+                	ELISE_ASSERT(aNb==2,"Could not read 2 double values");
+			std::cout << "2D Point: ["<<aPIm.x<< ","<<aPIm.y<<"]\n";
+		}
+		if (aNuage)
+		{
+			if (aPoinIsImRef)
+                    	aPIm = aNuage->ImRef2Capteur (aPIm);/* ici il y a un bug sous linux, segmention core dumped*/
+
+       			if (aNuage->CaptHasData(aPIm))
+                	{
+                   		Pt3dr aP  = aNuage->PreciseCapteur2Terrain(aPIm);
+                   		fprintf(aFOut,"%lf %lf %f\n",aP.x,aP.y,aP.z);
+                   		aV2Ok.push_back(aPIm);
+                	}
+                	else
+                	{
+                    		HasEmpty = true;
+                    		std::cout << "Warn :: " << aPIm << " has no data in cloud\n";
+                	}
+		}
+		else if (aCam)
+		{
+			Pt3dr aP = aCam->F2AndZtoR3(aPIm,aInputZ);
+                	fprintf(aFOut,"%lf %lf %lf\n",aP.x,aP.y,aP.z);
+		}
             }
          }
 
