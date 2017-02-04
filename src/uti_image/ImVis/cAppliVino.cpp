@@ -80,7 +80,8 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mHistoLisse        (mNbHistoMax),
     mHistoCum          (mNbHistoMax),
     mIsMnt             (true),
-    mWithBundlExp      (false)
+    mWithBundlExp      (false),
+    mClipIsChantier    (true)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -118,6 +119,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
         }
     }
 
+    std::vector<std::string>  mParamClipCh;
 
     ElInitArgMain
     (
@@ -132,6 +134,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
                     << EAM(ForceGray(),"Gray",true,"Force gray images (def=false)")
                     << EAM(mIsMnt,"IsMnt",true,"Display altitude if true, def exist of Mnt Meta data")
                     << EAM(mFileMnt,"FileMnt",true,"Default toto.tif -> toto.xml")
+                    << EAM(mParamClipCh,"ClipCh",true,"Param 4 Clip Chantier [PatClip,OriClip]")
                     // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
     );
 
@@ -245,6 +248,16 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
            mBundlExp = StdGetFromAp(aNameSens,XmlNameSensibs);
            mWithBundlExp = true;
         }
+    }
+
+    if (EAMIsInit(&mParamClipCh))
+    {
+       ELISE_ASSERT(mParamClipCh.size()>=2,"Not Enough arg in ParamClipCh");
+       ELISE_ASSERT(mParamClipCh.size()<=2,"Too much Enough arg in ParamClipCh");
+
+       mClipIsChantier = true;
+       mPatClipCh = mParamClipCh[0];
+       mOriClipCh = mParamClipCh[1];
     }
 }
 

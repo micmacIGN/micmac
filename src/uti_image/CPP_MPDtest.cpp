@@ -1218,8 +1218,30 @@ void TestMemory()
 
 extern void TMA();
 
+void TestClipBundle()
+{
+   std::string aNFull = "/media/ubuntu/ubuntu/dji_video/dji5-6/Ori-RPC-d1-gcp-OriNew/GB-Orientation-IMG_PHR1B_P_201301260750191_SEN_IPU_20130612_0904-003_R1C1.JP2.tif.xml";
+   std::string aNClip = "/media/ubuntu/ubuntu/dji_video/dji5-6/Ori-RPC-d1-gcp-OriNew-Clip/GB-Orientation-Cliped_IMG_PHR1B_P_201301260750191_SEN_IPU_20130612_0904-003_R1C1.JP2.tif.xml";
+
+   int aType = 0 ;
+
+   cBasicGeomCap3D * aCFull = cBasicGeomCap3D::StdGetFromFile(aNFull,aType);
+   cBasicGeomCap3D * aCClip = cBasicGeomCap3D::StdGetFromFile(aNClip,aType);
+
+   std::cout << "SZZZZ ||  Ful : " << aCFull->SzBasicCapt3D() << " ; Clip : "<< aCClip->SzBasicCapt3D() << "\n";
+
+   Pt2dr aPIm0 = Pt2dr(500,500);
+   Pt3dr aPTer = aCClip->ImEtZ2Terrain(aPIm0,1000.0);
+   Pt2dr aPIm1 = aCFull->Ter2Capteur(aPTer);
+
+   std::cout << "PIM1111 " << aPIm1 << " " << aCClip->Ter2Capteur(aPTer)  << "\n";
+   
+   exit(EXIT_SUCCESS);
+}
+
 int MPDtest_main (int argc,char** argv)
 {
+    TestClipBundle();
     {
         double aU0 = 0.5;
         for (int aK=1 ; aK< 100000 ; aK++)

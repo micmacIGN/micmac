@@ -1138,10 +1138,20 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
           if ((aSZ.x>aMinSz) && (aSZ.y>aMinSz))
           {
-               CamStenope * aCS = anI.CamSSvp();
+               std::string aCom =      MMBinFile(MM3DStr)
+                                     + " ClipIm "
+                                     + mEASF.mDir + anI.mNameIm + BLANK
+                                     + ToString(aDec) + BLANK
+                                     + ToString(aSZ) + BLANK
+                                     + " Out=" + aNewIm;
+
+               System(aCom,false,true);
+
+               aCG->Save2XmlStdMMName(mEASF.mICNM,aOriOut,aNewIm,Pt2dr(aDec));
+/*
                if (aCS)
                {
-                    aCS->cBasicGeomCap3D::Save2XmlStdMMName(mEASF.mICNM,mOri,aNewIm,Pt2dr(aDec));
+                    aCS->cBasicGeomCap3D::Save2XmlStdMMName(mEASF.mICNM,aOriOut,aNewIm,Pt2dr(aDec));
                     std::cout << "Box " << anI.mNameIm << aDec << aSZ << "\n";
 
                     cOrientationConique  aCO = aCS->StdExportCalibGlob();
@@ -1181,15 +1191,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                    std::cout << "CLIP ORIENT TO DO 4 Bundle Gen \n";
                    // ELISE_ASSERT(false,"Unfinished ClipChantier pour pushbroom");
                 }
-                std::string aCom =      MMBinFile(MM3DStr)
-                                     + " ClipIm "
-                                     + mEASF.mDir + anI.mNameIm + BLANK
-                                     + ToString(aDec) + BLANK
-                                     + ToString(aSZ) + BLANK
-                                     + " Out=" + aNewIm;
-
-                // std::cout << aCom << "\n";
-                System(aCom,false,true);
+*/
            }
        }
 
@@ -2107,7 +2109,7 @@ int ChantierClip_main(int argc,char ** argv)
 
    if (!MMVisualMode) BanniereMM3D();
 
-   return 1;
+   return EXIT_SUCCESS;
 }
 #if (0)
 #endif

@@ -337,11 +337,17 @@ class cAppli_Vino : public cXml_EnvVino,
         Im1D_REAL8  mHistoLisse;
         Im1D_REAL8  mHistoCum;
         std::string mNameHisto;
+        // Affiche des altitudes
         bool        mIsMnt;
         std::string mFileMnt;
         cFileOriMnt *mFOM;
+        // Afffiche les noms d'un export de sensinilite bundle
         cXmlNameSensibs mBundlExp;
         bool            mWithBundlExp;
+        // gere le clip d'un chantier
+        bool           mClipIsChantier;
+        std::string    mPatClipCh;
+        std::string    mOriClipCh;
 };
 
 Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);

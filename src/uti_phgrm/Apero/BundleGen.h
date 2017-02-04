@@ -144,7 +144,8 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            std::string NameSave(const std::string & aDirLoc,const std::string & aPref) const;
 
            cXml_CamGenPolBundle ToXml() const;
-           static  cPolynomial_BGC3M2D * NewFromFile(const std::string &);
+           // WithAffine recupere eventuellement la deformation affine, si vaut 0 et def existe => erreur
+           static  cPolynomial_BGC3M2D * NewFromFile(const std::string &,cBasicGeomCap3D **  WithAffine= 0);
       private : 
            void SetMonom(const cMonomXY & aMon,std::vector<double> &);
            void SetMonom(const std::vector<cMonomXY> & aMon,std::vector<double> &);

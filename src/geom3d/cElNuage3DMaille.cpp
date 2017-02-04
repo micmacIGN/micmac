@@ -241,7 +241,7 @@ cElNuage3DMaille::cElNuage3DMaille
                            mParams.Orientation().OrIntImaM2C().Val(),
                            cBasicGeomCap3D::StdGetFromFile(mParams.NameOri().Val(),mITypeCam),
                            aNameFile,
-                           "toto203.tif"
+                           aDir+mParams.PN3M_Nuage().Image_Profondeur().Val().Image() // Ne Sert que pour la taille ?
                        )  :  
                        Cam_Gen_From_XML(mParams.Orientation(),mICNM,aNameFile)     
                   ),

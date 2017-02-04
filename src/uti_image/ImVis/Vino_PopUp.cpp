@@ -78,12 +78,25 @@ void  cAppli_Vino::Crop()
     Pt2di aSzI = round_ni(aSzR);
 
     std::cout << "JJJJJJ " << Zoom1 << " " << HOri << aP0  << " " << aP1  << " SZ=" << aSzR << "\n";
-    // static int aNumCrop=0;
+
+    if (mClipIsChantier)
+    {
+         std::string aComClip =     MMBinFile(MM3DStr)
+                                  + " ChantierClip "
+                                  + QUOTE(mPatClipCh) + std::string(" ")
+                                  + mOriClipCh + std::string(" ")
+                                  + mNameIm    + std::string(" ")
+                                  + ToString(Box2di(round_ni(aP0),round_ni(aP1))) + std::string(" ")
+                                ;
+         System(aComClip); 
+    }
+    else
+    {
+        // static int aNumCrop=0;
       
-    std::string aNameRes = mDir + "Crop-" + ToString(NumCrop()) + "-" +  mNameIm + ".tif";
-    NumCrop()++;
-    SaveState();
-    Tiff_Im aTiffCrop
+        std::string aNameRes = mDir + "Crop-" + ToString(NumCrop()) + "-" +  mNameIm + ".tif";
+        SaveState();
+        Tiff_Im aTiffCrop
             (
                 aNameRes.c_str(),
                 aSzI,
@@ -92,25 +105,25 @@ void  cAppli_Vino::Crop()
                 mTiffIm->phot_interp()
             );
 
-    Fonc_Num aFIn = mTiffIm->in_proj();
-    if (! HOri)
-       aFIn = ChgDynAppliVino(aFIn,*this);
+        Fonc_Num aFIn = mTiffIm->in_proj();
+        if (! HOri)
+           aFIn = ChgDynAppliVino(aFIn,*this);
 
-    if (Zoom1)
-    {
-        ELISE_COPY
-        (
-           rectangle(Pt2di(0,0),aSzI),
-           trans(aFIn,round_ni(aP0)),
-           aTiffCrop.out()
-        );
+        if (Zoom1)
+        {
+            ELISE_COPY
+            (
+               rectangle(Pt2di(0,0),aSzI),
+               trans(aFIn,round_ni(aP0)),
+               aTiffCrop.out()
+            );
+        }
+        else
+        {
+            PutMessageRelief(0,"ZOOM Crop not implemented for now");
+        }
     }
-    else
-    {
-        PutMessageRelief(0,"ZOOM Crop not implemented for now");
-    }
-
-
+    NumCrop()++;
     Refresh();
 }
 

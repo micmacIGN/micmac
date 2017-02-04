@@ -3682,6 +3682,9 @@ void CamStenope::Save2XmlStdMMName
     ElAffin2D  aM2CCliped =    anOrIntInit2Cur.inv() * aM2C0;
     aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
     aCO.Interne().Val().PixelSzIm().SetVal(Pt2dr(Tiff_Im::UnivConvStd(aNameImClip).sz()));
+
+     MakeFileXML(aCO,aNameOut);
+
 }
 
 double  CamStenope::GetRoughProfondeur() const
