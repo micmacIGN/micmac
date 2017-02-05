@@ -67,7 +67,9 @@ class cAppliTarama : public cAppliWithSetImage
 
 
 cAppliTarama::cAppliTarama(int argc,char ** argv) :
-    cAppliWithSetImage(argc-1,argv+1, 0)//      TheFlagNoOri)
+    cAppliWithSetImage(argc-1,argv+1, 0)
+    //   !!   TheFlagNoOri , ajoute fin janvier 2017, cree un bug, si cette modif est necessaire
+    //  dans certain contexte, contacter MPD pour voir comment gerer tout les cas
 {
 
     NoInit = "XXXXXXXXXX";
