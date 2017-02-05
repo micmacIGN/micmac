@@ -1071,9 +1071,10 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
       getchar();
   }
 */
-  std::string aPrefClip = "Cliped_";
+  std::string aPrefClip = "Cliped";
   std::string aOriOut;
   double      aMinSz = 500;
+
 
   ElInitArgMain
   (
@@ -1089,69 +1090,81 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
   if (!MMVisualMode)
   {
-   StdCorrecNameOrient(mOri,DirOfFile(mEASF.mFullName));
+      std::string aDirOut = "Dir-" + aPrefClip + "/";
+      StdCorrecNameOrient(mOri,DirOfFile(mEASF.mFullName));
 
 
-   if (!EAMIsInit(&aOriOut))
-      aOriOut = mOri + "-Clip";
+      if (!EAMIsInit(&aOriOut))
+         aOriOut = mOri + "-" + aPrefClip;
 
-   mMasterIm  =  ImOfName(mNameMasterIm);
+      mMasterIm  =  ImOfName(mNameMasterIm);
 
-   double aZ = mMasterIm->attr().mIma->CamGen()->GetAltiSol();
+      double aZ = mMasterIm->attr().mIma->CamGen()->GetAltiSol();
 
-   Pt2di aCornIm[4];
-   mBox.Corners(aCornIm);
+      Pt2di aCornIm[4];
+      mBox.Corners(aCornIm);
 
-   std::vector<Pt3dr>  mVIm;
+      std::vector<Pt3dr>  mVIm;
 
-   for (int aK=0 ; aK < 4 ; aK++)
-   {
-       mVIm.push_back(mMasterIm->attr().mIma->CamGen()->ImEtZ2Terrain(Pt2dr(aCornIm[aK]),aZ));
-   }
+      for (int aK=0 ; aK < 4 ; aK++)
+      {
+          mVIm.push_back(mMasterIm->attr().mIma->CamGen()->ImEtZ2Terrain(Pt2dr(aCornIm[aK]),aZ));
+      }
+
+      ELISE_fp::MkDirRec(mEASF.mDir+aDirOut);
+      bool DoMoveOri = false;
+      std::string aDirOriOut;
 
    // for (int aKIm = 0 ; aKIm <int(mImages.size()) ; aKIm++)
-   for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
-   {
-       cImaMM & anI = *((*anITS).attr().mIma);
-       cBasicGeomCap3D * aCG = anI.CamGen();
+      for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+      {
+          cImaMM & anI = *((*anITS).attr().mIma);
+          cBasicGeomCap3D * aCG = anI.CamGen();
        // Pt2dr aP1(0,0);
        // Pt2dr aP0 = Pt2dr(aCS->Sz());
-       Pt2di aP0(1e9,1e9);
-       Pt2di aP1(-1e9,-1e9);
+          Pt2di aP0(1e9,1e9);
+          Pt2di aP1(-1e9,-1e9);
 
-       for (int aKP=0 ; aKP < 4 ; aKP++)
-       {
-           Pt2di aPIm = round_ni(aCG->Ter2Capteur(mVIm[aKP]));
-           aP0.SetInf(aPIm);
-           aP1.SetSup(aPIm);
-       }
-       Box2di aBoxIm(aP0,aP1);
-       Box2di aBoxCam(Pt2di(0,0),Pt2di(aCG->SzPixel()));
-
-       if (! InterVide(aBoxIm,aBoxCam))
-       {
-          Box2di aBoxRes = Inf(aBoxIm,aBoxCam);
-          Pt2di aDec = aBoxRes._p0;
-          Pt2di aSZ = aBoxRes.sz();
-          std::string aNewIm = aPrefClip + anI.mNameIm;
-          aNewIm = StdPrefix(aNewIm) + ".tif";
-
-          if ((aSZ.x>aMinSz) && (aSZ.y>aMinSz))
+          for (int aKP=0 ; aKP < 4 ; aKP++)
           {
-               std::string aCom =      MMBinFile(MM3DStr)
+              Pt2di aPIm = round_ni(aCG->Ter2Capteur(mVIm[aKP]));
+              aP0.SetInf(aPIm);
+              aP1.SetSup(aPIm);
+          }
+          Box2di aBoxIm(aP0,aP1);
+          Box2di aBoxCam(Pt2di(0,0),Pt2di(aCG->SzPixel()));
+
+
+          if (! InterVide(aBoxIm,aBoxCam))
+          {
+             Box2di aBoxRes = Inf(aBoxIm,aBoxCam);
+             Pt2di aDec = aBoxRes._p0;
+             Pt2di aSZ = aBoxRes.sz();
+             std::string aNewIm = aPrefClip + "-" + anI.mNameIm;
+             aNewIm = StdPrefix(aNewIm) + ".tif";
+
+
+             if ((aSZ.x>aMinSz) && (aSZ.y>aMinSz))
+             {
+                  std::string aCom =      MMBinFile(MM3DStr)
                                      + " ClipIm "
                                      + mEASF.mDir + anI.mNameIm + BLANK
                                      + ToString(aDec) + BLANK
                                      + ToString(aSZ) + BLANK
                                      + " Out=" + aNewIm;
 
-               System(aCom,false,true);
+                  System(aCom,false,true);
+                  ELISE_fp::MvFile(mEASF.mDir + aNewIm , mEASF.mDir+aDirOut + aNewIm);
 
-               aCG->Save2XmlStdMMName(mEASF.mICNM,aOriOut,aNewIm,Pt2dr(aDec));
+                  std::string aNameOriOut = aCG->Save2XmlStdMMName(mEASF.mICNM,aOriOut,aNewIm,Pt2dr(aDec));
+                  aDirOriOut = DirOfFile(aNameOriOut);
+                  DoMoveOri = true;
+
+               // std::cout << "NameOriOut= " << aNameOriOut << "\n";
 /*
                if (aCS)
                {
-                    aCS->cBasicGeomCap3D::Save2XmlStdMMName(mEASF.mICNM,aOriOut,aNewIm,Pt2dr(aDec));
+                    aCS->cBasicGeomCap3D :: Save2XmlStdMMName(mEASF.mICNM,aOriOut,aNewIm,Pt2dr(aDec));
                     std::cout << "Box " << anI.mNameIm << aDec << aSZ << "\n";
 
                     cOrientationConique  aCO = aCS->StdExportCalibGlob();
@@ -1192,10 +1205,13 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                    // ELISE_ASSERT(false,"Unfinished ClipChantier pour pushbroom");
                 }
 */
-           }
-       }
-
-   }
+              }
+          }
+      }
+      if (DoMoveOri)
+      {
+         ELISE_fp::MvFile(mEASF.mDir + aDirOriOut , mEASF.mDir+aDirOut + aDirOriOut);
+      }
 
   }
 }

@@ -783,13 +783,13 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
     }
 }
 
-void CameraRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+std::string CameraRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
                                const std::string & aOriOut,
                                const std::string & aNameImClip,
                                const ElAffin2D & anOrIntInit2Cur
                     ) const
 {
-    mRPC->Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,anOrIntInit2Cur);
+    return mRPC->Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,anOrIntInit2Cur);
 }
 
 /******************************************************/
@@ -1295,7 +1295,7 @@ void cRPC::FilSampDenCoeff(T& aXml, double (&aSDC)[20]) const
    aXml.SAMP_DEN_COEFF_20() = aSDC[19];  
 }
 
-void cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
+std::string cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
 {
    /* Change the coordinate sytem to original geodetic */
    aRPC.ChSysRPC(aRPC.mChSys);
@@ -1377,9 +1377,10 @@ void cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
    MakeFileXML(aXml_RPC,aName);
    std::cout << "Saved to: " << aName << "\n";
     
+   return aName;
 }
 
-void cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
                                const std::string & aOriOut,
                                const std::string & aNameImClip,
                                const ElAffin2D & anOrIntInit2Cur
@@ -1417,9 +1418,10 @@ void cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
     cXml_CamGenPolBundle aXMLNew = aPolNew.ToXml();
 
 
-    MakeFileXML(aXMLNew,aNewDirLoc+NameWithoutDir(aNameGenXml));
+    std::string aNameXmlFinal = aNewDirLoc+NameWithoutDir(aNameGenXml);
+    MakeFileXML(aXMLNew,aNameXmlFinal);
 
-
+    return aNameXmlFinal;
 }
 
 bool cRPC::AutoDetermineGRIDFile(const std::string &aFile) const

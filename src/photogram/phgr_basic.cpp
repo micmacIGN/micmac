@@ -1473,7 +1473,7 @@ double cBasicGeomCap3D::GetVeryRoughInterProf() const
    return 1/600.0;
 }
 
-void cBasicGeomCap3D::Save2XmlStdMMName
+std::string cBasicGeomCap3D::Save2XmlStdMMName
      (
            cInterfChantierNameManipulateur * anICNM,
            const std::string & aOriOut,
@@ -1482,22 +1482,23 @@ void cBasicGeomCap3D::Save2XmlStdMMName
      ) const
 {
     ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMName Not Suported");
+    return "";
 }
 
 
 
 
-void  cBasicGeomCap3D::Save2XmlStdMMName
+std::string  cBasicGeomCap3D::Save2XmlStdMMName
       (
            cInterfChantierNameManipulateur * anICNM,
            const std::string & aOriOut,
            const std::string & aNameImClip
       ) const
 {
-    Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,ElAffin2D::Id());
+    return Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,ElAffin2D::Id());
 }
 
-void  cBasicGeomCap3D::Save2XmlStdMMName
+std::string  cBasicGeomCap3D::Save2XmlStdMMName
       (
            cInterfChantierNameManipulateur * anICNM,
            const std::string & aOriOut,
@@ -1505,7 +1506,7 @@ void  cBasicGeomCap3D::Save2XmlStdMMName
            const Pt2dr & aP
       )  const
 {
-    Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,ElAffin2D::trans(aP));
+    return Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,ElAffin2D::trans(aP));
 }
 
 
@@ -3658,14 +3659,7 @@ cCalibrationInternConique  ElCamera::ExportCalibInterne2XmlStruct(Pt2di aSzIm) c
 
 CamStenope * CamStenope::DownCastCS() { return this; }
 
-/*
-void CamStenope::Save2XmlStdMMName(const std::string & aOriOut,const std::string & aPref,const ElAffin2D & anOrIntInit2Cur) const
-{
-    ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMName Not Suported");
-}
-*/
-
-void CamStenope::Save2XmlStdMMName
+std::string CamStenope::Save2XmlStdMMName
      (
            cInterfChantierNameManipulateur * anICNM,
            const std::string & aOriOut,
@@ -3683,8 +3677,9 @@ void CamStenope::Save2XmlStdMMName
     aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
     aCO.Interne().Val().PixelSzIm().SetVal(Pt2dr(Tiff_Im::UnivConvStd(aNameImClip).sz()));
 
-     MakeFileXML(aCO,aNameOut);
+    MakeFileXML(aCO,aNameOut);
 
+    return aNameOut;
 }
 
 double  CamStenope::GetRoughProfondeur() const

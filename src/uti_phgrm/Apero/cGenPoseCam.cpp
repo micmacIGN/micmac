@@ -1192,21 +1192,12 @@ std::string cPolynomial_BGC3M2D::NameSave(const std::string & aDirLoc,const std:
     return DirSave(aDirLoc,aPref) +  "GB-Orientation-" + NameWithoutDir(mNameIma) + ".xml";
 }
 
-void cPolynomial_BGC3M2D::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
+std::string cPolynomial_BGC3M2D::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
                                         const std::string & aOriOut,
                                         const std::string & aNameImClip,
                                         const ElAffin2D & anOrIntInit2Cur
                     ) const
 {
-/*
-if (MPD_MM())
-{
-    std::cout << "HHHHHHHHhhhllKkkk \n";
-    getchar();
-    return;
-}
-     ELISE_ASSERT(anOrIntInit2Cur.IsId(),"Do not handle affinity in Save2XmlStdMMName");
-*/
 
      
      std::string aNameXml;
@@ -1251,6 +1242,7 @@ if (MPD_MM())
      
      MakeFileXML(aXml,aNameXml);
 
+     return aNameXml;
 }
 
 

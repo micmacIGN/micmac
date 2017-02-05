@@ -67,7 +67,7 @@ class cAppliTarama : public cAppliWithSetImage
 
 
 cAppliTarama::cAppliTarama(int argc,char ** argv) :
-    cAppliWithSetImage(argc-1,argv+1,     TheFlagNoOri)
+    cAppliWithSetImage(argc-1,argv+1, 0)//      TheFlagNoOri)
 {
 
     NoInit = "XXXXXXXXXX";
