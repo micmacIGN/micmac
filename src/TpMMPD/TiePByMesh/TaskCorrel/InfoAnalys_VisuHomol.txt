@@ -61,6 +61,35 @@ Il sort aussi une fichier text, avec le "histogram" de residue (échantilonage s
     (a) Calcul Epipolair Ecarte aDif entre 2 point aP1 aP2 grace à ses 2 orientation d'image
     (b) Réprésente ecart aDif*1000 de chaque point par la hauteur Z dans fichier ply
     (c) Sauvgarde les couple homologue avec aDif (residue) correspondant
+    
+(5 bis) Qu'est que c'est l'Epipolair Ecarte aDif ?
+     (.) Method dans cBasicGeomCap3D.
+     	 double  cBasicGeomCap3D::EpipolarEcart(const Pt2dr & aP1,		=> point img 1
+     	 					const cBasicGeomCap3D & aCam2,	=> Ori cam img 2
+     	 					const Pt2dr & aP2		=> point img 2 (correspondant homologue de point img 1)
+     	 				       ) 
+     (.) Calcul Pseudo Intersec aPInter entre 2 rayon aSeg1 et aSeg2 (rayon de aP1 et aP2)
+     (.) Reproject aPInter au image 1 => aQA
+     (.) Ecart de residue paralax (distant entre point P1 avec point de peseudo intersection reprojecté, selon y) ? 
+     
+(5 bis) vunit
+     (.) Calcul vector unité (espace 3D) 
+     (.) aP/euclid(aP);
+     
+(5 bis) Un ElSeg3D:
+     (.) Defini par P0 et P1 - 2 bout du vector
+     (.) TgNormee() -> return mTN = Tgt()/euclid(Tgt()), avec Tgt() = P1-P0
+     (.) C'est la vector unité du seg
+     
+Pt3dr vunit(const Pt3dr & aP)
+{
+    REAL aD = euclid(aP);
+    ELISE_ASSERT(aD!=0,"Dist Nulle un vunit");
+    return aP/aD;
+}
+
+     
+
 
 (6) Estimer une coubre plan pour réprésent la tendance de résidue
 
@@ -157,11 +186,7 @@ Il sort aussi une fichier text, avec le "histogram" de residue (échantilonage s
  	    
 
 
-        
-
-
-
-    
+      
 		
 		   
 
