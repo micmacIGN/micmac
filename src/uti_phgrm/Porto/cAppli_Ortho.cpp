@@ -276,10 +276,10 @@ Video_Win *  cAppli_Ortho::W()
    return mW;
 }
 
-Im1D_U_INT1 cAppli_Ortho::InitRanLutLabel()
+Im1D_U_INT2 cAppli_Ortho::InitRanLutLabel()
 {
-   Im1D_U_INT1 aRes((int)mVAllOrhtos.size());
-   ELISE_COPY(aRes.all_pts(),255*frandr(),aRes.out());
+   Im1D_U_INT2 aRes((int)mVAllOrhtos.size());
+   ELISE_COPY(aRes.all_pts(),LabelNoIm*frandr(),aRes.out());
    return aRes;
 }
 
@@ -397,7 +397,7 @@ void  cAppli_Ortho::DoOneBox
             }
         }
     }
-    ELISE_ASSERT(mVLI.size()<255,"Too much image in DoOneBox");
+    ELISE_ASSERT(mVLI.size()<LabelNoIm,"Too much image in DoOneBox");
 
     // std::cout << "IM2TEST " <<  mNbLoadedIm2Test  << " " << mNbIm2Test << "\n";
     if (mNbLoadedIm2Test < mNbIm2Test)

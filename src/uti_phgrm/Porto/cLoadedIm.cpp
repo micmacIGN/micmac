@@ -82,10 +82,6 @@ std::cout << "xxxxxxxxxxxxxxxxxxWWWWWW " << aCpt << "\n ";
      {
         double aVK = aVV[aK] * mAppli.DynGlob();
 
- // aVK *= 1 /(1+ (((unsigned long int)(this))%257)/123.0);
-        //  if (mAppli.ValMasqMesure( aPLoc)) aVK= 255- aVK;
-        // aVIm[aK]->SetI(aPLoc,aVV[aK]);
-
         aVIm[aK]->SetI( aPLoc, (int)aVK );
         mAppli.SetRMax(aVK,aK);
 
@@ -109,7 +105,7 @@ bool cLoadedIm::Init
    mTImPC = TIm2D<U_INT1,INT>(mImPC);
    mImPCBrute.Resize(mSz);
 
-   Fonc_Num aFoncPC = anOrtho.mTifPC.in(255);
+   Fonc_Num aFoncPC = anOrtho.mTifPC.in(MaxPC);
    ELISE_COPY
    (
        mImPC.all_pts(),
@@ -121,7 +117,7 @@ bool cLoadedIm::Init
    ELISE_COPY
    (
        rectangle(aBoxOut._p0-aBoxIn._p0,aBoxOut._p1-aBoxIn._p0),
-       mImPCBrute.in() != 255,
+       mImPCBrute.in() != MaxPC,
        sigma(aNbOK)
    );
    if (aNbOK==0)
@@ -176,34 +172,8 @@ bool cLoadedIm::Init
        {
              aFSat = aFSat || (mIms[aKIm]->in(0)>=aThresSat);
        }
-       ELISE_COPY (select(mImPC.all_pts(),aFSat), 255, mImPC.out());
+       ELISE_COPY (select(mImPC.all_pts(),aFSat), MaxPC, mImPC.out());
    }
-/*
-   ELISE_COPY
-   (
-      mImPC.all_pts(),
-      Max(0,Min(255,500*FoncInc())),
-      mAppli.W()->ogray()
-   );
-   getchar();
-
-   std::cout << mInd << "  " << mCurOrtho->Name() << " ";
-   for (int aKIm=0 ; aKIm<int(mIms.size()) ; aKIm++)
-   {
-        std::cout << mIms[aKIm]->GetI(aPB) << " " ;
-   }
-   std::cout << "\n";
-
-   Video_Win * aW = mAppli.W();
-   if (aW)
-   {
-        ELISE_COPY
-        (
-            aW.all_pts(),
-            mImIncH
-        );
-   }
-*/
 
    return true;
 }
@@ -243,8 +213,7 @@ void cLoadedIm::UpdateNadirIndex(Im2D_REAL4 aScoreNadir,Im2D_INT2 aIndexNadir)
     {
          for (aP.y =0 ; aP.y < mSz.y ; aP.y++)
          {  
-// if (aP==aPB) std::cout << " --== " <<  aTPC.get(aP) << "\n";
-              if (aTPC.get(aP) != 255)
+              if (aTPC.get(aP) != MaxPC)
               {
                  Pt2dr aPR = Pt2dr(aP)/mFactRed-mPR_RDL;
                  double aScore = mTScLoc.getr(aPR,1e5) + 1e3 * aPriorite;
@@ -254,14 +223,13 @@ void cLoadedIm::UpdateNadirIndex(Im2D_REAL4 aScoreNadir,Im2D_INT2 aIndexNadir)
                       aTInd.oset(aP,mInd);
                  }
               }
-// if (aP==aPB) std::cout << "    " <<  aTInd.get(aP) << "\n";
          }
     }
 }
 
 int cLoadedIm::ValeurPC(const Pt2di & aP) const
 {
-    return mTImPC.get(aP,255);
+    return mTImPC.get(aP,MaxPC);
 }
 
 const Pt2di&  cLoadedIm::DecLoc() const
