@@ -81,7 +81,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mHistoCum          (mNbHistoMax),
     mIsMnt             (true),
     mWithBundlExp      (false),
-    mClipIsChantier    (true)
+    mClipIsChantier    (false)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
