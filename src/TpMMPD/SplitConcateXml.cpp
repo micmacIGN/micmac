@@ -43,6 +43,163 @@ Header-MicMac-eLiSe-25/06/2007*/
 //* if name points not given generate them auto (random mode)
 //* if all possible combinations asked, generate them too
 
+struct HomPSOrima{
+	std::string ImgName;
+	int Id;
+	Pt2dr Coord;
+	int Flag;
+	std::string Status;
+};
+
+struct PatisImg{
+	int aIdImg1;
+	vector<ElPackHomologue> aPack;
+	vector<int> aVIdImgs2nd;
+
+
+};
+
+vector<string> VImgs;
+vector<int> VId;
+vector<int> VIdUnique;
+vector<Pt2dr> VCoords;
+vector<string> VImgsUnique;
+vector<PatisImg> VHomol;
+
+
+class cCPSH_Appli
+{
+	public :
+		cCPSH_Appli(int argc,char ** argv);
+		void GetVImgsFromId(int aId, std::vector<std::string> & VImgs,std::vector<Pt2dr> & VPts);
+		
+	private :
+		std::string mDir;
+		std::string mPSFile;
+};
+
+cCPSH_Appli::cCPSH_Appli(int argc,char ** argv)
+{
+	std::string aOut, aPat;
+	ElInitArgMain
+    (
+          argc, argv,
+          LArgMain() << EAMC(mDir, "Directory")
+					 << EAMC(mPSFile, "PhotoScan ORIMA input File", eSAM_IsExistFile),
+          LArgMain() << EAM(aOut,"Out",false,"Output Homol Name ; Def=Homol_PS")
+					 << EAM(aPat,"Pat",false,"Pattern of images")
+    );
+    
+    //name output homol folder
+    if (aOut=="")
+    {
+		aOut = "Homol_PS";
+    }
+    
+    std::vector<HomPSOrima> aVHPSO;
+    
+    //~ file format to read :    D0003736.JPG               0           7.997          -1.199   0   M
+    //read input file
+    ifstream aFichier((mDir + mPSFile).c_str());
+    
+    if(aFichier)
+    {
+		std::string aLine;
+        
+        while(!aFichier.eof())
+        {
+			getline(aFichier,aLine,'\n');
+			
+			if(aLine.size() != 0)
+			{
+				char *aBuffer = strdup((char*)aLine.c_str());
+				std::string aName = strtok(aBuffer," ");
+				char *aId = strtok( NULL, " " );
+				char *aI = strtok( NULL, " " );
+				char *aJ = strtok( NULL, " " );
+				char *aFlag = strtok( NULL, " " );
+				char *aStatus = strtok( NULL, " " );
+				
+				HomPSOrima aHPSO;
+				aHPSO.ImgName = aName;
+				aHPSO.Id = atoi(aId);
+				Pt2dr aC(atof(aI),atof(aJ));
+				aHPSO.Coord = aC;
+				aHPSO.Flag = atoi(aFlag);
+				aHPSO.Status = aStatus;
+				
+				aVHPSO.push_back(aHPSO);
+
+				VImgs.push_back(aName);
+				VId.push_back(atoi(aId));
+				VCoords.push_back(aC);
+				int aIdU = atoi(aId);
+				if ( !(std::find(VImgsUnique.begin(), VImgsUnique.end(), aName) != VImgsUnique.end() ))
+				{
+					VImgsUnique.push_back(aName);
+				}
+			    if ( !(std::find(VIdUnique.begin(), VIdUnique.end(), aIdU) != VIdUnique.end() ))
+				{
+					VIdUnique.push_back(aIdU);
+					cout<<aIdU<<endl;
+				}
+			}
+		}
+		
+		aFichier.close();
+		cout<<"Nb Imgs Uniq : " << VImgsUnique.size()<< endl;
+		cout<<"Nb IdUnique : " << VIdUnique.size()<< endl;
+
+	}
+	
+	else
+    {
+		std::cout<< "Error While opening file" << '\n';
+	}
+	
+	for (uint aKImg=0; aKImg<VImgsUnique.size(); aKImg++)
+	{
+		PatisImg aPatis;
+		aPatis.aIdImg1 = aKImg;
+		for (uint aKImg=0; aKImg<VImgsUnique.size(); aKImg++)
+		{
+			aPatis.aPack.push_back(ElPackHomologue());
+			aPatis.aVIdImgs2nd.push_back(aKImg);
+		}
+		VHomol.push_back(aPatis);
+	}
+	
+	for (uint aKId=0; aKId<VIdUnique.size(); aKId++)
+	{
+		std::vector<std::string> RVImgs;
+		std::vector<Pt2dr> RVPts;
+		cCPSH_Appli::GetVImgsFromId(aKId, RVImgs, RVPts);
+		
+		cout<<"Id = "<<aKId<<endl;
+		for(uint i=0; i<RVImgs.size(); i++)
+		{
+			cout<<"	++Img: "<<RVImgs[i]<<" - Pts : "<<RVPts[i]<<endl;
+		}
+	}
+	
+	//convert in Homol MicMac Format
+	
+	
+    
+}
+
+void cCPSH_Appli::GetVImgsFromId(int aId, std::vector<std::string> & RVImgs,std::vector<Pt2dr> & RVPts)
+{
+	for (uint aKId=0; aKId<VId.size(); aKId++)
+	{
+		if (VId[aKId] == aId)
+		{
+			RVImgs.push_back(VImgs[aKId]);
+			RVPts.push_back(VCoords[aKId]);
+		}
+	}
+}
+
 class cSFGC_Appli
 {
 	public :
@@ -521,6 +678,12 @@ int CheckPatCple_main(int argc,char ** argv)
 	return EXIT_SUCCESS;
 }
 
+
+int ConvPSHomol2MM_main(int argc,char ** argv)
+{
+	cCPSH_Appli anAppli(argc,argv);
+	return EXIT_SUCCESS;
+}
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant \C3  la mise en
