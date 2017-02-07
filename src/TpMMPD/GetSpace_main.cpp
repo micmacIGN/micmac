@@ -38,6 +38,9 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+#if ELISE_unix
+    #define SYS_RMR "\\rm -r"   // definition un rm du linux -- ELISE_fp marche pas ???
+#endif
 
 
 int GetSpace_main(int argc,char ** argv)
@@ -79,9 +82,9 @@ int GetSpace_main(int argc,char ** argv)
         string aForest = aDir + "PIMs-Forest" + ELISE_CAR_DIR;
            VTmp.push_back(aForest);
         string aPyram = aDir + "Pyram" + ELISE_CAR_DIR;
-           VTmp.push_back(aForest);
+           VTmp.push_back(aPyram);
         string aMMPyram = aDir + "MM-Pyram" + ELISE_CAR_DIR;
-           VTmp.push_back(aForest);
+           VTmp.push_back(aMMPyram);
        string aPastis = aDir + "Pastis" + ELISE_CAR_DIR;
            VTmp.push_back(aPastis);
 
@@ -98,7 +101,7 @@ int GetSpace_main(int argc,char ** argv)
         {
             cout<<"Set exe = 1 if you want to delete all temp"<<endl;
         }
-        else
+        if (exe && VTmpExist.size() > 0)
         {
             cout<<"Sure to delete ? [y/n]"<<endl;
             char ch1 = static_cast<char>(getc(stdin));
@@ -107,7 +110,12 @@ int GetSpace_main(int argc,char ** argv)
                 for (uint i=0; i<VTmpExist.size(); i++)
                 {
                     cout<<"Del : "<<VTmpExist[i]<<" ... ";
-                    ELISE_fp::PurgeDirRecursif(VTmpExist[i]);
+
+                    std::string aNameCom = std::string(SYS_RMR)+ " " +VTmpExist[i];
+                    ::System(aNameCom.c_str());
+
+
+                    //ELISE_fp::PurgeDirRecursif(VTmpExist[i]);
                     cout<<" done ! "<<endl;
                 }
             }
@@ -115,6 +123,10 @@ int GetSpace_main(int argc,char ** argv)
             {
                 return EXIT_SUCCESS;
             }
+        }
+        else
+        {
+            cout<<"Nothing to delete ! "<<endl;
         }
         return EXIT_SUCCESS;
     }
