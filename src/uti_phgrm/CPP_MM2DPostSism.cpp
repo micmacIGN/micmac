@@ -83,6 +83,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
     int aSsResolOpt=4;
     std::string aDirMEC="MEC/";
 
+    Pt2dr  aPxMoy(0,0);
+
     ElInitArgMain
     (
     argc,argv,
@@ -97,6 +99,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                 << EAM(aIncCalc,"Inc",true,"Initial uncertainty (Def=2.0)")
                 << EAM(aSsResolOpt,"SsResolOpt",true,"Merging factor (Def=4)")
                 << EAM(aDirMEC,"DirMEC",true,"Subdirectory where the results will be stored (Def='MEC/')")
+                << EAM(aPxMoy,"PxMoy",true,"Px-Moy , Def=(0,0)")
     );
 
     if (!MMVisualMode)
@@ -128,6 +131,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
                             + " +RegulBase=" + ToString(aRegul)
                             + " +Inc=" + ToString(aIncCalc)
                             + " +SsResolOpt=" + ToString(aSsResolOpt)
+                            + " +Px1Moy=" + ToString(aPxMoy.x)
+                            + " +Px2Moy=" + ToString(aPxMoy.y)
                             ;
 
 

@@ -1632,6 +1632,11 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                            l'aliasing (par ex souvent = au DeZoom si image Resol1 et pas
                            ortho "naturel")-->
                       <ScaleBiCub  Nb="?" Type="double" Def="1"> </ScaleBiCub>
+
+                      <OrthoSinusCard Nb="?" AccessorFils="false">
+                            <SzKernel Nb="1" Type="double"> </SzKernel>
+                            <SzApod Nb="1" Type="double">   </SzApod>
+                      </OrthoSinusCard>
                       <!-- On peut vouloir generer une ortho a une resol differente du MNT,
                            de même, la phasage des pixel, peut etre different de celui du MNT
                             pour import dans une autre ortho

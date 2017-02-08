@@ -197,10 +197,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <Symb> PtDebugX=-10000000 </Symb>
      <Symb> PtDebugY=-10000000 </Symb>
      <Symb> RSRT=false </Symb>
-
      
      <Symb> UseGenBundle=false </Symb>
-
+     <Symb> ForDeform=false </Symb>
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -464,6 +463,11 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
         <#WHEN VTEST=${AddZoom8}>
             <EtapeMEC> 
                  <ModeInterpolation Portee="Globale"> eInterpolSinCard </ModeInterpolation>
+                 <#WHEN VTEST=${ForDeform}>
+                       <SzSinCard Portee="Globale">  5.0 </SzSinCard>
+                       <SzAppodSinCard Portee="Globale">  5.0 </SzAppodSinCard>
+                 </#WHEN>
+
                  <DeZoom >        8        </DeZoom> 
 	         <ZDilatAlti>  4    </ZDilatAlti>
                  <ZDilatPlani> 3    </ZDilatPlani>

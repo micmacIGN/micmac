@@ -3902,6 +3902,31 @@ void  BinaryUnDumpFromFile(cMakeMTDMaskOrtho &,ELISE_fp &);
 
 std::string  Mangling( cMakeMTDMaskOrtho *);
 
+class cOrthoSinusCard
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cOrthoSinusCard & anObj,cElXMLTree * aTree);
+
+
+        double & SzKernel();
+        const double & SzKernel()const ;
+
+        double & SzApod();
+        const double & SzApod()const ;
+    private:
+        double mSzKernel;
+        double mSzApod;
+};
+cElXMLTree * ToXMLTree(const cOrthoSinusCard &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOrthoSinusCard &);
+
+void  BinaryUnDumpFromFile(cOrthoSinusCard &,ELISE_fp &);
+
+std::string  Mangling( cOrthoSinusCard *);
+
 class cMakeOrthoParImage
 {
     public:
@@ -3930,6 +3955,9 @@ class cMakeOrthoParImage
 
         cTplValGesInit< double > & ScaleBiCub();
         const cTplValGesInit< double > & ScaleBiCub()const ;
+
+        cTplValGesInit< cOrthoSinusCard > & OrthoSinusCard();
+        const cTplValGesInit< cOrthoSinusCard > & OrthoSinusCard()const ;
 
         cTplValGesInit< double > & ResolRelOrhto();
         const cTplValGesInit< double > & ResolRelOrhto()const ;
@@ -3975,6 +4003,7 @@ class cMakeOrthoParImage
         cTplValGesInit< cMakeMTDMaskOrtho > mMakeMTDMaskOrtho;
         cTplValGesInit< double > mOrthoBiCub;
         cTplValGesInit< double > mScaleBiCub;
+        cTplValGesInit< cOrthoSinusCard > mOrthoSinusCard;
         cTplValGesInit< double > mResolRelOrhto;
         cTplValGesInit< double > mResolAbsOrtho;
         cTplValGesInit< Pt2dr > mPixelTerrainPhase;
@@ -4082,6 +4111,9 @@ class cGenerePartiesCachees
 
         cTplValGesInit< double > & ScaleBiCub();
         const cTplValGesInit< double > & ScaleBiCub()const ;
+
+        cTplValGesInit< cOrthoSinusCard > & OrthoSinusCard();
+        const cTplValGesInit< cOrthoSinusCard > & OrthoSinusCard()const ;
 
         cTplValGesInit< double > & ResolRelOrhto();
         const cTplValGesInit< double > & ResolRelOrhto()const ;
@@ -4779,6 +4811,9 @@ class cEtapeMEC
 
         cTplValGesInit< double > & ScaleBiCub();
         const cTplValGesInit< double > & ScaleBiCub()const ;
+
+        cTplValGesInit< cOrthoSinusCard > & OrthoSinusCard();
+        const cTplValGesInit< cOrthoSinusCard > & OrthoSinusCard()const ;
 
         cTplValGesInit< double > & ResolRelOrhto();
         const cTplValGesInit< double > & ResolRelOrhto()const ;
