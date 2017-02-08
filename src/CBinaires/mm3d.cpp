@@ -624,6 +624,8 @@ int TestMartini_Main(int argc,char ** argv);
 
 int TestGiang_main(int argc,char ** argv);
 
+int GetSpace_main(int argc, char ** argv);
+
 int TestDetecteur_main(int argc,char ** argv);
 
 
@@ -825,6 +827,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestMartini",TestMartini_Main,"Test Martini with simulation"));
 
         aRes.push_back(cMMCom("Test_Giang",TestDetecteur_main,"Test Giang"));
+        aRes.push_back(cMMCom("GetSpace",GetSpace_main,"Delete all temporary file after treatment complete"));
+
         aRes.push_back(cMMCom("TiepTriPrl",TiepTriPrl_main,"Paralelliser version of TiepTri"));
         aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));
         aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri"));

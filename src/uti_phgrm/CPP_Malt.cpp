@@ -511,7 +511,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mSzGlob = mSzGlob / double(mNbIm);
       }
 
-      bool TypeForZInit = (mType != eGeomImage);
+      bool ModeFaisZ = mModePB| hasNewGenImage | mForceZFaisc;
+      bool TypeForZInit = (mType != eGeomImage) || (ModeFaisZ);
 
       bool ZMoyInit = EAMIsInit(&mZMoy)  && TypeForZInit;
       bool IncMaxInit = EAMIsInit(&mIncidMax)  && TypeForZInit;
@@ -579,6 +580,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       bool IsAnamXCsteOfCart = false;
       if (mType!=eGeomImage)
       {
+          if (! EAMIsInit(&mZMoy))
+              mZMoy=0; // MPD modif 06/02/2017 , si repere
           mRepIsAnam =   (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte,IsAnamXCsteOfCart);
       }
       mUnAnam = mUnAnam && IsOrthoXCSte;
@@ -670,7 +673,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               ;
 
 
-      bool ModeFaisZ = mModePB| hasNewGenImage | mForceZFaisc;
+      // bool ModeFaisZ = mModePB| hasNewGenImage | mForceZFaisc;
       std::string aNameGeom = (mImMaster=="") ?
                   "eGeomMNTEuclid" :
                   (mIsSpherik? "eGeomMNTFaisceauPrChSpherik" : ( ModeFaisZ ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));

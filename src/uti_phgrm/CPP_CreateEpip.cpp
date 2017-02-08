@@ -103,7 +103,19 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D 
  
 
     Pt2dr aSomTens2(0,0);
-    double aIProf = aG1->GetVeryRoughInterProf();
+    // On le met tres petit, ce qui a priori n'est pas genant et evite 
+    // d'avoir des point hors zone
+    double aIProf = aG1->GetVeryRoughInterProf() / 100.0;
+
+/*
+if (MPD_MM())
+{
+    std::cout << "aIProfaIProf " << aIProf << "\n";
+    aIProf = 1/ 10000.0;
+}
+*/
+
+
     double aEps = 5e-4;
 
     double aLenghtSquare = ElMin(mLengthMin,sqrt((aSz.x*aSz.y) / (mNbXY*mNbXY)));
@@ -128,6 +140,8 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D 
                 Pt3dr aPT1;
                 Pt3dr aC1;
                 aG1->GetCenterAndPTerOnBundle(aC1,aPT1,aPIm1);
+
+                // std::cout << "IPROF " << aIProf * euclid(aPT1-aC1)  << " " << aPT1  << "\n";
 
                 std::vector<Pt2dr> aVPIm2;
                 for (int aKZ = -mNbZ ; aKZ <= mNbZ ; aKZ++)

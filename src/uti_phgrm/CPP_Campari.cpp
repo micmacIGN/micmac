@@ -238,7 +238,6 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
     bool   aUseGaussJ = false;
     int    NormaliseEq = 3;
-
     std::vector<std::string> aParamCCCC;
 
 
