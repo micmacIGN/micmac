@@ -38,6 +38,32 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+std::string StdNameMDTOfFile(const std::string & aName)
+{
+   return DirOfFile(aName) + "MTD-" + aName + ".xml";
+}
+
+
+cFileOriMnt * StdGetMDTOfFile(const std::string & aName)
+{
+    return OptStdGetFromPCP(StdNameMDTOfFile(aName),FileOriMnt);
+}
+
+Pt2dr DecalageFromFOM(const std::string & aN1,const std::string & aN2)
+{
+   Pt2dr aRes (0,0);
+   cFileOriMnt * aFOM1 = StdGetMDTOfFile(aN1);
+   cFileOriMnt * aFOM2 = StdGetMDTOfFile(aN2);
+   if (aFOM1 && aFOM2)
+   {
+        //Pt2dr aPMonde = 
+   }
+   
+   delete aFOM1;
+   delete aFOM2;
+   return aRes;
+}
+
 void MakeMetaData_XML_GeoI(const std::string & aNameImMasq,double aResol)
 {
    std::string aNameXml =  StdPrefix(aNameImMasq) + ".xml";
@@ -119,6 +145,10 @@ int MM2DPostSism_Main(int argc,char ** argv)
         SplitDirAndFile(aDir, aNameMasq, aImMasq);
 
         if (IsPostfixed(aNameMasq)) aNameMasq = StdPrefixGen(aNameMasq);
+
+        if (! EAMIsInit(&aPxMoy))
+        {
+        }
 
         std::string aCom =    MM3dBinFile("MICMAC")
                             + XML_MM_File("MM-PostSism.xml")
