@@ -972,6 +972,15 @@ cIm2DInter * Im2DGen::BiCubIm(double aCoef,double aScale)
    return 0;
 }
 
+cIm2DInter * Im2DGen::SinusCard(double SzSin,double SzApod)
+{
+   ELISE_ASSERT(false,"no Im2DGen::SinusCard");
+   return 0;
+}
+
+
+
+
 void Im2DGen::TronqueAndSet(const Pt2di &,double aVal)
 {
    ELISE_ASSERT(false,"no Im2DGen::TronqueAndSet");
@@ -1283,6 +1292,17 @@ template <class Type,class TyBase>
      return  new cTpIm2DInter<Type,TyBase>(*this,aInt2D);
 }
 
+template <class Type,class TyBase>
+        cIm2DInter * Im2D<Type,TyBase>::SinusCard(double aSzK,double aSzA)
+{
+    int aNbD = 1000;
+    cSinCardApodInterpol1D aKer(cSinCardApodInterpol1D::eTukeyApod,aSzK,aSzA,1e-4,false);
+    cTabIM2D_FromIm2D<Type> * aInt2D   =    new cTabIM2D_FromIm2D<Type>(&aKer,aNbD,false);
+
+    return  new cTpIm2DInter<Type,TyBase>(*this,aInt2D);
+   //  ELISE_ASSERT(false,"No Im2D<Type,TyBase>::SinusCard");
+   //  return 0;
+}
 
 /*
       cTpIm2DInter

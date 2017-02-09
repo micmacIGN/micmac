@@ -1220,8 +1220,9 @@ extern void TMA();
 
 void TestClipBundle()
 {
-   std::string aNFull = "/media/ubuntu/ubuntu/dji_video/dji5-6/Ori-RPC-d1-gcp-OriNew/GB-Orientation-IMG_PHR1B_P_201301260750191_SEN_IPU_20130612_0904-003_R1C1.JP2.tif.xml";
-   std::string aNClip = "/media/ubuntu/ubuntu/dji_video/dji5-6/Ori-RPC-d1-gcp-OriNew-Clip/GB-Orientation-Cliped_IMG_PHR1B_P_201301260750191_SEN_IPU_20130612_0904-003_R1C1.JP2.tif.xml";
+   std::string aNFull = "Ori-RPC-d1-gcp-OriNew/GB-Orientation-IMG_PHR1B_P_201301260750566_SEN_IPU_20130612_0919-003_R1C1.JP2.tif.xml";
+
+   std::string aNClip = "Ori-RPC-d1-gcp-OriNew-Cliped_1/GB-Orientation-Cliped_1-IMG_PHR1B_P_201301260750566_SEN_IPU_20130612_0919-003_R1C1.JP2.tif.xml";
 
    int aType = 0 ;
 
@@ -1235,6 +1236,11 @@ void TestClipBundle()
    Pt2dr aPIm1 = aCFull->Ter2Capteur(aPTer);
 
    std::cout << "PIM1111 " << aPIm1 << " " << aCClip->Ter2Capteur(aPTer)  << "\n";
+
+
+   std::cout << " Def Alti " << aCClip->AltisSolIsDef() << " " << aCFull->AltisSolIsDef() << "\n";
+   std::cout << " MinMax " << aCClip->GetAltiSolMinMax() << " " << aCFull->GetAltiSolMinMax() << "\n";
+   std::cout << " ZzzZZzz " << aCClip->GetAltiSol() << " " << aCFull->GetAltiSol() << "\n";
    
    exit(EXIT_SUCCESS);
 }

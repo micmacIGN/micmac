@@ -1162,7 +1162,9 @@ cElHomographie  ToImRedr
     // cElHomographie  aHom(aPack,aL2);
     double Ecart,Quality;
     bool Ok;
-    cElHomographie  aHom = cElHomographie::RobustInit(Ecart,&Quality,aPack,Ok,50,80.0,2000);
+    cElHomographie  aHom =  (aPack.size() > 3) ?
+                            cElHomographie::RobustInit(Ecart,&Quality,aPack,Ok,50,80.0,2000) :
+                            cElHomographie(aPack,false) ;
     // cElHomographie  aHom(aPack,false);
     // aHom = aHom.Inverse();
     Pt2di aSzOut = aSz;

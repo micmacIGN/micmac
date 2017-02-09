@@ -57,10 +57,22 @@ class cVisuResidHom
 {
       public :
             cVisuResidHom(const std::string & aIm1,cBasicGeomCap3D *,cBasicGeomCap3D *,ElPackHomologue &,const std::string & aPrefOut);
+            cVisuResidHom
+            (
+                  const std::string & aIm1,
+                  cBasicGeomCap3D * aCam1,
+                  cBasicGeomCap3D * aCam2,
+                  CamStenope * aCamS1,
+                  CamStenope * aCamS2,
+                  ElPackHomologue & aPack,
+                  const std::string & aPrefOut
+            );
       private :
 
             std::string NameFile(const std::string & aPost) {return mPrefOut + aPost;}
             void AddPair(const Pt2dr & aP1,const Pt2dr & aP2);
+            void Demo1Pair(const Pt2dr & aP1,const Pt2dr & aP2);
+
      
             cBasicGeomCap3D *      mCam1;
             cBasicGeomCap3D *      mCam2;
@@ -76,6 +88,9 @@ class cVisuResidHom
             std::vector<double>    mVEpi;
             std::vector<Pt2dr>     mVP1;
             bool                   mDoPly;
+
+            cPlyCloud              mPlyCDemo;
+
 
             // std::vector<double>   DoOneDegree(int aDegre,double aSigma,
 };
@@ -96,6 +111,27 @@ void cVisuResidHom::AddPair(const Pt2dr & aP1,const Pt2dr & aP2)
     mVPH.push_back(cVisuPHom(aP1,aP2,aDif));
     mVP1.push_back(aP1);
     mVEpi.push_back(aDif);
+}
+
+void cVisuResidHom::Demo1Pair(const Pt2dr & aP1,const Pt2dr & aP2)
+{
+    const cBasicGeomCap3D & aCam1 = *this->mCam1;
+    const cBasicGeomCap3D & aCam2 = *mCam2;
+
+    ElSeg3D aSeg1 = aCam1.Capteur2RayTer(aP1);
+    ElSeg3D aSeg2 = aCam2.Capteur2RayTer(aP2);
+    //ElSeg3D aSeg1Bis = aCam1.Capteur2RayTer(aP1+Pt2dr(0,1));
+
+    Pt3dr aPInter =  aSeg1.PseudoInter(aSeg2) ;
+
+
+    if (mDoPly)
+    {
+       mPlyCDemo.AddSeg(Pt3di(0,255,0), aSeg1.P0()*5000, aSeg1.P1()*5000, 1000);
+       mPlyCDemo.AddSeg(Pt3di(0,255,0), aSeg2.P0()*5000, aSeg2.P1()*5000, 1000);
+       //mPlyCDemo.AddSeg(Pt3di(200,125,0), aSeg1Bis.P0(), aSeg1Bis.P1(), 100);
+       mPlyCDemo.AddPt(Pt3di(0,255,255),aPInter*5000);
+    }
 }
 
 cVisuResidHom::cVisuResidHom
@@ -127,7 +163,7 @@ cVisuResidHom::cVisuResidHom
              mImSsRes.out()
          );
 
-     
+
          for (int  aX =0 ; aX <mSzResol.x ; aX++)
          {
              for (int  aY =0 ; aY <mSzResol.y ; aY++)
@@ -137,7 +173,6 @@ cVisuResidHom::cVisuResidHom
              }
          }
      }
-
 
      for (ElPackHomologue::iterator itP=mPack.begin() ; itP!=mPack.end() ; itP++)
      {
@@ -195,8 +230,60 @@ cVisuResidHom::cVisuResidHom
      }
      fclose(aFp);
 }
+//-----------------TestGiang---------------//
+cVisuResidHom::cVisuResidHom
+(
+      const std::string & aIm1,
+      cBasicGeomCap3D * aCam1,
+      cBasicGeomCap3D * aCam2,
+      CamStenope * aCamS1,
+      CamStenope * aCamS2,
+      ElPackHomologue & aPack,
+      const std::string & aPrefOut
+) :
+   mCam1    (aCam1),
+   mCam2    (aCam2),
+   mPack    (aPack),
+   mPrefOut (aPrefOut),
+   mResol   (10.0),
+   mSzIm1   (aCam1->SzBasicCapt3D()),
+   mSzResol (round_up(Pt2dr(mSzIm1) / mResol)),
+   mImSsRes (mSzResol.x,mSzResol.y),
+   mDoPly   (1)
+{
+    ELISE_fp::MkDirSvp(DirOfFile(aPrefOut));
+    ElRotation3D aRot1 = aCamS1->Orient();
+    if (mDoPly)
+    {
+        Tiff_Im aTif(aIm1.c_str());
+        ELISE_COPY
+        (
+            mImSsRes.all_pts(),
+            Max(0,Min(255,StdFoncChScale(aTif.in_proj(),Pt2dr(0,0),Pt2dr(mResol,mResol)))),
+            mImSsRes.out()
+        );
+        for (int  aX =0 ; aX <mSzResol.x ; aX++)
+        {
+            for (int  aY =0 ; aY <mSzResol.y ; aY++)
+            {
+                 double aGr = mImSsRes.data()[aY][aX];
+                 Pt3dr coorBasc = aRot1.ImAff(Pt3dr(aX*mResol,aY*mResol,0));
+                 mPlyCDemo.AddPt(Pt3di(aGr,aGr,aGr),coorBasc*5000);
+            }
+        }
+    }
 
+    for (ElPackHomologue::iterator itP=mPack.begin() ; itP!=mPack.end() ; itP++)
+    {
+        Demo1Pair(itP->P1(),itP->P2());
+    }
 
+    if (mDoPly)
+    {
+       mPlyCDemo.PutFile(aPrefOut+"-Demo1Pair.ply");
+    }
+}
+//-----------------TestGiang---------------//
 int VisuResiduHom(int argc,char ** argv)
 {
     std::string aIm1,aIm2,Aero,aSetHom;
@@ -227,6 +314,11 @@ int VisuResiduHom(int argc,char ** argv)
      ElPackHomologue  aPack = ElPackHomologue::FromFile(aNameH);
 
      cVisuResidHom aVRH(aIm1,aCam1,aCam2,aPack,"Visu-Res"+aSetHom +"-" + Aero+ "/"+aIm1+aIm2);
+
+     CamStenope * aCamS1 = aICNM->StdCamStenOfNames(aIm1 , Aero);
+     CamStenope * aCamS2 = aICNM->StdCamStenOfNames(aIm2 , Aero);
+     cVisuResidHom aVRH_G(aIm1,aCam1,aCam2,aCamS1,aCamS2,aPack,"Visu-Res"+aSetHom +"-" + Aero+ "/"+aIm1+aIm2);
+
 
      return EXIT_SUCCESS;
 }

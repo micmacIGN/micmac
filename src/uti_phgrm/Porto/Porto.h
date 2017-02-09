@@ -41,6 +41,8 @@ class cOneImOrhto;
 class cLoadedIm;
 class cAppli_Ortho;
 
+#define LabelNoIm  10000
+#define MaxPC      255
 
  //============================================
 
@@ -228,7 +230,7 @@ class cAppli_Ortho
          void SauvOrtho();
          void SauvLabel();
 
-         Im1D_U_INT1   InitRanLutLabel();
+         Im1D_U_INT2   InitRanLutLabel();
          void VisuLabel();
 
          const std::vector<std::string> * GetImNotTiled(const std::vector<std::string> *);
@@ -265,9 +267,9 @@ class cAppli_Ortho
          Im2D_REAL4               mScoreNadir;
          TIm2D<REAL4,REAL8>       mTScoreNadir;
 
-         Im1D_U_INT1              mLutLabelR;
-         Im1D_U_INT1              mLutLabelV;
-         Im1D_U_INT1              mLutLabelB;
+         Im1D_U_INT2              mLutLabelR;
+         Im1D_U_INT2              mLutLabelV;
+         Im1D_U_INT2              mLutLabelB;
 
          Im1D_U_INT2              mLutInd;
 

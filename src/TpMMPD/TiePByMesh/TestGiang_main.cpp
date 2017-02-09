@@ -45,6 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <stdio.h>
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 
+
 void Test_Xml()
 {
     cXml_TriAngulationImMaster aTriangulation = StdGetFromSI("Tri0.xml",Xml_TriAngulationImMaster);
@@ -363,4 +364,7 @@ int TestDetecteur_main(int argc,char ** argv)
     mW_FAC->clik_in();
     return EXIT_SUCCESS;
 }
+
+//-----------------TestGiang---------------//
+
 

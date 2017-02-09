@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2145]) = {
+const char * (theNameVar_ParamMICMAC[2150]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1634,6 +1634,11 @@ const char * (theNameVar_ParamMICMAC[2145]) = {
 "                           l'aliasing (par ex souvent = au DeZoom si image Resol1 et pas\n",
 "                           ortho \"naturel\")-->\n",
 "                      <ScaleBiCub  Nb=\"?\" Type=\"double\" Def=\"1\"> </ScaleBiCub>\n",
+"\n",
+"                      <OrthoSinusCard Nb=\"?\" AccessorFils=\"false\">\n",
+"                            <SzKernel Nb=\"1\" Type=\"double\"> </SzKernel>\n",
+"                            <SzApod Nb=\"1\" Type=\"double\">   </SzApod>\n",
+"                      </OrthoSinusCard>\n",
 "                      <!-- On peut vouloir generer une ortho a une resol differente du MNT,\n",
 "                           de même, la phasage des pixel, peut etre different de celui du MNT\n",
 "                            pour import dans une autre ortho\n",

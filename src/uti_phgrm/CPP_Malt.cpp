@@ -136,6 +136,7 @@ class cAppliMalt
           std::string  mMasqImGlob;
           bool        mUseImSec;
           bool        mCorMS;
+          bool        mForDeform;
           bool        mUseGpu;
           double      mIncidMax;
           bool        mGenCubeCorrel;
@@ -205,6 +206,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mSzGlob       (0,0),
     mUseImSec     (false),
     mCorMS        (false),
+    mForDeform    (false),
     mUseGpu       (false),
     mGenCubeCorrel (false),
     mEZA           (false),
@@ -288,6 +290,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM", eSAM_IsExistFileRP)
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
+                    << EAM(mForDeform,"ForDeform",true,"Set paramaters when ortho are used for deformation")
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false", eSAM_IsBool)
                     << EAM(mZRegul,"Regul",true,"Regularization factor")
                     << EAM(mDirMEC,"DirMEC",true,"Subdirectory where the results will be stored")
@@ -511,7 +514,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mSzGlob = mSzGlob / double(mNbIm);
       }
 
-      bool TypeForZInit = (mType != eGeomImage);
+      bool ModeFaisZ = mModePB| hasNewGenImage | mForceZFaisc;
+      bool TypeForZInit = (mType != eGeomImage) || (ModeFaisZ);
 
       bool ZMoyInit = EAMIsInit(&mZMoy)  && TypeForZInit;
       bool IncMaxInit = EAMIsInit(&mIncidMax)  && TypeForZInit;
@@ -579,6 +583,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       bool IsAnamXCsteOfCart = false;
       if (mType!=eGeomImage)
       {
+          if (! EAMIsInit(&mZMoy))
+              mZMoy=0; // MPD modif 06/02/2017 , si repere
           mRepIsAnam =   (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte,IsAnamXCsteOfCart);
       }
       mUnAnam = mUnAnam && IsOrthoXCSte;
@@ -670,7 +676,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               ;
 
 
-      bool ModeFaisZ = mModePB| hasNewGenImage | mForceZFaisc;
+      // bool ModeFaisZ = mModePB| hasNewGenImage | mForceZFaisc;
       std::string aNameGeom = (mImMaster=="") ?
                   "eGeomMNTEuclid" :
                   (mIsSpherik? "eGeomMNTFaisceauPrChSpherik" : ( ModeFaisZ ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
@@ -846,6 +852,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (mUseImSec)
           mCom = mCom + std::string(" +UseImSec=true");
+
+      if (mForDeform)
+          mCom = mCom + std::string(" +ForDeform=true ");
+
+      if (! EAMIsInit(&mCorMS)) 
+          mCorMS = mForDeform;
       if (mCorMS)
       {
           mCom = mCom + std::string(" +CorMS=true");

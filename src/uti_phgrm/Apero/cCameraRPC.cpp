@@ -4278,31 +4278,38 @@ cAppli_TestCamRPC::cAppli_TestCamRPC(int argc,char** argv) :
                }
            }
        }
-       aMoyVarGrad /= aNbTest;
-       aMoyDistReproj /= aNbTest;
-       std::cout << "####### " << aName << "\n";
-       std::cout << "  Size=" << aSzIm <<  " Z-Interv=" << aZInt << "\n";
-       std::cout << " DistReproj Max= " << aMaxDifRepr << " Moy=" << aMoyDistReproj << "\n";
-       std::cout << " Grad Max=" << aMaxVarGrad << " Moy=" << aMoyVarGrad << "\n";
-
-       std::cout << " SignDenTer " << (aDenPosXTer*100.0) / aNbTest << " " << (aDenPosYTer*100.0) / aNbTest << "\n";
-       std::cout << " SignDenIm  " << (aDenPosXIm*100.0) / aNbTest << " " << (aDenPosYIm*100.0) / aNbTest << "\n";
-       std::cout << " SignNumTer " << (aNumPosXTer*100.0) / aNbTest << " " << (aNumPosYTer*100.0) / aNbTest << "\n";
-       std::cout << " SignNumIm  " << (aNumPosXIm*100.0) / aNbTest << " " << (aNumPosYIm*100.0) / aNbTest << "\n";
-
-
-       std::cout << " Interv Den IM  X:[" << MinDenXIm << "," << MaxDenXIm  << "] Y:[" << MinDenYIm << "," << MaxDenYIm << "]\n";
-       std::cout << " Interv Den Ter  X:[" << MinDenXTer << "," << MaxDenXTer  << "] Y:[" << MinDenYTer << "," << MaxDenYTer << "]\n";
-       // double MaxDenXIm = -1e5,MaxDenYIm = -1e5,MaxDenXTer = -1e5,MaxDenYTer = -1e5;
-       // double MinDenXIm = +1e5,MinDenYIm = +1e5,MinDenXTer = +1e5,MinDenYTer = +1e5;
-       if (mDoPlyErr||mDoPlySignXTer||mDoPlySignYTer||mDoPlySignXIm||mDoPlySignYIm)
+       if (aNbTest >0)
        {
-          double aD = sqrt(ElSquare(mNbZ)+ElSquare(mNbXY));
-          aPlyErr.AddCube(cPlyCloud::Green,cPlyCloud::Red,cPlyCloud::Blue,Pt3dr(0,0,0),Pt3dr(mNbXY,mNbXY,mNbZ),aD*0.04,200);
+          aMoyVarGrad /= aNbTest;
+          aMoyDistReproj /= aNbTest;
+          std::cout << "####### " << aName << "\n";
+          std::cout << "  Size=" << aSzIm <<  " Z-Interv=" << aZInt << "\n";
+          std::cout << " DistReproj Max= " << aMaxDifRepr << " Moy=" << aMoyDistReproj << "\n";
+          std::cout << " Grad Max=" << aMaxVarGrad << " Moy=" << aMoyVarGrad << "\n";
+
+          std::cout << " SignDenTer " << (aDenPosXTer*100.0) / aNbTest << " " << (aDenPosYTer*100.0) / aNbTest << "\n";
+          std::cout << " SignDenIm  " << (aDenPosXIm*100.0) / aNbTest << " " << (aDenPosYIm*100.0) / aNbTest << "\n";
+          std::cout << " SignNumTer " << (aNumPosXTer*100.0) / aNbTest << " " << (aNumPosYTer*100.0) / aNbTest << "\n";
+          std::cout << " SignNumIm  " << (aNumPosXIm*100.0) / aNbTest << " " << (aNumPosYIm*100.0) / aNbTest << "\n";
 
 
-          aPlyErr.PutFile(StdPrefix(aName) +"-Err.ply");
+          std::cout << " Interv Den IM  X:[" << MinDenXIm << "," << MaxDenXIm  << "] Y:[" << MinDenYIm << "," << MaxDenYIm << "]\n";
+          std::cout << " Interv Den Ter  X:[" << MinDenXTer << "," << MaxDenXTer  << "] Y:[" << MinDenYTer << "," << MaxDenYTer << "]\n";
+          // double MaxDenXIm = -1e5,MaxDenYIm = -1e5,MaxDenXTer = -1e5,MaxDenYTer = -1e5;
+          // double MinDenXIm = +1e5,MinDenYIm = +1e5,MinDenXTer = +1e5,MinDenYTer = +1e5;
+          if (mDoPlyErr||mDoPlySignXTer||mDoPlySignYTer||mDoPlySignXIm||mDoPlySignYIm)
+          {
+             double aD = sqrt(ElSquare(mNbZ)+ElSquare(mNbXY));
+             aPlyErr.AddCube(cPlyCloud::Green,cPlyCloud::Red,cPlyCloud::Blue,Pt3dr(0,0,0),Pt3dr(mNbXY,mNbXY,mNbZ),aD*0.04,200);
+
+
+             aPlyErr.PutFile(StdPrefix(aName) +"-Err.ply");
+          }
        }
+
+       Pt3dr aDirC =  aBGC->Capteur2RayTer(Pt2dr(aBGC->SzBasicCapt3D())/2.0).TgNormee();
+
+       std::cout << "DIR Rayon X: " << aDirC.x << " " << aDirC.y << "\n";
    }
 
 

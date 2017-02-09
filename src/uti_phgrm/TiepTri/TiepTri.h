@@ -106,7 +106,7 @@ typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
 // extern Pt2dr   TestFastQuality(TIm2D<double,double> anIm,Pt2di aP,double aRay,bool IsMax,Pt2dr aProp);
 extern void TestcAutoCorrelDir(TIm2D<double,double> aTIm,const Pt2di & aP0);
 
-
+// Pour initialiser les parametres avec EAM en ayant un constructeur trivial
 class cParamAppliTieTri
 {
     public :
@@ -190,12 +190,16 @@ class cAppliTieTri : public cParamAppliTieTri
          double                            mDisExtrema;
          double                            mDistRechHom;
 
-
+         // Les voisins pour savoir si un point est un extrema local, ne contient
+         // pas le point central (0,0)
          std::vector<Pt2di>                mVoisExtr;
+         // Les voisins pour rechercher les homologues une certaine distance
          std::vector<Pt2di>                mVoisHom;
          bool                              mDebug;
          int                               mNivInterac;
+         // Le plan du triangle courant
          cElPlan3D                         mCurPlan;
+         // Les interpolateurs
          tInterpolTiepTri *                mInterpolSinC;
          tInterpolTiepTri *                mInterpolBicub;
          tInterpolTiepTri *                mInterpolBilin;
@@ -218,6 +222,12 @@ class cAppliTieTri : public cParamAppliTieTri
          std::string        mKeyMasqIm;
 };
 
+/*
+   cIntTieTriInterest : point d'interet = Local + Type (Max,Min ...) + Qualite de contraste (Fast)
+   
+
+*/
+ 
 typedef enum eTypeTieTri
 {
     eTTTNoLabel = 0,
@@ -236,9 +246,10 @@ class cIntTieTriInterest
        eTypeTieTri  mType;
        double       mFastQual;
        bool         mSelected;
+       
 };
 
-
+/*
 class cLinkImTT
 {
       public :
@@ -247,7 +258,7 @@ class cLinkImTT
          bool        mLnkActif;
       private :
 };
-
+*/
 
 
 class cImTieTri

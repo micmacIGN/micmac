@@ -13755,6 +13755,63 @@ void xml_init(cMakeMTDMaskOrtho & anObj,cElXMLTree * aTree)
 std::string  Mangling( cMakeMTDMaskOrtho *) {return "8C2EA811010194BCFE3F";};
 
 
+double & cOrthoSinusCard::SzKernel()
+{
+   return mSzKernel;
+}
+
+const double & cOrthoSinusCard::SzKernel()const 
+{
+   return mSzKernel;
+}
+
+
+double & cOrthoSinusCard::SzApod()
+{
+   return mSzApod;
+}
+
+const double & cOrthoSinusCard::SzApod()const 
+{
+   return mSzApod;
+}
+
+void  BinaryUnDumpFromFile(cOrthoSinusCard & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.SzKernel(),aFp);
+    BinaryUnDumpFromFile(anObj.SzApod(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cOrthoSinusCard & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.SzKernel());
+    BinaryDumpInFile(aFp,anObj.SzApod());
+}
+
+cElXMLTree * ToXMLTree(const cOrthoSinusCard & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OrthoSinusCard",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("SzKernel"),anObj.SzKernel())->ReTagThis("SzKernel"));
+   aRes->AddFils(::ToXMLTree(std::string("SzApod"),anObj.SzApod())->ReTagThis("SzApod"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cOrthoSinusCard & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.SzKernel(),aTree->Get("SzKernel",1)); //tototo 
+
+   xml_init(anObj.SzApod(),aTree->Get("SzApod",1)); //tototo 
+}
+
+std::string  Mangling( cOrthoSinusCard *) {return "7146C17CCFD04C84FEBF";};
+
+
 cTplValGesInit< std::string > & cMakeOrthoParImage::DirOrtho()
 {
    return mDirOrtho;
@@ -13829,6 +13886,17 @@ cTplValGesInit< double > & cMakeOrthoParImage::ScaleBiCub()
 const cTplValGesInit< double > & cMakeOrthoParImage::ScaleBiCub()const 
 {
    return mScaleBiCub;
+}
+
+
+cTplValGesInit< cOrthoSinusCard > & cMakeOrthoParImage::OrthoSinusCard()
+{
+   return mOrthoSinusCard;
+}
+
+const cTplValGesInit< cOrthoSinusCard > & cMakeOrthoParImage::OrthoSinusCard()const 
+{
+   return mOrthoSinusCard;
 }
 
 
@@ -14019,6 +14087,14 @@ void  BinaryUnDumpFromFile(cMakeOrthoParImage & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.OrthoSinusCard().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OrthoSinusCard().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OrthoSinusCard().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.ResolRelOrhto().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.ResolRelOrhto().ValForcedForUnUmp(),aFp);
         }
@@ -14120,6 +14196,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cMakeOrthoParImage & anObj)
     if (anObj.OrthoBiCub().IsInit()) BinaryDumpInFile(aFp,anObj.OrthoBiCub().Val());
     BinaryDumpInFile(aFp,anObj.ScaleBiCub().IsInit());
     if (anObj.ScaleBiCub().IsInit()) BinaryDumpInFile(aFp,anObj.ScaleBiCub().Val());
+    BinaryDumpInFile(aFp,anObj.OrthoSinusCard().IsInit());
+    if (anObj.OrthoSinusCard().IsInit()) BinaryDumpInFile(aFp,anObj.OrthoSinusCard().Val());
     BinaryDumpInFile(aFp,anObj.ResolRelOrhto().IsInit());
     if (anObj.ResolRelOrhto().IsInit()) BinaryDumpInFile(aFp,anObj.ResolRelOrhto().Val());
     BinaryDumpInFile(aFp,anObj.ResolAbsOrtho().IsInit());
@@ -14160,6 +14238,8 @@ cElXMLTree * ToXMLTree(const cMakeOrthoParImage & anObj)
       aRes->AddFils(::ToXMLTree(std::string("OrthoBiCub"),anObj.OrthoBiCub().Val())->ReTagThis("OrthoBiCub"));
    if (anObj.ScaleBiCub().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ScaleBiCub"),anObj.ScaleBiCub().Val())->ReTagThis("ScaleBiCub"));
+   if (anObj.OrthoSinusCard().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.OrthoSinusCard().Val())->ReTagThis("OrthoSinusCard"));
    if (anObj.ResolRelOrhto().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ResolRelOrhto"),anObj.ResolRelOrhto().Val())->ReTagThis("ResolRelOrhto"));
    if (anObj.ResolAbsOrtho().IsInit())
@@ -14204,6 +14284,8 @@ void xml_init(cMakeOrthoParImage & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ScaleBiCub(),aTree->Get("ScaleBiCub",1),double(1)); //tototo 
 
+   xml_init(anObj.OrthoSinusCard(),aTree->Get("OrthoSinusCard",1)); //tototo 
+
    xml_init(anObj.ResolRelOrhto(),aTree->Get("ResolRelOrhto",1)); //tototo 
 
    xml_init(anObj.ResolAbsOrtho(),aTree->Get("ResolAbsOrtho",1)); //tototo 
@@ -14231,7 +14313,7 @@ void xml_init(cMakeOrthoParImage & anObj,cElXMLTree * aTree)
    xml_init(anObj.TranslateIm(),aTree->Get("TranslateIm",1),Pt2di(Pt2di(0,0))); //tototo 
 }
 
-std::string  Mangling( cMakeOrthoParImage *) {return "143CD14CE91440ECFCBF";};
+std::string  Mangling( cMakeOrthoParImage *) {return "6F95AC68DE45CEA6FE3F";};
 
 
 cTplValGesInit< bool > & cGenerePartiesCachees::UseIt()
@@ -14517,6 +14599,17 @@ cTplValGesInit< double > & cGenerePartiesCachees::ScaleBiCub()
 const cTplValGesInit< double > & cGenerePartiesCachees::ScaleBiCub()const 
 {
    return MakeOrthoParImage().Val().ScaleBiCub();
+}
+
+
+cTplValGesInit< cOrthoSinusCard > & cGenerePartiesCachees::OrthoSinusCard()
+{
+   return MakeOrthoParImage().Val().OrthoSinusCard();
+}
+
+const cTplValGesInit< cOrthoSinusCard > & cGenerePartiesCachees::OrthoSinusCard()const 
+{
+   return MakeOrthoParImage().Val().OrthoSinusCard();
 }
 
 
@@ -14939,7 +15032,7 @@ void xml_init(cGenerePartiesCachees & anObj,cElXMLTree * aTree)
    xml_init(anObj.MakeOrthoParImage(),aTree->Get("MakeOrthoParImage",1)); //tototo 
 }
 
-std::string  Mangling( cGenerePartiesCachees *) {return "871C2FEA9DC610B2FD3F";};
+std::string  Mangling( cGenerePartiesCachees *) {return "228295E9B58F678EFD3F";};
 
 
 std::string & cRedrLocAnam::NameOut()
@@ -17261,6 +17354,17 @@ const cTplValGesInit< double > & cEtapeMEC::ScaleBiCub()const
 }
 
 
+cTplValGesInit< cOrthoSinusCard > & cEtapeMEC::OrthoSinusCard()
+{
+   return GenerePartiesCachees().Val().MakeOrthoParImage().Val().OrthoSinusCard();
+}
+
+const cTplValGesInit< cOrthoSinusCard > & cEtapeMEC::OrthoSinusCard()const 
+{
+   return GenerePartiesCachees().Val().MakeOrthoParImage().Val().OrthoSinusCard();
+}
+
+
 cTplValGesInit< double > & cEtapeMEC::ResolRelOrhto()
 {
    return GenerePartiesCachees().Val().MakeOrthoParImage().Val().ResolRelOrhto();
@@ -19066,7 +19170,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "6272268DF1FA019FFF3F";};
+std::string  Mangling( cEtapeMEC *) {return "79C42C8F82DD99FFFE3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -20231,7 +20335,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "468127BC8322CDADFE3F";};
+std::string  Mangling( cSection_MEC *) {return "529C12BED28449E8FD3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -29261,6 +29365,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "FF74D26301B295FDFD3F";};
+std::string  Mangling( cParamMICMAC *) {return "8A50375731DD1C8FFE3F";};
 
 // Quelque chose
