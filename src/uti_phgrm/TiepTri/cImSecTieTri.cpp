@@ -162,16 +162,12 @@ void  cImSecTieTri::DecomposeVecHom(const Pt2dr & aPSH1Local,const Pt2dr & aPSH2
        Pt2dr aPSH2 = aPSH2Local  + Pt2dr(mDecal);
 
        bool Ok;
-       Pt3dr aPTer =  mAppli.CurPlan().Inter(mCam->Capteur2RayTer(aPSH1) , &Ok);
+       Pt3dr aPTer =  mAppli.CurPlan().Inter(mCamGen->Capteur2RayTer(aPSH1) , &Ok);
 
-
-// std::cout << "Veriiff , reproj: " << euclid(mCam->Ter2Capteur(aPTer)-aPSH1) 
-// << " Ter "<<  mAppli.CurPlan().Proj(aPTer) - aPTer  << "\n";
-
-       double aProf = mMaster->mCam->ProfondeurDeChamps(aPTer);
-       Pt2dr aPM1 = mMaster->mCam->Ter2Capteur(aPTer);
-       Pt3dr aPTerMod =  mMaster->mCam->ImEtProf2Terrain(aPM1,aProf*(1+1e-3));
-       Pt2dr aPSH1Mod =  mCam->Ter2Capteur(aPTerMod);
+       double aProf = mMaster->mCamGen->ProfondeurDeChamps(aPTer);
+       Pt2dr aPM1 = mMaster->mCamGen->Ter2Capteur(aPTer);
+       Pt3dr aPTerMod =  mMaster->mCamGen->ImEtProf2Terrain(aPM1,aProf*(1+1e-3));
+       Pt2dr aPSH1Mod =  mCamGen->Ter2Capteur(aPTerMod);
 
        aDir = vunit(aPSH1Mod -aPSH1);
        aDecompos = (aPSH2-aPSH1) / aDir;

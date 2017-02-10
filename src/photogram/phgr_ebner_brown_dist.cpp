@@ -789,14 +789,6 @@ template <class Type>
     aXOut = aXOut +  aXC * aSomRho;
     aYOut = aYOut +  aYC * aSomRho;
 
-/*
-static int aCpt=0 ; aCpt++;
-if ((aCpt%1000)==0)
-{
- std::cout << "AAAAAAAAAAAAAAa  " << aCpt << "\n";  getchar();
-}
-*/
-
 
    return Pt2d<Type>(States[1]+aXOut*States[0],States[2]+aYOut*States[0]);
 }

@@ -215,9 +215,13 @@ class cInterfChantierNameManipulateur
 
          std::string  NameOriStenope(const tKey & aKeyOri,const std::string & aNameIm);
          std::string  StdNameCalib(const std::string & anOri,const std::string & aNameIm);  // =>  Ori-XX/AutoCal ...
-         std::string  StdNameCamGenOfNames(const std::string & anOri,const std::string & aNameIm);
 
-         CamStenope *  StdCamStenOfNames(const std::string & anOri,const std::string & aNameIm);  // => Ori-XX/Orientation...
+//  !!!! CONVENTION DIFFERENTES ENTRE StdCamStenOfNames  et les deux AUTRES , 
+//  !! NAME puis ORI
+         CamStenope *  StdCamStenOfNames(const std::string & aNameIm,const std::string & anOri);  // => Ori-XX/Orientation...
+
+//  !!!  ORI pui NAME
+         std::string  StdNameCamGenOfNames(const std::string & anOri,const std::string & aNameIm);
          cBasicGeomCap3D *  StdCamGenerikOfNames(const std::string & anOri,const std::string & aNameIm,bool SVP=false);  // => Ori-XX/Orientation...
 
          // Ori-XX/Orientation... exist, sinon  Ori-XX/GB-Orientation..

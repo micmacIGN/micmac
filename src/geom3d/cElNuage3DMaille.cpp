@@ -1580,12 +1580,6 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     cElNuage3DMaille * aNuageRes = this;
 
 
-
-if (MPD_MM())
-{
-    std::cout << "AAAAAAbbsc " << aMntBasc.sz() << "\n";
-}
-
     // Pt2di anOfOutInit= anOfOut;
     if (AutoResize)
     {
@@ -2076,12 +2070,10 @@ cFileOriMnt ToFOM(const cXML_ParamNuage3DMaille & aXML,bool StdRound)
 
     if (StdRound)
     {
-// std::cout << "AAAAAAAAAAaa " << aResolPlani <<  " " << aResA<< "\n";
         ToFOMResolStdRound(aResolPlani.x);
         ToFOMResolStdRound(aResolPlani.y);
         ToFOMResolStdRound(aResA);
 
-// std::cout << "BBBBB " << anOriPlani << " " << anOriA << "\n";
         ToFOMOriStdRound(anOriPlani.x,aResolPlani.x);
         ToFOMOriStdRound(anOriPlani.y,aResolPlani.y);
         ToFOMOriStdRound(anOriA,aResA);

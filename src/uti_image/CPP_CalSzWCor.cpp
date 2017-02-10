@@ -368,7 +368,6 @@ template <class Type,class TypeBase>  void cCalcSzWCorrel<Type,TypeBase>::TestMu
 
        Fonc_Num aFK =  aK;//  Min(255,round_ni((1/anAlpha -0.5) ));
        ELISE_COPY(select(aG.all_pts(),aG.in()>aGMax.in()),Virgule(aG.in(),aFK),Virgule(aGMax.out(),aKMax.out()));
-       std::cout << "AAAAAAaaaa   " << aK << "\n" ;
    }
    if (mW)
    {
@@ -509,7 +508,6 @@ void TestMultiEch_Gauss(int argc,char** argv)
 
        ELISE_COPY(select(aImEc.all_pts(),aImEc.in()>aGMax.in()),Virgule(aImEc.in(),aK),Virgule(aGMax.out(),aKMax.out()));
        ELISE_COPY(aW.all_pts(),Min(255,128*pow(aImEc.in(),0.5)),aW.ogray());
-       std::cout << "AAAAAAaaaa   " << aSom << " " << aK << "\n" ;
    }
    ELISE_COPY(aW.all_pts(),aKMax.in(),aW.ogray());
    Tiff_Im::Create8BFromFonc("Scale.tif",aSz,aKMax.in());
@@ -587,7 +585,6 @@ void TestMultiEch_Gauss2(int argc,char** argv)
 
        ELISE_COPY(select(aImEc.all_pts(),aImEc.in()>aGMax.in()),Virgule(aImEc.in(),aK),Virgule(aGMax.out(),aKMax.out()));
        ELISE_COPY(aW.all_pts(),Min(255,128*pow(aImEc.in(),0.5)),aW.ogray());
-       std::cout << "AAAAAAaaaa   " << aSom << " " << aK << "\n" ;
    }
    ELISE_COPY(aW.all_pts(),aKMax.in(),aW.ogray());
    Tiff_Im::Create8BFromFonc("Scale.tif",aSz,aKMax.in());

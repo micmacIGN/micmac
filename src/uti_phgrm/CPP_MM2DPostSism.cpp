@@ -38,11 +38,11 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+/*
 std::string StdNameMDTOfFile(const std::string & aName)
 {
-   return DirOfFile(aName) + "MTD-" + aName + ".xml";
+   return DirOfFile(aName) + "MTD-" + aName.substr(4) + ".xml";
 }
-
 
 cFileOriMnt * StdGetMDTOfFile(const std::string & aName)
 {
@@ -56,13 +56,43 @@ Pt2dr DecalageFromFOM(const std::string & aN1,const std::string & aN2)
    cFileOriMnt * aFOM2 = StdGetMDTOfFile(aN2);
    if (aFOM1 && aFOM2)
    {
-        //Pt2dr aPMonde = 
+        aRes  =    ToMnt(*aFOM1,aRes);
+        aRes =   FromMnt(*aFOM2,aRes);
    }
    
    delete aFOM1;
    delete aFOM2;
    return aRes;
 }
+*/
+
+std::string StdNameMDTPCOfFile(const std::string & aName)
+{
+   // std::cout << "UuuUUuu " << DirOfFile(aName) + "PC_" + aName.substr(4) + ".xml" <<"\n";
+   return DirOfFile(aName) + "PC_" + StdPrefix(aName.substr(4)) + ".xml";
+}
+
+cMetaDataPartiesCachees * StdGetMDTPCOfFile(const std::string & aName)
+{
+    return OptStdGetFromSI(StdNameMDTPCOfFile(aName),MetaDataPartiesCachees);
+}
+
+Pt2di DecalageFromPC(const std::string & aN1,const std::string & aN2)
+{
+   Pt2di aRes (0,0);
+   cMetaDataPartiesCachees * aPC1 = StdGetMDTPCOfFile(aN1);
+   cMetaDataPartiesCachees * aPC2 = StdGetMDTPCOfFile(aN2);
+   if (aPC1 && aPC2)
+   {
+        aRes  =         aPC1->Offset();
+        aRes  =  aRes - aPC2->Offset();
+   }
+   
+   delete aPC1;
+   delete aPC2;
+   return aRes;
+}
+
 
 void MakeMetaData_XML_GeoI(const std::string & aNameImMasq,double aResol)
 {
@@ -110,6 +140,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
     std::string aDirMEC="MEC/";
 
     Pt2dr  aPxMoy(0,0);
+    int    aZoomInit = 1;
 
     ElInitArgMain
     (
@@ -126,6 +157,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                 << EAM(aSsResolOpt,"SsResolOpt",true,"Merging factor (Def=4)")
                 << EAM(aDirMEC,"DirMEC",true,"Subdirectory where the results will be stored (Def='MEC/')")
                 << EAM(aPxMoy,"PxMoy",true,"Px-Moy , Def=(0,0)")
+                << EAM(aZoomInit,"ZoomInit",true,"Initial Zoom, Def=1 (can be long of Inc>2)")
     );
 
     if (!MMVisualMode)
@@ -148,6 +180,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
 
         if (! EAMIsInit(&aPxMoy))
         {
+             aPxMoy = Pt2dr(DecalageFromPC(aIm1,aIm2));
         }
 
         std::string aCom =    MM3dBinFile("MICMAC")
@@ -163,6 +196,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                             + " +SsResolOpt=" + ToString(aSsResolOpt)
                             + " +Px1Moy=" + ToString(aPxMoy.x)
                             + " +Px2Moy=" + ToString(aPxMoy.y)
+                            + " +ZoomInit=" + ToString(aZoomInit)
                             ;
 
 

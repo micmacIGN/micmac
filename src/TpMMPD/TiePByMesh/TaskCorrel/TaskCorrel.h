@@ -130,7 +130,12 @@ class cImgForTiepTri
 {
 public:
         cImgForTiepTri(cAppliTaskCorrel* , string aNameIm, int aNum, bool aNoTif);
-        CamStenope * Cam() {return mCam;}
+
+        CamStenope * CamSten()     {ELISE_ASSERT(mCamSten!=0,"cImgForTiepTri::CamSten") return mCamSten;}
+        CamStenope * CamStenSVP()  {return mCamSten;}
+        cBasicGeomCap3D * CamGen() {return mCamGen;}
+
+
         cAppliTaskCorrel * Appli() {return mAppli;}
         bool inside(Pt2dr aPt, double aRab = 0);
         Tiff_Im Tif() {return mTif;}
@@ -146,7 +151,11 @@ public:
 private:
         int mNum;
         cAppliTaskCorrel * mAppli;
-        CamStenope * mCam;
+
+        cBasicGeomCap3D * mCamGen;
+        CamStenope *      mCamSten;
+
+
         Tiff_Im mTif;
         Pt2di mSz;
         string mName;

@@ -48,6 +48,10 @@
          <Symb>  Px1Moy=0 </Symb>
          <Symb>  Px2Moy=0 </Symb>
 
+         <Symb>   ZoomInit=1 </Symb>
+         <eSymb>  WithZ4= SupEq ${ZoomInit} 4 </eSymb>
+         <eSymb>  WithZ2= SupEq ${ZoomInit} 2 </eSymb>
+
     </DicoLoc>
 <!-- *************************************************************
 Parametres lies au terrain "physique", independamment de la prise de vue
@@ -173,6 +177,26 @@ L'ordre des resolutions : les plus basses aux plus grandes.
 
         </EtapeMEC>
 
+        <#WHEN  VTEST=${WithZ4}>
+            <EtapeMEC>
+               <DeZoom > 4 </DeZoom>
+               <Px1Pas>   1  </Px1Pas>
+               <Px2Pas>   1  </Px2Pas>
+               <Px1Regul> 2.0    </Px1Regul>
+               <Px2Regul> 2.0   </Px2Regul>
+               <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+            </EtapeMEC>
+        </#WHEN>
+        <#WHEN  VTEST=${WithZ2}>
+             <EtapeMEC>
+                <DeZoom > 2 </DeZoom>
+                <Px1Pas>   1  </Px1Pas>
+                <Px2Pas>   1  </Px2Pas>
+                <Px1Regul> 2.0    </Px1Regul>
+                <Px2Regul> 2.0   </Px2Regul>
+                <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+             </EtapeMEC>
+        </#WHEN>
 
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>

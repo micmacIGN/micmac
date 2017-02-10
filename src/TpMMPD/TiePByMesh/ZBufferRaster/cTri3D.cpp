@@ -23,7 +23,7 @@ cTri3D::cTri3D(Pt3dr P1, Pt3dr P2, Pt3dr P3, int ind):
 }
 
 
-cTri2D cTri3D::reprj(CamStenope * aCam)
+cTri2D cTri3D::reprj(cBasicGeomCap3D * aCam)
 {
     Pt2dr P1, P2, P3;
     if (mIsLoaded)
@@ -48,7 +48,7 @@ cTri2D cTri3D::reprj(CamStenope * aCam)
         }
 }
 
-double cTri3D::dist2Cam(CamStenope * aCam)
+double cTri3D::dist2Cam(cBasicGeomCap3D * aCam)
 {
     return aCam->ProfondeurDeChamps(mCtr);
 }

@@ -76,9 +76,7 @@ int PastDevlop_main(int argc,char ** argv)
         cTplValGesInit<std::string> aTName;
         cInterfChantierNameManipulateur::StdAlloc(argc,argv,DirOfFile(aFullName),aTName);
 
-if (MPD_MM()) std::cout << "AAAAAAA " << __LINE__ << "\n";  // OK
         DoSimplePastisSsResol(aFullName,-1);
-if (MPD_MM()) std::cout << "AAAAAAA " << __LINE__ << "\n";
         if (aSz1 >0)
            DoSimplePastisSsResol(aFullName,aSz1);
         if (aSz2 >0)

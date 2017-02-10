@@ -242,9 +242,7 @@ void TestFishEye2()
   CamStenope * aCS = Std_Cal_From_File("../TMP/AutoCalDRad-Canon-015.xml");
    Pt2dr aP2(8.67583000000e+02,3.62618000000e+03);
    Pt3dr aQ0,aQ1;
-   std::cout << "AAAAAAAAAAAAa\n";
    aCS->F2toRayonL3(aP2,aQ0,aQ1) ;
-   std::cout << "CCCCCC\n";
 }
 
 
@@ -454,7 +452,6 @@ void texture()
 void OneTestXML(const std::string& aName)
 {
      cElXMLTree  aXTree(aName);
-std::cout << "AAAAAAAAAAAAAAAAAAAaaa\n";
      aXTree.StdShow("../TMP/Test.xml");
      cAvionJauneDocument anAJD = StdGetObjFromFile<cAvionJauneDocument>
                                  (

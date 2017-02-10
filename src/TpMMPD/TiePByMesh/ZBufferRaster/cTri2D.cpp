@@ -65,7 +65,7 @@ Pt3dr cTri2D::pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D)
 }
 
 
-double cTri2D::profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, CamStenope * aCam)
+double cTri2D::profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, cBasicGeomCap3D * aCam)
 {
     Pt2dr ptInTri2DGlob = ptInTri2D/mReech;
     Pt3dr aPt = cTri2D::pt3DFromVBasis(ptInTri2DGlob, aTri3D);
@@ -79,7 +79,7 @@ double cTri2D::profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, CamStenope *
         return TT_DEFAULT_PROF_NOVISIBLE;
 }
 
-bool cTri2D::orientToCam(CamStenope * aCam)
+bool cTri2D::orientToCam(cBasicGeomCap3D * aCam)
 {
     if ( ((mP1-mP2) ^ (mP1-mP3)) > 0 )
         return false;

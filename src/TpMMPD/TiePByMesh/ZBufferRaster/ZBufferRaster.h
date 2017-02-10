@@ -83,8 +83,8 @@ public:
     double   & Ind() {return mInd;}
 
     void calVBasis();
-    cTri2D reprj(CamStenope * aCam);
-    double dist2Cam(CamStenope * aCam);
+    cTri2D reprj(cBasicGeomCap3D * aCam);
+    double dist2Cam(cBasicGeomCap3D * aCam);
 
 
 private:
@@ -116,9 +116,9 @@ public:
 
     void calVBasis();
     Pt3dr pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D);
-    double profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, CamStenope * aCam);
+    double profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, cBasicGeomCap3D * aCam);
 
-    bool orientToCam(CamStenope * aCam);
+    bool orientToCam(cBasicGeomCap3D * aCam);
     double surf();
 
 private:
@@ -139,7 +139,7 @@ public:
 
     cAppliZBufferRaster * Appli() {return mAppli;}
     const string & NameIm() {return mNameIm;}
-    CamStenope * Cam() {return mCam;}
+    cBasicGeomCap3D * CamGen() {return mCamGen;}
     tImZBuf & ImZ() {return mImZ;}
     tTImZBuf & TImZ() {return mTImZ;}
     tImZBuf & ImInd() {return mImInd;}
@@ -162,7 +162,7 @@ private:
     std::string    mNameIm;
     Tiff_Im        mTif;
     Pt2di          mSzIm;
-    CamStenope *   mCam;
+    cBasicGeomCap3D *   mCamGen;
 
     tImZBuf        mImZ;
     tTImZBuf       mTImZ;

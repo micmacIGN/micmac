@@ -50,8 +50,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum) :
    mAppli   (anAppli),
    mNameIm  (aNameIm),
-   mTif     (mAppli.mNoTif ? Tiff_Im::StdConv(mAppli.Dir() + "Tmp-MM-Dir/" + aNameIm + "_Ch1.tif"): Tiff_Im::StdConv(mAppli.Dir() + mNameIm)),
-   mCam     (mAppli.ICNM()->StdCamStenOfNames(aNameIm,mAppli.Ori())),
+   mTif     (Tiff_Im::UnivConvStd(mAppli.Dir() + mNameIm)),
+   mCamGen   (mAppli.ICNM()->StdCamGenerikOfNames(mAppli.Ori(),aNameIm)),
+   mCamS     (mCamGen->DownCastCS()),
    mImInit   (1,1),
    mTImInit  (mImInit),
    mMasqTri  (1,1),
@@ -65,25 +66,28 @@ cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum
    mCutACD   (mTImInit,Pt2di(0,0),TT_SZ_AUTO_COR /2.0 ,TT_SZ_AUTO_COR)
 {
 
-    std::cout << "OK " << mNameIm << " F=" << mCam->Focale() << " Num="<<mNum<<"\n";
+   std::cout << "OK " << mNameIm << "\n";
+   if (mCamS)
+       std::cout << " F=" << mCamS->Focale()  << "\n";
+   std::cout << " Num="<<mNum<<"\n";
 }
 
 bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
     mLoaded = false;
     if (
-               (!mCam->PIsVisibleInImage(aTri.P1()))
-            || (!mCam->PIsVisibleInImage(aTri.P2()))
-            || (!mCam->PIsVisibleInImage(aTri.P3()))
+               (!mCamGen->PIsVisibleInImage(aTri.P1()))
+            || (!mCamGen->PIsVisibleInImage(aTri.P2()))
+            || (!mCamGen->PIsVisibleInImage(aTri.P3()))
        )
     {
         return  false;
     }
 
 
-    mP1Glob = mCam->R3toF2(aTri.P1());
-    mP2Glob = mCam->R3toF2(aTri.P2());
-    mP3Glob = mCam->R3toF2(aTri.P3());
+    mP1Glob = mCamGen->Ter2Capteur(aTri.P1());
+    mP2Glob = mCamGen->Ter2Capteur(aTri.P2());
+    mP3Glob = mCamGen->Ter2Capteur(aTri.P3());
     mVTriGlob.clear();
     mVTriGlob.push_back(mP1Glob);
     mVTriGlob.push_back(mP2Glob);
@@ -96,7 +100,10 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
          for (int aK=0 ; aK<int(mVTriGlob.size()) ; aK++)
              std::cout << "PTRI=" << mVTriGlob[aK] << "\n";
-         std::cout << "PLOC " << mCam->R3toL3(aTri.P1()) << "\n";
+         if (mCamS)
+         {
+            std::cout << "PLOC " << mCamS->R3toL3(aTri.P1()) << "\n";
+         }
          std::cout << "SIGNTRI= " <<  ((mP2Glob-mP1Glob) ^(mP3Glob-mP1Glob)) << "\n";
     }
 

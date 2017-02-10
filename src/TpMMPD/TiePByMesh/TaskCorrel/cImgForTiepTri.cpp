@@ -6,9 +6,10 @@
 cImgForTiepTri::cImgForTiepTri(cAppliTaskCorrel * anAppli, string aNameIm, int aNum, bool aNoTif):
     mNum    (aNum),
     mAppli  (anAppli),
-    mCam    (anAppli->ICNM()->StdCamStenOfNames(aNameIm, anAppli->Ori())),
-    mTif    (aNoTif ? Tiff_Im::StdConv(mAppli->Dir() + "Tmp-MM-Dir/" + aNameIm + "_Ch1.tif"):Tiff_Im::StdConv(mAppli->Dir() + aNameIm)),
-    mSz     (mCam->Sz()),
+    mCamGen (anAppli->ICNM()->StdCamGenerikOfNames(anAppli->Ori(),aNameIm)),
+    mCamSten (mCamGen->DownCastCS()),
+    mTif    (Tiff_Im::UnivConvStd(mAppli->Dir() + aNameIm)),
+    mSz     (round_ni(mCamGen->SzPixel())),
     mName   (aNameIm)
 {
     mTask.NameMaster() = aNameIm;

@@ -300,7 +300,8 @@ class cImTieTri
            cAppliTieTri & mAppli;
            std::string    mNameIm;
            Tiff_Im        mTif;
-           CamStenope *   mCam;
+           cBasicGeomCap3D *   mCamGen;
+           CamStenope *        mCamS;
            Pt2dr          mP1Glob;
            Pt2dr          mP2Glob;
            Pt2dr          mP3Glob;

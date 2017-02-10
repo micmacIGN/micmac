@@ -24,15 +24,15 @@ bool cTriForTiepTri::reprj(cImgForTiepTri * aImg)
     Pt3dr Pt2 = mTri3D_.P2();
     Pt3dr Pt3 = mTri3D_.P3();
     if      (
-                  aImg->Cam()->PIsVisibleInImage(Pt1)
-              &&  aImg->Cam()->PIsVisibleInImage(Pt2)
-              &&  aImg->Cam()->PIsVisibleInImage(Pt3)
+                  aImg->CamGen()->PIsVisibleInImage(Pt1)
+              &&  aImg->CamGen()->PIsVisibleInImage(Pt2)
+              &&  aImg->CamGen()->PIsVisibleInImage(Pt3)
             )
     {
         mrprjOK = true;
-        mPt1 = aImg->Cam()->Ter2Capteur(Pt1);
-        mPt2 = aImg->Cam()->Ter2Capteur(Pt2);
-        mPt3 = aImg->Cam()->Ter2Capteur(Pt3);
+        mPt1 = aImg->CamGen()->Ter2Capteur(Pt1);
+        mPt2 = aImg->CamGen()->Ter2Capteur(Pt2);
+        mPt3 = aImg->CamGen()->Ter2Capteur(Pt3);
         return true;
     }
     else

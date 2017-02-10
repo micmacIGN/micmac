@@ -4,9 +4,9 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNam
 
     mAppli    (anAppli),
     mNameIm   (aNameIm),
-    mTif      (aNoTif ? Tiff_Im::StdConv(mAppli->Dir() + "Tmp-MM-Dir/" + aNameIm + "_Ch1.tif"):Tiff_Im::StdConv(mAppli->Dir() + aNameIm)),
+    mTif      (Tiff_Im::UnivConvStd(mAppli->Dir() + aNameIm)),
     mSzIm     (mTif.sz()),
-    mCam      (mAppli->ICNM()->StdCamStenOfNames(aNameIm,mAppli->Ori())),
+    mCamGen   (mAppli->ICNM()->StdCamGenerikOfNames(mAppli->Ori(),mNameIm)),
     mImZ      (round_ni(mSzIm.x*mAppli->Reech()), round_ni(mSzIm.y*mAppli->Reech()), tElZBuf(-1.0)),
     mTImZ     (mImZ),
     mImInd    (round_ni(mSzIm.x*mAppli->Reech()), round_ni(mSzIm.y*mAppli->Reech()), tElZBuf(-1.0)),
@@ -69,12 +69,12 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
 {
     if (mAppli->DistMax() != TT_DISTMAX_NOLIMIT)
     {
-        if (aTri3D.dist2Cam(mCam) > mAppli->DistMax())
+        if (aTri3D.dist2Cam(mCamGen) > mAppli->DistMax())
         {
             return;
         }
     }
-    cTri2D aTri = aTri3D.reprj(mCam);
+    cTri2D aTri = aTri3D.reprj(mCamGen);
     if (mAppli->Reech() != TT_SCALE_1)
     {
         //Reech coordonee dans aTri2D
@@ -146,7 +146,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
             for (int aKPt=0; aKPt<aSeg.mNb; aKPt++)
             {
                 Pt2dr aPtRas(aSeg.mP0.x + aKPt, aSeg.mP0.y);
-                double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCam);
+                double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCamGen);
                 cImgZBuffer::updateZ(mImZ, aPtRas, prof, aTri3D.Ind());
             }
         }

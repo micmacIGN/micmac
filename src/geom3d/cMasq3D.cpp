@@ -554,7 +554,6 @@ int Masq3Dto2D_main(int argc,char ** argv)
                     << EAM(aNameMasq,"MasqNuage",true, "Masq of Nuage if dif of XML File")
     );
 
-// std::cout << "AAAAAA " << SUB_OUTSIDE << "\n";
 
    // cMasqBin3D * aM3D = cMasq3DEmpileMasqPart::FromSaisieMasq3d(aNameMasq3D);
    cMasqBin3D  * aM3D = cMasqBin3D::FromSaisieMasq3d(aNameMasq3D);

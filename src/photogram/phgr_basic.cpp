@@ -1578,7 +1578,6 @@ void cBasicGeomCap3D::ReCalcGlbOrInt()
    mGlobOrImaC2M = mGlobOrImaM2C.inv();
 
    mScaleAfnt = euclid(mGlobOrImaM2C.IVect(Pt2dr(1,1))) / euclid(Pt2dr(1,1));
-   // std::cout << "AAAAA XXXX " << this << mScaleAfnt << "\n"; getchar();
 }
 
 cBasicGeomCap3D::~cBasicGeomCap3D() 
@@ -1587,11 +1586,8 @@ cBasicGeomCap3D::~cBasicGeomCap3D()
 
 Pt3dr cBasicGeomCap3D::OrigineProf () const
 {
-// std::cout << "AAAAAAAAAAAAAAAaa\n";
    Pt3dr aRes =  OpticalCenterOfPixel(Pt2dr(SzBasicCapt3D()) / 2.0);
-// std::cout << "BBBBBBBBbb\n";
    return aRes;
-   // return Pt3dr(SzBasicCapt3D().x / 2.0, SzBasicCapt3D().y / 2.0, 0);
 }
 
 cBasicGeomCap3D::cBasicGeomCap3D() :
@@ -2139,7 +2135,6 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIs
    // Si "vraie" camera et scannee il est necessaire de faire le test maintenant
    // car IsZoneUtil est en mm
 
-  // std::cout << "AAAAAA " << aPF0 << " " << mZoneUtilInPixel << "\n";
    if ( (!GetZoneUtilInPixel()) && ( ! IsInZoneUtile(aPF0))) return false;
 
 
@@ -2956,7 +2951,6 @@ ElPackHomologue  ElCamera::F2toPtDirRayonL3(const ElPackHomologue & aPckIn,ElCam
       }
       else
       {
-          // std::cout << "AAAAAAAAaa " << itP->P1() << itP->P2() <<"\n";
       }
    }
 
@@ -3891,15 +3885,6 @@ double CamStenope::ResolutionAngulaire() const
    std::cout << " dddDQ " <<  aMil << " " << aDQ  << aQ0 << aQ1 << "\n"; getchar();
 */
 
-/*
-std::cout << "HHHHh   " <<  aDQ  << " " << 1/Focale() << "\n";
-Pt2dr aM2 = aMil+Pt2dr(aEps,0);
-
-std::cout << "AAAAAAAAAAAAAAAAaa " <<  Proj().DirRayon(DistInverse(aMil)) - Proj().DirRayon(DistInverse(aM2)) << "\n" ;
-std::cout << "AAAAAAAAAAAAAAAAaa " << DistInverse(aMil) <<  DistInverse(aMil) - DistInverse(aM2) << "\n" ;
-std::cout << "HHHHh   " <<  aDQ  << " " << 1/Focale() << "\n";
-getchar();
-*/
 
     return aDQ;
 /*

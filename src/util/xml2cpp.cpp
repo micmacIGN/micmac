@@ -1365,11 +1365,6 @@ void xml_init(Box2di & aVal,cElXMLTree * aTree)
 
 void xml_init(Pt3dr & aP,cElXMLTree * aTree)
 {
-/*
-std::cout << "AAAAAAAAAaa\n";
-std::cout << "AAAAAAAAAaa " << aTree << "\n";
-std::cout << "AAAAAAAAAaa " << aTree->Contenu() << "\n";
-*/
    int aNb = sscanf(aTree->Contenu().c_str(),"%lf %lf %lf %s",&aP.x,&aP.y,&aP.z,aBuf);
 
    if (aNb!=3)

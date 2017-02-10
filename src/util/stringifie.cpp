@@ -190,18 +190,12 @@ void AddEntryStringifie(const std::string & aKey,const char ** aVal,bool formal)
 
    if (theDicoStringification[aKey]==0)
    {
-// std::cout << "AAAAAAAAAA " << aKey << "\n";
-// std::cout << aVal << "\n";
-// std::cout << (void *) *aVal << "\n";
        int aNbTot=0;
        for (const char ** aC= aVal ; std::string(*aC)!=Terminator ; aC++)
        {
- // std::cout << "ddd " << "\n";
- // std::cout <<  *aC << "\n";
            aNbTot += (int)strlen(*aC);
        }
 
-// std::cout << "BBBBBBBB\n";
 
        char * aBig = new char [aNbTot+1] ;
        char * aLast = aBig;
