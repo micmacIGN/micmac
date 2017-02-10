@@ -55,8 +55,6 @@ struct PatisImg{
 	int aIdImg1;
 	vector<ElPackHomologue> aPack;
 	vector<int> aVIdImgs2nd;
-
-
 };
 
 vector<string> VImgs;
@@ -81,25 +79,39 @@ class cCPSH_Appli
 cCPSH_Appli::cCPSH_Appli(int argc,char ** argv)
 {
 	std::string aOut, aPat;
+	bool a2W=true;
+	Pt2dr aSize;
+	Pt2dr aC;
+	
 	ElInitArgMain
     (
           argc, argv,
           LArgMain() << EAMC(mDir, "Directory")
+					 << EAMC(aC, "[Cx Cy] values from .xml PhotoScan file")
+					 << EAMC(aSize, "Size of photosite in mm unit")
 					 << EAMC(mPSFile, "PhotoScan ORIMA input File", eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"Output Homol Name ; Def=Homol_PS")
 					 << EAM(aPat,"Pat",false,"Pattern of images")
+					 << EAM(a2W,"Way",false,"homologue in 2 way", eSAM_IsBool)
     );
     
+	//~ if(EAMIsInit(&aSize))
+    //~ {
+        //~ ELISE_ASSERT(aSize.x >0 ,"Value of Size images needs to be sepicified");
+    //~ }
+    //~ else
+    //~ {
+			//~ cout<<"Warning : Image frame in Photoscan format (not compatible with MicMac) - give Size"<<endl;
+	//~ }
     //name output homol folder
     if (aOut=="")
     {
-		aOut = "Homol_PS";
+		aOut = "_PS";
     }
     
     std::vector<HomPSOrima> aVHPSO;
     
-    //~ file format to read :    D0003736.JPG               0           7.997          -1.199   0   M
-    //read input file
+    //read input file : file format to read :    D0003736.JPG               0           7.997          -1.199   0   M
     ifstream aFichier((mDir + mPSFile).c_str());
     
     if(aFichier)
@@ -157,6 +169,7 @@ cCPSH_Appli::cCPSH_Appli(int argc,char ** argv)
 		std::cout<< "Error While opening file" << '\n';
 	}
 	
+	//
 	for (uint aKImg=0; aKImg<VImgsUnique.size(); aKImg++)
 	{
 		PatisImg aPatis;
@@ -169,21 +182,68 @@ cCPSH_Appli::cCPSH_Appli(int argc,char ** argv)
 		VHomol.push_back(aPatis);
 	}
 	
+	//for each unique tieP : get vector of images
 	for (uint aKId=0; aKId<VIdUnique.size(); aKId++)
 	{
 		std::vector<std::string> RVImgs;
 		std::vector<Pt2dr> RVPts;
 		cCPSH_Appli::GetVImgsFromId(aKId, RVImgs, RVPts);
+		ELISE_ASSERT(RVImgs.size() == RVPts.size(), "ERROR: Incoherent size");
 		
-		cout<<"Id = "<<aKId<<endl;
-		for(uint i=0; i<RVImgs.size(); i++)
+		for (uint i=0; i<RVImgs.size(); i++)
 		{
-			cout<<"	++Img: "<<RVImgs[i]<<" - Pts : "<<RVPts[i]<<endl;
+			for (uint j=i+1; j<RVImgs.size(); j++ )
+			{
+				ptrdiff_t pos_img1 = std::find(VImgsUnique.begin(), VImgsUnique.end(), RVImgs[i]) - VImgsUnique.begin();
+				ELISE_ASSERT(pos_img1 < int(VImgsUnique.size()), "ERROR: pos_img1");
+					//cout<<"Found at " <<index<<RVImgs[i]<<" "<<VImgsUnique[index]<<endl;
+					ptrdiff_t pos_img2 = std::find(VImgsUnique.begin(), VImgsUnique.end(), RVImgs[j]) - VImgsUnique.begin();
+					ELISE_ASSERT(pos_img2 < int(VImgsUnique.size()), "ERROR: pos_img2");
+					
+					Pt2dr aPt1;
+					aPt1.x = aC.x+(RVPts[i].x/aSize.x);
+					aPt1.y = aC.y - (RVPts[i].y/aSize.y);
+					
+					Pt2dr aPt2;
+					aPt2.x = aC.x+(RVPts[j].x/aSize.x);
+					aPt2.y = aC.y - (RVPts[j].y/aSize.y);
+					
+					VHomol[pos_img1].aPack[pos_img2].Cple_Add(ElCplePtsHomologues(aPt1, aPt2));
+					VHomol[pos_img1].aVIdImgs2nd.push_back(int(pos_img2));
+					
+					if (a2W)
+					{
+						VHomol[pos_img2].aPack[pos_img1].Cple_Add(ElCplePtsHomologues(aPt2, aPt1));
+					}
+			}
 		}
-	}
-	
-	//convert in Homol MicMac Format
-	
+	  }
+		//ecriture
+		std::string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aOut)
+                        +  std::string("@")
+                        +  std::string("dat");
+        cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(mDir);
+		for (uint i=0; i<VHomol.size(); i++)
+		{
+			PatisImg img = VHomol[i];
+			for (uint j=0; j<img.aPack.size(); j++)
+			{
+				std::string clePack = aICNM->Assoc1To2(aKHOutDat, VImgsUnique[img.aIdImg1], VImgsUnique[img.aVIdImgs2nd[j]], true);
+				if (img.aPack[j].size() > 0)
+					img.aPack[j].StdPutInFile(clePack);
+			}
+			
+		}
+
+		
+		
+		
+		//~ cout<<"Id = "<<aKId<<endl;
+		//~ for(uint i=0; i<RVImgs.size(); i++)
+		//~ {
+			//~ cout<<"	++Img: "<<RVImgs[i]<<" - Pts : "<<RVPts[i]<<endl;
+		//~ }
 	
     
 }
@@ -677,7 +737,6 @@ int CheckPatCple_main(int argc,char ** argv)
     
 	return EXIT_SUCCESS;
 }
-
 
 int ConvPSHomol2MM_main(int argc,char ** argv)
 {
