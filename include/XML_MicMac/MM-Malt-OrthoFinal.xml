@@ -12,6 +12,12 @@
 
                     <MakeOrthoParImage >
                          <DirOrtho> ${DirOrthoF} </DirOrtho>
+                         <#WHEN VTEST=${ForDeform}>
+                            <OrthoSinusCard>
+                                <SzKernel>  5.0 </SzKernel>
+                                <SzApod>    5.0 </SzApod>
+                            </OrthoSinusCard>
+                         </#WHEN>
 
                          <MakeMTDMaskOrtho>
                                 <Mesures> 

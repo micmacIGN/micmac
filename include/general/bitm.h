@@ -451,6 +451,7 @@ class Im2DGen : public GenIm,
       virtual INT  vmin() const ;
       virtual cIm2DInter * BilinIm() ;
       virtual cIm2DInter * BiCubIm(double aCoef,double aScale=1.0) ;
+      virtual cIm2DInter * SinusCard(double SzSin,double SzApod);
 
       virtual void SetI(const Pt2di & ,int aValI) ;
       virtual void SetR(const Pt2di & ,double aValR) ;
@@ -533,6 +534,7 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
 
       virtual cIm2DInter * BilinIm() ;
       virtual cIm2DInter * BiCubIm(double aCoef,double aScale=1.0) ;
+      virtual cIm2DInter * SinusCard(double SzSin,double SzApod);
 
       static void   ReadAndPushTif
                     (

@@ -1045,7 +1045,19 @@ void cAppliMICMAC::MakeOrtho
         if (aKBox==0)
         {
            mOrthoImIn.push_back(Ptr_D2alloc_im2d(aFIn.type_el(),aSzImIn.x,aSzImIn.y));
-           mIntOrth.push_back(mOrthoImIn.back()->BiCubIm(aMOPI.OrthoBiCub().Val(),aMOPI.ScaleBiCub().Val()));
+           
+           cIm2DInter * anInt =0;
+           if (aMOPI.OrthoSinusCard().IsInit())
+           {
+               const cOrthoSinusCard & anOSC = aMOPI.OrthoSinusCard().Val();
+               anInt  = mOrthoImIn.back()->SinusCard(anOSC.SzKernel(),anOSC.SzApod());
+           }
+           else
+           {
+                 anInt = mOrthoImIn.back()->BiCubIm(aMOPI.OrthoBiCub().Val(),aMOPI.ScaleBiCub().Val());
+           }
+           mIntOrth.push_back(anInt);
+           // mIntOrth.push_back(mOrthoImIn.back()->BiCubIm(aMOPI.OrthoBiCub().Val(),aMOPI.ScaleBiCub().Val()));
            anOutLoadImIn = (aKC==0) ?  mOrthoImIn.back()->out() : Virgule(anOutLoadImIn, mOrthoImIn.back()->out());
         }
 

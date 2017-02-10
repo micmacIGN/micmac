@@ -155,173 +155,245 @@ int SATtoBundle_main(int argc,char ** argv)
 */
     return EXIT_SUCCESS;
 }
- 
+
+
+int SatEmpriseSol_main(int argc,char ** argv)
+{
+	typedef std::vector<Pt2dr> tContour;
+
+	std::string aPat, aDir, aName;
+	std::string aOut="Footprints.ply";
+	cPlyCloud aPlyFoot;
+
+	cInterfChantierNameManipulateur *aICNM;
+	std::list<std::string> aListFile;
+	
+    ElInitArgMain
+    (
+         argc, argv,
+         LArgMain() << EAMC(aName,"Pattern of orientation files (in cXml_CamGenPolBundle format)"),
+         LArgMain() << EAM(aOut, "Out", true, "Output file name, def=Footprints.ply" )
+	);
+
+    SplitDirAndFile(aDir, aPat, aName);
+
+	
+    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    aListFile = aICNM->StdGetListOfFile(aPat);
+
+
+	std::list<std::string>::iterator itL = aListFile.begin();
+    for( ; itL != aListFile.end(); itL++ )
+	{
+		int aR= rand() % 256;		
+		int aG= rand() % 256;		
+		int aB= rand() % 256;		
+
+		CameraRPC aCam(aDir + (*itL));
+		double aSolMoy = aCam.GetAltiSol();
+		cElPolygone aPolyg = aCam.EmpriseSol();
+		std::list<tContour> aVertList = aPolyg.Contours();
+				
+		
+		std::list<tContour>::iterator itV = aVertList.begin();
+		for( ; itV!=aVertList.end(); itV++ )
+		{
+			int aK=0;
+			int aSz = int((*itV).size());
+			Pt3dr aP1, aP2;
+			for( ; aK<aSz-1; aK++ )
+			{
+				aP1.x = (*itV).at(aK).x; aP1.y = (*itV).at(aK).y; aP1.z = aSolMoy;
+				aP2.x = (*itV).at(aK+1).x; aP2.y = (*itV).at(aK+1).y; aP2.z = aSolMoy;
+				aPlyFoot.AddSeg(Pt3di(aR,aG,aB), aP1, aP2, 100);
+			}
+			//close the contour
+			aP1.x = (*itV).at(0).x; aP1.y = (*itV).at(0).y; aP1.z = aSolMoy;
+			aP2.x = (*itV).at(aSz-1).x; aP2.y = (*itV).at(aSz-1).y; aP2.z = aSolMoy;
+			
+			aPlyFoot.AddSeg(Pt3di(aR,aG,aB), aP1, aP2, 100);
+		}
+	}
+	aPlyFoot.PutFile(aOut);
+
+    return EXIT_SUCCESS;
+} 
+
+
 int SATtoOpticalCenter_main(cSatI_Appli &aApps)
 {
 
-    for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
-		                         itL != aApps.mListFile.end(); 
-					 itL++ )
-    {
+		for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
+						itL != aApps.mListFile.end(); 
+						itL++ )
+		{
 
-       AutoDetermineTypeTIGB(aApps.mType,(const std::string)(*itL));
+				AutoDetermineTypeTIGB(aApps.mType,(const std::string)(*itL));
 
-       
-       //Earth satellite
-       if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
-       {
-           //CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
-           
 
-           CameraRPC aCamRPC(*itL, aApps.mType,aApps.mChSys);
-           aCamRPC.SetGridSz(aApps.mGridSz);
-           aCamRPC.OpticalCenterGrid(true);
+				//Earth satellite
+				if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
+				{
+						//CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
+
+
+						CameraRPC aCamRPC(*itL, aApps.mType,aApps.mChSys);
+						aCamRPC.SetGridSz(aApps.mGridSz);
+						aCamRPC.OpticalCenterGrid(true);
+
+
+						/*Pt2dr aa(100.4,1000.0);
+						  Pt3dr aaa1 = aCamRPC.OpticalCenterOfPixel(aa);
+						  std::cout << "1 " << aaa1 << "\n";
+
+						  aCamRPC.OpticalCenterOfImg();
+						  Pt3dr aaa2 = aCamRPC.OpticalCenterOfPixel(aa);
+						  std::cout << "2 " << aaa2 << "\n";
+
+						  std::cout << "1-2 " << aaa1 - aaa2 << "\n";
+						 */
+
+				}
+				//other planets
+				else
+				{
+						std::string aDirTmp = "PBoptCenter";
+						std::string aSaveFile = aDirTmp + "/PlanetOpticalCentersTer" + ".txt";
+
+						std::vector<Pt3dr> aOpticalCenters;
+
+						//read the cXml_ScanLineSensor
+						cXml_ScanLineSensor aSLS = StdGetFromSI(*itL,Xml_ScanLineSensor);
+
+						std::vector< cXml_OneLineSLS >::iterator aLIt;
+						std::vector< cXml_SLSRay >::iterator     aSIt;
+						for(aLIt=aSLS.Lines().begin(); aLIt<aSLS.Lines().end(); aLIt++)
+						{
+								std::vector<ElSeg3D> aVS;
+								std::vector<double>  aVPds;
+
+								for(aSIt=aLIt->Rays().begin(); aSIt<aLIt->Rays().end(); aSIt++)
+								{
+										aVPds.push_back(0.5);
+										aVS.push_back( ElSeg3D(aSIt->P1(), aSIt->P2()) );
+
+								}
+
+								//intersect
+								bool aIsOK;
+								aOpticalCenters.push_back(ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK));
+
+						}
+
+						//save output
+						std::ofstream aFO(aSaveFile.c_str());
+						aFO << std::setprecision(15);
+
+						unsigned int i;
+						for(i=0; i<aOpticalCenters.size(); i++)
+								aFO << aOpticalCenters.at(i).x
+										<< " " << aOpticalCenters.at(i).y
+										<< " " << aOpticalCenters.at(i).z
+										<< "\n";
+
+						aFO.close();
+				}
+		}
+
+		return EXIT_SUCCESS;
+}
+
+int SATTrajectory_main(int argc,char ** argv)
+{
+    cSatI_Appli aApps(argc,argv);
+    SATtoOpticalCenter_main(aApps);
 	
-	
-	   /*Pt2dr aa(100.4,1000.0);
-	   Pt3dr aaa1 = aCamRPC.OpticalCenterOfPixel(aa);
-           std::cout << "1 " << aaa1 << "\n";
-
-	   aCamRPC.OpticalCenterOfImg();
-	   Pt3dr aaa2 = aCamRPC.OpticalCenterOfPixel(aa);
-           std::cout << "2 " << aaa2 << "\n";
-
-           std::cout << "1-2 " << aaa1 - aaa2 << "\n";
-*/
-
-       }
-       //other planets
-       else
-       {
-	   std::string aDirTmp = "PBoptCenter";
-	   std::string aSaveFile = aDirTmp + "/PlanetOpticalCentersTer" + ".txt";
-	   
-	   std::vector<Pt3dr> aOpticalCenters;
-
-    	   //read the cXml_ScanLineSensor
-	   cXml_ScanLineSensor aSLS = StdGetFromSI(*itL,Xml_ScanLineSensor);
-           
-	   std::vector< cXml_OneLineSLS >::iterator aLIt;
-	   std::vector< cXml_SLSRay >::iterator     aSIt;
-	   for(aLIt=aSLS.Lines().begin(); aLIt<aSLS.Lines().end(); aLIt++)
-	   {
-	       std::vector<ElSeg3D> aVS;
-	       std::vector<double>  aVPds;
-
-	       for(aSIt=aLIt->Rays().begin(); aSIt<aLIt->Rays().end(); aSIt++)
-	       {
-                   aVPds.push_back(0.5);
-	           aVS.push_back( ElSeg3D(aSIt->P1(), aSIt->P2()) );
-
-	       }
-
-               //intersect
-	       bool aIsOK;
-	       aOpticalCenters.push_back(ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK));
-
-	   }
-
-           //save output
-           std::ofstream aFO(aSaveFile.c_str());
-	   aFO << std::setprecision(15);
-
-	   unsigned int i;
-	   for(i=0; i<aOpticalCenters.size(); i++)
-               aFO << aOpticalCenters.at(i).x
-		   << " " << aOpticalCenters.at(i).y
-		   << " " << aOpticalCenters.at(i).z
-		   << "\n";
-
-	   aFO.close();
-       }
-    }
-
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 void SATbackrpjGCP_main(cSatI_Appli &aApps)
 {
-    //input and backprojected image observations
-    cSetOfMesureAppuisFlottants aDicoImCmp;
+		//input and backprojected image observations
+		cSetOfMesureAppuisFlottants aDicoImCmp;
 
-    //read GCPs xy
-    cDicoAppuisFlottant aDicoGr = StdGetFromPCP(aApps.mValidByGCP.at(0),
-		                                DicoAppuisFlottant );
+		//read GCPs xy
+		cDicoAppuisFlottant aDicoGr = StdGetFromPCP(aApps.mValidByGCP.at(0),
+						DicoAppuisFlottant );
 
-    //read GCPs XYZ
-    cSetOfMesureAppuisFlottants aDicoIm = StdGetFromPCP(aApps.mValidByGCP.at(1),
-		                                        SetOfMesureAppuisFlottants);
+		//read GCPs XYZ
+		cSetOfMesureAppuisFlottants aDicoIm = StdGetFromPCP(aApps.mValidByGCP.at(1),
+						SetOfMesureAppuisFlottants);
 
-    //std::cout << aDicoIm.OneAppuisDAF().begin()->NamePt() << " " << 
-//	         aDicoIm.OneAppuisDAF().begin()->Pt() << "\n";
-    //std::cout << aSetDicoMesure.MesureAppuiFlottant1Im().begin()->NameIm() << "\n";
+		//std::cout << aDicoIm.OneAppuisDAF().begin()->NamePt() << " " << 
+		//	         aDicoIm.OneAppuisDAF().begin()->Pt() << "\n";
+		//std::cout << aSetDicoMesure.MesureAppuiFlottant1Im().begin()->NameIm() << "\n";
 
-    std::list<cMesureAppuiFlottant1Im> aMAFL;
+		std::list<cMesureAppuiFlottant1Im> aMAFL;
 
-    for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
-		                         itL != aApps.mListFile.end(); 
-					 itL++ )
-    {
-       AutoDetermineTypeTIGB(aApps.mType,*itL);
-           
+		for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
+						itL != aApps.mListFile.end(); 
+						itL++ )
+		{
+				AutoDetermineTypeTIGB(aApps.mType,*itL);
 
-	    if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
-	    {
-           // CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
-           CameraRPC aCamRPC(*itL, aApps.mType,aApps.mChSys);
 
-            cMesureAppuiFlottant1Im aImCur;
-	    aImCur.NameIm() = *itL;
-            std::cout << "aImCur.NameIm() " << *itL  << "\n"; 
+				if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
+				{
+						// CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
+						CameraRPC aCamRPC(*itL, aApps.mType,aApps.mChSys);
 
-	    //for all images
-	    std::list<cMesureAppuiFlottant1Im>::const_iterator aImIt;
-	    for( aImIt=aDicoIm.MesureAppuiFlottant1Im().begin();
-                 aImIt!=aDicoIm.MesureAppuiFlottant1Im().end(); aImIt++)
-	    {
-            std::cout << "aImIt->NameIm() " << aImIt->NameIm()  << "\n"; 
-		if( *itL == aImIt->NameIm() )
-	        {
-	            cMesureAppuiFlottant1Im aMAFcur;
-                    aMAFcur.NameIm() = aImIt->NameIm();
-		    std::list<cOneMesureAF1I> aOMcur;
+						cMesureAppuiFlottant1Im aImCur;
+						aImCur.NameIm() = *itL;
+						std::cout << "aImCur.NameIm() " << *itL  << "\n"; 
 
-		    //for all points
-	            std::list<cOneMesureAF1I>::const_iterator aImPtIt;
-		    for(aImPtIt=aImIt->OneMesureAF1I().begin(); 
-		        aImPtIt!=aImIt->OneMesureAF1I().end(); aImPtIt++)
-		    {
-            std::cout << "aImPtIt->NamePt() " << aImPtIt->NamePt()  << "\n"; 
-		        //find ground coordintes XYZ
-		        std::list<cOneAppuisDAF>::const_iterator aGrPtIt;
-		        for(aGrPtIt=aDicoGr.OneAppuisDAF().begin();
-		            aGrPtIt!=aDicoGr.OneAppuisDAF().end(); aGrPtIt++)
-		        {
-		            if(aImPtIt->NamePt() == aGrPtIt->NamePt())
-			    {
+						//for all images
+						std::list<cMesureAppuiFlottant1Im>::const_iterator aImIt;
+						for( aImIt=aDicoIm.MesureAppuiFlottant1Im().begin();
+										aImIt!=aDicoIm.MesureAppuiFlottant1Im().end(); aImIt++)
+						{
+								std::cout << "aImIt->NameIm() " << aImIt->NameIm()  << "\n"; 
+								if( *itL == aImIt->NameIm() )
+								{
+										cMesureAppuiFlottant1Im aMAFcur;
+										aMAFcur.NameIm() = aImIt->NameIm();
+										std::list<cOneMesureAF1I> aOMcur;
 
-                                //tescik
-                                std::cout << "isVisible " << aCamRPC.PIsVisibleInImage(aGrPtIt->Pt()) << "\n";
-                                std::cout << "resol " << aCamRPC.ResolSolOfPt(aGrPtIt->Pt()) << "\n";
-		                //backproject
-		                cOneMesureAF1I aPtCurCmp;
-				aPtCurCmp.NamePt() = aGrPtIt->NamePt() + "_bprj";
-                                aPtCurCmp.PtIm() = aCamRPC.Ter2Capteur(aGrPtIt->Pt());
+										//for all points
+										std::list<cOneMesureAF1I>::const_iterator aImPtIt;
+										for(aImPtIt=aImIt->OneMesureAF1I().begin(); 
+														aImPtIt!=aImIt->OneMesureAF1I().end(); aImPtIt++)
+										{
+												std::cout << "aImPtIt->NamePt() " << aImPtIt->NamePt()  << "\n"; 
+												//find ground coordintes XYZ
+												std::list<cOneAppuisDAF>::const_iterator aGrPtIt;
+												for(aGrPtIt=aDicoGr.OneAppuisDAF().begin();
+																aGrPtIt!=aDicoGr.OneAppuisDAF().end(); aGrPtIt++)
+												{
+														if(aImPtIt->NamePt() == aGrPtIt->NamePt())
+														{
 
-                            	
-                                //push the original img observation
-		                aOMcur.push_back(*aImPtIt);
+																//tescik
+																std::cout << "isVisible " << aCamRPC.PIsVisibleInImage(aGrPtIt->Pt()) << "\n";
+																std::cout << "resol " << aCamRPC.ResolSolOfPt(aGrPtIt->Pt()) << "\n";
+																//backproject
+																cOneMesureAF1I aPtCurCmp;
+																aPtCurCmp.NamePt() = aGrPtIt->NamePt() + "_bprj";
+																aPtCurCmp.PtIm() = aCamRPC.Ter2Capteur(aGrPtIt->Pt());
 
-				//push the backprojected obs
-				aOMcur.push_back(aPtCurCmp);
-				std::cout << aGrPtIt->NamePt() << aPtCurCmp.PtIm() << aPtCurCmp.PtIm()  << "\n";        
-			    }
-		        }
-		    }
-                    aMAFcur.OneMesureAF1I() = aOMcur;
-                    aMAFL.push_back(aMAFcur);
 
-		    std::cout << "size " << aMAFL.size() << "\n"; 
+																//push the original img observation
+																aOMcur.push_back(*aImPtIt);
+
+																//push the backprojected obs
+																aOMcur.push_back(aPtCurCmp);
+																std::cout << aGrPtIt->NamePt() << aPtCurCmp.PtIm() << aPtCurCmp.PtIm()  << "\n";        
+														}
+												}
+										}
+										aMAFcur.OneMesureAF1I() = aOMcur;
+										aMAFL.push_back(aMAFcur);
+
+										std::cout << "size " << aMAFL.size() << "\n"; 
 		    std::cout << aImIt->NameIm(); 
 	        }
 	    }

@@ -44,6 +44,10 @@
          <eSymb> SsResolOptInterm1=* 4 ${SsResolOpt} </eSymb>
          <eSymb> SsResolOptInterm2=* 2 ${SsResolOpt} </eSymb>
 
+         
+         <Symb>  Px1Moy=0 </Symb>
+         <Symb>  Px2Moy=0 </Symb>
+
     </DicoLoc>
 <!-- *************************************************************
 Parametres lies au terrain "physique", independamment de la prise de vue
@@ -63,8 +67,8 @@ Parametres lies au terrain "physique", independamment de la prise de vue
         resolution. Accessoirement, elles ont une influence sur le
         formatage du resultat (exprime en relatif par rapport a cette
         valeur moyenne).-->
-        <Px1Moy >  0.0     </Px1Moy>
-        <Px2Moy >  0.0   </Px2Moy>
+        <Px1Moy >  ${Px1Moy}    </Px1Moy>
+        <Px2Moy >  ${Px2Moy}   </Px2Moy>
 
       </IntervParalaxe>
 

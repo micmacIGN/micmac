@@ -120,13 +120,16 @@ class CameraRPC : public cBasicGeomCap3D
                     ) const;
 
         static cBasicGeomCap3D * CamRPCOrientGenFromFile(
-                const std::string & aName, 
-                const eTypeImporGenBundle aType, 
-                const cSystemeCoord * aChSys);
+        const std::string & aName, 
+        const eTypeImporGenBundle aType, 
+        const cSystemeCoord * aChSys);
 		
        // cSystemeCoord  mChSys;
 
     private:
+		void  SetContourUtile();
+		void  SetEmpriseSol();
+
 		bool   mProfondeurIsDef;
 		double mProfondeur;
 		bool   mAltisSolIsDef;
