@@ -171,10 +171,22 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
         }
     }
     sortDescendPt2drY(valEl_img);
-    if (valEl_img.size() > 1 && imgMas!=NULL && cur_valElipse != -1.0)
+    if (  valEl_img.size() > 1 &&
+          imgMas!=NULL && cur_valElipse != -1.0 &&
+          !isnan(cur_valElipse) &&     // => pourquoi il y a nan il val ellipse ? :(
+          !isnan(valEl_img[0].y)
+       )
     {
-        ELISE_ASSERT( valEl_img[0].y == cur_valElipse, "val Ellipse not coherent");
+        //-----DEBUG----//
+            std::ostringstream strs;
+            strs <<  valEl_img[0].y;
+            strs <<  " ";
+            strs <<  cur_valElipse;
+            std::string str = strs.str();
+            string mesError = "val Ellipse not coherent valEl_img[0].y == cur_valElipse : " + str;
+        ELISE_ASSERT( valEl_img[0].y == cur_valElipse, mesError.c_str());
         ELISE_ASSERT( int(valEl_img[0].x) == imgMas->Num(), "Num Img not coherent");
+        //-----DEBUG----//
         if (mNInter!=0)
             cout<<endl;
         if (valEl_img.size() > 4)

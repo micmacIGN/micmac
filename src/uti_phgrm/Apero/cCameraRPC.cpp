@@ -76,6 +76,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const double aAltiSol) :
     /* Z Min/Max */
     SetAltisSolMinMax(Pt2dr(mRPC->GetGrC31(),mRPC->GetGrC32()));
 
+	SetEmpriseSol();
 }
 
 /* Constructor that takes original RPC fiels as input */
@@ -101,6 +102,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     /* Z Min/Max */
     SetAltisSolMinMax(Pt2dr(mRPC->GetGrC31(),mRPC->GetGrC32()));
 
+	SetEmpriseSol();
 }
 
 cBasicGeomCap3D * CameraRPC::CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
@@ -434,14 +436,16 @@ bool CameraRPC::ProfIsDef() const
 
 void CameraRPC::SetAltiSol(double aZ)
 {
-	int aK;
+
     
 	mAltiSol = aZ;
     mAltisSolIsDef = true;
 	
 
 
+/*	int aK;
 	Box2dr aBox(Pt2dr(0,0),Pt2dr(SzBasicCapt3D()));
+
 	Pt2dr aP4Im[4];
 	aBox.Corners(aP4Im);
 
@@ -478,6 +482,64 @@ void CameraRPC::SetAltiSol(double aZ)
 	mBoxSol = Box2dr(aP0,aP1);
 	mEmpriseSol = cElPolygone();
 	mEmpriseSol.AddContour(aCont,false);
+*/
+
+}
+
+void CameraRPC::SetContourUtile()
+{
+
+	if (mContourUtile.empty())
+	{
+
+		
+		Box2dr aBox(Pt2dr(0,0),Pt2dr(SzBasicCapt3D()));
+		Pt2dr aP4Im[4];
+		aBox.Corners(aP4Im);
+
+
+		int aK;
+		for (aK=0 ; aK<4 ; aK++)
+			mContourUtile.push_back(aP4Im[aK]);
+    	
+	}
+
+
+}
+
+void CameraRPC::SetEmpriseSol()
+{
+
+	double aZ = GetAltiSol();	
+	SetContourUtile();
+
+
+
+	int aK;
+	Pt2dr aP0,aP1;
+	std::vector<Pt2dr>  aCont;	
+
+	for (aK=0 ; aK<int(ContourUtile().size()) ; aK++)
+	{
+		Pt2dr aCk= ContourUtile()[aK];
+
+		Pt3dr aPTer = ImEtZ2Terrain(aCk,aZ);
+		Pt2dr aP2T(aPTer.x,aPTer.y);
+		if (aK==0)
+		{
+			aP0 = aP2T;
+			aP1 = aP2T;
+		}
+		else
+		{
+			aP0.SetInf(aP2T);
+			aP1.SetSup(aP2T);
+		}
+		aCont.push_back(aP2T);
+	}
+	mBoxSol = Box2dr(aP0,aP1);
+	mEmpriseSol.AddContour(mBoxSol.Contour(),false);
+
 }
 
 void CameraRPC::SetAltisSolMinMax(Pt2dr aP)
