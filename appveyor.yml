@@ -1,3 +1,4 @@
+configuration: Release
 # scripts to run before build
 before_build:
   - echo Running cmake...
