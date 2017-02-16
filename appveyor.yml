@@ -1,11 +1,10 @@
-configuration: Release
 # scripts to run before build
 before_build:
   - echo Running cmake...
   - mkdir build
   - cd build
   - cmake .. -DWITH_QT5=OFF
-  - cmake --build . --target INSTALL
+  - cmake --build . --target INSTALL -DCMAKE_BUILD_TYPE=Release
   - cd ..
 
 after_build:
