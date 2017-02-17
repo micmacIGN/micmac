@@ -36,11 +36,12 @@ cAppliEsSim::cAppliEsSim(cParamEsSim * aParam):
     cout<<"Nb Vignette : "<<mVaP0Grill.size()<<endl;
 }
 
-//=================================
+/*===================cAppliEsSim::creatHomol====================*/
+/*========create pairs of tie points for all the pixels=========*/
 
 void cAppliEsSim::creatHomol(cImgEsSim * aImgX, cImgEsSim * aImgY)
 {
-    Pt2di aSz = aImgX->ImgDep().sz();
+    Pt2di aSz = aImgX->ImgDep().sz(); //get the size of images
     Pt2di aK(0,0);
     for (aK.x=0; aK.x<aSz.x; aK.x++)
     {
@@ -50,13 +51,14 @@ void cAppliEsSim::creatHomol(cImgEsSim * aImgX, cImgEsSim * aImgY)
             ElCplePtsHomologues aCpl(
                                      aPt,
                                      aPt + Pt2dr(aImgX->ImgDep().GetR(aK), aImgY->ImgDep().GetR(aK))
-                                    );
+                                    ); // get pairs of tie points for all the pixels
             mHomolDep.Cple_Add(aCpl);
         }
     }
 }
 
-//=================================
+/*================cAppliEsSim::writeHomol=================*/
+/*=========write pairs of tiep oints in a pack============*/
 
 void cAppliEsSim::writeHomol(ElPackHomologue & aPack)
 {
@@ -70,13 +72,14 @@ void cAppliEsSim::writeHomol(ElPackHomologue & aPack)
     aPack.StdPutInFile(cleNomHomolOut);
 }
 
-//=================================
+/*=================cAppliEsSim::getHomolInVgt================*/
+/*get tie points of the vignette and indicate if the vignette is inside the original image*/
 
 bool cAppliEsSim::getHomolInVgt (ElPackHomologue & aPack, Pt2dr & aPtCtr, int & aSzw)
 {
-    Pt2dr aP0(aPtCtr.x-aSzw,aPtCtr.y-aSzw);
-    Pt2dr aP1(aPtCtr.x+aSzw,aPtCtr.y+aSzw);
-    if (mImgX->IsInside(aP0) && mImgX->IsInside(aP1))
+    Pt2dr aP0(aPtCtr.x-aSzw,aPtCtr.y-aSzw); //up-left point of the vignette
+    Pt2dr aP1(aPtCtr.x+aSzw,aPtCtr.y+aSzw); //down-right point of the vignette
+    if (mImgX->IsInside(aP0) && mImgX->IsInside(aP1)) //check if the vignette is in the original image
     {
         Pt2di aK(0,0);
         for (aK.x = aP0.x; aK.x<=aP1.x; aK.x++)
@@ -87,7 +90,7 @@ bool cAppliEsSim::getHomolInVgt (ElPackHomologue & aPack, Pt2dr & aPtCtr, int & 
                ElCplePtsHomologues aCpl(
                                         aPt,
                                         aPt + Pt2dr(mImgX->ImgDep().GetR(aK), mImgY->ImgDep().GetR(aK))
-                                       );
+                                       ); // get pairs of tie points of the vignette
                aPack.Cple_Add(aCpl);
             }
         }
@@ -96,10 +99,11 @@ bool cAppliEsSim::getHomolInVgt (ElPackHomologue & aPack, Pt2dr & aPtCtr, int & 
     return false;
 }
 
-//==================================
+/*=================cAppliEsSim::EsSimFromHomolPack=================*/
+/*======estimate the rotation and translation from deplacement======*/
 bool cAppliEsSim::EsSimFromHomolPack (ElPackHomologue & aPack, Pt2dr & rotCosSin, Pt2dr & transXY)
 {
-    L2SysSurResol aSys(4);
+    L2SysSurResol aSys(4); // indicate the nb of params being estimated by MSE
     double* aData1 = NULL;
     for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
     {
@@ -115,6 +119,7 @@ bool cAppliEsSim::EsSimFromHomolPack (ElPackHomologue & aPack, Pt2dr & rotCosSin
     bool solveOK = true;
     Im1D_REAL8 aResol1 = aSys.GSSR_Solve(&solveOK);
     aData1 = aResol1.data();
+
     if (solveOK != false)
     {
         cout<<"Estime : A B C D = "<<aData1[0]<<" "<<aData1[1]<<" "<<aData1[2]<<" "<<aData1[3]<<endl;
@@ -212,6 +217,8 @@ bool cAppliEsSim::EsSimEnGrill(vector<Pt2di> aVPtCtrVig, int & aSzw, Pt2dr & rot
     Pt2di aSzIm = mImgX->Tif().sz();
     Pt3di mSzW = Pt3di(mParam->mDispSz.x, mParam->mDispSz.y, mParam->mZoom);
 
+    ElPackHomologue aPackAll;
+
     for (uint aKPt=0; aKPt<aVPtCtrVig.size(); aKPt++)
     {
         ElPackHomologue aPack;
@@ -225,6 +232,7 @@ bool cAppliEsSim::EsSimEnGrill(vector<Pt2di> aVPtCtrVig, int & aSzw, Pt2dr & rot
         if ( mImgX->IsInside(aP0) && mImgX->IsInside(aP1) )
         {
             getHomolInVgt (aPack, aPtCtr, aSzw);
+            getHomolInVgt (aPackAll, aPtCtr, aSzw);
             EsSimFromHomolPack (aPack, rotCosSin, transXY);
             if (mParam->mInt != 0)
             {
@@ -261,6 +269,17 @@ bool cAppliEsSim::EsSimEnGrill(vector<Pt2di> aVPtCtrVig, int & aSzw, Pt2dr & rot
             }
         }
 
+    }
+    Pt2dr rotCosSinAll;
+    Pt2dr transXYAll;
+    EsSimFromHomolPack (aPackAll, rotCosSinAll, transXYAll);
+    double scale = rotCosSinAll.x > 0 ? euclid(rotCosSinAll) : -euclid(rotCosSinAll);
+    cout<<endl<<rotCosSinAll<<" "<<transXYAll<<" -scale= "<<scale<< endl;
+
+    if (mWDepl && mParam->mInt != 0)
+    {
+       mWDepl->draw_circle_loc(Pt2dr(aSzIm/2),3,mWDepl->pdisc()(P8COL::cyan));
+       mWDepl->draw_seg(Pt2dr(aSzIm/2), Pt2dr(aSzIm/2)+ transXYAll*mParam->mSclDepl, mWDepl->pdisc()(P8COL::yellow));
     }
     mWDepl->clik_in();
     return true;
