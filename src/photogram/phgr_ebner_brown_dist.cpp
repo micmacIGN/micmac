@@ -39,7 +39,63 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #include "StdAfx.h"
+// extern bool DebugCorona;
+extern bool BugNanFE;
 
+void Show(const double * S,const double *V,int aK1,int aK2)
+{
+   std::cout << "COEF " << V[aK1] << " " << V[aK1+1] << "\n";
+   for (double aX = 0 ; aX<8.0 ; aX+=0.1)
+   {
+      double aR2c = aX*aX;
+      double aRN = aR2c;
+      double aDistRad = 0.0;
+      for (int aK = aK1 ; aK < aK2 ; aK++)
+      {
+           aDistRad = aDistRad + aRN * V[aK];
+           aRN = aRN * aR2c;
+      }
+      double aRes = aX * (1+aDistRad); 
+      std::cout << " X " << aX << " D " << aRes <<  "Atan " << atan(aX) << "\n";
+   }
+   //getchar();
+}
+
+void Show(const Fonc_Num*,const Fonc_Num*,int aK1,int aK2)
+{
+}
+
+void ShowP(const Pt2d<Fonc_Num> &,const Pt2d<Fonc_Num> &,Fonc_Num)
+{
+}
+
+void ShowP(const Pt2d<double> &aPin,const Pt2d<double> &aPout,double aF)
+{
+   std::cout << aPin << " " << aPout <<  " " << aF  << "\n";
+}
+
+void ShowD(const Pt2d<Fonc_Num> &,const std::string &,bool) 
+{
+}
+void ShowD(const Pt2d<double> & aV,const std::string & aMes,bool gc) 
+{
+   if (BugNanFE )
+   {
+      std::cout << aMes << " " << aV.x << " " << aV.y << "\n";
+      if (gc) getchar();
+   }
+}
+
+void ShowD(const Fonc_Num &,const std::string &) 
+{
+}
+void ShowD(const double & aV,const std::string & aMes) 
+{
+   if (BugNanFE )
+   {
+      std::cout << aMes << " " << aV  << "\n";
+   }
+}
 
 
 /*
@@ -844,6 +900,7 @@ void  cDist_Param_Unif_Gen::Diff(ElMatrix<REAL> & aMat,Pt2dr aP) const
 {
    // static int aCpt=0; aCpt++;
    // bool aBug = (aCpt==146282);
+
    
    DiffByDiffFinies(aMat,aP,euclid(mSzIm)/400.0);
 }
@@ -2060,50 +2117,6 @@ template <class TPreC,const int NbRad,const int NbDec,const int NbPolyn,const in
 }
 
 
-void Show(const double * S,const double *V,int aK1,int aK2)
-{
-   std::cout << "COEF " << V[aK1] << " " << V[aK1+1] << "\n";
-   for (double aX = 0 ; aX<8.0 ; aX+=0.1)
-   {
-      double aR2c = aX*aX;
-      double aRN = aR2c;
-      double aDistRad = 0.0;
-      for (int aK = aK1 ; aK < aK2 ; aK++)
-      {
-           aDistRad = aDistRad + aRN * V[aK];
-           aRN = aRN * aR2c;
-      }
-      double aRes = aX * (1+aDistRad); 
-      std::cout << " X " << aX << " D " << aRes <<  "Atan " << atan(aX) << "\n";
-   }
-   //getchar();
-}
-
-void Show(const Fonc_Num*,const Fonc_Num*,int aK1,int aK2)
-{
-}
-
-void ShowP(const Pt2d<Fonc_Num> &,const Pt2d<Fonc_Num> &,Fonc_Num)
-{
-}
-
-void ShowP(const Pt2d<double> &aPin,const Pt2d<double> &aPout,double aF)
-{
-   std::cout << aPin << " " << aPout <<  " " << aF  << "\n";
-}
-
-extern bool BugNanFE;
-void ShowD(const Pt2d<Fonc_Num> &,const std::string &,bool) 
-{
-}
-void ShowD(const Pt2d<double> & aV,const std::string & aMes,bool gc) 
-{
-   if (BugNanFE)
-   {
-      std::cout << aMes << " " << aV.x << " " << aV.y << "\n";
-      if (gc) getchar();
-   }
-}
 
 
 
@@ -2144,6 +2157,7 @@ if (BugFE)
 
 #define ShowIndex 0
 
+
 template <class TPreC,const int NbRad,const int NbDec,const int NbPolyn,const int NBV> 
          Pt2d<typename TPreC::tVal> cDistGen_FishEye_Generator<TPreC,NbRad,NbDec,NbPolyn,NBV>::DistElem
                     (
@@ -2155,7 +2169,7 @@ template <class TPreC,const int NbRad,const int NbDec,const int NbPolyn,const in
                     )
 {
 
-   ShowD(aP," Distelem Input",false);
+   // ShowD(aP," Distelem Input",false);
 //  Centre de distorsion
    tVal  aCX = V[IndCX()];
    tVal  aCY = V[IndCY()];
@@ -2163,6 +2177,11 @@ template <class TPreC,const int NbRad,const int NbDec,const int NbPolyn,const in
 // Ecart au centre de distorsion , normalise
    tVal  aXc =  (aP.x-aCX) / States[0];
    tVal  aYc =  (aP.y-aCY) / States[0];
+
+
+   // ShowD(aCX,"Centre X");
+   // ShowD(aCY,"Centre Y");
+   // ShowD(States[0],"Foc Apriori");
 
    tVal aR2CInit = aXc*aXc+aYc*aYc;
 
@@ -2319,7 +2338,8 @@ template <class TPreC,const int NbRad,const int NbDec,const int NbPolyn,const in
    // Show(States,V,2,D0Dec());
 
    // ShowP(aP,Pt2d<Type>(aCX+aResX*States[0],aCY+aResY*States[0]),States[0]);
-   ShowD(Pt2d<tVal>(aCX+aResX*States[0],aCY+aResY*States[0])," Distelem OutPut ================================== ",true);
+   // ShowD(Pt2d<tVal>(aCX+aResX*States[0],aCY+aResY*States[0])," Distelem OutPut ================================== ",true);
+
    return Pt2d<tVal>(aCX+aResX*States[0],aCY+aResY*States[0]);
 }
 

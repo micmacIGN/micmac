@@ -1012,7 +1012,7 @@ Pt2di  cMetaDataPhoto::XifSzIm(bool Svp) const
 
 double  cMetaDataPhoto::FocPix() const
 {
-    return Foc35()   *  (euclid(XifSzIm()) / euclid(aPRefFullFrame));
+    return Foc35()   *  (euclid(Pt2dr(XifSzIm())) / euclid(aPRefFullFrame));
 }
 
 

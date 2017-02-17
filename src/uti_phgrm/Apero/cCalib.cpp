@@ -914,6 +914,11 @@ cCalibrationInternConique   CalibInternAutom
     
    // double aF = aF35 * euclid(aSzIm) / euclid(aPRefFullFrame);
    double aF = aMDP.FocPix();
+if (1)
+{
+    std::cout << " MdPppppF= " << aF << " SFE=" << aSeuilFE  << " FocMm" << aMDP.FocMm()  
+              << " F35=" <<  aMDP.Foc35()  << " XSZ=" << aMDP.XifSzIm() << "\n";
+}
 
    aRes.PP() = aMil;
    aRes.F() = aF;
@@ -1306,6 +1311,16 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
                       anAppli.Param().SeuilAutomFE().Val(),
                       aCAD.PositionRelPP().Val()
                  );
+if (0)
+{
+   std::cout << "aaaaAAaHHhhhhJuii  " << aCIC.CalibDistortion().size() << "\n";
+   cCalibDistortion aCD = aCIC.CalibDistortion()[0];
+   std::cout << "IsInit= " << aCD.ModUnif().IsInit() << "\n";
+   const cCalibrationInterneUnif & aCIU = aCD.ModUnif().Val();
+   std::cout << "ETAT= " <<  aCIU.Etats() << "\n";
+
+   getchar();
+}
         if (aCAD.KeyFileSauv().IsInit())
         {
             std::string aNameSauv = anAppli.ICNM()->Assoc1To1(aCAD.KeyFileSauv().Val(),aKeyId,true);
