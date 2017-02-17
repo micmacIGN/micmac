@@ -651,7 +651,9 @@ int XMLDiffSeries_main(int argc,char ** argv);
 
 int ZBufferRaster_main(int argc,char ** argv);
 
+int TestYZ_main(int argc,char ** argv);
 
+extern int EsSim_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -841,6 +843,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
         aRes.push_back(cMMCom("XMLDiffSeries",XMLDiffSeries_main ,"Generate pair images for tapioca in part c"));
         aRes.push_back(cMMCom("ZBufferRaster",ZBufferRaster_main ,"Z Buffer Raster"));
+
+        aRes.push_back(cMMCom("TestYZ",TestYZ_main ,"TestYZ"));
+        aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
 
    }
 

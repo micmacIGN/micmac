@@ -39,34 +39,24 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-struct Entry
-{
-    string name;
-    int number;
-};
-
-vector<Entry> phone_book(100);
-
+// normalize vignette from [minVal,maxVal] to [rangeMin, rangeMac] so as to affiche (vignette may have negative values)
 void normalizeYilin(Im2D<double,double>  & aImSource, Im2D<double,double>  & aImDest, double rangeMin, double rangeMax)
 {
-    double minVal;
-    double maxVal;
+    double minVal; //min value of ImSource
+    double maxVal; //Max value of ImSource
 
+    //find the Min and Max of ImSource
     ELISE_COPY(aImSource.all_pts(),aImSource.in(),VMax(maxVal)|VMin(minVal));
     cout<<"Avant Min/Max : "<<minVal<<"/"<<maxVal<<endl;
+
+    //check if the sizes of ImSource and ImDest are coherent
     ELISE_ASSERT((aImSource.sz().x == aImDest.sz().x && aImSource.sz().y == aImDest.sz().y), "Size not coherent in normalize image");
-    // ELISE_COPY(aImSource.all_pts(),aImSource.in(),aImDest.out());
 
-
+    //normalize ImSource
     double factor = (rangeMax-rangeMin)/(maxVal-minVal);
-    cout<<"fac "<<factor<<endl;
-
-//    aImDest.substract(minVal);
-//    aImDest.multiply(factor);
     ELISE_COPY(aImSource.all_pts(),(aImSource.in()-minVal)*factor,aImDest.out());
 
-
-    //aImDest.getMinMax(minVal, maxVal);
+    //find the Min and Max of ImDest
     ELISE_COPY(aImDest.all_pts(),aImDest.in(),VMax(maxVal)|VMin(minVal));
     cout<<"Apres Min/Max : "<<minVal<<"/"<<maxVal<<endl;
 
@@ -74,8 +64,11 @@ void normalizeYilin(Im2D<double,double>  & aImSource, Im2D<double,double>  & aIm
 
 class cAppliTestYZ
 {
+    /*aDir: repertoire
+     *aSzVW: Size of the affiche window
+     *aZoom: factor of zoom*/
     public:
-        cAppliTestYZ(string &aDir, Pt2di & aSzVW, int aZoom);
+        cAppliTestYZ(string & aDir, Pt2di & aSzVW, int aZoom);
         const std::string & Dir() const {return mDir;}
         Pt2di & SzW() {return mSzW;}
         int & Zoom() {return mZoom;}
@@ -86,7 +79,7 @@ class cAppliTestYZ
 
 };
 
-cAppliTestYZ::cAppliTestYZ(string &aDir, Pt2di & aSzVW, int aZoom):
+cAppliTestYZ::cAppliTestYZ(string & aDir, Pt2di & aSzVW, int aZoom):
     mDir (aDir),
     mSzW (aSzVW),
     mZoom (aZoom)
@@ -94,9 +87,13 @@ cAppliTestYZ::cAppliTestYZ(string &aDir, Pt2di & aSzVW, int aZoom):
 
 class cImgDepl
 {
+    /*cImgDepl: Image of deplacement
+      aImgX: name of the deplacement Image of X-axis
+      aImgY: name of the deplacement Image of Y-axis*/
+
     public:
         cImgDepl(cAppliTestYZ * aAppli, string & aImgX, string & aImgY);
-        void estimeDepl(Pt2dr & aPt, int & aSz);
+        void estimeDepl(Pt2dr & aPt, int & aSz); //
         Tiff_Im & TifX() {return mTifX;}
         Tiff_Im & TifY() {return mTifY;}
         cAppliTestYZ * Appli() {return mAppli;}
@@ -109,40 +106,48 @@ class cImgDepl
         Im2D<double,double>     mImDeplY;
 };
 
+//get the deplacement images mImDeplX and mImDeplY
+cImgDepl::cImgDepl(cAppliTestYZ * aAppli, string & aImgX, string & aImgY):
+    mAppli (aAppli),
+    mTifX   (Tiff_Im::UnivConvStd(mAppli->Dir() + aImgX)), //read aImgX
+    mTifY   (Tiff_Im::UnivConvStd(mAppli->Dir() + aImgY)), //read aImgY
+    mImDeplX   (1,1), //initiation of vignette of X-axis
+    mImDeplY   (1,1)  //initiation of vigentte of Y-axis
+{
+    cout<<"Name :" <<mTifX.name()<<" - Sz : "<<mTifX.sz()<<endl;
+    //read images
+    mImDeplX.Resize(mTifX.sz()); //set the size of mImDeplX
+    mImDeplY.Resize(mTifY.sz()); //set the size of mImDeplY
+    ELISE_COPY(mImDeplX.all_pts(),mTifX.in(),mImDeplX.out()); //copy mTifX to mImDeplX
+    ELISE_COPY(mImDeplY.all_pts(),mTifY.in(),mImDeplY.out()); //copy mTifY to mImDeplY
+}
+
+//class definition of a vignette
 class cVignetteDepl
 {
     public:
+        /*aImgDepl: the original image of deplacement
+         *aPtCent: the coordinate of the center point of the vignette
+         *aSz: the size of the vignette*/
         cVignetteDepl(cImgDepl * aImgDepl, Pt2dr & aPtCent, int & aSz);
     private:
         cImgDepl * mImgDepl;
         Im2D<double,double>  mVignetteX;
         Im2D<double,double>  mVignetteY;
         Pt2dr mPtCent;
-        Video_Win *mW;
+        Video_Win * mW;
         Pt2dr mDecalGlob;
 };
 
-cImgDepl::cImgDepl(cAppliTestYZ * aAppli, string & aImgX, string & aImgY):
-    mAppli (aAppli),
-    mTifX   (Tiff_Im::UnivConvStd(mAppli->Dir() + aImgX)),
-    mTifY   (Tiff_Im::UnivConvStd(mAppli->Dir() + aImgY)),
-    mImDeplX   (1,1),
-    mImDeplY   (1,1)
-{
-    cout<<"Name :" <<mTifX.name()<<" - Sz : "<<mTifX.sz()<<endl;
-    //lire img
-    mImDeplX.Resize(mTifX.sz());
-    mImDeplY.Resize(mTifY.sz());
-    ELISE_COPY(mImDeplX.all_pts(),mTifX.in(),mImDeplX.out());
-    ELISE_COPY(mImDeplY.all_pts(),mTifY.in(),mImDeplY.out());
-}
 
 void cImgDepl::estimeDepl(Pt2dr & aPt, int & aSz)
 {
     cVignetteDepl * aVignetteDepl = new cVignetteDepl (this, aPt, aSz);
 }
 
-cVignetteDepl::cVignetteDepl(cImgDepl *aImgDepl, Pt2dr &aPtCent, int &aSz):
+
+//get the vignette of aImgDepl at aPtCent of size aSz
+cVignetteDepl::cVignetteDepl(cImgDepl * aImgDepl, Pt2dr & aPtCent, int & aSz):
     mImgDepl (aImgDepl),
     mVignetteX (1,1),
     mVignetteY (1,1),
@@ -150,12 +155,12 @@ cVignetteDepl::cVignetteDepl(cImgDepl *aImgDepl, Pt2dr &aPtCent, int &aSz):
     mW        (0),
     mDecalGlob (aPtCent - Pt2dr(double(aSz), double(aSz)))
 {
-    //Prendre Imagette
-    Pt2dr aP0 = aPtCent - Pt2dr(double(aSz), double(aSz));
-    mVignetteX.Resize(Pt2di(aSz*2+1, aSz*2+1));
-    mVignetteY.Resize(Pt2di(aSz*2+1, aSz*2+1));
-    ELISE_COPY(mVignetteX.all_pts(),trans(mImgDepl->TifX().in(0),Pt2di(mDecalGlob)),mVignetteX.out());
-    ELISE_COPY(mVignetteY.all_pts(),trans(mImgDepl->TifY().in(0),Pt2di(mDecalGlob)),mVignetteY.out());
+    //get the vignette at aPtCent of size aSz
+    Pt2dr aP0 = aPtCent - Pt2dr(double(aSz), double(aSz)); //calculate the original point of the vignette
+    mVignetteX.Resize(Pt2di(aSz*2+1, aSz*2+1)); //reset the size of mVignetteX
+    mVignetteY.Resize(Pt2di(aSz*2+1, aSz*2+1)); //reset the size of mVignetteY
+    ELISE_COPY(mVignetteX.all_pts(),trans(mImgDepl->TifX().in(0),Pt2di(mDecalGlob)),mVignetteX.out()); //get the vignetteX of TifX
+    ELISE_COPY(mVignetteY.all_pts(),trans(mImgDepl->TifY().in(0),Pt2di(mDecalGlob)),mVignetteY.out()); //get the vignetteY of TifY
     cout<<"Create Vignette : Sz : "<<mVignetteX.sz()<<" - Pt : "<<mDecalGlob<<endl;
 
     if (mW == 0)
@@ -168,7 +173,7 @@ cVignetteDepl::cVignetteDepl(cImgDepl *aImgDepl, Pt2dr &aPtCent, int &aSz):
     }
     if (mW)
     {
-        //normalize pour affichier
+        //normalize to affiche
         Im2D<double,double>  mDisplay;
         mDisplay.Resize(mVignetteX.sz());
         normalizeYilin(mVignetteX, mDisplay, 0.0, 255.0);
@@ -217,8 +222,8 @@ int TestYZ_main(int argc,char ** argv)
                 << EAMC(aDir, "Dir", eSAM_None)
                 << EAMC(aImgX, "Img de deplacement X", eSAM_IsExistFile)
                 << EAMC(aImgY, "Img de deplacement Y", eSAM_IsExistFile)
-                << EAMC(aPtCent, "Coor vignette", eSAM_None)
-                << EAMC(SzV, "Sz vignette (demi)", eSAM_None),
+                << EAMC(aPtCent, "Center point of vignette", eSAM_None)
+                << EAMC(SzV, "Sz of vignette (demi)", eSAM_None),
                 //optional arguments
                 LArgMain()
                 << EAM(aSzW, "SzW", true, "Size Win")
