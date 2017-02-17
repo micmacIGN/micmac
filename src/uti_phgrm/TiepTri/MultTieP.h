@@ -65,6 +65,8 @@ class cSetPMul1ConfigTPM
        float & X(int aKp,int aKIm) {return mVXY.at(AddrPIm(aKp,aKIm) );}
        float & Y(int aKp,int aKIm) {return mVXY.at(AddrPIm(aKp,aKIm) +1 );}
 
+       void Add(const std::vector<Pt2df> &);
+
     private :
        int  AddrPIm(int aKp,int aKIm) {return 2 *(aKp*2*mNbIm  +aKIm) ;}
 
@@ -83,6 +85,8 @@ class cSetTiePMul
     private :
         cDicoImTPM                       mDicoIm;
         std::list<cSetPMul1ConfigTPM *>  mPMul;
+
+        
 };
 
 

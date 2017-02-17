@@ -84,7 +84,7 @@ double  cPMulTiepRed::Residual(int aKC1,int aKC2,double aDef,cAppliTiepRed & anA
 
 void cPMulTiepRed::CompleteArc(cAppliTiepRed & anAppli)
 {
-    const std::vector<U_INT2>  & aVInd = mMerge->VecInd() ;
+    const std::vector<INT4>  & aVInd = mMerge->VecInd() ;
     if (aVInd.size() == 2) return;
 
     const std::vector<Pt2dUi2> &  aVP = mMerge->Edges();
@@ -201,7 +201,7 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
         std::vector<ElSeg3D> aVSeg;
         std::vector<Pt2dr>   aVPt;
 
-        const std::vector<U_INT2>  &  aVecInd = aPM->VecInd() ;
+        const std::vector<INT4>  &  aVecInd = aPM->VecInd() ;
         const std::vector<Pt2df> & aVHom   = aPM-> VecV()  ;
 
         for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
@@ -274,14 +274,14 @@ void cPMulTiepRed::SetSelected()
 void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anAppli)
 {
    // Mark index of aPNew as existing in buf
-    const std::vector<U_INT2>  & aVNew =  aPNew->mMerge->VecInd() ;
+    const std::vector<INT4>  & aVNew =  aPNew->mMerge->VecInd() ;
     std::vector<int>  &  aBuf = anAppli.BufICam();
     for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
     {
         aBuf[aVNew[aK]] = 1;
     }
 
-    const std::vector<U_INT2>  & aVCur =  mMerge->VecInd() ;
+    const std::vector<INT4>  & aVCur =  mMerge->VecInd() ;
 
     for (int aK=0 ; aK<int(aVCur.size()) ; aK++)
     {

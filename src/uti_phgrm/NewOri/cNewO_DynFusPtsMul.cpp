@@ -163,7 +163,7 @@ template <class TypeArc> void cComMergeTieP<TypeArc>::FusionneCnxInThis(const cC
 
    // =================== Specif cVarSizeMergeTieP =================
 
-template <class Type,class TypeArc> const std::vector<U_INT2>  & cVarSizeMergeTieP<Type,TypeArc>::VecInd() const 
+template <class Type,class TypeArc> const std::vector<INT4>  & cVarSizeMergeTieP<Type,TypeArc>::VecInd() const 
 {
    return mVecInd;
 }

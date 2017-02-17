@@ -1099,11 +1099,11 @@ template <class Type,class TypeArc>  class cVarSizeMergeTieP : public cComMergeT
         void AddSom(const Type & aV,int aK);
         static int FixedSize();
 
-        const std::vector<U_INT2>  & VecInd() const;
+        const std::vector<INT4>  & VecInd() const;
         const std::vector<Type> & VecV()   const;
      private :
 
-        std::vector<U_INT2>   mVecInd;
+        std::vector<INT4>   mVecInd;
         std::vector<Type>     mVecV;
 };
 

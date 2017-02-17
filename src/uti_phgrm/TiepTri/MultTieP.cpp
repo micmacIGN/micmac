@@ -40,17 +40,56 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "MultTieP.h"
 
+class cSetIntDyn
+{
+    public :
+          cSetIntDyn(const  std::vector<int> &);
+          bool operator < (const cSetIntDyn &);
+    private :
+          std::vector<int> mVI;
+};
+
+
+cSetIntDyn::cSetIntDyn(const  std::vector<int> & aVI) :
+    mVI (aVI)
+{
+     std::sort(mVI.begin(),mVI.end());
+}
+
+bool cSetIntDyn::operator < (const cSetIntDyn & aSID)
+{
+    size_t aNb = mVI.size();
+    if (aNb <  aSID.mVI.size()) 
+       return true;
+    if (aNb >  aSID.mVI.size()) 
+       return false;
+    for (size_t aK=0 ; aK<aNb ; aK++)
+    {
+        if ( mVI[aK] <  aSID.mVI[aK])
+           return true;
+        if ( mVI[aK] >  aSID.mVI[aK])
+           return false;
+    }
+    return false;
+}
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                Conversion                                       */
+/*                                                                 */
+/*******************************************************************/
 
 typedef cVarSizeMergeTieP<Pt2df,cCMT_NoVal>  tMergeRat;
 typedef cStructMergeTieP<tMergeRat>  tMergeStrRat;
 typedef  std::map<std::string,int>  tDicNumIm;
 
 
-void CreatePMul
-     (
-         cVirtInterf_NewO_NameManager * aVNM,
-         const std::vector<std::string> * aVIm
-     )
+const std::list<tMergeRat *> &  CreatePMul
+                                (
+                                    cVirtInterf_NewO_NameManager * aVNM,
+                                    const std::vector<std::string> * aVIm
+                                )
 {
     
     tDicNumIm aDicoNumIm;
@@ -60,7 +99,7 @@ void CreatePMul
     std::string aNameCple = aVNM->NameListeCpleConnected(true);
     cSauvegardeNamedRel aLCple = StdGetFromPCP(aNameCple,SauvegardeNamedRel);
 
-    tMergeStrRat aMergeStruct(aVIm->size(),false);
+    tMergeStrRat & aMergeStruct =  *(new tMergeStrRat(aVIm->size(),false));
 
     for 
     (
@@ -85,7 +124,8 @@ void CreatePMul
         }
  
     }
-
+    aMergeStruct.DoExport();
+    return  aMergeStruct.ListMerged();
 }
 
 // mm3d TestLib NO_AllOri2Im DSC01.*JPG  GenOri=false
@@ -99,7 +139,7 @@ class cAppliConvertToNewFormatHom
         cElemAppliSetFile   mEASF;
         const std::vector<std::string> * mFilesIm;
         bool                             mDoNewOri;
-
+        cVirtInterf_NewO_NameManager *   mVNM;
 };
 
 
@@ -121,17 +161,36 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
    {
         std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false ";
         System(aCom);
+
+        std::cout << "DONE NO_AllOri2Im \n";
         // mm3d TestLib NO_AllOri2Im IMGP70.*JPG  GenOri=false 
    }
 
-}
+   mVNM = cVirtInterf_NewO_NameManager::StdAlloc(mEASF.mDir,"",true);
+   const std::list<tMergeRat *> &  aLMR = CreatePMul  (mVNM,mFilesIm);
+   std::cout << "DONE PMUL " << aLMR.size() << " \n";
 
-//   mAppli.NM().LoadHomFloats(NameIm(),aCam2.NameIm(),&aVPIn1,&aVPIn2)
-//   cVirtInterf_NewO_NameManager & NM();
+
+   std::map<cSetIntDyn,cSetPMul1ConfigTPM *> aMapPMul;
+   for (std::list<tMergeRat *>::const_iterator itMR=aLMR.begin() ; itMR!=aLMR.end() ; itMR++)
+   {
+        // cSetIntDyn aSet((*itMR)->VecInd());
+        // if (aMapPMul[aSet]==0) 
+           // aMapPMul[aSet] = new cSetPMul1ConfigTPM((*itMR)->VecInd(),0);
+         // aMapPMul[aSet] ....;
+          std::cout << "VecIm=" << (*itMR)->VecInd() << "\n";
+         for (int aKI=1; aKI<(*itMR)->VecInd().size() ; aKI++)
+         {
+              ELISE_ASSERT((*itMR)->VecInd()[aKI-1]<(*itMR)->VecInd()[aKI],"Order in tMergeRat");
+         }
+        
+   }
+}
 
 
 int ConvertToNewFormatHom_Main(int argc,char ** argv)
 {
+    cAppliConvertToNewFormatHom(argc,argv);
     return EXIT_SUCCESS;
     // :
 }

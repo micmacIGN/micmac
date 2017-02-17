@@ -342,7 +342,7 @@ void cAppliTiepRed::DoReduce(){
 			// Add the accuracy of this multi-tie-point to the lsit with all accuracies
 			aVAcc.push_back(aPM->Acc());
 			// Get the indices of the images where this multi-tie-point is present
-			const std::vector<U_INT2> & vecInd = (*itMultiTiePointRaw)->VecInd();
+			const std::vector<INT4> & vecInd = (*itMultiTiePointRaw)->VecInd();
 			for (std::size_t i = 0; i < vecInd.size(); i++){
 				// For each image where the point is present we add it into the grid (Add method adds it already in the proper cell of the grid)
 				imageGridVec.at(vecInd[i])->Add(aPM);
@@ -378,7 +378,7 @@ void cAppliTiepRed::DoReduce(){
 					// Get the multi-tie-point
 					cPMulTiepRed * mp = cellPoints[j];
 					// We check in which images this point is present. It should be visible in 0 (the master image) and at least anther image
-					const std::vector<U_INT2> & vecInd = mp->MultiTiePointRaw()->VecInd();
+					const std::vector<INT4> & vecInd = mp->MultiTiePointRaw()->VecInd();
 					// We initialize removable to true
 					bool removable = true;
 					// For all the images where the point is present
