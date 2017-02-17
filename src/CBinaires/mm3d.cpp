@@ -846,13 +846,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("XMLDiffSeries",XMLDiffSeries_main ,"Generate pair images for tapioca in part c"));
         aRes.push_back(cMMCom("ZBufferRaster",ZBufferRaster_main ,"Z Buffer Raster"));
 
-<<<<<<< HEAD
         aRes.push_back(cMMCom("ConvNewFH",ConvertToNewFormatHom_Main ,"Convert Std Tie Points to new Formats for Multiple Point"));
-=======
         aRes.push_back(cMMCom("TestYZ",TestYZ_main ,"TestYZ"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
 
->>>>>>> e16744fc3605880ad1bf9b04105df970b608c28c
    }
 
     cCmpMMCom CmpMMCom;
