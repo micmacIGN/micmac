@@ -143,6 +143,7 @@ class cVignetteDepl
 void cImgDepl::estimeDepl(Pt2dr & aPt, int & aSz)
 {
     cVignetteDepl * aVignetteDepl = new cVignetteDepl (this, aPt, aSz);
+    cout<<aVignetteDepl<<endl;
 }
 
 
@@ -156,7 +157,7 @@ cVignetteDepl::cVignetteDepl(cImgDepl * aImgDepl, Pt2dr & aPtCent, int & aSz):
     mDecalGlob (aPtCent - Pt2dr(double(aSz), double(aSz)))
 {
     //get the vignette at aPtCent of size aSz
-    Pt2dr aP0 = aPtCent - Pt2dr(double(aSz), double(aSz)); //calculate the original point of the vignette
+    //Pt2dr aP0 = aPtCent - Pt2dr(double(aSz), double(aSz)); //calculate the original point of the vignette
     mVignetteX.Resize(Pt2di(aSz*2+1, aSz*2+1)); //reset the size of mVignetteX
     mVignetteY.Resize(Pt2di(aSz*2+1, aSz*2+1)); //reset the size of mVignetteY
     ELISE_COPY(mVignetteX.all_pts(),trans(mImgDepl->TifX().in(0),Pt2di(mDecalGlob)),mVignetteX.out()); //get the vignetteX of TifX

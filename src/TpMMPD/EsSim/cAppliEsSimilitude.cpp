@@ -202,6 +202,7 @@ bool cAppliEsSim::EsSimAndDisp (Pt2dr & aPtCtr, int & aSzw, Pt2dr & rotCosSin, P
             return false;
         }
     }
+    return true;
 }
 
 //====================================
@@ -262,5 +263,5 @@ bool cAppliEsSim::EsSimEnGrill(vector<Pt2di> aVPtCtrVig, int & aSzw, Pt2dr & rot
 
     }
     mWDepl->clik_in();
-
+    return true;
 }
