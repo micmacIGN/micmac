@@ -369,7 +369,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    double aSPds = 0;
    for (int aK=0 ; aK<int(mCams.size()) ; aK++)
    {
-        if (mCams[aK]->RotIsInit())
+        // mPdsIm[aK]>0 Modif MPD , erreur sur erreur Max et Moy
+        if (mCams[aK]->RotIsInit() && (mPdsIm[aK]>0))  
         {
             Pt2dr anEc = aRes.mEcIm[aK];
 	    double anEr = euclid(anEc);

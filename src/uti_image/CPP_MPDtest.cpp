@@ -1245,8 +1245,49 @@ void TestClipBundle()
    exit(EXIT_SUCCESS);
 }
 
+void TestFileTxtBin(bool ModeBin)
+{
+    std::string aName = ModeBin ? "toto.dat" : "toto.txt";
+    ELISE_fp aFp(aName.c_str(),ELISE_fp::WRITE,false, ModeBin ? ELISE_fp::eBinTjs : ELISE_fp::eTxtTjs);
+
+    aFp.SetFormatFloat("%.3f");
+    aFp.write_U_INT4(1);
+    aFp.PutLine();
+    aFp.write_U_INT4(10);
+    aFp.PutCommentaire("Ceci est un joli commentaire");
+    aFp.write_line("Version=0");
+    aFp.write_REAL4(1/3.0);
+    aFp.PutLine();
+    aFp.PutCommentaire("t");
+    aFp.PutCommentaire("toto2");
+    aFp.write_REAL8(4/3.0);
+    aFp.write_U_INT4(10);
+    aFp.close();
+
+    ELISE_fp aFp2(aName.c_str(),ELISE_fp::READ,false, ModeBin ? ELISE_fp::eBinTjs : ELISE_fp::eTxtTjs);
+
+    std::cout << "NME " << aName << "\n";
+    std::cout << aFp2.read_U_INT4()  << "\n" ;
+    std::cout << aFp2.read_U_INT4()  << "\n" ;
+    std::cout << aFp2.std_fgets() << "\n";
+    std::cout << aFp2.read_REAL4()  << "\n" ;
+    std::cout << aFp2.read_REAL8()  << "\n\n" ;
+
+
+}
+
+void TestFileTxtBin()
+{
+   TestFileTxtBin(true);
+   TestFileTxtBin(false);
+
+   exit(EXIT_SUCCESS);
+}
+
 int MPDtest_main (int argc,char** argv)
 {
+    TestFileTxtBin();
+
     TestClipBundle();
     {
         double aU0 = 0.5;

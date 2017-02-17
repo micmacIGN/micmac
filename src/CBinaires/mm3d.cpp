@@ -576,7 +576,7 @@ int CheckPatCple_main(int argc,char ** argv);
 int ConvPSHomol2MM_main(int argc,char ** argv);
 extern int BasculePtsInRepCam_main(int argc,char ** argv);
 extern int BasculeCamsInRepCam_main(int argc,char ** argv);
-
+int SplitPatByCam_main(int argc,char ** argv);
 int CheckOneOrient_main(int argc,char ** argv);
 int CheckAllOrient_main(int argc,char ** argv);
 int ChekBigTiff_main(int,char**);
@@ -651,7 +651,9 @@ int XMLDiffSeries_main(int argc,char ** argv);
 
 int ZBufferRaster_main(int argc,char ** argv);
 
+int TestYZ_main(int argc,char ** argv);
 
+extern int EsSim_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -749,7 +751,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("CleanTxtPS", CleanTxtPS_main,"Tool to clean .txt file output of PhotoScan Aero",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CheckPatCple", CheckPatCple_main,"Tool to check a Pattern and an .xml File Cple",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ConvPSHomol2MM", ConvPSHomol2MM_main, "Tool to convert Tie Points from PhotoScan to MicMac format",cArgLogCom(2)));
-	      
+	   aRes.push_back(cMMCom("SplitPatByCam", SplitPatByCam_main, "Tool to split a Pattern based on type of camera",cArgLogCom(2)));    
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
 
@@ -841,6 +843,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
         aRes.push_back(cMMCom("XMLDiffSeries",XMLDiffSeries_main ,"Generate pair images for tapioca in part c"));
         aRes.push_back(cMMCom("ZBufferRaster",ZBufferRaster_main ,"Z Buffer Raster"));
+
+        aRes.push_back(cMMCom("TestYZ",TestYZ_main ,"TestYZ"));
+        aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
 
    }
 

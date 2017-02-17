@@ -159,6 +159,15 @@ class  ELISE_fp
               eTxtOnPremierLigne
          } eModeBinTxt;
 
+         void SetFormatFloat(const std::string & aFormat);
+         void SetFormatDouble(const std::string & aFormat);
+         void PutLine();
+         void PutCommentaire(const std::string & aComment);
+         void PasserCommentaire();
+         // void UnGetc(int car);
+         // bool GetGivenCar(int car);
+
+
          static void if_not_exist_create_0(const char *,struct stat *); 
          static bool exist_file(const char *); 
          static bool exist_file(const std::string &);
@@ -213,6 +222,7 @@ class  ELISE_fp
          void write_REAL4(REAL4);
          void write_REAL8(REAL8);
 
+         void write_line(const std::string &); // Pendant de fgets
          void write(const std::string &);
          void write(const bool &);
          void write(const Pt2di &);
@@ -365,6 +375,9 @@ class  ELISE_fp
           static const int (code_mope_open[3]);
 #else
           FILE * _fp;
+          std::string  mFormatFloat;
+          std::string  mFormatDouble;
+          char         mCarCom;
           static const char * (name_mope_open[3]);
 #endif
          static void InterneMkDirRec(const  std::string  & aName );

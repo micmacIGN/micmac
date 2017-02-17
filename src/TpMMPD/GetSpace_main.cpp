@@ -111,11 +111,13 @@ int GetSpace_main(int argc,char ** argv)
                 {
                     cout<<"Del : "<<VTmpExist[i]<<" ... ";
 
+#if ELISE_unix
                     std::string aNameCom = std::string(SYS_RMR)+ " " +VTmpExist[i];
                     ::System(aNameCom.c_str());
+#else
 
-
-                    //ELISE_fp::PurgeDirRecursif(VTmpExist[i]);
+                    ELISE_fp::PurgeDirRecursif(VTmpExist[i]);
+#endif
                     cout<<" done ! "<<endl;
                 }
             }
