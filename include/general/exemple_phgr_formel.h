@@ -1066,17 +1066,39 @@ template <class TypeArc>  class cComMergeTieP
         void IncrArc() { mNbArc++;}
         void MemoCnx(int aK1,int aK2,const TypeArc& );
         void FusionneCnxInThis(const cComMergeTieP<TypeArc> &);
-        const std::vector<Pt2dUi2> & Edges() const;
-        std::vector<Pt2dUi2> & NC_Edges() ;
+        const std::vector<Pt2di> & Edges() const;
+        std::vector<Pt2di> & NC_Edges() ;
         const std::vector<TypeArc> & ValArc() const;
         std::vector<TypeArc> & NC_ValArc() ;
     protected :
         cComMergeTieP();
         bool  mOk;
         int   mNbArc;
-        std::vector<Pt2dUi2> mEdges;
+        std::vector<Pt2di> mEdges;
         std::vector<TypeArc> mVecValArc;
 };
+
+
+template <class Type> class cPairIntType
+{
+    public :
+          cPairIntType(int aNum,const Type & aVal) :
+              mNum (aNum),
+              mVal (aVal)
+          {
+          }
+          bool operator < (const cPairIntType<Type> & aP2) const {return mNum<aP2.mNum;}
+
+          int   mNum;
+          Type  mVal;
+};
+template <class Type> std::vector<int> VecIofVecIT(const std::vector<cPairIntType<Type> >  & VecIT);
+
+template <class Type>  std::ostream& operator <<(std::ostream& stream, const cPairIntType<Type> & aPair)  
+{
+   return stream << "[" << aPair.mNum << ":" << aPair.mVal << "]";
+}
+
 
 
 
@@ -1084,6 +1106,7 @@ template <class Type,class TypeArc>  class cVarSizeMergeTieP : public cComMergeT
 {
      public :
        typedef Type                    tVal;
+       typedef cPairIntType<Type>      tPairIT;
        typedef cVarSizeMergeTieP<Type,TypeArc> tMerge;
        typedef TypeArc                    tArc;
        //  typedef std::map<Type,tMerge *>     tMapMerge;
@@ -1095,16 +1118,19 @@ template <class Type,class TypeArc>  class cVarSizeMergeTieP : public cComMergeT
 
         bool IsInit(int aK) const ;
         const Type & GetVal(int aK) const ;
+        void  CompileForExport();
         int  NbSom() const ;
         void AddSom(const Type & aV,int aK);
         static int FixedSize();
 
-        const std::vector<INT4>  & VecInd() const;
-        const std::vector<Type> & VecV()   const;
+        const std::vector<tPairIT>  & VecIT() const;
+        // const std::vector<INT4>  & VecInd() const;
+        // const std::vector<Type> & VecV()   const;
      private :
 
-        std::vector<INT4>   mVecInd;
-        std::vector<Type>     mVecV;
+        // std::vector<INT4>   mVecInd;
+        // std::vector<Type>     mVecV;
+        std::vector<tPairIT>     mVecIT;
 };
 
 
@@ -1124,6 +1150,7 @@ template <const int TheNbPts,class Type,class TypeArc>  class cFixedSizeMergeTie
 
         bool IsInit(int aK) const;
         const Type & GetVal(int aK) const;
+        void  CompileForExport();
         int  NbSom() const ;
         void AddSom(const Type & aV,int aK);
         static int FixedSize();

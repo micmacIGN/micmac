@@ -3548,11 +3548,6 @@ cDistFromCIC::cDistFromCIC
     const std::vector<cCalibDistortion> &aVCD = aCIC.CalibDistortion();
     int aNbD = (int)aVCD.size();
 
-if (1)
-{
-   std::cout << "NbDdDDd=" << aVCD.size() << "\n";
-}
-
 
     std::vector<ElDistortion22_Gen *> aV2D;
     std::vector<bool>                 aVDisDirect;

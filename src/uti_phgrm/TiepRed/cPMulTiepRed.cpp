@@ -66,16 +66,16 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aMultiTiePointRaw, cAppliTiepRed & anAppli) 
 		// Create list of accuracies for the related tie-points
 		std::vector<double> accuracies;
 		// Get the list of images where the multi-tie-point has related tie-points
-		const std::vector<INT4>  &  aVecInd = mMultiTiePointRaw->VecInd() ;
+		const std::vector<cPairIntType<Pt2df> >  &  aVecInd = mMultiTiePointRaw->VecIT() ;
 		// we get accuracy for all the image pais between the master and each of the images where the multi-tie-point has related tie-points
 		for (int i=0 ; i<int(aVecInd.size()) ; i++){
-			if (aVecInd[i] != 0){
+			if (aVecInd[i].mNum != 0){
 				double acc;
-				cLnk2ImTiepRed * imagePair = anAppli.ImagePairsMap()[std::make_pair(0,aVecInd[i])];
+				cLnk2ImTiepRed * imagePair = anAppli.ImagePairsMap()[std::make_pair(0,aVecInd[i].mNum)];
 				// if (&(imagePair->Cam1())==0){
 				//    ELISE_ASSERT(false,"NUL CAMERA POINTER");
 				// }
-				(imagePair->Cam1()).PseudoInterPixPrec(ToPt2dr(mMultiTiePointRaw->GetVal(0)),imagePair->Cam2(),ToPt2dr(mMultiTiePointRaw->GetVal(aVecInd[i])),acc);
+				(imagePair->Cam1()).PseudoInterPixPrec(ToPt2dr(mMultiTiePointRaw->GetVal(0)),imagePair->Cam2(),ToPt2dr(mMultiTiePointRaw->GetVal(aVecInd[i].mNum)),acc);
 				accuracies.push_back(acc);
 			}
 		}

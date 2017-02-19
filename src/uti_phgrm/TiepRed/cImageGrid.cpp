@@ -87,11 +87,11 @@ void cImageGrid::Add(cPMulTiepRed * aMultiTiePoint) {
   // We update the counters if this is the amster image grid
 	if (mImage->ImageId() == 0){
     // We check in which images this point is present. It should be visible in 0 (the master image) and at least anther image
-		const std::vector<INT4> & vecInd = aMultiTiePoint->MultiTiePointRaw()->VecInd();
+		const std::vector<cPairIntType<Pt2df> > & vecInd = aMultiTiePoint->MultiTiePointRaw()->VecIT();
     // For all the images where the point is present
 		for (std::size_t k = 0; k < vecInd.size(); k++){
        // We update the counters
-			if (vecInd[k] != 0) mCellsImageCounters.at(cellIndex).at(vecInd[k]-1)++;
+			if (vecInd[k].mNum != 0) mCellsImageCounters.at(cellIndex).at(vecInd[k].mNum-1)++;
 		}
 	}
 }
@@ -139,10 +139,10 @@ void cImageGrid::Remove(cPMulTiepRed * aMultiTiePoint, int aCellIndex){
   // If this is the master image grid we update (decrease) the counters
 	if (mImage->ImageId() == 0){
     // We check in which images this point is present. It should be visible in 0 (the master image) and at least anther image
-		const std::vector<INT4> & vecInd = aMultiTiePoint->MultiTiePointRaw()->VecInd();
+		const std::vector<cPairIntType<Pt2df> > & vecInd = aMultiTiePoint->MultiTiePointRaw()->VecIT();
     // For all the images where the point is present
 		for (std::size_t k = 0; k < vecInd.size(); k++){
-			if (vecInd[k] != 0) mCellsImageCounters[aCellIndex][vecInd[k]-1]--;
+			if (vecInd[k].mNum != 0) mCellsImageCounters[aCellIndex][vecInd[k].mNum-1]--;
 		}
 	}
 }

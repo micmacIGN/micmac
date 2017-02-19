@@ -720,6 +720,11 @@ void  ELISE_fp::SetFormatFloat(const std::string& aFormatFloat)
    mFormatFloat = aFormatFloat;
 }
 
+void  ELISE_fp::SetFormatDouble(const std::string& aFormatDouble)
+{
+   mFormatDouble = aFormatDouble;
+}
+
 
 void ELISE_fp::PutLine()
 {

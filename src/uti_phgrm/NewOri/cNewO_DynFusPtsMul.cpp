@@ -44,7 +44,7 @@ template <class Type,class TypeArc> void CheckCnx(const  cVarSizeMergeTieP<Type,
 {
 static int aCpt=0; aCpt++;
 std::cout << "CCx " << aMes << " " << aCpt << " K1K2 " << aK1 << " " << aK2 << " Adr=" << &aVM  << " KS=" <<aVM.VecInd() << "\n";
-   const std::vector<Pt2dUi2> &  aVE = aVM.Edges();
+   const std::vector<Pt2di> &  aVE = aVM.Edges();
    for (int aKCple=0 ; aKCple<int(aVE.size()) ; aKCple++)
    {
 std::cout << aVE[aKCple] << "\n";
@@ -105,7 +105,7 @@ template <class TypeArc> cComMergeTieP<TypeArc>::cComMergeTieP() :
 
 template <class TypeArc> void cComMergeTieP<TypeArc>::MemoCnx(int aK1,int aK2,const TypeArc & aValArc)
 {
-   Pt2dUi2 aNewP(aK1,aK2);
+   Pt2di aNewP(aK1,aK2);
    for (int aKE=0 ; aKE<int(mEdges.size()) ; aKE++)
    {
        if (mEdges[aKE] == aNewP)
@@ -115,17 +115,17 @@ template <class TypeArc> void cComMergeTieP<TypeArc>::MemoCnx(int aK1,int aK2,co
        }
    }
 
-   mEdges.push_back(Pt2dUi2(aK1,aK2));
+   mEdges.push_back(Pt2di(aK1,aK2));
    mVecValArc.push_back(aValArc);
 }
 
-template <class TypeArc> const std::vector<Pt2dUi2> &  cComMergeTieP<TypeArc>::Edges() const
+template <class TypeArc> const std::vector<Pt2di> &  cComMergeTieP<TypeArc>::Edges() const
 {
    return mEdges;
 }
 
 
-template <class TypeArc> std::vector<Pt2dUi2> &  cComMergeTieP<TypeArc>::NC_Edges() 
+template <class TypeArc> std::vector<Pt2di> &  cComMergeTieP<TypeArc>::NC_Edges() 
 {
    return mEdges;
 }
@@ -160,17 +160,15 @@ template <class TypeArc> void cComMergeTieP<TypeArc>::FusionneCnxInThis(const cC
 /*                                                                        */
 /**************************************************************************/
 
-
    // =================== Specif cVarSizeMergeTieP =================
 
-template <class Type,class TypeArc> const std::vector<INT4>  & cVarSizeMergeTieP<Type,TypeArc>::VecInd() const 
+template <class Type,class TypeArc> const std::vector<cPairIntType<Type> >  & cVarSizeMergeTieP<Type,TypeArc>::VecIT() const 
 {
-   return mVecInd;
+   return mVecIT;
 }
-template <class Type,class TypeArc> const std::vector<Type> & cVarSizeMergeTieP<Type,TypeArc>::VecV()   const 
-{
-   return mVecV;
-}
+
+
+
 
 
    // ======================= Constructeurs =========================
@@ -202,17 +200,17 @@ template <const int TheNbPts,class Type,class TypeArc> int cFixedSizeMergeTieP<T
 template <class Type,class TypeArc> 
 void  cVarSizeMergeTieP<Type,TypeArc>::AddSom(const Type & aV,int anInd)
 {
-     for (int aKI=0 ; aKI< int(mVecInd.size()) ; aKI++)
+     for (int aKI=0 ; aKI< int(mVecIT.size()) ; aKI++)
      {
-         if ( mVecInd[aKI] == anInd)
+         if ( mVecIT[aKI].mNum == anInd)
          {
-             if (mVecV[aKI] != aV) this->mOk = false;
+             if (mVecIT[aKI].mVal != aV) this->mOk = false;
              return;
          }
      }
 
-     mVecV.push_back(aV);
-     mVecInd.push_back(anInd);
+     mVecIT.push_back(tPairIT(anInd,aV));
+     // mVecInd.push_back(anInd);
 }
 
 template <const int TheNbPts,class Type,class TypeArc>
@@ -238,7 +236,7 @@ template <const int TheNbPts,class Type,class TypeArc>
 template <class Type,class TypeArc> 
 int  cVarSizeMergeTieP<Type,TypeArc>::NbSom() const
 {
-   return mVecV.size();
+   return mVecIT.size();
 }
 
 template <const int TheNbPts,class Type,class TypeArc>   
@@ -287,9 +285,9 @@ template <const int TheNbPts,class Type,class TypeArc>
 template <class Type,class TypeArc> 
 bool  cVarSizeMergeTieP<Type,TypeArc>::IsInit(int anInd) const
 {
-     for (int aKI=0 ; aKI< int(mVecInd.size()) ; aKI++)
+     for (int aKI=0 ; aKI< int(mVecIT.size()) ; aKI++)
      {
-         if ( mVecInd[aKI] == anInd)
+         if ( mVecIT[aKI].mNum == anInd)
             return true;
      }
      return false;
@@ -308,14 +306,14 @@ template <const int TheNbPts,class Type,class TypeArc>
 template <class Type,class TypeArc> 
 const Type &    cVarSizeMergeTieP<Type,TypeArc>::GetVal(int anInd) const
 {
-     for (int aKI=0 ; aKI< int(mVecInd.size()) ; aKI++)
+     for (int aKI=0 ; aKI< int(mVecIT.size()) ; aKI++)
      {
-         if ( mVecInd[aKI] == anInd)
-            return mVecV[aKI];
+         if ( mVecIT[aKI].mNum == anInd)
+            return mVecIT[aKI].mVal;
      }
-     std::cout << "VECIND " << mVecInd  << " Ind=" << anInd << "\n";
+     std::cout << "VECIND " << mVecIT  << " Ind=" << anInd << "\n";
      ELISE_ASSERT(false,":::GetVal");
-     return mVecV[0];
+     return mVecIT[0].mVal;
 }
 
 template <const int TheNbPts,class Type,class TypeArc>
@@ -337,22 +335,22 @@ void cVarSizeMergeTieP<Type,TypeArc>::FusionneInThis(cVarSizeMergeTieP<Type,Type
          return;
      }
      this->mNbArc += anEl2.mNbArc;
-     for (int aK2=0 ; aK2<int(anEl2.mVecV.size()); aK2++)
+     for (int aK2=0 ; aK2<int(anEl2.mVecIT.size()); aK2++)
      {
-          int anInd2 = anEl2.mVecInd[aK2];
-          const Type  & aV2 = anEl2.mVecV[aK2];
-          for (int aK1=0 ; aK1<int(mVecInd.size()) ; aK1++)
+          int anInd2 = anEl2.mVecIT[aK2].mNum;
+          const Type  & aV2 = anEl2.mVecIT[aK2].mVal;
+          for (int aK1=0 ; aK1<int(mVecIT.size()) ; aK1++)
           {
-              if (mVecInd[aK1] == anInd2)
+              if (mVecIT[aK1].mNum == anInd2)
               {
                   // Ce cas ne devrait pas se produire, il doivent avoir ete fusionnes
-                  ELISE_ASSERT(mVecV[aK1]!= aV2,"cVarSizeMergeTieP");
+                  ELISE_ASSERT(mVecIT[aK1].mVal != aV2,"cVarSizeMergeTieP");
                   this->mOk = anEl2.mOk = false;
                   return;
               }
           }
-          mVecInd.push_back(anInd2);
-          mVecV.push_back(aV2);
+          mVecIT.push_back(tPairIT(anInd2,aV2));
+          // mVecV.push_back(aV2);
           Tabs[anInd2].GT_SetVal(aV2,this);
      }
 }
@@ -385,6 +383,18 @@ void cFixedSizeMergeTieP<TheNbPts,Type,TypeArc>::FusionneInThis(cFixedSizeMergeT
             Tabs[aK].GT_SetVal(mVals[aK],this);
          }
      }
+}
+
+   // =================== CompileForExport =================
+
+// template <class Type> I//
+template <class Type,class TypeArc>  void   cVarSizeMergeTieP<Type,TypeArc>::CompileForExport() 
+{
+   std::sort(mVecIT.begin(),mVecIT.end());
+}
+
+template <const int TheNbPts,class Type,class TypeArc> void cFixedSizeMergeTieP<TheNbPts,Type,TypeArc>::CompileForExport() 
+{
 }
 
 /**************************************************************************/
@@ -528,6 +538,7 @@ template <class Type>   void cStructMergeTieP<Type>::DoExport()
         for (tItMM anIt = aMap.GT_Begin() ; anIt != aMap.GT_End() ; anIt++)
         {
             tMerge * aM = tMapMerge::GT_GetValOfIt(anIt);
+            aM->CompileForExport();
             if (aM->IsOk())
             {
                mLM.push_back(aM);
