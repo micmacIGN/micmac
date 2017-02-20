@@ -1,7 +1,7 @@
 #include "EsSimilitude.h"
 
 //==================== Si je mets ca dans .h, ca va pas content parce que multiple define ================
-cParamEsSim::cParamEsSim(string & aDir, string & aImgX, string & aImgY, Pt2dr & aPtCtr, int & aSzW, Pt3di & aDispParam, int & nInt, Pt2di & aNbGrill, double & aSclDepl):
+cParamEsSim::cParamEsSim(string & aDir, string & aImgX, string & aImgY, Pt2dr & aPtCtr, int & aSzW, Pt3di & aDispParam, int & nInt, Pt2di & aNbGrill, double & aSclDepl, bool & aSaveImg):
     mDir (aDir),
     mImgX (aImgX),
     mImgY (aImgY),
@@ -11,14 +11,16 @@ cParamEsSim::cParamEsSim(string & aDir, string & aImgX, string & aImgY, Pt2dr & 
     mZoom  (aDispParam.z),
     mInt   (nInt),
     mNbGrill (aNbGrill),
-    mSclDepl (aSclDepl)
+    mSclDepl (aSclDepl),
+    mSaveImg (aSaveImg)
 {}
 //==========================================
 
 cAppliEsSim::cAppliEsSim(cParamEsSim * aParam):
     mParam (aParam),
     mWX (0),
-    mWY (0)
+    mWY (0),
+    aData1   (NULL)
 {
     mImgX = new cImgEsSim(mParam->mImgX, this);
     mImgY = new cImgEsSim(mParam->mImgY, this);
@@ -104,7 +106,7 @@ bool cAppliEsSim::getHomolInVgt (ElPackHomologue & aPack, Pt2dr & aPtCtr, int & 
 bool cAppliEsSim::EsSimFromHomolPack (ElPackHomologue & aPack, Pt2dr & rotCosSin, Pt2dr & transXY)
 {
     L2SysSurResol aSys(4); // indicate the nb of params being estimated by MSE
-    double* aData1 = NULL;
+    aData1 = NULL;
     for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
     {
             Pt2dr aPt = itP->P1();
@@ -211,8 +213,9 @@ bool cAppliEsSim::EsSimAndDisp (Pt2dr & aPtCtr, int & aSzw, Pt2dr & rotCosSin, P
 }
 
 //====================================
-bool cAppliEsSim::EsSimEnGrill(vector<Pt2di> aVPtCtrVig, int & aSzw, Pt2dr & rotCosSin, Pt2dr & transXY)
+bool cAppliEsSim::EsSimEnGrill(vector<Pt2di> aVPtCtrVig, int & aSzw, Pt2dr & rotCosSinAll, Pt2dr & transXYAll)
 {
+    vector<Pt2dr> result;
     Video_Win * mWDepl = 0;
     Pt2di aSzIm = mImgX->Tif().sz();
     Pt3di mSzW = Pt3di(mParam->mDispSz.x, mParam->mDispSz.y, mParam->mZoom);
@@ -234,6 +237,11 @@ bool cAppliEsSim::EsSimEnGrill(vector<Pt2di> aVPtCtrVig, int & aSzw, Pt2dr & rot
             getHomolInVgt (aPack, aPtCtr, aSzw);
             getHomolInVgt (aPackAll, aPtCtr, aSzw);
             EsSimFromHomolPack (aPack, rotCosSin, transXY);
+
+            //exporter local estimation (aVPtCtrVig[aKPt] - rotCosSin - transXY)
+
+
+
             if (mParam->mInt != 0)
             {
                 if (mWDepl == 0)
@@ -270,17 +278,16 @@ bool cAppliEsSim::EsSimEnGrill(vector<Pt2di> aVPtCtrVig, int & aSzw, Pt2dr & rot
         }
 
     }
-    Pt2dr rotCosSinAll;
-    Pt2dr transXYAll;
     EsSimFromHomolPack (aPackAll, rotCosSinAll, transXYAll);
     double scale = rotCosSinAll.x > 0 ? euclid(rotCosSinAll) : -euclid(rotCosSinAll);
     cout<<endl<<rotCosSinAll<<" "<<transXYAll<<" -scale= "<<scale<< endl;
+
 
     if (mWDepl && mParam->mInt != 0)
     {
        mWDepl->draw_circle_loc(Pt2dr(aSzIm/2),3,mWDepl->pdisc()(P8COL::cyan));
        mWDepl->draw_seg(Pt2dr(aSzIm/2), Pt2dr(aSzIm/2)+ transXYAll*mParam->mSclDepl, mWDepl->pdisc()(P8COL::yellow));
+       mWDepl->clik_in();
     }
-    mWDepl->clik_in();
     return true;
 }

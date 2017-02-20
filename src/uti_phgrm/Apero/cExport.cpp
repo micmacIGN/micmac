@@ -279,7 +279,7 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
               }
               else if (anExpr.Match(aNXml) && anExpr.Replace(aNXml))
               {
-                 aGP->GenCurCam()->Save2XmlStdMMName(0,"",aPref+anExpr.KIemeExprPar(1));
+                 aGP->GenCurCam()->Save2XmlStdMMName(mICNM,aPref+anExpr.KIemeExprPar(1),aNP);
               }
               else
               {

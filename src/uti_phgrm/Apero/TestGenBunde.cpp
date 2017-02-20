@@ -617,8 +617,9 @@ std::string aNameOrient  =  MatchAndReplace(anAutom,aNameIm,mPatOrient);
         
        }
 
+
        cPolynomial_BGC3M2D aPol(mChSys,mCamGen,mNameOutInit,aNameIm,mDegPol,0); // TAGG
-       aPol.Save2XmlStdMMName(0,"",mDest,ElAffin2D::Id());
+       aPol.Save2XmlStdMMName(mEASF.mICNM,mDest,aNameIm,ElAffin2D::Id());
     }
     
 }

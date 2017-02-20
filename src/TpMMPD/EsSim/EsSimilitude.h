@@ -17,7 +17,7 @@ class cParamEsSim
      * Pt2di [aNbGrill]: Nb of Grill
      * double [aSclDepl]: Scale when affiche the deplacment vector */
     public:
-        cParamEsSim(string & aDir, string & aImgX, string & aImgY, Pt2dr & aPtCtr, int & aSzW, Pt3di & aDispParam, int & nInt, Pt2di & aNbGrill, double & aSclDepl);
+        cParamEsSim(string & aDir, string & aImgX, string & aImgY, Pt2dr & aPtCtr, int & aSzW, Pt3di & aDispParam, int & nInt, Pt2di & aNbGrill, double & aSclDepl, bool & aSaveImg);
         string mDir;
         string mImgX;
         string mImgY;
@@ -28,6 +28,7 @@ class cParamEsSim
         int mInt;
         Pt2di mNbGrill;
         double mSclDepl;
+        bool mSaveImg;
 };
 
 /*====================== cAppliEsSim ========================*/
@@ -45,7 +46,7 @@ public:
     bool EsSimFromHomolPack (ElPackHomologue & aPack, Pt2dr & rotCosSin, Pt2dr & transXY);//estimate the rotation and translation from deplacement
     bool EsSimAndDisp (Pt2dr & aPtCtr, int & aSzw, Pt2dr & rotCosSin, Pt2dr & transXY);
     vector<Pt2di> VaP0Grill() {return mVaP0Grill;}
-    bool EsSimEnGrill(vector<Pt2di> aVPtCtrVig, int & aSzw, Pt2dr & rotCosSin, Pt2dr & transXY);
+    bool EsSimEnGrill(vector<Pt2di> aVPtCtrVig, int & aSzw, Pt2dr & rotCosSinAll, Pt2dr & transXYAll);
 private:
     cParamEsSim * mParam;
     cImgEsSim * mImgX;
@@ -54,6 +55,7 @@ private:
     Video_Win * mWX;
     Video_Win * mWY;
     vector<Pt2di> mVaP0Grill;
+    double* aData1;
 };
 
 /*====================== cImgEsSim ========================*/
