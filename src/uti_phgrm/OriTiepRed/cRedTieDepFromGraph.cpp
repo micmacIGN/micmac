@@ -694,7 +694,7 @@ void cAppliGrRedTieP::DoExport()
     {
         if ((mProbaSel>1.0) ||  (NRrandom3() < mProbaSel))
         {
-            std::vector<Pt2dUi2>  aVP = (*itM)->Edges();
+            std::vector<Pt2di>  aVP = (*itM)->Edges();
             int aNbS = (*itM)->NbSom();
             aStatA.Add(aNbS,int(aVP.size()));
             for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)

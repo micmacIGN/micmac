@@ -1201,7 +1201,8 @@ std::string cPolynomial_BGC3M2D::Save2XmlStdMMName(  cInterfChantierNameManipula
 
      
      std::string aNameXml;
-     if (anICNM)
+
+	if (anICNM)
      {
          aNameXml =   anICNM->Dir() + anICNM->Assoc1To1("NKS-Assoc-Im2GBOrient@-"+aOriOut,aNameImClip,true);
      }
@@ -1210,6 +1211,7 @@ std::string cPolynomial_BGC3M2D::Save2XmlStdMMName(  cInterfChantierNameManipula
          aNameXml = aNameImClip;
      }
      std::string aDirFull = DirOfFile(aNameXml);
+
 
      cXml_CamGenPolBundle aXml = ToXml();
 
@@ -1233,6 +1235,7 @@ std::string cPolynomial_BGC3M2D::Save2XmlStdMMName(  cInterfChantierNameManipula
 
      // Pour ne pas avoir le tmp mmdir ....
      aXml.NameCamSsCor() = aDirFull + NameWithoutDir(mNameFileCam0);
+
 
      if (mPtrChSys)
      {

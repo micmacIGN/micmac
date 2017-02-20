@@ -41,9 +41,27 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _MultTieP_
 #define _MultTieP_
 
+
+//  ===  GLOBAL a REMETTRE en Haut
+
+bool  FileModeBin(const std::string &);
+
+//==========================================
+
+class cCelImTPM;
+class cDicoImTPM;
+class cSetPMul1ConfigTPM;
+class cSetTiePMul;
+
+  //=========================
+
 class cCelImTPM
 {
     public :
+         friend class cDicoImTPM;
+         friend class cSetTiePMul;
+
+         cCelImTPM(const std::string & aNameIm,int anId);
     private :
          std::string mNameIm;
          int         mId;
@@ -52,6 +70,10 @@ class cCelImTPM
 class cDicoImTPM
 {
     public :
+        friend class cSetTiePMul;
+    private :
+        cCelImTPM * AddIm(const std::string &,bool &IsNew);
+
         std::map<std::string,cCelImTPM *> mName2Im;
         std::vector<cCelImTPM *>          mNum2Im;
 };
@@ -61,28 +83,54 @@ class cDicoImTPM
 class cSetPMul1ConfigTPM
 {
     public :
+       friend class cSetTiePMul;
+       
        cSetPMul1ConfigTPM(const  std::vector<int> & mVIm,int aNbPts);
-       float & X(int aKp,int aKIm) {return mVXY.at(AddrPIm(aKp,aKIm) );}
-       float & Y(int aKp,int aKIm) {return mVXY.at(AddrPIm(aKp,aKIm) +1 );}
+       void Add(const std::vector<Pt2dr> &);
+
+       Pt2dr Pt(int aKp,int aKIm)
+       {
+            int Adr = AddrPtIm(aKp,aKIm);
+            return Pt2dr(Int2Double(mVXY[Adr]),Int2Double(mVXY[Adr+1]));
+       }
 
     private :
-       int  AddrPIm(int aKp,int aKIm) {return 2 *(aKp*2*mNbIm  +aKIm) ;}
+       int  AddrPtIm(int aKp,int aKIm) {return 2*(aKp*mNbIm  +aKIm) ;}
+        
+
+       inline  double Int2Double(const int    & aV) { return aV*mPrec;}
+       inline  int    Double2Int(const double & aV) { return round_ni(aV/mPrec);}
+
+       double  X(int aKp,int aKIm) {return Int2Double(mVXY[AddrPtIm(aKp,aKIm)]);}
+       double  Y(int aKp,int aKIm) {return Int2Double(mVXY[AddrPtIm(aKp,aKIm)+1]);}
+       static const  double ThePrec;
 
        std::vector<int>    mVIdIm;
        int                 mNbIm;
        int                 mNbPts;
        //  P0   X0,i1  Y0,i1 X0,i2 Y0,i2 ... P1  X1,i1  Y1,i1 X1,i2 Y1,i2
-       std::vector<float>  mVXY;
+       std::vector<int>  mVXY;
+
+       const double         mPrec;  // 1/500.0
 };
 
 
 class cSetTiePMul
 {
     public :
-        cSetTiePMul();
+        cSetTiePMul(const std::vector<std::string> * aVIm );
+        cSetPMul1ConfigTPM * OneConfigFromVI(const std::vector<INT> &);
+
+        void Save(const std::string & aName);
+
+
     private :
+        cCelImTPM * AddIm(const std::string &,bool &IsNew);
+
         cDicoImTPM                       mDicoIm;
-        std::list<cSetPMul1ConfigTPM *>  mPMul;
+        std::vector<cSetPMul1ConfigTPM *>  mPMul;
+        // Utilisee dans la conversion a partir de PHom
+        std::map<std::vector<INT>,cSetPMul1ConfigTPM *>  mMapConf;
 };
 
 

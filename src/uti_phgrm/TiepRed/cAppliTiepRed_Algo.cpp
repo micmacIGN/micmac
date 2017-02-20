@@ -196,7 +196,7 @@ void cAppliTiepRed::DoExport(){
 			// We get the edges. There is an edge for each image pair where a related tie-point was present
 			// Note that only the image pairs where one of the images is the master are considered (the rest where not loaded)
       tMerge * aMerge = mMultiTiePoints[aKP]->MultiTiePointRaw();
-      const std::vector<Pt2dUi2> &  aVE = aMerge->Edges();
+      const std::vector<Pt2di> &  aVE = aMerge->Edges();
 			// For each image pair where the multi-tie-point has a tie-point we add the tie-point to the list of tie-points of the imge pair
       for (std::size_t i=0 ; i<aVE.size() ; i++){
 				// Get the ids of the images in this image pair
@@ -342,10 +342,10 @@ void cAppliTiepRed::DoReduce(){
 			// Add the accuracy of this multi-tie-point to the lsit with all accuracies
 			aVAcc.push_back(aPM->Acc());
 			// Get the indices of the images where this multi-tie-point is present
-			const std::vector<U_INT2> & vecInd = (*itMultiTiePointRaw)->VecInd();
+			const std::vector<cPairIntType<Pt2df> > & vecInd = (*itMultiTiePointRaw)->VecIT();
 			for (std::size_t i = 0; i < vecInd.size(); i++){
 				// For each image where the point is present we add it into the grid (Add method adds it already in the proper cell of the grid)
-				imageGridVec.at(vecInd[i])->Add(aPM);
+				imageGridVec.at(vecInd[i].mNum)->Add(aPM);
 			}
 		}
 
@@ -378,12 +378,12 @@ void cAppliTiepRed::DoReduce(){
 					// Get the multi-tie-point
 					cPMulTiepRed * mp = cellPoints[j];
 					// We check in which images this point is present. It should be visible in 0 (the master image) and at least anther image
-					const std::vector<U_INT2> & vecInd = mp->MultiTiePointRaw()->VecInd();
+					const std::vector<cPairIntType<Pt2df> > & vecInd = mp->MultiTiePointRaw()->VecIT();
 					// We initialize removable to true
 					bool removable = true;
 					// For all the images where the point is present
 					for (std::size_t k = 0; k < vecInd.size(); k++){
-						U_INT2 imageIndex = vecInd[k];
+						INT imageIndex = vecInd[k].mNum;
 						//We do not have to check for the master image, only for the others
 						if (imageIndex != 0){
 							// Get the grid of the related image

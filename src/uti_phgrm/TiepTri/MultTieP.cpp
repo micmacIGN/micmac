@@ -40,27 +40,105 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "MultTieP.h"
 
+bool  FileModeBin(const std::string & aName)
+{
+   std::string aPost = StdPostfix(aName);
+   if (aPost=="dat")
+     return true;
+   if (aPost=="txt")
+     return false;
+   ELISE_ASSERT(false,"FileModeBin");
+   return false;
+}
+
+class cSetIntDyn
+{
+    public :
+          cSetIntDyn(const  std::vector<int> &);
+          bool operator < (const cSetIntDyn &);
+    private :
+          std::vector<int> mVI;
+};
+
+
+cSetIntDyn::cSetIntDyn(const  std::vector<int> & aVI) :
+    mVI (aVI)
+{
+     std::sort(mVI.begin(),mVI.end());
+}
+
+bool cSetIntDyn::operator < (const cSetIntDyn & aSID)
+{
+    size_t aNb = mVI.size();
+    if (aNb <  aSID.mVI.size()) 
+       return true;
+    if (aNb >  aSID.mVI.size()) 
+       return false;
+    for (size_t aK=0 ; aK<aNb ; aK++)
+    {
+        if ( mVI[aK] <  aSID.mVI[aK])
+           return true;
+        if ( mVI[aK] >  aSID.mVI[aK])
+           return false;
+    }
+    return false;
+}
+
+
+/*******************************************************************/
+/*                                                                 */
+/*           Homologue -> cVarSizeMergeTieP                        */
+/*                                                                 */
+/*******************************************************************/
+
 
 typedef cVarSizeMergeTieP<Pt2df,cCMT_NoVal>  tMergeRat;
 typedef cStructMergeTieP<tMergeRat>  tMergeStrRat;
 typedef  std::map<std::string,int>  tDicNumIm;
 
+template <class Type> std::vector<int> VecIofVecIT(const std::vector<cPairIntType<Type> >  & aVecIT)
+{
+   std::vector<int> aRes;
+   for (int aK=0 ; aK<int(aVecIT.size()) ; aK++)
+       aRes.push_back(aVecIT[aK].mNum);
 
-void CreatePMul
-     (
-         cVirtInterf_NewO_NameManager * aVNM,
-         const std::vector<std::string> * aVIm
-     )
+   return aRes;
+}
+std::vector<Pt2dr> VecPtofVecIT(const std::vector<cPairIntType<Pt2df> >  & aVecIT)
+{
+   std::vector<Pt2dr> aRes;
+   for (int aK=0 ; aK<int(aVecIT.size()) ; aK++)
+       aRes.push_back(ToPt2dr(aVecIT[aK].mVal));
+
+   return aRes;
+}
+
+
+
+
+
+// Conserve les numeros initiaux
+
+const std::list<tMergeRat *> &  CreatePMul
+                                (
+                                    cVirtInterf_NewO_NameManager * aVNM,
+                                    const std::vector<std::string> * aVIm
+                                )
 {
     
     tDicNumIm aDicoNumIm;
+    std::map<std::string,CamStenope *> aDicCam;
     for (int aKIm=0 ; aKIm<int(aVIm->size()); aKIm++)
-       aDicoNumIm[(*aVIm)[aKIm]] = aKIm;
+    {
+       const std::string & aNameIm = (*aVIm)[aKIm];
+       aDicoNumIm[aNameIm] = aKIm;
+       aDicCam[aNameIm] = aVNM->CalibrationCamera((*aVIm)[aKIm]);
+    }
 
     std::string aNameCple = aVNM->NameListeCpleConnected(true);
     cSauvegardeNamedRel aLCple = StdGetFromPCP(aNameCple,SauvegardeNamedRel);
 
-    tMergeStrRat aMergeStruct(aVIm->size(),false);
+    tMergeStrRat & aMergeStruct =  *(new tMergeStrRat(aVIm->size(),false));
 
     for 
     (
@@ -73,6 +151,9 @@ void CreatePMul
         tDicNumIm::iterator it2 = aDicoNumIm.find(itV->N2());
         if ((it1!=aDicoNumIm.end()) && (it2!=aDicoNumIm.end()))
         {
+            CamStenope * aCS1 = aDicCam[itV->N1()] ;
+            CamStenope * aCS2 = aDicCam[itV->N2()] ;
+
             std::vector<Pt2df> aVP1,aVP2;
             aVNM->LoadHomFloats(itV->N1(),itV->N2(),&aVP1,&aVP2);
             int aNum1 = it1->second;
@@ -80,15 +161,22 @@ void CreatePMul
 
             for (int aKP = 0  ; aKP<int(aVP1.size()) ; aKP++)
             {
-                aMergeStruct.AddArc(aVP1[aKP],aNum1,aVP2[aKP],aNum2,cCMT_NoVal());
+                Pt2dr aP1 = aCS1->L3toF2(Pt3dr(aVP1[aKP].x,aVP1[aKP].y,1.0));
+                Pt2dr aP2 = aCS2->L3toF2(Pt3dr(aVP2[aKP].x,aVP2[aKP].y,1.0));
+                aMergeStruct.AddArc(ToPt2df(aP1),aNum1,ToPt2df(aP2),aNum2,cCMT_NoVal());
             }
         }
  
     }
-
+    aMergeStruct.DoExport();
+    return  aMergeStruct.ListMerged();
 }
 
-// mm3d TestLib NO_AllOri2Im DSC01.*JPG  GenOri=false
+/*******************************************************************/
+/*                                                                 */
+/*                Conversion                                       */
+/*                                                                 */
+/*******************************************************************/
 
 class cAppliConvertToNewFormatHom
 {
@@ -99,7 +187,7 @@ class cAppliConvertToNewFormatHom
         cElemAppliSetFile   mEASF;
         const std::vector<std::string> * mFilesIm;
         bool                             mDoNewOri;
-
+        cVirtInterf_NewO_NameManager *   mVNM;
 };
 
 
@@ -121,19 +209,199 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
    {
         std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false ";
         System(aCom);
+
+        std::cout << "DONE NO_AllOri2Im \n";
         // mm3d TestLib NO_AllOri2Im IMGP70.*JPG  GenOri=false 
    }
 
-}
+   mVNM = cVirtInterf_NewO_NameManager::StdAlloc(mEASF.mDir,"",true);
+   // Conserve les numeros initiaux des images
+   const std::list<tMergeRat *> &  aLMR = CreatePMul  (mVNM,mFilesIm);
+   std::cout << "DONE PMUL " << aLMR.size() << " \n";
+   cSetTiePMul * aSetPM = new cSetTiePMul(mFilesIm);
 
-//   mAppli.NM().LoadHomFloats(NameIm(),aCam2.NameIm(),&aVPIn1,&aVPIn2)
-//   cVirtInterf_NewO_NameManager & NM();
+   for (std::list<tMergeRat *>::const_iterator itMR=aLMR.begin() ; itMR!=aLMR.end() ; itMR++)
+   {
+       std::vector<int> aVI = VecIofVecIT((*itMR)->VecIT());
+       std::vector<Pt2dr> aVPts = VecPtofVecIT((*itMR)->VecIT());
+       cSetPMul1ConfigTPM * aConf = aSetPM->OneConfigFromVI(aVI);
+       aConf->Add(aVPts);
+   }
+
+   aSetPM->Save("PMul.txt");
+}
 
 
 int ConvertToNewFormatHom_Main(int argc,char ** argv)
 {
+    cAppliConvertToNewFormatHom(argc,argv);
     return EXIT_SUCCESS;
     // :
+}
+
+/*********************************************************************/
+/*                                                                   */
+/*                  cCelImTPM                                        */
+/*                                                                   */
+/*********************************************************************/
+
+cCelImTPM::cCelImTPM(const std::string & aNameIm,int anId) :
+   mNameIm (aNameIm),
+   mId     (anId)
+{
+}
+
+
+/*********************************************************************/
+/*                                                                   */
+/*                  cDicoImTPM                                       */
+/*                                                                   */
+/*********************************************************************/
+
+cCelImTPM * cDicoImTPM::AddIm(const std::string & aNameIm,bool & IsNew)
+{
+   cCelImTPM * aRes = mName2Im[aNameIm];
+   IsNew = (aRes==0);
+   if (IsNew)
+   {
+       aRes = new cCelImTPM(aNameIm,mNum2Im.size());
+       mName2Im[aNameIm] = aRes;
+       mNum2Im.push_back(aRes);
+   }
+   return aRes;
+}
+
+
+/*********************************************************************/
+/*                                                                   */
+/*                  cSetPMul1ConfigTPM                               */
+/*                                                                   */
+/*********************************************************************/
+
+
+cSetPMul1ConfigTPM::cSetPMul1ConfigTPM(const  std::vector<int> & aVIdIm,int aNbPts) :
+    mVIdIm (aVIdIm),
+    mNbIm  (mVIdIm.size()),
+    mNbPts (aNbPts),
+    mVXY   (),
+    mPrec  (1/500.0)
+{
+   mVXY.reserve(2*mNbIm*mNbPts);
+}
+
+void cSetPMul1ConfigTPM::Add(const std::vector<Pt2dr> & aVP)
+{
+    ELISE_ASSERT(mNbIm==int(aVP.size()),"cSetPMul1ConfigTPM::Add NbPts");
+    for (int aKP=0 ; aKP<mNbIm ; aKP++)
+    {
+         mVXY.push_back(Double2Int(aVP[aKP].x));
+         mVXY.push_back(Double2Int(aVP[aKP].y));
+    }
+    mNbPts++;
+}
+
+/*********************************************************************/
+/*                                                                   */
+/*                  cSetTiePMul                                      */
+/*                                                                   */
+/*********************************************************************/
+
+cSetTiePMul::cSetTiePMul(const std::vector<std::string> * aVIm) 
+{
+    if (aVIm)
+    {
+       for (std::vector<std::string>::const_iterator itN=aVIm->begin() ; itN!=aVIm->end() ; itN++)
+       {
+           bool IsNew;
+           AddIm(*itN,IsNew);
+       }
+    }
+}
+
+cSetPMul1ConfigTPM * cSetTiePMul::OneConfigFromVI(const std::vector<INT> & aVI)
+{
+    cSetPMul1ConfigTPM * aRes = mMapConf[aVI];
+    if (aRes==0)
+    {
+       aRes = new cSetPMul1ConfigTPM(aVI,0);
+       mMapConf[aVI] = aRes;
+       mPMul.push_back(aRes);
+    }
+    return aRes;
+}
+
+cCelImTPM * cSetTiePMul::AddIm(const std::string & aNameIm,bool & IsNew)
+{
+   return mDicoIm.AddIm(aNameIm,IsNew);
+}
+
+
+void cSetTiePMul::Save(const std::string & aName)
+{
+    ELISE_fp::MkDirRec(DirOfFile(aName));
+    ELISE_fp aFp(aName.c_str(),ELISE_fp::WRITE,false, FileModeBin(aName) ? ELISE_fp::eBinTjs : ELISE_fp::eTxtTjs);
+
+    aFp.SetFormatDouble("%.3lf");
+        
+
+
+    aFp.write_line("BeginHeader");
+    aFp.write_line("   Version=0.0.0");
+    aFp.write_line("EndHeader");
+
+    aFp.PutCommentaire("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=");
+    aFp.write_U_INT4(mDicoIm.mNum2Im.size());
+    aFp.PutCommentaire("Nb Images");
+    for (int aK=0 ; aK<int(mDicoIm.mNum2Im.size()) ; aK++)
+    {
+        cCelImTPM * aCel = mDicoIm.mNum2Im[aK];
+// std::cout << aCel->mNameIm << "\n";
+        aFp.write_line(aCel->mNameIm +"="+ToString(aCel->mId));
+        // aFp.PutLine();
+        // aFp.write_U_INT4(aCel->mId);
+        // aFp.PutLine();
+    }
+    aFp.PutCommentaire("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=");
+    aFp.write_U_INT4(mPMul.size());
+    aFp.PutCommentaire("Nb Nuples");
+    aFp.PutLine();
+    aFp.PutCommentaire("NbPts  NbIm");
+    aFp.PutCommentaire("Im0 Im1 Im2..");
+    aFp.PutCommentaire("x(0,0) y(0,0) ... x(0,NbIm-1) y(0,NbIm-1)");
+    aFp.PutCommentaire("x(1,0) y(1,0) ... x(1,NbIm-1) y(1,NbIm-1)");
+    aFp.PutCommentaire(".....");
+    aFp.PutCommentaire("x(NbPts-1,0) y(NbPts-1,0) ... x(NbPts-1,NbIm-1) y(NbPts-1,NbIm-1)");
+    aFp.PutLine();
+
+    for (int aKConf=0 ; aKConf<int(mPMul.size()) ; aKConf++)
+    {
+         cSetPMul1ConfigTPM * aConf = mPMul[aKConf];
+
+         aFp.write_U_INT4(aConf->mNbPts);
+         aFp.write_U_INT4(aConf->mNbIm);
+         aFp.PutLine();
+          
+         for (int aKIm=0 ; aKIm<aConf->mNbIm ; aKIm++)
+         {
+               aFp.write_U_INT4(aConf->mVIdIm[aKIm]);
+         }
+         aFp.PutLine();
+
+         for (int aKP=0 ; aKP<aConf->mNbPts ; aKP++)
+         {
+             for (int aKIm=0 ; aKIm<aConf->mNbIm ; aKIm++)
+             {
+                Pt2dr aPt = aConf->Pt(aKP,aKIm);
+                aFp.write_REAL8(aPt.x);
+                aFp.write_REAL8(aPt.y);
+             }
+             aFp.PutLine();
+         }
+
+         aFp.PutCommentaire("#====");
+    }
+
+    aFp.close();
 }
 
 
