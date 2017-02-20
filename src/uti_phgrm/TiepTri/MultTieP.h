@@ -86,13 +86,14 @@ class cSetPMul1ConfigTPM
        friend class cSetTiePMul;
        
        cSetPMul1ConfigTPM(const  std::vector<int> & mVIm,int aNbPts);
-       void Add(const std::vector<Pt2dr> &);
+       void Add(const std::vector<Pt2dr> &,int aNbA);
 
        Pt2dr Pt(int aKp,int aKIm)
        {
             int Adr = AddrPtIm(aKp,aKIm);
             return Pt2dr(Int2Double(mVXY[Adr]),Int2Double(mVXY[Adr+1]));
        }
+       int NbArc(int aKP) const;
 
     private :
        int  AddrPtIm(int aKp,int aKIm) {return 2*(aKp*mNbIm  +aKIm) ;}
@@ -110,6 +111,7 @@ class cSetPMul1ConfigTPM
        int                 mNbPts;
        //  P0   X0,i1  Y0,i1 X0,i2 Y0,i2 ... P1  X1,i1  Y1,i1 X1,i2 Y1,i2
        std::vector<int>  mVXY;
+       std::vector<int>  mVNbA;
 
        const double         mPrec;  // 1/500.0
 };
@@ -118,19 +120,37 @@ class cSetPMul1ConfigTPM
 class cSetTiePMul
 {
     public :
-        cSetTiePMul(const std::vector<std::string> * aVIm );
+        cSetTiePMul();
+        void SetFilter(const std::vector<std::string> & aVIm );
+        void SetCurIms(const std::vector<std::string> & aVIm);
+
+
+
         cSetPMul1ConfigTPM * OneConfigFromVI(const std::vector<INT> &);
 
         void Save(const std::string & aName);
 
 
+        static cSetTiePMul * FromFiles(const std::vector<std::string> aVFiles,const std::vector<std::string>  * aFilter);
+
+        // void Add
+
+
+        void AddFile(const std::string & aName);  // Mettre en private + tard
+
     private :
+        
+
+
         cCelImTPM * AddIm(const std::string &,bool &IsNew);
 
         cDicoImTPM                       mDicoIm;
         std::vector<cSetPMul1ConfigTPM *>  mPMul;
         // Utilisee dans la conversion a partir de PHom
         std::map<std::vector<INT>,cSetPMul1ConfigTPM *>  mMapConf;
+
+        std::vector<int>        mNumConvCur;
+        std::set<std::string>*  mSetFilter;   
 };
 
 

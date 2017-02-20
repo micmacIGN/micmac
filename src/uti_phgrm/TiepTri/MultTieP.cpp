@@ -184,22 +184,27 @@ class cAppliConvertToNewFormatHom
         cAppliConvertToNewFormatHom(int argc,char ** argv);
     private :
         std::string         mPatImage;
+        std::string         mDest;
         cElemAppliSetFile   mEASF;
         const std::vector<std::string> * mFilesIm;
         bool                             mDoNewOri;
         cVirtInterf_NewO_NameManager *   mVNM;
+        bool                             mModeBin;
 };
 
 
 cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) :
-      mDoNewOri (true)
+      mDoNewOri (true),
+      mModeBin  (false)
 {
     
    ElInitArgMain
    (
          argc,argv,
-         LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile),
+         LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile)
+                     << EAMC(mDest, "Output"),
          LArgMain()  << EAM(mDoNewOri,"DoNewOri",true,"Tuning")
+                     << EAM(mModeBin,"Bin",true,"Binary format")
    );
 
    mEASF.Init(mPatImage);
@@ -218,17 +223,23 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
    // Conserve les numeros initiaux des images
    const std::list<tMergeRat *> &  aLMR = CreatePMul  (mVNM,mFilesIm);
    std::cout << "DONE PMUL " << aLMR.size() << " \n";
-   cSetTiePMul * aSetPM = new cSetTiePMul(mFilesIm);
+
+   cSetTiePMul * aSetOutPM = new cSetTiePMul();
+   aSetOutPM->SetCurIms(*mFilesIm);
 
    for (std::list<tMergeRat *>::const_iterator itMR=aLMR.begin() ; itMR!=aLMR.end() ; itMR++)
    {
        std::vector<int> aVI = VecIofVecIT((*itMR)->VecIT());
        std::vector<Pt2dr> aVPts = VecPtofVecIT((*itMR)->VecIT());
-       cSetPMul1ConfigTPM * aConf = aSetPM->OneConfigFromVI(aVI);
-       aConf->Add(aVPts);
+       cSetPMul1ConfigTPM * aConf = aSetOutPM->OneConfigFromVI(aVI);
+       aConf->Add(aVPts,(*itMR)->NbArc());
    }
 
-   aSetPM->Save("PMul.txt");
+
+   aSetOutPM->Save(mDest);
+
+   // cSetTiePMul * aSetInPM = new cSetTiePMul();
+   // aSetInPM->AddFile(aName);
 }
 
 
@@ -237,6 +248,38 @@ int ConvertToNewFormatHom_Main(int argc,char ** argv)
     cAppliConvertToNewFormatHom(argc,argv);
     return EXIT_SUCCESS;
     // :
+}
+
+int UnionFiltragePHom_Main(int argc,char ** argv)
+{
+   std::string aPatHom,aPatIm,aDest;
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(aPatHom, "Pattern of HomFile",  eSAM_IsPatFile)
+                     << EAMC(aDest,"Destination"),
+         LArgMain()  
+                     << EAM(aPatIm,"Filter",true,"Filter for selecting images")
+   );
+    
+   cElemAppliSetFile   anEASF_Hom(aPatHom);
+   cSetTiePMul * aSetOutPM = new cSetTiePMul();
+
+   if (EAMIsInit(&aPatIm))
+   {
+        cElemAppliSetFile   anEASF_Im(aPatIm);
+        aSetOutPM->SetFilter(*(anEASF_Im.SetIm()));
+   }
+
+   const std::vector<std::string> * aVFileH = anEASF_Hom.SetIm();
+
+   for (int aKH=0 ; aKH<int(aVFileH->size())  ; aKH++)
+   {
+       aSetOutPM->AddFile(anEASF_Hom.mDir+(*aVFileH)[aKH]);
+   }
+
+   aSetOutPM->Save(aDest);
+   return EXIT_SUCCESS;
 }
 
 /*********************************************************************/
@@ -289,7 +332,7 @@ cSetPMul1ConfigTPM::cSetPMul1ConfigTPM(const  std::vector<int> & aVIdIm,int aNbP
    mVXY.reserve(2*mNbIm*mNbPts);
 }
 
-void cSetPMul1ConfigTPM::Add(const std::vector<Pt2dr> & aVP)
+void cSetPMul1ConfigTPM::Add(const std::vector<Pt2dr> & aVP,int aNbArc)
 {
     ELISE_ASSERT(mNbIm==int(aVP.size()),"cSetPMul1ConfigTPM::Add NbPts");
     for (int aKP=0 ; aKP<mNbIm ; aKP++)
@@ -298,6 +341,12 @@ void cSetPMul1ConfigTPM::Add(const std::vector<Pt2dr> & aVP)
          mVXY.push_back(Double2Int(aVP[aKP].y));
     }
     mNbPts++;
+    mVNbA.push_back(aNbArc);
+}
+
+int cSetPMul1ConfigTPM::NbArc(int aKP) const
+{
+   return mVNbA[aKP];
 }
 
 /*********************************************************************/
@@ -306,15 +355,34 @@ void cSetPMul1ConfigTPM::Add(const std::vector<Pt2dr> & aVP)
 /*                                                                   */
 /*********************************************************************/
 
-cSetTiePMul::cSetTiePMul(const std::vector<std::string> * aVIm) 
+cSetTiePMul::cSetTiePMul() :
+    mSetFilter (0)
 {
-    if (aVIm)
+}
+
+void cSetTiePMul::SetFilter(const std::vector<std::string> & aVIm )
+{
+    delete mSetFilter;
+    mSetFilter = new std::set<std::string>(aVIm.begin(),aVIm.end());
+}
+
+
+
+void cSetTiePMul::SetCurIms(const std::vector<std::string> & aVIm) 
+{
+    mNumConvCur.clear();
+    for (std::vector<std::string>::const_iterator itN=aVIm.begin() ; itN!=aVIm.end() ; itN++)
     {
-       for (std::vector<std::string>::const_iterator itN=aVIm->begin() ; itN!=aVIm->end() ; itN++)
-       {
+        if ((mSetFilter==0) ||  (BoolFind(*mSetFilter,*itN)))
+        {
            bool IsNew;
-           AddIm(*itN,IsNew);
-       }
+           cCelImTPM * aCel = AddIm(*itN,IsNew);
+           mNumConvCur.push_back(aCel->mId);
+        }
+        else
+        {
+           mNumConvCur.push_back(-1);
+        }
     }
 }
 
@@ -336,6 +404,9 @@ cCelImTPM * cSetTiePMul::AddIm(const std::string & aNameIm,bool & IsNew)
 }
 
 
+static const std::string HeaderBeginTPM="BeginHeader-MicMacTiePointFormat";
+static const std::string HeaderEndTPM="EndHeader";
+
 void cSetTiePMul::Save(const std::string & aName)
 {
     ELISE_fp::MkDirRec(DirOfFile(aName));
@@ -345,9 +416,9 @@ void cSetTiePMul::Save(const std::string & aName)
         
 
 
-    aFp.write_line("BeginHeader");
+    aFp.write_line(HeaderBeginTPM);
     aFp.write_line("   Version=0.0.0");
-    aFp.write_line("EndHeader");
+    aFp.write_line(HeaderEndTPM);
 
     aFp.PutCommentaire("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=");
     aFp.write_U_INT4(mDicoIm.mNum2Im.size());
@@ -363,14 +434,14 @@ void cSetTiePMul::Save(const std::string & aName)
     }
     aFp.PutCommentaire("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=");
     aFp.write_U_INT4(mPMul.size());
-    aFp.PutCommentaire("Nb Nuples");
+    aFp.PutCommentaire("Number of configuration");
     aFp.PutLine();
-    aFp.PutCommentaire("NbPts  NbIm");
+    aFp.PutCommentaire("NbPts this config,  NbIm in this config");
     aFp.PutCommentaire("Im0 Im1 Im2..");
-    aFp.PutCommentaire("x(0,0) y(0,0) ... x(0,NbIm-1) y(0,NbIm-1)");
-    aFp.PutCommentaire("x(1,0) y(1,0) ... x(1,NbIm-1) y(1,NbIm-1)");
+    aFp.PutCommentaire("x(0,0) y(0,0) ... x(0,NbIm-1) y(0,NbIm-1) NbEgdes(0)");
+    aFp.PutCommentaire("x(1,0) y(1,0) ... x(1,NbIm-1) y(1,NbIm-1) NbEgdes(1)");
     aFp.PutCommentaire(".....");
-    aFp.PutCommentaire("x(NbPts-1,0) y(NbPts-1,0) ... x(NbPts-1,NbIm-1) y(NbPts-1,NbIm-1)");
+    aFp.PutCommentaire("x(NbPts-1,0) y(NbPts-1,0) ... x(NbPts-1,NbIm-1) y(NbPts-1,NbIm-1) NbEgdes(NbPts-1)");
     aFp.PutLine();
 
     for (int aKConf=0 ; aKConf<int(mPMul.size()) ; aKConf++)
@@ -395,15 +466,95 @@ void cSetTiePMul::Save(const std::string & aName)
                 aFp.write_REAL8(aPt.x);
                 aFp.write_REAL8(aPt.y);
              }
+             aFp.write_INT4(aConf->NbArc(aKP));
              aFp.PutLine();
          }
 
-         aFp.PutCommentaire("#====");
+         aFp.PutCommentaire("====");
     }
 
     aFp.close();
 }
 
+void cSetTiePMul::AddFile(const std::string & aName)
+{
+    ELISE_fp aFp(aName.c_str(),ELISE_fp::READ,false, FileModeBin(aName) ? ELISE_fp::eBinTjs : ELISE_fp::eTxtTjs);
+
+
+    std::string aHeader = aFp.std_fgets();
+    ELISE_ASSERT(aHeader==HeaderBeginTPM,"Bad Header in MicMac Multiple Point Format");
+
+    // std::cout << "HHHHhhH=["<< aHeader << "]\n";
+    bool Cont = true;
+    while (Cont)
+    {
+       std::string aS= aFp.std_fgets();
+       if (aS== HeaderEndTPM)
+       {
+          Cont = false;
+       }
+    }
+    
+    int aNbIm = aFp.read_U_INT4();
+    std::vector<std::string> aVNameIm;
+    aFp.PasserCommentaire();
+    for (int aK=0 ; aK<aNbIm ; aK++)
+    {
+       std::string aS= aFp.std_fgets();
+       std::string aName,anId;
+       SplitIn2ArroundEq(aS,aName,anId);
+       aVNameIm.push_back(aName);
+       int aVerifK ;
+       FromString(aVerifK,anId);
+       ELISE_ASSERT(aK==aVerifK,"Bad Image Id expectation in cSetTiePMul::AddFile");
+    }
+    
+    SetCurIms(aVNameIm);
+
+    int aNbConfig = aFp.read_U_INT4();
+
+    std::cout << "NB CONFIG=" <<  aNbConfig << "\n";
+    for (int aKConf=0 ; aKConf < aNbConfig ; aKConf++)
+    {
+        int aNbPt = aFp.read_U_INT4();
+        int aNbIm   = aFp.read_U_INT4();
+        // std::cout << "PT " << aNbPt << " Immm " << aNbIm << "\n";
+        std::vector<int> aVIm;
+        std::vector<int> aVImOk;
+        for (int aKIm=0 ; aKIm<aNbIm ; aKIm++)
+        {
+            int aNum =  aFp.read_U_INT4();
+            aNum = mNumConvCur.at(aNum);
+            aVIm.push_back(aNum);
+            if (aNum>=0)
+               aVImOk.push_back(aNum);
+        }
+        cSetPMul1ConfigTPM * aConfig = (aVImOk.size()>=2) ? OneConfigFromVI(aVImOk) : 0;
+        
+        for (int aKPt = 0 ; aKPt<aNbPt ; aKPt++)
+        {
+            std::vector<Pt2dr> aVPt;
+            for (int aKIm=0 ; aKIm<aNbIm ; aKIm++)
+            {
+                 double aX = aFp.read_REAL8();
+                 double aY = aFp.read_REAL8();
+                 if (aVIm[aKIm] >= 0)
+                 {
+                    aVPt.push_back(Pt2dr(aX,aY));
+                 }
+            }
+            int aNbArc = aFp.read_U_INT4(); // NbEdges
+            if (aConfig)
+               aConfig->Add(aVPt,aNbArc);
+            // std::cout << "NbbArrrc " << aNbArc << "\n";
+            // getchar();
+        }
+    }
+
+    aFp.close();
+
+    Save("DUP.txt");
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
