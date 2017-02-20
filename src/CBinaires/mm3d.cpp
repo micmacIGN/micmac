@@ -654,6 +654,7 @@ int ZBufferRaster_main(int argc,char ** argv);
 int TestYZ_main(int argc,char ** argv);
 
 extern int EsSim_main(int argc,char ** argv);
+int ProcessThmImgs_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -846,6 +847,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("TestYZ",TestYZ_main ,"TestYZ"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
+        aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
 
    }
 
