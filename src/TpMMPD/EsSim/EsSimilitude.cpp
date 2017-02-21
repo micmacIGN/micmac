@@ -20,6 +20,7 @@ int ProcessThmImgs_main(int argc,char ** argv)
     Pt2dr aPxMoy(0,0);
     int  aZoomInit=4;
     bool aPurge=true;
+    int aPas=1;
 
     ElInitArgMain
     (
@@ -36,6 +37,7 @@ int ProcessThmImgs_main(int argc,char ** argv)
                     << EAM(aZoomInit,"ZoomInit",true,"Initial Zoom, Def=4 (can be long of Inc>2)")
                     << EAM(aOut,"Out",false,"Output File Name for All Helmert2D Params ; Def=All_H2D.txt")
                     << EAM(aPurge,"Purge",true,"Purge all .txt file from EsSim")
+                    << EAM(aPas,"Pas",true,"interval of images for correlation ; Def=1")
     );
 
     SplitDirAndFile(aDir, aPat, aFullName);
@@ -48,19 +50,19 @@ int ProcessThmImgs_main(int argc,char ** argv)
 
     if (IsPostfixed(aNameMasq)) aNameMasq = StdPrefixGen(aNameMasq);
 
-    for( unsigned int aK=0; aK<aLFile.size()-1; aK++)
+    for( unsigned int aK=0; aK<aLFile.size()-aPas; aK=aK+aPas)
     {
         //std::cout << "Processing IMG "<< aLFile.at(aK) << " with IMG " << aLFile.at(aK+1) << std::endl;
 
-        std::string aDirMEC = "MEC-" + aLFile.at(aK) + "-" + aLFile.at(aK+1);
+        std::string aDirMEC = "MEC-" + aLFile.at(0) + "-" + aLFile.at(aK+aPas);
         MakeFileDirCompl(aDirMEC);
 
         std::string aCom1 =    MM3dBinFile("MICMAC")
                                     + aXml
                                     + " WorkDir=" + aDir
                                     + " +DirMEC=" + aDirMEC
-                                    + " +Im1=" + aLFile.at(aK)
-                                    + " +Im2=" + aLFile.at(aK+1)
+                                    + " +Im1=" + aLFile.at(0)
+                                    + " +Im2=" + aLFile.at(aK+aPas)
                                     //+ " +Masq=" + aNameMasq
                                     + " +SzW=" + ToString(aSzW)
                                     + " +RegulBase=" + ToString(aRegul)
@@ -86,13 +88,20 @@ int ProcessThmImgs_main(int argc,char ** argv)
             aCom1 = aCom1 + " +UseDequant=true";
         }
 
-        std::string aOutEss = aLFile.at(aK) + "-" + aLFile.at(aK+1) +".txt";
-        std::string aCom2 = "mm3d TestLib EsSim " + aDirMEC + "Px1_Num7_DeZoom1_LeChantier.tif " + aDirMEC + "Px2_Num7_DeZoom1_LeChantier.tif" + " aNbGrill=[50,50] ExportTxt=1 " + "Out=" + aOutEss;
+        std::string aOutEss = aLFile.at(0) + "-" + aLFile.at(aK+aPas) +".txt";
+        std::string aCom2 = "mm3d TestLib EsSim "
+                             + aDirMEC
+                             + "Px1_Num7_DeZoom1_LeChantier.tif "
+                             + aDirMEC
+                             + "Px2_Num7_DeZoom1_LeChantier.tif"
+                             + " aNbGrill=[50,50] ExportTxt=1 "
+                             + "Out="
+                             + aOutEss;
 
 
-        aVComMM.push_back(aCom1);
-        aVComESS.push_back(aCom2);
-        aVOFESS.push_back(aOutEss);
+        aVComMM.push_back(aCom1); //vector of commands of MICMAC
+        aVComESS.push_back(aCom2); //vector of commands of EsSim
+        aVOFESS.push_back(aOutEss); //vector of names of output files from EsSim
     }
 
 
@@ -112,8 +121,8 @@ int ProcessThmImgs_main(int argc,char ** argv)
            std::cout << "aComESS = " << aVComESS.at(aP) << std::endl;
            std::cout << "***************************************" << std::endl;
 
-           //system_call(aVComMM.at(aP).c_str());
-           //system_call(aVComESS.at(aP).c_str());
+           system_call(aVComMM.at(aP).c_str());
+           system_call(aVComESS.at(aP).c_str());
 
         }
     }
