@@ -121,7 +121,7 @@ int ProcessThmImgs_main(int argc,char ** argv)
            std::cout << "aComESS = " << aVComESS.at(aP) << std::endl;
            std::cout << "***************************************" << std::endl;
 
-           system_call(aVComMM.at(aP).c_str());
+           //system_call(aVComMM.at(aP).c_str());
            system_call(aVComESS.at(aP).c_str());
 
         }
