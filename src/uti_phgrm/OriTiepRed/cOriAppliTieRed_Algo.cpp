@@ -330,7 +330,7 @@ void cAppliTiepRed::DoExport()
     for (std::list<tPMulTiepRedPtr>::const_iterator itP=mListSel.begin(); itP!=mListSel.end();  itP++)
     {
          tMerge * aMerge = (*itP)->Merge();
-         const std::vector<Pt2dUi2> &  aVE = aMerge->Edges();
+         const std::vector<Pt2di> &  aVE = aMerge->Edges();
          const std::vector<cCMT_U_INT1> &  aVA = aMerge->ValArc();
 
          aStatA.Add(aMerge->NbSom(),aMerge->NbArc());

@@ -567,7 +567,7 @@ U_INT8 ELISE_fp::read_U_INT8()
 U_INT4  ELISE_fp::read_U_INT4 ()
 {
 	U_INT4  c;
-	read(&c,sizeof(U_INT4 ),1);
+	read(&c,sizeof(U_INT4 ),1,"%d");
 	if (!_byte_ordered)
 		byte_inv_4(&c);
 	return c;
@@ -600,7 +600,7 @@ INT2  ELISE_fp::read_INT2 ()
 REAL4  ELISE_fp::read_REAL4 ()
 {
 	REAL4  c;
-	read(&c,sizeof(REAL4 ),1);
+	read(&c,sizeof(REAL4 ),1,mFormatFloat.c_str());
 	if (!_byte_ordered)
 		byte_inv_4(&c);
 	return c;
@@ -609,7 +609,7 @@ REAL4  ELISE_fp::read_REAL4 ()
 REAL8  ELISE_fp::read_REAL8 ()
 {
 	REAL8  c;
-	read(&c,sizeof(c),1,"%lf");
+	read(&c,sizeof(c),1,mFormatDouble.c_str());
 	ELISE_ASSERT(_byte_ordered,"ELISE_fp::read_REAL8");
 
 	return c;
@@ -673,8 +673,12 @@ void ELISE_fp::write_U_INT2(INT v)
 
 void ELISE_fp::write_U_INT4(U_INT4 v)
 {
+    if (mIsModeBin)
 	write(&v,sizeof(v),1);
+    else
+       fprintf(_fp,"%d ",v);
 }
+
 void ELISE_fp::write_U_INT8(U_INT8 v)
 {
 	write(&v,sizeof(v),1);
@@ -684,18 +688,96 @@ void ELISE_fp::write_U_INT8(U_INT8 v)
 
 void ELISE_fp::write_INT4(INT c)
 {
+    if (mIsModeBin)
 	write(&c,sizeof(c),1);
+    else
+       fprintf(_fp,"%d ",c);
 }
 
 void ELISE_fp::write_REAL8(REAL8 c)
 {
+    if (mIsModeBin)
 	write(&c,sizeof(c),1);
+    else
+    {
+       fprintf(_fp,mFormatDouble.c_str(),c);
+       fprintf(_fp," ");
+    }
 }
 void ELISE_fp::write_REAL4(float c)
 {
+    if (mIsModeBin)
 	write(&c,sizeof(c),1);
+    else
+    {
+       fprintf(_fp,mFormatFloat.c_str(),c);
+       fprintf(_fp," ");
+    }
 }
 
+void  ELISE_fp::SetFormatFloat(const std::string& aFormatFloat)
+{
+   mFormatFloat = aFormatFloat;
+}
+
+void  ELISE_fp::SetFormatDouble(const std::string& aFormatDouble)
+{
+   mFormatDouble = aFormatDouble;
+}
+
+
+void ELISE_fp::PutLine()
+{
+   if (mIsModeBin)
+   {
+   }
+   else
+   {
+      fprintf(_fp,"\n");
+   }
+}
+void ELISE_fp::PutCommentaire(const std::string & aComment)
+{
+   if (mIsModeBin)
+   {
+   }
+   else
+   {
+      fprintf(_fp,"%c%s\n",mCarCom,aComment.c_str());
+   }
+}
+
+
+void ELISE_fp::PasserCommentaire()
+{
+   if (mIsModeBin)
+      return;
+   while (1)
+   {
+      int c=fgetc();
+      if (c==eof)
+         return;
+// std::cout << "passs " << (int) c << " [" << (char) c <<"]\n";
+      // if (isblank(c))
+      if (isspace(c))
+      {
+// std::cout << "BLK\n";
+      }
+      else if (c==mCarCom)
+      {
+          std::string aStr;
+          bool        IsEOF;
+          fgets(aStr,IsEOF);
+// std::cout << "COM=["<<aStr<<"]\n";
+      }
+      else
+      {
+// std::cout << "UNGET\n";
+          ungetc(c,_fp);
+          return;
+      }
+   }
+}
 
 
 
@@ -769,7 +851,13 @@ void ELISE_fp::init(eModeBinTxt aModeBinTxt)
 	_last_act_read = true ; // why not
 	_byte_ordered  = true;
 	mModeBinTxt  = aModeBinTxt;
+        mFormatFloat =   "%f";
+        mFormatDouble =  "%lf";
+        mCarCom       =  '#';
 }
+
+
+
 
 void  ELISE_fp::str_write(const char * str)
 {
@@ -795,6 +883,7 @@ void  ELISE_fp::write_dummy(tFileOffset nb_byte)
 #define aTBUF 2000
 char * ELISE_fp::std_fgets()
 {
+        PasserCommentaire();
 	static string aBigBuf(aTBUF,'\0');//static char aBigBuf[aTBUF]; TEST_OVERFLOW
 	bool aEOF;
 
@@ -859,6 +948,11 @@ bool  ELISE_fp::fgets( std::string &s, bool & endof )
 	}
 	El_Internal.ElAssert(0,EEM0 << "should not be here in ELISE_fp::fgets");
 	return false;
+}
+
+void  ELISE_fp::write_line(const std::string & aName)
+{
+   fprintf(_fp,"%s\n",aName.c_str());
 }
 
 
@@ -1036,6 +1130,7 @@ bool   ELISE_fp::open(const char * name,mode_open mode,bool  svp)
 		}
 	}
 
+
 	if (mModeBinTxt == eBinTjs)
 	{
 		mIsModeBin = true;
@@ -1139,6 +1234,7 @@ void ELISE_fp::read(void *ptr,tFileOffset size, tFileOffset nmemb,const char* fo
 	}
 	else
 	{
+                PasserCommentaire();
 		ELISE_ASSERT(nmemb==1,"Bad Number ELISE_fp::read\n");
 		ELISE_ASSERT(format!=0,"Bad format ELISE_fp::read\n");
 		VoidFscanf(_fp,format,ptr);

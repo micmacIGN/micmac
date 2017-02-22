@@ -43,6 +43,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 //* if name points not given generate them auto (random mode)
 //* if all possible combinations asked, generate them too
 
+template <typename T>
+std::string NumberToString(T Number)
+{
+	ostringstream ss;
+    ss << Number;
+    return ss.str();
+}
+
 struct HomPSOrima{
 	std::string ImgName;
 	int Id;
@@ -153,14 +161,14 @@ cCPSH_Appli::cCPSH_Appli(int argc,char ** argv)
 			    if ( !(std::find(VIdUnique.begin(), VIdUnique.end(), aIdU) != VIdUnique.end() ))
 				{
 					VIdUnique.push_back(aIdU);
-					cout<<aIdU<<endl;
+					//~ cout<<aIdU<<endl;
 				}
 			}
 		}
 		
 		aFichier.close();
-		cout<<"Nb Imgs Uniq : " << VImgsUnique.size()<< endl;
-		cout<<"Nb IdUnique : " << VIdUnique.size()<< endl;
+		//~ cout<<"Nb Imgs Uniq : " << VImgsUnique.size()<< endl;
+		//~ cout<<"Nb IdUnique : " << VIdUnique.size()<< endl;
 
 	}
 	
@@ -442,12 +450,14 @@ cSFGC_Appli::cSFGC_Appli(int argc,char ** argv)
 	}
 }
 
+/***********************************************************************/
 int SplitGCPsCPs_main(int argc,char **argv)
 {
 	cSFGC_Appli anAppli(argc,argv);
 	return EXIT_SUCCESS;
 }
 
+/***********************************************************************/
 int ConcateMAF_main(int argc,char **argv)
 {
 	std::string aDir, aPat, aOut="";
@@ -489,6 +499,7 @@ int ConcateMAF_main(int argc,char **argv)
 	return EXIT_SUCCESS;
 }
 
+/***********************************************************************/
 int ConvSensXml2Txt_main(int argc,char **argv)
 {
 	std::string aDir, aInFile, aOut="";
@@ -741,6 +752,88 @@ int CheckPatCple_main(int argc,char ** argv)
 int ConvPSHomol2MM_main(int argc,char ** argv)
 {
 	cCPSH_Appli anAppli(argc,argv);
+	return EXIT_SUCCESS;
+}
+
+
+int SplitPatByCam_main(int argc,char ** argv)
+{
+	std::string aFullName,aPref="Pattern_Cam_",aPat,aDir;
+	int aCompt=0;
+	
+	ElInitArgMain
+    (
+          argc, argv,
+          LArgMain() << EAMC(aFullName,"Full Name (Dir+Pat)"),
+          LArgMain() << EAM(aPref,"Pref",false,"Prefix Of Folders ; Def=Pattern_Cam_")
+    );
+    
+    SplitDirAndFile(aDir, aPat, aFullName);
+    
+    std::cout << "aDir = " << aDir << std::endl;
+    std::cout << "aPat = " << aPat << std::endl;
+    std::cout << "aFullName = " << aFullName << std::endl;
+    
+
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    //~ std::vector<std::string> aLFile = aICNM->StdGetListOfFile(aPat);
+    std::vector<std::string> aLFile = *(aICNM->Get(aPat));
+    
+    std::string aTmpDir = "Tmp-MM-Dir";
+    
+    if(!ELISE_fp::IsDirectory(aTmpDir))
+    {
+		system_call((std::string("mm3d MMXmlXif \"")+aPat+"\"").c_str());
+	}
+	
+	std::vector<cXmlDate> aVExifDate;
+    cInterfChantierNameManipulateur * aICNMX = cInterfChantierNameManipulateur::BasicAlloc(aTmpDir);
+    std::vector<std::string> Img_xif = *(aICNMX->Get(".*xml"));
+	
+	//create first folder: at least one pattern
+	std::cout << "aPref = " << aPref << std::endl;
+	std::cout << "NumberToString(aCompt) = " << NumberToString(aCompt) << std::endl;
+	std::string aFFolder = aPref + NumberToString(aCompt);
+	std::cout << "aFFolder = " << aFFolder << std::endl;
+	ELISE_fp::MkDirSvp(aFFolder);
+	
+	//first image
+	cXmlXifInfo aXmlXifInfoIC=StdGetFromPCP(aTmpDir+"/"+Img_xif.at(0),XmlXifInfo);
+	std::string aTypeIC = aXmlXifInfoIC.Cam().Val();
+	std::cout << "aTypeIC = " << aTypeIC << std::endl;
+	ELISE_fp::MvFile(aLFile.at(0),aFFolder);
+	std::cout << "Deplace Image : "<< aLFile.at(0) << "dans dossier " << aFFolder<<std::endl;
+	
+	for (unsigned int aK=0; aK<aLFile.size()-1; aK++)
+	{
+		
+		cXmlXifInfo aXmlXifInfoIS=StdGetFromPCP(aTmpDir+"/"+Img_xif.at(aK+1),XmlXifInfo);
+		std::string aTypeIS = aXmlXifInfoIS.Cam().Val();
+		std::cout << "aTypeIS = " << aTypeIS << std::endl;
+		
+		if(aTypeIC.compare(aTypeIS) == 0)
+		{
+			std::cout << "OUI PAREIL !" << std::endl;
+			ELISE_fp::MvFile(aLFile.at(aK+1),aFFolder);
+			std::cout << "Deplace Image : "<< aLFile.at(aK+1) << "dans dossier " << aFFolder<<std::endl;
+			aTypeIC=aTypeIS;
+			std::cout << "aTypeIC () = " << aTypeIC << std::endl;
+		}
+		else
+		{
+			aCompt++;
+			std::cout << "aCompt = " << aCompt << std::endl;
+			std::string aNFolder = aPref + NumberToString(aCompt);
+			std::cout << "aNFolder = " << aNFolder << std::endl;
+			ELISE_fp::MkDirSvp(aNFolder);
+			ELISE_fp::MvFile(aLFile.at(aK+1),aNFolder);
+			std::cout << "Deplace Image : "<< aLFile.at(aK+1) << "dans dossier " << aNFolder<<std::endl;
+			aTypeIC=aTypeIS;
+			aFFolder=aNFolder;
+			std::cout << "aTypeIC ()() = " << aTypeIC << std::endl;
+		}
+	}
+	
 	return EXIT_SUCCESS;
 }
 /*Footer-MicMac-eLiSe-25/06/2007

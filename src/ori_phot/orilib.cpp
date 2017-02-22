@@ -3956,6 +3956,11 @@ cDistFromCIC::cDistFromCIC
            case eModele_EquiSolid_FishEye_10_5_5 :
                {
                     std::vector<double> aVE = aCIU.Etats();
+if (0)
+{
+    std::cout << "FishEyCreate " << aVE.size()  << " " << aVE[0] << "\n";
+    getchar();
+}
                     if (aVE.empty())
                        aVE.push_back(aCIC.F());
                     std::vector<double> aPar = aCIU.Params();

@@ -77,6 +77,11 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cTri2D.cpp
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/ZBufferRaster.cpp
 
+	${TDPPMD_DIR}/EsSim/cAppliEsSimilitude.cpp
+	${TDPPMD_DIR}/EsSim/cImgEsSimilitude.cpp
+	${TDPPMD_DIR}/EsSim/EsSimilitude.cpp
+
+
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

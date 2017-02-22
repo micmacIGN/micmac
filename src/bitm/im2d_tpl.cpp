@@ -1770,10 +1770,13 @@ void Im2D<Type,TyBase>::getMinMax(Type &oMin, Type &oMax) const
 {
 	ELISE_DEBUG_ERROR(tx() <= 0 || ty() <= 0, "Im2D<Type,TyBase>::getMinMax", "sz() = " << sz());
 
-	oMin = numeric_limits<Type>::max();
-	oMax = numeric_limits<Type>::min();
 	const Type *itPix = data_lin();
 	size_t iPix = size_t(tx()) * size_t(ty());
+	// oMin = numeric_limits<Type>::max();
+	// oMax = numeric_limits<Type>::min();
+        // MPD => Bug car numeric_limits<Type>::min() est l'espilon machine, au moins sur ma version
+        oMin = *itPix ;
+        oMax = *itPix ;
 	while (iPix--)
 	{
 		if (*itPix < oMin) oMin = *itPix;

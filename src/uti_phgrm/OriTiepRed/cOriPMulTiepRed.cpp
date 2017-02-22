@@ -84,10 +84,10 @@ double  cPMulTiepRed::Residual(int aKC1,int aKC2,double aDef,cAppliTiepRed & anA
 
 void cPMulTiepRed::CompleteArc(cAppliTiepRed & anAppli)
 {
-    const std::vector<U_INT2>  & aVInd = mMerge->VecInd() ;
+    const std::vector<cPairIntType<Pt2df> >  & aVInd = mMerge->VecIT() ;
     if (aVInd.size() == 2) return;
 
-    const std::vector<Pt2dUi2> &  aVP = mMerge->Edges();
+    const std::vector<Pt2di> &  aVP = mMerge->Edges();
     std::vector<int>  &  aBufCpt = anAppli.BufICam();
     std::vector<int>  &  aBufSucc = anAppli.BufICam2();
  
@@ -112,7 +112,7 @@ void cPMulTiepRed::CompleteArc(cAppliTiepRed & anAppli)
     std::vector<int> aVSingl;
     for (int aKSom=0 ; aKSom<int(aVInd.size()) ; aKSom++)
     {
-        int anInd1 = aVInd[aKSom];
+        int anInd1 = aVInd[aKSom].mNum;
         if (aBufCpt[anInd1]==1) 
         {
             double aResMin = 1e2;
@@ -120,7 +120,7 @@ void cPMulTiepRed::CompleteArc(cAppliTiepRed & anAppli)
             int anInd2 = aBufSucc[anInd1];
             for (int aKSucc=0 ; aKSucc<int(aVInd.size()) ; aKSucc++)
             {
-                int anInd3 = aVInd[aKSucc];
+                int anInd3 = aVInd[aKSucc].mNum;
                 if (anInd3 != anInd2)
                 {
                     double aRes = Residual(anInd1,anInd3,1e3,anAppli);
@@ -143,7 +143,7 @@ void cPMulTiepRed::CompleteArc(cAppliTiepRed & anAppli)
                 aBufCpt[anInd1] ++;
                 aBufCpt[anIndMin] ++;
 
-                mMerge->NC_Edges().push_back(Pt2dUi2(anInd1,anIndMin));
+                mMerge->NC_Edges().push_back(Pt2di(anInd1,anIndMin));
                 mMerge->NC_ValArc().push_back(ORR_MergeCompl);
             }
         }
@@ -167,7 +167,7 @@ double  cPMulTiepRed::MoyResidual(cAppliTiepRed & anAppli) const
    double aSomRes = 0;
    double aNbRes = 0;
 
-   const std::vector<Pt2dUi2> &  aVP = mMerge->Edges();
+   const std::vector<Pt2di> &  aVP = mMerge->Edges();
    for (int aKCple=0 ; aKCple<int(aVP.size()) ; aKCple++)
    {
        double aRes = Residual(aVP[aKCple].x,aVP[aKCple].y,anAppli.DefResidual(),anAppli);
@@ -185,7 +185,7 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
     mSelected   (false),
     mNbCam0     (aPM->NbSom()),
     mNbCamCur   (aPM->NbSom()),
-    mVConserved (aPM->VecInd().size(),1),
+    mVConserved (aPM->VecIT().size(),1),
     mHasPrec    (MergeHasPrec(aPM))
 {
     if (anAppli.ModeIm())
@@ -201,13 +201,13 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
         std::vector<ElSeg3D> aVSeg;
         std::vector<Pt2dr>   aVPt;
 
-        const std::vector<U_INT2>  &  aVecInd = aPM->VecInd() ;
-        const std::vector<Pt2df> & aVHom   = aPM-> VecV()  ;
+        const std::vector<cPairIntType<Pt2df> >  &  aVecIT = aPM->VecIT() ;
+        // const std::vector<Pt2df> & aVHom   = aPM-> VecV()  ;
 
-        for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
+        for (int aKP=0 ; aKP<int(aVecIT.size()) ; aKP++)
         {
-             cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
-             Pt2dr aPCam = aCam->Hom2Cam(aVHom[aKP]);
+             cCameraTiepRed * aCam = anAppli.KthCam(aVecIT[aKP].mNum);
+             Pt2dr aPCam = aCam->Hom2Cam(aVecIT[aKP].mVal);
              aVPt.push_back(aPCam);
              aVSeg.push_back(aCam->CsOr().Capteur2RayTer(aPCam));
         }
@@ -215,9 +215,9 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
         bool Ok;
         Pt3dr aPTer = InterSeg(aVSeg,Ok);
         double aSomDist = 0.0;
-        for (int aKP=0 ; aKP<int(aVecInd.size()) ; aKP++)
+        for (int aKP=0 ; aKP<int(aVecIT.size()) ; aKP++)
         {
-             cCameraTiepRed * aCam = anAppli.KthCam(aVecInd[aKP]);
+             cCameraTiepRed * aCam = anAppli.KthCam(aVecIT[aKP].mNum);
              Pt2dr aPProj = aCam->CsOr().Ter2Capteur(aPTer);
              double aDist = euclid(aPProj,aVPt[aKP]);
              aSomDist += aDist;
@@ -225,7 +225,7 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
 
         mP = Pt2dr(aPTer.x,aPTer.y);
         mZ = aPTer.z;
-        mPrec = aSomDist / (aVecInd.size() -1);
+        mPrec = aSomDist / (aVecIT.size() -1);
      }
     // std::cout << "PREC " << mPrec << " " << aVecInd.size() << "\n";
 
@@ -274,18 +274,18 @@ void cPMulTiepRed::SetSelected()
 void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anAppli)
 {
    // Mark index of aPNew as existing in buf
-    const std::vector<U_INT2>  & aVNew =  aPNew->mMerge->VecInd() ;
+    const std::vector<cPairIntType<Pt2df> >  & aVNew =  aPNew->mMerge->VecIT() ;
     std::vector<int>  &  aBuf = anAppli.BufICam();
     for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
     {
-        aBuf[aVNew[aK]] = 1;
+        aBuf[aVNew[aK].mNum] = 1;
     }
 
-    const std::vector<U_INT2>  & aVCur =  mMerge->VecInd() ;
+    const std::vector<cPairIntType<Pt2df> >  & aVCur =  mMerge->VecIT() ;
 
     for (int aK=0 ; aK<int(aVCur.size()) ; aK++)
     {
-         int aKCam = aVCur[aK];
+         int aKCam = aVCur[aK].mNum;
          if (mVConserved[aK]  && (aBuf[aKCam]==1))
          {
              mVConserved[aK] = 0;
@@ -297,7 +297,7 @@ void cPMulTiepRed::UpdateNewSel(const cPMulTiepRed * aPNew,cAppliTiepRed & anApp
 
    // Free Mark index in aBuf
     for (int aK=0 ; aK<int(aVNew.size()) ;aK++)
-        aBuf[aVNew[aK]] = 0;
+        aBuf[aVNew[aK].mNum] = 0;
 }
 
 void cPMulTiepRed::SetDistVonGruber(const double & aDist,const cAppliTiepRed & anAppli)

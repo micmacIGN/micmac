@@ -851,6 +851,7 @@ std::string CameraRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anI
                                const ElAffin2D & anOrIntInit2Cur
                     ) const
 {
+	std::cout << "aNameImClip " << aNameImClip << " aOriOut " << aOriOut << "\n";
     return mRPC->Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,anOrIntInit2Cur);
 }
 

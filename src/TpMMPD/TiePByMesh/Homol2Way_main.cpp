@@ -78,9 +78,9 @@ void cplExistInHomol ( vector<CplString> & VCpl,
                 aCplHomo.img1 = pic1;
                 aCplHomo.img2 = pic2;
                 VCpl.push_back(aCplHomo);
-                cout<<"..exist!";
+                //cout<<"..exist!";
             }
-            cout<<endl;
+            //cout<<endl;
         }
     }
 }
@@ -112,8 +112,9 @@ int Homol2Way_main(int argc,char ** argv)
         SplitDirAndFile(aDir,aNameImg,aFullPattern);
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
         vector<string> VImgs = *(aICNM->Get(aNameImg));
-
+        cout<<"Nb Imgs : "<<VImgs.size()<<endl;
         vector<CplString> VCpl;
+        StdCorrecNameHomol_G(aSHIn, aDir);
         cplExistInHomol      ( VCpl,
                                VImgs,
                                aSHIn,
@@ -202,5 +203,6 @@ int Homol2Way_main(int argc,char ** argv)
                 aPckCmbn.StdPutInFile(aHmOut);
             }
         }
+        cout<<"If Total 0 Cpl founded, add Homol_ in parameter SH"<<endl;
         return EXIT_SUCCESS;
     }

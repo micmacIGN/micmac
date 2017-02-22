@@ -212,7 +212,8 @@ static int aCpt=0 ; aCpt++;
      ElMatrix<REAL> aDiff = Diff(anEstim0);
      REAL aN = sqrt(aDiff.L2()/4.0);
      REAL Epsilon = mEpsInvDiff * aN / (1+aN);
-     self_gaussj(aDiff);
+ 
+    self_gaussj(aDiff);
 
  // std::cout << "Epsilon = " << Epsilon << "\n";
 
@@ -285,17 +286,30 @@ bool ElDistortion22_Gen::OwnInverse(Pt2dr & p ) const
 
 ElMatrix<REAL> ElDistortion22_Gen::Diff(Pt2dr p) const
 {
+
     ElMatrix<REAL> M(2,2);
     Diff(M,p);
     return M;
 }
 
+bool DebugCorona=false;
+
 void ElDistortion22_Gen::DiffByDiffFinies
      (ElMatrix<REAL> & aMat,Pt2dr aP,Pt2dr Eps) const
 {
+
+
      Eps = Eps/mScN;
      Pt2dr dx(Eps.x,0);
      Pt2dr dy(0,Eps.y);
+
+if (0)
+{
+	DebugCorona=true;
+    std::cout << "ion22_Gen::DiffByD " << aP << " " << Eps << " ScN " << mScN << "\n";
+    std::cout << Direct(aP) << " " << Direct(aP+dx)-Direct(aP-dx) << "\n";
+    getchar();
+}
 
      SetCol(aMat,0,(Direct(aP+dx)-Direct(aP-dx))/(2.0*Eps.x));
      SetCol(aMat,1,(Direct(aP+dy)-Direct(aP-dy))/(2.0*Eps.y));
@@ -359,7 +373,6 @@ void  ElDistortion22_Gen::SetScalingTranslate(const double & aS,const Pt2dr &aTr
 
 Pt2dr ElDistortion22_Gen::Inverse(Pt2dr aP) const
 {
-
     if (OwnInverse(aP))
        return aP;
 
@@ -698,6 +711,7 @@ Pt2dr ElDistRadiale::Direct(Pt2dr p0) const
 
 bool ElDistRadiale::OwnInverse(Pt2dr & p0) const
 {
+
       Pt2dr u = p0-_centre;
       REAL R = euclid(u);
       REAL dr = DistInverse(R);
@@ -1395,6 +1409,7 @@ Pt2dr cCS_MapIm2PlanProj::Direct(Pt2dr aP) const
 
 bool cCS_MapIm2PlanProj::OwnInverse(Pt2dr & aP) const
 {
+
   aP = mCam.PtDirRayonL3toF2(aP);
   return true;
 }

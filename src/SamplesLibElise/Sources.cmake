@@ -9,6 +9,7 @@ set(SamplesLibElise_Src_Files
     ${SAMPLESLIBELISE_DIR}/CPP_RAW_test.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_TestER.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_TestJB.cpp
+    ${SAMPLESLIBELISE_DIR}/CPP_TestYZ.cpp
 )
 
 # JE NE SAIS PAS SI CA SERT ???
