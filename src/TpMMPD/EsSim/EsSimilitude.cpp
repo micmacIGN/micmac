@@ -50,11 +50,10 @@ int ProcessThmImgs_main(int argc,char ** argv)
 
     if (IsPostfixed(aNameMasq)) aNameMasq = StdPrefixGen(aNameMasq);
 
-    for( unsigned int aK=0; aK<aLFile.size()-aPas; aK=aK+aPas)
+    for( unsigned int aK=aPas; aK<=aLFile.size()-aPas; aK=aK+aPas)
     {
-        //std::cout << "Processing IMG "<< aLFile.at(aK) << " with IMG " << aLFile.at(aK+1) << std::endl;
 
-        std::string aDirMEC = "MEC-" + aLFile.at(0) + "-" + aLFile.at(aK+aPas);
+        std::string aDirMEC = "MEC-" + aLFile.at(0) + "-" + aLFile.at(aK);
         MakeFileDirCompl(aDirMEC);
 
         std::string aCom1 =    MM3dBinFile("MICMAC")
@@ -62,7 +61,7 @@ int ProcessThmImgs_main(int argc,char ** argv)
                                     + " WorkDir=" + aDir
                                     + " +DirMEC=" + aDirMEC
                                     + " +Im1=" + aLFile.at(0)
-                                    + " +Im2=" + aLFile.at(aK+aPas)
+                                    + " +Im2=" + aLFile.at(aK)
                                     //+ " +Masq=" + aNameMasq
                                     + " +SzW=" + ToString(aSzW)
                                     + " +RegulBase=" + ToString(aRegul)
@@ -88,8 +87,8 @@ int ProcessThmImgs_main(int argc,char ** argv)
             aCom1 = aCom1 + " +UseDequant=true";
         }
 
-        std::string aOutEss = aLFile.at(0) + "-" + aLFile.at(aK+aPas) +".txt";
-        std::string aCom2 = "mm3d TestLib EsSim "
+        std::string aOutEss = aLFile.at(0) + "-" + aLFile.at(aK) +".txt";
+        std::string aCom2 = MM3dBinFile("TestLib EsSim ")
                              + aDirMEC
                              + "Px1_Num7_DeZoom1_LeChantier.tif "
                              + aDirMEC
@@ -121,7 +120,7 @@ int ProcessThmImgs_main(int argc,char ** argv)
            std::cout << "aComESS = " << aVComESS.at(aP) << std::endl;
            std::cout << "***************************************" << std::endl;
 
-           //system_call(aVComMM.at(aP).c_str());
+           system_call(aVComMM.at(aP).c_str());
            system_call(aVComESS.at(aP).c_str());
 
         }
