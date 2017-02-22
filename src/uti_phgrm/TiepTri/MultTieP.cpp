@@ -189,13 +189,11 @@ class cAppliConvertToNewFormatHom
         const std::vector<std::string> * mFilesIm;
         bool                             mDoNewOri;
         cVirtInterf_NewO_NameManager *   mVNM;
-        bool                             mModeBin;
 };
 
 
 cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) :
-      mDoNewOri (true),
-      mModeBin  (false)
+      mDoNewOri (true)
 {
     
    ElInitArgMain
@@ -204,7 +202,6 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
          LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile)
                      << EAMC(mDest, "Output"),
          LArgMain()  << EAM(mDoNewOri,"DoNewOri",true,"Tuning")
-                     << EAM(mModeBin,"Bin",true,"Binary format")
    );
 
    mEASF.Init(mPatImage);
