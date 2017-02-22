@@ -164,6 +164,7 @@ extern int ProjImPtOnOtherImages_main(int , char **);
 extern int schnaps_main(int , char **);
 extern int mergeHomol_main(int , char **);
 extern int Zlimit_main(int , char **);
+extern int Homol2GND_main(int , char **);
 extern int SimpleFusionCarte_main(int , char **);
 
 
@@ -259,6 +260,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Schnaps",schnaps_main," Reduction of homologue points in image geometry"));
        aRes.push_back(cMMCom("MergeHomol",mergeHomol_main," Merge Homol dir"));
        aRes.push_back(cMMCom("Zlimit",Zlimit_main," Crop Depth image (or DEM) in Z"));
+       aRes.push_back(cMMCom("Homol2GND",Homol2GND_main," Creates fake ground points for aerotriangulation wedge"));
        aRes.push_back(cMMCom("MasqMaker",MasqMaker_main," Create Mask form image values"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
