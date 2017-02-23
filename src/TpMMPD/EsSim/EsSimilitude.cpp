@@ -21,6 +21,7 @@ int ProcessThmImgs_main(int argc,char ** argv)
     int  aZoomInit=4;
     bool aPurge=true;
     int aPas=1;
+    int aFonc=0;
 
     ElInitArgMain
     (
@@ -38,6 +39,7 @@ int ProcessThmImgs_main(int argc,char ** argv)
                     << EAM(aOut,"Out",false,"Output File Name for All Helmert2D Params ; Def=All_H2D.txt")
                     << EAM(aPurge,"Purge",true,"Purge all .txt file from EsSim")
                     << EAM(aPas,"Pas",true,"interval of images for correlation ; Def=1")
+                    << EAM(aFonc,"Fonc",true,"Choice of fonctions wanted to be exacuted; Def=0(correlation+similitude estimation), 1(correlation), 2(similitude estimation)")
     );
 
     SplitDirAndFile(aDir, aPat, aFullName);
@@ -116,13 +118,25 @@ int ProcessThmImgs_main(int argc,char ** argv)
        {
 
            std::cout << "***************************************" << std::endl;
-           std::cout << "aComMM = " << aVComMM.at(aP) << std::endl;
-           std::cout << "aComESS = " << aVComESS.at(aP) << std::endl;
+           if(aFonc==0 || aFonc==1)
+           {
+                std::cout << "aComMM = " << aVComMM.at(aP) << std::endl;
+           }
+           if(aFonc==0 || aFonc==2)
+           {
+                std::cout << "aComESS = " << aVComESS.at(aP) << std::endl;
+           }
+
            std::cout << "***************************************" << std::endl;
 
-           system_call(aVComMM.at(aP).c_str());
-           system_call(aVComESS.at(aP).c_str());
-
+           if(aFonc==0 || aFonc==1)
+           {
+                system_call(aVComMM.at(aP).c_str());
+           }
+           if(aFonc==0 || aFonc==2)
+           {
+                system_call(aVComESS.at(aP).c_str());
+           }
         }
     }
 
