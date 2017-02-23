@@ -691,7 +691,7 @@ bool IsFileDmp(const std::string &);
 
 void EliseBRKP();
 
-template <class Type> std::string ToString(const Type &);
+template <class Type> std::string ToString(const Type &); // util/string_dyn.cpp.o
 std::string  ToStringNBD(int aNb,int aNbDig);
 
 

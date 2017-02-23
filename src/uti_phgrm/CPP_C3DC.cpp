@@ -113,6 +113,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          bool        mDebugMMByP;
          bool        mBin;
          bool        mExpImSec;
+         Pt3dr       mOffsetPly;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -214,6 +215,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 						<< EAM(mDebugMMByP,"DebugMMByP",true,"Debug MMByPair ...")
 						<< EAM(mBin,"Bin",true,"Generate Binary or Ascii (Def=true, Binary)")
 						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
+						<< EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
 		);
 	}
 	//Pims call case : no need to have all export .ply options in the command display (source of confusion)
@@ -237,6 +239,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 						<< EAM(mFilePair,"FilePair",true,"Explicit pairs of images (as in Tapioca)", eSAM_IsExistFileRP)
 						<< EAM(mDebugMMByP,"DebugMMByP",true,"Debug MMByPair ...")
 						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
+						<< EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
 		);
 	}
 	
@@ -305,6 +308,11 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
            +  mStrImOri0 + " ModeMerge=" + mStrType
            +  " DownScale=" +ToString(mDS)
            ;
+
+   if (EAMIsInit(&mOffsetPly))
+   {
+        mComMerge = mComMerge + " OffsetPly=" + ToString(mOffsetPly);
+   }
 
    if (mSzNorm>=0)
    {
@@ -496,6 +504,8 @@ class cAppli_MPI2Ply
          std::string mComCatPly;
          std::string mPat;
          bool 		 mBin;
+         Pt3dr       mOffsetPly;
+
 };
 
 
@@ -510,6 +520,7 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
                     << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
                     << EAM(mMergeOut,"Out",true,"Ply File Results")
                     << EAM(mPat,"Pat",true,"Pattern for selecting images (Def=All image in files)",eSAM_IsPatFile)
+                    << EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
     );
 
     if(MMVisualMode) return;
@@ -523,6 +534,10 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
                   + " SzNorm=3"
                   + " PlyCoul=true"
                ;
+   if (EAMIsInit(&mOffsetPly))
+   {
+        mComNuageMerge = mComNuageMerge + " OffsetPly=" + ToString(mOffsetPly);
+   }
 
    std::string aPatPly = "Nuage-Merge-" +mPat + ".*.ply";
 
@@ -640,7 +655,7 @@ void cAppli_MPI2Mnt::DoAll()
     ELISE_ASSERT(ElAbs(aSR-aISR)<1e-7,"cAppli_MPI2Mnt::DoAll => ToFOM");
     aFOM.NombrePixels() =  aFOM.NombrePixels()* aISR;
     aFOM.ResolutionPlani() = aFOM.ResolutionPlani() / aISR;
-    aFOM.ResolutionAlti() = aFOM.ResolutionAlti() / aISR;
+    // aFOM.ResolutionAlti() = aFOM.ResolutionAlti() / aISR;  MPD croit c'est inutile ???
     MakeFileXML(aFOM,mDirApp+mDirBasc +mNameOriMerge);
     //============== Generation d'un Ori
 
@@ -755,9 +770,19 @@ void cAppli_MPI2Mnt::DoMTD()
                           + " ZoomF=" + ToString(mDeZoom)
                           + " RRI=" + ToString(mDeZoom *  mResolIm)
                           + " Regul=" + ToString(mZReg)
+                          + " EZA=1 "
                        ;
 
     ExeCom(aCom);
+
+/*
+if (MPD_MM())
+{
+    std::cout << aCom << "\n";
+    getchar();
+}
+*/
+
 }
 
 cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :

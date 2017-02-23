@@ -68,7 +68,8 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    mSzNormale         (-1),
    mNormaleByCenter   (false),
    mModeMerge         (eQuickMac),
-   mDS                (1.0)
+   mDS                (1.0),
+   mOffsetPly         (0,0,0)
 {
    // ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
 
@@ -98,6 +99,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
                     << EAM(mNormaleByCenter,"NormByC",true,"Normale by Center")
                     << EAM(aModeMerge,"ModeMerge",true,"Mode Merge in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
                     << EAM(mDS,"DownScale",true,"DownScale used in computation (to compute names)")
+                    << EAM(mOffsetPly,"OffsetPly",true,"Offset Ply for Nuage2Ply")
    );
 
 
@@ -444,6 +446,17 @@ int CPP_AppliMergeCloud(int argc,char ** argv)
 
 
     return EXIT_SUCCESS;
+}
+
+
+bool   cAppliMergeCloud::HasOffsetPly() 
+{
+   return EAMIsInit(&mOffsetPly);
+}
+const Pt3dr & cAppliMergeCloud::OffsetPly() 
+{
+   ELISE_ASSERT(HasOffsetPly()," cAppliMergeCloud::OffsetPly");
+   return mOffsetPly;
 }
 
 

@@ -387,9 +387,15 @@ std::string  cASAMG::ExportMiseAuPoint()
     std::string aComPly =  MM3dBinFile("Nuage2Ply") + "  " + aNameXML;
     if (mAppli->DoPlyCoul())
     {
-       aComPly = aComPly + " "+QUOTE("Attr=" + mAppli->Dir()+mIma->mNameIm) + " RatioAttrCarte=" + ToString(mStdN->Params().SsResolRef().Val());
+       aComPly = aComPly 
+                  + " "+QUOTE("Attr=" + mAppli->Dir()+mIma->mNameIm) 
+                  + " RatioAttrCarte=" + ToString(mStdN->Params().SsResolRef().Val());
     }
 
+    if (mAppli->HasOffsetPly())
+    {
+        aComPly  = aComPly + " Offs=" + ToString(mAppli->OffsetPly());
+    }
 
     if (mAppli->SzNormale() >0)
     {
@@ -404,8 +410,8 @@ std::string  cASAMG::ExportMiseAuPoint()
           aComPly = aComPly + " Center=true";
     }
 
-    return aComPly;
 
+    return aComPly;
 }
 
 

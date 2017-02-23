@@ -293,6 +293,8 @@ class cAppliMergeCloud : public cAppliWithSetImage
        bool NormaleByCenter() const;
        cMMByImNM *       MMIN();
        
+       bool          HasOffsetPly() ;
+       const Pt3dr & OffsetPly() ;
     private :
        tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
        tMCSom * SomOfName(const std::string & aName);
@@ -339,6 +341,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        eTypeMMByP                      mModeMerge;
        cMMByImNM *                     mMMIN;
        double                          mDS;
+       Pt3dr                           mOffsetPly;
 };
 
    //==============================================================================
