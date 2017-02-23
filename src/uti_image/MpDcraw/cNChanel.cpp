@@ -214,8 +214,10 @@ Fonc_Num  cArgMpDCRaw::FlatField(const cMetaDataPhoto & aMDP,const std::string &
 }
 
 
+
 cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile)
 {
+
    cSpecifFormatRaw * aSFR = GetSFRFromString(aNameFile);
    if (aSFR && !(aSFR->BayPat().IsInit())) aSFR = 0;
 
@@ -227,7 +229,7 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
 
    bool HasFlF=false;
    Im2D_REAL4 aFlF(1,1);
-   char foc[5],dia[4];
+   char foc[50],dia[40]; // !!!! SINON DEBORDEMENT 
    sprintf(foc, "%04d", int(round_ni(10*aMDP.FocMm(true))));
    sprintf(dia, "%03d", int(round_ni(10*aMDP.Diaph(true))));
    std::string aNameFF="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
