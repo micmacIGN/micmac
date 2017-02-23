@@ -522,9 +522,9 @@ int ReprojImg_main(int argc,char ** argv)
                           //std::cout<<otherRedOnGreen<<" "<<otherBlueOnGreen<<"   ";
                           //std::cout<<newRed<<" "<<newGreen<<" "<<newBlue<<"   ";
                           //std::cout<<(int)LUT12to8bits[newRed]<<" "<<(int)LUT12to8bits[newGreen]<<" "<<(int)LUT12to8bits[newBlue]<<"\n";
-                          otherColor.setR(LUT12to8bits[newGreen]);
+                          otherColor.setR(LUT12to8bits[newRed]);
                           otherColor.setG(LUT12to8bits[newGreen]);
-                          otherColor.setB(LUT12to8bits[newGreen]);
+                          otherColor.setB(LUT12to8bits[newBlue]);
 
                       }
                   }else{
