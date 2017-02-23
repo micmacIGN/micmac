@@ -38,6 +38,8 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+#include "schnaps.h"
+
 /**
  * Homol2GND: Creates fake ground points for aerotriangulation wedge
  * Inputs:
@@ -64,8 +66,9 @@ int Homol2GND_main(int argc,char ** argv)
     std::string aInHomolDirName="";//input Homol dir suffix
     std::string mOri;//images orientation dir
     int aNbPts=4;//Nb points
-    float aPts3DSigma=0.01;//3d points sigma (m)
+    double aPts3DSigma=0.01;//3d points sigma (m)
     std::string outName="out";
+    bool ExpTxt=false;//Homol are in dat or txt
 
     ElInitArgMain
     (
@@ -78,14 +81,54 @@ int Homol2GND_main(int argc,char ** argv)
     LArgMain()  << EAM(aInHomolDirName, "SH", true, "Input Homol directory suffix (without \"Homol\")")
                 << EAM(aNbPts, "nbPts", true, "Number of out points (default=4)")
                 << EAM(aPts3DSigma, "3dSigma", true, "Sigma for 3d points (default 0.01m)")
-                << EAM(outName, "out", true, "out filename base (defaut \"out\"")
+                << EAM(outName, "out", true, "out filename base (defaut \"out\")")
+                << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
     );
 
     std::cout<<"Homol2GND: Creates fake ground points for aerotriangulation wedge"<<std::endl;
     if (MMVisualMode) return EXIT_SUCCESS;
 
+    //search for good homol points on best image
+    int nbCells=4*aNbPts-sqrt(aNbPts)*2*2+1; //works for aNbPts=x², to have one used cell for 4 cells (to force dispersion)
+
+    // Initialize name manipulator & files
+    std::string aDirImages,aPatIm;
+    SplitDirAndFile(aDirImages,aPatIm,aFullPattern);
+    std::cout<<"Working dir: "<<aDirImages<<std::endl;
+    std::cout<<"Images pattern: "<<aPatIm<<std::endl;
+
+    StdCorrecNameHomol(aInHomolDirName,aDirImages);
+
+    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
+
+    // Init Keys for homol files
+    std::string anExt = ExpTxt ? "txt" : "dat";
+    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+            +  std::string(aInHomolDirName)
+            +  std::string("@")
+            +  std::string(anExt);
+
+    CompiledKey2 aCKin(aICNM,aKHIn);
+
+    //create pictures list, and pictures size list
+    std::map<std::string,cPic*> allPics;
+
+    std::vector<cPicSize*> allPicSizes;
+
+    std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
+
+    std::list<cHomol> allHomols;
+    computeAllHomol(aICNM,aDirImages,aPatIm,aSetIm,allHomols,aCKin,allPics,allPicSizes,false,nbCells);
+
+    std::cout<<"Found "<<allHomols.size()<<" homols."<<endl;
 
 
+    //select homols on central pic
+    cPic* centralPic=allPics[aSetIm[aSetIm.size()/2]];
+    centralPic->selectHomols();
+
+    std::cout<<"Finished!"<<std::endl;
 
      return EXIT_SUCCESS;
 }

@@ -747,6 +747,7 @@ int schnaps_main(int argc,char ** argv)
     bool ExpTxt=false;//Homol are in dat or txt
     bool veryStrict=false;
     bool doShowStats=false;
+    bool ExeWrite=true;
     double aMinPercentCoverage=30;//if %coverage<aMinPercentCoverage, add to poubelle!
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
@@ -766,6 +767,7 @@ int schnaps_main(int argc,char ** argv)
        //optional arguments
        LArgMain()  << EAM(aInHomolDirName, "HomolIn", true, "Input Homol directory suffix (without \"Homol\")")
                    << EAM(aNumWindows, "NbWin", true, "Minimal homol points in each picture (default: 1000)")
+                   << EAM(ExeWrite,"ExeWrite",true,"Execute write output homol dir, def=true",eSAM_InternalUse)
                    << EAM(aOutHomolDirName, "HomolOut", true, "Output Homol directory suffix (default: _mini)")
                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                    << EAM(veryStrict,"VeryStrict",true,"Be very strict with homols (remove any suspect), def=false")
@@ -1005,42 +1007,44 @@ int schnaps_main(int argc,char ** argv)
     */
 
 
-
-    std::cout<<"Write new Packs:\n";
-    std::ofstream aFileBadPictureNames;
     int nbBadPictures=0;
-    aFileBadPictureNames.open(aPoubelleName.c_str());
-    if (!aFileBadPictureNames.is_open())
+    if (ExeWrite)
     {
-        std::cout<<"Impossible to create \""<<aPoubelleName<<"\" file!\n";
-        return -1;
-    }
-    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
-    {
-        cPic* pic1=(*itPic1).second;
-        std::cout<<" - "<<pic1->getName()<<": "<<pic1->getPercentWinUsed(aNumWindows)<<"% of the picture covered ("<<pic1->getAllSelectedPointsOnPicSize()<<" points)";
-        if (pic1->getPercentWinUsed(aNumWindows)<aMinPercentCoverage)
+        std::cout<<"Write new Packs:\n";
+        std::ofstream aFileBadPictureNames;
+        aFileBadPictureNames.open(aPoubelleName.c_str());
+        if (!aFileBadPictureNames.is_open())
         {
-            nbBadPictures++;
-            aFileBadPictureNames<<pic1->getName()<<"\n";
-            cout<<" rejected!";
+            std::cout<<"Impossible to create \""<<aPoubelleName<<"\" file!\n";
+            return -1;
         }
-        std::cout<<std::endl;
-        for (itPic2=itPic1;itPic2!=allPics.end();++itPic2)
+        for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
         {
-            if (itPic2==itPic1) continue; //with c++11: itPic2=next(itPic1)
-            cPic* pic2=(*itPic2).second;
-            //using aICNM->Assoc1To2 is needed to create directories!
-            std::string aNameOut1 = aDirImages + aICNM->Assoc1To2(aKHOut,pic1->getName(),pic2->getName(),true);
-            //std::string aNameOut1 = aDirImages + aCKout.get(pic1->getName(),pic2->getName());
-            std::string aNameOut2 = aDirImages + aICNM->Assoc1To2(aKHOut,pic2->getName(),pic1->getName(),true);
-            //std::string aNameOut2 = aDirImages + aCKout.get(pic2->getName(),pic1->getName());
-            //std::cout<<"For "<<aNameOut1<<" and "<<aNameOut2<<": "<<endl;
-            
-            pic1->fillPackHomol(pic2,aDirImages,aICNM,aKHOut);
+            cPic* pic1=(*itPic1).second;
+            std::cout<<" - "<<pic1->getName()<<": "<<pic1->getPercentWinUsed(aNumWindows)<<"% of the picture covered ("<<pic1->getAllSelectedPointsOnPicSize()<<" points)";
+            if (pic1->getPercentWinUsed(aNumWindows)<aMinPercentCoverage)
+            {
+                nbBadPictures++;
+                aFileBadPictureNames<<pic1->getName()<<"\n";
+                cout<<" rejected!";
+            }
+            std::cout<<std::endl;
+            for (itPic2=itPic1;itPic2!=allPics.end();++itPic2)
+            {
+                if (itPic2==itPic1) continue; //with c++11: itPic2=next(itPic1)
+                cPic* pic2=(*itPic2).second;
+                //using aICNM->Assoc1To2 is needed to create directories!
+                std::string aNameOut1 = aDirImages + aICNM->Assoc1To2(aKHOut,pic1->getName(),pic2->getName(),true);
+                //std::string aNameOut1 = aDirImages + aCKout.get(pic1->getName(),pic2->getName());
+                std::string aNameOut2 = aDirImages + aICNM->Assoc1To2(aKHOut,pic2->getName(),pic1->getName(),true);
+                //std::string aNameOut2 = aDirImages + aCKout.get(pic2->getName(),pic1->getName());
+                //std::cout<<"For "<<aNameOut1<<" and "<<aNameOut2<<": "<<endl;
+
+                pic1->fillPackHomol(pic2,aDirImages,aICNM,aKHOut);
+            }
         }
+        aFileBadPictureNames.close();
     }
-    aFileBadPictureNames.close();
 
     if (doShowStats)
     {
@@ -1063,8 +1067,11 @@ int schnaps_main(int argc,char ** argv)
         }
     }
 
-    std::cout<<nbBadPictures<<" pictures rejected."<<std::endl;
-    std::cout<<"\nYou can look at \""<<aPoubelleName<<"\" for a list of suspicious pictures.\n";
+    if (ExeWrite)
+    {
+        std::cout<<nbBadPictures<<" pictures rejected."<<std::endl;
+        std::cout<<"\nYou can look at \""<<aPoubelleName<<"\" for a list of suspicious pictures.\n";
+    }
   
     //cleaning
     for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
