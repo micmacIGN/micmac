@@ -42,18 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /**
  * Homol2GND: Creates fake ground points for aerotriangulation wedge
- * Inputs:
- *  - Images pattern
- *  - Ori
- *
- *  - Homol dir
- *  - Nb GND points
- *  - GND point weight
- *  - Out filename
- *
- * Output:
- *  - 2D points xml file
- *  - 3D points xml file
  *
  * */
 
@@ -64,24 +52,26 @@ int Homol2GND_main(int argc,char ** argv)
 {
     std::string aFullPattern;//images pattern
     std::string aInHomolDirName="";//input Homol dir suffix
-    std::string mOri;//images orientation dir
+    //std::string mOri;//images orientation dir
     int aNbPts=4;//Nb points
-    double aPts3DSigma=0.01;//3d points sigma (m)
-    std::string outName="out";
+    //double aPts3DSigma=0.01;//3d points sigma (m)
+    std::string outName="homol2gnd_out";
+    std::string ptsName="fakePt";
     bool ExpTxt=false;//Homol are in dat or txt
 
     ElInitArgMain
     (
     argc,argv,
     //mandatory arguments
-    LArgMain()  <<  EAMC(aFullPattern, "Pattern images",  eSAM_IsPatFile)
-                <<  EAMC(mOri,"Orientation",eSAM_IsDir),
+    LArgMain()  <<  EAMC(aFullPattern, "Pattern images",  eSAM_IsPatFile),
+                //<<  EAMC(mOri,"Orientation",eSAM_IsDir),
 
     //optional arguments
     LArgMain()  << EAM(aInHomolDirName, "SH", true, "Input Homol directory suffix (without \"Homol\")")
                 << EAM(aNbPts, "nbPts", true, "Number of out points (default=4)")
-                << EAM(aPts3DSigma, "3dSigma", true, "Sigma for 3d points (default 0.01m)")
-                << EAM(outName, "out", true, "out filename base (defaut \"out\")")
+                //<< EAM(aPts3DSigma, "3dSigma", true, "Sigma for 3d points (default 0.01m)")
+                << EAM(outName, "out", true, "out filename base (defaut \"homol2gnd_out\")")
+                << EAM(ptsName, "ptsName", true, "fake points basename (defaut \"fakePt\")")
                 << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
     );
 
@@ -103,6 +93,7 @@ int Homol2GND_main(int argc,char ** argv)
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
 
     // Init Keys for homol files
+    std::list<cHomol> allHomols;
     std::string anExt = ExpTxt ? "txt" : "dat";
     std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
             +  std::string(aInHomolDirName)
@@ -118,15 +109,78 @@ int Homol2GND_main(int argc,char ** argv)
 
     std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
-    std::list<cHomol> allHomols;
     computeAllHomol(aICNM,aDirImages,aPatIm,aSetIm,allHomols,aCKin,allPics,allPicSizes,false,nbCells);
 
     std::cout<<"Found "<<allHomols.size()<<" homols."<<endl;
 
 
     //select homols on central pic
-    cPic* centralPic=allPics[aSetIm[aSetIm.size()/2]];
-    centralPic->selectHomols();
+    cout<<"Central pic: "<<aSetIm[aSetIm.size()/2]<<std::endl;
+    cPic* centralPic=0;
+
+    std::map<std::string,cPic*>::iterator itPic1;
+    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+    {
+        cPic *pic1=(*itPic1).second;
+        std::cout<<" Picture "<<pic1->getName()<<std::endl;
+    }
+
+    //create new homols ------------------------------------------------
+    std::cout<<"Create new homol..\n";
+    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+    {
+        cPic* aPic=(*itPic1).second;
+        if (aPic->getName()==aSetIm[aSetIm.size()/2])
+        {
+            centralPic=aPic;
+            aPic->selectHomols();
+            std::cout<<aPic->getName()<<": "<<aPic->getAllSelectedPointsOnPicSize()<<std::endl;
+        }
+    }
+    std::cout<<"Done!"<<endl;
+
+
+    //keep only points on even/even windows (to avoid points too close)
+    std::vector<cHomol*> allFinalHomols;
+
+    std::map<double,cPointOnPic*>::iterator itHomolPoint;
+    for (itHomolPoint=centralPic->getAllSelectedPointsOnPic()->begin();
+         itHomolPoint!=centralPic->getAllSelectedPointsOnPic()->end();
+         ++itHomolPoint)
+    {
+        cPointOnPic* aPoP=(*itHomolPoint).second;
+        if (aPoP->getHomol()->isBad()) continue;
+        int x=aPoP->getPt().x/centralPic->getPicSize()->getWinSz().x;
+        int y=aPoP->getPt().y/centralPic->getPicSize()->getWinSz().y;
+        std::cout<<aPoP->getPt().x<<" "<<aPoP->getPt().y<<" "<<aPoP->getHomol()->getPointOnPicsSize()<<" ("<<x<<","<<y<<")"<<std::endl;
+        if ((x%2==0)&&(y%2==0)&&(allFinalHomols.size()<aNbPts))
+            allFinalHomols.push_back(aPoP->getHomol());
+    }
+
+    //create out 2D files
+    cSetOfMesureAppuisFlottants aMes2dList;
+
+    for (unsigned int i=0;i<allFinalHomols.size();i++)
+    {
+        cHomol* aHomol=allFinalHomols[i];
+        for (unsigned int j=0;j<aHomol->getPointOnPicsSize();j++)
+        {
+            cPointOnPic *aPoP=aHomol->getPointOnPic(j);
+            cMesureAppuiFlottant1Im aListMes1Im;
+            aListMes1Im.NameIm()=aPoP->getPic()->getName();
+
+            cOneMesureAF1I aOneMesIm;
+            static char  buf[200];
+            sprintf(buf,"%s_%02d",ptsName.c_str(),i);
+            aOneMesIm.NamePt()=buf;
+            aOneMesIm.PtIm()=aPoP->getPt();
+            aListMes1Im.OneMesureAF1I().push_back( aOneMesIm );
+            aMes2dList.MesureAppuiFlottant1Im().push_back( aListMes1Im );
+        }
+    }
+    MakeFileXML(aMes2dList, aDirImages + outName+".xml");
+
+
 
     std::cout<<"Finished!"<<std::endl;
 
