@@ -2002,6 +2002,33 @@
      <Images Nb="*" Type="std::string" Container="std::vector"> </Images>
 </Xml_ParamSubcommandTiepRed>
 
+
+<Xml_ParamBascRigide Nb="1" Class="true" ToReference="true">
+       <ParamRotation  Nb="1"  RefType="TypeCodageMatr">  </ParamRotation>
+       <Trans Nb="1" Type="Pt3dr"> </Trans>
+       <Scale Nb="1" Type="double"> </Scale>
+</Xml_ParamBascRigide>
+
+<Xml_ResiduBascule Nb="1" Class="true" ToReference="true">
+      <Name Nb="1" Type="std::string">  </Name>
+      <Offset Nb="1" Type="Pt3dr">      </Offset>
+      <Dist   Nb="1" Type="double">     </Dist>
+</Xml_ResiduBascule>
+
+<Xml_SolBascRigide Nb="1" Class="true" ToReference="true">
+    <Param  Nb="1" RefType="Xml_ParamBascRigide">  </Param>
+    <MoyenneDist Nb="1" Type="double">   </MoyenneDist>
+    <MoyenneDistAlti Nb="1" Type="double">   </MoyenneDistAlti>
+    <MoyenneDistPlani Nb="1" Type="double">   </MoyenneDistPlani>
+    <Worst Nb="1" RefType="Xml_ResiduBascule">     </Worst>
+    <Residus Nb="*" RefType="Xml_ResiduBascule">   </Residus>
+</Xml_SolBascRigide>
+
+<!--
+  <RotationVect  Nb="1"  UnionType="true" ToReference="true" Class="true">
+  cSolBasculeRig
+-->
+
 <Verbatim File=".h.cpp">
 // };
 </Verbatim>

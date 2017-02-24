@@ -1,9 +1,11 @@
    <EtapeMEC>
-                <DeZoom >        2        </DeZoom>
-                 <GenerePartiesCachees Portee="Globale" >
-                        <SeuilUsePC> 8 </SeuilUsePC>
-                        <ByMkF> true </ByMkF>
-                 </GenerePartiesCachees>
+         <DeZoom >        2        </DeZoom>
+         <#WHEN VTEST=${UsePC}>
+              <GenerePartiesCachees Portee="Globale" >
+                   <SeuilUsePC> 8 </SeuilUsePC>
+                   <ByMkF> true </ByMkF>
+              </GenerePartiesCachees>
+         </#WHEN>
      </EtapeMEC>
 
 

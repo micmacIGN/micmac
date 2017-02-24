@@ -7543,5 +7543,113 @@ std::string  Mangling( cXml_ParamSubcommandTiepRed *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_ParamBascRigide
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ParamBascRigide & anObj,cElXMLTree * aTree);
+
+
+        cTypeCodageMatr & ParamRotation();
+        const cTypeCodageMatr & ParamRotation()const ;
+
+        Pt3dr & Trans();
+        const Pt3dr & Trans()const ;
+
+        double & Scale();
+        const double & Scale()const ;
+    private:
+        cTypeCodageMatr mParamRotation;
+        Pt3dr mTrans;
+        double mScale;
+};
+cElXMLTree * ToXMLTree(const cXml_ParamBascRigide &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ParamBascRigide &);
+
+void  BinaryUnDumpFromFile(cXml_ParamBascRigide &,ELISE_fp &);
+
+std::string  Mangling( cXml_ParamBascRigide *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_ResiduBascule
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ResiduBascule & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        Pt3dr & Offset();
+        const Pt3dr & Offset()const ;
+
+        double & Dist();
+        const double & Dist()const ;
+    private:
+        std::string mName;
+        Pt3dr mOffset;
+        double mDist;
+};
+cElXMLTree * ToXMLTree(const cXml_ResiduBascule &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ResiduBascule &);
+
+void  BinaryUnDumpFromFile(cXml_ResiduBascule &,ELISE_fp &);
+
+std::string  Mangling( cXml_ResiduBascule *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_SolBascRigide
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_SolBascRigide & anObj,cElXMLTree * aTree);
+
+
+        cXml_ParamBascRigide & Param();
+        const cXml_ParamBascRigide & Param()const ;
+
+        double & MoyenneDist();
+        const double & MoyenneDist()const ;
+
+        double & MoyenneDistAlti();
+        const double & MoyenneDistAlti()const ;
+
+        double & MoyenneDistPlani();
+        const double & MoyenneDistPlani()const ;
+
+        cXml_ResiduBascule & Worst();
+        const cXml_ResiduBascule & Worst()const ;
+
+        std::list< cXml_ResiduBascule > & Residus();
+        const std::list< cXml_ResiduBascule > & Residus()const ;
+    private:
+        cXml_ParamBascRigide mParam;
+        double mMoyenneDist;
+        double mMoyenneDistAlti;
+        double mMoyenneDistPlani;
+        cXml_ResiduBascule mWorst;
+        std::list< cXml_ResiduBascule > mResidus;
+};
+cElXMLTree * ToXMLTree(const cXml_SolBascRigide &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_SolBascRigide &);
+
+void  BinaryUnDumpFromFile(cXml_SolBascRigide &,ELISE_fp &);
+
+std::string  Mangling( cXml_SolBascRigide *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotPCP

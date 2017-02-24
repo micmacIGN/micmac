@@ -1110,6 +1110,9 @@ cParamIFDistRadiale * AllocDRadInc
 
 */
 
+cSolBasculeRig         Xml2EL(const cXml_ParamBascRigide &);
+cXml_ParamBascRigide   EL2Xml(const cSolBasculeRig &);
+
 cTypeCodageMatr ExportMatr(const ElMatrix<double> & aMat);
 ElMatrix<double> ImportMat(const cTypeCodageMatr & aCM);
 

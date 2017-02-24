@@ -637,6 +637,30 @@ Pt3dr cCompBascNonLin::Src2Cibl(const Pt3dr & aPBasc) const
 
 /*************************************************************/
 
+
+cSolBasculeRig   Xml2EL(const cXml_ParamBascRigide & aXml)
+{
+   return   cSolBasculeRig::SBRFromElems
+            ( 
+                aXml.Trans(),
+                ImportMat(aXml.ParamRotation()),
+                aXml.Scale()
+            );
+}
+
+cXml_ParamBascRigide   EL2Xml(const cSolBasculeRig & aSBR)
+{
+    cXml_ParamBascRigide aRes;
+    aRes.ParamRotation() = ExportMatr(aSBR.Rot());
+    aRes.Trans() = aSBR.Tr();
+    aRes.Scale() = aSBR.Lambda();
+
+    return aRes;
+}
+
+
+
+
 void cAppliApero::BasculePoints
      (
            const cBasculeOnPoints & aBOP,
@@ -784,6 +808,7 @@ void cAppliApero::BasculePoints
 
    cSolBasculeRig  aSBR = aBasc.BestSol();
 
+
    if (Test)
    {
         //TestBasc(aVName,aBasc. PAvant(),aBasc.PApres());
@@ -812,6 +837,7 @@ void cAppliApero::BasculePoints
        }
 
    }
+
 
    cCompBascNonLin * aPtrBNL=0;
    const cAerialDeformNonLin * anADNL = aBOP.AerialDeformNonLin().PtrVal();
@@ -874,6 +900,53 @@ void cAppliApero::BasculePoints
             }
        }
    }
+
+
+   if (aBOP.NameExport().IsInit())
+   {
+      cXml_SolBascRigide aXSBR; //  cSolBasculeRig
+
+      aXSBR.Param() = EL2Xml(aSBR);
+      const std::vector<Pt3dr>  & aV1 = aBasc. PAvant();
+      const  std::vector<Pt3dr> & aV2 = aBasc.PApres() ;
+      const  std::vector<std::string> & aVN = aBasc.Names();
+      ELISE_ASSERT(aV1.size()==aV2.size(),"Bad size in cRansacBasculementRigide");
+      ELISE_ASSERT(aV1.size()==aVN.size(),"Bad size in cRansacBasculementRigide");
+
+      aXSBR.MoyenneDist()      = 0.0;
+      aXSBR.MoyenneDistAlti()  = 0.0;
+      aXSBR.MoyenneDistPlani() = 0.0;
+
+      aXSBR.Worst().Dist() = 0.0;
+      aXSBR.Worst().Offset() = Pt3dr(0,0,0);
+      aXSBR.Worst().Name() = "NONE";
+
+ 
+      for (int aK=0 ; aK <int(aV1.size()) ; aK++)
+      {
+          cXml_ResiduBascule aRes;
+          aRes.Name() = aVN[aK];
+          Pt3dr Offset = aV2[aK]- aSBR(aV1[aK]);
+          aRes.Offset() = Offset;
+          aRes.Dist() = euclid(aRes.Offset());
+
+          if (aRes.Dist() > aXSBR.Worst().Dist())
+          {
+              aXSBR.Worst() = aRes;
+          }
+          aXSBR.Residus().push_back(aRes);
+          aXSBR.MoyenneDist()      += euclid(Offset) ;
+          aXSBR.MoyenneDistAlti()  +=  ElAbs(Offset.z);
+          aXSBR.MoyenneDistPlani() +=  euclid(Pt2dr(Offset.x,Offset.y));
+      }
+      aXSBR.MoyenneDist() /= aV1.size();
+      aXSBR.MoyenneDistAlti() /= aV1.size();
+      aXSBR.MoyenneDistPlani() /= aV1.size();
+
+      MakeFileXML(aXSBR,aBOP.NameExport().Val());
+   }
+
+
 
 /*
    if (anADNL && anADNL->Show().Val())

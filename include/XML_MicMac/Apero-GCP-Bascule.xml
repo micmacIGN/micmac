@@ -123,6 +123,7 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
                                               <Show> ${NLDShow}  </Show>
                                         </AerialDeformNonLin>
                                    </#WHEN>
+                                   <NameExport> Ori-${AeroOut}/Result-GCP-Bascule.xml </NameExport>
                                </BasculeOnPoints>
                           </ModeBascule>
 

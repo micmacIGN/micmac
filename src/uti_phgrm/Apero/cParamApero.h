@@ -3417,11 +3417,15 @@ class cBasculeOnPoints
 
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
+
+        cTplValGesInit< std::string > & NameExport();
+        const cTplValGesInit< std::string > & NameExport()const ;
     private:
         cTplValGesInit< cBascOnCentre > mBascOnCentre;
         cTplValGesInit< cBascOnAppuis > mBascOnAppuis;
         cTplValGesInit< bool > mModeL2;
         cTplValGesInit< cAerialDeformNonLin > mAerialDeformNonLin;
+        cTplValGesInit< std::string > mNameExport;
 };
 cElXMLTree * ToXMLTree(const cBasculeOnPoints &);
 
@@ -3523,6 +3527,9 @@ class cModeBascule
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
 
+        cTplValGesInit< std::string > & NameExport();
+        const cTplValGesInit< std::string > & NameExport()const ;
+
         cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints();
         const cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints()const ;
 
@@ -3592,6 +3599,9 @@ class cBasculeOrientation
 
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
+
+        cTplValGesInit< std::string > & NameExport();
+        const cTplValGesInit< std::string > & NameExport()const ;
 
         cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints();
         const cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints()const ;
@@ -4409,6 +4419,9 @@ class cIterationsCompensation
 
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
+
+        cTplValGesInit< std::string > & NameExport();
+        const cTplValGesInit< std::string > & NameExport()const ;
 
         cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints();
         const cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints()const ;

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1774]) = {
+const char * (theNameVar_ParamApero[1775]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1113,6 +1113,7 @@ const char * (theNameVar_ParamApero[1774]) = {
 "                                         <PattEstim Nb=\"?\" Type=\"std::string\" Def=\".*\"> </PattEstim>\n",
 "                                         <Show Nb=\"?\" Type=\"bool\" Def=\"false\"> </Show>\n",
 "                                   </AerialDeformNonLin>\n",
+"                                   <NameExport Nb=\"?\" Type=\"std::string\"> </NameExport>\n",
 "                               </BasculeOnPoints>\n",
 "\n",
 "                               <BasculeLiaisonOnPlan Nb=\"?\">\n",

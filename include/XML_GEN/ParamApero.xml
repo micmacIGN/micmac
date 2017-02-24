@@ -1111,6 +1111,7 @@ normalises en echelle et/ou en translation -->
                                          <PattEstim Nb="?" Type="std::string" Def=".*"> </PattEstim>
                                          <Show Nb="?" Type="bool" Def="false"> </Show>
                                    </AerialDeformNonLin>
+                                   <NameExport Nb="?" Type="std::string"> </NameExport>
                                </BasculeOnPoints>
 
                                <BasculeLiaisonOnPlan Nb="?">
