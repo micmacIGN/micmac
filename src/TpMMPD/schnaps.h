@@ -176,6 +176,7 @@ class cPic
     void addPointOnPic(cPointOnPic* aPointOnPic);
     int getAllPointsOnPicSize(){return mAllPointsOnPic.size();}
     int getAllSelectedPointsOnPicSize(){return mAllSelectedPointsOnPic.size();}
+    std::map<double,cPointOnPic*>  * getAllSelectedPointsOnPic(){return &mAllSelectedPointsOnPic;}
     void selectHomols();
     void fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameManipulateur * aICNM,std::string & aKHOut);
     std::vector<int> getStats(bool before=true);//computes repartition in homol-2, homol-3, homol-4 etc... export it as vector indexed by multiplicity
