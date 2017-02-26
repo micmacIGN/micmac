@@ -284,21 +284,21 @@ int TD_CorrelQuick(int argc,char ** argv)
      // aIm1.Save(Out+"IM1.tif");
 
     // [2] Calcul des moyennes des carres 
-    cTD_Im aMoy11(aTx1,aTy);
-    cTD_Im aMoy22(aTx2,aTy);
+    cTD_Im aSq11(aTx1,aTy);
+    cTD_Im aSq22(aTx2,aTy);
 
          // [2.1] Calcule les carres
     for (int anY=0 ; anY<aTy ; anY++)
     {
          for (int aX1=0 ; aX1<aTx1 ; aX1++)
-            aMoy11.SetVal(aX1,anY,ElSquare(aIm1.GetVal(aX1,anY)));
+            aSq11.SetVal(aX1,anY,ElSquare(aIm1.GetVal(aX1,anY)));
 
          for (int aX2=0 ; aX2<aTx2 ; aX2++)
-            aMoy22.SetVal(aX2,anY,ElSquare(aIm2.GetVal(aX2,anY)));
+            aSq22.SetVal(aX2,anY,ElSquare(aIm2.GetVal(aX2,anY)));
     }
          // [2.2] Moyenne
-    aMoy11 = aMoy11.ImageMoy(aSzW,1);
-    aMoy22 = aMoy22.ImageMoy(aSzW,1);
+    cTD_Im aMoy11 = aSq11.ImageMoy(aSzW,1);
+    cTD_Im aMoy22 = aSq22.ImageMoy(aSzW,1);
 
          // [2.3] Moyenne
     for (int anY=0 ; anY<aTy ; anY++)
@@ -327,19 +327,19 @@ int TD_CorrelQuick(int argc,char ** argv)
     for (int aPax=-aIntPx ; aPax <= aIntPx ;aPax++)
     {
         // calclul dans aMoy12 de moyenne de  I1*( I2 decalee )
-        cTD_Im aMoy12(aTx1,aTy);  
+        cTD_Im aIm12(aTx1,aTy);  
         for (int anY=0 ; anY<aTy ; anY++)
         {
             for (int aX1=0 ; aX1<aTx1 ; aX1++)
             {
                 int aX2 = aX1+aPax;
                 if (aIm2.Ok(aX2,anY))
-                   aMoy12.SetVal(aX1,anY,aIm1.GetVal(aX1,anY)*aIm2.GetVal(aX2,anY));
+                   aIm12.SetVal(aX1,anY,aIm1.GetVal(aX1,anY)*aIm2.GetVal(aX2,anY));
                 else
-                   aMoy12.SetVal(aX1,anY,0);
+                   aIm12.SetVal(aX1,anY,0);
             }
         }
-        aMoy12 = aMoy12.ImageMoy(aSzW,1);
+        cTD_Im aMoy12 = aIm12.ImageMoy(aSzW,1);
 
        
         for (int anY=0 ; anY<aTy ; anY++)
@@ -358,6 +358,10 @@ int TD_CorrelQuick(int argc,char ** argv)
 
                      float aSim = 1- aCorrel;
 
+if (((anY%20)==0) && ((aX1%20)==0))
+{
+   std::cout << "CORR " << aCorrel << "\n";
+}
                      if (aSim < aImSim.GetVal(aX1,anY))
                      {
                           aImSim.SetVal(aX1,anY,aSim);

@@ -129,6 +129,9 @@ class cTD_Im
 {
      public :
         cTD_Im (int anX,int anY);
+        cTD_Im(const cTD_Im &);
+        cTD_Im & operator = (const cTD_Im &);
+
         static cTD_Im  FromString(const std::string &);
         cTD_Im  ImageMoy(int aSzW,int aNbIter);
         cTD_Im  ImageReduite(double aFact);
