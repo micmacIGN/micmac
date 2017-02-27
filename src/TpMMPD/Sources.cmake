@@ -6,6 +6,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ExoMM_CorrelMulImage.cpp
 	${TDPPMD_DIR}/Match1.cpp
 	${TDPPMD_DIR}/ExoMM_SimulTieP.cpp
+	${TDPPMD_DIR}/PseudoOrtho.cpp
 	${TDPPMD_DIR}/ServiceGeoSud.cpp
 	${TDPPMD_DIR}/Surf.cpp
 	${TDPPMD_DIR}/cTD_Epip.cpp

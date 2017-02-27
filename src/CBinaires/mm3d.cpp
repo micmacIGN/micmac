@@ -765,7 +765,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
 
         aRes.push_back(cMMCom("AddAffinity", AddAffinity_main, "Add an affinity, tuning"));
-        aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
+        
+	aRes.push_back(cMMCom("PseudoOrtho", PseudoOrtho_main, "Pseudo Ortho"));
+	aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
         aRes.push_back(cMMCom("Ortho",ServiceGeoSud_Ortho_main,"Compute a basic Ortho from a DTM and a satellite image (for GeoSud services)"));
         aRes.push_back(cMMCom("GeoSud",ServiceGeoSud_GeoSud_main,""));
         aRes.push_back(cMMCom("Surf",ServiceGeoSud_Surf_main,""));
