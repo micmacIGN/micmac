@@ -62,9 +62,13 @@ class cCelImTPM
          friend class cSetTiePMul;
 
          cCelImTPM(const std::string & aNameIm,int anId);
+
+         void *  GetVoidData() const;
+         void    SetVoidData(void *);
     private :
          std::string mNameIm;
          int         mId;
+         void *      mVoidData;  // To store any usefull data
 };
 
 class cDicoImTPM

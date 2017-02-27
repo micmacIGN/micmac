@@ -34,4 +34,5 @@ set(uti_phgrm_Apero_Src_Files
     ${UTI_PHGRM_APERO_DIR}/Tracage.cpp
     ${UTI_PHGRM_APERO_DIR}/VisuMult.cpp
     ${UTI_PHGRM_APERO_DIR}/VisuHomol.cpp
+    ${UTI_PHGRM_APERO_DIR}/NewPtsLiaison.cpp
 )

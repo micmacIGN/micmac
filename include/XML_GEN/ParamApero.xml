@@ -405,9 +405,12 @@
                       <IdLayer Nb="1" Type="std::string"> </IdLayer>
                       <KeyCalHomSplit Nb="1" Type="std::string"> </KeyCalHomSplit>
                   </SplitLayer>
-
-
             </BDD_PtsLiaisons>
+
+            <BDD_NewPtMul Nb="*">
+                  <Id Nb="1" Type="std::string"> </Id>
+                  <SH Nb="1" Type="std::string"> </SH>
+            </BDD_NewPtMul>
 
             <BDD_PtsAppuis Nb="*">
 	          <Id Nb="1" Type="std::string"> </Id>

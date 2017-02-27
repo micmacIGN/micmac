@@ -313,6 +313,9 @@ cCelImTPM::cCelImTPM(const std::string & aNameIm,int anId) :
 {
 }
 
+void *  cCelImTPM::GetVoidData() const         {return mVoidData;}
+void    cCelImTPM::SetVoidData(void * aVD)     {mVoidData = aVD;}
+
 
 /*********************************************************************/
 /*                                                                   */

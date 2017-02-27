@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 // MPD => me demande si cette librairie ne devrait pas plutot faire  partie d'Apero ?
-#include "../../src/uti_phgrm/Apero/cCameraRPC.h"
+#include "../../uti_phgrm/Apero/cCameraRPC.h"
 
 //  cPushB_GeomLine :  Class for the geometry of one line
 class cPushB_GeomLine;

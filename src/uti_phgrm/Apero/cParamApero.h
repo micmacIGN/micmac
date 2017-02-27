@@ -1109,6 +1109,31 @@ void  BinaryUnDumpFromFile(cBDD_PtsLiaisons &,ELISE_fp &);
 
 std::string  Mangling( cBDD_PtsLiaisons *);
 
+class cBDD_NewPtMul
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cBDD_NewPtMul & anObj,cElXMLTree * aTree);
+
+
+        std::string & Id();
+        const std::string & Id()const ;
+
+        std::string & SH();
+        const std::string & SH()const ;
+    private:
+        std::string mId;
+        std::string mSH;
+};
+cElXMLTree * ToXMLTree(const cBDD_NewPtMul &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cBDD_NewPtMul &);
+
+void  BinaryUnDumpFromFile(cBDD_NewPtMul &,ELISE_fp &);
+
+std::string  Mangling( cBDD_NewPtMul *);
+
 class cBddApp_AutoNum
 {
     public:
@@ -1549,6 +1574,9 @@ class cSectionBDD_Observation
         std::list< cBDD_PtsLiaisons > & BDD_PtsLiaisons();
         const std::list< cBDD_PtsLiaisons > & BDD_PtsLiaisons()const ;
 
+        std::list< cBDD_NewPtMul > & BDD_NewPtMul();
+        const std::list< cBDD_NewPtMul > & BDD_NewPtMul()const ;
+
         std::list< cBDD_PtsAppuis > & BDD_PtsAppuis();
         const std::list< cBDD_PtsAppuis > & BDD_PtsAppuis()const ;
 
@@ -1592,6 +1620,7 @@ class cSectionBDD_Observation
         const cTplValGesInit< cDeclareObsCalConseq > & DeclareObsCalConseq()const ;
     private:
         std::list< cBDD_PtsLiaisons > mBDD_PtsLiaisons;
+        std::list< cBDD_NewPtMul > mBDD_NewPtMul;
         std::list< cBDD_PtsAppuis > mBDD_PtsAppuis;
         std::list< cBDD_ObsAppuisFlottant > mBDD_ObsAppuisFlottant;
         std::list< cBDD_Orient > mBDD_Orient;
@@ -6808,6 +6837,9 @@ class cParamApero
 
         std::list< cBDD_PtsLiaisons > & BDD_PtsLiaisons();
         const std::list< cBDD_PtsLiaisons > & BDD_PtsLiaisons()const ;
+
+        std::list< cBDD_NewPtMul > & BDD_NewPtMul();
+        const std::list< cBDD_NewPtMul > & BDD_NewPtMul()const ;
 
         std::list< cBDD_PtsAppuis > & BDD_PtsAppuis();
         const std::list< cBDD_PtsAppuis > & BDD_PtsAppuis()const ;

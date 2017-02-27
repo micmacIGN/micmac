@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1775]) = {
+const char * (theNameVar_ParamApero[1778]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -407,9 +407,12 @@ const char * (theNameVar_ParamApero[1775]) = {
 "                      <IdLayer Nb=\"1\" Type=\"std::string\"> </IdLayer>\n",
 "                      <KeyCalHomSplit Nb=\"1\" Type=\"std::string\"> </KeyCalHomSplit>\n",
 "                  </SplitLayer>\n",
-"\n",
-"\n",
 "            </BDD_PtsLiaisons>\n",
+"\n",
+"            <BDD_NewPtMul Nb=\"*\">\n",
+"                  <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
+"                  <SH Nb=\"1\" Type=\"std::string\"> </SH>\n",
+"            </BDD_NewPtMul>\n",
 "\n",
 "            <BDD_PtsAppuis Nb=\"*\">\n",
 "	          <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
