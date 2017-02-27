@@ -1495,6 +1495,8 @@ class cPackObsLiaison
 };
 
 
+class cCompile_BDD_NewPtMul;
+
 /************************************************************/
 /*                                                          */
 /*              Les appuis flottants                        */
@@ -2176,9 +2178,14 @@ class cAppliApero : public NROptF1vND
        double   MoyGeomPdsIter(const double & aPds0, const cTplValGesInit<double> &  aPds1) const;
        double   RBW_PdsTr(const cRigidBlockWeighting  &) const;
        double   RBW_PdsRot(const cRigidBlockWeighting &) const;
+
+       void InitNewBDL();
+
     private :
 
        void SetPdsRegDist(const cXmlPondRegDist *);
+
+       void InitNewBDL(const cBDD_NewPtMul &);
 
 
        // Active uniquement si  mFileDebug != 0
@@ -2636,6 +2643,9 @@ class cAppliApero : public NROptF1vND
          std::vector<std::string> mNamesIdCalib;
          int   mNumImage;
          std::vector<std::string> mNamesIdIm;
+
+
+         std::map<std::string,cCompile_BDD_NewPtMul *>  mDicoNewBDL;
 };
 
 

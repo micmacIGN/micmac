@@ -1122,9 +1122,17 @@ class cBDD_NewPtMul
 
         std::string & SH();
         const std::string & SH()const ;
+
+        bool & BinaryMode();
+        const bool & BinaryMode()const ;
+
+        bool & SupressStdHom();
+        const bool & SupressStdHom()const ;
     private:
         std::string mId;
         std::string mSH;
+        bool mBinaryMode;
+        bool mSupressStdHom;
 };
 cElXMLTree * ToXMLTree(const cBDD_NewPtMul &);
 

@@ -41,11 +41,130 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../TiepTri/MultTieP.h"
 
 
+class cCam_NewBD
+{
+    public :
+      cCam_NewBD(cGenPoseCam *);
+      cGenPoseCam * mCam;
+};
+
+
+class cCompile_BDD_NewPtMul
+{
+    public :
+         cCompile_BDD_NewPtMul (const cBDD_NewPtMul &,cSetTiePMul *);
+    private :
+         cBDD_NewPtMul               mCBN;
+         cSetTiePMul *               mSetPM;
+};
+
 /**************************************************/
 /*                                                */
 /*                                                */
 /*                                                */
 /**************************************************/
+
+cCam_NewBD::cCam_NewBD(cGenPoseCam * aCam) :
+    mCam (aCam)
+{
+}
+
+
+/**************************************************/
+/*                                                */
+/*              cCompile_BDD_NewPtMul             */
+/*                                                */
+/**************************************************/
+
+cCompile_BDD_NewPtMul::cCompile_BDD_NewPtMul (const cBDD_NewPtMul & aCBN,cSetTiePMul * aSet) :
+    mCBN   (aCBN),
+    mSetPM (aSet)
+{
+}
+
+
+
+/**************************************************/
+/*                                                */
+/*                                                */
+/*                                                */
+/**************************************************/
+
+
+void cAppliApero::InitNewBDL()
+{
+    if (!MPD_MM())
+    {
+        return;
+    }
+
+    {
+       std::cout << "BEGIN::InitNewBDL  " <<   mDicoGenPose.size()  << "\n";
+    }
+
+
+    for 
+    (
+         std::list<cBDD_NewPtMul>::const_iterator itBDN=mParam.BDD_NewPtMul().begin() ; 
+         itBDN!=mParam.BDD_NewPtMul().end() ; 
+         itBDN++
+    )
+    {
+        InitNewBDL(*itBDN);
+    }
+
+    {
+       std::cout << "END::InitNewBDL  " <<   mDicoGenPose.size()  << "\n";
+       getchar();
+    }
+}
+
+
+void cAppliApero::InitNewBDL(const cBDD_NewPtMul & aBDN)
+{
+     if (mDicoNewBDL[aBDN.Id()] != 0)
+     {
+         std::cout << "For Id = " << aBDN.Id() << "\n";
+         ELISE_ASSERT(false,"cAppliApero::InitNewBDL multiple use of id in BDD_NewPtMul");
+     }
+     const std::vector<std::string> *  aSTP= cSetTiePMul::StdSetName(mICNM,aBDN.SH(),false);
+     if (aSTP->size()==0) return;
+
+     static std::vector<std::string>  * aVNameFilter=0;
+     if (aVNameFilter==0)
+     {
+         aVNameFilter = new std::vector<std::string>; 
+         for (int aKP=0 ; aKP<int(mVecGenPose.size()) ; aKP++)
+         {
+              const std::string & aName = mVecGenPose[aKP]->Name();
+              aVNameFilter->push_back(aName);
+              // std::cout << "gggggGggggg  " << aName << "\n";
+         }
+     }
+
+    cSetTiePMul * aSet = cSetTiePMul::FromFiles(*aSTP,aVNameFilter);
+
+    {
+         cDicoImTPM &  aDicIm =  aSet->DicoIm();
+
+         for (int aKP=0 ; aKP<int(mVecGenPose.size()) ; aKP++)
+         {
+              const std::string & aName = mVecGenPose[aKP]->Name();
+              std::map<std::string,cCelImTPM *>::iterator anIt = aDicIm.mName2Im.find(aName);
+              if (anIt!= aDicIm.mName2Im.end())
+              {
+                  anIt->second->SetVoidData(new cCam_NewBD(mVecGenPose[aKP]) );
+              }
+         }
+     }
+    
+
+    cCompile_BDD_NewPtMul * aComp = new cCompile_BDD_NewPtMul(aBDN,aSet);
+
+    mDicoNewBDL[aBDN.Id()] = aComp;
+    
+    std::cout << "IDNewBDL " << aBDN.Id() << " NBB " << aSTP->size()  << " " << mNamesIdIm.size() << "\n";
+}
 
 
 

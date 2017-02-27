@@ -75,7 +75,7 @@ class cDicoImTPM
 {
     public :
         friend class cSetTiePMul;
-    private :
+    // private :
         cCelImTPM * AddIm(const std::string &,bool &IsNew);
 
         std::map<std::string,cCelImTPM *> mName2Im;
@@ -108,7 +108,7 @@ class cSetPMul1ConfigTPM
 
        double  X(int aKp,int aKIm) {return Int2Double(mVXY[AddrPtIm(aKp,aKIm)]);}
        double  Y(int aKp,int aKIm) {return Int2Double(mVXY[AddrPtIm(aKp,aKIm)+1]);}
-       static const  double ThePrec;
+       // static const  double ThePrec;
 
        std::vector<int>    mVIdIm;
        int                 mNbIm;
@@ -146,6 +146,7 @@ class cSetTiePMul
         void AddFile(const std::string & aName);  // Mettre en private + tard
 
         void ResetNbAttr(int aNbAttr);
+        cDicoImTPM & DicoIm();
 
     private :
         

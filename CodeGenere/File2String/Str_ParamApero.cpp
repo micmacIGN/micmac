@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1778]) = {
+const char * (theNameVar_ParamApero[1781]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -412,6 +412,9 @@ const char * (theNameVar_ParamApero[1778]) = {
 "            <BDD_NewPtMul Nb=\"*\">\n",
 "                  <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
 "                  <SH Nb=\"1\" Type=\"std::string\"> </SH>\n",
+"                  <BinaryMode Nb=\"1\" Type=\"bool\">    </BinaryMode>\n",
+"                  <!-- Si SupressStdHom, des qu'il y a des points nouveau, les points anciens sont ignores -->\n",
+"                  <SupressStdHom Nb=\"1\" Type=\"bool\">    </SupressStdHom>\n",
 "            </BDD_NewPtMul>\n",
 "\n",
 "            <BDD_PtsAppuis Nb=\"*\">\n",

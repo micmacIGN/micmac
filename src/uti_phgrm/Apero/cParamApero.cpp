@@ -3366,16 +3366,42 @@ const std::string & cBDD_NewPtMul::SH()const
    return mSH;
 }
 
+
+bool & cBDD_NewPtMul::BinaryMode()
+{
+   return mBinaryMode;
+}
+
+const bool & cBDD_NewPtMul::BinaryMode()const 
+{
+   return mBinaryMode;
+}
+
+
+bool & cBDD_NewPtMul::SupressStdHom()
+{
+   return mSupressStdHom;
+}
+
+const bool & cBDD_NewPtMul::SupressStdHom()const 
+{
+   return mSupressStdHom;
+}
+
 void  BinaryUnDumpFromFile(cBDD_NewPtMul & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Id(),aFp);
     BinaryUnDumpFromFile(anObj.SH(),aFp);
+    BinaryUnDumpFromFile(anObj.BinaryMode(),aFp);
+    BinaryUnDumpFromFile(anObj.SupressStdHom(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cBDD_NewPtMul & anObj)
 {
     BinaryDumpInFile(aFp,anObj.Id());
     BinaryDumpInFile(aFp,anObj.SH());
+    BinaryDumpInFile(aFp,anObj.BinaryMode());
+    BinaryDumpInFile(aFp,anObj.SupressStdHom());
 }
 
 cElXMLTree * ToXMLTree(const cBDD_NewPtMul & anObj)
@@ -3384,6 +3410,8 @@ cElXMLTree * ToXMLTree(const cBDD_NewPtMul & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"BDD_NewPtMul",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
    aRes->AddFils(::ToXMLTree(std::string("SH"),anObj.SH())->ReTagThis("SH"));
+   aRes->AddFils(::ToXMLTree(std::string("BinaryMode"),anObj.BinaryMode())->ReTagThis("BinaryMode"));
+   aRes->AddFils(::ToXMLTree(std::string("SupressStdHom"),anObj.SupressStdHom())->ReTagThis("SupressStdHom"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -3397,9 +3425,13 @@ void xml_init(cBDD_NewPtMul & anObj,cElXMLTree * aTree)
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
    xml_init(anObj.SH(),aTree->Get("SH",1)); //tototo 
+
+   xml_init(anObj.BinaryMode(),aTree->Get("BinaryMode",1)); //tototo 
+
+   xml_init(anObj.SupressStdHom(),aTree->Get("SupressStdHom",1)); //tototo 
 }
 
-std::string  Mangling( cBDD_NewPtMul *) {return "0E1C7EB8247A0B8DFDBF";};
+std::string  Mangling( cBDD_NewPtMul *) {return "CF4E72270E625780FE3F";};
 
 
 double & cBddApp_AutoNum::DistFusion()
@@ -5316,7 +5348,7 @@ void xml_init(cSectionBDD_Observation & anObj,cElXMLTree * aTree)
    xml_init(anObj.DeclareObsCalConseq(),aTree->Get("DeclareObsCalConseq",1)); //tototo 
 }
 
-std::string  Mangling( cSectionBDD_Observation *) {return "EE47F38765F120A1FDBF";};
+std::string  Mangling( cSectionBDD_Observation *) {return "0268A1DB0723538BFF3F";};
 
 
 Pt3dr & cGpsOffset::ValInit()
@@ -26252,7 +26284,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "E27E2A0F0B64B0A1FCBF";};
+std::string  Mangling( cParamApero *) {return "54F5305A733E62FCFE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

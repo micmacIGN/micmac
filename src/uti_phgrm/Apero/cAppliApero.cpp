@@ -534,6 +534,7 @@ void cAppliApero::PreCompile()
     InitCalibCam();
 
     PreCompilePose();
+    InitNewBDL();
     InitClassEquiv();
     PreCompileAppuisFlottants();
 

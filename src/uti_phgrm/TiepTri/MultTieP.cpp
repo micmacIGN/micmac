@@ -247,9 +247,6 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
    std::string aNameSave = cSetTiePMul::StdName(mEASF.mICNM,mSH,mDest,mBin);
 
    aSetOutPM->Save(aNameSave);
-
-   // cSetTiePMul * aSetInPM = new cSetTiePMul();
-   // aSetInPM->AddFile(aName);
 }
 
 
@@ -300,6 +297,8 @@ int UnionFiltragePHom_Main(int argc,char ** argv)
    aSetOutPM->Save(aNameSave);
    return EXIT_SUCCESS;
 }
+
+
 
 /*********************************************************************/
 /*                                                                   */
@@ -390,6 +389,17 @@ cSetTiePMul::cSetTiePMul(int aNbAttr) :
 {
 }
 
+cSetTiePMul * cSetTiePMul::FromFiles(const std::vector<std::string> aVFiles,const std::vector<std::string>  * aFilter)
+{
+    cSetTiePMul * aResult = new cSetTiePMul(0);
+    if (aFilter!=0)
+       aResult->SetFilter(*aFilter);
+
+    for (int aKF=0 ; aKF<int(aVFiles.size()) ; aKF++)
+       aResult->AddFile(aVFiles[aKF]);
+
+   return aResult;
+}
 
 std::string cSetTiePMul::StdName
             (
@@ -445,6 +455,12 @@ void cSetTiePMul::SetCurIms(const std::vector<std::string> & aVIm)
         }
     }
 }
+
+cDicoImTPM &  cSetTiePMul::DicoIm()
+{
+   return mDicoIm;
+}
+
 
 cSetPMul1ConfigTPM * cSetTiePMul::OneConfigFromVI(const std::vector<INT> & aVI)
 {
@@ -582,7 +598,7 @@ void cSetTiePMul::AddFile(const std::string & aName)
 
     int aNbConfig = aFp.read_U_INT4();
 
-    std::cout << "NB CONFIG=" <<  aNbConfig << "\n";
+    // std::cout << "NB CONFIG=" <<  aNbConfig << "\n";
     for (int aKConf=0 ; aKConf < aNbConfig ; aKConf++)
     {
         int aNbPt = aFp.read_U_INT4();

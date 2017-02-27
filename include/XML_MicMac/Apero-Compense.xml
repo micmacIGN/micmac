@@ -150,6 +150,14 @@
                      <KeyAssoc>  NKS-Assoc-CplIm2Hom@${SetHom}@${Ext}   </KeyAssoc>
                 </BDD_PtsLiaisons>
              </#WHEN>
+               <!-- MPD mis ici en dur pour tester les nouveau points multiples -->
+             <BDD_NewPtMul>
+                  <Id> Id-New-BDL </Id>
+                  <SH> </SH>
+                  <BinaryMode >  false  </BinaryMode>
+                  <SupressStdHom >  false   </SupressStdHom>
+             </BDD_NewPtMul>
+
 
             <BDD_Orient>
                   <Id>  Or-Init   </Id>
