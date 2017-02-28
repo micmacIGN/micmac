@@ -98,18 +98,21 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	Im2D_U_INT1  aImOut(aSz.x, aSz.y);
 	U_INT1 ** aDataOut = aImOut.data();
 
-	/*Things needed for RPC angle computation, not main goal of this function
-	
-	//Read RPCs
+	//Things needed for RPC angle computation, not main goal of this function
+	/*
+	//Read RPC 1 (B image)
 	RPC aRPC;
 	string aNameRPC1 = "RPC_" + StdPrefix(aNameIm) + ".xml";
 	aRPC.ReadDimap(aNameRPC1);
 	cout << "Dimap File " << aNameRPC1 << " read" << endl;
-	RPC aRPC2;
-	string aNameRPC2 = "RPC_" + StdPrefix(aNameIm2) + ".xml";
-	aRPC2.ReadDimap(aNameRPC2);
-	cout << "Dimap File " << aNameRPC2 << " read" << endl;
+
 	
+	//Output angle container 1 (B image)
+	Im2D_REAL8  aAngleBOut(aSz.x, aSz.y);
+	REAL8 ** aDataAngleBOut = aAngleBOut.data();
+	string aNameAngleB = "AngleB.tif";
+	*/
+	/*
 	//Reading the DEM file
 	Tiff_Im aTFDEM = Tiff_Im::StdConvGen(aDir + aNameDEM, 1, false);
 	Im2D_REAL8  aDEM(aSz.x, aSz.y);
@@ -121,12 +124,13 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	);
 	REAL8 ** aDatDEM = aDEM.data();
 
-	//Output angle container 1
-	Im2D_REAL8  aAngleBOut(aSz.x, aSz.y);
-	REAL8 ** aDataAngleBOut = aAngleBOut.data();
-	string aNameAngleB = "AngleB.tif";
+	//Read RPC 2 (N image)
+	RPC aRPC2;
+	string aNameRPC2 = "RPC_" + StdPrefix(aNameIm2) + ".xml";
+	aRPC2.ReadDimap(aNameRPC2);
+	cout << "Dimap File " << aNameRPC2 << " read" << endl;
 
-	//Output angle container 2
+	//Output angle container 2 (N image)
 	Im2D_REAL8  aAngleNOut(aSz.x, aSz.y);
 	REAL8 ** aDataAngleNOut = aAngleNOut.data();
 	string aNameAngleN = "AngleN.tif";
@@ -153,23 +157,24 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		for (int aY = 0; aY < aSz.y; aY++)
 		{
 			/*
-			Pt3dr P0B(aX, aY, aDatDEM[aY][aX]);
+			//Pt3dr P0B(aX, aY, aDatDEM[aY][aX]);
+			Pt3dr P0B(aX, aY, 1000);
 			Pt3dr PW0 = aRPC.DirectRPC(P0B);
 			Pt3dr PW1 = PW0, PW2 = PW0;
-			PW1.z = PW1.z - 1;
-			PW2.z = PW2.z + 1;
+			PW1.z = PW1.z - 100;
+			PW2.z = PW2.z + 100;
 			Pt3dr P1B = aRPC.InverseRPC(PW1);
 			Pt3dr P2B = aRPC.InverseRPC(PW2);
-			Pt3dr P1N = aRPC2.InverseRPC(PW1);
-			Pt3dr P2N = aRPC2.InverseRPC(PW2);
+			//Pt3dr P1N = aRPC2.InverseRPC(PW1);
+			//Pt3dr P2N = aRPC2.InverseRPC(PW2);
 			//Pt3dr P1B(aX, aY, 0);
 			//Pt3dr P2B(aX, aY, 10000);
 			//Pt3dr P1N = aRPC2.InverseRPC(aRPC.DirectRPC(P1B));
 			//Pt3dr P2N = aRPC2.InverseRPC(aRPC.DirectRPC(P2B));
 			double aAngleB = atan((P2B.x - P1B.x) / (P2B.y - P1B.y));
 			aDataAngleBOut[aY][aX] = aAngleB;
-			double aAngleN = atan((P2N.x - P1N.x) / (P2N.y - P1N.y));
-			aDataAngleNOut[aY][aX] = aAngleN;
+			//double aAngleN = atan((P2N.x - P1N.x) / (P2N.y - P1N.y));
+			//aDataAngleNOut[aY][aX] = aAngleN;
 			//cout << aX << " " << aY << " " << aAngle << endl;
 			//cout << P1N << " " << P2N << " " << aAngle << endl;
 
@@ -177,8 +182,8 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 			//THE THINGS COMPUTED ABOVE WILL BE USED IN A FURTHER UPDATE
 
 			Pt2dr ptOut;
-			ptOut.x = aX - aDatPar[aY][aX];// * cos(aAngleB);
-			ptOut.y = aY;// -aDatPar[aY][aX];// * sin(aAngleB);
+			ptOut.x = aX - aDatPar[aY][aX];// *cos(aAngleB);
+			ptOut.y = aY;// -aDatPar[aY][aX] * sin(aAngleB);
 			aDataOut[aY][aX] = Reechantillonnage::biline(aData, aSz.x, aSz.y, ptOut);
 		}
 	}
