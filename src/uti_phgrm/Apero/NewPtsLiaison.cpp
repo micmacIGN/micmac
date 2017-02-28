@@ -1,4 +1,4 @@
-         /*Header-MicMac-eLiSe-25/06/2007
+/*Header-MicMac-eLiSe-25/06/2007
 
     MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
     eLiSe  : ELements of an Image Software Environnement
@@ -53,10 +53,13 @@ class cCompile_BDD_NewPtMul
 {
     public :
          cCompile_BDD_NewPtMul (const cBDD_NewPtMul &,cSetTiePMul *);
+         const cBDD_NewPtMul & CBN() const;
+         cSetTiePMul *         SetPM() ;
     private :
          cBDD_NewPtMul               mCBN;
          cSetTiePMul *               mSetPM;
 };
+
 
 /**************************************************/
 /*                                                */
@@ -82,7 +85,15 @@ cCompile_BDD_NewPtMul::cCompile_BDD_NewPtMul (const cBDD_NewPtMul & aCBN,cSetTie
 {
 }
 
+const cBDD_NewPtMul & cCompile_BDD_NewPtMul::CBN() const
+{
+   return mCBN;
+}
 
+cSetTiePMul *   cCompile_BDD_NewPtMul::SetPM() 
+{
+   return mSetPM;
+}
 
 /**************************************************/
 /*                                                */
@@ -93,16 +104,6 @@ cCompile_BDD_NewPtMul::cCompile_BDD_NewPtMul (const cBDD_NewPtMul & aCBN,cSetTie
 
 void cAppliApero::InitNewBDL()
 {
-    if (!MPD_MM())
-    {
-        return;
-    }
-
-    {
-       std::cout << "BEGIN::InitNewBDL  " <<   mDicoGenPose.size()  << "\n";
-    }
-
-
     for 
     (
          std::list<cBDD_NewPtMul>::const_iterator itBDN=mParam.BDD_NewPtMul().begin() ; 
@@ -111,11 +112,6 @@ void cAppliApero::InitNewBDL()
     )
     {
         InitNewBDL(*itBDN);
-    }
-
-    {
-       std::cout << "END::InitNewBDL  " <<   mDicoGenPose.size()  << "\n";
-       getchar();
     }
 }
 
@@ -144,19 +140,14 @@ void cAppliApero::InitNewBDL(const cBDD_NewPtMul & aBDN)
 
     cSetTiePMul * aSet = cSetTiePMul::FromFiles(*aSTP,aVNameFilter);
 
+    for (int aKP=0 ; aKP<int(mVecGenPose.size()) ; aKP++)
     {
-         cDicoImTPM &  aDicIm =  aSet->DicoIm();
-
-         for (int aKP=0 ; aKP<int(mVecGenPose.size()) ; aKP++)
-         {
-              const std::string & aName = mVecGenPose[aKP]->Name();
-              std::map<std::string,cCelImTPM *>::iterator anIt = aDicIm.mName2Im.find(aName);
-              if (anIt!= aDicIm.mName2Im.end())
-              {
-                  anIt->second->SetVoidData(new cCam_NewBD(mVecGenPose[aKP]) );
-              }
-         }
-     }
+        cCelImTPM *  aCBN = aSet->CelFromName(mVecGenPose[aKP]->Name());
+        if (aCBN)
+        {
+           aCBN->SetVoidData(new cCam_NewBD(mVecGenPose[aKP]) );
+        }
+    }
     
 
     cCompile_BDD_NewPtMul * aComp = new cCompile_BDD_NewPtMul(aBDN,aSet);
@@ -166,9 +157,65 @@ void cAppliApero::InitNewBDL(const cBDD_NewPtMul & aBDN)
     std::cout << "IDNewBDL " << aBDN.Id() << " NBB " << aSTP->size()  << " " << mNamesIdIm.size() << "\n";
 }
 
+bool cAppliApero::CDNP_InavlideUse_StdLiaison(const std::string & aName)
+{
+
+   cCompile_BDD_NewPtMul * aCDN = CDNP_FromName(aName);
+
+   return (aCDN!=0) && (aCDN->CBN().SupressStdHom() );
+}
+
+cCompile_BDD_NewPtMul * cAppliApero::CDNP_FromName(const std::string & aName)
+{
+    std::map<std::string,cCompile_BDD_NewPtMul *>::iterator anIt = mDicoNewBDL.find(aName);
+
+    if (anIt != mDicoNewBDL.end()) return anIt->second;
+    return 0;
+}
+
+void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,const cObsLiaisons & anObsOl)
+{
+   const std::vector<int> & aVIdIm = aConf->VIdIm();
+
+   for (int aKIdIm = 0 ; aKIdIm<int(aVIdIm.size()) ; aKIdIm++)
+   {
+      cCelImTPM * aCel = aSet->CelFromInt(aVIdIm[aKIdIm]);
+      cCam_NewBD * aCam = static_cast<cCam_NewBD *>(aCel->GetVoidData());
+
+      std::cout << "CAMMM NAME " << aCam->mCam->Name() << "\n";
+   }
+   std::cout << "-----------------------------\n";
+}
 
 
+void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & anObsOl)
+{
+     cCompile_BDD_NewPtMul * aCDN = CDNP_FromName(anId);
 
+     if (aCDN==0)
+        return; 
+     
+    cSetTiePMul *  aSetPM = aCDN->SetPM() ;
+    const std::vector<cSetPMul1ConfigTPM *> &  aVPM = aSetPM->VPMul();
+
+    for (int aKConf=0 ; aKConf<int(aVPM.size()) ; aKConf++)
+    {
+        CDNP_Compense(aVPM[aKConf],aSetPM,anObsOl);
+    }
+    std::cout <<"FFFFFF ==== \n";
+    getchar();
+}
+
+/*
+void cAppliApero::ObsNewBDL(const cObsLiaisons & anObsL)
+{
+}
+
+void cAppliApero::ObsNewBDL()
+{
+}
+
+*/
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

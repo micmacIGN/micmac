@@ -1036,7 +1036,8 @@ bool cAppliApero::NumIterDebug() const
 
 void ShowSpectrSys(cSetEqFormelles & aSetEq)
 {
-   if (!MPD_MM()) return;
+   //  if (!MPD MM()) return;   why ?
+
    int aNbV = aSetEq.Sys()->NbVar();
 
     ElMatrix<tSysCho>  aMat = aSetEq.Sys()->MatQuad();

@@ -1495,7 +1495,6 @@ class cPackObsLiaison
 };
 
 
-class cCompile_BDD_NewPtMul;
 
 /************************************************************/
 /*                                                          */
@@ -1958,6 +1957,10 @@ class cCompiledObsRelGPS
         cAppliApero *     mAppli;
 };
 
+class cSetPMul1ConfigTPM;
+class cSetTiePMul;
+class cCompile_BDD_NewPtMul;
+
 
 class cAppliApero : public NROptF1vND
 {
@@ -2180,6 +2183,11 @@ class cAppliApero : public NROptF1vND
        double   RBW_PdsRot(const cRigidBlockWeighting &) const;
 
        void InitNewBDL();
+       cCompile_BDD_NewPtMul * CDNP_FromName(const std::string & aName);
+       bool CDNP_InavlideUse_StdLiaison(const std::string & anId);
+       void CDNP_Compense(const std::string & anId,const cObsLiaisons &);
+
+        void CDNP_Compense(cSetPMul1ConfigTPM*,cSetTiePMul*,const cObsLiaisons &);
 
     private :
 

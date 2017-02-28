@@ -98,6 +98,7 @@ class cSetPMul1ConfigTPM
             return Pt2dr(Int2Double(mVXY[Adr]),Int2Double(mVXY[Adr+1]));
        }
        float Attr(int aKP,int aKAttr) const;
+       const std::vector<int> & VIdIm() const;
 
     private :
        int  AddrPtIm(int aKp,int aKIm) {return 2*(aKp*mNbIm  +aKIm) ;}
@@ -147,7 +148,10 @@ class cSetTiePMul
 
         void ResetNbAttr(int aNbAttr);
         cDicoImTPM & DicoIm();
+        cCelImTPM * CelFromName(const std::string & aName);
+        cCelImTPM * CelFromInt(const int & anId);
 
+        const std::vector<cSetPMul1ConfigTPM *> & VPMul();
     private :
         
         cCelImTPM * AddIm(const std::string &,bool &IsNew);

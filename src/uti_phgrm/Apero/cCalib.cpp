@@ -1145,18 +1145,6 @@ void  cCalibCam::PostFinCompens()
    double aMul = aSP /aS1;
    mPIF.AddCstrRegulGlob(1+2*aNbCase,aPond->Pds0()*aMul,aPond->Pds1()*aMul,aPond->Pds2()*aMul,&aImPds);
 
-   
-/*
-if (MPD_MM())
-{
-    double aChekS;
-   ELISE_COPY(aImPds.all_pts(),aImPds.in(),sigma(aChekS));
-    for (int aK=0 ; aK<1 ; aK++) 
-        std::cout << " wwwwwwww WwmImRegmImReg "  << mKeyId <<  " " << aMul << " " << mSomNbReg << "\n";
-    ELISE_COPY(aImPds.all_pts(),aImPds.in(),mImReg.out());
-}
-*/
-
 }
 
 void cCalibCam::AddPds(const Pt2dr & aPt,const double & aPds)
