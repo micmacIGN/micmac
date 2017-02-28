@@ -845,7 +845,7 @@ CS :
 
 
 
-    if (MPD_MM())
+    if (0) // (MPD MM())
     {
         double aCheck = euclid(   (aP3DTer-mEqP3I->GetEqP3iVal()) /  ElMax(1e-9,(euclid(aP3DTer)+euclid(mEqP3I->GetEqP3iVal())))   );
        // Test apres correction du probleme en cas proj ou le Pinit est a 000 en CS

@@ -1126,7 +1126,7 @@ void cAppliApero::BasculePlan
 
 
    // On regarde si le plan peut etre defini par les points 3D de nom "Plan*"
-   if (MPD_MM())
+   if (1) // ( AVANT MPD MM() mais utile a tout le monde ?)
    {
        std::map<std::string,int> aCptName;
        std::list<std::string>    aLName;

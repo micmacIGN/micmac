@@ -377,6 +377,12 @@ float cSetPMul1ConfigTPM::Attr(int aKP,int aKAttr) const
    return mVAttr[mNbAttr*aKP + aKAttr];
 }
 
+const std::vector<int> & cSetPMul1ConfigTPM::VIdIm() const
+{
+   return mVIdIm;
+}
+
+
 /*********************************************************************/
 /*                                                                   */
 /*                  cSetTiePMul                                      */
@@ -411,6 +417,22 @@ std::string cSetTiePMul::StdName
 {
     return aICNM->Assoc1To1("NKS-Assoc-PMulHom@"+aSH+"@" + StdExtBinText(Bin),aPost,true);
 }
+
+
+cCelImTPM * cSetTiePMul::CelFromName(const std::string & aName)
+{
+   std::map<std::string,cCelImTPM *>::iterator anIt = mDicoIm.mName2Im.find(aName);
+   if (anIt == mDicoIm.mName2Im.end())
+      return 0;
+
+   return anIt->second;
+}
+
+cCelImTPM * cSetTiePMul::CelFromInt(const int & anId)
+{
+    return mDicoIm.mNum2Im.at(anId);
+}
+
 
 
 const std::vector<std::string> * cSetTiePMul::StdSetName(cInterfChantierNameManipulateur* aICNM,const std::string aSH,bool Bin)
@@ -460,6 +482,13 @@ cDicoImTPM &  cSetTiePMul::DicoIm()
 {
    return mDicoIm;
 }
+
+
+const std::vector<cSetPMul1ConfigTPM *> & cSetTiePMul::VPMul()
+{
+    return mPMul;
+}
+
 
 
 cSetPMul1ConfigTPM * cSetTiePMul::OneConfigFromVI(const std::vector<INT> & aVI)

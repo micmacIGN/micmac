@@ -152,10 +152,10 @@
              </#WHEN>
                <!-- MPD mis ici en dur pour tester les nouveau points multiples -->
              <BDD_NewPtMul>
-                  <Id> Id-New-BDL </Id>
-                  <SH> </SH>
+                  <Id> Id_Pastis_Hom </Id>
+                  <SH> ${SetHom}  </SH>
                   <BinaryMode >  false  </BinaryMode>
-                  <SupressStdHom >  false   </SupressStdHom>
+                  <SupressStdHom >  true   </SupressStdHom>
              </BDD_NewPtMul>
 
 

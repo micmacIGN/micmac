@@ -93,7 +93,8 @@ void cAppliApero::AddObservations
         mFpRT = 0;
    }
 
-int aNbIter= MPD_MM() ? 1 : 1;  // Completement artificiel, pour tester resultat incertitudes
+//  int aNbIter= MPD MM() ? 1 : 1;  // Completement artificiel, pour tester resultat incertitudes
+int aNbIter= 1 ;  // Completement artificiel, pour tester resultat incertitudes
 for (int aK=0 ; aK<aNbIter; aK++)
 {
    if (aNbIter!=1) std::cout << "ITERRRRRRRR AddObs=" << aK << "\n";
@@ -313,16 +314,22 @@ void cAppliApero::AddObservationsLiaisons(const std::list<cObsLiaisons> & aL,boo
 
    for (std::list<cObsLiaisons>::const_iterator itOL= aL.begin(); itOL!=aL.end() ; itOL++)
    {
-      cRapOnZ * aRAZ = 0;
-      if (itOL->RappelOnZ().IsInit())
+      const std::string & anId = itOL->NameRef();
+      if (!CDNP_InavlideUse_StdLiaison(anId))
       {
-          const cRappelOnZ & aRaz = itOL->RappelOnZ().Val();
-          double anI = aRaz.IncC();
-          aRAZ = new cRapOnZ(aRaz.Z(),anI,aRaz.IncE().ValWithDef(anI),aRaz.LayerMasq().ValWithDef(""));
-      }
-      cPackObsLiaison * aPackL = GetEntreeNonVide(mDicoLiaisons,itOL->NameRef(),"AddObservationsLiaisons"); 
+          cRapOnZ * aRAZ = 0;
+          if (itOL->RappelOnZ().IsInit())
+          {
+              const cRappelOnZ & aRaz = itOL->RappelOnZ().Val();
+              double anI = aRaz.IncC();
+              aRAZ = new cRapOnZ(aRaz.Z(),anI,aRaz.IncE().ValWithDef(anI),aRaz.LayerMasq().ValWithDef(""));
+          }
 
-      aPackL->AddObs(itOL->Pond(),itOL->PondSurf().PtrVal(),aSO,aRAZ);
+          cPackObsLiaison * aPackL = GetEntreeNonVide(mDicoLiaisons,anId,"AddObservationsLiaisons"); 
+
+          aPackL->AddObs(itOL->Pond(),itOL->PondSurf().PtrVal(),aSO,aRAZ);
+      }
+      CDNP_Compense(anId,*itOL);
       // delete aRAZ;
    }
 }
