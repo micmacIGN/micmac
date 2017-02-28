@@ -74,92 +74,171 @@ bool IsInside(Pt2di & aPDR, Pt2di & aP)
     if (aP.x >= 0 && aP.x <= aPDR.x && aP.y >= 0 && aP.y <= aPDR.y)
         return true;
     else
+    {
+        cout << "vignette not in the image!" << endl;
         return false;
+    }
 }
 
 class cParamEsSim
 {
 public:
-    cParamEsSim(string & mDir, string & mName, int & mZoom, Pt2di & mPtCt, int & mSzV);
+    cParamEsSim(string & mDir, string & mNameX, string & mNameY, int & mZoom, int & mNbGrill, int & mSzV);
     string & Dir () {return mDir;}
-    string & Name () {return mName;}
-    Tiff_Im & Tif () {return mTif;}
+    string & NameX () {return mNameX;}
+    string & NameY () {return mNameY;}
+    Tiff_Im & TifX () {return mTifX;}
+    Tiff_Im & TifY () {return mTifY;}
+    Im2D<double,double> & ImVX() {return mImVX;}
+    Im2D<double,double> & ImVY() {return mImVY;}
+    int & NbGrill() {return mNbGrill;}
 private:
     string mDir;
-    string mName;
-    Tiff_Im mTif;
-    Im2D<double,double> mImV;
-    Video_Win * mW; // Display window
+    string mNameX;
+    string mNameY;
+    Tiff_Im mTifX;
+    Tiff_Im mTifY;
+    Im2D<double,double> mImVX;
+    Im2D<double,double> mImVY;
+    Video_Win * mWX; // Display window for Vignette X
+    Video_Win * mWY; // Display window for Vignette Y
     int mZoom;
-    Pt2di mPtCt;
+    int mNbGrill; // Nb of Grill for similitude estimation
+    //Pt2di mPtCt;
     int mSzV;
 };
 
-cParamEsSim::cParamEsSim(string & aDir, string & aName, int & aZoom, Pt2di & aPtCt, int & aSzV):
+cParamEsSim::cParamEsSim(string & aDir, string & aNameX, string & aNameY, int & aZoom, int & aNbGrill, int & aSzV):
     mDir (aDir),
-    mName (aName),
-    mTif (Tiff_Im::UnivConvStd(mDir + mName)),
-    mImV  (1,1), //initiation of vignette
-    mW (0),
+    mNameX (aNameX),
+    mNameY (aNameY),
+    mTifX (Tiff_Im::UnivConvStd(mDir + mNameX)),
+    mTifY (Tiff_Im::UnivConvStd(mDir + mNameY)),
+    mImVX  (1,1), //initiation of vignette X
+    mImVY  (1,1), //initiation of vignette Y
+    mWX (0),
+    mWY (0),
+    mNbGrill (aNbGrill),
     mZoom (aZoom)
 {
-    Pt2di aSz = mTif.sz();
+    Pt2di aSz = mTifX.sz();
     cout << "Image size = " << aSz << endl;
+
+    //Calculate the center point for each grill
+    Pt2di aSzG = Pt2di (int(aSz.x/aNbGrill),int(aSz.y/aNbGrill));
+
+    //vector<Pt2di> aPtCt;
+    //Pt2di a[3][3]={Pt2di(),.....};
+    //uint aNbPtCt (0);
+//    for (uint aK1=0; aK1<NbGrill; aK1++)
+//    {
+//        for (uint aK2=0; aK2<NbGrill; aK2++)
+//        {
+//            aPtCt[aNbPtCt] =
+//        }
+//    }
+    Pt2di aPtCt = Pt2di (int(aSzG.x/2),int(aSzG.y/2));
+
     Pt2di aP0 = aPtCt-Pt2di(aSzV,aSzV);
     Pt2di aP1 = aPtCt+Pt2di(aSzV,aSzV);
 
-    if (!(IsInside(aSz,aP0) && IsInside(aSz,aP1)))
-    {
-        cout << "vignette not in the image!" << endl;
-    }
-    else
+
+    if ( IsInside(aSz,aP0) && IsInside(aSz,aP1) )
     {
         Pt2di aSzVV = Pt2di(2*aSzV+1,2*aSzV+1); // real size of vignette
-        mImV.Resize(aSzVV);
-        ELISE_COPY(mImV.all_pts(),trans(mTif.in(0),aP0),mImV.out());
+        mImVX.Resize(aSzVV);
+        mImVY.Resize(aSzVV);
+        ELISE_COPY(mImVX.all_pts(),trans(mTifX.in(0),aP0),mImVX.out());
+        ELISE_COPY(mImVY.all_pts(),trans(mTifY.in(0),aP0),mImVY.out());
+
+        Pt2di aDecal = aPtCt - Pt2di(aSzV,aSzV);
+
+        // Estimation of similitude
+        L2SysSurResol aSys(4);
+        double * aData1 = NULL;
+        for (int aKx=0; aKx < aSzV; aKx++)
+        {
+            for (int aKy=0; aKy < aSzV; aKy++)
+            {
+                double coeffX[4] = {double(aKx + aDecal.x), double(-(aKy + aDecal.y)), 1.0, 0.0};
+                double coeffY[4] = {double(aKy + aDecal.y), double(aKx + aDecal.x), 0.0, 1.0};
+                double delX = ImVX().GetR(Pt2di(aKx, aKy));
+                double delY = ImVY().GetR(Pt2di(aKx, aKy));
+                aSys.AddEquation(1.0, coeffX, delX);
+                aSys.AddEquation(1.0, coeffY, delY);
+            }
+        }
+        bool solveOK = true;
+        Im1D_REAL8 aResol1 = aSys.GSSR_Solve(&solveOK);
+        aData1 = aResol1.data();
+        if (solveOK != false)
+            cout << "Estimation : [A B C D] = [" << aData1[0] << " " << aData1[1] << " " << aData1[2] << " " << aData1[3] << "]" <<endl;
+        else
+            cout<<"Can't estimate."<<endl;
+
+//        if (mWX == 0)
+//        {
+//             mWX = Video_Win::PtrWStd(mImVX.sz()*aZoom,true,Pt2dr(aZoom,aZoom));
+//             mWX = mWX-> PtrChc(Pt2dr(0,0),Pt2dr(aZoom,aZoom),true);
+//             std::string aTitle = std::string("Vignette X");
+//             mWX->set_title(aTitle.c_str());
+//        }
+//        if (mWX)
+//        {
+//            //normalize to affiche
+//            Im2D<double,double>  mDisplay;
+//            mDisplay.Resize(aSzVV);
+//            normalizeYilin(mImVX, mDisplay, 0.0, 255.0);
+//            ELISE_COPY(mDisplay.all_pts(),mDisplay.in(),mWX->ogray());
+//            //mW->clik_in();
+//        }
+
+//        if (mWY == 0)
+//        {
+//             mWY = Video_Win::PtrWStd(mImVY.sz()*aZoom,true,Pt2dr(aZoom,aZoom));
+//             mWY = mWY-> PtrChc(Pt2dr(0,0),Pt2dr(aZoom,aZoom),true);
+//             std::string aTitle = std::string("Vignette Y");
+//             mWY->set_title(aTitle.c_str());
+//        }
+//        if (mWY)
+//        {
+//            //normalize to affiche
+//            Im2D<double,double>  mDisplay;
+//            mDisplay.Resize(aSzVV);
+//            normalizeYilin(mImVY, mDisplay, 0.0, 255.0);
+//            ELISE_COPY(mDisplay.all_pts(),mDisplay.in(),mWY->ogray());
+//            mWY->clik_in();
+//        }
 
 
-        if (mW == 0)
-        {
-             //mW = Video_Win::PtrWStd(aSz*aZoom,true,Pt2dr(aZoom,aZoom));
-             mW = Video_Win::PtrWStd(mImV.sz()*aZoom,true,Pt2dr(aZoom,aZoom));
-             mW = mW-> PtrChc(Pt2dr(0,0),Pt2dr(aZoom,aZoom),true);
-             std::string aTitle = std::string("Mon Vignette");
-             mW->set_title(aTitle.c_str());
-        }
-        if (mW)
-        {
-            //normalize to affiche
-            Im2D<double,double>  mDisplay;
-            mDisplay.Resize(aSzVV);
-            normalizeYilin(mImV, mDisplay, 0.0, 255.0);
-            ELISE_COPY(mDisplay.all_pts(),mDisplay.in(),mW->ogray());
-            mW->clik_in();
-        }
     }
 }
 
 int TestYZ_main(int argc, char ** argv)
 {
     string aDir;
-    string aName;
+    string aNameX;
+    string aNameY;
     int aZoom (3);
     Pt2di aPtCt (5,5);
+    int aNbGrill (10);
     int aSzV (5);
 
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aDir,"Directory")
-                    << EAMC(aName, "Img", eSAM_IsExistFile),
+                    << EAMC(aNameX, "ImgX", eSAM_IsExistFile)
+                    << EAMC(aNameY, "ImgY", eSAM_IsExistFile),
         LArgMain()  << EAM(aZoom,"Zoom",true,"Zoom factor for display. Def=3")
-                    << EAM(aPtCt,"PtCt",true,"Center point of vignette to display. Def=[5,5]")
+                    << EAM(aNbGrill,"NbGrill",true,"Nb of Grill for similitude estimation. Def=10")
+                    //<< EAM(aPtCt,"PtCt",true,"Center point of vignette to display. Def=[5,5]")
                     << EAM(aSzV,"SzV",true,"Size of vignette to display. Def=5")
     );
 
-    cParamEsSim * aParam = new cParamEsSim (aDir,aName,aZoom, aPtCt, aSzV);
+    cParamEsSim * aParam = new cParamEsSim (aDir,aNameX, aNameY, aZoom, aNbGrill, aSzV);
 
-    cout << "Name = " << aParam->Name() <<endl;
+
 
     return EXIT_SUCCESS;
 }
