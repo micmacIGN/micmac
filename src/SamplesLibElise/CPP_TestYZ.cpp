@@ -39,54 +39,127 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+//normalize vignette from [minVal,maxVal] to [rangeMin, rangeMac] so as to affiche (vignette may have negative values)
+void normalizeYilin(Im2D<double,double>  & aImSource, Im2D<double,double>  & aImDest, double rangeMin, double rangeMax)
+{
+    double minVal; //min value of ImSource
+    double maxVal; //Max value of ImSource
+
+    //find the Min and Max of ImSource
+    ELISE_COPY(aImSource.all_pts(),aImSource.in(),VMax(maxVal)|VMin(minVal));
+    cout<< "Avant Min/Max : " << minVal << "/" << maxVal << endl;
+
+    //check if the sizes of ImSource and ImDest are coherent
+    ELISE_ASSERT((aImSource.sz().x == aImDest.sz().x && aImSource.sz().y == aImDest.sz().y), "Size not matching for image normalization");
+
+    if (maxVal==minVal)
+    {
+        //normalize ImSource
+        ELISE_COPY(aImSource.all_pts(),(aImSource.in()-minVal)+(rangeMax-rangeMin)/2,aImDest.out());
+    }
+    else
+    {
+        //normalize ImSource
+        double factor = (rangeMax-rangeMin)/(maxVal-minVal);
+        ELISE_COPY(aImSource.all_pts(),(aImSource.in()-minVal)*factor,aImDest.out());
+    }
+
+    //find the Min and Max of ImDest
+    ELISE_COPY(aImDest.all_pts(),aImDest.in(),VMax(maxVal)|VMin(minVal));
+    cout<< "Apres Min/Max : " << minVal << "/" << maxVal << endl;
+}
+
+bool IsInside(Pt2di & aPDR, Pt2di & aP)
+{
+    if (aP.x >= 0 && aP.x <= aPDR.x && aP.y >= 0 && aP.y <= aPDR.y)
+        return true;
+    else
+        return false;
+}
+
 class cParamEsSim
 {
 public:
+    cParamEsSim(string & mDir, string & mName, int & mZoom, Pt2di & mPtCt, int & mSzV);
     string & Dir () {return mDir;}
-    string & Name () {return mNameImg;}
-   // Tiff_Im & Tif () {Tiff_Im::UnivConvStd(const string & aName);}
+    string & Name () {return mName;}
+    Tiff_Im & Tif () {return mTif;}
 private:
-    string mDir; // repertoire of image
-    string mNameImg; // name of image
-    Tiff_Im mTif; // Tif Img
-
+    string mDir;
+    string mName;
+    Tiff_Im mTif;
+    Im2D<double,double> mImV;
+    Video_Win * mW; // Display window
+    int mZoom;
+    Pt2di mPtCt;
+    int mSzV;
 };
 
+cParamEsSim::cParamEsSim(string & aDir, string & aName, int & aZoom, Pt2di & aPtCt, int & aSzV):
+    mDir (aDir),
+    mName (aName),
+    mTif (Tiff_Im::UnivConvStd(mDir + mName)),
+    mImV  (1,1), //initiation of vignette
+    mW (0),
+    mZoom (aZoom)
+{
+    Pt2di aSz = mTif.sz();
+    cout << "Image size = " << aSz << endl;
+    Pt2di aP0 = aPtCt-Pt2di(aSzV,aSzV);
+    Pt2di aP1 = aPtCt+Pt2di(aSzV,aSzV);
 
-int TestYZ_main(int argc,char ** argv)
+    if (!(IsInside(aSz,aP0) && IsInside(aSz,aP1)))
+    {
+        cout << "vignette not in the image!" << endl;
+    }
+    else
+    {
+        Pt2di aSzVV = Pt2di(2*aSzV+1,2*aSzV+1); // real size of vignette
+        mImV.Resize(aSzVV);
+        ELISE_COPY(mImV.all_pts(),trans(mTif.in(0),aP0),mImV.out());
+
+
+        if (mW == 0)
+        {
+             //mW = Video_Win::PtrWStd(aSz*aZoom,true,Pt2dr(aZoom,aZoom));
+             mW = Video_Win::PtrWStd(mImV.sz()*aZoom,true,Pt2dr(aZoom,aZoom));
+             mW = mW-> PtrChc(Pt2dr(0,0),Pt2dr(aZoom,aZoom),true);
+             std::string aTitle = std::string("Mon Vignette");
+             mW->set_title(aTitle.c_str());
+        }
+        if (mW)
+        {
+            //normalize to affiche
+            Im2D<double,double>  mDisplay;
+            mDisplay.Resize(aSzVV);
+            normalizeYilin(mImV, mDisplay, 0.0, 255.0);
+            ELISE_COPY(mDisplay.all_pts(),mDisplay.in(),mW->ogray());
+            mW->clik_in();
+        }
+    }
+}
+
+int TestYZ_main(int argc, char ** argv)
 {
     string aDir;
-    string aNameImg;
-    Pt2di aSzImg (1,1);
-    string aToto="";
-
-
+    string aName;
+    int aZoom (3);
+    Pt2di aPtCt (5,5);
+    int aSzV (5);
 
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aDir,"Directory")
-                    << EAMC(aNameImg, "Img", eSAM_IsExistFile),
-        LArgMain()  << EAM(aToto,"toto")
+                    << EAMC(aName, "Img", eSAM_IsExistFile),
+        LArgMain()  << EAM(aZoom,"Zoom",true,"Zoom factor for display. Def=3")
+                    << EAM(aPtCt,"PtCt",true,"Center point of vignette to display. Def=[5,5]")
+                    << EAM(aSzV,"SzV",true,"Size of vignette to display. Def=5")
     );
-/*
-    ElInitArgMain
-            (
-                argc,argv,
-                //mandatory arguments
-                LArgMain()
-                << EAMC(aDir, "Dir", eSAM_None)
-                << EAMC(aNameImg, "Img", eSAM_IsExistFile)
-             );
-             */
 
-    //cParamEsSim * aParam = new cParamEsSim (aDir, aNameImg);
+    cParamEsSim * aParam = new cParamEsSim (aDir,aName,aZoom, aPtCt, aSzV);
 
-    Tiff_Im aTifIm1 = Tiff_Im::StdConvGen(aDir + aNameImg,1,true);
-    Pt2di aSz1 = aTifIm1.sz();
-
-    cout << "Name=" << aNameImg << "Size=" << aSz1 << endl;
-
+    cout << "Name = " << aParam->Name() <<endl;
 
     return EXIT_SUCCESS;
 }
@@ -165,7 +238,7 @@ int TestYZ_main(int argc,char ** argv)
 //    mTifX   (Tiff_Im::UnivConvStd(mAppli->Dir() + aImgX)), //read aImgX
 //    mTifY   (Tiff_Im::UnivConvStd(mAppli->Dir() + aImgY)), //read aImgY
 //    mImDeplX   (1,1), //initiation of vignette of X-axis
-//    mImDeplY   (1,1)  //initiation of vigentte of Y-axis
+//    mImDeplY   (1,1)  //initiation of vignette of Y-axis
 //{
 //    cout<<"Name :" <<mTifX.name()<<" - Sz : "<<mTifX.sz()<<endl;
 //    //read images
