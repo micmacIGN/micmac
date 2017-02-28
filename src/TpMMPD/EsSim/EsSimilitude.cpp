@@ -109,8 +109,8 @@ int ProcessThmImgs_main(int argc,char ** argv)
     if (!MMVisualMode)
     {
         #if (ELISE_windows)
-            replace( aIm1.begin(), aIm1.end(), '\\', '/' );
-            replace( aIm2.begin(), aIm2.end(), '\\', '/' );
+			replace(aLFile.at(0).begin(), aLFile.at(0).end(), '\\', '/');
+			replace(aLFile.at(1).begin(), aLFile.at(1).end(), '\\', '/');
             replace( aImMasq.begin(), aImMasq.end(), '\\', '/' );
         #endif
 
