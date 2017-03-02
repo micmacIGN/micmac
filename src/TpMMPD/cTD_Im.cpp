@@ -65,7 +65,7 @@ cTD_Im & cTD_Im::operator = (const cTD_Im & aCI)
 {
    mIm = aCI.mIm;
    mSz = aCI.mSz;
-   mTIm =  TIm2D<float,double>(mIm);
+   mTIm =  TIm2D<double,double>(mIm);
 
    return *this;
 }
