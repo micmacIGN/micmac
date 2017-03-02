@@ -382,6 +382,9 @@ const std::vector<int> & cSetPMul1ConfigTPM::VIdIm() const
    return mVIdIm;
 }
 
+int    cSetPMul1ConfigTPM::NbIm() const  {return mNbIm;}
+int    cSetPMul1ConfigTPM::NbPts() const {return mNbPts;}
+
 
 /*********************************************************************/
 /*                                                                   */

@@ -100,6 +100,9 @@ class cSetPMul1ConfigTPM
        float Attr(int aKP,int aKAttr) const;
        const std::vector<int> & VIdIm() const;
 
+       int   NbIm() const ;
+       int   NbPts() const ;
+
     private :
        int  AddrPtIm(int aKp,int aKIm) {return 2*(aKp*mNbIm  +aKIm) ;}
         
