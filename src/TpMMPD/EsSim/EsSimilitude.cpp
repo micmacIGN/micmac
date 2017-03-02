@@ -61,7 +61,7 @@ int ProcessThmImgs_main(int argc,char ** argv)
         std::string aCom1 =    MM3dBinFile("MICMAC")
                                     + aXml
                                     + " WorkDir=" + aDir
-                                    + " +DirMEC=" + aDirMEC
+                                    //+ " +DirMEC=" + aDirMEC
                                     + " +Im1=" + aLFile.at(0)
                                     + " +Im2=" + aLFile.at(aK)
                                     //+ " +Masq=" + aNameMasq

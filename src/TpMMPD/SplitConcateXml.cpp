@@ -121,7 +121,6 @@ cCPSH_Appli::cCPSH_Appli(int argc,char ** argv)
     
     //read input file : file format to read :    D0003736.JPG               0           7.997          -1.199   0   M
     ifstream aFichier((mDir + mPSFile).c_str());
-    
     if(aFichier)
     {
 		std::string aLine;
@@ -167,8 +166,8 @@ cCPSH_Appli::cCPSH_Appli(int argc,char ** argv)
 		}
 		
 		aFichier.close();
-		//~ cout<<"Nb Imgs Uniq : " << VImgsUnique.size()<< endl;
-		//~ cout<<"Nb IdUnique : " << VIdUnique.size()<< endl;
+        cout<<"Nb Imgs Uniq : " << VImgsUnique.size()<< endl;
+        cout<<"Nb IdUnique : " << VIdUnique.size()<< endl;
 
 	}
 	
@@ -193,6 +192,8 @@ cCPSH_Appli::cCPSH_Appli(int argc,char ** argv)
 	//for each unique tieP : get vector of images
 	for (uint aKId=0; aKId<VIdUnique.size(); aKId++)
 	{
+        if (aKId % int(VIdUnique.size()/300) == 0)
+          cout<<"["<<(aKId*100.0/VIdUnique.size())<<" %] --> fusion Id : "<<aKId<<"/"<<VIdUnique.size()<<endl;
 		std::vector<std::string> RVImgs;
 		std::vector<Pt2dr> RVPts;
 		cCPSH_Appli::GetVImgsFromId(aKId, RVImgs, RVPts);
@@ -234,6 +235,8 @@ cCPSH_Appli::cCPSH_Appli(int argc,char ** argv)
         cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(mDir);
 		for (uint i=0; i<VHomol.size(); i++)
 		{
+            if (i % int(VHomol.size()/100) == 0)
+              cout<<"["<<(i*100.0/VHomol.size())<<" %] --> write Id : "<<i<<"/"<<VHomol.size()<<endl;
 			PatisImg img = VHomol[i];
 			for (uint j=0; j<img.aPack.size(); j++)
 			{
