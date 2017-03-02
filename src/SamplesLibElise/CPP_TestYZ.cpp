@@ -39,261 +39,231 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-class cParamEsSim
+class cCalMECEsSim
 {
 public:
+    cCalMECEsSim(string & mDir, string & mName, string & mNameX, string & mNameY);
+    void CreateCom(string & aXml, int & aPas);
+    void EsSim(string & aOutEsSim);
+    void CalMEC();
+    void StatIm(string & aOutStatIm);
     string & Dir () {return mDir;}
-    string & Name () {return mNameImg;}
-   // Tiff_Im & Tif () {Tiff_Im::UnivConvStd(const string & aName);}
+    string & Name () {return mName;}
+    string & NameX () {return mNameX;}
+    string & NameY () {return mNameY;}
+    vector<string> & VDirMEC () {return mVDirMEC;}
+    vector<string> & VComCalMEC () {return mVComCalMEC;}
 private:
-    string mDir; // repertoire of image
-    string mNameImg; // name of image
-    Tiff_Im mTif; // Tif Img
-
+    string mDir;
+    string mName;
+    string mNameX;
+    string mNameY;
+    vector<string> mVDirMEC;
+    vector<string> mVComCalMEC;
 };
 
+cCalMECEsSim::cCalMECEsSim(string & aDir, string & aName, string & aNameX, string & aNameY):
+    mDir (aDir),
+    mName (aName),
+    mNameX (aNameX),
+    mNameY (aNameY),
+    mVDirMEC ()
+{}
 
-int TestYZ_main(int argc,char ** argv)
+void cCalMECEsSim::CreateCom(string & aXml, int & aPas)
 {
-    string aDir;
-    string aNameImg;
-    Pt2di aSzImg (1,1);
-    string aToto="";
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+    vector<string> aLFile = *(aICNM->Get(mName));
+
+    cout << "File size = " << aLFile.size() << endl;
+
+    for (uint aK=uint(aPas); aK<=aLFile.size()-uint(aPas); aK+=uint(aPas))
+    {
+        string aDirMEC = "MEC-" + aLFile.at(0) + "-" + aLFile.at(aK);
+        MakeFileDirCompl(aDirMEC);
+        mVDirMEC.push_back(aDirMEC);
+
+        string aComCalMEC = MM3dBinFile("MICMAC")
+                            + aXml
+                            + " +WorkDir=" + mDir
+                            + " +Im1=" + aLFile.at(0)
+                            + " +Im2=" + aLFile.at(aK);
+        mVComCalMEC.push_back(aComCalMEC);
+    }
+}
+
+void cCalMECEsSim::CalMEC()
+{
+    for (uint aP=0; aP<mVComCalMEC.size(); aP++)
+    {
+        system_call(mVComCalMEC.at(aP).c_str());
+    }
+}
+
+void cCalMECEsSim::EsSim(string & aOutEsSim)
+{
+    //Estimate the similarity and put the results in aOutEsSim.txt
+    string aOut1 = aOutEsSim+".txt";
+    FILE * aFP_EsSim = FopenNN(aOut1,"w","EsSim");
+    cElemAppliSetFile aEASF(mDir+ELISE_CAR_DIR+aOut1);
+    string Format = "#F=R1 R2 Tx Ty";
+    fprintf(aFP_EsSim,"%s\n",Format.c_str());
+
+    for (uint aF=0; aF < mVDirMEC.size(); aF++)
+    {
+        string aDirEsSim = mDir + mVDirMEC.at(aF);
+        Tiff_Im aTifX (Tiff_Im::UnivConvStd(aDirEsSim  + mNameX));
+        Tiff_Im aTifY (Tiff_Im::UnivConvStd(aDirEsSim  + mNameY));
+        Pt2di aSz (aTifX.sz());
+
+        Im2D<double,double> aImgX  (1,1); //initiation of vignette X
+        Im2D<double,double> aImgY  (1,1); //initiation of vignette Y
 
 
+        aImgX.Resize(aSz);
+        aImgY.Resize(aSz);
+        ELISE_COPY(aImgX.all_pts(),aTifX.in(),aImgX.out());
+        ELISE_COPY(aImgY.all_pts(),aTifY.in(),aImgY.out());
+
+
+        //Estimate the similarity
+        L2SysSurResol aSys(4);
+        double * aData1 = NULL;
+
+        for(int aKx=0; aKx < aSz.x; aKx++)
+        {
+            for(int aKy=0;aKy < aSz.y;aKy++)
+            {
+                double coeffX[4] = {double(aKx), double(-aKy), 1.0, 0.0};
+                double coeffY[4] = {double(aKy ), double(aKx), 0.0, 1.0};
+                double delX = aImgX.GetR(Pt2di(aKx, aKy));
+                double delY = aImgY.GetR(Pt2di(aKx, aKy));
+                aSys.AddEquation(1.0, coeffX, delX);
+                aSys.AddEquation(1.0, coeffY, delY);
+            }
+        }
+        bool solveOK = true;
+        Im1D_REAL8 aResol1 = aSys.GSSR_Solve(&solveOK);
+        aData1 = aResol1.data();
+        if (solveOK != false)
+            fprintf(aFP_EsSim,"%f %f %f %f\n", aData1[0], aData1[1], aData1[2], aData1[3]);
+        else
+            cout<<"Can't estimate."<<endl;
+    }
+    ElFclose(aFP_EsSim);
+}
+
+void cCalMECEsSim::StatIm(string & aOutStatIm)
+{
+    Pt2di aP0 (0,0);
+    string Format = "#F=ZMoy Sigma ZMin ZMax";
+
+    string aOut2 = aOutStatIm + "X.txt";
+    FILE * aFP_StatImX = FopenNN(aOut2,"w","EsSim");
+    cElemAppliSetFile aEASFX(mDir+ELISE_CAR_DIR+aOut2);
+    fprintf(aFP_StatImX,"%s\n",Format.c_str());
+
+    for (uint aF=0; aF < mVDirMEC.size(); aF++)
+    {
+        string aDirEsSim = mDir + mVDirMEC.at(aF);
+        Tiff_Im aTifX (Tiff_Im::UnivConvStd(aDirEsSim + mNameX));
+        Pt2di aSzX (aTifX.sz());
+
+        Symb_FNum aTFX (Rconv(aTifX.in()));
+
+        double aSPX,aSomZX,aSomZX2,aZXMin,aZXMax;
+
+        ELISE_COPY
+        (
+            rectangle(aP0,aP0+aSzX),
+            Virgule(1,aTFX,Square(aTFX)),
+            Virgule
+            (
+                 sigma(aSPX),
+                 sigma(aSomZX)|VMax(aZXMax)|VMin(aZXMin),
+                 sigma(aSomZX2)
+            )
+        );
+
+        aSomZX /= aSPX;
+        aSomZX2 /= aSPX;
+        aSomZX2 -= ElSquare(aSomZX);
+
+        fprintf(aFP_StatImX,"%f %f %f %f\n", aSomZX, sqrt(ElMax(0.0,aSomZX2)), aZXMin, aZXMax);
+    }
+    ElFclose(aFP_StatImX);
+
+    string aOut3 = aOutStatIm + "Y.txt";
+    FILE * aFP_StatImY = FopenNN(aOut3,"w","EsSim");
+    cElemAppliSetFile aEASFY(mDir+ELISE_CAR_DIR+aOut3);
+    fprintf(aFP_StatImY,"%s\n",Format.c_str());
+
+    for (uint aF=0; aF < mVDirMEC.size(); aF++)
+    {
+        string aDirEsSim = mDir + mVDirMEC.at(aF);
+        Tiff_Im aTifY (Tiff_Im::UnivConvStd(aDirEsSim + mNameY));
+        Pt2di aSzY (aTifY.sz());
+
+        Symb_FNum aTFY (Rconv(aTifY.in()));
+
+        double aSPY,aSomZY,aSomZY2,aZYMin,aZYMax;
+
+        ELISE_COPY
+        (
+            rectangle(aP0,aP0+aSzY),
+            Virgule(1,aTFY,Square(aTFY)),
+            Virgule
+            (
+                 sigma(aSPY),
+                 sigma(aSomZY)|VMax(aZYMax)|VMin(aZYMin),
+                 sigma(aSomZY2)
+            )
+        );
+
+        aSomZY /= aSPY;
+        aSomZY2 /= aSPY;
+        aSomZY2 -= ElSquare(aSomZY);
+
+        fprintf(aFP_StatImY,"%f %f %f %f\n", aSomZY, sqrt(ElMax(0.0,aSomZY2)), aZYMin, aZYMax);
+    }
+    ElFclose(aFP_StatImY);
+}
+
+
+int TestYZ_main(int argc, char ** argv)
+{
+    string aDir, aName, aXml, aOutEsSim="All_H2D", aNameX = "Px1_Num12_DeZoom1_LeChantier.tif", aNameY = "Px2_Num12_DeZoom1_LeChantier.tif", aOutStatIm="All_StatIm";
+    int aPas(1), aFunc(0);
 
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aDir,"Directory")
-                    << EAMC(aNameImg, "Img", eSAM_IsExistFile),
-        LArgMain()  << EAM(aToto,"toto")
+                    << EAMC(aName, "ImgPattern", eSAM_IsExistFile)
+                    << EAMC(aXml, ".xml file", eSAM_IsExistFile),
+        LArgMain()  << EAM(aFunc,"Function",true,"choice of functions to execute. Def=0[CalMEC &  EsSim], 1[CalMEC], 2[EsSim]")
+                    << EAM(aPas,"Pas",true,"interval of image correlation; Def=1")
+                    << EAM(aNameX,"NameX",true,"name of deplacement img of axis-x; Def=Px1_Num12_DeZoom1_LeChantier.tif")
+                    << EAM(aNameY,"NameY",true,"name of deplacement img of axis-x; Def=Px1_Num12_DeZoom1_LeChantier.tif")
+                    << EAM(aOutEsSim,"OutEsSim",true,"Output file name for A,B,C,D Helmert2D Params; Def=All_H2D")
+                    << EAM(aOutStatIm,"OutStatIm",true,"Output file name for StatIm; Def=All_StatIm")
     );
-/*
-    ElInitArgMain
-            (
-                argc,argv,
-                //mandatory arguments
-                LArgMain()
-                << EAMC(aDir, "Dir", eSAM_None)
-                << EAMC(aNameImg, "Img", eSAM_IsExistFile)
-             );
-             */
 
-    //cParamEsSim * aParam = new cParamEsSim (aDir, aNameImg);
+    cCalMECEsSim  aCalMECEsSim(aDir, aName, aNameX, aNameY);
+    aCalMECEsSim.CreateCom(aXml, aPas);
 
-    Tiff_Im aTifIm1 = Tiff_Im::StdConvGen(aDir + aNameImg,1,true);
-    Pt2di aSz1 = aTifIm1.sz();
+    if (aFunc == 0 || aFunc ==1)
+        aCalMECEsSim.CalMEC();
 
-    cout << "Name=" << aNameImg << "Size=" << aSz1 << endl;
+    if (aFunc == 0 || aFunc ==2)
+        aCalMECEsSim.EsSim(aOutEsSim);
 
+    if (aOutStatIm != "")
+        aCalMECEsSim.StatIm(aOutStatIm);
 
     return EXIT_SUCCESS;
 }
 
-
-// normalize vignette from [minVal,maxVal] to [rangeMin, rangeMac] so as to affiche (vignette may have negative values)
-//void normalizeYilin(Im2D<double,double>  & aImSource, Im2D<double,double>  & aImDest, double rangeMin, double rangeMax)
-//{
-//    double minVal; //min value of ImSource
-//    double maxVal; //Max value of ImSource
-
-//    //find the Min and Max of ImSource
-//    ELISE_COPY(aImSource.all_pts(),aImSource.in(),VMax(maxVal)|VMin(minVal));
-//    cout<<"Avant Min/Max : "<<minVal<<"/"<<maxVal<<endl;
-
-//    //check if the sizes of ImSource and ImDest are coherent
-//    ELISE_ASSERT((aImSource.sz().x == aImDest.sz().x && aImSource.sz().y == aImDest.sz().y), "Size not coherent in normalize image");
-
-//    //normalize ImSource
-//    double factor = (rangeMax-rangeMin)/(maxVal-minVal);
-//    ELISE_COPY(aImSource.all_pts(),(aImSource.in()-minVal)*factor,aImDest.out());
-
-//    //find the Min and Max of ImDest
-//    ELISE_COPY(aImDest.all_pts(),aImDest.in(),VMax(maxVal)|VMin(minVal));
-//    cout<<"Apres Min/Max : "<<minVal<<"/"<<maxVal<<endl;
-
-//}
-
-//class cAppliTestYZ
-//{
-//    /*aDir: repertoire
-//     *aSzVW: Size of the affiche window
-//     *aZoom: factor of zoom*/
-//    public:
-//        cAppliTestYZ(string & aDir, Pt2di & aSzVW, int aZoom);
-//        const std::string & Dir() const {return mDir;}
-//        Pt2di & SzW() {return mSzW;}
-//        int & Zoom() {return mZoom;}
-//    private:
-//        string mDir;
-//        Pt2di mSzW;
-//        int mZoom;
-
-//};
-
-//cAppliTestYZ::cAppliTestYZ(string & aDir, Pt2di & aSzVW, int aZoom):
-//    mDir (aDir),
-//    mSzW (aSzVW),
-//    mZoom (aZoom)
-//{}
-
-//class cImgDepl
-//{
-//    /*cImgDepl: Image of deplacement
-//      aImgX: name of the deplacement Image of X-axis
-//      aImgY: name of the deplacement Image of Y-axis*/
-
-//    public:
-//        cImgDepl(cAppliTestYZ * aAppli, string & aImgX, string & aImgY);
-//        void estimeDepl(Pt2dr & aPt, int & aSz); //
-//        Tiff_Im & TifX() {return mTifX;}
-//        Tiff_Im & TifY() {return mTifY;}
-//        cAppliTestYZ * Appli() {return mAppli;}
-
-//    private:
-//        cAppliTestYZ * mAppli;
-//        Tiff_Im mTifX;
-//        Tiff_Im mTifY;
-//        Im2D<double,double>     mImDeplX;
-//        Im2D<double,double>     mImDeplY;
-//};
-
-//get the deplacement images mImDeplX and mImDeplY
-//cImgDepl::cImgDepl(cAppliTestYZ * aAppli, string & aImgX, string & aImgY):
-//    mAppli (aAppli),
-//    mTifX   (Tiff_Im::UnivConvStd(mAppli->Dir() + aImgX)), //read aImgX
-//    mTifY   (Tiff_Im::UnivConvStd(mAppli->Dir() + aImgY)), //read aImgY
-//    mImDeplX   (1,1), //initiation of vignette of X-axis
-//    mImDeplY   (1,1)  //initiation of vigentte of Y-axis
-//{
-//    cout<<"Name :" <<mTifX.name()<<" - Sz : "<<mTifX.sz()<<endl;
-//    //read images
-//    mImDeplX.Resize(mTifX.sz()); //set the size of mImDeplX
-//    mImDeplY.Resize(mTifY.sz()); //set the size of mImDeplY
-//    ELISE_COPY(mImDeplX.all_pts(),mTifX.in(),mImDeplX.out()); //copy mTifX to mImDeplX
-//    ELISE_COPY(mImDeplY.all_pts(),mTifY.in(),mImDeplY.out()); //copy mTifY to mImDeplY
-//}
-
-//class definition of a vignette
-//class cVignetteDepl
-//{
-//    public:
-//        /*aImgDepl: the original image of deplacement
-//         *aPtCent: the coordinate of the center point of the vignette
-//         *aSz: the size of the vignette*/
-//        cVignetteDepl(cImgDepl * aImgDepl, Pt2dr & aPtCent, int & aSz);
-//    private:
-//        cImgDepl * mImgDepl;
-//        Im2D<double,double>  mVignetteX;
-//        Im2D<double,double>  mVignetteY;
-//        Pt2dr mPtCent;
-//        Video_Win * mW;
-//        Pt2dr mDecalGlob;
-//};
-
-
-//void cImgDepl::estimeDepl(Pt2dr & aPt, int & aSz)
-//{
-//    cVignetteDepl * aVignetteDepl = new cVignetteDepl (this, aPt, aSz);
-//    cout<<aVignetteDepl<<endl;
-//}
-
-
-//get the vignette of aImgDepl at aPtCent of size aSz
-//cVignetteDepl::cVignetteDepl(cImgDepl * aImgDepl, Pt2dr & aPtCent, int & aSz):
-//    mImgDepl (aImgDepl),
-//    mVignetteX (1,1),
-//    mVignetteY (1,1),
-//    mPtCent   (aPtCent),
-//    mW        (0),
-//    mDecalGlob (aPtCent - Pt2dr(double(aSz), double(aSz)))
-//{
-//    //get the vignette at aPtCent of size aSz
-//    //Pt2dr aP0 = aPtCent - Pt2dr(double(aSz), double(aSz)); //calculate the original point of the vignette
-//    mVignetteX.Resize(Pt2di(aSz*2+1, aSz*2+1)); //reset the size of mVignetteX
-//    mVignetteY.Resize(Pt2di(aSz*2+1, aSz*2+1)); //reset the size of mVignetteY
-//    ELISE_COPY(mVignetteX.all_pts(),trans(mImgDepl->TifX().in(0),Pt2di(mDecalGlob)),mVignetteX.out()); //get the vignetteX of TifX
-//    ELISE_COPY(mVignetteY.all_pts(),trans(mImgDepl->TifY().in(0),Pt2di(mDecalGlob)),mVignetteY.out()); //get the vignetteY of TifY
-//    cout<<"Create Vignette : Sz : "<<mVignetteX.sz()<<" - Pt : "<<mDecalGlob<<endl;
-
-//    if (mW == 0)
-//    {
-//         int aZ = mImgDepl->Appli()->Zoom();
-//         mW = Video_Win::PtrWStd(mImgDepl->Appli()->SzW()*aZ,true,Pt2dr(aZ,aZ));
-//         mW = mW-> PtrChc(Pt2dr(0,0),Pt2dr(aZ,aZ),true);
-//         std::string aTitle = std::string("Mon Vignette");
-//         mW->set_title(aTitle.c_str());
-//    }
-//    if (mW)
-//    {
-//        //normalize to affiche
-//        Im2D<double,double>  mDisplay;
-//        mDisplay.Resize(mVignetteX.sz());
-//        normalizeYilin(mVignetteX, mDisplay, 0.0, 255.0);
-//        ELISE_COPY(mDisplay.all_pts(),mDisplay.in(),mW->ogray());
-//        mW->clik_in();
-//    }
-
-//    //Estimation similitude
-//    L2SysSurResol aSys(4);
-//    double* aData1 = NULL;
-//    for (int aKx=0; aKx<mVignetteX.sz().x; aKx++)
-//    {
-//        for (int aKy=0; aKy<mVignetteX.sz().y; aKy++)
-//        {
-//            double coeffX[4] = {double(aKx + mDecalGlob.x), double(-(aKy + mDecalGlob.y)), 1.0, 0.0};
-//            double coeffY[4] = {double(aKy + mDecalGlob.y), double(aKx + mDecalGlob.x), 0.0, 1.0};
-//            double delX = mVignetteX.GetR(Pt2di(aKx, aKy));
-//            double delY = mVignetteY.GetR(Pt2di(aKx, aKy));
-//            aSys.AddEquation(1.0, coeffX, delX);
-//            aSys.AddEquation(1.0, coeffY, delY);
-//        }
-//    }
-//    bool solveOK = true;
-//    Im1D_REAL8 aResol1 = aSys.GSSR_Solve(&solveOK);
-//    aData1 = aResol1.data();
-//    if (solveOK != false)
-//        cout<<"Estime : A B C D = "<<aData1[0]<<" "<<aData1[1]<<" "<<aData1[2]<<" "<<aData1[3]<<endl;
-//    else
-//        cout<<"Can't estime"<<endl;
-//}
-
-//int TestYZ_main(int argc,char ** argv)
-//{
-
-//    string aImgX;
-//    string aImgY;
-//    string aDir;
-//    Pt3di aSzW(5,5,100);
-//    Pt2dr aPtCent;
-//    int SzV;
-//    ElInitArgMain
-//            (
-//                argc,argv,
-//                //mandatory arguments
-//                LArgMain()
-//                << EAMC(aDir, "Dir", eSAM_None)
-//                << EAMC(aImgX, "Img de deplacement X", eSAM_IsExistFile)
-//                << EAMC(aImgY, "Img de deplacement Y", eSAM_IsExistFile)
-//                << EAMC(aPtCent, "Center point of vignette", eSAM_None)
-//                << EAMC(SzV, "Sz of vignette (demi)", eSAM_None),
-//                //optional arguments
-//                LArgMain()
-//                << EAM(aSzW, "SzW", true, "Size Win")
-//             );
-
-//    if (MMVisualMode)     return EXIT_SUCCESS;
-//    Pt2di aSzWW(aSzW.x, aSzW.y);
-//    cAppliTestYZ * anAppli = new cAppliTestYZ(aDir, aSzWW, aSzW.z);
-//    cImgDepl * aImgDepl = new cImgDepl(anAppli, aImgX, aImgY);
-//    aImgDepl->estimeDepl(aPtCent, SzV);
-
-//            return EXIT_SUCCESS;
-
-
-
-//}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

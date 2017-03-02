@@ -78,6 +78,7 @@
                                        <EstimateSpeed> ${CalcV} </EstimateSpeed>
                                    </BascOnCentre>
                                    <ModeL2> ${L2Basc} </ModeL2>
+                                   <NameExport> Ori-${AeroOut}/Result-Center-Bascule.xml </NameExport>
                                </BasculeOnPoints>
                           </ModeBascule>
                        </BasculeOrientation>

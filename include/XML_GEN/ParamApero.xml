@@ -405,9 +405,15 @@
                       <IdLayer Nb="1" Type="std::string"> </IdLayer>
                       <KeyCalHomSplit Nb="1" Type="std::string"> </KeyCalHomSplit>
                   </SplitLayer>
-
-
             </BDD_PtsLiaisons>
+
+            <BDD_NewPtMul Nb="*">
+                  <Id Nb="1" Type="std::string"> </Id>
+                  <SH Nb="1" Type="std::string"> </SH>
+                  <BinaryMode Nb="1" Type="bool">    </BinaryMode>
+                  <!-- Si SupressStdHom, des qu'il y a des points nouveau, les points anciens sont ignores -->
+                  <SupressStdHom Nb="1" Type="bool">    </SupressStdHom>
+            </BDD_NewPtMul>
 
             <BDD_PtsAppuis Nb="*">
 	          <Id Nb="1" Type="std::string"> </Id>
@@ -1111,6 +1117,7 @@ normalises en echelle et/ou en translation -->
                                          <PattEstim Nb="?" Type="std::string" Def=".*"> </PattEstim>
                                          <Show Nb="?" Type="bool" Def="false"> </Show>
                                    </AerialDeformNonLin>
+                                   <NameExport Nb="?" Type="std::string"> </NameExport>
                                </BasculeOnPoints>
 
                                <BasculeLiaisonOnPlan Nb="?">

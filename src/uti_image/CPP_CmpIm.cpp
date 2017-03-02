@@ -55,6 +55,8 @@ int CmpIm_main(int argc,char ** argv)
      bool aUseXmlFOM = false;
      double   aColDif = 0;
      std::string mXmlG ="";
+	 bool aHisto = false;
+	 bool a16Bit = false;
 
      ElInitArgMain
      (
@@ -68,7 +70,9 @@ int CmpIm_main(int argc,char ** argv)
                        << EAM(aMulIm2,"Mul2",true,"Multiplier of file2 (Def 1.0)")
                        << EAM(aUseXmlFOM,"UseFOM",true,"Consider file as DTSM and use XML FileOriMnt")
                        << EAM(aColDif,"ColDif",true,"Color file of diff using Red/Blue for sign")
+                       << EAM(a16Bit,"16Bit",true,"Output file in 16bits")
                        << EAM(mXmlG,"XmlG",true,"Generate Xml")
+                       << EAM(aHisto,"Hist",true,"Generate histogram stats")
     );
 
     if (!MMVisualMode)
@@ -157,22 +161,76 @@ int CmpIm_main(int argc,char ** argv)
                                aRes + (aFDifSigne<0) * aColDif
                            );
                 }
-                Tiff_Im::Create8BFromFonc
-                (
-                   aFileDiff,
-                   aSz,
-                   Max(0,Min(255,128+round_ni(aRes)))
-                );
-           }
+				else if(a16Bit)
+					Tiff_Im::CreateFromFonc
+		  			(
+						aFileDiff,
+						aSz,
+						aRes,
+						GenIm::real4
+					);
+				else
+                	Tiff_Im::Create8BFromFonc
+                	(
+                   		aFileDiff,
+                   		aSz,
+                   		Max(0,Min(255,128+round_ni(aRes)))
+                	);
+			
+				if(aHisto)
+				{
+					int aNbPerc = 20;
+					std::vector<double> aVEr, aVErD;
+					
+					/*Flux_Pts aFlux(rectangle(aSz.x,aSz.y));
+					aFlux.chc(aRes);
+					Flux2StdCont(aVEr,aFlux);				*/
 
-           std::cout << aName1 << " et " << aName2 << " sont differentes\n";
-           std::cout << "Nombre de pixels differents  = " << aNbDif << "\n";
-           std::cout << "Somme des differences        = " << aSomDif << "\n";
-           std::cout << "Moyenne des differences        = " << (aSomDif/aSom1 )<< "\n";
-           std::cout << "Difference maximale          = " << aMaxDif << " (position " << aPtDifMax[0] << " " << aPtDifMax[1] << ")\n";
-           
-           if(mXmlG!="")
-           {
+					FILE * aFp = FopenNN("Stats.txt","w","CmpIm");
+					fprintf(aFp,"================= PERC  : RESIDU ==================\n");
+
+					std::cout << "---histo---\n";
+					for(int aKp=aBrd.x; aKp<(aSz.x-aBrd.x); aKp++)
+						for(int aKt=aBrd.y; aKt<(aSz.y-aBrd.y); aKt++)
+							aVEr.push_back(aRes.ValFoncGen(Pt2di(aKp,aKt)));
+					
+					std::cout << "size aVEr=" << aVEr.size() << "\n";
+	
+					std::sort(aVEr.begin(),aVEr.end());
+					double aMedian = aVEr.at(floor(0.5*aVEr.size()));
+					
+					//get the normalized median abs deviation
+					for(int aK=0; aK<int(aVEr.size()); aK++)
+						aVErD.push_back( abs(aVEr.at(aK) - aMedian) );
+
+					std::sort(aVErD.begin(), aVErD.end());					
+					double aNMAD = 1.4826 * aVErD.at(floor(0.5*aVErD.size()));
+
+					for (int aK=0 ; aK<=aNbPerc ; aK++)
+					{
+						//std::cout << "ind=" << (aK*(aVEr.size()-1))/aNbPerc << "\n"; 
+						double aQ = aVEr[(aK*(aVEr.size()-1))/aNbPerc];
+						fprintf(aFp,"Res[%f]=%f\n",(aK*100.0)/aNbPerc,aQ);
+					}
+					fclose(aFp);
+					
+					std::cout << "Accuracy measures by [Hoehle & Hoehle, 2009]\n";
+					std::cout << "Q(0.5)                   =" << aMedian << " : median (50% quantile)\n";
+					std::cout << "NMAD                     =" << aNMAD << " : 1.4826 * median_j(|dh_j + mh|) \n";
+					std::cout << "Q(0.683)                 =" << aVEr.at(floor(0.683*aVEr.size())) << " : 68% quantile\n";
+					std::cout << "Q(0.95)                  =" << aVEr.at(floor(0.95*aVEr.size())) << " : 95% quantile\n";
+
+           		}
+
+           		std::cout << aName1 << " et " << aName2 << " sont differentes\n";
+           		std::cout << "Nombre de pixels differents  = " << aNbDif << "\n";
+           		std::cout << "Somme des differences        = " << aSomDif << "\n";
+           		std::cout << "Moyenne des differences        = " << (aSomDif/aSom1 )<< "\n";
+           		std::cout << "Difference maximale          = " << aMaxDif << " (position " << aPtDifMax[0] << " " << aPtDifMax[1] << ")\n";
+			}
+ 
+		if(mXmlG!="")
+    	{
 				
 				aImg.TestImgDiff() = false;
 				aImg.NbPxDiff() = aNbDif;
@@ -180,7 +238,7 @@ int CmpIm_main(int argc,char ** argv)
 				aImg.MoyDiff() = (aSomDif/aSom1);
 				Pt3dr Diff(aPtDifMax[0],aPtDifMax[1],aMaxDif);
 				aImg.DiffMaxi()= Diff;
-	   }
+	   	}
         }   
         else
         {

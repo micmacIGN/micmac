@@ -3345,6 +3345,95 @@ void xml_init(cBDD_PtsLiaisons & anObj,cElXMLTree * aTree)
 std::string  Mangling( cBDD_PtsLiaisons *) {return "1AA694C1489847B3FCBF";};
 
 
+std::string & cBDD_NewPtMul::Id()
+{
+   return mId;
+}
+
+const std::string & cBDD_NewPtMul::Id()const 
+{
+   return mId;
+}
+
+
+std::string & cBDD_NewPtMul::SH()
+{
+   return mSH;
+}
+
+const std::string & cBDD_NewPtMul::SH()const 
+{
+   return mSH;
+}
+
+
+bool & cBDD_NewPtMul::BinaryMode()
+{
+   return mBinaryMode;
+}
+
+const bool & cBDD_NewPtMul::BinaryMode()const 
+{
+   return mBinaryMode;
+}
+
+
+bool & cBDD_NewPtMul::SupressStdHom()
+{
+   return mSupressStdHom;
+}
+
+const bool & cBDD_NewPtMul::SupressStdHom()const 
+{
+   return mSupressStdHom;
+}
+
+void  BinaryUnDumpFromFile(cBDD_NewPtMul & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Id(),aFp);
+    BinaryUnDumpFromFile(anObj.SH(),aFp);
+    BinaryUnDumpFromFile(anObj.BinaryMode(),aFp);
+    BinaryUnDumpFromFile(anObj.SupressStdHom(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cBDD_NewPtMul & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Id());
+    BinaryDumpInFile(aFp,anObj.SH());
+    BinaryDumpInFile(aFp,anObj.BinaryMode());
+    BinaryDumpInFile(aFp,anObj.SupressStdHom());
+}
+
+cElXMLTree * ToXMLTree(const cBDD_NewPtMul & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"BDD_NewPtMul",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+   aRes->AddFils(::ToXMLTree(std::string("SH"),anObj.SH())->ReTagThis("SH"));
+   aRes->AddFils(::ToXMLTree(std::string("BinaryMode"),anObj.BinaryMode())->ReTagThis("BinaryMode"));
+   aRes->AddFils(::ToXMLTree(std::string("SupressStdHom"),anObj.SupressStdHom())->ReTagThis("SupressStdHom"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cBDD_NewPtMul & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+
+   xml_init(anObj.SH(),aTree->Get("SH",1)); //tototo 
+
+   xml_init(anObj.BinaryMode(),aTree->Get("BinaryMode",1)); //tototo 
+
+   xml_init(anObj.SupressStdHom(),aTree->Get("SupressStdHom",1)); //tototo 
+}
+
+std::string  Mangling( cBDD_NewPtMul *) {return "CF4E72270E625780FE3F";};
+
+
 double & cBddApp_AutoNum::DistFusion()
 {
    return mDistFusion;
@@ -4823,6 +4912,17 @@ const std::list< cBDD_PtsLiaisons > & cSectionBDD_Observation::BDD_PtsLiaisons()
 }
 
 
+std::list< cBDD_NewPtMul > & cSectionBDD_Observation::BDD_NewPtMul()
+{
+   return mBDD_NewPtMul;
+}
+
+const std::list< cBDD_NewPtMul > & cSectionBDD_Observation::BDD_NewPtMul()const 
+{
+   return mBDD_NewPtMul;
+}
+
+
 std::list< cBDD_PtsAppuis > & cSectionBDD_Observation::BDD_PtsAppuis()
 {
    return mBDD_PtsAppuis;
@@ -4991,6 +5091,15 @@ void  BinaryUnDumpFromFile(cSectionBDD_Observation & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
         {
+             cBDD_NewPtMul aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.BDD_NewPtMul().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
              cBDD_PtsAppuis aVal;
               BinaryUnDumpFromFile(aVal,aFp);
               anObj.BDD_PtsAppuis().push_back(aVal);
@@ -5084,6 +5193,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionBDD_Observation & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.BDD_NewPtMul().size());
+    for(  std::list< cBDD_NewPtMul >::const_iterator iT=anObj.BDD_NewPtMul().begin();
+         iT!=anObj.BDD_NewPtMul().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,(int)anObj.BDD_PtsAppuis().size());
     for(  std::list< cBDD_PtsAppuis >::const_iterator iT=anObj.BDD_PtsAppuis().begin();
          iT!=anObj.BDD_PtsAppuis().end();
@@ -5145,6 +5260,12 @@ cElXMLTree * ToXMLTree(const cSectionBDD_Observation & anObj)
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("BDD_PtsLiaisons"));
   for
+  (       std::list< cBDD_NewPtMul >::const_iterator it=anObj.BDD_NewPtMul().begin();
+      it !=anObj.BDD_NewPtMul().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("BDD_NewPtMul"));
+  for
   (       std::list< cBDD_PtsAppuis >::const_iterator it=anObj.BDD_PtsAppuis().begin();
       it !=anObj.BDD_PtsAppuis().end();
       it++
@@ -5204,6 +5325,8 @@ void xml_init(cSectionBDD_Observation & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.BDD_PtsLiaisons(),aTree->GetAll("BDD_PtsLiaisons",false,1));
 
+   xml_init(anObj.BDD_NewPtMul(),aTree->GetAll("BDD_NewPtMul",false,1));
+
    xml_init(anObj.BDD_PtsAppuis(),aTree->GetAll("BDD_PtsAppuis",false,1));
 
    xml_init(anObj.BDD_ObsAppuisFlottant(),aTree->GetAll("BDD_ObsAppuisFlottant",false,1));
@@ -5225,7 +5348,7 @@ void xml_init(cSectionBDD_Observation & anObj,cElXMLTree * aTree)
    xml_init(anObj.DeclareObsCalConseq(),aTree->Get("DeclareObsCalConseq",1)); //tototo 
 }
 
-std::string  Mangling( cSectionBDD_Observation *) {return "D8984ACB82EF9BEAFE3F";};
+std::string  Mangling( cSectionBDD_Observation *) {return "0268A1DB0723538BFF3F";};
 
 
 Pt3dr & cGpsOffset::ValInit()
@@ -12235,6 +12358,17 @@ const cTplValGesInit< cAerialDeformNonLin > & cBasculeOnPoints::AerialDeformNonL
    return mAerialDeformNonLin;
 }
 
+
+cTplValGesInit< std::string > & cBasculeOnPoints::NameExport()
+{
+   return mNameExport;
+}
+
+const cTplValGesInit< std::string > & cBasculeOnPoints::NameExport()const 
+{
+   return mNameExport;
+}
+
 void  BinaryUnDumpFromFile(cBasculeOnPoints & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -12269,6 +12403,14 @@ void  BinaryUnDumpFromFile(cBasculeOnPoints & anObj,ELISE_fp & aFp)
         }
         else  anObj.AerialDeformNonLin().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NameExport().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NameExport().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NameExport().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cBasculeOnPoints & anObj)
@@ -12281,6 +12423,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cBasculeOnPoints & anObj)
     if (anObj.ModeL2().IsInit()) BinaryDumpInFile(aFp,anObj.ModeL2().Val());
     BinaryDumpInFile(aFp,anObj.AerialDeformNonLin().IsInit());
     if (anObj.AerialDeformNonLin().IsInit()) BinaryDumpInFile(aFp,anObj.AerialDeformNonLin().Val());
+    BinaryDumpInFile(aFp,anObj.NameExport().IsInit());
+    if (anObj.NameExport().IsInit()) BinaryDumpInFile(aFp,anObj.NameExport().Val());
 }
 
 cElXMLTree * ToXMLTree(const cBasculeOnPoints & anObj)
@@ -12295,6 +12439,8 @@ cElXMLTree * ToXMLTree(const cBasculeOnPoints & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ModeL2"),anObj.ModeL2().Val())->ReTagThis("ModeL2"));
    if (anObj.AerialDeformNonLin().IsInit())
       aRes->AddFils(ToXMLTree(anObj.AerialDeformNonLin().Val())->ReTagThis("AerialDeformNonLin"));
+   if (anObj.NameExport().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NameExport"),anObj.NameExport().Val())->ReTagThis("NameExport"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -12312,9 +12458,11 @@ void xml_init(cBasculeOnPoints & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModeL2(),aTree->Get("ModeL2",1),bool(true)); //tototo 
 
    xml_init(anObj.AerialDeformNonLin(),aTree->Get("AerialDeformNonLin",1)); //tototo 
+
+   xml_init(anObj.NameExport(),aTree->Get("NameExport",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOnPoints *) {return "9DC5A0385B88F289FF3F";};
+std::string  Mangling( cBasculeOnPoints *) {return "4E0E77CDD386EDD2FF3F";};
 
 
 cTplValGesInit< double > & cOrientInPlane::DistFixEch()
@@ -12584,6 +12732,17 @@ const cTplValGesInit< cAerialDeformNonLin > & cModeBascule::AerialDeformNonLin()
 }
 
 
+cTplValGesInit< std::string > & cModeBascule::NameExport()
+{
+   return BasculeOnPoints().Val().NameExport();
+}
+
+const cTplValGesInit< std::string > & cModeBascule::NameExport()const 
+{
+   return BasculeOnPoints().Val().NameExport();
+}
+
+
 cTplValGesInit< cBasculeOnPoints > & cModeBascule::BasculeOnPoints()
 {
    return mBasculeOnPoints;
@@ -12711,7 +12870,7 @@ void xml_init(cModeBascule & anObj,cElXMLTree * aTree)
    xml_init(anObj.BasculeLiaisonOnPlan(),aTree->Get("BasculeLiaisonOnPlan",1)); //tototo 
 }
 
-std::string  Mangling( cModeBascule *) {return "1A15DEEFED85FFDAFE3F";};
+std::string  Mangling( cModeBascule *) {return "DE911B2D3F248AD1FE3F";};
 
 
 cTplValGesInit< bool > & cBasculeOrientation::AfterCompens()
@@ -12821,6 +12980,17 @@ cTplValGesInit< cAerialDeformNonLin > & cBasculeOrientation::AerialDeformNonLin(
 const cTplValGesInit< cAerialDeformNonLin > & cBasculeOrientation::AerialDeformNonLin()const 
 {
    return ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+
+cTplValGesInit< std::string > & cBasculeOrientation::NameExport()
+{
+   return ModeBascule().BasculeOnPoints().Val().NameExport();
+}
+
+const cTplValGesInit< std::string > & cBasculeOrientation::NameExport()const 
+{
+   return ModeBascule().BasculeOnPoints().Val().NameExport();
 }
 
 
@@ -12981,7 +13151,7 @@ void xml_init(cBasculeOrientation & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModeBascule(),aTree->Get("ModeBascule",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOrientation *) {return "742750714A322285FC3F";};
+std::string  Mangling( cBasculeOrientation *) {return "D4E2BBE2F0CEA69FFC3F";};
 
 
 std::vector< cAperoPointeStereo > & cStereoFE::HomFE()
@@ -15663,6 +15833,17 @@ const cTplValGesInit< cAerialDeformNonLin > & cIterationsCompensation::AerialDef
 }
 
 
+cTplValGesInit< std::string > & cIterationsCompensation::NameExport()
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().NameExport();
+}
+
+const cTplValGesInit< std::string > & cIterationsCompensation::NameExport()const 
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().NameExport();
+}
+
+
 cTplValGesInit< cBasculeOnPoints > & cIterationsCompensation::BasculeOnPoints()
 {
    return BasculeOrientation().Val().ModeBascule().BasculeOnPoints();
@@ -16567,7 +16748,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.TestInteractif(),aTree->Get("TestInteractif",1)); //tototo 
 }
 
-std::string  Mangling( cIterationsCompensation *) {return "30104D00FCD432D1FE3F";};
+std::string  Mangling( cIterationsCompensation *) {return "9EB5A1A94D0146FCFE3F";};
 
 
 std::string & cTraceCpleHom::Id()
@@ -24967,7 +25148,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "06441C97CC52AEA9FF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "7AE2D5123346FC9EFF3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -25026,7 +25207,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "B8DD7DDD475342FBFB3F";};
+std::string  Mangling( cSectionCompensation *) {return "463C236193D822F1FD3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -25114,6 +25295,17 @@ std::list< cBDD_PtsLiaisons > & cParamApero::BDD_PtsLiaisons()
 const std::list< cBDD_PtsLiaisons > & cParamApero::BDD_PtsLiaisons()const 
 {
    return SectionBDD_Observation().BDD_PtsLiaisons();
+}
+
+
+std::list< cBDD_NewPtMul > & cParamApero::BDD_NewPtMul()
+{
+   return SectionBDD_Observation().BDD_NewPtMul();
+}
+
+const std::list< cBDD_NewPtMul > & cParamApero::BDD_NewPtMul()const 
+{
+   return SectionBDD_Observation().BDD_NewPtMul();
 }
 
 
@@ -26092,7 +26284,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "E4DE67C1C8D505D1FE3F";};
+std::string  Mangling( cParamApero *) {return "54F5305A733E62FCFE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

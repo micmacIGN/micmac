@@ -1049,11 +1049,14 @@ void cAppliApero::InitBDDLiaisons()
        itB++
     )
     {
-        if (aCpt==0)
-           mSymbPack0 = itB->Id();
-        NewSymb(itB->Id());
-	mDicoLiaisons[itB->Id()] = new cPackObsLiaison(*this,*itB,aCpt);
-        aCpt++;
+        if (! CDNP_InavlideUse_StdLiaison(itB->Id()))
+        {
+           if (aCpt==0)
+              mSymbPack0 = itB->Id();
+           NewSymb(itB->Id());
+	   mDicoLiaisons[itB->Id()] = new cPackObsLiaison(*this,*itB,aCpt);
+           aCpt++;
+        }
     }
 }
 

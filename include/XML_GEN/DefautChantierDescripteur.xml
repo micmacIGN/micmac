@@ -182,6 +182,17 @@
           <Key> NKS-Set-Homol </Key>
     </KeyedSetsOfNames>
 
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> PMul(.*)\.(#2)  </PatternAccepteur>
+		 <SubDir>   Homol#1/ </SubDir>
+                 <NivSubDir> 1 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-PMulHom </Key>
+    </KeyedSetsOfNames>
+
+
 
     <KeyedSetsOfNames >
           <IsParametrized>  true </IsParametrized>
@@ -656,6 +667,22 @@
 	<SubDirAutoMake> Homol#1 </SubDirAutoMake>
 	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
     </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName> Homol#1/PMul$1.#2  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+        </Calcs>
+        <Key>  NKS-Assoc-PMulHom </Key>
+	<SubDirAutoMake> Homol#1 </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
 
 
 <!--

@@ -23275,4 +23275,289 @@ void xml_init(cXml_ParamSubcommandTiepRed & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXml_ParamSubcommandTiepRed *) {return "50C1F7D236C8A7F1FA3F";};
 
+
+cTypeCodageMatr & cXml_ParamBascRigide::ParamRotation()
+{
+   return mParamRotation;
+}
+
+const cTypeCodageMatr & cXml_ParamBascRigide::ParamRotation()const 
+{
+   return mParamRotation;
+}
+
+
+Pt3dr & cXml_ParamBascRigide::Trans()
+{
+   return mTrans;
+}
+
+const Pt3dr & cXml_ParamBascRigide::Trans()const 
+{
+   return mTrans;
+}
+
+
+double & cXml_ParamBascRigide::Scale()
+{
+   return mScale;
+}
+
+const double & cXml_ParamBascRigide::Scale()const 
+{
+   return mScale;
+}
+
+void  BinaryUnDumpFromFile(cXml_ParamBascRigide & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ParamRotation(),aFp);
+    BinaryUnDumpFromFile(anObj.Trans(),aFp);
+    BinaryUnDumpFromFile(anObj.Scale(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamBascRigide & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ParamRotation());
+    BinaryDumpInFile(aFp,anObj.Trans());
+    BinaryDumpInFile(aFp,anObj.Scale());
+}
+
+cElXMLTree * ToXMLTree(const cXml_ParamBascRigide & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ParamBascRigide",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.ParamRotation())->ReTagThis("ParamRotation"));
+   aRes->AddFils(ToXMLTree(std::string("Trans"),anObj.Trans())->ReTagThis("Trans"));
+   aRes->AddFils(::ToXMLTree(std::string("Scale"),anObj.Scale())->ReTagThis("Scale"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_ParamBascRigide & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.ParamRotation(),aTree->Get("ParamRotation",1)); //tototo 
+
+   xml_init(anObj.Trans(),aTree->Get("Trans",1)); //tototo 
+
+   xml_init(anObj.Scale(),aTree->Get("Scale",1)); //tototo 
+}
+
+std::string  Mangling( cXml_ParamBascRigide *) {return "208BF9FC385D0787FD3F";};
+
+
+std::string & cXml_ResiduBascule::Name()
+{
+   return mName;
+}
+
+const std::string & cXml_ResiduBascule::Name()const 
+{
+   return mName;
+}
+
+
+Pt3dr & cXml_ResiduBascule::Offset()
+{
+   return mOffset;
+}
+
+const Pt3dr & cXml_ResiduBascule::Offset()const 
+{
+   return mOffset;
+}
+
+
+double & cXml_ResiduBascule::Dist()
+{
+   return mDist;
+}
+
+const double & cXml_ResiduBascule::Dist()const 
+{
+   return mDist;
+}
+
+void  BinaryUnDumpFromFile(cXml_ResiduBascule & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Name(),aFp);
+    BinaryUnDumpFromFile(anObj.Offset(),aFp);
+    BinaryUnDumpFromFile(anObj.Dist(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ResiduBascule & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Name());
+    BinaryDumpInFile(aFp,anObj.Offset());
+    BinaryDumpInFile(aFp,anObj.Dist());
+}
+
+cElXMLTree * ToXMLTree(const cXml_ResiduBascule & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ResiduBascule",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+   aRes->AddFils(ToXMLTree(std::string("Offset"),anObj.Offset())->ReTagThis("Offset"));
+   aRes->AddFils(::ToXMLTree(std::string("Dist"),anObj.Dist())->ReTagThis("Dist"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_ResiduBascule & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+
+   xml_init(anObj.Offset(),aTree->Get("Offset",1)); //tototo 
+
+   xml_init(anObj.Dist(),aTree->Get("Dist",1)); //tototo 
+}
+
+std::string  Mangling( cXml_ResiduBascule *) {return "F226D3EB3BBB689CFF3F";};
+
+
+cXml_ParamBascRigide & cXml_SolBascRigide::Param()
+{
+   return mParam;
+}
+
+const cXml_ParamBascRigide & cXml_SolBascRigide::Param()const 
+{
+   return mParam;
+}
+
+
+double & cXml_SolBascRigide::MoyenneDist()
+{
+   return mMoyenneDist;
+}
+
+const double & cXml_SolBascRigide::MoyenneDist()const 
+{
+   return mMoyenneDist;
+}
+
+
+double & cXml_SolBascRigide::MoyenneDistAlti()
+{
+   return mMoyenneDistAlti;
+}
+
+const double & cXml_SolBascRigide::MoyenneDistAlti()const 
+{
+   return mMoyenneDistAlti;
+}
+
+
+double & cXml_SolBascRigide::MoyenneDistPlani()
+{
+   return mMoyenneDistPlani;
+}
+
+const double & cXml_SolBascRigide::MoyenneDistPlani()const 
+{
+   return mMoyenneDistPlani;
+}
+
+
+cXml_ResiduBascule & cXml_SolBascRigide::Worst()
+{
+   return mWorst;
+}
+
+const cXml_ResiduBascule & cXml_SolBascRigide::Worst()const 
+{
+   return mWorst;
+}
+
+
+std::list< cXml_ResiduBascule > & cXml_SolBascRigide::Residus()
+{
+   return mResidus;
+}
+
+const std::list< cXml_ResiduBascule > & cXml_SolBascRigide::Residus()const 
+{
+   return mResidus;
+}
+
+void  BinaryUnDumpFromFile(cXml_SolBascRigide & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Param(),aFp);
+    BinaryUnDumpFromFile(anObj.MoyenneDist(),aFp);
+    BinaryUnDumpFromFile(anObj.MoyenneDistAlti(),aFp);
+    BinaryUnDumpFromFile(anObj.MoyenneDistPlani(),aFp);
+    BinaryUnDumpFromFile(anObj.Worst(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_ResiduBascule aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Residus().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_SolBascRigide & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Param());
+    BinaryDumpInFile(aFp,anObj.MoyenneDist());
+    BinaryDumpInFile(aFp,anObj.MoyenneDistAlti());
+    BinaryDumpInFile(aFp,anObj.MoyenneDistPlani());
+    BinaryDumpInFile(aFp,anObj.Worst());
+    BinaryDumpInFile(aFp,(int)anObj.Residus().size());
+    for(  std::list< cXml_ResiduBascule >::const_iterator iT=anObj.Residus().begin();
+         iT!=anObj.Residus().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_SolBascRigide & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_SolBascRigide",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.Param())->ReTagThis("Param"));
+   aRes->AddFils(::ToXMLTree(std::string("MoyenneDist"),anObj.MoyenneDist())->ReTagThis("MoyenneDist"));
+   aRes->AddFils(::ToXMLTree(std::string("MoyenneDistAlti"),anObj.MoyenneDistAlti())->ReTagThis("MoyenneDistAlti"));
+   aRes->AddFils(::ToXMLTree(std::string("MoyenneDistPlani"),anObj.MoyenneDistPlani())->ReTagThis("MoyenneDistPlani"));
+   aRes->AddFils(ToXMLTree(anObj.Worst())->ReTagThis("Worst"));
+  for
+  (       std::list< cXml_ResiduBascule >::const_iterator it=anObj.Residus().begin();
+      it !=anObj.Residus().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Residus"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_SolBascRigide & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Param(),aTree->Get("Param",1)); //tototo 
+
+   xml_init(anObj.MoyenneDist(),aTree->Get("MoyenneDist",1)); //tototo 
+
+   xml_init(anObj.MoyenneDistAlti(),aTree->Get("MoyenneDistAlti",1)); //tototo 
+
+   xml_init(anObj.MoyenneDistPlani(),aTree->Get("MoyenneDistPlani",1)); //tototo 
+
+   xml_init(anObj.Worst(),aTree->Get("Worst",1)); //tototo 
+
+   xml_init(anObj.Residus(),aTree->GetAll("Residus",false,1));
+}
+
+std::string  Mangling( cXml_SolBascRigide *) {return "6C261C07B3A65EC6FA3F";};
+
 // };

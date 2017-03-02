@@ -1109,6 +1109,39 @@ void  BinaryUnDumpFromFile(cBDD_PtsLiaisons &,ELISE_fp &);
 
 std::string  Mangling( cBDD_PtsLiaisons *);
 
+class cBDD_NewPtMul
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cBDD_NewPtMul & anObj,cElXMLTree * aTree);
+
+
+        std::string & Id();
+        const std::string & Id()const ;
+
+        std::string & SH();
+        const std::string & SH()const ;
+
+        bool & BinaryMode();
+        const bool & BinaryMode()const ;
+
+        bool & SupressStdHom();
+        const bool & SupressStdHom()const ;
+    private:
+        std::string mId;
+        std::string mSH;
+        bool mBinaryMode;
+        bool mSupressStdHom;
+};
+cElXMLTree * ToXMLTree(const cBDD_NewPtMul &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cBDD_NewPtMul &);
+
+void  BinaryUnDumpFromFile(cBDD_NewPtMul &,ELISE_fp &);
+
+std::string  Mangling( cBDD_NewPtMul *);
+
 class cBddApp_AutoNum
 {
     public:
@@ -1549,6 +1582,9 @@ class cSectionBDD_Observation
         std::list< cBDD_PtsLiaisons > & BDD_PtsLiaisons();
         const std::list< cBDD_PtsLiaisons > & BDD_PtsLiaisons()const ;
 
+        std::list< cBDD_NewPtMul > & BDD_NewPtMul();
+        const std::list< cBDD_NewPtMul > & BDD_NewPtMul()const ;
+
         std::list< cBDD_PtsAppuis > & BDD_PtsAppuis();
         const std::list< cBDD_PtsAppuis > & BDD_PtsAppuis()const ;
 
@@ -1592,6 +1628,7 @@ class cSectionBDD_Observation
         const cTplValGesInit< cDeclareObsCalConseq > & DeclareObsCalConseq()const ;
     private:
         std::list< cBDD_PtsLiaisons > mBDD_PtsLiaisons;
+        std::list< cBDD_NewPtMul > mBDD_NewPtMul;
         std::list< cBDD_PtsAppuis > mBDD_PtsAppuis;
         std::list< cBDD_ObsAppuisFlottant > mBDD_ObsAppuisFlottant;
         std::list< cBDD_Orient > mBDD_Orient;
@@ -3417,11 +3454,15 @@ class cBasculeOnPoints
 
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
+
+        cTplValGesInit< std::string > & NameExport();
+        const cTplValGesInit< std::string > & NameExport()const ;
     private:
         cTplValGesInit< cBascOnCentre > mBascOnCentre;
         cTplValGesInit< cBascOnAppuis > mBascOnAppuis;
         cTplValGesInit< bool > mModeL2;
         cTplValGesInit< cAerialDeformNonLin > mAerialDeformNonLin;
+        cTplValGesInit< std::string > mNameExport;
 };
 cElXMLTree * ToXMLTree(const cBasculeOnPoints &);
 
@@ -3523,6 +3564,9 @@ class cModeBascule
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
 
+        cTplValGesInit< std::string > & NameExport();
+        const cTplValGesInit< std::string > & NameExport()const ;
+
         cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints();
         const cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints()const ;
 
@@ -3592,6 +3636,9 @@ class cBasculeOrientation
 
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
+
+        cTplValGesInit< std::string > & NameExport();
+        const cTplValGesInit< std::string > & NameExport()const ;
 
         cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints();
         const cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints()const ;
@@ -4409,6 +4456,9 @@ class cIterationsCompensation
 
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
+
+        cTplValGesInit< std::string > & NameExport();
+        const cTplValGesInit< std::string > & NameExport()const ;
 
         cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints();
         const cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints()const ;
@@ -6795,6 +6845,9 @@ class cParamApero
 
         std::list< cBDD_PtsLiaisons > & BDD_PtsLiaisons();
         const std::list< cBDD_PtsLiaisons > & BDD_PtsLiaisons()const ;
+
+        std::list< cBDD_NewPtMul > & BDD_NewPtMul();
+        const std::list< cBDD_NewPtMul > & BDD_NewPtMul()const ;
 
         std::list< cBDD_PtsAppuis > & BDD_PtsAppuis();
         const std::list< cBDD_PtsAppuis > & BDD_PtsAppuis()const ;

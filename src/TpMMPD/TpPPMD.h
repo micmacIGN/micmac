@@ -129,6 +129,9 @@ class cTD_Im
 {
      public :
         cTD_Im (int anX,int anY);
+        cTD_Im(const cTD_Im &);
+        cTD_Im & operator = (const cTD_Im &);
+
         static cTD_Im  FromString(const std::string &);
         cTD_Im  ImageMoy(int aSzW,int aNbIter);
         cTD_Im  ImageReduite(double aFact);
@@ -138,20 +141,20 @@ class cTD_Im
         void Save(const std::string &);
         void SaveRGB(const std::string &,cTD_Im &,cTD_Im &);
 
-        float GetVal(int anX,int anY) const {return mTIm.get(Pt2di(anX,anY));}
+        double GetVal(int anX,int anY) const {return mTIm.get(Pt2di(anX,anY));}
 
-        float GetVal(const Pt2di & aP) const {return mTIm.get(aP);}
-        float GetVal(const Pt2dr & aP) const {return mTIm.getr(aP,-1e5);}
+        double GetVal(const Pt2di & aP) const {return mTIm.get(aP);}
+        double GetVal(const Pt2dr & aP) const {return mTIm.getr(aP,-1e5);}
 
         bool Ok(int anX,int anY) const  {return mTIm.inside(Pt2di(anX,anY));}
         Pt2di Sz() const ;
 
-        void  SetVal(int anX,int anY,float aVal) {return mTIm.oset(Pt2di(anX,anY),aVal);}
+        void  SetVal(int anX,int anY,double aVal) {return mTIm.oset(Pt2di(anX,anY),aVal);}
 
      private :
-        Im2D<float,double>   mIm;
+        Im2D<double,double>   mIm;
         Pt2di                mSz;
-        TIm2D<float,double>  mTIm;
+        TIm2D<double,double>  mTIm;
 };
 
 

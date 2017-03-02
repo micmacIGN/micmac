@@ -62,16 +62,20 @@ class cCelImTPM
          friend class cSetTiePMul;
 
          cCelImTPM(const std::string & aNameIm,int anId);
+
+         void *  GetVoidData() const;
+         void    SetVoidData(void *);
     private :
          std::string mNameIm;
          int         mId;
+         void *      mVoidData;  // To store any usefull data
 };
 
 class cDicoImTPM
 {
     public :
         friend class cSetTiePMul;
-    private :
+    // private :
         cCelImTPM * AddIm(const std::string &,bool &IsNew);
 
         std::map<std::string,cCelImTPM *> mName2Im;
@@ -85,15 +89,16 @@ class cSetPMul1ConfigTPM
     public :
        friend class cSetTiePMul;
        
-       cSetPMul1ConfigTPM(const  std::vector<int> & mVIm,int aNbPts);
-       void Add(const std::vector<Pt2dr> &,int aNbA);
+       cSetPMul1ConfigTPM(const  std::vector<int> & mVIm,int aNbPts,int aNbAttr);
+       void Add(const std::vector<Pt2dr> &,const std::vector<float> & aVAttr);
 
        Pt2dr Pt(int aKp,int aKIm)
        {
             int Adr = AddrPtIm(aKp,aKIm);
             return Pt2dr(Int2Double(mVXY[Adr]),Int2Double(mVXY[Adr+1]));
        }
-       int NbArc(int aKP) const;
+       float Attr(int aKP,int aKAttr) const;
+       const std::vector<int> & VIdIm() const;
 
     private :
        int  AddrPtIm(int aKp,int aKIm) {return 2*(aKp*mNbIm  +aKIm) ;}
@@ -104,27 +109,30 @@ class cSetPMul1ConfigTPM
 
        double  X(int aKp,int aKIm) {return Int2Double(mVXY[AddrPtIm(aKp,aKIm)]);}
        double  Y(int aKp,int aKIm) {return Int2Double(mVXY[AddrPtIm(aKp,aKIm)+1]);}
-       static const  double ThePrec;
+       // static const  double ThePrec;
 
        std::vector<int>    mVIdIm;
        int                 mNbIm;
        int                 mNbPts;
        //  P0   X0,i1  Y0,i1 X0,i2 Y0,i2 ... P1  X1,i1  Y1,i1 X1,i2 Y1,i2
-       std::vector<int>  mVXY;
-       std::vector<int>  mVNbA;
-
+       std::vector<int>    mVXY;
        const double         mPrec;  // 1/500.0
+
+       int                 mNbAttr;
+       std::vector<float>  mVAttr;
 };
 
 
 class cSetTiePMul
 {
     public :
-        cSetTiePMul();
+        cSetTiePMul(int aNbAttrPts);
         void SetFilter(const std::vector<std::string> & aVIm );
         void SetCurIms(const std::vector<std::string> & aVIm);
 
 
+        static std::string StdName(cInterfChantierNameManipulateur*,const std::string aSH,const std::string & aPost,bool Bin);
+        static const std::vector<std::string> * StdSetName(cInterfChantierNameManipulateur*,const std::string aSH,bool Bin);
 
         cSetPMul1ConfigTPM * OneConfigFromVI(const std::vector<INT> &);
 
@@ -138,10 +146,14 @@ class cSetTiePMul
 
         void AddFile(const std::string & aName);  // Mettre en private + tard
 
+        void ResetNbAttr(int aNbAttr);
+        cDicoImTPM & DicoIm();
+        cCelImTPM * CelFromName(const std::string & aName);
+        cCelImTPM * CelFromInt(const int & anId);
+
+        const std::vector<cSetPMul1ConfigTPM *> & VPMul();
     private :
         
-
-
         cCelImTPM * AddIm(const std::string &,bool &IsNew);
 
         cDicoImTPM                       mDicoIm;
@@ -151,6 +163,7 @@ class cSetTiePMul
 
         std::vector<int>        mNumConvCur;
         std::set<std::string>*  mSetFilter;   
+        int                     mNbAttr;
 };
 
 

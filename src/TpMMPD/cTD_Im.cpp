@@ -54,6 +54,23 @@ cTD_Im::cTD_Im(int anX,int anY) :
 {
 }
 
+cTD_Im::cTD_Im(const cTD_Im & aCI) :
+   mIm (aCI.mIm),
+   mSz (aCI.mSz),
+   mTIm (mIm)
+{
+}
+
+cTD_Im & cTD_Im::operator = (const cTD_Im & aCI)
+{
+   mIm = aCI.mIm;
+   mSz = aCI.mSz;
+   mTIm =  TIm2D<double,double>(mIm);
+
+   return *this;
+}
+
+
 cTD_Im cTD_Im::FromString(const std::string & aName)
 {
    Tiff_Im aTF = Tiff_Im::StdConvGen(aName,-1,true);

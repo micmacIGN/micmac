@@ -200,6 +200,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      
      <Symb> UseGenBundle=false </Symb>
      <Symb> ForDeform=false </Symb>
+     <Symb> UsePC=true </Symb>
+     <Symb> UseVSNI=false </Symb>
+     <Symb> VSNI=0 </Symb>
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -248,6 +251,11 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 <Section_PriseDeVue >   
      <SingulariteInCorresp_I1I2> true</SingulariteInCorresp_I1I2>
      <GeomImages> ${ModeOriIm} </GeomImages>
+
+     <#WHEN VTEST=${UseVSNI}>
+        <ValSpecNotImage> ${VSNI} </ValSpecNotImage>
+     </#WHEN>
+
      <Images >
            <IncludeFileLoc>  ${FileIm1} </IncludeFileLoc>
            <ImPat>    ${ImPat}  </ImPat>
@@ -449,12 +457,14 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
         <#WHEN VTEST=${AddZoom16}>
             <EtapeMEC>
                     <DeZoom >        16        </DeZoom>
-                    <GenerePartiesCachees>
+                    <#WHEN VTEST=${UsePC}>
+                         <GenerePartiesCachees>
                              <SeuilUsePC> 3 </SeuilUsePC>
                              <ByMkF> ${MkFPC} </ByMkF>
-                    </GenerePartiesCachees>
-                     <ZDilatAlti>  4    </ZDilatAlti>
-                     <ZDilatPlani> 3    </ZDilatPlani>
+                         </GenerePartiesCachees>
+                    </#WHEN>
+                    <ZDilatAlti>  4    </ZDilatAlti>
+                    <ZDilatPlani> 3    </ZDilatPlani>
              </EtapeMEC>
         </#WHEN>
 
@@ -484,10 +494,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                          </ArgMaskAuto>
                    </ModulationProgDyn>
                    <#WHEN VTEST=${NotZoom8}>
-                        <GenerePartiesCachees >
+                       <#WHEN VTEST=${UsePC}>
+                          <GenerePartiesCachees >
                              <SeuilUsePC> 4 </SeuilUsePC>
                              <ByMkF> true </ByMkF>
-                        </GenerePartiesCachees>
+                          </GenerePartiesCachees>
+                       </#WHEN>
                    </#WHEN>
                    <#WHEN VTEST=${CorMS}>
                        <SzW Portee="Globale"> 1 </SzW>

@@ -1495,6 +1495,7 @@ class cPackObsLiaison
 };
 
 
+
 /************************************************************/
 /*                                                          */
 /*              Les appuis flottants                        */
@@ -1956,6 +1957,10 @@ class cCompiledObsRelGPS
         cAppliApero *     mAppli;
 };
 
+class cSetPMul1ConfigTPM;
+class cSetTiePMul;
+class cCompile_BDD_NewPtMul;
+
 
 class cAppliApero : public NROptF1vND
 {
@@ -2176,9 +2181,19 @@ class cAppliApero : public NROptF1vND
        double   MoyGeomPdsIter(const double & aPds0, const cTplValGesInit<double> &  aPds1) const;
        double   RBW_PdsTr(const cRigidBlockWeighting  &) const;
        double   RBW_PdsRot(const cRigidBlockWeighting &) const;
+
+       void InitNewBDL();
+       cCompile_BDD_NewPtMul * CDNP_FromName(const std::string & aName);
+       bool CDNP_InavlideUse_StdLiaison(const std::string & anId);
+       void CDNP_Compense(const std::string & anId,const cObsLiaisons &);
+
+        void CDNP_Compense(cSetPMul1ConfigTPM*,cSetTiePMul*,const cObsLiaisons &);
+
     private :
 
        void SetPdsRegDist(const cXmlPondRegDist *);
+
+       void InitNewBDL(const cBDD_NewPtMul &);
 
 
        // Active uniquement si  mFileDebug != 0
@@ -2636,6 +2651,9 @@ class cAppliApero : public NROptF1vND
          std::vector<std::string> mNamesIdCalib;
          int   mNumImage;
          std::vector<std::string> mNamesIdIm;
+
+
+         std::map<std::string,cCompile_BDD_NewPtMul *>  mDicoNewBDL;
 };
 
 

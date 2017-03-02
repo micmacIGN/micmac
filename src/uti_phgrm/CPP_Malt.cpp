@@ -145,6 +145,7 @@ class cAppliMalt
           int         mSzRec;
           std::vector<std::string> mEquiv;
           std::string mMasq3D;
+          int         mVSNI;
 };
 
 
@@ -341,6 +342,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(ForceNoIncid,"InternalNoIncid",true,"Internal Use", eSAM_InternalUse)
                     << EAM(aPtDebug,"PtDebug",true,"Internal Use (Point of debuging)", eSAM_InternalUse)
                     << EAM(mForceZFaisc,"ForceZFais",true,"Force Z Faisecau evan with stenope camera", eSAM_InternalUse)
+                    << EAM(mVSNI,"VSND",true,"Value Special No Data")
  
                 );
 
@@ -948,6 +950,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::cout << mCom << "\n";
       // cInZRegulterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+      if (EAMIsInit(&mVSNI)) 
+         mCom = mCom + std::string(" +UseVSNI=true +VSNI=") + ToString(mVSNI) ; 
 
       if (mImMNT !="") mCom   =  mCom + std::string(" +ImMNT=")   + QUOTE(mImMNT);
       if (mImOrtho !="") mCom =  mCom + std::string(" +ImOrtho=") + QUOTE(mImOrtho);

@@ -51,6 +51,11 @@ bool  FileModeBin(const std::string & aName)
    return false;
 }
 
+std::string StdExtBinText(bool Bin)
+{
+   return Bin ? "dat" : "txt";
+}
+
 class cSetIntDyn
 {
     public :
@@ -188,20 +193,25 @@ class cAppliConvertToNewFormatHom
         cElemAppliSetFile   mEASF;
         const std::vector<std::string> * mFilesIm;
         bool                             mDoNewOri;
+        bool                             mBin;
+        std::string                      mSH;
         cVirtInterf_NewO_NameManager *   mVNM;
 };
 
 
 cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) :
-      mDoNewOri (true)
+      mDoNewOri (true),
+      mBin      (true)
 {
     
    ElInitArgMain
    (
          argc,argv,
          LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile)
-                     << EAMC(mDest, "Output"),
-         LArgMain()  << EAM(mDoNewOri,"DoNewOri",true,"Tuning")
+                     << EAMC(mDest, "Dest  =>  Homol${SH}/PMul${Dest}.txt/dat"),
+         LArgMain()  << EAM(mSH ,"SH","Set of Homogues")
+                     << EAM(mBin,"Bin",true,"Binary, def=true (postix dat/txt)")
+                     << EAM(mDoNewOri,"DoNewOri",true,"Tuning")
    );
 
    mEASF.Init(mPatImage);
@@ -221,7 +231,7 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
    const std::list<tMergeRat *> &  aLMR = CreatePMul  (mVNM,mFilesIm);
    std::cout << "DONE PMUL " << aLMR.size() << " \n";
 
-   cSetTiePMul * aSetOutPM = new cSetTiePMul();
+   cSetTiePMul * aSetOutPM = new cSetTiePMul(1);
    aSetOutPM->SetCurIms(*mFilesIm);
 
    for (std::list<tMergeRat *>::const_iterator itMR=aLMR.begin() ; itMR!=aLMR.end() ; itMR++)
@@ -229,14 +239,14 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
        std::vector<int> aVI = VecIofVecIT((*itMR)->VecIT());
        std::vector<Pt2dr> aVPts = VecPtofVecIT((*itMR)->VecIT());
        cSetPMul1ConfigTPM * aConf = aSetOutPM->OneConfigFromVI(aVI);
-       aConf->Add(aVPts,(*itMR)->NbArc());
+       std::vector<float> aVAttr;
+       aVAttr.push_back((*itMR)->NbArc());
+       aConf->Add(aVPts,aVAttr);
    }
 
+   std::string aNameSave = cSetTiePMul::StdName(mEASF.mICNM,mSH,mDest,mBin);
 
-   aSetOutPM->Save(mDest);
-
-   // cSetTiePMul * aSetInPM = new cSetTiePMul();
-   // aSetInPM->AddFile(aName);
+   aSetOutPM->Save(aNameSave);
 }
 
 
@@ -249,18 +259,25 @@ int ConvertToNewFormatHom_Main(int argc,char ** argv)
 
 int UnionFiltragePHom_Main(int argc,char ** argv)
 {
-   std::string aPatHom,aPatIm,aDest;
+   std::string aSH,aPatIm,aDest;
+   std::string aDir = "./";
+   bool aBin = false;
+
+
    ElInitArgMain
    (
          argc,argv,
-         LArgMain()  << EAMC(aPatHom, "Pattern of HomFile",  eSAM_IsPatFile)
+         LArgMain()  << EAMC(aSH, "Set of Homologue file",  eSAM_IsPatFile)
                      << EAMC(aDest,"Destination"),
          LArgMain()  
                      << EAM(aPatIm,"Filter",true,"Filter for selecting images")
+                     << EAM(aDir,"Dir",true,"Directory , Def=./")
+                     << EAM(aBin,"Bin",true,"Binary mode, def = true")
    );
+
+   cInterfChantierNameManipulateur*  aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     
-   cElemAppliSetFile   anEASF_Hom(aPatHom);
-   cSetTiePMul * aSetOutPM = new cSetTiePMul();
+   cSetTiePMul * aSetOutPM = new cSetTiePMul(0);
 
    if (EAMIsInit(&aPatIm))
    {
@@ -268,16 +285,20 @@ int UnionFiltragePHom_Main(int argc,char ** argv)
         aSetOutPM->SetFilter(*(anEASF_Im.SetIm()));
    }
 
-   const std::vector<std::string> * aVFileH = anEASF_Hom.SetIm();
+   const std::vector<std::string> * aVFileH = cSetTiePMul::StdSetName(aICNM,aSH,aBin);
 
    for (int aKH=0 ; aKH<int(aVFileH->size())  ; aKH++)
    {
-       aSetOutPM->AddFile(anEASF_Hom.mDir+(*aVFileH)[aKH]);
+       aSetOutPM->AddFile(aDir+(*aVFileH)[aKH]);
    }
 
-   aSetOutPM->Save(aDest);
+   std::string aNameSave = cSetTiePMul::StdName(aICNM,aDest,"MERGE",aBin);
+
+   aSetOutPM->Save(aNameSave);
    return EXIT_SUCCESS;
 }
+
+
 
 /*********************************************************************/
 /*                                                                   */
@@ -290,6 +311,9 @@ cCelImTPM::cCelImTPM(const std::string & aNameIm,int anId) :
    mId     (anId)
 {
 }
+
+void *  cCelImTPM::GetVoidData() const         {return mVoidData;}
+void    cCelImTPM::SetVoidData(void * aVD)     {mVoidData = aVD;}
 
 
 /*********************************************************************/
@@ -319,17 +343,19 @@ cCelImTPM * cDicoImTPM::AddIm(const std::string & aNameIm,bool & IsNew)
 /*********************************************************************/
 
 
-cSetPMul1ConfigTPM::cSetPMul1ConfigTPM(const  std::vector<int> & aVIdIm,int aNbPts) :
-    mVIdIm (aVIdIm),
-    mNbIm  (mVIdIm.size()),
-    mNbPts (aNbPts),
-    mVXY   (),
-    mPrec  (1/500.0)
+cSetPMul1ConfigTPM::cSetPMul1ConfigTPM(const  std::vector<int> & aVIdIm,int aNbPts,int aNbAttr) :
+    mVIdIm  (aVIdIm),
+    mNbIm   (mVIdIm.size()),
+    mNbPts  (aNbPts),
+    mVXY    (),
+    mPrec   (1/500.0),
+    mNbAttr (aNbAttr)
 {
    mVXY.reserve(2*mNbIm*mNbPts);
+   mVAttr.reserve(aNbAttr*aNbPts);
 }
 
-void cSetPMul1ConfigTPM::Add(const std::vector<Pt2dr> & aVP,int aNbArc)
+void cSetPMul1ConfigTPM::Add(const std::vector<Pt2dr> & aVP,const std::vector<float> & aVAttr) 
 {
     ELISE_ASSERT(mNbIm==int(aVP.size()),"cSetPMul1ConfigTPM::Add NbPts");
     for (int aKP=0 ; aKP<mNbIm ; aKP++)
@@ -338,13 +364,24 @@ void cSetPMul1ConfigTPM::Add(const std::vector<Pt2dr> & aVP,int aNbArc)
          mVXY.push_back(Double2Int(aVP[aKP].y));
     }
     mNbPts++;
-    mVNbA.push_back(aNbArc);
+
+    ELISE_ASSERT(mNbAttr==int(aVAttr.size()),"cSetPMul1ConfigTPM::Add bad attr size");
+    for (int aKA=0 ; aKA<mNbAttr ; aKA++)
+    {
+        mVAttr.push_back(aVAttr[aKA]);
+    }
 }
 
-int cSetPMul1ConfigTPM::NbArc(int aKP) const
+float cSetPMul1ConfigTPM::Attr(int aKP,int aKAttr) const
 {
-   return mVNbA[aKP];
+   return mVAttr[mNbAttr*aKP + aKAttr];
 }
+
+const std::vector<int> & cSetPMul1ConfigTPM::VIdIm() const
+{
+   return mVIdIm;
+}
+
 
 /*********************************************************************/
 /*                                                                   */
@@ -352,10 +389,68 @@ int cSetPMul1ConfigTPM::NbArc(int aKP) const
 /*                                                                   */
 /*********************************************************************/
 
-cSetTiePMul::cSetTiePMul() :
-    mSetFilter (0)
+cSetTiePMul::cSetTiePMul(int aNbAttr) :
+    mSetFilter (0),
+    mNbAttr    (aNbAttr)
 {
 }
+
+cSetTiePMul * cSetTiePMul::FromFiles(const std::vector<std::string> aVFiles,const std::vector<std::string>  * aFilter)
+{
+    cSetTiePMul * aResult = new cSetTiePMul(0);
+    if (aFilter!=0)
+       aResult->SetFilter(*aFilter);
+
+    for (int aKF=0 ; aKF<int(aVFiles.size()) ; aKF++)
+       aResult->AddFile(aVFiles[aKF]);
+
+   return aResult;
+}
+
+std::string cSetTiePMul::StdName
+            (
+                cInterfChantierNameManipulateur*aICNM,
+                const std::string aSH,
+                const std::string & aPost,
+                bool Bin
+            )
+{
+    return aICNM->Assoc1To1("NKS-Assoc-PMulHom@"+aSH+"@" + StdExtBinText(Bin),aPost,true);
+}
+
+
+cCelImTPM * cSetTiePMul::CelFromName(const std::string & aName)
+{
+   std::map<std::string,cCelImTPM *>::iterator anIt = mDicoIm.mName2Im.find(aName);
+   if (anIt == mDicoIm.mName2Im.end())
+      return 0;
+
+   return anIt->second;
+}
+
+cCelImTPM * cSetTiePMul::CelFromInt(const int & anId)
+{
+    return mDicoIm.mNum2Im.at(anId);
+}
+
+
+
+const std::vector<std::string> * cSetTiePMul::StdSetName(cInterfChantierNameManipulateur* aICNM,const std::string aSH,bool Bin)
+{
+    return aICNM->Get("NKS-Set-PMulHom@"+aSH+"@"+StdExtBinText(Bin));
+}
+
+
+void cSetTiePMul::ResetNbAttr(int aNbAttr)
+{
+   if (aNbAttr != mNbAttr)
+   {
+       ELISE_ASSERT(mPMul.empty(),"cSetTiePMul::ResetNbAttr on non empty PMul");
+       mNbAttr = aNbAttr;
+   }
+}
+
+
 
 void cSetTiePMul::SetFilter(const std::vector<std::string> & aVIm )
 {
@@ -383,12 +478,25 @@ void cSetTiePMul::SetCurIms(const std::vector<std::string> & aVIm)
     }
 }
 
+cDicoImTPM &  cSetTiePMul::DicoIm()
+{
+   return mDicoIm;
+}
+
+
+const std::vector<cSetPMul1ConfigTPM *> & cSetTiePMul::VPMul()
+{
+    return mPMul;
+}
+
+
+
 cSetPMul1ConfigTPM * cSetTiePMul::OneConfigFromVI(const std::vector<INT> & aVI)
 {
     cSetPMul1ConfigTPM * aRes = mMapConf[aVI];
     if (aRes==0)
     {
-       aRes = new cSetPMul1ConfigTPM(aVI,0);
+       aRes = new cSetPMul1ConfigTPM(aVI,0,mNbAttr);
        mMapConf[aVI] = aRes;
        mPMul.push_back(aRes);
     }
@@ -418,8 +526,13 @@ void cSetTiePMul::Save(const std::string & aName)
     aFp.write_line(HeaderEndTPM);
 
     aFp.PutCommentaire("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=");
+
+    aFp.write_U_INT4(mNbAttr);
+    aFp.PutCommentaire("Number of attribute / points");
+
     aFp.write_U_INT4(mDicoIm.mNum2Im.size());
     aFp.PutCommentaire("Nb Images");
+
     for (int aK=0 ; aK<int(mDicoIm.mNum2Im.size()) ; aK++)
     {
         cCelImTPM * aCel = mDicoIm.mNum2Im[aK];
@@ -463,7 +576,8 @@ void cSetTiePMul::Save(const std::string & aName)
                 aFp.write_REAL8(aPt.x);
                 aFp.write_REAL8(aPt.y);
              }
-             aFp.write_INT4(aConf->NbArc(aKP));
+             for (int aKA=0 ; aKA<mNbAttr ; aKA++)
+                 aFp.write_REAL8(aConf->Attr(aKP,aKA));
              aFp.PutLine();
          }
 
@@ -491,6 +605,9 @@ void cSetTiePMul::AddFile(const std::string & aName)
           Cont = false;
        }
     }
+
+    int aNbAttr = aFp.read_U_INT4();
+    ResetNbAttr(aNbAttr);
     
     int aNbIm = aFp.read_U_INT4();
     std::vector<std::string> aVNameIm;
@@ -510,7 +627,7 @@ void cSetTiePMul::AddFile(const std::string & aName)
 
     int aNbConfig = aFp.read_U_INT4();
 
-    std::cout << "NB CONFIG=" <<  aNbConfig << "\n";
+    // std::cout << "NB CONFIG=" <<  aNbConfig << "\n";
     for (int aKConf=0 ; aKConf < aNbConfig ; aKConf++)
     {
         int aNbPt = aFp.read_U_INT4();
@@ -540,9 +657,11 @@ void cSetTiePMul::AddFile(const std::string & aName)
                     aVPt.push_back(Pt2dr(aX,aY));
                  }
             }
-            int aNbArc = aFp.read_U_INT4(); // NbEdges
+            std::vector<float> aVAttr;
+            for (int aKAttr=0 ; aKAttr<mNbAttr ; aKAttr++)
+                aVAttr.push_back( aFp.read_REAL8());
             if (aConfig)
-               aConfig->Add(aVPt,aNbArc);
+               aConfig->Add(aVPt,aVAttr);
             // std::cout << "NbbArrrc " << aNbArc << "\n";
             // getchar();
         }
@@ -550,7 +669,7 @@ void cSetTiePMul::AddFile(const std::string & aName)
 
     aFp.close();
 
-    Save("DUP.txt");
+     // Save("DUP.txt");
 }
 
 
