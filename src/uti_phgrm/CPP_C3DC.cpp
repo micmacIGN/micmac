@@ -114,6 +114,8 @@ class cAppli_C3DC : public cAppliWithSetImage
          bool        mBin;
          bool        mExpImSec;
          Pt3dr       mOffsetPly;
+         int         mSzW;
+
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -132,7 +134,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mArgSupEpip         (""),
    mDebugMMByP         (false),
    mBin                (true),
-   mExpImSec           (true)
+   mExpImSec           (true),
+   mSzW                (1)
 {
 
 
@@ -240,6 +243,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 						<< EAM(mDebugMMByP,"DebugMMByP",true,"Debug MMByPair ...")
 						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
 						<< EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
+                        << EAM(mSzW,"SzW",true,"Correlation Window Size (Def=1 means 3x3)")
 		);
 	}
 	
@@ -293,6 +297,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
            +  mArgMasq3D
            +  std::string(" AutoPurge=") + ToString(mPurge)
            +  " Out=" + mStrType
+           +  " SzW=" + ToString(mSzW)
            ;
 
    /*
