@@ -222,10 +222,18 @@ ElSeg3D cGeomImage::FaisceauPersp(const Pt2dr & aPIm )  const
       double aPxMoy =  mAppli.GeomDFPxInit().V0Px()[0];
 
       double aPx0 = 0.99 *  aPxMoy;
+      double aPx1 = 1.01 *  aPxMoy;
+
+      // Grosse rustine
+      if (ElAbs(aPx0-aPx1) < 1e-3)
+      {
+          aPx0 = aPxMoy - 1e-2;
+          aPx1 = aPxMoy + 1e-2;
+      }
+
       aPx[0] =   aPx0;
       Pt2dr aP2Ter0 = ImageAndPx2Obj_Euclid(aPIm,aPx);
 
-      double aPx1 = 1.01 *  aPxMoy;
       aPx[0] =   aPx1;
       Pt2dr aP2Ter1 = ImageAndPx2Obj_Euclid(aPIm,aPx);
 

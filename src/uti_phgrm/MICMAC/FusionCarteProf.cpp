@@ -78,10 +78,16 @@ double DynCptrFusDepthMap=10;
 template <class Type> class  cLoadedCP;        // Represente une carte de profondeur chargee
 template <class Type> class cFusionCarteProf;  // Represente l'appli globale
 
-class cElPile;
+class cElPilePrgD;  // Element minimaliste sauvgarder lors de la prog dyn
 
-class fPPile;  // Functeur : renvoie le poids
-class fZPile;  // Functer : renvoie le Z
+// Au depart on se sait pas quelle sera la taille de la nappe (nb de cluster/ x,y)
+// , on sauvegarde toute l'information 
+// necessaire dans une liste de vecteur de cElTmp0Pile; ensuite one reparcourir la liste dans le
+// meme ordre pour remplir la structure de programmation dynamique
+class cElTmp0Pile;  
+
+class cTmpPile; // Utilise pour le premier filtrage (gaussien etc) avant reduction du nombre
+
     //=================================
 
 
@@ -108,10 +114,10 @@ class cElPilePrgD
         float mZ;   // C'est le Z "absolu" du nuage, corrige de l'offset et du pas, c'est a la sauvegarde qu'on le remet eventuellement au pas
 };
 
-class cElPile : public cElPilePrgD
+class cElTmp0Pile : public cElPilePrgD
 {
     public :
-        cElPile (double aZ,double aPds,double aCptr= -1,const cLoadedCP<float> * aLCP = 0) :
+        cElTmp0Pile (double aZ,double aPds,double aCptr= -1,const cLoadedCP<float> * aLCP = 0) :
            cElPilePrgD(aZ),
            mPdsPile  (aPds),
            mCPtr (aCptr),
@@ -119,7 +125,7 @@ class cElPile : public cElPilePrgD
         {
         }
 
-        cElPile() :
+        cElTmp0Pile() :
            cElPilePrgD(),
            mPdsPile(-1),
            mCPtr (0),
@@ -132,8 +138,8 @@ class cElPile : public cElPilePrgD
         const float & CPtr() const {return mCPtr;}
         const cLoadedCP<float> *  LCP() const {return mLCP; }
     private :
-        float mPdsPile;
-        float mCPtr;
+        float mPdsPile;  // Poids
+        float mCPtr;   // Compteur
         const cLoadedCP<float> * mLCP;
 };
 
@@ -142,6 +148,8 @@ class cTmpPile
 {
     public :
         cTmpPile(int aK,float aZ,float aPds,const cLoadedCP<float> * aLCP);
+        // Caclul entre deux cellule successive le poids exponentiel 
+       // qui sera utilise pour le filtrage recursif
         void SetPPrec(cTmpPile &,float aExpFact);
         // double Pds() {return mPds0 / mNb0;}
         double ZMoy() {return mPds0 ? (mZP0/mPds0) : 0 ;}
@@ -151,15 +159,18 @@ class cTmpPile
          double mCpteur;
          double mZInit;
          double mPInit;
-         double mZP0;
-         double mPds0;
-         double mNb0;
+         double mZP0;   // Z Pondere par le poids
+         double mPds0;  // Poids 
+         double mNb0;   // si le PdsInit=1, alors mNb0==mPds0, compte le nombre de pt de chaque cluste
+                        // (a une constante globale pres)
          const cLoadedCP<float> * mLCP;
 
+        // Variale pour le filtrage recursif "plus"
          double mNewZPp;
          double mNewPdsp;
          double mNewNbp;
 
+        // Variale pour le filtrage recursif "moins"
          double mNewZPm;
          double mNewPdsm;
          double mNewNbm;
@@ -184,7 +195,7 @@ template <class Type> class  cLoadedCP
         cLoadedCP(cFusionCarteProf<Type> &, const std::string & anId,const std::string & aFus,int aNum);
         const cXML_ParamNuage3DMaille & Nuage() {return mNuage;}
 
-        cElPile  CreatePile(const Pt2dr &) const;
+        cElTmp0Pile  CreatePile(const Pt2dr &) const;
         double   PdsLinear(const Pt2dr &) const;
 
         void  SetSz(const Pt2di & aSz);
@@ -359,7 +370,7 @@ template <class Type> class cFusionCarteProf
      /**********************************************************************************/
 
 
-bool operator < (const cElPile & aP1, const cElPile & aP2) {return aP1.Z() < aP2.Z();}
+bool operator < (const cElTmp0Pile & aP1, const cElTmp0Pile & aP2) {return aP1.Z() < aP2.Z();}
 class cCmpPdsPile
 {
    public :
@@ -370,7 +381,13 @@ class cCmpPdsPile
 };
 
 
+/*
+mK ;  // indexe initial
+mCpteur  ; //  rempli le cpt de cElTmp0Pile
+mPInit ; // poids initial
+mPds0;
 
+*/
 
 cTmpPile::cTmpPile(int aK,float aZ,float aPds,const cLoadedCP<float> * aLCP) :
     mK     (aK),
@@ -387,6 +404,7 @@ cTmpPile::cTmpPile(int aK,float aZ,float aPds,const cLoadedCP<float> * aLCP) :
 {
 }
 
+
 void cTmpPile::SetPPrec(cTmpPile & aPrec,float aExpFact)
 {
     ELISE_ASSERT(mZInit>=aPrec.mZInit,"Ordre coherence in cTmpPile::SetPPrec");
@@ -398,13 +416,17 @@ void cTmpPile::SetPPrec(cTmpPile & aPrec,float aExpFact)
     aPrec.mPNext = aPds;
 }
 
-void OneSensMoyTmpPile(std::vector<cTmpPile> & aVTmp)
+void FiltrageAllerEtRetour(std::vector<cTmpPile> & aVTmp)
 {
      int aNb = (int)aVTmp.size();
+
+   // Propagation de la gauche vers la droite qui seront stockes dans mNewPdp etc..
+         // Initialistion de la gauche
      aVTmp[0].mNewPdsp = aVTmp[0].mPds0;
      aVTmp[0].mNewZPp  = aVTmp[0].mZP0;
      aVTmp[0].mNewNbp  = aVTmp[0].mNb0;
 
+          // Propagattion
      for (int aK=1 ; aK<int(aVTmp.size()) ; aK++)
      {
           aVTmp[aK].mNewPdsp = aVTmp[aK].mPds0 + aVTmp[aK-1].mNewPdsp * aVTmp[aK].mPPrec;
@@ -412,6 +434,8 @@ void OneSensMoyTmpPile(std::vector<cTmpPile> & aVTmp)
           aVTmp[aK].mNewNbp  = aVTmp[aK].mNb0  + aVTmp[aK-1].mNewNbp  * aVTmp[aK].mPPrec;
      }
 
+
+   // Propagation de droite  a gauche da,s Pdsm etc ...
      aVTmp[aNb-1].mNewPdsm = aVTmp[aNb-1].mPds0;
      aVTmp[aNb-1].mNewZPm = aVTmp[aNb-1].mZP0;
      aVTmp[aNb-1].mNewNbm = aVTmp[aNb-1].mNb0;
@@ -422,6 +446,7 @@ void OneSensMoyTmpPile(std::vector<cTmpPile> & aVTmp)
           aVTmp[aK].mNewNbm  = aVTmp[aK].mNb0  + aVTmp[aK+1].mNewNbm  * aVTmp[aK].mPNext;
      }
 
+     // Memorisation dans mZP0 etc.. du resultat (droite + gauche - VCentrale) , VCentrale a ete compte deux fois
      for (int aK=0 ; aK<int(aVTmp.size()) ; aK++)
      {
           aVTmp[aK].mZP0  = (aVTmp[aK].mNewZPp  + aVTmp[aK].mNewZPm  - aVTmp[aK].mZP0) / aVTmp.size();
@@ -430,7 +455,7 @@ void OneSensMoyTmpPile(std::vector<cTmpPile> & aVTmp)
      }
 }
 
-Pt3dr VerifExp(const std::vector<cElPile> & aVPile,cElPile aP0,float aPixFact)
+Pt3dr VerifExp(const std::vector<cElTmp0Pile> & aVPile,cElTmp0Pile aP0,float aPixFact)
 {
     Pt3dr aRes (0,0,0);
     for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
@@ -441,7 +466,7 @@ Pt3dr VerifExp(const std::vector<cElPile> & aVPile,cElPile aP0,float aPixFact)
     return aRes / aVPile.size();
 }
 
-Pt3dr  PdsSol(const std::vector<cElPile> & aVPile,const cElPile & aP0,float aPixFact)
+Pt3dr  PdsSol(const std::vector<cElTmp0Pile> & aVPile,const cElTmp0Pile & aP0,float aPixFact)
 {
     Pt3dr aRes (0,0,0);
     for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
@@ -500,7 +525,7 @@ void IncreCptr(const std::vector<cTmpPile> & aVPile,cTmpPile & aPile,int aK0,flo
     }
 }
 
-std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,const cSpecAlgoFMNT & aFEv)
+std::vector<cElTmp0Pile>  ComputeExpEv(const std::vector<cElTmp0Pile> & aVPile,double aResolPlani,const cSpecAlgoFMNT & aFEv)
 {
 
   static int aCpt=0; aCpt++;
@@ -523,7 +548,9 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
         }
 
    }
-   OneSensMoyTmpPile(aTmp);
+
+// On fait deux filtrage exponentiel ce qui fait + ou - un filtrage gaussien
+   FiltrageAllerEtRetour(aTmp);
 
    if (false) // (LocBug)
    {
@@ -542,7 +569,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
        }
        // getchar();
    }
-   OneSensMoyTmpPile(aTmp);
+   FiltrageAllerEtRetour(aTmp);
    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
    {
         if (false) // (LocBug)
@@ -557,6 +584,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
         }
    }
 
+   // On selectionne les elements qui sont maxima local du Pds0
    std::vector<cTmpPile> aResTmp;
    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
    {
@@ -566,11 +594,14 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
        }
    }
 
+   // Si necessaire on ne garde que les NBMaxMaxLoc meilleurs element (selon Pds0)
    cCmpPdsPile aCmp;
    std::sort(aResTmp.begin(),aResTmp.end(),aCmp);
    while (int(aResTmp.size()) > aFEv.NBMaxMaxLoc().Val())  aResTmp.pop_back();
 
 
+   // Compte pour les element selectionne les voisin avec un fonction de ponderation
+   // qui vaut 1 jusqu'a Seuil/2,  0 au de la Seuil, et raccord continue entre les deux
    for (int aI=0 ; aI<int(aResTmp.size()) ; aI++)
    {
          IncreCptr(aTmp,aResTmp[aI],aResTmp[aI].mK  ,aSCpt,-1,            -1);
@@ -580,10 +611,11 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
 
 
 
-   std::vector<cElPile> aRes;
+  // Export sous forme d'un pile minimaliste
+   std::vector<cElTmp0Pile> aRes;
    for (int aK=0 ; aK<int(aResTmp.size()) ; aK++)
    {
-       cElPile  aPil (aResTmp[aK].ZMoy(),aResTmp[aK].mPds0,aResTmp[aK].mCpteur,aResTmp[aK].mLCP);
+       cElTmp0Pile  aPil (aResTmp[aK].ZMoy(),aResTmp[aK].mPds0,aResTmp[aK].mCpteur,aResTmp[aK].mLCP);
        aRes.push_back (aPil);
    }
 
@@ -787,7 +819,7 @@ template <class Type> double  cLoadedCP<Type>::PdsLinear(const Pt2dr & aPTer) co
 }
 
 
-template <class Type> cElPile  cLoadedCP<Type>::CreatePile(const Pt2dr & aPTer) const
+template <class Type> cElTmp0Pile  cLoadedCP<Type>::CreatePile(const Pt2dr & aPTer) const
 {
    Pt2dr aPIm = mAfM2CCur(aPTer);
    double aPds = PdsLinear(aPTer);
@@ -802,7 +834,7 @@ template <class Type> cElPile  cLoadedCP<Type>::CreatePile(const Pt2dr & aPTer) 
    {
        aZ = ToZAbs(mTImCP.getprojR(aPIm));
    }
-   return cElPile(aZ,aPds,-1,this);
+   return cElTmp0Pile(aZ,aPds,-1,this);
 }
 
 
@@ -1116,7 +1148,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
 
    TIm2D<INT2,INT>  aTIm0(mSzCur);
    TIm2D<INT2,INT>  aTImNb(mSzCur);
-   std::list<std::vector<cElPile> > aLVP;
+   std::list<std::vector<cElTmp0Pile> > aLVP;
 
 
 /*
@@ -1159,7 +1191,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    Pt2di aQ0;
    for (aQ0.y = 0 ; aQ0.y < mSzCur.y; aQ0.y++)
    {
-        std::vector<cElPile> aPCel;
+        std::vector<cElTmp0Pile> aPCel;
         for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
         {
 
@@ -1168,7 +1200,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
             double aSomP=0;
             for (int aKI=0 ; aKI<int(mVCL.size()); aKI++)
             {
-                cElPile anEl = mVCL[aKI]->CreatePile(aT0);
+                cElTmp0Pile anEl = mVCL[aKI]->CreatePile(aT0);
                 if (anEl.P()>0)
                 {
                    aPCel.push_back(anEl);
@@ -1187,7 +1219,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                 }
 
                 std::sort(aPCel.begin(),aPCel.end());
-                std::vector<cElPile> aVPile = ComputeExpEv(aPCel,mResolPlaniEquiAlt,mSpecA);
+                std::vector<cElTmp0Pile> aVPile = ComputeExpEv(aPCel,mResolPlaniEquiAlt,mSpecA);
 
                 aLVP.push_back(aVPile);
                 aTImNb.oset(aQ0, (int)aVPile.size());
@@ -1221,7 +1253,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
        cProg2DOptimiser<cFusionCarteProf>  * aPrgD = new cProg2DOptimiser<cFusionCarteProf>(*this,aTIm0._the_im,aTImNb._the_im,0,1); // 0,1 => Rab et Mul
        {
            cDynTplNappe3D<cTplCelNapPrgDyn<cElPilePrgD> > & aNap = aPrgD->Nappe();
-           std::list<std::vector<cElPile> >::const_iterator anIt =  aLVP.begin();
+           std::list<std::vector<cElTmp0Pile> >::const_iterator anIt =  aLVP.begin();
 
            for (aQ0.y = 0 ; aQ0.y < mSzCur.y; aQ0.y++)
            {
@@ -1235,10 +1267,10 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                      if (aNb)
                      {
                          ELISE_ASSERT(anIt!=aLVP.end(),"(1)Incoh in cFusionCarteProf");
-                         const std::vector<cElPile> & aPil = (*anIt);
+                         const std::vector<cElTmp0Pile> & aPil = (*anIt);
                          for (int aKz=0 ; aKz<aNb ; aKz++)
                          {
-                             const cElPile& aPk = aPil[aKz];
+                             const cElTmp0Pile& aPk = aPil[aKz];
                              aTabP[aKz].ArgAux() = cElPilePrgD(aPk.Z());
                              aTabP[aKz].SetOwnCost(ToICost(ElMax(0.0,ElMin(1.0,1.0-aPk.P()))));
 
@@ -1274,7 +1306,7 @@ if (aPk.P()>MaxP)
        Im2D_INT2 aSol(mSzCur.x,mSzCur.y);
        INT2 ** aDSol = aSol.data();
        aPrgD->TranfereSol(aDSol);
-       std::list<std::vector<cElPile> >::const_iterator anIt =  aLVP.begin();
+       std::list<std::vector<cElTmp0Pile> >::const_iterator anIt =  aLVP.begin();
        for (aQ0.y = 0 ; aQ0.y < mSzCur.y; aQ0.y++)
        {
             for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
@@ -1293,7 +1325,7 @@ if (aPk.P()>MaxP)
 
                    aTImFus.oset(aQ0,ToZSauv(aCol.ArgAux().Z()));
                    aTImMasq.oset(aQ0,1);
-                   const cElPile & aPz = (*anIt)[aZ];
+                   const cElTmp0Pile & aPz = (*anIt)[aZ];
                    aTImCorrel.oset(aQ0,ElMax(0,ElMin(255,(round_ni(aPz.P()*255)))));
                    aTImCptr.oset(aQ0,ElMax(0,ElMin(255,(round_ni(aPz.CPtr()*DynCptrFusDepthMap )))));
 
