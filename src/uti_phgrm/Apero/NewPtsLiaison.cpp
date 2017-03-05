@@ -154,7 +154,6 @@ void cAppliApero::InitNewBDL(const cBDD_NewPtMul & aBDN)
 
     mDicoNewBDL[aBDN.Id()] = aComp;
     
-    std::cout << "IDNewBDL " << aBDN.Id() << " NBB " << aSTP->size()  << " " << mNamesIdIm.size() << "\n";
 }
 
 bool cAppliApero::CDNP_InavlideUse_StdLiaison(const std::string & aName)
@@ -176,14 +175,51 @@ cCompile_BDD_NewPtMul * cAppliApero::CDNP_FromName(const std::string & aName)
 void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,const cObsLiaisons & anObsOl)
 {
    const std::vector<int> & aVIdIm = aConf->VIdIm();
+   int aNbIm = aConf->NbIm();
+   int aNbPts = aConf->NbPts();
+   std::vector<cGenPoseCam *> aVCam;
 
-   for (int aKIdIm = 0 ; aKIdIm<int(aVIdIm.size()) ; aKIdIm++)
+   for (int aKIdIm = 0 ; aKIdIm<aNbIm ; aKIdIm++)
    {
       cCelImTPM * aCel = aSet->CelFromInt(aVIdIm[aKIdIm]);
       cCam_NewBD * aCam = static_cast<cCam_NewBD *>(aCel->GetVoidData());
 
+      aVCam.push_back(aCam->mCam);
+
       std::cout << "CAMMM NAME " << aCam->mCam->Name() << "\n";
    }
+
+   for (int aKp=0 ; aKp<aNbPts ; aKp++)
+   {
+       std::vector<Pt2dr>    aVPt;
+       std::vector<ElSeg3D>  aVSeg;
+       for (int aKIm=0 ; aKIm <aNbIm ; aKIm++)
+       {
+           Pt2dr aPt = aConf->Pt(aKp,aKIm);
+           aVPt.push_back(aPt);
+           ElSeg3D aSeg =  aVCam[aKIm]->GenCurCam()->Capteur2RayTer(aPt);
+           aVSeg.push_back(aSeg);
+       }
+       bool Ok;
+       Pt3dr aPInt = InterSeg(aVSeg,Ok);
+       if (Ok)
+       {
+           double aDist=0;
+           for (int aKIm=0 ; aKIm <aNbIm ; aKIm++)
+           {
+               Pt2dr aPt = aConf->Pt(aKp,aKIm);
+               Pt2dr aQ  =  aVCam[aKIm]->GenCurCam()->Ter2Capteur(aPInt);
+               aDist += euclid(aPt-aQ);
+           }
+           std::cout << "D=" << aDist/aNbIm << "\n";
+       }
+       else
+       {
+            std::cout << "------------------Not ok---------------------\n";
+       }
+   }
+
+
    std::cout << "-----------------------------\n";
 }
 

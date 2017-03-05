@@ -523,6 +523,7 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
       cMMByImNM * mMMIN;
       cMMByImNM * mMMINS1;
       bool        mGlob;
+      int         mSzW;
 };
 
 
@@ -547,7 +548,8 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    mShowCom    (false),
    mAutoPurge  (false),
    mOut        ("QuickMac"),
-   mGlob       (true)
+   mGlob       (true),
+   mSzW        (1)
 {
    std::string Masq3D;
    std::string aPat,anOri;
@@ -567,6 +569,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                     << EAM(mJmp,"Jump",true,"Will compute only image Mod Jump==0 , def=1 (all images)")
                     << EAM(mOut,"Out",true,"Target Dir in Glob Mode")
                     << EAM(mGlob,"Glob",true,"Global mode (else output in each image dir)")
+                    << EAM(mSzW,"SzW",true,"Correlation Window Size (Def=1 means 3x3)")
    );
 
 
@@ -648,7 +651,10 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                               + mEASF.mFullName + " "
                               + Ori()
                               + std::string(" DoPyram=false DoMatch=false  Do2Z=false   ExportEnv=true  Zoom=")
-                              + ToString(aZoom);
+                              + ToString(aZoom)
+                              + " SzW=" + ToString(mSzW)
+                              ;
+
           if (EAMIsInit(&Masq3D)) aCom = aCom + " Masq3D=" + Masq3D;
 
           System(aCom);
@@ -799,7 +805,7 @@ int MMInitialModel_main(int argc,char ** argv)
     double aReducePly=3.0;
     std::string aMasq3D;
     bool aDoPyram= true;
-
+    int  aSzW=1;
 
     ElInitArgMain
     (
@@ -816,6 +822,7 @@ int MMInitialModel_main(int argc,char ** argv)
                     << EAM(aMasq3D,"Masq3D",true,"3D masq when exist (Def=true)", eSAM_IsBool)
                     << EAM(ExportEnv,"ExportEnv",true,"Export Max Min surfaces (Def=false)", eSAM_IsBool)
                     << EAM(aDoPyram,"DoPyram",true,"Do Pyram (set false when //izing)  ", eSAM_IsBool)
+                    << EAM(aSzW,"SzW",true,"Correlation Window Size (Def=1 means 3x3)")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -857,6 +864,7 @@ int MMInitialModel_main(int argc,char ** argv)
                               + std::string(" +ImSec=-") + ImSec
                               + " +DoPly=" + ToString(DoPly) + " "
                               + " +DoMatch=" + ToString(DoMatch) + " "
+                              + " +SzW=" + ToString(aSzW) + " "
                     ;
 
           if (ExportEnv)

@@ -127,7 +127,7 @@ int ANCIEN_TD_EXEMPLE_main(int argc,char ** argv)
        mm3d TestLib TD_Test Orientation-IMG_0016.CR2.xml AppuisTest-IMG_0016.CR2.xml
 */
 
-float SimilariteAbsDif(cTD_Im aIm1,cTD_Im aIm2,int aX1,int aY, int aX2,int aSzW)
+double SimilariteAbsDif(cTD_Im aIm1,cTD_Im aIm2,int aX1,int aY, int aX2,int aSzW)
 {
    double aDif = 0;
    for (int aDx=-aSzW ; aDx<=aSzW ; aDx++)
@@ -140,7 +140,7 @@ float SimilariteAbsDif(cTD_Im aIm1,cTD_Im aIm2,int aX1,int aY, int aX2,int aSzW)
    return aDif;
 }
 
-float SimilariteCorrel(cTD_Im aIm1,cTD_Im aIm2,int aX1,int aY, int aX2,int aSzW)
+double SimilariteCorrel(cTD_Im aIm1,cTD_Im aIm2,int aX1,int aY, int aX2,int aSzW)
 {
    double aS1=0.0;
    double aS2=0.0;
@@ -152,8 +152,8 @@ float SimilariteCorrel(cTD_Im aIm1,cTD_Im aIm2,int aX1,int aY, int aX2,int aSzW)
    {
       for (int aDy=-aSzW ; aDy<=aSzW ; aDy++)
       {
-          float aV1 = aIm1.GetVal(aX1+aDx,aY+aDy);
-          float aV2 = aIm2.GetVal(aX2+aDx,aY+aDy);
+          double aV1 = aIm1.GetVal(aX1+aDx,aY+aDy);
+          double aV2 = aIm2.GetVal(aX2+aDx,aY+aDy);
 
           aS1 += aV1;
           aS2 += aV2;
@@ -220,12 +220,12 @@ int TD_DiffImage(int argc,char ** argv)
            int aXMin2 = max(aSzW,anX1-aIntPx);
            int aXMax2 = min(aTx2-aSzW,anX1+aIntPx+1);
 
-           float aSimMin = 1e20;
+           double aSimMin = 1e20;
            int anX2Opt=-100000;
 
            for (int anX2 = aXMin2 ; anX2<aXMax2  ; anX2++)
            {
-               float aSim =  UseCorrel                                       ?
+               double aSim =  UseCorrel                                       ?
                              SimilariteCorrel(aIm1,aIm2,anX1,anY,anX2,aSzW)  :
                              SimilariteAbsDif(aIm1,aIm2,anX1,anY,anX2,aSzW)  ;
                if (aSim<aSimMin)
@@ -246,6 +246,34 @@ int TD_DiffImage(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+void Normalize(cTD_Im & anIm)
+{
+	Pt2di aSz=anIm.Sz();
+	
+	double aVMax = -1e20;
+	double aVMin = 1e20;
+	
+	for (int anX=0 ; anX<aSz.x ; anX++)
+	{
+		for (int anY=0 ; anY<aSz.y ; anY++)
+		{
+			double aVal = anIm.GetVal(anX,anY);
+			aVMax = max(aVMax,aVal);
+			aVMin = min(aVMin,aVal);
+
+		}
+	}
+	
+	for (int anX=0 ; anX<aSz.x ; anX++)
+	{
+		for (int anY=0 ; anY<aSz.y ; anY++)
+		{
+			double aVal = anIm.GetVal(anX,anY);
+			aVal = (aVal-aVMin) / (aVMax-aVMin);
+			anIm.SetVal(anX,anY,aVal);
+		}
+	}
+}
 
 int TD_CorrelQuick(int argc,char ** argv)
 {
@@ -268,8 +296,12 @@ int TD_CorrelQuick(int argc,char ** argv)
                     << EAM(Out,"Out",true,"Prefix for output")
     );
 
+    ElTimer aChrono;
+
     cTD_Im aIm1 = cTD_Im::FromString(aNameIm1);
     cTD_Im aIm2 = cTD_Im::FromString(aNameIm2);
+
+ 
 
     int aTx1 = aIm1.Sz().x;
     int aTy =  min(aIm1.Sz().y,aIm2.Sz().y);
@@ -284,27 +316,30 @@ int TD_CorrelQuick(int argc,char ** argv)
      // aIm1.Save(Out+"IM1.tif");
 
     // [2] Calcul des moyennes des carres 
-    cTD_Im aMoy11(aTx1,aTy);
-    cTD_Im aMoy22(aTx2,aTy);
+    cTD_Im aIm11(aTx1,aTy);
+    cTD_Im aIm22(aTx2,aTy);
 
          // [2.1] Calcule les carres
     for (int anY=0 ; anY<aTy ; anY++)
     {
          for (int aX1=0 ; aX1<aTx1 ; aX1++)
-            aMoy11.SetVal(aX1,anY,ElSquare(aIm1.GetVal(aX1,anY)));
+            aIm11.SetVal(aX1,anY,ElSquare(aIm1.GetVal(aX1,anY)));
 
          for (int aX2=0 ; aX2<aTx2 ; aX2++)
-            aMoy22.SetVal(aX2,anY,ElSquare(aIm2.GetVal(aX2,anY)));
+            aIm22.SetVal(aX2,anY,ElSquare(aIm2.GetVal(aX2,anY)));
     }
          // [2.2] Moyenne
-    aMoy11 = aMoy11.ImageMoy(aSzW,1);
-    aMoy22 = aMoy22.ImageMoy(aSzW,1);
+    cTD_Im aMoy11 = aIm11.ImageMoy(aSzW,1);
+    cTD_Im aMoy22 = aIm22.ImageMoy(aSzW,1);
 
          // [2.3] Moyenne
     for (int anY=0 ; anY<aTy ; anY++)
     {
          for (int aX1=0 ; aX1<aTx1 ; aX1++)
+         {
+
             aMoy11.SetVal(aX1,anY,aMoy11.GetVal(aX1,anY)-ElSquare(aMoy1.GetVal(aX1,anY)));
+         }
 
          for (int aX2=0 ; aX2<aTx2 ; aX2++)
             aMoy22.SetVal(aX2,anY,aMoy22.GetVal(aX2,anY)-ElSquare(aMoy2.GetVal(aX2,anY)));
@@ -349,20 +384,37 @@ int TD_CorrelQuick(int argc,char ** argv)
                 int aX2 = aX1+aPax;
                 if (aIm2.Ok(aX2,anY))
                 {
-                     float aV1  = aMoy1.GetVal(aX1,anY);
-                     float aV11 = aMoy11.GetVal(aX1,anY);
-                     float aV2  = aMoy2.GetVal(aX2,anY);
-                     float aV22 = aMoy22.GetVal(aX2,anY);
-                     float aV12 = aMoy12.GetVal(aX1,anY) - aV1 * aV2;
-                     float aCorrel = aV12 / sqrt(max(aV11*aV22,float(1e-5)));
+                     double aV1  = aMoy1.GetVal(aX1,anY);
+                     double aV11 = aMoy11.GetVal(aX1,anY);
+                     double aV2  = aMoy2.GetVal(aX2,anY);
+                     double aV22 = aMoy22.GetVal(aX2,anY);
+                     double aV12 = aMoy12.GetVal(aX1,anY) - aV1 * aV2;
+                     double aCorrel = aV12 / sqrt(max(aV11*aV22,double(1e-5)));
 
-                     float aSim = 1- aCorrel;
+if ((aCorrel > 10) || (aCorrel <-10))
+{
+	std::cout 
+	     << " aV1 " << aV1
+	       << " aV2 " << aV2
+	         << " aV11 " << aV11
+	           << " aV22 " << aV22
+	             << " aV12 " << aV12
+	             << "XY=" << aX1 << " " << anY << " X2 " << aX2
+	             << "\n";
+	            //getchar();
+}
 
-                     if (aSim < aImSim.GetVal(aX1,anY))
+                     if ((aCorrel<=1) && (aCorrel>=-1))
                      {
-                          aImSim.SetVal(aX1,anY,aSim);
-                          aPaxOpt.SetVal(aX1,anY,aPax);
-                     }
+
+                         double aSim = 1- aCorrel;
+
+                         if (aSim < aImSim.GetVal(aX1,anY))
+                         {
+                              aImSim.SetVal(aX1,anY,aSim);
+                             aPaxOpt.SetVal(aX1,anY,aPax);
+                          }
+				     }
 
                 }
                 else
@@ -377,6 +429,8 @@ int TD_CorrelQuick(int argc,char ** argv)
 
     aPaxOpt.Save(Out+"-Pax.tif");
     aImSim.Save(Out+"-Sim.tif");
+    
+    std::cout << " TIME " << aChrono.uval() << "\n";
 
     return EXIT_SUCCESS;
 }
