@@ -251,6 +251,34 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
         std::cout<<aOut<<" written."<<std::endl;
 	}
 	
+
+    //export en .ply
+    if (!MMVisualMode)
+    {
+
+        FILE * aFP = FopenNN(aOut+".ply","w","PLY2XYZ_main");
+        //cElemAppliSetFile aEASF(mDir + ELISE_CAR_DIR + aOut);
+        fprintf(aFP,"ply\n");
+        fprintf(aFP,"format ascii 1.0\n");
+        fprintf(aFP,"element vertex %lu\n",Pts3d.size());
+        fprintf(aFP,"property float x\n");
+        fprintf(aFP,"property float y\n");
+        fprintf(aFP,"property float z\n");
+        fprintf(aFP,"property uchar red\n");
+        fprintf(aFP,"property uchar green\n");
+        fprintf(aFP,"property uchar blue\n");
+        fprintf(aFP,"element face 0\n");
+        fprintf(aFP,"property list uchar int vertex_indices\n");
+        fprintf(aFP,"end_header\n");
+
+        for(unsigned int aVP=0; aVP<Pts3d.size(); aVP++)
+        {
+            fprintf(aFP,"%lf %lf %lf 255 0 0\n",Pts3d[aVP].x,Pts3d[aVP].y,Pts3d[aVP].z);
+        }
+
+        ElFclose(aFP);
+        std::cout<<aOut<<".ply written."<<std::endl;
+    }
 	
 	//export en .xml pour utiliser comme fichier de GCPs
 	if(aXmlExport)
