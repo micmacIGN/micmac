@@ -40,7 +40,44 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+double GetMin(Fonc_Num f, Pt2di aBrd, Pt2di aSz)
+{
+	double aRes;
+	ELISE_COPY
+	(	
+		rectangle(aBrd,aSz-aBrd),
+		f,
+		VMin(aRes)
+	);
+	return(aRes);
+}
 
+double GetMax(Fonc_Num f,  Pt2di aBrd, Pt2di aSz)
+{
+	double aRes;
+	ELISE_COPY
+	(	
+		rectangle(aBrd,aSz-aBrd),
+		f,
+		VMax(aRes)
+	);
+	return(aRes);
+}
+
+int GetQuantile(Im1D_INT4 *aData, int aNBin, int aNum)
+{
+	int aCount=0;
+	for(int aK=0; aK<aNBin; aK++)
+	{
+		aCount+=aData->data()[aK];
+		
+		if(aCount>=aNum)
+			return(aK);
+	}
+
+	ELISE_ASSERT(false,"CmpIm_main::GetQuantile  aNum overflows the available samples");
+	return(0.0);
+}
 
 
 int CmpIm_main(int argc,char ** argv)
@@ -57,8 +94,8 @@ int CmpIm_main(int argc,char ** argv)
      std::string mXmlG ="";
 	 bool aHisto = false;
 	 bool a16Bit = false;
-
-     ElInitArgMain
+     
+	 ElInitArgMain
      (
            argc,argv,
            LArgMain() << EAMC(aName1,"First image name", eSAM_IsExistFile)
@@ -73,18 +110,18 @@ int CmpIm_main(int argc,char ** argv)
                        << EAM(a16Bit,"16Bit",true,"Output file in 16bits")
                        << EAM(mXmlG,"XmlG",true,"Generate Xml")
                        << EAM(aHisto,"Hist",true,"Generate histogram stats")
-    );
+	 );
 
-    if (!MMVisualMode)
-    {
-        
+	if (!MMVisualMode)
+	{
+
         Tiff_Im aFile1 = Tiff_Im::BasicConvStd(aName1);
         Tiff_Im aFile2 = Tiff_Im::BasicConvStd(aName2);
         
         cXmlTNR_TestImgReport aImg;
         aImg.ImgName() = aName1;
 
-       if (aUseXmlFOM && (! EAMIsInit(&OkSzDif))) OkSzDif = true;
+        if (aUseXmlFOM && (! EAMIsInit(&OkSzDif))) OkSzDif = true;
         Pt2di aSz = aFile1.sz();
         if (aFile1.sz() != aFile2.sz())
         {
@@ -123,7 +160,7 @@ int CmpIm_main(int argc,char ** argv)
 
         Symb_FNum aFDifAbs(Rconv(Abs(aFile1.in()-aFonc2)));
 
-        double aNbDif,aSomDif,aMaxDif,aSom1;
+        double aNbDif,aSomDif,aMaxDif,aMinDif,aSom1;
         int  aPtDifMax[2];
 
         ELISE_COPY
@@ -138,12 +175,12 @@ int CmpIm_main(int argc,char ** argv)
             ),
             Virgule
             (
-               sigma(aSomDif) | VMax(aMaxDif) |    WhichMax(aPtDifMax,2),
+               sigma(aSomDif) | VMax(aMaxDif) | VMin(aMinDif) | WhichMax(aPtDifMax,2),
                sigma(aNbDif),
                sigma(aSom1)
             )
         );
-        
+       
 
         if (aNbDif)
         {
@@ -179,47 +216,167 @@ int CmpIm_main(int argc,char ** argv)
 			
 				if(aHisto)
 				{
-					int aNbPerc = 20;
-					std::vector<double> aVEr, aVErD;
-					
-					/*Flux_Pts aFlux(rectangle(aSz.x,aSz.y));
-					aFlux.chc(aRes);
-					Flux2StdCont(aVEr,aFlux);				*/
 
+					
+					//calculation of the histogram					
+					INT NbV = 256;
+					double aNormFac = (NbV-1)/(aMaxDif-aMinDif); 
+					
+					Im1D_INT4  H(NbV,0);
+					Flux_Pts aFlux = rectangle(aBrd,aSz-aBrd);
+		
+					ELISE_COPY
+					(
+						aFlux.chc(round_ni(Abs(aRes-aMinDif)*aNormFac)),
+						1,
+						H.histo()
+					);
+				
+
+						
 					FILE * aFp = FopenNN("Stats.txt","w","CmpIm");
 					fprintf(aFp,"================= PERC  : RESIDU ==================\n");
-
-					std::cout << "---histo---\n";
-					for(int aKp=aBrd.x; aKp<(aSz.x-aBrd.x); aKp++)
-						for(int aKt=aBrd.y; aKt<(aSz.y-aBrd.y); aKt++)
-							aVEr.push_back(aRes.ValFoncGen(Pt2di(aKp,aKt)));
-					
-					std::cout << "size aVEr=" << aVEr.size() << "\n";
-	
-					std::sort(aVEr.begin(),aVEr.end());
-					double aMedian = aVEr.at(floor(0.5*aVEr.size()));
-					
-					//get the normalized median abs deviation
-					for(int aK=0; aK<int(aVEr.size()); aK++)
-						aVErD.push_back( abs(aVEr.at(aK) - aMedian) );
-
-					std::sort(aVErD.begin(), aVErD.end());					
-					double aNMAD = 1.4826 * aVErD.at(floor(0.5*aVErD.size()));
-
-					for (int aK=0 ; aK<=aNbPerc ; aK++)
+					for (int aK=0 ; aK<NbV ; aK++)
 					{
-						//std::cout << "ind=" << (aK*(aVEr.size()-1))/aNbPerc << "\n"; 
-						double aQ = aVEr[(aK*(aVEr.size()-1))/aNbPerc];
-						fprintf(aFp,"Res[%f]=%f\n",(aK*100.0)/aNbPerc,aQ);
+								//std::cout << "aK " << aK << "=" << H.data()[aK] << "\n";
+								fprintf(aFp,"Res[%f]=%d\n",aK/aNormFac,H.data()[aK]);
 					}
 					fclose(aFp);
-					
-					std::cout << "Accuracy measures by [Hoehle & Hoehle, 2009]\n";
-					std::cout << "Q(0.5)                   =" << aMedian << " : median (50% quantile)\n";
-					std::cout << "NMAD                     =" << aNMAD << " : 1.4826 * median_j(|dh_j + mh|) \n";
-					std::cout << "Q(0.683)                 =" << aVEr.at(floor(0.683*aVEr.size())) << " : 68% quantile\n";
-					std::cout << "Q(0.95)                  =" << aVEr.at(floor(0.95*aVEr.size())) << " : 95% quantile\n";
+							
+						
+					//calculation of NMAD
+					Im1D_INT4  HAD(NbV,0);
+					Flux_Pts aFluxAD = rectangle(aBrd,aSz-aBrd);
+							
+					Fonc_Num aResMAD = (aRes - GetQuantile(&H, NbV, round_ni(0.5*aSom1))/aNormFac+aMinDif);
+							
+					double aMinDifAD=GetMin(aResMAD,aBrd,aSz), aMaxDifAD=GetMax(aResMAD,aBrd,aSz);
+					double aNormFacAD = double(NbV-1)/(aMaxDifAD-aMinDifAD);
 
+				
+
+					ELISE_COPY
+					(
+						aFluxAD.chc(round_ni( Abs((aResMAD - aMinDifAD)*aNormFacAD) )),
+						1,
+						HAD.histo()//already sorted
+					);
+			
+									
+                    //calculation of the standard accuracy measures
+                    double aSomSquare, aStDevAvant, aVarSom;
+                    ELISE_COPY
+                    (
+                        rectangle(aBrd,aSz-aBrd),
+                        Square(aRes),
+                        sigma(aSomSquare)
+                    );
+                    ELISE_COPY
+                    (
+                        rectangle(aBrd,aSz-aBrd),
+                        Square(Abs(aRes) - (aSomDif/aSom1)),
+                        sigma(aVarSom)
+                    );
+                    aStDevAvant = sqrt(aVarSom/(aSom1-1));
+			
+
+
+                    //calculation of the standard accuracy measures on data without outliers
+				 	double aSeuil = 3*(sqrt(aSomSquare/aSom1));
+				
+					//a trick to move from Fonc to Im2D_REAL4	
+					Tiff_Im::CreateFromFonc("NONAME.tif",aSz,(aRes),GenIm::real4);
+					Im2D_REAL4 aResIm = Im2D_REAL4::FromFileBasic("NONAME.tif");	
+
+					Im2D_REAL4 aResNOIm(aSz.x,aSz.y);
+					ELISE_COPY
+					(
+						select(aResIm.all_pts(),Abs(aResIm.in())<aSeuil),
+						aResIm.in(),
+						aResNOIm.out()
+					);
+						
+					
+					if(0)
+					{
+
+						Tiff_Im::CreateFromFonc
+						(
+							"foundOutliers.tif",
+							aSz-aBrd,
+							aResNOIm.in(),
+							GenIm::real4
+						);
+					}
+
+					double aSomDifNO, aSom1NO, aSomSqNO, aStDevApres, aVarSomNO;
+		
+					Symb_FNum aResOutlier(aResIm.in()-aResNOIm.in());
+
+					ELISE_COPY
+        			(
+            			rectangle(aBrd,aSz-aBrd),
+						aResOutlier!=0,
+						sigma(aSom1NO)
+        			);
+					ELISE_COPY
+        			(
+            			rectangle(aBrd,aSz-aBrd),
+						Rconv(aResOutlier),
+						sigma(aSomDifNO)
+					);
+
+       
+                    ELISE_COPY
+                    (
+                        rectangle(aBrd,aSz-aBrd),
+                        Square(aResNOIm.in()),
+                        sigma(aSomSqNO)
+                    );
+                    ELISE_COPY
+                    (
+                        rectangle(aBrd,aSz-aBrd),
+                        Square(Abs(aResNOIm.in()) - (aSomDif-aSomDifNO)/(aSom1-aSom1NO)),
+                        sigma(aVarSomNO)
+                    );
+                    aStDevApres = sqrt(aVarSomNO/(aSom1-aSom1NO-1));
+			
+					std::cout << "*********************************************************\n";
+					std::cout << "**     Accuracy measures by [Hoehle & Hoehle, 2009]    **\n";
+					std::cout << "*********************************************************\n";
+					std::cout << "              Robust   accuracy measures                 \n";
+					std::cout << "                                                         \n";
+					std::cout << "Q(0.5)         =" << GetQuantile(&H, NbV, round_ni(0.5*aSom1))/aNormFac+aMinDif 
+                                                    << "   : median (50% quantile)\n";
+					std::cout << "NMAD           =" <<   1.4826 * GetQuantile(&HAD, NbV, round_ni(0.5*aSom1))/aNormFacAD+aMinDifAD << ": 1.4826 ....\n";
+					std::cout << "Q(0.683)       =" << GetQuantile(&H, NbV, round_ni(0.683*aSom1))/aNormFac+aMinDif 
+                                                    << "   : 68% quantile\n";
+					std::cout << "Q(0.95)        =" << GetQuantile(&H, NbV, round_ni(0.95*aSom1))/aNormFac+aMinDif 
+                                                    << "   : 95% quantile\n";
+					std::cout << "Q(1.0)         =" << GetQuantile(&H, NbV, round_ni(1*aSom1))/aNormFac+aMinDif 
+                                                    << "   :100% quantile\n";
+					std::cout << "dh corresponding to a histogram bin=" << 1/aNormFac  << "\n";
+					std::cout << "                                                         \n";
+					std::cout << "*********************************************************\n";
+					std::cout << "              Standard accuracy measures                 \n";
+					std::cout << "                                                         \n";
+					std::cout << "RMSE                   =" << 
+                                     sqrt(aSomSquare/aSom1) <<"\n";
+					std::cout << "Mean                   =" << 
+                                            (aSomDif/aSom1) <<"\n";
+					std::cout << "Std dev                =" << 
+											 aStDevAvant    <<"\n";
+					std::cout << "                                                         \n";
+					std::cout << "Mean                   =" << 
+                        (aSomDif-aSomDifNO)/(aSom1-aSom1NO) <<" (no outliers) \n";
+					std::cout << "Std dev                =" << 
+                                                aStDevApres <<" (no outliers)\n";
+					std::cout << "Rejection threshold    =" << aSeuil <<" -> 3*std_dev\n";
+					std::cout << "Rejected outliers      =" << 
+                    aSom1NO << "=" << aSom1NO*100/aSom1 << "%" << "\n";
+					std::cout << "                                                         \n";
+					std::cout << "*********************************************************\n";
+				
            		}
 
            		std::cout << aName1 << " et " << aName2 << " sont differentes\n";
@@ -229,8 +386,8 @@ int CmpIm_main(int argc,char ** argv)
            		std::cout << "Difference maximale          = " << aMaxDif << " (position " << aPtDifMax[0] << " " << aPtDifMax[1] << ")\n";
 			}
  
-		if(mXmlG!="")
-    	{
+			if(mXmlG!="")
+    		{
 				
 				aImg.TestImgDiff() = false;
 				aImg.NbPxDiff() = aNbDif;
@@ -238,8 +395,8 @@ int CmpIm_main(int argc,char ** argv)
 				aImg.MoyDiff() = (aSomDif/aSom1);
 				Pt3dr Diff(aPtDifMax[0],aPtDifMax[1],aMaxDif);
 				aImg.DiffMaxi()= Diff;
-	   	}
-        }   
+	   		}
+		}
         else
         {
            std::cout << "FICHIERS IDENTIQUES SUR LEURS DOMAINES\n";
@@ -256,6 +413,93 @@ int CmpIm_main(int argc,char ** argv)
     }
     else{return EXIT_SUCCESS;}
     return 0;
+}
+
+int TestCmpIm_Ewelina(int argc,char ** argv)
+{
+	std::string aName;
+	double aRandVal  = 10.0;
+	double aRandProc = 0.15;
+	double aSystVal  = 0.0;
+	double aOutProc  = 0.0;  	
+
+	Pt2di aSz(256,256);
+
+    ElInitArgMain
+    (
+           argc,argv,
+           LArgMain()  << EAMC(aName,"Image name", eSAM_IsExistFile),
+           LArgMain()  << EAM(aRandVal,"Rand",true,"Add noise Def=10")
+                       << EAM(aRandProc,"RandPr",true,"\% of noise Def=0.15")
+                       << EAM(aSystVal,"Syst",true,"Add systematism Def=0")
+                       << EAM(aOutProc,"Outlier",true,"\% of outliers Def=0")
+    );
+	
+	Im2D_U_INT1 Im(aSz.x,aSz.y);
+
+	
+	//ajoute le bruiit
+	TIm2D<INT2,INT>    aImb(aSz);
+
+	srand (time(NULL));
+	double aBX = 0, aBY=0;
+	std::cout << aRandProc << " " << floor(double(aRandProc)*(aSz.x*aSz.y)) << "\n";
+	
+	if(aSystVal)
+	{
+		ELISE_COPY
+		(
+			rectangle(Pt2di(0,0),Pt2di(aSz.x,aSz.y)),//.chc(2*(FX,FY)),
+			FY/aSystVal,
+			aImb._the_im.out()
+		);
+	}
+
+	if(aOutProc)
+	{
+		for(int aK=0; aK<floor(aOutProc*aSz.x*aSz.y); aK++)
+		{
+ 			aBX = rand() % aSz.x;   
+ 			aBY = rand() % aSz.y; 
+	
+			aImb.oset(Pt2di(aBX,aBY),200);
+			
+		}
+	}
+	
+	for(int aK=0; aK<floor(aRandProc*aSz.x*aSz.y); aK++)
+	{ 
+ 		aBX = rand() % aSz.x;   
+ 		aBY = rand() % aSz.y; 
+	
+		aImb.oset(Pt2di(aBX,aBY),aRandVal);
+	}
+	
+	//normalize
+	double aVMax, aVMin;
+	ELISE_COPY
+	(
+		rectangle(Pt2di(0,0),Pt2di(aSz.x,aSz.y)),
+		aImb._the_im.in(),
+		VMax(aVMax) | VMin(aVMin)
+	);
+	
+	ELISE_COPY
+	(
+		aImb._the_im.all_pts(),
+		255/(aVMax-aVMin)*aImb._the_im.in(),
+		Im.out()
+	);
+
+	Tiff_Im::CreateFromFonc
+	(
+		aName,
+		aSz,
+		Im.in(),
+		GenIm::real4
+	);
+
+	return(1);
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

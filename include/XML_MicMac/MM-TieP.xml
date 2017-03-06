@@ -12,6 +12,7 @@
    <Symb> Zoom=8     </Symb>
    <Symb> Im1=IMG_0018.JPG </Symb>
    <Symb> Do2Z=true        </Symb>
+   <Symb> SzW=1           </Symb>
 
    <Symb>  ReduceExp=3.0 </Symb>
    <Symb>  DoPly=true  </Symb>
@@ -90,7 +91,7 @@
 
       <EtapeMEC>
              <DeZoom >  -1                      </DeZoom>
-             <SzW >      1             </SzW>
+             <SzW >      ${SzW}             </SzW>        
              <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
              <AggregCorr> eAggregMinIm1Maitre </AggregCorr>
 
@@ -120,7 +121,7 @@
                             <ModeDense> true </ModeDense>
                             <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
-                                 <SzW> 1 1 </SzW>
+                                 <SzW> ${SzW} ${SzW} </SzW>
                                  <Sigma> 0 </Sigma>
                                  <Pds> 1.0 </Pds>
                             </OneParamCMS>
