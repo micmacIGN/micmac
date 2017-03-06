@@ -2656,6 +2656,7 @@ class cAppliApero : public NROptF1vND
 
          std::map<std::string,cCompile_BDD_NewPtMul *>  mDicoNewBDL;
          std::vector<cGenPoseCam*>                      mVCamNewB;
+         cManipPt3TerInc *                              mGlobManiP3TI;
 };
 
 

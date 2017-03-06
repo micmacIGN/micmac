@@ -1134,6 +1134,7 @@ void cParamPtProj::SetBasePPP(const double & aB)
 /*                                                          */
 /************************************************************/
 
+
 cManipPt3TerInc::cManipPt3TerInc
 (
         cSetEqFormelles &              aSet,
@@ -1162,6 +1163,7 @@ cManipPt3TerInc::cManipPt3TerInc
 
     if (aClose)
        mSubst.Close();
+
 }
 
 void VerifSizeCamPtPds
