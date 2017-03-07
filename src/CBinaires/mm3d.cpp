@@ -208,12 +208,16 @@ int GenerateBorderCam_main(int argc,char ** argv);
 
 int Ratafia_Main(int argc,char ** argv);
 
+int FusionDepl_Main(int argc,char ** argv);
+
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("FusionDepl",FusionDepl_Main,"Fusion carte de deplacement "));
        aRes.push_back(cMMCom("TestPbRPC",TestCamRPC,"Test possible Problems on RPC ",cArgLogCom(2)));
        aRes.push_back(cMMCom("TestBundleInter",TestBundleInter_main,"Block Initialisation "));
        aRes.push_back(cMMCom("Blinis",Blinis_main,"Block Initialisation ",cArgLogCom(2)));
@@ -531,6 +535,7 @@ extern int TestER_main(int argc,char ** argv);
 extern int TestER_grille_main(int argc,char ** argv);
 extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
+extern int TestCmpIm_Ewelina(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -708,7 +713,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
        aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
-       aRes.push_back(cMMCom("TestER",GCPCtrlPly_main,"ER test workplace"));
+       aRes.push_back(cMMCom("TestER",TestCmpIm_Ewelina,"ER test workplace"));
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));

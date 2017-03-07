@@ -215,6 +215,13 @@ int mergeHomol_main(int argc,char ** argv)
     vector<string> listHomolInDir = getDirListRegex(aHomolInPattern);
     ELISE_ASSERT(listHomolInDir.size()>0,"ERROR: No input Homol dir found!");
 
+    std::cout<<"Homols corresponding to regex:"<<std::endl;
+    for (unsigned int i=0;i<listHomolInDir.size();i++)
+    {
+        std::cout<<" - "<<listHomolInDir[i]<<endl;
+    }
+    std::cout<<endl;
+
     std::string aDirWork,aPatIm;
     SplitDirAndFile(aDirWork,aPatIm,".*");
 

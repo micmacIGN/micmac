@@ -943,6 +943,8 @@ void cAppliApero::BasculePoints
       aXSBR.MoyenneDistAlti() /= aV1.size();
       aXSBR.MoyenneDistPlani() /= aV1.size();
 
+
+      ELISE_fp::MkDirSvp(DirOfFile(aBOP.NameExport().Val()));
       MakeFileXML(aXSBR,aBOP.NameExport().Val());
    }
 

@@ -532,6 +532,12 @@
                               </ObsCentrePDV>
                           </#WHEN>
                           <#WHEN VTEST=${AcceptGB}> <!-- Generik Bundle -->
+                              <#WHEN VTEST=${WithPatPoseFigee}> <!-- Generik Bundle -->
+                                 <ContrCamGenInc>
+                                      <PatternApply> ${PatPoseFigee}  </PatternApply>
+                                      <PdsAttachToId>   1     </PdsAttachToId>
+                                 </ContrCamGenInc>
+                              </#WHEN>
                               <ContrCamGenInc>
                                    <PatternApply> .*  </PatternApply>
                                    <PdsAttachToId>   ${PdsGBId}     </PdsAttachToId>

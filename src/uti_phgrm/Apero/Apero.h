@@ -2647,6 +2647,7 @@ class cAppliApero : public NROptF1vND
          Pt3dr  mSomAbsEcPtsFlot;
          Pt3dr  mMaxAbsEcPtsFlot;
 
+         // Utilise pour genere les identifiant permettant d'interpreter les incertitudes
          int   mNumCalib;
          std::vector<std::string> mNamesIdCalib;
          int   mNumImage;
@@ -2654,6 +2655,7 @@ class cAppliApero : public NROptF1vND
 
 
          std::map<std::string,cCompile_BDD_NewPtMul *>  mDicoNewBDL;
+         std::vector<cGenPoseCam*>                      mVCamNewB;
 };
 
 
