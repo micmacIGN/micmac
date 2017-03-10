@@ -38,19 +38,25 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+#include <iostream>
+#include <string>
 
 class cCalMECEsSim
 {
 public:
-    cCalMECEsSim(string & mDir, string & mName, string & mNameX, string & mNameY);
+    cCalMECEsSim(string & mDir, string & mName, string & mNameX, string & mNameY, int & mScale);
     void CreateCom(string & aXml, int & aPas);
     void EsSim(string & aOutEsSim);
     void CalMEC();
     void StatIm(string & aOutStatIm);
+    void ScaleIm (bool & aIfScale);
     string & Dir () {return mDir;}
     string & Name () {return mName;}
     string & NameX () {return mNameX;}
     string & NameY () {return mNameY;}
+    string & NameXScale () {return mNameXScale;}
+    string & NameYScale () {return mNameYScale;}
+    int & Scale () {return mScale;}
     vector<string> & VDirMEC () {return mVDirMEC;}
     vector<string> & VComCalMEC () {return mVComCalMEC;}
 private:
@@ -58,16 +64,19 @@ private:
     string mName;
     string mNameX;
     string mNameY;
+    string mNameXScale;
+    string mNameYScale;
+    int mScale;
     vector<string> mVDirMEC;
     vector<string> mVComCalMEC;
 };
 
-cCalMECEsSim::cCalMECEsSim(string & aDir, string & aName, string & aNameX, string & aNameY):
+cCalMECEsSim::cCalMECEsSim(string & aDir, string & aName, string & aNameX, string & aNameY, int & aScale):
     mDir (aDir),
     mName (aName),
     mNameX (aNameX),
     mNameY (aNameY),
-    mVDirMEC ()
+    mScale (aScale)
 {}
 
 void cCalMECEsSim::CreateCom(string & aXml, int & aPas)
@@ -100,6 +109,36 @@ void cCalMECEsSim::CalMEC()
     }
 }
 
+void cCalMECEsSim::ScaleIm (bool & aIfScale)
+{
+    mNameXScale ="Px1_Scale_" + ToString(mScale) + ".tif";
+    mNameYScale ="Px2_Scale_" + ToString(mScale) + ".tif";
+
+    if (aIfScale)
+    {
+        for (uint aS=0; aS < mVDirMEC.size(); aS++)
+        {
+            cout << "Scale" << mVDirMEC.at(aS) << endl;
+            string aDirScaleX = mDir + mVDirMEC.at(aS)+mNameX;
+            string aDirScaleY = mDir + mVDirMEC.at(aS)+mNameY;
+            string aOutScaleX = mDir + mVDirMEC.at(aS)+mNameXScale;
+            string aOutScaleY = mDir + mVDirMEC.at(aS)+mNameYScale;
+
+            string aComScaleX = MM3dBinFile("ScaleIm")
+                                +aDirScaleX
+                                +" " + ToString(mScale)
+                                +" Out=" + aOutScaleX;
+
+            string aComScaleY = MM3dBinFile("ScaleIm")
+                                +aDirScaleY
+                                +" " + ToString(mScale)
+                                +" Out=" + aOutScaleY;
+
+            system_call(aComScaleX.c_str());
+            system_call(aComScaleY.c_str());
+        }
+    }
+}
 void cCalMECEsSim::EsSim(string & aOutEsSim)
 {
     //Estimate the similarity and put the results in aOutEsSim.txt
@@ -112,8 +151,9 @@ void cCalMECEsSim::EsSim(string & aOutEsSim)
     for (uint aF=0; aF < mVDirMEC.size(); aF++)
     {
         string aDirEsSim = mDir + mVDirMEC.at(aF);
-        Tiff_Im aTifX (Tiff_Im::UnivConvStd(aDirEsSim  + mNameX));
-        Tiff_Im aTifY (Tiff_Im::UnivConvStd(aDirEsSim  + mNameY));
+        cout << "EsSim : " << mVDirMEC.at(aF) << endl;
+        Tiff_Im aTifX (Tiff_Im::UnivConvStd(aDirEsSim  + mNameXScale));
+        Tiff_Im aTifY (Tiff_Im::UnivConvStd(aDirEsSim  + mNameYScale));
         Pt2di aSz (aTifX.sz());
 
         Im2D<double,double> aImgX  (1,1); //initiation of vignette X
@@ -134,12 +174,16 @@ void cCalMECEsSim::EsSim(string & aOutEsSim)
         {
             for(int aKy=0;aKy < aSz.y;aKy++)
             {
-                double coeffX[4] = {double(aKx), double(-aKy), 1.0, 0.0};
-                double coeffY[4] = {double(aKy ), double(aKx), 0.0, 1.0};
+                double coeffXUL[4] = {(double(aKx)-0.5)*double(mScale), -(double(aKy)-0.5)*double(mScale), 1.0, 0.0};
+                double coeffYUL[4] = {(double(aKy)-0.5)*double(mScale), (double(aKx)-0.5)*double(mScale), 0.0, 1.0};
+                double coeffXDR[4] = {(double(aKx)+0.5)*double(mScale), -(double(aKy)+0.5)*double(mScale), 1.0, 0.0};
+                double coeffYDR[4] = {(double(aKy)+0.5)*double(mScale), (double(aKx)+0.5)*double(mScale), 0.0, 1.0};
                 double delX = aImgX.GetR(Pt2di(aKx, aKy));
                 double delY = aImgY.GetR(Pt2di(aKx, aKy));
-                aSys.AddEquation(1.0, coeffX, delX);
-                aSys.AddEquation(1.0, coeffY, delY);
+                aSys.AddEquation(1.0, coeffXUL, delX);
+                aSys.AddEquation(1.0, coeffYUL, delY);
+                aSys.AddEquation(1.0, coeffXDR, delX);
+                aSys.AddEquation(1.0, coeffYDR, delY);
             }
         }
         bool solveOK = true;
@@ -233,7 +277,8 @@ void cCalMECEsSim::StatIm(string & aOutStatIm)
 int TestYZ_main(int argc, char ** argv)
 {
     string aDir, aName, aXml, aOutEsSim="All_H2D", aNameX = "Px1_Num12_DeZoom1_LeChantier.tif", aNameY = "Px2_Num12_DeZoom1_LeChantier.tif", aOutStatIm="All_StatIm";
-    int aPas(1), aFunc(0);
+    int aPas(1), aFunc(0), aScale (10);
+    bool aIfStat (false), aIfScale (false);
 
     ElInitArgMain
     (
@@ -246,19 +291,23 @@ int TestYZ_main(int argc, char ** argv)
                     << EAM(aNameX,"NameX",true,"name of deplacement img of axis-x; Def=Px1_Num12_DeZoom1_LeChantier.tif")
                     << EAM(aNameY,"NameY",true,"name of deplacement img of axis-x; Def=Px1_Num12_DeZoom1_LeChantier.tif")
                     << EAM(aOutEsSim,"OutEsSim",true,"Output file name for A,B,C,D Helmert2D Params; Def=All_H2D")
+                    << EAM(aIfStat,"IfStatIm",true,"execute StatIm or not; Def=false")
                     << EAM(aOutStatIm,"OutStatIm",true,"Output file name for StatIm; Def=All_StatIm")
+                    << EAM(aIfScale,"IfScale",false,"execute ScaleIm or not; Def=false")
+                    << EAM(aScale,"Scale",true,"Scale of image sampling before estimation; Def=10")
     );
 
-    cCalMECEsSim  aCalMECEsSim(aDir, aName, aNameX, aNameY);
+    cCalMECEsSim  aCalMECEsSim(aDir, aName, aNameX, aNameY, aScale);
     aCalMECEsSim.CreateCom(aXml, aPas);
 
     if (aFunc == 0 || aFunc ==1)
         aCalMECEsSim.CalMEC();
 
     if (aFunc == 0 || aFunc ==2)
+        aCalMECEsSim.ScaleIm(aIfScale);
         aCalMECEsSim.EsSim(aOutEsSim);
 
-    if (aOutStatIm != "")
+    if (aIfStat)
         aCalMECEsSim.StatIm(aOutStatIm);
 
     return EXIT_SUCCESS;
