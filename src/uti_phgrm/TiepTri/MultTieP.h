@@ -65,6 +65,7 @@ class cCelImTPM
 
          void *  GetVoidData() const;
          void    SetVoidData(void *);
+         int     & Id() {return mId;}
     private :
          std::string mNameIm;
          int         mId;

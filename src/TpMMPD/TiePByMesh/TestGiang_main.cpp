@@ -44,6 +44,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Triangle.h"
 #include <stdio.h>
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
+#include "../../uti_phgrm/TiepTri/MultTieP.h"
+
 
 
 void Test_Xml()
@@ -368,3 +370,207 @@ int TestDetecteur_main(int argc,char ** argv)
 //-----------------TestGiang---------------//
 
 
+//-----------------Test New format point Homologue---------------//
+double cal_Residu( Pt3dr aPInter3D , vector<CamStenope*> & aVCamInter, vector<Pt2dr> & aVPtInter)
+{
+    double aMoy =0.0;
+    for (uint aKCam=0; aKCam<aVCamInter.size(); aKCam++)
+    {
+        CamStenope * aCam = aVCamInter[aKCam];
+        Pt2dr aPtMes = aVPtInter[aKCam];
+        Pt2dr aPtRep = aCam->Ter2Capteur(aPInter3D);
+        aMoy = aMoy + euclid(aPtMes, aPtRep);
+    }
+    return aMoy/aVCamInter.size();
+}
+
+
+Pt3di gen_coul(double val, double min, double max)
+{
+    if (val <= max && val >=min)
+    {
+        double Number = (val-min)/(max-min);
+        int Green = round(255.0 - (255.0 * Number));
+        int Red = round(255.0 * Number);
+        int Blue = 0;
+        return Pt3di(Red, Green, Blue);
+    }
+    else if (max == min && val == max)
+        return Pt3di(0,255,0);  //green ?
+    else
+        return Pt3di(0,0,0);  //noir
+}
+
+Pt3di gen_coul_emp(int val)
+{
+    switch (val)
+    {
+        case 1:
+            return Pt3di (255,0,0); //rouge
+        case 2:
+            return Pt3di (255,144,0);   //orange
+        case 3:
+            return Pt3di (255,255,0);   //jaune
+        case 4:
+            return Pt3di (140,255,0);   //vert jaunit
+        case 5:
+            return Pt3di (0,255,221);   //cyan
+        default:
+            return Pt3di (0,255,0);     //vert
+    }
+
+}
+
+
+Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D)
+{
+
+    std::vector<ElSeg3D> aVSeg;
+
+    for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
+    {
+        ElSeg3D aSeg = aVCS.at(aKR)->F2toRayonR3(aNPts2D.at(aKR));
+        aVSeg.push_back(aSeg);
+    }
+
+    Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+    return aRes;
+}
+
+
+int TestGiangNewHomol_Main(int argc,char ** argv)
+{
+    string aDir = "./";
+    string aSH="";
+    string aOri="";
+    Pt2dr aRange(0.0,0.0);
+    bool relative = true;
+    double resMaxTapas = 3.0;
+    string aPlyRes="Cloud_Residu.ply";
+    string aPlyEmp="Cloud_Emp.ply";
+    double seuilBH = 0.0;
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aSH, "Homol New Format file",  eSAM_IsExistFile)
+                      << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
+          LArgMain()
+                      << EAM(aDir,"Dir",true,"Directory , Def=./")
+                      << EAM(resMaxTapas,"seuilRes",true,"threshold of reprojection error ")
+                      << EAM(seuilBH,"seuilBH",true,"threshold for rapport B/H")
+                      << EAM(aRange,"aRange",true,"range to colorize reprojection error ,green->red Def= colorize as relative (min->resMax)")
+                      << EAM(aPlyRes,"PlyRes",true,"Ply's name output for residus - def=Cloud_Residu.ply")
+                      << EAM(aPlyEmp,"PlyEmp",true,"Ply's name output for emplacement image - def=Cloud_Emp.ply")
+
+    );
+
+    if (EAMIsInit(&aRange))
+    {
+        relative = false;
+    }
+
+    cInterfChantierNameManipulateur*  aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    StdCorrecNameOrient(aOri, aICNM->Dir());
+    const std::string  aSHInStr = aSH;
+    cSetTiePMul * aSHIn = new cSetTiePMul(0);
+    aSHIn->AddFile(aSHInStr);
+
+    cout<<"Total : "<<aSHIn->DicoIm().mName2Im.size()<<" imgs"<<endl;
+    std::map<std::string,cCelImTPM *> VName2Im = aSHIn->DicoIm().mName2Im;
+    // load cam for all Img
+    // Iterate through all elements in std::map
+    std::map<std::string,cCelImTPM *>::iterator it = VName2Im.begin();
+    vector<CamStenope*> aVCam (VName2Im.size());
+    while(it != VName2Im.end())
+    {
+        //std::cout<<it->first<<" :: "<<it->second->Id()<<std::endl;
+        string aNameIm = it->first;
+        int aIdIm = it->second->Id();
+        CamStenope * aCam = aICNM->StdCamStenOfNames(aNameIm, aOri);
+        aVCam[aIdIm] = aCam;
+        it++;
+    }
+    cPlyCloud aCPlyRes;
+    cPlyCloud aCPlyEmp;
+
+    cout<<"VPMul - Nb Config: "<<aSHIn->VPMul().size()<<endl;
+    std::vector<cSetPMul1ConfigTPM *> aVCnf = aSHIn->VPMul();
+
+    vector<double> aVResidu;
+    vector<Pt3dr> aVAllPtInter;
+    vector<int> aVNbImgOvlap;
+
+    double resMax = 0.0;
+    double resMin = DBL_MAX;
+    for (uint aKCnf=1; aKCnf<aVCnf.size(); aKCnf++)
+    {
+        cSetPMul1ConfigTPM * aCnf = aVCnf[aKCnf];
+        //cout<<"Cnf : "<<aKCnf<<" - Nb Imgs : "<<aCnf->NbIm()<<" - Nb Pts : "<<aCnf->NbPts()<<endl;
+        std::vector<int> aVIdIm =  aCnf->VIdIm();
+        for (uint aKPtCnf=0; aKPtCnf<aCnf->NbPts(); aKPtCnf++)
+        {
+            vector<Pt2dr> aVPtInter;
+            vector<CamStenope*> aVCamInter;
+
+
+            for (uint aKImCnf=0; aKImCnf<aVIdIm.size(); aKImCnf++)
+            {
+                //cout<<aCnf->Pt(aKPtCnf, aKImCnf)<<" ";
+                aVPtInter.push_back(aCnf->Pt(aKPtCnf, aKImCnf));
+                aVCamInter.push_back(aVCam[aVIdIm[aKImCnf]]);
+            }
+            //cout<<endl;
+            //Intersect aVPtInter:
+            ELISE_ASSERT(aVPtInter.size() == aVCamInter.size(), "Size not coherent");
+            ELISE_ASSERT(aVPtInter.size() > 1 && aVCamInter.size() > 1, "Nb faiseaux < 2");
+            Pt3dr aPInter3D = Intersect_Simple(aVCamInter , aVPtInter);
+            //calcul reprojection error :
+            double resMoy = cal_Residu( aPInter3D , aVCamInter, aVPtInter);
+            //cout<<resMoy<<endl;
+            if (resMoy >= resMax)
+            {
+                if (resMoy <= resMaxTapas)
+                {
+                    resMax = resMoy;
+                }
+                else
+                {
+                    resMax =resMaxTapas;
+                }
+            }
+            else
+            {
+                if (resMoy <= resMin)
+                {
+                    resMin = resMoy;
+                }
+            }
+            if (resMoy <= resMaxTapas && resMoy>=0.0)
+            {
+                aVAllPtInter.push_back(aPInter3D);
+                aVResidu.push_back(resMoy);
+                aVNbImgOvlap.push_back(aVPtInter.size());
+            }
+
+        }
+    }
+    //ajout au nuage de point
+    cout<<"Nb Pt 3d : "<<aVResidu.size();
+    cout<<"Res max = "<<resMax<<" -res Min = "<<resMin<<endl;
+    for (uint aKPt=0; aKPt<aVAllPtInter.size(); aKPt++)
+    {
+        if (!relative)
+        {
+            aCPlyRes.AddPt(gen_coul(aVResidu[aKPt], aRange.x,  aRange.y), aVAllPtInter[aKPt]);
+        }
+        else
+        {
+            aCPlyRes.AddPt(gen_coul(aVResidu[aKPt], resMin,  resMax), aVAllPtInter[aKPt]);
+        }
+        aCPlyEmp.AddPt(gen_coul_emp(aVNbImgOvlap[aKPt]), aVAllPtInter[aKPt]);
+    }
+    aCPlyRes.PutFile(aPlyRes);
+    aCPlyEmp.PutFile(aPlyEmp);
+    cout<<"Nb Emplacement image : 1 rouge - 2 orange - 3 jaune - 4 vert jaune - 5 cyan - > 5 vert"<<endl;
+    return EXIT_SUCCESS;
+}
