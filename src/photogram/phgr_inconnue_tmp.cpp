@@ -974,6 +974,12 @@ cSubstitueBlocIncTmp::cSubstitueBlocIncTmp(cEqfBlocIncTmp & aBlocTmp) :
 */
 }
 
+void cSubstitueBlocIncTmp::ResetNonTmp()
+{
+     mSBlNonTmp.clear();
+     mNbBloc =0;
+}
+
 void cSubstitueBlocIncTmp::AddInc(const cIncListInterv & anILI)
 {
    const cMapIncInterv & aMap =  anILI.Map();
@@ -1134,12 +1140,41 @@ void cParamPtProj::SetBasePPP(const double & aB)
 /*                                                          */
 /************************************************************/
 
+void cManipPt3TerInc::SubstReinit(bool aClose)
+{
+    for (int aKC=0; aKC<int(mVCamVis.size()) ; aKC++)
+    {
+       mSubst.AddInc(mVCamVis[aKC]->IntervAppuisPtsInc());
+    }
+
+    if (mEqSurf)
+    {
+       mSubst.AddInc(mEqSurf->IntervSomInc());
+    }
+
+    if (aClose)
+       mSubst.Close();
+
+}
+
+void cManipPt3TerInc::SubstInitWithArgs
+     (
+         const std::vector<cGenPDVFormelle *>  &  aVCamVis, 
+         cSurfInconnueFormelle *                  anEqSurf,
+         bool                                     aClose
+     )
+{
+    mVCamVis = aVCamVis;
+    mEqSurf  = anEqSurf;
+    mSubst.ResetNonTmp();
+    SubstReinit(aClose);
+}
 
 cManipPt3TerInc::cManipPt3TerInc
 (
         cSetEqFormelles &              aSet,
         cSurfInconnueFormelle *         anEqSurf,
-        std::vector<cGenPDVFormelle *> aVCamVis,
+        const std::vector<cGenPDVFormelle *> & aVCamVis,
         bool                           aClose
 )  :
    mSet        (aSet),
@@ -1152,6 +1187,8 @@ cManipPt3TerInc::cManipPt3TerInc
    mMulGlobPds (1.0)
 
 {
+   SubstReinit(aClose);
+/*
     for (int aKC=0; aKC<int(mVCamVis.size()) ; aKC++)
     {
        mSubst.AddInc(mVCamVis[aKC]->IntervAppuisPtsInc());
@@ -1163,6 +1200,7 @@ cManipPt3TerInc::cManipPt3TerInc
 
     if (aClose)
        mSubst.Close();
+*/
 
 }
 

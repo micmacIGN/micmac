@@ -192,6 +192,10 @@ void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,con
       // std::cout << "CAMMM NAME " << aCam->mCam->Name() << "\n";
    }
 
+   std::cout << "AAAAAAAAaaa\n";
+   mGlobManiP3TI->SubstInitWithArgs(aVGPdvF,0,true);
+   std::cout << "Bbbbbbbbbb\n";
+   
    // cManipPt3TerInc
 
    for (int aKp=0 ; aKp<aNbPts ; aKp++)
@@ -245,6 +249,8 @@ void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & an
      
     cSetTiePMul *  aSetPM = aCDN->SetPM() ;
     const std::vector<cSetPMul1ConfigTPM *> &  aVPM = aSetPM->VPMul();
+
+    std::cout << "cAppliApero::CDNP_Compens:NBCONFIG " <<  aVPM.size() << "\n";
 
     for (int aKConf=0 ; aKConf<int(aVPM.size()) ; aKConf++)
     {
