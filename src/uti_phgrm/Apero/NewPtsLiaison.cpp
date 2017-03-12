@@ -499,19 +499,6 @@ void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & an
 
     std::cout << "\n";
     std::cout << "-----------------------------------------------------------------\n";
-    for  (int aKIm=0 ; aKIm<aNbIm ; aKIm++)
-    {
-         cCelImTPM * aCel = aSetPM->CelFromInt(aKIm);
-         cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
-         const cStatResPM & aStat = aCamNBD->mStat;
-
-         std::cout << "For pose=" << aCamNBD->mCam->Name()
-                   << " NbPts="  << aStat.mNb
-                   << " Res=" <<  sqrt(aStat.mSomPdsEr2 / aStat.mSomPds)
-                   << " %NN=" <<  (100.0*aStat.mNbNN) / aStat.mNb
-                   << "\n";
-    }
-    std::cout << "-----------------------------------------------------------------\n";
     for (int aKS=0 ; aKS<int(aVStat.size()) ; aKS++)
     {
          const cStatResPM & aStat = aVStat[aKS];
@@ -524,6 +511,44 @@ void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & an
                        << "\n";
          }
     }
+    std::cout << "-----------------------------------------------------------------\n";
+    cCam_NewBD * aCamWorstRes = 0;
+    cCam_NewBD * aCamWorstPerc = 0;
+    double aWorstRes = -1;
+    double aWorstPerc = 200;
+
+    for  (int aKIm=0 ; aKIm<aNbIm ; aKIm++)
+    {
+         cCelImTPM * aCel = aSetPM->CelFromInt(aKIm);
+         cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
+         const cStatResPM & aStat = aCamNBD->mStat;
+      
+         double aRes = sqrt(aStat.mSomPdsEr2 / aStat.mSomPds);
+         double aPerc =  (100.0*aStat.mNbNN) / aStat.mNb;
+
+
+         std::cout << "For pose=" << aCamNBD->mCam->Name()
+                   << " NbPts="  << aStat.mNb
+                   << " Res=" <<  aRes
+                   << " %NN=" <<  aPerc
+                   << "\n";
+
+         if (aPerc<aWorstPerc)
+         {
+            aWorstPerc = aPerc;
+            aCamWorstPerc = aCamNBD;
+         }
+         if (aRes>aWorstRes)
+         {
+            aWorstRes = aRes;
+            aCamWorstRes = aCamNBD;
+         }
+    }
+
+    if (aCamWorstRes) 
+        std::cout << " ## Worst Res " << aWorstRes << " for " << aCamWorstRes->mCam->Name() << "\n";
+    if (aCamWorstPerc) 
+        std::cout << " ## Worst Perc " << aWorstPerc << " for " << aCamWorstPerc->mCam->Name() << "\n";
 
     std::cout << "-----------------------------------------------------------------\n";
 }
