@@ -350,7 +350,6 @@ void  cAppliApero::CDNP_Compense
            aNUpl.AddPts(aPt);
        }
 
-
       double aPdsIm = 1.0;
       double aResidu = 0;
       int aNbEtape = 2;
