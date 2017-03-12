@@ -1746,10 +1746,13 @@ class cPonderateur
 
 	 double PdsOfError(double) const;
          const cPonderationPackMesure & PPM() const;
+         void SetPondOfNb(double aPdsNb);
+
      private :
 
          cPonderationPackMesure    mPPM;
          double                    mPdsStd;
+         double                    mPdsStd0;
 	 double                    mEcMax;
 	 double                    mExpoLK;
 	 double                    mSigmaP;
@@ -1961,6 +1964,7 @@ class cCompiledObsRelGPS
 class cSetPMul1ConfigTPM;
 class cSetTiePMul;
 class cCompile_BDD_NewPtMul;
+class cStatResPM;
 
 
 class cAppliApero : public NROptF1vND
@@ -2188,7 +2192,7 @@ class cAppliApero : public NROptF1vND
        bool CDNP_InavlideUse_StdLiaison(const std::string & anId);
        void CDNP_Compense(const std::string & anId,const cObsLiaisons &);
 
-        void CDNP_Compense(cSetPMul1ConfigTPM*,cSetTiePMul*,const cObsLiaisons &);
+        void CDNP_Compense(std::vector<cStatResPM> & ,cSetPMul1ConfigTPM*,cSetTiePMul*,const cObsLiaisons &);
 
     private :
 

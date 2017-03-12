@@ -53,6 +53,7 @@ cPonderateur::cPonderateur
 
 
    mPdsStd = 1 / ElSquare(anEcInEl);
+   mPdsStd0 = mPdsStd;
 
    mPdsStd *=  aPPM.NbMax().Val() / (aPPM.NbMax().Val() + aNbMesure);
    mEcMax = aPPM.EcartMax().Val();
@@ -60,6 +61,11 @@ cPonderateur::cPonderateur
    mSigmaP = aPPM.SigmaPond().Val();
 
    mMode = aPPM.ModePonderation().Val();
+}
+
+void cPonderateur::SetPondOfNb(double aPdsNb)
+{
+    mPdsStd = mPdsStd0 * aPdsNb;
 }
 
 const cPonderationPackMesure & cPonderateur::PPM() const

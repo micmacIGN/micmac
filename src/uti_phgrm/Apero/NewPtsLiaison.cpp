@@ -41,6 +41,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../TiepTri/MultTieP.h"
 
 
+class cStatResPM
+{
+     public :
+        cStatResPM();
+        void Init();
+        void AddStat(double anEr,double aPds);
+
+        double mNb;
+        double mNbNN;
+        double mSomPds;
+        double mSomPdsEr;
+        double mSomPdsEr2;
+};
+
+
 
 class cCam_NewBD  // Dans le "void*" des cCelImTPM
 {
@@ -49,6 +64,7 @@ class cCam_NewBD  // Dans le "void*" des cCelImTPM
       cGenPoseCam * mCam;
       int           mNbPts;
       double        mPdsNb;
+      cStatResPM    mStat;
 };
 
 
@@ -75,8 +91,11 @@ class cCompile_BDD_NewPtMul
 /*                                                */
 /*                cCam_NewBD                      */
 /*                cConf_NewBD                     */
+/*                cStatResPM                      */
 /*                                                */
 /**************************************************/
+
+    // --- cCam_NewBD ---
 
 cCam_NewBD::cCam_NewBD(cGenPoseCam * aCam) :
     mCam    (aCam),
@@ -84,9 +103,39 @@ cCam_NewBD::cCam_NewBD(cGenPoseCam * aCam) :
 {
 }
 
+    // --- cConf_NewBD ---
+
 cConf_NewBD::cConf_NewBD(cManipPt3TerInc * aManipP3TI) :
   mManipP3TI (aManipP3TI)
 {
+}
+
+    // --- cStatResPM ---
+
+cStatResPM::cStatResPM()
+{
+   Init();
+}
+
+void cStatResPM::Init()
+{
+   mNb=0;
+   mNbNN=0;
+   mSomPds=0;
+   mSomPdsEr=0;
+   mSomPdsEr2=0;
+}
+
+void  cStatResPM::AddStat(double anEr,double aPds)
+{
+   mNb++;
+   if (aPds)
+   {
+       mNbNN++;
+       mSomPds += aPds;
+       mSomPdsEr += aPds * anEr;
+       mSomPdsEr2 += aPds * ElSquare(anEr);
+   }
 }
 
 
@@ -236,15 +285,16 @@ cCompile_BDD_NewPtMul * cAppliApero::CDNP_FromName(const std::string & aName)
      //               COMPENSATION
      //-----------------------------------------------------------------
 
-void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,const cObsLiaisons & anObsOl)
+    // Compensation par configuration
+
+void  cAppliApero::CDNP_Compense
+      (
+          std::vector<cStatResPM> & aVStat,
+          cSetPMul1ConfigTPM* aConf,
+          cSetTiePMul* aSet,
+          const cObsLiaisons & anObsOl
+      )
 {
-/*
-   cCompFilterProj3D * aFiltre3D = 0;
-   if (aImPPM.IdFilter3D().IsInit())
-     aFiltre3D = mAppli.FilterOfId(aImPPM.IdFilter3D().Val());
-*/
-
-
    cConf_NewBD * aCNBD = static_cast<cConf_NewBD *>(aConf->ConfTPM_GetVoidData());
    cManipPt3TerInc * aMP3 = aCNBD->mManipP3TI;
 
@@ -254,17 +304,35 @@ void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,con
    std::vector<cGenPoseCam *> aVCam;
    std::vector<cGenPDVFormelle *> aVGPdvF;
 
+   double  aPdsNb = 0.0;
+   int aNbCamOk = 0;
    for (int aKIdIm = 0 ; aKIdIm<aNbIm ; aKIdIm++)
    {
       cCelImTPM * aCel = aSet->CelFromInt(aVIdIm[aKIdIm]);
       cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
+      aPdsNb += aCamNBD->mPdsNb;
       cGenPoseCam * aCamGen = aCamNBD->mCam;
 
+      aNbCamOk += aCamGen->RotIsInit();
       aVCam.push_back(aCamGen);
       aVGPdvF.push_back(aCamGen->PDVF());
-
       // std::cout << "CAMMM NAME " << aCam->mCam->Name() << "\n";
    }
+   for (int aK=aVStat.size() ; aK<=aNbIm ; aK++)
+   {
+       aVStat.push_back(cStatResPM());
+   }
+
+
+   if (aNbCamOk<2)
+      return;
+   cPonderateur aPdtrIm(anObsOl.Pond(),0.0);
+   aPdtrIm.SetPondOfNb(aPdsNb);
+
+   cCompFilterProj3D * aFiltre3D = 0;
+   if (anObsOl.Pond().IdFilter3D().IsInit())
+       aFiltre3D = FilterOfId(anObsOl.Pond().IdFilter3D().Val());
+
 
    
    // cManipPt3TerInc
@@ -272,68 +340,97 @@ void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,con
    double aLimBsHP = Param().LimBsHProj().Val();
    double aLimBsHRefut = Param().LimBsHRefut().Val();
    cArg_UPL anArgUPL = ArgUPL();
-   cNupletPtsHomologues aNUpl(aNbIm);
 
    for (int aKp=0 ; aKp<aNbPts ; aKp++)
    {
-       std::vector<double>   aVpds;
-       std::vector<Pt2dr>    aVPt;
-       std::vector<ElSeg3D>  aVSeg;
+       cNupletPtsHomologues aNUpl(0);
        for (int aKIm=0 ; aKIm <aNbIm ; aKIm++)
        {
            Pt2dr aPt = aConf->Pt(aKp,aKIm);
-           aVPt.push_back(aPt);
-           ElSeg3D aSeg =  aVCam[aKIm]->GenCurCam()->Capteur2RayTer(aPt);
-           aVSeg.push_back(aSeg);
-           aNUpl.PK(aKIm) = aPt;
-           aVpds.push_back(1.0);
+           aNUpl.AddPts(aPt);
        }
 
-        
-       const cResiduP3Inc & aRes    =  aMP3->UsePointLiaison
-                                       (
-                                            anArgUPL,
-                                            aLimBsHP,
-                                            aLimBsHRefut,
-                                            0.0,
-                                            aNUpl,
-                                            aVpds,
-                                            false,
-                                            0
-                                       );       
 
+      double aPdsIm = 1.0;
+      double aResidu = 0;
+      int aNbEtape = 2;
+      for (int aKEtape=0 ; aKEtape<aNbEtape ; aKEtape++)
+      {
+          bool WithEq = (aKEtape!=0);
+          std::vector<double>   aVpds;
+          for (int aKIm=0 ; aKIm <aNbIm ; aKIm++)
+          {
+              double aPds = aVCam[aKIm]->RotIsInit()  ? aPdsIm : 0.0;
+              aVpds.push_back(aPds);
+          }
 
-       bool Ok;
-       Pt3dr aPInt = InterSeg(aVSeg,Ok);
-
-       // std::cout << "INTTTttTT " << aPInt << aPInt-aRes.mPTer << "\n";
-       if (Ok)
-       {
-           double aDist=0;
-           for (int aKIm=0 ; aKIm <aNbIm ; aKIm++)
+          const cResiduP3Inc & aRes    =  aMP3->UsePointLiaison
+                                          (
+                                                anArgUPL,
+                                                aLimBsHP,
+                                                aLimBsHRefut,
+                                                0.0,
+                                                aNUpl,
+                                                aVpds,
+                                                WithEq,
+                                                0
+                                          );       
+           if (aRes.mOKRP3I)
            {
-               Pt2dr aPt = aConf->Pt(aKp,aKIm);
-               Pt2dr aQ  =  aVCam[aKIm]->GenCurCam()->Ter2Capteur(aPInt);
-               aDist += euclid(aPt-aQ);
-           }
-           // std::cout << "D=" << aDist/aNbIm << "\n";
-       }
-       else
-       {
-            // std::cout << "------------------Not ok---------------------\n";
-       }
-   }
+                ELISE_ASSERT(int(aRes.mEcIm.size()) == aNbIm,"Incoh to check in cAppliApero::CDNP_Compense");
+                for (int aKIm=0 ; aKIm<int(aRes.mEcIm.size()) ; aKIm++)
+                {
+                   if (aVpds[aKIm] >0)
+                   {
+                      aResidu += square_euclid(aRes.mEcIm[aKIm]);//  *ElSquare(aScN);
+                      if (std_isnan(aResidu))
+                      {
+                          std::cout <<  aRes.mEcIm[aKIm] << " " << aKIm << " " << aVCam[aKIm]->Name() << "\n";
+                          // std::cout << "CPT= " << aCpt << "\n";
+                          ELISE_ASSERT(false,"Nan residu\n");
+                      }
+                   }
+               }
+               aResidu /= aNbCamOk;
+               aResidu = sqrt(aResidu);
+               aPdsIm = aPdtrIm.PdsOfError(aResidu);
+               aPdsIm *= pow(aNbCamOk-1,anObsOl.Pond().ExposantPoidsMult().Val());
 
+               if (aFiltre3D && (!aFiltre3D->InFiltre(aRes.mPTer)))
+               {
+                  aPdsIm = 0.0;
+               }
+
+               if (aPdsIm>0)
+               {
+               }
+               else
+               {
+                  aNbEtape = 0;
+               }
+           }
+           else
+           {
+              aNbEtape = 0;
+           }
+      }
+
+      for (int aKIdIm = 0 ; aKIdIm<aNbIm ; aKIdIm++)
+      {
+         cCelImTPM * aCel = aSet->CelFromInt(aVIdIm[aKIdIm]);
+         cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
+         aCamNBD->mStat.AddStat(aResidu,aPdsIm);
+      }
+      aVStat.at(aNbCamOk).AddStat(aResidu,aPdsIm);
+   }
 
    // std::cout << "-----------------------------\n";
 }
 
+    // Compensation globale 
 
 void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & anObsOl)
 {
-
-
-
     cCompile_BDD_NewPtMul * aCDN = CDNP_FromName(anId);
 
      if (aCDN==0)
@@ -343,12 +440,15 @@ void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & an
 
     //  --  Calcul des poids images ---  NbMax / (Nb+NbMax)
     const cPonderationPackMesure & aPondIm = anObsOl.Pond();
+
+
     double aNbMax = aPondIm.NbMax().Val();
     int aNbIm =  aSetPM->NbIm();
     for  (int aKIm=0 ; aKIm<aNbIm ; aKIm++)
     {
          cCelImTPM * aCel = aSetPM->CelFromInt(aKIm);
          cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
+         aCamNBD->mStat.Init();
          aCamNBD->mPdsNb = aNbMax / (aNbMax+ aCamNBD->mNbPts);
 
 /*
@@ -365,12 +465,68 @@ void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & an
     const std::vector<cSetPMul1ConfigTPM *> &  aVPM = aSetPM->VPMul();
     std::cout << "cAppliApero::CDNP_Compens:NBCONFIG " <<  aVPM.size() << "\n";
 
+    double aNbTot = 0;
     for (int aKConf=0 ; aKConf<int(aVPM.size()) ; aKConf++)
     {
-        CDNP_Compense(aVPM[aKConf],aSetPM,anObsOl);
+        cSetPMul1ConfigTPM * aConf = aVPM[aKConf];
+        aNbTot +=  aConf->NbIm() * aConf->NbPts();
     }
-    std::cout <<"FFFFFF ==== \n";
-    getchar();
+
+    ElTimer aChrono;
+    double  aLastTime = aChrono.uval();
+    double  aPerAff = 1.0;
+    double  aNbDone = 0;
+
+    std::vector<cStatResPM>  aVStat;
+
+    for (int aKConf=0 ; aKConf<int(aVPM.size()) ; aKConf++)
+    {
+        cSetPMul1ConfigTPM * aConf = aVPM[aKConf];
+        CDNP_Compense(aVStat,aConf,aSetPM,anObsOl);
+        aNbDone +=  aConf->NbIm() * aConf->NbPts();
+
+        double aTime = aChrono.uval();
+// std::cout << "GGggGggg " << 
+        if (round_down(aLastTime/aPerAff) != round_down(aTime/aPerAff))
+        {
+            double aPerc = (100.0* aNbDone)/aNbTot;
+            double aSpeed = aPerc/ aTime;
+            std::cout << "Done " << aPerc 
+                      << " \% ;  time , done " << aTime 
+                      << ", left " <<   (100-aPerc) / aSpeed << "\n";
+            aLastTime = aTime;
+        }
+    }
+
+    std::cout << "\n";
+    std::cout << "-----------------------------------------------------------------\n";
+    for  (int aKIm=0 ; aKIm<aNbIm ; aKIm++)
+    {
+         cCelImTPM * aCel = aSetPM->CelFromInt(aKIm);
+         cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
+         const cStatResPM & aStat = aCamNBD->mStat;
+
+         std::cout << "For pose=" << aCamNBD->mCam->Name()
+                   << " NbPts="  << aStat.mNb
+                   << " Res=" <<  sqrt(aStat.mSomPdsEr2 / aStat.mSomPds)
+                   << " %NN=" <<  (100.0*aStat.mNbNN) / aStat.mNb
+                   << "\n";
+    }
+    std::cout << "-----------------------------------------------------------------\n";
+    for (int aKS=0 ; aKS<int(aVStat.size()) ; aKS++)
+    {
+         const cStatResPM & aStat = aVStat[aKS];
+         if (aStat.mNb)
+         {
+             std::cout << " Multipl=" << aKS
+                       << " NbPts="  << aStat.mNb
+                       << " Res=" <<  sqrt(aStat.mSomPdsEr2 / aStat.mSomPds)
+                       << " %NN=" <<  (100.0*aStat.mNbNN) / aStat.mNb
+                       << "\n";
+         }
+    }
+
+    std::cout << "-----------------------------------------------------------------\n";
 }
 
 /*
