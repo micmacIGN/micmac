@@ -3226,7 +3226,7 @@ vector<Pt3dr> RPC2D::filterOutOfBound(vector<Pt3dr> aVectorGeoNormIN, vector<vec
 
 int RPC_main(int argc, char ** argv)
 {
-	double X, Y, Z;
+	double X=0, Y=0, Z=0;
 	bool doDirect;
 	string aNameFile;
 	ElInitArgMain

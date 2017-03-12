@@ -876,7 +876,7 @@ cIncIntervale *  cSetEqFormelles::GetIntervInclusIAlloc(int anI0) const
 int   cSetEqFormelles::GetNumBlocInclusIAlloc(int anI0) const
 {
     // if (MPD_DEBUG_NEW_PT) std::cout << "I0= " << anI0 << " SzBl=" << mI02NblAlloc.size() << "\n";
-    if ((anI0<0) || (anI0>=mI02NblAlloc.size()))
+    if ((anI0<0) || (anI0>=int(mI02NblAlloc.size())))
     {
         std::cout << "I0= " << anI0 << " SzBl=" << mI02NblAlloc.size() << "\n";
         ELISE_ASSERT(false, "cSetEqFormelles::GetIntervRef ");

@@ -306,7 +306,7 @@ void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,con
        bool Ok;
        Pt3dr aPInt = InterSeg(aVSeg,Ok);
 
-       // std::cout << "INTTTttTT " << aPInt << aPInt-aRes.mPTer << "\n";
+       std::cout << "INTTTttTT " << aPInt << aPInt-aRes.mPTer << "\n";
        if (Ok)
        {
            double aDist=0;
