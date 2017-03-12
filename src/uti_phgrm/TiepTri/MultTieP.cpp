@@ -307,13 +307,14 @@ int UnionFiltragePHom_Main(int argc,char ** argv)
 /*********************************************************************/
 
 cCelImTPM::cCelImTPM(const std::string & aNameIm,int anId) :
-   mNameIm (aNameIm),
-   mId     (anId)
+   mNameIm   (aNameIm),
+   mId       (anId),
+   mVoidData (0)
 {
 }
 
-void *  cCelImTPM::GetVoidData() const         {return mVoidData;}
-void    cCelImTPM::SetVoidData(void * aVD)     {mVoidData = aVD;}
+void *  cCelImTPM::ImTPM_GetVoidData() const         {return mVoidData;}
+void    cCelImTPM::ImTPM_SetVoidData(void * aVD)     {mVoidData = aVD;}
 
 
 /*********************************************************************/
@@ -385,6 +386,15 @@ const std::vector<int> & cSetPMul1ConfigTPM::VIdIm() const
 int    cSetPMul1ConfigTPM::NbIm() const  {return mNbIm;}
 int    cSetPMul1ConfigTPM::NbPts() const {return mNbPts;}
 
+void *  cSetPMul1ConfigTPM::ConfTPM_GetVoidData() const
+{
+   return mVoidData;
+}
+void    cSetPMul1ConfigTPM::ConfTPM_SetVoidData(void * aVoidData)
+{
+   mVoidData = aVoidData;
+}
+
 
 /*********************************************************************/
 /*                                                                   */
@@ -436,6 +446,10 @@ cCelImTPM * cSetTiePMul::CelFromInt(const int & anId)
     return mDicoIm.mNum2Im.at(anId);
 }
 
+int cSetTiePMul::NbIm() const
+{
+   return  mDicoIm.mNum2Im.size();
+}
 
 
 const std::vector<std::string> * cSetTiePMul::StdSetName(cInterfChantierNameManipulateur* aICNM,const std::string aSH,bool Bin)

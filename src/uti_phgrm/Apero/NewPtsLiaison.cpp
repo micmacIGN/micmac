@@ -41,20 +41,30 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../TiepTri/MultTieP.h"
 
 
-class cCam_NewBD
+
+class cCam_NewBD  // Dans le "void*" des cCelImTPM
 {
     public :
       cCam_NewBD(cGenPoseCam *);
       cGenPoseCam * mCam;
+      int           mNbPts;
+      double        mPdsNb;
 };
 
+
+class cConf_NewBD  // dans le "void*" 
+{
+    public :
+       cConf_NewBD(cManipPt3TerInc *);
+       cManipPt3TerInc *  mManipP3TI;
+};
 
 class cCompile_BDD_NewPtMul
 {
     public :
          cCompile_BDD_NewPtMul (const cBDD_NewPtMul &,cSetTiePMul *);
          const cBDD_NewPtMul & CBN() const;
-         cSetTiePMul *         SetPM() ;
+         cSetTiePMul *         SetPM() const;
     private :
          cBDD_NewPtMul               mCBN;
          cSetTiePMul *               mSetPM;
@@ -63,12 +73,19 @@ class cCompile_BDD_NewPtMul
 
 /**************************************************/
 /*                                                */
-/*                                                */
+/*                cCam_NewBD                      */
+/*                cConf_NewBD                     */
 /*                                                */
 /**************************************************/
 
 cCam_NewBD::cCam_NewBD(cGenPoseCam * aCam) :
-    mCam (aCam)
+    mCam    (aCam),
+    mNbPts  (0)
+{
+}
+
+cConf_NewBD::cConf_NewBD(cManipPt3TerInc * aManipP3TI) :
+  mManipP3TI (aManipP3TI)
 {
 }
 
@@ -90,7 +107,7 @@ const cBDD_NewPtMul & cCompile_BDD_NewPtMul::CBN() const
    return mCBN;
 }
 
-cSetTiePMul *   cCompile_BDD_NewPtMul::SetPM() 
+cSetTiePMul *   cCompile_BDD_NewPtMul::SetPM()  const
 {
    return mSetPM;
 }
@@ -101,6 +118,46 @@ cSetTiePMul *   cCompile_BDD_NewPtMul::SetPM()
 /*                                                */
 /**************************************************/
 
+
+void cAppliApero::CompileNewPMul()
+{
+    // cCompile_BDD_NewPtMul
+    for (int aKB=0 ; aKB<int(mVectNewBDL.size()) ; aKB++)
+    {
+        const cCompile_BDD_NewPtMul & aCBN = *(mVectNewBDL[aKB]);
+        cSetTiePMul *  aSTM = aCBN.SetPM() ;
+        const std::vector<cSetPMul1ConfigTPM *> &  aVPMC = aSTM->VPMul();
+
+        for (int aKC=0 ; aKC<int(aVPMC.size()) ; aKC++)
+        {
+           
+      // cCelImTPM * aCel = aSet->CelFromInt(aVIdIm[aKIdIm]);
+      // cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
+           cSetPMul1ConfigTPM * aConf = aVPMC[aKC];
+           int aNbIm = aConf->NbIm();
+           const std::vector<int> & aVIdIm = aConf->VIdIm();
+           std::vector<cGenPDVFormelle *> aVGPdvF;
+
+           for (int aKIdIm = 0 ; aKIdIm<aNbIm ; aKIdIm++)
+           {
+              cCelImTPM * aCel = aSTM->CelFromInt(aVIdIm[aKIdIm]);
+              cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
+              aCamNBD->mNbPts += aConf->NbPts();
+              cGenPoseCam * aCamGen = aCamNBD->mCam;
+              aVGPdvF.push_back(aCamGen->PDVF());
+           }
+
+      // std::cout << "CAMMM NAME " << aCam->mCam->Name() << "\n";
+            cManipPt3TerInc * aM3P =  new cManipPt3TerInc(mSetEq,0,aVGPdvF,false);
+            cConf_NewBD  * aConfN = new cConf_NewBD(aM3P);
+            aVPMC[aKC]->ConfTPM_SetVoidData(aConfN);
+        }
+
+        // std::cout << "UUuuuUUuu " << mVectNewBDL[aKB]->CBN().Id()  << " " <<  aVPMC.size() << "\n";    
+    }
+    // std::cout << "cAppliApero::CompileNewPMuxxxxx\n";
+    // getchar();
+}
 
 void cAppliApero::InitNewBDL()
 {
@@ -126,6 +183,8 @@ void cAppliApero::InitNewBDL(const cBDD_NewPtMul & aBDN)
      const std::vector<std::string> *  aSTP= cSetTiePMul::StdSetName(mICNM,aBDN.SH(),false);
      if (aSTP->size()==0) return;
 
+     // aVNameFilter permet de filtrer les points homologues sur les poses 
+     // chargees dans Apero, c'est le meme d'une fois a l'autre
      static std::vector<std::string>  * aVNameFilter=0;
      if (aVNameFilter==0)
      {
@@ -134,7 +193,6 @@ void cAppliApero::InitNewBDL(const cBDD_NewPtMul & aBDN)
          {
               const std::string & aName = mVecGenPose[aKP]->Name();
               aVNameFilter->push_back(aName);
-              // std::cout << "gggggGggggg  " << aName << "\n";
          }
      }
 
@@ -145,15 +203,13 @@ void cAppliApero::InitNewBDL(const cBDD_NewPtMul & aBDN)
         cCelImTPM *  aCBN = aSet->CelFromName(mVecGenPose[aKP]->Name());
         if (aCBN)
         {
-           aCBN->SetVoidData(new cCam_NewBD(mVecGenPose[aKP]) );
+           aCBN->ImTPM_SetVoidData(new cCam_NewBD(mVecGenPose[aKP]) );
         }
     }
-    
 
     cCompile_BDD_NewPtMul * aComp = new cCompile_BDD_NewPtMul(aBDN,aSet);
-
     mDicoNewBDL[aBDN.Id()] = aComp;
-    
+    mVectNewBDL.push_back(aComp);
 }
 
 bool cAppliApero::CDNP_InavlideUse_StdLiaison(const std::string & aName)
@@ -164,6 +220,9 @@ bool cAppliApero::CDNP_InavlideUse_StdLiaison(const std::string & aName)
    return (aCDN!=0) && (aCDN->CBN().SupressStdHom() );
 }
 
+
+
+
 cCompile_BDD_NewPtMul * cAppliApero::CDNP_FromName(const std::string & aName)
 {
     std::map<std::string,cCompile_BDD_NewPtMul *>::iterator anIt = mDicoNewBDL.find(aName);
@@ -172,8 +231,23 @@ cCompile_BDD_NewPtMul * cAppliApero::CDNP_FromName(const std::string & aName)
     return 0;
 }
 
+
+     //-----------------------------------------------------------------
+     //               COMPENSATION
+     //-----------------------------------------------------------------
+
 void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,const cObsLiaisons & anObsOl)
 {
+/*
+   cCompFilterProj3D * aFiltre3D = 0;
+   if (aImPPM.IdFilter3D().IsInit())
+     aFiltre3D = mAppli.FilterOfId(aImPPM.IdFilter3D().Val());
+*/
+
+
+   cConf_NewBD * aCNBD = static_cast<cConf_NewBD *>(aConf->ConfTPM_GetVoidData());
+   cManipPt3TerInc * aMP3 = aCNBD->mManipP3TI;
+
    const std::vector<int> & aVIdIm = aConf->VIdIm();
    int aNbIm = aConf->NbIm();
    int aNbPts = aConf->NbPts();
@@ -183,7 +257,7 @@ void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,con
    for (int aKIdIm = 0 ; aKIdIm<aNbIm ; aKIdIm++)
    {
       cCelImTPM * aCel = aSet->CelFromInt(aVIdIm[aKIdIm]);
-      cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->GetVoidData());
+      cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
       cGenPoseCam * aCamGen = aCamNBD->mCam;
 
       aVCam.push_back(aCamGen);
@@ -192,14 +266,17 @@ void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,con
       // std::cout << "CAMMM NAME " << aCam->mCam->Name() << "\n";
    }
 
-   std::cout << "AAAAAAAAaaa\n";
-   mGlobManiP3TI->SubstInitWithArgs(aVGPdvF,0,true);
-   std::cout << "Bbbbbbbbbb\n";
    
    // cManipPt3TerInc
 
+   double aLimBsHP = Param().LimBsHProj().Val();
+   double aLimBsHRefut = Param().LimBsHRefut().Val();
+   cArg_UPL anArgUPL = ArgUPL();
+   cNupletPtsHomologues aNUpl(aNbIm);
+
    for (int aKp=0 ; aKp<aNbPts ; aKp++)
    {
+       std::vector<double>   aVpds;
        std::vector<Pt2dr>    aVPt;
        std::vector<ElSeg3D>  aVSeg;
        for (int aKIm=0 ; aKIm <aNbIm ; aKIm++)
@@ -208,9 +285,28 @@ void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,con
            aVPt.push_back(aPt);
            ElSeg3D aSeg =  aVCam[aKIm]->GenCurCam()->Capteur2RayTer(aPt);
            aVSeg.push_back(aSeg);
+           aNUpl.PK(aKIm) = aPt;
+           aVpds.push_back(1.0);
        }
+
+        
+       const cResiduP3Inc & aRes    =  aMP3->UsePointLiaison
+                                       (
+                                            anArgUPL,
+                                            aLimBsHP,
+                                            aLimBsHRefut,
+                                            0.0,
+                                            aNUpl,
+                                            aVpds,
+                                            false,
+                                            0
+                                       );       
+
+
        bool Ok;
        Pt3dr aPInt = InterSeg(aVSeg,Ok);
+
+       // std::cout << "INTTTttTT " << aPInt << aPInt-aRes.mPTer << "\n";
        if (Ok)
        {
            double aDist=0;
@@ -237,19 +333,36 @@ void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & an
 {
 
 
-    // std::cout << "cAppliApero::CDNP_Compe " <<  mGlobManiP3TI << "\n"; getchar();
 
-//  new cManipPt3TerInc(aVCF[0]->Set(),anEqS,aVCF)
-
-
-     cCompile_BDD_NewPtMul * aCDN = CDNP_FromName(anId);
+    cCompile_BDD_NewPtMul * aCDN = CDNP_FromName(anId);
 
      if (aCDN==0)
         return; 
      
     cSetTiePMul *  aSetPM = aCDN->SetPM() ;
-    const std::vector<cSetPMul1ConfigTPM *> &  aVPM = aSetPM->VPMul();
 
+    //  --  Calcul des poids images ---  NbMax / (Nb+NbMax)
+    const cPonderationPackMesure & aPondIm = anObsOl.Pond();
+    double aNbMax = aPondIm.NbMax().Val();
+    int aNbIm =  aSetPM->NbIm();
+    for  (int aKIm=0 ; aKIm<aNbIm ; aKIm++)
+    {
+         cCelImTPM * aCel = aSetPM->CelFromInt(aKIm);
+         cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
+         aCamNBD->mPdsNb = aNbMax / (aNbMax+ aCamNBD->mNbPts);
+
+/*
+         std::cout << "cCam_NewBD... " << aCamNBD->mCam->Name() 
+                   << " " <<  aCamNBD->mPdsNb 
+                   << " " <<  aCamNBD->mNbPts << " " << aNbMax
+                   << " " <<  aCamNBD->mNbPts * aCamNBD->mPdsNb
+                   << "\n";
+*/
+    }
+
+    //----
+
+    const std::vector<cSetPMul1ConfigTPM *> &  aVPM = aSetPM->VPMul();
     std::cout << "cAppliApero::CDNP_Compens:NBCONFIG " <<  aVPM.size() << "\n";
 
     for (int aKConf=0 ; aKConf<int(aVPM.size()) ; aKConf++)
