@@ -1187,6 +1187,15 @@ cManipPt3TerInc::cManipPt3TerInc
    mMulGlobPds (1.0)
 
 {
+/*
+if (MPD MM())
+{
+   std::cout << "cManipPt3TerInc::cManipPt3TerInc\n";
+   getchar();
+}
+*/
+
+
    SubstReinit(aClose);
 /*
     for (int aKC=0; aKC<int(mVCamVis.size()) ; aKC++)

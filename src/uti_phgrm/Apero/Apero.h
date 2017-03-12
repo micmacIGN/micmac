@@ -1786,6 +1786,7 @@ class cPonderateur
     |  1.4  CompileObsersvations() -> relie les observations aux inconnues
     |                              -> creees en 1.3
     |      |  CompileLiaisons()
+    |      |  CompileNewPMul()
     |      |  CompileAppuis()
     |      |  CompileOsbOr()
     |      |  CompileObsCentre()
@@ -2296,6 +2297,7 @@ class cAppliApero : public NROptF1vND
 
          void CompileObsersvations();
          void CompileLiaisons();
+         void CompileNewPMul();
          void CompileAppuis();
          void CompileOsbOr();
          void CompileObsCentre();
@@ -2655,8 +2657,9 @@ class cAppliApero : public NROptF1vND
 
 
          std::map<std::string,cCompile_BDD_NewPtMul *>  mDicoNewBDL;
-         std::vector<cGenPoseCam*>                      mVCamNewB;
-         cManipPt3TerInc *                              mGlobManiP3TI;
+         std::vector<cCompile_BDD_NewPtMul *>           mVectNewBDL;
+         // std::vector<cGenPoseCam*>                      mVCamNewB;
+         // cManipPt3TerInc *                              mGlobManiP3TI;  pas la bonne voie
 };
 
 
