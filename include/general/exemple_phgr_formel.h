@@ -578,6 +578,7 @@ class cSubstitueBlocIncTmp
 	 void DoSubstBloc(cParamCalcVarUnkEl * aPCVU,bool Raz=true,double LimCond=-1);
 
          void RazNonTmp();
+         void ResetNonTmp();
 
          double  Cond() const;  // Du cBufSubstIncTmp
       private :
@@ -704,11 +705,21 @@ class cArg_UPL
 class cManipPt3TerInc
 {
     public :
+        void SubstInitWithArgs  
+             (
+                 const std::vector<cGenPDVFormelle *>  &  aVCamVis,
+                 cSurfInconnueFormelle *                  anEqSurf,
+                 bool                                     aClose
+             );
+
+     
+
+
         cManipPt3TerInc
 	(
             cSetEqFormelles &              aSet,
 	    cSurfInconnueFormelle *,             // Peut valoir 0 (souvent le cas)
-	    std::vector<cGenPDVFormelle *> aVCamVis,
+	    const std::vector<cGenPDVFormelle *>  &aVCamVis,
 	    bool                           aClose = true
         );
 
@@ -773,6 +784,7 @@ class cManipPt3TerInc
 			     );
     private :
         cManipPt3TerInc(const  cManipPt3TerInc &); // N.I.
+        void SubstReinit(bool);
 
 	Pt3dr  CalcPTerInterFaisceauCams
 	       (

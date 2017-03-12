@@ -178,16 +178,25 @@ void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,con
    int aNbIm = aConf->NbIm();
    int aNbPts = aConf->NbPts();
    std::vector<cGenPoseCam *> aVCam;
+   std::vector<cGenPDVFormelle *> aVGPdvF;
 
    for (int aKIdIm = 0 ; aKIdIm<aNbIm ; aKIdIm++)
    {
       cCelImTPM * aCel = aSet->CelFromInt(aVIdIm[aKIdIm]);
-      cCam_NewBD * aCam = static_cast<cCam_NewBD *>(aCel->GetVoidData());
+      cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->GetVoidData());
+      cGenPoseCam * aCamGen = aCamNBD->mCam;
 
-      aVCam.push_back(aCam->mCam);
+      aVCam.push_back(aCamGen);
+      aVGPdvF.push_back(aCamGen->PDVF());
 
-      std::cout << "CAMMM NAME " << aCam->mCam->Name() << "\n";
+      // std::cout << "CAMMM NAME " << aCam->mCam->Name() << "\n";
    }
+
+   std::cout << "AAAAAAAAaaa\n";
+   mGlobManiP3TI->SubstInitWithArgs(aVGPdvF,0,true);
+   std::cout << "Bbbbbbbbbb\n";
+   
+   // cManipPt3TerInc
 
    for (int aKp=0 ; aKp<aNbPts ; aKp++)
    {
@@ -211,21 +220,28 @@ void  cAppliApero::CDNP_Compense(cSetPMul1ConfigTPM* aConf,cSetTiePMul* aSet,con
                Pt2dr aQ  =  aVCam[aKIm]->GenCurCam()->Ter2Capteur(aPInt);
                aDist += euclid(aPt-aQ);
            }
-           std::cout << "D=" << aDist/aNbIm << "\n";
+           // std::cout << "D=" << aDist/aNbIm << "\n";
        }
        else
        {
-            std::cout << "------------------Not ok---------------------\n";
+            // std::cout << "------------------Not ok---------------------\n";
        }
    }
 
 
-   std::cout << "-----------------------------\n";
+   // std::cout << "-----------------------------\n";
 }
 
 
 void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & anObsOl)
 {
+
+
+    // std::cout << "cAppliApero::CDNP_Compe " <<  mGlobManiP3TI << "\n"; getchar();
+
+//  new cManipPt3TerInc(aVCF[0]->Set(),anEqS,aVCF)
+
+
      cCompile_BDD_NewPtMul * aCDN = CDNP_FromName(anId);
 
      if (aCDN==0)
@@ -233,6 +249,8 @@ void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & an
      
     cSetTiePMul *  aSetPM = aCDN->SetPM() ;
     const std::vector<cSetPMul1ConfigTPM *> &  aVPM = aSetPM->VPMul();
+
+    std::cout << "cAppliApero::CDNP_Compens:NBCONFIG " <<  aVPM.size() << "\n";
 
     for (int aKConf=0 ; aKConf<int(aVPM.size()) ; aKConf++)
     {

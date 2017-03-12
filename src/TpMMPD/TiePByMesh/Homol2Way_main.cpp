@@ -114,7 +114,11 @@ int Homol2Way_main(int argc,char ** argv)
         vector<string> VImgs = *(aICNM->Get(aNameImg));
         cout<<"Nb Imgs : "<<VImgs.size()<<endl;
         vector<CplString> VCpl;
-        StdCorrecNameHomol_G(aSHIn, aDir);
+
+        //StdCorrecNameHomol_G(aSHIn, aDir);
+        if (!ELISE_fp::IsDirectory(aSHIn))
+            aSHIn = "Homol" + aSHIn;
+
         cplExistInHomol      ( VCpl,
                                VImgs,
                                aSHIn,

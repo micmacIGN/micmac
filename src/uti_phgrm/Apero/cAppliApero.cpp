@@ -99,7 +99,8 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mXmlSMLRop         (0),
    mESPA              (0),
    mNumCalib          (0),
-   mNumImage          (0)
+   mNumImage          (0),
+   mGlobManiP3TI      (0)
 {
 
      GlobUseRegulDist =  mParam.UseRegulDist().Val() ;
@@ -169,6 +170,11 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
         if (Verbose)  COUT() << "BEGIN Compensation\n";
         CompileObsersvations();
 
+        if (! mDicoNewBDL.empty()) // Pour ne pas avoir d'interaction avec ce qui marche
+        {
+           std::vector<cGenPDVFormelle *> aVEmpty;
+           mGlobManiP3TI = new cManipPt3TerInc(mSetEq,0,aVEmpty,false);
+        }
         
         DoAMD();
         mSetEq.SetClosed();

@@ -503,7 +503,7 @@ void RPC::createDirectGrid(double ulcSamp, double ulcLine,
     vPtCarto.clear();
     // On cree un fichier de points geographiques pour les transformer avec proj4
     {
-        std::ofstream fic("processing/direct_ptGeo.txt");
+		std::ofstream fic("processing/direct_ptGeo.txt");
         fic << std::setprecision(15);
         for (size_t i = 0; i<vAltitude.size(); ++i)
         {
@@ -513,7 +513,6 @@ void RPC::createDirectGrid(double ulcSamp, double ulcLine,
 				for (int c = 0; c<nbSamp; ++c)
                 {
                     Pt3dr Pimg(ulcSamp + c * stepPixel, ulcLine + l * stepPixel, altitude);
-
                     //pour affiner les coordonnees
                     Pt3dr PimgRefined = ptRefined(Pimg, vRefineCoef);
 
@@ -1357,7 +1356,6 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 	return aMatPtsNorm;
 }
 
-
 //Take GCPs in normalized space to compute f in ground=f(image)
 void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 {
@@ -1372,55 +1370,74 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
     //To simplify notations : Column->X and Row->Y
     //Function is 0=Poly1(Y,X,Z)-long*Poly2(Y,X,Z) with poly 3rd degree (up to X^3,Y^3,Z^3,XXY,XXZ,XYY,XZZ,YYZ,YZZ)
     //First param (cst) of Poly2=1 to avoid sol=0
+	int    aK, iter = 0;
+	double aSeuil = 1e-8;
+	double aReg = 0.00001;
+	double aV1 = 1, aV0 = 2;
 
-    L2SysSurResol aSysLon(39), aSysLat(39);
+	/* Iterative least square */
+	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
+	{
+		iter++;
+		aV0 = aV1;
+		L2SysSurResol aSysLon(39), aSysLat(39);
 
-    //For all lattice points
-    for (u_int i = 0; i<aGridGeoNorm.size(); i++){
+		//For all lattice points
+		for (u_int i = 0; i < aGridGeoNorm.size(); i++) {
 
-        //Simplifying notations
-        double X = aGridImNorm[i].x;
-        double Y = aGridImNorm[i].y;
-        double Z = aGridImNorm[i].z;
-        double lon = aGridGeoNorm[i].x;
-        double lat = aGridGeoNorm[i].y;
+			//Simplifying notations
+			double X = aGridImNorm[i].x;
+			double Y = aGridImNorm[i].y;
+			double Z = aGridImNorm[i].z;
+			double lon = aGridGeoNorm[i].x;
+			double lat = aGridGeoNorm[i].y;
 
-		double aEqLon[39] = {
-			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
-			-lon*X, -lon*Y, -lon*Z, -lon*X*Y, -lon*X*Z, -lon*Y*Z, -lon*X*X, -lon*Y*Y, -lon*Z*Z, -lon*Y*X*Z, -lon*X*X*X, -lon*X*Y*Y, -lon*X*Z*Z, -lon*Y*X*X, -lon*Y*Y*Y, -lon*Y*Z*Z, -lon*X*X*Z, -lon*Y*Y*Z, -lon*Z*Z*Z
-		};
-		aSysLon.AddEquation(1, aEqLon, lon);
+			double aEqLon[39] = {
+				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
+				-lon*X, -lon*Y, -lon*Z, -lon*X*Y, -lon*X*Z, -lon*Y*Z, -lon*X*X, -lon*Y*Y, -lon*Z*Z, -lon*Y*X*Z, -lon*X*X*X, -lon*X*Y*Y, -lon*X*Z*Z, -lon*Y*X*X, -lon*Y*Y*Y, -lon*Y*Z*Z, -lon*X*X*Z, -lon*Y*Y*Z, -lon*Z*Z*Z
+			};
+			aSysLon.AddEquation(1, aEqLon, lon);
 
 
-		double aEqLat[39] = {
-			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
-			-lat*X, -lat*Y, -lat*Z, -lat*X*Y, -lat*X*Z, -lat*Y*Z, -lat*X*X, -lat*Y*Y, -lat*Z*Z, -lat*Y*X*Z, -lat*X*X*X, -lat*X*Y*Y, -lat*X*Z*Z, -lat*Y*X*X, -lat*Y*Y*Y, -lat*Y*Z*Z, -lat*X*X*Z, -lat*Y*Y*Z, -lat*Z*Z*Z
-		};
-		aSysLat.AddEquation(1, aEqLat, lat);
-    }
+			double aEqLat[39] = {
+				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
+				-lat*X, -lat*Y, -lat*Z, -lat*X*Y, -lat*X*Z, -lat*Y*Z, -lat*X*X, -lat*Y*Y, -lat*Z*Z, -lat*Y*X*Z, -lat*X*X*X, -lat*X*Y*Y, -lat*X*Z*Z, -lat*Y*X*X, -lat*Y*Y*Y, -lat*Y*Z*Z, -lat*X*X*Z, -lat*Y*Y*Z, -lat*Z*Z*Z
+			};
+			aSysLat.AddEquation(1, aEqLat, lat);
+		}
 
-    //Computing the result
-    bool Ok;
-    Im1D_REAL8 aSolLon = aSysLon.GSSR_Solve(&Ok);
-    Im1D_REAL8 aSolLat = aSysLat.GSSR_Solve(&Ok);
-    double* aDataLat = aSolLat.data();
-    double* aDataLon = aSolLon.data();
+		/* Add regularizer */
+		for (aK = 0; aK < 39; aK++)
+		{
+			aSysLon.AddTermQuad(aK, aK, aReg);
+			aSysLat.AddTermQuad(aK, aK, aReg);
+		}
 
-    //Copying Data in RPC object
-    //Numerators
-    for (int i = 0; i<20; i++)
-    {
-        direct_samp_num_coef.push_back(aDataLon[i]);
-        direct_line_num_coef.push_back(aDataLat[i]);
-    }
-    //Denominators (first one = 1)
-    direct_line_den_coef.push_back(1);
-    direct_samp_den_coef.push_back(1);
-    for (int i = 20; i<39; i++)
-    {
-        direct_samp_den_coef.push_back(aDataLon[i]);
-        direct_line_den_coef.push_back(aDataLat[i]);
-    }
+		//Computing the result
+		bool Ok;
+		Im1D_REAL8 aSolLon = aSysLon.GSSR_Solve(&Ok);
+		Im1D_REAL8 aSolLat = aSysLat.GSSR_Solve(&Ok);
+		double* aDataLat = aSolLat.data();
+		double* aDataLon = aSolLon.data();
+
+		//Copying Data in RPC object
+		//Numerators
+		for (int i = 0; i < 20; i++)
+		{
+			direct_samp_num_coef.push_back(aDataLon[i]);
+			direct_line_num_coef.push_back(aDataLat[i]);
+		}
+		//Denominators (first one = 1)
+		direct_line_den_coef.push_back(1);
+		direct_samp_den_coef.push_back(1);
+		for (int i = 20; i < 39; i++)
+		{
+			direct_samp_den_coef.push_back(aDataLon[i]);
+			direct_line_den_coef.push_back(aDataLat[i]);
+		}
+
+		aV1 = (aSysLon.ResiduOfSol(aSolLon.data()) + aSysLat.ResiduOfSol(aSolLat.data())) / 78;
+	}
 }
 
 //Take GCPs in normalized space to compute f in image=f(ground)
@@ -1437,58 +1454,76 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	//To simplify notations : long->X and lat->Y
 	//Function is 0=Poly1(X,Y,Z)-column*Poly2(X,Y,Z) with poly 3rd degree (up to X^3,Y^3,Z^3,XXY,XXZ,XYY,XZZ,YYZ,YZZ)
 	//First param (cst) of Poly2=1 to avoid sol=0
+	int    aK, iter = 0;
+	double aSeuil = 1e-8;
+	double aReg = 0.00001;
+	double aV1 = 1, aV0 = 2;
 
-	L2SysSurResol aSysCol(39), aSysRow(39);
+	/* Iterative least square */
+	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
+	{
+		iter++;
+		aV0 = aV1;
+		L2SysSurResol aSysCol(39), aSysRow(39);
 
-	//For all lattice points
-	for (u_int i = 0; i<aGridGeoNorm.size(); i++){
+		//For all lattice points
+		for (u_int i = 0; i < aGridGeoNorm.size(); i++) {
 
-		//Simplifying notations
-		double X = aGridGeoNorm[i].x;
-		double Y = aGridGeoNorm[i].y;
-		double Z = aGridGeoNorm[i].z;
-		double Col = aGridImNorm[i].x;
-		double Row = aGridImNorm[i].y;
+			//Simplifying notations
+			double X = aGridGeoNorm[i].x;
+			double Y = aGridGeoNorm[i].y;
+			double Z = aGridGeoNorm[i].z;
+			double Col = aGridImNorm[i].x;
+			double Row = aGridImNorm[i].y;
 
-		double aEqCol[39] = {
-			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
-			-Col*X, -Col*Y, -Col*Z, -Col*X*Y, -Col*X*Z, -Col*Y*Z, -Col*X*X, -Col*Y*Y, -Col*Z*Z, -Col*Y*X*Z, -Col*X*X*X, -Col*X*Y*Y, -Col*X*Z*Z, -Col*Y*X*X, -Col*Y*Y*Y, -Col*Y*Z*Z, -Col*X*X*Z, -Col*Y*Y*Z, -Col*Z*Z*Z
-		};
-		aSysCol.AddEquation(1, aEqCol, Col);
+			double aEqCol[39] = {
+				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
+				-Col*X, -Col*Y, -Col*Z, -Col*X*Y, -Col*X*Z, -Col*Y*Z, -Col*X*X, -Col*Y*Y, -Col*Z*Z, -Col*Y*X*Z, -Col*X*X*X, -Col*X*Y*Y, -Col*X*Z*Z, -Col*Y*X*X, -Col*Y*Y*Y, -Col*Y*Z*Z, -Col*X*X*Z, -Col*Y*Y*Z, -Col*Z*Z*Z
+			};
+			aSysCol.AddEquation(1, aEqCol, Col);
 
 
-		double aEqRow[39] = {
-			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
-			-Row*X, -Row*Y, -Row*Z, -Row*X*Y, -Row*X*Z, -Row*Y*Z, -Row*X*X, -Row*Y*Y, -Row*Z*Z, -Row*Y*X*Z, -Row*X*X*X, -Row*X*Y*Y, -Row*X*Z*Z, -Row*Y*X*X, -Row*Y*Y*Y, -Row*Y*Z*Z, -Row*X*X*Z, -Row*Y*Y*Z, -Row*Z*Z*Z
-		};
-		aSysRow.AddEquation(1, aEqRow, Row);
-	}
+			double aEqRow[39] = {
+				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
+				-Row*X, -Row*Y, -Row*Z, -Row*X*Y, -Row*X*Z, -Row*Y*Z, -Row*X*X, -Row*Y*Y, -Row*Z*Z, -Row*Y*X*Z, -Row*X*X*X, -Row*X*Y*Y, -Row*X*Z*Z, -Row*Y*X*X, -Row*Y*Y*Y, -Row*Y*Z*Z, -Row*X*X*Z, -Row*Y*Y*Z, -Row*Z*Z*Z
+			};
+			aSysRow.AddEquation(1, aEqRow, Row);
+		}
 
-	//Computing the result
-	bool Ok;
-	Im1D_REAL8 aSolCol = aSysCol.GSSR_Solve(&Ok);
-	Im1D_REAL8 aSolRow = aSysRow.GSSR_Solve(&Ok);
-	double* aDataCol = aSolCol.data();
-	double* aDataRow = aSolRow.data();
+		/* Add regularizer */
+		for (aK = 0; aK < 39; aK++)
+		{
+			aSysCol.AddTermQuad(aK, aK, aReg);
+			aSysRow.AddTermQuad(aK, aK, aReg);
+		}
 
-    /*std::cout << "ResiduOfSol aSolCol " << double(aSysCol.ResiduOfSol(aSolCol.data())/aGridGeoNorm.size()) << "\n";
+		//Computing the result
+		bool Ok;
+		Im1D_REAL8 aSolCol = aSysCol.GSSR_Solve(&Ok);
+		Im1D_REAL8 aSolRow = aSysRow.GSSR_Solve(&Ok);
+		double* aDataCol = aSolCol.data();
+		double* aDataRow = aSolRow.data();
 
-    std::cout << "ResiduOfSol aSolRow " << double(aSysCol.ResiduOfSol(aSolRow.data()))/aGridGeoNorm.size() << "\n";
-*/
+		/*std::cout << "ResiduOfSol aSolCol " << double(aSysCol.ResiduOfSol(aSolCol.data())/aGridGeoNorm.size()) << "\n";
+
+		std::cout << "ResiduOfSol aSolRow " << double(aSysCol.ResiduOfSol(aSolRow.data()))/aGridGeoNorm.size() << "\n";
+	*/
 	//Copying Data in RPC object
 	//Numerators
-	for (int i = 0; i<20; i++)
-	{
-		inverse_samp_num_coef.push_back(aDataCol[i]);
-		inverse_line_num_coef.push_back(aDataRow[i]);
-	}
-	//Denominators (first one = 1)
-	inverse_line_den_coef.push_back(1);
-	inverse_samp_den_coef.push_back(1);
-	for (int i = 20; i<39; i++)
-	{
-		inverse_samp_den_coef.push_back(aDataCol[i]);
-		inverse_line_den_coef.push_back(aDataRow[i]);
+		for (int i = 0; i < 20; i++)
+		{
+			inverse_samp_num_coef.push_back(aDataCol[i]);
+			inverse_line_num_coef.push_back(aDataRow[i]);
+		}
+		//Denominators (first one = 1)
+		inverse_line_den_coef.push_back(1);
+		inverse_samp_den_coef.push_back(1);
+		for (int i = 20; i < 39; i++)
+		{
+			inverse_samp_den_coef.push_back(aDataCol[i]);
+			inverse_line_den_coef.push_back(aDataRow[i]);
+		}
+		aV1 = (aSysCol.ResiduOfSol(aSolCol.data()) + aSysRow.ResiduOfSol(aSolRow.data())) / 78;
 	}
 }
 
@@ -2667,7 +2702,7 @@ void RPC::TestDirectRPCGen()
     std::vector<Pt3dr> aLPHGT, aLPHFP, aXYHGT, aXYHFP, axyHGT;
     std::vector<Pt2dr> axyBP, adxy, adXY;
     
-    Pt2di aGrid(50, 50);
+    Pt2di aGrid(500, 500);
     Pt2dr aStep(double(last_lon - first_lon)/aGrid.x, 
 		double(last_lat - first_lat)/aGrid.y );
     int aNNodes = aGrid.x*aGrid.y;
@@ -3191,8 +3226,34 @@ vector<Pt3dr> RPC2D::filterOutOfBound(vector<Pt3dr> aVectorGeoNormIN, vector<vec
 
 int RPC_main(int argc, char ** argv)
 {
-	cout << "This command isn't doing anything right now" << endl;
+	double X, Y, Z;
+	bool doDirect;
+	string aNameFile;
+	ElInitArgMain
+	(
+		argc, argv,
+		LArgMain() << EAMC(aNameFile, "RPC Dimap file"),
+		//<< EAMC(X, "X coordinate of point (longitude or column of image)")
+		//<< EAMC(Y, "Y coordinate of point (latitude or row of image)")
+		//<< EAMC(Z, "X coordinate of point"),
+		LArgMain()
+		//caracteristique du systeme geodesique saisies sans espace (+proj=utm +zone=10 +north +datum=WGS84...)
+		<< EAM(doDirect, "Direct", true, "Direct (def=true, im2geo) or inverse (geo2im)")
+	);
 
+	Pt3dr aPt(X, Y, Z);
+	RPC aRPC;
+	aRPC.ReadDimap(aNameFile);
+	cout << "Dimap File read" << endl;
+	aRPC.info();
+
+	aRPC.TestDirectRPCGen();
+	/*
+	Pt3dr aPtOut;
+	if (doDirect){aPtOut = aRPC.DirectRPC(aPt); }
+	else {aPtOut = aRPC.InverseRPC(aPt); }
+	cout << "Transformed point : " << aPtOut << endl;
+	*/
     return 0;
 }
 

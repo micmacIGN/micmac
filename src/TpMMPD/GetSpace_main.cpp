@@ -87,6 +87,16 @@ int GetSpace_main(int argc,char ** argv)
            VTmp.push_back(aMMPyram);
        string aPastis = aDir + "Pastis" + ELISE_CAR_DIR;
            VTmp.push_back(aPastis);
+       string aOrthoMecMalt = aDir + "Ortho-MEC-Malt" + ELISE_CAR_DIR;
+           VTmp.push_back(aOrthoMecMalt);
+       string aOKOrtho = aDir + "Qk-ORTHO" + ELISE_CAR_DIR;
+           VTmp.push_back(aOKOrtho);
+       string aMECMalt = aDir + "MEC-Malt" + ELISE_CAR_DIR;
+           VTmp.push_back(aMECMalt);
+       string aTA = aDir + "TA" + ELISE_CAR_DIR;
+           VTmp.push_back(aTA);
+       string aHomol_SRes = aDir + "Homol_SRes" + ELISE_CAR_DIR;
+           VTmp.push_back(aHomol_SRes);
 
         for (uint i=0; i<VTmp.size(); i++)
         {
