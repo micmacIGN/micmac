@@ -402,10 +402,20 @@ void    cSetPMul1ConfigTPM::ConfTPM_SetVoidData(void * aVoidData)
 /*                                                                   */
 /*********************************************************************/
 
-cSetTiePMul::cSetTiePMul(int aNbAttr) :
+cSetTiePMul::cSetTiePMul(int aNbAttr,const std::vector<std::string> *  aVIm) :
     mSetFilter (0),
     mNbAttr    (aNbAttr)
 {
+   if (aVIm)
+   {
+      SetCurIms(*aVIm);
+   }
+}
+
+void cSetTiePMul::AddPts(const std::vector<int> & aNumIms,const std::vector<Pt2dr> & aVPts,const std::vector<float> & aVAttr)
+{
+    cSetPMul1ConfigTPM *  aConfig = OneConfigFromVI(aNumIms);
+    aConfig->Add(aVPts,aVAttr);
 }
 
 cSetTiePMul * cSetTiePMul::FromFiles(const std::vector<std::string> aVFiles,const std::vector<std::string>  * aFilter)

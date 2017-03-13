@@ -50,6 +50,7 @@ set(uti_phgrm_MICMAC_Src_Files
 #    ${UTI_PHGRM_MICMAC_DIR}/VisuSuperpGrid.cpp
 	${UTI_PHGRM_MICMAC_DIR}/cPriseDeVue.cpp
 	${UTI_PHGRM_MICMAC_DIR}/cGeomImage.cpp
+	${UTI_PHGRM_MICMAC_DIR}/MM23DVariationnel.cpp
 )
 
 if (${WITH_IGN_ORI})

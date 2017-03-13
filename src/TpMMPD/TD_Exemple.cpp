@@ -436,9 +436,112 @@ if ((aCorrel > 10) || (aCorrel <-10))
 }
 
 
+//================================================================
+
+class cAppli_TD_DBayer
+{
+    public :
+        cAppli_TD_DBayer(int argc,char ** argv);
+
+        cTD_Im  ImWith0(const std::string & aFilter);
+        cTD_Im  BayerConvol(cTD_Im,float aDiv);
+
+        std::string mNameImIn;
+        cTD_Im      mIn;
+        Pt2di       mSzIm;
+};
+
+cTD_Im cAppli_TD_DBayer::BayerConvol(cTD_Im aImIn,float aDiv)
+{
+     cTD_Im aRes(mSzIm.x,mSzIm.y);
+     
+     Pt2di aP;
+     for (aP.x=1 ; aP.x<mSzIm.x -1  ; aP.x++)
+     {
+         for (aP.y=1 ; aP.y<mSzIm.y-1 ; aP.y++)
+         {
+               float aVal = 
+                               1 * aImIn.GetVal(aP.x-1,aP.y-1)
+                             + 2 * aImIn.GetVal(aP.x  ,aP.y-1)
+                             + 1 * aImIn.GetVal(aP.x+1,aP.y-1)
+                             + 2 * aImIn.GetVal(aP.x-1,aP.y  )
+                             + 4 * aImIn.GetVal(aP.x  ,aP.y  )
+                             + 2 * aImIn.GetVal(aP.x+1,aP.y  )
+                             + 1 * aImIn.GetVal(aP.x-1,aP.y+1)
+                             + 2 * aImIn.GetVal(aP.x  ,aP.y+1)
+                             + 1 * aImIn.GetVal(aP.x+1,aP.y+1) ;
+
+                  aVal = aVal /16.0;
+                  aRes.SetVal(aP.x,aP.y,aVal/aDiv);
+         }
+    }
+    return aRes;
+}
+
+cTD_Im cAppli_TD_DBayer::ImWith0(const std::string & aFilter)
+{
+     std::cout << "DO PATTERN " <<  aFilter << "\n";
+     cTD_Im aRes(mSzIm.x,mSzIm.y);
+
+     Pt2di aP;
+     for (aP.x=0 ; aP.x<mSzIm.x ; aP.x++)
+     {
+         for (aP.y=0 ; aP.y<mSzIm.y ; aP.y++)
+         {
+              float aVal = 0;
+              int aK = (aP.x%2) + 2* (aP.y%2);
+              if (aFilter[aK]=='0')
+              {
+              }
+              else if (aFilter[aK]=='+')
+              {
+                  aVal = mIn.GetVal(aP);
+              }
+              else 
+              {
+                   ELISE_ASSERT(false,"Bad carac");
+              }
+              aRes.SetVal(aP.x,aP.y,aVal);
+         }
+     }
+
+     return aRes;
+}
+
+
+cAppli_TD_DBayer::cAppli_TD_DBayer(int argc,char ** argv):
+   mIn(1,1)
+{
+      
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(mNameImIn,"Name of Image1"),
+        LArgMain()
+    );
+
+    mIn = cTD_Im::FromString(mNameImIn);
+    mSzIm = mIn.Sz();
+
+    cTD_Im aImR = ImWith0("+000");  aImR.Save("Rouge-0.tif");
+    aImR = BayerConvol(aImR,1.0);  aImR.Save("RougePlein.tif");
+
+    cTD_Im aImV = ImWith0("0++0");  aImV.Save("Vert-0.tif");
+    aImV = BayerConvol(aImV,2.0);  aImV.Save("VertPlein.tif");
+
+    cTD_Im aImB = ImWith0("000+");  aImB.Save("Bleu-0.tif");
+    aImB = BayerConvol(aImB,1.0);  aImB.Save("BleuPlein.tif");
+
+
+    aImR.SaveRGB(std::string("DeBayer-"+mNameImIn),aImV,aImB);
+}
+
+
 int TD_Exemple_main(int argc,char ** argv)
 {
-    return TD_CorrelQuick(argc,argv);
+    cAppli_TD_DBayer(argc,argv);
+    // return TD_CorrelQuick(argc,argv);
+    return EXIT_SUCCESS;
 }
 
 
