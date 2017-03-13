@@ -44,12 +44,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cCalMECEsSim
 {
 public:
-    cCalMECEsSim(string & mDir, string & mName, string & mNameX, string & mNameY, int & mScale);
-    void CreateCom(string & aXml, int & aPas);
+    cCalMECEsSim(string & mDir, string & mName, string & mNameX, string & mNameY, int & mScale, int & mPas);
+    void CreateCom();
+    void CalMEC(string & aXml);
     void EsSim(string & aOutEsSim);
-    void CalMEC();
     void StatIm(string & aOutStatIm);
     void ScaleIm (bool & aIfScale);
+    void Purge ();
     string & Dir () {return mDir;}
     string & Name () {return mName;}
     string & NameX () {return mNameX;}
@@ -57,8 +58,10 @@ public:
     string & NameXScale () {return mNameXScale;}
     string & NameYScale () {return mNameYScale;}
     int & Scale () {return mScale;}
+    int & Pas () {return mPas;}
+    vector<string> & LFile () {return mLFile;}
     vector<string> & VDirMEC () {return mVDirMEC;}
-    vector<string> & VComCalMEC () {return mVComCalMEC;}
+    //vector<string> & VComCalMEC () {return mVComCalMEC;}
 private:
     string mDir;
     string mName;
@@ -67,78 +70,104 @@ private:
     string mNameXScale;
     string mNameYScale;
     int mScale;
+    int mPas;
+    vector<string> mLFile;
     vector<string> mVDirMEC;
-    vector<string> mVComCalMEC;
+    //vector<string> mVComCalMEC;
 };
 
-cCalMECEsSim::cCalMECEsSim(string & aDir, string & aName, string & aNameX, string & aNameY, int & aScale):
+cCalMECEsSim::cCalMECEsSim(string & aDir, string & aName, string & aNameX, string & aNameY, int & aScale, int & aPas):
     mDir (aDir),
     mName (aName),
     mNameX (aNameX),
     mNameY (aNameY),
-    mScale (aScale)
+    mScale (aScale),
+    mPas (aPas)
 {}
 
-void cCalMECEsSim::CreateCom(string & aXml, int & aPas)
+void cCalMECEsSim::CreateCom()
 {
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-    vector<string> aLFile = *(aICNM->Get(mName));
+    mLFile = *(aICNM->Get(mName));
 
-    cout << "File size = " << aLFile.size() << endl;
+    cout << "File size = " << LFile().size() << endl;
 
-    for (uint aK=uint(aPas); aK<=aLFile.size()-uint(aPas); aK+=uint(aPas))
+    for (uint aK=uint(mPas); aK<=mLFile.size()-uint(mPas); aK+=uint(mPas))
     {
-        string aDirMEC = "MEC-" + aLFile.at(0) + "-" + aLFile.at(aK);
-        MakeFileDirCompl(aDirMEC);
+        string aDirMEC = "MEC-" + mLFile.at(0) + "-" + mLFile.at(aK) + "/";
         mVDirMEC.push_back(aDirMEC);
-
-        string aComCalMEC = MM3dBinFile("MICMAC")
-                            + aXml
-                            + " +WorkDir=" + mDir
-                            + " +Im1=" + aLFile.at(0)
-                            + " +Im2=" + aLFile.at(aK);
-        mVComCalMEC.push_back(aComCalMEC);
+        MakeFileDirCompl(aDirMEC);
     }
+    cout << "Commands created" << endl;
 }
 
-void cCalMECEsSim::CalMEC()
+void cCalMECEsSim::CalMEC(string & aXml)
 {
-    for (uint aP=0; aP<mVComCalMEC.size(); aP++)
-    {
-        system_call(mVComCalMEC.at(aP).c_str());
-    }
+      for (uint aK=uint(mPas); aK<=mLFile.size()-uint(mPas); aK+=uint(mPas))
+      {
+          cout << "CalMEC : Im1=" << mLFile.at(0) << " Im2=" << mLFile.at(aK) << endl;
+            string aComCalMEC = MM3dBinFile("MICMAC")
+                                + aXml
+                                + " +WorkDir=" + mDir
+                                + " +Im1=" + mLFile.at(0)
+                                + " +Im2=" + mLFile.at(aK);
+            system_call(aComCalMEC.c_str());
+      }
 }
 
 void cCalMECEsSim::ScaleIm (bool & aIfScale)
 {
-    mNameXScale ="Px1_Scale_" + ToString(mScale) + ".tif";
-    mNameYScale ="Px2_Scale_" + ToString(mScale) + ".tif";
-
-    if (aIfScale)
+    if(aIfScale)
     {
+        cout << "Scale = " << mScale << endl;
+        mNameXScale ="Px1_Scale_" + ToString(mScale) + ".tif";
+        mNameYScale ="Px2_Scale_" + ToString(mScale) + ".tif";
+
         for (uint aS=0; aS < mVDirMEC.size(); aS++)
         {
-            cout << "Scale" << mVDirMEC.at(aS) << endl;
-            string aDirScaleX = mDir + mVDirMEC.at(aS)+mNameX;
-            string aDirScaleY = mDir + mVDirMEC.at(aS)+mNameY;
-            string aOutScaleX = mDir + mVDirMEC.at(aS)+mNameXScale;
-            string aOutScaleY = mDir + mVDirMEC.at(aS)+mNameYScale;
+            bool exist = false;
+            cInterfChantierNameManipulateur * aICNMS = cInterfChantierNameManipulateur::BasicAlloc(mDir+mVDirMEC.at(aS));
+            vector<string> aLFileS = *(aICNMS->Get(".*"));
+            for (uint aL=0; aL < aLFileS.size(); aL++)
+            {
+                exist = (aLFileS.at(aL) == mNameXScale);
+                if (exist)
+                    break;
 
-            string aComScaleX = MM3dBinFile("ScaleIm")
-                                +aDirScaleX
-                                +" " + ToString(mScale)
-                                +" Out=" + aOutScaleX;
+                cout << "scaled images existed!" << endl;
+            }
 
-            string aComScaleY = MM3dBinFile("ScaleIm")
-                                +aDirScaleY
-                                +" " + ToString(mScale)
-                                +" Out=" + aOutScaleY;
 
-            system_call(aComScaleX.c_str());
-            system_call(aComScaleY.c_str());
+            if (!exist)
+            {
+                cout << "Scale : " << mVDirMEC.at(aS) << endl;
+                string aDirScaleX = mDir + mVDirMEC.at(aS)+mNameX;
+                string aDirScaleY = mDir + mVDirMEC.at(aS)+mNameY;
+                string aOutScaleX = mDir + mVDirMEC.at(aS)+mNameXScale;
+                string aOutScaleY = mDir + mVDirMEC.at(aS)+mNameYScale;
+
+                string aComScaleX = MM3dBinFile("ScaleIm")
+                                    +aDirScaleX
+                                    +" " + ToString(mScale)
+                                    +" Out=" + aOutScaleX;
+
+                string aComScaleY = MM3dBinFile("ScaleIm")
+                                    +aDirScaleY
+                                    +" " + ToString(mScale)
+                                    +" Out=" + aOutScaleY;
+
+                system_call(aComScaleX.c_str());
+                system_call(aComScaleY.c_str());
+            }
         }
     }
+    else
+    {
+        mNameXScale = mNameX;
+        mNameYScale = mNameY;
+    }
 }
+
 void cCalMECEsSim::EsSim(string & aOutEsSim)
 {
     //Estimate the similarity and put the results in aOutEsSim.txt
@@ -154,6 +183,7 @@ void cCalMECEsSim::EsSim(string & aOutEsSim)
         cout << "EsSim : " << mVDirMEC.at(aF) << endl;
         Tiff_Im aTifX (Tiff_Im::UnivConvStd(aDirEsSim  + mNameXScale));
         Tiff_Im aTifY (Tiff_Im::UnivConvStd(aDirEsSim  + mNameYScale));
+
         Pt2di aSz (aTifX.sz());
 
         Im2D<double,double> aImgX  (1,1); //initiation of vignette X
@@ -273,21 +303,46 @@ void cCalMECEsSim::StatIm(string & aOutStatIm)
     ElFclose(aFP_StatImY);
 }
 
+void cCalMECEsSim::Purge()
+{
+
+    for (uint aP=0; aP < mVDirMEC.size(); aP++)
+    {
+        cout << "Purge : " << mVDirMEC.at(aP) << endl;
+        string aDirPurge = mDir+mVDirMEC.at(aP);
+        cInterfChantierNameManipulateur * aICNMP = cInterfChantierNameManipulateur::BasicAlloc(aDirPurge);
+        vector<string> aLFileP = *(aICNMP->Get(".*"));
+        cout << "Size = " << aLFileP.size() << endl;
+
+
+        for (uint aL=0; aL < aLFileP.size(); aL++)
+        {
+            bool rm = aLFileP.at(aL)!="Px2_Num12_DeZoom1_LeChantier.tif"
+                        && aLFileP.at(aL)!= "Px2_Scale_10.tif"
+                        && aLFileP.at(aL)!="Px1_Num12_DeZoom1_LeChantier.tif"
+                        && aLFileP.at(aL)!= "Px1_Scale_10.tif";
+            if (rm)
+                ELISE_fp::RmFile(aDirPurge+aLFileP.at(aL));
+        }
+
+    }
+}
+
 
 int TestYZ_main(int argc, char ** argv)
 {
     string aDir, aName, aXml, aOutEsSim="All_H2D", aNameX = "Px1_Num12_DeZoom1_LeChantier.tif", aNameY = "Px2_Num12_DeZoom1_LeChantier.tif", aOutStatIm="All_StatIm";
     int aPas(1), aFunc(0), aScale (10);
-    bool aIfStat (false), aIfScale (false);
+    bool aIfStat (false), aIfScale (false), aPurge(false);
 
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aDir,"Directory")
-                    << EAMC(aName, "ImgPattern", eSAM_IsExistFile)
-                    << EAMC(aXml, ".xml file", eSAM_IsExistFile),
-        LArgMain()  << EAM(aFunc,"Function",true,"choice of functions to execute. Def=0[CalMEC &  EsSim], 1[CalMEC], 2[EsSim]")
+                    << EAMC(aName, "ImgPattern", eSAM_IsExistFile),
+        LArgMain()  << EAM(aFunc,"Func",true,"choice of functions to execute. Def=0[CalMEC &  EsSim], 1[CalMEC], 2[EsSim], 3[N/A]")
                     << EAM(aPas,"Pas",true,"interval of image correlation; Def=1")
+                    << EAM(aXml, "XML", true,".xml File for image correlation.")
                     << EAM(aNameX,"NameX",true,"name of deplacement img of axis-x; Def=Px1_Num12_DeZoom1_LeChantier.tif")
                     << EAM(aNameY,"NameY",true,"name of deplacement img of axis-x; Def=Px1_Num12_DeZoom1_LeChantier.tif")
                     << EAM(aOutEsSim,"OutEsSim",true,"Output file name for A,B,C,D Helmert2D Params; Def=All_H2D")
@@ -295,20 +350,27 @@ int TestYZ_main(int argc, char ** argv)
                     << EAM(aOutStatIm,"OutStatIm",true,"Output file name for StatIm; Def=All_StatIm")
                     << EAM(aIfScale,"IfScale",false,"execute ScaleIm or not; Def=false")
                     << EAM(aScale,"Scale",true,"Scale of image sampling before estimation; Def=10")
+                    << EAM(aPurge,"Purge",false,"Purge unnecessary files; Def=false")
     );
 
-    cCalMECEsSim  aCalMECEsSim(aDir, aName, aNameX, aNameY, aScale);
-    aCalMECEsSim.CreateCom(aXml, aPas);
+    cCalMECEsSim  aCalMECEsSim(aDir, aName, aNameX, aNameY, aScale, aPas);
+    aCalMECEsSim.CreateCom();
 
-    if (aFunc == 0 || aFunc ==1)
-        aCalMECEsSim.CalMEC();
+    if (aFunc == 0 || aFunc == 1)
+        aCalMECEsSim.CalMEC(aXml);
 
-    if (aFunc == 0 || aFunc ==2)
+    if (aFunc == 0 || aFunc == 2)
+    {
         aCalMECEsSim.ScaleIm(aIfScale);
         aCalMECEsSim.EsSim(aOutEsSim);
+    }
+
 
     if (aIfStat)
         aCalMECEsSim.StatIm(aOutStatIm);
+
+    if (aPurge)
+        aCalMECEsSim.Purge();
 
     return EXIT_SUCCESS;
 }
