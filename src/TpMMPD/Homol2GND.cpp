@@ -153,7 +153,7 @@ int Homol2GND_main(int argc,char ** argv)
         int x=aPoP->getPt().x/centralPic->getPicSize()->getWinSz().x;
         int y=aPoP->getPt().y/centralPic->getPicSize()->getWinSz().y;
         std::cout<<aPoP->getPt().x<<" "<<aPoP->getPt().y<<" "<<aPoP->getHomol()->getPointOnPicsSize()<<" ("<<x<<","<<y<<")"<<std::endl;
-        if ((x%2==0)&&(y%2==0)&&(allFinalHomols.size()<aNbPts))
+        if ((x%2==0)&&(y%2==0)&&(int(allFinalHomols.size())<aNbPts))
             allFinalHomols.push_back(aPoP->getHomol());
     }
 

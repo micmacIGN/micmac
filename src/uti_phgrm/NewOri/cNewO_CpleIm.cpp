@@ -744,6 +744,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
            std::string aName = (*aVIm)[aK];
            aNM->NameXmlOri2Im(aName,aName,true);
            std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ QUOTE(anEASF.mPat);
+
            aExePaq.AddCom(aCom);
        }
    }

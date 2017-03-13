@@ -123,6 +123,13 @@ cSolBasculeRig  BascFromVRot
 */
 
 
+cSolBasculeRig SolElemBascRigid
+               (
+                    const Pt3dr & aAvant1, const Pt3dr & aAvant2, const Pt3dr & aAvant3,
+                    const Pt3dr & aApres1, const Pt3dr & aApres2, const Pt3dr & aApres3
+               );
+
+
 
 class cRansacBasculementRigide
 {

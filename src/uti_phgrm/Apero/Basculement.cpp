@@ -264,6 +264,13 @@ void cArgGetPtsTerrain::InitFileColor(const std::string & aName,double aStepIm,c
         mKG = 1;
         mKB = 2;
    }
+   else if (mVIms.size()==4)
+   {
+		std::cout << "Warning: 4 channel image considered as RGB" << "\n";
+        mKR = 0;
+        mKG = 1;
+        mKB = 2;
+   }
    else
    {
        ELISE_ASSERT(false,"Bas size in cArgGetPtsTerrain::InitFileColor");

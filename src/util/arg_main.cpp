@@ -195,7 +195,7 @@ std::list<std::string>  TheEmptyListEnum;
 
 bool MMVisualMode = false;
 
-std::string MakeStrFromArgcARgvWithSubst(int  argc,char** argv,int aKSubst,std::string aSubst, bool aProtect)
+std::string MakeStrFromArgcARgvWithSubst(int  argc,char** argv,int aKSubst,std::string aSubst, bool aProtect,bool StrongProtect)
 {
 	if (aProtect) aSubst = PATTERN_QUOTE(aSubst);
  
@@ -207,11 +207,15 @@ std::string MakeStrFromArgcARgvWithSubst(int  argc,char** argv,int aKSubst,std::
 		else
 		{
 			const string str(argv[aK]);
-			aRes = aRes + (aProtect ? PATTERN_QUOTE(str) : str) + " ";
+			aRes = aRes + (aProtect ? (StrongProtect ? QUOTE(str) : PATTERN_QUOTE(str)) : str) + " ";
 		}
 	}
 
 	return aRes;
+}
+std::string MakeStrFromArgcARgvWithSubst(int  argc,char** argv,int aKSubst,std::string aSubst, bool aProtect)
+{
+   return MakeStrFromArgcARgvWithSubst(argc,argv,aKSubst,aSubst,aProtect,true);
 }
 
 std::string MakeStrFromArgcARgv( int argc,char **argv, bool aProtect )
@@ -258,7 +262,9 @@ void MemoArg(int argc,char** argv)
     MMD_InitArgcArgv(argc,argv);
     MemoArgc = argc;
     MemoArgv = argv;
-    GlobArcArgv = MakeStrFromArgcARgv(argc,argv,true);
+    // GlobArcArgv = MakeStrFromArgcARgv(argc,argv,true);
+    // MODIF MPD car sinon les pattern reconnu par le shell ne sont pas quote 
+     GlobArcArgv = MakeStrFromArgcARgvWithSubst(argc, argv, -1, "", true,true);
 }
 
 void ShowArgs()

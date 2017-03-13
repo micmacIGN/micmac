@@ -112,6 +112,13 @@ int CmpIm_main(int argc,char ** argv)
                        << EAM(aHisto,"Hist",true,"Generate histogram stats")
 	 );
 
+	if(aHisto && aFileDiff=="")
+		aFileDiff="Diff.tif";
+    if(aHisto && aColDif)
+		ELISE_ASSERT(false,"You can't produce an RGB file and histogram at the same time (Hist,ColDif);");
+	
+
+
 	if (!MMVisualMode)
 	{
 
@@ -138,6 +145,8 @@ int CmpIm_main(int argc,char ** argv)
            else
               return -1;
         }
+		
+		std::cout << "Origin=" << aBrd << ", end=" << aSz-aBrd << "\n"; 
 
         Fonc_Num aFonc2 = aMulIm2*aFile2.in_proj();
         if (aUseXmlFOM)
@@ -157,6 +166,7 @@ int CmpIm_main(int argc,char ** argv)
                           Pt2dr(0,0)
                        );
         }
+
 
         Symb_FNum aFDifAbs(Rconv(Abs(aFile1.in()-aFonc2)));
 
@@ -184,6 +194,7 @@ int CmpIm_main(int argc,char ** argv)
 
         if (aNbDif)
         {
+
            if (aFileDiff!="")
            {
                 Symb_FNum aFDifSigne(aFile1.in()-aFonc2);
@@ -198,7 +209,7 @@ int CmpIm_main(int argc,char ** argv)
                                aRes + (aFDifSigne<0) * aColDif
                            );
                 }
-				else if(a16Bit)
+				if(a16Bit)
 					Tiff_Im::CreateFromFonc
 		  			(
 						aFileDiff,
@@ -216,7 +227,6 @@ int CmpIm_main(int argc,char ** argv)
 			
 				if(aHisto)
 				{
-
 					
 					//calculation of the histogram					
 					INT NbV = 256;
@@ -282,11 +292,14 @@ int CmpIm_main(int argc,char ** argv)
 
 
                     //calculation of the standard accuracy measures on data without outliers
-				 	double aSeuil = 3*(sqrt(aSomSquare/aSom1));
-				
+				 	double aSeuil = 2*(sqrt(aSomSquare/aSom1));
+					if(2*(sqrt(aSomSquare/aSom1))>50)
+						aSeuil = 50;
+	
 					//a trick to move from Fonc to Im2D_REAL4	
-					Tiff_Im::CreateFromFonc("NONAME.tif",aSz,(aRes),GenIm::real4);
-					Im2D_REAL4 aResIm = Im2D_REAL4::FromFileBasic("NONAME.tif");	
+					std::string aNameTmp="NONAME.tif";
+					Tiff_Im::CreateFromFonc(aNameTmp,aSz,(aRes),GenIm::real4);
+					Im2D_REAL4 aResIm = Im2D_REAL4::FromFileBasic(aNameTmp);	
 
 					Im2D_REAL4 aResNOIm(aSz.x,aSz.y);
 					ELISE_COPY
@@ -341,6 +354,8 @@ int CmpIm_main(int argc,char ** argv)
                     );
                     aStDevApres = sqrt(aVarSomNO/(aSom1-aSom1NO-1));
 			
+					ELISE_fp::RmFile(aNameTmp);
+
 					std::cout << "*********************************************************\n";
 					std::cout << "**     Accuracy measures by [Hoehle & Hoehle, 2009]    **\n";
 					std::cout << "*********************************************************\n";
@@ -371,12 +386,12 @@ int CmpIm_main(int argc,char ** argv)
                         (aSomDif-aSomDifNO)/(aSom1-aSom1NO) <<" (no outliers) \n";
 					std::cout << "Std dev                =" << 
                                                 aStDevApres <<" (no outliers)\n";
-					std::cout << "Rejection threshold    =" << aSeuil <<" -> 3*std_dev\n";
+					std::cout << "Rejection threshold    =" << aSeuil <<" -> 2*std_dev or 50m\n";
 					std::cout << "Rejected outliers      =" << 
                     aSom1NO << "=" << aSom1NO*100/aSom1 << "%" << "\n";
 					std::cout << "                                                         \n";
 					std::cout << "*********************************************************\n";
-				
+						
            		}
 
            		std::cout << aName1 << " et " << aName2 << " sont differentes\n";

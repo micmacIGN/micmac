@@ -510,6 +510,8 @@ bool needCommandlineProtection( const string &aStr )
 {
 	const char *it = aStr.c_str();
 	size_t i = aStr.length();
+        if (i && (*it=='"')) 
+           return false;
 	while (i--)
 	{
 		const char &c = *it++;

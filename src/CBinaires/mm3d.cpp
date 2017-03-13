@@ -210,13 +210,15 @@ int Ratafia_Main(int argc,char ** argv);
 
 int FusionDepl_Main(int argc,char ** argv);
 
-
+int BasculeRobuste_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+	   aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
+	   
        aRes.push_back(cMMCom("FusionDepl",FusionDepl_Main,"Fusion carte de deplacement "));
        aRes.push_back(cMMCom("TestPbRPC",TestCamRPC,"Test possible Problems on RPC ",cArgLogCom(2)));
        aRes.push_back(cMMCom("TestBundleInter",TestBundleInter_main,"Block Initialisation "));
