@@ -85,14 +85,41 @@ void cplExistInHomol ( vector<CplString> & VCpl,
     }
 }
 
+void writeHomol(string pic1, string pic2, string ExpFormat, string SHOut, cInterfChantierNameManipulateur * aICNM, ElPackHomologue aPack, bool skipVide)
+{
+    string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(SHOut)
+                        +  std::string("@")
+                        +  ExpFormat;
+    string aHmOut = aICNM->Assoc1To2(aKHOutDat, pic1, pic2, true);
+    cout<<" ++ Write : "<<aHmOut<<endl;
+    if (skipVide)
+    {
+        if (aPack.size() > 0)
+        {
+            aPack.StdPutInFile(aHmOut);
+        }
+    }
+    else
+    {
+        aPack.StdPutInFile(aHmOut);
+    }
+}
+
+
+
 int Homol2Way_main(int argc,char ** argv)
 {
     string aFullPattern;
     string aSHIn = "Homol";
     string aSHOut = "_2Way";
     bool skipVide = false;
+    bool ExpTxt = false;
+    bool IntTxt = false;
+    bool OnlyConvert = false;
     cout<<"*************************************************************************"<<endl;
     cout<<"*    Creat same pack homol in 2 way by combination 2 pack of each way   *"<<endl;
+    cout<<"*                   Convert homol format dat <-> txt                    *"<<endl;
     cout<<"*************************************************************************"<<endl;
         ElInitArgMain
                 (
@@ -104,6 +131,9 @@ int Homol2Way_main(int argc,char ** argv)
                     << EAM(aSHIn, "SH", true, "Input homol folder (default = Homol)")
                     << EAM(aSHOut, "SHOut", true, "Output homol folder")
                     << EAM(skipVide, "skipVide", true, "don't write out pack Homol vide")
+                    << EAM(IntTxt, "IntTxt", true, "Input format (txt=true, dat=false - def=false")
+                    << EAM(ExpTxt, "ExpTxt", true, "Output format (txt=true, dat=false - def=false")
+                    << EAM(OnlyConvert, "OnlyConvert", true, "convert format homol only (not create 2 Way homologue) - def=false")
                 );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -114,33 +144,39 @@ int Homol2Way_main(int argc,char ** argv)
         vector<string> VImgs = *(aICNM->Get(aNameImg));
         cout<<"Nb Imgs : "<<VImgs.size()<<endl;
         vector<CplString> VCpl;
-        StdCorrecNameHomol_G(aSHIn, aDir);
+
+        //StdCorrecNameHomol_G(aSHIn, aDir);
+        if (!ELISE_fp::IsDirectory(aSHIn))
+            aSHIn = "Homol" + aSHIn;
+
         cplExistInHomol      ( VCpl,
                                VImgs,
                                aSHIn,
                                aICNM,
-                               false );
+                               IntTxt );
 
+        string ExpFormat = ExpTxt ? std::string("txt"):std::string("dat");
+        string InpFormat = IntTxt ? std::string("txt"):std::string("dat");
 
         string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                            +  std::string(aSHIn)
                            +  std::string("@")
-                           +  std::string("dat");
+                           +  InpFormat;
         string aKHOutDat =   std::string("NKS-Assoc-CplIm2Hom@")
                             +  std::string(aSHOut)
                             +  std::string("@")
-                            +  std::string("dat");
+                            +  ExpFormat;
 
         cout<<"ToTal: "<<VCpl.size()<<" cpl founed"<<endl;
 
-
+if (!OnlyConvert)
+{
         for (uint aKCpl=0; aKCpl<VCpl.size(); aKCpl++)
         {
             CplString aCpl = VCpl[aKCpl];
             string pic1 = aCpl.img1;
             string pic2 = aCpl.img2;
             cout<<"Cpl : "<<pic1 <<" - "<< pic2<<endl;
-
             ElPackHomologue aPckCmbn;
             string aHmIn= aICNM->Assoc1To2(aKHIn, pic1, pic2, true);
             string aHmInIv= aICNM->Assoc1To2(aKHIn, pic2, pic1, true);
@@ -203,6 +239,53 @@ int Homol2Way_main(int argc,char ** argv)
                 aPckCmbn.StdPutInFile(aHmOut);
             }
         }
+}
+else
+{
+    cout<<"Convert homol format only"<<endl;
+    for (uint aKCpl=0; aKCpl<VCpl.size(); aKCpl++)
+    {
+            CplString aCpl = VCpl[aKCpl];
+            string pic1 = aCpl.img1;
+            string pic2 = aCpl.img2;
+            cout<<"Cpl : "<<pic1 <<" - "<< pic2<<endl;
+            string aHmIn= aICNM->Assoc1To2(aKHIn, pic1, pic2, true);
+            bool Exist= ELISE_fp::exist_file(aHmIn);
+            if (!Exist)
+            {
+                StdCorrecNameHomol_G(aSHIn, aICNM->Dir());
+                aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                                   +  std::string(aSHIn)
+                                   +  std::string("@")
+                                   +  InpFormat;
+                aHmIn= aICNM->Assoc1To2(aKHIn, pic1, pic2, true);
+            }
+            Exist= ELISE_fp::exist_file(aHmIn);
+            if (Exist)
+            {
+                ElPackHomologue aPack = ElPackHomologue::FromFile(aHmIn);
+                writeHomol(pic1, pic2, ExpFormat, aSHOut, aICNM,  aPack, skipVide);
+            }
+
+            string aHmInIv= aICNM->Assoc1To2(aKHIn, pic2, pic1, true);
+            bool ExistIv= ELISE_fp::exist_file(aHmInIv);
+            if (!ExistIv)
+            {
+                StdCorrecNameHomol_G(aSHIn, aICNM->Dir());
+                aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                                   +  std::string(aSHIn)
+                                   +  std::string("@")
+                                   +  InpFormat;
+                aHmInIv= aICNM->Assoc1To2(aKHIn, pic2, pic1, true);
+            }
+            ExistIv= ELISE_fp::exist_file(aHmInIv);
+            if (ExistIv)
+            {
+                ElPackHomologue aPack = ElPackHomologue::FromFile(aHmInIv);
+                writeHomol(pic2, pic1, ExpFormat, aSHOut, aICNM,  aPack, skipVide);
+            }
+    }
+}
         cout<<"If Total 0 Cpl founded, add Homol_ in parameter SH"<<endl;
         return EXIT_SUCCESS;
     }
