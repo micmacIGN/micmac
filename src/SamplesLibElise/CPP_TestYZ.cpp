@@ -133,11 +133,8 @@ void cCalMECEsSim::ScaleIm (bool & aIfScale)
                 exist = (aLFileS.at(aL) == mNameXScale);
                 if (exist)
                     break;
-
                 cout << "scaled images existed!" << endl;
             }
-
-
             if (!exist)
             {
                 cout << "Scale : " << mVDirMEC.at(aS) << endl;
@@ -161,6 +158,7 @@ void cCalMECEsSim::ScaleIm (bool & aIfScale)
             }
         }
     }
+
     else
     {
         mNameXScale = mNameX;
