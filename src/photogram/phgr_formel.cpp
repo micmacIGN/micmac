@@ -867,16 +867,21 @@ cSsBloc cSetEqFormelles::GetBlocOfI0Alloc(const cIncIntervale & anI) const
 }
 
 // cSsBloc GetBlocOfI0(const cIncIntervale & aBl) const { }
-
 cIncIntervale *  cSetEqFormelles::GetIntervInclusIAlloc(int anI0) const
 {
     return  mBlocsIncAlloc[GetNumBlocInclusIAlloc(anI0)];
 }
 
-
+// extern bool MPD_DEBUG_NEW_PT;
 int   cSetEqFormelles::GetNumBlocInclusIAlloc(int anI0) const
 {
-    ELISE_ASSERT((anI0>=0) && (anI0<int(mI02NblAlloc.size())), "cSetEqFormelles::GetIntervRef ");
+    // if (MPD_DEBUG_NEW_PT) std::cout << "I0= " << anI0 << " SzBl=" << mI02NblAlloc.size() << "\n";
+    if ((anI0<0) || (anI0>=int(mI02NblAlloc.size())))
+    {
+        std::cout << "I0= " << anI0 << " SzBl=" << mI02NblAlloc.size() << "\n";
+        ELISE_ASSERT(false, "cSetEqFormelles::GetIntervRef ");
+    }
+    // ELISE_ASSERT((anI0>=0) && (anI0<int(mI02NblAlloc.size())), "cSetEqFormelles::GetIntervRef ");
 
     return   mI02NblAlloc[anI0];
 }

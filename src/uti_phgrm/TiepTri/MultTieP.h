@@ -63,8 +63,9 @@ class cCelImTPM
 
          cCelImTPM(const std::string & aNameIm,int anId);
 
-         void *  GetVoidData() const;
-         void    SetVoidData(void *);
+         void *  ImTPM_GetVoidData() const;
+         void    ImTPM_SetVoidData(void *);
+         int     & Id() {return mId;}
     private :
          std::string mNameIm;
          int         mId;
@@ -103,6 +104,9 @@ class cSetPMul1ConfigTPM
        int   NbIm() const ;
        int   NbPts() const ;
 
+       void *  ConfTPM_GetVoidData() const;
+       void    ConfTPM_SetVoidData(void *);
+
     private :
        int  AddrPtIm(int aKp,int aKIm) {return 2*(aKp*mNbIm  +aKIm) ;}
         
@@ -123,6 +127,7 @@ class cSetPMul1ConfigTPM
 
        int                 mNbAttr;
        std::vector<float>  mVAttr;
+       void *      mVoidData;  // To store any usefull data
 };
 
 
@@ -146,7 +151,6 @@ class cSetTiePMul
 
         // void Add
 
-
         void AddFile(const std::string & aName);  // Mettre en private + tard
 
         void ResetNbAttr(int aNbAttr);
@@ -155,6 +159,8 @@ class cSetTiePMul
         cCelImTPM * CelFromInt(const int & anId);
 
         const std::vector<cSetPMul1ConfigTPM *> & VPMul();
+        int NbIm() const;
+
     private :
         
         cCelImTPM * AddIm(const std::string &,bool &IsNew);
