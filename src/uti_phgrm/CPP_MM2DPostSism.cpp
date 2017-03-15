@@ -251,6 +251,12 @@ int MM2DPostSism_Main(int argc,char ** argv)
 class cAppliFusionDepl;
 class cOneImageAFD;
 
+class cInterfAppliFusionDepl
+{
+    public :
+          virtual std::string  NamePxIn(int aNumPx) =0;
+};
+
 class cCpleImAFD
 {
     public :
@@ -259,7 +265,7 @@ class cCpleImAFD
          bool  Loaded() const {return mLoaded;}
          Pt3dr GetDepl(Pt2di aP0,Pt2di aP1);
     private :
-         cAppliFusionDepl &        mAppli;
+         cInterfAppliFusionDepl &  mAppli;
          std::string               mDir;
          std::string               mNameX;
          Tiff_Im                   mTifX;
@@ -280,9 +286,9 @@ class cCpleImAFD
 class cOneImageAFD
 {
      public :
-          cOneImageAFD(const std::string & anIm,bool Avant,cAppliFusionDepl &);
+          cOneImageAFD(const std::string & anIm,bool Avant,cInterfAppliFusionDepl &);
           friend class cAppliFusionDepl;
-          cAppliFusionDepl & Appli();
+          cInterfAppliFusionDepl & Appli();
           // const Pt2di & P0() {return mP0;}
           // const Pt2di & P1() {return mP1;}
           bool  Loaded() const {return mLoaded;}
@@ -292,7 +298,7 @@ class cOneImageAFD
           bool  Avant() const {return mAvant;}
           INT  PC(const Pt2di &);
      private :
-          cAppliFusionDepl &        mAppli;
+          cInterfAppliFusionDepl &  mAppli;
           string                    mNameIm;
           string                    mNamePC;
           bool                      mAvant;
@@ -307,12 +313,12 @@ class cOneImageAFD
 
 
 
-class cAppliFusionDepl
+class cAppliFusionDepl : public cInterfAppliFusionDepl
 {
      public :
           cAppliFusionDepl(int argc,char ** argv);
         
-          std::string  NamePx(int aNumPx);
+          std::string  NamePxIn(int aNumPx);
      private :
           void  DoOneBox(const Box2di &);
 
@@ -349,9 +355,9 @@ class cAppliFusionDepl
 cCpleImAFD::cCpleImAFD(cOneImageAFD* anI1,cOneImageAFD* anI2,const std::string & aDir) :
    mAppli   (anI1->Appli()),
    mDir     (aDir),
-   mNameX   (mDir+ "/" + mAppli.NamePx(1)),
+   mNameX   (mDir+ "/" + mAppli.NamePxIn(1)),
    mTifX    (mNameX.c_str()),
-   mNameY   (mDir+ "/" + mAppli.NamePx(2)),
+   mNameY   (mDir+ "/" + mAppli.NamePxIn(2)),
    mTifY    (mNameY.c_str()),
    mI1      (anI1),
    mI2      (anI2),
@@ -422,7 +428,7 @@ Pt3dr cCpleImAFD::GetDepl(Pt2di aP0,Pt2di aP1)
 
        // =============  cOneImageAFD ==================
 
-cOneImageAFD::cOneImageAFD(const std::string & anIm,bool Avant,cAppliFusionDepl & anAppli) :
+cOneImageAFD::cOneImageAFD(const std::string & anIm,bool Avant,cInterfAppliFusionDepl & anAppli) :
     mAppli      (anAppli),
     mNameIm     (anIm),
     // mNamePC     (DirOfFile(mNameIm) + "PC_"+NameWithoutDir(mNameIm)),
@@ -435,7 +441,7 @@ cOneImageAFD::cOneImageAFD(const std::string & anIm,bool Avant,cAppliFusionDepl 
 {
 }
 
-cAppliFusionDepl & cOneImageAFD::Appli()
+cInterfAppliFusionDepl & cOneImageAFD::Appli()
 {
     return mAppli;
 }
@@ -476,7 +482,7 @@ INT  cOneImageAFD::PC(const Pt2di & aPGlob)
 void cAppliFusionDepl::AddCple(cOneImageAFD * anI1, cOneImageAFD * anI2)
 {
      std::string aDir = mICNM->Assoc1To2(mKeyDirDepl,anI1->mNameIm,anI2->mNameIm,true);
-     std::string aNameFile = aDir + "/"+NamePx(1);
+     std::string aNameFile = aDir + "/"+NamePxIn(1);
      if (ELISE_fp::exist_file(aNameFile))
      {
         mCples.push_back(new cCpleImAFD(anI1,anI2,aDir));
@@ -525,7 +531,7 @@ Tiff_Im *  cAppliFusionDepl::FileResult(const std::string & aName)
               );
 }
 
-std::string cAppliFusionDepl::NamePx(int aNumPx)
+std::string cAppliFusionDepl::NamePxIn(int aNumPx)
 {
    return "Px"+ ToString(aNumPx)  +"_Num"+ ToString(mNumEt) + "_DeZoom1_LeChantier.tif";
 }

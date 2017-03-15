@@ -536,10 +536,64 @@ cAppli_TD_DBayer::cAppli_TD_DBayer(int argc,char ** argv):
     aImR.SaveRGB(std::string("DeBayer-"+mNameImIn),aImV,aImB);
 }
 
+class cAppli_TD_RhoTetaBayer
+{
+     public :
+         cAppli_TD_RhoTetaBayer(int argc,char ** argv);
+     private :
+        std::string mNameImX;
+        std::string mNameImY;
+        cTD_Im      mDx;
+        cTD_Im      mDy;
+        cTD_Im      mImRho;
+        cTD_Im      mImTeta;
+        Pt2di       mSz;
+        Pt2dr       mDecal;
+};
+
+cAppli_TD_RhoTetaBayer::cAppli_TD_RhoTetaBayer(int argc,char ** argv) :
+     mDx     (1,1),
+     mDy     (1,1),
+     mImRho  (1,1),
+     mImTeta (1,1),
+     mDecal  (0.0,0.0)
+{
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(mNameImX,"Name of Dep X")
+                    << EAMC(mNameImY,"Name of Dep Y") ,
+
+        LArgMain()  << EAM(mDecal,"Decal",true,"Decalage central")
+    );
+    mDx = cTD_Im::FromString(mNameImX);
+    mDy = cTD_Im::FromString(mNameImY);
+    mSz = mDx.Sz();
+
+    mImRho  =  cTD_Im(mSz.x,mSz.y);
+    mImTeta =  cTD_Im(mSz.x,mSz.y);
+
+    Pt2di aP;
+    for (aP.x=0 ; aP.x<mSz.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<mSz.y ; aP.y++)
+        {
+            Pt2dr aQ (mDx.GetVal(aP),mDy.GetVal(aP));
+            aQ = aQ-mDecal;
+            aQ  = Pt2dr::polar(aQ,0.0);
+            mImRho.SetVal(aP.x,aP.y,aQ.x);
+            mImTeta.SetVal(aP.x,aP.y,aQ.y);
+          
+        }
+    }
+     mImRho.Save("Rho.tif");
+    mImTeta.Save("Teta.tif");
+}
+
 
 int TD_Exemple_main(int argc,char ** argv)
 {
-    cAppli_TD_DBayer(argc,argv);
+    cAppli_TD_RhoTetaBayer(argc,argv);
     // return TD_CorrelQuick(argc,argv);
     return EXIT_SUCCESS;
 }
