@@ -172,8 +172,8 @@ void cCalMECEsSim::EsSim(string & aOutEsSim)
     string aOut1 = aOutEsSim+".txt";
     FILE * aFP_EsSim = FopenNN(aOut1,"w","EsSim");
     cElemAppliSetFile aEASF(mDir+ELISE_CAR_DIR+aOut1);
-    string Format = "#F=R1 R2 Tx Ty";
-    fprintf(aFP_EsSim,"%s\n",Format.c_str());
+    string Format1 = "#F=R1 R2 Tx Ty";
+    fprintf(aFP_EsSim,"%s\n",Format1.c_str());
 
     for (uint aF=0; aF < mVDirMEC.size(); aF++)
     {
@@ -193,36 +193,62 @@ void cCalMECEsSim::EsSim(string & aOutEsSim)
         ELISE_COPY(aImgX.all_pts(),aTifX.in(),aImgX.out());
         ELISE_COPY(aImgY.all_pts(),aTifY.in(),aImgY.out());
 
-
         //Estimate the similarity
-        L2SysSurResol aSys(4);
+        L2SysSurResol aSys1(4);
         double * aData1 = NULL;
 
         for(int aKx=0; aKx < aSz.x; aKx++)
         {
             for(int aKy=0;aKy < aSz.y;aKy++)
             {
-                double coeffXUL[4] = {(double(aKx)-0.5)*double(mScale), -(double(aKy)-0.5)*double(mScale), 1.0, 0.0};
-                double coeffYUL[4] = {(double(aKy)-0.5)*double(mScale), (double(aKx)-0.5)*double(mScale), 0.0, 1.0};
+                double coeffXUL[4] = {(double(aKx)+0.5)*double(mScale)-1, -(double(aKy)+0.5)*double(mScale)+1, 1.0, 0.0};
+                double coeffYUL[4] = {(double(aKy)+0.5)*double(mScale)-1, (double(aKx)+0.5)*double(mScale)-1, 0.0, 1.0};
                 double coeffXDR[4] = {(double(aKx)+0.5)*double(mScale), -(double(aKy)+0.5)*double(mScale), 1.0, 0.0};
                 double coeffYDR[4] = {(double(aKy)+0.5)*double(mScale), (double(aKx)+0.5)*double(mScale), 0.0, 1.0};
                 double delX = aImgX.GetR(Pt2di(aKx, aKy));
                 double delY = aImgY.GetR(Pt2di(aKx, aKy));
-                aSys.AddEquation(1.0, coeffXUL, delX);
-                aSys.AddEquation(1.0, coeffYUL, delY);
-                aSys.AddEquation(1.0, coeffXDR, delX);
-                aSys.AddEquation(1.0, coeffYDR, delY);
+                aSys1.AddEquation(1.0, coeffXUL, delX);
+                aSys1.AddEquation(1.0, coeffYUL, delY);
+                aSys1.AddEquation(1.0, coeffXDR, delX);
+                aSys1.AddEquation(1.0, coeffYDR, delY);
             }
         }
-        bool solveOK = true;
-        Im1D_REAL8 aResol1 = aSys.GSSR_Solve(&solveOK);
+        bool solveOK1 = true;
+        Im1D_REAL8 aResol1 = aSys1.GSSR_Solve(&solveOK1);
         aData1 = aResol1.data();
-        if (solveOK != false)
+
+        if (solveOK1 != false)
             fprintf(aFP_EsSim,"%f %f %f %f\n", aData1[0], aData1[1], aData1[2], aData1[3]);
         else
             cout<<"Can't estimate."<<endl;
+
+        //Calculate residual
+        string str1 = mVDirMEC.at(aF).substr(4,17);
+        string str2 = mVDirMEC.at(aF).substr(30,17);
+        string aOut2 = "Res_"+str1+"_"+str2+".txt";
+        FILE * aFP_Res = FopenNN(aOut2,"w","Res");
+        cElemAppliSetFile aEASF(mDir+ELISE_CAR_DIR+aOut2);
+//        string Format2 = "#F=X,Y,DeplX,DeplY,EsX,EsY,ResX,ResY";
+//        fprintf(aFP_Res,"%s\n",Format2.c_str());
+        for(int aKx=0; aKx < aSz.x; aKx++)
+        {
+            for(int aKy=0;aKy < aSz.y;aKy++)
+            {
+                double DeplX = aImgX.GetR(Pt2di(aKx, aKy));
+                double DeplY = aImgY.GetR(Pt2di(aKx, aKy));
+                double EsX = aData1[0]*aKx-aData1[1]*aKy+aData1[2];
+                double EsY = aData1[1]*aKx+aData1[0]*aKy+aData1[3];
+                double ResX = DeplX-EsX;
+                double ResY = DeplY-EsY;
+                //fprintf(aFP_Res,"%d %d %f %f %f %f %f %f\n", aKx, aKy, DeplX, DeplY, EsX, EsY, ResX, ResY);
+                fprintf(aFP_Res,"%d %d %f %f\n", aKx, aKy, ResX, ResY);
+            }
+        }
+        ElFclose(aFP_Res);
     }
     ElFclose(aFP_EsSim);
+
+
 }
 
 void cCalMECEsSim::StatIm(string & aOutStatIm)
