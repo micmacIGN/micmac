@@ -134,7 +134,11 @@ class cSetPMul1ConfigTPM
 class cSetTiePMul
 {
     public :
-        cSetTiePMul(int aNbAttrPts);
+        cSetTiePMul(int aNbAttrPts,const std::vector<std::string> * aVIm =0);
+        void AddPts(const std::vector<int> & aNumIms,const std::vector<Pt2dr> &,const std::vector<float> & aVAttr);
+        void Save(const std::string & aName);
+
+     // ========================
         void SetFilter(const std::vector<std::string> & aVIm );
         void SetCurIms(const std::vector<std::string> & aVIm);
 
@@ -144,7 +148,6 @@ class cSetTiePMul
 
         cSetPMul1ConfigTPM * OneConfigFromVI(const std::vector<INT> &);
 
-        void Save(const std::string & aName);
 
 
         static cSetTiePMul * FromFiles(const std::vector<std::string> aVFiles,const std::vector<std::string>  * aFilter);

@@ -81,6 +81,7 @@ int Homol2GND_main(int argc,char ** argv)
     //search for good homol points on best image
     int nbCells=4*aNbPts-sqrt(aNbPts)*2*2+1; //works for aNbPts=x², to have one used cell for 4 cells (to force dispersion)
 
+    std::cout<<"Looking for "<<aNbPts<<" points.\n";
     // Initialize name manipulator & files
     std::string aDirImages,aPatIm;
     SplitDirAndFile(aDirImages,aPatIm,aFullPattern);
@@ -119,11 +120,11 @@ int Homol2GND_main(int argc,char ** argv)
     cPic* centralPic=0;
 
     std::map<std::string,cPic*>::iterator itPic1;
-    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+    /*for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
     {
         cPic *pic1=(*itPic1).second;
         std::cout<<" Picture "<<pic1->getName()<<std::endl;
-    }
+    }*/
 
     //create new homols ------------------------------------------------
     std::cout<<"Create new homol..\n";
@@ -134,7 +135,7 @@ int Homol2GND_main(int argc,char ** argv)
         {
             centralPic=aPic;
             aPic->selectHomols();
-            std::cout<<aPic->getName()<<": "<<aPic->getAllSelectedPointsOnPicSize()<<std::endl;
+            std::cout<<"Central picture: "<<aPic->getName()<<": "<<aPic->getAllSelectedPointsOnPicSize()<<std::endl;
         }
     }
     std::cout<<"Done!"<<endl;
@@ -143,6 +144,7 @@ int Homol2GND_main(int argc,char ** argv)
     //keep only points on even/even windows (to avoid points too close)
     std::vector<cHomol*> allFinalHomols;
 
+    std::cout<<"Homol points on central pic:\n";
     std::map<double,cPointOnPic*>::iterator itHomolPoint;
     for (itHomolPoint=centralPic->getAllSelectedPointsOnPic()->begin();
          itHomolPoint!=centralPic->getAllSelectedPointsOnPic()->end();
@@ -152,17 +154,47 @@ int Homol2GND_main(int argc,char ** argv)
         if (aPoP->getHomol()->isBad()) continue;
         int x=aPoP->getPt().x/centralPic->getPicSize()->getWinSz().x;
         int y=aPoP->getPt().y/centralPic->getPicSize()->getWinSz().y;
-        std::cout<<aPoP->getPt().x<<" "<<aPoP->getPt().y<<" "<<aPoP->getHomol()->getPointOnPicsSize()<<" ("<<x<<","<<y<<")"<<std::endl;
-        if ((x%2==0)&&(y%2==0)&&(int(allFinalHomols.size())<aNbPts))
+        //std::cout<<aPoP->getPt().x<<" "<<aPoP->getPt().y<<" "<<aPoP->getHomol()->getPointOnPicsSize()<<" ("<<x<<","<<y<<")"<<std::endl;
+        if ((x%2==0)&&(y%2==0))
+        {
             allFinalHomols.push_back(aPoP->getHomol());
+            static char  buf[200];
+            sprintf(buf,"%s_%02d",ptsName.c_str(),(int)allFinalHomols.size()-1);
+            std::cout<<"  * Selected homol: "<<buf<<" "<<aPoP->getPt().x<<" "<<aPoP->getPt().y
+                    <<" (multiplicity "<<aPoP->getHomol()->getPointOnPicsSize()<<").\n";
+        }
+    }
+    if ((int)allFinalHomols.size()<aNbPts)
+    {
+        for (itHomolPoint=centralPic->getAllSelectedPointsOnPic()->begin();
+             itHomolPoint!=centralPic->getAllSelectedPointsOnPic()->end();
+             ++itHomolPoint)
+        {
+            cPointOnPic* aPoP=(*itHomolPoint).second;
+            if (aPoP->getHomol()->isBad()) continue;
+            int x=aPoP->getPt().x/centralPic->getPicSize()->getWinSz().x;
+            int y=aPoP->getPt().y/centralPic->getPicSize()->getWinSz().y;
+            //std::cout<<aPoP->getPt().x<<" "<<aPoP->getPt().y<<" "<<aPoP->getHomol()->getPointOnPicsSize()<<" ("<<x<<","<<y<<")"<<std::endl;
+            if ((x%2==1)&&(y%2==1)&&(((int)allFinalHomols.size()<aNbPts)))
+            {
+                allFinalHomols.push_back(aPoP->getHomol());
+                static char  buf[200];
+                sprintf(buf,"%s_%02d",ptsName.c_str(),(int)allFinalHomols.size()-1);
+                std::cout<<"  * Selected homol: "<<buf<<" "<<aPoP->getPt().x<<" "<<aPoP->getPt().y
+                        <<" (multiplicity "<<aPoP->getHomol()->getPointOnPicsSize()<<").\n";
+            }
+        }
     }
 
+    std::cout<<"Homol points on central pic:\n";
     //create out 2D files
     cSetOfMesureAppuisFlottants aMes2dList;
 
     for (unsigned int i=0;i<allFinalHomols.size();i++)
     {
         cHomol* aHomol=allFinalHomols[i];
+        static char  buf[200];
+        sprintf(buf,"%s_%02d",ptsName.c_str(),i);
         for (unsigned int j=0;j<aHomol->getPointOnPicsSize();j++)
         {
             cPointOnPic *aPoP=aHomol->getPointOnPic(j);
@@ -170,14 +202,13 @@ int Homol2GND_main(int argc,char ** argv)
             aListMes1Im.NameIm()=aPoP->getPic()->getName();
 
             cOneMesureAF1I aOneMesIm;
-            static char  buf[200];
-            sprintf(buf,"%s_%02d",ptsName.c_str(),i);
             aOneMesIm.NamePt()=buf;
             aOneMesIm.PtIm()=aPoP->getPt();
             aListMes1Im.OneMesureAF1I().push_back( aOneMesIm );
             aMes2dList.MesureAppuiFlottant1Im().push_back( aListMes1Im );
         }
     }
+    std::cout<<"Written to "<<aDirImages + outName+".xml\n";
     MakeFileXML(aMes2dList, aDirImages + outName+".xml");
 
 

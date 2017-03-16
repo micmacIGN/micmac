@@ -38,207 +38,14 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-/*
-std::string StdNameMDTOfFile(const std::string & aName)
-{
-   return DirOfFile(aName) + "MTD-" + aName.substr(4) + ".xml";
-}
 
-cFileOriMnt * StdGetMDTOfFile(const std::string & aName)
-{
-    return OptStdGetFromPCP(StdNameMDTOfFile(aName),FileOriMnt);
-}
+#if (0)
+std::string StdNameMDTPCOfFile(const std::string & aName,bool XML);
+cMetaDataPartiesCachees * StdGetMDTPCOfFile(const std::string & aName,bool SVP=true);
+Pt2di DecalageFromPC(const std::string & aN1,const std::string & aN2);
+void MakeMetaData_XML_GeoI(const std::string & aNameImMasq,double aResol);
+void MakeMetaData_XML_GeoI(const std::string & aNameImMasq);
 
-Pt2dr DecalageFromFOM(const std::string & aN1,const std::string & aN2)
-{
-   Pt2dr aRes (0,0);
-   cFileOriMnt * aFOM1 = StdGetMDTOfFile(aN1);
-   cFileOriMnt * aFOM2 = StdGetMDTOfFile(aN2);
-   if (aFOM1 && aFOM2)
-   {
-        aRes  =    ToMnt(*aFOM1,aRes);
-        aRes =   FromMnt(*aFOM2,aRes);
-   }
-   
-   delete aFOM1;
-   delete aFOM2;
-   return aRes;
-}
-*/
-
-std::string StdNameMDTPCOfFile(const std::string & aName,bool XML)
-{
-   // std::cout << "UuuUUuu " << DirOfFile(aName) + "PC_" + aName.substr(4) + ".xml" <<"\n";
-   return DirOfFile(aName) + "PC_" + StdPrefix(aName.substr(4)) + (XML ? std::string(".xml"): std::string(".tif"));
-}
-
-cMetaDataPartiesCachees * StdGetMDTPCOfFile(const std::string & aName,bool SVP=true)
-{
-    cMetaDataPartiesCachees * aRes = OptStdGetFromSI(StdNameMDTPCOfFile(aName,true),MetaDataPartiesCachees);
-    if ((!SVP) && (aRes==0))
-    {
-        std::cout << "For " << aName << "\n";
-        ELISE_ASSERT(false,"StdGetMDTPCOfFile");
-    }
-    return aRes;
-}
-
-Pt2di DecalageFromPC(const std::string & aN1,const std::string & aN2)
-{
-   Pt2di aRes (0,0);
-   cMetaDataPartiesCachees * aPC1 = StdGetMDTPCOfFile(aN1);
-   cMetaDataPartiesCachees * aPC2 = StdGetMDTPCOfFile(aN2);
-   if (aPC1 && aPC2)
-   {
-        aRes  =         aPC1->Offset();
-        aRes  =  aRes - aPC2->Offset();
-   }
-   
-   delete aPC1;
-   delete aPC2;
-   return aRes;
-}
-
-
-void MakeMetaData_XML_GeoI(const std::string & aNameImMasq,double aResol)
-{
-   std::string aNameXml =  StdPrefix(aNameImMasq) + ".xml";
-   if (!ELISE_fp::exist_file(aNameXml))
-   {
-
-      cFileOriMnt aFOM = StdGetObjFromFile<cFileOriMnt>
-                         (
-                               Basic_XML_MM_File("SampleFileOriXML.xml"),
-                               StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-                               "FileOriMnt",
-                               "FileOriMnt"
-                          );
-
-        aFOM.NameFileMnt() = NameWithoutDir(aNameImMasq);
-        aFOM.NombrePixels() = Tiff_Im(aNameImMasq.c_str()).sz();
-        if (aResol>0)
-        {
-           aFOM.ResolutionPlani() = Pt2dr(aResol,aResol);
-        }
-
-        MakeFileXML(aFOM,aNameXml);
-   }
-}
-void MakeMetaData_XML_GeoI(const std::string & aNameImMasq)
-{
-     MakeMetaData_XML_GeoI(aNameImMasq,-1);
-}
-
-
-
-int MM2DPostSism_Main(int argc,char ** argv)
-{
-    MMD_InitArgcArgv(argc,argv);
-
-    std::string  aIm1,aIm2,aImMasq;
-    bool Exe=true;
-    double aTeta;
-    int    aSzW=4;
-    double aRegul=0.3;
-    bool useDequant=true;
-    double aIncCalc=2.0;
-    int aSsResolOpt=4;
-    std::string aDirMEC="MEC/";
-
-    Pt2dr  aPxMoy(0,0);
-    int    aZoomInit = 1;
-
-    ElInitArgMain
-    (
-    argc,argv,
-    LArgMain()  << EAMC(aIm1,"Image 1", eSAM_IsExistFile)
-                << EAMC(aIm2,"Image 2", eSAM_IsExistFile),
-    LArgMain()  << EAM(aImMasq,"Masq",true,"Mask of focus zone (def=none)", eSAM_IsExistFile)
-                << EAM(aTeta,"Teta",true,"Direction of seism if any (in radian)",eSAM_NoInit)
-                << EAM(Exe,"Exe",true,"Execute command , def=true (tuning purpose)",eSAM_InternalUse)
-                << EAM(aSzW,"SzW",true,"Size of window (Def=4, mean 9x9)")
-                << EAM(aRegul,"Reg",true,"Regularization (Def=0.3)")
-                << EAM(useDequant,"Dequant",true,"Dequantify (Def=true)")
-                << EAM(aIncCalc,"Inc",true,"Initial uncertainty (Def=2.0)")
-                << EAM(aSsResolOpt,"SsResolOpt",true,"Merging factor (Def=4)")
-                << EAM(aDirMEC,"DirMEC",true,"Subdirectory where the results will be stored (Def='MEC/')")
-                << EAM(aPxMoy,"PxMoy",true,"Px-Moy , Def=(0,0)")
-                << EAM(aZoomInit,"ZoomInit",true,"Initial Zoom, Def=1 (can be long of Inc>2)")
-    );
-
-    if (!MMVisualMode)
-    {
-    #if (ELISE_windows)
-        replace( aIm1.begin(), aIm1.end(), '\\', '/' );
-        replace( aIm2.begin(), aIm2.end(), '\\', '/' );
-        replace( aImMasq.begin(), aImMasq.end(), '\\', '/' );
-    #endif
-        std::string aDir;
-
-        std::string aNameFile1, aNameFile2, aNameMasq;
-        SplitDirAndFile(aDir, aNameFile1, aIm1);
-        ELISE_ASSERT(aDir==DirOfFile(aIm2),"Image not on same directory !!!");
-        SplitDirAndFile(aDir, aNameFile2, aIm2);
-        ELISE_ASSERT(aDir==DirOfFile(aImMasq),"Mask image not on same directory !!!");
-        SplitDirAndFile(aDir, aNameMasq, aImMasq);
-
-        if (IsPostfixed(aNameMasq)) aNameMasq = StdPrefixGen(aNameMasq);
-
-        if (! EAMIsInit(&aPxMoy))
-        {
-             aPxMoy = Pt2dr(DecalageFromPC(aIm1,aIm2));
-        }
-
-        std::string aCom =    MM3dBinFile("MICMAC")
-                            + XML_MM_File("MM-PostSism.xml")
-                            + " WorkDir=" + aDir
-                            + " +DirMEC=" + aDirMEC
-                            + " +Im1=" + aNameFile1
-                            + " +Im2=" + aNameFile2
-                            + " +Masq=" + aNameMasq
-                            + " +SzW=" + ToString(aSzW)
-                            + " +RegulBase=" + ToString(aRegul)
-                            + " +Inc=" + ToString(aIncCalc)
-                            + " +SsResolOpt=" + ToString(aSsResolOpt)
-                            + " +Px1Moy=" + ToString(aPxMoy.x)
-                            + " +Px2Moy=" + ToString(aPxMoy.y)
-                            + " +ZoomInit=" + ToString(aZoomInit)
-                            ;
-
-
-        if (EAMIsInit(&aImMasq))
-        {
-            ELISE_ASSERT(aDir==DirOfFile(aImMasq),"Image not on same directory !!!");
-            MakeMetaData_XML_GeoI(aImMasq);
-            aCom = aCom + " +UseMasq=true +Masq=" + StdPrefix(aImMasq);
-        }
-
-        if (EAMIsInit(&aTeta))
-        {
-            aCom = aCom + " +UseTeta=true +Teta=" + ToString(aTeta);
-        }
-
-        if (useDequant)
-        {
-            aCom = aCom + " +UseDequant=true";
-        }
-
-        MakeFileDirCompl(aDirMEC);
-
-
-        if (Exe)
-        {
-              system_call(aCom.c_str());
-        }
-        else
-        {
-               std::cout << "COM=[" << aCom << "]\n";
-        }
-        return 0;
-    }
-    else
-        return EXIT_SUCCESS;
-}
 
 /***********************************************************/
 /*                                                         */
@@ -246,16 +53,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
 /*                                                         */
 /***********************************************************/
 
-#if (0)
-#endif
 class cAppliFusionDepl;
 class cOneImageAFD;
-
-class cInterfAppliFusionDepl
-{
-    public :
-          virtual std::string  NamePxIn(int aNumPx) =0;
-};
 
 class cCpleImAFD
 {
@@ -265,7 +64,7 @@ class cCpleImAFD
          bool  Loaded() const {return mLoaded;}
          Pt3dr GetDepl(Pt2di aP0,Pt2di aP1);
     private :
-         cInterfAppliFusionDepl &  mAppli;
+         cAppliFusionDepl &        mAppli;
          std::string               mDir;
          std::string               mNameX;
          Tiff_Im                   mTifX;
@@ -286,9 +85,9 @@ class cCpleImAFD
 class cOneImageAFD
 {
      public :
-          cOneImageAFD(const std::string & anIm,bool Avant,cInterfAppliFusionDepl &);
+          cOneImageAFD(const std::string & anIm,bool Avant,cAppliFusionDepl &);
           friend class cAppliFusionDepl;
-          cInterfAppliFusionDepl & Appli();
+          cAppliFusionDepl & Appli();
           // const Pt2di & P0() {return mP0;}
           // const Pt2di & P1() {return mP1;}
           bool  Loaded() const {return mLoaded;}
@@ -298,7 +97,7 @@ class cOneImageAFD
           bool  Avant() const {return mAvant;}
           INT  PC(const Pt2di &);
      private :
-          cInterfAppliFusionDepl &  mAppli;
+          cAppliFusionDepl &        mAppli;
           string                    mNameIm;
           string                    mNamePC;
           bool                      mAvant;
@@ -313,12 +112,12 @@ class cOneImageAFD
 
 
 
-class cAppliFusionDepl : public cInterfAppliFusionDepl
+class cAppliFusionDepl
 {
      public :
           cAppliFusionDepl(int argc,char ** argv);
         
-          std::string  NamePxIn(int aNumPx);
+          std::string  NamePx(int aNumPx);
      private :
           void  DoOneBox(const Box2di &);
 
@@ -355,9 +154,9 @@ class cAppliFusionDepl : public cInterfAppliFusionDepl
 cCpleImAFD::cCpleImAFD(cOneImageAFD* anI1,cOneImageAFD* anI2,const std::string & aDir) :
    mAppli   (anI1->Appli()),
    mDir     (aDir),
-   mNameX   (mDir+ "/" + mAppli.NamePxIn(1)),
+   mNameX   (mDir+ "/" + mAppli.NamePx(1)),
    mTifX    (mNameX.c_str()),
-   mNameY   (mDir+ "/" + mAppli.NamePxIn(2)),
+   mNameY   (mDir+ "/" + mAppli.NamePx(2)),
    mTifY    (mNameY.c_str()),
    mI1      (anI1),
    mI2      (anI2),
@@ -428,7 +227,7 @@ Pt3dr cCpleImAFD::GetDepl(Pt2di aP0,Pt2di aP1)
 
        // =============  cOneImageAFD ==================
 
-cOneImageAFD::cOneImageAFD(const std::string & anIm,bool Avant,cInterfAppliFusionDepl & anAppli) :
+cOneImageAFD::cOneImageAFD(const std::string & anIm,bool Avant,cAppliFusionDepl & anAppli) :
     mAppli      (anAppli),
     mNameIm     (anIm),
     // mNamePC     (DirOfFile(mNameIm) + "PC_"+NameWithoutDir(mNameIm)),
@@ -441,7 +240,7 @@ cOneImageAFD::cOneImageAFD(const std::string & anIm,bool Avant,cInterfAppliFusio
 {
 }
 
-cInterfAppliFusionDepl & cOneImageAFD::Appli()
+cAppliFusionDepl & cOneImageAFD::Appli()
 {
     return mAppli;
 }
@@ -482,7 +281,7 @@ INT  cOneImageAFD::PC(const Pt2di & aPGlob)
 void cAppliFusionDepl::AddCple(cOneImageAFD * anI1, cOneImageAFD * anI2)
 {
      std::string aDir = mICNM->Assoc1To2(mKeyDirDepl,anI1->mNameIm,anI2->mNameIm,true);
-     std::string aNameFile = aDir + "/"+NamePxIn(1);
+     std::string aNameFile = aDir + "/"+NamePx(1);
      if (ELISE_fp::exist_file(aNameFile))
      {
         mCples.push_back(new cCpleImAFD(anI1,anI2,aDir));
@@ -531,7 +330,7 @@ Tiff_Im *  cAppliFusionDepl::FileResult(const std::string & aName)
               );
 }
 
-std::string cAppliFusionDepl::NamePxIn(int aNumPx)
+std::string cAppliFusionDepl::NamePx(int aNumPx)
 {
    return "Px"+ ToString(aNumPx)  +"_Num"+ ToString(mNumEt) + "_DeZoom1_LeChantier.tif";
 }
@@ -681,7 +480,7 @@ int FusionDepl_Main(int argc,char ** argv)
     cAppliFusionDepl anAppli(argc,argv);
     return EXIT_SUCCESS;
 }
-
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
