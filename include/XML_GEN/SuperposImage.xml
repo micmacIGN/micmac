@@ -1838,6 +1838,22 @@
     <Tri  RefType="Xml_Triangle3DForTieP" Nb="*"  Container="std::vector"> </Tri>
 </Xml_TriAngulationImMaster>
 
+<Xml_MapCam Nb="1" Class="true" ToReference="true">
+    <PartieCam Nb="1" RefType="CalibrationInternConique" RefFile="ParamChantierPhotogram.xml"> </PartieCam>
+    <Directe Nb="1" Type="bool"> </Directe>
+</Xml_MapCam>
+
+<Xml_Map2DElem Nb="1" Class="true" ToReference="true" UnionType="true">
+      <Homog RefType="XmlHomogr"  Nb="?"> </Homog>
+      <Sim RefType="SimilitudePlane"  Nb="?"> </Sim>
+      <Aff RefType="AffinitePlane"  Nb="?"> </Aff>
+      <Cam  RefType="Xml_MapCam"  Nb="?"> </Cam>
+</Xml_Map2DElem>
+
+<Xml_Map2D Nb="1" Class="true" ToReference="true" >
+     <Maps Nb="*" RefType="Xml_Map2DElem"> </Maps>
+</Xml_Map2D>
+
 
 <Verbatim File=".h.cpp">
 // };

@@ -8349,5 +8349,93 @@ std::string  Mangling( cXml_TriAngulationImMaster *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_MapCam
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_MapCam & anObj,cElXMLTree * aTree);
+
+
+        cCalibrationInternConique & PartieCam();
+        const cCalibrationInternConique & PartieCam()const ;
+
+        bool & Directe();
+        const bool & Directe()const ;
+    private:
+        cCalibrationInternConique mPartieCam;
+        bool mDirecte;
+};
+cElXMLTree * ToXMLTree(const cXml_MapCam &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_MapCam &);
+
+void  BinaryUnDumpFromFile(cXml_MapCam &,ELISE_fp &);
+
+std::string  Mangling( cXml_MapCam *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_Map2DElem
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Map2DElem & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< cXmlHomogr > & Homog();
+        const cTplValGesInit< cXmlHomogr > & Homog()const ;
+
+        cTplValGesInit< cSimilitudePlane > & Sim();
+        const cTplValGesInit< cSimilitudePlane > & Sim()const ;
+
+        cTplValGesInit< cAffinitePlane > & Aff();
+        const cTplValGesInit< cAffinitePlane > & Aff()const ;
+
+        cTplValGesInit< cXml_MapCam > & Cam();
+        const cTplValGesInit< cXml_MapCam > & Cam()const ;
+    private:
+        cTplValGesInit< cXmlHomogr > mHomog;
+        cTplValGesInit< cSimilitudePlane > mSim;
+        cTplValGesInit< cAffinitePlane > mAff;
+        cTplValGesInit< cXml_MapCam > mCam;
+};
+cElXMLTree * ToXMLTree(const cXml_Map2DElem &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Map2DElem &);
+
+void  BinaryUnDumpFromFile(cXml_Map2DElem &,ELISE_fp &);
+
+std::string  Mangling( cXml_Map2DElem *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_Map2D
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Map2D & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_Map2DElem > & Maps();
+        const std::list< cXml_Map2DElem > & Maps()const ;
+    private:
+        std::list< cXml_Map2DElem > mMaps;
+};
+cElXMLTree * ToXMLTree(const cXml_Map2D &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Map2D &);
+
+void  BinaryUnDumpFromFile(cXml_Map2D &,ELISE_fp &);
+
+std::string  Mangling( cXml_Map2D *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm

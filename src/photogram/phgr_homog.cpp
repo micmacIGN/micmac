@@ -931,7 +931,7 @@ bool cDistHomographieRadiale::OwnInverse(Pt2dr & aP) const
    return true;
 }
 
-
+/*************************************************/
 
 
 

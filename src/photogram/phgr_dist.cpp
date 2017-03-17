@@ -117,6 +117,17 @@ std::string ElDistortion22_Gen::Type() const
     return "UnknowDistType";
 }
 
+ElCamera * ElDistortion22_Gen::CameraOwner()
+{
+   return mCameraOwner;
+}
+
+
+void ElDistortion22_Gen::SetCameraOwner(ElCamera* aCam)
+{
+    mCameraOwner = aCam;
+}
+
 
 ElDistortion22_Gen::ElDistortion22_Gen() :
     mPolynInv         (0),
@@ -125,7 +136,8 @@ ElDistortion22_Gen::ElDistortion22_Gen() :
     mScN              (1.0),
     mDist22Gen_UsePreConditionner (true),
     mDist22Gen_SupressPreCondInInverse (false),
-    mName (0)
+    mName (0),
+    mCameraOwner (0)
 {
 }
 
@@ -674,9 +686,9 @@ ElDistortion22_Gen  * ElDistortion22_Triviale::D22G_ChScale(REAL aS) const
 bool ElDistortion22_Triviale::IsId() const {return true;}
 
 
-cCalibDistortion ElDistortion22_Triviale::ToXmlStruct(const ElCamera * aCam) const
+cCalibDistortion ElDistortion22_Triviale::ToXmlStruct(const ElCamera * ) const
 {
-   cCalibDistortion aRes =XmlDistNoVal(); //  ElDistortion22_Gen::BasicToXmlStruct(aCam);
+   cCalibDistortion aRes =XmlDistNoVal(); //  ElDistortion22_Gen::BasicToXmlStruct();
    cModNoDist aNoDist;
    aRes.ModNoDist().SetVal(aNoDist);
 
@@ -1096,7 +1108,7 @@ cCalibrationInterneRadiale  ElDistRadiale_PolynImpair::ToXmlDradStruct() const
 }
 
 
-cCalibDistortion ElDistRadiale_PolynImpair::ToXmlStruct(const ElCamera * aCam) const
+cCalibDistortion ElDistRadiale_PolynImpair::ToXmlStruct(const ElCamera * ) const
 {
     return FromCIR(ToXmlDradStruct());
 }
@@ -1182,9 +1194,9 @@ cCalibrationInternePghrStd cDistModStdPhpgr::ToXmlPhgrStdStruct() const
    return aRes;
 }
 
-cCalibDistortion cDistModStdPhpgr::ToXmlStruct(const ElCamera * aCam) const
+cCalibDistortion cDistModStdPhpgr::ToXmlStruct(const ElCamera * ) const
 {
-   cCalibDistortion aRes = XmlDistNoVal() ; // ElDistortion22_Gen::BasicToXmlStruct(aCam);
+   cCalibDistortion aRes = XmlDistNoVal() ; // ElDistortion22_Gen::BasicToXmlStruct();
    aRes.ModPhgrStd().SetVal(ToXmlPhgrStdStruct());
 
    return aRes;

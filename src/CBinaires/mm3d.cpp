@@ -211,6 +211,8 @@ int Ratafia_Main(int argc,char ** argv);
 int FusionDepl_Main(int argc,char ** argv);
 
 int BasculeRobuste_main(int argc,char ** argv);
+int CPP_CalcMapHomogr(int argc,char** argv);
+int CPP_ReechImMap(int argc,char** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -219,6 +221,8 @@ const std::vector<cMMCom> & getAvailableCommands()
    {
 	   aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
 	   
+       aRes.push_back(cMMCom("CalcMapHomogr",CPP_CalcMapHomogr,"Compute map2d between images using holographie "));
+       aRes.push_back(cMMCom("ReechImMap",CPP_ReechImMap,"Resample image using 2d map "));
        aRes.push_back(cMMCom("FusionDepl",FusionDepl_Main,"Fusion carte de deplacement "));
        aRes.push_back(cMMCom("TestPbRPC",TestCamRPC,"Test possible Problems on RPC ",cArgLogCom(2)));
        aRes.push_back(cMMCom("TestBundleInter",TestBundleInter_main,"Block Initialisation "));
@@ -671,6 +675,8 @@ extern int EsSim_main(int argc,char ** argv);
 int ProcessThmImgs_main(int argc,char ** argv);
 
 extern int ConvertTiePPs2MM_main(int argc,char ** argv);
+
+
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {

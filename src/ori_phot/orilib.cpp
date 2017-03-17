@@ -4521,6 +4521,7 @@ cCamStenopeModStdPhpgr  *Std_Cal_PS_C2M
     return aRes;
 }
 
+
 CamStenope * Std_Cal_From_CIC
              (
                const cCalibrationInternConique & aCIC,
@@ -4538,6 +4539,11 @@ CamStenope * Std_Cal_From_CIC
     }
     aRes->SetIdentCam(aNameFile);
     return aRes;
+}
+
+CamStenope * Std_Cal_From_CIC( const cCalibrationInternConique & aCIC)
+{
+   return Std_Cal_From_CIC(aCIC,"NoFile");
 }
 
 CamStenope * CamOrientGenFromFile(const std::string & aNameFile, cInterfChantierNameManipulateur * anICNM, bool throwAssert)

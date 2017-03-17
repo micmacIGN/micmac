@@ -263,11 +263,384 @@ cElHomographie ElAffin2D::ToHomographie() const
     return  cElHomographie(aHX,aHY,aHZ);
 }
 
+// -------------------- :: -------------------
+cXml_Map2D MapFromElem(const cXml_Map2DElem & aMapE)
+{
+    cXml_Map2D aRes;
+    aRes.Maps().push_back(aMapE);
+    return aRes;
+}
+
+//--------------------------------------------
+
+
+cElMap2D *  ElAffin2D::Map2DInverse() const
+{
+   return  new ElAffin2D(inv());
+}
+
+cXml_Map2D ElAffin2D::ToXmlGen()
+{
+   cXml_Map2DElem anElem;
+   anElem.Aff().SetVal(El2Xml(*this));
+   return cXml_Map2D(MapFromElem(anElem));
+}
 
 
 
+/*****************************************************/
+/*                                                   */
+/*            ElSimilitude                           */
+/*                                                   */
+/*****************************************************/
+
+cElMap2D * ElSimilitude::Map2DInverse() const
+{
+    return new ElSimilitude(inv());
+}
+
+cXml_Map2D  ElSimilitude::ToXmlGen()
+{
+   cXml_Map2DElem anElem;
+   anElem.Sim().SetVal(El2Xml(*this));
+   return cXml_Map2D(MapFromElem(anElem));
+}
 
 
+/*****************************************************/
+/*                                                   */
+/*            cCamAsMap                              */
+/*                                                   */
+/*****************************************************/
+
+cCamAsMap::cCamAsMap(CamStenope * aCam,bool aDirect)  :
+     mCam   (aCam),
+     mDirect (aDirect)
+{
+}
+
+Pt2dr cCamAsMap::operator () (const Pt2dr & p) const
+{
+   return  mDirect  ? 
+           mCam->DistDirecte(p) :  
+           mCam->DistInverse(p);
+}
+
+cElMap2D * cCamAsMap::Map2DInverse() const
+{
+   return new cCamAsMap(mCam,!mDirect);
+}
+
+cXml_Map2D    cCamAsMap::ToXmlGen()
+{
+   cXml_MapCam aXmlCam;
+
+   aXmlCam.Directe() = mDirect;
+   aXmlCam.PartieCam() = mCam->ExportCalibInterne2XmlStruct(mCam->Sz());
+
+   cXml_Map2DElem anElem;
+   anElem.Cam().SetVal(aXmlCam);
+   return cXml_Map2D(MapFromElem(anElem));
+}
+
+
+/*****************************************************/
+/*                                                   */
+/*            cElHomographie                         */
+/*                                                   */
+/*****************************************************/
+
+
+cElMap2D * cElHomographie::Map2DInverse() const
+{
+    return new cElHomographie(Inverse());
+}
+
+cXml_Map2D   cElHomographie::ToXmlGen()
+{
+   cXml_Map2DElem anElem;
+   anElem.Homog().SetVal(ToXml());
+   return cXml_Map2D(MapFromElem(anElem));
+}
+
+Pt2dr  cElHomographie::operator() (const Pt2dr & aP) const
+{
+   return Direct(aP);
+}
+
+/*****************************************************/
+/*                                                   */
+/*            cElMap2D                               */
+/*                                                   */
+/*****************************************************/
+
+cElMap2D * cElMap2D::Map2DInverse() const
+{
+   ELISE_ASSERT(false,"No def cElMap2D::Map2DInverse");
+   return 0;
+}
+
+cElMap2D * cElMap2D::Simplify() 
+{
+   return this;
+}
+
+cXml_Map2D      cElMap2D::ToXmlGen()
+{
+   ELISE_ASSERT(false,"No def cElMap2D::ToXmlGen");
+   return cXml_Map2D();
+}
+
+void   cElMap2D::SaveInFile(const std::string & aName)
+{
+    cXml_Map2D aXml = ToXmlGen();
+    MakeFileXML(aXml,aName);
+}
+
+cElMap2D *  Map2DFromElem(const cXml_Map2DElem & aXml)
+{
+   if (aXml.Homog().IsInit()) return new cElHomographie(aXml.Homog().Val());
+   if (aXml.Sim().IsInit()) return new ElSimilitude(Xml2EL(aXml.Sim().Val()));
+   if (aXml.Aff().IsInit()) return new ElAffin2D(Xml2EL(aXml.Aff().Val()));
+   if (aXml.Cam().IsInit())
+   {
+       CamStenope* aCS = Std_Cal_From_CIC(aXml.Cam().Val().PartieCam());
+       return new cCamAsMap(aCS,aXml.Cam().Val().Directe());
+   }
+
+
+   ELISE_ASSERT(false,"Map2DFromElem");
+   return 0;
+}
+
+cElMap2D *  cElMap2D::FromFile(const std::string & aName)
+{
+   cXml_Map2D aXml = StdGetFromSI(aName,Xml_Map2D);
+   std::vector<cElMap2D *> aVMap;
+
+   for (std::list<cXml_Map2DElem>::const_iterator itM=aXml.Maps().begin() ; itM!=aXml.Maps().end() ; itM++)
+   {
+      aVMap.push_back(Map2DFromElem(*itM));
+   }
+
+
+   return new cComposElMap2D(aVMap);
+}
+
+/*****************************************************/
+/*                                                   */
+/*            cElMap2D                               */
+/*                                                   */
+/*****************************************************/
+
+cComposElMap2D::cComposElMap2D(const std::vector<cElMap2D *>  & aVMap) :
+   mVMap (aVMap)
+{
+}
+
+Pt2dr cComposElMap2D::operator () (const Pt2dr & aP)  const
+{
+   Pt2dr aRes = aP;
+   for (int aK=0 ; aK<int(mVMap.size()) ; aK++)
+       aRes = (*(mVMap[aK]))(aRes);
+   return aRes;
+}
+
+cElMap2D *  cComposElMap2D::Map2DInverse() const
+{
+   std::vector<cElMap2D *> aVInv;
+   for (int aK=int(mVMap.size()-1) ; aK>=0 ; aK--)
+      aVInv.push_back(mVMap[aK]->Map2DInverse());
+
+   return new cComposElMap2D(aVInv);
+}
+
+cElMap2D * cComposElMap2D::Simplify() 
+{
+   if (mVMap.size()==1) 
+      return mVMap[0];
+
+   return this;
+}
+
+
+cXml_Map2D    cComposElMap2D::ToXmlGen()
+{
+   cXml_Map2D aRes;
+
+   for (int aK=0 ; aK<int(mVMap.size()) ; aK++)
+   {
+        cXml_Map2D aXml = mVMap[aK]->ToXmlGen();
+        for (std::list<cXml_Map2DElem>::const_iterator itM2=aXml.Maps().begin() ; itM2!=aXml.Maps().end() ; itM2++)
+        {
+            aRes.Maps().push_back(*itM2);
+        }
+   }
+   return aRes;
+}
+
+
+
+int CPP_CalcMapHomogr(int argc,char** argv)
+{
+    std::string aName1,aName2,aNameOut,aSH,anExt="dat";
+    std::string anOri;
+    int NbTest =50;
+    double  Perc = 80.0;
+    int     NbMaxPts= 10000;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  <<  EAMC(aName1,"Name Im1")
+                    <<  EAMC(aName2,"Name Im2")
+                    <<  EAMC(aNameOut,"Name Out"),
+        LArgMain()  <<  EAM(aSH,"SH",true,"Set of homologue")
+                    <<  EAM(anOri,"Ori",true,"Directory to read distorsion")
+    );
+
+    cElemAppliSetFile anEASF(aName1);
+    cInterfChantierNameManipulateur * anICNM = anEASF.mICNM;
+    std::string aDir = anEASF.mDir;
+
+   
+
+
+    CamStenope * aCS1=0,*aCS2=0;
+    if (EAMIsInit(&anOri))
+    {
+         StdCorrecNameOrient(anOri,aDir);
+         aCS1 = anICNM->GlobCalibOfName(aName1,anOri,false);
+         aCS2 = anICNM->GlobCalibOfName(aName2,anOri,false);
+
+         aCS1->Get_dist().SetCameraOwner(aCS1);
+         aCS2->Get_dist().SetCameraOwner(aCS2);
+    }
+
+    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(aSH)
+                       +  std::string("@")
+                       +  std::string(anExt);
+
+
+    std::string aNameIn = aDir + anICNM->Assoc1To2(aKHIn,aName1,aName2,true);
+    ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn);
+    ElPackHomologue aPackInitial = aPackIn; 
+
+    if (aCS1)
+    {
+        for (ElPackHomologue::iterator itCpl=aPackIn.begin();itCpl!=aPackIn.end() ; itCpl++)
+        {
+            itCpl->P1() = aCS1->DistInverse(itCpl->P1());
+            itCpl->P2() = aCS2->DistInverse(itCpl->P2());
+        }
+    }
+
+
+    double anEcart,aQuality;
+    bool Ok;
+    cElHomographie aHom = cElHomographie::RobustInit(anEcart,&aQuality,aPackIn,Ok,NbTest,Perc,NbMaxPts);
+
+
+    std::vector<cElMap2D *> aVMap;
+    if (aCS1)
+    {
+       aVMap.push_back(new cCamAsMap(aCS1,false));
+    }
+    aVMap.push_back(&aHom);
+    if (aCS2)
+    {
+       aVMap.push_back(new cCamAsMap(aCS2,true));
+    }
+
+    cComposElMap2D aComp(aVMap);
+
+
+    for (ElPackHomologue::iterator itCpl=aPackInitial.begin();itCpl!=aPackInitial.end() ; itCpl++)
+    {
+        double aD = euclid(aComp(itCpl->P1())-itCpl->P2());
+        double aD2 = euclid(aComp(itCpl->P2())-itCpl->P1());
+        std::cout << "DIST " << aD << " " << aD2 << "\n";
+    }
+    MakeFileXML(aComp.ToXmlGen(),aNameOut);
+
+
+    std::cout << "PACKK = " << aPackIn.size() << "\n";
+
+
+
+    return EXIT_SUCCESS;
+
+}
+
+
+int CPP_ReechImMap(int argc,char** argv)
+{
+    std::string aNameIm,aNameMap;
+    Pt2di aSzOut;
+    std::string aNameOut;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  <<  EAMC(aNameIm,"Name Im1")
+                    <<  EAMC(aNameMap,"Name map"),
+        LArgMain()  
+    );
+
+    if (!EAMIsInit(&aNameOut))
+       aNameOut = DirOfFile(aNameIm) + "Reech_" + NameWithoutDir(StdPrefix(aNameIm)) +".tif";
+
+    cElMap2D * aMap = cElMap2D::FromFile(aNameMap);
+
+    Tiff_Im aTifIn = Tiff_Im::StdConvGen(aNameIm,-1,true);
+
+
+    std::vector<Im2DGen *>  aVecImIn =  aTifIn.ReadVecOfIm();
+    int aNbC = aVecImIn.size();
+    Pt2di aSzIn = aVecImIn[0]->sz();
+    if (! EAMIsInit(&aSzOut))
+       aSzOut = aSzIn;
+
+    std::vector<Im2DGen *> aVecImOut =  aTifIn.VecOfIm(aSzOut);
+
+    std::vector<cIm2DInter*> aVInter;
+    for (int aK=0 ; aK<aNbC ; aK++)
+    {
+        aVInter.push_back(aVecImIn[aK]->SinusCard(5,5));
+    }
+
+
+    Pt2di aP;
+    for (aP.x =0 ; aP.x<aSzOut.x ; aP.x++)
+    {
+        for (aP.y =0 ; aP.y<aSzOut.y ; aP.y++)
+        {
+            Pt2dr aQ = (*aMap)(Pt2dr(aP));
+            for (int aK=0 ; aK<aNbC ; aK++)
+            {
+                double aV = aVInter[aK]->GetDef(aQ,0);
+                aVecImOut[aK]->SetR(aP,aV);
+            }
+        }
+    }
+
+    Tiff_Im aTifOut
+            (
+                aNameOut.c_str(),
+                aSzOut,
+                aTifIn.type_el(),
+                Tiff_Im::No_Compr,
+                aTifIn.phot_interp()
+            );
+
+    ELISE_COPY(aTifOut.all_pts(),StdInPut(aVecImOut),aTifOut.out());
+
+    return EXIT_SUCCESS;
+}
+  
+         // static cElMap2D * FromFile(const std::string &);
+         // virtual cXml_Map2D *     ToXmlGen() ; // P
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

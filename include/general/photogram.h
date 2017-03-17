@@ -655,6 +655,10 @@ class ElProjStenope : public ElProj32 ,
 class ElDistortion22_Gen
 {
      public :
+       // Rustine car les camera fraser basic ne savent s'esporter qu'avec leur camera  ToXmlStruct
+        ElCamera * CameraOwner();
+        void SetCameraOwner(ElCamera*);
+
         virtual cCalibDistortion ToXmlStruct(const ElCamera *) const;
         void SetName(const char * aName);
         virtual std::string Type() const;
@@ -779,7 +783,23 @@ private :
 protected :
         const char * mName;
 private :
+        ElCamera * mCameraOwner;
 };
+
+
+class cCamAsMap : public cElMap2D
+{
+    public :
+        cCamAsMap(CamStenope * aCam,bool Direct);
+        virtual Pt2dr operator () (const Pt2dr & p) const ;
+        virtual cElMap2D * Map2DInverse() const;
+        virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
+
+    private :
+           CamStenope *           mCam;
+           bool                   mDirect;
+};
+
 
 class cXmlAffinR2ToR;
 
@@ -826,10 +846,17 @@ class cElComposHomographie
 
 class cXmlHomogr;
 
-class cElHomographie
+class cElHomographie  : public cElMap2D
 {
      public :
+          Pt2dr operator() (const Pt2dr & aP) const;
+          virtual  cElMap2D * Map2DInverse() const;
+          virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
+   
+
+
           bool HasNan() const;
+
           Pt2dr Direct  (const Pt2dr & aP) const;
           Pt2d<Fonc_Num> Direct (Pt2d<Fonc_Num> ) const;
 

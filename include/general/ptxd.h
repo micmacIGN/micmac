@@ -463,11 +463,41 @@ extern std::istream & operator >> (std::istream & ifs,Pt2dr  &p);
 extern std::istream & operator >> (std::istream & ifs,Pt2di  &p);
 
 
+class cXml_Map2D;
+class cXml_Map2DElem;
+cXml_Map2D MapFromElem(const cXml_Map2DElem &);
+
 class cElMap2D
 {
     public :
          virtual Pt2dr operator () (const Pt2dr & p) const = 0;
-    virtual ~cElMap2D(){}
+         virtual ~cElMap2D(){}
+         virtual cElMap2D * Map2DInverse() const;
+         virtual cElMap2D * Simplify() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+
+         void  SaveInFile(const std::string &);
+         static cElMap2D * FromFile(const std::string &);
+         virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
+};
+
+class cComposElMap2D : public cElMap2D
+{
+     public :
+         cComposElMap2D(const std::vector<cElMap2D *>  & aVMap);
+
+
+          static cComposElMap2D   NewFrom0();
+          static cComposElMap2D   NewFrom1(cElMap2D *);
+          static cComposElMap2D   NewFrom2(cElMap2D *,cElMap2D *);
+          static cComposElMap2D   NewFrom3(cElMap2D *,cElMap2D *,cElMap2D*);
+
+
+         virtual Pt2dr operator () (const Pt2dr & p) const ;
+         virtual cElMap2D * Map2DInverse() const;
+         virtual cElMap2D * Simplify() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+         virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
+     public :
+         std::vector<cElMap2D *> mVMap;
 };
 
 class ElSimilitude : public cElMap2D
@@ -514,6 +544,8 @@ class ElSimilitude : public cElMap2D
                      );
          }
 
+         virtual  cElMap2D * Map2DInverse() const;
+         virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
          ElSimilitude inv () const
          {
               return ElSimilitude
@@ -582,6 +614,8 @@ class ElAffin2D : public cElMap2D
        ElAffin2D operator * (const ElAffin2D & sim2) const;
        ElAffin2D operator + (const ElAffin2D & sim2) const;
        ElAffin2D inv() const;
+       virtual  cElMap2D * Map2DInverse() const;
+       virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
 
        Pt2dr I00() const {return mI00;}
        Pt2dr I10() const {return mI10;}

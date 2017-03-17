@@ -184,7 +184,15 @@ cCalibrationInterneRadiale  ToXmlDradStrut(const cDist_Param_Unif_Gen & aDist,co
     for (int aK=0 ; aK<=aKMaxNN ; aK++)
         aRes.CoeffDist().push_back(aDist.KVar(aK));
 
-    aRes.CDist() = aCam->CS()->PP();
+    if (aCam !=0)
+    {
+        aRes.CDist() = aCam->CS()->PP();
+    }
+    else
+    {
+          std::cout << "aCamaCamaCamaCamaCam\n";
+          ELISE_ASSERT(false,"Cam=0 in ToXmlDradStrut ");
+    }
     aRes.PPaEqPPs().SetVal(true);
 
     return aRes;
