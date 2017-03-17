@@ -501,6 +501,8 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs);
 // =========================================================
 
 //TestLib declarations
+extern int  MasqNoCorell_main(int argc,char ** argv);
+
 extern int  Sample_W0_main(int argc,char ** argv);
 extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
@@ -527,6 +529,7 @@ extern int  TD_Exo6(int argc,char ** argv);
 extern int  TD_Exo7(int argc,char ** argv);
 extern int  TD_Exo8(int argc,char ** argv);
 extern int  TD_Exo9(int argc,char ** argv);
+
 
 extern int TD_Match1_main(int argc,char ** argv);
 extern int TD_Match2_main(int argc,char ** argv);
@@ -685,6 +688,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Exo7",TD_Exo7,"Some stuff "));
        aRes.push_back(cMMCom("Exo8",TD_Exo8,"Some stuff "));
        aRes.push_back(cMMCom("Exo9",TD_Exo9,"Some stuff "));
+       aRes.push_back(cMMCom("MasqNoCorell",MasqNoCorell_main," Ignore Mask zone"));
+
 
        aRes.push_back(cMMCom("NoBill",UnWindows,"Supress the big shit in file resulting from (f**king) Windows editing"));
 
