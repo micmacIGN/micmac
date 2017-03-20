@@ -1,3 +1,5 @@
+[Version française](LISEZMOI.md)
+
 # Prerequisites
 
 Some external tools need to be present on your system for Micmac to run properly :
