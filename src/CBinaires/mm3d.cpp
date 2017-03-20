@@ -523,6 +523,8 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs);
 // =========================================================
 
 //TestLib declarations
+extern int  QualiteOrtho_main(int argc,char ** argv);
+
 extern int  Sample_W0_main(int argc,char ** argv);
 extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
@@ -702,6 +704,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("QualOrtho",QualiteOrtho_main,"Estimation qualite Ortho par difference Zmnt / Zmne"));
+
        aRes.push_back(cMMCom("Exo0",TD_Exo0,"Some stuff "));
        aRes.push_back(cMMCom("Exo1",TD_Exo1,"Some stuff "));
        aRes.push_back(cMMCom("Exo2",TD_Exo2,"Some stuff "));
