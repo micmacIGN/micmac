@@ -467,13 +467,23 @@ class cXml_Map2D;
 class cXml_Map2DElem;
 cXml_Map2D MapFromElem(const cXml_Map2DElem &);
 
+
 class cElMap2D
 {
     public :
+         static cElMap2D * IdentFromType(int);
          virtual Pt2dr operator () (const Pt2dr & p) const = 0;
+         virtual int Type() const = 0;
          virtual ~cElMap2D(){}
          virtual cElMap2D * Map2DInverse() const;
          virtual cElMap2D * Simplify() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+         virtual cElMap2D * Duplicate() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+         virtual cElMap2D * Identity() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+
+         virtual int   NbUnknown() const;
+         virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
+         virtual void  InitFromParams(const std::vector<double> &aSol);
+
 
          void  SaveInFile(const std::string &);
          static cElMap2D * FromFile(const std::string &);
@@ -483,6 +493,7 @@ class cElMap2D
 class cComposElMap2D : public cElMap2D
 {
      public :
+         virtual int Type() const ;
          cComposElMap2D(const std::vector<cElMap2D *>  & aVMap);
 
 
@@ -499,6 +510,42 @@ class cComposElMap2D : public cElMap2D
      public :
          std::vector<cElMap2D *> mVMap;
 };
+
+
+class ElHomot : public cElMap2D
+{
+      public :
+         ElHomot(Pt2dr aTrans = Pt2dr(0,0), double aScale = 1.0) ;
+
+         Pt2dr operator () (const Pt2dr & p) const
+         {
+               return  mTr + p * mSc;
+         }
+         ElHomot operator * (const ElHomot & sim2) const;
+
+         virtual int Type() const ;
+         virtual  cElMap2D * Map2DInverse() const;
+         virtual cElMap2D * Duplicate() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+         virtual cElMap2D * Identity() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+         virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
+         ElHomot inv () const;
+
+         virtual int   NbUnknown() const;
+         virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
+         virtual void  InitFromParams(const std::vector<double> &aSol);
+
+         const Pt2dr  & Tr() const {return mTr;}
+         const double & Sc() const {return mSc;}
+
+      private :
+        Pt2dr  mTr;
+        double mSc;
+};
+
+class cXml_Homot;
+ElHomot      Xml2EL(const cXml_Homot &);
+cXml_Homot   EL2Xml(const ElHomot &);
+
 
 class ElSimilitude : public cElMap2D
 {
@@ -544,7 +591,14 @@ class ElSimilitude : public cElMap2D
                      );
          }
 
+         virtual int   NbUnknown() const;
+         virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
+         virtual void  InitFromParams(const std::vector<double> &aSol);
+
+         virtual int Type() const ;
          virtual  cElMap2D * Map2DInverse() const;
+         virtual cElMap2D * Duplicate() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+         virtual cElMap2D * Identity() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
          virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
          ElSimilitude inv () const
          {
@@ -614,7 +668,15 @@ class ElAffin2D : public cElMap2D
        ElAffin2D operator * (const ElAffin2D & sim2) const;
        ElAffin2D operator + (const ElAffin2D & sim2) const;
        ElAffin2D inv() const;
+
+       virtual int   NbUnknown() const;
+       virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
+       virtual void  InitFromParams(const std::vector<double> &aSol);
+
        virtual  cElMap2D * Map2DInverse() const;
+       virtual int Type() const ;
+       virtual cElMap2D * Duplicate() ;  
+       virtual cElMap2D * Identity() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
        virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
 
        Pt2dr I00() const {return mI00;}

@@ -118,6 +118,29 @@ std::string  Mangling( eTypeModeNO *);
 
 void  BinaryUnDumpFromFile(eTypeModeNO &,ELISE_fp &);
 
+typedef enum
+{
+  eTM2_Homot,
+  eTM2_Simil,
+  eTM2_Affine,
+  eTM2_Homogr,
+  eTM2_Cam,
+  eTM2_Compos,
+  eTM2_NbVals
+} eTypeMap2D;
+void xml_init(eTypeMap2D & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeMap2D & aVal);
+
+eTypeMap2D  Str2eTypeMap2D(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeMap2D & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeMap2D &);
+
+std::string  Mangling( eTypeMap2D *);
+
+void  BinaryUnDumpFromFile(eTypeMap2D &,ELISE_fp &);
+
 class cIntervLutConvertion
 {
     public:
@@ -8377,6 +8400,34 @@ std::string  Mangling( cXml_MapCam *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_Homot
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Homot & anObj,cElXMLTree * aTree);
+
+
+        double & Scale();
+        const double & Scale()const ;
+
+        Pt2dr & Tr();
+        const Pt2dr & Tr()const ;
+    private:
+        double mScale;
+        Pt2dr mTr;
+};
+cElXMLTree * ToXMLTree(const cXml_Homot &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Homot &);
+
+void  BinaryUnDumpFromFile(cXml_Homot &,ELISE_fp &);
+
+std::string  Mangling( cXml_Homot *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_Map2DElem
 {
     public:
@@ -8388,6 +8439,9 @@ class cXml_Map2DElem
         cTplValGesInit< cXmlHomogr > & Homog();
         const cTplValGesInit< cXmlHomogr > & Homog()const ;
 
+        cTplValGesInit< cXml_Homot > & Homot();
+        const cTplValGesInit< cXml_Homot > & Homot()const ;
+
         cTplValGesInit< cSimilitudePlane > & Sim();
         const cTplValGesInit< cSimilitudePlane > & Sim()const ;
 
@@ -8398,6 +8452,7 @@ class cXml_Map2DElem
         const cTplValGesInit< cXml_MapCam > & Cam()const ;
     private:
         cTplValGesInit< cXmlHomogr > mHomog;
+        cTplValGesInit< cXml_Homot > mHomot;
         cTplValGesInit< cSimilitudePlane > mSim;
         cTplValGesInit< cAffinitePlane > mAff;
         cTplValGesInit< cXml_MapCam > mCam;

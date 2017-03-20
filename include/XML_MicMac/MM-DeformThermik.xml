@@ -1,0 +1,359 @@
+<!--
+    A Pattern file for using MicMac in post-sismic deformation
+-->
+<ParamMICMAC>
+    <DicoLoc>
+         <Symb> Im1=XXXX </Symb>
+         <Symb> Im2=XXXX </Symb>
+         <Symb> Masq=XXXX  </Symb>
+
+         <Symb> DirMEC=MEC-${Im1}-${Im2}/</Symb>
+         <Symb> Pyr=Pyram/</Symb>
+         <Symb> Inc=4.0  </Symb>
+         <Symb> Pas=0.2 </Symb>
+         <Symb> UseMasq=false </Symb>
+         <Symb> UseDequant=true </Symb>
+
+         <Symb> SzW=20 </Symb>
+         <Symb> CorrelMin=0.5 </Symb>
+         <Symb> GammaCorrel=2 </Symb>
+
+         <Symb> NbDir=7 </Symb>
+        
+
+         <eSymb> Regul=4.0 </eSymb>
+
+
+         <Symb>  SsResolOpt4=4 </Symb>
+         <eSymb> SsResolOptInterm1=* 4 ${SsResolOpt4} </eSymb>
+         <eSymb> SsResolOptInterm2=* 2 ${SsResolOpt4} </eSymb>
+
+         
+         <Symb>  Px1Moy=0 </Symb>
+         <Symb>  Px2Moy=0 </Symb>
+
+         <Symb>   ZoomInit=4 </Symb>
+         <eSymb>  WithZ4= SupEq ${ZoomInit} 4 </eSymb>
+         <eSymb>  WithZ2= SupEq ${ZoomInit} 2 </eSymb>
+
+    </DicoLoc>
+<!-- *************************************************************
+Parametres lies au terrain "physique", independamment de la prise de vue
+  *************************************************************-->
+    <Section_Terrain>
+      <IntervParalaxe>
+        <!-- Incertitude en parallaxe -->
+        <!--Px1IncCalc et Px2IncCalc permettent de definir les deux
+        nappes encadrantes utilisees pour definir la zone de recherche
+        au premier niveau de la pyramide-->
+        <Px1IncCalc>  ${Inc}  </Px1IncCalc>
+        <Px2IncCalc>  ${Inc}   </Px2IncCalc>
+
+        <!--Px1Moy et Px2Moy fixent la valeur moyenne de la parallaxe;
+        leurs valeurs ont donc une influence directe sur la zone de
+        recherche exploree lors du premier niveau de la pyramide de
+        resolution. Accessoirement, elles ont une influence sur le
+        formatage du resultat (exprime en relatif par rapport a cette
+        valeur moyenne).-->
+        <Px1Moy >  ${Px1Moy}    </Px1Moy>
+        <Px2Moy >  ${Px2Moy}   </Px2Moy>
+
+      </IntervParalaxe>
+
+      <Planimetrie>
+       <!-- image de Masque utilisee pour designer l'emprise fine de
+          la correlation; il doit etre superposable au MNT de resolution
+          1. Si le fichier n'existe pas, il en sera cree un correspondant
+          aux point du terrain qui sont vus d'au moins deux images (pour
+          la parallaxe moyenne) -->
+        <#WHEN VTEST=${UseMasq}>
+            <MasqueTerrain>
+                <MT_Image> ${Masq}.tif </MT_Image>
+                <MT_Xml>   ${Masq}.xml </MT_Xml>
+            </MasqueTerrain>
+        </#WHEN>
+      </Planimetrie>
+    </Section_Terrain>
+
+ <!-- *************************************************************
+Parametres lies a la prise de vue, independamment de son exploitation
+par le correlateur
+    ************************************************************* -->
+    <Section_PriseDeVue>
+        <GeomImages> eGeomImage_Epip </GeomImages>
+        <Images>
+            <Im1> ${Im1} </Im1>
+            <Im2> ${Im2} </Im2>
+        </Images>
+<!--
+        <FiltreImageIn>
+              <TypeFiltrage>  eFiltrageDeriche  </TypeFiltrage>
+              <SzFiltrage>   1.0          </SzFiltrage>
+        </FiltreImageIn>
+-->
+    </Section_PriseDeVue>
+
+<!--  *************************************************************
+Parametres reglant le comportement de l'algo de mise en correspondance
+
+La premiere etape doit obligatoirement avoir le champs
+resolution a -1. Elle donne les valeurs par defaut et ne
+sera pas executee.
+
+L'ordre des resolutions : les plus basses aux plus grandes.
+************************************************************* -->
+    <Section_MEC>
+        <ChantierFullImage1> true </ChantierFullImage1>
+
+<!--
+        <ProportionClipMEC> 4800 2900   6300 3900    </ProportionClipMEC>
+-->
+        <ClipMecIsProp> false </ClipMecIsProp>
+
+        <EtapeMEC><!-- Etape de Mise En Correspondance -->
+            <DeZoom > -1 </DeZoom> <!-- le seul fils obligatoire a toutes les etapes-->
+            <SzW> ${SzW}   </SzW> <!-- la taille de la fenetre de correlation [-4,4]x[-4,4]-->
+
+
+            <CorrelMin>  ${CorrelMin} </CorrelMin>
+            <GammaCorrel>  ${GammaCorrel} </GammaCorrel>
+            <DynamiqueCorrel> eCoeffGamma </DynamiqueCorrel>
+
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+            <ModulationProgDyn Portee="Globale">
+                <EtapeProgDyn>
+                    <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+              
+                    <NbDir>      ${NbDir}     </NbDir>
+                </EtapeProgDyn>
+                <Px1PenteMax > 0.01 </Px1PenteMax>
+                <Px2PenteMax > 0.01 </Px2PenteMax>
+            </ModulationProgDyn>
+            <Px1Regul>  ${Regul}    </Px1Regul>
+            <Px2Regul>  ${Regul}   </Px2Regul>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+
+<!--
+            <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+-->
+
+
+            <TypeWCorr> eWInCorrelExp            </TypeWCorr>
+            <NbIterFenSpec>   2           </NbIterFenSpec>
+            <SzSinCard>  5.0 </SzSinCard>
+            <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+            <SzAppodSinCard>  5.0 </SzAppodSinCard>
+
+
+         
+
+            <Px1DilatAlti>  2    </Px1DilatAlti>
+            <Px1DilatPlani> 2    </Px1DilatPlani>
+            <Px2DilatAlti>  2    </Px2DilatAlti>
+            <Px2DilatPlani> 2    </Px2DilatPlani>
+
+            <Px1Pas>        ${Pas}  </Px1Pas>
+            <Px2Pas>        ${Pas}  </Px2Pas>
+            <SsResolOptim> ${SsResolOpt4} </SsResolOptim>
+
+
+            <PostFiltragePx>
+                  <OneFitragePx>
+                        <TypeFiltrage >  eFiltrageMedian  </TypeFiltrage>
+                        <SzFiltrNonAd  >   4        </SzFiltrNonAd>
+                        <SzFiltrage>       0         </SzFiltrage>
+                        <NbIteration  >  2       </NbIteration>
+                  </OneFitragePx>
+<!--
+                  <OneFitragePx>
+                        <TypeFiltrage >  eFiltrageMoyenne  </TypeFiltrage>
+                        <SzFiltrNonAd  >   10        </SzFiltrNonAd>
+                        <SzFiltrage>       0         </SzFiltrage>
+                        <NbIteration  >  3       </NbIteration>
+                  </OneFitragePx>
+
+-->
+            </PostFiltragePx>
+
+
+        </EtapeMEC>
+
+        <#WHEN  VTEST=${WithZ4}>
+            <EtapeMEC>
+               <DeZoom > 4 </DeZoom>
+               <Px1Pas>   1  </Px1Pas>
+               <Px2Pas>   1  </Px2Pas>
+               <Px1Regul> 2.0    </Px1Regul>
+               <Px2Regul> 2.0   </Px2Regul>
+               <SsResolOptim> ${SsResolOpt4} </SsResolOptim>
+            </EtapeMEC>
+        </#WHEN>
+        <#WHEN  VTEST=${WithZ2}>
+             <EtapeMEC>
+                <DeZoom > 2 </DeZoom>
+                <Px1Pas>   1  </Px1Pas>
+                <Px2Pas>   1  </Px2Pas>
+                <Px1Regul> 2.0    </Px1Regul>
+                <Px2Regul> 2.0   </Px2Regul>
+                <SsResolOptim> ${SsResolOptInterm2} </SsResolOptim>
+             </EtapeMEC>
+        </#WHEN>
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.8  </Px1Pas>
+           <Px2Pas>   0.8  </Px2Pas>
+           <Px1DilatAlti>  1    </Px1DilatAlti>
+           <Px1DilatPlani> 1    </Px1DilatPlani>
+           <Px2DilatAlti>  1    </Px2DilatAlti>
+           <Px2DilatPlani> 1    </Px2DilatPlani>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.8  </Px1Pas>
+           <Px2Pas>   0.8  </Px2Pas>
+           <Px1DilatAlti>  2    </Px1DilatAlti>
+           <Px1DilatPlani> 2    </Px1DilatPlani>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.8  </Px1Pas>
+           <Px2Pas>   0.8  </Px2Pas>
+           <Px1DilatAlti>  0    </Px1DilatAlti>
+           <Px1DilatPlani> 0    </Px1DilatPlani>
+           <Px2DilatAlti>  2    </Px2DilatAlti>
+           <Px2DilatPlani> 2    </Px2DilatPlani>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.4  </Px1Pas>
+           <Px2Pas>   0.4  </Px2Pas>
+           <Px1DilatAlti>  2    </Px1DilatAlti>
+           <Px1DilatPlani> 2    </Px1DilatPlani>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.4  </Px1Pas>
+           <Px2Pas>   0.4  </Px2Pas>
+           <Px1DilatAlti>  0    </Px1DilatAlti>
+           <Px1DilatPlani> 0    </Px1DilatPlani>
+           <Px2DilatAlti>  2    </Px2DilatAlti>
+           <Px2DilatPlani> 2    </Px2DilatPlani>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.2  </Px1Pas>
+           <Px2Pas>   0.2  </Px2Pas>
+           <Px1DilatAlti>  2    </Px1DilatAlti>
+           <Px1DilatPlani> 2    </Px1DilatPlani>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.2  </Px1Pas>
+           <Px2Pas>   0.2  </Px2Pas>
+           <Px1DilatAlti>  0    </Px1DilatAlti>
+           <Px1DilatPlani> 0    </Px1DilatPlani>
+           <Px2DilatAlti>  2    </Px2DilatAlti>
+           <Px2DilatPlani> 2    </Px2DilatPlani>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.1  </Px1Pas>
+           <Px2Pas>   0.1  </Px2Pas>
+           <Px1DilatAlti>  2    </Px1DilatAlti>
+           <Px1DilatPlani> 2    </Px1DilatPlani>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.1  </Px1Pas>
+           <Px2Pas>   0.1  </Px2Pas>
+           <Px1DilatAlti>  1    </Px1DilatAlti>
+           <Px1DilatPlani> 1    </Px1DilatPlani>
+           <Px2DilatAlti>  1    </Px2DilatAlti>
+           <Px2DilatPlani> 1    </Px2DilatPlani>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
+
+
+
+        <#WHEN VTEST=${UseDequant}>
+          <EtapeMEC>
+            <DeZoom >  1  </DeZoom>
+            <Px1Pas>   1.0     </Px1Pas>
+            <Px2Pas>   1.0     </Px2Pas>
+            <AlgoRegul> eAlgoDequant </AlgoRegul>
+          </EtapeMEC>
+        </#WHEN>
+    </Section_MEC>
+
+
+    <Section_Results >
+        <GeomMNT> eGeomPxBiDim </GeomMNT>
+    </Section_Results>
+
+   <Section_WorkSpace >
+      <PurgeMECResultBefore>  true </PurgeMECResultBefore>
+      <WorkDir >  ThisDir </WorkDir>
+      <TmpMEC>    ${DirMEC} </TmpMEC>
+      <TmpResult> ${DirMEC} </TmpResult>
+      <TmpPyr>  ${Pyr}  </TmpPyr>
+      <ByProcess>  ${MMNbProc} </ByProcess>
+
+      <NbCelluleMax> 8e7 </NbCelluleMax>
+      <AvalaibleMemory > 1000 </AvalaibleMemory>
+
+
+      <SzRecouvrtDalles> 200 </SzRecouvrtDalles>
+      <SzDalleMin> 2000 </SzDalleMin>
+
+      <DefTileFile>100000</DefTileFile>
+
+     </Section_WorkSpace>
+
+    <Section_Vrac> </Section_Vrac>
+
+
+
+
+</ParamMICMAC>

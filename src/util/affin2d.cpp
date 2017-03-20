@@ -286,6 +286,59 @@ cXml_Map2D ElAffin2D::ToXmlGen()
    return cXml_Map2D(MapFromElem(anElem));
 }
 
+int   ElAffin2D::NbUnknown() const
+{
+    return 6;
+}
+
+
+void  ElAffin2D::InitFromParams(const std::vector<double> &aSol)
+{
+   mI10 = Pt2dr(aSol[0],aSol[3]);
+   mI01 = Pt2dr(aSol[1],aSol[4]);
+   mI00 = Pt2dr(aSol[2],aSol[5]);
+}
+//    A B  X  +  C
+//    D E  Y     F
+//   A C = P10 , CD = P01  EF = P00
+void  ElAffin2D::AddEq
+      (
+           Pt2dr & aCste,
+           std::vector<double> & anEqX,
+           std::vector<double> & anEqY,
+           const Pt2dr & aP1,
+           const Pt2dr & aP2 
+       ) const
+{
+    aCste.x  = aP2.x;
+    anEqX[0] = aP1.x;
+    anEqX[1] = aP1.y;
+    anEqX[2] = 1;
+    anEqX[3] = 0;
+    anEqX[4] = 0;
+    anEqX[5] = 0;
+
+
+    aCste.y  = aP2.y;
+    anEqY[0] = 0;
+    anEqY[1] = 0;
+    anEqY[2] = 0;
+    anEqY[3] = aP1.x;
+    anEqY[4] = aP1.y;
+    anEqY[5] = 1;
+}
+
+cElMap2D * ElAffin2D::Duplicate() 
+{
+   return new ElAffin2D(*this);
+}
+
+cElMap2D * ElAffin2D::Identity() 
+{
+   return new ElAffin2D(ElAffin2D::Id());
+}
+
+int  ElAffin2D::Type()  const {return eTM2_Affine;}
 
 
 /*****************************************************/
@@ -305,6 +358,58 @@ cXml_Map2D  ElSimilitude::ToXmlGen()
    anElem.Sim().SetVal(El2Xml(*this));
    return cXml_Map2D(MapFromElem(anElem));
 }
+
+
+int   ElSimilitude::NbUnknown() const
+{
+    return 4;
+}
+
+//   _sc * aP = (s.x+i s.y) * (p.x + i p.y) = (s.x*p.x - s.y p.y) + i (s.y *p.x + s.x * p.y)
+//    A -B  X  +  C
+//     B A  Y     D
+//    A = v1 B=v2 C=v3 D=v4
+void  ElSimilitude::AddEq
+      (
+           Pt2dr & aCste,
+           std::vector<double> & anEqX,
+           std::vector<double> & anEqY,
+           const Pt2dr & aP1,
+           const Pt2dr & aP2 
+       ) const
+{
+    aCste.x  = aP2.x;
+    anEqX[0] = aP1.x;
+    anEqX[1] = -aP1.y;
+    anEqX[2] = 1;
+    anEqX[3] = 0;
+
+
+    aCste.y  = aP2.y;
+    anEqY[0] = aP1.y;
+    anEqY[1] = aP1.x;
+    anEqY[2] = 0;
+    anEqY[3] = 1;
+}
+
+
+void  ElSimilitude::InitFromParams(const std::vector<double> &aSol)
+{
+   _sc = Pt2dr(aSol[0],aSol[1]);
+   _tr = Pt2dr(aSol[2],aSol[3]);
+}
+
+cElMap2D * ElSimilitude::Duplicate() 
+{
+   return new ElSimilitude(*this);
+}
+
+cElMap2D * ElSimilitude::Identity() 
+{
+   return new ElSimilitude();
+}
+
+int ElSimilitude::Type() const { return eTM2_Simil; }
 
 
 /*****************************************************/
@@ -343,6 +448,8 @@ cXml_Map2D    cCamAsMap::ToXmlGen()
    return cXml_Map2D(MapFromElem(anElem));
 }
 
+int cCamAsMap::Type() const { return eTM2_Cam; }
+
 
 /*****************************************************/
 /*                                                   */
@@ -368,11 +475,167 @@ Pt2dr  cElHomographie::operator() (const Pt2dr & aP) const
    return Direct(aP);
 }
 
+int   cElHomographie::NbUnknown() const
+{
+    return 8;
+}
+
+void  cElHomographie::InitFromParams(const std::vector<double> &aSol)
+{
+   mHX = cElComposHomographie(aSol[0],aSol[1],aSol[2]);
+   mHY = cElComposHomographie(aSol[3],aSol[4],aSol[5]);
+   mHZ = cElComposHomographie(aSol[6],aSol[7],1.0);
+}
+//    A B  X1 +  C  ~   X2      A X1 + BY1 +C - X2 (GX1 + HY1 ) = X2
+//    D E  Y1    F  ~   Y2      DX1  + EY1 +F - Y2 (GX1 + HY1 ) = Y2
+//    G H  1  +  I  ~   1
+//   A  B C=Hx ,  DEF=Hy  GHI=Hz
+void  cElHomographie::AddEq
+      (
+           Pt2dr & aCste,
+           std::vector<double> & anEqX,
+           std::vector<double> & anEqY,
+           const Pt2dr & aP1,
+           const Pt2dr & aP2 
+       ) const
+{
+    aCste.x  = aP2.x;
+      anEqX[0] = aP1.x;
+      anEqX[1] = aP1.y;
+      anEqX[2] = 1;
+      anEqX[3] = 0;
+      anEqX[4] = 0;
+      anEqX[5] = 0;
+      anEqX[6] =  -aP2.x * aP1.x;
+      anEqX[7] =  -aP2.x * aP1.y;
+
+    aCste.y  = aP2.y;
+      anEqY[0] = 0;
+      anEqY[1] = 0;
+      anEqY[2] = 0;
+      anEqY[3] = aP1.x;
+      anEqY[4] = aP1.y;
+      anEqY[5] = 1;
+      anEqY[6] =  -aP2.y * aP1.x;
+      anEqY[7] =  -aP2.y * aP1.y;
+}
+
+cElMap2D * cElHomographie::Duplicate() 
+{
+   return new cElHomographie(*this);
+}
+
+cElMap2D * cElHomographie::Identity() 
+{
+   return new cElHomographie(cElHomographie::Id());
+}
+
+int cElHomographie::Type() const { return eTM2_Homogr; }
+
+/*****************************************************/
+/*                                                   */
+/*            ElHomot                                */
+/*                                                   */
+/*****************************************************/
+ElHomot::ElHomot(Pt2dr aTrans, double aScale) :
+   mTr (aTrans),
+   mSc (aScale)
+{
+}
+
+ElHomot ElHomot::operator * (const ElHomot & aHom2) const
+{
+  return ElHomot ( mTr+aHom2.mTr*mSc   ,    mSc*aHom2.mSc );
+}
+int ElHomot::Type() const { return int(eTM2_Homot); }
+cElMap2D * ElHomot::Map2DInverse() const 
+{
+   return new ElHomot(inv());
+}
+cElMap2D *  ElHomot::Duplicate() 
+{
+    return new ElHomot(mTr,mSc);
+}
+
+cElMap2D  * ElHomot::Identity() {return new ElHomot;}
+
+cXml_Map2D  ElHomot::ToXmlGen()
+{
+   cXml_Map2DElem anElem;
+   anElem.Homot().SetVal(EL2Xml(*this));
+   return MapFromElem(anElem);
+}
+
+int  ElHomot::NbUnknown() const {return 3;}
+
+//  A  X1  + B  = X2
+//     Y1    C    Y2
+
+void  ElHomot::AddEq
+      (
+           Pt2dr & aCste,
+           std::vector<double> & anEqX,
+           std::vector<double> & anEqY,
+           const Pt2dr & aP1,
+           const Pt2dr & aP2 
+      ) const
+{
+    aCste.x  = aP2.x;
+    anEqX[0] = aP1.x;
+    anEqX[1] = 1;
+    anEqX[2] = 0;
+
+
+    aCste.y  = aP2.y;
+    anEqY[0] = aP1.y;
+    anEqY[1] = 0;
+    anEqY[2] = 1;
+}
+
+void  ElHomot::InitFromParams(const std::vector<double> &aSol)
+{
+   mSc = aSol[0];
+   mTr = Pt2dr(aSol[1],aSol[2]);
+}
+
+ElHomot ElHomot::inv () const
+{
+   return ElHomot ( (-mTr)/mSc, 1/mSc);
+}
+
+cXml_Homot   EL2Xml(const ElHomot & aHom)
+{
+   cXml_Homot aXml;
+   aXml.Scale() =  aHom.Sc();
+   aXml.Tr() =  aHom.Tr();
+
+   return aXml;
+}
+
+ElHomot      Xml2EL(const cXml_Homot & aXml)
+{
+   return ElHomot(aXml.Tr(),aXml.Scale());
+}
+
+
+
+
 /*****************************************************/
 /*                                                   */
 /*            cElMap2D                               */
 /*                                                   */
 /*****************************************************/
+
+cElMap2D * cElMap2D::IdentFromType(int aType)
+{
+    if (aType == int(eTM2_Homot))    return new ElHomot;
+    if (aType == int(eTM2_Simil))    return new ElSimilitude;
+    if (aType == int(eTM2_Affine))   return new ElAffin2D(ElAffin2D::Id());
+    if (aType == int(eTM2_Homogr))   return new cElHomographie(cElHomographie::Id());
+
+    ELISE_ASSERT(false,"cElMap2D::IdentFromType");
+    return 0;
+}
 
 cElMap2D * cElMap2D::Map2DInverse() const
 {
@@ -427,9 +690,36 @@ cElMap2D *  cElMap2D::FromFile(const std::string & aName)
    return new cComposElMap2D(aVMap);
 }
 
+int   cElMap2D::NbUnknown() const
+{
+   ELISE_ASSERT(false,"cElMap2D::NbUnknown");
+   return -1;
+}
+void  cElMap2D::AddEq(Pt2dr & ,std::vector<double> & ,std::vector<double> & ,const Pt2dr & aP1,const Pt2dr & aP2 ) const
+{
+   ELISE_ASSERT(false,"cElMap2D::AddEq");
+}
+
+void  cElMap2D::InitFromParams(const std::vector<double> &aSol)
+{
+   ELISE_ASSERT(false,"cElMap2D::InitFromParams");
+}
+
+cElMap2D * cElMap2D::Duplicate() 
+{
+   ELISE_ASSERT(false,"cElMap2D::AddEq");
+   return 0;
+}
+
+cElMap2D * cElMap2D::Identity() 
+{
+   ELISE_ASSERT(false,"cElMap2D::AddEq");
+   return 0;
+}
+
 /*****************************************************/
 /*                                                   */
-/*            cElMap2D                               */
+/*            cComposElMap2D                         */
 /*                                                   */
 /*****************************************************/
 
@@ -478,31 +768,139 @@ cXml_Map2D    cComposElMap2D::ToXmlGen()
    }
    return aRes;
 }
+int  cComposElMap2D::Type()  const {return eTM2_Compos;}
+
+/*****************************************************/
+/*                                                   */
+/*                 ::                                */
+/*                                                   */
+/*****************************************************/
+
+cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack)
+{
+    cElMap2D & aMapInit = *(cElMap2D::IdentFromType(aType));
+
+
+    cElMap2D * aRes = aMapInit.Identity();
+    int aNbUk = aMapInit.NbUnknown();
+    std::vector<double> aVCoefX(aNbUk);
+    std::vector<double> aVCoefY(aNbUk);
+    L2SysSurResol aSys(aNbUk);
+
+    for (ElPackHomologue::const_iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
+    {
+        Pt2dr aQ;
+        aRes->AddEq(aQ,aVCoefX,aVCoefY,itCpl->P1(),itCpl->P2());
+        aSys.AddEquation(1.0,VData(aVCoefX),aQ.x);
+        aSys.AddEquation(1.0,VData(aVCoefY),aQ.y);
+    }
+    Im1D_REAL8  aSol = aSys.Solve(0);
+    aRes->InitFromParams(std::vector<double>(aSol.data(),aSol.data()+aNbUk));
+    return aRes;
+}
+
+double TestMap2D(cElMap2D & aMapInit,const ElPackHomologue & aPackInit)
+{
+    cElMap2D * aMap = aMapInit.Identity();
+    ElPackHomologue  aPack = aPackInit;
+    for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
+    {
+         itCpl->P2() = (aMapInit)(itCpl->P1());
+    }
+
+    int aNbUk = aMapInit.NbUnknown();
+    std::vector<double> aVCoefX(aNbUk);
+    std::vector<double> aVCoefY(aNbUk);
+    L2SysSurResol aSys(aNbUk);
+
+    
+    for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
+    {
+        Pt2dr aQ;
+        aMap->AddEq(aQ,aVCoefX,aVCoefY,itCpl->P1(),itCpl->P2());
+        aSys.AddEquation(1.0,VData(aVCoefX),aQ.x);
+        aSys.AddEquation(1.0,VData(aVCoefY),aQ.y);
+    }
+    Im1D_REAL8  aSol = aSys.Solve(0);
+    aMap->InitFromParams(std::vector<double>(aSol.data(),aSol.data()+aNbUk));
+
+    double aSomD = 0;
+    for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
+    {
+         aSomD += euclid(aMapInit(itCpl->P1()) - (*aMap)(itCpl->P1()));
+    }
+
+    return aSomD;
+}
+
+Pt2dr PRanCInSquare(double aScale) {return Pt2dr(aScale*NRrandC(),aScale*NRrandC());}
+cElComposHomographie RanCH(double aScaleXY,double Cste){return cElComposHomographie(NRrandC()*aScaleXY,NRrandC()*aScaleXY,1+Cste*NRrandC());}
+
+void TestMap2D()
+{
+    ElPackHomologue aPackInit;
+    for (int aK=0 ; aK< 100 ; aK++)
+        aPackInit.Cple_Add(ElCplePtsHomologues(PRanCInSquare(1000),PRanCInSquare(1000),1.0));
+
+    for (int aK=0 ; aK< 10 ; aK++)
+    {
+         ElSimilitude aS(PRanCInSquare(100),PRanCInSquare(1));
+         ElAffin2D anAff(PRanCInSquare(100),PRanCInSquare(1),PRanCInSquare(1));
+         cElHomographie aHom(RanCH(1,1000),RanCH(1,1000),RanCH(1e-5,1e-5));
+
+         ElHomot  aHomot(PRanCInSquare(100), NRrandC());
 
 
 
-int CPP_CalcMapHomogr(int argc,char** argv)
+         std::cout << " SIM " << TestMap2D(aS   ,aPackInit) 
+                   << " AFF " << TestMap2D(anAff,aPackInit) 
+                   << " Hom " << TestMap2D(aHom,aPackInit) 
+                   << " Homot " << TestMap2D(aHomot,aPackInit) 
+                   << "\n";
+
+    }
+    exit(EXIT_SUCCESS);
+}
+
+
+int CPP_CalcMapAnalitik(int argc,char** argv)
 {
     std::string aName1,aName2,aNameOut,aSH,anExt="dat";
     std::string anOri;
+    std::string aNameType;
+    Pt2dr       aPerResidu(100,100);
+
     int NbTest =50;
     double  Perc = 80.0;
     int     NbMaxPts= 10000;
+    eTypeMap2D aType;
+    bool aModeHelp;
+
+    if ((argc>=2) && (std::string(argv[1]) == "-help"))
+    {
+        StdReadEnum(aModeHelp,aType,"-help",eTypeMap2D(eTM2_Homogr+1));
+    }
 
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  <<  EAMC(aName1,"Name Im1")
                     <<  EAMC(aName2,"Name Im2")
+                    <<  EAMC(aNameType,"Model in [Homot,Simil,Affine,Homogr]")
                     <<  EAMC(aNameOut,"Name Out"),
         LArgMain()  <<  EAM(aSH,"SH",true,"Set of homologue")
                     <<  EAM(anOri,"Ori",true,"Directory to read distorsion")
+                    <<  EAM(aPerResidu,"PerResidu",true,"Period for computing residual")
     );
+
+    StdReadEnum(aModeHelp,aType,std::string("TM2_")+aNameType,eTM2_NbVals);
+
 
     cElemAppliSetFile anEASF(aName1);
     cInterfChantierNameManipulateur * anICNM = anEASF.mICNM;
     std::string aDir = anEASF.mDir;
 
+    std::string aDirResidu = aDir+ "ResiduImDir/";
    
 
 
@@ -527,19 +925,40 @@ int CPP_CalcMapHomogr(int argc,char** argv)
     ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn);
     ElPackHomologue aPackInitial = aPackIn; 
 
-    if (aCS1)
+    Pt2dr aP1Max(-1e20,-1e20);
+    Pt2dr aP1Min( 1e20, 1e20);
+    for (ElPackHomologue::iterator itCpl=aPackIn.begin();itCpl!=aPackIn.end() ; itCpl++)
     {
-        for (ElPackHomologue::iterator itCpl=aPackIn.begin();itCpl!=aPackIn.end() ; itCpl++)
+        if (aCS1)
         {
             itCpl->P1() = aCS1->DistInverse(itCpl->P1());
             itCpl->P2() = aCS2->DistInverse(itCpl->P2());
         }
+        aP1Max = Sup(aP1Max, itCpl->P1());
+        aP1Min = Inf(aP1Min, itCpl->P1());
     }
+
+    std::cout << "P1Max " << aP1Max  << " " << aP1Min << "\n";
+
+    Pt2di aSzResidu = round_up(aP1Max.dcbyc(aPerResidu));
+    Im2D_REAL8 aImResX(aSzResidu.x,aSzResidu.y,0.0);
+    Im2D_REAL8 aImResY(aSzResidu.x,aSzResidu.y,0.0);
 
 
     double anEcart,aQuality;
     bool Ok;
-    cElHomographie aHom = cElHomographie::RobustInit(anEcart,&aQuality,aPackIn,Ok,NbTest,Perc,NbMaxPts);
+    cElHomographie aHomog = cElHomographie::RobustInit(anEcart,&aQuality,aPackIn,Ok,NbTest,Perc,NbMaxPts);
+
+    cElMap2D * aMapCor = 0;
+  
+    if (0)
+    {
+       aMapCor = new cElHomographie(aHomog);
+    }
+    else
+    {
+       aMapCor  =  L2EstimMapHom(aType,aPackIn);
+    }
 
 
     std::vector<cElMap2D *> aVMap;
@@ -547,7 +966,7 @@ int CPP_CalcMapHomogr(int argc,char** argv)
     {
        aVMap.push_back(new cCamAsMap(aCS1,false));
     }
-    aVMap.push_back(&aHom);
+    aVMap.push_back(aMapCor);
     if (aCS2)
     {
        aVMap.push_back(new cCamAsMap(aCS2,true));
@@ -555,17 +974,39 @@ int CPP_CalcMapHomogr(int argc,char** argv)
 
     cComposElMap2D aComp(aVMap);
 
-
+    std::vector<double> aVDist;
+    double aSomD2X=0.0;
+    double aSomD2Y=0.0;
     for (ElPackHomologue::iterator itCpl=aPackInitial.begin();itCpl!=aPackInitial.end() ; itCpl++)
     {
-        double aD = euclid(aComp(itCpl->P1())-itCpl->P2());
-        double aD2 = euclid(aComp(itCpl->P2())-itCpl->P1());
-        std::cout << "DIST " << aD << " " << aD2 << "\n";
+        Pt2dr aRes = aComp(itCpl->P1())-itCpl->P2();
+        double aD = euclid(aRes);
+        aVDist.push_back(aD);
+        aSomD2X += ElSquare(aRes.x);
+        aSomD2Y += ElSquare(aRes.y);
+        Pt2di aPInd = round_ni(itCpl->P1().dcbyc(aPerResidu));
+        aImResX.SetR_SVP(aPInd,aRes.x);
+        aImResY.SetR_SVP(aPInd,aRes.y);
+        // if (BadNumber(aD)) std::cout << "KKKK " << aD << "\n";
     }
     MakeFileXML(aComp.ToXmlGen(),aNameOut);
 
+    ELISE_fp::MkDirSvp(aDirResidu);
+    std::string aPref = "Res-" +  aNameType + "-" + aName1 + "-" + aName2 ;
+    Tiff_Im::CreateFromIm(aImResX,aDirResidu+aPref+"-X.tif");
+    Tiff_Im::CreateFromIm(aImResY,aDirResidu+aPref+"-Y.tif");
+    
 
-    std::cout << "PACKK = " << aPackIn.size() << "\n";
+    int aNbDist=10;
+    for (int aK=0; aK<=aNbDist ; aK++)
+    {
+        double aProp = aK/double(aNbDist);
+        std::cout << "  Residu at " << aProp*100 << " percentil = " << KthValProp(aVDist,aProp) << "\n";
+    }
+    aSomD2X /= aPackIn.size();
+    aSomD2Y /= aPackIn.size();
+
+    std::cout << "MoyD2 = " << sqrt(aSomD2X)  << " " << sqrt(aSomD2Y) << "\n";
 
 
 
@@ -583,7 +1024,7 @@ int CPP_ReechImMap(int argc,char** argv)
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  <<  EAMC(aNameIm,"Name Im1")
+        LArgMain()  <<  EAMC(aNameIm,"Name Im")
                     <<  EAMC(aNameMap,"Name map"),
         LArgMain()  
     );
@@ -638,6 +1079,181 @@ int CPP_ReechImMap(int argc,char** argv)
 
     return EXIT_SUCCESS;
 }
+
+class cAppli_CPP_DenseMapToHom
+{
+   public :
+
+    std::string mName1;
+    std::string mName2;
+    std::string mNamePx1;
+    std::string mNamePx2;
+    std::string mSH;
+    std::string mExt;
+    Pt2di       mSzIm;
+    Tiff_Im *   mTifX;
+    Tiff_Im *   mTifY;
+    Fonc_Num    mFPond;
+    double      mNbTile;
+    Pt2di       mSz;
+    Pt2di       mSzRed;
+
+    Im2D_REAL8  mImX1;
+    Im2D_REAL8  mImY1;
+    Im2D_REAL8  mImX2;
+    Im2D_REAL8  mImY2;
+    Im2D_REAL8  mImP;
+    double      mOverlap; // Si 1 les dalles se recouvrent juste
+
+    cAppli_CPP_DenseMapToHom(int argc,char** argv);
+};
+
+
+cAppli_CPP_DenseMapToHom::cAppli_CPP_DenseMapToHom(int argc,char** argv) :
+    mSH      ("DM"),
+    mExt     ("dat"),
+    mFPond   (1.0),
+    mNbTile  (30),
+    mImX1    (1,1),
+    mImY1    (1,1),
+    mImX2    (1,1),
+    mImY2    (1,1),
+    mImP     (1,1),
+    mOverlap (1.0)
+{
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  <<  EAMC(mName1,"Name Im1")
+                    <<  EAMC(mName2,"Name Im2")
+                    <<  EAMC(mNamePx1,"Name Px1 (dx)")
+                    <<  EAMC(mNamePx2,"Name Px2 (dy)"),
+        LArgMain()  <<  EAM(mSH,"SH",true,"Set of homologue, def=DM")
+                    <<  EAM(mNbTile,"NbTiles",true,"Number of tile / side (will be slightly changed), Def=30")
+    );
+
+    cElemAppliSetFile anEASF(mName1);
+    cInterfChantierNameManipulateur * anICNM = anEASF.mICNM;
+    std::string aDir = anEASF.mDir;
+
+    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(mSH)
+                       +  std::string("@")
+                       +  std::string(mExt);
+
+    std::string aNameOut = aDir + anICNM->Assoc1To2(aKHOut,mName1,mName2,true);
+
+    mTifX =   new Tiff_Im(Tiff_Im::StdConvGen(mNamePx1,-1,true));
+    mTifY =   new Tiff_Im(Tiff_Im::StdConvGen(mNamePx2,-1,true));
+
+    mSz = mTifX->sz();
+
+    double aLargTile = sqrt((mSz.x * double(mSz.y) ) / ElSquare(mNbTile));
+    mSzRed = round_up(Pt2dr(mSz)/aLargTile);
+    aLargTile = ElMax(mSz.x/double(mSzRed.x),mSz.y/double(mSzRed.y)) * mOverlap;
+    Pt2dr mDemiTile(aLargTile/2.0,aLargTile/2.0);
+
+    mImX1 =  Im2D_REAL8(mSzRed.x,mSzRed.y);
+    mImY1 =  Im2D_REAL8(mSzRed.x,mSzRed.y);
+    mImX2 =  Im2D_REAL8(mSzRed.x,mSzRed.y);
+    mImY2 =  Im2D_REAL8(mSzRed.x,mSzRed.y);
+    mImP  =  Im2D_REAL8(mSzRed.x,mSzRed.y,0.0);
+
+    Pt2di aP;
+    double aMaxP=0.0;
+    for (aP.x=0 ; aP.x< mSzRed.x ; aP.x++)
+    {
+       for (aP.y=0 ; aP.y< mSzRed.y ; aP.y++)
+       {
+           Pt2dr aPC = Pt2dr(aP) + Pt2dr(0.5,0.5); // au cente de la dalle reduite
+           aPC = aPC.dcbyc(Pt2dr(mSzRed)); // Entre 0 et 1
+           aPC = aPC.mcbyc(Pt2dr(mSz));    // au centre des coordonnees pleines
+
+           Pt2di aPIm0 = Sup(Pt2di(0,0),round_down(aPC-mDemiTile));
+           Pt2di aPIm1 = Inf(mSz,round_down(aPC+mDemiTile));
+           double aSom[5];
+           ELISE_COPY
+           (
+               rectangle(aPIm0,aPIm1),
+               Virgule(FX*mFPond,FY*mFPond,mTifX->in()*mFPond,mTifY->in()*mFPond,mFPond),
+               sigma(aSom,5)
+           );
+           if (aSom[4] > mImP.GetR(aP)) 
+           {
+               mImX1.SetR(aP,aSom[0]/aSom[4]);
+               mImY1.SetR(aP,aSom[1]/aSom[4]);
+               mImX2.SetR(aP,aSom[2]/aSom[4]);
+               mImY2.SetR(aP,aSom[3]/aSom[4]);
+               mImP.SetR(aP,aSom[4]);
+               ElSetMax(aMaxP,aSom[4]);
+           }
+       }
+    }
+    std::cout << "PerResidu=" << Pt2dr(mSz).dcbyc(Pt2dr(mSzRed)) << "\n";
+
+    ElPackHomologue aPack;
+    for (aP.x=0 ; aP.x< mSzRed.x ; aP.x++)
+    {
+       for (aP.y=0 ; aP.y< mSzRed.y ; aP.y++)
+       {
+           Pt2dr aPIm1(mImX1.GetR(aP),mImY1.GetR(aP));
+           Pt2dr aPIm2(mImX2.GetR(aP),mImY2.GetR(aP));
+           aPIm2  = aPIm1 + aPIm2;
+           aPack.Cple_Add(ElCplePtsHomologues(aPIm1,aPIm2,mImP.GetR(aP)));
+       }
+    }
+    aPack.StdPutInFile(aNameOut);
+}
+
+
+int CPP_DenseMapToHom(int argc,char** argv)
+{
+    cAppli_CPP_DenseMapToHom anAppli(argc,argv);
+
+    return EXIT_SUCCESS;
+}
+
+int CPP_CmpDenseMap(int argc,char** argv)
+{
+    std::string mNameXI1,mNameYI1,mNameXI2,mNameYI2;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  <<  EAMC(mNameXI1,"Im1 Px1 (dx)")
+                    <<  EAMC(mNameYI1,"Im1 Px2 (dy)")
+                    <<  EAMC(mNameXI2,"Im2 Px1 (dx)")
+                    <<  EAMC(mNameYI2,"Im2 Px2 (dy)"),
+        LArgMain()  
+    );
+
+    Tiff_Im aX1(mNameXI1.c_str());
+    Tiff_Im aY1(mNameYI1.c_str());
+    Tiff_Im aX2(mNameXI2.c_str());
+    Tiff_Im aY2(mNameYI2.c_str());
+
+    Pt2di aSz = aX1.sz();
+
+    double aS1,aS2;
+
+    ELISE_COPY(aX1.all_pts(),Abs(aX1.in())+Abs(aY1.in()),sigma(aS1));
+    ELISE_COPY(aX1.all_pts(),Abs(aX2.in())+Abs(aY2.in()),sigma(aS2));
+
+    double R12 = aS1/aS2;
+    double aDif;
+
+    ELISE_COPY
+    (
+         aX1.all_pts(),
+         Abs(aX2.in()*R12-aX1.in())+Abs(aY2.in()*R12-aY1.in()),
+         sigma(aDif)
+    );
+
+    std::cout << "R12 = " << R12  << " DIF=" << (aDif / (double (aSz.x) * aSz.y))<< "\n";
+
+    return EXIT_SUCCESS;
+}
+
   
          // static cElMap2D * FromFile(const std::string &);
          // virtual cXml_Map2D *     ToXmlGen() ; // P

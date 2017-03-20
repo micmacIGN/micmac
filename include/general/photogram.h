@@ -790,6 +790,7 @@ private :
 class cCamAsMap : public cElMap2D
 {
     public :
+        virtual int Type() const ;
         cCamAsMap(CamStenope * aCam,bool Direct);
         virtual Pt2dr operator () (const Pt2dr & p) const ;
         virtual cElMap2D * Map2DInverse() const;
@@ -850,9 +851,16 @@ class cElHomographie  : public cElMap2D
 {
      public :
           Pt2dr operator() (const Pt2dr & aP) const;
+          virtual int Type() const ;
           virtual  cElMap2D * Map2DInverse() const;
+          virtual cElMap2D * Duplicate() ;
+          virtual cElMap2D * Identity() ;
           virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
    
+          virtual int   NbUnknown() const;
+          virtual void  AddEq(Pt2dr & aCste,std::vector<double> & EqX,std::vector<double> & EqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
+          virtual void  InitFromParams(const std::vector<double> &aSol);
+
 
 
           bool HasNan() const;

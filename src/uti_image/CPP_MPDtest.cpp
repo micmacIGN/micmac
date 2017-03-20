@@ -1284,8 +1284,10 @@ void TestFileTxtBin()
    exit(EXIT_SUCCESS);
 }
 
+extern void TestMap2D();
 int MPDtest_main (int argc,char** argv)
 {
+    TestMap2D();
     TestFileTxtBin();
 
     TestClipBundle();
