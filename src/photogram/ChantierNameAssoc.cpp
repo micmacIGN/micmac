@@ -3666,19 +3666,19 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
 
 
     cCompileCAPI::cCompileCAPI
-        (
-        cInterfChantierNameManipulateur & aIMCN,
+        (cInterfChantierNameManipulateur & aIMCN,
         const cContenuAPrioriImage & aCAPI,
         const std::string &aDir,
         const std::string & aName,
-        const std::string & aName2
+        const std::string & aName2,
+        bool forceTMP
         ) :
     mScale     (aCAPI.Scale().Val()),
         mTeta      (aCAPI.Teta().Val()),
         mBox       (Pt2dr(0,0),Pt2dr(0,0)),
         mRTr_I2R   (Pt2dr(0,0),Pt2dr(1,0)),
         mRTr_R2I   (Pt2dr(0,0),Pt2dr(1,0))
-    {
+    {        
         std::string aNameInit = aDir+aName;
         if ( isUsingSeparateDirectories() && !ELISE_fp::exist_file(aNameInit) ) aNameInit = MMInputDirectory()+aName;
         mFullNameFinal = aNameInit;
@@ -3686,7 +3686,7 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
         Tiff_Im aFileInit = PastisTif(aNameInit);
         mSzIm = aFileInit.sz();
 
-        bool aWithBox = false;
+        bool aWithBox = forceTMP;//JMM: force to use tmp image
         std::string aStrBox ="";
 
         if (aCAPI.BoiteEnglob().IsInit())
@@ -3949,7 +3949,8 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
         const std::string & aN2,
         const std::string & aKEY1,
         const std::string & aKEY2,
-        double aSzMax
+        double aSzMax,
+        bool forceTMP
         )
     {
         cContenuAPrioriImage aC1 = APrioriWithDef(aN1,aKEY1);
@@ -3993,8 +3994,8 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
         std::pair<cCompileCAPI,cCompileCAPI> aRes;
 
         string outDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():mDir );
-        aRes.first  = cCompileCAPI(*this,aC1,outDirectory,aN1,aN2);
-        aRes.second = cCompileCAPI(*this,aC2,outDirectory,aN2,aN1);
+        aRes.first  = cCompileCAPI(*this,aC1,outDirectory,aN1,aN2,forceTMP);
+        aRes.second = cCompileCAPI(*this,aC2,outDirectory,aN2,aN1,forceTMP);
 
         return  aRes;
     }

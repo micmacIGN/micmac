@@ -230,7 +230,8 @@ class cAppliPastis : public cAppliBatch
        bool          mIgnoreMin;
        bool          mIgnoreMax;
        bool          mIgnoreUnknown;
-       double         mAnnClosenessRatio;
+       double        mAnnClosenessRatio;
+       bool          mIsSFS;              //force using SFS image instead of original even if size=-1
 
        Pt2dr Homogr1to2(const Pt2dr & aP1)
        {
@@ -840,7 +841,8 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
       aSzMaxApp= -1;
 
    std::pair<cCompileCAPI,cCompileCAPI> aPair= ICNM()->APrioriAppar
-                                               (CurF1(),CurF2(),mKeyGeom1,mKeyGeom2,aSzMaxApp);
+                                               (CurF1(),CurF2(),mKeyGeom1,mKeyGeom2,aSzMaxApp,mIsSFS);
+
   if (mModeBin==eModeLeBrisPP)
   {
       std::string aDir,aN1,aN2;
@@ -939,7 +941,8 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
    mIgnoreMin        (false),
    mIgnoreMax        (false),
    mIgnoreUnknown    (false),
-   mAnnClosenessRatio(SIFT_ANN_DEFAULT_CLOSENESS_RATIO)
+   mAnnClosenessRatio(SIFT_ANN_DEFAULT_CLOSENESS_RATIO),
+   mIsSFS(false)
 {
     mOutputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():DirChantier() );
     std::string aKG12="";
@@ -997,6 +1000,8 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
                       << EAM(mIgnoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
                       << EAM(mIgnoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
                       << EAM(mAnnClosenessRatio,"ratio",true)
+                      << EAM(mIsSFS,"isSFS",true)
+
 
     );
 
