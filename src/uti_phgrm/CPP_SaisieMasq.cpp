@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-void saisieMasq_ElInitArgMain(int argc,char ** argv, std::string &aFullName, std::string &aPost, std::string &aNameMasq, std::string &aAttr, Pt2di &aSzW, double &aGama)
+void saisieMasq_ElInitArgMain(int argc,char ** argv, std::string &aFullName, std::string &aPost, std::string &aNameMasq, std::string &aAttr, Pt2di &aSzW, double &aGama,bool & aForceTif)
 {
     ElInitArgMain
     (
@@ -50,6 +50,7 @@ void saisieMasq_ElInitArgMain(int argc,char ** argv, std::string &aFullName, std
                       << EAM(aNameMasq,"Name",true,"Name of result, default toto->toto_Masq.tif")
                       << EAM(aGama,"Gama",true)
                       << EAM(aAttr,"Attr",true)
+                      << EAM(aForceTif,"ForceTif",true,"Force tif post (do not maintain tiff,TIF ...) def=true")
     );
 }
 
@@ -96,6 +97,7 @@ class cAppliSM : public Grab_Untill_Realeased,
         CaseGPUMT *             mCaseExit;
         BoolCaseGPUMT *         mCaseCoul;
         bool                    mEnd;
+        bool                    mForceTif;
         std::string             mAttr;
 
 
@@ -244,7 +246,8 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
    // mTifExit  ("data/Exit.tif"),
    mTifExit  (MMIcone("Exit")),
    mSzCase   (mTifExit.sz()),
-   mEnd      (false)
+   mEnd      (false),
+   mForceTif (true)
 {
     mSzWP   = Pt2di(900,700);
     std::string aFullName;
@@ -252,7 +255,7 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
     std::string aNameMasq ="";
     double aGama=1.0;
 
-    saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, mAttr, mSzWP, aGama);
+    saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, mAttr, mSzWP, aGama,mForceTif);
 
     aPost = aPost + mAttr;
 
@@ -262,10 +265,12 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
     {
        aTifPost = StdPostfix(mNIm);
     }
-    if (! IsKnownTifPost(aTifPost))
+
+    if ((! IsKnownTifPost(aTifPost)) ||  mForceTif)
     {
       aTifPost = "tif";
     }
+     
 
     aTifPost = "." + aTifPost;
 

@@ -4241,7 +4241,7 @@ bool StdCorrecNameOrient(std::string & aNameOri,const std::string & aDir,bool SV
     return anICNM->CorrecNameOrient(aNameOri,SVP);
 }
 
-
+#define NBExtTifMas 1
 bool  TestStdMasq
     (
         const std::string & aManquant,
@@ -4250,18 +4250,20 @@ bool  TestStdMasq
         std::string & aMasq
     )
 {
-
+    std::string aVExt[NBExtTifMas] = {"tif"}; // ,"tiff","TIF","TIFF"};
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-
     std::list<std::string> aL = anICNM->StdGetListOfFile(aPat,1);
 
     for (std::list<std::string>::const_iterator itS=aL.begin(); itS!=aL.end() ; itS++)
     {
-        std::string aName =  aDir + StdPrefix(*itS) + aManquant + aMasq + ".tif";
-        if ( ELISE_fp::exist_file(aName))
+        for (int aKExt=0 ; aKExt<NBExtTifMas; aKExt++)
         {
-           aMasq = aManquant+aMasq;
-           return true;
+            std::string aName =  aDir + StdPrefix(*itS) + aManquant + aMasq + "." + aVExt[aKExt];
+            if ( ELISE_fp::exist_file(aName))
+            {
+               aMasq = aManquant+aMasq;
+               return true;
+            }
         }
     }
 

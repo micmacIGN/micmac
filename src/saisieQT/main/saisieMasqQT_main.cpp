@@ -1,5 +1,8 @@
 #include "saisieQT_main.h"
 
+void saisieMasq_ElInitArgMain(int argc,char ** argv, std::string &aFullName, std::string &aPost, std::string &aNameMasq, std::string &aAttr, Pt2di &aSzW, double &aGama,bool & aForceTif);
+
+
 int saisieMasqQT_main(int argc, char *argv[])
 {
 	QApplication &app = getQApplication();
@@ -10,6 +13,7 @@ int saisieMasqQT_main(int argc, char *argv[])
     std::string aNameMasq ="";
     std::string aAttr="";
     double aGama=1.0;
+    bool aForceTif;
 
     if (argv[1][0] == 'v')
     {
@@ -19,7 +23,7 @@ int saisieMasqQT_main(int argc, char *argv[])
         argv[0] = (char*) "SaisieMasqQT";
 
         MMVisualMode = true;
-        saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, aAttr, SzWP, aGama);
+        saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, aAttr, SzWP, aGama,aForceTif);
         MMVisualMode = false;
 
         return EXIT_SUCCESS;
@@ -64,7 +68,7 @@ int saisieMasqQT_main(int argc, char *argv[])
             argc--;
             argv++;
 
-            saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, aAttr, SzWP, aGama);
+            saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, aAttr, SzWP, aGama,aForceTif);
 
             if (EAMIsInit(&aPost))
                 win.setPostFix(QString(aPost.c_str()));

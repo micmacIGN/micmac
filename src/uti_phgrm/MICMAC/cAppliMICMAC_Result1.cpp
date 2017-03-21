@@ -424,7 +424,6 @@ Tiff_Im cAppliMICMAC::FileMasqOfResol(int aDeZoom)
     std::string aNameMasq = NameImageMasqOfResol(aDeZoom);
 
     int aDZC = LazyZoomMaskTerrain().Val() ? mDeZoomMin : 1;
-
     if (! ELISE_fp::exist_file(aNameMasq))
     {
   
@@ -530,8 +529,6 @@ void cAppliMICMAC::MakeDefImMasq(int aDeZoomCible)
     std::string aNameMasq = NameImageMasqOfResol(aDeZoomCible);
     if (ELISE_fp::exist_file(aNameMasq))
        return;
-
-    std::cout << "<< Make Masq Resol 1 " << aNameMasq << "\n";
 
     cGeomDiscFPx aGeomDFPx =  *mGeomDFPx;
     // aGeomDFPx.SetDeZoom(1);
@@ -640,6 +637,7 @@ void cAppliMICMAC::MakeDefImMasq(int aDeZoomCible)
           }
        }
     }
+
 
 /*
 */

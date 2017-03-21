@@ -101,6 +101,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <eSymb> AddZoom16=Sup ${ZoomInit} 16 </eSymb>
     <eSymb> AddZoom8=Sup ${ZoomInit} 8 </eSymb>
     <eSymb> AddZoom4=Sup ${ZoomInit} 4 </eSymb>
+    <eSymb> AddZoom2=Sup ${ZoomInit} 2 </eSymb>
 
     <eSymb>  DoNotMEC=! ${DoMEC} </eSymb>
     <Symb>   ButDoOrtho=true </Symb>
@@ -541,8 +542,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
             </EtapeMEC>
         </#WHEN>
 
-        <IncludeFileLoc>  ${FileZ4PC} </IncludeFileLoc>
-        <IncludeFileLoc>  ${FileZ2PC} </IncludeFileLoc>
+        <#WHEN VTEST=${AddZoom4}>
+             <IncludeFileLoc>  ${FileZ4PC} </IncludeFileLoc>
+        </#WHEN>
+        <#WHEN VTEST=${AddZoom2}>
+             <IncludeFileLoc>  ${FileZ2PC} </IncludeFileLoc>
+        </#WHEN>
 
         <#WHEN VTEST=${NotZoom8}>
             <EtapeMEC> 

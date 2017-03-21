@@ -603,8 +603,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (mZoomInit!=-1)
       {
-          int TabZI[6] ={128,64,32,16,8,4};
-          VerifIn(mZoomInit,TabZI,6,"Zoom Init");
+          int TabZI[8] ={128,64,32,16,8,4,2,1};
+          VerifIn(mZoomInit,TabZI,8,"Zoom Init");
       }
       else
       {
@@ -618,7 +618,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               mZoomInit = 32;
 
           double aWidth = ElMin(mSzGlob.x,mSzGlob.y);
-          while (((aWidth/mZoomInit) < mLargMin) && (mZoomInit>16))
+          while (((aWidth/mZoomInit) < mLargMin) && (mZoomInit>2))
           {
               mZoomInit /=2;
           }

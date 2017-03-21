@@ -1123,6 +1123,13 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
 int main(int argc,char ** argv)
 {
+    // transforme --AA en AA , pour la completion sur les options
+    for (int aK=0 ; aK<argc ; aK++)
+    {
+        if ((argv[aK][0]=='-') &&  (argv[aK][1]=='-'))
+           argv[aK] += 2;
+    }
+
     return GenMain(argc,argv, getAvailableCommands());
 }
 
