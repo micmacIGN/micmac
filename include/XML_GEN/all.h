@@ -341,14 +341,14 @@ class cInterfChantierNameManipulateur
       // apparier
        std::pair<cCompileCAPI,cCompileCAPI>
             APrioriAppar
-        (
-              const std::string & aN1,
-          const std::string & aN2,
-          const std::string & aKEY1,
-          const std::string & aKEY2,
-          double              aSzMax  // Si >0 ajuste les echelle pour que
-                                         // la plus grande dimension soit aSzMax
-            );
+	    (const std::string & aN1,
+	      const std::string & aN2,
+	      const std::string & aKEY1,
+	      const std::string & aKEY2,
+	      double              aSzMax,  // Si >0 ajuste les echelle pour que
+	                                     // la plus grande dimension soit aSzMax
+	      bool forceTMP //forbid using original picture
+	     );
 
        cContenuAPrioriImage  APrioriWithDef(const std::string &,const std::string & aKey);
 
@@ -757,13 +757,12 @@ class cCompileCAPI : public cContenuAPrioriImage
         cCompileCAPI();
 
         cCompileCAPI
-    (
-            cInterfChantierNameManipulateur &,
-        const cContenuAPrioriImage &,
-        const std::string &aDir,
-        const std::string & aName,
-            const std::string & aName2
-        );
+		(cInterfChantierNameManipulateur &,
+		const cContenuAPrioriImage &,
+		const std::string &aDir,
+		const std::string & aName,
+		const std::string & aName2,
+		bool forceTMP);
 
     Pt2dr Rectif2Init(const Pt2dr &);
     const std::string & NameRectif() const;
@@ -1317,7 +1316,7 @@ cXML_LinePt3d MM2Matis(const Pt3dr &);
 // corientation MM2Matis(const cOrientationConique &);
 // cElXMLTree * ToXmlTreeWithAttr(const corientation &);
 
-void DoSimplePastisSsResol(const std::string & aFullName,int aResol);
+void DoSimplePastisSsResol(const std::string & aFullName, int aResol, bool forceTMP);
 
 
 void ModifDAF(cInterfChantierNameManipulateur*,cDicoAppuisFlottant &,const cTplValGesInit<cModifIncPtsFlottant> &);

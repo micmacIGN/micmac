@@ -147,6 +147,7 @@ void DoDevelopp(int aSz1,int aSz2)
         std::string aCom = MM3dBinFile_quotes("PastDevlop") + " " + protect_spaces(aNOri) + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
 
         if (TheGlobSFS!="") aCom = aCom+ " " + TheGlobSFS;
+        std::cout<<aCom<<std::endl;
 
         taskName = string( "T" ) + ToString( iImage ) + "_";
         aGPAO.GetOrCreate( taskName, aCom ); // always call PastDevlop (in case asked resolution changed)
@@ -154,7 +155,6 @@ void DoDevelopp(int aSz1,int aSz2)
     }
 
     aGPAO.GenerateMakeFile(MkFT);
-
     DoMkT();
 }
 
@@ -326,6 +326,10 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                     +  g_toolsOptions
                     /*+  ignoreMinMaxStr*/; // using only min or max in low resolution may not produce enough point
 
+
+            if (TheGlobSFS!="")
+                    aSsR += " isSFS=true";
+
             System(aSsR,true);
             DoMkT();
         }
@@ -340,8 +344,12 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                 +  std::string("ForceByDico=1 ")
                 +  g_toolsOptions
                 +  ignoreMinMaxStr + ' '
-                +  " ratio=" + ToString(ann_closeness_ratio) + ' '
-                +  NKS();
+                +  " ratio=" + ToString(ann_closeness_ratio);
+
+        if (TheGlobSFS!="")
+                aSFR += " isSFS=true";
+
+        aSFR += " " + NKS();
 
         System(aSFR,true);
         DoMkT();
@@ -396,10 +404,13 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 +  std::string("ForceByDico=1 ")
                 +  g_toolsOptions
                 +  ignoreMinMaxStr + ' '
-                +  " ratio=" + ToString(ann_closeness_ratio) + ' '
-                +  NKS();
+                +  " ratio=" + ToString(ann_closeness_ratio) ;
 
+        if (TheGlobSFS!="")
+                aSFR += " isSFS=true";
 
+        aSFR += " " + NKS();
+        std::cout<<aSFR<<std::endl<<std::endl;
         System(aSFR,true);
 
         DoMkT();
@@ -487,8 +498,11 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                 +  std::string("ForceByDico=1 ")
                 +  g_toolsOptions
                 +  ignoreMinMaxStr + ' '
-                +  " ratio=" + ToString(ann_closeness_ratio) + ' '
-                +  NKS();
+                +  " ratio=" + ToString(ann_closeness_ratio);
+        if (TheGlobSFS!="")
+                aSFR += " isSFS=true";
+
+        aSFR += " " + NKS();
 
         std::cout << aSFR << "\n";
         System(aSFR,true);
@@ -542,8 +556,11 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 +  std::string("ForceByDico=1 ")
                 +  g_toolsOptions
                 +  ignoreMinMaxStr + ' '
-                +  " ratio=" + ToString(ann_closeness_ratio) + ' '
-                +  NKS();
+                +  " ratio=" + ToString(ann_closeness_ratio);
+        if (TheGlobSFS!="")
+                aSFR += " isSFS=true";
+
+        aSFR += " " + NKS();
 
 
         std::cout << aSFR << "\n";
