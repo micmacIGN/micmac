@@ -41,7 +41,7 @@ Windows users may need Qt5 libraries to generate graphical interfaces such as *S
 
 ## Compiling process for Linux / MacOS X
 
-- extract source files from the tarball : `tar xvf micmac_source_revXXX.tar.gz`
+- clone the git repository : `git clone https://github.com/micmacIGN/micmac.git`
 - enter 'micmac' directory : `cd micmac`
 - create a directory for the build's intermediate files, then enter it : `mkdir build & cd build`
 - generate makefiles using cmake : `cmake ../`

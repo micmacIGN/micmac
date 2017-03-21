@@ -33,7 +33,7 @@ Sous Windows, les outils graphiques de saisie ne sont pas générés.
 
 ## Sous Linux / MacOS X
 
-- décompressez l'archive : `tar xvf micmac_source_revXXX.tar.gz`,
+- fait un clone depuis le git repo: `git clone https://github.com/micmacIGN/micmac.git`
 - entrez dans le répertoire 'micmac' : `cd micmac`,
 - créez un répertoire pour accueillir les fichiers intermédiaires générés par la compilation et placez vous a l’intérieur : `mkdir build & cd build`,
 - lancez la generation des makefiles : `cmake ../`
