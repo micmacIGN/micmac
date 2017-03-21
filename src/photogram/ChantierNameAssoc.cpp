@@ -3686,7 +3686,7 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
         Tiff_Im aFileInit = PastisTif(aNameInit);
         mSzIm = aFileInit.sz();
 
-        bool aWithBox = forceTMP;//JMM: force to use tmp image
+        bool aWithBox = false;
         std::string aStrBox ="";
 
         if (aCAPI.BoiteEnglob().IsInit())
@@ -3730,7 +3730,7 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
 
         Pt2di aSzInit = mBox._p1 - mBox._p0;
 
-        if ((mScale !=1.0) || (mTeta!=0.0) ||  aWithBox)
+        if ((mScale !=1.0) || (mTeta!=0.0) ||  aWithBox || forceTMP)
         {
             double  Arrondi = 10;
             int iScale = round_ni(mScale * Arrondi);

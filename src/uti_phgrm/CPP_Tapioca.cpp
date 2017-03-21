@@ -328,7 +328,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
 
 
             if (TheGlobSFS!="")
-                    aSFR += " isSFS=true";
+                    aSsR += " isSFS=true";
 
             System(aSsR,true);
             DoMkT();
