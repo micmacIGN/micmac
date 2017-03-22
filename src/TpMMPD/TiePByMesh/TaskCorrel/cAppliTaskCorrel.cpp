@@ -249,7 +249,12 @@ void cAppliTaskCorrel::DoAllTri()
             for (uint aKT2nd=0; aKT2nd<Cur_Img2nd().size(); aKT2nd++)
             {
                 if (Cur_Img2nd()[aKT2nd] != aImgMas->Num() )
-                    aTaskTri.NumImSec().push_back(Cur_Img2nd()[aKT2nd]);
+                {
+                    if (Cur_Img2nd()[aKT2nd] < aImgMas->Num())
+                        aTaskTri.NumImSec().push_back(Cur_Img2nd()[aKT2nd]);
+                    else
+                        aTaskTri.NumImSec().push_back(Cur_Img2nd()[aKT2nd]-1);
+                }
             }
             if (aTaskTri.NumImSec().size() != 0)
             {
@@ -284,7 +289,8 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
         //====this thing is eat RAM so much ======
         for (uint aKIi = 0; aKIi<mVImgs.size(); aKIi++)
         {
-            aImg->Task().NameSec().push_back(mVImgs[aKIi]->Name());
+            if (aImg->Num() != aKIi)
+                aImg->Task().NameSec().push_back(mVImgs[aKIi]->Name());
         }
         //=========================================
         string fileXML = mICNM->Dir() + aDirXML + "/" + mVImgs[aKI]->Name() + ".xml";

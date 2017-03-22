@@ -91,12 +91,12 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
          Image => donne le Type
          Point noyeau (0,0)     => avec Rho pour creer list voisin à examiner
          Rho = TT_SZ_AUTO_COR/2 => taille radius pour examiner autour
-         SzW = TT_SZ_AUTO_COR   => taille fenetre corellation
+         SzW = TT_SZ_AUTO_COR   => taille fenetre corellation (=3)
 
     (e) Pour 1 point d'interet à examiner :
-         Il y a 3 seuile : aRejetInt    = TT_SEUIL_CutAutoCorrel_INT
-                           aRejetReel   = TT_SEUIL_CutAutoCorrel_REEL
-                           aSeuilAccept = TT_SEUIL_AutoCorrel
+         Il y a 3 seuile : aRejetInt    = TT_SEUIL_CutAutoCorrel_INT (0.65 - seuille acceptation rapide par correlation entier pxl)
+                           aRejetReel   = TT_SEUIL_CutAutoCorrel_REEL (0.75 - seuille acceptation rapide par correlation reel pxl)
+                           aSeuilAccept = TT_SEUIL_AutoCorrel  ( 0.85 - Seuil d'elimination par auto-correlation)
          Executer ICorrelOneOffset avec tout les imagette voisin pour chercher la maximal de correlation aCorrMax
            ICorrelOneOffset est la fonction calcul valeur correlation entre 2 imagette (noyeau && voisin)
          Si aCorrMax > aSeuilAccept => valid
