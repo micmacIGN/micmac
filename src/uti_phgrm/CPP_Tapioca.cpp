@@ -147,6 +147,7 @@ void DoDevelopp(int aSz1,int aSz2)
         std::string aCom = MM3dBinFile_quotes("PastDevlop") + " " + protect_spaces(aNOri) + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
 
         if (TheGlobSFS!="") aCom = aCom+ " " + TheGlobSFS;
+        std::cout<<aCom<<std::endl;
 
         taskName = string( "T" ) + ToString( iImage ) + "_";
         aGPAO.GetOrCreate( taskName, aCom ); // always call PastDevlop (in case asked resolution changed)
@@ -154,7 +155,6 @@ void DoDevelopp(int aSz1,int aSz2)
     }
 
     aGPAO.GenerateMakeFile(MkFT);
-
     DoMkT();
 }
 

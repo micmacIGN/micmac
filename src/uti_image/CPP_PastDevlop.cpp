@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEF_OFSET -12349876
 
+extern std::string TheGlobSFS ;
 
 int PastDevlop_main(int argc,char ** argv)
 {
@@ -76,11 +77,12 @@ int PastDevlop_main(int argc,char ** argv)
         cTplValGesInit<std::string> aTName;
         cInterfChantierNameManipulateur::StdAlloc(argc,argv,DirOfFile(aFullName),aTName);
 
-        DoSimplePastisSsResol(aFullName,-1);
+        bool forceTMP=(TheGlobSFS!="");
+        DoSimplePastisSsResol(aFullName,-1,forceTMP);
         if (aSz1 >0)
-           DoSimplePastisSsResol(aFullName,aSz1);
+           DoSimplePastisSsResol(aFullName,aSz1,forceTMP);
         if (aSz2 >0)
-           DoSimplePastisSsResol(aFullName,aSz2);
+           DoSimplePastisSsResol(aFullName,aSz2,forceTMP);
     }
     return EXIT_SUCCESS;
 }

@@ -1316,7 +1316,7 @@ cXML_LinePt3d MM2Matis(const Pt3dr &);
 // corientation MM2Matis(const cOrientationConique &);
 // cElXMLTree * ToXmlTreeWithAttr(const corientation &);
 
-void DoSimplePastisSsResol(const std::string & aFullName,int aResol);
+void DoSimplePastisSsResol(const std::string & aFullName, int aResol, bool forceTMP);
 
 
 void ModifDAF(cInterfChantierNameManipulateur*,cDicoAppuisFlottant &,const cTplValGesInit<cModifIncPtsFlottant> &);
