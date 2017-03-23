@@ -51,7 +51,23 @@ void XXXXX(FILE * aF)
 }
 */
 
+class cParamMap2DRobustInit
+{
+      public :
+         cParamMap2DRobustInit(eTypeMap2D aType,int aNbTirRans);
 
+         eTypeMap2D mType;
+         int        mNbTirRans;
+         int        mNbMaxPtsRansac;
+         int        mNbTestFor1P;
+         double     mPropRan;
+         int        mNbIterL2;
+         cElMap2D*  mRes;
+};
+
+void  Map2DRobustInit(const ElPackHomologue & aPackFull,cParamMap2DRobustInit & aParam);
+
+//=====================================================================================
 
 
 ElAffin2D::ElAffin2D
@@ -291,6 +307,19 @@ int   ElAffin2D::NbUnknown() const
     return 6;
 }
 
+std::vector<double> ElAffin2D::Params() const
+{
+   std::vector<double> aRes;
+
+   aRes.push_back(mI10.x);
+   aRes.push_back(mI01.x);
+   aRes.push_back(mI00.x);
+   aRes.push_back(mI10.y);
+   aRes.push_back(mI01.y);
+   aRes.push_back(mI00.y);
+
+   return aRes;
+}
 
 void  ElAffin2D::InitFromParams(const std::vector<double> &aSol)
 {
@@ -392,6 +421,17 @@ void  ElSimilitude::AddEq
     anEqY[3] = 1;
 }
 
+std::vector<double> ElSimilitude::Params() const
+{
+   std::vector<double> aRes;
+
+   aRes.push_back(_sc.x);
+   aRes.push_back(_sc.y);
+   aRes.push_back(_tr.x);
+   aRes.push_back(_tr.y);
+
+   return aRes;
+}
 
 void  ElSimilitude::InitFromParams(const std::vector<double> &aSol)
 {
@@ -478,6 +518,25 @@ Pt2dr  cElHomographie::operator() (const Pt2dr & aP) const
 int   cElHomographie::NbUnknown() const
 {
     return 8;
+}
+
+std::vector<double> cElHomographie::Params() const
+{
+   std::vector<double> aRes;
+
+   aRes.push_back(mHX.CoeffX());
+   aRes.push_back(mHX.CoeffY());
+   aRes.push_back(mHX.Coeff1());
+
+   aRes.push_back(mHY.CoeffX());
+   aRes.push_back(mHY.CoeffY());
+   aRes.push_back(mHY.Coeff1());
+
+   aRes.push_back(mHZ.CoeffX());
+   aRes.push_back(mHZ.CoeffY());
+
+
+   return aRes;
 }
 
 void  cElHomographie::InitFromParams(const std::vector<double> &aSol)
@@ -592,6 +651,17 @@ void  ElHomot::AddEq
     anEqY[2] = 1;
 }
 
+std::vector<double> ElHomot::Params() const
+{
+   std::vector<double> aRes;
+
+   aRes.push_back(mSc);
+   aRes.push_back(mTr.x);
+   aRes.push_back(mTr.y);
+
+   return aRes;
+}
+
 void  ElHomot::InitFromParams(const std::vector<double> &aSol)
 {
    mSc = aSol[0];
@@ -635,6 +705,19 @@ cElMap2D * cElMap2D::IdentFromType(int aType)
 
     ELISE_ASSERT(false,"cElMap2D::IdentFromType");
     return 0;
+}
+
+std::vector<double> cElMap2D::Params() const
+{
+    ELISE_ASSERT(false,"cElMap2D::Params");
+    return std::vector<double>();
+}
+
+void cElMap2D::Affect(const cElMap2D & aMap)
+{
+    ELISE_ASSERT(Type()==aMap.Type(),"Different type in cElMap2D::Affect");
+    std::vector<double>  aVP = aMap.Params();
+    InitFromParams(aVP);
 }
 
 cElMap2D * cElMap2D::Map2DInverse() const
@@ -776,13 +859,12 @@ int  cComposElMap2D::Type()  const {return eTM2_Compos;}
 /*                                                   */
 /*****************************************************/
 
-cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack)
+void  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack)
 {
-    cElMap2D & aMapInit = *(cElMap2D::IdentFromType(aType));
+    // cElMap2D & aMapInit = *(cElMap2D::IdentFromType(aType));
 
 
-    cElMap2D * aRes = aMapInit.Identity();
-    int aNbUk = aMapInit.NbUnknown();
+    int aNbUk = aRes->NbUnknown();
     std::vector<double> aVCoefX(aNbUk);
     std::vector<double> aVCoefY(aNbUk);
     L2SysSurResol aSys(aNbUk);
@@ -791,75 +873,18 @@ cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack)
     {
         Pt2dr aQ;
         aRes->AddEq(aQ,aVCoefX,aVCoefY,itCpl->P1(),itCpl->P2());
-        aSys.AddEquation(1.0,VData(aVCoefX),aQ.x);
-        aSys.AddEquation(1.0,VData(aVCoefY),aQ.y);
+        aSys.AddEquation(itCpl->Pds(),VData(aVCoefX),aQ.x);
+        aSys.AddEquation(itCpl->Pds(),VData(aVCoefY),aQ.y);
     }
     Im1D_REAL8  aSol = aSys.Solve(0);
     aRes->InitFromParams(std::vector<double>(aSol.data(),aSol.data()+aNbUk));
+}
+
+cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack)
+{
+    cElMap2D * aRes = cElMap2D::IdentFromType(aType);
+    L2EstimMapHom(aRes,aPack);
     return aRes;
-}
-
-double TestMap2D(cElMap2D & aMapInit,const ElPackHomologue & aPackInit)
-{
-    cElMap2D * aMap = aMapInit.Identity();
-    ElPackHomologue  aPack = aPackInit;
-    for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
-    {
-         itCpl->P2() = (aMapInit)(itCpl->P1());
-    }
-
-    int aNbUk = aMapInit.NbUnknown();
-    std::vector<double> aVCoefX(aNbUk);
-    std::vector<double> aVCoefY(aNbUk);
-    L2SysSurResol aSys(aNbUk);
-
-    
-    for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
-    {
-        Pt2dr aQ;
-        aMap->AddEq(aQ,aVCoefX,aVCoefY,itCpl->P1(),itCpl->P2());
-        aSys.AddEquation(1.0,VData(aVCoefX),aQ.x);
-        aSys.AddEquation(1.0,VData(aVCoefY),aQ.y);
-    }
-    Im1D_REAL8  aSol = aSys.Solve(0);
-    aMap->InitFromParams(std::vector<double>(aSol.data(),aSol.data()+aNbUk));
-
-    double aSomD = 0;
-    for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
-    {
-         aSomD += euclid(aMapInit(itCpl->P1()) - (*aMap)(itCpl->P1()));
-    }
-
-    return aSomD;
-}
-
-Pt2dr PRanCInSquare(double aScale) {return Pt2dr(aScale*NRrandC(),aScale*NRrandC());}
-cElComposHomographie RanCH(double aScaleXY,double Cste){return cElComposHomographie(NRrandC()*aScaleXY,NRrandC()*aScaleXY,1+Cste*NRrandC());}
-
-void TestMap2D()
-{
-    ElPackHomologue aPackInit;
-    for (int aK=0 ; aK< 100 ; aK++)
-        aPackInit.Cple_Add(ElCplePtsHomologues(PRanCInSquare(1000),PRanCInSquare(1000),1.0));
-
-    for (int aK=0 ; aK< 10 ; aK++)
-    {
-         ElSimilitude aS(PRanCInSquare(100),PRanCInSquare(1));
-         ElAffin2D anAff(PRanCInSquare(100),PRanCInSquare(1),PRanCInSquare(1));
-         cElHomographie aHom(RanCH(1,1000),RanCH(1,1000),RanCH(1e-5,1e-5));
-
-         ElHomot  aHomot(PRanCInSquare(100), NRrandC());
-
-
-
-         std::cout << " SIM " << TestMap2D(aS   ,aPackInit) 
-                   << " AFF " << TestMap2D(anAff,aPackInit) 
-                   << " Hom " << TestMap2D(aHom,aPackInit) 
-                   << " Homot " << TestMap2D(aHomot,aPackInit) 
-                   << "\n";
-
-    }
-    exit(EXIT_SUCCESS);
 }
 
 
@@ -869,10 +894,11 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     std::string anOri;
     std::string aNameType;
     Pt2dr       aPerResidu(100,100);
+    std::vector<double> aVRE; // Robust Estim
 
-    int NbTest =50;
-    double  Perc = 80.0;
-    int     NbMaxPts= 10000;
+    // int NbTest =50;
+    // double  Perc = 80.0;
+    // int     NbMaxPts= 10000;
     eTypeMap2D aType;
     bool aModeHelp;
 
@@ -891,6 +917,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
         LArgMain()  <<  EAM(aSH,"SH",true,"Set of homologue")
                     <<  EAM(anOri,"Ori",true,"Directory to read distorsion")
                     <<  EAM(aPerResidu,"PerResidu",true,"Period for computing residual")
+                    <<  EAM(aVRE,"PRE",true,"Param for robust estimation [PropInlayer,NbRan(500),NbPtsRan(+inf)]")
     );
 
     StdReadEnum(aModeHelp,aType,std::string("TM2_")+aNameType,eTM2_NbVals);
@@ -945,15 +972,22 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     Im2D_REAL8 aImResY(aSzResidu.x,aSzResidu.y,0.0);
 
 
-    double anEcart,aQuality;
-    bool Ok;
-    cElHomographie aHomog = cElHomographie::RobustInit(anEcart,&aQuality,aPackIn,Ok,NbTest,Perc,NbMaxPts);
+    // double anEcart,aQuality;
+    // bool Ok;
 
     cElMap2D * aMapCor = 0;
   
-    if (0)
+    if (EAMIsInit(&aVRE))
     {
-       aMapCor = new cElHomographie(aHomog);
+       // <<  EAM(aVRE,"PRE",true,"Param for robust estimation [PercInlayer,NbRan(500),NbPtsRan(+inf)]")
+       double aProp  =  aVRE[0];
+       int aNbRan    = (aVRE.size()>1) ? aVRE[1] : 500;
+       int aNbPtsRan = (aVRE.size()>2) ? aVRE[2] : 2e9;
+       cParamMap2DRobustInit aParam(aType,aNbRan);
+       aParam.mPropRan = aProp;
+       aParam.mNbMaxPtsRansac = aNbPtsRan;
+       Map2DRobustInit(aPackIn,aParam);
+       aMapCor = aParam.mRes;
     }
     else
     {
@@ -991,10 +1025,13 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     }
     MakeFileXML(aComp.ToXmlGen(),aNameOut);
 
-    ELISE_fp::MkDirSvp(aDirResidu);
-    std::string aPref = "Res-" +  aNameType + "-" + aName1 + "-" + aName2 ;
-    Tiff_Im::CreateFromIm(aImResX,aDirResidu+aPref+"-X.tif");
-    Tiff_Im::CreateFromIm(aImResY,aDirResidu+aPref+"-Y.tif");
+    if (EAMIsInit(&aVRE))
+    {
+       ELISE_fp::MkDirSvp(aDirResidu);
+       std::string aPref = "Res-" +  aNameType + "-" + aName1 + "-" + aName2 ;
+       Tiff_Im::CreateFromIm(aImResX,aDirResidu+aPref+"-X.tif");
+       Tiff_Im::CreateFromIm(aImResY,aDirResidu+aPref+"-Y.tif");
+    }
     
 
     int aNbDist=10;
@@ -1253,6 +1290,232 @@ int CPP_CmpDenseMap(int argc,char** argv)
 
     return EXIT_SUCCESS;
 }
+
+
+
+cParamMap2DRobustInit::cParamMap2DRobustInit(eTypeMap2D aType,int aNbTirRans) :
+    mType           (aType),
+    mNbTirRans      (aNbTirRans),
+    mNbMaxPtsRansac (2e9),
+    mNbTestFor1P    (4),
+    mPropRan        (0.8),
+    mNbIterL2       (4)
+{
+}
+
+
+typedef  std::pair<Pt2dr,Pt2dr>  tPairP;
+void  Map2DRobustInit(const ElPackHomologue & aPackFull,cParamMap2DRobustInit & aParam)
+{
+   aParam.mRes = 0;
+   std::vector<tPairP> aVRansac;
+   int aNbPtsTot = aPackFull.size();
+
+   // Selection de mNbMaxPtsRansac points repartis regulierement
+   {
+       int aCpt = 0;
+       double aPropCons = ElMin(aParam.mNbMaxPtsRansac/double(aNbPtsTot),1.0);
+
+       for (ElPackHomologue::tCstIter itH=aPackFull.begin() ; itH!=aPackFull.end() ; itH++)
+       {
+            Pt2dr aP1 = itH->P1();
+            Pt2dr aP2 = itH->P2();
+            tPairP aPair(aP1,aP2);
+
+            if  ( round_ni((aCpt-1)*aPropCons) != round_ni(aCpt*aPropCons) )
+            {
+                aVRansac.push_back(aPair);
+            }
+       }
+   }
+   int aNbPRan = aVRansac.size();
+
+   // Calcul du Ransac
+   cElMap2D * aTestMap = cElMap2D::IdentFromType(aParam.mType);
+   cElMap2D * aBestSol = cElMap2D::IdentFromType(aParam.mType);
+   double aBestScRan = 1e60;
+   {
+      int aNbUk = aBestSol->NbUnknown();
+      int aNbPtsReq = (aNbUk+1)/2;
+      if (aNbPtsTot < aNbPtsReq)
+        return;
+
+      for (int aKTirage = 0 ; aKTirage<aParam.mNbTirRans ; aKTirage++)
+      {
+           // aPackEstim must contain point that are relatively far from each others
+           ElPackHomologue aPackEstim;
+           for (int aKP=0 ; aKP<aNbPtsReq ; aKP++)
+           {
+                int aNbTest = 0;
+                double aDMaxMin = -1;
+                int aKMM=-1; // KMaxMin
+                while (aNbTest <  aParam.mNbTestFor1P)
+                {
+                     int aKP = NRrandom3(aNbPRan);
+                     Pt2dr aP1 = aVRansac[aKP].first;
+                     double aDMin = 1e60;
+                     for (ElPackHomologue::const_iterator itP = aPackEstim.begin(); itP!=aPackEstim.end() ; itP++)
+                     {
+                         ElSetMin(aDMin,euclid(itP->P1(),aP1));
+                     }
+                     if (aDMin>0)
+                     {
+                         aNbTest++;
+                         aDMin = NRrandom3() * aDMin;
+                         if (aDMin>aDMaxMin)
+                         {
+                            aDMaxMin = aDMin;
+                            aKMM = aKP;
+                         }
+                     }
+                }
+                ELISE_ASSERT(aKMM>=0,"Incoh in Map2DRobustInit");
+                aPackEstim.Cple_Add(ElCplePtsHomologues(aVRansac[aKMM].first,aVRansac[aKMM].second));
+           }
+  
+           // Une fois connu le pack on estime la map, puis le score
+           L2EstimMapHom(aTestMap,aPackEstim);
+           std::vector<double> aVDist;
+           for (int aKP=0 ; aKP< aNbPRan ; aKP++)
+           {
+               const tPairP & aPair = aVRansac[aKP];
+               aVDist.push_back(euclid((*aTestMap)(aPair.first) - aPair.second));
+           }
+           double aScore = KthValProp(aVDist,aParam.mPropRan);
+           if (aScore< aBestScRan)
+           {
+              aBestScRan = aScore;
+              aBestSol->Affect(*aTestMap);
+           }
+      }
+   }
+   double aD2Std  = ElMax(1e-60,ElSquare(aBestScRan));
+   
+   for (int aKItL2=0 ; aKItL2<aParam.mNbIterL2; aKItL2++)
+   {
+       ElPackHomologue aPackEstim;
+       std::vector<double> aVD2;
+       for (ElPackHomologue::tCstIter itH=aPackFull.begin() ; itH!=aPackFull.end() ; itH++)
+       {
+            Pt2dr aP1 = itH->P1();
+            Pt2dr aP2 = itH->P2();
+            double aD2 = square_euclid((*aBestSol)(aP1)-aP2);
+            double aPds   = 1/ (1+ (4.0*aD2)/aD2Std);
+            aPackEstim.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
+            aVD2.push_back(aD2);
+       }
+       aD2Std  = KthValProp(aVD2,aParam.mPropRan);
+       L2EstimMapHom(aBestSol,aPackEstim);
+   }
+   delete aTestMap;
+   aParam.mRes = aBestSol;
+}
+
+
+/**********************************************************************/
+/*                                                                    */
+/*                     TESTS                                          */
+/*                                                                    */
+/**********************************************************************/
+
+Pt2dr PRanCInSquare(double aScale) {return Pt2dr(aScale*NRrandC(),aScale*NRrandC());}
+
+double TestMap2D(cElMap2D & aMapInit,const ElPackHomologue & aPackInit,bool WithRand)
+{
+    ElPackHomologue  aPack = aPackInit;
+    for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
+    {
+         itCpl->P2() = (aMapInit)(itCpl->P1());
+    }
+
+    // On test aussi la fonction d'affectation
+    cElMap2D * aMap = L2EstimMapHom(eTypeMap2D(aMapInit.Type()),aPack);
+    cElMap2D * aMap2 =  cElMap2D::IdentFromType(aMapInit.Type());
+
+    aMap2->Affect(*aMap);
+
+    double aSomD = 0;
+    for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
+    {
+         aSomD += euclid(aMapInit(itCpl->P1()) - (*aMap2)(itCpl->P1()));
+    }
+
+    // Randomization
+    if (WithRand)
+    {
+       int aCpt = 0;
+       for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
+       {
+           if ((aCpt%8)==0) // 12.5 % d'erreur
+               itCpl->P2() =  itCpl->P2() +  PRanCInSquare(100.0);
+            else 
+               itCpl->P2() =  itCpl->P2() +  PRanCInSquare(0.5);
+           aCpt ++;
+       }
+       cParamMap2DRobustInit aParam(eTypeMap2D(aMapInit.Type()),200);
+       Map2DRobustInit(aPack,aParam);
+       cElMap2D & aMRob = *(aParam.mRes);
+
+       std::vector<double> aVDistTh;
+       std::vector<double> aVDistEmp;
+       for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
+       {
+            aVDistTh.push_back(euclid(aMapInit(itCpl->P1()) - (aMRob)(itCpl->P1())));
+            aVDistEmp.push_back(euclid( aMRob(itCpl->P1()) - itCpl->P2()));
+       }
+       std::cout << "MED " << KthValProp(aVDistTh,0.5) << " " <<  KthValProp(aVDistEmp,0.5) << "\n";
+       std::cout << " 75 " << KthValProp(aVDistTh,0.75) << " " <<  KthValProp(aVDistEmp,0.75) << "\n";
+       std::cout << " 90 " << KthValProp(aVDistTh,0.9) << " " <<  KthValProp(aVDistEmp,0.9) << "\n\n";
+    }
+
+
+    return aSomD;
+}
+
+cElComposHomographie RanCH(double aScaleXY,double Cste){return cElComposHomographie(NRrandC()*aScaleXY,NRrandC()*aScaleXY,1+Cste*NRrandC());}
+
+void TestMap2D()
+{
+    ElPackHomologue aPackInit;
+    for (int aK=0 ; aK< 1000 ; aK++)
+        aPackInit.Cple_Add(ElCplePtsHomologues(PRanCInSquare(1000),PRanCInSquare(1000),1.0));
+
+    for (int aK=0 ; aK< 10 ; aK++)
+    {
+         ElSimilitude aS(PRanCInSquare(100),PRanCInSquare(1));
+         ElAffin2D anAff(PRanCInSquare(100),PRanCInSquare(1),PRanCInSquare(1));
+         cElHomographie aHom(RanCH(1,1000),RanCH(1,1000),RanCH(1e-5,1e-5));
+
+         ElHomot  aHomot(PRanCInSquare(100), NRrandC());
+
+
+         if (aK==5)
+            std::cout << "=============================================\n";
+         if (aK< 5)
+         {
+            std::cout << " # "
+                      << " SIM " << TestMap2D(aS   ,aPackInit,false) 
+                      << " AFF " << TestMap2D(anAff,aPackInit,false) 
+                      << " Hom " << TestMap2D(aHom,aPackInit,false) 
+                      << " Homot " << TestMap2D(aHomot,aPackInit,false) 
+                      << "\n";
+          }
+          else
+          {
+             TestMap2D(aS,aPackInit,true);
+             TestMap2D(anAff,aPackInit,true);
+             TestMap2D(aHom,aPackInit,true);
+             TestMap2D(aHomot,aPackInit,true);
+             std::cout << "  -  -  -  -  -  -  -  -  -\n";
+          }
+
+    }
+    exit(EXIT_SUCCESS);
+}
+
+
+
+
 
   
          // static cElMap2D * FromFile(const std::string &);

@@ -860,6 +860,8 @@ class cElHomographie  : public cElMap2D
           virtual int   NbUnknown() const;
           virtual void  AddEq(Pt2dr & aCste,std::vector<double> & EqX,std::vector<double> & EqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
           virtual void  InitFromParams(const std::vector<double> &aSol);
+          virtual std::vector<double> Params() const;
+
 
 
 

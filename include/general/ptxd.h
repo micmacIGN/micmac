@@ -488,6 +488,10 @@ class cElMap2D
          void  SaveInFile(const std::string &);
          static cElMap2D * FromFile(const std::string &);
          virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
+
+          // Not yet commented
+          void Affect(const cElMap2D &);
+          virtual std::vector<double> Params() const;  // "Inverse" de InitFromParams
 };
 
 class cComposElMap2D : public cElMap2D
@@ -533,6 +537,7 @@ class ElHomot : public cElMap2D
          virtual int   NbUnknown() const;
          virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
          virtual void  InitFromParams(const std::vector<double> &aSol);
+         virtual std::vector<double> Params() const;  
 
          const Pt2dr  & Tr() const {return mTr;}
          const double & Sc() const {return mSc;}
@@ -594,6 +599,7 @@ class ElSimilitude : public cElMap2D
          virtual int   NbUnknown() const;
          virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
          virtual void  InitFromParams(const std::vector<double> &aSol);
+         virtual std::vector<double> Params() const;  
 
          virtual int Type() const ;
          virtual  cElMap2D * Map2DInverse() const;
@@ -672,6 +678,7 @@ class ElAffin2D : public cElMap2D
        virtual int   NbUnknown() const;
        virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
        virtual void  InitFromParams(const std::vector<double> &aSol);
+       virtual std::vector<double> Params() const;  
 
        virtual  cElMap2D * Map2DInverse() const;
        virtual int Type() const ;
