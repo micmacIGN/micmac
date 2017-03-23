@@ -3611,16 +3611,18 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
     // return  Tiff_Im(aName.c_str());
 }
 
-    void DoSimplePastisSsResol(const std::string & aFullName,int aResol)
+    void DoSimplePastisSsResol(const std::string & aFullName,int aResol,bool forceTMP)
     {
         std::string aDir,aName;
         SplitDirAndFile(aDir,aName,aFullName);
 
         Tiff_Im aTF = PastisTif(aFullName); // Tiff_Im::StdConvGen(aFullName,1,false);
 
+        Pt2di aSz = aTF.sz();
+
+        if (forceTMP&&(aResol<=0)) aResol=aSz.x;
         if (aResol <=0) return;
 
-        Pt2di aSz = aTF.sz();
         double aScale = double(aResol) / double(ElMax(aSz.x,aSz.y));
         double  Arrondi = 10;
         int iScale = round_ni((1/aScale) * Arrondi);
@@ -3637,7 +3639,7 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
 
         if (! ELISE_fp::exist_file(aNameFinal))
         {
-           ELISE_fp::MkDirRec( outDirectory+"Pastis"+ELISE_CAR_DIR );
+            ELISE_fp::MkDirRec( outDirectory+"Pastis"+ELISE_CAR_DIR );
             Pt2di aSzF = round_down(Pt2dr(aSz)*aScale);
             Tiff_Im aNewF
                 (
@@ -3666,19 +3668,19 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
 
 
     cCompileCAPI::cCompileCAPI
-        (
-        cInterfChantierNameManipulateur & aIMCN,
+        (cInterfChantierNameManipulateur & aIMCN,
         const cContenuAPrioriImage & aCAPI,
         const std::string &aDir,
         const std::string & aName,
-        const std::string & aName2
+        const std::string & aName2,
+        bool forceTMP
         ) :
     mScale     (aCAPI.Scale().Val()),
         mTeta      (aCAPI.Teta().Val()),
         mBox       (Pt2dr(0,0),Pt2dr(0,0)),
         mRTr_I2R   (Pt2dr(0,0),Pt2dr(1,0)),
         mRTr_R2I   (Pt2dr(0,0),Pt2dr(1,0))
-    {
+    {        
         std::string aNameInit = aDir+aName;
         if ( isUsingSeparateDirectories() && !ELISE_fp::exist_file(aNameInit) ) aNameInit = MMInputDirectory()+aName;
         mFullNameFinal = aNameInit;
@@ -3730,7 +3732,7 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
 
         Pt2di aSzInit = mBox._p1 - mBox._p0;
 
-        if ((mScale !=1.0) || (mTeta!=0.0) ||  aWithBox)
+        if ((mScale !=1.0) || (mTeta!=0.0) ||  aWithBox || forceTMP)
         {
             double  Arrondi = 10;
             int iScale = round_ni(mScale * Arrondi);
@@ -3739,7 +3741,7 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
             int  iTeta = round_ni(mTeta);
             mTeta = iTeta;
             string pastisDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():aDir )+"Pastis"+ELISE_CAR_DIR;
-      ELISE_fp::MkDir(pastisDirectory);
+            ELISE_fp::MkDir(pastisDirectory);
             mFullNameFinal = pastisDirectory
                 + aStrBox
                 + std::string("Resol") + ToString(iScale)
@@ -3949,7 +3951,8 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
         const std::string & aN2,
         const std::string & aKEY1,
         const std::string & aKEY2,
-        double aSzMax
+        double aSzMax,
+        bool forceTMP
         )
     {
         cContenuAPrioriImage aC1 = APrioriWithDef(aN1,aKEY1);
@@ -3993,8 +3996,8 @@ Tiff_Im PastisTif(const std::string &  aNameOri)
         std::pair<cCompileCAPI,cCompileCAPI> aRes;
 
         string outDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():mDir );
-        aRes.first  = cCompileCAPI(*this,aC1,outDirectory,aN1,aN2);
-        aRes.second = cCompileCAPI(*this,aC2,outDirectory,aN2,aN1);
+        aRes.first  = cCompileCAPI(*this,aC1,outDirectory,aN1,aN2,forceTMP);
+        aRes.second = cCompileCAPI(*this,aC2,outDirectory,aN2,aN1,forceTMP);
 
         return  aRes;
     }
@@ -4355,35 +4358,35 @@ TestStdMasq("Masq",aDir,aPat,aMasq);
 TestStdMasq("_Masq",aDir,aPat,aMasq);
 */
 
-/*Footer-MicMac-eLiSe-25/06/2007
+/* Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant a la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+Ce logiciel est regi par la licence CeCILL-B soumise au droit francais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+de la licence CeCILL-B telle que diffusee par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
+En contrepartie de l'accessibilite au code source et des droits de copie,
+de modification et de redistribution accordes par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitee.  Pour les memes raisons,
+seule une responsabilite restreinte pese sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concedants successifs.
 
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+A cet egard  l'attention de l'utilisateur est attiree sur les risques
+associes au chargement,  a l'utilisation,  a la modification et/ou au
+developpement et a la reproduction du logiciel par l'utilisateur etant
+donne sa specificite de logiciel libre, qui peut le rendre complexe a
+manipuler et qui le reserve donc a des developpeurs et des professionnels
+avertis possedant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invites a charger  et  tester  l'adequation  du
+logiciel a leurs besoins dans des conditions permettant d'assurer la
+securite de leurs systemes et ou de leurs donnees et, plus generalement,
+a l'utiliser et l'exploiter dans les memes conditions de securite.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+Le fait que vous puissiez acceder a cet en-tete signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepte les
 termes.
-Footer-MicMac-eLiSe-25/06/2007*/
+Footer-MicMac-eLiSe-25/06/2007/*/

@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 #include "../../TpMMPD/TiePByMesh/Fast.h"
+#include "MultTieP.h"
 // Header du header
 class cHomolPackTiepTri;
 class cParamAppliTieTri;

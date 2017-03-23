@@ -134,12 +134,32 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     }
     std::cout << "NB TRI LOADED = " << mNbTriLoaded << "\n";
 
+    //=======================//
+    vector<string> * aVIm = new vector<string>();
+    cout<<"  ++ ImMaster :"<<Master()->NameIm()<<endl;
+    for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
+    {
+        cImSecTieTri* aImSec = mImSec[aKIm];
+        cout<<"  ++ Im2nd : "<<aImSec->Num()<<" - "<<aImSec->NameIm()<<endl;
+        aVIm->push_back(aImSec->NameIm());
+    }
+    aVIm->push_back(Master()->NameIm());
+
+
+    cSetTiePMul * aHomol = new cSetTiePMul(0, aVIm);
+    //=======================//
+
     for (int aKT= 0; aKT< int(mVGlobMIRMC.size()) ; aKT++)
     {
         cOneTriMultiImRechCorrel & aTMIRC = mVGlobMIRMC[aKT];
         const std::vector<cResulMultiImRechCorrel<double>*>& aVMC = aTMIRC.VMultiC() ;
         for (int aKP=0 ; aKP<int(aVMC.size()) ; aKP++)
         {
+            //=====================//
+            vector<int>  aNumIms;
+            vector<Pt2dr>  aPtsIms;
+            //======================//
+
              cResulMultiImRechCorrel<double> & aRMIRC =  *(aVMC[aKP]);
              Pt2dr aPMaster (aRMIRC.PMaster().mPt);
              const std::vector<int> &   aVInd = aRMIRC.VIndex();
@@ -154,6 +174,11 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
                  {
                     cImSecTieTri * anIm = mImSec[aVInd[aKI]];
                     anIm->PackH().Cple_Add(ElCplePtsHomologues(aPMaster,aRRC.mPt)) ;
+                    //=================//
+                    aNumIms.push_back(aKI);
+                    aPtsIms.push_back(aRRC.mPt);
+                    //==================//
+
                  }
                  else
                  {
@@ -163,14 +188,26 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
                       // getchar();
                  }
              }
+             //===============//
+             //add 1 config
+             if (aNumIms.size() > 0 && aPtsIms.size() > 0)
+             {
+                aNumIms.push_back(aNbIm);
+                aPtsIms.push_back(aPMaster);
+                vector<float> vAttr;
+                aHomol->AddPts(aNumIms,aPtsIms,vAttr);
+             }
+             //===============//
         }
     }
 
     cout<<"Write pts homo to disk:..."<<endl;
+    aHomol->Save("aTestHomol.txt");
+
     for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
     {
         cImSecTieTri* aImSec = mImSec[aKIm];
-        cout<<"  ++ Im2nd : "<<aImSec->Num();
+        cout<<"  ++ Im2nd : "<<aImSec->NameIm();
         cout<<" - Nb Pts= "<<aImSec->PackH().size()<<endl;
         std::string pic1 = Master()->NameIm();
         std::string pic2 = aImSec->NameIm();
@@ -179,6 +216,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
         std::string aHomolOut = "_TiepTri";
         aPack.writeToDisk(aHomolOut);
     }
+
 }
 
 void cAppliTieTri::RechHomPtsDense(cResulMultiImRechCorrel<double> & aRMIRC)
@@ -349,6 +387,7 @@ void   cAppliTieTri::FiltrageSpatialRMIRC(const double & aDist)
                Video_Win * aW = mMasIm->W();
                aW->draw_circle_loc(Pt2dr(aR1->PMaster().mPt),aDist,aW->pdisc()(P8COL::yellow));
             }
+
          }
      }
      mVCurMIRMC = aNewV;
