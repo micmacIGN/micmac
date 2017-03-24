@@ -294,13 +294,13 @@ std::string NameImage(tArcAWSI & anArc,bool Im1,bool ByEpi)
 
 cImaMM::cImaMM(const std::string & aName,cAppliWithSetImage & anAppli) :
    mCamGen     (anAppli.CamGenOfName(aName)),
-   mCamS       (mCamGen->DownCastCS()),
+   mCamS       (mCamGen ? mCamGen->DownCastCS() : 0 ),
    mNameIm     (aName),
    mBande      (""),
    mNumInBande (-1),
-   mC3         (mCamGen->OrigineProf()),
+   mC3         (mCamGen ? mCamGen->OrigineProf() : Pt3dr(0,0,0)),
    mC2         (mC3.x,mC3.y),
-   mAppli      (anAppli),
+   mAppli         (anAppli),
    mPtrTiffStd    (0),
    mPtrTiff8BGr   (0),
    mPtrTiff8BCoul (0),
@@ -747,7 +747,7 @@ CamStenope * cAppliWithSetImage::CamOfName(const std::string & aNameIm)
 
 cBasicGeomCap3D * cAppliWithSetImage::CamGenOfName(const std::string & aName)
 {
-    return mEASF.mICNM->StdCamGenerikOfNames(mOri,aName);
+    return mWithOri ? mEASF.mICNM->StdCamGenerikOfNames(mOri,aName) : 0;
 }
 
 void  cAppliWithSetImage::MakeStripStruct(const std::string & aPairByStrip,bool StripIsFirst)
@@ -1064,13 +1064,6 @@ tSomAWSI * cAppliWithSetImage::ImOfName(const std::string & aName)
 cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
     cAppliWithSetImage (argc-1,argv+1,0)
 {
-/*
-  if (MPD_MM())
-  {
-      std::cout << "cAppliClipChantier \n";
-      getchar();
-  }
-*/
   std::string aPrefClip = "Cliped";
   std::string aOriOut;
   double      aMinSz = 500;

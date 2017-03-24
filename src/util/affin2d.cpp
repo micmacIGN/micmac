@@ -1025,7 +1025,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     }
     MakeFileXML(aComp.ToXmlGen(),aNameOut);
 
-    if (EAMIsInit(&aVRE))
+    if (EAMIsInit(&aPerResidu))
     {
        ELISE_fp::MkDirSvp(aDirResidu);
        std::string aPref = "Res-" +  aNameType + "-" + aName1 + "-" + aName2 ;
