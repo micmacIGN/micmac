@@ -84,7 +84,11 @@
 
                <Symb>  EcartMaxInit=100.0 </Symb>
                <Symb>  SigmaPondInit=5.0 </Symb>
-               <Symb>  EcartMaxFin=5.0    </Symb>
+
+               <Symb>  MulEcartFin=1.0 </Symb>
+
+
+               <eSymb>  EcartMaxFin= * 5.0 ${MulEcartFin}   </eSymb>
                <Symb>  DoSauvAutom=true    </Symb>
     
                <Symb>  HasModeleAdd=false  </Symb>

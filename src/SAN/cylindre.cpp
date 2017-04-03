@@ -83,6 +83,31 @@ cInterfSurfaceAnalytique * SFromFile
        aTag = aSpecTag;
 
 
+    cXmlModeleSurfaceComplexe * aPtrMC = OptionalGetObjFromFile_WithLC<cXmlModeleSurfaceComplexe>
+                                         (
+                                             0,0,
+                                             aFile,
+                                             StdGetFileXMLSpec("SuperposImage.xml"),
+                                             aTag,
+                                             aSpecTag
+                                         );
+    if (aPtrMC==0)
+    {
+           // static cInterfSurfaceAnalytique * FromCCC(const cChCoCart & );
+       // cChCoCart(const Pt3dr &aOri,const Pt3dr&,const Pt3dr&,const Pt3dr&);
+  // bitm.h:        static cChCoCart Xml2El(const cRepereCartesien &);
+
+        cRepereCartesien * aXml_RC = OptStdGetFromPCP(aFile,RepereCartesien);
+        if (aXml_RC)
+        {
+           cChCoCart aCCC = cChCoCart::Xml2El(*aXml_RC);
+           return cInterfSurfaceAnalytique::FromCCC(aCCC);
+        }
+        std::cout << "For file =" << aFile << "\n";
+        ELISE_ASSERT(false,"cannot get repair from file");
+    }
+
+    /*
     cXmlModeleSurfaceComplexe aMC = 
              StdGetObjFromFile<cXmlModeleSurfaceComplexe>
              (
@@ -91,8 +116,9 @@ cInterfSurfaceAnalytique * SFromFile
                   aTag,
                   aSpecTag
              );
+    */
    
-     const cXmlOneSurfaceAnalytique & aSAN = SFromId(aMC,anId);
+     const cXmlOneSurfaceAnalytique & aSAN = SFromId(*aPtrMC,anId);
 
      if (aMemXML) 
         *aMemXML = aSAN;

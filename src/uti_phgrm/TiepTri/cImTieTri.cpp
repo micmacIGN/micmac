@@ -66,10 +66,12 @@ cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum
    mCutACD   (mTImInit,Pt2di(0,0),TT_SZ_AUTO_COR /2.0 ,TT_SZ_AUTO_COR)
 {
 
+/*
    std::cout << "OK " << mNameIm << "\n";
    if (mCamS)
        std::cout << " F=" << mCamS->Focale()  << "\n";
    std::cout << " Num="<<mNum<<"\n";
+*/
 }
 
 bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)

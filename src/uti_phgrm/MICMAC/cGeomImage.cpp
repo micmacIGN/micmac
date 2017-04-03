@@ -1824,6 +1824,13 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
           }
       }
 
+      if (!aNbOk)
+      {
+          for (int aK=0 ; aK<5  ; aK++)
+              std::cout << "      For image = " << mPDV.Name() << "\n";
+          ELISE_ASSERT(false,"Not any point with good incidence"); 
+      }
+
       if (aW)
       {
           // std::string aNameIm = mPDV.NameMasqOfResol(mAnDeZoomM);

@@ -367,6 +367,7 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    int aKMax = -1;
    double aSEr=0;
    double aSPds = 0;
+   int    aNbMes = 0;
    for (int aK=0 ; aK<int(mCams.size()) ; aK++)
    {
         // mPdsIm[aK]>0 Modif MPD , erreur sur erreur Max et Moy
@@ -413,6 +414,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
             }
 	    aSEr +=  anEr*aPds;
 	    aSPds += aPds;
+            if (aPds > 0.5) 
+               aNbMes++;
 
 	    if (anEr>anErMax)
 	    {
@@ -441,16 +444,16 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    }
 
    if (anObs.ShowSom().Val())
-      std::cout <<  "      ErrMoy " << aSEr/aSPds << " pixels " << " SP=" << aSPds << " \n";
+      std::cout <<  "      ErrMoy " << aSEr/aSPds << " pixels " << " Nb measures=" << aNbMes << " \n";
    if (aSPds>0)
    {
        aXmlAp.EcartImMoy().SetVal(aSEr/aSPds);
    }
-   if (anObs.ShowMax().Val())
+   if (anObs.ShowMax().Val() && (aNbMes >=2) )
    {
       std::cout <<  "     ErrMax = " << anErMax 
-                << " For I="<< mCams[aKMax]->Name() 
-                << ",  C=" << mName    << " pixels \n";
+                << " pixels, For Im="<< mCams[aKMax]->Name() 
+                << ",  Point=" << mName    << " \n";
    }
    
    if (aShowDet) std::cout << "  - - - - - - - - - - - \n";
