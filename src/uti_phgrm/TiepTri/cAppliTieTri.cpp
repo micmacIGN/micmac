@@ -146,7 +146,9 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     aVIm->push_back(Master()->NameIm());
 
 
-    cSetTiePMul * aHomol = new cSetTiePMul(0, aVIm);
+    cSetTiePMul * aHomol = new cSetTiePMul(0, aVIm); // Im2nd, ImMaster
+    vector< vector<int> > VNumIms;
+    vector< vector<Pt2dr> > VPtsIms;
     //=======================//
 
     for (int aKT= 0; aKT< int(mVGlobMIRMC.size()) ; aKT++)
@@ -192,17 +194,27 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
              //add 1 config
              if (aNumIms.size() > 0 && aPtsIms.size() > 0)
              {
-                aNumIms.push_back(aNbIm);
+                aNumIms.push_back(mImSec.size());
                 aPtsIms.push_back(aPMaster);
                 vector<float> vAttr;
-                aHomol->AddPts(aNumIms,aPtsIms,vAttr);
+                ELISE_ASSERT (aNumIms.size() == aPtsIms.size(), "Nb Imgs & Nb Pts not coherent, new Format Homol");
+                VNumIms.push_back(aNumIms);
+                VPtsIms.push_back(aPtsIms);
+                //aHomol->AddPts(aNumIms,aPtsIms,vAttr);
              }
              //===============//
         }
     }
 
     cout<<"Write pts homo to disk:..."<<endl;
-    aHomol->Save("aTestHomol.txt");
+    for (uint aKHomol=0; aKHomol<VNumIms.size(); aKHomol++)
+    {
+        vector<float> vAttr;
+        aHomol->AddPts(VNumIms[aKHomol], VPtsIms[aKHomol],vAttr);
+    }
+    std::string aHomolOut = "_TiepTri";
+    string aPmulHomolName = "Homol" + aHomolOut + "/PMul_" + this->Master()->NameIm() + ".txt";
+    aHomol->Save(aPmulHomolName);
 
     for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
     {
@@ -213,7 +225,6 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
         std::string pic2 = aImSec->NameIm();
         cHomolPackTiepTri aPack(pic1, pic2, aKIm, mICNM, true); //true = skipPackVide
         aPack.Pack() = aImSec->PackH();
-        std::string aHomolOut = "_TiepTri";
         aPack.writeToDisk(aHomolOut);
     }
 
@@ -385,7 +396,8 @@ void   cAppliTieTri::FiltrageSpatialRMIRC(const double & aDist)
             if (mMasIm->W())
             {
                Video_Win * aW = mMasIm->W();
-               aW->draw_circle_loc(Pt2dr(aR1->PMaster().mPt),aDist,aW->pdisc()(P8COL::yellow));
+               //aW->draw_circle_loc(Pt2dr(aR1->PMaster().mPt),1,aW->pdisc()(P8COL::green)); //point selected after filtrage spatial
+               //aW->draw_circle_loc(Pt2dr(aR1->PMaster().mPt),aDist,aW->pdisc()(P8COL::yellow)); //filter spatial circle
             }
 
          }
