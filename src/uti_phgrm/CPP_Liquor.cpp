@@ -203,7 +203,7 @@ void  cAppliLiquor::DoComRec(int aLevel)
    {
         cIntervLiquor & anIL = **II;
         std::string aComComp =     MM3dBinFile("Campari")
-                                +  mFullName  + " "
+                                +  QUOTE(mFullName)  + " "
                                 +  anIL.NameMerge() + " "
                                 +  anIL.NameOri()  + " "
                                 +  StrImMinMax(anIL)
@@ -285,7 +285,7 @@ std::string cAppliLiquor::ComTerm(const  cIntervLiquor& anIL) const
 
    std::string aCom = MM3dBinFile("Tapas")
                       + " Figee "
-                      + mFullName
+                      + QUOTE(mFullName)
                       + std::string(" InCal=" + mCalib)
                       // + std::string(" ImMinMax=[" +aN1+ "," + aN2 + "] ")
                       + StrImMinMax(anIL)

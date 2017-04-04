@@ -69,6 +69,70 @@ void  Map2DRobustInit(const ElPackHomologue & aPackFull,cParamMap2DRobustInit & 
 
 //=====================================================================================
 
+class cMapPol2d : public  cElMap2D
+{
+   public :
+      cMapPol2d(int aDeg,Box2dr & aBox0,int aRabDegInv=2);
+      Pt2dr operator () (const Pt2dr & aP) const;
+      // int Type() const ;
+      ~cMapPol2d();
+      int   NbUnknown() const;
+/*
+         virtual cElMap2D * Map2DInverse() const;
+         virtual cElMap2D * Simplify() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+         virtual cElMap2D * Duplicate() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+         virtual cElMap2D * Identity() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+
+         virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
+         virtual void  InitFromParams(const std::vector<double> &aSol);
+*/
+
+   private :
+
+       int            mDeg;
+       int            mRabDegInv;
+       Box2dr         mBox;
+       double         mAmpl;
+       Polynome2dReal mPolX;
+       Polynome2dReal mPolY;
+};
+
+
+
+cMapPol2d::~cMapPol2d()
+{
+}
+
+cMapPol2d::cMapPol2d(int aDeg,Box2dr & aBox,int aRabDegInv) :
+  mDeg       (aDeg),
+  mRabDegInv (aRabDegInv),
+  mBox       (aBox),
+  mAmpl      (ElMax(euclid(aBox._p0),euclid(aBox._p1))),
+  mPolX      (mDeg,mAmpl),
+  mPolY      (mDeg,mAmpl)
+{
+}
+
+Pt2dr cMapPol2d::operator () (const Pt2dr & aP) const
+{
+    return Pt2dr(mPolX(aP),mPolY(aP));
+}
+
+int   cMapPol2d::NbUnknown() const
+{
+   return 2 * mPolX.NbMonome();
+}
+
+
+/*
+void  cMapPol2d::AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const
+{
+     aCste = 
+}
+*/
+
+//=====================================================================================
+
 
 ElAffin2D::ElAffin2D
 (
