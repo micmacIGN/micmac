@@ -2178,7 +2178,8 @@ Pt2di    ElCamera::SzBasicCapt3D() const
 
 bool  ElCamera::CaptHasData(const Pt2dr & aP) const
 {
-   return  IsInZoneUtile(DComplC2M(aP));
+   return  IsInZoneUtile(DComplC2M(aP,false));
+   // return  IsInZoneUtile(DComplC2M(aP));
    // return  IsInZoneUtile(aP);
 }
 
@@ -2289,7 +2290,7 @@ bool ElCamera::IsInZoneUtile(const Pt2dr & aQ,bool Pixel) const
 {
    
    // Pt2dr aP = mZoneUtilInPixel ? DComplM2C(aQ) : aQ;
-    Pt2dr aP = aQ;
+   Pt2dr aP = aQ;
    Pt2di aSz = Pixel ?  Pt2di(SzPixel()) : Sz() ;
    if ((aP.x<=0)  || (aP.y<=0) || (aP.x>=aSz.x) || (aP.y>=aSz.y))
       return false;
@@ -2760,7 +2761,7 @@ const std::vector<bool> & ElCamera::DistComplIsDir() const
 }
 
 
-Pt2dr ElCamera::DComplC2M(Pt2dr aP) const
+Pt2dr ElCamera::DComplC2M(Pt2dr aP,bool UseTrScN) const
 {
 
    aP = mGlobOrImaC2M(aP);
@@ -2773,12 +2774,16 @@ Pt2dr ElCamera::DComplC2M(Pt2dr aP) const
          mDistCompl[aK]->Inverse(aP) :
          mDistCompl[aK]->Direct(aP)  ;
    }
-   Pt2dr aRes
-          (
+
+   if (UseTrScN)
+   {
+      aP = Pt2dr
+           (
                (aP.x-mTrN.x)/mScN,
                (aP.y-mTrN.y)/mScN
-          );
-   return aRes;
+           );
+   }
+   return aP;
 }
 Pt2dr ElCamera::NormC2M(Pt2dr aP) const
 {

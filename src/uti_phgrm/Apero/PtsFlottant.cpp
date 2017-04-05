@@ -256,11 +256,14 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    }
 
 
+
    // A verifier, mais probable que la methode de subsistution degenere
    // si il n'y a que deux  points (Lambda non inversible)
    //En fait, sans doute pas degeneree car attache au point !
    if   (aNbContrainte<3) // (|| ((aNbOK==0) && ((mInc.x <=0)  || (mInc.y <=0) || (mInc.z <=0))))
    {
+
+
       if (ShowUnUsed)
       {
           std::cout << "NOT OK 0 FOR " << mName << " NbOK " << aNbOK  << " NbContr " << aNbContrainte << "\n";

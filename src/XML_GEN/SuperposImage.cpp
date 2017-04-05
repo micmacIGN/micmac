@@ -340,6 +340,8 @@ eTypeMap2D  Str2eTypeMap2D(const std::string & aName)
       return eTM2_Cam;
    else if (aName=="eTM2_Compos")
       return eTM2_Compos;
+   else if (aName=="eTM2_Polyn")
+      return eTM2_Polyn;
    else if (aName=="eTM2_NbVals")
       return eTM2_NbVals;
   else
@@ -367,6 +369,8 @@ std::string  eToString(const eTypeMap2D & anObj)
       return  "eTM2_Cam";
    if (anObj==eTM2_Compos)
       return  "eTM2_Compos";
+   if (anObj==eTM2_Polyn)
+      return  "eTM2_Polyn";
    if (anObj==eTM2_NbVals)
       return  "eTM2_NbVals";
  std::cout << "Enum = eTypeMap2D\n";
@@ -391,7 +395,7 @@ void  BinaryUnDumpFromFile(eTypeMap2D & anObj,ELISE_fp & aFp)
    anObj=(eTypeMap2D) aIVal;
 }
 
-std::string  Mangling( eTypeMap2D *) {return "A3C825B865930483FF3F";};
+std::string  Mangling( eTypeMap2D *) {return "D088DF9ABF066683FE3F";};
 
 
 int & cIntervLutConvertion::NivIn()

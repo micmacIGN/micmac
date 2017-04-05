@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1887]) = {
+const char * (theNameVar_SuperposImage[1888]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -80,6 +80,7 @@ const char * (theNameVar_SuperposImage[1887]) = {
 "        <eTM2_Homogr>    </eTM2_Homogr>\n",
 "        <eTM2_Cam>       </eTM2_Cam>\n",
 "        <eTM2_Compos>    </eTM2_Compos>\n",
+"        <eTM2_Polyn>    </eTM2_Polyn>\n",
 "        <eTM2_NbVals>    </eTM2_NbVals>\n",
 "    </enum>\n",
 "\n",

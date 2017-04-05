@@ -77,13 +77,13 @@ class cMapPol2d : public  cElMap2D
       // int Type() const ;
       ~cMapPol2d();
       int   NbUnknown() const;
+      void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
 /*
          virtual cElMap2D * Map2DInverse() const;
          virtual cElMap2D * Simplify() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
          virtual cElMap2D * Duplicate() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
          virtual cElMap2D * Identity() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
 
-         virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
          virtual void  InitFromParams(const std::vector<double> &aSol);
 */
 
@@ -124,11 +124,16 @@ int   cMapPol2d::NbUnknown() const
 }
 
 
-/*
 void  cMapPol2d::AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const
 {
-     aCste = 
+     aCste = aP2;
+     for (int aKm=0 ; aKm<mPolX.NbMonome() ; aKm++)
+     {
+          anEqX[aKm] = mPolX.KthMonome(aKm)(aP1);
+          anEqY[aKm] = mPolY.KthMonome(aKm)(aP1);
+     }
 }
+/*
 */
 
 //=====================================================================================

@@ -1187,14 +1187,6 @@ cManipPt3TerInc::cManipPt3TerInc
    mMulGlobPds (1.0)
 
 {
-/*
-if (MPD MM())
-{
-   std::cout << "cManipPt3TerInc::cManipPt3TerInc\n";
-   getchar();
-}
-*/
-
 
    SubstReinit(aClose);
 /*
@@ -1877,7 +1869,6 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
             }
             if (UPL_DCC())  std::cout  << "==================== Pds " << aVPdsIm[aK] << "\n";
         }
-
         if (    (aNbNN==0)
              || ((aNbNN==1) && (!mEqSurf) && (! aPtApuis))
            )

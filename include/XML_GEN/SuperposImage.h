@@ -126,6 +126,7 @@ typedef enum
   eTM2_Homogr,
   eTM2_Cam,
   eTM2_Compos,
+  eTM2_Polyn,
   eTM2_NbVals
 } eTypeMap2D;
 void xml_init(eTypeMap2D & aVal,cElXMLTree * aTree);
