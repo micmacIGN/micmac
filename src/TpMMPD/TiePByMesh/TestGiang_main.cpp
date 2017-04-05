@@ -500,6 +500,9 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     vector<Pt3dr> aVAllPtInter;
     vector<int> aVNbImgOvlap;
 
+    vector<int> aStats(aSHIn->NbIm());
+    vector<int> aStatsValid;
+
     double resMax = 0.0;
     double resMin = DBL_MAX;
     for (uint aKCnf=1; aKCnf<aVCnf.size(); aKCnf++)
@@ -507,6 +510,7 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
         cSetPMul1ConfigTPM * aCnf = aVCnf[aKCnf];
         //cout<<"Cnf : "<<aKCnf<<" - Nb Imgs : "<<aCnf->NbIm()<<" - Nb Pts : "<<aCnf->NbPts()<<endl;
         std::vector<int> aVIdIm =  aCnf->VIdIm();
+
         for (uint aKPtCnf=0; aKPtCnf<aCnf->NbPts(); aKPtCnf++)
         {
             vector<Pt2dr> aVPtInter;
@@ -568,9 +572,25 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
             aCPlyRes.AddPt(gen_coul(aVResidu[aKPt], resMin,  resMax), aVAllPtInter[aKPt]);
         }
         aCPlyEmp.AddPt(gen_coul_emp(aVNbImgOvlap[aKPt]), aVAllPtInter[aKPt]);
+        aStats[aVNbImgOvlap[aKPt]]++;
+        //voir si dans aStatsValid exist aVNbImgOvlap[aKPt]
+        if (!(std::find(aStatsValid.begin(), aStatsValid.end(), aVNbImgOvlap[aKPt]) != aStatsValid.end()))
+        {
+            aStatsValid.push_back(aVNbImgOvlap[aKPt]);
+        }
     }
     aCPlyRes.PutFile(aPlyRes);
     aCPlyEmp.PutFile(aPlyEmp);
+
+    ofstream statsFile;
+    string aName = aSH + "_Stats.txt";
+    statsFile.open(aName.c_str());
+    statsFile << "NbMul  NbPts"<<endl;
+    sort(aStatsValid.begin(), aStatsValid.end());
+    for (uint ikLine=0; ikLine<aStatsValid.size(); ikLine++)
+        statsFile << ToString(aStatsValid[ikLine]) <<" "<<aStats[aStatsValid[ikLine]]<<endl;
+    statsFile.close();
+
     cout<<"Nb Emplacement image : 1 rouge - 2 orange - 3 jaune - 4 vert jaune - 5 cyan - > 5 vert"<<endl;
     return EXIT_SUCCESS;
 }
