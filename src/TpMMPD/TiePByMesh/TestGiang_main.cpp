@@ -588,7 +588,7 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
 
     //===== stats Multiplicite ========
     ofstream statsFile;
-    string aName = aSH + "_Stats.txt";
+    string aName = "Stats_" + aSH + ".txt";
     statsFile.open(aName.c_str());
     statsFile << "Stats Multiplicite"<<endl;
     statsFile << "Nb Pts Total : "<<aVAllPtInter.size()<<endl;

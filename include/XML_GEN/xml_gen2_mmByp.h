@@ -388,6 +388,14 @@ class cVirtInterf_NewO_NameManager
                                                             const std::string  & anOri,  // Dir where is stored calibration
                                                             bool  Quick  = true  // Mean that accelarated computation where done
                                                 );
+           // === surcharge method avant pour adapter avec suffix homologue =======
+           static cVirtInterf_NewO_NameManager * StdAlloc(
+                                                            const std::string  & aPrefHom,
+                                                            const std::string  & aDir,   // Global Dir
+                                                            const std::string  & anOri,  // Dir where is stored calibration
+                                                            bool  Quick  = true  // Mean that accelarated computation where done
+                                                );
+
 };
 
 
