@@ -8429,6 +8429,74 @@ std::string  Mangling( cXml_Homot *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_FulPollXY
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_FulPollXY & anObj,cElXMLTree * aTree);
+
+
+        int & Degre();
+        const int & Degre()const ;
+
+        double & Ampl();
+        const double & Ampl()const ;
+
+        std::vector< double > & Coeffs();
+        const std::vector< double > & Coeffs()const ;
+    private:
+        int mDegre;
+        double mAmpl;
+        std::vector< double > mCoeffs;
+};
+cElXMLTree * ToXMLTree(const cXml_FulPollXY &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_FulPollXY &);
+
+void  BinaryUnDumpFromFile(cXml_FulPollXY &,ELISE_fp &);
+
+std::string  Mangling( cXml_FulPollXY *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_Map2dPol
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Map2dPol & anObj,cElXMLTree * aTree);
+
+
+        Box2dr & Box();
+        const Box2dr & Box()const ;
+
+        cTplValGesInit< int > & DegAddInv();
+        const cTplValGesInit< int > & DegAddInv()const ;
+
+        cXml_FulPollXY & MapX();
+        const cXml_FulPollXY & MapX()const ;
+
+        cXml_FulPollXY & MapY();
+        const cXml_FulPollXY & MapY()const ;
+    private:
+        Box2dr mBox;
+        cTplValGesInit< int > mDegAddInv;
+        cXml_FulPollXY mMapX;
+        cXml_FulPollXY mMapY;
+};
+cElXMLTree * ToXMLTree(const cXml_Map2dPol &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Map2dPol &);
+
+void  BinaryUnDumpFromFile(cXml_Map2dPol &,ELISE_fp &);
+
+std::string  Mangling( cXml_Map2dPol *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_Map2DElem
 {
     public:
@@ -8451,12 +8519,16 @@ class cXml_Map2DElem
 
         cTplValGesInit< cXml_MapCam > & Cam();
         const cTplValGesInit< cXml_MapCam > & Cam()const ;
+
+        cTplValGesInit< cXml_Map2dPol > & Pol();
+        const cTplValGesInit< cXml_Map2dPol > & Pol()const ;
     private:
         cTplValGesInit< cXmlHomogr > mHomog;
         cTplValGesInit< cXml_Homot > mHomot;
         cTplValGesInit< cSimilitudePlane > mSim;
         cTplValGesInit< cAffinitePlane > mAff;
         cTplValGesInit< cXml_MapCam > mCam;
+        cTplValGesInit< cXml_Map2dPol > mPol;
 };
 cElXMLTree * ToXMLTree(const cXml_Map2DElem &);
 

@@ -1860,12 +1860,26 @@
     <Tr Nb="1" Type="Pt2dr"> </Tr>
 </Xml_Homot>
 
+<Xml_FulPollXY Nb="1" Class="true" ToReference="true">
+     <Degre  Nb="1" Type="int"> </Degre>
+     <Ampl   Nb="1" Type="double"> </Ampl>
+     <Coeffs Nb="*" Type="double" Container="std::vector"> </Coeffs>
+</Xml_FulPollXY>
+
+<Xml_Map2dPol  Nb="1" Class="true" ToReference="true">
+      <Box  Nb="1" Type="Box2dr">           </Box>
+      <DegAddInv Nb="?" Type="int"> </DegAddInv>
+      <MapX Nb="1" RefType="Xml_FulPollXY"> </MapX>
+      <MapY Nb="1" RefType="Xml_FulPollXY"> </MapY>
+</Xml_Map2dPol>
+
 <Xml_Map2DElem Nb="1" Class="true" ToReference="true" UnionType="true">
       <Homog RefType="XmlHomogr"  Nb="?"> </Homog>
       <Homot RefType="Xml_Homot"  Nb="?"> </Homot>
       <Sim RefType="SimilitudePlane"  Nb="?"> </Sim>
       <Aff RefType="AffinitePlane"  Nb="?"> </Aff>
       <Cam  RefType="Xml_MapCam"  Nb="?"> </Cam>
+      <Pol  RefType="Xml_Map2dPol"  Nb="?"> </Pol>
 </Xml_Map2DElem>
 
 <Xml_Map2D Nb="1" Class="true" ToReference="true" >

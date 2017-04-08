@@ -66,6 +66,7 @@ class cParamMap2DRobustInit
 };
 
 void  Map2DRobustInit(const ElPackHomologue & aPackFull,cParamMap2DRobustInit & aParam);
+void  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack);
 
 //=====================================================================================
 
@@ -74,18 +75,16 @@ class cMapPol2d : public  cElMap2D
    public :
       cMapPol2d(int aDeg,Box2dr & aBox0,int aRabDegInv=2);
       Pt2dr operator () (const Pt2dr & aP) const;
-      // int Type() const ;
+      int Type() const ;
       ~cMapPol2d();
       int   NbUnknown() const;
       void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
-/*
-         virtual cElMap2D * Map2DInverse() const;
-         virtual cElMap2D * Simplify() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
-         virtual cElMap2D * Duplicate() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
-         virtual cElMap2D * Identity() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+      void  InitFromParams(const std::vector<double> &aSol);
+      cElMap2D * Duplicate() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+      cElMap2D * Identity() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
+      cElMap2D * Map2DInverse() const;
 
-         virtual void  InitFromParams(const std::vector<double> &aSol);
-*/
+      cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
 
    private :
 
@@ -95,6 +94,7 @@ class cMapPol2d : public  cElMap2D
        double         mAmpl;
        Polynome2dReal mPolX;
        Polynome2dReal mPolY;
+       int            mNbMon;
 };
 
 
@@ -109,8 +109,11 @@ cMapPol2d::cMapPol2d(int aDeg,Box2dr & aBox,int aRabDegInv) :
   mBox       (aBox),
   mAmpl      (ElMax(euclid(aBox._p0),euclid(aBox._p1))),
   mPolX      (mDeg,mAmpl),
-  mPolY      (mDeg,mAmpl)
+  mPolY      (mDeg,mAmpl),
+  mNbMon     (mPolX.NbMonome())
 {
+   mPolX.SetDegre1(0,1,0);
+   mPolY.SetDegre1(0,0,1);
 }
 
 Pt2dr cMapPol2d::operator () (const Pt2dr & aP) const
@@ -120,21 +123,107 @@ Pt2dr cMapPol2d::operator () (const Pt2dr & aP) const
 
 int   cMapPol2d::NbUnknown() const
 {
-   return 2 * mPolX.NbMonome();
+   return 2 * mNbMon;
 }
 
 
 void  cMapPol2d::AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const
 {
      aCste = aP2;
-     for (int aKm=0 ; aKm<mPolX.NbMonome() ; aKm++)
+     for (int aKm=0 ; aKm<mNbMon ; aKm++)
      {
           anEqX[aKm] = mPolX.KthMonome(aKm)(aP1);
-          anEqY[aKm] = mPolY.KthMonome(aKm)(aP1);
+          anEqX[aKm+mNbMon] = 0.0;
+          anEqY[aKm] = 0.0;
+          anEqY[aKm+mNbMon] = mPolY.KthMonome(aKm)(aP1);
      }
+}
+
+void  cMapPol2d::InitFromParams(const std::vector<double> &aSol)
+{
+    std::vector<double> aVX;
+    std::vector<double> aVY;
+    for (int aKm=0 ; aKm<mNbMon ; aKm++)
+    {
+       aVX.push_back(aSol[aKm]);
+       aVY.push_back(aSol[aKm+mNbMon]);
+    }
+    mPolX = Polynome2dReal::FromVect(aVX,mAmpl);
+    mPolY = Polynome2dReal::FromVect(aVY,mAmpl);
+}
+
+cElMap2D * cMapPol2d::Duplicate() 
+{
+    cMapPol2d * aRes = new cMapPol2d(mDeg,mBox,mRabDegInv);
+    // cMapPol2d * aRes = Identity();
+    aRes->mPolX = mPolX;
+    aRes->mPolY = mPolY;
+    return aRes;
+}
+
+int cMapPol2d::Type() const 
+{
+    return eTM2_Polyn;
+}
+
+cElMap2D * cMapPol2d::Identity() 
+{
+   return new cMapPol2d(mDeg,mBox,mRabDegInv);
 }
 /*
 */
+cElMap2D *  cMapPol2d::Map2DInverse() const
+{
+    Box2d<double> aBoxF = mBox.BoxImage(*this);
+    cMapPol2d * aRes = new cMapPol2d(mDeg+mRabDegInv,aBoxF,0);
+
+    ElPackHomologue aPack;
+    int aNbPts = 3*(mDeg+mRabDegInv);
+    for (int aKX=0 ; aKX<=aNbPts ; aKX++)
+    {
+       for (int aKY=0 ; aKY<=aNbPts ; aKY++)
+       {
+             Pt2dr aP2 = mBox.FromCoordLoc(Pt2dr(aKX/double(aNbPts),aKY/double(aNbPts)));
+             Pt2dr aP1 = (*this)(aP2);
+             aPack.Cple_Add(ElCplePtsHomologues(aP1,aP2,1.0));
+       }
+    }
+
+    L2EstimMapHom(aRes,aPack);
+    // void  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack);
+    ELISE_ASSERT(false,"cMapPol2d::Map2DInverse");
+    return aRes;
+}
+
+// cXml_FulPollXY  Xml2EL(const Polynome2dReal & aPol);
+cXml_FulPollXY  El2Xml(const Polynome2dReal & aPol)
+{
+  cXml_FulPollXY aRes;
+  aRes.Degre() = aPol.DMax();  
+  aRes.Ampl() = aPol.Ampl() ;  
+  aRes.Coeffs() = aPol.ToVect();  
+
+  return aRes;
+}
+
+cXml_Map2D    cMapPol2d::ToXmlGen()
+{
+   cXml_Map2dPol aXMapPol;
+
+   aXMapPol.Box() = mBox;
+
+   if (mRabDegInv!=0)
+   {
+        aXMapPol.DegAddInv().SetVal(mRabDegInv);
+   }
+
+   aXMapPol.MapX()  = El2Xml(mPolX);
+   aXMapPol.MapY()  = El2Xml(mPolY);
+
+   cXml_Map2DElem aMapE;
+   aMapE.Pol().SetVal(aXMapPol);
+   return cXml_Map2D(MapFromElem(aMapE));
+}
 
 //=====================================================================================
 
