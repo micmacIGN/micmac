@@ -449,6 +449,7 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     string aPlyRes="Cloud_Residu.ply";
     string aPlyEmp="Cloud_Emp.ply";
     double seuilBH = 0.0;
+    Pt3dr aHistoRes(0,0,0);
     ElInitArgMain
     (
           argc,argv,
@@ -461,6 +462,7 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
                       << EAM(aRange,"aRange",true,"range to colorize reprojection error ,green->red Def= colorize as relative (min->resMax)")
                       << EAM(aPlyRes,"PlyRes",true,"Ply's name output for residus - def=Cloud_Residu.ply")
                       << EAM(aPlyEmp,"PlyEmp",true,"Ply's name output for emplacement image - def=Cloud_Emp.ply")
+                      << EAM(aHistoRes,"HistoRes",true,"Histogram of residue - [Min, Max, Nb Bin]")
 
     );
 
@@ -572,25 +574,67 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
             aCPlyRes.AddPt(gen_coul(aVResidu[aKPt], resMin,  resMax), aVAllPtInter[aKPt]);
         }
         aCPlyEmp.AddPt(gen_coul_emp(aVNbImgOvlap[aKPt]), aVAllPtInter[aKPt]);
+        //===== stats Multiplicite ========
         aStats[aVNbImgOvlap[aKPt]]++;
         //voir si dans aStatsValid exist aVNbImgOvlap[aKPt]
         if (!(std::find(aStatsValid.begin(), aStatsValid.end(), aVNbImgOvlap[aKPt]) != aStatsValid.end()))
         {
             aStatsValid.push_back(aVNbImgOvlap[aKPt]);
         }
+        //==================================
     }
     aCPlyRes.PutFile(aPlyRes);
     aCPlyEmp.PutFile(aPlyEmp);
 
+    //===== stats Multiplicite ========
     ofstream statsFile;
-    string aName = aSH + "_Stats.txt";
+    string aName = "Stats_" + aSH + ".txt";
     statsFile.open(aName.c_str());
-    statsFile << "NbMul  NbPts"<<endl;
+    statsFile << "Stats Multiplicite"<<endl;
+    statsFile << "Nb Pts Total : "<<aVAllPtInter.size()<<endl;
+    statsFile << "NbMul  NbPts  %"<<endl;
     sort(aStatsValid.begin(), aStatsValid.end());
     for (uint ikLine=0; ikLine<aStatsValid.size(); ikLine++)
-        statsFile << ToString(aStatsValid[ikLine]) <<" "<<aStats[aStatsValid[ikLine]]<<endl;
-    statsFile.close();
+        statsFile << aStatsValid[ikLine] <<" "<<aStats[aStatsValid[ikLine]]<<" "<< (double(aStats[aStatsValid[ikLine]])/double(aVAllPtInter.size()))*100.0 <<endl;
 
+    //==================================
+
+    //===== Histo Residue ==============
+    if (EAMIsInit(&aHistoRes))
+    {
+        double pas = (aHistoRes.y-aHistoRes.x)/aHistoRes.z;
+        sort(aVResidu.begin(), aVResidu.end());
+        int ind=0;
+        statsFile<<endl<<endl<<"Histo Residue image : "<<endl<< "RangeMin RangeMax NbPts %"<<endl;
+        for (double iPas=aHistoRes.x; iPas<aHistoRes.y; iPas=iPas+pas)
+        {
+            cout<<"Range : "<<iPas<<" - "<<iPas+pas<<" : ";
+            statsFile<<iPas<<" "<<iPas+pas<<" ";
+            double minRange=iPas; double maxRange=iPas+pas;
+            int cntBin = 0;
+            //For each range, extract vector element in range
+            for (uint i=ind; i<aVResidu.size(); i++)
+            {
+                //parcour vector from index
+                if (aVResidu[i] >= minRange)
+                {
+                    if (aVResidu[i] < maxRange)
+                    {
+                        cntBin++;
+                    }
+                    else
+                    {
+                        ind = i;
+                        break;
+                    }
+                }
+            }
+            cout<<cntBin<<" "<<(double(cntBin)/aVAllPtInter.size())*100<<endl;
+            statsFile<<cntBin<<" "<<(double(cntBin)/aVAllPtInter.size())*100<<endl;
+        }
+    }
+    //==================================
+    statsFile.close();
     cout<<"Nb Emplacement image : 1 rouge - 2 orange - 3 jaune - 4 vert jaune - 5 cyan - > 5 vert"<<endl;
     return EXIT_SUCCESS;
 }

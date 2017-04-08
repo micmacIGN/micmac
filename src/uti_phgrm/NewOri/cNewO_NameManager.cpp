@@ -83,11 +83,22 @@ cNewO_NameManager::cNewO_NameManager
 }
 
 
-cVirtInterf_NewO_NameManager * cVirtInterf_NewO_NameManager::StdAlloc(const std::string & aDir,const std::string  & anOri,bool  Quick)
+cVirtInterf_NewO_NameManager * cVirtInterf_NewO_NameManager::StdAlloc(const std::string & aDir, const std::string  & anOri, bool  Quick)
 {
 
    return new cNewO_NameManager("","",Quick,aDir,anOri,"dat");
 }
+
+//=============== Surcharge method
+//           "cVirtInterf_NewO_NameManager * cVirtInterf_NewO_NameManager::StdAlloc"
+//                 pour adapter avec Suffix homol
+
+cVirtInterf_NewO_NameManager * cVirtInterf_NewO_NameManager::StdAlloc(const std::string  & aPrefHom, const std::string & aDir,const std::string  & anOri,bool  Quick)
+{
+
+   return new cNewO_NameManager("",aPrefHom,Quick,aDir,anOri,"dat");
+}
+//=====================================================================================================
 
 const std::string & cNewO_NameManager::Dir() const
 {

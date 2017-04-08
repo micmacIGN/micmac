@@ -216,17 +216,19 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
 
    mEASF.Init(mPatImage);
    mFilesIm = mEASF.SetIm();
-
+ELISE_fp::RmFileIfExist("NewOriTmpQuick");
+ELISE_fp::RmFileIfExist("NewOriTmp" + mSH + "Quick");
    if (mDoNewOri)
    {
-        std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false ";
+        std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false " + " PrefHom=" + mSH;
+        cout<<aCom<<endl;
         System(aCom);
 
         std::cout << "DONE NO_AllOri2Im \n";
         // mm3d TestLib NO_AllOri2Im IMGP70.*JPG  GenOri=false 
    }
 
-   mVNM = cVirtInterf_NewO_NameManager::StdAlloc(mEASF.mDir,"",true);
+   mVNM = cVirtInterf_NewO_NameManager::StdAlloc(mSH,mEASF.mDir,"",true);
    // Conserve les numeros initiaux des images
    const std::list<tMergeRat *> &  aLMR = CreatePMul  (mVNM,mFilesIm);
    std::cout << "DONE PMUL " << aLMR.size() << " \n";
