@@ -560,7 +560,9 @@ extern int VisuCoupeEpip_main(int,char **);
 int ExoSimulTieP_main(int argc,char** argv);
 int ExoMCI_main(int argc,char** argv);
 int ExoCorrelEpip_main(int argc,char ** argv);
-
+int OptTiePSilo_main(int argc,char ** argv);
+int cleanHomolByBsurH_main(int argc,char ** argv);
+int GenHuginCpFromHomol_main(int argc,char ** argv);
 int PseudoIntersect_main(int argc,char** argv);
 int ScaleModel_main(int argc,char ** argv);
 int PLY2XYZ_main(int argc,char ** argv);
@@ -779,7 +781,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("CleanTxtPS", CleanTxtPS_main,"Tool to clean .txt file output of PhotoScan Aero",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CheckPatCple", CheckPatCple_main,"Tool to check a Pattern and an .xml File Cple",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ConvPSHomol2MM", ConvPSHomol2MM_main, "Tool to convert Tie Points from PhotoScan to MicMac format",cArgLogCom(2)));
-	   aRes.push_back(cMMCom("SplitPatByCam", SplitPatByCam_main, "Tool to split a Pattern based on type of camera",cArgLogCom(2)));    
+	   aRes.push_back(cMMCom("SplitPatByCam", SplitPatByCam_main, "Tool to split a Pattern based on type of camera",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("OptTiePSilo",OptTiePSilo_main,"Optimize Tie Points Extraction For Silo"));
+	   aRes.push_back(cMMCom("GenHuginCp",GenHuginCpFromHomol_main,"Genrate Hugin Control Points from Homol",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("CleanHomByBH",cleanHomolByBsurH_main,"Clean Homolgues points between images based on BsurHvalues",cArgLogCom(2)));
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
 

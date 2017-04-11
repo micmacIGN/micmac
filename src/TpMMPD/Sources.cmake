@@ -29,7 +29,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ScaleModel.cpp
 	${TDPPMD_DIR}/ImageSimpleProjection.cpp
 	${TDPPMD_DIR}/PLY2XYZ.cpp
-        ${TDPPMD_DIR}/GetSpace_main.cpp
+    ${TDPPMD_DIR}/GetSpace_main.cpp
     ${TDPPMD_DIR}/ExportXml2Txt.cpp
     ${TDPPMD_DIR}/Panache.cpp
     ${TDPPMD_DIR}/TestStephane.cpp
@@ -45,6 +45,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/CompareOrthos.cpp
     ${TDPPMD_DIR}/ConvP4dIm2MM.cpp
     ${TDPPMD_DIR}/SplitConcateXml.cpp
+    ${TDPPMD_DIR}/Hugin.cpp
     ${TDPPMD_DIR}/TiePByMesh/PHO_MI.cpp
     ${TDPPMD_DIR}/TiePByMesh/InitOutil.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiePByMesh_main.cpp
