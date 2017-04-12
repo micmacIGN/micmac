@@ -215,6 +215,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv);
 int CPP_ReechImMap(int argc,char** argv);
 int CPP_DenseMapToHom(int argc,char** argv);
 int CPP_CmpDenseMap(int argc,char** argv);
+int ScalePat_main(int argc,char** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -365,6 +366,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for image scaling"));
+       aRes.push_back(cMMCom("ScalePat",ScalePat_main," Tool for pattern scaling"));
        aRes.push_back(cMMCom("StatIm",StatIm_main," Tool for basic stat on an image"));
        aRes.push_back(cMMCom("ConvertIm",ConvertIm_main," Tool for convertion inside tiff-format"));
        aRes.push_back(cMMCom("PanelIm",MakePlancheImage_main,"Tool for creating a panel of images "));

@@ -193,7 +193,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 					 << EAM(aRes,"ResTieP",false,"Resolution for Tie Points Extraction")
 					 << EAM(aProj,"Proj",false,"Projection type (default: 0)")
 					 << EAM(aFov,"FOV",false,"Horizontal field of view of images (default: 50)")
-					 << EAM(aFilter,"FilterTP",false,"Use Schnaps to reduce tie points; Def=true")
+					 << EAM(aFilter,"FilterTP",true,"Use Schnaps to reduce tie points; Def=true")
     );
     
     // !!!!!!!! sort directories by name !!!!!!!
@@ -257,7 +257,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 
     for(unsigned int aV=0; aV<aLFiles.size(); aV++)
     {
-		std::cout << "Copie images of groupe : " << aV << std::endl;
+		std::cout << "Copy images of groupe : " << aV << std::endl;
 		int aCompt = 1;
 		for(std::list<cElFilename>::iterator iT2 = aLFiles.at(aV).begin() ; iT2 != aLFiles.at(aV).end() ; iT2++)
 		{
@@ -275,12 +275,14 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		std::cout << "aNWDir = " << aNWDir << std::endl;
 	}
     
-    //pipeline to generate a pano for each 	level N & level N+1	
-	for(unsigned int aP=0; aP<aDirectories.size()-1; aP++)
+    //pipeline to generate a pano for each 	level N 
+	for(unsigned int aP=0; aP<aDirectories.size(); aP++)
 	{
-		std::string aPatL1 = GenPatFromLF(aLFiles.at(aP),false);
-		std::string aPatL2 = GenPatFromLF(aLFiles.at(aP+1),false);
-		
+		std::cout << "debugggggg" << std::endl;
+		std::string aPatL = GenPatFromLF(aLFiles.at(aP),false);
+		std::cout << "debugggggg" << std::endl;
+		//std::string aPatL2 = GenPatFromLF(aLFiles.at(aP+1),false);
+		std::cout << "debugggggg" << std::endl;
 		std::string aXmlOutFile = "NameCple_" + NumberToString(aP) + "_" + NumberToString(aP+1) + ".xml";
 		std::cout << "aXmlOutFile = " << aXmlOutFile << std::endl;
 		
@@ -290,9 +292,9 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 							+ std::string(" ")
 							+ "GenPairsFile"
 							+ std::string(" ")
-							+ std::string("\"") + aPatL1 + std::string("|") + aPatL2 + std::string("\"")
+							+ std::string("\"") + aPatL + std::string("\"")
 							+ std::string(" ")
-							+ std::string("\"") + aPatL1 + std::string("|") + aPatL2 + std::string("\"")
+							+ std::string("\"") + aPatL + std::string("\"")
 							+ std::string(" ")
 							+ "Out="
 							+ aXmlOutFile;
@@ -316,24 +318,27 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		{
 			std::string aComF = MMDir()
 								+ std::string("bin/mm3d")
+								+ std::string(" ")
 								+ "Schnaps"
 								+ std::string(" ")
-								+ std::string("\"") + aPatL1 + std::string("|") + aPatL2 + std::string("\"")
+								+ std::string("\"") + aPatL + std::string("\"")
+								+ std::string(" ")
 								+ "NbWin=100";
 			std::cout << "aComF = " << aComF << std::endl;
+			system_call(aComF.c_str());
 		}
 		
 		//generate a Hugin project for level N & level n+1
-		std::string aPatL1H = GenPatFromLF(aLFiles.at(aP),true);
-		std::string aPatL2H = GenPatFromLF(aLFiles.at(aP+1),true);
+		std::string aPatLH = GenPatFromLF(aLFiles.at(aP),true);
+		//std::string aPatL2H = GenPatFromLF(aLFiles.at(aP+1),true);
 		
 		std::string aHNameProject = "Hugin_" + NumberToString(aP) + "_" + NumberToString(aP+1) + ".pto";
 		std::string aCom3 = "pto_gen -o" 
 		                     + std::string(" ") 
 		                     + aHNameProject 
 		                     + std::string(" ")
-							 + aPatL1H
-							 + std::string(" ") + aPatL2H
+							 + aPatLH
+							 //+ std::string(" ") + aPatL2H
 							 + std::string(" ")
 							 + "-p " + NumberToString(aProj)
 							 + std::string(" ")
@@ -356,8 +361,8 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 							+ std::string(" ")
 							+ "TestLib GenHuginCp"
 							+ std::string(" ")
-							+ std::string("\"") + aPatL1
-							+ std::string("|") + aPatL2
+							+ std::string("\"") + aPatL
+							//+ std::string("|") + aPatL2
 							+ std::string("\"") + std::string(" ")
 							+ aHNameProject
 							+ std::string(" ")
@@ -369,7 +374,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		std::string aCom6 = "autooptimiser -a -l -s -m -v"
 		                     + std::string(" ") + NumberToString(aFov)
 		                     + std::string(" ")
-		                     + "-o " + aHNameProject
+		                     + "-o " + StdPrefixGen(aHNameProject) + "_Homol.pto"
 		                     + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
 		std::cout << "aCom6 = " << aCom6 << std::endl;
 		system_call(aCom6.c_str());
@@ -377,19 +382,19 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		//pano configuration
 		std::string aCom7 = "pano_modify -p " + NumberToString(aProj)
 		                    + std::string(" ") + "-o "
-		                    + aHNameProject
+		                    + StdPrefixGen(aHNameProject) + "_Homol.pto"
 		                    + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
 		std::cout << "aCom7 = " << aCom7 << std::endl;
 		system_call(aCom7.c_str());
 		                    
 		//generate individual images to be stiched
-		std::string aCom8 = "nona -z LZW -r ldr -m TIFF_m -o ImgsIndiv_" + NumberToString(aP) + "_" + NumberToString(aP+1) + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
+		std::string aCom8 = "nona -z LZW -r ldr -m TIFF_m -o ImgsIndiv_" + NumberToString(aP) + "_" + NumberToString(aP+1) + "_" + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
 		std::cout << "aCom8 = " << aCom8 << std::endl;
 		system_call(aCom8.c_str());
 		
 		//assembly for level N & level N+1
 		std::string aOutMosaic = "Mosaic_" + NumberToString(aP) + "_" + NumberToString(aP+1) + ".jpg";
-		std::string aCom9 = "enblend --compression=90 -- ImgsIndiv*.*tif -o " +  aOutMosaic;
+		std::string aCom9 = "enblend --compression=90 ImgsIndiv_" + NumberToString(aP) + "_" + NumberToString(aP+1) + "*.*tif -o " +  aOutMosaic;
 		std::cout << "aCom9 = " << aCom9 << std::endl;
 		system_call(aCom9.c_str());
 	}
@@ -432,7 +437,7 @@ class cGHCFH_Appli
 {
 	public :
 		cGHCFH_Appli(int argc,char ** argv);
-		void WriteCpInHFile(std::string aFile, cInterfChantierNameManipulateur * mICNM, std::string aHomol);
+		void WriteCpInHFile(std::string aFile, cInterfChantierNameManipulateur * mICNM, std::string mHomol);
 		int GetIndiceFromImg(std::string aImg, std::vector<std::string> aVImgs);
 		void AddLines(std::vector<std::string> aVImgs, std::vector<Pt2dr> aVPts, std::vector<std::string> aVAllImgs, std::vector<std::string> & aVHL);
 		void ShowVs(std::vector<std::string> aVS);
@@ -495,7 +500,7 @@ void cGHCFH_Appli::AddLines(std::vector<std::string> aVImgs, std::vector<Pt2dr> 
 	}
 }
 
-void cGHCFH_Appli::WriteCpInHFile(std::string aFile, cInterfChantierNameManipulateur * mICNM, std::string aHomol)
+void cGHCFH_Appli::WriteCpInHFile(std::string aFile, cInterfChantierNameManipulateur * mICNM, std::string mHomol)
 {
 	
 	const std::vector<std::string> aVImgs = *(mICNM->Get(mPat));
@@ -504,8 +509,8 @@ void cGHCFH_Appli::WriteCpInHFile(std::string aFile, cInterfChantierNameManipula
     //Init Keys for homol files
     std::list<cHomol> allHomols;
     std::string anExt = mExt ? "txt" : "dat";
-    std::cout << "anExt = " << anExt << std::endl;
-    
+    //std::cout << "anExt = " << anExt << std::endl;
+    std::cout << "mHomol = " << mHomol << std::endl;
     std::string aKH =   std::string("NKS-Assoc-CplIm2Hom@")
             +  std::string(mHomol)
             +  std::string("@")
@@ -646,6 +651,7 @@ cGHCFH_Appli::cGHCFH_Appli(int argc,char ** argv)
 	//~ }
     
     SplitDirAndFile(mDir,mPat,mFullName);
+    StdCorrecNameHomol(mHomol,mDir);
     //~ std::cout<<"Working dir: "<<aDirImages<<std::endl;
     //~ std::cout<<"Files pattern: "<<aPatIm<<std::endl;
 

@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEF_OFSET -12349876
 
-
+//----------------------------------------------------------------------------
 int ScaleIm_main(int argc,char ** argv)
 {
     std::string aNameIn;
@@ -71,22 +71,22 @@ int ScaleIm_main(int argc,char ** argv)
     ElInitArgMain
     (
     argc,argv,
-                LArgMain()  << EAMC(aNameIn, "Image", eSAM_IsExistFile)
+    LArgMain()  << EAMC(aNameIn, "Image", eSAM_IsExistFile)
                 << EAMC(aScX, "Scale"),
     LArgMain()  << EAM(aNameOut,"Out",true)
-                    << EAM(aScY,"YScale",true)
-                    << EAM(aSz,"Sz",true)
-                    << EAM(aP0,"P0",true)
-                    << EAM(aNameType,"Type", true, "Type (u_int1, int1, u_int2, int2, int4, real4, real8)", eSAM_NoInit)
-                    << EAM(aFactMult,"Mult",true)
-                    << EAM(aDilate,"Dilate",true)
-                    << EAM(aDilXY,"DilXY",true)
-                    << EAM(aDebug,"Debug",true,"Debug", eSAM_InternalUse)
-                    << EAM(anOffset,"Offset",true)
-                    << EAM(Tile,"Tile",true)
-                    << EAM(aForceGray,"FG",true,"Force gray (Def=false)")
-                    << EAM(aForce8B,"F8B",true,"Force 8 bits (Def=false)")
-                    << EAM(aModeMasq,"ModMasq",true,"Mode Masq => binarize at 0.9999 threshlod ")
+                << EAM(aScY,"YScale",true)
+                << EAM(aSz,"Sz",true)
+                << EAM(aP0,"P0",true)
+                << EAM(aNameType,"Type", true, "Type (u_int1, int1, u_int2, int2, int4, real4, real8)", eSAM_NoInit)
+                << EAM(aFactMult,"Mult",true)
+                << EAM(aDilate,"Dilate",true)
+                << EAM(aDilXY,"DilXY",true)
+                << EAM(aDebug,"Debug",true,"Debug", eSAM_InternalUse)
+                << EAM(anOffset,"Offset",true)
+                << EAM(Tile,"Tile",true)
+                << EAM(aForceGray,"FG",true,"Force gray (Def=false)")
+                << EAM(aForce8B,"F8B",true,"Force 8 bits (Def=false)")
+                << EAM(aModeMasq,"ModMasq",true,"Mode Masq => binarize at 0.9999 threshlod ")
     );
     if (!MMVisualMode)
     {
@@ -187,7 +187,104 @@ int ScaleIm_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+int ScalePat_main(int argc,char ** argv)
+{
+	std::string aFullPattern;
+    std::string aNameOut="";
+    std::string aNameType="";
 
+    double aScX,aScY=0;
+    Pt2dr  aP0(0,0);
+    Pt2dr  aSz(-1,-1);
+    double aFactMult=1.0;
+    double anOffset=0;
+
+    double aDilate = 1.0;
+    Pt2dr  aDilXY (-1,-1);
+
+    int aDebug=0;
+    int Tile = -1;
+
+    bool aForceGray  = false;
+    bool aForce8B  = false;
+
+    bool aModeMasq=false;
+
+
+    ElInitArgMain
+    (
+    argc,argv,
+    LArgMain()  << EAMC(aFullPattern, "Pattern of files", eSAM_IsPatFile)
+                << EAMC(aScX, "Scale"),
+    LArgMain()  << EAM(aNameOut,"Out",true)
+                << EAM(aScY,"YScale",true)
+                << EAM(aSz,"Sz",true)
+                << EAM(aP0,"P0",true)
+                << EAM(aNameType,"Type", true, "Type (u_int1, int1, u_int2, int2, int4, real4, real8)", eSAM_NoInit)
+                << EAM(aFactMult,"Mult",true)
+                << EAM(aDilate,"Dilate",true)
+                << EAM(aDilXY,"DilXY",true)
+                << EAM(aDebug,"Debug",true,"Debug", eSAM_InternalUse)
+                << EAM(anOffset,"Offset",true)
+                << EAM(Tile,"Tile",true)
+                << EAM(aForceGray,"FG",true,"Force gray (Def=false)")
+                << EAM(aForce8B,"F8B",true,"Force 8 bits (Def=false)")
+                << EAM(aModeMasq,"ModMasq",true,"Mode Masq => binarize at 0.9999 threshlod ")
+    );
+    
+    std::string aDirImages,aPatIm;
+    SplitDirAndFile(aDirImages,aPatIm,aFullPattern);
+    
+    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+    std::vector<std::string> aVIm = *(aICNM->Get(aPatIm));
+    
+    for (unsigned int i=0;i<aVIm.size();i++)
+    {
+		std::cout << "For image : " << aVIm.at(i) << std::endl;
+		std::string aCom = MMDir()
+		                   + std::string("bin/mm3d")
+		                   + std::string(" ")
+		                   + std::string("ScaleIm")
+		                   + std::string(" ")
+		                   + aVIm.at(i)
+		                   + std::string(" ")
+		                   + ToString(aScX)
+		                   + std::string(" ")
+		                   + std::string("Out=") + aNameOut
+		                   + std::string(" ")
+		                   + std::string("YScale=") + ToString(aScY)
+		                   + std::string(" ")
+		                   + std::string("Sz=") + "[" + ToString(aSz.x) + "," + ToString(aSz.y) + "]"
+		                   + std::string(" ")
+		                   + std::string("P0=") + "[" + ToString(aP0.x) + "," + ToString(aP0.y) + "]"
+		                   + std::string(" ")
+		                   + std::string("Type=") + aNameType
+		                   + std::string(" ")
+		                   + std::string("Mult=") + ToString(aFactMult)
+		                   + std::string(" ")
+		                   + std::string("Dilate=") + ToString(aDilate)
+		                   + std::string(" ")
+		                   + std::string("DilXY=") + "[" + ToString(aDilXY.x) + "," + ToString(aDilXY.y) + "]"
+		                   + std::string(" ")
+		                   + std::string("Debug=") + ToString(aDebug)
+		                   + std::string(" ")
+		                   + std::string("Offset=") + ToString(anOffset)
+		                   + std::string(" ")
+		                   + std::string("Tile=") + ToString(Tile)
+		                   + std::string(" ")
+		                   + std::string("FG=") + ToString(aForceGray)
+		                   + std::string(" ")
+		                   + std::string("F8B=") + ToString(aForce8B)
+		                   + std::string(" ")
+		                   + std::string("ModMasq=") + ToString(aModeMasq);
+		                   
+		std::cout << "aCom = " << aCom << std::endl;
+		system_call(aCom.c_str());
+	}
+
+	return EXIT_SUCCESS;
+}
 
 
 
