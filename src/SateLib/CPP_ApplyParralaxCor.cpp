@@ -217,7 +217,12 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	if(aFitASTER)
 	{
 		Im2D_REAL8 aParFit = FitASTER(aDatPar,aDir, aSz);
-		aPar = aParFit;
+		ELISE_COPY
+		(
+			aTFPar.all_pts(),
+			aParFit.in(),
+			aPar.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
+		);
 		REAL8 ** aDatPar = aPar.data();
 		cout << "Data fitted" << endl;
 	}
