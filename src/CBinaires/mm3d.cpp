@@ -578,6 +578,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv);
 int ExportHemisTM_main(int argc,char ** argv);
 int MatchinImgTM_main(int argc,char ** argv);
 int CorrLA_main(int argc,char ** argv);
+int EstimLA_main(int argc,char ** argv);
 int InterpImgPos_main(int argc,char ** argv);
 int CompareOriTieP_main(int argc,char ** argv);
 int CmpOrthos_main(int argc,char ** argv);
@@ -771,6 +772,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("GpsProc",rnx2rtkp_main,"Tool using rnx2rtkp from RTKlib to do GNSS processing",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CorrLA",CorrLA_main,"Tool to correct camera centers from Lever-Arm offset",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("EstimLA",EstimLA_main,"Tool to estimate Lever-Arm from Gps Trajectory and Ground Camera Poses",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ExportHTM",ExportHemisTM_main,"Tool to export TimeMark Data from Hemisphere Bin01 file",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("InterpImTM",InterpImgPos_main,"Tool to interpolate image position based on TimeMark GPS trajectory",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CmpTieP",CompareOriTieP_main,"Tool to compare deviations between 2 Ori-XXX folders on 3D tie points positions",cArgLogCom(2)));
