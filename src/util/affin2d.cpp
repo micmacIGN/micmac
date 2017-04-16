@@ -73,9 +73,11 @@ void  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack);
 class cMapPol2d : public  cElMap2D
 {
    public :
-      cMapPol2d(int aDeg,Box2dr & aBox0,int aRabDegInv=2);
+      cMapPol2d(int aDeg,const Box2dr & aBox0,int aRabDegInv=2);
       Pt2dr operator () (const Pt2dr & aP) const;
       int Type() const ;
+      static cMapPol2d Id(const Box2dr & aBox);
+
       ~cMapPol2d();
       int   NbUnknown() const;
       void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
@@ -85,6 +87,14 @@ class cMapPol2d : public  cElMap2D
       cElMap2D * Map2DInverse() const;
 
       cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
+      static cMapPol2d FromXml(const cXml_Map2dPol &);
+
+
+      double         Ampl() const;
+      const Polynome2dReal & PolX() const;
+      const Polynome2dReal & PolY() const;
+      Polynome2dReal & PolX() ;
+      Polynome2dReal & PolY() ;
 
    private :
 
@@ -99,11 +109,17 @@ class cMapPol2d : public  cElMap2D
 
 
 
+double  cMapPol2d::Ampl() const {return mAmpl;}
+const   Polynome2dReal & cMapPol2d::PolX() const {return mPolX;}
+const   Polynome2dReal & cMapPol2d::PolY() const {return mPolY;}
+Polynome2dReal & cMapPol2d::PolX() {return mPolX;}
+Polynome2dReal & cMapPol2d::PolY() {return mPolY;}
+
 cMapPol2d::~cMapPol2d()
 {
 }
 
-cMapPol2d::cMapPol2d(int aDeg,Box2dr & aBox,int aRabDegInv) :
+cMapPol2d::cMapPol2d(int aDeg,const Box2dr & aBox,int aRabDegInv) :
   mDeg       (aDeg),
   mRabDegInv (aRabDegInv),
   mBox       (aBox),
@@ -112,8 +128,11 @@ cMapPol2d::cMapPol2d(int aDeg,Box2dr & aBox,int aRabDegInv) :
   mPolY      (mDeg,mAmpl),
   mNbMon     (mPolX.NbMonome())
 {
-   mPolX.SetDegre1(0,1,0);
-   mPolY.SetDegre1(0,0,1);
+   if (aDeg>=1)
+   {
+      mPolX.SetDegre1(0,1,0);
+      mPolY.SetDegre1(0,0,1);
+   }
 }
 
 Pt2dr cMapPol2d::operator () (const Pt2dr & aP) const
@@ -166,6 +185,10 @@ int cMapPol2d::Type() const
     return eTM2_Polyn;
 }
 
+cMapPol2d  cMapPol2d::Id(const Box2dr & aBox) 
+{
+   return cMapPol2d(1,aBox,0);
+}
 cElMap2D * cMapPol2d::Identity() 
 {
    return new cMapPol2d(mDeg,mBox,mRabDegInv);
@@ -223,6 +246,22 @@ cXml_Map2D    cMapPol2d::ToXmlGen()
    cXml_Map2DElem aMapE;
    aMapE.Pol().SetVal(aXMapPol);
    return cXml_Map2D(MapFromElem(aMapE));
+}
+
+Polynome2dReal Xml2EL(const cXml_FulPollXY & aXml)
+{
+  Polynome2dReal aRes = Polynome2dReal::FromVect(aXml.Coeffs(),aXml.Ampl());
+  return aRes;
+}
+
+cMapPol2d cMapPol2d::FromXml(const cXml_Map2dPol & aXml)
+{
+    cMapPol2d aRes(aXml.MapX().Degre(),aXml.Box(),aXml.DegAddInv().ValWithDef(0));
+
+    aRes.mPolX = Xml2EL(aXml.MapX());
+    aRes.mPolY = Xml2EL(aXml.MapY());
+
+    return aRes;
 }
 
 //=====================================================================================
@@ -864,6 +903,14 @@ cElMap2D * cElMap2D::IdentFromType(int aType)
     ELISE_ASSERT(false,"cElMap2D::IdentFromType");
     return 0;
 }
+/*
+cElMap2D * cElMap2D::IdentFromType(int aType,const Box2dr & aBox)
+{
+}
+
+*/
+
+
 
 std::vector<double> cElMap2D::Params() const
 {
@@ -912,6 +959,10 @@ cElMap2D *  Map2DFromElem(const cXml_Map2DElem & aXml)
        return new cCamAsMap(aCS,aXml.Cam().Val().Directe());
    }
 
+   if (aXml.Pol().IsInit())
+   {
+        return new cMapPol2d (cMapPol2d::FromXml(aXml.Pol().Val()));
+   }
 
    ELISE_ASSERT(false,"Map2DFromElem");
    return 0;
@@ -1019,9 +1070,6 @@ int  cComposElMap2D::Type()  const {return eTM2_Compos;}
 
 void  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack)
 {
-    // cElMap2D & aMapInit = *(cElMap2D::IdentFromType(aType));
-
-
     int aNbUk = aRes->NbUnknown();
     std::vector<double> aVCoefX(aNbUk);
     std::vector<double> aVCoefY(aNbUk);
@@ -1643,8 +1691,20 @@ void TestMap2D()
          ElSimilitude aS(PRanCInSquare(100),PRanCInSquare(1));
          ElAffin2D anAff(PRanCInSquare(100),PRanCInSquare(1),PRanCInSquare(1));
          cElHomographie aHom(RanCH(1,1000),RanCH(1,1000),RanCH(1e-5,1e-5));
-
          ElHomot  aHomot(PRanCInSquare(100), NRrandC());
+
+         int aDeg=3+aK/4;
+         Box2dr aBox(PRanCInSquare(100),PRanCInSquare(100));
+         cMapPol2d aMapPol(aDeg,aBox,2);
+         Polynome2dReal & aPolX = aMapPol.PolX();
+         Polynome2dReal & aPolY = aMapPol.PolY();
+         double anAmpl = aMapPol.Ampl();
+         for (int aKm = 0 ; aKm< aPolX.NbMonome() ; aKm++)
+         {
+              aPolX.SetCoeff(aKm,1e-2*NRrandC()*pow(anAmpl,-aPolX.DegreTot(aKm)));
+              aPolY.SetCoeff(aKm,1e-2*NRrandC()*pow(anAmpl,-aPolX.DegreTot(aKm)));
+         }
+
 
 
          if (aK==5)
@@ -1656,6 +1716,7 @@ void TestMap2D()
                       << " AFF " << TestMap2D(anAff,aPackInit,false) 
                       << " Hom " << TestMap2D(aHom,aPackInit,false) 
                       << " Homot " << TestMap2D(aHomot,aPackInit,false) 
+                      << " Polyn " << TestMap2D(aMapPol,aPackInit,false) 
                       << "\n";
           }
           else

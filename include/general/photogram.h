@@ -387,6 +387,7 @@ class ElPackHomologue : public cPackNupletsHom
      bool  mSolveInL1;
 
      public :
+         Box2dr BoxP1() const;
          ElPackHomologue();
          void SelfSwap(); // Intervertit les  2
          void ApplyHomographies
