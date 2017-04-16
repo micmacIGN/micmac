@@ -88,7 +88,7 @@ int Export2Ply_main(int argc,char ** argv)
     int aScale=1;
     int aBin=1;
     int aDiffColor=0;
-    std::vector<Pt3di> aVCol;
+    Pt3dr aOffset(0,0,0);
 
 
     ElInitArgMain
@@ -98,18 +98,20 @@ int Export2Ply_main(int argc,char ** argv)
                     << EAMC(NameFile,"Name File of Points Coordinates", eSAM_IsExistFile),
         LArgMain()  << EAM(aRay,"Ray",false,"Plot a sphere per point")
                     << EAM(aNbPts,"NbPts",true,"Number of Pts / direc (Def=5, give 1000 points) only with Ray > 0")
-                    << EAM(aScale, "Scale",true,"Scaling factor")
+                    << EAM(aScale,"Scale",true,"Scaling factor")
                     << EAM(aCoul,"FixColor",true,"Fix the color of points")
                     << EAM(aCoulLP,"LastPtColor",true,"Change color only for last point")
-                    << EAM(aDiffColor, "ChangeColor",false,"Change the color each number of points : not with FixColor")
-                    << EAM(Out, "Out",true, "Default value is NameFile.ply")
+                    << EAM(aDiffColor,"ChangeColor",false,"Change the color each number of points : not with FixColor")
+                    << EAM(Out,"Out",true, "Default value is NameFile.ply")
                     << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
+                    << EAM(aOffset,"OffSet",true,"Add an offset to all points")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
 
     char * aLine;
     int aCpt=0;
+    std::vector<Pt3di> aVCol;
     std::vector<Pt3dr> aPoints;
     std::vector<Pt3dr> aVInc;
     std::vector<std::string> aVName;
@@ -226,7 +228,16 @@ int Export2Ply_main(int argc,char ** argv)
 
     ELISE_ASSERT(aDiffColor < (int) aPoints.size(), "Can't be superior to number of points in input");
 
-     //if we do not want to keep all points
+    if(aOffset.x != 0 || aOffset.y !=0 || aOffset.z != 0)
+    {
+		for(unsigned int aP=0; aP<aPoints.size(); aP++)
+		{
+			aPoints.at(aP).x = aPoints.at(aP).x + aOffset.x;
+			aPoints.at(aP).y = aPoints.at(aP).y + aOffset.y;
+			aPoints.at(aP).z = aPoints.at(aP).z + aOffset.z;
+		}
+	}
+    //if we do not want to keep all points
     if((int)aScale != 1)
     {
         int aIndice=0;
@@ -352,7 +363,7 @@ int Export2Ply_main(int argc,char ** argv)
 
 
 
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

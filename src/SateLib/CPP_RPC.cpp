@@ -1417,8 +1417,8 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		bool Ok;
 		Im1D_REAL8 aSolLon = aSysLon.GSSR_Solve(&Ok);
 		Im1D_REAL8 aSolLat = aSysLat.GSSR_Solve(&Ok);
-		double* aDataLat = aSolLat.data();
 		double* aDataLon = aSolLon.data();
+		double* aDataLat = aSolLat.data();
 
 		//Copying Data in RPC object
 		//Numerators

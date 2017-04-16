@@ -215,6 +215,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv);
 int CPP_ReechImMap(int argc,char** argv);
 int CPP_DenseMapToHom(int argc,char** argv);
 int CPP_CmpDenseMap(int argc,char** argv);
+int ScalePat_main(int argc,char** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -365,6 +366,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for image scaling"));
+       aRes.push_back(cMMCom("ScalePat",ScalePat_main," Tool for pattern scaling"));
        aRes.push_back(cMMCom("StatIm",StatIm_main," Tool for basic stat on an image"));
        aRes.push_back(cMMCom("ConvertIm",ConvertIm_main," Tool for convertion inside tiff-format"));
        aRes.push_back(cMMCom("PanelIm",MakePlancheImage_main,"Tool for creating a panel of images "));
@@ -560,7 +562,9 @@ extern int VisuCoupeEpip_main(int,char **);
 int ExoSimulTieP_main(int argc,char** argv);
 int ExoMCI_main(int argc,char** argv);
 int ExoCorrelEpip_main(int argc,char ** argv);
-
+int OptTiePSilo_main(int argc,char ** argv);
+int cleanHomolByBsurH_main(int argc,char ** argv);
+int GenHuginCpFromHomol_main(int argc,char ** argv);
 int PseudoIntersect_main(int argc,char** argv);
 int ScaleModel_main(int argc,char ** argv);
 int PLY2XYZ_main(int argc,char ** argv);
@@ -574,6 +578,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv);
 int ExportHemisTM_main(int argc,char ** argv);
 int MatchinImgTM_main(int argc,char ** argv);
 int CorrLA_main(int argc,char ** argv);
+int EstimLA_main(int argc,char ** argv);
 int InterpImgPos_main(int argc,char ** argv);
 int CompareOriTieP_main(int argc,char ** argv);
 int CmpOrthos_main(int argc,char ** argv);
@@ -767,6 +772,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("GpsProc",rnx2rtkp_main,"Tool using rnx2rtkp from RTKlib to do GNSS processing",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CorrLA",CorrLA_main,"Tool to correct camera centers from Lever-Arm offset",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("EstimLA",EstimLA_main,"Tool to estimate Lever-Arm from Gps Trajectory and Ground Camera Poses",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ExportHTM",ExportHemisTM_main,"Tool to export TimeMark Data from Hemisphere Bin01 file",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("InterpImTM",InterpImgPos_main,"Tool to interpolate image position based on TimeMark GPS trajectory",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CmpTieP",CompareOriTieP_main,"Tool to compare deviations between 2 Ori-XXX folders on 3D tie points positions",cArgLogCom(2)));
@@ -779,7 +785,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("CleanTxtPS", CleanTxtPS_main,"Tool to clean .txt file output of PhotoScan Aero",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CheckPatCple", CheckPatCple_main,"Tool to check a Pattern and an .xml File Cple",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ConvPSHomol2MM", ConvPSHomol2MM_main, "Tool to convert Tie Points from PhotoScan to MicMac format",cArgLogCom(2)));
-	   aRes.push_back(cMMCom("SplitPatByCam", SplitPatByCam_main, "Tool to split a Pattern based on type of camera",cArgLogCom(2)));    
+	   aRes.push_back(cMMCom("SplitPatByCam", SplitPatByCam_main, "Tool to split a Pattern based on type of camera",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("OptTiePSilo",OptTiePSilo_main,"Optimize Tie Points Extraction For Silo"));
+	   aRes.push_back(cMMCom("GenHuginCp",GenHuginCpFromHomol_main,"Genrate Hugin Control Points from Homol",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("CleanHomByBH",cleanHomolByBsurH_main,"Clean Homolgues points between images based on BsurHvalues",cArgLogCom(2)));
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
 
