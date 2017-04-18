@@ -227,7 +227,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 	}
 
 	//Find main frequency
-	auto result = std::max_element(begin(normFour), end(normFour));
+	std::vector<double>::iterator result = std::max_element(begin(normFour), end(normFour));
 	double aFreq = (std::distance(std::begin(normFour), result)+1) / double(normFour.size());
 
 
