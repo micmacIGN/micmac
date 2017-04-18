@@ -227,8 +227,8 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 	}
 
 	//Find main frequency
-	std::vector<double>::iterator result = std::max_element(begin(normFour), end(normFour));
-	double aFreq = (std::distance(std::begin(normFour), result)+1) / double(normFour.size());
+	std::vector<double>::iterator result = std::max_element(normFour.begin(), normFour.end());
+	double aFreq = (std::distance(normFour.begin(), result)+1) / double(normFour.size());
 
 
 	//Solve for aAmplitude and aPhase with aFreq known
