@@ -1727,14 +1727,26 @@ normalises en echelle et/ou en translation -->
     <NameImMax Nb="?" Type="std::string">         </NameImMax>
 </XmlSauvExportAperoOneAppuis>
 
+<XmlSauvExportAperoOneMult  Nb="1" Class="true" ToReference="true">
+     <Multiplicity Nb="1" Type="int"> </Multiplicity>
+     <Residual  Nb="1" Type="double"> </Residual>
+     <NbPts  Nb="1" Type="int">       </NbPts>
+     <PercOk Nb="1" Type="double">    </PercOk>
+</XmlSauvExportAperoOneMult>
+
 <XmlSauvExportAperoOneIter Nb="1" Class="true" ToReference="true">
     <OneAppui  Nb="*" RefType="XmlSauvExportAperoOneAppuis"> </OneAppui>
     <OneIm Nb="*" RefType="XmlSauvExportAperoOneIm"> </OneIm>
+    <OneMult Nb="*" RefType="XmlSauvExportAperoOneMult"> </OneMult>
     <AverageResidual Nb="1" Type="double">  </AverageResidual>
     <NumIter Nb="1" Type="int"> </NumIter>
     <NumEtape Nb="1" Type="int"> </NumEtape>
     <EvolMax Nb="?" Type="double"> </EvolMax>
     <EvolMoy Nb="?" Type="double"> </EvolMoy>
+
+    <ImWorstRes Nb="?" Type="std::string"> </ImWorstRes>
+    <WorstRes Nb="?" Type="double">   </WorstRes>
+
 </XmlSauvExportAperoOneIter>
 
 <XmlSauvExportAperoGlob Nb="1" Class="true" ToReference="true">

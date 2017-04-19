@@ -1,27 +1,33 @@
 <!--
-    A Pattern file for using MicMac in post-sismic deformation
+    A Pattern file for using MicMac in thermal deformation
 -->
+
 <ParamMICMAC>
     <DicoLoc>
+         <Symb> SzW=20 </Symb>
+         <Symb> WinExp=true </Symb>
+         <Symb> NbIterWE=2 </Symb>
+         <Symb> PrefDir=MEC-Therm </Symb>
+
          <Symb> Im1=XXXX </Symb>
          <Symb> Im2=XXXX </Symb>
          <Symb> Masq=XXXX  </Symb>
 
-         <Symb> DirMEC=MEC-${Im1}-${Im2}/</Symb>
+         <Symb> DirMEC=${PrefDir}-${Im1}-${Im2}/</Symb>
          <Symb> Pyr=Pyram/</Symb>
-         <Symb> Inc=4.0  </Symb>
+         <Symb> Inc=6.0  </Symb>
          <Symb> Pas=0.2 </Symb>
          <Symb> UseMasq=false </Symb>
          <Symb> UseDequant=true </Symb>
 
-         <Symb> SzW=20 </Symb>
+
+
          <Symb> CorrelMin=0.5 </Symb>
          <Symb> GammaCorrel=2 </Symb>
-
          <Symb> NbDir=7 </Symb>
         
 
-         <eSymb> Regul=4.0 </eSymb>
+         <eSymb> Regul=0.5 </eSymb>
 
 
          <Symb>  SsResolOpt4=4 </Symb>
@@ -32,7 +38,8 @@
          <Symb>  Px1Moy=0 </Symb>
          <Symb>  Px2Moy=0 </Symb>
 
-         <Symb>   ZoomInit=4 </Symb>
+         <Symb>   ZoomInit=8 </Symb>
+         <eSymb>  WithZ8= SupEq ${ZoomInit} 8 </eSymb>
          <eSymb>  WithZ4= SupEq ${ZoomInit} 4 </eSymb>
          <eSymb>  WithZ2= SupEq ${ZoomInit} 2 </eSymb>
 
@@ -134,24 +141,29 @@ L'ordre des resolutions : les plus basses aux plus grandes.
 
             <GenImagesCorrel> true </GenImagesCorrel>
 
+            <#WHEN VTEST=${WinExp}>
+                <TypeWCorr> eWInCorrelExp            </TypeWCorr>
+                <NbIterFenSpec>   ${NbIterWE}           </NbIterFenSpec>
+            </#WHEN>
+
 <!--
-            <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+            <#WHEN VTEST=${WinExp}>
+                <NbIterFenSpec>   ${NbIterWE}           </NbIterFenSpec>
 -->
-
-
-            <TypeWCorr> eWInCorrelExp            </TypeWCorr>
-            <NbIterFenSpec>   2           </NbIterFenSpec>
+<!--
             <SzSinCard>  5.0 </SzSinCard>
             <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
             <SzAppodSinCard>  5.0 </SzAppodSinCard>
+-->
 
+            <ModeInterpolation> eInterpolMPD </ModeInterpolation>
 
          
 
             <Px1DilatAlti>  2    </Px1DilatAlti>
-            <Px1DilatPlani> 2    </Px1DilatPlani>
             <Px2DilatAlti>  2    </Px2DilatAlti>
-            <Px2DilatPlani> 2    </Px2DilatPlani>
+            <Px1DilatPlani> 10    </Px1DilatPlani>
+            <Px2DilatPlani> 10    </Px2DilatPlani>
 
             <Px1Pas>        ${Pas}  </Px1Pas>
             <Px2Pas>        ${Pas}  </Px2Pas>
@@ -179,114 +191,69 @@ L'ordre des resolutions : les plus basses aux plus grandes.
 
         </EtapeMEC>
 
+        <#WHEN  VTEST=${WithZ8}>
+            <EtapeMEC>
+                <DeZoom > 8 </DeZoom>
+                <Px1Pas>   0.8  </Px1Pas>
+                <Px2Pas>   0.8  </Px2Pas>
+                <SsResolOptim> ${SsResolOpt4} </SsResolOptim>
+            </EtapeMEC>
+        </#WHEN>
         <#WHEN  VTEST=${WithZ4}>
             <EtapeMEC>
-               <DeZoom > 4 </DeZoom>
-               <Px1Pas>   1  </Px1Pas>
-               <Px2Pas>   1  </Px2Pas>
-               <Px1Regul> 2.0    </Px1Regul>
-               <Px2Regul> 2.0   </Px2Regul>
-               <SsResolOptim> ${SsResolOpt4} </SsResolOptim>
+                <DeZoom > 4 </DeZoom>
+                <Px1Pas>   0.8  </Px1Pas>
+                <Px2Pas>   0.8  </Px2Pas>
+                <SsResolOptim> ${SsResolOpt4} </SsResolOptim>
             </EtapeMEC>
         </#WHEN>
         <#WHEN  VTEST=${WithZ2}>
-             <EtapeMEC>
+            <EtapeMEC>
                 <DeZoom > 2 </DeZoom>
-                <Px1Pas>   1  </Px1Pas>
-                <Px2Pas>   1  </Px2Pas>
-                <Px1Regul> 2.0    </Px1Regul>
-                <Px2Regul> 2.0   </Px2Regul>
+                <Px1Pas>   0.8  </Px1Pas>
+                <Px2Pas>   0.8  </Px2Pas>
+
                 <SsResolOptim> ${SsResolOptInterm2} </SsResolOptim>
-             </EtapeMEC>
+            </EtapeMEC>
+
+            <EtapeMEC>
+                <DeZoom > 2 </DeZoom>
+                <Px1Pas>   0.4  </Px1Pas>
+                <Px2Pas>   0.4  </Px2Pas>
+
+                <SsResolOptim> ${SsResolOptInterm2} </SsResolOptim>
+            </EtapeMEC>
+
+
         </#WHEN>
 
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>
            <Px1Pas>   0.8  </Px1Pas>
            <Px2Pas>   0.8  </Px2Pas>
-           <Px1DilatAlti>  1    </Px1DilatAlti>
-           <Px1DilatPlani> 1    </Px1DilatPlani>
-           <Px2DilatAlti>  1    </Px2DilatAlti>
-           <Px2DilatPlani> 1    </Px2DilatPlani>
-           <Px1Regul> 2.0    </Px1Regul>
-           <Px2Regul> 2.0   </Px2Regul>
+
+           <Px1DilatAlti  Portee="Globale">  1    </Px1DilatAlti>
+           <Px2DilatAlti  Portee="Globale">  1    </Px2DilatAlti>
+           <Px1DilatPlani Portee="Globale"> 10    </Px1DilatPlani>
+           <Px2DilatPlani Portee="Globale"> 10    </Px2DilatPlani>
+
            <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
         </EtapeMEC>
 
-
-        <EtapeMEC>
-           <DeZoom > 1 </DeZoom>
-           <Px1Pas>   0.8  </Px1Pas>
-           <Px2Pas>   0.8  </Px2Pas>
-           <Px1DilatAlti>  2    </Px1DilatAlti>
-           <Px1DilatPlani> 2    </Px1DilatPlani>
-           <Px2DilatAlti>  0    </Px2DilatAlti>
-           <Px2DilatPlani> 0    </Px2DilatPlani>
-           <Px1Regul> 2.0    </Px1Regul>
-           <Px2Regul> 2.0   </Px2Regul>
-           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
-        </EtapeMEC>
-        <EtapeMEC>
-           <DeZoom > 1 </DeZoom>
-           <Px1Pas>   0.8  </Px1Pas>
-           <Px2Pas>   0.8  </Px2Pas>
-           <Px1DilatAlti>  0    </Px1DilatAlti>
-           <Px1DilatPlani> 0    </Px1DilatPlani>
-           <Px2DilatAlti>  2    </Px2DilatAlti>
-           <Px2DilatPlani> 2    </Px2DilatPlani>
-           <Px1Regul> 2.0    </Px1Regul>
-           <Px2Regul> 2.0   </Px2Regul>
-           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
-        </EtapeMEC>
 
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>
            <Px1Pas>   0.4  </Px1Pas>
            <Px2Pas>   0.4  </Px2Pas>
-           <Px1DilatAlti>  2    </Px1DilatAlti>
-           <Px1DilatPlani> 2    </Px1DilatPlani>
-           <Px2DilatAlti>  0    </Px2DilatAlti>
-           <Px2DilatPlani> 0    </Px2DilatPlani>
-           <Px1Regul> 2.0    </Px1Regul>
-           <Px2Regul> 2.0   </Px2Regul>
-           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
-        </EtapeMEC>
-        <EtapeMEC>
-           <DeZoom > 1 </DeZoom>
-           <Px1Pas>   0.4  </Px1Pas>
-           <Px2Pas>   0.4  </Px2Pas>
-           <Px1DilatAlti>  0    </Px1DilatAlti>
-           <Px1DilatPlani> 0    </Px1DilatPlani>
-           <Px2DilatAlti>  2    </Px2DilatAlti>
-           <Px2DilatPlani> 2    </Px2DilatPlani>
-           <Px1Regul> 2.0    </Px1Regul>
-           <Px2Regul> 2.0   </Px2Regul>
-           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
-        </EtapeMEC>
 
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
 
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>
            <Px1Pas>   0.2  </Px1Pas>
            <Px2Pas>   0.2  </Px2Pas>
-           <Px1DilatAlti>  2    </Px1DilatAlti>
-           <Px1DilatPlani> 2    </Px1DilatPlani>
-           <Px2DilatAlti>  0    </Px2DilatAlti>
-           <Px2DilatPlani> 0    </Px2DilatPlani>
-           <Px1Regul> 2.0    </Px1Regul>
-           <Px2Regul> 2.0   </Px2Regul>
-           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
-        </EtapeMEC>
-        <EtapeMEC>
-           <DeZoom > 1 </DeZoom>
-           <Px1Pas>   0.2  </Px1Pas>
-           <Px2Pas>   0.2  </Px2Pas>
-           <Px1DilatAlti>  0    </Px1DilatAlti>
-           <Px1DilatPlani> 0    </Px1DilatPlani>
-           <Px2DilatAlti>  2    </Px2DilatAlti>
-           <Px2DilatPlani> 2    </Px2DilatPlani>
-           <Px1Regul> 2.0    </Px1Regul>
-           <Px2Regul> 2.0   </Px2Regul>
+
            <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
         </EtapeMEC>
 
@@ -294,29 +261,11 @@ L'ordre des resolutions : les plus basses aux plus grandes.
            <DeZoom > 1 </DeZoom>
            <Px1Pas>   0.1  </Px1Pas>
            <Px2Pas>   0.1  </Px2Pas>
-           <Px1DilatAlti>  2    </Px1DilatAlti>
-           <Px1DilatPlani> 2    </Px1DilatPlani>
-           <Px2DilatAlti>  0    </Px2DilatAlti>
-           <Px2DilatPlani> 0    </Px2DilatPlani>
-           <Px1Regul> 2.0    </Px1Regul>
-           <Px2Regul> 2.0   </Px2Regul>
-           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
-        </EtapeMEC>
-        <EtapeMEC>
-           <DeZoom > 1 </DeZoom>
-           <Px1Pas>   0.1  </Px1Pas>
-           <Px2Pas>   0.1  </Px2Pas>
-           <Px1DilatAlti>  1    </Px1DilatAlti>
-           <Px1DilatPlani> 1    </Px1DilatPlani>
-           <Px2DilatAlti>  1    </Px2DilatAlti>
-           <Px2DilatPlani> 1    </Px2DilatPlani>
-           <Px1Regul> 2.0    </Px1Regul>
-           <Px2Regul> 2.0   </Px2Regul>
+
            <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
         </EtapeMEC>
 
-
-
+ 
         <#WHEN VTEST=${UseDequant}>
           <EtapeMEC>
             <DeZoom >  1  </DeZoom>
@@ -344,7 +293,7 @@ L'ordre des resolutions : les plus basses aux plus grandes.
       <AvalaibleMemory > 1000 </AvalaibleMemory>
 
 
-      <SzRecouvrtDalles> 200 </SzRecouvrtDalles>
+      <SzRecouvrtDalles> 300 </SzRecouvrtDalles>
       <SzDalleMin> 2000 </SzDalleMin>
 
       <DefTileFile>100000</DefTileFile>

@@ -494,6 +494,8 @@ class cElMap2D
           // Not yet commented
           void Affect(const cElMap2D &);
           virtual std::vector<double> Params() const;  // "Inverse" de InitFromParams
+        private :
+           virtual bool Compatible(const cElMap2D *) const; // Pour l'affectation, peut faire un down cast 
 };
 
 class cComposElMap2D : public cElMap2D

@@ -215,6 +215,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv);
 int CPP_ReechImMap(int argc,char** argv);
 int CPP_DenseMapToHom(int argc,char** argv);
 int CPP_CmpDenseMap(int argc,char** argv);
+int CPP_FermDenseMap(int argc,char** argv);
 int ScalePat_main(int argc,char** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -228,6 +229,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ReechImMap",CPP_ReechImMap,"Resample image using 2d map "));
        aRes.push_back(cMMCom("DMatch2Hom",CPP_DenseMapToHom,"Dense matching 2 homologues "));
        aRes.push_back(cMMCom("CmpDenseMap",CPP_CmpDenseMap,"comparison of dense map "));
+       aRes.push_back(cMMCom("FermDenseMap",CPP_FermDenseMap,"Consistency by closing on dense maps "));
 
        aRes.push_back(cMMCom("FusionDepl",FusionDepl_Main,"Fusion carte de deplacement "));
        aRes.push_back(cMMCom("TestPbRPC",TestCamRPC,"Test possible Problems on RPC ",cArgLogCom(2)));

@@ -51,6 +51,47 @@ void XXXXX(FILE * aF)
 }
 */
 
+/**********************************************************/
+/*                                                        */
+/*         cStdNamePx2D                                   */
+/*                                                        */
+/**********************************************************/
+
+class cStdNamePx2D
+{
+    public :
+        cStdNamePx2D(const std::string & aPref,const std::string & aNIm1,const std::string & aNIm2,int aNum=-1);
+        std::string mNX;
+        std::string mNY;
+    private :
+        std::string mDir;
+};
+
+
+cStdNamePx2D::cStdNamePx2D(const std::string & aPref,const std::string & aNIm1,const std::string & aNIm2,int aNum) :
+   mDir ("MEC-"+aPref+"-"+aNIm1+"-"+aNIm2 +"/")
+{
+    std::string aNameXml = mDir+"MMLastNuage.xml";
+    cXML_ParamNuage3DMaille aXN = StdGetFromSI(aNameXml,XML_ParamNuage3DMaille);
+    std::string aN1 = aXN.Image_Profondeur().Val().Image();
+    if (aNum>=0)
+    {
+        aN1= std::string("Px1_Num")+ToString(aNum)+"_DeZoom1_LeChantier.tif";
+    }
+    std::string aN2 = aN1;
+    aN2[2] = '2';
+    mNX = mDir + aN1;
+    mNY = mDir + aN2;
+}
+
+
+    // ===============================================================
+/*******************************************************************/
+/*                                                                 */
+/*                cParamMap2DRobustInit                            */
+/*                                                                 */
+/*******************************************************************/
+
 class cParamMap2DRobustInit
 {
       public :
@@ -65,8 +106,23 @@ class cParamMap2DRobustInit
          cElMap2D*  mRes;
 };
 
+
+cParamMap2DRobustInit::cParamMap2DRobustInit(eTypeMap2D aType,int aNbTirRans) :
+    mType           (aType),
+    mNbTirRans      (aNbTirRans),
+    mNbMaxPtsRansac (2e9),
+    mNbTestFor1P    (4),
+    mPropRan        (0.8),
+    mNbIterL2       (4)
+{
+}
+
+
+
+
+
 void  Map2DRobustInit(const ElPackHomologue & aPackFull,cParamMap2DRobustInit & aParam);
-void  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack);
+cElMap2D *  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack);
 
 //=====================================================================================
 
@@ -82,6 +138,8 @@ class cMapPol2d : public  cElMap2D
       int   NbUnknown() const;
       void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
       void  InitFromParams(const std::vector<double> &aSol);
+      std::vector<double> Params() const;
+      virtual bool Compatible(const cElMap2D *) const;
       cElMap2D * Duplicate() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
       cElMap2D * Identity() ;  // En gal retourne this, mais permet au vecteur a 1 de se simplifier
       cElMap2D * Map2DInverse() const;
@@ -96,6 +154,7 @@ class cMapPol2d : public  cElMap2D
       Polynome2dReal & PolX() ;
       Polynome2dReal & PolY() ;
 
+
    private :
 
        int            mDeg;
@@ -108,6 +167,16 @@ class cMapPol2d : public  cElMap2D
 };
 
 
+bool cMapPol2d::Compatible(const cElMap2D * aMap) const
+{
+    const cMapPol2d * aPol  = static_cast<const cMapPol2d *>(aMap);
+
+
+    return    (mDeg==       aPol->mDeg)
+           && (mRabDegInv== aPol->mRabDegInv)
+           && (mBox._p0==   aPol->mBox._p0)
+           && (mBox._p1==   aPol->mBox._p1) ;
+}
 
 double  cMapPol2d::Ampl() const {return mAmpl;}
 const   Polynome2dReal & cMapPol2d::PolX() const {return mPolX;}
@@ -170,6 +239,16 @@ void  cMapPol2d::InitFromParams(const std::vector<double> &aSol)
     mPolX = Polynome2dReal::FromVect(aVX,mAmpl);
     mPolY = Polynome2dReal::FromVect(aVY,mAmpl);
 }
+
+std::vector<double> cMapPol2d::Params() const
+{
+   std::vector<double> aRes =  mPolX.ToVect();
+   std::vector<double> aPolY =  mPolY.ToVect();
+   std::copy(aPolY.begin(),aPolY.end(),back_inserter(aRes));
+
+   return aRes;
+}
+   
 
 cElMap2D * cMapPol2d::Duplicate() 
 {
@@ -918,9 +997,15 @@ std::vector<double> cElMap2D::Params() const
     return std::vector<double>();
 }
 
+bool  cElMap2D::Compatible(const cElMap2D *) const
+{
+   return true;
+} 
+
 void cElMap2D::Affect(const cElMap2D & aMap)
 {
     ELISE_ASSERT(Type()==aMap.Type(),"Different type in cElMap2D::Affect");
+    ELISE_ASSERT(Compatible(&aMap),"Incompatible Map2D from same type");
     std::vector<double>  aVP = aMap.Params();
     InitFromParams(aVP);
 }
@@ -1068,7 +1153,7 @@ int  cComposElMap2D::Type()  const {return eTM2_Compos;}
 /*                                                   */
 /*****************************************************/
 
-void  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack)
+cElMap2D *  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack)
 {
     int aNbUk = aRes->NbUnknown();
     std::vector<double> aVCoefX(aNbUk);
@@ -1084,6 +1169,7 @@ void  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack)
     }
     Im1D_REAL8  aSol = aSys.Solve(0);
     aRes->InitFromParams(std::vector<double>(aSol.data(),aSol.data()+aNbUk));
+    return aRes;
 }
 
 cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack)
@@ -1323,10 +1409,15 @@ int CPP_ReechImMap(int argc,char** argv)
     return EXIT_SUCCESS;
 }
 
+    //=====================================
+    //     DMatch2Hom
+    //=====================================
+
 class cAppli_CPP_DenseMapToHom
 {
    public :
 
+    std::string mPref;
     std::string mName1;
     std::string mName2;
     std::string mNamePx1;
@@ -1368,13 +1459,19 @@ cAppli_CPP_DenseMapToHom::cAppli_CPP_DenseMapToHom(int argc,char** argv) :
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  <<  EAMC(mName1,"Name Im1")
-                    <<  EAMC(mName2,"Name Im2")
-                    <<  EAMC(mNamePx1,"Name Px1 (dx)")
-                    <<  EAMC(mNamePx2,"Name Px2 (dy)"),
+        LArgMain()  <<  EAMC(mPref,"Pref where , Dir=MEC-${Pref}-{Im1}-{Im2}")
+                    <<  EAMC(mName1,"Name Im1")
+                    <<  EAMC(mName2,"Name Im2"),
+                    // <<  EAMC(mNamePx1,"Name Px1 (dx)")
+                    // <<  EAMC(mNamePx2,"Name Px2 (dy)"),
         LArgMain()  <<  EAM(mSH,"SH",true,"Set of homologue, def=DM")
-                    <<  EAM(mNbTile,"NbTiles",true,"Number of tile / side (will be slightly changed), Def=30")
+                    <<  EAM(mNbTile,"NbTiles",true,"Number of tile/side (will be slightly changed), Def=30")
     );
+
+    cStdNamePx2D aName2D(mPref,mName1,mName2) ;
+    mNamePx1 = aName2D.mNX;
+    mNamePx2 = aName2D.mNY;
+
 
     cElemAppliSetFile anEASF(mName1);
     cInterfChantierNameManipulateur * anICNM = anEASF.mICNM;
@@ -1457,23 +1554,116 @@ int CPP_DenseMapToHom(int argc,char** argv)
     return EXIT_SUCCESS;
 }
 
-int CPP_CmpDenseMap(int argc,char** argv)
+    //=====================================
+    //     FermDenseMap
+    //=====================================
+
+int CPP_FermDenseMap(int argc,char** argv)
 {
-    std::string mNameXI1,mNameYI1,mNameXI2,mNameYI2;
+    std::string mPref,mNameImA,mNameImB,mNameImC;
+    int aNum=-1;
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  <<  EAMC(mNameXI1,"Im1 Px1 (dx)")
-                    <<  EAMC(mNameYI1,"Im1 Px2 (dy)")
-                    <<  EAMC(mNameXI2,"Im2 Px1 (dx)")
-                    <<  EAMC(mNameYI2,"Im2 Px2 (dy)"),
+        LArgMain()  <<  EAMC(mPref,"Pref where , Dir=MEC-${Pref}-{Im1}-{Im2}")
+                    <<  EAMC(mNameImA,"ImA")
+                    <<  EAMC(mNameImB,"ImB")
+                    <<  EAMC(mNameImC,"ImC"),
+        LArgMain()  
+                    <<  EAM(aNum,"Num",true,"Num of Px, def=last")
+    );
+
+    cStdNamePx2D aNAB(mPref,mNameImA,mNameImB,aNum);
+    cStdNamePx2D aNBC(mPref,mNameImB,mNameImC,aNum);
+
+    Tiff_Im aTXab(aNAB.mNX.c_str());
+    Pt2di aSz = aTXab.sz();
+    Tiff_Im aTYab(aNAB.mNY.c_str());
+
+    Tiff_Im aTXbc(aNBC.mNX.c_str());
+    Tiff_Im aTYbc(aNBC.mNY.c_str());
+
+    Fonc_Num aDifX = aTXab.in() + aTXbc.in();
+    Fonc_Num aDifY = aTYab.in() + aTYbc.in();
+
+    if (mNameImA!=mNameImC)
+    {
+       cStdNamePx2D aNAC(mPref,mNameImA,mNameImC,aNum);
+
+       Tiff_Im aTXac(aNAC.mNX.c_str());
+       Tiff_Im aTYac(aNAC.mNY.c_str());
+
+       aDifX = aDifX - aTXac.in();
+       aDifY = aDifY - aTYac.in();
+    }
+
+    Im2D_REAL4 aIX(aSz.x,aSz.y);
+    Im2D_REAL4 aIY(aSz.x,aSz.y);
+    ELISE_COPY(aIX.all_pts(),Virgule(aDifX,aDifY),Virgule(aIX.out(),aIY.out()));
+
+    std::vector<double> aVD;
+    double aSomD = 0;
+    Pt2di aP;
+    for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+    {
+       for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
+       {
+           Pt2dr aDif(aIX.GetR(aP),aIY.GetR(aP));
+           double aDist = euclid(aDif);
+           aVD.push_back(aDist);
+           aSomD += aDist;
+       }
+    }
+
+    std::cout << "Moy Euclid = " << aSomD /(aSz.x*double(aSz.y)) << "\n";
+    int aNbStat = 12 ; 
+    for (int aK=1; aK<=aNbStat  ; aK++)
+    {
+       double aProp = aK / double(aNbStat);
+       aProp = sqrt(aProp);
+       std::cout << "Residu at " << (aProp*100.0) << "% = " << KthValProp(aVD,aProp) << "\n";
+    }
+
+
+
+    std::string aDirRes("Tmp-Ferm-" + mPref  +  (EAMIsInit(&aNum) ?  ("-Num"+ToString(aNum)): "" ) + "/");
+    ELISE_fp::MkDirSvp(aDirRes);
+
+    std::string aPref = aDirRes + "Residu-" + mNameImA + "-" + mNameImB + "-"+ mNameImC;
+    
+    Tiff_Im::CreateFromFonc(aPref+"-X.tif",aSz,aIX.in(),GenIm::real4);
+    Tiff_Im::CreateFromFonc(aPref+"-Y.tif",aSz,aIY.in(),GenIm::real4);
+    Tiff_Im::CreateFromFonc(aPref+"-N.tif",aSz,sqrt(Square(aIX.in())+Square(aIY.in())),GenIm::real4);
+
+    return EXIT_SUCCESS;
+}
+
+
+int CPP_CmpDenseMap(int argc,char** argv)
+{
+    std::string mDir,mNameIm1A,mNameIm2A,mNameIm1B,mNameIm2B;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  <<  EAMC(mDir,"Pref where , Dir=MEC-${Pref}-{Im1}-{Im2}")
+                    <<  EAMC(mNameIm1A,"Im1A")
+                    <<  EAMC(mNameIm2A,"Im2A")
+                    <<  EAMC(mNameIm1B,"Im1B")
+                    <<  EAMC(mNameIm2B,"Im2B"),
         LArgMain()  
     );
 
-    Tiff_Im aX1(mNameXI1.c_str());
-    Tiff_Im aY1(mNameYI1.c_str());
-    Tiff_Im aX2(mNameXI2.c_str());
-    Tiff_Im aY2(mNameYI2.c_str());
+    cStdNamePx2D aNA(mDir,mNameIm1A,mNameIm2A);
+    cStdNamePx2D aNB(mDir,mNameIm1B,mNameIm2B);
+
+    std::cout << aNA.mNX << "\n";
+    std::cout << aNA.mNY << "\n";
+
+
+    Tiff_Im aX1(aNA.mNX.c_str());
+    Tiff_Im aY1(aNA.mNY.c_str());
+    Tiff_Im aX2(aNB.mNX.c_str());
+    Tiff_Im aY2(aNB.mNY.c_str());
 
     Pt2di aSz = aX1.sz();
 
@@ -1493,21 +1683,12 @@ int CPP_CmpDenseMap(int argc,char** argv)
     );
 
     std::cout << "R12 = " << R12  << " DIF=" << (aDif / (double (aSz.x) * aSz.y))<< "\n";
-
     return EXIT_SUCCESS;
 }
 
 
 
-cParamMap2DRobustInit::cParamMap2DRobustInit(eTypeMap2D aType,int aNbTirRans) :
-    mType           (aType),
-    mNbTirRans      (aNbTirRans),
-    mNbMaxPtsRansac (2e9),
-    mNbTestFor1P    (4),
-    mPropRan        (0.8),
-    mNbIterL2       (4)
-{
-}
+
 
 
 typedef  std::pair<Pt2dr,Pt2dr>  tPairP;
@@ -1632,11 +1813,17 @@ double TestMap2D(cElMap2D & aMapInit,const ElPackHomologue & aPackInit,bool With
     for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
     {
          itCpl->P2() = (aMapInit)(itCpl->P1());
-    }
+    } 
+    bool IsPolyn =  (aMapInit.Type() == eTM2_Polyn);
 
     // On test aussi la fonction d'affectation
-    cElMap2D * aMap = L2EstimMapHom(eTypeMap2D(aMapInit.Type()),aPack);
-    cElMap2D * aMap2 =  cElMap2D::IdentFromType(aMapInit.Type());
+    cElMap2D * aMap = IsPolyn                                          ?
+                      L2EstimMapHom(aMapInit.Identity(),aPack)                   :
+                      L2EstimMapHom(eTypeMap2D(aMapInit.Type()),aPack) ;
+
+    cElMap2D * aMap2 =  IsPolyn                                    ?
+                        aMapInit.Identity()                        :
+                        cElMap2D::IdentFromType(aMapInit.Type())   ;
 
     aMap2->Affect(*aMap);
 
