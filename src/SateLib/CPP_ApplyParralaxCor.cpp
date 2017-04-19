@@ -41,6 +41,30 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "hassan/reechantillonnage.h"
 #include "RPC.h"
 
+//FFT implementation
+#include <complex>
+
+typedef std::complex<double> Complex;
+
+vector< complex<double> > DFT(vector< complex<double> >& theData)
+{
+	// Define the Size of the read in vector
+	const int S = theData.size();
+
+	// Initalise new vector with size of S
+	vector< complex<double> > out(S, 0);
+	for (unsigned i = 0; (i < S); i++)
+	{
+		out[i] = complex<double>(0.0, 0.0);
+		for (unsigned j = 0; (j < S); j++)
+		{
+			out[i] += theData[j] * polar<double>(1.0, -2 * PI * i * j / S);
+		}
+	}
+
+	return out;
+}
+
 
 Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 {
@@ -89,7 +113,6 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 	cout << "Mean Val : " << aMeanParErr << endl;
 
 	L2SysSurResol aSysPar(12);
-	int countEq = 0 ;
 	//For all points that are not nullified by bad correlation (value=9999) add equation to fit 6th degree polynomials in x and y to measured paralax
 	for (u_int aX = 0; aX < aSz.x; aX++) {
 		for (u_int aY = 0; aY < aSz.y; aY++) {
@@ -97,21 +120,19 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 			double Y = double(aY);
 			if (aParOrig[aY][aX] != -9999)
 			{
-				countEq++;
 				double aEq[12] = {X, X*X, X*X*X, X*X*X*X, X*X*X*X*X, X*X*X*X*X*X, Y, Y*Y, Y*Y*Y, Y*Y*Y*Y, Y*Y*Y*Y*Y, Y*Y*Y*Y*Y*Y };
 				aSysPar.AddEquation(1, aEq, aParOrig[aY][aX]-aMeanParErr);
 			}
 		}
 	}
 
-	cout << "Number of equations = " << countEq << endl;
-
 	//Computing the result
 	bool Ok;
 	Im1D_REAL8 aSolPar = aSysPar.GSSR_Solve(&Ok);
 	double* aPolyPar = aSolPar.data();
 
-	cout << "Cst   = " << aMeanParErr << endl
+	cout << "Polynomial fit " << endl
+		 << "Cst   = " << aMeanParErr << endl
 		 << "Xcoef = " << aPolyPar[0] << " " << aPolyPar[1] << " " << aPolyPar[2] << " " << aPolyPar[3] << " " << aPolyPar[4] << " " << aPolyPar[5]  << endl
 		 << "Ycoef = " << aPolyPar[6] << " " << aPolyPar[7] << " " << aPolyPar[8] << " " << aPolyPar[9] << " " << aPolyPar[10] << " " << aPolyPar[11] <<  endl;
 
@@ -124,40 +145,169 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 		for (u_int aY = 0; aY < aSz.y; aY++) {
 			double X = double(aX);
 			double Y = double(aY);
-			//if (aParOrig[aY][aX] != -9999)
-			//{
 				aDatParFit[aY][aX] = aMeanParErr + aPolyPar[0] * X + aPolyPar[1] * X*X + aPolyPar[2] * X*X*X + aPolyPar[3] * X*X*X*X + aPolyPar[4] * X*X*X*X*X + aPolyPar[5] * X*X*X*X*X*X
 					+ aPolyPar[6] * Y + aPolyPar[7] * Y*Y + aPolyPar[8] * Y*Y*Y + aPolyPar[9] * Y*Y*Y*Y + aPolyPar[10] * Y*Y*Y*Y*Y + aPolyPar[11] * Y*Y*Y*Y*Y*Y;
-			//}
-			//else
-			//{
-			//	aDatParFit[aY][aX] = 0;
-			//}
 		}
 	}
 
 	//Output the Fitted paralax file (polynomials)
-	/*
+	
 	string aNameOut = "GeoI-Px/Px2_Num16_DeZoom1_Geom-Im_adjMM1.tif";
 	Tiff_Im  aTparralaxFitOut
 	(
-		aNameOut.c_str(),
-		aSz,
-		GenIm::real8,
-		Tiff_Im::No_Compr,
-		Tiff_Im::BlackIsZero
+	aNameOut.c_str(),
+	aSz,
+	GenIm::real8,
+	Tiff_Im::No_Compr,
+	Tiff_Im::BlackIsZero
 	);
 
 	ELISE_COPY
 	(
-		aTparralaxFitOut.all_pts(),
-		aParFit.in(),
-		aTparralaxFitOut.out()
+	aTparralaxFitOut.all_pts(),
+	aParFit.in(),
+	aTparralaxFitOut.out()
 	);
-	*/
-	//TODO fit sins
+	
 
-	return aParFit;
+
+	
+	
+	///START OF SIN FITTING
+	//Fit sin in y axis (init? aFreq ~= 0.0033, aAmplitude ~= 0.15)
+	
+	//FFT to refine frequency (aFreq is around 0.0033)
+	
+	// 2D->1D
+	int firstValid=0;
+	int lastValid=0;
+	vector<double> a1DSignal;
+	for (u_int aY = 0; aY < aSz.y; aY++) {
+		double aSum = 0;
+		int aCpt = 0;
+		for (u_int aX = 0; aX < aSz.x; aX++) {
+			if (aParOrig[aY][aX] != -9999)
+			{
+				aCpt++;
+				aSum = aSum + aParOrig[aY][aX] - aDatParFit[aY][aX];
+			}
+		}
+		// If enough data to be reliable
+		if (aCpt > 2000) {
+			if (firstValid == 0) { firstValid = aY; }
+			aSum = aSum / double(aCpt);
+			a1DSignal.push_back(aSum);
+			lastValid = aY;
+		}
+		else {
+			a1DSignal.push_back(-9999);
+		}
+	}
+
+	//cout << "First Valid = " << firstValid << endl;
+	//cout << "Last Valid = " << lastValid << endl;
+
+	//Converting to complex type
+	vector< complex<double> > a1DSignalC;
+	for (u_int i = firstValid; i < lastValid; ++i)
+	{
+		a1DSignalC.push_back(a1DSignal[i]);
+	}
+
+	//Computing DFT
+	vector< complex<double> > aFour = DFT(a1DSignalC);
+
+	//Normalize
+	vector<double> normFour;
+	for (u_int i = 0; i < aFour.size(); ++i)
+	{
+		double aReal = aFour[i].real();
+		double aImag = aFour[i].imag();
+		normFour.push_back(sqrt(aReal * aReal + aImag * aImag));
+	}
+
+	//Find main frequency
+	std::vector<double>::iterator result = std::max_element(normFour.begin(), normFour.end());
+	double aFreq = (std::distance(normFour.begin(), result)+1) / double(normFour.size());
+
+
+	//Solve for aAmplitude and aPhase with aFreq known
+	L2SysSurResol aSysSin(2);
+	//For all points that are not nullified by bad correlation (value=9999) add equation to fit sin in the y axis to measured paralax (corrected of the polynome)
+	//z=a*sin(b*y+c)=a*sin(c)cos(b*y)+a*cos(c)sin(b*y)=d*COSY+e*SINY
+	/*
+	for (u_int aY = 0; aY < aSz.y; aY++) {
+		double COSY = cos(2 * M_PI * aFreq * double(aY));
+		double SINY = sin(2 * M_PI * aFreq * double(aY));
+		for (u_int aX = 0; aX < aSz.x; aX++) {
+			if (aParOrig[aY][aX] != -9999)
+			{
+				double aEq[2] = { COSY, SINY };
+				aSysSin.AddEquation(1, aEq, aParOrig[aY][aX] - aDatParFit[aY][aX]);
+			}
+		}
+	}
+	*/
+	for (u_int aY = 0; aY < aSz.y; aY++) {
+			double COSY = cos(2 * M_PI * aFreq * double(aY));
+			double SINY = sin(2 * M_PI * aFreq * double(aY));
+			if (a1DSignal[aY] != -9999)
+			{
+				double aEq[2] = { COSY, SINY };
+				aSysSin.AddEquation(1, aEq, a1DSignal[aY]);
+			}
+	}
+
+	//Computing the result
+	Im1D_REAL8 aSolSin = aSysSin.GSSR_Solve(&Ok);
+	double* aSin = aSolSin.data();
+
+	double aAmplitude = sqrt(aSin[0] * aSin[0] + aSin[1] * aSin[1]);
+	double aPhase = atan(aSin[0] / aSin[1]);
+	
+	///END Sin Fitting
+
+	
+	cout << "Sin fit " << endl
+		<< "Amplitude = " << aAmplitude << endl
+		<< "Phase     = " << aPhase << endl
+		<< "Frequency = " << aFreq << endl;
+
+	//Creating out container
+	Im2D_REAL8  aParFit2(aSz.x, aSz.y);
+	REAL8 ** aDatParFit2 = aParFit2.data();
+
+	//Filling out container
+	for (u_int aX = 0; aX < aSz.x; aX++) {
+		for (u_int aY = 0; aY < aSz.y; aY++) {
+			double X = aX;
+			double Y = aY;
+			aDatParFit2[aY][aX] = aDatParFit[aY][aX] + aAmplitude*sin(2 * M_PI * aFreq * aY + aPhase);
+		}
+	}
+
+	//Output the Fitted paralax file (polynomials + sin)
+	string aNameOut2 = "GeoI-Px/Px2_Num16_DeZoom1_Geom-Im_adjMM2.tif";
+	Tiff_Im  aTparralaxFit2Out
+	(
+	aNameOut2.c_str(),
+	aSz,
+	GenIm::real8,
+	Tiff_Im::No_Compr,
+	Tiff_Im::BlackIsZero
+	);
+
+	ELISE_COPY
+	(
+	aTparralaxFit2Out.all_pts(),
+	aParFit2.in(),
+	aTparralaxFit2Out.out()
+	);
+	return aParFit2;
+	
+
+
+	//return aParFit;
 }
 
 
@@ -322,7 +472,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	}
 
 
-	cout << "Image corrected" << endl;
+
 	Tiff_Im  aTOut
 		(
 		aNameOut.c_str(),
@@ -375,6 +525,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		aTAngleNOut.out()
 		);
 */
+	cout << "Image corrected" << endl;
 	return 0;
 }
 
