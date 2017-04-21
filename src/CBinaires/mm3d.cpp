@@ -198,6 +198,7 @@ int RedTieP_main(int argc,char **argv) ;
 int OriRedTie_main(int argc,char **argv) ;
 int HomFusionPDVUnik_main(int argc,char **argv) ;
 int TestDistM2C_main(int argc,char ** argv);
+int TestDistortion_main(int argc,char ** argv);
 
 int Blinis_main(int argc,char ** argv);
 int Contrast_main(int argc,char ** argv);
@@ -389,6 +390,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("TiPunch",TiPunch_main," Compute mesh"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
        aRes.push_back(cMMCom("TestDistM2C",TestDistM2C_main," Basic Test for problematic camera "));
+       aRes.push_back(cMMCom("TestDistortion",TestDistortion_main," Basic Test of distortion formula "));
        aRes.push_back(cMMCom("TestChantier",TestChantier_main," Test global acquisition"));
 
        aRes.push_back(cMMCom("TestKey",TestSet_main," Test Keys for Sets and Assoc"));
