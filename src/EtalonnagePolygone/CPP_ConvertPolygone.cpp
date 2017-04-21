@@ -263,6 +263,22 @@ void GenerePolyTxtRect
 
 int ConvertPolygone_main(int argc,char ** argv)
 {
+	/*
+    ConvertOnePolygone
+    (
+		Pt3dr(0,-1,0),
+         "/home/mehdi/Test_Pointe_Auto/resultat_cor.txt",
+         "/home/mehdi/Test_Pointe_Auto/resultat_cor.xml",
+         "ENSG-New-6Cercles","ENSG-New-6Cercles",
+         true,
+         false,
+         0,
+         0,
+         0,
+         false
+      );
+     */
+	
 /*
    {
       double aProfClou[2] = {4.5,9.0};
@@ -415,7 +431,7 @@ int ConvertPolygone_main(int argc,char ** argv)
       true
    );
 */
-
+/*
    ConvertOnePolygone
    (
       Pt3dr(0,0,1),
@@ -427,6 +443,7 @@ int ConvertPolygone_main(int argc,char ** argv)
       0,0,0,false,
       false
    );
+ */
    return 0;
 
 }

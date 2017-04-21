@@ -321,6 +321,11 @@ const cMirePolygonEtal & cMirePolygonEtal::IgnMireN6()
    return TheNewIGN6;
 }
 
+const cMirePolygonEtal & cMirePolygonEtal::ENSGMireN6()
+{
+   return TheNewENSG6;
+}
+
 const cMirePolygonEtal & cMirePolygonEtal::MT0()
 {
 	return TheMT0;
@@ -344,9 +349,11 @@ const double cMirePolygonEtal::TheSofianeDiamR5[5] = {34,26,18,11,8};
 const double cMirePolygonEtal::TheMT0Diams[1] = {52.0};
 const double cMirePolygonEtal::TheDiamMTClous1[] = {};
 
+const double cMirePolygonEtal::TheENSG6[6] = {25.0,20.0,17.0,12.0,10.0,5.0};
 
 //   28 16 9 5 1
 
+cMirePolygonEtal cMirePolygonEtal::TheNewENSG6("ENSG-New-6Cercles",TheENSG6,6);
 cMirePolygonEtal cMirePolygonEtal::TheNewIGN6("Ign-New-6Cercles",TheIgnN6,6);
 cMirePolygonEtal cMirePolygonEtal::TheMTDMire9("MTDMire9",TheMTD9,6);
 
@@ -383,7 +390,10 @@ const cMirePolygonEtal & cMirePolygonEtal::GetFromName(const std::string & aName
 
      if ((aName == "MT0") || (aName == "Mtd0"))
         return TheMT0;
-
+        
+     if (aName == "ENSG-New-6Cercles")
+		return TheNewENSG6;
+		
      if (aName == "Clous1")
         return TheMTClous1;
     std::cout << "UNKNOWN NAME =[" << aName << "]\n";
