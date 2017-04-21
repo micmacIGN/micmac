@@ -46,6 +46,8 @@ public:
     void                              DoAllIm(vector<vector<bool> > &aVTriValid);
     void                              DoAllIm(vector<cImgForTiepTri*> & aVImgTiepTri); //reserve for TaskCorrel
 
+    int & Method() {return mMethod;}
+
 private:
     cInterfChantierNameManipulateur * mICNM;
     std::string                       mDir;
@@ -66,6 +68,7 @@ private:
     vector< vector<double> >          mIndTriValid;
     bool                              mNoTif;
 
+    int                               mMethod;
 };
 
 class cTri3D

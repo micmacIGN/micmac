@@ -66,8 +66,8 @@ class cLinkImTT;
 
 #define TT_SEUIL_CORREL_1PIXSUR2  0.7   // calcul des extrema locaux
 #define TT_DefSeuilDensiteResul   50   // conserve 1 point / disque de rayon TT_DefSeuilDensiteResul
-#define TT_RatioFastFiltrSpatial  4     // Ratio par rapport a TT_DefSeuilDensiteResul     
-#define TT_SEUIL_SURF_TRI_PIXEL   100.0 //  Supprime les triangles trop petits
+#define TT_RatioFastFiltrSpatial  4     // Ratio par rapport a TT_DefSeuilDensiteResul
+#define TT_SEUIL_SURF_TRI_PIXEL   100 //  Supprime les triangles trop petits
 
 #define TT_SEUIL_AutoCorrel  0.85          // Seuil d'elimination par auto-correlation
 #define TT_SEUIL_CutAutoCorrel_INT 0.65    // Seuil d'acceptation rapide par auto correl entiere

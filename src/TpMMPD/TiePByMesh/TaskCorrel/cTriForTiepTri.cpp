@@ -63,7 +63,7 @@ double cTriForTiepTri::valElipse(int & aNInter)
 {
     if (!mrprjOK || mNumImg == -1)
     {
-        cout<<"Projection error !"<<endl;
+        if (aNInter!=0) {cout<<"Projection error !"<<endl;}
         return -1.0;
     }
     else
@@ -162,6 +162,8 @@ if (aDisc <0)
         }
         else
         {
+            if (isColnr && aNInter!=0) {cout<<"3 Pts tri collinear !"<<endl;}
+            if (-aSurf < TT_SEUIL_SURF_TRIANGLE && aNInter!=0) {cout<<"Surface tri too small !"<<endl;}
             mrprjOK = false;
             return -1.0;
         }

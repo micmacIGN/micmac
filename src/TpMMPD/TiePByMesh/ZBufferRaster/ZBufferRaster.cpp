@@ -7,6 +7,7 @@ int rech=1;
 double distMax = DBL_MAX;
 bool withLbl = true;
 bool aNoTif = false;
+int method = 3;
 
 
 int ZBufferRaster_main(int argc,char ** argv)
@@ -26,6 +27,7 @@ int ZBufferRaster_main(int argc,char ** argv)
                 << EAM(rech,  "rech",true,"cal ZBuff in img Resample - default =1.0 - 2 => 2 times <")
                 << EAM(distMax,  "distMax",true,"limit distant cover Maximum from camera - default = NO LIMIT")
                 << EAM(withLbl,  "withLbl",true,"Do image label (image label of triangle in surface)")
+                << EAM(method,  "method",true,"method of grab pixel in triangle (1=very good (low), 3=fast (not so good - def))")
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -89,6 +91,7 @@ int ZBufferRaster_main(int argc,char ** argv)
     {
         aAppli->DistMax() = distMax;
     }
+    aAppli->Method() = method;
     aAppli->WithImgLabel() = withLbl;
     aAppli->Reech() = 1.0/double(rech);
     aAppli->SetNameMesh(aMesh);

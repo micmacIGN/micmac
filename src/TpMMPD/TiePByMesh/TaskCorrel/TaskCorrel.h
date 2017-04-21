@@ -53,6 +53,7 @@ public:
     double & Rech() {return mRech;}
 
     void ZBuffer();
+    bool & KeepAll2nd(){return mKeepAll2nd;}
 
 
 private:
@@ -80,6 +81,8 @@ private:
     vector< vector<bool> > mVTriValid;
     vector< vector<int> > mVIndTriValid;
     cSauvegardeNamedRel  mRelIm;
+
+    bool   mKeepAll2nd;
 
 };
 //  ============================= cAppliTaskCorrelByXML==========================

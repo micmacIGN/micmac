@@ -26,6 +26,7 @@ int TaskCorrel_main(int argc,char ** argv)
         int rech = TT_DEF_SCALE_ZBUF;
         Pt3dr clIni(255.0,255.0,255.0);
         bool noTif = false;
+        bool keepAll2nd = false;
         ElInitArgMain
                 (
                     argc,argv,
@@ -48,6 +49,7 @@ int TaskCorrel_main(int argc,char ** argv)
                     << EAM(clIni, "clIni", true, "color mesh (=[255,255,255])")
                     << EAM(distMax, "distMax", true, "Limit distant process from camera")
                     << EAM(rech, "rech", true, "calcul ZBuffer in Reechantilonage (def=2)")
+                    << EAM(keepAll2nd, "keepAll2nd", true, "Don't filter image 2nd")
                     );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -91,6 +93,8 @@ int TaskCorrel_main(int argc,char ** argv)
         else
         {
             cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg, noTif);
+            if (EAMIsInit(& keepAll2nd))
+                aAppli->KeepAll2nd()=keepAll2nd;
             aAppli->lireMesh(pathPlyFileS/*, aAppli->VTri(), aAppli->VTriF()*/);
             aAppli->SetNInter(nInteraction, aZ);
             aAppli->Rech() = 1.0/double (rech);
