@@ -6,11 +6,12 @@ int QualiteOrtho_main(int argc, char** argv)
 {
 
     bool verbose = false;
+    bool stop1 = false;
 
     std::string aNameFileMNT;// un fichier xml de type FileOriMnt pour le MNT
     std::string aFullMNEPattern;// pattern des nuages en entree
     std::string aFullImagePattern;// pattern des images correspondant aux nuages
-    std::string aNameResult;// un fichier resultat
+    std::string aNameResult, aNameResultZ ;// un fichier resultat
     double resolutionPlani=1.;
     Box2dr aBoxTerrain;
 
@@ -20,15 +21,17 @@ int QualiteOrtho_main(int argc, char** argv)
         argc, argv,
         LArgMain()  << EAMC(aNameFileMNT,"xml file (FileOriMnt) for the DTM")
                     << EAMC(aFullMNEPattern, "Pattern of input MNS",  eSAM_IsPatFile)
-                    << EAMC(aFullImagePattern, "Pattern of corresponding input Images", eSAM_IsPatFile)
+                    << EAMC(aFullImagePattern, "Pattern of corresponding input Orientations", eSAM_IsPatFile)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
-                    << EAMC(aNameResult," output ortho filename"),
+                    << EAMC(aNameResult," output ortho filename")
+                    << EAMC(aNameResultZ," output Zdiff filename"),
         LArgMain()  << EAM(resolutionPlani,"Resol",true,"output ortho resolution")
      );
 
     std::cout << "Input MNT : "<<aNameFileMNT<<std::endl;
     std::cout << "Input MNE : "<<aFullMNEPattern<<std::endl;
     std::cout << "Output Ortho : "<<aNameResult<<std::endl;
+    std::cout << "Output Zdiff : "<<aNameResultZ<<std::endl;
     std::cout << "Resol Ortho : "<<resolutionPlani<<std::endl;
 
 
@@ -57,10 +60,12 @@ int QualiteOrtho_main(int argc, char** argv)
         std::cout << "ok"<<std::endl;
     }
 
-    // Chargement des images
+    // Chargement des orientations
+
+
     cInterfChantierNameManipulateur * aICNM2=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
     std::vector<std::string> aSetImages = *(aICNM2->Get(aPatImages));
-    std::vector<const TIm2D<U_INT1,INT4> *> aVImages;
+    std::vector<CamStenope *> aVImages;
     for(size_t i=0;i<aSetImages.size();++i)
     {
         std::string nom = aDirImages+aSetImages[i];
@@ -68,15 +73,13 @@ int QualiteOrtho_main(int argc, char** argv)
         std::cout << "chargement ..."<<std::endl;
         //cResulMSO aRMso =  aICNM->MakeStdOrient(nom,false);
         //aVNuages.push_back(aRMso.Nuage());
-        aVImages.push_back(new TIm2D<U_INT1,INT4>(Im2D<U_INT1,INT4>::FromFileStd(nom)));
+        aVImages.push_back(CamOrientGenFromFile(nom,aICNM2));
         std::cout << "ok"<<std::endl;
     }
-
 
     // Chargement du MNT
     cFileOriMnt aMntOri=  StdGetFromPCP(aNameFileMNT,FileOriMnt);
     std::cout << "Taille du MNT : "<<aMntOri.NombrePixels().x<<" "<<aMntOri.NombrePixels().y<<std::endl;
-
     TIm2D<REAL4,REAL8> aMntImg(Im2D<REAL4,REAL8>::FromFileStd(aMntOri.NameFileMnt()));
 
     double NoData = -9999.;
@@ -88,6 +91,7 @@ int QualiteOrtho_main(int argc, char** argv)
     std::cout << "Taille de l'image resultat : "<<NC<<" x "<<NL<<std::endl;
     Pt2di SzOrtho(NC,NL);
     TIm2D<REAL4,REAL8>* ptrQualite = new TIm2D<REAL4,REAL8>(SzOrtho);
+    TIm2D<REAL4,REAL8>* ptrZdiff = new TIm2D<REAL4,REAL8>(SzOrtho);
     std::cout << "image pré créée"<<std::endl;
 
 /*
@@ -120,6 +124,9 @@ int QualiteOrtho_main(int argc, char** argv)
     if (verbose)
         std::cout << "PtOrigMNE : " << PtOrigMNE.x << " " << PtOrigMNE.y << std::endl;
 
+//    double C = (P3d_MNT.x - aMntOri.OriginePlani().x)/aMntOri.ResolutionPlani().x;
+//    double L = (P3d_MNT.y - aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
+
     std::cout << "début balayage"<<std::endl;
     for(int l=0;l<NL;++l)
     {
@@ -129,7 +136,7 @@ int QualiteOrtho_main(int argc, char** argv)
             ptI.x = c;
             ptI.y = l;
             if (verbose)
-                std::cout << "Point image : " << c << " " << l << std::endl;
+                std::cout << "Point image de qualite : " << c << " " << l << std::endl;
 
             Pt2dr ptProj;
             ptProj.x = aBoxTerrain._p0.x + c*resolutionPlani;
@@ -146,7 +153,25 @@ int QualiteOrtho_main(int argc, char** argv)
             ptMnt.y = (P3d_MNT.y - aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
             P3d_MNT.z = aMntImg.getr(ptMnt,NoData)*aMntOri.ResolutionAlti() + aMntOri.OrigineAlti();
             if (verbose)
+            {
+                std::cout << "Index MNT    : " << ptMnt.x << " " << ptMnt.y << " " << std::endl;
                 std::cout << "Point 3d MNT : " << P3d_MNT.x << " " << P3d_MNT.y << " " << P3d_MNT.z << std::endl;
+            }
+            ///////////////////////////////////////////////////
+            /// Comment faire pour aller d'un point du MNT vers l'image?
+            ///////////////////////////////////////////////////
+            //Récupération du pixel utilisé avec une ortho classique, faite avec le MNT
+
+
+/* ce n'est pas un nuage...
+            Pt2dr P2d_indexImageviaMNT;
+            P2d_indexImageviaMNT = vMNT->Terrain2Index(P3d_MNT);
+            if (verbose)
+                std::cout << "Index Image via MNT: " << P2d_indexImageviaMNT.x << " " << P2d_indexImageviaMNT.y << std::endl;
+*/
+
+            if (verbose)
+                std::cout << std::endl;
 
 /*
             //Récupération du point 3d sur le MNE
@@ -157,7 +182,7 @@ int QualiteOrtho_main(int argc, char** argv)
             if (verbose)
                 std::cout << "Point 3d MNE : " << P3d_MNE.x << " " << P3d_MNE.y << " " << P3d_MNE.z << std::endl;
 */
-
+/*
             Pt2dr P2d_indexMNEviaMNT;
             P2d_indexMNEviaMNT = aVMNE[0]->Terrain2Index(P3d_MNT);
             if (verbose)
@@ -178,17 +203,48 @@ int QualiteOrtho_main(int argc, char** argv)
             ptMne.y = (ptProj.y - PtOrigMNE.y);
 //            ptMne.x = (ptProj.x - origMNE.x)/0.1;
 //            ptMne.y = (ptProj.y - origMNE.y)/0.1;
+*/
+            /// On sait qu'on a basculé donc le Z n'a pas d'importance
+            ///
+            Pt3dr P3d_MNE;
+            P3d_MNE.x = ptProj.x;
+            P3d_MNE.y = ptProj.y;
+            P3d_MNE.z = 0;
 
-            //Pt3dr AltiMNE = aVMNE[0]->PtOfIndex(ptMne);
+            Pt2dr ptIndex_mne = aVMNE[0]->Terrain2Index(P3d_MNE);
             if (verbose)
-                std::cout << "Index MNE : " << ptMne.x << " " << ptMne.y /*<< " " << AltiMNE.z */<< std::endl;
+                std::cout << "point Index MNE : " << ptIndex_mne.x << " " << ptIndex_mne.y << std::endl;
+
+            double z_mne = aVMNE[0]->ProfOfIndexInterpol(ptIndex_mne);
             if (verbose)
+                std::cout << "Z MNE : " << z_mne <<std::endl;
+
+            P3d_MNE.z = z_mne;
+
+            //Retour dans les images
+            //Point du MNT
+            Pt2dr CoordImgZmnt = aVImages[0]->Ter2Capteur(P3d_MNT);
+            //Point du MNE
+            Pt2dr CoordImgZmne = aVImages[0]->Ter2Capteur(P3d_MNE);
+
+            double dist = sqrt(pow((CoordImgZmnt.x-CoordImgZmne.x),2)+pow((CoordImgZmnt.y-CoordImgZmne.y),2));
+            if (verbose)
+            {
+                std::cout << "point image Z MNT : " << CoordImgZmnt.x << " " << CoordImgZmnt.y << std::endl;
+                std::cout << "point image Z MNE : " << CoordImgZmne.x << " " << CoordImgZmne.y << std::endl;
                 std::cout << std::endl;
 
-            double radio = P3d_MNT.z-P3d_MNEviaMNT.z;
-            ptrQualite->oset(ptI,radio);
+                std::cout << "distance : " << dist << std::endl;
+
+            }
+
+            double Zdiff = abs(P3d_MNE.z-P3d_MNT.z);
+            ptrQualite->oset(ptI,dist);
+            ptrZdiff->oset(ptI,Zdiff);
 
 
+            if (stop1)
+                return 0;
 /*
             Pt3dr P3d_MNEviaMNT;
 
@@ -230,7 +286,9 @@ int QualiteOrtho_main(int argc, char** argv)
 
 
     Tiff_Im out(aNameResult.c_str(), ptrQualite->sz(),GenIm::real4,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+    Tiff_Im out2(aNameResultZ.c_str(), ptrZdiff->sz(),GenIm::real4,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
     ELISE_COPY(ptrQualite->_the_im.all_pts(),ptrQualite->_the_im.in(),out.out());
+    ELISE_COPY(ptrZdiff->_the_im.all_pts(),ptrZdiff->_the_im.in(),out2.out());
 
 /*
     std::cout << "-----------"<<std::endl;
