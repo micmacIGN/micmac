@@ -83,7 +83,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
 
     if (
             aTri.IsInCam() &&
-            -aTri.surf() > TT_SEUIL_SURF
+            -aTri.surf() > Appli()->SEUIL_SURF_TRIANGLE()
        )
     {
         if (mAppli->NInt() > 1 || this->Appli()->Method() == 2 || this->Appli()->Method() == 1)

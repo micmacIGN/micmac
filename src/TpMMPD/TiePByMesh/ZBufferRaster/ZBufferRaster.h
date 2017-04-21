@@ -3,6 +3,7 @@
 
 const double TT_DEFAULT_PROF_NOVISIBLE  = -1.0;
 const double TT_SEUIL_SURF = 100;
+// => Devenir MD_SEUIL_SURF_TRIANGLE, passer comme parametre d'entree
 const double TT_SCALE_1 = 1.0;
 const double TT_DISTMAX_NOLIMIT = -1.0;
 
@@ -47,7 +48,7 @@ public:
     void                              DoAllIm(vector<cImgForTiepTri*> & aVImgTiepTri); //reserve for TaskCorrel
 
     int & Method() {return mMethod;}
-
+    double & SEUIL_SURF_TRIANGLE() {return MD_SEUIL_SURF_TRIANGLE;}
 private:
     cInterfChantierNameManipulateur * mICNM;
     std::string                       mDir;
@@ -69,6 +70,7 @@ private:
     bool                              mNoTif;
 
     int                               mMethod;
+    double                            MD_SEUIL_SURF_TRIANGLE;
 };
 
 class cTri3D

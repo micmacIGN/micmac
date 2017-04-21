@@ -330,7 +330,8 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
          mTimeCorInit += aChrono.uval();
     }
 
-    FiltrageSpatialRMIRC(mDistFiltr);
+    if (mFilSpatial)
+        FiltrageSpatialRMIRC(mDistFiltr);
 
     {
        ElTimer aChrono;
