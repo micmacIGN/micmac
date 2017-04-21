@@ -140,6 +140,7 @@ class cParamAppliTieTri
         bool     mFilAC;
         bool     mFilFAST;
         double   mTT_SEUIL_SURF_TRI;
+        double   mTT_SEUIL_CORREL_1PIXSUR2;
 };
 
 

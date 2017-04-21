@@ -53,7 +53,8 @@ cParamAppliTieTri::cParamAppliTieTri():
    mFilSpatial        (true),
    mFilAC             (true),
    mFilFAST           (true),
-   mTT_SEUIL_SURF_TRI (TT_SEUIL_SURF_TRI_PIXEL)
+   mTT_SEUIL_SURF_TRI (TT_SEUIL_SURF_TRI_PIXEL),
+   mTT_SEUIL_CORREL_1PIXSUR2 (TT_SEUIL_CORREL_1PIXSUR2)
 {
 }
 
@@ -96,7 +97,8 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aParam.mFilFAST,  "FilFAST",true,"Use FAST condition ? (def = true)")
                       << EAM(aParam.mFilAC,  "FilAC",true,"Use Autocorrelation condition ? (def = true)")
                       << EAM(aParam.mTT_SEUIL_SURF_TRI,  "surfTri",true,"Surface min to eliminate too small triangle (def = 100 unit)")
-   );
+                      << EAM(aParam.mTT_SEUIL_CORREL_1PIXSUR2,  "correlBrut",true,"Threshold of correlation score 1pxl/2 (def = 0.7)")
+               );
 
    if (! EAMIsInit(&aParam.mDoRaffImInit))
    {

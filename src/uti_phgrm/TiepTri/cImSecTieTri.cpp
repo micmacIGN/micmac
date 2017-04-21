@@ -244,7 +244,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
 
 
            if (
-                      (aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2) 
+                      (aCRCLoc.mCorrel > mAppli.mTT_SEUIL_CORREL_1PIXSUR2)
                    && InMasqReech(aCRCLoc.mPt) 
                    && (euclid(aCRCLoc.mPt - aPV) < TT_SEUIl_DIST_Extrema_Entier)
               )
