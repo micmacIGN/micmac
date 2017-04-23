@@ -350,12 +350,20 @@ template <class TVal> void SplitArrounKthValue(TVal * Data,int aNb,int aKth)
        return;
    }
 
-/*
-std::cout << " K0 " << aK0 << " K1 " << aK1 << " NB " << aNb << " Kth " << aKth << "\n";
-for (int aK=0; aK< aNb ; aK++) std::cout << Data[aK] << " ";
-std::cout << "\n";
-*/
-// getchar();
+   // Cas degenere, on teste toutes les valeurs egales
+   {
+      int aNbV0 = 0;
+      TVal aV0 = Data[0];
+      for (int aKv=0 ; aKv<aNb ; aKv++)
+      {
+          aNbV0 += (Data[aKv] == aV0);
+      }
+      if (aNbV0==aNb)
+      {
+          return;
+      }
+   }
+
    // A la fin K0=K1 et elle sont bien splite autour de la moyenne
    if (aK0 == aKth)  return;
 

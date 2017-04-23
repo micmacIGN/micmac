@@ -212,6 +212,7 @@ int FusionDepl_Main(int argc,char ** argv);
 
 int BasculeRobuste_main(int argc,char ** argv);
 int CPP_CalcMapAnalitik(int argc,char** argv);
+int CPP_CalcMapXYT(int argc,char** argv);
 int CPP_ReechImMap(int argc,char** argv);
 int CPP_DenseMapToHom(int argc,char** argv);
 int CPP_CmpDenseMap(int argc,char** argv);
@@ -226,6 +227,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 	   aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
 	   
        aRes.push_back(cMMCom("CalcMapAnalytik",CPP_CalcMapAnalitik,"Compute map2d between images using various model "));
+       aRes.push_back(cMMCom("CalcMapXYT",CPP_CalcMapXYT,"Compute map2d between images using various model "));
        aRes.push_back(cMMCom("ReechImMap",CPP_ReechImMap,"Resample image using 2d map "));
        aRes.push_back(cMMCom("DMatch2Hom",CPP_DenseMapToHom,"Dense matching 2 homologues "));
        aRes.push_back(cMMCom("CmpDenseMap",CPP_CmpDenseMap,"comparison of dense map "));

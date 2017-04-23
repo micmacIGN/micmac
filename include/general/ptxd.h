@@ -472,8 +472,7 @@ cXml_Map2D MapFromElem(const cXml_Map2DElem &);
 class cElMap2D
 {
     public :
-         static cElMap2D * IdentFromType(int);
-         static cElMap2D * IdentFromType(int,const Box2d<double> & aBox);
+         static cElMap2D * IdentFromType(int,const std::vector<std::string>* =0);
          virtual Pt2dr operator () (const Pt2dr & p) const = 0;
          virtual int Type() const = 0;
          virtual ~cElMap2D(){}
@@ -494,6 +493,7 @@ class cElMap2D
           // Not yet commented
           void Affect(const cElMap2D &);
           virtual std::vector<double> Params() const;  // "Inverse" de InitFromParams
+          virtual std::vector<std::string> ParamAux() const;  // Pour eventuellement param sec de Polyn
         private :
            virtual bool Compatible(const cElMap2D *) const; // Pour l'affectation, peut faire un down cast 
 };
