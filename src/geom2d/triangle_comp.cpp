@@ -80,9 +80,14 @@ extern void RasterTriangle(const cElTriangleComp & aTri,std::vector<cSegEntierHo
     int aYMinGlob = round_ni(ElMin3(aTri.P0().y,aTri.P1().y,aTri.P2().y));
     int aYMaxGlob = round_ni(ElMax3(aTri.P0().y,aTri.P1().y,aTri.P2().y));
 
-     
+    //int aYMinGlob = round_down(ElMin3(aTri.P0().y,aTri.P1().y,aTri.P2().y));
+    //int aYMaxGlob = round_up(ElMax3(aTri.P0().y,aTri.P1().y,aTri.P2().y));
+
     int aXMinGlob = round_ni(ElMin3(aTri.P0().x,aTri.P1().x,aTri.P2().x));
     int aXMaxGlob = round_ni(ElMax3(aTri.P0().x,aTri.P1().x,aTri.P2().x));
+
+    //int aXMinGlob = round_down(ElMin3(aTri.P0().x,aTri.P1().x,aTri.P2().x));
+    //int aXMaxGlob = round_up(ElMax3(aTri.P0().x,aTri.P1().x,aTri.P2().x));
 
     for (int aY=aYMinGlob  ; aY<aYMaxGlob  ; aY++)
     {

@@ -60,32 +60,47 @@ class cLinkImTT;
 
 #define TT_DefCorrel -2.0
 #define TT_MaxCorrel 1.0
+
+//======= Point d'interet & Other Seuil ============//
 #define TT_DIST_RECH_HOM 12.0  // Seuil de recherche des homologues
 #define TT_DIST_EXTREMA  3.0   // calcul des extrema locaux
-#define TT_DIST_FAST  4.0   // Critere type Fast calcul des extrema locaux
+#define TT_SEUIL_SURF_TRI_PIXEL   100 //  Supprime les triangles trop petits
 
-#define TT_SEUIL_CORREL_1PIXSUR2  0.7   // calcul des extrema locaux
+//======= Filtrage Spatial Seuil ============//
 #define TT_DefSeuilDensiteResul   50   // conserve 1 point / disque de rayon TT_DefSeuilDensiteResul
-#define TT_RatioFastFiltrSpatial  4     // Ratio par rapport a TT_DefSeuilDensiteResul     
-#define TT_SEUIL_SURF_TRI_PIXEL   100.0 //  Supprime les triangles trop petits
+// Rayon de filtrage spatial du point apres l'appariement
+// Dans FiltrageSpatialRMIRC()
 
+#define TT_RatioFastFiltrSpatial  4     // Ratio par rapport a TT_DefSeuilDensiteResul
+//(TT_DefSeuilDensiteResul/TT_RatioFastFiltrSpatial).^2 = rayon de filtrage spatial du point d'interet.
+// Cet seuil est appliquer pour filtrer les point d'interet juste apres la detection de point d'interet
+// Appliquer sur image maitraisse seulement
+// Priorité par FAST quality
+
+//======= AutoCorrel Critere Seuil ============//
 #define TT_SEUIL_AutoCorrel  0.85          // Seuil d'elimination par auto-correlation
 #define TT_SEUIL_CutAutoCorrel_INT 0.65    // Seuil d'acceptation rapide par auto correl entiere
 #define TT_SEUIL_CutAutoCorrel_REEL 0.75   // Seuil d'acceptation rapide par auto correl reelle
-
-#define TT_SEUIl_DIST_Extrema_Entier  1.5  // Distance entre l'extrema init et le max de correl trouve
-
-#define TT_DemiFenetreCorrel 6
-
-#define TT_PropFastStd 0.75
-#define TT_PropFastConsec 0.6
-
-#define TT_SeuilFastStd  5
-#define TT_SeuilFastCons 3
-
 #define TT_SZ_AUTO_COR 3
 
-// #define  TT_SEUIL
+//======= Correlation Seuil ============//
+#define TT_SEUIL_CORREL_1PIXSUR2  0.7   // seuil d'acceptation pour correl 1px/2
+#define TT_SEUIl_DIST_Extrema_Entier  1.5  // Distance entre l'extrema init et le max de correl trouve.
+                                           //seuil d'acceptation point pour correl 1px/2 & pixel entier.
+#define TT_DemiFenetreCorrel 6
+//  Correlation 1PIX/2 => aSzW = TT_DemiFenetreCorrel/2
+//  Correlation entier => aSzW = TT_DemiFenetreCorrel
+
+//======= FAST Critere Seuil ============//
+#define TT_DIST_FAST  4.0   // Critere type Fast calcul des extrema locaux
+
+// 75% de point Non consecutive écarte point noyeau un valeur d'intensité min = 5
+#define TT_PropFastStd 0.75
+#define TT_SeuilFastStd  5
+
+// 60% de point consecutive écarte point noyeau un valeur d'intensité min = 3
+#define TT_PropFastConsec 0.6
+#define TT_SeuilFastCons 3
 
 
 extern bool BugAC;
@@ -121,6 +136,11 @@ class cParamAppliTieTri
         int      mNivLSQM;
         double   mRandomize;
         bool     mNoTif;
+        bool     mFilSpatial;
+        bool     mFilAC;
+        bool     mFilFAST;
+        double   mTT_SEUIL_SURF_TRI;
+        double   mTT_SEUIL_CORREL_1PIXSUR2;
 };
 
 

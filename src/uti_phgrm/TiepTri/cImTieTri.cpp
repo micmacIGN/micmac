@@ -113,7 +113,7 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
 
 
-    if (ElAbs(aSurf) < TT_SEUIL_SURF_TRI_PIXEL)
+    if (ElAbs(aSurf) < mAppli.mTT_SEUIL_SURF_TRI)
     {
         return  false;
     }
@@ -283,7 +283,12 @@ void  cImTieTri::MakeInterestPoint
                    Pt2dr aFastQual =  FastQuality(anIm,aP,*mFastCC,aType==eTTTMax,Pt2dr(TT_PropFastStd,TT_PropFastConsec));
 
                    bool OkFast = (aFastQual.x > TT_SeuilFastStd) && ( aFastQual.y> TT_SeuilFastCons);
-                   bool OkAc =    OkFast && (!AutoCorrel(aP));
+                   if (!mAppli.mFilFAST)
+                       OkFast = true;
+                   bool OkAcIndependent = !AutoCorrel(aP);
+                   if (!mAppli.mFilAC)
+                       OkAcIndependent = true;
+                   bool OkAc =    OkFast && OkAcIndependent;
 
                    if (mW)
                    {
@@ -313,7 +318,9 @@ void  cImTieTri::MakeInterestPoint
         }
     }
 
-    // Filtrage spatial on conserve 1 point / disque de rayon donne 
+    // Filtrage spatial du point d'interet.
+    // Cet filtrage est appliquer apres la detection de point d'interet sur master image seulement.
+    // Priorité par FAST quality
     if (IsMaster())
     {
          std::vector<cIntTieTriInterest> aVI(aListPI->begin(),aListPI->end());

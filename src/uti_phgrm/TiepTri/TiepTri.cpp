@@ -49,7 +49,12 @@ cParamAppliTieTri::cParamAppliTieTri():
    mSzWEnd            (6),
    mNivLSQM           (-1),
    mRandomize         (0.0),
-   mNoTif             (false)
+   mNoTif             (false),
+   mFilSpatial        (true),
+   mFilAC             (true),
+   mFilFAST           (true),
+   mTT_SEUIL_SURF_TRI (TT_SEUIL_SURF_TRI_PIXEL),
+   mTT_SEUIL_CORREL_1PIXSUR2 (TT_SEUIL_CORREL_1PIXSUR2)
 {
 }
 
@@ -88,8 +93,12 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(UseABCorrel,  "UseABCorrel",true,"Tuning use correl in mode A*v1+B=v2 ")
 
                       << EAM(aParam.mNoTif,  "NoTif",true,"Not an image TIF - read img in Tmp-MM-Dir")
-
-   );
+                      << EAM(aParam.mFilSpatial,  "FilSpatial",true,"Use filter spatial ? (def = true)")
+                      << EAM(aParam.mFilFAST,  "FilFAST",true,"Use FAST condition ? (def = true)")
+                      << EAM(aParam.mFilAC,  "FilAC",true,"Use Autocorrelation condition ? (def = true)")
+                      << EAM(aParam.mTT_SEUIL_SURF_TRI,  "surfTri",true,"Surface min to eliminate too small triangle (def = 100 unit)")
+                      << EAM(aParam.mTT_SEUIL_CORREL_1PIXSUR2,  "correlBrut",true,"Threshold of correlation score 1pxl/2 (def = 0.7)")
+               );
 
    if (! EAMIsInit(&aParam.mDoRaffImInit))
    {

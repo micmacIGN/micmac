@@ -19,7 +19,9 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     cptDel (0),
     mDistMax(TT_DISTMAX_NOLIMIT),
     mRech  (TT_DEF_SCALE_ZBUF),
-    mNoTif (aNoTif)
+    mNoTif (aNoTif),
+    mKeepAll2nd (false),
+    MD_SEUIL_SURF_TRIANGLE (TT_SEUIL_SURF_TRIANGLE)
 {
     ElTimer aChrono;
     cout<<"In constructor cAppliTaskCorrel : ";
@@ -123,6 +125,8 @@ void cAppliTaskCorrel::ZBuffer()
     aAppliZBuf->DistMax() = mDistMax;
     aAppliZBuf->Reech() = mRech;
     aAppliZBuf->WithImgLabel() = true; //include calcul Image label triangle valab
+    aAppliZBuf->SEUIL_SURF_TRIANGLE() = SEUIL_SURF_TRIANGLE();
+    aAppliZBuf->Method() = MethodZBuf();
     aAppliZBuf->SetNameMesh(mNameMesh);
     aAppliZBuf->DoAllIm(mVTriValid);
 
@@ -149,7 +153,8 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
     for (uint aKI = 0; aKI<mVImgs.size(); aKI++)
     {
         cImgForTiepTri * aImg = mVImgs[aKI];
-        if (aImg->TriValid()[aTri2D->Ind()])    //if image is in-valid in this tri selon ZBuffer => skip
+        if (mNInter!=0) {cout<<" ++"<<aImg->Name();}
+        if (aImg->TriValid()[aTri2D->Ind()])    //if image is invisible in this tri selon ZBuffer => skip
         {
             aTri2D->reprj(aImg);
             if (aTri2D->rprjOK())
@@ -158,7 +163,7 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
                 double valElipse = aTri2D->valElipse(mNInter);
                 if (mNInter!=0)
                 {
-                    cout<<" ++"<<aImg->Name()<<" * "<<valElipse<<endl;
+                    cout<<" * "<<valElipse<<endl;
                 }
                 if (valElipse >= cur_valElipse)
                 {
@@ -168,7 +173,11 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
                 //Cur_Img2nd().push_back(int(aKI));
                 valEl_img.push_back(Pt2dr(double(aKI),valElipse));
             }
+            else
+            {if (mNInter!=0) {cout<<" * reprojection error"<<endl;}}
         }
+        else
+        {if (mNInter!=0) {cout<<" * Non visible selon ZBuffer"<<endl;}}
     }
     sortDescendPt2drY(valEl_img);
     if (  valEl_img.size() > 1 &&
@@ -189,21 +198,25 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
         //-----DEBUG----//
         if (mNInter!=0)
             cout<<endl;
-        if (valEl_img.size() > 4)
-        {
-            int get_lim = 4 + floor((double(valEl_img.size())-4.0)/2.0);
-            for (int aK=1; aK<get_lim; aK++)
-                Cur_Img2nd().push_back(int(valEl_img[aK].x));
-            imgMas = mVImgs[valEl_img[0].x];
-            return imgMas;
-        }
-        else
-        {
-            for (uint aK=1; aK<(valEl_img.size()); aK++)
-                Cur_Img2nd().push_back(int(valEl_img[aK].x));
-            imgMas = mVImgs[valEl_img[0].x];
-            return imgMas;
-        }
+        //-----Choisir les 2eme images par valEllipse----------
+            if (valEl_img.size() > 4)
+            {
+                int get_lim = valEl_img.size();
+                if (KeepAll2nd() == false)
+                    get_lim = 4 + floor((double(valEl_img.size())-4.0)/2.0);
+                for (int aK=1; aK<get_lim; aK++)
+                    Cur_Img2nd().push_back(int(valEl_img[aK].x));
+                imgMas = mVImgs[valEl_img[0].x];
+                return imgMas;
+            }
+            else
+            {
+                for (uint aK=1; aK<(valEl_img.size()); aK++)
+                    Cur_Img2nd().push_back(int(valEl_img[aK].x));
+                imgMas = mVImgs[valEl_img[0].x];
+                return imgMas;
+            }
+        //-----------------------------------------------------
     }
     else
     {
@@ -315,7 +328,7 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
 //        string fileXML = mICNM->Dir() + xmlNamePairOut + ".xml";
 //        MakeFileXML(mRelIm,fileXML);
 //    }
-    cout<<"Del : "<<cptDel<<endl;
+    cout<<"Del : "<<cptDel<<" /"<<this->VcTri3D().size()<<endl;
 }
 
 //  ============================= **************** =============================
