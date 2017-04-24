@@ -2020,7 +2020,10 @@ class cMapPolXYT
          cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox);
          void   AddEq(eTypeMap2D aType,L2SysSurResol & aSys,const ElPackHomologue & aPack,const double & aTemp);
          int NbUnknown() const;
+         void  InitFromSol(double * aSol);
+         cMapPol2d SolOfTemp(double aTemp) const;
     
+        void Test(const cMapPol2d &,const std::string & aName,const ElPackHomologue & aPack,const double & aTemp);
      private :
          double ToTNorm(const double & aT) const;
 
@@ -2031,23 +2034,27 @@ class cMapPolXYT
          Box2dr mBoxXY;
          int    mDegXY;
          int    mDegT;
-         cMapPol2d               mMapPol; // Buferr
+         cMapPol2d               mMapPolTmp; // Buferr
          std::vector<cMapPol2d>  mVMaps;
+         int                     mNbUXY;
+         int                     mNbUnknown;
 };
 
 cMapPolXYT::cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox) :
-    mT0      ((aBoxT.x+aBoxT.y)/2.0),
-    mAmplT   (ElAbs(aBoxT.x-aBoxT.y)),
-    mBoxXY   (aBox),
-    mDegXY   (aDegXY),
-    mDegT    (aDegreT),
-    mMapPol  (mDegXY,mBoxXY)
+    mT0         ((aBoxT.x+aBoxT.y)/2.0),
+    mAmplT      (ElAbs(aBoxT.x-aBoxT.y)),
+    mBoxXY      (aBox),
+    mDegXY      (aDegXY),
+    mDegT       (aDegreT),
+    mMapPolTmp  (mDegXY,mBoxXY),
+    mNbUXY      (mMapPolTmp.NbUnknown()),
+    mNbUnknown  (mNbUXY * (1+mDegT))
 {
 }
 
 int cMapPolXYT::NbUnknown() const
 {
-   return (1+mDegT) * mMapPol.NbUnknown();
+   return mNbUnknown;
 }
 
 double cMapPolXYT::ToTNorm(const double & aT) const
@@ -2055,6 +2062,27 @@ double cMapPolXYT::ToTNorm(const double & aT) const
     return (aT-mT0) / mAmplT;
 }
 
+void  cMapPolXYT::Test(const cMapPol2d & aMap,const std::string & aName,const ElPackHomologue & aPack,const double & aTemp)
+{
+    double aSomDP=0;
+    double aSomP=0;
+    std::vector<double>  aVD;
+
+    for (ElPackHomologue::const_iterator itP= aPack.begin() ; itP!=aPack.end() ; itP++)
+    {
+          double aD = euclid(aMap(itP->P1())-itP->P2());
+          double aPds = itP->Pds();
+          aSomDP += aD * aPds;
+          aSomP  += aPds;
+          aVD.push_back(aD);
+    }
+
+    std::cout << "Residual, For " << aName 
+              << " moy=" << aSomDP/aSomP 
+              << " med=" << KthValProp(aVD,0.5)
+              << " %80=" << KthValProp(aVD,0.8)
+              << "\n";
+}
 
 void   cMapPolXYT::AddEq(eTypeMap2D aType,L2SysSurResol & aSys,const ElPackHomologue & aPackInit,const double & aTemp)
 {
@@ -2065,7 +2093,7 @@ void   cMapPolXYT::AddEq(eTypeMap2D aType,L2SysSurResol & aSys,const ElPackHomol
     //std::vector<std::string>  cMapPol2d::ParamAux() const
     if (aType!=eTM2_NbVals)
     {
-        std::vector<std::string> aParAux = mMapPol.ParamAux();
+        std::vector<std::string> aParAux = mMapPolTmp.ParamAux();
         cElMap2D * aMapEstim = L2EstimMapHom(aType,aPackInit,&aParAux);
         for (ElPackHomologue::iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
         {
@@ -2073,21 +2101,20 @@ void   cMapPolXYT::AddEq(eTypeMap2D aType,L2SysSurResol & aSys,const ElPackHomol
         }
         delete aMapEstim;
     }
-    int aNbU = mMapPol.NbUnknown();
-    std::vector<double> aX_xy(aNbU);
-    std::vector<double> aY_xy(aNbU);
-    std::vector<double> aX_xyt(aNbU*(1+mDegT));
-    std::vector<double> aY_xyt(aNbU*(1+mDegT));
+    std::vector<double> aX_xy(mNbUXY);
+    std::vector<double> aY_xy(mNbUXY);
+    std::vector<double> aX_xyt(mNbUnknown);
+    std::vector<double> aY_xyt(mNbUnknown);
 
     for (ElPackHomologue::iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
     {
          Pt2dr aCste;
-         mMapPol.AddEq(aCste,aX_xy,aY_xy,itP->P1(),itP->P2());
+         mMapPolTmp.AddEq(aCste,aX_xy,aY_xy,itP->P1(),itP->P2());
          for (int aD=0 ; aD<=mDegT ; aD++)
          {
              double aCoefT = pow(ToTNorm(aTemp),aD);
-             int aInd = aD * aNbU;
-             for (int aK=0 ; aK<aNbU ; aK++)
+             int aInd = aD * mNbUXY;
+             for (int aK=0 ; aK<mNbUXY ; aK++)
              {
                  aX_xyt[aK+aInd] = aCoefT * aX_xy[aK];
                  aY_xyt[aK+aInd] = aCoefT * aY_xy[aK];
@@ -2098,6 +2125,35 @@ void   cMapPolXYT::AddEq(eTypeMap2D aType,L2SysSurResol & aSys,const ElPackHomol
     }
 }
 
+void  cMapPolXYT::InitFromSol(double * aSol)
+{
+    mVMaps.clear();
+    for (int aD=0 ; aD<= mDegT ; aD++)
+    {
+        cMapPol2d aMap = mMapPolTmp;
+        std::vector<double> aVD(aSol+aD*mNbUXY,aSol+(aD+1)*mNbUXY);
+        aMap.InitFromParams(aVD);
+        mVMaps.push_back(aMap);
+    }
+}
+
+cMapPol2d cMapPolXYT::SolOfTemp(double aTemp) const
+{
+    std::vector<double> aVP(mNbUXY,0.0);
+
+    for (int aD=0 ; aD<= mDegT ; aD++)
+    {
+        std::vector<double>  aVt = mVMaps[aD].Params();
+        double aCoefT = pow(ToTNorm(aTemp),aD);
+        for (int aKxy=0 ; aKxy<mNbUXY ; aKxy++)
+        {
+            aVP[aKxy] += aVt[aKxy] * aCoefT;
+        }
+    }
+    cMapPol2d aRes = mMapPolTmp;
+    aRes.InitFromParams(aVP);
+    return aRes;
+}
 
 class cAppliCalcMapXYT
 {
@@ -2116,6 +2172,7 @@ class cAppliCalcMapXYT
          Pt2di         mSz;
          std::vector<ElPackHomologue> mVPack;
          std::vector<double>          mVTemp;
+         std::vector<string>          mVNames;
          std::set<string>             mSetIm;
          cInterfChantierNameManipulateur * mICNM;
          double                            mPdsMaster;
@@ -2159,6 +2216,8 @@ void cAppliCalcMapXYT::AddIm(const std::string & aNameIm,bool isMaster)
        std::string aNameH = mICNM->Assoc1To2(aKHIn,mMaster,aNameIm,true);
        mVPack.push_back(ElPackHomologue::FromFile(aNameH));
     }
+
+    mVNames.push_back(aNameIm);
 
     if ((mKeyCalT=="THOM") ||  (mKeyCalT=="NUM") ||  (mKeyCalT=="VEC"))
     {
@@ -2230,6 +2289,18 @@ cAppliCalcMapXYT::cAppliCalcMapXYT(int argc,char ** argv) :
     for (int aK=0 ; aK<int(mVPack.size()) ; aK++)
     {
          aMapXYT.AddEq(mType,aSys,mVPack[aK],mVTemp[aK]);
+         std::cout << " NAME " << mVNames[aK] << " TMP=" << mVTemp[aK] << "\n";
+    }
+
+    Im1D_REAL8 aSol = aSys.GSSR_Solve((bool*)0);
+    aMapXYT.InitFromSol(aSol.data());
+
+    
+    for (int aK=0 ; aK<int(mVPack.size()) ; aK++)
+    {
+        cMapPol2d aMap = aMapXYT.SolOfTemp(mVTemp[aK]);
+        aMap.SaveInFile("XML-"+mVNames[aK] + ".xml");
+        aMapXYT.Test(aMap,mVNames[aK],mVPack[aK],mVTemp[aK]);
     }
 // cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox);
 }
