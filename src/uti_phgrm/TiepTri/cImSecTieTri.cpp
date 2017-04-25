@@ -102,6 +102,7 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    mTMasqReech =  TIm2DBits<1> (mMasqReech);
 
 
+
    Pt2di aPSec;
    for (aPSec.x=0 ; aPSec.x<mSzReech.x ; aPSec.x++)
    {
@@ -126,6 +127,17 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
       );
 */
       mW->clear();
+/*  ===== Affichier org img 2nd =======
+      ELISE_COPY
+      (
+          mImInit.all_pts(),
+          Max(0,Min(255,255-mImInit.in())),
+          mW->ogray()
+      );
+      ELISE_COPY(select(mImInit.all_pts(),mMasqTri.in()),Min(255,Max(0,mImInit.in())),mW->ogray());
+*/
+
+ /*  ===== Affichier rech img 2nd =======*/
       ELISE_COPY
       (
           mImReech.all_pts(),
@@ -232,7 +244,7 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
 
 
            if (
-                      (aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2) 
+                      (aCRCLoc.mCorrel > mAppli.mTT_SEUIL_CORREL_1PIXSUR2)
                    && InMasqReech(aCRCLoc.mPt) 
                    && (euclid(aCRCLoc.mPt - aPV) < TT_SEUIl_DIST_Extrema_Entier)
               )
@@ -252,8 +264,8 @@ cResulRechCorrel<double> cImSecTieTri::RechHomPtsInteretBilin(const cIntTieTriIn
 
     if (mW&& (aNivInter>=2))
     {
-        mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));
-        mW->draw_circle_loc(Pt2dr(aP0),aD,mW->pdisc()(P8COL::yellow));
+       mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));    //point interet master image pendant matching
+        mW->draw_circle_loc(Pt2dr(aP0),aD,mW->pdisc()(P8COL::yellow));    //
     }
 
     if (! aCRCMax.IsInit())

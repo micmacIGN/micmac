@@ -588,7 +588,7 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
 
     //===== stats Multiplicite ========
     ofstream statsFile;
-    string aName = "Stats_" + aSH + ".txt";
+    string aName = "Stats_" + aOri + ".txt";
     statsFile.open(aName.c_str());
     statsFile << "Stats Multiplicite"<<endl;
     statsFile << "Nb Pts Total : "<<aVAllPtInter.size()<<endl;
@@ -635,6 +635,8 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     }
     //==================================
     statsFile.close();
+
+
     cout<<"Nb Emplacement image : 1 rouge - 2 orange - 3 jaune - 4 vert jaune - 5 cyan - > 5 vert"<<endl;
     return EXIT_SUCCESS;
 }

@@ -10,6 +10,8 @@
 
 
 const double TT_SEUIL_SURF_TRIANGLE = 100;   //min surface du triangle projecte en img
+// => Devenir MD_SEUIL_SURF_TRIANGLE, passer comme parametre d'entree
+
 const double TT_SEUIL_RESOLUTION = DBL_MIN;  //min resolution du triangle reprojecte on img
 const int TT_DEF_SCALE_ZBUF = 2;        //default deZoom pour calculer ZBuffer
 
@@ -53,8 +55,10 @@ public:
     double & Rech() {return mRech;}
 
     void ZBuffer();
+    bool & KeepAll2nd(){return mKeepAll2nd;}
 
-
+    double & SEUIL_SURF_TRIANGLE() {return MD_SEUIL_SURF_TRIANGLE;}
+    int & MethodZBuf() {return mMethodZBuf;}
 private:
     cInterfChantierNameManipulateur * mICNM;
     const string mDir;
@@ -80,6 +84,10 @@ private:
     vector< vector<bool> > mVTriValid;
     vector< vector<int> > mVIndTriValid;
     cSauvegardeNamedRel  mRelIm;
+
+    bool   mKeepAll2nd;
+    double MD_SEUIL_SURF_TRIANGLE;
+    int    mMethodZBuf;
 
 };
 //  ============================= cAppliTaskCorrelByXML==========================

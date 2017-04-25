@@ -20,7 +20,8 @@ cAppliZBufferRaster::cAppliZBufferRaster(cInterfChantierNameManipulateur * aICNM
     mReech(1.0),
     mDistMax (TT_DISTMAX_NOLIMIT),
     mIsTmpZBufExist (ELISE_fp::IsDirectory(aDir + "Tmp-ZBuffer/")),
-    mNoTif (aNoTif)
+    mNoTif (aNoTif),
+    mMethod (3)
 {    
     if ( !mIsTmpZBufExist)
     {

@@ -67,6 +67,7 @@ Les critere supplementaire pour choisir point d'interet robust sont heberger dan
 
    Implementation: class cFastCriterCompute && fonction FastQuality (dans cPtOfCorrel.h)
    Critere basé sur fast detecteur : examiner les point autour pour choisir les pts plus contrasté.
+   TT_DIST_FAST = 4 : constant de former un cercle de voisinage pour critere FAST. Radius de cette cerle = 4 pixels
    2 critère à valider:
 
      (a) TT_PropFastStd = 0.75 => examiner si 75% de points voisins ont valeurs inférieur/superieur de point candidat un écart de TT_SeuilFastStd=5
@@ -166,7 +167,7 @@ Dans 1 Triangle: (DoOneTri)
 		(b) Correlation 1PIX/1 (entière)
 		Executer si Correlation 1PIX/2 valid : 
 		(.) aCRCLoc.mCorrel > TT_SEUIL_CORREL_1PIXSUR2 = 0.7 
-		(.) distance entre pt trouve par correl 2pix/1 et pt init aPV < 1.5
+		(.) distance entre pt trouve par correl 1PIX/2 et pt init aPV < 1.5
 
 		    aCRCLoc = TT_RechMaxCorrelLocale( mMaster->mTImInit,
 						  aP0,

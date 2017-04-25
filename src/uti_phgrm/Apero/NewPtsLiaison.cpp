@@ -46,10 +46,11 @@ class cStatResPM
      public :
         cStatResPM();
         void Init();
-        void AddStat(double anEr,double aPds);
+        void AddStat(double anEr,double aPds,int aMult);
 
         double mNb;
         double mNbNN;
+        double mNbMult;
         double mSomPds;
         double mSomPdsEr;
         double mSomPdsEr2;
@@ -120,13 +121,14 @@ cStatResPM::cStatResPM()
 void cStatResPM::Init()
 {
    mNb=0;
+   mNbMult=0;
    mNbNN=0;
    mSomPds=0;
    mSomPdsEr=0;
    mSomPdsEr2=0;
 }
 
-void  cStatResPM::AddStat(double anEr,double aPds)
+void  cStatResPM::AddStat(double anEr,double aPds,int aMult)
 {
    mNb++;
    if (aPds)
@@ -135,6 +137,7 @@ void  cStatResPM::AddStat(double anEr,double aPds)
        mSomPds += aPds;
        mSomPdsEr += aPds * anEr;
        mSomPdsEr2 += aPds * ElSquare(anEr);
+       if (aMult>2) mNbMult++;
    }
 }
 
@@ -418,9 +421,9 @@ void  cAppliApero::CDNP_Compense
       {
          cCelImTPM * aCel = aSet->CelFromInt(aVIdIm[aKIdIm]);
          cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
-         aCamNBD->mStat.AddStat(aResidu,aPdsIm);
+         aCamNBD->mStat.AddStat(aResidu,aPdsIm,aNbCamOk);
       }
-      aVStat.at(aNbCamOk).AddStat(aResidu,aPdsIm);
+      aVStat.at(aNbCamOk).AddStat(aResidu,aPdsIm,aNbCamOk);
    }
 
    // std::cout << "-----------------------------\n";
@@ -504,21 +507,35 @@ void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & an
          const cStatResPM & aStat = aVStat[aKS];
          if (aStat.mNb)
          {
+             double aRes = sqrt(aStat.mSomPdsEr2 / aStat.mSomPds);
+             double aPercNN = (100.0*aStat.mNbNN) / aStat.mNb;
              std::cout << " Multipl=" << aKS
                        << " NbPts="  << aStat.mNb
-                       << " Res=" <<  sqrt(aStat.mSomPdsEr2 / aStat.mSomPds)
-                       << " %NN=" <<  (100.0*aStat.mNbNN) / aStat.mNb
+                       << " Res=" <<  aRes
+                       << " %NN=" <<  aPercNN
                        << "\n";
+             cXmlSauvExportAperoOneMult aXmlMult;
+             aXmlMult.Multiplicity() = aKS;
+             aXmlMult.Residual() = aRes;
+             aXmlMult.NbPts() = aStat.mNb;
+             aXmlMult.PercOk() = aPercNN;
+              
+             CurXmlE().OneMult().push_back(aXmlMult);
          }
+
     }
     std::cout << "-----------------------------------------------------------------\n";
     cCam_NewBD * aCamWorstRes = 0;
     cCam_NewBD * aCamWorstPerc = 0;
     double aWorstRes = -1;
     double aWorstPerc = 200;
+    double aAverRes   = 0.0;
+    double aSomPds   = 0.0;
 
     for  (int aKIm=0 ; aKIm<aNbIm ; aKIm++)
     {
+         cXmlSauvExportAperoOneIm  aXml;
+
          cCelImTPM * aCel = aSetPM->CelFromInt(aKIm);
          cCam_NewBD * aCamNBD = static_cast<cCam_NewBD *>(aCel->ImTPM_GetVoidData());
          const cStatResPM & aStat = aCamNBD->mStat;
@@ -526,6 +543,8 @@ void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & an
          double aRes = sqrt(aStat.mSomPdsEr2 / aStat.mSomPds);
          double aPerc =  (100.0*aStat.mNbNN) / aStat.mNb;
 
+         aSomPds  += aStat.mSomPds;
+         aAverRes += aStat.mSomPdsEr2;
 
          std::cout << "For pose=" << aCamNBD->mCam->Name()
                    << " NbPts="  << aStat.mNb
@@ -543,8 +562,22 @@ void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & an
             aWorstRes = aRes;
             aCamWorstRes = aCamNBD;
          }
+
+         aXml.Name() =  aCamNBD->mCam->Name();
+         aXml.Residual() = aRes;
+         aXml.PercOk() = aPerc;
+         aXml.NbPts() = aStat.mNb;
+         aXml.NbPtsMul() = aStat.mNbMult;
+
+         CurXmlE().OneIm().push_back(aXml);
     }
 
+    if (aSomPds) 
+    {
+        double aSqrtEr = sqrt(aAverRes/aSomPds);
+        CurXmlE().AverageResidual() = aSqrtEr;
+        std::cout << " ## Average Res " <<  aSqrtEr  << "\n";
+    }
     if (aCamWorstRes) 
         std::cout << " ## Worst Res " << aWorstRes << " for " << aCamWorstRes->mCam->Name() << "\n";
     if (aCamWorstPerc) 

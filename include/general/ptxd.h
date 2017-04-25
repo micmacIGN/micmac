@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#define Pt2di  Pt2d<INT>
 //#define Pt2dr  Pt2d<REAL>
 
+template <class Type> class Box2d;
 class Output;
 class SegComp;
 class Seg2d;
@@ -471,7 +472,7 @@ cXml_Map2D MapFromElem(const cXml_Map2DElem &);
 class cElMap2D
 {
     public :
-         static cElMap2D * IdentFromType(int);
+         static cElMap2D * IdentFromType(int,const std::vector<std::string>* =0);
          virtual Pt2dr operator () (const Pt2dr & p) const = 0;
          virtual int Type() const = 0;
          virtual ~cElMap2D(){}
@@ -492,6 +493,9 @@ class cElMap2D
           // Not yet commented
           void Affect(const cElMap2D &);
           virtual std::vector<double> Params() const;  // "Inverse" de InitFromParams
+          virtual std::vector<std::string> ParamAux() const;  // Pour eventuellement param sec de Polyn
+        private :
+           virtual bool Compatible(const cElMap2D *) const; // Pour l'affectation, peut faire un down cast 
 };
 
 class cComposElMap2D : public cElMap2D
@@ -1061,7 +1065,6 @@ class Interval
 
 
 template <class Type> class BoxFreemanCompil;
-template <class Type> class Box2d;
 
 template <class Type> Box2d<Type> Sup(const Box2d<Type> & b1, const Box2d<Type> & b2);
 template <class Type> Box2d<Type> Inf(const Box2d<Type> & b1, const Box2d<Type> & b2);
