@@ -103,13 +103,13 @@ string ReadDate(string aNameFile)
 	struct tm * curtime = localtime(&_tm);
 	std::ostringstream oss;
 	
-	#if __cplusplus < 201103L
+	//#if __cplusplus < 201103L
 		char buffer[256];
 		strftime(buffer, 256, "%Y%m%d", curtime);
 		oss << buffer;
-	#else
+	/*#else
 		oss << std::put_time(curtime, "%Y%m%d");
-	#endif
+	#endif*/
 	aDate=oss.str();
 
 return aDate;
