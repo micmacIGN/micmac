@@ -159,38 +159,6 @@ using namespace std;
 #include "XML_GEN/all.h"
 #include "XML_GEN/all_tpl.h"
 
-//============ALGLIB
-
-#include "ALGLIB/alglibinternal.cpp"
-#include "ALGLIB/alglibinternal.h"
-#include "ALGLIB/alglibmisc.cpp"
-#include "ALGLIB/alglibmisc.h"
-#include "ALGLIB/ap.cpp"
-#include "ALGLIB/ap.h"
-#include "ALGLIB/dataanalysis.cpp"
-#include "ALGLIB/dataanalysis.h"
-#include "ALGLIB/diffequations.cpp"
-#include "ALGLIB/diffequations.h"
-#include "ALGLIB/fasttransforms.cpp"
-#include "ALGLIB/fasttransforms.h"
-#include "ALGLIB/integration.cpp"
-#include "ALGLIB/integration.h"
-#include "ALGLIB/interpolation.cpp"
-#include "ALGLIB/interpolation.h"
-#include "ALGLIB/linalg.cpp"
-#include "ALGLIB/linalg.h"
-#include "ALGLIB/optimization.cpp"
-#include "ALGLIB/optimization.h"
-#include "ALGLIB/solvers.cpp"
-#include "ALGLIB/solvers.h"
-#include "ALGLIB/specialfunctions.cpp"
-#include "ALGLIB/specialfunctions.h"
-#include "ALGLIB/statistics.cpp"
-#include "ALGLIB/statistics.h"
-#include "ALGLIB/stdafx.h"
-
-
-
 
 // TODO : these global functions and classes should be placed somewhere else
 // see all.cpp for definitions
