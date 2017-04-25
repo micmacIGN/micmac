@@ -392,9 +392,10 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	//1000pix, overlap (5) 800pix
 	//vector<u_int> bands = { 0,0,0,0,0,200,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,3400,3600,3800,4000,4200,4400,4600,4800,5000,5000,5000,5000,5000 };
 	//1000pix overlap (10) 900pix
-	vector<u_int> bands;
-	bands = { 0,0,0,0,0,0,0,0,0,0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100,3200,3300,
+	
+	u_int bandsa[] = { 0,0,0,0,0,0,0,0,0,0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100,3200,3300,
 		3400,3500,3600,3700,3800,3900,4000,4100,4200,4300,4400,4500,4600,4700,4800,4900,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000 };
+	vector<u_int> bands(bandsa,bandsa+69);
 	//vector<u_int> bands = { 0,0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000,5000 };
 	//5000pix 5000pixoverlap
 	//vector<u_int> bands = { 0,0,5000,5000 };
@@ -654,8 +655,8 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		for (u_int aX = 0; aX < aSz.x; aX++) {
 			for (u_int aY = 0; aY < aSz.y; aY++) {
 
-				vector<double> aStack;
-				aStack = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX] };
+				double aStacka[] = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX] };
+				vector<double> aStack(aStacka, aStacka + 5);
 				std::sort(aStack.begin(), aStack.end());//sort the stack
 														//filter crazy values
 				if (abs(aStack[2] - aMeanParErr) > 2)
@@ -679,9 +680,9 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		for (u_int aX = 0; aX < aSz.x; aX++) {
 			for (u_int aY = 0; aY < aSz.y; aY++) {
 
-				vector<double> aStack;
-				aStack = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX],
+				double aStacka[] = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX],
 										aDatParFit2_6[aY][aX],  aDatParFit2_7[aY][aX],  aDatParFit2_8[aY][aX],  aDatParFit2_9[aY][aX],  aDatParFit2_X[aY][aX] };
+				vector<double> aStack(aStacka, aStacka + 10);
 
 				std::sort(aStack.begin(), aStack.end());//sort the stack
 														//filter crazy values
