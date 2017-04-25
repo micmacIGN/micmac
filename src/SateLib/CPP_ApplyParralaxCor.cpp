@@ -654,9 +654,6 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		for (u_int aX = 0; aX < aSz.x; aX++) {
 			for (u_int aY = 0; aY < aSz.y; aY++) {
 
-				//vector<double> aStack = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX],
-				//						aDatParFit2_6[aY][aX],  aDatParFit2_7[aY][aX],  aDatParFit2_8[aY][aX],  aDatParFit2_9[aY][aX],  aDatParFit2_X[aY][aX] };
-
 				vector<double> aStack;
 				aStack = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX] };
 				std::sort(aStack.begin(), aStack.end());//sort the stack
@@ -682,7 +679,8 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		for (u_int aX = 0; aX < aSz.x; aX++) {
 			for (u_int aY = 0; aY < aSz.y; aY++) {
 
-				vector<double> aStack = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX],
+				vector<double> aStack;
+				aStack = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX],
 										aDatParFit2_6[aY][aX],  aDatParFit2_7[aY][aX],  aDatParFit2_8[aY][aX],  aDatParFit2_9[aY][aX],  aDatParFit2_X[aY][aX] };
 
 				std::sort(aStack.begin(), aStack.end());//sort the stack
