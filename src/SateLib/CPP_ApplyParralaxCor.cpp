@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <algorithm>
 #include "hassan/reechantillonnage.h"
 #include "RPC.h"
-#include "ALGLIB\interpolation.h"
+#include "ALGLIB/interpolation.h"
 
 using namespace alglib;
 void function_sunof8sins_func(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
