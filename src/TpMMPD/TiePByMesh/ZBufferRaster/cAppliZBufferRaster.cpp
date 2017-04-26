@@ -46,6 +46,7 @@ void cAppliZBufferRaster::SetNameMesh(string & aNameMesh)
 
 void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
 {
+ //cout<<"=======ZBUF : DistMax "<<this->DistMax()<<" Method "<<this->Method()<<" NInt "<<this->NInt()<<" Reech "<<this->Reech()<<" surf "<<this->SEUIL_SURF_TRIANGLE()<<endl;
     for (int aKIm=0; aKIm<int(mVImg.size()); aKIm++)
     {
         if (aKIm % 10 == 0 && mVImg.size() > 30)
@@ -168,7 +169,7 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
                if(aZBuf->TriValid()[i] == true)
                    aZBuf->CntTriValab()++;
            }
-           cout<<"Nb Tri In ZBuf : "<<aZBuf->CntTriValab()<<endl;
+           cout<<mVImg[aKIm]<<" : "<<aZBuf->CntTriValab()<<" tri valid"<<endl;
        }
        delete aZBuf;
     }

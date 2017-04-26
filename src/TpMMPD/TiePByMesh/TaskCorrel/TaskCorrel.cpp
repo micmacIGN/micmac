@@ -97,12 +97,10 @@ int TaskCorrel_main(int argc,char ** argv)
         else
         {
             cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg, noTif);
-            if (EAMIsInit(& keepAll2nd))
-                aAppli->KeepAll2nd()=keepAll2nd;
-            if (EAMIsInit(& MD_SEUIL_SURF_TRIANGLE))
-                aAppli->SEUIL_SURF_TRIANGLE()=MD_SEUIL_SURF_TRIANGLE;
-            if (EAMIsInit(& MethodZBuf))
-                aAppli->MethodZBuf()=MethodZBuf;
+
+            aAppli->KeepAll2nd()=keepAll2nd;
+            aAppli->SEUIL_SURF_TRIANGLE()=MD_SEUIL_SURF_TRIANGLE;
+            aAppli->MethodZBuf()=MethodZBuf;
             aAppli->lireMesh(pathPlyFileS/*, aAppli->VTri(), aAppli->VTriF()*/);
             aAppli->SetNInter(nInteraction, aZ);
             aAppli->Rech() = 1.0/double (rech);

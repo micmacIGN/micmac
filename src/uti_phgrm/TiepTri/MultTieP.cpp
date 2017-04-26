@@ -618,6 +618,8 @@ void cSetTiePMul::Save(const std::string & aName)
 
 void cSetTiePMul::AddFile(const std::string & aName)
 {
+
+std::cout << " cSetTiePMul::AddFil " << aName << "\n";
     ELISE_fp aFp(aName.c_str(),ELISE_fp::READ,false, FileModeBin(aName) ? ELISE_fp::eBinTjs : ELISE_fp::eTxtTjs);
 
 
@@ -656,7 +658,7 @@ void cSetTiePMul::AddFile(const std::string & aName)
 
     int aNbConfig = aFp.read_U_INT4();
 
-    // std::cout << "NB CONFIG=" <<  aNbConfig << "\n";
+std::cout << "NB CONFIG=" <<  aNbConfig << "\n";
     for (int aKConf=0 ; aKConf < aNbConfig ; aKConf++)
     {
         int aNbPt = aFp.read_U_INT4();
@@ -695,6 +697,7 @@ void cSetTiePMul::AddFile(const std::string & aName)
             // getchar();
         }
     }
+std::cout << "DONNNNNNN \n";
 
     aFp.close();
 

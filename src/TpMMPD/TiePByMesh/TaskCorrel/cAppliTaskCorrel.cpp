@@ -130,6 +130,7 @@ void cAppliTaskCorrel::ZBuffer()
     aAppliZBuf->SetNameMesh(mNameMesh);
     aAppliZBuf->DoAllIm(mVTriValid);
 
+
     ELISE_ASSERT(mVTriValid.size() == mVImgs.size(), "Sz VTriValid uncoherent Nb Img");
 
     for (uint aKIm=0; aKIm<mVImgs.size(); aKIm++)
