@@ -5,15 +5,18 @@
 <ParamMICMAC>
     <DicoLoc>
          <Symb> SzW=20 </Symb>
+         <Symb> DilAlt=1 </Symb>
          <Symb> WinExp=true </Symb>
          <Symb> NbIterWE=2 </Symb>
-         <Symb> PrefDir=MEC-Therm </Symb>
+         <Symb> PrefDir=Therm </Symb>
+
+         <Symb>  PxLim=0.1 </Symb>
 
          <Symb> Im1=XXXX </Symb>
          <Symb> Im2=XXXX </Symb>
          <Symb> Masq=XXXX  </Symb>
 
-         <Symb> DirMEC=${PrefDir}-${Im1}-${Im2}/</Symb>
+         <Symb> DirMEC=MEC-${PrefDir}-${Im1}-${Im2}/</Symb>
          <Symb> Pyr=Pyram/</Symb>
          <Symb> Inc=6.0  </Symb>
          <Symb> Pas=0.2 </Symb>
@@ -43,6 +46,8 @@
          <eSymb>  WithZ4= SupEq ${ZoomInit} 4 </eSymb>
          <eSymb>  WithZ2= SupEq ${ZoomInit} 2 </eSymb>
 
+         <eSymb> DoPx1_20= InfEq ${PxLim} 0.051  </eSymb>
+         <eSymb> DoPx1_40= InfEq ${PxLim} 0.026  </eSymb>
     </DicoLoc>
 <!-- *************************************************************
 Parametres lies au terrain "physique", independamment de la prise de vue
@@ -232,8 +237,8 @@ L'ordre des resolutions : les plus basses aux plus grandes.
            <Px1Pas>   0.8  </Px1Pas>
            <Px2Pas>   0.8  </Px2Pas>
 
-           <Px1DilatAlti  Portee="Globale">  1    </Px1DilatAlti>
-           <Px2DilatAlti  Portee="Globale">  1    </Px2DilatAlti>
+           <Px1DilatAlti  Portee="Globale">  ${DilAlt}    </Px1DilatAlti>
+           <Px2DilatAlti  Portee="Globale">  ${DilAlt}    </Px2DilatAlti>
            <Px1DilatPlani Portee="Globale"> 10    </Px1DilatPlani>
            <Px2DilatPlani Portee="Globale"> 10    </Px2DilatPlani>
 
@@ -264,6 +269,24 @@ L'ordre des resolutions : les plus basses aux plus grandes.
 
            <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
         </EtapeMEC>
+
+        <#WHEN VTEST=${DoPx1_20}>
+           <EtapeMEC>
+              <DeZoom > 1 </DeZoom>
+              <Px1Pas>   0.05  </Px1Pas>
+              <Px2Pas>   0.05  </Px2Pas>
+              <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+           </EtapeMEC>
+        </#WHEN>
+
+        <#WHEN VTEST=${DoPx1_40}>
+           <EtapeMEC>
+              <DeZoom > 1 </DeZoom>
+              <Px1Pas>   0.025  </Px1Pas>
+              <Px2Pas>   0.025  </Px2Pas>
+              <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+           </EtapeMEC>
+        </#WHEN>
 
  
         <#WHEN VTEST=${UseDequant}>
