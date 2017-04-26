@@ -2,6 +2,11 @@
 
 <MMCameraDataBase>
 
+   <CameraEntry>
+        <Name> OV8865 </Name>
+        <SzCaptMm>  3.4 4.67 </SzCaptMm>
+        <ShortName> OV8865 </ShortName>
+   </CameraEntry>
 
    <CameraEntry>
         <Name> RP_imx219 </Name>

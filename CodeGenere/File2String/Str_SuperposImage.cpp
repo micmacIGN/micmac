@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1902]) = {
+const char * (theNameVar_SuperposImage[1910]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1874,6 +1874,14 @@ const char * (theNameVar_SuperposImage[1902]) = {
 "      <MapX Nb=\"1\" RefType=\"Xml_FulPollXY\"> </MapX>\n",
 "      <MapY Nb=\"1\" RefType=\"Xml_FulPollXY\"> </MapY>\n",
 "</Xml_Map2dPol>\n",
+"\n",
+"<Xml_EvolMap2dPol  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"    <DegT  Nb=\"1\" Type=\"int\">      </DegT>\n",
+"    <IntervT Nb=\"1\" Type=\"Pt2dr\">  </IntervT>\n",
+"    <DegXY  Nb=\"1\" Type=\"int\">     </DegXY>\n",
+"    <BoxXY  Nb=\"1\" Type=\"Box2dr\">  </BoxXY>\n",
+"    <PolOfT Nb=\"*\"  Container=\"std::vector\" RefType=\"Xml_Map2dPol\"> </PolOfT>\n",
+"</Xml_EvolMap2dPol>\n",
 "\n",
 "<Xml_Map2DElem Nb=\"1\" Class=\"true\" ToReference=\"true\" UnionType=\"true\">\n",
 "      <Homog RefType=\"XmlHomogr\"  Nb=\"?\"> </Homog>\n",

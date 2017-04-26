@@ -535,7 +535,8 @@ int Tapas_main(int argc,char ** argv)
 
        std::string aNameFileApero = "Apero-Glob-New.xml" ;
 
-       std::string aParamPatFocSetIm = "@" + aPat + "@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
+       // std::string aParamPatFocSetIm = "@" + aPat + "@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
+       std::string aParamPatFocSetIm = "@[[" + aPat + "]]@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
        std::string aSetIm = "NKS-Set-OfPatternAndFoc" + aParamPatFocSetIm;
 
         if (EAMIsInit(&aImMinMax))

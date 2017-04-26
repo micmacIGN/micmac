@@ -164,6 +164,7 @@ class cMapPol2d : public  cElMap2D
 
       cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
       static cMapPol2d FromXml(const cXml_Map2dPol &);
+      cXml_Map2dPol ToXmlPol() const; // Peuvent renvoyer 0
 
 
       double         Ampl() const;
@@ -340,7 +341,7 @@ cXml_FulPollXY  El2Xml(const Polynome2dReal & aPol)
   return aRes;
 }
 
-cXml_Map2D    cMapPol2d::ToXmlGen()
+cXml_Map2dPol cMapPol2d::ToXmlPol() const
 {
    cXml_Map2dPol aXMapPol;
 
@@ -353,9 +354,13 @@ cXml_Map2D    cMapPol2d::ToXmlGen()
 
    aXMapPol.MapX()  = El2Xml(mPolX);
    aXMapPol.MapY()  = El2Xml(mPolY);
+   return aXMapPol;
+}
 
+cXml_Map2D    cMapPol2d::ToXmlGen()
+{
    cXml_Map2DElem aMapE;
-   aMapE.Pol().SetVal(aXMapPol);
+   aMapE.Pol().SetVal(ToXmlPol());
    return cXml_Map2D(MapFromElem(aMapE));
 }
 
@@ -2014,6 +2019,8 @@ void TestMap2D()
 // cXYMapPol2d
 // P(T,x,y) =  Sum ( T^k P_k(x,y)) = 
 
+     //   Calcul map evol
+
 class cMapPolXYT
 {
      public :
@@ -2023,11 +2030,14 @@ class cMapPolXYT
          void  InitFromSol(double * aSol);
          cMapPol2d SolOfTemp(double aTemp) const;
     
-        void Test(const cMapPol2d &,const std::string & aName,const ElPackHomologue & aPack,const double & aTemp);
+         double Test(const cMapPol2d &,const std::string & aName,const ElPackHomologue & aPack,const double & aTemp);
+         cXml_EvolMap2dPol ToXML() const;
+         static cMapPolXYT FromXml(const cXml_EvolMap2dPol &);
      private :
          double ToTNorm(const double & aT) const;
 
          
+         Pt2dr  mBoxT;
          double mT0;
          double mAmplT;
 
@@ -2040,7 +2050,36 @@ class cMapPolXYT
          int                     mNbUnknown;
 };
 
+//  cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox);
+cMapPolXYT cMapPolXYT::FromXml(const cXml_EvolMap2dPol & aXml)
+{
+   cMapPolXYT aRes(aXml.DegT(),aXml.IntervT(),aXml.DegXY(),aXml.BoxXY());
+
+   for (int aK=0 ; aK<int(aXml.PolOfT().size()) ; aK++)
+   {
+      aRes.mVMaps.push_back(cMapPol2d::FromXml(aXml.PolOfT()[aK]));
+   }
+   return aRes;
+}
+
+cXml_EvolMap2dPol cMapPolXYT::ToXML() const
+{
+    cXml_EvolMap2dPol aRes;
+
+    aRes.DegT()    = mDegT;
+    aRes.IntervT() = mBoxT;
+    aRes.DegXY()   = mDegXY;
+    aRes.BoxXY()   = mBoxXY;
+    for (int aK=0 ; aK<int(mVMaps.size()) ; aK++)
+    {
+        aRes.PolOfT().push_back(mVMaps[aK].ToXmlPol());
+    }
+
+    return aRes;
+}
+
 cMapPolXYT::cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox) :
+    mBoxT       (aBoxT),
     mT0         ((aBoxT.x+aBoxT.y)/2.0),
     mAmplT      (ElAbs(aBoxT.x-aBoxT.y)),
     mBoxXY      (aBox),
@@ -2062,7 +2101,7 @@ double cMapPolXYT::ToTNorm(const double & aT) const
     return (aT-mT0) / mAmplT;
 }
 
-void  cMapPolXYT::Test(const cMapPol2d & aMap,const std::string & aName,const ElPackHomologue & aPack,const double & aTemp)
+double  cMapPolXYT::Test(const cMapPol2d & aMap,const std::string & aName,const ElPackHomologue & aPack,const double & aTemp)
 {
     double aSomDP=0;
     double aSomP=0;
@@ -2082,7 +2121,9 @@ void  cMapPolXYT::Test(const cMapPol2d & aMap,const std::string & aName,const El
               << " med=" << KthValProp(aVD,0.5)
               << " %80=" << KthValProp(aVD,0.8)
               << "\n";
+   return aSomDP/aSomP;
 }
+
 
 void   cMapPolXYT::AddEq(eTypeMap2D aType,L2SysSurResol & aSys,const ElPackHomologue & aPackInit,const double & aTemp)
 {
@@ -2093,7 +2134,12 @@ void   cMapPolXYT::AddEq(eTypeMap2D aType,L2SysSurResol & aSys,const ElPackHomol
     //std::vector<std::string>  cMapPol2d::ParamAux() const
     if (aType!=eTM2_NbVals)
     {
-        std::vector<std::string> aParAux = mMapPolTmp.ParamAux();
+        std::vector<std::string> aParAux ;
+        if (aType ==eTM2_Polyn) 
+        {
+           aParAux =   mMapPolTmp.ParamAux();
+        }
+        
         cElMap2D * aMapEstim = L2EstimMapHom(aType,aPackInit,&aParAux);
         for (ElPackHomologue::iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
         {
@@ -2181,6 +2227,7 @@ class cAppliCalcMapXYT
          int                               mDegreXY;
          double                            mTempMin;
          double                            mTempMax;
+         std::string                       mNameOut;
 };
 
 void cAppliCalcMapXYT::AddIm(const std::string & aNameIm,bool isMaster)
@@ -2194,7 +2241,6 @@ void cAppliCalcMapXYT::AddIm(const std::string & aNameIm,bool isMaster)
     Tiff_Im aTifIm = Tiff_Im::StdConvGen(aNameIm,-1,true);
     Pt2di aSz = aTifIm.sz();
 
-    mFirstIm = false;
 
     if (isMaster)
     {
@@ -2245,14 +2291,16 @@ void cAppliCalcMapXYT::AddIm(const std::string & aNameIm,bool isMaster)
        ElSetMax(mTempMax,mVTemp.back());
     }
 
+    mFirstIm = false;
 }
 
 cAppliCalcMapXYT::cAppliCalcMapXYT(int argc,char ** argv) :
     mSH         (""),
     mExt        ("dat"),
-    mFirstIm    (false),
+    mFirstIm    (true),
     mPdsMaster  (1.0),
-    mType       (eTM2_NbVals)
+    mType       (eTM2_NbVals),
+    mNameOut    ("PolOfTXY.xml")
 {
     ElInitArgMain
     (
@@ -2265,6 +2313,8 @@ cAppliCalcMapXYT::cAppliCalcMapXYT(int argc,char ** argv) :
                     <<  EAMC(mKeyCalT,"Key to calc T (THOM->read thom mtd, NUM->order,VEC->use VT args )")
                     <<  EAMC(mSH,"Set of homologue"),
         LArgMain()  <<  EAM(mNameType,"Model",true,"Model in [Homot,Simil,Affine,Homogr,Polyn]")
+                    <<  EAM(mPdsMaster,"PdsM",true,"Pds for master, def=1")
+                    <<  EAM(mNameOut,"Out",true,"file for result, def=PolOfTXY.xml")
     );
 
     cElemAppliSetFile anEASF(mPat);
@@ -2296,12 +2346,15 @@ cAppliCalcMapXYT::cAppliCalcMapXYT(int argc,char ** argv) :
     aMapXYT.InitFromSol(aSol.data());
 
     
+    double aSomD = 0;
     for (int aK=0 ; aK<int(mVPack.size()) ; aK++)
     {
         cMapPol2d aMap = aMapXYT.SolOfTemp(mVTemp[aK]);
-        aMap.SaveInFile("XML-"+mVNames[aK] + ".xml");
-        aMapXYT.Test(aMap,mVNames[aK],mVPack[aK],mVTemp[aK]);
+        // aMap.SaveInFile("XML-"+mVNames[aK] + ".xml");
+        aSomD += aMapXYT.Test(aMap,mVNames[aK],mVPack[aK],mVTemp[aK]);
     }
+    std::cout << " *** MOY DIST GLOB = " << aSomD /mVPack.size() << " ***\n";
+    MakeFileXML(aMapXYT.ToXML(),mNameOut);
 // cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox);
 }
 
@@ -2311,6 +2364,37 @@ int CPP_CalcMapXYT(int argc,char ** argv)
 
    return EXIT_SUCCESS;
 }
+
+
+     //   ================  use map evol  ==============
+
+
+int CPP_MakeMapEvolOfT(int argc,char ** argv)
+{
+    std::string  aNameMapEvol, aNameOut;
+    double aTemp;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  
+                    <<  EAMC(aNameMapEvol,"Name of map evol")
+                    <<  EAMC(aTemp,"Value of \"Temperature\""),
+        LArgMain()  
+                    <<  EAM(aNameOut,"Out",true,"Name for result")
+    );
+
+    cXml_EvolMap2dPol aXml_MapE= StdGetFromSI(aNameMapEvol,Xml_EvolMap2dPol);
+    cMapPolXYT  aMapEv = cMapPolXYT::FromXml(aXml_MapE);
+    cMapPol2d aMap = aMapEv.SolOfTemp(aTemp);
+
+    if (!EAMIsInit(&aNameOut)) 
+       aNameOut = StdPrefix(aNameMapEvol) + "-" + ToString(aTemp) + ".xml";
+
+    aMap.SaveInFile(aNameOut);
+
+    return EXIT_SUCCESS;
+}
+
 
   
 /*Footer-MicMac-eLiSe-25/06/2007

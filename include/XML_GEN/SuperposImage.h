@@ -8497,6 +8497,46 @@ std::string  Mangling( cXml_Map2dPol *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_EvolMap2dPol
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_EvolMap2dPol & anObj,cElXMLTree * aTree);
+
+
+        int & DegT();
+        const int & DegT()const ;
+
+        Pt2dr & IntervT();
+        const Pt2dr & IntervT()const ;
+
+        int & DegXY();
+        const int & DegXY()const ;
+
+        Box2dr & BoxXY();
+        const Box2dr & BoxXY()const ;
+
+        std::vector< cXml_Map2dPol > & PolOfT();
+        const std::vector< cXml_Map2dPol > & PolOfT()const ;
+    private:
+        int mDegT;
+        Pt2dr mIntervT;
+        int mDegXY;
+        Box2dr mBoxXY;
+        std::vector< cXml_Map2dPol > mPolOfT;
+};
+cElXMLTree * ToXMLTree(const cXml_EvolMap2dPol &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_EvolMap2dPol &);
+
+void  BinaryUnDumpFromFile(cXml_EvolMap2dPol &,ELISE_fp &);
+
+std::string  Mangling( cXml_EvolMap2dPol *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_Map2DElem
 {
     public:
