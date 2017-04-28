@@ -2228,6 +2228,7 @@ class cAppliCalcMapXYT
          double                            mTempMin;
          double                            mTempMax;
          std::string                       mNameOut;
+
 };
 
 void cAppliCalcMapXYT::AddIm(const std::string & aNameIm,bool isMaster)
@@ -2398,7 +2399,8 @@ int CPP_MakeMapEvolOfT(int argc,char ** argv)
 
   
 /*Footer-MicMac-eLiSe-25/06/2007
-ysSurResol
+
+Ce logiciel est un programme informatique servant a la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et

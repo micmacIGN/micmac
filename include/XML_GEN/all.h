@@ -1358,6 +1358,8 @@ const cOneAppuisDAF * GetApOfName(const cDicoAppuisFlottant &,const std::string 
 ElPackHomologue PackFromCplAPF(const cMesureAppuiFlottant1Im & aMes, const cMesureAppuiFlottant1Im & aRef);
 
 const cOneMesureAF1I *  PtsOfName(const cMesureAppuiFlottant1Im &,const std::string & aName);
+cMesureAppuiFlottant1Im *  GetMAFOfNameIm(cSetOfMesureAppuisFlottants & aSMAF,const std::string aNameIm,bool CreatIfNone);
+
 
 class cImSecOfMaster;
 const std::list<std::string > * GetBestImSec(const cImSecOfMaster&,int aNb=-1,int aNbMin=-1,int aNbMax=1000,bool OkAndOutWhenNone=false);

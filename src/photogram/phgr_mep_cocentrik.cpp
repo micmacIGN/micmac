@@ -580,6 +580,19 @@ cResMepCoc MEPCoCentrik(bool Quick,const ElPackHomologue & aPack,double aFoc,con
 }
 
 
+/*************************************************************************/
+
+ElPackHomologue  ToPckPhgrm(const ElPackHomologue & aPack,const CamStenope & aCam1,const CamStenope & aCam2)
+{
+    ElPackHomologue aRes;
+
+    for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!= aPack.end() ; itP++)
+    {
+       // F2toPtDirRayonL3
+    }
+
+    return aRes;
+}
 
 
 
