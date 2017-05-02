@@ -2217,6 +2217,7 @@ class cAppliCalcMapXYT
          bool          mFirstIm;
          Pt2di         mSz;
          std::vector<ElPackHomologue> mVPack;
+         std::vector<ElPackHomologue> mVPackNorm;
          std::vector<double>          mVTemp;
          std::vector<string>          mVNames;
          std::set<string>             mSetIm;
@@ -2228,6 +2229,7 @@ class cAppliCalcMapXYT
          double                            mTempMin;
          double                            mTempMax;
          std::string                       mNameOut;
+         std::string                       mOriCmpRot;
 
 };
 
@@ -2295,6 +2297,9 @@ void cAppliCalcMapXYT::AddIm(const std::string & aNameIm,bool isMaster)
     mFirstIm = false;
 }
 
+ElPackHomologue   CompenseRotationFromPoints(const ElPackHomologue & aPack,const CamStenope & aCam1,const CamStenope & aCam2);
+
+
 cAppliCalcMapXYT::cAppliCalcMapXYT(int argc,char ** argv) :
     mSH         (""),
     mExt        ("dat"),
@@ -2316,6 +2321,7 @@ cAppliCalcMapXYT::cAppliCalcMapXYT(int argc,char ** argv) :
         LArgMain()  <<  EAM(mNameType,"Model",true,"Model in [Homot,Simil,Affine,Homogr,Polyn]")
                     <<  EAM(mPdsMaster,"PdsM",true,"Pds for master, def=1")
                     <<  EAM(mNameOut,"Out",true,"file for result, def=PolOfTXY.xml")
+                    <<  EAM(mOriCmpRot,"OriCmpRot",true,"Orientation folder, to compense rotation")
     );
 
     cElemAppliSetFile anEASF(mPat);
@@ -2339,7 +2345,18 @@ cAppliCalcMapXYT::cAppliCalcMapXYT(int argc,char ** argv) :
     L2SysSurResol aSys(aMapXYT.NbUnknown());
     for (int aK=0 ; aK<int(mVPack.size()) ; aK++)
     {
-         aMapXYT.AddEq(mType,aSys,mVPack[aK],mVTemp[aK]);
+         ElPackHomologue aPack = mVPack[aK];
+         if (EAMIsInit(&mOriCmpRot))
+         {
+            // mICNM->StdNameCalib(mOriCmpRot,mVNames[aK]);
+            // mICNM->StdNameCalib(mOriCmpRot,mMaster);
+            CamStenope * aCam1 = mICNM->GlobCalibOfName(mMaster    ,mOriCmpRot,false);
+            CamStenope * aCam2 = mICNM->GlobCalibOfName(mVNames[aK],mOriCmpRot,false);
+
+            aPack = CompenseRotationFromPoints(aPack,*aCam1,*aCam2);
+         }
+         mVPackNorm.push_back(aPack);
+         aMapXYT.AddEq(mType,aSys,aPack,mVTemp[aK]);
          std::cout << " NAME " << mVNames[aK] << " TMP=" << mVTemp[aK] << "\n";
     }
 
@@ -2352,7 +2369,7 @@ cAppliCalcMapXYT::cAppliCalcMapXYT(int argc,char ** argv) :
     {
         cMapPol2d aMap = aMapXYT.SolOfTemp(mVTemp[aK]);
         // aMap.SaveInFile("XML-"+mVNames[aK] + ".xml");
-        aSomD += aMapXYT.Test(aMap,mVNames[aK],mVPack[aK],mVTemp[aK]);
+        aSomD += aMapXYT.Test(aMap,mVNames[aK],mVPackNorm[aK],mVTemp[aK]);
     }
     std::cout << " *** MOY DIST GLOB = " << aSomD /mVPack.size() << " ***\n";
     MakeFileXML(aMapXYT.ToXML(),mNameOut);

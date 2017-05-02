@@ -84,8 +84,12 @@ bool  cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    // Im2D_U_INT1
 }
 
+/*==== 
+    Sert en version interactive , retourne le point d'interet preseclectionne
+   le plus pret d'un clique.
+    Imprime les resultat de fast et auto correl
+=====*/
 cIntTieTriInterest cImMasterTieTri::GetPtsInteret()
-//==== Servir que pour version interactive =====//
 {
    ELISE_ASSERT(mW!=0,"Cannot get point without window");
    Clik aClik = mW->clik_in();
