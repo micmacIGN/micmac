@@ -172,7 +172,7 @@ double cNewO_OrInit2Im::RecouvrtHom(const cElHomographie & aHom)
 
 cNewO_OrInit2Im::cNewO_OrInit2Im
 (
-      bool          aGenereOri,
+      bool          aGenereOri,  // False en frontal a Ratafia etc ....
       bool          aQuick,
       cNewO_OneIm * aI1,
       cNewO_OneIm * aI2,
@@ -187,10 +187,16 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    mI2          (aI2),
    mMergePH     (aMergeTieP),
    mTestC2toC1  (aTestedSol),
+   // Plus utilise
    mPackPDist   (ToStdPack(mMergePH,true,0.1)),
+   //  Representation sous la classe habituelle ToStdPack
    mPackPStd    (ToStdPack(mMergePH,false,0.1)),
    mPInfI1      (1e5,1e5),
    mPSupI1      (-1e5,-1e5),
+   //  On va cree un sous echantillonage des points, en cherchant a conserver
+   //  la distribution initiale
+   // mPackStdRed => contiendra au max 500 points choisis "intelligemmennt" parmi
+   // 1500 pris completement au hasard
    mPackStdRed  (PackReduit(mPackPStd,(aGenereOri?1500 : 150) ,(aGenereOri?500 : 50) )),
    mPack150     (PackReduit(mPackStdRed, (aGenereOri ? 100 : 10) )),
    mPack30      (PackReduit(mPack150, (aGenereOri ? 30 : 3))),
@@ -245,6 +251,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
          }
     }
 
+   // Prepare une partie de l'export xml
    mXml.Im1()   = mI1->Name();
    mXml.Im2()   = mI2->Name();
    mXml.Box1() = Box2dr(aInf1,aSup1);
@@ -335,8 +342,13 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     /*******************************************************/
     /*      TEST DES DIFFERENTES INITIALISATIONS           */
     /*******************************************************/
-   // = T00 ============== Test Patch Plan
 
+   //  AmelioreSolLinear, appellee plusieurs fois, fait :
+   //     * Optimisation de la solution par bundle "rapide" qui linearise directement les equation
+   //     * memorisation si meilleure que la derniere solution enregistree
+
+   // = T00 ============== Test Patch Plan,
+   // on recherche dans l'image des zone plane
    {
       ElTimer aChrono;
       if (! mQuick)
@@ -350,6 +362,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    }
 
    // = T0 ============== Nouveau test par Ransac minimal a 8 points  + ME
+   // Initialisation par matrice essentielle, version a 8 point .
+   // Hypothes bcp d'oulier, peu de bruit
     {
        ElTimer aChrono;
        ElRotation3D aMRR = TestcRanscMinimMatEss(mQuick,mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
@@ -363,6 +377,9 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
        }
     }
    // = T1 ============== Nouveau test par Ransac + ME
+
+    // Deuxieme essai  de la matrice essentielle , en faisant des tirage
+    // a plus de point, hypothese peu d'oulier, bcp de bruit
     {
        ElTimer aChrono;
        ElRotation3D aRR =RansacMatriceEssentielle(mQuick,mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
@@ -378,6 +395,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     }
 
   // = T2 ==============   Test par Matrices essentielles  "classique"
+    //  Matrice  essentielle sur tout les points, estimation L1 puis  L2
     for (int aL2 = 0 ; aL2 < 2 ; aL2++)
     {
         ElTimer aChrono;
@@ -393,6 +411,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
   //  = T3 ============  Test par  homographie plane "classique" (i.e. globale)
 
+    // Test par homographoe globale (mais avec estimation robuste)
     {
        bool ShowDetailHom = mShow && false;
        ElTimer aChrono;
@@ -438,7 +457,11 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
     // == T4 ===========  Test Rotation pure
 
-    // Test rotation pure
+    // Test rotation pure, plus ou moins une branche momentanement morte
+    // Adapatee au cas des rotations pures, idee :
+    //   * 1- calculer la rotation pure 
+    //   * 2- s'en servir pour trouver la rotation globale
+    // 
 
     {
        ElTimer aChrono;
@@ -466,8 +489,10 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
         return;
     }
 
+    // Jusqu'a present les solutions ont ete optimisee avec un bundle approximatif
+    // (directement lineaire). La on va faire du "vrai" bundle
 
-    // Affinage solution
+    // Affinage solution plus precis 
     cInterfBundle2Image * aBundle = mQuick ? mRedPvIBI  :  mFullPvIBI;
     double anErr = aBundle->ErrInitRobuste(mBestSol,0.75);
     ElTimer aChrono;
@@ -479,6 +504,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
          ElRotation3D aSol = aBundle->OneIterEq(mBestSol,anErr);
          mBestSol = aSol;
     }
+    // finalisation sauvegarde resultats
     double anErr90 =  mFullPvIBI->ErrInitRobuste(mBestSol,0.90);
     mIA =  MedianNuage(mPackStdRed,mBestSol);
     aXCmp.OrientAff().Ori() = ExportMatr(mBestSol.Mat());
@@ -553,12 +579,14 @@ class cNO_AppliOneCple
          std::string          mNameOriTest;
          bool                 mShow;
          bool                 mHPP;
+         // Structure pour creer la representation explicite sous forme de points multiples
          tMergeLPackH         mMergeStr;
          ElRotation3D *       mTestSol;
          std::string          mNameModeNO;
          eTypeModeNO          mModeNO;
          bool                 mIsTTK;  // Test Tomasi Kanade
          bool                 mSelAllCple;  // Test Tomasi Kanade
+         std::string          mInOri;
 };
 
 std::string cNO_AppliOneCple::NameXmlOri2Im(bool Bin) const
@@ -579,7 +607,8 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
    mHPP     (true),
    mMergeStr (2,false),
    mTestSol (0),
-   mNameModeNO  (TheStdModeNewOri)
+   mNameModeNO  (TheStdModeNewOri),
+   mInOri       ()
 {
 
    ElInitArgMain
@@ -596,6 +625,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
                    << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(mHPP,"HPP",true,"Homograhic Planar Patch")
                    << EAM(mNameModeNO,"ModeNO",true,"Mode New Ori")
+                   << EAM(mInOri,"InOri",true,"Mode New Ori")
    );
 
    mModeNO = ToTypeNO(mNameModeNO);
@@ -604,14 +634,23 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
    if (MMVisualMode) return;
 
+   // Class cNewO_NameManager classe qui permet d'acceder a tous les nom de fichier
+   // crees dans Martini
    mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,"dat");
 
 
+   // Structure d'image specialisee martini
    mIm1 = new cNewO_OneIm(*mNM,mNameIm1);
    mIm2 = new cNewO_OneIm(*mNM,mNameIm2);
 
    mVI.push_back(mIm1);
    mVI.push_back(mIm2);
+
+   // NOMerge_AddAllCams : Mets dans mMergeStr les points, cree les liens multiples,
+   // et transforme les points en "points photgorammetrique" (t.q (x  y 1) est une direction
+   // de rayon
+   //
+   //  Par la suite tout le code martini, lira ces points directement
 
    NOMerge_AddAllCams(mMergeStr,mVI);
    mMergeStr.DoExport();
@@ -682,8 +721,12 @@ int TestNewOriImage_main(int argc,char ** argv)
 
    BenchNewFoncRot();
    // Bench_NewOri();
+
+   // Classe qui prepare les donnees
    cNO_AppliOneCple anAppli(argc,argv);
    anAppli.Show();
+  
+   // Classe qui fait le calcul 
    cNewO_OrInit2Im * aCple = anAppli.CpleIm();
    const cXml_Ori2Im &  aXml = aCple->XmlRes() ;
 
@@ -696,6 +739,11 @@ int TestNewOriImage_main(int argc,char ** argv)
 
    //==============================================
 
+/* 
+    La commande TestAllNewOriImage_main se rappelle elle meme, si il y a une pattern de N
+  images, N process vont etre lances avec l'option NameIm1=Image...
+*/
+
 int TestAllNewOriImage_main(int argc,char ** argv)
 {
    std::string aPat,aNameOriCalib;
@@ -706,6 +754,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    std::string  aNameModeNO = TheStdModeNewOri;
    std::string aNameIm1;
    std::string aPatGlob;
+   std::string aInOri;
 
 
    ElInitArgMain
@@ -718,6 +767,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous")
                    << EAM(aExtName,"ExtName",true,"User's added Prefix")
                    << EAM(aNameModeNO,"ModeNO",true,"Mode New Ori")
+                   << EAM(aInOri,"InOri",true,"Existing orientation if any")
                    << EAM(aNameIm1,"NameIm1",true,"Name of Image1, internal purpose")
                    << EAM(aPatGlob,"PatGlob",true,"Name of Image1, internal purpose")
    );
@@ -735,7 +785,9 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
    if (!aModeIm1)
    {
+       // Branche ou va lance un process par image
        MakeXmlXifInfo(anEASF.mPat,anEASF.mICNM);
+       // cExeParalByPaquets => parallelise avev message d'avancement
        cExeParalByPaquets aExePaq("NewOri of One Image",aVIm->size());
 
        // Force la creation des directories
@@ -747,9 +799,11 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
            aExePaq.AddCom(aCom);
        }
+       // C'est le ~cExeParalByPaquets => qui va lance l'execution
    }
    else
    {
+       // Mode ou on execute vraiment pour une image
        std::string aKeySub = "NKS-Set-HomolOfOneImage@"+ aPrefHom + "@dat@" + aNameIm1;
        const cInterfChantierNameManipulateur::tSet *   aVH = anICNM->Get(aKeySub);
        std::string aKeyH = "NKS-Assoc-CplIm2Hom@"+ aPrefHom  + "@dat";
@@ -758,24 +812,28 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
        cElRegex anAutom(aPatGlob,10);
 
+       //  On parcourt les points homologues
        for (int aKH = 0 ; aKH<int(aVH->size()) ; aKH++)
        {
            std::string aNameH = (*aVH)[aKH];
            std::pair<std::string,std::string> aPair = anICNM->Assoc2To1(aKeyH,aNameH,false);
            ELISE_ASSERT(aNameIm1==aPair.first,"Incoh in NO_AllOri2Im");
 
+           // On recupere le nom de l'image 2
            std::string aNameIm2 = aPair.second;
 
-// std::cout << "UUUUUU " << ELISE_fp::exist_file(aDir+aNameIm2) << " " << anAutom.Match(aNameIm2) << " " << aNameIm2  << " " << anEASF.mPat<< "\n";
-           if (    (aNameIm1<aNameIm2) 
-                && (ELISE_fp::exist_file(aDir+aNameIm2))
-                && (anAutom.Match(aNameIm2))
+           if (    (aNameIm1<aNameIm2)   // Pour ne faire le calcul que dans un sens
+                && (ELISE_fp::exist_file(aDir+aNameIm2))  //  Precaution si qqun a detruit
+                && (anAutom.Match(aNameIm2))   // Pour que l'image soit dans le pattern
               )
            {
                std::string aNamOri = aDir + aNM->NameXmlOri2Im(aNameIm1,aNameIm2,true);
+               // Sans doute le  IMGP7029.JPG/OriRel-IMGP7030.JPG
+               // Pour ne pas refaire le calcul si deja fait
                if (! ELISE_fp::exist_file(aNamOri))
                {
                     std::string aNameH21 = aDir +  anEASF.mICNM->Assoc1To2(aKeyH,aNameIm2,aNameIm1,true);
+                    // Lance la commande qui va vraiment faire le calcul 
                     if (ELISE_fp::exist_file(aNameH21))
                     {
                         std::string aCom =   MM3dBinFile("TestLib NO_Ori2Im") + " " + aNameIm1 + " " + aNameIm2 + " ";
@@ -786,6 +844,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                         aCom = aCom + " PrefHom=" + aPrefHom;
                         aCom = aCom + " ExtName=" + aExtName;
                         aCom = aCom + " ModeNO=" + aNameModeNO;
+                        aCom = aCom + " InOri=" + aInOri;
 
                         System(aCom);
 

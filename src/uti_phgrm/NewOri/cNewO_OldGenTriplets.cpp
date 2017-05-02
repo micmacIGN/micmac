@@ -315,6 +315,7 @@ class cAppli_GenTriplet
        int                           mKS0;
        std::string                   mNameModeNO;
        eTypeModeNO                   mModeNO;
+       std::string                   mInOri;
        bool                          mSelAll;
 };
 
@@ -957,7 +958,8 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     mExtName    (""),
     mRamAllowed (4e9),
     mKS0        (0),
-    mNameModeNO     (TheStdModeNewOri)
+    mNameModeNO (TheStdModeNewOri),
+    mInOri      ("")
 {
    ElTimer aChronoLoad;
 
@@ -976,6 +978,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
                    << EAM(mExtName,"ExtName",true,"User's added prefix, def=\"\"")
                    << EAM(mNameModeNO,"ModeNO",true,"Mode (Def=Std)")
+                   << EAM(mInOri,"InOri",true,"Existing orientation if any")
 
    );
    

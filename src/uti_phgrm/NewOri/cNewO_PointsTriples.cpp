@@ -255,6 +255,7 @@ class cAppli_GenPTripleOneImage
            bool                              mSkWhenExist;
            std::string                       mNameModeNO;
            eTypeModeNO                       mModeNO;
+           std::string                       mInOri;
 };
 
 class cCmpPtrIOnName
@@ -271,7 +272,8 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
     mPrefHom     (""),
     mExtName     (""),
     mSkWhenExist (true),
-    mNameModeNO      (TheStdModeNewOri)
+    mNameModeNO  (TheStdModeNewOri),
+    mInOri       ("")
 {
    ElInitArgMain
    (
@@ -283,7 +285,7 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
                    << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
                    << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(mNameModeNO,"ModeNO",true,"Mode (Def=Std)")
-
+                   << EAM(mInOri,"InOri",true,"Existing orientation if any")
    );
 
    mModeNO = ToTypeNO(mNameModeNO);
@@ -559,6 +561,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
    std::string aPrefHom="";
    std::string aExtName="";
    std::string aNameModeNO  = TheStdModeNewOri;
+   std::string aInOri  = "";
    ElInitArgMain
    (
         argc,argv,
@@ -569,6 +572,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
                    << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
                    << EAM(aExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(aNameModeNO,"ModeNO",true,"Mode (Def=Std)")
+                   << EAM(aInOri,"InOri",true,"Existing orientation if any")
    );
 
    cElemAppliSetFile anEASF(aFullName);
@@ -594,6 +598,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
             aCom += " PrefHom=" +aPrefHom;
             aCom += " ExtName=" +aExtName;
             aCom += " ModeNO=" +aNameModeNO;
+            aCom += " InOri=" +aInOri;
 
             //           std::cout << "COM= " << aCom << "\n";
             anEPbP.AddCom(aCom);

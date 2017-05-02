@@ -498,6 +498,7 @@ class cResulMultiImRechCorrel
          bool                                   mAllInit;
          std::vector<cResulRechCorrel > mVRRC;
          std::vector<int>                       mVIndex;
+         std::vector<bool>                      mVSelec; // Utilise dans le filtrage spatial pour savoir si ce point a deja ete selec
 };
 
 class cOneTriMultiImRechCorrel

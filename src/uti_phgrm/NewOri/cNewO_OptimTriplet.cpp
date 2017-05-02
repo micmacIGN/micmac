@@ -220,6 +220,7 @@ class cAppliOptimTriplet
           eTypeModeNO      mModeNO;
           bool             mModeTTK;
           bool             mWithTTK;
+          std::string      mInOri;
 };
 
 const std::string cAppliOptimTriplet::KeyCple = "KeyCple";
@@ -583,6 +584,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
                    << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(mBugTK,"BugTK",true,"Debug Tomasi Kanade")
                    << EAM(mNameModeNO,"ModeNO",true,"Mode New Orient (Def=Std)")
+                   << EAM(mInOri,"InOri",true,"Existing orientation (if any)")
    );
 
    mModeNO =  ToTypeNO(mNameModeNO);
@@ -912,6 +914,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    std::string aExtName="";
    bool Debug  = false;
    std::string aNameModeNO = TheStdModeNewOri;
+   std::string aInOri;
    bool aShow = false;
    int  aNb0=0;
 
@@ -926,6 +929,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
                    << EAM(aExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(Debug,"Debug",true,"Debugging mode (tuning purpose)", eSAM_IsBool)
                    << EAM(aNameModeNO,"ModeNO",true,"Mode (Def=Std)")
+                   << EAM(aInOri,"InOri",true,"Existing orientation if any")
                    << EAM(aShow,"Show",true,"Print command of each triplet")
                    << EAM(aNb0,"Nb0",true,"Num first pair to execute, tuning, Def=0")
     );
@@ -961,6 +965,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
             aCom += " PrefHom=" + aPrefHom;
             aCom += " ExtName=" + aExtName;
             aCom += " ModeNO=" + aNameModeNO;
+            aCom += " InOri=" + aInOri;
 
             if (aShow)
             {
