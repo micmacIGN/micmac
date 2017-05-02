@@ -422,6 +422,7 @@ class cAppli_NewSolGolInit
         ElTimer                 mChrono;
         int                     mNbIterLast;
         std::string             mModeNO;
+        std::string             mInOri;
 };
 
 

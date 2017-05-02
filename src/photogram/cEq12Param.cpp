@@ -66,8 +66,10 @@ void cEq12Parametre::AddObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const do
 }
 
 
-std::pair<ElMatrix<double>,ElRotation3D > cEq12Parametre::ComputeOrtho()
+std::pair<ElMatrix<double>,ElRotation3D > cEq12Parametre::ComputeOrtho(bool *Ok)
 {
+   if (Ok) 
+      *Ok=true;
    std::pair<ElMatrix<double>,Pt3dr> aPair = ComputeNonOrtho();
 
    std::pair<ElMatrix<double>,ElMatrix<double> > aRQ = RQDecomp(gaussj(aPair.first));
@@ -103,6 +105,7 @@ std::pair<ElMatrix<double>,ElRotation3D > cEq12Parametre::ComputeOrtho()
        cElWarning::OnzeParamSigneIncoh.AddWarn("",__LINE__,__FILE__);
    }
 
+
    if (aNbBadSide > aNbGoodSide)
    {
      
@@ -111,7 +114,14 @@ std::pair<ElMatrix<double>,ElRotation3D > cEq12Parametre::ComputeOrtho()
        Pt3dr aJ = aRotC2M.ImVect(Pt3dr(0,1,0));
        Pt3dr aK = aRotC2M.ImVect(Pt3dr(0,0,1));
 */
-       ELISE_ASSERT(false,"In 11 param, probable sign error in coordinates ");
+       if (Ok)
+       {
+          *Ok=false;
+       }
+       else
+       {
+          ELISE_ASSERT(false,"In 11 param, probable sign error in coordinates ");
+       }
 
    }
 
@@ -237,6 +247,133 @@ void cEq12Parametre::ComputeOneObs(const Pt3dr & aPG,const Pt2dr & aPPhgr,const 
         aC[aK] = (aK==mIndFixArb);
     mSys.GSSR_AddNewEquation(aPds,aC,mValueFixArb,(double *)0);
 }
+
+CamStenope * cEq12Parametre::Camera11Param
+             (
+                 const Pt2di&               aSzCam,
+                 bool                       isFraserModel,
+                 const std::vector<Pt3dr> & aVCPCur,
+                 const std::vector<Pt2dr> & aVImCur,
+                 double & Alti ,
+                 double & Prof
+             )
+{
+    cEq12Parametre anEq12;
+    Pt3dr aPMoy(0,0,0);
+    for (int aK=0 ; aK<int(aVCPCur.size()) ; aK++)
+    {
+        anEq12.AddObs(aVCPCur[aK],aVImCur[aK],1.0);
+        aPMoy = aPMoy+aVCPCur[aK];
+    }
+    aPMoy = aPMoy/double(aVCPCur.size());
+    bool Ok;
+    std::pair<ElMatrix<double>,ElRotation3D > aPair = anEq12.ComputeOrtho(&Ok);
+    if (!Ok) 
+       return 0;
+    ElMatrix<double> aMat = aPair.first;
+    ElRotation3D aR = aPair.second;
+
+    double aFX =  aMat(0,0);
+    double aFY =  aMat(1,1);
+    Pt2dr aPP(aMat(2,0),aMat(2,1));
+    double aSkew =  aMat(1,0);
+
+    Pt3dr aCenter =  aR.ImAff(Pt3dr(0,0,0));
+    Alti = aPMoy.z;
+    Prof = euclid(aPMoy-aCenter);
+
+
+    Pt2dr aRSz = Pt2dr(aSzCam);
+
+    ElDistRadiale_PolynImpair aDR((1.1*euclid(aRSz))/2.0,aPP);
+
+    CamStenope * aCS=0;
+    std::vector<double> aPAF;
+    if (isFraserModel)
+    {
+        cDistModStdPhpgr aDPhg(aDR);
+        aDPhg.b1() = (aFX-aFY)/ aFY;
+        aDPhg.b2() = aSkew / aFY;
+        aCS = new cCamStenopeModStdPhpgr(false,aFY,aPP,aDPhg,aPAF);
+    }
+    else
+    {
+        aCS = new cCamStenopeDistRadPol(false,(aFX+aFY)/2.0,aPP,aDR,aPAF);
+    }
+
+    if (aCS)
+    {
+        aCS->SetOrientation(aR.inv());
+    }
+
+    return aCS;
+}
+
+
+CamStenope * cEq12Parametre::RansacCamera11Param
+                            (
+                                const Pt2di&               aSzCam,
+                                bool                       isFraserModel,
+                                const std::vector<Pt3dr> & aVCPTot,
+                                const std::vector<Pt2dr> & aVImTot,
+                                double & Alti ,
+                                double & Prof,
+                                int    aNbTest,
+                                double  aPropInlier,
+                                int     aNbMaxTirage
+                            )
+{
+     int aNbTot = aVCPTot.size();
+     double aScoreMin = 1e60;
+     CamStenope * aBestSol=0;
+     for (int aKTest=0 ; aKTest<aNbTest ; aKTest++)
+     {
+          int aNbPts = 6 + aKTest%ElMax(1,(1+aNbMaxTirage-6));
+          cRandNParmiQ aSel(aNbPts,aNbTot);
+
+          std::vector<Pt3dr> aVCPSel;
+          std::vector<Pt2dr> aVImSel;
+          for (int aKp=0 ; aKp<aNbTot ; aKp++)
+          {
+              if (aSel.GetNext())
+              {
+                  aVCPSel.push_back(aVCPTot[aKp]);
+                  aVImSel.push_back(aVImTot[aKp]);
+              }
+          }
+          double AltiTest,ProfTest;
+          CamStenope * aSolTest = Camera11Param(aSzCam,isFraserModel,aVCPSel,aVImSel,AltiTest,ProfTest);
+          if (aSolTest)
+          {
+              std::vector<double> aVDist;
+              for (int aKp=0 ; aKp<aNbTot ; aKp++)
+              {
+                   double aResIm = euclid(aVImTot[aKp]-aSolTest->Ter2Capteur(aVCPTot[aKp]));
+                   aVDist.push_back(aResIm);
+              }
+              double aVPerc = KthValProp(aVDist,aPropInlier);
+
+              double aSomP = 0;
+              for (int aKp=0 ; aKp<aNbTot ; aKp++)
+              {
+                   double aPds = aVDist[aKp] / (aVDist[aKp] +aVPerc);
+                   aSomP += aPds;
+              }
+              double aScore = aVPerc * aSomP;
+              if (aScore<aScoreMin)
+              {
+                  aScoreMin = aScore;
+                  aBestSol = aSolTest;
+                  Alti = AltiTest;
+                  Prof = ProfTest;
+              }
+          }
+     }
+
+     return aBestSol;
+}
+
+
 
 static std::string aTCS_PrefGen="TmpChSysCo";
 void AffinePose(ElCamera & aCam,const std::vector<Pt2dr> & aVIm,const std::vector<Pt3dr> & aVPts)

@@ -198,6 +198,7 @@ int RedTieP_main(int argc,char **argv) ;
 int OriRedTie_main(int argc,char **argv) ;
 int HomFusionPDVUnik_main(int argc,char **argv) ;
 int TestDistM2C_main(int argc,char ** argv);
+int TestDistortion_main(int argc,char ** argv);
 
 int Blinis_main(int argc,char ** argv);
 int Contrast_main(int argc,char ** argv);
@@ -212,10 +213,14 @@ int FusionDepl_Main(int argc,char ** argv);
 
 int BasculeRobuste_main(int argc,char ** argv);
 int CPP_CalcMapAnalitik(int argc,char** argv);
+int CPP_CalcMapXYT(int argc,char** argv);
 int CPP_ReechImMap(int argc,char** argv);
 int CPP_DenseMapToHom(int argc,char** argv);
 int CPP_CmpDenseMap(int argc,char** argv);
+int CPP_FermDenseMap(int argc,char** argv);
 int ScalePat_main(int argc,char** argv);
+int CPP_MakeMapEvolOfT(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -225,9 +230,12 @@ const std::vector<cMMCom> & getAvailableCommands()
 	   aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
 	   
        aRes.push_back(cMMCom("CalcMapAnalytik",CPP_CalcMapAnalitik,"Compute map2d between images using various model "));
+       aRes.push_back(cMMCom("CalcMapXYT",CPP_CalcMapXYT,"Compute map2d evol of T "));
+       aRes.push_back(cMMCom("CalcMapOfT",CPP_MakeMapEvolOfT,"Compute value of map evol for a given T "));
        aRes.push_back(cMMCom("ReechImMap",CPP_ReechImMap,"Resample image using 2d map "));
        aRes.push_back(cMMCom("DMatch2Hom",CPP_DenseMapToHom,"Dense matching 2 homologues "));
        aRes.push_back(cMMCom("CmpDenseMap",CPP_CmpDenseMap,"comparison of dense map "));
+       aRes.push_back(cMMCom("FermDenseMap",CPP_FermDenseMap,"Consistency by closing on dense maps "));
 
        aRes.push_back(cMMCom("FusionDepl",FusionDepl_Main,"Fusion carte de deplacement "));
        aRes.push_back(cMMCom("TestPbRPC",TestCamRPC,"Test possible Problems on RPC ",cArgLogCom(2)));
@@ -389,6 +397,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("TiPunch",TiPunch_main," Compute mesh"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
        aRes.push_back(cMMCom("TestDistM2C",TestDistM2C_main," Basic Test for problematic camera "));
+       aRes.push_back(cMMCom("TestDistortion",TestDistortion_main," Basic Test of distortion formula "));
        aRes.push_back(cMMCom("TestChantier",TestChantier_main," Test global acquisition"));
 
        aRes.push_back(cMMCom("TestKey",TestSet_main," Test Keys for Sets and Assoc"));

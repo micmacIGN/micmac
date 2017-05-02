@@ -73,7 +73,7 @@ double cTriForTiepTri::valElipse(int & aNInter)
         Pt3dr Pt2 = mTri3D_.P2();
         Pt3dr Pt3 = mTri3D_.P3();
         bool isColnr = isCollinear(Pt1, Pt2, Pt3);  //si 3 point du triangle sont collinears
-        if (-aSurf > TT_SEUIL_SURF_TRIANGLE && mrprjOK && !isColnr)
+        if (-aSurf > mAppli->SEUIL_SURF_TRIANGLE() && mrprjOK && !isColnr)
         {
         //creer plan 3D local contient triangle
             cElPlan3D * aPlanLoc = new cElPlan3D(Pt1, Pt2, Pt3);    //ATTENTION : peut causer error vuunit si 3 point collinear
@@ -163,7 +163,7 @@ if (aDisc <0)
         else
         {
             if (isColnr && aNInter!=0) {cout<<"3 Pts tri collinear !"<<endl;}
-            if (-aSurf < TT_SEUIL_SURF_TRIANGLE && aNInter!=0) {cout<<"Surface tri too small !"<<endl;}
+            if (-aSurf < mAppli->SEUIL_SURF_TRIANGLE() && aNInter!=0) {cout<<"Surface tri too small !"<<endl;}
             mrprjOK = false;
             return -1.0;
         }

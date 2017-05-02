@@ -20,7 +20,8 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     mDistMax(TT_DISTMAX_NOLIMIT),
     mRech  (TT_DEF_SCALE_ZBUF),
     mNoTif (aNoTif),
-    mKeepAll2nd (false)
+    mKeepAll2nd (false),
+    MD_SEUIL_SURF_TRIANGLE (TT_SEUIL_SURF_TRIANGLE)
 {
     ElTimer aChrono;
     cout<<"In constructor cAppliTaskCorrel : ";
@@ -124,8 +125,11 @@ void cAppliTaskCorrel::ZBuffer()
     aAppliZBuf->DistMax() = mDistMax;
     aAppliZBuf->Reech() = mRech;
     aAppliZBuf->WithImgLabel() = true; //include calcul Image label triangle valab
+    aAppliZBuf->SEUIL_SURF_TRIANGLE() = SEUIL_SURF_TRIANGLE();
+    aAppliZBuf->Method() = MethodZBuf();
     aAppliZBuf->SetNameMesh(mNameMesh);
     aAppliZBuf->DoAllIm(mVTriValid);
+
 
     ELISE_ASSERT(mVTriValid.size() == mVImgs.size(), "Sz VTriValid uncoherent Nb Img");
 

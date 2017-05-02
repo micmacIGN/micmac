@@ -7189,6 +7189,42 @@ std::string  Mangling( cXmlSauvExportAperoOneAppuis *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlSauvExportAperoOneMult
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlSauvExportAperoOneMult & anObj,cElXMLTree * aTree);
+
+
+        int & Multiplicity();
+        const int & Multiplicity()const ;
+
+        double & Residual();
+        const double & Residual()const ;
+
+        int & NbPts();
+        const int & NbPts()const ;
+
+        double & PercOk();
+        const double & PercOk()const ;
+    private:
+        int mMultiplicity;
+        double mResidual;
+        int mNbPts;
+        double mPercOk;
+};
+cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneMult &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlSauvExportAperoOneMult &);
+
+void  BinaryUnDumpFromFile(cXmlSauvExportAperoOneMult &,ELISE_fp &);
+
+std::string  Mangling( cXmlSauvExportAperoOneMult *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXmlSauvExportAperoOneIter
 {
     public:
@@ -7202,6 +7238,9 @@ class cXmlSauvExportAperoOneIter
 
         std::list< cXmlSauvExportAperoOneIm > & OneIm();
         const std::list< cXmlSauvExportAperoOneIm > & OneIm()const ;
+
+        std::list< cXmlSauvExportAperoOneMult > & OneMult();
+        const std::list< cXmlSauvExportAperoOneMult > & OneMult()const ;
 
         double & AverageResidual();
         const double & AverageResidual()const ;
@@ -7217,14 +7256,23 @@ class cXmlSauvExportAperoOneIter
 
         cTplValGesInit< double > & EvolMoy();
         const cTplValGesInit< double > & EvolMoy()const ;
+
+        cTplValGesInit< std::string > & ImWorstRes();
+        const cTplValGesInit< std::string > & ImWorstRes()const ;
+
+        cTplValGesInit< double > & WorstRes();
+        const cTplValGesInit< double > & WorstRes()const ;
     private:
         std::list< cXmlSauvExportAperoOneAppuis > mOneAppui;
         std::list< cXmlSauvExportAperoOneIm > mOneIm;
+        std::list< cXmlSauvExportAperoOneMult > mOneMult;
         double mAverageResidual;
         int mNumIter;
         int mNumEtape;
         cTplValGesInit< double > mEvolMax;
         cTplValGesInit< double > mEvolMoy;
+        cTplValGesInit< std::string > mImWorstRes;
+        cTplValGesInit< double > mWorstRes;
 };
 cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneIter &);
 

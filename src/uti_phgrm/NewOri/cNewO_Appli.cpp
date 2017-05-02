@@ -64,6 +64,8 @@ class cAppli_Martini
           std::string mExtName;
           std::string mNameModeNO;
           eTypeModeNO mModeNO;
+          std::string mInOri;
+
           ElTimer     aChrono;
 };
 
@@ -77,7 +79,8 @@ void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
 
     aFullCom = aFullCom + " PrefHom=" + mPrefHom;
     aFullCom = aFullCom + " ExtName=" + mExtName;
-    aFullCom = aFullCom + " ModeNO=" + mNameModeNO;
+    aFullCom = aFullCom + " ModeNO="  + mNameModeNO;
+    aFullCom = aFullCom + " InOri="   + mInOri;
 
 
     if (mExe)
@@ -161,6 +164,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
                    << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes 
                    << EAM(mExtName,"ExtName",true,"User's added Prefix , Def=\"\"")  // SH par homogeneite avec autre commandes 
                    << EAM(mNameModeNO,"ModeNO",true,"Mode Def=Std")  
+                   << EAM(mInOri,"InOri",true,"Existing orientation if any")  
                    // << EAM(mQuick,"Quick",true,"Quick version")
    );
 

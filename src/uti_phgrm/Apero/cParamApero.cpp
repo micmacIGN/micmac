@@ -26558,6 +26558,95 @@ void xml_init(cXmlSauvExportAperoOneAppuis & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXmlSauvExportAperoOneAppuis *) {return "0008E3516AB32481FD3F";};
 
 
+int & cXmlSauvExportAperoOneMult::Multiplicity()
+{
+   return mMultiplicity;
+}
+
+const int & cXmlSauvExportAperoOneMult::Multiplicity()const 
+{
+   return mMultiplicity;
+}
+
+
+double & cXmlSauvExportAperoOneMult::Residual()
+{
+   return mResidual;
+}
+
+const double & cXmlSauvExportAperoOneMult::Residual()const 
+{
+   return mResidual;
+}
+
+
+int & cXmlSauvExportAperoOneMult::NbPts()
+{
+   return mNbPts;
+}
+
+const int & cXmlSauvExportAperoOneMult::NbPts()const 
+{
+   return mNbPts;
+}
+
+
+double & cXmlSauvExportAperoOneMult::PercOk()
+{
+   return mPercOk;
+}
+
+const double & cXmlSauvExportAperoOneMult::PercOk()const 
+{
+   return mPercOk;
+}
+
+void  BinaryUnDumpFromFile(cXmlSauvExportAperoOneMult & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Multiplicity(),aFp);
+    BinaryUnDumpFromFile(anObj.Residual(),aFp);
+    BinaryUnDumpFromFile(anObj.NbPts(),aFp);
+    BinaryUnDumpFromFile(anObj.PercOk(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlSauvExportAperoOneMult & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Multiplicity());
+    BinaryDumpInFile(aFp,anObj.Residual());
+    BinaryDumpInFile(aFp,anObj.NbPts());
+    BinaryDumpInFile(aFp,anObj.PercOk());
+}
+
+cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneMult & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlSauvExportAperoOneMult",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Multiplicity"),anObj.Multiplicity())->ReTagThis("Multiplicity"));
+   aRes->AddFils(::ToXMLTree(std::string("Residual"),anObj.Residual())->ReTagThis("Residual"));
+   aRes->AddFils(::ToXMLTree(std::string("NbPts"),anObj.NbPts())->ReTagThis("NbPts"));
+   aRes->AddFils(::ToXMLTree(std::string("PercOk"),anObj.PercOk())->ReTagThis("PercOk"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlSauvExportAperoOneMult & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Multiplicity(),aTree->Get("Multiplicity",1)); //tototo 
+
+   xml_init(anObj.Residual(),aTree->Get("Residual",1)); //tototo 
+
+   xml_init(anObj.NbPts(),aTree->Get("NbPts",1)); //tototo 
+
+   xml_init(anObj.PercOk(),aTree->Get("PercOk",1)); //tototo 
+}
+
+std::string  Mangling( cXmlSauvExportAperoOneMult *) {return "E4FF6CB5BD1C7FDFFE3F";};
+
+
 std::list< cXmlSauvExportAperoOneAppuis > & cXmlSauvExportAperoOneIter::OneAppui()
 {
    return mOneAppui;
@@ -26577,6 +26666,17 @@ std::list< cXmlSauvExportAperoOneIm > & cXmlSauvExportAperoOneIter::OneIm()
 const std::list< cXmlSauvExportAperoOneIm > & cXmlSauvExportAperoOneIter::OneIm()const 
 {
    return mOneIm;
+}
+
+
+std::list< cXmlSauvExportAperoOneMult > & cXmlSauvExportAperoOneIter::OneMult()
+{
+   return mOneMult;
+}
+
+const std::list< cXmlSauvExportAperoOneMult > & cXmlSauvExportAperoOneIter::OneMult()const 
+{
+   return mOneMult;
 }
 
 
@@ -26634,6 +26734,28 @@ const cTplValGesInit< double > & cXmlSauvExportAperoOneIter::EvolMoy()const
    return mEvolMoy;
 }
 
+
+cTplValGesInit< std::string > & cXmlSauvExportAperoOneIter::ImWorstRes()
+{
+   return mImWorstRes;
+}
+
+const cTplValGesInit< std::string > & cXmlSauvExportAperoOneIter::ImWorstRes()const 
+{
+   return mImWorstRes;
+}
+
+
+cTplValGesInit< double > & cXmlSauvExportAperoOneIter::WorstRes()
+{
+   return mWorstRes;
+}
+
+const cTplValGesInit< double > & cXmlSauvExportAperoOneIter::WorstRes()const 
+{
+   return mWorstRes;
+}
+
 void  BinaryUnDumpFromFile(cXmlSauvExportAperoOneIter & anObj,ELISE_fp & aFp)
 {
    { int aNb;
@@ -26652,6 +26774,15 @@ void  BinaryUnDumpFromFile(cXmlSauvExportAperoOneIter & anObj,ELISE_fp & aFp)
              cXmlSauvExportAperoOneIm aVal;
               BinaryUnDumpFromFile(aVal,aFp);
               anObj.OneIm().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXmlSauvExportAperoOneMult aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.OneMult().push_back(aVal);
         }
   } ;
     BinaryUnDumpFromFile(anObj.AverageResidual(),aFp);
@@ -26673,6 +26804,22 @@ void  BinaryUnDumpFromFile(cXmlSauvExportAperoOneIter & anObj,ELISE_fp & aFp)
         }
         else  anObj.EvolMoy().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ImWorstRes().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ImWorstRes().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ImWorstRes().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.WorstRes().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.WorstRes().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.WorstRes().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlSauvExportAperoOneIter & anObj)
@@ -26689,6 +26836,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlSauvExportAperoOneIter & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.OneMult().size());
+    for(  std::list< cXmlSauvExportAperoOneMult >::const_iterator iT=anObj.OneMult().begin();
+         iT!=anObj.OneMult().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,anObj.AverageResidual());
     BinaryDumpInFile(aFp,anObj.NumIter());
     BinaryDumpInFile(aFp,anObj.NumEtape());
@@ -26696,6 +26849,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlSauvExportAperoOneIter & anObj)
     if (anObj.EvolMax().IsInit()) BinaryDumpInFile(aFp,anObj.EvolMax().Val());
     BinaryDumpInFile(aFp,anObj.EvolMoy().IsInit());
     if (anObj.EvolMoy().IsInit()) BinaryDumpInFile(aFp,anObj.EvolMoy().Val());
+    BinaryDumpInFile(aFp,anObj.ImWorstRes().IsInit());
+    if (anObj.ImWorstRes().IsInit()) BinaryDumpInFile(aFp,anObj.ImWorstRes().Val());
+    BinaryDumpInFile(aFp,anObj.WorstRes().IsInit());
+    if (anObj.WorstRes().IsInit()) BinaryDumpInFile(aFp,anObj.WorstRes().Val());
 }
 
 cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneIter & anObj)
@@ -26714,6 +26871,12 @@ cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneIter & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("OneIm"));
+  for
+  (       std::list< cXmlSauvExportAperoOneMult >::const_iterator it=anObj.OneMult().begin();
+      it !=anObj.OneMult().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("OneMult"));
    aRes->AddFils(::ToXMLTree(std::string("AverageResidual"),anObj.AverageResidual())->ReTagThis("AverageResidual"));
    aRes->AddFils(::ToXMLTree(std::string("NumIter"),anObj.NumIter())->ReTagThis("NumIter"));
    aRes->AddFils(::ToXMLTree(std::string("NumEtape"),anObj.NumEtape())->ReTagThis("NumEtape"));
@@ -26721,6 +26884,10 @@ cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneIter & anObj)
       aRes->AddFils(::ToXMLTree(std::string("EvolMax"),anObj.EvolMax().Val())->ReTagThis("EvolMax"));
    if (anObj.EvolMoy().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("EvolMoy"),anObj.EvolMoy().Val())->ReTagThis("EvolMoy"));
+   if (anObj.ImWorstRes().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ImWorstRes"),anObj.ImWorstRes().Val())->ReTagThis("ImWorstRes"));
+   if (anObj.WorstRes().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("WorstRes"),anObj.WorstRes().Val())->ReTagThis("WorstRes"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -26735,6 +26902,8 @@ void xml_init(cXmlSauvExportAperoOneIter & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.OneIm(),aTree->GetAll("OneIm",false,1));
 
+   xml_init(anObj.OneMult(),aTree->GetAll("OneMult",false,1));
+
    xml_init(anObj.AverageResidual(),aTree->Get("AverageResidual",1)); //tototo 
 
    xml_init(anObj.NumIter(),aTree->Get("NumIter",1)); //tototo 
@@ -26744,9 +26913,13 @@ void xml_init(cXmlSauvExportAperoOneIter & anObj,cElXMLTree * aTree)
    xml_init(anObj.EvolMax(),aTree->Get("EvolMax",1)); //tototo 
 
    xml_init(anObj.EvolMoy(),aTree->Get("EvolMoy",1)); //tototo 
+
+   xml_init(anObj.ImWorstRes(),aTree->Get("ImWorstRes",1)); //tototo 
+
+   xml_init(anObj.WorstRes(),aTree->Get("WorstRes",1)); //tototo 
 }
 
-std::string  Mangling( cXmlSauvExportAperoOneIter *) {return "42AEB634EF4BC494FDBF";};
+std::string  Mangling( cXmlSauvExportAperoOneIter *) {return "A8514BA80DE22C9EFCBF";};
 
 
 std::list< cXmlSauvExportAperoOneIter > & cXmlSauvExportAperoGlob::Iters()
@@ -26805,7 +26978,7 @@ void xml_init(cXmlSauvExportAperoGlob & anObj,cElXMLTree * aTree)
    xml_init(anObj.Iters(),aTree->GetAll("Iters",false,1));
 }
 
-std::string  Mangling( cXmlSauvExportAperoGlob *) {return "A062DF60E1604FC4FB3F";};
+std::string  Mangling( cXmlSauvExportAperoGlob *) {return "08E72191A4427C8BFD3F";};
 
 
 double & cXmlOneResultRTA::Mult()

@@ -43,6 +43,29 @@ Header-MicMac-eLiSe-25/06/2007*/
 */
 
 
+cMesureAppuiFlottant1Im *  GetMAFOfNameIm(cSetOfMesureAppuisFlottants & aSMAF,const std::string aNameIm,bool CreatIfNone)
+{
+   for 
+   (
+         std::list<cMesureAppuiFlottant1Im>::iterator itMAF=aSMAF.MesureAppuiFlottant1Im().begin();
+         itMAF!=aSMAF.MesureAppuiFlottant1Im().end();
+         itMAF++
+   )
+   {
+        if (itMAF->NameIm() == aNameIm)
+           return &(*itMAF);
+   }
+   if (CreatIfNone)
+   {
+       cMesureAppuiFlottant1Im aMAF;
+       aMAF.NameIm() = aNameIm;
+       aSMAF.MesureAppuiFlottant1Im().push_back(aMAF);
+       cMesureAppuiFlottant1Im * aRes = GetMAFOfNameIm(aSMAF,aNameIm,false);
+       ELISE_ASSERT(aRes,"Incoherence in GetMAFOfNameIm");
+       return aRes;
+   }
+   return 0;
+}
 
 
 
@@ -51,10 +74,11 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
     MMD_InitArgcArgv(argc,argv,2);
 
     std::string  aFullNC,aFilePtsIn,aFilePtsOut,aFilteredInput;
-    std::string XYZ = "X,Y,Z";
-    std::string IJ = "I,J";
+    std::string XYZ = "X,Y,Z (xml 3d in Homol mode)";
+    std::string IJ = "I,J  (xml 2d  in Homol mode)";
     bool aPoinIsImRef = true;
     bool aInputImWithZ = false;
+    std::vector<std::string>  anOptPtH;
 
     if (Ter2Im)
     {
@@ -78,6 +102,7 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
            LArgMain()  << EAM(aFilteredInput,"FilterInput",true,"To generate a file of input superposable to output",eSAM_IsOutputFile)
                        << EAM(aPoinIsImRef,"PointIsImRef",true,"Point must be corrected from cloud resolution def = true")
 		       << EAM(aInputImWithZ,"InputImWithZ",false,"Input Im point with Z (for Im2XYZ) def=false")
+		       << EAM(anOptPtH,"PtHom",true,"Option for hom =[SH,Im1,Im2]")
        );
     }
 
@@ -100,6 +125,44 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
         cElNuage3DMaille *  aNuage = aRMso.Nuage();
         ElCamera         * aCam    = aRMso.Cam();
 	
+        bool UseHom = false;
+        cDicoAppuisFlottant * aDAF=0;
+        cSetOfMesureAppuisFlottants * aSMAF = 0;
+        cMesureAppuiFlottant1Im *     aMAF  =0;
+        std::string aNameXMLTer="";
+        std::string aNameXMLIm="";
+
+        if (EAMIsInit(&anOptPtH))
+        {
+            ELISE_ASSERT(aNuage,"No Nuage in homol mode");
+            aNameXMLIm = aFilePtsIn ;
+            aNameXMLTer = aFilePtsOut ;
+
+            ELISE_ASSERT(anOptPtH.size()==3,"Bad size i  hom option");
+            std::string aSH=anOptPtH[0],aNameI1=anOptPtH[1],aNameI2=anOptPtH[2];
+            
+            aFilePtsIn = anICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+ aSH+"@txt",aNameI1,aNameI2,true);
+            UseHom = true;
+            if (! ELISE_fp::exist_file(aFilePtsIn))
+            {
+                 std::string aBinFilePtsIn = anICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+ aSH+"@dat",aNameI1,aNameI2,true);
+                 ELISE_ASSERT(ELISE_fp::exist_file(aBinFilePtsIn),"Nor txt nor dat file for homologous option");
+                 ElPackHomologue aPack = ElPackHomologue::FromFile(aBinFilePtsIn);
+                 aPack.StdPutInFile(aFilePtsIn);
+            }
+            aSMAF = OptStdGetFromPCP(aNameXMLIm,SetOfMesureAppuisFlottants);
+            if (aSMAF==0)
+            {
+                 aSMAF = new cSetOfMesureAppuisFlottants;
+            }
+            aMAF =  GetMAFOfNameIm(*aSMAF,aNameI2,true);
+            aDAF= OptStdGetFromPCP(aNameXMLTer,DicoAppuisFlottant);
+            if (aDAF==0)
+            {
+                 aDAF = new cDicoAppuisFlottant;
+            }
+        }
+
 
         if (! Ter2Im)
         {
@@ -112,7 +175,7 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
 
 	
         ELISE_fp aFIn(aFilePtsIn.c_str(),ELISE_fp::READ);
-        FILE *  aFOut = FopenNN(aFilePtsOut.c_str(),"w","XYZ2Im");
+        FILE *  aFOut =  UseHom ? 0 : FopenNN(aFilePtsOut.c_str(),"w","XYZ2Im");
 	
         char * aLine;
         std::vector<Pt2dr> aV2Ok;
@@ -132,6 +195,31 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
 
                 fprintf(aFOut,"%lf %lf\n",aPIm.x,aPIm.y);
             }
+            else if (UseHom)
+            {
+                Pt2dr aP1,aP2;
+                int aNb = sscanf(aLine,"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y);
+                ELISE_ASSERT(aNb==4,"Could not read 4 double values");
+                 
+                if (aPoinIsImRef)
+                   aP1 = aNuage->ImRef2Capteur (aP1);
+       		if (aNuage->CaptHasData(aP1))
+                {
+                   std::string aNamePt = "P" + ToString(int(aMAF->OneMesureAF1I().size()));
+
+                   cOneAppuisDAF anAp;
+                   anAp.Pt()   = aNuage->PreciseCapteur2Terrain(aP1);
+                   anAp.NamePt()   = aNamePt;
+                   anAp.Incertitude()   = Pt3dr(1,1,1);
+                   aDAF->OneAppuisDAF().push_back(anAp);
+
+// std::cout << "Daaaff " <<  aDAF->OneAppuisDAF().size() << " " << aFilePtsIn << "\n";
+                   cOneMesureAF1I aMesIm;
+                   aMesIm.PtIm() = aP2;
+                   aMesIm.NamePt() = aNamePt;
+                   aMAF->OneMesureAF1I().push_back(aMesIm);
+                }
+            }
             else
             {
                 Pt2dr aPIm;
@@ -142,29 +230,30 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
 		{
 			int aNb = sscanf(aLine,"%lf %lf %lf",&aPIm.x,&aPIm.y,&aInputZ);
                 	ELISE_ASSERT(aNb==3,"Could not read 3 double values");
-			std::cout << "2D Point + Z: ["<<aPIm.x<< ","<<aPIm.y<<","<<aInputZ<<"]\n";
+			// std::cout << "2D Point + Z: ["<<aPIm.x<< ","<<aPIm.y<<","<<aInputZ<<"]\n";
 		}
 		else
 		{
 			int aNb = sscanf(aLine,"%lf %lf",&aPIm.x,&aPIm.y);
                 	ELISE_ASSERT(aNb==2,"Could not read 2 double values");
-			std::cout << "2D Point: ["<<aPIm.x<< ","<<aPIm.y<<"]\n";
+			// std::cout << "2D Point: ["<<aPIm.x<< ","<<aPIm.y<<"]\n";
 		}
 		if (aNuage)
 		{
+                        Pt2dr aPIm0 = aPIm;
 			if (aPoinIsImRef)
-                    	aPIm = aNuage->ImRef2Capteur (aPIm);/* ici il y a un bug sous linux, segmention core dumped*/
+                    	    aPIm = aNuage->ImRef2Capteur (aPIm);/* ici il y a un bug sous linux, segmention core dumped*/
 
        			if (aNuage->CaptHasData(aPIm))
                 	{
                    		Pt3dr aP  = aNuage->PreciseCapteur2Terrain(aPIm);
                    		fprintf(aFOut,"%lf %lf %f\n",aP.x,aP.y,aP.z);
-                   		aV2Ok.push_back(aPIm);
+                   		aV2Ok.push_back(aPIm0);
                 	}
                 	else
                 	{
                     		HasEmpty = true;
-                    		std::cout << "Warn :: " << aPIm << " has no data in cloud\n";
+                    		std::cout << "Warn :: " << aPIm0 << " has no data in cloud\n";
                 	}
 		}
 		else if (aCam)
@@ -179,12 +268,22 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
          {
              FILE *  aFFilter = FopenNN(aFilteredInput.c_str(),"w","XYZ2Im");
              for (int aKP=0 ; aKP<int(aV2Ok.size()) ; aKP++)
+             {
                 fprintf(aFFilter,"%lf %lf\n",aV2Ok[aKP].x,aV2Ok[aKP].y);
+             }
              ElFclose(aFFilter);
          }
 
         aFIn.close();
-        ElFclose(aFOut);
+        if (UseHom)
+        {
+            MakeFileXML(*aDAF , aNameXMLTer);
+            MakeFileXML(*aSMAF, aNameXMLIm);
+        }
+        else
+        {
+           ElFclose(aFOut);
+        }
 
         return 0;
     }
