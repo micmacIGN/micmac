@@ -561,6 +561,7 @@ class cNO_AppliOneCple
           void Show();
           cNewO_OrInit2Im * CpleIm();
           std::string NameXmlOri2Im(bool Bin) const;
+          ElRotation3D  * OrientationRelFromExisting(std::string &);
     private :
 
          cNO_AppliOneCple(const cNO_AppliOneCple &); // N.I.
@@ -667,6 +668,22 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
       aRot = aRot.inv();
       mTestSol = new ElRotation3D(aRot);
    }
+}
+
+ElRotation3D *  cNO_AppliOneCple::OrientationRelFromExisting(std::string & aNameOri)
+{
+   StdCorrecNameOrient(aNameOri,mNM->Dir());
+   CamStenope * aCam1 = mNM->CamOriOfNameSVP(mNameIm1,aNameOri);
+   CamStenope * aCam2 = mNM->CamOriOfNameSVP(mNameIm2,aNameOri);
+   if ((aCam1==0) || (aCam2==0))
+      return 0;
+   // aCam2->Orient() : M =>C2  ;  aCam1->Orient().inv() :  C1=>M
+   // Donc la aRot = C1=>C2
+   ElRotation3D aRot = (aCam2->Orient() *aCam1->Orient().inv());
+   //   Maintenat Rot C2 =>C1; donc Rot( P(0,0,0)) donne le vecteur de Base
+   aRot = aRot.inv();
+
+   return new ElRotation3D(aRot);
 }
 
 cNewO_OrInit2Im * cNO_AppliOneCple::CpleIm()

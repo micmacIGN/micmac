@@ -268,6 +268,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
 
            // 
            CamStenope * CamOriOfName(const std::string & aName,const std::string & anOri);
+           CamStenope * CamOriOfNameSVP(const std::string & aName,const std::string & anOri);
            const std::string &  OriCal() const;
            const std::string &  OriOut() const;
            cInterfChantierNameManipulateur *  ICNM();

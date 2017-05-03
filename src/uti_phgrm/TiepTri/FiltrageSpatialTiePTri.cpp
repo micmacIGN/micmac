@@ -51,14 +51,23 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 */
 
-/*
 
 std::vector<cResulMultiImRechCorrel *> FiltrageSpatial
                                        (
-                                           const std::vector<cResulMultiImRechCorrel *> & aVIn
+                                           const std::vector<cResulMultiImRechCorrel *> & aVIn,
+                                           double aSeuilDist,
+                                           double aGainCorrel
                                        )
 {
+   std::vector<cResulMultiImRechCorrel *>  aResult;
+
+
+   return aResult;
 }
+
+
+
+/*
 */
 
 
