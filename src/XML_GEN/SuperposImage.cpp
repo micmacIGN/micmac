@@ -27342,6 +27342,129 @@ void xml_init(cXml_Map2dPol & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXml_Map2dPol *) {return "B49352CE77D3FD8EFE3F";};
 
 
+int & cXml_EvolMap2dPol::DegT()
+{
+   return mDegT;
+}
+
+const int & cXml_EvolMap2dPol::DegT()const 
+{
+   return mDegT;
+}
+
+
+Pt2dr & cXml_EvolMap2dPol::IntervT()
+{
+   return mIntervT;
+}
+
+const Pt2dr & cXml_EvolMap2dPol::IntervT()const 
+{
+   return mIntervT;
+}
+
+
+int & cXml_EvolMap2dPol::DegXY()
+{
+   return mDegXY;
+}
+
+const int & cXml_EvolMap2dPol::DegXY()const 
+{
+   return mDegXY;
+}
+
+
+Box2dr & cXml_EvolMap2dPol::BoxXY()
+{
+   return mBoxXY;
+}
+
+const Box2dr & cXml_EvolMap2dPol::BoxXY()const 
+{
+   return mBoxXY;
+}
+
+
+std::vector< cXml_Map2dPol > & cXml_EvolMap2dPol::PolOfT()
+{
+   return mPolOfT;
+}
+
+const std::vector< cXml_Map2dPol > & cXml_EvolMap2dPol::PolOfT()const 
+{
+   return mPolOfT;
+}
+
+void  BinaryUnDumpFromFile(cXml_EvolMap2dPol & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.DegT(),aFp);
+    BinaryUnDumpFromFile(anObj.IntervT(),aFp);
+    BinaryUnDumpFromFile(anObj.DegXY(),aFp);
+    BinaryUnDumpFromFile(anObj.BoxXY(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_Map2dPol aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.PolOfT().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_EvolMap2dPol & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.DegT());
+    BinaryDumpInFile(aFp,anObj.IntervT());
+    BinaryDumpInFile(aFp,anObj.DegXY());
+    BinaryDumpInFile(aFp,anObj.BoxXY());
+    BinaryDumpInFile(aFp,(int)anObj.PolOfT().size());
+    for(  std::vector< cXml_Map2dPol >::const_iterator iT=anObj.PolOfT().begin();
+         iT!=anObj.PolOfT().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_EvolMap2dPol & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_EvolMap2dPol",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("DegT"),anObj.DegT())->ReTagThis("DegT"));
+   aRes->AddFils(::ToXMLTree(std::string("IntervT"),anObj.IntervT())->ReTagThis("IntervT"));
+   aRes->AddFils(::ToXMLTree(std::string("DegXY"),anObj.DegXY())->ReTagThis("DegXY"));
+   aRes->AddFils(::ToXMLTree(std::string("BoxXY"),anObj.BoxXY())->ReTagThis("BoxXY"));
+  for
+  (       std::vector< cXml_Map2dPol >::const_iterator it=anObj.PolOfT().begin();
+      it !=anObj.PolOfT().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("PolOfT"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_EvolMap2dPol & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.DegT(),aTree->Get("DegT",1)); //tototo 
+
+   xml_init(anObj.IntervT(),aTree->Get("IntervT",1)); //tototo 
+
+   xml_init(anObj.DegXY(),aTree->Get("DegXY",1)); //tototo 
+
+   xml_init(anObj.BoxXY(),aTree->Get("BoxXY",1)); //tototo 
+
+   xml_init(anObj.PolOfT(),aTree->GetAll("PolOfT",false,1));
+}
+
+std::string  Mangling( cXml_EvolMap2dPol *) {return "B0DC546C8CF709A9FE3F";};
+
+
 cTplValGesInit< cXmlHomogr > & cXml_Map2DElem::Homog()
 {
    return mHomog;

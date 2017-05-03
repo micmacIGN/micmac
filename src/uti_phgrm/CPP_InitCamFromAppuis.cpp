@@ -230,16 +230,29 @@ int Init3App_Main(int argc,char ** argv)
 
 std::string Dir11Param = "11Param";
 
-
 int Init11Param_Main(int argc,char ** argv)
 {
     bool        isFraserModel = false;
+    std::vector<std::string> aRansacParam;
     LArgMain ArgOpt;
-    ArgOpt <<  EAM(isFraserModel,"FM",true,"Fraser Mode, use all affine parmeters (def=false)");
+    ArgOpt <<  EAM(isFraserModel,"FM",true,"Fraser Mode, use all affine parmeters (def=false)")
+            << EAM(aRansacParam,"Rans",true,"Parameters for Ransac, [NbTirage,PropInlier]");
 
     cInitCamAppuis aICA(argc,argv,ArgOpt,"-" + Dir11Param);
 
 
+    bool RansacMode =EAMIsInit(&aRansacParam);
+    int     aNbTirage,aNbMaxP;
+    double  aPropInlier;
+    if (RansacMode)
+    {
+         ELISE_ASSERT(aRansacParam.size()==2,"Bad size for ransac param");
+         FromString(aNbTirage  ,aRansacParam[0]);
+         FromString(aPropInlier,aRansacParam[1]);
+
+         aNbMaxP = 6 + aNbTirage/20;
+    }
+    
     for
     (
         std::list<cMesureAppuiFlottant1Im>::const_iterator itMAF = aICA.mSMAF.MesureAppuiFlottant1Im().begin();
@@ -251,58 +264,17 @@ int Init11Param_Main(int argc,char ** argv)
         {
              std::string aNameIm = itMAF->NameIm();
              std::cout << "Init11Param :" << aNameIm << "\n";
-             cEq12Parametre anEq12;
-             Pt3dr aPMoy(0,0,0);
-             for (int aK=0 ; aK<int(aICA.mVCPCur.size()) ; aK++)
-             {
-                 anEq12.AddObs(aICA.mVCPCur[aK],aICA.mVImCur[aK],1.0);
-                 aPMoy = aPMoy+aICA.mVCPCur[aK];
-             }
-             aPMoy = aPMoy/double(aICA.mVCPCur.size());
-             std::pair<ElMatrix<double>,ElRotation3D > aPair = anEq12.ComputeOrtho();
-             ElMatrix<double> aMat = aPair.first;
-             ElRotation3D aR = aPair.second;
-
-             double aFX =  aMat(0,0);
-             double aFY =  aMat(1,1);
-             Pt2dr aPP(aMat(2,0),aMat(2,1));
-             double aSkew =  aMat(1,0);
-
-
-             Pt3dr aCenter =  aR.ImAff(Pt3dr(0,0,0));
-             double Alti = aPMoy.z;
-             double Prof = euclid(aPMoy-aCenter);
-/*
-             std::cout << "FX=" <<  aFX  << " FY=" << aFY << " PP=" << aPP << " Skew=" << aSkew << "\n";
-             std::cout << "C=" <<  aR.ImAff(Pt3dr(0,0,0))  << "  "   << aR.ImRecAff(Pt3dr(0,0,0)) << "\n";
-             std::cout << "VVVV " <<  anEq12.ComputeNonOrtho().second << "\n";
-*/
-
+             double Alti,Prof;
              cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aNameIm);
-
-             Pt2di aSz = aMDP.SzImTifOrXif();
-             Pt2dr aRSz = Pt2dr(aSz);
-
-             ElDistRadiale_PolynImpair aDR((1.1*euclid(aRSz))/2.0,aPP);
-
-             CamStenope * aCS=0;
-             std::vector<double> aPAF;
-             if (isFraserModel)
-             {
-                 cDistModStdPhpgr aDPhg(aDR);
-                 aDPhg.b1() = (aFX-aFY)/ aFY;
-                 aDPhg.b2() = aSkew / aFY;
-                 aCS = new cCamStenopeModStdPhpgr(false,aFY,aPP,aDPhg,aPAF);
-             }
-             else
-             {
-                  aCS = new cCamStenopeDistRadPol(false,(aFX+aFY)/2.0,aPP,aDR,aPAF);
-             }
+             Pt2di aSzCam = aMDP.SzImTifOrXif();
+             CamStenope * aCS =
+                        RansacMode                                                                              ?
+                        cEq12Parametre::RansacCamera11Param(aSzCam,isFraserModel,aICA.mVCPCur,aICA.mVImCur,Alti,Prof,aNbTirage,aPropInlier,aNbMaxP) :
+                        cEq12Parametre::Camera11Param(aSzCam,isFraserModel,aICA.mVCPCur,aICA.mVImCur,Alti,Prof) ;
 
              if (aCS)
              {
-                 aCS->SetOrientation(aR.inv());
-                 cOrientationConique anEC = aCS->ExportCalibGlob(aSz,Alti,Prof ,false,true,(char*)0);
+                 cOrientationConique anEC = aCS->ExportCalibGlob(aSzCam,Alti,Prof ,false,true,(char*)0);
                  MakeFileXML(anEC,aICA.NameOri(aNameIm));
              }
 

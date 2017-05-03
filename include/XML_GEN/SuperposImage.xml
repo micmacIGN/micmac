@@ -1873,6 +1873,14 @@
       <MapY Nb="1" RefType="Xml_FulPollXY"> </MapY>
 </Xml_Map2dPol>
 
+<Xml_EvolMap2dPol  Nb="1" Class="true" ToReference="true">
+    <DegT  Nb="1" Type="int">      </DegT>
+    <IntervT Nb="1" Type="Pt2dr">  </IntervT>
+    <DegXY  Nb="1" Type="int">     </DegXY>
+    <BoxXY  Nb="1" Type="Box2dr">  </BoxXY>
+    <PolOfT Nb="*"  Container="std::vector" RefType="Xml_Map2dPol"> </PolOfT>
+</Xml_EvolMap2dPol>
+
 <Xml_Map2DElem Nb="1" Class="true" ToReference="true" UnionType="true">
       <Homog RefType="XmlHomogr"  Nb="?"> </Homog>
       <Homot RefType="Xml_Homot"  Nb="?"> </Homot>

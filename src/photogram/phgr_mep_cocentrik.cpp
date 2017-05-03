@@ -157,7 +157,7 @@ class cMEPCoCentrik
 
 
 
-        cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aShow,const ElRotation3D * aRef,bool Quick );
+        cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aShow,const ElRotation3D * aRef,bool Quick ,int aNbIter);
         void OneItereRotPur(ElMatrix<REAL>  & aMat,double & aDist);
         ElRotation3D  OneTestMatr(const ElMatrix<REAL>  &,const Pt3dr & aBase,double aCost);
 
@@ -459,7 +459,15 @@ Pt3dr cMEPCoCentrik::ComputeBase()
 
 
 
-cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aShow,const ElRotation3D * aRef,bool Quick) :
+cMEPCoCentrik::cMEPCoCentrik
+(
+         const ElPackHomologue & aPack,
+         double aFoc,
+         bool aShow,
+         const ElRotation3D * aRef,
+         bool Quick,
+         int aNbIter
+) :
     mPack (aPack),
     mRef  (aRef),
     mFoc  (aFoc),
@@ -489,7 +497,7 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aSho
           mMatRPur = mMatRPur *  aMP;
      }
 
-     for (int aK=0 ; aK<10 ; aK++)
+     for (int aK=0 ; aK<aNbIter ; aK++)
      {
          OneItereRotPur(mMatRPur,mEcartCo);
      }
@@ -566,7 +574,7 @@ void cMEPCoCentrik::Test(const ElPackHomologue & aPack,const  ElMatrix<REAL> & a
 
 cResMepCoc MEPCoCentrik(bool Quick,const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,bool Show)
 {
-    cMEPCoCentrik aMC(aPack,aFoc,Show,aRef,Quick);
+    cMEPCoCentrik aMC(aPack,aFoc,Show,aRef,Quick,10);
 
     return  cResMepCoc
             (
@@ -580,6 +588,64 @@ cResMepCoc MEPCoCentrik(bool Quick,const ElPackHomologue & aPack,double aFoc,con
 }
 
 
+/*************************************************************************/
+
+ElPackHomologue  ToPckPhgrm(const ElPackHomologue & aPack,const CamStenope & aCam1,const CamStenope & aCam2)
+{
+    ElPackHomologue aRes;
+
+    for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!= aPack.end() ; itP++)
+    {
+        aRes.Cple_Add
+        (
+           ElCplePtsHomologues
+           (
+              aCam1.F2toPtDirRayonL3(itP->P1()),
+              aCam2.F2toPtDirRayonL3(itP->P2()),
+              itP->Pds()
+           )
+        );
+    }
+    return aRes;
+}
+
+
+ElMatrix<double>  RotationFromPoints(const ElPackHomologue & aPack,const CamStenope & aCam1,const CamStenope & aCam2)
+{
+     ElPackHomologue aPackPhgr = ToPckPhgrm(aPack,aCam1,aCam2);
+
+     ElRotation3D aRot = ElRotation3D::Id;
+     cMEPCoCentrik aMEPCoC(aPackPhgr,1.0,false,&aRot,true,2);
+
+     return aMEPCoC.mMatRPur;
+}
+
+ElPackHomologue   CompenseRotationFromPoints(const ElPackHomologue & aPack,const CamStenope & aCam1,const CamStenope & aCam2)
+{
+   //    Pt3dr aQ1 = vunit(PZ1(itP->P1()));
+   //    Pt3dr aQ2 =  aMat * vunit(PZ1(itP->P2()));
+
+   ElPackHomologue aRes;
+   ElMatrix<double> aMat = RotationFromPoints(aPack,aCam1,aCam2);
+    
+   double aSomAv=0;
+   double aSomAp=0;
+      
+   for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!= aPack.end() ; itP++)
+   {
+       Pt2dr aP1 = itP->P1();
+       Pt2dr aP2 = itP->P2();
+       aSomAv += euclid(aP1,aP2);
+       Pt3dr  aQ2 =    aMat* aCam2.F2toDirRayonL3(aP2);
+       aP2 =   aCam2.L3toF2(aQ2);
+       aSomAp += euclid(aP1,aP2);
+       aRes.Cple_Add(ElCplePtsHomologues(aP1,aP2,itP->Pds()));
+   }
+
+   std::cout << "DISTANCE  AVA/APRES " << aSomAv/aPack.size() << " " << aSomAp/aPack.size() << "\n";
+
+   return aRes;
+}
 
 
 

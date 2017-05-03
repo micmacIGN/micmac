@@ -6,6 +6,14 @@ mm3d Martini IMGP70.*JPG OriCalib=Ori-AllRel/ Exe=0
 1) cNewO_CpleIm.cpp => TestAllNewOriImage_main
 /home/ubuntu/Desktop/MMM/culture3d/bin/mm3d" TestLib  NO_AllOri2Im "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
 
+Va rappeler  :
+    TestLib NO_Ori2Im  
+    fonction TestNewOriImage_main
+    classe cNO_AppliOneCple
+    fichier cNewO_CpleIm.cpp
+
+     cNO_AppliOneCple prepare les donnees pour cNewO_OrInit2Im
+
 2) CPP_GenAllImP3 => cNewO_PointsTriples.cpp
  "/home/ubuntu/Desktop/MMM/culture3d/bin/mm3d" TestLib  NO_AllImTriplet "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
 
@@ -83,4 +91,20 @@ Basically :
    - validate/invalidate and solve ambiguity of pair of images, using triplet of images
 
    - then we will see  ....
+
+=====================================
+
+Fichier a modifier si nouvelle option
+
+# cNewO_Appli.cpp:1
+# cNewO_CpleIm.cpp:1
+# cNewO_OldGenTriplets.cpp:6
+#cNewO_OptimTriplet.cpp:10
+#cNewO_PointsTriples.cpp:1
+cNewO_SolGlobInit.cpp:2
+NewOri.h:1
+SolInitNewOri.h:1
+
+
+
 

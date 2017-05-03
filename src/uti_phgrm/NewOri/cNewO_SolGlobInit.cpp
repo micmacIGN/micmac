@@ -827,7 +827,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mLastPdsMedRemoy  (0.0),
     mActiveRemoy      (true),
     mNbIterLast       (20),
-    mModeNO           (TheStdModeNewOri)
+    mModeNO           (TheStdModeNewOri),
+    mInOri            ("")
 {
    std::string aNameT1;
    std::string aNameT2;
@@ -856,6 +857,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                    << EAM(mActiveRemoy,"AR",true,"Active Remoy, Def=true, tuning purpose",eSAM_IsBool)
                    << EAM(mNbIterLast,"NbIterLast",true,"Nb Iter in last step",eSAM_IsBool)
                    << EAM(mModeNO,"ModeNO",true,"Mode (Def=Std)")
+                   << EAM(mInOri,"InOri",true,"Existing orientation if any")
    );
 
    cTplTriplet<std::string> aKTest1(aNameT1,aNameT2,aNameT3);

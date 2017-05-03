@@ -146,7 +146,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     aVIm->push_back(Master()->NameIm());
 
 
-    cSetTiePMul * aHomol = new cSetTiePMul(0, aVIm); // Im2nd, ImMaster
+    cSetTiePMul * aMulHomol = new cSetTiePMul(0, aVIm); // Im2nd, ImMaster
     vector< vector<int> > VNumIms;
     vector< vector<Pt2dr> > VPtsIms;
     //=======================//
@@ -154,7 +154,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     for (int aKT= 0; aKT< int(mVGlobMIRMC.size()) ; aKT++)
     {
         cOneTriMultiImRechCorrel & aTMIRC = mVGlobMIRMC[aKT];
-        const std::vector<cResulMultiImRechCorrel<double>*>& aVMC = aTMIRC.VMultiC() ;
+        const std::vector<cResulMultiImRechCorrel*>& aVMC = aTMIRC.VMultiC() ;
         for (int aKP=0 ; aKP<int(aVMC.size()) ; aKP++)
         {
             //=====================//
@@ -162,14 +162,14 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
             vector<Pt2dr>  aPtsIms;
             //======================//
 
-             cResulMultiImRechCorrel<double> & aRMIRC =  *(aVMC[aKP]);
+             cResulMultiImRechCorrel & aRMIRC =  *(aVMC[aKP]);
              Pt2dr aPMaster (aRMIRC.PMaster().mPt);
              const std::vector<int> &   aVInd = aRMIRC.VIndex();
              int aNbIm = aVInd.size();
              ELISE_ASSERT(aNbIm==int(aRMIRC.VRRC().size()),"Incoh size in cAppliTieTri::DoAllTri");
              for (int aKI=0 ; aKI<aNbIm ; aKI++)
              {
-                 const cResulRechCorrel<double> & aRRC = aRMIRC.VRRC()[aKI];
+                 const cResulRechCorrel & aRRC = aRMIRC.VRRC()[aKI];
 
                  //std::cout << "Corr " << aRRC.mCorrel << " " << aRMIRC.IsInit() << " KT=" << aTMIRC.KT() << "\n";
                  if (aRRC.IsInit())
@@ -210,11 +210,11 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     for (uint aKHomol=0; aKHomol<VNumIms.size(); aKHomol++)
     {
         vector<float> vAttr;
-        aHomol->AddPts(VNumIms[aKHomol], VPtsIms[aKHomol],vAttr);
+        aMulHomol->AddPts(VNumIms[aKHomol], VPtsIms[aKHomol],vAttr);
     }
     std::string aHomolOut = "_TiepTri";
     string aPmulHomolName = "Homol" + aHomolOut + "/PMul_" + this->Master()->NameIm() + ".txt";
-    aHomol->Save(aPmulHomolName);
+    aMulHomol->Save(aPmulHomolName);
 
     for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
     {
@@ -230,14 +230,14 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
 
 }
 
-void cAppliTieTri::RechHomPtsDense(cResulMultiImRechCorrel<double> & aRMIRC)
+void cAppliTieTri::RechHomPtsDense(cResulMultiImRechCorrel & aRMIRC)
 {
-     std::vector<cResulRechCorrel<double> > & aVRRC = aRMIRC.VRRC();
+     std::vector<cResulRechCorrel > & aVRRC = aRMIRC.VRRC();
 
 
      for (int aKNumIm = 0 ; aKNumIm <int(aVRRC.size())  ; aKNumIm++)
      {
-         cResulRechCorrel<double> & aRRC = aVRRC[aKNumIm];
+         cResulRechCorrel & aRRC = aVRRC[aKNumIm];
          int aKIm = aRMIRC.VIndex()[aKNumIm];
 
          // aRRC = mImSecLoaded[aKIm]->RechHomPtsDense(aRMIRC.PMaster().mPt,aRRC);
@@ -245,13 +245,13 @@ void cAppliTieTri::RechHomPtsDense(cResulMultiImRechCorrel<double> & aRMIRC)
      }
 }
 
-void cAppliTieTri::PutInGlobCoord(cResulMultiImRechCorrel<double> & aRMIRC)
+void cAppliTieTri::PutInGlobCoord(cResulMultiImRechCorrel & aRMIRC)
 {
      aRMIRC.PMaster().mPt = aRMIRC.PMaster().mPt + mMasIm->Decal();
-     std::vector<cResulRechCorrel<double> > & aVRRC = aRMIRC.VRRC();
+     std::vector<cResulRechCorrel> & aVRRC = aRMIRC.VRRC();
      for (int aKNumIm=0 ; aKNumIm<int(aVRRC.size()) ; aKNumIm++)
      {
-         cResulRechCorrel<double> & aRRC = aVRRC[aKNumIm];
+         cResulRechCorrel & aRRC = aVRRC[aKNumIm];
          int aKIm = aRMIRC.VIndex()[aKNumIm];
          aRRC.mPt = aRRC.mPt + Pt2dr(mImSec[aKIm]->Decal());
      }
@@ -294,7 +294,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
               cIntTieTriInterest aPI= mMasIm->GetPtsInteret();
               for (int aKIm=0 ; aKIm<int(mImSecLoaded.size()) ; aKIm++)
               {
-                  cResulRechCorrel<double> aRes =mImSecLoaded[aKIm]->RechHomPtsInteretBilin(aPI,mNivInterac);  //1pxl/2 -> pxl entier-> sub pxl
+                  cResulRechCorrel aRes =mImSecLoaded[aKIm]->RechHomPtsInteretEntierAndRefine(aPI,mNivInterac);  //1pxl/2 -> pxl entier-> sub pxl
                   if (aRes.IsInit())
                   {
                      mImSecLoaded[aKIm]->RechHomPtsDense(aPI.mPt,aRes);
@@ -309,10 +309,10 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
          ElTimer aChrono;
          for (std::list<cIntTieTriInterest>::const_iterator itI=aLIP.begin(); itI!=aLIP.end() ; itI++)
          {
-              cResulMultiImRechCorrel<double> * aRMIRC = new cResulMultiImRechCorrel<double>(*itI);
+              cResulMultiImRechCorrel * aRMIRC = new cResulMultiImRechCorrel(*itI);
               for (int aKIm=0 ; (aKIm<int(mImSecLoaded.size()))  ; aKIm++)
               {
-                  cResulRechCorrel<double> aRes = mImSecLoaded[aKIm]->RechHomPtsInteretBilin(*itI,mNivInterac);
+                  cResulRechCorrel aRes = mImSecLoaded[aKIm]->RechHomPtsInteretEntierAndRefine(*itI,mNivInterac);
                   if (aRes.IsInit())
                   {
                      aRMIRC->AddResul(aRes,mImSecLoaded[aKIm]->Num());
@@ -363,7 +363,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
 class cCmpPtrRMIRC
 {
     public :
-          bool operator() (cResulMultiImRechCorrel<double> * aRMIRC1, cResulMultiImRechCorrel<double> * aRMIRC2)
+          bool operator() (cResulMultiImRechCorrel * aRMIRC1, cResulMultiImRechCorrel * aRMIRC2)
           {
                return aRMIRC1->Score() > aRMIRC2->Score();
           }
@@ -375,18 +375,18 @@ void   cAppliTieTri::FiltrageSpatialRMIRC(const double & aDist)
      double aSqDist = aDist *aDist;
      cCmpPtrRMIRC  aCmp;
      std::sort(mVCurMIRMC.begin(),mVCurMIRMC.end(),aCmp);
-     std::vector<cResulMultiImRechCorrel<double>*> aNewV;
+     std::vector<cResulMultiImRechCorrel*> aNewV;
 
      for (int aKR1=0 ;aKR1<int(mVCurMIRMC.size()) ; aKR1++)
      {
-         cResulMultiImRechCorrel<double> * aR1 = mVCurMIRMC[aKR1];
+         cResulMultiImRechCorrel * aR1 = mVCurMIRMC[aKR1];
 
          if (aR1)
          {
             aNewV.push_back(aR1);
             for (int aKR2=aKR1+1 ; aKR2<int(mVCurMIRMC.size()) ; aKR2++)
             {
-                cResulMultiImRechCorrel<double> * aR2 = mVCurMIRMC[aKR2];
+                cResulMultiImRechCorrel * aR2 = mVCurMIRMC[aKR2];
                 if (aR2 && (aR1->square_dist(*aR2) < aSqDist))
                 {
                     mVCurMIRMC[aKR2] = 0;
@@ -396,7 +396,7 @@ void   cAppliTieTri::FiltrageSpatialRMIRC(const double & aDist)
 
             if (mMasIm->W())
             {
-               Video_Win * aW = mMasIm->W();
+               // Video_Win * aW = mMasIm->W();
                //aW->draw_circle_loc(Pt2dr(aR1->PMaster().mPt),1,aW->pdisc()(P8COL::green)); //point selected after filtrage spatial
                //aW->draw_circle_loc(Pt2dr(aR1->PMaster().mPt),aDist,aW->pdisc()(P8COL::yellow)); //filter spatial circle
             }
