@@ -259,6 +259,7 @@ class cAppli_GenTriplet
        double                        mTimeLoadTri;
        int                           mNbLoadCple;
        int                           mNbLoadTri;
+       std::string & InOri() {return  mInOri;}
 
     private :
 
@@ -458,6 +459,30 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       mC3 = aC3I;
       mM3 =  NearestRotation((aR31.Mat() + aR31Bis.Mat())*0.5);
 
+      //  Cas ou In Ori est 
+      std::string & aInOri = mAppli->InOri();
+      if (EAMIsInit(&aInOri))
+      {
+         const std::string & aN1 = anA12->s1().attr().mIm->Name();
+         const std::string & aN2 = anA12->s2().attr().mIm->Name();
+         const std::string & aN3 = aSom->attr().mIm->Name();
+
+         CamStenope * aCam1 = mAppli->NM().CamOriOfNameSVP(aN1,aInOri);
+         CamStenope * aCam2 = mAppli->NM().CamOriOfNameSVP(aN2,aInOri);
+         CamStenope * aCam3 = mAppli->NM().CamOriOfNameSVP(aN3,aInOri);
+         if (aCam1 && aCam2 && aCam3)
+         {
+             ElRotation3D aRot2Sur1  = (aCam2->Orient() *aCam1->Orient().inv());
+             ElRotation3D aRot3Sur1  = (aCam3->Orient() *aCam1->Orient().inv());
+             aRot2Sur1 = aRot2Sur1.inv();
+             aRot3Sur1 = aRot3Sur1.inv();
+
+             std::cout << "RATIO " << euclid(aC2) / euclid(mC3) 
+                       << " " << euclid(aRot2Sur1.tr()) / euclid(aRot3Sur1.tr())
+                       << "\n";
+
+         }
+      }
 
 
      // Calcul gain et densite

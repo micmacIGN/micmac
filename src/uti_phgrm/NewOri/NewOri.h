@@ -140,7 +140,8 @@ class cNewO_OrInit2Im
                 cNewO_OneIm * aI1,
                 cNewO_OneIm * aI2,
                 tMergeLPackH *      aMergeTieP,
-                ElRotation3D *      aTesSol,
+                ElRotation3D *      aTestSol,
+                ElRotation3D *      aInOri,
                 bool                Show,
                 bool                aHPP,
                 bool                aSelAllIm
