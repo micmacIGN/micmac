@@ -183,7 +183,14 @@ class cAppliTieTri : public cParamAppliTieTri
 
            void FiltrageSpatialRMIRC(const double & aDist);
 
-           void FiltrageSpatialGlobRMIRC(const double & aDist);
+           // void FiltrageSpatialGlobRMIRC(const double & aDist);
+           std::vector<cResulMultiImRechCorrel *> FiltrageSpatial
+                                       (
+                                           const std::vector<cResulMultiImRechCorrel *> & aVIn,
+                                           double aSeuilDist,
+                                           double aGainCorrel
+                                       );
+
 
 
            void  RechHomPtsDense(cResulMultiImRechCorrel &);
@@ -478,7 +485,7 @@ class cResulRechCorrel
 class cResulMultiImRechCorrel
 {
     public :
-         cResulMultiImRechCorrel(const cIntTieTriInterest & aPMaster) ;
+          cResulMultiImRechCorrel(const cIntTieTriInterest & aPMaster) ;
           double square_dist(const cResulMultiImRechCorrel & aR2) const;
           void AddResul(const cResulRechCorrel aRRC,int aNumIm);
           bool AllInit() const ;
@@ -489,6 +496,8 @@ class cResulMultiImRechCorrel
           const cIntTieTriInterest & PMaster() const ;
           cIntTieTriInterest & PMaster() ;
           const std::vector<int> &    VIndex()   const ;
+          void CalculScoreMin();
+          void CalculScoreAgreg(double Epsilon,double pow);
     private :
 
          cResulMultiImRechCorrel(const cResulMultiImRechCorrel & ) ; // N.I.

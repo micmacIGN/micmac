@@ -305,6 +305,17 @@ CamStenope * cNewO_NameManager::CamOriOfName(const std::string & aNameIm,const s
 {
     return mICNM->StdCamStenOfNames(aNameIm,anOri);
 }
+
+CamStenope * cNewO_NameManager::CamOriOfNameSVP(const std::string & aNameIm,const std::string & anOri)
+{
+    std::string aKey = "NKS-Assoc-Im2Orient@-"+ anOri ;
+    std::string aNameCam =  mICNM->Assoc1To1(aKey,aNameIm,true);
+    if (! ELISE_fp::exist_file(aNameCam))
+       return 0;
+    return CamOrientGenFromFile(aNameCam,mICNM);
+}
+
+
 const std::string &   cNewO_NameManager::OriCal() const {return mPrefOriCal;}
 
 
