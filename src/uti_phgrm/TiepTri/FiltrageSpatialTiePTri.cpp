@@ -40,6 +40,39 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "TiepTri.h"
 
 
+
+class cTpP_HeapParam
+{
+     public :
+        static void SetIndex(cResulMultiImRechCorrel * & aRMIRC,int i) 
+        {
+                aRMIRC->HeapIndexe() = i;
+        }
+        static int  Index(const cResulMultiImRechCorrel *  & aRMIRC)
+        {    
+             return aRMIRC->HeapIndexe();
+        }
+};
+
+class cTpP_HeapCompare
+{
+    public :
+
+        bool operator () (cResulMultiImRechCorrel *  & aR1,cResulMultiImRechCorrel *  & aR2)
+        {
+              return aR1->Score() > aR2->Score();
+        }
+};
+
+class cFuncPtOfRMICPtr
+{
+      public :
+         Pt2dr operator () (cResulMultiImRechCorrel * aRMIRC) {return Pt2dr(aRMIRC->PMaster().mPt);}
+};
+
+
+typedef ElClassQT<cResulMultiImRechCorrel *,Pt2dr,cFuncPtOfRMICPtr> tQtTiepT;
+
 /*
    A cette etape, les correlation ne sont pas tres precise (correlation entiere) donc on 
    fait une pre selection prudente.
@@ -51,8 +84,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 */
 
-
-std::vector<cResulMultiImRechCorrel *> FiltrageSpatial
+std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
                                        (
                                            const std::vector<cResulMultiImRechCorrel *> & aVIn,
                                            double aSeuilDist,
@@ -60,6 +92,20 @@ std::vector<cResulMultiImRechCorrel *> FiltrageSpatial
                                        )
 {
    std::vector<cResulMultiImRechCorrel *>  aResult;
+   cTpP_HeapCompare aCmp;
+   for (int aK=0; aK <int(aVIn.size()) ; aK++)
+   {
+       aVIn[aK]->CalculScoreAgreg(aSeuilDist,aGainCorrel);
+   }
+
+
+   ElHeap<cResulMultiImRechCorrel *,cTpP_HeapCompare,cTpP_HeapParam> aHeap(aCmp);
+
+
+   for (int aK=0; aK <int(aVIn.size()) ; aK++)
+   {
+       aHeap.push(aVIn[aK]);
+   }
 
 
    return aResult;

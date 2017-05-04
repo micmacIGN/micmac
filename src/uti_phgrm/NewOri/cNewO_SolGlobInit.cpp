@@ -98,9 +98,14 @@ cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string & aName,cAppli_NewSolGolIni
    mCalcGainByTriplet (0.0),
    mSomPdsReMoy       (0.0),
    mSomTrReMoy        (0,0,0),
-   mSomMatReMoy       (3,3,0.0)
+   mSomMatReMoy       (3,3,0.0),
+   mCamInOri          (0)
 {
    ReInit();
+   if (anAppli.HasInOri())
+   {
+       mCamInOri = anAppli.NM().CamOriOfNameSVP(aName,anAppli.InOri());
+   }
 }
 
 void cNOSolIn_AttrSom::ReInit()
@@ -145,6 +150,14 @@ cNOSolIn_Triplet::cNOSolIn_Triplet(cAppli_NewSolGolInit* anAppli,tSomNSI * aS1,t
    mSoms[0] = aS1;
    mSoms[1] = aS2;
    mSoms[2] = aS3;
+}
+
+bool cNOSolIn_Triplet::TripletIsInOri()
+{
+    for (int aK=0 ; aK<3 ; aK++)
+        if (mSoms[aK]->attr().CamInOri())
+           return false;
+    return  true;
 }
 
 void cNOSolIn_Triplet::SetArc(int aK,tArcNSI * anArc)
@@ -862,6 +875,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
 
    cTplTriplet<std::string> aKTest1(aNameT1,aNameT2,aNameT3);
    cTplTriplet<std::string> aKTest2(aNameT1,aNameT2,aNameT4);
+
+   mHasInOri = EAMIsInit(&mInOri);
 
    mEASF.Init(mFullPat);
    mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mOriCalib,"dat");

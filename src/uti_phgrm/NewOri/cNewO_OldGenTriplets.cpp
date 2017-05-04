@@ -463,25 +463,28 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       std::string & aInOri = mAppli->InOri();
       if (EAMIsInit(&aInOri))
       {
-         const std::string & aN1 = anA12->s1().attr().mIm->Name();
-         const std::string & aN2 = anA12->s2().attr().mIm->Name();
-         const std::string & aN3 = aSom->attr().mIm->Name();
+          bool Ok;
+          std::pair<ElRotation3D,ElRotation3D>  aPair = mAppli->NM().OriRelTripletFromExisting
+                                                (
+                                                    aInOri,
+                                                    anA12->s1().attr().mIm->Name(),
+                                                    anA12->s2().attr().mIm->Name(),
+                                                    aSom->attr().mIm->Name(),
+                                                    Ok
+                                                );
 
-         CamStenope * aCam1 = mAppli->NM().CamOriOfNameSVP(aN1,aInOri);
-         CamStenope * aCam2 = mAppli->NM().CamOriOfNameSVP(aN2,aInOri);
-         CamStenope * aCam3 = mAppli->NM().CamOriOfNameSVP(aN3,aInOri);
-         if (aCam1 && aCam2 && aCam3)
-         {
-             ElRotation3D aRot2Sur1  = (aCam2->Orient() *aCam1->Orient().inv());
-             ElRotation3D aRot3Sur1  = (aCam3->Orient() *aCam1->Orient().inv());
-             aRot2Sur1 = aRot2Sur1.inv();
-             aRot3Sur1 = aRot3Sur1.inv();
-
-             std::cout << "RATIO " << euclid(aC2) / euclid(mC3) 
-                       << " " << euclid(aRot2Sur1.tr()) / euclid(aRot3Sur1.tr())
-                       << "\n";
-
-         }
+          if (Ok)
+          {
+               mM3 = aPair.second.Mat();
+               mC3 = aPair.second.tr();
+/*
+               std::cout << " D2 " << euclid(aC2-aPair.first.tr())
+                         << " D3 " << euclid(mC3-aPair.second.tr())
+                         << " M2 " << (aR21.Mat()-aPair.first.Mat()).L2()
+                         << " M3 " << (mM3-aPair.second.Mat()).L2()
+                         << " \n";
+*/
+          }
       }
 
 

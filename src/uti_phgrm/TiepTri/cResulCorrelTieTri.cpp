@@ -63,6 +63,7 @@ void cResulMultiImRechCorrel::AddResul(const cResulRechCorrel aRRC,int aNumIm)
        mScore = ElMin(mScore,aRRC.mCorrel);
        mVRRC.push_back(aRRC);
        mVIndex.push_back(aNumIm);
+       mVSelec.push_back(true);
    }
    else
    {
@@ -102,6 +103,17 @@ const std::vector<int> &   cResulMultiImRechCorrel::VIndex()   const
 {
    return  mVIndex;
 }
+
+int &       cResulMultiImRechCorrel::HeapIndexe ()       {return mHeapIndexe;}
+const int & cResulMultiImRechCorrel::HeapIndexe () const {return mHeapIndexe;}
+
+void cResulMultiImRechCorrel::CalculScoreAgreg(double Epsilon,double anExp)
+{
+    mScore = 0.0;
+    for (int aK=0 ; aK<int(mVSelec.size()) ; aK++)
+        mScore += pow(1/(Epsilon + (1-mVRRC[aK].mCorrel)),anExp);
+}
+
 
     //==========================  cResulRechCorrel  ==================
     //==========================  cResulRechCorrel  ==================

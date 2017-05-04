@@ -144,6 +144,7 @@ void cAppli_Martini::DoAll()
 
 
      // Solution initiale (et probablement definitive)
+     // CPP_NewSolGolInit_main  dans cNewO_SolGlobInit.cpp
      StdCom("NO_SolInit3");
 }
 

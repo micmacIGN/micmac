@@ -1085,6 +1085,10 @@ bool SolveBundle3Image
                anEr2 = aDefError;
            }
     }
+    if (aParam.mNbIter==0)
+    {
+       anEr3 = aB3.OneIter3(anEr3); 
+    }
 
     aPMed.x =  MedianeSup(aB3.mXI);
     aPMed.y =  MedianeSup(aB3.mYI);

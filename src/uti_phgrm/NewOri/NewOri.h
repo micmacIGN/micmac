@@ -305,6 +305,16 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            std::string NameListeCpleConnected(bool Bin) const;
            std::string NameRatafiaSom(const std::string & aName,bool Bin) const;
 
+           // Orientation d'un triplets a partir d'un Ori existante, convention Martini
+           std::pair<ElRotation3D,ElRotation3D> OriRelTripletFromExisting
+                                                (
+                                                    const std::string & Ori,
+                                                    const std::string & aNameI1,
+                                                    const std::string & aNameI2,
+                                                    const std::string & aNameI3,
+                                                    bool & Ok
+                                                );
+
            void LoadHomFloats(std::string,std::string,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP=false);
            void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);
            void GenLoadHomFloats(const std::string &  aNameH,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,bool SVP);
