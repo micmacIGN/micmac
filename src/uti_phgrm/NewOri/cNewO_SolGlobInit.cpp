@@ -105,6 +105,8 @@ cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string & aName,cAppli_NewSolGolIni
    if (anAppli.HasInOri())
    {
        mCamInOri = anAppli.NM().CamOriOfNameSVP(aName,anAppli.InOri());
+
+       // std::cout << "cNOSolIn_AttrSomcNOSolIn_AttrSom " << mName << " " << mCamInOri << "\n";
    }
 }
 
@@ -155,7 +157,7 @@ cNOSolIn_Triplet::cNOSolIn_Triplet(cAppli_NewSolGolInit* anAppli,tSomNSI * aS1,t
 bool cNOSolIn_Triplet::TripletIsInOri()
 {
     for (int aK=0 ; aK<3 ; aK++)
-        if (mSoms[aK]->attr().CamInOri())
+        if (!mSoms[aK]->attr().CamInOri())
            return false;
     return  true;
 }
@@ -1139,6 +1141,8 @@ void cAppli_NewSolGolInit::Save()
     aMat = NearestRotation(aMat);
     // std::cout <<"DMIIIIIN " << aSomDistMin << " " << aDirKMin << " " << aCentre <<  " DET=" << aMat.Det() << "\n";
     ElRotation3D  aNew2Old(aCentre,aMat,true);
+    if (mHasInOri)
+        aNew2Old = ElRotation3D::Id;
 
     Pt3dr aNewC(0,0,0);
 

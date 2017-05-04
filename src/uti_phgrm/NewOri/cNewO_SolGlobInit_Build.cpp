@@ -272,6 +272,14 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
              Pt3dr  aTrK = aOffsTr + aMTri2Cur*aVCTri[aKS] * aLambda;
              ElMatrix<double> aMK = aMTri2Cur * aTri->RotOfSom(aSom).Mat();
 
+             if (aSom->attr().CamInOri())
+             {
+                 const ElRotation3D &   aRCur =  aSom->attr().CurRot();
+
+                 aTrK = aRCur.tr();
+                 aMK = aRCur.Mat();
+             }
+
             // ElMatrix<double> aMKTri2Cur = aRCur.Mat() * aRTri.Mat().transpose();
 
              aSom->attr().SomPdsReMoy() += aPds;
@@ -626,20 +634,42 @@ void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
 
     SetFlagAdd(mV3Use4Ori,aGerm,mFlag3UsedForOri);
 
-    for (int aKS=0 ; aKS<3 ; aKS++)
-    {
-         SetFlagAdd(mVSOrGerm,aGerm->KSom(aKS),mFlagSOrGerm);
-    }
-
     if (mHasInOri)
     {
-         // for (int aKS=0 ; aKS< ; aKS++)
+         for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
+         // for (int aKS=0 ; aKS<3 ; aKS++)
+         {
+              tSomNSI & aSom = *anItS;
+              // tSomNSI &  aSom = *(aGerm->KSom(aKS));
+              CamStenope *   aCam = aSom.attr().CamInOri();
+              if (aCam)
+              {
+                  AddSOrCur(&aSom,aCam->Orient().inv());
+                  // AddSOrCur(&aSom,aCam->Orient().inv());
+                  SetFlagAdd(mVSOrGerm,&aSom,mFlagSOrGerm);
+                  // aV1.push_back(aGerm->RotOfK(aKS).tr());
+                  // aV2.push_back(aCam->Orient().inv().tr());
+              }
+         }
+
+/*
+         for (int aK=0 ; aK<aV1.size() ; aK++)
+         {
+              double aD1 = euclid(aV1[aK]-aV1[(aK+1)%aV1.size()]);
+              double aD2 = euclid(aV2[aK]-aV2[(aK+1)%aV1.size()]);
+              std::cout << "RRRRrrr=" << aD1 / aD2 << "\n";
+         }
+          std::cout << "UuuuuuuuuUuuu \n"; getchar();
+*/
+           
+
     }
     else
     {
         for (int aKS=0 ; aKS<3 ; aKS++)
         {
              AddSOrCur(aGerm->KSom(aKS),aGerm->RotOfK(aKS));
+             SetFlagAdd(mVSOrGerm,aGerm->KSom(aKS),mFlagSOrGerm);
         }
     }
 
