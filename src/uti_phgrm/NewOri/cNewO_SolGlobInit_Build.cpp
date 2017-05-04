@@ -631,9 +631,16 @@ void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
          SetFlagAdd(mVSOrGerm,aGerm->KSom(aKS),mFlagSOrGerm);
     }
 
-    for (int aKS=0 ; aKS<3 ; aKS++)
+    if (mHasInOri)
     {
-         AddSOrCur(aGerm->KSom(aKS),aGerm->RotOfK(aKS));
+         // for (int aKS=0 ; aKS< ; aKS++)
+    }
+    else
+    {
+        for (int aKS=0 ; aKS<3 ; aKS++)
+        {
+             AddSOrCur(aGerm->KSom(aKS),aGerm->RotOfK(aKS));
+        }
     }
 
     tSomNSI * aSom;
@@ -691,12 +698,16 @@ void  cAppli_NewSolGolInit::CalculOrient(cNO_CC_TripSom * aCC)
      for (int aK=0 ; aK< int(aCC->mTri.size()) ; aK++)
      {
          cNOSolIn_Triplet * aTri = aCC->mTri[aK];
-         if (aTri->CostArc()<aBesCoherCost)
+         if ((!mHasInOri) || (aTri->TripletIsInOri()))
          {
-             aBesCoherCost = aTri->CostArc();
-             aGerm0 = aTri;
+             if (aTri->CostArc()<aBesCoherCost)
+             {
+                 aBesCoherCost = aTri->CostArc();
+                 aGerm0 = aTri;
+             }
          }
      }
+     ELISE_ASSERT(aGerm0!=0,"Cannot compute germ in CalculOrient (due to InOri ?)");
 
      CalculOrient(aGerm0);
 }

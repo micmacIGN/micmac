@@ -221,6 +221,7 @@ class cAppliOptimTriplet
           bool             mModeTTK;
           bool             mWithTTK;
           std::string      mInOri;
+          bool             mInOriOk;
 };
 
 const std::string cAppliOptimTriplet::KeyCple = "KeyCple";
@@ -705,6 +706,22 @@ void cAppliOptimTriplet::Execute()
    std::string  aName3R = mNM->NameOriInitTriplet(true,mNoIm1,mNoIm2,mNoIm3);
    cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
 
+   mInOriOk = false;
+
+   if (EAMIsInit(&mInOri))
+   {
+       mInOriOk =    (mNM->CamOriOfNameSVP(mNoIm1->Name(),mInOri) !=0)
+                  && (mNM->CamOriOfNameSVP(mNoIm2->Name(),mInOri) !=0)
+                  && (mNM->CamOriOfNameSVP(mNoIm3->Name(),mInOri) !=0) ;
+       // Si mInOriOk, apres NO_GenTripl, aXml3Ori contient les resultats de
+       // InOri. Ensuite les rotation sont initialisees avec aXml3Ori.
+       // Il suffit donc de bloquer la restimation (init et bundle) pour avoir
+       // dans les "best sol" le resultat de InOri
+   }
+
+   
+
+
    mIms.push_back(new  cImOfTriplet(0,*this,mNoIm1,ElRotation3D::Id));
    mIms.push_back(new  cImOfTriplet(1,*this,mNoIm2,Xml2El(aXml3Ori.Ori2On1())));
    mIms.push_back(new  cImOfTriplet(2,*this,mNoIm3,Xml2El(aXml3Ori.Ori3On1())));
@@ -766,18 +783,18 @@ void cAppliOptimTriplet::Execute()
 
 
    mBestResidu =  ResiduGlob();
-/*
-   TestOPA(*mP12);
-*/
 
    if (mAotShow) 
    {
       std::cout << "Time reduc " << aChrono.uval()   << "  Pds3=" << mPds3 << "\n";
    }
 
-   for (int aKP=0 ; aKP<int(mPairs.size()) ; aKP++)
+   if (!mInOriOk)
    {
-       TestOPA(*(mPairs[aKP]));
+      for (int aKP=0 ; aKP<int(mPairs.size()) ; aKP++)
+      {
+          TestOPA(*(mPairs[aKP]));
+      }
    }
 
    if (mAotShow) 
@@ -786,7 +803,8 @@ void cAppliOptimTriplet::Execute()
    }
 
 
-    TestTomasiKanade();
+   if (! mInOriOk)
+      TestTomasiKanade();
 
    if (mAotShow)
    {
@@ -828,12 +846,13 @@ void cAppliOptimTriplet::Execute()
 #endif
 
    int aNbIterBundle = mQuick ? QuickNbIterBundle : StdNbIterBundle;
+   if (mInOriOk) 
+      aNbIterBundle =0;
    double aBOnH;
    Pt3dr aPMed;
 
    ElRotation3D aR21 =  mIm2->Ori();
    ElRotation3D aR31 =  mIm3->Ori();
-
 
    cParamCtrlSB3I aParamSB3I(aNbIterBundle);
    SolveBundle3Image

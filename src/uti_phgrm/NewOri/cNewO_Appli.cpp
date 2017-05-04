@@ -125,9 +125,12 @@ void cAppli_Martini::DoAll()
      // Homologues flottants
      // StdCom("NO_AllHomFloat"); => Supprime, pris en compte dans NO_AllOri2Im
 
-     // 2-  Generation des triplet de points hom flottants
+     // 2-  Generation des fichier de points homologues  triple hom  (flottants)
      //  NO_AllImTriplet  => cNewO_PointsTriples.cpp  => CPP_GenAllImP3
+     // lance en parallele pour chaque image NO_OneImTriplet
      // NO_OneImTriplet   => cNewO_PointsTriples.cpp  => CPP_GenOneImP3
+     //   CPP_GenOneImP3 cree un objet de la classe cAppli_GenPTripleOneImage
+     //   et appelle GenerateTriplets
      StdCom("NO_AllImTriplet");
 
      // 3-  Selection   des triplet
@@ -141,6 +144,7 @@ void cAppli_Martini::DoAll()
 
 
      // Solution initiale (et probablement definitive)
+     // CPP_NewSolGolInit_main  dans cNewO_SolGlobInit.cpp
      StdCom("NO_SolInit3");
 }
 
@@ -173,6 +177,8 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
   // Force la creation des auto cal
     cElemAppliSetFile anEASF(mPat);
     StdCorrecNameOrient(mNameOriCalib,anEASF.mDir);
+    if (EAMIsInit(&mInOri))
+       StdCorrecNameOrient(mInOri,anEASF.mDir);
 
     cNewO_NameManager aNM(mExtName,mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,"dat");
     const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();

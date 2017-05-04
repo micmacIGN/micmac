@@ -232,6 +232,38 @@ ElRotation3D cNewO_NameManager::OriCam2On1(const std::string & aNOri1,const std:
     //  return aN1InfN2 ? aR12 : aR12.inv();
 }
 
+std::pair<ElRotation3D,ElRotation3D> cNewO_NameManager::OriRelTripletFromExisting
+                                     (
+                                                    const std::string & aInOri,
+                                                    const std::string & aN1,
+                                                    const std::string & aN2,
+                                                    const std::string & aN3,
+                                                    bool & Ok
+                                      )
+{
+    std::pair<ElRotation3D,ElRotation3D> aRes(ElRotation3D::Id,ElRotation3D::Id);
+    Ok = false;
+    CamStenope * aCam1 = CamOriOfNameSVP(aN1,aInOri);
+    CamStenope * aCam2 = CamOriOfNameSVP(aN2,aInOri);
+    CamStenope * aCam3 = CamOriOfNameSVP(aN3,aInOri);
+    if (aCam1 && aCam2 && aCam3)
+    {
+       ElRotation3D aRot2Sur1  = (aCam2->Orient() *aCam1->Orient().inv());
+       ElRotation3D aRot3Sur1  = (aCam3->Orient() *aCam1->Orient().inv());
+       aRot2Sur1 = aRot2Sur1.inv();
+       aRot3Sur1 = aRot3Sur1.inv();
+
+       double aDist = euclid(aRot2Sur1.tr());
+       aRot2Sur1.tr() = aRot2Sur1.tr() /aDist;
+       aRot3Sur1.tr() = aRot3Sur1.tr() /aDist;
+       Ok = true;
+       aRes.first = aRot2Sur1;
+       aRes.second = aRot3Sur1;
+    }
+    return aRes;
+}
+
+
 
 cResVINM::cResVINM() :
    mCam1    (0),

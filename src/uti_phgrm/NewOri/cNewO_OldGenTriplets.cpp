@@ -259,6 +259,7 @@ class cAppli_GenTriplet
        double                        mTimeLoadTri;
        int                           mNbLoadCple;
        int                           mNbLoadTri;
+       std::string & InOri() {return  mInOri;}
 
     private :
 
@@ -458,6 +459,33 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       mC3 = aC3I;
       mM3 =  NearestRotation((aR31.Mat() + aR31Bis.Mat())*0.5);
 
+      //  Cas ou In Ori est 
+      std::string & aInOri = mAppli->InOri();
+      if (EAMIsInit(&aInOri))
+      {
+          bool Ok;
+          std::pair<ElRotation3D,ElRotation3D>  aPair = mAppli->NM().OriRelTripletFromExisting
+                                                (
+                                                    aInOri,
+                                                    anA12->s1().attr().mIm->Name(),
+                                                    anA12->s2().attr().mIm->Name(),
+                                                    aSom->attr().mIm->Name(),
+                                                    Ok
+                                                );
+
+          if (Ok)
+          {
+               mM3 = aPair.second.Mat();
+               mC3 = aPair.second.tr();
+/*
+               std::cout << " D2 " << euclid(aC2-aPair.first.tr())
+                         << " D3 " << euclid(mC3-aPair.second.tr())
+                         << " M2 " << (aR21.Mat()-aPair.first.Mat()).L2()
+                         << " M3 " << (mM3-aPair.second.Mat()).L2()
+                         << " \n";
+*/
+          }
+      }
 
 
      // Calcul gain et densite

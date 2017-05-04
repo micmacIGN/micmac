@@ -498,6 +498,9 @@ class cResulMultiImRechCorrel
           const std::vector<int> &    VIndex()   const ;
           void CalculScoreMin();
           void CalculScoreAgreg(double Epsilon,double pow);
+
+          int & HeapIndexe () ;
+          const int & HeapIndexe () const ;
     private :
 
          cResulMultiImRechCorrel(const cResulMultiImRechCorrel & ) ; // N.I.
@@ -508,6 +511,7 @@ class cResulMultiImRechCorrel
          std::vector<cResulRechCorrel > mVRRC;
          std::vector<int>                       mVIndex;
          std::vector<bool>                      mVSelec; // Utilise dans le filtrage spatial pour savoir si ce point a deja ete selec
+         int                                    mHeapIndexe;
 };
 
 class cOneTriMultiImRechCorrel
