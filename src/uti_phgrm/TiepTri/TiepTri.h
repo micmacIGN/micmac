@@ -309,6 +309,7 @@ class cImTieTri
            const int & Num() const;
            string NameIm() {return mNameIm;}
            bool AutoCorrel(Pt2di aP);
+           Tiff_Im   Tif();
            
       protected :
            cImTieTri(const cImTieTri &) ; // N.I.
@@ -501,6 +502,11 @@ class cResulMultiImRechCorrel
 
           int & HeapIndexe () ;
           const int & HeapIndexe () const ;
+          // std::vector<bool>  &   VSelec(); 
+          //const std::vector<bool>  &   VSelec() const; 
+          int NbSel() const;
+          void SetAllSel();
+          void SetSelec(int aK,bool aVal);
     private :
 
          cResulMultiImRechCorrel(const cResulMultiImRechCorrel & ) ; // N.I.
@@ -512,6 +518,7 @@ class cResulMultiImRechCorrel
          std::vector<int>                       mVIndex;
          std::vector<bool>                      mVSelec; // Utilise dans le filtrage spatial pour savoir si ce point a deja ete selec
          int                                    mHeapIndexe;
+         int                                    mNbSel;
 };
 
 class cOneTriMultiImRechCorrel

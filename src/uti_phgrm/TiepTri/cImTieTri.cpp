@@ -400,6 +400,8 @@ void  cImTieTri::MakeInterestPointFAST
 Video_Win * cImTieTri::W() {return mW;}
 const Pt2di & cImTieTri::Decal() const {return mDecal;}
 const int & cImTieTri::Num() const {return mNum;}
+Tiff_Im   cImTieTri::Tif() {return mTif;}
+
 
 
 
