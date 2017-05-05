@@ -172,6 +172,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	cout << "Total    : " << countTot << " points" << endl;
 	cout << "Mean Val : " << aMeanParErr << endl;
 
+	/*
 	//deg4*4
 	L2SysSurResol aSysPar44(14);
 	//deg4*5
@@ -182,6 +183,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	L2SysSurResol aSysPar55(20);
 	//deg6*6
 	L2SysSurResol aSysPar66(27);
+	*/
 	//deg7*7
 	L2SysSurResol aSysPar77(35);
 	//For all points that are not nullified by bad correlation (value=9999) add equation to fit 6th degree polynomials in x and y to measured paralax
@@ -191,6 +193,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 			double Y = double(aY);
 			if (aDatCorrel_dilat[aY][aX] != -9999)
 			{
+				/*
 				//deg44
 				double aEq44[14] = { X, Y, X*X, X*Y, Y*Y, X*X*X, X*X*Y, X*Y*Y, Y*Y*Y,
 									 X*X*X*X,  X*X*X*Y, X*X*Y*Y, X*Y*Y*Y, Y*Y*Y*Y };
@@ -211,18 +214,20 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 					X*X*X*X,  X*X*X*Y, X*X*Y*Y, X*Y*Y*Y, Y*Y*Y*Y,
 					X*X*X*X*X, X*X*X*X*Y, X*X*X*Y*Y, X*X*Y*Y*Y,  X*Y*Y*Y*Y, Y*Y*Y*Y*Y,
 					X*X*X*X*X*X, X*X*X*X*X*Y, X*X*X*X*Y*Y, X*X*X*Y*Y*Y,  X*X*Y*Y*Y*Y, X*Y*Y*Y*Y*Y, Y*Y*Y*Y*Y*Y };
+					*/
 				//deg77
 				double aEq77[35] = { X, Y, X*X, X*Y, Y*Y, X*X*X, X*X*Y, X*Y*Y, Y*Y*Y,
 					X*X*X*X,  X*X*X*Y, X*X*Y*Y, X*Y*Y*Y, Y*Y*Y*Y,
 					X*X*X*X*X, X*X*X*X*Y, X*X*X*Y*Y, X*X*Y*Y*Y,  X*Y*Y*Y*Y, Y*Y*Y*Y*Y,
 					X*X*X*X*X*X, X*X*X*X*X*Y, X*X*X*X*Y*Y, X*X*X*Y*Y*Y,  X*X*Y*Y*Y*Y, X*Y*Y*Y*Y*Y, Y*Y*Y*Y*Y*Y ,
 					X*X*X*X*X*X*X, X*X*X*X*X*X*Y, X*X*X*X*X*Y*Y, X*X*X*X*Y*Y*Y,  X*X*X*Y*Y*Y*Y, X*X*Y*Y*Y*Y*Y, X*Y*Y*Y*Y*Y*Y, Y*Y*Y*Y*Y*Y*Y };
-
+				/*
 				aSysPar44.AddEquation(1, aEq44, aParOrig[aY][aX] - aMeanParErr);
 				aSysPar45.AddEquation(1, aEq45, aParOrig[aY][aX] - aMeanParErr);
 				aSysPar54.AddEquation(1, aEq54, aParOrig[aY][aX] - aMeanParErr);
 				aSysPar55.AddEquation(1, aEq55, aParOrig[aY][aX] - aMeanParErr);
 				aSysPar66.AddEquation(1, aEq66, aParOrig[aY][aX] - aMeanParErr);
+				*/
 				aSysPar77.AddEquation(1, aEq77, aParOrig[aY][aX] - aMeanParErr);
 			}
 		}
@@ -232,24 +237,28 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	int aCase;
 	bool Ok;
 	int nbCoef;
+	/*
 	Im1D_REAL8 aSolPar44 = aSysPar44.GSSR_Solve(&Ok);
 	Im1D_REAL8 aSolPar45 = aSysPar45.GSSR_Solve(&Ok);
 	Im1D_REAL8 aSolPar54 = aSysPar54.GSSR_Solve(&Ok);
 	Im1D_REAL8 aSolPar55 = aSysPar55.GSSR_Solve(&Ok);
 	Im1D_REAL8 aSolPar66 = aSysPar66.GSSR_Solve(&Ok);
-	Im1D_REAL8 aSolPar77 = aSysPar77.GSSR_Solve(&Ok);
 	double aRes44 = aSysPar55.ResiduOfSol(aSolPar44.data());
 	double aRes45 = aSysPar55.ResiduOfSol(aSolPar45.data());
 	double aRes54 = aSysPar55.ResiduOfSol(aSolPar54.data());
 	double aRes55 = aSysPar55.ResiduOfSol(aSolPar55.data());
 	double aRes66 = aSysPar66.ResiduOfSol(aSolPar66.data());
-	double aRes77 = aSysPar77.ResiduOfSol(aSolPar77.data());
 	cout << "Residual for Poly44 : " << aRes44 << endl;
 	cout << "Residual for Poly45 : " << aRes45 << endl;
 	cout << "Residual for Poly54 : " << aRes54 << endl;
 	cout << "Residual for Poly55 : " << aRes55 << endl;
 	cout << "Residual for Poly66 : " << aRes66 << endl;
+	*/
+	Im1D_REAL8 aSolPar77 = aSysPar77.GSSR_Solve(&Ok);
+	double aRes77 = aSysPar77.ResiduOfSol(aSolPar77.data());
 	cout << "Residual for Poly77 : " << aRes77 << endl;
+	double* aPolyPar = aSolPar77.data(); aCase = 77; nbCoef = 35;
+	/*
 	double* aPolyPar;
 	if (aRes44 < aRes45 && aRes44 < aRes54 && aRes44 < aRes55 && aRes44 < aRes66 && aRes44 < aRes77) { aPolyPar = aSolPar44.data(); aCase = 44; nbCoef = 14; };
 	if (aRes45 < aRes44 && aRes45 < aRes54 && aRes45 < aRes55 && aRes45 < aRes66 && aRes45 < aRes77) { aPolyPar = aSolPar45.data(); aCase = 45; nbCoef = 19; };
@@ -257,7 +266,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	if (aRes55 < aRes45 && aRes55 < aRes54 && aRes55 < aRes44 && aRes55 < aRes66 && aRes55 < aRes77) { aPolyPar = aSolPar55.data(); aCase = 55; nbCoef = 20; };
 	if (aRes66 < aRes45 && aRes66 < aRes54 && aRes66 < aRes55 && aRes66 < aRes44 && aRes66 < aRes77) { aPolyPar = aSolPar66.data(); aCase = 66; nbCoef = 27; };
 	if (aRes77 < aRes45 && aRes77 < aRes54 && aRes77 < aRes55 && aRes77 < aRes66 && aRes77 < aRes44) { aPolyPar = aSolPar77.data(); aCase = 77; nbCoef = 35; };
-
+	*/ 
 	cout << "Polynomial fit (Poly" << aCase << ")" << endl
 		<< "Cst   = " << aMeanParErr << endl
 		<< "Coef = ";
@@ -380,26 +389,17 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	REAL8 ** aDatParFit2_9 = aParFit2_9.data();
 	REAL8 ** aDatParFit2_X = aParFit2_X.data();
 
-	//250pix, overlap (5) 200pix
-	//vector<u_int> bands = { 0,0,0,0,0,50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,1150,1200,1250,1300,1350,1400,1450,1500,1550,1600,1650,1700,1750,1800,1850,1900,1950,2000,
-	//2050,2100,2150,2200,2250,2300,2350,2400,2450,2500,2550,2600,2650,2700,2750,2800,2850,2900,2950,3000,3050,3100,3150,3200,3250,3300,3350,3400,3450,3500,3550,3600,3650,3700,3750,3800,3850,3900,3950,4000,
-	//4050,4100,4150,4200,4250,4300,4350,4400,4450,4500,4550,4600,4650,4700,4750,4800,4850,4900,4950,5000,5000,5000,5000,5000 };
+	
 	//500pix, overlap (5) 400pix
 	//vector<u_int> bands = { 0,0,0,0,0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100,3200,3300,
 	//	3400,3500,3600,3700,3800,3900,4000,4100,4200,4300,4400,4500,4600,4700,4800,4900,5000,5000,5000,5000,5000 };
-	//500pix, overlap (2) 250pix
-	//vector<u_int> bands = { 0,0,250,500,750,1000,1250,1500,1750,2000,2250,2500,2750,3000,3250,3500,3750,4000,4250,4500,4750,5000,5000 };
 	//1000pix, overlap (5) 800pix
 	//vector<u_int> bands = { 0,0,0,0,0,200,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,3400,3600,3800,4000,4200,4400,4600,4800,5000,5000,5000,5000,5000 };
-	//1000pix overlap (10) 900pix
-	
+	//1000pix overlap (10) 900pix	
 	u_int bandsa[] = { 0,0,0,0,0,0,0,0,0,0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100,3200,3300,
 		3400,3500,3600,3700,3800,3900,4000,4100,4200,4300,4400,4500,4600,4700,4800,4900,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000 };
 	vector<u_int> bands(bandsa,bandsa+69);
-	//vector<u_int> bands = { 0,0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000,5000 };
-	//5000pix 5000pixoverlap
-	//vector<u_int> bands = { 0,0,5000,5000 };
-	int aNbQualityThreshold = 32;// double(countAccept) / (4200.0 * 2 * 50);//"Total acceptable data point"/("typical number of valid lines"*2*"portion of the image in a band (1/10th)")
+	int aNbQualityThreshold = 32;
 	int nbOverlap = 10;
 	//For each band of 500pix with 80% overlap
 	for (u_int k = 0; k < bands.size() - nbOverlap; k++) {
@@ -440,6 +440,8 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		if (lastValid == 0)
 		{
 			cout << "Not enough data to fit this slice, keeping polynomial solution" << endl;
+
+			#pragma omp parallel for
 			for (u_int aX = aXmin; aX < aXmax; aX++) {
 				for (u_int aY = 0; aY < aSz.y; aY++) {
 					if ((mod(k, nbOverlap)) == 0)
@@ -496,7 +498,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 //			vector< complex<double> > a1DSignalC;
 			vector< double > a1DSignalX;
 			vector< double > a1DSignalY;
-
+			
 			for (u_int i = firstValid; i <= lastValid; i++)
 			{
 				if (a1DSignal[i] == -9999) {
@@ -555,16 +557,14 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 			//lsfitsetscale(state, s);
 			alglib::lsfitfit(state, function_sunof8sins_func);
 			lsfitresults(state, info, c, rep);
-			printf("%d\n", int(info));
 			printf("%s\n", c.tostring(5).c_str());
 
 
 			///END Solve with ALGLIB
 
 
-
-			//REINSERT HERE
 			//Filling out container
+			#pragma omp parallel for
 			for (u_int aX = aXmin; aX < aXmax; aX++)
 			{
 				for (u_int aY = 0; aY < aSz.y; aY++)
@@ -677,6 +677,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	//Finding median in stack
 	if (nbOverlap == 10)
 	{
+        #pragma omp parallel for
 		for (u_int aX = 0; aX < aSz.x; aX++) {
 			for (u_int aY = 0; aY < aSz.y; aY++) {
 
