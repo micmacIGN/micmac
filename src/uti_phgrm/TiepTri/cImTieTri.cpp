@@ -41,6 +41,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "TiepTri.h"
 
 
+
+
+
 /************************************************/
 /*                                              */
 /*          cImTieTri                           */
@@ -253,6 +256,18 @@ bool cImTieTri::AutoCorrel(Pt2di aP)
 
 
 
+class cParamFSITTI
+{
+    public :
+        bool operator()(const cIntTieTriInterest & aPI1,const cIntTieTriInterest & aPI2)
+        {
+              return aPI2.mFastQual > aPI1.mFastQual;
+        }
+
+        Pt2dr operator()(const cIntTieTriInterest * aPI)     {return Pt2dr(aPI->mPt);}
+        bool IsSelected(const cIntTieTriInterest & aPI)      {return aPI.mSelected;}
+        void SetSelected(cIntTieTriInterest & aPI,bool aVal) {aPI.mSelected = aVal;}
+};
 
 void  cImTieTri::MakeInterestPoint
       (
@@ -323,53 +338,21 @@ void  cImTieTri::MakeInterestPoint
     // Priorité par FAST quality
     if (IsMaster())
     {
-         std::vector<cIntTieTriInterest> aVI(aListPI->begin(),aListPI->end());
-         aListPI->clear();
-         cCmpInterOnFast aCmp;
-         std::sort(aVI.begin(),aVI.end(),aCmp); //sort by Fast Quality
-
-         for (int aK1=0 ; aK1<int(aVI.size()) ; aK1++)
-         {
-             cIntTieTriInterest & aPI1= aVI[aK1];
-             if (aPI1.mSelected)
+        std::vector<cIntTieTriInterest> aVPI(aListPI->begin(),aListPI->end());
+        cParamFSITTI aParam;
+        double aDist = mAppli.mDistFiltr/TT_RatioFastFiltrSpatial;
+        cTplFiltrageSpatial<cIntTieTriInterest,cParamFSITTI>  aFS(aVPI,aParam,aDist);
+        aListPI->clear();
+        for (int aK=0 ; aK<int(aVPI.size()) ; aK++)
+        {
+             cIntTieTriInterest aPI = aVPI[aK];
+             aListPI->push_back(aPI);
+             if (mW)
              {
-                 aListPI->push_back(aPI1);
-                 double aSeuilD2 = ElSquare(mAppli.mDistFiltr/TT_RatioFastFiltrSpatial);
-                 if (mW)
-                 {
-                    mW->draw_circle_loc(Pt2dr(aPI1.mPt),0.75,ColOfType(aPI1.mType));
-                    mW->draw_circle_loc(Pt2dr(aPI1.mPt),sqrt(aSeuilD2),mW->pdisc()(P8COL::magenta));
-                 }
-                 for (int aK2=0 ; aK2<int(aVI.size()) ; aK2++)
-                 {
-                      cIntTieTriInterest & aPI2= aVI[aK2];
-                      if (square_euclid(aPI1.mPt-aPI2.mPt) < aSeuilD2)
-                         aPI2.mSelected = false;
-                 }
+                 mW->draw_circle_loc(Pt2dr(aPI.mPt),0.75,ColOfType(aPI.mType));
+                 mW->draw_circle_loc(Pt2dr(aPI.mPt),aDist,mW->pdisc()(P8COL::magenta));
              }
-         }
-         //*********Filtre par FAST quality tri**********//
-//         std::vector<cIntTieTriInterest> aVI(aListPI->begin(),aListPI->end());
-//         aListPI->clear();
-//         cCmpInterOnFast aCmp;
-//         std::sort(aVI.begin(),aVI.end(),aCmp); //sort by Fast Quality
-////cout<<"Filtre by Fast"<<endl;
-//         double surf = aVI.size()/abs((mP1Glob-mP2Glob) ^ (mP1Glob-mP3Glob));
-//         double aSeuilD2 = 1/ElSquare(mAppli.mDistFiltr*2/TT_RatioFastFiltrSpatial); // mDistFiltr = TT_DefSeuilDensiteResul (50)
-//         double ratio = aSeuilD2/surf;
-//         ratio >= 1.0 ? ratio=1.0: ratio=ratio;
-////cout<<surf<<" "<<aSeuilD2<<" "<<ratio<<endl;
-//         for (uint aK1=0; aK1<uint(ratio*aVI.size()); aK1++)
-//         {
-//             cIntTieTriInterest & aPI1= aVI[aK1];
-//             aListPI->push_back(aPI1);
-//             if (mW)
-//             {
-//                mW->draw_circle_loc(Pt2dr(aPI1.mPt),0.75,ColOfType(aPI1.mType));
-//             }
-//         }
-
-         //**********************************************//
+        }
     }
 }
 

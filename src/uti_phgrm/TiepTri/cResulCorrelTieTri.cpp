@@ -134,6 +134,8 @@ void  cResulMultiImRechCorrel::SetSelec(int aK,bool aVal)
      }
 }
 
+int cResulMultiImRechCorrel::NbSel() const {return mNbSel;}
+
 // std::vector<bool>  &         cResulMultiImRechCorrel::VSelec()       {return mVSelec; }
 // const std::vector<bool>  &   cResulMultiImRechCorrel::VSelec() const {return mVSelec; }
 

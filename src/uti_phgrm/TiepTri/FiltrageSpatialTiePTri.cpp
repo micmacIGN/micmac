@@ -95,15 +95,9 @@ std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
                                        )
 {
    std::vector<cResulMultiImRechCorrel *>  aResult;
-   cTpP_HeapCompare aCmp;
-   for (int aK=0; aK <int(aVIn.size()) ; aK++)
-   {
-       aVIn[aK]->CalculScoreAgreg(EpsilAggr,PowAggreg);  // Epsilon, power
-   }
 
    static tQtTiepT * aQdt = 0;
    static cFuncPtOfRMICPtr  aFctr;
-
    if (aQdt==0)
    {
        Pt2dr aSz= Pt2dr(mMasIm->Tif().sz());
@@ -112,9 +106,11 @@ std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
    }
 
 
+   cTpP_HeapCompare aCmp;
    ElHeap<cResulMultiImRechCorrel *,cTpP_HeapCompare,cTpP_HeapParam> aHeap(aCmp);
    for (int aK=0; aK <int(aVIn.size()) ; aK++)
    {
+       aVIn[aK]->CalculScoreAgreg(EpsilAggr,PowAggreg);  // Epsilon, power
        aHeap.push(aVIn[aK]);
        aQdt->insert(aVIn[aK]);
    }
@@ -192,6 +188,9 @@ std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
        }
    }
    aQdt->clear();
+   aHeap.clear();
+
+   std::cout << "FILTRAGE SPATIAL, " << aVIn.size() << " => " << aResult.size() << "\n";
 
    return aResult;
 }

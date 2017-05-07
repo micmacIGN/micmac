@@ -120,6 +120,7 @@ cAppliTieTri::cAppliTieTri
 
 void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
 {
+    // ==== Parcour des triangles =============
     int aNbTri = aTriang.Tri().size();
 
     for (int aK=0 ; aK<int(aTriang.Tri().size()) ; aK++)
@@ -134,7 +135,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     }
     std::cout << "NB TRI LOADED = " << mNbTriLoaded << "\n";
 
-    //=======================//
+    // ==== Prepare la structure de points multiples =============
     vector<string> * aVIm = new vector<string>();
     cout<<"  ++ ImMaster :"<<Master()->NameIm()<<endl;
     for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
@@ -149,7 +150,8 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     cSetTiePMul * aMulHomol = new cSetTiePMul(0, aVIm); // Im2nd, ImMaster
     vector< vector<int> > VNumIms;
     vector< vector<Pt2dr> > VPtsIms;
-    //=======================//
+
+    //====== Parcour les  PtsMul et rempli Hom classique + nouvelle structure==========//
 
     for (int aKT= 0; aKT< int(mVGlobMIRMC.size()) ; aKT++)
     {
@@ -206,6 +208,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
         }
     }
 
+    // Sauve au nouveau format
     cout<<"Write pts homo to disk:..."<<endl;
     for (uint aKHomol=0; aKHomol<VNumIms.size(); aKHomol++)
     {
@@ -216,6 +219,8 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     string aPmulHomolName = "Homol" + aHomolOut + "/PMul_" + this->Master()->NameIm() + ".txt";
     aMulHomol->Save(aPmulHomolName);
 
+
+    // Sauve a l'ancien format
     for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
     {
         cImSecTieTri* aImSec = mImSec[aKIm];
@@ -223,6 +228,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
         cout<<" - Nb Pts= "<<aImSec->PackH().size()<<endl;
         std::string pic1 = Master()->NameIm();
         std::string pic2 = aImSec->NameIm();
+        // La classe cHomolPackTiepTri semble n'apporter aucun service par rapport a sauver directement ...
         cHomolPackTiepTri aPack(pic1, pic2, aKIm, mICNM, true); //true = skipPackVide
         aPack.Pack() = aImSec->PackH();
         aPack.writeToDisk(aHomolOut);
@@ -327,6 +333,12 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
                   delete aRMIRC;
               }
          }
+/*
+if (MPD_MM())
+{
+   FiltrageSpatial(mVCurMIRMC,50,0.1);
+}
+*/
          mTimeCorInit += aChrono.uval();
     }
 
