@@ -242,7 +242,7 @@ int Init11Param_Main(int argc,char ** argv)
 
 
     bool RansacMode =EAMIsInit(&aRansacParam);
-    int     aNbTirage,aNbMaxP;
+    int     aNbTirage,aNbMaxP=0;
     double  aPropInlier;
     if (RansacMode)
     {
