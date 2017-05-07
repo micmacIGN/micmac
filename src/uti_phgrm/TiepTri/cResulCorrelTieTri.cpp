@@ -48,7 +48,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 cResulMultiImRechCorrel::cResulMultiImRechCorrel(const cIntTieTriInterest & aPMaster) :
     mPMaster (aPMaster),
     mScore   (TT_MaxCorrel),
-    mAllInit (true)
+    mAllInit (true),
+    mNbSel   (0)
 {
 }
 
@@ -64,6 +65,7 @@ void cResulMultiImRechCorrel::AddResul(const cResulRechCorrel aRRC,int aNumIm)
        mVRRC.push_back(aRRC);
        mVIndex.push_back(aNumIm);
        mVSelec.push_back(true);
+       mNbSel++;
    }
    else
    {
@@ -111,8 +113,32 @@ void cResulMultiImRechCorrel::CalculScoreAgreg(double Epsilon,double anExp)
 {
     mScore = 0.0;
     for (int aK=0 ; aK<int(mVSelec.size()) ; aK++)
-        mScore += pow(1/(Epsilon + (1-mVRRC[aK].mCorrel)),anExp);
+    {
+        if (mVSelec[aK])
+           mScore += pow(1/(Epsilon + (1-mVRRC[aK].mCorrel)),anExp);
+    }
 }
+
+void  cResulMultiImRechCorrel::SetAllSel()
+{
+    for (int aK=0 ; aK<int(mVSelec.size()) ; aK++)
+        SetSelec(aK,true);
+}
+
+void  cResulMultiImRechCorrel::SetSelec(int aK,bool aVal)
+{
+     if (mVSelec[aK] != aVal)
+     {
+          mVSelec[aK] = aVal;
+          mNbSel += (aVal ? 1 : -1);
+     }
+}
+
+int cResulMultiImRechCorrel::NbSel() const {return mNbSel;}
+
+// std::vector<bool>  &         cResulMultiImRechCorrel::VSelec()       {return mVSelec; }
+// const std::vector<bool>  &   cResulMultiImRechCorrel::VSelec() const {return mVSelec; }
+
 
 
     //==========================  cResulRechCorrel  ==================
