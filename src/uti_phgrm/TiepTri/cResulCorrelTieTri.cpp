@@ -48,7 +48,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 cResulMultiImRechCorrel::cResulMultiImRechCorrel(const cIntTieTriInterest & aPMaster) :
     mPMaster (aPMaster),
     mScore   (TT_MaxCorrel),
-    mAllInit (true)
+    mAllInit (true),
+    mNbSel   (0)
 {
 }
 
@@ -63,6 +64,8 @@ void cResulMultiImRechCorrel::AddResul(const cResulRechCorrel aRRC,int aNumIm)
        mScore = ElMin(mScore,aRRC.mCorrel);
        mVRRC.push_back(aRRC);
        mVIndex.push_back(aNumIm);
+       mVSelec.push_back(true);
+       mNbSel++;
    }
    else
    {
@@ -102,6 +105,86 @@ const std::vector<int> &   cResulMultiImRechCorrel::VIndex()   const
 {
    return  mVIndex;
 }
+
+int &       cResulMultiImRechCorrel::HeapIndexe ()       {return mHeapIndexe;}
+const int & cResulMultiImRechCorrel::HeapIndexe () const {return mHeapIndexe;}
+
+void cResulMultiImRechCorrel::CalculScoreAgreg(double Epsilon,double anExp)
+{
+    mScore = 0.0;
+    for (int aK=0 ; aK<int(mVSelec.size()) ; aK++)
+    {
+        if (mVSelec[aK])
+           mScore += pow(1/(Epsilon + (1-mVRRC[aK].mCorrel)),anExp);
+    }
+}
+
+void  cResulMultiImRechCorrel::SetAllSel()
+{
+    for (int aK=0 ; aK<int(mVSelec.size()) ; aK++)
+        SetSelec(aK,true);
+}
+
+void  cResulMultiImRechCorrel::SetSelec(int aK,bool aVal)
+{
+     if (mVSelec[aK] != aVal)
+     {
+          mVSelec[aK] = aVal;
+          mNbSel += (aVal ? 1 : -1);
+     }
+}
+
+int cResulMultiImRechCorrel::NbSel() const {return mNbSel;}
+
+// std::vector<bool>  &         cResulMultiImRechCorrel::VSelec()       {return mVSelec; }
+// const std::vector<bool>  &   cResulMultiImRechCorrel::VSelec() const {return mVSelec; }
+
+
+void cResulMultiImRechCorrel::SuprUnSelect()
+{
+   mNbSel = 0;
+   for (int aK=0 ; aK<int(mVRRC.size()) ; aK++)
+   {
+       if (mVSelec[aK])
+       {
+            mVSelec[mNbSel] = mVSelec[aK];
+            mVIndex[mNbSel] = mVIndex[aK];
+            mVRRC[mNbSel]   =   mVRRC[aK];
+            mNbSel++;
+       }
+   }
+   while (int(mVRRC.size()) > mNbSel)
+   {
+       mVSelec.pop_back();
+       mVIndex.pop_back();
+       mVRRC.pop_back();
+   }
+}
+
+void cResulMultiImRechCorrel::SuprUnSelect(std::vector<cResulMultiImRechCorrel*> & aVR)
+{
+    int aNbSelGlob = 0;
+    for (int aK=0  ; aK<int(aVR.size()) ; aK++)
+    {
+        aVR[aK]->SuprUnSelect();
+        if (aVR[aK]->NbSel())
+        {
+            aVR[aNbSelGlob] = aVR[aK];
+            aNbSelGlob++;
+        }
+        else
+        {
+            delete aVR[aK];
+            aVR[aK] = 0;
+        }
+    }
+
+    while (int(aVR.size()) > aNbSelGlob)
+    {
+        aVR.pop_back();
+    }
+}
+
 
     //==========================  cResulRechCorrel  ==================
     //==========================  cResulRechCorrel  ==================

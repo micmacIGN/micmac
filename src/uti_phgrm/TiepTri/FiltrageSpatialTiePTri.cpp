@@ -40,6 +40,39 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "TiepTri.h"
 
 
+
+class cTpP_HeapParam
+{
+     public :
+        static void SetIndex(cResulMultiImRechCorrel *  aRMIRC,int i) 
+        {
+                aRMIRC->HeapIndexe() = i;
+        }
+        static int  Index(cResulMultiImRechCorrel *   aRMIRC)
+        {    
+             return aRMIRC->HeapIndexe();
+        }
+};
+
+class cTpP_HeapCompare
+{
+    public :
+
+        bool operator () (cResulMultiImRechCorrel *  & aR1,cResulMultiImRechCorrel *  & aR2)
+        {
+              return aR1->Score() > aR2->Score();
+        }
+};
+
+class cFuncPtOfRMICPtr
+{
+      public :
+         Pt2dr operator () (cResulMultiImRechCorrel * aRMIRC) {return Pt2dr(aRMIRC->PMaster().mPt);}
+};
+
+
+typedef ElQT<cResulMultiImRechCorrel *,Pt2dr,cFuncPtOfRMICPtr> tQtTiepT;
+
 /*
    A cette etape, les correlation ne sont pas tres precise (correlation entiere) donc on 
    fait une pre selection prudente.
@@ -51,8 +84,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 */
 
+#define EpsilAggr 0.02
+#define PowAggreg 0.02
 
-std::vector<cResulMultiImRechCorrel *> FiltrageSpatial
+std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
                                        (
                                            const std::vector<cResulMultiImRechCorrel *> & aVIn,
                                            double aSeuilDist,
@@ -61,6 +96,110 @@ std::vector<cResulMultiImRechCorrel *> FiltrageSpatial
 {
    std::vector<cResulMultiImRechCorrel *>  aResult;
 
+   static tQtTiepT * aQdt = 0;
+   static cFuncPtOfRMICPtr  aFctr;
+   if (aQdt==0)
+   {
+       Pt2dr aSz= Pt2dr(mMasIm->Tif().sz());
+       Pt2dr aRab(10,10);
+       aQdt = new tQtTiepT(aFctr,Box2dr(-aRab,aSz+aRab),10,20.0);
+   }
+
+
+   cTpP_HeapCompare aCmp;
+   ElHeap<cResulMultiImRechCorrel *,cTpP_HeapCompare,cTpP_HeapParam> aHeap(aCmp);
+   for (int aK=0; aK <int(aVIn.size()) ; aK++)
+   {
+       aVIn[aK]->CalculScoreAgreg(EpsilAggr,PowAggreg);  // Epsilon, power
+       aHeap.push(aVIn[aK]);
+       aQdt->insert(aVIn[aK]);
+   }
+
+   cResulMultiImRechCorrel * aRM_1;
+   // Contient les scores en fonction des numeros d'images
+   std::vector<double> aVCorrel(mImSec.size(),TT_DefCorrel);
+   Video_Win *  aW = mMasIm->W();
+   while (aHeap.pop(aRM_1))
+   {
+       if (aW)
+       {
+           aW->draw_circle_loc(aFctr(aRM_1),aSeuilDist,aW->pdisc()(P8COL::cyan));
+       }
+       aResult.push_back(aRM_1);
+       const std::vector<int> &  aVI_1 = aRM_1->VIndex();
+       int aNbI_1 = aVI_1.size();
+       const std::vector<cResulRechCorrel > & aVC_1 = aRM_1->VRRC() ;
+
+       // Mets a jour le score fonction du numero
+       for (int aK=0 ; aK<aNbI_1 ; aK++)
+       {
+           aVCorrel[aVI_1[aK]] =  aVC_1[aK].mCorrel;
+       }
+
+       std::set<cResulMultiImRechCorrel *> aSet;
+       aQdt->RVoisins(aSet,aFctr(aRM_1),aSeuilDist);
+       for (std::set<cResulMultiImRechCorrel *>::iterator itS=aSet.begin(); itS!=aSet.end() ; itS++)
+       {
+           cResulMultiImRechCorrel * aRM_2 = *itS;
+           if (aRM_1==aRM_2)
+           {
+              aQdt->remove(aRM_2);
+           }
+           else
+           {
+              const std::vector<int> &  aVI_2 = aRM_2->VIndex();
+              int aNbI_2 = aVI_2.size();
+              const std::vector<cResulRechCorrel > & aVC_2 = aRM_2->VRRC() ;
+
+              double aDist = euclid(aFctr(aRM_1)-aFctr(aRM_2));
+              double aRabCorrel = (1-(aDist/aSeuilDist)) * aGainCorrel;
+
+              int aNbS0 = aRM_2->NbSel();
+              for (int aK=0 ; aK<aNbI_2 ; aK++)
+              {
+                  int aKIm = aVI_2[aK];
+                  if (aVC_2[aK].mCorrel < (aVCorrel[aKIm]+aRabCorrel))
+                  {
+                      aRM_2->SetSelec(aK,false);
+                  }
+              }
+              int aNbSelEnd = aRM_2->NbSel();
+
+              if (aNbS0!=aNbSelEnd)
+              {
+                  aRM_2->CalculScoreAgreg(EpsilAggr,PowAggreg);  // Epsilon, power
+                  if (aNbSelEnd==0)
+                  {
+                     aQdt->remove(aRM_2);
+                     aHeap.Sortir(aRM_2);
+                     delete aRM_2;
+                  }
+                  else
+                  {
+                     aHeap.MAJ(aRM_2);
+                  }
+                  // if (aRM_2->NbSel()
+              }
+           }
+/*
+   double aSeuilDist,
+   double aGainCorrel
+*/
+       }
+
+       // Efface les score
+       for (int aKIm=0 ; aKIm<aNbI_1  ; aKIm++)
+       {
+           aVCorrel[aVI_1[aKIm]] = TT_DefCorrel;
+       }
+   }
+   aQdt->clear();
+   aHeap.clear();
+
+   if(aW)
+   {
+      std::cout << "FILTRAGE SPATIAL, " << aVIn.size() << " => " << aResult.size() << "\n";
+   }
 
    return aResult;
 }

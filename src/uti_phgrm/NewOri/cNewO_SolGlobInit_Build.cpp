@@ -272,6 +272,14 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
              Pt3dr  aTrK = aOffsTr + aMTri2Cur*aVCTri[aKS] * aLambda;
              ElMatrix<double> aMK = aMTri2Cur * aTri->RotOfSom(aSom).Mat();
 
+             if (aSom->attr().CamInOri())
+             {
+                 const ElRotation3D &   aRCur =  aSom->attr().CurRot();
+
+                 aTrK = aRCur.tr();
+                 aMK = aRCur.Mat();
+             }
+
             // ElMatrix<double> aMKTri2Cur = aRCur.Mat() * aRTri.Mat().transpose();
 
              aSom->attr().SomPdsReMoy() += aPds;
@@ -626,14 +634,43 @@ void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
 
     SetFlagAdd(mV3Use4Ori,aGerm,mFlag3UsedForOri);
 
-    for (int aKS=0 ; aKS<3 ; aKS++)
+    if (mHasInOri)
     {
-         SetFlagAdd(mVSOrGerm,aGerm->KSom(aKS),mFlagSOrGerm);
-    }
+         for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
+         // for (int aKS=0 ; aKS<3 ; aKS++)
+         {
+              tSomNSI & aSom = *anItS;
+              // tSomNSI &  aSom = *(aGerm->KSom(aKS));
+              CamStenope *   aCam = aSom.attr().CamInOri();
+              if (aCam)
+              {
+                  AddSOrCur(&aSom,aCam->Orient().inv());
+                  // AddSOrCur(&aSom,aCam->Orient().inv());
+                  SetFlagAdd(mVSOrGerm,&aSom,mFlagSOrGerm);
+                  // aV1.push_back(aGerm->RotOfK(aKS).tr());
+                  // aV2.push_back(aCam->Orient().inv().tr());
+              }
+         }
 
-    for (int aKS=0 ; aKS<3 ; aKS++)
+/*
+         for (int aK=0 ; aK<aV1.size() ; aK++)
+         {
+              double aD1 = euclid(aV1[aK]-aV1[(aK+1)%aV1.size()]);
+              double aD2 = euclid(aV2[aK]-aV2[(aK+1)%aV1.size()]);
+              std::cout << "RRRRrrr=" << aD1 / aD2 << "\n";
+         }
+          std::cout << "UuuuuuuuuUuuu \n"; getchar();
+*/
+           
+
+    }
+    else
     {
-         AddSOrCur(aGerm->KSom(aKS),aGerm->RotOfK(aKS));
+        for (int aKS=0 ; aKS<3 ; aKS++)
+        {
+             AddSOrCur(aGerm->KSom(aKS),aGerm->RotOfK(aKS));
+             SetFlagAdd(mVSOrGerm,aGerm->KSom(aKS),mFlagSOrGerm);
+        }
     }
 
     tSomNSI * aSom;
@@ -691,12 +728,16 @@ void  cAppli_NewSolGolInit::CalculOrient(cNO_CC_TripSom * aCC)
      for (int aK=0 ; aK< int(aCC->mTri.size()) ; aK++)
      {
          cNOSolIn_Triplet * aTri = aCC->mTri[aK];
-         if (aTri->CostArc()<aBesCoherCost)
+         if ((!mHasInOri) || (aTri->TripletIsInOri()))
          {
-             aBesCoherCost = aTri->CostArc();
-             aGerm0 = aTri;
+             if (aTri->CostArc()<aBesCoherCost)
+             {
+                 aBesCoherCost = aTri->CostArc();
+                 aGerm0 = aTri;
+             }
          }
      }
+     ELISE_ASSERT(aGerm0!=0,"Cannot compute germ in CalculOrient (due to InOri ?)");
 
      CalculOrient(aGerm0);
 }

@@ -695,6 +695,78 @@ template <class Obj,class Prim,class FPrim>
     return aRes.Val();
 }
 
+
+//  Prerequis pour param
+//   bool operator()(const Type & aPI1,const Type & aPI2) ; => Indique si PI1 es meilleurs que PI2
+//   Pt2dr operator()(const Type * aPI) ;   
+//   bool IsSelected(const cIntTieTriInterest & aPI) ;    
+//   void SetSelected(cIntTieTriInterest & aPI,bool aVal) ;
+
+
+template <class Type,class cParam> class   cTplFiltrageSpatial
+{
+    public :
+
+  cTplFiltrageSpatial(std::vector<Type> & aVType,cParam  & aParam,double aSeuilDist)
+  {
+     if (aVType.size() <=1 )
+        return;
+     std::sort(aVType.begin(),aVType.end(),aParam);
+
+     Pt2dr aP0 = aParam(&(aVType[0]));
+     Pt2dr aP1 = aP0;
+
+     for (int aK=1 ; aK<int(aVType.size()) ; aK++)
+     {
+         Pt2dr aPk = aParam(&(aVType[aK]));
+         aP0 = Inf(aP0,aPk);
+         aP1 = Sup(aP1,aPk);
+     }
+     Pt2dr aSz = aP1-aP0;
+     double aLong = ElMax(aSz.x,aSz.y);
+     double aLarg = ElMin(aSz.x,aSz.y);
+     if (aLong==0)
+     {
+        Type aV0 = aVType[0];
+        aVType.clear();
+        aVType.push_back(aV0);
+
+        return;
+     }
+
+     double aRab = aLong / 1e4;
+     Pt2dr aPRab(aRab,aRab);
+     double aSurfElem = (aLong * ElMax(aLarg,aLong/20.0)) / aVType.size()  ;
+
+     ElQT<Type *,Pt2dr,cParam>  aQt(aParam,Box2dr(aP0-aPRab,aP1+aPRab),10, sqrt(aSurfElem) *2 );
+
+     for (int aK=0 ; aK<int(aVType.size()) ; aK++)
+     {
+         aQt.insert(&aVType[aK]);
+         aParam.SetSelected(aVType[aK],true);
+     }
+
+
+     std::vector<Type> aRes;
+     for (int aK=0 ; aK<int(aVType.size()) ; aK++)
+     {
+         if (aParam.IsSelected(aVType[aK]))
+         {
+             aRes.push_back(aVType[aK]);
+             std::set<Type *> aSet;
+             aQt.RVoisins(aSet,aParam(&(aVType[aK])),aSeuilDist);
+
+             for (typename std::set<Type *>::iterator itS=aSet.begin(); itS!=aSet.end() ; itS++)
+             {
+                  aParam.SetSelected(**itS,false);
+             }
+         }
+     }
+
+     aVType = aRes;
+  }
+};
+
 #endif //  _ELISE_ALGO_GEOM_QDT_IMPLEM_H
 
 /*Footer-MicMac-eLiSe-25/06/2007

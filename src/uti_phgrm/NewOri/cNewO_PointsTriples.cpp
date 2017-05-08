@@ -275,6 +275,7 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
     mNameModeNO  (TheStdModeNewOri),
     mInOri       ("")
 {
+   
    ElInitArgMain
    (
         argc,argv,
@@ -346,10 +347,14 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
 /*                                                                 */
 /*******************************************************************/
 
+
 void cAppli_GenPTripleOneImage::GenerateTriplets()
 {
    ElTimer aChrono;
    if (!mSkWhenExist)  std::cout << "GeneratePointTriple " << mCam->Name() << "\n";  // !mSkWhenExist ~ mise au point
+
+
+   /* Charge les points correspond a tous les homologues avec le "master" */
 
    mVP1.resize(mVCams.size());
    mVP2.resize(mVCams.size());
@@ -358,6 +363,8 @@ void cAppli_GenPTripleOneImage::GenerateTriplets()
        mNM->LoadHomFloats(mCam,mVCams[aKC],&(mVP1[aKC]),&(mVP2[aKC]));
    }
 
+   /* parcour tout les couple d'images ne contenant pas le master, pour generer
+      les triplets avec le master */
    for (int aKC1=1 ; aKC1<int(mVCams.size()) ; aKC1++)
    {
       for (int aKC2=aKC1+1 ; aKC2<int(mVCams.size()) ; aKC2++)
@@ -379,6 +386,9 @@ void AddVPts2Map(tMapM & aMap,const std::vector<Pt2df> & aVP1,int anInd1,const s
 }
 
 
+/*
+   Ecrit eventuellement le fichier de points tripe [0,KC1,KC2]
+*/
 
 
 void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
@@ -389,11 +399,13 @@ void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
     std::string aName3 = mNM->NameHomTriplet(mCam,mVCams[aKC1],mVCams[aKC2]);
     if (mSkWhenExist && ELISE_fp::exist_file(aName3)) return;
 
+    // Lit le dernier vecteur de point homologue qui manquait
     std::vector<Pt2df> aVP1In;
     std::vector<Pt2df> aVP2In;
     mNM->LoadHomFloats(mVCams[aKC1],mVCams[aKC2],&aVP1In,&aVP2In);
 
 
+    // Cree la structure de points multiples
     tMapM aMap(3,false);
     AddVPts2Map(aMap,aVP1In,1,aVP2In,2);
     AddVPts2Map(aMap,mVP1[aKC1],0,mVP2[aKC1],1);
@@ -401,6 +413,7 @@ void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
     aMap.DoExport();
     const tListM aLM =  aMap.ListMerged();
 
+    // Enregistre les points triples
     std::vector<Pt2df> aVP1Exp,aVP2Exp,aVP3Exp;
     std::vector<U_INT1> aVNb;
     for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
@@ -420,6 +433,7 @@ void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
        aMap.Delete();
        return;
     }
+    // Sauvegarde les triplet si assez
 
     mNM->WriteTriplet(aName3,aVP1Exp,aVP2Exp,aVP3Exp,aVNb);
 
@@ -607,6 +621,8 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
 
     return EXIT_SUCCESS;
 }
+
+/* Apparemment cette fonction n'est pas appelle dans la chaine */
 
 int CPP_GenAllHomFloat(int argc,char ** argv)
 {

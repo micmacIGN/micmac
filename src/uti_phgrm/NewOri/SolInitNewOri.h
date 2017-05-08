@@ -122,6 +122,7 @@ class cNOSolIn_AttrSom
          ElMatrix<double>&  SomMatReMoy () {return mSomMatReMoy;}
          Pt3dr&             SomPMedReM  () {return mSomPMedReM;}
 
+         CamStenope *       CamInOri() {return mCamInOri;}
 
      private :
          std::string                      mName;
@@ -142,6 +143,7 @@ class cNOSolIn_AttrSom
          Pt3dr                            mSomTrReMoy;
          Pt3dr                            mSomPMedReM;
          ElMatrix<double>                 mSomMatReMoy;
+         CamStenope *                     mCamInOri;
 };
 
 class cNO_CmpSomByGainBy3
@@ -251,6 +253,8 @@ class cNOSolIn_Triplet
            ElTabFlag & Flag() {return   mTabFlag;}
           int & NumCC() {return mNumCC;}
 
+           bool TripletIsInOri();
+
 
       private :
           cNOSolIn_Triplet(const cNOSolIn_Triplet &); // N.I. 
@@ -317,6 +321,8 @@ class cAppli_NewSolGolInit
         void StatTrans(Pt3dr & aMoy,double & aDist);
 
 
+        std::string &  InOri() {return mInOri;}
+        bool   HasInOri() {return  mHasInOri;}
 
 
     private :
@@ -423,6 +429,7 @@ class cAppli_NewSolGolInit
         int                     mNbIterLast;
         std::string             mModeNO;
         std::string             mInOri;
+        bool                    mHasInOri;
 };
 
 

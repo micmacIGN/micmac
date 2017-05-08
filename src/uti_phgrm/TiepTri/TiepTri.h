@@ -37,6 +37,9 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+// EpipolarEcart
+//        double  EpipolarEcart(const Pt2dr & aP1,const cBasicGeomCap3D & aCam2,const Pt2dr & aP2) const;
+
 
 #ifndef _TiePTri_
 #define _TiePTri_
@@ -72,7 +75,8 @@ class cLinkImTT;
 // Rayon de filtrage spatial du point apres l'appariement
 // Dans FiltrageSpatialRMIRC()
 
-#define TT_RatioFastFiltrSpatial  4     // Ratio par rapport a TT_DefSeuilDensiteResul
+#define TT_RatioFastFiltrSpatial     8    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point I Fast
+#define TT_RatioCorrEntFiltrSpatial  4    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point apres Corr Ent
 //(TT_DefSeuilDensiteResul/TT_RatioFastFiltrSpatial).^2 = rayon de filtrage spatial du point d'interet.
 // Cet seuil est appliquer pour filtrer les point d'interet juste apres la detection de point d'interet
 // Appliquer sur image maitraisse seulement
@@ -142,6 +146,7 @@ class cParamAppliTieTri
         bool     mFilFAST;
         double   mTT_SEUIL_SURF_TRI;
         double   mTT_SEUIL_CORREL_1PIXSUR2;
+        int      mEtapeInteract;
 };
 
 
@@ -175,7 +180,6 @@ class cAppliTieTri : public cParamAppliTieTri
            const std::vector<Pt2di> &   VoisHom() const;
            bool  & Debug() ;
            const double & DistRechHom() const;
-           int & NivInterac();
            const cElPlan3D & CurPlan() const;
 
 
@@ -229,7 +233,6 @@ class cAppliTieTri : public cParamAppliTieTri
          // Les voisins pour rechercher les homologues une certaine distance
          std::vector<Pt2di>                mVoisHom;
          bool                              mDebug;
-         int                               mNivInterac;
          // Le plan du triangle courant
          cElPlan3D                         mCurPlan;
          // Les interpolateurs
@@ -251,8 +254,9 @@ class cAppliTieTri : public cParamAppliTieTri
          Pt2dr              mPtsSelectTri;
          bool               mHasNumSelectImage;
          std::vector<int>   mNumSelectImage;
-
          std::string        mKeyMasqIm;
+
+         bool               mPIsInImRedr;  // Savoir si les points de correlation sont points redresses ou non
 };
 
 /*
@@ -309,6 +313,7 @@ class cImTieTri
            const int & Num() const;
            string NameIm() {return mNameIm;}
            bool AutoCorrel(Pt2di aP);
+           Tiff_Im   Tif();
            
       protected :
            cImTieTri(const cImTieTri &) ; // N.I.
@@ -387,16 +392,17 @@ class cImSecTieTri : public cImTieTri
            cImSecTieTri(cAppliTieTri & ,const std::string& aNameIm,int aNum);
            bool LoadTri(const cXml_Triangle3DForTieP & );
 
-            cResulRechCorrel  RechHomPtsInteretEntier(const cIntTieTriInterest & aP,int aNivInterac);
-            cResulRechCorrel  RechHomPtsInteretBilin(const Pt2dr & aP0,const cResulRechCorrel & aCRC0,int aNivInter);
+            cResulRechCorrel  RechHomPtsInteretEntier(bool Interact,const cIntTieTriInterest & aP);
+            cResulRechCorrel  RechHomPtsInteretBilin(bool Interact,const Pt2dr & aP0,const cResulRechCorrel & aCRC0);
             // Enchaine RechHomPtsInteretEntier puis RechHomPtsInteretBilin
-            cResulRechCorrel  RechHomPtsInteretEntierAndRefine(const cIntTieTriInterest & aP,int aNivInterac);
+            cResulRechCorrel  RechHomPtsInteretEntierAndRefine(bool Interact,const cIntTieTriInterest & aP);
 
-            cResulRechCorrel  RechHomPtsDense(const Pt2di & aP0,const cResulRechCorrel & aPIn);
+            cResulRechCorrel  RechHomPtsDense(bool Interact,const Pt2di & aP0,const cResulRechCorrel & aPIn);
 
            virtual bool IsMaster() const ;
            virtual tTImTiepTri & ImRedr();
            ElPackHomologue & PackH() ;
+           Pt2dr   Mas2Sec(const Pt2dr &) const;
     private :
            bool InMasqReech(const Pt2dr &) const;
            bool InMasqReech(const Pt2di &) const;
@@ -498,6 +504,17 @@ class cResulMultiImRechCorrel
           const std::vector<int> &    VIndex()   const ;
           void CalculScoreMin();
           void CalculScoreAgreg(double Epsilon,double pow);
+
+          int & HeapIndexe () ;
+          const int & HeapIndexe () const ;
+          // std::vector<bool>  &   VSelec(); 
+          //const std::vector<bool>  &   VSelec() const; 
+          int NbSel() const;
+          void SetAllSel();
+          void SetSelec(int aK,bool aVal);
+
+          void SuprUnSelect();
+          static void SuprUnSelect(std::vector<cResulMultiImRechCorrel*> &);
     private :
 
          cResulMultiImRechCorrel(const cResulMultiImRechCorrel & ) ; // N.I.
@@ -508,6 +525,8 @@ class cResulMultiImRechCorrel
          std::vector<cResulRechCorrel > mVRRC;
          std::vector<int>                       mVIndex;
          std::vector<bool>                      mVSelec; // Utilise dans le filtrage spatial pour savoir si ce point a deja ete selec
+         int                                    mHeapIndexe;
+         int                                    mNbSel;
 };
 
 class cOneTriMultiImRechCorrel

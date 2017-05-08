@@ -54,7 +54,8 @@ cParamAppliTieTri::cParamAppliTieTri():
    mFilAC             (true),
    mFilFAST           (true),
    mTT_SEUIL_SURF_TRI (TT_SEUIL_SURF_TRI_PIXEL),
-   mTT_SEUIL_CORREL_1PIXSUR2 (TT_SEUIL_CORREL_1PIXSUR2)
+   mTT_SEUIL_CORREL_1PIXSUR2 (TT_SEUIL_CORREL_1PIXSUR2),
+   mEtapeInteract            (-1)
 {
 }
 
@@ -64,7 +65,6 @@ int TiepTri_Main(int argc,char ** argv)
    std::string aFullNameXML,anOri;
    Pt3di       aSzW;
    bool        aDebug=false;
-   int         aNivInterac = 0;
    Pt2dr       aPtsSel;
    std::vector<int> aNumSel;
    std::string      aKeyMasqIm;
@@ -82,16 +82,16 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aParam.mDoRaffImInit,"DRInit",true," Do refinement on initial images, instead of resampled")
                       << EAM(aParam.mNivLSQM,"LSQC",true,"Test LSQ,-1 None (Def), Flag 1=>Affine Geom, Flag 2=>Affin Radiom")
                       << EAM(aParam.mNbByPix,"NbByPix",true," Number of point inside one pixel")
-                      << EAM(aParam.mRandomize,  "Randomize",true,"Level of random perturbationi, def=1.0 in interactive, else 0.0  ")               
+                      << EAM(aParam.mRandomize,  "Randomize",true,"Level of random perturbation (LSQ Match), def=1.0 in interactive, else 0.0  ")               
                       << EAM(aKeyMasqIm,"KeyMasqIm",true,"Key for masq, Def=NKS-Assoc-STD-Masq, set NONE or key with NONE result")
 
                       << EAM(aSzW,         "SzW",true,"if visu [x,y,Zoom]")
                       << EAM(aDebug,       "Debug",true,"If true do debuggibg")
-                      << EAM(aNivInterac,  "Interaction",true,"0 none,  2 step by step")
                       << EAM(aPtsSel,  "PSelectT",true,"for selecting triangle")
                       << EAM(aNumSel,  "NumSelIm",true,"for selecting imade")
                       << EAM(UseABCorrel,  "UseABCorrel",true,"Tuning use correl in mode A*v1+B=v2 ")
 
+                      << EAM(aParam.mEtapeInteract,"StepInt",true,"Step of Intection (apply when SzW is init)")
                       << EAM(aParam.mNoTif,  "NoTif",true,"Not an image TIF - read img in Tmp-MM-Dir")
                       << EAM(aParam.mFilSpatial,  "FilSpatial",true,"Use filter spatial ? (def = true)")
                       << EAM(aParam.mFilFAST,  "FilFAST",true,"Use FAST condition ? (def = true)")
@@ -100,13 +100,18 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aParam.mTT_SEUIL_CORREL_1PIXSUR2,  "correlBrut",true,"Threshold of correlation score 1pxl/2 (def = 0.7)")
                );
 
+   bool WithInteract = EAMIsInit(& aSzW);
+
+   if (WithInteract  && (!EAMIsInit(&aParam.mEtapeInteract)))
+      aParam.mEtapeInteract = 0;
+
    if (! EAMIsInit(&aParam.mDoRaffImInit))
    {
        aParam.mDoRaffImInit =  (aParam.mNivLSQM >= 0);
    }
    if (! EAMIsInit(&aParam.mRandomize))
    {
-       aParam.mRandomize =  (aNivInterac >= 2) ? 1.0 : 0.0;
+       aParam.mRandomize =  (WithInteract) ? 1.0 : 0.0;
    }
 
    if ((aParam.mNivLSQM>=0) || UseABCorrel)
@@ -144,18 +149,10 @@ int TiepTri_Main(int argc,char ** argv)
        if (EAMIsInit(&aSzW))
        {
            anAppli.SetSzW(Pt2di(aSzW.x,aSzW.y),aSzW.z);
-           if (! EAMIsInit(&aNivInterac))
-               aNivInterac = 2;
-       }
-       else
-       {
-           aNivInterac = 0;
        }
 
        if (EAMIsInit(&aKeyMasqIm))
           anAppli.SetMasqIm(aKeyMasqIm);
-
-       anAppli.NivInterac() = aNivInterac;
 
 
        anAppli.DoAllTri(aTriang);
