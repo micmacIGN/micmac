@@ -276,8 +276,9 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(bool Interact,const Pt2dr 
     int aSzWE = mAppli.mSzWEnd;
     cResulRechCorrel aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,Pt2dr(aP0),mTImReech,Pt2dr(aCRC0.mPt),aSzWE); // Correlation sub-pixel, interpol bilin basique (step=1, step RCorell=0.1)
 
-    // double aRecCarre=0;
-    if (mAppli.mNumInterpolDense<0)
+    //ER variable that is unused; commented-out to acoid warning 
+    //double aRecCarre=0;
+    if ( mAppli.mNumInterpolDense < 0)
     {
        Pt2dr aP0This = Pt2dr(Pt2di(aRes.mPt));
        cResulRechCorrel aResRecip = TT_RechMaxCorrelMultiScaleBilin(mTImReech,aP0This,mMaster->mTImInit,Pt2dr(aP0),aSzWE);

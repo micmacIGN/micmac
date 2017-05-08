@@ -37,16 +37,17 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include "RStats/cRStats.h"
 
 
 int  StatIm_main(int argc,char ** argv)
 {
 
-    string Name;
+    	string Name;
         Pt2di aP0(0,0);
         Pt2di aSz(1,1);
 
-
+		bool aMoreStat=false;
 
 
 
@@ -55,7 +56,8 @@ int  StatIm_main(int argc,char ** argv)
                 argc,argv,
                 LArgMain() 	<< EAMC(Name,"Image name", eSAM_IsExistFile)
                                 << EAMC(aP0,"Point or Origin of rectangle"),
-        LArgMain()      <<  EAM(aSz,"Sz",true,"Size of rectangle (Def=[1,1])")
+        		LArgMain()      <<  EAM(aSz,"Sz",true,"Size of rectangle (Def=[1,1])")
+								<<  EAM(aMoreStat,"Stat",true,"Calculate extra statistical measures (Def=false)")
     );
 
     if(MMVisualMode) return EXIT_SUCCESS;
@@ -84,7 +86,12 @@ int  StatIm_main(int argc,char ** argv)
 
         std::cout << "ZMoy=" << aSomZ << " ; Sigma=" << sqrt(ElMax(0.0,aSomZ2)) << "\n";
         std::cout << "ZMinMax=[" << aZMin << " , " << aZMax << "]\n";
-
+	
+		if(aMoreStat)
+		{
+			int aNbV=256;
+            cRobustStats aRStat(tiff.in(),aNbV,aP0,aSz);
+		}
 
 /*
         INT NbB = tiff.NbBits();
