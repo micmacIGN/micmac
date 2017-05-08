@@ -169,10 +169,6 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
         }
     }
 
-    if (mAppli.NivInterac() > 0)
-    {
-        std::cout << "   LOAD " << mDecal << " " << mSzIm << "\n";
-    }
     if ((mW ==0) && (mAppli.WithW()) && (IsMaster() || (mAppli.NumImageIsSelect(mNum))))
     {
          int aZ = mAppli.ZoomW();
@@ -181,10 +177,10 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
          std::string aTitle = std::string(IsMaster() ? "*** " : "") + mNameIm;
          mW->set_title(aTitle.c_str());
     }
-
    
     if (mW)
     {
+         std::cout << "   LOAD " << mDecal << " " << mSzIm << "\n";
          ELISE_COPY(mImInit.all_pts(),Min(255,Max(0,255-mImInit.in())),mW->ogray());
 
          ELISE_COPY(select(mImInit.all_pts(),mMasqTri.in()),Min(255,Max(0,mImInit.in())),mW->ogray());
@@ -308,7 +304,7 @@ void  cImTieTri::MakeInterestPoint
                    if (mW)
                    {
                        // mW->draw_circle_loc(Pt2dr(aP),2.0,mW->pdisc()(IsMax ? P8COL::red : P8COL::blue));
-                       if ((IsMaster()) || (mAppli.NivInterac()>=2))
+                       if ((IsMaster()) || mW)
                        {
                           if (OkAc) 
                               mW->draw_circle_loc(Pt2dr(aP),1.5,ColOfType(aType));

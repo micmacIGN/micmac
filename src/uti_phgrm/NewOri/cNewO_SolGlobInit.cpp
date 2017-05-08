@@ -878,7 +878,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
    cTplTriplet<std::string> aKTest1(aNameT1,aNameT2,aNameT3);
    cTplTriplet<std::string> aKTest2(aNameT1,aNameT2,aNameT4);
 
-   mHasInOri = EAMIsInit(&mInOri);
+   mHasInOri = (EAMIsInit(&mInOri) && (mInOri!=""));
 
    mEASF.Init(mFullPat);
    mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mOriCalib,"dat");

@@ -194,9 +194,8 @@ void  cImSecTieTri::DecomposeVecHom(const Pt2dr & aPSH1Local,const Pt2dr & aPSH2
 
 
 
-cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntier(const cIntTieTriInterest & aPI,int aNivInter)
+cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntier(bool Interact,const cIntTieTriInterest & aPI)
 {
-
     double aD= mAppli.DistRechHom();
     Pt2di aP0 = aPI.mPt;
     eTypeTieTri aLab = aPI.mType;
@@ -222,7 +221,7 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntier(const cIntTieTriInterest 
         Pt2di aPV = aP0+aVH[aKH];
         if ((mTImLabelPC.get(aPV,-1)==aLab) && InMasqReech(aPV))
         {
-           if (mW && (aNivInter>=2))
+           if (Interact)
            {
                mW->draw_circle_loc(Pt2dr(aPV),2.0,ColOfType(aLab));
            }
@@ -235,13 +234,6 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntier(const cIntTieTriInterest 
            aCorMax = ElMax(aCRCLoc.mCorrel,aCorMax);
 
 
-           if (0 && (aCRCLoc.mCorrel>0.8))
-           {
-              std::cout << "IIIII " << aCRCLoc.mCorrel 
-                        << " M=" << InMasqReech(aCRCLoc.mPt) 
-                        << " D=" << euclid(Pt2di(aCRCLoc.mPt) - aPV) <<"\n";
-           }
-
 
            if (
                       (aCRCLoc.mCorrel > mAppli.mTT_SEUIL_CORREL_1PIXSUR2)
@@ -249,73 +241,34 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntier(const cIntTieTriInterest 
                    && (euclid(Pt2di(aCRCLoc.mPt) - aPV) < TT_SEUIl_DIST_Extrema_Entier)
               )
            {
-               // aPV = aPV+ aCRCLoc.mPt;
-               aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,Pt2di(aCRCLoc.mPt),TT_DemiFenetreCorrel,1,aSzRech);   // Correlation entiere
+               //  Toujours correlation entiere, mais tt les pixels
+               aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,Pt2di(aCRCLoc.mPt),TT_DemiFenetreCorrel,1,aSzRech);   
                    
-               // aCRCLoc.mPt = aPV+ aCRCLoc.mPt;  // Contient la coordonnee directe dans Im2
-
-
-// std::cout << "GGGGgggggggggggggg " << euclid(aCRCLoc.mPt - aPV)  << "\n";
                if (euclid(Pt2di(aCRCLoc.mPt) - aPV) < TT_SEUIl_DIST_Extrema_Entier)
                   aCRCMax.Merge(aCRCLoc);
            }
         }
     }
 
-    if (mW&& (aNivInter>=2))
+    if (Interact)
     {
-       mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));    //point interet master image pendant matching
+        mW->draw_circle_loc(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));    //point interet master image pendant matching
         mW->draw_circle_loc(Pt2dr(aP0),aD,mW->pdisc()(P8COL::yellow));    //
     }
 
     if (! aCRCMax.IsInit())
     {
-        if (aNivInter>=2)
+       if (Interact)
+       {
             std::cout  << "- NO POINT for Correl Int , Correl=" <<  aCorMax << "\n";
-       // return cResulRechCorrel(Pt2dr(aCRCMax.mPt),aCRCMax.mCorrel);
+       }
        return cResulRechCorrel(Pt2dr(aCRCMax.mPt),TT_DefCorrel);
     }
-
    
-    if (aNivInter>=2)
-    {
-          std::cout  << "-- CORREL INT -- " << aCRCMax.mCorrel << " " << Pt2di(aCRCMax.mPt)- aP0 << "\n";
-
-          if (1)
-          {
-              double aCorrelMax= -2;
-              Pt2dr  aPMax(0,0);
-              double aStep = 0.125;
-              for (double aDx= -1.5 ; aDx <=1.5 ; aDx+=aStep)
-              {
-                 for (double aDy= -1.5 ; aDy <=1.5 ; aDy+=aStep)
-                 {
-                      Pt2dr aPIm2 = Pt2dr(aCRCMax.mPt) + Pt2dr(aDx,aDy);
-                      double aC =  TT_CorrelBilin
-                                   (
-                                        mMaster->mTImInit,
-                                        aP0,
-                                        mTImReech,
-                                        aPIm2,
-                                        6
-                                    ).x;
-                      if (aC>aCorrelMax)
-                      {
-                         aCorrelMax = aC;
-                         aPMax = aPIm2;
-                      }
-
-                      // std::cout << "Correl = " << aPIm2 << " " << aC << "\n";
-                   }
-              }
-              std::cout << "CorrelMaxGrid  = " << aPMax -Pt2dr(aP0) << " " << aCorrelMax << "\n";
-          }
-    }
- 
     return aCRCMax;
 }
 
-cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(const Pt2dr & aP0,const cResulRechCorrel & aCRC0,int aNivInter)
+cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(bool Interact,const Pt2dr & aP0,const cResulRechCorrel & aCRC0)
 {
     if (! aCRC0.IsInit())
        return aCRC0;
@@ -323,8 +276,8 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(const Pt2dr & aP0,const cR
     int aSzWE = mAppli.mSzWEnd;
     cResulRechCorrel aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,Pt2dr(aP0),mTImReech,Pt2dr(aCRC0.mPt),aSzWE); // Correlation sub-pixel, interpol bilin basique (step=1, step RCorell=0.1)
 
-    double aRecCarre=0;
-    if ( mAppli.mNumInterpolDense < 0)
+    // double aRecCarre=0;
+    if (mAppli.mNumInterpolDense<0)
     {
        Pt2dr aP0This = Pt2dr(Pt2di(aRes.mPt));
        cResulRechCorrel aResRecip = TT_RechMaxCorrelMultiScaleBilin(mTImReech,aP0This,mMaster->mTImInit,Pt2dr(aP0),aSzWE);
@@ -373,13 +326,13 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(const Pt2dr & aP0,const cR
     return aRes;
 }
 
-cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntierAndRefine(const cIntTieTriInterest & aPI,int aNivInterac)
+cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntierAndRefine(bool Interact,const cIntTieTriInterest & aPI)
 {
-    cResulRechCorrel aRes = RechHomPtsInteretEntier(aPI,aNivInterac);
+    cResulRechCorrel aRes = RechHomPtsInteretEntier(Interact,aPI);
 
     if (aRes.IsInit())
     {
-        aRes = RechHomPtsInteretBilin(Pt2dr(aPI.mPt),aRes,aNivInterac);
+        aRes = RechHomPtsInteretBilin(Interact,Pt2dr(aPI.mPt),aRes);
     }
 
     return aRes;
@@ -387,7 +340,7 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntierAndRefine(const cIntTieTri
 
 // On passe des coordonnees master au coordonnees secondaire
 
-cResulRechCorrel cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const cResulRechCorrel & aPIn)
+cResulRechCorrel cImSecTieTri::RechHomPtsDense(bool Interact,const Pt2di & aP0,const cResulRechCorrel & aPIn)
 {
     if ( mAppli.mNumInterpolDense < 0)
     {
@@ -402,7 +355,7 @@ cResulRechCorrel cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const cResulRec
 
     int aSzWE = mAppli.mSzWEnd;
     double aPrecInit = (mAppli.mNivLSQM >=0) ? 1/4.0 : 1/8.0;
-    double aPrecCible = (mAppli.NivInterac() >=2) ?  1e-3 : ((mAppli.mNivLSQM >=0) ? 1/16.0 : 1/128.0);
+    double aPrecCible = (Interact) ?  1e-3 : ((mAppli.mNivLSQM >=0) ? 1/16.0 : 1/128.0);
     int aNbByPix = (mAppli.mNivLSQM >=0) ? 1 : mAppli.mNbByPix;
     cResulRechCorrel aRes2 =  TT_MaxLocCorrelDS1R
                                       (
@@ -422,7 +375,7 @@ cResulRechCorrel cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const cResulRec
        aRes2.mPt = mAffMas2Sec(aRes2.mPt);
     }
 
-    if (mAppli.NivInterac() >=2)
+    if (Interact)
     {
        std::cout << "AFFINE " << aPIn.mCorrel << " => " << aRes2.mCorrel << " ; " << aPIn.mPt << " " << mAffSec2Mas(aRes2.mPt) << "\n"; 
 
@@ -461,7 +414,7 @@ cResulRechCorrel cImSecTieTri::RechHomPtsDense(const Pt2di & aP0,const cResulRec
                   );
             Pt2dr aCurSol = aMatchM2S.Af1To2()(Pt2dr(aP0));
             double aDVar = euclid(aCurSol-aLastSol);
-            if (aOk  && (mAppli.NivInterac() >=2))
+            if (aOk  && Interact)
             {
                 if (aK==0)
                     std::cout << "#############################################\n";
@@ -567,6 +520,11 @@ bool cImSecTieTri::InMasqReech(const Pt2dr & aP) const
 bool cImSecTieTri::InMasqReech(const Pt2di & aP) const
 {
    return mTMasqReech.get(aP,0);
+}
+
+Pt2dr cImSecTieTri::Mas2Sec(const Pt2dr & aP) const
+{
+   return mAffMas2Sec(aP);
 }
 
 

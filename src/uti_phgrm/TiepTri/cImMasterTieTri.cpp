@@ -72,7 +72,7 @@ bool  cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    //MakeInterestPointFAST(&mLIP,0,mTMasqTri,mTImInit);
 
 
-   if (mAppli.NivInterac() > 0)
+   if (mW)
    {
        int aCpt;
        ELISE_COPY(mMasqTri.all_pts(), mMasqTri.in(),sigma(aCpt));

@@ -80,7 +80,8 @@ void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
     aFullCom = aFullCom + " PrefHom=" + mPrefHom;
     aFullCom = aFullCom + " ExtName=" + mExtName;
     aFullCom = aFullCom + " ModeNO="  + mNameModeNO;
-    aFullCom = aFullCom + " InOri="   + mInOri;
+    if (mInOri != "")
+       aFullCom = aFullCom + " InOri="   + mInOri;
 
 
     if (mExe)

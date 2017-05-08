@@ -140,6 +140,51 @@ int cResulMultiImRechCorrel::NbSel() const {return mNbSel;}
 // const std::vector<bool>  &   cResulMultiImRechCorrel::VSelec() const {return mVSelec; }
 
 
+void cResulMultiImRechCorrel::SuprUnSelect()
+{
+   mNbSel = 0;
+   for (int aK=0 ; aK<int(mVRRC.size()) ; aK++)
+   {
+       if (mVSelec[aK])
+       {
+            mVSelec[mNbSel] = mVSelec[aK];
+            mVIndex[mNbSel] = mVIndex[aK];
+            mVRRC[mNbSel]   =   mVRRC[aK];
+            mNbSel++;
+       }
+   }
+   while (int(mVRRC.size()) > mNbSel)
+   {
+       mVSelec.pop_back();
+       mVIndex.pop_back();
+       mVRRC.pop_back();
+   }
+}
+
+void cResulMultiImRechCorrel::SuprUnSelect(std::vector<cResulMultiImRechCorrel*> & aVR)
+{
+    int aNbSelGlob = 0;
+    for (int aK=0  ; aK<int(aVR.size()) ; aK++)
+    {
+        aVR[aK]->SuprUnSelect();
+        if (aVR[aK]->NbSel())
+        {
+            aVR[aNbSelGlob] = aVR[aK];
+            aNbSelGlob++;
+        }
+        else
+        {
+            delete aVR[aK];
+            aVR[aK] = 0;
+        }
+    }
+
+    while (int(aVR.size()) > aNbSelGlob)
+    {
+        aVR.pop_back();
+    }
+}
+
 
     //==========================  cResulRechCorrel  ==================
     //==========================  cResulRechCorrel  ==================

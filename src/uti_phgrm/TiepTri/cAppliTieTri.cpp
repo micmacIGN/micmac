@@ -84,7 +84,6 @@ cAppliTieTri::cAppliTieTri
      mWithW         (false),
      mDisExtrema    (TT_DIST_EXTREMA),
      mDistRechHom   (TT_DIST_RECH_HOM),
-     mNivInterac    (0),
      mCurPlan       (Pt3dr(0,0,0),Pt3dr(1,0,0),Pt3dr(0,1,0)),
      mNbTriLoaded   (0),
      mNbPts         (0),
@@ -126,7 +125,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     for (int aK=0 ; aK<int(aTriang.Tri().size()) ; aK++)
     {
         DoOneTri(aTriang.Tri()[aK],aK);
-        if ( (aK%20)==0)
+        if ( ( (aK%20)==0) && (! mWithW))
         {
             std::cout << "Av = "  << (aNbTri-aK) * (100.0/aNbTri) << "% "
                       << " NbP/Tri " << double(mNbPts) / mNbTriLoaded
@@ -247,7 +246,7 @@ void cAppliTieTri::RechHomPtsDense(cResulMultiImRechCorrel & aRMIRC)
          int aKIm = aRMIRC.VIndex()[aKNumIm];
 
          // aRRC = mImSecLoaded[aKIm]->RechHomPtsDense(aRMIRC.PMaster().mPt,aRRC);
-         aRRC = mImSec[aKIm]->RechHomPtsDense(aRMIRC.PMaster().mPt,aRRC);
+         aRRC = mImSec[aKIm]->RechHomPtsDense(false,aRMIRC.PMaster().mPt,aRRC);
      }
 }
 
@@ -259,21 +258,21 @@ void cAppliTieTri::PutInGlobCoord(cResulMultiImRechCorrel & aRMIRC)
      {
          cResulRechCorrel & aRRC = aVRRC[aKNumIm];
          int aKIm = aRMIRC.VIndex()[aKNumIm];
+         if (mPIsInImRedr)
+         {
+             aRRC.mPt = mImSec[aKIm]->Mas2Sec(aRRC.mPt);
+         }
          aRRC.mPt = aRRC.mPt + Pt2dr(mImSec[aKIm]->Decal());
      }
 }
 
 void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
 {
-    for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
-    {
-    }
+    mPIsInImRedr = true;
 
- // if (505!=aKT) return;
-
-    // Verification du triangle
-
-     // std::cout << "TRI " << aTri.P1() << aTri.P2() << aTri.P3() << "\n";
+    // ================  Chargement des images ======================
+    //   Cela inclut le calcul des points d'interet pour toute les images
+    //   ainsi qu'un filtrage spatial sur l'image Master, selon le critere Fast
 
     if (!  mMasIm->LoadTri(aTri)) return;
 
@@ -293,23 +292,21 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
     if (mImSecLoaded.size() == 0)
        return;
 
-    if (mNivInterac==2)  // Version interactive
+
+    // ================ Calcul des correlations entieres ======================
+
+    if (mWithW && (mEtapeInteract==0))
     {
-         while (mWithW)
+         while (1)
          {
               cIntTieTriInterest aPI= mMasIm->GetPtsInteret();
               for (int aKIm=0 ; aKIm<int(mImSecLoaded.size()) ; aKIm++)
               {
-                  cResulRechCorrel aRes =mImSecLoaded[aKIm]->RechHomPtsInteretEntierAndRefine(aPI,mNivInterac);  //1pxl/2 -> pxl entier-> sub pxl
-                  if (aRes.IsInit())
-                  {
-                     mImSecLoaded[aKIm]->RechHomPtsDense(aPI.mPt,aRes);
-                  }
-  
+                  mImSecLoaded[aKIm]->RechHomPtsInteretEntier(true,aPI);  //1pxl/2 -> pxl entier   //  sub pxl
               }
          }
     }
-    else
+
     {
          const std::list<cIntTieTriInterest> & aLIP =  mMasIm->LIP();
          ElTimer aChrono;
@@ -318,7 +315,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
               cResulMultiImRechCorrel * aRMIRC = new cResulMultiImRechCorrel(*itI);
               for (int aKIm=0 ; (aKIm<int(mImSecLoaded.size()))  ; aKIm++)
               {
-                  cResulRechCorrel aRes = mImSecLoaded[aKIm]->RechHomPtsInteretEntierAndRefine(*itI,mNivInterac);
+                  cResulRechCorrel aRes = mImSecLoaded[aKIm]->RechHomPtsInteretEntier(false,*itI);
                   if (aRes.IsInit())
                   {
                      aRMIRC->AddResul(aRes,mImSecLoaded[aKIm]->Num());
@@ -333,17 +330,22 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
                   delete aRMIRC;
               }
          }
-/*
-if (MPD_MM())
-{
-   FiltrageSpatial(mVCurMIRMC,50,0.1);
-}
-*/
          mTimeCorInit += aChrono.uval();
     }
+    mVCurMIRMC = FiltrageSpatial(mVCurMIRMC,mDistFiltr/TT_RatioCorrEntFiltrSpatial,0.1);
 
-    if (mFilSpatial)
-        FiltrageSpatialRMIRC(mDistFiltr);
+    // ================ Calcul des correlations sous pixellaire ======================
+
+
+    {
+        for (int aKp=0 ; aKp<int(mVCurMIRMC.size()) ; aKp++)
+        {
+             
+        }
+    }
+
+/*
+
 
     {
        ElTimer aChrono;
@@ -353,7 +355,9 @@ if (MPD_MM())
        }
        mTimeCorDense += aChrono.uval();
     }
+*/
 
+    // mPIsInImRedr = false;
 
     if (mMasIm->W())
     {
@@ -480,7 +484,6 @@ const std::vector<Pt2di> &   cAppliTieTri::VoisHom() const { return mVoisHom; }
 bool &   cAppliTieTri::Debug() {return mDebug;}
 const double &   cAppliTieTri::DistRechHom() const {return mDistRechHom;}
 
-int  &   cAppliTieTri::NivInterac() {return mNivInterac;}
 const cElPlan3D & cAppliTieTri::CurPlan() const {return mCurPlan;}
 
 tInterpolTiepTri * cAppliTieTri::Interpol() 

@@ -118,8 +118,13 @@ std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
    cResulMultiImRechCorrel * aRM_1;
    // Contient les scores en fonction des numeros d'images
    std::vector<double> aVCorrel(mImSec.size(),TT_DefCorrel);
+   Video_Win *  aW = mMasIm->W();
    while (aHeap.pop(aRM_1))
    {
+       if (aW)
+       {
+           aW->draw_circle_loc(aFctr(aRM_1),aSeuilDist,aW->pdisc()(P8COL::cyan));
+       }
        aResult.push_back(aRM_1);
        const std::vector<int> &  aVI_1 = aRM_1->VIndex();
        int aNbI_1 = aVI_1.size();
@@ -167,6 +172,7 @@ std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
                   {
                      aQdt->remove(aRM_2);
                      aHeap.Sortir(aRM_2);
+                     delete aRM_2;
                   }
                   else
                   {
@@ -190,7 +196,10 @@ std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
    aQdt->clear();
    aHeap.clear();
 
-   std::cout << "FILTRAGE SPATIAL, " << aVIn.size() << " => " << aResult.size() << "\n";
+   if(aW)
+   {
+      std::cout << "FILTRAGE SPATIAL, " << aVIn.size() << " => " << aResult.size() << "\n";
+   }
 
    return aResult;
 }
