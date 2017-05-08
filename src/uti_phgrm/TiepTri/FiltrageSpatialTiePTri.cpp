@@ -67,7 +67,7 @@ class cTpP_HeapCompare
 class cFuncPtOfRMICPtr
 {
       public :
-         Pt2dr operator () (cResulMultiImRechCorrel * aRMIRC) {return Pt2dr(aRMIRC->PMaster().mPt);}
+         Pt2dr operator () (cResulMultiImRechCorrel * aRMIRC) {return Pt2dr(aRMIRC->PtMast());}
 };
 
 

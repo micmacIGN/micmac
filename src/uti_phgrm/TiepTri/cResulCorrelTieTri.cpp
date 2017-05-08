@@ -93,14 +93,21 @@ std::vector<cResulRechCorrel > & cResulMultiImRechCorrel::VRRC()
 {
    return mVRRC;
 }
-const cIntTieTriInterest & cResulMultiImRechCorrel::PMaster() const 
+
+const cIntTieTriInterest & cResulMultiImRechCorrel::PIMaster() const 
 {
    return  mPMaster;
 }
-cIntTieTriInterest & cResulMultiImRechCorrel::PMaster() 
+cIntTieTriInterest & cResulMultiImRechCorrel::PIMaster() 
 {
    return  mPMaster;
 }
+
+Pt2di  cResulMultiImRechCorrel::PtMast() const 
+{
+   return PIMaster().mPt;
+}
+
 const std::vector<int> &   cResulMultiImRechCorrel::VIndex()   const 
 {
    return  mVIndex;
