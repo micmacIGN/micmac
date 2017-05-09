@@ -29,6 +29,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ScaleModel.cpp
 	${TDPPMD_DIR}/ImageSimpleProjection.cpp
 	${TDPPMD_DIR}/PLY2XYZ.cpp
+	${TDPPMD_DIR}/GCPfromBDCarrefour.cpp
     ${TDPPMD_DIR}/GetSpace_main.cpp
     ${TDPPMD_DIR}/ExportXml2Txt.cpp
     ${TDPPMD_DIR}/Panache.cpp

@@ -111,20 +111,6 @@ void getVignetteGPP(const std::string nomDalleOrtho, const std::string aKeyGPP, 
 ///
 ///
 ///
-std_unique_ptr<TIm2D<U_INT2,INT4> > getTIm2DFromImage(const std::string nomImage,
-                                                      const int cmin, const int lmin,
-                                                      const int sizeX, const int sizeY)
-{
-    
-    Pt2di PminCrop(cmin,lmin);
-    Pt2di SzCrop(sizeX,sizeY);
-    std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>(nomImage,PminCrop,SzCrop));
-    return cropImg;
-}
-
-///
-///
-///
 void getVecFromTIm2D(const std_unique_ptr<TIm2D<U_INT2,INT4> >& cropImg, std::vector<double>& fenImage,
                      const double NoData)
 {
@@ -146,11 +132,36 @@ double getCorelCoef(const Pt2di& ptImage, const Pt2di& orthoSz, const std::strin
     std::vector<double> fenImage_i;
     int cmin = ptImage.x - orthoSz.x/2;
     int lmin = ptImage.y - orthoSz.y/2 ;
-    std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg = getTIm2DFromImage(nomImage,cmin,lmin,orthoSz.y,orthoSz.x);
+    Pt2di min(cmin,lmin);
+    std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg (createTIm2DFromFile<U_INT2,INT4>(nomImage,min,orthoSz));
     getVecFromTIm2D(cropImg,fenImage_i,NoData);
     
     //correlation :
     return correlVec(fenRef,fenImage_i);
+}
+
+///
+///
+///
+void calcPseudoOrtho(const std::string& aNameImage, const Pt3dr& ptCentre, const Pt2di& size,
+                     const float resolOrtho, std_unique_ptr<ElCamera>& aCam)
+{
+    std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg (new TIm2D<U_INT2,INT4>(size));
+    
+    Pt3dr PtNO (ptCentre.x-size.x*resolOrtho,ptCentre.y+size.y*resolOrtho,ptCentre.z);
+    
+    for (size_t l(0); l<size.y ; l++)
+    {
+        for (size_t c(0); c<size.x ; c++)
+        {
+            Pt3dr pt (PtNO.x + c*resolOrtho, PtNO.y - l*resolOrtho, PtNO.z);
+            Pt2dr ptImage = aCam->Ter2Capteur(pt);
+            
+            //double radio = aVImages[best_image]->getr(best_Pt,0);
+            //cropImg->oset(Pt2di(c,l),(int)radio);
+        }
+    }
+    
 }
 
 ///
@@ -253,7 +264,7 @@ int GCP_From_BDCarrefour_main(int argc, char **argv)
     ElAffin2D oriIntImaM2C;
     Pt2di ImgSz = ImageSize(aNameImage);
     std_unique_ptr<ElCamera> aCam (new cCameraModuleOrientation(new OrientationGrille(aNameImageOri),ImgSz,oriIntImaM2C));
-   if (verbose) std::cout << "[GCP_From_BDCarrefour_main] input image resolution : "<< aCam->ResolutionSol() << std::endl;
+    if (verbose) std::cout << "[GCP_From_BDCarrefour_main] input image resolution : "<< aCam->ResolutionSol() << std::endl;
 
     float resolImageSat=aCam->ResolutionSol();//todo : le sol doit etre a 0. : a voir si ce n'est pas le cas.
     float resolBDOrtho = 0.20;//connu a priori
@@ -287,7 +298,7 @@ int GCP_From_BDCarrefour_main(int argc, char **argv)
         
         //BDOrtho => tab
         std::vector<double> fenOrtho;
-        std_unique_ptr<TIm2D<U_INT2,INT4> > cropBDOrtho = getTIm2DFromImage(nomDalleOrtho,0,0,orthoSz.y,orthoSz.x);
+        std_unique_ptr<TIm2D<U_INT2,INT4> > cropBDOrtho (createTIm2DFromFile<U_INT2,INT4>(nomDalleOrtho,Pt2di(0,0),orthoSz));
         getVecFromTIm2D(cropBDOrtho,fenOrtho,NoData);
         
         //point dans l'image :
@@ -296,8 +307,8 @@ int GCP_From_BDCarrefour_main(int argc, char **argv)
         double CoefCorelMax(-1);
 
         //on regarde si le pt image est bon :
-        //si la corel marche bien sur un pixel autour du point de loc, dans le doute on garde la loc...
-        //todo : faire mieux...
+        // si la corel marche bien sur un pixel autour du point de loc, dans le doute on garde la loc...
+        // todo : faire mieux...
      
         
         //correlations :
@@ -333,8 +344,8 @@ int GCP_From_BDCarrefour_main(int argc, char **argv)
             
             int cmin = itPix->second.x - orthoSz.x/2;
             int lmin = itPix->second.y - orthoSz.y/2 ;
-            std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg = getTIm2DFromImage(aNameImage,cmin,lmin,orthoSz.y,orthoSz.x);
             
+            std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg (createTIm2DFromFile<U_INT2,INT4>(aNameImage,Pt2di(cmin,lmin),orthoSz));
             Tiff_Im out(nomVignetteResult.c_str(), cropImg->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
             ELISE_COPY(cropImg->_the_im.all_pts(),cropImg->_the_im.in(),out.out());
         }
