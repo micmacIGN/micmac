@@ -84,6 +84,29 @@ bool  cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    // Im2D_U_INT1
 }
 
+cResulMultiImRechCorrel *  cImMasterTieTri::GetRMIRC(const std::vector<cResulMultiImRechCorrel*> & aVR)
+{
+    Clik aClik = mW->clik_in();
+    cResulMultiImRechCorrel * aRes = 0;
+    double aDMin = 1e60;
+    for (int aK=0 ; aK<int(aVR.size()) ; aK++)
+    {
+        cResulMultiImRechCorrel * aVk = aVR[aK];
+        double aD = euclid(Pt2dr(aVk->PtMast()) -aClik._pt);
+        if (aD < aDMin)
+        {
+            aDMin = aD;
+            aRes  = aVk;
+        } 
+    }
+    mW->draw_circle_loc(Pt2dr(aRes->PtMast()),2.0,mW->pdisc()(P8COL::cyan));
+    return aRes;
+}
+
+  
+  
+
+
 /*==== 
     Sert en version interactive , retourne le point d'interet preseclectionne
    le plus pret d'un clique.

@@ -77,6 +77,8 @@ class cLinkImTT;
 
 #define TT_RatioFastFiltrSpatial     8    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point I Fast
 #define TT_RatioCorrEntFiltrSpatial  4    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point apres Corr Ent
+#define TT_RatioCorrSupPix           2    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point apres Corr Ent
+#define TT_RatioCorrLSQ              1    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point apres Corr Ent
 //(TT_DefSeuilDensiteResul/TT_RatioFastFiltrSpatial).^2 = rayon de filtrage spatial du point d'interet.
 // Cet seuil est appliquer pour filtrer les point d'interet juste apres la detection de point d'interet
 // Appliquer sur image maitraisse seulement
@@ -375,6 +377,7 @@ class cImMasterTieTri : public cImTieTri
            bool LoadTri(const cXml_Triangle3DForTieP & );
 
            cIntTieTriInterest  GetPtsInteret();
+           cResulMultiImRechCorrel * GetRMIRC(const std::vector<cResulMultiImRechCorrel*> & aVR);
            virtual bool IsMaster() const ;
            virtual tTImTiepTri & ImRedr();
            const std::list<cIntTieTriInterest> & LIP() const;
@@ -499,8 +502,9 @@ class cResulMultiImRechCorrel
           double Score() const ;
           const std::vector<cResulRechCorrel > & VRRC() const ;
           std::vector<cResulRechCorrel > & VRRC() ;
-          const cIntTieTriInterest & PMaster() const ;
-          cIntTieTriInterest & PMaster() ;
+          const cIntTieTriInterest & PIMaster() const ;
+          cIntTieTriInterest & PIMaster() ;
+          Pt2di PtMast() const ;
           const std::vector<int> &    VIndex()   const ;
           void CalculScoreMin();
           void CalculScoreAgreg(double Epsilon,double pow);
@@ -597,7 +601,8 @@ cResulRechCorrel      TT_RechMaxCorrelMultiScaleBilin
                              const Pt2dr & aP1,
                              const tTImTiepTri & aIm2,
                              const Pt2dr & aP2,
-                             const int   aSzW
+                             const int   aSzW,
+                             double aStepFinal
                       );
 
 cResulRechCorrel         TT_MaxLocCorrelDS1R

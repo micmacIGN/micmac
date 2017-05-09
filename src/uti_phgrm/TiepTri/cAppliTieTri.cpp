@@ -164,7 +164,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
             //======================//
 
              cResulMultiImRechCorrel & aRMIRC =  *(aVMC[aKP]);
-             Pt2dr aPMaster (aRMIRC.PMaster().mPt);
+             Pt2dr aPMaster (aRMIRC.PtMast());
              const std::vector<int> &   aVInd = aRMIRC.VIndex();
              int aNbIm = aVInd.size();
              ELISE_ASSERT(aNbIm==int(aRMIRC.VRRC().size()),"Incoh size in cAppliTieTri::DoAllTri");
@@ -246,13 +246,13 @@ void cAppliTieTri::RechHomPtsDense(cResulMultiImRechCorrel & aRMIRC)
          int aKIm = aRMIRC.VIndex()[aKNumIm];
 
          // aRRC = mImSecLoaded[aKIm]->RechHomPtsDense(aRMIRC.PMaster().mPt,aRRC);
-         aRRC = mImSec[aKIm]->RechHomPtsDense(false,aRMIRC.PMaster().mPt,aRRC);
+         aRRC = mImSec[aKIm]->RechHomPtsDense(false,aRMIRC.PtMast(),aRRC);
      }
 }
 
 void cAppliTieTri::PutInGlobCoord(cResulMultiImRechCorrel & aRMIRC)
 {
-     aRMIRC.PMaster().mPt = aRMIRC.PMaster().mPt + mMasIm->Decal();
+     aRMIRC.PIMaster().mPt = aRMIRC.PtMast() + mMasIm->Decal();
      std::vector<cResulRechCorrel> & aVRRC = aRMIRC.VRRC();
      for (int aKNumIm=0 ; aKNumIm<int(aVRRC.size()) ; aKNumIm++)
      {
@@ -338,10 +338,32 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
 
 
     {
-        for (int aKp=0 ; aKp<int(mVCurMIRMC.size()) ; aKp++)
-        {
-             
-        }
+       for (int aKEtape=1 ; aKEtape<2 ; aKEtape++)
+       {
+           bool ModeInteractif = mWithW && (mEtapeInteract==aKEtape);
+           for (int aKp=0 ; aKp<int(mVCurMIRMC.size()) ; aKp++)
+           {
+               cResulMultiImRechCorrel * aRMIRC = ModeInteractif ?  mMasIm->GetRMIRC(mVCurMIRMC) : mVCurMIRMC[aKp];
+               const std::vector<int> &   aVI =  aRMIRC->VIndex() ;
+               std::vector<cResulRechCorrel > &  aVRRC = aRMIRC->VRRC() ;
+               for (int aKIndIm=0 ; aKIndIm<int(aVI.size()) ; aKIndIm++)
+               {
+                   int aKIm =  aVI[aKIndIm];
+                   cResulRechCorrel  aRRC = mImSec[aKIm]->RechHomPtsInteretBilin
+                                                            (ModeInteractif,Pt2dr(aRMIRC->PtMast()),aVRRC[aKIndIm]);
+                   if (! ModeInteractif)
+                      aVRRC[aKIndIm] = aRRC;
+               }
+               if (! ModeInteractif) aKp++;
+           }
+
+            // 1=> en geometrie redressee, 2 en geometrie initiale
+            mPIsInImRedr = (aKEtape <2);
+ 
+            cResulMultiImRechCorrel::SuprUnSelect(mVCurMIRMC);
+            double aRatio = (aKEtape==1) ? TT_RatioCorrSupPix :   TT_RatioCorrLSQ;
+            mVCurMIRMC = FiltrageSpatial(mVCurMIRMC,mDistFiltr/aRatio,0.1);
+       }
     }
 
 /*
@@ -357,7 +379,6 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
     }
 */
 
-    // mPIsInImRedr = false;
 
     if (mMasIm->W())
     {

@@ -103,7 +103,7 @@ int TiepTri_Main(int argc,char ** argv)
    bool WithInteract = EAMIsInit(& aSzW);
 
    if (WithInteract  && (!EAMIsInit(&aParam.mEtapeInteract)))
-      aParam.mEtapeInteract = 0;
+      aParam.mEtapeInteract = 1;
 
    if (! EAMIsInit(&aParam.mDoRaffImInit))
    {
