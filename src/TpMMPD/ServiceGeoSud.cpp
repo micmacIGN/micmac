@@ -196,7 +196,6 @@ TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName, Pt2di const &P
     // on teste l'extension
     if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
     {
-        //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
         std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
         if (aRes.get()!=NULLPTR)
         {

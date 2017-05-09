@@ -286,7 +286,6 @@ void OrientationGrille::InitXML(std::string const &nom)
                 }
                 else if (!XMLString::compareString(n->getNodeName(),XMLString::transcode("multi_grid")))
         {
-            std::cout << "ICI" << std::endl;
             DOMNamedNodeMap* att = n->getAttributes();
             if (!att)
                 continue;
