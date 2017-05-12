@@ -1816,7 +1816,14 @@ void cElMatCreuseBlocSym::CalculCholesky()
                                      if (TheExitOnWarn)
                                          ElEXIT(1,"aScal<=0 in Cholesky");
                                      else
-                                         getchar();
+                                     {
+                                         if (TheGoonOnWarn)
+                                         {
+                                              cElWarning::EigenValueInCholeski.AddWarn("Choleski",__LINE__,__FILE__);
+                                         }
+                                         else
+                                            getchar();
+                                     }
                                }
                                First = false;
                                // ELISE_ASSERT(false,"Cholesly Diag, Beg");

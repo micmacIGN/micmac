@@ -858,7 +858,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
         LArgMain() << EAMC(mFullPat,"Pattern"),
         LArgMain() << EAM(mOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(mQuick,"Quick",true,"Quick version",eSAM_IsBool)
-                   << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mPrefHom,"SH",true,"Prefix Homologous points, def=\"\"")
                    << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(mTest,"Test",true,"Test for tuning",eSAM_IsBool)
                    << EAM(aNameT1,"Test1",true,"Name of first test image",eSAM_IsBool)

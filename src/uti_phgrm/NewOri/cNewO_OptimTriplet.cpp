@@ -581,7 +581,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
                    << EAM(mAotShow,"Show",true,"Show Message")
                    << EAM(mCalledBySerie,"CalledBySerie",true,"Called by non paral")
                    << EAM(mQuick,"Quick",true,"Quick version")
-                   << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mPrefHom,"SH",true,"Prefix Homologous points, def=\"\"")
                    << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(mBugTK,"BugTK",true,"Debug Tomasi Kanade")
                    << EAM(mNameModeNO,"ModeNO",true,"Mode New Orient (Def=Std)")
@@ -610,6 +610,8 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
 
    std::string aNameMin = (mN1<mN2) ? mN1 : mN2;
    std::string aNameMax = (mN1>mN2) ? mN1 : mN2;
+
+
 
    mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mDir,mNameOriCalib,"dat");
    mNoIm1 = new cNewO_OneIm(*mNM,aNameMin);
@@ -928,7 +930,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    ElTimer aChrono;
    std::string aFullPat,aNameCalib;
    bool inParal=true;
-   bool Quick = false;
+   bool Quick = true;
    std::string aPrefHom="";
    std::string aExtName="";
    bool Debug  = false;
@@ -944,7 +946,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
         LArgMain() << EAM(aNameCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(inParal,"Paral",true,"Execute in parallel ", eSAM_IsBool)
                    << EAM(Quick,"Quick",true,"Quick version", eSAM_IsBool)
-                   << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(aPrefHom,"SH",true,"Prefix Homologous points, def=\"\"")
                    << EAM(aExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(Debug,"Debug",true,"Debugging mode (tuning purpose)", eSAM_IsBool)
                    << EAM(aNameModeNO,"ModeNO",true,"Mode (Def=Std)")
@@ -961,6 +963,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    std::string aDir = anEASF.mDir;
 
    cNewO_NameManager * aNM =  new cNewO_NameManager(aExtName,aPrefHom,Quick,aDir,aNameCalib,"dat");
+
 
    cSauvegardeNamedRel aLCpl =  StdGetFromPCP(aNM->NameCpleOfTopoTriplet(true),SauvegardeNamedRel);
    std::list<std::string> aLCom;
@@ -981,7 +984,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
                aCom +=  " OriCalib=" + aNameCalib;
 
             aCom += " Quick=" + ToString(Quick);
-            aCom += " PrefHom=" + aPrefHom;
+            aCom += " SH=" + aPrefHom;
             aCom += " ExtName=" + aExtName;
             aCom += " ModeNO=" + aNameModeNO;
             aCom += " InOri=" + aInOri;

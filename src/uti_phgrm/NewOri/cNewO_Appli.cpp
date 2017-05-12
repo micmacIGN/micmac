@@ -39,6 +39,51 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+
+LArgMain &     cCommonMartiniAppli::ArgCMA()
+{
+   return *mArg;
+}
+
+cCommonMartiniAppli::cCommonMartiniAppli() :
+    mNameOriCalib (""),
+    mPrefHom      (""),
+    mExtName      (""),
+    mNameModeNO   (TheStdModeNewOri),
+    mInOri        (""),
+    mAcceptUnSym  (false),
+    mQuick        (true),
+    mArg          (new LArgMain)
+{
+      (*mArg) 
+              << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
+              << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes 
+              << EAM(mExtName,"ExtName",true,"User's added Prefix , Def=\"\"")  // SH par homogeneite avec autre commandes 
+              << EAM(mNameModeNO,"ModeNO",true,"Mode Def=Std")  
+              << EAM(mInOri,"InOri",true,"Existing orientation if any")  
+              << EAM(mAcceptUnSym,"AUS",true,"Accept non symetric homologous point;")  
+              << EAM(mQuick,"Quick",true,"If true (default) do less test")  ;
+}
+
+std::string    cCommonMartiniAppli::ComParam()
+{
+   std::string aCom;
+   if (EAMIsInit(&mNameOriCalib))  aCom += aCom + " OriCalib=" + mNameOriCalib;
+   if (EAMIsInit(&mPrefHom))       aCom += " SH="        + mPrefHom;
+   if (EAMIsInit(&mExtName))       aCom += " ExtName="   + mExtName;
+   if (EAMIsInit(&mNameModeNO))    aCom += " ModeNO="    + mNameModeNO;
+   if (EAMIsInit(&mInOri))         aCom += " InOri="     + mInOri;
+   if (EAMIsInit(&mAcceptUnSym))   aCom += " AUS=" + ToString(mAcceptUnSym);
+   if (EAMIsInit(&mQuick))         aCom += " Quick="     + ToString(mQuick);
+
+   return aCom;
+}
+
+
+     //==============================================================
+     //==============================================================
+     //==============================================================
+
 const std::string TheStdModeNewOri = "Std";
 
 eTypeModeNO ToTypeNO(const std::string & aStr)
@@ -47,7 +92,7 @@ eTypeModeNO ToTypeNO(const std::string & aStr)
 }
 
 
-class cAppli_Martini
+class cAppli_Martini : public cCommonMartiniAppli
 {
       public :
           cAppli_Martini(int argc,char ** argv,bool Quick);
@@ -56,15 +101,10 @@ class cAppli_Martini
       private :
 
           void StdCom(const std::string & aCom,const std::string & aPost="");
-          std::string mNameOriCalib;
           std::string mPat;
           bool        mExe;
           bool        mQuick;
-          std::string mPrefHom;
-          std::string mExtName;
-          std::string mNameModeNO;
           eTypeModeNO mModeNO;
-          std::string mInOri;
 
           ElTimer     aChrono;
 };
@@ -72,16 +112,9 @@ class cAppli_Martini
 void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
 {
     std::string  aFullCom = MM3dBinFile_quotes( "TestLib ") + aCom + " "   + QUOTE(mPat);
-    if (EAMIsInit(&mNameOriCalib))  aFullCom = aFullCom + " OriCalib=" + mNameOriCalib;
-    aFullCom += " Quick=" + ToString(mQuick);
-
     aFullCom = aFullCom + aPost;
+    aFullCom = aFullCom + ComParam();
 
-    aFullCom = aFullCom + " PrefHom=" + mPrefHom;
-    aFullCom = aFullCom + " ExtName=" + mExtName;
-    aFullCom = aFullCom + " ModeNO="  + mNameModeNO;
-    if (mInOri != "")
-       aFullCom = aFullCom + " InOri="   + mInOri;
 
 
     if (mExe)
@@ -154,24 +187,24 @@ void cAppli_Martini::DoAll()
 
 
 cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
-    mExe     (true),
-    mQuick   (Quick),
+    mExe     (true)
+/*
     mPrefHom (""),
     mExtName     (""),
-    mNameModeNO  (TheStdModeNewOri)
+    mNameModeNO  (TheStdModeNewOri),
+    mInOri       ("")
+*/
 {
    ElInitArgMain
    (
         argc,argv,
         LArgMain() << EAMC(mPat,"Image Pat", eSAM_IsPatFile),
-        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
+        LArgMain() 
                    << EAM(mExe,"Exe",true,"Execute commands, def=true (if false, only print)")
-                   << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes 
-                   << EAM(mExtName,"ExtName",true,"User's added Prefix , Def=\"\"")  // SH par homogeneite avec autre commandes 
-                   << EAM(mNameModeNO,"ModeNO",true,"Mode Def=Std")  
-                   << EAM(mInOri,"InOri",true,"Existing orientation if any")  
-                   // << EAM(mQuick,"Quick",true,"Quick version")
+                   << ArgCMA()
    );
+
+   if (!EAMIsInit(&mQuick)) mQuick = Quick;
 
 
    mModeNO = ToTypeNO(mNameModeNO);

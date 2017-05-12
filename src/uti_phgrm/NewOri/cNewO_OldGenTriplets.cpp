@@ -1003,7 +1003,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                    << EAM(mQuick,"Quick",true,"Quick version", eSAM_IsBool)
                    << EAM(mDebug,"Debug",true,"Debug .... tuning purpose .... Def=false", eSAM_IsBool)
                    << EAM(mKS0,"KS0",true,"Tuning Def=0", eSAM_IsBool)
-                   << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
+                   << EAM(mPrefHom,"SH",true,"Prefix Homologous points, def=\"\"")
                    << EAM(mExtName,"ExtName",true,"User's added prefix, def=\"\"")
                    << EAM(mNameModeNO,"ModeNO",true,"Mode (Def=Std)")
                    << EAM(mInOri,"InOri",true,"Existing orientation if any")

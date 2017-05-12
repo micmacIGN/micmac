@@ -116,7 +116,7 @@ const std::vector<int> &   cResulMultiImRechCorrel::VIndex()   const
 int &       cResulMultiImRechCorrel::HeapIndexe ()       {return mHeapIndexe;}
 const int & cResulMultiImRechCorrel::HeapIndexe () const {return mHeapIndexe;}
 
-void cResulMultiImRechCorrel::CalculScoreAgreg(double Epsilon,double anExp)
+void cResulMultiImRechCorrel::CalculScoreAgreg(double Epsilon,double anExp,double aSign)
 {
     mScore = 0.0;
     for (int aK=0 ; aK<int(mVSelec.size()) ; aK++)
@@ -124,6 +124,7 @@ void cResulMultiImRechCorrel::CalculScoreAgreg(double Epsilon,double anExp)
         if (mVSelec[aK])
            mScore += pow(1/(Epsilon + (1-mVRRC[aK].mCorrel)),anExp);
     }
+    mScore *= aSign;
 }
 
 void  cResulMultiImRechCorrel::SetAllSel()

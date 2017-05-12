@@ -210,6 +210,7 @@ class ElEM   // Elise Erreur Message
 extern bool TheExitOnBrkp;
 extern bool TheExitOnNan;
 extern bool TheExitOnWarn;
+extern bool TheGoonOnWarn;
 extern bool TheMajickFile;
 extern int  TheNbIterProcess;
 
@@ -319,6 +320,7 @@ class cElWarning
          static cElWarning  AppuisMultipleDefined;
          static cElWarning  OnzeParamSigneIncoh;
          static cElWarning  ToleranceSurPoseLibre;
+         static cElWarning  EigenValueInCholeski;
 
          static void ShowWarns(const std::string & aFile);
     private :
