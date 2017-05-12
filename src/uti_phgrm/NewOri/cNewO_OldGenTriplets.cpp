@@ -228,7 +228,7 @@ class cResTriplet
 typedef cTplTriplet<int> cTripletInt;
 
 
-class cAppli_GenTriplet
+class cAppli_GenTriplet : public cCommonMartiniAppli
 {
     public :
        cAppli_GenTriplet(int argc,char ** argv);
@@ -272,12 +272,10 @@ class cAppli_GenTriplet
        tGrGT                mGrT;
        tSubGrGT             mSubAll;
        std::string          mFullName;
-       std::string          mNameOriCalib;
        cElemAppliSetFile    mEASF;
        cNewO_NameManager *  mNM;
        std::map<std::string,tSomGT *> mMapS;
        std::vector<tSomGT *>          mVecAllSom;
-       //std::vector<tSomGT *>          m;
 
        std::map<cTripletInt,cResTriplet>  mMapTriplets;
        cXml_TopoTriplet                   mTopoTriplets;
@@ -309,14 +307,9 @@ class cAppli_GenTriplet
        double                        mMulQuant;
        double                        mTimeMerge;
        double                        mTimeSelec;
-       bool                          mQuick;
-       std::string                   mPrefHom;
-       std::string                   mExtName;
        double                        mRamAllowed;
        int                           mKS0;
-       std::string                   mNameModeNO;
        eTypeModeNO                   mModeNO;
-       std::string                   mInOri;
        bool                          mSelAll;
 };
 
@@ -981,13 +974,13 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     mDebug      (false),
     mTimeMerge  (0.0),
     mTimeSelec  (0.0),
-    mQuick      (true), 
-    mPrefHom    (""),
-    mExtName    (""),
+    // mQuick      (true), 
+    // mPrefHom    (""),
+    // mExtName    (""),
     mRamAllowed (4e9),
-    mKS0        (0),
-    mNameModeNO (TheStdModeNewOri),
-    mInOri      ("")
+    mKS0        (0)
+    // mNameModeNO (TheStdModeNewOri),
+    // mInOri      ("")
 {
    ElTimer aChronoLoad;
 
@@ -995,19 +988,14 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
    (
         argc,argv,
         LArgMain() <<  EAMC(mFullName,"Pattern", eSAM_IsPatFile),
-        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration", eSAM_IsExistDirOri)
+        LArgMain() 
                    << EAM(mShow,"Show",true,"Show intermediary message")
                    << EAM(mNameTest1,"Test1",true,"Name of first test image", eSAM_IsExistFile)
                    << EAM(mNameTest2,"Test2",true,"Name of second test image", eSAM_IsExistFile)
                    << EAM(mNameTest3,"Test3",true,"Name of second test image", eSAM_IsExistFile)
-                   << EAM(mQuick,"Quick",true,"Quick version", eSAM_IsBool)
                    << EAM(mDebug,"Debug",true,"Debug .... tuning purpose .... Def=false", eSAM_IsBool)
                    << EAM(mKS0,"KS0",true,"Tuning Def=0", eSAM_IsBool)
-                   << EAM(mPrefHom,"SH",true,"Prefix Homologous points, def=\"\"")
-                   << EAM(mExtName,"ExtName",true,"User's added prefix, def=\"\"")
-                   << EAM(mNameModeNO,"ModeNO",true,"Mode (Def=Std)")
-                   << EAM(mInOri,"InOri",true,"Existing orientation if any")
-
+                   << ArgCMA()
    );
    
    mModeNO = ToTypeNO(mNameModeNO);
@@ -1037,8 +1025,6 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
         mMapS[aName] = &aS;
    }
 
-   // const cInterfChantierNameManipulateur::tSet *  aSetCple =  mEASF.mICNM->Get("NKS-Set-CplIm2OriRel@"+mNameOriCalib+"@dmp");
-   // std::string aKeyCple2I = "NKS-Assoc-CplIm2OriRel@"+mNameOriCalib+"@dmp";
 
    const cInterfChantierNameManipulateur::tSet *  aSetCple =  mEASF.mICNM->Get(mNM->KeySetCpleOri());
    std::string aKeyCple2I = mNM->KeyAssocCpleOri();
