@@ -293,7 +293,6 @@ class cAppli_GenTriplet : public cCommonMartiniAppli
        tSomGT *                      mCurS1;
        tSomGT *                      mCurS2;
        tSomGT *                      mSomTest3;
-       bool                          mShow;
        bool                          mDebug;
        Pt2df                         mPInf;
        Pt2df                         mPSup;
@@ -970,7 +969,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     mCurS1      (0),
     mCurS2      (0),
     mSomTest3   (0),
-    mShow       (true),
+    // m Show       (true),
     mDebug      (false),
     mTimeMerge  (0.0),
     mTimeSelec  (0.0),

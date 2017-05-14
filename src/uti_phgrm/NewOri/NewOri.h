@@ -101,6 +101,7 @@ class cCommonMartiniAppli
        std::string    mInOri;
        bool           mAcceptUnSym;
        bool           mQuick;
+       bool           mShow;
 
        LArgMain &     ArgCMA();
        std::string    ComParam();
@@ -172,6 +173,9 @@ class cNewO_OrInit2Im
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
           double PixExactCost(const ElRotation3D & aRot,double aTetaMax) const;
           const cXml_Ori2Im &  XmlRes() const;
+          void DoExpMM();
+          void DoExpMM(cNewO_OneIm *,const ElRotation3D &,const Pt3dr & aPMed);
+
     private :
 
 

@@ -53,6 +53,7 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
     mInOri        (""),
     mAcceptUnSym  (false),
     mQuick        (true),
+    mShow         (false),
     mArg          (new LArgMain)
 {
       (*mArg) 
@@ -62,7 +63,8 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
               << EAM(mNameModeNO,"ModeNO",true,"Mode Def=Std")  
               << EAM(mInOri,"InOri",true,"Existing orientation if any")  
               << EAM(mAcceptUnSym,"AUS",true,"Accept non symetric homologous point;")  
-              << EAM(mQuick,"Quick",true,"If true (default) do less test")  ;
+              << EAM(mQuick,"Quick",true,"If true (default) do less test")  
+              << EAM(mShow,"Show",true,"If true (non default) print (a lot of) messages")  ;
 }
 
 std::string    cCommonMartiniAppli::ComParam()
@@ -73,8 +75,9 @@ std::string    cCommonMartiniAppli::ComParam()
    if (EAMIsInit(&mExtName))       aCom += " ExtName="   + mExtName;
    if (EAMIsInit(&mNameModeNO))    aCom += " ModeNO="    + mNameModeNO;
    if (EAMIsInit(&mInOri))         aCom += " InOri="     + mInOri;
-   if (EAMIsInit(&mAcceptUnSym))   aCom += " AUS=" + ToString(mAcceptUnSym);
+   if (EAMIsInit(&mAcceptUnSym))   aCom += " AUS="       + ToString(mAcceptUnSym);
    if (EAMIsInit(&mQuick))         aCom += " Quick="     + ToString(mQuick);
+   if (EAMIsInit(&mShow))          aCom += " Show="      + ToString(mShow);
 
    return aCom;
 }

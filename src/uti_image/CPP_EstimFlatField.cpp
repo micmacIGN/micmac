@@ -39,10 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 /*
-Parametre de Tapas :
-
-   - calibration In : en base de donnees ou deja existantes.
-
 
 */
 
@@ -223,8 +219,82 @@ int EstimFlatField_main(int argc,char ** argv)
 }
 
 
+/*****************************************************/
+/*                                                   */
+/*          Polynomial Flat Field                    */
+/*                                                   */
+/*****************************************************/
+
+class cAppliPolyImage
+{
+    public :
+         cAppliPolyImage(int,char **);
+    private :
+
+};
+
+cAppliPolyImage::cAppliPolyImage(int argc,char ** argv)
+{
+    std::string aNameIn,aNameOut,aNameImRes;
+    int aDegre;
+    int aNbEch = 100;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIn,"Flat Field Image", eSAM_IsPatFile)
+                    << EAMC(aDegre,"Degre of Polynom"),
+        LArgMain()  << EAM(aNameOut,"Out",true,"Name of output polynomial image")
+                    << EAM(aNameImRes,"ImRes",true,"Image of residual")
+    );
+    if (! EAMIsInit(&aNameOut))
+       aNameOut = StdPrefix(aNameIn) + "-ApproxPol" +ToString(aDegre) + ".tif";
+
+    Im2D_REAL8 aImIn =  Im2D_REAL8::FromFileStd(aNameIn);
+    Pt2di aSzIm = aImIn.sz();
+    Box2dr aBoxIm(Pt2dr(0,0),Pt2dr(aSzIm));
+   
+    std::vector<Pt2dr>  aVPts;
+    std::vector<double> aVVals;
+    for (int aKx=0 ; aKx<=aNbEch ; aKx++)
+    {
+        for (int aKy=0 ; aKy<=aNbEch ; aKy++)
+        {
+             double aSom[4]; 
+             Pt2di aP0 = round_down(aBoxIm.FromCoordLoc (Pt2dr(aKx-0.5,aKy-0.5)/aNbEch));
+             Pt2di aP1 = round_up  (aBoxIm.FromCoordLoc (Pt2dr(aKx+0.5,aKy+0.5)/aNbEch));
+             ELISE_COPY(rectangle(aP0,aP1),Virgule(aImIn.in_proj(),FX,FY,1.0),sigma(aSom,4));
+
+             aVVals.push_back(aSom[0]/aSom[3]);
+             aVPts.push_back(Pt2dr(aSom[1],aSom[2])/aSom[3]);
+        }
+    }
+
+    Polynome2dReal aPol = LeasquarePol2DFit(aDegre,aVPts,aVVals,0);
+
+    Im2D_REAL8 aImOut(aSzIm.x,aSzIm.y); 
+    Pt2di aP;
+    for (aP.x=0 ; aP.x<aSzIm.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<aSzIm.y ; aP.y++)
+        {
+            aImOut.SetR(aP,aPol(Pt2dr(aP)));
+        }
+    }
+    Tiff_Im::CreateFromIm(aImOut,aNameOut);
+    if (EAMIsInit(&aNameImRes))
+    {
+       Tiff_Im::CreateFromFonc(aNameImRes,aSzIm,aImIn.in()-aImOut.in(),GenIm::real8);
+    }
+}
 
 
+
+int CPP_PolynOfImage(int argc,char ** argv)
+{
+    cAppliPolyImage anAppli(argc,argv);
+    return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
