@@ -155,7 +155,7 @@ class cPairOfTriplet
 };
 
 
-class cAppliOptimTriplet
+class cAppliOptimTriplet : public cCommonMartiniAppli
 {
       public :
           cAppliOptimTriplet(int argc,char ** argv,bool QuitExit);
@@ -180,7 +180,7 @@ class cAppliOptimTriplet
           void TestTomasiKanade();
 
           cAppliOptimTriplet(const cAppliOptimTriplet&); // N.I.
-          std::string mNameOriCalib;
+          // std::string mNameOriCalib;
           std::string mDir;
           cNewO_NameManager * mNM;
           std::vector<cImOfTriplet *> mIms;
@@ -204,9 +204,6 @@ class cAppliOptimTriplet
           int              mNbMaxInit;
           bool             mAotShow;
           bool             mCalledBySerie;
-          bool             mQuick;
-          std::string      mPrefHom;
-          std::string      mExtName;
           double           mPds3;
           double           mBestResidu;
           std::string      mN1,mN2,mN3;
@@ -216,11 +213,9 @@ class cAppliOptimTriplet
           cNewO_OneIm *    mNoIm2;
           bool             mBugTK;
 
-          std::string      mNameModeNO;
           eTypeModeNO      mModeNO;
           bool             mModeTTK;
           bool             mWithTTK;
-          std::string      mInOri;
           bool             mInOriOk;
 };
 
@@ -556,15 +551,11 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
     // mNbMaxSel (StdDefNbMaxSel),
     mAotShow  (false),
     mCalledBySerie  (false),
-    mQuick    (false),
-    mPrefHom   (""),
-    mExtName   (""),
     mQuitExist (QuitExist),
     m3S        ("a","b","c"),
     mNoIm1     (0),
     mNoIm2     (0),
     mBugTK     (false),
-    mNameModeNO (TheStdModeNewOri),
     mModeTTK    (false),
     mWithTTK    (true)
 {
@@ -574,18 +565,14 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
         LArgMain() << EAMC(mN1,"Image one", eSAM_IsExistFile)
                    << EAMC(mN2,"Image two", eSAM_IsExistFile)
                    << EAMC(mN3,"Image three", eSAM_IsExistFile),
-        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
+        LArgMain() 
                    << EAM(mDir,"Dir",true,"Directory, Def=./ ",eSAM_IsDir)
                    << EAM(mSzShow,"SzShow",true,"Sz of window to show the result in window (Def=none)")
                    << EAM(mNbMaxSel,"NbPts",true,"Nb of selected points")
                    << EAM(mAotShow,"Show",true,"Show Message")
                    << EAM(mCalledBySerie,"CalledBySerie",true,"Called by non paral")
-                   << EAM(mQuick,"Quick",true,"Quick version")
-                   << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
-                   << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(mBugTK,"BugTK",true,"Debug Tomasi Kanade")
-                   << EAM(mNameModeNO,"ModeNO",true,"Mode New Orient (Def=Std)")
-                   << EAM(mInOri,"InOri",true,"Existing orientation (if any)")
+                   << ArgCMA()
    );
 
    mModeNO =  ToTypeNO(mNameModeNO);
@@ -610,6 +597,8 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
 
    std::string aNameMin = (mN1<mN2) ? mN1 : mN2;
    std::string aNameMax = (mN1>mN2) ? mN1 : mN2;
+
+
 
    mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mDir,mNameOriCalib,"dat");
    mNoIm1 = new cNewO_OneIm(*mNM,aNameMin);
@@ -926,31 +915,23 @@ int CPP_OptimTriplet_main(int argc,char ** argv)
 int CPP_AllOptimTriplet_main(int argc,char ** argv)
 {
    ElTimer aChrono;
-   std::string aFullPat,aNameCalib;
+   std::string aFullPat;
    bool inParal=true;
-   bool Quick = false;
-   std::string aPrefHom="";
-   std::string aExtName="";
    bool Debug  = false;
-   std::string aNameModeNO = TheStdModeNewOri;
-   std::string aInOri;
    bool aShow = false;
    int  aNb0=0;
+   cCommonMartiniAppli aCMA;
 
    ElInitArgMain
    (
         argc,argv,
         LArgMain() << EAMC(aFullPat,"Pattern"),
-        LArgMain() << EAM(aNameCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
+        LArgMain() 
                    << EAM(inParal,"Paral",true,"Execute in parallel ", eSAM_IsBool)
-                   << EAM(Quick,"Quick",true,"Quick version", eSAM_IsBool)
-                   << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
-                   << EAM(aExtName,"ExtName",true,"User's added Prefix, def=\"\"")
                    << EAM(Debug,"Debug",true,"Debugging mode (tuning purpose)", eSAM_IsBool)
-                   << EAM(aNameModeNO,"ModeNO",true,"Mode (Def=Std)")
-                   << EAM(aInOri,"InOri",true,"Existing orientation if any")
                    << EAM(aShow,"Show",true,"Print command of each triplet")
                    << EAM(aNb0,"Nb0",true,"Num first pair to execute, tuning, Def=0")
+                   << aCMA.ArgCMA()
     );
 
    cElemAppliSetFile anEASF(aFullPat);
@@ -960,7 +941,9 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    std::set<std::string> aSetName(aVIm->begin(),aVIm->end());
    std::string aDir = anEASF.mDir;
 
-   cNewO_NameManager * aNM =  new cNewO_NameManager(aExtName,aPrefHom,Quick,aDir,aNameCalib,"dat");
+
+   cNewO_NameManager * aNM =  new cNewO_NameManager(aCMA.mExtName,aCMA.mPrefHom,aCMA.mQuick,aDir,aCMA.mNameOriCalib,"dat");
+
 
    cSauvegardeNamedRel aLCpl =  StdGetFromPCP(aNM->NameCpleOfTopoTriplet(true),SauvegardeNamedRel);
    std::list<std::string> aLCom;
@@ -977,14 +960,17 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
                             + " " + aN1
                             + " " + aN2
                             + " " + cAppliOptimTriplet::KeyCple;
+             aCom += aCMA.ComParam();
+/*
             if (EAMIsInit(&aNameCalib))
                aCom +=  " OriCalib=" + aNameCalib;
 
             aCom += " Quick=" + ToString(Quick);
-            aCom += " PrefHom=" + aPrefHom;
+            aCom += " SH=" + aPrefHom;
             aCom += " ExtName=" + aExtName;
             aCom += " ModeNO=" + aNameModeNO;
             aCom += " InOri=" + aInOri;
+*/
 
             if (aShow)
             {

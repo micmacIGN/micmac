@@ -67,6 +67,7 @@ bool TheExitOnBrkp  = false;
 // bool TheExitOnBrkp  = false;
 bool TheExitOnNan   = false;
 bool TheExitOnWarn  = false;
+bool TheGoonOnWarn  = false;
 bool TheMajickFile  = false;
 int  TheNbIterProcess = 1;
 
@@ -364,6 +365,7 @@ cElWarning cElWarning::OrhoLocOnlyXCste("For now RedrLocAnam only works with X=C
 
 cElWarning cElWarning::ToleranceSurPoseLibre("Tolerance inutile avec ePoseLibre");
 cElWarning cElWarning::OnzeParamSigneIncoh("Point on two sides of cam after space ressection");
+cElWarning cElWarning::EigenValueInCholeski("Due to numerical instability, detected negative eigen value in leas square");
 
 
 int cElWarning::mNbTot = 0;

@@ -268,7 +268,9 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    // std::cout << "SIIZZZ " << mXml.NbPts() << "\n";
 
    if (mShow)
+   {
       std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
+   }
    if (mXml.NbPts()<(mSelAllIm ? NbMinPts2Im_AllSel : NbMinPts2Im) )
    {
         return;
@@ -459,7 +461,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
              aXCmp.HomWithR().ResiduHom() = aDist ;
 */
              // if (ShowDetailHom) std::cout << "THom1= " << aChrono.uval() << "\n";
-             // if (mShow)
+             // if (m Show)
              // std::cout << "   #### Residu Homographie " << aDist *FocMoy()  << " Recvrt=" << aRecHom << "\n";
   
              cResMepRelCoplan aRMC =  ElPackHomologue::MepRelCoplan(1.0,aHom,tPairPt(Pt2dr(0,0),Pt2dr(0,0)));
@@ -578,6 +580,25 @@ const cXml_Ori2Im &  cNewO_OrInit2Im::XmlRes() const
 }
 
 
+void cNewO_OrInit2Im::DoExpMM(cNewO_OneIm * aI,const ElRotation3D & aRot,const Pt3dr & aPMed)
+{
+    CamStenope * aCS = aI->CS()->Dupl();
+    aCS->SetOrientation(aRot);
+
+    cOrientationConique aOC = aCS->ExportCalibGlob(aI->CS()->Sz(),aPMed.z,euclid(aPMed),0,true,"ExportMartini");
+    MakeFileXML(aOC,mI1->NM().ICNM()->NameOriStenope("MartiniRel",aI->Name()));
+}
+
+
+void   cNewO_OrInit2Im::DoExpMM()
+{
+    Pt3dr aPMed = mXml.Geom().Val().OrientAff().PMed1();
+
+    DoExpMM(mI1,ElRotation3D::Id,aPMed);
+    ElRotation3D aR2(mBestSol.tr(),mBestSol.Mat(),true);
+    DoExpMM(mI2,aR2.inv(),aPMed);
+}
+
 
 /*****************************************************************/
 /*                                                               */
@@ -585,7 +606,7 @@ const cXml_Ori2Im &  cNewO_OrInit2Im::XmlRes() const
 /*                                                               */
 /*****************************************************************/
 
-class cNO_AppliOneCple
+class cNO_AppliOneCple : public cCommonMartiniAppli
 {
     public :
           cNO_AppliOneCple(int argc,char **argv);
@@ -593,33 +614,28 @@ class cNO_AppliOneCple
           cNewO_OrInit2Im * CpleIm();
           std::string NameXmlOri2Im(bool Bin) const;
           ElRotation3D  * OrientationRelFromExisting(std::string &);
+          bool   ExpMM() const;
     private :
 
          cNO_AppliOneCple(const cNO_AppliOneCple &); // N.I.
 
          bool                 mGenOri;
-         bool                 mQuick;
-         std::string          mPrefHom;
-         std::string          mExtName;
          std::string          mNameIm1;
          std::string          mNameIm2;
-         std::string          mNameOriCalib;
          cNewO_NameManager *  mNM;
          cNewO_OneIm *        mIm1;
          cNewO_OneIm *        mIm2;
          std::vector<cNewO_OneIm *>  mVI;
          std::string          mNameOriTest;
-         bool                 mShow;
          bool                 mHPP;
          // Structure pour creer la representation explicite sous forme de points multiples
          tMergeLPackH         mMergeStr;
          ElRotation3D *       mTestSol;
-         ElRotation3D *       mInOri;
-         std::string          mNameModeNO;
+         ElRotation3D *       mRotInOri;
          eTypeModeNO          mModeNO;
          bool                 mIsTTK;  // Test Tomasi Kanade
          bool                 mSelAllCple;  // Test Tomasi Kanade
-         std::string          mNameInOri;
+         bool                 mExpMM;       // Do an export in MM mode
 };
 
 std::string cNO_AppliOneCple::NameXmlOri2Im(bool Bin) const
@@ -631,18 +647,14 @@ std::string cNO_AppliOneCple::NameXmlOri2Im(bool Bin) const
 
 
 
+
 cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
-   mGenOri  (true),
-   mQuick   (false),
-   mPrefHom (""),
-   mExtName (""),
-   mShow    (false),
-   mHPP     (true),
+   mGenOri   (true),
+   mHPP      (true),
    mMergeStr (2,false),
-   mTestSol (0),
-   mInOri  (0),
-   mNameModeNO  (TheStdModeNewOri),
-   mNameInOri   ()
+   mTestSol  (0),
+   mRotInOri (0),
+   mExpMM    (false)
 {
 
    ElInitArgMain
@@ -650,17 +662,12 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
         argc,argv,
         LArgMain() << EAMC(mNameIm1,"Name First Image", eSAM_IsExistFile)
                    << EAMC(mNameIm2,"Name Second Image", eSAM_IsExistFile),
-        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration", eSAM_IsExistDirOri)
-                   << EAM(mNameOriTest,"OriTest",true,"Orientation for test to a reference", eSAM_IsExistDirOri)
-                   << EAM(mShow,"Show",true,"Show")
-                   << EAM(mQuick,"Quick",true,"Quick option adapted for UAV or easy acquisition, def = true")
-                   << EAM(mGenOri,"GenOri",true,"Generate Ori, Def=true, false for quick process to RedTieP")
-                   << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
-                   << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
+        LArgMain() << EAM(mGenOri,"GenOri",true,"Generate Ori, Def=true, false for quick process to RedTieP")
                    << EAM(mHPP,"HPP",true,"Homograhic Planar Patch")
-                   << EAM(mNameModeNO,"ModeNO",true,"Mode New Ori")
-                   << EAM(mNameInOri,"InOri",true,"Mode New Ori")
+                   << EAM(mExpMM,"ExpMM",true,"Export in MicMac Std format the relative orientation")
+                   << ArgCMA()
    );
+
 
    mModeNO = ToTypeNO(mNameModeNO);
    mIsTTK  = (mModeNO==eModeNO_TTK);
@@ -693,8 +700,8 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
       mTestSol = OrientationRelFromExisting(mNameOriTest);
 
    
-   if (EAMIsInit(&mNameInOri))
-      mInOri = OrientationRelFromExisting(mNameInOri);
+   if (EAMIsInit(&mInOri))
+      mRotInOri = OrientationRelFromExisting(mInOri);
 /*
    if (EAMIsInit(&mNameOriTest))
    {
@@ -728,14 +735,19 @@ ElRotation3D *  cNO_AppliOneCple::OrientationRelFromExisting(std::string & aName
    return new ElRotation3D(aRot);
 }
 
+bool   cNO_AppliOneCple::ExpMM() const 
+{
+   return mExpMM;
+}
+
+
 cNewO_OrInit2Im * cNO_AppliOneCple::CpleIm()
 {
-   return new cNewO_OrInit2Im(mGenOri,mQuick,mIm1,mIm2,&mMergeStr,mTestSol,mInOri,mShow,mHPP,mSelAllCple);
+   return new cNewO_OrInit2Im(mGenOri,mQuick,mIm1,mIm2,&mMergeStr,mTestSol,mRotInOri,mShow,mHPP,mSelAllCple);
 }
 
 void cNO_AppliOneCple::Show()
 {
-    // std::cout << "NbTiep " << .size() << "\n";
 }
 
 extern void  Bench_NewOri();
@@ -792,6 +804,9 @@ int TestNewOriImage_main(int argc,char ** argv)
    MakeFileXML(aXml,anAppli.NameXmlOri2Im(true));
    MakeFileXML(aXml,anAppli.NameXmlOri2Im(false));
 
+   if (anAppli.ExpMM())
+      aCple->DoExpMM();
+
    return EXIT_SUCCESS;
 }
 
@@ -805,28 +820,19 @@ int TestNewOriImage_main(int argc,char ** argv)
 
 int TestAllNewOriImage_main(int argc,char ** argv)
 {
-   std::string aPat,aNameOriCalib;
-   bool aQuick=true;
+   std::string aPat;
    bool aGenOri=true;
-   std::string aPrefHom;
-   std::string aExtName;
-   std::string  aNameModeNO = TheStdModeNewOri;
+   cCommonMartiniAppli aCMA;
    std::string aNameIm1;
    std::string aPatGlob;
-   std::string aInOri;
 
 
    ElInitArgMain
    (
         argc,argv,
         LArgMain() << EAMC(aPat,"Pattern"),
-        LArgMain() << EAM(aNameOriCalib,"OriCalib",true,"Orientation for calibration ")
-                   << EAM(aQuick,"Quick",true,"Quick option, adapted to simple acquisition (def=false)")
-                   << EAM(aGenOri,"GenOri",true,"Set false to accelarate pre process for RedTieP)")
-                   << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous")
-                   << EAM(aExtName,"ExtName",true,"User's added Prefix")
-                   << EAM(aNameModeNO,"ModeNO",true,"Mode New Ori")
-                   << EAM(aInOri,"InOri",true,"Existing orientation if any")
+        LArgMain() << EAM(aGenOri,"GenOri",true,"Set false to accelarate pre process for RedTieP)")
+                   << aCMA.ArgCMA()
                    << EAM(aNameIm1,"NameIm1",true,"Name of Image1, internal purpose")
                    << EAM(aPatGlob,"PatGlob",true,"Name of Image1, internal purpose")
    );
@@ -839,7 +845,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    cElemAppliSetFile anEASF(aPat);
    const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
    std::string aDir = anEASF.mDir;
-   cNewO_NameManager * aNM =  new cNewO_NameManager(aExtName,aPrefHom,aQuick,aDir,aNameOriCalib,"dat");
+   cNewO_NameManager * aNM =  new cNewO_NameManager(aCMA.mExtName,aCMA.mPrefHom,aCMA.mQuick,aDir,aCMA.mNameOriCalib,"dat");
    cInterfChantierNameManipulateur* anICNM = anEASF.mICNM;
 
    if (!aModeIm1)
@@ -856,6 +862,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
            aNM->NameXmlOri2Im(aName,aName,true);
            std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ QUOTE(anEASF.mPat);
 
+
            aExePaq.AddCom(aCom);
        }
        // C'est le ~cExeParalByPaquets => qui va lance l'execution
@@ -863,9 +870,9 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    else
    {
        // Mode ou on execute vraiment pour une image
-       std::string aKeySub = "NKS-Set-HomolOfOneImage@"+ aPrefHom + "@dat@" + aNameIm1;
+       std::string aKeySub = "NKS-Set-HomolOfOneImage@"+ aCMA.mPrefHom + "@dat@" + aNameIm1;
        const cInterfChantierNameManipulateur::tSet *   aVH = anICNM->Get(aKeySub);
-       std::string aKeyH = "NKS-Assoc-CplIm2Hom@"+ aPrefHom  + "@dat";
+       std::string aKeyH = "NKS-Assoc-CplIm2Hom@"+ aCMA.mPrefHom  + "@dat";
 
        cListOfName aLON;
 
@@ -893,20 +900,15 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                {
                     std::string aNameH21 = aDir +  anEASF.mICNM->Assoc1To2(aKeyH,aNameIm2,aNameIm1,true);
                     // Lance la commande qui va vraiment faire le calcul 
-                    if (ELISE_fp::exist_file(aNameH21))
+                    if (ELISE_fp::exist_file(aNameH21) || aCMA.mAcceptUnSym)
                     {
                         std::string aCom =   MM3dBinFile("TestLib NO_Ori2Im") + " " + aNameIm1 + " " + aNameIm2 + " ";
-                        if (EAMIsInit(&aNameOriCalib))
-                           aCom = aCom + " OriCalib=" + aNameOriCalib;
-                        aCom = aCom + " Quick=" + ToString(aQuick);
                         aCom = aCom + " GenOri=" + ToString(aGenOri);
-                        aCom = aCom + " PrefHom=" + aPrefHom;
-                        aCom = aCom + " ExtName=" + aExtName;
-                        aCom = aCom + " ModeNO=" + aNameModeNO;
-                        aCom = aCom + " InOri=" + aInOri;
-
+                        aCom = aCom + aCMA.ComParam();
+                        if (aCMA.mShow)
+                           std::cout << "COM2EXE=" <<  aCom << "\n";
+                        
                         System(aCom);
-
                     }
                }
                if (ELISE_fp::exist_file(aNamOri))

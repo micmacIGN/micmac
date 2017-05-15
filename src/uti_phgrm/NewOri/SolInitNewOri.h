@@ -303,7 +303,7 @@ class cNO_CC_TripSom
         int                             mNumCC;
 };
 
-class cAppli_NewSolGolInit
+class cAppli_NewSolGolInit : public cCommonMartiniAppli
 {
     public :
         cAppli_NewSolGolInit(int , char **);
@@ -369,12 +369,8 @@ class cAppli_NewSolGolInit
 
 
         std::string          mFullPat;
-        std::string          mOriCalib;
         cElemAppliSetFile    mEASF;
         cNewO_NameManager  * mNM;
-        bool                 mQuick;
-        std::string          mPrefHom;
-        std::string          mExtName;
         bool                 mTest;
         bool                 mSimul;
         std::string          mOriTest;
@@ -427,8 +423,6 @@ class cAppli_NewSolGolInit
         bool                    mActiveRemoy;
         ElTimer                 mChrono;
         int                     mNbIterLast;
-        std::string             mModeNO;
-        std::string             mInOri;
         bool                    mHasInOri;
 };
 

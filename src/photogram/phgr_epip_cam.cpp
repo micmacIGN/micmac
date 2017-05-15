@@ -596,7 +596,8 @@ template <class Type,class TypeBase> class cReechantEpi
                  const CamStenope & aCamOut,
                  Tiff_Im aTOut,
                  Box2di  aBoxOut,
-                 Polynome2dReal * aPol
+                 Polynome2dReal * aPol,
+                 double           aScale
             );
             typedef TIm2D<Type,TypeBase>  tTIm;
      private  :
@@ -619,11 +620,12 @@ template <class Type,class TypeBase>
              const CamStenope & aCamOut,
              Tiff_Im aTOut,
              Box2di  aBoxOut,
-             Polynome2dReal * aPol
+             Polynome2dReal * aPol,
+             double           aScale
          )
 {
 
-   INT aRab = 10;
+   INT aRab = 10 + 2 * aScale;
    Pt2di aPRab(aRab,aRab);
    Box2di aBoxIn = R2I(GlobBoxCam(I2R(aBoxOut),aCamOut,aCamIn));
    aBoxIn._p0 = Sup(Pt2di(0,0),aBoxIn._p0-aPRab);
@@ -657,6 +659,16 @@ template <class Type,class TypeBase>
    }
    ELISE_COPY(rectangle(Pt2di(0,0),aSzIn),trans(aTIn.in_proj(),aBoxIn._p0),aOutInit);
 
+/*
+   if (aScale != 1)
+   {
+      for (int aKC=0 ; aKC<aNbChan ; aKC++)
+      {
+           std::cout << "SCALE " << aScale << "\n";
+           FilterGauss(aVIn[aKC]._the_im,aScale);
+      }
+  }
+*/
 
 
    int aPas = 4;
@@ -680,9 +692,15 @@ template <class Type,class TypeBase>
    }
 
     cInterpolateurIm2D<Type> * aKern = 0;
+    cKernelInterpol1D * aK1D = 0;
     if (0)
     {
        aKern = new cInterpolBilineaire<Type>;
+    }
+    else if (aScale!=1)
+    {
+        aK1D =  cKernelInterpol1D::StdInterpCHC(1.0*aScale);
+        aKern =  new cTabIM2D_FromIm2D<Type>(aK1D,100,false);
     }
     else if (1)
     {
@@ -737,6 +755,7 @@ template <class Type,class TypeBase>
          aTOut.out()
     );
     delete aKern;
+    delete aK1D;
 
 }
 
@@ -747,22 +766,30 @@ void ReechEpipGen
              const CamStenope & aCamOut,
              Tiff_Im aTOut,
              Box2di  aBoxOut,
-             Polynome2dReal * aPol
+             Polynome2dReal * aPol,
+             double           aScale
      )
 {
    switch (aTOut.type_el())
    {
         case GenIm::u_int1 :
         {
-             cReechantEpi<U_INT1,INT> aREE1(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol);
+             cReechantEpi<U_INT1,INT> aREE1(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol,aScale);
         }
         break;
 
         case GenIm::u_int2 :
         {
-             cReechantEpi<U_INT2,INT> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol);
+             cReechantEpi<U_INT2,INT> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol,aScale);
         }
         break;
+
+        case GenIm::real4 :
+        {
+             cReechantEpi<REAL4,REAL> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol,aScale);
+        }
+        break;
+
 
         default :
              ELISE_ASSERT(false,"Numerical type not handled in cReechantEpi");
@@ -780,7 +807,7 @@ int CreateBlockEpip_main(int argc,char ** argv)
 
    bool mSinCard=false;
    std::vector<double>  aVecPolCorrec;
-   double               anAmplPol;
+   double               anAmplPol,aScale;
 
 
 
@@ -795,6 +822,7 @@ int CreateBlockEpip_main(int argc,char ** argv)
         LArgMain()  << EAM(mSinCard,"SinCard",true,"Use sinus card for interp, def = false")
                     << EAM(aVecPolCorrec,"PolCorr",true,"Coeff of pol correc")
                     << EAM(anAmplPol,"AmplPol",true,"Ampl of Pol")
+                    << EAM(aScale,"Scale",true,"Ampl of Pol")
    );
 
     CamStenope * aCamOut = CamOrientGenFromFile(aNameCamOut,0);
@@ -811,7 +839,7 @@ int CreateBlockEpip_main(int argc,char ** argv)
     }
 
 
-    ReechEpipGen(*aCamIn,aTIn,*aCamOut,aTOut,aBoxOut,aPolCor);
+    ReechEpipGen(*aCamIn,aTIn,*aCamOut,aTOut,aBoxOut,aPolCor,aScale);
 
     return 0;
 }
@@ -1091,7 +1119,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
 
     if (! DoIm) return;
 
-    GenIm::type_el aTypeNOut =  aTIn.type_el();
+    GenIm::type_el aTypeNOut =   (mScale==1.0)  ?  aTIn.type_el() : GenIm::real4 ;
     Tiff_Im aTOut
             (
                   aNameImOut.c_str(),
@@ -1133,7 +1161,8 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
                                   + " " +  aNameImOut
                                   + " " + mDir + aNameOriIn
                                   + " " + mDir + aNameOriOut
-                                  + " " + QUOTE(ToString(aBoxOut));
+                                  + " " + QUOTE(ToString(aBoxOut))
+                                  + " Scale=" + ToString(mScale) ;
 
              if (aPolyCor)
              {
@@ -1146,7 +1175,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
          }
          else
          {
-              ReechEpipGen (aCamIn,aTIn,aCamOut,aTOut,aBoxOut,0);
+              ReechEpipGen (aCamIn,aTIn,aCamOut,aTOut,aBoxOut,0,mScale);
          }
     }
     if (InParal)

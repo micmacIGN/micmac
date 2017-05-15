@@ -303,7 +303,7 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
         //====this thing is eat RAM so much ======
         for (uint aKIi = 0; aKIi<mVImgs.size(); aKIi++)
         {
-            if (aImg->Num() != aKIi)
+            if (aImg->Num() != int(aKIi))
                 aImg->Task().NameSec().push_back(mVImgs[aKIi]->Name());
         }
         //=========================================

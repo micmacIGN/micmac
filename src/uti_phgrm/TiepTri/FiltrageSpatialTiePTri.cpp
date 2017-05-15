@@ -94,6 +94,20 @@ std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
                                            double aGainCorrel
                                        )
 {
+   double aSign= 1;
+if (0) // (MPD__MM())
+{
+    static bool First= true;
+    aSign = -1;
+    if (First)
+    {
+       std::cout << "cAppliTieTri::FiltrageSpatia SIGNNNNN\n";
+       getchar();
+       First= false;
+    }
+}
+
+
    std::vector<cResulMultiImRechCorrel *>  aResult;
 
    static tQtTiepT * aQdt = 0;
@@ -110,7 +124,7 @@ std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
    ElHeap<cResulMultiImRechCorrel *,cTpP_HeapCompare,cTpP_HeapParam> aHeap(aCmp);
    for (int aK=0; aK <int(aVIn.size()) ; aK++)
    {
-       aVIn[aK]->CalculScoreAgreg(EpsilAggr,PowAggreg);  // Epsilon, power
+       aVIn[aK]->CalculScoreAgreg(EpsilAggr,PowAggreg,aSign);  // Epsilon, power
        aHeap.push(aVIn[aK]);
        aQdt->insert(aVIn[aK]);
    }
@@ -167,7 +181,7 @@ std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
 
               if (aNbS0!=aNbSelEnd)
               {
-                  aRM_2->CalculScoreAgreg(EpsilAggr,PowAggreg);  // Epsilon, power
+                  aRM_2->CalculScoreAgreg(EpsilAggr,PowAggreg,aSign);  // Epsilon, power
                   if (aNbSelEnd==0)
                   {
                      aQdt->remove(aRM_2);
