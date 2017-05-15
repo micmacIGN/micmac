@@ -78,3 +78,15 @@ For Linux / MacOSX, you have to append the path to the `lib` directory to `LD_LI
 Add the following line: `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/micmac/lib/`
 
 For MacOSX, if you want to use QT tools with precompiled binaries available on [logiciels.ign.fr](http://logiciels.ign.fr/?Telechargement,20), you need to install Qt libraries for Mac from [http://download.qt-project.org](http://download.qt-project.org/archive/qt/4.8/4.8.4/qt-opensource-mac-4.8.4.dmg)
+
+
+# Licensing
+
+MicMac is distributed under the CeCILL-B license.
+However, the IncludeALGLIB branch include the ALGLIB Free Edition library, distributed with a GPL2+ license, this means that that specific branch cannot be distributed commercially as freely as the master branch. This is the main motivation for the existence of this independent branch.
+From the ALGLIB FAQ page :
+-----
+Can I distribute ALGLIB Free Edition as a part of a commercial application?
+Almost surely - no. GPL license does not forbid commercial distribution explicitly, but it imposes several requirements that commercial users can't comply with.
+The most important requirements are: a) you must distribute your program along with source code and under GPL, b) you can't restrict your users from copying your program, reselling copies or distributing them for free.
+-----
