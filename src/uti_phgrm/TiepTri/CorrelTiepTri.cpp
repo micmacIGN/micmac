@@ -346,11 +346,12 @@ cResulRechCorrel TT_RechMaxCorrelMultiScaleBilin
                              const Pt2dr & aP1,
                              const tTImTiepTri & aIm2,
                              const Pt2dr & aP2,
-                             const int   aSzW
+                             const int   aSzW,
+                             double aStepFinal
                       )
 
 {
-   cTT_MaxLocCorrelBasique  anOpt(eTMCBilinStep1,aIm1,aP1,aIm2,aP2,aSzW,1,0.01);
+   cTT_MaxLocCorrelBasique  anOpt(eTMCBilinStep1,aIm1,aP1,aIm2,aP2,aSzW,1,aStepFinal);
    anOpt.optim();
 
    return cResulRechCorrel(aP2+anOpt.param(),anOpt.m2Sol.ScoreFinal());

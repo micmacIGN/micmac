@@ -37,124 +37,73 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#ifndef _RStat_H_
+#define _RStat_H_
 
-#include "TiepTri.h"
+#include "StdAfx.h"
 
+class cHistoStats;
+class cRobustStats;
 
-
-/************************************************/
-/*                                              */
-/*          cImMasterTieTri                     */
-/*                                              */
-/************************************************/
-
-
-cImMasterTieTri::cImMasterTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm) :
-   cImTieTri   (anAppli,aNameIm,-1)
+class cHistoStats
 {
-}
+    public:
+        cHistoStats(const int &aNbV,
+                    const Fonc_Num &aFonc,
+                    const Pt2di &aBrd,
+                    const Pt2di &aSz,
+                    const string & aName );
 
+        double Quantile(const int &aPr);
 
+        const Im1D_INT4 &H()   {return *mH;}
+        const Pt2di     &Brd() {return mBrd;}
+        const Pt2di     &Sz() {return  mSz;}
+        const double    &Norm() {return  mNorm;}
 
+    private:
+        const Im1D_INT4 *InitH(const Fonc_Num &aFonc);
+        double MinMax(const Fonc_Num &f, const string &MM);
 
-bool  cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
+        const int        mNbV;
+        const Pt2di      mBrd;
+        const Pt2di      mSz;
+        const string     mName;
+
+        const double     mMin;
+        const double     mMax;
+        const double     mNorm;
+        const Im1D_INT4 *mH;
+
+};
+
+class cRobustStats
 {
-   if (! cImTieTri::LoadTri(aTri)) return false;
-   mLIP.clear();
+    public:
+        cRobustStats(const Fonc_Num &aFonc,
+                     const int &aNbV,
+                     const Pt2di &aBrd,
+                     const Pt2di &aSz);
+        static void CalcStdStat(const Fonc_Num &aFonc,
+                           const Pt2di &aBrd,
+                           const Pt2di &aSz,
+                           double &aSP,
+                           double &aMoy,
+                           double &aEc,
+                           bool    OK);
+    private:
+        void DoCalc();
 
-   if (mAppli.Debug())
-   {
-        Tiff_Im::CreateFromIm(mImInit,"MasterInit.tif");
-   }
-   mCutACD.ResetIm(mTImInit);
-
-   MakeInterestPoint(&mLIP,0,mTMasqTri,mTImInit);
-   //MakeInterestPointFAST(&mLIP,0,mTMasqTri,mTImInit);
-
-
-   if (mW)
-   {
-       int aCpt;
-       ELISE_COPY(mMasqTri.all_pts(), mMasqTri.in(),sigma(aCpt));
-       std::cout << " Nb In Masq= " << aCpt << "\n";
-   }
-
-   return true;
-
-   // Im2D_U_INT1
-}
-
-cResulMultiImRechCorrel *  cImMasterTieTri::GetRMIRC(const std::vector<cResulMultiImRechCorrel*> & aVR)
-{
-    Clik aClik = mW->clik_in();
-    cResulMultiImRechCorrel * aRes = 0;
-    double aDMin = 1e60;
-    for (int aK=0 ; aK<int(aVR.size()) ; aK++)
-    {
-        cResulMultiImRechCorrel * aVk = aVR[aK];
-        double aD = euclid(Pt2dr(aVk->PtMast()) -aClik._pt);
-        if (aD < aDMin)
-        {
-            aDMin = aD;
-            aRes  = aVk;
-        } 
-    }
-    mW->draw_circle_loc(Pt2dr(aRes->PtMast()),2.0,mW->pdisc()(P8COL::cyan));
-    return aRes;
-}
-
-  
-  
+        const Fonc_Num   mFonc;
+        const int        mNbV;
+        const Pt2di      mBrd;
+        const Pt2di      mSz;
 
 
-/*==== 
-    Sert en version interactive , retourne le point d'interet preseclectionne
-   le plus pret d'un clique.
-    Imprime les resultat de fast et auto correl
-=====*/
-cIntTieTriInterest cImMasterTieTri::GetPtsInteret()
-{
-   ELISE_ASSERT(mW!=0,"Cannot get point without window");
-   Clik aClik = mW->clik_in();
-   const cIntTieTriInterest * aRes=0;
-   double aDistMin = 1e30;
-
-   for (std::list<cIntTieTriInterest>::const_iterator itI=mLIP.begin(); itI!=mLIP.end() ; itI++)
-   {
-       double aDist = euclid(aClik._pt-Pt2dr(itI->mPt));
-       if (aDist < aDistMin)
-       {
-           aDistMin = aDist;
-           aRes = & (*itI);
-       }
-   }
-   ELISE_ASSERT(aRes!=0,"cannot fin in GetPtsInteret");
-   mW->draw_circle_loc(Pt2dr(aRes->mPt),1.0,mW->pdisc()(P8COL::green));
-   // std::cout << "TestQualFast=" << TestFastQuality(mImInit,aRes->mPt,5.0,aRes->mType==eTTTMax,Pt2dr(0.75,0.6)) << "\n";
-   std::cout << "TestQualFast=" << FastQuality(mTImInit,aRes->mPt,*mFastCC,aRes->mType==eTTTMax,Pt2dr(0.75,0.6)) << "\n";
-
-   cAutoCorrelDir<TIm2D<double,double> >  aACD(mTImInit,aRes->mPt,1.0,3);
-   Pt2dr aAC = aACD.DoIt();
-   std::cout << "AutoCorrel=" << aAC.y  << "\n";
-
-   cCutAutoCorrelDir<TIm2D<double,double> >  aCutACD(mTImInit,Pt2di(0,0),1.5,TT_SZ_AUTO_COR);
-   std::cout   << aRes->mPt << " Cut-AC: " << aCutACD.AutoCorrel(aRes->mPt,TT_SEUIL_CutAutoCorrel_INT,TT_SEUIL_CutAutoCorrel_REEL,TT_SEUIL_AutoCorrel) <<  " ACCC " << AutoCorrel(aRes->mPt) <<   "\n";
+};
 
 
- 
-
-
-   return *aRes;
-}
-
-bool  cImMasterTieTri::IsMaster() const {return true;}
-const std::list<cIntTieTriInterest> & cImMasterTieTri::LIP() const {return mLIP;}
-
-tTImTiepTri & cImMasterTieTri::ImRedr() {return mTImInit;}
-
-
-
-
+#endif // _RStat_H_
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

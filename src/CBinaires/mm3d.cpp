@@ -220,6 +220,7 @@ int CPP_CmpDenseMap(int argc,char** argv);
 int CPP_FermDenseMap(int argc,char** argv);
 int ScalePat_main(int argc,char** argv);
 int CPP_MakeMapEvolOfT(int argc,char ** argv);
+int CPP_PolynOfImage(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -317,6 +318,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 
        aRes.push_back(cMMCom("StackFlatField",EstimFlatField_main,"Basic Flat Field estimation by image stacking"));
+       aRes.push_back(cMMCom("PolynOfImage",CPP_PolynOfImage,"Approximate image by polynom"));
        aRes.push_back(cMMCom("Impaint",Impainting_main,"Basic Impainting"));
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));

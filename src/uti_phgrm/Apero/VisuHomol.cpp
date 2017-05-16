@@ -200,6 +200,8 @@ cVisuResidHom::cVisuResidHom
 
      int aNbPerc = 20;
      Polynome2dReal aPol = Polynome2dReal::PolyDegre1(0,0,0);
+
+     fprintf(aFp,"Nb Pts=%d\n",mPack.size());
      for (int aDeg=0 ; aDeg<6 ; aDeg++)
      {
          fprintf(aFp,"================= PERC  : RESIDU ==================\n");

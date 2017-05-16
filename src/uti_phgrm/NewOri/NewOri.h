@@ -91,6 +91,29 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPack,int aNbInit,int aNbFin)
 ElPackHomologue PackReduit(const ElPackHomologue & aPack,int aNbFin);
 
 
+class cCommonMartiniAppli
+{
+    public :
+       std::string    mNameOriCalib;
+       std::string    mPrefHom;
+       std::string    mExtName;
+       std::string    mNameModeNO;
+       std::string    mInOri;
+       bool           mAcceptUnSym;
+       bool           mQuick;
+       bool           mShow;
+
+       LArgMain &     ArgCMA();
+       std::string    ComParam();
+
+       cCommonMartiniAppli();
+      
+    private :
+       cCommonMartiniAppli(const cCommonMartiniAppli &) ; // N.I.
+       LArgMain * mArg;
+};
+
+
 class cNewO_OneIm
 {
     public :
@@ -150,6 +173,9 @@ class cNewO_OrInit2Im
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
           double PixExactCost(const ElRotation3D & aRot,double aTetaMax) const;
           const cXml_Ori2Im &  XmlRes() const;
+          void DoExpMM();
+          void DoExpMM(cNewO_OneIm *,const ElRotation3D &,const Pt3dr & aPMed);
+
     private :
 
 
