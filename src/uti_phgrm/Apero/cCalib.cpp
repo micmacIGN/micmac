@@ -1166,6 +1166,7 @@ extern std::string TheSpecMess;
 
 cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,const cCalibrationCameraInc & aCCI,cPoseCam * aPC)
 {
+
     cCalibrationInternConique aCIC;
     bool Done= false;
     std::string  aTestFullName = "";
@@ -1265,7 +1266,6 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
         }
         // std::string aName = StdNameGeomCalib();
     }
-
 
     if ((!Done) && (aCCI.CalibAutomNoDist().IsInit()))
     {

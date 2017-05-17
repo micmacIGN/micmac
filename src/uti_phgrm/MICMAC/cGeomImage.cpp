@@ -1805,7 +1805,10 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
               // donne le point, en coordonne UV d'intersection rayon incident surf L=0
                    cTplValGesInit<Pt3dr> aPGI3A = mAnamSA->InterDemiDroiteVisible(aSeg,0);
               // aTM.oset(aP,aNbSol>0);
-if( MPD_MM())  std::cout << "IsInZoneUtile " << aPGI3A.IsInit() << "\n";
+if( MPD_MM())
+{
+     std::cout << "IsInZoneUtile " << aPGI3A.IsInit()  << " NB" << mAnamSA->InterDroite(aSeg,0).size() << "\n";
+}
                   if (aPGI3A.IsInit() )
                   {
                      Pt3dr aP3A = aPGI3A.Val();
