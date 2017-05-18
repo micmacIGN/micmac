@@ -119,25 +119,27 @@ cAppliTieTri::cAppliTieTri
 
 void StatCorrel(const  std::vector<cResulMultiImRechCorrel*> &  aVec, const std::string & aMes)
 {
+    //============= Statistic sur un vector result de correlation =============
     double aSomC = 0;
     int aNbC = 0;
     std::vector<double> aVCor;
     
     for (int aKR = 0 ; aKR<int(aVec.size()) ; aKR++)
     {
-        cResulMultiImRechCorrel * aRMIRC =  aVec[aKR];
+        cResulMultiImRechCorrel * aRMIRC =  aVec[aKR];  // prendre result un pt Master
         std::vector<cResulRechCorrel > &  aVRRC = aRMIRC->VRRC() ;
         for (int aKIndIm=0 ; aKIndIm<int(aVRRC.size()) ; aKIndIm++)
         {
-            aVCor.push_back(aVRRC[aKIndIm].mCorrel);
-            aSomC += aVRRC[aKIndIm].mCorrel ;
-            aNbC ++ ;
+            aVCor.push_back(aVRRC[aKIndIm].mCorrel);    // prendre score correl avec chaque pt 2nd
+            aSomC += aVRRC[aKIndIm].mCorrel ;           // accumuler les valeurs de scores de correls
+            aNbC ++ ;                                   // nombre de couple Master-2nd
         }
     }
-    std::cout << "StatC:" << aMes 
-              << " Moy=" << aSomC/aNbC 
-              << " Med=" << KthValProp(aVCor,0.5) 
-              << " 20%=" << KthValProp(aVCor,0.2) 
+    std::cout << "StatC:" << aMes
+              << " Moy=" << aSomC/aNbC                  // score correl moyen
+              << " Med=" << KthValProp(aVCor,0.5)       // score median
+              << " 20%=" << KthValProp(aVCor,0.2)       // score à 20% en premier
+              << " Nb=" << aNbC
               << "\n";
 }
 
@@ -382,6 +384,8 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
            for (int aKp=0 ; aKp<int(mVCurMIRMC.size()) ; /* aKp++ SURTOUT PAS INCREMENTER FAIT EN FIN DE BOUCLE !! */ )
            {
                cResulMultiImRechCorrel * aRMIRC = ModeInteractif ?  mMasIm->GetRMIRC(mVCurMIRMC) : mVCurMIRMC[aKp];
+               //cResulMultiImRechCorrel * aRMIRC = mVCurMIRMC[aKp];
+
                const std::vector<int> &   aVI =  aRMIRC->VIndex() ;
                std::vector<cResulRechCorrel > &  aVRRC = aRMIRC->VRRC() ;
                for (int aKIndIm=0 ; aKIndIm<int(aVI.size()) ; aKIndIm++)
