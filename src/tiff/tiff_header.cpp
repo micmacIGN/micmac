@@ -781,7 +781,7 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
     else // (aIntBigTif==0)
     {
        
-       std::cout << "BIGTIF suspended momentally \n";
+      // std::cout << "BIGTIF suspended momentally \n";
       // mUseFileTile = 0;
       // mBigTiff =  aSzNCompr > aMaxSzFile;
     }

@@ -92,6 +92,40 @@ bool getVignetteGPP(const std::string nomDalleOrtho, const Pt3dr& ptSol,
     return (ELISE_fp::exist_file(vignetteName));
 }
 
+/*
+ ///
+ ///
+ ///
+ bool getVignetteGPP(const std::string nomDalleOrtho, const Pt3dr& ptSol,
+ const Pt2di SzOrtho, const float resol)
+ {
+ std::string gppAccess = getGPPAccess();
+ 
+ //dalle
+ double xminDalle = ptSol.x - SzOrtho.x*resol/2;
+ double yminDalle = ptSol.y - SzOrtho.y*resol/2;
+ double xmaxDalle = xminDalle + SzOrtho.x*resol;
+ double ymaxDalle = yminDalle + SzOrtho.y*resol;
+ 
+ double resolutionOrtho=0.20; // connu par defaut...
+ //taille de l'ortho a pleine résolution :
+ int Nc = (xmaxDalle-xminDalle)/resolutionOrtho+1;
+ int Nl = (ymaxDalle-yminDalle)/resolutionOrtho+1;
+ 
+ //recuperation de l'ortho
+ std::ostringstream ossGPP;
+ ossGPP << std::fixed << gppAccess << " -o "<<nomDalleOrtho<< " \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<Nc<<"&HEIGHT="<<Nl<<"\"";
+ 
+ std::cout << ossGPP.str() << std::endl;
+ 
+ system(ossGPP.str().c_str());
+ 
+ std::string vignetteName = getCurrentDir() + "/" + nomDalleOrtho;
+ return (ELISE_fp::exist_file(vignetteName));
+ }
+*/
+
+
 ///
 ///
 ///
