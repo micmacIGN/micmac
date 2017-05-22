@@ -1259,7 +1259,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
            {
                 for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
                 {
-                     int aNb = aTImNb.get(aQ0);
+                     int aNb = aTImNb.get(aQ0);//the no. of depths/Z for the current cell
                      cTplCelNapPrgDyn<cElPilePrgD> * aTabP = aNap.Data()[aQ0.y][aQ0.x];
                      aTabP[-1].ArgAux()= aPDef;
                      aTabP[-1].SetOwnCost(ToICost(aDefPds));
