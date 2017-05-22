@@ -2828,6 +2828,7 @@ class cMirePolygonEtal
           bool IsNegatif() const;
           cMirePolygonEtal();
           static const cMirePolygonEtal & IgnMireN6();
+          static const cMirePolygonEtal & ENSGMireN6();
           static const cMirePolygonEtal & MtdMire9();
           static const cMirePolygonEtal & IGNMire7();
           static const cMirePolygonEtal & IGNMire5();
@@ -2845,6 +2846,7 @@ class cMirePolygonEtal
       private :
 
           static const double TheIgnN6[6];
+          static const double TheENSG6[6];
           static const double TheMTD9[6];
           static const double TheIGNDiams7[7];
           static const double TheIGNDiams5[5];
@@ -2855,6 +2857,7 @@ class cMirePolygonEtal
           static const double TheDiamMTClous1[1];
 
           static cMirePolygonEtal TheNewIGN6;
+          static cMirePolygonEtal TheNewENSG6;
           static cMirePolygonEtal TheMTDMire9;
           static cMirePolygonEtal TheIGNMire7;
           static cMirePolygonEtal TheIGNMire5;

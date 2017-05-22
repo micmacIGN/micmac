@@ -402,8 +402,8 @@ cAppliEstimLA_main::cAppliEstimLA_main(int argc,char ** argv) :
                     << EAMC(mOri1,"Directory orientation of images", eSAM_IsExistDirOri)
                     << EAMC(mOri2,"Directory positions of GPS trajectory", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mOriOut,"OriOut",true,"Output Ori Name of corrected mandatory Ori ; Def=OriName-CorrLA")
-					<< EAM(aExportResTxt,"ResTxt",false,"Export residuals in a .txt file ; Def=false")
-					<< EAM(aExportXML,"ExportXML",false,"Export corrected trajectory as GPS .xml file ; Def=false")
+		    << EAM(aExportResTxt,"ResTxt",false,"Export residuals in a .txt file ; Def=false")
+		    << EAM(aExportXML,"ExportXML",false,"Export corrected trajectory as GPS .xml file ; Def=false")
 	);
 	
 	std::string aDir, aPat;
@@ -478,6 +478,7 @@ cAppliEstimLA_main::cAppliEstimLA_main(int argc,char ** argv) :
 	//compute residuals & export them in a file
 	std::vector<Pt3dr> aVRes;
 	std::vector<Pt3dr> aVG2C;
+	std::vector<double> aVRes3D;
 	for(unsigned int aP=0; aP<vCSO1.size(); aP++)
 	{
 		
@@ -488,7 +489,10 @@ cAppliEstimLA_main::cAppliEstimLA_main(int argc,char ** argv) :
 		double ResX = aC2.x - aC1.x - aM1(0,0)*aData[0] - aM1(0,1)*aData[1] - aM1(0,2)*aData[2];
 		double ResY = aC2.y - aC1.y - aM1(1,0)*aData[0] - aM1(1,1)*aData[1] - aM1(1,2)*aData[2];
 		double ResZ = aC2.z - aC1.z - aM1(2,0)*aData[0] - aM1(2,1)*aData[1] - aM1(2,2)*aData[2];
-		std::cout << "Res - Image " << aSetIm[aP] << " = [" << ResX << "," << ResY << "," << ResZ << "]" << std::endl;
+		
+		double aRes3D = sqrt(ResX*ResX + ResY*ResY + ResZ*ResZ);
+
+		std::cout << "Res - Image " << aSetIm[aP] << " = [" << ResX << "," << ResY << "," << ResZ << "] ; Dist = " << aRes3D << std::endl;
 		
 		Pt3dr aRes(ResX,ResY,ResZ);
 		aVRes.push_back(aRes);
@@ -498,6 +502,7 @@ cAppliEstimLA_main::cAppliEstimLA_main(int argc,char ** argv) :
 		double aG2CZ = aC2.z - aM1(2,0)*aData[0] - aM1(2,1)*aData[1] - aM1(2,2)*aData[2];
 		
 		Pt3dr aG2C(aG2CX,aG2CY,aG2CZ);
+		aVRes3D.push_back(aRes3D);
 		aVG2C.push_back(aG2C);
 		
 		//export Ori Gps corrected from LA
@@ -519,7 +524,7 @@ cAppliEstimLA_main::cAppliEstimLA_main(int argc,char ** argv) :
 		cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOutTxt);
 		for (unsigned int aK=0 ; aK<aVRes.size() ; aK++)
 		{
-			fprintf(aFP,"%lf %lf %lf \n",aVRes.at(aK).x,aVRes.at(aK).y,aVRes.at(aK).z);
+			fprintf(aFP,"%lf %lf %lf %lf \n",aVRes.at(aK).x,aVRes.at(aK).y,aVRes.at(aK).z,aVRes3D.at(aK));
 		}
 		ElFclose(aFP);
 	}
@@ -708,7 +713,7 @@ int CorrOri_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant \C3  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -724,17 +729,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  \C3  l'utilisation,  \C3  la modification et/ou au
+développement et \C3  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe \C3
+manipuler et qui le réserve donc \C3  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités \C3  charger  et  tester  l'adéquation  du
+logiciel \C3  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+\C3  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder \C3  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
