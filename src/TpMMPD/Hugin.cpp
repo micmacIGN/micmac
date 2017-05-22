@@ -40,14 +40,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "schnaps.h"
 
-template <typename T>
-std::string NumberToString ( T Number )
+template <typename T> string NumberToString(T Number)
 {
-	std::ostringstream ss;
+	ostringstream ss;
     ss << Number;
-	return ss.str();
+    return ss.str();
 }
-  
 //----------------------------------------------------------------------------
 struct Couple{
 	std::string Img1;
@@ -183,6 +181,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 	int aProj=0;
 	double aFov=50;
 	bool aFilter=true;
+	bool aClean=true;
 	
 	ElInitArgMain
     (
@@ -194,6 +193,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 					 << EAM(aProj,"Proj",false,"Projection type (default: 0)")
 					 << EAM(aFov,"FOV",false,"Horizontal field of view of images (default: 50)")
 					 << EAM(aFilter,"FilterTP",true,"Use Schnaps to reduce tie points; Def=true")
+					 << EAM(aClean,"Clean",true,"Clean indivudual images after stitching ; Def=true")
     );
     
     // !!!!!!!! sort directories by name !!!!!!!
@@ -257,12 +257,12 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 
     for(unsigned int aV=0; aV<aLFiles.size(); aV++)
     {
-		std::cout << "Copy images of groupe : " << aV << std::endl;
+		std::cout << "Copy images of groupe " << aV+1 << " out of " << aLFiles.size() << " groups" << std::endl;
 		int aCompt = 1;
 		for(std::list<cElFilename>::iterator iT2 = aLFiles.at(aV).begin() ; iT2 != aLFiles.at(aV).end() ; iT2++)
 		{
 			std::cout << "---> Copy of file " << aCompt << " out of " << aLFiles.at(aV).size() << std::endl;
-			ELISE_fp::CpFile((*iT2).m_path.str() + (*iT2).m_basename,aNameProcFolder); //copy only if no file !!!!
+			ELISE_fp::CpFile((*iT2).m_path.str() + (*iT2).m_basename,aNameProcFolder); //to do : copy only if no file !!!!
 			aCompt++;
 		}
 	}
@@ -274,16 +274,20 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		ctPath aNWDir = getWorkingDirectory();
 		std::cout << "aNWDir = " << aNWDir << std::endl;
 	}
+	
+	//vector of names of signe mosaic for each level
+	std::vector<std::string> aVOM;
+	
+	//lauch all the commands in //
+	std::list<std::string> aListCom;
     
-    //pipeline to generate a pano for each 	level N 
+    //pipeline to generate a pano for each 	level N :
+    //first tie points extraction using MicMac
 	for(unsigned int aP=0; aP<aDirectories.size(); aP++)
 	{
-		std::cout << "debugggggg" << std::endl;
 		std::string aPatL = GenPatFromLF(aLFiles.at(aP),false);
-		std::cout << "debugggggg" << std::endl;
 		//std::string aPatL2 = GenPatFromLF(aLFiles.at(aP+1),false);
-		std::cout << "debugggggg" << std::endl;
-		std::string aXmlOutFile = "NameCple_" + NumberToString(aP) + "_" + NumberToString(aP+1) + ".xml";
+		std::string aXmlOutFile = "NameCple_" + NumberToString(aP) + ".xml";
 		std::cout << "aXmlOutFile = " << aXmlOutFile << std::endl;
 		
 		//generate a .xml file of all couples for level N & level N+1
@@ -332,7 +336,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		std::string aPatLH = GenPatFromLF(aLFiles.at(aP),true);
 		//std::string aPatL2H = GenPatFromLF(aLFiles.at(aP+1),true);
 		
-		std::string aHNameProject = "Hugin_" + NumberToString(aP) + "_" + NumberToString(aP+1) + ".pto";
+		std::string aHNameProject = "Hugin_" + NumberToString(aP) + ".pto";
 		std::string aCom3 = "pto_gen -o" 
 		                     + std::string(" ") 
 		                     + aHNameProject 
@@ -344,7 +348,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 							 + std::string(" ")
 							 + "-f " + NumberToString(aFov);
 		std::cout << "aCom3 = " << aCom3 << std::endl;
-		system_call(aCom3.c_str());
+		//~ system_call(aCom3.c_str());
 		
 		//specify the variables to be optimized
 		std::string aCom4 = "pto_var --opt=\"y, p, r, TrX, TrY, TrZ, Tpy, Tpp, v, a, b, c, d, e, g, t, Eev, Er, Eb, Vb, Vc, Vd, Vx, Vy, Ra, Rb, Rc, Rd, Re\""
@@ -353,7 +357,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		                     + std::string(" ")
 		                     + aHNameProject;
 		std::cout << "aCom4 = " << aCom4 << std::endl;
-		system_call(aCom4.c_str());
+		//~ system_call(aCom4.c_str());
 		                     
 		//include tie points from MicMac in the project file
 		std::string aCom5 = MMDir()
@@ -368,7 +372,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 							+ std::string(" ")
 							+ "HomolIn=_mini";
 		std::cout << "aCom5 = " << aCom5 << std::endl;
-		system_call(aCom5.c_str());
+		//~ system_call(aCom5.c_str());
 		
 		//lanch Hugin optimizer
 		std::string aCom6 = "autooptimiser -a -l -s -m -v"
@@ -377,7 +381,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		                     + "-o " + StdPrefixGen(aHNameProject) + "_Homol.pto"
 		                     + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
 		std::cout << "aCom6 = " << aCom6 << std::endl;
-		system_call(aCom6.c_str());
+		//~ system_call(aCom6.c_str());
 		
 		//pano configuration
 		std::string aCom7 = "pano_modify -p " + NumberToString(aProj)
@@ -385,23 +389,63 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		                    + StdPrefixGen(aHNameProject) + "_Homol.pto"
 		                    + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
 		std::cout << "aCom7 = " << aCom7 << std::endl;
-		system_call(aCom7.c_str());
+		//~ system_call(aCom7.c_str());
 		                    
 		//generate individual images to be stiched
-		std::string aCom8 = "nona -z LZW -r ldr -m TIFF_m -o ImgsIndiv_" + NumberToString(aP) + "_" + NumberToString(aP+1) + "_" + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
+		std::string aCom8 = "nona -z LZW -r ldr -m TIFF_m -o ImgsIndiv_" + NumberToString(aP) + "_" + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
 		std::cout << "aCom8 = " << aCom8 << std::endl;
-		system_call(aCom8.c_str());
+		//~ system_call(aCom8.c_str());
 		
 		//assembly for level N & level N+1
-		std::string aOutMosaic = "Mosaic_" + NumberToString(aP) + "_" + NumberToString(aP+1) + ".jpg";
-		std::string aCom9 = "enblend --compression=90 ImgsIndiv_" + NumberToString(aP) + "_" + NumberToString(aP+1) + "*.*tif -o " +  aOutMosaic;
+		std::string aOutMosaic = "Mosaic_" + NumberToString(aP) + ".jpg";
+		aVOM.push_back(aOutMosaic);
+		std::string aCom9 = "enblend --compression=90 ImgsIndiv_" + NumberToString(aP) + "*.*tif -o " +  aOutMosaic;
 		std::cout << "aCom9 = " << aCom9 << std::endl;
-		system_call(aCom9.c_str());
+		//~ system_call(aCom9.c_str());
+		
+		//merge all in one commande
+		std::string aComM = aCom3 
+		                    + std::string(" ") + "&&" + std::string(" ") 
+		                    + aCom4
+		                    + std::string(" ") + "&&" + std::string(" ")
+		                    + aCom5
+		                    + std::string(" ") + "&&" + std::string(" ")
+		                    + aCom6
+		                    + std::string(" ") + "&&" + std::string(" ")
+		                    + aCom7
+		                    + std::string(" ") + "&&" + std::string(" ")
+		                    + aCom8
+		                    + std::string(" ") + "&&" + std::string(" ")
+		                    + aCom9;
+		                    
+		 std::cout << "aComM = " << aComM << std::endl;
+		 aListCom.push_back(aComM);
+	}
+	
+	cEl_GPAO::DoComInParal(aListCom,mDir);
+	
+	if(aClean)
+	{
+		cInterfChantierNameManipulateur * aII = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+		std::string aFPII = "ImgsIndiv_*.*tif";
+		const std::vector<std::string> * aSII = aII->Get(aFPII);
+        std::vector<std::string> aVII = *aSII;
+        std::cout << "aVII.size() = " << aVII.size() << std::endl;
+		
+		for(unsigned int aC=0; aC<aVII.size(); aC++)
+		{
+			std::cout << "---> Deleting Image " << aC << " out of " << aVII.size() << " : " << aVII[aC] << std::endl;
+			ELISE_fp::RmFileIfExist(aVII[aC]);
+		}
 	}
 	
 	//same pipeline to generate a global panoramique from each individual (level N & level N+1 pano)
+	for(unsigned int aL=0; aL<aVOM.size(); aL++)
 	{
 		//generate a .xml file of all individual panoramik
+		//~ std::list<cElFilename> aLMN;
+		//~ aLMN.push_back(
+		//~ std::string aPatL = GenPatFromLF(aLMN,false);
 		
 		//compute tie points for all individual panoramik
 		

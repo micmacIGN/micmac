@@ -268,20 +268,25 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntier(bool Interact,const cIntT
     return aCRCMax;
 }
 
-cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(bool Interact,const Pt2dr & aP0,const cResulRechCorrel & aCRC0)
+cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(bool Interact,const cResulMultiImRechCorrel &aRMIC,int aKIm)
 {
+    Pt2dr aP0 = Pt2dr(aRMIC.PtMast());
+    cResulRechCorrel aCRC0 = aRMIC.VRRC()[aKIm];
+
+    double aStep = 0.01;
     if (! aCRC0.IsInit())
        return aCRC0;
     
     int aSzWE = mAppli.mSzWEnd;
-    cResulRechCorrel aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,Pt2dr(aP0),mTImReech,Pt2dr(aCRC0.mPt),aSzWE); // Correlation sub-pixel, interpol bilin basique (step=1, step RCorell=0.1)
+    // Correlation sub-pixel, interpol bilin basique (step=1, step RCorell=0.1)
+    cResulRechCorrel aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,Pt2dr(aP0),mTImReech,Pt2dr(aCRC0.mPt),aSzWE,aStep); 
 
     //ER variable that is unused; commented-out to acoid warning 
     //double aRecCarre=0;
-    if ( mAppli.mNumInterpolDense < 0)
+    if (0) // ( mAppli.mNumInterpolDense < 0)
     {
        Pt2dr aP0This = Pt2dr(Pt2di(aRes.mPt));
-       cResulRechCorrel aResRecip = TT_RechMaxCorrelMultiScaleBilin(mTImReech,aP0This,mMaster->mTImInit,Pt2dr(aP0),aSzWE);
+       cResulRechCorrel aResRecip = TT_RechMaxCorrelMultiScaleBilin(mTImReech,aP0This,mMaster->mTImInit,Pt2dr(aP0),aSzWE,aStep);
 
        Pt2dr aDec1 = aRes.mPt - Pt2dr(aP0);
        Pt2dr aDec2 = Pt2dr(aP0This) - aResRecip.mPt ;
@@ -327,6 +332,7 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(bool Interact,const Pt2dr 
     return aRes;
 }
 
+/*
 cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntierAndRefine(bool Interact,const cIntTieTriInterest & aPI)
 {
     cResulRechCorrel aRes = RechHomPtsInteretEntier(Interact,aPI);
@@ -338,13 +344,19 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntierAndRefine(bool Interact,co
 
     return aRes;
 }
+*/
 
 // On passe des coordonnees master au coordonnees secondaire
 
-cResulRechCorrel cImSecTieTri::RechHomPtsDense(bool Interact,const Pt2di & aP0,const cResulRechCorrel & aPIn)
+cResulRechCorrel cImSecTieTri::RechHomPtsDense(bool Interact,const cResulMultiImRechCorrel &aRMIC,int aKIm)
 {
+
+    Pt2dr aP0 = Pt2dr(aRMIC.PtMast());
+    cResulRechCorrel aPIn = aRMIC.VRRC()[aKIm];
+
     if ( mAppli.mNumInterpolDense < 0)
     {
+       if (Interact) std::cout << "AAAAAAaaaaaaaaaaaaaaaa\n";
        cResulRechCorrel aRes2  = aPIn;
        aRes2.mPt = mAffMas2Sec(aRes2.mPt);
        return aRes2;

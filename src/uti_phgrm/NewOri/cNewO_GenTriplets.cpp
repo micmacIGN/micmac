@@ -690,7 +690,7 @@ cNewAppli_GenTriplet::cNewAppli_GenTriplet(int argc,char ** argv)
         argc,argv,
         LArgMain() <<  EAMC(mFullName,"Pattern", eSAM_IsPatFile),
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration", eSAM_IsExistDirOri)
-                   << EAM(mShow,"Show",true,"Show intermediary message")
+                   << EAM(m Show,"Show",true,"Show intermediary message")
                    << EAM(mNameTest1,"Test1",true,"Name of first test image", eSAM_IsExistFile)
                    << EAM(mNameTest2,"Test2",true,"Name of second test image", eSAM_IsExistFile)
                    << EAM(mNameTest3,"Test3",true,"Name of second test image", eSAM_IsExistFile)
@@ -757,7 +757,7 @@ cNewAppli_GenTriplet::cNewAppli_GenTriplet(int argc,char ** argv)
 
            }
         }
-        if (((aKC%50)==0) && mShow)
+        if (((aKC%50)==0) && m Show)
         {
            std::cout << "AAAAAAAAAAAA " << aSetCple->size() - aKC << "\n";
         }

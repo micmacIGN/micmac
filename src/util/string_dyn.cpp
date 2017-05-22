@@ -553,11 +553,11 @@ std::string getBanniereMM3D()
     banniere += "**                                                                    ** \n";
     banniere += "**  - Institut National de l'Information Geographique et Forestiere   ** \n";
     banniere += "**    (IGN main funder since 2003)                                    ** \n";
-    banniere += "**  - the french FUI Project \"Culture 3D Cloud\"                       ** \n";
-    banniere += "**  - the french ANR Project \"MONUMENTUM\"                             ** \n";
+    banniere += "**  - the french FUI Project \"Culture 3D Cloud\" (and MAP-CNRS)        ** \n";
+    banniere += "**  - the french ANR Project \"MONUMENTUM\"(collaborating with MAP-CNRS)** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**  Research also currently supported by :                            ** \n";
-    banniere += "**  - CNES (French Space Agency) - via TOSCA Committee                ** \n";
+    banniere += "**  - CNES (French Space Agency) - via TOSCA Committee (and IPGP)     ** \n";
     banniere += "**  - Compagnie Nationale du Rhone                                    ** \n";
     banniere += "**  - Vinci-Construction-Terrassement                                 ** \n";
     banniere += "**  - ERC Advanced Grant A.Kaeaeb \"ICEMASS\" (University of Oslo)      ** \n";

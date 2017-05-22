@@ -819,9 +819,6 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
 static cNO_CmpSomByGainBy3 TheCmp3;
 
 cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
-    mQuick      (true),
-    mPrefHom    (""),
-    mExtName    (""),
     mTest       (true),
     mSimul      (false),
     mWithOriTest(false),
@@ -841,9 +838,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mHeapSom    (TheCmp3),
     mLastPdsMedRemoy  (0.0),
     mActiveRemoy      (true),
-    mNbIterLast       (20),
-    mModeNO           (TheStdModeNewOri),
-    mInOri            ("")
+    mNbIterLast       (20)
 {
    std::string aNameT1;
    std::string aNameT2;
@@ -856,10 +851,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
    (
         argc,argv,
         LArgMain() << EAMC(mFullPat,"Pattern"),
-        LArgMain() << EAM(mOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
-                   << EAM(mQuick,"Quick",true,"Quick version",eSAM_IsBool)
-                   << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
-                   << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
+        LArgMain() 
                    << EAM(mTest,"Test",true,"Test for tuning",eSAM_IsBool)
                    << EAM(aNameT1,"Test1",true,"Name of first test image",eSAM_IsBool)
                    << EAM(aNameT2,"Test2",true,"Name of second test image",eSAM_IsBool)
@@ -871,8 +863,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                    << EAM(mIterLocEstimRot,"ILER",true,"Iter Estim Loc, Def=true, tuning purpose",eSAM_IsBool)
                    << EAM(mActiveRemoy,"AR",true,"Active Remoy, Def=true, tuning purpose",eSAM_IsBool)
                    << EAM(mNbIterLast,"NbIterLast",true,"Nb Iter in last step",eSAM_IsBool)
-                   << EAM(mModeNO,"ModeNO",true,"Mode (Def=Std)")
-                   << EAM(mInOri,"InOri",true,"Existing orientation if any")
+                   << ArgCMA()
    );
 
    cTplTriplet<std::string> aKTest1(aNameT1,aNameT2,aNameT3);
@@ -881,7 +872,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
    mHasInOri = (EAMIsInit(&mInOri) && (mInOri!=""));
 
    mEASF.Init(mFullPat);
-   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mOriCalib,"dat");
+   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mNameOriCalib,"dat");
    const cInterfChantierNameManipulateur::tSet * aVIm = mEASF.SetIm();
 
    if (EAMIsInit(&mOriTest))

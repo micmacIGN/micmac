@@ -223,7 +223,7 @@ void cNewO_NameManager::WriteCouple
 /*******************************************************************/
 
 
-class cAppli_GenPTripleOneImage
+class cAppli_GenPTripleOneImage : public cCommonMartiniAppli
 {
       public :
            cAppli_GenPTripleOneImage(int argc,char ** argv);
@@ -242,20 +242,14 @@ class cAppli_GenPTripleOneImage
            std::string                mDir3P;
            std::string                mDirSom;
            std::string                mName;
-           std::string                mOriCalib;
            std::vector<cNewO_OneIm*>  mVCams;
            cNewO_OneIm*               mCam;
            int                        mSeuilNbArc;
            // std::map<tPairStr>
            std::vector<std::vector<Pt2df> >  mVP1;
            std::vector<std::vector<Pt2df> >  mVP2;
-           bool                              mQuick;
-           std::string                       mPrefHom;
-           std::string                       mExtName;
            bool                              mSkWhenExist;
-           std::string                       mNameModeNO;
            eTypeModeNO                       mModeNO;
-           std::string                       mInOri;
 };
 
 class cCmpPtrIOnName
@@ -268,25 +262,16 @@ static cCmpPtrIOnName TheCmpPtrIOnName;
 
 cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
     mSeuilNbArc  (1),  // Change car : existe des cas a forte assymetrie + 2 genere des plantage lorsque + de triplets que de couples
-    mQuick       (false),
-    mPrefHom     (""),
-    mExtName     (""),
-    mSkWhenExist (true),
-    mNameModeNO  (TheStdModeNewOri),
-    mInOri       ("")
+    mSkWhenExist (true)
 {
    
    ElInitArgMain
    (
         argc,argv,
         LArgMain() << EAMC(mFullName,"Name of Image", eSAM_IsExistFile),
-        LArgMain() << EAM(mOriCalib,"OriCalib",true,"Calibration directory", eSAM_IsExistDirOri)
-                   << EAM(mQuick,"Quick",true,"Quick version", eSAM_IsBool)
+        LArgMain() 
                    << EAM(mSkWhenExist,"SWE",true,"Skip when file alreay exist (Def=true, tuning purpose)", eSAM_IsBool)
-                   << EAM(mPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
-                   << EAM(mExtName,"ExtName",true,"User's added Prefix, def=\"\"")
-                   << EAM(mNameModeNO,"ModeNO",true,"Mode (Def=Std)")
-                   << EAM(mInOri,"InOri",true,"Existing orientation if any")
+                   << ArgCMA()
    );
 
    mModeNO = ToTypeNO(mNameModeNO);
@@ -294,7 +279,7 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
    if (MMVisualMode) return;
 
    SplitDirAndFile(mDir,mName,mFullName);
-   mNM  = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mDir,mOriCalib,"dat");
+   mNM  = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mDir,mNameOriCalib,"dat");
    mDir3P = mNM->Dir3P(false);
    ELISE_ASSERT(ELISE_fp::IsDirectory(mDir3P),"Dir point triple");
 
@@ -569,33 +554,25 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
 {
    MMD_InitArgcArgv(argc,argv);
 
-   std::string aFullName,anOriCalib;
-   bool aQuick;
+   std::string aFullName;
    bool aSkWhenExist;
-   std::string aPrefHom="";
-   std::string aExtName="";
-   std::string aNameModeNO  = TheStdModeNewOri;
-   std::string aInOri  = "";
+   cCommonMartiniAppli aCMA;
    ElInitArgMain
    (
         argc,argv,
         LArgMain() << EAMC(aFullName,"Name of Image"),
-        LArgMain() << EAM(anOriCalib,"OriCalib",true,"Calibration directory ")
-                   << EAM(aQuick,"Quick",true,"Quick version")
+        LArgMain()
                    << EAM(aSkWhenExist,"SWE",true,"Skip when file alreay exist (Def=true, tuning purpose)", eSAM_IsBool)
-                   << EAM(aPrefHom,"PrefHom",true,"Prefix Homologous points, def=\"\"")
-                   << EAM(aExtName,"ExtName",true,"User's added Prefix, def=\"\"")
-                   << EAM(aNameModeNO,"ModeNO",true,"Mode (Def=Std)")
-                   << EAM(aInOri,"InOri",true,"Existing orientation if any")
+                   << aCMA.ArgCMA()
    );
 
    cElemAppliSetFile anEASF(aFullName);
-   if (!EAMIsInit(&anOriCalib))
+   if (!EAMIsInit(&aCMA.mNameOriCalib))
    {
       MakeXmlXifInfo(aFullName,anEASF.mICNM);
    }
 
-   cNewO_NameManager aNM(aExtName,aPrefHom,aQuick,anEASF.mDir,anOriCalib,"dat");
+   cNewO_NameManager aNM(aCMA.mExtName,aCMA.mPrefHom,aCMA.mQuick,anEASF.mDir,aCMA.mNameOriCalib,"dat");
    aNM.Dir3P(true);
    const cInterfChantierNameManipulateur::tSet * aSetIm = anEASF.SetIm();
 
@@ -606,15 +583,9 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
        {
             std::string aCom =   MM3dBinFile_quotes( "TestLib ") + aComIm + " "  + anEASF.mDir+(*aSetIm)[aKIm] ;
 
-            if (EAMIsInit(&anOriCalib))  aCom = aCom + " OriCalib=" + anOriCalib;
-            aCom += " Quick=" +ToString(aQuick);
             aCom += " SWE=" +ToString(aSkWhenExist);
-            aCom += " PrefHom=" +aPrefHom;
-            aCom += " ExtName=" +aExtName;
-            aCom += " ModeNO=" +aNameModeNO;
-            aCom += " InOri=" +aInOri;
+            aCom +=  aCMA.ComParam();
 
-            //           std::cout << "COM= " << aCom << "\n";
             anEPbP.AddCom(aCom);
        }
    }

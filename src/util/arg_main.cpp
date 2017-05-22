@@ -105,10 +105,10 @@ void OpenFileDebug(const std::string & aName)
 
 std::string TheStringMemoArgOptGlob = "";
 
-static const int TheNbKeyACM=8;
+static const int TheNbKeyACM=9;
 int TheNbProcCom = -1;
 std::string TheSpecMess="";
-const char *  TheKeyACM[TheNbKeyACM] ={"ExitOnBrkp","ExitOnNan","MajickFile","EnBoucle","NbMaxProc","SpecMessage","SFS","ExitOnWarn"};
+const char *  TheKeyACM[TheNbKeyACM] ={"ExitOnBrkp","ExitOnNan","MajickFile","EnBoucle","NbMaxProc","SpecMessage","SFS","ExitOnWarn","GoonOnWarn"};
 
 std::string TheGlobSFS="";
 
@@ -168,6 +168,11 @@ void AnalyseContextCom(int argc,char ** argv)
            else if (aBeforEq==TheKeyACM[7])
            {
                TheExitOnWarn = true;
+               ForAction = true;
+           }
+           else if (aBeforEq==TheKeyACM[8])
+           {
+               TheGoonOnWarn = true;
                ForAction = true;
            }
 /*
@@ -554,6 +559,15 @@ LArgMain::~LArgMain()
         )
         delete (*it);
 }
+
+LArgMain & LArgMain::operator << (const LArgMain  & v)
+{
+   for (list<GenElArgMain *>::const_iterator it=v._larg.begin() ; it!=v._larg.end() ; it++)
+       _larg.push_back((*it)->dup());
+
+   return *this;
+}
+
 
 std::list<std::string> ModifListe(const std::list<std::string> & aList,const char * aNameType)
 {

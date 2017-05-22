@@ -513,7 +513,7 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
         //cout<<"Cnf : "<<aKCnf<<" - Nb Imgs : "<<aCnf->NbIm()<<" - Nb Pts : "<<aCnf->NbPts()<<endl;
         std::vector<int> aVIdIm =  aCnf->VIdIm();
 
-        for (uint aKPtCnf=0; aKPtCnf<aCnf->NbPts(); aKPtCnf++)
+        for (uint aKPtCnf=0; aKPtCnf<uint(aCnf->NbPts()); aKPtCnf++)
         {
             vector<Pt2dr> aVPtInter;
             vector<CamStenope*> aVCamInter;

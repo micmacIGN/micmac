@@ -402,11 +402,12 @@ class LArgMain
 
         template <class Type> LArgMain & operator << (const ElArgMain<Type> & v)
         {
-                if (v.IsActif())
+             if (v.IsActif())
                _larg.push_back(v.dup());
             return * this;
         }
         ~LArgMain();
+        LArgMain & operator << (const LArgMain  & v);
 
         int Size() const;
 
