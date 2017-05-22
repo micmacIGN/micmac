@@ -121,7 +121,10 @@ if (0) // (MPD__MM())
        aQdt = new tQtTiepT(aFctr,Box2dr(-aRab,aSz+aRab),10,20.0);
        /*
         * Creer un nouveau Quad-tri.
-
+        *  - Structure de Quad-Tri:
+        *    + on peut prendre un ensemble de objet dans 1 espace dans 1 region defini rapidement.
+        *    + La region peut defini comme un cercle autour 1 point rayon donne, 1 region autour 1 segment, 1 box...
+        *    + Ici, notre espace est 1 image, objet est cResulMultiImRechCorrel* (result correl de chaque point), et le region avec l'objet defini dans l'espace par Pt2dr (coordonne de point)
         * Defini un quad tri par typedef ElQT<cResulMultiImRechCorrel *,Pt2dr,cFuncPtOfRMICPtr> tQtTiepT;
         * Ca veut dire il accept les objets type cResulMultiImRechCorrel *,
         * recherche par Pt2dr, avec le method de recuperer Pt2dr à partir de cResulMultiImRechCorrel * est definie dans cFuncPtOfRMICPtr
@@ -135,7 +138,6 @@ if (0) // (MPD__MM())
 
    }
 
-
    cTpP_HeapCompare aCmp;
    ElHeap<cResulMultiImRechCorrel *,cTpP_HeapCompare,cTpP_HeapParam> aHeap(aCmp);
    /* == Definir un structure donne type Heap ==
@@ -147,7 +149,8 @@ if (0) // (MPD__MM())
    for (int aK=0; aK <int(aVIn.size()) ; aK++)
    {
        // calcul score global de correlation sur tout les coup image
-       // 1 pt Mas correl sur plsr pt 2nd => calcul 1 score glob, mis a jour le score glob dans cResulMultiImRechCorrel aussi
+       // 1 pt Mas correl sur plsr pt 2nd
+       //     => calcul 1 score glob, mis a jour le score glob dans cResulMultiImRechCorrel aussi
        aVIn[aK]->CalculScoreAgreg(EpsilAggr,PowAggreg,aSign);  // Epsilon, power
        aHeap.push(aVIn[aK]);    // mets l'objet dans heap
        aQdt->insert(aVIn[aK]);  // mets l'objet dans le Quad-Tri
@@ -175,6 +178,9 @@ if (0) // (MPD__MM())
         * aVC_1 = vector<cResulRechCorrel > contient tout les pt correl (mPt, mScore)
         */
        // Mets a jour le score fonction du numero
+     cout<<endl<<"============ ============ ============="<<endl;
+     cout<<"FFS : Heap Pop aRM_1 "<<aRM_1->HeapIndexe()<<" "<<aRM_1->PtMast()<<" Scr: "<<aRM_1->Score()<<" Nb2nd : "<<aNbI_1<<" "<<aVC_1.size()<<endl;
+
        for (int aK=0 ; aK<aNbI_1 ; aK++)
        {
            aVCorrel[aVI_1[aK]] =  aVC_1[aK].mCorrel;
@@ -183,6 +189,7 @@ if (0) // (MPD__MM())
        std::set<cResulMultiImRechCorrel *> aSet;
        // recuper tout les pts dans aSeuilDist (TT_DefSeuilDensiteResul = 50pxl) distance (region à filtrer)
        aQdt->RVoisins(aSet,aFctr(aRM_1),aSeuilDist);
+     cout<<" + QT NbVsin: "<<aSet.size()<<endl;
        for (std::set<cResulMultiImRechCorrel *>::iterator itS=aSet.begin(); itS!=aSet.end() ; itS++)
        {   //== parcourir tout les point dans region à filtrer ==
            cResulMultiImRechCorrel * aRM_2 = *itS;
@@ -200,11 +207,11 @@ if (0) // (MPD__MM())
                * aVI_2 = vector<int> contient index de tout les pt correl dans aRM_2
                * aVC_2 = vector<cResulRechCorrel > contient tout les pt correl (mPt, mScore)
                */
-
+            cout<<"  *) aRM_2 PtMas "" "<<aRM_2->PtMast()<<" Scr: "<<aRM_2->Score()<<" Nb2nd : "<<aNbI_2<<" "<<aVC_2.size()<<endl;
               // === formule pour decider si on enleve un point ===
               double aDist = euclid(aFctr(aRM_1)-aFctr(aRM_2)); // distance euclid entre 2 point master
               double aRabCorrel = (1-(aDist/aSeuilDist)) * aGainCorrel;
-
+            cout<<"  *) Dist (aRM_1, aRM_2) "<<aDist<<" Rab "<<aRabCorrel<<endl;
               int aNbS0 = aRM_2->NbSel();
               for (int aK=0 ; aK<aNbI_2 ; aK++)
               {
@@ -217,6 +224,7 @@ if (0) // (MPD__MM())
                    * Si oui, on de-selection aRM_2
                    * Ca veut dire meme si aRM_2 est une score plus grand que aRM_1, mais la grandeur est pas assez grand, on jete aussi
                    */
+            cout<<"  *) aVC_2[aK].mCorrel "<<aVC_2[aK].mCorrel<<" aVCorrel[aKIm] "<<aVCorrel[aKIm]<<endl;
                   {
                       aRM_2->SetSelec(aK,false); // déseletioner un pt
                   }
@@ -225,7 +233,9 @@ if (0) // (MPD__MM())
 
               if (aNbS0!=aNbSelEnd)
               {
+                  // ==== Si rentrer ici, ca veut dire aRM_2 est modifie ====
                   aRM_2->CalculScoreAgreg(EpsilAggr,PowAggreg,aSign);  // Epsilon, power
+            cout<<"  *) aRM_2 Re Cal Score "<<aRM_2->Score()<<endl;
                   if (aNbSelEnd==0)
                   {
                      aQdt->remove(aRM_2);
@@ -234,7 +244,8 @@ if (0) // (MPD__MM())
                   }
                   else
                   {
-                     aHeap.MAJ(aRM_2);  // mis à jour pour ne pas cassé la structure de heap
+                     aHeap.MAJ(aRM_2);
+                     // mis à jour pour ne pas cassé la structure de heap
                   }
                   // if (aRM_2->NbSel()
               }
