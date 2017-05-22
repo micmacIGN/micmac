@@ -4,6 +4,8 @@ before_build:
   - mkdir build
   - cd build
   - cmake .. -DWITH_QT5=OFF -DCMAKE_BUILD_TYPE=Release
+
+build_script:
   - cmake --build . --target INSTALL --config Release
   - cd ..
 
