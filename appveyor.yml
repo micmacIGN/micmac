@@ -5,6 +5,7 @@ before_build:
   - cd build
   - cmake .. -DWITH_QT5=OFF -DCMAKE_BUILD_TYPE=Release
 
+# force Release in the build
 build_script:
   - cmake --build . --target INSTALL --config Release
   - cd ..
