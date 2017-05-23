@@ -3,7 +3,7 @@ before_build:
   - echo Running cmake...
   - mkdir build
   - cd build
-  - cmake .. -DWITH_QT5=OFF -DCMAKE_BUILD_TYPE=Release
+  - cmake .. -DWITH_QT5=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD%
 
 # force Release in the build
 build_script:
