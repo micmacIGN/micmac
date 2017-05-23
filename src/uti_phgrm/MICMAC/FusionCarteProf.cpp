@@ -883,7 +883,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
         ELISE_ASSERT(false,"No data in DoOneFusion");
     }
 
-
+	//load all depth maps
     for (int aK=0 ; aK<int(aStrFus.size()) ; aK++)
     {
           mVC.push_back(new cLoadedCP<Type>(*this,anId,aStrFus[aK],aK));

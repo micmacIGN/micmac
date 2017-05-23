@@ -240,6 +240,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     int    NormaliseEq = 3;
     std::vector<std::string> aParamCCCC;
 
+	std::vector<double> aVRegulDist;
 
     ElInitArgMain
     (
@@ -287,6 +288,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aUseGaussJ,"UseGaussJ",true,"Use GaussJ instead of Cholesky (Def depend of others) ")
                     << EAM(NormaliseEq,"NormEq",true,"Flag for Norm Eq, 1->Sc, 2-Tr, Def=3 (All), tuning purpose ")
                     << EAM(aParamCCCC,"ContrCalCamCons",true,"Constraint on calibration for conseq camera [Key,Simga] ")
+					<< EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
     );
 
 
@@ -479,6 +481,20 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                      + std::string(" +Key-CCC=") + aKey
                      + std::string(" +Sigma-CCC=") + ToString(aSigma) + " ";
         }
+
+        if (EAMIsInit(&aVRegulDist))
+        {
+           ELISE_ASSERT(aVRegulDist.size()>=3,"Not enough parameter in RegulDist")
+           double aNbCase = (aVRegulDist.size() >= 4) ? round_ni(aVRegulDist[3])  : 7;
+           double aSeuilNbPts = (aVRegulDist.size() >= 5) ? aVRegulDist[4]  : 5.0;
+           mCom = mCom  + std::string(" +UseRegulDist=true")
+                        + std::string(" +RegDist0=") + ToString(aVRegulDist[0])
+                        + std::string(" +RegDist1=") + ToString(aVRegulDist[1])
+                        + std::string(" +RegDist2=") + ToString(aVRegulDist[2])
+                        + std::string(" +RegDistNbCase=") + ToString(aNbCase)
+                        + std::string(" +RegDistSeuil=") + ToString(aSeuilNbPts);
+        }
+
 
         mExe = (! EAMIsInit(&mMulRTA)) || (EAMIsInit(&GCPRTA));
 
