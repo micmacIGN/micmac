@@ -1,7 +1,7 @@
 # scripts to run before build
 before_build:
   - echo Running cmake...
-  - set QTDIR=C:\Qt\5.8\msvc2015_64
+  - set QTDIR=C:\Qt\5.8\msvc2015
   - set PATH=%PATH%;%QTDIR%\bin
   - mkdir build
   - cd build
