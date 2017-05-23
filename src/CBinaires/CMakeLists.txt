@@ -57,6 +57,8 @@ endif()
 
 INSTALL(TARGETS mm3d RUNTIME DESTINATION ${Install_Dir})
 
+INCLUDE( InstallRequiredSystemLibraries )
+
 
 if (NOT ${BUILD_ONLY_ELISE_MM3D})
         add_executable(AperiCloud  AperiCloud.c)
