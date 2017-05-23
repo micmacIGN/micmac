@@ -4,7 +4,7 @@ before_build:
   - mkdir build
   - cd build
 #  - cmake .. -DWITH_QT5=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD%
-  - cmake .. -DWITH_QT5=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD%
+  - cmake .. -DWITH_QT5=ON -DQTDIR=C:\Qt\5.8\msvc2015_64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD%
 
 # force Release in the build
 build_script:
