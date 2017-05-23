@@ -1,10 +1,12 @@
 # scripts to run before build
 before_build:
   - echo Running cmake...
+  - set QTDIR=C:\Qt\5.8\msvc2015_64
+  - set PATH=%PATH%;%QTDIR%\bin
   - mkdir build
   - cd build
 #  - cmake .. -DWITH_QT5=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD%
-  - cmake .. -DWITH_QT5=ON -DQt5Widgets_DIR=C:\Qt\5.8\msvc2015_64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD%
+  - cmake .. -DWITH_QT5=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD%
 
 # force Release in the build
 build_script:
