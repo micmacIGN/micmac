@@ -257,6 +257,7 @@ class cCibleRechImage
                 cSetEqFormelles   mSetSR5;
                 cSetEqFormelles   mSetMT0;
                 cSetEqFormelles   mSetMN6;
+                cSetEqFormelles   mSetME6;
 
 
                 cSetEqFormelles*  pSet;
@@ -270,6 +271,7 @@ class cCibleRechImage
                 cEqEllipseImage * pEqElImSR5;
                 cEqEllipseImage * pEqElImMT0;
                 cEqEllipseImage * pEqElImN6;
+                cEqEllipseImage * pEqElImE6;
                 cEqEllipseImage * pEqElIm;
 
 };

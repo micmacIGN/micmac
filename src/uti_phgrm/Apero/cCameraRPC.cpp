@@ -1980,10 +1980,19 @@ if(0)
     aGridCorSys  = aToCorSys->Chang(aGridOrg);
     aGridCorSysTest  = aToCorSys->Chang(aGridOrgTest);
 
+	//update the "Z" aGridImg/aGridImgTest in case of different height DATUM (dirty)
+	for(aK=0; aK<int(aGridImg.size()); aK++)
+		aGridImg.at(aK).z = aGridCorSys.at(aK).z;
+	for(aK=0; aK<int(aGridImgTest.size()); aK++)
+		aGridImgTest.at(aK).z = aGridCorSysTest.at(aK).z;
+
+
     if( ISMETER==true ) 
     if(aGridCorSys.size() < 1500)
         std::cout << aGridCorSys << "\n";
-    
+   
+
+ 
     CalculRPC( aGridCorSys, aGridImg,
                aGridCorSysTest, aGridImgTest,
                aDirSNum, aDirLNum, aDirSDen, aDirLDen,
@@ -2015,9 +2024,13 @@ void cRPC::CalculRPC( const vector<Pt3dr> &aGridGround,
                       bool PRECISIONTEST)
 {
 
+    /* Learn direct RPC */
+
     /* Update offset/scale */
     NewImOffScal(aGridImg);
     NewGrOffScal(aGridGround);
+
+    /* Learn direct RPC */
 
     /* Normalise */
     vector<Pt3dr> aGridImgN = NormImAll(aGridImg,0);

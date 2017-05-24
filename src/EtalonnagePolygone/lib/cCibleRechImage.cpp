@@ -85,7 +85,6 @@ cCibleRechImage::cCibleRechImage
     pWSynth   (AllocW()),
     pWFFT     (AllocW()),
     pWGlob    (0),
-
     mSetM7    (),
     mSetM6    (),
     mSetM5    (),
@@ -94,7 +93,7 @@ cCibleRechImage::cCibleRechImage
     mSetSR5   (),
     mSetMT0   (),
     mSetMN6   (),
-
+    mSetME6   (),
     pSet      (0),
     mDefLarg  (anEtal.Param().DefLarg()),
 
@@ -107,6 +106,7 @@ cCibleRechImage::cCibleRechImage
     pEqElImSR5 (mSetSR5.NewEqElIm(cMirePolygonEtal::SofianeMireR5())),
     pEqElImMT0 (mSetMT0.NewEqElIm(cMirePolygonEtal::MT0())),
     pEqElImN6  (mSetMN6.NewEqElIm(cMirePolygonEtal::IgnMireN6())),
+    pEqElImE6  (mSetME6.NewEqElIm(cMirePolygonEtal::ENSGMireN6())),
 
     pEqElIm   (0)
 {
@@ -125,6 +125,7 @@ cCibleRechImage::cCibleRechImage
    mSetSR5.SetClosed();
    mSetMT0.SetClosed();
    mSetMN6.SetClosed();
+   mSetME6.SetClosed();
 }
 
 void cCibleRechImage::ShowCible(Video_Win *pW,INT aCoul)
@@ -323,10 +324,19 @@ void cCibleRechImage::RechercheImage
     {
         pSet = & mSetMN6;
         pEqElIm = pEqElImN6;
-	FPtsCorrel = 1.2;
-	FPtsRaff   = 1.1;
+		FPtsCorrel = 1.2;
+		FPtsRaff   = 1.1;
 
-std::cout << "BL " <<  pEqElIm->CurBlanc()  << " N " << pEqElIm->CurNoir() << "\n";
+		std::cout << "BL " <<  pEqElIm->CurBlanc()  << " N " << pEqElIm->CurNoir() << "\n";
+    }
+    else if (& aMire == & cMirePolygonEtal::ENSGMireN6())
+    {
+        pSet = & mSetME6;
+        pEqElIm = pEqElImE6;
+		FPtsCorrel = 1.2;
+		FPtsRaff   = 1.1;
+
+		std::cout << "BL " <<  pEqElIm->CurBlanc()  << " N " << pEqElIm->CurNoir() << "\n";
     }
     else
     {

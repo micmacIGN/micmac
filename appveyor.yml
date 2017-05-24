@@ -1,9 +1,18 @@
 # scripts to run before build
 before_build:
   - echo Running cmake...
+  - set QTDIR=C:\Qt\5.8\msvc2015_64
+  - set PATH=%PATH%;%QTDIR%\bin
   - mkdir build
   - cd build
-  - cmake .. -DWITH_QT5=OFF -DCMAKE_BUILD_TYPE=Release
+#  - cmake .. -DWITH_QT5=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD%
+  - cmake .. -DWITH_QT5=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD% -G "Visual Studio 14 2015 Win64"
+  - echo CMake_defines.h...
+  - type ..\include\general\CMake_defines.h
+  - echo .
+  
+# force Release in the build
+build_script:
   - cmake --build . --target INSTALL --config Release
   - cd ..
 
