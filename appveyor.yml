@@ -21,10 +21,12 @@ build_script:
   - copy %QTDIR%\bin\Qt5Xml.dll     bin
   - copy %QTDIR%\bin\Qt5OpenGL.dll  bin
   - copy %QTDIR%\bin\Qt5Widgets.dll bin
+  - mkdir bin\platforms
+  - copy %QTDIR%\plugins\platforms\qwindows.dll bin\platforms
   - dir bin
 
 after_build:
-  - 7z a micmac_win.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\
+  - 7z a micmac_win.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\ include\qt
   
 artifacts:
   path: micmac_win.zip
