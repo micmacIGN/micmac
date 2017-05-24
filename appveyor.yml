@@ -16,11 +16,11 @@ build_script:
   - cmake --build . --target INSTALL --config Release
   - cd ..
   # copy Qt DLL into bin
-  - copy %QTDIR%\bin\QtCore.dll    bin
-  - copy %QTDIR%\bin\QtGui.dll     bin
-  - copy %QTDIR%\bin\QtXml.dll     bin
-  - copy %QTDIR%\bin\QtOpenGL.dll  bin
-  - copy %QTDIR%\bin\QtWidgets.dll bin
+  - copy %QTDIR%\bin\Qt5Core.dll    bin
+  - copy %QTDIR%\bin\Qt5Gui.dll     bin
+  - copy %QTDIR%\bin\Qt5Xml.dll     bin
+  - copy %QTDIR%\bin\Qt5OpenGL.dll  bin
+  - copy %QTDIR%\bin\Qt5Widgets.dll bin
   - dir bin
 
 after_build:
