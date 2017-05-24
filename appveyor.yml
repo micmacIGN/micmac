@@ -15,6 +15,13 @@ before_build:
 build_script:
   - cmake --build . --target INSTALL --config Release
   - cd ..
+  # copy Qt DLL into bin
+  - copy %QDIR%\bin\QtCore.dll    bin
+  - copy %QDIR%\bin\QtGui.dll     bin
+  - copy %QDIR%\bin\QtXml.dll     bin
+  - copy %QDIR%\bin\QtOpenGL.dll  bin
+  - copy %QDIR%\bin\QtWidgets.dll bin
+  - dir bin
 
 after_build:
   - 7z a micmac_win.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\
