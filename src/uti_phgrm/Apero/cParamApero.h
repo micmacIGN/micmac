@@ -3616,6 +3616,12 @@ class cBasculeOrientation
         cTplValGesInit< std::string > & PatternNameEstim();
         const cTplValGesInit< std::string > & PatternNameEstim()const ;
 
+        cTplValGesInit< std::string > & FileExportDir();
+        const cTplValGesInit< std::string > & FileExportDir()const ;
+
+        cTplValGesInit< std::string > & FileExportInv();
+        const cTplValGesInit< std::string > & FileExportInv()const ;
+
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
@@ -3667,6 +3673,8 @@ class cBasculeOrientation
         cTplValGesInit< bool > mAfterCompens;
         cTplValGesInit< std::string > mPatternNameApply;
         cTplValGesInit< std::string > mPatternNameEstim;
+        cTplValGesInit< std::string > mFileExportDir;
+        cTplValGesInit< std::string > mFileExportInv;
         cModeBascule mModeBascule;
 };
 cElXMLTree * ToXMLTree(const cBasculeOrientation &);
@@ -4435,6 +4443,12 @@ class cIterationsCompensation
 
         cTplValGesInit< std::string > & PatternNameEstim();
         const cTplValGesInit< std::string > & PatternNameEstim()const ;
+
+        cTplValGesInit< std::string > & FileExportDir();
+        const cTplValGesInit< std::string > & FileExportDir()const ;
+
+        cTplValGesInit< std::string > & FileExportInv();
+        const cTplValGesInit< std::string > & FileExportInv()const ;
 
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;

@@ -18547,6 +18547,17 @@ const cTplValGesInit< int > & cImageVariations::DilateBord()const
    return mDilateBord;
 }
 
+
+cTplValGesInit< double > & cImageVariations::PdsZAbsolute()
+{
+   return mPdsZAbsolute;
+}
+
+const cTplValGesInit< double > & cImageVariations::PdsZAbsolute()const 
+{
+   return mPdsZAbsolute;
+}
+
 void  BinaryUnDumpFromFile(cImageVariations & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.V4Vois(),aFp);
@@ -18577,6 +18588,14 @@ void  BinaryUnDumpFromFile(cImageVariations & anObj,ELISE_fp & aFp)
         }
         else  anObj.DilateBord().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PdsZAbsolute().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PdsZAbsolute().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PdsZAbsolute().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cImageVariations & anObj)
@@ -18591,6 +18610,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cImageVariations & anObj)
     if (anObj.ComputeIncid().IsInit()) BinaryDumpInFile(aFp,anObj.ComputeIncid().Val());
     BinaryDumpInFile(aFp,anObj.DilateBord().IsInit());
     if (anObj.DilateBord().IsInit()) BinaryDumpInFile(aFp,anObj.DilateBord().Val());
+    BinaryDumpInFile(aFp,anObj.PdsZAbsolute().IsInit());
+    if (anObj.PdsZAbsolute().IsInit()) BinaryDumpInFile(aFp,anObj.PdsZAbsolute().Val());
 }
 
 cElXMLTree * ToXMLTree(const cImageVariations & anObj)
@@ -18607,6 +18628,8 @@ cElXMLTree * ToXMLTree(const cImageVariations & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ComputeIncid"),anObj.ComputeIncid().Val())->ReTagThis("ComputeIncid"));
    if (anObj.DilateBord().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("DilateBord"),anObj.DilateBord().Val())->ReTagThis("DilateBord"));
+   if (anObj.PdsZAbsolute().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PdsZAbsolute"),anObj.PdsZAbsolute().Val())->ReTagThis("PdsZAbsolute"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -18630,9 +18653,11 @@ void xml_init(cImageVariations & anObj,cElXMLTree * aTree)
    xml_init(anObj.ComputeIncid(),aTree->Get("ComputeIncid",1),bool(true)); //tototo 
 
    xml_init(anObj.DilateBord(),aTree->Get("DilateBord",1),int(3)); //tototo 
+
+   xml_init(anObj.PdsZAbsolute(),aTree->Get("PdsZAbsolute",1),double(0.333)); //tototo 
 }
 
-std::string  Mangling( cImageVariations *) {return "C069AE658E2625DBFE3F";};
+std::string  Mangling( cImageVariations *) {return "042F7EAC970A0981FF3F";};
 
 
 cTplValGesInit< double > & cPFM_Selection::ElimDirectInterior()
@@ -19010,6 +19035,17 @@ const cTplValGesInit< int > & cParamFusionNuage::DilateBord()const
 }
 
 
+cTplValGesInit< double > & cParamFusionNuage::PdsZAbsolute()
+{
+   return ImageVariations().PdsZAbsolute();
+}
+
+const cTplValGesInit< double > & cParamFusionNuage::PdsZAbsolute()const 
+{
+   return ImageVariations().PdsZAbsolute();
+}
+
+
 cImageVariations & cParamFusionNuage::ImageVariations()
 {
    return mImageVariations;
@@ -19112,7 +19148,7 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.PFM_Selection(),aTree->Get("PFM_Selection",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionNuage *) {return "8CC4C5A1346255D2FE3F";};
+std::string  Mangling( cParamFusionNuage *) {return "A26007266E146892FF3F";};
 
 
 std::string & cCWWSIVois::NameVois()

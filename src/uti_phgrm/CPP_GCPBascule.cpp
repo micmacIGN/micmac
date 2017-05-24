@@ -155,8 +155,8 @@ int GCPBascule_main(int argc,char ** argv)
                        + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
                        + std::string(" +AeroIn=") + AeroIn
                        + std::string(" +AeroOut=") +  AeroOut
-                       + std::string(" +DicoApp=") +  DicoPts
-                       + std::string(" +SaisieIm=") +  MesureIm
+                       + std::string(" +DicoApp=") +  QUOTE(DicoPts)
+                       + std::string(" +SaisieIm=") +  QUOTE(MesureIm)
                     ;
 
     if (EAMIsInit(&ShowUnused)) aCom = aCom + " +ShowUnused=" + ToString(ShowUnused);
@@ -478,6 +478,59 @@ int GCPVisib_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+int GCP_Fusion(int argc,char ** argv)
+{
+    std::vector<std::string> aVIntPut;
+    std::string              aNameRes;
+    std::map<std::string,int>    aCPt;
+
+    std::vector<std::string> aVChInc;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aVIntPut,"[Inputs]")
+                    << EAMC(aNameRes,"Name Result"),
+        LArgMain()
+                    <<  EAM(aVChInc,"SetInc",true,"[Pat1,Ix1,Iy1,Iz1,Pat2,Ix2...]")
+    );
+
+    cDicoAppuisFlottant aRes;
+
+    ELISE_ASSERT((aVChInc.size())%4==0,"Bad size for SetInc");
+    std::vector<cElRegex *> aVAutom;
+    for (int aKInc = 0 ; aKInc<int(aVChInc.size()) ; aKInc+=4)
+    {
+         aVAutom.push_back(new cElRegex(aVChInc[aKInc],10));
+    }
+
+    for (int aKInput=0 ; aKInput<int(aVIntPut.size()) ; aKInput++)
+    {
+       //cSetOfMesureAppuisFlottants
+       cDicoAppuisFlottant aDAF = StdGetFromPCP(aVIntPut[aKInput],DicoAppuisFlottant);
+       for (std::list<cOneAppuisDAF>::const_iterator itP=aDAF.OneAppuisDAF().begin() ; itP!=aDAF.OneAppuisDAF().end() ; itP++)
+       {
+           cOneAppuisDAF aPt = *itP;
+           aCPt[aPt.NamePt()] ++;
+           if (aCPt[aPt.NamePt()]==1)
+           {
+              for (int aKInc = 0 ; aKInc<int(aVAutom.size()) ; aKInc+=1)
+              {
+                    if (aVAutom[aKInc]->Match(aPt.NamePt()))
+                    {
+                       FromString(aPt.Incertitude().x,aVChInc[4*aKInc+1]);
+                       //FromString(aVChInc[4*aKInc+1],aPt.Incertitude().x);
+                       // aPt.Incertitude() = Pt3dr(
+                    }
+              }
+              aRes.OneAppuisDAF().push_back(aPt);
+           }
+       }
+    }
+
+    MakeFileXML(aRes,aNameRes);
+    return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -346,7 +346,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         }
 
         if (EAMIsInit(&aFactResElimTieP))
-           mCom =  mCom+ " +FactMaxRes=" + ToString(aFactResElimTieP);
+           mCom =  mCom+ " +FactMaxRes=" + ToString(aFactResElimTieP) + " ";
 
 
        if (EAMIsInit(&Viscos)) mCom  +=  " +Viscos=" + ToString(Viscos) + " ";

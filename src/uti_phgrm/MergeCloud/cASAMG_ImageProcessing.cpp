@@ -202,8 +202,67 @@ void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel,int aNumQual)
 {
    double aDynPix = mStdN->DynProfInPixel();
 
-   Fonc_Num  aOmbrStd = OmbrageKL( mStdN->ImProf()->in_proj()/aDynPix,fMasq,aPenteInPixel,2);
-   Fonc_Num  aOmbrInv = OmbrageKL(-mStdN->ImProf()->in_proj()/aDynPix,fMasq,aPenteInPixel,1);
+   Fonc_Num   aFoncProf =  mStdN->ImProf()->in_proj()/aDynPix;
+
+
+   double aPdsZAbsolute = 0.0;
+   // if (MPD_MM())
+   aPdsZAbsolute = 0.0;
+
+   Im2D_REAL4 aImZAbs(1,1);
+   if (aPdsZAbsolute)
+   {
+        // double aFoc = mStdN->ResolutionAngulaire();
+        // std::cout << "FFFFF=" << aFoc  << " " << 1/aFoc << "\n";
+         // Tiff_Im::CreateFromFonc("Pax.tif",mSz,aFoncProf,GenIm::real4);
+         // std::cout << "cASAMG::ComputeIncidKLip \n";
+
+
+        Pt2di aP1 = mSz/2;
+        Pt2di aP2 = aP1 + Pt2di(1,0);
+        ElSeg3D aSeg1 = mStdN->Capteur2RayTer(Pt2dr(aP1));
+        ElSeg3D aSeg2 = mStdN->Capteur2RayTer(Pt2dr(aP2));
+
+        double aDist = euclid(aSeg1.TgNormee()-aSeg2.TgNormee()); 
+        double aFoc = 1/aDist;
+        // std::cout << "FFFFF=" << aDist  << " " << 1/aDist << "\n";
+
+         
+        aImZAbs.Resize(mSz);
+       
+        Pt2di aP; 
+        for (aP.x=0 ; aP.x<mSz.x ; aP.x++)
+        {
+            for (aP.y=0 ; aP.y<mSz.y ; aP.y++)
+            {
+                if (mTMasqN.get(aP))
+                {
+                    double aProf = mStdN->ProfEuclidOfIndex(aP);
+                    aProf = aFoc * log(ElMax(aProf,1e-30));
+                    aImZAbs.SetR(aP,aProf);
+                }
+                else
+                    aImZAbs.SetR(aP,0);
+            }
+        }
+
+        ELISE_COPY
+        (
+             aImZAbs.interior(1),
+             (1-aPdsZAbsolute ) * aFoncProf + aPdsZAbsolute * (-aImZAbs.in()),
+             aImZAbs.out()
+        );
+
+        aFoncProf = aImZAbs.in_proj(); 
+ 
+        // Tiff_Im::CreateFromFonc("ProfLog.tif",mSz,aImZAbs.in(),GenIm::real4);
+        // getchar();
+        // Tiff_Im::CreateFromFonc("Masq.tif",mSz,fMasq,GenIm::real4);
+
+   }
+
+   Fonc_Num  aOmbrStd = OmbrageKL( aFoncProf,fMasq,aPenteInPixel,2);
+   Fonc_Num  aOmbrInv = OmbrageKL(-aFoncProf,fMasq,aPenteInPixel,1);
    Fonc_Num aOmbrGlob = Max(aOmbrInv,aOmbrStd);
 
    double aDynStore = 20.0;

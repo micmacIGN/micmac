@@ -259,6 +259,16 @@ cSolBasculeRig cSolBasculeRig::StdSolFromPts
 */
 
 
+std::vector<Pt3dr> cSolBasculeRig::Src2Cibl(const std::vector<Pt3dr> & aInput) const 
+{
+    std::vector<Pt3dr> aRes;
+
+    for (int aK=0 ; aK<int(aInput.size()) ; aK++)
+        aRes.push_back((*this)(aInput[aK]));
+
+    return aRes;
+}
+
 
          //===========================
          //  cRansacBasculementRigide 
@@ -534,6 +544,8 @@ void cRansacBasculementRigide::ExploreAllRansac(int aNbMax)
 
    cRandNParmiQ aSel(aNbMax,aNbCple);
 
+   // std::cout << "cRandNParmiQcRandNParmiQ " << aNbMax << " " << aNbCple << "\n";
+
 
     for (int aK1=0 ; aK1<int(mAvant.size()) ; aK1++)
     {
@@ -541,9 +553,9 @@ void cRansacBasculementRigide::ExploreAllRansac(int aNbMax)
        {
            if (aSel.GetNext())
            {
-               // std::cout << "SBR K1-K2 " << aK1 << " " << aK2 << "\n";
                bool Ok;
                cSolBasculeRig  aSBR= SolOfK1K2(aK1,aK2,Ok);
+               // std::cout << "SBR K1-K2 " << aK1 << " " << aK2 << " " << Ok << " " << mCostBestSol << "\n";
                if (Ok)
                {
                   TestNewSol(aSBR);
