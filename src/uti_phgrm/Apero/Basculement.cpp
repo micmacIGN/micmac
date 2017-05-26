@@ -668,7 +668,7 @@ cXml_ParamBascRigide   EL2Xml(const cSolBasculeRig & aSBR)
 
 
 
-void cAppliApero::BasculePoints
+cSolBasculeRig cAppliApero::BasculePoints
      (
            const cBasculeOnPoints & aBOP,
            cSetName  &            aSelectorEstim,
@@ -992,6 +992,8 @@ void cAppliApero::BasculePoints
 
 
    delete aPtrBNL;
+
+   return aSBR;
 }
 
 
@@ -1309,14 +1311,21 @@ void cAppliApero::Bascule(const cBasculeOrientation & aBO,bool CalledAfter)
 // std::cout << "PAT= " << aBO.PatternNameEstim().Val() << "\n";
    cElRegex aSelectorApply(aBO.PatternNameApply().Val(),10);
 
+   cSolBasculeRig aSol = cSolBasculeRig::Id();
+
    if (aBO.BasculeOnPoints().IsInit())
    {
-     BasculePoints(aBO.BasculeOnPoints().Val(),*aSelectorEstim,aSelectorApply);
+     aSol = BasculePoints(aBO.BasculeOnPoints().Val(),*aSelectorEstim,aSelectorApply);
    }
    else if (aBO.BasculeLiaisonOnPlan().IsInit())
    {
       BasculePlan(aBO.BasculeLiaisonOnPlan().Val(),*aSelectorEstim,aSelectorApply);
    }
+
+   if (aBO.FileExportDir().IsInit())
+      MakeFileXML(EL2Xml(aSol),mDC+aBO.FileExportDir().Val());
+   if (aBO.FileExportInv().IsInit())
+      MakeFileXML(EL2Xml(aSol.Inv()),mDC+aBO.FileExportInv().Val());
 }
 
 #if (0)

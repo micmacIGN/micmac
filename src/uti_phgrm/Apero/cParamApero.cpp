@@ -12906,6 +12906,28 @@ const cTplValGesInit< std::string > & cBasculeOrientation::PatternNameEstim()con
 }
 
 
+cTplValGesInit< std::string > & cBasculeOrientation::FileExportDir()
+{
+   return mFileExportDir;
+}
+
+const cTplValGesInit< std::string > & cBasculeOrientation::FileExportDir()const 
+{
+   return mFileExportDir;
+}
+
+
+cTplValGesInit< std::string > & cBasculeOrientation::FileExportInv()
+{
+   return mFileExportInv;
+}
+
+const cTplValGesInit< std::string > & cBasculeOrientation::FileExportInv()const 
+{
+   return mFileExportInv;
+}
+
+
 cTplValGesInit< std::string > & cBasculeOrientation::PoseCentrale()
 {
    return ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().PoseCentrale();
@@ -13107,6 +13129,22 @@ void  BinaryUnDumpFromFile(cBasculeOrientation & anObj,ELISE_fp & aFp)
         }
         else  anObj.PatternNameEstim().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.FileExportDir().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FileExportDir().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FileExportDir().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.FileExportInv().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FileExportInv().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FileExportInv().SetNoInit();
+  } ;
     BinaryUnDumpFromFile(anObj.ModeBascule(),aFp);
 }
 
@@ -13118,6 +13156,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cBasculeOrientation & anObj)
     if (anObj.PatternNameApply().IsInit()) BinaryDumpInFile(aFp,anObj.PatternNameApply().Val());
     BinaryDumpInFile(aFp,anObj.PatternNameEstim().IsInit());
     if (anObj.PatternNameEstim().IsInit()) BinaryDumpInFile(aFp,anObj.PatternNameEstim().Val());
+    BinaryDumpInFile(aFp,anObj.FileExportDir().IsInit());
+    if (anObj.FileExportDir().IsInit()) BinaryDumpInFile(aFp,anObj.FileExportDir().Val());
+    BinaryDumpInFile(aFp,anObj.FileExportInv().IsInit());
+    if (anObj.FileExportInv().IsInit()) BinaryDumpInFile(aFp,anObj.FileExportInv().Val());
     BinaryDumpInFile(aFp,anObj.ModeBascule());
 }
 
@@ -13131,6 +13173,10 @@ cElXMLTree * ToXMLTree(const cBasculeOrientation & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PatternNameApply"),anObj.PatternNameApply().Val())->ReTagThis("PatternNameApply"));
    if (anObj.PatternNameEstim().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PatternNameEstim"),anObj.PatternNameEstim().Val())->ReTagThis("PatternNameEstim"));
+   if (anObj.FileExportDir().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FileExportDir"),anObj.FileExportDir().Val())->ReTagThis("FileExportDir"));
+   if (anObj.FileExportInv().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FileExportInv"),anObj.FileExportInv().Val())->ReTagThis("FileExportInv"));
    aRes->AddFils(ToXMLTree(anObj.ModeBascule())->ReTagThis("ModeBascule"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -13148,10 +13194,14 @@ void xml_init(cBasculeOrientation & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PatternNameEstim(),aTree->Get("PatternNameEstim",1),std::string(".*")); //tototo 
 
+   xml_init(anObj.FileExportDir(),aTree->Get("FileExportDir",1)); //tototo 
+
+   xml_init(anObj.FileExportInv(),aTree->Get("FileExportInv",1)); //tototo 
+
    xml_init(anObj.ModeBascule(),aTree->Get("ModeBascule",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOrientation *) {return "D4E2BBE2F0CEA69FFC3F";};
+std::string  Mangling( cBasculeOrientation *) {return "D7D57E0DD121ADD5FD3F";};
 
 
 std::vector< cAperoPointeStereo > & cStereoFE::HomFE()
@@ -15756,6 +15806,28 @@ const cTplValGesInit< std::string > & cIterationsCompensation::PatternNameEstim(
 }
 
 
+cTplValGesInit< std::string > & cIterationsCompensation::FileExportDir()
+{
+   return BasculeOrientation().Val().FileExportDir();
+}
+
+const cTplValGesInit< std::string > & cIterationsCompensation::FileExportDir()const 
+{
+   return BasculeOrientation().Val().FileExportDir();
+}
+
+
+cTplValGesInit< std::string > & cIterationsCompensation::FileExportInv()
+{
+   return BasculeOrientation().Val().FileExportInv();
+}
+
+const cTplValGesInit< std::string > & cIterationsCompensation::FileExportInv()const 
+{
+   return BasculeOrientation().Val().FileExportInv();
+}
+
+
 cTplValGesInit< std::string > & cIterationsCompensation::PoseCentrale()
 {
    return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().PoseCentrale();
@@ -16748,7 +16820,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.TestInteractif(),aTree->Get("TestInteractif",1)); //tototo 
 }
 
-std::string  Mangling( cIterationsCompensation *) {return "9EB5A1A94D0146FCFE3F";};
+std::string  Mangling( cIterationsCompensation *) {return "98E338197BDCB89AFF3F";};
 
 
 std::string & cTraceCpleHom::Id()
@@ -25148,7 +25220,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "7AE2D5123346FC9EFF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "B5CC8956A868A7EFFE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -25207,7 +25279,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "463C236193D822F1FD3F";};
+std::string  Mangling( cSectionCompensation *) {return "4C6CC8C5B56855A0FDBF";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -26284,7 +26356,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "54F5305A733E62FCFE3F";};
+std::string  Mangling( cParamApero *) {return "EA1E55831A5628F5FE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

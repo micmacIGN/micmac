@@ -202,7 +202,8 @@ int HomFilterMasq_main(int argc,char ** argv)
         // Tiff_Im::CreateFromIm(aImMasq,"SousRes"+aNameMasq);
         if (aHasOri3D)
         {
-            aVCam.push_back(anICNM->StdCamGenerikOfNames(aNameIm,aOriMasq3D));
+            // aVCam.push_back(anICNM->StdCamGenerikOfNames(aNameIm,aOriMasq3D));
+            aVCam.push_back(anICNM->StdCamGenerikOfNames(aOriMasq3D,aNameIm));
             aResolMoy += aVCam.back()->GlobResol();
         }
     }

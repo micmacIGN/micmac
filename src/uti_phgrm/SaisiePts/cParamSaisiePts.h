@@ -366,6 +366,9 @@ class cSectionInOut
 
         cTplValGesInit< bool > & EnterName();
         const cTplValGesInit< bool > & EnterName()const ;
+
+        cTplValGesInit< bool > & ForceExport3D();
+        const cTplValGesInit< bool > & ForceExport3D()const ;
     private:
         cTplValGesInit< std::string > mPrefix2Add2IdPt;
         std::list< cImportFromDico > mImportFromDico;
@@ -378,6 +381,7 @@ class cSectionInOut
         std::list< std::string > mFixedName;
         cTplValGesInit< std::string > mNameAuto;
         cTplValGesInit< bool > mEnterName;
+        cTplValGesInit< bool > mForceExport3D;
 };
 cElXMLTree * ToXMLTree(const cSectionInOut &);
 
@@ -550,6 +554,9 @@ class cParamSaisiePts
 
         cTplValGesInit< bool > & EnterName();
         const cTplValGesInit< bool > & EnterName()const ;
+
+        cTplValGesInit< bool > & ForceExport3D();
+        const cTplValGesInit< bool > & ForceExport3D()const ;
 
         cSectionInOut & SectionInOut();
         const cSectionInOut & SectionInOut()const ;

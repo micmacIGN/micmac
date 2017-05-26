@@ -430,6 +430,7 @@ int Tapas_main(int argc,char ** argv)
 
     std::vector<double> aVRegulDist;
     double aLVM = 1.0;
+    bool MultipleBlock =false;
 
     ElInitArgMain
     (
@@ -477,6 +478,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(RankPP,"RankInitPP",true,"Order of Principal point initialisation, ref id distotion =2, Def=4")
                     << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
                     << EAM(aLVM,"MulLVM",true,"Multipier Levenberg Markard")
+                    << EAM(MultipleBlock,"MultipleBlock",true,"Multiple block need special caution (only related to Levenberg Markard)")
     );
 
 
@@ -598,6 +600,8 @@ int Tapas_main(int argc,char ** argv)
         {
             aCom = aCom + std::string(" +SetHom=") + aSetHom;
         }
+
+        if (MultipleBlock) aCom = aCom + " +OneBlock=false ";
 
         if (EAMIsInit(&aLVM))
         {

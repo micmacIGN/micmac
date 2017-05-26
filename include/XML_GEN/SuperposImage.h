@@ -5530,6 +5530,9 @@ class cImageVariations
 
         cTplValGesInit< int > & DilateBord();
         const cTplValGesInit< int > & DilateBord()const ;
+
+        cTplValGesInit< double > & PdsZAbsolute();
+        const cTplValGesInit< double > & PdsZAbsolute()const ;
     private:
         bool mV4Vois;
         int mDistVois;
@@ -5538,6 +5541,7 @@ class cImageVariations
         cTplValGesInit< double > mPenteRefutInitInPixel;
         cTplValGesInit< bool > mComputeIncid;
         cTplValGesInit< int > mDilateBord;
+        cTplValGesInit< double > mPdsZAbsolute;
 };
 cElXMLTree * ToXMLTree(const cImageVariations &);
 
@@ -5664,6 +5668,9 @@ class cParamFusionNuage
 
         cTplValGesInit< int > & DilateBord();
         const cTplValGesInit< int > & DilateBord()const ;
+
+        cTplValGesInit< double > & PdsZAbsolute();
+        const cTplValGesInit< double > & PdsZAbsolute()const ;
 
         cImageVariations & ImageVariations();
         const cImageVariations & ImageVariations()const ;

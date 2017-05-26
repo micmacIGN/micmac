@@ -883,7 +883,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
         ELISE_ASSERT(false,"No data in DoOneFusion");
     }
 
-
+	//load all depth maps
     for (int aK=0 ; aK<int(aStrFus.size()) ; aK++)
     {
           mVC.push_back(new cLoadedCP<Type>(*this,anId,aStrFus[aK],aK));
@@ -1259,7 +1259,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
            {
                 for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
                 {
-                     int aNb = aTImNb.get(aQ0);
+                     int aNb = aTImNb.get(aQ0);//the no. of depths/Z for the current cell
                      cTplCelNapPrgDyn<cElPilePrgD> * aTabP = aNap.Data()[aQ0.y][aQ0.x];
                      aTabP[-1].ArgAux()= aPDef;
                      aTabP[-1].SetOwnCost(ToICost(aDefPds));

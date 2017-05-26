@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1910]) = {
+const char * (theNameVar_SuperposImage[1911]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1259,6 +1259,7 @@ const char * (theNameVar_SuperposImage[1910]) = {
 "           <PenteRefutInitInPixel Nb=\"?\" Type=\"double\" Def=\"0.5\"> </PenteRefutInitInPixel>\n",
 "           <ComputeIncid Nb=\"?\" Type=\"bool\" Def=\"true\"> </ComputeIncid>\n",
 "           <DilateBord Nb=\"?\" Type=\"int\" Def=\"3\"> </DilateBord>\n",
+"           <PdsZAbsolute Nb=\"?\" Type=\"double\" Def=\"0.333\"> </PdsZAbsolute> <!-- Pour eviter les points sparse a l'infini -->\n",
 "      </ImageVariations>\n",
 "      <PFM_Selection Nb=\"1\">\n",
 "            <ElimDirectInterior Nb=\"?\" Type=\"double\" Def=\"10.0\"> </ElimDirectInterior>\n",
