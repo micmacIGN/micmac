@@ -137,7 +137,7 @@ class cAppli_BasculeRobuste
        double                                       mBestRes;
        cSolBasculeRig                               mBestSol;
        cSolBasculeRig                               mBestSolInv;
-     
+       bool                                         mSIFET;
 };
 
 
@@ -200,7 +200,8 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
      mNbTirage     (1000),
      mBestRes      (1e30),
      mBestSol      (cSolBasculeRig::Id()),
-     mBestSolInv   (cSolBasculeRig::Id())
+     mBestSolInv   (cSolBasculeRig::Id()),
+     mSIFET        (false)
 {
     std::string aName2D,aName3D;
 
@@ -214,6 +215,7 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
                     << EAMC(aName3D,"Name of 3D Point")
                     << EAMC(aName2D,"Name of 2D Points"),
         LArgMain()   << EAM(mNbTirage,"NbRan",true,"Number of random")
+                     << EAM(mSIFET,"SIFET",true,"Special export for SIFET benchmark")
     );
 
 
@@ -315,7 +317,7 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
      // Premiere fois pour avoir les stats, deuxieme pour les sortir
      for (int aNbStep = 0 ; aNbStep<2 ; aNbStep++)
      {
-         bool SIFET = false;
+         // bool SIFET = false;
          std::vector<double> aVD;
          for (int aKP=0 ; aKP<int(mVecPt.size()) ; aKP++)
          {
@@ -323,11 +325,11 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
              cPointBascRobust * aPBR = mVecPt[aKP];
              if (aPrint)
              {
-                if (!SIFET) 
+                if (!mSIFET) 
                     fprintf(aFP,"========== Point:%s ====\n",aPBR->mNamePt.c_str());
                 Pt3dr aPIntAv = aPBR->mPInter;
                 Pt3dr aPIntAp =  mBestSolInv(aPIntAv);
-                if (SIFET) 
+                if (mSIFET) 
                   fprintf(aFP,"%s %.3f %.3f %.3f\n",aPBR->mNamePt.c_str(),aPIntAv.x,aPIntAv.y,aPIntAv.z);
                 else
                   fprintf(aFP,"  Faisceau : %.3f %.3f %.3f  => %.3f %.3f %.3f\n",
@@ -342,7 +344,7 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
                   double aD = euclid(aPBR->mPtIms[aKI],aPBR->mIms[aKI]->mCam->Ter2Capteur(aPLoc));
                   double aDIm = euclid(aPBR->mPtIms[aKI],aPBR->mIms[aKI]->mCam->Ter2Capteur(aPBR->mPInter));
 
-                  if (aPrint & (!SIFET))
+                  if (aPrint & (!mSIFET))
                   {
                      std::string aMes = "  ";
                      fprintf(aFP,"%s | %07.3f | %07.3f | %s\n",aMes.c_str(),aD,aDIm,aPBR->mIms[aKI]->mNameIm.c_str());

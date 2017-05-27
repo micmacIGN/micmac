@@ -224,6 +224,8 @@ int CPP_PolynOfImage(int argc,char ** argv);
 
 int GCP_Fusion(int argc,char ** argv);
 
+int SimuLib_Main(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -249,7 +251,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
-       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Some stuff to be described later"));
+       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Tie point reduction"));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));
@@ -428,6 +430,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images", cArgLogCom(3)));
        aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
+       aRes.push_back(cMMCom("SimuLib", SimuLib_Main, " Library (almost empty now)  for simulating"));
        aRes.push_back(cMMCom("XLib", XLib_Main, " Xeres Lib - early work in progress!")); 
 
 #if (ELISE_QT_VERSION >= 4)
@@ -795,6 +798,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("CalcTF",CalcTF_main,"Tool to compute the percentage of fixed GPS positions",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("SplitPts",SplitGCPsCPs_main,"Tool to split .xml ground points into GCPs and CPs",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ConcateMAF",ConcateMAF_main,"Tool to concatenate .xml ground points images coordinates",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("MergeMAF",ConcateMAF_main,"Tool to concatenate .xml ground points images coordinates",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("XmlSensib2Txt",ConvSensXml2Txt_main,"Tool to convert .xml Sensibility File 2 .txt file",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CleanTxtPS", CleanTxtPS_main,"Tool to clean .txt file output of PhotoScan Aero",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CheckPatCple", CheckPatCple_main,"Tool to check a Pattern and an .xml File Cple",cArgLogCom(2)));
@@ -977,6 +981,10 @@ int SateLib_main(int argc, char ** argv)
     return GenMain(argc, argv, SateLibAvailableCommands());
 }
 
+int SimuLib_Main(int argc, char ** argv)
+{
+    return EXIT_SUCCESS;
+}
 //================= XLib =======================
 
 extern int XeresTest_Main(int,char**);
