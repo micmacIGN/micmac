@@ -3,28 +3,26 @@ before_build:
   - echo Running cmake...
   - set QTDIR=C:\Qt\5.8\msvc2015_64
   - set PATH=%PATH%;%QTDIR%\bin
+  - set INSTALL_DIR_LOCAL=%CD%
   - mkdir build
   - cd build
-#  - cmake .. -DWITH_QT5=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD%
-  - cmake .. -DWITH_QT5=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%CD% -G "Visual Studio 14 2015 Win64"
-  - echo CMake_defines.h...
-  - type ..\include\general\CMake_defines.h
-  - echo .
+  - cmake .. -DWITH_QT5=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR_LOCAL% -G "Visual Studio 14 2015 Win64"
   
 # force Release in the build
 build_script:
   - cmake --build . --target INSTALL --config Release
   - cd ..
   # copy Qt DLL into bin
-  - copy %QDIR%\bin\QtCore.dll    bin
-  - copy %QDIR%\bin\QtGui.dll     bin
-  - copy %QDIR%\bin\QtXml.dll     bin
-  - copy %QDIR%\bin\QtOpenGL.dll  bin
-  - copy %QDIR%\bin\QtWidgets.dll bin
-  - dir bin
+  - copy %QTDIR%\bin\Qt5Core.dll    bin
+  - copy %QTDIR%\bin\Qt5Gui.dll     bin
+  - copy %QTDIR%\bin\Qt5Xml.dll     bin
+  - copy %QTDIR%\bin\Qt5OpenGL.dll  bin
+  - copy %QTDIR%\bin\Qt5Widgets.dll bin
+  - mkdir bin\platforms
+  - copy %QTDIR%\plugins\platforms\qwindows.dll bin\platforms
 
 after_build:
-  - 7z a micmac_win.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\
+  - 7z a micmac_win.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\ include\qt
   
 artifacts:
   path: micmac_win.zip
