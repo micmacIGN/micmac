@@ -1154,6 +1154,19 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
 int main(int argc,char ** argv)
 {
+    ElTimer aT0;
+    bool showDuration=false;
+    if (strcmp(argv[0],"mm3d")==0) //show nothing if called by makefile
+    {
+        showDuration=true;
+        std::cout<<"Command: ";
+        for (int aK=0 ; aK<argc ; aK++)
+        {
+            std::cout<<argv[aK]<<" ";
+        }
+        std::cout<<std::endl;
+    }
+
     // transforme --AA en AA , pour la completion sur les options
     for (int aK=0 ; aK<argc ; aK++)
     {
@@ -1161,7 +1174,13 @@ int main(int argc,char ** argv)
            argv[aK] += 2;
     }
 
-    return GenMain(argc,argv, getAvailableCommands());
+    int ret=GenMain(argc,argv, getAvailableCommands());
+
+    if (showDuration) //show nothing if called by makefile
+    {
+        std::cout<<"\nTotal duration: "<<aT0.uval()<<" s"<<std::endl;
+    }
+    return ret;
 }
 
 /*
