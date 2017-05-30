@@ -86,6 +86,9 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ConvertTiePPS2MM/cAppliConvertTiePPs2MM.cpp
 	${TDPPMD_DIR}/ConvertTiePPS2MM/ConvertTiePPs2MM.cpp
 
+    ${TDPPMD_DIR}/CPP_ConvHomolVSFM2MM.cpp
+
+
 
 )
 
