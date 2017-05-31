@@ -20,6 +20,17 @@ build_script:
   - copy %QTDIR%\bin\Qt5Widgets.dll bin
   - mkdir bin\platforms
   - copy %QTDIR%\plugins\platforms\qwindows.dll bin\platforms
+  - mkdir bin\imageformats
+  - copy %QTDIR%\plugins\imageformats\qjpeg.dll bin\imageformats
+  - copy %QTDIR%\plugins\imageformats\qgif.dll bin\imageformats
+  - copy %QTDIR%\plugins\imageformats\qicns.dll bin\imageformats
+  - copy %QTDIR%\plugins\imageformats\qico.dll bin\imageformats
+  - copy %QTDIR%\plugins\imageformats\qsvg.dll bin\imageformats
+  - copy %QTDIR%\plugins\imageformats\qtga.dll bin\imageformats
+  - copy %QTDIR%\plugins\imageformats\qtiff.dll bin\imageformats
+  - copy %QTDIR%\plugins\imageformats\qwbmp.dll bin\imageformats
+  - copy %QTDIR%\plugins\imageformats\qwebp.dll bin\imageformats
+  
 
 after_build:
   - 7z a micmac_win.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\ include\qt

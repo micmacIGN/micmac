@@ -46,6 +46,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/ConvP4dIm2MM.cpp
     ${TDPPMD_DIR}/SplitConcateXml.cpp
     ${TDPPMD_DIR}/Hugin.cpp
+    ${TDPPMD_DIR}/ThermikProcessing.cpp
     ${TDPPMD_DIR}/TiePByMesh/PHO_MI.cpp
     ${TDPPMD_DIR}/TiePByMesh/InitOutil.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiePByMesh_main.cpp
@@ -85,6 +86,9 @@ set(Src_TD_PPMD
 	
 	${TDPPMD_DIR}/ConvertTiePPS2MM/cAppliConvertTiePPs2MM.cpp
 	${TDPPMD_DIR}/ConvertTiePPS2MM/ConvertTiePPs2MM.cpp
+
+    ${TDPPMD_DIR}/CPP_ConvHomolVSFM2MM.cpp
+
 
 
 )
