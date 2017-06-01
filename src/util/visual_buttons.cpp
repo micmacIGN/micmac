@@ -1,6 +1,6 @@
-#include "general/visual_buttons.h"
-
 #if (ELISE_QT_VERSION >= 4)
+
+#include "general/visual_buttons.h"
 
 cSelectionButton::cSelectionButton(QString text, int id, bool normalize, QWidget *parent) :
      QPushButton(parent),
