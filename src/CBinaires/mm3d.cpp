@@ -222,6 +222,10 @@ int ScalePat_main(int argc,char** argv);
 int CPP_MakeMapEvolOfT(int argc,char ** argv);
 int CPP_PolynOfImage(int argc,char ** argv);
 
+int GCP_Fusion(int argc,char ** argv);
+
+int SimuLib_Main(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -247,7 +251,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
-       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Some stuff to be described later"));
+       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Tie point reduction"));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));
@@ -300,6 +304,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using GCP",cArgLogCom(2)));
        aRes.push_back(cMMCom("GCPCtrl",GCPCtrl_main," Control accuracy with GCP",cArgLogCom(2)));
+       aRes.push_back(cMMCom("GCPMerge",GCP_Fusion," Merging of different GCP files",cArgLogCom(2)));
        aRes.push_back(cMMCom("GCPVisib",GCPVisib_main," Print a list of GCP visibility in images"));
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Relative to absolute using embedded GPS",cArgLogCom(2)));
@@ -425,6 +430,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images", cArgLogCom(3)));
        aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
+       aRes.push_back(cMMCom("SimuLib", SimuLib_Main, " Library (almost empty now)  for simulating"));
        aRes.push_back(cMMCom("XLib", XLib_Main, " Xeres Lib - early work in progress!")); 
 
 #if (ELISE_QT_VERSION >= 4)
@@ -569,7 +575,7 @@ extern int  ImageRectification(int argc,char ** argv);
 extern int  DocEx_Introanalyse_main(int,char **);
 #endif
 extern int VisuCoupeEpip_main(int,char **);
-
+int ThermikProc_main(int argc,char ** argv);
 int ExoSimulTieP_main(int argc,char** argv);
 int ExoMCI_main(int argc,char** argv);
 int ExoCorrelEpip_main(int argc,char ** argv);
@@ -697,6 +703,8 @@ int ProcessThmImgs_main(int argc,char ** argv);
 
 extern int ConvertTiePPs2MM_main(int argc,char ** argv);
 
+extern int ConvHomolVSFM2MM_main(int argc,char ** argv);
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -769,7 +777,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
        
        aRes.push_back(cMMCom("ProjImPtOnOtherImages",ProjImPtOnOtherImages_main," Project image points on other images"));
-
+	   aRes.push_back(cMMCom("ThermikProc",ThermikProc_main,"Full Process of Thermik Workflow Images",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("MatchImTM",MatchinImgTM_main,"Matching a Pattern of Images with a GPS TimeMark File",cArgLogCom(2)));
        aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images",cArgLogCom(2)));
        aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning",cArgLogCom(2)));
@@ -792,6 +800,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("CalcTF",CalcTF_main,"Tool to compute the percentage of fixed GPS positions",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("SplitPts",SplitGCPsCPs_main,"Tool to split .xml ground points into GCPs and CPs",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ConcateMAF",ConcateMAF_main,"Tool to concatenate .xml ground points images coordinates",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("MergeMAF",ConcateMAF_main,"Tool to concatenate .xml ground points images coordinates",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("XmlSensib2Txt",ConvSensXml2Txt_main,"Tool to convert .xml Sensibility File 2 .txt file",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CleanTxtPS", CleanTxtPS_main,"Tool to clean .txt file output of PhotoScan Aero",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("CheckPatCple", CheckPatCple_main,"Tool to check a Pattern and an .xml File Cple",cArgLogCom(2)));
@@ -898,6 +907,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
         aRes.push_back(cMMCom("ConvertTiePPs2MM",ConvertTiePPs2MM_main,"ConvertTiePPs2MM"));
+
+        aRes.push_back(cMMCom("ConvHomolVSFM2MM",ConvHomolVSFM2MM_main,"Convert Tie Points from Visual SFM format (.sift & .mat) to MicMac format"));
    }
 
     cCmpMMCom CmpMMCom;
@@ -974,6 +985,10 @@ int SateLib_main(int argc, char ** argv)
     return GenMain(argc, argv, SateLibAvailableCommands());
 }
 
+int SimuLib_Main(int argc, char ** argv)
+{
+    return EXIT_SUCCESS;
+}
 //================= XLib =======================
 
 extern int XeresTest_Main(int,char**);
@@ -1143,6 +1158,19 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
 int main(int argc,char ** argv)
 {
+    ElTimer aT0;
+    bool showDuration=false;
+    if (strcmp(argv[0],"mm3d")==0) //show nothing if called by makefile
+    {
+        showDuration=true;
+        std::cout<<"Command: ";
+        for (int aK=0 ; aK<argc ; aK++)
+        {
+            std::cout<<argv[aK]<<" ";
+        }
+        std::cout<<std::endl;
+    }
+
     // transforme --AA en AA , pour la completion sur les options
     for (int aK=0 ; aK<argc ; aK++)
     {
@@ -1150,7 +1178,13 @@ int main(int argc,char ** argv)
            argv[aK] += 2;
     }
 
-    return GenMain(argc,argv, getAvailableCommands());
+    int ret=GenMain(argc,argv, getAvailableCommands());
+
+    if (showDuration) //show nothing if called by makefile
+    {
+        std::cout<<"\nTotal duration: "<<aT0.uval()<<" s"<<std::endl;
+    }
+    return ret;
 }
 
 /*

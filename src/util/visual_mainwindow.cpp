@@ -1,6 +1,6 @@
-#include "general/visual_mainwindow.h"
-
 #if (ELISE_QT_VERSION >= 4)
+
+#include "general/visual_mainwindow.h"
 
 #include "QT_interface_Elise.h"
 

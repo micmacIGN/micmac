@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-//#include "TpPPMD.h"
+#include "TpPPMD.h"
 
 
 /********************************************************************/
@@ -82,6 +82,7 @@ class cImageBasculeRobuste
         cBasicGeomCap3D *   mCam;
 };
 
+
 class cPointBascRobust
 {
     public :
@@ -90,6 +91,10 @@ class cPointBascRobust
            mPTer   (aPTer)
         {
         }
+    
+        Pt3dr PIntRand() ;
+        double DistReproj(const Pt3dr & aPLoc,double aMaxEr);
+        void   Finish(double aMaxEr);
 
         std::string                            mNamePt;
         Pt3dr                                  mPTer;
@@ -107,9 +112,12 @@ class cAppli_BasculeRobuste
     public :
        cAppli_BasculeRobuste(int argc,char ** argv);
     private :
+       bool DoOneTirage();
+       cPointBascRobust * RanPBR(); // Biaise
 
        std::string                   mPatIm;
        std::string                   mOri;
+       double                        mMaxEr;
 
        cSetOfMesureAppuisFlottants   mXML_MesureIm;
        cDicoAppuisFlottant           mXML_MesureTer;
@@ -119,116 +127,396 @@ class cAppli_BasculeRobuste
        std::map<std::string,cImageBasculeRobuste *> mDicoIm;
        std::map<std::string,cPointBascRobust *>     mDicoPt;
        std::vector<cPointBascRobust *>              mVecPt;
+ 
+       //  Pour biaiser le tirage mets un point autant de fois qu'il a de (N-1) points
+       std::vector<cPointBascRobust *>              mDecupVecPt;
+
 
        int                                          mNbPts;
        int                                          mNbTirage;
+       double                                       mBestRes;
+       cSolBasculeRig                               mBestSol;
+       cSolBasculeRig                               mBestSolInv;
+       bool                                         mSIFET;
 };
 
-cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv) :
-   mNbTirage  (1000)
+
+/****************************************************/
+/*                                                  */
+/*                cPointBascRobust                  */
+/*                                                  */
+/****************************************************/
+double cPointBascRobust::DistReproj(const Pt3dr & aPLoc,double aMaxEr)
 {
-	std::string aName2D,aName3D;
-	
-	ElInitArgMain
-	(
-	     argc,argv,
-	     LArgMain() 
-	                << EAMC(mPatIm,"Pattern des images")
-	                << EAMC(mOri,"Orientation ")
-	                << EAMC(aName3D,"Nom du fichier des points terrain")
-	                << EAMC(aName2D,"Nom du fichier des mesure im"),
-	     LArgMain()  << EAM(mNbTirage,"NbTir",true,"Nombre de tirage du Ransac")    
-	);
-	
-	mSetFile.Init(mPatIm);
-	mICNM = mSetFile.mICNM;
-	const std::vector<std::string> * aVName = mSetFile.SetIm();
-	std::cout << "Nbre Image " << aVName->size() << "\n";
-	
-    StdCorrecNameOrient(mOri,mSetFile.mDir);
-	          
-	       
-     mXML_MesureTer = StdGetFromPCP(aName3D,DicoAppuisFlottant);
-     mXML_MesureIm =  StdGetFromPCP(aName2D,SetOfMesureAppuisFlottants);
-                
-     for
-     (
-        std::list<cOneAppuisDAF>::const_iterator itAp=mXML_MesureTer.OneAppuisDAF().begin();
-        itAp!=mXML_MesureTer.OneAppuisDAF().end();
-        itAp++
-     )
-     {
-		 cPointBascRobust * aNewP = new cPointBascRobust(itAp->NamePt(),itAp->Pt());
-		 mDicoPt[itAp->NamePt()] = aNewP;
-		 mVecPt.push_back(aNewP);
-		// std::cout << "Name " << itAp->NamePt() << "\n";
-	 }
-	 
-	 for (int aKN=0 ; aKN<int(aVName->size()) ; aKN++)
-	 {
-		 const std::string & aName = (*aVName)[aKN];
-		 cBasicGeomCap3D * aCamGen = mICNM->StdCamGenerikOfNames(mOri,aName);
-		 cImageBasculeRobuste * aCBR = new cImageBasculeRobuste(aName,aCamGen);
-		 mDicoIm[aName] = aCBR;
-	 }
-    
+   double aSomRes=0;
+   for (int aKI=0 ; aKI< int(mIms.size()) ; aKI++)
+   {
+       double aD = euclid(mPtIms[aKI],mIms[aKI]->mCam->Ter2Capteur(aPLoc));
+       aD = aD / ( 1 + aD/aMaxEr);
+       aSomRes += aD;
+   }
+
+   return aSomRes;
+}
+
+void cPointBascRobust::Finish(double aMaxEr)
+{
+    double aDMin = 1e30;
+    for (int aK1=0 ; aK1<int(mSegs.size()) ; aK1++)
+    {
+        for (int aK2=aK1+1 ; aK2<int(mSegs.size()) ; aK2++)
+        {
+             Pt3dr aP = mSegs[aK1].PseudoInter(mSegs[aK2]);
+             double aD =  DistReproj(aP,aMaxEr);
+             if (aD<aDMin)
+             {
+                aDMin = aD;
+                mPInter = aP;
+             }
+        }
+    }
+}
+
+Pt3dr cPointBascRobust::PIntRand() 
+{
+    int aK1 = NRrandom3(mSegs.size());
+    int aK2 = aK1;
+
+     while (aK2== aK1)
+           aK2 =  NRrandom3(mSegs.size());
+
+     Pt3dr aRes = mSegs[aK1].PseudoInter(mSegs[aK2]);
+
+     return aRes;
+}
+
+/****************************************************/
+/*                                                  */
+/*           cAppli_BasculeRobuste                  */
+/*                                                  */
+/****************************************************/
+
+cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
+     mNbTirage     (1000),
+     mBestRes      (1e30),
+     mBestSol      (cSolBasculeRig::Id()),
+     mBestSolInv   (cSolBasculeRig::Id()),
+     mSIFET        (false)
+{
+    std::string aName2D,aName3D;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  
+                    << EAMC(mPatIm,"Pattern of images")
+                    << EAMC(mOri,"Orientation")
+                    << EAMC(mMaxEr,"Typical max error image reprojecstion")
+                    << EAMC(aName3D,"Name of 3D Point")
+                    << EAMC(aName2D,"Name of 2D Points"),
+        LArgMain()   << EAM(mNbTirage,"NbRan",true,"Number of random")
+                     << EAM(mSIFET,"SIFET",true,"Special export for SIFET benchmark")
+    );
+
+
+    mXML_MesureIm =  StdGetFromPCP(aName2D,SetOfMesureAppuisFlottants);
+    mXML_MesureTer =  StdGetFromPCP(aName3D,DicoAppuisFlottant);
+/*
+    aSMAF = StdGetObjFromFile<cSetOfMesureAppuisFlottants>
+            (
+                aName2D,
+                 StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                 "SetOfMesureAppuisFlottants",
+                 "SetOfMesureAppuisFlottants"
+             );
+*/
+
+     mSetFile.Init(mPatIm);
+     mICNM = mSetFile.mICNM;
+     const std::vector<std::string> * aVS =  mSetFile.SetIm();
+     StdCorrecNameOrient(mOri,mSetFile.mDir);
+
+     std::cout << "PATTERN " << aVS->size()  << " ORI=" << mOri << "\n";
+
+
      for 
      (
-       std::list<cMesureAppuiFlottant1Im>::const_iterator it1M=mXML_MesureIm.MesureAppuiFlottant1Im().begin();
-       it1M!=mXML_MesureIm.MesureAppuiFlottant1Im().end();
-       it1M++
+           std::list<cOneAppuisDAF>::const_iterator itPt = mXML_MesureTer.OneAppuisDAF().begin() ; 
+           itPt!=mXML_MesureTer.OneAppuisDAF().end() ; 
+           itPt++
      )
      {
-		 cImageBasculeRobuste * aCBR = mDicoIm[it1M->NameIm()];
-		 ELISE_ASSERT(aCBR!=0,"Image absente du dictionnaire");
-		 
-		 for 
-		 (
-		     std::list<cOneMesureAF1I>::const_iterator itP=it1M->OneMesureAF1I().begin();
-		     itP!=it1M->OneMesureAF1I().end();
-		     itP++
-		 ) 
-		 {
-			 cPointBascRobust * aPt = mDicoPt[itP->NamePt()];
-			 ELISE_ASSERT(aPt!=0,"Point absent du dictionnaire"); 
-			 aPt->mSegs.push_back(aCBR->mCam->Capteur2RayTer(itP->PtIm()));
-			 aPt->mIms.push_back(aCBR);
-			 aPt->mPtIms.push_back(itP->PtIm());
-		 }
-	 }
-	 
-	 for (int aKP=0 ; aKP<int(mVecPt.size()) ; aKP++)
-	 {
-		 cPointBascRobust * aPt = mVecPt[aKP];
-		 
-		 if (aPt->mSegs.size() >=2)
-		 {
-			 bool Ok;
-			 aPt->mPInter = InterSeg(aPt->mSegs,Ok);
-			 if (Ok)
-			 {
-				 std::cout << "For pt= " << aPt->mNamePt << "\n";
-				 for (int aKIm=0 ; aKIm <int(aPt->mPtIms.size()) ; aKIm++)
-				 {
-					 Pt2dr aPInit = aPt->mPtIms[aKIm];
-					 Pt2dr aPproj = aPt->mIms[aKIm]->mCam->Ter2Capteur(aPt->mPInter);
-					 std::cout << "   Dist=" << euclid(aPInit,aPproj) 
-					           << " for " << aPt->mIms[aKIm]->mNameIm << "\n";
-				 }
-			 }
-		 }
-	 }
-	 
-	 MakeFileXML(mXML_MesureTer,"TestReecriture.xml");
-	 
+          cPointBascRobust * aPBR = new cPointBascRobust(itPt->NamePt(),itPt->Pt());
+          mDicoPt[itPt->NamePt()] = aPBR;
+          mVecPt.push_back(aPBR); 
+          
+     }
+
+     for (int aKIm=0 ; aKIm<int(aVS->size()) ; aKIm++)
+     {
+          std::string aName = (*aVS)[aKIm];
+          cBasicGeomCap3D *  aCam = mICNM->StdCamGenerikOfNames(mOri,aName);
+          mDicoIm[aName] = new cImageBasculeRobuste(aName,aCam);
+     }
+
+
+     for 
+     (
+          std::list<cMesureAppuiFlottant1Im>::const_iterator itMAF = mXML_MesureIm.MesureAppuiFlottant1Im().begin();
+          itMAF != mXML_MesureIm.MesureAppuiFlottant1Im().end();
+          itMAF++
+     )
+     {
+         const cMesureAppuiFlottant1Im & aMAF = *itMAF;
+         cImageBasculeRobuste * aImBR = mDicoIm[aMAF.NameIm()];
+         if (aImBR !=0)
+         {
+             for 
+             (
+                 std::list<cOneMesureAF1I>::const_iterator itM= aMAF.OneMesureAF1I().begin();
+                 itM != aMAF.OneMesureAF1I().end();
+                 itM++
+             )
+             {
+                cPointBascRobust * aPtBR = mDicoPt[itM->NamePt()];           
+                if (aPtBR!=0)
+                {
+                    aPtBR->mPtIms.push_back(itM->PtIm());
+                    aPtBR->mIms.push_back(aImBR);
+                    aPtBR->mSegs.push_back(aImBR->mCam->Capteur2RayTer(itM->PtIm()));
+                }
+             }
+         }
+     }
+
+     for (int aKP= 0 ; aKP<int(mVecPt.size())  ; aKP++)
+     {
+          int aNb = mVecPt[aKP]->mSegs.size() -1;
+          if (aNb>=0)
+          {
+             for (int aK=0 ; aK<aNb ; aK++)
+             {
+                 mDecupVecPt.push_back(mVecPt[aKP]);
+             }      
+          }
+          mVecPt[aKP]->Finish(mMaxEr);
+     }
+     
+     //  std::cout << "Bbbbbbbbbbbbbbbbbbbbbb\n";
+     for (int aKT=0 ; aKT<mNbTirage ; )
+     {
+     //  std::cout << "AAAAaaaaaaaaaaaaaaa\n";
+         if (DoOneTirage()) 
+            aKT++;
+     }
+
+
+     FILE * aFP = FopenNN(mSetFile.mDir+"ResulBar.txt","w","cAppli_BasculeRobuste");
+
+     // double aMed = 0;
+     // Premiere fois pour avoir les stats, deuxieme pour les sortir
+     for (int aNbStep = 0 ; aNbStep<2 ; aNbStep++)
+     {
+         // bool SIFET = false;
+         std::vector<double> aVD;
+         for (int aKP=0 ; aKP<int(mVecPt.size()) ; aKP++)
+         {
+             bool aPrint = (aNbStep!=0);
+             cPointBascRobust * aPBR = mVecPt[aKP];
+             if (aPrint)
+             {
+                if (!mSIFET) 
+                    fprintf(aFP,"========== Point:%s ====\n",aPBR->mNamePt.c_str());
+                Pt3dr aPIntAv = aPBR->mPInter;
+                Pt3dr aPIntAp =  mBestSolInv(aPIntAv);
+                if (mSIFET) 
+                  fprintf(aFP,"%s %.3f %.3f %.3f\n",aPBR->mNamePt.c_str(),aPIntAv.x,aPIntAv.y,aPIntAv.z);
+                else
+                  fprintf(aFP,"  Faisceau : %.3f %.3f %.3f  => %.3f %.3f %.3f\n",
+                            aPIntAv.x,aPIntAv.y,aPIntAv.z,aPIntAp.x,aPIntAp.y,aPIntAp.z
+                       );
+             }
+                
+             // double aDMax
+             Pt3dr aPLoc = mBestSol(aPBR->mPTer);
+             for (int aKI=0 ; aKI< int(aPBR->mIms.size()) ; aKI++)
+             {
+                  double aD = euclid(aPBR->mPtIms[aKI],aPBR->mIms[aKI]->mCam->Ter2Capteur(aPLoc));
+                  double aDIm = euclid(aPBR->mPtIms[aKI],aPBR->mIms[aKI]->mCam->Ter2Capteur(aPBR->mPInter));
+
+                  if (aPrint & (!mSIFET))
+                  {
+                     std::string aMes = "  ";
+                     fprintf(aFP,"%s | %07.3f | %07.3f | %s\n",aMes.c_str(),aD,aDIm,aPBR->mIms[aKI]->mNameIm.c_str());
+                  }
+                  aVD.push_back(aD);
+              }
+          }
+          // aMed = MedianeSup(aVD);
+     }
+
+
+     fclose(aFP);
 }
+
+
+cPointBascRobust * cAppli_BasculeRobuste::RanPBR() // Biaise
+{
+     return  mDecupVecPt[NRrandom3(mDecupVecPt.size())];
+}
+
+
+
+
+bool cAppli_BasculeRobuste::DoOneTirage()
+{
+   cPointBascRobust * aPB1 =  RanPBR();
+   cPointBascRobust * aPB2 =  RanPBR();
+   cPointBascRobust * aPB3 =  RanPBR();
+
+   if ((aPB1==aPB2) || (aPB1==aPB3) || (aPB2==aPB3))
+      return false;
+
+  
+   cSolBasculeRig aTer2Loc = SolElemBascRigid
+                             (
+                                   aPB1->mPTer,      aPB2->mPTer,      aPB3->mPTer,
+                                   aPB1->PIntRand(), aPB2->PIntRand(), aPB3->PIntRand()
+                             );
+
+   double aSomRes = 0.0;
+   int aNbRes=0;
+   for (int aKP=0 ; aKP<int(mVecPt.size()) ; aKP++)
+   {
+       cPointBascRobust * aPBR = mVecPt[aKP];
+       Pt3dr aPLoc = aTer2Loc(aPBR->mPTer);
+       aSomRes += aPBR->DistReproj(aPLoc,mMaxEr);
+       aNbRes += aPBR->mIms.size();
+   }
+
+   aSomRes /= aNbRes;
+
+   if (aSomRes< mBestRes)
+   {
+      mBestRes = aSomRes;
+      mBestSol = aTer2Loc;
+      mBestSolInv = aTer2Loc.Inv();
+      std::cout<< "RES "  << mBestRes << "\n";
+   }
+
+
+   return true;
+}
+
+
+
+/*
+{
+
+     std::vector<cPointBascRobust *>              aVecOk;
+     for (int aKP= 0 ; aKP<int(mVecPt.size())  ; aKP++)
+     {
+          if (mVecPt[aKP]->mSegs.size() >=2)
+          {
+               bool Ok;
+               mVecPt[aKP]->mPInter = InterSeg(mVecPt[aKP]->mSegs,Ok);
+               if (Ok)
+                  aVecOk.push_back(mVecPt[aKP]);
+          }
+     }
+     mVecPt = aVecOk;
+     mNbPts = mVecPt.size();
+
+     double aPropTest = 0.8;
+     int aNbPtsTest = round_ni(mNbPts*aPropTest);
+     double aDistMin = 1e7;
+
+     cSolBasculeRig aBestSol = cSolBasculeRig::Id();
+     for (int aTir=0 ; aTir<mNbTirage  ; aTir++ )
+     {
+         int aK1 = NRrandom3(mNbPts);
+         int aK2 = NRrandom3(mNbPts);
+         int aK3 = NRrandom3(mNbPts);
+
+         if ((aK1!=aK2) && (aK1!=aK3) && (aK2!=aK3))
+         {
+
+             cSolBasculeRig aSol = SolElemBascRigid
+                                   (
+                                       mVecPt[aK1]->mPInter, mVecPt[aK2]->mPInter, mVecPt[aK3]->mPInter,
+                                       mVecPt[aK1]->mPTer, mVecPt[aK2]->mPTer, mVecPt[aK3]->mPTer
+                                   );
+             aTir++;
+
+             std::vector<double> aVDist;
+             for (int aKp=0 ; aKp<mNbPts ; aKp++)
+             {
+                 aVDist.push_back(euclid(aSol(mVecPt[aKp]->mPInter)-mVecPt[aKp]->mPTer));
+             }
+             std::sort(aVDist.begin(),aVDist.end());
+             double aSomD = 0.0;
+             for (int aK=0 ; aK<aNbPtsTest ; aK++)
+                 aSomD += aVDist[aK];
+
+             if (aSomD<aDistMin)
+             {
+                 aDistMin=aSomD;
+                 aBestSol = aSol;
+                 std::cout << "DIST MIN " << aDistMin << "\n";
+             }
+             
+         }
+     }
+     for (int aKp=0 ; aKp<mNbPts ; aKp++)
+     {
+         Pt3dr aDif = aBestSol(mVecPt[aKp]->mPInter)-mVecPt[aKp]->mPTer;
+         std::cout << "Pt="  << mVecPt[aKp]->mNamePt 
+                   << " " << euclid(aDif) << "   " << aDif  << "\n";
+     }
+}
+*/
+
+
+cSolBasculeRig SolElemBascRigid
+               (
+                    const Pt3dr & aAvant1, const Pt3dr & aAvant2, const Pt3dr & aAvant3,
+                    const Pt3dr & aApres1, const Pt3dr & aApres2, const Pt3dr & aApres3
+               )
+{
+
+   // std::cout << "AVVVVVVVV " << aAvant1 << aAvant2 <<  aAvant3 << "\n";
+   // std::cout << "Apppppppp " << aApres1 << aApres2 <<  aApres3 << "\n";
+
+   cRansacBasculementRigide aRBR(false);
+
+   aRBR.AddExemple(aAvant1,aApres1,0,"P1");
+   aRBR.AddExemple(aAvant2,aApres2,0,"P2");
+   aRBR.AddExemple(aAvant3,aApres3,0,"P3");
+
+   aRBR.CloseWithTrGlob();
+
+   aRBR.ExploreAllRansac();
+
+   return aRBR.BestSol();
+}
+
+
+
+int BBB_main(int argc,char ** argv)
+{
+    cAppli_BasculeRobuste anAppli(argc,argv);
+    return EXIT_SUCCESS;
+}
+
 
 int BasculeRobuste_main(int argc,char ** argv)
 {
-	std::cout << "Bienvenue a MicMac programmeur\n";
-	cAppli_BasculeRobuste anAppli(argc,argv);
-	return EXIT_SUCCESS;
+    cAppli_BasculeRobuste anAppli(argc,argv);
+    return EXIT_SUCCESS;
 }
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

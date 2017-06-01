@@ -1257,6 +1257,7 @@
            <PenteRefutInitInPixel Nb="?" Type="double" Def="0.5"> </PenteRefutInitInPixel>
            <ComputeIncid Nb="?" Type="bool" Def="true"> </ComputeIncid>
            <DilateBord Nb="?" Type="int" Def="3"> </DilateBord>
+           <PdsZAbsolute Nb="?" Type="double" Def="0.333"> </PdsZAbsolute> <!-- Pour eviter les points sparse a l'infini -->
       </ImageVariations>
       <PFM_Selection Nb="1">
             <ElimDirectInterior Nb="?" Type="double" Def="10.0"> </ElimDirectInterior>

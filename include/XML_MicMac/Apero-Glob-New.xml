@@ -136,6 +136,7 @@
                 <Symb>  RegDist2=0.0 </Symb>
                 <Symb>  RegDistNbCase=0.0 </Symb>
                 <Symb>  RegDistSeuil=0.0 </Symb>
+                <Symb>  OneBlock=true </Symb>  <!-- Si il y a plusieurs blocs, risque de baisser le SVM -->
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -807,23 +808,32 @@
                        </SLMEtape>
 
 
-                   <IterationsCompensation>  <MultSLMEtape> 0.6 </MultSLMEtape> </IterationsCompensation>
-                   <#WHEN VTEST=${AffineAll}>
-                       <IterationsCompensation>  <MultSLMEtape> 0.31 </MultSLMEtape> </IterationsCompensation>
-                       <IterationsCompensation>  <MultSLMEtape> 0.17 </MultSLMEtape> </IterationsCompensation>
-                       <IterationsCompensation>  <MultSLMEtape> 0.1 </MultSLMEtape> </IterationsCompensation>
+                   <IterationsCompensation>  </IterationsCompensation>
+                   <#IF VTEST=${OneBlock}>
+                       <#WHEN VTEST=${AffineAll}>
+                            <IterationsCompensation>  <MultSLMEtape> 0.6 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.31 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.17 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.1 </MultSLMEtape> </IterationsCompensation>
 
-                       <IterationsCompensation>  <MultSLMEtape> 0.06 </MultSLMEtape> </IterationsCompensation>
-                       <IterationsCompensation>  <MultSLMEtape> 0.031 </MultSLMEtape> </IterationsCompensation>
-                       <IterationsCompensation>  <MultSLMEtape> 0.017 </MultSLMEtape> </IterationsCompensation>
-                       <IterationsCompensation>  <MultSLMEtape> 0.01 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.06 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.031 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.017 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.01 </MultSLMEtape> </IterationsCompensation>
 
-                       <IterationsCompensation>  <MultSLMEtape> 0.006 </MultSLMEtape> </IterationsCompensation>
-                       <IterationsCompensation>  <MultSLMEtape> 0.0031 </MultSLMEtape> </IterationsCompensation>
-                       <IterationsCompensation>  <MultSLMEtape> 0.0017 </MultSLMEtape> </IterationsCompensation>
-                       <IterationsCompensation>  <MultSLMEtape> 0.001 </MultSLMEtape> </IterationsCompensation>
-                       <IterationsCompensation>  <MultSLMEtape> 0.006 </MultSLMEtape> </IterationsCompensation>
-                   </#WHEN>
+                            <IterationsCompensation>  <MultSLMEtape> 0.006 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.0031 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.0017 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.001 </MultSLMEtape> </IterationsCompensation>
+                            <IterationsCompensation>  <MultSLMEtape> 0.006 </MultSLMEtape> </IterationsCompensation>
+                        </#WHEN>
+                        <#WHEN VTEST=${AffineAll}>
+                               <IterationsCompensation>  </IterationsCompensation>
+                               <IterationsCompensation>  </IterationsCompensation>
+                               <IterationsCompensation>  </IterationsCompensation>
+                               <IterationsCompensation>  </IterationsCompensation>
+                        </#WHEN>
+                   </#IF>
 
 
 
@@ -850,28 +860,32 @@
 
 
                    <!-- MPD CHANGEMENT du 22/05/2015 (avant 1e-7/1e-9) pour limiter pv VP<0 ds Cholesky -->
-                   <#IF VTEST=${AffineAll}>
-                        <MultSLMEtape> 1e-3 </MultSLMEtape>
-                        <MultSLMEtape> 1e-5   </MultSLMEtape>
-                   </#IF>
+                   <#WHEN VTEST=${OneBlock}>
+                      <#IF VTEST=${AffineAll}>
+                          <MultSLMEtape> 1e-3 </MultSLMEtape>
+                          <MultSLMEtape> 1e-5   </MultSLMEtape>
+                      </#IF>
+                   </#WHEN>
 
                    <IterationsCompensation> 
-                        <#IF VTEST=${AffineAll}>
+                           <#IF VTEST=${AffineAll}>
                               <CtrlTimeCompens>
                                     <NbMin > 2 </NbMin>
                                     <NbMax>    9       </NbMax>
                                     <SeuilEvolMoy > 1e-10  </SeuilEvolMoy>
-                                    <AutoAdaptLVM>
-                                         <Mult> 1e-2  </Mult>  <!-- MultSLMEtape sera egal a Mult * EvolMoy -->
-                                         <ModeMin> true </ModeMin>
-                                    </AutoAdaptLVM>
+                                    <#WHEN VTEST=${OneBlock}>
+                                       <AutoAdaptLVM>
+                                            <Mult> 1e-2  </Mult>  <!-- MultSLMEtape sera egal a Mult * EvolMoy -->
+                                            <ModeMin> true </ModeMin>
+                                       </AutoAdaptLVM>
+                                    </#WHEN>
                               </CtrlTimeCompens>
                               <CtrlTimeCompens>
                                     <NbMin > 0 </NbMin>
                                     <NbMax>    4      </NbMax>
                                     <SeuilEvolMoy > 1e-5  </SeuilEvolMoy>
                               </CtrlTimeCompens>
-                        </#IF>
+                           </#IF>
                    </IterationsCompensation>
 
                    <IterationsCompensation> </IterationsCompensation>

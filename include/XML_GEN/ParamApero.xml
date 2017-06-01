@@ -1090,6 +1090,8 @@ normalises en echelle et/ou en translation -->
                           <AfterCompens Nb="?" Type="bool" Def="true"></AfterCompens>
 			  <PatternNameApply Nb="?" Type="std::string" Def=".*"> </PatternNameApply>
 			  <PatternNameEstim Nb="?" Type="std::string" Def=".*"> </PatternNameEstim>
+                          <FileExportDir Nb="?" Type="std::string"> </FileExportDir>
+                          <FileExportInv Nb="?" Type="std::string"> </FileExportInv>
 
                           <ModeBascule Nb="1" UnionType="true">
                                <BasculeOnPoints Nb="?">

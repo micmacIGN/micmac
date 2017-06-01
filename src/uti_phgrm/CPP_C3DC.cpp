@@ -775,6 +775,7 @@ void cAppli_MPI2Mnt::DoMTD()
                           + " ZoomF=" + ToString(mDeZoom)
                           + " RRI=" + ToString(mDeZoom *  mResolIm)
                           + " Regul=" + ToString(mZReg)
+                          + " NbVI=2" 
                           + " EZA=1 "
                        ;
 

@@ -55,7 +55,7 @@ class cL2EqObsBascult;
 /*                                                                           */
 /*****************************************************************************/
 
-class cSolBasculeRig
+class cSolBasculeRig : public cTransfo3D
 {
     public :
        cSolBasculeRig
@@ -65,6 +65,7 @@ class cSolBasculeRig
            const ElMatrix<double> & aRot,  //  =>  mMatR
            double aLambda                  // mL
        );
+        virtual std::vector<Pt3dr> Src2Cibl(const std::vector<Pt3dr> &) const ;
 
        static cSolBasculeRig SBRFromElems( const Pt3dr & aTr,const ElMatrix<double> & aRot,const double & aLambda );
        cSolBasculeRig Inv() const;

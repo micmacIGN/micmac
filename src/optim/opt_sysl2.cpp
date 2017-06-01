@@ -414,53 +414,6 @@ Im1D_REAL8  cGenSysSurResol::GSSR_Solve(bool * aResOk)
 
     Im1D_REAL8 aSol = V_GSSR_Solve(aResOk);
 
-if (true && (NbVar() >8))
-{
-/*
-ElMatrix<double> aM2(NbVar(),NbVar());
-ElMatrix<double> aL2(1,NbVar());
-
-for (int aJ=0; aJ< NbVar() ; aJ++)
-{
-aL2(0,aJ) = GetElemLin(aJ);
-for (int aI=0; aI< NbVar() ; aI++)
-  aM2(aI,aJ) =  GetElemQuad(aI,aJ);
-}
-ElMatrix<double> aS2 = gaussj(aM2) * aL2;
-
-
-
-std::cout << "NBV " << NbVar() << "NB CONTRAINTE " << mNbContrainte << "  Assumed : " << ContraintesAssumed() << "\n";
-for (int aK=0 ; aK<NbVar()  ; aK++)
-   std::cout << "*************jjkk--- " << aK << " " << aSol.data()[aK] << " " << aS2(0,aK)  << " M2 " << aM2(aK,aK) << "\n";
-
-getchar();
-*/
-
-
-if (0)
-{
-
-for (int aJ=0; aJ< NbVar() ; aJ++)
-{
-
-double aS0=0;
-for (int aK=0; aK< NbVar() ; aK++)
-   aS0 += aSol.data()[aK] * GetElemQuad(aJ,aK);
-
-
-
-   float aV = (float)GetElemLin(aJ);
-   printf("%d %f %f %f :: ",aJ,aSol.data()[aJ],aV,aS0);
-for (int aK=0 ; aK< NbVar() ; aK++)
-{
-   float aV = (float)GetElemQuad(aJ,aK);
-   printf("%f ",aV);
-}
-printf("\n");
-}
-}
-}
 
 
     if ((mNbContrainte==0) || mCstrAssumed)
@@ -503,24 +456,6 @@ void cGenSysSurResol::Basic_GSSR_AddNewEquation_Indexe
     // mSetEqEmpty = false;
      V_GSSR_AddNewEquation_Indexe(aVSB,aFullC,aNbTot,aVInd,aPds,aCoeff,aB,aPCVU);
 
-/*
-    if (BugUPL )
-    {
-         if (aCpt==7)//  || (aCpt==8))
-         {
-            for (int aKB=0 ; aKB<(int)aVSB->size() ; aKB++)
-            {
-                std::cout  << aVSB->size() << " "
-                          << (*aVSB)[aKB].I0AbsAlloc() << " "
-                          << (*aVSB)[aKB].I1AbsAlloc() << " "
-                          << (*aVSB)[aKB].I0AbsSolve() << " "
-                          << (*aVSB)[aKB].I1AbsSolve() << " "
-                          << " BugUPL in cGenSysSurResol::BGAI " << aPds << "\n";
-            }
-            BasicVerifMatPos(*aVSB,aCpt);
-         }
-    }
-*/
 }
 void cGenSysSurResol::GSSR_AddNewEquation_Indexe
      (

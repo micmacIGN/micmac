@@ -1096,7 +1096,7 @@ void cAppli_SaisiePts::Save()
         cDicoAppuisFlottant aDico;
         for (std::list<cPointGlob>::const_iterator itP=mSPG.PointGlob().begin(); itP!=mSPG.PointGlob().end(); itP++)
         {
-            if (itP->Mes3DExportable().ValWithDef(false) && itP->P3D().IsInit())
+            if ((mParam.ForceExport3D().Val() || itP->Mes3DExportable().ValWithDef(false)) && itP->P3D().IsInit())
             {
                 cOneAppuisDAF anAP;
                 anAP.Pt() = itP->P3D().Val();
