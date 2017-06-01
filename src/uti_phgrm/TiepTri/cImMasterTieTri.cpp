@@ -140,10 +140,6 @@ cIntTieTriInterest cImMasterTieTri::GetPtsInteret()
    cCutAutoCorrelDir<TIm2D<double,double> >  aCutACD(mTImInit,Pt2di(0,0),1.5,TT_SZ_AUTO_COR);
    std::cout   << aRes->mPt << " Cut-AC: " << aCutACD.AutoCorrel(aRes->mPt,TT_SEUIL_CutAutoCorrel_INT,TT_SEUIL_CutAutoCorrel_REEL,TT_SEUIL_AutoCorrel) <<  " ACCC " << AutoCorrel(aRes->mPt) <<   "\n";
 
-
- 
-
-
    return *aRes;
 }
 

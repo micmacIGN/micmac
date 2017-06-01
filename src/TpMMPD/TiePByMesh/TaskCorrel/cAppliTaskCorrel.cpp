@@ -9,6 +9,7 @@ cAppliTaskCorrel::cAppliTaskCorrel (
                                      const std::string & aOri,
                                      const std::string & aPatImg,
                                      bool & aNoTif
+
                                    ) :
     mICNM  (aICNM),
     mDir   (aDir),
@@ -41,6 +42,48 @@ cAppliTaskCorrel::cAppliTaskCorrel (
         mVTask[aKI] = aImg->Task();
     }
     cout<<"Task creat "<<aChrono.uval()<<" sec" <<endl;
+}
+
+//  ============================= **************** =============================
+//  *                             ReadXMLMesurePts                             *
+//  ============================= **************** =============================
+void ReadXMLMesurePts(string aGCPMesureXML)
+{
+    cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aGCPMesureXML,SetOfMesureAppuisFlottants);
+
+       std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
+
+
+       //contient la liste des points a transformer en 3d
+       std::vector<string> vNamePts;
+       vector<Pt2dr> vPts;
+
+       std::cout<<"Reading points..."<<std::flush;
+       for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
+       {
+
+           std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
+           string aNmaeIm = iT1->NameIm();
+           cout<<" + Img : "<<aNmaeIm<<endl;
+           for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
+           {
+               std::string aNamePt = iT2->NamePt();
+               Pt2dr aPt = iT2->PtIm();
+               vNamePts.push_back(aNamePt);
+               vPts.push_back(aPt);
+               cout<<"  + Pts : "<<aNamePt<<" "<<aPt<<endl;
+           }
+       }
+       std::cout<<"done!"<<std::endl;
+
+       std::cout<<"Sorting points..."<<std::flush;
+           //tri
+       std::sort(vNamePts.begin() , vNamePts.end());
+
+           //on vire les doublons
+       vNamePts.erase(std::unique(vNamePts.begin(), vNamePts.end()),vNamePts.end());
+       std::cout<<"done! "<<vNamePts.size()<<" points found."<<std::endl;
+
 }
 
 //  ============================= **************** =============================
