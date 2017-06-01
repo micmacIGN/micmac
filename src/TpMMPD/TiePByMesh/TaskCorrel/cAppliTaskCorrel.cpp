@@ -1,5 +1,24 @@
 #include "TaskCorrel.h"
 
+
+cParamAppliTaskCorrel::cParamAppliTaskCorrel(
+                                             cInterfChantierNameManipulateur * aICNM,
+                                             const std::string & aDir,
+                                             const std::string & aOri,
+                                             const std::string & aPatImg,
+                                             bool & aNoTif,
+                                             string & aMesureXML
+                                            ):
+    pICNM (aICNM),
+    pDir (aDir),
+    pOri (aOri),
+    pPatImg (aPatImg),
+    pNoTif (aNoTif),
+    pMesureXML (aMesureXML)
+{
+
+}
+
 //  ============================= **************** =============================
 //  *                             cAppliTaskCorrel                             *
 //  ============================= **************** =============================
@@ -9,7 +28,6 @@ cAppliTaskCorrel::cAppliTaskCorrel (
                                      const std::string & aOri,
                                      const std::string & aPatImg,
                                      bool & aNoTif
-
                                    ) :
     mICNM  (aICNM),
     mDir   (aDir),
@@ -42,12 +60,15 @@ cAppliTaskCorrel::cAppliTaskCorrel (
         mVTask[aKI] = aImg->Task();
     }
     cout<<"Task creat "<<aChrono.uval()<<" sec" <<endl;
+
+//    ReadXMLMesurePts(string aGCPMesureXML, vector<cImgForTiepTri*> & mVImgs)
+
 }
 
 //  ============================= **************** =============================
 //  *                             ReadXMLMesurePts                             *
 //  ============================= **************** =============================
-void ReadXMLMesurePts(string aGCPMesureXML)
+void cAppliTaskCorrel::ReadXMLMesurePts(string aGCPMesureXML, vector<cImgForTiepTri*> & mVImgs)
 {
     cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aGCPMesureXML,SetOfMesureAppuisFlottants);
 
@@ -55,35 +76,35 @@ void ReadXMLMesurePts(string aGCPMesureXML)
 
 
        //contient la liste des points a transformer en 3d
-       std::vector<string> vNamePts;
-       vector<Pt2dr> vPts;
 
-       std::cout<<"Reading points..."<<std::flush;
+       std::cout<<"Reading mesure file..."<<std::flush;
        for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
        {
 
            std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
-           string aNmaeIm = iT1->NameIm();
-           cout<<" + Img : "<<aNmaeIm<<endl;
+           string aNameIm = iT1->NameIm();
+           cout<<" + Img : "<<aNameIm<<endl;
+           cImgForTiepTri* aImg;
+           for (uint akIm=0; akIm<mVImgs.size(); akIm++)
+           {
+               if (aNameIm == mVImgs[akIm]->Name())
+               {
+                   aImg = mVImgs[akIm];
+                   break;
+               }
+           }
+           aImg->Mesure().aNameIm = aNameIm;
+           aImg->Mesure().aIndImg = aImg->Num();
            for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
            {
                std::string aNamePt = iT2->NamePt();
                Pt2dr aPt = iT2->PtIm();
-               vNamePts.push_back(aNamePt);
-               vPts.push_back(aPt);
                cout<<"  + Pts : "<<aNamePt<<" "<<aPt<<endl;
+               aImg->Mesure().aVPts.push_back(aPt);
+               aImg->Mesure().aNamePt.push_back(aNamePt);
            }
        }
        std::cout<<"done!"<<std::endl;
-
-       std::cout<<"Sorting points..."<<std::flush;
-           //tri
-       std::sort(vNamePts.begin() , vNamePts.end());
-
-           //on vire les doublons
-       vNamePts.erase(std::unique(vNamePts.begin(), vNamePts.end()),vNamePts.end());
-       std::cout<<"done! "<<vNamePts.size()<<" points found."<<std::endl;
-
 }
 
 //  ============================= **************** =============================

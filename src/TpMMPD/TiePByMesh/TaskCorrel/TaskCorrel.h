@@ -21,6 +21,36 @@ class cAppliTaskCorrelByXML;
 class cImgForTiepTri;
 class cTriForTiepTri;
 
+struct cMesureStruct
+{
+    string aNameIm;
+    int aIndImg;
+    vector<Pt2dr> aVPts;
+    vector<string> aNamePt;
+};
+//  ============================= cAppliTaskCorrel ==========================
+class cParamAppliTaskCorrel
+{
+    public:
+    cParamAppliTaskCorrel(
+                                                 cInterfChantierNameManipulateur * aICNM,
+                                                 const std::string & aDir,
+                                                 const std::string & aOri,
+                                                 const std::string & aPatImg,
+                                                 bool & aNoTif,
+                                                 string & aMesureXML
+                            );
+        cInterfChantierNameManipulateur * pICNM;
+        string pDir;
+        string pOri;
+        string pPatImg;
+        bool pNoTif;
+        string pMesureXML;
+};
+
+// ==========================================================================
+
+
 //  ============================= cAppliTaskCorrel ==========================
 class cAppliTaskCorrel
 {
@@ -59,6 +89,8 @@ public:
 
     double & SEUIL_SURF_TRIANGLE() {return MD_SEUIL_SURF_TRIANGLE;}
     int & MethodZBuf() {return mMethodZBuf;}
+
+    void ReadXMLMesurePts(string aGCPMesureXML, vector<cImgForTiepTri *> &mVImgs);
 private:
     cInterfChantierNameManipulateur * mICNM;
     const string mDir;
@@ -154,6 +186,7 @@ public:
 
         vector<bool> &  TriValid() {return mTriValid;}
         vector<int>  &  IndTriValid() {return mIndTriValid;}
+        cMesureStruct & Mesure() {return aMesure;}
 
 
 private:
@@ -171,6 +204,7 @@ private:
 
         vector<bool>   mTriValid;
         vector<int>    mIndTriValid;
+        cMesureStruct aMesure;
 };
 
 //  ============================== cTriForTiepTri ==========================
