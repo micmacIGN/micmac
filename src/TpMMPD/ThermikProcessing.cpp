@@ -38,6 +38,8 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+#include <iostream>
+#include <iomanip> 
 
 struct ImgT{
 	std::string ImgName;
@@ -368,9 +370,6 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 	//read the pattern to use as calibration (add as option the possibility to use several patterns)
 	SplitDirAndFile(mDir,mPat,mFullPat);
     
-    std::cout<<"Working dir: "<<mDir<<std::endl;
-    std::cout<<"Images pattern: "<<mPat<<std::endl;
-    
 	//compute all deformation maps by 2D matching
     Do2DMatching(mDir,mPat,aXml2DM,aPas);
 
@@ -399,6 +398,12 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 		
 		CorrImgsFromTemp(aMap,aDir2C,aFileName,aPat2C,aExt,aNameFolder);
 	}
+	
+	//if a second calibration pattern is given
+	
+	//if a third calibration pattern is given
+	
+	//if a fourth calibration pattern is given
 }
 
 int ThermikProc_main(int argc,char ** argv)
@@ -407,8 +412,287 @@ int ThermikProc_main(int argc,char ** argv)
 	return EXIT_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+int CalcPatByAspro_main(int argc,char ** argv)
+{
+	std::string aFullPat="";
+	std::string aDir="";
+	std::string aPatImgs="";
+	std::string aOriCalib="";
+	std::string aGCPsFile="";
+	std::string aImgsMesPat="";
+	std::string aPatFiles="";
+	Pt2di aInd(0,0);
+	
+	
+	ElInitArgMain
+    (
+          argc, argv,
+          LArgMain() << EAMC(aFullPat,"Directory + Pattern of Images")
+					 << EAMC(aOriCalib,"Input Calibration")
+					 << EAMC(aGCPsFile,"Input GCP file")
+					 << EAMC(aImgsMesPat,"Pattern of Image Measures Files"),
+          LArgMain() << EAM(aInd,"Ind",false,"Ind : [start;end] to check xml file & Img Name")
+    );
+    
+    SplitDirAndFile(aDir,aPatImgs,aFullPat);
+    SplitDirAndFile(aDir,aPatFiles,aImgsMesPat);
+    
+    StdCorrecNameOrient(aOriCalib,aDir);
+    
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
+    const std::vector<std::string> aSetFiles = *(aICNM->Get(aPatFiles));
+    
+    if(aSetIm.size() != aSetFiles.size() && aInd.x==0 && aInd.y==0)
+	{
+		ELISE_ASSERT(false, "ERROR: Pat of Imgs & Pat for Img Measure File can't be different !");
+	}
+	else
+	{
+    
+		for(unsigned int aP=0; aP<aSetIm.size(); aP++)
+		{
+			  for(unsigned int aK=0; aK<aSetFiles.size(); aK++)
+			  {
+				  //std::cout << "aSetFiles.at(aK).substr(aInd.x,aInd.y) = " << aSetFiles.at(aK).substr(aInd.x,aInd.y-aInd.x) << std::endl;
+				  if(aSetIm.at(aP).compare(aSetFiles.at(aK).substr(aInd.x,aInd.y-aInd.x)) == 0)
+				  {
+						//std::cout << " Partie 1 = " << aSetIm.at(aP) << std::endl;
+						//std::cout << " Partie 2 = " << aSetFiles.at(aK).substr(aInd.x,aInd.y-aInd.x) << std::endl;
+					  
+						std::string aCom = MM3dBinFile_quotes("Apero")
+									+ " " + XML_MM_File("Apero-GCP-Init.xml")
+									+ " DirectoryChantier=" + aDir
+									+ " +PatternAllIm=" + aSetIm.at(aP)
+									+ " +CalibIn="      + aOriCalib
+									+ " +AeroOut=Aspro"
+									+ " +DicoApp="  + aGCPsFile
+									+ " +SaisieIm=" + aSetFiles.at(aK);
 
+						std::cout << "aCom = " << aCom << std::endl;
+						system_call(aCom.c_str());
+				  }
+			  }
+		}
+	}
+    
+    return EXIT_SUCCESS;
+}
+//----------------------------------------------------------------------------
+int CmpMAF_main(int argc,char ** argv)
+{
+	std::string aFile1="";
+	std::string aFile2="";
+	bool aShow=false;
+	
+	ElInitArgMain
+    (
+          argc, argv,
+          LArgMain() << EAMC(aFile1,"File 1 of Image Measures")
+					 << EAMC(aFile2,"File 2 of Image Measures"),
+          LArgMain() << EAM(aShow,"Show",false,"Show some details ; Def=false")
+    );
+	
+	//read first file
+	cSetOfMesureAppuisFlottants aDico1 = StdGetFromPCP(aFile1,SetOfMesureAppuisFlottants);
+    std::list<cMesureAppuiFlottant1Im> & aLMAF1 = aDico1.MesureAppuiFlottant1Im();
+	
+	//read second file
+	cSetOfMesureAppuisFlottants aDico2 = StdGetFromPCP(aFile2,SetOfMesureAppuisFlottants);
+    std::list<cMesureAppuiFlottant1Im> & aLMAF2 = aDico2.MesureAppuiFlottant1Im();
+    
+    //compare
+    for(std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF1.begin() ; iT1 != aLMAF1.end() ; iT1++)
+    {
+		for(std::list<cMesureAppuiFlottant1Im>::iterator iT2 = aLMAF2.begin() ; iT2 != aLMAF2.end() ; iT2++)
+		{
+			//if(iT1->NameIm().compare(iT2->NameIm()) == 0)
+			//{
+				//std::cout << "Same Image = " << iT1->NameIm() << " | " << iT2->NameIm() << std::endl;
+				std::list<cOneMesureAF1I> & aMes1 = iT1->OneMesureAF1I();
+				std::list<cOneMesureAF1I> & aMes2 = iT2->OneMesureAF1I();
+				
+				for (std::list<cOneMesureAF1I>::iterator iT3 = aMes1.begin() ; iT3 != aMes1.end() ; iT3++)
+				{
+					for (std::list<cOneMesureAF1I>::iterator iT4 = aMes2.begin() ; iT4 != aMes2.end() ; iT4++)
+					{
+						if(iT3->NamePt().compare(iT4->NamePt()) == 0)
+						{
+							Pt2dr Pt1 = iT3->PtIm();
+							//std::cout << std::fixed;
+							//std::cout << std::setprecision(2) << "Pt1 = " << Pt1 << std::endl;
+							
+							Pt2dr Pt2 = iT4->PtIm();
+							//std::cout << std::fixed;
+							//std::cout << std::setprecision(2) << "Pt2 = " << Pt2 << std::endl;
+							
+							double deltaX = Pt1.x - Pt2.x;
+							double deltaY = Pt1.y - Pt2.y;
+							double delta = sqrt(deltaX*deltaX + deltaY*deltaY);
+							std::cout << std::fixed;
+							std::cout << std::setprecision(2) << "Ecart Pt : " << iT3->NamePt() << " = [" <<  deltaX << "," << deltaY << "]; Norm=" << delta << std::endl;
+						}
+					}
+				}
+			//}
+		}
+	}
+	
+	return EXIT_SUCCESS;
+}
 
+//----------------------------------------------------------------------------
+int GenOriFromOnePose_main(int argc,char ** argv)
+{
+	std::string aFullPat="";
+	std::string aDir="";
+	std::string aPatImgs="";
+	std::string aOriFile="";
+	std::string aOutOri="";
+	std::string aCalibFile="";
+	
+	ElInitArgMain
+    (
+          argc, argv,
+          LArgMain() << EAMC(aFullPat,"Directory + Pattern of Images")
+					 << EAMC(aOriFile,"Orientation file to be duplicated")
+					 << EAMC(aCalibFile,"Calibration File"),
+          LArgMain() << EAM(aOutOri,"Out",false,"Output Name of Ori folder ; Def=SPO")
+    );
+    
+    SplitDirAndFile(aDir,aPatImgs,aFullPat);
+    
+    StdCorrecNameOrient(aOutOri,aDir);
+    
+    if(aOutOri == "")
+    {
+		aOutOri = "SPO";
+	}
+	
+	std::string aDest = "Ori-" + aOutOri + "/";
+	ELISE_fp::MkDirSvp(aDest);
+	ELISE_fp::CpFile(aCalibFile,aDest);
+    
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
+        
+    for(unsigned int aP=0; aP<aSetIm.size(); aP++)
+    {
+		std::string aDest = "Ori-" + aOutOri + "/Orientation-" + aSetIm.at(aP) + ".xml";
+		ELISE_fp::CpFile(aOriFile,aDest);
+	}
+    
+	return EXIT_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+int DoCmpByImg_main(int argc,char ** argv)
+{
+	std::string aFullPat="";
+	std::string aDir="";
+	std::string aPatImgs="";
+	std::string aOriIn="";
+	std::string aGCPFile="";
+	std::string aMAFFile="";
+	bool aFreeFoc=true;
+	bool aFreePP=true;
+	bool aPosFigee=true;
+	double aIncGCP=1;
+	double aIncMAF=0.5;
+	std::string aFileCalib="";
+	
+	ElInitArgMain
+    (
+          argc, argv,
+          LArgMain() << EAMC(aFullPat,"Directory + Pattern of Images")
+					 << EAMC(aOriIn,"Input Orientation")
+					 << EAMC(aGCPFile,"xml GCP File")
+					 << EAMC(aMAFFile,"xml Image Measures File"),
+          LArgMain() << EAM(aFreeFoc,"FreeFoc",false,"Free Focale ; Def=true")
+					 << EAM(aFreePP,"FreePP",false,"Free Principal Point ; Def=true")
+					 << EAM(aPosFigee,"PosFigee",false,"Pose is Figee ; Def=true")
+					 << EAM(aIncGCP,"IncG",false,"Inc of GCP Measures ; Def=1")
+					 << EAM(aIncMAF,"IncM",false,"Inc of Image Measures ; Def=0.5")
+					 << EAM(aFileCalib,"Calib",false,"Calibration file")
+    );
+    
+    SplitDirAndFile(aDir,aPatImgs,aFullPat);
+    StdCorrecNameOrient(aOriIn,aDir);
+    
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
+        
+    std::list<std::string>  aComCPI1;
+    std::list<std::string>  aComCPI2;
+    
+    std::string aOri1Out = "Ori-" + StdPrefixGen(aOriIn) + "-CPI1";
+    ELISE_fp::MkDirSvp(aOri1Out);
+    std::string aOri2Out = "Ori-" + StdPrefixGen(aOriIn) + "-CPI2";
+    ELISE_fp::MkDirSvp(aOri2Out);
+    
+    if(aFileCalib != "")
+    {
+		ELISE_fp::CpFile(aFileCalib,aOri1Out);
+		ELISE_fp::CpFile(aFileCalib,aOri2Out);
+	}
+	
+	StdCorrecNameOrient(aOri1Out,aDir);
+	StdCorrecNameOrient(aOri2Out,aDir);
+    
+    for(unsigned int aP=0; aP<aSetIm.size(); aP++)
+    {
+		std::string aCom1 = MMDir()
+								+ std::string("bin/mm3d")
+								+ std::string(" ")
+								+ "Campari"
+								+ std::string(" ")
+								+ aSetIm.at(aP)
+								+ std::string(" ")
+								+ aOriIn
+								+ std::string(" ")
+								+ aOri1Out
+								+ std::string(" ")
+								+ "GCP=[" + aGCPFile + "," + ToString(aIncGCP) + "," + aMAFFile + "," + ToString(aIncMAF) + "]"
+								+ std::string(" ")
+								+ "SH=NONE  CPI1=true FrozenPoses=\""
+								+ aSetIm.at(aP) + std::string("\"");
+								
+		//std::cout << "aCom1 = " << aCom1 << std::endl;
+		aComCPI1.push_back(aCom1);
+		
+		std::string aCom2 = MMDir()
+								+ std::string("bin/mm3d")
+								+ std::string(" ")
+								+ "Campari"
+								+ std::string(" ")
+								+ aSetIm.at(aP)
+								+ std::string(" ")
+								+ aOri1Out
+								+ std::string(" ")
+								+ aOri2Out
+								+ std::string(" ")
+								+ "GCP=[" + aGCPFile + "," + ToString(aIncGCP) + "," + aMAFFile + "," + ToString(aIncMAF) + "]"
+								+ std::string(" ")
+								+ "SH=NONE  CPI1=true";
+		if(aPosFigee)
+			aCom2 = aCom2 + std::string(" ") + "FrozenPoses=\"" + aSetIm.at(aP) + std::string("\"");
+			
+		if(aFreeFoc)
+			aCom2 = aCom2 + std::string(" ") + "FocFree=true";
+			
+		if(aFreePP)
+			aCom2 = aCom2 + std::string(" ") + "PPFree=true";
+		
+		//std::cout << "aCom2 = " << aCom2 << std::endl;
+		aComCPI2.push_back(aCom2);
+	}
+	
+	cEl_GPAO::DoComInParal(aComCPI1,aDir);
+	cEl_GPAO::DoComInParal(aComCPI2,aDir);
+    
+    return EXIT_SUCCESS;
+}
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant \C3  la mise en
