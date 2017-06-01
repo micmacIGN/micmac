@@ -16,6 +16,7 @@ int TaskCorrel_main(int argc,char ** argv)
         bool assum1er=false;
         bool useExistHomoStruct = false;
         double aAngleF = 90;
+        string aMesureXML = "";
         string aDirXML = "XML_TiepTri";
         string xmlCpl = "PairHomol.xml";
         bool Test=false;
@@ -96,6 +97,16 @@ int TaskCorrel_main(int argc,char ** argv)
         }
         else
         {
+            /*
+            cParamAppliTaskCorrel * aParam = new cParamAppliTaskCorrel(
+                                                                       aICNM,
+                                                                       aDir,
+                                                                       aOriInput,
+                                                                       aFullPattern,
+                                                                       noTif,
+                                                                       aMesureXML
+                                                                      );
+                                                                      */
             cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg, noTif);
 
             aAppli->KeepAll2nd()=keepAll2nd;
@@ -128,7 +139,7 @@ int TaskCorrelWithPts_main(int argc,char ** argv)
         string aFullPattern, aOriInput;
         string aDirXML = "XML_TiepTri";
         string xmlCpl = "PairHomol.xml";
-        string aXMLPts;
+        string aMesureXML = "";
         int nInteraction = 0;
         double aZ = 0.25;
         double aSclElps = -1.0;
@@ -149,7 +160,7 @@ int TaskCorrelWithPts_main(int argc,char ** argv)
                     << EAMC(pathPlyFileS, "path to mesh(.ply) file - created by Inital Ori", eSAM_IsExistFile),
                     //optional arguments
                     LArgMain()
-                    << EAM(aXMLPts, "GCP", true, "mesure image file xml")
+                    << EAM(aMesureXML, "GCP", true, "mesure image file xml")
                     << EAM(aDirXML, "OutXML", true, "Output directory for XML File. Default = XML_TiepTri")
                     << EAM(nInteraction, "nInt", true, "nInteraction")
                     << EAM(aZ, "aZ", true, "aZoom image display")
@@ -192,8 +203,16 @@ int TaskCorrelWithPts_main(int argc,char ** argv)
                mVName.clear();
            }
         //===============================================================================/
+           cParamAppliTaskCorrel * aParam = new cParamAppliTaskCorrel(
+                                                                        aICNM,
+                                                                        aDir,
+                                                                        aOriInput,
+                                                                        aFullPattern,
+                                                                        noTif,
+                                                                        aMesureXML
+                                                                      );
 
-            cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg, noTif);
+            cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg, noTif, aParam);
 
             aAppli->KeepAll2nd()=keepAll2nd;
             aAppli->SEUIL_SURF_TRIANGLE()=MD_SEUIL_SURF_TRIANGLE;

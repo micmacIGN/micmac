@@ -7,7 +7,7 @@ cParamAppliTaskCorrel::cParamAppliTaskCorrel(
                                              const std::string & aOri,
                                              const std::string & aPatImg,
                                              bool & aNoTif,
-                                             string & aMesureXML
+                                             string  aMesureXML
                                             ):
     pICNM (aICNM),
     pDir (aDir),
@@ -22,8 +22,7 @@ cParamAppliTaskCorrel::cParamAppliTaskCorrel(
 //  ============================= **************** =============================
 //  *                             cAppliTaskCorrel                             *
 //  ============================= **************** =============================
-cAppliTaskCorrel::cAppliTaskCorrel (
-                                     cInterfChantierNameManipulateur * aICNM,
+cAppliTaskCorrel::cAppliTaskCorrel (cInterfChantierNameManipulateur * aICNM,
                                      const std::string & aDir,
                                      const std::string & aOri,
                                      const std::string & aPatImg,
@@ -61,7 +60,26 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     }
     cout<<"Task creat "<<aChrono.uval()<<" sec" <<endl;
 
-//    ReadXMLMesurePts(string aGCPMesureXML, vector<cImgForTiepTri*> & mVImgs)
+}
+
+
+cAppliTaskCorrel::cAppliTaskCorrel (cInterfChantierNameManipulateur * aICNM,
+                                     const std::string & aDir,
+                                     const std::string & aOri,
+                                     const std::string & aPatImg,
+                                     bool & aNoTif,
+                                     cParamAppliTaskCorrel *aParam
+                                   ):
+    cAppliTaskCorrel ( aICNM,
+                       aDir,
+                       aOri,
+                       aPatImg,
+                       aNoTif
+                     )
+{
+
+    if (aParam->pMesureXML != "")
+        ReadXMLMesurePts(aParam->pMesureXML, mVImgs);
 
 }
 
@@ -73,9 +91,6 @@ void cAppliTaskCorrel::ReadXMLMesurePts(string aGCPMesureXML, vector<cImgForTiep
     cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aGCPMesureXML,SetOfMesureAppuisFlottants);
 
        std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
-
-
-       //contient la liste des points a transformer en 3d
 
        std::cout<<"Reading mesure file..."<<std::flush;
        for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)

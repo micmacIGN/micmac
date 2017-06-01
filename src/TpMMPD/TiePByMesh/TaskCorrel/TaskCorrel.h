@@ -32,13 +32,12 @@ struct cMesureStruct
 class cParamAppliTaskCorrel
 {
     public:
-    cParamAppliTaskCorrel(
-                                                 cInterfChantierNameManipulateur * aICNM,
+    cParamAppliTaskCorrel(cInterfChantierNameManipulateur * aICNM,
                                                  const std::string & aDir,
                                                  const std::string & aOri,
                                                  const std::string & aPatImg,
                                                  bool & aNoTif,
-                                                 string & aMesureXML
+                                                 string aMesureXML
                             );
         cInterfChantierNameManipulateur * pICNM;
         string pDir;
@@ -55,11 +54,18 @@ class cParamAppliTaskCorrel
 class cAppliTaskCorrel
 {
 public:
+    cAppliTaskCorrel (cInterfChantierNameManipulateur * aICNM,
+                                         const std::string & aDir,
+                                         const std::string & aOri,
+                                         const std::string & aPatImg,
+                                         bool & aNoTif
+                                       );
     cAppliTaskCorrel (cInterfChantierNameManipulateur *,
                        const std::string & aDir,
                        const std::string & anOri,
                        const std::string & aPatImg,
-                       bool &aNoTif
+                       bool &aNoTif,
+                       cParamAppliTaskCorrel * aParam
                       );
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
     vector<cImgForTiepTri*> VImgs() {return mVImgs;}
