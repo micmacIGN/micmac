@@ -8380,6 +8380,50 @@ std::string  Mangling( cXml_TriAngulationImMaster *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_Triangle3DForTieP_WithPts
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Triangle3DForTieP_WithPts & anObj,cElXMLTree * aTree);
+
+
+        Pt3dr & P1();
+        const Pt3dr & P1()const ;
+
+        Pt3dr & P2();
+        const Pt3dr & P2()const ;
+
+        Pt3dr & P3();
+        const Pt3dr & P3()const ;
+
+        std::vector< int > & NumImSec();
+        const std::vector< int > & NumImSec()const ;
+
+        std::vector< std::string > & NamePts();
+        const std::vector< std::string > & NamePts()const ;
+
+        std::vector< Pt2dr > & Pts();
+        const std::vector< Pt2dr > & Pts()const ;
+    private:
+        Pt3dr mP1;
+        Pt3dr mP2;
+        Pt3dr mP3;
+        std::vector< int > mNumImSec;
+        std::vector< std::string > mNamePts;
+        std::vector< Pt2dr > mPts;
+};
+cElXMLTree * ToXMLTree(const cXml_Triangle3DForTieP_WithPts &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Triangle3DForTieP_WithPts &);
+
+void  BinaryUnDumpFromFile(cXml_Triangle3DForTieP_WithPts &,ELISE_fp &);
+
+std::string  Mangling( cXml_Triangle3DForTieP_WithPts *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_TriAngulationImMaster_WithPts
 {
     public:
@@ -8393,19 +8437,25 @@ class cXml_TriAngulationImMaster_WithPts
 
         std::vector< std::string > & NameSec();
         const std::vector< std::string > & NameSec()const ;
-        
-        std::vector< Pt2dr > & Pts();
-        const std::vector<Pt2dr > & Pts()const ;
+
+        std::vector< std::string > & NamePts();
+        const std::vector< std::string > & NamePts()const ;
 
         std::vector< cXml_Triangle3DForTieP > & Tri();
         const std::vector< cXml_Triangle3DForTieP > & Tri()const ;
     private:
         std::string mNameMaster;
         std::vector< std::string > mNameSec;
+        std::vector< std::string > mNamePts;
         std::vector< cXml_Triangle3DForTieP > mTri;
-        std::vector< Pt2dr > mPts;
 };
+cElXMLTree * ToXMLTree(const cXml_TriAngulationImMaster_WithPts &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cXml_TriAngulationImMaster_WithPts &);
+
+void  BinaryUnDumpFromFile(cXml_TriAngulationImMaster_WithPts &,ELISE_fp &);
+
+std::string  Mangling( cXml_TriAngulationImMaster_WithPts *);
 
 /******************************************************/
 /******************************************************/

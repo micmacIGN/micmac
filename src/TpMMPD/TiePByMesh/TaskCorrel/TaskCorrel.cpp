@@ -223,6 +223,8 @@ int TaskCorrelWithPts_main(int argc,char ** argv)
             aAppli->DistMax() = distMax;
             aAppli->NameMesh() = pathPlyFileS;
             aAppli->ZBuffer();
+            if (aAppli->WithGCP())
+                aAppli->GetIndTriHasGCP();
             aAppli->DoAllTri();
             aAppli->ExportXML(aDirXML, clIni);
 

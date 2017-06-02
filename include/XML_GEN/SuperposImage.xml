@@ -1850,6 +1850,28 @@
     <NameSec Nb="*" Type="std::string"  Container="std::vector"> </NameSec>
     <Tri  RefType="Xml_Triangle3DForTieP" Nb="*"  Container="std::vector"> </Tri>
 </Xml_TriAngulationImMaster>
+	
+		
+		
+    <!-- Ajoute le Pt interet predefini dans triangle, utilise pour saisie GCP -->
+<Xml_Triangle3DForTieP_WithPts   Nb="1" Class="true" ToReference="true">
+     <P1 Nb="1" Type="Pt3dr">  </P1>
+     <P2 Nb="1" Type="Pt3dr">  </P2>
+     <P3 Nb="1" Type="Pt3dr">  </P3>
+     <NumImSec Nb="*" Type="int"   Container="std::vector"> </NumImSec>
+     <NamePts Nb="*" Type="std::string"  Container="std::vector"> </NamePts>
+     <Pts Nb="*" Type="Pt2dr"   Container="std::vector"> </Pts>
+</Xml_Triangle3DForTieP_WithPts>
+
+
+<Xml_TriAngulationImMaster_WithPts Nb="1" Class="true" ToReference="true">
+    <NameMaster Nb="1" Type="std::string"> </NameMaster>
+    <NameSec Nb="*" Type="std::string"  Container="std::vector"> </NameSec>
+    <NamePts Nb="*" Type="std::string"  Container="std::vector"> </NamePts>
+    <Tri  RefType="Xml_Triangle3DForTieP" Nb="*"  Container="std::vector"> </Tri>
+</Xml_TriAngulationImMaster_WithPts>
+
+<!--  ******************** END TieP MESH ******************************* -->
 
 <Xml_MapCam Nb="1" Class="true" ToReference="true">
     <PartieCam Nb="1" RefType="CalibrationInternConique" RefFile="ParamChantierPhotogram.xml"> </PartieCam>
