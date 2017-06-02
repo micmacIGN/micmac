@@ -119,7 +119,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         {
             vector<Pt2dr> aVPtsInTri;
             Flux2StdCont(aVPtsInTri , select(mImZ.all_pts(),mMasqTri.in()) );
-            for (int aKPt=0; aKPt<aVPtsInTri.size(); aKPt++)
+            for (int aKPt=0; aKPt<(int)aVPtsInTri.size(); aKPt++)
             {
                 Pt2dr aPtRas = aVPtsInTri[aKPt];
                 double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCamGen);

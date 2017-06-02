@@ -26965,7 +26965,7 @@ void xml_init(cXml_Triangle3DForTieP & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXml_Triangle3DForTieP *) {return "28F0DE7DEAFB27B8FD3F";};
 
-
+/******************************************************/
 std::string & cXml_TriAngulationImMaster::NameMaster()
 {
    return mNameMaster;
@@ -26998,6 +26998,50 @@ const std::vector< cXml_Triangle3DForTieP > & cXml_TriAngulationImMaster::Tri()c
    return mTri;
 }
 
+/******************************************************/
+std::string & cXml_TriAngulationImMaster_WithPts::NameMaster()
+{
+   return mNameMaster;
+}
+
+const std::string & cXml_TriAngulationImMaster_WithPts::NameMaster()const 
+{
+   return mNameMaster;
+}
+
+
+std::vector< std::string > & cXml_TriAngulationImMaster_WithPts::NameSec()
+{
+   return mNameSec;
+}
+
+const std::vector< std::string > & cXml_TriAngulationImMaster_WithPts::NameSec()const 
+{
+   return mNameSec;
+}
+
+
+std::vector< cXml_Triangle3DForTieP > & cXml_TriAngulationImMaster_WithPts::Tri()
+{
+   return mTri;
+}
+
+const std::vector< cXml_Triangle3DForTieP > & cXml_TriAngulationImMaster_WithPts::Tri()const 
+{
+   return mTri;
+}
+
+std::vector< Pt2dr > & cXml_TriAngulationImMaster_WithPts::Pts()
+{
+   return mPts;
+}
+
+const std::vector<Pt2dr> & cXml_TriAngulationImMaster_WithPts::Pts()const 
+{
+   return mPts;
+}
+
+/******************************************************/
 void  BinaryUnDumpFromFile(cXml_TriAngulationImMaster & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NameMaster(),aFp);

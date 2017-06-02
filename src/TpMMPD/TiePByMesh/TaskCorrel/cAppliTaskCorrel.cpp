@@ -1,10 +1,28 @@
 #include "TaskCorrel.h"
 
+
+cParamAppliTaskCorrel::cParamAppliTaskCorrel(
+                                             cInterfChantierNameManipulateur * aICNM,
+                                             const std::string & aDir,
+                                             const std::string & aOri,
+                                             const std::string & aPatImg,
+                                             bool & aNoTif,
+                                             string  aMesureXML
+                                            ):
+    pICNM (aICNM),
+    pDir (aDir),
+    pOri (aOri),
+    pPatImg (aPatImg),
+    pNoTif (aNoTif),
+    pMesureXML (aMesureXML)
+{
+
+}
+
 //  ============================= **************** =============================
 //  *                             cAppliTaskCorrel                             *
 //  ============================= **************** =============================
-cAppliTaskCorrel::cAppliTaskCorrel (
-                                     cInterfChantierNameManipulateur * aICNM,
+cAppliTaskCorrel::cAppliTaskCorrel (cInterfChantierNameManipulateur * aICNM,
                                      const std::string & aDir,
                                      const std::string & aOri,
                                      const std::string & aPatImg,
@@ -41,6 +59,67 @@ cAppliTaskCorrel::cAppliTaskCorrel (
         mVTask[aKI] = aImg->Task();
     }
     cout<<"Task creat "<<aChrono.uval()<<" sec" <<endl;
+
+}
+
+
+cAppliTaskCorrel::cAppliTaskCorrel (cInterfChantierNameManipulateur * aICNM,
+                                     const std::string & aDir,
+                                     const std::string & aOri,
+                                     const std::string & aPatImg,
+                                     bool & aNoTif,
+                                     cParamAppliTaskCorrel *aParam
+                                   ):
+    cAppliTaskCorrel ( aICNM,
+                       aDir,
+                       aOri,
+                       aPatImg,
+                       aNoTif
+                     )
+{
+
+    if (aParam->pMesureXML != "")
+        ReadXMLMesurePts(aParam->pMesureXML, mVImgs);
+
+}
+
+//  ============================= **************** =============================
+//  *                             ReadXMLMesurePts                             *
+//  ============================= **************** =============================
+void cAppliTaskCorrel::ReadXMLMesurePts(string aGCPMesureXML, vector<cImgForTiepTri*> & mVImgs)
+{
+    cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aGCPMesureXML,SetOfMesureAppuisFlottants);
+
+       std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
+
+       std::cout<<"Reading mesure file..."<<std::flush;
+       for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
+       {
+
+           std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
+           string aNameIm = iT1->NameIm();
+           cout<<" + Img : "<<aNameIm<<endl;
+           cImgForTiepTri* aImg;
+           for (uint akIm=0; akIm<mVImgs.size(); akIm++)
+           {
+               if (aNameIm == mVImgs[akIm]->Name())
+               {
+                   aImg = mVImgs[akIm];
+                   break;
+               }
+           }
+           aImg->Mesure().aNameIm = aNameIm;
+           aImg->Mesure().aIndImg = aImg->Num();
+           for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
+           {
+               std::string aNamePt = iT2->NamePt();
+               Pt2dr aPt = iT2->PtIm();
+               cout<<"  + Pts : "<<aNamePt<<" "<<aPt<<endl;
+               aImg->Mesure().aVPts.push_back(aPt);
+               aImg->Mesure().aNamePt.push_back(aNamePt);
+           }
+       }
+       std::cout<<"done!"<<std::endl;
 }
 
 //  ============================= **************** =============================

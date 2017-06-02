@@ -8380,6 +8380,36 @@ std::string  Mangling( cXml_TriAngulationImMaster *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_TriAngulationImMaster_WithPts
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_TriAngulationImMaster_WithPts & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameMaster();
+        const std::string & NameMaster()const ;
+
+        std::vector< std::string > & NameSec();
+        const std::vector< std::string > & NameSec()const ;
+        
+        std::vector< Pt2dr > & Pts();
+        const std::vector<Pt2dr > & Pts()const ;
+
+        std::vector< cXml_Triangle3DForTieP > & Tri();
+        const std::vector< cXml_Triangle3DForTieP > & Tri()const ;
+    private:
+        std::string mNameMaster;
+        std::vector< std::string > mNameSec;
+        std::vector< cXml_Triangle3DForTieP > mTri;
+        std::vector< Pt2dr > mPts;
+};
+
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_MapCam
 {
     public:
