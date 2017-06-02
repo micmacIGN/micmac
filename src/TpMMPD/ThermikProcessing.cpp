@@ -51,7 +51,7 @@ class cThmProc_Appli
 {
 	public :
 		cThmProc_Appli(int argc,char ** argv);
-		void Do2DMatching(std::string aDirectory, std::string aPatImgs, std::string aXmlFile, int aPas);
+		void Do2DMatching(std::string aDirectory, std::string aPatImgs, std::string aXmlFile, int aPas, bool aClean);
 		void DoHomConv(std::string aDirectory, std::string aPatImgs, int aPas);
 		void CalcXYT(std::string aDirectory, std::string aPatImgs, int aDegT, int aDegXY, std::string aKey, std::string aHom, std::string aFileName, std::string aExt, int aPas);
 		std::string GetPatNoMatser(std::vector<std::string> aSetIm, int aPas); //first image is the master image
@@ -59,11 +59,52 @@ class cThmProc_Appli
 		void GenerateXmlAssoc(std::vector<ImgT> aVSIT, std::string aDirectory, std::string aOutFileName, std::string aKey);
 		void CorrImgsFromTemp(std::string aMap, std::string aDirectory, std::string aFileName, std::string aPatImgs, std::string aExt, std::string aOutFolder);
 		std::string GenNameFile(std::vector<ImgT> aVSIT, std::string aNameIm, std::string aPref);
+		void CleanMEC(std::string aName);
 	private :
 		std::string mFullPat;
 		std::string mDir;
 		std::string mPat;
 };
+
+void cThmProc_Appli::CleanMEC(std::string aName)
+{
+	//get the list of folders and files inside
+    std::list<cElFilename> aFiles;
+    std::list<ctPath> aDirectories;
+    
+    ctPath * aPath = new ctPath(aName);
+    aPath->getContent(aFiles,aDirectories,false);
+    
+    std::vector<std::string> aVF2K;
+    std::string aFileMMLN = aName + "/" + "MMLastNuage.xml";
+    aVF2K.push_back(aFileMMLN);
+    
+    std::string aNameFile="";
+    for(std::list<cElFilename>::iterator iT1 = aFiles.begin() ; iT1 != aFiles.end() ; iT1++)
+    {		
+		if((*iT1).str().compare(aFileMMLN) == 0)
+		{
+			cXML_ParamNuage3DMaille aDico = StdGetFromSI((*iT1).str(),XML_ParamNuage3DMaille);
+			aNameFile = aDico.PN3M_Nuage().Image_Profondeur().Val().Image();
+			aVF2K.push_back(aName + "/" + aNameFile);
+		}
+			
+	}
+	
+	std::string aNameFile2 = aNameFile.replace(2,1,"2");
+	aVF2K.push_back(aName + "/" + aNameFile2);
+	
+	ELISE_ASSERT(aVF2K.size() == 3, "There is a problem, need only 3 files ...");
+	
+	
+	for(std::list<cElFilename>::iterator iT1 = aFiles.begin() ; iT1 != aFiles.end() ; iT1++)
+    {
+		if((*iT1).str().compare(aVF2K.at(0)) != 0 &&  (*iT1).str().compare(aVF2K.at(1)) != 0 && (*iT1).str().compare(aVF2K.at(2)) != 0)
+		{
+			ELISE_fp::RmFileIfExist((*iT1).str());
+		}
+	}
+}
 
 std::string cThmProc_Appli::GenNameFile(std::vector<ImgT> aVSIT, std::string aNameIm, std::string aPref)
 {
@@ -223,6 +264,9 @@ std::string cThmProc_Appli::GetPatNoMatser(std::vector<std::string> aSetIm, int 
 			break;
 	}
 	
+	if(aPatNoMaster.substr(aPatNoMaster.size()-1,1).compare("|") == 0)
+		aPatNoMaster.erase(aPatNoMaster.size()-1,1);
+	
 	return aPatNoMaster;
 }
 
@@ -298,7 +342,7 @@ void cThmProc_Appli::DoHomConv(std::string aDirectory, std::string aPatImgs, int
 	}
 }
 
-void cThmProc_Appli::Do2DMatching(std::string aDirectory, std::string aPatImgs, std::string aXmlFile, int aPas)
+void cThmProc_Appli::Do2DMatching(std::string aDirectory, std::string aPatImgs, std::string aXmlFile, int aPas, bool aClean)
 {
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirectory);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
@@ -308,17 +352,25 @@ void cThmProc_Appli::Do2DMatching(std::string aDirectory, std::string aPatImgs, 
     {
 		if(aP<aSetIm.size())
 		{
-			std::string aCom = "MICMAC" + 
-							std::string(" ") + aDirectory +
-							aXmlFile + 
-							std::string(" ") +
-							"+Im1=" + aSetIm.at(0) +
-							std::string(" ") +
-							"+Im2=" + aSetIm.at(aP) + 
-							std::string(" ") + "+PrefDir= +WinExp=false +DilAlt=2";
-		
-			std::cout << "aCom = " << aCom << std::endl;
-			//system_call(aCom.c_str());
+			//do it only if the folder does not exist yet
+			const std::string aName = "MEC--" + aSetIm.at(0) + "-" + aSetIm.at(aP) ;
+			if(!ELISE_fp::IsDirectory(aName))
+			{
+				std::string aCom = "MICMAC" + 
+								std::string(" ") + aDirectory +
+								aXmlFile + 
+								std::string(" ") +
+								"+Im1=" + aSetIm.at(0) +
+								std::string(" ") +
+								"+Im2=" + aSetIm.at(aP) + 
+								std::string(" ") + "+PrefDir= +WinExp=false +DilAlt=2";
+			
+				std::cout << "aCom = " << aCom << std::endl;
+				system_call(aCom.c_str());
+			}
+			//clean all MEC folders to save hard disk space
+			if(aClean)
+				CleanMEC(aName);
 		}
 		else
 			break;
@@ -345,6 +397,8 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 	std::string aFullPatToCorr="";	//pattern of images to correct from temperature after calibration
 	std::string aNameFolder="";
 	int aPas=1;
+	bool aDoMEC=true;
+	bool aClean=true;
 	
 	ElInitArgMain
     (
@@ -364,6 +418,8 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
                      << EAM(aFullPatToCorr,"PatToCorr",false,"pat of imgs to correct from temperature")
                      << EAM(aNameFolder,"OutDir",false,"Name of Directory of corrected images ; Def=CorrTemp_DirName")
                      << EAM(aPas,"Pas",false,"Step between images in 2D matching ; Def=1")
+                     << EAM(aDoMEC,"DoMEC",false,"Do the Matching step ; Def=true")
+                     << EAM(aClean,"Clean",false,"Clean MEC folders to keep only recquired files ; Def=true")
                      
     );
     
@@ -371,7 +427,8 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 	SplitDirAndFile(mDir,mPat,mFullPat);
     
 	//compute all deformation maps by 2D matching
-    Do2DMatching(mDir,mPat,aXml2DM,aPas);
+	if(aDoMEC)
+		Do2DMatching(mDir,mPat,aXml2DM,aPas,aClean);
 
 	//convert all deformation maps to Homol format
 	DoHomConv(mDir,mPat,aPas);
@@ -693,6 +750,8 @@ int DoCmpByImg_main(int argc,char ** argv)
     
     return EXIT_SUCCESS;
 }
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant \C3  la mise en
