@@ -976,10 +976,27 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     return aRes;
 }
 
+//===============================================
+// SimuLib declarations
+//===============================================
+
+int CPP_AddNoiseImage(int,char **);
+const std::vector<cMMCom> & SimuLibAvailableCommands()
+{
+    static std::vector<cMMCom> aRes;
+
+    aRes.push_back(cMMCom("AddNoise", CPP_AddNoiseImage, "Add noise to images"));
+ 
+    return aRes;
+}
+
+
 int SateLib_main(int argc, char ** argv)
 {
-    return GenMain(argc, argv, SateLibAvailableCommands());
+    return GenMain(argc, argv, SimuLibAvailableCommands());
 }
+
+
 
 int SimuLib_Main(int argc, char ** argv)
 {

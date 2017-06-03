@@ -55,8 +55,9 @@ int CmpIm_main(int argc,char ** argv)
      bool aUseXmlFOM = false;
      double   aColDif = 0;
      std::string mXmlG ="";
-	 bool aHisto = false;
-	 bool a16Bit = false;
+     bool aHisto = false;
+     bool a16Bit = false;
+     // bool aFloat = false;
      
 	 ElInitArgMain
      (
@@ -70,7 +71,8 @@ int CmpIm_main(int argc,char ** argv)
                        << EAM(aMulIm2,"Mul2",true,"Multiplier of file2 (Def 1.0)")
                        << EAM(aUseXmlFOM,"UseFOM",true,"Consider file as DTSM and use XML FileOriMnt")
                        << EAM(aColDif,"ColDif",true,"Color file of diff using Red/Blue for sign")
-                       << EAM(a16Bit,"16Bit",true,"Output file in 16bits")
+                       << EAM(a16Bit,"16Bit",true,"Output file in float format !!")
+                       // << EAM(aFloat,"16Bit",true,"Output diff in float")
                        << EAM(mXmlG,"XmlG",true,"Generate Xml")
                        << EAM(aHisto,"Hist",true,"Generate histogram stats")
 	 );

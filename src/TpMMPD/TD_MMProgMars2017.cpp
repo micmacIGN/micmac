@@ -93,7 +93,7 @@ class cPointBascRobust
         }
     
         Pt3dr PIntRand() ;
-        double DistReproj(const Pt3dr & aPLoc,double aMaxEr);
+        double DistReproj(const Pt3dr & aPLoc,double aMaxEr,double Exp);
         void   Finish(double aMaxEr);
 
         std::string                            mNamePt;
@@ -102,6 +102,12 @@ class cPointBascRobust
         std::vector<cImageBasculeRobuste *>    mIms;
         std::vector<Pt2dr >                    mPtIms;
         std::vector<ElSeg3D >                  mSegs;
+        double        mDMaxTer;
+        double        mMoyDTer;
+        double        mDMaxFais;
+        double        mMoyDFais;
+        std::string   mImWortTer;
+        std::string   mImWortFais;
         
 };
 
@@ -138,6 +144,8 @@ class cAppli_BasculeRobuste
        cSolBasculeRig                               mBestSol;
        cSolBasculeRig                               mBestSolInv;
        bool                                         mSIFET;
+       double                                       mExpos;
+       std::string                                  mInPutSol;
 };
 
 
@@ -146,13 +154,14 @@ class cAppli_BasculeRobuste
 /*                cPointBascRobust                  */
 /*                                                  */
 /****************************************************/
-double cPointBascRobust::DistReproj(const Pt3dr & aPLoc,double aMaxEr)
+double cPointBascRobust::DistReproj(const Pt3dr & aPLoc,double aMaxEr,double Exp)
 {
    double aSomRes=0;
    for (int aKI=0 ; aKI< int(mIms.size()) ; aKI++)
    {
        double aD = euclid(mPtIms[aKI],mIms[aKI]->mCam->Ter2Capteur(aPLoc));
        aD = aD / ( 1 + aD/aMaxEr);
+       aD = pow(aD,Exp);
        aSomRes += aD;
    }
 
@@ -167,7 +176,7 @@ void cPointBascRobust::Finish(double aMaxEr)
         for (int aK2=aK1+1 ; aK2<int(mSegs.size()) ; aK2++)
         {
              Pt3dr aP = mSegs[aK1].PseudoInter(mSegs[aK2]);
-             double aD =  DistReproj(aP,aMaxEr);
+             double aD =  DistReproj(aP,aMaxEr,1);
              if (aD<aDMin)
              {
                 aDMin = aD;
@@ -201,7 +210,8 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
      mBestRes      (1e30),
      mBestSol      (cSolBasculeRig::Id()),
      mBestSolInv   (cSolBasculeRig::Id()),
-     mSIFET        (false)
+     mSIFET        (false),
+     mExpos        (1)
 {
     std::string aName2D,aName3D;
 
@@ -216,6 +226,7 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
                     << EAMC(aName2D,"Name of 2D Points"),
         LArgMain()   << EAM(mNbTirage,"NbRan",true,"Number of random")
                      << EAM(mSIFET,"SIFET",true,"Special export for SIFET benchmark")
+                     << EAM(mExpos,"Expos",true,"Exposure for dist, 1->L1, 2->L2 , def=1")
     );
 
 
@@ -289,7 +300,8 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
          }
      }
 
-     for (int aKP= 0 ; aKP<int(mVecPt.size())  ; aKP++)
+     mNbPts = mVecPt.size();
+     for (int aKP= 0 ; aKP<mNbPts  ; aKP++)
      {
           int aNb = mVecPt[aKP]->mSegs.size() -1;
           if (aNb>=0)
@@ -315,42 +327,156 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
 
      // double aMed = 0;
      // Premiere fois pour avoir les stats, deuxieme pour les sortir
-     for (int aNbStep = 0 ; aNbStep<2 ; aNbStep++)
+     Pt3dr aSomEcAbs(0,0,0);
+     Pt3dr aSomEc(0,0,0);
+     int aNbPtsOk=0;
+     for (int aNbStep = 0 ; aNbStep<4 ; aNbStep++)
      {
-         // bool SIFET = false;
-         std::vector<double> aVD;
-         for (int aKP=0 ; aKP<int(mVecPt.size()) ; aKP++)
+         
+         bool aPrintGlob = (aNbStep==1);
+         bool aPrintPt = (aNbStep==2);
+         bool aPrintIm = (aNbStep==3);
+
+         if (aPrintGlob && mNbPts)
          {
-             bool aPrint = (aNbStep!=0);
+             aSomEcAbs = aSomEcAbs / aNbPtsOk;
+             aSomEc    = aSomEc    / aNbPtsOk;
+             fprintf(aFP," ================== Global Stat  ========================== \n");
+             fprintf(aFP," ================== Global Stat  ========================== \n");
+             fprintf(aFP,"   Aver Dif    Bundle/Ter (%lf %lf %lf )\n",aSomEc.x,aSomEc.y,aSomEc.z);
+             fprintf(aFP,"   Aver AbsDif Bundle/Ter (%lf %lf %lf )\n",aSomEcAbs.x,aSomEcAbs.y,aSomEcAbs.z);
+         }
+
+         aSomEcAbs = Pt3dr(0,0,0);
+         aSomEc    = Pt3dr(0,0,0);
+         aNbPtsOk=0;
+         if (aPrintPt)
+         {
+                fprintf(aFP," ================== Stat per point ========================== \n");
+                fprintf(aFP," ================== Stat per point ========================== \n\n");
+                fprintf(aFP,"    ---------------------------------------------- \n");
+                fprintf(aFP,"[NamePt] :  \n");
+                fprintf(aFP,"   Bundle D=Dist(GCP,Bundle) : GCP-Bundle\n");
+                fprintf(aFP,"   Worst ReprojTer ReprojBundle ");
+                fprintf(aFP," ImWorsTer ImWorstBundle \n");
+                fprintf(aFP,"   Aver   ReprojTer ReprojBundle  on NbIma \n");
+                fprintf(aFP,"    ---------------------------------------------- \n");
+         }
+         if (aPrintIm)
+         {
+                fprintf(aFP,"\n ================== Detail per point & image ========================== \n");
+                fprintf(aFP," ================== Detail per point & image ========================== \n\n");
+                fprintf(aFP,"    ---------------------------------------------- \n");
+                fprintf(aFP,"[NamePt] \n");
+                fprintf(aFP,"    | ReprojTer | ReprojBundle | Image\n");
+                fprintf(aFP,"    | ReprojTer | ReprojBundle | Image\n");
+                fprintf(aFP,"    .... \n");
+                fprintf(aFP,"    ---------------------------------------------- \n");
+         }
+         // bool SIFET = false;
+         // std::vector<double> aVD;
+         for (int aKP=0 ; aKP<mNbPts ; aKP++)
+         {
              cPointBascRobust * aPBR = mVecPt[aKP];
-             if (aPrint)
+             int aNbIm = aPBR->mIms.size();
+
+             if (aNbIm>=2)
+             {
+                 aNbPtsOk ++;
+                 Pt3dr aPIntAv = aPBR->mPInter;
+                 Pt3dr aPIntAp =  mBestSolInv(aPIntAv);
+                 Pt3dr anEcart = aPBR->mPTer-aPIntAp;
+                 double aDist = euclid(anEcart);
+                 aSomEc = aSomEc+anEcart;
+                 aSomEcAbs = aSomEcAbs+Pt3dr(ElAbs(anEcart.x),ElAbs(anEcart.y),ElAbs(anEcart.z));
+
+                 if (aPrintPt)
+                 {
+                    if (mSIFET)
+                    {
+                      fprintf(aFP,"%s %.3f %.3f %.3f\n",aPBR->mNamePt.c_str(),aPIntAv.x,aPIntAv.y,aPIntAv.z);
+                    }
+                    else
+                    {
+                       fprintf(aFP,"[%s] :  \n",aPBR->mNamePt.c_str());
+                       fprintf(aFP,"   Bundle, D=%f : (%f %f %f)  \n",
+                            aDist, anEcart.x,anEcart.y,anEcart.z
+                           );
+                       fprintf(aFP,"   Worst %07.3f  %07.3f ",aPBR->mDMaxTer,aPBR->mDMaxFais);
+                       fprintf(aFP," %s  %s \n",aPBR->mImWortTer.c_str(),aPBR->mImWortFais.c_str());
+                       fprintf(aFP,"   Aver  %07.3f  %07.3f on %d \n",aPBR->mMoyDTer,aPBR->mMoyDFais,aNbIm);
+                    }
+                 }
+             }
+             if (aPrintIm && aNbIm)
              {
                 if (!mSIFET) 
-                    fprintf(aFP,"========== Point:%s ====\n",aPBR->mNamePt.c_str());
-                Pt3dr aPIntAv = aPBR->mPInter;
-                Pt3dr aPIntAp =  mBestSolInv(aPIntAv);
-                if (mSIFET) 
-                  fprintf(aFP,"%s %.3f %.3f %.3f\n",aPBR->mNamePt.c_str(),aPIntAv.x,aPIntAv.y,aPIntAv.z);
-                else
-                  fprintf(aFP,"  Faisceau : %.3f %.3f %.3f  => %.3f %.3f %.3f\n",
-                            aPIntAv.x,aPIntAv.y,aPIntAv.z,aPIntAp.x,aPIntAp.y,aPIntAp.z
-                       );
+                {
+                    fprintf(aFP,"[%s]\n",aPBR->mNamePt.c_str());
+                }
              }
                 
-             // double aDMax
-             Pt3dr aPLoc = mBestSol(aPBR->mPTer);
-             for (int aKI=0 ; aKI< int(aPBR->mIms.size()) ; aKI++)
+             if (aNbStep==0)
              {
-                  double aD = euclid(aPBR->mPtIms[aKI],aPBR->mIms[aKI]->mCam->Ter2Capteur(aPLoc));
-                  double aDIm = euclid(aPBR->mPtIms[aKI],aPBR->mIms[aKI]->mCam->Ter2Capteur(aPBR->mPInter));
+                aPBR->mDMaxTer = -1;
+                aPBR->mDMaxFais = -1;
+             }
+             aPBR->mMoyDTer = 0.0;
+             aPBR->mMoyDFais = 0.0;
+             Pt3dr aPLoc = mBestSol(aPBR->mPTer);
+             for (int aKI=0 ; aKI< aNbIm; aKI++)
+             {
+                  double aDTer = euclid(aPBR->mPtIms[aKI],aPBR->mIms[aKI]->mCam->Ter2Capteur(aPLoc));
+                  double aDFais = euclid(aPBR->mPtIms[aKI],aPBR->mIms[aKI]->mCam->Ter2Capteur(aPBR->mPInter));
+                  std::string aNameIm = aPBR->mIms[aKI]->mNameIm;
 
-                  if (aPrint & (!mSIFET))
+                   if (aNbIm==1) aDFais = -1;
+
+                  if (aPrintIm & (!mSIFET))
                   {
-                     std::string aMes = "  ";
-                     fprintf(aFP,"%s | %07.3f | %07.3f | %s\n",aMes.c_str(),aD,aDIm,aPBR->mIms[aKI]->mNameIm.c_str());
+                     std::string aMes = "   ";
+                     if (aNameIm==aPBR->mImWortTer)
+                        aMes[1] = '#';
+                     if (aNameIm==aPBR->mImWortFais)
+                        aMes[2] = '@';
+
+
+                     fprintf(aFP," %s | %07.3f | %07.3f | %s\n",aMes.c_str(),aDTer,aDFais,aNameIm.c_str());
                   }
-                  aVD.push_back(aD);
+                  if (aNbStep==0)
+                  {
+                     if (aPBR->mDMaxTer<aDTer)
+                     {
+                         aPBR->mDMaxTer = aDTer;
+                         aPBR->mImWortTer = aNameIm;
+                     }
+                     if (aPBR->mDMaxFais<aDFais)
+                     {
+                         aPBR->mDMaxFais = aDFais;
+                         aPBR->mImWortFais = aNameIm;
+                     }
+                  }
+
+                  aPBR->mMoyDTer += aDTer;
+                  aPBR->mMoyDFais += aDFais;
               }
+
+              if (aNbIm>=2)
+              {
+                 aPBR->mMoyDFais /= (aNbIm-1);
+              }
+              else
+              {
+                  aPBR->mMoyDFais  = -1;
+                  aPBR->mDMaxFais  = -1;
+              }
+
+              if (aNbIm>=1)
+              {
+                 aPBR->mMoyDTer /= aNbIm;
+              }
+              
+              
           }
           // aMed = MedianeSup(aVD);
      }
@@ -390,7 +516,7 @@ bool cAppli_BasculeRobuste::DoOneTirage()
    {
        cPointBascRobust * aPBR = mVecPt[aKP];
        Pt3dr aPLoc = aTer2Loc(aPBR->mPTer);
-       aSomRes += aPBR->DistReproj(aPLoc,mMaxEr);
+       aSomRes += aPBR->DistReproj(aPLoc,mMaxEr,mExpos);
        aNbRes += aPBR->mIms.size();
    }
 

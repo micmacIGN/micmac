@@ -39,7 +39,69 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+class cAppli_AddNoiseImage
+{
+   public :
+     std::string mNameIn;
+     std::string mNameOut;
+     double      mNoise; 
+     double      mPivot; // En cas de chgt de dyn
+     Pt2di       mSz;
+     bool        mResFloat;
 
+cAppli_AddNoiseImage(int argc,char **argv) :
+    mPivot (128),
+    mResFloat (false)
+{
+   ElInitArgMain
+   (
+       argc,argv,
+       LArgMain()  << EAMC(mNameIn, "Image", eSAM_IsExistFile)
+                   << EAMC(mNoise, "Basic uncorrelated noise"),
+       LArgMain()  << EAM(mNameOut,"Out",true)
+                   << EAM(mPivot,"Pivot",true,"Pivot level when chang dyn")
+                   << EAM(mResFloat,"Float",true,"If true generate float image (def maintain type)")
+   );
+
+   Tiff_Im aTifIn = Tiff_Im::StdConvGen(mNameIn,-1,true);
+   mSz = aTifIn.sz();
+
+   if (! EAMIsInit(&mNameOut))
+      mNameOut = "Noised-" + StdPrefix(mNameIn) + ".tif";
+
+
+   GenIm::type_el aTypeEl = mResFloat ? GenIm::real4 : aTifIn.type_el() ;
+   
+   Tiff_Im aTifOut
+           ( 
+              mNameOut.c_str(),
+              mSz,
+              aTypeEl,
+              Tiff_Im::No_Compr,
+              aTifIn.phot_interp()
+           );
+
+   Fonc_Num aRes = aTifIn.in();
+   aRes = aRes +  mNoise *frandr();
+   aRes = Tronque(aTypeEl,aRes);
+
+   ELISE_COPY
+   (
+        aTifOut.all_pts(),
+        aRes,
+        aTifOut.out()
+   );
+
+};
+
+};
+
+int CPP_AddNoiseImage(int argc,char ** argv)
+{
+   cAppli_AddNoiseImage anAppli(argc,argv);
+
+   return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
