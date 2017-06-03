@@ -10,9 +10,11 @@ cImgForTiepTri::cImgForTiepTri(cAppliTaskCorrel * anAppli, string aNameIm, int a
     mCamSten (mCamGen->DownCastCS()),
     mTif    (Tiff_Im::UnivConvStd(mAppli->Dir() + aNameIm)),
     mSz     (round_ni(mCamGen->SzPixel())),
-    mName   (aNameIm)
+    mName   (aNameIm),
+    mImgWithGCP (false)
 {
     mTask.NameMaster() = aNameIm;
+    mTaskWithGCP.NameMaster() = aNameIm;
 }
 
 
