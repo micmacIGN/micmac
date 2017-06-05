@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1795]) = {
+const char * (theNameVar_ParamApero[1797]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1097,6 +1097,8 @@ const char * (theNameVar_ParamApero[1795]) = {
 "\n",
 "                          <ModeBascule Nb=\"1\" UnionType=\"true\">\n",
 "                               <BasculeOnPoints Nb=\"?\">\n",
+"                             <!-- Permet de forcer a partir d'une solution existante stockee dans un xml -->\n",
+"                                   <ForceSol Nb=\"?\" Type=\"std::string\"> </ForceSol>\n",
 "                          <!-- Si elle donnee, elle force le centre et tout les triplets\n",
 "                              le contiennent\n",
 "                          -->\n",

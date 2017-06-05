@@ -1095,6 +1095,8 @@ normalises en echelle et/ou en translation -->
 
                           <ModeBascule Nb="1" UnionType="true">
                                <BasculeOnPoints Nb="?">
+                             <!-- Permet de forcer a partir d'une solution existante stockee dans un xml -->
+                                   <ForceSol Nb="?" Type="std::string"> </ForceSol>
                           <!-- Si elle donnee, elle force le centre et tout les triplets
                               le contiennent
                           -->

@@ -12282,6 +12282,17 @@ void xml_init(cAerialDeformNonLin & anObj,cElXMLTree * aTree)
 std::string  Mangling( cAerialDeformNonLin *) {return "D4BF4C04AB361D9AFDBF";};
 
 
+cTplValGesInit< std::string > & cBasculeOnPoints::ForceSol()
+{
+   return mForceSol;
+}
+
+const cTplValGesInit< std::string > & cBasculeOnPoints::ForceSol()const 
+{
+   return mForceSol;
+}
+
+
 cTplValGesInit< std::string > & cBasculeOnPoints::PoseCentrale()
 {
    return BascOnCentre().Val().PoseCentrale();
@@ -12374,6 +12385,14 @@ void  BinaryUnDumpFromFile(cBasculeOnPoints & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.ForceSol().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ForceSol().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ForceSol().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.BascOnCentre().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.BascOnCentre().ValForcedForUnUmp(),aFp);
         }
@@ -12415,6 +12434,8 @@ void  BinaryUnDumpFromFile(cBasculeOnPoints & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cBasculeOnPoints & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.ForceSol().IsInit());
+    if (anObj.ForceSol().IsInit()) BinaryDumpInFile(aFp,anObj.ForceSol().Val());
     BinaryDumpInFile(aFp,anObj.BascOnCentre().IsInit());
     if (anObj.BascOnCentre().IsInit()) BinaryDumpInFile(aFp,anObj.BascOnCentre().Val());
     BinaryDumpInFile(aFp,anObj.BascOnAppuis().IsInit());
@@ -12431,6 +12452,8 @@ cElXMLTree * ToXMLTree(const cBasculeOnPoints & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"BasculeOnPoints",eXMLBranche);
+   if (anObj.ForceSol().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ForceSol"),anObj.ForceSol().Val())->ReTagThis("ForceSol"));
    if (anObj.BascOnCentre().IsInit())
       aRes->AddFils(ToXMLTree(anObj.BascOnCentre().Val())->ReTagThis("BascOnCentre"));
    if (anObj.BascOnAppuis().IsInit())
@@ -12451,6 +12474,8 @@ void xml_init(cBasculeOnPoints & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.ForceSol(),aTree->Get("ForceSol",1)); //tototo 
+
    xml_init(anObj.BascOnCentre(),aTree->Get("BascOnCentre",1)); //tototo 
 
    xml_init(anObj.BascOnAppuis(),aTree->Get("BascOnAppuis",1)); //tototo 
@@ -12462,7 +12487,7 @@ void xml_init(cBasculeOnPoints & anObj,cElXMLTree * aTree)
    xml_init(anObj.NameExport(),aTree->Get("NameExport",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOnPoints *) {return "4E0E77CDD386EDD2FF3F";};
+std::string  Mangling( cBasculeOnPoints *) {return "683665DEB4CC67BFFBBF";};
 
 
 cTplValGesInit< double > & cOrientInPlane::DistFixEch()
@@ -12653,6 +12678,17 @@ void xml_init(cBasculeLiaisonOnPlan & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cBasculeLiaisonOnPlan *) {return "FE56783381A4FFB0FDBF";};
+
+
+cTplValGesInit< std::string > & cModeBascule::ForceSol()
+{
+   return BasculeOnPoints().Val().ForceSol();
+}
+
+const cTplValGesInit< std::string > & cModeBascule::ForceSol()const 
+{
+   return BasculeOnPoints().Val().ForceSol();
+}
 
 
 cTplValGesInit< std::string > & cModeBascule::PoseCentrale()
@@ -12870,7 +12906,7 @@ void xml_init(cModeBascule & anObj,cElXMLTree * aTree)
    xml_init(anObj.BasculeLiaisonOnPlan(),aTree->Get("BasculeLiaisonOnPlan",1)); //tototo 
 }
 
-std::string  Mangling( cModeBascule *) {return "DE911B2D3F248AD1FE3F";};
+std::string  Mangling( cModeBascule *) {return "6E1B1B71C87743E2FE3F";};
 
 
 cTplValGesInit< bool > & cBasculeOrientation::AfterCompens()
@@ -12925,6 +12961,17 @@ cTplValGesInit< std::string > & cBasculeOrientation::FileExportInv()
 const cTplValGesInit< std::string > & cBasculeOrientation::FileExportInv()const 
 {
    return mFileExportInv;
+}
+
+
+cTplValGesInit< std::string > & cBasculeOrientation::ForceSol()
+{
+   return ModeBascule().BasculeOnPoints().Val().ForceSol();
+}
+
+const cTplValGesInit< std::string > & cBasculeOrientation::ForceSol()const 
+{
+   return ModeBascule().BasculeOnPoints().Val().ForceSol();
 }
 
 
@@ -13201,7 +13248,7 @@ void xml_init(cBasculeOrientation & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModeBascule(),aTree->Get("ModeBascule",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOrientation *) {return "D7D57E0DD121ADD5FD3F";};
+std::string  Mangling( cBasculeOrientation *) {return "B2E551D70C6F24ABFE3F";};
 
 
 std::vector< cAperoPointeStereo > & cStereoFE::HomFE()
@@ -15828,6 +15875,17 @@ const cTplValGesInit< std::string > & cIterationsCompensation::FileExportInv()co
 }
 
 
+cTplValGesInit< std::string > & cIterationsCompensation::ForceSol()
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().ForceSol();
+}
+
+const cTplValGesInit< std::string > & cIterationsCompensation::ForceSol()const 
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().ForceSol();
+}
+
+
 cTplValGesInit< std::string > & cIterationsCompensation::PoseCentrale()
 {
    return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().PoseCentrale();
@@ -16820,7 +16878,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.TestInteractif(),aTree->Get("TestInteractif",1)); //tototo 
 }
 
-std::string  Mangling( cIterationsCompensation *) {return "98E338197BDCB89AFF3F";};
+std::string  Mangling( cIterationsCompensation *) {return "165B7B22503903E9FE3F";};
 
 
 std::string & cTraceCpleHom::Id()
@@ -25220,7 +25278,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "B5CC8956A868A7EFFE3F";};
+std::string  Mangling( cEtapeCompensation *) {return "9744DE84B80EC0B0FC3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -25279,7 +25337,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "4C6CC8C5B56855A0FDBF";};
+std::string  Mangling( cSectionCompensation *) {return "A0A32840C992298EFDBF";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -26356,7 +26414,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "EA1E55831A5628F5FE3F";};
+std::string  Mangling( cParamApero *) {return "D65692876C3694A0FF3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

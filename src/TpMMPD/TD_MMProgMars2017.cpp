@@ -74,12 +74,20 @@ class cImageBasculeRobuste
              cBasicGeomCap3D *    aCam
         ) :
           mNameIm (aNameIm),
-          mCam    (aCam)
+          mCam    (aCam),
+          mCamS   (aCam->DownCastCS()),
+          mRA     (mCam->ResolutionAngulaire()),
+          mC      (mCamS ? mCamS->PseudoOpticalCenter() : Pt3dr(0,0,0) )
+          // mP1     (mCam->ImEtProf2Terrain(
         {
         }
 
         std::string         mNameIm;
         cBasicGeomCap3D *   mCam;
+        CamStenope *        mCamS;
+        double              mRA;
+        Pt3dr               mC;
+        Pt3dr               mP1;
 };
 
 
@@ -102,6 +110,7 @@ class cPointBascRobust
         std::vector<cImageBasculeRobuste *>    mIms;
         std::vector<Pt2dr >                    mPtIms;
         std::vector<ElSeg3D >                  mSegs;
+        std::vector<Pt3dr >                    mTgtN;
         double        mDMaxTer;
         double        mMoyDTer;
         double        mDMaxFais;
@@ -146,6 +155,8 @@ class cAppli_BasculeRobuste
        bool                                         mSIFET;
        double                                       mExpos;
        std::string                                  mInPutSol;
+       std::string                                  mOut;
+       double                                       mRatioAlertB;
 };
 
 
@@ -159,8 +170,11 @@ double cPointBascRobust::DistReproj(const Pt3dr & aPLoc,double aMaxEr,double Exp
    double aSomRes=0;
    for (int aKI=0 ; aKI< int(mIms.size()) ; aKI++)
    {
-       double aD = euclid(mPtIms[aKI],mIms[aKI]->mCam->Ter2Capteur(aPLoc));
-       aD = aD / ( 1 + aD/aMaxEr);
+       // double aDStd = euclid(mPtIms[aKI],mIms[aKI]->mCam->Ter2Capteur(aPLoc));
+       double aD3 = euclid(vunit(aPLoc-mIms[aKI]->mC)-mTgtN[aKI]) /  mIms[aKI]->mRA;
+
+       double aD = aD3; // Ou DStd, au choix
+       aD = aD *aMaxEr /(aD +aMaxEr);
        aD = pow(aD,Exp);
        aSomRes += aD;
    }
@@ -206,12 +220,14 @@ Pt3dr cPointBascRobust::PIntRand()
 /****************************************************/
 
 cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
-     mNbTirage     (1000),
+     mMaxEr        (10),
+     mNbTirage     (30000),
      mBestRes      (1e30),
      mBestSol      (cSolBasculeRig::Id()),
      mBestSolInv   (cSolBasculeRig::Id()),
      mSIFET        (false),
-     mExpos        (1)
+     mExpos        (1),
+     mRatioAlertB  (3)
 {
     std::string aName2D,aName3D;
 
@@ -221,12 +237,14 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
         LArgMain()  
                     << EAMC(mPatIm,"Pattern of images")
                     << EAMC(mOri,"Orientation")
-                    << EAMC(mMaxEr,"Typical max error image reprojecstion")
                     << EAMC(aName3D,"Name of 3D Point")
                     << EAMC(aName2D,"Name of 2D Points"),
-        LArgMain()   << EAM(mNbTirage,"NbRan",true,"Number of random")
+        LArgMain()   << EAM(mNbTirage,"NbRan",true,"Number of random, Def=30000")
                      << EAM(mSIFET,"SIFET",true,"Special export for SIFET benchmark")
                      << EAM(mExpos,"Expos",true,"Exposure for dist, 1->L1, 2->L2 , def=1")
+                     << EAM(mOut,"Out",true,"Export computed orientation, Def=BAR+${-Orientation}")
+                     << EAM(mRatioAlertB,"RatioAlertB",true,"Ratio of alert for bundle reproj (Def=3)")
+                     << EAM(mMaxEr,"MaxEr",true,"Typical max error image reprojecstion,Def=10")
     );
 
 
@@ -295,6 +313,7 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
                     aPtBR->mPtIms.push_back(itM->PtIm());
                     aPtBR->mIms.push_back(aImBR);
                     aPtBR->mSegs.push_back(aImBR->mCam->Capteur2RayTer(itM->PtIm()));
+                    aPtBR->mTgtN.push_back(aPtBR->mSegs.back().TgNormee());
                 }
              }
          }
@@ -330,6 +349,10 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
      Pt3dr aSomEcAbs(0,0,0);
      Pt3dr aSomEc(0,0,0);
      int aNbPtsOk=0;
+
+     cPointBascRobust * aPMaxReprojTer = 0;
+     cPointBascRobust * aPMaxReprojBun = 0;
+     double aDistMedBun=0;
      for (int aNbStep = 0 ; aNbStep<4 ; aNbStep++)
      {
          
@@ -345,6 +368,18 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
              fprintf(aFP," ================== Global Stat  ========================== \n");
              fprintf(aFP,"   Aver Dif    Bundle/Ter (%lf %lf %lf )\n",aSomEc.x,aSomEc.y,aSomEc.z);
              fprintf(aFP,"   Aver AbsDif Bundle/Ter (%lf %lf %lf )\n",aSomEcAbs.x,aSomEcAbs.y,aSomEcAbs.z);
+          if (aPMaxReprojTer)
+             fprintf(aFP,"   Worst reproj Ter   %lf for pt %s on image %s\n",
+                          aPMaxReprojTer->mDMaxTer,
+                          aPMaxReprojTer->mNamePt.c_str(),
+                          aPMaxReprojTer->mImWortTer.c_str()
+             );
+          if (aPMaxReprojBun)
+             fprintf(aFP,"   Worst reproj Bundle %lf for pt %s on image %s\n",
+                          aPMaxReprojBun->mDMaxFais,
+                          aPMaxReprojBun->mNamePt.c_str(),
+                          aPMaxReprojBun->mImWortTer.c_str()
+             );
          }
 
          aSomEcAbs = Pt3dr(0,0,0);
@@ -352,11 +387,11 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
          aNbPtsOk=0;
          if (aPrintPt)
          {
-                fprintf(aFP," ================== Stat per point ========================== \n");
+              fprintf(aFP,"\n ================== Stat per point ========================== \n");
                 fprintf(aFP," ================== Stat per point ========================== \n\n");
                 fprintf(aFP,"    ---------------------------------------------- \n");
                 fprintf(aFP,"[NamePt] :  \n");
-                fprintf(aFP,"   Bundle D=Dist(GCP,Bundle) : GCP-Bundle\n");
+                fprintf(aFP,"   D=Dist(GCP,Bundle) : GCP-Bundle\n");
                 fprintf(aFP,"   Worst ReprojTer ReprojBundle ");
                 fprintf(aFP," ImWorsTer ImWorstBundle \n");
                 fprintf(aFP,"   Aver   ReprojTer ReprojBundle  on NbIma \n");
@@ -374,7 +409,7 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
                 fprintf(aFP,"    ---------------------------------------------- \n");
          }
          // bool SIFET = false;
-         // std::vector<double> aVD;
+         std::vector<double> aVDIstBund;
          for (int aKP=0 ; aKP<mNbPts ; aKP++)
          {
              cPointBascRobust * aPBR = mVecPt[aKP];
@@ -399,7 +434,7 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
                     else
                     {
                        fprintf(aFP,"[%s] :  \n",aPBR->mNamePt.c_str());
-                       fprintf(aFP,"   Bundle, D=%f : (%f %f %f)  \n",
+                       fprintf(aFP,"   D=%f : (%f %f %f)  \n",
                             aDist, anEcart.x,anEcart.y,anEcart.z
                            );
                        fprintf(aFP,"   Worst %07.3f  %07.3f ",aPBR->mDMaxTer,aPBR->mDMaxFais);
@@ -428,17 +463,20 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
              {
                   double aDTer = euclid(aPBR->mPtIms[aKI],aPBR->mIms[aKI]->mCam->Ter2Capteur(aPLoc));
                   double aDFais = euclid(aPBR->mPtIms[aKI],aPBR->mIms[aKI]->mCam->Ter2Capteur(aPBR->mPInter));
+                  aVDIstBund.push_back(aDFais);
                   std::string aNameIm = aPBR->mIms[aKI]->mNameIm;
 
                    if (aNbIm==1) aDFais = -1;
 
                   if (aPrintIm & (!mSIFET))
                   {
-                     std::string aMes = "   ";
+                     std::string aMes = "    ";
                      if (aNameIm==aPBR->mImWortTer)
                         aMes[1] = '#';
                      if (aNameIm==aPBR->mImWortFais)
                         aMes[2] = '@';
+                     if (aDFais > aDistMedBun * mRatioAlertB)
+                        aMes[3] = '+';
 
 
                      fprintf(aFP," %s | %07.3f | %07.3f | %s\n",aMes.c_str(),aDTer,aDFais,aNameIm.c_str());
@@ -461,6 +499,14 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
                   aPBR->mMoyDFais += aDFais;
               }
 
+              if (aNbStep==0)
+              {
+                 if ((aPMaxReprojTer==0)  || (aPMaxReprojTer->mDMaxTer < aPBR->mDMaxTer))
+                    aPMaxReprojTer =  aPBR;
+                 if ((aPMaxReprojBun==0)  || (aPMaxReprojBun->mDMaxFais < aPBR->mDMaxFais))
+                    aPMaxReprojBun =  aPBR;
+              }
+
               if (aNbIm>=2)
               {
                  aPBR->mMoyDFais /= (aNbIm-1);
@@ -478,11 +524,29 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
               
               
           }
-          // aMed = MedianeSup(aVD);
+          if (aVDIstBund.size())
+             aDistMedBun = MedianeSup(aVDIstBund);
      }
 
 
      fclose(aFP);
+
+     {
+        if (! EAMIsInit(&mOut))
+           mOut = "BAR_"+ mOri;
+
+        std::string aNameBasc = "Basc-"+  mOri  +"-2-"+ mOut + ".xml";
+        MakeFileXML(EL2Xml(mBestSolInv),aNameBasc);
+
+        std::string aComBasc = MM3dBinFile_quotes("GCPBascule")
+                                + " " + QUOTE( mPatIm)
+                                + " " + mOri
+                                + " " + mOut
+                                + " " + aName3D
+                                + " " + aName2D
+                                + " ForceSol=" +aNameBasc;
+        System(aComBasc);
+     }
 }
 
 
