@@ -982,6 +982,12 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     return aRes;
 }
 
+int SateLib_main(int argc, char ** argv)
+{
+    return GenMain(argc, argv, SateLibAvailableCommands());
+}
+
+
 //===============================================
 // SimuLib declarations
 //===============================================
@@ -997,10 +1003,6 @@ const std::vector<cMMCom> & SimuLibAvailableCommands()
 }
 
 
-int SateLib_main(int argc, char ** argv)
-{
-    return GenMain(argc, argv, SimuLibAvailableCommands());
-}
 
 
 
