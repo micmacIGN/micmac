@@ -397,6 +397,11 @@ std::string  cASAMG::ExportMiseAuPoint()
         aComPly  = aComPly + " Offs=" + ToString(mAppli->OffsetPly());
     }
 
+    if (mAppli->Export64BPly())
+    {
+	aComPly = aComPly + " 64B=1";
+    }
+
     if (mAppli->SzNormale() >0)
     {
          aComPly =    aComPly 
