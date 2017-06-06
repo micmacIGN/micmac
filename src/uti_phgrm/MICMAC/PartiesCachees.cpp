@@ -1385,13 +1385,10 @@ void cAppliMICMAC::MakePartiesCachees()
              aCpt++;
           }
       }
-	std::cout << __FILE__<<" : "<<__LINE__<<std::endl;
       if (aGPC.MakeOrthoParImage().IsInit())
       {
-	std::cout << "aGPC.MakeOrthoParImage().IsInit() : true"<<std::endl;
          for (int aKP=0 ; aKP<aNbP ; aKP++)
          {
-		std::cout << "aKP="<<aKP<<" / "<<aNbP<<std::endl;
              cMakeOrthoParImage aMOPI = aGPC.MakeOrthoParImage().Val();
              std::string aPref=ToString(aKP) + "-";
              std::string aDirOrtho = mICNM->Dir()+aMOPI.DirOrtho().Val();
@@ -1399,41 +1396,28 @@ void cAppliMICMAC::MakePartiesCachees()
              std::string aNameMTDOut = aDirOrtho+ aMOPI.FileMTD().Val();
              std::string aNameTFWIn = StdPrefix(aNameMTDIn) + ".tfw";
              std::string aNameTFWOut = StdPrefix(aNameMTDOut) + ".tfw";
-		std::cout << "aMOPI : " <<aMOPI<<std::endl;
-		std::cout << "aDirOrtho : "<<aDirOrtho<<std::endl;
-		std::cout << "aNameMTDIn : "<<aNameMTDIn<<std::endl;
-		std::cout << "aNameMTDOut : "<<aNameMTDOut<<std::endl;
-		std::cout << "aNameTFWIn : "<<aNameTFWIn<<std::endl;
-		std::cout << "aNameTFWOut : "<<aNameTFWOut<<std::endl;
 
              if (ELISE_fp::exist_file(aNameMTDIn)) 
              {
-		std::cout << "ELISE_fp::exist_file(aNameMTDIn) : true"<<std::endl;
                 ELISE_fp::MvFile(aNameMTDIn,aNameMTDOut);
              }
              if (ELISE_fp::exist_file(aNameTFWIn)) 
              {
-		std::cout << "ELISE_fp::exist_file(aNameTFWIn) : true"<<std::endl;
                 ELISE_fp::MvFile(aNameTFWIn,aNameTFWOut);
              }
 
              if (aMOPI.MakeMTDMaskOrtho().IsInit())
              {
-		std::cout << "aMOPI.MakeMTDMaskOrtho().IsInit() : true"<<std::endl;
                  const cMakeMTDMaskOrtho & aMMMO = aMOPI.MakeMTDMaskOrtho().Val();
                  std::string aNameMaskIn = aDirOrtho+ aPref+aMMMO.NameFileSauv().Val();
                  std::string aNameMaskOut = aDirOrtho+ aMMMO.NameFileSauv().Val();
-		std::cout << "aNameMaskIn : "<<aNameMaskIn<<std::endl;
-		std::cout << "aNameMaskOut : "<<aNameMaskOut<<std::endl;
                  if (ELISE_fp::exist_file(aNameMaskIn)) 
                  {
-			std::cout << "ELISE_fp::exist_file(aNameMaskIn) : true"<<std::endl;
                     ELISE_fp::MvFile(aNameMaskIn,aNameMaskOut);
                  }
              }
          }
       }
-	std::cout << __FILE__<<" : "<<__LINE__<<std::endl;
    }
 }
 
