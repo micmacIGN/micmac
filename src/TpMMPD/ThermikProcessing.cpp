@@ -480,7 +480,8 @@ int CalcPatByAspro_main(int argc,char ** argv)
 	std::string aImgsMesPat="";
 	std::string aPatFiles="";
 	Pt2di aInd(0,0);
-	
+	bool aShow=false;
+	bool aDoComp=true;
 	
 	ElInitArgMain
     (
@@ -490,6 +491,8 @@ int CalcPatByAspro_main(int argc,char ** argv)
 					 << EAMC(aGCPsFile,"Input GCP file")
 					 << EAMC(aImgsMesPat,"Pattern of Image Measures Files"),
           LArgMain() << EAM(aInd,"Ind",false,"Ind : [start;end] to check xml file & Img Name")
+					 << EAM(aShow,"Show",false,"Show Number of GCPs per image ; Def=false")
+					 << EAM(aDoComp,"DoComp",false,"Do Aspro ; Def=true")
     );
     
     SplitDirAndFile(aDir,aPatImgs,aFullPat);
@@ -501,39 +504,55 @@ int CalcPatByAspro_main(int argc,char ** argv)
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
     const std::vector<std::string> aSetFiles = *(aICNM->Get(aPatFiles));
     
-    if(aSetIm.size() != aSetFiles.size() && aInd.x==0 && aInd.y==0)
-	{
-		ELISE_ASSERT(false, "ERROR: Pat of Imgs & Pat for Img Measure File can't be different !");
-	}
-	else
-	{
-    
-		for(unsigned int aP=0; aP<aSetIm.size(); aP++)
+    if(aShow)
+    {
+		for(unsigned int aN=0; aN<aSetFiles.size(); aN++)
 		{
-			  for(unsigned int aK=0; aK<aSetFiles.size(); aK++)
-			  {
-				  //std::cout << "aSetFiles.at(aK).substr(aInd.x,aInd.y) = " << aSetFiles.at(aK).substr(aInd.x,aInd.y-aInd.x) << std::endl;
-				  if(aSetIm.at(aP).compare(aSetFiles.at(aK).substr(aInd.x,aInd.y-aInd.x)) == 0)
-				  {
-						//std::cout << " Partie 1 = " << aSetIm.at(aP) << std::endl;
-						//std::cout << " Partie 2 = " << aSetFiles.at(aK).substr(aInd.x,aInd.y-aInd.x) << std::endl;
-					  
-						std::string aCom = MM3dBinFile_quotes("Apero")
-									+ " " + XML_MM_File("Apero-GCP-Init.xml")
-									+ " DirectoryChantier=" + aDir
-									+ " +PatternAllIm=" + aSetIm.at(aP)
-									+ " +CalibIn="      + aOriCalib
-									+ " +AeroOut=Aspro"
-									+ " +DicoApp="  + aGCPsFile
-									+ " +SaisieIm=" + aSetFiles.at(aK);
-
-						std::cout << "aCom = " << aCom << std::endl;
-						system_call(aCom.c_str());
-				  }
-			  }
+			cSetOfMesureAppuisFlottants aDico1 = StdGetFromPCP(aSetFiles[aN],SetOfMesureAppuisFlottants);
+			std::list<cMesureAppuiFlottant1Im> & aLMAF1 = aDico1.MesureAppuiFlottant1Im();
+			for(std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF1.begin() ; iT1 != aLMAF1.end() ; iT1++)
+			{
+				if(iT1->NameIm().compare(aSetIm[aN]) == 0)
+				{
+					std::list<cOneMesureAF1I> & aMes1 = iT1->OneMesureAF1I();
+					std::cout << "Number of GCP for image : " << aSetIm[aN] << " = " << aMes1.size() << std::endl;
+				}
+			}
 		}
 	}
-    
+	
+	if(aDoComp)
+	{
+		if(aSetIm.size() != aSetFiles.size() && aInd.x==0 && aInd.y==0)
+		{
+			ELISE_ASSERT(false, "ERROR: Pat of Imgs & Pat for Img Measure File can't be different !");
+		}
+		else
+		{
+		
+			for(unsigned int aP=0; aP<aSetIm.size(); aP++)
+			{
+				  for(unsigned int aK=0; aK<aSetFiles.size(); aK++)
+				  {
+					  if(aSetIm.at(aP).compare(aSetFiles.at(aK).substr(aInd.x,aInd.y-aInd.x)) == 0)
+					  {
+
+							std::string aCom = MM3dBinFile_quotes("Apero")
+										+ " " + XML_MM_File("Apero-GCP-Init.xml")
+										+ " DirectoryChantier=" + aDir
+										+ " +PatternAllIm=" + aSetIm.at(aP)
+										+ " +CalibIn="      + aOriCalib
+										+ " +AeroOut=Aspro"
+										+ " +DicoApp="  + aGCPsFile
+										+ " +SaisieIm=" + aSetFiles.at(aK);
+
+							std::cout << "aCom = " << aCom << std::endl;
+							system_call(aCom.c_str());
+					  }
+				  }
+			}
+		}
+    }
     return EXIT_SUCCESS;
 }
 //----------------------------------------------------------------------------
