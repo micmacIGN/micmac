@@ -401,6 +401,10 @@ std::string  cASAMG::ExportMiseAuPoint()
     {
 	aComPly = aComPly + " 64B=1";
     }
+    else
+    {
+	aComPly = aComPly + " 64B=0";
+    }
 
     if (mAppli->SzNormale() >0)
     {

@@ -565,6 +565,15 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
    {
         mComNuageMerge = mComNuageMerge + " OffsetPly=" + ToString(mOffsetPly);
    }
+	
+   if (DoublePrec)
+   {
+       mComNuageMerge = mComNuageMerge + " 64B=true";
+   }
+   else
+   {
+      mComNuageMerge = mComNuageMerge + " 64B=false";
+   }
 
    std::string aPatPly = "Nuage-Merge-" +mPat + ".*.ply";
 
