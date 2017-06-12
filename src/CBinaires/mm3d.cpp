@@ -563,6 +563,7 @@ extern int TD_Match2_main(int argc,char ** argv);
 extern int TD_Match3_main(int argc,char ** argv);
 extern int TestER_main(int argc,char ** argv);
 extern int TestER_grille_main(int argc,char ** argv);
+extern int TestER_filtRec_main(int argc,char ** argv);
 extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
@@ -621,7 +622,7 @@ int CheckOneOrient_main(int argc,char ** argv);
 int CheckAllOrient_main(int argc,char ** argv);
 int ChekBigTiff_main(int,char**);
 int GenTriplet_main(int argc,char ** argv);
-
+int CalcPatByAspro_main(int argc,char ** argv);
 int CPP_GenOneHomFloat(int argc,char ** argv);
 int CPP_GenAllHomFloat(int argc,char ** argv);
 int CPP_GenOneImP3(int argc,char ** argv);
@@ -629,12 +630,12 @@ int CPP_GenAllImP3(int argc,char ** argv);
 int CPP_OptimTriplet_main(int argc,char ** argv);
 int CPP_AllOptimTriplet_main(int argc,char ** argv);
 int CPP_NewSolGolInit_main(int argc, char ** argv);
-
+int GenOriFromOnePose_main(int argc,char ** argv);
 int CPP_NewGenTriOfCple(int argc, char ** argv);
 int CPP_TestBundleGen(int argc,char ** argv)   ;
 int PlyGCP_main(int argc,char ** argv);
-
-
+int CmpMAF_main(int argc,char ** argv);
+int DoCmpByImg_main(int argc,char ** argv);
 
 int SysCalled_main (int argc,char** argv);
 int SysCall_main (int argc,char** argv);
@@ -678,6 +679,8 @@ int TiepTriPrl_main(int argc,char ** argv);
 int TiepTri_Main(int argc,char ** argv);
 
 int TaskCorrel_main(int argc,char ** argv);
+
+int TaskCorrelWithPts_main(int argc,char ** argv);
 
 int FAST_main(int argc,char ** argv);
 
@@ -752,7 +755,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
        aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
-       aRes.push_back(cMMCom("TestER",TestCmpIm_Ewelina,"ER test workplace"));
+       aRes.push_back(cMMCom("TestER",TestER_filtRec_main,"ER test workplace"));
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
@@ -768,14 +771,14 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 #if (ELISE_UNIX)
        aRes.push_back(cMMCom("DocIntroanalyse",DocEx_Introanalyse_main,"Introduction to image analysis from DocElise  "));
 #endif
-       aRes.push_back(cMMCom("VCE",VisuCoupeEpip_main,"Visualization of epipolar pair (cut)  "));
-       aRes.push_back(cMMCom("RIE",ReechInvEpip_main,"Visualization of epipolar pair (cut)  "));
-
-       aRes.push_back(cMMCom("MCI",ExoMCI_main,"Exercise for multi correlation in image geometry  "));
-       aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercise for correlation in epipolar "));
-       aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation  "));
-       aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
-       
+       aRes.push_back(cMMCom("VCE",VisuCoupeEpip_main,"Visualization of epipolar pair (cut)"));
+       aRes.push_back(cMMCom("RIE",ReechInvEpip_main,"Visualization of epipolar pair (cut)"));
+	   aRes.push_back(cMMCom("DoCmpByImg",DoCmpByImg_main,"Compensate Image By Image (Space Resection Mode)"));
+       aRes.push_back(cMMCom("MCI",ExoMCI_main,"Exercise for multi correlation in image geometry"));
+       aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercise for correlation in epipolar"));
+       aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation"));
+       aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher"));
+       aRes.push_back(cMMCom("CmpMAF",CmpMAF_main,"Compare 2 file of Image Measures",cArgLogCom(2)));
        aRes.push_back(cMMCom("ProjImPtOnOtherImages",ProjImPtOnOtherImages_main," Project image points on other images"));
 	   aRes.push_back(cMMCom("ThermikProc",ThermikProc_main,"Full Process of Thermik Workflow Images",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("MatchImTM",MatchinImgTM_main,"Matching a Pattern of Images with a GPS TimeMark File",cArgLogCom(2)));
@@ -811,11 +814,11 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("CleanHomByBH",cleanHomolByBsurH_main,"Clean Homolgues points between images based on BsurHvalues",cArgLogCom(2)));
        aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
        aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
-
-       aRes.push_back(cMMCom("XmlXif",MakeOneXmlXifInfo_main,"Internal : generate Xml to accelerate Xif extraction  "));
-
-       aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump  "));
-       aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
+	   aRes.push_back(cMMCom("PatAspro",CalcPatByAspro_main,"Tool to Aspro a Pattern of Imgs",cArgLogCom(2)));
+       aRes.push_back(cMMCom("XmlXif",MakeOneXmlXifInfo_main,"Internal : generate Xml to accelerate Xif extraction"));
+	   aRes.push_back(cMMCom("OriFromOnePose",GenOriFromOnePose_main,"Generate an Ori-XXX from one pos ; All images the same"));
+       aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump"));
+       aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml"));
 
         aRes.push_back(cMMCom("AddAffinity", AddAffinity_main, "Add an affinity, tuning"));
         aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
@@ -890,7 +893,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("TiepTriPrl",TiepTriPrl_main,"Paralelliser version of TiepTri",cArgLogCom(2)));
         aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));
-        aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri",cArgLogCom(2)));
+        aRes.push_back(cMMCom("TaskCorrel",TaskCorrelWithPts_main,"Creat Correlation Task XML file for TiepTri",cArgLogCom(2)));
         aRes.push_back(cMMCom("FAST",FAST_main,"Some Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)"));
         aRes.push_back(cMMCom("Homol2Way",Homol2Way_main ,"Creat same pack homol in 2 way by combination 2 pack of each way"));
         aRes.push_back(cMMCom("CplFromHomol",CplFromHomol_main ,"Creat xml of pair images from Homol Folder"));
@@ -984,6 +987,25 @@ int SateLib_main(int argc, char ** argv)
 {
     return GenMain(argc, argv, SateLibAvailableCommands());
 }
+
+
+//===============================================
+// SimuLib declarations
+//===============================================
+
+int CPP_AddNoiseImage(int,char **);
+const std::vector<cMMCom> & SimuLibAvailableCommands()
+{
+    static std::vector<cMMCom> aRes;
+
+    aRes.push_back(cMMCom("AddNoise", CPP_AddNoiseImage, "Add noise to images"));
+ 
+    return aRes;
+}
+
+
+
+
 
 int SimuLib_Main(int argc, char ** argv)
 {

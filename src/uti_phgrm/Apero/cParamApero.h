@@ -3434,6 +3434,9 @@ class cBasculeOnPoints
         friend void xml_init(cBasculeOnPoints & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< std::string > & ForceSol();
+        const cTplValGesInit< std::string > & ForceSol()const ;
+
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
@@ -3458,6 +3461,7 @@ class cBasculeOnPoints
         cTplValGesInit< std::string > & NameExport();
         const cTplValGesInit< std::string > & NameExport()const ;
     private:
+        cTplValGesInit< std::string > mForceSol;
         cTplValGesInit< cBascOnCentre > mBascOnCentre;
         cTplValGesInit< cBascOnAppuis > mBascOnAppuis;
         cTplValGesInit< bool > mModeL2;
@@ -3543,6 +3547,9 @@ class cModeBascule
         friend void xml_init(cModeBascule & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< std::string > & ForceSol();
+        const cTplValGesInit< std::string > & ForceSol()const ;
+
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
@@ -3621,6 +3628,9 @@ class cBasculeOrientation
 
         cTplValGesInit< std::string > & FileExportInv();
         const cTplValGesInit< std::string > & FileExportInv()const ;
+
+        cTplValGesInit< std::string > & ForceSol();
+        const cTplValGesInit< std::string > & ForceSol()const ;
 
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
@@ -4449,6 +4459,9 @@ class cIterationsCompensation
 
         cTplValGesInit< std::string > & FileExportInv();
         const cTplValGesInit< std::string > & FileExportInv()const ;
+
+        cTplValGesInit< std::string > & ForceSol();
+        const cTplValGesInit< std::string > & ForceSol()const ;
 
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;

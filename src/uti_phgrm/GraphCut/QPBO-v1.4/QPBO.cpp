@@ -260,7 +260,7 @@ template <typename T>
         {
             if (a->next)
             {
-                int k = (a->next < arcs_old[1]) ? 0 : 1;
+                int k = ((a->next) < arcs_old[1]) ? 0 : 1;
                 a->next = (Arc*) ((char*)a->next + (((char*) arcs[k]) - ((char*) arcs_old[k])));
             }
             int k = (a->sister < arcs_old[1]) ? 0 : 1;

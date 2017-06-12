@@ -50,6 +50,8 @@ int ScaleIm_main(int argc,char ** argv)
     std::string aNameOut;
     std::string aNameType;
 
+    std::string aNameDepl;
+
     double aScX,aScY=0;
     Pt2dr  aP0(0,0);
     Pt2dr  aSz(-1,-1);
@@ -87,6 +89,7 @@ int ScaleIm_main(int argc,char ** argv)
                 << EAM(aForceGray,"FG",true,"Force gray (Def=false)")
                 << EAM(aForce8B,"F8B",true,"Force 8 bits (Def=false)")
                 << EAM(aModeMasq,"ModMasq",true,"Mode Masq => binarize at 0.9999 threshlod ")
+                << EAM(aNameDepl,"NameDepl",true,"Image of displacement ")
     );
     if (!MMVisualMode)
     {
@@ -156,7 +159,7 @@ int ScaleIm_main(int argc,char ** argv)
                               Pt2di(aSz),
                               aType,
                               Tiff_Im::No_Compr,
-                  tiff.phot_interp(),
+                              tiff.phot_interp(),
                               ArgOpTiffMDP(aNameTif)
                           );
 
@@ -183,6 +186,13 @@ int ScaleIm_main(int argc,char ** argv)
          aFIn,
          TiffOut.out()
     );
+
+
+       if (EAMIsInit(&aNameDepl))
+       {
+          Tiff_Im::CreateFromFonc(aNameDepl+"-DepX.tif",aSzG,(FX-aP0.x)/aScX-FX,GenIm::real4);
+          Tiff_Im::CreateFromFonc(aNameDepl+"-DepY.tif",aSzG,(FY-aP0.y)/aScY-FY,GenIm::real4);
+       }
     }
     return EXIT_SUCCESS;
 }
