@@ -1454,7 +1454,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
 	{
 		iter++;
-		cout << "RPC Direct iteration nb " << iter << endl;
+		//cout << "RPC Direct iteration nb " << iter << endl;
 		aV0 = aV1;
 		L2SysSurResol aSysLon(39), aSysLat(39);
 
@@ -1477,14 +1477,10 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			double aDenomApproxLon = ComputeDenomApprox(ab, aPoly);
 			double aDenomApproxLat = ComputeDenomApprox(ad, aPoly);
 
-			cout << "aDenomApprox computed" << endl;
-
 			ComputeEq(lon, aDenomApproxLon, aPoly, aEqLon);
-			cout << "aEqLon computed" << endl;
 			aSysLon.AddEquation(1, aEqLon, lon / aDenomApproxLon);
 			
 			ComputeEq(lat, aDenomApproxLat, aPoly, aEqLat);
-			cout << "aEqLat computed" << endl;
 			aSysLat.AddEquation(1, aEqLat, lat / aDenomApproxLat);
 		}
 
@@ -1494,7 +1490,6 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			aSysLon.AddTermQuad(aK, aK, aReg);
 			aSysLat.AddTermQuad(aK, aK, aReg);
 		}
-		cout << "Regularizer added" << endl;
 
 		//Computing the result
 		bool Ok;
@@ -1502,12 +1497,10 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		Im1D_REAL8 aSolLat = aSysLat.GSSR_Solve(&Ok);
 		double* aDataLon = aSolLon.data();
 		double* aDataLat = aSolLat.data();
-		cout << "System solved" << endl;
 
 		//Copying Data in RPC object
 		direct_samp_num_coef.clear();
 		direct_line_num_coef.clear();
-		cout << "RPC cleared" << endl;
 
 		//Numerators
 		for (int i = 0; i < 20; i++)
@@ -1515,7 +1508,6 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			direct_samp_num_coef.push_back(aDataLon[i]);
 			direct_line_num_coef.push_back(aDataLat[i]);
 		}
-		cout << "RPC numerator filled" << endl;
 		//Denominators (first one = 1)
 		direct_line_den_coef.push_back(1);
 		direct_samp_den_coef.push_back(1);
@@ -1524,17 +1516,15 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			direct_samp_den_coef.push_back(aDataLon[i]);
 			direct_line_den_coef.push_back(aDataLat[i]);
 		}
-		cout << "RPC denumerator filled" << endl;
 
 		ab[0] = 1;
 		ad[0] = 1;
 
-		for (int i = 20; i<39; aK++)
+		for (int i = 20; i<39; i++)
 		{
 			ab[i - 19] = aDataLon[i];
 			ad[i - 19] = aDataLat[i];
 		}
-		cout << "Iterator updated" << endl;
 
 		aV1 = (aSysLon.ResiduOfSol(aSolLon.data()) + aSysLat.ResiduOfSol(aSolLat.data())) / 78;
 		cout << "Residual = " << aV1 << endl;
@@ -1569,7 +1559,6 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
 	{
 		iter++;
-		cout << "RPC Inverse iteration nb " << iter << endl;
 		aV0 = aV1;
 		L2SysSurResol aSysCol(39), aSysRow(39);
 
@@ -1635,7 +1624,7 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 
 		ab[0] = 1;
 		ad[0] = 1;
-		for (int i = 20; i<39; aK++)
+		for (int i = 20; i<39; i++)
 		{
 			ab[i - 19] = aDataCol[i];
 			ad[i - 19] = aDataRow[i];
