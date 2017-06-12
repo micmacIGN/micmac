@@ -1514,10 +1514,10 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		}
 
 
-		for (int i = 0; i<39; aK++)
+		for (int i = 20; i<39; aK++)
 		{
-			ab[i] = direct_samp_num_coef[i];
-			ad[i] = direct_line_num_coef[i];
+			ab[i-19] = direct_samp_num_coef[i];
+			ad[i-19] = direct_line_num_coef[i];
 		}
 
 		aV1 = (aSysLon.ResiduOfSol(aSolLon.data()) + aSysLat.ResiduOfSol(aSolLat.data())) / 78;
@@ -1616,10 +1616,10 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			inverse_line_den_coef.push_back(aDataRow[i]);
 		}
 
-		for (int i = 0; i<39; aK++)
+		for (int i = 20; i<39; aK++)
 		{
-			ab[i] = inverse_samp_num_coef[i];
-			ad[i] = inverse_line_num_coef[i];
+			ab[i - 19] = inverse_samp_num_coef[i];
+			ad[i - 19] = inverse_line_num_coef[i];
 		}
 
 		aV1 = (aSysCol.ResiduOfSol(aSolCol.data()) + aSysRow.ResiduOfSol(aSolRow.data())) / 78;
