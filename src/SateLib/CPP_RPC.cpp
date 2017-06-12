@@ -1454,6 +1454,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
 	{
 		iter++;
+		cout << "Iteration nb " << iter << endl;
 		aV0 = aV1;
 		L2SysSurResol aSysLon(39), aSysLat(39);
 
@@ -1498,6 +1499,9 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		double* aDataLat = aSolLat.data();
 
 		//Copying Data in RPC object
+		direct_samp_num_coef.clear();
+		direct_line_num_coef.clear();
+
 		//Numerators
 		for (int i = 0; i < 20; i++)
 		{
@@ -1513,11 +1517,13 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			direct_line_den_coef.push_back(aDataLat[i]);
 		}
 
+		ab[0] = 1;
+		ad[0] = 1;
 
 		for (int i = 20; i<39; aK++)
 		{
-			ab[i-19] = direct_samp_num_coef[i];
-			ad[i-19] = direct_line_num_coef[i];
+			ab[i - 19] = aDataLon[i];
+			ad[i - 19] = aDataLat[i];
 		}
 
 		aV1 = (aSysLon.ResiduOfSol(aSolLon.data()) + aSysLat.ResiduOfSol(aSolLat.data())) / 78;
@@ -1601,6 +1607,8 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		std::cout << "ResiduOfSol aSolRow " << double(aSysCol.ResiduOfSol(aSolRow.data()))/aGridGeoNorm.size() << "\n";
 	*/
 	//Copying Data in RPC object
+		inverse_samp_num_coef.clear();
+		inverse_line_num_coef.clear();
 	//Numerators
 		for (int i = 0; i < 20; i++)
 		{
@@ -1616,10 +1624,12 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			inverse_line_den_coef.push_back(aDataRow[i]);
 		}
 
+		ab[0] = 1;
+		ad[0] = 1;
 		for (int i = 20; i<39; aK++)
 		{
-			ab[i - 19] = inverse_samp_num_coef[i];
-			ad[i - 19] = inverse_line_num_coef[i];
+			ab[i - 19] = aDataCol[i];
+			ad[i - 19] = aDataRow[i];
 		}
 
 		aV1 = (aSysCol.ResiduOfSol(aSolCol.data()) + aSysRow.ResiduOfSol(aSolRow.data())) / 78;
