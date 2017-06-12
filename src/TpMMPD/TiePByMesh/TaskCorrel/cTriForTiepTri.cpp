@@ -41,6 +41,31 @@ bool cTriForTiepTri::reprj(cImgForTiepTri * aImg)
             return false;
         }
 }
+//  ============================= **************** =============================
+//  *                             reprj_pure                                   *
+//  ============================= **************** =============================
+bool cTriForTiepTri::reprj_pure(cImgForTiepTri * aImg, Pt2dr & P1, Pt2dr & P2, Pt2dr & P3)
+{
+    Pt3dr Pt1 = mTri3D_.P1();
+    Pt3dr Pt2 = mTri3D_.P2();
+    Pt3dr Pt3 = mTri3D_.P3();
+    if      (
+                  aImg->CamGen()->PIsVisibleInImage(Pt1)
+              &&  aImg->CamGen()->PIsVisibleInImage(Pt2)
+              &&  aImg->CamGen()->PIsVisibleInImage(Pt3)
+            )
+    {
+        P1 = aImg->CamGen()->Ter2Capteur(Pt1);
+        P2 = aImg->CamGen()->Ter2Capteur(Pt2);
+        P3 = aImg->CamGen()->Ter2Capteur(Pt3);
+        return true;
+    }
+    else
+        {
+            return false;
+        }
+}
+
 
 //  ============================= **************** =============================
 //  *                             isCollinear                                  *

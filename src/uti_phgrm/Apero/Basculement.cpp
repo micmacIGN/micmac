@@ -676,6 +676,7 @@ cSolBasculeRig cAppliApero::BasculePoints
            cElRegex &            aSelectorApply
      )
 {
+   bool aForceSol = aBOP.ForceSol().IsInit();
 
    bool aBonC = aBOP.BascOnCentre().IsInit();
    bool CalcV = aBonC &&  aBOP.BascOnCentre().Val().EstimateSpeed().Val();
@@ -845,6 +846,11 @@ cSolBasculeRig cAppliApero::BasculePoints
 
    }
 
+   if (aForceSol)
+   {
+        cXml_ParamBascRigide anXPBR =  StdGetFromPCP(mDC+aBOP.ForceSol().Val(),Xml_ParamBascRigide);
+        aSBR = Xml2EL(anXPBR);
+   }
 
    cCompBascNonLin * aPtrBNL=0;
    const cAerialDeformNonLin * anADNL = aBOP.AerialDeformNonLin().PtrVal();

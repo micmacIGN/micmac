@@ -343,8 +343,18 @@ void ELISE_fp::RmFile(const std::string & aFile)
 
 void ELISE_fp::MvFile(const std::string & aName1,const std::string &  aDest)
 {
-     std::string aNameCom = std::string(SYS_MV)+ " " + aName1 + " " + aDest;
+	#if ELISE_windows
+                string src = aName1;
+                replace(src.begin(), src.end(), '/', '\\');
+                string dst = aDest;
+                replace(dst.begin(), dst.end(), '/', '\\');
+                std::string aNameCom = std::string(SYS_MV) + " " + src + " " + dst;
+        #else
+                std::string aNameCom = std::string(SYS_MV) + " " + aName1 + " " + aDest;
+        #endif
+
      VoidSystem(aNameCom.c_str());
+     ELISE_DEBUG_ERROR(!ELISE_fp::exist_file(aDest), "ELISE_fp::MvFile", '[' << aNameCom << "] has not been created");
 }
 
 void ELISE_fp::CpFile(const std::string & aName1,const std::string &  aDest)

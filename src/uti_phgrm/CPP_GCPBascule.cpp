@@ -105,6 +105,7 @@ int GCPBascule_main(int argc,char ** argv)
     bool ShowDetail = false;
     bool NLDShow = false;
     bool NLDFTR = true;
+    std::string ForceSol;
 
     std::string aPatNLD;
     std::vector<std::string> NLDDegX;  NLDDegX.push_back("1");  NLDDegX.push_back("X"); NLDDegX.push_back("Y");
@@ -136,6 +137,7 @@ int GCPBascule_main(int argc,char ** argv)
                     <<  EAM(NLDDegZ,"NLDegZ",true,"Non Linear monoms for Z, when PatNLD, (Def =[1,X,X2])")
                     <<  EAM(NLDFTR,"NLFR",true,"Non Linear : Force True Rot (Def=true)",eSAM_IsBool)
                     <<  EAM(NLDShow,"NLShow",true,"Non Linear : Show Details (Def=false)",eSAM_IsBool)
+                    <<  EAM(ForceSol,"ForceSol",true,"To Force Sol from existing solution (xml file)",eSAM_IsExistFile)
     );
 
     if (!MMVisualMode)
@@ -161,6 +163,11 @@ int GCPBascule_main(int argc,char ** argv)
 
     if (EAMIsInit(&ShowUnused)) aCom = aCom + " +ShowUnused=" + ToString(ShowUnused);
     if (EAMIsInit(&ShowDetail)) aCom = aCom + " +ShowDetail=" + ToString(ShowDetail);
+
+    if (EAMIsInit(&ForceSol))
+    {
+       aCom = aCom + " +DoForceSol=true  +NameForceSol=" + ForceSol + " ";
+    }
 
     if (ModeL1)
     {
