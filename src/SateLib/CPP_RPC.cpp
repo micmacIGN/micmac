@@ -1451,7 +1451,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 
 
 	/* Iterative least square */
-	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
+	while ((abs(aV0 - aV1) > aSeuil) && (iter < 1))
 	{
 		iter++;
 		//cout << "RPC Direct iteration nb " << iter << endl;
@@ -1556,7 +1556,7 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 
 
 	/* Iterative least square */
-	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
+	while ((abs(aV0 - aV1) > aSeuil) && (iter < 1))
 	{
 		iter++;
 		if (aV1 < aV0){ aV0 = aV1; }
