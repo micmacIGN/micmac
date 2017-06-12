@@ -1356,6 +1356,76 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 	return aMatPtsNorm;
 }
 
+double RPC::ComputeDenomApprox(double ab[20], double aU[20])
+{
+	double aB = ab[0] * aU[0] +
+		ab[1] * aU[1] +
+		ab[2] * aU[2] +
+		ab[3] * aU[3] +
+		ab[4] * aU[4] +
+		ab[5] * aU[5] +
+		ab[6] * aU[6] +
+		ab[7] * aU[7] +
+		ab[8] * aU[8] +
+		ab[9] * aU[9] +
+		ab[10] * aU[10] +
+		ab[11] * aU[11] +
+		ab[12] * aU[12] +
+		ab[13] * aU[13] +
+		ab[14] * aU[14] +
+		ab[15] * aU[15] +
+		ab[16] * aU[16] +
+		ab[17] * aU[17] +
+		ab[18] * aU[18] +
+		ab[19] * aU[19];
+	return aB;
+}
+
+void RPC::ComputeEq(double aB, double aDenomApprox, double aU[20], double(&aEq)[39])
+{
+	aEq[0] = aU[0] / aDenomApprox;
+	aEq[1] = aU[1] / aDenomApprox;
+	aEq[2] = aU[2] / aDenomApprox;
+	aEq[3] = aU[3] / aDenomApprox;
+	aEq[4] = aU[4] / aDenomApprox;
+	aEq[5] = aU[5] / aDenomApprox;
+	aEq[6] = aU[6] / aDenomApprox;
+	aEq[7] = aU[7] / aDenomApprox;
+	aEq[8] = aU[8] / aDenomApprox;
+	aEq[9] = aU[9] / aDenomApprox;
+	aEq[10] = aU[10] / aDenomApprox;
+	aEq[11] = aU[11] / aDenomApprox;
+	aEq[12] = aU[12] / aDenomApprox;
+	aEq[13] = aU[13] / aDenomApprox;
+	aEq[14] = aU[14] / aDenomApprox;
+	aEq[15] = aU[15] / aDenomApprox;
+	aEq[16] = aU[16] / aDenomApprox;
+	aEq[17] = aU[17] / aDenomApprox;
+	aEq[18] = aU[18] / aDenomApprox;
+	aEq[19] = aU[19] / aDenomApprox;
+
+	aEq[20] = -aB * aU[1] / aDenomApprox;
+	aEq[21] = -aB * aU[2] / aDenomApprox;
+	aEq[22] = -aB * aU[3] / aDenomApprox;
+	aEq[23] = -aB * aU[4] / aDenomApprox;
+	aEq[24] = -aB * aU[5] / aDenomApprox;
+	aEq[25] = -aB * aU[6] / aDenomApprox;
+	aEq[26] = -aB * aU[7] / aDenomApprox;
+	aEq[27] = -aB * aU[8] / aDenomApprox;
+	aEq[28] = -aB * aU[9] / aDenomApprox;
+	aEq[29] = -aB * aU[10] / aDenomApprox;
+	aEq[30] = -aB * aU[11] / aDenomApprox;
+	aEq[31] = -aB * aU[12] / aDenomApprox;
+	aEq[32] = -aB * aU[13] / aDenomApprox;
+	aEq[33] = -aB * aU[14] / aDenomApprox;
+	aEq[34] = -aB * aU[15] / aDenomApprox;
+	aEq[35] = -aB * aU[16] / aDenomApprox;
+	aEq[36] = -aB * aU[17] / aDenomApprox;
+	aEq[37] = -aB * aU[18] / aDenomApprox;
+	aEq[38] = -aB * aU[19] / aDenomApprox;
+
+}
+
 //Take GCPs in normalized space to compute f in ground=f(image)
 void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 {
@@ -1375,6 +1445,11 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	double aReg = 0.00001;
 	double aV1 = 1, aV0 = 2;
 
+	//initialized to 0
+	double ab[20] = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	double ad[20] = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+
 	/* Iterative least square */
 	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
 	{
@@ -1386,24 +1461,26 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		for (u_int i = 0; i < aGridGeoNorm.size(); i++) {
 
 			//Simplifying notations
+			double aEqLon[39];
+			double aEqLat[39];
 			double X = aGridImNorm[i].x;
 			double Y = aGridImNorm[i].y;
 			double Z = aGridImNorm[i].z;
 			double lon = aGridGeoNorm[i].x;
 			double lat = aGridGeoNorm[i].y;
 
-			double aEqLon[39] = {
-				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
-				-lon*X, -lon*Y, -lon*Z, -lon*X*Y, -lon*X*Z, -lon*Y*Z, -lon*X*X, -lon*Y*Y, -lon*Z*Z, -lon*Y*X*Z, -lon*X*X*X, -lon*X*Y*Y, -lon*X*Z*Z, -lon*Y*X*X, -lon*Y*Y*Y, -lon*Y*Z*Z, -lon*X*X*Z, -lon*Y*Y*Z, -lon*Z*Z*Z
+			double aPoly[20] = {
+				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z
 			};
-			aSysLon.AddEquation(1, aEqLon, lon);
 
+			double aDenomApproxLon = ComputeDenomApprox(ab, aPoly);
+			double aDenomApproxLat = ComputeDenomApprox(ad, aPoly);
 
-			double aEqLat[39] = {
-				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
-				-lat*X, -lat*Y, -lat*Z, -lat*X*Y, -lat*X*Z, -lat*Y*Z, -lat*X*X, -lat*Y*Y, -lat*Z*Z, -lat*Y*X*Z, -lat*X*X*X, -lat*X*Y*Y, -lat*X*Z*Z, -lat*Y*X*X, -lat*Y*Y*Y, -lat*Y*Z*Z, -lat*X*X*Z, -lat*Y*Y*Z, -lat*Z*Z*Z
-			};
-			aSysLat.AddEquation(1, aEqLat, lat);
+			RPC::ComputeEq(lon, aDenomApproxLon, aPoly, aEqLon);
+			aSysLon.AddEquation(1, aEqLon, lon / aDenomApproxLon);
+			
+			RPC::ComputeEq(lat, aDenomApproxLat, aPoly, aEqLat);
+			aSysLat.AddEquation(1, aEqLat, lat / aDenomApproxLat);
 		}
 
 		/* Add regularizer */
@@ -1436,6 +1513,13 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			direct_line_den_coef.push_back(aDataLat[i]);
 		}
 
+
+		for (int i = 0; i<39; aK++)
+		{
+			ab[i] = direct_samp_num_coef[i];
+			ad[i] = direct_line_num_coef[i];
+		}
+
 		aV1 = (aSysLon.ResiduOfSol(aSolLon.data()) + aSysLat.ResiduOfSol(aSolLat.data())) / 78;
 	}
 }
@@ -1459,6 +1543,11 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	double aReg = 0.00001;
 	double aV1 = 1, aV0 = 2;
 
+	//initialized to 0
+	double ab[20] = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	double ad[20] = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+
 	/* Iterative least square */
 	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
 	{
@@ -1470,24 +1559,27 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		for (u_int i = 0; i < aGridGeoNorm.size(); i++) {
 
 			//Simplifying notations
+			double aEqCol[39];
+			double aEqRow[39];
 			double X = aGridGeoNorm[i].x;
 			double Y = aGridGeoNorm[i].y;
 			double Z = aGridGeoNorm[i].z;
 			double Col = aGridImNorm[i].x;
 			double Row = aGridImNorm[i].y;
 
-			double aEqCol[39] = {
-				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
-				-Col*X, -Col*Y, -Col*Z, -Col*X*Y, -Col*X*Z, -Col*Y*Z, -Col*X*X, -Col*Y*Y, -Col*Z*Z, -Col*Y*X*Z, -Col*X*X*X, -Col*X*Y*Y, -Col*X*Z*Z, -Col*Y*X*X, -Col*Y*Y*Y, -Col*Y*Z*Z, -Col*X*X*Z, -Col*Y*Y*Z, -Col*Z*Z*Z
+			double aPoly[20] = {
+				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z
 			};
-			aSysCol.AddEquation(1, aEqCol, Col);
 
 
-			double aEqRow[39] = {
-				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
-				-Row*X, -Row*Y, -Row*Z, -Row*X*Y, -Row*X*Z, -Row*Y*Z, -Row*X*X, -Row*Y*Y, -Row*Z*Z, -Row*Y*X*Z, -Row*X*X*X, -Row*X*Y*Y, -Row*X*Z*Z, -Row*Y*X*X, -Row*Y*Y*Y, -Row*Y*Z*Z, -Row*X*X*Z, -Row*Y*Y*Z, -Row*Z*Z*Z
-			};
-			aSysRow.AddEquation(1, aEqRow, Row);
+			double aDenomApproxCol = ComputeDenomApprox(ab, aPoly);
+			double aDenomApproxRow = ComputeDenomApprox(ad, aPoly);
+
+			RPC::ComputeEq(Col, aDenomApproxCol, aPoly, aEqCol);
+			aSysCol.AddEquation(1, aEqCol, Col / aDenomApproxCol);
+
+			RPC::ComputeEq(Row, aDenomApproxRow, aPoly, aEqRow);
+			aSysRow.AddEquation(1, aEqRow, Row / aDenomApproxRow);
 		}
 
 		/* Add regularizer */
@@ -1523,6 +1615,13 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			inverse_samp_den_coef.push_back(aDataCol[i]);
 			inverse_line_den_coef.push_back(aDataRow[i]);
 		}
+
+		for (int i = 0; i<39; aK++)
+		{
+			ab[i] = inverse_samp_num_coef[i];
+			ad[i] = inverse_line_num_coef[i];
+		}
+
 		aV1 = (aSysCol.ResiduOfSol(aSolCol.data()) + aSysRow.ResiduOfSol(aSolRow.data())) / 78;
 	}
 }

@@ -308,6 +308,8 @@ public:
     vector<Pt3dr> GenerateNormGrid(const Pt3di &aGridSz);
 	void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
     void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
+	double ComputeDenomApprox(double ab[20], double aU[20]);
+	void ComputeEq(double aB, double aDenomApprox, double aU[20], double(&aEq)[39]);
 	void ComputeNormFactors(double aHMin, double aHMax);
     void Validity2Dto3D(RPC2D aRPC2D);
 
