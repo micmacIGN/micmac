@@ -1441,7 +1441,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
     //Function is 0=Poly1(Y,X,Z)-long*Poly2(Y,X,Z) with poly 3rd degree (up to X^3,Y^3,Z^3,XXY,XXZ,XYY,XZZ,YYZ,YZZ)
     //First param (cst) of Poly2=1 to avoid sol=0
 	int    aK, iter = 0;
-	double aSeuil = 1e-8;
+	double aSeuil = 1e-9;
 	double aReg = 0.00001;
 	double aV1 = 1, aV0 = 2;
 
@@ -1527,7 +1527,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		}
 
 		aV1 = (aSysLon.ResiduOfSol(aSolLon.data()) + aSysLat.ResiduOfSol(aSolLat.data())) / 78;
-		cout << "Residual = " << aV1 << endl;
+		cout << "Residual = " << aV1 << " at iter " << iter << endl;
 	}
 }
 
@@ -1546,7 +1546,7 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	//Function is 0=Poly1(X,Y,Z)-column*Poly2(X,Y,Z) with poly 3rd degree (up to X^3,Y^3,Z^3,XXY,XXZ,XYY,XZZ,YYZ,YZZ)
 	//First param (cst) of Poly2=1 to avoid sol=0
 	int    aK, iter = 0;
-	double aSeuil = 1e-8;
+	double aSeuil = 1e-9;
 	double aReg = 0.00001;
 	double aV1 = 1, aV0 = 2;
 
@@ -1631,6 +1631,7 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		}
 
 		aV1 = (aSysCol.ResiduOfSol(aSolCol.data()) + aSysRow.ResiduOfSol(aSolRow.data())) / 78;
+		cout << "Residual = " << aV1 << " at iter " << iter << endl;
 	}
 }
 
