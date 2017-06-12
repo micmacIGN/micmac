@@ -1507,6 +1507,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		//Copying Data in RPC object
 		direct_samp_num_coef.clear();
 		direct_line_num_coef.clear();
+		cout << "RPC cleared" << endl;
 
 		//Numerators
 		for (int i = 0; i < 20; i++)
@@ -1514,6 +1515,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			direct_samp_num_coef.push_back(aDataLon[i]);
 			direct_line_num_coef.push_back(aDataLat[i]);
 		}
+		cout << "RPC numerator filled" << endl;
 		//Denominators (first one = 1)
 		direct_line_den_coef.push_back(1);
 		direct_samp_den_coef.push_back(1);
@@ -1522,6 +1524,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			direct_samp_den_coef.push_back(aDataLon[i]);
 			direct_line_den_coef.push_back(aDataLat[i]);
 		}
+		cout << "RPC denumerator filled" << endl;
 
 		ab[0] = 1;
 		ad[0] = 1;
@@ -1531,6 +1534,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			ab[i - 19] = aDataLon[i];
 			ad[i - 19] = aDataLat[i];
 		}
+		cout << "Iterator updated" << endl;
 
 		aV1 = (aSysLon.ResiduOfSol(aSolLon.data()) + aSysLat.ResiduOfSol(aSolLat.data())) / 78;
 		cout << "Residual = " << aV1 << endl;
