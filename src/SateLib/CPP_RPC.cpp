@@ -1455,7 +1455,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	{
 		iter++;
 		//cout << "RPC Direct iteration nb " << iter << endl;
-		aV0 = aV1;
+		if (aV1 < aV0 ){ aV0 = aV1; }
 		L2SysSurResol aSysLon(39), aSysLat(39);
 
 		//For all lattice points
@@ -1559,7 +1559,7 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
 	{
 		iter++;
-		aV0 = aV1;
+		if (aV1 < aV0){ aV0 = aV1; }
 		L2SysSurResol aSysCol(39), aSysRow(39);
 
 		//For all lattice points
