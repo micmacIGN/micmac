@@ -1454,7 +1454,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
 	{
 		iter++;
-		cout << "Iteration nb " << iter << endl;
+		cout << "RPC Direct iteration nb " << iter << endl;
 		aV0 = aV1;
 		L2SysSurResol aSysLon(39), aSysLat(39);
 
@@ -1473,14 +1473,17 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			double aPoly[20] = {
 				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z
 			};
+			cout << "Computing aPoly" << endl;
 
 			double aDenomApproxLon = ComputeDenomApprox(ab, aPoly);
+			cout << "aDenomApproxLon = " << aDenomApproxLon << endl;
 			double aDenomApproxLat = ComputeDenomApprox(ad, aPoly);
+			cout << "aDenomApproxLat = " << aDenomApproxLat << endl;
 
-			RPC::ComputeEq(lon, aDenomApproxLon, aPoly, aEqLon);
+			ComputeEq(lon, aDenomApproxLon, aPoly, aEqLon);
 			aSysLon.AddEquation(1, aEqLon, lon / aDenomApproxLon);
 			
-			RPC::ComputeEq(lat, aDenomApproxLat, aPoly, aEqLat);
+			ComputeEq(lat, aDenomApproxLat, aPoly, aEqLat);
 			aSysLat.AddEquation(1, aEqLat, lat / aDenomApproxLat);
 		}
 
@@ -1558,6 +1561,7 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	while ((abs(aV0 - aV1) > aSeuil) && (iter < 50))
 	{
 		iter++;
+		cout << "RPC Inverse iteration nb " << iter << endl;
 		aV0 = aV1;
 		L2SysSurResol aSysCol(39), aSysRow(39);
 
@@ -1576,19 +1580,23 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			double aPoly[20] = {
 				1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z
 			};
+			cout << "Computing aPoly" << endl;
 
 
 			double aDenomApproxCol = ComputeDenomApprox(ab, aPoly);
+			cout << "aDenomApproxCol" << endl;
 			double aDenomApproxRow = ComputeDenomApprox(ad, aPoly);
+			cout << "aDenomApproxRow" << endl;
 
-			RPC::ComputeEq(Col, aDenomApproxCol, aPoly, aEqCol);
+			ComputeEq(Col, aDenomApproxCol, aPoly, aEqCol);
 			aSysCol.AddEquation(1, aEqCol, Col / aDenomApproxCol);
 
-			RPC::ComputeEq(Row, aDenomApproxRow, aPoly, aEqRow);
+			ComputeEq(Row, aDenomApproxRow, aPoly, aEqRow);
 			aSysRow.AddEquation(1, aEqRow, Row / aDenomApproxRow);
 		}
 
 		/* Add regularizer */
+		cout << "Adding regularizer" << endl;
 		for (aK = 0; aK < 39; aK++)
 		{
 			aSysCol.AddTermQuad(aK, aK, aReg);
@@ -1602,10 +1610,7 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		double* aDataCol = aSolCol.data();
 		double* aDataRow = aSolRow.data();
 
-		/*std::cout << "ResiduOfSol aSolCol " << double(aSysCol.ResiduOfSol(aSolCol.data())/aGridGeoNorm.size()) << "\n";
-
-		std::cout << "ResiduOfSol aSolRow " << double(aSysCol.ResiduOfSol(aSolRow.data()))/aGridGeoNorm.size() << "\n";
-	*/
+		
 	//Copying Data in RPC object
 		inverse_samp_num_coef.clear();
 		inverse_line_num_coef.clear();
