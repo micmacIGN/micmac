@@ -1442,7 +1442,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
     //First param (cst) of Poly2=1 to avoid sol=0
 	int    aK, iter = 0;
 	double aSeuil = 1e-9;
-	double aReg = 0.00001;
+	double aReg = 0.0001;
 	double aV1 = 1, aV0 = 2;
 
 	//initialized to 0
@@ -1547,7 +1547,7 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	//First param (cst) of Poly2=1 to avoid sol=0
 	int    aK, iter = 0;
 	double aSeuil = 1e-9;
-	double aReg = 0.00001;
+	double aReg = 0.0001;
 	double aV1 = 1, aV0 = 2;
 
 	//initialized to 0
