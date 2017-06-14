@@ -635,7 +635,7 @@ int CPP_TestBundleGen(int argc,char ** argv)   ;
 int PlyGCP_main(int argc,char ** argv);
 int CmpMAF_main(int argc,char ** argv);
 int DoCmpByImg_main(int argc,char ** argv);
-
+int GenRayon3D_main(int argc,char ** argv);
 int SysCalled_main (int argc,char** argv);
 int SysCall_main (int argc,char** argv);
 
@@ -818,7 +818,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("OriFromOnePose",GenOriFromOnePose_main,"Generate an Ori-XXX from one pos ; All images the same"));
        aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump"));
        aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml"));
-
+	   aRes.push_back(cMMCom("GenRayon3D",GenRayon3D_main,"Generate 3D lines in a ply format ; Visualize pseudo-intersection"));
         aRes.push_back(cMMCom("AddAffinity", AddAffinity_main, "Add an affinity, tuning"));
         aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
         aRes.push_back(cMMCom("Ortho",ServiceGeoSud_Ortho_main,"Compute a basic Ortho from a DTM and a satellite image (for GeoSud services)"));

@@ -1415,17 +1415,19 @@ int CPP_ReechImMap(int argc,char** argv)
     std::string aNameIm,aNameMap;
     Pt2di aSzOut;
     std::string aNameOut;
+    std::string aMAF;
+    std::string aMAFOut;
 
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  <<  EAMC(aNameIm,"Name Im")
                     <<  EAMC(aNameMap,"Name map"),
-        LArgMain()  
+        LArgMain()  <<  EAM(aMAF,"MAF",false,"Xml file of Image Measures")
     );
 
     if (!EAMIsInit(&aNameOut))
-       aNameOut = DirOfFile(aNameIm) + "Reech_" + NameWithoutDir(StdPrefix(aNameIm)) +".tif";
+       aNameOut = DirOfFile(aNameIm) + "Reech_" + NameWithoutDir(StdPrefix(aNameIm)) + ".tif";
 
     cElMap2D * aMap = cElMap2D::FromFile(aNameMap);
 
@@ -1471,6 +1473,46 @@ int CPP_ReechImMap(int argc,char** argv)
             );
 
     ELISE_COPY(aTifOut.all_pts(),StdInPut(aVecImOut),aTifOut.out());
+    
+    //if a xml MAF file is given
+    if (EAMIsInit(&aMAF))
+    {
+		
+		if (!EAMIsInit(&aMAFOut))
+			aMAFOut = DirOfFile(aMAF) + NameWithoutDir(StdPrefix(aMAF)) + "_Reech_" + NameWithoutDir(aNameIm) + ".xml";
+       
+		//input
+		cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aMAF,SetOfMesureAppuisFlottants);
+		std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
+		
+		//output
+		cSetOfMesureAppuisFlottants aDicoOut;
+		std::list<cMesureAppuiFlottant1Im> aLMAFOut;
+		std::list<cOneMesureAF1I> aMesOut;
+		
+		for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
+		{
+			
+			if(NameWithoutDir(aNameIm).compare(iT1->NameIm()) == 0)
+			{
+				std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
+				for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
+				{
+					cOneMesureAF1I aOMAF1I;
+					aOMAF1I.NamePt() = iT2->NamePt();
+					aOMAF1I.PtIm() = Pt2dr(iT2->PtIm())*2- (*aMap)(Pt2dr(iT2->PtIm()));
+					
+					aMesOut.push_back(aOMAF1I);
+				}
+			}
+		}
+		cMesureAppuiFlottant1Im   aMAF1Im;
+		aMAF1Im.NameIm() = NameWithoutDir(aNameOut);
+		aMAF1Im.OneMesureAF1I() = aMesOut;
+		aLMAFOut.push_back(aMAF1Im);
+		aDicoOut.MesureAppuiFlottant1Im() = aLMAFOut;
+		MakeFileXML(aDicoOut,aMAFOut);
+	}
 
     return EXIT_SUCCESS;
 }

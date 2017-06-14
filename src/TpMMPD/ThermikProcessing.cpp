@@ -39,7 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 #include <iostream>
-#include <iomanip> 
+#include <iomanip>
+#include "SimplePredict.h"
 
 struct ImgT{
 	std::string ImgName;
@@ -53,11 +54,29 @@ class cThmProc_Appli
 		cThmProc_Appli(int argc,char ** argv);
 		void Do2DMatching(std::string aDirectory, std::string aPatImgs, std::string aXmlFile, int aPas, bool aClean);
 		void DoHomConv(std::string aDirectory, std::string aPatImgs, int aPas);
-		void CalcXYT(std::string aDirectory, std::string aPatImgs, int aDegT, int aDegXY, std::string aKey, std::string aHom, std::string aFileName, std::string aExt, int aPas);
+		void CalcXYT(
+					 std::string aDirectory, 
+					 std::string aPatImgs, 
+					 int aDegT, 
+					 int aDegXY, 
+					 std::string aKey, 
+					 std::string aHom, 
+					 std::string aFileName, 
+					 std::string aExt, 
+					 int aPas
+					 );
 		std::string GetPatNoMatser(std::vector<std::string> aSetIm, int aPas); //first image is the master image
 		void ReadImgTFile(std::string aDirectory, std::string aFileName, std::vector<ImgT> & aVSIT, std::string aExt);
 		void GenerateXmlAssoc(std::vector<ImgT> aVSIT, std::string aDirectory, std::string aOutFileName, std::string aKey);
-		void CorrImgsFromTemp(std::string aMap, std::string aDirectory, std::string aFileName, std::string aPatImgs, std::string aExt, std::string aOutFolder);
+		void CorrImgsFromTemp(
+							  std::string aMap, 
+							  std::string aDirectory, 
+							  std::string aFileName, 
+							  std::string aPatImgs, 
+							  std::string aExt, 
+							  std::string aOutFolder,
+							  std::string aMAF
+							  );
 		std::string GenNameFile(std::vector<ImgT> aVSIT, std::string aNameIm, std::string aPref);
 		void CleanMEC(std::string aName);
 	private :
@@ -121,7 +140,15 @@ std::string cThmProc_Appli::GenNameFile(std::vector<ImgT> aVSIT, std::string aNa
 	return aNameFile;
 }
 
-void cThmProc_Appli::CorrImgsFromTemp(std::string aMap, std::string aDirectory, std::string aFileName, std::string aPatImgs, std::string aExt, std::string aOutFolder)
+void cThmProc_Appli::CorrImgsFromTemp(
+									  std::string aMap, 
+									  std::string aDirectory, 
+									  std::string aFileName, 
+									  std::string aPatImgs, 
+									  std::string aExt, 
+									  std::string aOutFolder,
+									  std::string aMAF
+									  )
 {
 	//step 0 : get pattern of images to be corrected
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirectory);
@@ -173,10 +200,19 @@ void cThmProc_Appli::CorrImgsFromTemp(std::string aMap, std::string aDirectory, 
 							+ std::string(" ")
 							+ GenNameFile(aVI2Corr,aSetIm.at(aK),"Deg_");
 							
+				if(aMAF != "")
+				{
+					aCom = aCom + " MAF=" + aMAF;
+				}
+				
 				std::cout << "aCom = " << aCom << std::endl;
 				system_call(aCom.c_str());
+				
 				std::string aNameCorrImg = "Reech_" + aSetIm.at(aK);
 				ELISE_fp::MvFile(aDirectory+aNameCorrImg,aOutFolder);
+				
+				std::string aNameCorrXML = NameWithoutDir(StdPrefix(aMAF)) + + "_Reech_" + NameWithoutDir(aSetIm.at(aK)) + ".xml";
+				ELISE_fp::MvFile(aDirectory+aNameCorrXML,aOutFolder);
 			}
 		}
 	}
@@ -270,7 +306,17 @@ std::string cThmProc_Appli::GetPatNoMatser(std::vector<std::string> aSetIm, int 
 	return aPatNoMaster;
 }
 
-void cThmProc_Appli::CalcXYT(std::string aDirectory, std::string aPatImgs, int aDegT, int aDegXY, std::string aKey, std::string aHom, std::string aFileName, std::string aExt, int aPas)
+void cThmProc_Appli::CalcXYT(
+							 std::string aDirectory, 
+							 std::string aPatImgs, 
+							 int aDegT, 
+							 int aDegXY, 
+							 std::string aKey, 
+							 std::string aHom, 
+							 std::string aFileName, 
+							 std::string aExt, 
+							 int aPas
+							 )
 {
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirectory);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
@@ -399,6 +445,8 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 	int aPas=1;
 	bool aDoMEC=true;
 	bool aClean=true;
+	std::string aMAF="";
+	bool aDoConv2Hom=true;
 	
 	ElInitArgMain
     (
@@ -420,6 +468,8 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
                      << EAM(aPas,"Pas",false,"Step between images in 2D matching ; Def=1")
                      << EAM(aDoMEC,"DoMEC",false,"Do the Matching step ; Def=true")
                      << EAM(aClean,"Clean",false,"Clean MEC folders to keep only recquired files ; Def=true")
+                     << EAM(aMAF,"MAF",false,"Xml file of Image Measures")
+                     << EAM(aDoConv2Hom,"DoConv2H",false,"Do Conversion DMatch2Hom ; Def=true")
                      
     );
     
@@ -431,7 +481,8 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 		Do2DMatching(mDir,mPat,aXml2DM,aPas,aClean);
 
 	//convert all deformation maps to Homol format
-	DoHomConv(mDir,mPat,aPas);
+	if(aDoConv2Hom)
+		DoHomConv(mDir,mPat,aPas);
 	
 	//compute evolutive map function of temperature
 	CalcXYT(mDir,mPat,aDegT,aDegXY,aKey,aHom,aFileName,aExt,aPas);
@@ -453,7 +504,7 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 		//create new folder where to put corrected images
 		ELISE_fp::MkDirSvp(aNameFolder);
 		
-		CorrImgsFromTemp(aMap,aDir2C,aFileName,aPat2C,aExt,aNameFolder);
+		CorrImgsFromTemp(aMap,aDir2C,aFileName,aPat2C,aExt,aNameFolder,aMAF);
 	}
 	
 	//if a second calibration pattern is given
@@ -489,7 +540,7 @@ int CalcPatByAspro_main(int argc,char ** argv)
           LArgMain() << EAMC(aFullPat,"Directory + Pattern of Images")
 					 << EAMC(aOriCalib,"Input Calibration")
 					 << EAMC(aGCPsFile,"Input GCP file")
-					 << EAMC(aImgsMesPat,"Pattern of Image Measures Files"),
+					 << EAMC(aImgsMesPat,"Image Measures Files or Pattern"),
           LArgMain() << EAM(aInd,"Ind",false,"Ind : [start;end] to check xml file & Img Name")
 					 << EAM(aShow,"Show",false,"Show Number of GCPs per image ; Def=false")
 					 << EAM(aDoComp,"DoComp",false,"Do Aspro ; Def=true")
@@ -523,11 +574,11 @@ int CalcPatByAspro_main(int argc,char ** argv)
 	
 	if(aDoComp)
 	{
-		if(aSetIm.size() != aSetFiles.size() && aInd.x==0 && aInd.y==0)
+		if(aSetFiles.size() != 1 && aSetIm.size() != aSetFiles.size() && aInd.x==0 && aInd.y==0)
 		{
 			ELISE_ASSERT(false, "ERROR: Pat of Imgs & Pat for Img Measure File can't be different !");
 		}
-		else
+		else if(aSetFiles.size() != 1)
 		{
 		
 			for(unsigned int aP=0; aP<aSetIm.size(); aP++)
@@ -552,7 +603,26 @@ int CalcPatByAspro_main(int argc,char ** argv)
 				  }
 			}
 		}
-    }
+		else if(aSetFiles.size() == 1)
+		{
+			for(unsigned int aP=0; aP<aSetIm.size(); aP++)
+			{
+
+				std::string aCom = MM3dBinFile_quotes("Apero")
+									+ " " + XML_MM_File("Apero-GCP-Init.xml")
+									+ " DirectoryChantier=" + aDir
+									+ " +PatternAllIm=" + aSetIm.at(aP)
+									+ " +CalibIn="      + aOriCalib
+									+ " +AeroOut=Aspro"
+									+ " +DicoApp="  + aGCPsFile
+									+ " +SaisieIm=" + aSetFiles.at(0);
+
+				std::cout << "aCom = " << aCom << std::endl;
+				system_call(aCom.c_str());
+			 }
+		}
+	}
+
     return EXIT_SUCCESS;
 }
 //----------------------------------------------------------------------------
@@ -768,6 +838,142 @@ int DoCmpByImg_main(int argc,char ** argv)
 	cEl_GPAO::DoComInParal(aComCPI2,aDir);
     
     return EXIT_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+int GenRayon3D_main(int argc,char ** argv)
+{
+	std::string aDir="";
+	std::string aFullPat="";
+	std::string aPatImgs="";
+	std::string aOriIn="";
+	std::string aXmlGcpFile="";
+	std::string aXmlMAFFile="";
+	Pt3di aColor(0,0,255);
+	double aResol=10;
+	
+	ElInitArgMain
+    (
+          argc, argv,
+          LArgMain() << EAMC(aFullPat,"Directory + Pattern of Images")
+					 << EAMC(aOriIn,"Input Ori folder")
+					 << EAMC(aXmlGcpFile,"3D Positions of points"),
+		 LArgMain() <<  EAM(aXmlMAFFile,"MAF",false,"Xml of 2D positions in images")
+					<<  EAM(aColor,"Color",false,"Line color ; Def=[0,0,255]")
+	);
+	
+	SplitDirAndFile(aDir,aPatImgs,aFullPat);
+	MakeFileDirCompl(aOriIn);
+    //StdCorrecNameOrient(aOriIn,aDir);
+    
+    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
+    
+    //start by reading xml file of 3D positions
+    cDicoAppuisFlottant aDico = StdGetFromPCP(aXmlGcpFile,DicoAppuisFlottant);
+	std::list<cOneAppuisDAF> aOneAppuisDAFList = aDico.OneAppuisDAF();
+	
+	//create structure for 2d points
+	cSetOfMesureAppuisFlottants aMes2dList;
+   
+    //check in which images it is seen
+    for (unsigned int i=0;i<aSetIm.size();i++)
+    {
+		std::cout<<"For image "<<aSetIm[i]<<std::endl;
+		cOrientedImage aIm(aOriIn,aSetIm[i],aICNM);
+		cMesureAppuiFlottant1Im aListMes1Im;
+		aListMes1Im.NameIm()=aSetIm[i];
+
+		for (std::list<cOneAppuisDAF >::iterator itP=aOneAppuisDAFList.begin(); itP != aOneAppuisDAFList.end(); itP ++)
+		{
+			std::cout<<" point "<<itP->NamePt()<<" "<<itP->Pt()<<" => ";
+			std::cout<<" L3: "<<aIm.getCam()->R3toL3(itP->Pt())<<"  => ";
+			std::cout<<" C2: "<<aIm.getCam()->R3toC2(itP->Pt())<<" => ";
+
+			Pt2dr aPtProj = aIm.getCam()->R3toF2(itP->Pt());
+			std::cout<<"  F2: "<<aPtProj<<"\n";
+			
+			if (!aIm.getCam()->Devant(itP->Pt()))
+			{
+				//std::cout<<"       On the back\n";
+				continue;
+			}
+			
+			if (!aIm.getCam()->PIsVisibleInImage(itP->Pt()))
+				continue;
+
+			//save it only inside picture
+			if ((aPtProj.x>=0) && (aPtProj.y>=0) && (aPtProj.x<aIm.getCam()->Sz().x) && (aPtProj.y<aIm.getCam()->Sz().y) )
+			{
+				cOneMesureAF1I aOneMesIm;
+				aOneMesIm.NamePt()=itP->NamePt();
+				aOneMesIm.PtIm()=aPtProj;
+				aListMes1Im.OneMesureAF1I().push_back(aOneMesIm);
+			}
+		}
+		aMes2dList.MesureAppuiFlottant1Im().push_back(aListMes1Im);
+	}
+	
+    //generate 3D line from optical center to 3D point
+    for(unsigned int i=0;i<aSetIm.size();i++)
+    {
+		for(unsigned int j=0;j<aMes2dList.MesureAppuiFlottant1Im().size();j++)
+		{
+			std::list<cMesureAppuiFlottant1Im> & aLMAF = aMes2dList.MesureAppuiFlottant1Im();
+			for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
+			{
+				if(aSetIm[i].compare(iT1->NameIm()) == 0)
+				{
+					
+					std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
+		
+					for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
+					{
+						for (std::list<cOneAppuisDAF >::iterator itP=aOneAppuisDAFList.begin(); itP != aOneAppuisDAFList.end(); itP ++)
+						{
+							if(itP->NamePt().compare(iT2->NamePt()) == 0)
+							{
+								cOrientedImage aIm(aOriIn,aSetIm[i],aICNM);
+								ElSeg3D aSeg = aIm.getCam()->Capteur2RayTer(iT2->PtIm());
+								cPlyCloud aPlyRayon3d;
+								aPlyRayon3d.AddSeg(aColor, aSeg.P0(), itP->Pt(), 10000);
+								std::string aNamePly = itP->NamePt() + "_" +  aSetIm[i] + ".ply";
+								aPlyRayon3d.PutFile(aNamePly);
+								
+								Pt2di aSzIm1   =  aIm.getCam()->SzBasicCapt3D() ;
+								Pt2di aSzResol = (round_up(Pt2dr(aSzIm1) / aResol));
+								Im2D_U_INT1 aImSsRes (aSzResol.x,aSzResol.y);
+								
+								//~ Tiff_Im aTif(aSetIm[i].c_str());
+								//~ ELISE_COPY
+								//~ (
+									//~ aImSsRes.all_pts(),
+									//~ Max(0,Min(255,StdFoncChScale(aTif.in_proj(),Pt2dr(0,0),Pt2dr(aResol,aResol)))),
+									//~ aImSsRes.out()
+								//~ );
+
+
+								//~ for (int  aX =0 ; aX <aSzResol.x ; aX++)
+								//~ {
+									//~ for (int  aY =0 ; aY <aSzResol.y ; aY++)
+									//~ {
+										//~ double aGr = aImSsRes.data()[aY][aX];
+										//~ cPlyCloud aPlyImage;
+										//~ aPlyImage.AddPt(Pt3di(aGr,aGr,aGr),Pt3dr(aX*aResol,aY*aResol,0));
+										//~ std::string aNameImgPly = aSetIm[i] + ".ply";
+										//~ aPlyImage.PutFile(aNameImgPly);
+									//~ }
+								//~ }
+							}
+						}
+					}
+				}
+			}
+			
+		}
+	}
+    
+	return EXIT_SUCCESS;
 }
 
 
