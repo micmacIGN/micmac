@@ -383,7 +383,7 @@ class cCmpPdsPile
 
 /*
 mK ;  // indexe initial
-mCpteur  ; //  rempli le cpt de cElTmp0Pile
+mCpteur  ; //  rempli le cpt de cElTmp0Pile; no de voisins avec une fonctionne de ponder au dessous de seuil 
 mPInit ; // poids initial
 mPds0;
 
@@ -429,6 +429,10 @@ void FiltrageAllerEtRetour(std::vector<cTmpPile> & aVTmp)
           // Propagattion
      for (int aK=1 ; aK<int(aVTmp.size()) ; aK++)
      {
+            //=>Pds0_current_cell + (NewPds_prev_cell * PPrec_current_cell)
+            //=>Zpond_current_cell + (Zpond_prev_cell * PPrec_current_cell)
+                //PPrec = exp(Z_prev_cell - Z_curr_cell)/( Sigma0 * Resol_Plani * sqrt(2) ) <=> exp(|az|)
+
           aVTmp[aK].mNewPdsp = aVTmp[aK].mPds0 + aVTmp[aK-1].mNewPdsp * aVTmp[aK].mPPrec;
           aVTmp[aK].mNewZPp  = aVTmp[aK].mZP0  + aVTmp[aK-1].mNewZPp  * aVTmp[aK].mPPrec;
           aVTmp[aK].mNewNbp  = aVTmp[aK].mNb0  + aVTmp[aK-1].mNewNbp  * aVTmp[aK].mPPrec;
