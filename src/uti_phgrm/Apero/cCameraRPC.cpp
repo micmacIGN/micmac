@@ -2362,7 +2362,7 @@ void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn,
     
         
         ab[0] = 1;
-        ab[0] = 1;
+        ad[0] = 1;
         
         for(aK=20; aK<39; aK++)
         {

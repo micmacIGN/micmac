@@ -567,6 +567,7 @@ extern int TD_Match2_main(int argc,char ** argv);
 extern int TD_Match3_main(int argc,char ** argv);
 extern int TestER_main(int argc,char ** argv);
 extern int TestER_grille_main(int argc,char ** argv);
+extern int TestER_filtRec_main(int argc,char ** argv);
 extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
@@ -758,7 +759,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
        aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
-       aRes.push_back(cMMCom("TestER",TestCmpIm_Ewelina,"ER test workplace"));
+       aRes.push_back(cMMCom("TestER",TestER_filtRec_main,"ER test workplace"));
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
