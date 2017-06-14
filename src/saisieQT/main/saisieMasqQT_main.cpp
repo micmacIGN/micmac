@@ -81,9 +81,6 @@ int saisieMasqQT_main(int argc, char *argv[])
             if (EAMIsInit(&aGama))
                 win.setGamma(aGama);
 
-            if(EAMIsInit(&aNameMasq))
-                win.getEngine()->setFilenameOut(QString(aNameMasq.c_str()));
-
             win.resize(SzWP.x,SzWP.y);
         }
 
@@ -103,6 +100,9 @@ int saisieMasqQT_main(int argc, char *argv[])
             else filenames.push_back(QString(aFullName.c_str()));
 
             win.addFiles(filenames,true);
+
+            if(EAMIsInit(&aNameMasq))
+                win.getEngine()->setFilenameOut(QString(aNameMasq.c_str()));
         }
 
         return app.exec();
