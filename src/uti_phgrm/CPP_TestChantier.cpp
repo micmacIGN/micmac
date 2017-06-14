@@ -196,7 +196,46 @@ int TestChantier_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+//---------------------------------------------------------------------//
 
+
+void AlphaGet27_Banniere()
+{
+    std::cout <<  "\n";
+    std::cout <<  " ****************************************\n";
+    std::cout <<  " *     G-éolocalisation                 *\n";
+    std::cout <<  " *     E-n l'air                        *\n";
+    std::cout <<  " *     T-étradimensionnelle             *\n";
+    std::cout <<  " *     2-01                             *\n";
+    std::cout <<  " *     7                                *\n";
+    std::cout <<  " ****************************************\n\n";
+}
+
+int AlphaGet27_main(int argc,char ** argv)
+{
+
+//    MMD_InitArgcArgv(argc,argv);
+
+    std::string aGCPfilePath, aSaisiefilePath, aOriFolder;
+    std::string aPathOut = "./";
+    std::string aGCPid = "";
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
+                    << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
+        LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export in text format (Def=false)",eSAM_IsBool)
+                    << EAM(AeroOut,"Out",true, "Directory of Output Orientation", eSAM_IsOutputDirOri)
+    );
+
+    AlphaGet27_Banniere();
+
+    return EXIT_SUCCESS;
+}
+
+
+//---------------------------------------------------------------------//
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
