@@ -220,14 +220,14 @@ int AlphaGet27_main(int argc,char ** argv)
     std::string aPathOut = "./";
     std::string aGCPid = "";
 
-    ElInitArgMain
+    /*ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
                     << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
         LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(AeroOut,"Out",true, "Directory of Output Orientation", eSAM_IsOutputDirOri)
-    );
+    );*/
 
     AlphaGet27_Banniere();
 
