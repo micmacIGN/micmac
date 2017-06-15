@@ -216,18 +216,64 @@ int AlphaGet27_main(int argc,char ** argv)
 
 //    MMD_InitArgcArgv(argc,argv);
 
-    std::string aGCPfilePath, aSaisiefilePath, aOriFolder;
-    std::string aPathOut = "./";
-    std::string aGCPid = "";
+    std::string anOriFolder, aGCPfile, aSaisiefile, aFullDir;
+    std::string aPathOut = "./AlphaGet27.xml";
+    std::string aNamePt = "";
 
-    /*ElInitArgMain
+    ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
-                    << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
-        LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export in text format (Def=false)",eSAM_IsBool)
-                    << EAM(AeroOut,"Out",true, "Directory of Output Orientation", eSAM_IsOutputDirOri)
-    );*/
+        LArgMain()  << EAMC(aFullDir, "Full Directory (Dir+Pattern)", eSAM_IsPatFile)
+                    << EAMC(anOriFolder, "Orientation folder", eSAM_IsExistDirOri)
+                    << EAMC(aGCPfile, "Ground Control Points file (XML)", eSAM_IsExistFileRP)
+                    << EAMC(aSaisiefile, "Saisie Appuis file (XML)", eSAM_IsExistFileRP),
+        LArgMain()  << EAM(aPathOut, "Output path (default = './AlphaGet27.xml')", eSAM_IsOutputFile)
+                    << EAM(aNamePt, "GCP name for computation of coordinates (default : first in GCP file)", true)
+    );
+
+    // Aspro treatments
+    std::string aComAspro = MM3dBinFile_quotes("Aspro")
+                            + " " + aFullDir
+                            + " " + anOriFolder
+                            + " " + aGCPfile
+                            + " " + aSaisiefile
+                            + " && "
+                            + MM3dBinFile_quotes("OriExport")
+                            + " Ori-Aspro/Orientation.*xml "
+                            ;
+
+//    std::cout << aComAspro << "\n";
+    System(aComAspro);
+
+    // TestDistortion treatments
+    cSetOfMesureAppuisFlottants aSOMAF = StdGetFromPCP(aSaisiefile, SetOfMesureAppuisFlottants);
+    cDicoAppuisFlottant aDAF;
+
+    std::string aNameCalib = anOriFolder + "/AutoCal*.xml";
+    cElemAppliSetFile anEASF(aNameCalib);
+    CamStenope * aCam =  CamOrientGenFromFile(aNameCalib, anEASF.mICNM);
+
+    for(std::list<cMesureAppuiFlottant1Im>::const_iterator itF = aSOMAF.MesureAppuiFlottant1Im().begin() ; itF != aSOMAF.MesureAppuiFlottant1Im().end() ; itF++)
+    {
+        cMesureAppuiFlottant1Im aMAF = *itF;
+
+        for(std::list<cOneMesureAF1I>::const_iterator itM = aMAF.OneMesureAF1I().begin() ; itM != aMAF.OneMesureAF1I().end() ; itM++)
+        {
+            cOneMesureAF1I anOM = *itM;
+            Pt2dr aPtIm = anOM.PtIm();
+            Pt3dr aFaisc = aCam->ImEtProf2Terrain(aPtIm, aCam->Focale());
+            double aFNorm = sqrt( pow(aFaisc.x, 2) + pow(aFaisc.y, 2) + pow(aFaisc.z, 2) );
+            aFaisc = aFaisc / aFNorm;
+        }
+
+        cOneAppuisDAF anAp;/*
+        anAp.Pt() = itP->P3D().Val();
+        anAp.NamePt() = itP->Name();*/
+        anAp.Incertitude() = Pt3dr(1,1,1);
+        aDAF.OneAppuisDAF().push_back(anAp);
+
+
+    }
 
     AlphaGet27_Banniere();
 
