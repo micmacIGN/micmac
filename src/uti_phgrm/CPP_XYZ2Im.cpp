@@ -68,6 +68,77 @@ cMesureAppuiFlottant1Im *  GetMAFOfNameIm(cSetOfMesureAppuisFlottants & aSMAF,co
 }
 
 
+//   R3 : "reel" coordonnee initiale
+//   L3 : "Locale", apres rotation
+//   C2 :  camera, avant distortion
+//   F2 : finale apres Distortion
+//
+//       Orientation      Projection      Distortion
+//   R3 -------------> L3------------>C2------------->F2
+
+int Camera2Ground_main(int argc,char **argv)
+{
+    MMD_InitArgcArgv(argc,argv,2);
+    std::string  aFullNC,aFilePtsIn,aFilePtsOut;
+    Pt3dr aTrans(0,0,0),aRot(0,0,0);
+    
+    ElInitArgMain
+    (
+     argc,argv,
+     LArgMain()  << EAMC(aFullNC,"Cam Orientation", eSAM_IsExistFile)
+                << EAMC(aFilePtsIn,"File In : X,Y,Z (in Camera)", eSAM_IsExistFile)
+                << EAMC(aFilePtsOut,"File Out : X,Y,Z (in Ground)", eSAM_IsOutputFile),
+     LArgMain() << EAM(aTrans,"Trans",true,"boresight translation [X,Y,Z]")
+                << EAM(aRot,"Rot",true,"boresight rotation [?,?,?]")
+     );
+    
+    std::string aDir,aNC;
+    
+    SplitDirAndFile(aDir,aNC,aFullNC);
+    
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    cResulMSO aRMso =  anICNM->MakeStdOrient(aNC,false);
+    ElCamera         * aCam    = aRMso.Cam();
+    
+    if ( aCam==NULL )
+    {
+        std::cout  << "For name " << aFullNC << "\n";
+        ELISE_ASSERT(aCam!=0,"Is not a MicMac Camera XML");
+    }
+    
+    ELISE_fp aFIn(aFilePtsIn.c_str(),ELISE_fp::READ);
+    FILE *  aFOut =  FopenNN(aFilePtsOut.c_str(),"w","XYZ2Im");
+    
+    char * aLine;
+    std::vector<Pt2dr> aV2Ok;
+    bool HasEmpty = false;
+    
+    while ((aLine = aFIn.std_fgets()))
+    {
+        Pt3dr aPCamera;
+        int aNb = sscanf(aLine,"%lf %lf %lf",&aPCamera.x,&aPCamera.y,&aPCamera.z);
+        ELISE_ASSERT(aNb==3,"Could not read 3 double values");
+        
+        Pt3dr aPGround;
+        if ((aTrans.x !=0)||(aTrans.y !=0)||(aTrans.z !=0)||(aRot.x !=0)||(aRot.y !=0)||(aRot.z !=0))
+        {
+            // La methode aCam->L3toR3 fait appel a la methode ImRecAff sur la classe TplElRotation3D<REAL> alias ElRotation3D
+            // pour creer un objet de cette classe :
+            // TplElRotation3D(Pt3d<Type> tr,Type teta01,Type teta02,Type teta12)
+            ElRotation3D boresight(aTrans,aRot.x,aRot.y,aRot.z);
+            aPGround = boresight.ImRecAff(aCam->L3toR3(aPCamera));
+        }
+        else
+            aPGround = aCam->L3toR3(aPCamera);
+        
+        fprintf(aFOut,"%lf %lf %lf\n",aPGround.x,aPGround.y,aPGround.z);
+    }
+    
+    aFIn.close();
+    ElFclose(aFOut);
+    
+    return 0;
+}
 
 int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
 {

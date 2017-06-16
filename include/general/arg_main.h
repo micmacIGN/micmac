@@ -655,6 +655,7 @@ int SysCoordPolyn_main(int argc,char ** argv);
 int Gri2Bin_main(int argc,char ** argv);
 int XYZ2Im_main(int argc,char ** argv);
 int Im2XYZ_main(int argc,char ** argv);
+int Camera2Ground_main(int argc,char **argv);
 
 int SupMntIm_main(int argc,char ** argv);
 int ChamVec3D_main(int argc,char ** argv);
