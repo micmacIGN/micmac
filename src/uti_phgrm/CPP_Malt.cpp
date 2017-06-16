@@ -146,6 +146,8 @@ class cAppliMalt
           std::vector<std::string> mEquiv;
           std::string mMasq3D;
           int         mVSNI;
+          int         mNbDirPrgD;
+          bool        mPrgDReInject;
 };
 
 
@@ -212,7 +214,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mGenCubeCorrel (false),
     mEZA           (false),
     mMaxFlow       (false),
-    mSzRec         (50)
+    mSzRec         (50),
+    mNbDirPrgD     (7),
+    mPrgDReInject  (false)
 {
 
 #if(ELISE_QT_VERSION >= 4)
@@ -344,6 +348,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mForceZFaisc,"ForceZFais",true,"Force Z Faisecau evan with stenope camera", eSAM_InternalUse)
                     << EAM(mVSNI,"VSND",true,"Value Special No Data")
  
+                    << EAM(mNbDirPrgD,"NbDirPrgD",true,"Nb Dir for prog dyn, (rather for tuning)")
+                    << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
                 );
 
     if (!MMVisualMode)
@@ -752,6 +758,16 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +GlobMasqPerIm=") + mMasqImGlob
                   ;
       }
+
+      if (EAMIsInit(&mNbDirPrgD))
+      {
+           mCom =  mCom +  std::string(" +NbDirPrgDyn=") + ToString(mNbDirPrgD)  + " ";
+      }
+      if (mPrgDReInject)
+      {
+           mCom =  mCom +  std::string(" +ModeAgregPrgDyn=ePrgDAgrProgressif");
+      }
+
 
       if (EAMIsInit(&aPtDebug))
       {
