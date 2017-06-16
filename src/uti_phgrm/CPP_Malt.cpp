@@ -543,6 +543,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                mZincCalc = (AltiSolMinMax.y-AltiSolMinMax.x) / 2.0;
           }
       }
+      
+	//{
+	//    std::cout << "GGHhhh " << aNbAltiSol << " " << TypeForZInit << "\n";
+	//    getchar();
+	//}
 
       if (aNbAltiSol && TypeForZInit)
       {
@@ -554,8 +559,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           }
       }
 
-// std::cout << "Iiiiiiiiiiiiinbc = Moy=" <<  mZMoy << " Inc=" << mZincCalc << "\n";
-// std::cout << "ALTISSSOLL " << AltiSol << " " << AltiSolMinMax << "\n"; getchar();
+//std::cout << "Iiiiiiiiiiiiinbc = Moy=" <<  mZMoy << " Inc=" << mZincCalc << "\n";
+//std::cout << "ALTISSSOLL " << AltiSol << " " << AltiSolMinMax << "\n"; getchar();
 
 
 
@@ -591,9 +596,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       bool IsAnamXCsteOfCart = false;
       if (mType!=eGeomImage)
       {
-          if (! EAMIsInit(&mZMoy))
-              mZMoy=0; // MPD modif 06/02/2017 , si repere
           mRepIsAnam =   (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte,IsAnamXCsteOfCart);
+          if (mRep!="")
+          {
+              if (! EAMIsInit(&mZMoy))
+                  mZMoy=0; // MPD modif 06/02/2017 , si repere
+          }
       }
       mUnAnam = mUnAnam && IsOrthoXCSte;
 

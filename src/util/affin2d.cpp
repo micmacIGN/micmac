@@ -1244,7 +1244,8 @@ cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack,const st
 
 int CPP_CalcMapAnalitik(int argc,char** argv)
 {
-    std::string aName1,aName2,aNameOut,aSH,anExt="dat";
+    std::string aName1,aName2,aNameOut,aSH;
+    bool aExpTxt=false;
     std::string anOri;
     std::string aNameType;
     Pt2dr       aPerResidu(100,100);
@@ -1270,6 +1271,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
                     <<  EAMC(aNameType,"Model in [Homot,Simil,Affine,Homogr,Polyn]")
                     <<  EAMC(aNameOut,"Name Out"),
         LArgMain()  <<  EAM(aSH,"SH",true,"Set of homologue")
+					<<  EAM(aExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                     <<  EAM(anOri,"Ori",true,"Directory to read distorsion")
                     <<  EAM(aPerResidu,"PerResidu",true,"Period for computing residual")
                     <<  EAM(aVRE,"PRE",true,"Param for robust estimation [PropInlayer,NbRan(500),NbPtsRan(+inf)]")
@@ -1297,7 +1299,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
          aCS1->Get_dist().SetCameraOwner(aCS1);
          aCS2->Get_dist().SetCameraOwner(aCS2);
     }
-
+	std::string anExt = aExpTxt ? "txt" : "dat";
     std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aSH)
                        +  std::string("@")
@@ -1565,6 +1567,8 @@ cAppli_CPP_DenseMapToHom::cAppli_CPP_DenseMapToHom(int argc,char** argv) :
     mOverlap (1.0)
 {
 
+	bool aExpTxt=false;
+	
     ElInitArgMain
     (
         argc,argv,
@@ -1574,6 +1578,7 @@ cAppli_CPP_DenseMapToHom::cAppli_CPP_DenseMapToHom(int argc,char** argv) :
                     // <<  EAMC(mNamePx1,"Name Px1 (dx)")
                     // <<  EAMC(mNamePx2,"Name Px2 (dy)"),
         LArgMain()  <<  EAM(mSH,"SH",true,"Set of homologue, def=DM")
+					<<  EAM(aExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                     <<  EAM(mNbTile,"NbTiles",true,"Number of tile/side (will be slightly changed), Def=30")
                     <<  EAM(mNamePds,"Pds",true,"File for weighting, def W=1.0")
     );
@@ -1590,7 +1595,7 @@ cAppli_CPP_DenseMapToHom::cAppli_CPP_DenseMapToHom(int argc,char** argv) :
     cElemAppliSetFile anEASF(mName1);
     cInterfChantierNameManipulateur * anICNM = anEASF.mICNM;
     std::string aDir = anEASF.mDir;
-
+	std::string mExt = aExpTxt ? "txt" : "dat";
     std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(mSH)
                        +  std::string("@")
