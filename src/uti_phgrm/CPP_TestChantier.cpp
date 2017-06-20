@@ -224,56 +224,106 @@ int AlphaGet27_main(int argc,char ** argv)
     (
         argc,argv,
         LArgMain()  << EAMC(aFullDir, "Full Directory (Dir+Pattern)", eSAM_IsPatFile)
-                    << EAMC(anOriFolder, "Orientation folder", eSAM_IsExistDirOri)
+                    << EAMC(anOriFolder, "Orientation folder (in projected coordinates)", eSAM_IsExistDirOri)
                     << EAMC(aGCPfile, "Ground Control Points file (XML)", eSAM_IsExistFileRP)
                     << EAMC(aSaisiefile, "Saisie Appuis file (XML)", eSAM_IsExistFileRP),
-        LArgMain()  << EAM(aPathOut, "Output path (default = './AlphaGet27.xml')", eSAM_IsOutputFile)
-                    << EAM(aNamePt, "GCP name for computation of coordinates (default : first in GCP file)", true)
+        LArgMain()  << EAM(aPathOut, "Out", true, "Output path (default = './AlphaGet27.xml')", eSAM_IsOutputFile)
+                    << EAM(aNamePt, "GCPid", true, "GCP name for computation of coordinates (default : first in GCP file)")
     );
+
+    std::string aDir, aPat;
+    SplitDirAndFile(aDir,aPat,aFullDir);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(aPat));
 
     // Aspro treatments
     std::string aComAspro = MM3dBinFile_quotes("Aspro")
                             + " " + aFullDir
                             + " " + anOriFolder
                             + " " + aGCPfile
-                            + " " + aSaisiefile
-                            + " && "
-                            + MM3dBinFile_quotes("OriExport")
-                            + " Ori-Aspro/Orientation.*xml "
-                            ;
+                            + " " + aSaisiefile;
+//                            + " && "
+//                            + MM3dBinFile_quotes("OriExport")
+//                            + " " + aFullDir
+//                            + " Ori-Aspro/Orientation.*xml"
+//                            ;
 
 //    std::cout << aComAspro << "\n";
     System(aComAspro);
 
     // TestDistortion treatments
+    cDicoAppuisFlottant aDAF = StdGetFromPCP(aGCPfile, DicoAppuisFlottant);
     cSetOfMesureAppuisFlottants aSOMAF = StdGetFromPCP(aSaisiefile, SetOfMesureAppuisFlottants);
-    cDicoAppuisFlottant aDAF;
 
-    std::string aNameCalib = anOriFolder + "/AutoCal*.xml";
-    cElemAppliSetFile anEASF(aNameCalib);
-    CamStenope * aCam =  CamOrientGenFromFile(aNameCalib, anEASF.mICNM);
+//    std::cout << "\n GCP id not OK !";
 
-    for(std::list<cMesureAppuiFlottant1Im>::const_iterator itF = aSOMAF.MesureAppuiFlottant1Im().begin() ; itF != aSOMAF.MesureAppuiFlottant1Im().end() ; itF++)
+    if(aNamePt == "")
     {
-        cMesureAppuiFlottant1Im aMAF = *itF;
-
-        for(std::list<cOneMesureAF1I>::const_iterator itM = aMAF.OneMesureAF1I().begin() ; itM != aMAF.OneMesureAF1I().end() ; itM++)
+        aNamePt = aSOMAF.MesureAppuiFlottant1Im().front().OneMesureAF1I().front().NamePt();
+    }
+    else
+    {
+        bool GCPnameOK = false;
+        for(std::list<cOneAppuisDAF>::const_iterator itA = aDAF.OneAppuisDAF().begin() ; itA != aDAF.OneAppuisDAF().end() ; itA++)
         {
-            cOneMesureAF1I anOM = *itM;
-            Pt2dr aPtIm = anOM.PtIm();
-            Pt3dr aFaisc = aCam->ImEtProf2Terrain(aPtIm, aCam->Focale());
-            double aFNorm = sqrt( pow(aFaisc.x, 2) + pow(aFaisc.y, 2) + pow(aFaisc.z, 2) );
-            aFaisc = aFaisc / aFNorm;
+            cOneAppuisDAF anOA = *itA;
+            if(aNamePt == anOA.NamePt()) GCPnameOK = true;
+        }
+        ELISE_ASSERT(GCPnameOK,"GCP name not in GCP input file");
+    }
+
+
+    std::string aNameCalib = "AutoCal@xml";
+    cElemAppliSetFile anEASF(anOriFolder + "/" + aNameCalib);
+    CamStenope * aCalib =  CamOrientGenFromFile(aNameCalib, anEASF.mICNM);
+    cDicoAppuisFlottant aDAFout;
+    Pt3dr aFaisc = Pt3dr(0,0,0);
+
+    for(unsigned aC=0; aC<aSetIm.size(); aC++)
+    {
+        CamStenope * aCam = CamOrientGenFromFile(anOriFolder + "/Orientation-" + aSetIm[aC] + ".xml", aICNM);
+        ElMatrix<double> aMatRot = aCam->Orient().Mat();
+
+        for(std::list<cMesureAppuiFlottant1Im>::const_iterator itF = aSOMAF.MesureAppuiFlottant1Im().begin() ; itF != aSOMAF.MesureAppuiFlottant1Im().end() ; itF++)
+        {
+            cMesureAppuiFlottant1Im aMAF = *itF;
+            if(aMAF.NameIm() == aSetIm[aC])
+            {
+                for(std::list<cOneMesureAF1I>::const_iterator itM = aMAF.OneMesureAF1I().begin() ; itM != aMAF.OneMesureAF1I().end() ; itM++)
+                {
+                    cOneMesureAF1I anOM = *itM;
+                    if(anOM.NamePt() == aNamePt)
+                    {
+                        Pt2dr aPtIm = anOM.PtIm();
+//                        aCalib->C2toDirRayonL3()
+                        aFaisc = aCalib->ImEtProf2Terrain(aPtIm, aCalib->Focale());
+                        double aFNorm = sqrt( pow(aFaisc.x, 2) + pow(aFaisc.y, 2) + pow(aFaisc.z, 2) );
+                        aFaisc = aFaisc / aFNorm;
+                    }
+                }
+            }
         }
 
-        cOneAppuisDAF anAp;/*
-        anAp.Pt() = itP->P3D().Val();
-        anAp.NamePt() = itP->Name();*/
+        cOrientationConique anOCAspro = StdGetFromPCP("Ori-Aspro/Orientation-" + aSetIm[aC] + ".xml", OrientationConique);
+        Pt3dr aPosIm = anOCAspro.Externe().Centre();
+        double aDist = sqrt( pow(aPosIm.x, 2) + pow(aPosIm.y, 2) + pow(aPosIm.z, 2) );
+
+        Pt3dr aVecDir = aFaisc * aDist;
+
+        double aB2Ltab[3] = {aMatRot(0,0)*aVecDir.x + aMatRot(1,0)*aVecDir.y + aMatRot(2,0)*aVecDir.z,
+                             aMatRot(0,1)*aVecDir.x + aMatRot(1,1)*aVecDir.y + aMatRot(2,1)*aVecDir.z,
+                             aMatRot(0,2)*aVecDir.x + aMatRot(1,2)*aVecDir.y + aMatRot(2,2)*aVecDir.z};
+        Pt3dr aLevier;
+        aLevier.FromTab(aB2Ltab);
+
+        cOneAppuisDAF anAp;
+        anAp.Pt() = aCam->VraiOpticalCenter() + aLevier;
+        anAp.NamePt() = aSetIm[aC];
         anAp.Incertitude() = Pt3dr(1,1,1);
-        aDAF.OneAppuisDAF().push_back(anAp);
-
-
+        aDAFout.OneAppuisDAF().push_back(anAp);
     }
+
+    MakeFileXML(aDAFout, aPathOut);
 
     AlphaGet27_Banniere();
 
