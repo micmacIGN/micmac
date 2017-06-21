@@ -213,6 +213,7 @@ void AlphaGet27_Banniere()
 
 int AlphaGet27_main(int argc,char ** argv)
 {
+    std::cout << "\n";
 
 //    MMD_InitArgcArgv(argc,argv);
 
@@ -233,8 +234,8 @@ int AlphaGet27_main(int argc,char ** argv)
 
     std::string aDir, aPat;
     SplitDirAndFile(aDir,aPat,aFullDir);
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    const std::vector<std::string> aSetIm = *(aICNM->Get(aPat));
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetIm = *(anICNM->Get(aPat));
 
     // Aspro treatments
     std::string aComAspro = MM3dBinFile_quotes("Aspro")
@@ -273,16 +274,17 @@ int AlphaGet27_main(int argc,char ** argv)
     }
 
 
-    std::string aNameCalib = "AutoCal@xml";
-    cElemAppliSetFile anEASF(anOriFolder + "/" + aNameCalib);
-    CamStenope * aCalib =  CamOrientGenFromFile(aNameCalib, anEASF.mICNM);
+//    std::string aNameCalib = anOriFolder + "AutoCal@" + ".xml";
+//    CamStenope * aCalib =  CamOrientGenFromFile(aNameCalib, anICNM);
     cDicoAppuisFlottant aDAFout;
     Pt3dr aFaisc = Pt3dr(0,0,0);
 
     for(unsigned aC=0; aC<aSetIm.size(); aC++)
     {
-        CamStenope * aCam = CamOrientGenFromFile(anOriFolder + "/Orientation-" + aSetIm[aC] + ".xml", aICNM);
+        CamStenope * aCam = CamOrientGenFromFile(anOriFolder + "/Orientation-" + aSetIm[aC] + ".xml", anICNM);
+//        std::cout << "XML = " << anOriFolder + "/Orientation-" + aSetIm[aC] + ".xml" << "\n";
         ElMatrix<double> aMatRot = aCam->Orient().Mat();
+        std::cout << "Image = " << aSetIm[aC] << "\n";
 
         for(std::list<cMesureAppuiFlottant1Im>::const_iterator itF = aSOMAF.MesureAppuiFlottant1Im().begin() ; itF != aSOMAF.MesureAppuiFlottant1Im().end() ; itF++)
         {
@@ -296,7 +298,7 @@ int AlphaGet27_main(int argc,char ** argv)
                     {
                         Pt2dr aPtIm = anOM.PtIm();
 //                        aCalib->C2toDirRayonL3()
-                        aFaisc = aCalib->ImEtProf2Terrain(aPtIm, aCalib->Focale());
+                        aFaisc = aCam->ImEtProf2Terrain(aPtIm, aCam->Focale());
                         double aFNorm = sqrt( pow(aFaisc.x, 2) + pow(aFaisc.y, 2) + pow(aFaisc.z, 2) );
                         aFaisc = aFaisc / aFNorm;
                     }
@@ -308,13 +310,24 @@ int AlphaGet27_main(int argc,char ** argv)
         Pt3dr aPosIm = anOCAspro.Externe().Centre();
         double aDist = sqrt( pow(aPosIm.x, 2) + pow(aPosIm.y, 2) + pow(aPosIm.z, 2) );
 
+        std::cout << "Distance camera-objet = " << aDist << " metres\n";
+
         Pt3dr aVecDir = aFaisc * aDist;
 
-        double aB2Ltab[3] = {aMatRot(0,0)*aVecDir.x + aMatRot(1,0)*aVecDir.y + aMatRot(2,0)*aVecDir.z,
-                             aMatRot(0,1)*aVecDir.x + aMatRot(1,1)*aVecDir.y + aMatRot(2,1)*aVecDir.z,
-                             aMatRot(0,2)*aVecDir.x + aMatRot(1,2)*aVecDir.y + aMatRot(2,2)*aVecDir.z};
-        Pt3dr aLevier;
-        aLevier.FromTab(aB2Ltab);
+        std::cout << "Vecteur directeur camera-objet = {" << aVecDir.x << " ; " << aVecDir.y << " ; " << aVecDir.z << "}\n";
+
+//        std::cout << aMatRot(0,0) << " ; " << aMatRot(0,1) << " ; " << aMatRot(0,2) << "\n";
+//        std::cout << aMatRot(1,0) << " ; " << aMatRot(1,1) << " ; " << aMatRot(1,2) << "\n";
+//        std::cout << aMatRot(2,0) << " ; " << aMatRot(2,1) << " ; " << aMatRot(2,2) << "\n";
+
+        double aB2Ltab[3] = {aMatRot(0,0)*aVecDir.x + aMatRot(0,1)*aVecDir.y + aMatRot(0,1)*aVecDir.z,
+                             aMatRot(1,0)*aVecDir.x + aMatRot(1,1)*aVecDir.y + aMatRot(1,2)*aVecDir.z,
+                             aMatRot(2,0)*aVecDir.x + aMatRot(2,1)*aVecDir.y + aMatRot(2,2)*aVecDir.z};
+
+//        std::cout << aB2Ltab[0] << " ; " << aB2Ltab[1] << " ; " << aB2Ltab[2] << std::endl;
+        Pt3dr aLevier = Pt3dr::FromTab(aB2Ltab);
+
+        std::cout << "Bras de levier terrain camera-objet = {" << aLevier.x << " ; " << aLevier.y << " ; " << aLevier.z << "}\n";
 
         cOneAppuisDAF anAp;
         anAp.Pt() = aCam->VraiOpticalCenter() + aLevier;
