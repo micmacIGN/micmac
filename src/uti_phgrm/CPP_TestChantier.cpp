@@ -37,6 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include <iomanip>
 
 /*
 void TestOneCorner(ElCamera * aCam,const Pt2dr&  aP, const Pt2dr&  aG)
@@ -297,14 +298,17 @@ int AlphaGet27_main(int argc,char ** argv)
                     if(anOM.NamePt() == aNamePt)
                     {
                         Pt2dr aPtIm = anOM.PtIm();
+//                        std::cout << "Vect = " << aPtIm.x << " ; " << aPtIm.y << "\n";
 //                        aCalib->C2toDirRayonL3()
-                        aFaisc = aCam->ImEtProf2Terrain(aPtIm, aCam->Focale());
+                        aFaisc = aCam->F2toDirRayonL3(aPtIm);
+//                        std::cout << "Vect = " << aFaisc.x << " ; " << aFaisc.y << " ; " << aFaisc.z << "\n";
                         double aFNorm = sqrt( pow(aFaisc.x, 2) + pow(aFaisc.y, 2) + pow(aFaisc.z, 2) );
                         aFaisc = aFaisc / aFNorm;
                     }
                 }
             }
         }
+//        std::cout << "Vect_n = " << aFaisc.x << " ; " << aFaisc.y << " ; " << aFaisc.z << "\n";
 
         cOrientationConique anOCAspro = StdGetFromPCP("Ori-Aspro/Orientation-" + aSetIm[aC] + ".xml", OrientationConique);
         Pt3dr aPosIm = anOCAspro.Externe().Centre();
@@ -314,23 +318,25 @@ int AlphaGet27_main(int argc,char ** argv)
 
         Pt3dr aVecDir = aFaisc * aDist;
 
-        std::cout << "Vecteur directeur camera-objet = {" << aVecDir.x << " ; " << aVecDir.y << " ; " << aVecDir.z << "}\n";
+//        std::cout << "Vecteur directeur camera-objet = {" << aVecDir.x << " ; " << aVecDir.y << " ; " << aVecDir.z << "}\n";
 
 //        std::cout << aMatRot(0,0) << " ; " << aMatRot(0,1) << " ; " << aMatRot(0,2) << "\n";
 //        std::cout << aMatRot(1,0) << " ; " << aMatRot(1,1) << " ; " << aMatRot(1,2) << "\n";
 //        std::cout << aMatRot(2,0) << " ; " << aMatRot(2,1) << " ; " << aMatRot(2,2) << "\n";
 
-        double aB2Ltab[3] = {aMatRot(0,0)*aVecDir.x + aMatRot(0,1)*aVecDir.y + aMatRot(0,1)*aVecDir.z,
+        double aB2Ltab[3] = {aMatRot(0,0)*aVecDir.x + aMatRot(0,1)*aVecDir.y + aMatRot(0,2)*aVecDir.z,
                              aMatRot(1,0)*aVecDir.x + aMatRot(1,1)*aVecDir.y + aMatRot(1,2)*aVecDir.z,
                              aMatRot(2,0)*aVecDir.x + aMatRot(2,1)*aVecDir.y + aMatRot(2,2)*aVecDir.z};
 
-//        std::cout << aB2Ltab[0] << " ; " << aB2Ltab[1] << " ; " << aB2Ltab[2] << std::endl;
+        std::cout << aB2Ltab[0] << " ; " << aB2Ltab[1] << " ; " << aB2Ltab[2] << std::endl;
         Pt3dr aLevier = Pt3dr::FromTab(aB2Ltab);
 
-        std::cout << "Bras de levier terrain camera-objet = {" << aLevier.x << " ; " << aLevier.y << " ; " << aLevier.z << "}\n";
+        std::cout << "Bras de levier camera-objet = {" << aLevier.x << " ; " << aLevier.y << " ; " << aLevier.z << "}\n\n";
 
         cOneAppuisDAF anAp;
-        anAp.Pt() = aCam->VraiOpticalCenter() + aLevier;
+
+        anAp.Pt() = aCam->PseudoOpticalCenter() + aLevier;
+//        std::cout << std::setprecision(10) << "LLA corr = {" << anAp.Pt().x << " ; " << anAp.Pt().y << " ; " << anAp.Pt().z << "}\n\n";
         anAp.NamePt() = aSetIm[aC];
         anAp.Incertitude() = Pt3dr(1,1,1);
         aDAFout.OneAppuisDAF().push_back(anAp);
