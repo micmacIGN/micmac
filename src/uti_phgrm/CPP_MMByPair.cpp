@@ -1147,9 +1147,10 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                                      + " Out=" + aNewIm;
 
                   System(aCom,false,true);
-                  ELISE_fp::MvFile(mEASF.mDir + aNewIm , mEASF.mDir+aDirOut + aNewIm);
+                  // ELISE_fp::MvFile(mEASF.mDir + aNewIm , mEASF.mDir+aDirOut + aNewIm);
 
                   std::string aNameOriOut = aCG->Save2XmlStdMMName(mEASF.mICNM,aOriOut,aNewIm,Pt2dr(aDec));
+                  ELISE_fp::MvFile(mEASF.mDir + aNewIm , mEASF.mDir+aDirOut + aNewIm);
                   aDirOriOut = DirOfFile(aNameOriOut);
                   DoMoveOri = true;
 

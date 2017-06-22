@@ -89,6 +89,7 @@ void  cAppli_Vino::Crop()
                                   + ToString(Box2di(round_ni(aP0),round_ni(aP1))) + std::string(" ")
                                   + std::string(" PrefCliped=Cliped_") + ToString(NumCrop()) + std::string(" ")
                                 ;
+         // std::cout << aComClip << "\n";
          System(aComClip); 
     }
     else

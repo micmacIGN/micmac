@@ -204,6 +204,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <Symb> UsePC=true </Symb>
      <Symb> UseVSNI=false </Symb>
      <Symb> VSNI=0 </Symb>
+     <Symb> NbDirPrgDyn=7 </Symb>
+     <Symb> ModeAgregPrgDyn=ePrgDAgrSomme </Symb>
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -392,8 +394,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 	     <ZRegul>  ${ZRegul}  </ZRegul>
              <ModulationProgDyn>
                  <EtapeProgDyn>
-                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
-                      <NbDir>   7               </NbDir>
+                      <ModeAgreg> ${ModeAgregPrgDyn} </ModeAgreg>
+                      <NbDir>   ${NbDirPrgDyn}               </NbDir>
                   </EtapeProgDyn>
                   <Px1PenteMax>   2.0    </Px1PenteMax>
                   <ArgMaskAuto >
@@ -484,8 +486,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                  <ZDilatPlani> 3    </ZDilatPlani>
                  <ModulationProgDyn Portee="Globale">
                          <EtapeProgDyn>
-                              <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
-                              <NbDir>   7              </NbDir>
+                              <ModeAgreg> ${ModeAgregPrgDyn} </ModeAgreg>
+                              <NbDir>   ${NbDirPrgDyn}              </NbDir>
                          </EtapeProgDyn>
                          <Px1PenteMax>   1.0    </Px1PenteMax>
                          <ArgMaskAuto >

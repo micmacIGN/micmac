@@ -36,9 +36,16 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
-#include <fstream>
+#include "SimplePredict.h"
 
+cOrientedImage::cOrientedImage
+  (   std::string aOriIn,
+   std::string aName,
+   cInterfChantierNameManipulateur * aICNM):
+    mName(aName),mOriFileName(aOriIn+"Orientation-"+mName+".xml")
+{
+   mCam=CamOrientGenFromFile(mOriFileName,aICNM);
+}
 /**
  * SimplePredict: project ground points on oriented cameras
  *
@@ -89,40 +96,6 @@ f.write( etree.tostring(GCP, pretty_print=True) )
 f.close()
 
 **/
-
-//----------------------------------------------------------------------------
-// OrientedImage class
-class cOrientedImage
-{
-  public:
-    cOrientedImage
-    (
-      std::string aOriIn,
-      std::string aName,
-      cInterfChantierNameManipulateur * aICNM
-    );
-    std::string getName(){return mName;}
-    CamStenope * getCam(){return mCam;}
-
-  protected:
-    CamStenope         * mCam;
-    std::string        mName;
-    std::string mOriFileName;
- };
-
-cOrientedImage::cOrientedImage
-  (   std::string aOriIn,
-   std::string aName,
-   cInterfChantierNameManipulateur * aICNM):
-    mName(aName),mOriFileName(aOriIn+"Orientation-"+mName+".xml")
-{
-   mCam=CamOrientGenFromFile(mOriFileName,aICNM);
-}
-
-
-//----------------------------------------------------------------------------
-
-
 
 int SimplePredict_main(int argc,char ** argv)
 {
