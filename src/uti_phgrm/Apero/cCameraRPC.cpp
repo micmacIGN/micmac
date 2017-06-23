@@ -3933,7 +3933,7 @@ int RecalRPC_main(int argc,char ** argv)
     std::list<std::string>::iterator itL=aListFile.begin();
     for( ; itL !=aListFile.end(); itL++ )
     {
-        cRPC::Save2XmlStdMMName(0,"",(*itL),ElAffin2D::Id());
+        cRPC::Save2XmlStdMMName(0,"",(aDir+*itL),ElAffin2D::Id());
     }
     
    

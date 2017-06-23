@@ -563,6 +563,8 @@ cEtapeMecComp::cEtapeMecComp
              mTheModPrgD = &(aTplModul.Val());
 
              mArgMaskAuto = mTheModPrgD->ArgMaskAuto().PtrVal();
+             if (mArgMaskAuto && (mArgMaskAuto->ValDefCorrel() <-1))
+                mArgMaskAuto = 0;
 
              if (mArgMaskAuto)
              {
@@ -589,7 +591,7 @@ cEtapeMecComp::cEtapeMecComp
              {
                 NewPrgDynInterdit = true;
              }
-             if (mTheModPrgD->ArgMaskAuto().IsInit())
+             if (mArgMaskAuto)
              {
                 NewPrgDynOblig = true;
              }

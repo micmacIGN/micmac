@@ -226,6 +226,7 @@ int GCP_Fusion(int argc,char ** argv);
 
 int SimuLib_Main(int argc,char ** argv);
 
+extern int CPP_ProfilImage(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -496,6 +497,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ReSampFid",OneReechFid_main,"Resampling using one fiducial mark"));
        aRes.push_back(cMMCom("VisuRedHom",VisuResiduHom," Create a visualisation of residual on tie points"));
        aRes.push_back(cMMCom("GenerateBorderCam",GenerateBorderCam_main," Generate the polygone of image contour undistorded"));
+       aRes.push_back(cMMCom("ProfilIm",CPP_ProfilImage,"Image profiling  2D->1D "));
 
    }
 
@@ -636,7 +638,7 @@ int CPP_TestBundleGen(int argc,char ** argv)   ;
 int PlyGCP_main(int argc,char ** argv);
 int CmpMAF_main(int argc,char ** argv);
 int DoCmpByImg_main(int argc,char ** argv);
-
+int GenRayon3D_main(int argc,char ** argv);
 int SysCalled_main (int argc,char** argv);
 int SysCall_main (int argc,char** argv);
 
@@ -715,6 +717,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+
        aRes.push_back(cMMCom("Exo0",TD_Exo0,"Some stuff "));
        aRes.push_back(cMMCom("Exo1",TD_Exo1,"Some stuff "));
        aRes.push_back(cMMCom("Exo2",TD_Exo2,"Some stuff "));
@@ -819,7 +822,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	   aRes.push_back(cMMCom("OriFromOnePose",GenOriFromOnePose_main,"Generate an Ori-XXX from one pos ; All images the same"));
        aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump"));
        aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml"));
-
+	   aRes.push_back(cMMCom("GenRayon3D",GenRayon3D_main,"Generate 3D lines in a ply format ; Visualize pseudo-intersection"));
         aRes.push_back(cMMCom("AddAffinity", AddAffinity_main, "Add an affinity, tuning"));
         aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
         aRes.push_back(cMMCom("Ortho",ServiceGeoSud_Ortho_main,"Compute a basic Ortho from a DTM and a satellite image (for GeoSud services)"));
@@ -912,6 +915,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("ConvertTiePPs2MM",ConvertTiePPs2MM_main,"ConvertTiePPs2MM"));
 
         aRes.push_back(cMMCom("ConvHomolVSFM2MM",ConvHomolVSFM2MM_main,"Convert Tie Points from Visual SFM format (.sift & .mat) to MicMac format"));
+
    }
 
     cCmpMMCom CmpMMCom;
@@ -953,6 +957,7 @@ extern int ASTERGT2MM_main(int argc, char ** argv);
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
     static std::vector<cMMCom> aRes;
+    if (aRes.size()) return aRes;
 
     aRes.push_back(cMMCom("RecalRPC", RecalRPC_main, "Recalculate the adjusted RPCs back to geodetic coordinate system"));
     aRes.push_back(cMMCom("CropRPC", CropRPC_main, "Recalculate the RPCs for an image crop"));
@@ -994,11 +999,15 @@ int SateLib_main(int argc, char ** argv)
 //===============================================
 
 int CPP_AddNoiseImage(int,char **);
+int CPP_SimulDep(int,char **);
+
 const std::vector<cMMCom> & SimuLibAvailableCommands()
 {
     static std::vector<cMMCom> aRes;
+    if (aRes.size()) return aRes;
 
     aRes.push_back(cMMCom("AddNoise", CPP_AddNoiseImage, "Add noise to images"));
+    aRes.push_back(cMMCom("SimulDep", CPP_SimulDep, "Run N Matching to average noise"));
  
     return aRes;
 }
@@ -1009,7 +1018,7 @@ const std::vector<cMMCom> & SimuLibAvailableCommands()
 
 int SimuLib_Main(int argc, char ** argv)
 {
-    return EXIT_SUCCESS;
+    return GenMain(argc, argv, SimuLibAvailableCommands());
 }
 //================= XLib =======================
 

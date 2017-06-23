@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 int  StatIm_main(int argc,char ** argv)
 {
 
+        std::string aMasq;
     	string Name;
         Pt2di aP0(0,0);
         Pt2di aSz(1,1);
@@ -56,8 +57,9 @@ int  StatIm_main(int argc,char ** argv)
                 argc,argv,
                 LArgMain() 	<< EAMC(Name,"Image name", eSAM_IsExistFile)
                                 << EAMC(aP0,"Point or Origin of rectangle"),
-        		LArgMain()      <<  EAM(aSz,"Sz",true,"Size of rectangle (Def=[1,1])")
-								<<  EAM(aMoreStat,"Stat",true,"Calculate extra statistical measures (Def=false)")
+                LArgMain()      <<  EAM(aSz,"Sz",true,"Size of rectangle (Def=[1,1])")
+                                <<  EAM(aMoreStat,"Stat",true,"Calculate extra statistical measures (Def=false)")
+                                <<  EAM(aMasq,"Masq",true,"Masq for image")
     );
 
     if(MMVisualMode) return EXIT_SUCCESS;
@@ -66,26 +68,40 @@ int  StatIm_main(int argc,char ** argv)
 
 
         Symb_FNum aTF (Rconv(tiff.in()));
+        Fonc_Num aFPds (1.0);
 
-        double aSP,aSomZ,aSomZ2,aZMin,aZMax;
+        if (EAMIsInit(&aMasq))
+        {
+            Tiff_Im aTF(aMasq.c_str());
+            aFPds = aTF.in(0);
+            if (!EAMIsInit(&aSz))
+            {
+                aSz = aTF.sz();
+            }
+        }
+
+        double aSP,aSomZ,aSomZ2,aZMin,aZMax,aSomAbs;
         ELISE_COPY
         (
             rectangle(aP0,aP0+aSz),
-            Virgule(1,aTF,Square(aTF)),
+            Virgule(1,aTF,Square(aTF),Abs(aTF))*aFPds,
             Virgule
             (
                  sigma(aSP),
                  sigma(aSomZ)|VMax(aZMax)|VMin(aZMin),
-                 sigma(aSomZ2)
+                 sigma(aSomZ2),
+                 sigma(aSomAbs)
             )
         );
 
         aSomZ /= aSP;
         aSomZ2 /= aSP;
         aSomZ2 -= ElSquare(aSomZ);
+        aSomAbs /= aSP;
 
         std::cout << "ZMoy=" << aSomZ << " ; Sigma=" << sqrt(ElMax(0.0,aSomZ2)) << "\n";
         std::cout << "ZMinMax=[" << aZMin << " , " << aZMax << "]\n";
+        std::cout << "MoyAbs=" << aSomAbs  << "\n";
 	
 		if(aMoreStat)
 		{
@@ -121,7 +137,7 @@ int  StatIm_main(int argc,char ** argv)
         }
 */
 
-   return 1;
+   return EXIT_SUCCESS;
 }
 
 
