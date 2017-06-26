@@ -252,6 +252,9 @@ int rnx2rtkp_main(int argc,char ** argv)
 	std::string aTraceFile;
 	std::string aOutRtkParam = "rtkParamsConfigs.txt";
 	
+	bool aModeFile=false;
+	std::string aFileMF="";
+	
 	ElInitArgMain
     (
           argc, argv,
@@ -261,6 +264,8 @@ int rnx2rtkp_main(int argc,char ** argv)
 					 << EAMC(aFileB,"Rinex file of base station ; NONE if single or PPP pos mode", eSAM_IsExistFile)
 					 << EAMC(aFileN,"Navigation file for GPS satellites ephemerides", eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"output txt file name ; Def = Output_mode.txt", eSAM_IsOutputFile)
+					 << EAM(aModeFile,"ModeFile",false,"if using RTKlib in mode file ; Def=false",eSAM_IsBool)
+					 << EAM(aFileMF,"InputConf",false,"input name file config",eSAM_IsExistFile)
 					 << EAM(aXmlOut,"Xml",false,"output xml Gps Trajectory file ; Def = Output_mode.xml", eSAM_IsOutputFile)
 					 << EAM(aAscii,"Ascii",false,"ASCII file export of result ; Format = (t,X,Y,Z,Q) ; Def = Output_mode_txyz.txt", eSAM_IsBool)
 					 << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
@@ -518,172 +523,17 @@ int rnx2rtkp_main(int argc,char ** argv)
 	//correction for "ant2-postype"
 	if(aAnt2PosType == "code")
 		aAnt2PosType = "single";
-		
+			
 	//****************************************************************//
-	//if a station file is given
-	if(aStaPosFile != "")
+	//****************************************************************//
+	//lanch gps processing
+	std::string aCom, aCom1;
+	if (aOut == "")
 	{
-		//read the .xml file : one position only
-		cDicoGpsFlottant aStationFile =  StdGetFromPCP(aStaPosFile,DicoGpsFlottant);
-				
-		if(aStationFile.OneGpsDGF().size() != 1)
-		{
-			ELISE_ASSERT(0,"Your station file does not containe a unique position");
-		}
-		else
-		{
-			std::list <cOneGpsDGF> & aVPS = aStationFile.OneGpsDGF();
-			for(std::list<cOneGpsDGF>::iterator iT=aVPS.begin(); iT!=aVPS.end(); iT++)
-			{
-				aAnt2Pos.x = iT->Pt().x;
-				aAnt2Pos.y = iT->Pt().y;
-				aAnt2Pos.z = iT->Pt().z;
-			}
-		}
-		
-		//give coordinates
+		aOut = "Output_" + aMode + ".txt";
 	}
 	
-     
-    if (!MMVisualMode)
-	{
-		FILE * aFP = FopenNN(aOutRtkParam,"w","rnx2rtkp_main");
-		
-		cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOutRtkParam);
-				
-		fprintf(aFP,"pos1-posmode=%s\n",aMode.c_str());
-		fprintf(aFP,"pos1-frequency=%s\n",aFreq.c_str());
-		fprintf(aFP,"pos1-soltype=%s\n",aSolType.c_str());
-		fprintf(aFP,"pos1-elmask=%d\n",aElMask);
-		fprintf(aFP,"pos1-snrmask_r=off\n");
-		fprintf(aFP,"pos1-snrmask_b=off\n");
-		fprintf(aFP,"pos1-snrmask_b=off\n");
-		fprintf(aFP,"pos1-snrmask_L1=0,0,0,0,0,0,0,0,0\n");
-		fprintf(aFP,"pos1-snrmask_L2=0,0,0,0,0,0,0,0,0\n");
-		fprintf(aFP,"pos1-snrmask_L5=0,0,0,0,0,0,0,0,0\n");
-		if(aDyn)
-			fprintf(aFP,"pos1-dynamics=on\n");
-		else
-			fprintf(aFP,"pos1-dynamics=off\n");
-		
-		if(aTideCorr)
-			fprintf(aFP,"pos1-tidecorr=on\n");
-		else
-			fprintf(aFP,"pos1-tidecorr=off\n");
-			
-		fprintf(aFP,"pos1-ionoopt=%s\n",aIono.c_str());
-		fprintf(aFP,"pos1-tropopt=%s\n",aTropo.c_str());
-		fprintf(aFP,"pos1-sateph=%s\n",aEph.c_str());
-		fprintf(aFP,"pos1-exclsats=\n");
-		fprintf(aFP,"pos1-navsys=%d\n",aNavSys);
-		fprintf(aFP,"pos2-armode=%s\n",aAmbRes.c_str());
-		fprintf(aFP,"pos2-gloarmode=%s\n",aAmbResGlo.c_str());
-		fprintf(aFP,"pos2-arthres=%d\n",aAmbResTh);
-		fprintf(aFP,"pos2-arlockcnt=%d\n",aAmbResLockCNT);
-		fprintf(aFP,"pos2-arelmask=%d\n",aAmbResElvMask);
-		fprintf(aFP,"pos2-arminfix=%d\n",aAmbResMinFix);
-		fprintf(aFP,"pos2-elmaskhold=%d\n",aElevMaskHold);
-		fprintf(aFP,"pos2-aroutcnt=%d\n",aAmbResOutCNT);
-		fprintf(aFP,"pos2-maxage=%f\n",aMaxage);
-		fprintf(aFP,"pos2-slipthres=%f\n",aSlipTh);
-		fprintf(aFP,"pos2-rejionno=%f\n",aRejIono);
-		fprintf(aFP,"pos2-rejgdop=%f\n",aRejGdop);
-		fprintf(aFP,"pos2-niter=%d\n",aNbrIter);
-		fprintf(aFP,"pos2-baselen=%f\n",aBaseLength);
-		fprintf(aFP,"pos2-basesig=%f\n",aBaseSig);
-		fprintf(aFP,"out-solformat=%s\n",aOutSolFormat.c_str());
-		if(aOutHead)
-			fprintf(aFP,"out-outhead=on\n");
-		else
-			fprintf(aFP,"out-outhead=off\n");
-			
-		if(aOutOpt)
-			fprintf(aFP,"out-outopt=on\n");
-		else
-			fprintf(aFP,"out-outopt=off\n");
-		
-		fprintf(aFP,"out-timesys=%s\n",aOutTimeSys.c_str());
-		fprintf(aFP,"out-timeform=%s\n",aOutTimeFormat.c_str());
-		fprintf(aFP,"out-timendec=%d\n",aTimeDec);
-		fprintf(aFP,"out-degform=%s\n",aDegOutFormat.c_str());
-		fprintf(aFP,"out-fieldsep=\n");
-		fprintf(aFP,"out-height=%s\n",aHeigth.c_str());
-		fprintf(aFP,"out-geoid=%s\n",aGeoid.c_str());
-		fprintf(aFP,"out-solstatic=%s\n",aStaticSol.c_str());
-		fprintf(aFP,"out-nmeaintv1=%d\n",aNmeaIntv1);
-		fprintf(aFP,"out-nmeaintv2=%d\n",aNmeaIntv2);
-		fprintf(aFP,"out-outstat=%s\n",aOutStats.c_str());
-		fprintf(aFP,"stats-eratio1=%f\n",aEratio1);
-		fprintf(aFP,"stats-eratio2=%f\n",aEratio2);
-		fprintf(aFP,"stats-errphase=%f\n",aErrPhase);
-		fprintf(aFP,"stats-errphaseel=%f\n",aErrPhaseEl);
-		fprintf(aFP,"stats-errphasebl=%f\n",aErrPhaseBl);
-		fprintf(aFP,"stats-errdoppler=%f\n",aErrDoppler);
-		fprintf(aFP,"stats-stdbias=%f\n",aStdBias);
-		fprintf(aFP,"stats-stdiono=%f\n",aStdIono);
-		fprintf(aFP,"stats-prnaccelh=%f\n",aAccH);
-		fprintf(aFP,"stats-prnaccelv=%f\n",aAccV);
-		fprintf(aFP,"stats-prnbias=%f\n",aPrnBias);
-		fprintf(aFP,"stats-prniono=%f\n",aPrnIono);
-		fprintf(aFP,"stats-prntrop=%f\n",aPrnTropo);
-		fprintf(aFP,"stats-clkstab=%f\n",aClkStab);
-		fprintf(aFP,"ant1-postype=%s\n",aAnt1PosType.c_str());
-		fprintf(aFP,"ant1-pos1=%f\n",aAnt1Pos.x);
-		fprintf(aFP,"ant1-pos2=%f\n",aAnt1Pos.y);
-		fprintf(aFP,"ant1-pos3=%f\n",aAnt1Pos.z);
-		fprintf(aFP,"ant1-anttype=%s\n",aAnt1Type.c_str());
-		fprintf(aFP,"ant1-antdele=%f\n",aAnt1Delta.x);
-		fprintf(aFP,"ant1-antdeln=%f\n",aAnt1Delta.y);
-		fprintf(aFP,"ant1-antdelu=%f\n",aAnt1Delta.z);
-		fprintf(aFP,"ant2-postype=%s\n",aAnt2PosType.c_str());
-		fprintf(aFP,"ant2-pos1=%f\n",aAnt2Pos.x);
-		fprintf(aFP,"ant2-pos2=%f\n",aAnt2Pos.y);
-		fprintf(aFP,"ant2-pos3=%f\n",aAnt2Pos.z);
-		fprintf(aFP,"ant2-anttype=%s\n",aAnt2Type.c_str());
-		fprintf(aFP,"ant2-antdele=%f\n",aAnt2Delta.x);
-		fprintf(aFP,"ant2-antdeln=%f\n",aAnt2Delta.y);
-		fprintf(aFP,"ant2-antdelu=%f\n",aAnt2Delta.z);
-		fprintf(aFP,"misc-timeinterp=on\n");
-		fprintf(aFP,"misc-sbasatsel=0\n");
-		fprintf(aFP,"file-rcvantfile=%s\n",aRcvAntFile.c_str());
-		fprintf(aFP,"file-satantfile=%s\n",aRcvAntFile.c_str());
-		fprintf(aFP,"file-staposfile=\n");
-		fprintf(aFP,"file-geoidfile=%s\n",aGeoidFile.c_str());
-		fprintf(aFP,"file-ionofile=%s\n",aIonoFile.c_str());
-		fprintf(aFP,"file-dcbfile=%s\n",aDcbFile.c_str());
-		fprintf(aFP,"file-tempdir=%s\n",aTmpDir.c_str());
-		fprintf(aFP,"file-geexefile=%s\n",aGeexeFile.c_str());
-		fprintf(aFP,"file-solstatfile=%s\n",aSolStatsFile.c_str());
-		fprintf(aFP,"file-tracefile=%s\n",aTraceFile.c_str());
-		
-			
-		ElFclose(aFP);
-			
-	}
-    
-    //lanch gps processing
-    std::string aCom, aCom1;
-	if (aOut == "")
-    {
-		aOut = "Output_" + aMode + ".txt";
-    }
-    
-    //if mode is single/ppp-kine/ppp-static no need of base station
-    if(aMode == "single" || aMode == "ppp-static" || aMode == "ppp-kine")
-    {
-		aCom = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
-		        + std::string(" ") + aFileR
-		        + std::string(" ") + aFileN
-		        + string(" -o ")
-		        + aOut
-		        + string(" -k ")
-		        + aOutRtkParam;
-	}
-	else if((aNavSys == 5) && (aFileG == ""))							//if Glonass satellites are used
-	{
-		ELISE_ASSERT(0,"No Glonass Navigation file given");
-	}
-	else if((aNavSys == 5) && (aFileG != ""))
+	if(aModeFile)
 	{
 		aCom = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
 				+ std::string(" ") + aFileR
@@ -693,56 +543,230 @@ int rnx2rtkp_main(int argc,char ** argv)
 				+ string(" -o ")
 				+ aOut
 				+ string(" -k ")
-				+ aOutRtkParam;
+				+ aFileMF;
+		std::cout << "aCom = " << aCom << std::endl;
+		system_call(aCom.c_str());
 	}
-    else
-    {
-		aCom = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
-            + std::string(" ") + aFileR 
-            + std::string(" ") + aFileB 
-            + std::string(" ") + aFileN 
-            + string(" -o ") 
-            + aOut 
-            + string(" -k ")
-            + aOutRtkParam;
-	}
+	else
+	{
 	
-	std::cout << "aCom = " << aCom << std::endl;
-    system_call(aCom.c_str());
-     
-     //lanch conversion to .xml Gps Trajectory format
-     if (aXmlOut == "")
-     {
-		 aXmlOut = "Output_" + aMode + ".xml";
+		//if a station file is given
+		if(aStaPosFile != "")
+		{
+			//read the .xml file : one position only
+			cDicoGpsFlottant aStationFile =  StdGetFromPCP(aStaPosFile,DicoGpsFlottant);
+					
+			if(aStationFile.OneGpsDGF().size() != 1)
+			{
+				ELISE_ASSERT(0,"Your station file does not containe a unique position");
+			}
+			else
+			{
+				std::list <cOneGpsDGF> & aVPS = aStationFile.OneGpsDGF();
+				for(std::list<cOneGpsDGF>::iterator iT=aVPS.begin(); iT!=aVPS.end(); iT++)
+				{
+					aAnt2Pos.x = iT->Pt().x;
+					aAnt2Pos.y = iT->Pt().y;
+					aAnt2Pos.z = iT->Pt().z;
+				}
+			}
+			
+			//give coordinates
+		}
+		
+		 
+		if (!MMVisualMode)
+		{
+			FILE * aFP = FopenNN(aOutRtkParam,"w","rnx2rtkp_main");
+			
+			cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOutRtkParam);
+					
+			fprintf(aFP,"pos1-posmode=%s\n",aMode.c_str());
+			fprintf(aFP,"pos1-frequency=%s\n",aFreq.c_str());
+			fprintf(aFP,"pos1-soltype=%s\n",aSolType.c_str());
+			fprintf(aFP,"pos1-elmask=%d\n",aElMask);
+			fprintf(aFP,"pos1-snrmask_r=off\n");
+			fprintf(aFP,"pos1-snrmask_b=off\n");
+			fprintf(aFP,"pos1-snrmask_b=off\n");
+			fprintf(aFP,"pos1-snrmask_L1=0,0,0,0,0,0,0,0,0\n");
+			fprintf(aFP,"pos1-snrmask_L2=0,0,0,0,0,0,0,0,0\n");
+			fprintf(aFP,"pos1-snrmask_L5=0,0,0,0,0,0,0,0,0\n");
+			if(aDyn)
+				fprintf(aFP,"pos1-dynamics=on\n");
+			else
+				fprintf(aFP,"pos1-dynamics=off\n");
+			
+			if(aTideCorr)
+				fprintf(aFP,"pos1-tidecorr=on\n");
+			else
+				fprintf(aFP,"pos1-tidecorr=off\n");
+				
+			fprintf(aFP,"pos1-ionoopt=%s\n",aIono.c_str());
+			fprintf(aFP,"pos1-tropopt=%s\n",aTropo.c_str());
+			fprintf(aFP,"pos1-sateph=%s\n",aEph.c_str());
+			fprintf(aFP,"pos1-exclsats=\n");
+			fprintf(aFP,"pos1-navsys=%d\n",aNavSys);
+			fprintf(aFP,"pos2-armode=%s\n",aAmbRes.c_str());
+			fprintf(aFP,"pos2-gloarmode=%s\n",aAmbResGlo.c_str());
+			fprintf(aFP,"pos2-arthres=%d\n",aAmbResTh);
+			fprintf(aFP,"pos2-arlockcnt=%d\n",aAmbResLockCNT);
+			fprintf(aFP,"pos2-arelmask=%d\n",aAmbResElvMask);
+			fprintf(aFP,"pos2-arminfix=%d\n",aAmbResMinFix);
+			fprintf(aFP,"pos2-elmaskhold=%d\n",aElevMaskHold);
+			fprintf(aFP,"pos2-aroutcnt=%d\n",aAmbResOutCNT);
+			fprintf(aFP,"pos2-maxage=%f\n",aMaxage);
+			fprintf(aFP,"pos2-slipthres=%f\n",aSlipTh);
+			fprintf(aFP,"pos2-rejionno=%f\n",aRejIono);
+			fprintf(aFP,"pos2-rejgdop=%f\n",aRejGdop);
+			fprintf(aFP,"pos2-niter=%d\n",aNbrIter);
+			fprintf(aFP,"pos2-baselen=%f\n",aBaseLength);
+			fprintf(aFP,"pos2-basesig=%f\n",aBaseSig);
+			fprintf(aFP,"out-solformat=%s\n",aOutSolFormat.c_str());
+			if(aOutHead)
+				fprintf(aFP,"out-outhead=on\n");
+			else
+				fprintf(aFP,"out-outhead=off\n");
+				
+			if(aOutOpt)
+				fprintf(aFP,"out-outopt=on\n");
+			else
+				fprintf(aFP,"out-outopt=off\n");
+			
+			fprintf(aFP,"out-timesys=%s\n",aOutTimeSys.c_str());
+			fprintf(aFP,"out-timeform=%s\n",aOutTimeFormat.c_str());
+			fprintf(aFP,"out-timendec=%d\n",aTimeDec);
+			fprintf(aFP,"out-degform=%s\n",aDegOutFormat.c_str());
+			fprintf(aFP,"out-fieldsep=\n");
+			fprintf(aFP,"out-height=%s\n",aHeigth.c_str());
+			fprintf(aFP,"out-geoid=%s\n",aGeoid.c_str());
+			fprintf(aFP,"out-solstatic=%s\n",aStaticSol.c_str());
+			fprintf(aFP,"out-nmeaintv1=%d\n",aNmeaIntv1);
+			fprintf(aFP,"out-nmeaintv2=%d\n",aNmeaIntv2);
+			fprintf(aFP,"out-outstat=%s\n",aOutStats.c_str());
+			fprintf(aFP,"stats-eratio1=%f\n",aEratio1);
+			fprintf(aFP,"stats-eratio2=%f\n",aEratio2);
+			fprintf(aFP,"stats-errphase=%f\n",aErrPhase);
+			fprintf(aFP,"stats-errphaseel=%f\n",aErrPhaseEl);
+			fprintf(aFP,"stats-errphasebl=%f\n",aErrPhaseBl);
+			fprintf(aFP,"stats-errdoppler=%f\n",aErrDoppler);
+			fprintf(aFP,"stats-stdbias=%f\n",aStdBias);
+			fprintf(aFP,"stats-stdiono=%f\n",aStdIono);
+			fprintf(aFP,"stats-prnaccelh=%f\n",aAccH);
+			fprintf(aFP,"stats-prnaccelv=%f\n",aAccV);
+			fprintf(aFP,"stats-prnbias=%f\n",aPrnBias);
+			fprintf(aFP,"stats-prniono=%f\n",aPrnIono);
+			fprintf(aFP,"stats-prntrop=%f\n",aPrnTropo);
+			fprintf(aFP,"stats-clkstab=%f\n",aClkStab);
+			fprintf(aFP,"ant1-postype=%s\n",aAnt1PosType.c_str());
+			fprintf(aFP,"ant1-pos1=%f\n",aAnt1Pos.x);
+			fprintf(aFP,"ant1-pos2=%f\n",aAnt1Pos.y);
+			fprintf(aFP,"ant1-pos3=%f\n",aAnt1Pos.z);
+			fprintf(aFP,"ant1-anttype=%s\n",aAnt1Type.c_str());
+			fprintf(aFP,"ant1-antdele=%f\n",aAnt1Delta.x);
+			fprintf(aFP,"ant1-antdeln=%f\n",aAnt1Delta.y);
+			fprintf(aFP,"ant1-antdelu=%f\n",aAnt1Delta.z);
+			fprintf(aFP,"ant2-postype=%s\n",aAnt2PosType.c_str());
+			fprintf(aFP,"ant2-pos1=%f\n",aAnt2Pos.x);
+			fprintf(aFP,"ant2-pos2=%f\n",aAnt2Pos.y);
+			fprintf(aFP,"ant2-pos3=%f\n",aAnt2Pos.z);
+			fprintf(aFP,"ant2-anttype=%s\n",aAnt2Type.c_str());
+			fprintf(aFP,"ant2-antdele=%f\n",aAnt2Delta.x);
+			fprintf(aFP,"ant2-antdeln=%f\n",aAnt2Delta.y);
+			fprintf(aFP,"ant2-antdelu=%f\n",aAnt2Delta.z);
+			fprintf(aFP,"misc-timeinterp=on\n");
+			fprintf(aFP,"misc-sbasatsel=0\n");
+			fprintf(aFP,"file-rcvantfile=%s\n",aRcvAntFile.c_str());
+			fprintf(aFP,"file-satantfile=%s\n",aRcvAntFile.c_str());
+			fprintf(aFP,"file-staposfile=\n");
+			fprintf(aFP,"file-geoidfile=%s\n",aGeoidFile.c_str());
+			fprintf(aFP,"file-ionofile=%s\n",aIonoFile.c_str());
+			fprintf(aFP,"file-dcbfile=%s\n",aDcbFile.c_str());
+			fprintf(aFP,"file-tempdir=%s\n",aTmpDir.c_str());
+			fprintf(aFP,"file-geexefile=%s\n",aGeexeFile.c_str());
+			fprintf(aFP,"file-solstatfile=%s\n",aSolStatsFile.c_str());
+			fprintf(aFP,"file-tracefile=%s\n",aTraceFile.c_str());
+			
+				
+			ElFclose(aFP);
+				
+		}
+		
+		//if mode is single/ppp-kine/ppp-static no need of base station
+		if(aMode == "single" || aMode == "ppp-static" || aMode == "ppp-kine")
+		{
+			aCom = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
+					+ std::string(" ") + aFileR
+					+ std::string(" ") + aFileN
+					+ string(" -o ")
+					+ aOut
+					+ string(" -k ")
+					+ aOutRtkParam;
+		}
+		else if((aNavSys == 5) && (aFileG == ""))							//if Glonass satellites are used
+		{
+			ELISE_ASSERT(0,"No Glonass Navigation file given");
+		}
+		else if((aNavSys == 5) && (aFileG != ""))
+		{
+			aCom = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
+					+ std::string(" ") + aFileR
+					+ std::string(" ") + aFileB
+					+ std::string(" ") + aFileN
+					+ std::string(" ") + aFileG
+					+ string(" -o ")
+					+ aOut
+					+ string(" -k ")
+					+ aOutRtkParam;
+		}
+		else
+		{
+			aCom = g_externalToolHandler.get( "Rnx2rtkp" ).callName()
+				+ std::string(" ") + aFileR 
+				+ std::string(" ") + aFileB 
+				+ std::string(" ") + aFileN 
+				+ string(" -o ") 
+				+ aOut 
+				+ string(" -k ")
+				+ aOutRtkParam;
+		}
+		
+		std::cout << "aCom = " << aCom << std::endl;
+		system_call(aCom.c_str());
+		 
+		 //lanch conversion to .xml Gps Trajectory format
+		 if (aXmlOut == "")
+		 {
+			 aXmlOut = "Output_" + aMode + ".xml";
+		 }
+		 
+		 //dealing with changing system
+		 if(aStrChSys == "")
+		 {
+			aCom1 = MMDir() 
+					+ std::string("bin/mm3d ")
+					+ "TestLib ConvRTK "
+					+ aDir + std::string(" ")
+					+ aOut;
+		 }
+		 else
+		 {
+			aCom1 = MMDir() 
+					+ std::string("bin/mm3d ")
+					+ "TestLib ConvRTK "
+					+ aDir + std::string(" ")
+					+ aOut + std::string(" ")
+					+ std::string("ChSys=")
+					+ aStrChSys;
+		 }
+		 
+		 if(aAscii)
+		 {
+			 aCom1 = aCom1 + std::string(" ") + std::string("tXYZQ=true");
+		 }
+		 
+		 std::cout << "aCom = " << aCom1 << std::endl;
+		 system_call(aCom1.c_str());
 	 }
-	 
-	 //dealing with changing system
-	 if(aStrChSys == "")
-	 {
-		aCom1 = MMDir() 
-				+ std::string("bin/mm3d ")
-				+ "TestLib ConvRTK "
-				+ aDir + std::string(" ")
-				+ aOut;
-	 }
-	 else
-	 {
-		aCom1 = MMDir() 
-				+ std::string("bin/mm3d ")
-				+ "TestLib ConvRTK "
-				+ aDir + std::string(" ")
-				+ aOut + std::string(" ")
-				+ std::string("ChSys=")
-				+ aStrChSys;
-	 }
-	 
-	 if(aAscii)
-	 {
-		 aCom1 = aCom1 + std::string(" ") + std::string("tXYZQ=true");
-	 }
-	 
-	 std::cout << "aCom = " << aCom1 << std::endl;
-	 system_call(aCom1.c_str());
     
    	return EXIT_SUCCESS;
 }
