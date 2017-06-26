@@ -183,8 +183,8 @@ void cReechHomol_Appli::CorrHomolFromTemp(string & aDir, string & aSHIn, string 
             for (uint i = 0; i < aDataBrute.size(); i++)
             {
                 std::vector<double> aLineDataCorr;
-                Pt2dr aCorrMasterIm =(*aMapMasterIm)(Pt2dr(aDataBrute[i][0],aDataBrute[i][1]));
-                Pt2dr aCorrSecondIm =(*aMapSecondIm)(Pt2dr(aDataBrute[i][2],aDataBrute[i][3]));
+                Pt2dr aCorrMasterIm =Pt2dr(aDataBrute[i][0],aDataBrute[i][1])*2-(*aMapMasterIm)(Pt2dr(aDataBrute[i][0],aDataBrute[i][1]));
+                Pt2dr aCorrSecondIm =Pt2dr(aDataBrute[i][2],aDataBrute[i][3])*2-(*aMapSecondIm)(Pt2dr(aDataBrute[i][2],aDataBrute[i][3]));
                 ElCplePtsHomologues aa (aCorrMasterIm,aCorrSecondIm);
                 bb->Cple_Add(aa);
             }
@@ -192,7 +192,6 @@ void cReechHomol_Appli::CorrHomolFromTemp(string & aDir, string & aSHIn, string 
             std::string aImMasterCorr = aPrefix + aImMaster;
             std::string aImSecondCorr = aPrefix + aImSecond;
 
-            cout <<"test"<< endl;
             std::string aDirHomolCorr = aSHIn + "_Reech/";
             cout << aDirHomol << endl;
             std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
@@ -243,13 +242,14 @@ int ReechHomol_main(int argc, char ** argv)
 
 int ExtraitHomol_main(int argc, char ** argv)
 {
-    std::string aDir, aPatImgs, aFullPat, aOut="Homol_extrait";
+    std::string aDir, aPatImgs, aFullPat, aIn="", aOut="_extrait";
 
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aFullPat, "Full Imgs Pattern", eSAM_IsExistFile),
-        LArgMain()  << EAM(aOut,"Out",true,"Output of extracted Homol, Def = Homol_extrait")
+        LArgMain()  << EAM(aIn,"SHIn",true,"Input of extracted Homol, Def = Homol")
+                    << EAM(aOut,"SHOut",true,"Output of extracted Homol, Def = Homol_extrait")
     );
 
     SplitDirAndFile(aDir,aPatImgs,aFullPat);
@@ -258,11 +258,17 @@ int ExtraitHomol_main(int argc, char ** argv)
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     const std::vector<std::string> aVImg = *(aICNM->Get(aPatImgs));
 
-    ElPackHomologue aPckExtr;
+    ElPackHomologue aPckIn;
+    ElPackHomologue aPckOut;
     std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(aIn)
+                       +  std::string("@")
+                       +  std::string("dat");
+    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aOut)
                        +  std::string("@")
                        +  std::string("dat");
+
 
     for (uint i=1; i < aVImg.size(); i++)
     {
@@ -271,18 +277,18 @@ int ExtraitHomol_main(int argc, char ** argv)
 
         std::string aHmIn= aICNM->Assoc1To2(aKHIn, aIm1, aIm2, true);
 
-        bool Exist= ELISE_fp::exist_file(aHmIn);
-        if (Exist)
-        {
-            aPckExtr = ElPackHomologue::FromFile(aHmIn);
-            cout << "File ++ : " << aIm1 << " & " << aIm2 << endl;
-        }
+        aPckIn = ElPackHomologue::FromFile(aHmIn);
+        cout << "File ++ : " << aIm1 << " & " << aIm2 << endl;
 
+        std::string aHmOut= aICNM->Assoc1To2(aKHOut, aIm1, aIm2, true);
+        cout << aHmOut << endl;
+        aPckOut.StdPutInFile(aHmOut);
     }
 
     // compare points
 
     // rewrite selected tie points
+
 
     return EXIT_SUCCESS;
 }
