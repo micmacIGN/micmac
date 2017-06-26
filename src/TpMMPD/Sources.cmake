@@ -72,6 +72,9 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cTriForTiepTri.cpp
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/TaskCorrel.cpp
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cplfromhomol.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/GCPByMesh.cpp
+
+
     
     ${TDPPMD_DIR}/TiePByMesh/XMLDiffSeries/cAppliXMLDiffSeries.cpp
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cAppliZBufferRaster.cpp
@@ -79,6 +82,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cTri3D.cpp
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cTri2D.cpp
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/ZBufferRaster.cpp
+
 
 	${TDPPMD_DIR}/EsSim/cAppliEsSimilitude.cpp
 	${TDPPMD_DIR}/EsSim/cImgEsSimilitude.cpp
