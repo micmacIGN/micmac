@@ -952,7 +952,7 @@ void FiltrageAllerEtRetourER(std::vector<cTmpPileER> & aVTmp)
         aVTmp[aK].mNewNbp  = aVTmp[aK].mNb0  + aVTmp[aK-1].mNewNbp  * aVTmp[aK].mPPrec;
 
 		std::cout << "P=" << aVTmp[aK].mPds0 << ", " << aVTmp[aK].mNewPdsp << ", " << aVTmp[aK].mPPrec << "\n" 
-                  << "ZP="<< aVTmp[aK].mZInit << " " << aVTmp[aK].mZP0 << ", " << aVTmp[aK].mNewZPp << "\n"
+                  << "ZP="<< aVTmp[aK].mZInit << " " << aVTmp[aK].mZP0 << ", " << aVTmp[aK].mNewZPp << " dZ=" << aVTmp[aK-1].mNewZPp  * aVTmp[aK].mPPrec << "\n"
                   << "N=" << aVTmp[aK].mNb0 << " " << aVTmp[aK].mNewNbp << "\n\n";
 	}
 
@@ -970,7 +970,7 @@ void FiltrageAllerEtRetourER(std::vector<cTmpPileER> & aVTmp)
         aVTmp[aK].mNewNbm  = aVTmp[aK].mNb0  + aVTmp[aK+1].mNewNbm  * aVTmp[aK].mPNext;
 		
 		std::cout << "P=" << aVTmp[aK].mPds0 << ", " << aVTmp[aK].mNewPdsm << ", " << aVTmp[aK].mPNext << "\n" 
-                  << "ZP="<< aVTmp[aK].mZInit << " " << aVTmp[aK].mZP0 << ", " << aVTmp[aK].mNewZPm << "\n"
+                  << "ZP="<< aVTmp[aK].mZInit << " " << aVTmp[aK].mZP0 << ", " << aVTmp[aK].mNewZPm << " dZ=" << aVTmp[aK+1].mNewZPm  * aVTmp[aK].mPNext << "\n"
                   << "N=" << aVTmp[aK].mNb0 << " " << aVTmp[aK].mNewNbm << "\n\n";
     }
 
@@ -982,7 +982,7 @@ void FiltrageAllerEtRetourER(std::vector<cTmpPileER> & aVTmp)
           aVTmp[aK].mNb0  = (aVTmp[aK].mNewNbp  + aVTmp[aK].mNewNbm  - aVTmp[aK].mNb0) / aVTmp.size();
 		
 		  std::cout << "P=" << aVTmp[aK].mNewPdsp << ", " << aVTmp[aK].mNewPdsm << ",->" << aVTmp[aK].mPds0  << "\n" 
-                  << "ZP="<< aVTmp[aK].mZInit << " " << aVTmp[aK].mNewZPp  << " " << aVTmp[aK].mNewZPm << ", ->" << aVTmp[aK].mZP0/aVTmp[aK].mPds0 << "\n"
+                  << "ZP="<< aVTmp[aK].mZInit << " " << aVTmp[aK].mNewZPp  << " " << aVTmp[aK].mNewZPm << ", ->" << aVTmp[aK].mZP0/aVTmp[aK].mPds0 << "\n" //see ZMoy()
                   << "N=" << aVTmp[aK].mNewNbp << " " << aVTmp[aK].mNewNbm << " " << aVTmp[aK].mNb0 << "\n\n";
      }
 
