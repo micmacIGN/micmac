@@ -89,7 +89,7 @@ int Export2Ply_main(int argc,char ** argv)
     int aBin=1;
     int aDiffColor=0;
     Pt3dr aOffset(0,0,0);
-
+	bool aGpsFile=false;
 
     ElInitArgMain
     (
@@ -105,6 +105,7 @@ int Export2Ply_main(int argc,char ** argv)
                     << EAM(Out,"Out",true, "Default value is NameFile.ply")
                     << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
                     << EAM(aOffset,"OffSet",true,"Add an offset to all points")
+                    << EAM(aGpsFile,"GpsXML",true,"GPS xml input file; Def=false")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -158,26 +159,41 @@ int Export2Ply_main(int argc,char ** argv)
         {
             if (Out==NameFile)
                 Out = "GCPOut_"+NameFile;
-                cDicoAppuisFlottant aD = StdGetObjFromFile<cDicoAppuisFlottant>
-                                     (
-                                          NameFile,
-                                          StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-                                          "DicoAppuisFlottant",
-                                          "DicoAppuisFlottant"
-                                     );
+                if(aGpsFile)
+                {
+					cDicoGpsFlottant aDico =  StdGetFromPCP(NameFile,DicoGpsFlottant);
+					std::list<cOneGpsDGF> &GPS = aDico.OneGpsDGF();
+					for(std::list<cOneGpsDGF>::iterator IT=GPS.begin();IT!=GPS.end();IT++)
+					{
+						aPoints.push_back(IT->Pt());
+						aVCol.push_back(aCoul);
+						aVInc.push_back(IT->Incertitude());
+						aVName.push_back(IT->NamePt());       
+					}
+				}
+				else
+				{
+					cDicoAppuisFlottant aD = StdGetObjFromFile<cDicoAppuisFlottant>
+										 (
+											  NameFile,
+											  StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+											  "DicoAppuisFlottant",
+											  "DicoAppuisFlottant"
+										 );
 
-              for
-              (
-                    std::list<cOneAppuisDAF>::iterator itA=aD.OneAppuisDAF().begin();
-                    itA!=aD.OneAppuisDAF().end();
-                    itA++
-              )
-              {
-                  aPoints.push_back(itA->Pt());
-                  aVCol.push_back(aCoul);
-                  aVInc.push_back(itA->Incertitude());
-                  aVName.push_back(itA->NamePt());
-              }
+					for
+					(
+						std::list<cOneAppuisDAF>::iterator itA=aD.OneAppuisDAF().begin();
+						itA!=aD.OneAppuisDAF().end();
+						itA++
+					)
+					{
+					  aPoints.push_back(itA->Pt());
+					  aVCol.push_back(aCoul);
+					  aVInc.push_back(itA->Incertitude());
+					  aVName.push_back(itA->NamePt());
+					}
+				}
         }
         else
         {

@@ -896,7 +896,11 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("TiepTriPrl",TiepTriPrl_main,"Paralelliser version of TiepTri",cArgLogCom(2)));
         aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));
-        aRes.push_back(cMMCom("TaskCorrel",TaskCorrelWithPts_main,"Creat Correlation Task XML file for TiepTri",cArgLogCom(2)));
+
+
+        aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri",cArgLogCom(2)));
+        aRes.push_back(cMMCom("TaskCorrelGCP",TaskCorrelWithPts_main,"Creat Correlation Task XML file for GCP By Mesh",cArgLogCom(2)));
+
         aRes.push_back(cMMCom("FAST",FAST_main,"Some Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)"));
         aRes.push_back(cMMCom("Homol2Way",Homol2Way_main ,"Creat same pack homol in 2 way by combination 2 pack of each way"));
         aRes.push_back(cMMCom("CplFromHomol",CplFromHomol_main ,"Creat xml of pair images from Homol Folder"));
