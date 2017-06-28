@@ -4043,7 +4043,6 @@ bool  cInterfChantierNameManipulateur::TestStdOrient
         if (aL.empty())
             return false;
 
-
         anOri = anOri.substr(aPrefix.size(),std::string::npos);
                 if (AddNKS)
         anOri =  "NKS-Assoc-Im2Orient@-" + anOri;
@@ -4054,7 +4053,7 @@ bool  cInterfChantierNameManipulateur::TestStdOrient
 bool cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri,bool SVP)
 {
     if (aNameOri=="NONE") return true;
-
+    
     int aL = (int)strlen(aNameOri.c_str());
     if (aL && (aNameOri[aL-1]==ELISE_CAR_DIR))
     {

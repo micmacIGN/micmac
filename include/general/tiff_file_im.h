@@ -164,7 +164,7 @@ class Tiff_Im : public ElGenFileIm
          *      Variante, pour les images de + de 8bits,
          *      ou ne redcoupe pas l'image en byte avant de la comprimer
          *      en general bcp + efficace (car les bytes constiutant la meme
-         *      valeur de pixel on puet de raison d'etre egaux)
+         *      valeur de pixel on peut de raison d'etre egaux)
          */
         static const char * name_compr(INT);
         static bool mode_compr_bin(INT);

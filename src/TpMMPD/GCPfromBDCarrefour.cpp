@@ -155,7 +155,7 @@ bool processPtWithIm(const std_unique_ptr<ElCamera>& aCam,
     if (!aCam->PIsVisibleInImage(Pt)) return false;
     
     Pt2dr ptImage = aCam->Ter2Capteur(Pt);
-    float resolImageSat = floor(100*aCam->ResolutionSol(Pt))/100;
+    double resolImageSat = floor(100*aCam->ResolutionSol(Pt))/100;
     
     std::cout << std::fixed << std::setprecision(5) << std::endl;
     if (verbose2) std::cout << "[GCP_From_BDCarrefour_main] point " << nomPoint << " : " << Pt.x << " " << Pt.y << std::endl;
@@ -166,7 +166,8 @@ bool processPtWithIm(const std_unique_ptr<ElCamera>& aCam,
     Pt2di POSz (SzVignette.x+2*marge,SzVignette.y+2*marge);
     Pt3dr PNOpseudoOrtho (Pt.x-POSz.x*resolImageSat/2,Pt.y+POSz.y*resolImageSat/2,Pt.z);
     std_unique_ptr<TIm2D<U_INT2,INT4> > pseudoOrtho (new TIm2D<U_INT2,INT4>(POSz));
-    if (!GCPfromBDI_Image::calcPseudoOrtho(aNameImage,PNOpseudoOrtho,POSz,resolImageSat,aCam,pseudoOrtho))
+    Pt2dr resolImSat (resolImageSat,resolImageSat);
+    if (!GCPfromBDI_Image::calcPseudoOrtho(aNameImage,PNOpseudoOrtho,POSz,resolImSat,aCam,pseudoOrtho))
         return false;
     
     //recuperation de la vignette

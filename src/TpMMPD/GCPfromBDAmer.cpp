@@ -97,6 +97,27 @@ double maxVec(std::vector<double>& c)
     return ret;
 }
 
+///
+///
+///
+void Split(const std::string& str, const std::string& delim, std::vector<std::string>& parts)
+{
+    size_t start, end = 0;
+    while (end < str.size()) {
+        start = end;
+        while (start < str.size() && (delim.find(str[start]) != std::string::npos)) {
+            start++;  // skip initial whitespace
+        }
+        end = start;
+        while (end < str.size() && (delim.find(str[end]) == std::string::npos)) {
+            end++; // skip to end of word
+        }
+        if (end-start != 0) {  // just ignore zero-length strings.
+            parts.push_back(std::string(str, start, end-start));
+        }
+    }
+}
+
 
 /////
 namespace GCPfromBDI_files
@@ -140,6 +161,46 @@ namespace GCPfromBDI_Image
         return (ELISE_fp::exist_file(orientationName));
     }
 
+    ///
+    ///
+    ///
+    Pt2dr ImageResol(const std::string &aName)
+    {
+        std::string aNameInfo = aName + "_tmp";
+        std::stringstream oss;
+        oss << g_externalToolHandler.get("gdalInfo").callName() << " " << aName << " > " << aNameInfo;
+        system(oss.str().c_str());
+        
+        double resX(0.),resY(0.);
+        
+        std::ifstream ifFic (aNameInfo.c_str());
+        std::string ligne;
+        while(std::getline( ifFic, ligne))
+        {
+            std::vector<std::string> vString;
+            Split(ligne," ",vString);
+            if (vString.size()>0)
+            {
+                if (vString[0]=="Pixel")
+                {
+                    std::vector<std::string> vString2;
+                    Split(vString[3],",",vString2);
+
+                    std::vector<std::string> vString3_1;
+                    Split(vString2[0],"(",vString3_1);
+                    resX = std::abs(atof(vString3_1[0].c_str()));
+
+                    std::vector<std::string> vString3_2;
+                    Split(vString2[1],")",vString3_2);
+                    resY = std::abs(atof(vString3_2[0].c_str()));
+                }
+            }
+        }
+        
+        ELISE_fp::RmFileIfExist(aNameInfo);
+        
+        return Pt2dr(resX,resY);
+    }
     
     ///
     ///
@@ -180,14 +241,34 @@ namespace GCPfromBDI_Image
     ///
     ///
     ///
+    std_unique_ptr<TIm2D<U_INT2,INT4> > Crop(const Pt2dr& oriImage, const Pt2di& sizeCrop,
+                                             const std_unique_ptr<TIm2D<U_INT2,INT4> >& image)
+    {
+        std_unique_ptr<TIm2D<U_INT2,INT4> > crop (new TIm2D<U_INT2,INT4>(sizeCrop));
+        for (size_t l(0); l<sizeCrop.y ; l++)
+        {
+            for (size_t c(0); c<sizeCrop.x ; c++)
+            {
+                Pt2dr ptImageCrop (oriImage.x+c,oriImage.y+l);
+                double radio = image->getr(ptImageCrop);
+                crop->oset(Pt2di(c,l),(int)radio);
+            }
+        }
+        
+        return crop;
+    }
+    
+    ///
+    ///
+    ///
     bool calcPseudoOrtho(const std::string& aNameImage, const Pt3dr& PtNO, const Pt2di& size,
-                         const float resol, const std_unique_ptr<ElCamera>& aCam,
+                         const Pt2dr resol, const std_unique_ptr<ElCamera>& aCam,
                          std_unique_ptr<TIm2D<U_INT2,INT4> >& vignette)
     {
         
-        Pt3dr PtNE (PtNO.x+size.x*resol,    PtNO.y,                 PtNO.z);
-        Pt3dr PtSO (PtNO.x,                 PtNO.y-size.y*resol,    PtNO.z);
-        Pt3dr PtSE (PtNO.x+size.x*resol,    PtNO.y-size.y*resol,    PtNO.z);
+        Pt3dr PtNE (PtNO.x+size.x*resol.x,    PtNO.y,                   PtNO.z);
+        Pt3dr PtSO (PtNO.x,                   PtNO.y-size.y*resol.y,    PtNO.z);
+        Pt3dr PtSE (PtNO.x+size.x*resol.x,    PtNO.y-size.y*resol.y,    PtNO.z);
         
         Pt2dr ptINO = aCam->Ter2Capteur(PtNO);
         Pt2dr ptINE = aCam->Ter2Capteur(PtNE);
@@ -217,7 +298,7 @@ namespace GCPfromBDI_Image
         {
             for (size_t c(0); c<size.x ; c++)
             {
-                Pt3dr pt (PtNO.x + c*resol, PtNO.y - l*resol, PtNO.z);
+                Pt3dr pt (PtNO.x + c*resol.x, PtNO.y - l*resol.y, PtNO.z);
                 Pt2dr ptImage = aCam->Ter2Capteur(pt);
                 Pt2dr ptImageCrop (ptImage.x-minIm.x,ptImage.y-minIm.y);
                 
@@ -347,17 +428,38 @@ namespace GCPfromBDI_Correl
     ///
     ///
     ///
-    double getCorelCoef(const Pt2di& ptImage, const Pt2di& orthoSz, const std::string nomImage,
+    double getCorelCoef(const Pt2dr& ptImage, const Pt2di& orthoSz,
+                        const std_unique_ptr<TIm2D<U_INT2,INT4> >& image,
                         const std::vector<double> fenRef, const double NoData)
     {
         std::vector<double> fenImage_i;
-        std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg (createTIm2DFromFile<U_INT2,INT4>(nomImage,ptImage,orthoSz));
-        getVecFromTIm2D(cropImg,fenImage_i,NoData);
-        
-        //correlation :
+        std_unique_ptr<TIm2D<U_INT2,INT4> >  crop = GCPfromBDI_Image::Crop(ptImage, orthoSz,image);
+        getVecFromTIm2D(crop,fenImage_i,NoData);
         return correlVec(fenRef,fenImage_i);
     }
 
+    
+    ///
+    ///
+    ///
+    double getCorelCoef(const std_unique_ptr<TIm2D<U_INT2,INT4> >& image,
+                        const std::vector<double> fenRef, const double NoData)
+    {
+        std::vector<double> fenImage_i;
+        getVecFromTIm2D(image,fenImage_i,NoData);
+        return correlVec(fenRef,fenImage_i);
+    }
+    
+    ///
+    ///
+    ///
+    double getCorelCoef(const Pt2di& ptImage, const Pt2di& orthoSz, const std::string nomImage,
+                        const std::vector<double> fenRef, const double NoData)
+    {
+        std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg (createTIm2DFromFile<U_INT2,INT4>(nomImage,ptImage,orthoSz));
+        return getCorelCoef(cropImg,fenRef,NoData);
+    }
+    
 }
 
 ////
@@ -420,7 +522,7 @@ namespace BDAmer
     ///
     ///
     ///
-    void BASE_AMERS::getValidPoint(const Box2dr& box, std::vector<Point>& vPt)
+    void BASE_AMERS::getValidPoint(const Box2dr& box, std::map<std::string,Point>& vPt)
     {
         for (size_t i(0); i<vDalles.size(); i++)
             vDalles[i].getValidPoint(box,vPt);
@@ -434,7 +536,6 @@ namespace BDAmer
         //nom :
         cElXMLTree * aTrNom= aTrDalle->Get("nom");
         this->nom = aTrNom->GetUniqueVal();
-        std::cout << "nom de la dalle : " << this->nom << std::endl;
         
         //nombre de points :
         cElXMLTree * aTrNbPoints= aTrDalle->Get("nombre_de_points");
@@ -471,7 +572,7 @@ namespace BDAmer
     ///
     ///
     ///
-    void Dalle::getValidPoint(const Box2dr& box, std::vector<Point>& vPt)
+    void Dalle::getValidPoint(const Box2dr& box, std::map<std::string,Point>& vPt)
     {
         for (size_t i(0); i<vSousDalles.size(); i++)
             vSousDalles[i].getValidPoint(box,vPt);
@@ -506,13 +607,13 @@ namespace BDAmer
     ///
     ///
     ///
-    void SousDalle::getValidPoint(const Box2dr& box, std::vector<Point>& vPt)
+    void SousDalle::getValidPoint(const Box2dr& box, std::map<std::string,Point>& vPt)
     {
         for (size_t i(0); i<vPoints.size(); i++)
         {
             if (!vPoints[i].isValid()) continue;
             if (box.Include(vPoints[i].coordTer))
-                vPt.push_back(vPoints[i]);
+                vPt.insert(std::pair<std::string,Point>(vPoints[i].nom,vPoints[i]));
         }
     }
     
@@ -549,6 +650,7 @@ namespace BDAmer
         const BDAmer::SousDalle* sousDalle = this->sousDalle;
         const BDAmer::Dalle* dalle = sousDalle->dalle;
         const BDAmer::BASE_AMERS* base = dalle->base;
+        std::cout <<"nom : " << base->nom << " ; " << dalle->nom << std::endl;
         return  BDAmerDir + "/" + base->nom + "/" + dalle->nom + "/" + dalle->nom  + "_" + sousDalle->numero;
     }
     
@@ -695,10 +797,25 @@ Pt2dr toPt2dr(const Pt3dr& pt)
 ///
 ///
 ///
-void addPtTer(const std::vector<BDAmer::Point>& vPt, GCPfromBDI_Export::MPtCoordTer& mGCP)
+void addPtTer(const std::map<std::string,BDAmer::Point>& vPt, GCPfromBDI_Export::MPtCoordTer& mGCP)
 {
-    for (size_t i(0); i<vPt.size(); i++)
-        mGCP.insert(std::pair<std::string,Pt3dr>(vPt[i].nom,vPt[i].getCoordTerrain()));
+    std::map<std::string,BDAmer::Point>::const_iterator itPt (vPt.begin());
+    for (; itPt!=vPt.end() ; itPt++)
+        mGCP.insert(std::pair<std::string,Pt3dr>(itPt->first,itPt->second.getCoordTerrain()));
+}
+
+///
+///
+/// --- debug write HDR
+void writeHDR(const std::string nomFicHDR,
+              const Pt3dr& NO,
+              const Pt2dr& reso,
+              const Pt2di& size)
+{
+    std::ostringstream ossHdr;
+    ossHdr << std::fixed << std::setprecision(15);
+    ossHdr << "echo 'NROWS "<<size.x<<"\nNCOLS "<<size.y<<"\nULXMAP "<<NO.x<<"\nULYMAP "<<NO.y<<"\nXDIM "<<reso.x<<"\nYDIM "<<reso.y<<"\nPROJECTION GEOGRAPH_G96\nNBANDS 1\nBYTEORDER I\nNBITS 8\nLAYOUT  BIL\nSIGNE 1\\n' > "<<nomFicHDR;
+    system(ossHdr.str().c_str());
 }
 
 ///
@@ -709,47 +826,51 @@ int GCPfromBDAmer_main(int argc, char **argv)
     bool verbose  (1);
     
     if (verbose) std::cout << "[GCPfromBDAmer_main] Get BDAmer control point for bundle" << std::endl;
-
+    std::cout << std::fixed << std::setprecision(15);
+    
     // EAMC
     std::string aBDAmerDir;
     std::string aOutDir;
-    std::string ImageNames;
+    std::string aImageNames;
     
     // EAM
     std::string aGRIDExt("GRI");
     double      aZmoy(0.);
-    int         sizeCorrelation(200);
-    double      CorefMinAccept(0.5);
+    double      aCorefMinAccept(0.7);
+    int         aSizeCrop(20);
+    
+    // tmp :
+    std::string nomGDALInfo;
     
     // valeurs par defaut utiles
-    int     marge = 10;
+    int     marge = 5;
     double  NoData = -1.;
     
     ElInitArgMain
     (
          argc, argv,
-         LArgMain() << EAMC(ImageNames,"Full Name (Dir+Pat)")
+         LArgMain() << EAMC(aImageNames,"Full Name (Dir+Pat)")
                     << EAMC(aBDAmerDir,"Full Name (Dir+Pat)")
                     << EAMC(aOutDir,"Name of output directory"),
          LArgMain() << EAM(aGRIDExt,"Grid","GRI","Orientation file extension")
                     << EAM(aGRIDExt,"ZMoy","ZMoy","Approch altitude")
-                    << EAM(sizeCorrelation,"CorSw",false,"Size Correlation Windows")
-                    << EAM(CorefMinAccept,"CoefMini",false,"Minimum Coefficient to be acceptated")
+                    << EAM(aCorefMinAccept,"CoefMini",false,"Minimum Coefficient to be acceptated")
+                    << EAM(aSizeCrop,"SzCrop",false,"Size of the crop")
     );
-    
-    // vignette de correlation :
-    Pt2di SzVignette (sizeCorrelation,sizeCorrelation);
     
     //structure de sortie :
     GCPfromBDI_Export::MPtCoordTer  mGCP;
     GCPfromBDI_Export::MPtImage     mPtImage;
     
+    // fichier de stat final :
+    std::ofstream ficOutStat (aOutDir + "/ResultStat.txt");
+    
     //pour chaque image :
-    std::list<std::string> lImage = GCPfromBDI_files::getFiles(ImageNames);
+    std::list<std::string> lImage = GCPfromBDI_files::getFiles(aImageNames);
     std::list<std::string>::const_iterator itImage(lImage.begin()),finImage(lImage.end());
+    if (verbose) std::cout << "Gestion des " << lImage.size() << " images " << std::endl;
     for (;itImage!=finImage;++itImage)
     {
-
         if (verbose) std::cout << "Gestion de l'image " << *itImage << std::endl;
         
         std::string aNameImageOri;
@@ -774,6 +895,8 @@ int GCPfromBDAmer_main(int argc, char **argv)
         Box2dr box (toPt2dr(vPtBoxTer[0]),toPt2dr(vPtBoxTer[1]));
         box.dilate(0.1); // valeur a revoir ?
         
+        //conversion en WGS884 : to do...
+        
         // creation d'un repertoire pour les imagettes :
         std::string vignetteNameDir = aOutDir + "/" + getFileName(*itImage);
         ELISE_fp::MkDir(vignetteNameDir);
@@ -781,74 +904,64 @@ int GCPfromBDAmer_main(int argc, char **argv)
         //structure de sortie
         GCPfromBDI_Export::MPtCoordPix mPix;
         
-        // on rempli le set des fichiers de point a charger.
+        // on rempli la map des fichiers de point a charger.
+        std::map<std::string,std::string> sNomBase;
+        
         for (size_t i(0); i<vPtBoxTer.size(); i++)
         {
             std::string general(""),detail("");
             getBDAmerDalle(vPtBoxTer[i],general,detail);
-
-            std::string ficBDAmer = aBDAmerDir + "/" + general + "/" + detail + ".xml";
-            BDAmer::BASE_AMERS bdamer (ficBDAmer,general);
             
-            std::vector<BDAmer::Point> vPt;
-            bdamer.getValidPoint(box,vPt);
-            if (verbose) std::cout << "Nb de point(s) de test : " << vPt.size() << std::endl;
+            std::string ficBDAmer = aBDAmerDir + "/" + general + "/" + detail + ".xml";
+            sNomBase.insert(std::pair<std::string,std::string>(ficBDAmer,general));
+        }
 
+        std::map<std::string,std::string>::iterator itNomBase(sNomBase.begin());
+        for (;itNomBase!=sNomBase.end();itNomBase++)
+        {
+            
+            BDAmer::BASE_AMERS bdamer (itNomBase->first,itNomBase->second);
+            std::map<std::string,BDAmer::Point> vPt;
+            bdamer.getValidPoint(box,vPt);
+            
+            if (verbose) std::cout << "Nb de point(s) de test : " << vPt.size() << std::endl;
+            
             // ajout des points terrain :
             addPtTer(vPt,mGCP);
             
             // coordonnées images :
-            for (size_t i(0); i<1/*vPt.size()*/; i++)
+            std::map<std::string,BDAmer::Point>::iterator itPt (vPt.begin());
+            for (;itPt!=vPt.end(); itPt++)
             {
-                const BDAmer::Point& point = vPt[i];
+                const BDAmer::Point& point = itPt->second;
                 std::cout << "traitement du point " << point.nom << std::endl;
-
-                //point dans l'image :
+                
                 Pt3dr PtTerrain         = point.getCoordTerrain();
-                std::cout << "PtTerrain " << PtTerrain.x << " " << PtTerrain.y << " " << PtTerrain.z << std::endl;
-
                 Pt2dr ptImageApproch    = aCam->Ter2Capteur(PtTerrain);
-                std::cout << "point dans l'image " << ptImageApproch.x << " " << ptImageApproch.y << std::endl;
                 
-                //resolution de l'image au Pt :
-                double resolImageSat = aCam->ResolutionSol(PtTerrain);
-                
-                //calcul d'une pseudoOrtho :
-                Pt2di POSz (SzVignette.x+2*marge,SzVignette.y+2*marge);
-                Pt3dr PNOpseudoOrtho (PtTerrain.x-POSz.x*resolImageSat/2,PtTerrain.y+POSz.y*resolImageSat/2,PtTerrain.z);
-                std_unique_ptr<TIm2D<U_INT2,INT4> > pseudoOrtho (new TIm2D<U_INT2,INT4>(POSz));
-                if (!GCPfromBDI_Image::calcPseudoOrtho(*itImage,PNOpseudoOrtho,POSz,resolImageSat,aCam,pseudoOrtho))
-                    return false;
-                
-                //export de la pseudoOrtho
-                std::ostringstream ossNomPseudoOrtho;
-                ossNomPseudoOrtho << vignetteNameDir << "/PseudoOrtho_"<<point.nom<<".tif";
-                std::string nomPseudoOrtho = ossNomPseudoOrtho.str();
-                Tiff_Im out(nomPseudoOrtho.c_str(), pseudoOrtho->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
-                ELISE_COPY(pseudoOrtho->_the_im.all_pts(),pseudoOrtho->_the_im.in(),out.out());
+                if (verbose) std::cout << "PtTerrain " << PtTerrain.x << " " << PtTerrain.y << " " << PtTerrain.z << std::endl;
+                if (verbose) std::cout << "point dans l'image " << ptImageApproch.x << " " << ptImageApproch.y << std::endl;
                 
                 std::string dirOrthoTGZ     = point.getOrthoDir(aBDAmerDir)+"_TIF.tgz";
                 std::string dirOrthoOut     = vignetteNameDir + "/" + getFileName(dirOrthoTGZ);
                 std::string dirOrthoOutTGZ  = dirOrthoOut + ".tgz";
                 
                 // copie et detar
-                std::cout << "dirOrthoOut " << dirOrthoOut << std::endl;
                 if (!ELISE_fp::exist_file(dirOrthoOut))
                 {
-                    std::cout << "copie et detar du fichier " << std::endl;
                     ELISE_fp::copy_file(dirOrthoTGZ,dirOrthoOutTGZ,true);
                     std::stringstream ossTar;  ossTar << "tar -zxf " << dirOrthoOutTGZ << " -C " << vignetteNameDir;
                     system(ossTar.str().c_str());
                     ELISE_fp::RmFileIfExist(dirOrthoOutTGZ);
                 }
                 
-                //pour chaque source :
+                // pour chaque source :
                 double BestCorel (-1); Pt2dr ptr(0.,0.);
                 for (size_t s(0); s<point.vSources.size(); s++)
                 {
                     //on cherche par correlation le point dans l'image en entree
                     //on remplie la structure de sortie
-
+                    
                     const BDAmer::Source& source = point.vSources[s];
                     
                     const std::string nomImagette = vignetteNameDir + "/" + source.ortho;
@@ -856,32 +969,88 @@ int GCPfromBDAmer_main(int argc, char **argv)
                     
                     if (!ELISE_fp::exist_file(nomImagette)) continue; //un pb dans le tar...
                     
-                    std::vector<double> fenImagette;
-                    std_unique_ptr<TIm2D<U_INT2,INT4> > cropBDOrtho (createTIm2DFromFile<U_INT2,INT4>(nomImagette,Pt2di(0,0),SzVignette));
-                    GCPfromBDI_Correl::getVecFromTIm2D(cropBDOrtho,fenImagette,NoData);
+                    // vignette de correlation :
+                    Pt2di SzVignette = GCPfromBDI_Image::ImageSize(nomImagette);
+                    Pt2di SzVignetteCrop (2*aSizeCrop+1,2*aSizeCrop+1);
                     
-                    //correlations :
+                    // TODO : recuperer la resolution a partir des infos contenues dans l'image
+                    Pt2dr resolImagette = GCPfromBDI_Image::ImageResol(nomImagette);
+                    
+                    // pt ini pour le crop dans la vignette :
+                    Pt2di PtIniVignette ( SzVignette.x/2 - aSizeCrop, SzVignette.y/2 - aSizeCrop );
+
+                    // extraction de la vignette :
+                    std::vector<double> fenImagette;
+                    std_unique_ptr<TIm2D<U_INT2,INT4> > vignette (createTIm2DFromFile<U_INT2,INT4>(nomImagette,PtIniVignette,SzVignetteCrop));
+                    GCPfromBDI_Correl::getVecFromTIm2D(vignette,fenImagette,NoData);
+                    
+                    // calcul d'une pseudoOrtho :
+                    Pt2di POSz (SzVignetteCrop.x+2*marge,SzVignetteCrop.y+2*marge);
+                    Pt3dr PNOpseudoOrtho (PtTerrain.x-POSz.x*resolImagette.x/2, PtTerrain.y+POSz.y*resolImagette.y/2, PtTerrain.z);
+                    std_unique_ptr<TIm2D<U_INT2,INT4> > pseudoOrtho (new TIm2D<U_INT2,INT4>(POSz));
+                    if (!GCPfromBDI_Image::calcPseudoOrtho(*itImage,PNOpseudoOrtho,POSz,resolImagette,aCam,pseudoOrtho))
+                        return false;
+                    
+                    // export de la pseudoOrtho --- pour debug
+                    {
+                        std::ostringstream ossNomPseudoOrtho;
+                        ossNomPseudoOrtho << vignetteNameDir << "/PseudoOrtho_"<<point.nom<<"_" << s << ".tif";
+                        std::string nomPseudoOrtho = ossNomPseudoOrtho.str();
+                        Tiff_Im out(nomPseudoOrtho.c_str(), pseudoOrtho->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+                        ELISE_COPY(pseudoOrtho->_the_im.all_pts(),pseudoOrtho->_the_im.in(),out.out());
+                        
+                        std::ostringstream ossNomPseudoOrthoHDR;
+                        ossNomPseudoOrthoHDR << vignetteNameDir << "/PseudoOrtho_"<<point.nom<<"_" << s << ".hdr";
+                        writeHDR(ossNomPseudoOrthoHDR.str(),PNOpseudoOrtho,resolImagette,POSz);
+                    }
+                    
+                    // correlations :
                     double CoefCorelMax(-1);
                     GCPfromBDI_Export::ItPtCoordPix itPix;
-                    for (size_t l(0); l<POSz.y-SzVignette.y;l++)
+                    int subPix (5);
+                    
+                    for (size_t l(0); l<subPix*(POSz.y-SzVignetteCrop.y); l++)
                     {
-                        for (size_t c(0); c<POSz.x-SzVignette.x;c++)
+                        for (size_t c(0); c< subPix*(POSz.x-SzVignetteCrop.x);c++)
                         {
-                            double cofCorel =  GCPfromBDI_Correl::getCorelCoef(Pt2di(c,l),SzVignette,nomPseudoOrtho,fenImagette,NoData);
+                            double ll = double(l)/subPix;
+                            double cc = double(c)/subPix;
+                            
+                            double cofCorel =  GCPfromBDI_Correl::getCorelCoef(Pt2dr(cc,ll),SzVignetteCrop,pseudoOrtho,fenImagette,NoData);
                             
                             if(cofCorel>=CoefCorelMax)
                             {
-                                if (cofCorel<CorefMinAccept) // pas assez bon
+                                if (cofCorel<aCorefMinAccept) // pas assez bon
                                     continue;
                                 
                                 if (cofCorel<BestCorel) // deja mieux
                                     continue;
+                                
+                                if (verbose) std::cout << "c,l " << cc << " " << ll << " coeff " << cofCorel << std::endl;
+                                
+                                // export de la vignette --- pour debug
+                                {
+                                    std::ostringstream ossNomVignetteCrop;
+                                    ossNomVignetteCrop << vignetteNameDir << "/Vignette_"<<point.nom<<"_" << s << ".tif";
+                                    std::string nomVignetteCrop = ossNomVignetteCrop.str();
+                                    Tiff_Im out(nomVignetteCrop.c_str(), vignette->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+                                    ELISE_COPY(vignette->_the_im.all_pts(),vignette->_the_im.in(),out.out());
 
-                                Pt2di ptCentralPO (c+SzVignette.x/2,l+SzVignette.y/2);
-                                Pt3dr ptCentralPOTer ( PNOpseudoOrtho.x + ptCentralPO.x*resolImageSat,
-                                                       PNOpseudoOrtho.y - ptCentralPO.y*resolImageSat,
-                                                       PNOpseudoOrtho.z);
-
+                                    
+                                    Pt3dr PNOVignette (PNOpseudoOrtho.x + cc*resolImagette.x,
+                                                       PNOpseudoOrtho.y - ll*resolImagette.y,
+                                                       PtTerrain.z);
+                                    
+                                    std::ostringstream ossNomVignetteCropHDR;
+                                    ossNomVignetteCropHDR << vignetteNameDir << "/Vignette_"<<point.nom<<"_" << s << ".hdr";
+                                    writeHDR(ossNomVignetteCropHDR.str(),PNOVignette,resolImagette,SzVignetteCrop);
+                                }
+                                
+                                Pt2dr ptCentralPO       ( cc+double(SzVignetteCrop.x)/2, ll+double(SzVignetteCrop.y)/2);
+                                Pt3dr ptCentralPOTer    ( PNOpseudoOrtho.x + ptCentralPO.x*resolImagette.x,
+                                                          PNOpseudoOrtho.y - ptCentralPO.y*resolImagette.y,
+                                                          PNOpseudoOrtho.z);
+                                
                                 Pt2dr ptImage_i = aCam->Ter2Capteur(ptCentralPOTer);
                                 CoefCorelMax = cofCorel;
                                 BestCorel = cofCorel;
@@ -890,17 +1059,19 @@ int GCPfromBDAmer_main(int argc, char **argv)
                             }
                         }
                     }
-
+                    
                     itPix = mPix.find(point.nom);
                     if (itPix == mPix.end()) continue; // on a pas trouve de coef de correlation suffisant...
-                    
                     
                 }
                 
                 if (BestCorel>-1)
                 {
                     mPix.insert(std::pair<std::string,Pt2dr>(point.nom,ptr));
-                    if (verbose) std::cout << "[GCP_From_BDCarrefour_main] " << point.nom << " : " << BestCorel << " : (" << ptImageApproch.x << ";" << ptImageApproch.y << ") => (" << ptr.x << ";" << ptr.y << ")" << std::endl;
+                    std::stringstream ossResult;
+                    ossResult << "Result : " << point.nom << " : " << BestCorel << " : (" << ptImageApproch.x << ";" << ptImageApproch.y << ") => (" << ptr.x << ";" << ptr.y << ")" << std::endl;
+                    ficOutStat << ossResult.str();
+                    if (verbose) std::cout << ossResult.str();
                 }
                 
                 //un peu de menage
@@ -909,12 +1080,13 @@ int GCPfromBDAmer_main(int argc, char **argv)
             }
             
         }
-        
         // ajout des points images :
         mPtImage.insert(GCPfromBDI_Export::pPtImage(*itImage,mPix));
         
     }
-
+    
+    ficOutStat.close();
+    
     //export des points :
     std::ostringstream ossNomPt3D;
     ossNomPt3D << aOutDir << "/gcp-3D.xml";
@@ -923,7 +1095,6 @@ int GCPfromBDAmer_main(int argc, char **argv)
     std::ostringstream ossNomPt2D;
     ossNomPt2D << aOutDir << "/gcp-2D.xml";
     GCPfromBDI_Export::WriteGCP2D(mPtImage,ossNomPt2D.str());
-
     
     return 0;
 }
@@ -934,5 +1105,3 @@ int GCPfromBDAmer_main(int argc, char **argv)
         #pragma GCC diagnostic pop
     #endif
 #endif
-
-

@@ -465,23 +465,23 @@ bool  LArgMain::OneInitIfMatchEq
 {
     for
         (
-        ElSTDNS list<GenElArgMain *>::const_iterator it = _larg.begin();
-    it != _larg.end();
-    it++
-        )
+         ElSTDNS list<GenElArgMain *>::const_iterator it = _larg.begin();
+         it != _larg.end();
+         it++
+         )
         if ((*it)->InitIfMatchEq(s,Gram))
             return true;
-
+    
     if (anAcceptUnknown || s[0]=='+'  ||  s[0]==cInterfChantierNameManipulateur::theCharSymbOptGlob)
         return false;
-
-
+    
+    
     Tjs_El_User.ElAssert
-        (
-        false,
-        EEM0 << "LArgMain , Don't understand :["
-        << s <<"]"
-        );
+    (
+     false,
+     EEM0 << "LArgMain , Don't understand :["
+     << s <<"]"
+     );
     return false;
 }
 
