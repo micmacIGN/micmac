@@ -40,37 +40,27 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <iostream>
 #include <string>
+#include "../uti_phgrm/TiepTri/TiepTri.h"
+#include "../uti_phgrm/TiepTri/MultTieP.h"
 
 struct ImgT{
     std::string ImgName;
     double ImgTemp;
 };
 
-class cReechHomol_Appli
-{
-public :
-    cReechHomol_Appli (int argc,char ** argv);
-    void ConvertHomol (string & aFullPat, string & aSHIn);
-    void CorrHomolFromTemp (string & aDir, string & aSHIn, string & aTempFile, std::vector<ImgT> & aVSIT, string & aExt, string & aPrefix);
-    void ReadImgTFile (string & aDir, string aTempFile, std::vector<ImgT> & aVSIT, std::string aExt);
-private :
-    std::string mDir;
+struct CamCoord {
+    CamStenope * Cam;
+    Pt2dr coord2d;
 };
 
-void cReechHomol_Appli::ConvertHomol(string & aFullPat, string & aSHIn)
-{
-    string aComConvertHomol = MM3dBinFile("TestLib Homol2Way ")
-            + aFullPat
-            + " SH=" + aSHIn
-            + " SHOut=_txt"
-            + " IntTxt=0"
-            + " ExpTxt=1"
-            + " OnlyConvert=1";
-    system_call(aComConvertHomol.c_str());
-}
+struct AllPts {
+    int NumPt;
+    std::vector<CamCoord> CAC;
+};
 
-void cReechHomol_Appli::ReadImgTFile(string & aDir, string aTempFile, std::vector<ImgT> & aVSIT, std::string aExt)
+std::vector<ImgT> ReadImgTFile(string & aDir, string aTempFile, std::string aExt)
 {
+    std::vector<ImgT> aVSIT;
     ifstream aFichier((aDir + aTempFile).c_str());
     if(aFichier)
     {
@@ -102,194 +92,450 @@ void cReechHomol_Appli::ReadImgTFile(string & aDir, string aTempFile, std::vecto
     {
         std::cout<< "Error While opening file" << '\n';
     }
+    return aVSIT;
 }
 
-void cReechHomol_Appli::CorrHomolFromTemp(string & aDir, string & aSHIn, string & aTempFile, std::vector<ImgT> & aVSIT, string & aExt, string & aPrefix)
+int ReechHomol_main(int argc, char **argv)
 {
-    cReechHomol_Appli::ReadImgTFile(aDir, aTempFile, aVSIT, aExt); //read all_name_temp.txt
+    std::string aDir, aSHIn = "", aTempFile, aExt= ".thm.tif", aPrefix="Reech_";
 
-    // get all converted Patis folders
-    string aDirHomol = aSHIn + "_txt/";
-    std::list<cElFilename> aLPatis;
-    ctPath * aPathHomol = new ctPath(aDirHomol);
-    aPathHomol->getContent(aLPatis);
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()  << EAMC(aDir, "Directory", eSAM_IsDir)
+                            << EAMC(aSHIn, "Input Homol folder, "" means Homol", eSAM_IsExistFile)
+                            << EAMC(aTempFile, "file containing image name & corresponding temperature", eSAM_IsExistFile),
+                LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
+                            << EAM(aPrefix,"Prefix",true,"Prefix for resampled Imgs, Def = Reech_")
+            );
+
+    if ((aSHIn.substr(aSHIn.size()-1,1)).compare("/"))
+        aSHIn = aSHIn.substr(0,aSHIn.size());
+
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    // read temperature file
+    std::vector<ImgT> aVSIT = ReadImgTFile(aDir, aTempFile, aExt);
+    cout << "Temperature file size : " << aVSIT.size() << endl;
+
+    // get all Patis folders
+    std::string aDirHomolIn = aDir + aSHIn;
+    std::list<cElFilename> aLPastis;
+    ctPath * aPathHomol = new ctPath(aDirHomolIn);
+    aPathHomol->getContent(aLPastis);
+
+    cout << "Pastis File size : " << aLPastis.size() << endl;
 
     // for one Patis folder
-    for (std::list<cElFilename>::iterator iT1 = aLPatis.begin() ; iT1 != aLPatis.end() ; iT1++)
+    for (std::list<cElFilename>::iterator iTLP = aLPastis.begin() ; iTLP != aLPastis.end() ; iTLP++)
     {
         // master image
-        string aImMaster = iT1->m_basename.substr (6,25);
-        cout << "Master Image: " << aImMaster << endl;
-        std::string aNameMapMaster = "Deg_" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
-        cElMap2D * aMapMasterIm = cElMap2D::FromFile(aNameMapMaster);
+        string aIm1 = iTLP->m_basename.substr (6,25);
+        cout << "Image 1 : " << aIm1 << endl;
+        std::string aNameMap1 = "Deg_" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
+        cElMap2D * aMapIm1 = cElMap2D::FromFile(aNameMap1);
 
         // match the temperature for master image
         for (uint aV=0; aV < aVSIT.size(); aV++)
         {
-            if (aVSIT.at(aV).ImgName.compare(aImMaster) == 0)
+            if (aVSIT.at(aV).ImgName.compare(aIm1) == 0)
             {
-                aNameMapMaster = "Deg_" + ToString(aVSIT.at(aV).ImgTemp) + ".xml";
-                * aMapMasterIm->FromFile(aNameMapMaster);
+                aNameMap1 = "Deg_" + ToString(aVSIT.at(aV).ImgTemp) + ".xml";
+                * aMapIm1->FromFile(aNameMap1);
+                //cout << "Im : " << aVSIT.at(aV).ImgName << " Temp : " << aVSIT.at(aV).ImgTemp << endl;
             }
         }
-
-        // get all .txt files of the master image
-        string aDirPatis = aDirHomol + iT1->m_basename;
-        cInterfChantierNameManipulateur * aICNMP = cInterfChantierNameManipulateur::BasicAlloc(aDirPatis);
+        // get all .dat files of the master image
+        std::string aDirPastis = aDirHomolIn + "/" + iTLP->m_basename;
+        cout << "DirPAstis" << aDirPastis << endl;
+        cInterfChantierNameManipulateur * aICNMP = cInterfChantierNameManipulateur::BasicAlloc(aDirPastis);
         vector<string> aLFileP = *(aICNMP->Get(".*"));
+        cout << ".dat File size : " << aLFileP.size() << endl;
 
         // matche the temperature for secondary image and correct with maps
         for (uint aL=0; aL < aLFileP.size(); aL++)
         {
             // secondary image
-            string aImSecond = aLFileP.at(aL).substr(1,25);
-            cout << "Secondary Image: " << aImSecond << endl;
-            std::string aNameMapSecond = "Deg_" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
-            cElMap2D * aMapSecondIm = cElMap2D::FromFile(aNameMapSecond);
+            string aIm2 = aLFileP.at(aL).substr(1,25);
+            cout << "Image 2 : " << aIm2 << endl;
+            std::string aNameMap2 = "Deg_" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
+            cElMap2D * aMapIm2 = cElMap2D::FromFile(aNameMap2);
 
             for (uint aT=0; aT < aVSIT.size(); aT++)
             {
                 // match the temperature for secondary image
-                if (aVSIT.at(aT).ImgName.compare(aImSecond) == 0)
+                if (aVSIT.at(aT).ImgName.compare(aIm2) == 0)
                 {
-                    aNameMapSecond = "Deg_" + ToString(aVSIT.at(aT).ImgTemp) + ".xml";
-                    * aMapSecondIm->FromFile(aNameMapSecond);
+                    aNameMap2 = "Deg_" + ToString(aVSIT.at(aT).ImgTemp) + ".xml";
+                    * aMapIm2->FromFile(aNameMap2);
+                    //cout << "Im : " << aVSIT.at(aT).ImgName << " Temp : " << aVSIT.at(aT).ImgTemp << endl;
                 }
             }
 
-            // read the .txt file and apply maps
-            std::vector<std::vector<double> >     aDataBrute;
-            std::vector<std::vector<double> >     aDataCorr;
-
-            std::ifstream aFileBrute((aDirPatis+aLFileP.at(aL)).c_str());
-
-            std::string aLine;
-            while(std::getline(aFileBrute, aLine))
-            {
-                std::vector<double>   aLineData;
-                std::stringstream  lineStream(aLine);
-
-                double value;
-                while(lineStream >> value)
-                {
-                    aLineData.push_back(value);
-                }
-                aDataBrute.push_back(aLineData);
-            }
-
-            // apply map to raw data
-            ElPackHomologue * bb =new ElPackHomologue();
-
-            for (uint i = 0; i < aDataBrute.size(); i++)
-            {
-                std::vector<double> aLineDataCorr;
-                Pt2dr aCorrMasterIm =Pt2dr(aDataBrute[i][0],aDataBrute[i][1])*2-(*aMapMasterIm)(Pt2dr(aDataBrute[i][0],aDataBrute[i][1]));
-                Pt2dr aCorrSecondIm =Pt2dr(aDataBrute[i][2],aDataBrute[i][3])*2-(*aMapSecondIm)(Pt2dr(aDataBrute[i][2],aDataBrute[i][3]));
-                ElCplePtsHomologues aa (aCorrMasterIm,aCorrSecondIm);
-                bb->Cple_Add(aa);
-            }
-
-            std::string aImMasterCorr = aPrefix + aImMaster;
-            std::string aImSecondCorr = aPrefix + aImSecond;
-
-            std::string aDirHomolCorr = aSHIn + "_Reech/";
-            cout << aDirHomol << endl;
+            // read Pts Homologues data
+            ElPackHomologue aPckIn, aPckOut;
+            std::string aPostfix = aSHIn.substr(5,aSHIn.size()-5);
             std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
-                    +  std::string(aDirHomolCorr)
-                    +  std::string("@")
-                    +  std::string("dat");
-            cout << aKHIn << endl;
+                               +  std::string(aPostfix)
+                               +  std::string("@")
+                               +  std::string("dat");
+            std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                               +  std::string("_Reech")
+                               +  std::string("@")
+                               +  std::string("dat");
+            std::string aHmIn= aICNM->Assoc1To2(aKHIn, aIm1, aIm2, true);
 
-            cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-            std::string aHmIn= aICNM->Assoc1To2(aKHIn, aImMasterCorr, aImSecondCorr, true);
-            cout << aHmIn << endl;
-            bb->StdPutInFile(aHmIn);
+            aPckIn =  ElPackHomologue::FromFile(aHmIn);
+            cout << "Pts Homologues size : " << aPckIn.size() << endl;
+
+            // apply maps to Pts Homologues data
+            for(ElPackHomologue::iterator iTH = aPckIn.begin(); iTH != aPckIn.end(); iTH++)
+            {
+                Pt2dr aP1 = (iTH->P1())*2-(*aMapIm1)(iTH->P1());
+                Pt2dr aP2 = (iTH->P2())*2-(*aMapIm2)(iTH->P2());
+                ElCplePtsHomologues aPH (aP1,aP2);
+                aPckOut.Cple_Add(aPH);
+            }
+
+            std::string aIm1Out = aPrefix + aIm1;
+            std::string aIm2Out = aPrefix + aIm2;
+            std::string aHmOut= aICNM->Assoc1To2(aKHOut, aIm1Out, aIm2Out, true);
+            aPckOut.StdPutInFile(aHmOut);
         }
+
     }
-}
 
-cReechHomol_Appli::cReechHomol_Appli(int argc,char ** argv)
-{
-    std::string aFullPat, aDir, aPatImgs, aSHIn, aTempFile, aExt = ".thm.tif", aPrefix = "Reech_";
-    std::vector<ImgT> aVSIT;
-    ElInitArgMain
-            (
-                argc,argv,
-                LArgMain()  << EAMC(aFullPat, "Full Imgs Pattern", eSAM_IsExistFile)
-                            << EAMC(aSHIn, "Input Homol folder", eSAM_IsExistFile)
-                            << EAMC(aTempFile, "file containing image name & corresponding temperature", eSAM_IsExistFile),
-                LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
-                            << EAM(aPrefix,"Prefix",true,"Prefix for resampled Imgs, Def = Reech_")
-                );
-    
-    SplitDirAndFile(aDir,aPatImgs,aFullPat);
-    
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
-    
-    cout << "File size = " << aSetIm.size() << endl;
-
-    cReechHomol_Appli::ConvertHomol(aFullPat, aSHIn);
-    cReechHomol_Appli::CorrHomolFromTemp(aDir, aSHIn, aTempFile, aVSIT, aExt, aPrefix);
-}
-
-int ReechHomol_main(int argc, char ** argv)
-{
-
-    cReechHomol_Appli anAppli(argc,argv);
     return EXIT_SUCCESS;
 }
 
 int ExtraitHomol_main(int argc, char ** argv)
 {
-    std::string aDir, aPatImgs, aFullPat, aIn="", aOut="_extrait";
+    std::string aDir, aPatImgs, aFullPat, aSHIn="Homol", aSHOut="Extrait";
+    std::vector<int> aVImgNum;
 
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aFullPat, "Full Imgs Pattern", eSAM_IsExistFile),
-        LArgMain()  << EAM(aIn,"SHIn",true,"Input of extracted Homol, Def = Homol")
-                    << EAM(aOut,"SHOut",true,"Output of extracted Homol, Def = Homol_extrait")
+        LArgMain()  << EAMC(aFullPat, "Full Imgs Pattern", eSAM_IsExistFile)
+                    << EAMC(aVImgNum, "Num of Img, e.g., [0,1,9,10]"),
+        LArgMain()  << EAM(aSHIn,"SHIn",true,"Input Homol folder, Def = Homol")
+                    << EAM(aSHOut,"SHOut",true,"Output Homol folder, Def = Homol_Extrait")
     );
 
     SplitDirAndFile(aDir,aPatImgs,aFullPat);
 
-    // read corresponding .dat files
+    // read corresponding imgs files
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     const std::vector<std::string> aVImg = *(aICNM->Get(aPatImgs));
 
-    ElPackHomologue aPckIn;
-    ElPackHomologue aPckOut;
-    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
-                       +  std::string(aIn)
-                       +  std::string("@")
-                       +  std::string("dat");
-    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
-                       +  std::string(aOut)
-                       +  std::string("@")
-                       +  std::string("dat");
-
-
-    for (uint i=1; i < aVImg.size(); i++)
+    std::string aVSImg = "\"";
+    for (uint iVS = 0; iVS < aVImgNum.size(); iVS++)
     {
-        std::string aIm1 = aVImg.at(0);
-        std::string aIm2 = aVImg.at(i);
-
-        std::string aHmIn= aICNM->Assoc1To2(aKHIn, aIm1, aIm2, true);
-
-        aPckIn = ElPackHomologue::FromFile(aHmIn);
-        cout << "File ++ : " << aIm1 << " & " << aIm2 << endl;
-
-        std::string aHmOut= aICNM->Assoc1To2(aKHOut, aIm1, aIm2, true);
-        cout << aHmOut << endl;
-        aPckOut.StdPutInFile(aHmOut);
+        int aNum = aVImgNum.at(iVS);
+        if (iVS == 0)
+            aVSImg += aVImg.at(aNum);
+        else
+        {
+            aVSImg += "|";
+            aVSImg += aVImg.at(aNum);
+        }
     }
 
-    // compare points
+    aVSImg += "\"";
+    cout << aVSImg << endl;
 
-    // rewrite selected tie points
+    // convert Homol folder into new format
+    std::string aComConvFH = MM3dBinFile("TestLib ConvNewFH ")
+                           + aVSImg
+                           + " "
+                           + aSHOut
+                           + " Bin=0";
+
+    cout << aComConvFH << endl;
+    system_call(aComConvFH.c_str());
+
+    // read PMul.txt and output new Homol files
+    const std::string  aSHExtrStr = aSHIn +"/PMul" + aSHOut + ".txt";
+    cSetTiePMul * aSHExtr = new cSetTiePMul(0);
+    aSHExtr->AddFile(aSHExtrStr);
+    std::vector<cSetPMul1ConfigTPM *> aVCnf = aSHExtr->VPMul();
+
+    std::string aDirHomolExtr = "_" + aSHOut;
+    cout << "aDirhomolExtr" << aDirHomolExtr << endl;
+    std::string aKHExtr =   std::string("NKS-Assoc-CplIm2Hom@")
+            +  std::string(aDirHomolExtr)
+            +  std::string("@")
+            +  std::string("dat");
+    cout << "aKHExtr" << aKHExtr << endl;
+
+    for (uint aKCnf=1; aKCnf < aVCnf.size(); aKCnf++)
+    {
+        cSetPMul1ConfigTPM * aCnf = aVCnf[aKCnf];
+        if (uint (aCnf->NbIm()) == aVImgNum.size())
+        {
+            cout << "Cnf : " << aKCnf << " - Nb Imgs : " << aCnf->NbIm() << " - Nb Pts : " << aCnf->NbPts() << endl;
+            std::vector<int> aVIdIm =  aCnf->VIdIm();
+
+            for (uint i1=0; i1 < aVIdIm.size(); i1++)
+            {
+                for (uint i2=0; i2 < aVIdIm.size(); i2++)
+                {
+                    if (i1 != i2)
+                    {
+                        std::string aIm1 = aVImg.at(aVImgNum.at(i1));
+                        std::string aIm2 = aVImg.at(aVImgNum.at(i2));
+                        ElPackHomologue * aPckExtr =new ElPackHomologue();
+
+                        for (uint aKPtCnf=0; aKPtCnf < uint(aCnf->NbPts()); aKPtCnf++)
+                        {
+                            Pt2dr aPt1 = aCnf->Pt(aKPtCnf,i1);
+                            Pt2dr aPt2 = aCnf->Pt(aKPtCnf,i2);
+                            ElCplePtsHomologues aPtFH (aPt1,aPt2);
+                            aPckExtr->Cple_Add(aPtFH);
+                        }
+
+                        std::string aHmExtr= aICNM->Assoc1To2(aKHExtr, aIm1, aIm2, true);
+                        aPckExtr->StdPutInFile(aHmExtr);
+                    }
+                }
+            }
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+Pt3dr IntersectionFaisceaux
+       (
+            const std::vector<CamStenope *> & aVCS,
+            const std::vector<Pt2dr> & aNPts2D
+        )
+{
+    //vecteur d'éléments segments 3d
+    std::vector<ElSeg3D> aVSeg;
+
+    for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
+    {
+        ElSeg3D aSeg = aVCS.at(aKR)->F2toRayonR3(aNPts2D.at(aKR));
+        aVSeg.push_back(aSeg);
+    }
+    //std::cout<<"Intersect "<<aVSeg.size()<<" bundles...\n";
+    Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+    return aRes;
+}
+
+int IntersectHomol_main(int argc, char ** argv)
+{
+    std::string aDir, aPatImgs, aFullPat, aOriIn, aSHIn="Homol", aOut="Extrait";
+    std::vector<int> aDebut, aFin;
+    bool aXmlExport=true;
+    Pt3dr aInc(1,1,1);
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullPat, "Full Imgs Pattern", eSAM_IsExistFile)
+                    << EAMC(aDebut, "Num of Img for group 1, e.g., [0,1]")
+                    << EAMC(aFin, "Num of Img for group 2, e.g., [26,27]")
+                    << EAMC(aOriIn, "Directory of input orientation",  eSAM_IsExistDirOri),
+        LArgMain()  << EAM(aSHIn,"SHIn",true,"Input Homol folder, Def = Homol")
+                    << EAM(aOut,"SHOut",true,"Output result, Def = Extrait")
+                    << EAM(aXmlExport,"XmlOut",true,"Export in .xml format to use as GCP file (Def=true)")
+    );
+
+    SplitDirAndFile(aDir,aPatImgs,aFullPat);
+
+    // read corresponding imgs files
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aVImg = *(aICNM->Get(aPatImgs));
+
+    MakeFileDirCompl(aOriIn);
+    ELISE_ASSERT(ELISE_fp::IsDirectory(aOriIn),"ERROR: Input orientation not found!");
+
+    std::vector<int> aVImgNum = aDebut;
+    aVImgNum.insert( aVImgNum.end(), aFin.begin(), aFin.end() );
+
+    std::string aVSImg = "\"";
+    for (uint iVS = 0; iVS < aVImgNum.size(); iVS++)
+    {
+        int aNum = aVImgNum.at(iVS);
+        if (iVS == 0)
+            aVSImg += aVImg.at(aNum);
+        else
+        {
+            aVSImg += "|";
+            aVSImg += aVImg.at(aNum);
+        }
+    }
+
+    aVSImg += "\"";
+    cout << aVSImg << endl;
+
+    // convert Homol folder into new format
+    std::string aComConvFH = MM3dBinFile("TestLib ConvNewFH ")
+                           + aVSImg
+                           + " "
+                           + aOut
+                           + " Bin=0";
+
+    cout << aComConvFH << endl;
+    system_call(aComConvFH.c_str());
+
+    // read PMul.txt and output new Homol files
+    const std::string  aSHExtrStr = aSHIn +"/PMul" + aOut + ".txt";
+    cSetTiePMul * aSHExtr = new cSetTiePMul(0);
+    aSHExtr->AddFile(aSHExtrStr);
+    std::vector<cSetPMul1ConfigTPM *> aVCnf = aSHExtr->VPMul();
+
+    // generate list of CamCoord
+    std::vector<CamCoord> v1CameraEtCoord;
+    std::vector<AllPts> aVAllPts;
+
+    for (uint aKCnf=1; aKCnf < aVCnf.size(); aKCnf++)
+    {
+        cSetPMul1ConfigTPM * aCnf = aVCnf[aKCnf];
+        if (uint (aCnf->NbIm()) == aVImgNum.size())
+        {
+            cout << "Cnf : " << aKCnf << " - Nb Imgs : " << aCnf->NbIm() << " - Nb Pts : " << aCnf->NbPts() << endl;
+            std::vector<int> aVIdIm =  aCnf->VIdIm();
+
+            for (uint aKPtCnf=0; aKPtCnf < uint(aCnf->NbPts());aKPtCnf++)
+            {
+                AllPts aAllPts;
+                aAllPts.NumPt = aKPtCnf;
+                std::vector<CamCoord> aVCamCoord;
+                for (uint aKIm=0; aKIm < aVIdIm.size(); aKIm++)
+                {
+                    std::string oriNameFile = aOriIn+"Orientation-"+aVImg.at(aVImgNum.at(aKIm))+".xml";
+                    if (!ELISE_fp::exist_file(oriNameFile)) continue;
+                    CamStenope * cameraCourante = CamOrientGenFromFile(oriNameFile,aICNM);
+                    Pt2dr coordCourant = aCnf->Pt(aKPtCnf,aKIm);                    
+                    CamCoord aCamCoord;
+                    aCamCoord.Cam = cameraCourante;
+                    aCamCoord.coord2d=coordCourant;
+                    aVCamCoord.push_back(aCamCoord);
+                }
+                aAllPts.CAC = aVCamCoord;
+                aVAllPts.push_back(aAllPts);
+            }
+        }
+    }
+
+    cout << "Camera Pts size : " << aVAllPts.size() << endl;
+
+    //Export results for the first and second group
+    for (uint count = 0; count < 2; count ++)
+    {
+        std::string aOutput;
+        uint aStart, aEnd;
+        if (count == 0)
+        {
+            aOutput="Debut";
+            aStart=0;
+            aEnd=aDebut.size();
+            cout << "Intersection for group 1" << endl;
+        }
+        else
+        {
+            aOutput="Fin";
+            aStart=aDebut.size();
+            aEnd=aVImgNum.size();
+            cout << "Intersection for group 2" << endl;
+        }
+
+        //le vecteur des points 3d a exporter
+        std::vector<Pt3dr> Pts3d;
+
+        //boucle sur le nombre de points a projeter en 3d
+        for(uint aHG=0 ; aHG < aVAllPts.size() ; aHG++)
+        {
+            AllPts aaAllPts = aVAllPts.at(aHG);
+
+            //vecteur de cameras
+            std::vector<CamStenope *> vCSPt;
+
+            //vecteur de coordonnees 2d
+            std::vector<Pt2dr> vC2d;
 
 
+            for(uint aHF=aStart ; aHF < aEnd ; aHF++)
+            {
+                CamCoord aaCAC = aaAllPts.CAC.at(aHF);
+                CamStenope * aCSPtC = aaCAC.Cam;
+                vCSPt.push_back(aCSPtC);
+                Pt2dr aCoordPtC = aaCAC.coord2d;
+                vC2d.push_back(aCoordPtC);
+            }
+            Pt3dr aPt3d = IntersectionFaisceaux(vCSPt,vC2d);
+            Pts3d.push_back(aPt3d);
+        }
+
+        cout << Pts3d << endl;
+
+        //export en .txt
+        if (!MMVisualMode)
+        {
+
+            FILE * aFP = FopenNN(aOutput+".txt","w","IntersectHomol_main");
+            cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOutput);
+            for(uint aVP=0; aVP<Pts3d.size(); aVP++)
+            {
+                fprintf(aFP,"%d %lf %lf %lf \n",aVP,Pts3d[aVP].x,Pts3d[aVP].y,Pts3d[aVP].z);
+            }
+
+            ElFclose(aFP);
+            std::cout<< aOutput <<".txt written."<<std::endl;
+        }
+
+
+        //export en .ply
+        if (!MMVisualMode)
+        {
+
+            FILE * aFP = FopenNN(aOutput+".ply","w","IntersectHomol_main");
+            //cElemAppliSetFile aEASF(mDir + ELISE_CAR_DIR + aOut);
+            fprintf(aFP,"ply\n");
+            fprintf(aFP,"format ascii 1.0\n");
+            fprintf(aFP,"element vertex %lu\n",Pts3d.size());
+            fprintf(aFP,"property float x\n");
+            fprintf(aFP,"property float y\n");
+            fprintf(aFP,"property float z\n");
+            fprintf(aFP,"property uchar red\n");
+            fprintf(aFP,"property uchar green\n");
+            fprintf(aFP,"property uchar blue\n");
+            fprintf(aFP,"element face 0\n");
+            fprintf(aFP,"property list uchar int vertex_indices\n");
+            fprintf(aFP,"end_header\n");
+
+            for(unsigned int aVP=0; aVP<Pts3d.size(); aVP++)
+            {
+                fprintf(aFP,"%lf %lf %lf 255 0 0\n",Pts3d[aVP].x,Pts3d[aVP].y,Pts3d[aVP].z);
+            }
+
+            ElFclose(aFP);
+            std::cout<<aOutput<<".ply written."<<std::endl;
+        }
+
+        //export en .xml pour utiliser comme fichier de GCPs
+        if(aXmlExport)
+        {
+            std::string aOutXml = StdPrefixGen(aOutput) + ".xml";
+
+            cDicoAppuisFlottant aDico;
+
+            for (int aKP=0 ; aKP<int(Pts3d.size()) ; aKP++)
+            {
+                cOneAppuisDAF aOAD;
+                aOAD.Pt() = Pts3d[aKP];
+                aOAD.NamePt() = ToString (aKP);
+                aOAD.Incertitude() = aInc;
+
+                aDico.OneAppuisDAF().push_back(aOAD);
+            }
+
+            MakeFileXML(aDico,aOutXml);
+            std::cout<<aOutXml<<" written."<<std::endl;
+        }
+    }
     return EXIT_SUCCESS;
 }
 
