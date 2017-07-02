@@ -101,7 +101,7 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aParam.mFilAC,  "FilAC",true,"Use Autocorrelation condition ? (def = true)")
                       << EAM(aParam.mTT_SEUIL_SURF_TRI,  "surfTri",true,"Surface min to eliminate too small triangle (def = 100 unit)")
                       << EAM(aParam.mTT_SEUIL_CORREL_1PIXSUR2,  "correlBrut",true,"Threshold of correlation score 1pxl/2 (def = 0.7)")
-                      << EAM(aParam.mFlagFS,  "FFS",true,"Flag spatial filtering (tuning)")
+                      << EAM(aParam.mFlagFS,  "FFS",true,"Flag spatial filtering (tuning) [0 = all OFF, 1 = In Each Tri, 8 = Final in All Tri, 9 = all ON]")
                );
 
    bool WithInteract = EAMIsInit(& aSzW);
