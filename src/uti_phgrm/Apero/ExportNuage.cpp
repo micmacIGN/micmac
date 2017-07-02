@@ -140,7 +140,8 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
 
     eModeAGP aLastMode = eModeAGPNone;
     const cNuagePutCam * aNPC = anEN.NuagePutCam().PtrVal();
-
+	std::vector<Pt3dr>   aVNormByC;
+    
     for 
     (
          std::list<std::string>::const_iterator itL=anEN.NameRefLiaison().begin();
@@ -170,6 +171,12 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
               aMode =  eModeAGPNoAttr;
            else if (aNameFile == "NoPoint")
               aMode =  eModeAGPNoPoint;
+		   else if (anEN.NormByC().IsInit())
+			  aMode = eModeAGPNormaleByC;
+
+		   ELISE_ASSERT( !((aNameFile == "NormalePoisson") &&
+                         (anEN.NormByC().IsInit())), 
+                         "Conflict, use Normals or perspective centers in cAppliApero::ExportNuage" );
 
            if (aLastMode!=eModeAGPNone)
            {
@@ -206,11 +213,24 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                      aStatObs,
                      (const cRapOnZ *) 0
                 );
+				
+				if (aLastMode==eModeAGPNormaleByC)
+				{
+					int aL1 = int(aVNormByC.size());
+					int aL2 = int((anAGP.Pts()).size());
+
+            		const CamStenope *  aCS = (aPC->DownCastPoseCamNN())->CurCam();
+					Pt3dr aNormByC = aCS->PseudoOpticalCenter();
+					
+					for (int aK=aL1; aK<aL2; aK++)					
+						aVNormByC.push_back(aNormByC);
+
+				}
            }
        }
     }
 
-    if (anEN.NuagePutGCPCtrl().IsInit())
+    if ((anEN.NuagePutGCPCtrl().IsInit()) && (aLastMode!=eModeAGPNormaleByC))
     {
         const cNuagePutGCPCtrl & aNPC = anEN.NuagePutGCPCtrl().Val();
         cSetOfMesureAppuisFlottants aSMAF = StdGetMAF(aNPC.NameGCPIm());
@@ -240,10 +260,8 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                     if (aPC)
                     {
                         const CamStenope *  aCS = aPC->CurCam();
-		        aVSeg.push_back(aCS->Capteur2RayTer( aMes->PtIm()));                     
-             		aVPds.push_back(1);           
-
-
+		        		aVSeg.push_back(aCS->Capteur2RayTer( aMes->PtIm()));                     
+             			aVPds.push_back(1);           
 
                     }
 		}
@@ -252,23 +270,23 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
 	    {
 	    	bool aIsOK;
 	    	Pt3dr aPPho = ElSeg3D::L2InterFaisceaux(&aVPds, aVSeg, &aIsOK);
-		Pt3dr aDif = (aP.Pt() - aPPho);
-		aDif = aDif / euclid(aDif);
-		double aSc = aNPC.ScaleVec();
+			Pt3dr aDif = (aP.Pt() - aPPho);
+			aDif = aDif / euclid(aDif);
+			double aSc = aNPC.ScaleVec();
 
-		if( aDif.z > 0 )
-		    anAGP.AddSeg(aPPho,aPPho + Pt3dr(aSc*aDif.x,aSc*aDif.y,aSc*aDif.z),0.5,Pt3di(255,0,0));
-		else
-		    anAGP.AddSeg(aPPho,aPPho + Pt3dr(aSc*aDif.x,aSc*aDif.y,-aSc*aDif.z),0.5,Pt3di(0,0,255));
+			if( aDif.z > 0 )
+		    	anAGP.AddSeg(aPPho,aPPho + Pt3dr(aSc*aDif.x,aSc*aDif.y,aSc*aDif.z),0.5,Pt3di(255,0,0));
+			else
+		    	anAGP.AddSeg(aPPho,aPPho + Pt3dr(aSc*aDif.x,aSc*aDif.y,-aSc*aDif.z),0.5,Pt3di(0,0,255));
 		
-		std::cout << "Ctrl " << " " << aP.NamePt() << " " << aDif << "\n";
+			std::cout << "Ctrl " << " " << aP.NamePt() << " " << aDif << "\n";
 	    }
 	}
 	
     }
 
 
-    if (anEN.NuagePutInterPMul().IsInit())
+    if ((anEN.NuagePutInterPMul().IsInit()) && (aLastMode!=eModeAGPNormaleByC))
     {
         const cNuagePutInterPMul & aNPIM = anEN.NuagePutInterPMul().Val();
         std::string aPrefix = StdPrefixGen(aNPIM.NamePMul());
@@ -308,7 +326,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
 
     }
 
-    if (aNPC)
+    if (aNPC && (aLastMode!=eModeAGPNormaleByC))
     {
         // cNuagePutCam aNPC = anEN.NuagePutCam().Val();
         double aStepImage =  aNPC->StepImage().Val() ;
@@ -456,13 +474,45 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
     }
     bool aModeBin = anEN.PlyModeBin().Val();
 
-    if ((aLastMode==eModeAGPNormale) || (aLastMode==eModeAGPNoAttr))
+    if ((aLastMode==eModeAGPNormale) || (aLastMode==eModeAGPNormaleByC) || (aLastMode==eModeAGPNoAttr))
     {
-         FILE * aFP = FopenNN(mDC+anEN.NameOut(),"w","cAppliApero::ExportNuage");
-
-
          const std::vector<Pt3dr>  &   aVPts = anAGP.Pts();
          const std::vector<Pt3di>  &   aVNorm = anAGP.Cols();
+        
+		 bool DoublePrec = false; 
+         std::string aTypeXYZ = DoublePrec ? "float64" : "float";
+		 
+		 FILE * aFP = FopenNN(mDC+anEN.NameOut(),"w","cAppliApero::ExportNuage");
+ 
+		 //Header
+         fprintf(aFP,"ply\n");
+         std::string aBinSpec =       MSBF_PROCESSOR() ?
+                                "binary_big_endian":
+                                "binary_little_endian" ;
+    
+         fprintf(aFP,"format %s 1.0\n",aModeBin?aBinSpec.c_str():"ascii");
+    
+
+         fprintf(aFP,"element vertex %d\n",int(aVPts.size()));
+         fprintf(aFP,"property %s x\n",aTypeXYZ.c_str());
+         fprintf(aFP,"property %s y\n",aTypeXYZ.c_str());
+         fprintf(aFP,"property %s z\n",aTypeXYZ.c_str());
+
+         if (aLastMode==eModeAGPNormale)
+         {
+             fprintf(aFP,"property float nx\n");
+             fprintf(aFP,"property float ny\n");
+             fprintf(aFP,"property float nz\n");
+         }
+		 else if (aLastMode==eModeAGPNormaleByC)
+         {
+             fprintf(aFP,"property float x_origin\n");
+             fprintf(aFP,"property float y_origin\n");
+             fprintf(aFP,"property float z_origin\n");
+         }
+         fprintf(aFP,"end_header\n");
+
+
          if ((aLastMode==eModeAGPNoAttr) && aModeBin)
          {
              int aNb = (int)aVPts.size();
@@ -478,6 +528,10 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                   Pt3dr aNorm = -Pt3dr(aVNorm[aK]) / mAGPFactN;
                   PutPt(aFP,aNorm,aModeBin,false);
               }
+			  else if (aLastMode==eModeAGPNormaleByC)
+			  {
+				  PutPt(aFP,aVNormByC.at(aK),aModeBin,false); 
+		      }
               if (! aModeBin) 
                  fprintf(aFP,"\n");
          }
@@ -488,7 +542,8 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
     {
        std::list<std::string> aVCom;
        std::vector<const cElNuage3DMaille *> aVNuage;
-       cElNuage3DMaille::PlyPutFile
+       
+	   cElNuage3DMaille::PlyPutFile
        (
           mDC+anEN.NameOut(),
           aVCom,

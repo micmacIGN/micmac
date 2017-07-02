@@ -25,10 +25,13 @@
 
             <Symb>  WithSchemaPMul=false </Symb>
             <Symb>  NameSchemaPMul=XXXX </Symb>
-	    <Symb>  WithSchemaPGCP=false </Symb>
-	    <Symb>  NameSchemaPGCPIm=XXXX </Symb>
-	    <Symb>  NameSchemaPGCPTerr=XXXX </Symb>
-	    <Symb>  ScaleVecGCP=5.0 </Symb>
+	    	<Symb>  WithSchemaPGCP=false </Symb>
+	    	<Symb>  NameSchemaPGCPIm=XXXX </Symb>
+	    	<Symb>  NameSchemaPGCPTerr=XXXX </Symb>
+	    	<Symb>  ScaleVecGCP=5.0 </Symb>
+			
+			<Symb>  WithNormByC=false </Symb>	    
+			<Symb>  NormByC=0 </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -191,6 +194,11 @@
 					     <ScaleVec > ${ScaleVecGCP} </ScaleVec>
                                         </NuagePutGCPCtrl>
                                    </#WHEN>
+                                   <#WHEN VTEST=${WithNormByC}>
+										<NormByC > ${NormByC} </NormByC>
+								   </#WHEN>
+
+
                              </ExportNuage>
                     </SectionExport>
 
