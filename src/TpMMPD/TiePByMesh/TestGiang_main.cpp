@@ -401,6 +401,15 @@ Pt3di gen_coul(double val, double min, double max)
         return Pt3di(0,0,0);  //noir
 }
 
+Pt3di gen_coul_heat_map(double value , double minimum, double maximum)
+{
+    double ratio = 2 * (value-minimum) / (maximum - minimum);
+    int b = int(ElMax(0.0, 255*(1 - ratio)));
+    int r = int(ElMax(0.0, 255*(ratio - 1)));
+    int g = 255 - b - r;
+    return Pt3di(r,g,b);
+}
+
 Pt3di gen_coul_emp(int val)
 {
     switch (val)
@@ -567,11 +576,11 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     {
         if (!relative)
         {
-            aCPlyRes.AddPt(gen_coul(aVResidu[aKPt], aRange.x,  aRange.y), aVAllPtInter[aKPt]);
+            aCPlyRes.AddPt(gen_coul_heat_map(aVResidu[aKPt], aRange.x,  aRange.y), aVAllPtInter[aKPt]);
         }
         else
         {
-            aCPlyRes.AddPt(gen_coul(aVResidu[aKPt], resMin,  resMax), aVAllPtInter[aKPt]);
+            aCPlyRes.AddPt(gen_coul_heat_map(aVResidu[aKPt], resMin,  resMax), aVAllPtInter[aKPt]);
         }
         aCPlyEmp.AddPt(gen_coul_emp(aVNbImgOvlap[aKPt]), aVAllPtInter[aKPt]);
         //===== stats Multiplicite ========

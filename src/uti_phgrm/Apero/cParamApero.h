@@ -6239,6 +6239,9 @@ class cExportNuage
 
         cTplValGesInit< cNuagePutGCPCtrl > & NuagePutGCPCtrl();
         const cTplValGesInit< cNuagePutGCPCtrl > & NuagePutGCPCtrl()const ;
+
+        cTplValGesInit< int > & NormByC();
+        const cTplValGesInit< int > & NormByC()const ;
     private:
         std::string mNameOut;
         cTplValGesInit< cExportNuageByImage > mExportNuageByImage;
@@ -6255,6 +6258,7 @@ class cExportNuage
         cTplValGesInit< cNuagePutCam > mNuagePutCam;
         cTplValGesInit< cNuagePutInterPMul > mNuagePutInterPMul;
         cTplValGesInit< cNuagePutGCPCtrl > mNuagePutGCPCtrl;
+        cTplValGesInit< int > mNormByC;
 };
 cElXMLTree * ToXMLTree(const cExportNuage &);
 

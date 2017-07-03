@@ -103,7 +103,6 @@ if (0) // (MPD__MM())
     aSign = -1;
     if (First)
     {
-       std::cout << "cAppliTieTri::FiltrageSpatia SIGNNNNN\n";
        getchar();
        First= false;
     }
@@ -178,8 +177,8 @@ if (0) // (MPD__MM())
         * aVC_1 = vector<cResulRechCorrel > contient tout les pt correl (mPt, mScore)
         */
        // Mets a jour le score fonction du numero
-     cout<<endl<<"============ ============ ============="<<endl;
-     cout<<"FFS : Heap Pop aRM_1 "<<aRM_1->HeapIndexe()<<" "<<aRM_1->PtMast()<<" Scr: "<<aRM_1->Score()<<" Nb2nd : "<<aNbI_1<<" "<<aVC_1.size()<<endl;
+
+
 
        for (int aK=0 ; aK<aNbI_1 ; aK++)
        {
@@ -189,7 +188,6 @@ if (0) // (MPD__MM())
        std::set<cResulMultiImRechCorrel *> aSet;
        // recuper tout les pts dans aSeuilDist (TT_DefSeuilDensiteResul = 50pxl) distance (region à filtrer)
        aQdt->RVoisins(aSet,aFctr(aRM_1),aSeuilDist);
-     cout<<" + QT NbVsin: "<<aSet.size()<<endl;
        for (std::set<cResulMultiImRechCorrel *>::iterator itS=aSet.begin(); itS!=aSet.end() ; itS++)
        {   //== parcourir tout les point dans region à filtrer ==
            cResulMultiImRechCorrel * aRM_2 = *itS;
@@ -207,11 +205,9 @@ if (0) // (MPD__MM())
                * aVI_2 = vector<int> contient index de tout les pt correl dans aRM_2
                * aVC_2 = vector<cResulRechCorrel > contient tout les pt correl (mPt, mScore)
                */
-            cout<<"  *) aRM_2 PtMas "" "<<aRM_2->PtMast()<<" Scr: "<<aRM_2->Score()<<" Nb2nd : "<<aNbI_2<<" "<<aVC_2.size()<<endl;
               // === formule pour decider si on enleve un point ===
               double aDist = euclid(aFctr(aRM_1)-aFctr(aRM_2)); // distance euclid entre 2 point master
               double aRabCorrel = (1-(aDist/aSeuilDist)) * aGainCorrel;
-            cout<<"  *) Dist (aRM_1, aRM_2) "<<aDist<<" Rab "<<aRabCorrel<<endl;
               int aNbS0 = aRM_2->NbSel();
               for (int aK=0 ; aK<aNbI_2 ; aK++)
               {
@@ -224,7 +220,6 @@ if (0) // (MPD__MM())
                    * Si oui, on de-selection aRM_2
                    * Ca veut dire meme si aRM_2 est une score plus grand que aRM_1, mais la grandeur est pas assez grand, on jete aussi
                    */
-            cout<<"  *) aVC_2[aK].mCorrel "<<aVC_2[aK].mCorrel<<" aVCorrel[aKIm] "<<aVCorrel[aKIm]<<endl;
                   {
                       aRM_2->SetSelec(aK,false); // déseletioner un pt
                   }
@@ -235,7 +230,6 @@ if (0) // (MPD__MM())
               {
                   // ==== Si rentrer ici, ca veut dire aRM_2 est modifie ====
                   aRM_2->CalculScoreAgreg(EpsilAggr,PowAggreg,aSign);  // Epsilon, power
-            cout<<"  *) aRM_2 Re Cal Score "<<aRM_2->Score()<<endl;
                   if (aNbSelEnd==0)
                   {
                      aQdt->remove(aRM_2);

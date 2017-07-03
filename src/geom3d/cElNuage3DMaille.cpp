@@ -1864,7 +1864,8 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        Pt2di aP;
        double aSeuil = anArgBasc.mSeuilEtir;
 // aSeuil = 0.9;
-       double aDynSeuil = 0.5 / ElMax(aSeuil,1-aSeuil);
+       //Ewelina : unsed variable commented ou
+		//double aDynSeuil = 0.5 / ElMax(aSeuil,1-aSeuil);
 
 
        for (aP.x=0 ; aP.x<aSz.x ; aP.x++)

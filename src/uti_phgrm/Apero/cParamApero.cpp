@@ -22703,6 +22703,17 @@ const cTplValGesInit< cNuagePutGCPCtrl > & cExportNuage::NuagePutGCPCtrl()const
    return mNuagePutGCPCtrl;
 }
 
+
+cTplValGesInit< int > & cExportNuage::NormByC()
+{
+   return mNormByC;
+}
+
+const cTplValGesInit< int > & cExportNuage::NormByC()const 
+{
+   return mNormByC;
+}
+
 void  BinaryUnDumpFromFile(cExportNuage & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NameOut(),aFp);
@@ -22805,6 +22816,14 @@ void  BinaryUnDumpFromFile(cExportNuage & anObj,ELISE_fp & aFp)
         }
         else  anObj.NuagePutGCPCtrl().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NormByC().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NormByC().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NormByC().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cExportNuage & anObj)
@@ -22840,6 +22859,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cExportNuage & anObj)
     if (anObj.NuagePutInterPMul().IsInit()) BinaryDumpInFile(aFp,anObj.NuagePutInterPMul().Val());
     BinaryDumpInFile(aFp,anObj.NuagePutGCPCtrl().IsInit());
     if (anObj.NuagePutGCPCtrl().IsInit()) BinaryDumpInFile(aFp,anObj.NuagePutGCPCtrl().Val());
+    BinaryDumpInFile(aFp,anObj.NormByC().IsInit());
+    if (anObj.NormByC().IsInit()) BinaryDumpInFile(aFp,anObj.NormByC().Val());
 }
 
 cElXMLTree * ToXMLTree(const cExportNuage & anObj)
@@ -22877,6 +22898,8 @@ cElXMLTree * ToXMLTree(const cExportNuage & anObj)
       aRes->AddFils(ToXMLTree(anObj.NuagePutInterPMul().Val())->ReTagThis("NuagePutInterPMul"));
    if (anObj.NuagePutGCPCtrl().IsInit())
       aRes->AddFils(ToXMLTree(anObj.NuagePutGCPCtrl().Val())->ReTagThis("NuagePutGCPCtrl"));
+   if (anObj.NormByC().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NormByC"),anObj.NormByC().Val())->ReTagThis("NormByC"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -22916,9 +22939,11 @@ void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePutInterPMul(),aTree->Get("NuagePutInterPMul",1)); //tototo 
 
    xml_init(anObj.NuagePutGCPCtrl(),aTree->Get("NuagePutGCPCtrl",1)); //tototo 
+
+   xml_init(anObj.NormByC(),aTree->Get("NormByC",1)); //tototo 
 }
 
-std::string  Mangling( cExportNuage *) {return "A8424A3FAE9F6496FF3F";};
+std::string  Mangling( cExportNuage *) {return "4AF9325399C1F18CFE3F";};
 
 
 cTplValGesInit< std::string > & cChoixImSec::KeyExistingFile()
@@ -24481,7 +24506,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportSensibParamAero(),aTree->Get("ExportSensibParamAero",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "6A30F00E619587D2FE3F";};
+std::string  Mangling( cSectionExport *) {return "E857111B78498881FE3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -25278,7 +25303,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "9744DE84B80EC0B0FC3F";};
+std::string  Mangling( cEtapeCompensation *) {return "74A863D7103A6FC9FE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -25337,7 +25362,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "A0A32840C992298EFDBF";};
+std::string  Mangling( cSectionCompensation *) {return "F09D310AF8076189FBBF";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -26414,7 +26439,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "D65692876C3694A0FF3F";};
+std::string  Mangling( cParamApero *) {return "62349D55EC57C7ACFF3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()
