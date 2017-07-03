@@ -1090,9 +1090,13 @@ normalises en echelle et/ou en translation -->
                           <AfterCompens Nb="?" Type="bool" Def="true"></AfterCompens>
 			  <PatternNameApply Nb="?" Type="std::string" Def=".*"> </PatternNameApply>
 			  <PatternNameEstim Nb="?" Type="std::string" Def=".*"> </PatternNameEstim>
+                          <FileExportDir Nb="?" Type="std::string"> </FileExportDir>
+                          <FileExportInv Nb="?" Type="std::string"> </FileExportInv>
 
                           <ModeBascule Nb="1" UnionType="true">
                                <BasculeOnPoints Nb="?">
+                             <!-- Permet de forcer a partir d'une solution existante stockee dans un xml -->
+                                   <ForceSol Nb="?" Type="std::string"> </ForceSol>
                           <!-- Si elle donnee, elle force le centre et tout les triplets
                               le contiennent
                           -->
@@ -1642,12 +1646,14 @@ normalises en echelle et/ou en translation -->
                           <NuagePutGCPCtrl Nb="?">
                                <NameGCPIm Nb="1" Type="std::string"> </NameGCPIm>
                                <NameGCPTerr Nb="1" Type="std::string"> </NameGCPTerr>
-			       <ScaleVec Nb="1" Type="double"> </ScaleVec>
-                            <!--   <StepDr   Nb="1" Type="double">      </StepDr>
+			       				<ScaleVec Nb="1" Type="double"> </ScaleVec>
+                            	<!--   <StepDr   Nb="1" Type="double">      </StepDr>
                                <RabDr    Nb="?" Type="double" Def="0.0">      </RabDr>
                                <ColRayInter    Nb="1" Type="Pt3di">      </ColRayInter>
                                <Epais     Nb="?" Type="double">      </Epais> -->
                           </NuagePutGCPCtrl>
+
+						  <NormByC Nb="?" Type="int"> </NormByC>
 
                      </ExportNuage>
 

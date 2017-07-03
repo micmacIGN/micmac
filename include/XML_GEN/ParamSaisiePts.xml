@@ -122,6 +122,7 @@ pas interfere avec format utilisateur basique, on separe -->
                <FixedName Nb="*" Type="std::string"> </FixedName>
                <NameAuto Nb="?" Type="std::string" Def="NONE"> </NameAuto>  <!-- "" si pas de Name Auto -->
                <EnterName Nb="?" Type="bool" Def="false"> </EnterName>  <!-- "" si pas de Name Auto -->
+               <ForceExport3D Nb="?"  Type="bool" Def="true"> </ForceExport3D>
         </SectionInOut>
 
         <SectionImages Nb="1">

@@ -10,7 +10,7 @@ int TiepTriPrl_main(int argc,char ** argv)
    std::string KeyMasqIm = "NONE";
    int nInt = 0;
    bool NoTif = false;
-   bool mFilSpatial = true;
+   int FFS = ((1<<16)-1);
    bool mFilFAST = true;
    bool mFilAC = true;
    double mTT_SEUIL_SURF_TRI = 100;
@@ -24,7 +24,7 @@ int TiepTriPrl_main(int argc,char ** argv)
          LArgMain()
                      << EAM(KeyMasqIm, "KeyMasqIm", true, "Key Masq, def=NONE")
                      << EAM(NoTif, "NoTif", true, "No Img TIF, def=false")
-                     << EAM(mFilSpatial,  "FilSpatial",true,"Use filter spatial ? (def = true)")
+                     << EAM(FFS,  "FFS",true,"Flag spatial filtering (tuning) [0 = all OFF, 1 = In Each Tri, 8 = Final in All Tri, 9 = all ON (def) ")
                      << EAM(mFilFAST,  "FilFAST",true,"Use FAST condition ? (def = true)")
                      << EAM(mFilAC,  "FilAC",true,"Use Autocorrelation condition ? (def = true)")
                      << EAM(mTT_SEUIL_SURF_TRI,  "surfTri",true,"Surface min to eliminate too small triangle (def = 100 unit)")
@@ -32,6 +32,10 @@ int TiepTriPrl_main(int argc,char ** argv)
                      << EAM(nInt, "nInt", true, "display command")
 
    );
+
+   cout<<"mFilSpatial "<<endl;
+   cout<<"mFilSpatial & 8 "<<(FFS & 8)<<endl;
+   cout<<"mFilSpatial & 1 "<<(FFS & 1)<<endl;
 
    std::string aDir,aNameXML;
    SplitDirAndFile(aDir,aNameXML,aFullNameXML);
@@ -58,11 +62,14 @@ int TiepTriPrl_main(int argc,char ** argv)
             strs.str("");
             strs << mTT_SEUIL_CORREL_1PIXSUR2;
             std::string str_TT_SEUIL_CORREL_1PIXSUR2 = strs.str();
+            strs.str("");
+            strs << FFS;
+            std::string str_FFS = strs.str();
 
 
             std::string aCom = MM3DStr + " TestLib TiepTri " + aDirXML + aNameFile + " " + anOri +
                                 " KeyMasqIm=" + KeyMasqIm + " NoTif=" + aNoTif +
-                                " FilSpatial=" + (mFilSpatial ? "true" : "false") +
+                                " FFS=" + str_FFS +
                                 " FilFAST=" + (mFilFAST ? "true" : "false") +
                                 " FilAC=" + (mFilAC ? "true" : "false") +
                                 " surfTri=" + str_TT_SEUIL_SURF_TRI +

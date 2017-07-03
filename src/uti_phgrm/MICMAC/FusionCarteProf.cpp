@@ -383,7 +383,7 @@ class cCmpPdsPile
 
 /*
 mK ;  // indexe initial
-mCpteur  ; //  rempli le cpt de cElTmp0Pile
+mCpteur  ; //  rempli le cpt de cElTmp0Pile; no de voisins avec une fonctionne de ponder au dessous de seuil 
 mPInit ; // poids initial
 mPds0;
 
@@ -429,6 +429,10 @@ void FiltrageAllerEtRetour(std::vector<cTmpPile> & aVTmp)
           // Propagattion
      for (int aK=1 ; aK<int(aVTmp.size()) ; aK++)
      {
+            //=>Pds0_current_cell + (NewPds_prev_cell * PPrec_current_cell)
+            //=>Zpond_current_cell + (Zpond_prev_cell * PPrec_current_cell)
+                //PPrec = exp(Z_prev_cell - Z_curr_cell)/( Sigma0 * Resol_Plani * sqrt(2) ) <=> exp(|az|)
+
           aVTmp[aK].mNewPdsp = aVTmp[aK].mPds0 + aVTmp[aK-1].mNewPdsp * aVTmp[aK].mPPrec;
           aVTmp[aK].mNewZPp  = aVTmp[aK].mZP0  + aVTmp[aK-1].mNewZPp  * aVTmp[aK].mPPrec;
           aVTmp[aK].mNewNbp  = aVTmp[aK].mNb0  + aVTmp[aK-1].mNewNbp  * aVTmp[aK].mPPrec;
@@ -883,7 +887,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
         ELISE_ASSERT(false,"No data in DoOneFusion");
     }
 
-
+	//load all depth maps
     for (int aK=0 ; aK<int(aStrFus.size()) ; aK++)
     {
           mVC.push_back(new cLoadedCP<Type>(*this,anId,aStrFus[aK],aK));
@@ -1259,7 +1263,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
            {
                 for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
                 {
-                     int aNb = aTImNb.get(aQ0);
+                     int aNb = aTImNb.get(aQ0);//the no. of depths/Z for the current cell
                      cTplCelNapPrgDyn<cElPilePrgD> * aTabP = aNap.Data()[aQ0.y][aQ0.x];
                      aTabP[-1].ArgAux()= aPDef;
                      aTabP[-1].SetOwnCost(ToICost(aDefPds));

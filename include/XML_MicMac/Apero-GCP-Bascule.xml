@@ -27,6 +27,9 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
             <Symb>  NLDShow=false    </Symb>
             <Symb>  ShowDetail=false    </Symb>
 
+            <Symb>  DoForceSol=false </Symb>
+            <Symb>  NameForceSol=XXXX </Symb>
+
             <eSymb>  NotCPI=! ${CPI} </eSymb>
        </DicoLoc>
 
@@ -105,10 +108,15 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
 
                    <IterationsCompensation>
                       <BasculeOrientation>
+                          <FileExportDir> Basc-${AeroIn}-2-${AeroOut}.xml </FileExportDir>
+                          <FileExportInv> Basc-${AeroOut}-2-${AeroIn}.xml</FileExportInv>
                           <AfterCompens> false </AfterCompens>
                           <PatternNameEstim> .* </PatternNameEstim>
                           <ModeBascule>
                                <BasculeOnPoints>
+                                   <#WHEN VTEST=${DoForceSol}>
+                                        <ForceSol> ${NameForceSol} </ForceSol>
+                                   </#WHEN>
                                    <BascOnAppuis >
                                         <NameRef> Id-Appui </NameRef>
                                    </BascOnAppuis>

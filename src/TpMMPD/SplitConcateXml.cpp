@@ -483,7 +483,11 @@ int ConcateMAF_main(int argc,char **argv)
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     std::list<std::string> aLFile = aICNM->StdGetListOfFile(aPatFiles);
     
-    cSetOfMesureAppuisFlottants aVSMAF;
+	//              aPts               ImName                   ImMes
+	std::map<std::string,std::map<std::string,cOneMesureAF1I> > aDicoMap;
+	// set of imgs
+	std::set<std::string> aSIm; 
+
     
     for (std::list<std::string>::iterator iT1 = aLFile.begin() ; iT1 != aLFile.end() ; iT1++)
     {
@@ -493,14 +497,51 @@ int ConcateMAF_main(int argc,char **argv)
 		
 		for (std::list<cMesureAppuiFlottant1Im>::iterator iT2 = aLMAF.begin() ; iT2 != aLMAF.end() ; iT2++)
 		{
-			aVSMAF.MesureAppuiFlottant1Im().push_back(*iT2);
+			
+			std::list<cOneMesureAF1I> & aLOMA = iT2->OneMesureAF1I();
+
+			for (std::list<cOneMesureAF1I>::iterator iPt = aLOMA.begin() ; iPt!= aLOMA.end() ; iPt++)
+			{
+				aDicoMap[iPt->NamePt()][iT2->NameIm()] = *iPt;
+				//std::cout << "xy=" << iPt->PtIm() << "\n"; 
+		
+				aSIm.insert(iT2->NameIm());
+			}
 		}
 	}
+
+	//write new
+	cSetOfMesureAppuisFlottants  aVSMAF;
+	std::list< cMesureAppuiFlottant1Im > aLMAF;
 	
+	//iterate images	
+	for(std::set<std::string>::iterator aM=aSIm.begin(); aM!=aSIm.end(); aM++)
+	{
+		std::string               aImCur = *aM;
+		std::list<cOneMesureAF1I> aLPtIm;
+		cMesureAppuiFlottant1Im   aMAFCur;
+
+		aMAFCur.NameIm() = aImCur;		
+		
+		//iterate points
+		std::map<std::string,std::map<std::string,cOneMesureAF1I> >::iterator iPt = aDicoMap.begin();
+		for( ; iPt != aDicoMap.end(); iPt++)
+		{
+			std::map<std::string,cOneMesureAF1I>::iterator iIm = iPt->second.find(aImCur);
+			if( iIm != iPt->second.end())
+				aLPtIm.push_back(iIm->second);
+		}
+
+		aMAFCur.OneMesureAF1I() = aLPtIm;
+		aLMAF.push_back(aMAFCur);
+	}
+
+	aVSMAF.MesureAppuiFlottant1Im() = aLMAF;
+
 	MakeFileXML(aVSMAF,aOut);
-	
+
 	return EXIT_SUCCESS;
-}
+}	
 
 /***********************************************************************/
 int ConvSensXml2Txt_main(int argc,char **argv)

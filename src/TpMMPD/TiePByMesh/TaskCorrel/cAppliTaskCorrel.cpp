@@ -1,10 +1,28 @@
 #include "TaskCorrel.h"
 
+
+cParamAppliTaskCorrel::cParamAppliTaskCorrel(
+                                             cInterfChantierNameManipulateur * aICNM,
+                                             const std::string & aDir,
+                                             const std::string & aOri,
+                                             const std::string & aPatImg,
+                                             bool & aNoTif,
+                                             string  aMesureXML
+                                            ):
+    pICNM (aICNM),
+    pDir (aDir),
+    pOri (aOri),
+    pPatImg (aPatImg),
+    pNoTif (aNoTif),
+    pMesureXML (aMesureXML)
+{
+
+}
+
 //  ============================= **************** =============================
 //  *                             cAppliTaskCorrel                             *
 //  ============================= **************** =============================
-cAppliTaskCorrel::cAppliTaskCorrel (
-                                     cInterfChantierNameManipulateur * aICNM,
+cAppliTaskCorrel::cAppliTaskCorrel (cInterfChantierNameManipulateur * aICNM,
                                      const std::string & aDir,
                                      const std::string & aOri,
                                      const std::string & aPatImg,
@@ -21,7 +39,8 @@ cAppliTaskCorrel::cAppliTaskCorrel (
     mRech  (TT_DEF_SCALE_ZBUF),
     mNoTif (aNoTif),
     mKeepAll2nd (false),
-    MD_SEUIL_SURF_TRIANGLE (TT_SEUIL_SURF_TRIANGLE)
+    MD_SEUIL_SURF_TRIANGLE (TT_SEUIL_SURF_TRIANGLE),
+    mWithGCP (false)
 {
     ElTimer aChrono;
     cout<<"In constructor cAppliTaskCorrel : ";
@@ -41,6 +60,77 @@ cAppliTaskCorrel::cAppliTaskCorrel (
         mVTask[aKI] = aImg->Task();
     }
     cout<<"Task creat "<<aChrono.uval()<<" sec" <<endl;
+}
+
+
+cAppliTaskCorrel::cAppliTaskCorrel (cInterfChantierNameManipulateur * aICNM,
+                                     const std::string & aDir,
+                                     const std::string & aOri,
+                                     const std::string & aPatImg,
+                                     bool & aNoTif,
+                                     cParamAppliTaskCorrel *aParam
+                                   ):
+    cAppliTaskCorrel ( aICNM,
+                       aDir,
+                       aOri,
+                       aPatImg,
+                       aNoTif
+                     )
+{
+
+    if (aParam->pMesureXML != "")
+        ReadXMLMesurePts(aParam->pMesureXML, mVImgs);
+
+    cout<<"Create Task with GCP..."<<endl;
+    mVTaskWithGCP.resize(mVName.size());
+    for (uint aKI = 0; aKI<mVImgs.size(); aKI++)
+    {
+        cImgForTiepTri* aImg = mVImgs[aKI];
+        mVTaskWithGCP[aKI] = aImg->TaskWithGCP();
+    }
+    cout<<"Done !"<<endl;
+
+}
+
+//  ============================= **************** =============================
+//  *                             ReadXMLMesurePts                             *
+//  ============================= **************** =============================
+void cAppliTaskCorrel::ReadXMLMesurePts(string aGCPMesureXML, vector<cImgForTiepTri*> & mVImgs)
+{
+    cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aGCPMesureXML,SetOfMesureAppuisFlottants);
+
+       std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
+
+       std::cout<<"Reading mesure file..."<<std::flush;
+       for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
+       {
+
+           std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
+           string aNameIm = iT1->NameIm();
+           cout<<endl<<" + Img : "<<aNameIm<<endl;
+           cImgForTiepTri* aImg;
+           for (uint akIm=0; akIm<mVImgs.size(); akIm++)
+           {
+               if (aNameIm == mVImgs[akIm]->Name())
+               {
+                   aImg = mVImgs[akIm];
+                   break;
+               }
+           }
+           aImg->Mesure().aNameIm = aNameIm;
+           aImg->Mesure().aIndImg = aImg->Num();
+           for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
+           {
+               std::string aNamePt = iT2->NamePt();
+               Pt2dr aPt = iT2->PtIm();
+               cout<<"  + Pts : "<<aNamePt<<" "<<aPt<<endl;
+               aImg->Mesure().aVPts.push_back(aPt);
+               aImg->Mesure().aNamePt.push_back(aNamePt);
+               aImg->ImgWithGCP() = true;
+           }
+       }
+       std::cout<<"done!"<<std::endl;
+       mWithGCP = true;
 }
 
 //  ============================= **************** =============================
@@ -241,12 +331,86 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
     */
 }
 
+
+//  ============================= **************** =============================
+//  *                             GetIndTriHasGCP                              *
+//  ============================= **************** =============================
+void cAppliTaskCorrel::GetIndTriHasGCP()
+{
+    cout<<"Update index of Tri has GCP.."<<endl;
+    for (uint aKImg=0; aKImg<mVImgs.size(); aKImg++)
+    {
+        cImgForTiepTri * aImg = mVImgs[aKImg];
+        if (aImg->ImgWithGCP())
+        {
+            cout<<" + Img : "<<aImg->Name()<<endl;
+            cout<<"  -> Found GCP : "<<endl;
+            // read image TriLabel
+            string fileTriLbl = mDir + "Tmp-ZBuffer/" + mNameMesh + "/" +aImg->Name() + "/" + aImg->Name() + "_TriLabel_DeZoom" +  ToString(int(1.0/mRech)) + ".tif";
+            ELISE_ASSERT(ELISE_fp::exist_file(fileTriLbl),"Err GCP XML read in ZBuffer : File Img Label not found");
+
+            Tiff_Im aImInd = Tiff_Im::StdConv(fileTriLbl);
+            Im2D<double,double> mImgInd (aImInd.sz().x,aImInd.sz().y, -1.0);
+            ELISE_COPY(mImgInd.all_pts(), aImInd.in(), mImgInd.out());
+
+            for (uint aKGCP = 0; aKGCP<aImg->Mesure().aVPts.size(); aKGCP++)
+            {
+                Pt2dr aPtGCP = aImg->Mesure().aVPts[aKGCP];
+                double aIndTri = mImgInd.GetR(Pt2di(aPtGCP*mRech));
+                if (aIndTri == -1.0)
+                {
+                    vector<int> aVIndTri;
+                    Pt2dr aPtGCP_Rech = aPtGCP*mRech;
+                    // maybe this pixel of Zbuffer is in effet de bord
+                    Pt2di aVois;
+                    // take triangle autour (pixel autour rayon 4x4)
+                    cout<<"  Srch Voisin : ";
+                    for (aVois.x=-4; aVois.x<5; aVois.x++)
+                    {
+                        for (aVois.y=-4; aVois.y<5; aVois.y++)
+                        {
+                            double aIndTrii = aImInd.ReadIm().GetR(Pt2di(aPtGCP_Rech) + aVois);
+                            cout<<" "<<(int)aIndTrii;
+                            if (std::find(aVIndTri.begin(), aVIndTri.end(), (int)aIndTrii) != aVIndTri.end())
+                            {
+                                cout<<" "<<(int)aIndTrii;
+                                aVIndTri.push_back((int)aIndTrii);
+                            }
+                        }
+                    }
+                    cout<<endl;
+                    // check if GCP inside these triangle
+                    if (aVIndTri.size() > 0)
+                    {
+                        for (uint i=0; i<aVIndTri.size(); i++)
+                        {
+                            cTriForTiepTri * aTri3D = mVTriF[aVIndTri[i]];
+                            Pt2dr P1; Pt2dr P2; Pt2dr P3;
+                            if(aTri3D->reprj_pure(aImg, P1, P2, P3))
+                            {
+                                // Check if  aPtGCP/mRech is inside P1, P2, P3
+
+                                // if inside => break; update aIndTri
+
+                            }
+                        }
+                    }
+                }
+                aImg->Mesure().aVIndTri.push_back((int)aIndTri);
+                cout<<"   "<<aPtGCP<<" in Tri "<<aIndTri<<endl;
+            }
+        }
+    }
+    cout<<"done"<<endl;
+}
+
+
 //  ============================= **************** =============================
 //  *                             DoAllTri                                     *
 //  ============================= **************** =============================
 void cAppliTaskCorrel::DoAllTri()
 {
-    cout<<"Nb Img: "<<mVImgs.size()<<" -Nb Tri: "<<mVTriF.size()<<endl;
+    cout<<"Nb Img: "<<mVImgs.size()<<" -Nb Tri: "<<mVTriF.size()<<endl;    
     for (uint aKT=0; aKT<mVcTri3D.size(); aKT++)
     {
         if (aKT % 100 == 0)
@@ -265,7 +429,7 @@ void cAppliTaskCorrel::DoAllTri()
                 if (Cur_Img2nd()[aKT2nd] != aImgMas->Num() )
                 {
                     if (Cur_Img2nd()[aKT2nd] < aImgMas->Num())
-                        aTaskTri.NumImSec().push_back(Cur_Img2nd()[aKT2nd]);
+                        aTaskTri.NumImSec().push_back(Cur_Img2nd()[aKT2nd]);              
                     else
                         aTaskTri.NumImSec().push_back(Cur_Img2nd()[aKT2nd]-1);
                 }
@@ -273,7 +437,22 @@ void cAppliTaskCorrel::DoAllTri()
             if (aTaskTri.NumImSec().size() != 0)
             {
                 aImgMas->Task().Tri().push_back(aTaskTri);
+                if (mWithGCP && aImgMas->ImgWithGCP())
+                {
+                    // if there is GCP inside this tri => store this tri as a task to correlation)
+                    std::vector<int>::iterator it;
+                    vector<int> aVTriHasGCPInImg = aImgMas->Mesure().aVIndTri;
+                    it = find (aVTriHasGCPInImg.begin(), aVTriHasGCPInImg.end(), aKT);
+                    size_t index = std::distance(aVTriHasGCPInImg.begin(), it);
+                    if (it != aVTriHasGCPInImg.end())
+                    {
+                        std::cout << "DDDDDDDDD__ GCP : " << aImgMas->Mesure().aVPts[index] << " - tri : "<<aTaskTri.P1()<<aTaskTri.P2()<<aTaskTri.P3()<<'\n';
+                        aImgMas->TaskWithGCP().Tri().push_back(aTaskTri);
+                        mVTaskWithGCP[aImgMas->Num()].Tri().push_back(aTaskTri);
+                    }
+                }
                 mVTask[aImgMas->Num()].Tri().push_back(aTaskTri);
+
 //                if (xmlPairOut)
 //                {
 //                    //ajout XML couple output
@@ -297,6 +476,9 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
 {
     cout<<"Write XML to "<<mICNM->Dir() + aDirXML.c_str() + "/"<<endl;
     ELISE_fp::MkDirSvp(aDirXML);
+    if (mWithGCP)
+        ELISE_fp::MkDirSvp(aDirXML+"_GCP");
+
     for (uint aKI=0; aKI<mVImgs.size(); aKI++)
     {
         cImgForTiepTri * aImg = mVImgs[aKI];
@@ -304,11 +486,24 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
         for (uint aKIi = 0; aKIi<mVImgs.size(); aKIi++)
         {
             if (aImg->Num() != int(aKIi))
+            {
                 aImg->Task().NameSec().push_back(mVImgs[aKIi]->Name());
+                if (mWithGCP && aImg->ImgWithGCP())
+                {
+                    aImg->TaskWithGCP().NameSec().push_back(mVImgs[aKIi]->Name());
+                    aImg->TaskWithGCP().NamePts() = aImg->Mesure().aNamePt;
+                }
+            }
         }
         //=========================================
         string fileXML = mICNM->Dir() + aDirXML + "/" + mVImgs[aKI]->Name() + ".xml";
         MakeFileXML(aImg->Task(), fileXML);
+        if (mWithGCP && aImg->ImgWithGCP())
+        {
+            // write xml file when Image have GCP point
+            string fileXML_WithGCP = mICNM->Dir() + aDirXML + "_GCP/" + mVImgs[aKI]->Name() + ".xml";
+            MakeFileXML(aImg->TaskWithGCP(), fileXML_WithGCP);
+        }
         //export mesh correspond with each image:
         DrawOnMesh aDraw;
         std::string fileMesh =  mICNM->Dir() + "PLYVerif/" + mVImgs[aKI]->Name() + ".ply";

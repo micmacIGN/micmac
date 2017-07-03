@@ -1556,6 +1556,30 @@ cChSysCo::~cChSysCo()
 */
 
 
+/*************************************************/
+/*                                               */
+/*               cTransfo3D                      */
+/*                                               */
+/*************************************************/
+
+cTransfo3D * cTransfo3D::Alloc(const std::string & aName,const std::string & aDir) 
+{
+    if (ELISE_fp::exist_file(aDir+aName) && IsPostfixedBy(aName,"xml"))
+    {
+         cXml_ParamBascRigide  *  aXBR = OptStdGetFromPCP(aDir+aName,Xml_ParamBascRigide);
+         if (aXBR)
+         {
+            cSolBasculeRig * aRes = new cSolBasculeRig(Xml2EL(*aXBR));
+
+            delete aXBR;
+            return aRes;
+         }
+    }
+    return  cChSysCo::Alloc(aName,aDir);
+}
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

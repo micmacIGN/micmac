@@ -1,4 +1,5 @@
 set(Src_TD_PPMD
+	${TDPPMD_DIR}/ReechHomol.cpp
 	${TDPPMD_DIR}/TD_MMProgMars2017.cpp
 	${TDPPMD_DIR}/cTD_Camera.cpp
 	${TDPPMD_DIR}/cTD_SetAppuis.cpp
@@ -46,6 +47,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/ConvP4dIm2MM.cpp
     ${TDPPMD_DIR}/SplitConcateXml.cpp
     ${TDPPMD_DIR}/Hugin.cpp
+    ${TDPPMD_DIR}/ThermikProcessing.cpp
     ${TDPPMD_DIR}/TiePByMesh/PHO_MI.cpp
     ${TDPPMD_DIR}/TiePByMesh/InitOutil.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiePByMesh_main.cpp
@@ -71,6 +73,9 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cTriForTiepTri.cpp
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/TaskCorrel.cpp
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cplfromhomol.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/GCPByMesh.cpp
+
+
     
     ${TDPPMD_DIR}/TiePByMesh/XMLDiffSeries/cAppliXMLDiffSeries.cpp
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cAppliZBufferRaster.cpp
@@ -79,12 +84,16 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cTri2D.cpp
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/ZBufferRaster.cpp
 
+
 	${TDPPMD_DIR}/EsSim/cAppliEsSimilitude.cpp
 	${TDPPMD_DIR}/EsSim/cImgEsSimilitude.cpp
 	${TDPPMD_DIR}/EsSim/EsSimilitude.cpp
 	
 	${TDPPMD_DIR}/ConvertTiePPS2MM/cAppliConvertTiePPs2MM.cpp
 	${TDPPMD_DIR}/ConvertTiePPS2MM/ConvertTiePPs2MM.cpp
+
+    ${TDPPMD_DIR}/CPP_ConvHomolVSFM2MM.cpp
+
 
 
 )

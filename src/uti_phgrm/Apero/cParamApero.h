@@ -3434,6 +3434,9 @@ class cBasculeOnPoints
         friend void xml_init(cBasculeOnPoints & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< std::string > & ForceSol();
+        const cTplValGesInit< std::string > & ForceSol()const ;
+
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
@@ -3458,6 +3461,7 @@ class cBasculeOnPoints
         cTplValGesInit< std::string > & NameExport();
         const cTplValGesInit< std::string > & NameExport()const ;
     private:
+        cTplValGesInit< std::string > mForceSol;
         cTplValGesInit< cBascOnCentre > mBascOnCentre;
         cTplValGesInit< cBascOnAppuis > mBascOnAppuis;
         cTplValGesInit< bool > mModeL2;
@@ -3543,6 +3547,9 @@ class cModeBascule
         friend void xml_init(cModeBascule & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< std::string > & ForceSol();
+        const cTplValGesInit< std::string > & ForceSol()const ;
+
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
@@ -3616,6 +3623,15 @@ class cBasculeOrientation
         cTplValGesInit< std::string > & PatternNameEstim();
         const cTplValGesInit< std::string > & PatternNameEstim()const ;
 
+        cTplValGesInit< std::string > & FileExportDir();
+        const cTplValGesInit< std::string > & FileExportDir()const ;
+
+        cTplValGesInit< std::string > & FileExportInv();
+        const cTplValGesInit< std::string > & FileExportInv()const ;
+
+        cTplValGesInit< std::string > & ForceSol();
+        const cTplValGesInit< std::string > & ForceSol()const ;
+
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
@@ -3667,6 +3683,8 @@ class cBasculeOrientation
         cTplValGesInit< bool > mAfterCompens;
         cTplValGesInit< std::string > mPatternNameApply;
         cTplValGesInit< std::string > mPatternNameEstim;
+        cTplValGesInit< std::string > mFileExportDir;
+        cTplValGesInit< std::string > mFileExportInv;
         cModeBascule mModeBascule;
 };
 cElXMLTree * ToXMLTree(const cBasculeOrientation &);
@@ -4435,6 +4453,15 @@ class cIterationsCompensation
 
         cTplValGesInit< std::string > & PatternNameEstim();
         const cTplValGesInit< std::string > & PatternNameEstim()const ;
+
+        cTplValGesInit< std::string > & FileExportDir();
+        const cTplValGesInit< std::string > & FileExportDir()const ;
+
+        cTplValGesInit< std::string > & FileExportInv();
+        const cTplValGesInit< std::string > & FileExportInv()const ;
+
+        cTplValGesInit< std::string > & ForceSol();
+        const cTplValGesInit< std::string > & ForceSol()const ;
 
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
@@ -6212,6 +6239,9 @@ class cExportNuage
 
         cTplValGesInit< cNuagePutGCPCtrl > & NuagePutGCPCtrl();
         const cTplValGesInit< cNuagePutGCPCtrl > & NuagePutGCPCtrl()const ;
+
+        cTplValGesInit< int > & NormByC();
+        const cTplValGesInit< int > & NormByC()const ;
     private:
         std::string mNameOut;
         cTplValGesInit< cExportNuageByImage > mExportNuageByImage;
@@ -6228,6 +6258,7 @@ class cExportNuage
         cTplValGesInit< cNuagePutCam > mNuagePutCam;
         cTplValGesInit< cNuagePutInterPMul > mNuagePutInterPMul;
         cTplValGesInit< cNuagePutGCPCtrl > mNuagePutGCPCtrl;
+        cTplValGesInit< int > mNormByC;
 };
 cElXMLTree * ToXMLTree(const cExportNuage &);
 

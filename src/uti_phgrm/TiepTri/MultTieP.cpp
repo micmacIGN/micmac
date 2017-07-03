@@ -220,7 +220,7 @@ ELISE_fp::RmFileIfExist("NewOriTmpQuick");
 ELISE_fp::RmFileIfExist("NewOriTmp" + mSH + "Quick");
    if (mDoNewOri)
    {
-        std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false " + " PrefHom=" + mSH;
+        std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false " + " SH=" + mSH;
         cout<<aCom<<endl;
         System(aCom);
 

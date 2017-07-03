@@ -123,7 +123,7 @@ void StatCorrel(const  std::vector<cResulMultiImRechCorrel*> &  aVec, const std:
     double aSomC = 0;
     int aNbC = 0;
     std::vector<double> aVCor;
-    
+
     for (int aKR = 0 ; aKR<int(aVec.size()) ; aKR++)
     {
         cResulMultiImRechCorrel * aRMIRC =  aVec[aKR];  // prendre result un pt Master
@@ -135,12 +135,15 @@ void StatCorrel(const  std::vector<cResulMultiImRechCorrel*> &  aVec, const std:
             aNbC ++ ;                                   // nombre de couple Master-2nd
         }
     }
-    std::cout << "StatC:" << aMes
-              << " Moy=" << aSomC/aNbC                  // score correl moyen
-              << " Med=" << KthValProp(aVCor,0.5)       // score median
-              << " 20%=" << KthValProp(aVCor,0.2)       // score à 20% en premier
-              << " Nb=" << aNbC
-              << "\n";
+    if (aVCor.size() > 0)
+    {
+        std::cout << "StatC:" << aMes
+                  << " Moy=" << aSomC/aNbC                  // score correl moyen
+                  << " Med=" << KthValProp(aVCor,0.5)       // score median
+                  << " 20%=" << KthValProp(aVCor,0.2)       // score à 20% en premier
+                  << " Nb=" << aNbC
+                  << "\n";
+    }
 }
 
 void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)

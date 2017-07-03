@@ -46,6 +46,7 @@ int TestRegEx_main(int argc,char ** argv)
 {
     std::string aFullPattern;//pattern of all files
     bool aDispPatt=false;
+    string aExport;
     
     ElInitArgMain
     (
@@ -55,6 +56,8 @@ int TestRegEx_main(int argc,char ** argv)
     
     //optional arguments
     LArgMain()  << EAM(aDispPatt, "DispPat", false, "Display Pattern to use in cmd line ; Def=false", eSAM_IsBool)
+                << EAM(aExport, "ExpList", false, "Export list image in text file ; Def=false")
+
   
     );
     
@@ -66,6 +69,13 @@ int TestRegEx_main(int argc,char ** argv)
     std::cout<<"Working dir: "<<aDirImages<<std::endl;
     std::cout<<"Files pattern: "<<aPatIm<<std::endl;
 
+    ofstream aExpListImg;
+
+    if (EAMIsInit(&aExport))
+    {
+        aExpListImg.open (aExport.c_str());
+    }
+
 
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
@@ -76,6 +86,10 @@ int TestRegEx_main(int argc,char ** argv)
     for (unsigned int i=0;i<aSetIm.size();i++)
     {
         std::cout<<" - "<<aSetIm[i]<<std::endl;
+        if (EAMIsInit(&aExport))
+        {
+           aExpListImg<<aSetIm[i]<<endl;
+        }
         aVIm.push_back(aSetIm[i]);
     }
     std::cout<<"Total: "<<aSetIm.size()<<" files."<<std::endl;
@@ -146,7 +160,7 @@ int PatFromOri_main(int argc,char ** argv)
 //to add : toutes les pairs possibles (en option)
 int GenFilePairs_main(int argc,char ** argv)
 {
-	std::string aImg, aFullPat, aOut="NameCple.xml";
+    std::string aImg, aFullPat, aOut="NameCple.xml";
 	
 	ElInitArgMain
     (

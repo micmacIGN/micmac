@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../uti_phgrm/Apero/cCameraRPC.h"
 
+
+
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
 
 class cAppliTuak
@@ -868,6 +870,180 @@ int TestER_grille_main(int argc,char ** argv)
     
     //OrientationGrille aGrill(aFullName);
     //aGrill.GetRangeZ();
+
+    return EXIT_SUCCESS;
+}
+
+class cTmpPileER
+{
+    public :
+        cTmpPileER(int aK,float aZ,float aPds);
+        // Caclul entre deux cellule successive le poids exponentiel 
+       // qui sera utilise pour le filtrage recursif
+        void SetPPrec(cTmpPileER &,float aExpFact);
+        // double Pds() {return mPds0 / mNb0;}
+        double ZMoy() {return mPds0 ? (mZP0/mPds0) : 0 ;}
+
+    // private :
+         int    mK;
+         double mCpteur;
+         double mZInit;
+         double mPInit;
+         double mZP0;   // Z Pondere par le poids
+         double mPds0;  // Poids 
+         double mNb0;   // si le PdsInit=1, alors mNb0==mPds0, compte le nombre de pt de chaque cluste
+                        // (a une constante globale pres)
+
+        // Variale pour le filtrage recursif "plus"
+         double mNewZPp;
+         double mNewPdsp;
+         double mNewNbp;
+
+        // Variale pour le filtrage recursif "moins"
+         double mNewZPm;
+         double mNewPdsm;
+         double mNewNbm;
+
+         double mPPrec;
+         double mPNext;
+         bool   mSelected;
+};
+
+cTmpPileER::cTmpPileER(int aK,float aZ,float aPds) :
+	mK     (aK),
+	mCpteur(0),
+	mZInit (aZ),
+	mPInit (aPds),
+	mZP0   (aZ * aPds),
+	mPds0  (aPds),
+	mNb0   (1.0),
+	mPPrec (-1),
+	mPNext (-1),
+	mSelected (false)
+{}
+
+void cTmpPileER::SetPPrec(cTmpPileER & aPrec,float aExpFact)
+{
+	ELISE_ASSERT(mZInit>=aPrec.mZInit,"Ordre coherence in cTmpPile::SetPPrec");
+
+	double aPds = (aPrec.mZInit-mZInit)/aExpFact;
+	aPds = exp(aPds);
+    mPPrec  = aPds;
+    aPrec.mPNext = aPds;
+
+		
+}
+
+void FiltrageAllerEtRetourER(std::vector<cTmpPileER> & aVTmp)
+{
+	int aNb = (int)aVTmp.size();
+
+	
+	aVTmp[0].mNewPdsp = aVTmp[0].mPds0;
+    aVTmp[0].mNewZPp  = aVTmp[0].mZP0;
+    aVTmp[0].mNewNbp  = aVTmp[0].mNb0;
+
+	//propagation de gauche vers droit
+	std::cout << "propagation de gauche vers droit" << "\n";
+	for (int aK=1 ; aK<int(aVTmp.size()) ; aK++)
+	{
+		aVTmp[aK].mNewPdsp = aVTmp[aK].mPds0 + aVTmp[aK-1].mNewPdsp * aVTmp[aK].mPPrec;
+        aVTmp[aK].mNewZPp  = aVTmp[aK].mZP0  + aVTmp[aK-1].mNewZPp  * aVTmp[aK].mPPrec;
+        aVTmp[aK].mNewNbp  = aVTmp[aK].mNb0  + aVTmp[aK-1].mNewNbp  * aVTmp[aK].mPPrec;
+
+		std::cout << "P=" << aVTmp[aK].mPds0 << ", " << aVTmp[aK].mNewPdsp << ", " << aVTmp[aK].mPPrec << "\n" 
+                  << "ZP="<< aVTmp[aK].mZInit << " " << aVTmp[aK].mZP0 << ", " << aVTmp[aK].mNewZPp << " dZ=" << aVTmp[aK-1].mNewZPp  * aVTmp[aK].mPPrec << "\n"
+                  << "N=" << aVTmp[aK].mNb0 << " " << aVTmp[aK].mNewNbp << "\n\n";
+	}
+
+	//propagation de droit vers gauche
+	std::cout << "propagation de droit vers gauche" << "\n";
+	
+	aVTmp[aNb-1].mNewPdsm = aVTmp[aNb-1].mPds0;
+    aVTmp[aNb-1].mNewZPm = aVTmp[aNb-1].mZP0;
+    aVTmp[aNb-1].mNewNbm = aVTmp[aNb-1].mNb0;
+
+	for (int aK=(int)(aVTmp.size() - 2); aK>=0 ; aK--)
+    {
+    	aVTmp[aK].mNewPdsm = aVTmp[aK].mPds0 + aVTmp[aK+1].mNewPdsm * aVTmp[aK].mPNext;
+        aVTmp[aK].mNewZPm  = aVTmp[aK].mZP0  + aVTmp[aK+1].mNewZPm  * aVTmp[aK].mPNext;
+        aVTmp[aK].mNewNbm  = aVTmp[aK].mNb0  + aVTmp[aK+1].mNewNbm  * aVTmp[aK].mPNext;
+		
+		std::cout << "P=" << aVTmp[aK].mPds0 << ", " << aVTmp[aK].mNewPdsm << ", " << aVTmp[aK].mPNext << "\n" 
+                  << "ZP="<< aVTmp[aK].mZInit << " " << aVTmp[aK].mZP0 << ", " << aVTmp[aK].mNewZPm << " dZ=" << aVTmp[aK+1].mNewZPm  * aVTmp[aK].mPNext << "\n"
+                  << "N=" << aVTmp[aK].mNb0 << " " << aVTmp[aK].mNewNbm << "\n\n";
+    }
+
+     // Memorisation dans mZP0 etc.. du resultat (droite + gauche - VCentrale) , VCentrale a ete compte deux fois
+     for (int aK=0 ; aK<int(aVTmp.size()) ; aK++)
+     {
+          aVTmp[aK].mZP0  = (aVTmp[aK].mNewZPp  + aVTmp[aK].mNewZPm  - aVTmp[aK].mZP0) / aVTmp.size();
+          aVTmp[aK].mPds0 = (aVTmp[aK].mNewPdsp + aVTmp[aK].mNewPdsm - aVTmp[aK].mPds0) / aVTmp.size();
+          aVTmp[aK].mNb0  = (aVTmp[aK].mNewNbp  + aVTmp[aK].mNewNbm  - aVTmp[aK].mNb0) / aVTmp.size();
+		
+		  std::cout << "P=" << aVTmp[aK].mNewPdsp << ", " << aVTmp[aK].mNewPdsm << ",->" << aVTmp[aK].mPds0  << "\n" 
+                  << "ZP="<< aVTmp[aK].mZInit << " " << aVTmp[aK].mNewZPp  << " " << aVTmp[aK].mNewZPm << ", ->" << aVTmp[aK].mZP0/aVTmp[aK].mPds0 << "\n" //see ZMoy()
+                  << "N=" << aVTmp[aK].mNewNbp << " " << aVTmp[aK].mNewNbm << " " << aVTmp[aK].mNb0 << "\n\n";
+     }
+
+
+}
+
+int TestER_filtRec_main(int argc,char ** argv)
+{
+
+    std::string          aCelFich;
+	std::vector<double>  aCel;
+	double  			 aSig=5.0;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aCelFich,"FIle with the cellule vector"),
+        LArgMain() << EAM(aSig,"Sig",true, "Gaussian sigma")
+	);
+
+	ELISE_fp aFIn(aCelFich.c_str(),ELISE_fp::READ);
+	char * aLine = aFIn.std_fgets();
+
+	char * it = NULL;
+	for (it = aLine; *it != '\0'; ) 
+	{
+		double aTmp = std::atof(it);
+    	aCel.push_back( aTmp );
+
+		if(aTmp < 10)
+			it=it+2;
+		else if(aTmp < 100)
+			it=it+3;
+	
+		std::cout << aTmp << "\n";
+    }
+
+
+	//construct a cellule
+	std::vector<cTmpPileER> aVPil;
+	float aZFact = (aSig*0.5) * sqrt(2.0);
+	
+	for(int aK=0; aK < (int)(aCel.size()); aK++)
+	{
+		aVPil.push_back(cTmpPileER(aK,aCel.at(aK),1.0));
+		
+		//set precision?
+		if(aK>0)
+		{
+			std::cout << aVPil[aK].mZInit << " " << aVPil[aK-1].mZInit << "\n"; 
+			aVPil[aK].SetPPrec(aVPil[aK-1],aZFact);
+
+
+		}
+	}
+
+	//recursive filtering
+	FiltrageAllerEtRetourER(aVPil);
+	FiltrageAllerEtRetourER(aVPil);
+
+
 
     return EXIT_SUCCESS;
 }

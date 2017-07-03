@@ -12282,6 +12282,17 @@ void xml_init(cAerialDeformNonLin & anObj,cElXMLTree * aTree)
 std::string  Mangling( cAerialDeformNonLin *) {return "D4BF4C04AB361D9AFDBF";};
 
 
+cTplValGesInit< std::string > & cBasculeOnPoints::ForceSol()
+{
+   return mForceSol;
+}
+
+const cTplValGesInit< std::string > & cBasculeOnPoints::ForceSol()const 
+{
+   return mForceSol;
+}
+
+
 cTplValGesInit< std::string > & cBasculeOnPoints::PoseCentrale()
 {
    return BascOnCentre().Val().PoseCentrale();
@@ -12374,6 +12385,14 @@ void  BinaryUnDumpFromFile(cBasculeOnPoints & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.ForceSol().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ForceSol().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ForceSol().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.BascOnCentre().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.BascOnCentre().ValForcedForUnUmp(),aFp);
         }
@@ -12415,6 +12434,8 @@ void  BinaryUnDumpFromFile(cBasculeOnPoints & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cBasculeOnPoints & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.ForceSol().IsInit());
+    if (anObj.ForceSol().IsInit()) BinaryDumpInFile(aFp,anObj.ForceSol().Val());
     BinaryDumpInFile(aFp,anObj.BascOnCentre().IsInit());
     if (anObj.BascOnCentre().IsInit()) BinaryDumpInFile(aFp,anObj.BascOnCentre().Val());
     BinaryDumpInFile(aFp,anObj.BascOnAppuis().IsInit());
@@ -12431,6 +12452,8 @@ cElXMLTree * ToXMLTree(const cBasculeOnPoints & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"BasculeOnPoints",eXMLBranche);
+   if (anObj.ForceSol().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ForceSol"),anObj.ForceSol().Val())->ReTagThis("ForceSol"));
    if (anObj.BascOnCentre().IsInit())
       aRes->AddFils(ToXMLTree(anObj.BascOnCentre().Val())->ReTagThis("BascOnCentre"));
    if (anObj.BascOnAppuis().IsInit())
@@ -12451,6 +12474,8 @@ void xml_init(cBasculeOnPoints & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.ForceSol(),aTree->Get("ForceSol",1)); //tototo 
+
    xml_init(anObj.BascOnCentre(),aTree->Get("BascOnCentre",1)); //tototo 
 
    xml_init(anObj.BascOnAppuis(),aTree->Get("BascOnAppuis",1)); //tototo 
@@ -12462,7 +12487,7 @@ void xml_init(cBasculeOnPoints & anObj,cElXMLTree * aTree)
    xml_init(anObj.NameExport(),aTree->Get("NameExport",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOnPoints *) {return "4E0E77CDD386EDD2FF3F";};
+std::string  Mangling( cBasculeOnPoints *) {return "683665DEB4CC67BFFBBF";};
 
 
 cTplValGesInit< double > & cOrientInPlane::DistFixEch()
@@ -12653,6 +12678,17 @@ void xml_init(cBasculeLiaisonOnPlan & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cBasculeLiaisonOnPlan *) {return "FE56783381A4FFB0FDBF";};
+
+
+cTplValGesInit< std::string > & cModeBascule::ForceSol()
+{
+   return BasculeOnPoints().Val().ForceSol();
+}
+
+const cTplValGesInit< std::string > & cModeBascule::ForceSol()const 
+{
+   return BasculeOnPoints().Val().ForceSol();
+}
 
 
 cTplValGesInit< std::string > & cModeBascule::PoseCentrale()
@@ -12870,7 +12906,7 @@ void xml_init(cModeBascule & anObj,cElXMLTree * aTree)
    xml_init(anObj.BasculeLiaisonOnPlan(),aTree->Get("BasculeLiaisonOnPlan",1)); //tototo 
 }
 
-std::string  Mangling( cModeBascule *) {return "DE911B2D3F248AD1FE3F";};
+std::string  Mangling( cModeBascule *) {return "6E1B1B71C87743E2FE3F";};
 
 
 cTplValGesInit< bool > & cBasculeOrientation::AfterCompens()
@@ -12903,6 +12939,39 @@ cTplValGesInit< std::string > & cBasculeOrientation::PatternNameEstim()
 const cTplValGesInit< std::string > & cBasculeOrientation::PatternNameEstim()const 
 {
    return mPatternNameEstim;
+}
+
+
+cTplValGesInit< std::string > & cBasculeOrientation::FileExportDir()
+{
+   return mFileExportDir;
+}
+
+const cTplValGesInit< std::string > & cBasculeOrientation::FileExportDir()const 
+{
+   return mFileExportDir;
+}
+
+
+cTplValGesInit< std::string > & cBasculeOrientation::FileExportInv()
+{
+   return mFileExportInv;
+}
+
+const cTplValGesInit< std::string > & cBasculeOrientation::FileExportInv()const 
+{
+   return mFileExportInv;
+}
+
+
+cTplValGesInit< std::string > & cBasculeOrientation::ForceSol()
+{
+   return ModeBascule().BasculeOnPoints().Val().ForceSol();
+}
+
+const cTplValGesInit< std::string > & cBasculeOrientation::ForceSol()const 
+{
+   return ModeBascule().BasculeOnPoints().Val().ForceSol();
 }
 
 
@@ -13107,6 +13176,22 @@ void  BinaryUnDumpFromFile(cBasculeOrientation & anObj,ELISE_fp & aFp)
         }
         else  anObj.PatternNameEstim().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.FileExportDir().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FileExportDir().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FileExportDir().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.FileExportInv().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FileExportInv().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FileExportInv().SetNoInit();
+  } ;
     BinaryUnDumpFromFile(anObj.ModeBascule(),aFp);
 }
 
@@ -13118,6 +13203,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cBasculeOrientation & anObj)
     if (anObj.PatternNameApply().IsInit()) BinaryDumpInFile(aFp,anObj.PatternNameApply().Val());
     BinaryDumpInFile(aFp,anObj.PatternNameEstim().IsInit());
     if (anObj.PatternNameEstim().IsInit()) BinaryDumpInFile(aFp,anObj.PatternNameEstim().Val());
+    BinaryDumpInFile(aFp,anObj.FileExportDir().IsInit());
+    if (anObj.FileExportDir().IsInit()) BinaryDumpInFile(aFp,anObj.FileExportDir().Val());
+    BinaryDumpInFile(aFp,anObj.FileExportInv().IsInit());
+    if (anObj.FileExportInv().IsInit()) BinaryDumpInFile(aFp,anObj.FileExportInv().Val());
     BinaryDumpInFile(aFp,anObj.ModeBascule());
 }
 
@@ -13131,6 +13220,10 @@ cElXMLTree * ToXMLTree(const cBasculeOrientation & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PatternNameApply"),anObj.PatternNameApply().Val())->ReTagThis("PatternNameApply"));
    if (anObj.PatternNameEstim().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PatternNameEstim"),anObj.PatternNameEstim().Val())->ReTagThis("PatternNameEstim"));
+   if (anObj.FileExportDir().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FileExportDir"),anObj.FileExportDir().Val())->ReTagThis("FileExportDir"));
+   if (anObj.FileExportInv().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FileExportInv"),anObj.FileExportInv().Val())->ReTagThis("FileExportInv"));
    aRes->AddFils(ToXMLTree(anObj.ModeBascule())->ReTagThis("ModeBascule"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -13148,10 +13241,14 @@ void xml_init(cBasculeOrientation & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PatternNameEstim(),aTree->Get("PatternNameEstim",1),std::string(".*")); //tototo 
 
+   xml_init(anObj.FileExportDir(),aTree->Get("FileExportDir",1)); //tototo 
+
+   xml_init(anObj.FileExportInv(),aTree->Get("FileExportInv",1)); //tototo 
+
    xml_init(anObj.ModeBascule(),aTree->Get("ModeBascule",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOrientation *) {return "D4E2BBE2F0CEA69FFC3F";};
+std::string  Mangling( cBasculeOrientation *) {return "B2E551D70C6F24ABFE3F";};
 
 
 std::vector< cAperoPointeStereo > & cStereoFE::HomFE()
@@ -15756,6 +15853,39 @@ const cTplValGesInit< std::string > & cIterationsCompensation::PatternNameEstim(
 }
 
 
+cTplValGesInit< std::string > & cIterationsCompensation::FileExportDir()
+{
+   return BasculeOrientation().Val().FileExportDir();
+}
+
+const cTplValGesInit< std::string > & cIterationsCompensation::FileExportDir()const 
+{
+   return BasculeOrientation().Val().FileExportDir();
+}
+
+
+cTplValGesInit< std::string > & cIterationsCompensation::FileExportInv()
+{
+   return BasculeOrientation().Val().FileExportInv();
+}
+
+const cTplValGesInit< std::string > & cIterationsCompensation::FileExportInv()const 
+{
+   return BasculeOrientation().Val().FileExportInv();
+}
+
+
+cTplValGesInit< std::string > & cIterationsCompensation::ForceSol()
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().ForceSol();
+}
+
+const cTplValGesInit< std::string > & cIterationsCompensation::ForceSol()const 
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().ForceSol();
+}
+
+
 cTplValGesInit< std::string > & cIterationsCompensation::PoseCentrale()
 {
    return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().PoseCentrale();
@@ -16748,7 +16878,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.TestInteractif(),aTree->Get("TestInteractif",1)); //tototo 
 }
 
-std::string  Mangling( cIterationsCompensation *) {return "9EB5A1A94D0146FCFE3F";};
+std::string  Mangling( cIterationsCompensation *) {return "165B7B22503903E9FE3F";};
 
 
 std::string & cTraceCpleHom::Id()
@@ -22573,6 +22703,17 @@ const cTplValGesInit< cNuagePutGCPCtrl > & cExportNuage::NuagePutGCPCtrl()const
    return mNuagePutGCPCtrl;
 }
 
+
+cTplValGesInit< int > & cExportNuage::NormByC()
+{
+   return mNormByC;
+}
+
+const cTplValGesInit< int > & cExportNuage::NormByC()const 
+{
+   return mNormByC;
+}
+
 void  BinaryUnDumpFromFile(cExportNuage & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NameOut(),aFp);
@@ -22675,6 +22816,14 @@ void  BinaryUnDumpFromFile(cExportNuage & anObj,ELISE_fp & aFp)
         }
         else  anObj.NuagePutGCPCtrl().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NormByC().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NormByC().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NormByC().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cExportNuage & anObj)
@@ -22710,6 +22859,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cExportNuage & anObj)
     if (anObj.NuagePutInterPMul().IsInit()) BinaryDumpInFile(aFp,anObj.NuagePutInterPMul().Val());
     BinaryDumpInFile(aFp,anObj.NuagePutGCPCtrl().IsInit());
     if (anObj.NuagePutGCPCtrl().IsInit()) BinaryDumpInFile(aFp,anObj.NuagePutGCPCtrl().Val());
+    BinaryDumpInFile(aFp,anObj.NormByC().IsInit());
+    if (anObj.NormByC().IsInit()) BinaryDumpInFile(aFp,anObj.NormByC().Val());
 }
 
 cElXMLTree * ToXMLTree(const cExportNuage & anObj)
@@ -22747,6 +22898,8 @@ cElXMLTree * ToXMLTree(const cExportNuage & anObj)
       aRes->AddFils(ToXMLTree(anObj.NuagePutInterPMul().Val())->ReTagThis("NuagePutInterPMul"));
    if (anObj.NuagePutGCPCtrl().IsInit())
       aRes->AddFils(ToXMLTree(anObj.NuagePutGCPCtrl().Val())->ReTagThis("NuagePutGCPCtrl"));
+   if (anObj.NormByC().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NormByC"),anObj.NormByC().Val())->ReTagThis("NormByC"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -22786,9 +22939,11 @@ void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePutInterPMul(),aTree->Get("NuagePutInterPMul",1)); //tototo 
 
    xml_init(anObj.NuagePutGCPCtrl(),aTree->Get("NuagePutGCPCtrl",1)); //tototo 
+
+   xml_init(anObj.NormByC(),aTree->Get("NormByC",1)); //tototo 
 }
 
-std::string  Mangling( cExportNuage *) {return "A8424A3FAE9F6496FF3F";};
+std::string  Mangling( cExportNuage *) {return "4AF9325399C1F18CFE3F";};
 
 
 cTplValGesInit< std::string > & cChoixImSec::KeyExistingFile()
@@ -24351,7 +24506,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportSensibParamAero(),aTree->Get("ExportSensibParamAero",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "6A30F00E619587D2FE3F";};
+std::string  Mangling( cSectionExport *) {return "E857111B78498881FE3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -25148,7 +25303,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "7AE2D5123346FC9EFF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "74A863D7103A6FC9FE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -25207,7 +25362,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "463C236193D822F1FD3F";};
+std::string  Mangling( cSectionCompensation *) {return "F09D310AF8076189FBBF";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -26284,7 +26439,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "54F5305A733E62FCFE3F";};
+std::string  Mangling( cParamApero *) {return "62349D55EC57C7ACFF3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

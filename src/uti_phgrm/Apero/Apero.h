@@ -1288,6 +1288,7 @@ typedef enum
   eModeAGPIm,
   eModeAGPHypso,
   eModeAGPNormale,
+  eModeAGPNormaleByC,//optical center
   eModeAGPNoAttr,
   eModeAGPNoPoint
 } eModeAGP;
@@ -2484,7 +2485,7 @@ class cAppliApero : public NROptF1vND
 
 	void  ExportFlottant(const cExportPtsFlottant & anEPF);
 
-        void BasculePoints (const cBasculeOnPoints &,
+        cSolBasculeRig BasculePoints (const cBasculeOnPoints &,
                             cSetName &            aSelectorEstim,
                             cElRegex &            aSelectorApply
              );
