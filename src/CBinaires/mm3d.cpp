@@ -645,7 +645,7 @@ int RedImgsByN_main(int argc,char** argv);
 int OptAeroProc_main(int argc,char ** argv);
 int TestARCam_main(int argc,char ** argv);
 int CPP_TestPhysMod_Main(int argc,char ** argv);
-
+int MvImgsByFile_main(int argc,char** argv);
 int OneReechHom_main(int argc,char ** argv);
 int AllReechHom_main(int argc,char ** argv);
 int RTI_main(int argc,char ** argv);
@@ -766,7 +766,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
 
-
+	   aRes.push_back(cMMCom("MvImgs",MvImgsByFile_main,"Move Images in a file to a trash folder"));
        aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
        aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
        aRes.push_back(cMMCom("TD_GenApp",TD_GenereAppuis_main,"TD Generate GCP"));

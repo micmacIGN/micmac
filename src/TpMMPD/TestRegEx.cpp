@@ -330,6 +330,54 @@ int RedImgsByN_main(int argc,char** argv)
 }
 
 //----------------------------------------------------------------------------
+int MvImgsByFile_main(int argc,char** argv)
+{
+	std::string aDir="";
+	std::string aFile=""; //Schnaps_poubelle.txt (format)
+	bool aShow=false;
+	std::string aTrashName="Poubelle";
+	
+	ElInitArgMain
+    (
+    argc,argv,
+    //mandatory arguments
+	LArgMain()  << EAMC(aDir,"Directory")
+				<< EAMC(aFile,"File with images names by line"),
+	LArgMain()  << EAM(aShow, "Show", false, "Display Pattern to use in cmd line ; Def=false",eSAM_IsBool)
+	);
+	
+	if (MMVisualMode) return EXIT_SUCCESS;
+	
+	ELISE_fp::MkDirSvp(aTrashName);
+	
+	//read rtk input file
+    ifstream aFichier((aDir + aFile).c_str());
+
+    if(aFichier)
+    {
+		std::string aLine;
+        
+        while(!aFichier.eof())
+        {
+			getline(aFichier,aLine);
+			if(!aLine.empty())
+			{
+				ELISE_fp::MvFile(aLine,aTrashName);
+				std::cout << " Move image : " << aLine << "--> " << aTrashName << std::endl;
+			}
+		}
+	aFichier.close();
+	}
+	else
+    {
+		std::cout<< "Error While opening file" << '\n';
+	}
+	
+	return EXIT_SUCCESS;
+}
+
+
+//----------------------------------------------------------------------------
 class cTestElParseDir : public ElActionParseDir
 {
     public :

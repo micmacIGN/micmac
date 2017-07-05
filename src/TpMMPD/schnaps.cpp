@@ -756,6 +756,8 @@ int schnaps_main(int argc,char ** argv)
     bool ExeWrite=true;
     bool DoNotFilter=false;
     double aMinPercentCoverage=30;//if %coverage<aMinPercentCoverage, add to poubelle!
+    bool aMove=false;//if true, move poubelle images to a folder named "Poubelle/"
+    std::string aNameTrashFolder = "Poubelle";
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
             <<"S trict           \n"
@@ -782,6 +784,7 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(DoNotFilter,"DoNotFilter",true,"Write homol after recomposition, without filterning, def=false")
                    << EAM(aPoubelleName,"PoubelleName",true,string("Where to write suspicious pictures names, def=\"")+aPoubelleName+"\"")
                    << EAM(aMinPercentCoverage,"minPercentCoverage",true,"Minimum % of coverage to avoid adding to poubelle, def=30")
+                   << EAM(aMove,"MoveBadImgs",true,"Move bad images to a trash folder called Poubelle, Def=false")
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -1042,6 +1045,12 @@ int schnaps_main(int argc,char ** argv)
                 nbBadPictures++;
                 aFileBadPictureNames<<pic1->getName()<<"\n";
                 cout<<" rejected!";
+                if(aMove)
+                {
+					ELISE_fp::MkDirSvp(aNameTrashFolder); //create folder if does not exist
+					ELISE_fp::MvFile(pic1->getName(),aNameTrashFolder);cout<<"\n"; //move it to poubelle folder
+					cout<< " moved to "<<aNameTrashFolder<<"\n";
+				}
             }
             std::cout<<std::endl;
             for (itPic2=itPic1;itPic2!=allPics.end();++itPic2)
