@@ -352,6 +352,79 @@ int AlphaGet27_main(int argc,char ** argv)
 
 //---------------------------------------------------------------------//
 
+int mergeSOMAF_main(int argc,char ** argv)
+{
+    std::cout << "\n";
+
+//    MMD_InitArgcArgv(argc,argv);
+
+    std::string aFullDir;
+    std::string aPathOut = "./SOMAFmerged.xml";
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir, "Full SOMAF Directory (Dir+Pattern)", eSAM_IsPatFile),
+        LArgMain()  << EAM(aPathOut, "Out", true, "Output path (default = './SOMAFmerged.xml')", eSAM_IsOutputFile)
+    );
+
+    std::string aDir, aPat;
+    SplitDirAndFile(aDir,aPat,aFullDir);
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetSOMAF = *(anICNM->Get(aPat));
+
+    cSetOfMesureAppuisFlottants aSOMAF, aSOMAFout;
+    cMesureAppuiFlottant1Im aMAF, aMAFo;
+    cOneMesureAF1I anOM;
+
+    for(unsigned aS=0; aS<aSetSOMAF.size(); aS++)
+    {
+        aSOMAF = StdGetFromPCP(aSetSOMAF[aS], SetOfMesureAppuisFlottants);
+        std::cout << "\nOuverture du fichier " << aSetSOMAF[aS] << std::endl;
+        for(std::list<cMesureAppuiFlottant1Im>::const_iterator itF = aSOMAF.MesureAppuiFlottant1Im().begin() ; itF != aSOMAF.MesureAppuiFlottant1Im().end() ; itF++)
+        {
+            aMAF = *itF;
+            std::cout << "Saisie Image : " << aMAF.NameIm() << " lue dans le fichier\n";
+            bool newMAF = true;
+            for(std::list<cMesureAppuiFlottant1Im>::iterator itFo = aSOMAFout.MesureAppuiFlottant1Im().begin() ; itFo != aSOMAFout.MesureAppuiFlottant1Im().end() ; ++itFo)
+            {
+                aMAFo = *itFo;
+                if(aMAF.NameIm() == aMAFo.NameIm())
+                {
+                    std::cout << "\tSaisie Image " << aMAFo.NameIm() << " existante\n";
+                    std::cout << "\t\tPoint(s) ";
+                    for(std::list<cOneMesureAF1I>::const_iterator itM = aMAF.OneMesureAF1I().begin() ; itM != aMAF.OneMesureAF1I().end() ; itM++)
+                    {
+                        anOM = *itM;
+                        aMAFo.OneMesureAF1I().push_back(anOM);
+                        std::cout << anOM.NamePt() << " ";
+                    }
+                    std::cout << "ajouté(s)\n";
+                    aSOMAFout.MesureAppuiFlottant1Im().insert(itFo, aMAFo);
+                    aSOMAFout.MesureAppuiFlottant1Im().erase(itFo++);
+                    itFo--;
+                    newMAF = false;
+                }
+            }
+            if(newMAF)
+            {
+                aSOMAFout.MesureAppuiFlottant1Im().push_back(aMAF);
+            }
+        }
+        std::cout << "Fichier " << aSetSOMAF[aS] << " fusionné avec succès" << std::endl;
+    }
+
+    std::cout << "\nFichier de sortie enregistré sous : " << aPathOut << std::endl;
+
+    MakeFileXML(aSOMAFout, aPathOut);
+
+    return EXIT_SUCCESS;
+}
+
+
+
+//---------------------------------------------------------------------//
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

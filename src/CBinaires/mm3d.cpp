@@ -184,6 +184,8 @@ extern int CPP_ConvertBundleGen(int argc,char ** argv);
 
 extern int AlphaGet27_main(int argc,char ** argv);
 
+extern int mergeSOMAF_main(int argc,char ** argv);
+
 
 int TiePMS_main(int argc,char ** argv);
 int TiePLine_main(int argc,char ** argv);
@@ -437,6 +439,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("XLib", XLib_Main, " Xeres Lib - early work in progress!")); 
 
        aRes.push_back(cMMCom("AlphaGet27", AlphaGet27_main, " Tool for relative positioning of objects on images"));
+       aRes.push_back(cMMCom("MergeSOMAF", mergeSOMAF_main, " Tool for merging SetOfMesureAppuisFlottants XMLs"));
 
 #if (ELISE_QT_VERSION >= 4)
        aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main," Interactive tool for initial capture of GCP"));
