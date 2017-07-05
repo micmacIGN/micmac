@@ -293,7 +293,43 @@ int CleanPatByOri_main(int argc,char ** argv)
 	
 	return EXIT_SUCCESS;
 }
+//----------------------------------------------------------------------------
 
+int RedImgsByN_main(int argc,char** argv)
+{
+	std::string aFullName, aDir, aPat, aOut="Selected_Images";
+	int aPas;
+	bool aShow=false;
+	
+	ElInitArgMain
+    (
+    argc,argv,
+    //mandatory arguments
+	LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pat)")
+				<< EAMC(aPas,"1/Pas"),
+	LArgMain()  << EAM(aShow, "Show", false, "Display Pattern to use in cmd line ; Def=false",eSAM_IsBool)
+				<< EAM(aOut, "Out", false, "Output Folder Name for Images that will be used ; Def=Selected_Images")
+	);
+	
+	if (MMVisualMode) return EXIT_SUCCESS;
+	
+	//check if Output folder is not existing create it
+	ELISE_fp::MkDirSvp(aOut);
+
+    SplitDirAndFile(aDir, aPat, aFullName);
+
+    cInterfChantierNameManipulateur *aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(aPat));
+    
+    for (unsigned int aP=0; aP<aSetIm.size(); aP=aP+aPas)
+    {
+		ELISE_fp::CpFile(aSetIm.at(aP),aOut);
+	}
+	
+	return EXIT_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 class cTestElParseDir : public ElActionParseDir
 {
     public :

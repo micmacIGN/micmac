@@ -178,7 +178,7 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 	std::string aPat;
 	std::string aNameProcFolder="Processing";
 	double aRes=500;
-	int aProj=0;
+	int aProj=1;
 	double aFov=50;
 	bool aFilter=true;
 	bool aClean=true;
@@ -189,8 +189,8 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
           LArgMain() << EAMC(mDir, "Directory"),
           LArgMain() << EAM(aShow,"Show",false,"Display ... ; Def=false")
 					 << EAM(aNameProcFolder,"ProcFolderName",false,"Name of the folder where the processing will be performed")
-					 << EAM(aRes,"ResTieP",false,"Resolution for Tie Points Extraction")
-					 << EAM(aProj,"Proj",false,"Projection type (default: 0)")
+					 << EAM(aRes,"ResTieP",false,"Resolution for Tie Points Extraction ; Def=500")
+					 << EAM(aProj,"Proj",false,"Projection type (default: 1 cylindrique)")
 					 << EAM(aFov,"FOV",false,"Horizontal field of view of images (default: 50)")
 					 << EAM(aFilter,"FilterTP",true,"Use Schnaps to reduce tie points; Def=true")
 					 << EAM(aClean,"Clean",true,"Clean indivudual images after stitching ; Def=true")
@@ -216,6 +216,13 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		{
 			iT1 = aDirectories.erase(iT1);
 		}
+	}
+	
+	
+	std::vector<std::string> aVDir;
+	for(std::list<ctPath>::iterator iT1 = aDirectories.begin() ; iT1 != aDirectories.end() ; iT1++)
+	{
+		aVDir.push_back((*iT1).str().substr(0,(*iT1).str().size()-1));
 	}
 	
 	std::cout << "aDirectories.size() = " << aDirectories.size() << std::endl;
@@ -283,11 +290,11 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
     
     //pipeline to generate a pano for each 	level N :
     //first tie points extraction using MicMac
-	for(unsigned int aP=0; aP<aDirectories.size(); aP++)
+	for(unsigned int aP=0; aP<aVDir.size(); aP++)
 	{
 		std::string aPatL = GenPatFromLF(aLFiles.at(aP),false);
-		//std::string aPatL2 = GenPatFromLF(aLFiles.at(aP+1),false);
-		std::string aXmlOutFile = "NameCple_" + NumberToString(aP) + ".xml";
+
+		std::string aXmlOutFile = "NameCple_" + aVDir.at(aP) + ".xml";
 		std::cout << "aXmlOutFile = " << aXmlOutFile << std::endl;
 		
 		//generate a .xml file of all couples for level N & level N+1
@@ -327,61 +334,61 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 								+ std::string(" ")
 								+ std::string("\"") + aPatL + std::string("\"")
 								+ std::string(" ")
-								+ "NbWin=100";
+								+ "NbWin=100"
+								+ "VeryStrict=true";
 			std::cout << "aComF = " << aComF << std::endl;
 			system_call(aComF.c_str());
 		}
 		
-		//generate a Hugin project for level N & level n+1
+		//generate a Hugin project for level N
 		std::string aPatLH = GenPatFromLF(aLFiles.at(aP),true);
-		//std::string aPatL2H = GenPatFromLF(aLFiles.at(aP+1),true);
 		
-		std::string aHNameProject = "Hugin_" + NumberToString(aP) + ".pto";
+		std::string aHNameProject = "Hugin_" + aVDir.at(aP) + ".pto";
 		std::string aCom3 = "pto_gen -o" 
 		                     + std::string(" ") 
 		                     + aHNameProject 
 		                     + std::string(" ")
 							 + aPatLH
-							 //+ std::string(" ") + aPatL2H
 							 + std::string(" ")
 							 + "-p " + NumberToString(aProj)
-							 + std::string(" ")
-							 + "-f " + NumberToString(aFov);
+							 + std::string(" ");
+							 //+ "-f " + NumberToString(aFov);
 		std::cout << "aCom3 = " << aCom3 << std::endl;
-		//~ system_call(aCom3.c_str());
-		
-		//specify the variables to be optimized
-		std::string aCom4 = "pto_var --opt=\"y, p, r, TrX, TrY, TrZ, Tpy, Tpp, v, a, b, c, d, e, g, t, Eev, Er, Eb, Vb, Vc, Vd, Vx, Vy, Ra, Rb, Rc, Rd, Re\""
-		                     + std::string(" ")
-		                     + "-o " + aHNameProject
-		                     + std::string(" ")
-		                     + aHNameProject;
-		std::cout << "aCom4 = " << aCom4 << std::endl;
-		//~ system_call(aCom4.c_str());
 		                     
 		//include tie points from MicMac in the project file
-		std::string aCom5 = MMDir()
+		std::string aCom4 = MMDir()
 							+ std::string("bin/mm3d")
 							+ std::string(" ")
 							+ "TestLib GenHuginCp"
 							+ std::string(" ")
 							+ std::string("\"") + aPatL
-							//+ std::string("|") + aPatL2
 							+ std::string("\"") + std::string(" ")
 							+ aHNameProject
 							+ std::string(" ")
 							+ "HomolIn=_mini";
+		std::cout << "aCom4 = " << aCom4 << std::endl;
+		
+		//specify the variables to be optimized
+		std::string aCom5 = "pto_var --opt=\"v, y, p, r, TrX, TrY, TrZ, Tpy, Tpp, v, a, b, c, d, e, g, t, Eev, Er, Eb, Vb, Vc, Vd, Vx, Vy, Ra, Rb, Rc, Rd, Re\""
+		                     + std::string(" ")
+		                     + "-o " +  StdPrefixGen(aHNameProject) + "_Homol.pto"
+		                     + std::string(" ")
+		                     + StdPrefixGen(aHNameProject) + "_Homol.pto";
 		std::cout << "aCom5 = " << aCom5 << std::endl;
-		//~ system_call(aCom5.c_str());
 		
 		//lanch Hugin optimizer
-		std::string aCom6 = "autooptimiser -a -l -s -m -v"
-		                     + std::string(" ") + NumberToString(aFov)
+		//~ std::string aCom6 = "autooptimiser -a -l -s -m -v"
+		                     //~ + std::string(" ") + NumberToString(aFov)
+		                     //~ + std::string(" ")
+		                     //~ + "-o " + StdPrefixGen(aHNameProject) + "_Homol.pto"
+		                     //~ + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
+		//~ std::cout << "aCom6 = " << aCom6 << std::endl;
+		std::string aCom6 = "autooptimiser -a -l -s -m"
+		                     //+ std::string(" ") + NumberToString(aFov)
 		                     + std::string(" ")
 		                     + "-o " + StdPrefixGen(aHNameProject) + "_Homol.pto"
 		                     + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
 		std::cout << "aCom6 = " << aCom6 << std::endl;
-		//~ system_call(aCom6.c_str());
 		
 		//pano configuration
 		std::string aCom7 = "pano_modify -p " + NumberToString(aProj)
@@ -389,19 +396,16 @@ cOSPTPE_Appli::cOSPTPE_Appli(int argc,char ** argv)
 		                    + StdPrefixGen(aHNameProject) + "_Homol.pto"
 		                    + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
 		std::cout << "aCom7 = " << aCom7 << std::endl;
-		//~ system_call(aCom7.c_str());
 		                    
 		//generate individual images to be stiched
-		std::string aCom8 = "nona -z LZW -r ldr -m TIFF_m -o ImgsIndiv_" + NumberToString(aP) + "_" + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
+		std::string aCom8 = "nona -z LZW -r ldr -m TIFF_m -o ImgsIndiv_" + aVDir.at(aP) + "_"  + std::string(" ") + StdPrefixGen(aHNameProject) + "_Homol.pto";
 		std::cout << "aCom8 = " << aCom8 << std::endl;
-		//~ system_call(aCom8.c_str());
 		
 		//assembly for level N & level N+1
-		std::string aOutMosaic = "Mosaic_" + NumberToString(aP) + ".jpg";
+		std::string aOutMosaic = "Mosaic_" + aVDir.at(aP) + ".tif";
 		aVOM.push_back(aOutMosaic);
-		std::string aCom9 = "enblend --compression=90 ImgsIndiv_" + NumberToString(aP) + "*.*tif -o " +  aOutMosaic;
+		std::string aCom9 = "enblend --compression=none ImgsIndiv_" + aVDir.at(aP) + "_"  + "*.*tif -o " +  aOutMosaic;
 		std::cout << "aCom9 = " << aCom9 << std::endl;
-		//~ system_call(aCom9.c_str());
 		
 		//merge all in one commande
 		std::string aComM = aCom3 
@@ -706,6 +710,34 @@ cGHCFH_Appli::cGHCFH_Appli(int argc,char ** argv)
 int GenHuginCpFromHomol_main(int argc,char ** argv)
 {	
 	cGHCFH_Appli anAppli(argc,argv);
+	return EXIT_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+//Optimize Aero Processing
+class cOAP_Appli
+{
+	public :
+		cOAP_Appli(int argc,char ** argv);
+	private :
+		std::string mDir;
+		cInterfChantierNameManipulateur * mICNM;
+};
+
+cOAP_Appli::cOAP_Appli(int argc,char ** argv)
+{
+	//pipeline :
+	//keep only a part of images : 1/4 : enough overlap ?
+	//detect bandes by names (a band needs to have at least 3 images)
+	//do tie points between B(N-1) & B(N) & B(N+1) in a window style
+	//do BBA for each window B(N-1) & B(N) & B(N+1)
+	//merge all windows together with Morito
+	//generate AperiCloud of All images
+}
+
+int OptAeroProc_main(int argc,char ** argv)
+{
+	cOAP_Appli anAppli(argc,argv);
 	return EXIT_SUCCESS;
 }
 /*Footer-MicMac-eLiSe-25/06/2007
