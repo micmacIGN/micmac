@@ -350,7 +350,7 @@ int MvImgsByFile_main(int argc,char** argv)
 	
 	ELISE_fp::MkDirSvp(aTrashName);
 	
-	//read rtk input file
+	//read input file
     ifstream aFichier((aDir + aFile).c_str());
 
     if(aFichier)
@@ -376,6 +376,94 @@ int MvImgsByFile_main(int argc,char** argv)
 	return EXIT_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+//CAM, QIHLLeeeccC, TimeUS,GPSTime,GPSWeek,Lat,Lng,Alt,RelAlt,GPSAlt,Roll,Pitch,Yaw
+//CAM, 1260919656, 220518000, 1954, 48.8444203, 1.4597241, 158.37, 68.20, 158.16, 5.10, -2.80, 243.96
+struct CAM{
+	double TimeUS;
+	double GPSTime;
+	int GPSWeek;
+	double Lat;
+	double Lng;
+	double Alt;
+	double RelAlt;
+	double GPSAlt;
+	double Roll;
+	double Pitch;
+	double Yaw;
+};
+//GPS, QBIHBcLLefffB, TimeUS,Status,GMS,GWk,NSats,HDop,Lat,Lng,Alt,Spd,GCrs,VZ,U
+//GPS, 1180441285, 3, 220437600, 1954, 12, 0.91, 48.843854, 1.459903, 94.56, 0.027, 0, 0.004, 0
+//GPS2,1260807688, 6, 220518000, 1954, 12, 0.94, 48.8444246,1.4597341, 158.16, 3.331549, 243.3775, -0.6531352, 1
+struct GPS{
+	double TimeUS;
+	int Status;
+	double GMS;
+	double GWk;
+	int NSats;
+	double HDop;
+	double Lat;
+	double Lng;
+	double Alt;
+	double Spd;
+	int GCrs;
+	double VZ;
+	float U;
+};
+//POS, QLLfff, TimeUS,Lat,Lng,Alt,RelHomeAlt,RelOriginAlt
+//POS, 1180414380, 48.8438484, 1.4598758, 90.17, 0.006674996, 0.656675
+
+struct POS{
+	double TimeUS;
+	double Lat;
+	double Lon;
+	double Alt;
+	double RHAlt;
+	double ROAlt;
+};
+
+int GetInfosMPLF_main(int argc,char ** argv)
+{
+	std::string aDir="";
+	std::string aFile=""; //Mission Planner .log file
+	bool aShow=false;
+	
+	ElInitArgMain
+    (
+    argc,argv,
+    //mandatory arguments
+	LArgMain()  << EAMC(aDir,"Directory")
+				<< EAMC(aFile,"Log File of Mission Planner"),
+	LArgMain()  << EAM(aShow, "Show", false, "Display Pattern to use in cmd line ; Def=false",eSAM_IsBool)
+	);
+	
+	if (MMVisualMode) return EXIT_SUCCESS;
+	
+	//read input file
+    ifstream aFichier((aDir + aFile).c_str());
+
+    if(aFichier)
+    {
+		std::string aLine;
+        
+        while(!aFichier.eof())
+        {
+			getline(aFichier,aLine);
+			if(!aLine.empty())
+			{
+				ELISE_fp::MvFile(aLine,aTrashName);
+				std::cout << " Move image : " << aLine << "--> " << aTrashName << std::endl;
+			}
+		}
+	aFichier.close();
+	}
+	else
+    {
+		std::cout<< "Error While opening file" << '\n';
+	}
+	
+	return EXIT_SUCCESS;
+}
 
 //----------------------------------------------------------------------------
 class cTestElParseDir : public ElActionParseDir
