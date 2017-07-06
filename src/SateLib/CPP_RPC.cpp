@@ -1511,20 +1511,16 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		//Denominators (first one = 1)
 		direct_line_den_coef.push_back(1);
 		direct_samp_den_coef.push_back(1);
+		ab[0] = 1;
+		ad[0] = 1;
 		for (int i = 20; i < 39; i++)
 		{
 			direct_samp_den_coef.push_back(aDataLon[i]);
 			direct_line_den_coef.push_back(aDataLat[i]);
-		}
-
-		ab[0] = 1;
-		ad[0] = 1;
-
-		for (int i = 20; i<39; i++)
-		{
 			ab[i - 19] = aDataLon[i];
 			ad[i - 19] = aDataLat[i];
 		}
+
 
 		aV1 = (aSysLon.ResiduOfSol(aSolLon.data()) + aSysLat.ResiduOfSol(aSolLat.data())) / 78;
 		cout << "Residual = " << aV1 << " at iter " << iter << endl;
