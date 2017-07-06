@@ -228,6 +228,8 @@ int SimuLib_Main(int argc,char ** argv);
 
 extern int CPP_ProfilImage(int argc,char ** argv);
 
+extern int ExtractRaw_main(int argc,char ** argv);
+
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -428,6 +430,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("XYZ2Im",XYZ2Im_main," tool to transform a 3D point (text file) to their 2D proj in cam or cloud"));
        aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
        aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool to develop MPO stereo format in pair of images"));
+       aRes.push_back(cMMCom("ExtractRaw",ExtractRaw_main,"Convert raw image with XML descriptor to tiff "));
+
 
        aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images", cArgLogCom(3)));
        aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
@@ -655,7 +659,7 @@ int RTIGrad_main(int argc,char ** argv);
 int RTIFiltrageGrad_main(int argc,char ** argv);
 int RTI_RecalRadionmBeton_main(int argc,char ** argv);
 int RTI_PosLumFromOmbre_main(int argc,char ** argv);
-
+int GetInfosMPLF_main(int argc,char ** argv);
 int TestNewMergeTieP_main(int argc,char ** argv);
 int TestStephane_Main(int argc,char ** argv);
 
@@ -706,6 +710,7 @@ int TestYZ_main(int argc,char ** argv);
 extern int ReechHomol_main(int argc,char ** argv);
 extern int ExtraitHomol_main(int argc, char ** argv);
 extern int IntersectHomol_main(int argc, char ** argv);
+extern int ReechMAF_main(int argc, char ** argv);
 extern int EsSim_main(int argc,char ** argv);
 int ProcessThmImgs_main(int argc,char ** argv);
 
@@ -764,11 +769,11 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("TestER",TestER_filtRec_main,"ER test workplace"));
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
-       aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
-
+       aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud"));
+	   aRes.push_back(cMMCom("GetDataMPLF",GetInfosMPLF_main,"Extract informations from a Mission Planner .log file"));
 	   aRes.push_back(cMMCom("MvImgs",MvImgsByFile_main,"Move Images in a file to a trash folder"));
-       aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
-       aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
+       aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip)"));
+       aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P)"));
        aRes.push_back(cMMCom("TD_GenApp",TD_GenereAppuis_main,"TD Generate GCP"));
        aRes.push_back(cMMCom("TD_Test",TD_Exemple_main,"Test TD "));
        aRes.push_back(cMMCom("DocI0",DocEx_Intro0_main,"Introduction 0 of example from DocElise  "));
@@ -920,6 +925,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("ReechHomol",ReechHomol_main ,"Apply map to homol folders to correct thermal deformation"));
         aRes.push_back(cMMCom("ExtraitHomol",ExtraitHomol_main ,"Extract certain homol files"));
         aRes.push_back(cMMCom("IntersectHomol",IntersectHomol_main ,"Pseudo-intersection for tie points"));
+        aRes.push_back(cMMCom("ReechMAF",ReechMAF_main ,"Apply map to image measurement file"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
         aRes.push_back(cMMCom("ConvertTiePPs2MM",ConvertTiePPs2MM_main,"ConvertTiePPs2MM"));
