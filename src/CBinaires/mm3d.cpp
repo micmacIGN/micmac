@@ -639,13 +639,13 @@ int PlyGCP_main(int argc,char ** argv);
 int CmpMAF_main(int argc,char ** argv);
 int DoCmpByImg_main(int argc,char ** argv);
 int GenRayon3D_main(int argc,char ** argv);
-int SysCalled_main (int argc,char** argv);
-int SysCall_main (int argc,char** argv);
-
-
+int SysCalled_main(int argc,char** argv);
+int SysCall_main(int argc,char** argv);
+int RedImgsByN_main(int argc,char** argv);
+int OptAeroProc_main(int argc,char ** argv);
 int TestARCam_main(int argc,char ** argv);
 int CPP_TestPhysMod_Main(int argc,char ** argv);
-
+int MvImgsByFile_main(int argc,char** argv);
 int OneReechHom_main(int argc,char ** argv);
 int AllReechHom_main(int argc,char ** argv);
 int RTI_main(int argc,char ** argv);
@@ -703,6 +703,10 @@ int UnionFiltragePHom_Main(int argc,char ** argv);
 
 int TestYZ_main(int argc,char ** argv);
 
+extern int ReechHomol_main(int argc,char ** argv);
+extern int ExtraitHomol_main(int argc, char ** argv);
+extern int IntersectHomol_main(int argc, char ** argv);
+extern int ReechMAF_main(int argc, char ** argv);
 extern int EsSim_main(int argc,char ** argv);
 int ProcessThmImgs_main(int argc,char ** argv);
 
@@ -763,7 +767,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
 
-
+	   aRes.push_back(cMMCom("MvImgs",MvImgsByFile_main,"Move Images in a file to a trash folder"));
        aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
        aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
        aRes.push_back(cMMCom("TD_GenApp",TD_GenereAppuis_main,"TD Generate GCP"));
@@ -837,10 +841,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("PlySphere",PlySphere_main,"Tool to generate a sphere of point, ply format, tuning"));
         aRes.push_back(cMMCom("PlyGCP",PlyGCP_main,"Tool to generate a visualization of ply"));
         aRes.push_back(cMMCom("San2Ply",San2Ply_main,"Generate a Ply visualisation of an Analytical Surface"));
-
+	    aRes.push_back(cMMCom("RedImg",RedImgsByN_main,"Reduce Number of images : 1 out of N"));
         aRes.push_back(cMMCom("CASALL",CASALL_main,"Compute Analytic Surface Automatically  low level"));
         aRes.push_back(cMMCom("CalcAutoCorrel",CalcAutoCorrel_main,"Compute and Store Auto Correlation (if not already done)"));
-
+		aRes.push_back(cMMCom("OptAeroProc",OptAeroProc_main,"Optimize Aero Processing Datatset"));
         aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
         aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envelope for mode statue"));
         aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topological analysis before bascule"));
@@ -896,7 +900,11 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("TiepTriPrl",TiepTriPrl_main,"Paralelliser version of TiepTri",cArgLogCom(2)));
         aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));
-        aRes.push_back(cMMCom("TaskCorrel",TaskCorrelWithPts_main,"Creat Correlation Task XML file for TiepTri",cArgLogCom(2)));
+
+
+        aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri",cArgLogCom(2)));
+        aRes.push_back(cMMCom("TaskCorrelGCP",TaskCorrelWithPts_main,"Creat Correlation Task XML file for GCP By Mesh",cArgLogCom(2)));
+
         aRes.push_back(cMMCom("FAST",FAST_main,"Some Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)"));
         aRes.push_back(cMMCom("Homol2Way",Homol2Way_main ,"Creat same pack homol in 2 way by combination 2 pack of each way"));
         aRes.push_back(cMMCom("CplFromHomol",CplFromHomol_main ,"Creat xml of pair images from Homol Folder"));
@@ -910,6 +918,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("ConvNewFH",ConvertToNewFormatHom_Main ,"Convert Std Tie Points to new Formats for Multiple Point"));
         aRes.push_back(cMMCom("MergeFilterNewFH",UnionFiltragePHom_Main ,"Merge & Filter New Multiple Points"));
         aRes.push_back(cMMCom("TestYZ",TestYZ_main ,"TestYZ"));
+        aRes.push_back(cMMCom("ReechHomol",ReechHomol_main ,"Apply map to homol folders to correct thermal deformation"));
+        aRes.push_back(cMMCom("ExtraitHomol",ExtraitHomol_main ,"Extract certain homol files"));
+        aRes.push_back(cMMCom("IntersectHomol",IntersectHomol_main ,"Pseudo-intersection for tie points"));
+        aRes.push_back(cMMCom("ReechMAF",ReechMAF_main ,"Apply map to image measurement file"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
         aRes.push_back(cMMCom("ConvertTiePPs2MM",ConvertTiePPs2MM_main,"ConvertTiePPs2MM"));

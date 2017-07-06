@@ -1646,12 +1646,14 @@ normalises en echelle et/ou en translation -->
                           <NuagePutGCPCtrl Nb="?">
                                <NameGCPIm Nb="1" Type="std::string"> </NameGCPIm>
                                <NameGCPTerr Nb="1" Type="std::string"> </NameGCPTerr>
-			       <ScaleVec Nb="1" Type="double"> </ScaleVec>
-                            <!--   <StepDr   Nb="1" Type="double">      </StepDr>
+			       				<ScaleVec Nb="1" Type="double"> </ScaleVec>
+                            	<!--   <StepDr   Nb="1" Type="double">      </StepDr>
                                <RabDr    Nb="?" Type="double" Def="0.0">      </RabDr>
                                <ColRayInter    Nb="1" Type="Pt3di">      </ColRayInter>
                                <Epais     Nb="?" Type="double">      </Epais> -->
                           </NuagePutGCPCtrl>
+
+						  <NormByC Nb="?" Type="int"> </NormByC>
 
                      </ExportNuage>
 
