@@ -413,6 +413,7 @@ int IntersectHomol_main(int argc, char ** argv)
                     aCamCoord.Cam = cameraCourante;
                     aCamCoord.coord2d=coordCourant;
                     aVCamCoord.push_back(aCamCoord);
+                    cout << " bundle ++ " << endl;
                 }
                 aAllPts.CAC = aVCamCoord;
                 aVAllPts.push_back(aAllPts);
@@ -536,6 +537,71 @@ int IntersectHomol_main(int argc, char ** argv)
             std::cout<<aOutXml<<" written."<<std::endl;
         }
     }
+    return EXIT_SUCCESS;
+}
+
+int ReechMAF_main (int argc, char ** argv)
+{
+    std::string aDir, aMAF, aNameMAF, aTempFile, aOut="ReechMAF.xml", aExt;
+
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aMAF, "Image measurement file", eSAM_IsExistFile)
+                    << EAMC(aTempFile, "File of image temperature",eSAM_IsExistFile),
+        LArgMain()  << EAM(aOut,"Out",true,"Output resampled MAF, Def = ReechMAF.xml")
+                    << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
+    );
+
+    SplitDirAndFile(aDir,aNameMAF,aMAF);
+
+    // read temperature file
+    std::vector<ImgT> aVSIT = ReadImgTFile(aDir, aTempFile, aExt);
+    cout << "Temperature file size : " << aVSIT.size() << endl;
+
+    //input
+    cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aMAF,SetOfMesureAppuisFlottants);
+    std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
+
+    //output
+    cSetOfMesureAppuisFlottants aDicoOut;
+    std::list<cMesureAppuiFlottant1Im> aLMAFOut;
+    std::list<cOneMesureAF1I> aMesOut;
+    std::string aNameMapInit = "Deg_" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
+    cElMap2D * aMap = cElMap2D::FromFile(aNameMapInit);
+
+
+    for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
+    {
+
+        for (uint iV=0; iV < aVSIT.size(); iV++)
+        {
+            if(aVSIT.at(iV).ImgName.compare(iT1->NameIm()) == 0)
+            {
+                std::string aNameMap = "Deg_" + ToString(aVSIT.at(iV).ImgTemp) + ".xml";
+                * aMap->FromFile(aNameMap);
+            }
+        }
+
+        std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
+
+        for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
+        {
+            cOneMesureAF1I aOMAF1I;
+            aOMAF1I.NamePt() = iT2->NamePt();
+            aOMAF1I.PtIm() = Pt2dr(iT2->PtIm())*2- (*aMap)(Pt2dr(iT2->PtIm()));
+            aMesOut.push_back(aOMAF1I);
+        }
+            cMesureAppuiFlottant1Im   aMAF1Im;
+            aMAF1Im.NameIm() = "Reech_" + iT1->NameIm();
+            aMAF1Im.OneMesureAF1I() = aMesOut;
+            aLMAFOut.push_back(aMAF1Im);
+            aMesOut.clear();
+    }
+    aDicoOut.MesureAppuiFlottant1Im() = aLMAFOut;
+    MakeFileXML(aDicoOut,aOut);
+
     return EXIT_SUCCESS;
 }
 

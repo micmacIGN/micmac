@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
+<!--
+For reference:
+Sensor 1/3.2"        >>> <SzCaptMm>  3.42  4.54 </SzCaptMm>
+Sensor 1/3"          >>> <SzCaptMm>  3.60  4.80 </SzCaptMm>
+Sensor 1/2.6"        >>> <SzCaptMm>  4.10  5.50 </SzCaptMm>
+Sensor 1/2.5"        >>> <SzCaptMm>  4.29  5.76 </SzCaptMm>
+Sensor 1/2.3"        >>> <SzCaptMm>  6.17  4.56 </SzCaptMm>
+Sensor 1/1.7" Canon  >>> <SzCaptMm>  5.58  7.44 </SzCaptMm>
+Sensor 1/1.7" Pentax >>> <SzCaptMm>  5.70  7.60 </SzCaptMm>
+Sensor 2/3"          >>> <SzCaptMm>  6.60  8.80 </SzCaptMm>
+Sensor 16mm          >>> <SzCaptMm>  7.49 10.26 </SzCaptMm>
+Sensor Micro 4/3     >>> <SzCaptMm> 13.00 17.30 </SzCaptMm>
+Sensor APS-C Canon   >>> <SzCaptMm> 14.80 22.20 </SzCaptMm>
+Sensor APS-C Other   >>> <SzCaptMm> 15.60 23.70 </SzCaptMm>
+Sensor 35mm FF       >>> <SzCaptMm> 24.00 36.00 </SzCaptMm>
 
+This librariy comes with no warranty of accuracy, as some of the values are not always given by the manufactures, and therefor had to be estimated.
+-->
 <MMCameraDataBase>
 
    <CameraEntry>
@@ -139,6 +156,46 @@
         <Name>  NIKON D5000  </Name>
         <SzCaptMm>   16.0 24.0 </SzCaptMm>
         <ShortName> ND5000  </ShortName>
+   </CameraEntry>
+	<CameraEntry>
+        <Name>  NIKON D5100  </Name>
+        <SzCaptMm>   16.0 24.0 </SzCaptMm>
+        <ShortName> ND5100  </ShortName>
+   </CameraEntry>
+	<CameraEntry>
+        <Name>  NIKON D5200  </Name>
+        <SzCaptMm>   16.0 24.0 </SzCaptMm>
+        <ShortName> ND5200  </ShortName>
+   </CameraEntry>
+	<CameraEntry>
+        <Name>  NIKON D5300  </Name>
+        <SzCaptMm>   16.0 24.0 </SzCaptMm>
+        <ShortName> ND5300  </ShortName>
+   </CameraEntry>
+	<CameraEntry>
+        <Name>  NIKON D5500  </Name>
+        <SzCaptMm>   16.0 24.0 </SzCaptMm>
+        <ShortName> ND5500  </ShortName>
+   </CameraEntry>
+	<CameraEntry>
+        <Name>  NIKON D800  </Name>
+        <SzCaptMm>   24 36 </SzCaptMm>
+        <ShortName> ND800  </ShortName>
+   </CameraEntry>
+	<CameraEntry>
+        <Name>  NIKON D810  </Name>
+        <SzCaptMm>   24 36 </SzCaptMm>
+        <ShortName> ND810  </ShortName>
+   </CameraEntry>
+	<CameraEntry>
+        <Name>  NIKON D700  </Name>
+        <SzCaptMm>   24 36 </SzCaptMm>
+        <ShortName> ND700  </ShortName>
+   </CameraEntry>
+	<CameraEntry>
+        <Name>  NIKON D750  </Name>
+        <SzCaptMm>   24 36 </SzCaptMm>
+        <ShortName> ND750  </ShortName>
    </CameraEntry>
    <CameraEntry>
         <Name>  Video HD NIKON D90  </Name>
@@ -301,14 +358,49 @@
 		<ShortName> Panasonic DMC-G7  </ShortName>
 	</CameraEntry>
 	<CameraEntry>
-		<Name>  DMC-GH3 </Name>
+		<Name>  DMC-G70 </Name>
 		<SzCaptMm> 13 17.3 </SzCaptMm>
-		<ShortName> Panasonic DMC-GH3  </ShortName>
+		<ShortName> Panasonic DMC-G70  </ShortName>
 	</CameraEntry>
 	<CameraEntry>
-		<Name>  DMC-GH4 </Name>
+		<Name>  DMC-G80 </Name>
 		<SzCaptMm> 13 17.3 </SzCaptMm>
-		<ShortName> Panasonic DMC-GH4  </ShortName>
+		<ShortName> Panasonic DMC-G80  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-G800 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G800  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-G8000 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G8000  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-G9 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G9  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-G90 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G90  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-G900 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G900  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-G9000 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G9000  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GX7 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GX7  </ShortName>
 	</CameraEntry>
    	<CameraEntry>
 		<Name>  DMC-GX8 </Name>
@@ -320,43 +412,118 @@
 		<SzCaptMm> 13 17.3 </SzCaptMm>
 		<ShortName> Panasonic DMC-GX80  </ShortName>
 	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GX800 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GX800  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GX8000 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GX8000  </ShortName>
+	</CameraEntry>
+   	<CameraEntry>
+		<Name>  DMC-GX9 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GX9  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GX90 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GX90  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GX900 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GX900  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GX9000 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GX9000  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GH3 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GH3  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GH4 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GH4  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GH5 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GH5  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GH6 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GH6  </ShortName>
+	</CameraEntry>
 
 <!-- GoPro -->
 
 	<CameraEntry>
 		<Name> GoPro HD Hero </Name>
-		<SzCaptMm> 4.28 5.75 </SzCaptMm>
+		<SzCaptMm> 4.56 6.17 </SzCaptMm>
 		<ShortName> GoPro HD Hero </ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name> GoPro HD2</Name>
-		<SzCaptMm> 4.69 6.24 </SzCaptMm>
+		<SzCaptMm> 4.56 6.17 </SzCaptMm>
 		<ShortName> GoPro HD Hero 2</ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name> GoPro HERO3 White Edition</Name>
-		<SzCaptMm> 6.10 8.13 </SzCaptMm>
+		<SzCaptMm> 3.42 4.54 </SzCaptMm>
 		<ShortName> GoPro HD Hero 3</ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name> GoPro HERO3 Silver Edition</Name>
-		<SzCaptMm> 5.64 7.53 </SzCaptMm>
+		<SzCaptMm> 3.42 4.54 </SzCaptMm>
 		<ShortName> GoPro HD Hero 3</ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name> GoPro HERO3 Black Edition</Name>
-		<SzCaptMm> 6.63 8.84 </SzCaptMm>
+		<SzCaptMm> 4.56 6.17 </SzCaptMm>
 		<ShortName> GoPro HD Hero 3</ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name> GoPro HERO3+ Silver Edition</Name>
-		<SzCaptMm> 5.64 7.53 </SzCaptMm>
+		<SzCaptMm> 3.42 4.54 </SzCaptMm>
 		<ShortName> GoPro HD Hero 3</ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name> GoPro HERO3+ Black Edition</Name>
-		<SzCaptMm> 6.63 8.84 </SzCaptMm>
+		<SzCaptMm> 4.56 6.17 </SzCaptMm>
 		<ShortName> GoPro HD Hero 3</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO4 Session</Name>
+		<SzCaptMm> 3.42 4.54 </SzCaptMm>
+		<ShortName> GoPro HERO4 Session </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO4 Silver</Name>
+		<SzCaptMm> 4.56 6.17 </SzCaptMm>
+		<ShortName> GoPro HERO4 Silver </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO4 Black</Name>
+		<SzCaptMm> 4.56 6.17 </SzCaptMm>
+		<ShortName> GoPro HD Hero 4 Bk</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO5 Session</Name>
+		<SzCaptMm> 3.42 4.54 </SzCaptMm>
+		<ShortName> GoPro HERO5 Session </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO5 Black</Name>
+		<SzCaptMm> 4.56 6.17 </SzCaptMm>
+		<ShortName> GoPro HD Hero 5 Bk</ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name> GoPro YHDC5170 </Name>
