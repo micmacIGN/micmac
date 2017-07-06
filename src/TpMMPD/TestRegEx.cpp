@@ -451,8 +451,7 @@ int GetInfosMPLF_main(int argc,char ** argv)
 			getline(aFichier,aLine);
 			if(!aLine.empty())
 			{
-				ELISE_fp::MvFile(aLine,aTrashName);
-				std::cout << " Move image : " << aLine << "--> " << aTrashName << std::endl;
+
 			}
 		}
 	aFichier.close();

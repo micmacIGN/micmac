@@ -757,7 +757,7 @@ int schnaps_main(int argc,char ** argv)
     bool DoNotFilter=false;
     double aMinPercentCoverage=30;//if %coverage<aMinPercentCoverage, add to poubelle!
     bool aMove=false;//if true, move poubelle images to a folder named "Poubelle/"
-    std::string aNameTrashFolder = "Poubelle";
+    std::string aNameTrashFolder = "";
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
             <<"S trict           \n"
@@ -785,9 +785,15 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(aPoubelleName,"PoubelleName",true,string("Where to write suspicious pictures names, def=\"")+aPoubelleName+"\"")
                    << EAM(aMinPercentCoverage,"minPercentCoverage",true,"Minimum % of coverage to avoid adding to poubelle, def=30")
                    << EAM(aMove,"MoveBadImgs",true,"Move bad images to a trash folder called Poubelle, Def=false")
+                   << EAM(aNameTrashFolder,"OutTrash",true,"Output name of trash folder if moving bad images, Def=Poubelle")
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
+    
+    if(aNameTrashFolder == "")
+    {
+		aNameTrashFolder = "Poubelle";
+	}
 
 
     std::cout<<"Number of searching windows: "<<aNumWindows<<std::endl;
