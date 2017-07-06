@@ -639,13 +639,13 @@ int PlyGCP_main(int argc,char ** argv);
 int CmpMAF_main(int argc,char ** argv);
 int DoCmpByImg_main(int argc,char ** argv);
 int GenRayon3D_main(int argc,char ** argv);
-int SysCalled_main (int argc,char** argv);
-int SysCall_main (int argc,char** argv);
-
-
+int SysCalled_main(int argc,char** argv);
+int SysCall_main(int argc,char** argv);
+int RedImgsByN_main(int argc,char** argv);
+int OptAeroProc_main(int argc,char ** argv);
 int TestARCam_main(int argc,char ** argv);
 int CPP_TestPhysMod_Main(int argc,char ** argv);
-
+int MvImgsByFile_main(int argc,char** argv);
 int OneReechHom_main(int argc,char ** argv);
 int AllReechHom_main(int argc,char ** argv);
 int RTI_main(int argc,char ** argv);
@@ -767,7 +767,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
 
-
+	   aRes.push_back(cMMCom("MvImgs",MvImgsByFile_main,"Move Images in a file to a trash folder"));
        aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
        aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
        aRes.push_back(cMMCom("TD_GenApp",TD_GenereAppuis_main,"TD Generate GCP"));
@@ -841,10 +841,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("PlySphere",PlySphere_main,"Tool to generate a sphere of point, ply format, tuning"));
         aRes.push_back(cMMCom("PlyGCP",PlyGCP_main,"Tool to generate a visualization of ply"));
         aRes.push_back(cMMCom("San2Ply",San2Ply_main,"Generate a Ply visualisation of an Analytical Surface"));
-
+	    aRes.push_back(cMMCom("RedImg",RedImgsByN_main,"Reduce Number of images : 1 out of N"));
         aRes.push_back(cMMCom("CASALL",CASALL_main,"Compute Analytic Surface Automatically  low level"));
         aRes.push_back(cMMCom("CalcAutoCorrel",CalcAutoCorrel_main,"Compute and Store Auto Correlation (if not already done)"));
-
+		aRes.push_back(cMMCom("OptAeroProc",OptAeroProc_main,"Optimize Aero Processing Datatset"));
         aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
         aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envelope for mode statue"));
         aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topological analysis before bascule"));

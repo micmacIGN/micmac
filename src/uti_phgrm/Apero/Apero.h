@@ -1288,6 +1288,7 @@ typedef enum
   eModeAGPIm,
   eModeAGPHypso,
   eModeAGPNormale,
+  eModeAGPNormaleByC,//optical center
   eModeAGPNoAttr,
   eModeAGPNoPoint
 } eModeAGP;
