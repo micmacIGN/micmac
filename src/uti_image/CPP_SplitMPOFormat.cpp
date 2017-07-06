@@ -115,6 +115,48 @@ int SplitMPO_main(int argc,char ** argv)
     return 1;
 }
 
+extern std::string * TheGlobNameRaw;
+
+
+int ExtractRaw_main(int argc,char ** argv)
+{
+     std::string aFullName,aPost,aSpecif;
+
+     ElInitArgMain
+     (
+           argc,argv,
+           LArgMain() << EAMC(aFullName,"Full name (Dir+Pat)", eSAM_IsPatFile) 
+                      << EAMC(aPost,"Postfix", eSAM_IsPatFile)
+                      << EAMC(aSpecif,"file containing SpecifFormatRaw", eSAM_IsPatFile),
+           LArgMain() 
+                      
+     );
+     cElemAppliSetFile  anEASF;
+     anEASF.Init(aFullName);
+     TheGlobNameRaw = new std::string(aSpecif);
+
+     const cInterfChantierNameManipulateur::tSet * aSI = anEASF.SetIm();
+     for (int aKf=0 ; aKf<int(aSI->size()) ; aKf++)
+     {
+        std::string aNameIn = (*aSI)[aKf];
+        Tiff_Im aTifIn =  Tiff_Im::StdConvGen(aNameIn,1,true);
+
+        std::string aNameOut =  anEASF.mDir + aPost + StdPrefix(aNameIn) + ".tif";
+
+        Tiff_Im aTifOut
+                 (
+                    aNameOut.c_str(),
+                    aTifIn.sz(),
+                    aTifIn.type_el(),
+                    aTifIn.mode_compr(),
+                    aTifIn.phot_interp()
+                 );
+        
+         ELISE_COPY(aTifIn.all_pts(),aTifIn.in(),aTifOut.out());
+     }
+
+     return EXIT_SUCCESS;
+}
 
 //================================================================
 

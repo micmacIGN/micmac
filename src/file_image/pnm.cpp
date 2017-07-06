@@ -340,6 +340,8 @@ bool IsKnowImagePostFix(const std::string & aPostMix)
    return false;
 }
 
+std::string * TheGlobNameRaw = 0;
+
 cSpecifFormatRaw * GetSFRFromString(const std::string & aNameHdr)
 {
   static std::map<std::string,cSpecifFormatRaw *> aMapRes;
@@ -364,6 +366,9 @@ cSpecifFormatRaw * GetSFRFromString(const std::string & aNameHdr)
       {
            aNameFile = aDir + anICNM->Assoc1To1("NKS-Assoc-SpecifRaw",aNameSeul,true);
       }
+
+      if (TheGlobNameRaw!=0)  
+         aNameFile = *TheGlobNameRaw;
 
 
       if (ELISE_fp::exist_file(aNameFile))
