@@ -226,6 +226,12 @@ std::string GetString(tCPtr & aStr)
    //  std::cout << "STRIN=["<< aStr <<"]\n";
    aCptStr++;
 
+   while (*aStr && isspace(*aStr))
+   {
+       aStr++;
+       aCptCar++;
+   }
+
    if (IsCharSpec(*aStr))
    {
        aRes.push_back(aStr[0]);
@@ -234,11 +240,6 @@ std::string GetString(tCPtr & aStr)
        return aRes;
    }
 
-   while (*aStr && isspace(*aStr))
-   {
-       aStr++;
-       aCptCar++;
-   }
 
    while (*aStr && (!isspace(*aStr)) && (! IsCharSpec(*aStr)))
    {
