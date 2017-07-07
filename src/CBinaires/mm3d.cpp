@@ -1202,12 +1202,17 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    return  EXIT_FAILURE;
 }
 
+bool J4M()  //  indicate if we are in Jean Michael Muler Mic Mac ....
+{
+   return false;
+}
 
 int main(int argc,char ** argv)
 {
     ElTimer aT0;
     bool showDuration=false;
-    if (strcmp(argv[0],"mm3d")==0) //show nothing if called by makefile
+    if ((strcmp(argv[0],"mm3d")==0)  && J4M()) //show nothing if called by makefile  
+     // MPD @  Jean Michael, mets a jour la fonction J4M en te basant sur MPD_MM , ER_MM .....
     {
         showDuration=true;
         std::cout<<"Command: ";

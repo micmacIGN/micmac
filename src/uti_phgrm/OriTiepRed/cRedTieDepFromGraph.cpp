@@ -883,6 +883,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
                  ElSetMax(aS1.attr()->NbPtsMax(),anOri.NbPts());
                  aVecRes.push_back(Pt2df(anOri.Geom().Val().OrientAff().ResiduOr(),anOri.NbPts()));
             }
+std::cout << "MMMP Name= " <<   aS1.attr()->Name()  << "\n";
             aResiduOr = MedianPond(aVecRes);
         }
         const std::string & aName = aS1.attr()->Name();
