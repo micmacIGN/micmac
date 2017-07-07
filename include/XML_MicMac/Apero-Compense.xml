@@ -136,6 +136,7 @@
            <Symb>  RegDist2=0.0 </Symb>
            <Symb>  RegDistNbCase=0.0 </Symb>
            <Symb>  RegDistSeuil=0.0 </Symb>
+           <Symb>  RapTxt=""    </Symb>
 
        </DicoLoc>
 
@@ -517,6 +518,9 @@
 				     <EcartMax>  ${MaxResTieP} </EcartMax>
                                   </Pond>
                               </ObsLiaisons>
+		              <TxtRapDetaille>
+		                    <NameFile> ${RapTxt}</NameFile>
+		              </TxtRapDetaille>
                           </#WHEN>
 
                           <#WHEN  VTEST=${WithGCP}>
@@ -595,9 +599,6 @@
                                            <PondOnRotFinal> 1.0 </PondOnRotFinal>
                                         </GlobalDistPond>
                                     </#WHEN>
-
-
-
                                 </ObsBlockCamRig>
                           </#WHEN>
 

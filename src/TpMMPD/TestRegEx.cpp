@@ -293,8 +293,8 @@ int CleanPatByOri_main(int argc,char ** argv)
 	
 	return EXIT_SUCCESS;
 }
-//----------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------
 int RedImgsByN_main(int argc,char** argv)
 {
 	std::string aFullName, aDir, aPat, aOut="Selected_Images";
@@ -350,7 +350,7 @@ int MvImgsByFile_main(int argc,char** argv)
 	
 	ELISE_fp::MkDirSvp(aTrashName);
 	
-	//read rtk input file
+	//read input file
     ifstream aFichier((aDir + aFile).c_str());
 
     if(aFichier)
@@ -376,6 +376,240 @@ int MvImgsByFile_main(int argc,char** argv)
 	return EXIT_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+//CAM, QIHLLeeeccC, TimeUS,GPSTime,GPSWeek,Lat,Lng,Alt,RelAlt,GPSAlt,Roll,Pitch,Yaw
+//CAM, 1260919656, 220518000, 1954, 48.8444203, 1.4597241, 158.37, 68.20, 158.16, 5.10, -2.80, 243.96
+struct CAM{
+	double TimeUS;
+	double GPSTime;
+	int GPSWeek;
+	double Lat;
+	double Lng;
+	double Alt;
+	double RelAlt;
+	double GPSAlt;
+	double Roll;
+	double Pitch;
+	double Yaw;
+};
+//GPS, QBIHBcLLefffB, TimeUS,Status,GMS,GWk,NSats,HDop,Lat,Lng,Alt,Spd,GCrs,VZ,U
+//GPS, 1180441285, 3, 220437600, 1954, 12, 0.91, 48.843854, 1.459903, 94.56, 0.027, 0, 0.004, 0
+//GPS2,1260807688, 6, 220518000, 1954, 12, 0.94, 48.8444246,1.4597341, 158.16, 3.331549, 243.3775, -0.6531352, 1
+struct GPS{
+	double TimeUS;
+	int Status;
+	double GMS;
+	int GWk;
+	int NSats;
+	double HDop;
+	double Lat;
+	double Lng;
+	double Alt;
+	double Spd;
+	int GCrs;
+	double VZ;
+	float U;
+};
+//POS, QLLfff, TimeUS,Lat,Lng,Alt,RelHomeAlt,RelOriginAlt
+//POS, 1180414380, 48.8438484, 1.4598758, 90.17, 0.006674996, 0.656675
+struct POS{
+	double TimeUS;
+	double Lat;
+	double Lon;
+	double Alt;
+	double RHAlt;
+	double ROAlt;
+};
+
+int GetInfosMPLF_main(int argc,char ** argv)
+{
+	std::string aDir="";
+	std::string aFile=""; //Mission Planner .log file
+	bool aShow=false;
+	
+	ElInitArgMain
+    (
+    argc,argv,
+    //mandatory arguments
+	LArgMain()  << EAMC(aDir,"Directory")
+				<< EAMC(aFile,"Log File of Mission Planner"),
+	LArgMain()  << EAM(aShow, "Show", false, "Display Pattern to use in cmd line ; Def=false",eSAM_IsBool)
+	);
+	
+	if (MMVisualMode) return EXIT_SUCCESS;
+	
+	std::vector<CAM> aVCAM;
+	std::vector<GPS> aVGPS;
+	std::vector<GPS> aVGPS2;
+	std::vector<POS> aVPos;
+	
+	//read input file
+    ifstream aFichier((aDir + aFile).c_str());
+
+    if(aFichier)
+    {
+		std::string aLine;
+        
+        while(!aFichier.eof())
+        {
+			getline(aFichier,aLine);
+			
+			if(!aLine.empty())
+			{
+				//CAM, 1260919656, 220518000, 1954, 48.8444203, 1.4597241, 158.37, 68.20, 158.16, 5.10, -2.80, 243.96
+				if(aLine.compare(0,4,"CAM,") == 0)						
+				{
+					char *aBuffer = strdup((char*)aLine.c_str());
+					std::string aType = strtok(aBuffer," ");
+					std::string aTimeUS = strtok( NULL, " " );
+					std::string aGpsTime = strtok( NULL, " " );
+					std::string aGpsWeek = strtok( NULL, " " );
+					std::string aLat = strtok( NULL, " " );
+					std::string aLon = strtok( NULL, " " );
+					std::string aAlt = strtok( NULL, " " );
+					std::string aRelAlt = strtok( NULL, " " );
+					std::string aGpsAlt = strtok( NULL, " " );
+					std::string aRoll = strtok( NULL, " " );
+					std::string aPitch = strtok( NULL, " " );
+					std::string aYaw = strtok( NULL, " " );
+					
+					CAM aCamInfo;
+					aCamInfo.TimeUS = atof(aTimeUS.substr(0,aTimeUS.size()-1).c_str());
+					aCamInfo.GPSTime = atof(aGpsTime.substr(0,aGpsTime.size()-1).c_str());
+					aCamInfo.GPSWeek = atoi(aGpsWeek.substr(0,aGpsWeek.size()-1).c_str());
+					aCamInfo.Lat = atof(aLat.substr(0,aLat.size()-1).c_str());
+					aCamInfo.Lng = atof(aLon.substr(0,aLon.size()-1).c_str());
+					aCamInfo.Alt = atof(aAlt.substr(0,aAlt.size()-1).c_str());
+					aCamInfo.RelAlt = atof(aRelAlt.substr(0,aRelAlt.size()-1).c_str());
+					aCamInfo.GPSAlt = atof(aGpsAlt.substr(0,aGpsAlt.size()-1).c_str());
+					aCamInfo.Roll = atof(aRoll.substr(0,aRoll.size()-1).c_str());
+					aCamInfo.Pitch = atof(aPitch.substr(0,aPitch.size()-1).c_str());
+					aCamInfo.Yaw = atof(aYaw.substr(0,aYaw.size()-1).c_str());
+					
+					aVCAM.push_back(aCamInfo);
+					
+				
+				}
+				
+				//GPS, 1180441285, 3, 220437600, 1954, 12, 0.91, 48.843854, 1.459903, 94.56, 0.027, 0, 0.004, 0
+				if(aLine.compare(0,4,"GPS,") == 0)						
+				{
+					std::cout << "aLine = " << aLine << std::endl;
+					char *aBuffer = strdup((char*)aLine.c_str());
+					std::string aType = strtok(aBuffer," ");
+					std::string aTimeUS = strtok(aBuffer," ");
+					std::string aStatus = strtok(aBuffer," ");
+					std::string aGpsMilliSec = strtok(aBuffer," ");
+					std::string aGpsWeek = strtok(aBuffer," ");
+					std::string aNbrSat = strtok(aBuffer," ");
+					std::string aHdop = strtok(aBuffer," ");
+					std::string aLat = strtok( NULL, " " );
+					std::string aLon = strtok( NULL, " " );
+					std::string aAlt = strtok( NULL, " " );
+					std::string aSpeed = strtok( NULL, " " );
+					std::string aGcrs = strtok( NULL, " " );
+					std::string aVZ = strtok( NULL, " " );
+					std::string aU = strtok( NULL, " " );
+					
+					GPS aGPSInfo;
+					aGPSInfo.TimeUS = atof(aTimeUS.substr(0,aTimeUS.size()-1).c_str());
+					aGPSInfo.Status = atoi(aStatus.substr(0,aStatus.size()-1).c_str());
+					aGPSInfo.GMS = atof(aGpsMilliSec.substr(0,aGpsMilliSec.size()-1).c_str());
+					aGPSInfo.GWk = atoi(aGpsWeek.substr(0,aGpsWeek.size()-1).c_str());
+					aGPSInfo.NSats = atoi(aNbrSat.substr(0,aNbrSat.size()-1).c_str());
+					aGPSInfo.HDop = atof(aHdop.substr(0,aHdop.size()-1).c_str());
+					aGPSInfo.Lat = atof(aLat.substr(0,aLat.size()-1).c_str());
+					aGPSInfo.Lng = atof(aLon.substr(0,aLon.size()-1).c_str());
+					aGPSInfo.Alt = atof(aAlt.substr(0,aAlt.size()-1).c_str());
+					aGPSInfo.Spd = atof(aSpeed.substr(0,aSpeed.size()-1).c_str());
+					aGPSInfo.GCrs = atoi(aGcrs.substr(0,aGcrs.size()-1).c_str());
+					aGPSInfo.VZ = atof(aVZ.substr(0,aVZ.size()-1).c_str());
+					aGPSInfo.U = atof(aU.substr(0,aU.size()-1).c_str());
+					
+					aVGPS.push_back(aGPSInfo);
+					
+				}
+				
+				//~ //GPS2,1260807688, 6, 220518000, 1954, 12, 0.94, 48.8444246,1.4597341, 158.16, 3.331549, 243.3775, -0.6531352, 1
+				//~ if(aLine.compare(0,5,"GPS2,") == 0)						
+				//~ {
+					//~ char *aBuffer = strdup((char*)aLine.c_str());
+					//~ std::string aType = strtok(aBuffer," ");
+					//~ std::string aTimeUS = strtok(aBuffer," ");
+					//~ std::string aStatus = strtok(aBuffer," ");
+					//~ std::string aGpsMilliSec = strtok(aBuffer," ");
+					//~ std::string aGpsWeek = strtok(aBuffer," ");
+					//~ std::string aNbrSat = strtok(aBuffer," ");
+					//~ std::string aHdop = strtok(aBuffer," ");
+					//~ std::string aLat = strtok( NULL, " " );
+					//~ std::string aLon = strtok( NULL, " " );
+					//~ std::string aAlt = strtok( NULL, " " );
+					//~ std::string aSpeed = strtok( NULL, " " );
+					//~ std::string aGcrs = strtok( NULL, " " );
+					//~ std::string aVZ = strtok( NULL, " " );
+					//~ std::string aU = strtok( NULL, " " );
+					
+					//~ GPS aGPS2Info;
+					//~ aGPS2Info.TimeUS = atof(aTimeUS.substr(0,aTimeUS.size()-1).c_str());
+					//~ aGPS2Info.Status = atoi(aStatus.substr(0,aStatus.size()-1).c_str());
+					//~ aGPS2Info.GMS = atof(aGpsMilliSec.substr(0,aGpsMilliSec.size()-1).c_str());
+					//~ aGPS2Info.GWk = atoi(aGpsWeek.substr(0,aGpsWeek.size()-1).c_str());
+					//~ aGPS2Info.NSats = atoi(aNbrSat.substr(0,aNbrSat.size()-1).c_str());
+					//~ aGPS2Info.HDop = atof(aHdop.substr(0,aHdop.size()-1).c_str());
+					//~ aGPS2Info.Lat = atof(aLat.substr(0,aLat.size()-1).c_str());
+					//~ aGPS2Info.Lng = atof(aLon.substr(0,aLon.size()-1).c_str());
+					//~ aGPS2Info.Alt = atof(aAlt.substr(0,aAlt.size()-1).c_str());
+					//~ aGPS2Info.Spd = atof(aSpeed.substr(0,aSpeed.size()-1).c_str());
+					//~ aGPS2Info.GCrs = atoi(aGcrs.substr(0,aGcrs.size()-1).c_str());
+					//~ aGPS2Info.VZ = atof(aVZ.substr(0,aVZ.size()-1).c_str());
+					//~ aGPS2Info.U = atof(aU.substr(0,aU.size()-1).c_str());
+					
+					//~ aVGPS2.push_back(aGPS2Info);
+				//~ }
+				
+				//~ //POS, 1180414380, 48.8438484, 1.4598758, 90.17, 0.006674996, 0.656675
+				//~ if(aLine.compare(0,4,"POS,") == 0)
+				//~ {
+					//~ char *aBuffer = strdup((char*)aLine.c_str());
+					//~ std::string aType = strtok(aBuffer," ");
+					//~ std::string aTimeUS = strtok(aBuffer," ");
+					//~ std::string aLat = strtok(aBuffer," ");
+					//~ std::string aLon = strtok(aBuffer," ");
+					//~ std::string aAlt = strtok(aBuffer," ");
+					//~ std::string aRHAlt = strtok(aBuffer," ");
+					//~ std::string aROAlt = strtok(aBuffer," ");
+					
+					//~ POS aPosInfo;
+					//~ aPosInfo.TimeUS = atof(aTimeUS.substr(0,aTimeUS.size()-1).c_str());
+					//~ aPosInfo.Lat = atof(aLat.substr(0,aLat.size()-1).c_str());
+					//~ aPosInfo.Lon = atof(aLon.substr(0,aLon.size()-1).c_str());
+					//~ aPosInfo.Alt = atof(aAlt.substr(0,aAlt.size()-1).c_str());
+					//~ aPosInfo.RHAlt = atof(aRHAlt.substr(0,aRHAlt.size()-1).c_str());
+					//~ aPosInfo.ROAlt = atof(aROAlt.substr(0,aROAlt.size()-1).c_str());
+					
+					//~ aVPos.push_back(aPosInfo);
+					
+				//~ }
+				
+			}
+		}
+		
+	aFichier.close();
+	
+	}
+	
+	else
+    {
+		std::cout<< "Error While opening file" << '\n';
+	}
+	
+	std::cout << "Number of CAM Infos = " << aVCAM.size() << std::endl; 
+	std::cout << "Number of GPS Infos = " << aVGPS.size() << std::endl; 
+	//~ std::cout << "Number of GPS2 Infos = " << aVGPS2.size() << std::endl; 
+	//~ std::cout << "Number of POS Infos = " << aVPos.size() << std::endl; 
+	
+	return EXIT_SUCCESS;
+}
 
 //----------------------------------------------------------------------------
 class cTestElParseDir : public ElActionParseDir
