@@ -42,6 +42,393 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+class cFilterImPolI;
+class cResFilterPolI;
+class cArgFilterPolI;
+
+//*********************************************
+
+class cArgFilterPolI
+{
+    public :
+      cArgFilterPolI(const std::string & aSymb) :
+          mNameIn  (aSymb),
+          mBox     (0)
+      {
+      }
+
+      std::vector<Fonc_Num>      mVIn;
+      const std::string          mNameIn;
+      std::vector<std::string>   mVArgs;
+      Box2di *                   mBox;
+};
+
+typedef Fonc_Num  (* tPtrCalcFF)( cFilterImPolI &, const cArgFilterPolI &);
+
+class cResFilterPolI
+{
+     public :
+        
+        cResFilterPolI(Fonc_Num aF,Box2di * aBox,std::string aSymbSpec="") :
+            mFonc     (aF),
+            mBox      (aBox),
+            mSymbSpec (aSymbSpec)
+        {
+        }
+
+        Fonc_Num     mFonc;
+        Box2di*      mBox;
+        std::string  mSymbSpec;
+};
+
+
+Box2di * UnionBoxPtrWithDel(Box2di * aBox1,Box2di * aBox2)
+{
+   if (aBox1==0) return aBox2;
+   if (aBox2==0) return aBox1;
+
+   Box2di * aRes = new Box2di(Sup(*aBox1,*aBox2));
+   delete aBox1;
+   delete aBox2;
+   return aRes;
+}
+
+
+class cFilterImPolI
+{
+    public :
+
+       cFilterImPolI(tPtrCalcFF,int aNbFoncIn,int aNbFoncMax,int aNbArgNum,int aNbArgMax,const std::string & aPat);
+
+
+       tPtrCalcFF mCalc;
+       int        mNbFoncIn;
+       int        mNbFoncMax;
+       int        mNbArgNum;
+       int        mNbArgMax;
+       std::string mPat;
+       cElRegex    mAutom;
+};
+
+cFilterImPolI::cFilterImPolI(tPtrCalcFF aCalc,int aNbFoncIn,int  aNbFoncMax,int aNbArgNum,int  aNbArgMax,const std::string & aPat) :
+    mCalc      (aCalc),
+    mNbFoncIn  (aNbFoncIn),
+    mNbFoncMax (aNbFoncMax),
+    mNbArgNum  (aNbArgNum),
+    mNbArgMax  (aNbArgMax),
+    mPat       (aPat),
+    mAutom     (mPat,10)
+{
+}
+
+static double ToDouble(const std::string & aStr)
+{
+    double aRes;
+    FromString(aRes,aStr);
+    return aRes;
+}
+
+// Fonc_Num  (* tPtrCalcFF)(cFilterImPolI &,Fonc_Num aFoncIn,const std::string aNameIn,const std::vector<std::string> & aVArgs);
+
+
+static Fonc_Num FAssoc(const cArgFilterPolI & anArg,  const OperAssocMixte & anOp)
+{
+   Fonc_Num aRes = anOp.opf(anArg.mVIn.at(0),anArg.mVIn.at(1));
+   for (int aK=2 ; aK<int(anArg.mVIn.size()) ; aK++)
+       aRes = anOp.opf(aRes,anArg.mVIn.at(aK));
+   return aRes;
+}
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FMul(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+   return FAssoc(anArg,OpMul);
+}
+static cFilterImPolI  OperMul(FMul,2,10000,0,0,"\\*");
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FPlus(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+   return FAssoc(anArg,OpSum);
+}
+static cFilterImPolI  OperPlus(FPlus,2,10000,0,0,"\\+");
+
+
+  //----------------------------------------------------------------
+static Fonc_Num FTif(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+   return  Tiff_Im::StdConvGen(anArg.mNameIn,-1,true).in_proj();
+}
+static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|jpg|jpeg)");
+  //----------------------------------------------------------------
+static Fonc_Num FCste(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+   double aRVal = ToDouble(anArg.mNameIn);
+   int    aIVal = round_ni(aRVal);
+
+   if (aIVal==aRVal) return Fonc_Num(aIVal);
+
+   return   Fonc_Num(aRVal);
+}
+static cFilterImPolI  OperCste(FCste,0,0,0,0,"-?[0-9]+(\\.[0-9]*)?");
+
+
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FDeriche(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+   return   deriche(anArg.mVIn.at(0) ,ToDouble(anArg.mVArgs.at(0)),20);
+}
+
+static cFilterImPolI  OperDeriche(FDeriche,1,1,1,1,"deriche");
+
+  //----------------------------------------------------------------
+
+
+static std::vector<cFilterImPolI *>  VPolI()
+{
+    static std::vector<cFilterImPolI *> aRes;
+
+    if (aRes.size()==0)
+    {
+         aRes.push_back(&OperTif);
+         aRes.push_back(&OperPlus);
+         aRes.push_back(&OperMul);
+         aRes.push_back(&OperDeriche);
+         aRes.push_back(&OperCste);
+    }
+
+    return aRes;
+}
+
+//=============================
+
+typedef const char * tCPtr;
+
+static int aCptStr=0;
+static int aCptCar=0;
+static std::string aLast;
+static std::string aStrGlob;
+
+static const std::string TheCharSpec="()";
+
+static bool IsCharSpec(const char aCar)
+{
+  return TheCharSpec.find(aCar)!=std::string::npos;
+}
+
+std::string GetString(tCPtr & aStr)
+{
+   std::string aRes;
+   //  std::cout << "STRIN=["<< aStr <<"]\n";
+   aCptStr++;
+
+   if (IsCharSpec(*aStr))
+   {
+       aRes.push_back(aStr[0]);
+       aStr++;
+       aCptCar++;
+       return aRes;
+   }
+
+   while (*aStr && isspace(*aStr))
+   {
+       aStr++;
+       aCptCar++;
+   }
+
+   while (*aStr && (!isspace(*aStr)) && (! IsCharSpec(*aStr)))
+   {
+        aRes += *aStr;
+        aStr++;
+        aCptCar++;
+   }
+
+   //  std::cout << "STROUT=["<< aStr <<"]\n";
+   //  std::cout << "RES=["<< aRes <<"]\n";
+   if (aRes=="")
+   {
+       std::cout << "After reading [" << aStrGlob.substr(0,aCptCar) << "]\n";
+       ELISE_ASSERT(false,"unexcpted end of string");
+   }
+
+
+   aLast = aRes;
+   return aRes;
+}
+
+cResFilterPolI RecParseStrFNPolI(tCPtr & aStr)
+{
+    std::string  aSymb = GetString(aStr);
+
+    if (aSymb==")")
+    {
+        return cResFilterPolI(0,0,")");
+    }
+
+    bool aParOuv=false;
+
+    if (aSymb=="(")
+    {
+       aParOuv=true;
+       aSymb = GetString(aStr);
+       ELISE_ASSERT(aSymb!="(","Conesecutive ( in expr");
+    }
+
+/*
+    bool ParOuv = aSymb[0] == '(';
+    if (ParOuv) 
+       aSymb = aSymb.subtsr(1,std::string::npos);
+*/
+
+    std::vector<cFilterImPolI *>  aVPol =  VPolI();
+
+    for (int aK=0 ; aK<int(aVPol.size()) ; aK++)
+    {
+        cFilterImPolI & aPolI = *(aVPol[aK]);
+        if (aPolI.mAutom.Match(aSymb))
+        {
+            int aNbFonc =  aParOuv ? aPolI.mNbFoncMax : aPolI.mNbFoncIn ;
+
+            cArgFilterPolI anArg(aSymb);
+            bool GotParFerm=false;
+            for (int aK=0 ; (aK<aNbFonc) && (!GotParFerm)  ; aK++)
+            {
+                 cResFilterPolI aRFPI = RecParseStrFNPolI(aStr);
+                 if (aRFPI.mSymbSpec==")")
+                 {
+                     GotParFerm =true;
+                 }
+                 else
+                 {
+                    anArg.mVIn.push_back(aRFPI.mFonc);
+                    anArg.mBox = UnionBoxPtrWithDel(anArg.mBox,aRFPI.mBox);
+                 }
+            }
+            ELISE_ASSERT(int(anArg.mVIn.size())>= aPolI.mNbFoncIn ,"Insufficient number func after parenthes");
+
+
+
+            for (int aK=0 ; aK<aPolI.mNbArgNum && (!GotParFerm) ; aK++)
+            {
+                 anArg.mVArgs.push_back(GetString(aStr));
+            }
+
+            if (&aPolI==&OperTif)
+            {
+               Tiff_Im aTif =  Tiff_Im::StdConvGen(aSymb,-1,true);
+               anArg.mBox = new Box2di(Pt2di(0,0),aTif.sz());
+            }
+
+            return  cResFilterPolI(aPolI.mCalc(aPolI,anArg),anArg.mBox);
+        }
+    }
+
+    std::cout << "For symb=[" << aSymb << "]\n";
+    ELISE_ASSERT(false,"could not recognize symbol");
+
+    return * ((cResFilterPolI *) 0);
+}
+
+cResFilterPolI GlobParseStrFNPolI(tCPtr & aStr)
+{
+    aStrGlob = aStr;
+
+    return RecParseStrFNPolI(aStr);
+}
+
+
+int Nikrup_main(int argc,char ** argv)
+{
+    std::string anExpr;
+    std::string aNameOut;
+    Box2di       aBoxOut;
+    GenIm::type_el aType=  GenIm::real4;
+    int aNbChan;
+
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(anExpr,"Expression")
+                     << EAMC(aNameOut,"File for resulta"),
+         LArgMain()  << EAM(aBoxOut,"Box",true,"Box of result, def computed according to files definition")
+                     << EAM(aNbChan,"NbChan",true,"Number of output chan, def 3 if input %3, else 1")
+    );
+
+    // std::cout << "EXPR=[" << anExpr << "]\n";
+
+    // anExpr = anExpr + " ";
+    
+     const char * aCPtr = anExpr.c_str();
+     cResFilterPolI aRFPI =  GlobParseStrFNPolI(aCPtr);
+
+     if (!EAMIsInit(&aBoxOut))
+     {
+         ELISE_ASSERT(aRFPI.mBox,"Cannot compute size");
+         aBoxOut = *aRFPI.mBox;
+     }
+     Pt2di aSzOut = aBoxOut.sz();
+     Fonc_Num aFonc = aRFPI.mFonc;
+
+     int aDimOut = aFonc.dimf_out();
+     if (! EAMIsInit(&aNbChan))
+     {
+         aNbChan = (aDimOut%3) ? 1 : 3;
+     }
+
+     ELISE_ASSERT((aNbChan==1) || (aNbChan==3),"Cant handle 1 or 3 channel as out");
+     ELISE_ASSERT((aDimOut%aNbChan)==0,"Nb channel sepcified is not a divisor of channel got");
+      
+
+     int aNbOut = aDimOut / aNbChan;
+
+
+     Tiff_Im::PH_INTER_TYPE aPIT = (aNbChan==1) ? Tiff_Im::BlackIsZero : Tiff_Im::RGB;
+
+     Output  anOutGlob = Output::onul(0);
+
+     for (int aK=0 ; aK<aNbOut ; aK++)
+     {
+          std::string aNameK =  aNameOut;
+          if (aNbOut>1)
+             aNameK = "Nkrp-" + ToString(aK) + aNameOut;
+
+          Tiff_Im aTifOut
+                 (
+                    aNameK.c_str(),
+                    aSzOut,
+                    aType,
+                    Tiff_Im::No_Compr,
+                    aPIT
+                 );
+          Output anOutK = aTifOut.out();
+
+          anOutGlob = (aK==0) ?  anOutK : Virgule(anOutGlob,anOutK);
+     }
+
+
+     ELISE_COPY
+     (
+         rectangle(Pt2di(0,0),aSzOut),
+         trans(aFonc,aBoxOut._p0),
+         anOutGlob
+     );
+
+     return EXIT_SUCCESS;
+}
+
+#if (0)
+#endif
+
+// static cFilterImPolI  TheFilterPlus(,
+
+
+
+
+
 #define DEF_OFSET -12349876
 
 
