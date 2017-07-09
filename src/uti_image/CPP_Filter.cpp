@@ -131,29 +131,30 @@ static double ToDouble(const std::string & aStr)
 // Fonc_Num  (* tPtrCalcFF)(cFilterImPolI &,Fonc_Num aFoncIn,const std::string aNameIn,const std::vector<std::string> & aVArgs);
 
 
-static Fonc_Num FAssoc(const cArgFilterPolI & anArg,  const OperAssocMixte & anOp)
+  //----------------------------------------------------------------
+
+static Fonc_Num FAssoc(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
 {
+  const OperAssocMixte & anOp =   *(OperAssocMixte::GetFromName(anArg.mNameIn));
+
    Fonc_Num aRes = anOp.opf(anArg.mVIn.at(0),anArg.mVIn.at(1));
    for (int aK=2 ; aK<int(anArg.mVIn.size()) ; aK++)
        aRes = anOp.opf(aRes,anArg.mVIn.at(aK));
    return aRes;
 }
 
-  //----------------------------------------------------------------
-
-static Fonc_Num FMul(cFilterImPolI &,const cArgFilterPolI & anArg)
-{
-   return FAssoc(anArg,OpMul);
-}
-static cFilterImPolI  OperMul(FMul,2,10000,0,0,"\\*");
+static cFilterImPolI  OperAssoc(FAssoc,2,10000,0,0,"\\*|\\+|max|min");
 
   //----------------------------------------------------------------
 
-static Fonc_Num FPlus(cFilterImPolI &,const cArgFilterPolI & anArg)
+static Fonc_Num FOperBin(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
 {
-   return FAssoc(anArg,OpSum);
+    tOperFuncBin  anOper = OperFuncBinaireFromName(anArg.mNameIn);
+
+    return anOper(anArg.mVIn.at(0),anArg.mVIn.at(1));
 }
-static cFilterImPolI  OperPlus(FPlus,2,10000,0,0,"\\+");
+static std::string TheStrOpB="\\-|/|pow|>=|>|<|<=|==|!=|&|&&|(\\|)|(\\|\\|)|\\^|%|mod|>>|<<";
+static cFilterImPolI  OperBin(FOperBin,2,2,0,0,TheStrOpB);
 
 
   //----------------------------------------------------------------
@@ -162,6 +163,21 @@ static Fonc_Num FTif(cFilterImPolI &,const cArgFilterPolI & anArg)
    return  Tiff_Im::StdConvGen(anArg.mNameIn,-1,true).in_proj();
 }
 static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|jpg|jpeg)");
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FCoord(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+   int aKC =0 ;
+   if (anArg.mNameIn.size() == 1)
+      aKC =  anArg.mNameIn[0]- 'X';
+   else
+      aKC= round_ni(ToDouble(anArg.mNameIn.substr(1,std::string::npos)));
+
+   return  kth_coord(aKC);
+}
+
+static cFilterImPolI  OperCoord(FCoord,0,0,0,0,"X|Y|Z|X[0-9]+");
   //----------------------------------------------------------------
 static Fonc_Num FCste(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
@@ -174,8 +190,6 @@ static Fonc_Num FCste(cFilterImPolI &,const cArgFilterPolI & anArg)
 }
 static cFilterImPolI  OperCste(FCste,0,0,0,0,"-?[0-9]+(\\.[0-9]*)?");
 
-
-
   //----------------------------------------------------------------
 
 static Fonc_Num FDeriche(cFilterImPolI &,const cArgFilterPolI & anArg)
@@ -187,6 +201,16 @@ static cFilterImPolI  OperDeriche(FDeriche,1,1,1,1,"deriche");
 
   //----------------------------------------------------------------
 
+static Fonc_Num FPolar(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+   return   polar(anArg.mVIn.at(0),0);
+}
+
+static cFilterImPolI  OperPolar(FPolar,1,1,0,0,"polar");
+
+  //----------------------------------------------------------------
+
+
 
 static std::vector<cFilterImPolI *>  VPolI()
 {
@@ -194,11 +218,15 @@ static std::vector<cFilterImPolI *>  VPolI()
 
     if (aRes.size()==0)
     {
+         aRes.push_back(&OperBin);
          aRes.push_back(&OperTif);
-         aRes.push_back(&OperPlus);
-         aRes.push_back(&OperMul);
+         aRes.push_back(&OperAssoc);
+         aRes.push_back(&OperCoord);
+         // aRes.push_back(&OperPlus);
+         // aRes.push_back(&OperMul);
          aRes.push_back(&OperDeriche);
          aRes.push_back(&OperCste);
+         aRes.push_back(&OperPolar);
     }
 
     return aRes;
