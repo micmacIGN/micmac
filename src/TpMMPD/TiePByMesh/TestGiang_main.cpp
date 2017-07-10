@@ -456,8 +456,8 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     Pt2dr aRange(0.0,0.0);
     bool relative = true;
     double resMaxTapas = 3.0;
-    string aPlyRes="Cloud_Residu.ply";
-    string aPlyEmp="Cloud_Emp.ply";
+    string aPlyRes="Res_";
+    string aPlyEmp="Emp_";
     double seuilBH = 0.0;
     Pt3dr aHistoRes(0,0,0);
     ElInitArgMain
@@ -508,13 +508,15 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     cout<<"VPMul - Nb Config: "<<aSHIn->VPMul().size()<<endl;
     std::vector<cSetPMul1ConfigTPM *> aVCnf = aSHIn->VPMul();
 
-    vector<double> aVResidu;
-    vector<Pt3dr> aVAllPtInter;
-    vector<int> aVNbImgOvlap;
+    vector<double> aVResidu;            // residue de tout les points dans pack
+    vector<Pt3dr> aVAllPtInter;         // Coordonne 3D de tout les points dans pack
+    vector<int> aVNbImgOvlap;           // Nb Overlape de tout les points 3D dans pack
 
-    vector<int> aStats(aSHIn->NbIm());
-    vector<int> aStatsValid;
+    vector<int> aStats(aSHIn->NbIm());  // Vector contient multiplicite de pack, index d'element du vector <=> multiplicite, valeur d'element <=> nb point
+    vector<int> aStatsInRange(aSHIn->NbIm()); // Vector contient multiplicite de pack dans 1 gamme de residue defini, index d'element du vector <=> multiplicite, valeur d'element <=> nb point
+    vector<int> aStatsValid;            // Vector contient multiplicite existe de pack, valeur d'element <=> multiplicité
 
+    int nbPtsInRange = 0;
     double resMax = 0.0;
     double resMin = DBL_MAX;
     for (uint aKCnf=1; aKCnf<aVCnf.size(); aKCnf++)
@@ -575,6 +577,7 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     cout<<"Res max = "<<resMax<<" -res Min = "<<resMin<<endl;
     for (uint aKPt=0; aKPt<aVAllPtInter.size(); aKPt++)
     {
+        //parcourir tout les points
         if (!relative)
         {
             aCPlyRes.AddPt(gen_coul_heat_map(aVResidu[aKPt], aRange.x,  aRange.y), aVAllPtInter[aKPt]);
@@ -585,14 +588,23 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
         }
         aCPlyEmp.AddPt(gen_coul_emp(aVNbImgOvlap[aKPt]), aVAllPtInter[aKPt]);
         //===== stats Multiplicite ========
-        aStats[aVNbImgOvlap[aKPt]]++;
-        //voir si dans aStatsValid exist aVNbImgOvlap[aKPt]
-        if (!(std::find(aStatsValid.begin(), aStatsValid.end(), aVNbImgOvlap[aKPt]) != aStatsValid.end()))
+        int nbImgsVu1Pts = aVNbImgOvlap[aKPt];
+        aStats[nbImgsVu1Pts]++;
+        if (aVResidu[aKPt] >= aRange.x && aVResidu[aKPt]<=aRange.y)
         {
-            aStatsValid.push_back(aVNbImgOvlap[aKPt]);
+            aStatsInRange[nbImgsVu1Pts]++;
+            nbPtsInRange++;
+        }
+        //voir si dans aStatsValid exist nbImgsVu1Pts
+        if (!(std::find(aStatsValid.begin(), aStatsValid.end(), nbImgsVu1Pts) != aStatsValid.end()))
+        {
+            //si exist pas
+            aStatsValid.push_back(nbImgsVu1Pts);
         }
         //==================================
     }
+    aPlyRes = aPlyRes + aOri + ".ply";
+    aPlyEmp = aPlyEmp + aOri + ".ply";
     aCPlyRes.PutFile(aPlyRes);
     aCPlyEmp.PutFile(aPlyEmp);
 
@@ -607,6 +619,15 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     for (uint ikLine=0; ikLine<aStatsValid.size(); ikLine++)
         statsFile << aStatsValid[ikLine] <<" "<<aStats[aStatsValid[ikLine]]<<" "<< (double(aStats[aStatsValid[ikLine]])/double(aVAllPtInter.size()))*100.0 <<endl;
 
+    if (!relative)
+    {
+        statsFile << "============  Range  ==========="<<aRange.x<<" -> "<<aRange.y<<"  ============="<<endl;
+        statsFile << "Stats Multiplicite"<<endl;
+        statsFile << "Nb Pts Total : "<<nbPtsInRange<<endl;
+        statsFile << "NbMul  NbPts  %"<<endl;
+        for (uint ikLine=0; ikLine<aStatsValid.size(); ikLine++)
+            statsFile << aStatsValid[ikLine] <<" "<<aStatsInRange[aStatsValid[ikLine]]<<" "<<(double(aStatsInRange[aStatsValid[ikLine]])/double(nbPtsInRange))*100.0 <<endl;
+    }
     //==================================
 
     //===== Histo Residue ==============
