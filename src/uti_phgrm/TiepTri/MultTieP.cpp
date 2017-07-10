@@ -216,11 +216,11 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
 
    mEASF.Init(mPatImage);
    mFilesIm = mEASF.SetIm();
-ELISE_fp::RmFileIfExist("NewOriTmpQuick");
-ELISE_fp::RmFileIfExist("NewOriTmp" + mSH + "Quick");
+        ELISE_fp::RmFileIfExist("NewOriTmpQuick");              // => Giang : bug ambiguous : delete all result of NO_AllOri2Im before convert homol ?
+        ELISE_fp::RmFileIfExist("NewOriTmp" + mSH + "Quick");
    if (mDoNewOri)
    {
-        std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false " + " SH=" + mSH;
+        std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false " + " SH=" + mSH + " AUS=true";
         cout<<aCom<<endl;
         System(aCom);
 
