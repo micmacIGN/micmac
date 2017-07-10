@@ -39,8 +39,33 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+template <typename T> string NumberToString(T Number)
+{
+	ostringstream ss;
+    ss << Number;
+    return ss.str();
+}
 
+template <typename T1, typename T2>
+struct t_unpair
+{
+	T1& a1;
+	T2& a2;
+	explicit t_unpair( T1& a1, T2& a2 ): a1(a1), a2(a2) { }
+	t_unpair<T1,T2>& operator = (const pair<T1,T2>& p)
+    {
+		a1 = p.first;
+		a2 = p.second;
+		return *this;
+    }
+};
 
+template <typename T1, typename T2>
+t_unpair<T1,T2> unpair( T1& a1, T2& a2 )
+{
+  return t_unpair<T1,T2>( a1, a2 );
+}
+  
 //----------------------------------------------------------------------------
 int TestRegEx_main(int argc,char ** argv)
 {
@@ -209,7 +234,6 @@ int GenFilePairs_main(int argc,char ** argv)
 	
 	return EXIT_SUCCESS;
 }
-/******************************************************/
 
 //----------------------------------------------------------------------------
 int CleanPatByOri_main(int argc,char ** argv)
@@ -377,11 +401,21 @@ int MvImgsByFile_main(int argc,char** argv)
 }
 
 //----------------------------------------------------------------------------
+const double JD2000 = 2451545.0; 	// J2000 in jd
+const double J2000 = 946728000.0; 	// J2000 in seconds starting from 1970-01-01T00:00:00
+const double MJD2000 = 51544.5; 	// J2000 en mjd
+const double GPS0 = 315964800.0; 	// 1980-01-06T00:00:00 in seconds starting from 1970-01-01T00:00:00
+const int LeapSecond = 18;			// GPST-UTC=18s
+
+struct towTime{
+	double GpsWeek;
+	double Tow; //or wsec
+};
 //CAM, QIHLLeeeccC, TimeUS,GPSTime,GPSWeek,Lat,Lng,Alt,RelAlt,GPSAlt,Roll,Pitch,Yaw
 //CAM, 1260919656, 220518000, 1954, 48.8444203, 1.4597241, 158.37, 68.20, 158.16, 5.10, -2.80, 243.96
 struct CAM{
 	double TimeUS;
-	double GPSTime;
+	double GPSTime; // in milliseconds
 	int GPSWeek;
 	double Lat;
 	double Lng;
@@ -398,7 +432,7 @@ struct CAM{
 struct GPS{
 	double TimeUS;
 	int Status;
-	double GMS;
+	double GMS;  // in milliseconds
 	int GWk;
 	int NSats;
 	double HDop;
@@ -421,22 +455,600 @@ struct POS{
 	double ROAlt;
 };
 
-int GetInfosMPLF_main(int argc,char ** argv)
+struct hmsTime{
+	double Year;
+	double Month;
+	double Day;
+	double Hour;
+	double Minute;
+	double Second;
+};
+
+//class
+class cMPLOG_Appli
 {
-	std::string aDir="";
-	std::string aFile=""; //Mission Planner .log file
-	bool aShow=false;
+	public:
+		cMPLOG_Appli(int argc,char ** argv);
+		double towTime2MJD(const towTime & Time, const std::string & TimeSys);
+		void ConvCAM2XML(std::vector<CAM> aVCAM, std::string aXmlOut, std::string aStrChSys, Pt3dr aShift);
+		void ConvCam2Traj(std::vector<CAM> aVCAM, std::vector<Pt3dr> & aVTraj);
+		void ConvGps2Traj(std::vector<GPS> aVCAM, std::vector<Pt3dr> & aVTraj);
+		void ConvGPS2XML(std::vector<GPS> aVGPS, std::string aXmlOut, std::string aStrChSys, Pt3dr aShift);
+		void ConvXML2Ply(std::string aXmlIn, bool aSBFP, Pt3di aCol);
+		void MatchCAMWithPat(std::vector<CAM> aVCAM, std::string aFullPat, std::string aOriOut, bool aShow, double aSeuil);
+		void CheckTmpMMDir(std::string aFullName);
+		std::vector<cXmlDate> ReadExifData();
+		std::vector<double> ExifDate2Mjd(const std::vector<cXmlDate> aVExifDate);
+		double hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys);
+		double CalcSomme(const std::vector<double> aV);
+		double CalcCorr(const std::vector<double> aV1, const std::vector<double> aV2);
+		std::vector<double> ComputeSuccDiff(const std::vector<double> aV, bool aShow);
+		void ShowHmsTime(const hmsTime & Time);
+		pair<int,double> GetIndicMax(std::vector<double> aVD);
+		void WriteOriTxtFile(std::vector<std::string> aVIm, std::vector<Pt3dr> aVPos, std::string aDir, std::string aOutFile);
+		std::vector<std::string> VImgsFromIndic(int aIndic, std::vector<std::string> aVS, unsigned int aSize);
+		std::vector<Pt3dr> VPosFromCam(std::vector<CAM> aVCam);
+		//export de Tps GPS + Tps GPS2 + Tps CAM
+	private:
+		std::string mDir;
+		std::string mFile;
+		std::string mStrChSys;
+};
+
+//return vector of position from vectro of CAM struct
+std::vector<Pt3dr> cMPLOG_Appli::VPosFromCam(std::vector<CAM> aVCam)
+{
+	std::vector<Pt3dr> aVPos;
 	
+	for(unsigned int aP=0; aP<aVCam.size(); aP++)
+	{
+		Pt3dr aPt;
+		aPt.x = aVCam[aP].Lng;
+		aPt.y = aVCam[aP].Lat;
+		aPt.z = aVCam[aP].Alt;
+		
+		aVPos.push_back(aPt);
+	}
+	
+	return aVPos;
+}
+
+//return vector strting from given indic
+std::vector<std::string> cMPLOG_Appli::VImgsFromIndic(
+										 int aIndic,
+										 std::vector<std::string> aVS,
+										 unsigned int aSize
+										 )
+{
+	std::vector<std::string> aVOut;
+	
+	for(unsigned int aP=0; aP<aSize; aP++)
+	{
+		aVOut.push_back(aVS.at(aP+aIndic));
+	}
+	
+	return aVOut;
+}
+
+//export a .txt file in OriConvert format
+void cMPLOG_Appli::WriteOriTxtFile(
+								   std::vector<std::string> aVIm, 
+								   std::vector<Pt3dr> aVPos,
+								   std::string aDir,
+								   std::string aOutFile
+								   )
+{
+	if(aVIm.size() != aVPos.size())
+	{
+		ELISE_ASSERT(false,"Note same size for images & positions vectors");
+	}
+	
+	FILE * aFP = FopenNN(aOutFile,"w","GetInfosMPLF_main");
+				
+	cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOutFile);
+				
+	for (unsigned int aK=0 ; aK<aVIm.size() ; aK++)
+	{
+		fprintf(aFP,"%s %lf %lf %lf \n",aVIm.at(aK).c_str(), aVPos.at(aK).x,aVPos.at(aK).y,aVPos.at(aK).z);
+	}
+			
+	ElFclose(aFP);
+}
+
+//get indice of max value form a vector
+pair<int,double> cMPLOG_Appli::GetIndicMax(std::vector<double> aVD)
+{
+	int aInd=-1;
+	
+	double aMax = aVD[0];
+	
+	for(unsigned aK=0; aK<aVD.size(); aK++)
+	{
+		if(aVD[aK] > aMax)
+		{
+			aMax = aVD[aK];
+			aInd=aK;
+		}	
+	}
+	
+	return make_pair<unsigned int,double>(aInd,aMax);
+}
+
+//display time
+void cMPLOG_Appli::ShowHmsTime(const hmsTime & Time)
+{
+	std::cout << "Time.Year   ==> " << Time.Year << std::endl;
+	std::cout << "Time.Month  ==> " << Time.Month << std::endl;
+	std::cout << "Time.Day    ==> " << Time.Day << std::endl;
+	std::cout << "Time.Hour   ==> " << Time.Hour << std::endl;
+	std::cout << "Time.Minute ==> " << Time.Minute << std::endl;
+	std::cout << "Time.Second ==> " << Time.Second << std::endl;
+}
+
+//compute form n-dimentional vector (n-1)-dimentional successive differences
+std::vector<double> cMPLOG_Appli::ComputeSuccDiff(
+												  const std::vector<double> aV, 
+												  bool aShow
+												  )
+{
+	std::vector<double> aSuccDiff;
+	
+	for(unsigned aK=0 ; aK<aV.size()-1 ; aK++)
+	{
+		double aVal = aV.at(aK+1) - aV.at(aK);
+		
+		if(aShow)
+		{
+			printf("Tps2-Tps1 = %lf \n",aVal);
+		}
+		
+		aSuccDiff.push_back(aVal);
+	}
+	
+	return aSuccDiff;
+}
+
+//compute sum of a vector
+double cMPLOG_Appli::CalcSomme(const std::vector<double> aV)
+{
+	double aSum=0;
+	
+    for (unsigned int aK=0 ; aK<aV.size() ; aK++)
+    {
+		aSum += aV[aK];
+	}
+	
+	return aSum;
+}
+
+//compute corr coeff of 2 1-dimentional vectors
+double cMPLOG_Appli::CalcCorr(
+							  const std::vector<double> aV1, 
+							  const std::vector<double> aV2
+							  )
+{
+	double aCorrCoeff = 0;
+	
+	if(aV1.size() != aV2.size())
+	{
+		ELISE_ASSERT(false,"Note same size for both vectors !");
+	}
+	
+	else
+	{
+		double aSumV1 = CalcSomme(aV1);
+		double aSumV2 = CalcSomme(aV2);
+	
+		double aMeanV1 = aSumV1 / aV1.size();
+		double aMeanV2 = aSumV2 / aV2.size();
+		
+		double aSum1_Pow2 = 0;
+		double aSum2_Pow2 = 0;
+		
+		double aMult = 0;
+		
+		for (unsigned int aK=0; aK<aV1.size(); aK++)
+		{
+			aSum1_Pow2 +=  (aV1[aK] - aMeanV1)*(aV1[aK] - aMeanV1);
+			aSum2_Pow2 +=  (aV2[aK] - aMeanV2)*(aV2[aK] - aMeanV2);
+			
+			aMult += (aV1[aK] - aMeanV1)*(aV2[aK] - aMeanV2);
+		}
+		
+		aCorrCoeff = aMult/sqrt(aSum1_Pow2*aSum2_Pow2);
+	}
+	
+	return aCorrCoeff;
+}
+
+//convert HMS format to MJD (Exif data are given in HMS format)
+double cMPLOG_Appli::hmsTime2MJD(
+								 const hmsTime & Time, 
+								 const std::string & TimeSys
+								 )
+{
+	double aSec;
+	
+	aSec = (Time.Hour)*3600 + (Time.Minute)*60 + (Time.Second);
+	
+	return aSec;
+	
+}
+
+//check Tmp-MM-Dir Directory
+void cMPLOG_Appli::CheckTmpMMDir(std::string aFullName)
+{
+	system_call((std::string("mm3d MMXmlXif \"")+aFullName+"\"").c_str());
+}
+
+//read exif data, convert to Mjd
+std::vector<cXmlDate> cMPLOG_Appli::ReadExifData()
+{
+	std::vector<cXmlDate> aVExifDate;
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc("Tmp-MM-Dir/");
+    std::list<std::string> Img_xif = aICNM->StdGetListOfFile(".*-MDT-.*xml");
+    
+    std::cout << "Img_xif.size() = " << Img_xif.size() << std::endl;
+
+    for(std::list<std::string>::iterator I=Img_xif.begin(); I!=Img_xif.end(); I++)
+    {
+        cXmlXifInfo aXmlXifInfo=StdGetFromPCP("Tmp-MM-Dir/"+*I,XmlXifInfo);
+        
+        if(aXmlXifInfo.Date().IsInit())
+        {
+            aVExifDate.push_back(aXmlXifInfo.Date().Val());
+        }
+        
+        else
+        {
+            std::cout << "No Date Time in Exif ! " << std::endl;
+        }
+    }
+    
+    return aVExifDate;
+}
+
+//convert exif data Time to Mjd double values
+std::vector<double> cMPLOG_Appli::ExifDate2Mjd(const std::vector<cXmlDate> aVExifDate)
+{
+	std::vector<double> aVMjdImgs;
+
+	for(unsigned int aK=0 ; aK<aVExifDate.size() ; aK++)
+	{
+		hmsTime aTime;
+		aTime.Year = aVExifDate.at(aK).Y();
+		aTime.Month = aVExifDate.at(aK).M();
+		aTime.Day = aVExifDate.at(aK).D();
+		aTime.Hour = aVExifDate.at(aK).Hour().H();
+		aTime.Minute = aVExifDate.at(aK).Hour().M();
+		aTime.Second = aVExifDate.at(aK).Hour().S();
+		
+		//std::cout << "********************" << std::endl;
+		//ShowHmsTime(aTime);
+		//std::cout << "********************" << std::endl;
+		
+		double aMjd =  hmsTime2MJD(aTime,"UTC");
+		aVMjdImgs.push_back(aMjd);
+	}
+	
+	return aVMjdImgs;
+}
+
+double cMPLOG_Appli::towTime2MJD(
+								 const towTime & Time, 
+								 const std::string & TimeSys
+								 )
+{
+	double aSec = Time.Tow;
+	
+	if(TimeSys == "UTC")
+	{
+		aSec -= LeapSecond;
+	}
+	
+	double aS1970 = Time.GpsWeek * 7 * 86400 + aSec + GPS0;
+	
+	double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
+	
+	return aMJD;
+}
+
+void cMPLOG_Appli::ConvCam2Traj(
+								std::vector<CAM> aVCAM, 
+								std::vector<Pt3dr> & aVTraj
+								)
+{
+	for(unsigned int aK=0; aK<aVCAM.size(); aK++)
+	{
+		Pt3dr aTraj;
+		aTraj.x = aVCAM[aK].Lng;
+		aTraj.y = aVCAM[aK].Lat;
+		aTraj.z = aVCAM[aK].Alt;
+		
+		aVTraj.push_back(aTraj);
+		
+	}
+}
+
+void cMPLOG_Appli::ConvCAM2XML(
+							   std::vector<CAM> aVCAM, 
+							   std::string aXmlOut, 
+							   std::string aStrChSys, 
+							   Pt3dr aShift
+							   )
+{
+	//if changing coordinates system
+    cChSysCo * aCSC = 0;
+     
+     if (mStrChSys!="")
+		aCSC = cChSysCo::Alloc(aStrChSys,"");
+		
+	 std::vector<Pt3dr> aVTraj;
+	 ConvCam2Traj(aVCAM,aVTraj);
+	 
+	 if (aCSC!=0)
+     {
+		aVTraj = aCSC->Src2Cibl(aVTraj);
+     }
+	
+	cDicoGpsFlottant  aDico;
+	Pt3dr aIncNULL(0,0,0);
+    for(unsigned int aKP=0 ; aKP<aVCAM.size() ; aKP++)
+    {
+		cOneGpsDGF aOAD;
+        Pt3dr aPt;
+		aPt.x = aVTraj[aKP].x - aShift.x;
+		aPt.y = aVTraj[aKP].y - aShift.y;
+		aPt.z = aVTraj[aKP].z - aShift.z;
+        aOAD.Pt() = aPt;
+        aOAD.NamePt() = NumberToString(aKP);
+        aOAD.Incertitude() = aIncNULL;
+        aOAD.TagPt() = 0;
+        aOAD.TimePt() = aVCAM[aKP].GPSTime;
+
+        aDico.OneGpsDGF().push_back(aOAD);
+	}
+
+    MakeFileXML(aDico,aXmlOut);
+}
+
+void cMPLOG_Appli::ConvGPS2XML(
+							   std::vector<GPS> aVGPS, 
+							   std::string aXmlOut, 
+							   std::string aStrChSys, 
+							   Pt3dr aShift
+							   )
+{
+	//if changing coordinates system
+    cChSysCo * aCSC = 0;
+     
+     if (mStrChSys!="")
+		aCSC = cChSysCo::Alloc(aStrChSys,"");
+		
+	 std::vector<Pt3dr> aVTraj;
+	 ConvGps2Traj(aVGPS,aVTraj);
+	 
+	 if (aCSC!=0)
+     {
+		aVTraj = aCSC->Src2Cibl(aVTraj);
+     }
+	
+	cDicoGpsFlottant  aDico;
+	Pt3dr aIncNULL(0,0,0);
+    for(unsigned int aKP=0 ; aKP<aVGPS.size() ; aKP++)
+    {
+		cOneGpsDGF aOAD;
+		Pt3dr aPt;
+		aPt.x = aVTraj[aKP].x - aShift.x;
+		aPt.y = aVTraj[aKP].y - aShift.y;
+		aPt.z = aVTraj[aKP].z - aShift.z;
+        aOAD.Pt() = aPt;
+        aOAD.NamePt() = NumberToString(aKP);
+        aOAD.Incertitude() = aIncNULL;
+        aOAD.TagPt() = 0;
+        aOAD.TimePt() = aVGPS[aKP].GMS;
+
+        aDico.OneGpsDGF().push_back(aOAD);
+	}
+
+    MakeFileXML(aDico,aXmlOut);
+}
+
+void cMPLOG_Appli::ConvXML2Ply(
+							   std::string aXmlIn, 
+							   bool aSBFP, 
+							   Pt3di aCol
+							   )
+{
+	std::string aCom = MMDir()
+					   + std::string("bin/mm3d")
+					   + std::string(" ")
+					   + std::string("TestLib")
+					   + std::string(" ")
+					   + std::string("Export2Ply")
+					   + std::string(" ")
+					   + std::string("AppXML")
+					   + std::string(" ")
+					   + aXmlIn
+					   + std::string(" ")
+					   + std::string("Ray=0.1")
+					   + std::string(" ")
+					   + std::string("GpsXML=1")
+					   + std::string(" ")
+					   + std::string("FixColor=[") + NumberToString(aCol.x)
+					   + std::string(",") + NumberToString(aCol.y)
+					   + std::string(",") + NumberToString(aCol.z)
+					   + std::string("]");
+					   
+	if(aSBFP)
+		aCom = aCom + std::string(" ") + std::string("ShiftBFP=1");
+		
+	system_call(aCom.c_str());
+}
+
+void cMPLOG_Appli::ConvGps2Traj(
+								std::vector<GPS> aVGPS, 
+								std::vector<Pt3dr> & aVTraj
+								)
+{
+	for(unsigned int aK=0; aK<aVGPS.size(); aK++)
+	{
+		Pt3dr aTraj;
+		aTraj.x = aVGPS[aK].Lng;
+		aTraj.y = aVGPS[aK].Lat;
+		aTraj.z = aVGPS[aK].Alt;
+		
+		aVTraj.push_back(aTraj);
+		
+	}
+}
+
+void cMPLOG_Appli::MatchCAMWithPat(
+								   std::vector<CAM> aVCAM, 
+								   std::string aFullPat, 
+								   std::string aOriOut, 
+								   bool aShow, 
+								   double aSeuil
+								   )
+{
+	 std::string aDirectory="";
+	 std::string aPat="";
+	 
+	 SplitDirAndFile(aDirectory, aPat, aFullPat);
+     std::cout << "Working dir: " << aDirectory << std::endl;
+     std::cout << "Images pattern: " << aPat << std::endl;
+     
+     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirectory);
+     const std::vector<std::string> aSetIm = *(aICNM->Get(aPat));
+	 
+	 if(aShow)
+	 {
+		for (unsigned int aK=0 ; aK < aSetIm.size() ; aK++)
+		{
+			std::cout << " - " << aSetIm[aK] << std::endl;
+		}
+	 }
+	 
+	//check Tmp-MM-Dir Directory
+    CheckTmpMMDir(aFullPat);
+    
+    //read exif data, convert to Mjd and compare differences of Time
+    std::vector<cXmlDate> aVExifDate = ReadExifData();
+    
+    //convert exif data Time 2 Mjd values
+    std::vector<double> aVMjdImgs = ExifDate2Mjd(aVExifDate);
+    
+    //if Exif data is available
+    if(aVMjdImgs.size() != 0)
+    {	
+		//if Nbr CAM == Nbr IMG --> check if correlation of delta time is fine
+		if(aVCAM.size() == aSetIm.size())
+		{
+			
+		}
+	
+		//if Nbr CAM > Nbr IMG --> need to extract a sub sequence of IMG
+		if(aVCAM.size() < aSetIm.size())
+		{
+			
+			//compute CAM tag time differences in sec : compute once
+			std::vector<double> aVSuccDiffCAM;
+			for(unsigned int aP=0; aP<aVCAM.size()-1; aP++)
+			{
+				double aDiff = aVCAM[aP+1].GPSTime - aVCAM[aP].GPSTime;
+				aVSuccDiffCAM.push_back(aDiff);
+			}
+			
+			unsigned int aDec=0;
+			std::vector<double> aVCorrCoeff;	//vector containning values of corr coeff
+			while(aDec < aSetIm.size()-aVCAM.size()+1)
+			{
+				//~ std::cout << "aDec = " << aDec << std::endl;
+				std::vector<double> aSubVSetIm; 	//sub vector of images
+				std::vector<double> aVSuccDiffImgs;	//vector of succ diffrerence of sub vector images
+				for(unsigned int aP=aDec; aP<aVCAM.size()+aDec; aP++)
+				{
+					aSubVSetIm.push_back(aVMjdImgs.at(aP));
+				}
+				
+				//~ std::cout << "aSubVSetIm.size() = " << aSubVSetIm.size() << std::endl;
+				
+				//compute sub images time differences in sec (exif)
+				aVSuccDiffImgs = ComputeSuccDiff(aSubVSetIm,aShow);
+				//~ std::cout << "aVSuccDiffImgs.size() = " << aVSuccDiffImgs.size() << std::endl;
+				//~ std::cout << "aVSuccDiffCAM.size() = " << aVSuccDiffCAM.size() << std::endl;
+				double aCor = CalcCorr(aVSuccDiffCAM,aVSuccDiffImgs);
+				aVCorrCoeff.push_back(aCor);
+				//~ std::cout << "aCor = " << aCor << std::endl;
+				
+				aDec++;
+			}
+			
+			//get indice of maximum Corr Coeff
+			int aIndic;
+			double aMaxVal; 
+			unpair(aIndic,aMaxVal) = GetIndicMax(aVCorrCoeff);
+			std::cout << "Indic Max Corr = " << aIndic << " & Value = " << aMaxVal << std::endl;
+			
+			if(aMaxVal > aSeuil)
+			{
+				std::vector<std::string> aVIFI = VImgsFromIndic(aIndic,aSetIm,aVCAM.size());
+				std::vector<Pt3dr> aVPosCam = VPosFromCam(aVCAM);
+				
+				//write file with : IMG X Y Z
+				//X Y Z come from CAM TAG
+				WriteOriTxtFile(aVIFI,aVPosCam,mDir,aOriOut);
+				
+				//write .xml file : IMG and MJD
+				//MJD from CAM TAG {GPSWeek+GMS}
+				//~ WriteXmlImTmFile(
+			}
+			
+		}
+	
+		//if Nbr CAM < Nbr IMG --> need to extract a sub sequence
+    	if(aVCAM.size() > aSetIm.size())
+		{
+			
+		}
+	}
+}
+
+cMPLOG_Appli::cMPLOG_Appli(int argc,char ** argv)
+{
+	bool aShow=false;
+	bool aSBFP=false;
+	Pt3di aCCAM(255,0,0);
+	Pt3di aCGPS(0,0,255);
+	Pt3di aCGPS2(0,255,0);
+	Pt3di aCPos(0,0,0);
+	Pt3dr aShift(0,0,0);
+	std::string aFullPat="";
+	double aSeuil=0.9;
+	std::string aOriOut="";
 	ElInitArgMain
     (
     argc,argv,
     //mandatory arguments
-	LArgMain()  << EAMC(aDir,"Directory")
-				<< EAMC(aFile,"Log File of Mission Planner"),
+	LArgMain()  << EAMC(mDir,"Directory")
+				<< EAMC(mFile,"Log File of Mission Planner"),
 	LArgMain()  << EAM(aShow, "Show", false, "Display Pattern to use in cmd line ; Def=false",eSAM_IsBool)
+				<< EAM(mStrChSys,"ChSys",true,"Change coordinate file")
+				<< EAM(aSBFP,"SBFP",true,"substract first point coordinate to each file")
+				<< EAM(aCCAM,"ColCAM",true,"Color for CAM Tag ; Def=red")
+				<< EAM(aCGPS,"ColGPS",true,"Color for GPS Tag ; Def=blue")
+				<< EAM(aCGPS2,"ColGPS2",true,"Color for GPS2 Tag ; Def=green")
+				<< EAM(aCPos,"ColPos",true,"Color for POS Tag ; Def=black")
+				<< EAM(aShift,"Shift",true,"Add this shift to all coordinates ; Def=(0,0,0)")
+				<< EAM(aFullPat,"Pat",true,"Full pattern")
+				<< EAM(aSeuil,"Seuil",true,"Correlation coefficient Treshold ; Def=0.9")
+				<< EAM(aOriOut,"OutOriFile",true,"Output File name for OriConvert ; Def=Ori_N_X_Y_Z.txt")
 	);
 	
-	if (MMVisualMode) return EXIT_SUCCESS;
+	if(aOriOut == "")
+	{
+		aOriOut = "Ori_N_X_Y_Z.txt";
+	}
 	
 	std::vector<CAM> aVCAM;
 	std::vector<GPS> aVGPS;
@@ -444,7 +1056,7 @@ int GetInfosMPLF_main(int argc,char ** argv)
 	std::vector<POS> aVPos;
 	
 	//read input file
-    ifstream aFichier((aDir + aFile).c_str());
+    ifstream aFichier((mDir + mFile).c_str());
 
     if(aFichier)
     {
@@ -475,7 +1087,15 @@ int GetInfosMPLF_main(int argc,char ** argv)
 					
 					CAM aCamInfo;
 					aCamInfo.TimeUS = atof(aTimeUS.substr(0,aTimeUS.size()-1).c_str());
-					aCamInfo.GPSTime = atof(aGpsTime.substr(0,aGpsTime.size()-1).c_str());
+					
+					//~ towTime aTT;
+					//~ aTT.GpsWeek = atoi(aGpsWeek.substr(0,aGpsWeek.size()-1).c_str());
+					//~ aTT.Tow = atof(aGpsTime.substr(0,aGpsTime.size()-1).c_str())/1000;
+					//~ double aMJD = towTime2MJD(aTT,"GPST");
+					
+					//~ aCamInfo.MJD = aMJD;
+					
+					aCamInfo.GPSTime = atof(aGpsTime.substr(0,aGpsTime.size()-1).c_str())/1000; //in sec
 					aCamInfo.GPSWeek = atoi(aGpsWeek.substr(0,aGpsWeek.size()-1).c_str());
 					aCamInfo.Lat = atof(aLat.substr(0,aLat.size()-1).c_str());
 					aCamInfo.Lng = atof(aLon.substr(0,aLon.size()-1).c_str());
@@ -494,15 +1114,14 @@ int GetInfosMPLF_main(int argc,char ** argv)
 				//GPS, 1180441285, 3, 220437600, 1954, 12, 0.91, 48.843854, 1.459903, 94.56, 0.027, 0, 0.004, 0
 				if(aLine.compare(0,4,"GPS,") == 0)						
 				{
-					std::cout << "aLine = " << aLine << std::endl;
 					char *aBuffer = strdup((char*)aLine.c_str());
 					std::string aType = strtok(aBuffer," ");
-					std::string aTimeUS = strtok(aBuffer," ");
-					std::string aStatus = strtok(aBuffer," ");
-					std::string aGpsMilliSec = strtok(aBuffer," ");
-					std::string aGpsWeek = strtok(aBuffer," ");
-					std::string aNbrSat = strtok(aBuffer," ");
-					std::string aHdop = strtok(aBuffer," ");
+					std::string aTimeUS = strtok(NULL," ");
+					std::string aStatus = strtok(NULL," ");
+					std::string aGpsMilliSec = strtok(NULL," ");
+					std::string aGpsWeek = strtok(NULL," ");
+					std::string aNbrSat = strtok(NULL," ");
+					std::string aHdop = strtok(NULL," ");
 					std::string aLat = strtok( NULL, " " );
 					std::string aLon = strtok( NULL, " " );
 					std::string aAlt = strtok( NULL, " " );
@@ -514,7 +1133,7 @@ int GetInfosMPLF_main(int argc,char ** argv)
 					GPS aGPSInfo;
 					aGPSInfo.TimeUS = atof(aTimeUS.substr(0,aTimeUS.size()-1).c_str());
 					aGPSInfo.Status = atoi(aStatus.substr(0,aStatus.size()-1).c_str());
-					aGPSInfo.GMS = atof(aGpsMilliSec.substr(0,aGpsMilliSec.size()-1).c_str());
+					aGPSInfo.GMS = atof(aGpsMilliSec.substr(0,aGpsMilliSec.size()-1).c_str())/1000; // in sec
 					aGPSInfo.GWk = atoi(aGpsWeek.substr(0,aGpsWeek.size()-1).c_str());
 					aGPSInfo.NSats = atoi(aNbrSat.substr(0,aNbrSat.size()-1).c_str());
 					aGPSInfo.HDop = atof(aHdop.substr(0,aHdop.size()-1).c_str());
@@ -530,66 +1149,66 @@ int GetInfosMPLF_main(int argc,char ** argv)
 					
 				}
 				
-				//~ //GPS2,1260807688, 6, 220518000, 1954, 12, 0.94, 48.8444246,1.4597341, 158.16, 3.331549, 243.3775, -0.6531352, 1
-				//~ if(aLine.compare(0,5,"GPS2,") == 0)						
-				//~ {
-					//~ char *aBuffer = strdup((char*)aLine.c_str());
-					//~ std::string aType = strtok(aBuffer," ");
-					//~ std::string aTimeUS = strtok(aBuffer," ");
-					//~ std::string aStatus = strtok(aBuffer," ");
-					//~ std::string aGpsMilliSec = strtok(aBuffer," ");
-					//~ std::string aGpsWeek = strtok(aBuffer," ");
-					//~ std::string aNbrSat = strtok(aBuffer," ");
-					//~ std::string aHdop = strtok(aBuffer," ");
-					//~ std::string aLat = strtok( NULL, " " );
-					//~ std::string aLon = strtok( NULL, " " );
-					//~ std::string aAlt = strtok( NULL, " " );
-					//~ std::string aSpeed = strtok( NULL, " " );
-					//~ std::string aGcrs = strtok( NULL, " " );
-					//~ std::string aVZ = strtok( NULL, " " );
-					//~ std::string aU = strtok( NULL, " " );
+				//GPS2,1260807688, 6, 220518000, 1954, 12, 0.94, 48.8444246,1.4597341, 158.16, 3.331549, 243.3775, -0.6531352, 1
+				if(aLine.compare(0,5,"GPS2,") == 0)						
+				{
+					char *aBuffer = strdup((char*)aLine.c_str());
+					std::string aType = strtok(aBuffer," ");
+					std::string aTimeUS = strtok(NULL," ");
+					std::string aStatus = strtok(NULL," ");
+					std::string aGpsMilliSec = strtok(NULL," ");
+					std::string aGpsWeek = strtok(NULL," ");
+					std::string aNbrSat = strtok(NULL," ");
+					std::string aHdop = strtok(NULL," ");
+					std::string aLat = strtok( NULL, " " );
+					std::string aLon = strtok( NULL, " " );
+					std::string aAlt = strtok( NULL, " " );
+					std::string aSpeed = strtok( NULL, " " );
+					std::string aGcrs = strtok( NULL, " " );
+					std::string aVZ = strtok( NULL, " " );
+					std::string aU = strtok( NULL, " " );
 					
-					//~ GPS aGPS2Info;
-					//~ aGPS2Info.TimeUS = atof(aTimeUS.substr(0,aTimeUS.size()-1).c_str());
-					//~ aGPS2Info.Status = atoi(aStatus.substr(0,aStatus.size()-1).c_str());
-					//~ aGPS2Info.GMS = atof(aGpsMilliSec.substr(0,aGpsMilliSec.size()-1).c_str());
-					//~ aGPS2Info.GWk = atoi(aGpsWeek.substr(0,aGpsWeek.size()-1).c_str());
-					//~ aGPS2Info.NSats = atoi(aNbrSat.substr(0,aNbrSat.size()-1).c_str());
-					//~ aGPS2Info.HDop = atof(aHdop.substr(0,aHdop.size()-1).c_str());
-					//~ aGPS2Info.Lat = atof(aLat.substr(0,aLat.size()-1).c_str());
-					//~ aGPS2Info.Lng = atof(aLon.substr(0,aLon.size()-1).c_str());
-					//~ aGPS2Info.Alt = atof(aAlt.substr(0,aAlt.size()-1).c_str());
-					//~ aGPS2Info.Spd = atof(aSpeed.substr(0,aSpeed.size()-1).c_str());
-					//~ aGPS2Info.GCrs = atoi(aGcrs.substr(0,aGcrs.size()-1).c_str());
-					//~ aGPS2Info.VZ = atof(aVZ.substr(0,aVZ.size()-1).c_str());
-					//~ aGPS2Info.U = atof(aU.substr(0,aU.size()-1).c_str());
+					GPS aGPS2Info;
+					aGPS2Info.TimeUS = atof(aTimeUS.substr(0,aTimeUS.size()-1).c_str());
+					aGPS2Info.Status = atoi(aStatus.substr(0,aStatus.size()-1).c_str());
+					aGPS2Info.GMS = atof(aGpsMilliSec.substr(0,aGpsMilliSec.size()-1).c_str())/1000; //in sec
+					aGPS2Info.GWk = atoi(aGpsWeek.substr(0,aGpsWeek.size()-1).c_str());
+					aGPS2Info.NSats = atoi(aNbrSat.substr(0,aNbrSat.size()-1).c_str());
+					aGPS2Info.HDop = atof(aHdop.substr(0,aHdop.size()-1).c_str());
+					aGPS2Info.Lat = atof(aLat.substr(0,aLat.size()-1).c_str());
+					aGPS2Info.Lng = atof(aLon.substr(0,aLon.size()-1).c_str());
+					aGPS2Info.Alt = atof(aAlt.substr(0,aAlt.size()-1).c_str());
+					aGPS2Info.Spd = atof(aSpeed.substr(0,aSpeed.size()-1).c_str());
+					aGPS2Info.GCrs = atoi(aGcrs.substr(0,aGcrs.size()-1).c_str());
+					aGPS2Info.VZ = atof(aVZ.substr(0,aVZ.size()-1).c_str());
+					aGPS2Info.U = atof(aU.substr(0,aU.size()-1).c_str());
 					
-					//~ aVGPS2.push_back(aGPS2Info);
-				//~ }
+					aVGPS2.push_back(aGPS2Info);
+				}
 				
-				//~ //POS, 1180414380, 48.8438484, 1.4598758, 90.17, 0.006674996, 0.656675
-				//~ if(aLine.compare(0,4,"POS,") == 0)
-				//~ {
-					//~ char *aBuffer = strdup((char*)aLine.c_str());
-					//~ std::string aType = strtok(aBuffer," ");
-					//~ std::string aTimeUS = strtok(aBuffer," ");
-					//~ std::string aLat = strtok(aBuffer," ");
-					//~ std::string aLon = strtok(aBuffer," ");
-					//~ std::string aAlt = strtok(aBuffer," ");
-					//~ std::string aRHAlt = strtok(aBuffer," ");
-					//~ std::string aROAlt = strtok(aBuffer," ");
+				//POS, 1180414380, 48.8438484, 1.4598758, 90.17, 0.006674996, 0.656675
+				if(aLine.compare(0,4,"POS,") == 0)
+				{
+					char *aBuffer = strdup((char*)aLine.c_str());
+					std::string aType = strtok(aBuffer," ");
+					std::string aTimeUS = strtok(NULL," ");
+					std::string aLat = strtok(NULL," ");
+					std::string aLon = strtok(NULL," ");
+					std::string aAlt = strtok(NULL," ");
+					std::string aRHAlt = strtok(NULL," ");
+					std::string aROAlt = strtok(NULL," ");
 					
-					//~ POS aPosInfo;
-					//~ aPosInfo.TimeUS = atof(aTimeUS.substr(0,aTimeUS.size()-1).c_str());
-					//~ aPosInfo.Lat = atof(aLat.substr(0,aLat.size()-1).c_str());
-					//~ aPosInfo.Lon = atof(aLon.substr(0,aLon.size()-1).c_str());
-					//~ aPosInfo.Alt = atof(aAlt.substr(0,aAlt.size()-1).c_str());
-					//~ aPosInfo.RHAlt = atof(aRHAlt.substr(0,aRHAlt.size()-1).c_str());
-					//~ aPosInfo.ROAlt = atof(aROAlt.substr(0,aROAlt.size()-1).c_str());
+					POS aPosInfo;
+					aPosInfo.TimeUS = atof(aTimeUS.substr(0,aTimeUS.size()-1).c_str())/1000; // in sec ?
+					aPosInfo.Lat = atof(aLat.substr(0,aLat.size()-1).c_str());
+					aPosInfo.Lon = atof(aLon.substr(0,aLon.size()-1).c_str());
+					aPosInfo.Alt = atof(aAlt.substr(0,aAlt.size()-1).c_str());
+					aPosInfo.RHAlt = atof(aRHAlt.substr(0,aRHAlt.size()-1).c_str());
+					aPosInfo.ROAlt = atof(aROAlt.substr(0,aROAlt.size()-1).c_str());
 					
-					//~ aVPos.push_back(aPosInfo);
+					aVPos.push_back(aPosInfo);
 					
-				//~ }
+				}
 				
 			}
 		}
@@ -603,11 +1222,57 @@ int GetInfosMPLF_main(int argc,char ** argv)
 		std::cout<< "Error While opening file" << '\n';
 	}
 	
-	std::cout << "Number of CAM Infos = " << aVCAM.size() << std::endl; 
-	std::cout << "Number of GPS Infos = " << aVGPS.size() << std::endl; 
-	//~ std::cout << "Number of GPS2 Infos = " << aVGPS2.size() << std::endl; 
-	//~ std::cout << "Number of POS Infos = " << aVPos.size() << std::endl; 
+	//conversion to .xml
+	ConvCAM2XML(aVCAM,"Traj_CAM.xml",mStrChSys,aShift);
+	ConvGPS2XML(aVGPS,"Traj_GPS.xml",mStrChSys,aShift);
+	ConvGPS2XML(aVGPS2,"Traj_GPS2.xml",mStrChSys,aShift);
 	
+	//conversion to .ply
+	ConvXML2Ply("Traj_CAM.xml",aSBFP,aCCAM);
+	ConvXML2Ply("Traj_GPS.xml",aSBFP,aCGPS);
+	ConvXML2Ply("Traj_GPS2.xml",aSBFP,aCGPS2);
+	
+	//if a pattern of image is given
+	if(EAMIsInit(&aFullPat))
+	{
+		MatchCAMWithPat(aVCAM, aFullPat, aOriOut, aShow, aSeuil);
+	}
+    
+    //if we want to print some details
+	if(aShow)
+	{
+	
+		for(unsigned int aK=0; aK<aVCAM.size()-1; aK++)
+		{
+			std::cout << " Difference Time  : CAM" << aK << "-CAM" << aK+1 << " = " << aVCAM[aK+1].GPSTime - aVCAM[aK].GPSTime << " sec" << std::endl;
+		}
+		
+		//~ for(unsigned int aK=0; aK<aVGPS.size()-1; aK++)
+		//~ {
+			//~ std::cout << " Difference Time  : GPS" << aK << "-GPS" << aK+1 << " = " << aVGPS[aK+1].GMS - aVGPS[aK].GMS << " sec" << std::endl;
+		//~ }
+		
+		//~ for(unsigned int aK=0; aK<aVGPS2.size()-1; aK++)
+		//~ {
+			//~ std::cout << " Difference Time  : GPSP" << aK << "-GPSP" << aK+1 << " = " << aVGPS2[aK+1].GMS - aVGPS2[aK].GMS << " sec" << std::endl;
+		//~ }
+		
+		//~ for(unsigned int aK=0; aK<aVPos.size()-1; aK++)
+		//~ {
+			//~ std::cout << " Difference Time  : POS" << aK << "-POS" << aK+1 << " = " << aVPos[aK+1].TimeUS - aVPos[aK].TimeUS << " sec" << std::endl;
+		//~ }
+		
+		std::cout << "Number of CAM Infos = " << aVCAM.size() << std::endl; 
+		//std::cout << "Number of GPS Infos = " << aVGPS.size() << std::endl; 
+		//std::cout << "Number of GPS2 Infos = " << aVGPS2.size() << std::endl; 
+		//std::cout << "Number of POS Infos = " << aVPos.size() << std::endl;
+		
+	}
+}
+
+int GetInfosMPLF_main(int argc,char ** argv)
+{
+	cMPLOG_Appli anAppli(argc,argv);
 	return EXIT_SUCCESS;
 }
 
