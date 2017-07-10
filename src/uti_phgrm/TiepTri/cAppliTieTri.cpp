@@ -184,7 +184,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     aVIm->push_back(Master()->NameIm());
 
 
-    cSetTiePMul * aMulHomol = new cSetTiePMul(0, aVIm); // Im2nd, ImMaster
+    cSetTiePMul * aMulHomol = new cSetTiePMul(0, aVIm); // [Im2nd...ImMaster]
     vector< vector<int> > VNumIms;
     vector< vector<Pt2dr> > VPtsIms;
 
@@ -212,7 +212,8 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
                     cImSecTieTri * anIm = mImSec[aVInd[aKI]];
                     anIm->PackH().Cple_Add(ElCplePtsHomologues(aPMaster,aRRC.mPt)) ;
                     //=================//
-                    aNumIms.push_back(aKI);
+                    //aNumIms.push_back(aKI);           // -> bug sur index of image when export new FH ?
+                    aNumIms.push_back(anIm->Num());
                     aPtsIms.push_back(aRRC.mPt);
                     //==================//
 

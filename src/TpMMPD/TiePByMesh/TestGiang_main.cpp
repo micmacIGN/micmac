@@ -439,6 +439,7 @@ Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<
     for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
     {
         ElSeg3D aSeg = aVCS.at(aKR)->F2toRayonR3(aNPts2D.at(aKR));
+        //ElSeg3D aSeg = aVCS.at(aKR)->Capteur2RayTer(aNPts2D.at(aKR));
         aVSeg.push_back(aSeg);
     }
 
