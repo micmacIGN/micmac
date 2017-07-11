@@ -467,7 +467,7 @@ extern std::istream & operator >> (std::istream & ifs,Pt2di  &p);
 class cXml_Map2D;
 class cXml_Map2DElem;
 cXml_Map2D MapFromElem(const cXml_Map2DElem &);
-
+class cXml_Homot;
 
 class cElMap2D
 {
@@ -524,6 +524,7 @@ class ElHomot : public cElMap2D
 {
       public :
          ElHomot(Pt2dr aTrans = Pt2dr(0,0), double aScale = 1.0) ;
+         ElHomot(const cXml_Homot &) ;
 
          Pt2dr operator () (const Pt2dr & p) const
          {
