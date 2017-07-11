@@ -233,14 +233,15 @@ static cFilterImPolI  OperPolar(FPolar,1,1,0,0,"polar");
 
   //----------------------------------------------------------------
 
-/*
 static Fonc_Num FExtinc(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
-   return   polar(anArg.mVIn.at(0),0);
+    int aD = (anArg.mVArgs.size() >=2) ? ToInt(anArg.mVArgs.at(1)) : 256;
+    const Chamfer &  aChmf=  Chamfer::ChamferFromName(anArg.mVArgs.at(0));
+
+    return extinc(anArg.mVIn.at(1),aChmf,aD);
 }
 
-static cFilterImPolI  OperPolar(FPolar,1,1,0,0,"polar");
-*/
+static cFilterImPolI  OperExtinc(FExtinc,1,1,1,2,"extinc");
 
 
   //----------------------------------------------------------------
@@ -264,6 +265,7 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperIntCste);
          aRes.push_back(&OperDoubleCste);
          aRes.push_back(&OperPolar);
+         aRes.push_back(&OperExtinc);
     }
 
     return aRes;

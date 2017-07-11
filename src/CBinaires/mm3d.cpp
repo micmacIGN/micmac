@@ -231,6 +231,9 @@ extern int CPP_ProfilImage(int argc,char ** argv);
 
 extern int ExtractRaw_main(int argc,char ** argv);
 
+extern int CPP_MMRename(int argc,char ** argv);
+
+
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -363,6 +366,9 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MergeDepthMap",FusionCarteProf_main," Merging of individual, stackable, depth maps "));
        aRes.push_back(cMMCom("SMDM",SimpleFusionCarte_main," Simplified Merging of individual, stackable, depth maps "));
        aRes.push_back(cMMCom("MyRename",MyRename_main," File renaming using posix regular expression "));
+       aRes.push_back(cMMCom("MMRename",CPP_MMRename," Renaming a MicMac dataset respecting MicMac convention "));
+
+
        aRes.push_back(cMMCom("Genere_Header_TiffFile",Genere_Header_TiffFile_main," Generate Header for internal tiling format "));
 
 
