@@ -87,7 +87,7 @@ typedef ElQT<cResulMultiImRechCorrel *,Pt2dr,cFuncPtOfRMICPtr> tQtTiepT;
 */
 
 #define EpsilAggr 0.02
-#define PowAggreg 0.02
+#define PowAggreg 1.0
 
 std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
                                        (

@@ -238,7 +238,7 @@ static Fonc_Num FExtinc(cFilterImPolI &,const cArgFilterPolI & anArg)
     int aD = (anArg.mVArgs.size() >=2) ? ToInt(anArg.mVArgs.at(1)) : 256;
     const Chamfer &  aChmf=  Chamfer::ChamferFromName(anArg.mVArgs.at(0));
 
-    return extinc(anArg.mVIn.at(1),aChmf,aD);
+    return extinc(anArg.mVIn.at(0),aChmf,aD);
 }
 
 static cFilterImPolI  OperExtinc(FExtinc,1,1,1,2,"extinc");
