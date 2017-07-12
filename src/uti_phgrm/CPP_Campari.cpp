@@ -304,7 +304,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         SplitDirAndFile(mDir,mPat,aFullDir);
         StdCorrecNameOrient(AeroIn,mDir);
 
-        std::string aSetIm = "NKS-Set-OfPattern@" + mPat;
+        std::string aSetIm = "NKS-Set-OfPattern@[[" + mPat + "]]";
 
 
 

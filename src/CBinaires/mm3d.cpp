@@ -231,7 +231,8 @@ extern int CPP_ProfilImage(int argc,char ** argv);
 
 extern int ExtractRaw_main(int argc,char ** argv);
 
-extern int CPP_MMRename(int argc,char ** argv);
+extern int CPP_MMRename(int argc,char**argv);
+extern int  CPP_EditSet(int argc,char**argv);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -510,6 +511,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("VisuRedHom",VisuResiduHom," Create a visualisation of residual on tie points"));
        aRes.push_back(cMMCom("GenerateBorderCam",GenerateBorderCam_main," Generate the polygone of image contour undistorded"));
        aRes.push_back(cMMCom("ProfilIm",CPP_ProfilImage,"Image profiling  2D->1D "));
+       aRes.push_back(cMMCom("EditSet",CPP_EditSet,"Edition creation of a set of images/files"));
 
    }
 

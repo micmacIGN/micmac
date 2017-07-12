@@ -167,6 +167,8 @@ static Fonc_Num FOperUn(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 
 static Fonc_Num FAssoc(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
 {
+  // auto i= 3;
+
   const OperAssocMixte & anOp =   *(OperAssocMixte::GetFromName(anArg.mNameIn));
 
    Fonc_Num aRes = anOp.opf(anArg.mVIn.at(0),anArg.mVIn.at(1));
@@ -208,7 +210,7 @@ static Fonc_Num FTif(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
    return  Tiff_Im::StdConvGen(anArg.mNameIn,-1,true).in_proj();
 }
-static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|jpg|jpeg)");
+static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|Tif|Tiff|TIF|TIFF|jpg|jpeg|Jpg|Jpeg|JPG|JPEG)");
 
   //----------------------------------------------------------------
 

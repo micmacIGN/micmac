@@ -4180,6 +4180,16 @@ cResulMSO cInterfChantierNameManipulateur::MakeStdOrient
         return aResult;
 }
 
+/*
+bool FromString(std::vector<std::string> &aRes ,const std::string & aStr)
+{
+    stringstream aStream(aStr);
+    ElStdRead(aStream,aRes,ElGramArgMain::StdGram);
+    return true;
+}
+*/
+
+
 std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std::string & aStr)
 {
       std::vector<std::string>  aRes;
