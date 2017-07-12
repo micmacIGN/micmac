@@ -1761,6 +1761,12 @@ cDistCamStenopeGrid * cDistCamStenopeGrid::Alloc
 // std::cout << "Zigwy "  << aStepGr << " " << aCS.ScaleCamNorm() << " " << aCS.ScaleAfnt() << "\n";
 // getchar();
 
+// NIKRUP
+std::cout << "P0P1 " << Pt2dr(0,0)-aPRab << " " << Pt2dr(aCS.Sz())+aPRab << "\n";
+std::cout << "P0P1NORM " << aCS.NormC2M(Pt2dr(0,0)-aPRab) << " " <<  aCS.NormC2M(Pt2dr(aCS.Sz())+aPRab) << "\n";
+
+getchar();
+//==============
 
    cDbleGrid * aGrid2 = new cDbleGrid
                            (
