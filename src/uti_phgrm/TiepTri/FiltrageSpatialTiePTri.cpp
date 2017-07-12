@@ -207,7 +207,7 @@ if (0) // (MPD__MM())
                */
               // === formule pour decider si on enleve un point ===
               double aDist = euclid(aFctr(aRM_1)-aFctr(aRM_2)); // distance euclid entre 2 point master
-              double aRabCorrel = (1-(aDist/aSeuilDist)) * aGainCorrel;
+              double aRabCorrel = (1-pow(aDist/aSeuilDist,TT_FSExpoAtten)) * aGainCorrel;
               int aNbS0 = aRM_2->NbSel();
               for (int aK=0 ; aK<aNbI_2 ; aK++)
               {

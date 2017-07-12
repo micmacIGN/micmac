@@ -167,7 +167,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     if (mFlagFS & 8)
     {
        StatCorrel(mGlobMRIRC,"Avant");
-       mGlobMRIRC = FiltrageSpatial(mGlobMRIRC,mDistFiltr,0.1);
+       mGlobMRIRC = FiltrageSpatial(mGlobMRIRC,mDistFiltr,TT_FSDeltaCorrel);
     }
     StatCorrel(mGlobMRIRC,"Apres");
 
@@ -375,7 +375,7 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
          mTimeCorInit += aChrono.uval();
     }
     if (mFlagFS & 1)
-        mVCurMIRMC = FiltrageSpatial(mVCurMIRMC,mDistFiltr/TT_RatioCorrEntFiltrSpatial,0.1);
+        mVCurMIRMC = FiltrageSpatial(mVCurMIRMC,mDistFiltr/TT_RatioCorrEntFiltrSpatial,TT_FSDeltaCorrel);
 
     // ================ Calcul des correlations sous pixellaire ======================
 
@@ -420,7 +420,7 @@ if (MPD__MM() && ModeInteractif && (aKEtape==2))
             cResulMultiImRechCorrel::SuprUnSelect(mVCurMIRMC);
             double aRatio = (aKEtape==1) ? TT_RatioCorrSupPix :   TT_RatioCorrLSQ;
             if (mFlagFS & (1<<aKEtape))
-                mVCurMIRMC = FiltrageSpatial(mVCurMIRMC,mDistFiltr/aRatio,0.1);
+                mVCurMIRMC = FiltrageSpatial(mVCurMIRMC,mDistFiltr/aRatio,TT_FSDeltaCorrel);
        }
     }
 
