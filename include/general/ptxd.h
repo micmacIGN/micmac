@@ -412,7 +412,7 @@ Type scal(const Pt2d<Type> & p1,const Pt2d<Type> & p2)
 
 template <class Type>
 typename ElStdTypeScal<Type>::TypeScalReel  square_euclid(const Pt2d<Type> & p)
-                 {return ElSquare(p.x) + ElSquare( p.y);}
+                 {return ElSquare(typename ElStdTypeScal<Type>::TypeScalReel(p.x)) + ElSquare(typename ElStdTypeScal<Type>::TypeScalReel(p.y));}
 
 template <class Type>
 typename ElStdTypeScal<Type>::TypeScalReel  square_euclid(const Pt2d<Type> & p1,const Pt2d<Type> & p2)
