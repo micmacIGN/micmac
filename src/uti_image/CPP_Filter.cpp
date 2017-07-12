@@ -48,6 +48,22 @@ class cArgFilterPolI;
 
 //*********************************************
 
+class cCtxtFoncPolI
+{
+    public :
+        void Add(const std::string& aSymb,Fonc_Num aF);
+        cCtxtFoncPolI * Dup();
+        
+
+        std::map<std::string,Fonc_Num>   mMapF;
+        std::map<std::string,*Symb_FNum> mMapS;
+        cCtxtFoncPolI(const cCtxtFoncPolI&);
+};
+
+
+
+
+
 class cArgFilterPolI
 {
     public :
@@ -98,7 +114,7 @@ class cFilterImPolI
 {
     public :
 
-       cFilterImPolI(tPtrCalcFF,int aNbFoncIn,int aNbFoncMax,int aNbArgNum,int aNbArgMax,const std::string & aPat);
+       cFilterImPolI(tPtrCalcFF,int aNbFoncIn,int aNbFoncMax,int aNbArgNum,int aNbArgMax,const std::string & aPat,bool ChgCtx);
 
 
        tPtrCalcFF  mCalc;
@@ -108,16 +124,18 @@ class cFilterImPolI
        int         mNbArgMax;
        std::string mPat;
        cElRegex    mAutom;
+       bool        mChgCtx;
 };
 
-cFilterImPolI::cFilterImPolI(tPtrCalcFF aCalc,int aNbFoncIn,int  aNbFoncMax,int aNbArgNum,int  aNbArgMax,const std::string & aPat) :
+cFilterImPolI::cFilterImPolI(tPtrCalcFF aCalc,int aNbFoncIn,int  aNbFoncMax,int aNbArgNum,int  aNbArgMax,const std::string & aPat,bool aChgCtx) :
     mCalc      (aCalc),
     mNbFoncIn  (aNbFoncIn),
     mNbFoncMax (aNbFoncMax),
     mNbArgNum  (aNbArgNum),
     mNbArgMax  (aNbArgMax),
     mPat       (aPat),
-    mAutom     (mPat,10)
+    mAutom     (mPat,10),
+    mChgCtx    (aChgCtx)
 {
 }
 
@@ -151,7 +169,7 @@ static Fonc_Num FPermut(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 }
 
 //static std::string TheStrOpB="\\-|/|pow|>=|>|<|<=|==|!=|&|&&|(\\|)|(\\|\\|)|\\^|%|mod|>>|<<";
-static cFilterImPolI  Opermut(FPermut,1,1,1,1,"permut");
+static cFilterImPolI  Opermut(FPermut,1,1,1,1,"permut",false);
 
 
   //----------------------------------------------------------------
@@ -177,7 +195,7 @@ static Fonc_Num FAssoc(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
    return aRes;
 }
 
-static cFilterImPolI  OperAssoc(FAssoc,2,10000,0,0,"\\*|\\+|max|min");
+static cFilterImPolI  OperAssoc(FAssoc,2,10000,0,0,"\\*|\\+|max|min",false);
 
 
 
@@ -191,7 +209,7 @@ static Fonc_Num FOperBin(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 }
 
 static std::string TheStrOpB="\\-|/|pow|>=|>|<|<=|==|!=|&|&&|(\\|)|(\\|\\|)|\\^|%|mod|>>|<<";
-static cFilterImPolI  OperBin(FOperBin,2,2,0,0,TheStrOpB);
+static cFilterImPolI  OperBin(FOperBin,2,2,0,0,TheStrOpB,false);
   //----------------------------------------------------------------
 
 static Fonc_Num FOperUn(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
@@ -202,7 +220,7 @@ static Fonc_Num FOperUn(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 }
 
 static std::string TheStrOpU="--|~|!|signed_frac|ecart_frac|cos|sin|tan|log|log2|exp|square|cube|abs|atan|sqrt|erfcc";
-static cFilterImPolI  OperUn(FOperUn,1,1,0,0,TheStrOpU);
+static cFilterImPolI  OperUn(FOperUn,1,1,0,0,TheStrOpU,false);
 
 
   //----------------------------------------------------------------
@@ -210,7 +228,7 @@ static Fonc_Num FTif(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
    return  Tiff_Im::StdConvGen(anArg.mNameIn,-1,true).in_proj();
 }
-static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|Tif|Tiff|TIF|TIFF|jpg|jpeg|Jpg|Jpeg|JPG|JPEG)");
+static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|Tif|Tiff|TIF|TIFF|jpg|jpeg|Jpg|Jpeg|JPG|JPEG)",false);
 
   //----------------------------------------------------------------
 
@@ -225,20 +243,20 @@ static Fonc_Num FCoord(cFilterImPolI &,const cArgFilterPolI & anArg)
    return  kth_coord(aKC);
 }
 
-static cFilterImPolI  OperCoord(FCoord,0,0,0,0,"X|Y|Z|X[0-9]+");
+static cFilterImPolI  OperCoord(FCoord,0,0,0,0,"X|Y|Z|X[0-9]+",false);
   //----------------------------------------------------------------
 
 static Fonc_Num FDoubleCste(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
    return   Fonc_Num(ToDouble(anArg.mNameIn));
 }
-static cFilterImPolI  OperDoubleCste(FDoubleCste,0,0,0,0,"-?[0-9]+\\.([0-9]*)?");
+static cFilterImPolI  OperDoubleCste(FDoubleCste,0,0,0,0,"-?[0-9]+\\.([0-9]*)?",false);
 
 static Fonc_Num FIntCste(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
    return   Fonc_Num(ToInt(anArg.mNameIn));
 }
-static cFilterImPolI  OperIntCste(FIntCste,0,0,0,0,"-?[0-9]+");
+static cFilterImPolI  OperIntCste(FIntCste,0,0,0,0,"-?[0-9]+",false);
 
   //----------------------------------------------------------------
 
@@ -247,7 +265,7 @@ static Fonc_Num FDeriche(cFilterImPolI &,const cArgFilterPolI & anArg)
    return   deriche(anArg.mVIn.at(0) ,ToDouble(anArg.mVArgs.at(0)),20);
 }
 
-static cFilterImPolI  OperDeriche(FDeriche,1,1,1,1,"deriche");
+static cFilterImPolI  OperDeriche(FDeriche,1,1,1,1,"deriche",true);
 
   //----------------------------------------------------------------
 
@@ -256,7 +274,7 @@ static Fonc_Num FPolar(cFilterImPolI &,const cArgFilterPolI & anArg)
    return   polar(anArg.mVIn.at(0),0);
 }
 
-static cFilterImPolI  OperPolar(FPolar,1,1,0,0,"polar");
+static cFilterImPolI  OperPolar(FPolar,1,1,0,0,"polar",false);
 
   //----------------------------------------------------------------
 
@@ -268,7 +286,7 @@ static Fonc_Num FExtinc(cFilterImPolI &,const cArgFilterPolI & anArg)
     return extinc(anArg.mVIn.at(0),aChmf,aD);
 }
 
-static cFilterImPolI  OperExtinc(FExtinc,1,1,1,2,"extinc");
+static cFilterImPolI  OperExtinc(FExtinc,1,1,1,2,"extinc",true);
 
 
   //----------------------------------------------------------------
