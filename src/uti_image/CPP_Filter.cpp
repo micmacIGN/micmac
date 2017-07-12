@@ -101,11 +101,11 @@ class cFilterImPolI
        cFilterImPolI(tPtrCalcFF,int aNbFoncIn,int aNbFoncMax,int aNbArgNum,int aNbArgMax,const std::string & aPat);
 
 
-       tPtrCalcFF mCalc;
-       int        mNbFoncIn;
-       int        mNbFoncMax;
-       int        mNbArgNum;
-       int        mNbArgMax;
+       tPtrCalcFF  mCalc;
+       int         mNbFoncIn;
+       int         mNbFoncMax;
+       int         mNbArgNum;
+       int         mNbArgMax;
        std::string mPat;
        cElRegex    mAutom;
 };
@@ -138,7 +138,30 @@ static int ToInt(const std::string & aStr)
 
 
 // Fonc_Num  (* tPtrCalcFF)(cFilterImPolI &,Fonc_Num aFoncIn,const std::string aNameIn,const std::vector<std::string> & aVArgs);
+  //----------------------------------------------------------------
 
+static Fonc_Num FPermut(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
+{
+
+    Fonc_Num aF = anArg.mVIn.at(0);
+    std::vector<int> aVI ;
+    FromString(aVI,anArg.mVArgs.at(0) );
+
+    return aF.permut(aVI);
+}
+
+//static std::string TheStrOpB="\\-|/|pow|>=|>|<|<=|==|!=|&|&&|(\\|)|(\\|\\|)|\\^|%|mod|>>|<<";
+static cFilterImPolI  Opermut(FPermut,1,1,1,1,"permut");
+
+
+  //----------------------------------------------------------------
+
+/*
+static Fonc_Num FOperUn(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
+{
+    tOperFuncUnaire anOper = OperFuncUnaireFromName(anArg.mNameIn);
+
+*/
 
   //----------------------------------------------------------------
 
@@ -153,6 +176,8 @@ static Fonc_Num FAssoc(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 }
 
 static cFilterImPolI  OperAssoc(FAssoc,2,10000,0,0,"\\*|\\+|max|min");
+
+
 
   //----------------------------------------------------------------
 
@@ -266,6 +291,7 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperDoubleCste);
          aRes.push_back(&OperPolar);
          aRes.push_back(&OperExtinc);
+         aRes.push_back(&Opermut);
     }
 
     return aRes;
