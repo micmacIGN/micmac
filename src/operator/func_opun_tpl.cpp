@@ -1195,7 +1195,7 @@ Fonc_Num erfcc  (Fonc_Num f)
 
 tOperFuncUnaire  OperFuncUnaireFromName(const std::string & aName)
 {
-   if (aName=="--") return operator -;
+   if (aName=="u-") return operator -;
    if (aName=="~") return operator ~;
    if (aName=="!") return operator !;
    if (aName=="signed_frac") return signed_frac; // Partie fractionnaire entre -0.5 et 0.5

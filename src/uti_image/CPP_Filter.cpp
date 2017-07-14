@@ -45,31 +45,93 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cFilterImPolI;
 class cResFilterPolI;
 class cArgFilterPolI;
+class cCtxtFoncPolI;
+typedef const char * tCPtr;
 
+cResFilterPolI RecParseStrFNPolI(tCPtr & aStr,cCtxtFoncPolI * aCtx);
+
+std::string EndStr(const std::string & aStr,int aNb=1)
+{
+    return aStr.substr(1,std::string::npos);
+}
+//*********************************************
+//*********************************************
 //*********************************************
 
 class cCtxtFoncPolI
 {
     public :
-        void Add(const std::string& aSymb,Fonc_Num aF);
+        Symb_FNum* Add(const std::string& aSymb,Fonc_Num aF,bool Svp);
         cCtxtFoncPolI * Dup();
+        cCtxtFoncPolI();
+        Symb_FNum* GetValSymb(const std::string& aName);
+        void  Herit(cCtxtFoncPolI *);
+    private :
         
 
         std::map<std::string,Fonc_Num>   mMapF;
-        std::map<std::string,*Symb_FNum> mMapS;
-        cCtxtFoncPolI(const cCtxtFoncPolI&);
+        std::map<std::string,Symb_FNum*> mMapS;
+        cCtxtFoncPolI(const cCtxtFoncPolI&);  // N.I.
 };
+cCtxtFoncPolI::cCtxtFoncPolI()
+{
+}
+
+Symb_FNum* cCtxtFoncPolI::GetValSymb(const std::string& aName)
+{
+    Symb_FNum* aSFN = mMapS[aName];
+    if (aSFN==0)
+    {
+        std::cout << "For name=[" << aName << "]" << this << "\n";
+        ELISE_ASSERT(false,"Symbol has no value");
+    }
+    return aSFN;
+}
 
 
+Symb_FNum* cCtxtFoncPolI::Add(const std::string& aSymb,Fonc_Num aF,bool Svp=false)
+{
+    if (DicBoolFind(mMapF,aSymb))
+    {
+        if (Svp) return mMapS[aSymb] ;
+        std::cout << "For symb=" << aSymb << "\n";
+        ELISE_ASSERT(false,"Multiple symb def");
+    }
+    mMapF[aSymb] = aF;
+    Symb_FNum*  aRes = new Symb_FNum(aF);
+    mMapS[aSymb] = aRes;
+    return aRes;
+}
+cCtxtFoncPolI * cCtxtFoncPolI::Dup()
+{
+   cCtxtFoncPolI * aRes = new cCtxtFoncPolI;
+   
+   aRes->Herit(this);
+/*
+   for (std::map<std::string,Fonc_Num>::iterator it=mMapF.begin(); it!=mMapF.end() ; it++)
+   {
+       aRes->Add(it->first,it->second);
+   }
+*/
+   return aRes;
+}
 
+void  cCtxtFoncPolI::Herit(cCtxtFoncPolI * aH)
+{
+   for (std::map<std::string,Fonc_Num>::iterator it=aH->mMapF.begin(); it!=aH->mMapF.end() ; it++)
+   {
+       Add(it->first,it->second,true);
+   }
+}
 
 
 class cArgFilterPolI
 {
     public :
-      cArgFilterPolI(const std::string & aSymb) :
+      cArgFilterPolI(const std::string & aSymb,cCtxtFoncPolI * aCtx) :
           mNameIn  (aSymb),
-          mBox     (0)
+          mBox     (0),
+          mCtx     (aCtx)
       {
       }
 
@@ -77,6 +139,7 @@ class cArgFilterPolI
       const std::string          mNameIn;
       std::vector<std::string>   mVArgs;
       Box2di *                   mBox;
+      cCtxtFoncPolI *            mCtx;
 };
 
 typedef Fonc_Num  (* tPtrCalcFF)( cFilterImPolI &, const cArgFilterPolI &);
@@ -155,9 +218,7 @@ static int ToInt(const std::string & aStr)
 
 
 
-// Fonc_Num  (* tPtrCalcFF)(cFilterImPolI &,Fonc_Num aFoncIn,const std::string aNameIn,const std::vector<std::string> & aVArgs);
   //----------------------------------------------------------------
-
 static Fonc_Num FPermut(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
 {
 
@@ -167,26 +228,46 @@ static Fonc_Num FPermut(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 
     return aF.permut(aVI);
 }
-
-//static std::string TheStrOpB="\\-|/|pow|>=|>|<|<=|==|!=|&|&&|(\\|)|(\\|\\|)|\\^|%|mod|>>|<<";
 static cFilterImPolI  Opermut(FPermut,1,1,1,1,"permut",false);
+
+  //----------------------------------------------------------------
+static Fonc_Num FKProj(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
+{
+
+    Fonc_Num aF = anArg.mVIn.at(0);
+
+    return aF.kth_proj(ToInt(EndStr(anArg.mNameIn) )); // (( anArg.mNameIn.substr(1,std::string::npos)));
+}
+static cFilterImPolI  OperKProj(FKProj,1,1,0,0,"v[0-9]+",false);
+
 
 
   //----------------------------------------------------------------
-
-/*
-static Fonc_Num FOperUn(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
+static Fonc_Num FSetSymb(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
 {
-    tOperFuncUnaire anOper = OperFuncUnaireFromName(anArg.mNameIn);
+    Fonc_Num aFonc = anArg.mVIn.at(0);
+    // Symb_FNum* aRes = anArg.mCtx->Add(EndStr(anArg.mNameIn),aFonc);  // ((anArg.mNameIn.substr(1,std::string::npos),aFonc);
 
-*/
+    if (anArg.mVIn.size()==1) 
+       return  *(anArg.mCtx->GetValSymb(EndStr(anArg.mNameIn)));
+
+    return anArg.mVIn.at(1);
+}
+static cFilterImPolI  OperSetSymb(FSetSymb,1,2,0,0,"=[A-Z,a-z].*",false);
+
+  //----------------------------------------------------------------
+static Fonc_Num FUseSymb(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
+{
+    Symb_FNum* aRes = anArg.mCtx->GetValSymb(EndStr(anArg.mNameIn)) ; // anArg.mNameIn.substr(1,std::string::npos));
+
+    return  *aRes;
+}
+static cFilterImPolI  OperUseSymb(FUseSymb,0,0,0,0,"@[A-Z,a-z].*",false);
 
   //----------------------------------------------------------------
 
 static Fonc_Num FAssoc(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
 {
-  // auto i= 3;
-
   const OperAssocMixte & anOp =   *(OperAssocMixte::GetFromName(anArg.mNameIn));
 
    Fonc_Num aRes = anOp.opf(anArg.mVIn.at(0),anArg.mVIn.at(1));
@@ -198,7 +279,30 @@ static Fonc_Num FAssoc(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 static cFilterImPolI  OperAssoc(FAssoc,2,10000,0,0,"\\*|\\+|max|min",false);
 
 
+  //----------------------------------------------------------------
 
+static Fonc_Num FVirgule(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
+{
+
+   Fonc_Num aRes = Virgule(anArg.mVIn.at(0),anArg.mVIn.at(1));
+   for (int aK=2 ; aK<int(anArg.mVIn.size()) ; aK++)
+       aRes = Virgule(aRes,anArg.mVIn.at(aK));
+   return aRes;
+}
+
+static cFilterImPolI  OperVirgule(FVirgule,2,10000,0,0,",",false);
+
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FOperIf(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
+{
+    Symb_FNum aTest = (anArg.mVIn.at(0) != 0);
+
+    return aTest * anArg.mVIn.at(1) + (!aTest) * anArg.mVIn.at(2);
+}
+
+static cFilterImPolI  OperIf(FOperIf,3,3,0,0,"\\?",false);
   //----------------------------------------------------------------
 
 static Fonc_Num FOperBin(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
@@ -208,7 +312,7 @@ static Fonc_Num FOperBin(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
     return anOper(anArg.mVIn.at(0),anArg.mVIn.at(1));
 }
 
-static std::string TheStrOpB="\\-|/|pow|>=|>|<|<=|==|!=|&|&&|(\\|)|(\\|\\|)|\\^|%|mod|>>|<<";
+static std::string TheStrOpB="-|/|pow|>=|>|<|<=|==|!=|&|&&|(\\|)|(\\|\\|)|\\^|%|mod|>>|<<";
 static cFilterImPolI  OperBin(FOperBin,2,2,0,0,TheStrOpB,false);
   //----------------------------------------------------------------
 
@@ -219,7 +323,7 @@ static Fonc_Num FOperUn(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
     return anOper(anArg.mVIn.at(0));
 }
 
-static std::string TheStrOpU="--|~|!|signed_frac|ecart_frac|cos|sin|tan|log|log2|exp|square|cube|abs|atan|sqrt|erfcc";
+static std::string TheStrOpU="u-|~|!|signed_frac|ecart_frac|cos|sin|tan|log|log2|exp|square|cube|abs|atan|sqrt|erfcc";
 static cFilterImPolI  OperUn(FOperUn,1,1,0,0,TheStrOpU,false);
 
 
@@ -291,6 +395,50 @@ static cFilterImPolI  OperExtinc(FExtinc,1,1,1,2,"extinc",true);
 
   //----------------------------------------------------------------
 
+static Fonc_Num FEroDil(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+    const Chamfer &  aChmf=  Chamfer::ChamferFromName(anArg.mVArgs.at(0));
+    int aD =  ToInt(anArg.mVArgs.at(1)) ;
+
+    return (anArg.mNameIn=="erode") ? erod(anArg.mVIn.at(0),aChmf,aD) : dilat(anArg.mVIn.at(0),aChmf,aD);
+}
+
+static cFilterImPolI  OperEroDil(FEroDil,1,1,2,2,"erode|dilate",true);
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FCloseOpen(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+    const Chamfer &  aChmf=  Chamfer::ChamferFromName(anArg.mVArgs.at(0));
+    int aD =  ToInt(anArg.mVArgs.at(1)) ;
+    int aDelta = (anArg.mVArgs.size() >=3)  ? ToInt(anArg.mVArgs.at(2)) : 0 ;
+
+    return (anArg.mNameIn=="open") ? open(anArg.mVIn.at(0),aChmf,aD,aDelta) : close(anArg.mVIn.at(0),aChmf,aD,aDelta);
+}
+
+static cFilterImPolI  OperCloseOpen(FCloseOpen,1,1,2,3,"open|close",true);
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FMoy(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+    int aNbV =  ToInt(anArg.mVArgs.at(0)) ;
+    int aNbIter =  (anArg.mVArgs.size()>=2) ? ToInt(anArg.mVArgs.at(1)) : 1 ;
+
+    Fonc_Num aRes = Rconv(anArg.mVIn.at(0));
+    for (int  aK=0 ; aK<aNbIter ; aK++)
+    {
+        aRes = rect_som(aRes,aNbV) / ElSquare(1.0+2.0*aNbV);
+    }
+
+    return aRes;
+}
+
+static cFilterImPolI  OperMoy(FMoy,1,1,1,2,"moy",true);
+
+  //----------------------------------------------------------------
+
+
 
 
 static std::vector<cFilterImPolI *>  VPolI()
@@ -304,14 +452,20 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperTif);
          aRes.push_back(&OperAssoc);
          aRes.push_back(&OperCoord);
-         // aRes.push_back(&OperPlus);
-         // aRes.push_back(&OperMul);
          aRes.push_back(&OperDeriche);
          aRes.push_back(&OperIntCste);
          aRes.push_back(&OperDoubleCste);
          aRes.push_back(&OperPolar);
          aRes.push_back(&OperExtinc);
          aRes.push_back(&Opermut);
+         aRes.push_back(&OperSetSymb);
+         aRes.push_back(&OperUseSymb);
+         aRes.push_back(&OperKProj);
+         aRes.push_back(&OperVirgule);
+         aRes.push_back(&OperIf);
+         aRes.push_back(&OperEroDil);
+         aRes.push_back(&OperCloseOpen);
+         aRes.push_back(&OperMoy);
     }
 
     return aRes;
@@ -319,7 +473,6 @@ static std::vector<cFilterImPolI *>  VPolI()
 
 //=============================
 
-typedef const char * tCPtr;
 
 static int aCptStr=0;
 static int aCptCar=0;
@@ -376,8 +529,9 @@ std::string GetString(tCPtr & aStr,bool OnlySpec=false)
    return aRes;
 }
 
-cResFilterPolI RecParseStrFNPolI(tCPtr & aStr)
+cResFilterPolI RecParseStrFNPolI(tCPtr & aStr,cCtxtFoncPolI * aCtx)
 {
+    cCtxtFoncPolI * aCtxFils = aCtx;
     std::string  aSymb = GetString(aStr);
 
     if (aSymb==")")
@@ -396,8 +550,6 @@ cResFilterPolI RecParseStrFNPolI(tCPtr & aStr)
        ELISE_ASSERT((aSymb!="(") && (aSymb!=")") ,"Conesecutive ( in expr");
     }
 
-/*
-*/
 
     std::vector<cFilterImPolI *>  aVPol =  VPolI();
 
@@ -406,13 +558,17 @@ cResFilterPolI RecParseStrFNPolI(tCPtr & aStr)
         cFilterImPolI & aPolI = *(aVPol[aK]);
         if (aPolI.mAutom.Match(aSymb))
         {
+            if (aPolI.mChgCtx)
+            {
+               aCtxFils = aCtx->Dup();
+            }
             int aNbFonc =  aParOuv ? aPolI.mNbFoncMax : aPolI.mNbFoncIn ;
 
-            cArgFilterPolI anArg(aSymb);
+            cArgFilterPolI anArg(aSymb,aCtx);
             bool GotParFerm=false;
             for (int aK=0 ; (aK<aNbFonc) && (!GotParFerm)  ; aK++)
             {
-                 cResFilterPolI aRFPI = RecParseStrFNPolI(aStr);
+                 cResFilterPolI aRFPI = RecParseStrFNPolI(aStr,aCtxFils);
                  if (aRFPI.mSymbSpec==")")
                  {
                      GotParFerm =true;
@@ -421,6 +577,10 @@ cResFilterPolI RecParseStrFNPolI(tCPtr & aStr)
                  {
                     anArg.mVIn.push_back(aRFPI.mFonc);
                     anArg.mBox = UnionBoxPtrWithDel(anArg.mBox,aRFPI.mBox);
+                    if ((&aPolI == &OperSetSymb) && (aK==0))
+                    {
+                       aCtx->Add(EndStr(aSymb),aRFPI.mFonc);
+                    }
                  }
             }
             ELISE_ASSERT(int(anArg.mVIn.size())>= aPolI.mNbFoncIn ,"Insufficient number func ");
@@ -462,6 +622,8 @@ cResFilterPolI RecParseStrFNPolI(tCPtr & aStr)
                Tiff_Im aTif =  Tiff_Im::StdConvGen(aSymb,-1,true);
                anArg.mBox = new Box2di(Pt2di(0,0),aTif.sz());
             }
+            if (aCtxFils!=aCtx)
+               aCtx->Herit(aCtxFils);
 
             return  cResFilterPolI(aPolI.mCalc(aPolI,anArg),anArg.mBox);
         }
@@ -476,8 +638,9 @@ cResFilterPolI RecParseStrFNPolI(tCPtr & aStr)
 cResFilterPolI GlobParseStrFNPolI(tCPtr & aStr)
 {
     aStrGlob = aStr;
+    cCtxtFoncPolI * aCtx = new cCtxtFoncPolI;
 
-    return RecParseStrFNPolI(aStr);
+    return RecParseStrFNPolI(aStr,aCtx);
 }
 
 
