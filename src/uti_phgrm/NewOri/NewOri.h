@@ -167,7 +167,8 @@ class cNewO_OrInit2Im
                 ElRotation3D *      aInOri,
                 bool                Show,
                 bool                aHPP,
-                bool                aSelAllIm
+                bool                aSelAllIm,
+                bool                AUS  // Accept Un Symetric
           );
 
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
@@ -210,6 +211,7 @@ class cNewO_OrInit2Im
 
 
 
+          double            mPdsSingle;
           bool              mQuick;
           cNewO_OneIm *     mI1;
           cNewO_OneIm *     mI2;

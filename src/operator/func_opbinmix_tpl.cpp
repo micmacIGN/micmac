@@ -749,11 +749,14 @@ Fonc_Num_Computed * Op_Bin_Ent::op_bin_comp
       return  new OpBinEntCompute (arg,f0,f1,arg.flux(),_op);
 }
 
+
 static REAL VEtBB(REAL v1,REAL v2) {return ((int) v1) & ((int)v2);}
 Fonc_Num operator & (Fonc_Num f1,Fonc_Num f2)
 {
      return new Op_Bin_Ent(f1,f2,OpAndBB,true,"&",VEtBB);
 };
+
+
 
 
 static REAL VEt(REAL v1,REAL v2) {return ((int) v1) && ((int)v2);}
@@ -779,6 +782,8 @@ Fonc_Num operator ^ (Fonc_Num f1,Fonc_Num f2)
 {
      return new Op_Bin_Ent(f1,f2,OperXorBB,true,"^",VXOrBB);
 };
+
+
 
 static REAL VXor(REAL v1,REAL v2) {return (v1!=0) ^ (v2!=0);}
 Fonc_Num ElXor (Fonc_Num f1,Fonc_Num f2)
@@ -811,6 +816,34 @@ Fonc_Num operator <<(Fonc_Num f1,Fonc_Num f2)
 };
 
 
+tOperFuncBin  OperFuncBinaireFromName(const std::string & aName)
+{
+   if (aName=="-") return operator -;
+   if (aName=="/") return operator /;
+   if (aName=="pow") return pow;
+
+   if (aName==">=") return operator >=;
+   if (aName==">")  return operator  >;
+   if (aName=="<")  return operator  <;
+   if (aName=="<=") return operator <=;
+   if (aName=="!=") return operator !=;
+   if (aName=="==") return operator ==;
+
+   if (aName=="&") return operator &;
+   if (aName=="&&") return operator &&;
+   if (aName=="|") return operator   |;
+   if (aName=="||") return operator ||;
+   if (aName=="^") return operator ^;
+   if (aName=="%") return operator %;
+   if (aName=="mod") return mod;
+
+   if (aName==">>") return operator >>;
+   if (aName=="<<") return operator <<;
+
+   std::cout << "For name=" << aName << "\n";
+   ELISE_ASSERT(false,"Cannot  get operator");
+   return 0;
+}
 
 
 

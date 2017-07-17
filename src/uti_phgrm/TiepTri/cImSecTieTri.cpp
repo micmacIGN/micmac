@@ -277,11 +277,11 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(bool Interact,const cResul
     if (! aCRC0.IsInit())
        return aCRC0;
     
-    int aSzWE = mAppli.mSzWEnd;
+    int aSzWE = mAppli.mSzWEnd;  // command param SzWEnd, default = 6
     // Correlation sub-pixel, interpol bilin basique (step=1, step RCorell=0.1)
     cResulRechCorrel aRes =TT_RechMaxCorrelMultiScaleBilin (mMaster->mTImInit,Pt2dr(aP0),mTImReech,Pt2dr(aCRC0.mPt),aSzWE,aStep); 
 
-    //ER variable that is unused; commented-out to acoid warning 
+    //ER variable that is unused; commented-out to avoid warning
     //double aRecCarre=0;
     if (0) // ( mAppli.mNumInterpolDense < 0)
     {
@@ -302,7 +302,7 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(bool Interact,const cResul
 
     }
 
-    if (0)
+    if (0)      // using LSQ matching
     {
         ElAffin2D anAffOpt =  ElAffin2D::trans(aRes.mPt - mAffMas2Sec(Pt2dr(aP0)) ) * mAffMas2Sec;
         cLSQAffineMatch aMatchM2S(Pt2dr(aP0),mMaster->mImInit,mImInit,anAffOpt);
@@ -354,7 +354,7 @@ cResulRechCorrel cImSecTieTri::RechHomPtsDense(bool Interact,const cResulMultiIm
     Pt2dr aP0 = Pt2dr(aRMIC.PtMast());
     cResulRechCorrel aPIn = aRMIC.VRRC()[aKIm];
 
-    if ( mAppli.mNumInterpolDense < 0)
+    if ( mAppli.mNumInterpolDense < 0) // command's param : IntDM : -1=NONE, 0=BiL, 1=BiC, 2=SinC; default = -1
     {
        if (Interact) std::cout << "AAAAAAaaaaaaaaaaaaaaaa\n";
        cResulRechCorrel aRes2  = aPIn;
@@ -362,14 +362,21 @@ cResulRechCorrel cImSecTieTri::RechHomPtsDense(bool Interact,const cResulMultiIm
        return aRes2;
     }
     
-
+    // mDoRaffImInit = command's param: DRInit:  Do refinement on initial images (true), instead of resampled (false), default = false
     ElAffin2D  aAffPred  = mAppli.mDoRaffImInit ? mAffMas2Sec : ElAffin2D::Id();
     tTImTiepTri aImSec =   mAppli.mDoRaffImInit ? mTImInit    : mTImReech ;
 
     int aSzWE = mAppli.mSzWEnd;
-    double aPrecInit = (mAppli.mNivLSQM >=0) ? 1/4.0 : 1/8.0;
+    double aPrecInit = (mAppli.mNivLSQM >=0) ? 1/4.0 : 1/8.0;      // LSQC : "Test LSQ,-1 None (Def), Flag 1=>Affine Geom, Flag 2=>Affin Radiom"
     double aPrecCible = (Interact) ?  1e-3 : ((mAppli.mNivLSQM >=0) ? 1/16.0 : 1/128.0);
-    int aNbByPix = (mAppli.mNivLSQM >=0) ? 1 : mAppli.mNbByPix;
+    int aNbByPix = (mAppli.mNivLSQM >=0) ? 1 : mAppli.mNbByPix;    // NbByPix : "Number of point inside one pixel - default = 1"
+    /* Set param LSQ :
+         * aAffPred : matrix transformation affine correspondant with case affine on geometry original or reech
+         * aImSec : Img 2nd correspondant with case affine on geometry original or reech
+         * aSzWE = 6 (default) - size windows
+         * 1/4.0 -> 1/16.0 if LSQC = Flag 1 (Aff Geom) or 2 (Aff Radio)
+         * 1/8.0 -> 1/128.0 if LSQC = Flag -1
+    */
     cResulRechCorrel aRes2 =  TT_MaxLocCorrelDS1R
                                       (
                                            mAppli.Interpol(),
@@ -385,6 +392,7 @@ cResulRechCorrel cImSecTieTri::RechHomPtsDense(bool Interact,const cResulMultiIm
                                        );
     if (!  mAppli.mDoRaffImInit)
     {
+       // If we do refine on Im rech geometry (DRInit = false) => re-calcul matched point on 2nd image's global coordinate
        aRes2.mPt = mAffMas2Sec(aRes2.mPt);
     }
 
@@ -395,6 +403,7 @@ cResulRechCorrel cImSecTieTri::RechHomPtsDense(bool Interact,const cResulMultiIm
        std::cout << "HHHH " << USE_SCOR_CORREL << " " << (mAppli.mNumInterpolDense==0) << "\n";
     }
 
+    // After dense homologue search with TT_MaxLocCorrelDS1R, using result to adjust affine transformation
     ElAffin2D anAffOpt =  mAffMas2Sec.CorrectWithMatch(Pt2dr(aP0),aRes2.mPt);
 
     if (mAppli.mNivLSQM >=0)
@@ -405,10 +414,10 @@ cResulRechCorrel cImSecTieTri::RechHomPtsDense(bool Interact,const cResulMultiIm
         {
            Pt2dr aNoise = Pt2dr(NRrandC(),NRrandC()) * 0.25 * mAppli.mRandomize;
            std::cout << "SIMUL PERTURB = " << aNoise << "\n";
-           aP0Init = aP0Init +  aNoise;
-           anAffOpt =  mAffMas2Sec.CorrectWithMatch(aP0Init,aRes2.mPt);
+           aP0Init = aP0Init +  aNoise;                                            // Add noise of translation to pt master. Adjust by param's command Randomize
+           anAffOpt =  mAffMas2Sec.CorrectWithMatch(aP0Init,aRes2.mPt);            // Re-optimized affine transformation
         }
-        cLSQAffineMatch aMatchM2S(Pt2dr(aP0),mMaster->mImInit,mImInit,anAffOpt);
+        cLSQAffineMatch aMatchM2S(Pt2dr(aP0),mMaster->mImInit,mImInit,anAffOpt);   // (pt Master, ImMaster, Im2nd, Affine Master To 2nd)
         bool aOk= true;
         bool AffGeom   = ((mAppli.mNivLSQM  & 1) !=0);
         bool AffRadiom = ((mAppli.mNivLSQM  & 2) !=0);
@@ -424,8 +433,8 @@ cResulRechCorrel cImSecTieTri::RechHomPtsDense(bool Interact,const cResulMultiIm
                       1.0/mAppli.mNbByPix,
                       AffGeom,
                       AffRadiom
-                  );
-            Pt2dr aCurSol = aMatchM2S.Af1To2()(Pt2dr(aP0));
+                  );                                        // Update affine transformation
+            Pt2dr aCurSol = aMatchM2S.Af1To2()(Pt2dr(aP0)); // Calcul solution current with updated affine transformation
             double aDVar = euclid(aCurSol-aLastSol);
             if (aOk  && Interact)
             {
@@ -433,14 +442,14 @@ cResulRechCorrel cImSecTieTri::RechHomPtsDense(bool Interact,const cResulMultiIm
                     std::cout << "#############################################\n";
                 std::cout << "DVar=" << aDVar  << " D2Lim=" << euclid(aRes2.mPt-aLastSol) << "\n";
             }
-            aLastSol = aCurSol;
-            if (aK>=7) 
+            aLastSol = aCurSol;                             // Update solution
+            if (aK>=7)                                      // Stop LSQ if over 7 iteration
                GoOn = false;
-            if (aDVar<1e-2)
+            if (aDVar<1e-2)                                 // Stop LSQ if solution is converge
                GoOn = false;
         }
-        anAffOpt = aMatchM2S.Af1To2();
-        aRes2.mPt = aMatchM2S.Af1To2()(Pt2dr(aP0));
+        anAffOpt = aMatchM2S.Af1To2();                      // Update final affine transformation solution by LSQ
+        aRes2.mPt = aMatchM2S.Af1To2()(Pt2dr(aP0));         // Update final 2nd point matched solution by LSQ
 
 /*
         if (1)

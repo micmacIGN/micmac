@@ -79,6 +79,13 @@ class cLinkImTT;
 #define TT_RatioCorrEntFiltrSpatial  4    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point apres Corr Ent
 #define TT_RatioCorrSupPix           2    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point apres Corr Ent
 #define TT_RatioCorrLSQ              1    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point apres Corr Ent
+
+//  ===========================
+
+#define TT_FSDeltaCorrel 0.2 // Dans filtrage spatial, delta de correl/ aux max point que l'on va eliminer
+#define TT_FSExpoAtten   2   // Dans filtrage spatial, module l'attenaution fontion de la distance
+
+
 //(TT_DefSeuilDensiteResul/TT_RatioFastFiltrSpatial).^2 = rayon de filtrage spatial du point d'interet.
 // Cet seuil est appliquer pour filtrer les point d'interet juste apres la detection de point d'interet
 // Appliquer sur image maitraisse seulement

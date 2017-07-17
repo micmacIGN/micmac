@@ -4128,6 +4128,8 @@ CamStenope * CamStenope::StdCamFromFile
                      cInterfChantierNameManipulateur * anICNM
              )
 {
+  if (0) // NIKRUP
+     std::cout << "NAME StdCamFromFile " << aName << "\n";
 
   return Gen_Cam_Gen_From_File(CanUseGr,aName,"OrientationConique",anICNM)->CS();
 }

@@ -176,9 +176,9 @@
           <IsParametrized>  true </IsParametrized>
           <Sets> 
                  <PatternAccepteur> Pastis(.*)/(.*)\.(#2)  </PatternAccepteur>
-		 <SubDir>   Homol#1/ </SubDir>
+		         <SubDir>   Homol#1/ </SubDir>
                  <NivSubDir> 2 </NivSubDir>
-	  </Sets>
+	      </Sets>
           <Key> NKS-Set-Homol </Key>
     </KeyedSetsOfNames>
 

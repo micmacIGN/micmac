@@ -51,6 +51,99 @@ mm3d MyRename "(IMG_010.*)" "F\$2_\$1" AddFoc=1 PatSub="(.*)"
 
 
 */
+
+
+class cApplyMMRename 
+{
+    public :
+       cApplyMMRename (int argc,char ** argv);
+
+       std::string               mKeyCalc;
+       std::vector<std::string>  mVSetH;
+       cInterfChantierNameManipulateur  * mICNM;
+   private :
+
+       void DoOneDirHom(const std::string & aSH,const std::string & anExt);
+};
+
+
+void cApplyMMRename::DoOneDirHom(const std::string & aSH,const std::string & anExt)
+{
+    std::string aKeySet  = std::string("NKS-Set-Homol@") + aSH + "@" + anExt;
+    std::string aKeyCple = std::string("NKS-Assoc-CplIm2Hom@") + aSH + "@" + anExt;
+
+    std::string aExTmp = "Tmp-MMRename";
+
+    std::string aKeyNewCple = std::string("NKS-Assoc-CplIm2Hom@") + aExTmp + "@" + anExt;
+
+    const cInterfChantierNameManipulateur::tSet *   aSetF = mICNM->Get(aKeySet);
+
+    
+    for (int aK=0 ; aK<int(aSetF->size()) ; aK++)
+    {
+         const std::string & aNameHom = (*aSetF)[aK];
+         // std::cout << "H=" << aNameHom << "\n";
+         std::pair<std::string,std::string> aPair = mICNM->Assoc2To1(aKeyCple,aNameHom,false);
+         const std::string &  aNI1 = aPair.first;
+         const std::string &  aNI2 = aPair.second;
+
+          std::string aNewI1 = mICNM->Assoc1To1(mKeyCalc,aNI1,true);
+          std::string aNewI2 = mICNM->Assoc1To1(mKeyCalc,aNI2,true);
+
+         std::string aNewNameHom = mICNM->Assoc1To2(aKeyNewCple,aNewI1,aNewI2,true);
+
+         ELISE_fp::CpFile(aNameHom,aNewNameHom);
+
+         std::cout << " F=" << aNameHom << " " << aNI1 <<" " << aNI2    << "\n";
+    }
+}
+
+cApplyMMRename::cApplyMMRename(int argc,char ** argv)
+{
+    
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain() << EAMC(mKeyCalc,"Key of computation")  ,
+        LArgMain() << EAM(mVSetH,"SH",true,"Set of Homologous point")
+    );
+ 
+    mICNM  = cInterfChantierNameManipulateur::BasicAlloc("./");
+
+
+    for (int aKS=0 ; aKS<int(mVSetH.size()) ; aKS++)
+    {
+        DoOneDirHom(mVSetH[aKS],"dat");
+        DoOneDirHom(mVSetH[aKS],"txt");
+    }
+
+/*
+    const cInterfChantierNameManipulateur::tSet *   aSetF = mICNM->Get(mKeySet);
+    std::cout << "  Test Adr " << aSetF << " " <<  mICNM->Get(mKeySet) << "\n";
+
+    for (int aK=0 ; aK<int(aSetF->size()) ; aK++)
+         std::cout << " F=" << (*aSetF)[aK] << "\n";
+*/
+
+/*
+    std::string aCalc = mICNM->Assoc1To1(mKey,mTest,true);
+    std::string anInv = mICNM->Assoc1To1(mKey,aCalc,false);
+    std::cout << "Input=" << mTest << " Output=" << aCalc  << " Rev=" << anInv << "\n";
+*/
+}
+
+
+int CPP_MMRename(int argc,char ** argv)
+{
+    cApplyMMRename anAppli(argc,argv);
+
+    return EXIT_SUCCESS;
+}
+
+
+
+
+
 /*********************************************/
 /*                                           */
 /*                ::                         */

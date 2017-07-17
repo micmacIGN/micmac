@@ -19,6 +19,7 @@ set(uti_files_Src_Files
     ${UTI_FILES_DIR}/VersionedFileHeader.cpp
     ${UTI_FILES_DIR}/CPP_CheckChantier.cpp
     ${UTI_FILES_DIR}/CPP_Test_Apero2NVM.cpp
+    ${UTI_FILES_DIR}/CPP_EditSetRel.cpp
 )
 
 SOURCE_GROUP(uti_files FILES ${uti_files_Src_Files})
