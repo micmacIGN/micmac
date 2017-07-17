@@ -126,7 +126,7 @@ int ExtractRaw_main(int argc,char ** argv)
      (
            argc,argv,
            LArgMain() << EAMC(aFullName,"Full name (Dir+Pat)", eSAM_IsPatFile) 
-                      << EAMC(aPost,"Postfix", eSAM_IsPatFile)
+                      << EAMC(aPost,"Prefix", eSAM_IsPatFile)
                       << EAMC(aSpecif,"file containing SpecifFormatRaw", eSAM_IsPatFile),
            LArgMain() 
                       
