@@ -54,9 +54,37 @@ std::string EndStr(const std::string & aStr,int aNb=1)
 {
     return aStr.substr(1,std::string::npos);
 }
+
+/*
+std::string StrToLower(const std::string& aIn)
+{
+    std::string aRes;
+
+    for (const char * aC=aIn.c_str() ; *aC ; aC++)
+       aRes += *aC;
+
+    return aRes;
+}
+*/
+
+
 //*********************************************
 //*********************************************
 //*********************************************
+
+void Nikrup_Banniere()
+{
+    std::cout <<  "\n";
+    std::cout <<  " *********************************\n";
+    std::cout <<  " *     N-ew                      *\n";
+    std::cout <<  " *     I-mage                    *\n";
+    std::cout <<  " *     K-it                      *\n";
+    std::cout <<  " *     R-everse                  *\n";
+    std::cout <<  " *     U-se of                   *\n";
+    std::cout <<  " *     P-olish notation          *\n";
+    std::cout <<  " *********************************\n\n";
+
+}
 
 class cCtxtFoncPolI
 {
@@ -196,7 +224,7 @@ cFilterImPolI::cFilterImPolI(tPtrCalcFF aCalc,int aNbFoncIn,int  aNbFoncMax,int 
     mNbFoncMax (aNbFoncMax),
     mNbArgNum  (aNbArgNum),
     mNbArgMax  (aNbArgMax),
-    mPat       (aPat),
+    mPat       ("("+aPat + ")"),
     mAutom     (mPat,10),
     mChgCtx    (aChgCtx)
 {
@@ -332,29 +360,32 @@ static Fonc_Num FTif(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
    return  Tiff_Im::StdConvGen(anArg.mNameIn,-1,true).in_proj();
 }
-static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|Tif|Tiff|TIF|TIFF|jpg|jpeg|Jpg|Jpeg|JPG|JPEG)",false);
+// static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|Tif|Tiff|TIF|TIFF|jpg|jpeg|Jpg|Jpeg|JPG|JPEG)",false);
+static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|jpg|jpeg|cr2|arw)",false);
 
   //----------------------------------------------------------------
 
-static Fonc_Num FCoord(cFilterImPolI &,const cArgFilterPolI & anArg)
+static Fonc_Num FCoord(cFilterImPolI & aPolI,const cArgFilterPolI & anArg)
 {
+std::cout << "JJJJJ " << anArg.mNameIn << " == " << aPolI.mAutom.Match(anArg.mNameIn) << "\n";
    int aKC =0 ;
    if (anArg.mNameIn.size() == 1)
-      aKC =  anArg.mNameIn[0]- 'X';
+      aKC =  tolower(anArg.mNameIn[0])- 'x';
    else
       aKC=  ToInt(anArg.mNameIn.substr(1,std::string::npos));
 
    return  kth_coord(aKC);
 }
 
-static cFilterImPolI  OperCoord(FCoord,0,0,0,0,"X|Y|Z|X[0-9]+",false);
+static cFilterImPolI  OperCoord(FCoord,0,0,0,0,"x|y|z|x[0-9]+",false);
+// static cFilterImPolI  OperCoord(FCoord,0,0,0,0,"x",false);
   //----------------------------------------------------------------
 
 static Fonc_Num FDoubleCste(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
    return   Fonc_Num(ToDouble(anArg.mNameIn));
 }
-static cFilterImPolI  OperDoubleCste(FDoubleCste,0,0,0,0,"-?[0-9]+\\.([0-9]*)?",false);
+static cFilterImPolI  OperDoubleCste(FDoubleCste,0,0,0,0,"-?[0-9]+\\.[0-9]*",false);
 
 static Fonc_Num FIntCste(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
@@ -549,6 +580,7 @@ cResFilterPolI RecParseStrFNPolI(tCPtr & aStr,cCtxtFoncPolI * aCtx)
        aSymb = GetString(aStr);
        ELISE_ASSERT((aSymb!="(") && (aSymb!=")") ,"Conesecutive ( in expr");
     }
+    std::string  aIdSymb = StrToLower(aSymb);
 
 
     std::vector<cFilterImPolI *>  aVPol =  VPolI();
@@ -556,7 +588,7 @@ cResFilterPolI RecParseStrFNPolI(tCPtr & aStr,cCtxtFoncPolI * aCtx)
     for (int aK=0 ; aK<int(aVPol.size()) ; aK++)
     {
         cFilterImPolI & aPolI = *(aVPol[aK]);
-        if (aPolI.mAutom.Match(aSymb))
+        if (aPolI.mAutom.Match(aIdSymb))
         {
             if (aPolI.mChgCtx)
             {
@@ -640,7 +672,20 @@ cResFilterPolI GlobParseStrFNPolI(tCPtr & aStr)
     aStrGlob = aStr;
     cCtxtFoncPolI * aCtx = new cCtxtFoncPolI;
 
-    return RecParseStrFNPolI(aStr,aCtx);
+    cResFilterPolI aRes = RecParseStrFNPolI(aStr,aCtx);
+
+    while (*aStr && isspace(*aStr))
+    {
+       aStr++;
+    }
+
+    if (aStr!=std::string(""))
+    {
+       std::cout << "remaining string=[" << aStr << "]\n";
+       ELISE_ASSERT(false,"did not read all string");
+    }
+    
+    return aRes;
 }
 
 
@@ -723,6 +768,7 @@ int Nikrup_main(int argc,char ** argv)
          anOutGlob
      );
 
+     Nikrup_Banniere();
      return EXIT_SUCCESS;
 }
 
