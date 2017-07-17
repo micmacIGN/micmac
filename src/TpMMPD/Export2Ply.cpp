@@ -90,7 +90,9 @@ int Export2Ply_main(int argc,char ** argv)
     int aDiffColor=0;
     Pt3dr aOffset(0,0,0);
 	bool aGpsFile=false;
-
+	bool aSFP=false;
+	bool aShow=false;
+	
     ElInitArgMain
     (
         argc,argv,
@@ -106,6 +108,8 @@ int Export2Ply_main(int argc,char ** argv)
                     << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
                     << EAM(aOffset,"OffSet",true,"Add an offset to all points")
                     << EAM(aGpsFile,"GpsXML",true,"GPS xml input file; Def=false")
+                    << EAM(aSFP,"ShiftBFP",true,"Shift by substructing frist point to all ; Def=false")
+                    << EAM(aShow,"Show",true,"Show points ; Def=false")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -253,6 +257,17 @@ int Export2Ply_main(int argc,char ** argv)
 			aPoints.at(aP).z = aPoints.at(aP).z + aOffset.z;
 		}
 	}
+	
+	if(aSFP)
+	{
+		Pt3dr aFP = aPoints.at(0);
+		for(unsigned int aP=0; aP<aPoints.size(); aP++)
+		{
+			aPoints.at(aP).x = aPoints.at(aP).x - aFP.x;
+			aPoints.at(aP).y = aPoints.at(aP).y - aFP.y;
+			aPoints.at(aP).z = aPoints.at(aP).z - aFP.z;
+		}
+	}
     //if we do not want to keep all points
     if((int)aScale != 1)
     {
@@ -290,11 +305,13 @@ int Export2Ply_main(int argc,char ** argv)
     std::list<std::string> aVCom;
     std::vector<const cElNuage3DMaille *> aVNuage;
 
-
-    std::cout << "fixed:\n" << std::fixed;
-    std::cout << aPoints.size() << std::endl;
-    for(u_int i=0; i<aPoints.size(); i++)
-        std::cout << aPoints.at(i) << std::endl;
+	if(aShow)
+	{
+		std::cout << "fixed:\n" << std::fixed;
+		std::cout << aPoints.size() << std::endl;
+		for(u_int i=0; i<aPoints.size(); i++)
+			std::cout << aPoints.at(i) << std::endl;
+	}
 
     //if we want to change color each "aDiffColor" time
     int aMinValue = 0;

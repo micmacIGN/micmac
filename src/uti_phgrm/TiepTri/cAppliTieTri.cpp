@@ -374,18 +374,18 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
          }
          mTimeCorInit += aChrono.uval();
     }
-    if (mFlagFS & 1)
+    if (mFlagFS & 1)    // Flag = 1 => Filter Spatial in each triangle
         mVCurMIRMC = FiltrageSpatial(mVCurMIRMC,mDistFiltr/TT_RatioCorrEntFiltrSpatial,TT_FSDeltaCorrel);
 
     // ================ Calcul des correlations sous pixellaire ======================
 
 
     {
-       for (int aKEtape=1 ; aKEtape<=mLastEtape ; aKEtape++)
+       for (int aKEtape=1 ; aKEtape<=mLastEtape ; aKEtape++)    // mLastEtape = LastStep in command's parameter. default = 2
        {
-           mPIsInImRedr = (aKEtape <2);
+           mPIsInImRedr = (aKEtape <2); // aKEtape = 1 => Point correl est pts redress ; = 2 => non
            bool ModeInteractif = mWithW && (mEtapeInteract==aKEtape);
-           for (int aKp=0 ; aKp<int(mVCurMIRMC.size()) ; /* aKp++ SURTOUT PAS INCREMENTER FAIT EN FIN DE BOUCLE !! */ )
+           for (int aKp=0 ; aKp<int(mVCurMIRMC.size()) ; /* aKp++ SURTOUT PAS INCREMENTER FAIT EN FIN DE BOUCLE !! */ )  // => aKp incremente seulement quand !ModeInteractif
            {
                cResulMultiImRechCorrel * aRMIRC = ModeInteractif ?  mMasIm->GetRMIRC(mVCurMIRMC) : mVCurMIRMC[aKp];
                //cResulMultiImRechCorrel * aRMIRC = mVCurMIRMC[aKp];
@@ -407,8 +407,8 @@ if (MPD__MM() && ModeInteractif && (aKEtape==2))
 */
                    cResulRechCorrel  aRRC = 
                                           (aKEtape==1)                                                         ?
-                                          mImSec[aKIm]->RechHomPtsInteretBilin(ModeInteractif,*aRMIRC,aKIndIm) :
-                                          mImSec[aKIm]->RechHomPtsDense(ModeInteractif,*aRMIRC,aKIndIm)        ;
+                                          mImSec[aKIm]->RechHomPtsInteretBilin(ModeInteractif,*aRMIRC,aKIndIm) :    // Etape 1 (redress) => RechHomPtsInteretBilin
+                                          mImSec[aKIm]->RechHomPtsDense(ModeInteractif,*aRMIRC,aKIndIm)        ;    // Etape 2 (original) => RechHomPtsDense
                    if (! ModeInteractif)
                       aVRRC[aKIndIm] = aRRC;
                }
@@ -419,7 +419,7 @@ if (MPD__MM() && ModeInteractif && (aKEtape==2))
  
             cResulMultiImRechCorrel::SuprUnSelect(mVCurMIRMC);
             double aRatio = (aKEtape==1) ? TT_RatioCorrSupPix :   TT_RatioCorrLSQ;
-            if (mFlagFS & (1<<aKEtape))
+            if (mFlagFS & (1<<aKEtape))     // mFlagFS = 2 => Filtrage Spa en Etape 1; mFlagFS = 4 => Filtrage Spa en Etape 2
                 mVCurMIRMC = FiltrageSpatial(mVCurMIRMC,mDistFiltr/aRatio,TT_FSDeltaCorrel);
        }
     }
@@ -433,7 +433,7 @@ if (MPD__MM() && ModeInteractif && (aKEtape==2))
     for (int aKp=0 ; aKp<int(mVCurMIRMC.size()) ; aKp++)
     {
         //  PutInGlobCoord( .. ,bool WithDecal,bool WithRedr)
-        PutInGlobCoord(*mVCurMIRMC[aKp],true,(mLastEtape<=1));
+        PutInGlobCoord(*mVCurMIRMC[aKp],true,(mLastEtape<=1));  // (mLastEtape<=1) => to know in which geometry we are
         // PutInGlobCoord(*mVCurMIRMC[aKp],true,false);
     }
 
