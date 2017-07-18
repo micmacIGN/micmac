@@ -99,6 +99,7 @@ class cAppliMalt
           int         mExe;
           int         mNbEtapeQ;
           bool        mOrthoQ;
+          bool        mSpatial;
           bool        mOrthoF;
           double      mZPas;
           std::string mRep;
@@ -305,6 +306,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mNbMinIV,"NbVI",true,"Number of Visible Images required (Def = 3)")
                     << EAM(mOrthoF,"HrOr",true,"Compute High Resolution Ortho")
                     << EAM(mOrthoQ,"LrOr",true,"Compute Low Resolution Ortho")
+                    << EAM(mSpatial,"Spatial",true,"Compute the DTM with spatial optimized parameters")
                     << EAM(mDirTA,"DirTA",true,"Directory of TA (for mask)",eSAM_IsDir)
                     << EAM(mPurge,"Purge",true,"Purge the directory of Results before compute")
                     << EAM(mDoMEC,"DoMEC",true,"Do the Matching")
@@ -646,6 +648,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       // mZoomInit
 
       std::string aFileMM = "MM-Malt.xml";
+
+      if (mSpatial)
+          aFileMM="MM-Malt-Spatial.xml";
 
       if (0)
       {
