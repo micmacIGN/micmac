@@ -74,7 +74,8 @@ int AperiCloud_main(int argc,char ** argv)
     double RabDrBundle = 0.0;
 
     std::vector<std::string> aNameGCP;
-    
+	bool NormByC=0;   
+ 
     ElInitArgMain
     (
                argc,argv,
@@ -100,6 +101,7 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(aNameBundle,"NameBundle",true,"Name of input GCP to add bundle intersection schema")
                     << EAM(RabDrBundle,"RabDrBundle",true,"Lenght to add in budle drawing (Def=0.0)")
                     << EAM(aNameGCP,"GCPCtrl",true,"[GCPTerr.xml,GCPIm.xml,Scale]-> true 3D coordinates+image observations+residual vector scaling factor", eSAM_NoInit)
+					<< EAM(NormByC,"NormByC",true,"Add optical center per point (Def=0)",eSAM_InternalUse)
     );
 
     if (!MMVisualMode)
@@ -210,6 +212,11 @@ int AperiCloud_main(int argc,char ** argv)
                           " +NameSchemaPGCPTerr=" + aNameGCPTerr +
                           " +ScaleVecGCP=" + aScaVec;
         }
+		
+		if (NormByC)
+		{
+			aCom = aCom + " +WithNormByC=true" + " +NormByC=" + ToString(NormByC);
+		}
 
         std::cout << "Com = " << aCom << "\n";
         int aRes = System(aCom.c_str());

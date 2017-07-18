@@ -317,6 +317,10 @@ Fonc_Num Polar_Def_Opun::polar(Fonc_Num f,REAL teta0)
 }
 
 
+Fonc_Num polar(Fonc_Num f,REAL teta0)
+{
+   return  Polar_Def_Opun::polar(f,teta0);
+}
 
 /*****************************************************************/
 /*              Binary operator                                  */

@@ -238,6 +238,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
     bool   aUseGaussJ = false;
     int    NormaliseEq = 3;
+    
+    std::string RapTxt="";
     std::vector<std::string> aParamCCCC;
 
 	std::vector<double> aVRegulDist;
@@ -288,7 +290,9 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aUseGaussJ,"UseGaussJ",true,"Use GaussJ instead of Cholesky (Def depend of others) ")
                     << EAM(NormaliseEq,"NormEq",true,"Flag for Norm Eq, 1->Sc, 2-Tr, Def=3 (All), tuning purpose ")
                     << EAM(aParamCCCC,"ContrCalCamCons",true,"Constraint on calibration for conseq camera [Key,Simga] ")
-					<< EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
+		    << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
+                    << EAM(RapTxt,"RapTxt",true,"Output report of residual for each point")
+
     );
 
 
@@ -300,7 +304,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         SplitDirAndFile(mDir,mPat,aFullDir);
         StdCorrecNameOrient(AeroIn,mDir);
 
-        std::string aSetIm = "NKS-Set-OfPattern@" + mPat;
+        std::string aSetIm = "NKS-Set-OfPattern@[[" + mPat + "]]";
 
 
 
@@ -339,7 +343,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         if (AffineFree) mCom += " +AffineFree=true ";
         if (AllFree) mCom    += " +AllFree=true ";
         if (ExpTxt) mCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
-
+        if (EAMIsInit(&RapTxt)) mCom += std::string(" +RapTxt=") + RapTxt + " ";
  	if (AllPoseFigee) mCom    += " +PoseFigee=true ";
 
         if (EAMIsInit(&PatPoseFigee))

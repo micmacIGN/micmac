@@ -453,6 +453,12 @@ void cPic::selectHomols()
 }
 
 
+void cPic::selectAllHomols()
+{
+    mAllSelectedPointsOnPic=mAllPointsOnPic;
+}
+
+
 void cPic::fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameManipulateur * aICNM,std::string & aKHOut)
 {
     ElPackHomologue aPackOut1;
@@ -748,7 +754,10 @@ int schnaps_main(int argc,char ** argv)
     bool veryStrict=false;
     bool doShowStats=false;
     bool ExeWrite=true;
+    bool DoNotFilter=false;
     double aMinPercentCoverage=30;//if %coverage<aMinPercentCoverage, add to poubelle!
+    bool aMove=false;//if true, move poubelle images to a folder named "Poubelle/"
+    std::string aNameTrashFolder = "";
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
             <<"S trict           \n"
@@ -772,11 +781,19 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                    << EAM(veryStrict,"VeryStrict",true,"Be very strict with homols (remove any suspect), def=false")
                    << EAM(doShowStats,"ShowStats",true,"Show Homol points stats before and after filtering, def=false")
+                   << EAM(DoNotFilter,"DoNotFilter",true,"Write homol after recomposition, without filterning, def=false")
                    << EAM(aPoubelleName,"PoubelleName",true,string("Where to write suspicious pictures names, def=\"")+aPoubelleName+"\"")
                    << EAM(aMinPercentCoverage,"minPercentCoverage",true,"Minimum % of coverage to avoid adding to poubelle, def=30")
+                   << EAM(aMove,"MoveBadImgs",true,"Move bad images to a trash folder called Poubelle, Def=false")
+                   << EAM(aNameTrashFolder,"OutTrash",true,"Output name of trash folder if moving bad images, Def=Poubelle")
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
+    
+    if(aNameTrashFolder == "")
+    {
+		aNameTrashFolder = "Poubelle";
+	}
 
 
     std::cout<<"Number of searching windows: "<<aNumWindows<<std::endl;
@@ -956,35 +973,42 @@ int schnaps_main(int argc,char ** argv)
     }*/
 
 
-
-    
-    //create new homols ------------------------------------------------
-    std::cout<<"Create new homol..";
-    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+    if (!DoNotFilter)
     {
-        cPic* aPic=(*itPic1).second;
-        std::cout<<"."<<flush;
-        //std::cout<<"  "<<aPic->getName()<<endl;
-        aPic->selectHomols();
-    }
-    std::cout<<"Done!"<<endl;
-
-    #ifdef ReductHomolImage_DEBUG
-    std::cout<<"New Homols per image:";
-    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
-    {
-        cPic* aPic=(*itPic1).second;
-        std::cout<<std::endl<<"  - "<<aPic->getName()<<" "<<std::flush;
-        /*std::list<cPointOnPic*>::iterator itPointsOnPic;
-        for (itPointsOnPic=aPic->getAllSelectedPointsOnPic()->begin();
-             itPointsOnPic!=aPic->getAllSelectedPointsOnPic()->end();
-             ++itPointsOnPic)
+        //create new homols ------------------------------------------------
+        std::cout<<"Create new homol..";
+        for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
         {
-            std::cout<<(*itPointsOnPic)->getHomol()->getId()<<" "<<std::flush;
-        }*/
+            cPic* aPic=(*itPic1).second;
+            std::cout<<"."<<flush;
+            //std::cout<<"  "<<aPic->getName()<<endl;
+            aPic->selectHomols();
+        }
+        std::cout<<"Done!"<<endl;
+
+        #ifdef ReductHomolImage_DEBUG
+        std::cout<<"New Homols per image:";
+        for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+        {
+            cPic* aPic=(*itPic1).second;
+            std::cout<<std::endl<<"  - "<<aPic->getName()<<" "<<std::flush;
+            /*std::list<cPointOnPic*>::iterator itPointsOnPic;
+            for (itPointsOnPic=aPic->getAllSelectedPointsOnPic()->begin();
+                 itPointsOnPic!=aPic->getAllSelectedPointsOnPic()->end();
+                 ++itPointsOnPic)
+            {
+                std::cout<<(*itPointsOnPic)->getHomol()->getId()<<" "<<std::flush;
+            }*/
+        }
+        std::cout<<std::endl;
+        #endif
+    }else{
+        for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+        {
+            cPic* aPic=(*itPic1).second;
+            aPic->selectAllHomols();
+        }
     }
-    std::cout<<std::endl;
-    #endif
 
     /*
     cPic *aPic=allPics[4];
@@ -1027,6 +1051,12 @@ int schnaps_main(int argc,char ** argv)
                 nbBadPictures++;
                 aFileBadPictureNames<<pic1->getName()<<"\n";
                 cout<<" rejected!";
+                if(aMove)
+                {
+					ELISE_fp::MkDirSvp(aNameTrashFolder); //create folder if does not exist
+					ELISE_fp::MvFile(pic1->getName(),aNameTrashFolder);cout<<"\n"; //move it to poubelle folder
+					cout<< " moved to "<<aNameTrashFolder<<"\n";
+				}
             }
             std::cout<<std::endl;
             for (itPic2=itPic1;itPic2!=allPics.end();++itPic2)

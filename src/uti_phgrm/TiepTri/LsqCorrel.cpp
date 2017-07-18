@@ -245,7 +245,7 @@ if (Bug)
     std::cout << " Box1=" << mPInfIm1 << mPSupIm1  << " Box2=" << mPInfIm2 << mPSupIm2 << "\n";
 }
 */
-     double aV1 = mInterp->GetVal(mData1,aPIm1);
+     double aV1 = mInterp->GetVal(mData1,aPIm1);    // value of center point (point master)
 
      Pt3dr aNewVD2= mInterp->GetValDer(mData2,aPIm2);
      double aGr2X = aNewVD2.x;
@@ -295,8 +295,14 @@ BUGRECT = (CPT==8389);
     mInterp = anInterp;
     mAffineGeom = AffineGeom;
     mAffineRadiom = AffineRadiom;
-    int aNbPixTot = round_ni(aNbW/aStep);
+    // aStep = 1/NbByPix => "real size" of a pixel
+    int aNbPixTot = round_ni(aNbW/aStep); // => calcul "real" window size from user given "window size" & Nb of point inside 1 pixel
     // double aCoeff[10];
+    /* calcul number of variable for system equation :
+       * No Aff, No Radio => 4 variables
+       * With Aff, No Radio => 8 variables
+       * No Aff, With Radio => 10 variables
+     */
     int aNbInc = 4 + (mAffineGeom ? 4 :0) + (mAffineRadiom ? 2 : 0); 
 
     NumAB = 0;
@@ -307,17 +313,19 @@ BUGRECT = (CPT==8389);
     L2SysSurResol aSys(aNbInc);
     mSomDiff = 0;
 
-    CalcRect(mInterp,aNbW);
+    CalcRect(mInterp,aNbW);     // calcul Pt Haut Gauche & Pt Bas Droite to form a rectangle on both image
 
     if (   (!mTI1.inside_rab(mPInfIm1,0)) 
         || (!mTI1.inside_rab(mPSupIm1,0)) 
         || (!mTI2.inside_rab(mPInfIm2,0)) 
         || (!mTI2.inside_rab(mPSupIm2,0)) 
        )
-       return false;
+       return false;            // check if rectangle is inside image
 
     ElAffin2D anAfRec = mAf1To2.inv();
-    Pt2dr aPC2 = mAf1To2(mPC1);
+    Pt2dr aPC2 = mAf1To2(mPC1);         // mPC1 : pt sur image 1
+
+    // Add equation to system
     for (int aKx=-aNbPixTot ; aKx<=aNbPixTot ; aKx++)
     {
         for (int aKy=-aNbPixTot ; aKy<=aNbPixTot ; aKy++)
@@ -326,7 +334,7 @@ BUGRECT = (CPT==8389);
 //static int aCpt=0; aCpt++;
 //std::cout << "Cppt0=" << aCpt << "\n";
 //bool aBug = (aCpt== 70700);
-            Pt2dr aPIm1 = mPC1 + aPVois;
+            Pt2dr aPIm1 = mPC1 + aPVois;    // aPIm1 : pts voisin coordinate
 //if (aBug) std::cout << " Addd1 " << aPIm1 << "\n";
             AddEqq(aSys,aPIm1,mPC1);
 

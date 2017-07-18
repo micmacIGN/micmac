@@ -97,7 +97,7 @@ class OperBinInt : public OperBin
 {
    public :
       virtual void t0_eg_t1_op_t2(INT  * t0,const INT  * t1,const INT  *t2,INT nb) const = 0;
-   virtual ~OperBinInt() {}
+      virtual ~OperBinInt() {}
 };
 
 extern const OperBinInt & OpAndBB;          // &
@@ -172,6 +172,8 @@ class OperAssocMixte : public OperBinMixte
 {
 
    public :
+
+     static OperAssocMixte * GetFromName(const std::string &,bool Svp=false);
 
      typedef enum
      {
@@ -393,6 +395,14 @@ extern void tab_log2(REAL * out, const REAL * in,INT nb);
 
 extern REAL erfcc (REAL x);
 extern void tab_erfcc(REAL * out, const REAL * in,INT nb);
+
+
+typedef Fonc_Num (*tOperFuncUnaire)(Fonc_Num f1);
+tOperFuncUnaire  OperFuncUnaireFromName(const std::string & aName);
+
+typedef Fonc_Num (*tOperFuncBin)(Fonc_Num f1,Fonc_Num f2);
+tOperFuncBin  OperFuncBinaireFromName(const std::string & aName);
+
 
 
 

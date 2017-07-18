@@ -41,7 +41,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#define CH16Bits 1
+
+#if CH16Bits
+#define TY_CHAMF U_INT2
+#define TY_IM_CHMF GenIm::u_int2
+#else
 #define TY_CHAMF U_INT1
+#define TY_IM_CHMF GenIm::u_int1
+#endif
 
 
 /*********************************************************************/
@@ -262,7 +270,7 @@ Chamfer_OPB_Comp::Chamfer_OPB_Comp
                        Pt2di(-(r+delta),-(r+delta)),
                        Pt2di(r+delta,per_reaf+delta+r-1)
                  ),
-                 GenIm::u_int1
+                 TY_IM_CHMF
               )
        ),
       _nb         (per_reaf+delta),
@@ -432,7 +440,7 @@ Chamfer_OPB_Not_Comp::Chamfer_OPB_Not_Comp
 )    :
      _f                (f0),
      _chamf            (chamf), 
-     _max_d            (ElMin(255,max_d)),
+     _max_d            (CH16Bits ? max_d : (ElMin(255,max_d)) ),
      _post             (post),
      _neg              (neg),
      _binarise_input   (binarise_input)

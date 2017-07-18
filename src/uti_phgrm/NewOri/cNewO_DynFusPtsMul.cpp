@@ -834,13 +834,16 @@ ElPackHomologue ToStdPack(const tMergeLPackH * aMPack,bool PondInvNorm,double aP
 
         double aPds = ((*itC)->NbArc() == 1) ? aPdsSingle : 1.0;
 
-        if (PondInvNorm)
+        if (aPds > 0)
         {
-             aPds /= NormPt2Ray(aP0) * NormPt2Ray(aP1);
-        }
+           if (PondInvNorm)
+           {
+                aPds /= NormPt2Ray(aP0) * NormPt2Ray(aP1);
+           }
 
-        ElCplePtsHomologues aCple(aP0,aP1,aPds);
-        aRes.Cple_Add(aCple);
+           ElCplePtsHomologues aCple(aP0,aP1,aPds);
+           aRes.Cple_Add(aCple);
+       }
     }
 
     return aRes;

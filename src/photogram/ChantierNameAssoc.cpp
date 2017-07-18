@@ -2102,7 +2102,11 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
         {
             const tSet * aSet = mVM[aK]->Get(aKey);
             if (aSet!=0)
+            {
+                std::cout<<"\""<<aKey<<"\": "<<aSet->size()<<" matches."<<std::endl;
+
                 return aSet;
+            }
         }
         {
               std::string aName = GetNameWithoutPerc(aKey);
@@ -4175,6 +4179,16 @@ cResulMSO cInterfChantierNameManipulateur::MakeStdOrient
 
         return aResult;
 }
+
+/*
+bool FromString(std::vector<std::string> &aRes ,const std::string & aStr)
+{
+    stringstream aStream(aStr);
+    ElStdRead(aStream,aRes,ElGramArgMain::StdGram);
+    return true;
+}
+*/
+
 
 std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std::string & aStr)
 {

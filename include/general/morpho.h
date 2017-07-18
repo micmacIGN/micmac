@@ -46,6 +46,8 @@ class Chamfer
 {
       public :
 
+        static const Chamfer & ChamferFromName(const std::string & aName);
+
 
         inline const INT *   pds ()      const { return _pds;}
         inline const Pt2di * neigh ()    const { return _neigh;}
