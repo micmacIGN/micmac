@@ -211,6 +211,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
     bool  AllPoseFigee = false;
     std::string  PatPoseFigee;
+    std::string  PatCentreFigee;
+    std::string  PatAngleFigee;
 
     double aSigmaTieP = 1;
     double aFactResElimTieP = 5;
@@ -270,6 +272,9 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aDrMax,"DRMax",true, "When specified degree of freedom of radial parameters")
  		    << EAM(AllPoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
  		    << EAM(PatPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)")
+ 		    << EAM(PatCentreFigee,"FrozenCenters",true,"List of frozen poses (pattern)")
+ 		    << EAM(PatAngleFigee,"FrozenOrients",true,"List of frozen poses (pattern)")
+
                     << EAM(AcceptGB,"AcceptGB",true,"Accepte new Generik Bundle image, Def=true, set false for perfect backward compatibility")
                     << EAM(mMulRTA,"MulRTA",true,"Rolling Test Appuis , multiplier ")
                     << EAM(mNameRTA,"NameRTA",true,"Name for save results of Rolling Test Appuis , Def=SauvRTA.xml")
@@ -349,6 +354,14 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         if (EAMIsInit(&PatPoseFigee))
         {
             mCom    += " +WithPatPoseFigee=true +PatPoseFigee=" + PatPoseFigee + " ";
+        }
+        if (EAMIsInit(&PatCentreFigee))
+        {
+            mCom    += " +WithPatCentreFigee=true +PatCentreFigee=" + PatCentreFigee + " ";
+        }
+        if (EAMIsInit(&PatAngleFigee))
+        {
+            mCom    += " +WithPatOrientFigee=true +PatOrientFigee=" + PatAngleFigee + " ";
         }
 
         if (EAMIsInit(&aFactResElimTieP))

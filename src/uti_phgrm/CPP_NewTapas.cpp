@@ -412,6 +412,8 @@ int Tapas_main(int argc,char ** argv)
 
     std::string  aRapTxt;
     std::string  aPoseFigee="";
+    std::string  aCentreFige="";
+    std::string  aRotFige="";
     std::string  aCalFigee="";
     std::string  aCalLibre=".*";
     bool         aFreeCalibInit = false;
@@ -463,6 +465,8 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aRapTxt,"RapTxt",true, "RapTxt", eSAM_NoInit)
                     << EAM(TolLPPCD,"LinkPPaPPs",true, "Link PPa and PPs (double)", eSAM_NoInit)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
+                    << EAM(aCentreFige,"FrozenCenters",true,"List of frozen centers of poses (pattern)", eSAM_IsPatFile)
+                    << EAM(aRotFige,"FrozenOrients",true,"List of frozen orients of poses (pattern)", eSAM_IsPatFile)
                     << EAM(aFreeCalibInit,"FreeCalibInit",true,"Free calibs as soon as created (Def=false)", eSAM_IsPatFile)
                     << EAM(aCalFigee,"FrozenCalibs",true,"List of frozen calibration (pattern)", eSAM_IsPatFile)
                     << EAM(aCalLibre,"FreeCalibs",true,"List of free calibration (pattern, Def=\".*\")", eSAM_IsPatFile)
@@ -693,7 +697,14 @@ int Tapas_main(int argc,char ** argv)
        {
           aCom  = aCom + " +PoseFigee=" + QUOTE(aPoseFigee) + " +WithPoseFigee=true";
        }
-
+       if (aCentreFige!="")
+       {
+          aCom  = aCom + " +CentreFiges=" + QUOTE(aCentreFige) + " +WithCentreFiges=true";
+       }
+       if (aRotFige!="")
+       {
+          aCom  = aCom + " +RotationFigees=" + QUOTE(aRotFige) + " +WithRotationFiges=true";
+       }
        if (aFreeCalibInit)
        {
           aCom  = aCom + " +FrozeCalibInit=false";

@@ -431,6 +431,20 @@ void MyBisCr::ShowLiaison()
 
 void  MyBisCr::write_liaison()
 {
+   if (1)
+   {
+      cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+      for (int aK=0 ; aK< 2 ; aK++)
+      {
+          ElPackHomologue aPackSauv = mLiaisons;
+          // aPackSauv.ApplyHomographies(mH1,mH2);
+          std::string aExt = (aK==0) ? std::string("txt") : std::string("dat");
+          std::string aNameH = anICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@-Man@" + aExt,mName1,mName2,true);
+          aPackSauv.StdPutInFile(aNameH);
+          // std::cout << "NAMEH=" << aNameH << "\n";
+      }
+   }
+
    if (StdPostfix(mNameXML)=="dat")
    {
          ELISE_fp aFP(mNameXML.c_str(),ELISE_fp::WRITE);
