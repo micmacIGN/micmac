@@ -634,7 +634,7 @@ class ElAffin2D : public cElMap2D
      public :
         ElAffin2D
         (
-            Pt2dr im00,  // partie affine
+            Pt2dr im00,  // partie affine  -- translation
             Pt2dr im10,  // partie vecto
             Pt2dr im01  // partie vecto
         );

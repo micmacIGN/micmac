@@ -52,8 +52,24 @@ class cThmProc_Appli
 {
 	public :
 		cThmProc_Appli(int argc,char ** argv);
-		void Do2DMatching(std::string aDirectory, std::string aPatImgs, std::string aXmlFile, int aPas, bool aClean);
-		void DoHomConv(std::string aDirectory, std::string aPatImgs, int aPas);
+		
+		//function to launch 2D Matching between reference image and successive images
+		void Do2DMatching(
+						  std::string aDirectory, 
+						  std::string aPatImgs, 
+						  std::string aXmlFile, 
+						  int aPas, 
+						  bool aClean
+						  );
+		
+		//function to convert deformation images to Homol format
+		void DoHomConv(
+					   std::string aDirectory, 
+					   std::string aPatImgs, 
+					   int aPas
+					   );
+		
+		//function to compute the MAP ; temperature function of XY
 		void CalcXYT(
 					 std::string aDirectory, 
 					 std::string aPatImgs, 
@@ -63,11 +79,33 @@ class cThmProc_Appli
 					 std::string aHom, 
 					 std::string aFileName, 
 					 std::string aExt, 
-					 int aPas
+					 int aPas,
+					 std::string aCmpRot
 					 );
-		std::string GetPatNoMatser(std::vector<std::string> aSetIm, int aPas); //first image is the master image
-		void ReadImgTFile(std::string aDirectory, std::string aFileName, std::vector<ImgT> & aVSIT, std::string aExt);
-		void GenerateXmlAssoc(std::vector<ImgT> aVSIT, std::string aDirectory, std::string aOutFileName, std::string aKey);
+		
+		//first image is the master image
+		std::string GetPatNoMatser(
+								   std::vector<std::string> aSetIm, 
+								   int aPas
+								   );
+								   
+		//function to read input file format : IMG_1 Temperature_IMG_1
+		void ReadImgTFile(
+						  std::string aDirectory, 
+						  std::string aFileName, 
+						  std::vector<ImgT> & aVSIT, 
+						  std::string aExt
+						  );
+		
+		//function to generate proper MicMac-Local-Chantier-Descripteur .xml file
+		void GenerateXmlAssoc(
+							  std::vector<ImgT> aVSIT, 
+							  std::string aDirectory, 
+							  std::string aOutFileName, 
+							  std::string aKey
+							  );
+							  
+		//function to correct images from temperature					  
 		void CorrImgsFromTemp(
 							  std::string aMap, 
 							  std::string aDirectory, 
@@ -77,7 +115,15 @@ class cThmProc_Appli
 							  std::string aOutFolder,
 							  std::string aMAF
 							  );
-		std::string GenNameFile(std::vector<ImgT> aVSIT, std::string aNameIm, std::string aPref);
+		
+		//function
+		std::string GenNameFile(
+								std::vector<ImgT> aVSIT, 
+								std::string aNameIm, 
+								std::string aPref
+								);
+								
+		//function to clean a MEC directory (keeping useful files)						
 		void CleanMEC(std::string aName);
 	private :
 		std::string mFullPat;
@@ -125,7 +171,11 @@ void cThmProc_Appli::CleanMEC(std::string aName)
 	}
 }
 
-std::string cThmProc_Appli::GenNameFile(std::vector<ImgT> aVSIT, std::string aNameIm, std::string aPref)
+std::string cThmProc_Appli::GenNameFile(
+										std::vector<ImgT> aVSIT, 
+										std::string aNameIm, 
+										std::string aPref
+										)
 {
 	std::string aNameFile="";
 	
@@ -218,35 +268,47 @@ void cThmProc_Appli::CorrImgsFromTemp(
 	}
 }
 
-void cThmProc_Appli::GenerateXmlAssoc(std::vector<ImgT> aVSIT, std::string aDirectory, std::string aOutFileName, std::string aKey)
+void cThmProc_Appli::GenerateXmlAssoc(
+									  std::vector<ImgT> aVSIT, 
+									  std::string aDirectory, 
+									  std::string aOutFileName, 
+									  std::string aKey
+									  )
 {
-	FILE * aFP = FopenNN(aOutFileName,"w","ThermikProc_main");
-	cElemAppliSetFile aEASF(aOutFileName);
-	
-	fprintf(aFP,"<ChantierDescripteur>\n");
-	fprintf(aFP,"\t<KeyedNamesAssociations>\n");
-	
-	for(unsigned int aK=0; aK<aVSIT.size(); aK++)
+	//if file do not exist
+	if(!ELISE_fp::exist_file(aOutFileName))
 	{
-		fprintf(aFP,"\t\t<Calcs>\n");
-		fprintf(aFP,"\t\t\t<Arrite> 1 1 </Arrite>\n");
-		fprintf(aFP,"\t\t\t\t<Direct>\n");
-		fprintf(aFP,"\t\t\t\t\t<PatternTransform>%s</PatternTransform>\n",aVSIT.at(aK).ImgName.c_str());
-		fprintf(aFP,"\t\t\t\t\t<CalcName>%f</CalcName>\n",aVSIT.at(aK).ImgTemp);
-		fprintf(aFP,"\t\t\t\t</Direct>\n");
-		fprintf(aFP,"\t\t</Calcs>\n");
+		FILE * aFP = FopenNN(aOutFileName,"w","ThermikProc_main");
+		cElemAppliSetFile aEASF(aOutFileName);
+	
+		fprintf(aFP,"<ChantierDescripteur>\n");
+		fprintf(aFP,"\t<KeyedNamesAssociations>\n");
+		
+		for(unsigned int aK=0; aK<aVSIT.size(); aK++)
+		{
+			fprintf(aFP,"\t\t<Calcs>\n");
+			fprintf(aFP,"\t\t\t<Arrite> 1 1 </Arrite>\n");
+			fprintf(aFP,"\t\t\t\t<Direct>\n");
+			fprintf(aFP,"\t\t\t\t\t<PatternTransform>%s</PatternTransform>\n",aVSIT.at(aK).ImgName.c_str());
+			fprintf(aFP,"\t\t\t\t\t<CalcName>%f</CalcName>\n",aVSIT.at(aK).ImgTemp);
+			fprintf(aFP,"\t\t\t\t</Direct>\n");
+			fprintf(aFP,"\t\t</Calcs>\n");
+		}
+		
+		fprintf(aFP,"\t<Key>%s</Key>\n",aKey.c_str());
+		fprintf(aFP,"\t</KeyedNamesAssociations>\n");
+		fprintf(aFP,"</ChantierDescripteur>\n");
+		
+		ElFclose(aFP);
 	}
-	
-	fprintf(aFP,"\t<Key>%s</Key>\n",aKey.c_str());
-	fprintf(aFP,"\t</KeyedNamesAssociations>\n");
-	fprintf(aFP,"</ChantierDescripteur>\n");
-	
-	ElFclose(aFP);
-	
-	
 }
 
-void cThmProc_Appli::ReadImgTFile(std::string aDirectory, std::string aFileName, std::vector<ImgT> & aVSIT, std::string aExt)
+void cThmProc_Appli::ReadImgTFile(
+								  std::string aDirectory, 
+								  std::string aFileName, 
+								  std::vector<ImgT> & aVSIT, 
+								  std::string aExt
+								  )
 {
 	ifstream aFichier((aDirectory + aFileName).c_str());
 	if(aFichier)
@@ -281,7 +343,10 @@ void cThmProc_Appli::ReadImgTFile(std::string aDirectory, std::string aFileName,
 	}
 }
 
-std::string cThmProc_Appli::GetPatNoMatser(std::vector<std::string> aSetIm, int aPas)
+std::string cThmProc_Appli::GetPatNoMatser(
+										   std::vector<std::string> aSetIm, 
+										   int aPas
+										   )
 {
 	std::string aPatNoMaster="";
     
@@ -315,7 +380,8 @@ void cThmProc_Appli::CalcXYT(
 							 std::string aHom, 
 							 std::string aFileName, 
 							 std::string aExt, 
-							 int aPas
+							 int aPas,
+							 std::string aCmpRot
 							 )
 {
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirectory);
@@ -331,7 +397,7 @@ void cThmProc_Appli::CalcXYT(
     std::vector<ImgT> aVSIT;
     ReadImgTFile(aDirectory,aFileName,aVSIT,aExt);
     
-    //generate xml file of associations
+    //generate xml file of associations if not given
     std::string aOutFileName = aDirectory + "MicMac-LocalChantierDescripteur.xml";
     std::cout << "aOutFileName = " << aOutFileName << std::endl;
     
@@ -356,10 +422,19 @@ void cThmProc_Appli::CalcXYT(
 						+ aHom;
 	
 	std::cout << "aCom = " << aCom << std::endl;
+	
+	if(aCmpRot != "")
+	{
+		aCom = aCom + std::string(" ") + "OriCmpRot=" + aCmpRot;
+	}
 	system_call(aCom.c_str());
 }
 
-void cThmProc_Appli::DoHomConv(std::string aDirectory, std::string aPatImgs, int aPas)
+void cThmProc_Appli::DoHomConv(
+							   std::string aDirectory, 
+							   std::string aPatImgs, 
+							   int aPas
+							   )
 {
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirectory);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
@@ -388,7 +463,13 @@ void cThmProc_Appli::DoHomConv(std::string aDirectory, std::string aPatImgs, int
 	}
 }
 
-void cThmProc_Appli::Do2DMatching(std::string aDirectory, std::string aPatImgs, std::string aXmlFile, int aPas, bool aClean)
+void cThmProc_Appli::Do2DMatching(
+								  std::string aDirectory, 
+								  std::string aPatImgs, 
+								  std::string aXmlFile, 
+								  int aPas, 
+								  bool aClean
+								  )
 {
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirectory);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
@@ -447,6 +528,7 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 	bool aClean=true;
 	std::string aMAF="";
 	bool aDoConv2Hom=true;
+	std::string aCmpRot="";
 	
 	ElInitArgMain
     (
@@ -470,10 +552,12 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
                      << EAM(aClean,"Clean",false,"Clean MEC folders to keep only recquired files ; Def=true")
                      << EAM(aMAF,"MAF",false,"Xml file of Image Measures")
                      << EAM(aDoConv2Hom,"DoConv2H",false,"Do Conversion DMatch2Hom ; Def=true")
+                     << EAM(aCmpRot,"OriCmpRot",false,"Orientation folder, to compense rotation")
                      
     );
     
-	//read the pattern to use as calibration (add as option the possibility to use several patterns)
+	//read the pattern to use as calibration 
+	//todo : (add as option the possibility to use several patterns)
 	SplitDirAndFile(mDir,mPat,mFullPat);
     
 	//compute all deformation maps by 2D matching
@@ -485,11 +569,11 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 		DoHomConv(mDir,mPat,aPas);
 	
 	//compute evolutive map function of temperature
-	CalcXYT(mDir,mPat,aDegT,aDegXY,aKey,aHom,aFileName,aExt,aPas);
+	CalcXYT(mDir,mPat,aDegT,aDegXY,aKey,aHom,aFileName,aExt,aPas,aCmpRot);
 	std::string aMap = mDir + "PolOfTXY.xml";
 	
 	//compute map for each tempurature (dataset to process in a photogrammetric workflow) ; give it as option
-	//and generate corrected images from temperature to compare with original images
+	//and generate corrected images from temperature to compare with original images later
 	if(aFullPatToCorr != "")
 	{
 		std::string aDir2C="";
@@ -499,6 +583,10 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 		if(aNameFolder == "")
 		{
 			aNameFolder = aDir2C + "CorrTemp_" + StdPrefixGen(aDir2C);
+		}
+		else
+		{
+			aNameFolder = aDir2C + aNameFolder + "_" + StdPrefixGen(aDir2C);
 		}
 		
 		//create new folder where to put corrected images
@@ -625,6 +713,7 @@ int CalcPatByAspro_main(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
 //----------------------------------------------------------------------------
 int CmpMAF_main(int argc,char ** argv)
 {

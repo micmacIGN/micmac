@@ -1,0 +1,67 @@
+Dans cResulRechCorrel cImSecTieTri::RechHomPtsDense : 
+
+=====================
+
+* Params's enter : 
+    const cResulMultiImRechCorrel &aRMIC => contient vector of result matching on all 2nd image 
+    int aKIm  => index of considered 2nd image
+
+* If mAppli.mNumInterpolDense < 0 
+  this param is set by param's command : IntDM : -1=NONE, 0=BiL, 1=BiC, 2=SinC; default = -1
+  => We must precise a correlator type, if not, by default, this algorithm is not executed, program stop here. Result is same as an input! 
+
+* Set parameter for algorithm : 
+  + mAppli.mDoRaffImInit = DRInit (param command)
+    => User precise if we do research in geometry origin of 2nd imgs or geometry normalize to master image
+    => If in geom origin => using triangle affine transformation as init
+    => If in geom normalize => using Identity matrix as init affine transformation
+
+  + mAppli.mSzWEnd = SzWEnd (param command)
+    => Size of research windows (default = 6)
+
+  + mAppli.mNivLSQM = LSQC (param command) 
+    => define which type of LSQ model using (-1 None (Def), Flag 1=>Affine Geom, Flag 2=>Affin Radiom)
+    => User must precise LSQC, if not, by default = -1, we just stop at adjust affine transformation by result from TT_MaxLocCorrelDS1R (correlation dense)
+    => If user put this parameter = 1/2/3 => an LSQ will perform after TT_MaxLocCorrelDS1R to adjust affine transformation & matching point also
+    => It also define parameters for TT_MaxLocCorrelDS1R : 
+       .) aPrecInit = 1/4 (pxl ? ) if LSQC = 1/2/3, if not, set aPrecInit = 1/8 pxl
+       .) aPrecCible = 1/16 pxl if LSQC = 1/2/3, if not, set aPrecInit = 1/128 pxl
+       .) Idea : If we use LSQ to refine after matching by correl dense, we don't need to matching correl dense too fine (1/4 -> 1/16 instead of 1/8 -> 1/128)
+
+  +  aNbByPix : param for TT_MaxLocCorrelDS1R
+    => If using LSQ refine (LSQC = 1/2/3) => aNbByPix = 1;
+    => If not using LSQ refine (LSQC <=0) => aNbByPix = NbByPix (param's command - user define)
+
+* Execute TT_MaxLocCorrelDS1R with param defined. 
+    => Return a "cResulRechCorrel aRes2" => containt matched pt on 2nd images (correl Score & pt coordinate)
+
+* Re-adjust affine transformation from Master to 2nd image by matched point return by TT_MaxLocCorrelDS1R
+    => Adjust an affine transformation by method CorrectWithMatch. The "better" affine is stored in anAffOpt
+    => Enter 2 matched point, just correct translation part ? 
+
+* For now, if we don't use LSQ refine (LSQC <= 0) => program will stop, return result = aRes2 (result matching by correl dense of TT_MaxLocCorrelDS1R)
+
+* If using LSQ refine (LSQC = 1/2/3) => Now passing to LSQ estimation step
+  
+  + Adjust affine transformation with translation Noise added to pt master's coordinate
+    => "Randomize" in param's command: default = 1.0 => Pt Master Init Coordinate = Pt Master Init Coordinate + Pt2dr(NRrandC(),NRrandC()) * 0.25 * Randomize
+    => Re-adjust affine transformation by method CorrectWithMatch. Now Pt Master will be "Pt Master + Noise", Pt 2nd = result from TT_MaxLocCorrelDS1R
+    => Disable this adjustment by set "Randomize = 0.0" in param's command
+
+  + Define a cLSQAffineMatch to begin LSQ estimation : 
+        cLSQAffineMatch
+        (
+            Pt2dr              aPC1,		=> Pt2dr(aP0) : Pt Master
+            const tImTiepTri & aI1,		=> mMaster->mImInit : Image Master
+            const tImTiepTri & aI2,		=> mImInit   : Image 2nd in Geometry original
+            ElAffin2D          anAf1To2		=> anAffOpt : affine transformation from Mas to 2nd, passed by 2 adjustement (by correl dense & by add Noise Randomize)
+        );
+
+  + Execute LSQ estimation Iteration by method "OneIter", with parameter define model of LSQ (radio/affine/both)
+  + After each iteration, update matching solution (view variable aLastSol & aCurSol)
+  + Stop Condition for LSQ : 
+    .) If number of iteration pass 7
+    .) If solution is convergence ( euclid(aRes2.mPt-aLastSol) < 1e-2 )  
+
+
+
