@@ -70,6 +70,16 @@ cImTieTri::cImTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,int aNum
 {
 
 /*
+static int aCpt=0; aCpt++;
+std::cout << "KKKK " << __LINE__ << " " << aCpt<< "\n";
+for (int aK=0 ; aK<20 ; aK++)
+{
+   Tiff_Im::UnivConvStd(mAppli.Dir() + mNameIm);
+ElTimer aCh;
+   mAppli.ICNM()->StdCamGenerikOfNames(mAppli.Ori(),aNameIm);
+std::cout << "T Cam=" << aCh.uval() << "\n";
+*/
+/*
    std::cout << "OK " << mNameIm << "\n";
    if (mCamS)
        std::cout << " F=" << mCamS->Focale()  << "\n";

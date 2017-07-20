@@ -1,0 +1,36 @@
+Pour essayer d'orienter un bloc de camera en faisant l'hypothese que la scene est plane .
+
+Applications :
+  * orientation initiale rapide de scene drone
+  * orientation de cas difficile type video BEA
+
+
+Probleme trouver pour chaque image k, l'homographie HPk envoyant de l'image vers le plan. On dispose pour
+chaque couple d'images ij de :
+
+    *  hij  l'homographie de i vers j
+    *  l'homographie vers le plan hpij et hpji  l'homographie vers le plane (a une similitude pres), obtenue en  en calculant l'orientation relative de ij (via homographie)
+
+
+Pour chaque i,j on a un echantillonage de la densite (voir RHH).
+
+   Pour chaque point Q de cet echantillonage, on peut ecrire :
+
+          HPi (Q) = HPj hij (Q)
+   
+    Et :
+          HPi (Q) =  Affij  hpij (Q)
+
+    Ou Affij est une affinite inconnue
+
+Tout etant indefini a une similitude pres, il faut rajouter une equation qui leve l'ambiguite, par exemple, pour un
+couple i0j0
+         Affi0j0 ~ Identite (ou  HPi0 (Q) ~  Affi0j0  hpi0j0 (Q) )
+
+
+
+
+      
+
+
+

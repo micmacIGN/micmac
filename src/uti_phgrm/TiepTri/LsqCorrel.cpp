@@ -53,6 +53,8 @@ Header-MicMac-eLiSe-25/06/2007*/
       (b)  =  ( N VV 
 */
 //  solution optimale de a V1 +b = V2, au sens des moindres carres, Pt2dr(a,b)
+// bool BUGRECT=false;
+
 Pt2dr  LSQSolDroite(const  RMat_Inertie & aMatr,double & aDelta)
 {
     aDelta = aMatr.s11() *aMatr.s() - ElSquare(aMatr.s1());
@@ -190,7 +192,6 @@ cLSQAffineMatch::cLSQAffineMatch
 {
 }
 
-bool BUGRECT=false;
 
 void cLSQAffineMatch::CalcRect(tInterpolTiepTri * anInterp,double aStepTot)
 {
@@ -204,8 +205,6 @@ void cLSQAffineMatch::CalcRect(tInterpolTiepTri * anInterp,double aStepTot)
     for (int aK=0 ; aK<8 ; aK++)
     {
          Pt2dr aVois = Pt2dr(TAB_8_NEIGH[aK]) * aStepTot;
-
-if (BUGRECT)  std::cout << "Voiisss=" << aVois << "\n";
 
 
          Pt2dr aPIm1 = mPC1 + aVois;
@@ -224,18 +223,16 @@ if (BUGRECT)  std::cout << "Voiisss=" << aVois << "\n";
     Pt2dr aPRab(aRab,aRab);
 
     mPInfIm1 = mPInfIm1 - aPRab;
-    mPSupIm1 = mPInfIm1 + aPRab;
+    mPSupIm1 = mPSupIm1 + aPRab;
     mPInfIm2 = mPInfIm2 - aPRab;
-    mPSupIm2 = mPInfIm2 + aPRab;
+    mPSupIm2 = mPSupIm2 + aPRab;
 }
 
 void cLSQAffineMatch::AddEqq(L2SysSurResol & aSys,const Pt2dr &aPIm1,const Pt2dr & aPC1)
 {
-    // aPIm1 = pt parcourir dans vignette, aPC1 = pt central
 /*
      static int aCpt=0 ; aCpt++;
-     std::cout << "Cpttt= " <<  aCpt << "\n";
-     bool Bug = (aCpt==141399) ;
+     bool Bug = (aCpt==7639420) ;
 */
      // Pt2dr aPIm1 = mPC1 + Pt2dr(aKx*aStep,aKy*aStep);
      Pt2dr aPIm2 = mAf1To2(aPIm1);
@@ -284,11 +281,10 @@ if (Bug)
 
 bool cLSQAffineMatch::OneIter(tInterpolTiepTri * anInterp,int aNbW,double aStep,bool AffineGeom,bool AffineRadiom)
 {
+// static int CPT=0; CPT++;
+// std::cout << "CccCPT= " << CPT << "\n";
 /*
-static int CPT=0; CPT++;
-std::cout << "CccCPT= " << CPT << "\n";
 if (CPT<=8369) return false;
-BUGRECT = (CPT==8389);
 */
 
 
@@ -298,6 +294,7 @@ BUGRECT = (CPT==8389);
     mAffineRadiom = AffineRadiom;
     // aStep = 1/NbByPix => "real size" of a pixel
     int aNbPixTot = round_ni(aNbW/aStep); // => calcul "real" window size from user given "window size" & Nb of point inside 1 pixel
+    aStep = double(aNbW) / aNbPixTot;
     // double aCoeff[10];
     /* calcul number of variable for system equation :
        * No Aff, No Radio => 4 variables (2 translation part of affine, A , B)
@@ -324,6 +321,7 @@ BUGRECT = (CPT==8389);
         || (!mTI2.inside_rab(mPSupIm2,0)) 
        )
        return false;            // check if rectangle is inside image
+
 
     ElAffin2D anAfRec = mAf1To2.inv();
     Pt2dr aPC2 = mAf1To2(mPC1);         // mPC1 : pt correl init sur image 1 (pt master)
