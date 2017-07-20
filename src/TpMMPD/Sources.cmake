@@ -96,6 +96,10 @@ set(Src_TD_PPMD
 
     ${TDPPMD_DIR}/CPP_ConvHomolVSFM2MM.cpp
 
+    ${TDPPMD_DIR}/Ex_Match/cImgMatch.cpp
+    ${TDPPMD_DIR}/Ex_Match/cLSQTemplate.cpp
+
+
 
 
 )
