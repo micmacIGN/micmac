@@ -1287,6 +1287,10 @@ void TestFileTxtBin()
 extern void TestMap2D();
 int MPDtest_main (int argc,char** argv)
 {
+    {
+       TestEllips();
+       exit(EXIT_SUCCESS);
+    }
     TestMap2D();
     TestFileTxtBin();
 
@@ -1309,10 +1313,6 @@ int MPDtest_main (int argc,char** argv)
     }
     {
        TestUnDump();
-       exit(EXIT_SUCCESS);
-    }
-    {
-       TestEllips();
        exit(EXIT_SUCCESS);
     }
     {

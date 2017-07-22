@@ -27,7 +27,12 @@ Tout etant indefini a une similitude pres, il faut rajouter une equation qui lev
 couple i0j0
          Affi0j0 ~ Identite (ou  HPi0 (Q) ~  Affi0j0  hpi0j0 (Q) )
 
+   ==================================================================================
 
+Dans Martini Option  ModeNO=OnlyHomogr
+
+
+   Sur NO_Ori2Im :
 
 
       

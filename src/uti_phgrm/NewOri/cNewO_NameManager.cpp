@@ -369,6 +369,14 @@ std::string cNewO_NameManager::NameListeImOrientedWith(const std::string & aName
     return Dir3POneImage(aName) + "ListOrientedsWith-" + aName + (Bin ? ".dmp" : ".xml");
 }
 
+
+std::string cNewO_NameManager::RecNameListeImOrientedWith(const std::string & aName,bool Bin) const
+{
+    return Dir3POneImage(aName) + "RecListOrientedsWith-" + aName + (Bin ? ".dmp" : ".xml");
+}
+
+
+
 std::string cNewO_NameManager::NameListeCpleOriented(bool Bin) const
 {
     return Dir3P() + "ListCpleOriented"+ (Bin ? ".dmp" : ".xml");
