@@ -731,6 +731,8 @@ extern int ConvertTiePPs2MM_main(int argc,char ** argv);
 extern int ConvHomolVSFM2MM_main(int argc,char ** argv);
 
 
+extern int CPP_HomOr1Im(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -883,6 +885,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("NO_Ori2Im",TestNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_AllOri2Im",TestAllNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_GenTripl",GenTriplet_main,"New Orientation : select triplet"));
+        aRes.push_back(cMMCom("NO_OriHom1Im",CPP_HomOr1Im,"New Orientation : Plane scene orientation/Homogra, 1 image"));
+
 
         aRes.push_back(cMMCom("NO_OneHomFloat",CPP_GenOneHomFloat,"New Orientation : generate merged float point of one image"));
         aRes.push_back(cMMCom("NO_AllHomFloat",CPP_GenAllHomFloat,"New Orientation : generate float point of all image"));

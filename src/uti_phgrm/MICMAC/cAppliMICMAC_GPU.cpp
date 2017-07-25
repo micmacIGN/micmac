@@ -1350,8 +1350,8 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
     {
         double aCMax = -2;
         double aCMin = 2;
-    for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
-    {
+        for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+        {
              double aCor;
              if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
              {
@@ -1360,7 +1360,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                  ElSetMax(aCMax,aCor);
                  ElSetMin(aCMin,aCor);
              }
-    }
+        }
         if (VireExtre && (aNbOk>2))
         {
             aSomCorrel -= aCMax + aCMin;
@@ -1537,6 +1537,7 @@ void cAppliMICMAC::DoGPU_Correl
                                 DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
                                 break;
 
+                            // L'option median, on vire le max et le min
                             case eAggregMoyMedIm1Maitre :
                                  DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true);
                             break;
