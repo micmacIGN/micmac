@@ -130,7 +130,7 @@ void Apero2PMVS(string aFullPattern, string aOri)
 			cmdDel = "rm " + aNameDir + "pmvs-" + aOri + "/visualize/" + aFullName + ".tif ";
         #endif
         #if (ELISE_windows)
-            cmdConv=MMDir() + "binaire-aux/windows/convert.exe ephemeral:" + aNameDir + "pmvs-" + aOri + "/visualize/" + aFullName + ".tif " + aNameDir + "pmvs-"+ aOri +"/visualize/"+(string)nb + ".jpg";
+            cmdConv=MMDir() + "binaire-aux/windows/convert.exe " + aNameDir + "pmvs-" + aOri + "/visualize/" + aFullName + ".tif " + aNameDir + "pmvs-"+ aOri +"/visualize/"+(string)nb + ".jpg";
 			cmdDel = "del " + aNameDir + "pmvs-" + aOri + "/visualize/" + aFullName + ".tif ";
         #endif
 		ListConvert.push_back(cmdConv);
