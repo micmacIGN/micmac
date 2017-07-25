@@ -1087,6 +1087,7 @@ if (MPD_MM())
 std::cout << "MedianPondMedianPond " << aV.size() << " " << aKMed << "\n";
 }
 */
+     ELISE_ASSERT(aV.size() !=0,"MedianPond with empty vector");
      std::sort(aV.begin(),aV.end(),CmpPtsX);
      double aSomP = 0;
      for (int aK=0 ; aK<int(aV.size()) ; aK++)
@@ -1106,8 +1107,9 @@ std::cout << "MedianPondMedianPond " << aV.size() << " " << aKMed << "\n";
         *aKMed = aK;
      }
 
-     return aV[aK].x;
+     return aV.at(aK).x;
 }
+
 
 
 

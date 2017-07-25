@@ -181,17 +181,19 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
       ElRotation3D *      aInOri,
       bool                aShow,
       bool                aHPP,
-      bool                aSelAllIm
+      bool                aSelAllIm,
+      const cCommonMartiniAppli & aCMA
 )  :
+   mPdsSingle   (aCMA.mAcceptUnSym ? 0.1 : 0),
    mQuick       (aQuick),
    mI1          (aI1),
    mI2          (aI2),
    mMergePH     (aMergeTieP),
    mTestC2toC1  (aTestedSol),
    // Plus utilise
-   mPackPDist   (ToStdPack(mMergePH,true,0.1)),
+   mPackPDist   (ToStdPack(mMergePH,true,mPdsSingle)),
    //  Representation sous la classe habituelle ToStdPack
-   mPackPStd    (ToStdPack(mMergePH,false,0.1)),
+   mPackPStd    (ToStdPack(mMergePH,false,mPdsSingle)),
    mPInfI1      (1e5,1e5),
    mPSupI1      (-1e5,-1e5),
    //  On va cree un sous echantillonage des points, en cherchant a conserver
@@ -217,6 +219,10 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    mW             (0),
    mSelAllIm      (aSelAllIm)
 {
+    bool DoOriByHom = (aCMA.ModeNO() == eModeNO_OnlyHomogr);
+    bool DoOri3D    = (aCMA.ModeNO() != eModeNO_OnlyHomogr);
+
+
     Pt2dr aInf1(1e60,1e60);
     Pt2dr aInf2(1e60,1e60);
     Pt2dr aSup1(-1e60,-1e60);
@@ -349,9 +355,9 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
                                        (double *)0,
                                        mQuick?mPack150:mPackStdRed,
                                        Ok,
-                                       mQuick?20 :80,
-                                       80,
-                                       500
+                                       DoOriByHom ? 200 : (mQuick?20 :80),  // Nb in Ransac
+                                       80,             // %
+                                       DoOriByHom? 2000 :500             // Nb Total suivi par random
                                     );
     // if (ShowDetailHom) std::cout << "THom0= " << aChrono.uval() << "\n";
     aXCmp.HomWithR().Hom() = aHom.ToXml();
@@ -378,7 +384,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    {
          {
             ElTimer aChrono;
-            if (! mQuick)
+            if ((! mQuick) && DoOri3D)
             {
                ElRotation3D  * aRP = TestOriPlanePatch(FocMoy(),mPackStdRed,mPack150,mPack30,mW,mP0W,mScaleW);
                if (aRP)
@@ -393,8 +399,11 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
          // Hypothes bcp d'oulier, peu de bruit
           {
              ElTimer aChrono;
-             ElRotation3D aMRR = TestcRanscMinimMatEss(mQuick,mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
-             AmelioreSolLinear(aMRR,"Mini RE");
+             if (DoOri3D)
+             {
+                ElRotation3D aMRR = TestcRanscMinimMatEss(mQuick,mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
+                AmelioreSolLinear(aMRR,"Mini RE");
+             }
              aTiming.TimeRanMin() = aChrono.uval();
   
              if (false &&  mShow)
@@ -409,15 +418,11 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
           // a plus de point, hypothese peu d'oulier, bcp de bruit
           {
              ElTimer aChrono;
-             ElRotation3D aRR =RansacMatriceEssentielle(mQuick,mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
-/* 
-             if (true ||  mShow)
+             if (DoOri3D)
              {
-                  std::cout << "TIME RansacStd " << aChrono.uval() << "\n";
-                  exit(-1);
+                ElRotation3D aRR =RansacMatriceEssentielle(mQuick,mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
+                AmelioreSolLinear(aRR,"Ran Ess");
              }
-*/
-             AmelioreSolLinear(aRR,"Ran Ess");
              aTiming.TimeRansacStd() = aChrono.uval();
           }
   
@@ -426,10 +431,13 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
           for (int aL2 = 0 ; aL2 < 2 ; aL2++)
           {
               ElTimer aChrono;
-              ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackStdRed.MepRelPhysStd(1.0,false)) ;
-              // ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackPStd.MepRelPhysStd(1.0,false)) ;
-              aR = aR.inv();
-              AmelioreSolLinear(aR,(aL2 ? "L2 Ess": "L1 Ess" ));
+              if (DoOri3D)
+              {
+                  ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackStdRed.MepRelPhysStd(1.0,false)) ;
+                  // ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackPStd.MepRelPhysStd(1.0,false)) ;
+                  aR = aR.inv();
+                  AmelioreSolLinear(aR,(aL2 ? "L2 Ess": "L1 Ess" ));
+              }
               if (aL2)
                  aTiming.TimeL2MatEss() = aChrono.uval();
               else
@@ -442,42 +450,29 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
           {
              bool ShowDetailHom = mShow && false;
              ElTimer aChrono;
-/*
-             double aDist ;
-             bool   Ok;
-             // cElHomographie aHom = cElHomographie::RobustInit(&aDist,mPackPStd,Ok,100,80,500);
-             cElHomographie aHom = cElHomographie::RobustInit
-                                   (
-                                       aDist,
-                                       (double *)0,
-                                       mQuick?mPack150:mPackStdRed,
-                                       Ok,
-                                       mQuick?20 :80,
-                                       80,
-                                       500
-                                    );
-             if (ShowDetailHom) std::cout << "THom0= " << aChrono.uval() << "\n";
-             aXCmp.HomWithR().Hom() = aHom.ToXml();
-             aXCmp.HomWithR().ResiduHom() = aDist ;
-*/
-             // if (ShowDetailHom) std::cout << "THom1= " << aChrono.uval() << "\n";
-             // if (m Show)
-             // std::cout << "   #### Residu Homographie " << aDist *FocMoy()  << " Recvrt=" << aRecHom << "\n";
   
              cResMepRelCoplan aRMC =  ElPackHomologue::MepRelCoplan(1.0,aHom,tPairPt(Pt2dr(0,0),Pt2dr(0,0)));
              if (ShowDetailHom) std::cout << "THom2= " << aChrono.uval() << "\n";
   
              const std::list<cElemMepRelCoplan>  & aLSolPl = aRMC.LElem();
   
+             cXml_MepHom aXMH;
              for (std::list<cElemMepRelCoplan>::const_iterator itS = aLSolPl.begin() ; itS != aLSolPl.end() ; itS++)
              {
                  ElRotation3D aR = itS->Rot();
                  aR = aR.inv();
                  if ( itS->PhysOk())
                  {
+                     aXMH.Ori().push_back(El2Xml(aR));
                      AmelioreSolLinear(aR," Plane ");
                  }
              }
+             if (DoOriByHom)
+             {
+                
+                 aXCmp.HomWithR().ForMepHom().SetVal(aXMH);
+             }
+
              if (ShowDetailHom) std::cout << "THom3= " << aChrono.uval() << "\n";
              aTiming.TimeHomStd() = aChrono.uval();
           }
@@ -492,19 +487,22 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
   
           {
              ElTimer aChrono;
-             cResMepCoc aRCoc= MEPCoCentrik(mQuick,mPackStdRed,FocMoy(),mTestC2toC1,false);
-             if (! mQuick)
-                AmelioreSolLinear(aRCoc.mSolRot,"Cocent");
-  
-             if (mShow)
+             if (DoOri3D)
              {
-                std::cout << "Ecart RPUre " << aRCoc.mCostRPure * FocMoy() << " VraiR " << aRCoc.mCostVraiRot *FocMoy();
-                if (mTestC2toC1)
-                   std::cout << " DREf (pix) " << aRCoc.mMat.L2(mTestC2toC1->Mat())  * FocMoy();
-                std::cout << "\n";
+                 cResMepCoc aRCoc= MEPCoCentrik(mQuick,mPackStdRed,FocMoy(),mTestC2toC1,false);
+                 if (! mQuick)
+                    AmelioreSolLinear(aRCoc.mSolRot,"Cocent");
+  
+                 if (mShow)
+                 {
+                    std::cout << "Ecart RPUre " << aRCoc.mCostRPure * FocMoy() << " VraiR " << aRCoc.mCostVraiRot *FocMoy();
+                    if (mTestC2toC1)
+                       std::cout << " DREf (pix) " << aRCoc.mMat.L2(mTestC2toC1->Mat())  * FocMoy();
+                    std::cout << "\n";
+                 }
+                 aXCmp.RPure().Ori() = ExportMatr(aRCoc.mMat);
+                 aXCmp.RPure().ResiduRP() = aRCoc.mCostRPure * FocMoy();
              }
-             aXCmp.RPure().Ori() = ExportMatr(aRCoc.mMat);
-             aXCmp.RPure().ResiduRP() = aRCoc.mCostRPure * FocMoy();
              aTiming.TimeRPure() = aChrono.uval();
           }
 
@@ -522,7 +520,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
           anErr = aBundle->ErrInitRobuste(mBestSol,0.75);
           ElTimer aChrono;
           anErr = aBundle->ResiduEq(mBestSol,anErr);
-          for (int aK=0 ; aK< (mQuick ? 6 : 10) ; aK++)
+          
+          for (int aK=0 ; aK< (DoOri3D ? (mQuick ? 6 : 10) : 2) ; aK++)
           {
                  // std::cout << "ERRCur " <<  anErr*FocMoy() << "\n";
                  // cInterfBundle2Image * anIBI = (aK<5) ? mRedPvIBI  : mFullPvIBI;
@@ -538,6 +537,15 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
         anErr = aBundle->ErrInitRobuste(mBestSol,0.75);
    }
 
+    cXml_Elips2D anElips2D;
+    RazEllips(anElips2D);
+    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
+    {
+        AddEllips(anElips2D,itP->P1(),itP->Pds());
+    }
+    NormEllips(anElips2D);
+    aXCmp.Elips2().SetVal(anElips2D);
+
     double anErr90 =  mFullPvIBI->ErrInitRobuste(mBestSol,0.90);
     mIA =  MedianNuage(mPackStdRed,mBestSol);
     aXCmp.OrientAff().Ori() = ExportMatr(mBestSol.Mat());
@@ -548,6 +556,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
     Pt3dr aC =  mBestSol.tr();
     aXCmp.BSurH() = euclid(Pt2dr(aC.x,aC.y)) / ElAbs(mIA.z);
+
 
     if (mShow)
         std::cout << "EERRR FINALE " << anErr*FocMoy()  << " Er90 " <<  anErr90* FocMoy() << " B/H " << aXCmp.BSurH()  << aTimeAdj << "\n";
@@ -632,7 +641,6 @@ class cNO_AppliOneCple : public cCommonMartiniAppli
          tMergeLPackH         mMergeStr;
          ElRotation3D *       mTestSol;
          ElRotation3D *       mRotInOri;
-         eTypeModeNO          mModeNO;
          bool                 mIsTTK;  // Test Tomasi Kanade
          bool                 mSelAllCple;  // Test Tomasi Kanade
          bool                 mExpMM;       // Do an export in MM mode
@@ -669,8 +677,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
    );
 
 
-   mModeNO = ToTypeNO(mNameModeNO);
-   mIsTTK  = (mModeNO==eModeNO_TTK);
+   mIsTTK  = (ModeNO()==eModeNO_TTK);
    mSelAllCple = mIsTTK;
 
    if (MMVisualMode) return;
@@ -743,7 +750,7 @@ bool   cNO_AppliOneCple::ExpMM() const
 
 cNewO_OrInit2Im * cNO_AppliOneCple::CpleIm()
 {
-   return new cNewO_OrInit2Im(mGenOri,mQuick,mIm1,mIm2,&mMergeStr,mTestSol,mRotInOri,mShow,mHPP,mSelAllCple);
+   return new cNewO_OrInit2Im(mGenOri,mQuick,mIm1,mIm2,&mMergeStr,mTestSol,mRotInOri,mShow,mHPP,mSelAllCple,*this);
 }
 
 void cNO_AppliOneCple::Show()
@@ -857,6 +864,9 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
        // Force la creation des directories
        for (int aK=0 ; aK<int(aVIm->size())  ; aK++)
+           aNM->Dir3POneImage((*aVIm)[aK],true);
+
+       for (int aK=0 ; aK<int(aVIm->size())  ; aK++)
        {
            std::string aName = (*aVIm)[aK];
            aNM->NameXmlOri2Im(aName,aName,true);
@@ -878,6 +888,9 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
        cElRegex anAutom(aPatGlob,10);
 
+
+       aNM->Dir3POneImage(aNameIm1,true);
+
        //  On parcourt les points homologues
        for (int aKH = 0 ; aKH<int(aVH->size()) ; aKH++)
        {
@@ -887,22 +900,29 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
            // On recupere le nom de l'image 2
            std::string aNameIm2 = aPair.second;
+           std::string aNameHomReciproque = anICNM->Assoc1To2(aKeyH,aNameIm2,aNameIm1,true);
 
-           if (    (aNameIm1<aNameIm2)   // Pour ne faire le calcul que dans un sens
+           if (    ((aNameIm1<aNameIm2) || (aCMA.mAcceptUnSym  && (!ELISE_fp::exist_file(aDir+aNameHomReciproque))) )  // Pour ne faire le calcul que dans un sens
                 && (ELISE_fp::exist_file(aDir+aNameIm2))  //  Precaution si qqun a detruit
                 && (anAutom.Match(aNameIm2))   // Pour que l'image soit dans le pattern
               )
            {
-               std::string aNamOri = aDir + aNM->NameXmlOri2Im(aNameIm1,aNameIm2,true);
+
+
+               std::string aNameCalc1 = ElMin(aNameIm1,aNameIm2);
+               std::string aNameCalc2 = ElMax(aNameIm1,aNameIm2);
+
+
+               std::string aNamOri = aDir + aNM->NameXmlOri2Im(aNameCalc1,aNameCalc2,true);
                // Sans doute le  IMGP7029.JPG/OriRel-IMGP7030.JPG
                // Pour ne pas refaire le calcul si deja fait
                if (! ELISE_fp::exist_file(aNamOri))
                {
-                    std::string aNameH21 = aDir +  anEASF.mICNM->Assoc1To2(aKeyH,aNameIm2,aNameIm1,true);
+                    // std::string aNameH21 = aDir +  anEASF.mICNM->Assoc1To2(aKeyH,aNameIm2,aNameIm1,true);
                     // Lance la commande qui va vraiment faire le calcul 
-                    if (ELISE_fp::exist_file(aNameH21) || aCMA.mAcceptUnSym)
+                    // if (ELISE_fp::exist_file(aNameH21)   || aCMA.mAcceptUnSym)
                     {
-                        std::string aCom =   MM3dBinFile("TestLib NO_Ori2Im") + " " + aNameIm1 + " " + aNameIm2 + " ";
+                        std::string aCom =   MM3dBinFile("TestLib NO_Ori2Im") + " " + aNameCalc1 + " " + aNameCalc2 + " ";
                         aCom = aCom + " GenOri=" + ToString(aGenOri);
                         aCom = aCom + aCMA.ComParam();
                         if (aCMA.mShow)
@@ -915,7 +935,6 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                   aLON.Name().push_back(aNameIm2);
            }
        }
-// std::cout << "GGGgggg "<< aNameIm1 << " ## " << aNM->NameListeImOrientedWith(aNameIm1,true) << "\n";
        MakeFileXML(aLON,aDir + aNM->NameListeImOrientedWith(aNameIm1,true));
        MakeFileXML(aLON,aDir + aNM->NameListeImOrientedWith(aNameIm1,false));
        exit(EXIT_SUCCESS);
@@ -933,6 +952,9 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
    cSauvegardeNamedRel                aLCpleOri;
    cSauvegardeNamedRel                aLCpleConc;
+   std::map<std::string,cListOfName>  aMapConc;
+   std::map<std::string,cListOfName>  aMapConcRev;
+   // std::map<std::string,cListOfName>  aMapOri;
 
    for (int aK1=0 ; aK1<int(aVIm->size()) ; aK1++)
    {
@@ -943,7 +965,15 @@ int TestAllNewOriImage_main(int argc,char ** argv)
        for (std::list<std::string>::const_iterator itN2=aLON.Name().begin(); itN2!=aLON.Name().end(); itN2++)
        {
            const std::string & aName2 = *(itN2);
-           std::string aNamOri = aDir + aNM->NameXmlOri2Im(aName1,aName2,true);
+
+           std::string aNameCalc1 = ElMin(aName1,aName2);
+           std::string aNameCalc2 = ElMax(aName1,aName2);
+           cCpleString aCplCalc(aNameCalc1,aNameCalc2);
+
+           aMapConc[aNameCalc1].Name().push_back(aNameCalc2);
+           aMapConcRev[aNameCalc2].Name().push_back(aNameCalc1);
+
+           std::string aNamOri = aDir + aNM->NameXmlOri2Im(aNameCalc1,aNameCalc2,true);
            cXml_Ori2Im  aXmlOri = StdGetFromSI(aNamOri,Xml_Ori2Im);
            if (aXmlOri.Geom().IsInit())
            {
@@ -958,10 +988,21 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                aTiming.TimeHomStd()    += aLocT.TimeHomStd();
 
                cCpleString aCple;
-               aLCpleOri.Cple().push_back(cCpleString(aName1,aName2));
+               aLCpleOri.Cple().push_back(aCplCalc);
            }
-           aLCpleConc.Cple().push_back(cCpleString(aName1,aName2));
+           aLCpleConc.Cple().push_back(aCplCalc);
        }
+   }
+
+
+   for (int aK1=0 ; aK1<int(aVIm->size()) ; aK1++)
+   {
+       const std::string & aName1 = (*aVIm)[aK1];
+       MakeFileXML(aMapConc[aName1],aDir+aNM->NameListeImOrientedWith(aName1,true));
+       MakeFileXML(aMapConc[aName1],aDir+aNM->NameListeImOrientedWith(aName1,false));
+
+       MakeFileXML(aMapConcRev[aName1],aDir+aNM->RecNameListeImOrientedWith(aName1,true));
+       MakeFileXML(aMapConcRev[aName1],aDir+aNM->RecNameListeImOrientedWith(aName1,false));
    }
 
    MakeFileXML(aTiming,aDir +   aNM->NameTimingOri2Im());

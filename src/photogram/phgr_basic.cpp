@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/Apero/cCameraRPC.h"
 
+extern bool ERupnik_MM();
 
 bool DebugOFPA = false;
 int aCPTOkOFA = 0;
@@ -4128,6 +4129,8 @@ CamStenope * CamStenope::StdCamFromFile
                      cInterfChantierNameManipulateur * anICNM
              )
 {
+  if ( ERupnik_MM() ) // NIKRUP
+     std::cout << "NAME StdCamFromFile " << aName << "\n";
 
   return Gen_Cam_Gen_From_File(CanUseGr,aName,"OrientationConique",anICNM)->CS();
 }

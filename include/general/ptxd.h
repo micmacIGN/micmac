@@ -412,7 +412,7 @@ Type scal(const Pt2d<Type> & p1,const Pt2d<Type> & p2)
 
 template <class Type>
 typename ElStdTypeScal<Type>::TypeScalReel  square_euclid(const Pt2d<Type> & p)
-                 {return ElSquare(p.x) + ElSquare( p.y);}
+                 {return ElSquare(typename ElStdTypeScal<Type>::TypeScalReel(p.x)) + ElSquare(typename ElStdTypeScal<Type>::TypeScalReel(p.y));}
 
 template <class Type>
 typename ElStdTypeScal<Type>::TypeScalReel  square_euclid(const Pt2d<Type> & p1,const Pt2d<Type> & p2)
@@ -467,7 +467,7 @@ extern std::istream & operator >> (std::istream & ifs,Pt2di  &p);
 class cXml_Map2D;
 class cXml_Map2DElem;
 cXml_Map2D MapFromElem(const cXml_Map2DElem &);
-
+class cXml_Homot;
 
 class cElMap2D
 {
@@ -524,6 +524,7 @@ class ElHomot : public cElMap2D
 {
       public :
          ElHomot(Pt2dr aTrans = Pt2dr(0,0), double aScale = 1.0) ;
+         ElHomot(const cXml_Homot &) ;
 
          Pt2dr operator () (const Pt2dr & p) const
          {
@@ -633,7 +634,7 @@ class ElAffin2D : public cElMap2D
      public :
         ElAffin2D
         (
-            Pt2dr im00,  // partie affine
+            Pt2dr im00,  // partie affine  -- translation
             Pt2dr im10,  // partie vecto
             Pt2dr im01  // partie vecto
         );

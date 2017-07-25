@@ -344,6 +344,18 @@ const Chamfer & Chamfer::d8  = Chamfer_8::TheOne;
 const Chamfer & Chamfer::d4  = Chamfer_4::TheOne;
 const Chamfer & Chamfer::d5711  = Chamfer_5711::TheOne;
 
+const Chamfer & Chamfer::ChamferFromName(const std::string & aName)
+{
+    if (aName == "4")    return Chamfer_4::TheOne;
+    if (aName == "8")    return Chamfer_8::TheOne;
+    if (aName == "32")   return Chamfer_32::TheOne;
+    if (aName == "5711") return Chamfer_5711::TheOne;
+
+    std::cout << "For name=" << aName << "\n";
+    ELISE_ASSERT(false,"Not a valide name for chamfer");
+    return Chamfer_4::TheOne;
+}
+
 //  p_0_1 must return pds for x =0, y =1;
 // this will work with usual chamfer
 

@@ -77,17 +77,19 @@ class plus_elem
     static inline  void    op_eq(int &a,int b)        { a += b;}
     static inline  void    op_eq(double &a,double b)  { a += b;}
 
-    static const double r_neutre;
-    static const int    i_neutre;
+    static const double       r_neutre;
+    static const int          i_neutre;
+    static const std::string  name;
 
     static const OperAssocMixte & optab;
 
     static inline Fonc_Num opf(Fonc_Num f1,Fonc_Num f2) { return f1+f2;}
+
 };
 
 const double plus_elem::r_neutre = 0.0;
 const int    plus_elem::i_neutre = 0;
-
+const std::string plus_elem::name = "+";
 
       // mul_elem
 
@@ -102,6 +104,7 @@ class mul_elem
 
     static const double r_neutre ;
     static const int    i_neutre ;
+    static const std::string  name;
 
     static inline Fonc_Num opf(Fonc_Num f1,Fonc_Num f2) { return f1*f2;}
 
@@ -110,6 +113,7 @@ class mul_elem
 
 const double mul_elem::r_neutre = 1.0;
 const int    mul_elem::i_neutre = 1;
+const std::string mul_elem::name = "*";
 
 
 
@@ -126,6 +130,7 @@ class max_elem
 
     static const REAL    r_neutre;
     static const INT     i_neutre;
+    static const std::string  name;
 
     static inline Fonc_Num opf(Fonc_Num f1,Fonc_Num f2) { return Max(f1,f2);}
     static const OperAssocMixte & optab;
@@ -133,6 +138,7 @@ class max_elem
 
 const double max_elem::r_neutre = -DBL_MAX;
 const int    max_elem::i_neutre = INT_MIN;
+const std::string max_elem::name = "max";
 
 
       // min_elem
@@ -148,6 +154,7 @@ class min_elem
 
     static const REAL    r_neutre;
     static const INT     i_neutre;
+    static const std::string  name;
 
     static inline Fonc_Num opf(Fonc_Num f1,Fonc_Num f2) { return Min(f1,f2);}
     static const OperAssocMixte & optab;
@@ -155,8 +162,7 @@ class min_elem
 
 const double min_elem::r_neutre = DBL_MAX;
 const int    min_elem::i_neutre = INT_MAX;
-
-
+const std::string min_elem::name = "min";
 /****************************************************************/
 /*                                                              */
 /*     Reduction on a segment                                   */
@@ -445,6 +451,22 @@ _INT8 OperAssocMixte::opel(_INT8,_INT8) const
 OperAssocMixte::OperAssocMixte(Id Theid) : _id(Theid) {}
 
 
+static std::map<std::string,OperAssocMixte *>   TheMapAssoc;
+
+OperAssocMixte * OperAssocMixte::GetFromName(const std::string & aName,bool Svp)
+{
+    OperAssocMixte * aRes = TheMapAssoc[aName];
+
+    if ((aRes==0) && (! Svp))
+    {
+        std::cout << "Cannot get OperAssocMixte with name = " << aName << "\n";
+        ELISE_ASSERT(false,"OperAssocMixte::GetFromName");
+    } 
+    return aRes;
+}
+
+// OperAssocMixte & Oper
+
 template <class elem> class  OpMIxteTpl : public OperAssocMixte
 {
      public :
@@ -455,6 +477,7 @@ template <class elem> class  OpMIxteTpl : public OperAssocMixte
      OpMIxteTpl() :
              OperAssocMixte(_cl_id)
      {
+          TheMapAssoc[elem::name] = this;
      }
 
      REAL opel(REAL v1,REAL v2) const {return elem::op(v1,v2);}

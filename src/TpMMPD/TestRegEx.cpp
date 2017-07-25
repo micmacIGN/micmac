@@ -39,8 +39,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-
-
+template <typename T> string NumberToString(T Number)
+{
+	ostringstream ss;
+    ss << Number;
+    return ss.str();
+}
+  
 //----------------------------------------------------------------------------
 int TestRegEx_main(int argc,char ** argv)
 {
@@ -209,7 +214,6 @@ int GenFilePairs_main(int argc,char ** argv)
 	
 	return EXIT_SUCCESS;
 }
-/******************************************************/
 
 //----------------------------------------------------------------------------
 int CleanPatByOri_main(int argc,char ** argv)
@@ -293,8 +297,8 @@ int CleanPatByOri_main(int argc,char ** argv)
 	
 	return EXIT_SUCCESS;
 }
-//----------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------
 int RedImgsByN_main(int argc,char** argv)
 {
 	std::string aFullName, aDir, aPat, aOut="Selected_Images";
@@ -350,7 +354,7 @@ int MvImgsByFile_main(int argc,char** argv)
 	
 	ELISE_fp::MkDirSvp(aTrashName);
 	
-	//read rtk input file
+	//read input file
     ifstream aFichier((aDir + aFile).c_str());
 
     if(aFichier)
@@ -375,7 +379,6 @@ int MvImgsByFile_main(int argc,char** argv)
 	
 	return EXIT_SUCCESS;
 }
-
 
 //----------------------------------------------------------------------------
 class cTestElParseDir : public ElActionParseDir

@@ -79,6 +79,13 @@ class cLinkImTT;
 #define TT_RatioCorrEntFiltrSpatial  4    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point apres Corr Ent
 #define TT_RatioCorrSupPix           2    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point apres Corr Ent
 #define TT_RatioCorrLSQ              1    // Ratio par rapport a TT_DefSeuilDensiteResul, pour point apres Corr Ent
+
+//  ===========================
+
+#define TT_FSDeltaCorrel 0.2 // Dans filtrage spatial, delta de correl/ aux max point que l'on va eliminer
+#define TT_FSExpoAtten   2   // Dans filtrage spatial, module l'attenaution fontion de la distance
+
+
 //(TT_DefSeuilDensiteResul/TT_RatioFastFiltrSpatial).^2 = rayon de filtrage spatial du point d'interet.
 // Cet seuil est appliquer pour filtrer les point d'interet juste apres la detection de point d'interet
 // Appliquer sur image maitraisse seulement
@@ -129,6 +136,11 @@ typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
 // extern Pt2dr   TestFastQuality(TIm2D<double,double> anIm,Pt2di aP,double aRay,bool IsMax,Pt2dr aProp);
 extern void TestcAutoCorrelDir(TIm2D<double,double> aTIm,const Pt2di & aP0);
 
+#define ETAPE_CORREL_ENT    0
+#define ETAPE_CORREL_BILIN  1
+#define ETAPE_CORREL_DENSE  2
+#define ETAPE_FINALE        3
+
 // Pour initialiser les parametres avec EAM en ayant un constructeur trivial
 class cParamAppliTieTri
 {
@@ -169,6 +181,7 @@ class cAppliTieTri : public cParamAppliTieTri
            );
 
            void SetSzW(Pt2di , int);
+           bool CurEtapeInFlagFiltre() const;
 
 
            cInterfChantierNameManipulateur * ICNM();
@@ -262,6 +275,7 @@ class cAppliTieTri : public cParamAppliTieTri
          std::string        mKeyMasqIm;
 
          bool               mPIsInImRedr;  // Savoir si les points de correlation sont points redresses ou non
+         int                mCurEtape;
 };
 
 /*
