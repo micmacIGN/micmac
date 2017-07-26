@@ -12,6 +12,8 @@ class cParamLSQMatch
 {
     public:
         bool mDisp;
+        double mStepCorrel;
+        double mStepLSQ;
 };
 
 class cImgMatch
@@ -48,6 +50,13 @@ class cLSQMatch
         cParamLSQMatch & Param() {return mParam;}
         bool DoMatchbyLSQ();
         bool DoMatchbyCorel();
+        bool MatchbyLSQ(Pt2dr aPt1,
+                            const tIm2DM & aImg1,
+                            const tIm2DM & aImg2,
+                            Pt2dr aPt2,
+                            Pt2di aSzW,
+                            double aStep
+                        , Im1D_REAL8 &aSol);
         cInterfChantierNameManipulateur * ICNM() {return mICNM;}
         tIm2DM & ImRes() {return mImRes;}
         void update(double CurErr, Pt2dr aPt);
@@ -69,5 +78,27 @@ class cLSQMatch
         double mMinErr;
         Pt2dr mPtMinErr;
 };
+
+double Tst_Correl1Win
+                             (
+                                const tIm2DM & Im1,
+                                const Pt2di & aP1,
+                                const tIm2DM & Im2,
+                                const Pt2di & aP2,
+                                const int   aSzW,
+                                const int   aStep
+                             );
+
+cResulRechCorrel      Tst_Correl
+                      (
+                             const tIm2DM & Im1,
+                             const Pt2di & aP1,
+                             const tIm2DM & Im2,
+                             const Pt2di & aP2,
+                             const int   aSzW,
+                             const int   aStep,
+                             const int   aSzRech,
+                             tIm2DM & ImScore
+                      );
 
 #endif
