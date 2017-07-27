@@ -288,6 +288,12 @@ double Tst_Correl1Win
                                 const int   aStep
                              )
 {
+    /*
+     * This function compute correlation score between 2 images patch
+     * As an input, given Im1, Im2 & 2 image patche center coordinate correspondant aP1 & aP2
+     * Given also half size of image patch in [x,y] as parameter aSzW
+     * Given also pixel sampling factor aStep. if aStep=1 => pixel entier is add to correlation compute
+     */
 
      if (
              ! ((Im1.Inside(aP1-aSzW) && Im1.Inside(aP1+aSzW))
@@ -323,6 +329,15 @@ cResulRechCorrel   Tst_Correl
                              tIm2DM & ImScore
                       )
 {
+    /*
+     * This function search for best match position by correlation
+     * As an input, given Im1, Im2 & 2 image patche center coordinate correspondant aP1 & aP2
+     * Given also half size of image patch of Img1 in [x,y] as parameter aSzW
+     * Given also pixel sampling factor aStep. if aStep=1 => pixel entier is add to correlation compute
+     * Given also half size of searching zone around aP2, with parameter aSzRech
+     * Output stock in class cResulRechCorrel, contain coordinate of matched on Img2, score.
+     * Image of score of correlation is provide also as output parameter ImScore
+     */
     double aScoreMax = -1e30;
     Pt2di  aDecMax;
     Pt2di  aP;
@@ -346,6 +361,141 @@ cResulRechCorrel   Tst_Correl
 
 /********************************************************************************/
 /*                                                                              */
+/*                  Correlation (all is real input)                             */
+/*                                                                              */
+/********************************************************************************/
+
+bool  InsideREAL(const Im2DGen & Im, const Pt2dr & aP)
+{
+   return    (aP.x>=0)
+          && (aP.y>=0)
+          && (aP.x<Im.sz().x)
+          && (aP.y<Im.sz().y);
+}
+
+
+double dblTst_Correl1Win
+                             (
+                                tIm2DM & Im1,           // can't use "const tIm2DM" because "Get" member function isn't "const"
+                                const Pt2dr & aP1,
+                                tIm2DM & Im2,
+                                const Pt2dr & aP2,
+                                const Pt2dr   aSzW,
+                                const int aStepPxl,
+                                const cInterpolateurIm2D<double> & aInterPol
+                             )
+{
+    /*
+     * This function compute correlation score between 2 images patch
+     * As an input, given Im1, Im2 & 2 image patche center coordinate correspondant aP1 & aP2
+     * Given also half size of image patch in [x,y] as parameter aSzW
+     * Given also pixel sampling factor aStep. if aStep=1 => pixel entier is add to correlation compute
+     * Logic with aStep here is if we want to do correlation faster by over-sample image (every 2 pixels for ex)
+     */
+
+    // Compute point most up & most down for two images
+    // Image 1 & 2 : check if center patch point aP with window size aSzW is inside
+    Pt2dr aPtSupIm1 = aP1 + aSzW;
+    Pt2dr aPtInfIm1 = aP1 - aSzW;
+    Pt2dr aPtSupIm2 = aP2 + aSzW;
+    Pt2dr aPtInfIm2 = aP2 - aSzW;
+    if (!(
+            (InsideREAL(Im1, aPtSupIm1) && InsideREAL(Im1, aPtInfIm1))
+            &&
+            (InsideREAL(Im2, aPtSupIm2) && InsideREAL(Im2, aPtInfIm2))
+       ) )
+            return (TT_DefCorrel);
+
+     double aDefInter = -1.0;
+     Pt2dr aVois;
+     RMat_Inertie aMatr;
+
+     for  (aVois.x = -aSzW.x ; aVois.x<=aSzW.x  ; aVois.x = aVois.x+aStepPxl)
+     {
+          for  (aVois.y = -aSzW.y ; aVois.y<=aSzW.y  ; aVois.y = aVois.y+aStepPxl)
+          {
+               Pt2di aPtIm1 = Pt2di(aP1+aVois);         // for a template => interpolator nearest (in case of even size template)
+               aMatr.add_pt_en_place(
+                                        Im1.GetR(aPtIm1),
+                                        //Im1.Get(aP1+aVois, aInterPol, aDefInter),
+                                        Im2.Get(aP2+aVois, aInterPol, aDefInter)
+                                    );
+          }
+     }
+
+     return aMatr.correlation();
+}
+
+
+
+
+cResulRechCorrel   dblTst_Correl
+                      (
+                             tIm2DM & Im1,
+                             const Pt2dr & aP1,
+                             tIm2DM & Im2,
+                             const Pt2dr & aP2,
+                             const Pt2dr aSzW,
+                             const double   aStep,
+                             const int   aStepPxl,
+                             const Pt2dr   aSzRech,    // size of search zone
+                             tIm2DM & ImScore,
+                             const cInterpolateurIm2D<double> & aInterPol,
+                             bool & OK
+                      )
+{
+    /*
+     * This function search for best match position by correlation
+     * As an input, given Im1, Im2 & 2 image patche center coordinate correspondant aP1 & aP2
+     * Given also half size of image patch of Img1 in [x,y] as parameter aSzW
+     * Given also windows movement step aStep (correlation sub pixel if aStep < 1)
+     * Given also half size of searching zone around aP2, with parameter aSzRech
+     * Output stock in class cResulRechCorrel, contain coordinate of matched on Img2, score.
+     * Image of score of correlation is provide also as output parameter ImScore
+     */
+
+    Pt2dr aPtSupIm1 = aP1 + aSzW;
+    Pt2dr aPtInfIm1 = aP1 - aSzW;
+    int aSzInterpol = aInterPol.SzKernel();
+    Pt2dr aPtSupIm2 = aP2 + aSzRech + Pt2dr(aSzInterpol, aSzInterpol);
+    Pt2dr aPtInfIm2 = aP2 - aSzRech - Pt2dr(aSzInterpol, aSzInterpol);
+    cout<<aPtSupIm1<<aPtInfIm1<<" "<<aPtSupIm2<<aPtInfIm2<<endl;
+    if (!(
+            (InsideREAL(Im1, aPtSupIm1) && InsideREAL(Im1, aPtInfIm1))
+            &&
+            (InsideREAL(Im2, aPtSupIm2) && InsideREAL(Im2, aPtInfIm2))
+       ) )
+    {
+            OK=false;
+            return (cResulRechCorrel (Pt2dr(-1,-1),TT_DefCorrel));
+    }
+
+    double aScoreMax = -1e30;
+    Pt2dr  aDecMax;
+    Pt2dr  aP;
+    for (aP.x=-aSzRech.x ; aP.x<= aSzRech.x ; aP.x = aP.x + aStep)
+    {
+        for (aP.y=-aSzRech.y ; aP.y<= aSzRech.y ; aP.y = aP.y + aStep)
+        {
+            // cout<<" + Pt: "<<aP1<<aP2+aP;
+             double a2Sol  = dblTst_Correl1Win(Im1,aP1,Im2,aP2+aP,aSzW,aStepPxl,aInterPol);
+            // cout<<" -Scr :"<<a2Sol<<endl;
+             if (a2Sol > aScoreMax)
+             {
+                 aScoreMax = a2Sol;
+                 aDecMax = aP;
+             }
+             ImScore.SetR_SVP(Pt2di(aP2 + aP),a2Sol);
+        }
+     }
+     OK = true;
+     return cResulRechCorrel(Pt2dr(aP2+aDecMax),aScoreMax);
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
 /*                  Main function                                               */
 /*                                                                              */
 /********************************************************************************/
@@ -359,6 +509,7 @@ int LSQMatch_Main(int argc,char ** argv)
    aParam.mDisp = false;
    aParam.mStepCorrel = 1.0;
    aParam.mStepLSQ = 1.0;
+   aParam.mStepPxl = 1;
 
    ElInitArgMain
    (
@@ -367,8 +518,9 @@ int LSQMatch_Main(int argc,char ** argv)
                      << EAMC(aImg, "Target Image to search for template",  eSAM_IsExistFile),
          LArgMain()   
                      << EAM(aParam.mDisp, "Disp", true, "Display ? (click to Tar image)")
-                     << EAM(aParam.mStepCorrel, "StepCor", true, "Step Correlation")
-                     << EAM(aParam.mStepLSQ, "StepLSQ", true, "Step LSQ")
+                     << EAM(aParam.mStepCorrel, "StepCor", true, "Step of windows movement in Correlation")
+                     << EAM(aParam.mStepPxl, "StepPix", true, "Step of pixel sampling in 1 Correlation")
+                     << EAM(aParam.mStepLSQ, "StepLSQ", true, "Step of pixel sampling in LSQ")
                );
          cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
          cout<<"Lire Img Target"<<endl;
@@ -377,9 +529,11 @@ int LSQMatch_Main(int argc,char ** argv)
          cout<<"Lire Img Template"<<endl;
          cImgMatch * aImgTmplt = new cImgMatch(aTmpl, anICNM);
          aImgTmplt->Load();
+         cInterpolBilineaire<double> * aInterpolBilin = new cInterpolBilineaire<double>;
 
-
-         Pt2dr aPt(0,0);
+         /*================ Corrrelation ==================*/
+/*
+         Pt2dr aPt(0.0,0.0);
          double aStep = 1.0;
          Pt2di aPt_centre_tmp = Pt2di(aImgTmplt->Im2D().sz()/2);
          tIm2DM aImgScoreCorrel(aImgTarget->Im2D().sz().x, aImgTarget->Im2D().sz().y);
@@ -410,15 +564,70 @@ int LSQMatch_Main(int argc,char ** argv)
 
                      );
          cout<<"Max Score : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
-          // Get correlation solution as init for LSQ
+*/
+
+         /*================ Corrrelation real ==================*/
+         Pt2dr aPt(0.0,0.0);
+         double aStep = 1.0;
+         tIm2DM aImgScoreCorrel(aImgTarget->Im2D().sz().x, aImgTarget->Im2D().sz().y);
+         bool OK = false;
+
+         Pt2dr aPt1 = Pt2dr(aImgTmplt->Im2D().sz()-Pt2di(1,1))/2;       // (1,1) to have a good pixel index
+         Pt2dr aPt2 = Pt2dr(aImgTarget->Im2D().sz()-Pt2di(1,1))/2;
+         Pt2dr aSzRech = Pt2dr(aImgTarget->Im2D().sz() - Pt2di(1,1))/2  - Pt2dr(2.0,2.0); // (2,2) for a rab
+         Pt2dr aSzW = Pt2dr(aImgTmplt->Im2D().sz()-Pt2di(1,1))/2;       // Sz win not include center pixel
+
+
+
+
+         cout<<"P1 : "<<aPt1<<" -P2 : "<<aPt2<<" -SzWin : "<<aSzW<<" -SzRech :"<<aSzRech<<endl;
+
+         cResulRechCorrel aResCorrel =    dblTst_Correl
+                                                                   (
+                                                                          aImgTmplt->Im2D(),
+                                                                          aPt1,
+                                                                          aImgTarget->Im2D(),
+                                                                          aPt2,
+                                                                          aSzW,
+                                                                          aParam.mStepCorrel,
+                                                                          aParam.mStepPxl,
+                                                                          aSzRech,
+                                                                          aImgScoreCorrel,
+                                                                          *aInterpolBilin,
+                                                                          OK
+                                                                   );
+
+
+         string imScore = "imScore.tif";
+         ELISE_COPY
+                 (
+                     aImgScoreCorrel.all_pts(),
+                     aImgScoreCorrel.in_proj(),
+                     Tiff_Im(
+                         imScore.c_str(),
+                         aImgScoreCorrel.sz(),
+                         GenIm::real8,
+                         Tiff_Im::No_Compr,
+                         Tiff_Im::BlackIsZero
+                         //aZBuf->Tif().phot_interp()
+                         ).out()
+
+                     );
+         if (OK)
+            cout<<"Max Score : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
+         else
+             cout<<"Correl false"<<endl;
+
+
+         /*================= LSQ =====================*/
+         // Do refine matching by LSQ
          cout<<"Create matching"<<endl;
          aImgTarget->GetImget(aResCorrel.mPt, aImgTmplt->SzIm());
          cLSQMatch * aMatch = new cLSQMatch(aImgTmplt, aImgTarget);
          aMatch->Param() = aParam;
-         // Do refine matching by LSQ
          Im1D_REAL8 aSol(4);
          aMatch->MatchbyLSQ (
-                                 Pt2dr(aPt_centre_tmp),
+                                 aPt1,
                                  aImgTmplt->Im2D(),
                                  aImgTarget->Im2D(),
                                  aResCorrel.mPt,

@@ -14,13 +14,14 @@ class cParamLSQMatch
         bool mDisp;
         double mStepCorrel;
         double mStepLSQ;
+        int mStepPxl;
 };
 
 class cImgMatch
 {
 	public:
         cImgMatch(string aName, cInterfChantierNameManipulateur * mICNM);
-        bool GetImget (Pt2dr aP, Pt2dr aSzW);
+        bool GetImget (Pt2dr aP, Pt2dr aSzW,  Pt2dr aRab = Pt2dr(0,0));
 
         cInterfChantierNameManipulateur *ICNM() {return mICNM;}
         Pt2dr &  SzIm() {return mSzIm;}
@@ -40,7 +41,7 @@ class cImgMatch
         tTIm2DM mTIm2D;             // target image
         tIm2DM  mCurImgetIm2D;      // current imaget
         tTIm2DM mCurImgetTIm2D;     // current imaget
-        Pt2dr mCurPt;                // store current matching point on mImg
+        Pt2dr mCurPt;               // store current matching point on mImg
 };
 
 class cLSQMatch
@@ -62,6 +63,7 @@ class cLSQMatch
         void update(double CurErr, Pt2dr aPt);
         double & MinErr() {return mMinErr;}
         Pt2dr & PtMinErr() {return mPtMinErr;}
+        cInterpolateurIm2D<double>  * Interpol(){return mInterpol;}
 	private:
 		Pt2dr mPM;	// Point matched
 		cImgMatch * mTemplate;
