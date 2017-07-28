@@ -1026,8 +1026,8 @@ void UndistortIM(string aNameDir, string aPattern, string aOri, string DirOut, b
     	int nbIm = (int)ListIm.size();
     	cout<<"Number of images to process: "<<nbIm<<endl;
 
-	string cmdDRUNK,cmdConv;
-    	list<string> ListDrunk,ListConvert;
+	string cmdDRUNK,cmdConv,cmdDel;
+    	list<string> ListDrunk,ListConvert,ListDel;
 
 	for (int i=0;i<nbIm;i++)
     {
@@ -1041,12 +1041,15 @@ void UndistortIM(string aNameDir, string aPattern, string aOri, string DirOut, b
         cmdDRUNK=MMDir() + "bin/Drunk " + aNameDir + aFullName + " " + aOri + " " + "Out="+ DirOut;
         ListDrunk.push_back(cmdDRUNK);
         #if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
-            cmdConv="convert ephemeral:" + aNameDir + DirOut + aFullName + ".tif " + aNameDir + DirOut + aFullName + ".jpg";
+            cmdConv="convert " + aNameDir + DirOut + aFullName + ".tif " + aNameDir + DirOut + aFullName + ".jpg";
+			cmdDel = "rm " + aNameDir + DirOut + aFullName + ".tif ";
         #endif
         #if (ELISE_windows)
-            cmdConv=MMDir() + "binaire-aux/convert ephemeral:" + aNameDir + DirOut + aFullName + ".tif " + aNameDir + DirOut + aFullName + ".jpg";
+            cmdConv=MMDir() + "binaire-aux/windows/convert.exe " + aNameDir + DirOut + aFullName + ".tif " + aNameDir + DirOut + aFullName + ".jpg";
+			cmdDel = "del " + aNameDir + DirOut + aFullName + ".tif ";
         #endif
         ListConvert.push_back(cmdConv);
+		ListDel.push_back(cmdDel);
 
     }//end of "for each image"
 
@@ -1057,6 +1060,10 @@ void UndistortIM(string aNameDir, string aPattern, string aOri, string DirOut, b
     //Converting into .jpg (CV solution may not use .tif) with Convert
     cout<<"Converting into .jpg"<<endl;
     cEl_GPAO::DoComInParal(ListConvert,aNameDir + "MkConvert");
+
+	//Removing .tif
+	cout << "Removing .tif" << endl;
+	cEl_GPAO::DoComInParal(ListDel, aNameDir + "MkDel");
 
 	}
 
@@ -1182,8 +1189,8 @@ void TransfORI_andWFile(string aNameDir, string aPattern, string aOri, string Di
 	vector<Pt3dr> aListPtCentre;
 	ElMatrix<double> Rotc(3,3,0.0);
 	vector<vector<double> > alistQuaternion;
-	string cmdConv;
-    	list<string> ListConvert;
+	string cmdConv,cmdDel;
+    list<string> ListConvert,ListDel;
 	
 	// And find the centre and read the camera of evry image
 	for (int i=0;i<nbIm;i++)
@@ -1280,12 +1287,15 @@ void TransfORI_andWFile(string aNameDir, string aPattern, string aOri, string Di
     		  );
 
 		#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
-            	cmdConv="convert ephemeral:" + aNameDir + aFullName + ".tif " + aNameDir + DirOut + aFullName + ".jpg";
-       	 	#endif
-       	 	#if (ELISE_windows)
-           	cmdConv=MMDir() + "binaire-aux/convert ephemeral:" + aNameDir + aFullName + ".tif " + aNameDir + DirOut + aFullName + ".jpg";
-        	#endif
-       	 	ListConvert.push_back(cmdConv);			
+            	cmdConv="convert " + aNameDir + aFullName + ".tif " + aNameDir + DirOut + aFullName + ".jpg";
+				cmdDel = "rm " + aNameDir + aFullName + ".tif";
+       	#endif
+       	#if (ELISE_windows)
+           	cmdConv=MMDir() + "binaire-aux/windows/convert.exe ephemeral:" + aNameDir + aFullName + ".tif " + aNameDir + DirOut + aFullName + ".jpg";
+			cmdDel = "del " + aNameDir + aFullName + ".tif";
+        #endif
+       	ListConvert.push_back(cmdConv);	
+		ListDel.push_back(cmdDel);
 	}
 	///////////////////////////////////////////
 	//get some values

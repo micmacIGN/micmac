@@ -52,6 +52,12 @@
  	   <Symb>  WithPatPoseFigee=false </Symb>
  	   <Symb>  PatPoseFigee=XXXX </Symb>
 
+ 	   <Symb>  WithPatCentreFigee=false </Symb>
+ 	   <Symb>  PatCentreFigee=XXXX </Symb>
+
+ 	   <Symb>  WithPatOrientFigee=false </Symb>
+ 	   <Symb>  PatOrientFigee=XXXX </Symb>
+
 
            <eSymb>  NotCPI=! ${CPI} </eSymb>
            <eSymb>  DetailAppuis=0 </eSymb>
@@ -136,6 +142,7 @@
            <Symb>  RegDist2=0.0 </Symb>
            <Symb>  RegDistNbCase=0.0 </Symb>
            <Symb>  RegDistSeuil=0.0 </Symb>
+           <Symb>  RapTxt=""    </Symb>
 
        </DicoLoc>
 
@@ -372,7 +379,28 @@
 			         <Val>      ePoseFigee   </Val>
 		              </ContraintesPoses>	
 			</#WHEN>
+ 			<#WHEN VTEST=${WithPatCentreFigee}>
+			     <ContraintesPoses>
+			         <NamePose>   ${PatCentreFigee} </NamePose>
+  			         <ByPattern>  true </ByPattern>
+			         <Val>      eCentreFige   </Val>
+		              </ContraintesPoses>	
+			</#WHEN>
+ 			<#WHEN VTEST=${WithPatOrientFigee}>
+			     <ContraintesPoses>
+			         <NamePose>   ${PatOrientFigee} </NamePose>
+  			         <ByPattern>  true </ByPattern>
+			         <Val>      eAnglesFiges   </Val>
+		              </ContraintesPoses>	
+			</#WHEN>
 
+<!--
+ 	   <Symb>  WithPatCentreFigee=false </Symb>
+ 	   <Symb>  PatCentreFigee=XXXX </Symb>
+
+ 	   <Symb>  WithPatOrientFigee=false </Symb>
+ 	   <Symb>  PatOrientFigee=XXXX </Symb>
+-->
                        </SectionContraintes>
 			<#WHEN VTEST=${PoseFigee}>
 			     <Messages>  External orientations of the cameras are frozen </Messages>
@@ -517,6 +545,9 @@
 				     <EcartMax>  ${MaxResTieP} </EcartMax>
                                   </Pond>
                               </ObsLiaisons>
+		              <TxtRapDetaille>
+		                    <NameFile> ${RapTxt}</NameFile>
+		              </TxtRapDetaille>
                           </#WHEN>
 
                           <#WHEN  VTEST=${WithGCP}>
@@ -595,9 +626,6 @@
                                            <PondOnRotFinal> 1.0 </PondOnRotFinal>
                                         </GlobalDistPond>
                                     </#WHEN>
-
-
-
                                 </ObsBlockCamRig>
                           </#WHEN>
 

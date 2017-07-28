@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_NEW_ORI_H
 
 #include "StdAfx.h"
+#include "Extern_NewO.h"
 
 #define NbCamTest 6
 
@@ -94,23 +95,32 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPack,int aNbFin);
 class cCommonMartiniAppli
 {
     public :
+
+
        std::string    mNameOriCalib;
        std::string    mPrefHom;
        std::string    mExtName;
-       std::string    mNameModeNO;
        std::string    mInOri;
        bool           mAcceptUnSym;
        bool           mQuick;
        bool           mShow;
+       // const std::string &   NameNOMode();
 
+       eTypeModeNO    ModeNO() const;
+       cNewO_NameManager * NM(const std::string & aDir) const;
        LArgMain &     ArgCMA();
        std::string    ComParam();
-
        cCommonMartiniAppli();
       
     private :
-       cCommonMartiniAppli(const cCommonMartiniAppli &) ; // N.I.
        LArgMain * mArg;
+       mutable bool       mPostInit;
+       mutable cNewO_NameManager * mNM;
+       std::string    mNameNOMode;
+       mutable eTypeModeNO   mModeNO;
+
+       void PostInit() const;
+       cCommonMartiniAppli(const cCommonMartiniAppli &) ; // N.I.
 };
 
 
@@ -167,7 +177,8 @@ class cNewO_OrInit2Im
                 ElRotation3D *      aInOri,
                 bool                Show,
                 bool                aHPP,
-                bool                aSelAllIm
+                bool                aSelAllIm,
+                const               cCommonMartiniAppli &
           );
 
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
@@ -210,6 +221,7 @@ class cNewO_OrInit2Im
 
 
 
+          double            mPdsSingle;
           bool              mQuick;
           cNewO_OneIm *     mI1;
           cNewO_OneIm *     mI2;
@@ -318,6 +330,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            std::string NameHomFloat(const std::string&,const std::string&);
 
            std::string NameListeImOrientedWith(const std::string &,bool Bin) const;
+           std::string RecNameListeImOrientedWith(const std::string &,bool Bin) const;
            std::list<std::string>  ListeImOrientedWith(const std::string & aName) const;
 
            CamStenope * OutPutCamera(const std::string & aName) const;

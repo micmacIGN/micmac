@@ -308,7 +308,6 @@ class cAppli_GenTriplet : public cCommonMartiniAppli
        double                        mTimeSelec;
        double                        mRamAllowed;
        int                           mKS0;
-       eTypeModeNO                   mModeNO;
        bool                          mSelAll;
 };
 
@@ -978,8 +977,6 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     // mExtName    (""),
     mRamAllowed (4e9),
     mKS0        (0)
-    // mNameModeNO (TheStdModeNewOri),
-    // mInOri      ("")
 {
    ElTimer aChronoLoad;
 
@@ -997,8 +994,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                    << ArgCMA()
    );
    
-   mModeNO = ToTypeNO(mNameModeNO);
-   mSelAll = (mModeNO == eModeNO_TTK);
+   mSelAll = (ModeNO() == eModeNO_TTK);
 
 
    if (MMVisualMode) return;

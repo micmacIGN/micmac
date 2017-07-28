@@ -106,8 +106,8 @@ void Apero2PMVS(string aFullPattern, string aOri)
     int nbIm = (int)ListIm.size();
     cout<<"Images to process: "<<nbIm<<endl;
 
-    string cmdDRUNK,cmdConv;
-    list<string> ListDrunk,ListConvert;
+    string cmdDRUNK,cmdConv,cmdDel;
+    list<string> ListDrunk,ListConvert,ListDel;
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
     //Computing PMVS orientations and writing lists of DRUNK and Convert commands
@@ -126,12 +126,15 @@ void Apero2PMVS(string aFullPattern, string aOri)
         cmdDRUNK=MMDir() + "bin/Drunk " + aNameDir + aFullName + " " + aOri + " Out=" + "pmvs-" + aOri + "/visualize/ Talk=0";
         ListDrunk.push_back(cmdDRUNK);
         #if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
-            cmdConv="convert ephemeral:" + aNameDir + "pmvs-" + aOri + "/visualize/" + aFullName + ".tif " + aNameDir + "pmvs-"+ aOri +"/visualize/"+(string)nb + ".jpg";
+            cmdConv="convert " + aNameDir + "pmvs-" + aOri + "/visualize/" + aFullName + ".tif " + aNameDir + "pmvs-"+ aOri +"/visualize/"+(string)nb + ".jpg";
+			cmdDel = "rm " + aNameDir + "pmvs-" + aOri + "/visualize/" + aFullName + ".tif ";
         #endif
         #if (ELISE_windows)
-            cmdConv=MMDir() + "binaire-aux/convert ephemeral:" + aNameDir + "pmvs-" + aOri + "/visualize/" + aFullName + ".tif " + aNameDir + "pmvs-"+ aOri +"/visualize/"+(string)nb + ".jpg";
+            cmdConv=MMDir() + "binaire-aux/windows/convert.exe " + aNameDir + "pmvs-" + aOri + "/visualize/" + aFullName + ".tif " + aNameDir + "pmvs-"+ aOri +"/visualize/"+(string)nb + ".jpg";
+			cmdDel = "del " + aNameDir + "pmvs-" + aOri + "/visualize/" + aFullName + ".tif ";
         #endif
-        ListConvert.push_back(cmdConv);
+		ListConvert.push_back(cmdConv);
+		ListDel.push_back(cmdDel);
 
         //Formating the camera name
         string aNameCam="Ori-"+aOri+"/Orientation-"+aFullName+".xml";
@@ -161,9 +164,13 @@ void Apero2PMVS(string aFullPattern, string aOri)
     cout<<"Undistorting the images with Drunk"<<endl;
     cEl_GPAO::DoComInParal(ListDrunk,aNameDir + "MkDrunk");
 
-    //Converting into .jpg (pmvs can't use .tif) with Convert
-    cout<<"Converting into .jpg"<<endl;
-    cEl_GPAO::DoComInParal(ListConvert,aNameDir + "MkConvert");
+	//Converting into .jpg (pmvs can't use .tif) with Convert
+	cout << "Converting into .jpg" << endl;
+	cEl_GPAO::DoComInParal(ListConvert, aNameDir + "MkConvert");
+
+	//Removing .tif
+	cout << "Removing .tif" << endl;
+	cEl_GPAO::DoComInParal(ListDel, aNameDir + "MkDel");
 
     // Write the options file with basic parameters
     cout<<"Writing the option file"<<endl;

@@ -249,7 +249,6 @@ class cAppli_GenPTripleOneImage : public cCommonMartiniAppli
            std::vector<std::vector<Pt2df> >  mVP1;
            std::vector<std::vector<Pt2df> >  mVP2;
            bool                              mSkWhenExist;
-           eTypeModeNO                       mModeNO;
 };
 
 class cCmpPtrIOnName
@@ -274,7 +273,6 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
                    << ArgCMA()
    );
 
-   mModeNO = ToTypeNO(mNameModeNO);
 
    if (MMVisualMode) return;
 

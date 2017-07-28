@@ -64,6 +64,12 @@ Pt2dr AdaptPas(Pt2dr aStep,Pt2dr aSz)
           );
 }
 
+double MessDeb(const Pt2di & aSz, Pt2dr aStep,Pt2dr aP0,Pt2dr aP1,bool Adapt,double aVal)
+{
+   std::cout << "SZGR " << aSz << "  Step" << aStep << " P0" << aP0 << aP1 << " Ada " << Adapt << "\n";
+   return aVal;
+}
+
 RImGrid::RImGrid
 (
      bool AdaptStep,
@@ -85,6 +91,7 @@ RImGrid::RImGrid
             )
           ),
   mDef    (-1e20),
+  // mDef    (MessDeb(mSzGrid,mStepGr,aP0,aP1,AdaptStep,-1e20)),
   mGrid   (mSzGrid.x,mSzGrid.y,mDef),
   mTim    (new TIm2D<REAL,REAL>(mGrid)),
   mName   (aName),
@@ -853,7 +860,11 @@ cDbleGrid::cDbleGrid
     mName (aName)
 {
 
+// NIKRUP
+// std::cout << "cDbleGrid::cDbleGrid " << aP0In << aP1In << aStepDir << "\n";
+
     PtImGrid * aGR1 = new PtImGrid(AdaptStep,aP0In,aP1In,aStepDir,mName+ (P0P1IsBoxDirect ? "_Directe" : "_Inverse"));
+// std::cout << "DONE PtImGridPtImGrid\n";
     Pt2di aSzGr = aGR1->SzGrid();
 
     bool First = true;

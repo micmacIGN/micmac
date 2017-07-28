@@ -213,7 +213,6 @@ class cAppliOptimTriplet : public cCommonMartiniAppli
           cNewO_OneIm *    mNoIm2;
           bool             mBugTK;
 
-          eTypeModeNO      mModeNO;
           bool             mModeTTK;
           bool             mWithTTK;
           bool             mInOriOk;
@@ -575,9 +574,8 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
                    << ArgCMA()
    );
 
-   mModeNO =  ToTypeNO(mNameModeNO);
-   mModeTTK = (mModeNO==eModeNO_TTK);
-   mWithTTK = (mModeNO!=eModeNO_StdNoTTK);
+   mModeTTK = (ModeNO() ==eModeNO_TTK);
+   mWithTTK = (ModeNO() !=eModeNO_StdNoTTK);
 
 
    if (mModeTTK)

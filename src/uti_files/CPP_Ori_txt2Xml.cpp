@@ -287,7 +287,7 @@ class cAppli_Ori_Txt2Xml_main
          bool                 mCalibByFile;
          double               mAltiSol;
          double               mProf;
-         Pt2dr                mOffsetXY;
+         Pt3dr                mOffsetXYZ;
          std::string         mGenOrFromC;
          bool                mComputeOrFromC;
          bool                mComputeCple;
@@ -694,7 +694,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     mLine            (5),
     mConvOri         (eConvAngPhotoMDegre),
     mCalibByFile     (true),
-    mOffsetXY        (0,0),
+    mOffsetXYZ        (0,0,0),
     mGenOrFromC      (),
     mComputeOrFromC  (false),
     mAcceptNonExitsingImage  (false)
@@ -754,7 +754,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mCalibByFile,"CBF",true,"Export calib as a link to existing file")
                       << EAM(mAltiSol,"AltiSol",true,"Average altitude of ground")
                       << EAM(mProf,"Prof",true,"Average Prof of images")
-                      << EAM(mOffsetXY,"OffsetXY",true,"Offset to substract from X,Y (To avoid possible round off error)")
+                      << EAM(mOffsetXYZ,"OffsetXYZ",true,"Offset to substract from X,Y,Z (To avoid possible round off error)")
 
                       << EAM(mGenOrFromC,"CalOFC",true,"When specified compute initial orientation from centers (in Ori-GenFromC) Ori-${CalOFC}, must contains internal calibrations")
                       << EAM(mAcceptNonExitsingImage,"OkNoIm",true,"Do not create error if image does not exist (def = false)")
@@ -1050,10 +1050,11 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
         if (Ok)
         {
 
-           if (aReadApp.IsDef(aReadApp.mPt) && (EAMIsInit(&mOffsetXY)))
+           if (aReadApp.IsDef(aReadApp.mPt) && (EAMIsInit(&mOffsetXYZ)))
            {
-              aReadApp.mPt.x -= mOffsetXY.x;
-              aReadApp.mPt.y -= mOffsetXY.y;
+              aReadApp.mPt.x -= mOffsetXYZ.x;
+              aReadApp.mPt.y -= mOffsetXYZ.y;
+              aReadApp.mPt.z -= mOffsetXYZ.z;
            }
            {
               if (mNbCam==0)

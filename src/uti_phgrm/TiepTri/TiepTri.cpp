@@ -93,7 +93,7 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aNumSel,  "NumSelIm",true,"for selecting imade")
                       << EAM(UseABCorrel,  "UseABCorrel",true,"Tuning use correl in mode A*v1+B=v2 ")
 
-                      << EAM(aParam.mEtapeInteract,"StepInt",true,"Step of Intection (apply when SzW is init)")
+                      << EAM(aParam.mEtapeInteract,"StepInt",true,"Step of Intection (apply when SzW is init) see FFS")
                       << EAM(aParam.mLastEtape,  "LastStep",true,"Last step (tuning essentially)")
                       << EAM(aParam.mNoTif,  "NoTif",true,"Not an image TIF - read img in Tmp-MM-Dir")
                       << EAM(aParam.mFilSpatial,  "FilSpatial",true,"Use filter spatial ? (def = true)")
@@ -101,7 +101,7 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aParam.mFilAC,  "FilAC",true,"Use Autocorrelation condition ? (def = true)")
                       << EAM(aParam.mTT_SEUIL_SURF_TRI,  "surfTri",true,"Surface min to eliminate too small triangle (def = 100 unit)")
                       << EAM(aParam.mTT_SEUIL_CORREL_1PIXSUR2,  "correlBrut",true,"Threshold of correlation score 1pxl/2 (def = 0.7)")
-                      << EAM(aParam.mFlagFS,  "FFS",true,"Flag spatial filtering (tuning) [0 = all OFF, 1 = In Each Tri, 8 = Final in All Tri, 9 = all ON]")
+                      << EAM(aParam.mFlagFS,  "FFS",true,"Flag spatial  [1= after int,2= after bilin ,4=after dense, 8= at end]")
                );
 
    bool WithInteract = EAMIsInit(& aSzW);

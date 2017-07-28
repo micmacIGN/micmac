@@ -40,6 +40,63 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "TiepTri.h"
 
 
+class cHistoInt
+{
+    public :
+         void Add(int anInd,double aVal=1.0);
+         int  Get(int anInd);
+         void Show();
+    private :
+         std::vector<double> mVH;
+};
+
+void cHistoInt::Add(int anInd,double aVal)
+{
+    for (int aK=mVH.size() ; aK<= anInd ; aK++)
+        mVH.push_back(0.0);
+    mVH.at(anInd) += aVal;
+}
+
+int  cHistoInt::Get(int anInd)
+{
+    if ((anInd<0) || (anInd>=int(mVH.size()))) return 0.0;
+    return mVH.at(anInd);
+}
+void  cHistoInt::Show()
+{
+    double aSom = 0;
+    double aSomV = 0;
+    for (int aK=0 ; aK<int(mVH.size()) ; aK++)
+    {
+        aSom += mVH.at(aK);
+        aSomV += aK * mVH.at(aK);
+    }
+
+    double aCum=0.0;
+    for (int aK=0 ; aK<int(mVH.size()) ; aK++)
+    {
+        double aV =  mVH.at(aK);
+        
+        if (aV)
+        {
+             printf("For %2d V=%5.2f  %%=%5.2f  %%Cumul=%5.2f\n",aK,aV, (100.0*(aV/aSom)),(100.0*(aCum/aSom)) );
+             // std::cout << "For " << aK << " V=" << aV << " %=" << 100.0 * (aV/aSom) << "\n";
+        }
+        aCum += aV;
+    }
+    if (aSom)
+        printf(" Average = %.3f\n",aSomV/aSom);
+}
+
+cHistoInt HistoRMI(const std::vector<cResulMultiImRechCorrel *>  & aVR)
+{
+    cHistoInt aRes;
+    for (int aK=0 ; aK<int(aVR.size()) ; aK++)
+       aRes.Add(aVR[aK]->VIndex().size());
+    return aRes;
+}
+
+
 
 class cTpP_HeapParam
 {
@@ -87,7 +144,7 @@ typedef ElQT<cResulMultiImRechCorrel *,Pt2dr,cFuncPtOfRMICPtr> tQtTiepT;
 */
 
 #define EpsilAggr 0.02
-#define PowAggreg 0.02
+#define PowAggreg 1.0
 
 std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
                                        (
@@ -97,6 +154,15 @@ std::vector<cResulMultiImRechCorrel *> cAppliTieTri::FiltrageSpatial
                                        )
 {
    double aSign= 1;
+   double ShowMult = (mCurEtape==ETAPE_FINALE);
+   if (ShowMult) 
+   {
+       cHistoInt aH = HistoRMI(aVIn);
+       std::cout << " ============== ENTREE ==============\n";
+       aH.Show();
+   }
+
+
 if (0) // (MPD__MM())
 {
     static bool First= true;
@@ -166,6 +232,8 @@ if (0) // (MPD__MM())
        if (aW)
        {
            aW->draw_circle_loc(aFctr(aRM_1),aSeuilDist,aW->pdisc()(P8COL::cyan));
+
+           // std::cout << "Mult " << aRM_1->VIndex() << "\n";
            // dessine un cercle sur Img Master, au pt master, rayon TT_DefSeuilDensiteResul = 50
        }
        aResult.push_back(aRM_1);
@@ -207,7 +275,7 @@ if (0) // (MPD__MM())
                */
               // === formule pour decider si on enleve un point ===
               double aDist = euclid(aFctr(aRM_1)-aFctr(aRM_2)); // distance euclid entre 2 point master
-              double aRabCorrel = (1-(aDist/aSeuilDist)) * aGainCorrel;
+              double aRabCorrel = (1-pow(aDist/aSeuilDist,TT_FSExpoAtten)) * aGainCorrel;
               int aNbS0 = aRM_2->NbSel();
               for (int aK=0 ; aK<aNbI_2 ; aK++)
               {
@@ -262,6 +330,13 @@ if (0) // (MPD__MM())
    if(aW)
    {
       std::cout << "FILTRAGE SPATIAL, " << aVIn.size() << " => " << aResult.size() << "\n";
+   }
+
+   if (ShowMult)
+   {
+       cHistoInt aH = HistoRMI(aResult);
+       std::cout << " ============== Sortie  ==============\n";
+       aH.Show();
    }
 
    return aResult;

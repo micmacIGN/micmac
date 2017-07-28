@@ -68,6 +68,7 @@
         <eModeNO_Std>     </eModeNO_Std>
         <eModeNO_TTK>     </eModeNO_TTK> <!-- Tomasi Kanade -->
         <eModeNO_StdNoTTK> </eModeNO_StdNoTTK> <!-- Supprime Tom Kan , car plante encore parfois -->
+        <eModeNO_OnlyHomogr> </eModeNO_OnlyHomogr> <!-- pour calculer les orientation d'un scene plane par homographie seulement -->
         <eModeNO_NbVals>  </eModeNO_NbVals> <!-- LastValue -->
     </enum>
 
@@ -1382,10 +1383,8 @@
      <Ori Nb="1" RefType="TypeCodageMatr"> </Ori>
      <ResiduRP Nb="1" Type="double" > </ResiduRP>
 </Xml_O2IRotPure>
-<Xml_O2IHom Nb="1" Class="true" ToReference="true">
-     <Hom Nb="1" RefType="XmlHomogr"> </Hom>
-     <ResiduHom Nb="1" Type="double" > </ResiduHom>
-</Xml_O2IHom>
+
+
 
 
 
@@ -1400,6 +1399,19 @@
 </Xml_O2ITiming>
 
 
+<Xml_Rotation Nb="1" Class="true" ToReference="true">
+     <Ori Nb="1" RefType="TypeCodageMatr"> </Ori>
+     <Centre Nb="1" Type="Pt3dr" > </Centre>
+</Xml_Rotation>
+
+<Xml_Elips2D  Nb="1" Class="true" ToReference="true">
+     <CDG Nb="1" Type="Pt2dr" > </CDG>
+     <Sxx Nb="1" Type="double"> </Sxx>
+     <Syy Nb="1" Type="double"> </Syy>
+     <Sxy Nb="1" Type="double"> </Sxy>
+     <Pds Nb="1" Type="double"> </Pds>
+     <Norm Nb="1" Type="bool">  </Norm>
+</Xml_Elips2D>
 
 <Xml_Elips3D  Nb="1" Class="true" ToReference="true">
      <CDG Nb="1" Type="Pt3dr" > </CDG>
@@ -1413,6 +1425,17 @@
      <Norm Nb="1" Type="bool">  </Norm>
 </Xml_Elips3D>
 
+<Xml_MepHom Nb="1" Class="true" ToReference="true">
+     <Ori Nb="*" RefType="Xml_Rotation">          </Ori>
+</Xml_MepHom>
+
+<Xml_O2IHom Nb="1" Class="true" ToReference="true">
+     <Hom Nb="1" RefType="XmlHomogr"> </Hom>
+     <ResiduHom Nb="1" Type="double" > </ResiduHom>
+     <ForMepHom Nb="?" RefType="Xml_MepHom">  </ForMepHom>
+</Xml_O2IHom>
+
+
 <Xml_O2IComputed Nb="1" Class="true" ToReference="true">
     <Timing Nb="1"  RefType="Xml_O2ITiming">     </Timing>
     <OrientAff Nb="1"  RefType="Xml_O2IRotation">      </OrientAff>
@@ -1421,6 +1444,7 @@
     <BSurH Nb="1" Type="double">   </BSurH>
     <RecHom Nb="1" Type="double">   </RecHom>  <!-- Recouvrement en faisant l'hypothese homographique -->
     <Elips Nb="1" RefType="Xml_Elips3D"> </Elips>
+    <Elips2  Nb="?" RefType="Xml_Elips2D">  </Elips2>
 </Xml_O2IComputed>
 
 
@@ -1440,10 +1464,6 @@
 </Xml_Ori2Im>
 
 
-<Xml_Rotation Nb="1" Class="true" ToReference="true">
-     <Ori Nb="1" RefType="TypeCodageMatr"> </Ori>
-     <Centre Nb="1" Type="Pt3dr" > </Centre>
-</Xml_Rotation>
 
 
 <Xml_Ori3ImInit  Nb="1" Class="true" ToReference="true">

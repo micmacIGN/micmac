@@ -91,7 +91,7 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
     std::string aStrChSys;
     double aMul = 1.0;
     bool   aMulIncAlso = true;
-
+	Pt3dr  aOffs(0,0,0);
 
     ElInitArgMain
     (
@@ -102,6 +102,7 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
                       << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
                       << EAM(aMul,"MulCo",true,"Multiplier of result (for development and testing use)",eSAM_InternalUse)
                       << EAM(aMulIncAlso,"MulInc",true,"Multiplier also incertitude ? (for development and testing use)",eSAM_InternalUse)
+                      << EAM(aOffs,"Offs",true,"Offset to substruct to all coordinates ; Def=[0,0,0]")
     );
 
     // StdReadEnum(Help,aType,argv[1],eNbTypeApp,true);
@@ -225,7 +226,11 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
         for (int aKP=0 ; aKP<int(aVPts.size()) ; aKP++)
         {
             cOneAppuisDAF aOAD;
-            aOAD.Pt() = aVPts[aKP];
+            Pt3dr aPt;
+            aPt.x = aVPts[aKP].x - aOffs.x;
+            aPt.y = aVPts[aKP].y - aOffs.y;
+            aPt.z = aVPts[aKP].z - aOffs.z;
+            aOAD.Pt() = aPt;
             aOAD.NamePt() = aVName[aKP];
             aOAD.Incertitude() = aVInc[aKP];
 

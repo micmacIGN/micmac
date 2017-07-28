@@ -477,7 +477,7 @@ double  cAppliGrRedTieP::SzPixDec() const
 std::string cAppliGrRedTieP::ComOfKBox(int aKBox)
 {
 
-   return MM3dBinFile("OriRedTieP") + " " + mPatImage 
+   return MM3dBinFile("OriRedTieP") + " " + '"' + mPatImage + '"'   // Giang : add "" around Pattern image to avoid error of expression type "epoque1_[a|b|c]|epoque1_d.*.tif"
              + " OriCalib=" + mCalib 
              + " KBox=" + ToString(aKBox)
              + " DistPMul=" + ToString(mDistPMul) 
@@ -866,24 +866,29 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
         }
     }
      
-
+// ttttttt
    // Calcul du nombre de connexion max
 
     for (tIterSomGRTP itS=mGr.begin(mSubAll);itS.go_on();itS++)
     {
         tSomGRTP & aS1 = (*itS);
-        std::vector<Pt2df> aVecRes;
-
-        for (tIterArcGRTP  itA=aS1.begin(mSubAll) ; itA.go_on(); itA++)
+        double aResiduOr = 1.0; 
+        if (mUseOr)
         {
-             const cXml_Ori2Im & anOri = (*itA).attr()->Ori();
-             ElSetMax(aS1.attr()->NbPtsMax(),anOri.NbPts());
-             aVecRes.push_back(Pt2df(anOri.Geom().Val().OrientAff().ResiduOr(),anOri.NbPts()));
+            std::vector<Pt2df> aVecRes;
+
+            for (tIterArcGRTP  itA=aS1.begin(mSubAll) ; itA.go_on(); itA++)
+            {
+                 const cXml_Ori2Im & anOri = (*itA).attr()->Ori();
+                 ElSetMax(aS1.attr()->NbPtsMax(),anOri.NbPts());
+                 aVecRes.push_back(Pt2df(anOri.Geom().Val().OrientAff().ResiduOr(),anOri.NbPts()));
+            }
+std::cout << "MMMP Name= " <<   aS1.attr()->Name()  << "\n";
+            aResiduOr = MedianPond(aVecRes);
         }
-        double aMed = MedianPond(aVecRes);
         const std::string & aName = aS1.attr()->Name();
         cXml_RatafiaSom aXRS;
-        aXRS.ResiduOr() = aMed;
+        aXRS.ResiduOr() = aResiduOr;
         MakeFileXML(aXRS,mNoNM->NameRatafiaSom(aName,true));
         MakeFileXML(aXRS,mNoNM->NameRatafiaSom(aName,false));
     }
@@ -921,6 +926,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
 
 
     // Creation des box 
+
 
     CreateBox();
     
