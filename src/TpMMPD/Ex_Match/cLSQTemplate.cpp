@@ -144,20 +144,7 @@ bool cLSQMatch::DoMatchbyLSQ()
     }
 }
 */
-bool cLSQMatch::DoMatchbyCorel()
-{
-    Pt2dr aPt(0,0);
-    // In Template
-    tIm2DM  aTmp = mTemplate->Im2D();
-    tTIm2DM aTTmp= mTemplate->TIm2D();
 
-    // In Target
-    tIm2DM  aTarget = mImg->CurImgetIm2D();
-    tTIm2DM aTTarget = mImg->CurImgetTIm2D();
-
-    // Correlation b/w Template & Target
-    return true;
-}
 
 /*
 bool cLSQMatch::DoMatchbyLSQ()
@@ -531,6 +518,7 @@ int LSQMatch_Main(int argc,char ** argv)
    aParam.mStepLSQ = 1.0;
    aParam.mStepPxl = 1;
    aParam.mNbIter = 1;
+   int method = 0;
 
    ElInitArgMain
    (
@@ -543,6 +531,7 @@ int LSQMatch_Main(int argc,char ** argv)
                      << EAM(aParam.mStepPxl, "StepPix", true, "Step of pixel sampling in 1 Correlation")
                      << EAM(aParam.mStepLSQ, "StepLSQ", true, "Step of pixel sampling in LSQ")
                      << EAM(aParam.mNbIter, "NbIter", true, "Number of LSQ iteration (def=1)")
+                     << EAM(method, "Meth", true, "method corelation (0, 1=cCorrelImage)")
                );
          cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
          cout<<"Lire Img Target"<<endl;
@@ -552,24 +541,23 @@ int LSQMatch_Main(int argc,char ** argv)
          cImgMatch * aImgTmplt = new cImgMatch(aTmpl, anICNM);
          aImgTmplt->Load();
          cInterpolBilineaire<double> * aInterpolBilin = new cInterpolBilineaire<double>;
-
-         /*================ Corrrelation real ==================*/
-         Pt2dr aPt(0.0,0.0);
-         //double aStep = 1.0;
-         tIm2DM aImgScoreCorrel(aImgTarget->Im2D().sz().x, aImgTarget->Im2D().sz().y);
-         bool OK = false;
+         cResulRechCorrel aResCorrel(Pt2dr(-1,-1),TT_DefCorrel);
 
          Pt2dr aPt1 = Pt2dr(aImgTmplt->Im2D().sz()-Pt2di(1,1))/2;       // (1,1) to have a good pixel index
          Pt2dr aPt2 = Pt2dr(aImgTarget->Im2D().sz()-Pt2di(1,1))/2;
          Pt2dr aSzRech = Pt2dr(aImgTarget->Im2D().sz() - Pt2di(1,1))/2  - Pt2dr(2.0,2.0); // (2,2) for a rab
          Pt2dr aSzW = Pt2dr(aImgTmplt->Im2D().sz()-Pt2di(1,1))/2;       // Sz win not include center pixel
 
-
-
-
          cout<<"P1 : "<<aPt1<<" -P2 : "<<aPt2<<" -SzWin : "<<aSzW<<" -SzRech :"<<aSzRech<<endl;
 
-         cResulRechCorrel aResCorrel =    dblTst_Correl
+         tIm2DM aImgScoreCorrel(aImgTarget->Im2D().sz().x, aImgTarget->Im2D().sz().y);
+         bool OK = false;
+if (method == 0)
+{
+         /*================ Corrrelation real ==================*/
+         Pt2dr aPt(0.0,0.0);
+         //double aStep = 1.0;
+         aResCorrel =    dblTst_Correl
                                                                    (
                                                                           aImgTmplt->Im2D(),
                                                                           aPt1,
@@ -583,27 +571,75 @@ int LSQMatch_Main(int argc,char ** argv)
                                                                           *aInterpolBilin,
                                                                           OK
                                                                    );
+}
+         /*================ Corrrelation by cCorrelImage ==================*/
+if (method == 1)
+{
+         // Load Image to type Im2D<unsigned int, int>
+         Pt2di aSzImTarget = aImgTarget->Im2D().sz();
+         Pt2di aSzImTmp = aImgTmplt->Im2D().sz();
+         tIm2DcCorrel aCImTmpl(aSzImTmp.x, aSzImTmp.y);
+         tIm2DcCorrel aCImTarget(aSzImTarget.x, aSzImTarget.y);
+         ELISE_COPY(aCImTmpl.all_pts(), aImgTmplt->Tif().in(), aCImTmpl.out());
+         ELISE_COPY(aCImTarget.all_pts(), aImgTarget->Tif().in(), aCImTarget.out());
+         cout<<"Im Init OK"<<endl;
+         // Creat image patch as object of class cCorrelImage
+         cCorrelImage::setSzW(aSzW.x);  // this is static variable => set it before creat object
+         cCorrelImage ImPatchTmpl;
+         ImPatchTmpl.getWholeIm(&aCImTmpl);
 
+         cCorrelImage ImPatchTarget;
+         bool corOK = false;
 
-         string imScore = "imScore.tif";
-         ELISE_COPY
-                 (
-                     aImgScoreCorrel.all_pts(),
-                     aImgScoreCorrel.in_proj(),
-                     Tiff_Im(
-                         imScore.c_str(),
-                         aImgScoreCorrel.sz(),
-                         GenIm::real8,
-                         Tiff_Im::No_Compr,
-                         Tiff_Im::BlackIsZero
-                         //aZBuf->Tif().phot_interp()
-                         ).out()
+         Pt2dr aPt(0,0);
+         OK = true;
+         for (aPt.x=0; aPt.x<aSzImTarget.x; aPt.x = aPt.x + (int)aParam.mStepCorrel)        // class cCorrelImage don't support real coordinate
+         {
+             for (aPt.y=0; aPt.y<aSzImTarget.y; aPt.y = aPt.y + (int)aParam.mStepCorrel)
+             {
+                 Pt2dr aPtInf = aPt-Pt2dr(ImPatchTmpl.getmSz());
+                 // if image patch is inside image
+                 if (    (aPtInf.x >= 0 && aPtInf.y >= 0)
+                      && (aPtInf.x < aSzImTarget.x && aPtInf.y < aSzImTarget.y) )
+                 {
+                      // Load image patch from target image
+                      ImPatchTarget.getFromIm(&aCImTarget, aPt.x, aPt.y);
+                      double aScore = ImPatchTmpl.CrossCorrelation(ImPatchTarget);
+                      corOK = true;
+                      if (aScore > aResCorrel.mCorrel)
+                      {
+                          aResCorrel.mCorrel = aScore;
+                          aResCorrel.mPt = Pt2dr(aPt);
+                      }
+                      aImgScoreCorrel.SetR_SVP(Pt2di(aPt), aScore);
+                 }
+                 else
+                 {
+                      corOK = false;
+                      aImgScoreCorrel.SetR_SVP(Pt2di(aPt),-1.0);
+                 }
+             }
+         }
+}
+string imScore = "imScore.tif";
+ELISE_COPY
+        (
+            aImgScoreCorrel.all_pts(),
+            aImgScoreCorrel.in_proj(),
+            Tiff_Im(
+                imScore.c_str(),
+                aImgScoreCorrel.sz(),
+                GenIm::real8,
+                Tiff_Im::No_Compr,
+                Tiff_Im::BlackIsZero
+                //aZBuf->Tif().phot_interp()
+                ).out()
 
-                     );
-         if (OK)
-            cout<<"Correl : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
-         else
-             cout<<"Correl false"<<endl;
+            );
+if (OK)
+   cout<<"Correl : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
+else
+    cout<<"Correl false"<<endl;
 
 
          /*================= LSQ =====================*/

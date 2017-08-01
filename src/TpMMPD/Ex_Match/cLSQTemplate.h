@@ -3,10 +3,14 @@
 
 #include "StdAfx.h"
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
+#include "../kugelhupf.h"
+
 
 
 typedef Im2D<double,double>     tIm2DM; 	// define a short name for Im2D double image
 typedef TIm2D<double,double>    tTIm2DM;
+typedef Im2D<unsigned char, int> tIm2DcCorrel;
+typedef TIm2D<unsigned char, int> tTIm2DcCorrel;
 
 class cParamLSQMatch
 {
@@ -28,9 +32,9 @@ class cImgMatch
         Pt2dr &  SzIm() {return mSzIm;}
         tIm2DM  & Im2D() {return mIm2D;}
         tTIm2DM & TIm2D() {return mTIm2D;}
-        tIm2DM  & CurImgetIm2D() {return mCurImgetIm2D;}
-        tTIm2DM & CurImgetTIm2D() {return mCurImgetTIm2D;}
+        Tiff_Im & Tif(){return mTif;}
         void Load();
+
         Pt2dr & CurPt(){return mCurPt;}
 
 	private:
