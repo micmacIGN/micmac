@@ -20,11 +20,9 @@ void cImgMatch::Load()   // to load pixel value to mIm2D & mTIm2D
     ELISE_COPY(mIm2D.all_pts(),mTif.in(),mIm2D.out());
 }
 
-bool cImgMatch::GetImget(Pt2dr aP, Pt2dr aSzW)
+bool cImgMatch::GetImget(Pt2dr aP, Pt2dr aSzW, Pt2dr aRab)
 {
-//    cout<<"Get Imget : "<<aP<<" "<<aSzW<<endl;
-    //mCurImgetIm2D.Resize(Pt2di(0,0));   // est qu'on peut utilise ca pout supprimer Im2D ?
-    Pt2dr aRab(2.0,2.0);
+
     Pt2dr aPtInf = aP - aSzW/2 - aRab;
     Pt2dr aPtSup = aP + aSzW/2 + aRab;
     Pt2dr aSzModif = aPtSup - aPtInf;
@@ -36,7 +34,7 @@ bool cImgMatch::GetImget(Pt2dr aP, Pt2dr aSzW)
                     mCurImgetIm2D.all_pts(),
                     trans(mTif.in(0),round_down(aP)),
                     mCurImgetIm2D.out()
-                  );  // charger imaget avec un decal (de origin à la centre)
+                  );  // get an image patch with an translation from image center
         return true;
     }
     else

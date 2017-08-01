@@ -12,13 +12,17 @@ class cParamLSQMatch
 {
     public:
         bool mDisp;
+        double mStepCorrel;
+        double mStepLSQ;
+        int mStepPxl;
+        int mNbIter;
 };
 
 class cImgMatch
 {
 	public:
         cImgMatch(string aName, cInterfChantierNameManipulateur * mICNM);
-        bool GetImget (Pt2dr aP, Pt2dr aSzW);
+        bool GetImget (Pt2dr aP, Pt2dr aSzW,  Pt2dr aRab = Pt2dr(0,0));
 
         cInterfChantierNameManipulateur *ICNM() {return mICNM;}
         Pt2dr &  SzIm() {return mSzIm;}
@@ -38,7 +42,7 @@ class cImgMatch
         tTIm2DM mTIm2D;             // target image
         tIm2DM  mCurImgetIm2D;      // current imaget
         tTIm2DM mCurImgetTIm2D;     // current imaget
-        Pt2dr mCurPt;                // store current matching point on mImg
+        Pt2dr mCurPt;               // store current matching point on mImg
 };
 
 class cLSQMatch
@@ -48,11 +52,19 @@ class cLSQMatch
         cParamLSQMatch & Param() {return mParam;}
         bool DoMatchbyLSQ();
         bool DoMatchbyCorel();
+        bool MatchbyLSQ(Pt2dr aPt1,
+                            const tIm2DM & aImg1,
+                            const tIm2DM & aImg2,
+                            Pt2dr aPt2,
+                            Pt2di aSzW,
+                            double aStep
+                        , Im1D_REAL8 &aSol);
         cInterfChantierNameManipulateur * ICNM() {return mICNM;}
         tIm2DM & ImRes() {return mImRes;}
         void update(double CurErr, Pt2dr aPt);
         double & MinErr() {return mMinErr;}
         Pt2dr & PtMinErr() {return mPtMinErr;}
+        cInterpolateurIm2D<double>  * Interpol(){return mInterpol;}
 	private:
 		Pt2dr mPM;	// Point matched
 		cImgMatch * mTemplate;
@@ -69,5 +81,27 @@ class cLSQMatch
         double mMinErr;
         Pt2dr mPtMinErr;
 };
+
+double Tst_Correl1Win
+                             (
+                                const tIm2DM & Im1,
+                                const Pt2di & aP1,
+                                const tIm2DM & Im2,
+                                const Pt2di & aP2,
+                                const int   aSzW,
+                                const int   aStep
+                             );
+
+cResulRechCorrel      Tst_Correl
+                      (
+                             const tIm2DM & Im1,
+                             const Pt2di & aP1,
+                             const tIm2DM & Im2,
+                             const Pt2di & aP2,
+                             const int   aSzW,
+                             const int   aStep,
+                             const int   aSzRech,
+                             tIm2DM & ImScore
+                      );
 
 #endif

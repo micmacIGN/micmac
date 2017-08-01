@@ -477,7 +477,7 @@ double  cAppliGrRedTieP::SzPixDec() const
 std::string cAppliGrRedTieP::ComOfKBox(int aKBox)
 {
 
-   return MM3dBinFile("OriRedTieP") + " " + mPatImage 
+   return MM3dBinFile("OriRedTieP") + " " + '"' + mPatImage + '"'   // Giang : add "" around Pattern image to avoid error of expression type "epoque1_[a|b|c]|epoque1_d.*.tif"
              + " OriCalib=" + mCalib 
              + " KBox=" + ToString(aKBox)
              + " DistPMul=" + ToString(mDistPMul) 
