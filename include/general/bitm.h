@@ -1365,6 +1365,7 @@ template <class Type>  class ElPolynome
           ElPolynome(const Type &);
           ElPolynome(const Type &,const Type &);
           ElPolynome(const Type &,const Type &,const Type &);
+          ElPolynome(const Type *,int aDeg);
 
           static ElPolynome FromRoots(const std::vector < Type > &);
           static ElPolynome FromRoots(const Type&);

@@ -1345,8 +1345,9 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 {
     int aNbOk = 0;
     double aSomCorrel = 0;
+    double aMulCost = aCMP ?  aCMP->MCP_PdsCorrelStd() :  1.0;
 
-    if (mVLI[0]->OkOrtho(anX,anY))
+    if (aMulCost && mVLI[0]->OkOrtho(anX,anY))
     {
         double aCMax = -2;
         double aCMin = 2;
@@ -1401,7 +1402,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
     (
          Pt2di(anX,anY),
          &mZIntCur,
-         aNbOk ? mStatGlob->CorrelToCout(aSomCorrel/aNbOk) : mAhDefCost
+         (aNbOk ? mStatGlob->CorrelToCout(aSomCorrel/aNbOk) : mAhDefCost) * aMulCost
     );
 }
 

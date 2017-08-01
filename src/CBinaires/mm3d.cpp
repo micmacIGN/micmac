@@ -233,6 +233,7 @@ extern int ExtractRaw_main(int argc,char ** argv);
 
 extern int CPP_MMRename(int argc,char**argv);
 extern int  CPP_EditSet(int argc,char**argv);
+extern int  CPP_CalculCalibRadiom(int argc,char**argv);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -240,7 +241,8 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-	   aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
+       aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
+       aRes.push_back(cMMCom("CalcRadCal",CPP_CalculCalibRadiom,"Compute radiometric calibration "));
 	   
        aRes.push_back(cMMCom("CalcMapAnalytik",CPP_CalcMapAnalitik,"Compute map2d between images using various model "));
        aRes.push_back(cMMCom("CalcMapXYT",CPP_CalcMapXYT,"Compute map2d evol of T "));

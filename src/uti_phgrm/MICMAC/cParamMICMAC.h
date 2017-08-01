@@ -2318,22 +2318,22 @@ class cMultiCorrelPonctuel
         friend void xml_init(cMultiCorrelPonctuel & anObj,cElXMLTree * aTree);
 
 
-        double & PdsCorrelStd();
-        const double & PdsCorrelStd()const ;
+        double & MCP_PdsCorrelStd();
+        const double & MCP_PdsCorrelStd()const ;
 
-        double & PdsCorrelPonct();
-        const double & PdsCorrelPonct()const ;
+        double & MCP_PdsCorrelPonct();
+        const double & MCP_PdsCorrelPonct()const ;
 
-        cTplValGesInit< double > & DefCost();
-        const cTplValGesInit< double > & DefCost()const ;
+        cTplValGesInit< double > & MCP_DefCost();
+        const cTplValGesInit< double > & MCP_DefCost()const ;
 
-        cTplValGesInit< std::string > & UnUsedTest();
-        const cTplValGesInit< std::string > & UnUsedTest()const ;
+        cTplValGesInit< std::string > & MCP_UnUsedTest();
+        const cTplValGesInit< std::string > & MCP_UnUsedTest()const ;
     private:
-        double mPdsCorrelStd;
-        double mPdsCorrelPonct;
-        cTplValGesInit< double > mDefCost;
-        cTplValGesInit< std::string > mUnUsedTest;
+        double mMCP_PdsCorrelStd;
+        double mMCP_PdsCorrelPonct;
+        cTplValGesInit< double > mMCP_DefCost;
+        cTplValGesInit< std::string > mMCP_UnUsedTest;
 };
 cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel &);
 
