@@ -40,6 +40,3 @@ bool cImgMatch::GetImget(Pt2dr aP, Pt2dr aSzW, Pt2dr aRab)
     else
         return false;
 }
-
-
-
