@@ -267,7 +267,7 @@ bool cLSQMatch::MatchbyLSQ(
 
             aSys.AddEquation(1.0,mCoeff,aV2);
 */
-            mCoeff[0] = aV1 ; // A
+            mCoeff[0] = aV2 ; // A
             mCoeff[1] = 1.0 ; // B
             mCoeff[2] = aGr2X; // im00.x
             mCoeff[3] = aGr2Y;  // im00.y
