@@ -20,6 +20,9 @@ class cParamLSQMatch
         double mStepLSQ;
         int mStepPxl;
         int mNbIter;
+        bool mAff;
+        bool mRadio;
+        int mCase;
 };
 
 class cImgMatch
