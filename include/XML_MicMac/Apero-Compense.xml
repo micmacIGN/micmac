@@ -52,6 +52,12 @@
  	   <Symb>  WithPatPoseFigee=false </Symb>
  	   <Symb>  PatPoseFigee=XXXX </Symb>
 
+ 	   <Symb>  WithPatCentreFigee=false </Symb>
+ 	   <Symb>  PatCentreFigee=XXXX </Symb>
+
+ 	   <Symb>  WithPatOrientFigee=false </Symb>
+ 	   <Symb>  PatOrientFigee=XXXX </Symb>
+
 
            <eSymb>  NotCPI=! ${CPI} </eSymb>
            <eSymb>  DetailAppuis=0 </eSymb>
@@ -373,7 +379,28 @@
 			         <Val>      ePoseFigee   </Val>
 		              </ContraintesPoses>	
 			</#WHEN>
+ 			<#WHEN VTEST=${WithPatCentreFigee}>
+			     <ContraintesPoses>
+			         <NamePose>   ${PatCentreFigee} </NamePose>
+  			         <ByPattern>  true </ByPattern>
+			         <Val>      eCentreFige   </Val>
+		              </ContraintesPoses>	
+			</#WHEN>
+ 			<#WHEN VTEST=${WithPatOrientFigee}>
+			     <ContraintesPoses>
+			         <NamePose>   ${PatOrientFigee} </NamePose>
+  			         <ByPattern>  true </ByPattern>
+			         <Val>      eAnglesFiges   </Val>
+		              </ContraintesPoses>	
+			</#WHEN>
 
+<!--
+ 	   <Symb>  WithPatCentreFigee=false </Symb>
+ 	   <Symb>  PatCentreFigee=XXXX </Symb>
+
+ 	   <Symb>  WithPatOrientFigee=false </Symb>
+ 	   <Symb>  PatOrientFigee=XXXX </Symb>
+-->
                        </SectionContraintes>
 			<#WHEN VTEST=${PoseFigee}>
 			     <Messages>  External orientations of the cameras are frozen </Messages>

@@ -59,9 +59,14 @@
                <Symb> ValAff=eLiberte_Phgr_Std_Aff </Symb>
                <Symb> RapTxt=""   </Symb>
                <Symb> PoseFigee="HUyZZ9_m@@9hyY" </Symb>
+               <Symb> CentreFiges="HUyZZ9_m@@9hyY" </Symb>
+               <Symb> RotationFigees="HUyZZ9_m@@9hyY" </Symb>
                <Symb> CalibFigee="HUyZZ9_m@@9hyY" </Symb>
                <Symb> CalibLibre=.* </Symb>
+
                <Symb> WithPoseFigee=false </Symb>
+               <Symb> WithCentreFiges=false </Symb>
+               <Symb> WithRotationFiges=false </Symb>
                
                <Symb> FrozeCalibInit=true </Symb>
 
@@ -114,7 +119,8 @@
                <eSymb>  DoPolyn6=  SupEq ${DegGen} 6 </eSymb>
                <eSymb>  DoPolyn7=  SupEq ${DegGen} 7 </eSymb>
 
-               <eSymb> WithNoPoseFigee=! ${WithPoseFigee} </eSymb>
+
+               <eSymb> WithNoPoseFigee=! Or ${WithPoseFigee} ${WithCentreFiges}  </eSymb>
                <eSymb> IntrLVM1000=* 1000 ${IntrLVM} </eSymb>
                <eSymb>  AffineAll=! ${FastSet}  </eSymb>
                <eSymb>  NbMax0=? ${FastSet} 3 10  </eSymb>
@@ -339,14 +345,29 @@
                               </ContraintesCamerasInc>
                            </#WHEN>
                            <ContraintesPoses>
-                                   <NamePose>   ${PoseFigee} </NamePose>
-                                   <ByPattern>  true </ByPattern>
-                                   <Val>      ePoseFigee   </Val>
+                                   <NamePose>   ${CentreFiges} </NamePose>
+                                   <ByPattern>  true           </ByPattern>
+                                   <Val>        eCentreFige    </Val>
                           </ContraintesPoses>
+                           <ContraintesPoses>
+                                   <NamePose>   ${RotationFigees} </NamePose>
+                                   <ByPattern>  true              </ByPattern>
+                                   <Val>        eAnglesFiges      </Val>
+                          </ContraintesPoses>
+
+                           <ContraintesPoses>
+                                   <NamePose>   ${PoseFigee} </NamePose>
+                                   <ByPattern>  true         </ByPattern>
+                                   <Val>        ePoseFigee   </Val>
+                          </ContraintesPoses>
+
                           <#WHEN VTEST=${WithNoPoseFigee}>
                               <ContraintesPoses>
                                    <NamePose>   0 </NamePose>
-                                   <Val>      ePoseFigee   </Val>
+                                   <#IF VTEST=${WithRotationFiges}>
+                                        <Val>      eCentreFige   </Val>
+                                        <Val>      ePoseFigee   </Val>
+                                    </#IF>
                                </ContraintesPoses>
 
                               <ContraintesPoses>

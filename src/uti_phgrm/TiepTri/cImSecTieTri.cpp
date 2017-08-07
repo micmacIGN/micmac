@@ -308,7 +308,10 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretBilin(bool Interact,const cResul
         cLSQAffineMatch aMatchM2S(Pt2dr(aP0),mMaster->mImInit,mImInit,anAffOpt);
         for (int aK=0 ; aK<8 ; aK++)
         {
-            /*bool aOk = */ aMatchM2S.OneIter(mAppli.Interpol(),6,1,false,false);
+	    double aStepLSQPxlEntier = 1; 
+	    bool aAffineGeom = false;
+            bool aAffineRadiom = false; 
+            /*bool aOk = */ aMatchM2S.OneIter(mAppli.Interpol(), aSzWE, aStepLSQPxlEntier, aAffineGeom, aAffineRadiom);
         }
         anAffOpt = aMatchM2S.Af1To2();
         Pt2dr aNewP2 =  anAffOpt(Pt2dr(aP0));

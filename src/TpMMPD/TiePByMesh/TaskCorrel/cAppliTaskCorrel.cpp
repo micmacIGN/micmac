@@ -496,8 +496,11 @@ void cAppliTaskCorrel::ExportXML(string aDirXML, Pt3dr clIni)
             }
         }
         //=========================================
-        string fileXML = mICNM->Dir() + aDirXML + "/" + mVImgs[aKI]->Name() + ".xml";
-        MakeFileXML(aImg->Task(), fileXML);
+        for (int aK=0 ; aK<2 ; aK++)
+        {
+            string fileXML = mICNM->Dir() + aDirXML + "/" + mVImgs[aKI]->Name() + std::string(aK==0 ? ".xml" : ".dmp");;
+            MakeFileXML(aImg->Task(), fileXML);
+        }
         if (mWithGCP && aImg->ImgWithGCP())
         {
             // write xml file when Image have GCP point

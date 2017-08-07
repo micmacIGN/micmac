@@ -43,6 +43,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 */
 
+#ifndef _ELISE_EXTERN_NEW_ORI_H
+#define _ELISE_EXTERN_NEW_ORI_H
+
 
 
 class cBaseSwappable
@@ -165,7 +168,48 @@ template <class Type> void cMemorySwap<Type>::ReAllocateObject(Type * anObj,cons
 }
 
 
+class cGenGaus3D
+{
+    public :
+        cGenGaus3D(const cXml_Elips3D & anEl );
+        const double & ValP(int aK) const;
+        const Pt3dr  & VecP(int aK) const;
 
+        void GetDistribGaus(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int aN3);
+    private :
+        Pt3dr mCDG;
+        double mVP[3];
+        Pt3dr mVecP[3];
+
+};
+
+class cGenGaus2D
+{
+    public :
+        cGenGaus2D(const cXml_Elips2D & anEl );
+        const double & ValP(int aK) const;
+        const Pt2dr  & VecP(int aK) const;
+
+        void GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN1,int aN2);
+    private :
+        Pt2dr  mCDG;
+        double mVP[2];
+        Pt2dr  mVecP[2];
+
+};
+
+void RazEllips(cXml_Elips3D & anEl);
+void RazEllips(cXml_Elips2D & anEl);
+void AddEllips(cXml_Elips3D & anEl,const Pt3dr & aP,double aPds);
+void AddEllips(cXml_Elips2D & anEl,const Pt2dr & aP,double aPds);
+void NormEllips(cXml_Elips3D & anEl);
+void NormEllips(cXml_Elips2D & anEl);
+
+
+
+
+
+#endif //  _ELISE_EXTERN_NEW_ORI_H
 
 
 

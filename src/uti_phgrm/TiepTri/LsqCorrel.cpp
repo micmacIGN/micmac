@@ -53,6 +53,8 @@ Header-MicMac-eLiSe-25/06/2007*/
       (b)  =  ( N VV 
 */
 //  solution optimale de a V1 +b = V2, au sens des moindres carres, Pt2dr(a,b)
+// bool BUGRECT=false;
+
 Pt2dr  LSQSolDroite(const  RMat_Inertie & aMatr,double & aDelta)
 {
     aDelta = aMatr.s11() *aMatr.s() - ElSquare(aMatr.s1());
@@ -190,7 +192,6 @@ cLSQAffineMatch::cLSQAffineMatch
 {
 }
 
-bool BUGRECT=false;
 
 void cLSQAffineMatch::CalcRect(tInterpolTiepTri * anInterp,double aStepTot)
 {
@@ -204,8 +205,6 @@ void cLSQAffineMatch::CalcRect(tInterpolTiepTri * anInterp,double aStepTot)
     for (int aK=0 ; aK<8 ; aK++)
     {
          Pt2dr aVois = Pt2dr(TAB_8_NEIGH[aK]) * aStepTot;
-
-if (BUGRECT)  std::cout << "Voiisss=" << aVois << "\n";
 
 
          Pt2dr aPIm1 = mPC1 + aVois;
@@ -224,17 +223,16 @@ if (BUGRECT)  std::cout << "Voiisss=" << aVois << "\n";
     Pt2dr aPRab(aRab,aRab);
 
     mPInfIm1 = mPInfIm1 - aPRab;
-    mPSupIm1 = mPInfIm1 + aPRab;
+    mPSupIm1 = mPSupIm1 + aPRab;
     mPInfIm2 = mPInfIm2 - aPRab;
-    mPSupIm2 = mPInfIm2 + aPRab;
+    mPSupIm2 = mPSupIm2 + aPRab;
 }
 
 void cLSQAffineMatch::AddEqq(L2SysSurResol & aSys,const Pt2dr &aPIm1,const Pt2dr & aPC1)
 {
 /*
      static int aCpt=0 ; aCpt++;
-     std::cout << "Cpttt= " <<  aCpt << "\n";
-     bool Bug = (aCpt==141399) ;
+     bool Bug = (aCpt==7639420) ;
 */
      // Pt2dr aPIm1 = mPC1 + Pt2dr(aKx*aStep,aKy*aStep);
      Pt2dr aPIm2 = mAf1To2(aPIm1);
@@ -247,10 +245,10 @@ if (Bug)
 */
      double aV1 = mInterp->GetVal(mData1,aPIm1);    // value of center point (point master)
 
-     Pt3dr aNewVD2= mInterp->GetValDer(mData2,aPIm2);
-     double aGr2X = aNewVD2.x;
-     double aGr2Y = aNewVD2.y;
-     double aV2   = aNewVD2.z;
+     Pt3dr aNewVD2= mInterp->GetValDer(mData2,aPIm2);   // Get intensity & derive value of point 2nd img
+     double aGr2X = aNewVD2.x;  // derive en X
+     double aGr2Y = aNewVD2.y;  // derive en Y
+     double aV2   = aNewVD2.z;  // valeur d'intensite
 
      mCoeff[NumAB] = aV1 ; // A
      mCoeff[NumAB+1] = 1.0 ; // B
@@ -283,11 +281,10 @@ if (Bug)
 
 bool cLSQAffineMatch::OneIter(tInterpolTiepTri * anInterp,int aNbW,double aStep,bool AffineGeom,bool AffineRadiom)
 {
+// static int CPT=0; CPT++;
+// std::cout << "CccCPT= " << CPT << "\n";
 /*
-static int CPT=0; CPT++;
-std::cout << "CccCPT= " << CPT << "\n";
 if (CPT<=8369) return false;
-BUGRECT = (CPT==8389);
 */
 
 
@@ -297,52 +294,59 @@ BUGRECT = (CPT==8389);
     mAffineRadiom = AffineRadiom;
     // aStep = 1/NbByPix => "real size" of a pixel
     int aNbPixTot = round_ni(aNbW/aStep); // => calcul "real" window size from user given "window size" & Nb of point inside 1 pixel
+    aStep = double(aNbW) / aNbPixTot;
     // double aCoeff[10];
     /* calcul number of variable for system equation :
-       * No Aff, No Radio => 4 variables
-       * With Aff, No Radio => 8 variables
-       * No Aff, With Radio => 10 variables
+       * No Aff, No Radio => 4 variables (2 translation part of affine, A , B)
+       * No Aff, With Radio => 6 variables
+       * With Aff, No Radio => 8 variables (plus 4 variable of affine part)
+       * With Aff, With Radio => 10 variables
      */
-    int aNbInc = 4 + (mAffineGeom ? 4 :0) + (mAffineRadiom ? 2 : 0); 
+    int aNbInc = 4 + (mAffineGeom ? 4 :0) + (mAffineRadiom ? 2 : 0);
 
+    // Num* is position in array of output estimation result
     NumAB = 0;
     NumTr = NumAB +2;
     NumAffGeom = NumTr +2 ;
-    NumAfRad = mAffineGeom ? (NumAffGeom+4 ) : (NumTr+2);
+    NumAfRad = mAffineGeom ? (NumAffGeom+4 ) : (NumTr+2);   // Num Affine Radiometry
 
-    L2SysSurResol aSys(aNbInc);
+    L2SysSurResol aSys(aNbInc); // 4/6/8/10 variable
     mSomDiff = 0;
 
     CalcRect(mInterp,aNbW);     // calcul Pt Haut Gauche & Pt Bas Droite to form a rectangle on both image
 
-    if (   (!mTI1.inside_rab(mPInfIm1,0)) 
-        || (!mTI1.inside_rab(mPSupIm1,0)) 
+    if (   (!mTI1.inside_rab(mPInfIm1,0))   // mPInfIm1 = Pt inferieur Image 1
+        || (!mTI1.inside_rab(mPSupIm1,0))   // mPSupIm1 = Pt superieur Image 1
         || (!mTI2.inside_rab(mPInfIm2,0)) 
         || (!mTI2.inside_rab(mPSupIm2,0)) 
        )
        return false;            // check if rectangle is inside image
 
+
     ElAffin2D anAfRec = mAf1To2.inv();
-    Pt2dr aPC2 = mAf1To2(mPC1);         // mPC1 : pt sur image 1
+    Pt2dr aPC2 = mAf1To2(mPC1);         // mPC1 : pt correl init sur image 1 (pt master)
 
     // Add equation to system
     for (int aKx=-aNbPixTot ; aKx<=aNbPixTot ; aKx++)
     {
         for (int aKy=-aNbPixTot ; aKy<=aNbPixTot ; aKy++)
         {
-             Pt2dr aPVois (aKx*aStep,aKy*aStep);
+             Pt2dr aPVois (aKx*aStep,aKy*aStep); // pixel voisin dans coordonne global image
 //static int aCpt=0; aCpt++;
 //std::cout << "Cppt0=" << aCpt << "\n";
 //bool aBug = (aCpt== 70700);
-            Pt2dr aPIm1 = mPC1 + aPVois;    // aPIm1 : pts voisin coordinate
+            Pt2dr aPIm1 = mPC1 + aPVois;    // aPIm1 : pixel voisin dans coordonne global image
 //if (aBug) std::cout << " Addd1 " << aPIm1 << "\n";
-            AddEqq(aSys,aPIm1,mPC1);
+            AddEqq(aSys,aPIm1,mPC1);        // 1 pixel aPIm1 dans le vignette => 1 equation
 
             if (1)
             {
                  Pt2dr aQIm2 = aPC2 + aPVois;
                  Pt2dr aQIm1 =   anAfRec(aQIm2);
 //if (aBug) std::cout << " Addd2 " << aQIm2 << " " << aQIm1 << "\n";
+
+                 // 1 pixel aQIm1  dans le vignette => ajoute encore 1 equation.
+                 // aQIm1 est le "meme point" avec aPIm1 mais calcul avec affine inverse depuis aPC2 dans image 2nd
                  AddEqq(aSys,aQIm1,mPC1);
             }
 //if (aBug) std::cout << " DddddOonnnnne \n";
@@ -359,13 +363,13 @@ BUGRECT = (CPT==8389);
 
     mA = aDS[NumAB];
     mB = aDS[NumAB+1];
-    Pt2dr aI00(aDS[NumTr],aDS[NumTr+1]);
-    Pt2dr aI10(0,0);
-    Pt2dr aI01(0,0);
+    Pt2dr aI00(aDS[NumTr],aDS[NumTr+1]);    // translation part
+    Pt2dr aI10(0,0);                        // if we don't re-estimate affine part => (0,0) ???? Must be identity matrix ???
+    Pt2dr aI01(0,0);                        // if we don't re-estimate affine part => (0,0) ???? Must be identity matrix ???
 
     if (mAffineGeom)
     {
-        aI10 = Pt2dr(aDS[NumAffGeom  ],aDS[NumAffGeom+1]);
+        aI10 = Pt2dr(aDS[NumAffGeom  ],aDS[NumAffGeom+1]);  // take estimate result of affine part if we do "LSQC = 1"
         aI01 = Pt2dr(aDS[NumAffGeom+2],aDS[NumAffGeom+3]);
     }
     
@@ -373,9 +377,9 @@ BUGRECT = (CPT==8389);
 
     // std::cout << "DdIIff=" << aSomDiff << " IIIIii  " << aI00 << " " << aI10 << " " << aI01 << "\n";
 
-    ElAffin2D  aDeltaAff(aI00,aI10,aI01);
+    ElAffin2D  aDeltaAff(aI00,aI10,aI01);     // new estimated affine transformation from LSQ (transation + affine)
 
-    mAf1To2 = mAf1To2 + aDeltaAff;
+    mAf1To2 = mAf1To2 + aDeltaAff;  // update final result to global image coordinate
 
     return true;
 }

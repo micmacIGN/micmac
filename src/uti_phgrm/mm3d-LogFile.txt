@@ -10,3 +10,6 @@ mm3d MMByP -help
 =================================================================
 "/home/ubuntu/MMM/culture3d/bin/mm3d" "SaisieAppuisInit" "-help" 
  PID : 11370 ;   [Beginning at ] Mon Feb 15 13:00:45 2016
+=================================================================
+"mm3d" "Campari" "-help" 
+ PID : 2523 ;   [Beginning at ] Wed Jul 19 09:52:06 2017

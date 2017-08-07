@@ -421,8 +421,12 @@ ElAffin2D ElAffin2D::trans(Pt2dr aTr)
    return ElAffin2D(aTr,Pt2dr(1,0),Pt2dr(0,1));
 }
 
-
-
+void ElAffin2D::update( ElAffin2D & sim2)
+{
+   mI00 = sim2.I00();
+   mI01 = sim2.I01();
+   mI10 = sim2.I10();
+}
 
 
 ElAffin2D::ElAffin2D (const ElSimilitude & aSim) :
@@ -1252,7 +1256,7 @@ cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack,const st
 
 int CPP_CalcMapAnalitik(int argc,char** argv)
 {
-    std::string aName1,aName2,aNameOut,aSH;
+    std::string aNameOneIm1,aNameOneIm2,aNameOut,aSH;
     bool aExpTxt=false;
     std::string anOri;
     std::string aNameType;
@@ -1265,6 +1269,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     // int     NbMaxPts= 10000;
     eTypeMap2D aType;
     bool aModeHelp;
+    bool ByKey=false;
 
     if ((argc>=2) && (std::string(argv[1]) == "-help"))
     {
@@ -1274,8 +1279,8 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  <<  EAMC(aName1,"Name Im1")
-                    <<  EAMC(aName2,"Name Im2")
+        LArgMain()  <<  EAMC(aNameOneIm1,"Name Im1")
+                    <<  EAMC(aNameOneIm2,"Name Im2")
                     <<  EAMC(aNameType,"Model in [Homot,Simil,Affine,Homogr,Polyn]")
                     <<  EAMC(aNameOut,"Name Out"),
         LArgMain()  <<  EAM(aSH,"SH",true,"Set of homologue")
@@ -1284,12 +1289,29 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
                     <<  EAM(aPerResidu,"PerResidu",true,"Period for computing residual")
                     <<  EAM(aVRE,"PRE",true,"Param for robust estimation [PropInlayer,NbRan(500),NbPtsRan(+inf)]")
                     <<  EAM(aParamPoly,"ParPol",true,"Param for polygonal model [Deg,x0,y0,x1,y1]")
+                    <<  EAM(ByKey,"ByKey",true,"When true multiple, Param is a pattern of Im1, param2 is a key of compute")
     );
+
+    std::vector<std::string> aVIm1;
+    std::vector<std::string> aVIm2;
+    cElemAppliSetFile anEASF(aNameOneIm1);
+    if (ByKey)
+    {
+        aVIm1 = *(anEASF.SetIm());
+        for (int aK1=0 ; aK1<int(aVIm1.size()) ; aK1++)
+        {
+           aVIm2.push_back(anEASF.mICNM->Assoc1To1(aNameOneIm2,aVIm1[aK1],true));
+        }
+    }
+    else
+    {
+       aVIm1.push_back(aNameOneIm1);
+       aVIm2.push_back(aNameOneIm2);
+    }
 
     StdReadEnum(aModeHelp,aType,std::string("TM2_")+aNameType,eTM2_NbVals);
 
 
-    cElemAppliSetFile anEASF(aName1);
     cInterfChantierNameManipulateur * anICNM = anEASF.mICNM;
     std::string aDir = anEASF.mDir;
 
@@ -1301,34 +1323,41 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     if (EAMIsInit(&anOri))
     {
          StdCorrecNameOrient(anOri,aDir);
-         aCS1 = anICNM->GlobCalibOfName(aName1,anOri,false);
-         aCS2 = anICNM->GlobCalibOfName(aName2,anOri,false);
+         aCS1 = anICNM->GlobCalibOfName(aVIm1[0],anOri,false);
+         aCS2 = anICNM->GlobCalibOfName(aVIm2[0],anOri,false);
 
          aCS1->Get_dist().SetCameraOwner(aCS1);
          aCS2->Get_dist().SetCameraOwner(aCS2);
     }
-	std::string anExt = aExpTxt ? "txt" : "dat";
+
+    ElPackHomologue aPackInGlob;
+    ElPackHomologue aPackInitialGlob;
+    std::string anExt = aExpTxt ? "txt" : "dat";
     std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aSH)
                        +  std::string("@")
                        +  std::string(anExt);
 
-
-    std::string aNameIn = aDir + anICNM->Assoc1To2(aKHIn,aName1,aName2,true);
-    ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn);
-    ElPackHomologue aPackInitial = aPackIn; 
-
     Pt2dr aP1Max(-1e20,-1e20);
     Pt2dr aP1Min( 1e20, 1e20);
-    for (ElPackHomologue::iterator itCpl=aPackIn.begin();itCpl!=aPackIn.end() ; itCpl++)
+
+    for (int aK=0 ; aK<int(aVIm1.size()) ; aK++)
     {
-        if (aCS1)
+        std::string aNameIn = aDir + anICNM->Assoc1To2(aKHIn,aVIm1[aK],aVIm2[aK],true);
+        ElPackHomologue aPackInLoc =  ElPackHomologue::FromFile(aNameIn);
+
+        for (ElPackHomologue::iterator itCpl=aPackInLoc.begin();itCpl!=aPackInLoc.end() ; itCpl++)
         {
-            itCpl->P1() = aCS1->DistInverse(itCpl->P1());
-            itCpl->P2() = aCS2->DistInverse(itCpl->P2());
+            aPackInitialGlob.Cple_Add(itCpl->ToCple());
+            if (aCS1)
+            {
+                itCpl->P1() = aCS1->DistInverse(itCpl->P1());
+                itCpl->P2() = aCS2->DistInverse(itCpl->P2());
+            }
+            aPackInGlob.Cple_Add(itCpl->ToCple());
+            aP1Max = Sup(aP1Max, itCpl->P1());
+            aP1Min = Inf(aP1Min, itCpl->P1());
         }
-        aP1Max = Sup(aP1Max, itCpl->P1());
-        aP1Min = Inf(aP1Min, itCpl->P1());
     }
 
     // std::cout << "P1Max " << aP1Max  << " " << aP1Min << "\n";
@@ -1352,12 +1381,12 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
        cParamMap2DRobustInit aParam(aType,aNbRan,&aParamPoly);
        aParam.mPropRan = aProp;
        aParam.mNbMaxPtsRansac = aNbPtsRan;
-       Map2DRobustInit(aPackIn,aParam);
+       Map2DRobustInit(aPackInGlob,aParam);
        aMapCor = aParam.mRes;
     }
     else
     {
-       aMapCor  =  L2EstimMapHom(aType,aPackIn,&aParamPoly);
+       aMapCor  =  L2EstimMapHom(aType,aPackInGlob,&aParamPoly);
     }
 
 
@@ -1377,7 +1406,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     std::vector<double> aVDist;
     double aSomD2X=0.0;
     double aSomD2Y=0.0;
-    for (ElPackHomologue::iterator itCpl=aPackInitial.begin();itCpl!=aPackInitial.end() ; itCpl++)
+    for (ElPackHomologue::iterator itCpl=aPackInitialGlob.begin();itCpl!=aPackInitialGlob.end() ; itCpl++)
     {
         Pt2dr aRes = aComp(itCpl->P1())-itCpl->P2();
         double aD = euclid(aRes);
@@ -1394,7 +1423,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     if (EAMIsInit(&aPerResidu))
     {
        ELISE_fp::MkDirSvp(aDirResidu);
-       std::string aPref = "Res-" +  aNameType + "-" + aName1 + "-" + aName2 ;
+       std::string aPref = "Res-" +  aNameType + "-" + aVIm1[0] + "-" + aVIm2[0] ;
        Tiff_Im::CreateFromIm(aImResX,aDirResidu+aPref+"-X.tif");
        Tiff_Im::CreateFromIm(aImResY,aDirResidu+aPref+"-Y.tif");
     }
@@ -1406,8 +1435,8 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
         double aProp = aK/double(aNbDist);
         std::cout << "  Residu at " << aProp*100 << " percentil = " << KthValProp(aVDist,aProp) << "\n";
     }
-    aSomD2X /= aPackIn.size();
-    aSomD2Y /= aPackIn.size();
+    aSomD2X /= aPackInGlob.size();
+    aSomD2Y /= aPackInGlob.size();
 
     std::cout << "MoyD2 = " << sqrt(aSomD2X)  << " " << sqrt(aSomD2Y) << "\n";
 

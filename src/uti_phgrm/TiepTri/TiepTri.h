@@ -136,6 +136,11 @@ typedef cInterpolateurIm2D<tElTiepTri>  tInterpolTiepTri;
 // extern Pt2dr   TestFastQuality(TIm2D<double,double> anIm,Pt2di aP,double aRay,bool IsMax,Pt2dr aProp);
 extern void TestcAutoCorrelDir(TIm2D<double,double> aTIm,const Pt2di & aP0);
 
+#define ETAPE_CORREL_ENT    0
+#define ETAPE_CORREL_BILIN  1
+#define ETAPE_CORREL_DENSE  2
+#define ETAPE_FINALE        3
+
 // Pour initialiser les parametres avec EAM en ayant un constructeur trivial
 class cParamAppliTieTri
 {
@@ -176,6 +181,7 @@ class cAppliTieTri : public cParamAppliTieTri
            );
 
            void SetSzW(Pt2di , int);
+           bool CurEtapeInFlagFiltre() const;
 
 
            cInterfChantierNameManipulateur * ICNM();
@@ -269,6 +275,7 @@ class cAppliTieTri : public cParamAppliTieTri
          std::string        mKeyMasqIm;
 
          bool               mPIsInImRedr;  // Savoir si les points de correlation sont points redresses ou non
+         int                mCurEtape;
 };
 
 /*
