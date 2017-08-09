@@ -233,7 +233,6 @@ bool cLSQMatch::MatchbyLSQ(
                                 Pt2dr aPt1,
                                 const tIm2DM & aImg1,   // template
                                 const tIm2DM & aImg2,   // image
-                                Pt2dr aPt2,
                                 Pt2di aSzW,
                                 double aStep,
                                 Im1D_REAL8 & aSol,
@@ -357,7 +356,7 @@ bool cLSQMatch::MatchbyLSQ(
             sqr_residu+=(aV1-aV2)*(aV1-aV2);
         }
     }
-    cout<<"sqr_residu: "<<sqr_residu<<endl;
+    cout<<"sqr_residu: "<<sqrt(sqr_residu)<<endl;
     // ======= regulisation ====== //
     /*
     double aReg=0.0001;
@@ -670,6 +669,7 @@ if (method == 0)
                                                                    );
 }
          /*================ Corrrelation by cCorrelImage ==================*/
+bool corOK=false;
 if (method == 1)
 {
          // Load Image to type Im2D<unsigned int, int>
@@ -686,7 +686,6 @@ if (method == 1)
          ImPatchTmpl.getWholeIm(&aCImTmpl);
 
          cCorrelImage ImPatchTarget;
-         bool corOK = false;
 
          Pt2dr aPt(0,0);
          OK = true;
@@ -718,7 +717,7 @@ if (method == 1)
              }
          }
 }
-cout<<endl<<endl<<"Correlation Time : "<<a.uval()<<endl<<endl;
+cout<<endl<<endl<<"Correlation Time : "<<a.uval()<<" - Cor OK : "<<corOK<<endl<<endl;
 string imScore = "imScore.tif";
 ELISE_COPY
         (
@@ -783,14 +782,10 @@ cResulRechCorrel aResCorrelOrg(aResCorrel.mPt, aResCorrel.mCorrel);
                              Pt2dr(1,0),
                              Pt2dr(0,1));
     cout<<"Translation initiale: "<<aTransAffFinal.I00()<<endl;
+    ElAffin2D aTransAffCorrel = aTransAffFinal;
 
     for (int aK=0; aK<aParam.mNbIter; aK++)
     {
-        Pt2dr aPtRes = aTransAffFinal(Pt2dr(42,20));
-        cout<<"Le Pt [42,20] devient : "<<aPtRes<<" -Res: "<<
-              aImgTarget->Im2D().Get(aPtRes, *aInterpolBilin, -1.0) - aImgTmplt->Im2D().GetR(Pt2di(42,20))
-           <<endl;
-
          Im1D_REAL8 aSol(aNbInconnu);
          ElAffin2D aTransAffInit(ElAffin2D::Id());
 
@@ -798,7 +793,6 @@ cResulRechCorrel aResCorrelOrg(aResCorrel.mPt, aResCorrel.mCorrel);
                                  aPt1,
                                  aImgTmplt->Im2D(),
                                  aImgTarget->Im2D(),
-                                 aResCorrel.mPt,
                                  Pt2di(aImgTmplt->Im2D().sz()/2),
                                  aParam.mStepLSQ,
                                  aSol,
@@ -807,38 +801,6 @@ cResulRechCorrel aResCorrelOrg(aResCorrel.mPt, aResCorrel.mCorrel);
 
 
          double * aResLSQ = aSol.data();
-/*
-         if (aParam.mCase == 0 || aParam.mCase == 3)    // trans only
-         {
-             ElAffin2D aT(aTransAffInit.trans(Pt2dr(aResLSQ[0],aResLSQ[1])));
-             aTransAffFinal.update(aT);
-         }
-         else
-         {
-             if (aParam.mCase == 4)
-             {
-                 ElAffin2D aT(
-                                 aTransAffInit + ElAffin2D(   Pt2dr(0,0),
-                                                              Pt2dr(aResLSQ[0], aResLSQ[1]),
-                                                              Pt2dr(aResLSQ[2], aResLSQ[3])
-                                                          )
-                             );
-                aTransAffFinal.update(aT);
-             }
-             else
-             {
-                 ElAffin2D aT(
-                                 aTransAffInit + ElAffin2D(   Pt2dr(aResLSQ[0], aResLSQ[1]),
-                                                              Pt2dr(aResLSQ[2], aResLSQ[3]),
-                                                              Pt2dr(aResLSQ[4], aResLSQ[5])
-                                                          )
-                             );
-                 aTransAffFinal.update(aT);
-             }
-         }
-
-*/
-                         //cout<<aResLSQ[0]<<" "<<aResLSQ[1]<<endl;
          if (aParam.mCase == 0 || aParam.mCase == 3)    // trans only or Trans + Radio
          {
              cout<<"Delta: "<<Pt2dr(aResLSQ[0], aResLSQ[1])<<endl;
@@ -859,7 +821,7 @@ cResulRechCorrel aResCorrelOrg(aResCorrel.mPt, aResCorrel.mCorrel);
 
              }
              else
-             {  // Trans + Aff
+             {                     // Trans + Aff
                   cout<<"Delta: "<<Pt2dr(aResLSQ[0], aResLSQ[1])<<" "<<Pt2dr(aResLSQ[2], aResLSQ[3])
                           <<" "<<Pt2dr(aResLSQ[4], aResLSQ[5])<<endl;
                   aTransAffFinal = aTransAffFinal  + ElAffin2D(   Pt2dr(aResLSQ[0], aResLSQ[1]),
@@ -885,26 +847,12 @@ cResulRechCorrel aResCorrelOrg(aResCorrel.mPt, aResCorrel.mCorrel);
          // update matched result
          aResCorrel.mPt = aTransAffFinal(aPt1);
          cout<<" - After LSQ: "<<aResCorrel.mPt<<endl<<endl;
-         //aMatch->DoMatchbyLSQ();
 
     }
     cout<<"TransAff : "<<aTransAffFinal.I00()<<aTransAffFinal.I01()<<aTransAffFinal.I10()<<endl;
-
-    // Export to view result
-    /*
-    ElAffin2D aTrAff(
-                        aTransAffFinal.I00() + Pt2dr(aResCorrelOrg.mPt - aPt1),
-                        aTransAffFinal.I10(),
-                        aTransAffFinal.I01()
-                    );
-
-
-    cout<<"TransAff : "<<aTrAff.I00()<<aTrAff.I01()<<aTrAff.I10()<<endl;
-   */
-
-
     cout<<endl<<endl;
     tIm2DM aImgVerif(aImgTmplt->Im2D().sz().x, aImgTmplt->Im2D().sz().y);
+    tIm2DM aImgVerifCorrel(aImgTmplt->Im2D().sz().x, aImgTmplt->Im2D().sz().y);
     Pt2di aPt(0,0);
     OK = true;
     for (aPt.x=0; aPt.x<aImgTmplt->Im2D().sz().x; aPt.x++)        // class cCorrelImage don't support real coordinate
@@ -913,14 +861,21 @@ cResulRechCorrel aResCorrelOrg(aResCorrel.mPt, aResCorrel.mCorrel);
         {
             Pt2dr aPxlTarget = aTransAffFinal(Pt2dr(aPt));
             double aVal = aImgTarget->Im2D().Get(aPxlTarget, *aInterpolBilin, -1.0);
-            //cout<<aPt<<" -> "<<aPxlTarget<<" : "<<aVal<<endl;
             aImgVerif.SetR_SVP(
                                 aPt,
                                 aVal
                               );
+
+            aPxlTarget = aTransAffCorrel(Pt2dr(aPt));
+            aVal = aImgTarget->Im2D().Get(aPxlTarget, *aInterpolBilin, -1.0);
+            aImgVerifCorrel.SetR_SVP(
+                                        aPt,
+                                        aVal
+                                    );
+
         }
     }
-    string imVerif = aTmpl + "_Verif.tif";
+    string imVerif = aTmpl + "_Verif_LSQ.tif";
     ELISE_COPY
             (
                 aImgVerif.all_pts(),
@@ -935,9 +890,20 @@ cResulRechCorrel aResCorrelOrg(aResCorrel.mPt, aResCorrel.mCorrel);
 
                 );
 
+    string imVerifCorrel = aTmpl + "_Verif_Correl.tif";
+    ELISE_COPY
+            (
+                aImgVerifCorrel.all_pts(),
+                aImgVerifCorrel.in_proj(),
+                Tiff_Im(
+                    imVerifCorrel.c_str(),
+                    aImgVerifCorrel.sz(),
+                    GenIm::real8,
+                    Tiff_Im::No_Compr,
+                    Tiff_Im::BlackIsZero
+                    ).out()
 
-
-
+                );
 
     return EXIT_SUCCESS;
 }

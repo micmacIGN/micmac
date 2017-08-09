@@ -59,11 +59,9 @@ class cLSQMatch
         cParamLSQMatch & Param() {return mParam;}
         bool DoMatchbyLSQ();
         bool DoMatchbyCorel();
-        bool MatchbyLSQ(
-                            Pt2dr aPt1,
+        bool MatchbyLSQ(Pt2dr aPt1,
                             const tIm2DM & aImg1,
                             const tIm2DM & aImg2,
-                            Pt2dr aPt2,
                             Pt2di aSzW,
                             double aStep,
                             Im1D_REAL8 &aSol,
