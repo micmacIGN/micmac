@@ -92,37 +92,6 @@ int ImMAFAffiche_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-int SaisieAppuisAuto_main(int argc,char ** argv)
-{
-    std::string aImg, aMAF, aDir, aNameImg, atoto;
-    ElInitArgMain
-            (
-                argc,argv,
-                //mandatory arguments
-                LArgMain()
-                << EAMC(aImgs, "Pattern of images", eSAM_IsExistFile)
-                << EAMC(aMAF, "Predicted image measurement file", eSAM_IsExistFile),
-                //optional arguments
-                LArgMain()
-                << EAM(atoto, "toto", true, "toto")
-             );
-
-    // get the list of images
-    SplitDirAndFile(aDir,aNameImgs,aImgs);
-
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-    mLFile = *(aICNM->Get(mName));
-
-    // generate a predicted MAF file for each image
-
-
-    // match image and PMAF for FFTKugelhupf
-
-
-    //
-
-    return EXIT_SUCCESS;
-}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
