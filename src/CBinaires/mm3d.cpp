@@ -718,6 +718,7 @@ int UnionFiltragePHom_Main(int argc,char ** argv);
 
 int TestYZ_main(int argc,char ** argv);
 
+extern int ImMAFAffiche_main(int argc,char ** argv);
 extern int ReechHomol_main(int argc,char ** argv);
 extern int ExtraitHomol_main(int argc, char ** argv);
 extern int IntersectHomol_main(int argc, char ** argv);
@@ -937,6 +938,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("MergeFilterNewFH",UnionFiltragePHom_Main ,"Merge & Filter New Multiple Points"));
         aRes.push_back(cMMCom("TestYZ",TestYZ_main ,"TestYZ"));
         aRes.push_back(cMMCom("ReechHomol",ReechHomol_main ,"Apply map to homol folders to correct thermal deformation"));
+        aRes.push_back(cMMCom("ImMAFAffiche",ImMAFAffiche_main ,"Show Image and Image measurement"));
         aRes.push_back(cMMCom("ExtraitHomol",ExtraitHomol_main ,"Extract certain homol files"));
         aRes.push_back(cMMCom("IntersectHomol",IntersectHomol_main ,"Pseudo-intersection for tie points"));
         aRes.push_back(cMMCom("ReechMAF",ReechMAF_main ,"Apply map to image measurement file"));
