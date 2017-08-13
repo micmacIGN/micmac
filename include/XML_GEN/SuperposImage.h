@@ -103,6 +103,7 @@ typedef enum
   eModeNO_Std,
   eModeNO_TTK,
   eModeNO_StdNoTTK,
+  eModeNO_OnlyHomogr,
   eModeNO_NbVals
 } eTypeModeNO;
 void xml_init(eTypeModeNO & aVal,cElXMLTree * aTree);
@@ -6276,34 +6277,6 @@ std::string  Mangling( cXml_O2IRotPure *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cXml_O2IHom
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cXml_O2IHom & anObj,cElXMLTree * aTree);
-
-
-        cXmlHomogr & Hom();
-        const cXmlHomogr & Hom()const ;
-
-        double & ResiduHom();
-        const double & ResiduHom()const ;
-    private:
-        cXmlHomogr mHom;
-        double mResiduHom;
-};
-cElXMLTree * ToXMLTree(const cXml_O2IHom &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cXml_O2IHom &);
-
-void  BinaryUnDumpFromFile(cXml_O2IHom &,ELISE_fp &);
-
-std::string  Mangling( cXml_O2IHom *);
-
-/******************************************************/
-/******************************************************/
-/******************************************************/
 class cXml_O2ITiming
 {
     public:
@@ -6348,6 +6321,78 @@ void  BinaryDumpInFile(ELISE_fp &,const cXml_O2ITiming &);
 void  BinaryUnDumpFromFile(cXml_O2ITiming &,ELISE_fp &);
 
 std::string  Mangling( cXml_O2ITiming *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_Rotation
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Rotation & anObj,cElXMLTree * aTree);
+
+
+        cTypeCodageMatr & Ori();
+        const cTypeCodageMatr & Ori()const ;
+
+        Pt3dr & Centre();
+        const Pt3dr & Centre()const ;
+    private:
+        cTypeCodageMatr mOri;
+        Pt3dr mCentre;
+};
+cElXMLTree * ToXMLTree(const cXml_Rotation &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Rotation &);
+
+void  BinaryUnDumpFromFile(cXml_Rotation &,ELISE_fp &);
+
+std::string  Mangling( cXml_Rotation *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_Elips2D
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Elips2D & anObj,cElXMLTree * aTree);
+
+
+        Pt2dr & CDG();
+        const Pt2dr & CDG()const ;
+
+        double & Sxx();
+        const double & Sxx()const ;
+
+        double & Syy();
+        const double & Syy()const ;
+
+        double & Sxy();
+        const double & Sxy()const ;
+
+        double & Pds();
+        const double & Pds()const ;
+
+        bool & Norm();
+        const bool & Norm()const ;
+    private:
+        Pt2dr mCDG;
+        double mSxx;
+        double mSyy;
+        double mSxy;
+        double mPds;
+        bool mNorm;
+};
+cElXMLTree * ToXMLTree(const cXml_Elips2D &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Elips2D &);
+
+void  BinaryUnDumpFromFile(cXml_Elips2D &,ELISE_fp &);
+
+std::string  Mangling( cXml_Elips2D *);
 
 /******************************************************/
 /******************************************************/
@@ -6408,6 +6453,62 @@ std::string  Mangling( cXml_Elips3D *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_MepHom
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_MepHom & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_Rotation > & Ori();
+        const std::list< cXml_Rotation > & Ori()const ;
+    private:
+        std::list< cXml_Rotation > mOri;
+};
+cElXMLTree * ToXMLTree(const cXml_MepHom &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_MepHom &);
+
+void  BinaryUnDumpFromFile(cXml_MepHom &,ELISE_fp &);
+
+std::string  Mangling( cXml_MepHom *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_O2IHom
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_O2IHom & anObj,cElXMLTree * aTree);
+
+
+        cXmlHomogr & Hom();
+        const cXmlHomogr & Hom()const ;
+
+        double & ResiduHom();
+        const double & ResiduHom()const ;
+
+        cTplValGesInit< cXml_MepHom > & ForMepHom();
+        const cTplValGesInit< cXml_MepHom > & ForMepHom()const ;
+    private:
+        cXmlHomogr mHom;
+        double mResiduHom;
+        cTplValGesInit< cXml_MepHom > mForMepHom;
+};
+cElXMLTree * ToXMLTree(const cXml_O2IHom &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_O2IHom &);
+
+void  BinaryUnDumpFromFile(cXml_O2IHom &,ELISE_fp &);
+
+std::string  Mangling( cXml_O2IHom *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_O2IComputed
 {
     public:
@@ -6436,6 +6537,9 @@ class cXml_O2IComputed
 
         cXml_Elips3D & Elips();
         const cXml_Elips3D & Elips()const ;
+
+        cTplValGesInit< cXml_Elips2D > & Elips2();
+        const cTplValGesInit< cXml_Elips2D > & Elips2()const ;
     private:
         cXml_O2ITiming mTiming;
         cXml_O2IRotation mOrientAff;
@@ -6444,6 +6548,7 @@ class cXml_O2IComputed
         double mBSurH;
         double mRecHom;
         cXml_Elips3D mElips;
+        cTplValGesInit< cXml_Elips2D > mElips2;
 };
 cElXMLTree * ToXMLTree(const cXml_O2IComputed &);
 
@@ -6512,34 +6617,6 @@ void  BinaryDumpInFile(ELISE_fp &,const cXml_Ori2Im &);
 void  BinaryUnDumpFromFile(cXml_Ori2Im &,ELISE_fp &);
 
 std::string  Mangling( cXml_Ori2Im *);
-
-/******************************************************/
-/******************************************************/
-/******************************************************/
-class cXml_Rotation
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cXml_Rotation & anObj,cElXMLTree * aTree);
-
-
-        cTypeCodageMatr & Ori();
-        const cTypeCodageMatr & Ori()const ;
-
-        Pt3dr & Centre();
-        const Pt3dr & Centre()const ;
-    private:
-        cTypeCodageMatr mOri;
-        Pt3dr mCentre;
-};
-cElXMLTree * ToXMLTree(const cXml_Rotation &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cXml_Rotation &);
-
-void  BinaryUnDumpFromFile(cXml_Rotation &,ELISE_fp &);
-
-std::string  Mangling( cXml_Rotation *);
 
 /******************************************************/
 /******************************************************/

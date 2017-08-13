@@ -46,10 +46,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*******************************************************/
 static const double A = 0.147;
 
+//              -  x
+//    Erf(x) = /      e-(t*t) dt / sqrt(pi)
+//            -  -x
+
+//  DirErFonc  =>  approx de Erf(x) 
+
+   // source https://en.wikipedia.org/wiki/Error_function
+
 double DirErFonc(double x)
 {
+  static double QsPi = 4/PI;
+
   double X2 = x * x;
-  double aRes =  1 - exp(-X2*(4/PI+A*X2)/(1+A*X2));
+  double AX2 = A*X2;
+  double aRes =  1 - exp(-X2*   ( (QsPi+AX2)/(1+AX2))   );
 
   aRes = sqrt(ElMax(0.0,aRes));
   return (x>0) ? aRes : (-aRes);
@@ -62,8 +73,8 @@ double DerEF(double x)
 
 double InvErrFonc(double x)
 {
-   // source https://en.wikipedia.org/wiki/Error_function
-    double DePiSA = 2/(PI*A);
+    static double DePiSA = 2/(PI*A);
+
     double X2 = x * x;
     double Log1MX2 = log(1-X2);
 
@@ -77,6 +88,7 @@ double InvErrFonc(double x)
 }
 
 
+// Tabulation 
 double InvErrFoncRationel(int P,int Q)
 {
     int aSign = (P>0 ? 1 : -1) * (Q>0 ? 1 : -1);
@@ -93,27 +105,14 @@ double InvErrFoncRationel(int P,int Q)
 
     return mBuf[Q][P] * aSign;
 }
-
-class cGenGaus3D
-{
-    public :
-        cGenGaus3D(const cXml_Elips3D & anEl );
-        const double & ValP(int aK) const;
-        const Pt3dr  & VecP(int aK) const;
-
-        void GetDistribGaus(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int aN3);
-    private :
-        double FactCorrectif(int aNb);
-        Pt3dr mCDG;
-        double mVP[3];
-        Pt3dr mVecP[3];
-
-};
-
-double cGenGaus3D::FactCorrectif(int aNb)
+static double FactCorrectif(int aNb)
 {
     return sqrt(2.) / (1 - 0.3333/(aNb+0.5));
 }
+
+   //=======================================
+
+
 
 /*
                double aFact =  sqrt(2) / (1 - 0.3333/(aNb+0.5));
@@ -148,22 +147,32 @@ void cGenGaus3D::GetDistribGaus(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int a
            }
        }
    }
-
 }
 
-
-
-
-const double & cGenGaus3D::ValP(int aK) const
+void cGenGaus2D::GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN1,int aN2)
 {
-    return mVP[aK];
+   aVPts.clear();
+   Pt2dr aFact1 = mVecP[0] * (FactCorrectif(aN1) * mVP[0]);
+   Pt2dr aFact2 = mVecP[1] * (FactCorrectif(aN2) * mVP[1]);
+
+   for (int aK1 =-aN1 ; aK1<=aN1 ; aK1++)
+   {
+       for (int aK2 =-aN2 ; aK2<=aN2 ; aK2++)
+       {
+           Pt2dr aP  =   mCDG 
+                       + aFact1 * InvErrFoncRationel(2*aK1,2*aN1+1)
+                       + aFact2 * InvErrFoncRationel(2*aK2,2*aN2+1) ;
+           aVPts.push_back(aP);
+       }
+   }
 }
 
-const Pt3dr & cGenGaus3D::VecP(int aK) const
-{
-    return mVecP[aK];
-}
 
+const double & cGenGaus3D::ValP(int aK) const { return mVP[aK]; }
+const Pt3dr &  cGenGaus3D::VecP(int aK) const { return mVecP[aK]; }
+
+const double & cGenGaus2D::ValP(int aK) const { return mVP[aK]; }
+const Pt2dr &  cGenGaus2D::VecP(int aK) const { return mVecP[aK]; }
 
 
 cGenGaus3D::cGenGaus3D(const cXml_Elips3D & anEl)  :
@@ -200,6 +209,31 @@ cGenGaus3D::cGenGaus3D(const cXml_Elips3D & anEl)  :
 
 }
 
+cGenGaus2D::cGenGaus2D(const cXml_Elips2D & anEl)  :
+    mCDG (anEl.CDG())
+{
+    ELISE_ASSERT(anEl.Norm() ,"cGenGaus3D::cGenGaus3D");
+    static ElMatrix<double> aMCov(2,2); 
+    static ElMatrix<double> aValP(2,2); 
+    static ElMatrix<double> aVecP(2,2); 
+
+    aMCov(0,0) = anEl.Sxx();
+    aMCov(1,1) = anEl.Syy();
+    aMCov(0,1) = aMCov(1,0) =  anEl.Sxy();
+
+
+    std::vector<int>  aIVP = jacobi_diag(aMCov,aValP,aVecP);
+
+    for (int aK=0 ; aK<2 ; aK++)
+    {
+        mVP[aK] =  sqrt(aValP(aIVP[aK],aIVP[aK]));
+        aVecP.GetCol(aIVP[aK],mVecP[aK]);
+    }
+}
+
+
+
+
 
 /*******************************************************/
 /*                                                     */
@@ -220,6 +254,16 @@ void RazEllips(cXml_Elips3D & anEl)
    anEl.Norm() = false;
 }
 
+void RazEllips(cXml_Elips2D & anEl)
+{
+   anEl.CDG() = Pt2dr(0,0);
+   anEl.Sxx() = 0.0;
+   anEl.Syy() = 0.0;
+   anEl.Sxy() = 0.0;
+   anEl.Pds() = 0;
+   anEl.Norm() = false;
+}
+
 void AddEllips(cXml_Elips3D & anEl,const Pt3dr & aP,double aPds)
 {
    ELISE_ASSERT(!anEl.Norm(),"AddEllips");
@@ -230,6 +274,16 @@ void AddEllips(cXml_Elips3D & anEl,const Pt3dr & aP,double aPds)
    anEl.Sxy() += aPds * aP.x * aP.y;
    anEl.Sxz() += aPds * aP.x * aP.z;
    anEl.Syz() += aPds * aP.y * aP.z;
+   anEl.Pds() += aPds;
+}
+
+void AddEllips(cXml_Elips2D & anEl,const Pt2dr & aP,double aPds)
+{
+   ELISE_ASSERT(!anEl.Norm(),"AddEllips");
+   anEl.CDG() = anEl.CDG() + aP * aPds;
+   anEl.Sxx() += aPds * aP.x * aP.x;
+   anEl.Syy() += aPds * aP.y * aP.y;
+   anEl.Sxy() += aPds * aP.x * aP.y;
    anEl.Pds() += aPds;
 }
 
@@ -248,25 +302,45 @@ void NormEllips(cXml_Elips3D & anEl)
    anEl.Sxz() = anEl.Sxz() / aPds - aCdg.x * aCdg.z;
    anEl.Syz() = anEl.Syz() / aPds - aCdg.y * aCdg.z;
 }
+void NormEllips(cXml_Elips2D & anEl)
+{
+   ELISE_ASSERT(!anEl.Norm(),"AddEllips");
+   anEl.Norm() = true;
+   double aPds = anEl.Pds();
+   anEl.CDG() = anEl.CDG() / aPds;
+   Pt2dr aCdg = anEl.CDG();
 
-void TestEllips()
+   anEl.Sxx() = anEl.Sxx() / aPds - aCdg.x * aCdg.x;
+   anEl.Syy() = anEl.Syy() / aPds - aCdg.y * aCdg.y;
+   anEl.Sxy() = anEl.Sxy() / aPds - aCdg.x * aCdg.y;
+}
+
+
+void TestEllips_3D()
 {
     while (1)
     {
-        int aNbPts =  4 + NRrandom3(2);
+        int aNbPts =  4 + NRrandom3(20);
         cXml_Elips3D  anEl;
    
+        Pt3dr aC0 (NRrandC(),NRrandC(),NRrandC());
+        Pt3dr aU0 (NRrandC(),NRrandC(),NRrandC());
+        Pt3dr aU1 (NRrandC(),NRrandC(),NRrandC());
+        Pt3dr aU2 (NRrandC(),NRrandC(),NRrandC());
         RazEllips(anEl);
         for (int aK=0 ; aK<aNbPts ; aK++)
         {
-             Pt3dr aP (NRrandC(),NRrandC(),NRrandC());
+             // Pt3dr aP NRrandC(),NRrandC(),NRrandC());
+             Pt3dr aP = aC0 + aU0 *  NRrandC() + aU1 * NRrandC() + aU2 * NRrandC();
+             aP = aP * 10;
              AddEllips(anEl,aP,1.0);
         }
         NormEllips(anEl);
 
         cGenGaus3D aGG1(anEl);
         std::vector<Pt3dr> aVP;
-        aGG1.GetDistribGaus(aVP,1,2,3);
+
+        aGG1.GetDistribGaus(aVP,1+NRrandom3(2),2+NRrandom3(2),3+NRrandom3(2));
 
         RazEllips(anEl);
         for (int aK=0 ; aK<int(aVP.size()) ; aK++)
@@ -279,12 +353,61 @@ void TestEllips()
         {
             std::cout << "RATIO VP " << aGG1.ValP(aK) /  aGG2.ValP(aK) << " " 
                       <<  euclid( aGG1.VecP(aK) - aGG2.VecP(aK))       << " "
+                      <<  " VP="  << aGG1.ValP(aK)       << " "
                       << "\n";
         }
 
         getchar();
     }
 }
+
+void TestEllips_2D()
+{
+    while (1)
+    {
+        int aNbPts =  4 + NRrandom3(20);
+        cXml_Elips2D  anEl;
+   
+        Pt2dr aC0 (NRrandC(),NRrandC());
+        Pt2dr aU0 (NRrandC(),NRrandC());
+        Pt2dr aU1 (NRrandC(),NRrandC());
+        RazEllips(anEl);
+        for (int aK=0 ; aK<aNbPts ; aK++)
+        {
+             // Pt3dr aP NRrandC(),NRrandC(),NRrandC());
+             Pt2dr aP = aC0 + aU0 *  NRrandC() + aU1 * NRrandC() ;
+             aP = aP * 10;
+             AddEllips(anEl,aP,1.0);
+        }
+        NormEllips(anEl);
+
+        cGenGaus2D aGG1(anEl);
+        std::vector<Pt2dr> aVP;
+
+        // aGG1.GetDistribGaus(aVP,1+NRrandom3(2),2+NRrandom3(2));
+        aGG1.GetDistribGaus(aVP,1,1); // Version nimimaliste
+
+        RazEllips(anEl);
+        for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+            AddEllips(anEl,aVP[aK],1.0);
+
+        NormEllips(anEl);
+        cGenGaus2D aGG2(anEl);
+
+        for (int aK=0 ; aK< 2 ; aK++)
+        {
+            std::cout << "RATIO VP " << aGG1.ValP(aK) /  aGG2.ValP(aK) << " " 
+                      <<  euclid( aGG1.VecP(aK) - aGG2.VecP(aK))       << " "
+                      <<  " VP="  << aGG1.ValP(aK)       << " "
+                      << "\n";
+        }
+
+        getchar();
+    }
+}
+
+
+
 
 
 void TestEllips_0()
@@ -428,6 +551,10 @@ std::cout << "CCCcccc\n";
 }
 
 
+void TestEllips()
+{
+    TestEllips_2D();
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

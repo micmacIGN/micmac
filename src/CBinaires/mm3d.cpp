@@ -718,6 +718,7 @@ int UnionFiltragePHom_Main(int argc,char ** argv);
 
 int TestYZ_main(int argc,char ** argv);
 
+extern int ImMAFAffiche_main(int argc,char ** argv);
 extern int ReechHomol_main(int argc,char ** argv);
 extern int ExtraitHomol_main(int argc, char ** argv);
 extern int IntersectHomol_main(int argc, char ** argv);
@@ -729,6 +730,9 @@ int ProcessThmImgs_main(int argc,char ** argv);
 extern int ConvertTiePPs2MM_main(int argc,char ** argv);
 
 extern int ConvHomolVSFM2MM_main(int argc,char ** argv);
+
+int LSQMatch_Main(int argc,char ** argv);
+
 
 
 
@@ -915,17 +919,14 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("Test_Giang",TestGiangNewHomol_Main,"Test Giang"));
         aRes.push_back(cMMCom("GetSpace",GetSpace_main,"Delete all temporary file after treatment complete"));
-
         aRes.push_back(cMMCom("TiepTriPrl",TiepTriPrl_main,"Paralelliser version of TiepTri",cArgLogCom(2)));
         aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));
-
-
         aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri",cArgLogCom(2)));
         aRes.push_back(cMMCom("TaskCorrelGCP",TaskCorrelWithPts_main,"Creat Correlation Task XML file for GCP By Mesh",cArgLogCom(2)));
-
         aRes.push_back(cMMCom("FAST",FAST_main,"Some Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)"));
         aRes.push_back(cMMCom("Homol2Way",Homol2Way_main ,"Creat same pack homol in 2 way by combination 2 pack of each way"));
         aRes.push_back(cMMCom("CplFromHomol",CplFromHomol_main ,"Creat xml of pair images from Homol Folder"));
+        aRes.push_back(cMMCom("LSQMatch",LSQMatch_Main ,"Giang Test LSQ"));
 
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
@@ -937,6 +938,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("MergeFilterNewFH",UnionFiltragePHom_Main ,"Merge & Filter New Multiple Points"));
         aRes.push_back(cMMCom("TestYZ",TestYZ_main ,"TestYZ"));
         aRes.push_back(cMMCom("ReechHomol",ReechHomol_main ,"Apply map to homol folders to correct thermal deformation"));
+        aRes.push_back(cMMCom("ImMAFAffiche",ImMAFAffiche_main ,"Show Image and Image measurement"));
         aRes.push_back(cMMCom("ExtraitHomol",ExtraitHomol_main ,"Extract certain homol files"));
         aRes.push_back(cMMCom("IntersectHomol",IntersectHomol_main ,"Pseudo-intersection for tie points"));
         aRes.push_back(cMMCom("ReechMAF",ReechMAF_main ,"Apply map to image measurement file"));
