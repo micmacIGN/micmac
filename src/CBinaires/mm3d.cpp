@@ -673,7 +673,7 @@ int RTI_PosLumFromOmbre_main(int argc,char ** argv);
 int GetInfosMPLF_main(int argc,char ** argv);
 int TestNewMergeTieP_main(int argc,char ** argv);
 int TestStephane_Main(int argc,char ** argv);
-
+int ArboArch_main(int argc,char ** argv);
 
 int TestDupBigTiff(int argc,char ** argv);
 int Test_TomCan(int argc,char ** argv);
@@ -866,7 +866,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
         aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envelope for mode statue"));
         aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topological analysis before bascule"));
-
+		aRes.push_back(cMMCom("ArboArch",ArboArch_main,"Files organization, internal use"));
 
         aRes.push_back(cMMCom("Check1Hom",CheckOneHom_main,"Check One File Homologue"));
         aRes.push_back(cMMCom("CheckAllHom",CheckAllHom_main,"Check All File Homologue"));
