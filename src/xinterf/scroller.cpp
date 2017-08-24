@@ -219,6 +219,8 @@ REAL ElImScroller::ScMax() const
 void ElImScroller::set_max(bool quick)
 {
    REAL sc = ScMax();
+if (MPD_MM())
+std::cout << "SCMAX " << sc << " " << SzW() << " " << SzU() << "\n";
    Pt2dr tr = (Pt2dr(SzU())-Pt2dr(SzW())/sc ) /2.0 ;
 
 

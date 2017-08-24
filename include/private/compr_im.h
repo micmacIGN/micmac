@@ -600,7 +600,7 @@ template <class Type> class  ImFileLoader : public GenScaleIm<typename El_CTypeT
                
                 typedef typename El_CTypeTraits<Type>::tBase  tGSI;
 
-                void ImFReInitTifFile(Tiff_Im aTif);
+                void ReInit_ImFL_TifFile(Tiff_Im aTif);
 
 					 
 		ImFileLoader(Tiff_Im,Pt2di SzW,ImFileLoader<Type> * ForAlloc = 0);
@@ -683,7 +683,7 @@ template <class Type> class ImFileScroller : public ImFileLoader<Type>,
 		public :
                                 typedef typename El_CTypeTraits<Type>::tBase  tGSI;
                                 bool CanReinitTif();
-                                void ReInitTifFile(Tiff_Im aTif);
+                                void ReInit_Virt_TifFile(Tiff_Im aTif);
 
 
 					 

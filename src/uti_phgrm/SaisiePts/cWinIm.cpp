@@ -258,6 +258,7 @@ void  cWinIm::SetNoImage()
 
 void  cWinIm::SetImage(cImage *aIm)
 {
+    if (MPD_MM()) std::cout << "WinIm::SetImag " << aIm->Name() << "\n";
     if (mCurIm)
     {
         mCurIm->SetWAff(0);
