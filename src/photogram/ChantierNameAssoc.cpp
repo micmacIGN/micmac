@@ -4136,7 +4136,6 @@ cResulMSO cInterfChantierNameManipulateur::MakeStdOrient
             }
         }
 
-
         const char * aC = anOri.c_str();
         int aL = (int)strlen(aC);
         if ((aL!=0) &&  (aC[aL-1] == ELISE_CAR_DIR))
