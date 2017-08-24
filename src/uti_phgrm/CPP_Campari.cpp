@@ -308,8 +308,9 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     #endif
         SplitDirAndFile(mDir,mPat,aFullDir);
         StdCorrecNameOrient(AeroIn,mDir);
-		if( IsPostfixed(AeroOut,'-') )  AeroOut = StdPostfix(AeroOut,'-');
 
+		std::string aPrefix = "Ori-";
+		if (AeroOut.find(aPrefix) == 0) AeroOut = AeroOut.substr(aPrefix.size(),std::string::npos);
 
         std::string aSetIm = "NKS-Set-OfPattern@[[" + mPat + "]]";
 
