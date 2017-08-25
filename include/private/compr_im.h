@@ -621,7 +621,7 @@ template <class Type> class  ImFileLoader : public GenScaleIm<typename El_CTypeT
                        void MakeOneLineReduceSomPPV();
                        void MakeOneLinePixelPond();
 
-                       void put_tiles_in_alloc(bool FullReinit = false);
+                       void put_tiles_in_alloc(bool FullReinit = false,Tiff_Im * aTF=0);
 		
 					   void load_this_tile(INT x,INT y);
 		private :

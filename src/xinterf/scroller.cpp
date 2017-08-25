@@ -100,10 +100,18 @@ bool  ElImScroller::CanReinitTif()
    return true;
 }
 
-void ElImScroller::ReInitTifFile(Tiff_Im aTif)
+void ElImScroller::ReInit_Virt_TifFile(Tiff_Im aTif)
 {
-    ELISE_ASSERT(false,"ElImScroller::ReInitTifFile no def value");
+    ELISE_ASSERT(false,"ElImScroller::ReInit_Virt_TifFile no def value");
 }
+
+void ElImScroller::ReInit_NonVirt_TifFile(Tiff_Im aTif)
+{
+    ReInit_Virt_TifFile(aTif);
+    _SzU = aTif.sz();
+}
+
+
 
 void ElImScroller::SetAlwaysQuickInZoom()
 {
@@ -219,8 +227,6 @@ REAL ElImScroller::ScMax() const
 void ElImScroller::set_max(bool quick)
 {
    REAL sc = ScMax();
-if (MPD_MM())
-std::cout << "SCMAX " << sc << " " << SzW() << " " << SzU() << "\n";
    Pt2dr tr = (Pt2dr(SzU())-Pt2dr(SzW())/sc ) /2.0 ;
 
 
