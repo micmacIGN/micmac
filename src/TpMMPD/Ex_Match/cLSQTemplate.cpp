@@ -12,6 +12,7 @@ cLSQMatch::cLSQMatch(cImgMatch * aTmpl, cImgMatch * aImg):
     mPtMinErr  (-1,-1)
 {
     mInterpol = new cInterpolBilineaire<double>;
+    cout<<"In const cLSQMatch"<<endl;
 }
 
 void cLSQMatch::update(double CurErr, Pt2dr aPt)
@@ -246,10 +247,10 @@ bool cLSQMatch::MatchbyLSQ(
                                 Pt2dr aPt1,
                                 const tIm2DM & aImg1,   // template
                                 const tIm2DM & aImg2,   // image
+                                Pt2dr aPt2,
                                 Pt2di aSzW,
                                 double aStep,
-                                Im1D_REAL8 & aSol,
-                                ElAffin2D & aTrans12
+                                Im1D_REAL8 & aSol
                           )
 {
     /*
@@ -258,45 +259,14 @@ bool cLSQMatch::MatchbyLSQ(
      *
      */
     Pt2dr aPt(0,0);
-
-    int aNbInconnu=8;
-    switch (mParam.mCase)
-    {
-        case 0: // only trans
-            {
-                aNbInconnu = 2;
-                break;
-            }
-        case 1: // trans + Aff
-            {
-                aNbInconnu = 6;
-                break;
-            }
-        case 2: // Trans + Aff + Radio
-            {
-                aNbInconnu = 8;
-                break;
-            }
-        case 3: // Trans + Radio
-            {
-                aNbInconnu = 4;
-                break;
-            }
-        case 4: // Aff
-            {
-                aNbInconnu = 4;
-                break;
-            }
-    }
-    L2SysSurResol aSys(aNbInconnu);
-    double mCoeff[8];
-    double sqr_residu=0;
+    L2SysSurResol aSys(4);
+    double mCoeff[4];
     for (aPt.x = -aSzW.x; aPt.x < aSzW.x; aPt.x = aPt.x + aStep)
     {
         for (aPt.y = -aSzW.y; aPt.y < aSzW.y; aPt.y = aPt.y + aStep)
         {
             Pt2dr aPC1 = aPt1 + aPt;
-            Pt2dr aPC2 = aTrans12(aPC1);
+            Pt2dr aPC2 = aPt2 + aPt;
             double aV1 = mInterpol->GetVal(aImg1.data(),aPC1);    // value of center point (point master)
             Pt3dr aNewVD2= mInterpol->GetValDer(aImg2.data(),aPC2);   // Get intensity & derive value of point 2nd img
             double aGr2X = aNewVD2.x;  // derive en X
@@ -308,24 +278,20 @@ bool cLSQMatch::MatchbyLSQ(
             mCoeff[2] = -aGr2X; // im00.x
             mCoeff[3] = -aGr2Y;  // im00.y
 
-            if (mParam.mAff)
-            {
-                mCoeff[4] = -aGr2X*aPt1.x ; // A
-                mCoeff[5] = -aGr2Y*aPt1.x ; // B
-                mCoeff[6] = -aGr2X*aPt1.y; // im00.x
-                mCoeff[7] = -aGr2Y*aPt1.y;  // im00.y
-            }
-
             aSys.AddEquation(1.0,mCoeff,aV2);
 */
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> master
             mCoeff[0] = aV2 ; // A
             mCoeff[1] = 1.0 ; // B
             mCoeff[2] = aGr2X; // im00.x
             mCoeff[3] = aGr2Y;  // im00.y
 
+<<<<<<< HEAD
 =======
 >>>>>>> master
             switch (mParam.mCase)
@@ -386,22 +352,13 @@ bool cLSQMatch::MatchbyLSQ(
 =======
 >>>>>>> 889362b24cad3265a74228dbc8a7362ec76e2452
 >>>>>>> master
+=======
+>>>>>>> master
             aSys.AddEquation(1.0,mCoeff,aV1-aV2);
-            sqr_residu+=(aV1-aV2)*(aV1-aV2);
         }
     }
-    cout<<"sqr_residu: "<<sqrt(sqr_residu)<<endl;
-    // ======= regulisation ====== //
-    /*
-    double aReg=0.0001;
-    for(int aK=0; aK<aNbInconnu; aK++)
-    {
-        aSys.AddTermQuad(aK,aK,aReg);
-    }
-    */
     bool OK = false;
     aSol = aSys.Solve(&OK);
-    cout<<"Retour solve: "<<OK<<endl;
     return OK;
 }
 /********************************************************************************/
@@ -645,6 +602,7 @@ int LSQMatch_Main(int argc,char ** argv)
    aParam.mNbIter = 1;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> master
@@ -657,6 +615,8 @@ int LSQMatch_Main(int argc,char ** argv)
 >>>>>>> master
 =======
 >>>>>>> 889362b24cad3265a74228dbc8a7362ec76e2452
+>>>>>>> master
+=======
 >>>>>>> master
 
    ElInitArgMain
@@ -672,6 +632,7 @@ int LSQMatch_Main(int argc,char ** argv)
                      << EAM(aParam.mNbIter, "NbIter", true, "Number of LSQ iteration (def=1)")
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> master
@@ -685,10 +646,14 @@ int LSQMatch_Main(int argc,char ** argv)
 =======
 >>>>>>> 889362b24cad3265a74228dbc8a7362ec76e2452
 >>>>>>> master
+=======
+>>>>>>> master
                );
          cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+         cout<<"Lire Img Target"<<endl;
          cImgMatch * aImgTarget = new cImgMatch(aImg, anICNM);
          aImgTarget->Load();
+         cout<<"Lire Img Template"<<endl;
          cImgMatch * aImgTmplt = new cImgMatch(aTmpl, anICNM);
          aImgTmplt->Load();
          cInterpolBilineaire<double> * aInterpolBilin = new cInterpolBilineaire<double>;
@@ -711,6 +676,7 @@ int LSQMatch_Main(int argc,char ** argv)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
          cResulRechCorrel aResCorrel =    dblTst_Correl
 =======
@@ -731,6 +697,9 @@ if (method == 0)
 =======
 >>>>>>> 889362b24cad3265a74228dbc8a7362ec76e2452
 >>>>>>> master
+=======
+         cResulRechCorrel aResCorrel =    dblTst_Correl
+>>>>>>> master
                                                                    (
                                                                           aImgTmplt->Im2D(),
                                                                           aPt1,
@@ -746,7 +715,10 @@ if (method == 0)
                                                                    );
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> master
 
 
          string imScore = "imScore.tif";
@@ -768,6 +740,7 @@ if (method == 0)
             cout<<"Correl : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
          else
              cout<<"Correl false"<<endl;
+<<<<<<< HEAD
 =======
 >>>>>>> master
 }
@@ -870,170 +843,41 @@ else
 
 
 cResulRechCorrel aResCorrelOrg(aResCorrel.mPt, aResCorrel.mCorrel);
+=======
+
+>>>>>>> master
 
          /*================= LSQ =====================*/
          // Do refine matching by LSQ
+         cout<<"Create matching"<<endl;
          aImgTarget->GetImget(aResCorrel.mPt, aImgTmplt->SzIm());
          cLSQMatch * aMatch = new cLSQMatch(aImgTmplt, aImgTarget);
          aMatch->Param() = aParam;
 
-         int aNbInconnu = 8;
-         switch (aParam.mCase)
-         {
-             case 0: // only trans
-                 {
-                     aNbInconnu = 2;
-                     break;
-                 }
-         case 1: // trans + Aff
-             {
-                 aNbInconnu = 6;
-                 break;
-             }
-         case 2: // Trans + Aff + Radio
-             {
-                 aNbInconnu = 8;
-                 break;
-             }
-         case 3: // Trans + Radio
-             {
-                 aNbInconnu = 4;
-                 break;
-             }
-         case 4: // Aff
-             {
-                 aNbInconnu = 4;
-                 break;
-             }
-         }
-
-
-    ElAffin2D aTransAffFinal(Pt2dr(aResCorrelOrg.mPt - aPt1),
-                             Pt2dr(1,0),
-                             Pt2dr(0,1));
-    cout<<"Translation initiale: "<<aTransAffFinal.I00()<<endl;
-    ElAffin2D aTransAffCorrel = aTransAffFinal;
-
     for (int aK=0; aK<aParam.mNbIter; aK++)
     {
-         Im1D_REAL8 aSol(aNbInconnu);
-         ElAffin2D aTransAffInit(ElAffin2D::Id());
+         Im1D_REAL8 aSol(4);
 
          aMatch->MatchbyLSQ (
                                  aPt1,
                                  aImgTmplt->Im2D(),
                                  aImgTarget->Im2D(),
+                                 aResCorrel.mPt,
                                  Pt2di(aImgTmplt->Im2D().sz()/2),
                                  aParam.mStepLSQ,
-                                 aSol,
-                                 aTransAffFinal
+                                 aSol
                              );
 
 
+
          double * aResLSQ = aSol.data();
-         if (aParam.mCase == 0 || aParam.mCase == 3)    // trans only or Trans + Radio
-         {
-             cout<<"Delta: "<<Pt2dr(aResLSQ[0], aResLSQ[1])<<endl;
-             aTransAffFinal = aTransAffFinal + ElAffin2D(   Pt2dr(aResLSQ[0],aResLSQ[1]),
-                                                            Pt2dr(0,0),
-                                                            Pt2dr(0,0)
-                                                        );
-         }
-         else
-         {
-             if (aParam.mCase == 4) // Aff Only
-             {
-
-                 aTransAffFinal = aTransAffFinal  + ElAffin2D(  Pt2dr(0,0),
-                                                                Pt2dr(aResLSQ[0], aResLSQ[1]),
-                                                                Pt2dr(aResLSQ[2], aResLSQ[3])
-                                                             );
-
-             }
-             else
-             {                     // Trans + Aff
-                  cout<<"Delta: "<<Pt2dr(aResLSQ[0], aResLSQ[1])<<" "<<Pt2dr(aResLSQ[2], aResLSQ[3])
-                          <<" "<<Pt2dr(aResLSQ[4], aResLSQ[5])<<endl;
-                  aTransAffFinal = aTransAffFinal  + ElAffin2D(   Pt2dr(aResLSQ[0], aResLSQ[1]),
-                                                                  Pt2dr(aResLSQ[2], aResLSQ[3]),
-                                                                  Pt2dr(aResLSQ[4], aResLSQ[5])
-                                                              );
-             }
-         }
-
          cout<<"==== Iter "<<"["<<aK<<"]"<<" ====="<<endl;
+         cout<<"    **A: "<<aResLSQ[0]<<" -B: "<<aResLSQ[1]<<" -TrX: "<<aResLSQ[2]<<" -TrY: "<<aResLSQ[3]<<endl;
+         cout<<"    **Before : "<<aResCorrel.mPt<<" - After LSQ: "<<aResCorrel.mPt + Pt2dr(aResLSQ[2], aResLSQ[3])<<endl;
 
-         cout<<"    ER **I00: "<< aTransAffFinal.I00() <<" -I01: "<< aTransAffFinal.I01() <<" -I10: "<<aTransAffFinal.I10();
-
-         if (aParam.mCase == 2)
-            cout<<" -A: "<<aResLSQ[6]<<" -B: "<<aResLSQ[7];
-         if (aParam.mCase == 3)
-             cout<<" -A: "<<aResLSQ[2]<<" -B: "<<aResLSQ[3];
-
-           cout<<endl;
-
-         cout<<"    **Before : "<<aResCorrel.mPt;
-
+         //aMatch->DoMatchbyLSQ();
          // update matched result
-         aResCorrel.mPt = aTransAffFinal(aPt1);
-         cout<<" - After LSQ: "<<aResCorrel.mPt<<endl<<endl;
-
+         aResCorrel.mPt = aResCorrel.mPt + Pt2dr(aResLSQ[2], aResLSQ[3]);
     }
-    cout<<"TransAff : "<<aTransAffFinal.I00()<<aTransAffFinal.I01()<<aTransAffFinal.I10()<<endl;
-    cout<<endl<<endl;
-    tIm2DM aImgVerif(aImgTmplt->Im2D().sz().x, aImgTmplt->Im2D().sz().y);
-    tIm2DM aImgVerifCorrel(aImgTmplt->Im2D().sz().x, aImgTmplt->Im2D().sz().y);
-    Pt2di aPt(0,0);
-    OK = true;
-    for (aPt.x=0; aPt.x<aImgTmplt->Im2D().sz().x; aPt.x++)        // class cCorrelImage don't support real coordinate
-    {
-        for (aPt.y=0; aPt.y<aImgTmplt->Im2D().sz().y; aPt.y++)
-        {
-            Pt2dr aPxlTarget = aTransAffFinal(Pt2dr(aPt));
-            double aVal = aImgTarget->Im2D().Get(aPxlTarget, *aInterpolBilin, -1.0);
-            aImgVerif.SetR_SVP(
-                                aPt,
-                                aVal
-                              );
-
-            aPxlTarget = aTransAffCorrel(Pt2dr(aPt));
-            aVal = aImgTarget->Im2D().Get(aPxlTarget, *aInterpolBilin, -1.0);
-            aImgVerifCorrel.SetR_SVP(
-                                        aPt,
-                                        aVal
-                                    );
-
-        }
-    }
-    string imVerif = aTmpl + "_Verif_LSQ.tif";
-    ELISE_COPY
-            (
-                aImgVerif.all_pts(),
-                aImgVerif.in_proj(),
-                Tiff_Im(
-                    imVerif.c_str(),
-                    aImgVerif.sz(),
-                    GenIm::real8,
-                    Tiff_Im::No_Compr,
-                    Tiff_Im::BlackIsZero
-                    ).out()
-
-                );
-
-    string imVerifCorrel = aTmpl + "_Verif_Correl.tif";
-    ELISE_COPY
-            (
-                aImgVerifCorrel.all_pts(),
-                aImgVerifCorrel.in_proj(),
-                Tiff_Im(
-                    imVerifCorrel.c_str(),
-                    aImgVerifCorrel.sz(),
-                    GenIm::real8,
-                    Tiff_Im::No_Compr,
-                    Tiff_Im::BlackIsZero
-                    ).out()
-
-                );
-
     return EXIT_SUCCESS;
 }

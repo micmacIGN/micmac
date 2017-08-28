@@ -100,18 +100,10 @@ bool  ElImScroller::CanReinitTif()
    return true;
 }
 
-void ElImScroller::ReInit_Virt_TifFile(Tiff_Im aTif)
+void ElImScroller::ReInitTifFile(Tiff_Im aTif)
 {
-    ELISE_ASSERT(false,"ElImScroller::ReInit_Virt_TifFile no def value");
+    ELISE_ASSERT(false,"ElImScroller::ReInitTifFile no def value");
 }
-
-void ElImScroller::ReInit_NonVirt_TifFile(Tiff_Im aTif)
-{
-    ReInit_Virt_TifFile(aTif);
-    _SzU = aTif.sz();
-}
-
-
 
 void ElImScroller::SetAlwaysQuickInZoom()
 {

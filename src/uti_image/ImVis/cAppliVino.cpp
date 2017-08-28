@@ -270,7 +270,7 @@ void cAppli_Vino::PostInitVirtual()
     //mScr->SetAlwaysQuickInZoom(!ZoomBilin());
     SetInterpoleMode(ZoomBilin() ? eInterpolBiLin : eInterpolPPV,false);
     // mScr = new ImFileScroller<U_INT1> (*mVVE,*mTiffIm,1.0);
-    // mScr->ReInit_NonVirt_TifFile(*mTiffIm);
+    // mScr->ReInitTifFile(*mTiffIm);
     InitTabulDyn();
     mScr->set_max();
     ShowAsc();

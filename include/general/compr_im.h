@@ -315,7 +315,7 @@ class ElImScroller
      public :
                virtual ElImScroller * CurScale() ;   // Default this => utilise dans Pyram
                virtual bool CanReinitTif();
-               virtual void ReInit_NonVirt_TifFile(Tiff_Im aTif);
+               virtual void ReInitTifFile(Tiff_Im aTif);
 
 
                virtual void  SetAlwaysQuick(bool aVal);
@@ -487,7 +487,6 @@ class ElImScroller
             RabUpdate = 2
         };
 		ElImScroller(const ElImScroller &);
-         virtual void ReInit_Virt_TifFile(Tiff_Im aTif);
 };
 
 class ElPyramScroller : public ElImScroller

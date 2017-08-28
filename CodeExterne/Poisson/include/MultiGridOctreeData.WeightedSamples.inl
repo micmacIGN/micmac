@@ -357,7 +357,7 @@ V Octree< Real >::_Evaluate( const DenseNodeData< V , DataDegree >& coefficients
 		if( _IsValidNode< DataDegree >( n ) )
 		{
 			int fIdx[3];
-			FunctionIndex< DataDegree >	( n , fIdx );
+			FunctionIndex( n , fIdx );
 			value += 
 				(
 				coefficients[ n->nodeData.nodeIndex ] *

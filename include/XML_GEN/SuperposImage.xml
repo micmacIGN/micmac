@@ -405,11 +405,6 @@
          <CalibChannel Nb="+" RefType="EtalRelOneChan"  Container="std::vector"> </CalibChannel>
    </ColorCalib>
 
-   <Xml_ColorCalibBasic Nb="1" Class="true"  ToReference="true">
-         <Cste Nb="1" Type="double"> </Cste>
-         <Mul Nb="1" Type="double"> </Mul>
-   </Xml_ColorCalibBasic>
-
   <!--
          Evaluation de grille par composition
   -->

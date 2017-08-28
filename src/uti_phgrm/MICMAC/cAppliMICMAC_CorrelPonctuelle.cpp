@@ -104,7 +104,6 @@ std::cout << "HHHHhjjj " << aBox._p0 << aBox._p1 << "\n";
    }
 }
     
-// Sert a traiter les deux cas DoCorrelPonctuelle2ImGeomI DoCorrelCroisee2ImGeomI
 
 void cAppliMICMAC::DoCorrel2ImGeomImGen
      (
@@ -208,10 +207,6 @@ void cAppliMICMAC::DoCorrel2ImGeomImGen
 }
 
 
-/*
-     Correlation sur plusieur taille de fenetre, on selectionne la meilleure
-*/
-
 void cAppliMICMAC::DoCorrelMultiFen
      (
             const Box2di & aBox,
@@ -293,18 +288,6 @@ void cAppliMICMAC::DoCorrelMultiFen
        }
    }
 }
-
-/*
-    Critere de similarite (experimental) qui est plus ou moins un compromis entre
-census et correlation std.
-
-    Soit I et J les vignettes, I0 et J0 les pixels centraux, on va ne normalise
-que par rapport a eux, avec un formule du  type :
-
-     Sigma(| Ik/I0 - Jk/J0|) en prenant qq precaution pour rendre robuste
-    
-*/
-
 
 void cAppliMICMAC::DoCorrelRobusteNonCentree
      (
