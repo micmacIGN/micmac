@@ -85,6 +85,7 @@ void throwError(std::string err)
     EliseBRKP();
 }
 
+/*** JCD - Not used ***
 int GetCharOnBrkp()
 {
    BasicErrorHandler();
@@ -92,12 +93,15 @@ int GetCharOnBrkp()
       return 0;
    return getchar();
 }
+*** JCD - Not used ***/
 
 void EliseBRKP()
 {
     BasicErrorHandler();
-    if (!TheExitOnBrkp)
-       getchar();
+	if (!TheExitOnBrkp)
+	{
+		getchar();
+	}
 }
 
 
@@ -198,13 +202,19 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
     throwError(msg);
 
     AddMessErrContext(std::string("mes=") + mes + std::string(" line=") + ToString(line) + std::string(" file=") + file);
-    ElEXIT ( 1, "cEliseFatalErrorHandler::cEFEH_OnErreur");
+	ElEXIT ( 1, "cEliseFatalErrorHandler::cEFEH_OnErreur");
 }
 
 void  elise_fatal_error(const char * mes,const char * file,int line)
 {
    BasicErrorHandler();
-   cEliseFatalErrorHandler::CurHandler()->cEFEH_OnErreur(mes,file,line);
+
+   cEliseFatalErrorHandler *ptrCurHandler = cEliseFatalErrorHandler::CurHandler();
+
+   if (ptrCurHandler != 0)
+   {
+	   ptrCurHandler->cEFEH_OnErreur(mes, file, line);
+   }
 }
 
 /*****************************************************************/

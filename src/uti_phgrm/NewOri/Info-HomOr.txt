@@ -32,10 +32,29 @@ couple i0j0
 Dans Martini Option  ModeNO=OnlyHomogr
 
 
-   Sur NO_Ori2Im :
+   Sur NO_Ori2Im : export des orientations planes
 
 
-      
+Hom avec une image centrale 0:
+
+    (1) Calcul des homographie vers l'image  centre H0i
+
+          (1.1) valeurs initiale a partir de celles calculees H00 = Id (pas en inconnue)
+          (1.2) affinement par compensation :
+                     Hi0  hji = Hj0 
+                       hj0 = Hj0   // Pour fixer a une homot pres
+
+
+     (2) Calcul de homogra=> plan ;
+
+          (2.1) Pour chaque image calcul de deux orientations  Hpj0 
+
+                => tester l'invariant calcul du plan
+                => tester le plus proche de la solution photogra (a priori douteux , toutes devraient fonctionner ?)
+                => tester les solution entre elle, egalite a similitude plane pres ?
+
+
+
 
 
 

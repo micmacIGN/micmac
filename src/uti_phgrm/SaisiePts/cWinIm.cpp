@@ -252,6 +252,7 @@ void  cWinIm::SetNoImage()
         mScr->set_max();  // Modif MPD TENTATIVE CORRECTION BUG REAFF
 #endif
         mCurIm->SetWAff(0);
+        mNameLastCurIm = mCurIm->Tif().name();
     }
     mCurIm = 0;
 }
@@ -271,15 +272,29 @@ void  cWinIm::SetImage(cImage *aIm)
     SetTitle();
 }
 
+extern bool TiffScrollCompat(const std::string & aN1,const std::string & aN2);
+
+
 void  cWinIm::SetNewImage(cImage * aIm)
 {
     static int aCpt=0;
     aCpt++;
     aIm->CptAff() = aCpt;
 
+    // std::cout << "OLD " << mCurIm << " NEW " << aIm << "\n";
     // std::cout << "OLD " << mCurIm->Name() << " NEW " << aIm->Name() << "\n";
 #if (ELISE_X11)
-    mScr->ReInitTifFile(aIm->Tif());
+    if ( (mNameLastCurIm!="") && TiffScrollCompat( mNameLastCurIm,aIm->Tif().name()))
+    {
+if (MPD_MM()) std::cout << "RECYCLE  in cWinIm::SetNewImage\n";
+       mScr->ReInit_NonVirt_TifFile(aIm->Tif());
+    }
+    else
+    {
+if (MPD_MM()) std::cout << "CREATION  in cWinIm::SetNewImage\n";
+       delete mScr;
+       mScr   =  SCR(mVWV,aIm->Tif().name(),mAppli.Param().ForceGray().Val());
+    }
 #endif
     SetImage(aIm);
 }

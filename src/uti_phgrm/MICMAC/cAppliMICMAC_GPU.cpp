@@ -1345,13 +1345,14 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 {
     int aNbOk = 0;
     double aSomCorrel = 0;
+    double aMulCost = aCMP ?  aCMP->MCP_PdsCorrelStd() :  1.0;
 
-    if (mVLI[0]->OkOrtho(anX,anY))
+    if (aMulCost && mVLI[0]->OkOrtho(anX,anY))
     {
         double aCMax = -2;
         double aCMin = 2;
-    for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
-    {
+        for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+        {
              double aCor;
              if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
              {
@@ -1360,7 +1361,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                  ElSetMax(aCMax,aCor);
                  ElSetMin(aCMin,aCor);
              }
-    }
+        }
         if (VireExtre && (aNbOk>2))
         {
             aSomCorrel -= aCMax + aCMin;
@@ -1401,7 +1402,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
     (
          Pt2di(anX,anY),
          &mZIntCur,
-         aNbOk ? mStatGlob->CorrelToCout(aSomCorrel/aNbOk) : mAhDefCost
+         (aNbOk ? mStatGlob->CorrelToCout(aSomCorrel/aNbOk) : mAhDefCost) * aMulCost
     );
 }
 
@@ -1537,6 +1538,7 @@ void cAppliMICMAC::DoGPU_Correl
                                 DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
                                 break;
 
+                            // L'option median, on vire le max et le min
                             case eAggregMoyMedIm1Maitre :
                                  DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true);
                             break;

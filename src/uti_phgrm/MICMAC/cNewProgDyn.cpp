@@ -199,8 +199,8 @@ class cTabValArgGlob
      public :
 
           cTabValArgGlob(const cMultiCorrelPonctuel & aMCP, const int & aValOut,double aDefRes) :
-                mPdsPonct (aMCP.PdsCorrelPonct() / 127.0),
-                mDefRes   (aMCP.PdsCorrelPonct() * aDefRes),
+                mPdsPonct (aMCP.MCP_PdsCorrelPonct() / 127.0),
+                mDefRes   (aMCP.MCP_PdsCorrelPonct() * aDefRes),
                 mValOut   (aValOut)
           {
           }
@@ -345,7 +345,7 @@ template <class TypeArg> class cMMNewPrg2D : public cSurfaceOptimiseur
 
 
         bool mHasMask;
-        cArgMaskAuto *          mArgMaskAuto;
+        // cArgMaskAuto *          mArgMaskAuto;
         bool              mEtiqImage;
         int               mMulZ;
         int               mCostChImage;
@@ -394,7 +394,7 @@ template <class Type> cMMNewPrg2D<Type>::cMMNewPrg2D
    mNumNap  (mEtape.NumSeuleNapEp()),
    mONP     (mLTCur->KthNap(mNumNap)),
    mHasMask (mMod.ArgMaskAuto().IsInit()),
-   mArgMaskAuto (mMod.ArgMaskAuto().PtrVal()),
+   // mArgMaskAuto (mMod.ArgMaskAuto().PtrVal()),
    mEtiqImage    (EtiqImage),
    mMulZ         (aMul),
    mCostChImage  ( anEBI ? CostR2I(anEBI->CostChangeEtiq()) :0),
@@ -657,11 +657,11 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
                    {
                        aVCel[aZ].SetOwnCost(mCostOut);
                    }
-                   aVCel[aZMax].SetOwnCost(0);
+                   aVCel[aZMax].SetOwnCost(0);  // ZMax=> etat ds le masque
                 }
                 else
                 {
-                   aVCel[aZMax].SetOwnCost(mCostDefMasked);
+                   aVCel[aZMax].SetOwnCost(mCostDefMasked);  // ZMask => etat dans le masque
                 }
             }
         }
@@ -807,7 +807,7 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::AllocNewPrgDyn
         {
              const cMultiCorrelPonctuel & aMCP = aCAH->MultiCorrelPonctuel().Val();
              ELISE_ASSERT(! EtiqImage,"Incompatibilite  : MultiCorrelPonctuel / EtiqImage");
-             cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
+             cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.MCP_DefCost().Val());
 
 
              switch (aAppli.NbVueAct()-1)
