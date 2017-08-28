@@ -15,6 +15,7 @@ class cParamLSQMatch
         double mStepCorrel;
         double mStepLSQ;
         int mStepPxl;
+        int mNbIter;
 };
 
 class cImgMatch

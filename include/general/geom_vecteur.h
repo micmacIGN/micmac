@@ -312,7 +312,7 @@ template <class Type> class Mat_Inertie
             _s   += 1;
             _s1  += v1;
             _s2  += v2;
-            _s11 += scal(v1,v1);
+            _s11 += scal(v1,v1); // scal = v1*v1
             _s12 += scal(v1,v2);
             _s22 += scal(v2,v2);
        }
@@ -375,8 +375,8 @@ template <class Type> class Mat_Inertie
                   "som pds = 0 in Mat_Inertie::normalize"
              );
 
-             ElTyName Type::TypeReel::TypeEff  S1 =  _s1 / (REAL) _s;
-             ElTyName Type::TypeReel::TypeEff  S2 =  _s2 / (REAL) _s;
+             ElTyName Type::TypeReel::TypeEff  S1 =  _s1 / (REAL) _s;  // _s1 = sigma(v1) (sum of all v1 value)
+             ElTyName Type::TypeReel::TypeEff  S2 =  _s2 / (REAL) _s;  // _s2 = sigma(v2)
 
 
 #if ( ELISE_windows & ELISE_MinGW )
@@ -388,7 +388,7 @@ template <class Type> class Mat_Inertie
                          _s,
                          S1,
                          S2,
-                         _s11/(REAL)_s  -scal(S1,S1),
+                         _s11/(REAL)_s  -scal(S1,S1),   // _s = number of added element
                          _s12/(REAL)_s  -scal(S1,S2),
                          _s22/(REAL)_s  -scal(S2,S2)
                     );

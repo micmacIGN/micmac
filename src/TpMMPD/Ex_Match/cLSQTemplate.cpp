@@ -23,8 +23,8 @@ void cLSQMatch::update(double CurErr, Pt2dr aPt)
         mPtMinErr = aPt;
     }
 }
-/*
 
+/*
 bool cLSQMatch::DoMatchbyLSQ()
 {
     mcurrErr = 0.0;
@@ -76,10 +76,12 @@ bool cLSQMatch::DoMatchbyLSQ()
     double Trx = 0.0;
     double Try = 0.0;
 
+    //er
+    double aReg=0.00001;
 
-    for (aPt.x=0; aPt.x<aTmp.sz().x; aPt.x++)
+    for (aPt.x=20; aPt.x<aTmp.sz().x-20; aPt.x++)
     {
-        for (aPt.y=0; aPt.y<aTmp.sz().y; aPt.y++)
+        for (aPt.y=20; aPt.y<aTmp.sz().y-20; aPt.y++)
         {
             //bool BUG = (cnt==804);
             //get data in Template
@@ -96,8 +98,17 @@ bool cLSQMatch::DoMatchbyLSQ()
             aCoeff[2] = h1*aDxImg;
             aCoeff[3] = h1*aDyImg;
             aSys.AddEquation(1.0, aCoeff, aB);
+
         }
     }
+
+    for(int aK=0; aK<4; aK++)
+    {
+        aSys.AddTermQuad(aK,aK,aReg);
+    }
+
+
+
     bool OK = false;
     aSys.Solve(&OK);
     Im1D_REAL8 aSol = aSys.Solve(&OK);
@@ -148,9 +159,11 @@ bool cLSQMatch::DoMatchbyCorel()
     return true;
 }
 
-
+/*
 bool cLSQMatch::DoMatchbyLSQ()
 {
+
+
     mcurrErr = 0.0;
     // for each pixel couple from Template & Target :
     Pt2dr aPt(0,0);
@@ -228,7 +241,7 @@ bool cLSQMatch::DoMatchbyLSQ()
         return false;
     }
 }
-
+*/
 
 bool cLSQMatch::MatchbyLSQ(
                                 Pt2dr aPt1,
@@ -259,13 +272,20 @@ bool cLSQMatch::MatchbyLSQ(
             double aGr2X = aNewVD2.x;  // derive en X
             double aGr2Y = aNewVD2.y;  // derive en Y
             double aV2   = aNewVD2.z;  // valeur d'intensite
-
+/*          // This code works also
             mCoeff[0] = aV1 ; // A
             mCoeff[1] = 1.0 ; // B
             mCoeff[2] = -aGr2X; // im00.x
             mCoeff[3] = -aGr2Y;  // im00.y
 
             aSys.AddEquation(1.0,mCoeff,aV2);
+*/
+            mCoeff[0] = aV2 ; // A
+            mCoeff[1] = 1.0 ; // B
+            mCoeff[2] = aGr2X; // im00.x
+            mCoeff[3] = aGr2Y;  // im00.y
+
+            aSys.AddEquation(1.0,mCoeff,aV1-aV2);
         }
     }
     bool OK = false;
@@ -510,6 +530,7 @@ int LSQMatch_Main(int argc,char ** argv)
    aParam.mStepCorrel = 1.0;
    aParam.mStepLSQ = 1.0;
    aParam.mStepPxl = 1;
+   aParam.mNbIter = 1;
 
    ElInitArgMain
    (
@@ -521,6 +542,7 @@ int LSQMatch_Main(int argc,char ** argv)
                      << EAM(aParam.mStepCorrel, "StepCor", true, "Step of windows movement in Correlation")
                      << EAM(aParam.mStepPxl, "StepPix", true, "Step of pixel sampling in 1 Correlation")
                      << EAM(aParam.mStepLSQ, "StepLSQ", true, "Step of pixel sampling in LSQ")
+                     << EAM(aParam.mNbIter, "NbIter", true, "Number of LSQ iteration (def=1)")
                );
          cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
          cout<<"Lire Img Target"<<endl;
@@ -531,44 +553,9 @@ int LSQMatch_Main(int argc,char ** argv)
          aImgTmplt->Load();
          cInterpolBilineaire<double> * aInterpolBilin = new cInterpolBilineaire<double>;
 
-         /*================ Corrrelation ==================*/
-/*
-         Pt2dr aPt(0.0,0.0);
-         double aStep = 1.0;
-         Pt2di aPt_centre_tmp = Pt2di(aImgTmplt->Im2D().sz()/2);
-         tIm2DM aImgScoreCorrel(aImgTarget->Im2D().sz().x, aImgTarget->Im2D().sz().y);
-         cResulRechCorrel aResCorrel =    Tst_Correl
-                                                                   (
-                                                                          aImgTmplt->Im2D(),
-                                                                          aPt_centre_tmp,
-                                                                          aImgTarget->Im2D(),
-                                                                          Pt2di(aImgTarget->Im2D().sz()/2),
-                                                                          Pt2di(aImgTmplt->Im2D().sz()/2),
-                                                                          aParam.mStepCorrel,
-                                                                          Pt2di(aImgTarget->Im2D().sz()/2),
-                                                                          aImgScoreCorrel
-                                                                   );
-         string imScore = "imScore.tif";
-         ELISE_COPY
-                 (
-                     aImgScoreCorrel.all_pts(),
-                     aImgScoreCorrel.in_proj(),
-                     Tiff_Im(
-                         imScore.c_str(),
-                         aImgScoreCorrel.sz(),
-                         GenIm::real8,
-                         Tiff_Im::No_Compr,
-                         Tiff_Im::BlackIsZero
-                         //aZBuf->Tif().phot_interp()
-                         ).out()
-
-                     );
-         cout<<"Max Score : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
-*/
-
          /*================ Corrrelation real ==================*/
          Pt2dr aPt(0.0,0.0);
-         double aStep = 1.0;
+         //double aStep = 1.0;
          tIm2DM aImgScoreCorrel(aImgTarget->Im2D().sz().x, aImgTarget->Im2D().sz().y);
          bool OK = false;
 
@@ -614,7 +601,7 @@ int LSQMatch_Main(int argc,char ** argv)
 
                      );
          if (OK)
-            cout<<"Max Score : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
+            cout<<"Correl : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
          else
              cout<<"Correl false"<<endl;
 
@@ -625,7 +612,11 @@ int LSQMatch_Main(int argc,char ** argv)
          aImgTarget->GetImget(aResCorrel.mPt, aImgTmplt->SzIm());
          cLSQMatch * aMatch = new cLSQMatch(aImgTmplt, aImgTarget);
          aMatch->Param() = aParam;
+
+    for (int aK=0; aK<aParam.mNbIter; aK++)
+    {
          Im1D_REAL8 aSol(4);
+
          aMatch->MatchbyLSQ (
                                  aPt1,
                                  aImgTmplt->Im2D(),
@@ -635,8 +626,17 @@ int LSQMatch_Main(int argc,char ** argv)
                                  aParam.mStepLSQ,
                                  aSol
                              );
+
+
+
          double * aResLSQ = aSol.data();
-         cout<<"A: "<<aResLSQ[0]<<" -B: "<<aResLSQ[1]<<" -TrX: "<<aResLSQ[2]<<" -TrY: "<<aResLSQ[3]<<endl;
-         cout<<"Match Res : Correl : "<<aResCorrel.mPt<<" - LSQ: "<<aResCorrel.mPt + Pt2dr(aResLSQ[2], aResLSQ[3])<<endl;
+         cout<<"==== Iter "<<"["<<aK<<"]"<<" ====="<<endl;
+         cout<<"    **A: "<<aResLSQ[0]<<" -B: "<<aResLSQ[1]<<" -TrX: "<<aResLSQ[2]<<" -TrY: "<<aResLSQ[3]<<endl;
+         cout<<"    **Before : "<<aResCorrel.mPt<<" - After LSQ: "<<aResCorrel.mPt + Pt2dr(aResLSQ[2], aResLSQ[3])<<endl;
+
+         //aMatch->DoMatchbyLSQ();
+         // update matched result
+         aResCorrel.mPt = aResCorrel.mPt + Pt2dr(aResLSQ[2], aResLSQ[3]);
+    }
     return EXIT_SUCCESS;
 }
