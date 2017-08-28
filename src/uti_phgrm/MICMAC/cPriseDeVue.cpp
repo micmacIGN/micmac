@@ -320,8 +320,6 @@ bool cPriseDeVue::LoadImageMM
            return true;
     }
 
-    // std::cout  << " yyyyyyyyy " <<  mGeom->BoxClip()._p0 <<  mGeom->BoxClip()._p1<< "\n";
-    // getchar();
 
    int aDZ = mCurEtape->DeZoomIm();
    mLoadIm = cLoadedImage::Alloc
@@ -619,6 +617,7 @@ cGeomImage & cPriseDeVue::Geom()
           else
              mGeom = cGeomImage::GeomImage_Faisceau
                      (mAppli,*this,SzIm(),aDimFs,GetOri(),mAppli.PDV1()->GetOri(),isSpherik);
+
      }
      else
      {

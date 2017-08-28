@@ -319,6 +319,15 @@ bool cLSQMatch::MatchbyLSQ(
             aSys.AddEquation(1.0,mCoeff,aV2);
 */
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+            mCoeff[0] = aV2 ; // A
+            mCoeff[1] = 1.0 ; // B
+            mCoeff[2] = aGr2X; // im00.x
+            mCoeff[3] = aGr2Y;  // im00.y
+
+=======
+>>>>>>> master
             switch (mParam.mCase)
             {
                 case 0: // only trans
@@ -366,12 +375,16 @@ bool cLSQMatch::MatchbyLSQ(
                         break;
                     }
             }
+<<<<<<< HEAD
 =======
             mCoeff[0] = aV2 ; // A
             mCoeff[1] = 1.0 ; // B
             mCoeff[2] = aGr2X; // im00.x
             mCoeff[3] = aGr2Y;  // im00.y
 
+>>>>>>> master
+=======
+>>>>>>> 889362b24cad3265a74228dbc8a7362ec76e2452
 >>>>>>> master
             aSys.AddEquation(1.0,mCoeff,aV1-aV2);
             sqr_residu+=(aV1-aV2)*(aV1-aV2);
@@ -631,11 +644,19 @@ int LSQMatch_Main(int argc,char ** argv)
    aParam.mStepPxl = 1;
    aParam.mNbIter = 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> master
    int method = 0;
    aParam.mAff = false;
    aParam.mRadio = false;
    aParam.mCase = 3;
+<<<<<<< HEAD
 =======
+>>>>>>> master
+=======
+>>>>>>> 889362b24cad3265a74228dbc8a7362ec76e2452
 >>>>>>> master
 
    ElInitArgMain
@@ -650,11 +671,19 @@ int LSQMatch_Main(int argc,char ** argv)
                      << EAM(aParam.mStepLSQ, "StepLSQ", true, "Step of pixel sampling in LSQ")
                      << EAM(aParam.mNbIter, "NbIter", true, "Number of LSQ iteration (def=1)")
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> master
                      //<< EAM(aParam.mAff, "Aff", true, "Estimate Affine part in LSQ - total 8 param if true (def=false)")
                      //<< EAM(aParam.mRadio, "Radio", true, "Estimate Radiometry part in LSQ - (def=false)")
                      << EAM(aParam.mCase, "Case", true, "0 = Trans, 1 = Trans + Aff, 2 = Trans + Aff + Radio,  3 = Trans + Radio, 4 = Aff - def = 3")
                      << EAM(method, "Meth", true, "method corelation (0, 1=cCorrelImage)")
+<<<<<<< HEAD
 =======
+>>>>>>> master
+=======
+>>>>>>> 889362b24cad3265a74228dbc8a7362ec76e2452
 >>>>>>> master
                );
          cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -681,6 +710,11 @@ int LSQMatch_Main(int argc,char ** argv)
          cout<<"P1 : "<<aPt1<<" -P2 : "<<aPt2<<" -SzWin : "<<aSzW<<" -SzRech :"<<aSzRech<<endl;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+         cResulRechCorrel aResCorrel =    dblTst_Correl
+=======
+>>>>>>> master
          tIm2DM aImgScoreCorrel(aImgTarget->Im2D().sz().x, aImgTarget->Im2D().sz().y);
          bool OK = false;
          ElTimer a;
@@ -690,8 +724,12 @@ if (method == 0)
          Pt2dr aPt(0.0,0.0);
          //double aStep = 1.0;
          aResCorrel =    dblTst_Correl
+<<<<<<< HEAD
 =======
          cResulRechCorrel aResCorrel =    dblTst_Correl
+>>>>>>> master
+=======
+>>>>>>> 889362b24cad3265a74228dbc8a7362ec76e2452
 >>>>>>> master
                                                                    (
                                                                           aImgTmplt->Im2D(),
@@ -707,6 +745,31 @@ if (method == 0)
                                                                           OK
                                                                    );
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+
+         string imScore = "imScore.tif";
+         ELISE_COPY
+                 (
+                     aImgScoreCorrel.all_pts(),
+                     aImgScoreCorrel.in_proj(),
+                     Tiff_Im(
+                         imScore.c_str(),
+                         aImgScoreCorrel.sz(),
+                         GenIm::real8,
+                         Tiff_Im::No_Compr,
+                         Tiff_Im::BlackIsZero
+                         //aZBuf->Tif().phot_interp()
+                         ).out()
+
+                     );
+         if (OK)
+            cout<<"Correl : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
+         else
+             cout<<"Correl false"<<endl;
+=======
+>>>>>>> master
 }
          /*================ Corrrelation by cCorrelImage ==================*/
 bool corOK=false;
@@ -777,6 +840,7 @@ if (OK)
    cout<<"Correl : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
 else
     cout<<"Correl false"<<endl;
+<<<<<<< HEAD
 =======
 
 
@@ -799,6 +863,9 @@ else
             cout<<"Correl : "<<aResCorrel.mCorrel<<" - Pt: "<<aResCorrel.mPt<<endl;
          else
              cout<<"Correl false"<<endl;
+>>>>>>> master
+=======
+>>>>>>> 889362b24cad3265a74228dbc8a7362ec76e2452
 >>>>>>> master
 
 

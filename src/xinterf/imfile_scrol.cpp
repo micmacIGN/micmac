@@ -51,6 +51,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                              */
 /****************************************************************/
 
+bool TiffScrollCompat(Tiff_Im aTif1,Tiff_Im aTif2)
+{
+   return    (aTif1.sz() == aTif2.sz())
+          && (aTif1.sz_tile() == aTif2.sz_tile())
+          && (aTif1.nb_tile() == aTif2.nb_tile())
+          && (aTif1.SzFileTile() == aTif2.SzFileTile())
+          && (aTif1.nb_chan() == aTif2.nb_chan())
+          && (aTif1.type_el() == aTif2.type_el());
+}
+
+bool TiffScrollCompat(const std::string & aN1,const std::string & aN2)
+{
+   return TiffScrollCompat(Tiff_Im(aN1.c_str()),Tiff_Im(aN2.c_str()));
+}
+
 template <class Type > class TilesIMFL
 {
 	friend class ImFileLoader<Type>;
@@ -693,13 +708,14 @@ template <class Type> ImFileLoader<Type>::ImFileLoader
     }
 }
 
-template <class Type> void ImFileLoader<Type>::ImFReInitTifFile(Tiff_Im aTif)
+template <class Type> void ImFileLoader<Type>::ReInit_ImFL_TifFile(Tiff_Im aTif)
 {
     if ( mHasTileFile)
     {
          
-         ELISE_ASSERT(false,"::ImFReInitTifFile with Tile File");
+         ELISE_ASSERT(false,"::ReInit_ImFL_TifFile with Tile File");
     }
+    // put_tiles_in_alloc(true,&aTif);
     put_tiles_in_alloc(true);
     delete _tiff;
     delete mFPGlob;
@@ -710,7 +726,7 @@ template <class Type> void ImFileLoader<Type>::ImFReInitTifFile(Tiff_Im aTif)
 
 
 
-template <class Type> void ImFileLoader<Type>::put_tiles_in_alloc(bool FullReinit)
+template <class Type> void ImFileLoader<Type>::put_tiles_in_alloc(bool FullReinit,Tiff_Im * aTF)
 {
      if (_dynamic)
      {
@@ -718,6 +734,7 @@ template <class Type> void ImFileLoader<Type>::put_tiles_in_alloc(bool FullReini
         {
         	for (INT x=0; x<_nb_tile.x ; x++)
          	{
+
             	     if (_tiles[y][x]->_loaded)
              	     {
                               if(FullReinit) 
@@ -727,6 +744,10 @@ template <class Type> void ImFileLoader<Type>::put_tiles_in_alloc(bool FullReini
                 	     _alloc->put(_tiles[y][x]->_loaded);
 		             _tiles[y][x]->_loaded =0;	
              	     }
+                     if (aTF)
+                     {
+                          *(_tiles[y][x]) = TilesIMFL<Type>(*aTF,Pt2di(x,y),aTF->nb_chan());
+                     }
          	}
 	 }
       }
@@ -1071,9 +1092,9 @@ template <class Type> bool ImFileScroller<Type>::CanReinitTif()
     return true;
 }
 
-template <class Type> void ImFileScroller<Type>::ReInitTifFile(Tiff_Im aTif)
+template <class Type> void ImFileScroller<Type>::ReInit_Virt_TifFile(Tiff_Im aTif)
 {
-   this->ImFReInitTifFile(aTif);
+   this->ReInit_ImFL_TifFile(aTif);
 }
 
 
@@ -1130,7 +1151,7 @@ template <class Type> ImFileScroller<Type>::ImFileScroller
 {
 
 /*
-if (MPD_MM())
+if (MPD_xMM())
 {
     std::cout << "ImFileScroller<Type>::ImFil " << tif.name() 
               << " " << type_elToString(tif.type_el())

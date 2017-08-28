@@ -233,6 +233,7 @@ extern int ExtractRaw_main(int argc,char ** argv);
 
 extern int CPP_MMRename(int argc,char**argv);
 extern int  CPP_EditSet(int argc,char**argv);
+extern int  CPP_CalculCalibRadiom(int argc,char**argv);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -240,7 +241,8 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-	   aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
+       aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
+       aRes.push_back(cMMCom("CalcRadCal",CPP_CalculCalibRadiom,"Compute radiometric calibration "));
 	   
        aRes.push_back(cMMCom("CalcMapAnalytik",CPP_CalcMapAnalitik,"Compute map2d between images using various model "));
        aRes.push_back(cMMCom("CalcMapXYT",CPP_CalcMapXYT,"Compute map2d evol of T "));
@@ -735,6 +737,8 @@ int LSQMatch_Main(int argc,char ** argv);
 
 
 
+extern int CPP_HomOr1Im(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -887,6 +891,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("NO_Ori2Im",TestNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_AllOri2Im",TestAllNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_GenTripl",GenTriplet_main,"New Orientation : select triplet"));
+        aRes.push_back(cMMCom("NO_OriHom1Im",CPP_HomOr1Im,"New Orientation : Plane scene orientation/Homogra, 1 image"));
+
 
         aRes.push_back(cMMCom("NO_OneHomFloat",CPP_GenOneHomFloat,"New Orientation : generate merged float point of one image"));
         aRes.push_back(cMMCom("NO_AllHomFloat",CPP_GenAllHomFloat,"New Orientation : generate float point of all image"));

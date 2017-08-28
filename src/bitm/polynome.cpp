@@ -116,6 +116,18 @@ template <class Type> ElPolynome<Type>::ElPolynome
 
 template <class Type> ElPolynome<Type>::ElPolynome
                       (
+                          const Type * aVC,
+                          INT degre
+                      )
+{
+    for (INT d=0 ; d<= degre ; d++)
+       _coeff.push_back(aVC[d]);
+}
+
+
+
+template <class Type> ElPolynome<Type>::ElPolynome
+                      (
                           const Type & c0,
                           const Type & c1,
                           const Type & c2

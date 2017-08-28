@@ -252,6 +252,7 @@ private :
     VideoWin_Visu_ElImScr   mVWV;
     ElImScroller *          mScr;
     cImage *                mCurIm;
+    std::string             mNameLastCurIm;
     Pt2dr                   mLastPGrab;
     Pt2dr                   mP0Grab;
     bool                    mModeRelication;
