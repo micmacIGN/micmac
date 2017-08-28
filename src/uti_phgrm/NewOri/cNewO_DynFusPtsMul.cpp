@@ -613,7 +613,7 @@ template  class cFixedSizeMergeTieP<2,Pt2dr,cCMT_NoVal>;
 template  class cVarSizeMergeTieP<Pt2df,cCMT_NoVal>;
 template  class cVarSizeMergeTieP<Pt2df,cCMT_U_INT1>;
 
-
+template void NOMerge_AddAllCams<2>(cStructMergeTieP<cFixedSizeMergeTieP<2, Pt2dr, cCMT_NoVal> >& aMap, std::vector<cNewO_OneIm*> aVI);
 
 template  class cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2df,cCMT_NoVal> >;
 template  class cStructMergeTieP<cFixedSizeMergeTieP<2,Pt2df,cCMT_NoVal> >;
@@ -772,15 +772,6 @@ template <const int TheNb> void NOMerge_AddAllCams
         }
     }
 }
-
-
-void New_ForceInstanceNOMerge_AddAllCams()
-{
-    std::vector<cNewO_OneIm*> aVI;
-    cStructMergeTieP< cFixedSizeMergeTieP<2,Pt2dr,cCMT_NoVal> > aMap(2,false);
-    NOMerge_AddAllCams(aMap,aVI);
-}
-
 
 void  NewOri_Info1Cple
 (
