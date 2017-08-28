@@ -204,7 +204,11 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
 void  elise_fatal_error(const char * mes,const char * file,int line)
 {
    BasicErrorHandler();
-   cEliseFatalErrorHandler::CurHandler()->cEFEH_OnErreur(mes,file,line);
+   cEliseFatalErrorHandler *ptrCurHandler = cEliseFatalErrorHandler::CurHandler();
+   if (ptrCurHandler != 0)
+   {
+	   ptrCurHandler->cEFEH_OnErreur(mes, file, line);
+   }
 }
 
 /*****************************************************************/
