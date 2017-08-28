@@ -310,7 +310,7 @@ pair<std::vector<Pt3dr>,std::vector<double> > cMPLOG_Appli::VTmPosFromCam(std::v
 		aVTm.push_back(aVCam[aP].GPSTime);
 	}
 	
-	return make_pair<std::vector<Pt3dr>,std::vector<double> >(aVPos,aVTm);
+	return make_pair(aVPos,aVTm);
 }
 
 //return vector strting from given indic
@@ -371,7 +371,7 @@ pair<int,double> cMPLOG_Appli::GetIndicMax(std::vector<double> aVD)
 		}	
 	}
 	
-	return make_pair<unsigned int,double>(aInd,aMax);
+	return make_pair(aInd,aMax);
 }
 
 //display time
