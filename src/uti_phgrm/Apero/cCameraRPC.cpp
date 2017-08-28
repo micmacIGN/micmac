@@ -1987,10 +1987,10 @@ if(0)
 		aGridImgTest.at(aK).z = aGridCorSysTest.at(aK).z;
 
 
-    /*if( ISMETER==true ) 
-    if(aGridCorSys.size() < 500)
+    if( ISMETER==true ) 
+    if(aGridCorSys.size() < 1500)
         std::cout << aGridCorSys << "\n";
-   */
+   
 
  
     CalculRPC( aGridCorSys, aGridImg,

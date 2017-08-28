@@ -214,9 +214,8 @@ extern bool TheGoonOnWarn;
 extern bool TheMajickFile;
 extern int  TheNbIterProcess;
 
-/*** JCD - Not used ***
 extern int  GetCharOnBrkp();
-*** JCD - Not used ***/
+
 
 FILE * TheFileDebug(); // Ouvert globalement en A+
 void OpenFileDebug(const std::string &); // Erreur si ouverture multiple

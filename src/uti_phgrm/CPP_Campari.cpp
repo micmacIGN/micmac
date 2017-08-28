@@ -309,9 +309,6 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         SplitDirAndFile(mDir,mPat,aFullDir);
         StdCorrecNameOrient(AeroIn,mDir);
 
-		std::string aPrefix = "Ori-";
-		if (AeroOut.find(aPrefix) == 0) AeroOut = AeroOut.substr(aPrefix.size(),std::string::npos);
-
         std::string aSetIm = "NKS-Set-OfPattern@[[" + mPat + "]]";
 
 
@@ -591,8 +588,7 @@ int cAppli_Campari::RTA()
                   }
 
                   std::string aName = mDir + "Ori-" + AeroOut + "/Residus.dmp";
-				  cXmlSauvExportAperoGlob aEG = StdGetFromAp(aName,XmlSauvExportAperoGlob);
-getchar();
+                  cXmlSauvExportAperoGlob aEG = StdGetFromAp(aName,XmlSauvExportAperoGlob);
                   const cXmlSauvExportAperoOneIter &  anIt = aEG.Iters().back();
                   const cXmlSauvExportAperoOneAppuis * TheApp=0;
 

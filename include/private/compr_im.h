@@ -600,7 +600,7 @@ template <class Type> class  ImFileLoader : public GenScaleIm<typename El_CTypeT
                
                 typedef typename El_CTypeTraits<Type>::tBase  tGSI;
 
-                void ReInit_ImFL_TifFile(Tiff_Im aTif);
+                void ImFReInitTifFile(Tiff_Im aTif);
 
 					 
 		ImFileLoader(Tiff_Im,Pt2di SzW,ImFileLoader<Type> * ForAlloc = 0);
@@ -621,7 +621,7 @@ template <class Type> class  ImFileLoader : public GenScaleIm<typename El_CTypeT
                        void MakeOneLineReduceSomPPV();
                        void MakeOneLinePixelPond();
 
-                       void put_tiles_in_alloc(bool FullReinit = false,Tiff_Im * aTF=0);
+                       void put_tiles_in_alloc(bool FullReinit = false);
 		
 					   void load_this_tile(INT x,INT y);
 		private :
@@ -683,7 +683,7 @@ template <class Type> class ImFileScroller : public ImFileLoader<Type>,
 		public :
                                 typedef typename El_CTypeTraits<Type>::tBase  tGSI;
                                 bool CanReinitTif();
-                                void ReInit_Virt_TifFile(Tiff_Im aTif);
+                                void ReInitTifFile(Tiff_Im aTif);
 
 
 					 
