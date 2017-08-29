@@ -7790,91 +7790,91 @@ void xml_init(cGPU_CorrelBasik & anObj,cElXMLTree * aTree)
 std::string  Mangling( cGPU_CorrelBasik *) {return "BA35F60E2463F2F7FE3F";};
 
 
-double & cMultiCorrelPonctuel::MCP_PdsCorrelStd()
+double & cMultiCorrelPonctuel::PdsCorrelStd()
 {
-   return mMCP_PdsCorrelStd;
+   return mPdsCorrelStd;
 }
 
-const double & cMultiCorrelPonctuel::MCP_PdsCorrelStd()const 
+const double & cMultiCorrelPonctuel::PdsCorrelStd()const 
 {
-   return mMCP_PdsCorrelStd;
-}
-
-
-double & cMultiCorrelPonctuel::MCP_PdsCorrelPonct()
-{
-   return mMCP_PdsCorrelPonct;
-}
-
-const double & cMultiCorrelPonctuel::MCP_PdsCorrelPonct()const 
-{
-   return mMCP_PdsCorrelPonct;
+   return mPdsCorrelStd;
 }
 
 
-cTplValGesInit< double > & cMultiCorrelPonctuel::MCP_DefCost()
+double & cMultiCorrelPonctuel::PdsCorrelPonct()
 {
-   return mMCP_DefCost;
+   return mPdsCorrelPonct;
 }
 
-const cTplValGesInit< double > & cMultiCorrelPonctuel::MCP_DefCost()const 
+const double & cMultiCorrelPonctuel::PdsCorrelPonct()const 
 {
-   return mMCP_DefCost;
+   return mPdsCorrelPonct;
 }
 
 
-cTplValGesInit< std::string > & cMultiCorrelPonctuel::MCP_UnUsedTest()
+cTplValGesInit< double > & cMultiCorrelPonctuel::DefCost()
 {
-   return mMCP_UnUsedTest;
+   return mDefCost;
 }
 
-const cTplValGesInit< std::string > & cMultiCorrelPonctuel::MCP_UnUsedTest()const 
+const cTplValGesInit< double > & cMultiCorrelPonctuel::DefCost()const 
 {
-   return mMCP_UnUsedTest;
+   return mDefCost;
+}
+
+
+cTplValGesInit< std::string > & cMultiCorrelPonctuel::UnUsedTest()
+{
+   return mUnUsedTest;
+}
+
+const cTplValGesInit< std::string > & cMultiCorrelPonctuel::UnUsedTest()const 
+{
+   return mUnUsedTest;
 }
 
 void  BinaryUnDumpFromFile(cMultiCorrelPonctuel & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.MCP_PdsCorrelStd(),aFp);
-    BinaryUnDumpFromFile(anObj.MCP_PdsCorrelPonct(),aFp);
+     BinaryUnDumpFromFile(anObj.PdsCorrelStd(),aFp);
+    BinaryUnDumpFromFile(anObj.PdsCorrelPonct(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.MCP_DefCost().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.MCP_DefCost().ValForcedForUnUmp(),aFp);
+             anObj.DefCost().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DefCost().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.MCP_DefCost().SetNoInit();
+        else  anObj.DefCost().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.MCP_UnUsedTest().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.MCP_UnUsedTest().ValForcedForUnUmp(),aFp);
+             anObj.UnUsedTest().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.UnUsedTest().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.MCP_UnUsedTest().SetNoInit();
+        else  anObj.UnUsedTest().SetNoInit();
   } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cMultiCorrelPonctuel & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.MCP_PdsCorrelStd());
-    BinaryDumpInFile(aFp,anObj.MCP_PdsCorrelPonct());
-    BinaryDumpInFile(aFp,anObj.MCP_DefCost().IsInit());
-    if (anObj.MCP_DefCost().IsInit()) BinaryDumpInFile(aFp,anObj.MCP_DefCost().Val());
-    BinaryDumpInFile(aFp,anObj.MCP_UnUsedTest().IsInit());
-    if (anObj.MCP_UnUsedTest().IsInit()) BinaryDumpInFile(aFp,anObj.MCP_UnUsedTest().Val());
+    BinaryDumpInFile(aFp,anObj.PdsCorrelStd());
+    BinaryDumpInFile(aFp,anObj.PdsCorrelPonct());
+    BinaryDumpInFile(aFp,anObj.DefCost().IsInit());
+    if (anObj.DefCost().IsInit()) BinaryDumpInFile(aFp,anObj.DefCost().Val());
+    BinaryDumpInFile(aFp,anObj.UnUsedTest().IsInit());
+    if (anObj.UnUsedTest().IsInit()) BinaryDumpInFile(aFp,anObj.UnUsedTest().Val());
 }
 
 cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MultiCorrelPonctuel",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("MCP_PdsCorrelStd"),anObj.MCP_PdsCorrelStd())->ReTagThis("MCP_PdsCorrelStd"));
-   aRes->AddFils(::ToXMLTree(std::string("MCP_PdsCorrelPonct"),anObj.MCP_PdsCorrelPonct())->ReTagThis("MCP_PdsCorrelPonct"));
-   if (anObj.MCP_DefCost().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("MCP_DefCost"),anObj.MCP_DefCost().Val())->ReTagThis("MCP_DefCost"));
-   if (anObj.MCP_UnUsedTest().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("MCP_UnUsedTest"),anObj.MCP_UnUsedTest().Val())->ReTagThis("MCP_UnUsedTest"));
+   aRes->AddFils(::ToXMLTree(std::string("PdsCorrelStd"),anObj.PdsCorrelStd())->ReTagThis("PdsCorrelStd"));
+   aRes->AddFils(::ToXMLTree(std::string("PdsCorrelPonct"),anObj.PdsCorrelPonct())->ReTagThis("PdsCorrelPonct"));
+   if (anObj.DefCost().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DefCost"),anObj.DefCost().Val())->ReTagThis("DefCost"));
+   if (anObj.UnUsedTest().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UnUsedTest"),anObj.UnUsedTest().Val())->ReTagThis("UnUsedTest"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -7885,16 +7885,16 @@ void xml_init(cMultiCorrelPonctuel & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
-   xml_init(anObj.MCP_PdsCorrelStd(),aTree->Get("MCP_PdsCorrelStd",1)); //tototo 
+   xml_init(anObj.PdsCorrelStd(),aTree->Get("PdsCorrelStd",1)); //tototo 
 
-   xml_init(anObj.MCP_PdsCorrelPonct(),aTree->Get("MCP_PdsCorrelPonct",1)); //tototo 
+   xml_init(anObj.PdsCorrelPonct(),aTree->Get("PdsCorrelPonct",1)); //tototo 
 
-   xml_init(anObj.MCP_DefCost(),aTree->Get("MCP_DefCost",1),double(0.1)); //tototo 
+   xml_init(anObj.DefCost(),aTree->Get("DefCost",1),double(0.1)); //tototo 
 
-   xml_init(anObj.MCP_UnUsedTest(),aTree->Get("MCP_UnUsedTest",1)); //tototo 
+   xml_init(anObj.UnUsedTest(),aTree->Get("UnUsedTest",1)); //tototo 
 }
 
-std::string  Mangling( cMultiCorrelPonctuel *) {return "601A4CA539C59BA1FC3F";};
+std::string  Mangling( cMultiCorrelPonctuel *) {return "66B991DA0584B3F7FE3F";};
 
 
 cTplValGesInit< double > & cCorrel_Ponctuel2ImGeomI::RatioI1I2()
@@ -9568,7 +9568,7 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
    xml_init(anObj.MasqueAutoByTieP(),aTree->Get("MasqueAutoByTieP",1)); //tototo 
 }
 
-std::string  Mangling( cTypeCAH *) {return "C8E7A28C16F123F3FE3F";};
+std::string  Mangling( cTypeCAH *) {return "BC6CBB3EC7E9F0DCFC3F";};
 
 
 cTplValGesInit< double > & cCorrelAdHoc::EpsilonAddMoyenne()
@@ -9885,7 +9885,7 @@ void xml_init(cCorrelAdHoc & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeCAH(),aTree->Get("TypeCAH",1)); //tototo 
 }
 
-std::string  Mangling( cCorrelAdHoc *) {return "274AC737766CFE91FE3F";};
+std::string  Mangling( cCorrelAdHoc *) {return "D5AF66C398C8F8B3FE3F";};
 
 
 cTplValGesInit< double > & cDoImageBSurH::Dyn()
@@ -19170,7 +19170,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "A615DBF6C765CAD0FF3F";};
+std::string  Mangling( cEtapeMEC *) {return "79C42C8F82DD99FFFE3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -20335,7 +20335,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "CE25ED0F2E0BB980FF3F";};
+std::string  Mangling( cSection_MEC *) {return "529C12BED28449E8FD3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -29365,6 +29365,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "BC542D0064463887FD3F";};
+std::string  Mangling( cParamMICMAC *) {return "8A50375731DD1C8FFE3F";};
 
 // Quelque chose

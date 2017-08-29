@@ -77,8 +77,6 @@ bool PtIsToTest(const Pt2di & aP)
 /*
    Cas ou pour chaque imahge on a calcule des projection du nuage, il est donne
 par NuagePredicteur
-
-   Is supposed to better handle the occlusion.
 */
 
 void cAppliMICMAC::Correl_MNE_ZPredic

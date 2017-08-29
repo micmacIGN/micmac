@@ -393,22 +393,12 @@ std::string cNewO_NameManager::NameRatafiaSom(const std::string & aName,bool Bin
    return  Dir3POneImage(aName) + "Ratafia." + ExtXml(Bin);
 }
 
+
+
 std::list<std::string>  cNewO_NameManager::ListeImOrientedWith(const std::string & aName) const
 {
    return StdGetFromPCP(NameListeImOrientedWith(aName,true),ListOfName).Name();
 }
-
-
-std::list<std::string>  cNewO_NameManager::ListeImOrientedWith2Way(const std::string & aName) const
-{
-   std::list<std::string> aRes1 =  StdGetFromPCP(NameListeImOrientedWith(aName,true),ListOfName).Name();
-   std::list<std::string> aRes2 =  StdGetFromPCP(RecNameListeImOrientedWith(aName,true),ListOfName).Name();
-
-   std::copy(aRes2.begin(),aRes2.end(),std::back_inserter(aRes1));
-   return aRes1;
-}
-
-
 
 std::list<std::string>  cNewO_NameManager::ListeCompleteTripletTousOri(const std::string & aN1,const std::string & aN2) const
 {

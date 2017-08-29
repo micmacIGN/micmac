@@ -332,7 +332,6 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            std::string NameListeImOrientedWith(const std::string &,bool Bin) const;
            std::string RecNameListeImOrientedWith(const std::string &,bool Bin) const;
            std::list<std::string>  ListeImOrientedWith(const std::string & aName) const;
-           std::list<std::string>  ListeImOrientedWith2Way(const std::string & aName) const;
 
            CamStenope * OutPutCamera(const std::string & aName) const;
            CamStenope * CalibrationCamera(const std::string  & aName) const;

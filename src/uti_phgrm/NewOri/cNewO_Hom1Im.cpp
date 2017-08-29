@@ -42,15 +42,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cOrHom_AttrSom;
 class cOrHom_AttrASym;
 class cOrHom_AttrArc;
-class cOrHom_AttrSymA;
-class cAppli_HomOrIm ;
+class cAppli_GenTriplet;
 
-typedef  ElSom<cOrHom_AttrSom,cOrHom_AttrArc>         tSomHO;
-typedef  ElArc<cOrHom_AttrSom,cOrHom_AttrArc>         tArcHO;
-typedef  ElSomIterator<cOrHom_AttrSom,cOrHom_AttrArc> tItSHO;
-typedef  ElArcIterator<cOrHom_AttrSom,cOrHom_AttrArc> tItAHO;
-typedef  ElGraphe<cOrHom_AttrSom,cOrHom_AttrArc>      tGrHO;
-typedef  ElSubGraphe<cOrHom_AttrSom,cOrHom_AttrArc>   tSubGrHO;
+typedef  ElSom<cOrHom_AttrSom,cOrHom_AttrArc>         tSomGT;
+typedef  ElArc<cOrHom_AttrSom,cOrHom_AttrArc>         tArcGT;
+typedef  ElSomIterator<cOrHom_AttrSom,cOrHom_AttrArc> tItSGT;
+typedef  ElArcIterator<cOrHom_AttrSom,cOrHom_AttrArc> tItAGT;
+typedef  ElGraphe<cOrHom_AttrSom,cOrHom_AttrArc>      tGrGT;
+typedef  ElSubGraphe<cOrHom_AttrSom,cOrHom_AttrArc>   tSubGrGT;
 
 
 /************************************************/
@@ -62,219 +61,79 @@ typedef  ElSubGraphe<cOrHom_AttrSom,cOrHom_AttrArc>   tSubGrHO;
 class cOrHom_AttrSom
 {
      public :
-        cOrHom_AttrSom(const std::string & aName,cAppli_HomOrIm & anAppli);
-        cOrHom_AttrSom()  : mAppli (0) {};
-        const std::string & Name() const {return mName;}
-        cAppli_HomOrIm & Appli() {return *mAppli;}
-
+        cOrHom_AttrSom(const std::string & aName);
+        cOrHom_AttrSom();
      private :
         std::string mName;
-        cAppli_HomOrIm * mAppli;
 };
 
-cOrHom_AttrSom::cOrHom_AttrSom(const std::string & aName,cAppli_HomOrIm & anAppli) :
-   mName    (aName),
-   mAppli   (&anAppli)
+cOrHom_AttrSom::cOrHom_AttrSom(const std::string & aName) :
+   mName (aName)
 {
 }
-// cOrHom_AttrSom::cOrHom_AttrSom() { }
 
-
-
-    // =============        cOrHom_AttrArc    =============
-
-class cOrHom_AttrSymA
+cOrHom_AttrSom::cOrHom_AttrSom() 
 {
-    public :
-       cOrHom_AttrSymA();
-};
+}
 
+
+/************************************************/
+/*                                              */
+/*         cOrHom_AttrArc                       */
+/*                                              */
+/************************************************/
 
 class cOrHom_AttrArc
 {
-     public :
-        cOrHom_AttrArc(tSomHO * aS1,tSomHO * aS2,const cXml_Ori2Im & aXO,cOrHom_AttrSymA *);  // Arc ds le sens S1 S2
-        cOrHom_AttrArc(const cOrHom_AttrArc &,cOrHom_AttrSymA *);     // Arc reciproque
-     private :
-        cElHomographie        mHom12;
-        std::vector<Pt2dr>    mVP1;
-        cOrHom_AttrSymA &     mASym;
 };
 
-
-
-
-   // ==================  cAppli_HomOrIm  ===================
-
-class cAppli_HomOrIm : public cCommonMartiniAppli
+class cAppli_Hom1Im : public cCommonMartiniAppli
 {
     public :
-        cAppli_HomOrIm(int argc,char ** argv,bool ModePrelim);
-        bool  ModePrelim () const {return mModePrelim;}
-        cNewO_NameManager & NM () {return *mNM;}
+        cAppli_Hom1Im(int argc,char ** argv,bool ModePrelim);
     private:
-        tSomHO * GetSom(const std::string & aName,bool Create);
-        tArcHO * AddArc(tSomHO * aS1,tSomHO * aS2);
+        tSomGT * AddAnIm(const std::string & aName);
 
         bool        mModePrelim;
         std::string mPat;
         std::string mNameC;
         cElemAppliSetFile mEASF;
-        cNewO_NameManager * mNM;
-        std::map<std::string,tSomHO *> mMapS;
-        std::vector<tSomHO *>          mVSoms;
-        tGrHO                          mGr;
-        tSomHO *                       mSomC;
+        std::map<std::string,tSomGT *> mMapS;
+        tGrGT                                  mGr;
 };
 
-/************************************************/
-/*                                              */
-/*         cOrHom_AttrSymA                      */
-/*         cOrHom_AttrArc                       */
-/*                                              */
-/************************************************/
 
-cOrHom_AttrSymA::cOrHom_AttrSymA()
+tSomGT * cAppli_Hom1Im::AddAnIm(const std::string & aName)
 {
-}
-
-// XmlHomogr
-cOrHom_AttrArc::cOrHom_AttrArc(tSomHO * aS1,tSomHO * aS2,const cXml_Ori2Im & aXO,cOrHom_AttrSymA * anAS) :
-   mHom12 (aXO.Geom().Val().HomWithR().Hom()),
-   mASym  (*anAS)
-{
-   cGenGaus2D aGG(aXO.Geom().Val().Elips2().Val());
-   aGG.GetDistribGaus(mVP1,2,2); //  2,2 => 5x5
-}
-
-cOrHom_AttrArc::cOrHom_AttrArc(const cOrHom_AttrArc & anA12,cOrHom_AttrSymA * anAS) :
-   mHom12 (anA12.mHom12.Inverse()),
-   mASym  (*anAS)
-{
-    for (int aKP=0 ; aKP<int(anA12.mVP1.size()) ; aKP++)
-    {
-         mVP1.push_back(anA12.mHom12(anA12.mVP1[aKP]));
-    }
-}
-
-/************************************************/
-/*                                              */
-/*         cAppli_HomOrIm                       */
-/*                                              */
-/************************************************/
-
-tArcHO * cAppli_HomOrIm::AddArc(tSomHO * aS1,tSomHO * aS2)
-{
-   if (aS1->attr().Name() >  aS2->attr().Name())
-      ElSwap(aS1,aS2);
-
-   std::string aName = aS1->attr().Appli().NM().NameXmlOri2Im(aS1->attr().Name(),aS2->attr().Name(),true);
-   cXml_Ori2Im   aXO =   StdGetFromSI(aName,Xml_Ori2Im);
-   if ((! aXO.Geom().IsInit()) || (!aXO.Geom().Val().Elips2().IsInit()))
-      return 0;
-
-   // std::cout << "NAME: " << aName  << " => "  << aXO.Geom().Val().HomWithR().ResiduHom()  << "\n";
- 
-   tArcHO * anArc = mGr.arc_s1s2(*aS1,*aS2);
-   if (anArc)
-      return anArc;
-
-   cOrHom_AttrSymA * anASym = new cOrHom_AttrSymA;
-  
-   cOrHom_AttrArc anA12(aS1,aS2,aXO,anASym);
-   cOrHom_AttrArc anA21(anA12,anASym);
-
-   return &(mGr.add_arc(*aS1,*aS2,anA12,anA21));
-}
-
-
-
-
-tSomHO * cAppli_HomOrIm::GetSom(const std::string & aName,bool Create)
-{
-   tSomHO * & aRes = mMapS[aName];
-   if (aRes == 0)
+   if (mMapS[aName] == 0)
    {
-      if (Create)
-      {
-         aRes  = &(mGr.new_som(cOrHom_AttrSom(aName,*this)));
-         mVSoms.push_back(aRes);
-      }
-      else
-         return 0;
+      mMapS[aName]  = &(mGr.new_som(cOrHom_AttrSom(aName)));
    }
 
-   return aRes;
+   return mMapS[aName];
 }
 
-cAppli_HomOrIm::cAppli_HomOrIm(int argc,char ** argv,bool aModePrelim) :
-   mModePrelim (aModePrelim),
-   mSomC       (0)
+cAppli_Hom1Im::cAppli_Hom1Im(int argc,char ** argv,bool aModePrelim) :
+   mModePrelim (aModePrelim)
 {
-
-   // Lecture standard  des arguments
    ElInitArgMain
    (
         argc,argv,
         LArgMain() << EAMC(mPat,"Central image"),
         LArgMain() << ArgCMA()
    );
-   mEASF.Init(mPat);
-   mNM = cCommonMartiniAppli::NM(mEASF.mDir);
-   const cInterfChantierNameManipulateur::tSet * aVN = mEASF.SetIm();
 
+   mEASF.Init(mPat);
+   const cInterfChantierNameManipulateur::tSet * aVN = mEASF.SetIm();
    if (mModePrelim)
    {
        ELISE_ASSERT(aVN->size()==1,"Expect just one image in preliminary mode");
        mNameC = (*aVN)[0];
    }
-
-   //  Creation des sommets du  graphe 
-   for (int aK=0 ; aK<int(aVN->size()) ; aK++)
-   {
-        const std::string & aName = (*aVN)[aK];
-        tSomHO * aSom = GetSom(aName,true);
-        if (aName==mNameC)
-        {
-            mSomC = aSom;
-        }
-        std::list<std::string> aLV = mNM->ListeImOrientedWith2Way(aName);
-
-        // Cas Prelim, on rajoute tous les voisins du noyau
-        // for (auto  itL=aLV.begin(); itL!=aLV.end() ; itL++)
-        for (std::list<std::string>::const_iterator itL=aLV.begin(); itL!=aLV.end() ; itL++)
-        {
-             GetSom(*itL,true);
-        }
-   }
-
-
-   //  Creation des arc du  graphe 
-   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
-   {
-        tSomHO* aS1 = mVSoms[aK];
-        std::list<std::string> aLV = mNM->ListeImOrientedWith2Way(aS1->attr().Name());
-        for (std::list<std::string>::const_iterator itL=aLV.begin(); itL!=aLV.end() ; itL++)
-        {
-            tSomHO* aS2 = GetSom(*itL,false);
-            if (aS2)
-            {
-               AddArc(aS1,aS2);
-            }
-        }
-   }
-
+    
 }
 
 
-int CPP_HomOr1Im(int argc,char ** argv)
-{
-   cAppli_HomOrIm anAppli(argc,argv,true);
-
-   return EXIT_SUCCESS;
-}
-
-// class cAppli_HomOrIm : public cCommonMartiniAppli
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

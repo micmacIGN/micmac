@@ -1204,6 +1204,7 @@ for (int aK=0 ; aK<10 ; aK++)
          ELISE_ASSERT(aResol>-1e29,"No Resol in Nadir Masq");
 
 
+// std::cout << "GGGGGGGGGGGg  RR " << aResol  << " ZZZ " << aZMoy << " \n"; getchar();
 
          mAnamSA = cInterfSurfaceAnalytique::Identite(aZMoy);
          mCorrecAlti4ExportIsInit = true;
