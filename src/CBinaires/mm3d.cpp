@@ -1224,6 +1224,34 @@ bool J4M()  //  indicate if we are in Jean Michael Muler Mic Mac ....
 
 int main(int argc,char ** argv)
 {
+    //  Genere un warning si la ligne de commande contient des caratere non ASCII, car ceux ci
+    // peuvent être invisible et genere des erreurs peu comprehensibles
+
+    {
+       bool NonAsciiGot = false;
+       for (int aKA=0 ; aKA<argc ; aKA++)
+       {
+            char * anArg = argv[aKA];
+
+            for (char * aC=anArg ; *aC ; aC++)
+            {
+                if (! isascii(*aC))
+                {
+                    if (NonAsciiGot)
+                    {
+                    }
+                    else
+                    {
+                       NonAsciiGot = true;
+                       std::cout << "WARN Non Asccii on [" << anArg << "] at pos " << aC - anArg << " Num=" << int(*(U_INT1 *)aC) << "\n";
+                       getchar();
+                    }
+                }
+            }
+       }
+    }
+
+    // ===================
     ElTimer aT0;
     bool showDuration=false;
     if ((strcmp(argv[0],"mm3d")==0)  && J4M()) //show nothing if called by makefile  
