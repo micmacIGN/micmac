@@ -1219,6 +1219,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
             {
                 for (int aKP=0 ; aKP < int(aPCel.size()) ; aKP++)
                 {
+                    // On veut pour des question de normalisation que la moyenne des poids sur
+                    // x,y donne soit egale a 1
                     aPCel[aKP].SetPdsPile(aPCel[aKP].P() * (aPCel.size()/aSomP));
                 }
 

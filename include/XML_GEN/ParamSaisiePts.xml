@@ -93,6 +93,8 @@ pas interfere avec format utilisateur basique, on separe -->
 
              <ShowDet Nb="?" Type="bool" Def="false"></ShowDet> <!-- Affichage du nom des points -->
              <RefInvis Nb="?" Type="bool" Def="false"></RefInvis> <!-- Affichage du nom des points -->
+             <UseMinMaxPt Nb="?" Type="bool" Def="false"></UseMinMaxPt> 
+             <!-- Pointe precis en min/max , par defaut non car perturbant pour "newbies" -->
         </SectionWindows>
 
        
