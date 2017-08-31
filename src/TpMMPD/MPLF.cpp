@@ -380,7 +380,7 @@ pair<int,double> cMPLOG_Appli::GetIndicMax(std::vector<double> aVD)
     // 3 semble ok, et ne vois pas la plus value de make pair
 	// return make_pair(aInd,aMax);	
 	//return make_pair<unsigned int,double>(aInd,aMax);
-	return std::pair<unsigned int,double>(aInd,aMax);
+	return std::pair<int,double>(aInd,aMax);
 }
 
 //display time
