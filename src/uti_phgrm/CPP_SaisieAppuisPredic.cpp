@@ -59,7 +59,8 @@ void SaisieAppuisPredic(int argc, char ** argv,
                       bool &aForceGray,
                       double &aZMoy,
                       double &aZInc,
-                      std::string & aInputSec)
+                      std::string & aInputSec,
+                      bool & WithMaxMinPt)
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -81,6 +82,7 @@ void SaisieAppuisPredic(int argc, char ** argv,
                             << EAM(aMasq3D,"Masq3D",true,"3D Masq used for visibility", eSAM_NoInit)
                             << EAM(PIMsFilter,"PIMsF",true,"PIMs filter used for visibility", eSAM_NoInit)
                             << EAM(aInputSec,"InputSec",true,"For inmporting Other Inputs", eSAM_NoInit)
+                            << EAM(WithMaxMinPt,"WMM",true,"With max-min option for point seizing", eSAM_NoInit)
                 );
 
     if (!MMVisualMode)
@@ -134,8 +136,9 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
     double aFlou=0.0;
 
     std::string aTypePts="Pts";
+    bool WithMaxMinPt=false;
 
-    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts,aMasq3D,aPIMsFilter, aFlou, aForceGray, aZMoy, aZInc,aInputSec);
+    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts,aMasq3D,aPIMsFilter, aFlou, aForceGray, aZMoy, aZInc,aInputSec,WithMaxMinPt);
 
     if(!MMVisualMode)
     {
@@ -149,6 +152,7 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
                 +  std::string(" +Sauv=") + aNameMesure
                 +  std::string(" +SzWx=") + ToString(aSzW.x)
                 +  std::string(" +SzWy=") + ToString(aSzW.y)
+                +  std::string(" +UseMinMaxPt=") + ToString(WithMaxMinPt)
                 +  std::string(" +NbFx=") + ToString(aNbFen.x)
                 +  std::string(" +NbFy=") + ToString(aNbFen.y)
                 +  std::string(" +TypePts=") + aTypePts;
