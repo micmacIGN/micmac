@@ -397,7 +397,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                       <ModeAgreg> ${ModeAgregPrgDyn} </ModeAgreg>
                       <NbDir>   ${NbDirPrgDyn}               </NbDir>
                   </EtapeProgDyn>
-                  <Px1PenteMax>   2.0    </Px1PenteMax>
+                  <Px1PenteMax>    ${DblePx1PenteMax}    </Px1PenteMax>
                   <ArgMaskAuto >
                       <ValDefCorrel >  ${DefCor} </ValDefCorrel>
                       <CostTrans >     ${CostTrans}   </CostTrans>
@@ -489,7 +489,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                               <ModeAgreg> ${ModeAgregPrgDyn} </ModeAgreg>
                               <NbDir>   ${NbDirPrgDyn}              </NbDir>
                          </EtapeProgDyn>
-                         <Px1PenteMax>   1.0    </Px1PenteMax>
+                         <Px1PenteMax>   ${Px1PenteMax}    </Px1PenteMax>
                          <ArgMaskAuto >
                                 <ValDefCorrel >  ${DefCor} </ValDefCorrel>
                                 <CostTrans >     2.0   </CostTrans>

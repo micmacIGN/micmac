@@ -148,6 +148,8 @@ class cAppliMalt
           int         mVSNI;
           int         mNbDirPrgD;
           bool        mPrgDReInject;
+          int         mPx1PenteMax;
+
 };
 
 
@@ -216,7 +218,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mMaxFlow       (false),
     mSzRec         (50),
     mNbDirPrgD     (7),
-    mPrgDReInject  (false)
+    mPrgDReInject  (false),
+    mPx1PenteMax   (1)
 {
 
 #if(ELISE_QT_VERSION >= 4)
@@ -347,6 +350,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(aPtDebug,"PtDebug",true,"Internal Use (Point of debuging)", eSAM_InternalUse)
                     << EAM(mForceZFaisc,"ForceZFais",true,"Force Z Faisecau evan with stenope camera", eSAM_InternalUse)
                     << EAM(mVSNI,"VSND",true,"Value Special No Data")
+                    << EAM(mPx1PenteMax,"PenteMax",true,"Slope parameter (def=1)")
  
                     << EAM(mNbDirPrgD,"NbDirPrgD",true,"Nb Dir for prog dyn, (rather for tuning)")
                     << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
@@ -739,6 +743,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               + std::string(" +DefCor=") + ToString(mDefCor)
               + std::string(" +CostTrans=") + ToString(mCostTrans)
               + std::string(" +Geom=") + aNameGeom
+              + std::string(" +Px1PenteMax=") + ToString(mPx1PenteMax)
+              + std::string(" +DblePx1PenteMax=") + ToString(mPx1PenteMax*2)
               ;
 
       mCom = mCom + " +RSRT=" + ToString(aRSRT);
