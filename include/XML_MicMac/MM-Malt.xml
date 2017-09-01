@@ -55,6 +55,10 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
         <!-- Calcules -->
    <Symb>  DbleZPas=0.8 </Symb>
    <Symb>  DemiZPas=0.2 </Symb>
+   
+   <Symb>  Px1PenteMax=1 </Symb>
+        <!-- Calcule -->
+   <Symb>  DblePx1PenteMax=2 </Symb>
 
 <!-- Parametre de "Chantier -->
    <Symb> DirQO=Qk-ORTHO  </Symb>
@@ -93,6 +97,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb>  UseImSec=false  </Symb>
    <Symb>  CorMS=false  </Symb>
    <Symb> ModeAgrCor=eAggregSymetrique </Symb>
+   <Symb> DynamiqueCorrel=eCoeffCorrelStd </Symb>
 
 
     <!-- NOUVELLE FONCTIONNALITE SYMBOLE EVALUE, NOTATION POLONAISE INVERSE -->
@@ -367,6 +372,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
       <EtapeMEC>
              <DeZoom >  -1                      </DeZoom>
              <SzW >      ${SzW}             </SzW>
+             
+             <DynamiqueCorrel> ${DynamiqueCorrel} </DynamiqueCorrel>
 
              <#WHEN VTEST=${NotUseGpu}>
                 <#IF VTEST=${AlgoMaxFlow}>

@@ -149,6 +149,7 @@ class cAppliMalt
           int         mNbDirPrgD;
           bool        mPrgDReInject;
           int         mPx1PenteMax;
+          std::string mDynamiqueCorrel;
 
 };
 
@@ -219,7 +220,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mSzRec         (50),
     mNbDirPrgD     (7),
     mPrgDReInject  (false),
-    mPx1PenteMax   (1)
+    mPx1PenteMax   (1),
+    mDynamiqueCorrel ("eCoeffCorrelStd")
 {
 
 #if(ELISE_QT_VERSION >= 4)
@@ -351,7 +353,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mForceZFaisc,"ForceZFais",true,"Force Z Faisecau evan with stenope camera", eSAM_InternalUse)
                     << EAM(mVSNI,"VSND",true,"Value Special No Data")
                     << EAM(mPx1PenteMax,"PenteMax",true,"Slope parameter (def=1)")
- 
+                    << EAM(mDynamiqueCorrel,"DynamiqueCorrel",true,"Dynamic of correlation mode (def=eCoeffCorrelStd)")
                     << EAM(mNbDirPrgD,"NbDirPrgD",true,"Nb Dir for prog dyn, (rather for tuning)")
                     << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
                 );
@@ -745,6 +747,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               + std::string(" +Geom=") + aNameGeom
               + std::string(" +Px1PenteMax=") + ToString(mPx1PenteMax)
               + std::string(" +DblePx1PenteMax=") + ToString(mPx1PenteMax*2)
+
+              + std::string(" +DynamiqueCorrel=") + mDynamiqueCorrel
               ;
 
       mCom = mCom + " +RSRT=" + ToString(aRSRT);
