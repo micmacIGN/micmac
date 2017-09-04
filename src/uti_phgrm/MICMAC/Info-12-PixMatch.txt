@@ -1,0 +1,56 @@
+Activee par les parametres :
+
+   - MultiCorrelPonctuel => Pour N image
+   - Correl_Ponctuel2ImGeomI =>  Pour 2 Image, uniquement ponctuel
+   - Correl_PonctuelleCroisee => Pour 2 Images, melange "correl" et diff abs I1-I2 (avec ratio)
+
+
+Toutes requierent une geometrie image : 
+   * dans            DoCorrelAdHoc   
+   * assertion sur   "mCurEtape->EtapeMEC().AggregCorr().Val() == eAggregMaxIm1Maitre"
+
+
+La methode estiment un cout de ressemblance associe a deux pixels I et J
+
+Soit : I0 , I1, I2 ... les radiométries du premier pixel, J0 .. le deuxieme. 
+I0 et J0 etant celles de l'image maitresse.
+    
+
+Les deux fichiers utiles sont :
+
+   * cAppliMICMAC_GPU.cpp => normalement contient des fonctions qui calculent les cout de ressemblance sur un
+     pixel, ici elle ne peuvent pas le faire (il faut deux pixel) et donc elle communique des valeurs a l'optimiseur
+     qui va les enregistrer et ensuite les utiliser dans le calcul des cout des chemins
+
+   * cNewProgDyn.cpp => classe de l'optimiseur 
+
+*****************************************
+*                                       *
+*     Cas MultiCorrelPonctuel           *
+*                                       *
+*****************************************
+
+(1) Couts :
+
+      * formule style Som (|Ik/I0 - JK/J0|)
+      * Pour avoir des ratio entre 0 et 255 , on utilise pas Ik/I0 mais  E(Ik,I0) = 127 * EcartNormalise(Ik,I0)
+     
+Au moment ou on a acces aux radiometries, dans cAppliMICMAC::DoOneCorrelIm1Maitre, on n'a pas acces encore aux couple
+de radiometrie, donc on empile les E(Ik,I0) et on communique cette pile de valeur a l'optimiseur via :
+
+    mSurfOpt->Local_VecInt1(Pt2di(anX,anY),&mZIntCur,aVNorm);
+
+Qui signifie, "memorise qu'au voxel X,Y,Z, on a les liste de valeur normalisee".
+
+
+(2) Gestion 
+
+      Local_VecInt1 => par defaut erreur fatale, redefinie dans cMMNewPrg2D<Type> par :
+
+     mCelsNap[aPTer.y][aPTer.x][aPX[0]].ArgAux().InitVecINT1(aVec);
+
+
+
+     
+ 
+
