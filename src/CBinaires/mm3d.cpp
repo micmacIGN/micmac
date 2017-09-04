@@ -733,6 +733,9 @@ extern int ConvHomolVSFM2MM_main(int argc,char ** argv);
 int LSQMatch_Main(int argc,char ** argv);
 
 
+extern int  TestNewOriHom1Im_main(int argc,char ** argv);
+
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -883,6 +886,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("BasculePtsInRepCam",BasculePtsInRepCam_main,"Compute GCP in cam repair"));
         aRes.push_back(cMMCom("BasculeCamsInRepCam",BasculeCamsInRepCam_main,"Compute GCP in cam repair"));
+
+        aRes.push_back(cMMCom("NO_OriHom1Im",TestNewOriHom1Im_main,"Test New Homgr Orientation-Case 1 central Im"));
         aRes.push_back(cMMCom("NO_Ori2Im",TestNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_AllOri2Im",TestAllNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_GenTripl",GenTriplet_main,"New Orientation : select triplet"));
