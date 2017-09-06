@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+#define HOM_NbMinPTs 20
+
 class cOrHom_AttrSom;
 class cOrHom_AttrASym;
 class cOrHom_AttrArc;
@@ -84,9 +86,35 @@ cOrHom_AttrSom::cOrHom_AttrSom()
 /*                                              */
 /************************************************/
 
+class cOrHom_AttrArcSym
+{
+     public :
+        cOrHom_AttrArcSym(const cXml_Ori2Im &);
+
+     private :
+           cXml_Ori2Im  mXmlO;
+};
+
+cOrHom_AttrArcSym::cOrHom_AttrArcSym(const cXml_Ori2Im & aXml) :
+   mXmlO (aXml)
+{
+}
+
 class cOrHom_AttrArc
 {
+    public :
+        cOrHom_AttrArc(cOrHom_AttrArcSym * ,bool Direct);
+    private :
+        
+       
 };
+
+/************************************************/
+/*                                              */
+/*         cAppli_Hom1Im                        */
+/*                                              */
+/************************************************/
+
 
 class cAppli_Hom1Im : public cCommonMartiniAppli
 {
@@ -111,7 +139,17 @@ class cAppli_Hom1Im : public cCommonMartiniAppli
 
 void   cAppli_Hom1Im::AddArc(tSomGT * aS1,tSomGT * aS2)
 {
-     std::cout << "  ARC " <<  aS1->attr().Name() << " " <<  aS2->attr().Name() << "\n";
+     if (mShow) 
+        std::cout << "  ARC " <<  aS1->attr().Name() << " " <<  aS2->attr().Name() << "\n";
+/*
+*/
+
+     cXml_Ori2Im  aXml = mNM->GetOri2Im(aS1->attr().Name(),aS2->attr().Name());
+
+     if ((!aXml.Geom().IsInit())  || (aXml.NbPts() < HOM_NbMinPTs))
+        return;
+
+
 }
 
 
@@ -128,7 +166,10 @@ tSomGT * cAppli_Hom1Im::AddAnIm(const std::string & aName,bool CanCreate)
       mMapS[aName]  = &(mGr.new_som(cOrHom_AttrSom(aName)));
       mVecS.push_back(mMapS[aName]);
 
-      //std::cout <<" Add " << aName << "\n";
+/*
+     if (mShow) 
+         std::cout <<" Add " << aName << "\n";
+*/
    }
 
    return mMapS[aName];
