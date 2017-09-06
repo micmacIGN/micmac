@@ -31,8 +31,13 @@ couple i0j0
 
 Dans Martini Option  ModeNO=OnlyHomogr
 
-
    Sur NO_Ori2Im :
+
+mm3d Martini "DSC0463.*.JPG" ExtName=TestHom ModeNO=OnlyHomogr OriCalib=Ori-Calib/
+
+mm3d TestLib NO_Ori2Im  DSC04636.JPG DSC04638.JPG  GenOri=1 OriCalib=Calib ExtName=TestHom ModeNO=OnlyHomogr
+
+mm3d TestLib NO_OriHom1Im  DSC04635.JPG ExtName=TestHom ModeNO=OnlyHomogr OriCalib=Ori-Calib/
 
 
       

@@ -63,6 +63,7 @@ class cOrHom_AttrSom
      public :
         cOrHom_AttrSom(const std::string & aName);
         cOrHom_AttrSom();
+        const std::string & Name() {return mName;}
      private :
         std::string mName;
 };
@@ -92,29 +93,53 @@ class cAppli_Hom1Im : public cCommonMartiniAppli
     public :
         cAppli_Hom1Im(int argc,char ** argv,bool ModePrelim);
     private:
-        tSomGT * AddAnIm(const std::string & aName);
+        tSomGT * AddAnIm(const std::string & aName,bool CanCreate);
+        tSomGT * GetAnIm(const std::string & aName);
+        void   AddArc(tSomGT * aS1,tSomGT * aS2);
 
         bool        mModePrelim;
         std::string mPat;
         std::string mNameC;
         cElemAppliSetFile mEASF;
         std::map<std::string,tSomGT *> mMapS;
-        tGrGT                                  mGr;
+        std::vector<tSomGT *>          mVecS;
+        tSomGT *                       mSomC;
+        tGrGT                          mGr;
+        cNewO_NameManager *            mNM;
+
 };
 
+void   cAppli_Hom1Im::AddArc(tSomGT * aS1,tSomGT * aS2)
+{
+     std::cout << "  ARC " <<  aS1->attr().Name() << " " <<  aS2->attr().Name() << "\n";
+}
 
-tSomGT * cAppli_Hom1Im::AddAnIm(const std::string & aName)
+
+tSomGT * cAppli_Hom1Im::AddAnIm(const std::string & aName,bool CanCreate)
 {
    if (mMapS[aName] == 0)
    {
+      if (!CanCreate)
+      {
+         // std::cout << "For name=" << aName << "\n";
+         // ELISE_ASSERT(false,"cAppli_Hom1Im::AddAnIm cannot get Image");
+         return 0;
+      }
       mMapS[aName]  = &(mGr.new_som(cOrHom_AttrSom(aName)));
+      mVecS.push_back(mMapS[aName]);
+
+      //std::cout <<" Add " << aName << "\n";
    }
 
    return mMapS[aName];
 }
+tSomGT * cAppli_Hom1Im::GetAnIm(const std::string & aName) {return AddAnIm(aName,false);}
+
 
 cAppli_Hom1Im::cAppli_Hom1Im(int argc,char ** argv,bool aModePrelim) :
-   mModePrelim (aModePrelim)
+   mModePrelim (aModePrelim),
+   mSomC       (0),
+   mNM         (0)
 {
    ElInitArgMain
    (
@@ -124,15 +149,50 @@ cAppli_Hom1Im::cAppli_Hom1Im(int argc,char ** argv,bool aModePrelim) :
    );
 
    mEASF.Init(mPat);
+   mNM =   NM(mEASF.mDir);
    const cInterfChantierNameManipulateur::tSet * aVN = mEASF.SetIm();
+
+   for(int aK=0 ; aK<int(aVN->size()) ; aK++)
+   {
+       AddAnIm((*aVN)[aK],true);
+   }
+
+   // Cas preliminaire, on rajoute tous les sommets connexe
    if (mModePrelim)
    {
        ELISE_ASSERT(aVN->size()==1,"Expect just one image in preliminary mode");
        mNameC = (*aVN)[0];
+       mSomC =  AddAnIm(mNameC,false);
+       std::list<std::string> aLC = mNM->Liste2SensImOrientedWith(mNameC);
+       for (std::list<std::string>::const_iterator itL=aLC.begin() ; itL!=aLC.end() ; itL++)
+            AddAnIm(*itL,true);
    }
     
+
+   // Ajout des arcs
+
+   for (int aKS=0 ; aKS<int(mVecS.size()) ; aKS++)
+   {
+       tSomGT * aS1 = mVecS[aKS];
+       std::list<std::string> aLC = mNM->ListeImOrientedWith(aS1->attr().Name());
+       for (std::list<std::string>::const_iterator itL=aLC.begin() ; itL!=aLC.end() ; itL++)
+       {
+           tSomGT  * aS2 =  GetAnIm(*itL);
+           if (aS2)
+           {
+              AddArc(aS1,aS2);
+           }
+       }
+   }
 }
 
+
+int  TestNewOriHom1Im_main(int argc,char ** argv)
+{
+    cAppli_Hom1Im anAppli(argc,argv,true);
+
+     return EXIT_SUCCESS;
+}
 
 
 

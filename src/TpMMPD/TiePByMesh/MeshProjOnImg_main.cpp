@@ -45,6 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "DrawOnMesh.h"
 #include "CorrelMesh.h"
 #include "PHO_MI.h"
+#include "./TaskCorrel/TaskCorrel.h"
 
     /******************************************************************************
     The main function.
@@ -62,6 +63,7 @@ int MeshProjOnImg_main(int argc,char ** argv)
     bool click = false;
     string PtsInteret="NO";string SH="NO";
     bool oriTri = false;
+    bool aTest = false;
 
     ElInitArgMain
             (
@@ -73,6 +75,7 @@ int MeshProjOnImg_main(int argc,char ** argv)
                 << EAMC(pathPlyFileS, "path to mesh(.ply) file - created by Inital Ori", eSAM_IsExistFile),
                 //optional arguments
                 LArgMain()
+                << EAM(aTest, "test", true, "enable test")
                 << EAM(zoomF, "zoomF", true, "1 -> sz origin, 0.2 -> 1/5 size - default = 0.2")
                 << EAM(oriTri, "oriTri", true, "consider orientation of triangle/cam")
                 << EAM(click, "click", true, "true => draw each triangle by each click - default = false")
@@ -81,6 +84,8 @@ int MeshProjOnImg_main(int argc,char ** argv)
                 );
 
     if (MMVisualMode) return EXIT_SUCCESS;
+if (!aTest)
+{
     InitOutil aChain(aFullPattern, aOriInput, SH);
     cout<<"Init all.."<<endl;
     aChain.read_file(pathPlyFileS);
@@ -213,6 +218,114 @@ int MeshProjOnImg_main(int argc,char ** argv)
         if (i==ptrPic.size()-1)
             aVW->clik_in();
     }
+}
+else
+{
+    std::string aDir,aNameImg;
+    SplitDirAndFile(aDir,aNameImg,aFullPattern);
+    StdCorrecNameOrient(aOriInput,aDir);
+
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    //===========Modifier ou chercher l'image si l'image ne sont pas tif============//
+       std::size_t found = aFullPattern.find_last_of(".");
+       string ext = aFullPattern.substr(found+1);
+       cout<<"Ext : "<<ext<<endl;
+       bool isTif=false;
+       if ( ext.compare("tif") || ext.compare("tiff") || ext.compare("TIF"))   //ext equal tif
+       {
+           isTif = true;
+           cout<<" Img Tif"<<endl;
+       }
+       if (!isTif)
+       {
+           vector<string> mVName = *(aICNM->Get(aNameImg));
+           list<string> cmd;
+           for (uint aK=0; aK<mVName.size(); aK++)
+           {
+                string aCmd = MM3DStr +  " PastDevlop "+  mVName[aK] + " Sz1=-1 Sz2=-1 Coul8B=0";
+                cmd.push_back(aCmd);
+           }
+           cEl_GPAO::DoComInParal(cmd);
+           mVName.clear();
+       }
+    //===============================================================================/
+    vector<string> mVName = *(aICNM->Get(aNameImg));
+    vector<Video_Win*> VWPic;
+    vector<cBasicGeomCap3D*> mVOri;
+    vector<Tiff_Im> mVTif;
+    cout<<"Lire Image...NbImgs="<<mVName.size();
+    for (uint aKImg=0; aKImg < mVName.size(); aKImg++)
+    {
+      std::string aNameIm = mVName[aKImg];
+      cBasicGeomCap3D * mCamGen = aICNM->StdCamGenerikOfNames(aOriInput,aNameIm);
+      mVOri.push_back(mCamGen);
+      CamStenope * mCamSten = mCamGen->DownCastCS();
+      Tiff_Im mTif  = Tiff_Im::UnivConvStd(aDir + aNameIm);
+      mVTif.push_back(mTif);
+      Video_Win * mW = 0;
+      VWPic.push_back(mW);
+    }
+    cout<<"..done ! "<<endl;
+      // lire mesh
+      cout<<"Lire mesh...";
+      ElTimer aChrono;
+      cMesh myMesh(pathPlyFileS, true);
+      const int nFaces = myMesh.getFacesNumber();
+      for (int aKTri=0; aKTri<nFaces; aKTri++)
+      {
+          cTriangle* aTri = myMesh.getTriangle(aKTri);
+          vector<Pt3dr> aSm;
+          aTri->getVertexes(aSm);
+          cTri3D aTri3D (   aSm[0],
+                            aSm[1],
+                            aSm[2],
+                            aKTri
+                        );
+          for (uint aKImg=0; aKImg < mVName.size(); aKImg++)
+          {
+              Tiff_Im mTif = mVTif[aKImg];
+              if (VWPic[aKImg] == 0)
+              {
+                    VWPic[aKImg] = Video_Win::PtrWStd(mTif.sz()/int(1/zoomF), true, Pt2dr(zoomF, zoomF));
+                    VWPic[aKImg]->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+                    ELISE_COPY(mTif.all_pts(), mTif.in(), VWPic[aKImg]->ogray());
+              }
+              cBasicGeomCap3D * aOri = mVOri[aKImg];
+              // le project sur image
+              vector<Pt2dr> aVPts;
+              Pt2dr aPt1 = aOri->Ter2Capteur(aTri3D.P1());
+              Pt2dr aPt2 = aOri->Ter2Capteur(aTri3D.P2());
+              Pt2dr aPt3 = aOri->Ter2Capteur(aTri3D.P3());
+              aVPts.push_back(aPt1);
+              aVPts.push_back(aPt2);
+              aVPts.push_back(aPt3);
+
+              bool visible =
+                      aOri->PIsVisibleInImage(aTri3D.P1()) &&
+                      aOri->PIsVisibleInImage(aTri3D.P2()) &&
+                      aOri->PIsVisibleInImage(aTri3D.P3());
+              double signTri = (aPt1-aPt2)^(aPt1-aPt3);
+              if (oriTri == false)
+              {
+                  if (signTri < 0 && visible && VWPic[aKImg]!=0)
+                  {
+                      VWPic[aKImg]->draw_poly(aVPts,  VWPic[aKImg]->pdisc()(P8COL::green), true);
+                  }
+              }
+              else
+              {
+                  if (signTri > 0 && visible && VWPic[aKImg]!=0)
+                  {
+                      VWPic[aKImg]->draw_poly(aVPts,  VWPic[aKImg]->pdisc()(P8COL::green), true);
+                  }
+              }
+          }
+          if (aKTri == nFaces-1)
+              VWPic[mVName.size()-1]->clik_in();
+      }
+      cout<<"done - time "<<aChrono.uval()<<endl;
+}
     return EXIT_SUCCESS;
 }
 

@@ -903,6 +903,17 @@ const cTplValGesInit< bool > & cSectionWindows::RefInvis()const
    return mRefInvis;
 }
 
+
+cTplValGesInit< bool > & cSectionWindows::UseMinMaxPt()
+{
+   return mUseMinMaxPt;
+}
+
+const cTplValGesInit< bool > & cSectionWindows::UseMinMaxPt()const 
+{
+   return mUseMinMaxPt;
+}
+
 void  BinaryUnDumpFromFile(cSectionWindows & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -945,6 +956,14 @@ void  BinaryUnDumpFromFile(cSectionWindows & anObj,ELISE_fp & aFp)
         }
         else  anObj.RefInvis().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.UseMinMaxPt().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.UseMinMaxPt().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.UseMinMaxPt().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionWindows & anObj)
@@ -959,6 +978,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionWindows & anObj)
     if (anObj.ShowDet().IsInit()) BinaryDumpInFile(aFp,anObj.ShowDet().Val());
     BinaryDumpInFile(aFp,anObj.RefInvis().IsInit());
     if (anObj.RefInvis().IsInit()) BinaryDumpInFile(aFp,anObj.RefInvis().Val());
+    BinaryDumpInFile(aFp,anObj.UseMinMaxPt().IsInit());
+    if (anObj.UseMinMaxPt().IsInit()) BinaryDumpInFile(aFp,anObj.UseMinMaxPt().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSectionWindows & anObj)
@@ -975,6 +996,8 @@ cElXMLTree * ToXMLTree(const cSectionWindows & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ShowDet"),anObj.ShowDet().Val())->ReTagThis("ShowDet"));
    if (anObj.RefInvis().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("RefInvis"),anObj.RefInvis().Val())->ReTagThis("RefInvis"));
+   if (anObj.UseMinMaxPt().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UseMinMaxPt"),anObj.UseMinMaxPt().Val())->ReTagThis("UseMinMaxPt"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -994,9 +1017,11 @@ void xml_init(cSectionWindows & anObj,cElXMLTree * aTree)
    xml_init(anObj.ShowDet(),aTree->Get("ShowDet",1),bool(false)); //tototo 
 
    xml_init(anObj.RefInvis(),aTree->Get("RefInvis",1),bool(false)); //tototo 
+
+   xml_init(anObj.UseMinMaxPt(),aTree->Get("UseMinMaxPt",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cSectionWindows *) {return "1F5CC3C6D5FDDDB5FE3F";};
+std::string  Mangling( cSectionWindows *) {return "E8949F9F81375EF7FDBF";};
 
 
 eTypePts & cImportFromDico::TypePt()
@@ -1803,6 +1828,17 @@ const cTplValGesInit< bool > & cParamSaisiePts::RefInvis()const
 }
 
 
+cTplValGesInit< bool > & cParamSaisiePts::UseMinMaxPt()
+{
+   return SectionWindows().UseMinMaxPt();
+}
+
+const cTplValGesInit< bool > & cParamSaisiePts::UseMinMaxPt()const 
+{
+   return SectionWindows().UseMinMaxPt();
+}
+
+
 cSectionWindows & cParamSaisiePts::SectionWindows()
 {
    return mSectionWindows;
@@ -2150,6 +2186,6 @@ void xml_init(cParamSaisiePts & anObj,cElXMLTree * aTree)
    xml_init(anObj.DirectoryChantier(),aTree->Get("DirectoryChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamSaisiePts *) {return "8835D26CE5597FFDFE3F";};
+std::string  Mangling( cParamSaisiePts *) {return "4EC0D880CE7A1AD0FE3F";};
 
 // };
