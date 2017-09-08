@@ -740,6 +740,9 @@ extern int ConvHomolVSFM2MM_main(int argc,char ** argv);
 int LSQMatch_Main(int argc,char ** argv);
 
 
+extern int  TestNewOriHom1Im_main(int argc,char ** argv);
+
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -890,6 +893,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("BasculePtsInRepCam",BasculePtsInRepCam_main,"Compute GCP in cam repair"));
         aRes.push_back(cMMCom("BasculeCamsInRepCam",BasculeCamsInRepCam_main,"Compute GCP in cam repair"));
+
+        aRes.push_back(cMMCom("NO_OriHom1Im",TestNewOriHom1Im_main,"Test New Homgr Orientation-Case 1 central Im"));
         aRes.push_back(cMMCom("NO_Ori2Im",TestNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_AllOri2Im",TestAllNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_GenTripl",GenTriplet_main,"New Orientation : select triplet"));
@@ -1231,6 +1236,34 @@ bool J4M()  //  indicate if we are in Jean Michael Muler Mic Mac ....
 
 int main(int argc,char ** argv)
 {
+    //  Genere un warning si la ligne de commande contient des caratere non ASCII, car ceux ci
+    // peuvent être invisible et genere des erreurs peu comprehensibles
+
+    {
+       bool NonAsciiGot = false;
+       for (int aKA=0 ; aKA<argc ; aKA++)
+       {
+            char * anArg = argv[aKA];
+
+            for (char * aC=anArg ; *aC ; aC++)
+            {
+                if (! isascii(*aC))
+                {
+                    if (NonAsciiGot)
+                    {
+                    }
+                    else
+                    {
+                       NonAsciiGot = true;
+                       std::cout << "WARN Non Asccii on [" << anArg << "] at pos " << aC - anArg << " Num=" << int(*(U_INT1 *)aC) << "\n";
+                       getchar();
+                    }
+                }
+            }
+       }
+    }
+
+    // ===================
     ElTimer aT0;
     bool showDuration=false;
     if ((strcmp(argv[0],"mm3d")==0)  && J4M()) //show nothing if called by makefile  

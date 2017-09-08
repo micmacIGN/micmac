@@ -16,7 +16,8 @@ void SaisieAppuisPredic(int argc, char ** argv,
                       bool &aForceGray,
                       double &aZMoy,
                       double &aZInc,
-                      std::string & aInputSec);
+                      std::string & aInputSec,
+                      bool & WithMaxMinPt);
 
 
 using namespace std;
@@ -87,7 +88,8 @@ int saisieAppuisPredicQT_main(int argc, char *argv[])
         argv[0] = (char*) "SaisieAppuisPredicQT";
     }
 
-    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameMesure, aTypePts, aMasq3D,aPIMsFilter,aFlou, aForceGray, aZMoy, aZInc, aInputSec);
+    bool WithMaxMinPt=false;
+    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameMesure, aTypePts, aMasq3D,aPIMsFilter,aFlou, aForceGray, aZMoy, aZInc, aInputSec,WithMaxMinPt);
 
     if (!MMVisualMode)
     {
@@ -120,6 +122,8 @@ int saisieAppuisPredicQT_main(int argc, char *argv[])
                 << QString("+Sauv=") + QString(aNameMesure.c_str())
                 << QString("+SzWx=") + QString::number(aSzWin.x)
                 << QString("+SzWy=") + QString::number(aSzWin.y)
+                << QString(" +UseMinMaxPt=") + QString(ToString(WithMaxMinPt).c_str())
+
                 << QString("+NbFx=") + QString::number(aNbFen.x)
                 << QString("+NbFy=") + QString::number(aNbFen.y)
                 << QString("+TypePts=") + QString(aTypePts.c_str());

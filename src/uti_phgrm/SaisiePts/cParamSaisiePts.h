@@ -279,12 +279,16 @@ class cSectionWindows
 
         cTplValGesInit< bool > & RefInvis();
         const cTplValGesInit< bool > & RefInvis()const ;
+
+        cTplValGesInit< bool > & UseMinMaxPt();
+        const cTplValGesInit< bool > & UseMinMaxPt()const ;
     private:
         cTplValGesInit< Pt2di > mSzTotIm;
         cTplValGesInit< Pt2di > mNbFenIm;
         cTplValGesInit< Pt2di > mSzWZ;
         cTplValGesInit< bool > mShowDet;
         cTplValGesInit< bool > mRefInvis;
+        cTplValGesInit< bool > mUseMinMaxPt;
 };
 cElXMLTree * ToXMLTree(const cSectionWindows &);
 
@@ -518,6 +522,9 @@ class cParamSaisiePts
 
         cTplValGesInit< bool > & RefInvis();
         const cTplValGesInit< bool > & RefInvis()const ;
+
+        cTplValGesInit< bool > & UseMinMaxPt();
+        const cTplValGesInit< bool > & UseMinMaxPt()const ;
 
         cSectionWindows & SectionWindows();
         const cSectionWindows & SectionWindows()const ;

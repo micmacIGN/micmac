@@ -400,6 +400,16 @@ std::list<std::string>  cNewO_NameManager::ListeImOrientedWith(const std::string
    return StdGetFromPCP(NameListeImOrientedWith(aName,true),ListOfName).Name();
 }
 
+std::list<std::string>  cNewO_NameManager::Liste2SensImOrientedWith(const std::string & aName) const
+{
+    std::list<std::string>  aRes = ListeImOrientedWith(aName);
+    std::list<std::string> aResRec =  StdGetFromPCP(RecNameListeImOrientedWith(aName,true),ListOfName).Name();
+
+    std::copy(aResRec.begin(),aResRec.end(),std::back_inserter(aRes));
+    return aRes;
+}
+
+
 std::list<std::string>  cNewO_NameManager::ListeCompleteTripletTousOri(const std::string & aN1,const std::string & aN2) const
 {
     cListOfName aL1 = StdGetFromPCP(NameListeImOrientedWith(aN1,true),ListOfName);
