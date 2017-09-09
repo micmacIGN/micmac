@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cOrHom_AttrSom;
 class cOrHom_AttrASym;
 class cOrHom_AttrArc;
-class cAppli_GenTriplet;
+class cAppli_Hom1Im;
 
 typedef  ElSom<cOrHom_AttrSom,cOrHom_AttrArc>         tSomGT;
 typedef  ElArc<cOrHom_AttrSom,cOrHom_AttrArc>         tArcGT;
@@ -63,19 +63,23 @@ typedef  ElSubGraphe<cOrHom_AttrSom,cOrHom_AttrArc>   tSubGrGT;
 class cOrHom_AttrSom
 {
      public :
-        cOrHom_AttrSom(const std::string & aName);
+        cOrHom_AttrSom(const std::string & aName,cAppli_Hom1Im &);
         cOrHom_AttrSom();
         const std::string & Name() {return mName;}
+        cAppli_Hom1Im & Appli() {return *mAppli;}
      private :
         std::string mName;
+        cAppli_Hom1Im * mAppli;
 };
 
-cOrHom_AttrSom::cOrHom_AttrSom(const std::string & aName) :
-   mName (aName)
+cOrHom_AttrSom::cOrHom_AttrSom(const std::string & aName,cAppli_Hom1Im & anAppli) :
+   mName  (aName),
+   mAppli (&anAppli)
 {
 }
 
-cOrHom_AttrSom::cOrHom_AttrSom() 
+cOrHom_AttrSom::cOrHom_AttrSom() :
+   mAppli (0)
 {
 }
 
@@ -86,10 +90,13 @@ cOrHom_AttrSom::cOrHom_AttrSom()
 /*                                              */
 /************************************************/
 
+          // cElHomographie(const cXmlHomogr &);
 class cOrHom_AttrArcSym
 {
      public :
         cOrHom_AttrArcSym(const cXml_Ori2Im &);
+        const cXml_Ori2Im & Xml() const {return mXmlO;}
+        cElHomographie Hom(bool Dir);
 
      private :
            cXml_Ori2Im  mXmlO;
@@ -100,14 +107,33 @@ cOrHom_AttrArcSym::cOrHom_AttrArcSym(const cXml_Ori2Im & aXml) :
 {
 }
 
+cElHomographie cOrHom_AttrArcSym::Hom(bool aDir)
+{
+    cElHomographie aRes(mXmlO.Geom().Val().HomWithR().Hom());
+    if (! aDir)
+       aRes = aRes.Inverse();
+
+    return aRes;
+}
+         // =================================
+
+
 class cOrHom_AttrArc
 {
     public :
         cOrHom_AttrArc(cOrHom_AttrArcSym * ,bool Direct);
     private :
-        
-       
+         cOrHom_AttrArcSym * mASym;
+         bool                mDirect;
+         cElHomographie      mHom;
 };
+
+cOrHom_AttrArc::cOrHom_AttrArc(cOrHom_AttrArcSym * anAsym ,bool Direct) :
+   mASym(anAsym),
+   mDirect (Direct),
+   mHom    (anAsym->Hom(Direct))
+{
+}
 
 /************************************************/
 /*                                              */
@@ -120,6 +146,8 @@ class cAppli_Hom1Im : public cCommonMartiniAppli
 {
     public :
         cAppli_Hom1Im(int argc,char ** argv,bool ModePrelim);
+        tGrGT & Gr() {return mGr;}
+
     private:
         tSomGT * AddAnIm(const std::string & aName,bool CanCreate);
         tSomGT * GetAnIm(const std::string & aName);
@@ -139,9 +167,9 @@ class cAppli_Hom1Im : public cCommonMartiniAppli
 
 void   cAppli_Hom1Im::AddArc(tSomGT * aS1,tSomGT * aS2)
 {
+/*
      if (mShow) 
         std::cout << "  ARC " <<  aS1->attr().Name() << " " <<  aS2->attr().Name() << "\n";
-/*
 */
 
      cXml_Ori2Im  aXml = mNM->GetOri2Im(aS1->attr().Name(),aS2->attr().Name());
@@ -149,6 +177,11 @@ void   cAppli_Hom1Im::AddArc(tSomGT * aS1,tSomGT * aS2)
      if ((!aXml.Geom().IsInit())  || (aXml.NbPts() < HOM_NbMinPTs))
         return;
 
+
+    cOrHom_AttrArcSym * anAttr = new cOrHom_AttrArcSym(aXml);
+
+    aS1->attr().Appli().Gr().add_arc(*aS1,*aS2,cOrHom_AttrArc(anAttr,true),cOrHom_AttrArc(anAttr,false));
+    // add_arc
 
 }
 
@@ -163,7 +196,7 @@ tSomGT * cAppli_Hom1Im::AddAnIm(const std::string & aName,bool CanCreate)
          // ELISE_ASSERT(false,"cAppli_Hom1Im::AddAnIm cannot get Image");
          return 0;
       }
-      mMapS[aName]  = &(mGr.new_som(cOrHom_AttrSom(aName)));
+      mMapS[aName]  = &(mGr.new_som(cOrHom_AttrSom(aName,*this)));
       mVecS.push_back(mMapS[aName]);
 
 /*
