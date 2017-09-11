@@ -122,6 +122,7 @@ class cOrHom_AttrArc
 {
     public :
         cOrHom_AttrArc(cOrHom_AttrArcSym * ,bool Direct);
+        void GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN);
     private :
          cOrHom_AttrArcSym * mASym;
          bool                mDirect;
@@ -134,6 +135,14 @@ cOrHom_AttrArc::cOrHom_AttrArc(cOrHom_AttrArcSym * anAsym ,bool Direct) :
    mHom    (anAsym->Hom(Direct))
 {
 }
+
+/*
+void cOrHom_AttrArc::GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN)
+{
+    
+}
+
+*/
 
 /************************************************/
 /*                                              */

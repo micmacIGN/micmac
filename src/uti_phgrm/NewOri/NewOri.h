@@ -466,15 +466,6 @@ class cExeParalByPaquets
 };
 
 
-void RazEllips(cXml_Elips3D &);
-void AddEllips(cXml_Elips3D &,const Pt3dr & aP,double aPds);
-void NormEllips(cXml_Elips3D &);
-
-
-
-
-
-
 
 
 #endif // _ELISE_NEW_ORI_H
