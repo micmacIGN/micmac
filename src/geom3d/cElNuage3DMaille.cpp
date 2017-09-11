@@ -665,6 +665,7 @@ void cElNuage3DMaille::PlyPutFile
            const std::string & aName,
            const std::list<std::string> & aComments,
            bool aModeBin,
+           bool SavePtsCol,
            int aAddNormale,
            bool DoublePrec,
            const Pt3dr& anOffset
@@ -672,7 +673,7 @@ void cElNuage3DMaille::PlyPutFile
 {
     std::vector<const cElNuage3DMaille *> aVN;
     aVN.push_back(this);
-    PlyPutFile(aName,aComments,aVN,0,0,aModeBin, aAddNormale,DoublePrec,anOffset);
+    PlyPutFile(aName,aComments,aVN,0,0,aModeBin, SavePtsCol, aAddNormale,DoublePrec,anOffset);
 }
 
 
@@ -685,6 +686,7 @@ void cElNuage3DMaille::PlyPutFile
            const std::vector<Pt3dr> * mPts,
            const std::vector<Pt3di> * mCouls,
            bool aModeBin,
+           bool SavePtsCol,
            int aAddNormale,
            bool DoublePrec,
            const Pt3dr & anOffset
@@ -716,7 +718,6 @@ void cElNuage3DMaille::PlyPutFile
       aN0 = aVN[0];
       aNbAttr = (int)aN0->mAttrs.size();
    }
-
    for (int aK=0 ; aK<int(aVN.size()) ; aK++)
    {
        aNbS += aVN[aK]->mNbPts;
@@ -774,7 +775,8 @@ void cElNuage3DMaille::PlyPutFile
        }
        else
        {
-           fprintf(aFP,"property uchar %s\n",aVCoul[aK]);
+           if (SavePtsCol)
+             {fprintf(aFP,"property uchar %s\n",aVCoul[aK]);}
        }
    }
 
@@ -797,14 +799,21 @@ void cElNuage3DMaille::PlyPutFile
              WriteType(aFP,float(aP.x));
              WriteType(aFP,float(aP.y));
              WriteType(aFP,float(aP.z));
-
-             WriteType(aFP,(U_INT1)(aC.x));
-             WriteType(aFP,(U_INT1)(aC.y));
-             WriteType(aFP,(U_INT1)(aC.z));
+             if (SavePtsCol)
+             {
+                WriteType(aFP,(U_INT1)(aC.x));
+                WriteType(aFP,(U_INT1)(aC.y));
+                WriteType(aFP,(U_INT1)(aC.z));
+             }
           }
           else
           {
-             fprintf(aFP,"%.3f %.3f %.3f %d %d %d\n",aP.x,aP.y,aP.z,aC.x,aC.y,aC.z);
+              if (SavePtsCol)
+                {
+                  fprintf(aFP,"%.3f %.3f %.3f %d %d %d\n",aP.x,aP.y,aP.z,aC.x,aC.y,aC.z);
+                }
+              else
+                { fprintf(aFP,"%.3f %.3f %.3f\n",aP.x,aP.y,aP.z); }
           }
       }
    }
