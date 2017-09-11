@@ -148,6 +148,7 @@ class cAppliMalt
           int         mVSNI;
           int         mNbDirPrgD;
           bool        mPrgDReInject;
+          bool        mOPTIMOM;
 };
 
 
@@ -350,6 +351,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
  
                     << EAM(mNbDirPrgD,"NbDirPrgD",true,"Nb Dir for prog dyn, (rather for tuning)")
                     << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
+                    << EAM(mOPTIMOM,"OPTIMOM",false,"Compute the DTM with spatial optimized parameters")
                 );
 
     if (!MMVisualMode)
@@ -660,7 +662,17 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       // mZoomInit
 
       std::string aFileMM = "MM-Malt.xml";
-
+      if (mOPTIMOM && mType==eGeomImage)
+      {
+          aFileMM="MM-Malt-OPTIMOM.xml";
+          mSzW = 2;
+          mZRegul = 0.12;
+//          mAffineLast = true;
+          mZPas = 1.0;
+          mCostTrans = 4.0;
+          mDefCor = 0.3;
+          mNbMinIV = 2;
+      }
       if (0)
       {
           std::cout << "TTTTESSTTTTTT  MALT  !!!!!!!!\n";//   getchar();
@@ -938,10 +950,15 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
 
 
-      if (mType==eGeomImage)
+      if (mType==eGeomImage && mOPTIMOM==false)
       {
           mCom = mCom + " +ModeAgrCor=eAggregMoyMedIm1Maitre";
       }
+      else if (mType==eGeomImage && mOPTIMOM==true)
+      {
+               mCom = mCom + " +ModeAgrCor=eAggregSymetrique";
+      }
+
 
       if (EAMIsInit(&mIncidMax))
       {
