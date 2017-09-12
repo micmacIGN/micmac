@@ -953,6 +953,7 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
         <SectionChantier Nb="1">
 
+              <UseExportImageResidu Type="bool" Nb="?" Def="false"> </UseExportImageResidu>
               <UseRegulDist  Type="bool" Nb="?" Def="false"> </UseRegulDist>
               <GBCamSupresStenCam  Type="bool" Nb="?" Def="true"> </GBCamSupresStenCam>
               <StenCamSupresGBCam  Type="bool" Nb="?" Def="false"> </StenCamSupresGBCam>

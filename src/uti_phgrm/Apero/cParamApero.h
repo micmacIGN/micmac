@@ -3002,6 +3002,9 @@ class cSectionChantier
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & UseExportImageResidu();
+        const cTplValGesInit< bool > & UseExportImageResidu()const ;
+
         cTplValGesInit< bool > & UseRegulDist();
         const cTplValGesInit< bool > & UseRegulDist()const ;
 
@@ -3071,6 +3074,7 @@ class cSectionChantier
         cTplValGesInit< double > & ThresholdWarnPointsBehind();
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
+        cTplValGesInit< bool > mUseExportImageResidu;
         cTplValGesInit< bool > mUseRegulDist;
         cTplValGesInit< bool > mGBCamSupresStenCam;
         cTplValGesInit< bool > mStenCamSupresGBCam;
@@ -6973,6 +6977,9 @@ class cParamApero
 
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
+
+        cTplValGesInit< bool > & UseExportImageResidu();
+        const cTplValGesInit< bool > & UseExportImageResidu()const ;
 
         cTplValGesInit< bool > & UseRegulDist();
         const cTplValGesInit< bool > & UseRegulDist()const ;

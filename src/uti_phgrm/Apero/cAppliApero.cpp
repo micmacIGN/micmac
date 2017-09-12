@@ -1111,6 +1111,9 @@ std::string cAppliApero::GetNewIdIma(const std::string & aLongName)
 std::string cAppliApero::IdOfCalib(const int & aNum) const {return "Cal"+ToString(aNum);}
 std::string cAppliApero::IdOfIma(const int & aNum) const   {return "Ima"+ToString(aNum);}
 
+
+bool cAppliApero::IsLastEtapeOfLastIter() const {return mIsLastEtapeOfLastIter;}
+
  
 
 

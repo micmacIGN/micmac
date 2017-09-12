@@ -10446,6 +10446,17 @@ void xml_init(cTimeLinkage & anObj,cElXMLTree * aTree)
 std::string  Mangling( cTimeLinkage *) {return "BEB337D7A41F8CD1FD3F";};
 
 
+cTplValGesInit< bool > & cSectionChantier::UseExportImageResidu()
+{
+   return mUseExportImageResidu;
+}
+
+const cTplValGesInit< bool > & cSectionChantier::UseExportImageResidu()const 
+{
+   return mUseExportImageResidu;
+}
+
+
 cTplValGesInit< bool > & cSectionChantier::UseRegulDist()
 {
    return mUseRegulDist;
@@ -10703,6 +10714,14 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.UseExportImageResidu().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.UseExportImageResidu().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.UseExportImageResidu().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.UseRegulDist().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.UseRegulDist().ValForcedForUnUmp(),aFp);
         }
@@ -10880,6 +10899,8 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionChantier & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.UseExportImageResidu().IsInit());
+    if (anObj.UseExportImageResidu().IsInit()) BinaryDumpInFile(aFp,anObj.UseExportImageResidu().Val());
     BinaryDumpInFile(aFp,anObj.UseRegulDist().IsInit());
     if (anObj.UseRegulDist().IsInit()) BinaryDumpInFile(aFp,anObj.UseRegulDist().Val());
     BinaryDumpInFile(aFp,anObj.GBCamSupresStenCam().IsInit());
@@ -10930,6 +10951,8 @@ cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionChantier",eXMLBranche);
+   if (anObj.UseExportImageResidu().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UseExportImageResidu"),anObj.UseExportImageResidu().Val())->ReTagThis("UseExportImageResidu"));
    if (anObj.UseRegulDist().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("UseRegulDist"),anObj.UseRegulDist().Val())->ReTagThis("UseRegulDist"));
    if (anObj.GBCamSupresStenCam().IsInit())
@@ -10984,6 +11007,8 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.UseExportImageResidu(),aTree->Get("UseExportImageResidu",1),bool(false)); //tototo 
+
    xml_init(anObj.UseRegulDist(),aTree->Get("UseRegulDist",1),bool(false)); //tototo 
 
    xml_init(anObj.GBCamSupresStenCam(),aTree->Get("GBCamSupresStenCam",1),bool(true)); //tototo 
@@ -11029,7 +11054,7 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.ThresholdWarnPointsBehind(),aTree->Get("ThresholdWarnPointsBehind",1),double(0.01)); //tototo 
 }
 
-std::string  Mangling( cSectionChantier *) {return "95F5985BFC71D0C3FE3F";};
+std::string  Mangling( cSectionChantier *) {return "BCC24223678796F5FE3F";};
 
 
 cTplValGesInit< bool > & cSectionSolveur::AllMatSym()
@@ -25819,6 +25844,17 @@ const cSectionInconnues & cParamApero::SectionInconnues()const
 }
 
 
+cTplValGesInit< bool > & cParamApero::UseExportImageResidu()
+{
+   return SectionChantier().UseExportImageResidu();
+}
+
+const cTplValGesInit< bool > & cParamApero::UseExportImageResidu()const 
+{
+   return SectionChantier().UseExportImageResidu();
+}
+
+
 cTplValGesInit< bool > & cParamApero::UseRegulDist()
 {
    return SectionChantier().UseRegulDist();
@@ -26464,7 +26500,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "66D295E9574D8592FF3F";};
+std::string  Mangling( cParamApero *) {return "F89143C6021FFBFDFE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

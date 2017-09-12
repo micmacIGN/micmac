@@ -39,6 +39,171 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
 
 
+//============================================
+
+class cInfoAccumRes
+{
+     public :
+       cInfoAccumRes(const Pt2dr & aPt,double aPds,double aResidu,const Pt2dr & aDir);
+
+       Pt2dr  mPt;
+       double mPds;
+       double mResidu;
+       Pt2dr  mDir;
+};
+
+
+cInfoAccumRes::cInfoAccumRes(const Pt2dr & aPt,double aPds,double aResidu,const Pt2dr & aDir) :
+   mPt      (aPt),
+   mPds     (aPds),
+   mResidu  (aResidu),
+   mDir     (aDir)
+{
+}
+
+class cAccumResidu
+{
+    public :
+       void Accum(const cInfoAccumRes &);
+       cAccumResidu(Pt2di aSz,double aRed,bool OnlySign);
+
+       static const int NbMinCreateIm = 200;
+    private :
+       void AccumInImage(const cInfoAccumRes &);
+
+       std::list<cInfoAccumRes> mLIAR;
+       int                      mNbInfo;
+       bool                     mOnlySign;
+       double                   mResol;
+       Pt2di                    mSz;
+       Pt2di                    mSzRed;
+
+       Im2D_REAL4               mPds;
+       TIm2D<REAL4,REAL8>       mTPds;
+       Im2D_REAL4               mMoySign;
+       TIm2D<REAL4,REAL8>       mTMoySign;
+       Im2D_REAL4               mMoyAbs;
+       TIm2D<REAL4,REAL8>       mTMoyAbs;
+};
+
+cAccumResidu::cAccumResidu(Pt2di aSz,double aResol,bool OnlySign) :
+   mNbInfo (0),
+   mOnlySign (OnlySign),
+   mResol    (aResol),
+   mSz       (aSz),
+   mSzRed    (round_up(Pt2dr(aSz)/mResol)),
+   mPds      (1,1),
+   mTPds     (mPds),
+   mMoySign  (1,1),
+   mTMoySign (mMoySign),
+   mMoyAbs   (1,1),
+   mTMoyAbs  (mMoyAbs)
+{
+}
+
+void cAccumResidu::AccumInImage(const cInfoAccumRes & anInfo)
+{
+    Pt2dr aP = anInfo.mPt / mResol;
+    mTPds.incr(aP,anInfo.mPds);
+    mTMoySign.incr(aP,anInfo.mPds * anInfo.mResidu);
+
+    if (!mOnlySign)
+    {
+         mTMoyAbs.incr(aP,anInfo.mPds*ElAbs(anInfo.mResidu));
+    }
+}
+void cAccumResidu::Accum(const cInfoAccumRes & anInfo)
+{
+   mNbInfo++;
+   if (mNbInfo<NbMinCreateIm)
+   {
+      mLIAR.push_back(anInfo);
+   }
+   else if (mNbInfo==NbMinCreateIm)
+   {
+       mLIAR.push_back(anInfo);
+       mPds = Im2D_REAL4(mSzRed.x,mSzRed.y,0.0);
+       mTPds =  TIm2D<REAL4,REAL8>(mPds);
+       mMoySign = Im2D_REAL4(mSzRed.x,mSzRed.y,0.0);
+       mTMoySign =  TIm2D<REAL4,REAL8>(mMoySign);
+       if (! mOnlySign)
+       {
+           mMoyAbs = Im2D_REAL4(mSzRed.x,mSzRed.y,0.0);
+           mTMoyAbs =  TIm2D<REAL4,REAL8>(mMoyAbs);
+       }
+       // for (auto itI=mLIAR.begin() ;itI!=mLIAR.end() ; itI++)
+       for (std::list<cInfoAccumRes>::const_iterator itI=mLIAR.begin() ;itI!=mLIAR.end() ; itI++)
+       {
+           AccumInImage(*itI);
+       }
+       mLIAR.clear();
+   }
+   else
+   {
+        AccumInImage(anInfo);
+   }
+}
+
+       // cAccumResidu(Pt2di aSz,double aRed,bool OnlySign);
+void cAppliApero::AddOneInfoImageResidu
+     (
+         const cInfoAccumRes & anInfo,
+         const std::string &   aName,
+         Pt2di                 aSz,
+         double                aFactRed,
+         bool OnlySign
+     )
+{
+  static std::map<std::string,cAccumResidu *> MapAR;
+
+  cAccumResidu * & aRef = MapAR[aName];
+  if (aRef==0)
+     aRef = new cAccumResidu(aSz,aFactRed,OnlySign);
+
+  aRef->Accum(anInfo);
+}
+
+void cAppliApero::AddInfoImageResidu
+     (
+         const  cNupletPtsHomologues & aNupl,
+         const std::vector<cGenPoseCam *> aVP,
+         const std::vector<double> &  aVpds
+     )
+{
+  if ((!Param().UseExportImageResidu().Val()) || (! IsLastEtapeOfLastIter()))
+     return;
+
+
+
+  for (int aK1=0 ; aK1< aNupl.NbPts() ; aK1++)
+  {
+      double aPds1 = aVpds[aK1];
+      if (aPds1>0)
+      {
+         for (int aK2=0 ; aK2< aNupl.NbPts() ; aK2++)
+         {
+             double aPds2 = aVpds[aK2];
+             if ((aK1!=aK2) && (aPds2>0))
+             {
+                const cBasicGeomCap3D * aCam1 = aVP[aK1]->GenCurCam();
+                const cBasicGeomCap3D * aCam2 = aVP[aK2]->GenCurCam();
+                Pt2dr aP1 = aNupl.PK(aK1);
+                Pt2dr aP2 = aNupl.PK(aK2);
+                   
+                Pt2dr aDir;
+                double aRes = aCam1->EpipolarEcart(aP1,*aCam2,aP2,&aDir);
+                cInfoAccumRes anInfo(aP1,ElMin(aPds1,aPds2),aRes,aDir);
+             }
+         }
+      }
+  }
+
+}
+
+
+//============================================
+
+
 int PROF_UNDEF() { return -1; }
 
 
@@ -718,6 +883,7 @@ void cPoseCam::VirtualAddPMoy
 {
   if (mAppli.UsePdsCalib())
       mCalib->AddPds(aPIm,(*aVPds)[aKPoseThis]);
+
 }
 
 
