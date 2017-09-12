@@ -356,6 +356,7 @@ class cElNuage3DMaille : public cCapture3D
         void PlyPutFile
              (
                   const std::string & aName,const std::list<std::string>& aComments, bool aModeBin,
+                  bool SavePtsCol = true,
                   int aAddNormale=0,
                   bool DoublePrec = false,
                   const Pt3dr& anOffset = Pt3dr(0,0,0)
@@ -369,10 +370,11 @@ class cElNuage3DMaille : public cCapture3D
                     const std::vector<Pt3dr> * mPts,
                     const std::vector<Pt3di> * mCouls,
                     bool aModeBin,
-            int aAddNormale = 0,
-            bool DoublePrec = false,
+                    bool SavePtsCol = true,
+                    int aAddNormale = 0,
+                    bool DoublePrec = false,
                     const Pt3dr& anOffset = Pt3dr(0,0,0)
-               ) ;
+                ) ;
 
         void Std_AddAttrFromFile(const std::string & aName,double aDyn=1,double aScale=1,bool ForceRGB=false);
 

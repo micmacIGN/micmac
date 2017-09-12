@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1799]) = {
+const char * (theNameVar_ParamApero[1800]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1602,6 +1602,7 @@ const char * (theNameVar_ParamApero[1799]) = {
 "                               <SymPts Nb=\"?\" Type=\"bool\" Def=\"true\"> </SymPts>\n",
 "                          </ExportNuageByImage>\n",
 "                          <PlyModeBin Nb=\"?\" Def=\"true\" Type=\"bool\"> </PlyModeBin>\n",
+"                          <SavePtsCol Nb=\"?\" Def=\"true\" Type=\"bool\"> </SavePtsCol>\n",
 "                          <!-- Pour l'instant par defaut mode ply -->\n",
 "	                  <NameRefLiaison Nb=\"*\" Type=\"std::string\"> </NameRefLiaison>\n",
 "\n",
