@@ -136,12 +136,11 @@ cOrHom_AttrArc::cOrHom_AttrArc(cOrHom_AttrArcSym * anAsym ,bool Direct) :
 {
 }
 
-/*
 void cOrHom_AttrArc::GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN)
 {
-    
 }
 
+/*
 */
 
 /************************************************/
