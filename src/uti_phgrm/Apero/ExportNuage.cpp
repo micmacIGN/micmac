@@ -473,7 +473,6 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
         }
     }
     bool aModeBin = anEN.PlyModeBin().Val();
-
     if ((aLastMode==eModeAGPNormale) || (aLastMode==eModeAGPNormaleByC) || (aLastMode==eModeAGPNoAttr))
     {
          const std::vector<Pt3dr>  &   aVPts = anAGP.Pts();
@@ -519,7 +518,6 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
              fwrite(&aNb,sizeof(aNb),1,aFP);
          }
 
-
          for (int aK=0; aK<int(aVPts.size()) ; aK++)
          {
               PutPt(aFP,aVPts[aK],aModeBin,aLastMode==eModeAGPNoAttr);
@@ -542,7 +540,6 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
     {
        std::list<std::string> aVCom;
        std::vector<const cElNuage3DMaille *> aVNuage;
-       
 	   cElNuage3DMaille::PlyPutFile
        (
           mDC+anEN.NameOut(),
@@ -550,7 +547,8 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
           aVNuage,
           &(anAGP.Pts()),
           &(anAGP.Cols()),
-          anEN.PlyModeBin().Val()
+          anEN.PlyModeBin().Val(),
+          anEN.SavePtsCol().Val()
        );
     }
     if (aByI)

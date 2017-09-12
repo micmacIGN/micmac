@@ -6156,6 +6156,9 @@ class cExportNuage
         cTplValGesInit< bool > & PlyModeBin();
         const cTplValGesInit< bool > & PlyModeBin()const ;
 
+        cTplValGesInit< bool > & SavePtsCol();
+        const cTplValGesInit< bool > & SavePtsCol()const ;
+
         std::list< std::string > & NameRefLiaison();
         const std::list< std::string > & NameRefLiaison()const ;
 
@@ -6246,6 +6249,7 @@ class cExportNuage
         std::string mNameOut;
         cTplValGesInit< cExportNuageByImage > mExportNuageByImage;
         cTplValGesInit< bool > mPlyModeBin;
+        cTplValGesInit< bool > mSavePtsCol;
         std::list< std::string > mNameRefLiaison;
         cTplValGesInit< std::string > mPatternSel;
         cPonderationPackMesure mPond;

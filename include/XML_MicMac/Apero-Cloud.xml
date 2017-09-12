@@ -158,6 +158,7 @@
 
                                    <NameOut> ${Out} </NameOut>
                                    <PlyModeBin> ${PlyBin} </PlyModeBin>
+                                   <SavePtsCol> ${SavePtsCol} </SavePtsCol>
                                    <NameRefLiaison> Id_Pastis_Hom </NameRefLiaison>
                                    <Pond>
                                           <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
