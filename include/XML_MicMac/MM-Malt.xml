@@ -68,7 +68,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
    <Symb> DirOrthoF=ORTHO  </Symb>
 
-   <Symb>  NbEtapeQuant=-1 </Symb>
+   <Symb> NbEtapeQuant=-1 </Symb>
 
    <Symb> NameMaskOrtho=../${DirMEC}AutoMask_STD-MALT_Num_${NbEtapeQuant}.tif </Symb>
    <Symb> NameMTDMaskOrtho=../${DirMEC}Z_Num${NbEtapeQuant}_DeZoom${ZoomFinal}_STD-MALT.xml </Symb>
@@ -162,6 +162,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
    <Symb> UseMasq3D=false </Symb>
    <Symb> NameMasq3D=XXXX </Symb>
+   <Symb> UseArgMaskAuto=false </Symb>
 
    <Symb> UseResolTerrain=false </Symb>
    <Symb> ResolTerrain=0 </Symb>
@@ -398,11 +399,13 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                       <NbDir>   ${NbDirPrgDyn}               </NbDir>
                   </EtapeProgDyn>
                   <Px1PenteMax>   2.0    </Px1PenteMax>
-                  <ArgMaskAuto >
-                      <ValDefCorrel >  ${DefCor} </ValDefCorrel>
-                      <CostTrans >     ${CostTrans}   </CostTrans>
-                      <ReInjectMask> false   </ReInjectMask>
-                  </ArgMaskAuto>
+		  <#WHEN VTEST=${UseArgMaskAuto}>
+                  	<ArgMaskAuto > 
+                      		<ValDefCorrel >  ${DefCor} </ValDefCorrel>
+                      		<CostTrans >     ${CostTrans}   </CostTrans>
+                      		<ReInjectMask> false   </ReInjectMask>
+                  	</ArgMaskAuto>
+		  </#WHEN>
             </ModulationProgDyn>
 
             <ImageSelecteur>
@@ -490,11 +493,13 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                               <NbDir>   ${NbDirPrgDyn}              </NbDir>
                          </EtapeProgDyn>
                          <Px1PenteMax>   1.0    </Px1PenteMax>
+			 <#WHEN VTEST=${UseArgMaskAuto}>
                          <ArgMaskAuto >
                                 <ValDefCorrel >  ${DefCor} </ValDefCorrel>
                                 <CostTrans >     2.0   </CostTrans>
                                 <ReInjectMask>  false   </ReInjectMask>
                          </ArgMaskAuto>
+			 </#WHEN>
                    </ModulationProgDyn>
                    <#WHEN VTEST=${NotZoom8}>
                        <#WHEN VTEST=${UsePC}>
