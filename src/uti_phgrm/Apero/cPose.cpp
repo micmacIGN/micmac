@@ -65,14 +65,16 @@ class cAccumResidu
 {
     public :
        void Accum(const cInfoAccumRes &);
-       cAccumResidu(Pt2di aSz,double aRed,bool OnlySign);
+       cAccumResidu(Pt2di aSz,double aRed,bool OnlySign,int aDegPol);
 
        static const int NbMinCreateIm = 200;
+       void Export(const std::string & aDir,const std::string & aName,const cUseExportImageResidu & );
     private :
        void AccumInImage(const cInfoAccumRes &);
 
        std::list<cInfoAccumRes> mLIAR;
        int                      mNbInfo;
+       double                   mSomPds;
        bool                     mOnlySign;
        double                   mResol;
        Pt2di                    mSz;
@@ -84,10 +86,14 @@ class cAccumResidu
        TIm2D<REAL4,REAL8>       mTMoySign;
        Im2D_REAL4               mMoyAbs;
        TIm2D<REAL4,REAL8>       mTMoyAbs;
+       bool                     mInit;
+       int                      mDegPol;
+       L2SysSurResol *          mSys;
 };
 
-cAccumResidu::cAccumResidu(Pt2di aSz,double aResol,bool OnlySign) :
+cAccumResidu::cAccumResidu(Pt2di aSz,double aResol,bool OnlySign,int aDegPol) :
    mNbInfo (0),
+   mSomPds   (0.0),
    mOnlySign (OnlySign),
    mResol    (aResol),
    mSz       (aSz),
@@ -97,9 +103,124 @@ cAccumResidu::cAccumResidu(Pt2di aSz,double aResol,bool OnlySign) :
    mMoySign  (1,1),
    mTMoySign (mMoySign),
    mMoyAbs   (1,1),
-   mTMoyAbs  (mMoyAbs)
+   mTMoyAbs  (mMoyAbs),
+   mInit     (false),
+   mDegPol   (aDegPol),
+   mSys      (0)
 {
 }
+
+void cAccumResidu::Export(const std::string & aDir,const std::string & aName,const cUseExportImageResidu & aUEIR ) 
+{
+   if (! mInit) return;
+
+   Tiff_Im::CreateFromFonc
+   (
+        aDir+"RawWeight-"+aName+".tif",
+        mSzRed,
+        mPds.in() * (mNbInfo/mSomPds),
+        GenIm::real4
+   );
+
+   int aNbPixel = mSzRed.x * mSzRed.y;
+   double aNbMesByCase = mNbInfo / double(aNbPixel);
+   double aTargetNbMesByC = aUEIR.NbMesByCase().Val();
+   if (aTargetNbMesByC >= 0)
+   {
+        double aSigma = sqrt(aTargetNbMesByC / aNbMesByCase);
+        FilterGauss(mPds,aSigma);
+        FilterGauss(mMoySign,aSigma);
+        FilterGauss(mMoyAbs,aSigma);
+   }
+
+   Tiff_Im::CreateFromFonc
+   (
+        aDir+"ResSign-"+aName+".tif",
+        mSzRed,
+        mMoySign.in() / Max(mPds.in(),1e-4),
+        GenIm::real4
+   );
+
+   if (!mOnlySign)
+   {
+      Tiff_Im::CreateFromFonc
+      (
+           aDir+"ResAbs-"+aName+".tif",
+           mSzRed,
+           mMoyAbs.in() / Max(mPds.in(),1e-4),
+           GenIm::real4
+      );
+    }
+
+    if (mSys)
+    {
+        bool aOk;
+        Im1D_REAL8  aSol = mSys->Solve(&aOk);
+        if (aOk)
+        {
+            double * aDS = aSol.data();
+
+            Im2D_REAL4               aResX(mSzRed.x,mSzRed.y);
+            TIm2D<REAL4,REAL8>       aTRx(aResX);
+            Im2D_REAL4               aResY(mSzRed.x,mSzRed.y);
+            TIm2D<REAL4,REAL8>       aTRy(aResY);
+
+            Pt2di aPInd;
+            for (aPInd.x=0 ; aPInd.x<mSzRed.x ; aPInd.x++)
+            {
+                for (aPInd.y=0 ; aPInd.y<mSzRed.y ; aPInd.y++)
+                {
+                    Pt2dr aPFulRes = Pt2dr(aPInd) * mResol;
+                    Pt2dr aSzN = mSz/2.0;
+                    double  aX = (aPFulRes.x-aSzN.x) / aSzN.x;
+                    double  aY = (aPFulRes.y-aSzN.y) / aSzN.y;
+
+                    std::vector<double> aVMx; // Monome Xn
+                    std::vector<double> aVMy; // Monome Xn
+                    aVMx.push_back(1.0);
+                    aVMy.push_back(1.0);
+                    for (int aD=0 ; aD< mDegPol ; aD++)
+                    {
+                      aVMx.push_back(aVMx.back() * aX);
+                      aVMy.push_back(aVMy.back() * aY);
+                    }
+
+
+                    int anIndEq = 0;
+                    double aSX=0 ;
+                    double aSY=0 ;
+                    for (int aDx=0 ; aDx<= mDegPol ; aDx++)
+                    {
+                       for (int aDy=0 ; aDy<= mDegPol - aDx ; aDy++)
+                       {
+                            double aMonXY = aVMx[aDx] * aVMy[aDy]; // X ^ Dx * Y ^ Dy
+                            aSX += aDS[anIndEq++] * aMonXY;
+                            aSY += aDS[anIndEq++] * aMonXY;
+                       }
+                    }
+                    aTRx.oset(aPInd,aSX);
+                    aTRy.oset(aPInd,aSY);
+                }
+            }
+            Tiff_Im::CreateFromFonc
+            (
+                 aDir+"ResX-"+aName+".tif",
+                 mSzRed,
+                 aResX.in(),
+                 GenIm::real4
+            );
+            Tiff_Im::CreateFromFonc
+            (
+                 aDir+"ResY-"+aName+".tif",
+                 mSzRed,
+                 aResY.in(),
+                 GenIm::real4
+            );
+        }
+    }
+}
+
+
 
 void cAccumResidu::AccumInImage(const cInfoAccumRes & anInfo)
 {
@@ -111,9 +232,42 @@ void cAccumResidu::AccumInImage(const cInfoAccumRes & anInfo)
     {
          mTMoyAbs.incr(aP,anInfo.mPds*ElAbs(anInfo.mResidu));
     }
+    if (mSys)
+    {
+        // 
+        Pt2dr aSzN = mSz/2.0;
+        Pt2dr aN = anInfo.mDir * Pt2dr(0,1);
+        // Pour precision matrice, mieux vaut coordonnees normalisees
+        double  aX = (anInfo.mPt.x-aSzN.x) / aSzN.x;
+        double  aY = (anInfo.mPt.y-aSzN.y) / aSzN.y;
+
+        std::vector<double> aVMx; // Monome Xn
+        std::vector<double> aVMy; // Monome Xn
+        aVMx.push_back(1.0);
+        aVMy.push_back(1.0);
+        for (int aD=0 ; aD< mDegPol ; aD++)
+        {
+          aVMx.push_back(aVMx.back() * aX);
+          aVMy.push_back(aVMy.back() * aY);
+        }
+
+        std::vector<double> anEq;
+
+        for (int aDx=0 ; aDx<= mDegPol ; aDx++)
+        {
+           for (int aDy=0 ; aDy<= mDegPol - aDx ; aDy++)
+           {
+                double aMonXY = aVMx[aDx] * aVMy[aDy]; // X ^ Dx * Y ^ Dy
+                anEq.push_back(aMonXY* aN.x);
+                anEq.push_back(aMonXY* aN.y);
+           }
+        }
+        mSys->AddEquation(anInfo.mPds,VData(anEq),anInfo.mResidu);
+    }
 }
 void cAccumResidu::Accum(const cInfoAccumRes & anInfo)
 {
+   mSomPds += anInfo.mPds;
    mNbInfo++;
    if (mNbInfo<NbMinCreateIm)
    {
@@ -121,6 +275,7 @@ void cAccumResidu::Accum(const cInfoAccumRes & anInfo)
    }
    else if (mNbInfo==NbMinCreateIm)
    {
+       mInit = true;
        mLIAR.push_back(anInfo);
        mPds = Im2D_REAL4(mSzRed.x,mSzRed.y,0.0);
        mTPds =  TIm2D<REAL4,REAL8>(mPds);
@@ -130,6 +285,10 @@ void cAccumResidu::Accum(const cInfoAccumRes & anInfo)
        {
            mMoyAbs = Im2D_REAL4(mSzRed.x,mSzRed.y,0.0);
            mTMoyAbs =  TIm2D<REAL4,REAL8>(mMoyAbs);
+       }
+       if (mDegPol >=0)
+       {
+          mSys =  new L2SysSurResol((1+mDegPol)*(mDegPol+2));
        }
        // for (auto itI=mLIAR.begin() ;itI!=mLIAR.end() ; itI++)
        for (std::list<cInfoAccumRes>::const_iterator itI=mLIAR.begin() ;itI!=mLIAR.end() ; itI++)
@@ -150,15 +309,21 @@ void cAppliApero::AddOneInfoImageResidu
          const cInfoAccumRes & anInfo,
          const std::string &   aName,
          Pt2di                 aSz,
-         double                aFactRed,
-         bool OnlySign
+         double                aSzRed,
+         bool                  OnlySign,
+         int                   aDegPol
      )
 {
-  static std::map<std::string,cAccumResidu *> MapAR;
 
-  cAccumResidu * & aRef = MapAR[aName];
+  if (aSzRed <=0) return;
+
+  double aFactRed = dist8(aSz) / aSzRed;
+
+  cAccumResidu * & aRef = mMapAR[aName];
   if (aRef==0)
-     aRef = new cAccumResidu(aSz,aFactRed,OnlySign);
+  {
+     aRef = new cAccumResidu(aSz,aFactRed,OnlySign,aDegPol);
+  }
 
   aRef->Accum(anInfo);
 }
@@ -170,9 +335,10 @@ void cAppliApero::AddInfoImageResidu
          const std::vector<double> &  aVpds
      )
 {
-  if ((!Param().UseExportImageResidu().Val()) || (! IsLastEtapeOfLastIter()))
+  if ((!Param().UseExportImageResidu().IsInit()) || (! IsLastEtapeOfLastIter()))
      return;
 
+  const cUseExportImageResidu & aUEIR = Param().UseExportImageResidu().Val();
 
 
   for (int aK1=0 ; aK1< aNupl.NbPts() ; aK1++)
@@ -187,19 +353,52 @@ void cAppliApero::AddInfoImageResidu
              {
                 const cBasicGeomCap3D * aCam1 = aVP[aK1]->GenCurCam();
                 const cBasicGeomCap3D * aCam2 = aVP[aK2]->GenCurCam();
+                Pt2di aSzCam1 = aCam1->SzBasicCapt3D();
                 Pt2dr aP1 = aNupl.PK(aK1);
                 Pt2dr aP2 = aNupl.PK(aK2);
                    
                 Pt2dr aDir;
                 double aRes = aCam1->EpipolarEcart(aP1,*aCam2,aP2,&aDir);
                 cInfoAccumRes anInfo(aP1,ElMin(aPds1,aPds2),aRes,aDir);
+
+                if (aK1<aK2)
+                {
+                    std::string aNamePair = "Pair-"+aVP[aK1]->Name() + "-" + aVP[aK2]->Name();
+                    AddOneInfoImageResidu(anInfo,aNamePair,aSzCam1,aUEIR.SzByPair().Val(),true,-1);
+                }
+                AddOneInfoImageResidu(anInfo,"Pose-"+aVP[aK1]->Name(),aSzCam1,aUEIR.SzByPose().Val(),false,5);
+
+                cCalibCam *  aCC1 = aVP[aK1]->CalibCam();
+                if (aCC1)
+                {
+                   AddOneInfoImageResidu(anInfo,"Cam-"+aCC1->KeyId(),aSzCam1,aUEIR.SzByCam().Val(),false,10);
+                }
              }
          }
       }
   }
-
 }
 
+void cAppliApero::ExportImageResidu(const std::string & aName,const cAccumResidu & anAccum) const
+{
+    const cUseExportImageResidu & aUEIR = Param().UseExportImageResidu().Val();
+    std::string aDirExport =  DC() + "Ori" + aUEIR.AeroExport() + "/ImResidu/";
+    ELISE_fp::MkDirRec(aDirExport);
+
+    const_cast<cAccumResidu &>(anAccum).Export(aDirExport,aName,aUEIR);
+}
+
+void cAppliApero::ExportImageResidu() const
+{
+  if ((!Param().UseExportImageResidu().IsInit()) )
+     return;
+
+
+  for (auto it=mMapAR.begin() ; it!=mMapAR.end() ; it++)
+  {
+       ExportImageResidu(it->first,*(it->second));
+  }
+}
 
 //============================================
 

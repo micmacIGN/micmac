@@ -1425,6 +1425,7 @@ void cAppliApero::DoCompensation()
    }
 
    
+   ExportImageResidu();
    MajAddCoeffMatrix();
    PosesAddMajick();
    MessageDebug("Global End");
