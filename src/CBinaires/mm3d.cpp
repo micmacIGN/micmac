@@ -260,7 +260,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
-       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Tie point reduction"));
+       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Tie point reduction",cArgLogCom(2)));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));

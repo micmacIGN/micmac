@@ -113,7 +113,9 @@ class cThmProc_Appli
 							  std::string aPatImgs, 
 							  std::string aExt, 
 							  std::string aOutFolder,
-							  std::string aMAF
+							  std::string aMAF,
+							  bool aDoImgReech,
+							  bool aRmXmlReech
 							  );
 		
 		//function
@@ -125,11 +127,29 @@ class cThmProc_Appli
 								
 		//function to clean a MEC directory (keeping useful files)						
 		void CleanMEC(std::string aName);
+	
+		//function to generate a pattern 
+		std::string GenPatFromVS(std::vector<std::string> aVS);
+		
 	private :
 		std::string mFullPat;
 		std::string mDir;
 		std::string mPat;
 };
+
+std::string cThmProc_Appli::GenPatFromVS(std::vector<std::string> aVS)
+{
+	std::string aS="";
+	
+	for(unsigned int i=0; i<aVS.size()-1; i++)
+	{
+			aS = aS + aVS.at(i)+ "|";
+	}
+	
+	aS = aS + aVS.at(aVS.size()-1);
+	
+	return aS;
+}
 
 void cThmProc_Appli::CleanMEC(std::string aName)
 {
@@ -197,11 +217,14 @@ void cThmProc_Appli::CorrImgsFromTemp(
 									  std::string aPatImgs, 
 									  std::string aExt, 
 									  std::string aOutFolder,
-									  std::string aMAF
+									  std::string aMAF,
+									  bool aDoImgReech,
+									  bool aRmXmlReech
 									  )
 {
 	
 	aOutFolder = aOutFolder + "/";
+	
 	//step 0 : get pattern of images to be corrected
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirectory);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
@@ -237,6 +260,9 @@ void cThmProc_Appli::CorrImgsFromTemp(
 		ELISE_ASSERT(false, "ERROR: Can't Correct Image without Temperature !");
 	}
 	
+	//vector of names of individual .xml transformed files
+	std::vector<std::string> aVXmlFiles;
+	
 	for(unsigned int aK=0; aK<aSetIm.size(); aK++)
 	{
 		for(unsigned int aP=0; aP<aVI2Corr.size(); aP++)
@@ -257,15 +283,24 @@ void cThmProc_Appli::CorrImgsFromTemp(
 					aCom = aCom + " MAF=" + aMAF;
 				}
 				
+				if(!aDoImgReech)
+				{
+					aCom = aCom + " DoImgReech=false";
+				}
+				
 				std::cout << "aCom = " << aCom << std::endl;
 				system_call(aCom.c_str());
 				
-				std::string aNameCorrImg = aDirectory  + "Reech_" + aSetIm.at(aK);
-				ELISE_fp::MvFile(aNameCorrImg,aOutFolder);
+				if(aDoImgReech)
+				{
+					std::string aNameCorrImg = aDirectory  + "Reech_" + aSetIm.at(aK);
+					ELISE_fp::MvFile(aNameCorrImg,aOutFolder);
+				}
 				
 				if(aMAF != "")
 				{
 					std::string aNameCorrXML = StdPrefixGen(aMAF) + "_Reech_" + NameWithoutDir(aSetIm.at(aK)) + ".xml";
+					aVXmlFiles.push_back(aNameCorrXML);
 					ELISE_fp::MvFile(aNameCorrXML,aOutFolder);
 				}
 			}
@@ -273,6 +308,21 @@ void cThmProc_Appli::CorrImgsFromTemp(
 	}
 	
 	//concate into one .xml file
+	std::string aCom = MMDir()
+							+ std::string("bin/mm3d")
+							+ std::string(" ")
+							+ "TestLib  ConcateMAF"
+							+ std::string(" ")
+							+ std::string("\"") + GenPatFromVS(aVXmlFiles) + std::string("\"");
+							
+	if(!aRmXmlReech)
+	{
+		aCom = aCom + " aRmFiles=false";
+	}
+	
+	std::cout << "aCom = " << aCom << std::endl;
+	system_call(aCom.c_str());
+	
 }
 
 void cThmProc_Appli::GenerateXmlAssoc(
@@ -531,11 +581,14 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 	std::string aFullPatToCorr="";	//pattern of images to correct from temperature after calibration
 	std::string aNameFolder="";
 	int aPas=1;
-	bool aDoMEC=true;
-	bool aClean=true;
+	bool aDoMEC=true;				//do 2D Matching ?
+	bool aClean=true;				//clean MEC folder at the end and keep only last Px1-Px2 .tif files ?
 	std::string aMAF="";
-	bool aDoConv2Hom=true;
+	bool aDoConv2Hom=true;			//convert Px1-Px2 tif file to Homol format ?
 	std::string aCmpRot="";
+	bool aDoComputeMap=true;		//estimate evolutive Map from Homol folder ?
+	bool aDoImgReech=true;			//Reech images using the map ?
+	bool aRmXmlReech=true;			//Remove individual .xml transformed files ?
 	
 	ElInitArgMain
     (
@@ -560,6 +613,9 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
                      << EAM(aMAF,"MAF",false,"Xml file of Image Measures")
                      << EAM(aDoConv2Hom,"DoConv2H",false,"Do Conversion DMatch2Hom ; Def=true")
                      << EAM(aCmpRot,"OriCmpRot",false,"Orientation folder, to compense rotation")
+                     << EAM(aDoComputeMap,"CmpEvolMap",false,"Compute evolutive Map, Def=false")
+                     << EAM(aDoImgReech,"DoImgReech",false,"Generate Image Reech ; Def=true")
+                     << EAM(aRmXmlReech,"RmPerImgXML",false,"Remode Individual .xml transformed files; Def=true")
                      
     );
     
@@ -576,7 +632,10 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 		DoHomConv(mDir,mPat,aPas);
 	
 	//compute evolutive map function of temperature
-	CalcXYT(mDir,mPat,aDegT,aDegXY,aKey,aHom,aFileName,aExt,aPas,aCmpRot);
+	if(aDoComputeMap)
+		CalcXYT(mDir,mPat,aDegT,aDegXY,aKey,aHom,aFileName,aExt,aPas,aCmpRot);
+		
+	//default name of the Map
 	std::string aMap = mDir + "PolOfTXY.xml";
 	
 	//compute map for each tempurature (dataset to process in a photogrammetric workflow) ; give it as option
@@ -599,7 +658,7 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 		//create new folder where to put corrected images
 		ELISE_fp::MkDirSvp(aNameFolder);
 		
-		CorrImgsFromTemp(aMap,aDir2C,aFileName,aPat2C,aExt,aNameFolder,aMAF);
+		CorrImgsFromTemp(aMap,aDir2C,aFileName,aPat2C,aExt,aNameFolder,aMAF,aDoImgReech,aRmXmlReech);
 	}
 	
 	//if a second calibration pattern is given

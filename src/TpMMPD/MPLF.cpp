@@ -245,6 +245,7 @@ class cMPLOG_Appli
 		std::string mFile;
 		std::string mStrChSys;
 };
+
 //write difference of time in a file
 void cMPLOG_Appli::WriteDtimeInFile(
 									std::vector<double> aVD,
@@ -263,7 +264,7 @@ void cMPLOG_Appli::WriteDtimeInFile(
         }
 
         ElFclose(aFP);
-        std::cout<< aOutputFile <<".txt written."<<std::endl;
+        std::cout<< aOutputFile <<" written."<<std::endl;
         }
 }
 
@@ -811,6 +812,7 @@ void cMPLOG_Appli::MatchCAMWithPat(
 		//compute CAM tag time differences in sec : compute once
 		std::vector<double> aVTimeCam;
 		std::vector<double> aVSuccDiffCAMG; //global
+		
 		for(unsigned int aP=0; aP<aVCAM.size()-1; aP++)
 		{
 			double aDiff = aVCAM[aP+1].GPSTime - aVCAM[aP].GPSTime;
@@ -837,12 +839,35 @@ void cMPLOG_Appli::MatchCAMWithPat(
 		//if Nbr CAM == Nbr IMG --> check if correlation of delta time is fine
 		if(aVCAM.size() == aSetIm.size())
 		{
-			std::cout << "VCAM == aSetIm" << std::endl;
+			std::cout << "Case : Nbr CAM == Nbr IMG " << std::endl;
+			
+			//check only if correlation >= to seuil
+			double aCor = CalcCorr(aVSuccDiffCAMG,aVSuccDiffImgsG);
+			std::cout << " aCor = " << aCor << std::endl;
+			
+			if(aCor > aSeuil)
+			{
+				std::vector<std::string> aVIFI = VImgsFromIndic(0,aSetIm,aVCAM.size());
+				std::vector<Pt3dr> aVPosCam;
+				std::vector<double> aVTm;
+				unpair(aVPosCam,aVTm) = VTmPosFromCam(aVCAM);
+				
+				//write file with : IMG X Y Z
+				//X Y Z come from CAM TAG
+				WriteOriTxtFile(aVIFI,aVPosCam,mDir,aOriOut);
+				
+				if(aGenIMTMFile)
+				{
+					std::string aOutputFile = "CAM_IM_TM.xml";
+					GenrateImTmFile(aVTm,aVIFI,aOutputFile);
+				}
+			}
 		}
 	
 		//if Nbr CAM < Nbr IMG --> need to extract a sub sequence of IMG
 		if(aVCAM.size() < aSetIm.size())
 		{
+			std::cout << "Case : Nbr CAM < Nbr IMG " << std::endl;
 			
 			unsigned int aDec=0;
 			//vector containning values of corr coeff
@@ -901,7 +926,8 @@ void cMPLOG_Appli::MatchCAMWithPat(
 		//if Nbr CAM > Nbr IMG --> need to extract a sub sequence of CAM that fits best available images 
     	if(aVCAM.size() > aSetIm.size())
 		{
-			std::cout << "************************* aVCAM.size() > aSetIm.size() ********" << std::endl;
+			std::cout << "Case : Nbr CAM > Nbr IMG " << std::endl;
+			
 			unsigned int aDec=0;
 			//vector containning values of corr coeff
 			std::vector<double> aVCorrCoeff;
