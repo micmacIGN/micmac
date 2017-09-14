@@ -16,6 +16,7 @@ Sensor APS-C Other   >>> <SzCaptMm> 15.60 23.70 </SzCaptMm>
 Sensor 35mm FF       >>> <SzCaptMm> 24.00 36.00 </SzCaptMm>
 
 This librariy comes with no warranty of accuracy, as some of the values are not always given by the manufactures, and therefor had to be estimated.
+See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_and_sizes for more
 -->
 <MMCameraDataBase>
 

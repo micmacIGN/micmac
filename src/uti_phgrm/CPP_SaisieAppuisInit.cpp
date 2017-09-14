@@ -55,7 +55,8 @@ void SaisieAppuisInit(int argc, char ** argv,
                       bool &aForceGray,
                       double &aZMoy,
                       double &aZInc,
-                      std::string & aInputSec
+                      std::string & aInputSec,
+                      bool          & WithMaxMin
                       )
 {
     MMD_InitArgcArgv(argc,argv);
@@ -76,6 +77,7 @@ void SaisieAppuisInit(int argc, char ** argv,
                       << EAM(aZMoy,"ZMoy",true,"Average Z, Mandatory in PB", eSAM_NoInit)
                       << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
                       << EAM(aInputSec,"InputSec",true,"PIMs filter used for visibility", eSAM_NoInit)
+                      << EAM(WithMaxMin,"WMM",true,"With max-min option for point seizing", eSAM_NoInit)
     );
 
     if (!MMVisualMode)
@@ -135,9 +137,10 @@ int SaisieAppuisInit_main(int argc,char ** argv)
   bool aForceGray = true;
   double aZMoy,aZInc;
   std::string aInputSec;
+  bool  WithMaxMin=false;
 
 
-  SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, anOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc,aInputSec);
+  SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, anOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc,aInputSec,WithMaxMin);
 
   if (!MMVisualMode)
   {
@@ -151,6 +154,7 @@ int SaisieAppuisInit_main(int argc,char ** argv)
                           +  std::string(" +Sauv=") + anOut
                           +  std::string(" +SzWx=") + ToString(aSzW.x)
                           +  std::string(" +SzWy=") + ToString(aSzW.y)
+                          +  std::string(" +UseMinMaxPt=") + ToString(WithMaxMin)
                           +  std::string(" +NbFx=") + ToString(aNbFen.x)
                           +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
 

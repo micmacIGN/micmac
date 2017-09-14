@@ -102,6 +102,8 @@ class cAppliEditSet
         std::string                       mSetIn;
         std::string                       mSetOut;
         std::string                       mAdd;
+        std::string                       mSuppr;
+        std::string                       mInter;
         std::set<std::string>             mSet;
 };
 
@@ -112,8 +114,10 @@ cAppliEditSet::cAppliEditSet(int argc,char**argv)
     (
         argc,argv,
         LArgMain() <<  EAMC(mSetIn,"Input set", eSAM_IsPatFile)
-                   <<  EAMC(mSetOut,"Input set"),
+                   <<  EAMC(mSetOut,"Ouput set"),
         LArgMain() <<   EAM(mAdd,"Add",true,"Files to add")
+                   <<   EAM(mSuppr,"Supr",true,"Files to supress")
+                   <<   EAM(mInter,"Inter",true,"Files to intersect")
     );
 
     mDir = DirOfFile(mSetIn);
@@ -132,15 +136,28 @@ cAppliEditSet::cAppliEditSet(int argc,char**argv)
     if (EAMIsInit(&mAdd))
     {
          std::vector<std::string>  aV2Add =  VecPatOrFile2VecStr(mICNM,mAdd);
-/*
-         for (int aK=0 ; aK<int(aV2Add.size()) ; aK++)
-         {
-             mSet.insert(aV2Add[aK]);
-         }
-*/
          mSet.insert(aV2Add.begin(),aV2Add.end());
     }
+    if (EAMIsInit(&mSuppr))
+    {
+       std::vector<std::string>  aV2Supr =  VecPatOrFile2VecStr(mICNM,mSuppr);
+       for (int aK=0 ; aK<int(aV2Supr.size()) ; aK++)
+       {
+           mSet.erase(aV2Supr[aK]);
+       }
+    }
 
+    if (EAMIsInit(&mInter))
+    {
+       std::set<std::string>  aNewSet;
+       std::vector<std::string>  aV2Inter =  VecPatOrFile2VecStr(mICNM,mInter);
+       for (int aK=0 ; aK<int(aV2Inter.size()) ; aK++)
+       {
+           if (DicBoolFind(mSet,aV2Inter[aK]))
+              aNewSet.insert(aV2Inter[aK]);
+       }
+       mSet = aNewSet;
+    }
 
     cListOfName aRes;
     std::copy(mSet.begin(),mSet.end(),back_inserter(aRes.Name()));

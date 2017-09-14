@@ -406,7 +406,7 @@ static cFilterImPolI  OperDeriche(FDeriche,1,1,1,1,"deriche",true);
 
 static Fonc_Num FPolar(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
-   return   polar(anArg.mVIn.at(0),0);
+   return   Polar_Def_Opun::polar(anArg.mVIn.at(0),0);
 }
 
 static cFilterImPolI  OperPolar(FPolar,1,1,0,0,"polar",false);

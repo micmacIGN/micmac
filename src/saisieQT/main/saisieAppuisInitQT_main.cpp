@@ -15,7 +15,8 @@ extern void SaisieAppuisInit(int argc, char ** argv,
                       bool &aForceGray,
                       double &aZMoy,
                       double &aZInc,
-                      std::string & aInputSec
+                      std::string & aInputSec,
+                      bool & WithMaxMin
                       );
 
 
@@ -119,8 +120,9 @@ int saisieAppuisInitQT_main(int argc, char *argv[])
     }
     
     std::string aInputSec;
+    bool  WithMaxMin=false;
 
-    SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc,aInputSec);
+    SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc,aInputSec,WithMaxMin);
 
     if (!MMVisualMode)
     {
@@ -153,6 +155,8 @@ int saisieAppuisInitQT_main(int argc, char *argv[])
                 << QString("+Sauv=") + QString(aNameOut.c_str())
                 << QString("+SzWx=") + QString::number(aSzWin.x)
                 << QString("+SzWy=") + QString::number(aSzWin.y)
+                << QString(" +UseMinMaxPt=") + QString(ToString(WithMaxMin).c_str())
+
                 << QString("+NbFx=") + QString::number(aNbFen.x)
                 << QString("+NbFy=") + QString::number(aNbFen.y);
 
