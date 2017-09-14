@@ -410,6 +410,23 @@ void  cAppliApero::CDNP_Compense
                {
                   aNbEtape = 0;
                }
+
+               if (WithEq)
+               {
+                   AddInfoImageResidu(aNUpl,aVCam,aVpds);
+                   for (int aKPose=0 ; aKPose < aNbIm ; aKPose++)
+                   {
+                       aVCam[aKPose]->AddPMoy
+                       (
+                           aNUpl.PK(aKPose),
+                           aRes.mPTer,
+                           aRes.mBSurH,
+                           aKPose,
+                           &aVpds,
+                           &aVCam
+                       );
+                   }
+               }
            }
            else
            {

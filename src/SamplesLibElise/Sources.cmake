@@ -11,6 +11,12 @@ set(SamplesLibElise_Src_Files
     ${SAMPLESLIBELISE_DIR}/CPP_TestJB.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_TestYZ.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_TestPush.cpp
+    ${SAMPLESLIBELISE_DIR}/CPP_CilliaImg.cpp
+    ${SAMPLESLIBELISE_DIR}/CPP_CilliaXML.cpp
+    ${SAMPLESLIBELISE_DIR}/CPP_CilliaAss.cpp
+    ${SAMPLESLIBELISE_DIR}/CPP_CilliaImgt.cpp
+    ${SAMPLESLIBELISE_DIR}/CPP_CilliaCol.cpp  
+    ${SAMPLESLIBELISE_DIR}/CPP_CilliaMap.cpp 
 )
 
 # JE NE SAIS PAS SI CA SERT ???

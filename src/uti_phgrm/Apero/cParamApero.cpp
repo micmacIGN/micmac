@@ -10405,6 +10405,147 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
 std::string  Mangling( cSectionInconnues *) {return "4C6A20E243924390FE3F";};
 
 
+cTplValGesInit< double > & cUseExportImageResidu::SzByPair()
+{
+   return mSzByPair;
+}
+
+const cTplValGesInit< double > & cUseExportImageResidu::SzByPair()const 
+{
+   return mSzByPair;
+}
+
+
+cTplValGesInit< double > & cUseExportImageResidu::SzByPose()
+{
+   return mSzByPose;
+}
+
+const cTplValGesInit< double > & cUseExportImageResidu::SzByPose()const 
+{
+   return mSzByPose;
+}
+
+
+cTplValGesInit< double > & cUseExportImageResidu::SzByCam()
+{
+   return mSzByCam;
+}
+
+const cTplValGesInit< double > & cUseExportImageResidu::SzByCam()const 
+{
+   return mSzByCam;
+}
+
+
+cTplValGesInit< double > & cUseExportImageResidu::NbMesByCase()
+{
+   return mNbMesByCase;
+}
+
+const cTplValGesInit< double > & cUseExportImageResidu::NbMesByCase()const 
+{
+   return mNbMesByCase;
+}
+
+
+std::string & cUseExportImageResidu::AeroExport()
+{
+   return mAeroExport;
+}
+
+const std::string & cUseExportImageResidu::AeroExport()const 
+{
+   return mAeroExport;
+}
+
+void  BinaryUnDumpFromFile(cUseExportImageResidu & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SzByPair().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzByPair().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SzByPair().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SzByPose().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzByPose().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SzByPose().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SzByCam().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzByCam().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SzByCam().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NbMesByCase().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbMesByCase().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NbMesByCase().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.AeroExport(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cUseExportImageResidu & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.SzByPair().IsInit());
+    if (anObj.SzByPair().IsInit()) BinaryDumpInFile(aFp,anObj.SzByPair().Val());
+    BinaryDumpInFile(aFp,anObj.SzByPose().IsInit());
+    if (anObj.SzByPose().IsInit()) BinaryDumpInFile(aFp,anObj.SzByPose().Val());
+    BinaryDumpInFile(aFp,anObj.SzByCam().IsInit());
+    if (anObj.SzByCam().IsInit()) BinaryDumpInFile(aFp,anObj.SzByCam().Val());
+    BinaryDumpInFile(aFp,anObj.NbMesByCase().IsInit());
+    if (anObj.NbMesByCase().IsInit()) BinaryDumpInFile(aFp,anObj.NbMesByCase().Val());
+    BinaryDumpInFile(aFp,anObj.AeroExport());
+}
+
+cElXMLTree * ToXMLTree(const cUseExportImageResidu & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"UseExportImageResidu",eXMLBranche);
+   if (anObj.SzByPair().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SzByPair"),anObj.SzByPair().Val())->ReTagThis("SzByPair"));
+   if (anObj.SzByPose().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SzByPose"),anObj.SzByPose().Val())->ReTagThis("SzByPose"));
+   if (anObj.SzByCam().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SzByCam"),anObj.SzByCam().Val())->ReTagThis("SzByCam"));
+   if (anObj.NbMesByCase().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbMesByCase"),anObj.NbMesByCase().Val())->ReTagThis("NbMesByCase"));
+   aRes->AddFils(::ToXMLTree(std::string("AeroExport"),anObj.AeroExport())->ReTagThis("AeroExport"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cUseExportImageResidu & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.SzByPair(),aTree->Get("SzByPair",1),double(30)); //tototo 
+
+   xml_init(anObj.SzByPose(),aTree->Get("SzByPose",1),double(50)); //tototo 
+
+   xml_init(anObj.SzByCam(),aTree->Get("SzByCam",1),double(100)); //tototo 
+
+   xml_init(anObj.NbMesByCase(),aTree->Get("NbMesByCase",1),double(10)); //tototo 
+
+   xml_init(anObj.AeroExport(),aTree->Get("AeroExport",1)); //tototo 
+}
+
+std::string  Mangling( cUseExportImageResidu *) {return "F21165A8C847D0CCFE3F";};
+
+
 double & cTimeLinkage::DeltaMax()
 {
    return mDeltaMax;
@@ -10444,6 +10585,72 @@ void xml_init(cTimeLinkage & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cTimeLinkage *) {return "BEB337D7A41F8CD1FD3F";};
+
+
+cTplValGesInit< double > & cSectionChantier::SzByPair()
+{
+   return UseExportImageResidu().Val().SzByPair();
+}
+
+const cTplValGesInit< double > & cSectionChantier::SzByPair()const 
+{
+   return UseExportImageResidu().Val().SzByPair();
+}
+
+
+cTplValGesInit< double > & cSectionChantier::SzByPose()
+{
+   return UseExportImageResidu().Val().SzByPose();
+}
+
+const cTplValGesInit< double > & cSectionChantier::SzByPose()const 
+{
+   return UseExportImageResidu().Val().SzByPose();
+}
+
+
+cTplValGesInit< double > & cSectionChantier::SzByCam()
+{
+   return UseExportImageResidu().Val().SzByCam();
+}
+
+const cTplValGesInit< double > & cSectionChantier::SzByCam()const 
+{
+   return UseExportImageResidu().Val().SzByCam();
+}
+
+
+cTplValGesInit< double > & cSectionChantier::NbMesByCase()
+{
+   return UseExportImageResidu().Val().NbMesByCase();
+}
+
+const cTplValGesInit< double > & cSectionChantier::NbMesByCase()const 
+{
+   return UseExportImageResidu().Val().NbMesByCase();
+}
+
+
+std::string & cSectionChantier::AeroExport()
+{
+   return UseExportImageResidu().Val().AeroExport();
+}
+
+const std::string & cSectionChantier::AeroExport()const 
+{
+   return UseExportImageResidu().Val().AeroExport();
+}
+
+
+cTplValGesInit< cUseExportImageResidu > & cSectionChantier::UseExportImageResidu()
+{
+   return mUseExportImageResidu;
+}
+
+const cTplValGesInit< cUseExportImageResidu > & cSectionChantier::UseExportImageResidu()const 
+{
+   return mUseExportImageResidu;
+}
 
 
 cTplValGesInit< bool > & cSectionChantier::UseRegulDist()
@@ -10703,6 +10910,14 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.UseExportImageResidu().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.UseExportImageResidu().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.UseExportImageResidu().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.UseRegulDist().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.UseRegulDist().ValForcedForUnUmp(),aFp);
         }
@@ -10880,6 +11095,8 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionChantier & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.UseExportImageResidu().IsInit());
+    if (anObj.UseExportImageResidu().IsInit()) BinaryDumpInFile(aFp,anObj.UseExportImageResidu().Val());
     BinaryDumpInFile(aFp,anObj.UseRegulDist().IsInit());
     if (anObj.UseRegulDist().IsInit()) BinaryDumpInFile(aFp,anObj.UseRegulDist().Val());
     BinaryDumpInFile(aFp,anObj.GBCamSupresStenCam().IsInit());
@@ -10930,6 +11147,8 @@ cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionChantier",eXMLBranche);
+   if (anObj.UseExportImageResidu().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.UseExportImageResidu().Val())->ReTagThis("UseExportImageResidu"));
    if (anObj.UseRegulDist().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("UseRegulDist"),anObj.UseRegulDist().Val())->ReTagThis("UseRegulDist"));
    if (anObj.GBCamSupresStenCam().IsInit())
@@ -10984,6 +11203,8 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.UseExportImageResidu(),aTree->Get("UseExportImageResidu",1)); //tototo 
+
    xml_init(anObj.UseRegulDist(),aTree->Get("UseRegulDist",1),bool(false)); //tototo 
 
    xml_init(anObj.GBCamSupresStenCam(),aTree->Get("GBCamSupresStenCam",1),bool(true)); //tototo 
@@ -11029,7 +11250,7 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.ThresholdWarnPointsBehind(),aTree->Get("ThresholdWarnPointsBehind",1),double(0.01)); //tototo 
 }
 
-std::string  Mangling( cSectionChantier *) {return "95F5985BFC71D0C3FE3F";};
+std::string  Mangling( cSectionChantier *) {return "AED47E1208D0B594FF3F";};
 
 
 cTplValGesInit< bool > & cSectionSolveur::AllMatSym()
@@ -22396,6 +22617,17 @@ const cTplValGesInit< bool > & cExportNuage::PlyModeBin()const
 }
 
 
+cTplValGesInit< bool > & cExportNuage::SavePtsCol()
+{
+   return mSavePtsCol;
+}
+
+const cTplValGesInit< bool > & cExportNuage::SavePtsCol()const 
+{
+   return mSavePtsCol;
+}
+
+
 std::list< std::string > & cExportNuage::NameRefLiaison()
 {
    return mNameRefLiaison;
@@ -22733,6 +22965,14 @@ void  BinaryUnDumpFromFile(cExportNuage & anObj,ELISE_fp & aFp)
         }
         else  anObj.PlyModeBin().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SavePtsCol().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SavePtsCol().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SavePtsCol().SetNoInit();
+  } ;
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
@@ -22833,6 +23073,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cExportNuage & anObj)
     if (anObj.ExportNuageByImage().IsInit()) BinaryDumpInFile(aFp,anObj.ExportNuageByImage().Val());
     BinaryDumpInFile(aFp,anObj.PlyModeBin().IsInit());
     if (anObj.PlyModeBin().IsInit()) BinaryDumpInFile(aFp,anObj.PlyModeBin().Val());
+    BinaryDumpInFile(aFp,anObj.SavePtsCol().IsInit());
+    if (anObj.SavePtsCol().IsInit()) BinaryDumpInFile(aFp,anObj.SavePtsCol().Val());
     BinaryDumpInFile(aFp,(int)anObj.NameRefLiaison().size());
     for(  std::list< std::string >::const_iterator iT=anObj.NameRefLiaison().begin();
          iT!=anObj.NameRefLiaison().end();
@@ -22872,6 +23114,8 @@ cElXMLTree * ToXMLTree(const cExportNuage & anObj)
       aRes->AddFils(ToXMLTree(anObj.ExportNuageByImage().Val())->ReTagThis("ExportNuageByImage"));
    if (anObj.PlyModeBin().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PlyModeBin"),anObj.PlyModeBin().Val())->ReTagThis("PlyModeBin"));
+   if (anObj.SavePtsCol().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SavePtsCol"),anObj.SavePtsCol().Val())->ReTagThis("SavePtsCol"));
   for
   (       std::list< std::string >::const_iterator it=anObj.NameRefLiaison().begin();
       it !=anObj.NameRefLiaison().end();
@@ -22916,6 +23160,8 @@ void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PlyModeBin(),aTree->Get("PlyModeBin",1),bool(true)); //tototo 
 
+   xml_init(anObj.SavePtsCol(),aTree->Get("SavePtsCol",1),bool(true)); //tototo 
+
    xml_init(anObj.NameRefLiaison(),aTree->GetAll("NameRefLiaison",false,1));
 
    xml_init(anObj.PatternSel(),aTree->Get("PatternSel",1)); //tototo 
@@ -22943,7 +23189,7 @@ void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.NormByC(),aTree->Get("NormByC",1)); //tototo 
 }
 
-std::string  Mangling( cExportNuage *) {return "4AF9325399C1F18CFE3F";};
+std::string  Mangling( cExportNuage *) {return "C87222E10740E8C2FD3F";};
 
 
 cTplValGesInit< std::string > & cChoixImSec::KeyExistingFile()
@@ -24506,7 +24752,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportSensibParamAero(),aTree->Get("ExportSensibParamAero",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "E857111B78498881FE3F";};
+std::string  Mangling( cSectionExport *) {return "28629CD11C5D16FCFE3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -25303,7 +25549,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "74A863D7103A6FC9FE3F";};
+std::string  Mangling( cEtapeCompensation *) {return "624821E634B552B0FE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -25362,7 +25608,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "F09D310AF8076189FBBF";};
+std::string  Mangling( cSectionCompensation *) {return "34183706AB8EFA95FCBF";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -25791,6 +26037,72 @@ cSectionInconnues & cParamApero::SectionInconnues()
 const cSectionInconnues & cParamApero::SectionInconnues()const 
 {
    return mSectionInconnues;
+}
+
+
+cTplValGesInit< double > & cParamApero::SzByPair()
+{
+   return SectionChantier().UseExportImageResidu().Val().SzByPair();
+}
+
+const cTplValGesInit< double > & cParamApero::SzByPair()const 
+{
+   return SectionChantier().UseExportImageResidu().Val().SzByPair();
+}
+
+
+cTplValGesInit< double > & cParamApero::SzByPose()
+{
+   return SectionChantier().UseExportImageResidu().Val().SzByPose();
+}
+
+const cTplValGesInit< double > & cParamApero::SzByPose()const 
+{
+   return SectionChantier().UseExportImageResidu().Val().SzByPose();
+}
+
+
+cTplValGesInit< double > & cParamApero::SzByCam()
+{
+   return SectionChantier().UseExportImageResidu().Val().SzByCam();
+}
+
+const cTplValGesInit< double > & cParamApero::SzByCam()const 
+{
+   return SectionChantier().UseExportImageResidu().Val().SzByCam();
+}
+
+
+cTplValGesInit< double > & cParamApero::NbMesByCase()
+{
+   return SectionChantier().UseExportImageResidu().Val().NbMesByCase();
+}
+
+const cTplValGesInit< double > & cParamApero::NbMesByCase()const 
+{
+   return SectionChantier().UseExportImageResidu().Val().NbMesByCase();
+}
+
+
+std::string & cParamApero::AeroExport()
+{
+   return SectionChantier().UseExportImageResidu().Val().AeroExport();
+}
+
+const std::string & cParamApero::AeroExport()const 
+{
+   return SectionChantier().UseExportImageResidu().Val().AeroExport();
+}
+
+
+cTplValGesInit< cUseExportImageResidu > & cParamApero::UseExportImageResidu()
+{
+   return SectionChantier().UseExportImageResidu();
+}
+
+const cTplValGesInit< cUseExportImageResidu > & cParamApero::UseExportImageResidu()const 
+{
+   return SectionChantier().UseExportImageResidu();
 }
 
 
@@ -26439,7 +26751,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "62349D55EC57C7ACFF3F";};
+std::string  Mangling( cParamApero *) {return "5A651B4E7D688486FE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

@@ -1043,10 +1043,8 @@ void cAppliApero::DoContraintesAndCompens
             bool IsLastEtape
      )
 {
- 
-
    mIsLastEtape = IsLastEtape;
-
+   mIsLastEtapeOfLastIter = IsLastIter && IsLastEtape;
 /*
    if (mSqueezeDOCOAC)
    {
@@ -1427,6 +1425,7 @@ void cAppliApero::DoCompensation()
    }
 
    
+   ExportImageResidu();
    MajAddCoeffMatrix();
    PosesAddMajick();
    MessageDebug("Global End");

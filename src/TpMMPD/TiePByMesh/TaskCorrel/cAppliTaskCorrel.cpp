@@ -273,8 +273,8 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
     sortDescendPt2drY(valEl_img);
     if (  valEl_img.size() > 1 &&
           imgMas!=NULL && cur_valElipse != -1.0 &&
-          !isnan(cur_valElipse) &&     // => pourquoi il y a nan il val ellipse ? :(
-          !isnan(valEl_img[0].y)
+          !std_isnan(cur_valElipse) &&     // => pourquoi il y a nan il val ellipse ? :(
+          !std_isnan(valEl_img[0].y)
        )
     {
         //-----DEBUG----//

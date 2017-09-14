@@ -107,7 +107,6 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
     }
 
     eModeAGP aLastMode = eModeAGPNone;
-
     for 
     (
          std::list<std::string>::const_iterator itL=anEN.NameRefLiaison().begin();
@@ -272,11 +271,11 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
           aVNuage,
           &(anAGP.Pts()),
           &(anAGP.Cols()),
-          anEN.PlyModeBin().Val()
+          anEN.PlyModeBin().Val(),
+          anEN.SavePtsCol().Val()
        );
     }
 }
-
 
 
 };

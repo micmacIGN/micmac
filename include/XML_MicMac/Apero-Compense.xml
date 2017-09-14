@@ -144,6 +144,13 @@
            <Symb>  RegDistSeuil=0.0 </Symb>
            <Symb>  RapTxt=""    </Symb>
 
+           <Symb>  DoUseExportImageResidu=false    </Symb>
+           <Symb>  UEIR_ByPair=30    </Symb>
+           <Symb>  UEIR_ByPose=50    </Symb>
+           <Symb>  UEIR_ByCam=100    </Symb>
+           <Symb>  UEIR_NbMesByCase=10 </Symb>
+
+           <eSymb>  LastIterSupl=Or ${DoUseExportImageResidu} ${ExportSensib}  </eSymb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -308,6 +315,15 @@
 
 
         <SectionChantier>
+             <#WHEN VTEST=${DoUseExportImageResidu}>
+                   <UseExportImageResidu>
+                        <SzByPair> ${UEIR_ByPair} </SzByPair>
+                        <SzByPose> ${UEIR_ByPose} </SzByPose>
+                        <SzByCam > ${UEIR_ByCam} </SzByCam>
+                        <NbMesByCase > ${UEIR_NbMesByCase} </NbMesByCase>
+                        <AeroExport> ${AeroOut}    </AeroExport>
+                   </UseExportImageResidu>
+             </#WHEN>
              <UseRegulDist> ${UseRegulDist} </UseRegulDist>
 	     <DirectoryChantier> XXXX </DirectoryChantier>
              <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
@@ -531,6 +547,14 @@
                               <SeuilEvolMoy > ${SeuilEvolIterFin}  </SeuilEvolMoy>
                         </CtrlTimeCompens>
                     </IterationsCompensation>
+
+                   <!-- Cette etape est rajoute pour que la derniere iteration soit
+                        predictible
+                    -->
+                    <#WHEN   VTEST=${LastIterSupl}>
+                         <IterationsCompensation>
+                         </IterationsCompensation>
+                    </#WHEN>
 
 		    <SectionObservations>
                           <#WHEN  VTEST=${UseHom}>

@@ -284,6 +284,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     bool mForceZFaisc = false;
 
     Pt2di  aPtDebug;
+    bool   aUseArgMaskAuto=true;
 
     ElInitArgMain
     (
@@ -328,6 +329,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq", eSAM_NoInit)
                     << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ", eSAM_IsExistFileRP)
+                    << EAM(aUseArgMaskAuto,"UseArgMask",true,"developper use) ", eSAM_NoInit)
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, normalized image coordinates ([0,0,1,1] means full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
@@ -738,7 +740,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               + std::string(" +NbEtapeQuant=") + ToString(mNbEtapeQ)
               + std::string(" +DefCor=") + ToString(mDefCor)
               + std::string(" +CostTrans=") + ToString(mCostTrans)
-              + std::string(" +Geom=") + aNameGeom
+              + std::string(" +Geom=") + aNameGeom  
+              + std::string(" +UseArgMaskAuto=") + ToString(aUseArgMaskAuto)
               ;
 
       mCom = mCom + " +RSRT=" + ToString(aRSRT);
