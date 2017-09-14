@@ -47,8 +47,8 @@ int  StatIm_main(int argc,char ** argv)
     	string Name;
         Pt2di aP0(0,0);
         Pt2di aSz(1,1);
-
 		bool aMoreStat=false;
+		bool aTxtExport=false;
 
 
 
@@ -56,33 +56,61 @@ int  StatIm_main(int argc,char ** argv)
     (
                 argc,argv,
                 LArgMain() 	<< EAMC(Name,"Image name", eSAM_IsExistFile)
-                                << EAMC(aP0,"Point or Origin of rectangle"),
-                LArgMain()      <<  EAM(aSz,"Sz",true,"Size of rectangle (Def=[1,1])")
-                                <<  EAM(aMoreStat,"Stat",true,"Calculate extra statistical measures (Def=false)")
-                                <<  EAM(aMasq,"Masq",true,"Masq for image")
+                            << EAMC(aP0,"Point or Origin of rectangle"),
+                LArgMain()  << EAM(aSz,"Sz",true,"Size of rectangle (Def=[1,1])")
+                            << EAM(aMoreStat,"Stat",true,"Calculate extra statistical measures (Def=false)")
+                            << EAM(aMasq,"Masq",true,"Masq for image")
+                            << EAM(aTxtExport,"TxtExport",true,"Export Image as .txt Matrix ; Def=false") 
     );
 
     if(MMVisualMode) return EXIT_SUCCESS;
 
     Tiff_Im tiff = Tiff_Im::StdConv(Name);
+    
+    Symb_FNum aTF (Rconv(tiff.in()));
+    Fonc_Num aFPds (1.0);
 
-
-        Symb_FNum aTF (Rconv(tiff.in()));
-        Fonc_Num aFPds (1.0);
-
-        if (EAMIsInit(&aMasq))
+    if (EAMIsInit(&aMasq))
+    {
+		Tiff_Im aTF(aMasq.c_str());
+        aFPds = aTF.in(0);
+        if (!EAMIsInit(&aSz))
         {
-            Tiff_Im aTF(aMasq.c_str());
-            aFPds = aTF.in(0);
-            if (!EAMIsInit(&aSz))
-            {
-                aSz = aTF.sz();
-            }
+			aSz = aTF.sz();
+        }
+    }
+    
+    if(aTxtExport)
+    {
+		std::string aOutputFile = "ImgMatrix.txt";
+		std::string aDir= "./";
+		
+		Im2D<double,double> aImgInd (tiff.sz().x,tiff.sz().y, -1.0);
+		
+		ELISE_COPY(aImgInd.all_pts(), tiff.in(), aImgInd.out());
+		
+		FILE * aFP = FopenNN(aOutputFile,"w","StatIm_main");
+        cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOutputFile);
+        
+        for(int aI=0; aI<tiff.sz().x; aI++)
+        {
+			for(int aJ=0; aJ<tiff.sz().y; aJ++)
+			{
+				Pt2di aCoor(aI,aJ);
+				double aValue = aImgInd.GetR(aCoor);
+				fprintf(aFP,"%f ",aValue);
+			}
+			fprintf(aFP,"\n");
         }
 
-        double aSP,aSomZ,aSomZ2,aZMin,aZMax,aSomAbs;
-        ELISE_COPY
-        (
+        ElFclose(aFP);
+        std::cout<< aOutputFile <<" written."<<std::endl;
+
+	}
+
+    double aSP,aSomZ,aSomZ2,aZMin,aZMax,aSomAbs;
+    ELISE_COPY
+    (
             rectangle(aP0,aP0+aSz),
             Virgule(1,aTF,Square(aTF),Abs(aTF))*aFPds,
             Virgule
@@ -92,22 +120,22 @@ int  StatIm_main(int argc,char ** argv)
                  sigma(aSomZ2),
                  sigma(aSomAbs)
             )
-        );
+    );
 
-        aSomZ /= aSP;
-        aSomZ2 /= aSP;
-        aSomZ2 -= ElSquare(aSomZ);
-        aSomAbs /= aSP;
+    aSomZ /= aSP;
+    aSomZ2 /= aSP;
+    aSomZ2 -= ElSquare(aSomZ);
+    aSomAbs /= aSP;
 
-        std::cout << "ZMoy=" << aSomZ << " ; Sigma=" << sqrt(ElMax(0.0,aSomZ2)) << "\n";
-        std::cout << "ZMinMax=[" << aZMin << " , " << aZMax << "]\n";
-        std::cout << "MoyAbs=" << aSomAbs  << "\n";
+    std::cout << "ZMoy=" << aSomZ << " ; Sigma=" << sqrt(ElMax(0.0,aSomZ2)) << "\n";
+    std::cout << "ZMinMax=[" << aZMin << " , " << aZMax << "]\n";
+    std::cout << "MoyAbs=" << aSomAbs  << "\n";
 	
-		if(aMoreStat)
-		{
-			int aNbV=256;
-            cRobustStats aRStat(tiff.in(),aNbV,aP0,aSz);
-		}
+	if(aMoreStat)
+	{
+		int aNbV=256;
+        cRobustStats aRStat(tiff.in(),aNbV,aP0,aSz);
+	}
 
 /*
         INT NbB = tiff.NbBits();
