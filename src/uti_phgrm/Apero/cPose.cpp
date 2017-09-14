@@ -176,7 +176,7 @@ void cAccumResidu::Export(const std::string & aDir,const std::string & aName,con
                     double  aY = (aPFulRes.y-aSzN.y) / aSzN.y;
 
                     std::vector<double> aVMx; // Monome Xn
-                    std::vector<double> aVMy; // Monome Xn
+                    std::vector<double> aVMy; // Monome Yn
                     aVMx.push_back(1.0);
                     aVMy.push_back(1.0);
                     for (int aD=0 ; aD< mDegPol ; aD++)
