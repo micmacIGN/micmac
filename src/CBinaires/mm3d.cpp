@@ -584,6 +584,18 @@ extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
 extern int TestPush(int argc,char ** argv);
+//extern int Cillia_main(int argc,char ** argv);
+extern int Homol2GCP_main(int argc,char ** argv);
+extern int GlobToLocal_main(int argc,char ** argv);
+extern int ExtractZ_main(int argc,char ** argv);
+extern int XYZ_Global_main(int argc,char ** argv);
+extern int HomToXML_main(int argc,char ** argv);
+extern int CilliaAss_main(int argc,char ** argv);
+extern int CilliaImgt_main(int argc,char ** argv);
+extern int ImgCol_main(int argc,char ** argv);
+extern int CilliaMap_main(int argc,char ** argv);
+extern int SimilComp_main(int argc,char ** argv);
+extern int AffineComp_main(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -786,6 +798,19 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
        aRes.push_back(cMMCom("TestER",TestER_filtRec_main,"ER test workplace"));
        aRes.push_back(cMMCom("TestAT",TestPush,"AT test workplace"));
+
+//       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
+       aRes.push_back(cMMCom("Homol2GCP",Homol2GCP_main,"cillia"));
+       aRes.push_back(cMMCom("GlobToLocal",GlobToLocal_main,"cillia"));
+       aRes.push_back(cMMCom("ExtractZ",ExtractZ_main,"cillia"));
+       aRes.push_back(cMMCom("XYZ_Global",XYZ_Global_main,"cillia"));
+       aRes.push_back(cMMCom("HomToXML",HomToXML_main,"cillia"));
+       aRes.push_back(cMMCom("TestCilliaAss",CilliaAss_main,"cillia"));
+       aRes.push_back(cMMCom("TestCilliaImgt",CilliaImgt_main,"cillia"));
+       aRes.push_back(cMMCom("ImgCol",ImgCol_main,"cilliac"));
+       aRes.push_back(cMMCom("TestCilliaMap",CilliaMap_main,"cilliac"));
+       aRes.push_back(cMMCom("SimilComp",SimilComp_main,"cilliac"));
+       aRes.push_back(cMMCom("AffineComp",AffineComp_main,"cilliac"));
 
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));

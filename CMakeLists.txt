@@ -127,7 +127,7 @@ OPTION(WITH_QT5 "compile Qt interfaces" ON )
 OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )
 
 # Compilateur C++11
-OPTION(WITH_CPP11 "Compilateur C++11" OFF )
+OPTION(WITH_CPP11 "Compilateur C++11" ON )
 
 OPTION(DEPLOY "compile for end-user" OFF)
 
