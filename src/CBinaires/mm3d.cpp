@@ -260,7 +260,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
-       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Tie point reduction"));
+       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Tie point reduction",cArgLogCom(2)));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));
@@ -584,6 +584,18 @@ extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
 extern int TestPush(int argc,char ** argv);
+//extern int Cillia_main(int argc,char ** argv);
+extern int Homol2GCP_main(int argc,char ** argv);
+extern int GlobToLocal_main(int argc,char ** argv);
+extern int ExtractZ_main(int argc,char ** argv);
+extern int XYZ_Global_main(int argc,char ** argv);
+extern int HomToXML_main(int argc,char ** argv);
+extern int CilliaAss_main(int argc,char ** argv);
+extern int CilliaImgt_main(int argc,char ** argv);
+extern int ImgCol_main(int argc,char ** argv);
+extern int CilliaMap_main(int argc,char ** argv);
+extern int SimilComp_main(int argc,char ** argv);
+extern int AffineComp_main(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -673,7 +685,7 @@ int RTI_PosLumFromOmbre_main(int argc,char ** argv);
 int GetInfosMPLF_main(int argc,char ** argv);
 int TestNewMergeTieP_main(int argc,char ** argv);
 int TestStephane_Main(int argc,char ** argv);
-
+int ArboArch_main(int argc,char ** argv);
 
 int TestDupBigTiff(int argc,char ** argv);
 int Test_TomCan(int argc,char ** argv);
@@ -787,6 +799,19 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("TestER",TestER_filtRec_main,"ER test workplace"));
        aRes.push_back(cMMCom("TestAT",TestPush,"AT test workplace"));
 
+//       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
+       aRes.push_back(cMMCom("Homol2GCP",Homol2GCP_main,"cillia"));
+       aRes.push_back(cMMCom("GlobToLocal",GlobToLocal_main,"cillia"));
+       aRes.push_back(cMMCom("ExtractZ",ExtractZ_main,"cillia"));
+       aRes.push_back(cMMCom("XYZ_Global",XYZ_Global_main,"cillia"));
+       aRes.push_back(cMMCom("HomToXML",HomToXML_main,"cillia"));
+       aRes.push_back(cMMCom("TestCilliaAss",CilliaAss_main,"cillia"));
+       aRes.push_back(cMMCom("TestCilliaImgt",CilliaImgt_main,"cillia"));
+       aRes.push_back(cMMCom("ImgCol",ImgCol_main,"cilliac"));
+       aRes.push_back(cMMCom("TestCilliaMap",CilliaMap_main,"cilliac"));
+       aRes.push_back(cMMCom("SimilComp",SimilComp_main,"cilliac"));
+       aRes.push_back(cMMCom("AffineComp",AffineComp_main,"cilliac"));
+
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud"));
@@ -872,7 +897,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
         aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envelope for mode statue"));
         aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topological analysis before bascule"));
-
+		aRes.push_back(cMMCom("ArboArch",ArboArch_main,"Files organization, internal use"));
 
         aRes.push_back(cMMCom("Check1Hom",CheckOneHom_main,"Check One File Homologue"));
         aRes.push_back(cMMCom("CheckAllHom",CheckAllHom_main,"Check All File Homologue"));
