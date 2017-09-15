@@ -2033,13 +2033,15 @@
      <eCmf_Convert>     </eCmf_Convert>     <!-- conversion tools -->
      <eCmf_ImProc>      </eCmf_ImProc>      <!-- Image Processing tools -->
      <eCmf_Interf>      </eCmf_Interf>      <!-- Interface tools -->
-     <eCmf_Orient>      </eCmf_Orient>      <!-- Orientation tools -->
+     <eCmf_Orient>      </eCmf_Orient>      <!-- Orientation tools, relative -->
+     <eCmf_OriAbs>      </eCmf_OriAbs>     <!-- As soon as GCP, GPS, trajecto.. is used -->
      <eCmf_TiePoints>   </eCmf_TiePoints>   <!-- Tie Points  tools -->
+     <eCmf_ImMatch>     </eCmf_ImMatch>     <!-- Dense image matching -->
      <eCmf_NbVals>      </eCmf_NbVals>      <!-- Interface tools -->
 </enum>
 
 <enum Name="eCmdMM_DataType">
-     <eCmDt_Orient>     </eCmDt_Orient>     <!--  -->
+     <eCmDt_Orient>     </eCmDt_Orient>     <!--   -->
      <eCmDt_Images>     </eCmDt_Images>     <!--  -->
      <eCmDt_TiePoints>  </eCmDt_TiePoints>  <!--  -->
      <eCmDt_CloudXML>   </eCmDt_CloudXML>   <!-- Depth Maps + xml corresponding to a cloud -->
@@ -2067,18 +2069,21 @@
        <MainFeature Nb="1" Type="eCmdMM_Feature"> </MainFeature>
        <MainInput   Nb="1" Type="eCmdMM_DataType"> </MainInput>
        <MainOuput   Nb="1" Type="eCmdMM_DataType"> </MainOuput>
+       <!--  <Group       Nb="1"  Type="eCmdMM_Group">  </Group>  Calcule auto -->
 
-
+       <Option Nb="?" Type="std::string"> </Option>
+       <OtherFeature Nb="*" Type="eCmdMM_Feature"> </OtherFeature>
        <OtherInput   Nb="*" Type="eCmdMM_DataType"> </OtherInput>
        <OtherOuput   Nb="*" Type="eCmdMM_DataType"> </OtherOuput>
-       <Option Nb="?" Type="std::string"> </Option>
-       <CreationDate   Nb="?" Type="Pt3di" Def="Pt3di(21,09,2008)"> </CreationDate>
-       <ModiDate   Nb="?" Type="Pt3di" Def="Pt3di(21,09,2008)">     </ModifDate>
-       <DependOf   Nb="*" Type="std::string"> </DependOf>
-       <UsedBy     Nb="*" Type="std::string"> </UsedBy>
-
+       <CreationDate   Nb="?" Type="Pt3di" Def="Pt3di(21,9,2008)"> </CreationDate>
+       <ModifDate   Nb="?" Type="Pt3di" Def="Pt3di(21,9,2008)">    </ModifDate>
+       <DependOf   Nb="*" Type="std::string">                       </DependOf>
+       <UsedBy     Nb="*" Type="std::string">                       </UsedBy>
 </Xml_Specif1MMCmd>
 
+<Xml_SpecifAllMMCmd Nb="1" Class="true" ToReference="true">
+    <OneCmd Nb="*" RefType="Xml_Specif1MMCmd"> </OneCmd>
+</Xml_SpecifAllMMCmd>
 
 <Verbatim File=".h.cpp">
 // };

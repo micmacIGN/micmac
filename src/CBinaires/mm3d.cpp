@@ -234,13 +234,15 @@ extern int ExtractRaw_main(int argc,char ** argv);
 extern int CPP_MMRename(int argc,char**argv);
 extern int  CPP_EditSet(int argc,char**argv);
 
+int CPP_MMHelp(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-	   aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
+       aRes.push_back(cMMCom("Help",CPP_MMHelp,"Help on existing MicMac commands "));
+       aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
 	   
        aRes.push_back(cMMCom("CalcMapAnalytik",CPP_CalcMapAnalitik,"Compute map2d between images using various model "));
        aRes.push_back(cMMCom("CalcMapXYT",CPP_CalcMapXYT,"Compute map2d evol of T "));
@@ -1320,6 +1322,11 @@ Tapioca 200000
 */
 
 
+int CPP_MMHelp(int argc,char ** argv)
+{
+   cXml_SpecifAllMMCmd aLMMC = StdGetFromPCP(Basic_XML_MM_File("HelpMMCmd.xml"),Xml_SpecifAllMMCmd);
+   return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

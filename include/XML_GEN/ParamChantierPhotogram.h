@@ -7651,5 +7651,172 @@ std::string  Mangling( cXml_SolBascRigide *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+typedef enum
+{
+  eCmf_Control,
+  eCmf_Convert,
+  eCmf_ImProc,
+  eCmf_Interf,
+  eCmf_Orient,
+  eCmf_OriAbs,
+  eCmf_TiePoints,
+  eCmf_ImMatch,
+  eCmf_NbVals
+} eCmdMM_Feature;
+void xml_init(eCmdMM_Feature & aVal,cElXMLTree * aTree);
+std::string  eToString(const eCmdMM_Feature & aVal);
+
+eCmdMM_Feature  Str2eCmdMM_Feature(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eCmdMM_Feature & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eCmdMM_Feature &);
+
+std::string  Mangling( eCmdMM_Feature *);
+
+void  BinaryUnDumpFromFile(eCmdMM_Feature &,ELISE_fp &);
+
+typedef enum
+{
+  eCmDt_Orient,
+  eCmDt_Images,
+  eCmDt_TiePoints,
+  eCmDt_CloudXML,
+  eCmDt_FileXML,
+  eCmDt_FileTxt,
+  eCmDt_GCP,
+  eCmDt_PtImMes,
+  eCmDt_Any,
+  eCmDt_None,
+  eCmDt_Ply,
+  eCmDt_NbVals
+} eCmdMM_DataType;
+void xml_init(eCmdMM_DataType & aVal,cElXMLTree * aTree);
+std::string  eToString(const eCmdMM_DataType & aVal);
+
+eCmdMM_DataType  Str2eCmdMM_DataType(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eCmdMM_DataType & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eCmdMM_DataType &);
+
+std::string  Mangling( eCmdMM_DataType *);
+
+void  BinaryUnDumpFromFile(eCmdMM_DataType &,ELISE_fp &);
+
+typedef enum
+{
+  eCmGrp_mm3d,
+  eCmGrp_TestLib,
+  eCmGrp_SateLib,
+  eCmGrp_SimuLib,
+  eCmGrp_XLib,
+  eCmGrp_NbVals
+} eCmdMM_Group;
+void xml_init(eCmdMM_Group & aVal,cElXMLTree * aTree);
+std::string  eToString(const eCmdMM_Group & aVal);
+
+eCmdMM_Group  Str2eCmdMM_Group(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eCmdMM_Group & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eCmdMM_Group &);
+
+std::string  Mangling( eCmdMM_Group *);
+
+void  BinaryUnDumpFromFile(eCmdMM_Group &,ELISE_fp &);
+
+class cXml_Specif1MMCmd
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Specif1MMCmd & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        eCmdMM_Feature & MainFeature();
+        const eCmdMM_Feature & MainFeature()const ;
+
+        eCmdMM_DataType & MainInput();
+        const eCmdMM_DataType & MainInput()const ;
+
+        eCmdMM_DataType & MainOuput();
+        const eCmdMM_DataType & MainOuput()const ;
+
+        cTplValGesInit< std::string > & Option();
+        const cTplValGesInit< std::string > & Option()const ;
+
+        std::list< eCmdMM_Feature > & OtherFeature();
+        const std::list< eCmdMM_Feature > & OtherFeature()const ;
+
+        std::list< eCmdMM_DataType > & OtherInput();
+        const std::list< eCmdMM_DataType > & OtherInput()const ;
+
+        std::list< eCmdMM_DataType > & OtherOuput();
+        const std::list< eCmdMM_DataType > & OtherOuput()const ;
+
+        cTplValGesInit< Pt3di > & CreationDate();
+        const cTplValGesInit< Pt3di > & CreationDate()const ;
+
+        cTplValGesInit< Pt3di > & ModifDate();
+        const cTplValGesInit< Pt3di > & ModifDate()const ;
+
+        std::list< std::string > & DependOf();
+        const std::list< std::string > & DependOf()const ;
+
+        std::list< std::string > & UsedBy();
+        const std::list< std::string > & UsedBy()const ;
+    private:
+        std::string mName;
+        eCmdMM_Feature mMainFeature;
+        eCmdMM_DataType mMainInput;
+        eCmdMM_DataType mMainOuput;
+        cTplValGesInit< std::string > mOption;
+        std::list< eCmdMM_Feature > mOtherFeature;
+        std::list< eCmdMM_DataType > mOtherInput;
+        std::list< eCmdMM_DataType > mOtherOuput;
+        cTplValGesInit< Pt3di > mCreationDate;
+        cTplValGesInit< Pt3di > mModifDate;
+        std::list< std::string > mDependOf;
+        std::list< std::string > mUsedBy;
+};
+cElXMLTree * ToXMLTree(const cXml_Specif1MMCmd &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Specif1MMCmd &);
+
+void  BinaryUnDumpFromFile(cXml_Specif1MMCmd &,ELISE_fp &);
+
+std::string  Mangling( cXml_Specif1MMCmd *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_SpecifAllMMCmd
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_SpecifAllMMCmd & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_Specif1MMCmd > & OneCmd();
+        const std::list< cXml_Specif1MMCmd > & OneCmd()const ;
+    private:
+        std::list< cXml_Specif1MMCmd > mOneCmd;
+};
+cElXMLTree * ToXMLTree(const cXml_SpecifAllMMCmd &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_SpecifAllMMCmd &);
+
+void  BinaryUnDumpFromFile(cXml_SpecifAllMMCmd &,ELISE_fp &);
+
+std::string  Mangling( cXml_SpecifAllMMCmd *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotPCP

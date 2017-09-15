@@ -1,0 +1,162 @@
+<!--
+Group :
+     eCmGrp_mm3d
+     eCmGrp_TestLib
+     eCmGrp_SateLib
+     eCmGrp_SimuLib
+     eCmGrp_XLib
+     eCmGrp_NbVals
+
+
+MainFeature :
+     eCmf_Control
+     eCmf_Convert
+     eCmf_ImProc
+     eCmf_Interf
+     eCmf_Orient
+     eCmf_TiePoints
+     eCmf_NbVals
+
+DataType :
+     eCmDt_Orient
+     eCmDt_Images
+     eCmDt_TiePoints
+     eCmDt_CloudXML
+     eCmDt_FileXML
+     eCmDt_FileTxt
+     eCmDt_GCP
+     eCmDt_PtImMes
+     eCmDt_Any
+     eCmDt_None
+     eCmDt_Ply
+     eCmDt_NbVals
+
+    <OneCmd> 
+          <Name  >  </Name>
+          <MainFeature > </MainFeature>
+          <MainInput   > </MainInput>
+          <MainOuput   > </MainOuput>
+
+          <Option> </Option>
+          <OtherInput> </OtherInput>
+          <OtherOuput> </OtherOuput>
+          <CreationDate> </CreationDate>
+          <ModifDate>    </ModifDate>
+          <DependOf>     </DependOf>
+          <UsedBy >      </UsedBy>
+   </OneCmd>
+-->
+
+<Xml_SpecifAllMMCmd>
+
+<!-- ========= -->
+<!--   Control -->
+<!-- ========= -->
+
+    <OneCmd> 
+          <Name  >   BAR  </Name>
+          <MainFeature >  eCmf_Control </MainFeature>
+              <OtherFeature >  eCmf_OriAbs </OtherFeature>
+          <MainInput   >  eCmDt_GCP </MainInput>
+             <OtherInput>    eCmDt_Orient  </OtherInput>
+             <OtherInput>    eCmDt_PtImMes </OtherInput>
+          <MainOuput   >  eCmDt_FileTxt </MainOuput>
+             <OtherOuput>    eCmDt_Orient  </OtherOuput>
+          <!-- <Group>         eCmGrp_mm3d </Group> -->
+          <CreationDate> 1 6 2017 </CreationDate> <!-- Approx -->
+   </OneCmd>
+
+   <OneCmd> 
+          <Name>    Campari  </Name>
+          <Option>  ExpImRes= </Option>
+          <MainFeature >  eCmf_Control </MainFeature>
+          <MainInput   >  eCmDt_Orient </MainInput>
+          <MainOuput   >  eCmDt_Images </MainOuput>
+          <!-- <Group>         eCmGrp_mm3d </Group> -->
+          <CreationDate> 13  9 2017 </CreationDate> 
+   </OneCmd>
+
+   <OneCmd> 
+          <Name  >   Campari  </Name>
+          <Option>   ExportSensib= </Option>
+          <MainFeature >  eCmf_Control  </MainFeature>
+          <MainInput   >  eCmDt_Orient  </MainInput>
+          <MainOuput   >  eCmDt_FileXML </MainOuput>
+          <!-- <Group>         eCmGrp_mm3d   </Group> -->
+          <CreationDate> 01 12  2016 </CreationDate>  <!-- Approx -->
+   </OneCmd>
+
+<!-- ============ -->
+<!--   Conversion -->
+<!-- ============ -->
+
+   <OneCmd> 
+          <Name  >   XmlGps2Txt  </Name>
+          <MainFeature >  eCmf_Convert  </MainFeature>
+              <OtherFeature >  eCmf_OriAbs </OtherFeature>
+          <MainInput   >  eCmDt_FileXML  </MainInput>
+          <MainOuput   >  eCmDt_FileTxt </MainOuput>
+          <!-- <Group>         eCmGrp_TestLib   </Group> -->
+   </OneCmd>
+
+   <OneCmd> 
+          <Name  >    Nuage2Ply  </Name>
+          <MainFeature >  eCmf_Convert  </MainFeature>
+          <MainInput   >  eCmDt_CloudXML  </MainInput>
+          <MainOuput   >  eCmDt_Ply </MainOuput>
+          <!-- <Group>         eCmGrp_mm3d   </Group> -->
+   </OneCmd>
+
+   <OneCmd> 
+          <Name  >    ScaleNuage  </Name>
+          <MainFeature >  eCmf_Convert  </MainFeature>
+          <MainInput   >  eCmDt_CloudXML  </MainInput>
+          <MainOuput   >  eCmDt_CloudXML  </MainOuput>
+          <!-- <Group>         eCmGrp_mm3d   </Group> -->
+   </OneCmd>
+
+<!-- ================== -->
+<!--   Image Processing -->
+<!-- ================== -->
+
+   <OneCmd> 
+          <Name  >    PanelIm  </Name>
+          <MainFeature >  eCmf_ImProc  </MainFeature>
+          <MainInput   >  eCmDt_Images  </MainInput>
+          <MainOuput   >  eCmDt_Images  </MainOuput>
+          <!-- <Group>         eCmGrp_mm3d   </Group> -->
+   </OneCmd>
+
+   <OneCmd> 
+          <Name  >    GrShade  </Name>
+          <MainFeature >  eCmf_ImProc  </MainFeature>
+              <OtherFeature >  eCmf_Control </OtherFeature>
+          <MainInput   >  eCmDt_Images  </MainInput>
+          <MainOuput   >  eCmDt_Images  </MainOuput>
+          <!-- <Group>         eCmGrp_mm3d   </Group> -->
+   </OneCmd>
+
+<!-- ================== -->
+<!--   Interface        -->
+<!-- ================== -->
+   <OneCmd> 
+          <Name  >    Vino  </Name>
+          <MainFeature >  eCmf_ImProc  </MainFeature>
+          <MainInput   >  eCmDt_Images  </MainInput>
+          <MainOuput   >  eCmDt_None    </MainOuput>
+          <!-- <Group>         eCmGrp_mm3d   </Group> -->
+   </OneCmd>
+
+   <OneCmd> 
+          <Name  >    SEL  </Name>
+          <MainFeature >  eCmf_ImProc  </MainFeature>
+          <MainInput   >  eCmDt_Images  </MainInput>
+          <MainOuput   >  eCmDt_None    </MainOuput>
+             <OtherOuput>    eCmDt_TiePoints  </OtherOuput>
+          <!-- <Group>         eCmGrp_mm3d   </Group> -->
+   </OneCmd>
+
+
+</Xml_SpecifAllMMCmd>
+
+
