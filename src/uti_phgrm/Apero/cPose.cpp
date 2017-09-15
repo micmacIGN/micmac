@@ -68,7 +68,7 @@ class cAccumResidu
        cAccumResidu(Pt2di aSz,double aRed,bool OnlySign,int aDegPol);
 
        static const int NbMinCreateIm = 200;
-       void Export(const std::string & aDir,const std::string & aName,const cUseExportImageResidu & );
+       void Export(const std::string & aDir,const std::string & aName,const cUseExportImageResidu &,FILE * );
     private :
        void AccumInImage(const cInfoAccumRes &);
 
@@ -110,9 +110,12 @@ cAccumResidu::cAccumResidu(Pt2di aSz,double aResol,bool OnlySign,int aDegPol) :
 {
 }
 
-void cAccumResidu::Export(const std::string & aDir,const std::string & aName,const cUseExportImageResidu & aUEIR ) 
+void cAccumResidu::Export(const std::string & aDir,const std::string & aName,const cUseExportImageResidu & aUEIR,FILE * aFP ) 
 {
    if (! mInit) return;
+
+   fprintf(aFP,"=== %s =======\n",aName.c_str());
+   fprintf(aFP,"  Nb=%d  WAver=%f\n",mNbInfo,mSomPds/mNbInfo);
 
    Tiff_Im::CreateFromFonc
    (
@@ -141,6 +144,15 @@ void cAccumResidu::Export(const std::string & aDir,const std::string & aName,con
         GenIm::real4
    );
 
+   double aMoySign,aMoyAbsSign,aSomPds;
+   ELISE_COPY
+   (
+        mPds.all_pts(),
+        Virgule(mPds.in(),mMoySign.in(),Abs(mMoySign.in())),
+        Virgule(sigma(aSomPds),sigma(aMoySign),sigma(aMoyAbsSign))
+   );
+   fprintf(aFP,"  AverSign=%f  AverAbsSign=%f\n",aMoySign/aSomPds,aMoyAbsSign/aSomPds);
+
    if (!mOnlySign)
    {
       Tiff_Im::CreateFromFonc
@@ -150,7 +162,7 @@ void cAccumResidu::Export(const std::string & aDir,const std::string & aName,con
            mMoyAbs.in() / Max(mPds.in(),1e-4),
            GenIm::real4
       );
-    }
+   }
 
     if (mSys)
     {
@@ -290,7 +302,6 @@ void cAccumResidu::Accum(const cInfoAccumRes & anInfo)
        {
           mSys =  new L2SysSurResol((1+mDegPol)*(mDegPol+2));
        }
-       // for (auto itI=mLIAR.begin() ;itI!=mLIAR.end() ; itI++)
        for (std::list<cInfoAccumRes>::const_iterator itI=mLIAR.begin() ;itI!=mLIAR.end() ; itI++)
        {
            AccumInImage(*itI);
@@ -379,25 +390,29 @@ void cAppliApero::AddInfoImageResidu
   }
 }
 
-void cAppliApero::ExportImageResidu(const std::string & aName,const cAccumResidu & anAccum) const
+void cAppliApero::ExportImageResidu(const std::string & aName,const cAccumResidu & anAccum) 
 {
     const cUseExportImageResidu & aUEIR = Param().UseExportImageResidu().Val();
-    std::string aDirExport =  DC() + "Ori" + aUEIR.AeroExport() + "/ImResidu/";
-    ELISE_fp::MkDirRec(aDirExport);
+    ELISE_fp::MkDirRec(mDirExportImRes);
 
-    const_cast<cAccumResidu &>(anAccum).Export(aDirExport,aName,aUEIR);
+    const_cast<cAccumResidu &>(anAccum).Export(mDirExportImRes,aName,aUEIR,mFileExpImRes);
 }
 
-void cAppliApero::ExportImageResidu() const
+void cAppliApero::ExportImageResidu() 
 {
   if ((!Param().UseExportImageResidu().IsInit()) )
      return;
 
+  const cUseExportImageResidu & aUEIR = Param().UseExportImageResidu().Val();
+  mDirExportImRes =  DC() + "Ori" + aUEIR.AeroExport() + "/ImResidu/";
+
+  mFileExpImRes = FopenNN(mDirExportImRes+"StatRes.txt","w","cAppliApero::ExportImageResidu");
 
   for (auto it=mMapAR.begin() ; it!=mMapAR.end() ; it++)
   {
        ExportImageResidu(it->first,*(it->second));
   }
+  fclose(mFileExpImRes);
 }
 
 //============================================
