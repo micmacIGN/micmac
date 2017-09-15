@@ -244,7 +244,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     std::string RapTxt="";
     std::vector<std::string> aParamCCCC;
 
-	std::vector<double> aVRegulDist;
+    std::vector<double> aVRegulDist;
+    std::vector<double> aVExpImRes;
 
     ElInitArgMain
     (
@@ -297,6 +298,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aParamCCCC,"ContrCalCamCons",true,"Constraint on calibration for conseq camera [Key,Simga] ")
 		    << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
                     << EAM(RapTxt,"RapTxt",true,"Output report of residual for each point")
+
+                    << EAM(aVExpImRes,"ExpImRes",true,"Sz of Im Res=[Cam,Pose,Pair]")
 
     );
 
@@ -372,6 +375,26 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
        if (EAMIsInit(&DetailAppuis)) mCom += " +DetailAppuis=" + ToString(DetailAppuis) + " ";
 
+
+       if (EAMIsInit(&aVExpImRes))
+       {
+            ELISE_ASSERT
+            (
+                   (int(aVExpImRes.size()>=3))
+                && (int(aVExpImRes.size()<=4)),
+                "Bad size for ExpImRes"
+            );
+            double aNbByC = 10;
+            if (int(aVExpImRes.size()) >=4) aNbByC = aVExpImRes[3];
+         
+            mCom +=    std::string(" +DoUseExportImageResidu=true ")
+                    +  std::string(" +UEIR_ByCam=")  + ToString(aVExpImRes[0])
+                    +  std::string(" +UEIR_ByPose=") + ToString(aVExpImRes[1])
+                    +  std::string(" +UEIR_ByPair=") + ToString(aVExpImRes[2]) 
+                    +  std::string(" +UEIR_NbMesByCase=") + ToString(aNbByC) 
+           ;
+                    
+       }
         if (EAMIsInit(&GCP))
         {
             if (EAMIsInit(&GCPRTA))

@@ -1966,11 +1966,33 @@ class cSetPMul1ConfigTPM;
 class cSetTiePMul;
 class cCompile_BDD_NewPtMul;
 class cStatResPM;
+class cInfoAccumRes;
+class cAccumResidu;
 
 
 class cAppliApero : public NROptF1vND
 {
     public :
+       void ExportImageResidu() const;
+       void ExportImageResidu(const std::string & aName,const cAccumResidu &) const;
+
+
+        void AddInfoImageResidu
+             (
+                 const  cNupletPtsHomologues & aNupl,
+                 const std::vector<cGenPoseCam *> aVP,
+                 const std::vector<double> &  aVpds
+             );
+        void AddOneInfoImageResidu
+             (
+                 const cInfoAccumRes & anInfo,
+                 const std::string &   aName,
+                 Pt2di                 aSz,
+                 double                aFactRed,
+                 bool                  OnlySign,
+                 int                   aDeg
+             );
+
 
         std::string GetNewIdCalib(const std::string & aLongName);
         std::string GetNewIdIma(const std::string & aLongName);
@@ -2194,6 +2216,7 @@ class cAppliApero : public NROptF1vND
        void CDNP_Compense(const std::string & anId,const cObsLiaisons &);
 
         void CDNP_Compense(std::vector<cStatResPM> & ,cSetPMul1ConfigTPM*,cSetTiePMul*,const cObsLiaisons &);
+        bool IsLastEtapeOfLastIter() const;
 
     private :
 
@@ -2598,6 +2621,7 @@ class cAppliApero : public NROptF1vND
         const cEtapeCompensation * mCurEC;
         bool                       mIsLastIter;
         bool                       mIsLastEtape;
+        bool                       mIsLastEtapeOfLastIter;
         double                     mScoreLambda0;
         double                     mScoreLambda1;
 
@@ -2665,6 +2689,8 @@ class cAppliApero : public NROptF1vND
          std::vector<cCompile_BDD_NewPtMul *>           mVectNewBDL;
          // std::vector<cGenPoseCam*>                      mVCamNewB;
          // cManipPt3TerInc *                              mGlobManiP3TI;  pas la bonne voie
+         std::map<std::string,cAccumResidu *> mMapAR;
+
 };
 
 

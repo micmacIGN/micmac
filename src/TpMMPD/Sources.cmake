@@ -1,5 +1,4 @@
 set(Src_TD_PPMD
-        ${TDPPMD_DIR}/ImMAFAffiche.cpp
 	${TDPPMD_DIR}/ReechHomol.cpp
         ${TDPPMD_DIR}/MatchTops.cpp
 	${TDPPMD_DIR}/TD_MMProgMars2017.cpp

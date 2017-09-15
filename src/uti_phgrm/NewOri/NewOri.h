@@ -332,6 +332,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
            std::string NameListeImOrientedWith(const std::string &,bool Bin) const;
            std::string RecNameListeImOrientedWith(const std::string &,bool Bin) const;
            std::list<std::string>  ListeImOrientedWith(const std::string & aName) const;
+           std::list<std::string>  Liste2SensImOrientedWith(const std::string & aName) const; // Ajoute Rec
 
            CamStenope * OutPutCamera(const std::string & aName) const;
            CamStenope * CalibrationCamera(const std::string  & aName) const;
@@ -463,15 +464,6 @@ class cExeParalByPaquets
           int                    mCpt;
           int                    mNbInOnePaquet;
 };
-
-
-void RazEllips(cXml_Elips3D &);
-void AddEllips(cXml_Elips3D &,const Pt3dr & aP,double aPds);
-void NormEllips(cXml_Elips3D &);
-
-
-
-
 
 
 

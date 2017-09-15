@@ -76,6 +76,7 @@ int AperiCloud_main(int argc,char ** argv)
     std::vector<std::string> aNameGCP;
 	bool NormByC=0;   
  
+    bool SavePtsCol = true;
     ElInitArgMain
     (
                argc,argv,
@@ -102,6 +103,7 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(RabDrBundle,"RabDrBundle",true,"Lenght to add in budle drawing (Def=0.0)")
                     << EAM(aNameGCP,"GCPCtrl",true,"[GCPTerr.xml,GCPIm.xml,Scale]-> true 3D coordinates+image observations+residual vector scaling factor", eSAM_NoInit)
 					<< EAM(NormByC,"NormByC",true,"Add optical center per point (Def=0)",eSAM_InternalUse)
+                    << EAM(SavePtsCol,"SavePtsCol",true,"Don't store point color element in PLY file to save disk space (Def=true)")
     );
 
     if (!MMVisualMode)
@@ -144,6 +146,7 @@ int AperiCloud_main(int argc,char ** argv)
                 + std::string(" +PlyBin=") + (PlyBin?"true":"false")
                 + std::string(" +NbChan=") +  ToString(RGB)
                 + std::string(" +SeuilEc=") +  ToString(aSeuilEc)
+                + std::string(" +SavePtsCol=") + (SavePtsCol?"true":"false")
                 ;
 
         if (EAMIsInit(&CalPerIm))

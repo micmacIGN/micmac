@@ -1707,7 +1707,7 @@ bool cBasicGeomCap3D::AltisSolMinMaxIsDef() const
     return false;
 }
 
-double  cBasicGeomCap3D::EpipolarEcart(const Pt2dr & aP1,const cBasicGeomCap3D & aCam2,const Pt2dr & aP2) const
+double  cBasicGeomCap3D::EpipolarEcart(const Pt2dr & aP1,const cBasicGeomCap3D & aCam2,const Pt2dr & aP2,Pt2dr * aSauvDir) const
 {
     const cBasicGeomCap3D & aCam1 = *this;
 
@@ -1724,6 +1724,8 @@ double  cBasicGeomCap3D::EpipolarEcart(const Pt2dr & aP1,const cBasicGeomCap3D &
     Pt2dr aQB = aCam1.Ter2Capteur(aPI2);
 
     Pt2dr aDirEpi = vunit(aQB-aQA);
+
+    if (aSauvDir) *aSauvDir = aDirEpi;
 
     Pt2dr aDif = (aP1- aQA) / aDirEpi;
     return aDif.y;

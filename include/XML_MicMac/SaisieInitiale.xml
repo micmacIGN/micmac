@@ -22,12 +22,14 @@ Antipasti ~/micmac/include/XML_MicMac/SaisieInitiale.xml DirectoryChantier="/hom
             <Symb> ForceGray=true </Symb>
             <Symb> WithInputSec=false </Symb>
             <Symb> InputSec=XXXX </Symb>
+            <Symb> UseMinMaxPt=false </Symb>
         </DicoLoc>
 
         <SectionWindows>
              <SzTotIm>  ${SzWx}  ${SzWy} </SzTotIm>
              <NbFenIm >  ${NbFx} ${NbFy} </NbFenIm>
              <ShowDet> true </ShowDet>
+             <UseMinMaxPt > ${UseMinMaxPt} </UseMinMaxPt>
              <!-- <SzTer> 200 200  </SzTer> -->
         </SectionWindows>
 

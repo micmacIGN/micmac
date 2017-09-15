@@ -94,7 +94,7 @@ void cCalMECEsSim::CreateCom()
 
     for (uint aK=uint(mPas); aK<=mLFile.size()-uint(mPas); aK+=uint(mPas))
     {
-        string aDirMEC = "MEC--" + mLFile.at(0) + "-" + mLFile.at(aK) + "/";
+        string aDirMEC = "MEC-" + mLFile.at(0) + "-" + mLFile.at(aK) + "/";
         mVDirMEC.push_back(aDirMEC);
         MakeFileDirCompl(aDirMEC);
     }

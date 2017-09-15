@@ -39,10 +39,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+#define HOM_NbMinPTs 20
+
 class cOrHom_AttrSom;
 class cOrHom_AttrASym;
 class cOrHom_AttrArc;
-class cAppli_GenTriplet;
+class cAppli_Hom1Im;
 
 typedef  ElSom<cOrHom_AttrSom,cOrHom_AttrArc>         tSomGT;
 typedef  ElArc<cOrHom_AttrSom,cOrHom_AttrArc>         tArcGT;
@@ -61,18 +63,23 @@ typedef  ElSubGraphe<cOrHom_AttrSom,cOrHom_AttrArc>   tSubGrGT;
 class cOrHom_AttrSom
 {
      public :
-        cOrHom_AttrSom(const std::string & aName);
+        cOrHom_AttrSom(const std::string & aName,cAppli_Hom1Im &);
         cOrHom_AttrSom();
+        const std::string & Name() {return mName;}
+        cAppli_Hom1Im & Appli() {return *mAppli;}
      private :
         std::string mName;
+        cAppli_Hom1Im * mAppli;
 };
 
-cOrHom_AttrSom::cOrHom_AttrSom(const std::string & aName) :
-   mName (aName)
+cOrHom_AttrSom::cOrHom_AttrSom(const std::string & aName,cAppli_Hom1Im & anAppli) :
+   mName  (aName),
+   mAppli (&anAppli)
 {
 }
 
-cOrHom_AttrSom::cOrHom_AttrSom() 
+cOrHom_AttrSom::cOrHom_AttrSom() :
+   mAppli (0)
 {
 }
 
@@ -83,38 +90,138 @@ cOrHom_AttrSom::cOrHom_AttrSom()
 /*                                              */
 /************************************************/
 
+          // cElHomographie(const cXmlHomogr &);
+class cOrHom_AttrArcSym
+{
+     public :
+        cOrHom_AttrArcSym(const cXml_Ori2Im &);
+        const cXml_Ori2Im & Xml() const {return mXmlO;}
+        cElHomographie Hom(bool Dir);
+
+     private :
+           cXml_Ori2Im  mXmlO;
+};
+
+cOrHom_AttrArcSym::cOrHom_AttrArcSym(const cXml_Ori2Im & aXml) :
+   mXmlO (aXml)
+{
+}
+
+cElHomographie cOrHom_AttrArcSym::Hom(bool aDir)
+{
+    cElHomographie aRes(mXmlO.Geom().Val().HomWithR().Hom());
+    if (! aDir)
+       aRes = aRes.Inverse();
+
+    return aRes;
+}
+         // =================================
+
+
 class cOrHom_AttrArc
 {
+    public :
+        cOrHom_AttrArc(cOrHom_AttrArcSym * ,bool Direct);
+        void GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN);
+    private :
+         cOrHom_AttrArcSym * mASym;
+         bool                mDirect;
+         cElHomographie      mHom;
 };
+
+cOrHom_AttrArc::cOrHom_AttrArc(cOrHom_AttrArcSym * anAsym ,bool Direct) :
+   mASym(anAsym),
+   mDirect (Direct),
+   mHom    (anAsym->Hom(Direct))
+{
+}
+
+void cOrHom_AttrArc::GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN)
+{
+}
+
+/*
+*/
+
+/************************************************/
+/*                                              */
+/*         cAppli_Hom1Im                        */
+/*                                              */
+/************************************************/
+
 
 class cAppli_Hom1Im : public cCommonMartiniAppli
 {
     public :
         cAppli_Hom1Im(int argc,char ** argv,bool ModePrelim);
+        tGrGT & Gr() {return mGr;}
+
     private:
-        tSomGT * AddAnIm(const std::string & aName);
+        tSomGT * AddAnIm(const std::string & aName,bool CanCreate);
+        tSomGT * GetAnIm(const std::string & aName);
+        void   AddArc(tSomGT * aS1,tSomGT * aS2);
 
         bool        mModePrelim;
         std::string mPat;
         std::string mNameC;
         cElemAppliSetFile mEASF;
         std::map<std::string,tSomGT *> mMapS;
-        tGrGT                                  mGr;
+        std::vector<tSomGT *>          mVecS;
+        tSomGT *                       mSomC;
+        tGrGT                          mGr;
+        cNewO_NameManager *            mNM;
+
 };
 
+void   cAppli_Hom1Im::AddArc(tSomGT * aS1,tSomGT * aS2)
+{
+/*
+     if (mShow) 
+        std::cout << "  ARC " <<  aS1->attr().Name() << " " <<  aS2->attr().Name() << "\n";
+*/
 
-tSomGT * cAppli_Hom1Im::AddAnIm(const std::string & aName)
+     cXml_Ori2Im  aXml = mNM->GetOri2Im(aS1->attr().Name(),aS2->attr().Name());
+
+     if ((!aXml.Geom().IsInit())  || (aXml.NbPts() < HOM_NbMinPTs))
+        return;
+
+
+    cOrHom_AttrArcSym * anAttr = new cOrHom_AttrArcSym(aXml);
+
+    aS1->attr().Appli().Gr().add_arc(*aS1,*aS2,cOrHom_AttrArc(anAttr,true),cOrHom_AttrArc(anAttr,false));
+    // add_arc
+
+}
+
+
+tSomGT * cAppli_Hom1Im::AddAnIm(const std::string & aName,bool CanCreate)
 {
    if (mMapS[aName] == 0)
    {
-      mMapS[aName]  = &(mGr.new_som(cOrHom_AttrSom(aName)));
+      if (!CanCreate)
+      {
+         // std::cout << "For name=" << aName << "\n";
+         // ELISE_ASSERT(false,"cAppli_Hom1Im::AddAnIm cannot get Image");
+         return 0;
+      }
+      mMapS[aName]  = &(mGr.new_som(cOrHom_AttrSom(aName,*this)));
+      mVecS.push_back(mMapS[aName]);
+
+/*
+     if (mShow) 
+         std::cout <<" Add " << aName << "\n";
+*/
    }
 
    return mMapS[aName];
 }
+tSomGT * cAppli_Hom1Im::GetAnIm(const std::string & aName) {return AddAnIm(aName,false);}
+
 
 cAppli_Hom1Im::cAppli_Hom1Im(int argc,char ** argv,bool aModePrelim) :
-   mModePrelim (aModePrelim)
+   mModePrelim (aModePrelim),
+   mSomC       (0),
+   mNM         (0)
 {
    ElInitArgMain
    (
@@ -124,15 +231,50 @@ cAppli_Hom1Im::cAppli_Hom1Im(int argc,char ** argv,bool aModePrelim) :
    );
 
    mEASF.Init(mPat);
+   mNM =   NM(mEASF.mDir);
    const cInterfChantierNameManipulateur::tSet * aVN = mEASF.SetIm();
+
+   for(int aK=0 ; aK<int(aVN->size()) ; aK++)
+   {
+       AddAnIm((*aVN)[aK],true);
+   }
+
+   // Cas preliminaire, on rajoute tous les sommets connexe
    if (mModePrelim)
    {
        ELISE_ASSERT(aVN->size()==1,"Expect just one image in preliminary mode");
        mNameC = (*aVN)[0];
+       mSomC =  AddAnIm(mNameC,false);
+       std::list<std::string> aLC = mNM->Liste2SensImOrientedWith(mNameC);
+       for (std::list<std::string>::const_iterator itL=aLC.begin() ; itL!=aLC.end() ; itL++)
+            AddAnIm(*itL,true);
    }
     
+
+   // Ajout des arcs
+
+   for (int aKS=0 ; aKS<int(mVecS.size()) ; aKS++)
+   {
+       tSomGT * aS1 = mVecS[aKS];
+       std::list<std::string> aLC = mNM->ListeImOrientedWith(aS1->attr().Name());
+       for (std::list<std::string>::const_iterator itL=aLC.begin() ; itL!=aLC.end() ; itL++)
+       {
+           tSomGT  * aS2 =  GetAnIm(*itL);
+           if (aS2)
+           {
+              AddArc(aS1,aS2);
+           }
+       }
+   }
 }
 
+
+int  TestNewOriHom1Im_main(int argc,char ** argv)
+{
+    cAppli_Hom1Im anAppli(argc,argv,true);
+
+     return EXIT_SUCCESS;
+}
 
 
 

@@ -222,9 +222,12 @@ void cThmProc_Appli::CorrImgsFromTemp(
 									  bool aRmXmlReech
 									  )
 {
+<<<<<<< HEAD
 	
 	aOutFolder = aOutFolder + "/";
 	
+=======
+>>>>>>> acca21e18d8d4ccbde39813e881372b82caaf608
 	//step 0 : get pattern of images to be corrected
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDirectory);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatImgs));
@@ -291,6 +294,7 @@ void cThmProc_Appli::CorrImgsFromTemp(
 				std::cout << "aCom = " << aCom << std::endl;
 				system_call(aCom.c_str());
 				
+<<<<<<< HEAD
 				if(aDoImgReech)
 				{
 					std::string aNameCorrImg = aDirectory  + "Reech_" + aSetIm.at(aK);
@@ -323,6 +327,16 @@ void cThmProc_Appli::CorrImgsFromTemp(
 	std::cout << "aCom = " << aCom << std::endl;
 	system_call(aCom.c_str());
 	
+=======
+				std::string aNameCorrImg = "Reech_" + aSetIm.at(aK);
+				ELISE_fp::MvFile(aDirectory+aNameCorrImg,aOutFolder);
+				
+				std::string aNameCorrXML = NameWithoutDir(StdPrefix(aMAF)) + + "_Reech_" + NameWithoutDir(aSetIm.at(aK)) + ".xml";
+				ELISE_fp::MvFile(aDirectory+aNameCorrXML,aOutFolder);
+			}
+		}
+	}
+>>>>>>> acca21e18d8d4ccbde39813e881372b82caaf608
 }
 
 void cThmProc_Appli::GenerateXmlAssoc(
@@ -648,11 +662,11 @@ cThmProc_Appli::cThmProc_Appli(int argc,char ** argv)
 		
 		if(aNameFolder == "")
 		{
-			aNameFolder = aDir2C + "CorrTemp_"; //+ StdPrefixGen(aDir2C);
+			aNameFolder = aDir2C + "CorrTemp_" + StdPrefixGen(aDir2C);
 		}
 		else
 		{
-			aNameFolder = aDir2C + aNameFolder + "_"; //+ StdPrefixGen(aDir2C);
+			aNameFolder = aDir2C + aNameFolder + "_" + StdPrefixGen(aDir2C);
 		}
 		
 		//create new folder where to put corrected images

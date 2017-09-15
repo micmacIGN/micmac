@@ -647,8 +647,6 @@ class ElAffin2D : public cElMap2D
 
         static ElAffin2D Id();
         static ElAffin2D trans(Pt2dr aTr);  // Ajoute Tr
-        void update(ElAffin2D & sim2); // remplacer tout partie par sim2
-
 
   // Soit une image I1, que l'on Crop de Tr, puis que l'on sous echantillone
   // a d'une resolution aResol, pour avoir une image I2 renvoie la transfo qui donne les coordonnees

@@ -1540,7 +1540,7 @@ class cBasicGeomCap3D
       virtual double ProfondeurDeChamps(const Pt3dr & aP) const;
       virtual Pt3dr DirVisee() const;
 
-       double  EpipolarEcart(const Pt2dr & aP1,const cBasicGeomCap3D & aCam2,const Pt2dr & aP2) const;
+       double  EpipolarEcart(const Pt2dr & aP1,const cBasicGeomCap3D & aCam2,const Pt2dr & aP2,Pt2dr * SauvDir=0) const;
 
 
        virtual double ResolutionAngulaire() const;  // OO

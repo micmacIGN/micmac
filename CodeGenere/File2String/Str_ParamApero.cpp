@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1799]) = {
+const char * (theNameVar_ParamApero[1809]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -955,6 +955,15 @@ const char * (theNameVar_ParamApero[1799]) = {
 "\n",
 "        <SectionChantier Nb=\"1\">\n",
 "\n",
+"              <UseExportImageResidu  Nb=\"?\"> \n",
+"                   <SzByPair Nb=\"?\" Type=\"double\" Def=\"30\"> </SzByPair> \n",
+"                   <SzByPose Nb=\"?\" Type=\"double\" Def=\"50\"> </SzByPose> \n",
+"                   <SzByCam  Nb=\"?\" Type=\"double\" Def=\"100\"> </SzByCam> \n",
+"                   <!-- Utilise pour le filtrag gaussien -->\n",
+"                   <NbMesByCase  Nb=\"?\" Type=\"double\" Def=\"10\"> </NbMesByCase> \n",
+"                   <AeroExport Nb=\"1\" Type=\"std::string\">    </AeroExport>\n",
+"              </UseExportImageResidu>\n",
+"\n",
 "              <UseRegulDist  Type=\"bool\" Nb=\"?\" Def=\"false\"> </UseRegulDist>\n",
 "              <GBCamSupresStenCam  Type=\"bool\" Nb=\"?\" Def=\"true\"> </GBCamSupresStenCam>\n",
 "              <StenCamSupresGBCam  Type=\"bool\" Nb=\"?\" Def=\"false\"> </StenCamSupresGBCam>\n",
@@ -1602,6 +1611,7 @@ const char * (theNameVar_ParamApero[1799]) = {
 "                               <SymPts Nb=\"?\" Type=\"bool\" Def=\"true\"> </SymPts>\n",
 "                          </ExportNuageByImage>\n",
 "                          <PlyModeBin Nb=\"?\" Def=\"true\" Type=\"bool\"> </PlyModeBin>\n",
+"                          <SavePtsCol Nb=\"?\" Def=\"true\" Type=\"bool\"> </SavePtsCol>\n",
 "                          <!-- Pour l'instant par defaut mode ply -->\n",
 "	                  <NameRefLiaison Nb=\"*\" Type=\"std::string\"> </NameRefLiaison>\n",
 "\n",

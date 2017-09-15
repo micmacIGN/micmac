@@ -2973,6 +2973,43 @@ std::string  Mangling( cSectionInconnues *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cUseExportImageResidu
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cUseExportImageResidu & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & SzByPair();
+        const cTplValGesInit< double > & SzByPair()const ;
+
+        cTplValGesInit< double > & SzByPose();
+        const cTplValGesInit< double > & SzByPose()const ;
+
+        cTplValGesInit< double > & SzByCam();
+        const cTplValGesInit< double > & SzByCam()const ;
+
+        cTplValGesInit< double > & NbMesByCase();
+        const cTplValGesInit< double > & NbMesByCase()const ;
+
+        std::string & AeroExport();
+        const std::string & AeroExport()const ;
+    private:
+        cTplValGesInit< double > mSzByPair;
+        cTplValGesInit< double > mSzByPose;
+        cTplValGesInit< double > mSzByCam;
+        cTplValGesInit< double > mNbMesByCase;
+        std::string mAeroExport;
+};
+cElXMLTree * ToXMLTree(const cUseExportImageResidu &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cUseExportImageResidu &);
+
+void  BinaryUnDumpFromFile(cUseExportImageResidu &,ELISE_fp &);
+
+std::string  Mangling( cUseExportImageResidu *);
+
 class cTimeLinkage
 {
     public:
@@ -3001,6 +3038,24 @@ class cSectionChantier
 
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
+
+        cTplValGesInit< double > & SzByPair();
+        const cTplValGesInit< double > & SzByPair()const ;
+
+        cTplValGesInit< double > & SzByPose();
+        const cTplValGesInit< double > & SzByPose()const ;
+
+        cTplValGesInit< double > & SzByCam();
+        const cTplValGesInit< double > & SzByCam()const ;
+
+        cTplValGesInit< double > & NbMesByCase();
+        const cTplValGesInit< double > & NbMesByCase()const ;
+
+        std::string & AeroExport();
+        const std::string & AeroExport()const ;
+
+        cTplValGesInit< cUseExportImageResidu > & UseExportImageResidu();
+        const cTplValGesInit< cUseExportImageResidu > & UseExportImageResidu()const ;
 
         cTplValGesInit< bool > & UseRegulDist();
         const cTplValGesInit< bool > & UseRegulDist()const ;
@@ -3071,6 +3126,7 @@ class cSectionChantier
         cTplValGesInit< double > & ThresholdWarnPointsBehind();
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
+        cTplValGesInit< cUseExportImageResidu > mUseExportImageResidu;
         cTplValGesInit< bool > mUseRegulDist;
         cTplValGesInit< bool > mGBCamSupresStenCam;
         cTplValGesInit< bool > mStenCamSupresGBCam;
@@ -6156,6 +6212,9 @@ class cExportNuage
         cTplValGesInit< bool > & PlyModeBin();
         const cTplValGesInit< bool > & PlyModeBin()const ;
 
+        cTplValGesInit< bool > & SavePtsCol();
+        const cTplValGesInit< bool > & SavePtsCol()const ;
+
         std::list< std::string > & NameRefLiaison();
         const std::list< std::string > & NameRefLiaison()const ;
 
@@ -6246,6 +6305,7 @@ class cExportNuage
         std::string mNameOut;
         cTplValGesInit< cExportNuageByImage > mExportNuageByImage;
         cTplValGesInit< bool > mPlyModeBin;
+        cTplValGesInit< bool > mSavePtsCol;
         std::list< std::string > mNameRefLiaison;
         cTplValGesInit< std::string > mPatternSel;
         cPonderationPackMesure mPond;
@@ -6969,6 +7029,24 @@ class cParamApero
 
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
+
+        cTplValGesInit< double > & SzByPair();
+        const cTplValGesInit< double > & SzByPair()const ;
+
+        cTplValGesInit< double > & SzByPose();
+        const cTplValGesInit< double > & SzByPose()const ;
+
+        cTplValGesInit< double > & SzByCam();
+        const cTplValGesInit< double > & SzByCam()const ;
+
+        cTplValGesInit< double > & NbMesByCase();
+        const cTplValGesInit< double > & NbMesByCase()const ;
+
+        std::string & AeroExport();
+        const std::string & AeroExport()const ;
+
+        cTplValGesInit< cUseExportImageResidu > & UseExportImageResidu();
+        const cTplValGesInit< cUseExportImageResidu > & UseExportImageResidu()const ;
 
         cTplValGesInit< bool > & UseRegulDist();
         const cTplValGesInit< bool > & UseRegulDist()const ;

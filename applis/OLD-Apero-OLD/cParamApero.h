@@ -4050,7 +4050,7 @@ class cExportNuage
         double & Long();
         const double & Long()const ;
 
-        double & StepSeg();
+        double & Seg();
         const double & StepSeg()const ;
 
         cTplValGesInit< double > & StepImage();

@@ -1005,7 +1005,7 @@ TestScroller::TestScroller
 
      mCaseProfil =    new CaseGPUMT
                       (
-                         mPopUp,"0 0",Pt2di(2,2),
+                         mPopUp,"0 0",Pt2di(2,3),
                          MMIcone("Profil").in(0) *255
                       );
 

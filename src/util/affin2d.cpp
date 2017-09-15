@@ -421,12 +421,8 @@ ElAffin2D ElAffin2D::trans(Pt2dr aTr)
    return ElAffin2D(aTr,Pt2dr(1,0),Pt2dr(0,1));
 }
 
-void ElAffin2D::update( ElAffin2D & sim2)
-{
-   mI00 = sim2.I00();
-   mI01 = sim2.I01();
-   mI10 = sim2.I10();
-}
+
+
 
 
 ElAffin2D::ElAffin2D (const ElSimilitude & aSim) :

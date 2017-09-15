@@ -953,6 +953,15 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
         <SectionChantier Nb="1">
 
+              <UseExportImageResidu  Nb="?"> 
+                   <SzByPair Nb="?" Type="double" Def="30"> </SzByPair> 
+                   <SzByPose Nb="?" Type="double" Def="50"> </SzByPose> 
+                   <SzByCam  Nb="?" Type="double" Def="100"> </SzByCam> 
+                   <!-- Utilise pour le filtrag gaussien -->
+                   <NbMesByCase  Nb="?" Type="double" Def="10"> </NbMesByCase> 
+                   <AeroExport Nb="1" Type="std::string">    </AeroExport>
+              </UseExportImageResidu>
+
               <UseRegulDist  Type="bool" Nb="?" Def="false"> </UseRegulDist>
               <GBCamSupresStenCam  Type="bool" Nb="?" Def="true"> </GBCamSupresStenCam>
               <StenCamSupresGBCam  Type="bool" Nb="?" Def="false"> </StenCamSupresGBCam>
@@ -1600,6 +1609,7 @@ normalises en echelle et/ou en translation -->
                                <SymPts Nb="?" Type="bool" Def="true"> </SymPts>
                           </ExportNuageByImage>
                           <PlyModeBin Nb="?" Def="true" Type="bool"> </PlyModeBin>
+                          <SavePtsCol Nb="?" Def="true" Type="bool"> </SavePtsCol>
                           <!-- Pour l'instant par defaut mode ply -->
 	                  <NameRefLiaison Nb="*" Type="std::string"> </NameRefLiaison>
 

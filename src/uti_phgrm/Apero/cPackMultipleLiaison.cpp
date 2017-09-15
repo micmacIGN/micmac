@@ -1379,6 +1379,8 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                         }
                     }
 
+                    mAppli.AddInfoImageResidu(aNupl,aVP,aVpds);
+
                     double aPdsSurf = 0;
                     if (mEqS)
                     {

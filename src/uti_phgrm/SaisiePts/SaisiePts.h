@@ -241,7 +241,7 @@ private :
 
 
     cAppli_SaisiePts & mAppli;
-
+    bool                    mUseMMPt;
     Video_Win               mW;
     Video_Win               mWT;
     eModeWinIm              mMode;
