@@ -36,6 +36,7 @@ public :
 	std::string  mLowName;
 	tCommande    mCommand;
 	std::string  mComment;
+	std::string  mLib;
 	cArgLogCom  mLog;
 };
 

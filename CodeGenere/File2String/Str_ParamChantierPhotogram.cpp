@@ -2071,7 +2071,7 @@ const char * (theNameVar_ParamChantierPhotogram[2100]) = {
 "       <MainFeature Nb=\"1\" Type=\"eCmdMM_Feature\"> </MainFeature>\n",
 "       <MainInput   Nb=\"1\" Type=\"eCmdMM_DataType\"> </MainInput>\n",
 "       <MainOuput   Nb=\"1\" Type=\"eCmdMM_DataType\"> </MainOuput>\n",
-"       <!--  <Group       Nb=\"1\"  Type=\"eCmdMM_Group\">  </Group>  Calcule auto -->\n",
+"       <Group       Nb=\"?\"  Type=\"eCmdMM_Group\">  </Group>  <!-- Calcule auto, en option si jamais ambigu -->\n",
 "\n",
 "       <Option Nb=\"?\" Type=\"std::string\"> </Option>\n",
 "       <OtherFeature Nb=\"*\" Type=\"eCmdMM_Feature\"> </OtherFeature>\n",

@@ -41,8 +41,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-std::string RegExAdapt(const std::string & aNameExprIn)
+std::string RegExAdapt(const std::string & aStrInit,bool CaseSens)
 {
+    std::string aNameExprIn = CaseSens ? aStrInit : tolower(aStrInit);
     const char * aC = aNameExprIn.c_str();
     int aNb = (int)strlen(aC);
 
@@ -84,8 +85,9 @@ string regcompErrorToString(int aRegcompResult)
 	}
 }
 
-cElRegex::cElRegex(const std::string & aNameExprIn,int aNbMatchMax,int aCFlag) :
-     mNameExpr (RegExAdapt(aNameExprIn))
+cElRegex::cElRegex(const std::string & aNameExprIn,int aNbMatchMax,int aCFlag,bool CaseSens) :
+     mNameExpr      (RegExAdapt(aNameExprIn,CaseSens)),
+     mCaseSensitive (CaseSens)
 {
 
    mResMatch = -1;
@@ -151,8 +153,9 @@ void cElRegex::AssertIsReplaced() const
    // assert(IsReplaced());
 }
 
-bool cElRegex::Match(const std::string & aName,int aCFlag)  
+bool cElRegex::Match(const std::string & aNameInit,int aCFlag)  
 {
+   std::string aName = mCaseSensitive ? aNameInit : tolower(aNameInit);
    AssertOk();
    mResMatch = regexec(&mAutom,aName.c_str(),mVMatch.size(),&mVMatch[0],aCFlag);
    if (IsMatched())
@@ -257,8 +260,9 @@ const std::string & cElRegex::Error() const
    return mError;
 }
 
-bool  cElRegex::Replace(const std::string & aMotif)  
+bool  cElRegex::Replace(const std::string & aMotifInit)  
 {
+   std::string aMotif = mCaseSensitive ? aMotifInit : tolower(aMotifInit);
    mError = "";
    AssertIsMatched();
    mOkReplace = false;

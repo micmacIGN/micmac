@@ -141,7 +141,7 @@ DataType :
 <!-- ================== -->
    <OneCmd> 
           <Name  >    Vino  </Name>
-          <MainFeature >  eCmf_ImProc  </MainFeature>
+          <MainFeature >  eCmf_Interf  </MainFeature>
           <MainInput   >  eCmDt_Images  </MainInput>
           <MainOuput   >  eCmDt_None    </MainOuput>
           <!-- <Group>         eCmGrp_mm3d   </Group> -->
@@ -149,7 +149,7 @@ DataType :
 
    <OneCmd> 
           <Name  >    SEL  </Name>
-          <MainFeature >  eCmf_ImProc  </MainFeature>
+          <MainFeature >  eCmf_Interf  </MainFeature>
           <MainInput   >  eCmDt_Images  </MainInput>
           <MainOuput   >  eCmDt_None    </MainOuput>
              <OtherOuput>    eCmDt_TiePoints  </OtherOuput>

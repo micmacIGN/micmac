@@ -2069,7 +2069,7 @@
        <MainFeature Nb="1" Type="eCmdMM_Feature"> </MainFeature>
        <MainInput   Nb="1" Type="eCmdMM_DataType"> </MainInput>
        <MainOuput   Nb="1" Type="eCmdMM_DataType"> </MainOuput>
-       <!--  <Group       Nb="1"  Type="eCmdMM_Group">  </Group>  Calcule auto -->
+       <Group       Nb="?"  Type="eCmdMM_Group">  </Group>  <!-- Calcule auto, en option si jamais ambigu -->
 
        <Option Nb="?" Type="std::string"> </Option>
        <OtherFeature Nb="*" Type="eCmdMM_Feature"> </OtherFeature>

@@ -7746,6 +7746,9 @@ class cXml_Specif1MMCmd
         eCmdMM_DataType & MainOuput();
         const eCmdMM_DataType & MainOuput()const ;
 
+        cTplValGesInit< eCmdMM_Group > & Group();
+        const cTplValGesInit< eCmdMM_Group > & Group()const ;
+
         cTplValGesInit< std::string > & Option();
         const cTplValGesInit< std::string > & Option()const ;
 
@@ -7774,6 +7777,7 @@ class cXml_Specif1MMCmd
         eCmdMM_Feature mMainFeature;
         eCmdMM_DataType mMainInput;
         eCmdMM_DataType mMainOuput;
+        cTplValGesInit< eCmdMM_Group > mGroup;
         cTplValGesInit< std::string > mOption;
         std::list< eCmdMM_Feature > mOtherFeature;
         std::list< eCmdMM_DataType > mOtherInput;
