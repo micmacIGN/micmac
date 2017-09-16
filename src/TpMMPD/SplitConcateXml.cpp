@@ -464,13 +464,15 @@ int SplitGCPsCPs_main(int argc,char **argv)
 int ConcateMAF_main(int argc,char **argv)
 {
 	std::string aDir, aPat, aOut="";
-	std::string aPatFiles;
+	std::string aFullName;
+	bool aRmFiles=true;
 	
 	ElInitArgMain
     (
           argc, argv,
-          LArgMain() << EAMC(aPatFiles, ".xml Files Full Pattern", eSAM_IsExistFile),
+          LArgMain() << EAMC(aFullName, ".xml Files Full Pattern", eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"Output File Name of concatenated files")
+					 << EAM(aRmFiles,"aRmFiles",false,"Remove .xml files after concatenation; def=true")
     );
     
     if(aOut == "")
@@ -478,21 +480,22 @@ int ConcateMAF_main(int argc,char **argv)
 		aOut = "Concat_File.xml";
 	}
 	
-	SplitDirAndFile(aDir, aPat, aPatFiles);
-	
+	SplitDirAndFile(aDir, aPat, aFullName);
+
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    std::list<std::string> aLFile = aICNM->StdGetListOfFile(aPatFiles);
+    
+    std::list<std::string> aLFile = aICNM->StdGetListOfFile(aPat);
     
 	//              aPts               ImName                   ImMes
 	std::map<std::string,std::map<std::string,cOneMesureAF1I> > aDicoMap;
+	
 	// set of imgs
 	std::set<std::string> aSIm; 
-
     
     for (std::list<std::string>::iterator iT1 = aLFile.begin() ; iT1 != aLFile.end() ; iT1++)
     {
 		std::cout << "File = " << *iT1 << std::endl;
-		cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(*iT1,SetOfMesureAppuisFlottants);
+		cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aDir + *iT1,SetOfMesureAppuisFlottants);
 		std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
 		
 		for (std::list<cMesureAppuiFlottant1Im>::iterator iT2 = aLMAF.begin() ; iT2 != aLMAF.end() ; iT2++)
@@ -538,7 +541,16 @@ int ConcateMAF_main(int argc,char **argv)
 
 	aVSMAF.MesureAppuiFlottant1Im() = aLMAF;
 
-	MakeFileXML(aVSMAF,aOut);
+	MakeFileXML(aVSMAF,aDir + aOut);
+	
+	if(aRmFiles)
+	{
+		for (std::list<std::string>::iterator iT1 = aLFile.begin() ; iT1 != aLFile.end() ; iT1++)
+		{
+			std::cout << "Remove File = " << aDir + *iT1 << std::endl;
+			ELISE_fp::RmFileIfExist((aDir + *iT1));
+		}
+	}
 
 	return EXIT_SUCCESS;
 }	

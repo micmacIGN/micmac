@@ -1452,7 +1452,8 @@ int CPP_ReechImMap(int argc,char** argv)
     std::string aNameOut;
     std::string aMAF;
     std::string aMAFOut;
-
+	bool aDoImgReech=true;
+	
 	Tiff_Im * aTifOut = 0;
 	std::vector<Im2DGen *> aVecImOut;
  
@@ -1463,6 +1464,7 @@ int CPP_ReechImMap(int argc,char** argv)
                     <<  EAMC(aNameMap,"Name map"),
         LArgMain()  <<  EAM(aNameOut,"Out",false,"Tif file to write to")
                     <<  EAM(aMAF,"MAF",false,"Xml file of Image Measures")
+                    <<  EAM(aDoImgReech,"DoImgReech",false,"Generate Image Reech ; Def=true")
     );
 
     if (!EAMIsInit(&aNameOut))
@@ -1472,61 +1474,65 @@ int CPP_ReechImMap(int argc,char** argv)
 		
 
     cElMap2D * aMap = cElMap2D::FromFile(aNameMap);
-
-    Tiff_Im aTifIn = Tiff_Im::StdConvGen(aNameIm,-1,true);
-
-
-    std::vector<Im2DGen *>  aVecImIn =  aTifIn.ReadVecOfIm();
-    int aNbC = aVecImIn.size();
-    Pt2di aSzIn = aVecImIn[0]->sz();
-    //if (! EAMIsInit(&aSzOut))
-    //   aSzOut = aSzIn;
-	if (!EAMIsInit(&aNameOut))
-		aSzOut = aSzIn;
-	else
-		aSzOut = aTifOut->sz();
-
-	if (!EAMIsInit(&aNameOut))
-    	aVecImOut =  aTifIn.VecOfIm(aSzOut);
-	else
-		aVecImOut = aTifOut->ReadVecOfIm();
-
-    std::vector<cIm2DInter*> aVInter;
-    for (int aK=0 ; aK<aNbC ; aK++)
+    
+    if(aDoImgReech)
     {
-        aVInter.push_back(aVecImIn[aK]->SinusCard(5,5));
-    }
 
-    Pt2di aP;
-    for (aP.x =0 ; aP.x<aSzOut.x ; aP.x++)
-    {
-        for (aP.y =0 ; aP.y<aSzOut.y ; aP.y++)
-        {
-            Pt2dr aQ = (*aMap)(Pt2dr(aP));
-            for (int aK=0 ; aK<aNbC ; aK++)
-            {
-                double aV = aVInter[aK]->GetDef(aQ,0);
-                if( aV != 0 )
-					aVecImOut[aK]->SetR(aP,aV);
-				else
+		Tiff_Im aTifIn = Tiff_Im::StdConvGen(aNameIm,-1,true);
+
+
+		std::vector<Im2DGen *>  aVecImIn =  aTifIn.ReadVecOfIm();
+		int aNbC = aVecImIn.size();
+		Pt2di aSzIn = aVecImIn[0]->sz();
+		//if (! EAMIsInit(&aSzOut))
+		//   aSzOut = aSzIn;
+		if (!EAMIsInit(&aNameOut))
+			aSzOut = aSzIn;
+		else
+			aSzOut = aTifOut->sz();
+
+		if (!EAMIsInit(&aNameOut))
+			aVecImOut =  aTifIn.VecOfIm(aSzOut);
+		else
+			aVecImOut = aTifOut->ReadVecOfIm();
+
+		std::vector<cIm2DInter*> aVInter;
+		for (int aK=0 ; aK<aNbC ; aK++)
+		{
+			aVInter.push_back(aVecImIn[aK]->SinusCard(5,5));
+		}
+
+		Pt2di aP;
+		for (aP.x =0 ; aP.x<aSzOut.x ; aP.x++)
+		{
+			for (aP.y =0 ; aP.y<aSzOut.y ; aP.y++)
+			{
+				Pt2dr aQ = (*aMap)(Pt2dr(aP));
+				for (int aK=0 ; aK<aNbC ; aK++)
 				{
-					aVecImOut[aK]->SetR(aP,aVecImOut[aK]->GetR(aP,0));
+					double aV = aVInter[aK]->GetDef(aQ,0);
+					if( aV != 0 )
+						aVecImOut[aK]->SetR(aP,aV);
+					else
+					{
+						aVecImOut[aK]->SetR(aP,aVecImOut[aK]->GetR(aP,0));
+					}
 				}
-            }
-        }
-    }
+			}
+		}
 
-    if (!EAMIsInit(&aNameOut))
-    	aTifOut = new Tiff_Im
-            	(
-                	aNameOut.c_str(),
-                	aSzOut,
-                	aTifIn.type_el(),
-                	Tiff_Im::No_Compr,
-                	aTifIn.phot_interp()
-            	);
+		if (!EAMIsInit(&aNameOut))
+			aTifOut = new Tiff_Im
+					(
+						aNameOut.c_str(),
+						aSzOut,
+						aTifIn.type_el(),
+						Tiff_Im::No_Compr,
+						aTifIn.phot_interp()
+					);
 
-    ELISE_COPY(aTifOut->all_pts(),StdInPut(aVecImOut),aTifOut->out());
+		ELISE_COPY(aTifOut->all_pts(),StdInPut(aVecImOut),aTifOut->out());
+	}
     
     //if a xml MAF file is given
     if (EAMIsInit(&aMAF))

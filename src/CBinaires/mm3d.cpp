@@ -234,13 +234,22 @@ extern int ExtractRaw_main(int argc,char ** argv);
 extern int CPP_MMRename(int argc,char**argv);
 extern int  CPP_EditSet(int argc,char**argv);
 
+int CPP_MMHelp(int argc,char ** argv);
+
+std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC,const std::string & aLib)
+{
+   for (int aK=0 ; aK<int(aVC.size()) ; aK++)
+       aVC[aK].mLib = aLib;
+   return aVC; 
+}
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-	   aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
+       aRes.push_back(cMMCom("Help",CPP_MMHelp,"Help on existing MicMac commands "));
+       aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
 	   
        aRes.push_back(cMMCom("CalcMapAnalytik",CPP_CalcMapAnalitik,"Compute map2d between images using various model "));
        aRes.push_back(cMMCom("CalcMapXYT",CPP_CalcMapXYT,"Compute map2d evol of T "));
@@ -260,7 +269,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
-       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Tie point reduction"));
+       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Tie point reduction",cArgLogCom(2)));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));
@@ -406,6 +415,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("NewTapas",New_Tapas_main,"Replace OldTapas - now same as Tapas",cArgLogCom(3)));
 
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
+
        aRes.push_back(cMMCom("Tarama",Tarama_main," Compute a rectified image",cArgLogCom(2)));
        aRes.push_back(cMMCom("Martini",CPP_Martini_main," New orientation initialisation (uncomplete, still in dev...) ",cArgLogCom(2)));
        aRes.push_back(cMMCom("MartiniGin",CPP_MartiniGin_main," New orientation initialisation (uncomplete, still in dev...) ",cArgLogCom(2)));
@@ -584,6 +594,18 @@ extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
 extern int TestPush(int argc,char ** argv);
+//extern int Cillia_main(int argc,char ** argv);
+extern int Homol2GCP_main(int argc,char ** argv);
+extern int GlobToLocal_main(int argc,char ** argv);
+extern int ExtractZ_main(int argc,char ** argv);
+extern int XYZ_Global_main(int argc,char ** argv);
+extern int HomToXML_main(int argc,char ** argv);
+extern int CilliaAss_main(int argc,char ** argv);
+extern int CilliaImgt_main(int argc,char ** argv);
+extern int ImgCol_main(int argc,char ** argv);
+extern int CilliaMap_main(int argc,char ** argv);
+extern int SimilComp_main(int argc,char ** argv);
+extern int AffineComp_main(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -673,7 +695,7 @@ int RTI_PosLumFromOmbre_main(int argc,char ** argv);
 int GetInfosMPLF_main(int argc,char ** argv);
 int TestNewMergeTieP_main(int argc,char ** argv);
 int TestStephane_Main(int argc,char ** argv);
-
+int ArboArch_main(int argc,char ** argv);
 
 int TestDupBigTiff(int argc,char ** argv);
 int Test_TomCan(int argc,char ** argv);
@@ -788,6 +810,19 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("TestER",TestER_filtRec_main,"ER test workplace"));
        aRes.push_back(cMMCom("TestAT",TestPush,"AT test workplace"));
 
+//       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
+       aRes.push_back(cMMCom("Homol2GCP",Homol2GCP_main,"cillia"));
+       aRes.push_back(cMMCom("GlobToLocal",GlobToLocal_main,"cillia"));
+       aRes.push_back(cMMCom("ExtractZ",ExtractZ_main,"cillia"));
+       aRes.push_back(cMMCom("XYZ_Global",XYZ_Global_main,"cillia"));
+       aRes.push_back(cMMCom("HomToXML",HomToXML_main,"cillia"));
+       aRes.push_back(cMMCom("TestCilliaAss",CilliaAss_main,"cillia"));
+       aRes.push_back(cMMCom("TestCilliaImgt",CilliaImgt_main,"cillia"));
+       aRes.push_back(cMMCom("ImgCol",ImgCol_main,"cilliac"));
+       aRes.push_back(cMMCom("TestCilliaMap",CilliaMap_main,"cilliac"));
+       aRes.push_back(cMMCom("SimilComp",SimilComp_main,"cilliac"));
+       aRes.push_back(cMMCom("AffineComp",AffineComp_main,"cilliac"));
+
        aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
        // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
        aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud"));
@@ -873,7 +908,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
         aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envelope for mode statue"));
         aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topological analysis before bascule"));
-
+		aRes.push_back(cMMCom("ArboArch",ArboArch_main,"Files organization, internal use"));
 
         aRes.push_back(cMMCom("Check1Hom",CheckOneHom_main,"Check One File Homologue"));
         aRes.push_back(cMMCom("CheckAllHom",CheckAllHom_main,"Check All File Homologue"));
@@ -959,7 +994,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 
-   return aRes;
+   return AddLib(aRes,"TestLib");
 }
 
 int SampleLibElise_main(int argc, char ** argv)
@@ -1023,7 +1058,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);
 
-    return aRes;
+    return AddLib(aRes,"SateLib");
 }
 
 int SateLib_main(int argc, char ** argv)
@@ -1047,7 +1082,7 @@ const std::vector<cMMCom> & SimuLibAvailableCommands()
     aRes.push_back(cMMCom("AddNoise", CPP_AddNoiseImage, "Add noise to images"));
     aRes.push_back(cMMCom("SimulDep", CPP_SimulDep, "Run N Matching to average noise"));
  
-    return aRes;
+    return AddLib(aRes,"SimuLib");
 }
 
 
@@ -1084,7 +1119,7 @@ const std::vector<cMMCom> & XLibAvailableCommands()
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);
 
-    return aRes;
+    return AddLib(aRes,"XLib");
 }
 
 int XLib_Main(int argc, char ** argv)
@@ -1297,6 +1332,171 @@ Tapioca 200000
 */
 
 
+void CatCom(std::vector<cMMCom> & aRes,const std::vector<cMMCom> & ToAdd)
+{
+   std::copy(ToAdd.begin(),ToAdd.end(),std::back_inserter(aRes));
+}
+
+const std::vector<cMMCom> & AllCom()
+{
+  static std::vector<cMMCom> aRes;
+  if (aRes.empty())
+  {
+      CatCom(aRes,getAvailableCommands());
+      CatCom(aRes,TestLibAvailableCommands());
+      CatCom(aRes,SateLibAvailableCommands());
+      CatCom(aRes,SimuLibAvailableCommands());
+      CatCom(aRes,XLibAvailableCommands());
+  }
+  return aRes; 
+}
+
+typedef std::map<std::string,cMMCom*> tDicMMCom;
+
+tDicMMCom & DicAllCom()
+{
+   static tDicMMCom aRes;
+   if (aRes.empty())
+   {
+      const std::vector<cMMCom> & aV = AllCom();
+      for (int aK=0 ; aK<int (aV.size()) ; aK++)
+      {
+          if (DicBoolFind(aRes,aV[aK].mName))
+          {
+              std::cout << "For name = "<< aV[aK].mName << "\n";
+              ELISE_ASSERT(false,"Conflict in MicMac Command");
+          }
+          aRes[aV[aK].mName] = new cMMCom(aV[aK]);
+      }
+   }
+   return aRes;
+}
+
+
+
+
+
+void ShowAllCom()
+{
+    const std::vector<cMMCom> &  AllC = AllCom();
+    for (int aK=0 ; aK<int(AllC.size()) ; aK++)
+    {
+         std::cout << AllC[aK].mName ;
+         const std::string & aLib =  AllC[aK].mLib;
+         if (aLib!="")
+            std::cout << " in " <<  aLib ;
+         std::cout  << "\n";
+    }
+}
+
+std::string  MMGetName(const  cXml_Specif1MMCmd & aSpec) 
+{ 
+   return aSpec.Name();
+}
+std::string  MMGetFeature(const  cXml_Specif1MMCmd & aSpec) 
+{
+   std::string aRes = eToString(aSpec.MainFeature());
+   return aRes.substr(5,std::string::npos);
+}
+
+template <class Type> void FilterOnName(cXml_SpecifAllMMCmd & aLSpec,std::string & aName,Type aCalc,bool UseRealPat)
+{
+   if (EAMIsInit(&aName))
+   {
+      std::string aNameAuto = aName;
+      if (!UseRealPat) 
+         aNameAuto = ".*" + aName + ".*";
+      std::list<cXml_Specif1MMCmd> aRes;
+      cElRegex anAuto(aNameAuto,10,REG_EXTENDED,false);
+      for (auto aL= aLSpec.OneCmd().begin() ; aL!=aLSpec.OneCmd().end() ; aL++)
+      {
+            if (anAuto.Match(aCalc(*aL)))
+            {
+               aRes.push_back(*aL);
+            }
+      }
+      aLSpec.OneCmd() = aRes;
+   }
+}
+
+void ActionHelpOnHelp(int argc,char ** argv)
+{
+    bool Help;
+    eCmdMM_Feature aFeature;
+    std::string aStr="-help";
+
+    std::cout << "=========== For Feature  ===================\n";
+    StdReadEnum(Help,aFeature,aStr,eCmf_NbVals,true,5);
+
+    eCmdMM_DataType aDataType;
+    std::cout << "=========== For Data Type ===================\n";
+    StdReadEnum(Help,aDataType,aStr,eCmDt_NbVals,true,6);
+
+}
+
+class cAppli_MMHelp
+{
+public :
+   std::string mSubName;
+   std::string mSubMainFeature;
+   std::string mSubAnyFeatures;
+
+   bool mUseRealPatt;
+
+
+cAppli_MMHelp(int argc,char ** argv) :
+   mUseRealPatt (false)
+{
+   TheActionOnHelp = ActionHelpOnHelp;
+
+   cXml_SpecifAllMMCmd aLMMC = StdGetFromPCP(Basic_XML_MM_File("HelpMMCmd.xml"),Xml_SpecifAllMMCmd);
+
+   tDicMMCom & aDicC =  DicAllCom();
+   for (auto aL= aLMMC.OneCmd().begin() ; aL!=aLMMC.OneCmd().end() ; aL++)
+   {
+      cMMCom* aCom = aDicC[aL->Name()];
+      if (aCom==0)
+      {
+          std::cout << "For name=" << aL->Name() << "\n";
+          ELISE_ASSERT(false,"is not a micmac command");
+      }
+   }
+
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain(),  // << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
+        LArgMain() << EAM(mSubName,"Name",true,"substring for Name")
+                   << EAM(mSubMainFeature,"Feature",true,"substring for main feature") 
+   );
+
+   //  if (!UseRealPatt) mSubName = ".*" + mSubName + ".*";
+   FilterOnName(aLMMC,mSubName,MMGetName,mUseRealPatt);
+   FilterOnName(aLMMC,mSubMainFeature,MMGetFeature,mUseRealPatt);
+
+
+   for (auto aL= aLMMC.OneCmd().begin() ; aL!=aLMMC.OneCmd().end() ; aL++)
+   {
+        std::cout << aL->Name() ;
+        if (aL->Option().IsInit()) 
+            std::cout << " " << aL->Option().Val() ;
+        cMMCom* aCom = aDicC[aL->Name()];
+        ELISE_ASSERT(aCom!=0,"Incohence in Help for tDicMMCom");
+        std::cout <<  " SubLib=[" << aCom->mLib <<"]" ;
+        std::cout  << "\n";
+   }
+
+   // if (1) ShowAllCom();
+}
+};
+
+
+int CPP_MMHelp(int argc,char ** argv)
+{
+   cAppli_MMHelp(argc,argv);
+   return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

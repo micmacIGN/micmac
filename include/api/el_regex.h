@@ -64,7 +64,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cElRegex
 {
     public :
-       cElRegex(const std::string & aName,int aNbMatchMax,int aCFlag=REG_EXTENDED);
+       cElRegex(const std::string & aName,int aNbMatchMax,int aCFlag=REG_EXTENDED,bool CaseSensitive=true);
        bool IsOk() const;
        bool IsMatched() const;
        bool IsReplaced() const;
@@ -100,6 +100,7 @@ class cElRegex
        std::string              mNameExpr;
 
        std::string              mError;
+       bool                     mCaseSensitive;
 };
 
 std::list<cElRegex *> CompilePats(const  std::list<std::string> &);

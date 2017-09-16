@@ -655,6 +655,14 @@ const char * GenElArgMain::name() const
     return _name.c_str();
 }
 
+// typedef void (*tActionOnHelp)(int argc,char ** argv);
+
+void DefActionOnHelp(int argc,char ** argv)
+{
+}
+
+tActionOnHelp TheActionOnHelp = DefActionOnHelp;
+
 
 
 std::vector<char *>  	ElInitArgMain
@@ -710,6 +718,7 @@ std::vector<char *>  	ElInitArgMain
     // if ((argc >=1) && (ElSTDNS string(argv[0]) == "-help"))
     if (Help)
     {
+        TheActionOnHelp(argc,argv);
         cout << "*****************************\n";
         cout << "*  Help for Elise Arg main  *\n";
         cout << "*****************************\n";
