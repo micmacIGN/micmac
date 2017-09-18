@@ -234,13 +234,22 @@ extern int ExtractRaw_main(int argc,char ** argv);
 extern int CPP_MMRename(int argc,char**argv);
 extern int  CPP_EditSet(int argc,char**argv);
 
+int CPP_MMHelp(int argc,char ** argv);
+
+std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC,const std::string & aLib)
+{
+   for (int aK=0 ; aK<int(aVC.size()) ; aK++)
+       aVC[aK].mLib = aLib;
+   return aVC; 
+}
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-	   aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
+       aRes.push_back(cMMCom("Help",CPP_MMHelp,"Help on existing MicMac commands "));
+       aRes.push_back(cMMCom("BAR",BasculeRobuste_main,"Bascule robutse "));
 	   
        aRes.push_back(cMMCom("CalcMapAnalytik",CPP_CalcMapAnalitik,"Compute map2d between images using various model "));
        aRes.push_back(cMMCom("CalcMapXYT",CPP_CalcMapXYT,"Compute map2d evol of T "));
@@ -260,7 +269,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("OriRedTieP",OriRedTie_main,"Tie points filtering, using Martini results "));
        aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
-       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Tie point reduction"));
+       aRes.push_back(cMMCom("Ratafia",Ratafia_Main,"Tie point reduction",cArgLogCom(2)));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));
@@ -406,6 +415,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("NewTapas",New_Tapas_main,"Replace OldTapas - now same as Tapas",cArgLogCom(3)));
 
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
+
        aRes.push_back(cMMCom("Tarama",Tarama_main," Compute a rectified image",cArgLogCom(2)));
        aRes.push_back(cMMCom("Martini",CPP_Martini_main," New orientation initialisation (uncomplete, still in dev...) ",cArgLogCom(2)));
        aRes.push_back(cMMCom("MartiniGin",CPP_MartiniGin_main," New orientation initialisation (uncomplete, still in dev...) ",cArgLogCom(2)));
@@ -685,7 +695,7 @@ int RTI_PosLumFromOmbre_main(int argc,char ** argv);
 int GetInfosMPLF_main(int argc,char ** argv);
 int TestNewMergeTieP_main(int argc,char ** argv);
 int TestStephane_Main(int argc,char ** argv);
-
+int ArboArch_main(int argc,char ** argv);
 
 int TestDupBigTiff(int argc,char ** argv);
 int Test_TomCan(int argc,char ** argv);
@@ -731,6 +741,7 @@ int UnionFiltragePHom_Main(int argc,char ** argv);
 int TestYZ_main(int argc,char ** argv);
 
 extern int ReechHomol_main(int argc,char ** argv);
+extern int DeformAnalyse_main(int argc,char ** argv);
 extern int ExtraitHomol_main(int argc, char ** argv);
 extern int IntersectHomol_main(int argc, char ** argv);
 extern int ReechMAF_main(int argc, char ** argv);
@@ -897,7 +908,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
         aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envelope for mode statue"));
         aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topological analysis before bascule"));
-
+		aRes.push_back(cMMCom("ArboArch",ArboArch_main,"Files organization, internal use"));
 
         aRes.push_back(cMMCom("Check1Hom",CheckOneHom_main,"Check One File Homologue"));
         aRes.push_back(cMMCom("CheckAllHom",CheckAllHom_main,"Check All File Homologue"));
@@ -967,6 +978,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("MergeFilterNewFH",UnionFiltragePHom_Main ,"Merge & Filter New Multiple Points"));
         aRes.push_back(cMMCom("TestYZ",TestYZ_main ,"TestYZ"));
         aRes.push_back(cMMCom("ReechHomol",ReechHomol_main ,"Apply map to homol folders to correct thermal deformation"));
+        aRes.push_back(cMMCom("DeformAnalyse",DeformAnalyse_main ,"Deformation Analyse"));
         aRes.push_back(cMMCom("ExtraitHomol",ExtraitHomol_main ,"Extract certain homol files"));
         aRes.push_back(cMMCom("IntersectHomol",IntersectHomol_main ,"Pseudo-intersection for tie points"));
         aRes.push_back(cMMCom("ReechMAF",ReechMAF_main ,"Apply map to image measurement file"));
@@ -982,7 +994,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 
-   return aRes;
+   return AddLib(aRes,"TestLib");
 }
 
 int SampleLibElise_main(int argc, char ** argv)
@@ -1046,7 +1058,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);
 
-    return aRes;
+    return AddLib(aRes,"SateLib");
 }
 
 int SateLib_main(int argc, char ** argv)
@@ -1070,7 +1082,7 @@ const std::vector<cMMCom> & SimuLibAvailableCommands()
     aRes.push_back(cMMCom("AddNoise", CPP_AddNoiseImage, "Add noise to images"));
     aRes.push_back(cMMCom("SimulDep", CPP_SimulDep, "Run N Matching to average noise"));
  
-    return aRes;
+    return AddLib(aRes,"SimuLib");
 }
 
 
@@ -1107,7 +1119,7 @@ const std::vector<cMMCom> & XLibAvailableCommands()
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);
 
-    return aRes;
+    return AddLib(aRes,"XLib");
 }
 
 int XLib_Main(int argc, char ** argv)
@@ -1320,6 +1332,288 @@ Tapioca 200000
 */
 
 
+void CatCom(std::vector<cMMCom> & aRes,const std::vector<cMMCom> & ToAdd)
+{
+   std::copy(ToAdd.begin(),ToAdd.end(),std::back_inserter(aRes));
+}
+
+const std::vector<cMMCom> & AllCom()
+{
+  static std::vector<cMMCom> aRes;
+  if (aRes.empty())
+  {
+      CatCom(aRes,getAvailableCommands());
+      CatCom(aRes,TestLibAvailableCommands());
+      CatCom(aRes,SateLibAvailableCommands());
+      CatCom(aRes,SimuLibAvailableCommands());
+      CatCom(aRes,XLibAvailableCommands());
+  }
+  return aRes; 
+}
+
+typedef std::map<std::string,cMMCom*> tDicMMCom;
+
+tDicMMCom & DicAllCom()
+{
+   static tDicMMCom aRes;
+   if (aRes.empty())
+   {
+      const std::vector<cMMCom> & aV = AllCom();
+      for (int aK=0 ; aK<int (aV.size()) ; aK++)
+      {
+          if (DicBoolFind(aRes,aV[aK].mName))
+          {
+              std::cout << "For name = "<< aV[aK].mName << "\n";
+              ELISE_ASSERT(false,"Conflict in MicMac Command");
+          }
+          aRes[aV[aK].mName] = new cMMCom(aV[aK]);
+      }
+   }
+   return aRes;
+}
+
+
+
+
+
+void ShowAllCom()
+{
+    const std::vector<cMMCom> &  AllC = AllCom();
+    for (int aK=0 ; aK<int(AllC.size()) ; aK++)
+    {
+         std::cout << AllC[aK].mName ;
+         const std::string & aLib =  AllC[aK].mLib;
+         if (aLib!="")
+            std::cout << " in " <<  aLib ;
+         std::cout  << "\n";
+    }
+}
+
+// A mettre en global
+template <class Type> std::list<Type> List1El(const Type & aVal) {return std::list<Type>(1,aVal);}
+
+
+
+
+
+//  ======== FEATURE =================
+
+#define  KFEATURE 5
+std::string FeatStdSubStr(const std::string &aStr) {return aStr.substr(KFEATURE,std::string::npos);}
+std::string FeatStr(const eCmdMM_Feature  &aFeat) {return FeatStdSubStr(eToString(aFeat));}
+
+std::list<std::string>  ListMMGetFeature(const  cXml_Specif1MMCmd & aSpec) 
+{
+   // return List1El(FeatStdSubStr(eToString(aSpec.MainFeature())));
+   return List1El(FeatStr(aSpec.MainFeature()));
+}
+std::list<std::string>  ListMMAllFeature(const  cXml_Specif1MMCmd & aSpec) 
+{
+   std::list<std::string> aRes(1,FeatStr(aSpec.MainFeature()));
+   for (auto iT=aSpec.OtherFeature().begin() ; iT!=aSpec.OtherFeature().end() ; iT++)
+       aRes.push_back(FeatStr(*iT));
+
+   return aRes;
+}
+
+//  ======== DATA =================
+
+#define  KDATA    6
+std::string DataStdSubStr(const std::string &aStr) {return aStr.substr(KDATA,std::string::npos);}
+std::string DataStr(const eCmdMM_DataType  &aFeat) {return DataStdSubStr(eToString(aFeat));}
+
+std::list<std::string>  ListMMGetInput(const  cXml_Specif1MMCmd & aSpec) 
+{
+   return List1El(DataStr(aSpec.MainInput()));
+}
+std::list<std::string>  ListMMAllInput(const  cXml_Specif1MMCmd & aSpec) 
+{
+   std::list<std::string> aRes(1,DataStr(aSpec.MainInput()));
+   for (auto iT=aSpec.OtherInput().begin() ; iT!=aSpec.OtherInput().end() ; iT++)
+       aRes.push_back(DataStr(*iT));
+
+   return aRes;
+}
+
+std::list<std::string>  ListMMGetOutput(const  cXml_Specif1MMCmd & aSpec) 
+{
+   return List1El(DataStr(aSpec.MainOutput()));
+}
+std::list<std::string>  ListMMAllOutput(const  cXml_Specif1MMCmd & aSpec) 
+{
+   std::list<std::string> aRes(1,DataStr(aSpec.MainOutput()));
+   for (auto iT=aSpec.OtherOutput().begin() ; iT!=aSpec.OtherOutput().end() ; iT++)
+       aRes.push_back(DataStr(*iT));
+
+   return aRes;
+}
+
+//  ======== NAME  =================
+
+std::list<std::string>   ListMMGetName(const  cXml_Specif1MMCmd & aSpec) 
+{ 
+   return List1El(aSpec.Name());
+}
+
+    // ====================================
+
+template <class Type> void FilterOnListName(cXml_SpecifAllMMCmd & aLSpec,std::string & aName,Type aCalc,bool UseRealPat)
+{
+   if (EAMIsInit(&aName))
+   {
+      std::string aNameAuto = aName;
+      if (!UseRealPat) 
+         aNameAuto = ".*" + aName + ".*";
+      std::list<cXml_Specif1MMCmd> aRes;
+      cElRegex anAuto(aNameAuto,10,REG_EXTENDED,false);
+      for (auto aL= aLSpec.OneCmd().begin() ; aL!=aLSpec.OneCmd().end() ; aL++)
+      {
+          std::list<std::string> aLName = aCalc(*aL);
+          bool OneMatch = false;
+          for (auto itN=aLName.begin() ; (itN!=aLName.end()) && (!OneMatch) ; itN++)
+          {
+               OneMatch = anAuto.Match(*itN);
+          }
+          if (OneMatch)
+          {
+               aRes.push_back(*aL);
+          }
+      }
+      aLSpec.OneCmd() = aRes;
+   }
+}
+
+
+
+
+void ActionHelpOnHelp(int argc,char ** argv)
+{
+    bool Help;
+    eCmdMM_Feature aFeature;
+    std::string aStr="-help";
+
+    std::cout << "=========== For Feature  ===================\n";
+    StdReadEnum(Help,aFeature,aStr,eCmf_NbVals,true,KFEATURE);
+
+    eCmdMM_DataType aDataType;
+    std::cout << "=========== For Data Type ===================\n";
+    StdReadEnum(Help,aDataType,aStr,eCmDt_NbVals,true,KDATA);
+
+}
+
+class cAppli_MMHelp
+{
+public :
+   std::string mSubName;
+   std::string mSubMainFeature;
+   std::string mSubAnyFeatures;
+   std::string mSubMainInput;
+   std::string mSubAnyInput;
+   std::string mSubMainOutput;
+   std::string mSubAnyOutput;
+   std::string mShowAllCom;
+
+   bool mUseRealPatt;
+   cXml_SpecifAllMMCmd mLMMC;
+   std::map<std::string,cXml_Specif1MMCmd *> mDicXmlC;
+   std::string mFileXmlCmd;
+
+
+cAppli_MMHelp(int argc,char ** argv) :
+   mUseRealPatt (false),
+   mFileXmlCmd  (Basic_XML_MM_File("HelpMMCmd.xml"))
+{
+   // std::cout << "Fffffffff " << FeatStr(eCmf_Interf) << " " << DataStr(eCmDt_CloudXML) << "\n";
+   TheActionOnHelp = ActionHelpOnHelp;
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain(),  // << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
+        LArgMain() << EAM(mSubName,"Name",true,"substring for Name")
+
+                   << EAM(mSubMainFeature,"Feature",true,"substring for main feature") 
+                   << EAM(mSubMainInput,"Input",true,"substring for main input") 
+                   << EAM(mSubMainOutput,"Output",true,"substring for main input") 
+
+                   << EAM(mSubAnyFeatures,"AllFeature",true,"substring for any feature") 
+                   << EAM(mSubAnyInput,"AllInput",true,"substring for any input") 
+                   << EAM(mSubAnyOutput,"AllOutput",true,"substring for any output") 
+                   //==================================
+                   << EAM(mShowAllCom,"ShowAllCom",true,"TUNING : file to show All Com") 
+                   << EAM(mFileXmlCmd,"FileXmlCmd",true,"TUNING : file to get Xml specif of Cmd") 
+   );
+
+   // mLMMC = StdGetFromPCP(Basic_XML_MM_File("HelpMMCmd.xml"),Xml_SpecifAllMMCmd);
+   mLMMC = StdGetFromPCP(mFileXmlCmd,Xml_SpecifAllMMCmd);
+
+   tDicMMCom & aDicC =  DicAllCom();
+   // On verifie que ttes les commandes XML correspondent a du C++ et on initialise la lib/group si necessaire
+   // la lib/group est initialisee  dans AllCom et donc DicAllCom
+   for (auto aL= mLMMC.OneCmd().begin() ; aL!=mLMMC.OneCmd().end() ; aL++)
+   {
+      cMMCom* aCom = aDicC[aL->Name()];
+      if (aCom==0)
+      {
+          std::cout << "For name=" << aL->Name() << "\n";
+          ELISE_ASSERT(false,"is not a micmac command");
+      }
+      eCmdMM_Group aGrp = eCmGrp_mm3d;
+      if (! aL->Group().IsInit())
+      {
+         // Com->mLib
+         if (aCom->mLib!="")
+         {
+              aGrp = Str2eCmdMM_Group("eCmGrp_" + aCom->mLib);
+         }
+         aL->Group().SetVal(aGrp);
+      }
+      mDicXmlC[aL->Name()] = &(*aL);
+   }
+
+
+   // Sans doute provisoire genere toute les commande en indiquant si elle sont XML-documentee
+   if (EAMIsInit(&mShowAllCom))
+   {
+      FILE * aFSAC = FopenNN(mShowAllCom,"w","cAppli_MMHelp ShowAllCom");
+      for (auto itCom=aDicC.begin(); itCom!=aDicC.end() ; itCom++)
+      {
+          std::string aName = itCom->second->mName;
+          std::string aOc = DicBoolFind(mDicXmlC,aName) ? "Done1111" : "Done0000" ;
+          fprintf(aFSAC,"%s: %s in [%s]\n",aOc.c_str(),aName.c_str(),itCom->second->mLib.c_str());
+      }
+      fclose(aFSAC);
+
+      return;
+   }
+
+   FilterOnListName(mLMMC,mSubName,ListMMGetName,mUseRealPatt);
+
+   FilterOnListName(mLMMC, mSubMainFeature, ListMMGetFeature, mUseRealPatt);
+   FilterOnListName(mLMMC, mSubMainInput  , ListMMGetInput  , mUseRealPatt);
+   FilterOnListName(mLMMC, mSubMainOutput , ListMMGetOutput , mUseRealPatt);
+
+   FilterOnListName(mLMMC, mSubAnyFeatures, ListMMAllFeature, mUseRealPatt);
+   FilterOnListName(mLMMC, mSubAnyInput   , ListMMAllInput  , mUseRealPatt);
+   FilterOnListName(mLMMC, mSubAnyOutput  , ListMMAllOutput , mUseRealPatt);
+
+   for (auto aL= mLMMC.OneCmd().begin() ; aL!=mLMMC.OneCmd().end() ; aL++)
+   {
+        std::cout << aL->Name() ;
+        if (aL->Option().IsInit()) 
+            std::cout << " " << aL->Option().Val() ;
+        std::cout <<  " SubLib=[" << eToString(aL->Group().Val()).substr(7,std::string::npos) <<"]" ;
+        std::cout  << "\n";
+   }
+}
+};
+
+
+int CPP_MMHelp(int argc,char ** argv)
+{
+   cAppli_MMHelp(argc,argv);
+   return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

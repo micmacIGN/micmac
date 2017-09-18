@@ -1,5 +1,6 @@
 set(Src_TD_PPMD
 	${TDPPMD_DIR}/ReechHomol.cpp
+        ${TDPPMD_DIR}/DeformAnalyse.cpp
         ${TDPPMD_DIR}/MatchTops.cpp
 	${TDPPMD_DIR}/TD_MMProgMars2017.cpp
 	${TDPPMD_DIR}/cTD_Camera.cpp
@@ -50,6 +51,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/Hugin.cpp
     ${TDPPMD_DIR}/ThermikProcessing.cpp
     ${TDPPMD_DIR}/MPLF.cpp
+    ${TDPPMD_DIR}/ArboArch.cpp
     ${TDPPMD_DIR}/TiePByMesh/PHO_MI.cpp
     ${TDPPMD_DIR}/TiePByMesh/InitOutil.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiePByMesh_main.cpp

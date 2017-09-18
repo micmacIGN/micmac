@@ -1973,8 +1973,8 @@ class cAccumResidu;
 class cAppliApero : public NROptF1vND
 {
     public :
-       void ExportImageResidu() const;
-       void ExportImageResidu(const std::string & aName,const cAccumResidu &) const;
+       void ExportImageResidu() ;
+       void ExportImageResidu(const std::string & aName,const cAccumResidu &) ;
 
 
         void AddInfoImageResidu
@@ -2691,6 +2691,8 @@ class cAppliApero : public NROptF1vND
          // cManipPt3TerInc *                              mGlobManiP3TI;  pas la bonne voie
          std::map<std::string,cAccumResidu *> mMapAR;
 
+         std::string mDirExportImRes;
+         FILE *      mFileExpImRes;
 };
 
 

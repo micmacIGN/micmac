@@ -23560,4 +23560,651 @@ void xml_init(cXml_SolBascRigide & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXml_SolBascRigide *) {return "6C261C07B3A65EC6FA3F";};
 
+eCmdMM_Feature  Str2eCmdMM_Feature(const std::string & aName)
+{
+   if (aName=="eCmf_Control")
+      return eCmf_Control;
+   else if (aName=="eCmf_Convert")
+      return eCmf_Convert;
+   else if (aName=="eCmf_ImProc")
+      return eCmf_ImProc;
+   else if (aName=="eCmf_Interf")
+      return eCmf_Interf;
+   else if (aName=="eCmf_Orient")
+      return eCmf_Orient;
+   else if (aName=="eCmf_OriAbs")
+      return eCmf_OriAbs;
+   else if (aName=="eCmf_OriSat")
+      return eCmf_OriSat;
+   else if (aName=="eCmf_TiePoints")
+      return eCmf_TiePoints;
+   else if (aName=="eCmf_ImMatch")
+      return eCmf_ImMatch;
+   else if (aName=="eCmf_NbVals")
+      return eCmf_NbVals;
+  else
+  {
+      cout << aName << " is not a correct value for enum eCmdMM_Feature\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eCmdMM_Feature) 0;
+}
+void xml_init(eCmdMM_Feature & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eCmdMM_Feature(aTree->Contenu());
+}
+std::string  eToString(const eCmdMM_Feature & anObj)
+{
+   if (anObj==eCmf_Control)
+      return  "eCmf_Control";
+   if (anObj==eCmf_Convert)
+      return  "eCmf_Convert";
+   if (anObj==eCmf_ImProc)
+      return  "eCmf_ImProc";
+   if (anObj==eCmf_Interf)
+      return  "eCmf_Interf";
+   if (anObj==eCmf_Orient)
+      return  "eCmf_Orient";
+   if (anObj==eCmf_OriAbs)
+      return  "eCmf_OriAbs";
+   if (anObj==eCmf_OriSat)
+      return  "eCmf_OriSat";
+   if (anObj==eCmf_TiePoints)
+      return  "eCmf_TiePoints";
+   if (anObj==eCmf_ImMatch)
+      return  "eCmf_ImMatch";
+   if (anObj==eCmf_NbVals)
+      return  "eCmf_NbVals";
+ std::cout << "Enum = eCmdMM_Feature\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eCmdMM_Feature & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eCmdMM_Feature & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eCmdMM_Feature & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eCmdMM_Feature) aIVal;
+}
+
+std::string  Mangling( eCmdMM_Feature *) {return "B2CC86E055673298FE3F";};
+
+eCmdMM_DataType  Str2eCmdMM_DataType(const std::string & aName)
+{
+   if (aName=="eCmDt_Orient")
+      return eCmDt_Orient;
+   else if (aName=="eCmDt_Images")
+      return eCmDt_Images;
+   else if (aName=="eCmDt_TiePoints")
+      return eCmDt_TiePoints;
+   else if (aName=="eCmDt_CloudXML")
+      return eCmDt_CloudXML;
+   else if (aName=="eCmDt_FileXML")
+      return eCmDt_FileXML;
+   else if (aName=="eCmDt_FileTxt")
+      return eCmDt_FileTxt;
+   else if (aName=="eCmDt_GCP")
+      return eCmDt_GCP;
+   else if (aName=="eCmDt_PtImMes")
+      return eCmDt_PtImMes;
+   else if (aName=="eCmDt_Any")
+      return eCmDt_Any;
+   else if (aName=="eCmDt_None")
+      return eCmDt_None;
+   else if (aName=="eCmDt_Ply")
+      return eCmDt_Ply;
+   else if (aName=="eCmDt_NbVals")
+      return eCmDt_NbVals;
+  else
+  {
+      cout << aName << " is not a correct value for enum eCmdMM_DataType\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eCmdMM_DataType) 0;
+}
+void xml_init(eCmdMM_DataType & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eCmdMM_DataType(aTree->Contenu());
+}
+std::string  eToString(const eCmdMM_DataType & anObj)
+{
+   if (anObj==eCmDt_Orient)
+      return  "eCmDt_Orient";
+   if (anObj==eCmDt_Images)
+      return  "eCmDt_Images";
+   if (anObj==eCmDt_TiePoints)
+      return  "eCmDt_TiePoints";
+   if (anObj==eCmDt_CloudXML)
+      return  "eCmDt_CloudXML";
+   if (anObj==eCmDt_FileXML)
+      return  "eCmDt_FileXML";
+   if (anObj==eCmDt_FileTxt)
+      return  "eCmDt_FileTxt";
+   if (anObj==eCmDt_GCP)
+      return  "eCmDt_GCP";
+   if (anObj==eCmDt_PtImMes)
+      return  "eCmDt_PtImMes";
+   if (anObj==eCmDt_Any)
+      return  "eCmDt_Any";
+   if (anObj==eCmDt_None)
+      return  "eCmDt_None";
+   if (anObj==eCmDt_Ply)
+      return  "eCmDt_Ply";
+   if (anObj==eCmDt_NbVals)
+      return  "eCmDt_NbVals";
+ std::cout << "Enum = eCmdMM_DataType\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eCmdMM_DataType & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eCmdMM_DataType & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eCmdMM_DataType & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eCmdMM_DataType) aIVal;
+}
+
+std::string  Mangling( eCmdMM_DataType *) {return "6BF14F8ACF7D2EB4FD3F";};
+
+eCmdMM_Group  Str2eCmdMM_Group(const std::string & aName)
+{
+   if (aName=="eCmGrp_mm3d")
+      return eCmGrp_mm3d;
+   else if (aName=="eCmGrp_TestLib")
+      return eCmGrp_TestLib;
+   else if (aName=="eCmGrp_SateLib")
+      return eCmGrp_SateLib;
+   else if (aName=="eCmGrp_SimuLib")
+      return eCmGrp_SimuLib;
+   else if (aName=="eCmGrp_XLib")
+      return eCmGrp_XLib;
+   else if (aName=="eCmGrp_NbVals")
+      return eCmGrp_NbVals;
+  else
+  {
+      cout << aName << " is not a correct value for enum eCmdMM_Group\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eCmdMM_Group) 0;
+}
+void xml_init(eCmdMM_Group & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eCmdMM_Group(aTree->Contenu());
+}
+std::string  eToString(const eCmdMM_Group & anObj)
+{
+   if (anObj==eCmGrp_mm3d)
+      return  "eCmGrp_mm3d";
+   if (anObj==eCmGrp_TestLib)
+      return  "eCmGrp_TestLib";
+   if (anObj==eCmGrp_SateLib)
+      return  "eCmGrp_SateLib";
+   if (anObj==eCmGrp_SimuLib)
+      return  "eCmGrp_SimuLib";
+   if (anObj==eCmGrp_XLib)
+      return  "eCmGrp_XLib";
+   if (anObj==eCmGrp_NbVals)
+      return  "eCmGrp_NbVals";
+ std::cout << "Enum = eCmdMM_Group\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eCmdMM_Group & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eCmdMM_Group & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eCmdMM_Group & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eCmdMM_Group) aIVal;
+}
+
+std::string  Mangling( eCmdMM_Group *) {return "D8FC2F2E594DA8AFFF3F";};
+
+
+std::string & cXml_Specif1MMCmd::Name()
+{
+   return mName;
+}
+
+const std::string & cXml_Specif1MMCmd::Name()const 
+{
+   return mName;
+}
+
+
+eCmdMM_Feature & cXml_Specif1MMCmd::MainFeature()
+{
+   return mMainFeature;
+}
+
+const eCmdMM_Feature & cXml_Specif1MMCmd::MainFeature()const 
+{
+   return mMainFeature;
+}
+
+
+eCmdMM_DataType & cXml_Specif1MMCmd::MainInput()
+{
+   return mMainInput;
+}
+
+const eCmdMM_DataType & cXml_Specif1MMCmd::MainInput()const 
+{
+   return mMainInput;
+}
+
+
+eCmdMM_DataType & cXml_Specif1MMCmd::MainOutput()
+{
+   return mMainOutput;
+}
+
+const eCmdMM_DataType & cXml_Specif1MMCmd::MainOutput()const 
+{
+   return mMainOutput;
+}
+
+
+cTplValGesInit< eCmdMM_Group > & cXml_Specif1MMCmd::Group()
+{
+   return mGroup;
+}
+
+const cTplValGesInit< eCmdMM_Group > & cXml_Specif1MMCmd::Group()const 
+{
+   return mGroup;
+}
+
+
+cTplValGesInit< std::string > & cXml_Specif1MMCmd::Option()
+{
+   return mOption;
+}
+
+const cTplValGesInit< std::string > & cXml_Specif1MMCmd::Option()const 
+{
+   return mOption;
+}
+
+
+std::list< eCmdMM_Feature > & cXml_Specif1MMCmd::OtherFeature()
+{
+   return mOtherFeature;
+}
+
+const std::list< eCmdMM_Feature > & cXml_Specif1MMCmd::OtherFeature()const 
+{
+   return mOtherFeature;
+}
+
+
+std::list< eCmdMM_DataType > & cXml_Specif1MMCmd::OtherInput()
+{
+   return mOtherInput;
+}
+
+const std::list< eCmdMM_DataType > & cXml_Specif1MMCmd::OtherInput()const 
+{
+   return mOtherInput;
+}
+
+
+std::list< eCmdMM_DataType > & cXml_Specif1MMCmd::OtherOutput()
+{
+   return mOtherOutput;
+}
+
+const std::list< eCmdMM_DataType > & cXml_Specif1MMCmd::OtherOutput()const 
+{
+   return mOtherOutput;
+}
+
+
+cTplValGesInit< Pt3di > & cXml_Specif1MMCmd::CreationDate()
+{
+   return mCreationDate;
+}
+
+const cTplValGesInit< Pt3di > & cXml_Specif1MMCmd::CreationDate()const 
+{
+   return mCreationDate;
+}
+
+
+cTplValGesInit< Pt3di > & cXml_Specif1MMCmd::ModifDate()
+{
+   return mModifDate;
+}
+
+const cTplValGesInit< Pt3di > & cXml_Specif1MMCmd::ModifDate()const 
+{
+   return mModifDate;
+}
+
+
+std::list< std::string > & cXml_Specif1MMCmd::DependOf()
+{
+   return mDependOf;
+}
+
+const std::list< std::string > & cXml_Specif1MMCmd::DependOf()const 
+{
+   return mDependOf;
+}
+
+
+std::list< std::string > & cXml_Specif1MMCmd::UsedBy()
+{
+   return mUsedBy;
+}
+
+const std::list< std::string > & cXml_Specif1MMCmd::UsedBy()const 
+{
+   return mUsedBy;
+}
+
+void  BinaryUnDumpFromFile(cXml_Specif1MMCmd & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Name(),aFp);
+    BinaryUnDumpFromFile(anObj.MainFeature(),aFp);
+    BinaryUnDumpFromFile(anObj.MainInput(),aFp);
+    BinaryUnDumpFromFile(anObj.MainOutput(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Group().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Group().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Group().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Option().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Option().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Option().SetNoInit();
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             eCmdMM_Feature aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.OtherFeature().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             eCmdMM_DataType aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.OtherInput().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             eCmdMM_DataType aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.OtherOutput().push_back(aVal);
+        }
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.CreationDate().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.CreationDate().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.CreationDate().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ModifDate().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ModifDate().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ModifDate().SetNoInit();
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             std::string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.DependOf().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             std::string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.UsedBy().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Specif1MMCmd & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Name());
+    BinaryDumpInFile(aFp,anObj.MainFeature());
+    BinaryDumpInFile(aFp,anObj.MainInput());
+    BinaryDumpInFile(aFp,anObj.MainOutput());
+    BinaryDumpInFile(aFp,anObj.Group().IsInit());
+    if (anObj.Group().IsInit()) BinaryDumpInFile(aFp,anObj.Group().Val());
+    BinaryDumpInFile(aFp,anObj.Option().IsInit());
+    if (anObj.Option().IsInit()) BinaryDumpInFile(aFp,anObj.Option().Val());
+    BinaryDumpInFile(aFp,(int)anObj.OtherFeature().size());
+    for(  std::list< eCmdMM_Feature >::const_iterator iT=anObj.OtherFeature().begin();
+         iT!=anObj.OtherFeature().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.OtherInput().size());
+    for(  std::list< eCmdMM_DataType >::const_iterator iT=anObj.OtherInput().begin();
+         iT!=anObj.OtherInput().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.OtherOutput().size());
+    for(  std::list< eCmdMM_DataType >::const_iterator iT=anObj.OtherOutput().begin();
+         iT!=anObj.OtherOutput().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.CreationDate().IsInit());
+    if (anObj.CreationDate().IsInit()) BinaryDumpInFile(aFp,anObj.CreationDate().Val());
+    BinaryDumpInFile(aFp,anObj.ModifDate().IsInit());
+    if (anObj.ModifDate().IsInit()) BinaryDumpInFile(aFp,anObj.ModifDate().Val());
+    BinaryDumpInFile(aFp,(int)anObj.DependOf().size());
+    for(  std::list< std::string >::const_iterator iT=anObj.DependOf().begin();
+         iT!=anObj.DependOf().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.UsedBy().size());
+    for(  std::list< std::string >::const_iterator iT=anObj.UsedBy().begin();
+         iT!=anObj.UsedBy().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_Specif1MMCmd & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_Specif1MMCmd",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+   aRes->AddFils(ToXMLTree(std::string("MainFeature"),anObj.MainFeature())->ReTagThis("MainFeature"));
+   aRes->AddFils(ToXMLTree(std::string("MainInput"),anObj.MainInput())->ReTagThis("MainInput"));
+   aRes->AddFils(ToXMLTree(std::string("MainOutput"),anObj.MainOutput())->ReTagThis("MainOutput"));
+   if (anObj.Group().IsInit())
+      aRes->AddFils(ToXMLTree(std::string("Group"),anObj.Group().Val())->ReTagThis("Group"));
+   if (anObj.Option().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Option"),anObj.Option().Val())->ReTagThis("Option"));
+  for
+  (       std::list< eCmdMM_Feature >::const_iterator it=anObj.OtherFeature().begin();
+      it !=anObj.OtherFeature().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree(std::string("OtherFeature"),(*it))->ReTagThis("OtherFeature"));
+  for
+  (       std::list< eCmdMM_DataType >::const_iterator it=anObj.OtherInput().begin();
+      it !=anObj.OtherInput().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree(std::string("OtherInput"),(*it))->ReTagThis("OtherInput"));
+  for
+  (       std::list< eCmdMM_DataType >::const_iterator it=anObj.OtherOutput().begin();
+      it !=anObj.OtherOutput().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree(std::string("OtherOutput"),(*it))->ReTagThis("OtherOutput"));
+   if (anObj.CreationDate().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CreationDate"),anObj.CreationDate().Val())->ReTagThis("CreationDate"));
+   if (anObj.ModifDate().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ModifDate"),anObj.ModifDate().Val())->ReTagThis("ModifDate"));
+  for
+  (       std::list< std::string >::const_iterator it=anObj.DependOf().begin();
+      it !=anObj.DependOf().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("DependOf"),(*it))->ReTagThis("DependOf"));
+  for
+  (       std::list< std::string >::const_iterator it=anObj.UsedBy().begin();
+      it !=anObj.UsedBy().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("UsedBy"),(*it))->ReTagThis("UsedBy"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_Specif1MMCmd & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+
+   xml_init(anObj.MainFeature(),aTree->Get("MainFeature",1)); //tototo 
+
+   xml_init(anObj.MainInput(),aTree->Get("MainInput",1)); //tototo 
+
+   xml_init(anObj.MainOutput(),aTree->Get("MainOutput",1)); //tototo 
+
+   xml_init(anObj.Group(),aTree->Get("Group",1)); //tototo 
+
+   xml_init(anObj.Option(),aTree->Get("Option",1)); //tototo 
+
+   xml_init(anObj.OtherFeature(),aTree->GetAll("OtherFeature",false,1));
+
+   xml_init(anObj.OtherInput(),aTree->GetAll("OtherInput",false,1));
+
+   xml_init(anObj.OtherOutput(),aTree->GetAll("OtherOutput",false,1));
+
+   xml_init(anObj.CreationDate(),aTree->Get("CreationDate",1),Pt3di(Pt3di(21,9,2008))); //tototo 
+
+   xml_init(anObj.ModifDate(),aTree->Get("ModifDate",1),Pt3di(Pt3di(21,9,2008))); //tototo 
+
+   xml_init(anObj.DependOf(),aTree->GetAll("DependOf",false,1));
+
+   xml_init(anObj.UsedBy(),aTree->GetAll("UsedBy",false,1));
+}
+
+std::string  Mangling( cXml_Specif1MMCmd *) {return "3911FFB25F699FF3FE3F";};
+
+
+std::list< cXml_Specif1MMCmd > & cXml_SpecifAllMMCmd::OneCmd()
+{
+   return mOneCmd;
+}
+
+const std::list< cXml_Specif1MMCmd > & cXml_SpecifAllMMCmd::OneCmd()const 
+{
+   return mOneCmd;
+}
+
+void  BinaryUnDumpFromFile(cXml_SpecifAllMMCmd & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_Specif1MMCmd aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.OneCmd().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_SpecifAllMMCmd & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.OneCmd().size());
+    for(  std::list< cXml_Specif1MMCmd >::const_iterator iT=anObj.OneCmd().begin();
+         iT!=anObj.OneCmd().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_SpecifAllMMCmd & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_SpecifAllMMCmd",eXMLBranche);
+  for
+  (       std::list< cXml_Specif1MMCmd >::const_iterator it=anObj.OneCmd().begin();
+      it !=anObj.OneCmd().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("OneCmd"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_SpecifAllMMCmd & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.OneCmd(),aTree->GetAll("OneCmd",false,1));
+}
+
+std::string  Mangling( cXml_SpecifAllMMCmd *) {return "3E5B20FF639A9E98FD3F";};
+
 // };

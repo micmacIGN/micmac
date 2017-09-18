@@ -459,6 +459,10 @@ int MMRunVisualMode
          std::string aFirstArg = ""
      );
 
+typedef void (*tActionOnHelp)(int argc,char ** argv);
+extern tActionOnHelp TheActionOnHelp;
+
+
 std::vector<char *>     ElInitArgMain
         (
             int argc,char ** argv,

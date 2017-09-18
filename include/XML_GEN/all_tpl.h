@@ -49,7 +49,8 @@ template <class EnumType> void StdReadEnum
                           EnumType & aType,
                           const std::string & aStrType,
                           const EnumType & aTypeMax,
-                          bool  AcceptError = false
+                          bool  AcceptError = false,
+                          int   aKSubstr=1
                       )
 {
     Help = (aStrType == "-help");
@@ -62,7 +63,7 @@ template <class EnumType> void StdReadEnum
     {
          EnumType aTK = EnumType(aK);
          std::string aStrK = eToString(aTK);
-         aStrK = aStrK.substr(1,std::string::npos);
+         aStrK = aStrK.substr(aKSubstr,std::string::npos);
          if (Help)
          {
             std::cout << "   " << aStrK << "\n";

@@ -2025,9 +2025,66 @@
 </Xml_SolBascRigide>
 
 <!--
-  <RotationVect  Nb="1"  UnionType="true" ToReference="true" Class="true">
-  cSolBasculeRig
+    Documentation command MicMac
 -->
+
+<enum Name="eCmdMM_Feature">
+     <eCmf_Control>     </eCmf_Control>     <!-- quality control tool or options -->
+     <eCmf_Convert>     </eCmf_Convert>     <!-- conversion tools -->
+     <eCmf_ImProc>      </eCmf_ImProc>      <!-- Image Processing tools -->
+     <eCmf_Interf>      </eCmf_Interf>      <!-- Interface tools -->
+     <eCmf_Orient>      </eCmf_Orient>      <!-- Orientation tools, relative -->
+     <eCmf_OriAbs>      </eCmf_OriAbs>     <!-- As soon as GCP, GPS, trajecto.. is used -->
+     <eCmf_OriSat>      </eCmf_OriSat>     <!-- As soon as GCP, GPS, trajecto.. is used -->
+     <eCmf_TiePoints>   </eCmf_TiePoints>   <!-- Tie Points  tools -->
+     <eCmf_ImMatch>     </eCmf_ImMatch>     <!-- Dense image matching -->
+     <eCmf_NbVals>      </eCmf_NbVals>      <!-- Interface tools -->
+</enum>
+
+<enum Name="eCmdMM_DataType">
+     <eCmDt_Orient>     </eCmDt_Orient>     <!--   -->
+     <eCmDt_Images>     </eCmDt_Images>     <!--  -->
+     <eCmDt_TiePoints>  </eCmDt_TiePoints>  <!--  -->
+     <eCmDt_CloudXML>   </eCmDt_CloudXML>   <!-- Depth Maps + xml corresponding to a cloud -->
+     <eCmDt_FileXML>    </eCmDt_FileXML>    <!-- Xml File for MicMac , Apero ... -->
+     <eCmDt_FileTxt>    </eCmDt_FileTxt>    <!-- Xml File for MicMac , Apero ... -->
+     <eCmDt_GCP>        </eCmDt_GCP>        <!-- Ground Control Points -->
+     <eCmDt_PtImMes>    </eCmDt_PtImMes>    <!-- Image Measurement of points -->
+     <eCmDt_Any>        </eCmDt_Any>        <!--  For command generating to many to describe output -->
+     <eCmDt_None>       </eCmDt_None>       <!--  For command generating no output -->
+     <eCmDt_Ply>        </eCmDt_Ply>        <!--  For command generating no output -->
+     <eCmDt_NbVals>     </eCmDt_NbVals>     <!--   -->
+</enum>
+
+<enum Name="eCmdMM_Group">
+     <eCmGrp_mm3d>     </eCmGrp_mm3d>     <!--  -->
+     <eCmGrp_TestLib>  </eCmGrp_TestLib>     <!--  -->
+     <eCmGrp_SateLib>  </eCmGrp_SateLib>     <!--  -->
+     <eCmGrp_SimuLib>  </eCmGrp_SimuLib>     <!--  -->
+     <eCmGrp_XLib>     </eCmGrp_XLib>     <!--  -->
+     <eCmGrp_NbVals>   </eCmGrp_NbVals>     <!--  -->
+</enum>
+
+<Xml_Specif1MMCmd Nb="1" Class="true" ToReference="true">
+       <Name  Nb="1"  Type="std::string">  </Name>
+       <MainFeature Nb="1" Type="eCmdMM_Feature"> </MainFeature>
+       <MainInput   Nb="1" Type="eCmdMM_DataType"> </MainInput>
+       <MainOutput   Nb="1" Type="eCmdMM_DataType"> </MainOutput>
+       <Group       Nb="?"  Type="eCmdMM_Group">  </Group>  <!-- Calcule auto, en option si jamais ambigu -->
+
+       <Option Nb="?" Type="std::string"> </Option>
+       <OtherFeature Nb="*" Type="eCmdMM_Feature"> </OtherFeature>
+       <OtherInput   Nb="*" Type="eCmdMM_DataType"> </OtherInput>
+       <OtherOutput   Nb="*" Type="eCmdMM_DataType"> </OtherOutput>
+       <CreationDate   Nb="?" Type="Pt3di" Def="Pt3di(21,9,2008)"> </CreationDate>
+       <ModifDate   Nb="?" Type="Pt3di" Def="Pt3di(21,9,2008)">    </ModifDate>
+       <DependOf   Nb="*" Type="std::string">                       </DependOf>
+       <UsedBy     Nb="*" Type="std::string">                       </UsedBy>
+</Xml_Specif1MMCmd>
+
+<Xml_SpecifAllMMCmd Nb="1" Class="true" ToReference="true">
+    <OneCmd Nb="*" RefType="Xml_Specif1MMCmd"> </OneCmd>
+</Xml_SpecifAllMMCmd>
 
 <Verbatim File=".h.cpp">
 // };
