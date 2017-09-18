@@ -23574,6 +23574,8 @@ eCmdMM_Feature  Str2eCmdMM_Feature(const std::string & aName)
       return eCmf_Orient;
    else if (aName=="eCmf_OriAbs")
       return eCmf_OriAbs;
+   else if (aName=="eCmf_OriSat")
+      return eCmf_OriSat;
    else if (aName=="eCmf_TiePoints")
       return eCmf_TiePoints;
    else if (aName=="eCmf_ImMatch")
@@ -23605,6 +23607,8 @@ std::string  eToString(const eCmdMM_Feature & anObj)
       return  "eCmf_Orient";
    if (anObj==eCmf_OriAbs)
       return  "eCmf_OriAbs";
+   if (anObj==eCmf_OriSat)
+      return  "eCmf_OriSat";
    if (anObj==eCmf_TiePoints)
       return  "eCmf_TiePoints";
    if (anObj==eCmf_ImMatch)
@@ -23633,7 +23637,7 @@ void  BinaryUnDumpFromFile(eCmdMM_Feature & anObj,ELISE_fp & aFp)
    anObj=(eCmdMM_Feature) aIVal;
 }
 
-std::string  Mangling( eCmdMM_Feature *) {return "18EE0FD3C891E5FDFCBF";};
+std::string  Mangling( eCmdMM_Feature *) {return "B2CC86E055673298FE3F";};
 
 eCmdMM_DataType  Str2eCmdMM_DataType(const std::string & aName)
 {
@@ -23819,14 +23823,14 @@ const eCmdMM_DataType & cXml_Specif1MMCmd::MainInput()const
 }
 
 
-eCmdMM_DataType & cXml_Specif1MMCmd::MainOuput()
+eCmdMM_DataType & cXml_Specif1MMCmd::MainOutput()
 {
-   return mMainOuput;
+   return mMainOutput;
 }
 
-const eCmdMM_DataType & cXml_Specif1MMCmd::MainOuput()const 
+const eCmdMM_DataType & cXml_Specif1MMCmd::MainOutput()const 
 {
-   return mMainOuput;
+   return mMainOutput;
 }
 
 
@@ -23874,14 +23878,14 @@ const std::list< eCmdMM_DataType > & cXml_Specif1MMCmd::OtherInput()const
 }
 
 
-std::list< eCmdMM_DataType > & cXml_Specif1MMCmd::OtherOuput()
+std::list< eCmdMM_DataType > & cXml_Specif1MMCmd::OtherOutput()
 {
-   return mOtherOuput;
+   return mOtherOutput;
 }
 
-const std::list< eCmdMM_DataType > & cXml_Specif1MMCmd::OtherOuput()const 
+const std::list< eCmdMM_DataType > & cXml_Specif1MMCmd::OtherOutput()const 
 {
-   return mOtherOuput;
+   return mOtherOutput;
 }
 
 
@@ -23933,7 +23937,7 @@ void  BinaryUnDumpFromFile(cXml_Specif1MMCmd & anObj,ELISE_fp & aFp)
      BinaryUnDumpFromFile(anObj.Name(),aFp);
     BinaryUnDumpFromFile(anObj.MainFeature(),aFp);
     BinaryUnDumpFromFile(anObj.MainInput(),aFp);
-    BinaryUnDumpFromFile(anObj.MainOuput(),aFp);
+    BinaryUnDumpFromFile(anObj.MainOutput(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -23974,7 +23978,7 @@ void  BinaryUnDumpFromFile(cXml_Specif1MMCmd & anObj,ELISE_fp & aFp)
         {
              eCmdMM_DataType aVal;
               BinaryUnDumpFromFile(aVal,aFp);
-              anObj.OtherOuput().push_back(aVal);
+              anObj.OtherOutput().push_back(aVal);
         }
   } ;
   { bool IsInit;
@@ -24018,7 +24022,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Specif1MMCmd & anObj)
     BinaryDumpInFile(aFp,anObj.Name());
     BinaryDumpInFile(aFp,anObj.MainFeature());
     BinaryDumpInFile(aFp,anObj.MainInput());
-    BinaryDumpInFile(aFp,anObj.MainOuput());
+    BinaryDumpInFile(aFp,anObj.MainOutput());
     BinaryDumpInFile(aFp,anObj.Group().IsInit());
     if (anObj.Group().IsInit()) BinaryDumpInFile(aFp,anObj.Group().Val());
     BinaryDumpInFile(aFp,anObj.Option().IsInit());
@@ -24035,9 +24039,9 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Specif1MMCmd & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,(int)anObj.OtherOuput().size());
-    for(  std::list< eCmdMM_DataType >::const_iterator iT=anObj.OtherOuput().begin();
-         iT!=anObj.OtherOuput().end();
+    BinaryDumpInFile(aFp,(int)anObj.OtherOutput().size());
+    for(  std::list< eCmdMM_DataType >::const_iterator iT=anObj.OtherOutput().begin();
+         iT!=anObj.OtherOutput().end();
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
@@ -24066,7 +24070,7 @@ cElXMLTree * ToXMLTree(const cXml_Specif1MMCmd & anObj)
    aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
    aRes->AddFils(ToXMLTree(std::string("MainFeature"),anObj.MainFeature())->ReTagThis("MainFeature"));
    aRes->AddFils(ToXMLTree(std::string("MainInput"),anObj.MainInput())->ReTagThis("MainInput"));
-   aRes->AddFils(ToXMLTree(std::string("MainOuput"),anObj.MainOuput())->ReTagThis("MainOuput"));
+   aRes->AddFils(ToXMLTree(std::string("MainOutput"),anObj.MainOutput())->ReTagThis("MainOutput"));
    if (anObj.Group().IsInit())
       aRes->AddFils(ToXMLTree(std::string("Group"),anObj.Group().Val())->ReTagThis("Group"));
    if (anObj.Option().IsInit())
@@ -24084,11 +24088,11 @@ cElXMLTree * ToXMLTree(const cXml_Specif1MMCmd & anObj)
   ) 
       aRes->AddFils(ToXMLTree(std::string("OtherInput"),(*it))->ReTagThis("OtherInput"));
   for
-  (       std::list< eCmdMM_DataType >::const_iterator it=anObj.OtherOuput().begin();
-      it !=anObj.OtherOuput().end();
+  (       std::list< eCmdMM_DataType >::const_iterator it=anObj.OtherOutput().begin();
+      it !=anObj.OtherOutput().end();
       it++
   ) 
-      aRes->AddFils(ToXMLTree(std::string("OtherOuput"),(*it))->ReTagThis("OtherOuput"));
+      aRes->AddFils(ToXMLTree(std::string("OtherOutput"),(*it))->ReTagThis("OtherOutput"));
    if (anObj.CreationDate().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("CreationDate"),anObj.CreationDate().Val())->ReTagThis("CreationDate"));
    if (anObj.ModifDate().IsInit())
@@ -24121,7 +24125,7 @@ void xml_init(cXml_Specif1MMCmd & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.MainInput(),aTree->Get("MainInput",1)); //tototo 
 
-   xml_init(anObj.MainOuput(),aTree->Get("MainOuput",1)); //tototo 
+   xml_init(anObj.MainOutput(),aTree->Get("MainOutput",1)); //tototo 
 
    xml_init(anObj.Group(),aTree->Get("Group",1)); //tototo 
 
@@ -24131,7 +24135,7 @@ void xml_init(cXml_Specif1MMCmd & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.OtherInput(),aTree->GetAll("OtherInput",false,1));
 
-   xml_init(anObj.OtherOuput(),aTree->GetAll("OtherOuput",false,1));
+   xml_init(anObj.OtherOutput(),aTree->GetAll("OtherOutput",false,1));
 
    xml_init(anObj.CreationDate(),aTree->Get("CreationDate",1),Pt3di(Pt3di(21,9,2008))); //tototo 
 
@@ -24142,7 +24146,7 @@ void xml_init(cXml_Specif1MMCmd & anObj,cElXMLTree * aTree)
    xml_init(anObj.UsedBy(),aTree->GetAll("UsedBy",false,1));
 }
 
-std::string  Mangling( cXml_Specif1MMCmd *) {return "D403D299302575E9FE3F";};
+std::string  Mangling( cXml_Specif1MMCmd *) {return "3911FFB25F699FF3FE3F";};
 
 
 std::list< cXml_Specif1MMCmd > & cXml_SpecifAllMMCmd::OneCmd()
@@ -24201,6 +24205,6 @@ void xml_init(cXml_SpecifAllMMCmd & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneCmd(),aTree->GetAll("OneCmd",false,1));
 }
 
-std::string  Mangling( cXml_SpecifAllMMCmd *) {return "30A7BB68F15FAECCFC3F";};
+std::string  Mangling( cXml_SpecifAllMMCmd *) {return "3E5B20FF639A9E98FD3F";};
 
 // };

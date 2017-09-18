@@ -14,7 +14,10 @@ MainFeature :
      eCmf_ImProc
      eCmf_Interf
      eCmf_Orient
+     eCmf_OriAbs
+     eCmf_OriSat
      eCmf_TiePoints
+     eCmf_ImMatch
      eCmf_NbVals
 
 DataType :
@@ -35,11 +38,12 @@ DataType :
           <Name  >  </Name>
           <MainFeature > </MainFeature>
           <MainInput   > </MainInput>
-          <MainOuput   > </MainOuput>
+          <MainOutput   > </MainOutput>
 
           <Option> </Option>
+          <OtherFeature> </OtherFeature>
           <OtherInput> </OtherInput>
-          <OtherOuput> </OtherOuput>
+          <OtherOutput> </OtherOutput>
           <CreationDate> </CreationDate>
           <ModifDate>    </ModifDate>
           <DependOf>     </DependOf>
@@ -48,6 +52,72 @@ DataType :
 -->
 
 <Xml_SpecifAllMMCmd>
+
+<!-- ============ -->
+<!--   MATCH      -->
+<!-- ============ -->
+
+   <OneCmd> 
+          <Name  >  Malt </Name>
+          <MainFeature > eCmf_ImMatch </MainFeature>
+          <MainInput   > eCmDt_Images </MainInput>
+              <OtherInput> eCmDt_Orient </OtherInput>
+          <MainOutput   > eCmDt_CloudXML </MainOutput>
+   </OneCmd>
+
+<!-- ============ -->
+<!--   TiePoints  -->
+<!-- ============ -->
+
+   <OneCmd> 
+          <Name  >  Tapioca </Name>
+          <MainFeature > eCmf_TiePoints </MainFeature>
+          <MainInput   > eCmDt_Images </MainInput>
+          <MainOutput   > eCmDt_TiePoints </MainOutput>
+   </OneCmd>
+
+   <OneCmd> 
+          <Name  >  HomolFilterMasq </Name>
+          <MainFeature > eCmf_TiePoints  </MainFeature>
+          <MainInput   > eCmDt_TiePoints </MainInput>
+          <MainOutput   > eCmDt_TiePoints </MainOutput>
+   </OneCmd>
+
+   <OneCmd> 
+          <Name  >  Ratafia </Name>
+          <MainFeature > eCmf_TiePoints  </MainFeature>
+          <MainInput   > eCmDt_TiePoints </MainInput>
+          <MainOutput   > eCmDt_TiePoints </MainOutput>
+   </OneCmd>
+
+<!-- ========= -->
+<!--   Orient  -->
+<!-- ========= -->
+
+
+   <OneCmd> 
+          <Name  >  Tapas </Name>
+          <MainFeature > eCmf_Orient </MainFeature>
+          <MainInput   > eCmDt_TiePoints </MainInput>
+          <MainOutput   > eCmDt_Orient </MainOutput>
+   </OneCmd>
+   <OneCmd> 
+          <Name  >  GCPBascule </Name>
+          <MainFeature>  eCmf_OriAbs </MainFeature>
+          <MainInput>    eCmDt_GCP   </MainInput>
+              <OtherInput> eCmDt_PtImMes </OtherInput>
+              <OtherInput> eCmDt_Orient </OtherInput>
+          <MainOutput   > eCmDt_Orient </MainOutput>
+   </OneCmd>
+   <OneCmd> 
+          <Name  >  Convert2GenBundle </Name>
+          <MainFeature>  eCmf_OriSat </MainFeature>
+              <OtherFeature >  eCmf_Convert </OtherFeature>
+          <MainInput>    eCmDt_Orient   </MainInput>
+          <MainOutput   > eCmDt_Orient </MainOutput>
+   </OneCmd>
+
+
 
 <!-- ========= -->
 <!--   Control -->
@@ -60,8 +130,8 @@ DataType :
           <MainInput   >  eCmDt_GCP </MainInput>
              <OtherInput>    eCmDt_Orient  </OtherInput>
              <OtherInput>    eCmDt_PtImMes </OtherInput>
-          <MainOuput   >  eCmDt_FileTxt </MainOuput>
-             <OtherOuput>    eCmDt_Orient  </OtherOuput>
+          <MainOutput   >  eCmDt_FileTxt </MainOutput>
+             <OtherOutput>    eCmDt_Orient  </OtherOutput>
           <!-- <Group>         eCmGrp_mm3d </Group> -->
           <CreationDate> 1 6 2017 </CreationDate> <!-- Approx -->
    </OneCmd>
@@ -71,7 +141,7 @@ DataType :
           <Option>  ExpImRes= </Option>
           <MainFeature >  eCmf_Control </MainFeature>
           <MainInput   >  eCmDt_Orient </MainInput>
-          <MainOuput   >  eCmDt_Images </MainOuput>
+          <MainOutput   >  eCmDt_Images </MainOutput>
           <!-- <Group>         eCmGrp_mm3d </Group> -->
           <CreationDate> 13  9 2017 </CreationDate> 
    </OneCmd>
@@ -81,7 +151,7 @@ DataType :
           <Option>   ExportSensib= </Option>
           <MainFeature >  eCmf_Control  </MainFeature>
           <MainInput   >  eCmDt_Orient  </MainInput>
-          <MainOuput   >  eCmDt_FileXML </MainOuput>
+          <MainOutput   >  eCmDt_FileXML </MainOutput>
           <!-- <Group>         eCmGrp_mm3d   </Group> -->
           <CreationDate> 01 12  2016 </CreationDate>  <!-- Approx -->
    </OneCmd>
@@ -95,7 +165,7 @@ DataType :
           <MainFeature >  eCmf_Convert  </MainFeature>
               <OtherFeature >  eCmf_OriAbs </OtherFeature>
           <MainInput   >  eCmDt_FileXML  </MainInput>
-          <MainOuput   >  eCmDt_FileTxt </MainOuput>
+          <MainOutput   >  eCmDt_FileTxt </MainOutput>
           <!-- <Group>         eCmGrp_TestLib   </Group> -->
    </OneCmd>
 
@@ -103,7 +173,7 @@ DataType :
           <Name  >    Nuage2Ply  </Name>
           <MainFeature >  eCmf_Convert  </MainFeature>
           <MainInput   >  eCmDt_CloudXML  </MainInput>
-          <MainOuput   >  eCmDt_Ply </MainOuput>
+          <MainOutput   >  eCmDt_Ply </MainOutput>
           <!-- <Group>         eCmGrp_mm3d   </Group> -->
    </OneCmd>
 
@@ -111,7 +181,7 @@ DataType :
           <Name  >    ScaleNuage  </Name>
           <MainFeature >  eCmf_Convert  </MainFeature>
           <MainInput   >  eCmDt_CloudXML  </MainInput>
-          <MainOuput   >  eCmDt_CloudXML  </MainOuput>
+          <MainOutput   >  eCmDt_CloudXML  </MainOutput>
           <!-- <Group>         eCmGrp_mm3d   </Group> -->
    </OneCmd>
 
@@ -123,7 +193,7 @@ DataType :
           <Name  >    PanelIm  </Name>
           <MainFeature >  eCmf_ImProc  </MainFeature>
           <MainInput   >  eCmDt_Images  </MainInput>
-          <MainOuput   >  eCmDt_Images  </MainOuput>
+          <MainOutput   >  eCmDt_Images  </MainOutput>
           <!-- <Group>         eCmGrp_mm3d   </Group> -->
    </OneCmd>
 
@@ -132,7 +202,7 @@ DataType :
           <MainFeature >  eCmf_ImProc  </MainFeature>
               <OtherFeature >  eCmf_Control </OtherFeature>
           <MainInput   >  eCmDt_Images  </MainInput>
-          <MainOuput   >  eCmDt_Images  </MainOuput>
+          <MainOutput   >  eCmDt_Images  </MainOutput>
           <!-- <Group>         eCmGrp_mm3d   </Group> -->
    </OneCmd>
 
@@ -143,7 +213,7 @@ DataType :
           <Name  >    Vino  </Name>
           <MainFeature >  eCmf_Interf  </MainFeature>
           <MainInput   >  eCmDt_Images  </MainInput>
-          <MainOuput   >  eCmDt_None    </MainOuput>
+          <MainOutput   >  eCmDt_None    </MainOutput>
           <!-- <Group>         eCmGrp_mm3d   </Group> -->
    </OneCmd>
 
@@ -151,10 +221,15 @@ DataType :
           <Name  >    SEL  </Name>
           <MainFeature >  eCmf_Interf  </MainFeature>
           <MainInput   >  eCmDt_Images  </MainInput>
-          <MainOuput   >  eCmDt_None    </MainOuput>
-             <OtherOuput>    eCmDt_TiePoints  </OtherOuput>
+             <OtherInput>    eCmDt_TiePoints  </OtherInput>
+          <MainOutput   >  eCmDt_None    </MainOutput>
+             <OtherOutput>    eCmDt_TiePoints  </OtherOutput>
           <!-- <Group>         eCmGrp_mm3d   </Group> -->
    </OneCmd>
+
+<!-- ============ -->
+<!--   Conversion -->
+<!-- ============ -->
 
 
 </Xml_SpecifAllMMCmd>

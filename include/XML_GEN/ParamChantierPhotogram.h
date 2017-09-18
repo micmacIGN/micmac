@@ -7659,6 +7659,7 @@ typedef enum
   eCmf_Interf,
   eCmf_Orient,
   eCmf_OriAbs,
+  eCmf_OriSat,
   eCmf_TiePoints,
   eCmf_ImMatch,
   eCmf_NbVals
@@ -7743,8 +7744,8 @@ class cXml_Specif1MMCmd
         eCmdMM_DataType & MainInput();
         const eCmdMM_DataType & MainInput()const ;
 
-        eCmdMM_DataType & MainOuput();
-        const eCmdMM_DataType & MainOuput()const ;
+        eCmdMM_DataType & MainOutput();
+        const eCmdMM_DataType & MainOutput()const ;
 
         cTplValGesInit< eCmdMM_Group > & Group();
         const cTplValGesInit< eCmdMM_Group > & Group()const ;
@@ -7758,8 +7759,8 @@ class cXml_Specif1MMCmd
         std::list< eCmdMM_DataType > & OtherInput();
         const std::list< eCmdMM_DataType > & OtherInput()const ;
 
-        std::list< eCmdMM_DataType > & OtherOuput();
-        const std::list< eCmdMM_DataType > & OtherOuput()const ;
+        std::list< eCmdMM_DataType > & OtherOutput();
+        const std::list< eCmdMM_DataType > & OtherOutput()const ;
 
         cTplValGesInit< Pt3di > & CreationDate();
         const cTplValGesInit< Pt3di > & CreationDate()const ;
@@ -7776,12 +7777,12 @@ class cXml_Specif1MMCmd
         std::string mName;
         eCmdMM_Feature mMainFeature;
         eCmdMM_DataType mMainInput;
-        eCmdMM_DataType mMainOuput;
+        eCmdMM_DataType mMainOutput;
         cTplValGesInit< eCmdMM_Group > mGroup;
         cTplValGesInit< std::string > mOption;
         std::list< eCmdMM_Feature > mOtherFeature;
         std::list< eCmdMM_DataType > mOtherInput;
-        std::list< eCmdMM_DataType > mOtherOuput;
+        std::list< eCmdMM_DataType > mOtherOutput;
         cTplValGesInit< Pt3di > mCreationDate;
         cTplValGesInit< Pt3di > mModifDate;
         std::list< std::string > mDependOf;

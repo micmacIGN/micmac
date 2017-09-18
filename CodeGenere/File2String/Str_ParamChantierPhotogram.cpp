@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[2100]) = {
+const char * (theNameVar_ParamChantierPhotogram[2101]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -2037,6 +2037,7 @@ const char * (theNameVar_ParamChantierPhotogram[2100]) = {
 "     <eCmf_Interf>      </eCmf_Interf>      <!-- Interface tools -->\n",
 "     <eCmf_Orient>      </eCmf_Orient>      <!-- Orientation tools, relative -->\n",
 "     <eCmf_OriAbs>      </eCmf_OriAbs>     <!-- As soon as GCP, GPS, trajecto.. is used -->\n",
+"     <eCmf_OriSat>      </eCmf_OriSat>     <!-- As soon as GCP, GPS, trajecto.. is used -->\n",
 "     <eCmf_TiePoints>   </eCmf_TiePoints>   <!-- Tie Points  tools -->\n",
 "     <eCmf_ImMatch>     </eCmf_ImMatch>     <!-- Dense image matching -->\n",
 "     <eCmf_NbVals>      </eCmf_NbVals>      <!-- Interface tools -->\n",
@@ -2070,13 +2071,13 @@ const char * (theNameVar_ParamChantierPhotogram[2100]) = {
 "       <Name  Nb=\"1\"  Type=\"std::string\">  </Name>\n",
 "       <MainFeature Nb=\"1\" Type=\"eCmdMM_Feature\"> </MainFeature>\n",
 "       <MainInput   Nb=\"1\" Type=\"eCmdMM_DataType\"> </MainInput>\n",
-"       <MainOuput   Nb=\"1\" Type=\"eCmdMM_DataType\"> </MainOuput>\n",
+"       <MainOutput   Nb=\"1\" Type=\"eCmdMM_DataType\"> </MainOutput>\n",
 "       <Group       Nb=\"?\"  Type=\"eCmdMM_Group\">  </Group>  <!-- Calcule auto, en option si jamais ambigu -->\n",
 "\n",
 "       <Option Nb=\"?\" Type=\"std::string\"> </Option>\n",
 "       <OtherFeature Nb=\"*\" Type=\"eCmdMM_Feature\"> </OtherFeature>\n",
 "       <OtherInput   Nb=\"*\" Type=\"eCmdMM_DataType\"> </OtherInput>\n",
-"       <OtherOuput   Nb=\"*\" Type=\"eCmdMM_DataType\"> </OtherOuput>\n",
+"       <OtherOutput   Nb=\"*\" Type=\"eCmdMM_DataType\"> </OtherOutput>\n",
 "       <CreationDate   Nb=\"?\" Type=\"Pt3di\" Def=\"Pt3di(21,9,2008)\"> </CreationDate>\n",
 "       <ModifDate   Nb=\"?\" Type=\"Pt3di\" Def=\"Pt3di(21,9,2008)\">    </ModifDate>\n",
 "       <DependOf   Nb=\"*\" Type=\"std::string\">                       </DependOf>\n",

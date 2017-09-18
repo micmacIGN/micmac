@@ -1387,17 +1387,75 @@ void ShowAllCom()
     }
 }
 
-std::string  MMGetName(const  cXml_Specif1MMCmd & aSpec) 
-{ 
-   return aSpec.Name();
-}
-std::string  MMGetFeature(const  cXml_Specif1MMCmd & aSpec) 
+// A mettre en global
+template <class Type> std::list<Type> List1El(const Type & aVal) {return std::list<Type>(1,aVal);}
+
+
+
+
+
+//  ======== FEATURE =================
+
+#define  KFEATURE 5
+std::string FeatStdSubStr(const std::string &aStr) {return aStr.substr(KFEATURE,std::string::npos);}
+std::string FeatStr(const eCmdMM_Feature  &aFeat) {return FeatStdSubStr(eToString(aFeat));}
+
+std::list<std::string>  ListMMGetFeature(const  cXml_Specif1MMCmd & aSpec) 
 {
-   std::string aRes = eToString(aSpec.MainFeature());
-   return aRes.substr(5,std::string::npos);
+   // return List1El(FeatStdSubStr(eToString(aSpec.MainFeature())));
+   return List1El(FeatStr(aSpec.MainFeature()));
+}
+std::list<std::string>  ListMMAllFeature(const  cXml_Specif1MMCmd & aSpec) 
+{
+   std::list<std::string> aRes(1,FeatStr(aSpec.MainFeature()));
+   for (auto iT=aSpec.OtherFeature().begin() ; iT!=aSpec.OtherFeature().end() ; iT++)
+       aRes.push_back(FeatStr(*iT));
+
+   return aRes;
 }
 
-template <class Type> void FilterOnName(cXml_SpecifAllMMCmd & aLSpec,std::string & aName,Type aCalc,bool UseRealPat)
+//  ======== DATA =================
+
+#define  KDATA    6
+std::string DataStdSubStr(const std::string &aStr) {return aStr.substr(KDATA,std::string::npos);}
+std::string DataStr(const eCmdMM_DataType  &aFeat) {return DataStdSubStr(eToString(aFeat));}
+
+std::list<std::string>  ListMMGetInput(const  cXml_Specif1MMCmd & aSpec) 
+{
+   return List1El(DataStr(aSpec.MainInput()));
+}
+std::list<std::string>  ListMMAllInput(const  cXml_Specif1MMCmd & aSpec) 
+{
+   std::list<std::string> aRes(1,DataStr(aSpec.MainInput()));
+   for (auto iT=aSpec.OtherInput().begin() ; iT!=aSpec.OtherInput().end() ; iT++)
+       aRes.push_back(DataStr(*iT));
+
+   return aRes;
+}
+
+std::list<std::string>  ListMMGetOutput(const  cXml_Specif1MMCmd & aSpec) 
+{
+   return List1El(DataStr(aSpec.MainOutput()));
+}
+std::list<std::string>  ListMMAllOutput(const  cXml_Specif1MMCmd & aSpec) 
+{
+   std::list<std::string> aRes(1,DataStr(aSpec.MainOutput()));
+   for (auto iT=aSpec.OtherOutput().begin() ; iT!=aSpec.OtherOutput().end() ; iT++)
+       aRes.push_back(DataStr(*iT));
+
+   return aRes;
+}
+
+//  ======== NAME  =================
+
+std::list<std::string>   ListMMGetName(const  cXml_Specif1MMCmd & aSpec) 
+{ 
+   return List1El(aSpec.Name());
+}
+
+    // ====================================
+
+template <class Type> void FilterOnListName(cXml_SpecifAllMMCmd & aLSpec,std::string & aName,Type aCalc,bool UseRealPat)
 {
    if (EAMIsInit(&aName))
    {
@@ -1408,14 +1466,23 @@ template <class Type> void FilterOnName(cXml_SpecifAllMMCmd & aLSpec,std::string
       cElRegex anAuto(aNameAuto,10,REG_EXTENDED,false);
       for (auto aL= aLSpec.OneCmd().begin() ; aL!=aLSpec.OneCmd().end() ; aL++)
       {
-            if (anAuto.Match(aCalc(*aL)))
-            {
+          std::list<std::string> aLName = aCalc(*aL);
+          bool OneMatch = false;
+          for (auto itN=aLName.begin() ; (itN!=aLName.end()) && (!OneMatch) ; itN++)
+          {
+               OneMatch = anAuto.Match(*itN);
+          }
+          if (OneMatch)
+          {
                aRes.push_back(*aL);
-            }
+          }
       }
       aLSpec.OneCmd() = aRes;
    }
 }
+
+
+
 
 void ActionHelpOnHelp(int argc,char ** argv)
 {
@@ -1424,11 +1491,11 @@ void ActionHelpOnHelp(int argc,char ** argv)
     std::string aStr="-help";
 
     std::cout << "=========== For Feature  ===================\n";
-    StdReadEnum(Help,aFeature,aStr,eCmf_NbVals,true,5);
+    StdReadEnum(Help,aFeature,aStr,eCmf_NbVals,true,KFEATURE);
 
     eCmdMM_DataType aDataType;
     std::cout << "=========== For Data Type ===================\n";
-    StdReadEnum(Help,aDataType,aStr,eCmDt_NbVals,true,6);
+    StdReadEnum(Help,aDataType,aStr,eCmDt_NbVals,true,KDATA);
 
 }
 
@@ -1438,19 +1505,50 @@ public :
    std::string mSubName;
    std::string mSubMainFeature;
    std::string mSubAnyFeatures;
+   std::string mSubMainInput;
+   std::string mSubAnyInput;
+   std::string mSubMainOutput;
+   std::string mSubAnyOutput;
+   std::string mShowAllCom;
 
    bool mUseRealPatt;
+   cXml_SpecifAllMMCmd mLMMC;
+   std::map<std::string,cXml_Specif1MMCmd *> mDicXmlC;
+   std::string mFileXmlCmd;
 
 
 cAppli_MMHelp(int argc,char ** argv) :
-   mUseRealPatt (false)
+   mUseRealPatt (false),
+   mFileXmlCmd  (Basic_XML_MM_File("HelpMMCmd.xml"))
 {
+   // std::cout << "Fffffffff " << FeatStr(eCmf_Interf) << " " << DataStr(eCmDt_CloudXML) << "\n";
    TheActionOnHelp = ActionHelpOnHelp;
 
-   cXml_SpecifAllMMCmd aLMMC = StdGetFromPCP(Basic_XML_MM_File("HelpMMCmd.xml"),Xml_SpecifAllMMCmd);
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain(),  // << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
+        LArgMain() << EAM(mSubName,"Name",true,"substring for Name")
+
+                   << EAM(mSubMainFeature,"Feature",true,"substring for main feature") 
+                   << EAM(mSubMainInput,"Input",true,"substring for main input") 
+                   << EAM(mSubMainOutput,"Output",true,"substring for main input") 
+
+                   << EAM(mSubAnyFeatures,"AllFeature",true,"substring for any feature") 
+                   << EAM(mSubAnyInput,"AllInput",true,"substring for any input") 
+                   << EAM(mSubAnyOutput,"AllOutput",true,"substring for any output") 
+                   //==================================
+                   << EAM(mShowAllCom,"ShowAllCom",true,"TUNING : file to show All Com") 
+                   << EAM(mFileXmlCmd,"FileXmlCmd",true,"TUNING : file to get Xml specif of Cmd") 
+   );
+
+   // mLMMC = StdGetFromPCP(Basic_XML_MM_File("HelpMMCmd.xml"),Xml_SpecifAllMMCmd);
+   mLMMC = StdGetFromPCP(mFileXmlCmd,Xml_SpecifAllMMCmd);
 
    tDicMMCom & aDicC =  DicAllCom();
-   for (auto aL= aLMMC.OneCmd().begin() ; aL!=aLMMC.OneCmd().end() ; aL++)
+   // On verifie que ttes les commandes XML correspondent a du C++ et on initialise la lib/group si necessaire
+   // la lib/group est initialisee  dans AllCom et donc DicAllCom
+   for (auto aL= mLMMC.OneCmd().begin() ; aL!=mLMMC.OneCmd().end() ; aL++)
    {
       cMMCom* aCom = aDicC[aL->Name()];
       if (aCom==0)
@@ -1458,34 +1556,53 @@ cAppli_MMHelp(int argc,char ** argv) :
           std::cout << "For name=" << aL->Name() << "\n";
           ELISE_ASSERT(false,"is not a micmac command");
       }
+      eCmdMM_Group aGrp = eCmGrp_mm3d;
+      if (! aL->Group().IsInit())
+      {
+         // Com->mLib
+         if (aCom->mLib!="")
+         {
+              aGrp = Str2eCmdMM_Group("eCmGrp_" + aCom->mLib);
+         }
+         aL->Group().SetVal(aGrp);
+      }
+      mDicXmlC[aL->Name()] = &(*aL);
    }
 
 
-   ElInitArgMain
-   (
-        argc,argv,
-        LArgMain(),  // << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
-        LArgMain() << EAM(mSubName,"Name",true,"substring for Name")
-                   << EAM(mSubMainFeature,"Feature",true,"substring for main feature") 
-   );
+   // Sans doute provisoire genere toute les commande en indiquant si elle sont XML-documentee
+   if (EAMIsInit(&mShowAllCom))
+   {
+      FILE * aFSAC = FopenNN(mShowAllCom,"w","cAppli_MMHelp ShowAllCom");
+      for (auto itCom=aDicC.begin(); itCom!=aDicC.end() ; itCom++)
+      {
+          std::string aName = itCom->second->mName;
+          std::string aOc = DicBoolFind(mDicXmlC,aName) ? "Done1111" : "Done0000" ;
+          fprintf(aFSAC,"%s: %s in [%s]\n",aOc.c_str(),aName.c_str(),itCom->second->mLib.c_str());
+      }
+      fclose(aFSAC);
 
-   //  if (!UseRealPatt) mSubName = ".*" + mSubName + ".*";
-   FilterOnName(aLMMC,mSubName,MMGetName,mUseRealPatt);
-   FilterOnName(aLMMC,mSubMainFeature,MMGetFeature,mUseRealPatt);
+      return;
+   }
 
+   FilterOnListName(mLMMC,mSubName,ListMMGetName,mUseRealPatt);
 
-   for (auto aL= aLMMC.OneCmd().begin() ; aL!=aLMMC.OneCmd().end() ; aL++)
+   FilterOnListName(mLMMC, mSubMainFeature, ListMMGetFeature, mUseRealPatt);
+   FilterOnListName(mLMMC, mSubMainInput  , ListMMGetInput  , mUseRealPatt);
+   FilterOnListName(mLMMC, mSubMainOutput , ListMMGetOutput , mUseRealPatt);
+
+   FilterOnListName(mLMMC, mSubAnyFeatures, ListMMAllFeature, mUseRealPatt);
+   FilterOnListName(mLMMC, mSubAnyInput   , ListMMAllInput  , mUseRealPatt);
+   FilterOnListName(mLMMC, mSubAnyOutput  , ListMMAllOutput , mUseRealPatt);
+
+   for (auto aL= mLMMC.OneCmd().begin() ; aL!=mLMMC.OneCmd().end() ; aL++)
    {
         std::cout << aL->Name() ;
         if (aL->Option().IsInit()) 
             std::cout << " " << aL->Option().Val() ;
-        cMMCom* aCom = aDicC[aL->Name()];
-        ELISE_ASSERT(aCom!=0,"Incohence in Help for tDicMMCom");
-        std::cout <<  " SubLib=[" << aCom->mLib <<"]" ;
+        std::cout <<  " SubLib=[" << eToString(aL->Group().Val()).substr(7,std::string::npos) <<"]" ;
         std::cout  << "\n";
    }
-
-   // if (1) ShowAllCom();
 }
 };
 
