@@ -7662,6 +7662,7 @@ typedef enum
   eCmf_OriSat,
   eCmf_TiePoints,
   eCmf_ImMatch,
+  eCmf_Map2D,
   eCmf_NbVals
 } eCmdMM_Feature;
 void xml_init(eCmdMM_Feature & aVal,cElXMLTree * aTree);
@@ -7690,6 +7691,7 @@ typedef enum
   eCmDt_Any,
   eCmDt_None,
   eCmDt_Ply,
+  eCmDt_Map2D,
   eCmDt_NbVals
 } eCmdMM_DataType;
 void xml_init(eCmdMM_DataType & aVal,cElXMLTree * aTree);

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[2101]) = {
+const char * (theNameVar_ParamChantierPhotogram[2103]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -2040,6 +2040,7 @@ const char * (theNameVar_ParamChantierPhotogram[2101]) = {
 "     <eCmf_OriSat>      </eCmf_OriSat>     <!-- As soon as GCP, GPS, trajecto.. is used -->\n",
 "     <eCmf_TiePoints>   </eCmf_TiePoints>   <!-- Tie Points  tools -->\n",
 "     <eCmf_ImMatch>     </eCmf_ImMatch>     <!-- Dense image matching -->\n",
+"     <eCmf_Map2D>       </eCmf_Map2D>       <!-- Map2D -->\n",
 "     <eCmf_NbVals>      </eCmf_NbVals>      <!-- Interface tools -->\n",
 "</enum>\n",
 "\n",
@@ -2054,7 +2055,8 @@ const char * (theNameVar_ParamChantierPhotogram[2101]) = {
 "     <eCmDt_PtImMes>    </eCmDt_PtImMes>    <!-- Image Measurement of points -->\n",
 "     <eCmDt_Any>        </eCmDt_Any>        <!--  For command generating to many to describe output -->\n",
 "     <eCmDt_None>       </eCmDt_None>       <!--  For command generating no output -->\n",
-"     <eCmDt_Ply>        </eCmDt_Ply>        <!--  For command generating no output -->\n",
+"     <eCmDt_Ply>        </eCmDt_Ply>        <!--   -->\n",
+"     <eCmDt_Map2D>      </eCmDt_Map2D>     <!--   -->\n",
 "     <eCmDt_NbVals>     </eCmDt_NbVals>     <!--   -->\n",
 "</enum>\n",
 "\n",

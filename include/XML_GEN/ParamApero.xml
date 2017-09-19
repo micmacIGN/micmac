@@ -960,6 +960,9 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
                    <!-- Utilise pour le filtrag gaussien -->
                    <NbMesByCase  Nb="?" Type="double" Def="10"> </NbMesByCase> 
                    <AeroExport Nb="1" Type="std::string">    </AeroExport>
+
+                   <GeneratePly Nb="?" Type="bool" Def="true">   </GeneratePly>
+                   <SzOrtho Nb="?" Type="int" Def="-1"> </SzOrtho>
               </UseExportImageResidu>
 
               <UseRegulDist  Type="bool" Nb="?" Def="false"> </UseRegulDist>

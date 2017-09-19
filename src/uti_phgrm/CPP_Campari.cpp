@@ -327,6 +327,20 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         if (! EAMIsInit(&aUseGaussJ)) 
            aUseGaussJ = aExportSensib ;
 
+        bool LastIterSupl = false;
+       if (aExportSensib || EAMIsInit(&aVExpImRes) )
+       {
+            if (EAMIsInit(&aNbIterFin))
+            {
+                if (aNbIterFin>0) aNbIterFin--;
+               LastIterSupl = true;
+            }
+            else
+            {
+               aNbIterFin = 0;
+            }
+       }
+
 
 
        mCom =     MM3dBinFile_quotes( "Apero" )
@@ -344,6 +358,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                            +  std::string(" +PdsGBIter=") + ToString(aPdsGBIter) + " "
                           ;
 
+        if (LastIterSupl)  mCom += " +LastIterSupl=true";
         if (CPI1 || CPI2) mCom       += " +CPI=true ";
         if (CPI2) mCom       += " +CPIInput=true ";
         if (FocFree) mCom    += " +FocFree=true ";

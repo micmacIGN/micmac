@@ -1443,6 +1443,60 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
 }
 
 
+int CPP_SampleMap2D(int argc,char** argv)
+{
+    std::string aNameMap;
+    Box2dr  aBox;
+    std::string aNameOut;
+    int aNbSample;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  <<  EAMC(aNameMap,"Name map")
+                    <<  EAMC(aBox,"Box")
+                    <<  EAMC(aNbSample,"Number of sample"),
+        LArgMain()  <<  EAM(aNameOut,"Out",false,"Txt file ")
+    );
+    
+    cElMap2D * aMap = cElMap2D::FromFile(aNameMap);
+
+    if (!EAMIsInit(&aNameOut)) aNameOut = StdPrefix(aNameMap) + "-Samples.txt";
+
+    FILE * aFP = 0;
+    if (aNameOut!="NONE")
+        aFP = FopenNN(aNameOut.c_str(),"w","CPP_SampleMap2D");
+
+    Pt2dr aSomInit(0,0);
+    Pt2dr aSomMap(0,0);
+    double aSomP=0;
+
+    for (int aX=0 ; aX<=aNbSample ; aX++)
+    {
+        for (int aY=0 ; aY<=aNbSample ; aY++)
+        {
+// std::cout << "XxYyy " << aX << " " << aY << "\n";
+             Pt2dr aPInit = aBox.FromCoordLoc(Pt2dr(aX/double(aNbSample),aY/double(aNbSample)));
+             Pt2dr aPMap = (*aMap)(aPInit);
+
+             if (aFP!=0)
+             {
+                 fprintf(aFP,"%f %f %f %f\n",aPInit.x,aPInit.y,aPMap.x,aPMap.y);
+             }
+             aSomP++;
+             aSomInit = aSomInit + aPInit;
+             aSomMap = aSomMap + aPMap;
+        }
+    }
+    if (aFP) fclose(aFP);
+    aSomInit = aSomInit / aSomP;
+    aSomMap = aSomMap / aSomP;
+
+    std::cout << "Average   " << aSomInit << " => " <<  aSomMap << "\n";
+    std::cout << "Trans : " << aSomMap - aSomInit << "\n";
+
+    return EXIT_SUCCESS;
+}
 
 
 int CPP_ReechImMap(int argc,char** argv)
