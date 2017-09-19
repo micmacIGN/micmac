@@ -650,6 +650,9 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
             {
                 tCelNap * aVCel = mCelsNap[aP.y][aP.x];
                 int aZMax = aDZmax[aP.y][aP.x] * mMulZ;
+                // Si on est en dehors du masque , on force a etre en etat
+                // de non correl, en donnant une valeur 0 a cet etat et tres grande
+                // aux autres
                 if (!aTMask.get(aP))
                 {
                    int aZMin = aDZmin[aP.y][aP.x] * mMulZ;
