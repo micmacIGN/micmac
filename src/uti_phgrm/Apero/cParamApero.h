@@ -2995,12 +2995,20 @@ class cUseExportImageResidu
 
         std::string & AeroExport();
         const std::string & AeroExport()const ;
+
+        cTplValGesInit< bool > & GeneratePly();
+        const cTplValGesInit< bool > & GeneratePly()const ;
+
+        cTplValGesInit< int > & SzOrtho();
+        const cTplValGesInit< int > & SzOrtho()const ;
     private:
         cTplValGesInit< double > mSzByPair;
         cTplValGesInit< double > mSzByPose;
         cTplValGesInit< double > mSzByCam;
         cTplValGesInit< double > mNbMesByCase;
         std::string mAeroExport;
+        cTplValGesInit< bool > mGeneratePly;
+        cTplValGesInit< int > mSzOrtho;
 };
 cElXMLTree * ToXMLTree(const cUseExportImageResidu &);
 
@@ -3053,6 +3061,12 @@ class cSectionChantier
 
         std::string & AeroExport();
         const std::string & AeroExport()const ;
+
+        cTplValGesInit< bool > & GeneratePly();
+        const cTplValGesInit< bool > & GeneratePly()const ;
+
+        cTplValGesInit< int > & SzOrtho();
+        const cTplValGesInit< int > & SzOrtho()const ;
 
         cTplValGesInit< cUseExportImageResidu > & UseExportImageResidu();
         const cTplValGesInit< cUseExportImageResidu > & UseExportImageResidu()const ;
@@ -7044,6 +7058,12 @@ class cParamApero
 
         std::string & AeroExport();
         const std::string & AeroExport()const ;
+
+        cTplValGesInit< bool > & GeneratePly();
+        const cTplValGesInit< bool > & GeneratePly()const ;
+
+        cTplValGesInit< int > & SzOrtho();
+        const cTplValGesInit< int > & SzOrtho()const ;
 
         cTplValGesInit< cUseExportImageResidu > & UseExportImageResidu();
         const cTplValGesInit< cUseExportImageResidu > & UseExportImageResidu()const ;

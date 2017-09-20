@@ -1253,7 +1253,9 @@ cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack,const st
 int CPP_CalcMapAnalitik(int argc,char** argv)
 {
     std::string aNameOneIm1,aNameOneIm2,aNameOut,aSH;
-    bool aExpTxt=false;
+    bool aDeprExpTxt=false;
+    std::string anExt="dat";
+
     std::string anOri;
     std::string aNameType;
     Pt2dr       aPerResidu(100,100);
@@ -1280,12 +1282,18 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
                     <<  EAMC(aNameType,"Model in [Homot,Simil,Affine,Homogr,Polyn]")
                     <<  EAMC(aNameOut,"Name Out"),
         LArgMain()  <<  EAM(aSH,"SH",true,"Set of homologue")
-					<<  EAM(aExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
+                    <<  EAM(anExt,"Ext",true,"in [dat,txt,xml]")
                     <<  EAM(anOri,"Ori",true,"Directory to read distorsion")
                     <<  EAM(aPerResidu,"PerResidu",true,"Period for computing residual")
                     <<  EAM(aVRE,"PRE",true,"Param for robust estimation [PropInlayer,NbRan(500),NbPtsRan(+inf)]")
                     <<  EAM(aParamPoly,"ParPol",true,"Param for polygonal model [Deg,x0,y0,x1,y1]")
                     <<  EAM(ByKey,"ByKey",true,"When true multiple, Param is a pattern of Im1, param2 is a key of compute")
+	            <<  EAM(aDeprExpTxt,"ExpTxt",true,"DEPRECATED !!! => use Ext (string not bool)")
+    );
+    ELISE_ASSERT
+    (
+       ! EAMIsInit(&aDeprExpTxt),
+       "ExpTxt is deprecated, use Ext instead"
     );
 
     std::vector<std::string> aVIm1;
@@ -1328,7 +1336,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
 
     ElPackHomologue aPackInGlob;
     ElPackHomologue aPackInitialGlob;
-    std::string anExt = aExpTxt ? "txt" : "dat";
+    // std::string anExt = aExpTxt ? "txt" : "dat";
     std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aSH)
                        +  std::string("@")
@@ -1443,6 +1451,60 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
 }
 
 
+int CPP_SampleMap2D(int argc,char** argv)
+{
+    std::string aNameMap;
+    Box2dr  aBox;
+    std::string aNameOut;
+    int aNbSample;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  <<  EAMC(aNameMap,"Name map")
+                    <<  EAMC(aBox,"Box")
+                    <<  EAMC(aNbSample,"Number of sample"),
+        LArgMain()  <<  EAM(aNameOut,"Out",false,"Txt file ")
+    );
+    
+    cElMap2D * aMap = cElMap2D::FromFile(aNameMap);
+
+    if (!EAMIsInit(&aNameOut)) aNameOut = StdPrefix(aNameMap) + "-Samples.txt";
+
+    FILE * aFP = 0;
+    if (aNameOut!="NONE")
+        aFP = FopenNN(aNameOut.c_str(),"w","CPP_SampleMap2D");
+
+    Pt2dr aSomInit(0,0);
+    Pt2dr aSomMap(0,0);
+    double aSomP=0;
+
+    for (int aX=0 ; aX<=aNbSample ; aX++)
+    {
+        for (int aY=0 ; aY<=aNbSample ; aY++)
+        {
+// std::cout << "XxYyy " << aX << " " << aY << "\n";
+             Pt2dr aPInit = aBox.FromCoordLoc(Pt2dr(aX/double(aNbSample),aY/double(aNbSample)));
+             Pt2dr aPMap = (*aMap)(aPInit);
+
+             if (aFP!=0)
+             {
+                 fprintf(aFP,"%f %f %f %f\n",aPInit.x,aPInit.y,aPMap.x,aPMap.y);
+             }
+             aSomP++;
+             aSomInit = aSomInit + aPInit;
+             aSomMap = aSomMap + aPMap;
+        }
+    }
+    if (aFP) fclose(aFP);
+    aSomInit = aSomInit / aSomP;
+    aSomMap = aSomMap / aSomP;
+
+    std::cout << "Average   " << aSomInit << " => " <<  aSomMap << "\n";
+    std::cout << "Trans : " << aSomMap - aSomInit << "\n";
+
+    return EXIT_SUCCESS;
+}
 
 
 int CPP_ReechImMap(int argc,char** argv)

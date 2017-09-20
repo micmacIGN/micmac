@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1809]) = {
+const char * (theNameVar_ParamApero[1812]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -962,6 +962,9 @@ const char * (theNameVar_ParamApero[1809]) = {
 "                   <!-- Utilise pour le filtrag gaussien -->\n",
 "                   <NbMesByCase  Nb=\"?\" Type=\"double\" Def=\"10\"> </NbMesByCase> \n",
 "                   <AeroExport Nb=\"1\" Type=\"std::string\">    </AeroExport>\n",
+"\n",
+"                   <GeneratePly Nb=\"?\" Type=\"bool\" Def=\"true\">   </GeneratePly>\n",
+"                   <SzOrtho Nb=\"?\" Type=\"int\" Def=\"-1\"> </SzOrtho>\n",
 "              </UseExportImageResidu>\n",
 "\n",
 "              <UseRegulDist  Type=\"bool\" Nb=\"?\" Def=\"false\"> </UseRegulDist>\n",

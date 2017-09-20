@@ -2038,6 +2038,7 @@
      <eCmf_OriSat>      </eCmf_OriSat>     <!-- As soon as GCP, GPS, trajecto.. is used -->
      <eCmf_TiePoints>   </eCmf_TiePoints>   <!-- Tie Points  tools -->
      <eCmf_ImMatch>     </eCmf_ImMatch>     <!-- Dense image matching -->
+     <eCmf_Map2D>       </eCmf_Map2D>       <!-- Map2D -->
      <eCmf_NbVals>      </eCmf_NbVals>      <!-- Interface tools -->
 </enum>
 
@@ -2052,7 +2053,8 @@
      <eCmDt_PtImMes>    </eCmDt_PtImMes>    <!-- Image Measurement of points -->
      <eCmDt_Any>        </eCmDt_Any>        <!--  For command generating to many to describe output -->
      <eCmDt_None>       </eCmDt_None>       <!--  For command generating no output -->
-     <eCmDt_Ply>        </eCmDt_Ply>        <!--  For command generating no output -->
+     <eCmDt_Ply>        </eCmDt_Ply>        <!--   -->
+     <eCmDt_Map2D>      </eCmDt_Map2D>     <!--   -->
      <eCmDt_NbVals>     </eCmDt_NbVals>     <!--   -->
 </enum>
 
