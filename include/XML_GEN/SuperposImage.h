@@ -128,6 +128,8 @@ typedef enum
   eTM2_Cam,
   eTM2_Compos,
   eTM2_Polyn,
+  eTM2_HomotPure,
+  eTM2_Trans,
   eTM2_NbVals
 } eTypeMap2D;
 void xml_init(eTypeMap2D & aVal,cElXMLTree * aTree);
@@ -8593,6 +8595,58 @@ std::string  Mangling( cXml_Homot *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_HomotPure
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_HomotPure & anObj,cElXMLTree * aTree);
+
+
+        double & Scale();
+        const double & Scale()const ;
+
+        Pt2dr & PtInvar();
+        const Pt2dr & PtInvar()const ;
+    private:
+        double mScale;
+        Pt2dr mPtInvar;
+};
+cElXMLTree * ToXMLTree(const cXml_HomotPure &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_HomotPure &);
+
+void  BinaryUnDumpFromFile(cXml_HomotPure &,ELISE_fp &);
+
+std::string  Mangling( cXml_HomotPure *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_Trans
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Trans & anObj,cElXMLTree * aTree);
+
+
+        Pt2dr & Tr();
+        const Pt2dr & Tr()const ;
+    private:
+        Pt2dr mTr;
+};
+cElXMLTree * ToXMLTree(const cXml_Trans &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Trans &);
+
+void  BinaryUnDumpFromFile(cXml_Trans &,ELISE_fp &);
+
+std::string  Mangling( cXml_Trans *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_FulPollXY
 {
     public:
@@ -8726,6 +8780,12 @@ class cXml_Map2DElem
 
         cTplValGesInit< cXml_Map2dPol > & Pol();
         const cTplValGesInit< cXml_Map2dPol > & Pol()const ;
+
+        cTplValGesInit< cXml_HomotPure > & HomotPure();
+        const cTplValGesInit< cXml_HomotPure > & HomotPure()const ;
+
+        cTplValGesInit< cXml_Trans > & Trans();
+        const cTplValGesInit< cXml_Trans > & Trans()const ;
     private:
         cTplValGesInit< cXmlHomogr > mHomog;
         cTplValGesInit< cXml_Homot > mHomot;
@@ -8733,6 +8793,8 @@ class cXml_Map2DElem
         cTplValGesInit< cAffinitePlane > mAff;
         cTplValGesInit< cXml_MapCam > mCam;
         cTplValGesInit< cXml_Map2dPol > mPol;
+        cTplValGesInit< cXml_HomotPure > mHomotPure;
+        cTplValGesInit< cXml_Trans > mTrans;
 };
 cElXMLTree * ToXMLTree(const cXml_Map2DElem &);
 

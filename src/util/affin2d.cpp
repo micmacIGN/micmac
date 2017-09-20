@@ -906,6 +906,138 @@ int cElHomographie::Type() const { return eTM2_Homogr; }
 
 /*****************************************************/
 /*                                                   */
+/*            ElHomot, ElTrans                       */
+/*                                                   */
+/*****************************************************/
+class cElHomotPure : public cElMap2D
+{
+   public :
+        cElHomotPure(const Pt2dr& aPInv,double aScale);
+        Pt2dr operator () (const Pt2dr & p) const;
+        cElHomotPure(const cXml_HomotPure &) ;
+        virtual int Type() const ;
+        cElHomotPure inv() const;
+        virtual  cElMap2D * Map2DInverse() const;
+        virtual cElMap2D * Duplicate() ;  
+        virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
+        const Pt2dr & PInv() const ;// {return mPInv;}
+        const double & Scale()  const;// {return mScale;}
+   private :
+        Pt2dr   mPInv;
+        double  mScale;
+};
+cXml_HomotPure   EL2Xml(const  cElHomotPure & aHom);
+cElHomotPure      Xml2EL(const cXml_HomotPure & aXml);
+class cElTrans : public cElMap2D
+{
+   public :
+        cElTrans(const Pt2dr& aTr);
+        Pt2dr operator () (const Pt2dr & p) const;
+        cElTrans(const cXml_Trans &) ;
+        virtual int Type() const ;
+        cElTrans inv() const;
+        virtual  cElMap2D * Map2DInverse() const;
+        virtual cElMap2D * Duplicate() ;  
+        virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
+        const Pt2dr & Trans() const ;// {return mPInv;}
+   private :
+        Pt2dr   mTrans;
+};
+
+// Accesseur
+const Pt2dr &  cElHomotPure::PInv() const  {return mPInv;}
+const double &  cElHomotPure::Scale()  const {return mScale;}
+const Pt2dr &  cElTrans::Trans() const  {return mTrans;}
+
+// Cstr
+cElHomotPure::cElHomotPure(const Pt2dr & aPInv,double aScale) :
+    mPInv  (aPInv),
+    mScale (aScale)
+{
+}
+cElTrans::cElTrans(const Pt2dr & aTrans) :
+    mTrans  (aTrans)
+{
+}
+// Xml Cstr
+cElHomotPure::cElHomotPure(const cXml_HomotPure & aXml)  :
+   mPInv  (aXml.PtInvar()),
+   mScale (aXml.Scale())
+{
+}
+
+cElTrans::cElTrans(const cXml_Trans  & aXml) :
+   mTrans (aXml.Tr())
+{
+}
+// Appel pour operer sur un point
+Pt2dr cElHomotPure::operator () (const Pt2dr & p) const
+{
+   return mPInv  + (p-mPInv) * mScale;
+}
+Pt2dr cElTrans::operator () (const Pt2dr & p) const
+{
+   return mTrans + p;
+}
+
+// Typage dynamic
+int cElHomotPure::Type() const {return int(eTM2_HomotPure);}
+int cElTrans::Type() const     {return int(eTM2_Trans);}
+
+// Inverse
+cElHomotPure cElHomotPure::inv() const {return cElHomotPure(mPInv,1.0/mScale);}
+cElMap2D * cElHomotPure::Map2DInverse() const {return new cElHomotPure(inv());}
+
+cElTrans cElTrans::inv() const {return cElTrans(-mTrans);}
+cElMap2D * cElTrans::Map2DInverse() const {return new cElTrans(inv());}
+
+// Duplicate
+cElMap2D * cElHomotPure::Duplicate() { return new cElHomotPure(*this); }
+cElMap2D * cElTrans::Duplicate() { return new cElTrans(*this); }
+
+//  ToXmlGen
+cXml_HomotPure   EL2Xml(const  cElHomotPure & aHom)
+{
+   cXml_HomotPure aXml;
+   aXml.Scale() =  aHom.Scale();
+   aXml.PtInvar() =  aHom.PInv();
+
+   return aXml;
+}
+cXml_Trans   EL2Xml(const  cElTrans & aTrans)
+{
+    cXml_Trans aXml;
+    aXml.Tr() = aTrans.Trans();
+    return aXml;
+}
+
+cElHomotPure      Xml2EL(const cXml_HomotPure & aXml)
+{
+   return cElHomotPure(aXml.PtInvar(),aXml.Scale());
+}
+cElTrans      Xml2EL(const cXml_Trans & aXml)
+{
+   return cElTrans(aXml.Tr());
+}
+
+
+cXml_Map2D    cElHomotPure::ToXmlGen() 
+{
+   cXml_Map2DElem anElem;
+   anElem.HomotPure().SetVal(EL2Xml(*this));
+   return MapFromElem(anElem);
+}
+cXml_Map2D    cElTrans::ToXmlGen() 
+{
+   cXml_Map2DElem anElem;
+   anElem.Trans().SetVal(EL2Xml(*this));
+   return MapFromElem(anElem);
+}
+
+
+
+/*****************************************************/
+/*                                                   */
 /*            ElHomot                                */
 /*                                                   */
 /*****************************************************/
@@ -1000,7 +1132,6 @@ cXml_Homot   EL2Xml(const ElHomot & aHom)
 
    return aXml;
 }
-
 ElHomot      Xml2EL(const cXml_Homot & aXml)
 {
    return ElHomot(aXml.Tr(),aXml.Scale());
