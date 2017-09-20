@@ -1253,7 +1253,9 @@ cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack,const st
 int CPP_CalcMapAnalitik(int argc,char** argv)
 {
     std::string aNameOneIm1,aNameOneIm2,aNameOut,aSH;
-    bool aExpTxt=false;
+    bool aDeprExpTxt=false;
+    std::string anExt="dat";
+
     std::string anOri;
     std::string aNameType;
     Pt2dr       aPerResidu(100,100);
@@ -1280,12 +1282,18 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
                     <<  EAMC(aNameType,"Model in [Homot,Simil,Affine,Homogr,Polyn]")
                     <<  EAMC(aNameOut,"Name Out"),
         LArgMain()  <<  EAM(aSH,"SH",true,"Set of homologue")
-					<<  EAM(aExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
+                    <<  EAM(anExt,"Ext",true,"in [dat,txt,xml]")
                     <<  EAM(anOri,"Ori",true,"Directory to read distorsion")
                     <<  EAM(aPerResidu,"PerResidu",true,"Period for computing residual")
                     <<  EAM(aVRE,"PRE",true,"Param for robust estimation [PropInlayer,NbRan(500),NbPtsRan(+inf)]")
                     <<  EAM(aParamPoly,"ParPol",true,"Param for polygonal model [Deg,x0,y0,x1,y1]")
                     <<  EAM(ByKey,"ByKey",true,"When true multiple, Param is a pattern of Im1, param2 is a key of compute")
+	            <<  EAM(aDeprExpTxt,"ExpTxt",true,"DEPRECATED !!! => use Ext (string not bool)")
+    );
+    ELISE_ASSERT
+    (
+       ! EAMIsInit(&aDeprExpTxt),
+       "ExpTxt is deprecated, use Ext instead"
     );
 
     std::vector<std::string> aVIm1;
@@ -1328,7 +1336,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
 
     ElPackHomologue aPackInGlob;
     ElPackHomologue aPackInitialGlob;
-    std::string anExt = aExpTxt ? "txt" : "dat";
+    // std::string anExt = aExpTxt ? "txt" : "dat";
     std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aSH)
                        +  std::string("@")
