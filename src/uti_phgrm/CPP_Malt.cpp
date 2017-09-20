@@ -39,6 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "XML_GEN/all_tpl.h"
 
+#include "../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
+#include "../uti_phgrm/MICMAC/Jp2ImageLoader.h"
+#include "../uti_phgrm/MICMAC/cCameraModuleOrientation.h"
+#include "../uti_phgrm/MICMAC/cOrientationRTO.h"
+
 #if (ELISE_QT_VERSION >= 4)
     #include "general/visual_mainwindow.h"
 #endif
@@ -62,6 +67,93 @@ template <class Type> void VerifIn(const Type & aV,const Type * aTab,int aNb, co
      std::cout <<  "\n";
      ELISE_ASSERT(false,"Value is not in eligible set ");
 }
+
+int getPlacePoint(const std::string fileName)
+{
+    int placePoint = -1;
+    for(int l=(int)(fileName.size()-1);(l>=0)&&(placePoint==-1);--l)
+    {
+        if (fileName[l]=='.')
+        {
+            placePoint = l;
+        }
+    }
+    return placePoint;
+}
+
+Pt2di getImageSize2(std::string const &aName)
+{
+    //on recupere l'extension
+    int placePoint = getPlacePoint(aName);
+    std::string ext = std::string("");
+    if (placePoint!=-1)
+    {
+        ext.assign(aName.begin()+placePoint+1,aName.end());
+    }
+    //std::cout << "Extension : "<<ext<<std::endl;
+
+#if defined (__USE_JP2__)
+    // on teste l'extension
+    if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
+    {
+        //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
+        if (aRes.get())
+        {
+            return Std2Elise(aRes->Sz(1));
+        }
+    }
+#endif
+
+    Tiff_Im aTif = Tiff_Im::StdConvGen(aName,1,true,false);
+    return aTif.sz();
+}
+
+bool getCamera(const std::string imageName, const std::string oriType, const Pt2di ImgSz, std_unique_ptr<ElCamera>& aCam, cInterfChantierNameManipulateur * mICNM)
+{
+    std::string orientationName;
+    ElAffin2D oriIntImaM2C;
+
+    if (oriType=="GRI")
+    {
+        int placePoint = getPlacePoint(imageName);
+        if (placePoint==-1) return false;
+
+        std::string baseName;
+        baseName.assign(imageName.begin(),imageName.begin()+placePoint+1);
+        orientationName = baseName+"GRI";
+        if (ELISE_fp::exist_file(orientationName))
+        {
+            std_unique_ptr<ElCamera> aCam2 (new cCameraModuleOrientation(new OrientationGrille(orientationName),ImgSz,oriIntImaM2C));
+            aCam = aCam2;
+        }
+    }
+    else
+    {
+        //Soit il s'agit d'une orientation normale
+        if (ELISE_fp::exist_file("Ori-" + oriType + "/Orientation-" + imageName + ".xml"))
+        {
+            orientationName = "Ori-" + oriType + "/Orientation-" + imageName + ".xml";
+            std_unique_ptr<ElCamera> aCam2 (Cam_Gen_From_File(orientationName,"OrientationConique", mICNM));
+            aCam = aCam2;
+        }
+
+        //Soit d'une orientation passee par GenBundle
+        else if (ELISE_fp::exist_file("Ori-" + oriType + "/GB-Orientation-" + imageName + ".xml"))
+        {
+            orientationName = "Ori-" + oriType + "/GB-Orientation-" + imageName + ".xml";
+            std_unique_ptr<ElCamera> aCam2 (new cCameraModuleOrientation(new OrientationRTO(orientationName),ImgSz,oriIntImaM2C));
+            aCam = aCam2;
+        }
+        else
+        {
+            orientationName = "";
+        }
+    }
+
+    return (ELISE_fp::exist_file(orientationName));
+}
+
 
 class cAppliMalt
 {
@@ -271,7 +363,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
     InitDefValFromType();
 
-    Box2dr aBoxClip, aBoxTerrain;
+    Box2dr aBoxClip, aBoxTerrain, aBoxTerrainGeomIm;
     double aResolTerrain;
     double aRatioResolImage=1;
 
@@ -332,6 +424,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, normalized image coordinates ([0,0,1,1] means full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
+                    << EAM(aBoxTerrainGeomIm,"BoxTerrainGeomIm",true,"For GeomImage, using orientation to project... ([Xmin,Ymin,Xmax,Ymax])")
                     << EAM(aResolTerrain,"ResolTerrain",true,"Ground Resol (Def automatically computed)", eSAM_NoInit)
                     << EAM(aRatioResolImage,"RRI",true,"Ratio Resol Image (f.e. if set to 0.8 and image resol is 2.0, will be computed at 1.6)", eSAM_NoInit)
                     << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependent,tuning purpose)", eSAM_InternalUse)
@@ -454,6 +547,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       ELISE_ASSERT((mNbIm>=2)|mUseImSec,"Not Enough image in Pattern");
 
       std::string aKeyOri = "NKS-Assoc-Im2Orient@-" + mOri;
+
       double aSomZM = 0;
       double aSomResol = 0;
       int    aNbZM = 0;
@@ -939,6 +1033,61 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +Y0Terrain=") + ToString(aBoxTerrain._p0.y)
                   +  std::string(" +X1Terrain=") + ToString(aBoxTerrain._p1.x)
                   +  std::string(" +Y1Terrain=") + ToString(aBoxTerrain._p1.y) ;
+      }
+
+      if (EAMIsInit(&aBoxTerrainGeomIm) && eGeomImage)
+      {
+          std::cout << "Calcul d'une boxImage a partir de celle ci (Terrain): " << aBoxTerrainGeomIm  << std::endl;
+
+          Pt2di ImgSz = getImageSize2(mImMaster);
+          std::cout << "ImgSz: " << ImgSz.x << " " << ImgSz.y << std::endl;
+
+          std_unique_ptr<ElCamera> aCam;
+          if (!getCamera(mImMaster,mOri,ImgSz, aCam, mICNM))
+          {
+              std::cout << "No orientation file for " << mImMaster << " - skip " << std::endl;
+              return;
+          }
+
+          //Ecriture en pt3d pour utiliser Ter2Capteur
+          Pt3dr PtSO, PtSE, PtNO, PtNE;
+          PtSO.x = aBoxTerrainGeomIm._p0.x;  PtSO.y = aBoxTerrainGeomIm._p0.y;  PtSO.z = mZMoy;
+          PtNE.x = aBoxTerrainGeomIm._p1.x;  PtNE.y = aBoxTerrainGeomIm._p1.y;  PtNE.z = mZMoy;
+          PtSE.x = PtNE.x;        PtSE.y = PtSO.y;        PtSE.z = mZMoy;
+          PtNO.x = PtSO.x;        PtNO.y = PtNE.y;        PtNO.z = mZMoy;
+          Pt2dr ptINO = aCam->Ter2Capteur(PtNO);
+          Pt2dr ptINE = aCam->Ter2Capteur(PtNE);
+          Pt2dr ptISO = aCam->Ter2Capteur(PtSO);
+          Pt2dr ptISE = aCam->Ter2Capteur(PtSE);
+
+          std::vector<double> vc; vc.push_back(ptINO.x); vc.push_back(ptINE.x); vc.push_back(ptISO.x); vc.push_back(ptISE.x);
+          std::vector<double> vl; vl.push_back(ptINO.y); vl.push_back(ptINE.y); vl.push_back(ptISO.y); vl.push_back(ptISE.y);
+
+          double minVC = vc[std::distance(vc.begin(), std::min_element(vc.begin(), vc.end()))];
+          double maxVC = vc[std::distance(vc.begin(), std::max_element(vc.begin(), vc.end()))];
+          double minVL = vl[std::distance(vl.begin(), std::max_element(vl.begin(), vl.end()))];
+          double maxVL = vl[std::distance(vl.begin(), std::max_element(vl.begin(), vl.end()))];
+
+          int cmin = max(floor(minVC), (double)0);
+          int cmax = min(floor(maxVC)+1, (double)ImgSz.x);
+          int lmin = max(floor(minVL), (double)0);
+          int lmax = min(floor(maxVL)+1, (double)ImgSz.y);
+
+          if (cmin>ImgSz.x || cmax<0 || lmin>ImgSz.y || lmax<0)
+          {
+              std::cout << "**********************************************************************" << std::endl;
+              std::cout << "******* La BoxTerrainGeomIm est en dehors de l'image maitresse *******" << std::endl;
+              std::cout << "**********************************************************************" << std::endl;
+              return;
+          }
+          else
+          {
+              mCom  =    mCom + " +UseBoxTerrain=true "
+                      +  std::string(" +X0Terrain=") + ToString(cmin)
+                      +  std::string(" +Y0Terrain=") + ToString(lmin)
+                      +  std::string(" +X1Terrain=") + ToString(cmax)
+                      +  std::string(" +Y1Terrain=") + ToString(lmax) ;
+          }
       }
 
       if (EAMIsInit(&mMaxFlow)) mCom = mCom + " +AlgoMaxFlow=" + ToString(mMaxFlow);
