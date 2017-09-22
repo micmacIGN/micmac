@@ -912,16 +912,23 @@ int cElHomographie::Type() const { return eTM2_Homogr; }
 class cElHomotPure : public cElMap2D
 {
    public :
+        std::vector<std::string> ParamAux() const;
         cElHomotPure(const Pt2dr& aPInv,double aScale);
         Pt2dr operator () (const Pt2dr & p) const;
         cElHomotPure(const cXml_HomotPure &) ;
         virtual int Type() const ;
         cElHomotPure inv() const;
+        virtual cElMap2D * Identity() ;
         virtual  cElMap2D * Map2DInverse() const;
         virtual cElMap2D * Duplicate() ;  
         virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
         const Pt2dr & PInv() const ;// {return mPInv;}
         const double & Scale()  const;// {return mScale;}
+        virtual int   NbUnknown() const;
+        virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
+        virtual void  InitFromParams(const std::vector<double> &aSol);
+        virtual bool Compatible(const cElMap2D *) const; // Pour l'affectation, peut faire un down cast 
+
    private :
         Pt2dr   mPInv;
         double  mScale;
@@ -932,14 +939,20 @@ class cElTrans : public cElMap2D
 {
    public :
         cElTrans(const Pt2dr& aTr);
+        static cElTrans Id();
         Pt2dr operator () (const Pt2dr & p) const;
         cElTrans(const cXml_Trans &) ;
         virtual int Type() const ;
         cElTrans inv() const;
         virtual  cElMap2D * Map2DInverse() const;
         virtual cElMap2D * Duplicate() ;  
+        virtual cElMap2D * Identity() ;
         virtual cXml_Map2D    ToXmlGen() ; // Peuvent renvoyer 0
         const Pt2dr & Trans() const ;// {return mPInv;}
+        virtual int   NbUnknown() const;
+        virtual void  AddEq(Pt2dr & aCste,std::vector<double> & anEqX,std::vector<double> & anEqY,const Pt2dr & aP1,const Pt2dr & aP2 ) const;
+        virtual void  InitFromParams(const std::vector<double> &aSol);
+
    private :
         Pt2dr   mTrans;
 };
@@ -984,14 +997,13 @@ Pt2dr cElTrans::operator () (const Pt2dr & p) const
 int cElHomotPure::Type() const {return int(eTM2_HomotPure);}
 int cElTrans::Type() const     {return int(eTM2_Trans);}
 
-// Inverse
+// Inverse // Duplicate
 cElHomotPure cElHomotPure::inv() const {return cElHomotPure(mPInv,1.0/mScale);}
 cElMap2D * cElHomotPure::Map2DInverse() const {return new cElHomotPure(inv());}
 
 cElTrans cElTrans::inv() const {return cElTrans(-mTrans);}
 cElMap2D * cElTrans::Map2DInverse() const {return new cElTrans(inv());}
 
-// Duplicate
 cElMap2D * cElHomotPure::Duplicate() { return new cElHomotPure(*this); }
 cElMap2D * cElTrans::Duplicate() { return new cElTrans(*this); }
 
@@ -1033,6 +1045,107 @@ cXml_Map2D    cElTrans::ToXmlGen()
    anElem.Trans().SetVal(EL2Xml(*this));
    return MapFromElem(anElem);
 }
+
+//  Systeme d'equation 
+int   cElTrans::NbUnknown() const { return 2; }
+int   cElHomotPure::NbUnknown() const { return 1; }
+
+void  cElTrans::AddEq
+      (
+           Pt2dr & aCste,
+           std::vector<double> & anEqX,
+           std::vector<double> & anEqY,
+           const Pt2dr & aP1,
+           const Pt2dr & aP2 
+      ) const
+{
+    aCste.x  = aP2.x - aP1.x;
+    anEqX[0] = 1;
+    anEqX[1] = 0;
+
+    aCste.y  = aP2.y - aP1.y;
+    anEqY[0] = 0;
+    anEqY[1] = 1;
+}
+
+void  cElTrans::InitFromParams(const std::vector<double> &aSol)
+{
+    mTrans.x = aSol[0];
+    mTrans.y = aSol[1];
+}
+
+// mPInv  + (p1-mPInv) * mScale = p2
+void  cElHomotPure::AddEq
+      (
+           Pt2dr & aCste,
+           std::vector<double> & anEqX,
+           std::vector<double> & anEqY,
+           const Pt2dr & aP1,
+           const Pt2dr & aP2 
+      ) const
+{
+    aCste.x  = aP2.x - mPInv.x;
+    anEqX[0] = aP1.x - mPInv.x;
+
+    aCste.y  = aP2.y - mPInv.y;
+    anEqY[0] = aP1.y - mPInv.y;
+}
+
+bool cElHomotPure::Compatible(const cElMap2D * aMap) const
+{
+    const cElHomotPure * aH2  = static_cast<const cElHomotPure *>(aMap);
+    return aH2->mPInv == mPInv;
+}
+
+
+void  cElHomotPure::InitFromParams(const std::vector<double> &aSol)
+{
+    mScale = aSol[0];
+}
+
+
+//  ======== Identity =============
+
+cElTrans cElTrans::Id() {return cElTrans(Pt2dr(0,0));}
+cElMap2D * cElTrans::Identity()  {return new cElTrans(cElTrans::Id());}
+
+
+cElMap2D * cElHomotPure::Identity()  {return new cElHomotPure(mPInv,1.0);}
+
+std::vector<std::string>  cElHomotPure::ParamAux() const
+{
+   std::vector<std::string> aRes;
+
+   aRes.push_back(ToString(mPInv.x));
+   aRes.push_back(ToString(mPInv.y));
+
+   return aRes;
+}
+
+/*
+//  A  X1  + B  = X2
+//  A  Y1    C    Y2
+void  ElHomot::AddEq
+      (
+           Pt2dr & aCste,
+           std::vector<double> & anEqX,
+           std::vector<double> & anEqY,
+           const Pt2dr & aP1,
+           const Pt2dr & aP2 
+      ) const
+{
+    aCste.x  = aP2.x;
+    anEqX[0] = aP1.x;
+    anEqX[1] = 1;
+    anEqX[2] = 0;
+
+
+    aCste.y  = aP2.y;
+    anEqY[0] = aP1.y;
+    anEqY[1] = 0;
+    anEqY[2] = 1;
+}
+*/
 
 
 
@@ -1079,7 +1192,7 @@ cXml_Map2D  ElHomot::ToXmlGen()
 int  ElHomot::NbUnknown() const {return 3;}
 
 //  A  X1  + B  = X2
-//     Y1    C    Y2
+//  A  Y1    C    Y2
 
 void  ElHomot::AddEq
       (
@@ -1155,7 +1268,19 @@ cElMap2D * cElMap2D::IdentFromType(int aType, const std::vector<std::string> * a
        if (aType == int(eTM2_Affine))   return new ElAffin2D(ElAffin2D::Id());
        if (aType == int(eTM2_Homogr))   return new cElHomographie(cElHomographie::Id());
 
+       if (aType == int(eTM2_Trans))   return new cElTrans(cElTrans::Id());
+
        ELISE_ASSERT(false,"cElMap2D::IdentFromType");
+    }
+
+    if (aType == int(eTM2_HomotPure))
+    {
+       int aNb = aVAux->size();
+       ELISE_ASSERT( (aNb==2)  ,"Bad size for Homot Pure Map2D args");
+       double xi,yi;
+       FromString(xi,(*aVAux)[0]);
+       FromString(yi,(*aVAux)[1]);
+       return new cElHomotPure(Pt2dr(xi,yi),1.0);
     }
 
     if (aType == int(eTM2_Polyn))
@@ -1391,7 +1516,8 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     std::string aNameType;
     Pt2dr       aPerResidu(100,100);
     std::vector<double> aVRE; // Robust Estim
-    std::vector<std::string>  aParamPoly;
+    std::vector<std::string>  aParamAux;
+    std::vector<std::string>  aDeprParamPoly;
 
     // int NbTest =50;
     // double  Perc = 80.0;
@@ -1417,14 +1543,20 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
                     <<  EAM(anOri,"Ori",true,"Directory to read distorsion")
                     <<  EAM(aPerResidu,"PerResidu",true,"Period for computing residual")
                     <<  EAM(aVRE,"PRE",true,"Param for robust estimation [PropInlayer,NbRan(500),NbPtsRan(+inf)]")
-                    <<  EAM(aParamPoly,"ParPol",true,"Param for polygonal model [Deg,x0,y0,x1,y1]")
+                    <<  EAM(aParamAux,"ParamAux",true,"Param , For Homot [XC,YC], for polygonal model [Deg,x0,y0,x1,y1]")
                     <<  EAM(ByKey,"ByKey",true,"When true multiple, Param is a pattern of Im1, param2 is a key of compute")
 	            <<  EAM(aDeprExpTxt,"ExpTxt",true,"DEPRECATED !!! => use Ext (string not bool)")
+                    <<  EAM(aDeprParamPoly,"ParPol",true,"Param for polygonal model [Deg,x0,y0,x1,y1]")
     );
     ELISE_ASSERT
     (
        ! EAMIsInit(&aDeprExpTxt),
        "ExpTxt is deprecated, use Ext instead"
+    );
+    ELISE_ASSERT
+    (
+       ! EAMIsInit(&aDeprParamPoly),
+       "ParPol is deprecated, use ParamAux instead"
     );
 
     std::vector<std::string> aVIm1;
@@ -1513,7 +1645,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
        double aProp  =  aVRE[0];
        int aNbRan    = (aVRE.size()>1) ? aVRE[1] : 500;
        int aNbPtsRan = (aVRE.size()>2) ? aVRE[2] : 2e9;
-       cParamMap2DRobustInit aParam(aType,aNbRan,&aParamPoly);
+       cParamMap2DRobustInit aParam(aType,aNbRan,&aParamAux);
        aParam.mPropRan = aProp;
        aParam.mNbMaxPtsRansac = aNbPtsRan;
        Map2DRobustInit(aPackInGlob,aParam);
@@ -1521,7 +1653,7 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     }
     else
     {
-       aMapCor  =  L2EstimMapHom(aType,aPackInGlob,&aParamPoly);
+       aMapCor  =  L2EstimMapHom(aType,aPackInGlob,&aParamAux);
     }
 
 
@@ -2322,7 +2454,7 @@ void TestMap2D()
 class cMapPolXYT
 {
      public :
-         cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox);
+         cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox,const std::vector<std::string> & aPAux);
          void   AddEq(eTypeMap2D aType,L2SysSurResol & aSys,const ElPackHomologue & aPack,const double & aTemp);
          int NbUnknown() const;
          void  InitFromSol(double * aSol);
@@ -2339,19 +2471,21 @@ class cMapPolXYT
          double mT0;
          double mAmplT;
 
-         Box2dr mBoxXY;
-         int    mDegXY;
-         int    mDegT;
-         cMapPol2d               mMapPolTmp; // Buferr
-         std::vector<cMapPol2d>  mVMaps;
-         int                     mNbUXY;
-         int                     mNbUnknown;
+         Box2dr                   mBoxXY;
+         int                      mDegXY;
+         int                      mDegT;
+         cMapPol2d                mMapPolTmp; // Buferr
+         std::vector<cMapPol2d>   mVMaps;
+         int                      mNbUXY;
+         int                      mNbUnknown;
+         std::vector<std::string> mUserParamAux;
 };
 
 //  cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox);
 cMapPolXYT cMapPolXYT::FromXml(const cXml_EvolMap2dPol & aXml)
 {
-   cMapPolXYT aRes(aXml.DegT(),aXml.IntervT(),aXml.DegXY(),aXml.BoxXY());
+   std::vector<std::string> aParamAux;
+   cMapPolXYT aRes(aXml.DegT(),aXml.IntervT(),aXml.DegXY(),aXml.BoxXY(),aParamAux);
 
    for (int aK=0 ; aK<int(aXml.PolOfT().size()) ; aK++)
    {
@@ -2376,16 +2510,17 @@ cXml_EvolMap2dPol cMapPolXYT::ToXML() const
     return aRes;
 }
 
-cMapPolXYT::cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox) :
-    mBoxT       (aBoxT),
-    mT0         ((aBoxT.x+aBoxT.y)/2.0),
-    mAmplT      (ElAbs(aBoxT.x-aBoxT.y)),
-    mBoxXY      (aBox),
-    mDegXY      (aDegXY),
-    mDegT       (aDegreT),
-    mMapPolTmp  (mDegXY,mBoxXY),
-    mNbUXY      (mMapPolTmp.NbUnknown()),
-    mNbUnknown  (mNbUXY * (1+mDegT))
+cMapPolXYT::cMapPolXYT(int aDegreT,const Pt2dr & aBoxT,int aDegXY,const Box2dr & aBox,const std::vector<std::string> & aPAux) :
+    mBoxT         (aBoxT),
+    mT0           ((aBoxT.x+aBoxT.y)/2.0),
+    mAmplT        (ElAbs(aBoxT.x-aBoxT.y)),
+    mBoxXY        (aBox),
+    mDegXY        (aDegXY),
+    mDegT         (aDegreT),
+    mMapPolTmp    (mDegXY,mBoxXY),
+    mNbUXY        (mMapPolTmp.NbUnknown()),
+    mNbUnknown    (mNbUXY * (1+mDegT)),
+    mUserParamAux (aPAux)
 {
 }
 
@@ -2436,6 +2571,10 @@ void   cMapPolXYT::AddEq(eTypeMap2D aType,L2SysSurResol & aSys,const ElPackHomol
         if (aType ==eTM2_Polyn) 
         {
            aParAux =   mMapPolTmp.ParamAux();
+        }
+        else if (aType == eTM2_HomotPure)
+        {
+           aParAux = mUserParamAux;
         }
         
         cElMap2D * aMapEstim = L2EstimMapHom(aType,aPackInit,&aParAux);
@@ -2528,6 +2667,7 @@ class cAppliCalcMapXYT
          double                            mTempMax;
          std::string                       mNameOut;
          std::string                       mOriCmpRot;
+         std::vector<std::string>          mUserParamAux;
 
 };
 
@@ -2620,6 +2760,7 @@ cAppliCalcMapXYT::cAppliCalcMapXYT(int argc,char ** argv) :
                     <<  EAM(mPdsMaster,"PdsM",true,"Pds for master, def=1")
                     <<  EAM(mNameOut,"Out",true,"file for result, def=PolOfTXY.xml")
                     <<  EAM(mOriCmpRot,"OriCmpRot",true,"Orientation folder, to compense rotation")
+                    <<  EAM(mUserParamAux,"ParamAux",true,"Param Aux, [Xc,Yc] for HomotPure")
     );
 
     cElemAppliSetFile anEASF(mPat);
@@ -2638,7 +2779,7 @@ cAppliCalcMapXYT::cAppliCalcMapXYT(int argc,char ** argv) :
         StdReadEnum(aModeHelp,mType,std::string("TM2_")+mNameType,eTM2_NbVals);
     }
 
-    cMapPolXYT aMapXYT(mDegreT,Pt2dr(mTempMin,mTempMax),mDegreXY,Box2dr(Pt2dr(0,0),Pt2dr(mSz)));
+    cMapPolXYT aMapXYT(mDegreT,Pt2dr(mTempMin,mTempMax),mDegreXY,Box2dr(Pt2dr(0,0),Pt2dr(mSz)),mUserParamAux);
 
     L2SysSurResol aSys(aMapXYT.NbUnknown());
     for (int aK=0 ; aK<int(mVPack.size()) ; aK++)
