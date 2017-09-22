@@ -45,7 +45,8 @@ public:
 	#endif
 
 	cElCommandToken();
-	virtual ~cElCommandToken() = 0;
+	// virtual ~cElCommandToken() = 0;
+	virtual ~cElCommandToken() ; // MPD => il est defini  dans le CPP, donc par purement virtuel ?
 
 	virtual CmdTokenType type() const = 0;
 	virtual std::string str() const = 0;
