@@ -238,13 +238,13 @@ cResulRechCorrel cImSecTieTri::RechHomPtsInteretEntier(bool Interact,const cIntT
            if (
                       (aCRCLoc.mCorrel > mAppli.mTT_SEUIL_CORREL_1PIXSUR2)
                    && InMasqReech(aCRCLoc.mPt) 
-                   && (euclid(Pt2di(aCRCLoc.mPt) - aPV) < TT_SEUIl_DIST_Extrema_Entier)
+                   && (euclid(Pt2di(aCRCLoc.mPt) - aPV) < mAppli.mTT_SEUIl_DIST_Extrema_Entier)
               )
            {
                //  Toujours correlation entiere, mais tt les pixels
                aCRCLoc = TT_RechMaxCorrelLocale(mMaster->mTImInit,aP0,mTImReech,Pt2di(aCRCLoc.mPt),TT_DemiFenetreCorrel,1,aSzRech);   
                    
-               if (euclid(Pt2di(aCRCLoc.mPt) - aPV) < TT_SEUIl_DIST_Extrema_Entier)
+               if (euclid(Pt2di(aCRCLoc.mPt) - aPV) < mAppli.mTT_SEUIl_DIST_Extrema_Entier)
                   aCRCMax.Merge(aCRCLoc);
            }
         }

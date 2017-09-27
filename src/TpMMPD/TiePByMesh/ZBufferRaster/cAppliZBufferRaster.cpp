@@ -72,6 +72,7 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
            }
            //save Image ZBuffer to disk
            ELISE_fp::MkDirSvp(path);
+
            ELISE_COPY
                    (
                        aZBuf->ImZ().all_pts(),
@@ -86,6 +87,22 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
                            ).out()
 
                        );
+           /*
+           ELISE_COPY
+                   (
+                       aZBuf->ImZ().all_pts(),
+                       aZBuf->ImZ().in_proj(),
+                       Tiff_Im(
+                           fileOutZBuf.c_str(),
+                           aZBuf->ImZ().sz(),
+                           GenIm::real4,
+                           Tiff_Im::No_Compr,
+                           Tiff_Im::BlackIsZero
+                           //aZBuf->Tif().phot_interp()
+                           ).out()
+
+                       );
+                       */
            if (mWithImgLabel)
            {
                ELISE_COPY

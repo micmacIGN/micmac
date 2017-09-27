@@ -226,9 +226,9 @@ void cImgZBuffer::ImportResult(string & fileTriLbl, string & fileZBuf)
     ELISE_ASSERT(ELISE_fp::exist_file(fileTriLbl),"File Img Label not found");
     ELISE_ASSERT(ELISE_fp::exist_file(fileZBuf),"File Img ZBuf not found");
     Tiff_Im aImInd = Tiff_Im::StdConv(fileTriLbl);
-    Tiff_Im aImZBuf = Tiff_Im::StdConv(fileZBuf);
+    //Tiff_Im aImZBuf = Tiff_Im::StdConv(fileZBuf);
     ELISE_COPY(mImInd.all_pts(), aImInd.in(), mImInd.out());
-    ELISE_COPY(mImZ.all_pts(), aImZBuf.in(), mImZ.out());
+    //ELISE_COPY(mImZ.all_pts(), aImZBuf.in(), mImZ.out());
     Pt2di aP;
     for (aP.x = 0; aP.x < mImInd.sz().x; aP.x++)
     {

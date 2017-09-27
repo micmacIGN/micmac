@@ -74,8 +74,13 @@ bool isCollinear(Pt3dr & P1, Pt3dr & P2, Pt3dr & P3)
 {
   Pt3dr u = P2-P1; //u
   Pt3dr v = P3-P1; //v
+  /*
   Pt3dr croosPrd(u.x*v.z-u.z*v.y, u.z*v.x-u.x*v.z, u.x*v.y-u.x-v.x);
   if (croosPrd.x < DBL_EPSILON && croosPrd.y < DBL_EPSILON && croosPrd.z < DBL_EPSILON)
+     return true;
+     */
+  Pt3dr croosPrd(u.y*v.z-u.z*v.y, u.z*v.x-u.x*v.z, u.x*v.y-u.y-v.x);
+  if (croosPrd.x == 0 && croosPrd.y == 0 && croosPrd.z == 0)
      return true;
   else
      return false;
@@ -187,8 +192,14 @@ if (aDisc <0)
         }
         else
         {
-            if (isColnr && aNInter!=0) {cout<<"3 Pts tri collinear !"<<endl;}
-            if (-aSurf < mAppli->SEUIL_SURF_TRIANGLE() && aNInter!=0) {cout<<"Surface tri too small !"<<endl;}
+            if (isColnr && aNInter!=0)
+                {
+                    cout<<Pt1<<Pt2<<Pt3<<" => 3 Pts tri collinear !"<<endl;
+                }
+            if (-aSurf < mAppli->SEUIL_SURF_TRIANGLE() && aNInter!=0)
+                {
+                    cout<<Pt1<<Pt2<<Pt3<<"Surface tri too small !"<<endl;
+                }
             mrprjOK = false;
             return -1.0;
         }

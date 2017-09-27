@@ -173,11 +173,11 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
 
     // ==== Prepare la structure de points multiples =============
     vector<string> * aVIm = new vector<string>();
-    cout<<"  ++ ImMaster :"<<Master()->NameIm()<<endl;
+    //cout<<"  ++ ImMaster :"<<Master()->NameIm()<<endl;
     for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
     {
         cImSecTieTri* aImSec = mImSec[aKIm];
-        cout<<"  ++ Im2nd : "<<aImSec->Num()<<" - "<<aImSec->NameIm()<<endl;
+        //cout<<"  ++ Im2nd : "<<aImSec->Num()<<" - "<<aImSec->NameIm()<<endl;
         aVIm->push_back(aImSec->NameIm());
     }
     aVIm->push_back(Master()->NameIm());
@@ -243,12 +243,13 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
 
     // Sauve au nouveau format
     cout<<"Write pts homo to disk:..."<<endl;
+    cout<<" ++ ImMaster :"<<Master()->NameIm()<<endl;
     for (uint aKHomol=0; aKHomol<VNumIms.size(); aKHomol++)
     {
         vector<float> vAttr;
         aMulHomol->AddPts(VNumIms[aKHomol], VPtsIms[aKHomol],vAttr);
     }
-    std::string aHomolOut = "_TiepTri";
+    std::string aHomolOut = mHomolOut;
     string aPmulHomolName = "Homol" + aHomolOut + "/PMul_" + this->Master()->NameIm() + ".txt";
     aMulHomol->Save(aPmulHomolName);
 
@@ -257,13 +258,16 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     for (int aKIm=0 ; aKIm<int(mImSec.size()) ; aKIm++)
     {
         cImSecTieTri* aImSec = mImSec[aKIm];
-        cout<<"  ++ Im2nd : "<<aImSec->NameIm();
-        cout<<" - Nb Pts= "<<aImSec->PackH().size()<<endl;
         std::string pic1 = Master()->NameIm();
         std::string pic2 = aImSec->NameIm();
         // La classe cHomolPackTiepTri semble n'apporter aucun service par rapport a sauver directement ...
         cHomolPackTiepTri aPack(pic1, pic2, aKIm, mICNM, true); //true = skipPackVide
         aPack.Pack() = aImSec->PackH();
+        if (aPack.Pack().size() > 0)
+        {
+            cout<<"  ++ Im2nd : "<<aImSec->NameIm();
+            cout<<" - Nb Pts= "<<aImSec->PackH().size()<<endl;
+        }
         aPack.writeToDisk(aHomolOut);
     }
 
@@ -367,6 +371,10 @@ void cAppliTieTri::DoOneTri(const cXml_Triangle3DForTieP & aTri,int aKT )
                   if (aRes.IsInit())
                   {
                      aRMIRC->AddResul(aRes,mImSecLoaded[aKIm]->Num());
+                     if (mWithW && (mEtapeInteract != 0))
+                     {
+                         cout<<"  + Correl INT : "<<mImSecLoaded[aKIm]->NameIm()<<" - "<<aRes.mCorrel<<" - "<<aRes.mPt<<endl;
+                     }
                   }
               }
               if (aRMIRC->IsInit())

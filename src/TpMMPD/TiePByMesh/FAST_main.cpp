@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <stdio.h>
 
 extern vector<double> parse_dParam(vector<string> dParam);
+string aFilePastisIn;
 
     /******************************************************************************
     The main function.
@@ -75,6 +76,7 @@ int FAST_main(int argc,char ** argv)
                     << EAM(aDirOut, "aDirOut", true, "Output directory for pts interest file, default=PtsInteret")
                     << EAM(dParam, "dParam", true, "detector parameter")
                     << EAM(mSzW, "mSzW", true, "display [x,y,dZoom]")
+                    << EAM(aFilePastisIn, "aPastisIn", true, "Input pastis file to draw over image")
                  );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -114,13 +116,37 @@ int FAST_main(int argc,char ** argv)
                              aPic->getNameImgInStr() + "_" +
                              aTypeD + ".dat";
             ELISE_fp::RmFileIfExist(aPtInteretIn);
-
-            Detector * aDecPic = new Detector( aTypeD, aParamD, aPic, aICNM );
-            aDecPic->detect();
             vector<Pt2dr> lstPt;
-            aDecPic->getmPtsInterest(lstPt);
-            cout<<" ++ "<<aTypeD<<" : "<<lstPt.size()<<" pts detected!"<<endl;
 
+            if (EAMIsInit(&aFilePastisIn) && ELISE_fp::exist_file(aFilePastisIn))
+            {
+                aPtInteretIn = aICNM->Dir() + aFilePastisIn;
+                cout<<"Read Pts From :"<<aPtInteretIn<<endl;
+                DigeoPoint fileDigeo;
+                vector<DigeoPoint> listPtDigeo;
+                bool ok = fileDigeo.readDigeoFile(aPtInteretIn, 1,listPtDigeo);
+                for (uint i=0; i<listPtDigeo.size(); i++)
+                {
+                    lstPt.push_back(Pt2dr(listPtDigeo[i].x, listPtDigeo[i].y));
+                }
+                if (!ok)
+                    cout<<" DIGEO File read error ! "<<endl;
+                cout<<"Nb : "<<listPtDigeo.size()<<endl;
+            }
+            else
+            {
+                if(!EAMIsInit(&aFilePastisIn))
+                {
+                    Detector * aDecPic = new Detector( aTypeD, aParamD, aPic, aICNM );
+                    aDecPic->detect();
+                    aDecPic->getmPtsInterest(lstPt);
+                    cout<<" ++ "<<aTypeD<<" : "<<lstPt.size()<<" pts detected!"<<endl;
+                }
+                else
+                {
+                    cout<<aFilePastisIn<<" not found !"<<endl;
+                }
+            }
             if (EAMIsInit(&mSzW))
             {
                 if (aPic->mImgSz.x >= aPic->mImgSz.y)
