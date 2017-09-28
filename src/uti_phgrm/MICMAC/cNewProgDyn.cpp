@@ -257,11 +257,6 @@ template <class Type,const int NbV> class cTabValI1Prg2DTmp
        }
 };
 
-/*
-template <class Type,const int NbV> class cTabValI1Prg2DTmp
-template <class Type,const int NbV> class cTabValI1Prg2DCelNap
-class cTabValArgGlob
-*/
 
 template <class Type,const int NbV> class cTypeTabValArgPgr2D    
 
@@ -819,27 +814,21 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::AllocNewPrgDyn
                      return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,0> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
                   break;
                   case 1 :
-                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
                      return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,1> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
                   break;
                   case 2 :
-                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
                      return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,2> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
                   break;
                   case 3 :
-                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
                      return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,3> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
                   break;
                   case 4 :
-                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
                      return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,4> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
                   break;
                   case 5 :
-                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
                      return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,5> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
                   break;
                   case 6 :
-                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
                      return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,6> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
                   break;
              }

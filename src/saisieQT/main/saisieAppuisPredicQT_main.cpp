@@ -122,7 +122,7 @@ int saisieAppuisPredicQT_main(int argc, char *argv[])
                 << QString("+Sauv=") + QString(aNameMesure.c_str())
                 << QString("+SzWx=") + QString::number(aSzWin.x)
                 << QString("+SzWy=") + QString::number(aSzWin.y)
-                << QString(" +UseMinMaxPt=") + QString(ToString(WithMaxMinPt).c_str())
+                << QString("+UseMinMaxPt=") + QString(ToString(WithMaxMinPt).c_str())
 
                 << QString("+NbFx=") + QString::number(aNbFen.x)
                 << QString("+NbFy=") + QString::number(aNbFen.y)

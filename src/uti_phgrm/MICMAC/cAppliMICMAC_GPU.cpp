@@ -1345,13 +1345,14 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 {
     int aNbOk = 0;
     double aSomCorrel = 0;
+    double aPdsCorrStd=1.0;
 
     if (mVLI[0]->OkOrtho(anX,anY))
     {
         double aCMax = -2;
         double aCMin = 2;
-    for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
-    {
+        for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+        {
              double aCor;
              if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
              {
@@ -1360,7 +1361,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                  ElSetMax(aCMax,aCor);
                  ElSetMin(aCMin,aCor);
              }
-    }
+        }
         if (VireExtre && (aNbOk>2))
         {
             aSomCorrel -= aCMax + aCMin;
@@ -1370,6 +1371,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 
     if (aCMP)
     {
+        aPdsCorrStd = aCMP->PdsCorrelStd();
         std::vector<INT1> aVNorm;
         if (mVLI[0]->OkOrtho(anX,anY))
         {
@@ -1401,7 +1403,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
     (
          Pt2di(anX,anY),
          &mZIntCur,
-         aNbOk ? mStatGlob->CorrelToCout(aSomCorrel/aNbOk) : mAhDefCost
+         aNbOk ? (mStatGlob->CorrelToCout(aSomCorrel/aNbOk) * aPdsCorrStd): mAhDefCost
     );
 }
 
@@ -1835,13 +1837,6 @@ void cAppliMICMAC::DoCorrelAdHoc
         DoInitAdHoc(aBox);
 
 
-/*
-        if (aTC.CorrelMultiScale().IsInit())
-                {
-            DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
-                }
-        else
-*/
         if (aTC.GPU_Correl().IsInit())
         {
             DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);

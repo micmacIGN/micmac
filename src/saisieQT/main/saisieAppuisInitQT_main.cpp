@@ -155,10 +155,18 @@ int saisieAppuisInitQT_main(int argc, char *argv[])
                 << QString("+Sauv=") + QString(aNameOut.c_str())
                 << QString("+SzWx=") + QString::number(aSzWin.x)
                 << QString("+SzWy=") + QString::number(aSzWin.y)
-                << QString(" +UseMinMaxPt=") + QString(ToString(WithMaxMin).c_str())
+                << QString("+UseMinMaxPt=") + QString(ToString(WithMaxMin).c_str())
 
                 << QString("+NbFx=") + QString::number(aNbFen.x)
                 << QString("+NbFy=") + QString::number(aNbFen.y);
+
+/*
+if (MPD_MM())
+{
+    std::cout << input << "\n";
+getchar();
+}
+*/
 
         if (aModeOri == "GRID")
         {

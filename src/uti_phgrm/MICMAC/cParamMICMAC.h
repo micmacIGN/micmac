@@ -2324,6 +2324,9 @@ class cMultiCorrelPonctuel
         double & PdsCorrelPonct();
         const double & PdsCorrelPonct()const ;
 
+        cTplValGesInit< double > & DynRadCorrelPonct();
+        const cTplValGesInit< double > & DynRadCorrelPonct()const ;
+
         cTplValGesInit< double > & DefCost();
         const cTplValGesInit< double > & DefCost()const ;
 
@@ -2332,6 +2335,7 @@ class cMultiCorrelPonctuel
     private:
         double mPdsCorrelStd;
         double mPdsCorrelPonct;
+        cTplValGesInit< double > mDynRadCorrelPonct;
         cTplValGesInit< double > mDefCost;
         cTplValGesInit< std::string > mUnUsedTest;
 };

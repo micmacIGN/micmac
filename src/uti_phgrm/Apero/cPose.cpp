@@ -38,6 +38,20 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
 
+class cAperoVisuGlobRes
+{
+    public :
+       void AddResidu(const Pt3dr & aP,double aRes);
+       void DoResidu();
+    private :
+       std::list<Pt4dr > mPts;
+};
+
+void cAperoVisuGlobRes::DoResidu()
+{
+}
+
+
 
 //============================================
 
@@ -341,6 +355,7 @@ void cAppliApero::AddOneInfoImageResidu
 
 void cAppliApero::AddInfoImageResidu
      (
+         const Pt3dr &                 aPt,
          const  cNupletPtsHomologues & aNupl,
          const std::vector<cGenPoseCam *> aVP,
          const std::vector<double> &  aVpds
@@ -351,6 +366,9 @@ void cAppliApero::AddInfoImageResidu
 
   const cUseExportImageResidu & aUEIR = Param().UseExportImageResidu().Val();
 
+
+  double aSomEc     = 0.0;
+  double aSomPdsEc  = 0.0;
 
   for (int aK1=0 ; aK1< aNupl.NbPts() ; aK1++)
   {

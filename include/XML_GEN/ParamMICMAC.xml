@@ -980,6 +980,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         <MultiCorrelPonctuel Nb="?"  AccessorFils="false">
                                 <PdsCorrelStd   Nb="1" Type="double" > </PdsCorrelStd>
                                 <PdsCorrelPonct Nb="1" Type="double" > </PdsCorrelPonct>
+                                <DynRadCorrelPonct Nb="?" Type="double" Def="1.0" > </DynRadCorrelPonct>
                                 <DefCost  Nb="?" Type="double" Def="0.1"> </DefCost>
                                 <UnUsedTest Nb="?" Type="std::string"> </UnUsedTest>
                         </MultiCorrelPonctuel>

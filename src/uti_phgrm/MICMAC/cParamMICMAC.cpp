@@ -7812,6 +7812,17 @@ const double & cMultiCorrelPonctuel::PdsCorrelPonct()const
 }
 
 
+cTplValGesInit< double > & cMultiCorrelPonctuel::DynRadCorrelPonct()
+{
+   return mDynRadCorrelPonct;
+}
+
+const cTplValGesInit< double > & cMultiCorrelPonctuel::DynRadCorrelPonct()const 
+{
+   return mDynRadCorrelPonct;
+}
+
+
 cTplValGesInit< double > & cMultiCorrelPonctuel::DefCost()
 {
    return mDefCost;
@@ -7840,6 +7851,14 @@ void  BinaryUnDumpFromFile(cMultiCorrelPonctuel & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.DynRadCorrelPonct().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DynRadCorrelPonct().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DynRadCorrelPonct().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.DefCost().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.DefCost().ValForcedForUnUmp(),aFp);
         }
@@ -7859,6 +7878,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cMultiCorrelPonctuel & anObj)
 {
     BinaryDumpInFile(aFp,anObj.PdsCorrelStd());
     BinaryDumpInFile(aFp,anObj.PdsCorrelPonct());
+    BinaryDumpInFile(aFp,anObj.DynRadCorrelPonct().IsInit());
+    if (anObj.DynRadCorrelPonct().IsInit()) BinaryDumpInFile(aFp,anObj.DynRadCorrelPonct().Val());
     BinaryDumpInFile(aFp,anObj.DefCost().IsInit());
     if (anObj.DefCost().IsInit()) BinaryDumpInFile(aFp,anObj.DefCost().Val());
     BinaryDumpInFile(aFp,anObj.UnUsedTest().IsInit());
@@ -7871,6 +7892,8 @@ cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MultiCorrelPonctuel",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("PdsCorrelStd"),anObj.PdsCorrelStd())->ReTagThis("PdsCorrelStd"));
    aRes->AddFils(::ToXMLTree(std::string("PdsCorrelPonct"),anObj.PdsCorrelPonct())->ReTagThis("PdsCorrelPonct"));
+   if (anObj.DynRadCorrelPonct().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DynRadCorrelPonct"),anObj.DynRadCorrelPonct().Val())->ReTagThis("DynRadCorrelPonct"));
    if (anObj.DefCost().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("DefCost"),anObj.DefCost().Val())->ReTagThis("DefCost"));
    if (anObj.UnUsedTest().IsInit())
@@ -7889,12 +7912,14 @@ void xml_init(cMultiCorrelPonctuel & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PdsCorrelPonct(),aTree->Get("PdsCorrelPonct",1)); //tototo 
 
+   xml_init(anObj.DynRadCorrelPonct(),aTree->Get("DynRadCorrelPonct",1),double(1.0)); //tototo 
+
    xml_init(anObj.DefCost(),aTree->Get("DefCost",1),double(0.1)); //tototo 
 
    xml_init(anObj.UnUsedTest(),aTree->Get("UnUsedTest",1)); //tototo 
 }
 
-std::string  Mangling( cMultiCorrelPonctuel *) {return "66B991DA0584B3F7FE3F";};
+std::string  Mangling( cMultiCorrelPonctuel *) {return "6691CFD9883F1EE9FE3F";};
 
 
 cTplValGesInit< double > & cCorrel_Ponctuel2ImGeomI::RatioI1I2()
@@ -9568,7 +9593,7 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
    xml_init(anObj.MasqueAutoByTieP(),aTree->Get("MasqueAutoByTieP",1)); //tototo 
 }
 
-std::string  Mangling( cTypeCAH *) {return "BC6CBB3EC7E9F0DCFC3F";};
+std::string  Mangling( cTypeCAH *) {return "B55299E1031535A3FDBF";};
 
 
 cTplValGesInit< double > & cCorrelAdHoc::EpsilonAddMoyenne()
@@ -9885,7 +9910,7 @@ void xml_init(cCorrelAdHoc & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeCAH(),aTree->Get("TypeCAH",1)); //tototo 
 }
 
-std::string  Mangling( cCorrelAdHoc *) {return "D5AF66C398C8F8B3FE3F";};
+std::string  Mangling( cCorrelAdHoc *) {return "D499C9C95533C6A1FB3F";};
 
 
 cTplValGesInit< double > & cDoImageBSurH::Dyn()
@@ -19170,7 +19195,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "79C42C8F82DD99FFFE3F";};
+std::string  Mangling( cEtapeMEC *) {return "AC27DCA48B3823B5FCBF";};
 
 
 int & cTypePyramImage::Resol()
@@ -20335,7 +20360,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "529C12BED28449E8FD3F";};
+std::string  Mangling( cSection_MEC *) {return "329A141B2CD0BFB7FD3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -29365,6 +29390,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "8A50375731DD1C8FFE3F";};
+std::string  Mangling( cParamMICMAC *) {return "7DAD0835098BC1C9FDBF";};
 
 // Quelque chose
