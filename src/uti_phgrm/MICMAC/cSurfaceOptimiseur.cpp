@@ -310,7 +310,7 @@ void cSurfaceOptimiseur::Local_SetCpleRadiom(Pt2di aPTer,int * aPX,U_INT2 aR1,U_
     ELISE_ASSERT(false,"Cur Opt do not handle cple of radiom");
 }
 
-void  cSurfaceOptimiseur::Local_VecInt1(Pt2di aPTer,int * aPX,const  std::vector<INT1> &)
+void  cSurfaceOptimiseur::Local_VecMCP(Pt2di aPTer,int * aPX,const  std::vector<tMCPVal> &)
 {
     ELISE_ASSERT(false,"Cur Opt do not handle Local_VecInt1");
 }

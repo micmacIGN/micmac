@@ -1372,7 +1372,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
     if (aCMP)
     {
         aPdsCorrStd = aCMP->PdsCorrelStd();
-        std::vector<INT1> aVNorm;
+        std::vector<tMCPVal> aVNorm;
         if (mVLI[0]->OkOrtho(anX,anY))
         {
              tGpuF aV0 = mVLI[0]->ImOrtho(anX,anY);
@@ -1381,7 +1381,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                   if (mVLI[aK]->OkOrtho(anX,anY))
                   {
                        double aVal = EcartNormalise(aV0,mVLI[aK]->ImOrtho(anX,anY));
-                       aVNorm.push_back(AdaptCostPonct(round_ni(aVal*127)));
+                       aVNorm.push_back(AdaptCostPonct(round_ni(aVal*TheDynMCP)));
                   }
                   else
                   {
@@ -1396,7 +1396,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                  aVNorm.push_back(ValUndefCPONT);
             }
         }
-        mSurfOpt->Local_VecInt1(Pt2di(anX,anY),&mZIntCur,aVNorm);
+        mSurfOpt->Local_VecMCP(Pt2di(anX,anY),&mZIntCur,aVNorm);
     }
 
     mSurfOpt->SetCout

@@ -37,20 +37,54 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
+// #include "qdt.h"
+
+class cPtAVGR;
+class cAperoVisuGlobRes;
+
+class cPtAVGR
+{
+    public :
+        Pt3df mPt;
+        float mRes;
+        float mResFiltr;
+};
+
+class cFoncPtOfPtAVGR
+{
+   public :
+       Pt2dr operator () (cPtAVGR * aP) {return  Pt2dr(aP->mPt.x,aP->mPt.y);}
+};
 
 class cAperoVisuGlobRes
 {
     public :
        void AddResidu(const Pt3dr & aP,double aRes);
        void DoResidu();
+
+       
     private :
-       std::list<Pt4dr > mPts;
+       typedef ElQT<cPtAVGR *,Pt2dr,cFoncPtOfPtAVGR> tQtTiepT;
+
+       int mNbPts;
+       std::list<cPtAVGR *> mLpt;
+       tQtTiepT *           mQt;
 };
+
+
+
+
+
+void cAperoVisuGlobRes::AddResidu(const Pt3dr & aP,double aRes)
+{
+}
 
 void cAperoVisuGlobRes::DoResidu()
 {
 }
 
+
+static cAperoVisuGlobRes mAVGR;
 
 
 //============================================
@@ -367,8 +401,8 @@ void cAppliApero::AddInfoImageResidu
   const cUseExportImageResidu & aUEIR = Param().UseExportImageResidu().Val();
 
 
-  double aSomEc     = 0.0;
-  double aSomPdsEc  = 0.0;
+  double aSomPds     = 0.0;
+  double aSomPdsRes  = 0.0;
 
   for (int aK1=0 ; aK1< aNupl.NbPts() ; aK1++)
   {
@@ -390,6 +424,10 @@ void cAppliApero::AddInfoImageResidu
                 double aRes = aCam1->EpipolarEcart(aP1,*aCam2,aP2,&aDir);
                 cInfoAccumRes anInfo(aP1,ElMin(aPds1,aPds2),aRes,aDir);
 
+                double aPds = aPds1 * aPds2;
+                aSomPds    += aPds;
+                aSomPdsRes += aPds * ElAbs(aRes);
+
                 if (aK1<aK2)
                 {
                     std::string aNamePair = "Pair-"+aVP[aK1]->Name() + "-" + aVP[aK2]->Name();
@@ -405,6 +443,11 @@ void cAppliApero::AddInfoImageResidu
              }
          }
       }
+  }
+
+  if (aSomPds)
+  {
+       mAVGR.AddResidu(aPt,aSomPdsRes/aSomPds);
   }
 }
 

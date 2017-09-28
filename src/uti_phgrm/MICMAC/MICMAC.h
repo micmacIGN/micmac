@@ -67,9 +67,35 @@ FAIT :
      o  Masque Binaire 
 */
 
-
 #ifndef _ELISE_MICMAC_ALL_H_
 #define _ELISE_MICMAC_ALL_H_
+
+// Pour la multi correl ponctuelle, le cout de stockage peut etre eleve,
+//   donc au depart on a stocke sur des INT1
+//   mais ensuite il est apparu que cela pouvait creer des probleme de dynamique
+//   on se garde la possibilite d'avoir des INT2
+// si l'algo finit par etre valide, on fera peut etre du INT1 avec une dynamique non lineaire
+
+#define USE_INT1_4_MCP false
+
+#if (USE_INT1_4_MCP)
+typedef INT1 tMCPVal;
+const int TheDynMCP = 127;
+const int ValUndefCPONT = -128 ;  // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image
+#else
+typedef INT2 tMCPVal;
+const int TheDynMCP = 10000;
+const int ValUndefCPONT = -20000 ;  // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image
+// #define TheDynMCP 10000 
+// #define ValUndefCPONT  -20000 // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image
+#endif
+
+inline int AdaptCostPonct(int aVal)
+{
+   return ElMax(-TheDynMCP,ElMin(TheDynMCP,aVal));
+}
+
+
 
 #define BRK_MICMAC_MES(aMes) \
 {\
@@ -98,11 +124,6 @@ template <class T> class cMatrOfSMV;
 void MicMacRequiresBinaireAux();
 
 
-#define ValUndefCPONT -128  // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image
-inline int AdaptCostPonct(int aVal)
-{
-   return ElMax(-127,ElMin(127,aVal));
-}
 
 
 
@@ -331,7 +352,7 @@ class cSurfaceOptimiseur
       bool                    MaskCalcDone();
       Im2D_Bits<1>            MaskCalc();
       virtual void Local_SetCpleRadiom(Pt2di aPTer,int * aPX,U_INT2 aR1,U_INT2 aR2);  
-      virtual void Local_VecInt1(Pt2di aPTer,int * aPX,const  std::vector<INT1> &);
+      virtual void Local_VecMCP(Pt2di aPTer,int * aPX,const  std::vector<tMCPVal> &);
 
     protected  :
       cSurfaceOptimiseur
