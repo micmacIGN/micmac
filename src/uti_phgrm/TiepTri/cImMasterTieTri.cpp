@@ -69,6 +69,7 @@ bool  cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    mCutACD.ResetIm(mTImInit);
 
    MakeInterestPoint(&mLIP,0,mTMasqTri,mTImInit);
+//cout<<"DBGGGGGGGGGGGGGGGGGGGGGGGGGGGg "<<"MakeInterestPoint "<<NameIm()<<" "<<mLIP.size()<<endl;
    //MakeInterestPointFAST(&mLIP,0,mTMasqTri,mTImInit);
 
 
@@ -76,7 +77,7 @@ bool  cImMasterTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    {
        int aCpt;
        ELISE_COPY(mMasqTri.all_pts(), mMasqTri.in(),sigma(aCpt));
-       std::cout << " Nb In Masq= " << aCpt << "\n";
+       //std::cout << " Nb In Masq= " << aCpt << "\n";
    }
 
    return true;

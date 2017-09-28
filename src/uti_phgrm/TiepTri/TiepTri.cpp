@@ -55,9 +55,11 @@ cParamAppliTieTri::cParamAppliTieTri():
    mFilFAST           (true),
    mTT_SEUIL_SURF_TRI (TT_SEUIL_SURF_TRI_PIXEL),
    mTT_SEUIL_CORREL_1PIXSUR2 (TT_SEUIL_CORREL_1PIXSUR2),
+   mTT_SEUIl_DIST_Extrema_Entier (TT_SEUIl_DIST_Extrema_Entier),
    mEtapeInteract     (-1),
    mLastEtape         (2),
-   mFlagFS            ((1<<16) - 1)
+   mFlagFS            ((1<<16) - 1),
+   mHomolOut          ("_TiepTri")
 {
 }
 
@@ -101,7 +103,11 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aParam.mFilAC,  "FilAC",true,"Use Autocorrelation condition ? (def = true)")
                       << EAM(aParam.mTT_SEUIL_SURF_TRI,  "surfTri",true,"Surface min to eliminate too small triangle (def = 100 unit)")
                       << EAM(aParam.mTT_SEUIL_CORREL_1PIXSUR2,  "correlBrut",true,"Threshold of correlation score 1pxl/2 (def = 0.7)")
+                      << EAM(aParam.mTT_SEUIl_DIST_Extrema_Entier,  "distWithExtr",true,"Distant limit b/w max correl point & extrema (def=1.5pxl)")
                       << EAM(aParam.mFlagFS,  "FFS",true,"Flag spatial  [1= after int,2= after bilin ,4=after dense, 8= at end]")
+
+                      << EAM(aParam.mHomolOut,  "Out",true,"Suffix for Homol Out Folder (def=_TiepTri)")
+
                );
 
    bool WithInteract = EAMIsInit(& aSzW);

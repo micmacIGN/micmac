@@ -265,14 +265,26 @@ cImgForTiepTri *cAppliTaskCorrel::DoOneTri(cTriForTiepTri *aTri2D)
                 valEl_img.push_back(Pt2dr(double(aKI),valElipse));
             }
             else
-            {if (mNInter!=0) {cout<<" * reprojection error"<<endl;}}
+                {
+                    if (mNInter!=0)
+                    {
+                        cout<<aTri2D->Pt1()<<aTri2D->Pt2()<<aTri2D->Pt3()<<" => reprojection error"<<endl;
+                    }
+            }
         }
         else
-        {if (mNInter!=0) {cout<<" * Non visible selon ZBuffer"<<endl;}}
+        {
+            if (mNInter!=0)
+            {
+                cout<<aTri2D->Pt1()<<aTri2D->Pt2()<<aTri2D->Pt3()<<" => Non visible selon ZBuffer"<<endl;
+            }
+        }
     }
-    sortDescendPt2drY(valEl_img);
-    if (  valEl_img.size() > 1 &&
-          imgMas!=NULL && cur_valElipse != -1.0 &&
+    sortDescendPt2drY(valEl_img);          // tri vecteur par valEllipse
+    // critere pour choisir image master
+    if (  valEl_img.size() > 1 &&          // il y a des images pour selectionner
+          imgMas!=NULL &&                  // il y a au moins 1 val ellipse calcule
+          cur_valElipse != -1.0 &&
           !std_isnan(cur_valElipse) &&     // => pourquoi il y a nan il val ellipse ? :(
           !std_isnan(valEl_img[0].y)
        )
