@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
 // #include "qdt.h"
 
+
+static const int NbMinCreateIm = 200;
+
 class cPtAVGR;
 class cAperoVisuGlobRes;
 
@@ -62,6 +65,7 @@ class cAperoVisuGlobRes
        void AddResidu(const Pt3dr & aP,double aRes);
        void DoResidu();
 
+       cAperoVisuGlobRes();
        
     private :
        typedef ElQT<cPtAVGR *,Pt2dr,cFoncPtOfPtAVGR> tQtTiepT;
@@ -115,7 +119,6 @@ class cAccumResidu
        void Accum(const cInfoAccumRes &);
        cAccumResidu(Pt2di aSz,double aRed,bool OnlySign,int aDegPol);
 
-       static const int NbMinCreateIm = 200;
        void Export(const std::string & aDir,const std::string & aName,const cUseExportImageResidu &,FILE * );
     private :
        void AccumInImage(const cInfoAccumRes &);
