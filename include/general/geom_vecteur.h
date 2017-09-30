@@ -611,16 +611,16 @@ class ElQTRegBox : public ElQTRegionPlan
 
 
 
-class ElQdtGen
+class NewElQdtGen
 {
       public  :
 
           INT NbObjMax() const { return _NbObjMax;}
-          INT SzMin()    const { return _SzMin;}
+          double SzMin()    const { return _SzMin;}
 
       protected :
 
-          ElQdtGen
+          NewElQdtGen
           (
                      Box2dr        box,
                      INT           NbObjMax,
@@ -630,7 +630,7 @@ class ElQdtGen
 
           Box2dr                        _box;
           INT                           _NbObjMax;
-          INT                           _SzMin;
+          double                        _SzMin;
 
      private :
           static Box2dr BoxQdt(const Box2dr &);

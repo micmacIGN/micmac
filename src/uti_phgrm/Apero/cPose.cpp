@@ -36,8 +36,15 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
+// #define _ELISE_ALGO_GEOM_QDT_H 1
+// #define _ELISE_ALGO_GEOM_QDT_IMPLEM_H 1
+// #define __QDT_INSERTOBJ__ 1
+
+
+
 #include "Apero.h"
-// #include "qdt.h"
+
 
 
 static const int NbMinCreateIm = 200;
@@ -45,13 +52,24 @@ static const int NbMinCreateIm = 200;
 class cPtAVGR;
 class cAperoVisuGlobRes;
 
+     /*===========     cPtAVGR  ===========*/
+
 class cPtAVGR
 {
     public :
+        cPtAVGR (const Pt3dr & aP,double aRes);
         Pt3df mPt;
         float mRes;
         float mResFiltr;
+        bool  mInQt;
 };
+
+
+cPtAVGR::cPtAVGR(const Pt3dr & aP,double aRes) :
+   mPt  (Pt3df::P3ToThisT(aP)),
+   mRes (aRes)
+{
+}
 
 class cFoncPtOfPtAVGR
 {
@@ -59,32 +77,180 @@ class cFoncPtOfPtAVGR
        Pt2dr operator () (cPtAVGR * aP) {return  Pt2dr(aP->mPt.x,aP->mPt.y);}
 };
 
+     /*===========     cAperoVisuGlobRes  ===========*/
+
 class cAperoVisuGlobRes
 {
     public :
        void AddResidu(const Pt3dr & aP,double aRes);
-       void DoResidu();
+       void DoResidu(int aNbMes);
 
        cAperoVisuGlobRes();
        
     private :
+       Interval  CalculBox(double & aResol,int aMode,double PropElim,double Rab);
+       Box2dr    CalculBox(double PropElim,double Rab);
+       double    ToEcartStd(double anE) const;
+       Pt3di     ColOfEcart(double anE);
+
        typedef ElQT<cPtAVGR *,Pt2dr,cFoncPtOfPtAVGR> tQtTiepT;
 
-       int mNbPts;
+       int                  mNbPts;
        std::list<cPtAVGR *> mLpt;
        tQtTiepT *           mQt;
+       double               mResol;
+       double               mResolX;
+       double               mResolY;
+       double               mSigRes;
+       double               mMoyRes;
+       cPlyCloud            mPC;
 };
 
 
+cAperoVisuGlobRes::cAperoVisuGlobRes() :
+   mNbPts  (0),
+   mQt     (0)
+{
+}
 
 
 
 void cAperoVisuGlobRes::AddResidu(const Pt3dr & aP,double aRes)
 {
+     cPtAVGR * aPVG = new cPtAVGR(aP,aRes);
+
+     mLpt.push_back(aPVG);
+     mNbPts++;
 }
 
-void cAperoVisuGlobRes::DoResidu()
+
+Interval cAperoVisuGlobRes::CalculBox(double & aResol,int aMode,double aPropElim,double aPropRab)
 {
+    std::vector<float> aVVals;
+    double aSomV = 0;
+    double aSomV2 = 0;
+
+    for (auto iT=mLpt.begin() ; iT!=mLpt.end() ; iT++)
+    {
+        double aVal =   (aMode==2)                                  ?
+                        (*iT)->mRes                                 :
+                        ((aMode==0) ? (*iT)->mPt.x : (*iT)->mPt.y)  ;
+        aVVals.push_back(aVal);
+        aSomV += aVal;
+        aSomV2 += ElSquare(aVal);
+    }
+    aSomV /= mNbPts;
+    aSomV2 /= mNbPts;
+    aSomV2 -= ElSquare(aSomV);
+    // Sigma = Larg / srqt(12) pour une distrib uniforme
+    double Larg =  sqrt(12*aSomV2);
+    aResol = Larg / mNbPts;
+
+    double aVMin = KthValProp(aVVals,aPropElim);  
+    double aVMax = KthValProp(aVVals,1-aPropElim);  
+
+    double aRab = (aVMax-aVMin) * aPropRab;
+
+    aVMin -= aRab ;
+    aVMax += aRab ;
+
+    return Interval(aVMin,aVMax);
+}
+
+Box2dr  cAperoVisuGlobRes::CalculBox(double aPropElim,double aPropRab)
+{
+    Interval aIntX = CalculBox(mResolX,0,aPropElim,aPropRab);
+    Interval aIntY = CalculBox(mResolY,1,aPropElim,aPropRab);
+
+    mResol = euclid(Pt2dr(mResolX,mResolY));
+
+    return Box2dr(Pt2dr(aIntX._v0,aIntY._v0), Pt2dr(aIntX._v1,aIntY._v1));
+}
+
+double DirErFonc(double x);
+double InvErrFonc(double x);
+
+double  cAperoVisuGlobRes::ToEcartStd(double anE) const
+{
+     return DirErFonc((anE-mMoyRes)/mSigRes); 
+}
+
+Pt3di     cAperoVisuGlobRes::ColOfEcart(double anE)
+{
+    Elise_colour aCol = Elise_colour::its(0.5,(1+anE)/3.0,1.0);
+
+    return Pt3di (AdjUC(aCol.r()*255),AdjUC(aCol.g()*255),AdjUC(aCol.b()*255));
+}
+
+template <class Type> bool gen_std_isnan(const Type & aP)
+{
+   return std_isnan(aP.x) || std_isnan(aP.y) ;
+}
+
+void cAperoVisuGlobRes::DoResidu(int aNbMes)
+{
+    Box2dr aBoxQt = CalculBox(0.02,0.3);
+    cFoncPtOfPtAVGR aFoncP;
+    
+    mQt = new tQtTiepT(aFoncP,aBoxQt,10,mResol*5);
+
+    for (auto iT=mLpt.begin() ; iT!=mLpt.end() ; iT++)
+    {
+        (*iT)->mInQt=   mQt->insert(*iT,true);
+    }
+
+    
+    for (auto iTGlob=mLpt.begin() ; iTGlob!=mLpt.end() ; iTGlob++)
+    {
+        if ((*iTGlob)->mInQt)
+        {
+           // std::set<cPtAVGR *> aSet;
+           Pt2dr aP = aFoncP(*iTGlob);
+           // std::list<cPtAVGR *> aLVois = mQt->KPPVois(aP,aNbMes,1.5*mResol*sqrt(aNbMes));
+           double aDist = mResol*sqrt(aNbMes);
+           std::set<cPtAVGR *> aLVois;  
+           mQt->RVoisins(aLVois,aP,mResol*sqrt(aNbMes));
+           double aSomP=0.0;
+           double aSomPRes=0.0;
+           for (auto itV=aLVois.begin() ; itV!=aLVois.end() ; itV++)
+           {
+               if (euclid((*iTGlob)->mPt-(*itV)->mPt) < aDist)
+               {
+                   double aPds = 1.0;
+                   aSomP += aPds;
+                   aSomPRes += aPds * (*itV)->mRes;
+               }
+           }
+           double aRes = aSomPRes / aSomP;
+           (*iTGlob)->mResFiltr = aRes;
+        }
+    }
+ 
+    double aRR; // Inutilise
+    // Pour une gaussienne 68 % compris dans [-Sig,Sig]
+    Interval  aIntRes = CalculBox(aRR,2,0.16,0.0);
+    mSigRes = (aIntRes._v1 - aIntRes._v0) / 2.0;
+    mMoyRes = (aIntRes._v1 + aIntRes._v0) /2.0;
+
+    for (auto iTGlob=mLpt.begin() ; iTGlob!=mLpt.end() ; iTGlob++)
+    {
+        if ((*iTGlob)->mInQt)
+        {
+             double anEcart =ToEcartStd( (*iTGlob)->mResFiltr);
+             Pt3di aCol = ColOfEcart(anEcart);
+             mPC.AddPt(aCol,Pt3dr::P3ToThisT((*iTGlob)->mPt));
+        }
+    }
+
+    mPC.PutFile("Res.ply");
+/*
+    for (int aK=-10 ; aK<10 ; aK++)
+    {
+        double aV= aK*0.2;
+        std::cout << "EErr " << aV << " " << erfcc(aV) << " " <<DirErFonc(aV) <<  " Dif=" <<  InvErrFonc(DirErFonc(aV)) - aV << "\n";
+    }
+    getchar();
+*/
 }
 
 
@@ -457,7 +623,7 @@ void cAppliApero::AddInfoImageResidu
 void cAppliApero::ExportImageResidu(const std::string & aName,const cAccumResidu & anAccum) 
 {
     const cUseExportImageResidu & aUEIR = Param().UseExportImageResidu().Val();
-    ELISE_fp::MkDirRec(mDirExportImRes);
+    // ELISE_fp::MkDirRec(mDirExportImRes);
 
     const_cast<cAccumResidu &>(anAccum).Export(mDirExportImRes,aName,aUEIR,mFileExpImRes);
 }
@@ -469,6 +635,7 @@ void cAppliApero::ExportImageResidu()
 
   const cUseExportImageResidu & aUEIR = Param().UseExportImageResidu().Val();
   mDirExportImRes =  DC() + "Ori" + aUEIR.AeroExport() + "/ImResidu/";
+  ELISE_fp::MkDirRec(mDirExportImRes);
 
   mFileExpImRes = FopenNN(mDirExportImRes+"StatRes.txt","w","cAppliApero::ExportImageResidu");
 
@@ -477,6 +644,9 @@ void cAppliApero::ExportImageResidu()
        ExportImageResidu(it->first,*(it->second));
   }
   fclose(mFileExpImRes);
+
+   mAVGR.DoResidu(aUEIR.NbMesByCase().Val());
+
 }
 
 //============================================

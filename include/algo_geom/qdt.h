@@ -109,7 +109,7 @@ template <class Obj> class cVecTplResRVoisin : public cTplResRVoisin<Obj> ,
 
 template <class Obj,class Prim,class FPrim> 
           class ElQT : public   ElClassQT<Obj,Prim,FPrim>,
-                       public   ElQdtGen
+                       public   NewElQdtGen
 {
     public :
 

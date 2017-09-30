@@ -419,7 +419,7 @@ template <class Obj,class Prim,class FPrim>
                 INT           NBOBJMAX,
                 REAL          SzMin
           ) :
-          ElQdtGen(BOX,NBOBJMAX,SzMin),
+          NewElQdtGen(BOX,NBOBJMAX,SzMin),
           _fprim    (FPRIM),
           _racine    (new  ElQTFeuille<Obj,Prim,FPrim>)
 {
