@@ -567,6 +567,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
                       << EAM(mTuning,"Tuning",true,"as it says ... ")
                       << EAM(mSzDecoup,"TheSzDecoup",true,"Sz of a priori split, \"expert\" level , Def=300 ")
                       << EAM(mOverLap,"OverLap",true,"Target overlap between images ")
+                      << EAM(mRateVideoInit,"RateVideo",true,"Rate image per seconde (FPS), Def=24 ")
     );
 
 // avconv -i adjudant.MOV Im_0247_%5d_Ok.png  
