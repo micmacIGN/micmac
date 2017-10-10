@@ -1,0 +1,20 @@
+<SpecifFormatRaw>
+          <Sz>  1024  768 </Sz>
+          <MSBF>  false </MSBF>
+          <NbBitsParPixel> 16  </NbBitsParPixel>
+          <IntegerType> true </IntegerType>
+          <SignedType>  false </SignedType>
+          <FocalEqui35> 48 </FocalEqui35>
+          <Focalmm> 48 </Focalmm>
+
+          <Offset > 10880 </Offset>
+<!--
+ienaoptik
+          <Offset > 11156  </Offset>
+-->
+
+<!--
+          <BayPat> RGGB </BayPat>
+-->
+          <Camera> CamCerema </Camera>
+</SpecifFormatRaw>

@@ -305,7 +305,7 @@ void cSurfaceOptimiseur::SetCout(Pt2di aPTer,int * aPX,REAL aCost,int aLabel)
    }
 }
 
-void cSurfaceOptimiseur::Local_SetCpleRadiom(Pt2di aPTer,int * aPX,U_INT2 aR1,U_INT2 aR2)
+void cSurfaceOptimiseur::Local_SetCpleRadiom(Pt2di aPTer,int * aPX,tCRVal aR1,tCRVal aR2)
 {
     ELISE_ASSERT(false,"Cur Opt do not handle cple of radiom");
 }

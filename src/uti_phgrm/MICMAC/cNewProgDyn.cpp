@@ -98,14 +98,14 @@ class cCpleValPrg2DCelNap
     public :
 		
        void InitVecMCP(const  std::vector<tMCPVal> &){}
-       void InitCpleRadiom(U_INT2 aR1,U_INT2 aR2)  
+       void InitCpleRadiom(tCRVal aR1,tCRVal aR2)  
        {
             mR1 =aR1;
             mR2 =aR2;
        }
 
-       U_INT2 mR1;
-       U_INT2 mR2;
+       tCRVal mR1;
+       tCRVal mR2;
 
 };
 
@@ -131,18 +131,18 @@ class cCpleValPrg2DTmp
        {
             mR1 = aCel.ArgAux().mR1;
             mR2 = aCel.ArgAux().mR2;
-            mOK = (mR1!=0) && (mR2!=0);
+            mOK = (mR1!= ValUndefCple) && (mR2!= ValUndefCple);
        }
 
        cCpleValPrg2DTmp()  :
-             mR1 (0),
-             mR2 (0),
+             mR1 (ValUndefCple),
+             mR2 (ValUndefCple),
              mOK (false)
        {
        }
     
-       U_INT2 mR1;
-       U_INT2 mR2;
+       tCRVal mR1;
+       tCRVal mR2;
        bool   mOK;
 
        double N2() const {return ElSquare(double(mR1)) + ElSquare(double(mR2));}
@@ -154,7 +154,11 @@ class cCpleValPrg2DTmp
            double aRes = double(mR1) * aC2.mR2 - double(mR2) * aC2.mR1;
 
            aRes=  anArg.mPdsCrois * ElAbs(aRes / (N2() + aC2.N2()));
-  // std::cout << "CxRES = " << aRes  <<  " " <<  N2() + aC2.N2()  << "\n";
+if (0) // (MPD_MM())
+{
+   std::cout << "CxRES = " << aRes  <<  " " <<  N2() + aC2.N2()  << "\n";
+   getchar();
+}
            return aRes;
        }
 };
@@ -181,7 +185,7 @@ template <class Type,const int NbV> class cTabValI1Prg2DCelNap
 {
     public :
 
-       void InitCpleRadiom(U_INT2 aR1,U_INT2 aR2)  { }
+       void InitCpleRadiom(tCRVal aR1,tCRVal aR2)  { }
        // On laisse std::vector<Type>  pour que ca ne compile pas si !=  tMCPVal
        void InitVecMCP(const  std::vector<Type> & aV)
        {
@@ -305,7 +309,7 @@ template <class TypeArg> class cMMNewPrg2D : public cSurfaceOptimiseur
         void Local_SetCout(Pt2di aPTer,int * aPX,REAL aCost,int aLabel);
         void Local_SolveOpt(Im2D_U_INT1);
 
-        void Local_SetCpleRadiom(Pt2di aPTer,int * aPX,U_INT2 aR1,U_INT2 aR2);
+        void Local_SetCpleRadiom(Pt2di aPTer,int * aPX,tCRVal aR1,tCRVal aR2);
         void Local_VecMCP(Pt2di aPTer,int * aPX,const  std::vector<tMCPVal> &);
 
      //====================  End Pre Requis =================
@@ -510,6 +514,15 @@ template <class Type> void cMMNewPrg2D<Type>::DoConnexion
 
                   if (okInOut)
                   {
+
+if (0) // (MPD_MM())
+{
+    double  aCR=  aCelIn.ArgAux().CostCroise(aCelOut.ArgAux(),mArgGlob);
+    int aCI=  CostR2I(aCR);
+    std::cout << "CCciii " <<  aCR << " " << aCI << "\n";
+}
+
+
                       aCost += CostR2I(aCelIn.ArgAux().CostCroise(aCelOut.ArgAux(),mArgGlob));
                   }
 
@@ -566,7 +579,7 @@ template <class Type> void cMMNewPrg2D<Type>::Local_SetCout(Pt2di aPTer,int * aP
 
 
 
-template <class Type> void cMMNewPrg2D<Type>::Local_SetCpleRadiom(Pt2di aPTer,int * aPX,U_INT2 aR1,U_INT2 aR2)
+template <class Type> void cMMNewPrg2D<Type>::Local_SetCpleRadiom(Pt2di aPTer,int * aPX,tCRVal aR1,tCRVal aR2)
 {
    mCelsNap[aPTer.y][aPTer.x][aPX[0]].ArgAux().InitCpleRadiom(aR1,aR2);
 }
@@ -796,8 +809,10 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::AllocNewPrgDyn
 
    if (aCAH)
    {
+// if (MPD_MM()) { std::cout << "AAAAAAAAAAAAAa\n"; getchar(); }
         if (aCAH->Correl_PonctuelleCroisee().IsInit())
         {
+// if (MPD_MM()) { std::cout << "BBBBBBB\n"; getchar(); }
             ELISE_ASSERT(! EtiqImage,"Incompatibilite  : PonctuelleCroisee / EtiqImage");
             cCpleValArgGlob anArg(aCAH->Correl_PonctuelleCroisee().Val());
             return new cMMNewPrg2D<cTypeClpeValArgPrg2D>(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);

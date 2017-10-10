@@ -79,15 +79,19 @@ FAIT :
 #define USE_INT1_4_MCP false
 
 #if (USE_INT1_4_MCP)
+typedef U_INT2 tCRVal;
+const tCRVal ValUndefCple = 0 ;  // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image
 typedef INT1 tMCPVal;
 const int TheDynMCP = 127;
 const int ValUndefCPONT = -128 ;  // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image
 #else
+typedef REAL4 tCRVal;
 typedef INT2 tMCPVal;
 const int TheDynMCP = 10000;
 const int ValUndefCPONT = -20000 ;  // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image
 // #define TheDynMCP 10000 
 // #define ValUndefCPONT  -20000 // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image
+const tCRVal ValUndefCple = -1 ;  // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image
 #endif
 
 inline int AdaptCostPonct(int aVal)
@@ -351,7 +355,7 @@ class cSurfaceOptimiseur
       double CostTransEnt(int aTrans,int aKPpx);
       bool                    MaskCalcDone();
       Im2D_Bits<1>            MaskCalc();
-      virtual void Local_SetCpleRadiom(Pt2di aPTer,int * aPX,U_INT2 aR1,U_INT2 aR2);  
+      virtual void Local_SetCpleRadiom(Pt2di aPTer,int * aPX,tCRVal aR1,tCRVal aR2);  
       virtual void Local_VecMCP(Pt2di aPTer,int * aPX,const  std::vector<tMCPVal> &);
 
     protected  :

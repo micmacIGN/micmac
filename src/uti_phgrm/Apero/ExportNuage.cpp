@@ -171,12 +171,12 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
               aMode =  eModeAGPNoAttr;
            else if (aNameFile == "NoPoint")
               aMode =  eModeAGPNoPoint;
-		   else if (anEN.NormByC().IsInit())
-			  aMode = eModeAGPNormaleByC;
+	   else if (anEN.NormByC().IsInit())
+		  aMode = eModeAGPNormaleByC;
 
-		   ELISE_ASSERT( !((aNameFile == "NormalePoisson") &&
-                         (anEN.NormByC().IsInit())), 
-                         "Conflict, use Normals or perspective centers in cAppliApero::ExportNuage" );
+	   ELISE_ASSERT( !((aNameFile == "NormalePoisson") &&
+                        (anEN.NormByC().IsInit())), 
+                        "Conflict, use Normals or perspective centers in cAppliApero::ExportNuage" );
 
            if (aLastMode!=eModeAGPNone)
            {
