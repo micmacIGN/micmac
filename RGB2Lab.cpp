@@ -1,6 +1,7 @@
-///////////////////////////////////// RGB -> L*a*b* /////////////////////////////////////
+///////////////////////////////////// RGB -> L*a*b* inspired from opencv code/////////////////////////////////////
+
 #include <limits>
-#define  CV_DESCALE(x,n) (((x) + (1 << ((n)-1))) >> (n))
+#define  scl(x,n) (((x) + (1 << ((n)-1))) >> (n))
 static const float D65[] = { 0.950456f, 1.f, 1.088754f };
 
 enum { LAB_CBRT_TAB_SIZE = 1024, GAMMA_TAB_SIZE = 1024 };
@@ -163,13 +164,13 @@ struct RGB2Lab_b
         for( i = 0; i < n; i += 3, src += scn )
         {
             int R = tab[src[0]], G = tab[src[1]], B = tab[src[2]];
-            int fX = LabCbrtTab_b[CV_DESCALE(R*C0 + G*C1 + B*C2, lab_shift)];
-            int fY = LabCbrtTab_b[CV_DESCALE(R*C3 + G*C4 + B*C5, lab_shift)];
-            int fZ = LabCbrtTab_b[CV_DESCALE(R*C6 + G*C7 + B*C8, lab_shift)];
+            int fX = LabCbrtTab_b[scl(R*C0 + G*C1 + B*C2, lab_shift)];
+            int fY = LabCbrtTab_b[scl(R*C3 + G*C4 + B*C5, lab_shift)];
+            int fZ = LabCbrtTab_b[scl(R*C6 + G*C7 + B*C8, lab_shift)];
 
-            int L = CV_DESCALE( Lscale*fY + Lshift, lab_shift2 );
-            int a = CV_DESCALE( 500*(fX - fY) + 128*(1 << lab_shift2), lab_shift2 );
-            int b = CV_DESCALE( 200*(fY - fZ) + 128*(1 << lab_shift2), lab_shift2 );
+            int L = scl( Lscale*fY + Lshift, lab_shift2 );
+            int a = scl( 500*(fX - fY) + 128*(1 << lab_shift2), lab_shift2 );
+            int b = scl( 200*(fY - fZ) + 128*(1 << lab_shift2), lab_shift2 );
 
             dst[i] = saturate_cast<uchar>(L);
             dst[i+1] = saturate_cast<uchar>(a);
