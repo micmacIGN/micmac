@@ -308,6 +308,9 @@
        <SeuilUse  Nb="1" Type="int">  </SeuilUse>
   </MetaDataPartiesCachees>
 -->
+  <XML_RatioCorrImage Nb="1" Class="true" ToReference="true">
+      <Ratio Nb="1" Type="double"> </Ratio>
+  </XML_RatioCorrImage>
 
 
   <CorrectionPxTransverse Nb="1" Class="true" ToReference="true">
@@ -979,10 +982,14 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
                         <MultiCorrelPonctuel Nb="?"  AccessorFils="false">
                                 <PdsCorrelStd   Nb="1" Type="double" > </PdsCorrelStd>
-                                <PdsCorrelPonct Nb="1" Type="double" > </PdsCorrelPonct>
+                                <PdsCorrelCroise Nb="1" Type="double" > </PdsCorrelCroise>
                                 <DynRadCorrelPonct Nb="?" Type="double" Def="1.0" > </DynRadCorrelPonct>
                                 <DefCost  Nb="?" Type="double" Def="0.1"> </DefCost>
-                                <UnUsedTest Nb="?" Type="std::string"> </UnUsedTest>
+                                <MCP_AttachePixel Nb="?">
+                                      <Pds Nb="1" Type="double"> </Pds>
+                                      <!-- Si xml => fichier des valeur constantes, sinon cle de calcul de l'image -->
+                                      <KeyRatio Nb="1" Type="std::string"> </KeyRatio>
+                                </MCP_AttachePixel>
                         </MultiCorrelPonctuel>
 
 

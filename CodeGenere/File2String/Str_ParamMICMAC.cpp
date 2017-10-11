@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2151]) = {
+const char * (theNameVar_ParamMICMAC[2158]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -310,6 +310,9 @@ const char * (theNameVar_ParamMICMAC[2151]) = {
 "       <SeuilUse  Nb=\"1\" Type=\"int\">  </SeuilUse>\n",
 "  </MetaDataPartiesCachees>\n",
 "-->\n",
+"  <XML_RatioCorrImage Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"      <Ratio Nb=\"1\" Type=\"double\"> </Ratio>\n",
+"  </XML_RatioCorrImage>\n",
 "\n",
 "\n",
 "  <CorrectionPxTransverse Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
@@ -981,10 +984,14 @@ const char * (theNameVar_ParamMICMAC[2151]) = {
 "\n",
 "                        <MultiCorrelPonctuel Nb=\"?\"  AccessorFils=\"false\">\n",
 "                                <PdsCorrelStd   Nb=\"1\" Type=\"double\" > </PdsCorrelStd>\n",
-"                                <PdsCorrelPonct Nb=\"1\" Type=\"double\" > </PdsCorrelPonct>\n",
+"                                <PdsCorrelCroise Nb=\"1\" Type=\"double\" > </PdsCorrelCroise>\n",
 "                                <DynRadCorrelPonct Nb=\"?\" Type=\"double\" Def=\"1.0\" > </DynRadCorrelPonct>\n",
 "                                <DefCost  Nb=\"?\" Type=\"double\" Def=\"0.1\"> </DefCost>\n",
-"                                <UnUsedTest Nb=\"?\" Type=\"std::string\"> </UnUsedTest>\n",
+"                                <MCP_AttachePixel Nb=\"?\">\n",
+"                                      <Pds Nb=\"1\" Type=\"double\"> </Pds>\n",
+"                                      <!-- Si xml => fichier des valeur constantes, sinon cle de calcul de l'image -->\n",
+"                                      <KeyRatio Nb=\"1\" Type=\"std::string\"> </KeyRatio>\n",
+"                                </MCP_AttachePixel>\n",
 "                        </MultiCorrelPonctuel>\n",
 "\n",
 "\n",

@@ -204,13 +204,13 @@ class cTabValArgGlob
      public :
 
           cTabValArgGlob(const cMultiCorrelPonctuel & aMCP, const int & aValOut,double aDefRes) :
-                mPdsPonct (aMCP.PdsCorrelPonct() / TheDynMCP),
-                mDefRes   (aMCP.PdsCorrelPonct() * aDefRes),
+                mPdsCrois (aMCP.PdsCorrelCroise() / TheDynMCP),
+                mDefRes   (aMCP.PdsCorrelCroise() * aDefRes),
                 mValOut   (aValOut)
           {
           }
 
-          double mPdsPonct;
+          double mPdsCrois;
           double mDefRes;
           int    mValOut;
 };
@@ -253,7 +253,7 @@ template <class Type,const int NbV> class cTabValI1Prg2DTmp
            if (aNbNN != 0)
            {
 // std::cout << "RESS-NN " << (aRes * anArg.mPdsPonct) / aNbNN  << " " << anArg.mDefRes <<"\n";
-              return (aRes * anArg.mPdsPonct) / aNbNN;
+              return (aRes * anArg.mPdsCrois) / aNbNN;
            }
 
 // std::cout << "RESNUl " << anArg.mDefRes << "\n";

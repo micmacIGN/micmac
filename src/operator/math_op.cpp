@@ -91,7 +91,7 @@ void tab_log(REAL * out, const REAL * in,INT nb)
      ASSERT_USER
      (
         values_positive_strict(in,nb),
-        "negative or values in log"
+        "negative or null values in log"
      );
 
      for (INT i=0 ; i<nb ; i++)

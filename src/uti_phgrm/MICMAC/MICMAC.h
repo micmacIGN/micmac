@@ -129,6 +129,7 @@ void MicMacRequiresBinaireAux();
 
 
 
+class cGLI_CalibRadiom;
 
 
 
@@ -2610,6 +2611,10 @@ typedef tGpuF **             tDataGpu;
 class   cGPU_LoadedImGeom
 {
    public :
+       void InitCalibRadiom(cGLI_CalibRadiom * aCal);
+       double CorrRadiom(double aVal);
+
+
        ~cGPU_LoadedImGeom();
        cGPU_LoadedImGeom
        (
@@ -2776,6 +2781,8 @@ class   cGPU_LoadedImGeom
 
        Pt2di  SzV0() const;
 
+        void InitMCP_AttachePix(const cMCP_AttachePixel * aAP);
+
 
    private :
        
@@ -2868,6 +2875,7 @@ class   cGPU_LoadedImGeom
        int                mSeuilPC;
        bool               mUsePC;
        bool               mIsOK;
+       cGLI_CalibRadiom * mCalR;
 };
 
 
@@ -3037,10 +3045,10 @@ class cAppliMICMAC  : public   cParamMICMAC,
         void   CalcCorrelByRect(Box2di,int * aPx);
 
         void DoCorrelLeastQuare(const Box2di & aBoxOut,const Box2di & aBoxIn,const cCorrel2DLeastSquare &);
-	void DoGPU_Correl (const Box2di & aBoxInterne,const cMultiCorrelPonctuel *);  
+	void DoGPU_Correl (const Box2di & aBoxInterne,const cMultiCorrelPonctuel *,double aPdsPix);  
         void DoCensusCorrel(const Box2di & aBox,const cCensusCost &);
         void DoOneCorrelSym(int anX,int anY,int aNbScale);
-        void DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel *,int aNbIm,bool VireExtr);
+        void DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel *,int aNbIm,bool VireExtr,double aPdsPix);
         void DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbIm);
 
 		void DoGPU_Correl_Basik (const Box2di & aBoxInterne); 
@@ -3739,14 +3747,27 @@ class cAppliMICMAC  : public   cParamMICMAC,
          cMakeMaskImNadir         * mMakeMaskImNadir;
 
          int     mMaxPrecision;
+
+         std::map<std::string,cGLI_CalibRadiom *> mDicCalRad;
  
      public :
+
+         void ResetCalRad();
+         
        // Pour debug MM TieP
-         cMasqBin3D *      mGLOBMasq3D;
-         cElNuage3DMaille* mGLOBNuage;
+         cMasqBin3D *           mGLOBMasq3D;
+         cElNuage3DMaille*      mGLOBNuage;
+         const cMultiCorrelPonctuel * mMCP;
+
+         std::vector<float>     mStatCNC;
+         std::vector<float>     mStat1Pix;
+         std::vector<float>     mStatCrois;
+         bool                   mDoStatCorrel;
 
          bool mCorrecAlti4ExportIsInit;
          double mValmCorrecAlti4Export;
+
+          
 };
 
 std::string  StdNameFromCple
