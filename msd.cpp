@@ -31,7 +31,7 @@ using namespace std;
 
 // From code Arnaud LeBris
 inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
-{
+  {
     #define At(i,j)  (i_m[(i)+(j)*3])
     // Gauss elimination
     for(int j = 0 ; j < 2 ; ++j)
@@ -81,7 +81,8 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
             i_b[ii] -= x*i_b[j] ;
         }
     }
-}
+    return true;
+  }
    Im2D<U_INT2,INT4> circular_window(int radius)
    {
        //define a square
@@ -138,13 +139,13 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
 			Nodes.push_back(Pt);
 			deltaAngle+=step;
          }
-		int i=0;
+        int i=0;
 		float summ;
         int old_locx=std::floor(Nodes[0].x);
         int old_locy=std::floor(Nodes[0].y);
 		int Checkx=Nodes[i].x>=old_locx && Nodes[i].x<old_locx+1;
 		int Checky=Nodes[i].y>=old_locy && Nodes[i].y<old_locy+1;
-		while(i<Nodes.size())
+        while(i<(int)Nodes.size())
 		{
 			summ=0.0;
 			i++;
@@ -247,7 +248,6 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
         int ctrInd=0;
         std::vector<float> minVals(k);
         float *acc = new float[side_b * side_b];
-        float minvalue, maxvalue;
 
         den = k;// instead of side_s * side_s *PI_4*k
 
@@ -255,8 +255,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
         if (m_circular_window)
         {
 
-        float a,b,ab,a_2,b_2;
-		maxvalue=std::numeric_limits<float>::min();
+        float ab,a_2,b_2;
         for(int y = border; y< h - border; y++)
         {
             for (int x = xmin; x<xmax; x++)
@@ -267,7 +266,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
 
 
 			//compute central patch values one time for all
-			b=0; b_2=0;
+            b_2=0;
 			/**********************************************************/
            // ElTimer Chroncentpatch;
 			for (int u = -r_s; u <= r_s; u++)
@@ -296,7 +295,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
                         continue;
 
                     acc[ctrInd] = 0;
-                    a=0;ab=0;a_2=0;
+                    ab=0;a_2=0;
                     //ElTimer aChrono;
                     //*********************************
                     for (int u = -r_s; u <= r_s; u++)
@@ -346,7 +345,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
 
         else
         {
-        float a,b,ab,a_2,b_2;
+        float ab,a_2,b_2;
         for(int y = border; y< h - border; y++)
         {
             for (int x = xmin; x<xmax; x++)
@@ -364,7 +363,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
 
                     acc[ctrInd] = 0;
 
-                    a=0;b=0;ab=0;a_2=0;b_2=0;
+                    ab=0;a_2=0;b_2=0;
 
                     //*********************************
                     for (int u = -r_s; u <= r_s; u++)
@@ -376,8 +375,6 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
                             Pt2di Pxyuv(x+u,y+v);
                             U_INT2 pijuv=img.GetI(Pijuv);
                             U_INT2 pxyuv=img.GetI(Pxyuv);
-                            a+=pijuv  ;
-                            b+=pxyuv  ;
                             ab+=pijuv*pxyuv;
                             a_2+=pow(pijuv,2);
                             b_2+=pow(pxyuv,2);
@@ -506,7 +503,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
          * We use only x,y coordinates to enhance the point position
         */
 
-        /* If scale is to be integrated in our context, it will be defined across leveles of pyramid and therefore,
+        /* If scale is to be integrated in our context, it will be defined across levels of pyramid and therefore,
          * therefore derivatives across scales will be computed by regarding saliency at other scales in the vicinty of a point
          * representative scale
          */
@@ -530,6 +527,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
         // U_INT offset;
          //float *itScale0, *itScale1, *itScale2;
          REAL8 dx, dy, dxx, dyy, dxy;
+         bool inverted;
 
          // reiterate until variation is low
          for( iter=0; iter<5; iter++ )
@@ -547,36 +545,52 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
 
              m[1] = m[3] = dxy = 0.25*( SaliencyMap[c8]+SaliencyMap[c0]-SaliencyMap[c6]-SaliencyMap[c2] ); // dxy
 
-             Gauss22_invert_b( m, b ); // Normally it is not needed for 2x2 matrix but i use it anyway::" The invert of A is directly obtained"
+             inverted=Gauss22_invert_b( m, b ); // Normally it is not needed for 2x2 matrix but i use it anyway::" The invert of A is directly obtained"
 
 
+             if (inverted)
 
-             // shall we reiterate ?
-             Dx=   ( ( ( b[0]>0.6 ) && ( x<m_width-2 ) )?1:0 )
-                 + ( ( ( b[0]<-0.6 ) && ( x>1 ) )?-1:0 );
-             Dy=   ( ( ( b[1]>0.6 ) && ( y<m_height-2 ) )?1:0 )
-                 + ( ( ( b[1]<-0.6 ) && ( y>1 ) )?-1:0 );
-             if( Dx == 0 && Dy == 0 ) break;
+             {
+                 // shall we reiterate ?
+                 Dx=   ( ( ( b[0]>0.6 ) && ( x<m_width-2 ) )?1:0 )
+                     + ( ( ( b[0]<-0.6 ) && ( x>1 ) )?-1:0 );
+                 Dy=   ( ( ( b[1]>0.6 ) && ( y<m_height-2 ) )?1:0 )
+                     + ( ( ( b[1]<-0.6 ) && ( y>1 ) )?-1:0 );
+                 if( Dx == 0 && Dy == 0 ) break;
+             }
+             else
+             {
+                 break;
+             }
          }
          //Check if Point is not away from origin
          REAL8 xn,yn;
          //check for divergence:: keep original point if there is an issue with refinement
          //Distance between old and new point should not be bigger than 1 pixel
-         xn = x + b[0] ;
-         yn = y + b[1] ;
-         // Check if isnan
-         if (isnan(xn)||isnan(yn))
+
+         if (inverted)
          {
-            xn=i_p.x;
-            yn=i_p.y;
+             xn = x + b[0] ;
+             yn = y + b[1] ;
+             // Check if isnan
+             if (isnan(xn)||isnan(yn))
+             {
+                xn=i_p.x;
+                yn=i_p.y;
+             }
+             if (((xn-i_p.x)*(xn-i_p.x)+(yn-i_p.y)*(yn-i_p.y))>1)
+             {
+                 xn=i_p.x;
+                 yn=i_p.y;
+             }
+             o_p.x= xn;
+             o_p.y = yn;
          }
-         if (((xn-i_p.x)*(xn-i_p.x)+(yn-i_p.y)*(yn-i_p.y))>1)
+         else
          {
-             xn=i_p.x;
-             yn=i_p.y;
+             o_p.x= i_p.x;
+             o_p.y = i_p.y;
          }
-         o_p.x= xn;
-         o_p.y = yn;
      }
 
     void MsdDetector::nonMaximaSuppression(std::vector<float *> & saliency, std::vector<KeyPoint> & keypoints)
