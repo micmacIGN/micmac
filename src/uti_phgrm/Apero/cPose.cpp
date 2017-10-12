@@ -83,6 +83,7 @@ typedef enum
 {
     eBAVGR_X,
     eBAVGR_Y,
+    eBAVGR_Z,
     eBAVGR_Res
 } eBoxAVGR;
 
@@ -90,12 +91,12 @@ class cAperoVisuGlobRes
 {
     public :
        void AddResidu(const Pt3dr & aP,double aRes);
-       void DoResidu(int aNbMes);
+       void DoResidu(const std::string & aDir,int aNbMes);
 
        cAperoVisuGlobRes();
        
     private :
-       Interval  CalculBox(double & aResol,eBoxAVGR aMode,double PropElim,double Rab);
+       Interval  CalculBox(double & aVMil,double & aResol,eBoxAVGR aMode,double PropElim,double Rab);
        Box2dr    CalculBox_XY(double PropElim,double Rab);
        double    ToEcartStd(double anE) const;
        double    FromEcartStd(double anE) const;
@@ -113,6 +114,7 @@ class cAperoVisuGlobRes
        double               mMoyRes;
        cPlyCloud            mPC;
        cPlyCloud            mPCLeg;  // Legende
+       double               mVMilZ;
 };
 
 
@@ -133,7 +135,7 @@ void cAperoVisuGlobRes::AddResidu(const Pt3dr & aP,double aRes)
 }
 
 
-Interval cAperoVisuGlobRes::CalculBox(double & aResol,eBoxAVGR aMode,double aPropElim,double aPropRab)
+Interval cAperoVisuGlobRes::CalculBox(double & aVMil,double & aResol,eBoxAVGR aMode,double aPropElim,double aPropRab)
 {
     std::vector<float> aVVals;
     // double aSomV = 0;
@@ -141,9 +143,16 @@ Interval cAperoVisuGlobRes::CalculBox(double & aResol,eBoxAVGR aMode,double aPro
 
     for (auto iT=mLpt.begin() ; iT!=mLpt.end() ; iT++)
     {
-        double aVal =   (aMode==eBAVGR_Res)                                  ?
-                        (*iT)->mRes                                 :
-                        ((aMode==eBAVGR_X) ? (*iT)->mPt.x : (*iT)->mPt.y)  ;
+        double aVal = 0.0;
+        if       (aMode==eBAVGR_Res)     aVal = (*iT)->mRes  ;
+        else if  (aMode==eBAVGR_X)       aVal = (*iT)->mPt.x;
+        else if  (aMode==eBAVGR_Y)       aVal = (*iT)->mPt.y;
+        else if  (aMode==eBAVGR_Z)       aVal = (*iT)->mPt.z;
+        else
+        {
+                 aVal = (*iT)->mPt.z;
+                ELISE_ASSERT(false,"cAperoVisuGlobRes::CalculBox");
+        }
         aVVals.push_back(aVal);
         // aSomV += aVal;
         // aSomV2 += ElSquare(aVal);
@@ -155,6 +164,7 @@ Interval cAperoVisuGlobRes::CalculBox(double & aResol,eBoxAVGR aMode,double aPro
     // double Larg =  sqrt(12*aSomV2);
     double aV25 = KthValProp(aVVals,0.25);  
     double aV75 = KthValProp(aVVals,0.75);
+    aVMil = (aV75+aV25) / 2.0;
     double Larg = 2 * (aV75 - aV25);
     aResol = Larg / mNbPts;
 
@@ -171,8 +181,9 @@ Interval cAperoVisuGlobRes::CalculBox(double & aResol,eBoxAVGR aMode,double aPro
 
 Box2dr  cAperoVisuGlobRes::CalculBox_XY(double aPropElim,double aPropRab)
 {
-    Interval aIntX = CalculBox(mResolX,eBAVGR_X,aPropElim,aPropRab);
-    Interval aIntY = CalculBox(mResolY,eBAVGR_Y,aPropElim,aPropRab);
+    double aVMilX,aVMilY;
+    Interval aIntX = CalculBox(aVMilX,mResolX,eBAVGR_X,aPropElim,aPropRab);
+    Interval aIntY = CalculBox(aVMilY,mResolY,eBAVGR_Y,aPropElim,aPropRab);
 
     mResol = euclid(Pt2dr(mResolX,mResolY));
 
@@ -196,7 +207,7 @@ double  cAperoVisuGlobRes::FromEcartStd(double anE) const
 
 Pt3di     cAperoVisuGlobRes::ColOfEcart(double anE)
 {
-    Elise_colour aCol = Elise_colour::its(0.5,(1+anE)/3.0,1.0);
+    Elise_colour aCol = Elise_colour::its(0.5,(1-anE)/3.0,1.0);
 
     return Pt3di (AdjUC(aCol.r()*255),AdjUC(aCol.g()*255),AdjUC(aCol.b()*255));
 }
@@ -206,8 +217,13 @@ template <class Type> bool gen_std_isnan(const Type & aP)
    return std_isnan(aP.x) || std_isnan(aP.y) ;
 }
 
-void cAperoVisuGlobRes::DoResidu(int aNbMes)
+void cAperoVisuGlobRes::DoResidu(const std::string & aDir,int aNbMes)
 {
+    {
+       double aRR;
+       CalculBox(mVMilZ,aRR,eBAVGR_Z,0.16,0.0);
+    }
+
     Box2dr aBoxQt = CalculBox_XY(0.02,0.3);
     cFoncPtOfPtAVGR aFoncP;
     
@@ -247,7 +263,8 @@ void cAperoVisuGlobRes::DoResidu(int aNbMes)
  
     double aRR; // Inutilise
     // Pour une gaussienne 68 % compris dans [-Sig,Sig]
-    Interval  aIntRes = CalculBox(aRR,eBAVGR_Res,0.16,0.0);
+    double aVMilRes;
+    Interval  aIntRes = CalculBox(aVMilRes,aRR,eBAVGR_Res,0.16,0.0);
     mSigRes = (aIntRes._v1 - aIntRes._v0) / 2.0;
     mMoyRes = (aIntRes._v1 + aIntRes._v0) / 2.0;
 
@@ -261,37 +278,59 @@ void cAperoVisuGlobRes::DoResidu(int aNbMes)
         }
     }
 
-    mPC.PutFile("CloudResidual.ply");
+    mPC.PutFile(aDir+"CloudResidual.ply");
 
     Pt2dr aP0 = aBoxQt._p0 - Pt2dr(0,-40) * mResol;
 
+    double aPasLeg = mResol *100;
+
+    double aZLeg = mVMilZ;
     int aNbLeg = 10;
-    int aNbY = 2000;
-    for (int aX=0 ; aX<=aNbLeg; aX++)
+    double aLargX = 10;
+    int    aLargY = 20;
+    for (int aCpt=0 ; aCpt<=aNbLeg; aCpt++)
     {
-        double aEcartStd =  (aX-aNbLeg*0.5) /(0.5+aNbLeg*0.5);
+        double aEcartStd =  (aCpt-aNbLeg*0.5) /(0.5+aNbLeg*0.5);
         double aRes = FromEcartStd(aEcartStd);
         if (aRes >0)
         {
-           std::cout << "ECARTsss " << aEcartStd <<  " " << aRes << "\n";
-           std::string aStrRes = ToString(aRes);
+           char aBuf[100];
+           sprintf(aBuf,"%.2f",aRes);
+           std::string aStrRes (aBuf);
            
            mPCLeg.PutString
            (
                 aStrRes,
-                Pt3dr(aP0.x,aP0.y,0)+Pt3dr(0,mResol*aNbY,0) , 
+                Pt3dr(aP0.x,aP0.y,aZLeg)+Pt3dr(0,aCpt*aPasLeg*aLargY,0) , 
                 Pt3dr(1,0,0),
                 Pt3dr(0,1,0),
                 Pt3di(255,255,255),
-                10* mResol,  // 
-                mResol,  // espacement
+                aLargX* aPasLeg,  //  La largeur des caractere
+                aPasLeg,  // espacement
                 4  // carre de 4x4
             );
 
 
         }
     }
-    mPCLeg.PutFile("CloudResidual_Leg.ply");
+
+    int DensLeg = 20;
+    for (int aCpt= -DensLeg/2 ; aCpt<=((DensLeg*aNbLeg) + DensLeg/2) ; aCpt++)
+    {
+        double aCptN  =  aCpt/double(DensLeg);
+        double aEcartStd =  (aCptN-aNbLeg*0.5) /(0.5+aNbLeg*0.5);
+        Pt3di aCol = ColOfEcart(aEcartStd);
+
+        
+        Pt3dr aPLine  = Pt3dr(aP0.x,aP0.y,aZLeg)+Pt3dr(0,aCptN*aPasLeg*aLargY,0) ; 
+
+        for (int anX=0 ; anX<=DensLeg ; anX++)
+        {
+            Pt3dr aP = aPLine + Pt3dr(-(anX/double(DensLeg))*aPasLeg*aLargY,0,0);
+            mPCLeg.AddPt(aCol,aP);
+        }
+    }
+    mPCLeg.PutFile(aDir+"CloudResidual_Leg.ply");
 
 
 /*
@@ -696,7 +735,7 @@ void cAppliApero::ExportImageResidu()
   }
   fclose(mFileExpImRes);
 
-   mAVGR.DoResidu(aUEIR.NbMesByCase().Val());
+   mAVGR.DoResidu(mDirExportImRes,aUEIR.NbMesByCase().Val());
 
 }
 

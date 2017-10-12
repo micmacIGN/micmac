@@ -1097,6 +1097,7 @@ void cPlyCloud::PutDigit(char aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,doub
     Pt2di aNb = aSz * aNbByCase;
     double aSc = aLargCar / aNb.x;
 
+// std::cout << "PutDigit " << aP0 <<  " " <<  aLargCar << " \n";
 
     Pt2di aP;
     for (aP.x = 0 ; aP.x <aNb.x ; aP.x++)

@@ -1288,6 +1288,19 @@ extern void TestMap2D();
 int MPDtest_main (int argc,char** argv)
 {
     {
+       double aTD0 = 2e9;
+       float  aFT0 = 2e9;
+
+       double aTD1 = aTD0 + 1e-5;
+       float  aFT1 = aFT0 + 1e-5;
+    
+
+       std::cout << "DOUBLE "  <<  aTD1 - aTD0  << " " << aFT1 - aFT0 << "\n";
+
+
+       exit(EXIT_SUCCESS);
+    }
+    {
        TestEllips();
        exit(EXIT_SUCCESS);
     }
