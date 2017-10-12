@@ -197,8 +197,9 @@ S_Appli::S_Appli(int argc, char ** argv )
 void S_Appli::ShowGPS()  
 {
     cDicoGpsFlottant aDico =  StdGetFromPCP(aGpsFile,DicoGpsFlottant);
-    std::list<cOneGpsDGF> &GPS = aDico.OneGpsDGF();
-    for(std::list<cOneGpsDGF>::iterator IT=GPS.begin();IT!=GPS.end();IT++)
+    // std::list<cOneGpsDGF> &GPS = aDico.OneGpsDGF();
+    // for(std::list<cOneGpsDGF>::iterator IT=GPS.begin();IT!=GPS.end();IT++)
+    for(auto IT=aDico.OneGpsDGF().begin();IT!=aDico.OneGpsDGF().end();IT++)
     {
         aGPSList.push_back(IT->Pt());        
      }

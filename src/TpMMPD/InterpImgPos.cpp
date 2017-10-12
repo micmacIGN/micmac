@@ -45,126 +45,74 @@ class cIIP_Appli
 {
 	public :
 		cIIP_Appli(int argc,char ** argv);
-		std::vector<double> GetGps_X_FromFile(std::string GpsFile);
-		std::vector<double> GetGps_Y_FromFile(std::string GpsFile);
-		std::vector<double> GetGps_Z_FromFile(std::string GpsFile);
-		std::vector<double> GetImgTMFromFile(std::string ImgTMFile);
-		std::vector<std::string> GetImgNameFromFile(std::string ImgTMFile);
-		std::vector<double> GetMjdFromGpsFile(std::string GpsFile);
-		void WriteImTmInFile(std::string aOutputNameFile,std::vector<std::string> & aVImName,std::vector<Pt3dr> & aPos,bool aFormat);
-		std::vector<Pt3dr> ConvertAxial2Pos(std::vector<double> aP_x, std::vector<double> aP_y, std::vector<double> aP_z);
-	
+		void WriteImTmInFile(std::string aOutputNameFile,std::vector<Pt3dr> & aPos,bool aFormat);
 	private :
+
+                double ConvertLocTime(const double aT) const
+                {
+                       return (aT-mT0Gps) * mTimeUnit;
+                }
+                Pt3dr   TrajetGps(int aK0,int aK1);
+                Pt3dr   VitesseGps(int aK0,int aK1);
+                double  TempsEcoule(int aK0,int aK1);
+
+                Pt3dr  ToProj(const Pt3dr & aP) const;
+
+
+                int GetIndGpsBefore(double aTime);
 		std::string mDir;
 		std::string mGpsFile;
 		std::string mTMFile;
+
+
+                // Donne reformatees pour spline
+		std::vector<double>        mVX;
+		std::vector<double>        mVY;
+		std::vector<double>        mVZ;
+		std::vector<double>        mVT;
+
+                // Donnees d'entree
+	        cDicoGpsFlottant             mDicoGps;
+                cDicoImgsTime                mDicoIm;
+
+                double                       mT0Gps;
+                double                       mTimeUnit;
+                bool                         mModeSpline;
+                int                          mNbGps;
+                cSysCoord  *                 mSysProj;                  
 };
 
-std::vector<double> cIIP_Appli::GetMjdFromGpsFile(std::string GpsFile)
+
+
+Pt3dr   cIIP_Appli::ToProj(const Pt3dr & aP) const
 {
-	std::vector<double> aVMjdGps;
-	
-	cDicoGpsFlottant aDico = StdGetFromPCP(GpsFile,DicoGpsFlottant);
-	std::list<cOneGpsDGF> aOneGpsDGFList = aDico.OneGpsDGF();
-		
-	for (std::list<cOneGpsDGF>::iterator itP=aOneGpsDGFList.begin(); itP != aOneGpsDGFList.end(); itP ++)
-	{
-		double aMjdGps = itP->TimePt();
-		aVMjdGps.push_back(aMjdGps);
-	}
-	
-	return aVMjdGps;
-	
+    if (! mSysProj) return aP;
+    return mSysProj->FromGeoC(aP);
 }
 
-std::vector<double> cIIP_Appli::GetGps_X_FromFile(std::string GpsFile)
-{
-	std::vector<double> aV_X;
+bool CmpGpsOnTime(const cOneGpsDGF & aGps1,const cOneGpsDGF & aGps2) {return aGps1.TimePt() < aGps2.TimePt() ;}
+bool CmpImOnTime(const cCpleImgTime & aI1,const cCpleImgTime & aI2) {return aI1.TimeIm() < aI2.TimeIm() ;}
 
-    cDicoGpsFlottant aDico = StdGetFromPCP(GpsFile,DicoGpsFlottant);
-	std::list<cOneGpsDGF> aOneGpsDGFList = aDico.OneGpsDGF();
-		
-	for (std::list<cOneGpsDGF>::iterator itP=aOneGpsDGFList.begin(); itP != aOneGpsDGFList.end(); itP ++)
-	{
-		double aPt_x = itP->Pt().x;
-		aV_X.push_back(aPt_x);
-	}
-	
-	return aV_X;
+
+Pt3dr    cIIP_Appli::TrajetGps(int aK0,int aK1)
+{
+    return ToProj(mDicoGps.OneGpsDGF()[aK1].Pt()) - ToProj(mDicoGps.OneGpsDGF()[aK0].Pt());
+}
+double  cIIP_Appli::TempsEcoule(int aK0,int aK1)
+{
+    return (mDicoGps.OneGpsDGF()[aK1].TimePt() - mDicoGps.OneGpsDGF()[aK0].TimePt()) * mTimeUnit;
 }
 
-std::vector<double> cIIP_Appli::GetGps_Y_FromFile(std::string GpsFile)
+Pt3dr    cIIP_Appli::VitesseGps(int aK0,int aK1)
 {
-	std::vector<double> aV_Y;
-
-    cDicoGpsFlottant aDico = StdGetFromPCP(GpsFile,DicoGpsFlottant);
-	std::list<cOneGpsDGF> aOneGpsDGFList = aDico.OneGpsDGF();
-		
-	for (std::list<cOneGpsDGF>::iterator itP=aOneGpsDGFList.begin(); itP != aOneGpsDGFList.end(); itP ++)
-	{
-		double aPt_y = itP->Pt().y;
-		aV_Y.push_back(aPt_y);
-	}
-	
-	return aV_Y;
+    return TrajetGps(aK0,aK1) / TempsEcoule(aK0,aK1);
 }
-
-std::vector<double> cIIP_Appli::GetGps_Z_FromFile(std::string GpsFile)
-{
-	std::vector<double> aV_Z;
-
-    cDicoGpsFlottant aDico = StdGetFromPCP(GpsFile,DicoGpsFlottant);
-	std::list<cOneGpsDGF> aOneGpsDGFList = aDico.OneGpsDGF();
-		
-	for (std::list<cOneGpsDGF>::iterator itP=aOneGpsDGFList.begin(); itP != aOneGpsDGFList.end(); itP ++)
-	{
-		double aPt_z = itP->Pt().z;
-		aV_Z.push_back(aPt_z);
-	}
-	
-	return aV_Z;
-}
-
-std::vector<double> cIIP_Appli::GetImgTMFromFile(std::string ImgTMFile)
-{
-	std::vector<double> aVTMImg;
-	
-	cDicoImgsTime aDico = StdGetFromPCP(ImgTMFile, DicoImgsTime);
-	std::list<cCpleImgTime> aCpleImgTimeList = aDico.CpleImgTime();
-	
-	for (std::list<cCpleImgTime>::iterator itP=aCpleImgTimeList.begin(); itP != aCpleImgTimeList.end(); itP ++)
-	{
-		double aTmImg = itP->TimeIm();
-		aVTMImg.push_back(aTmImg);
-	}
-	
-	return aVTMImg;
-}
-
-std::vector<std::string> cIIP_Appli::GetImgNameFromFile(std::string ImgTMFile)
-{
-	std::vector<std::string> aVImgName;
-	
-	cDicoImgsTime aDico = StdGetFromPCP(ImgTMFile, DicoImgsTime);
-	std::list<cCpleImgTime> aCpleImgTimeList = aDico.CpleImgTime();
-	
-	for (std::list<cCpleImgTime>::iterator itP=aCpleImgTimeList.begin(); itP != aCpleImgTimeList.end(); itP ++)
-	{
-		std::string aImgName = itP->NameIm();
-		aVImgName.push_back(aImgName);
-	}
-	
-	return aVImgName;
-}
-
-
-
-void cIIP_Appli::WriteImTmInFile(
-								std::string aOutputNameFile,
-								std::vector<std::string> & aVImName,
-								std::vector<Pt3dr> & aVPos,
-								bool aFormat
-								)
+void cIIP_Appli::WriteImTmInFile
+     (
+		std::string aOutputNameFile,
+                std::vector<Pt3dr> & aVPos,
+                bool aFormat
+      )
 {
 	 FILE* aCible = NULL;
 	 aCible=fopen(aOutputNameFile.c_str(),"w");
@@ -175,118 +123,202 @@ void cIIP_Appli::WriteImTmInFile(
 		 fprintf(aCible,"%s \n",aFormat.c_str());
 	 }
 	 
-	 for(unsigned int aK=0; aK < aVImName.size() ; aK++)
+         int aK=0;
+         for (auto itI=mDicoIm.CpleImgTime().begin() ; itI!=mDicoIm.CpleImgTime().end() ;itI++,aK++)
 	 {
-		 fprintf(aCible,"%s %.6f %.6f %.6f %.6f %.6f %.6f\n",aVImName.at(aK).c_str(), aVPos.at(aK).x, aVPos.at(aK).y, aVPos.at(aK).z, 0.0, 0.0, 0.0);
+		 fprintf(aCible,"%s %.6f %.6f %.6f %.6f %.6f %.6f\n",itI->NameIm().c_str(), aVPos.at(aK).x, aVPos.at(aK).y, aVPos.at(aK).z, 0.0, 0.0, 0.0);
+
+
+             
 	 }
 	 
 	 fclose(aCible);
-	 
 }
 
 
-std::vector<Pt3dr> cIIP_Appli::ConvertAxial2Pos(std::vector<double> aP_x, std::vector<double> aP_y, std::vector<double> aP_z)
+int cIIP_Appli::GetIndGpsBefore(double aTime)
 {
-	std::vector<Pt3dr> aVPosIm;
-	
-	//check if same size
-	if(aP_x.size() != aP_y.size() || aP_x.size() != aP_z.size() || aP_x.size() != aP_z.size())
-	{
-		ELISE_ASSERT(false,"Note same size for axial components !");
-	}
-	
-	for (unsigned int aK=0; aK < aP_x.size() ; aK++)
-	{
-		Pt3dr aPt;
-		aPt.x = aP_x.at(aK);
-		aPt.y = aP_y.at(aK);
-		aPt.z = aP_z.at(aK);
-		aVPosIm.push_back(aPt);
-	}
-	
-	return aVPosIm;
+     for (int aK=0 ; aK<int(mDicoGps.OneGpsDGF().size()-1) ; aK++)
+     {
+         if (     (mDicoGps.OneGpsDGF()[aK].TimePt()<=aTime)
+              &&  (mDicoGps.OneGpsDGF()[aK+1].TimePt()>aTime)
+            )
+            return aK;
+     }
+     ELISE_ASSERT(false,"cIIP_Appli::GetIndGpsBefore");
+     return -1;
 }
 
-cIIP_Appli::cIIP_Appli(int argc,char ** argv)
+
+cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
+    mTimeUnit (24  * 3600),
+    mModeSpline (true),
+    mSysProj    (0)
 {
-	std::string aOut;
-	bool aAddFormat = false;
+    std::cout.precision(15) ;
+    std::string aOut;
+    bool aAddFormat = false;
+
+    bool mAcceptExtrapol = false;
+
 	
-	ElInitArgMain
+    ElInitArgMain
     (
           argc, argv,
           LArgMain() << EAMC(mDir,"Directory")
 					 << EAMC(mGpsFile, "GPS .xml file trajectory",  eSAM_IsExistFile)
 					 << EAMC(mTMFile, "Image TimeMark .xml file",  eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"Name Output File ; Def = GPSFileName-TMFileName.txt")
-					 << EAM(aAddFormat,"Format",false,"Add File Format at the begining fo the File ; Def #F=N_X_Y_Z_W_P_K",eSAM_IsBool)
+                     << EAM(aAddFormat,"Format",false,"Add File Format at the begining fo the File ; Def #F=N_X_Y_Z_W_P_K",eSAM_IsBool)
+                     << EAM(mTimeUnit,"TimeU",false,"Unity for input time, def = 1 Day ")
+                     << EAM(mModeSpline,"ModeSpline",false,"Interpolation spline, def=true ")
     );
-     
-    //read .xml GPS trajectory file
-	std::vector<double> aTraj_X_Gps = GetGps_X_FromFile(mGpsFile);
-	std::vector<double> aTraj_Y_Gps = GetGps_Y_FromFile(mGpsFile);
-	std::vector<double> aTraj_Z_Gps = GetGps_Z_FromFile(mGpsFile);
-	std::vector<double> aTraj_MJD_Gps = GetMjdFromGpsFile(mGpsFile);
-	
-	//read .xml Images TimeMark file
-	std::vector<double> aTMImgs = GetImgTMFromFile(mTMFile);
-	
-	printf("****************************************************************\n");
-	printf("Gps_MJD[0] = %lf\n", aTraj_MJD_Gps.at(0));  
-	printf("Gps_MJD[end] = %lf\n", aTraj_MJD_Gps.at(aTraj_MJD_Gps.size()-1));
-	printf("****************************************************************\n");
-	printf("****************************************************************\n");
-	printf("Img_MJD[0] = %lf\n", aTMImgs.at(0));
-	printf("Img_MJD[end] = %lf\n", aTMImgs.at(aTMImgs.size()-1));
-	printf("****************************************************************\n");
-	
-	//check if intervals make sense
-	if(aTMImgs.at(0) < aTraj_MJD_Gps.at(0))
-	{
-		ELISE_ASSERT(false,"First image TM starts before GPS Traj !");
-	}
-	else if(aTMImgs.at(aTMImgs.size()-1) > aTraj_MJD_Gps.at(aTraj_MJD_Gps.size()-1))
-	{
-		ELISE_ASSERT(false,"Last image TM ends after GPS Traj !");
-	}
-	else
-	{
-		//make interpolation
-		tk::spline aS_x;
-		tk::spline aS_y;
-		tk::spline aS_z;
-			
-		aS_x.set_points(aTraj_MJD_Gps,aTraj_X_Gps);
-		aS_y.set_points(aTraj_MJD_Gps,aTraj_Y_Gps);
-		aS_z.set_points(aTraj_MJD_Gps,aTraj_Z_Gps);
-			
-		std::vector<double> aImgPos_X;
-		std::vector<double> aImgPos_Y;
-		std::vector<double> aImgPos_Z;
-		
-		for (unsigned int aK=0; aK<aTMImgs.size(); aK++)
-		{
-			double aVal_x = aS_x(aTMImgs.at(aK));
-			double aVal_y = aS_y(aTMImgs.at(aK));
-			double aVal_z = aS_z(aTMImgs.at(aK));
-			
-			aImgPos_X.push_back(aVal_x);
-			aImgPos_Y.push_back(aVal_y);
-			aImgPos_Z.push_back(aVal_z);
-		}
-		
-		if(aOut=="")
-		{
-			aOut=StdPrefixGen(mGpsFile) + "-" + StdPrefixGen(mTMFile) + ".txt";
-		}
-		
-		//generate a txt file to use with oriconvert for example
-		std::vector<std::string> aVImNames = GetImgNameFromFile(mTMFile);
-		
-		std::vector<Pt3dr> aVPosImgs = ConvertAxial2Pos(aImgPos_X,aImgPos_Y,aImgPos_Z);
 
-		WriteImTmInFile(aOut,aVImNames,aVPosImgs,aAddFormat);
+    if( ! EAMIsInit(&aOut))
+    {
+         aOut=StdPrefixGen(mGpsFile) + "-" + StdPrefixGen(mTMFile) + ".txt";
+    }
+
+       //    static cSysCoord * RTL(const Pt3dr & Ori);
+
+        // Lecture Xml entree
+
+
+        mDicoGps = StdGetFromPCP(mGpsFile,DicoGpsFlottant);
+        mDicoIm = StdGetFromPCP(mTMFile,DicoImgsTime);
+ 
+        mNbGps = mDicoGps.OneGpsDGF().size();
+        
+        // Etre sur que les dates sont croissante
+        std::sort(mDicoGps.OneGpsDGF().begin(),mDicoGps.OneGpsDGF().end(),CmpGpsOnTime);
+        std::sort(mDicoIm.CpleImgTime().begin(),mDicoIm.CpleImgTime().end(),CmpImOnTime);
+
+        ELISE_ASSERT(mDicoGps.OneGpsDGF().size() !=0,"Empty size");
+
+        mT0Gps = floor(mDicoGps.OneGpsDGF().front().TimePt());
+        if (1)
+           mSysProj = cSysCoord::RTL(mDicoGps.OneGpsDGF().front().Pt());
+
+        // Formatage pour la Bb spline
+        for (auto itG=mDicoGps.OneGpsDGF().begin() ; itG!=mDicoGps.OneGpsDGF().end() ;itG++)
+        {
+             // itG->TimePt()  = ConvertLocTime(itG->TimePt());
+             mVX.push_back(itG->Pt().x);
+             mVY.push_back(itG->Pt().y);
+             mVZ.push_back(itG->Pt().z);
+             mVT.push_back(itG->TimePt());
+        }
+
+        // Affichage interval + verif Img inclus ds Gps si pas d'extrapolation
+        {
+            double aT0Gps = mDicoGps.OneGpsDGF().front().TimePt();
+            double aTNGps = mDicoGps.OneGpsDGF().back().TimePt();
+            double aT0Im  = mDicoIm.CpleImgTime().front().TimeIm();
+            double aTNIm  = mDicoIm.CpleImgTime().back().TimeIm();
+	    printf("****************************************************************\n");
+	    printf("Gps_MJD[0] = %lf LocSec=%lf \n",  aT0Gps,ConvertLocTime(aT0Gps));  
+	    printf("Gps_MJD[end] = %lf LocSec=%lf \n",aTNGps,ConvertLocTime(aTNGps) );
+	    printf("****************************************************************\n");
+	    printf("****************************************************************\n");
+	    printf("Img_MJD[0] = %lf LocSec=%lf \n",aT0Im,ConvertLocTime(aT0Im));
+	    printf("Img_MJD[end] = %lf LocSec=%lf \n",aTNIm,ConvertLocTime(aTNIm));
+	    printf("****************************************************************\n");
+
+
+            if (! mAcceptExtrapol)
+            {
+		ELISE_ASSERT(aT0Im>=aT0Gps,"First image TM starts before GPS Traj !");
+		ELISE_ASSERT(aTNIm<=aTNGps,"Last image TM ends after GPS Traj !");
+            }
+
+            // Test epsilon machine sur les grandeur utilisees
+            if (0)
+            {
+                double aEps = 1.0;
+                while (aT0Gps != (aT0Gps+aEps))
+                      aEps *= 0.9;
+
+                std::cout << "Epsilon time = " << aEps << "\n";
+            }
+
+        }
+
+        if (mModeSpline)
+	{
+           //make interpolation
+           tk::spline aS_x;
+           tk::spline aS_y;
+           tk::spline aS_z;
+			
+           aS_x.set_points(mVT,mVX);
+           aS_y.set_points(mVT,mVY);
+           aS_z.set_points(mVT,mVZ);
+		
+           std::vector<Pt3dr> aVPtIm;
+           for (auto itI=mDicoIm.CpleImgTime().begin() ; itI!=mDicoIm.CpleImgTime().end() ;itI++)
+           {
+                double aTimeI = itI->TimeIm();
+                Pt3dr  aPtIm (aS_x(aTimeI),aS_y(aTimeI),aS_z(aTimeI));
+                aVPtIm.push_back(aPtIm);
+           }
+	   WriteImTmInFile(aOut,aVPtIm,aAddFormat);
 	}
+        else
+        {
+           //cPlyCloud
+           for (auto itI=mDicoIm.CpleImgTime().begin() ; itI!=mDicoIm.CpleImgTime().end() ;itI++)
+           {
+                Pt3dr anInc(-1,-1,-1);
+                Pt3dr aPos (0,0,0);
+
+                double aTime = itI->TimeIm();
+                int aK = GetIndGpsBefore(aTime);
+                const cOneGpsDGF & aGpsAv = mDicoGps.OneGpsDGF()[aK];
+                const cOneGpsDGF & aGpsAp = mDicoGps.OneGpsDGF()[aK+1];
+                double aTGpsAv = aGpsAv.TimePt();
+                double aTGpsAp = aGpsAp.TimePt();
+
+                if ( (aK<=2) || (aK>= (mNbGps-4)))
+                {
+                     double aPdsAv = (aTGpsAp-aTime) / (aTGpsAp-aTGpsAv);
+                     aPos = aGpsAv.Pt() *aPdsAv + aGpsAp.Pt() * (1-aPdsAv);
+                }
+                else
+                {
+                    bool Nav =  (ElAbs(aTime-aTGpsAv) < ElAbs(aTime-aTGpsAp)) ;
+                    int aNK1 =  Nav  ? aK : (aK+1) ; // Nearest K
+                    int aNK0 = aNK1-1;
+                    int aNK2 = aNK1+1;
+
+                    Pt3dr aV01 = VitesseGps(aNK0,aNK1);
+                    Pt3dr aV12 = VitesseGps(aNK1,aNK2);
+                    // const cOneGpsDGF & aGps0  = mDicoGps.OneGpsDGF()[aNK0];
+                    // const cOneGpsDGF & aGps1  = mDicoGps.OneGpsDGF()[aNK1];
+
+                    Pt3dr  aDV = (aV12-aV01);
+                    double aDT = ElAbs(aTime - mDicoGps.OneGpsDGF()[aNK1].TimePt()) * mTimeUnit;
+                    anInc = Pt3dr(ElAbs(aDV.x),ElAbs(aDV.y),ElAbs(aDV.z)) * aDT;
+
+                    Pt3dr aGpsI = Sup( mDicoGps.OneGpsDGF()[aK].Incertitude(),
+                                         mDicoGps.OneGpsDGF()[aK+1].Incertitude());
+
+                    anInc = Pt3dr
+                            (
+                                  sqrt(ElSquare(anInc.x)+ElSquare(aGpsI.x)),
+                                  sqrt(ElSquare(anInc.y)+ElSquare(aGpsI.y)),
+                                  sqrt(ElSquare(anInc.z)+ElSquare(aGpsI.z))
+                            );
+
+                    std::cout.precision(8);
+                    std::cout <<  ConvertLocTime(aTime) << " => " << aK  << " Inc " 
+                              << euclid(anInc) << " Dt=" << aDT << "\n";
+/*
+*/
+                }
+                // std::cout << setprecision(15) << ConvertLocTime(aTime) << " => " << aK << "\n";
+
+           }
+        }
 }
 
 

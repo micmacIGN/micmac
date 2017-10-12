@@ -2268,10 +2268,10 @@ class cDicoImgsTime
         friend void xml_init(cDicoImgsTime & anObj,cElXMLTree * aTree);
 
 
-        std::list< cCpleImgTime > & CpleImgTime();
-        const std::list< cCpleImgTime > & CpleImgTime()const ;
+        std::vector< cCpleImgTime > & CpleImgTime();
+        const std::vector< cCpleImgTime > & CpleImgTime()const ;
     private:
-        std::list< cCpleImgTime > mCpleImgTime;
+        std::vector< cCpleImgTime > mCpleImgTime;
 };
 cElXMLTree * ToXMLTree(const cDicoImgsTime &);
 
@@ -2332,10 +2332,10 @@ class cDicoGpsFlottant
         friend void xml_init(cDicoGpsFlottant & anObj,cElXMLTree * aTree);
 
 
-        std::list< cOneGpsDGF > & OneGpsDGF();
-        const std::list< cOneGpsDGF > & OneGpsDGF()const ;
+        std::vector< cOneGpsDGF > & OneGpsDGF();
+        const std::vector< cOneGpsDGF > & OneGpsDGF()const ;
     private:
-        std::list< cOneGpsDGF > mOneGpsDGF;
+        std::vector< cOneGpsDGF > mOneGpsDGF;
 };
 cElXMLTree * ToXMLTree(const cDicoGpsFlottant &);
 
@@ -7663,6 +7663,7 @@ typedef enum
   eCmf_TiePoints,
   eCmf_ImMatch,
   eCmf_Map2D,
+  eCmf_TrajGnss,
   eCmf_NbVals
 } eCmdMM_Feature;
 void xml_init(eCmdMM_Feature & aVal,cElXMLTree * aTree);

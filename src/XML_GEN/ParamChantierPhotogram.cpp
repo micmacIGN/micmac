@@ -6535,12 +6535,12 @@ void xml_init(cCpleImgTime & anObj,cElXMLTree * aTree)
 std::string  Mangling( cCpleImgTime *) {return "3983A3244BD3F380FDBF";};
 
 
-std::list< cCpleImgTime > & cDicoImgsTime::CpleImgTime()
+std::vector< cCpleImgTime > & cDicoImgsTime::CpleImgTime()
 {
    return mCpleImgTime;
 }
 
-const std::list< cCpleImgTime > & cDicoImgsTime::CpleImgTime()const 
+const std::vector< cCpleImgTime > & cDicoImgsTime::CpleImgTime()const 
 {
    return mCpleImgTime;
 }
@@ -6561,7 +6561,7 @@ void  BinaryUnDumpFromFile(cDicoImgsTime & anObj,ELISE_fp & aFp)
 void  BinaryDumpInFile(ELISE_fp & aFp,const cDicoImgsTime & anObj)
 {
     BinaryDumpInFile(aFp,(int)anObj.CpleImgTime().size());
-    for(  std::list< cCpleImgTime >::const_iterator iT=anObj.CpleImgTime().begin();
+    for(  std::vector< cCpleImgTime >::const_iterator iT=anObj.CpleImgTime().begin();
          iT!=anObj.CpleImgTime().end();
           iT++
     )
@@ -6573,7 +6573,7 @@ cElXMLTree * ToXMLTree(const cDicoImgsTime & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"DicoImgsTime",eXMLBranche);
   for
-  (       std::list< cCpleImgTime >::const_iterator it=anObj.CpleImgTime().begin();
+  (       std::vector< cCpleImgTime >::const_iterator it=anObj.CpleImgTime().begin();
       it !=anObj.CpleImgTime().end();
       it++
   ) 
@@ -6591,7 +6591,7 @@ void xml_init(cDicoImgsTime & anObj,cElXMLTree * aTree)
    xml_init(anObj.CpleImgTime(),aTree->GetAll("CpleImgTime",false,1));
 }
 
-std::string  Mangling( cDicoImgsTime *) {return "F6510E9501996A87FE3F";};
+std::string  Mangling( cDicoImgsTime *) {return "F216D6196685EFE8FE3F";};
 
 
 Pt3dr & cOneGpsDGF::Pt()
@@ -6699,12 +6699,12 @@ void xml_init(cOneGpsDGF & anObj,cElXMLTree * aTree)
 std::string  Mangling( cOneGpsDGF *) {return "20235A6E7B4562C4F93F";};
 
 
-std::list< cOneGpsDGF > & cDicoGpsFlottant::OneGpsDGF()
+std::vector< cOneGpsDGF > & cDicoGpsFlottant::OneGpsDGF()
 {
    return mOneGpsDGF;
 }
 
-const std::list< cOneGpsDGF > & cDicoGpsFlottant::OneGpsDGF()const 
+const std::vector< cOneGpsDGF > & cDicoGpsFlottant::OneGpsDGF()const 
 {
    return mOneGpsDGF;
 }
@@ -6725,7 +6725,7 @@ void  BinaryUnDumpFromFile(cDicoGpsFlottant & anObj,ELISE_fp & aFp)
 void  BinaryDumpInFile(ELISE_fp & aFp,const cDicoGpsFlottant & anObj)
 {
     BinaryDumpInFile(aFp,(int)anObj.OneGpsDGF().size());
-    for(  std::list< cOneGpsDGF >::const_iterator iT=anObj.OneGpsDGF().begin();
+    for(  std::vector< cOneGpsDGF >::const_iterator iT=anObj.OneGpsDGF().begin();
          iT!=anObj.OneGpsDGF().end();
           iT++
     )
@@ -6737,7 +6737,7 @@ cElXMLTree * ToXMLTree(const cDicoGpsFlottant & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"DicoGpsFlottant",eXMLBranche);
   for
-  (       std::list< cOneGpsDGF >::const_iterator it=anObj.OneGpsDGF().begin();
+  (       std::vector< cOneGpsDGF >::const_iterator it=anObj.OneGpsDGF().begin();
       it !=anObj.OneGpsDGF().end();
       it++
   ) 
@@ -6755,7 +6755,7 @@ void xml_init(cDicoGpsFlottant & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneGpsDGF(),aTree->GetAll("OneGpsDGF",false,1));
 }
 
-std::string  Mangling( cDicoGpsFlottant *) {return "1AE5BDDB27CEC480FD3F";};
+std::string  Mangling( cDicoGpsFlottant *) {return "AA5686ABDAE3EFE7FE3F";};
 
 
 std::string & cOneModifIPF::KeyName()
@@ -23582,6 +23582,8 @@ eCmdMM_Feature  Str2eCmdMM_Feature(const std::string & aName)
       return eCmf_ImMatch;
    else if (aName=="eCmf_Map2D")
       return eCmf_Map2D;
+   else if (aName=="eCmf_TrajGnss")
+      return eCmf_TrajGnss;
    else if (aName=="eCmf_NbVals")
       return eCmf_NbVals;
   else
@@ -23617,6 +23619,8 @@ std::string  eToString(const eCmdMM_Feature & anObj)
       return  "eCmf_ImMatch";
    if (anObj==eCmf_Map2D)
       return  "eCmf_Map2D";
+   if (anObj==eCmf_TrajGnss)
+      return  "eCmf_TrajGnss";
    if (anObj==eCmf_NbVals)
       return  "eCmf_NbVals";
  std::cout << "Enum = eCmdMM_Feature\n";
@@ -23641,7 +23645,7 @@ void  BinaryUnDumpFromFile(eCmdMM_Feature & anObj,ELISE_fp & aFp)
    anObj=(eCmdMM_Feature) aIVal;
 }
 
-std::string  Mangling( eCmdMM_Feature *) {return "3EAF1F83E8493494FE3F";};
+std::string  Mangling( eCmdMM_Feature *) {return "29DE526E46DD9CF9FD3F";};
 
 eCmdMM_DataType  Str2eCmdMM_DataType(const std::string & aName)
 {
@@ -24154,7 +24158,7 @@ void xml_init(cXml_Specif1MMCmd & anObj,cElXMLTree * aTree)
    xml_init(anObj.UsedBy(),aTree->GetAll("UsedBy",false,1));
 }
 
-std::string  Mangling( cXml_Specif1MMCmd *) {return "03F72FDC52B3C8A1FF3F";};
+std::string  Mangling( cXml_Specif1MMCmd *) {return "EB9D5EC5593ED8A1FF3F";};
 
 
 std::list< cXml_Specif1MMCmd > & cXml_SpecifAllMMCmd::OneCmd()
@@ -24213,6 +24217,6 @@ void xml_init(cXml_SpecifAllMMCmd & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneCmd(),aTree->GetAll("OneCmd",false,1));
 }
 
-std::string  Mangling( cXml_SpecifAllMMCmd *) {return "DCA36E57ABCD1ED5FDBF";};
+std::string  Mangling( cXml_SpecifAllMMCmd *) {return "20390C65F56AF2DEFB3F";};
 
 // };

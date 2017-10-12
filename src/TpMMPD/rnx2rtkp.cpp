@@ -562,8 +562,9 @@ int rnx2rtkp_main(int argc,char ** argv)
 			}
 			else
 			{
-				std::list <cOneGpsDGF> & aVPS = aStationFile.OneGpsDGF();
-				for(std::list<cOneGpsDGF>::iterator iT=aVPS.begin(); iT!=aVPS.end(); iT++)
+				// std::list <cOneGpsDGF> & aVPS = aStationFile.OneGpsDGF();
+				// for(std::list<cOneGpsDGF>::iterator iT=aVPS.begin(); iT!=aVPS.end(); iT++)
+				for(auto iT=aStationFile.OneGpsDGF().begin(); iT!=aStationFile.OneGpsDGF().end(); iT++)
 				{
 					aAnt2Pos.x = iT->Pt().x;
 					aAnt2Pos.y = iT->Pt().y;
