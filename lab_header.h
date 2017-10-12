@@ -62,7 +62,7 @@ float  cubeRoot( float value )
 }
 
 /* ************************************************************************** */
-float cvCbrt(float value) { return cubeRoot(value); }
+float Cbrt(float value) { return cubeRoot(value); }
 /* ************************************************************************** */
 
 
@@ -76,7 +76,7 @@ enum
 
 ///////////////////////////////////// RGB <-> L*a*b* /////////////////////////////////////
 #include <limits>
-#define  CV_DESCALE(x,n) (((x) + (1 << ((n)-1))) >> (n))
+#define  dscl(x,n) (((x) + (1 << ((n)-1))) >> (n))
 static const float D65[] = { 0.950456f, 1.f, 1.088754f };
 
 enum { LAB_CBRT_TAB_SIZE = 1024, GAMMA_TAB_SIZE = 1024 };
@@ -152,7 +152,7 @@ static void initLabTabs()
         for(i = 0; i <= LAB_CBRT_TAB_SIZE; i++)
         {
             float x = i*scale;
-            f[i] = x < 0.008856f ? x*7.787f + 0.13793103448275862f : cvCbrt(x);
+            f[i] = x < 0.008856f ? x*7.787f + 0.13793103448275862f : Cbrt(x);
         }
         splineBuild(f, LAB_CBRT_TAB_SIZE, LabCbrtTab);
 
@@ -176,7 +176,7 @@ static void initLabTabs()
         for(i = 0; i < LAB_CBRT_TAB_SIZE_B; i++)
         {
             float x = i*(1.f/(255.f*(1 << gamma_shift)));
-            LabCbrtTab_b[i] = saturate_cast<u_short>((1 << lab_shift2)*(x < 0.008856f ? x*7.787f + 0.13793103448275862f : cvCbrt(x)));
+            LabCbrtTab_b[i] = saturate_cast<u_short>((1 << lab_shift2)*(x < 0.008856f ? x*7.787f + 0.13793103448275862f : Cbrt(x)));
         }
         initialized = true;
     }
@@ -236,13 +236,13 @@ struct RGB2Lab_b
             Pt2di Loc(i,j);
             int R = tab[srcR->GetI(Loc)], G = tab[srcG->GetI(Loc)], B = tab[srcB->GetI(Loc)];
            // std::cout<<R<<" "<<G<<" "<<B<<"\n";
-            int fX = LabCbrtTab_b[CV_DESCALE(R*C0 + G*C1 + B*C2, lab_shift)];
-            int fY = LabCbrtTab_b[CV_DESCALE(R*C3 + G*C4 + B*C5, lab_shift)];
-            int fZ = LabCbrtTab_b[CV_DESCALE(R*C6 + G*C7 + B*C8, lab_shift)];
+            int fX = LabCbrtTab_b[dscl(R*C0 + G*C1 + B*C2, lab_shift)];
+            int fY = LabCbrtTab_b[dscl(R*C3 + G*C4 + B*C5, lab_shift)];
+            int fZ = LabCbrtTab_b[dscl(R*C6 + G*C7 + B*C8, lab_shift)];
 
-            int L = CV_DESCALE( Lscale*fY + Lshift, lab_shift2 );
-            int a = CV_DESCALE( 500*(fX - fY) + 128*(1 << lab_shift2), lab_shift2 );
-            int b = CV_DESCALE( 200*(fY - fZ) + 128*(1 << lab_shift2), lab_shift2 );
+            int L = dscl( Lscale*fY + Lshift, lab_shift2 );
+            int a = dscl( 500*(fX - fY) + 128*(1 << lab_shift2), lab_shift2 );
+            int b = dscl( 200*(fY - fZ) + 128*(1 << lab_shift2), lab_shift2 );
 
            dstL->SetI(Loc,saturate_cast<u_char>(L));
            dsta->SetI(Loc,saturate_cast<u_char>(a));
