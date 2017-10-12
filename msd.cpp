@@ -363,8 +363,6 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
                         continue;
 
                     acc[ctrInd] = 0;
-                    // Declaring values to compute NCC
-
 
                     a=0;b=0;ab=0;a_2=0;b_2=0;
 
@@ -660,7 +658,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
                                 kp_temp.setPointx( Pout.x * std::pow(m_scale_factor, r));
                                 kp_temp.setPointy( Pout.y * std::pow(m_scale_factor, r));
                                 kp_temp.setResponse(saliency[r][j*cW + i]);
-                                kp_temp.setSize(/*(m_patch_radius*2.0f + 1) **/ std::pow(m_scale_factor, r));
+                                kp_temp.setSize((m_patch_radius*2.0f + 1) * std::pow(m_scale_factor, r));
 
                                 if (m_compute_orientation)
                                 {
@@ -673,7 +671,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
                                 kp_temp.setPointx( i * std::pow(m_scale_factor, r));
                                 kp_temp.setPointy( j * std::pow(m_scale_factor, r));
                                 kp_temp.setResponse(saliency[r][j*cW + i]);
-                                kp_temp.setSize(/*(m_patch_radius*2.0f + 1) **/ std::pow(m_scale_factor, r));
+                                kp_temp.setSize((m_patch_radius*2.0f + 1) * std::pow(m_scale_factor, r));
 
                                 if (m_compute_orientation)
                                      {

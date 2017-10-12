@@ -2,7 +2,7 @@
 #include "Keypoint.h"
 
 
-KeyPoint::KeyPoint(Pt2df P, float size, float response, float angle)
+KeyPoint::KeyPoint(Pt2df P, float size, float angle, float response)
 {
     m_Point.x=P.x;
     m_Point.y=P.y;
@@ -11,7 +11,7 @@ KeyPoint::KeyPoint(Pt2df P, float size, float response, float angle)
     m_response=response;
 }
 
-KeyPoint::KeyPoint(float x, float y, float size, float response, float angle)
+KeyPoint::KeyPoint(float x, float y, float size, float angle, float response)
 {
     m_Point.x=x;
     m_Point.y=y;

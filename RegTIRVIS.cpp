@@ -61,7 +61,7 @@ void DisplayVector(std::vector<tData> V)
 
 
 /*********************************************************/
-//Check if and index is with range
+//Check if and index is within range
 
 bool WithinLimits(uint index, vector<KeyPoint> Kps)
 {
@@ -177,6 +177,8 @@ void wallis( Im2D<U_INT1,INT> &image, Im2D<U_INT1,INT> &WallEqIm)
     int n = image.sz().x;
     int m = image.sz().y;
 
+    std::cout<<"Image size "<<n<<"   "<<m<<endl;
+
     // Block dimension in i and j
     int dim_n = 40, dim_m = 40;
 
@@ -255,7 +257,7 @@ void wallis( Im2D<U_INT1,INT> &image, Im2D<U_INT1,INT> &WallEqIm)
     cout <<"Coeff_R1"<<	Coeff_R1.sz() <<endl;
     // computing mean and standard deviation in every (dim_n*dim_m) window
 
-    //je ne sais pas qu'est ce que ça fait
+    //
     Symb_FNum aTF=Rconv(image.in());
 
 
@@ -381,7 +383,7 @@ void Migrate2Lab2wallis(Tiff_Im &image, Im2D<U_INT1,INT> & Output)
    Im2D<U_INT1,INT> IMAGE_GR(image.sz().x,image.sz().y);
    ELISE_COPY(
                IMAGE_GR.all_pts(),
-               (mImgRo->in()+mImgGo->in()+mImgBo->in())/3.0,
+               (mImgRo->in()+mImgGo->in()+mImgBo->in())/3.0, // or take only the lightness component
                 IMAGE_GR.out()
                );
 
@@ -539,7 +541,7 @@ void Readkeypoints(std::vector<KeyPoint> &Kps, string file)
         //std::cout<<"File has been read\n";
         //std::cout<<aNb<<"\n";
         ELISE_ASSERT(aNb==4,"Could not read: Format:x y scale orientation ");
-        KeyPoint KP(aPIm,scale,angle,0.0);
+        KeyPoint KP(aPIm,scale,angle,0.0); // Orientations given by the MSD detector are ambiguous (angle =0.0)
         Kps.push_back(KP);
     }
 }
@@ -874,8 +876,8 @@ int RegTIRVIS_main( int argc, char ** argv )
              // std::cout<<"Before wallis \n";
               Migrate2Lab2wallis(ImageV,LabWImageV);
 
-              //store image1525:5
-            /*  ELISE_COPY
+              //store image
+              ELISE_COPY
               (
                   LabWImageV.all_pts(),
                   LabWImageV.in(),
@@ -886,7 +888,7 @@ int RegTIRVIS_main( int argc, char ** argv )
                       Tiff_Im::No_Compr,
                       Tiff_Im::BlackIsZero,
                       Tiff_Im::Empty_ARG ).out()
-              );*/
+              );
 
 
               //std::cout<<"after wallis and lab\n";
@@ -900,9 +902,10 @@ int RegTIRVIS_main( int argc, char ** argv )
                   DP.x=aKp->getPoint().x;
                   DP.y=aKp->getPoint().y;
                   REAL8  descriptor[DIGEO_DESCRIPTOR_SIZE];
-                  DP.addDescriptor(aKp->getAngle());
+                  DP.addDescriptor(0.0); // Add 0 angle
                   SIFTV.describe(DP.x,DP.y,aKp->getSize(),DP.angle(0),descriptor);
                   SIFTV.normalize_and_truncate(descriptor);
+                  //std::cout<<"Descp   "<<descriptor[50]<<endl;
                   DP.addDescriptor(descriptor);
                   ListV.push_back(DP);
               }
@@ -931,7 +934,19 @@ int RegTIRVIS_main( int argc, char ** argv )
               }
               Im2D<U_INT1,INT> LabWImageTh=Im2D<U_INT1,INT>(ImageTh.sz().x,ImageTh.sz().y);
               Migrate2Lab2wallis(ImageTh,LabWImageTh);
-
+              //store image
+             /* ELISE_COPY
+              (
+                  LabWImageTh.all_pts(),
+                  LabWImageTh.in(),
+                  Tiff_Im(
+                      "LabWThermal.tif",
+                      LabWImageTh.sz(),
+                      GenIm::u_int1,
+                      Tiff_Im::No_Compr,
+                      Tiff_Im::BlackIsZero,
+                      Tiff_Im::Empty_ARG ).out()
+              );*/
               DescriptorExtractor<U_INT1,INT> SIFTTh=DescriptorExtractor<U_INT1,INT>(LabWImageTh);
               vector<DigeoPoint> ListTh;
 
@@ -942,9 +957,10 @@ int RegTIRVIS_main( int argc, char ** argv )
                   DP.x=aKp->getPoint().x;
                   DP.y=aKp->getPoint().y;
                   REAL8  descriptor[DIGEO_DESCRIPTOR_SIZE];
-                  DP.addDescriptor(aKp->getAngle());
+                  DP.addDescriptor(0.0);// add 0 angle
                   SIFTTh.describe(DP.x,DP.y,aKp->getSize(),DP.angle(0),descriptor);
                   SIFTTh.normalize_and_truncate(descriptor);
+                  //std::cout<<"Descp   "<<descriptor[50]<<endl;
                   DP.addDescriptor(descriptor);
                   ListTh.push_back(DP);
               }
