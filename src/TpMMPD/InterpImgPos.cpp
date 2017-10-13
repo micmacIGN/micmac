@@ -45,7 +45,7 @@ class cIIP_Appli
 {
 	public :
 		cIIP_Appli(int argc,char ** argv);
-		void WriteImTmInFile(std::string aOutputNameFile,std::vector<Pt3dr> & aPos,bool aFormat);
+		void WriteImTmInFile(std::string aOutputNameFile,const std::vector<Pt3dr> & aPos,const std::vector<Pt3dr> & aVInc,bool aFormat);
 	private :
 
                 double ConvertLocTime(const double aT) const
@@ -57,6 +57,13 @@ class cIIP_Appli
                 double  TempsEcoule(int aK0,int aK1);
 
                 Pt3dr  ToProj(const Pt3dr & aP) const;
+                Pt3dr GpsInc(int aK) const;
+
+                // Remet l'indice dans le bon intervalle
+                const cOneGpsDGF & GpsSafe(int aK) const
+                {
+                    return mDicoGps.OneGpsDGF().at(ElMax(0,ElMin(aK,int(mDicoGps.OneGpsDGF().size()-1))));
+                }
 
 
                 int GetIndGpsBefore(double aTime);
@@ -80,9 +87,16 @@ class cIIP_Appli
                 bool                         mModeSpline;
                 int                          mNbGps;
                 cSysCoord  *                 mSysProj;                  
+                bool                         mWithWPK;
+                bool                         mWithInc;
+                bool                         mWithIncVitesse;
 };
 
 
+Pt3dr  cIIP_Appli::GpsInc(int aK) const
+{
+  return  Sup(GpsSafe(aK).Incertitude(),GpsSafe(aK+1).Incertitude());
+}
 
 Pt3dr   cIIP_Appli::ToProj(const Pt3dr & aP) const
 {
@@ -110,7 +124,8 @@ Pt3dr    cIIP_Appli::VitesseGps(int aK0,int aK1)
 void cIIP_Appli::WriteImTmInFile
      (
 		std::string aOutputNameFile,
-                std::vector<Pt3dr> & aVPos,
+                const std::vector<Pt3dr> & aVPos,
+                const std::vector<Pt3dr> & aVInc,
                 bool aFormat
       )
 {
@@ -119,14 +134,21 @@ void cIIP_Appli::WriteImTmInFile
 	 
 	 if(aFormat)
 	 {
-		 std::string aFormat = "#F=N_X_Y_Z_W_P_K";
-		 fprintf(aCible,"%s \n",aFormat.c_str());
+	      std::string aFormat = "#F=N_X_Y_Z";
+              if (mWithWPK) aFormat +=  "_W_P_K";
+              if (mWithInc) aFormat +=  "_Ix_Iy_Iz";
+              fprintf(aCible,"%s \n",aFormat.c_str());
 	 }
 	 
          int aK=0;
          for (auto itI=mDicoIm.CpleImgTime().begin() ; itI!=mDicoIm.CpleImgTime().end() ;itI++,aK++)
 	 {
-		 fprintf(aCible,"%s %.6f %.6f %.6f %.6f %.6f %.6f\n",itI->NameIm().c_str(), aVPos.at(aK).x, aVPos.at(aK).y, aVPos.at(aK).z, 0.0, 0.0, 0.0);
+		 fprintf(aCible,"%s %.6f %.6f %.6f",itI->NameIm().c_str(), aVPos.at(aK).x, aVPos.at(aK).y, aVPos.at(aK).z);
+                 if (mWithWPK) 
+		     fprintf(aCible," %.6f %.6f %.6f", 0.0, 0.0, 0.0);
+                 if (mWithInc) 
+		     fprintf(aCible," %.6f %.6f %.6f", aVInc.at(aK).x,aVInc.at(aK).y,aVInc.at(aK).z);
+		 fprintf(aCible,"\n");
 
 
              
@@ -153,13 +175,17 @@ int cIIP_Appli::GetIndGpsBefore(double aTime)
 cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
     mTimeUnit (24  * 3600),
     mModeSpline (true),
-    mSysProj    (0)
+    mSysProj    (0),
+    mWithWPK    (false),
+    mWithInc    (true),
+    mWithIncVitesse    (true)
 {
     std::cout.precision(15) ;
     std::string aOut;
     bool aAddFormat = false;
 
     bool mAcceptExtrapol = false;
+    std::string mPatNamePly;
 
 	
     ElInitArgMain
@@ -172,7 +198,23 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
                      << EAM(aAddFormat,"Format",false,"Add File Format at the begining fo the File ; Def #F=N_X_Y_Z_W_P_K",eSAM_IsBool)
                      << EAM(mTimeUnit,"TimeU",false,"Unity for input time, def = 1 Day ")
                      << EAM(mModeSpline,"ModeSpline",false,"Interpolation spline, def=true ")
+                     << EAM(mPatNamePly,"PatNamePly",false,"Pattern name for Ply")
+                     << EAM(mWithWPK,"WithAngle",false,"Generate fake angle ")
+                     << EAM(mWithIncVitesse,"SpeedInc",false,"Use speed variation in uncertainty estimation ")
     );
+
+std::cout << "WPPPKK " <<  EAMIsInit(&mWithWPK) << " " << mWithWPK << "\n";
+
+    if (! EAMIsInit(&mWithWPK))
+       mWithWPK = mModeSpline;
+
+std::cout << "WPPPKK " <<  EAMIsInit(&mWithWPK) << " " << mWithWPK << "\n";
+
+
+    if (! EAMIsInit(&aAddFormat))
+       aAddFormat = ! mModeSpline;
+
+    bool mExportPly=EAMIsInit(&mPatNamePly);
 
     if( ! EAMIsInit(&aOut))
     {
@@ -245,6 +287,22 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
 
         if (mModeSpline)
 	{
+/*
+		
+           for (auto itI=mDicoIm.CpleImgTime().begin() ; itI!=mDicoIm.CpleImgTime().end() ;itI++)
+           {
+                double aTimeI = itI->TimeIm();
+                Pt3dr  aPtIm (aS_x(aTimeI),aS_y(aTimeI),aS_z(aTimeI));
+                aVPtIm.push_back(aPtIm);
+
+                // int aKGps = GetIndGpsBefore(aTimeI);
+                aVPtInc.push_back(GpsInc(GetIndGpsBefore(aTimeI)));
+           }
+	   WriteImTmInFile(aOut,aVPtIm,aVPtInc,aAddFormat);
+*/
+	}
+        {
+
            //make interpolation
            tk::spline aS_x;
            tk::spline aS_y;
@@ -253,35 +311,38 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
            aS_x.set_points(mVT,mVX);
            aS_y.set_points(mVT,mVY);
            aS_z.set_points(mVT,mVZ);
-		
-           std::vector<Pt3dr> aVPtIm;
-           for (auto itI=mDicoIm.CpleImgTime().begin() ; itI!=mDicoIm.CpleImgTime().end() ;itI++)
-           {
-                double aTimeI = itI->TimeIm();
-                Pt3dr  aPtIm (aS_x(aTimeI),aS_y(aTimeI),aS_z(aTimeI));
-                aVPtIm.push_back(aPtIm);
-           }
-	   WriteImTmInFile(aOut,aVPtIm,aAddFormat);
-	}
-        else
-        {
-           //cPlyCloud
+
+
+           cPlyCloud aPC;
+           cElRegex * aRegName = 0;
+           if (EAMIsInit(&mPatNamePly))
+              aRegName = new cElRegex(mPatNamePly,10);
+
+           std::vector<Pt3dr> aVPos;
+           std::vector<Pt3dr> aVInc;
+
+
            for (auto itI=mDicoIm.CpleImgTime().begin() ; itI!=mDicoIm.CpleImgTime().end() ;itI++)
            {
                 Pt3dr anInc(-1,-1,-1);
+                Pt3dr aPosLin (0,0,0);
                 Pt3dr aPos (0,0,0);
 
                 double aTime = itI->TimeIm();
+                Pt3dr  aPtSpline (aS_x(aTime),aS_y(aTime),aS_z(aTime));
+
                 int aK = GetIndGpsBefore(aTime);
                 const cOneGpsDGF & aGpsAv = mDicoGps.OneGpsDGF()[aK];
                 const cOneGpsDGF & aGpsAp = mDicoGps.OneGpsDGF()[aK+1];
                 double aTGpsAv = aGpsAv.TimePt();
                 double aTGpsAp = aGpsAp.TimePt();
 
+                // Position par interpol lineaire
+                double aPdsAv = (aTGpsAp-aTime) / (aTGpsAp-aTGpsAv);
+                aPosLin = aGpsAv.Pt() *aPdsAv + aGpsAp.Pt() * (1-aPdsAv);
+
                 if ( (aK<=2) || (aK>= (mNbGps-4)))
                 {
-                     double aPdsAv = (aTGpsAp-aTime) / (aTGpsAp-aTGpsAv);
-                     aPos = aGpsAv.Pt() *aPdsAv + aGpsAp.Pt() * (1-aPdsAv);
                 }
                 else
                 {
@@ -290,34 +351,115 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
                     int aNK0 = aNK1-1;
                     int aNK2 = aNK1+1;
 
+
+                    Pt3dr aPosParab(0,0,0);
+                    // Si on estime la position par trois points par interopation sur parabole
+                    if (1)
+                    {
+                        std::vector<Pt2dr> aVIntX;
+                        std::vector<Pt2dr> aVIntY;
+                        std::vector<Pt2dr> aVIntZ;
+                        for (int aDK=-1 ; aDK<=1 ; aDK++)
+                        {
+                            Pt3dr aP = mDicoGps.OneGpsDGF()[aNK1+aDK].Pt();
+                            // Pt3dr aP = ToProj(mDicoGps.OneGpsDGF()[aNK1+aDK].Pt());
+                            // double aT = mDicoGps.OneGpsDGF()[aNK1+aDK].TimePt();
+                            double aT = mDicoGps.OneGpsDGF()[aNK1+aDK].TimePt() - aTime;
+                            aVIntX.push_back(Pt2dr(aT,aP.x));
+                            aVIntY.push_back(Pt2dr(aT,aP.y));
+                            aVIntZ.push_back(Pt2dr(aT,aP.z));
+                    
+                        }
+                        ElPolynome<double> aXParab = LeasSqFit(aVIntX);
+                        ElPolynome<double> aYParab = LeasSqFit(aVIntY);
+                        ElPolynome<double> aZParab = LeasSqFit(aVIntZ);
+
+                        aPosParab = Pt3dr(aXParab(0),aYParab(0),aZParab(0));
+                        // std::cout << "CHEK INTERP " << aPosParab -  aPosLin  << "\n";
+                    }
+                     
+
                     Pt3dr aV01 = VitesseGps(aNK0,aNK1);
                     Pt3dr aV12 = VitesseGps(aNK1,aNK2);
+                    // double aT02 = TempsEcoule(aNK0,aNK2);
                     // const cOneGpsDGF & aGps0  = mDicoGps.OneGpsDGF()[aNK0];
                     // const cOneGpsDGF & aGps1  = mDicoGps.OneGpsDGF()[aNK1];
 
                     Pt3dr  aDV = (aV12-aV01);
                     double aDT = ElAbs(aTime - mDicoGps.OneGpsDGF()[aNK1].TimePt()) * mTimeUnit;
-                    anInc = Pt3dr(ElAbs(aDV.x),ElAbs(aDV.y),ElAbs(aDV.z)) * aDT;
+                    Pt3dr aIncV =  Pt3dr(ElAbs(aDV.x),ElAbs(aDV.y),ElAbs(aDV.z)) * aDT;
+                   
 
-                    Pt3dr aGpsI = Sup( mDicoGps.OneGpsDGF()[aK].Incertitude(),
-                                         mDicoGps.OneGpsDGF()[aK+1].Incertitude());
-
-                    anInc = Pt3dr
+                    Pt3dr aGpsI = GpsInc(aK);
+                    if (mWithIncVitesse)
+                      anInc = Pt3dr
                             (
-                                  sqrt(ElSquare(anInc.x)+ElSquare(aGpsI.x)),
-                                  sqrt(ElSquare(anInc.y)+ElSquare(aGpsI.y)),
-                                  sqrt(ElSquare(anInc.z)+ElSquare(aGpsI.z))
+                                  sqrt(ElSquare(aIncV.x)+ElSquare(aGpsI.x)),
+                                  sqrt(ElSquare(aIncV.y)+ElSquare(aGpsI.y)),
+                                  sqrt(ElSquare(aIncV.z)+ElSquare(aGpsI.z))
                             );
+                    else
+                        anInc = aGpsI;
 
-                    std::cout.precision(8);
-                    std::cout <<  ConvertLocTime(aTime) << " => " << aK  << " Inc " 
-                              << euclid(anInc) << " Dt=" << aDT << "\n";
-/*
-*/
+                    if (0)
+                    {
+                       double anIncByInterp = euclid(aPosParab-aPosLin);
+                       std::cout.precision(8);
+                       std::cout <<  itI->NameIm() << " " 
+                              <<  ConvertLocTime(aTime) << " => " << aK  
+                              << " Inc "  << euclid(anInc) 
+                              << " IncV " << euclid(aIncV) 
+                              << " Ratio/IncV " << euclid(aIncV) / anIncByInterp
+                              << " Dt=" << aDT << "\n";
+                    }
+                    if (0)
+                    {
+                       std::cout.precision(8);
+                       std::cout <<  itI->NameIm() << " " 
+                                 << " Dt=" << aDT << " "
+                                 << " Splin/Parab " << euclid(aPtSpline-aPosParab)
+                                 << "\n";
+                    }
+
+                    aPos = mModeSpline ? aPtSpline : aPosParab;
+
+
+                    if (mExportPly)
+                    {
+                         Pt3di aColSom(0,255,0);
+                         Pt3di aColInc(255,0,0);
+                         Pt3di aColName(255,255,255);
+
+                         Pt3dr aPLoc = ToProj(aPos);
+                         double aRay=0.05;
+                         aPC.AddSphere(aColSom,aPLoc,0.05,5);
+                         double aL = euclid(anInc);
+
+                         double aStep = 0.005;
+                         double Exag = 10;
+                         Pt3dr aDirI(0,0,1);
+
+                         Pt3dr aP0 = aPLoc + aDirI*aRay;
+                         aPC.AddSeg(aColInc,aP0,aP0+aDirI*aL*Exag,round_up(aL/aStep));
+
+                         if (aRegName)
+                         {
+                             std::string aName = MatchAndReplace(*aRegName,itI->NameIm(),"$1");
+                             aPC.PutString(aName,aPLoc-aDirI*aRay*2,-aDirI,Pt3dr(1,0,0),aColName,0.03,0.01,3);
+                         }
+                    }
                 }
                 // std::cout << setprecision(15) << ConvertLocTime(aTime) << " => " << aK << "\n";
+                // std::cout << "\n";
+
+                aVPos.push_back(aPos);
+                aVInc.push_back(anInc);
 
            }
+           if (mExportPly)
+              aPC.PutFile(StdPrefixGen(mGpsFile)+".ply");
+
+	   WriteImTmInFile(aOut,aVPos,aVInc,aAddFormat);
         }
 }
 

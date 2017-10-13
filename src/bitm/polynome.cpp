@@ -269,6 +269,61 @@ template <> const REAL16   ElPolynome<REAL16 >::El0 (0.0);
 template <> const REAL16   ElPolynome<REAL16 >::El1 (1.0);
 template class ElPolynome<REAL16>;  
 
+
+ElPolynome<double> LeasSqFit(vector<Pt2dr> aVSamples,int aDeg,const std::vector<double> * aVPds)
+{
+   if (aVPds)
+   {
+      ELISE_ASSERT(aVPds->size()==aVSamples.size(),"Incoh size Pde/aVSamples in LeasSqFit");
+   }
+
+   if (aDeg==-1)
+      aDeg = aVSamples.size()-1;
+   int aNbVar = aDeg +1 ;
+
+   ELISE_ASSERT
+   (
+        aNbVar<=int(aVSamples.size()),
+        "LeasSqFit Poly, degree too low"
+   );
+
+   L2SysSurResol aSys(aNbVar);
+
+   for (int aKS=0 ; aKS<int(aVSamples.size()) ; aKS++)
+   {
+       double aPds = aVPds ? (*aVPds)[aKS] : 1.0;
+       std::vector<double> aVPowX;
+       aVPowX.push_back(1.0);
+         
+       for (int aD=1 ; aD<= aDeg ; aD++)
+       {
+           aVPowX.push_back(aVPowX.back()*aVSamples[aKS].x);
+       }
+
+       aSys.AddEquation(aPds,VData(aVPowX),aVSamples[aKS].y);
+   }
+
+   ElPolynome<double>  aRes((char *)0,aDeg);
+   Im1D_REAL8  aSol = aSys.Solve((bool *)0);
+
+   for (int aD=0 ; aD<=int(aDeg) ; aD++)
+   {
+       aRes[aD] = aSol.data()[aD];
+   }
+
+/*
+   std::cout <<  "FIT Deg=" << aDeg << " NbObs = " << aVSamples.size() <<"\n";
+
+   for (int aKS=0 ; aKS<int(aVSamples.size()) ; aKS++)
+       std::cout << " TEST " << aVSamples[aKS].x
+                 << " Y " << aVSamples[aKS].y -  aRes(aVSamples[aKS].x)
+                 // << " Y " << aRes(aVSamples[aKS].x)
+                 << "\n";
+
+*/
+   return aRes;
+}
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

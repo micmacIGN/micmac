@@ -1284,9 +1284,32 @@ void TestFileTxtBin()
    exit(EXIT_SUCCESS);
 }
 
+void TestFitPol()
+{
+    for (int aR=0 ; aR < 3 ; aR++)
+    {
+        for (int aD=1 ; aD <10 ; aD++)
+        {
+              std::vector<Pt2dr> aVS;
+              for (int aKS=0 ; aKS<= aD+aR ; aKS++)
+                 aVS.push_back(Pt2dr(1e5*NRrandC(),1e3*NRrandC()));
+
+              LeasSqFit(aVS,aD);
+              // std::cout << "TestFitPol D=" << aD << " RAB=" << aR << "\n";
+              // getchar();
+        }
+    }
+}
+
+
 extern void TestMap2D();
 int MPDtest_main (int argc,char** argv)
 {
+    {
+       TestFitPol();
+       exit(EXIT_SUCCESS);
+    }
+    
     {
        double aTD0 = 2e9;
        float  aFT0 = 2e9;
