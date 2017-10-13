@@ -154,7 +154,7 @@ class cGLI_CalibRadiom
 
 void cAppliMICMAC::ResetCalRad()
 {
-     for (int It= mDicCalRad.begin() ; It!= mDicCalRad.end() ; It++)
+     for (auto It= mDicCalRad.begin() ; It!= mDicCalRad.end() ; It++)
          delete It->second;
      mDicCalRad.clear();
 }
