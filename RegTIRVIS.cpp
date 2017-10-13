@@ -1096,7 +1096,7 @@ int RegTIRVIS_main( int argc, char ** argv )
  // Apply the homography to the set of thermal images and store images in a folder named Thermal Homography applied
 
 /*************************************************/
- std::string DirectoryRect= "./RectThermalImages";
+ /*std::string DirectoryRect= "./RectThermalImages";
  if (!ELISE_fp::IsDirectory(DirectoryRect))
  {
      ELISE_fp::MkDir(DirectoryRect);
@@ -1105,7 +1105,7 @@ int RegTIRVIS_main( int argc, char ** argv )
  {
      std::string imm=DirectoryRect + ThermalImages[i]+"_Rec.tif";
      ApplyHomography(ThermalImages[i],VisualImages[i],Hout,imm);
- }
+ }*/
  /**********************************************************************/
 
 //===============================================================================//
