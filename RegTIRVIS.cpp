@@ -439,7 +439,7 @@ void ApplyHomography(std::string fileim1, std::string fileim2 , cElHomographie H
             double aY=aP.y;
             Pt2dr aPoint(aX,aY);
             // project this point in the initial image using the homography relationship
-            cElHomographie Inv=H.Inverse();
+            //cElHomographie Inv=H.Inverse();
             Pt2dr aPIm0=H.Direct(aPoint);
             Pt2di aPImr((INT)aPIm0.x, (INT) aPIm0.y);
 
@@ -550,7 +550,7 @@ void Readkeypoints(std::vector<KeyPoint> &Kps, string file)
 //===============================================================================//
 string WhichThermalImage(string VisualIm,std::vector< string > ThermalSet)
 {
-    cElRegex rgx("VIS_(.*).tif",10);
+    cElRegex rgx("VIS-(.*).tif",10);  // need to change according to pattern
     std::string aNameMatch;
     if (rgx.Match(VisualIm))
     {
@@ -579,7 +579,7 @@ string WhichThermalImage(string VisualIm,std::vector< string > ThermalSet)
 //===============================================================================//
 string WhichVisualImage(string tirIm,std::vector< string > VisualSet)
 {
-    cElRegex rgx("TIR_(.*).tif",10);
+    cElRegex rgx("TIR-(.*).tif",10);
     std::string aNameMatch;
     if (rgx.Match(tirIm))
     {
@@ -877,7 +877,7 @@ int RegTIRVIS_main( int argc, char ** argv )
               Migrate2Lab2wallis(ImageV,LabWImageV);
 
               //store image
-              ELISE_COPY
+              /*ELISE_COPY
               (
                   LabWImageV.all_pts(),
                   LabWImageV.in(),
@@ -888,7 +888,7 @@ int RegTIRVIS_main( int argc, char ** argv )
                       Tiff_Im::No_Compr,
                       Tiff_Im::BlackIsZero,
                       Tiff_Im::Empty_ARG ).out()
-              );
+              );*/
 
 
               //std::cout<<"after wallis and lab\n";
@@ -1020,8 +1020,8 @@ int RegTIRVIS_main( int argc, char ** argv )
 
 
 //===============================================================================//
-     MakeFileDirCompl(Oris_VIS_dir);
-     std::cout<<"Oris_Dir dir: "<<Oris_VIS_dir<<std::endl;
+  /*   MakeFileDirCompl(Oris_VIS_dir);
+     std::cout<<"Oris_Dir dir: "<<Oris_VIS_dir<<std::endl;*/
 
 /*********************************************************************************/
     // Initialize name manipulator & files :: now with work images
@@ -1090,6 +1090,24 @@ int RegTIRVIS_main( int argc, char ** argv )
  std::sort(VisualImages.begin(),VisualImages.end());
  std::sort(ThermalImages.begin(), ThermalImages.end());
 
+
+
+/***********************************************************************************/
+ // Apply the homography to the set of thermal images and store images in a folder named Thermal Homography applied
+
+/*************************************************/
+ std::string DirectoryRect= "./RectThermalImages";
+ if (!ELISE_fp::IsDirectory(DirectoryRect))
+ {
+     ELISE_fp::MkDir(DirectoryRect);
+ }
+ for (uint i=0; i<ThermalImages.size();i++)
+ {
+     std::string imm=DirectoryRect + ThermalImages[i]+"_Rec.tif";
+     ApplyHomography(ThermalImages[i],VisualImages[i],Hout,imm);
+ }
+ /**********************************************************************/
+
 //===============================================================================//
 // PROCESS THermal by applying the computed homography and take advantage of the
 // RGB orientation
@@ -1127,10 +1145,10 @@ if (!DoesFileExist("GrapheHom.xml"))
  {
     cSauvegardeNamedRel aRel=StdGetFromPCP("GrapheHom.xml",SauvegardeNamedRel);
     ImCpls=aRel.Cple();
-   /* for (uint i=0;i<ImCpls.size();i++)
+    for (uint i=0;i<ImCpls.size();i++)
     {
         std::cout<<ImCpls.at(i).N1()<< " "<<ImCpls.at(i).N2()<<endl;
-    }*/
+    }
  }
  else
  {
@@ -1252,8 +1270,6 @@ ElPackHomologue HomologousPts;
 // Instantiate a Depth image that is to be used for reprojection
 Im2D<REAL4,REAL> Depth=Im2D<REAL4,REAL>();
 
-
-
 if (!ELISE_fp::IsDirectory(Homolfile)) // Homolfile is not created
 {
     std::cout<<"********************************************************************************************\n"<<
@@ -1357,8 +1373,8 @@ if (!ELISE_fp::IsDirectory(Homolfile)) // Homolfile is not created
             //Creating and filling the KDTree structure
             /*********************************************************************/
             ArbreKD * SlaveTree= new ArbreKD(Pt_of_Point, box, Kps2H.size(), 1.0);
-            for (uint i=0; i<Kps2H.size(); i++) {
-                SlaveTree->insert(pair<int,Pt2dr>(i, Kps2H.at(i)));
+            for (uint l=0; l<Kps2H.size(); l++) {
+                SlaveTree->insert(pair<int,Pt2dr>(l, Kps2H.at(l)));
             }
             /*********************************************************************/
 
@@ -1407,9 +1423,10 @@ if (!ELISE_fp::IsDirectory(Homolfile)) // Homolfile is not created
             }
             delete SlaveTree;
             Depth.raz();
+            HomologousPts.StdPutInFile(file12);
         }
 
-        HomologousPts.StdPutInFile(file12);
+
     }
 }
 else
@@ -2569,6 +2586,59 @@ else
                "**********************************************************************************************\n";
 }
 
+
+
+
+/*
+// create binary masks
+
+
+    for (uint i=0; i<aSetImTest.size();i++)
+    {
+        Tiff_Im Mask=Tiff_Im::UnivConvStd(aSetImTest.at(i));
+        Im2D<U_INT1,INT> Maskk=Im2D<U_INT1,INT>(Mask.sz().x,Mask.sz().y);
+
+        ELISE_COPY
+              (
+                  Maskk.all_pts(),
+                  Mask.in(),
+                  Maskk.out()
+              );
+
+
+        Im2D_Bits<1> ImagedeMask=Im2D_Bits<1>(Mask.sz().x,Mask.sz().y);
+
+        for (int x=0; x<Mask.sz().x; x++)
+        {
+            for (int y=0; y<Mask.sz().y; y++)
+            {
+                Pt2di point(x,y);
+                int val=Maskk.GetI(point);
+                if (val>0)
+                {
+                    ImagedeMask.SetI(point, 1);
+                }
+                else
+                {
+                    ImagedeMask.SetI(point, 0);
+                }
+            }
+        }
+        std::string nameMask="Mask_Bin"+aSetImTest.at(i);
+
+        ELISE_COPY
+          (
+              ImagedeMask.all_pts(),
+              ImagedeMask.in(),
+              Tiff_Im(
+                  nameMask.c_str(),
+                  ImagedeMask.sz(),
+                  GenIm::bits1_msbf,
+                  Tiff_Im::No_Compr,
+                  Tiff_Im::BlackIsZero,
+                  Tiff_Im::Empty_ARG ).out()
+          );
+    }*/
 
 return EXIT_SUCCESS ;
 }

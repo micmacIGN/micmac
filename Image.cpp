@@ -12,7 +12,7 @@
 ColorImg::ColorImg(std::string filename) :
   mImgName(filename)
 {
-    Tiff_Im mTiffImg(mImgName.c_str());
+    Tiff_Im mTiffImg= Tiff_Im::UnivConvStd(mImgName);
     //GenIm::type_el aType = mTiffImg.type_el();
 
    // std::cout<<"Image channels "<<mTiffImg.nb_chan()<<endl;
@@ -116,8 +116,8 @@ void ColorImg::write(std::string filename)
     {
         ELISE_COPY
         (
-            mImgG->all_pts(),
-            mImgG->in() ,
+            mImgGT->all_pts(),
+            mImgGT->in() ,
             Tiff_Im(
                 filename.c_str(),
                 mImgSz,
