@@ -136,6 +136,7 @@ class cPlyCloud
 
          void PutDigit(char aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,int aNbByCase);
          void PutStringDigit(std::string aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,double aSpace,int aNbByCase);
+         void PutString(std::string aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,double aSpace,int aNbByCase,bool OnlyDigit=false);
 };
 
 class cInterfSurfaceAnalytique

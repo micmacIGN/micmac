@@ -205,6 +205,9 @@ class cFilterImPolI
 {
     public :
 
+       // mChgCtx => signifie que les Symbole Elise ne peuvent pas etre reutilise et qu'il faut 
+       // duplique la fonction
+
        cFilterImPolI(tPtrCalcFF,int aNbFoncIn,int aNbFoncMax,int aNbArgNum,int aNbArgMax,const std::string & aPat,bool ChgCtx);
 
 
@@ -367,7 +370,7 @@ static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|jpg|jpeg|cr2|arw)",fa
 
 static Fonc_Num FCoord(cFilterImPolI & aPolI,const cArgFilterPolI & anArg)
 {
-std::cout << "JJJJJ " << anArg.mNameIn << " == " << aPolI.mAutom.Match(anArg.mNameIn) << "\n";
+// std::cout << "JJJJJ " << anArg.mNameIn << " == " << aPolI.mAutom.Match(anArg.mNameIn) << "\n";
    int aKC =0 ;
    if (anArg.mNameIn.size() == 1)
       aKC =  tolower(anArg.mNameIn[0])- 'x';
@@ -378,7 +381,9 @@ std::cout << "JJJJJ " << anArg.mNameIn << " == " << aPolI.mAutom.Match(anArg.mNa
 }
 
 static cFilterImPolI  OperCoord(FCoord,0,0,0,0,"x|y|z|x[0-9]+",false);
-// static cFilterImPolI  OperCoord(FCoord,0,0,0,0,"x",false);
+
+
+
   //----------------------------------------------------------------
 
 static Fonc_Num FDoubleCste(cFilterImPolI &,const cArgFilterPolI & anArg)
@@ -469,6 +474,33 @@ static cFilterImPolI  OperMoy(FMoy,1,1,1,2,"moy",true);
 
   //----------------------------------------------------------------
 
+static Fonc_Num FMedian(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
+{
+   int aNbV =  ToInt(anArg.mVArgs.at(0)) ;
+   int aNbIter =  (anArg.mVArgs.size()>=2) ? ToInt(anArg.mVArgs.at(1)) : 1 ;
+   Fonc_Num aRes = anArg.mVIn.at(0);
+
+   for (int  aK=0 ; aK<aNbIter ; aK++)
+       aRes = MedianBySort(aRes,aNbV);
+
+    return aRes;
+}
+static cFilterImPolI  OperMed(FMedian,1,1,1,2,"median",true);
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FTrans(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
+{
+   int aTX =  ToInt(anArg.mVArgs.at(0)) ;
+   int aTY =  ToInt(anArg.mVArgs.at(1)) ;
+   Fonc_Num aFonc = anArg.mVIn.at(0);
+
+    return trans(aFonc,Pt2di(aTX,aTY));
+}
+static cFilterImPolI  OperTrans(FTrans,1,1,2,2,"trans",true);
+
+  //----------------------------------------------------------------
+
 
 
 
@@ -497,6 +529,8 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperEroDil);
          aRes.push_back(&OperCloseOpen);
          aRes.push_back(&OperMoy);
+         aRes.push_back(&OperMed);
+         aRes.push_back(&OperTrans);
     }
 
     return aRes;

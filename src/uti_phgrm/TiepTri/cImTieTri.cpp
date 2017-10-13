@@ -190,7 +190,7 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
    
     if (mW)
     {
-         std::cout << "   LOAD " << mDecal << " " << mSzIm << "\n";
+         //std::cout << "   LOAD " << mDecal << " " << mSzIm << "\n";
          ELISE_COPY(mImInit.all_pts(),Min(255,Max(0,255-mImInit.in())),mW->ogray());
 
          ELISE_COPY(select(mImInit.all_pts(),mMasqTri.in()),Min(255,Max(0,mImInit.in())),mW->ogray());
@@ -338,7 +338,6 @@ void  cImTieTri::MakeInterestPoint
             }
         }
     }
-
     // Filtrage spatial du point d'interet.
     // Cet filtrage est appliquer apres la detection de point d'interet sur master image seulement.
     // Priorité par FAST quality

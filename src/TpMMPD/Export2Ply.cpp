@@ -166,8 +166,9 @@ int Export2Ply_main(int argc,char ** argv)
                 if(aGpsFile)
                 {
 					cDicoGpsFlottant aDico =  StdGetFromPCP(NameFile,DicoGpsFlottant);
-					std::list<cOneGpsDGF> &GPS = aDico.OneGpsDGF();
-					for(std::list<cOneGpsDGF>::iterator IT=GPS.begin();IT!=GPS.end();IT++)
+					// std::list<cOneGpsDGF> &GPS = aDico.OneGpsDGF();
+					// for(std::list<cOneGpsDGF>::iterator IT=GPS.begin();IT!=GPS.end();IT++)
+					for(auto IT=aDico.OneGpsDGF().begin();IT!=aDico.OneGpsDGF().end();IT++)
 					{
 						aPoints.push_back(IT->Pt());
 						aVCol.push_back(aCoul);

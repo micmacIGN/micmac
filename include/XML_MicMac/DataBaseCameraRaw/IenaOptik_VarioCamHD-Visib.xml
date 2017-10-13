@@ -1,0 +1,19 @@
+<SpecifFormatRaw>
+          <Sz>  1024  720 </Sz>
+          <MSBF>  false </MSBF>
+          <NbBitsParPixel> 16  </NbBitsParPixel>
+          <IntegerType> true </IntegerType>
+          <SignedType>  false </SignedType>
+          <FocalEqui35> 48 </FocalEqui35>
+          <Focalmm> 48 </Focalmm>
+
+<!--
+          <Offset > 10880 </Offset>
+-->
+          <Offset > 1584020  </Offset>
+
+<!--
+          <BayPat> RGGB </BayPat>
+-->
+          <Camera> CamCerema </Camera>
+</SpecifFormatRaw>

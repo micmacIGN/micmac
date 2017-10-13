@@ -182,6 +182,10 @@ extern int  CPP_CmpOriCam_main(int argc, char** argv);
 
 extern int CPP_ConvertBundleGen(int argc,char ** argv);
 
+extern int AlphaGet27_main(int argc,char ** argv);
+
+extern int mergeSOMAF_main(int argc,char ** argv);
+
 
 int TiePMS_main(int argc,char ** argv);
 int TiePLine_main(int argc,char ** argv);
@@ -231,6 +235,7 @@ int SimuLib_Main(int argc,char ** argv);
 extern int CPP_ProfilImage(int argc,char ** argv);
 
 extern int ExtractRaw_main(int argc,char ** argv);
+extern int CPP_Extrac_StdRaw(int argc,char ** argv);
 
 extern int CPP_MMRename(int argc,char**argv);
 extern int  CPP_EditSet(int argc,char**argv);
@@ -452,12 +457,16 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
        aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool to develop MPO stereo format in pair of images"));
        aRes.push_back(cMMCom("ExtractRaw",ExtractRaw_main,"Convert raw image with XML descriptor to tiff "));
+       aRes.push_back(cMMCom("ExtractStdRaw",CPP_Extrac_StdRaw,"Convert raw image with predefined XML descriptor (in XML_MicMac/DataBaseCameraRaw) to tiff "));
 
 
        aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images", cArgLogCom(3)));
        aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
        aRes.push_back(cMMCom("SimuLib", SimuLib_Main, " Library (almost empty now)  for simulating"));
        aRes.push_back(cMMCom("XLib", XLib_Main, " Xeres Lib - early work in progress!")); 
+
+       aRes.push_back(cMMCom("AlphaGet27", AlphaGet27_main, " Tool for relative positioning of objects on images"));
+       aRes.push_back(cMMCom("MergeSOMAF", mergeSOMAF_main, " Tool for merging SetOfMesureAppuisFlottants XMLs"));
 
 #if (ELISE_QT_VERSION >= 4)
        aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main," Interactive tool for initial capture of GCP"));

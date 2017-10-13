@@ -119,12 +119,12 @@ REAL ElQTRegBox::D2(const SegComp &seg)  const
      return _box.SquareDist(seg);
 }
 
-//======================  ElQdtGen ===============================
-//======================  ElQdtGen ===============================
-//======================  ElQdtGen ===============================
+//======================  NewElQdtGen ===============================
+//======================  NewElQdtGen ===============================
+//======================  NewElQdtGen ===============================
 
 
-Box2dr ElQdtGen::BoxQdt(const Box2dr & box)
+Box2dr NewElQdtGen::BoxQdt(const Box2dr & box)
 {
     INT sz = Pow_of_2_sup(round_up(dist8(box.sz())));
     return Box2dr
@@ -136,7 +136,7 @@ Box2dr ElQdtGen::BoxQdt(const Box2dr & box)
 
 
 
-ElQdtGen::ElQdtGen
+NewElQdtGen::NewElQdtGen
 (
      Box2dr        BOX,
      INT           NBOBJMAX,
@@ -144,7 +144,8 @@ ElQdtGen::ElQdtGen
 )  :
           _box      (BoxQdt(BOX)),
           _NbObjMax (NBOBJMAX),
-          _SzMin    (round_ni(SzMin))
+          // _SzMin    (round_ni(SzMin))
+          _SzMin    (SzMin)
 
 {
 }

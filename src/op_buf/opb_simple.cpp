@@ -1164,8 +1164,8 @@ Fonc_Num filtre_pente_crete(Fonc_Num f)
 
 template <class Type> void CalcMedianBySort
                            (
-                                Type ** out,
-                                Type *** in,
+                                Type ** out,   // out[c][x]
+                                Type *** in,   // in[c][y][x]      c=>channel
                                 const Simple_OPBuf_Gen & arg
                            )
 {

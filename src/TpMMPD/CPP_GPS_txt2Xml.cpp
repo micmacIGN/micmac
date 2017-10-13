@@ -196,12 +196,13 @@ int CalcTF_main(int argc,char ** argv)
     
     //read the .xml input file
 	cDicoGpsFlottant aFile =  StdGetFromPCP(aInputFile,DicoGpsFlottant);
-	std::list <cOneGpsDGF> & aVP = aFile.OneGpsDGF();
+	// std::list <cOneGpsDGF> & aVP = aFile.OneGpsDGF();
 	
 	int aCompQ1 = 0;
 	cDicoGpsFlottant  aDico;
 	
-	for(std::list<cOneGpsDGF>::iterator iT=aVP.begin(); iT!=aVP.end(); iT++)
+	// for(std::list<cOneGpsDGF>::iterator iT=aVP.begin(); iT!=aVP.end(); iT++)
+	for(auto  iT=aFile.OneGpsDGF().begin(); iT!=aFile.OneGpsDGF().end(); iT++)
 	{
 		if(iT->TagPt() == 1)
 		{
@@ -219,7 +220,7 @@ int CalcTF_main(int argc,char ** argv)
 		}
 	}
 	
-	double aTF = double(aCompQ1)/aVP.size();
+	double aTF = double(aCompQ1)/aFile.OneGpsDGF().size();
 	
 	std::cout << " Taux Fixation = " <<  aTF*100 << " %" << std::endl;
 	

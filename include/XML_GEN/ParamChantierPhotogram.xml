@@ -709,7 +709,7 @@
    </DicoAppuisFlottant>
    
    <DicoImgsTime Nb="1" Class="true">
-		<CpleImgTime Nb="*">
+		<CpleImgTime Nb="*"  Container="std::vector">
 			<NameIm Nb="1" Type="std::string"> </NameIm>
 			<TimeIm Nb="1" Type="double">      </TimeIm>
 		</CpleImgTime>
@@ -717,7 +717,7 @@
 
    
    <DicoGpsFlottant Nb="1" Class="true">
-		<OneGpsDGF Nb="*">
+		<OneGpsDGF Nb="*"  Container="std::vector">
 			<Pt Nb="1" Type="Pt3dr"> </Pt>
 			<NamePt Nb="1" Type="std::string"> </NamePt>
 			<TagPt Nb="1" Type="int"> </TagPt>
@@ -2034,11 +2034,12 @@
      <eCmf_ImProc>      </eCmf_ImProc>      <!-- Image Processing tools -->
      <eCmf_Interf>      </eCmf_Interf>      <!-- Interface tools -->
      <eCmf_Orient>      </eCmf_Orient>      <!-- Orientation tools, relative -->
-     <eCmf_OriAbs>      </eCmf_OriAbs>     <!-- As soon as GCP, GPS, trajecto.. is used -->
-     <eCmf_OriSat>      </eCmf_OriSat>     <!-- As soon as GCP, GPS, trajecto.. is used -->
+     <eCmf_OriAbs>      </eCmf_OriAbs>      <!-- As soon as GCP, GPS, trajecto.. is used -->
+     <eCmf_OriSat>      </eCmf_OriSat>      <!-- As soon as GCP, GPS, trajecto.. is used -->
      <eCmf_TiePoints>   </eCmf_TiePoints>   <!-- Tie Points  tools -->
      <eCmf_ImMatch>     </eCmf_ImMatch>     <!-- Dense image matching -->
      <eCmf_Map2D>       </eCmf_Map2D>       <!-- Map2D -->
+     <eCmf_TrajGnss>    </eCmf_TrajGnss>    <!-- as  trajecto &| gnss is used -->
      <eCmf_NbVals>      </eCmf_NbVals>      <!-- Interface tools -->
 </enum>
 

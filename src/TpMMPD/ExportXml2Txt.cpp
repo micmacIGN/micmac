@@ -102,7 +102,7 @@ int ExportXmlGps2Txt_main(int argc,char ** argv)
     
     //read .xml file
     cDicoGpsFlottant aDico = StdGetFromPCP(aFile,DicoGpsFlottant);
-    std::list<cOneGpsDGF> aOneGpsDAFList = aDico.OneGpsDGF();
+    // std::list<cOneGpsDGF> aOneGpsDAFList = aDico.OneGpsDGF();
     
     //write data in .txt file
     if(!MMVisualMode)
@@ -110,7 +110,8 @@ int ExportXmlGps2Txt_main(int argc,char ** argv)
 		FILE * aFP = FopenNN(aOut,"w","ExportXmlGps2Txt_main");
 		cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOut);
 		
-		for (std::list<cOneGpsDGF>::iterator itP=aOneGpsDAFList.begin(); itP != aOneGpsDAFList.end(); itP ++)
+		// for (std::list<cOneGpsDGF>::iterator itP=aOneGpsDAFList.begin(); itP != aOneGpsDAFList.end(); itP ++)
+		for (auto itP=aDico.OneGpsDGF().begin(); itP != aDico.OneGpsDGF().end(); itP ++)
 		{
 			fprintf(aFP, "%s %lf %lf %lf %lf",itP->NamePt().c_str(), itP->TimePt(), itP->Pt().x, itP->Pt().y, itP->Pt().z);
 			

@@ -588,7 +588,7 @@ int Masq3Dto2D_main(int argc,char ** argv)
        dilat_32(aImMasq2D.in(0),2*aDilate),
        aFileRes.out()
    );
-   return 1;
+   return EXIT_SUCCESS;
 }
 
 /*

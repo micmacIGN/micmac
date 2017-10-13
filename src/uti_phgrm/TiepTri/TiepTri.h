@@ -117,6 +117,7 @@ class cLinkImTT;
 #define TT_SeuilFastCons 3
 
 
+
 extern bool BugAC;
 extern bool USE_SCOR_CORREL;
 
@@ -160,9 +161,11 @@ class cParamAppliTieTri
         bool     mFilFAST;
         double   mTT_SEUIL_SURF_TRI;
         double   mTT_SEUIL_CORREL_1PIXSUR2;
+        double   mTT_SEUIl_DIST_Extrema_Entier;
         int      mEtapeInteract;
         int      mLastEtape;   // Inclusif !!
         int      mFlagFS;   // FlagFitrage Spatial
+        string   mHomolOut;
 };
 
 

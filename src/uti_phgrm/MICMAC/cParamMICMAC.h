@@ -419,6 +419,30 @@ std::string  Mangling( cSpecFitrageImage *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXML_RatioCorrImage
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXML_RatioCorrImage & anObj,cElXMLTree * aTree);
+
+
+        double & Ratio();
+        const double & Ratio()const ;
+    private:
+        double mRatio;
+};
+cElXMLTree * ToXMLTree(const cXML_RatioCorrImage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXML_RatioCorrImage &);
+
+void  BinaryUnDumpFromFile(cXML_RatioCorrImage &,ELISE_fp &);
+
+std::string  Mangling( cXML_RatioCorrImage *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cCorrectionPxTransverse
 {
     public:
@@ -2310,6 +2334,31 @@ void  BinaryUnDumpFromFile(cGPU_CorrelBasik &,ELISE_fp &);
 
 std::string  Mangling( cGPU_CorrelBasik *);
 
+class cMCP_AttachePixel
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cMCP_AttachePixel & anObj,cElXMLTree * aTree);
+
+
+        double & Pds();
+        const double & Pds()const ;
+
+        std::string & KeyRatio();
+        const std::string & KeyRatio()const ;
+    private:
+        double mPds;
+        std::string mKeyRatio;
+};
+cElXMLTree * ToXMLTree(const cMCP_AttachePixel &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMCP_AttachePixel &);
+
+void  BinaryUnDumpFromFile(cMCP_AttachePixel &,ELISE_fp &);
+
+std::string  Mangling( cMCP_AttachePixel *);
+
 class cMultiCorrelPonctuel
 {
     public:
@@ -2321,19 +2370,29 @@ class cMultiCorrelPonctuel
         double & PdsCorrelStd();
         const double & PdsCorrelStd()const ;
 
-        double & PdsCorrelPonct();
-        const double & PdsCorrelPonct()const ;
+        double & PdsCorrelCroise();
+        const double & PdsCorrelCroise()const ;
+
+        cTplValGesInit< double > & DynRadCorrelPonct();
+        const cTplValGesInit< double > & DynRadCorrelPonct()const ;
 
         cTplValGesInit< double > & DefCost();
         const cTplValGesInit< double > & DefCost()const ;
 
-        cTplValGesInit< std::string > & UnUsedTest();
-        const cTplValGesInit< std::string > & UnUsedTest()const ;
+        double & Pds();
+        const double & Pds()const ;
+
+        std::string & KeyRatio();
+        const std::string & KeyRatio()const ;
+
+        cTplValGesInit< cMCP_AttachePixel > & MCP_AttachePixel();
+        const cTplValGesInit< cMCP_AttachePixel > & MCP_AttachePixel()const ;
     private:
         double mPdsCorrelStd;
-        double mPdsCorrelPonct;
+        double mPdsCorrelCroise;
+        cTplValGesInit< double > mDynRadCorrelPonct;
         cTplValGesInit< double > mDefCost;
-        cTplValGesInit< std::string > mUnUsedTest;
+        cTplValGesInit< cMCP_AttachePixel > mMCP_AttachePixel;
 };
 cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel &);
 

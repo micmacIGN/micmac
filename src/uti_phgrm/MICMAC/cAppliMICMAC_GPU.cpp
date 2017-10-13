@@ -141,6 +141,25 @@ double cStatOneImage::SquareNorm() const
 /*                                                                  */
 /********************************************************************/
 
+
+class cGLI_CalibRadiom
+{
+     public :
+          cGLI_CalibRadiom (const cXML_RatioCorrImage aXml) :
+              mR  (aXml.Ratio())
+          {
+          }
+          double mR;
+};
+
+void cAppliMICMAC::ResetCalRad()
+{
+     for (auto It= mDicCalRad.begin() ; It!= mDicCalRad.end() ; It++)
+         delete It->second;
+     mDicCalRad.clear();
+}
+
+
 cGPU_LoadedImGeom::cGPU_LoadedImGeom
 (
         const cAppliMICMAC & anAppli,
@@ -278,6 +297,15 @@ std::vector<Im2D_REAL4> cGPU_LoadedImGeom::VIm()
 }
 
 
+void cGPU_LoadedImGeom::InitCalibRadiom(cGLI_CalibRadiom * aCal)
+{
+    mCalR = aCal;
+}
+
+double cGPU_LoadedImGeom::CorrRadiom(double aVal)
+{
+   return aVal / mCalR->mR ;
+}
 
 
 Pt2di  cGPU_LoadedImGeom::SzV0() const
@@ -516,8 +544,8 @@ double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
 
 
 
-    bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
-    {
+bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
+{
 
         if (! mDOK_Ortho[anY][anX])
             return false;
@@ -563,7 +591,7 @@ if (0)
    }
 }
         return true;
-    }
+}
 
 
 
@@ -593,6 +621,7 @@ if (0)
     //               Utilise l'interpolateur courant. Pour l'instant l'interpolateur
     //               est en dur quand on fonctionne en GPU
     //
+
 
 
 void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
@@ -1341,17 +1370,18 @@ double EcartNormalise(double aI1,double aI2)
 }
 
 
-void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP,int aNbScaleIm,bool VireExtre)
+void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP,int aNbScaleIm,bool VireExtre,double aPdsAttPix)
 {
     int aNbOk = 0;
     double aSomCorrel = 0;
+    double aPdsCorrStd=1.0;
 
     if (mVLI[0]->OkOrtho(anX,anY))
     {
         double aCMax = -2;
         double aCMin = 2;
-    for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
-    {
+        for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+        {
              double aCor;
              if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
              {
@@ -1360,7 +1390,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                  ElSetMax(aCMax,aCor);
                  ElSetMin(aCMin,aCor);
              }
-    }
+        }
         if (VireExtre && (aNbOk>2))
         {
             aSomCorrel -= aCMax + aCMin;
@@ -1368,9 +1398,21 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
         }
     }
 
+    double aCost = aNbOk ? (mStatGlob->CorrelToCout(aSomCorrel/aNbOk) * aPdsCorrStd): mAhDefCost;
+
+    if (mDoStatCorrel)
+    {
+        if (aNbOk)
+           mStatCNC.push_back(mStatGlob->CorrelToCout(aSomCorrel/aNbOk));
+    }
+
+    double aCostPix=0.0;
+    int    aNbCostPix = 0;
     if (aCMP)
     {
-        std::vector<INT1> aVNorm;
+
+        aPdsCorrStd = aCMP->PdsCorrelStd();
+        std::vector<tMCPVal> aVNorm;
         if (mVLI[0]->OkOrtho(anX,anY))
         {
              tGpuF aV0 = mVLI[0]->ImOrtho(anX,anY);
@@ -1378,8 +1420,16 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
              {
                   if (mVLI[aK]->OkOrtho(anX,anY))
                   {
-                       double aVal = EcartNormalise(aV0,mVLI[aK]->ImOrtho(anX,anY));
-                       aVNorm.push_back(AdaptCostPonct(round_ni(aVal*127)));
+                       double aVk = mVLI[aK]->ImOrtho(anX,anY);
+                       double aVal = EcartNormalise(aV0,aVk);
+                       aVNorm.push_back(AdaptCostPonct(round_ni(aVal*TheDynMCP)));
+                       if (aPdsAttPix)
+                       {
+                           aNbCostPix++;
+
+                           double aVCorK = mVLI[aK]->CorrRadiom(aVk);
+                           aCostPix += ElAbs(EcartNormalise(aVCorK,aV0));
+                       }
                   }
                   else
                   {
@@ -1394,14 +1444,23 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                  aVNorm.push_back(ValUndefCPONT);
             }
         }
-        mSurfOpt->Local_VecInt1(Pt2di(anX,anY),&mZIntCur,aVNorm);
+        mSurfOpt->Local_VecMCP(Pt2di(anX,anY),&mZIntCur,aVNorm);
+    }
+
+    if (aNbCostPix)
+    {
+      aCost += (aCostPix / aNbCostPix) * aPdsAttPix;
+      if (mDoStatCorrel)
+      {
+           mStat1Pix.push_back(aCostPix/aNbCostPix);
+      }
     }
 
     mSurfOpt->SetCout
     (
          Pt2di(anX,anY),
          &mZIntCur,
-         aNbOk ? mStatGlob->CorrelToCout(aSomCorrel/aNbOk) : mAhDefCost
+         aCost
     );
 }
 
@@ -1460,8 +1519,9 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 
 void cAppliMICMAC::DoGPU_Correl
         (
-        const Box2di & aBox,
-        const cMultiCorrelPonctuel * aMCP
+            const Box2di & aBox,
+            const cMultiCorrelPonctuel * aMCP,
+            double aPdsPix
         )
 {
         eModeInitZ aModeInitZ = eModeMom_2_22;
@@ -1526,7 +1586,7 @@ void cAppliMICMAC::DoGPU_Correl
                             break;
 
                             case eAggregIm1Maitre :
-                                 DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false);
+                                 DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false,aPdsPix);
                             break;
 
                             case  eAggregMaxIm1Maitre :
@@ -1538,7 +1598,7 @@ void cAppliMICMAC::DoGPU_Correl
                                 break;
 
                             case eAggregMoyMedIm1Maitre :
-                                 DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true);
+                                 DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true,aPdsPix);
                             break;
 
                             default :
@@ -1835,16 +1895,9 @@ void cAppliMICMAC::DoCorrelAdHoc
         DoInitAdHoc(aBox);
 
 
-/*
-        if (aTC.CorrelMultiScale().IsInit())
-                {
-            DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
-                }
-        else
-*/
         if (aTC.GPU_Correl().IsInit())
         {
-            DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
+            DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0,0);
         }
         else if (aTC.GPU_CorrelBasik().IsInit())
         {
@@ -1872,7 +1925,37 @@ void cAppliMICMAC::DoCorrelAdHoc
         }
         else if (aTC.MultiCorrelPonctuel().IsInit())
         {
-            DoGPU_Correl(aBox,(aTC.MultiCorrelPonctuel().PtrVal()));
+            const cMultiCorrelPonctuel * aMCP = aTC.MultiCorrelPonctuel().PtrVal();
+            const cMCP_AttachePixel * aAP = aMCP->MCP_AttachePixel().PtrVal();
+            double aPdsPix= 0 ;
+            if (aAP)
+            {
+               aPdsPix=  aAP->Pds();
+               for (int aKIm= 0 ; aKIm<int(mVLI.size()) ; aKIm++)
+               {
+                    std::string aName = mVLI[aKIm]->PDV()->Name();
+                    cGLI_CalibRadiom *  aCalR = mDicCalRad[aName];
+                    if (aCalR==0)
+                    {
+                       std::string aNameF = mICNM->Assoc1To1(aAP->KeyRatio(),aName,true);
+                       cGLI_CalibRadiom * aCal = 0;
+                       if (StdPostfix(aNameF)=="xml")
+                       {
+                            cXML_RatioCorrImage aXMLR = StdGetFromMM(aNameF,XML_RatioCorrImage);
+                            aCal = new cGLI_CalibRadiom(aXMLR);
+                            // std::cout << "RRRR " << aName<< " " << aXMLR.Ratio() << "\n";
+                       }
+                       else
+                       {
+                           ELISE_ASSERT(false,"MCP_AttachePixel handles only xml");
+                       }
+                       mDicCalRad[aName] = aCal;
+                    }
+                    aCalR = mDicCalRad[aName];
+                    mVLI[aKIm]->InitCalibRadiom(aCalR);
+               }
+            }
+            DoGPU_Correl(aBox,aMCP,aPdsPix);
         }
         else if (aTC.MasqueAutoByTieP().IsInit())
         {
@@ -1885,12 +1968,24 @@ void cAppliMICMAC::DoCorrelAdHoc
 
 }
 
+void ShowStat(const std::string & aMes,std::vector<float> & aVC)
+{
+   double aV0 = KthValProp(aVC,0.25);
+   double aV1 = KthValProp(aVC,0.75);
+
+   std::cout  << aMes 
+              << " Ecart " << (aV1-aV0)  
+              << " Aver " << (aV0+aV1)/2.0  
+              << " Nb " << aVC.size() << "\n";
+}
+
 void cAppliMICMAC::GlobDoCorrelAdHoc
         (
         const Box2di & aBoxOut,
         const Box2di & aBoxIn  //  IN
         )
 {
+        ResetCalRad();
 
         int aSzDecoupe = mCorrelAdHoc->SzBlocAH().Val();
         // Pour eventuellement changer si existe algo qui impose une taille
@@ -1941,6 +2036,15 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
             aSzDecoupe = 1000000;
         }
 
+        mMCP = aTC.MultiCorrelPonctuel().PtrVal();
+        mDoStatCorrel = false;
+        if (mMCP)
+        {
+            mStatCNC.clear();
+            mStat1Pix.clear();
+            mDoStatCorrel = true;
+        }
+
 
         if (aTC.Correl2DLeastSquare().IsInit())
         {
@@ -1970,6 +2074,12 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
             #if CUDA_ENABLED
                 IMmGg.IncProgress();
             #endif
+        }
+
+        if (mDoStatCorrel)
+        {
+             ShowStat("Corr NC", mStatCNC);
+             ShowStat("1Pix Match", mStat1Pix);
         }
 }
 

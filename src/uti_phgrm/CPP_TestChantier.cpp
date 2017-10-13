@@ -37,6 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include <iomanip>
 
 /*
 void TestOneCorner(ElCamera * aCam,const Pt2dr&  aP, const Pt2dr&  aG)
@@ -196,7 +197,233 @@ int TestChantier_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+//---------------------------------------------------------------------//
 
+
+void AlphaGet27_Banniere()
+{
+    std::cout <<  "\n";
+    std::cout <<  " ****************************************\n";
+    std::cout <<  " *     G-éolocalisation                 *\n";
+    std::cout <<  " *     E-n l'air                        *\n";
+    std::cout <<  " *     T-étradimensionnelle             *\n";
+    std::cout <<  " *     2-01                             *\n";
+    std::cout <<  " *     7                                *\n";
+    std::cout <<  " ****************************************\n\n";
+}
+
+int AlphaGet27_main(int argc,char ** argv)
+{
+    std::cout << "\n";
+
+//    MMD_InitArgcArgv(argc,argv);
+
+    std::string anOriFolder, aGCPfile, aSaisiefile, aFullDir;
+    std::string aPathOut = "./AlphaGet27.xml";
+    std::string aNamePt = "";
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir, "Full Directory (Dir+Pattern)", eSAM_IsPatFile)
+                    << EAMC(anOriFolder, "Orientation folder (in projected coordinates)", eSAM_IsExistDirOri)
+                    << EAMC(aGCPfile, "Ground Control Points file (XML)", eSAM_IsExistFileRP)
+                    << EAMC(aSaisiefile, "Saisie Appuis file (XML)", eSAM_IsExistFileRP),
+        LArgMain()  << EAM(aPathOut, "Out", true, "Output path (default = './AlphaGet27.xml')", eSAM_IsOutputFile)
+                    << EAM(aNamePt, "GCPid", true, "GCP name for computation of coordinates (default : first in GCP file)")
+    );
+
+    std::string aDir, aPat;
+    SplitDirAndFile(aDir,aPat,aFullDir);
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetIm = *(anICNM->Get(aPat));
+
+    // Aspro treatments
+    std::string aComAspro = MM3dBinFile_quotes("Aspro")
+                            + " " + aFullDir
+                            + " " + anOriFolder
+                            + " " + aGCPfile
+                            + " " + aSaisiefile;
+//                            + " && "
+//                            + MM3dBinFile_quotes("OriExport")
+//                            + " " + aFullDir
+//                            + " Ori-Aspro/Orientation.*xml"
+//                            ;
+
+//    std::cout << aComAspro << "\n";
+    System(aComAspro);
+
+    // TestDistortion treatments
+    cDicoAppuisFlottant aDAF = StdGetFromPCP(aGCPfile, DicoAppuisFlottant);
+    cSetOfMesureAppuisFlottants aSOMAF = StdGetFromPCP(aSaisiefile, SetOfMesureAppuisFlottants);
+
+//    std::cout << "\n GCP id not OK !";
+
+    if(aNamePt == "")
+    {
+        aNamePt = aSOMAF.MesureAppuiFlottant1Im().front().OneMesureAF1I().front().NamePt();
+    }
+    else
+    {
+        bool GCPnameOK = false;
+        for(std::list<cOneAppuisDAF>::const_iterator itA = aDAF.OneAppuisDAF().begin() ; itA != aDAF.OneAppuisDAF().end() ; itA++)
+        {
+            cOneAppuisDAF anOA = *itA;
+            if(aNamePt == anOA.NamePt()) GCPnameOK = true;
+        }
+        ELISE_ASSERT(GCPnameOK,"GCP name not in GCP input file");
+    }
+
+
+//    std::string aNameCalib = anOriFolder + "AutoCal@" + ".xml";
+//    CamStenope * aCalib =  CamOrientGenFromFile(aNameCalib, anICNM);
+    cDicoAppuisFlottant aDAFout;
+    Pt3dr aFaisc = Pt3dr(0,0,0);
+
+    for(unsigned aC=0; aC<aSetIm.size(); aC++)
+    {
+        CamStenope * aCam = CamOrientGenFromFile(anOriFolder + "/Orientation-" + aSetIm[aC] + ".xml", anICNM);
+//        std::cout << "XML = " << anOriFolder + "/Orientation-" + aSetIm[aC] + ".xml" << "\n";
+        ElMatrix<double> aMatRot = aCam->Orient().Mat();
+        std::cout << "Image = " << aSetIm[aC] << "\n";
+
+        for(std::list<cMesureAppuiFlottant1Im>::const_iterator itF = aSOMAF.MesureAppuiFlottant1Im().begin() ; itF != aSOMAF.MesureAppuiFlottant1Im().end() ; itF++)
+        {
+            cMesureAppuiFlottant1Im aMAF = *itF;
+            if(aMAF.NameIm() == aSetIm[aC])
+            {
+                for(std::list<cOneMesureAF1I>::const_iterator itM = aMAF.OneMesureAF1I().begin() ; itM != aMAF.OneMesureAF1I().end() ; itM++)
+                {
+                    cOneMesureAF1I anOM = *itM;
+                    if(anOM.NamePt() == aNamePt)
+                    {
+                        Pt2dr aPtIm = anOM.PtIm();
+//                        std::cout << "Vect = " << aPtIm.x << " ; " << aPtIm.y << "\n";
+//                        aCalib->C2toDirRayonL3()
+                        aFaisc = aCam->F2toDirRayonL3(aPtIm);
+//                        std::cout << "Vect = " << aFaisc.x << " ; " << aFaisc.y << " ; " << aFaisc.z << "\n";
+                        double aFNorm = sqrt( pow(aFaisc.x, 2) + pow(aFaisc.y, 2) + pow(aFaisc.z, 2) );
+                        aFaisc = aFaisc / aFNorm;
+                    }
+                }
+            }
+        }
+//        std::cout << "Vect_n = " << aFaisc.x << " ; " << aFaisc.y << " ; " << aFaisc.z << "\n";
+
+        cOrientationConique anOCAspro = StdGetFromPCP("Ori-Aspro/Orientation-" + aSetIm[aC] + ".xml", OrientationConique);
+        Pt3dr aPosIm = anOCAspro.Externe().Centre();
+        double aDist = sqrt( pow(aPosIm.x, 2) + pow(aPosIm.y, 2) + pow(aPosIm.z, 2) );
+
+        std::cout << "Distance camera-objet = " << aDist << " metres\n";
+
+        Pt3dr aVecDir = aFaisc * aDist;
+
+//        std::cout << "Vecteur directeur camera-objet = {" << aVecDir.x << " ; " << aVecDir.y << " ; " << aVecDir.z << "}\n";
+
+//        std::cout << aMatRot(0,0) << " ; " << aMatRot(0,1) << " ; " << aMatRot(0,2) << "\n";
+//        std::cout << aMatRot(1,0) << " ; " << aMatRot(1,1) << " ; " << aMatRot(1,2) << "\n";
+//        std::cout << aMatRot(2,0) << " ; " << aMatRot(2,1) << " ; " << aMatRot(2,2) << "\n";
+
+        double aB2Ltab[3] = {aMatRot(0,0)*aVecDir.x + aMatRot(0,1)*aVecDir.y + aMatRot(0,2)*aVecDir.z,
+                             aMatRot(1,0)*aVecDir.x + aMatRot(1,1)*aVecDir.y + aMatRot(1,2)*aVecDir.z,
+                             aMatRot(2,0)*aVecDir.x + aMatRot(2,1)*aVecDir.y + aMatRot(2,2)*aVecDir.z};
+
+        std::cout << aB2Ltab[0] << " ; " << aB2Ltab[1] << " ; " << aB2Ltab[2] << std::endl;
+        Pt3dr aLevier = Pt3dr::FromTab(aB2Ltab);
+
+        std::cout << "Bras de levier camera-objet = {" << aLevier.x << " ; " << aLevier.y << " ; " << aLevier.z << "}\n\n";
+
+        cOneAppuisDAF anAp;
+
+        anAp.Pt() = aCam->PseudoOpticalCenter() + aLevier;
+//        std::cout << std::setprecision(10) << "LLA corr = {" << anAp.Pt().x << " ; " << anAp.Pt().y << " ; " << anAp.Pt().z << "}\n\n";
+        anAp.NamePt() = aSetIm[aC];
+        anAp.Incertitude() = Pt3dr(1,1,1);
+        aDAFout.OneAppuisDAF().push_back(anAp);
+    }
+
+    MakeFileXML(aDAFout, aPathOut);
+
+    AlphaGet27_Banniere();
+
+    return EXIT_SUCCESS;
+}
+
+
+//---------------------------------------------------------------------//
+
+int mergeSOMAF_main(int argc,char ** argv)
+{
+    std::cout << "\n";
+
+//    MMD_InitArgcArgv(argc,argv);
+
+    std::string aFullDir;
+    std::string aPathOut = "./SOMAFmerged.xml";
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir, "Full SOMAF Directory (Dir+Pattern)", eSAM_IsPatFile),
+        LArgMain()  << EAM(aPathOut, "Out", true, "Output path (default = './SOMAFmerged.xml')", eSAM_IsOutputFile)
+    );
+
+    std::string aDir, aPat;
+    SplitDirAndFile(aDir,aPat,aFullDir);
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetSOMAF = *(anICNM->Get(aPat));
+
+    cSetOfMesureAppuisFlottants aSOMAF, aSOMAFout;
+    cMesureAppuiFlottant1Im aMAF, aMAFo;
+    cOneMesureAF1I anOM;
+
+    for(unsigned aS=0; aS<aSetSOMAF.size(); aS++)
+    {
+        aSOMAF = StdGetFromPCP(aSetSOMAF[aS], SetOfMesureAppuisFlottants);
+        std::cout << "\nOuverture du fichier " << aSetSOMAF[aS] << std::endl;
+        for(std::list<cMesureAppuiFlottant1Im>::const_iterator itF = aSOMAF.MesureAppuiFlottant1Im().begin() ; itF != aSOMAF.MesureAppuiFlottant1Im().end() ; itF++)
+        {
+            aMAF = *itF;
+            std::cout << "Saisie Image : " << aMAF.NameIm() << " lue dans le fichier\n";
+            bool newMAF = true;
+            for(std::list<cMesureAppuiFlottant1Im>::iterator itFo = aSOMAFout.MesureAppuiFlottant1Im().begin() ; itFo != aSOMAFout.MesureAppuiFlottant1Im().end() ; ++itFo)
+            {
+                aMAFo = *itFo;
+                if(aMAF.NameIm() == aMAFo.NameIm())
+                {
+                    std::cout << "\tSaisie Image " << aMAFo.NameIm() << " existante\n";
+                    std::cout << "\t\tPoint(s) ";
+                    for(std::list<cOneMesureAF1I>::const_iterator itM = aMAF.OneMesureAF1I().begin() ; itM != aMAF.OneMesureAF1I().end() ; itM++)
+                    {
+                        anOM = *itM;
+                        aMAFo.OneMesureAF1I().push_back(anOM);
+                        std::cout << anOM.NamePt() << " ";
+                    }
+                    std::cout << "ajouté(s)\n";
+                    aSOMAFout.MesureAppuiFlottant1Im().insert(itFo, aMAFo);
+                    aSOMAFout.MesureAppuiFlottant1Im().erase(itFo++);
+                    itFo--;
+                    newMAF = false;
+                }
+            }
+            if(newMAF)
+            {
+                aSOMAFout.MesureAppuiFlottant1Im().push_back(aMAF);
+            }
+        }
+        std::cout << "Fichier " << aSetSOMAF[aS] << " fusionné avec succès" << std::endl;
+    }
+
+    std::cout << "\nFichier de sortie enregistré sous : " << aPathOut << std::endl;
+
+    MakeFileXML(aSOMAFout, aPathOut);
+
+    return EXIT_SUCCESS;
+}
+
+
+
+//---------------------------------------------------------------------//
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

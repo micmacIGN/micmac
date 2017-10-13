@@ -42,17 +42,27 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <iostream>
 #include <string>
 
+
+const double JD2000 = 2451545.0; 	// J2000 in jd
+const double J2000 = 946728000.0; 	// J2000 in seconds starting from 1970-01-01T00:00:00
+const double MJD2000 = 51544.5; 	// J2000 en mjd
+const double GPS0 = 315964800.0; 	// 1980-01-06T00:00:00 in seconds starting from 1970-01-01T00:00:00
+const int LeapSecond = 18;			// GPST-UTC=18s
+
+
 struct ImgTimes
 {
     std::string ImgName;
     long double ImgUT; // system unix time
-    long double ImgGT; // GPS time
+    long double ImgMJD; // GPS MJD time
 };
 
 struct Tops
 {
     long double TopsUT; // system unix time
-    long double TopsGT; // GPS time
+    int TopsWeek; // GPS week
+    long double TopsSec; // GPS second of week
+    long double TopsMJD; // GPS MJD time
 };
 
 std::vector<ImgTimes> ReadImgTimesFile(string & aDir, string aTimeFile, std::string aExt)
@@ -93,7 +103,7 @@ std::vector<ImgTimes> ReadImgTimesFile(string & aDir, string aTimeFile, std::str
     return aVSIT;
 }
 
-std::vector<Tops> ReadTopsFile(string & aDir, string aTopsFile)
+std::vector<Tops> ReadTopsFile(string & aDir, string aTopsFile, const bool & aUTC)
 {
     std::vector<Tops> aVTops;
     ifstream aTopsFichier((aDir + aTopsFile).c_str());
@@ -111,13 +121,24 @@ std::vector<Tops> ReadTopsFile(string & aDir, string aTopsFile)
                 char *aTopsBuffer = strdup((char*)aTopsLine.c_str());
                 std::string aUT = strtok(aTopsBuffer,"  ");
                 aUT += "L";
-                std::string aTmp = strtok(NULL,"  ");
-                std::string aGT = strtok(NULL,"  ");
-                aGT += "L";
+                std::string aWeek = strtok(NULL,"  ");
+                aWeek += "L";
+                std::string aSec = strtok(NULL,"  ");
+                aSec += "L";
 
                 Tops aTops;
                 aTops.TopsUT = atof(aUT.c_str());
-                aTops.TopsGT = atof(aGT.c_str());
+                aTops.TopsWeek = atof(aWeek.c_str());
+                aTops.TopsSec = atof(aSec.c_str());
+
+                if(aUTC)
+                    aTops.TopsSec -= LeapSecond;
+
+                long double aS1970 = aTops.TopsWeek * 7 * 86400 + aTops.TopsSec + GPS0;
+
+                long double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
+
+                aTops.TopsMJD=aMJD;
 
                 aVTops.push_back(aTops);
             }
@@ -147,13 +168,17 @@ uint FindIdx(long double aUT, std::vector<Tops> aVTops)
 int MatchTops_main (int argc, char ** argv)
 {
     std::string aDir, aNameTF, aTimeFile, aTopsFile, aExt=".thm.tif", aOutFile="ImgTM.xml";
+    bool aMJD=1, aUTC=0;
+
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aTimeFile, "File of image system unix time", eSAM_IsExistFile)
+        LArgMain()  << EAMC(aTimeFile, "File of image system unix time (all_name_time.txt)", eSAM_IsExistFile)
                     << EAMC(aTopsFile, "Tops file", eSAM_IsExistFile),
         LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
                     << EAM(aOutFile,"Out",true, "Output file, Def = ImgTM.xml")
+                    << EAM(aMJD,"MJD",true,"If using MJD time, def=true")
+                    << EAM(aUTC,"UTC",true,"If using UTC time, def=false, only useful when MJD=true")
     );
 
     SplitDirAndFile(aDir,aNameTF,aTimeFile);
@@ -162,7 +187,7 @@ int MatchTops_main (int argc, char ** argv)
     std::vector<ImgTimes> aVSIT = ReadImgTimesFile(aDir, aTimeFile, aExt);
 
     // read Tops file
-    std::vector<Tops> aVTops = ReadTopsFile(aDir, aTopsFile);
+    std::vector<Tops> aVTops = ReadTopsFile(aDir, aTopsFile, aUTC);
 
     uint aIdx = FindIdx(aVSIT.at(0).ImgUT,aVTops);
 
@@ -171,7 +196,10 @@ int MatchTops_main (int argc, char ** argv)
     {
         cCpleImgTime aCpleIT;
         aCpleIT.NameIm() = aVSIT.at(iV).ImgName;
-        aCpleIT.TimeIm() = aVTops.at(iV+aIdx).TopsGT;
+        if(aMJD)
+            aCpleIT.TimeIm() = aVTops.at(iV+aIdx).TopsMJD;
+        else
+            aCpleIT.TimeIm() = aVTops.at(iV+aIdx).TopsSec;
 
         aDicoIT.CpleImgTime().push_back(aCpleIT);
     }

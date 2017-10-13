@@ -318,6 +318,7 @@ int TestDistortion_main(int argc,char ** argv)
     );
 
     cElemAppliSetFile anEASF(aNameCalib);
+    std::cout << aNameCalib << std::endl;
 
     CamStenope * aCam =  CamOrientGenFromFile(aNameCalib,anEASF.mICNM);
 

@@ -180,17 +180,32 @@ void cAppliMICMAC::DoCorrel2ImGeomImGen
                    {
                      if (AddCpleRad)
                      {
-                         mSurfOpt->Local_SetCpleRadiom(Pt2di(anX,anY),&aZInt,(U_INT2)Vals[0],(U_INT2)Vals[1]);
+                         mSurfOpt->Local_SetCpleRadiom(Pt2di(anX,anY),&aZInt,(tCRVal)Vals[0],(tCRVal)Vals[1]);
                      }
                      double aV0 = Vals[0];
                      double aV1 = Vals[1] * aRatioI1I2;
                      double aCost = aPdsPonct  * (ElAbs(aV1-aV0)/(aV1+aV0));
                      // On envoie le resultat a l'optimiseur pour valoir  ce que de droit
                      mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,aCost);
+
+/*
+if (MPD_MM())
+{
+   static int aCpt=0 ; aCpt++;
+
+   std::cout << " VALS " << aV0 << " " << aV1 << " " << aCost << "\n";
+
+   getchar();
+}
+*/
                    }
                    else
                    {
                        // Si pas assez d'image, il faut quand meme remplir la case avec qq chose
+                      if (AddCpleRad)
+                      {
+                          mSurfOpt->Local_SetCpleRadiom(Pt2di(anX,anY),&aZInt,ValUndefCple,ValUndefCple);
+                      }
                        mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,mAhDefCost);
                    }
                }

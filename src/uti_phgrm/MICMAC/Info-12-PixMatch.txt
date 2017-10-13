@@ -46,6 +46,7 @@ Qui signifie, "memorise qu'au voxel X,Y,Z, on a les liste de valeur normalisee".
 (2) Gestion 
 
      Local_VecInt1 => par defaut erreur fatale, redefinie dans cMMNewPrg2D<Type> par :
+     (fait dans DoOneCorrelIm1Maitre)
 
          mCelsNap[aPTer.y][aPTer.x][aPX[0]].ArgAux().InitVecINT1(aVec);
 

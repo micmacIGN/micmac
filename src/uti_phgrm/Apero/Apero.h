@@ -1979,6 +1979,7 @@ class cAppliApero : public NROptF1vND
 
         void AddInfoImageResidu
              (
+                 const Pt3dr &                 aPt,
                  const  cNupletPtsHomologues & aNupl,
                  const std::vector<cGenPoseCam *> aVP,
                  const std::vector<double> &  aVpds

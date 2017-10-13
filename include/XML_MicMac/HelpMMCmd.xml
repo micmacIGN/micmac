@@ -19,7 +19,9 @@ MainFeature :
      eCmf_TiePoints
      eCmf_ImMatch
      eCmf_Map2D
+     eCmf_TrajGnss
      eCmf_NbVals
+
 
 DataType :
      eCmDt_Orient
@@ -277,7 +279,16 @@ DataType :
    </OneCmd>
 -->
 
+<!-- ============ -->
+<!--   Gnss/Traj -->
+<!-- ============ -->
 
+   <OneCmd> 
+          <Name  >        InterpImTM     </Name>
+          <MainFeature >  eCmf_TrajGnss  </MainFeature>
+          <MainInput   >  eCmDt_FileXML  </MainInput>
+          <MainOutput  >  eCmDt_Orient   </MainOutput>
+   </OneCmd>
 
 </Xml_SpecifAllMMCmd>
 

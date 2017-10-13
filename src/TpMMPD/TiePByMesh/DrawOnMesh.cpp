@@ -328,7 +328,10 @@ void DrawOnMesh::drawListTriangle(vector<cXml_Triangle3DForTieP> listTri,
                                   )
 {
     ofstream myfile;
-    myfile.open (fileName.c_str());
+    if (listTri.size() > 0)
+        myfile.open (fileName.c_str());
+    else
+        return;
 
     myfile<<"ply\n";
     myfile<<"format ascii 1.0\n";

@@ -1097,6 +1097,7 @@ void cPlyCloud::PutDigit(char aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,doub
     Pt2di aNb = aSz * aNbByCase;
     double aSc = aLargCar / aNb.x;
 
+// std::cout << "PutDigit " << aP0 <<  " " <<  aLargCar << " \n";
 
     Pt2di aP;
     for (aP.x = 0 ; aP.x <aNb.x ; aP.x++)
@@ -1116,11 +1117,11 @@ void cPlyCloud::PutDigit(char aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,doub
 
 }
 
-void cPlyCloud::PutStringDigit(std::string aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,double aSpace,int aNbByCase)
+void cPlyCloud::PutString(std::string aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,double aSpace,int aNbByCase, bool OnlyDigit)
 {
     for (const char * aC = aDigit.c_str(); *aC ; aC++)
     {
-        if (isdigit(*aC))
+        if ((! OnlyDigit) || isdigit(*aC))
         {
            PutDigit(*aC,aP0,aX,aY,aCoul,aLargCar,aNbByCase);
            aP0 = aP0 + aX * (aLargCar+aSpace);
@@ -1128,6 +1129,10 @@ void cPlyCloud::PutStringDigit(std::string aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tC
     }
 }
 
+void cPlyCloud::PutStringDigit(std::string aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,double aSpace,int aNbByCase)
+{
+     PutString(aDigit,aP0,aX,aY,aCoul,aLargCar,aSpace,aNbByCase);
+}
 
 
 void cPlyCloud::PutFile(const std::string & aName)

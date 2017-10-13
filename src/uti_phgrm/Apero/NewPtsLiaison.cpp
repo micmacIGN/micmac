@@ -411,9 +411,10 @@ void  cAppliApero::CDNP_Compense
                   aNbEtape = 0;
                }
 
+               // On est forcement en aPdsIm>0, sinon on 
                if (WithEq)
                {
-                   AddInfoImageResidu(aNUpl,aVCam,aVpds);
+                   AddInfoImageResidu(aRes.mPTer,aNUpl,aVCam,aVpds);
                    for (int aKPose=0 ; aKPose < aNbIm ; aKPose++)
                    {
                        aVCam[aKPose]->AddPMoy
