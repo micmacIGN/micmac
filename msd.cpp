@@ -233,8 +233,10 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
 
         int w = img.sz().x;
         int h = img.sz().y;
-        std::cout<<"Layer width "<<w<<" Layer height "<<h<<endl;
+        //std::cout<<"Layer width "<<w<<" Layer height "<<h<<endl;
 
+        if (m_circular_window)
+        {
 
         //ElTimer chrono;
         // Define the circular patch mask that is to be used
@@ -250,10 +252,6 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
         float *acc = new float[side_b * side_b];
 
         den = k;// instead of side_s * side_s *PI_4*k
-
-
-        if (m_circular_window)
-        {
 
         float ab,a_2,b_2;
         for(int y = border; y< h - border; y++)
@@ -341,11 +339,341 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
             saliency[y*w + x] =  computeAvgDistance(minVals, den);
           }
         }
+        delete[] acc;
+        acc=0;
         }
 
         else
         {
-        float ab,a_2,b_2;
+// May be an optimized sheme to make interest points computation faster
+
+            int side_b = 2 * r_b + 1;
+            int border = r_s + r_b;
+            int a, b,B_2;
+            int den = k;
+
+            std::vector<float> minVals(k);
+            int *accAB = new int[side_b * side_b];
+            int *accA_2 = new int[side_b * side_b];
+            float acc=0.0;
+            int **vAB = new int *[w];
+            int **vA_2= new int *[w];
+            for (int i = 0; i<w; i++)
+               {
+                  vAB[i]  = new int[side_b * side_b];
+                  vA_2[i] = new int[side_b * side_b];
+               }
+
+
+            //first position
+            int x = xmin;
+            int y = border;
+
+            //Compute the central patch sum of square values
+
+            B_2=0;
+            /*******************************************************/
+            for (int u = -r_s; u <= r_s; u++)
+            {
+                for (int v = -r_s; v <= r_s; v++)
+                {
+                  Pt2di LocImg(x+u,y+v);
+                  int valxy=img.GetI(LocImg);
+                  //std::cout<<" Value: "<<valxy<<endl;
+                  B_2+=valxy*valxy;
+                }
+            }
+           /********************************************************/
+
+            int ctrInd = 0;
+            for (int kk = 0; kk<k; kk++)
+                minVals[kk] = std::numeric_limits<float>::max();
+
+            for (int j = y - r_b; j <= y + r_b; j++)
+            {
+                for (int i = x - r_b; i <= x + r_b; i++)
+                {
+                    if (j == y && i == x)
+                        continue;
+
+                    accAB[ctrInd] = 0;
+                    accA_2[ctrInd] =0;
+                    for (int u = -r_s; u <= r_s; u++)
+                    {
+                        vAB[x + u][ctrInd] = 0;
+                        vA_2[x + u][ctrInd] = 0;
+                        for (int v = -r_s; v <= r_s; v++)
+                        {
+                            Pt2di Pijuv(i+u,j+v);
+                            Pt2di Pxyuv(x+u,y+v);
+                            a = img.GetI(Pijuv);
+                            b = img.GetI(Pxyuv);
+                            //std::cout<<" Value a: "<<a<<endl;
+                            //std::cout<<" Value b: "<<b<<endl;
+                            vAB[x + u][ctrInd]  += (a*b);
+                            vA_2[x + u][ctrInd] += (a*a);
+                        }
+                        accAB[ctrInd] += vAB[x + u][ctrInd];
+                        //std::cout<<" acc ab "<<accAB[ctrInd]<<endl;
+                        accA_2[ctrInd] += vA_2[x + u][ctrInd];
+                        //std::cout<<"acc a_2 "<<accA_2[ctrInd]<<endl;
+                    }
+                    //Get the new distance based on NCC
+                    //std:: cout<< accAB[ctrInd] <<"  "<< accA_2[ctrInd]<<"  "<<B_2<<endl;
+
+                    acc=2*(1.0-(float)accAB[ctrInd]/sqrt((float)accA_2[ctrInd]*(float)B_2));
+                    //std::cout<<" acc  : "<<acc<<endl;
+
+                    if (acc  < minVals[k - 1])
+                    {
+                        minVals[k - 1] = acc;
+
+                        for (int kk = k - 2; kk >= 0; kk--)
+                        {
+                            if (minVals[kk] > minVals[kk + 1])
+                            {
+                                std::swap(minVals[kk], minVals[kk + 1]);
+                            }
+                            else
+                                break;
+                        }
+                    }
+
+                    ctrInd++;
+                }
+            }
+            saliency[y*w + x] = computeAvgDistance(minVals, den);
+
+            for (x = xmin + 1; x<xmax; x++)
+            {
+                //Compute the central patch sum of square values
+
+                B_2=0;
+                /*******************************************************/
+                for (int u = -r_s; u <= r_s; u++)
+                {
+                    for (int v = -r_s; v <= r_s; v++)
+                    {
+                      Pt2di LocImg(x+u,y+v);
+                      int valxy=img.GetI(LocImg);
+                      B_2+=valxy*valxy;
+                    }
+                }
+
+                // We could use the previously computed values
+
+               /********************************************************/
+                ctrInd = 0;
+                for (int kk = 0; kk<k; kk++)
+                    minVals[kk] = std::numeric_limits<float>::max();
+
+                for (int j = y - r_b; j <= y + r_b; j++)
+                {
+                    for (int i = x - r_b; i <= x + r_b; i++)
+                    {
+                        if (j == y && i == x)
+                            continue;
+
+                        vAB[x + r_s][ctrInd] = 0;
+                        vA_2[x + r_s][ctrInd] = 0;
+
+                        for (int v = -r_s; v <= r_s; v++)
+                        {
+                            Pt2di Pijuv(i+r_s,j+v);
+                            Pt2di Pxyuv(x+r_s,y+v);
+                            a = img.GetI(Pijuv);
+                            b = img.GetI(Pxyuv);
+                            vAB[x + r_s][ctrInd]  += (a*b);
+                            vA_2[x + r_s][ctrInd] += (a*a);
+                        }
+
+                        accAB[ctrInd] = accAB[ctrInd] + vAB[x + r_s][ctrInd] - vAB[x - r_s - 1][ctrInd];
+                        accA_2[ctrInd] = accA_2[ctrInd] + vA_2[x + r_s][ctrInd] - vA_2[x - r_s - 1][ctrInd];
+
+                        //Get the new distance based on NCC
+
+
+                        acc=2*(1.0-(float)accAB[ctrInd]/sqrt((float)accA_2[ctrInd]*(float)B_2));
+
+                        //std::cout<<" acc  : "<<acc<<endl;
+                        if (acc < minVals[k - 1])
+                        {
+                            minVals[k - 1] = acc;
+                            for (int kk = k - 2; kk >= 0; kk--)
+                            {
+                                if (minVals[kk] > minVals[kk + 1])
+                                {
+                                    std::swap(minVals[kk], minVals[kk + 1]);
+                                }
+                                else
+                                    break;
+                            }
+                        }
+
+                        ctrInd++;
+                    }
+                }
+                saliency[y*w + x] = computeAvgDistance(minVals, den);
+            }
+
+            //all remaining rows...
+            for (int y = border + 1; y< h - border; y++)
+            {
+                //first position of each row
+                ctrInd = 0;
+                for (int kk = 0; kk<k; kk++)
+                    minVals[kk] = std::numeric_limits<float>::max();
+                x = xmin;
+
+                //Compute the central patch sum of square values
+                B_2=0;
+                /*******************************************************/
+                for (int u = -r_s; u <= r_s; u++)
+                {
+                    for (int v = -r_s; v <= r_s; v++)
+                    {
+                      Pt2di LocImg(x+u,y+v);
+                      int valxy=img.GetI(LocImg);
+                      B_2+=valxy*valxy;
+                    }
+                }
+               /********************************************************/
+
+                for (int j = y - r_b; j <= y + r_b; j++)
+                {
+                    for (int i = x - r_b; i <= x + r_b; i++)
+                    {
+                        if (j == y && i == x)
+                            continue;
+
+                        accAB[ctrInd] = 0;
+                        accA_2[ctrInd]= 0;
+
+                        for (int u = -r_s; u <= r_s; u++)
+                        {
+                            Pt2di Pijuv(i+u,j+r_s);
+                            Pt2di Pxyuv(x+u,y+r_s);
+                            a = img.GetI(Pijuv);
+                            b = img.GetI(Pxyuv);
+                            vAB[x + u][ctrInd]  += (a*b);
+                            vA_2[x + u][ctrInd] += (a*a);
+
+                            Pijuv.x=i+u; Pijuv.y=j-r_s-1;
+                            Pxyuv.x=x+u; Pxyuv.y=y-r_s-1;
+
+                            a = img.GetI(Pijuv);
+                            b = img.GetI(Pxyuv);
+                            vAB[x + u][ctrInd]  -= (a*b);
+                            vA_2[x + u][ctrInd] -= (a*a);
+
+                            accAB[ctrInd] += vAB[x + u][ctrInd];
+                            accA_2[ctrInd] += vA_2[x + u][ctrInd];
+                        }
+
+                        acc=2*(1.0-(float)accAB[ctrInd]/sqrt((float)accA_2[ctrInd]*(float)B_2));
+                        //std::cout<<" acc  : "<<acc<<endl;
+                        if (acc  < minVals[k - 1])
+                        {
+                            minVals[k - 1] = acc;
+
+                            for (int kk = k - 2; kk >= 0; kk--)
+                            {
+                                if (minVals[kk] > minVals[kk + 1])
+                                {
+                                    std::swap(minVals[kk], minVals[kk + 1]);
+                                }
+                                else
+                                    break;
+                            }
+                        }
+
+                        ctrInd++;
+                    }
+                }
+                saliency[y*w + x] = computeAvgDistance(minVals, den);
+
+                //all remaining positions
+                for (x = xmin + 1; x<xmax; x++)
+                {
+
+                    //Compute the central patch sum of square values
+                    B_2=0;
+                    /*******************************************************/
+                    for (int u = -r_s; u <= r_s; u++)
+                    {
+                        for (int v = -r_s; v <= r_s; v++)
+                        {
+                          Pt2di LocImg(x+u,y+v);
+                          int valxy=img.GetI(LocImg);
+                          B_2+=valxy*valxy;
+                        }
+                    }
+                   /********************************************************/
+                    ctrInd = 0;
+                    for (int kk = 0; kk<k; kk++)
+                        minVals[kk] = std::numeric_limits<float>::max();
+
+                    for (int j = y - r_b; j <= y + r_b; j++)
+                    {
+                        for (int i = x - r_b; i <= x + r_b; i++)
+                        {
+                            if (j == y && i == x)
+                                continue;
+
+                            Pt2di Pijuv(i+r_s,j+r_s);
+                            Pt2di Pxyuv(x+r_s,y+r_s);
+                            a = img.GetI(Pijuv);
+                            b = img.GetI(Pxyuv);
+                            vAB[x + r_s][ctrInd]  += (a*b);
+                            vA_2[x + r_s][ctrInd] += (a*a);
+
+                            Pijuv.x=i+r_s; Pijuv.y=j-r_s-1;
+                            Pxyuv.x=x+r_s; Pxyuv.y=y-r_s-1;
+
+                            a = img.GetI(Pijuv);
+                            b = img.GetI(Pxyuv);
+                            vAB[x + r_s][ctrInd]  -= (a*b);
+                            vA_2[x + r_s][ctrInd] -= (a*a);
+
+                            accAB[ctrInd] = accAB[ctrInd] + vAB[x + r_s][ctrInd] - vAB[x - r_s - 1][ctrInd];
+
+                            accA_2[ctrInd] = accA_2[ctrInd] + vA_2[x + r_s][ctrInd] - vA_2[x - r_s - 1][ctrInd];
+
+                            acc=2*(1.0-(float)accAB[ctrInd]/sqrt((float)accA_2[ctrInd]*(float)B_2));
+                            //std::cout<<" acc  : "<<acc<<endl;
+                            if (acc < minVals[k - 1])
+                            {
+                                minVals[k - 1] = acc;
+
+                                for (int kk = k - 2; kk >= 0; kk--)
+                                {
+                                    if (minVals[kk] > minVals[kk + 1])
+                                    {
+                                        std::swap(minVals[kk], minVals[kk + 1]);
+                                    }
+                                    else
+                                        break;
+                                }
+                            }
+                            ctrInd++;
+                        }
+                    }
+                    saliency[y*w + x] = computeAvgDistance(minVals, den);
+                }
+            }
+
+            for (int i = 0; i<w; i++)
+            {
+                delete[] vAB[i];
+                delete[] vA_2[i];
+            }
+            delete[] vAB;
+            delete[] vA_2;
+            delete[] accAB;
+            delete[] accA_2;
+
+
+        /*float ab,a_2,b_2;
         for(int y = border; y< h - border; y++)
         {
             for (int x = xmin; x<xmax; x++)
@@ -364,8 +692,6 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
                     acc[ctrInd] = 0;
 
                     ab=0;a_2=0;b_2=0;
-
-                    //*********************************
                     for (int u = -r_s; u <= r_s; u++)
                     {
 
@@ -405,8 +731,9 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
         }
 
 		delete[] acc;
-		acc=0;
+        acc=0;*/
     }
+  }
 
 
 
@@ -740,7 +1067,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
             saliency[r] = new float[m_scaleSpace[r].sz().y * m_scaleSpace[r].sz().x];
 		}
 
-        std::cout<<"==============> Computing saliency maps for the image pyramid\n";
+        //std::cout<<"==============> Computing saliency maps for the image pyramid\n";
         for (int r = 0; r<m_cur_n_scales; r++)
 		{
 #ifdef BOOST_MULTICORE
@@ -760,10 +1087,10 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
 				delete threads[i];
 			}
 #else
-            ElTimer chrono;
+            //ElTimer chrono;
             contextualSelfDissimilarity(m_scaleSpace.at(r), border, m_scaleSpace.at(r).sz().x - border, saliency[r]);
             //m_scaleSpace.erase(m_scaleSpace.begin());
-            std::cout<<" Time elapsed for layer computation: "<<chrono.uval()<<endl;
+            //std::cout<<" Time elapsed for layer computation: "<<chrono.uval()<<endl;
 
 #endif
 		}

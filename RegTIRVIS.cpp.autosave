@@ -1021,7 +1021,7 @@ int RegTIRVIS_main( int argc, char ** argv )
 
 /*@@@@@@@@@@@@@@ DYKE DATA SET MATCHING USING HOMOGRAPHY PREDICTOR @@@@@@@@@@@@@@@@@@*/
 
-     msd.setCircularWindow(false);
+     msd.setCircularWindow(false); //Bach to square like patch
 
 
 //===============================================================================//

@@ -550,7 +550,7 @@ void Readkeypoints(std::vector<KeyPoint> &Kps, string file)
 //===============================================================================//
 string WhichThermalImage(string VisualIm,std::vector< string > ThermalSet)
 {
-    cElRegex rgx("VIS-(.*).tif",10);  // need to change according to pattern
+    cElRegex rgx("VIS(.*).tif",10);  // need to change according to pattern
     std::string aNameMatch;
     if (rgx.Match(VisualIm))
     {
@@ -579,7 +579,7 @@ string WhichThermalImage(string VisualIm,std::vector< string > ThermalSet)
 //===============================================================================//
 string WhichVisualImage(string tirIm,std::vector< string > VisualSet)
 {
-    cElRegex rgx("TIR-(.*).tif",10);
+    cElRegex rgx("TIR(.*).tif",10);
     std::string aNameMatch;
     if (rgx.Match(tirIm))
     {
@@ -708,6 +708,45 @@ int RegTIRVIS_main( int argc, char ** argv )
     cInterfChantierNameManipulateur * aICNM0=cInterfChantierNameManipulateur::BasicAlloc(aDirtest);
     const std::vector<std::string> aSetImTest = *(aICNM0->Get(aPatImTst));
     std::cout<<"==============> Param Chantier manipulateur set \n";
+
+
+
+
+
+    //===============================================================================//
+    //                  Instantiate the detector MSD                                 //
+    /*===============================================================================*/
+      MsdDetector msd;
+
+      msd.setPatchRadius(3);
+      msd.setSearchAreaRadius(5);
+
+      msd.setNMSRadius(5);
+      msd.setNMSScaleRadius(0);
+
+      msd.setThSaliency(0.02);
+      msd.setKNN(10);
+
+      msd.setScaleFactor(1.25f);
+      msd.setNScales(-1);
+
+      msd.setComputeOrientation(true);
+      msd.setCircularWindow(false);
+      msd.setRefinedKP(false);
+
+
+      std::vector<KeyPoint> Kps;
+
+      for (uint i=0; i<aSetImTest.size();i++)
+      {
+          Tiff_Im Image=Tiff_Im::UnivConvStd(aSetImTest[i]);
+          Kps=msd.detect(Image);
+          string filename= aSetImTest[i]+".txt";
+          StoreKps(Kps,filename);
+      }
+
+
+
 
 
 /*
