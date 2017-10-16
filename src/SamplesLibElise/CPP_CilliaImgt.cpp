@@ -37,9 +37,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #include "StdAfx.h"
-#define SSTR( x ) static_cast< std::ostringstream & >( \
-        ( std::ostringstream() << std::dec << x ) ).str()
-
+#if (ELISE_MacOs)
+#define SSTR( x ) (std::ostringstream()<< std::dec << x).str()
+#else
+#define SSTR( x ) static_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << x ) ).str()
+#endif
  
 int CilliaImgt_main(int argc, char ** argv)
 {

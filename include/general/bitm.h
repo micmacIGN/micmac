@@ -1350,6 +1350,7 @@ template <class Type>  class ElPolynome
           ElPolynome<Type> operator + (const ElPolynome<Type> &) const;
           ElPolynome<Type> operator - (const ElPolynome<Type> &) const;
 
+
           void self_deriv() ;
           ElPolynome deriv() const;
 
@@ -1378,6 +1379,8 @@ template <class Type>  class ElPolynome
       static const Type  El0;
       static const Type  El1;
 };
+
+ElPolynome<double> LeasSqFit(vector<Pt2dr> Samples,int aDeg=-1,const std::vector<double> * aPds = 0);
 
 template <class Type> void  RealRootsOfRealPolynome
      (
