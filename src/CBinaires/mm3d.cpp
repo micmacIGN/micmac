@@ -756,7 +756,7 @@ extern int DeformAnalyse_main(int argc,char ** argv);
 extern int ExtraitHomol_main(int argc, char ** argv);
 extern int IntersectHomol_main(int argc, char ** argv);
 extern int ReechMAF_main(int argc, char ** argv);
-extern int MatchTops_main(int argc, char ** argv);
+extern int ImgTMTxt2Xml_main(int argc, char ** argv);
 extern int EsSim_main(int argc,char ** argv);
 int ProcessThmImgs_main(int argc,char ** argv);
 
@@ -993,7 +993,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("ExtraitHomol",ExtraitHomol_main ,"Extract certain homol files"));
         aRes.push_back(cMMCom("IntersectHomol",IntersectHomol_main ,"Pseudo-intersection for tie points"));
         aRes.push_back(cMMCom("ReechMAF",ReechMAF_main ,"Apply map to image measurement file"));
-        aRes.push_back(cMMCom("MatchTops",MatchTops_main ,"Match tops time with image time to get GPS time"));
+        aRes.push_back(cMMCom("ImgTMTxt2Xml",ImgTMTxt2Xml_main ,"Match tops time with image time to get GPS time"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
         aRes.push_back(cMMCom("ConvertTiePPs2MM",ConvertTiePPs2MM_main,"ConvertTiePPs2MM"));
