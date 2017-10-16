@@ -18,7 +18,7 @@ template <class Type> class cPt1d : public cPtxd<Type,1>
         // typedef typename cPtxd<Type,1> tBase;
         typedef cPtxd<Type,1> tBase;
 
-        cPt1d(const Type& anX) {mCoords[0] = anX;}
+        cPt1d(const Type& anX) {tBase::mCoords[0] = anX;}
 
         Type & x()             {return tBase::mCoords[0];}
         const Type & x() const {return tBase::mCoords[0];}
