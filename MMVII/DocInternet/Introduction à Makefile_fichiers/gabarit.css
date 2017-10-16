@@ -1,0 +1,395 @@
+body {
+	margin: 0px;
+	background: #e1e1e2;
+	font-family: Verdana, sans-serif;
+}
+
+img {
+	border: 0;
+}
+
+/* #gabarit_superieur = la barre du haut qui donne accès aux différentes parties du site */
+
+#gabarit_superieur {
+	width: 700px;
+	height: 22px;
+	margin: 0 auto;
+	padding: 0 0 4px 10px;
+	font-weight: bold;
+	background-color: #c4d3db;
+	background: linear-gradient(to bottom, #c4d3db 0%,#99b2c2 100%);
+	border-radius: 0 0 15px 15px;
+}
+
+@media screen and (max-width: 1200px) {
+	#gabarit_superieur { position: relative; right: 0; top: 0; margin: 0 260px 0 0; }
+}
+
+#gabarit_superieur ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+#gabarit_superieur ul li {
+	display: inline;
+	margin-right: 5px;
+}
+
+#gabarit_superieur a {
+	font-size: 12px;
+	color: #243c47;
+	text-decoration: none;
+}
+
+#gabarit_superieur a:hover {
+	text-decoration: underline;
+}
+
+/* #gabarit_recherche = recherche personnalisée Google */
+
+#gabarit_recherche {
+	float: right;
+	width: 250px;
+}
+
+#gabarit_recherche input[type=text] {
+	width: 140px;
+}
+
+#gabarit_recherche input[type=submit] {
+	font-size: 8pt;
+	color: #577F99;
+	background: #ACBFCB;
+	border: 1px solid #5a7f97;
+	position: relative;
+	top: -2px;
+	width: 80px;
+}
+
+/* #gabarit_pub0, #gabarit_pub1 = libellé pub */
+
+#gabarit_pub0 {
+	display: none;
+	width: 6px;
+	height: 90px;
+	margin-right: 5px;
+	background-image: url(/template/images/pub728.png);
+}
+
+#gabarit_pub1 {
+	display: none;
+	width: 81px;
+	height: 7px;
+	margin-left: 109px;
+	margin-top: 5px;
+	background-image: url(/template/images/pub300.png);
+}
+
+/* #gabarit_menu = barre de menus */
+
+#gabarit_menu {
+	clear: both;
+	background-color: #68869a;
+	background: linear-gradient(to bottom, #68869a 0%,#5a7f97 100%);
+	height: 30px;
+	padding-left: 10px;
+	margin: 0;
+}
+
+#gabarit_menu a {
+	font-weight: bold;
+	text-decoration: none;
+}
+
+#gabarit_menu > li {
+	border-style: solid;
+	border-width: 0 0 0 1px;
+	position: relative;
+	float: left;
+	display: block;
+	font-size: 12px;
+	color: #D8D7D7;
+	height: 30px;
+	line-height: 30px;
+}
+
+#gabarit_menu > li:first-child {
+	border: 0;
+}
+
+#gabarit_menu > li > a {
+	display: block;
+	height: 100%;
+	padding: 0 7px;
+	color: white;
+}
+
+#gabarit_menu > li a.gabarit_selection, #gabarit_menu > li > a:hover, #gabarit_menu > li:hover > a {
+	background-color: white;
+	background: linear-gradient(to bottom, #ffffff 0%,#b0c2ce 100%);
+	color: black;
+}
+
+/* .gabarit_tooltip = infobulle au survol des méga-rubriques */
+
+.gabarit_tooltip {
+	display: none;
+}
+
+#gabarit_menu > li > a:hover > .gabarit_tooltip {
+	display: block;
+	position: absolute;
+	width: 325px;
+	height: 18px;
+	top: -21px;
+	left: -2px;
+	background: #ffc;
+	border: 1px solid #bbb;
+	color: #25457d;
+	font-size: 10px;
+	font-weight: normal;
+	line-height: 18px;
+	padding: 0 5px;
+}
+
+#gabarit_menu > li:last-child > a:hover > .gabarit_tooltip {
+	left: -258px;
+	text-align: right;
+}
+
+/* .gabarit_sousmenu = les menus déroulants */
+
+#gabarit_menu li:hover .gabarit_sousmenu {
+	display: block;
+}
+
+.gabarit_sousmenu {
+	display: none;
+	position: absolute;
+	border: solid 2px #b0c2ce;
+	padding: 0px;
+	background-color: #F9F9F9;
+	z-index: 11;
+}
+
+.gabarit_menu li:hover .gabarit_sousmenu, .gabarit_menu a:hover .gabarit_sousmenu {
+	display: block;
+}
+
+#gabarit_menu > li:last-child .gabarit_sousmenu {
+	left: -68px;
+}
+
+.gabarit_sousmenu li {
+	display: block;
+	margin: 0;
+	padding: 0;
+	background-color: #F9F9F9;
+	height: 25px;
+}
+
+.gabarit_sousmenu li a {
+	display: block;
+	white-space: nowrap;
+	color: #5A7F97;
+	padding: 0 10px;
+	font-size: 10px;
+	line-height: 25px;
+}
+
+.gabarit_sousmenu li a:hover {
+	color: #F9F9F9;
+	background-color: #5a7f97;
+	transition: background-color 0.1s linear;
+}
+
+/* #gabarit_barre1 = première barre de boutons, #gabarit_barre2 = deuxième barre de boutons */
+
+#gabarit_barre1 {
+	background-color: #8ba6b8;
+	background: linear-gradient(to bottom, #8ba6b8 0%,#7192a8 100%);
+	margin: 0;
+	list-style: none;
+	text-align: center;
+}
+
+#gabarit_barre2 {
+	background-color: #a9bfca;
+	background: linear-gradient(to bottom, #a9bfca 0%,#96b1be 100%);
+	border-width: 1px 0 1px 0;
+	border-color: #5a7f97;
+	border-style: solid;
+	padding: 2px 10px;
+}
+
+#gabarit_barre2 ul {
+	margin: 0;
+	list-style: none;
+	text-align: center;
+}
+
+#gabarit_barre1 a, #gabarit_barre2 ul a {
+	font-weight: bold;
+	text-decoration: none;
+	color: white;
+}
+
+#gabarit_barre1 a {
+	font-size: 8pt;
+}
+
+#gabarit_barre2 ul a {
+	font-size: 7pt;
+}
+
+#gabarit_barre1 li, #gabarit_barre2 li {
+	display: inline-block;
+	margin: 5px 0;
+	padding: 1px 5px;
+	border: solid 1px #5a7f97;
+}
+
+#gabarit_barre1 li {
+	line-height: 20px;
+	background-color: #7192a8;
+	background: linear-gradient(to bottom, #7192a8 0%,#7192a8 100%);
+}
+
+#gabarit_barre2 li {
+	line-height: 16px;
+	background-color: #91aab9;
+	background: linear-gradient(to bottom, #91aab9 0%,#5a7f97 100%);
+	border-radius: 8px;
+}
+
+#gabarit_barre1 li.gabarit_selection, #gabarit_barre1 li:hover {
+	background-color: #fdfdfe;
+	background: linear-gradient(to bottom, #fdfdfe 0%,#bdccd5 100%);
+}
+
+#gabarit_barre2 li:hover {
+	background-color: #ecf0f3;
+	background: linear-gradient(to bottom, #ecf0f3 0%,#acbfcb 100%);
+}
+
+#gabarit_barre1 li.gabarit_selection a, #gabarit_barre1 li:hover a, #gabarit_barre2 li:hover a {
+	color: black;
+}
+
+@-moz-document url-prefix() {
+	#gabarit_barre2 li { min-width: 50px; }
+	#gabarit_barre1 li a, #gabarit_barre2 li a { display: inline-block; position: relative; top: -2px; }
+}
+
+.gabarit_social {
+	display: block;
+	position: relative;
+	float: right;
+	margin: 10px 0 0 5px;
+	background-image: none;
+	cursor: pointer;
+	z-index: 0;
+	width: 16px;
+	height: 16px;
+	background-image: url(/template/images/social.png);
+}
+
+.gabarit_facebook {
+	background-position: 0px 0px;
+}
+
+.gabarit_rss {
+	background-position: 16px 0px;
+}
+
+.gabarit_googleplus {
+	background-position: 32px 0px;
+}
+
+.gabarit_twitter {
+	background-position: 48px 0px;
+}
+
+/* .contenuPage = tout l'espace utile du site, entre l'en-tête gabarit et le pied du gabarit */
+
+.contenuPage {
+	font-size: 10pt;
+	padding: 1em;
+	background: white;
+}
+
+/* #gabarit_responsable = zone où est indiqué qui est responsable de cette rubrique */
+
+#gabarit_responsable {
+	padding: 5px 0;
+	background-color: #a8bec9;
+	background: linear-gradient(to bottom, #a8bec9 0%,#8ba7ba 100%);
+	font-size: 8pt;
+	font-weight: bold;
+	color: #446372;
+	text-align: center;
+	border-width: 1px 0 1px 0;
+	border-color: #5a7f97;
+	border-style: solid;
+}
+
+#gabarit_responsable a {
+	color: #446372;
+	text-decoration: none;
+}
+
+#gabarit_responsable a:hover {
+	text-decoration: underline;
+}
+
+/* #gabarit_pied = pied de page */
+
+#gabarit_pied {
+	text-align: center;
+	list-style-type: none;
+	margin: 5px 0 0 0;
+	padding: 0;
+	font-size: 8pt;
+	color: gray;
+}
+
+#gabarit_pied li {
+	display: inline-block;
+	margin: 0 10px;
+	padding: 0;
+}
+
+#gabarit_pied a {
+	text-decoration: none;
+	color: gray;
+}
+
+#gabarit_pied a:hover {
+	text-decoration: underline;
+}
+
+#gabarit_copyright {
+	text-align: center;
+	color: #7292a7;
+	font-weight: bold;
+	text-align: center;
+	font-size: 8pt;
+	margin: 5px 0;
+}
+
+#gabarit_mobile, #gabarit_menu_mobile {
+	display: none;
+}
+
+#gabarit_cnilcookie {
+	position: fixed;
+	font-size: 10pt;
+	border: 1px solid black;
+	color: black;
+	background: #ffe;
+	padding: 1em;
+	right: 5px;
+	bottom: 5px;
+	cursor: pointer;
+}

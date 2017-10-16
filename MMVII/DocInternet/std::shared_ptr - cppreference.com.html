@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html dir="ltr" class="client-js" lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>std::shared_ptr - cppreference.com</title>
+<meta charset="UTF-8">
+<meta name="generator" content="MediaWiki 1.21.2">
+<link rel="alternate" type="application/x-wiki" title="Edit" href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit">
+<link rel="edit" title="Edit" href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit">
+<link rel="shortcut icon" href="http://en.cppreference.com/favicon.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="http://en.cppreference.com/mwiki/opensearch_desc.php" title="cppreference.com (en)">
+<link rel="EditURI" type="application/rsd+xml" href="http://en.cppreference.com/mwiki/api.php?action=rsd">
+<link rel="alternate" type="application/atom+xml" title="cppreference.com Atom feed" href="http://en.cppreference.com/mwiki/index.php?title=Special:RecentChanges&amp;feed=atom">
+<link rel="stylesheet" href="std::shared_ptr%20-%20cppreference.com_fichiers/load.css">
+<style>
+.t-example-live-link{display:block !important;position:relative;margin-top:1em;padding:0 1em;width:55em}.t-example-live-link > a{display:none}.coliru-btn{background-color:#eeeeee;background-image:linear-gradient(#ffffff,#eeeeee);background-repeat:repeat-x;border:1px solid #cccccc;border-radius:3px;box-shadow:0 1px 0 rgba(255,255,255,0.5);padding:3px;margin:3px;color:#333333;cursor:pointer;display:inline-block;font-size:0.8em;font-weight:bold;line-height:1em}.coliru-btn:hover{background-color:#dddddd;background-image:linear-gradient(#ffffff,#dddddd)}.coliru-btn-disabled{color:#888888}.coliru-btn-disabled:hover{background-color:#eeeeee;background-image:linear-gradient(#ffffff,#eeeeee)}.coliru-powered{font-size:0.8em;position:absolute;bottom:0;right:0}.ace_editor{display:block;position:relative !important;top:0;right:0;bottom:0;left:0;width:100%;height:30em;font-family:DejaVuSansMono,"DejaVu Sans Mono",courier,monospace !important}.t-example-code{margin-top:0 !important}.coliru-output{overflow:auto;max-height:15em}.coliru-output > div{display:table;width:100%}.coliru-output pre{border:none;display:table-row;padding:0;margin:0}.coliru-output-line-shell{background-color:#ffd8d8}.coliru-select-compiler select{background-color:#EEEEEE;background-image:linear-gradient(#FFFFFF,#EEEEEE);background-repeat:repeat-x;border:1px solid #CCCCCC;border-radius:3px 3px 3px 3px;box-shadow:0 1px 0 rgba(255,255,255,0.5);font-size:0.8em;line-height:1em;padding:0;width:12em}
+/* cache key: mwiki1-mwiki_en_:resourceloader:filter:minify-css:7:50a161ae2572e9a968ebbe7279923688 */
+.mw-collapsible-toggle{float:right} li .mw-collapsible-toggle{float:none} .mw-collapsible-toggle-li{list-style:none}
+/* cache key: mwiki1-mwiki_en_:resourceloader:filter:minify-css:7:4250852ed2349a0d4d0fc6509a3e7d4c */
+.suggestions{overflow:hidden;position:absolute;top:0;left:0;width:0;border:none;z-index:1099;padding:0;margin:-1px -1px 0 0} html > body .suggestions{margin:-1px 0 0 0}.suggestions-special{position:relative;background-color:white;cursor:pointer;border:solid 1px #aaaaaa;padding:0;margin:0;margin-top:-2px;display:none;padding:0.25em 0.25em;line-height:1.25em}.suggestions-results{background-color:white;cursor:pointer;border:solid 1px #aaaaaa;padding:0;margin:0}.suggestions-result{color:black;margin:0;line-height:1.5em;padding:0.01em 0.25em;text-align:left}.suggestions-result-current{background-color:#4C59A6;color:white}.suggestions-special .special-label{color:gray;text-align:left}.suggestions-special .special-query{color:black;font-style:italic;text-align:left}.suggestions-special .special-hover{background-color:silver}.suggestions-result-current .special-label,.suggestions-result-current .special-query{color:white}.autoellipsis-matched,.highlight{font-weight:bold}
+/* cache key: mwiki1-mwiki_en_:resourceloader:filter:minify-css:7:9780324491b653a3780e2d029bdc140c */</style><style>
+.suggestions a.mw-searchSuggest-link,.suggestions a.mw-searchSuggest-link:hover,.suggestions a.mw-searchSuggest-link:active,.suggestions a.mw-searchSuggest-link:focus{text-decoration:none;color:black}.suggestions-result-current a.mw-searchSuggest-link,.suggestions-result-current a.mw-searchSuggest-link:hover,.suggestions-result-current a.mw-searchSuggest-link:active,.suggestions-result-current a.mw-searchSuggest-link:focus{color:white}
+/* cache key: mwiki1-mwiki_en_:resourceloader:filter:minify-css:7:52b1797f70c7e4094dfa4191101944e8 */</style><meta name="ResourceLoaderDynamicStyles" content="">
+<link rel="stylesheet" href="std::shared_ptr%20-%20cppreference.com_fichiers/load_002.css">
+<style>a:lang(ar),a:lang(ckb),a:lang(fa),a:lang(kk-arab),a:lang(mzn),a:lang(ps),a:lang(ur){text-decoration:none}#toc{display:none}.editsection{display:none}
+/* cache key: mwiki1-mwiki_en_:resourceloader:filter:minify-css:7:472787eddcf4605d11de8c7ef047234f */</style>
+
+<script src="std::shared_ptr%20-%20cppreference.com_fichiers/load_006.php"></script><script src="std::shared_ptr%20-%20cppreference.com_fichiers/load_002.php"></script>
+<script>if(window.mw){
+mw.config.set({"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"cpp/memory/shared_ptr","wgTitle":"cpp/memory/shared ptr","wgCurRevisionId":95568,"wgArticleId":2177,"wgIsArticle":true,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":[],"wgBreakFrames":false,"wgPageContentLanguage":"en","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"wgRelevantPageName":"cpp/memory/shared_ptr","wgRestrictionEdit":[],"wgRestrictionMove":[]});
+}</script><script>if(window.mw){
+mw.loader.implement("user.options",function(){mw.user.options.set({"ccmeonemails":0,"cols":80,"date":"default","diffonly":0,"disablemail":0,"disablesuggest":0,"editfont":"default","editondblclick":0,"editsection":0,"editsectiononrightclick":0,"enotifminoredits":0,"enotifrevealaddr":0,"enotifusertalkpages":1,"enotifwatchlistpages":0,"extendwatchlist":0,"externaldiff":0,"externaleditor":0,"fancysig":0,"forceeditsummary":0,"gender":"unknown","hideminor":0,"hidepatrolled":0,"imagesize":2,"justify":0,"math":1,"minordefault":0,"newpageshidepatrolled":0,"nocache":0,"noconvertlink":0,"norollbackdiff":0,"numberheadings":0,"previewonfirst":0,"previewontop":1,"quickbar":5,"rcdays":7,"rclimit":50,"rememberpassword":0,"rows":25,"searchlimit":20,"showhiddencats":0,"showjumplinks":1,"shownumberswatching":1,"showtoc":0,"showtoolbar":1,"skin":"cppreference2","stubthreshold":0,"thumbsize":2,"underline":2,"uselivepreview":0,"usenewrc":0,"watchcreations":0,"watchdefault":0,"watchdeletion":0,
+"watchlistdays":3,"watchlisthideanons":0,"watchlisthidebots":0,"watchlisthideliu":0,"watchlisthideminor":0,"watchlisthideown":0,"watchlisthidepatrolled":0,"watchmoves":0,"wllimit":250,"variant":"en","language":"en","searchNs0":true,"searchNs1":false,"searchNs2":false,"searchNs3":false,"searchNs4":false,"searchNs5":false,"searchNs6":false,"searchNs7":false,"searchNs8":false,"searchNs9":false,"searchNs10":false,"searchNs11":false,"searchNs12":false,"searchNs13":false,"searchNs14":false,"searchNs15":false,"gadget-ColiruCompiler":1,"gadget-MathJax":1});;},{},{});mw.loader.implement("user.tokens",function(){mw.user.tokens.set({"editToken":"+\\","patrolToken":false,"watchToken":false});;},{},{});
+/* cache key: mwiki1-mwiki_en_:resourceloader:filter:minify-js:7:9f05c6caceb9bb1a482b6cebd4c5a330 */
+}</script>
+<script>if(window.mw){
+mw.loader.load(["mediawiki.page.startup","mediawiki.legacy.wikibits","mediawiki.legacy.ajax"]);
+}</script><script src="std::shared_ptr%20-%20cppreference.com_fichiers/load_005.php"></script>
+<style type="text/css">/*<![CDATA[*/
+.source-cpp {line-height: normal;}
+.source-cpp li, .source-cpp pre {
+	line-height: normal; border: 0px none white;
+}
+/**
+ * GeSHi Dynamically Generated Stylesheet
+ * --------------------------------------
+ * Dynamically generated stylesheet for cpp
+ * CSS class: source-cpp, CSS id: 
+ * GeSHi (C) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann
+ * (http://qbnz.com/highlighter/ and http://geshi.org/)
+ * --------------------------------------
+ */
+.cpp.source-cpp .de1, .cpp.source-cpp .de2 {font: normal normal 1em/1.2em monospace; margin:0; padding:0; background:none; vertical-align:top;}
+.cpp.source-cpp  {font-family:monospace;}
+.cpp.source-cpp .imp {font-weight: bold; color: red;}
+.cpp.source-cpp li, .cpp.source-cpp .li1 {font-weight: normal; vertical-align:top;}
+.cpp.source-cpp .ln {width:1px;text-align:right;margin:0;padding:0 2px;vertical-align:top;}
+.cpp.source-cpp .li2 {font-weight: bold; vertical-align:top;}
+.cpp.source-cpp .kw1 {color: #0000dd;}
+.cpp.source-cpp .kw2 {color: #0000ff;}
+.cpp.source-cpp .kw3 {color: #0000dd;}
+.cpp.source-cpp .kw4 {color: #0000ff;}
+.cpp.source-cpp .co1 {color: #909090;}
+.cpp.source-cpp .co2 {color: #339900;}
+.cpp.source-cpp .coMULTI {color: #ff0000; font-style: italic;}
+.cpp.source-cpp .es0 {color: #008000; font-weight: bold;}
+.cpp.source-cpp .es1 {color: #008000; font-weight: bold;}
+.cpp.source-cpp .es2 {color: #008000; font-weight: bold;}
+.cpp.source-cpp .es3 {color: #008000; font-weight: bold;}
+.cpp.source-cpp .es4 {color: #008000; font-weight: bold;}
+.cpp.source-cpp .es5 {color: #008000; font-weight: bold;}
+.cpp.source-cpp .br0 {color: #008000;}
+.cpp.source-cpp .sy0 {color: #008000;}
+.cpp.source-cpp .sy1 {color: #000080;}
+.cpp.source-cpp .sy2 {color: #000040;}
+.cpp.source-cpp .sy3 {color: #000040;}
+.cpp.source-cpp .sy4 {color: #008080;}
+.cpp.source-cpp .st0 {color: #008000;}
+.cpp.source-cpp .nu0 {color: #000080;}
+.cpp.source-cpp .nu6 {color: #000080;}
+.cpp.source-cpp .nu8 {color: #000080;}
+.cpp.source-cpp .nu12 {color: #000080;}
+.cpp.source-cpp .nu16 {color:#000080;}
+.cpp.source-cpp .nu17 {color:#000080;}
+.cpp.source-cpp .nu18 {color:#000080;}
+.cpp.source-cpp .nu19 {color:#000080;}
+.cpp.source-cpp .ln-xtra, .cpp.source-cpp li.ln-xtra, .cpp.source-cpp div.ln-xtra {background-color: #ffc;}
+.cpp.source-cpp span.xtra { display:block; }
+
+/*]]>*/
+</style><style type="text/css">/*<![CDATA[*/
+.source-text {line-height: normal;}
+.source-text li, .source-text pre {
+	line-height: normal; border: 0px none white;
+}
+/**
+ * GeSHi Dynamically Generated Stylesheet
+ * --------------------------------------
+ * Dynamically generated stylesheet for text
+ * CSS class: source-text, CSS id: 
+ * GeSHi (C) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann
+ * (http://qbnz.com/highlighter/ and http://geshi.org/)
+ * --------------------------------------
+ */
+.text.source-text .de1, .text.source-text .de2 {font: normal normal 1em/1.2em monospace; margin:0; padding:0; background:none; vertical-align:top;}
+.text.source-text  {font-family:monospace;}
+.text.source-text .imp {font-weight: bold; color: red;}
+.text.source-text li, .text.source-text .li1 {font-weight: normal; vertical-align:top;}
+.text.source-text .ln {width:1px;text-align:right;margin:0;padding:0 2px;vertical-align:top;}
+.text.source-text .li2 {font-weight: bold; vertical-align:top;}
+.text.source-text .ln-xtra, .text.source-text li.ln-xtra, .text.source-text div.ln-xtra {background-color: #ffc;}
+.text.source-text span.xtra { display:block; }
+
+/*]]>*/
+</style><!--[if lt IE 7]><style type="text/css">body{behavior:url("/mwiki/skins/cppreference2/csshover.min.htc")}</style><![endif]--><script src="std::shared_ptr%20-%20cppreference.com_fichiers/load_004.php" async=""></script><style id="ace_editor.css">.ace_editor {position: relative;overflow: hidden;font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;direction: ltr;text-align: left;}.ace_scroller {position: absolute;overflow: hidden;top: 0;bottom: 0;background-color: inherit;-ms-user-select: none;-moz-user-select: none;-webkit-user-select: none;user-select: none;cursor: text;}.ace_content {position: absolute;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;min-width: 100%;}.ace_dragging .ace_scroller:before{position: absolute;top: 0;left: 0;right: 0;bottom: 0;content: '';background: rgba(250, 250, 250, 0.01);z-index: 1000;}.ace_dragging.ace_dark .ace_scroller:before{background: rgba(0, 0, 0, 0.01);}.ace_selecting, .ace_selecting * {cursor: text !important;}.ace_gutter {position: absolute;overflow : hidden;width: auto;top: 0;bottom: 0;left: 0;cursor: default;z-index: 4;-ms-user-select: none;-moz-user-select: none;-webkit-user-select: none;user-select: none;}.ace_gutter-active-line {position: absolute;left: 0;right: 0;}.ace_scroller.ace_scroll-left {box-shadow: 17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;}.ace_gutter-cell {padding-left: 19px;padding-right: 6px;background-repeat: no-repeat;}.ace_gutter-cell.ace_error {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAABOFBMVEX/////////QRswFAb/Ui4wFAYwFAYwFAaWGAfDRymzOSH/PxswFAb/SiUwFAYwFAbUPRvjQiDllog5HhHdRybsTi3/Tyv9Tir+Syj/UC3////XurebMBIwFAb/RSHbPx/gUzfdwL3kzMivKBAwFAbbvbnhPx66NhowFAYwFAaZJg8wFAaxKBDZurf/RB6mMxb/SCMwFAYwFAbxQB3+RB4wFAb/Qhy4Oh+4QifbNRcwFAYwFAYwFAb/QRzdNhgwFAYwFAbav7v/Uy7oaE68MBK5LxLewr/r2NXewLswFAaxJw4wFAbkPRy2PyYwFAaxKhLm1tMwFAazPiQwFAaUGAb/QBrfOx3bvrv/VC/maE4wFAbRPBq6MRO8Qynew8Dp2tjfwb0wFAbx6eju5+by6uns4uH9/f36+vr/GkHjAAAAYnRSTlMAGt+64rnWu/bo8eAA4InH3+DwoN7j4eLi4xP99Nfg4+b+/u9B/eDs1MD1mO7+4PHg2MXa347g7vDizMLN4eG+Pv7i5evs/v79yu7S3/DV7/498Yv24eH+4ufQ3Ozu/v7+y13sRqwAAADLSURBVHjaZc/XDsFgGIBhtDrshlitmk2IrbHFqL2pvXf/+78DPokj7+Fz9qpU/9UXJIlhmPaTaQ6QPaz0mm+5gwkgovcV6GZzd5JtCQwgsxoHOvJO15kleRLAnMgHFIESUEPmawB9ngmelTtipwwfASilxOLyiV5UVUyVAfbG0cCPHig+GBkzAENHS0AstVF6bacZIOzgLmxsHbt2OecNgJC83JERmePUYq8ARGkJx6XtFsdddBQgZE2nPR6CICZhawjA4Fb/chv+399kfR+MMMDGOQAAAABJRU5ErkJggg==");background-repeat: no-repeat;background-position: 2px center;}.ace_gutter-cell.ace_warning {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAmVBMVEX///8AAAD///8AAAAAAABPSzb/5sAAAAB/blH/73z/ulkAAAAAAAD85pkAAAAAAAACAgP/vGz/rkDerGbGrV7/pkQICAf////e0IsAAAD/oED/qTvhrnUAAAD/yHD/njcAAADuv2r/nz//oTj/p064oGf/zHAAAAA9Nir/tFIAAAD/tlTiuWf/tkIAAACynXEAAAAAAAAtIRW7zBpBAAAAM3RSTlMAABR1m7RXO8Ln31Z36zT+neXe5OzooRDfn+TZ4p3h2hTf4t3k3ucyrN1K5+Xaks52Sfs9CXgrAAAAjklEQVR42o3PbQ+CIBQFYEwboPhSYgoYunIqqLn6/z8uYdH8Vmdnu9vz4WwXgN/xTPRD2+sgOcZjsge/whXZgUaYYvT8QnuJaUrjrHUQreGczuEafQCO/SJTufTbroWsPgsllVhq3wJEk2jUSzX3CUEDJC84707djRc5MTAQxoLgupWRwW6UB5fS++NV8AbOZgnsC7BpEAAAAABJRU5ErkJggg==");background-position: 2px center;}.ace_gutter-cell.ace_info {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAAAAAA6mKC9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAJ0Uk5TAAB2k804AAAAPklEQVQY02NgIB68QuO3tiLznjAwpKTgNyDbMegwisCHZUETUZV0ZqOquBpXj2rtnpSJT1AEnnRmL2OgGgAAIKkRQap2htgAAAAASUVORK5CYII=");background-position: 2px center;}.ace_dark .ace_gutter-cell.ace_info {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAJFBMVEUAAAChoaGAgIAqKiq+vr6tra1ZWVmUlJSbm5s8PDxubm56enrdgzg3AAAAAXRSTlMAQObYZgAAAClJREFUeNpjYMAPdsMYHegyJZFQBlsUlMFVCWUYKkAZMxZAGdxlDMQBAG+TBP4B6RyJAAAAAElFTkSuQmCC");}.ace_scrollbar {position: absolute;right: 0;bottom: 0;z-index: 6;}.ace_scrollbar-inner {position: absolute;cursor: text;left: 0;top: 0;}.ace_scrollbar-v{overflow-x: hidden;overflow-y: scroll;top: 0;}.ace_scrollbar-h {overflow-x: scroll;overflow-y: hidden;left: 0;}.ace_print-margin {position: absolute;height: 100%;}.ace_text-input {position: absolute;z-index: 0;width: 0.5em;height: 1em;opacity: 0;background: transparent;-moz-appearance: none;appearance: none;border: none;resize: none;outline: none;overflow: hidden;font: inherit;padding: 0 1px;margin: 0 -1px;text-indent: -1em;-ms-user-select: text;-moz-user-select: text;-webkit-user-select: text;user-select: text;white-space: pre!important;}.ace_text-input.ace_composition {background: inherit;color: inherit;z-index: 1000;opacity: 1;text-indent: 0;}.ace_layer {z-index: 1;position: absolute;overflow: hidden;word-wrap: normal;white-space: pre;height: 100%;width: 100%;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;pointer-events: none;}.ace_gutter-layer {position: relative;width: auto;text-align: right;pointer-events: auto;}.ace_text-layer {font: inherit !important;}.ace_cjk {display: inline-block;text-align: center;}.ace_cursor-layer {z-index: 4;}.ace_cursor {z-index: 4;position: absolute;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;border-left: 2px solid;transform: translatez(0);}.ace_slim-cursors .ace_cursor {border-left-width: 1px;}.ace_overwrite-cursors .ace_cursor {border-left-width: 0;border-bottom: 1px solid;}.ace_hidden-cursors .ace_cursor {opacity: 0.2;}.ace_smooth-blinking .ace_cursor {-webkit-transition: opacity 0.18s;transition: opacity 0.18s;}.ace_editor.ace_multiselect .ace_cursor {border-left-width: 1px;}.ace_marker-layer .ace_step, .ace_marker-layer .ace_stack {position: absolute;z-index: 3;}.ace_marker-layer .ace_selection {position: absolute;z-index: 5;}.ace_marker-layer .ace_bracket {position: absolute;z-index: 6;}.ace_marker-layer .ace_active-line {position: absolute;z-index: 2;}.ace_marker-layer .ace_selected-word {position: absolute;z-index: 4;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;}.ace_line .ace_fold {-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;display: inline-block;height: 11px;margin-top: -2px;vertical-align: middle;background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAJCAYAAADU6McMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAJpJREFUeNpi/P//PwOlgAXGYGRklAVSokD8GmjwY1wasKljQpYACtpCFeADcHVQfQyMQAwzwAZI3wJKvCLkfKBaMSClBlR7BOQikCFGQEErIH0VqkabiGCAqwUadAzZJRxQr/0gwiXIal8zQQPnNVTgJ1TdawL0T5gBIP1MUJNhBv2HKoQHHjqNrA4WO4zY0glyNKLT2KIfIMAAQsdgGiXvgnYAAAAASUVORK5CYII="),url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA3CAYAAADNNiA5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAACJJREFUeNpi+P//fxgTAwPDBxDxD078RSX+YeEyDFMCIMAAI3INmXiwf2YAAAAASUVORK5CYII=");background-repeat: no-repeat, repeat-x;background-position: center center, top left;color: transparent;border: 1px solid black;border-radius: 2px;cursor: pointer;pointer-events: auto;}.ace_dark .ace_fold {}.ace_fold:hover{background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAJCAYAAADU6McMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAJpJREFUeNpi/P//PwOlgAXGYGRklAVSokD8GmjwY1wasKljQpYACtpCFeADcHVQfQyMQAwzwAZI3wJKvCLkfKBaMSClBlR7BOQikCFGQEErIH0VqkabiGCAqwUadAzZJRxQr/0gwiXIal8zQQPnNVTgJ1TdawL0T5gBIP1MUJNhBv2HKoQHHjqNrA4WO4zY0glyNKLT2KIfIMAAQsdgGiXvgnYAAAAASUVORK5CYII="),url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA3CAYAAADNNiA5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAACBJREFUeNpi+P//fz4TAwPDZxDxD5X4i5fLMEwJgAADAEPVDbjNw87ZAAAAAElFTkSuQmCC");}.ace_tooltip {background-color: #FFF;background-image: -webkit-linear-gradient(top, transparent, rgba(0, 0, 0, 0.1));background-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1));border: 1px solid gray;border-radius: 1px;box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);color: black;max-width: 100%;padding: 3px 4px;position: fixed;z-index: 999999;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;cursor: default;white-space: pre;word-wrap: break-word;line-height: normal;font-style: normal;font-weight: normal;letter-spacing: normal;pointer-events: none;}.ace_folding-enabled > .ace_gutter-cell {padding-right: 13px;}.ace_fold-widget {-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;margin: 0 -12px 0 1px;display: none;width: 11px;vertical-align: top;background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAANElEQVR42mWKsQ0AMAzC8ixLlrzQjzmBiEjp0A6WwBCSPgKAXoLkqSot7nN3yMwR7pZ32NzpKkVoDBUxKAAAAABJRU5ErkJggg==");background-repeat: no-repeat;background-position: center;border-radius: 3px;border: 1px solid transparent;cursor: pointer;}.ace_folding-enabled .ace_fold-widget {display: inline-block;   }.ace_fold-widget.ace_end {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAANElEQVR42m3HwQkAMAhD0YzsRchFKI7sAikeWkrxwScEB0nh5e7KTPWimZki4tYfVbX+MNl4pyZXejUO1QAAAABJRU5ErkJggg==");}.ace_fold-widget.ace_closed {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAAGCAYAAAAG5SQMAAAAOUlEQVR42jXKwQkAMAgDwKwqKD4EwQ26sSOkVWjgIIHAzPiCgaqiqnJHZnKICBERHN194O5b9vbLuAVRL+l0YWnZAAAAAElFTkSuQmCCXA==");}.ace_fold-widget:hover {border: 1px solid rgba(0, 0, 0, 0.3);background-color: rgba(255, 255, 255, 0.2);box-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);}.ace_fold-widget:active {border: 1px solid rgba(0, 0, 0, 0.4);background-color: rgba(0, 0, 0, 0.05);box-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);}.ace_dark .ace_fold-widget {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHklEQVQIW2P4//8/AzoGEQ7oGCaLLAhWiSwB146BAQCSTPYocqT0AAAAAElFTkSuQmCC");}.ace_dark .ace_fold-widget.ace_end {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAH0lEQVQIW2P4//8/AxQ7wNjIAjDMgC4AxjCVKBirIAAF0kz2rlhxpAAAAABJRU5ErkJggg==");}.ace_dark .ace_fold-widget.ace_closed {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAAFCAYAAACAcVaiAAAAHElEQVQIW2P4//+/AxAzgDADlOOAznHAKgPWAwARji8UIDTfQQAAAABJRU5ErkJggg==");}.ace_dark .ace_fold-widget:hover {box-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);background-color: rgba(255, 255, 255, 0.1);}.ace_dark .ace_fold-widget:active {box-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);}.ace_fold-widget.ace_invalid {background-color: #FFB4B4;border-color: #DE5555;}.ace_fade-fold-widgets .ace_fold-widget {-webkit-transition: opacity 0.4s ease 0.05s;transition: opacity 0.4s ease 0.05s;opacity: 0;}.ace_fade-fold-widgets:hover .ace_fold-widget {-webkit-transition: opacity 0.05s ease 0.05s;transition: opacity 0.05s ease 0.05s;opacity:1;}.ace_underline {text-decoration: underline;}.ace_bold {font-weight: bold;}.ace_nobold .ace_bold {font-weight: normal;}.ace_italic {font-style: italic;}.ace_error-marker {background-color: rgba(255, 0, 0,0.2);position: absolute;z-index: 9;}.ace_highlight-marker {background-color: rgba(255, 255, 0,0.2);position: absolute;z-index: 8;}.ace_br1 {border-top-left-radius    : 3px;}.ace_br2 {border-top-right-radius   : 3px;}.ace_br3 {border-top-left-radius    : 3px; border-top-right-radius:    3px;}.ace_br4 {border-bottom-right-radius: 3px;}.ace_br5 {border-top-left-radius    : 3px; border-bottom-right-radius: 3px;}.ace_br6 {border-top-right-radius   : 3px; border-bottom-right-radius: 3px;}.ace_br7 {border-top-left-radius    : 3px; border-top-right-radius:    3px; border-bottom-right-radius: 3px;}.ace_br8 {border-bottom-left-radius : 3px;}.ace_br9 {border-top-left-radius    : 3px; border-bottom-left-radius:  3px;}.ace_br10{border-top-right-radius   : 3px; border-bottom-left-radius:  3px;}.ace_br11{border-top-left-radius    : 3px; border-top-right-radius:    3px; border-bottom-left-radius:  3px;}.ace_br12{border-bottom-right-radius: 3px; border-bottom-left-radius:  3px;}.ace_br13{border-top-left-radius    : 3px; border-bottom-right-radius: 3px; border-bottom-left-radius:  3px;}.ace_br14{border-top-right-radius   : 3px; border-bottom-right-radius: 3px; border-bottom-left-radius:  3px;}.ace_br15{border-top-left-radius    : 3px; border-top-right-radius:    3px; border-bottom-right-radius: 3px; border-bottom-left-radius: 3px;}
+/*# sourceURL=ace/css/ace_editor.css */</style><style id="ace-tm">.ace-tm .ace_gutter {background: #f0f0f0;color: #333;}.ace-tm .ace_print-margin {width: 1px;background: #e8e8e8;}.ace-tm .ace_fold {background-color: #6B72E6;}.ace-tm {background-color: #FFFFFF;color: black;}.ace-tm .ace_cursor {color: black;}.ace-tm .ace_invisible {color: rgb(191, 191, 191);}.ace-tm .ace_storage,.ace-tm .ace_keyword {color: blue;}.ace-tm .ace_constant {color: rgb(197, 6, 11);}.ace-tm .ace_constant.ace_buildin {color: rgb(88, 72, 246);}.ace-tm .ace_constant.ace_language {color: rgb(88, 92, 246);}.ace-tm .ace_constant.ace_library {color: rgb(6, 150, 14);}.ace-tm .ace_invalid {background-color: rgba(255, 0, 0, 0.1);color: red;}.ace-tm .ace_support.ace_function {color: rgb(60, 76, 114);}.ace-tm .ace_support.ace_constant {color: rgb(6, 150, 14);}.ace-tm .ace_support.ace_type,.ace-tm .ace_support.ace_class {color: rgb(109, 121, 222);}.ace-tm .ace_keyword.ace_operator {color: rgb(104, 118, 135);}.ace-tm .ace_string {color: rgb(3, 106, 7);}.ace-tm .ace_comment {color: rgb(76, 136, 107);}.ace-tm .ace_comment.ace_doc {color: rgb(0, 102, 255);}.ace-tm .ace_comment.ace_doc.ace_tag {color: rgb(128, 159, 191);}.ace-tm .ace_constant.ace_numeric {color: rgb(0, 0, 205);}.ace-tm .ace_variable {color: rgb(49, 132, 149);}.ace-tm .ace_xml-pe {color: rgb(104, 104, 91);}.ace-tm .ace_entity.ace_name.ace_function {color: #0000A2;}.ace-tm .ace_heading {color: rgb(12, 7, 255);}.ace-tm .ace_list {color:rgb(185, 6, 144);}.ace-tm .ace_meta.ace_tag {color:rgb(0, 22, 142);}.ace-tm .ace_string.ace_regex {color: rgb(255, 0, 0)}.ace-tm .ace_marker-layer .ace_selection {background: rgb(181, 213, 255);}.ace-tm.ace_multiselect .ace_selection.ace_start {box-shadow: 0 0 3px 0px white;}.ace-tm .ace_marker-layer .ace_step {background: rgb(252, 255, 0);}.ace-tm .ace_marker-layer .ace_stack {background: rgb(164, 229, 101);}.ace-tm .ace_marker-layer .ace_bracket {margin: -1px 0 0 -1px;border: 1px solid rgb(192, 192, 192);}.ace-tm .ace_marker-layer .ace_active-line {background: rgba(0, 0, 0, 0.07);}.ace-tm .ace_gutter-active-line {background-color : #dcdcdc;}.ace-tm .ace_marker-layer .ace_selected-word {background: rgb(250, 250, 255);border: 1px solid rgb(200, 200, 250);}.ace-tm .ace_indent-guide {background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAE0lEQVQImWP4////f4bLly//BwAmVgd1/w11/gAAAABJRU5ErkJggg==") right repeat-y;}
+/*# sourceURL=ace/css/ace-tm */</style><style>    .error_widget_wrapper {        background: inherit;        color: inherit;        border:none    }    .error_widget {        border-top: solid 2px;        border-bottom: solid 2px;        margin: 5px 0;        padding: 10px 40px;        white-space: pre-wrap;    }    .error_widget.ace_error, .error_widget_arrow.ace_error{        border-color: #ff5a5a    }    .error_widget.ace_warning, .error_widget_arrow.ace_warning{        border-color: #F1D817    }    .error_widget.ace_info, .error_widget_arrow.ace_info{        border-color: #5a5a5a    }    .error_widget.ace_ok, .error_widget_arrow.ace_ok{        border-color: #5aaa5a    }    .error_widget_arrow {        position: absolute;        border: solid 5px;        border-top-color: transparent!important;        border-right-color: transparent!important;        border-left-color: transparent!important;        top: -5px;    }</style></head>
+<body class="mediawiki ltr sitedir-ltr ns-0 ns-subject page-cpp_memory_shared_ptr skin-cppreference2 action-view cpp-navbar">
+        <!-- header -->
+        <div id="mw-head" class="noprint">
+            <div id="cpp-head-first-base">
+                <div id="cpp-head-first">
+                    <h5><a href="http://en.cppreference.com/">
+                        cppreference.com                        </a></h5>
+                    <div id="cpp-head-search">
+                        
+<!-- 0 -->
+<div id="p-search">
+	<h5><label for="searchInput">Search</label></h5>
+	<form action="/mwiki/index.php" id="searchform">
+		<input name="title" value="Special:Search" type="hidden">
+				<div id="simpleSearch">
+						<input placeholder="Search" autocomplete="off" name="search" title="Search cppreference.com [alt-shift-f]" accesskey="f" id="searchInput">						<button type="submit" name="button" title="Search the pages for this text" id="searchButton"><img src="std::shared_ptr%20-%20cppreference.com_fichiers/search-ltr.png" alt="Search"></button>					</div>
+			</form>
+</div>
+
+<!-- /0 -->
+                    </div>
+                    <div id="cpp-head-personal">
+                        
+<!-- 0 -->
+<div id="p-personal" class="">
+<span id="pt-createaccount"><a href="http://en.cppreference.com/mwiki/index.php?title=Special:UserLogin&amp;returnto=cpp%2Fmemory%2Fshared+ptr&amp;type=signup">Create account</a></span>	<div class="menu">
+        <ul>
+<li id="pt-login"><a href="http://en.cppreference.com/mwiki/index.php?title=Special:UserLogin&amp;returnto=cpp%2Fmemory%2Fshared+ptr" title="You are encouraged to log in; however, it is not mandatory [alt-shift-o]" accesskey="o">Log in</a></li>        </ul>
+    </div>
+</div>
+
+<!-- /0 -->
+                    </div>
+
+                </div>
+            </div>
+            <div id="cpp-head-second-base">
+                <div id="cpp-head-second">
+                    <div id="cpp-head-tools-left">
+                        
+<!-- 0 -->
+<div id="p-namespaces" class="vectorTabs">
+	<h5>Namespaces</h5>
+	<ul>
+					<li id="ca-nstab-main" class="selected"><span><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr" title="View the content page [alt-shift-c]" accesskey="c">Page</a></span></li>
+					<li id="ca-talk"><span><a href="http://en.cppreference.com/w/Talk:cpp/memory/shared_ptr" title="Discussion about the content page [alt-shift-t]" accesskey="t">Discussion</a></span></li>
+			</ul>
+</div>
+
+<!-- /0 -->
+
+<!-- 1 -->
+<div id="p-variants" class="vectorMenu emptyPortlet">
+		<h5><span>Variants</span><a href="#"></a></h5>
+	<div class="menu">
+		<ul>
+					</ul>
+	</div>
+</div>
+
+<!-- /1 -->
+                    </div>
+                    <div id="cpp-head-tools-right">
+                        
+<!-- 0 -->
+<div id="p-views" class="vectorTabs">
+	<h5>Views</h5>
+	<ul>
+					<li id="ca-view" class="selected"><span><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr">View</a></span></li>
+					<li id="ca-edit"><span><a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit" title="You can edit this page. Please use the preview button before saving [alt-shift-e]" accesskey="e">Edit</a></span></li>
+					<li id="ca-history" class="collapsible"><span><a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=history" title="Past revisions of this page [alt-shift-h]" accesskey="h">History</a></span></li>
+			</ul>
+</div>
+
+<!-- /0 -->
+
+<!-- 1 -->
+<div id="p-cactions" class="vectorMenu emptyPortlet">
+	<h5><span>Actions</span><a href="#"></a></h5>
+	<div class="menu">
+		<ul>
+					</ul>
+	</div>
+</div>
+
+<!-- /1 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /header -->
+        <!-- content -->
+        <div id="cpp-content-base">
+            <div id="content">
+                <a id="top"></a>
+                <div id="mw-js-message" style="display:none;"></div>
+                                <!-- firstHeading -->
+                <h1 id="firstHeading" class="firstHeading"><span style="font-size:0.7em; line-height:130%">std::</span>shared_ptr</h1>
+                <!-- /firstHeading -->
+                <!-- bodyContent -->
+                <div id="bodyContent">
+                                        <!-- tagline -->
+                    <div id="siteSub">From cppreference.com</div>
+                    <!-- /tagline -->
+                                        <!-- subtitle -->
+                    <div id="contentSub"><span class="subpages">&lt; <a href="http://en.cppreference.com/w/cpp" title="cpp">cpp</a>‎ | <a href="http://en.cppreference.com/w/cpp/memory" title="cpp/memory">memory</a></span></div>
+                    <!-- /subtitle -->
+                                                            <!-- bodycontent -->
+                    <div id="mw-content-text" dir="ltr" class="mw-content-ltr" lang="en"><div class="t-navbar" style=""><div class="t-navbar-sep">&nbsp;</div><div class="t-navbar-head"><a href="http://en.cppreference.com/w/cpp" title="cpp"> C++</a><div class="t-navbar-menu"><div><div><table class="t-nv-begin" style="line-height:1.1em;" cellpadding="0">
+<tbody><tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/language" title="cpp/language"> Language</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/header" title="cpp/header"> Standard library headers</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/concept" title="cpp/concept"> Concepts</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/utility" title="cpp/utility"> Utilities library</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/string" title="cpp/string"> Strings library</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/container" title="cpp/container"> Containers library</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/algorithm" title="cpp/algorithm"> Algorithms library</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/iterator" title="cpp/iterator"> Iterators library</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/numeric" title="cpp/numeric"> Numerics library</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/io" title="cpp/io"> Input/output library</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/locale" title="cpp/locale"> Localizations library</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/regex" title="cpp/regex"> Regular expressions library</a> <span class="t-mark-rev t-since-cxx11">(C++11)</span> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/atomic" title="cpp/atomic"> Atomic operations library</a> <span class="t-mark-rev t-since-cxx11">(C++11)</span> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/thread" title="cpp/thread"> Thread support library</a> <span class="t-mark-rev t-since-cxx11">(C++11)</span> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/filesystem" title="cpp/filesystem"> Filesystem library</a> <span class="t-mark-rev t-since-cxx17">(C++17)</span> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/experimental" title="cpp/experimental"> Technical Specifications</a> </td></tr>
+</tbody></table></div><div><span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/navbar_content&amp;action=edit">[edit]</a></span></div></div></div></div><div class="t-navbar-sep">&nbsp;</div><div class="t-navbar-head"><a href="http://en.cppreference.com/w/cpp/utility" title="cpp/utility"> Utilities library</a><div class="t-navbar-menu"><div><div><table class="t-nv-begin" style="" cellpadding="0">
+<tbody><tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/types" title="cpp/types"> Type support</a> (basic types, RTTI, type traits) </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/memory" title="cpp/memory"> Dynamic memory management</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/error" title="cpp/error"> Error handling</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/utility/program" title="cpp/utility/program"> Program utilities</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/utility/variadic" title="cpp/utility/variadic"> Variadic functions</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/chrono" title="cpp/chrono"> Date and time</a> </td></tr>
+<tr class="t-nv"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/utility/functional" title="cpp/utility/functional"> Function objects</a> </td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/initializer_list" title="cpp/utility/initializer list"><span class="t-lines"><span>initializer_list</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/bitset" title="cpp/utility/bitset"><span class="t-lines"><span>bitset</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/hash" title="cpp/utility/hash"><span class="t-lines"><span>hash</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv-h2"><td colspan="5"> Relational operators</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/rel_ops/operator_cmp" title="cpp/utility/rel ops/operator cmp"><span class="t-lines"><span>rel_ops::operator!=</span><span>rel_ops::operator&gt;</span><span>rel_ops::operator&lt;=</span><span>rel_ops::operator&gt;=</span></span></a></div></div></td></tr>
+<tr class="t-nv-h2"><td colspan="5"> <code>optional</code>, <code>any</code> and <code>variant</code> <span class="t-mark-rev t-since-cxx17">(C++17)</span></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/optional" title="cpp/utility/optional"><span class="t-lines"><span>optional</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/any" title="cpp/utility/any"><span class="t-lines"><span>any</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/variant" title="cpp/utility/variant"><span class="t-lines"><span>variant</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/in_place" title="cpp/utility/in place"><span class="t-lines"><span>in_place</span><span>in_place_type</span><span>in_place_index</span><span>in_place_t</span><span>in_place_type_t</span><span>in_place_index_t</span></span></a></div></div></td></tr>
+<tr class="t-nv-h2"><td colspan="5"> Pairs and tuples</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/pair" title="cpp/utility/pair"><span class="t-lines"><span>pair</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/tuple" title="cpp/utility/tuple"><span class="t-lines"><span>tuple</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/apply" title="cpp/utility/apply"><span class="t-lines"><span>apply</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/make_from_tuple" title="cpp/utility/make from tuple"><span class="t-lines"><span>make_from_tuple</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/piecewise_construct_t" title="cpp/utility/piecewise construct t"><span class="t-lines"><span>piecewise_construct_t</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/piecewise_construct" title="cpp/utility/piecewise construct"><span class="t-lines"><span>piecewise_construct</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/integer_sequence" title="cpp/utility/integer sequence"><span class="t-lines"><span>integer_sequence</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx14">(C++14)</span></span></span></div></div></td></tr>
+<tr class="t-nv-h2"><td colspan="5"> Swap, forward and move</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/algorithm/swap" title="cpp/algorithm/swap"><span class="t-lines"><span>swap</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/exchange" title="cpp/utility/exchange"><span class="t-lines"><span>exchange</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx14">(C++14)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/forward" title="cpp/utility/forward"><span class="t-lines"><span>forward</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/move" title="cpp/utility/move"><span class="t-lines"><span>move</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/move_if_noexcept" title="cpp/utility/move if noexcept"><span class="t-lines"><span>move_if_noexcept</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv-h2"><td colspan="5"> Elementary string conversions</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/to_chars" title="cpp/utility/to chars"><span class="t-lines"><span>to_chars</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/from_chars" title="cpp/utility/from chars"><span class="t-lines"><span>from_chars</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/chars_format" title="cpp/utility/chars format"><span class="t-lines"><span>chars_format</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv-h2"><td colspan="5"> Type operations</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/declval" title="cpp/utility/declval"><span class="t-lines"><span>declval</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/utility/as_const" title="cpp/utility/as const"><span class="t-lines"><span>as_const</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+</tbody></table></div><div><span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/utility/navbar_content&amp;action=edit">[edit]</a></span></div></div></div></div><div class="t-navbar-sep">&nbsp;</div><div class="t-navbar-head"><a href="http://en.cppreference.com/w/cpp/memory" title="cpp/memory"> Dynamic memory management</a><div class="t-navbar-menu"><div><div><table class="t-nv-begin" style="" cellpadding="0">
+<tbody><tr class="t-nv-col-table"><td><div><table class="t-nv-begin" style="" cellpadding="0">
+<tbody><tr class="t-nv-h1"><td colspan="5"> Smart pointers</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/unique_ptr" title="cpp/memory/unique ptr"><span class="t-lines"><span>unique_ptr</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><strong class="selflink"><span class="t-lines"><span>shared_ptr</span></span></strong></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/weak_ptr" title="cpp/memory/weak ptr"><span class="t-lines"><span>weak_ptr</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/auto_ptr" title="cpp/memory/auto ptr"><span class="t-lines"><span>auto_ptr</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-until-cxx17">(until C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/owner_less" title="cpp/memory/owner less"><span class="t-lines"><span>owner_less</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/enable_shared_from_this" title="cpp/memory/enable shared from this"><span class="t-lines"><span>enable_shared_from_this</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/bad_weak_ptr" title="cpp/memory/bad weak ptr"><span class="t-lines"><span>bad_weak_ptr</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/default_delete" title="cpp/memory/default delete"><span class="t-lines"><span>default_delete</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv-h1"><td colspan="5"> Allocators</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/allocator" title="cpp/memory/allocator"><span class="t-lines"><span>allocator</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/allocator_traits" title="cpp/memory/allocator traits"><span class="t-lines"><span>allocator_traits</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" title="cpp/memory/allocator arg t"><span class="t-lines"><span>allocator_arg_t</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/allocator_arg" title="cpp/memory/allocator arg"><span class="t-lines"><span>allocator_arg</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uses_allocator" title="cpp/memory/uses allocator"><span class="t-lines"><span>uses_allocator</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/scoped_allocator_adaptor" title="cpp/memory/scoped allocator adaptor"><span class="t-lines"><span>scoped_allocator_adaptor</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/polymorphic_allocator" title="cpp/memory/polymorphic allocator"><span class="t-lines"><span>pmr::polymorphic_allocator</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv-h1"><td colspan="5"> Memory resources</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/memory_resource" title="cpp/memory/memory resource"><span class="t-lines"><span>pmr::memory_resource</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/get_default_resource" title="cpp/memory/get default resource"><span class="t-lines"><span>pmr::get_default_resource</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/set_default_resource" title="cpp/memory/set default resource"><span class="t-lines"><span>pmr::set_default_resource</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/new_delete_resource" title="cpp/memory/new delete resource"><span class="t-lines"><span>pmr::new_delete_resource</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/null_memory_resource" title="cpp/memory/null memory resource"><span class="t-lines"><span>pmr::null_memory_resource</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/synchronized_pool_resource" title="cpp/memory/synchronized pool resource"><span class="t-lines"><span>pmr::synchronized_pool_resource</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/unsynchronized_pool_resource" title="cpp/memory/unsynchronized pool resource"><span class="t-lines"><span>pmr::unsynchronized_pool_resource</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/monotonic_buffer_resource" title="cpp/memory/monotonic buffer resource"><span class="t-lines"><span>pmr::monotonic_buffer_resource</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/pool_options" title="cpp/memory/pool options"><span class="t-lines"><span>pmr::pool_options</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+</tbody></table></div></td><td><div><table class="t-nv-begin" style="" cellpadding="0">
+<tbody><tr class="t-nv-h1"><td colspan="5"> Uninitialized storage</td></tr>
+<tr class="t-nv-col-table"><td><div><table class="t-nv-begin" style="" cellpadding="0">
+<tbody><tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uninitialized_copy" title="cpp/memory/uninitialized copy"><span class="t-lines"><span>uninitialized_copy</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uninitialized_fill" title="cpp/memory/uninitialized fill"><span class="t-lines"><span>uninitialized_fill</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uninitialized_move" title="cpp/memory/uninitialized move"><span class="t-lines"><span>uninitialized_move</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uninitialized_default_construct" title="cpp/memory/uninitialized default construct"><span class="t-lines"><span>uninitialized_default_construct</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uninitialized_value_construct" title="cpp/memory/uninitialized value construct"><span class="t-lines"><span>uninitialized_value_construct</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/destroy" title="cpp/memory/destroy"><span class="t-lines"><span>destroy</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+</tbody></table></div></td><td><div><table class="t-nv-begin" style="" cellpadding="0">
+<tbody><tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uninitialized_copy_n" title="cpp/memory/uninitialized copy n"><span class="t-lines"><span>uninitialized_copy_n</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uninitialized_fill_n" title="cpp/memory/uninitialized fill n"><span class="t-lines"><span>uninitialized_fill_n</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uninitialized_move_n" title="cpp/memory/uninitialized move n"><span class="t-lines"><span>uninitialized_move_n</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uninitialized_default_construct_n" title="cpp/memory/uninitialized default construct n"><span class="t-lines"><span>uninitialized_default_construct_n</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/uninitialized_value_construct_n" title="cpp/memory/uninitialized value construct n"><span class="t-lines"><span>uninitialized_value_construct_n</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/destroy_n" title="cpp/memory/destroy n"><span class="t-lines"><span>destroy_n</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+</tbody></table></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/destroy_at" title="cpp/memory/destroy at"><span class="t-lines"><span>destroy_at</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/raw_storage_iterator" title="cpp/memory/raw storage iterator"><span class="t-lines"><span>raw_storage_iterator</span></span></a></div><div><span class="t-lines"><span><span class="t-mark">(deprecated since c++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/get_temporary_buffer" title="cpp/memory/get temporary buffer"><span class="t-lines"><span>get_temporary_buffer</span></span></a></div><div><span class="t-lines"><span><span class="t-mark">(deprecated since c++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/return_temporary_buffer" title="cpp/memory/return temporary buffer"><span class="t-lines"><span>return_temporary_buffer</span></span></a></div><div><span class="t-lines"><span><span class="t-mark">(deprecated since c++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv-h1"><td colspan="5"> Garbage collection support</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/gc/declare_reachable" title="cpp/memory/gc/declare reachable"><span class="t-lines"><span>declare_reachable</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/gc/undeclare_reachable" title="cpp/memory/gc/undeclare reachable"><span class="t-lines"><span>undeclare_reachable</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/gc/declare_no_pointers" title="cpp/memory/gc/declare no pointers"><span class="t-lines"><span>declare_no_pointers</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/gc/undeclare_no_pointers" title="cpp/memory/gc/undeclare no pointers"><span class="t-lines"><span>undeclare_no_pointers</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/gc/pointer_safety" title="cpp/memory/gc/pointer safety"><span class="t-lines"><span>pointer_safety</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/gc/get_pointer_safety" title="cpp/memory/gc/get pointer safety"><span class="t-lines"><span>get_pointer_safety</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv-h1"><td colspan="5"> Miscellaneous</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/pointer_traits" title="cpp/memory/pointer traits"><span class="t-lines"><span>pointer_traits</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/addressof" title="cpp/memory/addressof"><span class="t-lines"><span>addressof</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/align" title="cpp/memory/align"><span class="t-lines"><span>align</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div></td></tr>
+<tr class="t-nv-h1"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/memory/c" title="cpp/memory/c">C Library</a></td></tr>
+<tr class="t-nv-col-table"><td><div><table class="t-nv-begin" style="" cellpadding="0">
+<tbody><tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/c/malloc" title="cpp/memory/c/malloc"><span class="t-lines"><span>malloc</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/c/aligned_alloc" title="cpp/memory/c/aligned alloc"><span class="t-lines"><span>aligned_alloc</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/c/calloc" title="cpp/memory/c/calloc"><span class="t-lines"><span>calloc</span></span></a></div></div></td></tr>
+</tbody></table></div></td><td><div><table class="t-nv-begin" style="" cellpadding="0">
+<tbody><tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/c/realloc" title="cpp/memory/c/realloc"><span class="t-lines"><span>realloc</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/c/free" title="cpp/memory/c/free"><span class="t-lines"><span>free</span></span></a></div></div></td></tr>
+</tbody></table></div></td></tr>
+<tr class="t-nv-h1"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/memory/new" title="cpp/memory/new">Low level memory management</a></td></tr>
+</tbody></table></div></td></tr>
+</tbody></table></div><div><span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/navbar_content&amp;action=edit">[edit]</a></span></div></div></div></div><div class="t-navbar-sep">&nbsp;</div><div class="t-navbar-head"><strong class="selflink"><tt>std::shared_ptr</tt></strong><div class="t-navbar-menu"><div><div><table class="t-nv-begin" style="" cellpadding="0">
+<tbody><tr class="t-nv-h1"><td colspan="5"> Member functions</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/shared_ptr" title="cpp/memory/shared ptr/shared ptr"><span class="t-lines"><span>shared_ptr::shared_ptr</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/%7Eshared_ptr" title="cpp/memory/shared ptr/~shared ptr"><span class="t-lines"><span>shared_ptr::~shared_ptr</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator%3D" title="cpp/memory/shared ptr/operator="><span class="t-lines"><span>shared_ptr::operator=</span></span></a></div></div></td></tr>
+<tr class="t-nv-h2"><td colspan="5"> Modifiers</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/reset" title="cpp/memory/shared ptr/reset"><span class="t-lines"><span>shared_ptr::reset</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/swap" title="cpp/memory/shared ptr/swap"><span class="t-lines"><span>shared_ptr::swap</span></span></a></div></div></td></tr>
+<tr class="t-nv-h2"><td colspan="5"> Observers</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/get" title="cpp/memory/shared ptr/get"><span class="t-lines"><span>shared_ptr::get</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator*" title="cpp/memory/shared ptr/operator*"><span class="t-lines"><span>shared_ptr::operator*</span><span>shared_ptr::operator-&gt;</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator_at" title="cpp/memory/shared ptr/operator at"><span class="t-lines"><span>shared_ptr::operator[]</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/use_count" title="cpp/memory/shared ptr/use count"><span class="t-lines"><span>shared_ptr::use_count</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/unique" title="cpp/memory/shared ptr/unique"><span class="t-lines"><span>shared_ptr::unique</span></span></a></div><div><span class="t-lines"><span><span class="t-mark">(deprecated)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator_bool" title="cpp/memory/shared ptr/operator bool"><span class="t-lines"><span>shared_ptr::operator bool</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/owner_before" title="cpp/memory/shared ptr/owner before"><span class="t-lines"><span>shared_ptr::owner_before</span></span></a></div></div></td></tr>
+<tr class="t-nv-h1"><td colspan="5"> Non-member functions</td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/swap2" title="cpp/memory/shared ptr/swap2"><span class="t-lines"><span>std::swap</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/make_shared" title="cpp/memory/shared ptr/make shared"><span class="t-lines"><span>make_shared</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/allocate_shared" title="cpp/memory/shared ptr/allocate shared"><span class="t-lines"><span>allocate_shared</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/pointer_cast" title="cpp/memory/shared ptr/pointer cast"><span class="t-lines"><span>static_pointer_cast</span><span>dynamic_pointer_cast</span><span>const_pointer_cast</span><span>reinterpret_pointer_cast</span></span></a></div><div><span class="t-lines"><span></span><span></span><span></span><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/get_deleter" title="cpp/memory/shared ptr/get deleter"><span class="t-lines"><span>get_deleter</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator_cmp" title="cpp/memory/shared ptr/operator cmp"><span class="t-lines"><span>operator==</span><span>operator|=</span><span>operator&lt;</span><span>operator&lt;=</span><span>operator&gt;</span><span>operator&gt;=</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator_ltlt" title="cpp/memory/shared ptr/operator ltlt"><span class="t-lines"><span>operator&lt;&lt;</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/atomic" title="cpp/memory/shared ptr/atomic"><span class="t-lines"><span>atomic_is_lock_free</span><span>atomic_load</span><span>atomic_load_explicit</span><span>atomic_store</span><span>atomic_store_explicit</span><span>atomic_exchange</span><span>atomic_exchange_explicit</span><span>atomic_compare_exchange_weak</span><span>atomic_compare_exchange_strong</span><span>atomic_compare_exchange_weak_explicit</span><span>atomic_compare_exchange_strong_explicit</span></span></a></div></div></td></tr>
+<tr class="t-nv"><td colspan="5"><div class="t-nv-ln-table"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/hash" title="cpp/memory/shared ptr/hash"><span class="t-lines"><span>std::hash</span></span></a></div></div></td></tr>
+<tr class="t-nv-h1"><td colspan="5"> <a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/deduction_guides" title="cpp/memory/shared ptr/deduction guides">Deduction guides</a><span class="t-mark-rev t-since-cxx17">(C++17)</span></td></tr>
+</tbody></table></div><div><span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/navbar_content&amp;action=edit">[edit]</a></span></div></div></div></div><div class="t-navbar-sep">&nbsp;</div></div>
+<table class="t-dcl-begin"><tbody>
+<tr class="t-dsc-header">
+<td> <div>Defined in header <code><a href="http://en.cppreference.com/w/cpp/header/memory" title="cpp/header/memory">&lt;memory&gt;</a></code>
+ </div></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="t-dcl t-since-cxx11">
+<td> <div><span class="mw-geshi cpp source-cpp"><span class="kw1">template</span><span class="sy1">&lt;</span> <span class="kw1">class</span> T <span class="sy1">&gt;</span> <span class="kw1">class</span> shared_ptr<span class="sy4">;</span></span></div></td>
+<td class="t-dcl-nopad">  </td>
+<td> <span class="t-mark-rev t-since-cxx11">(since C++11)</span> </td>
+</tr>
+<tr class="t-dcl-sep"><td></td><td></td><td></td></tr>
+</tbody></table>
+<p><code>std::shared_ptr</code> is a smart pointer that retains shared ownership of an object through a pointer. Several <code>shared_ptr</code> objects may own the same object. The object is destroyed and its memory deallocated when either of the following happens:
+</p>
+<ul><li> the last remaining <code>shared_ptr</code> owning the object is destroyed;
+</li><li> the last remaining <code>shared_ptr</code> owning the object is assigned another pointer via <span class="t-lc"><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator%3D" title="cpp/memory/shared ptr/operator=">operator=</a></span> or <span class="t-lc"><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/reset" title="cpp/memory/shared ptr/reset">reset()</a></span>. 
+</li></ul>
+<p>The object is destroyed using <a href="http://en.cppreference.com/w/cpp/language/delete" title="cpp/language/delete"><tt>delete-expression</tt></a> or a custom deleter that is supplied to <code>shared_ptr</code> during construction.
+</p><p>A <code>shared_ptr</code> can share ownership of an object while 
+storing a pointer to another object. This feature can be used to point 
+to member objects while owning the object they belong to. The stored 
+pointer is the one accessed by <span class="t-c"><span class="mw-geshi cpp source-cpp">get<span class="br0">(</span><span class="br0">)</span></span></span>,
+ the dereference and the comparison operators. The managed pointer is 
+the one passed to the deleter when use count reaches zero.
+</p><p>A <code>shared_ptr</code> may also own no objects, in which case it is called <i>empty</i> (an empty shared_ptr may have a non-null stored pointer if the aliasing constructor was used to create it).
+</p><p>All specializations of <code>shared_ptr</code> meet the requirements of <a href="http://en.cppreference.com/w/cpp/concept/CopyConstructible" title="cpp/concept/CopyConstructible"><code>CopyConstructible</code></a>, <a href="http://en.cppreference.com/w/cpp/concept/CopyAssignable" title="cpp/concept/CopyAssignable"><code>CopyAssignable</code></a>, and <a href="http://en.cppreference.com/w/cpp/concept/LessThanComparable" title="cpp/concept/LessThanComparable"><code>LessThanComparable</code></a> and are <a href="http://en.cppreference.com/w/cpp/language/implicit_cast" title="cpp/language/implicit cast" class="mw-redirect">contextually convertible</a> to <code>bool</code>.
+</p><p>All member functions (including copy constructor and copy 
+assignment) can be called by multiple threads on different instances of <code>shared_ptr</code>
+ without additional synchronization even if these instances are copies 
+and share ownership of the same object. If multiple threads of execution
+ access the same <code>shared_ptr</code> without synchronization and any of those accesses uses a non-const member function of <code>shared_ptr</code> then a data race will occur; the <a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/atomic" title="cpp/memory/shared ptr/atomic">shared_ptr overloads of atomic functions</a> can be used to prevent the data race.
+</p>
+<table id="toc" class="toc"><tbody><tr><td><div id="toctitle"><h2>Contents</h2><span class="toctoggle">&nbsp;[<a href="#" class="internal" id="togglelink">hide</a>]&nbsp;</span></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Member_types"><span class="tocnumber">1</span> <span class="toctext">Member types</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Member_functions"><span class="tocnumber">2</span> <span class="toctext">Member functions</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Modifiers"><span class="tocnumber">2.1</span> <span class="toctext">Modifiers</span></a></li>
+<li class="toclevel-2"><a href="#Observers"><span class="tocnumber">2.2</span> <span class="toctext">Observers</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-3"><a href="#Non-member_functions"><span class="tocnumber">3</span> <span class="toctext">Non-member functions</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Helper_classes"><span class="tocnumber">4</span> <span class="toctext">Helper classes</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Deduction_guides.28since_C.2B.2B17.29"><span class="tocnumber">5</span> <span class="toctext">Deduction guides<span>(since C++17)</span></span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Notes"><span class="tocnumber">6</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Implementation_notes"><span class="tocnumber">7</span> <span class="toctext">Implementation notes</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Example"><span class="tocnumber">8</span> <span class="toctext">Example</span></a></li>
+</ul>
+</td></tr></tbody></table>
+<h3><span class="editsection">[<a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit&amp;section=1" title="Edit section: Member types">edit</a>]</span> <span class="mw-headline" id="Member_types">Member types</span></h3>
+<table class="t-dsc-begin">
+
+<tbody><tr class="t-dsc-hitem">
+<td>  Member type
+</td>
+<td>  Definition
+</td></tr>
+
+
+<tr class="t-dsc">
+<td>  <span class="t-c"><span class="mw-geshi cpp source-cpp">element_type</span></span>
+</td>
+<td>   <table class="t-rev-begin">
+<tbody><tr class="t-rev t-until-cxx17"><td><span class="t-c"><span class="mw-geshi cpp source-cpp">T</span></span></td>
+<td><span class="t-mark-rev t-until-cxx17">(until C++17)</span></td></tr>
+<tr class="t-rev t-since-cxx17"><td><span class="t-c"><span class="mw-geshi cpp source-cpp"><a href="http://en.cppreference.com/w/cpp/types/remove_extent"><span class="kw621">std::<span class="me2">remove_extent_t</span></span></a><span class="sy1">&lt;</span>T<span class="sy1">&gt;</span></span></span></td>
+<td><span class="t-mark-rev t-since-cxx17">(since C++17)</span></td></tr>
+</tbody></table>
+</td></tr>
+
+
+<tr class="t-dsc">
+<td>  <span class="t-c"><span class="mw-geshi cpp source-cpp">weak_type</span></span> <span class="t-mark-rev t-since-cxx17">(since C++17)</span>
+</td>
+<td>  <span class="t-c"><span class="mw-geshi cpp source-cpp"><a href="http://en.cppreference.com/w/cpp/memory/weak_ptr"><span class="kw740">std::<span class="me2">weak_ptr</span></span></a><span class="sy1">&lt;</span>T<span class="sy1">&gt;</span></span></span>
+</td></tr>
+
+</tbody></table>
+<h3><span class="editsection">[<a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit&amp;section=2" title="Edit section: Member functions">edit</a>]</span> <span class="mw-headline" id="Member_functions">Member functions</span></h3>
+<table class="t-dsc-begin">
+
+<tbody><tr class="t-dsc">
+<td>  <div class="t-dsc-member-div t-dsc-member-nobold-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/shared_ptr" title="cpp/memory/shared ptr/shared ptr"> <span class="t-lines"><span>(constructor)</span></span></a></div></div>
+</td>
+<td>  constructs new <code>shared_ptr</code> <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_constructor&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div t-dsc-member-nobold-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/%7Eshared_ptr" title="cpp/memory/shared ptr/~shared ptr"> <span class="t-lines"><span>(destructor)</span></span></a></div></div>
+</td>
+<td>  destructs the owned object if no more <code>shared_ptr</code>s link to it <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_destructor&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator%3D" title="cpp/memory/shared ptr/operator="> <span class="t-lines"><span>operator=</span></span></a></div></div>
+</td>
+<td>   assigns the <code>shared_ptr</code>  <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_operator%3D&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+
+<tr>
+<td colspan="2"> <h5> <span class="mw-headline" id="Modifiers">  Modifiers </span></h5>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/reset" title="cpp/memory/shared ptr/reset"> <span class="t-lines"><span>reset</span></span></a></div></div>
+</td>
+<td>   replaces the managed object  <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_reset&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/swap" title="cpp/memory/shared ptr/swap"> <span class="t-lines"><span>swap</span></span></a></div></div>
+</td>
+<td>   swaps the managed objects  <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_swap&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+
+<tr>
+<td colspan="2"> <h5> <span class="mw-headline" id="Observers">  Observers </span></h5>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/get" title="cpp/memory/shared ptr/get"> <span class="t-lines"><span>get</span></span></a></div></div>
+</td>
+<td>   returns the stored pointer <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_get&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator*" title="cpp/memory/shared ptr/operator*"> <span class="t-lines"><span>operator*</span><span>operator-&gt;</span></span></a></div></div>
+</td>
+<td>   dereferences the stored pointer <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_operator*&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator_at" title="cpp/memory/shared ptr/operator at"> <span class="t-lines"><span>operator[]</span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div>
+</td>
+<td>   provides indexed access to the stored array <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_operator_at&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/use_count" title="cpp/memory/shared ptr/use count"> <span class="t-lines"><span>use_count</span></span></a></div></div>
+</td>
+<td>   returns the number of <code>shared_ptr</code> objects referring to the same managed object  <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_use_count&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/unique" title="cpp/memory/shared ptr/unique"> <span class="t-lines"><span>unique</span></span></a></div><div><span class="t-lines"><span><span class="t-mark">(deprecated)</span></span></span></div></div>
+</td>
+<td>   checks whether the managed object is managed only by the current <code>shared_ptr</code> instance <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_unique&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator_bool" title="cpp/memory/shared ptr/operator bool"> <span class="t-lines"><span>operator bool</span></span></a></div></div>
+</td>
+<td>   checks if the stored pointer is not null  <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_operator_bool&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/owner_before" title="cpp/memory/shared ptr/owner before"> <span class="t-lines"><span>owner_before</span></span></a></div></div>
+</td>
+<td>   provides owner-based ordering of shared pointers <br> <span class="t-mark">(public member function)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_owner_before&amp;action=edit">[edit]</a></span>
+</td></tr>
+</tbody></table>
+<h3><span class="editsection">[<a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit&amp;section=3" title="Edit section: Non-member functions">edit</a>]</span> <span class="mw-headline" id="Non-member_functions">Non-member functions</span></h3>
+<table class="t-dsc-begin">
+
+<tbody><tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/make_shared" title="cpp/memory/shared ptr/make shared"> <span class="t-lines"><span>make_shared</span></span></a></div></div>
+</td>
+<td>   creates a shared pointer that manages a new object <br> <span class="t-mark">(function template)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_make_shared&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/allocate_shared" title="cpp/memory/shared ptr/allocate shared"> <span class="t-lines"><span>allocate_shared</span></span></a></div></div>
+</td>
+<td>   creates a shared pointer that manages a new object allocated using an allocator <br> <span class="t-mark">(function template)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_allocate_shared&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/pointer_cast" title="cpp/memory/shared ptr/pointer cast"> <span class="t-lines"><span>static_pointer_cast</span><span>dynamic_pointer_cast</span><span>const_pointer_cast</span><span>reinterpret_pointer_cast</span></span></a></div><div><span class="t-lines"><span></span><span></span><span></span><span><span class="t-mark-rev t-since-cxx17">(C++17)</span></span></span></div></div>
+</td>
+<td>   applies <a href="http://en.cppreference.com/w/cpp/language/static_cast" title="cpp/language/static cast"><tt>static_cast</tt></a>, <a href="http://en.cppreference.com/w/cpp/language/dynamic_cast" title="cpp/language/dynamic cast"><tt>dynamic_cast</tt></a>, <a href="http://en.cppreference.com/w/cpp/language/const_cast" title="cpp/language/const cast"><tt>const_cast</tt></a>, or <a href="http://en.cppreference.com/w/cpp/language/reinterpret_cast" title="cpp/language/reinterpret cast"><tt>reinterpret_cast</tt></a> to the stored pointer <br> <span class="t-mark">(function template)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_pointer_cast&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/get_deleter" title="cpp/memory/shared ptr/get deleter"> <span class="t-lines"><span>get_deleter</span></span></a></div></div>
+</td>
+<td>   returns the deleter of specified type, if owned  <br> <span class="t-mark">(function template)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_get_deleter&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator_cmp" title="cpp/memory/shared ptr/operator cmp"> <span class="t-lines"><span>operator==</span><span>operator!=</span><span>operator&lt;</span><span>operator&lt;=</span><span>operator&gt;</span><span>operator&gt;=</span></span></a></div></div>
+</td>
+<td>   compares with another <code>shared_ptr</code> or with <span class="t-c"><span class="mw-geshi cpp source-cpp">nullptr</span></span>  <br> <span class="t-mark">(function template)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_operator_cmp&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/operator_ltlt" title="cpp/memory/shared ptr/operator ltlt"> <span class="t-lines"><span>operator&lt;&lt;</span></span></a></div></div>
+</td>
+<td>   outputs the value of the stored pointer to an output stream <br> <span class="t-mark">(function template)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_operator_ltlt&amp;action=edit">[edit]</a></span>
+</td></tr>
+
+<tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/swap2" title="cpp/memory/shared ptr/swap2"> <span class="t-lines"><span>std::swap<span class="t-dsc-small">(std::shared_ptr)</span></span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div>
+</td>
+<td>   specializes the <span class="t-lc"><a href="http://en.cppreference.com/w/cpp/algorithm/swap" title="cpp/algorithm/swap">std::swap</a></span> algorithm  <br> <span class="t-mark">(function template)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_swap2&amp;action=edit">[edit]</a></span>
+</td></tr>
+</tbody></table>
+<table class="t-dsc-begin">
+
+
+<tbody><tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/atomic" title="cpp/memory/shared ptr/atomic"> <span class="t-lines"><span>std::atomic_is_lock_free<span class="t-dsc-small">(std::shared_ptr)</span></span><span>std::atomic_load<span class="t-dsc-small">(std::shared_ptr)</span></span><span>std::atomic_load_explicit<span class="t-dsc-small">(std::shared_ptr)</span></span><span>std::atomic_store<span class="t-dsc-small">(std::shared_ptr)</span></span><span>std::atomic_store_explicit<span class="t-dsc-small">(std::shared_ptr)</span></span><span>std::atomic_exchange<span class="t-dsc-small">(std::shared_ptr)</span></span><span>std::atomic_exchange_explicit<span class="t-dsc-small">(std::shared_ptr)</span></span><span>std::atomic_compare_exchange_weak<span class="t-dsc-small">(std::shared_ptr)</span></span><span>std::atomic_compare_exchange_strong<span class="t-dsc-small">(std::shared_ptr)</span></span><span>std::atomic_compare_exchange_weak_explicit<span class="t-dsc-small">(std::shared_ptr)</span></span><span>std::atomic_compare_exchange_strong_explicit<span class="t-dsc-small">(std::shared_ptr)</span></span></span></a></div></div>
+</td>
+<td>   specializes atomic operations for <span class="t-lc"><strong class="selflink">std::shared_ptr</strong></span>  <br> <span class="t-mark">(function template)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_atomic&amp;action=edit">[edit]</a></span>
+</td></tr>
+</tbody></table>
+<h3><span class="editsection">[<a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit&amp;section=4" title="Edit section: Helper classes">edit</a>]</span> <span class="mw-headline" id="Helper_classes">Helper classes</span></h3>
+<table class="t-dsc-begin">
+
+<tbody><tr class="t-dsc">
+<td>  <div class="t-dsc-member-div"><div><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/hash" title="cpp/memory/shared ptr/hash"> <span class="t-lines"><span>std::hash<span class="t-dsc-small">&lt;std::shared_ptr&gt;</span></span></span></a></div><div><span class="t-lines"><span><span class="t-mark-rev t-since-cxx11">(C++11)</span></span></span></div></div>
+</td>
+<td>   hash support for <span class="t-lc"><strong class="selflink">std::shared_ptr</strong></span>  <br> <span class="t-mark">(class template specialization)</span> <span class="editsection noprint plainlinks" title="Edit this template"><a rel="nofollow" class="external text" href="http://en.cppreference.com/mwiki/index.php?title=Template:cpp/memory/shared_ptr/dsc_hash&amp;action=edit">[edit]</a></span>
+</td></tr>
+</tbody></table>
+<h3><span class="editsection">[<a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit&amp;section=5" title="Edit section: Deduction guides(since C++17)">edit</a>]</span> <span class="mw-headline" id="Deduction_guides.28since_C.2B.2B17.29"><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/deduction_guides" title="cpp/memory/shared ptr/deduction guides">Deduction guides</a><span class="t-mark-rev t-since-cxx17">(since C++17)</span></span></h3>
+<h3><span class="editsection">[<a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit&amp;section=6" title="Edit section: Notes">edit</a>]</span> <span class="mw-headline" id="Notes">Notes</span></h3>
+<p>The ownership of an object can only be shared with another <code>shared_ptr</code> by copy constructing or copy assigning its value to another <code>shared_ptr</code>. Constructing a new <code>shared_ptr</code> using the raw underlying pointer owned by another <code>shared_ptr</code> leads to undefined behavior.
+</p><p><code>std::shared_ptr</code> may be used with an <a href="http://en.cppreference.com/w/cpp/language/incomplete_type" title="cpp/language/incomplete type" class="mw-redirect">incomplete type</a> <code>T</code>. However, the constructor from a raw pointer (<span class="t-c"><span class="mw-geshi cpp source-cpp"><span class="kw1">template</span><span class="sy1">&lt;</span><span class="kw1">class</span> Y<span class="sy1">&gt;</span> shared_ptr<span class="br0">(</span>Y<span class="sy2">*</span><span class="br0">)</span></span></span>) and the <span class="t-c"><span class="mw-geshi cpp source-cpp"><span class="kw1">template</span><span class="sy1">&lt;</span><span class="kw1">class</span> Y<span class="sy1">&gt;</span> <span class="kw4">void</span> reset<span class="br0">(</span>Y<span class="sy2">*</span><span class="br0">)</span></span></span> member function may only be called with a pointer to a complete type (note that <span class="t-lc"><a href="http://en.cppreference.com/w/cpp/memory/unique_ptr" title="cpp/memory/unique ptr">std::unique_ptr</a></span> may be constructed from a raw pointer to an incomplete type).
+</p><p>The <code>T</code> in <code>std::shared_ptr&lt;T&gt;</code> may 
+be a function type: in this case it manages a pointer to function, 
+rather than an object pointer. This is sometimes used to keep a dynamic 
+library or a plugin loaded as long as any of its functions are 
+referenced:
+</p>
+<div dir="ltr" class="mw-geshi" style="text-align: left;"><div class="cpp source-cpp"><pre class="de1"><span class="kw4">void</span> del<span class="br0">(</span><span class="kw4">void</span><span class="br0">(</span><span class="sy2">*</span><span class="br0">)</span><span class="br0">(</span><span class="br0">)</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+<span class="kw4">void</span> fun<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+<span class="kw4">int</span> main<span class="br0">(</span><span class="br0">)</span><span class="br0">{</span>
+  std<span class="sy4">::</span><span class="me2">shared_ptr</span><span class="sy1">&lt;</span><span class="kw4">void</span><span class="br0">(</span><span class="br0">)</span><span class="sy1">&gt;</span> ee<span class="br0">(</span>fun, del<span class="br0">)</span><span class="sy4">;</span>
+  <span class="br0">(</span><span class="sy2">*</span>ee<span class="br0">)</span><span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+<span class="br0">}</span></pre></div></div>
+<h3><span class="editsection">[<a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit&amp;section=7" title="Edit section: Implementation notes">edit</a>]</span> <span class="mw-headline" id="Implementation_notes">Implementation notes</span></h3>
+<p>In a typical implementation, <span class="t-lc"><strong class="selflink">std::shared_ptr</strong></span> holds only two pointers:
+</p>
+<ul><li> the stored pointer (one returned by <span class="t-c"><span class="mw-geshi cpp source-cpp">get<span class="br0">(</span><span class="br0">)</span></span></span>);
+</li><li> a pointer to <i>control block</i>.
+</li></ul>
+<p>The control block is a dynamically-allocated object that holds:
+</p>
+<ul><li> either a pointer to the managed object or the managed object itself;
+</li><li> the deleter (type-erased);
+</li><li> the allocator (type-erased);
+</li><li> the number of <code>shared_ptr</code>s that own the managed object;
+</li><li> the number of <code>weak_ptr</code>s that refer to the managed object.
+</li></ul>
+<p>When <code>shared_ptr</code> is created by calling <span class="t-lc"><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/make_shared" title="cpp/memory/shared ptr/make shared">std::make_shared</a></span> or <span class="t-lc"><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/allocate_shared" title="cpp/memory/shared ptr/allocate shared">std::allocate_shared</a></span>,
+ the memory for both the control block and the managed object is created
+ with a single allocation. The managed object is constructed in-place in
+ a data member of the control block. When <code>shared_ptr</code> is created via one of the <code>shared_ptr</code>
+ constructors, the managed object and the control block must be 
+allocated separately.  In this case, the control block stores a pointer 
+to the managed object.
+</p><p>The pointer held by the <code>shared_ptr</code> directly is the one returned by <span class="t-lc"><a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/get" title="cpp/memory/shared ptr/get">get()</a></span>,
+ while the pointer/object held by the control block is the one that will
+ be deleted when the number of shared owners reaches zero.  These 
+pointers are not necessarily equal.
+</p><p>The destructor of <code>shared_ptr</code> decrements the number 
+of shared owners of the control block. If that counter reaches zero, the
+ control block calls the destructor of the managed object. The control 
+block does not deallocate itself until the <span class="t-lc"><a href="http://en.cppreference.com/w/cpp/memory/weak_ptr" title="cpp/memory/weak ptr">std::weak_ptr</a></span> counter reaches zero as well. 
+</p><p>In practical implementations, the number of weak pointers <a rel="nofollow" class="external text" href="https://www.reddit.com/r/cpp/comments/3eia29/stdshared_ptrs_secret_constructor/ctfeh1p">may be incremented</a> if there is a shared pointer to the same control block.
+</p><p>To satisfy thread safety requirements, the reference counters are typically incremented using an equivalent of <span class="t-lc"><a href="http://en.cppreference.com/w/cpp/atomic/atomic/fetch_add" title="cpp/atomic/atomic/fetch add">std::atomic::fetch_add</a></span> with <span class="t-lc"><a href="http://en.cppreference.com/w/cpp/atomic/memory_order" title="cpp/atomic/memory order">std::memory_order_relaxed</a></span> (decrementing requires stronger ordering to safely destroy the control block).
+</p>
+<h3><span class="editsection">[<a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=edit&amp;section=8" title="Edit section: Example">edit</a>]</span> <span class="mw-headline" id="Example">Example</span></h3>
+<div class="t-example"><div class="t-example-live-link"><div class="coliru-btn coliru-btn-run-init">Run this code</div></div>
+<div dir="ltr" class="mw-geshi t-example-code" style="text-align: left;"><div class="cpp source-cpp"><pre class="de1"><span class="co2">#include &lt;iostream&gt;</span>
+<span class="co2">#include &lt;memory&gt;</span>
+<span class="co2">#include &lt;thread&gt;</span>
+<span class="co2">#include &lt;chrono&gt;</span>
+<span class="co2">#include &lt;mutex&gt;</span>
+&nbsp;
+<span class="kw1">struct</span> Base
+<span class="br0">{</span>
+    Base<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <a href="http://en.cppreference.com/w/cpp/io/cout"><span class="kw1757">std::<span class="me2">cout</span></span></a> <span class="sy1">&lt;&lt;</span> <span class="st0">"  Base::Base()<span class="es1">\n</span>"</span><span class="sy4">;</span> <span class="br0">}</span>
+    <span class="co1">// Note: non-virtual destructor is OK here</span>
+    ~Base<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <a href="http://en.cppreference.com/w/cpp/io/cout"><span class="kw1757">std::<span class="me2">cout</span></span></a> <span class="sy1">&lt;&lt;</span> <span class="st0">"  Base::~Base()<span class="es1">\n</span>"</span><span class="sy4">;</span> <span class="br0">}</span>
+<span class="br0">}</span><span class="sy4">;</span>
+&nbsp;
+<span class="kw1">struct</span> Derived<span class="sy4">:</span> <span class="kw1">public</span> Base
+<span class="br0">{</span>
+    Derived<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <a href="http://en.cppreference.com/w/cpp/io/cout"><span class="kw1757">std::<span class="me2">cout</span></span></a> <span class="sy1">&lt;&lt;</span> <span class="st0">"  Derived::Derived()<span class="es1">\n</span>"</span><span class="sy4">;</span> <span class="br0">}</span>
+    ~Derived<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <a href="http://en.cppreference.com/w/cpp/io/cout"><span class="kw1757">std::<span class="me2">cout</span></span></a> <span class="sy1">&lt;&lt;</span> <span class="st0">"  Derived::~Derived()<span class="es1">\n</span>"</span><span class="sy4">;</span> <span class="br0">}</span>
+<span class="br0">}</span><span class="sy4">;</span>
+&nbsp;
+<span class="kw4">void</span> thr<span class="br0">(</span>std<span class="sy4">::</span><span class="me2">shared_ptr</span><span class="sy1">&lt;</span>Base<span class="sy1">&gt;</span> p<span class="br0">)</span>
+<span class="br0">{</span>
+    <a href="http://en.cppreference.com/w/cpp/thread/sleep_for"><span class="kw2148">std::<span class="me2">this_thread</span><span class="sy4">::</span><span class="me2">sleep_for</span></span></a><span class="br0">(</span><a href="http://en.cppreference.com/w/cpp/chrono/duration"><span class="kw996">std::<span class="me2">chrono</span><span class="sy4">::</span><span class="me2">seconds</span></span></a><span class="br0">(</span><span class="nu0">1</span><span class="br0">)</span><span class="br0">)</span><span class="sy4">;</span>
+    std<span class="sy4">::</span><span class="me2">shared_ptr</span><span class="sy1">&lt;</span>Base<span class="sy1">&gt;</span> lp <span class="sy1">=</span> p<span class="sy4">;</span> <span class="co1">// thread-safe, even though the</span>
+                                  <span class="co1">// shared use_count is incremented</span>
+    <span class="br0">{</span>
+        <span class="kw4">static</span> <a href="http://en.cppreference.com/w/cpp/thread/mutex"><span class="kw2153">std::<span class="me2">mutex</span></span></a> io_mutex<span class="sy4">;</span>
+        <a href="http://en.cppreference.com/w/cpp/thread/lock_guard"><span class="kw2165">std::<span class="me2">lock_guard</span></span></a><span class="sy1">&lt;</span><a href="http://en.cppreference.com/w/cpp/thread/mutex"><span class="kw2153">std::<span class="me2">mutex</span></span></a><span class="sy1">&gt;</span> lk<span class="br0">(</span>io_mutex<span class="br0">)</span><span class="sy4">;</span>
+        <a href="http://en.cppreference.com/w/cpp/io/cout"><span class="kw1757">std::<span class="me2">cout</span></span></a> <span class="sy1">&lt;&lt;</span> <span class="st0">"local pointer in a thread:<span class="es1">\n</span>"</span>
+                  <span class="sy1">&lt;&lt;</span> <span class="st0">"  lp.get() = "</span> <span class="sy1">&lt;&lt;</span> lp.<span class="me1">get</span><span class="br0">(</span><span class="br0">)</span>
+                  <span class="sy1">&lt;&lt;</span> <span class="st0">", lp.use_count() = "</span> <span class="sy1">&lt;&lt;</span> lp.<span class="me1">use_count</span><span class="br0">(</span><span class="br0">)</span> <span class="sy1">&lt;&lt;</span> <span class="st0">'<span class="es1">\n</span>'</span><span class="sy4">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+&nbsp;
+<span class="kw4">int</span> main<span class="br0">(</span><span class="br0">)</span>
+<span class="br0">{</span>
+    std<span class="sy4">::</span><span class="me2">shared_ptr</span><span class="sy1">&lt;</span>Base<span class="sy1">&gt;</span> p <span class="sy1">=</span> <a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/make_shared"><span class="kw735">std::<span class="me2">make_shared</span></span></a><span class="sy1">&lt;</span>Derived<span class="sy1">&gt;</span><span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+&nbsp;
+    <a href="http://en.cppreference.com/w/cpp/io/cout"><span class="kw1757">std::<span class="me2">cout</span></span></a> <span class="sy1">&lt;&lt;</span> <span class="st0">"Created a shared Derived (as a pointer to Base)<span class="es1">\n</span>"</span>
+              <span class="sy1">&lt;&lt;</span> <span class="st0">"  p.get() = "</span> <span class="sy1">&lt;&lt;</span> p.<span class="me1">get</span><span class="br0">(</span><span class="br0">)</span>
+              <span class="sy1">&lt;&lt;</span> <span class="st0">", p.use_count() = "</span> <span class="sy1">&lt;&lt;</span> p.<span class="me1">use_count</span><span class="br0">(</span><span class="br0">)</span> <span class="sy1">&lt;&lt;</span> <span class="st0">'<span class="es1">\n</span>'</span><span class="sy4">;</span>
+    <a href="http://en.cppreference.com/w/cpp/thread/thread"><span class="kw2145">std::<span class="me2">thread</span></span></a> t1<span class="br0">(</span>thr, p<span class="br0">)</span>, t2<span class="br0">(</span>thr, p<span class="br0">)</span>, t3<span class="br0">(</span>thr, p<span class="br0">)</span><span class="sy4">;</span>
+    p.<span class="me1">reset</span><span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span> <span class="co1">// release ownership from main</span>
+    <a href="http://en.cppreference.com/w/cpp/io/cout"><span class="kw1757">std::<span class="me2">cout</span></span></a> <span class="sy1">&lt;&lt;</span> <span class="st0">"Shared ownership between 3 threads and released<span class="es1">\n</span>"</span>
+              <span class="sy1">&lt;&lt;</span> <span class="st0">"ownership from main:<span class="es1">\n</span>"</span>
+              <span class="sy1">&lt;&lt;</span> <span class="st0">"  p.get() = "</span> <span class="sy1">&lt;&lt;</span> p.<span class="me1">get</span><span class="br0">(</span><span class="br0">)</span>
+              <span class="sy1">&lt;&lt;</span> <span class="st0">", p.use_count() = "</span> <span class="sy1">&lt;&lt;</span> p.<span class="me1">use_count</span><span class="br0">(</span><span class="br0">)</span> <span class="sy1">&lt;&lt;</span> <span class="st0">'<span class="es1">\n</span>'</span><span class="sy4">;</span>
+    t1.<span class="me1">join</span><span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span> t2.<span class="me1">join</span><span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span> t3.<span class="me1">join</span><span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+    <a href="http://en.cppreference.com/w/cpp/io/cout"><span class="kw1757">std::<span class="me2">cout</span></span></a> <span class="sy1">&lt;&lt;</span> <span class="st0">"All threads completed, the last one deleted Derived<span class="es1">\n</span>"</span><span class="sy4">;</span>
+<span class="br0">}</span></pre></div></div>
+<p>Possible output:
+</p>
+<div dir="ltr" class="mw-geshi" style="text-align: left;"><div class="text source-text"><pre class="de1">Base::Base()
+  Derived::Derived()
+Created a shared Derived (as a pointer to Base)
+  p.get() = 0xc99028, p.use_count() = 1
+Shared ownership between 3 threads and released
+ownership from main:
+  p.get() = (nil), p.use_count() = 0
+local pointer in a thread:
+  lp.get() = 0xc99028, lp.use_count() = 3
+local pointer in a thread:
+  lp.get() = 0xc99028, lp.use_count() = 4
+local pointer in a thread:
+  lp.get() = 0xc99028, lp.use_count() = 2
+  Derived::~Derived()
+  Base::~Base()
+All threads completed, the last one deleted Derived</pre></div></div> 
+</div>
+
+<!-- 
+NewPP limit report
+Preprocessor visited node count: 11779/1000000
+Preprocessor generated node count: 13806/1000000
+Post‐expand include size: 376294/2097152 bytes
+Template argument size: 82164/2097152 bytes
+Highest expansion depth: 22/40
+Expensive parser function count: 0/100
+-->
+
+<!-- Saved in parser cache with key mwiki1-mwiki_en_:pcache:idhash:2177-0!*!0!!en!*!* and timestamp 20170913204700 -->
+</div>                    <!-- /bodycontent -->
+                                        <!-- printfooter -->
+                    <div class="printfooter">
+                    Retrieved from "<a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;oldid=95568">http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;oldid=95568</a>"                    </div>
+                    <!-- /printfooter -->
+                                                            <!-- catlinks -->
+                    <div id="catlinks" class="catlinks catlinks-allhidden"></div>                    <!-- /catlinks -->
+                                                            <div class="visualClear"></div>
+                    <!-- debughtml -->
+                                        <!-- /debughtml -->
+                </div>
+                <!-- /bodyContent -->
+            </div>
+        </div>
+        <!-- /content -->
+        <!-- footer -->
+        <div id="cpp-footer-base" class="noprint">
+            <div id="footer">
+                        <div id="cpp-navigation">
+            <h5>Navigation</h5>
+            <ul>
+<li id="n-Support-us"><a href="http://www.cppreference.com/support" rel="nofollow">Support us</a></li><li id="n-recentchanges"><a href="http://en.cppreference.com/w/Special:RecentChanges" title="A list of recent changes in the wiki [r]" accesskey="r">Recent changes</a></li><li id="n-FAQ"><a href="http://en.cppreference.com/w/Cppreference:FAQ">FAQ</a></li><li id="n-Offline-version"><a href="http://en.cppreference.com/w/Cppreference:Archives">Offline version</a></li>            </ul>
+        </div>
+                        <div id="cpp-toolbox">
+            <h5><span>Toolbox</span><a href="#"></a></h5>
+            <ul>
+<li id="t-whatlinkshere"><a href="http://en.cppreference.com/w/Special:WhatLinksHere/cpp/memory/shared_ptr" title="A list of all wiki pages that link here [j]" accesskey="j">What links here</a></li><li id="t-recentchangeslinked"><a href="http://en.cppreference.com/w/Special:RecentChangesLinked/cpp/memory/shared_ptr" title="Recent changes in pages linked from this page [k]" accesskey="k">Related changes</a></li><li id="t-upload"><a href="http://upload.cppreference.com/w/Special:Upload" title="Upload files [u]" accesskey="u">Upload file</a></li><li id="t-specialpages"><a href="http://en.cppreference.com/w/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q">Special pages</a></li><li id="t-print"><a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;printable=yes" rel="alternate" title="Printable version of this page [p]" accesskey="p">Printable version</a></li><li id="t-permalink"><a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;oldid=95568" title="Permanent link to this revision of the page">Permanent link</a></li><li id="t-info"><a href="http://en.cppreference.com/mwiki/index.php?title=cpp/memory/shared_ptr&amp;action=info">Page information</a></li>            </ul>
+        </div>
+                        <div id="cpp-languages">
+            <div><ul><li>In other languages</li></ul></div>
+            <div><ul>
+<li class="interwiki-de"><a href="http://de.cppreference.com/w/cpp/memory/shared_ptr" title="cpp/memory/shared ptr" hreflang="de" lang="de">Deutsch</a></li><li class="interwiki-es"><a href="http://es.cppreference.com/w/cpp/memory/shared_ptr" title="cpp/memory/shared ptr" hreflang="es" lang="es">Español</a></li><li class="interwiki-fr"><a href="http://fr.cppreference.com/w/cpp/memory/shared_ptr" title="cpp/memory/shared ptr" hreflang="fr" lang="fr">Français</a></li><li class="interwiki-it"><a href="http://it.cppreference.com/w/cpp/memory/shared_ptr" title="cpp/memory/shared ptr" hreflang="it" lang="it">Italiano</a></li><li class="interwiki-ja"><a href="http://ja.cppreference.com/w/cpp/memory/shared_ptr" title="cpp/memory/shared ptr" hreflang="ja" lang="ja">日本語</a></li><li class="interwiki-pt"><a href="http://pt.cppreference.com/w/cpp/memory/shared_ptr" title="cpp/memory/shared ptr" hreflang="pt" lang="pt">Português</a></li><li class="interwiki-ru"><a href="http://ru.cppreference.com/w/cpp/memory/shared_ptr" title="cpp/memory/shared ptr" hreflang="ru" lang="ru">Русский</a></li><li class="interwiki-zh"><a href="http://zh.cppreference.com/w/cpp/memory/shared_ptr" title="cpp/memory/shared ptr" hreflang="zh" lang="zh">中文</a></li>            </ul></div>
+        </div>
+            <ul id="footer-info">
+                                    <li id="footer-info-lastmod"> This page was last modified on 13 September 2017, at 13:47.</li>
+                                    <li id="footer-info-viewcount">This page has been accessed 1,289,227 times.</li>
+                            </ul>
+                    <ul id="footer-places">
+                                    <li id="footer-places-privacy"><a href="http://en.cppreference.com/w/Cppreference:Privacy_policy" title="Cppreference:Privacy policy">Privacy policy</a></li>
+                                    <li id="footer-places-about"><a href="http://en.cppreference.com/w/Cppreference:About" title="Cppreference:About">About cppreference.com</a></li>
+                                    <li id="footer-places-disclaimer"><a href="http://en.cppreference.com/w/Cppreference:General_disclaimer" title="Cppreference:General disclaimer">Disclaimers</a></li>
+                            </ul>
+                                    <ul id="footer-icons" class="noprint">
+                                    <li id="footer-poweredbyico">
+                                            <a href="http://www.mediawiki.org/"><img src="std::shared_ptr%20-%20cppreference.com_fichiers/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" width="88" height="31"></a>                                            <a href="http://qbnz.com/highlighter/"><img src="std::shared_ptr%20-%20cppreference.com_fichiers/powered_by_geshi_88x31.png" alt="Powered by GeSHi" width="88" height="31"></a>                                            <a href="http://www.tigertech.net/referral/cppreference.com"><img src="std::shared_ptr%20-%20cppreference.com_fichiers/powered_by_tigertech_88x31.png" alt="Hosted by Tiger Technologies" width="88" height="31"></a>                                        </li>
+                                </ul>
+                        <div style="clear:both">
+            </div>
+            </div>
+        </div>
+        <!-- /footer -->
+        <script>if(window.mw){
+mw.loader.state({"site":"loading","user":"missing","user.groups":"ready"});
+}</script>
+<script src="std::shared_ptr%20-%20cppreference.com_fichiers/load_003.php"></script>
+<script>if(window.mw){
+mw.loader.load(["mediawiki.action.view.postEdit","mediawiki.user","mediawiki.page.ready","mediawiki.searchSuggest","mediawiki.hidpi","ext.gadget.ColiruCompiler","ext.gadget.MathJax"],
+ null, true);
+}</script>
+<script src="std::shared_ptr%20-%20cppreference.com_fichiers/load.php"></script>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script><script src="std::shared_ptr%20-%20cppreference.com_fichiers/ga.js" type="text/javascript"></script>
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-2828341-1']);
+_gaq.push(['_setDomainName', 'cppreference.com']);
+_gaq.push(['_trackPageview']);
+</script><!-- Served in 0.057 secs. -->
+	
+
+
+<div class="suggestions" style="display: none; font-size: 11.2px;"><div class="suggestions-results"></div><div class="suggestions-special"></div></div></body><!-- Cached 20170913204738 --></html>
