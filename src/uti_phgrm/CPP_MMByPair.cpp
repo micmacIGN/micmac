@@ -1358,10 +1358,10 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      {
         mStrQualOr = "High";
         // do not add the segondary images computed by apero, but do the computation of pair because some data are required anyway (for mask computation based on tie points for e.g)
-		// mAddCpleImSec = false;
-		// Modif MPD  16/10/2017 car sinon ca plante quand forest est utilise sans FilePair
-		// vu lors du stage terrain a Murol (arbre sur muraille), suite demande Antoine Pinte
-		mAddCpleImSec = true;
+        // mAddCpleImSec = false;
+        // Modif MPD  16/10/2017 car sinon ca plante quand forest est utilise sans FilePair
+        // vu lors du stage terrain a Murol (arbre sur muraille), suite demande Antoine Pinte
+        mAddCpleImSec = true;
         // do the computation whitout adding the pairs
         mRunAperoImSec= true;
         mHasVeget = true;
