@@ -1305,6 +1305,7 @@ void TestFitPol()
 extern void TestMap2D();
 int MPDtest_main (int argc,char** argv)
 {
+    std::cout << "MPDtest_main in " << __FILE__ << "\n";
     {
        TestFitPol();
        exit(EXIT_SUCCESS);

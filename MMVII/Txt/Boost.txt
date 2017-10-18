@@ -1,0 +1,47 @@
+Si on prend boost, quitte a en payer le "prix" (forcer les utilisateur à l'installer) autant le rentabiliser.
+
+Qq exempple de package boost, glane aux hasard qui pourraient être utiles (i.e. qui correspondent à des morceaux de code du MicMac actuel) :
+
+   * Regex =>  http://www.boost.org/doc/libs/1_65_1/libs/regex/doc/html/index.html
+
+   * Serialiszation pour dump/undump http://www.boost.org/doc/libs/1_65_1/libs/serialization/doc/index.html
+
+   * heap/ queue de priorite http://www.boost.org/doc/libs/1_65_1/doc/html/heap.html (voir si l'indexe est ok,
+     sans doute oui avec http://www.boost.org/doc/libs/1_65_1/doc/html/heap/concepts.html#heap.concepts.mutability
+
+   * indexe  spatiaux (QTRee MicMac) => http://www.boost.org/doc/libs/1_65_1/libs/geometry/doc/html/geometry/spatial_indexes/introduction.html
+
+
+    * graphe evidement (boost est connu pour cela) : http://www.boost.org/doc/libs/1_65_1/libs/graph/doc/index.html
+
+
+    * traitement d'image =>  GIL   (est ce que  boost fait tout ;-)
+
+
+    * Boost.DLL => pas forcement utile, mais le mecanisme avait ete utilise pour ajouter dynamiquement un modele de capteur dans micmac
+
+    * http://www.boost.org/doc/libs/1_65_1/libs/compute/doc/html/index.html => du GPU sous boost ??? Trop beau pour etre vrai, a voir
+
+   * http://www.boost.org/doc/libs/1_65_1/doc/html/circular_buffer.html#circular_buffer.intro : comme les FILO, mais ne gere pas dynamiquement la memoire
+
+  * http://www.boost.org/doc/libs/1_65_1/doc/html/chrono.html ?? Gestion du temps
+
+
+  * http://www.boost.org/doc/libs/1_65_1/libs/math/doc/html/quaternions.html ; j'aime pas les quaternion; mais faut etre ouvert ...
+
+  * http://www.boost.org/doc/libs/1_65_1/libs/polygon/doc/index.htm  => polygono
+
+  * http://www.boost.org/doc/libs/1_65_1/libs/python/doc/html/index.html => si interface python ...
+
+  * http://www.boost.org/doc/libs/1_65_1/libs/type_traits/doc/html/index.html => costaud !!
+
+  * http://www.boost.org/doc/libs/1_65_1/libs/numeric/ublas/doc/index.html => matrice, voir eigen
+
+  * http://www.boost.org/doc/libs/1_65_1/libs/tuple/doc/tuple_users_guide.html => utile pour une program + lisible des valeur de retour multiple 
+
+
+
+
+
+
+

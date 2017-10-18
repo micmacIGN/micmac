@@ -1,0 +1,21 @@
+.cachee {
+display:none 
+}
+
+td{
+    width:16cm;
+}
+
+pre{
+   font-size:9pt;
+   width:16cm;
+   text-align : left;
+}
+
+div.paragraph{
+   text-align : justify;
+}
+
+A:link {color: #000000; text-decoration: none}
+A:visited {color: #000000; text-decoration: none}
+

@@ -1,0 +1,2 @@
+Ce dossier contient des petits programmes  qui permettent de vérifier que j'ai bien compris le fonctionnement de certaines librairies avant de les utiliser dans MMVII
+

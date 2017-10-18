@@ -1,0 +1,5 @@
+Pour linker avec libelise => faisable
+g++ main.cpp -std=c++11 ../../lib/libelise.a -lX11 -lm
+
+
+
