@@ -1,0 +1,1 @@
+if (typeof(jQuery) != "undefined") jQuery(function(){if (typeof(afficher_nb_vues) != "undefined") afficher_nb_vues(-1);})

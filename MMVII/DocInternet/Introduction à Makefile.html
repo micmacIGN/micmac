@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html xmlns:og="http://ogp.me/ns#" lang="fr"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+	<meta charset="iso-8859-1">
+	<title>Introduction à Makefile</title>
+	<meta name="generator" content="developpez-com">
+	<meta name="description" content="Introduction à Makefile">
+	<script src="Introduction%20%C3%A0%20Makefile_fichiers/ga.js" async="" type="text/javascript"></script><script type="text/javascript" src="Introduction%20%C3%A0%20Makefile_fichiers/jquery-1.js"></script>
+	<script async="" type="text/javascript" src="Introduction%20%C3%A0%20Makefile_fichiers/a"></script>
+	<link rel="shortcut icon" type="image/x-icon" href="http://gl.developpez.com/template/favicon.ico">
+	<link rel="image_src" href="https://www.developpez.com/facebook-icon.png">
+	<link rel="stylesheet" type="text/css" href="Introduction%20%C3%A0%20Makefile_fichiers/gabarit.css">
+	<link rel="stylesheet" type="text/css" media="print" href="Introduction%20%C3%A0%20Makefile_fichiers/printer.css">
+	<link rel="stylesheet" type="text/css" media="screen" href="Introduction%20%C3%A0%20Makefile_fichiers/developpez-kit-generation.css">
+	<link rel="stylesheet" type="text/css" media="screen" href="Introduction%20%C3%A0%20Makefile_fichiers/code.css">
+	<link rel="stylesheet" type="text/css" media="screen" href="Introduction%20%C3%A0%20Makefile_fichiers/lightbox.css">
+	<script type="text/javascript" src="Introduction%20%C3%A0%20Makefile_fichiers/developpez-kit-generation.js"></script>
+	<script type="text/javascript" src="Introduction%20%C3%A0%20Makefile_fichiers/lightbox.js"></script>
+	<script type="text/javascript" src="Introduction%20%C3%A0%20Makefile_fichiers/fonctions-kit.js"></script>
+	<!--[if lt IE 7]>
+	<script src="/template/ie7/IE7.js" type="text/javascript"></script>
+	<![endif]-->
+
+	<!--[if IE 6]>
+	<link rel="stylesheet" type="text/css" href="/template/gabarit-ie6.css" />
+	<![endif]-->
+
+	<!--[if IE 7]>
+	<link rel="stylesheet" type="text/css" href="/template/gabarit-ie7.css" />
+	<![endif]-->
+
+	<!--[if lt IE 9]>
+	<script type="text/javascript" src="/template/kit/html5_ie.js"></script>
+	<![endif]-->
+	<!--[if IE 9]><link rel="stylesheet" type="text/css" href="http://www.developpez.com/template/kit/ie9.css" /><![endif]-->
+	<!--[if IE 8]><link rel="stylesheet" type="text/css" href="http://www.developpez.com/template/kit/ie8.css" /><![endif]-->
+	<!--[if lt IE 9]><link rel="stylesheet" type="text/css" href="http://www.developpez.com/template/kit/ie.css" /><![endif]-->
+	<!--[if IE 7]><link rel="stylesheet" type="text/css" href="http://www.developpez.com/template/kit/ie7.css" /><![endif]-->
+	<!--[if lte IE 6]><link rel="stylesheet" type="text/css" href="http://www.developpez.com/template/kit/ie6.css" /><![endif]-->
+	<!--[if lt IE 9]><script type="text/javascript" src="http://www.developpez.com/template/kit/html5_ie.js"></script><![endif]-->
+
+</head>
+<body>
+<header>
+
+<div id="gabarit_recherche">
+<form action="https://www.google.fr" target="_blank">
+  <div>
+    <input name="cx" value="partner-pub-8110924381468607:6449306375" type="hidden">
+    <input name="ie" value="UTF-8" type="hidden">
+    <input name="q" size="12" type="text">
+    <input name="sa" value="Rechercher" type="submit">
+  </div>
+</form>
+</div>
+
+<div id="gabarit_superieur">
+	<nav>
+	<ul>
+		<li><a href="https://www.developpez.net/forums/" title="">Forums</a></li>
+		<li><a href="https://general.developpez.com/cours/" title="">Tutoriels</a></li>
+		<li><a href="http://magazine.developpez.com/" title="">Magazine</a></li>
+		<li><a href="https://general.developpez.com/faq/" title="">FAQs</a></li>
+		<li><a href="https://www.developpez.net/forums/blogs/" title="">Blogs</a></li>
+		<li><a href="https://chat.developpez.com/" title="">Chat</a></li>
+		<li><a href="https://www.developpez.com/newsletter/">Newsletter</a></li>
+		<li><a href="https://etudes.developpez.com/">Études</a></li>
+		<li><a href="https://emploi.developpez.com/" title="">Emploi</a></li>
+		<li><a href="https://club.developpez.com/">Club</a></li>
+		<li><a href="https://club.developpez.com/contacts/" title="">Contacts</a></li>
+	</ul>
+	</nav>
+</div>
+<div style="position: relative; clear: both; float: right; top: -2px; width: 745px; margin-top: 10px; margin-right: 5px; background-color: #E1E1E2">
+<div id="gabarit_pub0"></div><div id="jc3kx0l" style="display: inline-block; width: 728px; height: 90px"><style type="text/css">html, body { margin: 0; padding: 0; }</style><iframe src="Introduction%20%C3%A0%20Makefile_fichiers/show_i.html" marginwidth="0" marginheight="0" hspace="0" vspace="0" scrolling="no" width="728" height="90" frameborder="0"></iframe><style type="text/css"> #gabarit_pub0 { display: inline-block; }</style></div>
+</div>
+
+<div id="gabarit_logo">
+	<a href="https://www.developpez.com/" title="Accueil Developpez.com"><img src="Introduction%20%C3%A0%20Makefile_fichiers/logo.png" alt="" width="216" height="89"></a>
+</div>
+
+<nav>
+
+<div id="gabarit_mobile">
+	<img src="Introduction%20%C3%A0%20Makefile_fichiers/logo-mobile.png" alt="" width="65" height="72">
+	<div>Developpez.com - <strong>C</strong></div>
+	<ul>
+		<li><a href="https://www.developpez.net/forums/f7/c-cpp/">Forums</a></li>
+		<li><span>Autre rubrique</span></li>
+	</ul>
+</div>
+
+<div id="gabarit_menu_mobile">
+	<div>X</div>
+	<p>Choisissez <span>d'abord la catégorie</span><span>ensuite la rubrique</span> :</p>
+	<ul><li></li></ul>
+</div>
+
+<ul id="gabarit_menu">
+	<li><a href="https://www.developpez.com/" data-idrub="1" data-niv="1">Accueil<span class="gabarit_tooltip">Actualités IT Pro</span></a>
+			</li>
+	<li><a href="https://alm.developpez.com/" data-idrub="42" data-niv="1">ALM<span class="gabarit_tooltip">Cycle de vie du logiciel</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://alm.developpez.com/" data-idrub="42" data-niv="2">ALM</a></li>
+				<li><a href="https://merise.developpez.com/" data-idrub="43" data-niv="2">Merise</a></li>
+				<li><a href="https://uml.developpez.com/" data-idrub="12" data-niv="2">UML</a></li>
+			</ul></li>
+	<li><a href="https://java.developpez.com/" data-idrub="4" data-niv="1">Java<span class="gabarit_tooltip">Plateforme et langage Java</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://java.developpez.com/" data-idrub="4" data-niv="2">Java</a></li>
+				<li><a href="https://javaweb.developpez.com/" data-idrub="97" data-niv="2">Java Web</a></li>
+				<li><a href="https://spring.developpez.com/" data-idrub="87" data-niv="2">Spring</a></li>
+				<li><a href="https://android.developpez.com/" data-idrub="95" data-niv="2">Android</a></li>
+				<li><a href="https://eclipse.developpez.com/" data-idrub="55" data-niv="2">Eclipse</a></li>
+				<li><a href="https://netbeans.developpez.com/" data-idrub="66" data-niv="2">NetBeans</a></li>
+			</ul></li>
+	<li><a href="https://dotnet.developpez.com/" data-idrub="20" data-niv="1">.NET<span class="gabarit_tooltip">Microsoft Framework .NET</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://dotnet.developpez.com/" data-idrub="20" data-niv="2">Microsoft DotNET</a></li>
+				<li><a href="https://dotnet.developpez.com/visual-studio/" data-idrub="84" data-niv="2">Visual Studio</a></li>
+				<li><a href="https://dotnet.developpez.com/aspnet/" data-idrub="83" data-niv="2">ASP.NET</a></li>
+				<li><a href="https://dotnet.developpez.com/csharp/" data-idrub="81" data-niv="2">C#</a></li>
+				<li><a href="https://dotnet.developpez.com/vbnet/" data-idrub="82" data-niv="2">VB.NET</a></li>
+				<li><a href="https://windowsphone.developpez.com/" data-idrub="105" data-niv="2">Windows Phone</a></li>
+				<li><a href="https://windows-azure.developpez.com/" data-idrub="107" data-niv="2">Microsoft Azure</a></li>
+			</ul></li>
+	<li><a href="https://web.developpez.com/" data-idrub="8" data-niv="1">Dév. Web<span class="gabarit_tooltip">Développement Web et Webmarketing</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://web.developpez.com/" data-idrub="8" data-niv="2">Développement Web</a></li>
+				<li><a href="https://ajax.developpez.com/" data-idrub="85" data-niv="2">AJAX</a></li>
+				<li><a href="https://apache.developpez.com/" data-idrub="71" data-niv="2">Apache</a></li>
+				<li><a href="https://asp.developpez.com/" data-idrub="10" data-niv="2">ASP</a></li>
+				<li><a href="https://css.developpez.com/" data-idrub="51" data-niv="2">CSS</a></li>
+				<li><a href="https://dart.developpez.com/" data-idrub="125" data-niv="2">Dart</a></li>
+				<li><a href="https://flash.developpez.com/" data-idrub="41" data-niv="2">Flash / Flex</a></li>
+				<li><a href="https://javascript.developpez.com/" data-idrub="45" data-niv="2">JavaScript</a></li>
+				<li><a href="https://nodejs.developpez.com/" data-idrub="141" data-niv="2">NodeJS</a></li>
+				<li><a href="https://php.developpez.com/" data-idrub="9" data-niv="2">PHP</a></li>
+				<li><a href="https://ruby.developpez.com/" data-idrub="53" data-niv="2">Ruby &amp; Rails</a></li>
+				<li><a href="https://typescript.developpez.com/" data-idrub="127" data-niv="2">TypeScript</a></li>
+				<li><a href="https://web-semantique.developpez.com/" data-idrub="111" data-niv="2">Web sémantique</a></li>
+				<li><a href="https://webmarketing.developpez.com/" data-idrub="80" data-niv="2">Webmarketing</a></li>
+				<li><a href="https://xhtml.developpez.com/" data-idrub="50" data-niv="2">(X)HTML</a></li>
+			</ul></li>
+	<li><a href="https://edi.developpez.com/" data-idrub="90" data-niv="1">EDI<span class="gabarit_tooltip">Environnements de Développement Intégré</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://edi.developpez.com/" data-idrub="90" data-niv="2">EDI</a></li>
+				<li><a href="https://4d.developpez.com/" data-idrub="39" data-niv="2">4D</a></li>
+				<li><a href="https://delphi.developpez.com/" data-idrub="2" data-niv="2">Delphi</a></li>
+				<li><a href="https://eclipse.developpez.com/" data-idrub="55" data-niv="2">Eclipse</a></li>
+				<li><a href="https://labview.developpez.com/" data-idrub="72" data-niv="2">LabVIEW</a></li>
+				<li><a href="https://netbeans.developpez.com/" data-idrub="66" data-niv="2">NetBeans</a></li>
+				<li><a href="https://matlab.developpez.com/" data-idrub="58" data-niv="2">MATLAB</a></li>
+				<li><a href="https://scilab.developpez.com/" data-idrub="120" data-niv="2">Scilab</a></li>
+				<li><a href="https://dotnet.developpez.com/visual-studio/" data-idrub="84" data-niv="2">Visual Studio</a></li>
+				<li><a href="https://wind.developpez.com/" data-idrub="74" data-niv="2">WinDev</a></li>
+				<li><a href="https://vb.developpez.com/" data-idrub="5" data-niv="2">Visual Basic 6</a></li>
+				<li><a href="https://lazarus.developpez.com/" data-idrub="96" data-niv="2">Lazarus</a></li>
+				<li><a href="https://qt-creator.developpez.com/" data-idrub="109" data-niv="2">Qt Creator</a></li>
+			</ul></li>
+	<li><a href="https://programmation.developpez.com/" data-idrub="119" data-niv="1" class="gabarit_selection">Programmation<span class="gabarit_tooltip">Programmation et langages de programmation applicatifs</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://programmation.developpez.com/" data-idrub="119" data-niv="2">Programmation</a></li>
+				<li><a href="https://algo.developpez.com/" data-idrub="47" data-niv="2">Débuter - Algorithmique</a></li>
+				<li><a href="https://jeux.developpez.com/" data-idrub="38" data-niv="2">2D - 3D - Jeux</a></li>
+				<li><a href="https://asm.developpez.com/" data-idrub="16" data-niv="2">Assembleur</a></li>
+				<li><a href="https://c.developpez.com/" data-idrub="3" data-niv="2">C</a></li>
+				<li><a href="https://cpp.developpez.com/" data-idrub="59" data-niv="2">C++</a></li>
+				<li><a href="https://go.developpez.com/" data-idrub="124" data-niv="2">Go</a></li>
+				<li><a href="https://objective-c.developpez.com/" data-idrub="117" data-niv="2">Objective C</a></li>
+				<li><a href="https://pascal.developpez.com/" data-idrub="7" data-niv="2">Pascal</a></li>
+				<li><a href="https://perl.developpez.com/" data-idrub="29" data-niv="2">Perl</a></li>
+				<li><a href="https://python.developpez.com/" data-idrub="27" data-niv="2">Python</a></li>
+				<li><a href="https://swift.developpez.com/" data-idrub="128" data-niv="2">Swift</a></li>
+				<li><a href="https://qt.developpez.com/" data-idrub="65" data-niv="2">Qt</a></li>
+				<li><a href="https://xml.developpez.com/" data-idrub="11" data-niv="2">XML</a></li>
+				<li><a href="https://general.developpez.com/cours/" data-idrub="21" data-niv="2">Autres</a></li>
+			</ul></li>
+	<li><a href="https://sgbd.developpez.com/" data-idrub="13" data-niv="1">SGBD<span class="gabarit_tooltip">Systèmes de Gestion de Bases de Données</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://sgbd.developpez.com/" data-idrub="13" data-niv="2">SGBD &amp; SQL</a></li>
+				<li><a href="https://4d.developpez.com/" data-idrub="39" data-niv="2">4D</a></li>
+				<li><a href="https://access.developpez.com/" data-idrub="19" data-niv="2">Access</a></li>
+				<li><a href="https://big-data.developpez.com/" data-idrub="126" data-niv="2">Big Data</a></li>
+				<li><a href="https://db2.developpez.com/" data-idrub="36" data-niv="2">DB2</a></li>
+				<li><a href="https://firebird.developpez.com/" data-idrub="73" data-niv="2">Firebird</a></li>
+				<li><a href="https://interbase.developpez.com/" data-idrub="32" data-niv="2">InterBase</a></li>
+				<li><a href="https://mysql.developpez.com/" data-idrub="31" data-niv="2">MySQL</a></li>
+				<li><a href="https://nosql.developpez.com/" data-idrub="114" data-niv="2">NoSQL</a></li>
+				<li><a href="https://postgresql.developpez.com/" data-idrub="33" data-niv="2">PostgreSQL</a></li>
+				<li><a href="https://oracle.developpez.com/" data-idrub="25" data-niv="2">Oracle</a></li>
+				<li><a href="https://sybase.developpez.com/" data-idrub="37" data-niv="2">Sybase</a></li>
+				<li><a href="https://sqlserver.developpez.com/" data-idrub="34" data-niv="2">SQL-Server</a></li>
+			</ul></li>
+	<li><a href="https://office.developpez.com/" data-idrub="54" data-niv="1">Office<span class="gabarit_tooltip">Bureautique pour l'entreprise</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://office.developpez.com/" data-idrub="54" data-niv="2">Microsoft Office</a></li>
+				<li><a href="https://access.developpez.com/" data-idrub="19" data-niv="2">Access</a></li>
+				<li><a href="https://excel.developpez.com/" data-idrub="75" data-niv="2">Excel</a></li>
+				<li><a href="https://word.developpez.com/" data-idrub="76" data-niv="2">Word</a></li>
+				<li><a href="https://outlook.developpez.com/" data-idrub="77" data-niv="2">Outlook</a></li>
+				<li><a href="https://powerpoint.developpez.com/" data-idrub="78" data-niv="2">PowerPoint</a></li>
+				<li><a href="https://sharepoint.developpez.com/" data-idrub="79" data-niv="2">SharePoint</a></li>
+				<li><a href="https://project.developpez.com/" data-idrub="99" data-niv="2">Microsoft Project</a></li>
+				<li><a href="https://openoffice-libreoffice.developpez.com/" data-idrub="116" data-niv="2">OpenOffice &amp; LibreOffice</a></li>
+			</ul></li>
+	<li><a href="https://solutions-entreprise.developpez.com/" data-idrub="86" data-niv="1">Solutions d'entreprise<span class="gabarit_tooltip">Autres logiciels pour l'entreprise</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://solutions-entreprise.developpez.com/" data-idrub="86" data-niv="2">Solutions d'entreprise</a></li>
+				<li><a href="https://big-data.developpez.com/" data-idrub="126" data-niv="2">Big Data</a></li>
+				<li><a href="https://bpm.developpez.com/" data-idrub="134" data-niv="2">BPM</a></li>
+				<li><a href="https://business-intelligence.developpez.com/" data-idrub="61" data-niv="2">Business Intelligence</a></li>
+				<li><a href="https://solutions-entreprise.developpez.com/erp-pgi/presentation-erp-pgi/" data-idrub="91" data-niv="2">ERP / PGI</a></li>
+				<li><a href="https://crm.developpez.com/" data-idrub="92" data-niv="2">CRM</a></li>
+				<li><a href="https://sas.developpez.com/" data-idrub="93" data-niv="2">SAS</a></li>
+				<li><a href="https://cloud-computing.developpez.com/" data-idrub="103" data-niv="2">Cloud Computing</a></li>
+				<li><a href="https://sap.developpez.com/" data-idrub="106" data-niv="2">SAP</a></li>
+				<li><a href="https://www.developpez.net/forums/f1664/systemes/windows/windows-serveur/biztalk-server/" data-idrub="115" data-niv="2">Microsoft BizTalk Server</a></li>
+				<li><a href="https://talend.developpez.com/" data-idrub="118" data-niv="2">Talend</a></li>
+				<li><a href="https://bluemix.developpez.com/" data-idrub="135" data-niv="2">IBM Bluemix</a></li>
+			</ul></li>
+	<li><a href="https://applications.developpez.com/" data-idrub="88" data-niv="1">Applications<span class="gabarit_tooltip">Applications logicielles</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://applications.developpez.com/" data-idrub="88" data-niv="2">Applications</a></li>
+				<li><a href="https://open-source.developpez.com/" data-idrub="121" data-niv="2">Libres &amp; Open Source</a></li>
+				<li><a href="https://openoffice-libreoffice.developpez.com/" data-idrub="116" data-niv="2">OpenOffice &amp; LibreOffice</a></li>
+				<li><a href="https://portail-projets.developpez.com/" data-idrub="98" data-niv="2">Projets</a></li>
+			</ul></li>
+	<li><a href="https://mobiles.developpez.com/" data-idrub="94" data-niv="1">Mobiles<span class="gabarit_tooltip">Logiciels et matériels mobiles</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://mobiles.developpez.com/" data-idrub="94" data-niv="2">Mobiles</a></li>
+				<li><a href="https://android.developpez.com/" data-idrub="95" data-niv="2">Android</a></li>
+				<li><a href="https://ios.developpez.com/" data-idrub="101" data-niv="2">iOS</a></li>
+				<li><a href="https://windowsphone.developpez.com/" data-idrub="105" data-niv="2">Windows Phone</a></li>
+			</ul></li>
+	<li><a href="https://systeme.developpez.com/" data-idrub="30" data-niv="1">Systèmes<span class="gabarit_tooltip">Logiciels et matériels systèmes</span></a>
+			<ul class="gabarit_sousmenu">
+				<li><a href="https://systeme.developpez.com/" data-idrub="30" data-niv="2">Systèmes</a></li>
+				<li><a href="https://windows.developpez.com/" data-idrub="17" data-niv="2">Windows</a></li>
+				<li><a href="https://linux.developpez.com/" data-idrub="18" data-niv="2">Linux</a></li>
+				<li><a href="https://securite.developpez.com/" data-idrub="40" data-niv="2">Sécurité</a></li>
+				<li><a href="https://hardware.developpez.com/" data-idrub="64" data-niv="2">Hardware</a></li>
+				<li><a href="https://mac.developpez.com/" data-idrub="57" data-niv="2">Mac</a></li>
+				<li><a href="https://raspberry-pi.developpez.com/" data-idrub="131" data-niv="2">Raspberry Pi</a></li>
+				<li><a href="https://reseau.developpez.com/" data-idrub="70" data-niv="2">Réseau</a></li>
+				<li><a href="https://green-it.developpez.com/" data-idrub="104" data-niv="2">Green IT</a></li>
+				<li><a href="https://embarque.developpez.com/" data-idrub="110" data-niv="2">Systèmes Embarqués</a></li>
+				<li><a href="https://virtualisation.developpez.com/" data-idrub="108" data-niv="2">Virtualisation</a></li>
+			</ul></li>
+</ul>
+
+<ul id="gabarit_barre1">
+	<li><a href="https://programmation.developpez.com/">Programmation</a></li>
+	<li><a href="https://algo.developpez.com/">Algorithmique</a></li>
+	<li><a href="https://jeux.developpez.com/">2D-3D-Jeux</a></li>
+	<li><a href="https://asm.developpez.com/">Assembleur</a></li>
+	<li class="gabarit_selection"><a href="https://c.developpez.com/">C</a></li>
+	<li><a href="https://cpp.developpez.com/">C++</a></li>
+	<li><a href="https://go.developpez.com/">Go</a></li>
+	<li><a href="https://objective-c.developpez.com/">Objective C</a></li>
+	<li><a href="https://pascal.developpez.com/">Pascal</a></li>
+	<li><a href="https://perl.developpez.com/">Perl</a></li>
+	<li><a href="https://python.developpez.com/">Python</a></li>
+	<li><a href="https://swift.developpez.com/">Swift</a></li>
+	<li><a href="https://qt.developpez.com/">Qt</a></li>
+	<li><a href="https://xml.developpez.com/">XML</a></li>
+	<li><a href="https://general.developpez.com/cours/">Autres</a></li>
+</ul>
+
+<div id="gabarit_barre2">
+	<a class="gabarit_social gabarit_facebook" href="http://www.facebook.com/pages/C/108584359174497" target="_blank" title="Retrouver Developpez sur Facebook"></a>
+	<a class="gabarit_social gabarit_twitter" href="http://twitter.com/C_Developpez" target="_blank" title="Retrouver Developpez sur Twitter"></a>
+	<a class="gabarit_social gabarit_rss" href="http://c.developpez.com/index/rss" target="_blank" title="Flux RSS"></a>
+	<ul>
+		<li><a href="https://c.developpez.com/">Accueil C</a></li>
+		<li><a href="https://www.developpez.net/forums/f7/c-cpp/">Forums C</a></li>
+		<li><a href="https://c.developpez.com/faq/">FAQ C</a></li>
+		<li><a href="https://c.developpez.com/cours/">Tutoriels C</a></li>
+		<li><a href="https://c.developpez.com/livres/">Livres C</a></li>
+		<li><a href="https://c.developpez.com/telecharger/index/categorie/30/Outils-C-C">Compilateurs et outils C</a></li>
+		<li><a href="https://c.developpez.com/telecharger/index/categorie/149/Sources-C">Sources C</a></li>
+		<li><a href="https://c.developpez.com/telecharger/index/categorie/451/Bibliotheques-C">Bibliothèques C</a></li>
+		<li><a href="http://gtk.developpez.com/">GTK+</a></li>
+	</ul>
+</div>
+
+</nav>
+</header>
+<section>
+
+<div class="contenuPage">    
+<article style="margin: 0px 20px;" class="ArticleComplet" itemscope="" itemtype="http://schema.org/Article">
+<meta itemprop="genre" content="informatique">
+<meta itemprop="inLanguage" content="fr-FR">	
+		
+<header class="EnteteTitres">
+<h1 class="titre-article" itemprop="name">Introduction à Makefile</h1>
+
+</header><nav style="width: 302px;" class="nav-sommaire fixed2">
+<header><h1 class="TitreHeader StopArrondi ToggleGecko">Table des matières<img class="ToggleImgPlier" title="Plier" alt="Plier" src="Introduction%20%C3%A0%20Makefile_fichiers/fleche-haut-bleue.gif"><img class="ToggleImgDeplier" title="Déplier" alt="Déplier" src="Introduction%20%C3%A0%20Makefile_fichiers/fleche-bas-bleue.gif" style="display:none;"></h1></header>
+<ul style="overflow-y: auto;" id="nav_sommaire_ul_principal" class="nav-sommaire-ul">
+		<li><a class="summaryIndent0" href="#L-1">Avant-propos</a></li>
+
+		<li><a class="summaryIndent0" href="#L-2">Remerciement</a></li>
+
+		<li><a class="summaryIndent0" href="#L-3">Avertissement</a></li>
+
+		<li><a class="summaryIndent0" href="#L1">1. Le projet exemple : "hello world"</a></li>
+
+		<li><a class="summaryIndent0" href="#L2">2. Présentation de Makefile</a><ul class="nav-sommaire-ul Indentation2">
+			
+			
+
+			
+			
+			
+			<li><a class="summaryIndent1" href="#L2.1">2.1. Makefile minimal</a></li>
+
+			<li><a class="summaryIndent1" href="#L2.2">2.2. Makefile enrichi</a></li>
+		</ul></li>
+		<li><a class="summaryIndent0" href="#L3">3. Définition de variables</a><ul class="nav-sommaire-ul Indentation3">
+			
+			<li><a class="summaryIndent1" href="#L3.1">3.1. Variables personnalisées</a></li>
+			<li><a class="summaryIndent1" href="#L3.2">3.2. Variables internes</a></li>
+		</ul></li>
+		<li><a class="summaryIndent0" href="#L4">4. Les règles d'inférence</a></li>
+		<li><a class="summaryIndent0" href="#L5">5. La cible .PHONY</a></li>
+
+		<li><a class="summaryIndent0" href="#L6">6. Génération de la liste des fichiers objets</a></li>
+
+		<li><a class="summaryIndent0" href="#L7">7. Construction de la liste des fichiers sources</a></li>
+		
+		<li><a class="summaryIndent0" href="#L8">8. Commandes silencieuses</a></li>
+		
+		<li><a class="summaryIndent0" href="#L9">9. Les Makefiles conditionnels</a></li>
+
+		<li><a class="summaryIndent0" href="#L10">10. sous-Makefiles</a></li>
+
+		<li><a class="summaryIndent0" href="#L11">11. Bibliographie et liens</a></li>
+	</ul></nav>
+
+
+<div class="fixeMarge"><section itemprop="about" class="SectionSynopsis">
+		<p>
+			Ce document a pour objectif de présenter l'outil Makefile.
+			<br>			
+			<br>			
+			<b>Votre avis et vos suggestions sur ce tutoriel m'intéressent ! Alors après votre lecture, n'hésitez pas :</b> <a class="lienforum" href="https://www.developpez.net/forums/showthread.php?t=11492">16&nbsp;commentaires</a> <img src="Introduction%20%C3%A0%20Makefile_fichiers/kitstars-5-0.png" style="border: none" alt="Donner une note à l'article (5)" width="66" height="14">		</p>
+	</section></div><div style="height: 133px;" class="InfoAuthArtBook">
+	<section class="SectionAuteurs">
+	<header><h1 class="TitreHeader">L'auteur</h1></header>
+<p class="auteur" itemprop="author" itemscope="" itemtype="http://schema.org/Person"><a itemprop="url" class="auteur" href="http://www.developpez.net/forums/profile.php?mode=viewprofile&amp;u=4323"><span itemprop="author">gl</span></a></p>
+</section>
+<section style="width: 63%;" class="SectionInformationArticle">
+<header><h1 class="TitreHeader">L´article</h1></header>
+
+<p class="InfoArticle">Publié le <span itemprop="datePublished">4 avril 2004 </span>- Mis à jour le <span itemprop="dateModified">23 juillet 2012 </span></p><p>
+<span class="lientelechargementpdf"><a class="lientelechargement" href="http://gl.developpez.com//tutoriel/outil/makefile/Makefile.pdf" title="Télécharger la version PDF de cet article.">Version PDF</a></span>
+<span class="lientelechargementzip"><a class="lientelechargement" href="http://gl.developpez.com//tutoriel/outil/makefile/Makefile.zip" title="Télécharger la version HTML de cet article.">Version hors-ligne</a></span></p>
+<p><span class="lientelechargementebook"><a class="lientelechargement" href="http://gl.developpez.com//tutoriel/outil/makefile/Makefile.epub" title="Télécharger la version ePub de l'article compatible avec la plupart des liseuses non Kindle (Amazon).">ePub</a></span>, <span class="lientelechargementebook"><a class="lientelechargement" href="http://gl.developpez.com//tutoriel/outil/makefile/Makefile.azw" title="Télécharger la version Azw de l'article compatible avec les liseuses Kindle (Amazon).">Azw</a></span> et <span class="lientelechargementebook"><a class="lientelechargement" href="http://gl.developpez.com//tutoriel/outil/makefile/Makefile.mobi" title="Télécharger la version Mobi de l'article compatible avec certaines liseuses.">Mobi</a></span></p>
+</section></div><section style="margin-left: 327px; margin-top: 20px; clear: none;" itemprop="articleBody" class="articleBody">
+		
+    <h1 class="TitreSection0" id="L-1">Avant-propos<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Les Makefiles sont des fichiers, généralement appelés makefile ou 
+Makefile, utilisés par le programme make pour exécuter un ensemble 
+d'actions, comme la compilation d'un projet, l'archivage de document, la
+ mise à jour de site, etc.
+				Cet article présentera le fonctionnement de makefile au travers de 
+la compilation d'un petit projet en C.
+			</p>
+		</div>
+
+		
+    <h1 class="TitreSection0" id="L-2">Remerciement<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Merci à <a class="lienArticle simple" href="http://www.developpez.net/forums/profile.php?mode=viewprofile&amp;u=7643">Alacazam</a>,
+				<a class="lienArticle simple" href="http://www.developpez.net/forums/profile.php?mode=viewprofile&amp;u=22326">Anomaly</a>,
+				et à <a class="lienArticle simple" href="http://www.developpez.net/forums/profile.php?mode=viewprofile&amp;u=11418">Pomalaix</a> pour la correction orthographique.<br>
+				Merci également à <a class="lienArticle simple" href="http://www.developpez.net/forums/profile.php?mode=viewprofile&amp;u=7192">Nyal</a>, <a class="lienArticle simple" href="http://www.developpez.net/forums/profile.php?mode=viewprofile&amp;u=31351">Emmanuel Delahaye</a>, <a class="lienArticle simple" href="http://www.developpez.net/forums/profile.php?mode=viewprofile&amp;u=34696">_Anne_</a> et  <a class="lienArticle simple" href="http://www.developpez.net/forums/profile.php?mode=viewprofile&amp;u=10644">le mage tophinus</a> pour leurs suggestions et corrections.
+			</p>
+		</div>
+
+		
+    <h1 class="TitreSection0" id="L-3">Avertissement<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Il existe une multitude d'utilitaires de Makefile fonctionnant sur 
+différents systèmes (gmake, nmake, tmake, etc.). Les Makefiles n'étant 
+malheureusement pas normalisés, certaines syntaxes ou fonctionnalités 
+peuvent ne pas fonctionner sur certains utilitaires.<br>
+				Le présent article se base sur l'utilitaire GNU make. Toutefois les 
+notions abordées devraient être utilisables avec la majorité des 
+utilitaires.
+			</p>
+		</div>
+
+		
+    <h1 class="TitreSection0" id="L1">1. Le projet exemple : "hello world"<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Le projet utilisé ici sera un classique "hello world" découpé en trois fichiers:
+			</p>
+					<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e159">hello.c<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e159" onclick="selectionCode('contenuCoded0e159');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e159" class="contenuCode">
+<code class="c_keyword2">#</code><code class="c_markup">include</code><code class="c_keyword2"> </code><code class="c_keyword2">&lt;stdio.h&gt;</code>
+<code class="c_keyword2">#</code><code class="c_markup">include</code><code class="c_keyword2"> </code><code class="c_keyword2">&lt;stdlib.h&gt;</code>
+
+<code class="c_keyword3">void</code> <code class="c_function">Hello</code>(<code class="c_keyword3">void</code>)
+<code class="c_operator">{</code>
+	<code class="c_function">printf</code>(<code class="c_literal1">"</code><code class="c_literal1">Hello</code><code class="c_literal1"> </code><code class="c_literal1">World\n</code><code class="c_literal1">"</code>);
+<code class="c_operator">}</code>
+					
+</code></pre></div>
+
+					<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e209">hello.h<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e209" onclick="selectionCode('contenuCoded0e209');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e209" class="contenuCode">
+<code class="c_keyword2">#</code><code class="c_markup">ifndef</code><code class="c_keyword2"> </code><code class="c_keyword2">H_GL_HELLO</code>
+<code class="c_keyword2">#</code><code class="c_markup">define</code><code class="c_keyword2"> </code><code class="c_keyword2">H_GL_HELLO</code>
+
+<code class="c_keyword3">void</code> <code class="c_function">Hello</code>(<code class="c_keyword3">void</code>);
+
+<code class="c_keyword2">#</code><code class="c_markup">endif</code>
+					
+</code></pre></div>
+
+					<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e244">main.c<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e244" onclick="selectionCode('contenuCoded0e244');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e244" class="contenuCode">
+<code class="c_keyword2">#</code><code class="c_markup">include</code><code class="c_keyword2"> </code><code class="c_keyword2">&lt;stdio.h&gt;</code>
+<code class="c_keyword2">#</code><code class="c_markup">include</code><code class="c_keyword2"> </code><code class="c_keyword2">&lt;stdlib.h&gt;</code>
+<code class="c_keyword2">#</code><code class="c_markup">include</code><code class="c_keyword2"> </code><code class="c_keyword2">"hello.h"</code>
+
+<code class="c_keyword3">int</code> <code class="c_function">main</code>(<code class="c_keyword3">void</code>)
+<code class="c_operator">{</code>
+	<code class="c_function">Hello</code>();
+	<code class="c_keyword1">return</code> EXIT_SUCCESS;
+<code class="c_operator">}</code>
+					
+</code></pre></div>
+		</div>
+
+		
+    <h1 class="TitreSection0" id="L2">2. Présentation de Makefile<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Un Makefile est un fichier constitué de plusieurs règles de la forme :
+			</p>
+
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e304">&nbsp;<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e304" onclick="selectionCode('contenuCoded0e304');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e304" class="contenuCode">
+cible: dependance
+	commandes
+			</code></pre></div>
+			<p>
+				Chaque commande est précédée d'une tabulation.<br>
+				Lors de l'utilisation d'un tel fichier via la commande make la 
+première règle rencontrée, ou la règle dont le nom est spécifié, est 
+évaluée.
+				L'évaluation d'une règle se fait en plusieurs étapes :
+			</p>
+			<ul>
+				<li>
+					Les dépendances sont analysées, si une dépendance est la cible 
+d'une autre règle du Makefile, cette régle est à son tour évaluée.
+				</li>
+				<li>
+					Lorsque l'ensemble des dépendances est analysé et si la cible ne 
+correspond pas à un fichier existant ou si un fichier dépendance est 
+plus récent que la régle, les différentes commandes sont exécutées.
+				</li>
+			</ul>
+			
+    <h2 class="TitreSection1" id="L2.1">2.1. Makefile minimal<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h2><div class="BlocSection1">
+				
+				<p>
+					Le Makefile minimal du projet est donc :
+				</p>
+				<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e329">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e329" onclick="selectionCode('contenuCoded0e329');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e329" class="contenuCode">
+hello: hello.o main.o
+	gcc -o hello hello.o main.o
+
+hello.o: hello.c
+	gcc -o hello.o -c hello.c -W -Wall -ansi -pedantic
+
+main.o: main.c hello.h
+	gcc -o main.o -c main.c -W -Wall -ansi -pedantic
+				</code></pre></div>
+				<p>
+					Regardons de plus près sur cet exemple comment fonctionne un Makefile :<br>
+					Nous cherchons à créer le fichier exécutable hello, la première 
+dépendance est la cible d'une des régles de notre Makefile,
+					nous évaluons donc cette règle. Comme aucune dépendance de hello.o 
+n'est une règle, aucune autre règle n'est à évaluer pour compléter 
+celle-ci.<br>
+					Deux cas se présentent ici : soit le fichier hello.c est plus 
+récent que le fichier hello.o, la commande est alors exécutée et hello.o
+ est construit, soit
+					hello.o est plus récent que hello.c est la commande n'est pas 
+exécutée. L'évalution de la règle hello.o est terminée.<br>
+					Les autres dépendances de hello sont examinées de la même manière 
+puis, si nécessaire, la commande de la règle hello est exécutée et hello
+ est construit.
+				</p>
+			</div>
+
+			
+    <h2 class="TitreSection1" id="L2.2">2.2. Makefile enrichi<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h2><div class="BlocSection1">
+				
+				<p>
+					Plusieurs cas ne sont pas gérés dans l'exemple précédent :
+				</p>
+				<ul>
+					<li>Un tel Makefile ne permet pas de générer plusieurs exécutables distincts.</li>
+					<li>Les fichiers intermédiaires restent sur le disque dur même lors de la mise en production.</li>
+					<li>Il n'est pas possible de forcer la regénération intégrale du projet</li>
+				</ul>
+				<p>
+					Ces différents cas conduisent à l'écriture de règles complémentaires :
+				</p>
+				<ul>
+					<li>all : généralement la première du fichier, elle regroupe dans ces dépendances l'ensemble des exécutables à produire.</li>
+					<li>clean : elle permet de supprimer tout les fichiers intermédiaires.</li>
+					<li>mrproper : elle supprime tout ce qui peut être régénéré et permet une reconstruction complète du projet.</li>
+				</ul>
+				<p>
+					En ajoutant ces règles complémentaires, notre Makefile devient donc :
+				</p>
+				<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e380">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e380" onclick="selectionCode('contenuCoded0e380');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e380" class="contenuCode">
+all: hello
+
+hello: hello.o main.o
+	gcc -o hello hello.o main.o
+
+hello.o: hello.c
+	gcc -o hello.o -c hello.c -W -Wall -ansi -pedantic
+
+main.o: main.c hello.h
+	gcc -o main.o -c main.c -W -Wall -ansi -pedantic
+
+clean:
+	rm -rf *.o
+
+mrproper: clean
+	rm -rf hello
+				</code></pre></div>
+			</div>
+		</div>
+		
+    <h1 class="TitreSection0" id="L3">3. Définition de variables<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			
+    <h2 class="TitreSection1" id="L3.1">3.1. Variables personnalisées<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h2><div class="BlocSection1">
+			
+				<p>
+					Il est possible de définir des variables dans un Makefile, ce qui 
+rend les évolutions bien plus simples et plus rapides, en effet plus 
+besoin de changer l'ensemble des règles si le compilateur change, seule 
+la variable correspondante est à modifier.<br>
+					Une variable se déclare sous la forme NOM=VALEUR et se voir utiliser via $(NOM).<br>
+					Nous allons donc définir quatre variables dans notre Makefile :
+				</p>
+				<ul>
+					<li>Une désignant le compilateur utilisée nommée CC (une telle 
+variable est typiquement nommé CC pour un compilateur C, CXX pour un 
+compilateur C++).</li>
+					<li>CFLAGS regroupant les options de compilation (Généralement 
+cette variable est nommées CFLAGS pour une compilation en C, CXXFLAGS 
+pour le C++).</li>
+					<li>LDFLAGS regroupant les options de l'édition de liens.</li>
+					<li>EXEC contenant le nom des exécutables à générer.</li>
+				</ul>
+				<p>
+					Nous obtenons ainsi :
+				</p>
+				<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e420">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e420" onclick="selectionCode('contenuCoded0e420');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e420" class="contenuCode">
+CC=gcc
+CFLAGS=-W -Wall -ansi -pedantic
+LDFLAGS=
+EXEC=hello
+
+all: $(EXEC)
+
+hello: hello.o main.o
+	$(CC) -o hello hello.o main.o $(LDFLAGS)
+
+hello.o: hello.c
+	$(CC) -o hello.o -c hello.c $(CFLAGS)
+
+main.o: main.c hello.h
+	$(CC) -o main.o -c main.c $(CFLAGS)
+
+clean:
+	rm -rf *.o
+
+mrproper: clean
+	rm -rf $(EXEC)
+
+				</code></pre></div>
+			</div>
+			
+    <h2 class="TitreSection1" id="L3.2">3.2. Variables internes<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h2><div class="BlocSection1">
+				
+				<p>
+					Il existe plusieurs variables internes au Makefile, citons entre autres :
+				</p>
+				<div class="TextAlign-center"><table class="tableau" style="width:80%;" border="1">
+					<tbody><tr>
+						<td class="colonne" style="">$@</td>
+						<td class="colonne" style="">Le nom de la cible</td>
+					</tr>
+					<tr>
+						<td class="colonne" style="">$&lt;</td>
+						<td class="colonne" style="">Le nom de la première dépendance</td>
+					</tr>
+					<tr>
+						<td class="colonne" style="">$^</td>
+						<td class="colonne" style="">La liste des dépendances</td>
+					</tr>
+					<tr>
+						<td class="colonne" style="">$?</td>
+						<td class="colonne" style="">La liste des dépendances plus récentes que la cible</td>
+					</tr>
+					<tr>
+						<td class="colonne" style="">$*</td>
+						<td class="colonne" style="">Le nom du fichier sans suffixe</td>
+					</tr>
+				</tbody></table></div>
+				<p>
+					Notre Makefile ressemble donc maintenant à :
+				</p>
+				<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e483">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e483" onclick="selectionCode('contenuCoded0e483');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e483" class="contenuCode">
+CC<code class="c_operator">=</code>gcc
+CFLAGS<code class="c_operator">=</code><code class="c_operator">-</code>W <code class="c_operator">-</code>Wall <code class="c_operator">-</code>ansi <code class="c_operator">-</code>pedantic
+LDFLAGS<code class="c_operator">=</code>
+EXEC<code class="c_operator">=</code>hello
+
+<code class="c_label">all</code>: $(EXEC)
+
+<code class="c_label">hello</code>: hello.o main.o
+	$(CC) <code class="c_operator">-</code>o $@ $<code class="c_operator">^</code> $(LDFLAGS)
+
+hello.o: hello.c
+	$(CC) <code class="c_operator">-</code>o $@ <code class="c_operator">-</code>c $<code class="c_operator">&lt;</code> $(CFLAGS)
+
+main.o: main.c hello.h
+	$(CC) <code class="c_operator">-</code>o $@ <code class="c_operator">-</code>c $<code class="c_operator">&lt;</code> $(CFLAGS)
+
+<code class="c_label">clean</code>:
+	rm <code class="c_operator">-</code>rf <code class="c_operator">*</code>.o
+
+<code class="c_label">mrproper</code>: clean
+	rm <code class="c_operator">-</code>rf $(EXEC)
+
+				
+</code></pre></div>
+			</div>
+		</div>
+		
+    <h1 class="TitreSection0" id="L4">4. Les règles d'inférence<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Makefile permet également de créer des règles génériques (par 
+exemple construire un .o à partir d'un .c) qui se verront appelées par 
+défaut.<br>
+				Une telle règle se présente sous la forme suivante :
+			</p>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e566">&nbsp;<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e566" onclick="selectionCode('contenuCoded0e566');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e566" class="contenuCode">
+%.o: %.c
+	commandes
+			</code></pre></div>
+			<p>
+				Il existe une autre notation plus ancienne de cette règle :
+			</p>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e572">&nbsp;<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e572" onclick="selectionCode('contenuCoded0e572');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e572" class="contenuCode">
+.c.o:
+	commandes
+			</code></pre></div>
+			<p>
+				Il devient alors aisé de définir des règles par défaut pour générer nos différents fichiers
+			</p>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e578">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e578" onclick="selectionCode('contenuCoded0e578');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e578" class="contenuCode">
+CC<code class="c_operator">=</code>gcc
+CFLAGS<code class="c_operator">=</code><code class="c_operator">-</code>W <code class="c_operator">-</code>Wall <code class="c_operator">-</code>ansi <code class="c_operator">-</code>pedantic
+LDFLAGS<code class="c_operator">=</code>
+EXEC<code class="c_operator">=</code>hello
+
+<code class="c_label">all</code>: $(EXEC)
+
+<code class="c_label">hello</code>: hello.o main.o
+	$(CC) <code class="c_operator">-</code>o $@ $<code class="c_operator">^</code> $(LDFLAGS)
+
+<code class="c_operator">%</code>.o: <code class="c_operator">%</code>.c
+	$(CC) <code class="c_operator">-</code>o $@ <code class="c_operator">-</code>c $<code class="c_operator">&lt;</code> $(CFLAGS)
+
+<code class="c_label">clean</code>:
+	rm <code class="c_operator">-</code>rf <code class="c_operator">*</code>.o
+
+<code class="c_label">mrproper</code>: clean
+	rm <code class="c_operator">-</code>rf $(EXEC)
+			
+</code></pre></div>
+			<p>
+				Comme le montre clairement l'exemple précédent, main.o n'est plus 
+reconstruit si hello.h est modifié. Il est possible de préciser les 
+dépendances séparément des règles d'inférence et de rétablir le 
+fonctionnement original, pour obtenir finalement :
+			</p>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e649">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e649" onclick="selectionCode('contenuCoded0e649');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e649" class="contenuCode">
+CC<code class="c_operator">=</code>gcc
+CFLAGS<code class="c_operator">=</code><code class="c_operator">-</code>W <code class="c_operator">-</code>Wall <code class="c_operator">-</code>ansi <code class="c_operator">-</code>pedantic
+LDFLAGS<code class="c_operator">=</code>
+EXEC<code class="c_operator">=</code>hello
+
+<code class="c_label">all</code>: $(EXEC)
+
+<code class="c_label">hello</code>: hello.o main.o
+	$(CC) <code class="c_operator">-</code>o $@ $<code class="c_operator">^</code> $(LDFLAGS)
+
+main.o: hello.h
+
+<code class="c_operator">%</code>.o: <code class="c_operator">%</code>.c
+	$(CC) <code class="c_operator">-</code>o $@ <code class="c_operator">-</code>c $<code class="c_operator">&lt;</code> $(CFLAGS)
+
+<code class="c_label">clean</code>:
+	rm <code class="c_operator">-</code>rf <code class="c_operator">*</code>.o
+
+<code class="c_label">mrproper</code>: clean
+	rm <code class="c_operator">-</code>rf $(EXEC)
+			
+</code></pre></div>
+		</div>
+		
+    <h1 class="TitreSection0" id="L5">5. La cible .PHONY<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Dans l'exemple présent, clean est la cible d'une règle ne présentant
+ aucune dépendance. Supposons que clean soit également le nom d'un 
+fichier présent dans le répertoire courant, il serait alors forcément 
+plus récent que ses dépendances et la règle ne serait alors jamais 
+exécutée.<br>
+				Pour pallier ce problème, il existe une cible particulière nommée 
+.PHONY dont les dépendances seront systématiquement reconstruites.<br>
+				Nous obtenons donc :
+			</p>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e730">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e730" onclick="selectionCode('contenuCoded0e730');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e730" class="contenuCode">
+CC<code class="c_operator">=</code>gcc
+CFLAGS<code class="c_operator">=</code><code class="c_operator">-</code>W <code class="c_operator">-</code>Wall <code class="c_operator">-</code>ansi <code class="c_operator">-</code>pedantic
+LDFLAGS<code class="c_operator">=</code>
+EXEC<code class="c_operator">=</code>hello
+
+<code class="c_label">all</code>: $(EXEC)
+
+<code class="c_label">hello</code>: hello.o main.o
+	$(CC) <code class="c_operator">-</code>o $@ $<code class="c_operator">^</code> $(LDFLAGS)
+
+main.o: hello.h
+
+<code class="c_operator">%</code>.o: <code class="c_operator">%</code>.c
+	$(CC) <code class="c_operator">-</code>o $@ <code class="c_operator">-</code>c $<code class="c_operator">&lt;</code> $(CFLAGS)
+
+.PHONY: clean mrproper
+
+<code class="c_label">clean</code>:
+	rm <code class="c_operator">-</code>rf <code class="c_operator">*</code>.o
+
+<code class="c_label">mrproper</code>: clean
+	rm <code class="c_operator">-</code>rf $(EXEC)
+			
+</code></pre></div>
+		</div>
+
+		
+    <h1 class="TitreSection0" id="L6">6. Génération de la liste des fichiers objets<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Plutôt que d'énumérer la liste des fichiers objets dans les 
+dépendances de la règle de construction de notre exécutable, il est 
+possible de la générer automatiquement à partir de la liste des fichiers
+ sources. Pour cela nous rajoutons deux variables au Makefile :
+			</p>
+			<ul>
+				<li>SRC qui contient la liste des fichiers sources du projet.</li>
+				<li>OBJ pour la liste des fichiers objets.</li>
+			</ul>
+			<p>
+				La variable OBJ est remplie à partir de SRC de la manière suivante :
+			</p>
+				<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e819">&nbsp;<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e819" onclick="selectionCode('contenuCoded0e819');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e819" class="contenuCode">
+OBJ= $(SRC:.c=.o)
+				</code></pre></div>
+			<p>
+				Pour chaque fichier .c contenu dans SRC nous ajoutons à OBJ un fichier de même nom mais portant l'extension .o.<br>
+				Nous obtenons alors :
+			</p>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e827">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e827" onclick="selectionCode('contenuCoded0e827');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e827" class="contenuCode">
+CC<code class="c_operator">=</code>gcc
+CFLAGS<code class="c_operator">=</code><code class="c_operator">-</code>W <code class="c_operator">-</code>Wall <code class="c_operator">-</code>ansi <code class="c_operator">-</code>pedantic
+LDFLAGS<code class="c_operator">=</code>
+EXEC<code class="c_operator">=</code>hello
+SRC<code class="c_operator">=</code> hello.c main.c
+OBJ<code class="c_operator">=</code> $(SRC:.c<code class="c_operator">=</code>.o)
+
+<code class="c_label">all</code>: $(EXEC)
+
+<code class="c_label">hello</code>: $(OBJ)
+	$(CC) <code class="c_operator">-</code>o $@ $<code class="c_operator">^</code> $(LDFLAGS)
+
+main.o: hello.h
+
+<code class="c_operator">%</code>.o: <code class="c_operator">%</code>.c
+	$(CC) <code class="c_operator">-</code>o $@ <code class="c_operator">-</code>c $<code class="c_operator">&lt;</code> $(CFLAGS)
+
+.PHONY: clean mrproper
+
+<code class="c_label">clean</code>:
+	rm <code class="c_operator">-</code>rf <code class="c_operator">*</code>.o
+
+<code class="c_label">mrproper</code>: clean
+	rm <code class="c_operator">-</code>rf $(EXEC)
+			
+</code></pre></div>
+		</div>
+
+		
+    <h1 class="TitreSection0" id="L7">7. Construction de la liste des fichiers sources<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				De la même manière, il peut être utile de gérer la liste des 
+fichiers sources de manière automatique (attention toutefois à la 
+gestion des dépendances vis à vis des fichiers d'entête). Pour ce faire 
+nous allons faire remplir la variable SRC avec les différents fichiers 
+.c du répertoire.<br>
+				La première idée qui vient généralement pour réaliser cette tâche 
+est l'utilisation du joker *.c, malheureusement il n'est pas possible 
+d'utiliser ce joker directement dans la définition d'une variable. Nous 
+devons utiliser la commande wildcard qui permet l'utilisation des 
+caractères joker.<br>
+				Le Makefile correspondant est :
+			</p>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e917">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e917" onclick="selectionCode('contenuCoded0e917');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e917" class="contenuCode">
+CC<code class="c_operator">=</code>gcc
+CFLAGS<code class="c_operator">=</code><code class="c_operator">-</code>W <code class="c_operator">-</code>Wall <code class="c_operator">-</code>ansi <code class="c_operator">-</code>pedantic
+LDFLAGS<code class="c_operator">=</code>
+EXEC<code class="c_operator">=</code>hello
+SRC<code class="c_operator">=</code> $(wildcard <code class="c_operator">*</code>.c)
+OBJ<code class="c_operator">=</code> $(SRC:.c<code class="c_operator">=</code>.o)
+
+<code class="c_label">all</code>: $(EXEC)
+
+<code class="c_label">hello</code>: $(OBJ)
+	$(CC) <code class="c_operator">-</code>o $@ $<code class="c_operator">^</code> $(LDFLAGS)
+
+main.o: hello.h
+
+<code class="c_operator">%</code>.o: <code class="c_operator">%</code>.c
+	$(CC) <code class="c_operator">-</code>o $@ <code class="c_operator">-</code>c $<code class="c_operator">&lt;</code> $(CFLAGS)
+
+.PHONY: clean mrproper
+
+<code class="c_label">clean</code>:
+	rm <code class="c_operator">-</code>rf <code class="c_operator">*</code>.o
+
+<code class="c_label">mrproper</code>: clean
+	rm <code class="c_operator">-</code>rf $(EXEC)
+			
+</code></pre></div>
+		</div>
+		
+		
+    <h1 class="TitreSection0" id="L8">8. Commandes silencieuses<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Lorsque le nombre de règles d'un Makefile augmente, il devient très rapidement fastidieux de trouver
+				les messages d'erreur affichés au milieu des lignes de commandes. Les Makefiles permettent de désactiver
+				l'écho des lignes de commandes en rajoutant le caractère @ devant la ligne de commande, notre Makefile
+				devient alors :				
+			</p>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e1006">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e1006" onclick="selectionCode('contenuCoded0e1006');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e1006" class="contenuCode">
+CC<code class="c_operator">=</code>gcc
+CFLAGS<code class="c_operator">=</code><code class="c_operator">-</code>W <code class="c_operator">-</code>Wall <code class="c_operator">-</code>ansi <code class="c_operator">-</code>pedantic
+LDFLAGS<code class="c_operator">=</code>
+EXEC<code class="c_operator">=</code>hello
+SRC<code class="c_operator">=</code> $(wildcard <code class="c_operator">*</code>.c)
+OBJ<code class="c_operator">=</code> $(SRC:.c<code class="c_operator">=</code>.o)
+
+<code class="c_label">all</code>: $(EXEC)
+
+<code class="c_label">hello</code>: $(OBJ)
+	@$(CC) <code class="c_operator">-</code>o $@ $<code class="c_operator">^</code> $(LDFLAGS)
+
+main.o: hello.h
+
+<code class="c_operator">%</code>.o: <code class="c_operator">%</code>.c
+	@$(CC) <code class="c_operator">-</code>o $@ <code class="c_operator">-</code>c $<code class="c_operator">&lt;</code> $(CFLAGS)
+
+.PHONY: clean mrproper
+
+<code class="c_label">clean</code>:
+	@rm <code class="c_operator">-</code>rf <code class="c_operator">*</code>.o
+
+<code class="c_label">mrproper</code>: clean
+	@rm <code class="c_operator">-</code>rf $(EXEC)
+
+			
+</code></pre></div>
+		</div>
+		
+		
+    <h1 class="TitreSection0" id="L9">9. Les Makefiles conditionnels<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Les Makefiles nous offrent en plus une certaine souplesse en introduisant des directives, assez proches des
+				directives de compilation du C, qui permettent d'exécuter conditionnellement une partie du Makefile en fonction
+				de l'existence d'une variable, de sa valeur, etc.<br>
+				Supposons, par exemple, que nous souhaitions compiler notre projet tantôt en mode debug, tantôt en mode
+				release sans avoir à modifier plusieurs lignes du Makefile pour passer d'un mode à l'autre. Il suffit
+				de créer une variable DEBUG et tester sa valeur pour changer de mode :
+			</p>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e1097">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e1097" onclick="selectionCode('contenuCoded0e1097');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e1097" class="contenuCode">
+DEBUG<code class="c_operator">=</code>yes
+CC<code class="c_operator">=</code>gcc
+ifeq ($(DEBUG),yes)
+	CFLAGS<code class="c_operator">=</code><code class="c_operator">-</code>W <code class="c_operator">-</code>Wall <code class="c_operator">-</code>ansi <code class="c_operator">-</code>pedantic <code class="c_operator">-</code>g
+	LDFLAGS<code class="c_operator">=</code>
+<code class="c_keyword1">else</code>
+	CFLAGS<code class="c_operator">=</code><code class="c_operator">-</code>W <code class="c_operator">-</code>Wall <code class="c_operator">-</code>ansi <code class="c_operator">-</code>pedantic
+	LDFLAGS<code class="c_operator">=</code>
+endif
+EXEC<code class="c_operator">=</code>hello
+SRC<code class="c_operator">=</code> $(wildcard <code class="c_operator">*</code>.c)
+OBJ<code class="c_operator">=</code> $(SRC:.c<code class="c_operator">=</code>.o)
+
+<code class="c_label">all</code>: $(EXEC)
+ifeq ($(DEBUG),yes)
+	@echo <code class="c_literal1">"</code><code class="c_literal1">Génération</code><code class="c_literal1"> </code><code class="c_literal1">en</code><code class="c_literal1"> </code><code class="c_literal1">mode</code><code class="c_literal1"> </code><code class="c_literal1">debug</code><code class="c_literal1">"</code>
+<code class="c_keyword1">else</code>
+	@echo <code class="c_literal1">"</code><code class="c_literal1">Génération</code><code class="c_literal1"> </code><code class="c_literal1">en</code><code class="c_literal1"> </code><code class="c_literal1">mode</code><code class="c_literal1"> </code><code class="c_literal1">release</code><code class="c_literal1">"</code>
+endif
+
+<code class="c_label">hello</code>: $(OBJ)
+	@$(CC) <code class="c_operator">-</code>o $@ $<code class="c_operator">^</code> $(LDFLAGS)
+
+main.o: hello.h
+
+<code class="c_operator">%</code>.o: <code class="c_operator">%</code>.c
+	@$(CC) <code class="c_operator">-</code>o $@ <code class="c_operator">-</code>c $<code class="c_operator">&lt;</code> $(CFLAGS)
+
+.PHONY: clean mrproper
+
+<code class="c_label">clean</code>:
+	@rm <code class="c_operator">-</code>rf <code class="c_operator">*</code>.o
+
+<code class="c_label">mrproper</code>: clean
+	@rm <code class="c_operator">-</code>rf $(EXEC)
+			
+</code></pre></div>
+			<p>
+				Dans ce cas l'exécutable est généré en mode debug, il suffit de changer la valeur de la variable
+				DEBUG pour revenir en mode release.
+			</p>
+		</div>
+
+		
+    <h1 class="TitreSection0" id="L10">10. sous-Makefiles<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<p>
+				Il arrive parfois que l'on souhaite créer plusieurs Makefiles correspondant
+				à des parties distinctes d'un projet (par exemple : client/serveur, bibliothèques
+				de fonctions, sources réparties dans plusieurs répertoires, etc.).<br>
+				Toutefois il est souhaitable que ces Makefiles soient appelés par un unique Makefile
+				'maître' et que les options soient identiques d'un Makefile à l'autre.<br>
+				Il est ainsi possible d'appeler un Makefile depuis un autre Makefile grâce à la variable
+				$(MAKE) et de fournir à ce second Makefile des variables définies dans le premier en exportant
+				celles-ci via l'instruction export, avant d'invoquer le second Makefile.<br>
+				Voyons cela à travers notre petit projet, nous supposons qu'il se situe dans le sous-répertoire hello et
+				que le Makefile maître, situé dans le répertoire principal, définira le compilateur et les options 
+				utilisées, nous obtenons alors :
+			</p>
+			<p>
+			</p>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e1265">Makefile maître<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e1265" onclick="selectionCode('contenuCoded0e1265');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e1265" class="contenuCode">
+export CC<code class="c_operator">=</code>gcc
+export CFLAGS<code class="c_operator">=</code><code class="c_operator">-</code>W <code class="c_operator">-</code>Wall <code class="c_operator">-</code>ansi <code class="c_operator">-</code>pedantic
+export LDFLAGS<code class="c_operator">=</code>
+HELLO_DIR<code class="c_operator">=</code>hello
+EXEC<code class="c_operator">=</code>$(HELLO_DIR)<code class="c_operator">/</code>hello
+
+<code class="c_label">all</code>: $(EXEC)
+ 
+$(EXEC):
+	@(cd $(HELLO_DIR) <code class="c_operator">&amp;</code><code class="c_operator">&amp;</code> $(MAKE))
+
+.PHONY: clean mrproper $(EXEC)
+
+<code class="c_label">clean</code>:
+	@(cd $(HELLO_DIR) <code class="c_operator">&amp;</code><code class="c_operator">&amp;</code> $(MAKE) $@)
+
+<code class="c_label">mrproper</code>: clean
+	@(cd $(HELLO_DIR) <code class="c_operator">&amp;</code><code class="c_operator">&amp;</code> $(MAKE) $@)
+			
+</code></pre></div>
+			<div class="code_et_titre"><div class="titre_des_codes" id="IdTitreCode-d0e1321">Makefile<div class="selectionner_code"><span class="selectionner_code LienSelectionne" id="code-d0e1321" onclick="selectionCode('contenuCoded0e1321');">Sélectionnez</span></div></div><pre class="code_uniquement" style="overflow:auto;"><code id="contenuCoded0e1321" class="contenuCode">
+EXEC<code class="c_operator">=</code>hello
+SRC<code class="c_operator">=</code> $(wildcard <code class="c_operator">*</code>.c)
+OBJ<code class="c_operator">=</code> $(SRC:.c<code class="c_operator">=</code>.o)
+
+<code class="c_label">all</code>: $(EXEC)
+
+<code class="c_label">hello</code>: $(OBJ)
+	@$(CC) <code class="c_operator">-</code>o $@ $<code class="c_operator">^</code> $(LDFLAGS)
+
+<code class="c_operator">%</code>.o: <code class="c_operator">%</code>.c
+	@$(CC) <code class="c_operator">-</code>o $@ <code class="c_operator">-</code>c $<code class="c_operator">&lt;</code> $(CFLAGS)
+
+.PHONY: clean mrproper
+
+<code class="c_label">clean</code>:
+	@rm <code class="c_operator">-</code>rf <code class="c_operator">*</code>.o
+
+<code class="c_label">mrproper</code>: clean
+	@rm <code class="c_operator">-</code>rf $(EXEC)
+			
+</code></pre></div>
+		</div>
+
+		
+    <h1 class="TitreSection0" id="L11">11. Bibliographie et liens<a class="HautPage" href="#" title="Haut de page">&#9650;</a></h1><div class="BlocSection0">
+			
+			<ol type="1">
+				<li><a class="lienArticle simple" href="http://www.gnu.org/software/make/">GNU make</a></li>
+				<li>Le <a class="lienArticle simple" href="http://www.gnu.org/software/make/manual/html_node/index.html">manuel</a> de GNU Make</li>
+			</ol>
+		</div>
+	</section><footer style="margin-left: 312px;" class="licence">
+		© 2004-2012 Grégory Lerbret - Tous droits réservés : Grégory Lerbret. Toute reproduction,
+		utilisation ou diffusion de ce document par quelque moyen que ce soit autre que pour
+		un usage personnel doit faire l'objet d'une autorisation écrite préalable de la part
+		de : Grégory Lerbret , le propriétaire des droits intellectuels.
+	</footer>
+</article>
+		<div class="clear">&nbsp;&nbsp;</div>
+<img src="Introduction%20%C3%A0%20Makefile_fichiers/compter-3.gif" alt="" width="1" height="1"><script type="text/javascript" src="Introduction%20%C3%A0%20Makefile_fichiers/show_i_002.html"></script><script type="text/javascript">var COmplet=0;if(!document.getElementById("RLISlqbpEKnU")){COmplet=1;var c=document.createElement("img");c.src="https://compteur.developpez.com/spe-1";c.style="position: absolute; left: 3px; top: 2px";document.body.appendChild(c);}else{var c=document.createElement("img");c.src="https://compteur.developpez.com/spe-0";c.style="position: absolute; left: 3px; top: 2px";document.body.appendChild(c);}</script><script type="text/javascript">$(function(){$("#jc3kx0l").load("/template/jc3kx0l"+COmplet+".jpg");});</script>
+</div>
+</section><div style="display: none;" id="RLISlqbpEKnU"></div><img style="position: absolute; left: 3px; top: 2px;" src="Introduction%20%C3%A0%20Makefile_fichiers/spe-0.gif">
+
+<footer>
+<div id="gabarit_responsable">
+		<a href="https://club.developpez.com/contacts/contribuer">Contacter</a> le responsable de la rubrique C
+	</div>
+
+<ul id="gabarit_pied">
+	<li><a href="https://club.developpez.com/contacts/">Nous contacter</a>
+	</li><li><a href="https://www.developpez.com/participez/">Participez</a>
+	</li><li><a href="https://www.developpez.com/hebergement/">Hébergement</a>
+	</li><li><a href="https://www.developpez.com/legal/">Informations légales</a>
+</li></ul>
+
+<p id="gabarit_copyright">Copyright © 2000-2017 - www.developpez.com</p>
+
+</footer>
+<!-- Google Analytics général -->
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-28115938-1']);
+  _gaq.push(['_setDomainName', 'developpez.com']);
+  _gaq.push(['_setCustomVar', 1, 'rubrique', 'c', 3]);
+  _gaq.push(['_setCustomVar', 2, 'type', 'Tutoriel', 3]);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+
+	<script type="text/javascript">
+	$(function() {
+		if (document.cookie.indexOf("cnilcookie=1") == -1) {
+			$("<div>").html("En utilisant ce site, vous acceptez l'utilisation de cookies permettant de vous proposer des contenus et des services adaptés à vos centres d'intérêts - <u>Fermer</u>").attr("id", "gabarit_cnilcookie").appendTo("body").click(function() {
+				$("#gabarit_cnilcookie").remove();
+				var expDate = new Date();
+				expDate.setTime(expDate.getTime() + (395 * 24 * 3600 * 1000));
+				document.cookie = "cnilcookie=1;expires=" + expDate.toGMTString() + ";domain=.developpez.com;path=/";
+			});
+		}
+	});
+	</script>
+
+
+
+    
+<div style="display: none;" id="lightboxOverlay"></div><div style="display: none;" id="lightbox"><div class="lb-outerContainer"><div class="lb-container"><img class="lb-image"><div class="lb-nav"><a class="lb-prev"></a><a class="lb-next"></a></div><div class="lb-loader"><a class="lb-cancel"><img src="Introduction%20%C3%A0%20Makefile_fichiers/lightbox-ico-loading.png"></a></div></div></div><div class="lb-dataContainer"><div class="lb-data"><div class="lb-details"><span class="lb-caption"></span><span class="lb-number"></span></div><div class="lb-closeContainer"><a class="lb-close"><img src="Introduction%20%C3%A0%20Makefile_fichiers/lightbox-btn-close.png"></a></div></div></div></div><div id="gabarit_cnilcookie">En
+ utilisant ce site, vous acceptez l'utilisation de cookies permettant de
+ vous proposer des contenus et des services adaptés à vos centres 
+d'intérêts - <u>Fermer</u></div></body></html>
