@@ -139,7 +139,7 @@ void cIIP_Appli::WriteImTmInFile
         std::string aFormat = "#F=N_X_Y_Z";
         if (mWithWPK) aFormat +=  "_W_P_K";
         if (mWithInc) aFormat +=  "_Ix_Iy_Iz";
-        if (mWithInc) aFormat +=  "_Sigma";
+        if (mEcart) aFormat +=  "_Sigma";
         fprintf(aCible,"%s \n",aFormat.c_str());
     }
 
@@ -207,6 +207,7 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
                 << EAM(mModeSpline,"ModeSpline",false,"Interpolation spline, def=true ")
                 << EAM(mPatNamePly,"PatNamePly",false,"Pattern name for Ply")
                 << EAM(mWithWPK,"WithAngle",false,"Generate fake angle ")
+                << EAM(mWithInc,"Inc",false,"Export uncertainty, def=true")
                 << EAM(mWithIncVitesse,"SpeedInc",false,"Use speed variation in uncertainty estimation ")
                 << EAM(mEcart,"Ecart",false,"Generate difference between the interpolated position and the nearest GPS position")
                 );
