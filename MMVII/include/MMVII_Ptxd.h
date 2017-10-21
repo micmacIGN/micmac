@@ -1,0 +1,118 @@
+#ifndef  _MMVII_Ptxd_H_
+#define  _MMVII_Ptxd_H_
+
+template <class Type,const int Dim> class cPtxd;
+template <class Type> class cPt1d;
+template <class Type> class cPt2d;
+
+
+/*   Relation/Bijection entre cPtxd et cPt1d,cPt2d etc ....
+   La conversion de fait dans les deux sens
+
+      cPtxd<Type,1> => cPt1d via le constructeur
+      cPt1d =>  cPtxd<Type,1>  implicite via l'heritage
+
+      Les deux sont donc plus ou moins synomymes 
+*/
+
+
+template <class Type,const int Dim> class cPtxd
+{
+    public :
+       Type * Data() {return mCoords;}
+
+       // cPtxd(const cPt1d<Type>);
+       // cPtxd(const cPt2d<Type>);
+         // MMVII_INTERNAL_ASSERT(Dim==1);
+    protected :
+       Type mCoords[Dim];
+};
+
+    // specialisations 1 D
+
+template <class Type> class cPt1d : public cPtxd<Type,1>
+{
+     public :
+        // typedef typename cPtxd<Type,1> tBase;
+        typedef cPtxd<Type,1> tBase;
+
+     // Constructeur
+        inline cPt1d(const Type& anX) {tBase::mCoords[0] = anX;}
+        inline cPt1d(const tBase & aP) {static_cast<tBase&>(*this) = aP;}
+
+     // Accesseurs
+        inline Type & x()             {return tBase::mCoords[0];}
+        inline const Type & x() const {return tBase::mCoords[0];}
+};
+
+template <class Type> inline cPt1d<Type> operator + (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) 
+{return  cPt1d<Type>(aP1.x()+aP2.x());}
+template <class Type> inline cPt1d<Type> operator - (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) 
+{return  cPt1d<Type>(aP1.x()-aP2.x());}
+template <class Type> inline cPt1d<Type> operator * (const Type & aVal ,const cPt1d<Type> & aP) 
+{return  cPt1d<Type>(aP.x()*aVal);}
+template <class Type> inline cPt1d<Type> operator * (const cPt1d<Type> & aP,const Type & aVal) 
+{return  cPt1d<Type>(aP.x()*aVal);}
+template <class Type> inline cPt1d<Type> operator / (const cPt1d<Type> & aP,const Type & aVal) 
+{return  cPt1d<Type>(aP.x()/aVal);}
+template <class Type> inline bool operator == (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) {return  (aP1.x()==aP2.x());}
+template <class Type> inline bool operator != (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) {return !(aP1==aP2);}
+
+
+typedef cPt1d<double>  cPt1dr ;
+typedef cPt1d<int>     cPt1di ;
+typedef cPt1d<float>   cPt1df ;
+
+
+    // specialisations 2 D
+
+template <class Type> class cPt2d : public cPtxd<Type,2>
+{
+     public :
+        typedef cPtxd<Type,2> tBase;
+
+   // Constructeur
+        cPt2d(const Type& anX,const Type& anY) {tBase::mCoords[0] = anX;tBase::mCoords[1] = anY;}
+        inline cPt2d(const tBase & aP) {static_cast<tBase&>(*this) = aP;}
+
+   // Accesseurs
+        Type & x()             {return tBase::mCoords[0];}
+        const Type & x() const {return tBase::mCoords[0];}
+        Type & y()             {return tBase::mCoords[1];}
+        const Type & y() const {return tBase::mCoords[1];}
+};
+
+
+template <class Type> inline cPt2d<Type> operator + (const cPt2d<Type> & aP1,const cPt2d<Type> & aP2) 
+{return  cPt2d<Type>(aP1.x()+aP2.x(),aP1.y()+aP2.y());}
+template <class Type> inline cPt2d<Type> operator - (const cPt2d<Type> & aP1,const cPt2d<Type> & aP2) 
+{return  cPt2d<Type>(aP1.x()-aP2.x(),aP1.y()-aP2.y());}
+template <class Type> inline cPt2d<Type> operator * (const Type & aVal ,const cPt2d<Type> & aP) 
+{return  cPt2d<Type>(aP.x()*aVal,aP.y()*aVal);}
+template <class Type> inline cPt2d<Type> operator * (const cPt2d<Type> & aP,const Type & aVal ) 
+{return  cPt2d<Type>(aP.x()*aVal,aP.y()*aVal);}
+template <class Type> inline cPt2d<Type> operator / (const cPt2d<Type> & aP,const Type & aVal ) 
+{return  cPt2d<Type>(aP.x()/aVal,aP.y()/aVal);}
+
+template <class Type> inline bool operator == (const cPt2d<Type> & aP1,const cPt2d<Type> & aP2) 
+{return  (aP1.x()==aP2.x())&&(aP1.y==aP2.y);}
+template <class Type> inline bool operator != (const cPt2d<Type> & aP1,const cPt2d<Type> & aP2)  {return !(aP1==aP2);}
+
+typedef cPt2d<double>  cPt2dr ;
+typedef cPt2d<int>     cPt2di ;
+typedef cPt2d<float>   cPt2df ;
+/*
+template <class Type> inline cPt1d<Type> operator - (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) 
+{return  cPt1d<Type>(aP1.x()-aP2.x());}
+template <class Type> inline cPt1d<Type> operator * (const Type & aVal ,const cPt1d<Type> & aP) 
+{return  cPt1d<Type>(aP.x()*aVal);}
+template <class Type> inline cPt1d<Type> operator * (const cPt1d<Type> & aP,const Type & aVal) 
+{return  cPt1d<Type>(aP.x()*aVal);}
+template <class Type> inline cPt1d<Type> operator / (const Type & aVal ,const cPt1d<Type> & aP) 
+{return  cPt1d<Type>(aP.x()/aVal);}
+template <class Type> inline cPt1d<Type> operator / (const cPt1d<Type> & aP,const Type & aVal) 
+{return  cPt1d<Type>(aP.x()/aVal);}
+*/
+
+
+#endif  //  _MMVII_Ptxd_H_
