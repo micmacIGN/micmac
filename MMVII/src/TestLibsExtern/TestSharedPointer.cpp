@@ -1,9 +1,9 @@
-#include "include/all.h"
+#include "include/MMVII_all.h"
 
-namespace NS_TestSharedPointer
+namespace MMVII
 {
 
-class cTestMMV2Obj
+class cTestMMV2Obj : public cMemCheck
 {
     public :
         virtual ~cTestMMV2Obj()
@@ -38,7 +38,7 @@ void TestCountSharePointer()
 
 class cFonc1V;
 
-class cDataFonc1V : private cTestMMV2Obj
+class cDataFonc1V : public  cTestMMV2Obj
 {
       public :
            virtual ~cDataFonc1V() {}
@@ -133,14 +133,14 @@ cFonc1V cFonc1V::operator + (cFonc1V aF2)
 
 
 
-};
 
-using namespace NS_TestSharedPointer;
 
 void  TestSharedPointer()
 {
    TestCountSharePointer();
 
+   // new  cFonc1V(3.14);
+   // new  cDataFonc1V_Cste(3.14);
    {
        cFonc1V aF = X+3+(X+4);
        std::cout << "F(10) = " << aF.GetVal(10) << " Count= " << cTestMMV2Obj::NbObj() << "\n";
@@ -150,3 +150,4 @@ void  TestSharedPointer()
    std::cout  << " Compte final " << cTestMMV2Obj::NbObj() << "\n";
 }
 
+};

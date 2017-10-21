@@ -17,6 +17,7 @@ Objectif ambitieux :
     * avoir les meme fonctionnalité que le MM actuel
     * avoir un code utilisable en tant que librairie
     * avoir un code maintenable sans MPD
+    * avoir un code "safe" => bcp de check (acces memoire/ liberation memoire) et de bench
     * code utilisable en enseignement
     * completer le MM actuel grace a plus de contributions
 
@@ -67,9 +68,14 @@ Travail préliminaire :
      * utilise-t-on OpenMVG, OpenCV ... a priori non , mais a voir
      * eigen, boost,
      * code differenciation
+     * utiliser un gestionnaire de code (QT creator ...)
+     * choix outil de docu
      
 
   Regle de codage, de commentaire, de test, de versionnement etc ...
+ 
+Ne faire un push qu'apres avoir tourne au plus haut niveau de check
+=> utiliser toute les classes de verif
 
 
 Calendrier :
@@ -95,6 +101,13 @@ Objectif intermédiaire :
 
 
 
+Different jalon possible :
+
+   * mettre les outils Tapioca dans MMVVI , necessite surtout de revoir l'archi des processe et appli
+
+   * mettre des outils d'orientation elementaire
+   
+   * mettre Martini
 
 
 
