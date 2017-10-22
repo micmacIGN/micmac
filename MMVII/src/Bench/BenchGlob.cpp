@@ -74,8 +74,6 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
    // The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_weak;
 }
 
-void  TestSharedPointer();
-
 
 int  cAppli_MMVII_Bench::Exe()
 {
@@ -85,7 +83,6 @@ int  cAppli_MMVII_Bench::Exe()
    // MMVII_INTERNAL_ASSERT_all((1+1)==3,"Theoreme  pas tres fondamental de l'arithmetique");
 
    // 
-    TestSharedPointer();
 
     Bench_0000_Memory();
     Bench_0000_String();
@@ -97,9 +94,9 @@ int  cAppli_MMVII_Bench::Exe()
 }
 
 
-cMMVII_Appli * Alloc_MMVII_Bench(int argc,char ** argv)
+tMMVII_UnikPApli Alloc_MMVII_Bench(int argc,char ** argv)
 {
-   return new cAppli_MMVII_Bench(argc,argv);
+   return tMMVII_UnikPApli(new cAppli_MMVII_Bench(argc,argv));
 }
  
 

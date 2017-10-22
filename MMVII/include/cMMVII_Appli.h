@@ -19,8 +19,9 @@ class cMMVII_Appli;
 
 // EN= Some typedef to facilitate type declaration
 
-typedef cMMVII_Appli *  tMMVII_AppliPtr;
-typedef tMMVII_AppliPtr (* tMMVII_AppliAllocator)(int argc, char ** argv);
+// typedef cMMVII_Appli *  tMMVII_AppliPtr;
+typedef std::unique_ptr<cMMVII_Appli>   tMMVII_UnikPApli;
+typedef tMMVII_UnikPApli (* tMMVII_AppliAllocator)(int argc, char ** argv);
 
      // ========================== cArgMMVII_Appli  ==================
 
@@ -90,13 +91,24 @@ class cMMVII_Ap_NameManip
     private :
         // Avance jusqu'au premier char !=0 et Lut[cahr] !=0
         const char * SkipLut(const char *,int aVal);
-
         void GetCurLut();
         void RendreCurLut();
 };
 
+
+     // ========================== cMMVII_Ap_NameManip  ==================
+class cMMVII_Ap_CPU
+{
+    public  :
+        cMMVII_Ap_CPU ();
+    protected :
+         int mPid;       // Processus id
+         int mNbProcSys; // Number of processor on the system
+};
+
      // ========================== cMMVII_Appli  ==================
-class cMMVII_Appli : public cMMVII_Ap_NameManip
+class cMMVII_Appli : public cMMVII_Ap_NameManip,
+                     public cMMVII_Ap_CPU
 {
     public :
         static cMMVII_Appli & TheAppli();
@@ -107,7 +119,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip
         cMMVII_Appli(int,char **,cArgMMVII_Appli);
 
     private :
-        cMMVII_Appli(const cMMVII_Appli&); // Not implemanted
+        cMMVII_Appli(const cMMVII_Appli&) = delete ; // New C++11 feature , forbid copy 
+        cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; // New C++11 feature , forbid copy 
 
         static cMMVII_Appli *                     msTheAppli;
         cMemState                                 mMemStateBegin;

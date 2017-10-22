@@ -19,7 +19,7 @@ cMMVII_Appli::~cMMVII_Appli()
    cMemManager::CheckRestoration(mMemStateBegin);
    
    // Par curiosite
-   std::cout << "Nb obj created : " << cMemManager::CurState().NbObjCreated() << "\n";
+   // std::cout << "Nb obj created : " << cMemManager::CurState().NbObjCreated() << "\n";
 }
 
 cMMVII_Appli::cMMVII_Appli(int,char **,cArgMMVII_Appli)  :

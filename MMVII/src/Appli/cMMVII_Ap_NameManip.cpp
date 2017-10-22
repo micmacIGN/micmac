@@ -38,8 +38,12 @@ const char *  cMMVII_Ap_NameManip::SkipLut(const char * aC,int aVal)
 
 void cMMVII_Ap_NameManip::SplitString(std::vector<std::string > & aRes,const std::string & aStr,const std::string & aSpace)
 {
+
      GetCurLut();
      mCurLut->Init(aSpace,1);
+
+
+
      const char * aC = aStr.c_str();
      aC = SkipLut(aC,1);
      while (*aC)
@@ -51,8 +55,6 @@ void cMMVII_Ap_NameManip::SplitString(std::vector<std::string > & aRes,const std
           aC = SkipLut(aC,1);
      }
      // const char * aDT = aLUT->Table() ;
-
-
      RendreCurLut();
 }
 

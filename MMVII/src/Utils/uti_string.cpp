@@ -26,20 +26,10 @@ void  cCarLookUpTable::UnInit()
 cCarLookUpTable::cCarLookUpTable() :
      mInit(false)
 {
-    MEM_RAZ(mTable,1);
+    MEM_RAZ(&mTable,1);
+    // MEM_RAZ(mTable,1); =>  sizeof(*mTable) == 1 !!!! 
+    // std::cout << "DDddrrrr= " << &mTable << " ;; " << &(*mTable) << "\n";
 }
-
-// const char * cCarLookUpTable:Table() 
-
-
-
-/*
-void SplitString(std::vector<std::string > & aRes,const std::string aSpace)
-{
-    cCarLookUpTable *  aLut = cMMVII_Appli::TheAppli().GetLut(aSpace,1);
-}
-*/
-
 
 };
 

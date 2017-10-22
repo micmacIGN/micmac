@@ -70,6 +70,7 @@ Travail préliminaire :
      * code differenciation
      * utiliser un gestionnaire de code (QT creator ...)
      * choix outil de docu
+     * lib-tiff ? lib-jpeg ? dcraw  ?
      
 
   Regle de codage, de commentaire, de test, de versionnement etc ...
@@ -103,13 +104,22 @@ Objectif intermédiaire :
 
 Different jalon possible :
 
+Pour eviter l'effet page-blanche, il faut imaginer differentes stratégies qui permettent d'arriver a avoir des ensemble interessant, sans que ce decoupage fasse perdre du temps pour arriver au module complet....
+
    * mettre les outils Tapioca dans MMVVI , necessite surtout de revoir l'archi des processe et appli
+   * avancer ensuite dans une implementation maison de SIFT ?
 
-   * mettre des outils d'orientation elementaire
+   * mettre des outils d'orientation elementaire (notamment les outils purement algebrique : space resectio, tomasi kanade, essential, homographie/planar, 11 Parameter etc, epipolar...)
    
-   * mettre Martini
+   * mettre Martini,
+ 
+   * bundle complet sauf calibration interne
 
+Ajouter un binding Python ?
 
+    * a reflechir si volontaire pour le faire 
+    * si uniquement ligne de commande, peu d'interet, mais a voir si au niveau objet; depend
+      aussi librairie support ?
 
 
 

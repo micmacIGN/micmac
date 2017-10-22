@@ -24,6 +24,12 @@ template <class Type,const int Dim> class cPtxd
        // cPtxd(const cPt1d<Type>);
        // cPtxd(const cPt2d<Type>);
          // MMVII_INTERNAL_ASSERT(Dim==1);
+       cPtxd() {}
+
+       cPtxd(const Type & x) :  mCoords{x} {static_assert(Dim==1,"bad dim in cPtxd initializer");}
+       cPtxd(const Type & x,const Type &y) :  mCoords{x,y} {static_assert(Dim==2,"bad dim in cPtxd initializer");}
+
+
     protected :
        Type mCoords[Dim];
 };
@@ -37,7 +43,8 @@ template <class Type> class cPt1d : public cPtxd<Type,1>
         typedef cPtxd<Type,1> tBase;
 
      // Constructeur
-        inline cPt1d(const Type& anX) {tBase::mCoords[0] = anX;}
+        // inline cPt1d(const Type& anX) {tBase::mCoords[0] = anX;}
+        inline cPt1d(const Type& anX) : tBase(anX) {}
         inline cPt1d(const tBase & aP) {static_cast<tBase&>(*this) = aP;}
 
      // Accesseurs
@@ -72,7 +79,9 @@ template <class Type> class cPt2d : public cPtxd<Type,2>
         typedef cPtxd<Type,2> tBase;
 
    // Constructeur
-        cPt2d(const Type& anX,const Type& anY) {tBase::mCoords[0] = anX;tBase::mCoords[1] = anY;}
+//         cPt2d(const Type& anX,const Type& anY) {tBase::mCoords[0] = anX;tBase::mCoords[1] = anY;}
+
+        inline cPt2d(const Type& anX,const Type& anY) : tBase(anX,anY) {}
         inline cPt2d(const tBase & aP) {static_cast<tBase&>(*this) = aP;}
 
    // Accesseurs

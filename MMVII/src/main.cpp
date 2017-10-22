@@ -15,13 +15,19 @@ int main(int argc, char ** argv)
             // Execute si match
             if ((*itS)->Name()==aNameCom)
             {
+                // Ajoute celui la pour teste la destruction avec unique_ptr
+                const cMemState  aMemoState= cMemManager::CurState() ;
+                int aRes=-1;
+                {
 
-                cMMVII_Appli * anAppli = (*itS)->Alloc()(argc,argv);
-                // Verifie si une commande respecte les consignes de documentation
-                (*itS)->Check();
-                // Execute
-                int aRes = anAppli->Exe();
-                delete anAppli;
+                    tMMVII_UnikPApli anAppli = (*itS)->Alloc()(argc,argv);
+                    // Verifie si une commande respecte les consignes de documentation
+                    (*itS)->Check();
+                    // Execute
+                    aRes = anAppli->Exe();
+                // delete anAppli;
+                }
+                cMemManager::CheckRestoration(aMemoState);
                 return aRes;
             }
         }

@@ -1,4 +1,6 @@
 #include "include/MMVII_all.h"
+#include <algorithm>
+
 
 namespace MMVII
 {
@@ -66,6 +68,7 @@ void cSpecMMVII_Appli::Check()
 }
 
 extern cSpecMMVII_Appli  TheSpecBench;
+extern cSpecMMVII_Appli  TheSpecTestCpp11;
   
 std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
 {
@@ -74,6 +77,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
    if (TheRes.size() == 0)
    {    
         TheRes.push_back(&TheSpecBench);
+        TheRes.push_back(&TheSpecTestCpp11);
    }
    
    return TheRes;

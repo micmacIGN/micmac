@@ -32,12 +32,17 @@ MMV2DirUtils=${MMV2DirSrc}Utils/
 SrcUtils= $(wildcard ${MMV2DirUtils}*.cpp)
 ObjUtils= $(SrcUtils:.cpp=.o) 
 #
+#
+MMV2DirSerial=${MMV2DirSrc}Serial/
+SrcSerial= $(wildcard ${MMV2DirSerial}*.cpp)
+ObjSerial= $(SrcSerial:.cpp=.o) 
+#
 #    => Le Main
 #
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils}
+OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial}
 #
 #=========  Header ========
 #
@@ -48,7 +53,7 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags="-std=c++11" -I${MMV2Dir}
+CFlags="-std=c++14" -I${MMV2Dir}
 LibsFlags= ${MMDir}/lib/libelise.a -lX11 
 MMV2Exe=MMVII
 #
@@ -68,6 +73,8 @@ ${MMV2DirBench}%.o :  ${MMV2DirBench}%.cpp ${HEADER}
 ${MMV2DirAppli}%.o :  ${MMV2DirAppli}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirUtils}%.o :  ${MMV2DirUtils}%.cpp ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirSerial}%.o :  ${MMV2DirSerial}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 #
 #       ===== TEST ========================================
