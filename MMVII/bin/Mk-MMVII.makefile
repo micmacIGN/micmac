@@ -54,7 +54,7 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #
 CXX=g++
 CFlags="-std=c++14" -I${MMV2Dir}
-LibsFlags= ${MMDir}/lib/libelise.a -lX11 
+LibsFlags= ${MMDir}/lib/libelise.a -lX11   /usr/include/boost/stage/lib/libboost_*.a
 MMV2Exe=MMVII
 #
 ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN}

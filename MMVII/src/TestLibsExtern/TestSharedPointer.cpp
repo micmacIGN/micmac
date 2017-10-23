@@ -7,6 +7,10 @@
 #include <unordered_map>
 #include <functional>
 
+#include <boost/array.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
 namespace MMVII
 {
 
@@ -160,6 +164,39 @@ void  TestSharedPointer()
 /*            cAppli_MMVII_TestCpp11                         */
 /*                                                           */
 /*************************************************************/
+template<class Archive>
+void serialize(Archive & ar, cPt2dr & aP, const unsigned int version)
+{
+    ar & aP.x();
+    ar & aP.y();
+}
+
+void TestBoostSerial()
+{
+ // create class instance
+    std::ofstream ofs("filename");
+    const cPt2dr aP(1,2);
+
+    // save data to archive
+    {
+        boost::archive::text_oarchive oa(ofs);
+        // write class instance to archive
+        oa << aP;
+    	// archive and stream closed when destructors are called
+    }
+
+    // ... some time later restore the class instance to its orginal state
+    cPt2dr aNewP(0,0);
+    {
+        // create and open an archive for input
+        std::ifstream ifs("filename");
+        boost::archive::text_iarchive ia(ifs);
+        // read class state from archive
+        ia >> aNewP;
+        // archive and stream closed when destructors are called
+    }
+    std::cout  << " AAATestBoostSerial " << aNewP.x() << " " <<  aNewP.y() << "\n";
+}
 
 class cAppli_MMVII_TestCpp11 : public cMMVII_Appli
 {
@@ -350,6 +387,7 @@ int cAppli_MMVII_TestCpp11::Exe()
    
 
    TestSharedPointer();
+   TestBoostSerial();
    return EXIT_SUCCESS;
 
 }
