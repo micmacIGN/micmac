@@ -1,7 +1,7 @@
 #
 #== Directories
 #
-MMDir=/home/ubuntu/Desktop/MMM/micmac/
+MMDir=../../
 MMV2Dir=${MMDir}MMVII/
 MMV2DirSrc=${MMV2Dir}src/
 MMV2DirBin=${MMV2Dir}bin/
