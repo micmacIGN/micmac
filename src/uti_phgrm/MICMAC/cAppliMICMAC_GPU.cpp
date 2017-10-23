@@ -1398,6 +1398,11 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
         }
     }
 
+    if (aCMP)
+    {
+        aPdsCorrStd = aCMP->PdsCorrelStd();
+    }
+
     double aCost = aNbOk ? (mStatGlob->CorrelToCout(aSomCorrel/aNbOk) * aPdsCorrStd): mAhDefCost;
 
     if (mDoStatCorrel)
@@ -1411,7 +1416,6 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
     if (aCMP)
     {
 
-        aPdsCorrStd = aCMP->PdsCorrelStd();
         std::vector<tMCPVal> aVNorm;
         if (mVLI[0]->OkOrtho(anX,anY))
         {
