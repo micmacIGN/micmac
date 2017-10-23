@@ -22,11 +22,21 @@ cMMVII_Appli::~cMMVII_Appli()
    // std::cout << "Nb obj created : " << cMemManager::CurState().NbObjCreated() << "\n";
 }
 
-cMMVII_Appli::cMMVII_Appli(int,char **,cArgMMVII_Appli)  :
+
+cMMVII_Appli::cMMVII_Appli(int argc,char ** argv,const std::string & aDirChantier,cArgMMVII_Appli)  :
+   mArgc          (argc),
+   mArgv          (argv),
+   mFullBin       (mArgv[0]),
+   mDirMMVII      (DirOfPath(mFullBin)),
+   mBinMMVII      (FileOfPath(mFullBin)),
+   mDirMicMacv1   (UpDir(mDirMMVII,2)),
+   mDirChantier   (aDirChantier),
    mMemStateBegin (cMemManager::CurState())
 {
   MMVII_INTERNAL_ASSERT_strong(msTheAppli==0,"cMMVII_Appli only one by process");
   msTheAppli = this;
+
+  std::cout << "MMV1 "  << mDirMicMacv1  << "\n";
 }
 
 

@@ -61,6 +61,7 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
     (
         argc,
         argv,
+        DirCur(),
         cArgMMVII_Appli
         (
         )

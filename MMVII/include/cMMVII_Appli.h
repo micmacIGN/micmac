@@ -116,14 +116,25 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         virtual ~cMMVII_Appli();
 
     protected :
-        cMMVII_Appli(int,char **,cArgMMVII_Appli);
+        cMMVII_Appli(int,char **,const std::string & aDirChantier,cArgMMVII_Appli);
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; // New C++11 feature , forbid copy 
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; // New C++11 feature , forbid copy 
 
         static cMMVII_Appli *                     msTheAppli;
+
+    protected :
+
+        int                                       mArgc;
+        char **                                   mArgv;
+        std::string                               mFullBin;
+        std::string                               mDirMMVII;
+        std::string                               mBinMMVII;
+        std::string                               mDirMicMacv1;
+        std::string                               mDirChantier;
         cMemState                                 mMemStateBegin;
+      
 };
 
 cMMVII_Appli * BenchAppli(int,char **);

@@ -11,6 +11,8 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
+#include <Eigen/Dense>
+
 namespace MMVII
 {
 
@@ -210,6 +212,7 @@ cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv) :
     (
         argc,
         argv,
+        DirCur(),
         cArgMMVII_Appli
         (
         )
@@ -291,6 +294,12 @@ std::unique_ptr<cUnikP>  Transfer(const std::string & aMes)
 
 int cAppli_MMVII_TestCpp11::Exe()
 {
+   {
+       std::string aDir,aFile;
+       SplitDirAndFile(aDir,aFile,"./",false);
+       SplitDirAndFile(aDir,aFile,mArgv[0],false);
+       SplitDirAndFile(aDir,aFile,"/home/ubuntu/Desktop/MMM/micmac/MMVII/bin/",false);
+   }
    {
         std::unique_ptr<cUnikP> aP (new cUnikP("T1"));
    }
