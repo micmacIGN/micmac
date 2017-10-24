@@ -1,32 +1,48 @@
-#include "../include/all.h"
+#include "../include/MMVII_all.h"
 
-int MPDtest_main(int argc, char ** argv);
-
-void  TestSharedPointer();
-void  TestLE2();
-
-
-
-
-void  ShowArgs(int argc, char ** argv)
-{
-    for (int aK=0 ; aK<argc ; aK++)
-        std::cout  << "Arg[" << aK << "]=" << argv[aK] << "\n";
-}
 
 int main(int argc, char ** argv)
 {
-   TestSharedPointer();
-   TestLE2();
-/*
-    std::shared_ptr<int> p0(new int(5));  
-    std::shared_ptr<int> p1 = p0;
-    std::cout << "Count = " << p0.use_count() << "\n";
-    auto i = 3.0;
-    std::cout << "Hello word \n";
-    std::cout << typeid(p0).name() << "\n" ;
-    std::cout << typeid(i).name() << "\n" ;
-*/
-    MPDtest_main(argc,argv);
+   std::vector<cSpecMMVII_Appli*> &  aVSpecAll = cSpecMMVII_Appli::VecAll();
+
+   std::string aNameCom ;
+   if (argc>1)
+   {
+        aNameCom = argv[1];
+        // Recherche la specif correspondant au nom de commande
+        for (auto itS=aVSpecAll.begin() ; itS!=aVSpecAll.end() ; itS++)
+        {
+            // Execute si match
+            if ((*itS)->Name()==aNameCom)
+            {
+                // Ajoute celui la pour teste la destruction avec unique_ptr
+                const cMemState  aMemoState= cMemManager::CurState() ;
+                int aRes=-1;
+                {
+
+                    tMMVII_UnikPApli anAppli = (*itS)->Alloc()(argc,argv);
+                    // Verifie si une commande respecte les consignes de documentation
+                    (*itS)->Check();
+                    // Execute
+                    aRes = anAppli->Exe();
+                // delete anAppli;
+                }
+                cMemManager::CheckRestoration(aMemoState);
+                return aRes;
+            }
+        }
+   }
+
+   // Affiche toutes les commandes
+   for (auto itS=aVSpecAll.begin() ; itS!=aVSpecAll.end() ; itS++)
+   {
+       std::cout << (*itS)->Name() << " => " << (*itS)->Comment() << "\n";
+   }
+   
+
+
+   return EXIT_SUCCESS;
 }
+
+
 
