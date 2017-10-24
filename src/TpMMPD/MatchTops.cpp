@@ -49,18 +49,25 @@ const double MJD2000 = 51544.5; 	// J2000 en mjd
 const double GPS0 = 315964800.0; 	// 1980-01-06T00:00:00 in seconds starting from 1970-01-01T00:00:00
 const int LeapSecond = 18;			// GPST-UTC=18s
 
-
-struct ImgTimes
-{
-    std::string ImgName;
-    double ImgT; // system unix time
-    double ImgMJD; // GPS MJD time
+struct hmsTime{
+    double Year;
+    double Month;
+    double Day;
+    double Hour;
+    double Minute;
+    double Second;
 };
 
-std::vector<ImgTimes> ReadImgTimesFile(string & aDir, string aTimeFile, std::string aExt)
+struct ImgNameTime
 {
-    std::vector<ImgTimes> aVSIT;
-    ifstream aFichier((aDir + aTimeFile).c_str());
+    std::string ImgName;
+    hmsTime ImgTime; // system unix time
+};
+
+std::vector<ImgNameTime> ReadImgNameTimeFile(string & aDir, string aImgNameTimeFile, std::string aExt)
+{
+    std::vector<ImgNameTime> aVINT;
+    ifstream aFichier((aDir + aImgNameTimeFile).c_str());
     if(aFichier)
     {
         std::string aLine;
@@ -70,20 +77,28 @@ std::vector<ImgTimes> ReadImgTimesFile(string & aDir, string aTimeFile, std::str
             if(aLine.size() != 0)
             {
                 char *aBuffer = strdup((char*)aLine.c_str());
-                std::string aImage = strtok(aBuffer,"	");
-                std::string aTime = strtok(NULL,"	");
+                std::string aImgName = strtok(aBuffer,"	");
+                std::string aYear = strtok(NULL,"-");
+                std::string aMonth = strtok(NULL,"-");
+                std::string aDay = strtok(NULL," ");
+                std::string aHour = strtok(NULL,":");
+                std::string aMinute = strtok(NULL,":");
+                std::string aSecond = strtok(NULL," ");
 
-                ImgTimes aImgT;
+                ImgNameTime aImgNT;
                 if(aExt != "")
-                    aImgT.ImgName = aImage + aExt;
+                    aImgNT.ImgName = aImgName + aExt;
                 else
-                    aImgT.ImgName = aImage;
+                    aImgNT.ImgName = aImgName;
 
-                aImgT.ImgT = atof(aTime.c_str());
+                aImgNT.ImgTime.Year = atof(aYear.c_str());
+                aImgNT.ImgTime.Month = atof(aMonth.c_str());
+                aImgNT.ImgTime.Day = atof(aDay.c_str());
+                aImgNT.ImgTime.Hour = atof(aHour.c_str());
+                aImgNT.ImgTime.Minute = atof(aMinute.c_str());
+                aImgNT.ImgTime.Second = atof(aSecond.c_str());
 
-                aImgT.ImgMJD = (aImgT.ImgT - J2000) / 86400 + MJD2000;
-
-                aVSIT.push_back(aImgT);
+                aVINT.push_back(aImgNT);
             }
         }
         aFichier.close();
@@ -92,33 +107,102 @@ std::vector<ImgTimes> ReadImgTimesFile(string & aDir, string aTimeFile, std::str
     {
         std::cout<< "Error While opening file" << '\n';
     }
-    return aVSIT;
+    return aVINT;
+}
+
+double hmsTime2MJD(const hmsTime & aTime, const bool & aTSys)
+{
+
+    double aYear;
+    double aMonth;
+    double aSec = aTime.Second;
+
+    //std::cout << "aSec = " << aSec << std::endl;
+
+    if(aTSys)
+    {
+        aSec += LeapSecond;
+    }
+
+    //std::cout << "aSec = " << aSec << std::endl;
+
+    //2 or 4 digits year management
+    if(aTime.Year < 80)
+    {
+        aYear = aTime.Year + 2000;
+    }
+    else if(aTime.Year < 100)
+    {
+        aYear = aTime.Year + 1900;
+    }
+    else
+    {
+        aYear = aTime.Year;
+    }
+
+    //months
+    if(aTime.Month <= 2)
+    {
+        aMonth = aTime.Month + 12;
+        aYear = aTime.Year - 1;
+    }
+    else
+    {
+        aMonth = aTime.Month;
+    }
+
+    //std::cout << "aYear = " << aYear << std::endl;
+    //std::cout << "aMonth = " << aMonth << std::endl;
+
+    double aC = floor(aYear / 100);
+    //std::cout << "aC = " << aC << std::endl;
+
+    double aB = 2 - aC + floor(aC / 4);
+    //std::cout << "aB = " << aB << std::endl;
+
+    double aT = (aTime.Hour/24) + (aTime.Minute/1440) + (aSec/86400);
+    //printf("aT = %.15f \n", aT);
+
+    double aJD = floor(365.25 * (aYear+4716)) + floor(30.6001 * (aMonth+1)) + aTime.Day + aT + aB - 1524.5;
+    //printf("aJD = %.15f \n", aJD);
+
+    double aS1970 = (aJD - JD2000) * 86400 + J2000; // seconds starting from 1970-01-01T00:00:00
+    //printf("aS1970 = %.15f \n", aS1970);
+
+    double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
+    //printf("aMJD = %.15f \n", aMJD);
+
+    return aMJD;
+
 }
 
 int ImgTMTxt2Xml_main (int argc, char ** argv)
 {
-    std::string aDir, aITF, aITFile, aExt=".thm.tif";
+    std::string aDir, aINTF, aINTFile, aExt=".thm.tif";
+    bool aTSys (true);
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aITFile, "File of image system unix time (all_name_time.txt)", eSAM_IsExistFile),
+        LArgMain()  << EAMC(aINTFile, "File of image system unix time (all_name_date.txt)", eSAM_IsExistFile),
         LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
-
+                    << EAM(aTSys,"TSys",true,"Time system, UTC=1, GPST=0, Def=UTC")
     );
-    SplitDirAndFile(aDir,aITF,aITFile);
+    SplitDirAndFile(aDir,aINTF,aINTFile);
 
     //read aImTimeFile and convert to xml
-    std::vector<ImgTimes> aVSIT = ReadImgTimesFile(aDir, aITFile, aExt);
+    std::vector<ImgNameTime> aVINT = ReadImgNameTimeFile(aDir, aINTFile, aExt);
+
     cDicoImgsTime aDicoIT;
-    for(uint iV=0;iV < aVSIT.size();iV++)
+
+    for(uint iV=0; iV<aVINT.size(); iV++)
     {
         cCpleImgTime aCpleIT;
-        aCpleIT.NameIm()=aVSIT.at(iV).ImgName;
-        aCpleIT.TimeIm()=aVSIT.at(iV).ImgMJD;
+        aCpleIT.NameIm()=aVINT.at(iV).ImgName;
+        aCpleIT.TimeIm() = hmsTime2MJD(aVINT.at(iV).ImgTime,aTSys);
         aDicoIT.CpleImgTime().push_back(aCpleIT);
     }
-    std::string aOutIT=StdPrefix(aITF)+".xml";
-    MakeFileXML(aDicoIT,aOutIT);
+    std::string aOutINT=StdPrefix(aINTF)+".xml";
+    MakeFileXML(aDicoIT,aOutINT);
 
     return EXIT_SUCCESS;
 }

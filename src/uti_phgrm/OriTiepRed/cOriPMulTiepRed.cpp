@@ -193,6 +193,11 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
        mP = anAppli.CamMaster().Hom2Cam(aPM->GetVal(0)); 
        mZ = 0.0;  // Faut bien remplir les trou ?
        mPrec = MoyResidual(anAppli);
+       if (BadNumber(mPrec))
+       {
+           ELISE_ASSERT(false,"Bad residual in cPMulTiepRed::cPMulTiepRed");
+           // std::cout << "PREC " << mPrec << " In Mode Im "  << "\n";
+       }
        if (anAppli.DoCompleteArc())
            CompleteArc(anAppli);
     }
