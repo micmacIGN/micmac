@@ -60,8 +60,8 @@ InitOutil::InitOutil   (string aFullPattern, string aOriInput,
     // Initialize name manipulator & files
     SplitDirAndFile(mDirImages, mPatIm, mFullPattern); //Working dir, Images pattern
     StdCorrecNameOrient(mOriInput, mDirImages);//remove "Ori-" if needed
-    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirImages);
-    mSetIm = *(mICNM->Get(mPatIm));
+    cInterfChantierNameManipulateur *mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirImages);
+    vector<string> mSetIm = *(mICNM->Get(mPatIm));
     ELISE_ASSERT(mSetIm.size()>0,"ERROR: No image found!");
     //============================================================
        //anExt = ExpTxt ? "txt" : "dat";

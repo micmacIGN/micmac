@@ -448,6 +448,48 @@ Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<
 }
 
 
+void PlyPutForCC(string & aPlyResCC, vector<Pt3dr> & aVAllPtInter, vector<double> & aVResidu)
+{
+    ELISE_ASSERT(aVAllPtInter.size() > 0,"No Pts in PlyPutForCC");
+    ELISE_ASSERT(aVResidu.size() == aVAllPtInter.size(),"Pts and Res dif size in PlyPutForCC");
+
+    int aNbS = aVAllPtInter.size();
+    std::string aTypeXYZ = "float";
+
+    bool aModeBin = 1; // mode bin
+    std::string mode = aModeBin ? "wb" : "w";
+    FILE * aFP = FopenNN(aPlyResCC,mode,"PlyPutForCC");
+/*
+    //Header
+    fprintf(aFP,"ply\n");
+    std::string aBinSpec =       MSBF_PROCESSOR() ?
+                           "binary_big_endian":
+                           "binary_little_endian" ;
+
+    fprintf(aFP,"format %s 1.0\n",aModeBin?aBinSpec.c_str():"ascii");
+    fprintf(aFP,"element vertex %d\n",aNbS);
+    fprintf(aFP,"property %s x\n",aTypeXYZ.c_str());
+    fprintf(aFP,"property %s y\n",aTypeXYZ.c_str());
+    fprintf(aFP,"property %s z\n",aTypeXYZ.c_str());
+
+    fprintf(aFP,"property float intensity\n");
+
+
+    //fprintf(aFP,"property list uchar int vertex_indices\n");
+    fprintf(aFP,"end_header\n");
+*/
+    for (uint i=0; i<aVAllPtInter.size(); i++)
+    {
+        Pt3dr aPt = aVAllPtInter[i];
+        double aRes = aVResidu[i];
+        fprintf(aFP,"%.3f %.3f %.3f %f\n",aPt.x,aPt.y,aPt.z,aRes);
+    }
+
+    ElFclose(aFP);
+
+}
+
+
 int TestGiangNewHomol_Main(int argc,char ** argv)
 {
     string aDir = "./";
@@ -605,8 +647,10 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     }
     aPlyRes = aPlyRes + aOri + ".ply";
     aPlyEmp = aPlyEmp + aOri + ".ply";
+    string aPlyResCC = "Res_" + aOri +"_CC.txt";
     aCPlyRes.PutFile(aPlyRes);
     aCPlyEmp.PutFile(aPlyEmp);
+    PlyPutForCC(aPlyResCC, aVAllPtInter, aVResidu);
 
     //===== stats Multiplicite ========
     ofstream statsFile;
@@ -671,3 +715,124 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     cout<<"Nb Emplacement image : 1 rouge - 2 orange - 3 jaune - 4 vert jaune - 5 cyan - > 5 vert"<<endl;
     return EXIT_SUCCESS;
 }
+
+//= ===========================  TEST GIANG DISPLAY ALL HOMOL WITH 1 IMAGE ============================
+
+
+int TestGiangDispHomol_Main(int argc,char ** argv)
+{
+
+    string aDir="./";
+    string aSH="";
+    string aPat;
+    string aImg;
+    double aZ=0.2;
+    bool aTwoSens = false;
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPat, "Pattern Image",  eSAM_IsPatFile)
+                      << EAMC(aImg, "Image Master",  eSAM_IsExistFile),
+          LArgMain()
+                      << EAM(aSH,"SH",true,"Homol suffix")
+                      << EAM(aZ,"Zoom",true,"0.2")
+                      << EAM(aTwoSens,"TwoSens",true,"fault")
+
+    );
+    string mPatIm;
+    SplitDirAndFile(aDir, mPatIm, aPat);
+    cInterfChantierNameManipulateur *mICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    vector<string>mSetIm = *(mICNM->Get(mPatIm));
+    ELISE_ASSERT(mSetIm.size()>0,"ERROR: No image found!");
+    //============================================================
+       //anExt = ExpTxt ? "txt" : "dat";
+       string mNameHomol = "Homol"+aSH;
+
+
+       string mKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                          +  std::string(mNameHomol)
+                          +  std::string("@")
+                          +  std::string("dat");
+
+
+       vector<Pt2dr> mVPts;
+       for (uint i=0; i<mSetIm.size(); i++)
+       {
+           string pic1 = aImg;
+           string pic2 = mSetIm[i];
+           cout<<pic1<<" "<<pic2<<endl;
+           if (pic1 != pic2)
+           {
+               // ===== sens 1 =====
+               string aHomoIn = mICNM->Assoc1To2(mKHIn, pic1, pic2, true);
+               StdCorrecNameHomol_G(aHomoIn, aDir);
+               cout<<"++ "<<aHomoIn;
+               bool Exist= ELISE_fp::exist_file(aHomoIn);
+               if (Exist)
+               {
+                   ElPackHomologue aPackIn;
+                   bool Exist= ELISE_fp::exist_file(aHomoIn);
+                   if (Exist)
+                   {
+                       aPackIn =  ElPackHomologue::FromFile(aHomoIn);
+                       for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
+                       {
+
+                           Pt2dr aP1 = itP->P1();  //Point img1
+                           mVPts.push_back(aP1);
+
+                       }
+                   }
+               }
+               if (aTwoSens == true)
+               {
+                   // ===== sens 2 =====
+                   string aHomoIn = mICNM->Assoc1To2(mKHIn, pic2, pic1, true);
+                   StdCorrecNameHomol_G(aHomoIn, aDir);
+                   cout<<"++ "<<aHomoIn;
+                   bool Exist= ELISE_fp::exist_file(aHomoIn);
+                   if (Exist)
+                   {
+                       ElPackHomologue aPackIn;
+                       bool Exist= ELISE_fp::exist_file(aHomoIn);
+                       if (Exist)
+                       {
+                           aPackIn =  ElPackHomologue::FromFile(aHomoIn);
+                           for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
+                           {
+
+                               Pt2dr aP2 = itP->P2();  //Point img1
+                               mVPts.push_back(aP2);
+
+                           }
+                       }
+                   }
+               }
+               //  ====== ====== ======
+           }
+       }
+
+        cout<<endl<<endl<<"Total = "<<mVPts.size()<<" pts for img "<<aImg<<endl;
+
+
+        Tiff_Im mPicTiff = Tiff_Im::UnivConvStd(aDir+aImg);
+        Pt2di mImgSz = mPicTiff.sz();
+        Video_Win * aWin;
+        aWin = Video_Win::PtrWStd(Pt2di(mImgSz.x*aZ, mImgSz.y*aZ), true, Pt2dr(aZ,aZ));
+
+
+        aWin->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+        aWin->set_title((aImg+"_ALLPTS").c_str());
+        ELISE_COPY(mPicTiff.all_pts(), mPicTiff.in(), aWin->ogray());
+
+        for (uint i=0; i<mVPts.size(); i++)
+        {
+            aWin->draw_circle_loc(mVPts[i], 2.0/aZ, aWin->pdisc()(P8COL::green));
+        }
+
+
+        aWin->clik_in();
+
+    return EXIT_SUCCESS;
+}
+
