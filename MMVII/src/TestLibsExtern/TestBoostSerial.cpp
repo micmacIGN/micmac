@@ -75,9 +75,11 @@ void TestBoostSerial()
     std::cout  << " AAATestBoostSerial " << aNewP.x() << " " <<  aNewP.y() << "\n";
 
 
+/*
     const int i=3;
     std::ofstream xml_ofs("filename.xml");
     boost::archive::xml_oarchive oa(xml_ofs);
+*/
     // oa << BOOST_SERIALIZATION_BASE_OBJECT_NVP(i);
 }
 
@@ -104,6 +106,8 @@ cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial (int argc,char **argv
 int cAppli_MMVII_TestBoostSerial::Exe()
 {
     TestBoostSerial();
+
+    return EXIT_SUCCESS;
 }
 
 tMMVII_UnikPApli Alloc_MMVII_TestBoostSerial(int argc,char ** argv)
