@@ -25,10 +25,36 @@ namespace std{
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 
-#include <Eigen/Dense>
+
+//#include <Eigen/Dense>
 
 namespace MMVII
 {
+
+class cEwelina 
+{
+	friend std::ostream & operator<<(std::ostream &os, const cEwelina &aE);
+
+	public :
+		cEwelina(int &at, std::string& bt) {a=at; b=bt;}
+		int a; 
+		std::string b;
+
+		template<class Archive>
+		void serialize(Archive & ar, const unsigned int version)
+		{ ar & BOOST_SERIALIZATION_NVP (a)
+             	& BOOST_SERIALIZATION_NVP (b); };
+
+	private:
+	    	friend class boost::serialization::access;
+};
+
+std::ostream & operator<<(std::ostream &os, const cEwelina &aE)
+{
+    os << aE.a << " " << aE.b ;
+    return os;
+}
+
 
 
 /*************************************************************/
@@ -43,8 +69,10 @@ void serialize(Archive & ar, cPt2dr & aP, const unsigned int version)
     ar & aP.y();
 }
 
+
 void TestBoostSerial()
 {
+
  // create class instance
     std::ofstream ofs("filename");
     ofs.precision(6);
@@ -74,6 +102,7 @@ void TestBoostSerial()
     }
     std::cout  << " AAATestBoostSerial " << aNewP.x() << " " <<  aNewP.y() << "\n";
 
+<<<<<<< HEAD
 
 /*
     const int i=3;
@@ -81,6 +110,14 @@ void TestBoostSerial()
     boost::archive::xml_oarchive oa(xml_ofs);
 */
     // oa << BOOST_SERIALIZATION_BASE_OBJECT_NVP(i);
+=======
+    int i=3;
+    std::string j="eeee";
+    const cEwelina aER(i,j);
+    std::ofstream xml_ofs("filename.xml");
+    boost::archive::xml_oarchive oa(xml_ofs);
+    oa << BOOST_SERIALIZATION_NVP(aER);
+>>>>>>> e6257dbbc6d5d1811345f62240d24820918f7fa5
 }
 
 class cAppli_MMVII_TestBoostSerial : public cMMVII_Appli
