@@ -1551,9 +1551,9 @@ class cChSysCo : public cTransfo3D
            static cChSysCo * Alloc(const std::string & aName,const std::string & aDir) ;
 
            void ChangCoordCamera(const std::vector<ElCamera *> & aVCam,bool ForceRot);
-     private :
            //   cChSysCo(const cChangementCoordonnees &,const std::string &) ;
            cChSysCo(cSysCoord * aSrc,cSysCoord * aCibl);
+     private :
            ~cChSysCo();
            cSysCoord * mSrc;
            cSysCoord * mCibl;

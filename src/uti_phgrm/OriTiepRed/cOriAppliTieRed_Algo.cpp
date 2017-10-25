@@ -254,6 +254,7 @@ void cAppliTiepRed::DoReduceBox()
               delete aPM;
            }
        }
+//  Debut
        if (aVPrec.size() ==0)
        {   
           return;
@@ -268,6 +269,7 @@ void cAppliTiepRed::DoReduceBox()
            mHeap->push(mVPM[aKP]);
        }
     }
+//  fin
     // int aNbInit = mHeap->nb();
 
     tPMulTiepRedPtr aPMPtr;

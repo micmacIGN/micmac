@@ -86,11 +86,14 @@ private :
     double                       mTimeUnit;
     bool                         mModeSpline;
     int                          mNbGps;
-    cSysCoord  *                 mSysProj;
+    // cSysCoord  *                 mSysProj;
+    cChSysCo   *                 mChgSys;
     bool                         mWithWPK;
     bool                         mWithInc;
     bool                         mWithIncVitesse;
     bool                         mEcart;
+    bool                         mSysGeoC2Rtl;
+    std::string                  mNameChSys;
 };
 
 
@@ -101,8 +104,8 @@ Pt3dr  cIIP_Appli::GpsInc(int aK) const
 
 Pt3dr   cIIP_Appli::ToProj(const Pt3dr & aP) const
 {
-    if (! mSysProj) return aP;
-    return mSysProj->FromGeoC(aP);
+    if (! mChgSys) return aP;
+    return mChgSys->Src2Cibl(aP);
 }
 
 bool CmpGpsOnTime(const cOneGpsDGF & aGps1,const cOneGpsDGF & aGps2) {return aGps1.TimePt() < aGps2.TimePt() ;}
@@ -180,11 +183,12 @@ int cIIP_Appli::GetIndGpsBefore(double aTime)
 cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
     mTimeUnit (24  * 3600),
     mModeSpline (true),
-    mSysProj    (0),
+    mChgSys     (0),
     mWithWPK    (false),
     mWithInc    (true),
     mWithIncVitesse    (true),
-    mEcart (false)
+    mEcart        (false),
+    mSysGeoC2Rtl  (false)
 {
     std::cout.precision(15) ;
     std::string aOut;
@@ -210,14 +214,14 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
                 << EAM(mWithInc,"Inc",false,"Export uncertainty, def=true")
                 << EAM(mWithIncVitesse,"SpeedInc",false,"Use speed variation in uncertainty estimation ")
                 << EAM(mEcart,"Ecart",false,"Generate difference between the interpolated position and the nearest GPS position")
+                << EAM(mSysGeoC2Rtl,"SysGeoC2RTL",false,"Make chgs sys from geoc to RTL of first point")
+                << EAM(mNameChSys,"ChSys",false,"To chang coorrdinate system")
                 );
 
-    std::cout << "WPPPKK " <<  EAMIsInit(&mWithWPK) << " " << mWithWPK << "\n";
 
     if (! EAMIsInit(&mWithWPK))
         mWithWPK = mModeSpline;
 
-    std::cout << "WPPPKK " <<  EAMIsInit(&mWithWPK) << " " << mWithWPK << "\n";
 
 
     if (! EAMIsInit(&aAddFormat))
@@ -247,8 +251,15 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
     ELISE_ASSERT(mDicoGps.OneGpsDGF().size() !=0,"Empty size");
 
     mT0Gps = floor(mDicoGps.OneGpsDGF().front().TimePt());
-    if (1)
-        mSysProj = cSysCoord::RTL(mDicoGps.OneGpsDGF().front().Pt());
+
+    if (EAMIsInit(&mNameChSys))
+    {
+        mChgSys = cChSysCo::Alloc(mNameChSys,mDir);
+    }
+    else if (mSysGeoC2Rtl)
+    {
+        mChgSys = new cChSysCo(cSysCoord::GeoC(),cSysCoord::RTL(mDicoGps.OneGpsDGF().front().Pt()));
+    }
 
     // Formatage pour la Bb spline
     for (auto itG=mDicoGps.OneGpsDGF().begin() ; itG!=mDicoGps.OneGpsDGF().end() ;itG++)
@@ -433,6 +444,10 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
                 }
 
                 aPos = mModeSpline ? aPtSpline : aPosParab;
+                if (mChgSys)
+                {
+                    aPos = ToProj(aPos);
+                }
                 aEcart = euclid(aPos-aNP);
 
 
@@ -444,6 +459,7 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
                     Pt3di aColName(255,255,255);
 
                     Pt3dr aPLoc = ToProj(aPos);
+                    // std::cout << "PLOC " << aPLoc << "\n";
                     double aRay=0.05;
                     aPC.AddSphere(aColSom,aPLoc,0.05,5);
                     double aL = euclid(anInc);

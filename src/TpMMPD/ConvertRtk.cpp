@@ -144,7 +144,7 @@ double cRPG_Appli::hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys
 	
 	if(TimeSys == "UTC")
 	{
-		aSec -= LeapSecond;
+        aSec += LeapSecond;
 	}
 	
 	//std::cout << "aSec = " << aSec << std::endl;
@@ -205,7 +205,7 @@ double cRPG_Appli::towTime2MJD(const towTime & Time, const std::string & TimeSys
 	
 	if(TimeSys == "UTC")
 	{
-		aSec -= LeapSecond;
+        aSec += LeapSecond;
 	}
 	
 	double aS1970 = Time.GpsWeek * 7 * 86400 + aSec + GPS0;
@@ -291,9 +291,9 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
 				if(aTimeSys == "NONE")
 				{
 					ELISE_ASSERT(false,"Time System Not Supported");
-				}
-				
-				char *aBuffer = strdup((char*)aLigne.c_str());
+                }
+
+                char *aBuffer = strdup((char*)aLigne.c_str());
                 std::string aTimeP1 = strtok(aBuffer," ");
                 std::string aTimeP2 = strtok( NULL, " " );
                 char *aX = strtok( NULL, " " );
@@ -315,21 +315,21 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
                 //check output format : hms OR tow ?
                 if(aTimeP1.size() > 4)
                 {
-					//std::cout << "Detected Time Format = hms" << std::endl;
+                    //std::cout << "Detected Time Format = hms" << std::endl;
 					
 					hmsTime aHmsTps;
 					aHmsTps.Year = atof(aTimeP1.substr(0,4).c_str());
-					//std::cout << "aHmsTps.Year == " << aHmsTps.Year << std::endl;
+                    //std::cout << "aHmsTps.Year == " << aHmsTps.Year << std::endl;
 					aHmsTps.Month = atof(aTimeP1.substr(5,2).c_str());
-					//std::cout << "aHmsTps.Month == " << aHmsTps.Month << std::endl;
-					aHmsTps.Day = atof(aTimeP1.substr(8,02).c_str());
-					//std::cout << "aHmsTps.Day == " << aHmsTps.Day << std::endl;
+                    //std::cout << "aHmsTps.Month == " << aHmsTps.Month << std::endl;
+                    aHmsTps.Day = atof(aTimeP1.substr(8,2).c_str());
+                    //std::cout << "aHmsTps.Day == " << aHmsTps.Day << std::endl;
 					aHmsTps.Hour = atof(aTimeP2.substr(0,2).c_str());
-					//std::cout << "aHmsTps.Hour == " << aHmsTps.Hour << std::endl;
+                    //std::cout << "aHmsTps.Hour == " << aHmsTps.Hour << std::endl;
 					aHmsTps.Minute = atof(aTimeP2.substr(3,2).c_str());
-					//std::cout << "aHmsTps.Minute == " << aHmsTps.Minute << std::endl;
+                    //std::cout << "aHmsTps.Minute == " << aHmsTps.Minute << std::endl;
 					aHmsTps.Second = atof(aTimeP2.substr(6,aTimeP2.size()-6).c_str());
-					//std::cout << "aHmsTps.Second == " << aHmsTps.Second << std::endl;
+                    //std::cout << "aHmsTps.Second == " << aHmsTps.Second << std::endl;
 					
 					aTimeF = hmsTime2MJD(aHmsTps,aTimeSys);
 					
