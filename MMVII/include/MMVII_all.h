@@ -16,6 +16,7 @@ namespace MMVII
 {
 // Header MMVII
 // #include "TypeNum.h"
+#include "MMVII_Sys.h"
 #include "MMVII_Error.h"
 #include "MMVII_memory.h"
 #include "MMVII_util.h"

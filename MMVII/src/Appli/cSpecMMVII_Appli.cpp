@@ -69,6 +69,7 @@ void cSpecMMVII_Appli::Check()
 
 extern cSpecMMVII_Appli  TheSpecBench;
 extern cSpecMMVII_Appli  TheSpecTestCpp11;
+extern cSpecMMVII_Appli  TheSpec_TestBoostSerial;
   
 std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
 {
@@ -78,6 +79,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
    {    
         TheRes.push_back(&TheSpecBench);
         TheRes.push_back(&TheSpecTestCpp11);
+        TheRes.push_back(&TheSpec_TestBoostSerial);
    }
    
    return TheRes;

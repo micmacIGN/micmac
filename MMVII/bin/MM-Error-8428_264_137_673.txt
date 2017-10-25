@@ -1,6 +1,0 @@
-Exit with code 1 
-Generated from line 201  of file /home/ubuntu/Desktop/MMM/micmac/src/util/error.cpp 
-PID=8428
-Context=[cEliseFatalErrorHandler::cEFEH_OnErreur]
-GMEC:mes=Unknown command in mm3d line=1265 file=/home/ubuntu/Desktop/MMM/micmac/src/CBinaires/mm3d.cpp
-MM3D-Command=["mm3d" "Bench" ]

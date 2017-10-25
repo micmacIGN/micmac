@@ -29,8 +29,8 @@ bool  CheckIntersect(const std::string & aMes,const std::string & aKeyList,const
 bool ExistFile(const std::string & aName);
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErroNonExist=true);
 std::string DirCur(); // as "./" on Unix
-std::string DirOfPath(const std::string & aPath);
-std::string FileOfPath(const std::string & aPath);
+std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
+std::string FileOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string UpDir(const std::string & aDir,int aNb=1);
 
 
