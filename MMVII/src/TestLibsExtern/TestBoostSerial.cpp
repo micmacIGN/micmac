@@ -102,22 +102,12 @@ void TestBoostSerial()
     }
     std::cout  << " AAATestBoostSerial " << aNewP.x() << " " <<  aNewP.y() << "\n";
 
-<<<<<<< HEAD
-
-/*
-    const int i=3;
-    std::ofstream xml_ofs("filename.xml");
-    boost::archive::xml_oarchive oa(xml_ofs);
-*/
-    // oa << BOOST_SERIALIZATION_BASE_OBJECT_NVP(i);
-=======
     int i=3;
     std::string j="eeee";
     const cEwelina aER(i,j);
     std::ofstream xml_ofs("filename.xml");
     boost::archive::xml_oarchive oa(xml_ofs);
     oa << BOOST_SERIALIZATION_NVP(aER);
->>>>>>> e6257dbbc6d5d1811345f62240d24820918f7fa5
 }
 
 class cAppli_MMVII_TestBoostSerial : public cMMVII_Appli
