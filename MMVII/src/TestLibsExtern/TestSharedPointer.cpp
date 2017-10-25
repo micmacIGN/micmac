@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <functional>
 
-#include <Eigen/Dense>
+//#include <Eigen/Dense>
 
 namespace MMVII
 {
