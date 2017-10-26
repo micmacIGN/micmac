@@ -717,6 +717,8 @@ int TestGiang_main(int argc,char ** argv);
 
 int TestGiangNewHomol_Main(int argc,char ** argv);
 
+int TestGiangDispHomol_Main(int argc,char ** argv);
+
 int GetSpace_main(int argc, char ** argv);
 
 int TestDetecteur_main(int argc,char ** argv);
@@ -970,6 +972,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestMartini",TestMartini_Main,"Test Martini with simulation"));
 
         aRes.push_back(cMMCom("Test_Giang",TestGiangNewHomol_Main,"Test Giang"));
+        aRes.push_back(cMMCom("DispHomolCom",TestGiangDispHomol_Main,"Test Giang"));
         aRes.push_back(cMMCom("GetSpace",GetSpace_main,"Delete all temporary file after treatment complete"));
         aRes.push_back(cMMCom("TiepTriPrl",TiepTriPrl_main,"Paralelliser version of TiepTri",cArgLogCom(2)));
         aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));

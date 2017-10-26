@@ -6,6 +6,7 @@ using namespace boost::filesystem;
 namespace MMVII
 {
 
+
 // cGestObjetEmpruntable<cCarLookUpTable>   cCarLookUpTable::msGOE;
 
 void  cCarLookUpTable::Init(const std::string& aStr,char aC)
@@ -36,20 +37,21 @@ cCarLookUpTable::cCarLookUpTable() :
 
 std::string DirCur()
 {
-   return  "." + path::preferred_separator;
+// std::cout << "DDDDCCCC=[" <<  "." + path::preferred_separator << "]\n";
+   return  std::string(".") + path::preferred_separator;
 }
 
-std::string DirOfPath(const std::string & aPath)
+std::string DirOfPath(const std::string & aPath,bool ErrorNonExist)
 {
    std::string aDir,aFile;
-   SplitDirAndFile(aDir,aFile,aPath);
+   SplitDirAndFile(aDir,aFile,aPath,ErrorNonExist);
    return aDir;
 }
    
-std::string FileOfPath(const std::string & aPath)
+std::string FileOfPath(const std::string & aPath,bool ErrorNonExist)
 {
    std::string aDir,aFile;
-   SplitDirAndFile(aDir,aFile,aPath);
+   SplitDirAndFile(aDir,aFile,aPath,ErrorNonExist);
    return aFile;
 }
 
@@ -58,7 +60,9 @@ std::string UpDir(const std::string & aDir,int aNb)
    std::string aRes = aDir;
    for (int aK=0 ; aK<aNb ; aK++)
    {
-      aRes += std::string("..") +  path::preferred_separator;
+      // aRes += std::string("..") +  path::preferred_separator;
+      // aRes += ".." +  path::preferred_separator;
+      aRes = aRes + std::string("..") +  path::preferred_separator;
    }
    return aRes;
 }
@@ -72,13 +76,21 @@ bool ExistFile(const std::string & aName)
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErrorNonExist)
 {
    path aPath(aDirAndFile);
+   bool aResult = true;
    if (! exists(aPath))
    {
        MMVII_INTERNAL_ASSERT_always(!ErrorNonExist,"File non existing in SplitDirAndFile");
-       return false;
+       //return false;
+       aResult = false;
    }
 
    if (is_directory(aPath))
+   {
+       aDir = aDirAndFile;
+       aFile = "";
+   }
+   // This case is not handled as I want , File=".", I want ""
+   else if ( (! aDirAndFile.empty()) &&  (aDirAndFile.back()== path::preferred_separator))
    {
        aDir = aDirAndFile;
        aFile = "";
@@ -98,7 +110,7 @@ bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & 
        }
        // path& remove_filename();
    }  
-   return true;
+   return aResult;
 }
 
 

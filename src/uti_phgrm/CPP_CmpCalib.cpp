@@ -136,7 +136,7 @@ class cAppliCmpCal
              mSetEq   (aModeL1 ? cNameSpaceEqF::eSysL1Barrodale : cNameSpaceEqF::eSysPlein,1000),
              mEqORV (mSetEq.NewEqObsRotVect()),
              mRotF  (mEqORV->RotF()),
-             mNBP   (10) ,
+             mNBP   (30) ,
              mBrd   (0.02),
 
              mP0    (Inf(mGr1.P0(), mGr2.P0())),
