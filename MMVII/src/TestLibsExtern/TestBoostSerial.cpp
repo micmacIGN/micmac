@@ -24,6 +24,21 @@ namespace std{
 #include <boost/archive/tmpdir.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <list>
+
+
+#include <boost/config.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/optional.hpp>
+#include <boost/serialization/optional.hpp>
+
+/*
+#include <boost/serialization/collections_save_imp.hpp>
+#include <boost/serialization/collections_load_imp.hpp>
+#include <boost/serialization/split_free.hpp>
+*/
+
 
 
 //#include <Eigen/Dense>
@@ -31,28 +46,102 @@ namespace std{
 namespace MMVII
 {
 
+template <class Type> class cMyOpt
+{
+    public :
+      cMyOpt(const Type & aVal) : mVal (aVal) {}
+      Type mVal;
+    
+};
+
+class cMyBoostXmlIArch : public  boost::archive::xml_iarchive
+{
+     public :
+          cMyBoostXmlIArch(std::ifstream & ifs) :
+                boost::archive::xml_iarchive (ifs)
+          {
+              MMVII_INTERNAL_ASSERT_always(mIFS==0,"Nested call to cMyBoostXmlIArch::cMyBoostXmlIArch");
+              mIFS = &ifs;
+          }
+
+          ~cMyBoostXmlIArch() 
+          {
+              MMVII_INTERNAL_ASSERT_always(mIFS!=0,"Incoherent call to cMyBoostXmlIArch::cMyBoostXmlIArch");
+              mIFS = 0;
+          }
+
+          static std::ifstream * mIFS;
+
+};
+
+std::ifstream  * cMyBoostXmlIArch::mIFS = 0;
+
+template<class Archive,class Type>
+void serialize(Archive & ar,  cMyOpt<Type> & anE, const unsigned int version)
+{
+/*
+    std::ifstream * ifs = cMyBoostXmlIArch::mIFS ;
+    if (ifs)
+    {
+       std::cout << "cMyBoostXmlIArch " << ifs << "\n";
+
+while(1)
+{
+       int aC = ifs->get();
+
+       std::cout << "Got A Tag " << aC << " <" << (aC=='<') << "\n";
+       getchar();
+}
+    }
+ boost::serialization::make_nvp
+*/
+// std::string #
+ std::cout << "HHHHhhhhhhhhhhhhhhhhhhh "  << BOOST_PP_STRINGIZE(anE.mVal) << "\n";
+ // boost::serialization::make_nvp("x",aP.x())
+    // ar & BOOST_SERIALIZATION_NVP(anE.mVal) ;
+ 
+    ar & boost::serialization::make_nvp(BOOST_PP_STRINGIZE(anE.mVal), anE.mVal) ;
+
+}
+
+
+template<class Type>
+void serialize(cMyBoostXmlIArch & ar,  boost::optional<Type> & anE, const unsigned int version)
+{
+     std::cout << "Iiiiiiiiiiiiiiiiii\n"; 
+     serialize((boost::archive::xml_iarchive&)ar,anE,version);
+}
+
 class cEwelina 
 {
 	friend std::ostream & operator<<(std::ostream &os, const cEwelina &aE);
 
 	public :
-		cEwelina(int &at, std::string& bt) {a=at; b=bt;}
+		cEwelina(const int &at,const  std::string& bt) : mLI{1,2,3} , mOI(56) {a=at; b=bt;}
 		int a; 
 		std::string b;
+                std::list<int> mLI;
+                boost::optional<double> mD;
+                cMyOpt<int>             mOI;
 
+/*
 		template<class Archive>
 		void serialize(Archive & ar, const unsigned int version)
 		{ ar & BOOST_SERIALIZATION_NVP (a)
              	& BOOST_SERIALIZATION_NVP (b); };
+*/
 
 	private:
-	    	friend class boost::serialization::access;
+	    	// friend class boost::serialization::access;
 };
 
-std::ostream & operator<<(std::ostream &os, const cEwelina &aE)
+template<class Archive>
+void serialize(Archive & ar, cEwelina & anE, const unsigned int version)
 {
-    os << aE.a << " " << aE.b ;
-    return os;
+    ar & BOOST_SERIALIZATION_NVP(anE.a) & BOOST_SERIALIZATION_NVP(anE.b) & BOOST_SERIALIZATION_NVP(anE.mLI)
+       & BOOST_SERIALIZATION_NVP(anE.mD)
+       & BOOST_SERIALIZATION_NVP(anE.mOI)
+       ;
 }
 
 
@@ -65,8 +154,8 @@ std::ostream & operator<<(std::ostream &os, const cEwelina &aE)
 template<class Archive>
 void serialize(Archive & ar, cPt2dr & aP, const unsigned int version)
 {
-    ar & aP.x();
-    ar & aP.y();
+    ar &     boost::serialization::make_nvp("x",aP.x()) &    boost::serialization::make_nvp("y",aP.y());
+    // ar & aP.y();
 }
 
 
@@ -95,6 +184,7 @@ void TestBoostSerial()
         // create and open an archive for input
         std::ifstream ifs("filename");
         boost::archive::text_iarchive ia(ifs);
+        /// cMyBoostXmlIArch ia(ifs);
         // read class state from archive
         ia >> aNewP;
         ia >> aNewP;
@@ -102,12 +192,23 @@ void TestBoostSerial()
     }
     std::cout  << " AAATestBoostSerial " << aNewP.x() << " " <<  aNewP.y() << "\n";
 
+if (1)
+{
     int i=3;
     std::string j="eeee";
     const cEwelina aER(i,j);
     std::ofstream xml_ofs("filename.xml");
     boost::archive::xml_oarchive oa(xml_ofs);
     oa << BOOST_SERIALIZATION_NVP(aER);
+}
+    // oa << BOOST_SERIALIZATION_NVP(aNewP);
+
+    cEwelina anE2(22,"33");
+    std::ifstream ifs("filename2.xml");
+    // boost::archive::xml_iarchive ia(ifs);
+    cMyBoostXmlIArch  ia(ifs);
+    ia >> BOOST_SERIALIZATION_NVP(anE2);
+     
 }
 
 class cAppli_MMVII_TestBoostSerial : public cMMVII_Appli
@@ -133,6 +234,8 @@ cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial (int argc,char **argv
 int cAppli_MMVII_TestBoostSerial::Exe()
 {
     TestBoostSerial();
+
+    return EXIT_SUCCESS;
 }
 
 tMMVII_UnikPApli Alloc_MMVII_TestBoostSerial(int argc,char ** argv)

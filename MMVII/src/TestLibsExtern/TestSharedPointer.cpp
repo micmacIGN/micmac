@@ -329,6 +329,7 @@ int cAppli_MMVII_TestCpp11::Exe()
    {
        for (const auto & it2 : it1)
        {
+             if (it2) ;
        }
    }
 

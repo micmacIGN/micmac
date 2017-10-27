@@ -34,6 +34,8 @@ std::string FileOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string UpDir(const std::string & aDir,int aNb=1);
 
 
+std::string  Quote(const std::string &);  // Assure a string is between quote, do nothing is begins by "
+
 
 
 

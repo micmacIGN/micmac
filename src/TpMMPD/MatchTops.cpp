@@ -207,6 +207,64 @@ int ImgTMTxt2Xml_main (int argc, char ** argv)
     return EXIT_SUCCESS;
 }
 
+int GenImgTM_main (int argc, char ** argv)
+{
+    std::string aDir,aGPSFile,aGPSF,aOutINT="all_name_date.xml",aGPS_S="GPS_selected.txt",aGPS_L="GPS_left.xml";
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aGPSFile, "File of GPS position and MJD time", eSAM_IsExistFile),
+        LArgMain()  << EAM(aOutINT,"OutINT",true,"Output Img name/time couple file, Def = all_name_date.xml")
+                    << EAM(aGPS_S,"SGPS",true,"Output selected GPS file, Def = GPS_selected.txt")
+                    << EAM(aGPS_L,"SGPR",true,"Output left GPS file, Def = GPS_left.xml")
+    );
+    SplitDirAndFile(aDir,aGPSF,aGPSFile);
+
+    //read .xml file
+    cDicoGpsFlottant aDico_all = StdGetFromPCP(aGPSF,DicoGpsFlottant);
+    std::vector<cOneGpsDGF> aVOneGps = aDico_all.OneGpsDGF();
+    std::cout << "size of GPS obs: " << aVOneGps.size() << endl;
+
+
+    cDicoImgsTime aDicoIT;
+    cDicoGpsFlottant aDico_left;
+
+    FILE * aFP = FopenNN(aGPS_S,"w","GenImgTM_main");
+    cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aGPS_S);
+
+    for (uint iV=0; iV<aVOneGps.size(); iV++)
+    {
+        if (iV%2==1)
+        {
+            cCpleImgTime aCpleIT;
+            aCpleIT.NameIm()=aVOneGps.at(iV).NamePt();
+            aCpleIT.TimeIm()=aVOneGps.at(iV).TimePt();
+            aDicoIT.CpleImgTime().push_back(aCpleIT);
+            fprintf(aFP,"%s %lf %lf %lf \n",aCpleIT.NameIm().c_str(), aVOneGps.at(iV).Pt().x, aVOneGps.at(iV).Pt().y, aVOneGps.at(iV).Pt().z);
+        }
+        else
+        {
+            cOneGpsDGF aOneGps;
+            aOneGps.Pt().x=aVOneGps.at(iV).Pt().x;
+            aOneGps.Pt().y=aVOneGps.at(iV).Pt().y;
+            aOneGps.Pt().z=aVOneGps.at(iV).Pt().z;
+            aOneGps.NamePt()=aVOneGps.at(iV).NamePt();
+            aOneGps.TagPt()=aVOneGps.at(iV).TagPt();
+            aOneGps.TimePt()=aVOneGps.at(iV).TimePt();
+            aOneGps.Incertitude()=aVOneGps.at(iV).Incertitude();
+            aDico_left.OneGpsDGF().push_back(aOneGps);
+        }
+
+
+    }
+
+    MakeFileXML(aDicoIT,aOutINT);
+    MakeFileXML(aDico_left,aGPS_L);
+    ElFclose(aFP);
+
+    return EXIT_SUCCESS;
+}
+
 //struct Tops
 //{
 //    double TopsT; // system unix time
