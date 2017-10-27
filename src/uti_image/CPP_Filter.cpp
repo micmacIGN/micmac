@@ -489,7 +489,7 @@ static cFilterImPolI  OperMed(FMedian,1,1,1,2,"median",true);
 
 
   //----------------------------------------------------------------
-          0    1  2    3    4
+//        0    1  2    3    4
 //  kth F 0.5  Sz VMin VMax Nbal  (NbIter=1) (Sz.y=Sz=Sz.x)
 
 static Fonc_Num FIKth(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
@@ -497,22 +497,20 @@ static Fonc_Num FIKth(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
    int aNbArg = anArg.mVArgs.size();
    double   aProp = ToDouble(anArg.mVArgs.at(0));
    int      aSzX  =    ToInt(anArg.mVArgs.at(1));
-   double   aVMin = ToDouble(anArg.mVArgs.at(2))
-   double   aVMax = ToDouble(anArg.mVArgs.at(3))
-   int   aNbVal =     ToIn(anArg.mVArgs.at(4))
+   double   aVMin = ToDouble(anArg.mVArgs.at(2));
+   double   aVMax = ToDouble(anArg.mVArgs.at(3));
+   int   aNbVal   =     ToInt(anArg.mVArgs.at(4));
    int      aNbIter = (aNbArg >=6) ? ToInt(anArg.mVArgs.at(5)) : 1;
-   int      aSzY    = (aNbArg >=7) ? ToInt(anArg.mVArgs.at(6)) : 1;
+   int      aSzY    = (aNbArg >=7) ? ToInt(anArg.mVArgs.at(6)) : aSzX;
    
  
    Fonc_Num aRes  = anArg.mVIn.at(0);
    aRes = Max(0,Min(aNbVal-1,round_ni(aNbVal *(aRes-aVMin) /(aVMax-aVMin))));
    
-   
    int aNbVois =  (1+2*aSzX) * (1+2*aSzY);
-   int aNbIter =  (anArg.mVArgs.size()>=2) ? ToInt(anArg.mVArgs.at(1)) : 1 ;
 
    for (int  aK=0 ; aK<aNbIter ; aK++)
-       aRes = rect_kth(aRes,roundi_ni(aProp*(aNbVois-1)),Pt2di(aSzX,aSzY),aNbVal);
+       aRes = rect_kth(aRes,round_ni(aProp*(aNbVois-1)),Pt2di(aSzX,aSzY),aNbVal);
 
     aRes = aVMin + aRes * (aVMax-aVMin) / aNbVal;
     return aRes;
@@ -564,6 +562,7 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperMoy);
          aRes.push_back(&OperMed);
          aRes.push_back(&OperTrans);
+         aRes.push_back(&OperIKth);
     }
 
     return aRes;

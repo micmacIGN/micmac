@@ -114,6 +114,14 @@ bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & 
 }
 
 
+std::string  Quote(const std::string & aStr)
+{
+   if (aStr.empty() || aStr[0]!='"')
+     return std::string("\"") + aStr + '"';
+
+   return aStr;
+}
+
 
 };
 
