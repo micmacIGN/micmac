@@ -42,8 +42,19 @@ inline void MMVVI_Error(const std::string & aType,const std::string &  aMes,cons
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_BenchError ) && (!(aTest)))\
 { MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
 
+#define MMVII_INTERNAL_ASSERT_user(aTest,aMes)\
+ if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_UserError ) && (!(aTest)))\
+{ MMVVI_Error("User's Error",aMes,__FILE__,__LINE__);}
+
+
 #define MMVII_INTERNAL_ASSERT_always(aTest,aMes)\
  if  (!(aTest))\
 { MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
+
+
+
+
+template<class T> void IgnoreUnused( const T& ) { };
+
 
 #endif  //  _MMVII_MMError_H_

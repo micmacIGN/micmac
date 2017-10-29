@@ -299,18 +299,20 @@ int cAppli_MMVII_TestCpp11::Exe()
    std::cout << " Type1=> " << typeid(std::get<1>(aTuple)).name()  << "\n";
 
 
-   char * C= nullptr;  // Un pointeur nul universel, + clean que (char *) 0
+   char * C= nullptr; IgnoreUnused(C); // Un pointeur nul universel, + clean que (char *) 
+
    cCtsrCallCstr aT;
    std::cout << "cCtsrCallCstr => " << aT.mV << "\n";
    // PrintSzVect({1,2}); => Pb avec template et initializer , pas sur pb moo ou g++ ?
    PrintSzVectI({1,2});  // Ok sans template
    // Les const expression sont garanties evaluables a la compile
    constexpr auto i = 3+4;
-   typedef decltype (1/2.0) mDouble;  // declaration de type a partir d'une expression
+   typedef decltype (1/2.0) tDouble;  // declaration de type a partir d'une expression
+   tDouble aUnusedtDouble; IgnoreUnused(aUnusedtDouble);
    // i++;
    // auto l = constexpr 3+4;
    // l++;
-   constexpr  int j = 2*i;
+   constexpr  int j = 2*i;  IgnoreUnused(j);
    // const constexpr l = 2;
    // constexpr int k = ExternalFonc(); => pas evaluable a la compile
    // Range
