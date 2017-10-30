@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 NS_OriTiePRed_BEGIN
 
+static bool BugRes=false;
 
 /**********************************************************************/
 /*                                                                    */
@@ -79,6 +80,13 @@ double  cPMulTiepRed::Residual(int aKC1,int aKC2,double aDef,cAppliTiepRed & anA
   CamStenope & aCS1 =  aLnk->CsRel1();
   CamStenope & aCS2 =  aLnk->CsRel2();
   Pt3dr  aPTer = aCS1.PseudoInter(aP1,aCS2,aP2);
+  if ((! aCS1.PIsVisibleInImage(aPTer)) ||  (!aCS2.PIsVisibleInImage(aPTer)))
+     return 1e10;
+  if (BugRes)
+  {
+     std::cout << "Vis1="<< aCS1.PIsVisibleInImage(aPTer) << " Vis2=" << aCS2.PIsVisibleInImage(aPTer) << "\n";
+     std::cout << "P1="<< aP1 << " P2=" << aP2 << " Ter=" << aPTer << " RProj1=" << aCS1.R3toF2(aPTer) << " RProj2=" << aCS2.R3toF2(aPTer) << "\n";
+  }
   return  (euclid(aP1,aCS1.R3toF2(aPTer)) + euclid(aP2,aCS2.R3toF2(aPTer))) / 2.0;
 }
 
@@ -175,6 +183,10 @@ double  cPMulTiepRed::MoyResidual(cAppliTiepRed & anAppli) const
        aSomRes += aRes;
        aNbRes ++;
    }
+   if (BugRes)
+   {
+      std::cout << "cPMulTiepRed::MoyResidual Som=" << aSomRes << " Nb=" << aNbRes << "\n";
+   }
    return aSomRes / aNbRes;
 }
 
@@ -190,11 +202,20 @@ cPMulTiepRed::cPMulTiepRed(tMerge * aPM,cAppliTiepRed & anAppli)  :
 {
     if (anAppli.ModeIm())
     {
+       // static int aCpt=0 ; aCpt++;
+       // BugRes = (aCpt==1032);
        mP = anAppli.CamMaster().Hom2Cam(aPM->GetVal(0)); 
        mZ = 0.0;  // Faut bien remplir les trou ?
        mPrec = MoyResidual(anAppli);
        if (BadNumber(mPrec))
        {
+           std::cout << "MASTER IM=" << anAppli.CamMaster().NameIm() << "\n" ; // << " Cpt=" << aCpt << "\n";
+           const std::vector<cPairIntType<Pt2df> >  &  aVecIT = aPM->VecIT() ;
+           for (int aKP=0 ; aKP<int(aVecIT.size()) ; aKP++)
+           {
+                cCameraTiepRed * aCam = anAppli.KthCam(aVecIT[aKP].mNum);
+                std::cout << "  SEC=" << aCam->NameIm() << "\n";
+           }
            ELISE_ASSERT(false,"Bad residual in cPMulTiepRed::cPMulTiepRed");
            // std::cout << "PREC " << mPrec << " In Mode Im "  << "\n";
        }
