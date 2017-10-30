@@ -12,12 +12,12 @@ static char BufStrIO[1000];
 
    // ================  int ==============================================
 
-template <>  std::string cStrIO<int>::ToS(const int & anI)
+template <>  std::string cStrIO<int>::ToStr(const int & anI)
 {
    sprintf(BufStrIO,"%d",anI);
    return BufStrIO;
 }
-template <>  int cStrIO<int>::FromS(const std::string & aStr)
+template <>  int cStrIO<int>::FromStr(const std::string & aStr)
 {
     int anI;
     sscanf(aStr.c_str(),"%d",&anI);
@@ -26,12 +26,12 @@ template <>  int cStrIO<int>::FromS(const std::string & aStr)
 
    // ================  double ==============================================
 
-template <>  std::string cStrIO<double>::ToS(const double & anI)
+template <>  std::string cStrIO<double>::ToStr(const double & anI)
 {
    sprintf(BufStrIO,"%lf",anI);
    return BufStrIO;
 }
-template <>  double cStrIO<double>::FromS(const std::string & aStr)
+template <>  double cStrIO<double>::FromStr(const std::string & aStr)
 {
     double anI;
     sscanf(aStr.c_str(),"%lf",&anI);
@@ -40,11 +40,11 @@ template <>  double cStrIO<double>::FromS(const std::string & aStr)
 
    // ================  std::string ==============================================
 
-template <>  std::string cStrIO<std::string>::ToS(const std::string & aStr)
+template <>  std::string cStrIO<std::string>::ToStr(const std::string & aStr)
 {
    return aStr;
 }
-template <>  std::string cStrIO<std::string>::FromS(const std::string & aStr)
+template <>  std::string cStrIO<std::string>::FromStr(const std::string & aStr)
 {
     return aStr;
 }

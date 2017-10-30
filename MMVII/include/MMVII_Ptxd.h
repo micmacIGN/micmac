@@ -82,6 +82,7 @@ template <class Type> class cPt2d : public cPtxd<Type,2>
 //         cPt2d(const Type& anX,const Type& anY) {tBase::mCoords[0] = anX;tBase::mCoords[1] = anY;}
 
         inline cPt2d(const Type& anX,const Type& anY) : tBase(anX,anY) {}
+        inline cPt2d() : cPt2d(0,0) {}
         inline cPt2d(const tBase & aP) {static_cast<tBase&>(*this) = aP;}
 
    // Accesseurs

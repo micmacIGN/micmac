@@ -6,9 +6,11 @@ void mem_raz(void * adr,int64_t nb);
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
 
 
+/*
 class  cMemState; // Memory state
 class  cMemManager; // Allocator/desallocator tracking memory state
 class  cMemCheck;   // Class calling cMemManager for allocation
+*/
 
 
 
@@ -51,10 +53,9 @@ class cMemState
 class cMemManager
 {
     public :
-        /**   modify/add memory state and write "majic" numbers at frontiers 
-              of allocatez zone  (of course allocate a bit more) */
+        ///   (1) Allocate and (2) modify("add") memory state and (3) write "majic" numbers at frontiers of allocatez zone  (of course allocate a bit more) 
         static void * Calloc(size_t nmemb, size_t size);
-        /// modify/substract memory state and check majic number are unmodified
+        /// (1) Free and (2) modify("substract") memory state and (3) check majic number are unmodified
         static void   Free(void * ptr);
 
         ///  Memorize the current memory state

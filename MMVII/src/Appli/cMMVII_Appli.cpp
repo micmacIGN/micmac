@@ -3,6 +3,16 @@
 namespace MMVII
 {
 
+template <class Type> class cOneArg
+{
+    public :
+        cOneArg(Type & aVal,const std::string & aName,const std::string & aCom);
+    private :
+         Type * mVal;
+};
+
+
+
 cMMVII_Appli * cMMVII_Appli::msTheAppli = 0;
 
 

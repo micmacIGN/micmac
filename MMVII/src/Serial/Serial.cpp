@@ -1,34 +1,17 @@
 #include "include/MMVII_all.h"
 
-#include<list>
-#include<boost/optional.hpp>
+// #include<list>
+// #include<boost/optional.hpp>
 
 
 namespace MMVII
 {
 
-// ==============================
-class cAr2007;
-class cAuxAr2007;
-
-std::unique_ptr<cAr2007> AllocArFromFile(const std::string & aName,bool Input);
-
-
-class cAuxAr2007
-{
-     friend class cAr2007;
-     public :
-         cAuxAr2007 (const cAuxAr2007 &) = delete;
-         cAuxAr2007 (const std::string & aName,cAr2007 &);
-         cAuxAr2007 (const std::string & aName, const cAuxAr2007 &);
-         ~cAuxAr2007 ();
-
-         const std::string  Name () const {return mName;}
-         cAr2007 & Ar()             const {return mAr;}
-     private :
-         const std::string  mName;
-         cAr2007 & mAr;
-};
+/* ========================================================= */
+/*                                                           */
+/*            cAr2007                                        */
+/*                                                           */
+/* ========================================================= */
 
 class cAr2007 : public cMemCheck
 {
@@ -48,7 +31,6 @@ class cAr2007 : public cMemCheck
          virtual int NbNextOptionnal(const std::string &);
          virtual ~cAr2007();
 
-         static const std::string TagMMVIISerial;
     protected  :
          cAr2007(bool InPut,bool Tagged);
          int   mLevel;
@@ -61,9 +43,11 @@ class cAr2007 : public cMemCheck
          virtual void RawAddDataTerm(int &    anI) =  0;
          virtual void RawAddDataTerm(double &    anI) =  0;
          virtual void RawAddDataTerm(std::string &    anI) =  0;
+
+         virtual void RawAddDataTerm(cPt2dr &    aP) ;
+         virtual void Separator();
 };
 
-const std::string cAr2007::TagMMVIISerial = "MMVII_Serialization";
 
 void cAr2007::RawBeginName(const cAuxAr2007& anOT) {}
 void cAr2007::RawEndName(const cAuxAr2007& anOT) {}
@@ -75,6 +59,16 @@ cAr2007::cAr2007(bool Input,bool isTagged) :
    mInput  (Input),
    mTagged (isTagged)
 {
+}
+
+void cAr2007::Separator()
+{
+}
+void cAr2007::RawAddDataTerm(cPt2dr &    aP) 
+{
+    RawAddDataTerm(aP.x());
+    Separator();
+    RawAddDataTerm(aP.y());
 }
 
 cAr2007::~cAr2007()
@@ -90,78 +84,16 @@ int cAr2007::NbNextOptionnal(const std::string &)
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
-
-
-    
-class cTestDATAOS
-{
-     public :
-          int a,b;
-          double c,d;
-};
-
-
-template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type> & aL)
-{
-    int aNb=aL.size();
-    AddData(cAuxAr2007("Nb",anAux),aNb);
-    if (aNb!=int(aL.size()))
-    {
-       Type aV0;
-       aL = std::list<Type>(aNb,aV0);
-    }
-    for (auto el : aL)
-    {
-         AddData(cAuxAr2007("el",anAux),el);
-    }
-}
-
-
-
-template <class Type> void OptAddData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL)
-{
-    std::string aTagOpt;
-    const std::string * anAdrTag = & aTag0;
-    if (anAux.Ar().Tagged())
-    {
-        aTagOpt = "Opt:" + aTag0;
-        anAdrTag = & aTagOpt;
-    }
-
-    if (anAux.Ar().Input())
-    {
-        if (anAux.Ar().NbNextOptionnal(*anAdrTag))
-           AddData(cAuxAr2007(*anAdrTag,anAux),*aL);
-        else 
-           aL = boost::none;
-        return;
-    }
-
-    int aNb =  aL.is_initialized() ? 1 : 0;
-    if (anAux.Ar().Tagged())
-    {
-       if (aNb)
-          AddData(cAuxAr2007(*anAdrTag,anAux),*aL);
-    }
-    else
-    {
-       AddData(anAux,aNb);
-       if (aNb)
-          AddData(anAux,*aL);
-    }
-}
-
-
-
-void AddData(const cAuxAr2007 & anAux, cPt2dr &    aP) 
-{
-    AddData(cAuxAr2007("x",anAux),aP.x());
-    AddData(cAuxAr2007("y",anAux),aP.y());
-}
+void AddData(const  cAuxAr2007 & anAux, cPt2dr  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 
 
 
 
+/* ========================================================= */
+/*                                                           */
+/*            cAuxAr2007                                     */
+/*                                                           */
+/* ========================================================= */
 
 cAuxAr2007::cAuxAr2007 (const std::string & aName,cAr2007 & aTS2) :
     mName     (aName),
@@ -182,6 +114,19 @@ cAuxAr2007::~cAuxAr2007 ()
     mAr.RawEndName(*this);
 }
 
+
+bool cAuxAr2007::Input()  const
+{
+   return mAr.Input();
+}
+bool cAuxAr2007::Tagged()   const
+{
+   return mAr.Tagged();
+}
+int  cAuxAr2007::NbNextOptionnal(const std::string & aTag)  const
+{
+   return mAr.NbNextOptionnal(aTag);
+}
 
 /*============================================================*/
 /*                                                            */
@@ -213,6 +158,7 @@ class cIXml_Ar2007 : public cAr2007
            void RawAddDataTerm(int &    anI) override;
            void RawAddDataTerm(double &    anI) override;
            void RawAddDataTerm(std::string &    anI) override;
+           // void RawAddDataTerm(cPt2dr &    aP) override;
            int NbNextOptionnal(const std::string &) override;
 
            void Error(const std::string & aMes);
@@ -238,11 +184,11 @@ class cIXml_Ar2007 : public cAr2007
 
 void cIXml_Ar2007::RawAddDataTerm(int &    anI) 
 {
-    anI =   cStrIO<int>::FromS(GetNextString());
+    FromS(GetNextString(),anI);
 }
 void cIXml_Ar2007::RawAddDataTerm(double &    aD) 
 {
-    aD =   cStrIO<double>::FromS(GetNextString());
+    FromS(GetNextString(),aD);
 }
 void cIXml_Ar2007::RawAddDataTerm(std::string &    aS) 
 {
@@ -332,7 +278,7 @@ bool cIXml_Ar2007::GetTag(bool aClose,const std::string & aName)
 void cIXml_Ar2007::Error(const std::string & aMesLoc)
 {
     std::string aMesGlob =   aMesLoc + "\n" 
-                           + "while processing file=" +  mMMIs.Name() + " at char " + cStrIO<int>::ToS(int(Ifs().tellg()));
+                           + "while processing file=" +  mMMIs.Name() + " at char " + ToS(int(Ifs().tellg()));
 
     MMVII_INTERNAL_ASSERT_bench(false,aMesGlob);
 }
@@ -406,18 +352,6 @@ int cIXml_Ar2007::SkeepWhite()
 /*                                                            */
 /*============================================================*/
 
-/*
-{
-        std::ifstream ifs("TestMMVII.xml");
-        cIXml_Ar2007   aXml("TestMMVII.xml");
-
-        cAuxAr2007  anGLOB("MMVII_Serialization",aXml);
-        cAuxAr2007  anOpen("pppP2",aXml);
-
-        AddData(anOpen,a2P);
-}
-*/
-
 class cOXml_Ar2007 : public cAr2007
 {
      public :
@@ -427,6 +361,7 @@ class cOXml_Ar2007 : public cAr2007
                 mXTerm (false), 
                 mFirst(true) 
            {
+               mMMOs.Ofs().precision(15);
            }
            inline std::ostream  & Ofs() {return mMMOs.Ofs();}
            ~cOXml_Ar2007();
@@ -439,6 +374,7 @@ class cOXml_Ar2007 : public cAr2007
          void RawAddDataTerm(int &    anI)  override;
          void RawAddDataTerm(double &    anI)  override;
          void RawAddDataTerm(std::string &    anI)  override;
+         void Separator() override;
          cMMVII_Ofs     mMMOs;
          bool mXTerm;  /// mXTerm is activated by RawAdds.. , it allow to put values on the same line
          bool mFirst;  /// new line is done before <tag> or </tag>, mFirst is used to avoid at first one
@@ -452,6 +388,8 @@ cOXml_Ar2007::~cOXml_Ar2007()
 void cOXml_Ar2007::RawAddDataTerm(int &    anI) {Ofs() <<anI; mXTerm=true;}
 void cOXml_Ar2007::RawAddDataTerm(double &  aD) {Ofs() <<aD; mXTerm=true;}
 void cOXml_Ar2007::RawAddDataTerm(std::string &  anS) {Ofs() <<anS; mXTerm=true;}
+
+void cOXml_Ar2007::Separator() {Ofs() << ' ';}
 
 void cOXml_Ar2007::Indent()
 {
@@ -564,6 +502,7 @@ std::unique_ptr<cAr2007 >  AllocArFromFile(const std::string & aName,bool Input)
    return std::unique_ptr<cAr2007 >(aRes);
 }
 
+/*
 template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
 {
     std::unique_ptr<cAr2007 > anAr = AllocArFromFile(aName,false);
@@ -580,6 +519,7 @@ template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
     cAuxAr2007  aGLOB(cAr2007::TagMMVIISerial,*anAr);
     AddData(aGLOB,aVal);
 } 
+*/
 
 
 /***********************************************************/
@@ -591,6 +531,7 @@ class c2P
              mP1 (1,2) , 
              mP2(3,3) ,
              mS("Hello"), 
+             mP3(3.1,3.2) ,
              mLI{1,22,333},
              mO2 (cPt2dr(100,1000))
         {
@@ -598,6 +539,7 @@ class c2P
         cPt2dr mP1;
         cPt2dr mP2;
         std::string mS;
+        cPt2dr mP3;
         std::list<int> mLI;
         boost::optional<cPt2dr> mO1;
         boost::optional<cPt2dr> mO2;
@@ -610,6 +552,7 @@ void AddData(const cAuxAr2007 & anAux, c2P &    a2P)
     AddData(cAuxAr2007("P1",anAux),a2P.mP1);
     AddData(cAuxAr2007("P2",anAux),a2P.mP2);
     AddData(cAuxAr2007("S",anAux),a2P.mS);
+    AddData(cAuxAr2007("P3",anAux),a2P.mP3);
     AddData(cAuxAr2007("LI",anAux),a2P.mLI);
     OptAddData(anAux,"O1",a2P.mO1);
     OptAddData(anAux,"O2",a2P.mO2);
@@ -675,3 +618,4 @@ cSpecMMVII_Appli  TheSpec_TestSerial
 
 
 };
+

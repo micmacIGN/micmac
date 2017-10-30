@@ -69,7 +69,7 @@ void  SplitStringArround(std::string & aBefore,std::string & aAfter,const std::s
        (
             false,
               std::string("Cannot split string just in two arround [")+aCharSep
-            + std::string("] nb got=") + cStrIO<int>::ToS(int(aVStr.size()))
+            + std::string("] nb got=") + ToS(int(aVStr.size()))
             + std::string(" ,input=" ) + aStr
        );
     }
@@ -213,6 +213,14 @@ std::string  Quote(const std::string & aStr)
 
    return aStr;
 }
+
+
+/*  ========================================================== */
+/*                                                             */
+/*      STRING CONSTANTE                                       */
+/*                                                             */
+/*  ========================================================== */
+const std::string TagMMVIISerial = "MMVII_Serialization";
 
 
 
