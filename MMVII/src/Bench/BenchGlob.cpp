@@ -79,13 +79,23 @@ void cAppli_MMVII_Bench::Bench_0000_String()
     std::vector<std::string> aSplit;
     SplitString(aSplit,"@  @AA  BB@CC DD   @  "," @");
     MMVII_INTERNAL_ASSERT_bench(aSplit.size()==4,"Size in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[0]=="AA","V0 in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[1]=="BB","V0 in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[2]=="CC","V0 in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[3]=="DD","V0 in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit[0]=="AA","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit[1]=="BB","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit[2]=="CC","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit[3]=="DD","SplitString in Bench_0000_String");
+
+    MMVII_INTERNAL_ASSERT_bench(Prefix("AA.tif")=="AA",  "Prefix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix("AA.tif")=="tif","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix("AA.tif",'t')=="if","Postfix in Bench_0000_String");
+
+    MMVII_INTERNAL_ASSERT_bench(Prefix("a.b.c",'.',true,true)=="a.b",  "Prefix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Prefix("a.b.c",'.',true,false)=="a",  "Prefix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix("a.b.c",'.',true,true)=="c",  "Prefix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix("a.b.c",'.',true,false)=="b.c",  "Prefix in Bench_0000_String");
 }
 
 
+   // std::string & aBefore,std::string & aAfter,const std::string & aStr,char aSep,bool SVP=false,bool PrivPref=true);
 
 cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
     cMMVII_Appli
@@ -131,6 +141,10 @@ int  cAppli_MMVII_Bench::Exe()
    std::cout <<  " 1.0/0.0" << 1.0/0.0  << "\n";
    std::cout << " sqrt(-1)=" << sqrt(-1)  << "\n";
    std::cout << " asin(2)=" << asin(2.0) << "\n";
+
+
+
+
 
    return EXIT_SUCCESS;
 }

@@ -6,13 +6,26 @@ void mem_raz(void * adr,int64_t nb);
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
 
 
-class  cMemState;
-class  cMemManager;
-class  cMemCheck;
-
-// Classe permettant de traquer les principales erreurs memoire
+class  cMemState; // Memory state
+class  cMemManager; // Allocator/desallocator tracking memory state
+class  cMemCheck;   // Class calling cMemManager for allocation
 
 
+
+/**
+   cMemState  memorize a summary of memory state container the number of
+   object, the size allocacted and some majic number; it allow to check 
+   if between 2 times, all what was allocated was desallocated
+
+   Typical use
+   cMemState aState = cMemManager::CurState();
+   {
+       .. do some stuff
+   }
+   Assert(aState==cMemManager::CurState());
+   or
+   cMemManager::CheckRestoration(aState);
+*/
 class cMemState
 {
     public :
@@ -27,21 +40,29 @@ class cMemState
         int64_t  mNbObjCreated;
 };
 
+/**
+   This class, contains only  static funtion/object
+   It group the functionnality that are usefull for
+   checking allocation/desallocation.
+   This service are activated only wijt debug over The_MMVII_DebugLevel_InternalError_medium
+*/
+
 
 class cMemManager
 {
     public :
-        // si debug assez eleve , memorize les alloc/desalloc 
-        // pour pouvoir verifier si  tout ce qui est alloue est rendu 
-        // rajoute un majic number pour verifier que l'on n'a pas ecrit en bordure
+        /**   modify/add memory state and write "majic" numbers at frontiers 
+              of allocatez zone  (of course allocate a bit more) */
         static void * Calloc(size_t nmemb, size_t size);
+        /// modify/substract memory state and check majic number are unmodified
         static void   Free(void * ptr);
 
-        // Permet d'enregistrer un etat memoire puis de verifier
-        // a la fin d'une execution, que tout a ete rendu
+        ///  Memorize the current memory state
         static const cMemState  CurState() ;
-        static void  CheckRestoration(const cMemState &) ;
+        ///  Return if the given state is equal to the current memory state
         static bool  IsOkCheckRestoration(const cMemState &) ;
+        ///  Assert that the given state is equal to the current memory state
+        static void  CheckRestoration(const cMemState &) ;
 
         // Par ex :    short * aPtr = cMemManager::Alloc<short>(aNb);
         template <class Type> static inline Type * Alloc(size_t nmemb)
@@ -54,7 +75,10 @@ class cMemManager
 };
 
 
-// Ces classe redefini l'operetur new pour checker alloc / desalloc et debordement
+/**
+    This classe redefine l'operetor new and delate to checker alloc / desalloc and (some) bad access.
+    Allocation and desallocation is delegated to  cMemManager
+*/
 
 class  cMemCheck
 {
@@ -71,7 +95,7 @@ class  cMemCheck
 
 
 
-//  Utilitaire courant 
+///  Usefull, delete all object of the container
 template <class Type> inline void DeleteAllAndClear(Type & aVal)
 {
     for (auto it=aVal.begin() ; it!=aVal.end() ; it++)

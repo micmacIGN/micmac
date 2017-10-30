@@ -6,6 +6,10 @@ using namespace boost::filesystem;
 namespace MMVII
 {
 
+// Prouve la pertinence du warning sur  mTable[*aPtr] = aC;
+
+static_assert( int(char(255)) != 255,"Bad char assert");
+static_assert( int(char(-1)) == -1,"Bad char assert");
 
 // cGestObjetEmpruntable<cCarLookUpTable>   cCarLookUpTable::msGOE;
 
@@ -14,7 +18,8 @@ void  cCarLookUpTable::Init(const std::string& aStr,char aC)
     MMVII_INTERNAL_ASSERT_medium(!mInit,"Multiple init of  cCarLookUpTable");
     mInit= true;
     for (const char * aPtr = aStr.c_str() ; *aPtr ; aPtr++)
-        mTable[*aPtr] = aC;
+        mTable[*aPtr] = aC;  // Laisse le warning, il faudra le regler !!!
+        // mTable[size_t(*aPtr)] = aC;
     mIns = aStr;
 }
 
@@ -23,7 +28,7 @@ void  cCarLookUpTable::UnInit()
     MMVII_INTERNAL_ASSERT_medium(mInit,"Multiple Uninit of  cCarLookUpTable");
     mInit= false;
     for (const char * aPtr = mIns.c_str() ; *aPtr ; aPtr++)
-        mTable[*aPtr] = 0;
+        mTable[*aPtr] = 0;  // Laisse le warning, il faudra le regler !!!
     mIns = "";
 }
 
@@ -34,6 +39,93 @@ cCarLookUpTable::cCarLookUpTable() :
     // MEM_RAZ(mTable,1); =>  sizeof(*mTable) == 1 !!!! 
     // std::cout << "DDddrrrr= " << &mTable << " ;; " << &(*mTable) << "\n";
 }
+
+std::vector<std::string>  SplitString(const std::string & aStr,const std::string & aSpace)
+{
+    std::vector<std::string> aRes;
+    cMMVII_Appli::TheAppli().SplitString(aRes,aStr,aSpace);
+    return  aRes;
+}
+
+
+void  SplitStringArround(std::string & aBefore,std::string & aAfter,const std::string & aStr,char aCharSep,bool SVP,bool PrivPref)
+{
+    std::string aStrSep(1,aCharSep);
+    std::vector<std::string> aVStr;
+    cMMVII_Appli::TheAppli().SplitString(aVStr,aStr,aStrSep);
+
+    int aNbSplit = aVStr.size();
+
+    if (aNbSplit==2)
+    {
+        aBefore = aVStr[0];
+        aAfter = aVStr[1];
+        return;
+    }
+
+    if (! SVP)
+    {
+       MMVII_INTERNAL_ASSERT_always
+       (
+            false,
+              std::string("Cannot split string just in two arround [")+aCharSep
+            + std::string("] nb got=") + cStrIO<int>::ToS(int(aVStr.size()))
+            + std::string(" ,input=" ) + aStr
+       );
+    }
+/*
+    if (aNbSplit==0)
+    {
+       aBefore="";
+       aAfter="";
+       return;
+    }
+
+    if (aNbSplit==1)
+    {
+        aBefore =    PrivPref ?  aVStr[0] : "";
+        aAfter  = (!PrivPref) ?  aVStr[0] : "";
+        return;
+    }
+*/
+     
+    aBefore = "";
+    aAfter = "";
+    int aKSplit = PrivPref ?  (aNbSplit-1) :  1;
+
+    std::string * aCur = &aBefore;
+    for (int aK=0 ; aK<aNbSplit ; aK++)
+    {
+       if (aK==aKSplit) aCur = &aAfter;
+
+       if ((aK!=0) && (aK!= aKSplit)) 
+          *aCur +=  aCharSep;
+       *aCur +=  aVStr[aK];
+    }
+}
+
+std::string Prefix(const std::string & aStr,char aSep,bool SVP,bool PrivPref)
+{
+    std::string aBefore,aAfter;
+    SplitStringArround(aBefore,aAfter,aStr,aSep,SVP,PrivPref);
+    return aBefore;
+}
+
+std::string Postfix(const std::string & aStr,char aSep,bool SVP,bool PrivPref)
+{
+    std::string aBefore,aAfter;
+    SplitStringArround(aBefore,aAfter,aStr,aSep,SVP,PrivPref);
+    return aAfter;
+}
+
+
+
+
+    /***********************************************/
+    /*                                             */
+    /*        Dir/Files-names utils                */
+    /*                                             */
+    /***********************************************/
 
 std::string DirCur()
 {
@@ -121,6 +213,7 @@ std::string  Quote(const std::string & aStr)
 
    return aStr;
 }
+
 
 
 };
