@@ -36,6 +36,9 @@ class cMMVII_Appli ;
 
 // MMVII_Stringifier.h
 
+class  cOneArgCL2007 ;
+class cCollecArg2007;
+
 class cAuxAr2007;
 class cAr2007;
 

@@ -23,6 +23,7 @@ namespace MMVII
 #include "MMVII_AllClassDeclare.h"
 // Header MMVII
 // #include "TypeNum.h"
+#include "MMVII_DeclareCste.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Error.h"
 #include "MMVII_memory.h"
@@ -33,11 +34,11 @@ namespace MMVII
 // Les class cPtxd, cPt1d, cPt2d
 #include "MMVII_Ptxd.h"
 #include "MMVII_Bench.h"
-// 
-#include "cMMVII_Appli.h"
 
 // Les classe lies aux conversion vers des chaines, fichier ...
 #include "MMVII_Stringifier.h"
+// 
+#include "cMMVII_Appli.h"
 template <class Type> class  cStrIO;
 
 };

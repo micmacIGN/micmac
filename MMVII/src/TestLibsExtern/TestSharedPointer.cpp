@@ -178,6 +178,8 @@ cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv) :
         DirCur(),
         cArgMMVII_Appli
         (
+            mArgObl,
+            mArgFac
         )
     )
 {

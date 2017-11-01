@@ -1,6 +1,8 @@
 #include "include/MMVII_all.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
+
 using namespace boost::filesystem;
 
 namespace MMVII
@@ -119,6 +121,10 @@ std::string Postfix(const std::string & aStr,char aSep,bool SVP,bool PrivPref)
 }
 
 
+bool UCaseEqual(const std::string & aStr1 ,const std::string & aStr2)
+{
+   return boost::iequals(aStr1,aStr2);
+}
 
 
     /***********************************************/
@@ -213,15 +219,6 @@ std::string  Quote(const std::string & aStr)
 
    return aStr;
 }
-
-
-/*  ========================================================== */
-/*                                                             */
-/*      STRING CONSTANTE                                       */
-/*                                                             */
-/*  ========================================================== */
-const std::string TagMMVIISerial = "MMVII_Serialization";
-
 
 
 };

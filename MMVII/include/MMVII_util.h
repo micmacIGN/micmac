@@ -53,6 +53,8 @@ std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string FileOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string UpDir(const std::string & aDir,int aNb=1);
 
+bool UCaseEqual(const std::string & ,const std::string & ); // Case unsensitive equality
+
 
 /*=============================================*/
 /*                                             */
@@ -60,9 +62,10 @@ std::string UpDir(const std::string & aDir,int aNb=1);
 /*                                             */
 /*=============================================*/
 
-std::unique_ptr<std::ifstream>  NNIfs(const std::string & aNameFile,const std::string aMes);
-std::unique_ptr<std::ofstream>  NNOfs(const std::string & aNameFile,const std::string aMes);
+// std::unique_ptr<std::ifstream>  NNIfs(const std::string & aNameFile,const std::string aMes);
+// std::unique_ptr<std::ofstream>  NNOfs(const std::string & aNameFile,const std::string aMes);
 
+/// Secured ofstream
 /**
    This class offer do not offer musch more service than std::ofstream, but
    try to offer them from a more secured way. The Write(const Type & ) are 
@@ -90,6 +93,7 @@ class cMMVII_Ofs : public cMemCheck
          std::string   mName;
 };
 
+/// Secured ifstream
 /**
    This class is the homologous of cMMVII_Ofs, for input
 */
@@ -106,6 +110,7 @@ class cMMVII_Ifs : public cMemCheck
         void Read(size_t & aVal) ;
         void Read(std::string & aVal) ;
 
+        /// Maybe more convenient as it does require declaration of auxiliary variable
         template<class Type> Type TplRead() {Type aVal; Read(aVal); return aVal;}
     private :
         void VoidRead(void * aPtr,size_t aNb);

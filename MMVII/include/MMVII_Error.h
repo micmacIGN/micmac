@@ -11,7 +11,7 @@
 #define  The_MMVII_DebugLevel_NoError                0
 
 
-// extern int  The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_medium;
+// e xtern int  The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_medium;
 #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
 
 

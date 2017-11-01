@@ -56,6 +56,18 @@ void Bench_0000_Memory()
     cMemManager::CheckRestoration(aSt);
 }
 
+void   Bench_0000_Param()
+{
+   int a,b;
+   cCollecArg2007 aCol;
+   aCol << Arg2007(a,"UnA") << AOpt2007(b,"b","UnB") ;
+   aCol.V()[0]->InitParam("111");
+   aCol.V()[1]->InitParam("222");
+   std::cout << "GGGGGGGG " << a << " " << b << "\n";
+
+   MMVII_INTERNAL_ASSERT_bench(a==111,"Bench_0000_Param");
+   MMVII_INTERNAL_ASSERT_bench(b==222,"Bench_0000_Param");
+}
 
 
 /*************************************************************/
@@ -105,6 +117,8 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
         DirCur(),
         cArgMMVII_Appli
         (
+            mArgObl,
+            mArgFac
         )
     )
 {
@@ -134,6 +148,7 @@ int  cAppli_MMVII_Bench::Exe()
 
 
    Bench_0000_SysDepString();
+   Bench_0000_Param();
 
    std::cout << "BenchGlobBenchGlob \n";
 
@@ -141,8 +156,6 @@ int  cAppli_MMVII_Bench::Exe()
    std::cout <<  " 1.0/0.0" << 1.0/0.0  << "\n";
    std::cout << " sqrt(-1)=" << sqrt(-1)  << "\n";
    std::cout << " asin(2)=" << asin(2.0) << "\n";
-
-
 
 
 

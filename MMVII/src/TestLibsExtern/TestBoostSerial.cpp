@@ -226,6 +226,8 @@ cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial (int argc,char **argv
         DirCur(),
         cArgMMVII_Appli
         (
+             mArgObl,
+             mArgFac
         )
     )
 {

@@ -10,6 +10,22 @@ namespace MMVII
 
 static char BufStrIO[1000];
 
+   // ================  bool ==============================================
+
+template <>  std::string cStrIO<bool>::ToStr(const bool & anI)
+{
+   return  anI ? "true" : "false";
+}
+template <>  bool cStrIO<bool>::FromStr(const std::string & aStr)
+{
+    if ((aStr=="1") || UCaseEqual(aStr,"true")) return true;
+    if ((aStr=="0") || UCaseEqual(aStr,"false")) return false;
+
+    MMVII_INTERNAL_ASSERT_user(false,"Bad value for boolean :["+aStr+"]");
+
+    return false;
+}
+
    // ================  int ==============================================
 
 template <>  std::string cStrIO<int>::ToStr(const int & anI)
