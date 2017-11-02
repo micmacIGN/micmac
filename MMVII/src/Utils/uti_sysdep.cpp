@@ -1,31 +1,11 @@
 #include "include/MMVII_all.h"
 
-#define SYS_L 0  // Linux
-#define SYS_W 1  // Window
-#define SYS_A 2  // Apple
-
-#ifdef __linux__
-const std::string TheSysName = "Linux";
-#include <unistd.h>
-#define SYS SYS_L
-#endif
-
-#ifdef _WIN32
-const std::string TheSysName = "Bill's shit";
-#define SYS SYS_W
-#endif
-
-#ifdef __APPLE__
-const std::string TheSysName = "Steve's shit";
-#define SYS SYS_A
-#endif
-
-
-
 namespace MMVII
 {
 
-#if   (SYS==SYS_L)
+
+#if   (THE_MACRO_MMVII_SYS==MMVII_SYS_L)
+const std::string TheMMVII_SysName = "Gnu/Linux";
 int mmvii_NbProcSys()
 {
     return sysconf (_SC_NPROCESSORS_CONF);
@@ -34,7 +14,8 @@ int mmvii_GetPId()
 {
     return getpid();
 }
-#elif (SYS==SYS_W)
+#elif (THE_MACRO_MMVII_SYS==MMVII_SYS_W)
+const std::string TheMMVII_SysName = "Bill's shit";
 int mmvii_NbProcSys()
 {
     SYSTEM_INFO sysinfo;
@@ -46,6 +27,7 @@ int mmvii_GetPId()
     return _getpid();
 }
 #else
+const std::string TheMMVII_SysName = "Steve's shit";
 int mmvii_GetPId()
 {
     MMVII_INTERNAL_ASSERT_always(false,"mmvii_GetPId on "+TheSysName);

@@ -1,7 +1,38 @@
 #include "include/MMVII_all.h"
+#include <cmath>
 
 namespace MMVII
 {
+
+#if (THE_MACRO_MMVII_SYS == MMVII_SYS_L)
+void Bench_0000_SysDepString()
+{
+    std::string aPath0 = "MMVII";
+    MMVII_INTERNAL_ASSERT_bench(DirOfPath (aPath0,false)=="./","Dir Bench_0000_SysDepString");
+    MMVII_INTERNAL_ASSERT_bench(FileOfPath(aPath0,false)=="MMVII","File Bench_0000_SysDepString");
+
+
+    std::string aPath1 = "af.tif";
+    MMVII_INTERNAL_ASSERT_bench(DirOfPath (aPath1,false)=="./","Dir Bench_0000_SysDepString");
+    MMVII_INTERNAL_ASSERT_bench(FileOfPath(aPath1,false)=="af.tif","File Bench_0000_SysDepString");
+
+    std::string aPath2 = "./toto.txt";
+    MMVII_INTERNAL_ASSERT_bench(DirOfPath (aPath2,false)=="./","Dir Bench_0000_SysDepString");
+    MMVII_INTERNAL_ASSERT_bench(FileOfPath(aPath2,false)=="toto.txt","File Bench_0000_SysDepString");
+
+    std::string aPath3 = "/a/bb/cc/";
+    MMVII_INTERNAL_ASSERT_bench(DirOfPath (aPath3,false)==aPath3,"Dir Bench_0000_SysDepString");
+    MMVII_INTERNAL_ASSERT_bench(FileOfPath(aPath3,false)=="","File Bench_0000_SysDepString");
+
+    std::string aPath4 = "/a/bb/cc/tutu";
+    MMVII_INTERNAL_ASSERT_bench(DirOfPath (aPath4,false)==aPath3,"Dir Bench_0000_SysDepString");
+    MMVII_INTERNAL_ASSERT_bench(FileOfPath(aPath4,false)=="tutu","File Bench_0000_SysDepString");
+}
+#else
+void Bench_0000_SysDepString()
+{
+}
+#endif
 
 void Bench_0000_Memory()
 {
@@ -25,6 +56,18 @@ void Bench_0000_Memory()
     cMemManager::CheckRestoration(aSt);
 }
 
+void   Bench_0000_Param()
+{
+   int a,b;
+   cCollecArg2007 aCol;
+   aCol << Arg2007(a,"UnA") << AOpt2007(b,"b","UnB") ;
+   aCol.V()[0]->InitParam("111");
+   aCol.V()[1]->InitParam("222");
+   std::cout << "GGGGGGGG " << a << " " << b << "\n";
+
+   MMVII_INTERNAL_ASSERT_bench(a==111,"Bench_0000_Param");
+   MMVII_INTERNAL_ASSERT_bench(b==222,"Bench_0000_Param");
+}
 
 
 /*************************************************************/
@@ -48,13 +91,23 @@ void cAppli_MMVII_Bench::Bench_0000_String()
     std::vector<std::string> aSplit;
     SplitString(aSplit,"@  @AA  BB@CC DD   @  "," @");
     MMVII_INTERNAL_ASSERT_bench(aSplit.size()==4,"Size in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[0]=="AA","V0 in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[1]=="BB","V0 in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[2]=="CC","V0 in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[3]=="DD","V0 in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit[0]=="AA","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit[1]=="BB","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit[2]=="CC","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit[3]=="DD","SplitString in Bench_0000_String");
+
+    MMVII_INTERNAL_ASSERT_bench(Prefix("AA.tif")=="AA",  "Prefix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix("AA.tif")=="tif","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix("AA.tif",'t')=="if","Postfix in Bench_0000_String");
+
+    MMVII_INTERNAL_ASSERT_bench(Prefix("a.b.c",'.',true,true)=="a.b",  "Prefix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Prefix("a.b.c",'.',true,false)=="a",  "Prefix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix("a.b.c",'.',true,true)=="c",  "Prefix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix("a.b.c",'.',true,false)=="b.c",  "Prefix in Bench_0000_String");
 }
 
 
+   // std::string & aBefore,std::string & aAfter,const std::string & aStr,char aSep,bool SVP=false,bool PrivPref=true);
 
 cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
     cMMVII_Appli
@@ -64,6 +117,8 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
         DirCur(),
         cArgMMVII_Appli
         (
+            mArgObl,
+            mArgFac
         )
     )
 {
@@ -84,14 +139,27 @@ int  cAppli_MMVII_Bench::Exe()
    // MMVII_INTERNAL_ASSERT_all((1+1)==3,"Theoreme  pas tres fondamental de l'arithmetique");
 
    // 
+   Bench_0000_SysDepString();
 
-    Bench_0000_Memory();
-    Bench_0000_String();
-    Bench_0000_Ptxd();
+   Bench_0000_String();
+   Bench_0000_Memory();
+   Bench_0000_String();
+   Bench_0000_Ptxd();
 
-    std::cout << "BenchGlobBenchGlob \n";
 
-    return EXIT_SUCCESS;
+   Bench_0000_SysDepString();
+   Bench_0000_Param();
+
+   std::cout << "BenchGlobBenchGlob \n";
+
+   // std::cout << " 1/0=" << 1/0  << "\n";
+   std::cout <<  " 1.0/0.0" << 1.0/0.0  << "\n";
+   std::cout << " sqrt(-1)=" << sqrt(-1)  << "\n";
+   std::cout << " asin(2)=" << asin(2.0) << "\n";
+
+
+
+   return EXIT_SUCCESS;
 }
 
 

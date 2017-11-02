@@ -87,6 +87,9 @@ void throwError(std::string err)
 
 int GetCharOnBrkp()
 {
+std::cout << "TTTTTTTtttttttttttttttt\n"; getchar();
+
+
    BasicErrorHandler();
    if (TheExitOnBrkp)
       return 0;
@@ -194,6 +197,7 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
     msg += "|          at line : " + sl.str()  +                        "\n";
     msg += "|          of file : " + sf.str()  +                        "\n";
     msg += "-------------------------------------------------------------\n";
+// getchar();
 
     throwError(msg);
 

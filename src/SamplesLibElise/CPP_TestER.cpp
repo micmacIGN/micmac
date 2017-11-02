@@ -39,7 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 #include "../uti_phgrm/Apero/cCameraRPC.h"
-
+#include "general/ptxd.h"
+#include "../util/affin2d.cpp"
 
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
@@ -718,29 +719,91 @@ int TestER_main100(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-//test camera affine
+//test Map2D
 int TestER_main3(int argc,char ** argv)
 {
-    //cInterfChantierNameManipulateur * aICNM;
-    std::string aFullName;
-    std::string aDir;
-    std::string aNameOri;
-    std::list<std::string> aListFile;
+    std::string aNameIm;
+    std::string aNameOut="PolyIm.tif";
+    std::string aNameMapOut="PolyIm.xml";
 
+    Pt2di       aP0(100,100);
+    Pt2di       aSz(1000,1000);
+    int         aNb;
+    int         aDeg=2;
+    Box2dr      aBox(aP0,aP0+aSz);
+
+
+//    eTypeMap2D aType="eTM2_Polyn";
+   
     ElInitArgMain
     (
         argc, argv,
-        LArgMain() << EAMC(aFullName,"Orientation file full name (Dir+OriPattern)"),
-	LArgMain()
+        LArgMain() << EAMC(aNameIm,"Image name")
+                   << EAMC(aNb,"Number of points in X (and Y respectively)"),
+        LArgMain() << EAM(aP0,"P0",true,"Origin of the grid")
+                   << EAM(aSz,"Sz",true,"Size of the grid")
+                   << EAM(aDeg,"Deg",true,"Polynom degree")
+                   << EAM(aNameOut,"Out",true,"Name of the output image")
     );
 
-    std::cout << aFullName << std::endl;
+ 		
+    //lecture d'une image
+    Tiff_Im aTifIn = Tiff_Im::StdConvGen(aNameIm,-1,true);
+    Pt2di   aTifSz = aTifIn.sz();
 
-    //CameraAffine aCamAF(aFullName);
-    //aCamAF.ShowInfo();
+    Im2D_REAL4 aImR(aTifSz.x, aTifSz.y);
+    ELISE_COPY
+    (
+        aImR.all_pts(),
+        aTifIn.in(),
+        aImR.out()
+    );
+
+    Im2D_REAL8 aImRes(aTifSz.x,aTifSz.y,0.0);
+    
+    //selection d'un grille et sauvgaure dans ElPackHomologue
+    Pt2di aPas(floor(double(aSz.x-aP0.x)/aNb), floor(double(aSz.y-aP0.y)/aNb));
+
+    ElPackHomologue aPack;
+    for (int aK1=aP0.x; aK1<aSz.x; aK1=aK1+aNb)
+    {
+        for (int aK2=aP0.y; aK2<aSz.y; aK2=aK2+aNb)
+     	{
+	    Pt2dr aP(aK1,aK2);
+	    double aD(aImR.Val(aK1,aK2));
+            aPack.Cple_Add(ElCplePtsHomologues(aP,aP+Pt2dr(aD,aD)));
+        }  
+    }
+
+
+    cMapPol2d aMapPol(aDeg,aBox,2); 
+    std::vector<std::string> aVAux = aMapPol.ParamAux();
+    cParamMap2DRobustInit aParam(eTypeMap2D(aMapPol.Type()),200,&aVAux);
+    Map2DRobustInit(aPack,aParam); 
+
+    cElMap2D * aMapCor= aParam.mRes;
+    std::vector<cElMap2D *> aVMap;
+    aVMap.push_back(aMapCor);
+    cComposElMap2D aComp(aVMap);
+ 
+    for (int aK1=aP0.x; aK1<aSz.x; aK1++)
+    {
+        for (int aK2=aP0.y; aK2<aSz.y; aK2++)
+        {
+	    Pt2dr  aP(aK1,aK2);
+            double aRes  = aComp(aP).x - aP.x;
+
+            aImRes.SetR_SVP(Pt2di(aP.x,aP.y),aRes);
+        }
+    }
+    MakeFileXML(aComp.ToXmlGen(),aNameMapOut);
+
+    std::string aPref = "Res";
+    Tiff_Im::CreateFromIm(aImRes,aPref+"-PolyFit.tif");
 
     return EXIT_SUCCESS;
 }
+
 //test export of a CamStenope into bundles of rays
 int TestER_main2(int argc,char ** argv)
 {

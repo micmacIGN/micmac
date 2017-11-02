@@ -60,12 +60,41 @@ class cApplyMMRename
 
        std::string               mKeyCalc;
        std::vector<std::string>  mVSetH;
+       std::vector<std::string>  mVSetO;
        cInterfChantierNameManipulateur  * mICNM;
    private :
 
        void DoOneDirHom(const std::string & aSH,const std::string & anExt);
+       void DoOneDirOri(const std::string & aOri);
 };
 
+
+void cApplyMMRename::DoOneDirOri(const std::string & aOri)
+{
+    std::string aKeySet    = std::string("NKS-Set-Orient@-") + aOri;
+    std::string aKeyOri2Im = std::string("NKS-Assoc-Im2Orient@-") + aOri;
+
+    const cInterfChantierNameManipulateur::tSet *   aSetF = mICNM->Get(aKeySet);
+
+
+    for (int aK=0 ; aK<int(aSetF->size()) ; aK++)
+    {
+        //std::cout << "Ori=" << (*aSetF)[aK] << "\n";
+	std::string aOldOri = (*aSetF)[aK];
+	std::string aI1  = mICNM->Assoc1To1(aKeyOri2Im,aOldOri,false);
+
+	std::string aI2 = mICNM->Assoc1To1(mKeyCalc,aI1,true);
+
+	std::string aNewOri = mICNM->Assoc1To1(aKeyOri2Im,aI2,true);
+
+	ELISE_fp::CpFile(aOldOri,aNewOri);
+
+	std::cout << " F=" << aOldOri << " -> " << aNewOri << "\n";
+	
+    }
+
+
+}
 
 void cApplyMMRename::DoOneDirHom(const std::string & aSH,const std::string & anExt)
 {
@@ -76,13 +105,14 @@ void cApplyMMRename::DoOneDirHom(const std::string & aSH,const std::string & anE
 
     std::string aKeyNewCple = std::string("NKS-Assoc-CplIm2Hom@") + aExTmp + "@" + anExt;
 
+
     const cInterfChantierNameManipulateur::tSet *   aSetF = mICNM->Get(aKeySet);
 
     
     for (int aK=0 ; aK<int(aSetF->size()) ; aK++)
     {
          const std::string & aNameHom = (*aSetF)[aK];
-         // std::cout << "H=" << aNameHom << "\n";
+         //std::cout << "H=" << aNameHom << "\n";
          std::pair<std::string,std::string> aPair = mICNM->Assoc2To1(aKeyCple,aNameHom,false);
          const std::string &  aNI1 = aPair.first;
          const std::string &  aNI2 = aPair.second;
@@ -106,6 +136,7 @@ cApplyMMRename::cApplyMMRename(int argc,char ** argv)
         argc,argv,
         LArgMain() << EAMC(mKeyCalc,"Key of computation")  ,
         LArgMain() << EAM(mVSetH,"SH",true,"Set of Homologous point")
+                   << EAM(mVSetO,"Ori",true,"Set of Orientations")
     );
  
     mICNM  = cInterfChantierNameManipulateur::BasicAlloc("./");
@@ -115,6 +146,11 @@ cApplyMMRename::cApplyMMRename(int argc,char ** argv)
     {
         DoOneDirHom(mVSetH[aKS],"dat");
         DoOneDirHom(mVSetH[aKS],"txt");
+    }
+
+    for (int aKS=0 ; aKS<int(mVSetO.size()) ; aKS++)
+    {
+	DoOneDirOri(mVSetO[aKS]);
     }
 
 /*

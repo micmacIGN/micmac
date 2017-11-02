@@ -25,8 +25,20 @@ typedef tMMVII_UnikPApli (* tMMVII_AppliAllocator)(int argc, char ** argv);
 
      // ========================== cArgMMVII_Appli  ==================
 
+/**
+   The specification of argument cCollecArg2007 are taken in the appli itself
+*/
 class cArgMMVII_Appli
 {
+     public :
+          cArgMMVII_Appli
+          (
+             cCollecArg2007 & ArgObl,
+             cCollecArg2007 & ArgFac
+          );
+     private :
+          cCollecArg2007 &  mArgObl;
+          cCollecArg2007 &  mArgFac;
 };
 
 
@@ -134,6 +146,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mDirMicMacv1;
         std::string                               mDirChantier;
         cMemState                                 mMemStateBegin;
+        cCollecArg2007                            mArgCom; ///<  Arg common to all appli
+        cCollecArg2007                            mArgObl; ///< Mandatory args
+        cCollecArg2007                            mArgFac; ///< Optional args
       
 };
 

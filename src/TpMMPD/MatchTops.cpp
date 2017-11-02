@@ -49,16 +49,30 @@ const double MJD2000 = 51544.5; 	// J2000 en mjd
 const double GPS0 = 315964800.0; 	// 1980-01-06T00:00:00 in seconds starting from 1970-01-01T00:00:00
 const int LeapSecond = 18;			// GPST-UTC=18s
 
+struct hmsTime{
+    double Year;
+    double Month;
+    double Day;
+    double Hour;
+    double Minute;
+    double Second;
+};
 
-struct ImgTimes
+struct ImgNameTime
 {
+<<<<<<< HEAD
 	std::string ImgName;
 	double ImgT; // system unix time
 	double ImgMJD; // GPS MJD time
+=======
+    std::string ImgName;
+    hmsTime ImgTime; // system unix time
+>>>>>>> master
 };
 
-std::vector<ImgTimes> ReadImgTimesFile(string & aDir, string aTimeFile, std::string aExt)
+std::vector<ImgNameTime> ReadImgNameTimeFile(string & aDir, string aImgNameTimeFile, std::string aExt)
 {
+<<<<<<< HEAD
 	std::vector<ImgTimes> aVSIT;
 	ifstream aFichier((aDir + aTimeFile).c_str());
 	if (aFichier)
@@ -93,10 +107,121 @@ std::vector<ImgTimes> ReadImgTimesFile(string & aDir, string aTimeFile, std::str
 		std::cout << "Error While opening file" << '\n';
 	}
 	return aVSIT;
+=======
+    std::vector<ImgNameTime> aVINT;
+    ifstream aFichier((aDir + aImgNameTimeFile).c_str());
+    if(aFichier)
+    {
+        std::string aLine;
+        while(!aFichier.eof())
+        {
+            getline(aFichier,aLine,'\n');
+            if(aLine.size() != 0)
+            {
+                char *aBuffer = strdup((char*)aLine.c_str());
+                std::string aImgName = strtok(aBuffer,"	");
+                std::string aYear = strtok(NULL,"-");
+                std::string aMonth = strtok(NULL,"-");
+                std::string aDay = strtok(NULL," ");
+                std::string aHour = strtok(NULL,":");
+                std::string aMinute = strtok(NULL,":");
+                std::string aSecond = strtok(NULL," ");
+
+                ImgNameTime aImgNT;
+                if(aExt != "")
+                    aImgNT.ImgName = aImgName + aExt;
+                else
+                    aImgNT.ImgName = aImgName;
+
+                aImgNT.ImgTime.Year = atof(aYear.c_str());
+                aImgNT.ImgTime.Month = atof(aMonth.c_str());
+                aImgNT.ImgTime.Day = atof(aDay.c_str());
+                aImgNT.ImgTime.Hour = atof(aHour.c_str());
+                aImgNT.ImgTime.Minute = atof(aMinute.c_str());
+                aImgNT.ImgTime.Second = atof(aSecond.c_str());
+
+                aVINT.push_back(aImgNT);
+            }
+        }
+        aFichier.close();
+    }
+    else
+    {
+        std::cout<< "Error While opening file" << '\n';
+    }
+    return aVINT;
+}
+
+double hmsTime2MJD(const hmsTime & aTime, const bool & aTSys)
+{
+
+    double aYear;
+    double aMonth;
+    double aSec = aTime.Second;
+
+    //std::cout << "aSec = " << aSec << std::endl;
+
+    if(aTSys)
+    {
+        aSec += LeapSecond;
+    }
+
+    //std::cout << "aSec = " << aSec << std::endl;
+
+    //2 or 4 digits year management
+    if(aTime.Year < 80)
+    {
+        aYear = aTime.Year + 2000;
+    }
+    else if(aTime.Year < 100)
+    {
+        aYear = aTime.Year + 1900;
+    }
+    else
+    {
+        aYear = aTime.Year;
+    }
+
+    //months
+    if(aTime.Month <= 2)
+    {
+        aMonth = aTime.Month + 12;
+        aYear = aTime.Year - 1;
+    }
+    else
+    {
+        aMonth = aTime.Month;
+    }
+
+    //std::cout << "aYear = " << aYear << std::endl;
+    //std::cout << "aMonth = " << aMonth << std::endl;
+
+    double aC = floor(aYear / 100);
+    //std::cout << "aC = " << aC << std::endl;
+
+    double aB = 2 - aC + floor(aC / 4);
+    //std::cout << "aB = " << aB << std::endl;
+
+    double aT = (aTime.Hour/24) + (aTime.Minute/1440) + (aSec/86400);
+    //printf("aT = %.15f \n", aT);
+
+    double aJD = floor(365.25 * (aYear+4716)) + floor(30.6001 * (aMonth+1)) + aTime.Day + aT + aB - 1524.5;
+    //printf("aJD = %.15f \n", aJD);
+
+    double aS1970 = (aJD - JD2000) * 86400 + J2000; // seconds starting from 1970-01-01T00:00:00
+    //printf("aS1970 = %.15f \n", aS1970);
+
+    double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
+    //printf("aMJD = %.15f \n", aMJD);
+
+    return aMJD;
+
+>>>>>>> master
 }
 
 int ImgTMTxt2Xml_main(int argc, char ** argv)
 {
+<<<<<<< HEAD
 	std::string aDir, aITF, aITFile, aExt = ".thm.tif";
 	ElInitArgMain
 	(
@@ -121,6 +246,93 @@ int ImgTMTxt2Xml_main(int argc, char ** argv)
 	MakeFileXML(aDicoIT, aOutIT);
 
 	return EXIT_SUCCESS;
+=======
+    std::string aDir, aINTF, aINTFile, aExt=".thm.tif";
+    bool aTSys (true);
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aINTFile, "File of image system unix time (all_name_date.txt)", eSAM_IsExistFile),
+        LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
+                    << EAM(aTSys,"TSys",true,"Time system, UTC=1, GPST=0, Def=UTC")
+    );
+    SplitDirAndFile(aDir,aINTF,aINTFile);
+
+    //read aImTimeFile and convert to xml
+    std::vector<ImgNameTime> aVINT = ReadImgNameTimeFile(aDir, aINTFile, aExt);
+
+    cDicoImgsTime aDicoIT;
+
+    for(uint iV=0; iV<aVINT.size(); iV++)
+    {
+        cCpleImgTime aCpleIT;
+        aCpleIT.NameIm()=aVINT.at(iV).ImgName;
+        aCpleIT.TimeIm() = hmsTime2MJD(aVINT.at(iV).ImgTime,aTSys);
+        aDicoIT.CpleImgTime().push_back(aCpleIT);
+    }
+    std::string aOutINT=StdPrefix(aINTF)+".xml";
+    MakeFileXML(aDicoIT,aOutINT);
+
+    return EXIT_SUCCESS;
+}
+
+int GenImgTM_main (int argc, char ** argv)
+{
+    std::string aDir,aGPSFile,aGPSF,aOutINT="all_name_date.xml",aGPS_S="GPS_selected.txt",aGPS_L="GPS_left.xml";
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aGPSFile, "File of GPS position and MJD time", eSAM_IsExistFile),
+        LArgMain()  << EAM(aOutINT,"OutINT",true,"Output Img name/time couple file, Def = all_name_date.xml")
+                    << EAM(aGPS_S,"SGPS",true,"Output selected GPS file, Def = GPS_selected.txt")
+                    << EAM(aGPS_L,"SGPR",true,"Output left GPS file, Def = GPS_left.xml")
+    );
+    SplitDirAndFile(aDir,aGPSF,aGPSFile);
+
+    //read .xml file
+    cDicoGpsFlottant aDico_all = StdGetFromPCP(aGPSF,DicoGpsFlottant);
+    std::vector<cOneGpsDGF> aVOneGps = aDico_all.OneGpsDGF();
+    std::cout << "size of GPS obs: " << aVOneGps.size() << endl;
+
+
+    cDicoImgsTime aDicoIT;
+    cDicoGpsFlottant aDico_left;
+
+    FILE * aFP = FopenNN(aGPS_S,"w","GenImgTM_main");
+    cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aGPS_S);
+
+    for (uint iV=0; iV<aVOneGps.size(); iV++)
+    {
+        if (iV%2==1)
+        {
+            cCpleImgTime aCpleIT;
+            aCpleIT.NameIm()=aVOneGps.at(iV).NamePt();
+            aCpleIT.TimeIm()=aVOneGps.at(iV).TimePt();
+            aDicoIT.CpleImgTime().push_back(aCpleIT);
+            fprintf(aFP,"%s %lf %lf %lf \n",aCpleIT.NameIm().c_str(), aVOneGps.at(iV).Pt().x, aVOneGps.at(iV).Pt().y, aVOneGps.at(iV).Pt().z);
+        }
+        else
+        {
+            cOneGpsDGF aOneGps;
+            aOneGps.Pt().x=aVOneGps.at(iV).Pt().x;
+            aOneGps.Pt().y=aVOneGps.at(iV).Pt().y;
+            aOneGps.Pt().z=aVOneGps.at(iV).Pt().z;
+            aOneGps.NamePt()=aVOneGps.at(iV).NamePt();
+            aOneGps.TagPt()=aVOneGps.at(iV).TagPt();
+            aOneGps.TimePt()=aVOneGps.at(iV).TimePt();
+            aOneGps.Incertitude()=aVOneGps.at(iV).Incertitude();
+            aDico_left.OneGpsDGF().push_back(aOneGps);
+        }
+
+
+    }
+
+    MakeFileXML(aDicoIT,aOutINT);
+    MakeFileXML(aDico_left,aGPS_L);
+    ElFclose(aFP);
+
+    return EXIT_SUCCESS;
+>>>>>>> master
 }
 
 //struct Tops

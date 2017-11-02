@@ -7,11 +7,7 @@
 #include <unordered_map>
 #include <functional>
 
-#include <boost/array.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-
-#include <Eigen/Dense>
+//#include <Eigen/Dense>
 
 namespace MMVII
 {
@@ -105,8 +101,8 @@ cFonc1V::cFonc1V(double aCste) :
 class cDataFonc1V_X  : public cDataFonc1V
 {
       public :
-           cDataFonc1V_X() {std::cout << "CREATE X\n";}
-           ~cDataFonc1V_X() {std::cout << "Kill X\n";}
+           cDataFonc1V_X() {} //{std::cout << "CREATE X\n";}
+           ~cDataFonc1V_X() {} //{std::cout << "Kill X\n";}
 
            double GetVal(double aVal) const {return aVal;}
            cFonc1V Derive() const {return cFonc1V(1.0);}
@@ -114,7 +110,7 @@ class cDataFonc1V_X  : public cDataFonc1V
       private  :
 };
 
-static cFonc1V X(new cDataFonc1V_X);
+static cFonc1V X() { return (new cDataFonc1V_X);}
 
 
 
@@ -152,7 +148,7 @@ void  TestSharedPointer()
    // new  cFonc1V(3.14);
    // new  cDataFonc1V_Cste(3.14);
    {
-       cFonc1V aF = X+3+(X+4);
+       cFonc1V aF = X()+3+(X()+4);
        std::cout << "F(10) = " << aF.GetVal(10) << " Count= " << cTestMMV2Obj::NbObj() << "\n";
        std::cout << "F'(10) = " << aF.Derive().GetVal(10)  << "\n";
        aF->Show(std::cout) ; std::cout << "\n";
@@ -166,39 +162,6 @@ void  TestSharedPointer()
 /*            cAppli_MMVII_TestCpp11                         */
 /*                                                           */
 /*************************************************************/
-template<class Archive>
-void serialize(Archive & ar, cPt2dr & aP, const unsigned int version)
-{
-    ar & aP.x();
-    ar & aP.y();
-}
-
-void TestBoostSerial()
-{
- // create class instance
-    std::ofstream ofs("filename");
-    const cPt2dr aP(1,2);
-
-    // save data to archive
-    {
-        boost::archive::text_oarchive oa(ofs);
-        // write class instance to archive
-        oa << aP;
-    	// archive and stream closed when destructors are called
-    }
-
-    // ... some time later restore the class instance to its orginal state
-    cPt2dr aNewP(0,0);
-    {
-        // create and open an archive for input
-        std::ifstream ifs("filename");
-        boost::archive::text_iarchive ia(ifs);
-        // read class state from archive
-        ia >> aNewP;
-        // archive and stream closed when destructors are called
-    }
-    std::cout  << " AAATestBoostSerial " << aNewP.x() << " " <<  aNewP.y() << "\n";
-}
 
 class cAppli_MMVII_TestCpp11 : public cMMVII_Appli
 {
@@ -215,6 +178,8 @@ cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv) :
         DirCur(),
         cArgMMVII_Appli
         (
+            mArgObl,
+            mArgFac
         )
     )
 {
@@ -336,18 +301,20 @@ int cAppli_MMVII_TestCpp11::Exe()
    std::cout << " Type1=> " << typeid(std::get<1>(aTuple)).name()  << "\n";
 
 
-   char * C= nullptr;  // Un pointeur nul universel, + clean que (char *) 0
+   char * C= nullptr; IgnoreUnused(C); // Un pointeur nul universel, + clean que (char *) 
+
    cCtsrCallCstr aT;
    std::cout << "cCtsrCallCstr => " << aT.mV << "\n";
    // PrintSzVect({1,2}); => Pb avec template et initializer , pas sur pb moo ou g++ ?
    PrintSzVectI({1,2});  // Ok sans template
    // Les const expression sont garanties evaluables a la compile
    constexpr auto i = 3+4;
-   typedef decltype (1/2.0) mDouble;  // declaration de type a partir d'une expression
+   typedef decltype (1/2.0) tDouble;  // declaration de type a partir d'une expression
+   tDouble aUnusedtDouble; IgnoreUnused(aUnusedtDouble);
    // i++;
    // auto l = constexpr 3+4;
    // l++;
-   constexpr  int j = 2*i;
+   constexpr  int j = 2*i;  IgnoreUnused(j);
    // const constexpr l = 2;
    // constexpr int k = ExternalFonc(); => pas evaluable a la compile
    // Range
@@ -366,6 +333,7 @@ int cAppli_MMVII_TestCpp11::Exe()
    {
        for (const auto & it2 : it1)
        {
+             if (it2) ;
        }
    }
 
@@ -396,9 +364,7 @@ int cAppli_MMVII_TestCpp11::Exe()
    
 
    TestSharedPointer();
-   TestBoostSerial();
    return EXIT_SUCCESS;
-
 }
 
 

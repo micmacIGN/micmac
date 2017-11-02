@@ -600,7 +600,7 @@ extern int TD_Match2_main(int argc,char ** argv);
 extern int TD_Match3_main(int argc,char ** argv);
 extern int TestER_main(int argc,char ** argv);
 extern int TestER_grille_main(int argc,char ** argv);
-extern int TestER_filtRec_main(int argc,char ** argv);
+extern int TestER_main3(int argc,char ** argv);
 extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
@@ -717,6 +717,8 @@ int TestGiang_main(int argc,char ** argv);
 
 int TestGiangNewHomol_Main(int argc,char ** argv);
 
+int TestGiangDispHomol_Main(int argc,char ** argv);
+
 int GetSpace_main(int argc, char ** argv);
 
 int TestDetecteur_main(int argc,char ** argv);
@@ -757,6 +759,7 @@ extern int ExtraitHomol_main(int argc, char ** argv);
 extern int IntersectHomol_main(int argc, char ** argv);
 extern int ReechMAF_main(int argc, char ** argv);
 extern int ImgTMTxt2Xml_main(int argc, char ** argv);
+extern int GenImgTM_main(int argc, char ** argv);
 extern int EsSim_main(int argc,char ** argv);
 int ProcessThmImgs_main(int argc,char ** argv);
 
@@ -818,7 +821,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
        aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
-       aRes.push_back(cMMCom("TestER",TestER_filtRec_main,"ER test workplace"));
+       aRes.push_back(cMMCom("TestER",TestER_main3,"ER test workplace"));
        aRes.push_back(cMMCom("TestAT",TestPush,"AT test workplace"));
 
 //       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
@@ -969,6 +972,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestMartini",TestMartini_Main,"Test Martini with simulation"));
 
         aRes.push_back(cMMCom("Test_Giang",TestGiangNewHomol_Main,"Test Giang"));
+        aRes.push_back(cMMCom("DispHomolCom",TestGiangDispHomol_Main,"Test Giang"));
         aRes.push_back(cMMCom("GetSpace",GetSpace_main,"Delete all temporary file after treatment complete"));
         aRes.push_back(cMMCom("TiepTriPrl",TiepTriPrl_main,"Paralelliser version of TiepTri",cArgLogCom(2)));
         aRes.push_back(cMMCom("TiepTri",TiepTri_Main," Once again Test Correlation by Mesh"));
@@ -994,6 +998,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("IntersectHomol",IntersectHomol_main ,"Pseudo-intersection for tie points"));
         aRes.push_back(cMMCom("ReechMAF",ReechMAF_main ,"Apply map to image measurement file"));
         aRes.push_back(cMMCom("ImgTMTxt2Xml",ImgTMTxt2Xml_main ,"Match tops time with image time to get GPS time"));
+        aRes.push_back(cMMCom("GenImgTM",GenImgTM_main ,"Generate fake Img name/time couple from GPS .xml file"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
         aRes.push_back(cMMCom("ConvertTiePPs2MM",ConvertTiePPs2MM_main,"ConvertTiePPs2MM"));

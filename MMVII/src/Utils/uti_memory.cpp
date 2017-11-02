@@ -56,12 +56,22 @@ void cMemManager::CheckRestoration(const cMemState & aState)
 // void CheckRestoration(const cMemState &) ;
 
 
+/*
 static const unsigned int  maj_32A = 0xF98A523F;
 static const unsigned int  maj_32B = 0xC158E6B1;
 static const unsigned int  maj_32C = 0xA57EF39D;
 static const unsigned int  maj_32D = 0x7089AE99;
-static const unsigned char maj_octet = 0xE7;
 static const unsigned int  rubbish  = 0xFEDCBAEF;
+int32_t
+*/
+
+static const int32_t  maj_32A = 0xF98A523F;
+static const int32_t  maj_32B = 0xC158E6B1;
+static const int32_t  maj_32C = 0xA57EF39D;
+static const int32_t  maj_32D = 0x7089AE99;
+static const int32_t  rubbish  = 0xFEDCBAEF;
+
+static const unsigned char maj_octet = 0xE7;
 
 
 void * cMemManager::Calloc(size_t nmemb, size_t size)
@@ -91,7 +101,7 @@ void * cMemManager::Calloc(size_t nmemb, size_t size)
           // unsigned char * res1 = static_cast<unsigned char *> (v) + 16;
           // int1_t char * res1 = static_cast<unsigned char *> (v) + 16;
           size_t aNbOctAllign8 = 8 * aNb8;
-          for (int i =   aNbOct ; i < aNbOctAllign8; i++)
+          for (size_t i =   aNbOct ; i < aNbOctAllign8; i++)
           {
               // std::cout << "Majic Octet " << int(maj_octet) << "\n";
               aRes1[i] = maj_octet;
@@ -128,7 +138,7 @@ void   cMemManager::Free(void * aPtr)
      {
           unsigned char * aRes1 = static_cast<unsigned char *> (aPtr) ;
           size_t aNbOctAllign8 = 8 * aNb8;
-          for (int i =   aNbOct ; i < aNbOctAllign8; i++)
+          for (size_t i =   aNbOct ; i < aNbOctAllign8; i++)
           {
               MMVII_INTERNAL_ASSERT_always(aRes1[i]==maj_octet,aMesDebord);
           }

@@ -3,6 +3,31 @@
 namespace MMVII
 {
 
+
+/*  ============================================== */
+/*                                                 */
+/*                cArgMMVII_Appli                  */
+/*                                                 */
+/*  ============================================== */
+
+cArgMMVII_Appli::cArgMMVII_Appli
+(
+    cCollecArg2007 & ArgObl,
+    cCollecArg2007 & ArgFac
+) :
+    mArgObl  (ArgObl),
+    mArgFac  (ArgFac)
+{
+}
+
+
+
+/*  ============================================== */
+/*                                                 */
+/*                cMMVII_Appli                     */
+/*                                                 */
+/*  ============================================== */
+
 cMMVII_Appli * cMMVII_Appli::msTheAppli = 0;
 
 
@@ -23,7 +48,7 @@ cMMVII_Appli::~cMMVII_Appli()
 }
 
 
-cMMVII_Appli::cMMVII_Appli(int argc,char ** argv,const std::string & aDirChantier,cArgMMVII_Appli)  :
+cMMVII_Appli::cMMVII_Appli(int argc,char ** argv,const std::string & aDirChantier,cArgMMVII_Appli aSpecArg)  :
    mArgc          (argc),
    mArgv          (argv),
    mFullBin       (mArgv[0]),
