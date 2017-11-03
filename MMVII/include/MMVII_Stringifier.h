@@ -110,6 +110,7 @@ template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string &, const std
 
 
 
+/// Auxiliary class for Archive manipulation
 
 /**
    The serialization "file" inherit from the mother class cAr2007. This
@@ -144,8 +145,11 @@ class cAuxAr2007
          cAr2007 & mAr;
 };
 
+
+
 /// Create an archive structure, its type (xml, binary, text) is determined by extension
-std::unique_ptr<cAr2007> AllocArFromFile(const std::string & aName,bool Input);
+ cAr2007* AllocArFromFile(const std::string & aName,bool Input);
+//  std::unique_ptr<cAr2007 > AllocArFromFile(const std::string & aName,bool Input);
 
 /** Here are the atomic serialization function */
 
@@ -228,23 +232,28 @@ template <class Type> void OptAddData(const cAuxAr2007 & anAux,const std::string
 }
 
 
+void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!
+
+
 /// Save the value in an archive, not proud of the const_cast ;-)
 template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
 {
-    std::unique_ptr<cAr2007 > anAr = AllocArFromFile(aName,false);
+   cAr2007 * anAr = AllocArFromFile(aName,false);
 
     cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
     // cAuxAr2007  anOpen(aTag,*anAr);
     AddData(aGLOB,const_cast<Type&>(aVal));
+    DeleteAr(anAr);
 }
 
 /// Read  the value in an archive
 template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
 {
-    std::unique_ptr<cAr2007 > anAr = AllocArFromFile(aName,true);
+    cAr2007 * anAr = AllocArFromFile(aName,true);
 
     cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
     AddData(aGLOB,aVal);
+    DeleteAr(anAr);
 }
 
 

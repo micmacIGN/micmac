@@ -131,6 +131,9 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
 }
 
 
+extern void BenchSerialization();
+
+
 int  cAppli_MMVII_Bench::Exe()
 {
    // cMemManager::Alloc<short>(4);
@@ -149,6 +152,7 @@ int  cAppli_MMVII_Bench::Exe()
 
    Bench_0000_SysDepString();
    Bench_0000_Param();
+   BenchSerialization();
 
    std::cout << "BenchGlobBenchGlob \n";
 
