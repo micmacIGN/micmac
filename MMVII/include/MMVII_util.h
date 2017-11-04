@@ -1,6 +1,16 @@
 #ifndef  _MMVII_Util_H_
 #define  _MMVII_Util_H_
 
+/** \file MMVII_util.h
+    \brief Utilitaries for non image related services
+
+    Utilitarries for :
+      * string manipulation
+      * directory parsing
+      * safe file services
+*/
+
+
 class cMMVII_Ofs;
 class cMMVII_Ifs;
 class cCarLookUpTable;
@@ -52,8 +62,45 @@ std::string DirCur(); // as "./" on Unix
 std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string FileOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string UpDir(const std::string & aDir,int aNb=1);
+bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitive equality
 
-bool UCaseEqual(const std::string & ,const std::string & ); // Case unsensitive equality
+
+/// Generique Interface for all operation on name filtering
+class cNameSelector : public cMemCheck
+{
+    public :
+        virtual bool Match(const std::string &) const = 0;
+        virtual ~cNameSelector();
+};
+/// Interface class to Regex
+
+/** This class is a purely interface class to regex.
+    I separate from the implementation :
+       * because I am not 100% sure I will rely on boost
+       * I don't want to slow dow all compliation witrh boost (or other) header 
+       * I think it's good policy that class show the minimum required in header
+*/
+
+class cInterfRegex : public cNameSelector
+{
+    public :
+        cInterfRegex(const std::string &);
+        virtual ~cInterfRegex();
+        static cInterfRegex * BoostAlloc();
+        const std::string & Name() const;
+    private :
+        std::string mName;
+};
+
+/// Exract name of files, by return value
+std::vector<std::string>  GetFilesFromDir(const std::string & aDir,cNameSelector &);
+/// Exract name of files, by ref
+void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,cNameSelector &);
+/// Recursively exract name of files, by return value
+void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, cNameSelector & aNS,int aLevMin, int aLevMax);
+/// Recursively exract name of files, by return value
+std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,cNameSelector & aNS,int aLevMin, int aLevMax);
+
 
 
 /*=============================================*/
@@ -61,9 +108,6 @@ bool UCaseEqual(const std::string & ,const std::string & ); // Case unsensitive 
 /*            FILES                            */
 /*                                             */
 /*=============================================*/
-
-// std::unique_ptr<std::ifstream>  NNIfs(const std::string & aNameFile,const std::string aMes);
-// std::unique_ptr<std::ofstream>  NNOfs(const std::string & aNameFile,const std::string aMes);
 
 /// Secured ofstream
 /**

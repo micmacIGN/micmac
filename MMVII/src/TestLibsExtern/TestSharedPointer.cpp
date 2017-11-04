@@ -175,12 +175,8 @@ cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv) :
     (
         argc,
         argv,
-        DirCur(),
-        cArgMMVII_Appli
-        (
-            mArgObl,
-            mArgFac
-        )
+        mArgObl,
+        mArgFac
     )
 {
 }
@@ -380,9 +376,9 @@ cSpecMMVII_Appli  TheSpecTestCpp11
      "Cpp11",
       Alloc_MMVII_Cpp11,
       "This command execute some test for to check my understanding of C++11",
-      "Test",
-      "None",
-      "Console"
+      {eApF::Test},
+      {eApDT::None},
+      {eApDT::Console}
 );
 
 

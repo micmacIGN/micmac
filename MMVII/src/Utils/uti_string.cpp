@@ -1,5 +1,18 @@
 #include "include/MMVII_all.h"
 
+/** \file uti_string.cpp
+    \brief Implementation of utilitary services
+
+
+    Use boost and home made stuff for :
+
+      - split names
+      - separate directories from files
+      - parse directories
+
+*/
+
+
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -127,11 +140,11 @@ bool UCaseEqual(const std::string & aStr1 ,const std::string & aStr2)
 }
 
 
-    /***********************************************/
+    /* =========================================== */
     /*                                             */
     /*        Dir/Files-names utils                */
     /*                                             */
-    /***********************************************/
+    /* =========================================== */
 
 std::string DirCur()
 {
@@ -211,7 +224,6 @@ bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & 
    return aResult;
 }
 
-
 std::string  Quote(const std::string & aStr)
 {
    if (aStr.empty() || aStr[0]!='"')
@@ -220,6 +232,94 @@ std::string  Quote(const std::string & aStr)
    return aStr;
 }
 
+    /* =========================================== */
+    /*                                             */
+    /*        Get Files from dir                   */
+    /*                                             */
+    /* =========================================== */
+
+
+/**
+   Implementation of GetFilesFromDir, use boost
+*/
+
+
+void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,cNameSelector & aNS)
+{
+   for (directory_iterator itr(aDir); itr!=directory_iterator(); ++itr)
+   {
+      std::string aName ( itr->path().filename().c_str());
+      if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
+         aRes.push_back(aName);
+   }
+}
+
+std::vector<std::string> GetFilesFromDir(const std::string & aDir,cNameSelector & aNS)
+{
+    std::vector<std::string> aRes;
+    GetFilesFromDir(aRes,aDir,aNS);
+ 
+    return aRes;
+}
+
+void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, cNameSelector & aNS,int aLevMin, int aLevMax)
+{
+    for (recursive_directory_iterator itr(aDir); itr!=        recursive_directory_iterator(); ++itr)
+    {
+        int aLev = itr.level();
+        if ((aLev>=aLevMin) && (aLev<aLevMax))
+        {
+           std::string aName(itr->path().c_str());
+           if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
+              aRes.push_back(aName);
+        }
+    }
+}
+std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,cNameSelector & aNS,int aLevMin, int aLevMax)
+{
+    std::vector<std::string> aRes;
+    RecGetFilesFromDir(aRes,aDir,aNS,aLevMin,aLevMax);
+ 
+    return aRes;
+}
+
+
+/*
+std::vector<std::string>  GetFilesFromDirAndER(const std::string & aDir,const std::string & aRegEx)
+{
+}
+*/
+    /* =========================================== */
+    /*                                             */
+    /*        Dir/Files-names utils                */
+    /*                                             */
+    /* =========================================== */
+
+
+void TestBooostIter()
+{
+
+/*
+for (directory_iterator itr("./"); itr!=directory_iterator(); ++itr)
+{
+    std::cout << itr->path().filename() << ' '; // display filename only
+    if (is_regular_file(itr->status())) std::cout << " [" << file_size(itr->path()) << ']';
+    std::cout << '\n';
+}
+*/
+
+for (        recursive_directory_iterator itr("./"); itr!=        recursive_directory_iterator(); ++itr)
+{
+    std::cout  <<  itr->path().c_str() << " " << itr->path().filename() << ' '; // display filename only
+    std::cout << itr.level()  << " ";
+    if (is_regular_file(itr->status())) std::cout << " [" << file_size(itr->path()) << ']';
+    std::cout << '\n';
+}
+
+
+
+
+}
 
 };
 

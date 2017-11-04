@@ -64,19 +64,43 @@ template  <class Type> void FromS(const std::string & aStr,Type & aV) { aV= cStr
 /*                                                     */
 /*  ================================================== */
 
+/// Semantic of cOneArgCL2007
+class cSemA2007
+{
+   public :
+      cSemA2007(eTA2007 aType,const std::string & anAux);
+      cSemA2007(eTA2007 aType);
+
+      eTA2007 Type()            const;
+      const std::string & Aux() const;
+
+    private :
+
+      eTA2007      mNum;
+      std::string  mAux;
+};
+
+
 
 /** Mother class to describe one paramater specification */
 class  cOneArgCL2007 : public cMemCheck
 {
      public :
-        /** Name an comment */
-        cOneArgCL2007(const std::string & aName,const std::string & aCom) ;
+        typedef std::vector<cSemA2007> tVSem;
 
-        /** This action defined in heriting-template class initialize "real" the value from its string value */
+        ///  Name an comment 
+        cOneArgCL2007(const std::string & aName,const std::string & aCom,const tVSem & = TheEmptySem);
+        // cOneArgCL2007(const std::string & aName,const std::string & aCom,const std::string & aSem) ;
+
+        ///  This action defined in heriting-template class initialize "real" the value from its string value 
         virtual void InitParam(const std::string & aStr) = 0;
+      // Static
+        static const tVSem   TheEmptySem;
      private :
-         std::string                      mName; ///< Name for optionnal
-         std::string                      mCom;  ///< Comment for all
+
+         std::string     mName; ///< Name for optionnal
+         std::string     mCom;  ///< Comment for all
+         tVSem           mVSem;
 };
 
 typedef std::shared_ptr<cOneArgCL2007>  tPtrArg2007;
@@ -96,9 +120,9 @@ class cCollecArg2007
 cCollecArg2007 & operator << (cCollecArg2007 & aV ,tPtrArg2007 aVal);
 
 ///  Two auxilary fonction to create easily cOneArgCL2007 , one for mandatory
-template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom);
+template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom, const std::vector<cSemA2007> & = cOneArgCL2007::TheEmptySem);
 ///  One for optional args
-template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string &, const std::string & aCom);
+template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string &, const std::string & aCom,const std::vector<cSemA2007> & = cOneArgCL2007::TheEmptySem);
 
 
 

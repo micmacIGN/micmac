@@ -6,24 +6,6 @@ namespace MMVII
 
 /*  ============================================== */
 /*                                                 */
-/*                cArgMMVII_Appli                  */
-/*                                                 */
-/*  ============================================== */
-
-cArgMMVII_Appli::cArgMMVII_Appli
-(
-    cCollecArg2007 & ArgObl,
-    cCollecArg2007 & ArgFac
-) :
-    mArgObl  (ArgObl),
-    mArgFac  (ArgFac)
-{
-}
-
-
-
-/*  ============================================== */
-/*                                                 */
 /*                cMMVII_Appli                     */
 /*                                                 */
 /*  ============================================== */
@@ -48,14 +30,20 @@ cMMVII_Appli::~cMMVII_Appli()
 }
 
 
-cMMVII_Appli::cMMVII_Appli(int argc,char ** argv,const std::string & aDirChantier,cArgMMVII_Appli aSpecArg)  :
+cMMVII_Appli::cMMVII_Appli
+(
+      int argc,
+      char ** argv,
+      cCollecArg2007 & ArgObl,
+      cCollecArg2007 & ArgFac
+)  :
    mArgc          (argc),
    mArgv          (argv),
    mFullBin       (mArgv[0]),
    mDirMMVII      (DirOfPath(mFullBin)),
    mBinMMVII      (FileOfPath(mFullBin)),
    mDirMicMacv1   (UpDir(mDirMMVII,2)),
-   mDirChantier   (aDirChantier),
+   mDirChantier   (DirCur()),
    mMemStateBegin (cMemManager::CurState())
 {
   MMVII_INTERNAL_ASSERT_strong(msTheAppli==0,"cMMVII_Appli only one by process");
