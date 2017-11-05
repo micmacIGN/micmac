@@ -29,6 +29,8 @@ template <class Type> class  cStrIO
        static std::string ToStr(const Type &);     
       /// String -> Atomic object
        static Type  FromStr(const std::string &);  
+      /// Readable name for type
+       static const std::string  msNameType;
 };
 
 /** Do the test using only specialization ...
@@ -76,7 +78,7 @@ class cSemA2007
 
     private :
 
-      eTA2007      mNum;
+      eTA2007      mType;
       std::string  mAux;
 };
 
@@ -88,19 +90,29 @@ class  cOneArgCL2007 : public cMemCheck
      public :
         typedef std::vector<cSemA2007> tVSem;
 
+        /// Default empty sem
+        static const tVSem   TheEmptySem;
         ///  Name an comment 
         cOneArgCL2007(const std::string & aName,const std::string & aCom,const tVSem & = TheEmptySem);
         // cOneArgCL2007(const std::string & aName,const std::string & aCom,const std::string & aSem) ;
 
         ///  This action defined in heriting-template class initialize "real" the value from its string value 
         virtual void InitParam(const std::string & aStr) = 0;
-      // Static
-        static const tVSem   TheEmptySem;
+        virtual const std::string & NameType() const = 0;
+        /// Does any of  mVSem contains aType
+        bool HasType(const eTA2007 & aType)            const;
+
+        const tVSem & VSem() const;         ///< Accessor
+        const std::string  & Name() const;  ///< Accessor
+        const std::string  & Com() const;   ///< Accessor
+        int NbMatch () const;         ///< Accessor
+        void IncrNbMatch() ;
      private :
 
          std::string     mName; ///< Name for optionnal
          std::string     mCom;  ///< Comment for all
          tVSem           mVSem;
+         int             mNbMatch;
 };
 
 typedef std::shared_ptr<cOneArgCL2007>  tPtrArg2007;
@@ -109,20 +121,29 @@ typedef std::vector<tPtrArg2007>        tVecArg2007;
 /**
     Class for representing the collections  of parameter specificification (mandatory/optional/global)
 */
+
 class cCollecArg2007
 {
    public :
-      tVecArg2007  & V();
+      friend class cMMVII_Appli; ///< only authorizd to construct
+      friend void   Bench_0000_Param(); ///< authorized for bench
+      size_t size() const;
+      tPtrArg2007 operator [] (int) const;
+      void clear() ;
+      cCollecArg2007 & operator << (tPtrArg2007 aVal);
    private :
+      friend class cMMVII_Appli;
+      tVecArg2007 & Vec();
+      cCollecArg2007(const cCollecArg2007&) = delete;
       tVecArg2007  mV;
+      cCollecArg2007();
 };
 
-cCollecArg2007 & operator << (cCollecArg2007 & aV ,tPtrArg2007 aVal);
 
 ///  Two auxilary fonction to create easily cOneArgCL2007 , one for mandatory
 template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom, const std::vector<cSemA2007> & = cOneArgCL2007::TheEmptySem);
 ///  One for optional args
-template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string &, const std::string & aCom,const std::vector<cSemA2007> & = cOneArgCL2007::TheEmptySem);
+template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string & aName, const std::string & aCom,const std::vector<cSemA2007> & = cOneArgCL2007::TheEmptySem);
 
 
 

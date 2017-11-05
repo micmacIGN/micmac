@@ -171,15 +171,11 @@ class cAppli_MMVII_TestCpp11 : public cMMVII_Appli
 };
 
 cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv) :
-    cMMVII_Appli
-    (
-        argc,
-        argv,
-        mArgObl,
-        mArgFac
-    )
+  cMMVII_Appli (argc, argv)
 {
+  InitParam(mArgObl,mArgFac);
 }
+
 
 // Voir override et  final, pour verifier que le surcharge virtuelle est conforme a nos attentes
 
