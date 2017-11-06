@@ -82,6 +82,7 @@ template <class Type> class cPt2d : public cPtxd<Type,2>
 //         cPt2d(const Type& anX,const Type& anY) {tBase::mCoords[0] = anX;tBase::mCoords[1] = anY;}
 
         inline cPt2d(const Type& anX,const Type& anY) : tBase(anX,anY) {}
+        inline cPt2d() : cPt2d(0,0) {}
         inline cPt2d(const tBase & aP) {static_cast<tBase&>(*this) = aP;}
 
    // Accesseurs
@@ -104,7 +105,7 @@ template <class Type> inline cPt2d<Type> operator / (const cPt2d<Type> & aP,cons
 {return  cPt2d<Type>(aP.x()/aVal,aP.y()/aVal);}
 
 template <class Type> inline bool operator == (const cPt2d<Type> & aP1,const cPt2d<Type> & aP2) 
-{return  (aP1.x()==aP2.x())&&(aP1.y==aP2.y);}
+{return  (aP1.x()==aP2.x())&&(aP1.y()==aP2.y());}
 template <class Type> inline bool operator != (const cPt2d<Type> & aP1,const cPt2d<Type> & aP2)  {return !(aP1==aP2);}
 
 typedef cPt2d<double>  cPt2dr ;

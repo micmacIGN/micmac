@@ -561,6 +561,13 @@ std::string cNewO_NameManager::NameOriOptimTriplet(bool ModeBin,cNewO_OneIm *aI1
     return NameAttribTriplet("OriOpt",(ModeBin ? "dmp" : "xml"),aI1,aI2,aI3,WithMakeDir);
 }
 
+std::string cNewO_NameManager::NameOriOptimTriplet(bool ModeBin,const std::string & aN1,const std::string & aN2,const std::string & aN3,bool WithMakeDir)
+{
+    return NameAttribTriplet("OriOpt",(ModeBin ? "dmp" : "xml"),aN1,aN2,aN3,WithMakeDir);
+}
+
+
+
 std::string cNewO_NameManager::NameTopoTriplet(bool aModeBin)
 {
     return Dir3P() + "ListeTriplets" + mPrefOriCal +"." + (aModeBin ? "dmp" : "xml");

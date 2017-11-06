@@ -24,7 +24,10 @@ int main(int argc, char ** argv)
                     // Verifie si une commande respecte les consignes de documentation
                     (*itS)->Check();
                     // Execute
-                    aRes = anAppli->Exe();
+                    if (anAppli->ModeHelp())
+                       aRes = EXIT_SUCCESS;
+                    else
+                       aRes = anAppli->Exe();
                 // delete anAppli;
                 }
                 cMemManager::CheckRestoration(aMemoState);

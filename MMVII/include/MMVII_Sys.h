@@ -4,20 +4,20 @@
 // Use enum were it works are  they are "better" C++
 // Use macro when required (TheSYS==eSYS::Linux) do not work in #if
 
-#define MMVII_SYS_L 1  // Linux
-#define MMVII_SYS_A 123  // Apple  , Evil's number ;-)
-#define MMVII_SYS_W 666  // Window , vil's number in octal, some system like to it hard  ...
+#define MMVII_SYS_L 6  // Gnu/Linux, first perfect number ;-)
+#define MMVII_SYS_A 666  // Apple  , Evil's number ;-(
+#define MMVII_SYS_W 2610  // Window , Evil's number in non standard hexadecimal , some system like to do it hard  ...
 
 enum class eSYS
 {
-    Linux=MMVII_SYS_L,
+    GnuLinux=MMVII_SYS_L,
     MacOs=MMVII_SYS_A,
     Windows=MMVII_SYS_W
 };
 
 #ifdef __linux__
 #include <unistd.h>
-const eSYS TheSYS = eSYS::Linux;
+const eSYS TheSYS = eSYS::GnuLinux;
 #define THE_MACRO_MMVII_SYS MMVII_SYS_L
 #endif
 
@@ -33,7 +33,7 @@ const eSYS TheSYS = eSYS::MacOs;
 
 int mmvii_NbProcSys();
 int mmvii_GetPId();
-extern const std::string TheMMVII_SysName ;
+// e xtern const std::string TheMMVII_SysName ;
 
 
 

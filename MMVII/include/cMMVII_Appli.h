@@ -25,30 +25,24 @@ typedef tMMVII_UnikPApli (* tMMVII_AppliAllocator)(int argc, char ** argv);
 
      // ========================== cArgMMVII_Appli  ==================
 
-class cArgMMVII_Appli
-{
-};
-
-
-// FR= veut les mettre ici pour lisibilite, met des define pour eviter les pb de link a cause definition multiple
-// EN= want them here for visibility, use define to avoir link
-#define SPECMMVII_Feature     "Test Ori Match TieP" 
-#define SPECMMVII_DateType    "Ori TieP Ply None Console" 
 
 
      // ========================== cSpecMMVII_Appli ==================
 class cSpecMMVII_Appli
 {
      public :
+       typedef std::vector<eApF>   tVaF; 
+       typedef std::vector<eApDT>  tVaDT; 
+
        cSpecMMVII_Appli
        (
            const std::string & aName,
            tMMVII_AppliAllocator,          
            const std::string & aComment,
                // Features, Input, Output =>  main first, more generally sorted by pertinence
-           const std::string & aFeatures, // Must be a sublist of SPECMMVII_Feature
-           const std::string & aInputs,   // Must be a sublist of SPECMMVII_DateType
-           const std::string & aOutputs   // Must be a sublist of SPECMMVII_DateType
+           const tVaF     & aFeatures, 
+           const tVaDT    & aInputs,   
+           const tVaDT    & aOutputs  
        );
 
        void Check();
@@ -62,9 +56,9 @@ class cSpecMMVII_Appli
        std::string           mName;
        tMMVII_AppliAllocator mAlloc;
        std::string           mComment;
-       std::string           mFeatures;
-       std::string           mInputs;
-       std::string           mOutputs;
+       tVaF                  mVFeatures;
+       tVaDT                 mVInputs;
+       tVaDT                 mVOutputs;
 
 };
 
@@ -113,27 +107,35 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
     public :
         static cMMVII_Appli & TheAppli();
         virtual int Exe() = 0;
+        bool ModeHelp() const;
         virtual ~cMMVII_Appli();
 
     protected :
-        cMMVII_Appli(int,char **,const std::string & aDirChantier,cArgMMVII_Appli);
+        void InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFac);
+        cMMVII_Appli(int,char **);
+
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; // New C++11 feature , forbid copy 
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; // New C++11 feature , forbid copy 
 
+        void                                      GenerateHelp();
+
         static cMMVII_Appli *                     msTheAppli;
-
+        static void                               InitMemoryState();
     protected :
-
         int                                       mArgc;
         char **                                   mArgv;
         std::string                               mFullBin;
         std::string                               mDirMMVII;
         std::string                               mBinMMVII;
         std::string                               mDirMicMacv1;
-        std::string                               mDirChantier;
-        cMemState                                 mMemStateBegin;
+        std::string                               mDirProject;
+        bool                                      mModeHelp;
+        int                                       mLevelCall;
+        cCollecArg2007                            mArgObl; ///< Mandatory args
+        cCollecArg2007                            mArgFac; ///< Optional args
+        cMemState                                 mMemStateBegin; ///< Initialise juste avant mArgObl/mArgFac
       
 };
 

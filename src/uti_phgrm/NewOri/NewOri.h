@@ -364,6 +364,7 @@ class cNewO_NameManager : public cVirtInterf_NewO_NameManager
 
            std::string NameOriInitTriplet(bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameOriOptimTriplet(bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+           std::string NameOriOptimTriplet(bool ModeBin,const std::string&,const std::string&,const std::string&,bool WithMakeDir=false);
 
            std::string NameOriGenTriplet(bool Quick,bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *);
 

@@ -56,6 +56,18 @@ void Bench_0000_Memory()
     cMemManager::CheckRestoration(aSt);
 }
 
+void   Bench_0000_Param()
+{
+   int a,b;
+   cCollecArg2007 aCol;
+   aCol << Arg2007(a,"UnA") << AOpt2007(b,"b","UnB") ;
+   aCol[0]->InitParam("111");
+   aCol[1]->InitParam("222");
+   std::cout << "GGGGGGGG " << a << " " << b << "\n";
+
+   MMVII_INTERNAL_ASSERT_bench(a==111,"Bench_0000_Param");
+   MMVII_INTERNAL_ASSERT_bench(b==222,"Bench_0000_Param");
+}
 
 
 /*************************************************************/
@@ -98,23 +110,20 @@ void cAppli_MMVII_Bench::Bench_0000_String()
    // std::string & aBefore,std::string & aAfter,const std::string & aStr,char aSep,bool SVP=false,bool PrivPref=true);
 
 cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
-    cMMVII_Appli
-    (
-        argc,
-        argv,
-        DirCur(),
-        cArgMMVII_Appli
-        (
-        )
-    )
+  cMMVII_Appli (argc, argv)
 {
-   MMVII_INTERNAL_ASSERT_always
-   (
+  InitParam(mArgObl,mArgFac);
+
+  MMVII_INTERNAL_ASSERT_always
+  (
         The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny,
         "MMVII Bench requires highest level of debug"
-   );
-   // The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_weak;
+  );
+  // The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_weak;
 }
+
+
+extern void BenchSerialization();
 
 
 int  cAppli_MMVII_Bench::Exe()
@@ -134,6 +143,8 @@ int  cAppli_MMVII_Bench::Exe()
 
 
    Bench_0000_SysDepString();
+   Bench_0000_Param();
+   BenchSerialization();
 
    std::cout << "BenchGlobBenchGlob \n";
 
@@ -141,8 +152,6 @@ int  cAppli_MMVII_Bench::Exe()
    std::cout <<  " 1.0/0.0" << 1.0/0.0  << "\n";
    std::cout << " sqrt(-1)=" << sqrt(-1)  << "\n";
    std::cout << " asin(2)=" << asin(2.0) << "\n";
-
-
 
 
 
@@ -161,11 +170,89 @@ cSpecMMVII_Appli  TheSpecBench
      "Bench",
       Alloc_MMVII_Bench,
       "This command execute (many) self verification on MicMac-V2 behaviour",
-      "Test",
-      "None",
-      "Console"
+      {eApF::Test},
+      {eApDT::None},
+      {eApDT::Console}
 );
 
+
+/* ========================================================= */
+/*                                                           */
+/*            cAppli_MPDTest                                 */
+/*                                                           */
+/* ========================================================= */
+
+class cAppli_MPDTest : public cMMVII_Appli
+{
+     public :
+        cAppli_MPDTest(int argc,char** argv);
+        int Exe();
+};
+
+
+cAppli_MPDTest:: cAppli_MPDTest(int argc,char** argv) :
+  cMMVII_Appli (argc, argv)
+{
+  InitParam(mArgObl,mArgFac);
+}
+
+// void TestBooostIter();
+
+
+void TestArg0(const std::vector<int> & aV0)
+{
+   for (auto I : aV0){I++; std::cout << "I=" << I << "\n"; }
+}
+
+enum class eTypeArg {MDirOri,MPatIm};
+
+class cTestArg 
+{
+   public :
+      cTestArg(eTypeArg aNum,const std::string & aSem) :
+         mNum (aNum),
+         mSem (aSem)
+      {
+      }
+      
+      cTestArg(eTypeArg aNum) :
+         cTestArg(aNum,"")
+      {
+      }
+
+      
+      eTypeArg mNum;
+      std::string mSem;
+};
+
+void TestArg1(const std::vector<cTestArg> & aV0)
+{
+}
+
+int cAppli_MPDTest::Exe()
+{
+   TestArg0({1,3,9});
+   TestArg1({});
+   TestArg1({eTypeArg::MDirOri});
+   TestArg1({eTypeArg::MPatIm,eTypeArg::MDirOri,{eTypeArg::MDirOri,"Un"}});
+
+   return EXIT_SUCCESS;
+}
+
+tMMVII_UnikPApli Alloc_MPDTest(int argc,char ** argv)
+{
+   return tMMVII_UnikPApli(new cAppli_MPDTest(argc,argv));
+}
+
+cSpecMMVII_Appli  TheSpecMPDTest
+(
+     "MPDTest",
+      Alloc_MPDTest,
+      "This used a an entry point to all quick and dirty test by MPD ...",
+      {eApF::Test},
+      {eApDT::None},
+      {eApDT::Console}
+);
 
 
 };
