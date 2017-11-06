@@ -1562,7 +1562,7 @@ else
       if (mAppli.HasObsCentre(mPCI->IdBDCentre().Val(),mName))
       {
           mObsCentre = *( mAppli.ObsCentre(mPCI->IdBDCentre().Val(),mName).mVals );
-          mHasObsOnCentre = (mObsCentre.mIncOnC.x>0) && (mObsCentre.mIncOnC.y>0) && (mObsCentre.mIncOnC.z>0);
+          mHasObsOnCentre = mObsCentre.mHasObsC;
           mHasObsOnVitesse = mHasObsOnCentre && mObsCentre.mVitFiable && mObsCentre.mVitesse.IsInit();
 
 //   std::cout << "NameBDDCCC " << mName << " HasC " << mHasObsOnCentre << "\n";
@@ -2487,6 +2487,9 @@ Pt3dr  cPoseCam::AddObsCentre
            cStatObs & aSO
       )
 {
+// cObsCentre aRes;
+// mIncOnC 
+
 
    mLastItereHasUsedObsOnCentre = true;
    ELISE_ASSERT(DoAddObsCentre(anObs),"cPoseCam::AddObsCentre");
@@ -2495,9 +2498,27 @@ Pt3dr  cPoseCam::AddObsCentre
    {
        Pt3dr aResidu = mEqOffsetGPS->Residu(mObsCentre.mCentre);
        std::cout << "Lever Arm, Cam: " << mName << " Residual " << aResidu  << " LA: " <<  mEqOffsetGPS->Base()->ValueBase() << "\n";
-       double aPdsP  = aPondPlani.PdsOfError(euclid(Pt2dr(aResidu.x,aResidu.y))/sqrt(2.));
+
+       double aPdsPX = aPondPlani.PdsOfError(euclid(Pt2dr(aResidu.x,aResidu.y))/sqrt(2.));
+       double aPdsPY = aPdsPX;
        double aPdsZ  = aPondAlti.PdsOfError(ElAbs(aResidu.z));
-       return mEqOffsetGPS->AddObs(mObsCentre.mCentre,Pt3dr(aPdsP,aPdsP,aPdsZ));
+//std::cout << " cPoseCam::AddObsCentre " << mObsCentre.mIncOnC  << " " <<  aPdsP << " " << aPdsZ  <<  "\n";
+       Pt3dr aPInc = mObsCentre.mIncertOnC;
+       // Si il y a une incertitude
+       if (aPInc.x >0)
+       {
+          aPdsPX *= ElSquare(1/aPInc.x);
+       }
+       if (aPInc.y >0)
+       {
+          aPdsPY *= ElSquare(1/aPInc.y);
+       }
+       if (aPInc.z >0)
+       {
+          aPdsZ *= ElSquare(1/aPInc.z);
+       }
+
+       return mEqOffsetGPS->AddObs(mObsCentre.mCentre,Pt3dr(aPdsPX,aPdsPY,aPdsZ));
    }
 
 

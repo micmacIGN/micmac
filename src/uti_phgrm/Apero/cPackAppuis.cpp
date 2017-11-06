@@ -454,13 +454,14 @@ cObsCentre cTypeEnglob_Centre::CreateFromXML
     }
 
 
-    aRes.mIncOnC = Pt3dr (1,1,1);
+    /// std::cout << "IN  aFullTreeParam.GetOneOrZero(IncCentre) " << aRes.mIncOnC << "  \n";
+    aRes.mIncertOnC = Pt3dr (-1,-1,-1);
+    aRes.mHasObsC = true;
     cElXMLTree * aTreeInc     = aFullTreeParam.GetOneOrZero("IncCentre");
     if (aTreeInc)
     {
-        xml_init(aRes.mIncOnC,aTreeInc);
+        xml_init(aRes.mIncertOnC,aTreeInc);
     }
-
 
 
     if (anArg.CalcOffsetCentre().IsInit())
