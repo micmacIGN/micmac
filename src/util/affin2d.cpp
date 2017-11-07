@@ -1777,7 +1777,8 @@ int CPP_ReechImMap(int argc,char** argv)
     std::string aNameOut;
     std::string aMAF;
     std::string aMAFOut;
-	bool aDoImgReech=true;
+    bool aDoImgReech=true;
+    Pt2di aWinInt(5,5); 
 	
 	Tiff_Im * aTifOut = 0;
 	std::vector<Im2DGen *> aVecImOut;
@@ -1790,6 +1791,7 @@ int CPP_ReechImMap(int argc,char** argv)
         LArgMain()  <<  EAM(aNameOut,"Out",false,"Tif file to write to")
                     <<  EAM(aMAF,"MAF",false,"Xml file of Image Measures")
                     <<  EAM(aDoImgReech,"DoImgReech",false,"Generate Image Reech ; Def=true")
+                    <<  EAM(aWinInt,"Win",false,"Interpolation window ; Def=[5,5]")
     );
 
     if (!EAMIsInit(&aNameOut))
@@ -1824,7 +1826,7 @@ int CPP_ReechImMap(int argc,char** argv)
 		std::vector<cIm2DInter*> aVInter;
 		for (int aK=0 ; aK<aNbC ; aK++)
 		{
-			aVInter.push_back(aVecImIn[aK]->SinusCard(5,5));
+			aVInter.push_back(aVecImIn[aK]->SinusCard(aWinInt.x,aWinInt.y));
 		}
 
 		Pt2di aP;
