@@ -60,6 +60,9 @@ class  cReadOri : public cReadObject
               AddString("N",&mName,true);
               AddPt3dr("XYZ",&mPt,true);
               AddPt3dr("WPK",&mWPK,false);
+              AddDouble("Ix",&mInc3.x,false);
+              AddDouble("Iy",&mInc3.y,false);
+              AddDouble("Iz",&mInc3.z,false);
         }
 
         std::string mName;
@@ -191,7 +194,7 @@ class cAppli_Ori_Txt2Xml_main
          void SauvOriFinal();
          void OnePasseElargV(int aK0, int aK1, int aStep);
          void SauvRel();
-         void InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK);
+         void InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK,Pt3dr anInc);
 
          void InitGrapheVois();
          void VoisInitDelaunay();
@@ -647,7 +650,7 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
                  if (mTetaFromCap)
                     aWPK = Pt3dr(0,0, angle(Pt2dr(aV.x,aV.y)) * (180/PI) -80);
 
-                 InitCamera(*aCam,aC,aWPK);
+                 InitCamera(*aCam,aC,aWPK,Pt3dr(-1,-1,-1));
              }
          }
      }
@@ -973,7 +976,7 @@ void cAppli_Ori_Txt2Xml_main::VoisInitDelaunayCroist()
     // std::cout << "Viiissuu "<< mBoxC.sz() << " " << mScaleV << "\n"; getchar();
 }
 
-void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK)
+void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK,Pt3dr anInc)
 {
     const cElDate & aDate =   aCam.mMTD->Date(true);
     const cElDate & aDate0 =   mVCam[0]->mMTD->Date(true);
@@ -1005,6 +1008,10 @@ void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK)
     {
         aCam.mOC->Externe().Profondeur().SetVal(mProf);
         aCam.mOC->Externe().AltiSol().SetValIfNotInit(aC.z-mProf);
+    }
+    if ((anInc.x>0) || (anInc.y>0) || (anInc.z>0))
+    {
+         aCam.mOC->Externe().IncCentre().SetVal(anInc);
     }
     MakeFileXML(*(aCam.mOC),mDir+aCam.mNameOri);
     aCam.mCam = CamOrientGenFromFile(aCam.mNameOri,mICNM);
@@ -1049,7 +1056,6 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
 
         if (Ok)
         {
-
            if (aReadApp.IsDef(aReadApp.mPt) && (EAMIsInit(&mOffsetXYZ)))
            {
               aReadApp.mPt.x -= mOffsetXYZ.x;
@@ -1106,7 +1112,12 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
            Pt3dr aC =  aReadApp.mPt;
            if (mCSC)
               aC = mCSC->Src2Cibl(aC);
-           InitCamera(aNewCam,aC,mHasWPK  ? aReadApp.mWPK :Pt3dr(0,0,0));
+// std::cout << "DEFINNCCCCC " << aReadApp.IsDef(aReadApp.mInc3.x) << "\n";
+           double aIx = aReadApp.IsDef(aReadApp.mInc3.x) ? aReadApp.mInc3.x : -1;
+           double aIy = aReadApp.IsDef(aReadApp.mInc3.y) ? aReadApp.mInc3.y : -1;
+           double aIz = aReadApp.IsDef(aReadApp.mInc3.z) ? aReadApp.mInc3.z : -1;
+
+           InitCamera(aNewCam,aC,mHasWPK  ? aReadApp.mWPK :Pt3dr(0,0,0),Pt3dr(aIx,aIy,aIz));
            aNewCam.mPrio = aNewCam.mTime ;// + aNewCam.mNum * 1e-7;
 
 

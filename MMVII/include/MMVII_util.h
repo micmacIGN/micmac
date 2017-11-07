@@ -63,6 +63,8 @@ std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string FileOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string UpDir(const std::string & aDir,int aNb=1);
 bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitive equality
+bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case unsensitive premisse of aStr ?
+
 
 
 /// Generique Interface for all operation on name filtering

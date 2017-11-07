@@ -61,8 +61,8 @@ void   Bench_0000_Param()
    int a,b;
    cCollecArg2007 aCol;
    aCol << Arg2007(a,"UnA") << AOpt2007(b,"b","UnB") ;
-   aCol.V()[0]->InitParam("111");
-   aCol.V()[1]->InitParam("222");
+   aCol[0]->InitParam("111");
+   aCol[1]->InitParam("222");
    std::cout << "GGGGGGGG " << a << " " << b << "\n";
 
    MMVII_INTERNAL_ASSERT_bench(a==111,"Bench_0000_Param");
@@ -110,20 +110,16 @@ void cAppli_MMVII_Bench::Bench_0000_String()
    // std::string & aBefore,std::string & aAfter,const std::string & aStr,char aSep,bool SVP=false,bool PrivPref=true);
 
 cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
-    cMMVII_Appli
-    (
-        argc,
-        argv,
-        mArgObl,
-        mArgFac
-    )
+  cMMVII_Appli (argc, argv)
 {
-   MMVII_INTERNAL_ASSERT_always
-   (
+  InitParam(mArgObl,mArgFac);
+
+  MMVII_INTERNAL_ASSERT_always
+  (
         The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny,
         "MMVII Bench requires highest level of debug"
-   );
-   // The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_weak;
+  );
+  // The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_weak;
 }
 
 
@@ -195,14 +191,9 @@ class cAppli_MPDTest : public cMMVII_Appli
 
 
 cAppli_MPDTest:: cAppli_MPDTest(int argc,char** argv) :
-    cMMVII_Appli
-    (
-        argc,
-        argv,
-        mArgObl,
-        mArgFac
-    )
+  cMMVII_Appli (argc, argv)
 {
+  InitParam(mArgObl,mArgFac);
 }
 
 // void TestBooostIter();

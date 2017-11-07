@@ -139,6 +139,17 @@ bool UCaseEqual(const std::string & aStr1 ,const std::string & aStr2)
    return boost::iequals(aStr1,aStr2);
 }
 
+bool UCaseBegin(const char * aBegin,const char * aStr)
+{
+   while (*aBegin)
+   {
+      if (tolower(*aBegin) != tolower(*aStr))
+         return false;
+      aBegin++;
+      aStr++;
+   }
+   return true;
+}
 
     /* =========================================== */
     /*                                             */

@@ -107,36 +107,35 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
     public :
         static cMMVII_Appli & TheAppli();
         virtual int Exe() = 0;
+        bool ModeHelp() const;
         virtual ~cMMVII_Appli();
 
     protected :
-        cMMVII_Appli
-        (
-              int,char **,
-              cCollecArg2007 & ArgObl,
-              cCollecArg2007 & ArgFac
-        );
+        void InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFac);
+        cMMVII_Appli(int,char **);
 
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; // New C++11 feature , forbid copy 
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; // New C++11 feature , forbid copy 
 
+        void                                      GenerateHelp();
+
         static cMMVII_Appli *                     msTheAppli;
-
+        static void                               InitMemoryState();
     protected :
-
         int                                       mArgc;
         char **                                   mArgv;
         std::string                               mFullBin;
         std::string                               mDirMMVII;
         std::string                               mBinMMVII;
         std::string                               mDirMicMacv1;
-        std::string                               mDirChantier;
-        cMemState                                 mMemStateBegin;
-        cCollecArg2007                            mArgCom; ///<  Arg common to all appli
+        std::string                               mDirProject;
+        bool                                      mModeHelp;
+        int                                       mLevelCall;
         cCollecArg2007                            mArgObl; ///< Mandatory args
         cCollecArg2007                            mArgFac; ///< Optional args
+        cMemState                                 mMemStateBegin; ///< Initialise juste avant mArgObl/mArgFac
       
 };
 

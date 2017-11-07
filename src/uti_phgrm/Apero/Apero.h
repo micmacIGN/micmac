@@ -117,7 +117,8 @@ class cObsCentre
 {
     public :
        Pt3dr                 mCentre;
-       Pt3dr                 mIncOnC;
+       Pt3dr                 mIncertOnC;
+       bool                  mHasObsC;
        bool                  mVitFiable;
        cTplValGesInit<Pt3dr> mVitesse;
 };

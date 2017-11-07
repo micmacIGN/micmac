@@ -219,14 +219,9 @@ class cAppli_MMVII_TestBoostSerial : public cMMVII_Appli
 };
 
 cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial (int argc,char **argv) :
-    cMMVII_Appli
-    (
-        argc,
-        argv,
-        mArgObl,
-        mArgFac
-    )
+  cMMVII_Appli (argc, argv)
 {
+  InitParam(mArgObl,mArgFac);
 }
 
 int cAppli_MMVII_TestBoostSerial::Exe()
