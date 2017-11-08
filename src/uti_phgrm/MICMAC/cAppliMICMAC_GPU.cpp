@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
+extern bool ERupnik_MM();
+
 /** @addtogroup GpGpuDoc */
 /*@{*/
 
@@ -146,10 +148,24 @@ class cGLI_CalibRadiom
 {
      public :
           cGLI_CalibRadiom (const cXML_RatioCorrImage aXml) :
-              mR  (aXml.Ratio())
+	      mR  (aXml.Ratio()),
+	      mRTif(0),
+	      mRTIm(0)
+	  {
+	  }
+          cGLI_CalibRadiom (const std::string aName) :
+	      mR(1.0),
+	      mRTif(new Tiff_Im( Tiff_Im::StdConvGen(aName,-1,true))),
+	      mRTIm(new TIm2D<REAL4,REAL>(mRTif->sz()))
           {
+		ELISE_COPY(mRTIm->all_pts(), mRTif->in(), mRTIm->out());
           }
-          double mR;
+
+	  double                    mR;
+	  Tiff_Im            	  * mRTif;
+	  TIm2D<REAL4,REAL> 	  * mRTIm;
+
+
 };
 
 void cAppliMICMAC::ResetCalRad()
@@ -307,6 +323,15 @@ double cGPU_LoadedImGeom::CorrRadiom(double aVal)
    return aVal / mCalR->mR ;
 }
 
+double cGPU_LoadedImGeom::CorrRadiom(double aVal, const Pt2dr &aP)
+{
+    if(mCalR->mRTIm)
+    {
+	return aVal / mCalR->mRTIm->Val(aP.x,aP.y) ;
+    }
+    else
+	return aVal / mCalR->mR ;
+}
 
 Pt2di  cGPU_LoadedImGeom::SzV0() const
 {
@@ -1430,8 +1455,11 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                        if (aPdsAttPix)
                        {
                            aNbCostPix++;
+			
+			    //if(ERupnik_MM())
+			    //	std::cout << "ewelina Pblock=" << Pt2dr(anX,anY) << ", Pter=" << mGeomDFPx->RDiscToR2(Pt2dr(anX,anY));
 
-                           double aVCorK = mVLI[aK]->CorrRadiom(aVk);
+			   double aVCorK = mVLI[aK]->CorrRadiom(aVk,mGeomDFPx->RDiscToR2(Pt2dr(anX,anY)));
                            aCostPix += ElAbs(EcartNormalise(aVCorK,aV0));
                        }
                   }
@@ -1951,7 +1979,7 @@ void cAppliMICMAC::DoCorrelAdHoc
                        }
                        else
                        {
-                           ELISE_ASSERT(false,"MCP_AttachePixel handles only xml");
+			   aCal = new cGLI_CalibRadiom(aNameF); 
                        }
                        mDicCalRad[aName] = aCal;
                     }

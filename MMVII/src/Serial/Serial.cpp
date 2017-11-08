@@ -19,10 +19,6 @@
 
 namespace MMVII
 {
-template <class Type> bool EqualCont(const Type &aV1,const Type & aV2)
-{
-    return  boost::algorithm::equal(aV1.begin(),aV1.end(),aV2.begin(),aV2.end());
-}
 
 /* ========================================================= */
 /*                                                           */
@@ -104,6 +100,12 @@ void cAr2007::RawAddDataTerm(cPt2dr &    aP)
 cAr2007::~cAr2007()
 {
 }
+
+void DeleteAr(cAr2007 * anAr)
+{
+   delete anAr;
+}
+
 
 int cAr2007::NbNextOptionnal(const std::string &)
 {
@@ -553,13 +555,14 @@ int cIBin_Ar2007::NbNextOptionnal(const std::string &)
 /*============================================================*/
 
 /**
-   Implementation of AllocArFromFile. The type is fixed by extension,
+   Implementation of AllocArFromFile. The type is fixed by string postfix ,
    but we need to know if its for input or for output
 
    Return a unique_ptr as it used in  SaveInFile/ReadInFile and destroy after
 */
 
-std::unique_ptr<cAr2007 >  AllocArFromFile(const std::string & aName,bool Input)
+// std::unique_ptr<cAr2007 >  AllocArFromFile(const std::string & aName,bool Input)
+cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
 {
    std::string aPost = Postfix(aName);
    cAr2007 * aRes = nullptr;
@@ -580,7 +583,7 @@ std::unique_ptr<cAr2007 >  AllocArFromFile(const std::string & aName,bool Input)
    }
 
    MMVII_INTERNAL_ASSERT_always(aRes!=0,"Do not handle postfix for "+ aName);
-   return std::unique_ptr<cAr2007 >(aRes);
+   return aRes;
 }
 
 /*
@@ -605,6 +608,7 @@ template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
 
 /***********************************************************/
 
+#if (0)
 /// class to illustrate basic serialization
 
 class cTestSerial0
@@ -736,6 +740,11 @@ cAppli_MMVII_TestSerial::cAppli_MMVII_TestSerial (int argc,char **argv) :
            
 int cAppli_MMVII_TestSerial::Exe()
 {
+   return EXIT_SUCCESS;
+}
+
+void TestSerial()
+{
     std::string aDir= DirCur();
 
     SaveInFile(cTestSerial1(),aDir+"F1.xml");
@@ -777,7 +786,7 @@ int cAppli_MMVII_TestSerial::Exe()
     // And the value is still the same as dump is compatible at binary level
     MMVII_INTERNAL_ASSERT_bench(aT2==cTestSerial1(),"cAppli_MMVII_TestSerial");
 
-    return EXIT_SUCCESS;
+    // return EXIT_SUCCESS;
 }
 
 tMMVII_UnikPApli Alloc_MMVII_TestSerial(int argc,char ** argv)
@@ -795,6 +804,7 @@ cSpecMMVII_Appli  TheSpec_TestSerial
       "Console"
 );
 
+#endif
 
 };
 

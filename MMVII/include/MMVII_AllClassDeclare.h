@@ -1,9 +1,6 @@
 #ifndef  _MMVII_AllClassDeclare_H_
 #define  _MMVII_AllClassDeclare_H_
 
-// Sys
-enum class eSYS;
-
 //Error
 
 // MMVII_memory.h :  Memory

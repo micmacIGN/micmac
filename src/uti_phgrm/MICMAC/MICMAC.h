@@ -821,7 +821,7 @@ class cGeomDiscR2
          void SetClip(const  Pt2di & aP0,const  Pt2di  & aP1);
 
          void SetClipInit();
-
+ 
              // Accesseurs
 
          const Pt2di & SzDz() const;
@@ -2613,6 +2613,7 @@ class   cGPU_LoadedImGeom
    public :
        void InitCalibRadiom(cGLI_CalibRadiom * aCal);
        double CorrRadiom(double aVal);
+       double CorrRadiom(double aVal, const Pt2dr &aP);
 
 
        ~cGPU_LoadedImGeom();

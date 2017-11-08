@@ -21,6 +21,7 @@ namespace MMVII
 
 //===========================================
 #include "MMVII_AllClassDeclare.h"
+#include "MMVII_enums.h"
 // Header MMVII
 // #include "TypeNum.h"
 #include "MMVII_DeclareCste.h"
@@ -39,7 +40,6 @@ namespace MMVII
 #include "MMVII_Stringifier.h"
 // 
 #include "cMMVII_Appli.h"
-template <class Type> class  cStrIO;
 
 };
 

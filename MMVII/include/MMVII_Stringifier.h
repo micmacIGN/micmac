@@ -29,6 +29,8 @@ template <class Type> class  cStrIO
        static std::string ToStr(const Type &);     
       /// String -> Atomic object
        static Type  FromStr(const std::string &);  
+      /// Readable name for type
+       static const std::string  msNameType;
 };
 
 /** Do the test using only specialization ...
@@ -64,19 +66,53 @@ template  <class Type> void FromS(const std::string & aStr,Type & aV) { aV= cStr
 /*                                                     */
 /*  ================================================== */
 
+/// Semantic of cOneArgCL2007
+class cSemA2007
+{
+   public :
+      cSemA2007(eTA2007 aType,const std::string & anAux);
+      cSemA2007(eTA2007 aType);
+
+      eTA2007 Type()            const;
+      const std::string & Aux() const;
+
+    private :
+
+      eTA2007      mType;
+      std::string  mAux;
+};
+
+
 
 /** Mother class to describe one paramater specification */
 class  cOneArgCL2007 : public cMemCheck
 {
      public :
-        /** Name an comment */
-        cOneArgCL2007(const std::string & aName,const std::string & aCom) ;
+        typedef std::vector<cSemA2007> tVSem;
 
-        /** This action defined in heriting-template class initialize "real" the value from its string value */
+        /// Default empty sem
+        static const tVSem   TheEmptySem;
+        ///  Name an comment 
+        cOneArgCL2007(const std::string & aName,const std::string & aCom,const tVSem & = TheEmptySem);
+        // cOneArgCL2007(const std::string & aName,const std::string & aCom,const std::string & aSem) ;
+
+        ///  This action defined in heriting-template class initialize "real" the value from its string value 
         virtual void InitParam(const std::string & aStr) = 0;
+        virtual const std::string & NameType() const = 0;
+        /// Does any of  mVSem contains aType
+        bool HasType(const eTA2007 & aType)            const;
+
+        const tVSem & VSem() const;         ///< Accessor
+        const std::string  & Name() const;  ///< Accessor
+        const std::string  & Com() const;   ///< Accessor
+        int NbMatch () const;         ///< Accessor
+        void IncrNbMatch() ;
      private :
-         std::string                      mName; ///< Name for optionnal
-         std::string                      mCom;  ///< Comment for all
+
+         std::string     mName; ///< Name for optionnal
+         std::string     mCom;  ///< Comment for all
+         tVSem           mVSem;
+         int             mNbMatch;
 };
 
 typedef std::shared_ptr<cOneArgCL2007>  tPtrArg2007;
@@ -85,20 +121,29 @@ typedef std::vector<tPtrArg2007>        tVecArg2007;
 /**
     Class for representing the collections  of parameter specificification (mandatory/optional/global)
 */
+
 class cCollecArg2007
 {
    public :
-      tVecArg2007  & V();
+      friend class cMMVII_Appli; ///< only authorizd to construct
+      friend void   Bench_0000_Param(); ///< authorized for bench
+      size_t size() const;
+      tPtrArg2007 operator [] (int) const;
+      void clear() ;
+      cCollecArg2007 & operator << (tPtrArg2007 aVal);
    private :
+      friend class cMMVII_Appli;
+      tVecArg2007 & Vec();
+      cCollecArg2007(const cCollecArg2007&) = delete;
       tVecArg2007  mV;
+      cCollecArg2007();
 };
 
-cCollecArg2007 & operator << (cCollecArg2007 & aV ,tPtrArg2007 aVal);
 
 ///  Two auxilary fonction to create easily cOneArgCL2007 , one for mandatory
-template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom);
+template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom, const std::vector<cSemA2007> & = cOneArgCL2007::TheEmptySem);
 ///  One for optional args
-template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string &, const std::string & aCom);
+template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string & aName, const std::string & aCom,const std::vector<cSemA2007> & = cOneArgCL2007::TheEmptySem);
 
 
 
@@ -110,6 +155,7 @@ template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string &, const std
 
 
 
+/// Auxiliary class for Archive manipulation
 
 /**
    The serialization "file" inherit from the mother class cAr2007. This
@@ -144,8 +190,11 @@ class cAuxAr2007
          cAr2007 & mAr;
 };
 
+
+
 /// Create an archive structure, its type (xml, binary, text) is determined by extension
-std::unique_ptr<cAr2007> AllocArFromFile(const std::string & aName,bool Input);
+ cAr2007* AllocArFromFile(const std::string & aName,bool Input);
+//  std::unique_ptr<cAr2007 > AllocArFromFile(const std::string & aName,bool Input);
 
 /** Here are the atomic serialization function */
 
@@ -228,23 +277,28 @@ template <class Type> void OptAddData(const cAuxAr2007 & anAux,const std::string
 }
 
 
+void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!
+
+
 /// Save the value in an archive, not proud of the const_cast ;-)
 template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
 {
-    std::unique_ptr<cAr2007 > anAr = AllocArFromFile(aName,false);
+   cAr2007 * anAr = AllocArFromFile(aName,false);
 
     cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
     // cAuxAr2007  anOpen(aTag,*anAr);
     AddData(aGLOB,const_cast<Type&>(aVal));
+    DeleteAr(anAr);
 }
 
 /// Read  the value in an archive
 template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
 {
-    std::unique_ptr<cAr2007 > anAr = AllocArFromFile(aName,true);
+    cAr2007 * anAr = AllocArFromFile(aName,true);
 
     cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
     AddData(aGLOB,aVal);
+    DeleteAr(anAr);
 }
 
 

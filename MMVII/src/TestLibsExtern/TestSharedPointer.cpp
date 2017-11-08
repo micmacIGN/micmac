@@ -171,19 +171,11 @@ class cAppli_MMVII_TestCpp11 : public cMMVII_Appli
 };
 
 cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv) :
-    cMMVII_Appli
-    (
-        argc,
-        argv,
-        DirCur(),
-        cArgMMVII_Appli
-        (
-            mArgObl,
-            mArgFac
-        )
-    )
+  cMMVII_Appli (argc, argv)
 {
+  InitParam(mArgObl,mArgFac);
 }
+
 
 // Voir override et  final, pour verifier que le surcharge virtuelle est conforme a nos attentes
 
@@ -380,9 +372,9 @@ cSpecMMVII_Appli  TheSpecTestCpp11
      "Cpp11",
       Alloc_MMVII_Cpp11,
       "This command execute some test for to check my understanding of C++11",
-      "Test",
-      "None",
-      "Console"
+      {eApF::Test},
+      {eApDT::None},
+      {eApDT::Console}
 );
 
 

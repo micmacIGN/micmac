@@ -219,18 +219,9 @@ class cAppli_MMVII_TestBoostSerial : public cMMVII_Appli
 };
 
 cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial (int argc,char **argv) :
-    cMMVII_Appli
-    (
-        argc,
-        argv,
-        DirCur(),
-        cArgMMVII_Appli
-        (
-             mArgObl,
-             mArgFac
-        )
-    )
+  cMMVII_Appli (argc, argv)
 {
+  InitParam(mArgObl,mArgFac);
 }
 
 int cAppli_MMVII_TestBoostSerial::Exe()
@@ -251,9 +242,9 @@ cSpecMMVII_Appli  TheSpec_TestBoostSerial
      "TBS",
       Alloc_MMVII_TestBoostSerial,
       "This command execute some experiments en boost serrialization",
-      "Test",
-      "None",
-      "Console"
+      {eApF::Test},
+      {eApDT::None},
+      {eApDT::Console}
 );
 
 
