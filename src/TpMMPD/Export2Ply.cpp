@@ -81,8 +81,8 @@ int Export2Ply_main(int argc,char ** argv)
     std::string aStrChSys;
     double aMul = 1.0;
     bool   aMulIncAlso = true;
-    Pt3di aCoul(255,0,0);
-    Pt3di aCoulLP(255,0,0);
+    Pt3di aCoul(0,0,255);
+    Pt3di aCoulLP(0,0,0);
     double aRay=0;
     int aNbPts=5;
     int aScale=1;
@@ -120,6 +120,7 @@ int Export2Ply_main(int argc,char ** argv)
     std::vector<Pt3dr> aPoints;
     std::vector<Pt3dr> aVInc;
     std::vector<std::string> aVName;
+    std::vector<int> aVQ;
 
     if (!MMVisualMode)
     {
@@ -166,14 +167,21 @@ int Export2Ply_main(int argc,char ** argv)
                 if(aGpsFile)
                 {
 					cDicoGpsFlottant aDico =  StdGetFromPCP(NameFile,DicoGpsFlottant);
-					// std::list<cOneGpsDGF> &GPS = aDico.OneGpsDGF();
-					// for(std::list<cOneGpsDGF>::iterator IT=GPS.begin();IT!=GPS.end();IT++)
 					for(auto IT=aDico.OneGpsDGF().begin();IT!=aDico.OneGpsDGF().end();IT++)
 					{
 						aPoints.push_back(IT->Pt());
-						aVCol.push_back(aCoul);
+                        if(IT->TagPt() == 1)
+                        {
+                            aVCol.push_back(aCoul);
+                        }
+                        else
+                        {
+                            Pt3di aCoulMP(255,0,0);
+                            aVCol.push_back(aCoulMP);
+                        }
 						aVInc.push_back(IT->Incertitude());
-						aVName.push_back(IT->NamePt());       
+                        aVName.push_back(IT->NamePt());
+                        aVQ.push_back(IT->TagPt());
 					}
 				}
 				else
