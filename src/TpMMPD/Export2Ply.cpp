@@ -253,9 +253,9 @@ int Export2Ply_main(int argc,char ** argv)
     {
 		for(unsigned int aP=0; aP<aPoints.size(); aP++)
 		{
-			aPoints.at(aP).x = aPoints.at(aP).x + aOffset.x;
-			aPoints.at(aP).y = aPoints.at(aP).y + aOffset.y;
-			aPoints.at(aP).z = aPoints.at(aP).z + aOffset.z;
+            aPoints.at(aP).x = aPoints.at(aP).x - aOffset.x;
+            aPoints.at(aP).y = aPoints.at(aP).y - aOffset.y;
+            aPoints.at(aP).z = aPoints.at(aP).z - aOffset.z;
 		}
 	}
 	
