@@ -56,6 +56,7 @@ std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool P
 
 
 // Direcytory and files names, Rely on boost
+void MakeNameDir(std::string & aDir); ///< Add a '/', or equiv, to make a name of directory
 bool ExistFile(const std::string & aName);
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErroNonExist=true);
 std::string DirCur(); // as "./" on Unix
@@ -63,7 +64,10 @@ std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string FileOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string UpDir(const std::string & aDir,int aNb=1);
 bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitive equality
-bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case unsensitive premisse of aStr ?
+bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case UN-sensitive premisse of aStr ?
+bool CreateDirectories(const std::string & aDir,bool SVP); ///< Create dir, recurs ?
+bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
+
 
 
 
@@ -94,11 +98,11 @@ class cInterfRegex : public cNameSelector
         std::string mName;
 };
 
-/// Exract name of files, by return value
+/// Exract name of files located in the directory, by return value
 std::vector<std::string>  GetFilesFromDir(const std::string & aDir,cNameSelector &);
 /// Exract name of files, by ref
 void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,cNameSelector &);
-/// Recursively exract name of files, by return value
+/// Recursively exract name of files located in the directory, by return value
 void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, cNameSelector & aNS,int aLevMin, int aLevMax);
 /// Recursively exract name of files, by return value
 std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,cNameSelector & aNS,int aLevMin, int aLevMax);

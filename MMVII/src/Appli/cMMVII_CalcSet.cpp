@@ -67,17 +67,35 @@ bool cBoostRegex::Match(const std::string & aStr) const
 class cSetName
 {
    public :
-
+       void InitFromString(const std::string &);
    private :
-
        std::vector<std::string> mV;
 };
 
+void cSetName::InitFromString(const std::string & aName)
+{
+    bool IsProtected = (aName[0] == CharProctected);
+    // Test if this a file a name
+    if ((!IsProtected))
+    {
+    }
+}
+
 /* ==================================================== */
 /*                                                      */
 /*                                                      */
 /*                                                      */
 /* ==================================================== */
+
+/// An application for editing set of file
+/**
+    Given an XML memorizing a set of file, it is possible to :
+
+      - add a new set (+=)
+      - substract a new set (-=)
+      - intersect a new set (*=)
+      - overwrite with a new set (=)
+*/
 class cAppli_EditSet : public cMMVII_Appli
 {
      public :
@@ -98,7 +116,7 @@ cAppli_EditSet::cAppli_EditSet(int argc,char** argv) :
    InitParam
    (
       mArgObl 
-        <<  Arg2007(mXml,"Full Name of Xml in/out",{eTA2007::ProjectDir})
+        <<  Arg2007(mXml,"Full Name of Xml in/out",{eTA2007::FileDirProj})
         <<  Arg2007(mOp,"Operator (= += -= *= 0)")
         <<  Arg2007(mPat,"Pattern or Xml")
      ,

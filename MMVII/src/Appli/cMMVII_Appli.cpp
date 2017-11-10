@@ -1,8 +1,8 @@
 #include "include/MMVII_all.h"
 
+
 namespace MMVII
 {
-
 
 /*  ============================================== */
 /*                                                 */
@@ -22,10 +22,16 @@ cMMVII_Appli & cMMVII_Appli::TheAppli()
 
 cMMVII_Appli::~cMMVII_Appli()
 {
+   delete mSetInit;
    mArgObl.clear();
    mArgFac.clear();
    // Verifie que tout ce qui a ete alloue a ete desalloue 
    cMemManager::CheckRestoration(mMemStateBegin);
+}
+
+bool  cMMVII_Appli::IsInit(void * aPtr)
+{
+    return  mSetInit->In(aPtr);
 }
 
 
@@ -34,16 +40,23 @@ cMMVII_Appli::cMMVII_Appli
       int argc,
       char ** argv
 )  :
+   mMemStateBegin (cMemManager::CurState()),
    mArgc          (argc),
    mArgv          (argv),
    mFullBin       (mArgv[0]),
    mDirMMVII      (DirOfPath(mFullBin)),
    mBinMMVII      (FileOfPath(mFullBin)),
    mDirMicMacv1   (UpDir(mDirMMVII,2)),
+   mDirMicMacv2   (UpDir(mDirMMVII,1)),
+   mDirTestMMVII  (mDirMicMacv2 + MMVIITestDir),
    mDirProject    (DirCur()),
    mModeHelp      (false),
+   mDoGlobHelp    (false),
+   mDoInternalHelp(false),
+   mShowAll       (false),
    mLevelCall     (0),
-   mMemStateBegin (cMemManager::CurState())
+   mDoInitProj    (false),
+   mSetInit       (AllocUS<void *> ())
 {
 }
 
@@ -53,18 +66,26 @@ void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFa
   MMVII_INTERNAL_ASSERT_always((&anArgObl)==&mArgObl,"cMMVII_Appli dont respect cCollecArg2007");
   MMVII_INTERNAL_ASSERT_always((&anArgFac)==&mArgFac,"cMMVII_Appli dont respect cCollecArg2007");
 
+  std::string aDP; // mDirProject is handled specially so dont put mDirProject in AOpt2007
+                   // becauser  InitParam, it may change the correct value 
+
   // Add common optional parameters
   mArgFac
-      <<  AOpt2007(mDirProject ,"DProj","Project Directory",{eTA2007::ProjectDir,eTA2007::Common})
+      <<  AOpt2007(aDP ,NameDirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Common})
       <<  AOpt2007(mLevelCall,"LevCall","Internal : Don't Use !!",{eTA2007::Internal,eTA2007::Common})
+      <<  AOpt2007(mShowAll,"ShowAll","Internal : Don't Use !!",{eTA2007::Internal,eTA2007::Common})
   ;
 
-  // Check that optionnal parameters begin with alphabetic caracters
+  // Check that name optionnal parameters begin with alphabetic caracters
   for (auto aSpec : mArgFac.Vec())
   {
       if (!std::isalpha(aSpec->Name()[0]))
       {
-          MMVII_INTERNAL_ASSERT_always(false,"Name of optional param must begin with alphabetic => ["+aSpec->Name()+"]");
+         MMVII_INTERNAL_ASSERT_always
+         (
+             false,
+             "Name of optional param must begin with alphabetic => ["+aSpec->Name()+"]"
+         );
       }
   }
 
@@ -76,6 +97,9 @@ void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFa
       if (UCaseBegin("help",aArgK) || UCaseBegin("-help",aArgK)|| UCaseBegin("--help",aArgK))
       {
          mModeHelp = true;
+         while (*aArgK=='-') aArgK++;
+         mDoGlobHelp = (*aArgK=='H');
+         mDoInternalHelp = CaseSBegin("HELP",aArgK);
       }
   }
   if (mModeHelp)
@@ -153,8 +177,7 @@ void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFa
       }
   }
 
-
-  mLevelCall++; // So that is incremented if a new call is made
+  size_t aNbArgTot = aVValues.size();
 
   if (aNbArgGot < aNbObl)
   {
@@ -164,8 +187,60 @@ void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFa
           "Not enough Arg, expecting " + ToS(aNbObl)  + " , Got only " +  ToS(aNbArgGot)
       );
   }
+  MMVII_INTERNAL_ASSERT_always(aNbArgTot==aVSpec.size(),"Interncl check size Value/Spec");
+
+
+  // First compute the directory of project that may influence all other computation
+  for (size_t aK=0 ; aK<aNbArgTot; aK++)
+  {
+     if (aVSpec[aK]->HasType(eTA2007::DirProject))
+        mDirProject = aVValues[aK];
+     else if (aVSpec[aK]->HasType(eTA2007::FileDirProj))
+        mDirProject = DirOfPath(aVValues[aK],false);
+  }
+  MakeNameDir(mDirProject);
+
+
+
+  //  Initialize the paramaters
+  for (size_t aK=0 ; aK<aNbArgTot; aK++)
+  {
+       aVSpec[aK]->InitParam(aVValues[aK]);
+       mSetInit->Add(aVSpec[aK]->AdrParam()); ///< Memorize this value was initialized
+  }
+  // MakeNameDir(mDirProject);
+  
+  // Print the info, debugging
+  if (mShowAll)
+  {
+     // Print the value of all parameter
+     for (size_t aK=0 ; aK<aNbArgTot; aK++)
+     {
+         std::cout << aVSpec[aK]->Name()  << " => [" << aVValues[aK] << "]" << std::endl;
+     }
+     std::cout << "---------------------------------------" << std::endl;
+     std::cout << "IS INIT  DP: " << IsInit(&aDP) << std::endl;
+
+     std::cout << "DIRPROJ=[" << mDirProject << "]" << std::endl;
+  }
+
+  // By default, if calls is done at top level, assure that everything is init
+  if (!IsInit(&mDoInitProj))
+     mDoInitProj = (mLevelCall==0);
+
+  if (mDoInitProj)
+  {
+     InitProject();
+  }
+
+  mLevelCall++; // So that is incremented if a new call is made
+
 }
 
+void cMMVII_Appli::InitProject()
+{
+   CreateDirectories(mDirProject+TmpMMVIIDir,true);
+}
 
 void cMMVII_Appli::GenerateHelp()
 {
@@ -180,14 +255,19 @@ void cMMVII_Appli::GenerateHelp()
    for (auto Arg : mArgFac.Vec())
    {
        bool IsIinternal = Arg->HasType(eTA2007::Internal);
-       if (! IsIinternal)
+       if ((! IsIinternal) || mDoInternalHelp)
        {
-          bool GlobHelp = Arg->HasType(eTA2007::Common);
-          if (GlobHelp) 
-             std::cout << " #COM " ; 
-          else
-             std::cout << " * " ; 
-          std::cout << "[Name=" <<  Arg->Name()   << "] " << Arg->NameType() << " :: " << Arg->Com() << "\n";
+          bool isGlobHelp = Arg->HasType(eTA2007::Common);
+          if ((!isGlobHelp) || mDoGlobHelp)
+          {
+             if (IsIinternal) 
+                std::cout << " #III " ; 
+             else if (isGlobHelp) 
+                std::cout << " #COM " ; 
+             else
+                std::cout << " * " ; 
+             std::cout << "[Name=" <<  Arg->Name()   << "] " << Arg->NameType() << " :: " << Arg->Com() << "\n";
+          }
        }
    }
 }

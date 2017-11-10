@@ -18,12 +18,14 @@ enum class eSYS;
 /// Type for Semantic of Arg 2007
 enum class eTA2007
            {
-                PatFile,    ///< Pattern File
-                ProjectDir, ///< Pattern File
-                MPatIm,     ///< Major PaternIm
-                MDirOri,    ///< Major DirOri
-                Internal,   ///< Reserved to internall use by MMVII
-                Common      ///< Parameter  Common to all commands
+                PatFile,       ///< Pattern File
+                // PatOrXmlFile,    ///< Pattern File
+                DirProject,    ///< Exact Dir of Proj
+                FileDirProj,   ///< File of Dir Proj
+                MPatIm,        ///< Major PaternIm
+                MDirOri,       ///< Major DirOri
+                Internal,      ///< Reserved to internall use by MMVII
+                Common         ///< Parameter  Common to all commands
            };
 
 

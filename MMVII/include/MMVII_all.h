@@ -29,6 +29,7 @@ namespace MMVII
 #include "MMVII_Error.h"
 #include "MMVII_memory.h"
 #include "MMVII_util.h"
+#include "MMVII_util_tpl.h"
 
 
 
