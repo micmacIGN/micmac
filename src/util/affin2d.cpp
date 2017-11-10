@@ -64,6 +64,8 @@ void XXXXX(FILE * aF)
 }
 */
 
+extern bool ERupnik_MM();
+
 /**********************************************************/
 /*                                                        */
 /*         cStdNamePx2D                                   */
@@ -2913,19 +2915,23 @@ int CPP_PolynOfImageStd(int argc,char ** argv)
 
     Im2D_REAL8 aImRes(aTifSz.x,aTifSz.y,0.0);
 
-    //selection d'un grille et sauvgaure dans ElPackHomologue
     Pt2di aPas(floor(double(aP1.x-aP0.x)/aNb), floor(double(aP1.y-aP0.y)/aNb));
 
     ElPackHomologue aPack;
-    for (int aK1=aP0.x; aK1<aP1.x; aK1=aK1+aNb)
+    for (int aK1=aP0.x; aK1<aP1.x; aK1=aK1+aPas.x)
     {
-        for (int aK2=aP0.y; aK2<aP1.y; aK2=aK2+aNb)
+        for (int aK2=aP0.y; aK2<aP1.y; aK2=aK2+aPas.y)
         {
-	    if(aMasqIm.Val(aK1,aK2))
+            Pt2dr aP(aK1,aK2);
+	    if(aMasqIm.Val(aP.x,aP.y))
 	    {
-                Pt2dr aP(aK1,aK2);
-                double aD(aImR.Val(aK1,aK2));
-                aPack.Cple_Add(ElCplePtsHomologues(aP,aP+Pt2dr(aD,aD),aMasqIm.Val(aK1,aK2)));  
+
+		if(ERupnik_MM())
+		    std::cout << "* aK1=" << aK1 << ", aK2" << aK2 << ", aPas=" << aPas << " ---- ImR=" << aImR.Val(aP.x,aP.y) <<  "\n";
+
+
+                double aD(aImR.Val(aP.x,aP.y));
+                aPack.Cple_Add(ElCplePtsHomologues(aP,aP+Pt2dr(aD,aD),aMasqIm.Val(aP.x,aP.y)));  
 	    }
         }
     }
