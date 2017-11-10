@@ -227,6 +227,7 @@ int CPP_SampleMap2D(int argc,char** argv);
 int ScalePat_main(int argc,char** argv);
 int CPP_MakeMapEvolOfT(int argc,char ** argv);
 int CPP_PolynOfImage(int argc,char ** argv);
+int CPP_PolynOfImageStd(int argc,char ** argv);
 
 int GCP_Fusion(int argc,char ** argv);
 
@@ -349,6 +350,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("StackFlatField",EstimFlatField_main,"Basic Flat Field estimation by image stacking"));
        aRes.push_back(cMMCom("PolynOfImage",CPP_PolynOfImage,"Approximate image by polynom"));
+       aRes.push_back(cMMCom("PolynOfImageV2",CPP_PolynOfImageStd,"Approximate image by polynom ver2"));
        aRes.push_back(cMMCom("Impaint",Impainting_main,"Basic Impainting"));
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
@@ -604,6 +606,7 @@ extern int TestER_main3(int argc,char ** argv);
 extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
+extern int TestER_hom_main(int argc,char ** argv);
 extern int TestPush(int argc,char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
 extern int Homol2GCP_main(int argc,char ** argv);
@@ -825,6 +828,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
        aRes.push_back(cMMCom("TestER",TestER_main3,"ER test workplace"));
+       aRes.push_back(cMMCom("TestER2",TestER_hom_main,"ER test hom"));
        aRes.push_back(cMMCom("TestAT",TestPush,"AT test workplace"));
 
 //       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));

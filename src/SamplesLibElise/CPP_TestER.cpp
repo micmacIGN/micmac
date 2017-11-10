@@ -741,7 +741,7 @@ int TestER_main3(int argc,char ** argv)
 
     Pt2di       aP0(100,100);
     Pt2di       aP1(1000,1000);
-    int         aNb;
+    int         aNb=100;
     int         aDeg=2;
     Box2dr      aBox(aP0,aP0+aP1);
 
