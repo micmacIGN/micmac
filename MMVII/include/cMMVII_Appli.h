@@ -1,6 +1,9 @@
 #ifndef  _cMMVII_Appli_H_
 #define  _cMMVII_Appli_H_
 
+namespace MMVII
+{
+
 /** \file cMMVII_Appli.h
     \brief Contains definition of mother class of all applicarion
 
@@ -169,4 +172,5 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cInterfSet<void *>*                       mSetInit;       ///< Adresses of all initialized variables
 };
 
+};
 #endif  //  _cMMVII_Appli_H_

@@ -1,5 +1,6 @@
 #include "../include/MMVII_all.h"
 
+using namespace MMVII;
 
 int main(int argc, char ** argv)
 {

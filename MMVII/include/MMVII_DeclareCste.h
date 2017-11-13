@@ -1,6 +1,9 @@
 #ifndef  _MMVII_DeclareCste_H_
 #define  _MMVII_DeclareCste_H_
 
+namespace MMVII
+{
+
 /** \file MMVII_DeclareCste.h
     \brief Contains declaration of all constant string
 
@@ -28,5 +31,6 @@ extern const std::string MMVIITestDir;
 extern const char CharProctected;  // => '\' on Gnu/Linux, will see on others
 
 
+};
 
 #endif  //  _MMVII_DeclareCste_H_

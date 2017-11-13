@@ -1,6 +1,9 @@
 #ifndef  _MMVII_Util_H_
 #define  _MMVII_Util_H_
 
+namespace MMVII
+{
+
 /** \file MMVII_util.h
     \brief Utilitaries for non image related services
 
@@ -170,6 +173,6 @@ class cMMVII_Ifs : public cMemCheck
 };
 
 
-
+};
 
 #endif  //  _MMVII_Util_H_

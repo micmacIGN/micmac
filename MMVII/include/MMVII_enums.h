@@ -1,6 +1,9 @@
 #ifndef  _MMVII_Enums_H_
 #define  _MMVII_Enums_H_
 
+namespace MMVII
+{
+
 /** \file MMVII_enums.h
     \brief Contains (almost) all enums
 
@@ -50,5 +53,6 @@ enum class eApDT
               Xml       ///< Xml-files
            };
 
+};
 
 #endif  //  _MMVII_Enums_H_

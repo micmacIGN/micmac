@@ -1,6 +1,10 @@
 #ifndef  _MMVII_Stringifier_H_
 #define  _MMVII_Stringifier_H_
 
+namespace MMVII
+{
+
+
 /** \file MMVII_Stringifier.h
     \brief Interface for services related to read/write values
 
@@ -222,9 +226,9 @@ void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
 void AddData(const  cAuxAr2007 & anAux, cPt2dr  &  aVal) ;  ///<for cPt2dr
 
 /// Serialization for container
-/** Template for list (will be easily extended to other containter */
+/** Template for list, vector */
 
-template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type> & aL)
+template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont & aL)
 {
     int aNb=aL.size();
     // put or read the number
@@ -232,21 +236,44 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type> & aL
     // In input, nb is now intialized, we must set the size of list
     if (aNb!=int(aL.size()))
     {
-       Type aV0;
-       aL = std::list<Type>(aNb,aV0);
+       typename TypeCont::value_type aV0;
+       aL = TypeCont(aNb,aV0);
     }
     // now read the elements
-    for (auto el : aL)
+   std::cout << "xxxxxxxxxxxxxxADDDDDr " << & aL << "\n";
+    for (auto & el : aL)
     {
+std::cout << "IN " << el << "\n";
          AddData(cAuxAr2007("el",anAux),el);
+std::cout << "OUT " << el << "\n";
     }
+   for (auto el:aL)
+      std::cout << "OOOOOOO  " << el << "\n";
 }
 
-/// Serialization for optional
-/** Template for optional parameter, complicated becaus in xml forms, it handles the compatibility with new
-added parameters */
 
-template <class Type> void OptAddData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL)
+template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & aL) { StdContAddData(anAux,aL); }
+template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) 
+{ 
+   std::cout << "ADDDDDr " << & aL << "\n";
+   StdContAddData(anAux,aL); 
+   for (auto el:aL)
+      std::cout << "LLLLLLL III " << el << "\n";
+
+}
+
+
+
+/// Serialization for optional
+/** Template for optional parameter, complicated becaus in xml forms, 
+    it handles the compatibility with new added parameters 
+ 
+    Name it AddOptData and not  AddData, because on this experimental stuff,
+    want do get easy track of it.
+
+*/
+
+template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL)
 {
     // put the tag as <Opt::Tag0>,
     //  Not mandatory, but optionality being an important feature I thought usefull to see it in XML file
@@ -321,6 +348,15 @@ template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
     DeleteAr(anAr);
 }
 
+/// If the file does not exist, initialize with default constructor
+template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & aName)
+{
+   if (ExistFile(aName))
+      ReadFromFile(aVal,aName);
+   else
+      aVal = Type();
+}
+
 /// Indicate if a file is really XML, created by MMVII and containing the expected Tag
 bool IsFile2007XmlOfGivenTag(const std::string & aName,const std::string & aTag); 
 
@@ -354,11 +390,5 @@ class cCmpSerializer
 
 
 
-
-
-
-
-
-
-
+};
 #endif  //  _MMVII_Stringifier_H_
