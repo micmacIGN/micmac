@@ -14,8 +14,6 @@
 #include<boost/optional.hpp>
 
 
-namespace MMVII
-{
 //========== LIB EXTEN==============
 
 
@@ -29,6 +27,7 @@ namespace MMVII
 #include "MMVII_Error.h"
 #include "MMVII_memory.h"
 #include "MMVII_util.h"
+#include "MMVII_util_tpl.h"
 
 
 
@@ -41,9 +40,7 @@ namespace MMVII
 // 
 #include "cMMVII_Appli.h"
 
-};
-
-using namespace MMVII;
+// using namespace MMVII;
 
 
 #endif //  _MMVII_ALL_H_

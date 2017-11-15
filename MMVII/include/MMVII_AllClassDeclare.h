@@ -1,7 +1,19 @@
 #ifndef  _MMVII_AllClassDeclare_H_
 #define  _MMVII_AllClassDeclare_H_
 
-//Error
+namespace MMVII
+{
+
+
+/** \file MMVII_AllClassDeclare.h
+    \brief Contains declaration  of all class
+
+   As sooner or later many class require a forrward declaration,
+ I think it's more readable to systematically declare everything
+ here.
+
+*/
+
 
 // MMVII_memory.h :  Memory
 
@@ -40,5 +52,6 @@ class cAuxAr2007;
 class cAr2007;
 
 
+};
 
 #endif  //  _MMVII_AllClassDeclare_H_

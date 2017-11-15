@@ -151,6 +151,21 @@ bool UCaseBegin(const char * aBegin,const char * aStr)
    return true;
 }
 
+bool CaseSBegin(const char * aBegin,const char * aStr)
+{
+   while (*aBegin)
+   {
+      if (*aBegin != *aStr)
+         return false;
+      aBegin++;
+      aStr++;
+   }
+   return true;
+}
+
+
+
+
     /* =========================================== */
     /*                                             */
     /*        Dir/Files-names utils                */
@@ -177,6 +192,25 @@ std::string FileOfPath(const std::string & aPath,bool ErrorNonExist)
    return aFile;
 }
 
+/**
+  It was a test of using Boost for Up Dir,but untill now I am not 100% ok
+  with the results:
+        [.] => []
+        [/a/b/c] => [/a/b]
+        [a/b/c] => [a/b]
+        [a] => []
+*/
+
+std::string BUD(const std::string & aDir)
+{
+   path aPath(aDir);
+   aPath = aPath.parent_path();
+   std::cout << "BUDDDDDD [" << aDir << "] => [" <<  aPath.c_str() << "]\n";
+   return aPath.c_str();
+}
+
+/** Basic but seems to work untill now
+*/
 std::string UpDir(const std::string & aDir,int aNb)
 {
    std::string aRes = aDir;
@@ -193,6 +227,14 @@ bool ExistFile(const std::string & aName)
 {
    path aPath(aName);
    return exists(aPath);
+}
+
+void MakeNameDir(std::string & aDir)
+{
+   if (aDir.back() != path::preferred_separator)
+   {
+      aDir += path::preferred_separator;
+   }
 }
 
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErrorNonExist)
@@ -226,10 +268,16 @@ bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & 
        {
           aDir = DirCur();
        }
-       else if (aDir.back() != '/')
+       else 
+       {
+          MakeNameDir(aDir);
+       }
+
+/*if (aDir.back() != path::preferred_separator)
        {
            aDir += path::preferred_separator;
-       }
+       }     
+*/
        // path& remove_filename();
    }  
    return aResult;
@@ -241,6 +289,17 @@ std::string  Quote(const std::string & aStr)
      return std::string("\"") + aStr + '"';
 
    return aStr;
+}
+
+bool CreateDirectories(const std::string & aDir,bool SVP)
+{
+    bool Ok = boost::filesystem::create_directories(aDir);
+
+    if (! Ok) 
+    {
+        MMVII_INTERNAL_ASSERT_user(SVP,"Cannot create directory for arg " + aDir);
+    }
+    return Ok;
 }
 
     /* =========================================== */

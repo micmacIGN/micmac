@@ -132,6 +132,7 @@ template <class Type> class cInstReadOneArgCL2007 : public cOneArgCL2007
         {
             return  cStrIO<Type>::msNameType;
         }
+        void * AdrParam() override {return &mVal;}
 
     private :
         Type &          mVal;

@@ -123,7 +123,18 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
 }
 
 
-extern void BenchSerialization();
+extern void BenchSerialization(const std::string & aDirOut,const std::string & aDirIn);
+
+void BenchSet()
+{
+   cInterfSet<int> * aSI = AllocUS<int>();
+   for (int aK=0 ; aK<10 ; aK++)
+      aSI->Add(aK*2);
+   for (int aK=0 ; aK<20 ; aK++)
+       MMVII_INTERNAL_ASSERT_bench(aSI->In(aK)==(aK%2==0),"BenchSet");
+  delete aSI;
+  std::cout << "BenchSetBenchSetBenchSet \n";
+}
 
 
 int  cAppli_MMVII_Bench::Exe()
@@ -144,7 +155,7 @@ int  cAppli_MMVII_Bench::Exe()
 
    Bench_0000_SysDepString();
    Bench_0000_Param();
-   BenchSerialization();
+   BenchSerialization(mDirTestMMVII+"Tmp/",mDirTestMMVII+"Input/");
 
    std::cout << "BenchGlobBenchGlob \n";
 
@@ -154,6 +165,7 @@ int  cAppli_MMVII_Bench::Exe()
    std::cout << " asin(2)=" << asin(2.0) << "\n";
 
 
+   BenchSet();
 
    return EXIT_SUCCESS;
 }
@@ -229,12 +241,22 @@ void TestArg1(const std::vector<cTestArg> & aV0)
 {
 }
 
+std::string BUD(const std::string & aDir);
+
 int cAppli_MPDTest::Exe()
 {
+   
+   BUD(".");
+   BUD("/a/b/c");
+   BUD("a/b/c");
+   BUD("a");
+/*
    TestArg0({1,3,9});
    TestArg1({});
    TestArg1({eTypeArg::MDirOri});
    TestArg1({eTypeArg::MPatIm,eTypeArg::MDirOri,{eTypeArg::MDirOri,"Un"}});
+  CreateDirectories("a/b/c/d",false);
+*/
 
    return EXIT_SUCCESS;
 }

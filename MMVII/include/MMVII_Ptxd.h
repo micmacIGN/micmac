@@ -1,5 +1,21 @@
 #ifndef  _MMVII_Ptxd_H_
 #define  _MMVII_Ptxd_H_
+namespace MMVII
+{
+
+
+/** \file MMVII_Ptxd.h
+    \brief Basic N-dimensionnal point facilities
+
+   Don't know exactly where we go ...  Probably will contain :
+
+      - point in N dim template
+      - specialization to 1,2,3,4  dims
+      - dynamic dyn
+      - boxes on others "small" connected classes
+
+*/
+
 
 template <class Type,const int Dim> class cPtxd;
 template <class Type> class cPt1d;
@@ -16,17 +32,28 @@ template <class Type> class cPt2d;
 */
 
 
+///  template class for Points
+/**
+   This class allow to manipulate points indepently of their dimension,
+   with no or few, waste of performance
+*/
+
 template <class Type,const int Dim> class cPtxd
 {
     public :
+       /// Maybe some function will require generic access to data
        Type * Data() {return mCoords;}
 
        // cPtxd(const cPt1d<Type>);
        // cPtxd(const cPt2d<Type>);
          // MMVII_INTERNAL_ASSERT(Dim==1);
+
+       /// Some function requires default constructor (serialization ?)
        cPtxd() {}
 
+       /// Contructor for 1 dim point, statically checked
        cPtxd(const Type & x) :  mCoords{x} {static_assert(Dim==1,"bad dim in cPtxd initializer");}
+       /// Contructor for 2 dim point, statically checked
        cPtxd(const Type & x,const Type &y) :  mCoords{x,y} {static_assert(Dim==2,"bad dim in cPtxd initializer");}
 
 
@@ -34,7 +61,7 @@ template <class Type,const int Dim> class cPtxd
        Type mCoords[Dim];
 };
 
-    // specialisations 1 D
+    ///  1 dimension specializatio,
 
 template <class Type> class cPt1d : public cPtxd<Type,1>
 {
@@ -71,7 +98,7 @@ typedef cPt1d<int>     cPt1di ;
 typedef cPt1d<float>   cPt1df ;
 
 
-    // specialisations 2 D
+    ///  2 dimension specializatio,
 
 template <class Type> class cPt2d : public cPtxd<Type,2>
 {
@@ -124,5 +151,6 @@ template <class Type> inline cPt1d<Type> operator / (const cPt1d<Type> & aP,cons
 {return  cPt1d<Type>(aP.x()/aVal);}
 */
 
+};
 
 #endif  //  _MMVII_Ptxd_H_

@@ -3,8 +3,7 @@
 
 
 /** \file BenchSerial.cpp
-    \brief Bench correction of Serialization
-
+    \brief Bench 4 correctness of Serialization
 
 */
 
@@ -98,8 +97,8 @@ void AddData(const cAuxAr2007 & anAux, cTestSerial1 &    aTS1)
     AddData(cAuxAr2007("S",anAux),aTS1.mS);
     AddData(cAuxAr2007("P3",anAux),aTS1.mP3);
     AddData(cAuxAr2007("LI",anAux),aTS1.mLI);
-    OptAddData(anAux,"O1",aTS1.mO1);
-    OptAddData(anAux,"O2",aTS1.mO2);
+    AddOptData(anAux,"O1",aTS1.mO1);
+    AddOptData(anAux,"O2",aTS1.mO2);
 }
 
 
@@ -120,18 +119,18 @@ void AddData(const cAuxAr2007 & anAux, cTestSerial2 &    aTS2)
     AddData(cAuxAr2007("S",anAux),aTS2.mS);
     AddData(cAuxAr2007("P3",anAux),aTS2.mP3);
     AddData(cAuxAr2007("LI",anAux),aTS2.mLI);
-    OptAddData(anAux,"O1",aTS2.mO1);
-    OptAddData(anAux,"O2",aTS2.mO2);
+    AddOptData(anAux,"O1",aTS2.mO1);
+    AddOptData(anAux,"O2",aTS2.mO2);
 }
 
-void BenchSerialization()
+void BenchSerialization(const std::string & aDirOut,const std::string & aDirIn)
 {
-    std::string aDir= DirCur();
+    // std::string aDir= DirCur();
 
-    SaveInFile(cTestSerial1(),aDir+"F1.xml");
+    SaveInFile(cTestSerial1(),aDirOut+"F1.xml");
 
     cTestSerial1 aP12;
-    ReadFromFile(aP12,aDir+"F1.xml");
+    ReadFromFile(aP12,aDirOut+"F1.xml");
     // Check the value read is the same
     MMVII_INTERNAL_ASSERT_bench(aP12==cTestSerial1(),"cAppli_MMVII_TestSerial");
     {
@@ -140,36 +139,60 @@ void BenchSerialization()
        aPModif.mO1 = cPt2dr(14,18);
        MMVII_INTERNAL_ASSERT_bench(!(aPModif==cTestSerial1()),"cAppli_MMVII_TestSerial");
     }
-    SaveInFile(aP12,aDir+"F2.xml");
+    SaveInFile(aP12,aDirOut+"F2.xml");
 
     cTestSerial1 aP23;
-    ReadFromFile(aP23,aDir+"F2.xml");
-    SaveInFile(aP23,aDir+"F3.dmp");
+    ReadFromFile(aP23,aDirOut+"F2.xml");
+    SaveInFile(aP23,aDirOut+"F3.dmp");
 
 
-    cTestSerial1 aP34;
-    ReadFromFile(aP34,aDir+"F3.dmp");
     // Check dump value are preserved
-    MMVII_INTERNAL_ASSERT_bench(aP34==cTestSerial1(),"cAppli_MMVII_TestSerial");
-    SaveInFile(aP34,aDir+"F4.xml");
+    {
+        cTestSerial1 aP34;
+        ReadFromFile(aP34,aDirOut+"F3.dmp");
+        MMVII_INTERNAL_ASSERT_bench(aP34==cTestSerial1(),"cAppli_MMVII_TestSerial");
+        SaveInFile(aP34,aDirOut+"F4.xml");
+    }
 
 
-    SaveInFile(cTestSerial2(),aDir+"F_T2.xml");
+    SaveInFile(cTestSerial2(),aDirOut+"F_T2.xml");
     cTestSerial2 aT2;
     // Generate an error
     if (0)
-      ReadFromFile(aT2,aDir+"F2.xml");
-    ReadFromFile(aT2,aDir+"F_T2.xml"); // OK , read what we wrote as usual
+      ReadFromFile(aT2,aDirOut+"F2.xml");
+    ReadFromFile(aT2,aDirOut+"F_T2.xml"); // OK , read what we wrote as usual
     // and the value is the same
     MMVII_INTERNAL_ASSERT_bench(aT2==cTestSerial1(),"cAppli_MMVII_TestSerial");
     
-    ReadFromFile(aT2,aDir+"F3.dmp");   // OK also in binary, the format has no influence
+    ReadFromFile(aT2,aDirOut+"F3.dmp");   // OK also in binary, the format has no influence
     // And the value is still the same as dump is compatible at binary level
     MMVII_INTERNAL_ASSERT_bench(aT2==cTestSerial1(),"cAppli_MMVII_TestSerial");
 
+    // Bench ReadFromFileWithDef
+    {
+        cTestSerial2 aT5;
+        // ReadFromFile(aT5,aDirOut+"FILE-DO-NO-EXIT");   // => Problem file does not exist
+        aT5.mP3.x() = 12345.6789;
+        MMVII_INTERNAL_ASSERT_bench(!(aT5==cTestSerial1()),"cAppli_MMVII_TestSerial"); // cmp fails, P5 has been changed
+        ReadFromFileWithDef(aT5,aDirOut+"FILE-DO-NO-EXIT");   // Initialized with def
+        MMVII_INTERNAL_ASSERT_bench(aT5==cTestSerial1(),"cAppli_MMVII_TestSerial"); // cmp is now ok
+    }
+
+
+    // Bench IsFile2007XmlOfGivenTag 
+    {
+       MMVII_INTERNAL_ASSERT_bench( IsFile2007XmlOfGivenTag(aDirOut+"F2.xml","TS0"),"cAppli_MMVII_TestSerial");
+       MMVII_INTERNAL_ASSERT_bench(!IsFile2007XmlOfGivenTag(aDirOut+"F2.xml","TS1"),"cAppli_MMVII_TestSerial");
+       MMVII_INTERNAL_ASSERT_bench(!IsFile2007XmlOfGivenTag(aDirIn+"PBF2.xml","TS0"),"cAppli_MMVII_TestSerial");
+    }
+/*
+    std::cout << "TAG0: " << IsFile2007XmlOfGivenTag(aDir+"F2.xml","TS0") << "\n";
+    std::cout << "TAG1: " << IsFile2007XmlOfGivenTag(aDir+"F2.xml","TS1") << "\n";
+    std::cout << "xxx TAG0: " << IsFile2007XmlOfGivenTag(aDir+"PBF2.xml","TS0") << "\n";
+*/
+
     // return EXIT_SUCCESS;
 }
-
 
 
 };

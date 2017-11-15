@@ -1,6 +1,21 @@
 #ifndef  _MMVII_MEMORY_H_
 #define  _MMVII_MEMORY_H_
 
+namespace MMVII
+{
+
+/** \file MMVII_memory.h
+    \brief Memory checking functionnality
+
+    Contain support class for tracking the two main source of error :
+        - bad desallocation
+        - acces out of range
+
+    For now the access out or range is done only for writing at desallocation
+   time, maybe will add some access check for "tableau".
+
+*/
+
 
 void mem_raz(void * adr,int64_t nb);
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
@@ -139,7 +154,6 @@ template<class Type> class cGestObjetEmpruntable
 };
 
 
-
-
+};
 
 #endif  //  _MMVII_MEMORY_H_

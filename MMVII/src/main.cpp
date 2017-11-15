@@ -1,8 +1,12 @@
 #include "../include/MMVII_all.h"
 
+using namespace MMVII;
 
 int main(int argc, char ** argv)
 {
+   std::setlocale(LC_ALL, "C");
+   // std::cout << 3.15 << "\n";
+   // std::setlocale(LC_ALL, "en_US.UTF-8");
    std::vector<cSpecMMVII_Appli*> &  aVSpecAll = cSpecMMVII_Appli::VecAll();
 
    std::string aNameCom ;
