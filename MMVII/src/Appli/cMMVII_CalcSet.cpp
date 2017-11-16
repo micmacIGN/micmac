@@ -140,13 +140,6 @@ cInterfSet<std::string> * cSetName::ToSet()
 }
 
 
-/*
-void cSetName::Add(const  std::string & aName)
-{
-   mV.push_back(aName);
-}
-*/
-
         // ==== Basic accessor
 
 size_t                   cSetName::size() const { return mV.size(); }

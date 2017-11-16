@@ -315,28 +315,26 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
 
 void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!
 
-
 /// Save the value in an archive, not proud of the const_cast ;-)
 template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
 {
-   cAr2007 * anAr = AllocArFromFile(aName,false);
+   std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,false),DeleteAr);
    {
         cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
         /// Not proud of cons_cast ;-( 
         AddData(aGLOB,const_cast<Type&>(aVal));
     }
-    DeleteAr(anAr);
 }
+
 
 /// Read  the value in an archive
 template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
 {
-    cAr2007 * anAr = AllocArFromFile(aName,true);
+    std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,true),DeleteAr);
     {
        cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
        AddData(aGLOB,aVal);
     }
-    DeleteAr(anAr);
 }
 
 /// If the file does not exist, initialize with default constructor

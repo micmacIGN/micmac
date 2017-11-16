@@ -34,7 +34,7 @@ typedef tMMVII_UnikPApli (* tMMVII_AppliAllocator)(int argc, char ** argv);
     The command cAppli_EditSet allow to create sets with  with boolean expression.
 */
 
-class cSetName
+class cSetName : public cMemCheck
 {
    public :
        friend void  AddData(const cAuxAr2007 & anAux,cSetName & aSON);  ///< For serialization
@@ -44,6 +44,7 @@ class cSetName
        cSetName(const  cInterfSet<std::string> &);  ///<  Fill with set
        cSetName(const std::string &,bool AllowPat);  ///< From Pat Or File
 
+       void InitFromString(const std::string &,bool AllowPat);  ///< Init from file if ok, from pattern else
 
        size_t size() const;           ///< Accessor
        const tCont & Cont() const;    ///< Accessor
@@ -53,7 +54,6 @@ class cSetName
    // private :
        void InitFromFile(const std::string &);  ///< Init from Xml file
        void InitFromPat(const std::string & aFullPat); ///< Init from pattern (regex)
-       void InitFromString(const std::string &,bool AllowPat);  ///< Init from file if ok, from pattern else
 
 
        // Data part
@@ -213,6 +213,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mDoInitProj;    ///< Init : Create folders of project, def (true<=> LevCall==1)
         cInterfSet<void *>*                       mSetInit;       ///< Adresses of all initialized variables
         bool                                      mInitParamDone; ///< 2 Check Post Init was not forgotten
+        std::unique_ptr<cSetName>                 mMainSet1;      ///< Main set, gen
 };
 
 };

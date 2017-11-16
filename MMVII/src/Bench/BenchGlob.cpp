@@ -205,30 +205,6 @@ void TestArg0(const std::vector<int> & aV0)
    for (auto I : aV0){I++; std::cout << "I=" << I << "\n"; }
 }
 
-enum class eTypeArg {MDirOri,MPatIm};
-
-class cTestArg 
-{
-   public :
-      cTestArg(eTypeArg aNum,const std::string & aSem) :
-         mNum (aNum),
-         mSem (aSem)
-      {
-      }
-      
-      cTestArg(eTypeArg aNum) :
-         cTestArg(aNum,"")
-      {
-      }
-
-      
-      eTypeArg mNum;
-      std::string mSem;
-};
-
-void TestArg1(const std::vector<cTestArg> & aV0)
-{
-}
 
 std::string BUD(const std::string & aDir);
 void TestBooostIter();

@@ -38,7 +38,8 @@ cMMVII_Appli::~cMMVII_Appli()
    mArgObl.clear();
    mArgFac.clear();
    // Verifie que tout ce qui a ete alloue a ete desalloue 
-   cMemManager::CheckRestoration(mMemStateBegin);
+   // cMemManager::CheckRestoration(mMemStateBegin);
+   mMemStateBegin.SetCheckAtDestroy();
 }
 
 bool  cMMVII_Appli::IsInit(void * aPtr)
@@ -76,8 +77,15 @@ cMMVII_Appli::cMMVII_Appli
    mLevelCall     (0),
    mDoInitProj    (false),
    mSetInit       (AllocUS<void *> ()),
-   mInitParamDone (false)
+   mInitParamDone (false),
+   mMainSet1      (nullptr)
 {
+   if (mMainSet1==0)
+   {
+       std::cout << "mMainSet1mMainSet1mMainSet1mMainSet1\n";
+       getchar();
+       mMainSet1.reset(new cSetName);
+   }
 }
 
 void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFac)
@@ -256,10 +264,10 @@ void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFa
 
   mLevelCall++; // So that is incremented if a new call is made
 
-for (int aK=0 ; aK<100 ; aK++)
-{
-    std::cout << "Lettre SFPT a diffuser \n";
-}
+  for (int aK=0 ; aK<100 ; aK++)
+  {
+      // std::cout << "Lettre SFPT a diffuser \n";
+  }
 
 }
 
