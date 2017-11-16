@@ -21,6 +21,10 @@ class cCarLookUpTable;
 
 // ===============================================
 
+inline bool IsChar(int aV)
+{
+   return (aV>=std::numeric_limits<char>::min())&&(aV<std::numeric_limits<char>::max());
+}
 
 class cCarLookUpTable
 {
@@ -31,13 +35,14 @@ class cCarLookUpTable
 
          inline char Val(const int & aV) const
          {
-             MMVII_INTERNAL_ASSERT_tiny((aV>=0) && (aV<256),"cCarLookUpTable::Val()");
-             return mTable[aV];
+             MMVII_INTERNAL_ASSERT_tiny(IsChar(aV),"cCarLookUpTable::Val()");
+             return mUTable[aV];
          }
      private :
          // static cGestObjetEmpruntable<cCarLookUpTable>   msGOE;
 
-         char          mTable[256];
+         char          mDTable[256]; ///< 
+         char *        mUTable;    ///<
          std::string   mIns;
          bool          mInit;
 };
@@ -66,6 +71,7 @@ std::string DirCur(); // as "./" on Unix
 std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string FileOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string UpDir(const std::string & aDir,int aNb=1);
+// std::string AbsoluteName(const std::string &); ///< Get absolute name of path; rather pwd than unalias, no good
 bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitive equality
 bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case UN-sensitive premisse of aStr ?
 bool CreateDirectories(const std::string & aDir,bool SVP); ///< Create dir, recurs ?

@@ -124,17 +124,7 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
 
 
 extern void BenchSerialization(const std::string & aDirOut,const std::string & aDirIn);
-
-void BenchSet()
-{
-   cInterfSet<int> * aSI = AllocUS<int>();
-   for (int aK=0 ; aK<10 ; aK++)
-      aSI->Add(aK*2);
-   for (int aK=0 ; aK<20 ; aK++)
-       MMVII_INTERNAL_ASSERT_bench(aSI->In(aK)==(aK%2==0),"BenchSet");
-  delete aSI;
-  std::cout << "BenchSetBenchSetBenchSet \n";
-}
+extern void BenchSet(const std::string &);
 
 
 int  cAppli_MMVII_Bench::Exe()
@@ -165,7 +155,7 @@ int  cAppli_MMVII_Bench::Exe()
    std::cout << " asin(2)=" << asin(2.0) << "\n";
 
 
-   BenchSet();
+   BenchSet(mDirTestMMVII);
 
    return EXIT_SUCCESS;
 }
@@ -208,7 +198,6 @@ cAppli_MPDTest:: cAppli_MPDTest(int argc,char** argv) :
   InitParam(mArgObl,mArgFac);
 }
 
-// void TestBooostIter();
 
 
 void TestArg0(const std::vector<int> & aV0)
@@ -242,15 +231,19 @@ void TestArg1(const std::vector<cTestArg> & aV0)
 }
 
 std::string BUD(const std::string & aDir);
+void TestBooostIter();
 
+// #include <limits>
 int cAppli_MPDTest::Exe()
 {
    
+  std::cout << "CHAR LIMS " << (int) std::numeric_limits<char>::min() << " " << (int) std::numeric_limits<char>::max() << "\n";
+/*
+   TestBooostIter();
    BUD(".");
    BUD("/a/b/c");
    BUD("a/b/c");
    BUD("a");
-/*
    TestArg0({1,3,9});
    TestArg1({});
    TestArg1({eTypeArg::MDirOri});

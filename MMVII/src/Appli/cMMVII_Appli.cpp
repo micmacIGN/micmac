@@ -20,8 +20,20 @@ cMMVII_Appli & cMMVII_Appli::TheAppli()
   return *msTheAppli;
 }
 
+bool cMMVII_Appli::ExistAppli()
+{
+  return msTheAppli != 0;
+}
+
+void cMMVII_Appli::AssertInitParam()
+{
+  MMVII_INTERNAL_ASSERT_always(mInitParamDone,"Init Param was forgotten");
+}
+
+
 cMMVII_Appli::~cMMVII_Appli()
 {
+   AssertInitParam();
    delete mSetInit;
    mArgObl.clear();
    mArgFac.clear();
@@ -34,6 +46,11 @@ bool  cMMVII_Appli::IsInit(void * aPtr)
     return  mSetInit->In(aPtr);
 }
 
+template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
+{
+    std::cout << " For " << aName << " V=" << aVal << "\n";
+    return aVal;
+}
 
 cMMVII_Appli::cMMVII_Appli
 (
@@ -44,6 +61,8 @@ cMMVII_Appli::cMMVII_Appli
    mArgc          (argc),
    mArgv          (argv),
    mFullBin       (mArgv[0]),
+   // mFullBin       (AbsoluteName(mArgv[0])),
+   // mFullBin       (PrintArg(AbsoluteName(mArgv[0]),"ABS")),
    mDirMMVII      (DirOfPath(mFullBin)),
    mBinMMVII      (FileOfPath(mFullBin)),
    mDirMicMacv1   (UpDir(mDirMMVII,2)),
@@ -56,12 +75,14 @@ cMMVII_Appli::cMMVII_Appli
    mShowAll       (false),
    mLevelCall     (0),
    mDoInitProj    (false),
-   mSetInit       (AllocUS<void *> ())
+   mSetInit       (AllocUS<void *> ()),
+   mInitParamDone (false)
 {
 }
 
 void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFac)
 {
+  mInitParamDone = true;
   // Check that  cCollecArg2007 were used with the good values
   MMVII_INTERNAL_ASSERT_always((&anArgObl)==&mArgObl,"cMMVII_Appli dont respect cCollecArg2007");
   MMVII_INTERNAL_ASSERT_always((&anArgFac)==&mArgFac,"cMMVII_Appli dont respect cCollecArg2007");
@@ -234,6 +255,11 @@ void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFa
   }
 
   mLevelCall++; // So that is incremented if a new call is made
+
+for (int aK=0 ; aK<100 ; aK++)
+{
+    std::cout << "Lettre SFPT a diffuser \n";
+}
 
 }
 

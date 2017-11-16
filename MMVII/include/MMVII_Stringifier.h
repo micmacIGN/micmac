@@ -240,26 +240,17 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
        aL = TypeCont(aNb,aV0);
     }
     // now read the elements
-   std::cout << "xxxxxxxxxxxxxxADDDDDr " << & aL << "\n";
     for (auto & el : aL)
     {
-std::cout << "IN " << el << "\n";
          AddData(cAuxAr2007("el",anAux),el);
-std::cout << "OUT " << el << "\n";
     }
-   for (auto el:aL)
-      std::cout << "OOOOOOO  " << el << "\n";
 }
 
 
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & aL) { StdContAddData(anAux,aL); }
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) 
 { 
-   std::cout << "ADDDDDr " << & aL << "\n";
    StdContAddData(anAux,aL); 
-   for (auto el:aL)
-      std::cout << "LLLLLLL III " << el << "\n";
-
 }
 
 

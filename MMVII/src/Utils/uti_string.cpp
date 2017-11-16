@@ -23,8 +23,8 @@ namespace MMVII
 
 // Prouve la pertinence du warning sur  mTable[*aPtr] = aC;
 
-static_assert( int(char(255)) != 255,"Bad char assert");
-static_assert( int(char(-1)) == -1,"Bad char assert");
+// static_assert( int(char(255)) != 255,"Bad char assert");
+// static_assert( int(char(-1)) == -1,"Bad char assert");
 
 // cGestObjetEmpruntable<cCarLookUpTable>   cCarLookUpTable::msGOE;
 
@@ -33,7 +33,7 @@ void  cCarLookUpTable::Init(const std::string& aStr,char aC)
     MMVII_INTERNAL_ASSERT_medium(!mInit,"Multiple init of  cCarLookUpTable");
     mInit= true;
     for (const char * aPtr = aStr.c_str() ; *aPtr ; aPtr++)
-        mTable[*aPtr] = aC;  // Laisse le warning, il faudra le regler !!!
+        mUTable[int(*aPtr)] = aC;  // Laisse le warning, il faudra le regler !!!
         // mTable[size_t(*aPtr)] = aC;
     mIns = aStr;
 }
@@ -43,16 +43,15 @@ void  cCarLookUpTable::UnInit()
     MMVII_INTERNAL_ASSERT_medium(mInit,"Multiple Uninit of  cCarLookUpTable");
     mInit= false;
     for (const char * aPtr = mIns.c_str() ; *aPtr ; aPtr++)
-        mTable[*aPtr] = 0;  // Laisse le warning, il faudra le regler !!!
+        mUTable[int(*aPtr)] = 0;  // Laisse le warning, il faudra le regler !!!
     mIns = "";
 }
 
 cCarLookUpTable::cCarLookUpTable() :
+     mUTable (mDTable-  std::numeric_limits<char>::min()),
      mInit(false)
 {
-    MEM_RAZ(&mTable,1);
-    // MEM_RAZ(mTable,1); =>  sizeof(*mTable) == 1 !!!! 
-    // std::cout << "DDddrrrr= " << &mTable << " ;; " << &(*mTable) << "\n";
+    MEM_RAZ(&mDTable,1);
 }
 
 std::vector<std::string>  SplitString(const std::string & aStr,const std::string & aSpace)
@@ -192,6 +191,13 @@ std::string FileOfPath(const std::string & aPath,bool ErrorNonExist)
    return aFile;
 }
 
+std::string AbsoluteName(const std::string & aName)
+{
+     return absolute(aName).c_str();
+}
+
+
+
 /**
   It was a test of using Boost for Up Dir,but untill now I am not 100% ok
   with the results:
@@ -243,7 +249,10 @@ bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & 
    bool aResult = true;
    if (! exists(aPath))
    {
-       MMVII_INTERNAL_ASSERT_always(!ErrorNonExist,"File non existing in SplitDirAndFile");
+       if (ErrorNonExist)
+       {
+           MMVII_INTERNAL_ASSERT_always(false,"File non existing in SplitDirAndFile for ["+  aDirAndFile +"]");
+       }
        //return false;
        aResult = false;
    }
@@ -369,6 +378,10 @@ std::vector<std::string>  GetFilesFromDirAndER(const std::string & aDir,const st
 void TestBooostIter()
 {
 
+   std::cout <<  boost::filesystem::absolute("./MMVII") << '\n';
+   std::cout <<  boost::filesystem::absolute("MMVII") << '\n';
+   std::cout <<  boost::filesystem::absolute("./") << '\n';
+getchar();
 /*
 for (directory_iterator itr("./"); itr!=directory_iterator(); ++itr)
 {

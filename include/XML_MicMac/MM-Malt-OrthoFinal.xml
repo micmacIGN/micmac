@@ -1,4 +1,5 @@
                <GenerePartiesCachees >
+                    <ImSuperpMNT> ${OrthoSuperpMNT} </ImSuperpMNT>
                     <#WHEN VTEST=${InParal}>
                         <ByMkF> ${MkFPC} </ByMkF>
                     </#WHEN>

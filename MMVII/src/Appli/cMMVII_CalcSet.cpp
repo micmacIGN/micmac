@@ -75,32 +75,14 @@ bool cBoostRegex::Match(const std::string & aStr) const
 
 /*=================================*/
 
-class cSetName
-{
-   public :
-       cSetName();
-       cSetName(const std::string &,bool AllowPat);
-       cSetName(const  cInterfSet<std::string> &);
-       
-
-       size_t size() const;
-       void Add(const  std::string &);
-       cInterfSet<std::string> * ToSet();
-      
-   private :
-   // private :
-       void InitFromString(const std::string &,bool AllowPat);
-       void InitFromFile(const std::string &);
-       void InitFromPat(const std::string & aFullPat);
-       friend void  AddData(const cAuxAr2007 & anAux,cSetName & aSON);
-       std::vector<std::string> mV;
-};
 
 /* ====================================== */
 /*                                        */
 /*             cSetName                   */
 /*                                        */
 /* ====================================== */
+
+            //========== Constructors =============
 
 cSetName::cSetName()
 {
@@ -116,54 +98,25 @@ cSetName::cSetName(const  cInterfSet<std::string> & aSet)
 {
    std::vector<const std::string *> aVPtr;
    aSet.PutInSet(aVPtr);
-   for (auto el : aVPtr)
+   for (const auto & el : aVPtr)
        mV.push_back(*el);
 }
 
-cInterfSet<std::string> * cSetName::ToSet()
-{
-   cInterfSet<std::string> * aRes = AllocUS<std::string>();
-   for (auto el:mV)
-       aRes->Add(el);
-   return aRes;
-}
 
-
-void cSetName::Add(const  std::string & aName)
-{
-   mV.push_back(aName);
-}
-
-size_t cSetName::size() const
-{
-     return mV.size();
-}
-
-
-void  AddData(const cAuxAr2007 & anAux,cSetName & aSON)
-{
-    AddData(cAuxAr2007(TagSetOfName,anAux) ,aSON.mV);
-}
+            //===== Constructor helper =====
 
 void cSetName::InitFromFile(const std::string & aNameFile)
 {
-   // MMVII_INTERNAL_ASSERT_user(false,"Non xml file"I);
-
-    
     ReadFromFileWithDef(*this,aNameFile);
-std::cout << "InitFromFile " << aNameFile  << " NB: " << mV.size() << "\n";
-for (auto el:mV)
-   std::cout << "III " << el << "\n";
 }
+
 
 void  cSetName::InitFromPat(const std::string & aFullPat)
 {
      std::string aDir,aPat;
      SplitDirAndFile(aDir,aPat,aFullPat,false);
 
-// std::cout << "D=" << aDir << " P=" << aPat << "\n";
      cBoostRegex aBE(aPat);
-// std::cout << "HHHHHHH\n";
      GetFilesFromDir(mV,aDir,aBE);
 }
 
@@ -176,7 +129,35 @@ void cSetName::InitFromString(const std::string & aName,bool AllowPat)
       InitFromPat(aName);
 }
 
+            //===========================
 
+cInterfSet<std::string> * cSetName::ToSet()
+{
+   cInterfSet<std::string> * aRes = AllocUS<std::string>();
+   for (const auto & el:mV)
+       aRes->Add(el);
+   return aRes;
+}
+
+
+/*
+void cSetName::Add(const  std::string & aName)
+{
+   mV.push_back(aName);
+}
+*/
+
+        // ==== Basic accessor
+
+size_t                   cSetName::size() const { return mV.size(); }
+const  cSetName::tCont & cSetName::Cont() const { return mV;        }
+
+     // ====== Global for serialization ===
+
+void  AddData(const cAuxAr2007 & anAux,cSetName & aSON)
+{
+    AddData(cAuxAr2007(TagSetOfName,anAux) ,aSON.mV);
+}
 /* ==================================================== */
 /*                                                      */
 /*                                                      */
@@ -227,29 +208,46 @@ int cAppli_EditSet::Exe()
    std::vector<std::string>  aVOps = SplitString(Opers," ");
 
    cSetName aInput(mXml,false);
-   cSetName aNew(mPat,true);
+   cSetName aNew(mDirProject+mPat,true);
     
-   if (mOp==aVOps.at(0)) // =
+   if (mOp==aVOps.at(0)) // "=" , just an affectation
    {
       aInput = aNew;
    }
    else
    {
-       cInterfSet<std::string> *  aSIn = aInput.ToSet();
+      // we make set of them to handle unicity
+       cInterfSet<std::string> *  aSIn = aInput.ToSet();  
        cInterfSet<std::string> *  aSetNew = aNew.ToSet();
 
        if (mOp==aVOps.at(1)) // *=
        {
-             *aSIn *=  *aSetNew;
+          *aSIn *=  *aSetNew;
+       }
+       else if (mOp==aVOps.at(2)) // +=
+       {
+          *aSIn +=  *aSetNew;
+       }
+       else if (mOp==aVOps.at(3)) // -=
+       {
+          *aSIn -=  *aSetNew;
        }
        else
        {
            MMVII_INTERNAL_ASSERT_user(false,"Unknown set operator :["+mOp+"] allowed: "+ Opers);
        }
 
-       aInput  = cSetName(*aSetNew);
+       // Back to cSetName
+       aInput  = cSetName(*aSIn);
+       delete aSIn;
+       delete aSetNew;
+
    }
    SaveInFile(aInput,mXml);
+
+   if (mShow)
+   {
+   }
 
    return EXIT_SUCCESS;
 }

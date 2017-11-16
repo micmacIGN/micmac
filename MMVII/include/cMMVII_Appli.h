@@ -9,37 +9,76 @@ namespace MMVII
 
 */
 
-
-
-// FR=Cette classe contiendra la specification des argumenst, type EAM ....
-// EN=This class will  contain the specification of command paramater, (EAM like in micmac 1.0)
-
-//  FR= Cette classe contient la mini docutmation (nom, commentaire, entree sortie ...)
-//  EN= This class will contain the inline minimal documation (name, commentary, input-output etc ...)
 class cSpecMMVII_Appli;
-
 class cMMVII_Ap_NameManip;
-
-// FR=La classe mere de toute les application, il en existe une et une seule par processe MMVII
-// EN= Mother class of any application, must exit exaclty one by process
 class cMMVII_Appli;
+class cSetName;
 
-
-
-// EN= Some typedef to facilitate type declaration
-
-// typedef cMMVII_Appli *  tMMVII_AppliPtr;
+//  Some typedef to facilitate type declaration
 typedef std::unique_ptr<cMMVII_Appli>   tMMVII_UnikPApli;
 typedef tMMVII_UnikPApli (* tMMVII_AppliAllocator)(int argc, char ** argv);
 
+/* ============================================ */
+/*                                              */
+/*        PROJECT HANDLINS  CLASSES             */
+/*        WILL PROBABLY BE A SEPARATE FILE      */
+/*                                              */
+/* ============================================ */
+
+/// Class for creting/storing set of files
+
+/** In MM, many (almost all ?) command require a set of file, generally image, as
+    one of their main parameters.
+ 
+    The class cSetName allow to create a set of name from a pattern or an existing-xml file.
+    The command cAppli_EditSet allow to create sets with  with boolean expression.
+*/
+
+class cSetName
+{
+   public :
+       friend void  AddData(const cAuxAr2007 & anAux,cSetName & aSON);  ///< For serialization
+       typedef std::vector<std::string> tCont;  ///< In case we change the container type
+
+       cSetName();  ///< Do nothing for now
+       cSetName(const  cInterfSet<std::string> &);  ///<  Fill with set
+       cSetName(const std::string &,bool AllowPat);  ///< From Pat Or File
+
+
+       size_t size() const;           ///< Accessor
+       const tCont & Cont() const;    ///< Accessor
+
+       cInterfSet<std::string> * ToSet(); ///< generate set, usefull for boolean operation
+   private :
+   // private :
+       void InitFromFile(const std::string &);  ///< Init from Xml file
+       void InitFromPat(const std::string & aFullPat); ///< Init from pattern (regex)
+       void InitFromString(const std::string &,bool AllowPat);  ///< Init from file if ok, from pattern else
+
+
+       // Data part
+       tCont mV;
+};
 
 
      // ========================== cSpecMMVII_Appli ==================
+
+/// Class for specification of a command
+
+/** The specification of a command contains :
+     - a name to retrieve it
+     - a basic commentary
+     - an allocator of type "tMMVII_AppliAllocator" , because all must create a application deriving of cMMVII_Appli
+       but the class are declared in separate cpp file (dont want to export all application) 
+    - a vector of Feature 
+    - 2 vector of Data type, for input and ouput 
+*/
+
 class cSpecMMVII_Appli
 {
      public :
-       typedef std::vector<eApF>   tVaF; 
-       typedef std::vector<eApDT>  tVaDT; 
+       typedef std::vector<eApF>   tVaF;  ///< Features
+       typedef std::vector<eApDT>  tVaDT; ///< Data types
 
        cSpecMMVII_Appli
        (
@@ -52,19 +91,19 @@ class cSpecMMVII_Appli
            const tVaDT    & aOutputs  
        );
 
-       void Check();
-       static std::vector<cSpecMMVII_Appli*> & VecAll();
+       void Check(); ///< Check that specification if ok (at least vectors non empty)
+       static std::vector<cSpecMMVII_Appli*> & VecAll(); ///< vectors of all specifs
 
-       const std::string &    Name() const;
-       tMMVII_AppliAllocator  Alloc() const;
-       const std::string &    Comment() const;
+       const std::string &    Name() const; ///< Accessor
+       tMMVII_AppliAllocator  Alloc() const; ///< Accessor
+       const std::string &    Comment() const; ///< Accessor
     private :
    // Data
-       std::string           mName;
-       tMMVII_AppliAllocator mAlloc;
-       std::string           mComment;
-       tVaF                  mVFeatures;
-       tVaDT                 mVInputs;
+       std::string           mName;       ///< User name
+       tMMVII_AppliAllocator mAlloc;      ///< Allocator
+       std::string           mComment;    ///< Comment on what the command is suposed to do
+       tVaF                  mVFeatures;  ///< Features, at leat one
+       tVaDT                 mVInputs;    //
        tVaDT                 mVOutputs;
 
 };
@@ -129,10 +168,12 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
 {
     public :
+ 
+        static bool   ExistAppli();       ///< Return if the appli exist, no error
         static cMMVII_Appli & TheAppli(); ///< Return the unique appli, error if not
         virtual int Exe() = 0;            ///< Do the "real" job
         bool ModeHelp() const;            ///< If we are in help mode, don't execute
-        virtual ~cMMVII_Appli();        
+        virtual ~cMMVII_Appli();          ///< 
         bool    IsInit(void *);           ///< indicate for each variable if it was initiazed by argc/argv
 
     protected :
@@ -146,10 +187,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
 
-        void                                      GenerateHelp(); /// In Help mode print the help
-        void                                      InitProject();  /// Create Dir (an other ressources) that may be used by all processe
+        void                                      GenerateHelp(); ///< In Help mode print the help
+        void                                      InitProject();  ///< Create Dir (an other ressources) that may be used by all processe
 
         static cMMVII_Appli *                     msTheAppli;     ///< Unique application
+        void                                      AssertInitParam();
     protected :
         cMemState                                 mMemStateBegin; ///< To check memory management
         int                                       mArgc;          ///< memo argc
@@ -170,6 +212,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cCollecArg2007                            mArgFac;        ///< Optional args
         bool                                      mDoInitProj;    ///< Init : Create folders of project, def (true<=> LevCall==1)
         cInterfSet<void *>*                       mSetInit;       ///< Adresses of all initialized variables
+        bool                                      mInitParamDone; ///< 2 Check Post Init was not forgotten
 };
 
 };
