@@ -77,7 +77,7 @@ std::vector<int> ReadPtFile(string & aDir, string aPtFile)
 Moy4Pts CalMoy(int aPt, std::list<cOneMesureAF1I> aLOneMAF1I)
 {
 
-    bool Pt1(false),Pt2(false),Pt3(false),Pt4(false);
+    bool Pt1(false),Pt2(false),Pt3(false),Pt4(false),Pt5(false),Pt6(false),Pt7(false),Pt8(false);
     Moy4Pts aMoy4Pts;
 
     Pt2dr MoyPt(0.0,0.0);
@@ -88,8 +88,15 @@ Moy4Pts CalMoy(int aPt, std::list<cOneMesureAF1I> aLOneMAF1I)
         if(aMPt==aPt+2) {Pt2=1;MoyPt.x+=iT->PtIm().x;MoyPt.y+=iT->PtIm().y;}
         if(aMPt==aPt+3) {Pt3=1;MoyPt.x+=iT->PtIm().x;MoyPt.y+=iT->PtIm().y;}
         if(aMPt==aPt+4) {Pt4=1;MoyPt.x+=iT->PtIm().x;MoyPt.y+=iT->PtIm().y;}
+        if(aMPt==aPt+5) {Pt5=1;MoyPt.x+=iT->PtIm().x;MoyPt.y+=iT->PtIm().y;}
+        if(aMPt==aPt+6) {Pt6=1;MoyPt.x+=iT->PtIm().x;MoyPt.y+=iT->PtIm().y;}
+        if(aMPt==aPt+7) {Pt7=1;MoyPt.x+=iT->PtIm().x;MoyPt.y+=iT->PtIm().y;}
+        if(aMPt==aPt+8) {Pt8=1;MoyPt.x+=iT->PtIm().x;MoyPt.y+=iT->PtIm().y;}
+
     }
-    aMoy4Pts.All4Pts = Pt1 && Pt2 && Pt3 && Pt4;
+        aMoy4Pts.All4Pts = 0;
+    if ((Pt1&&Pt2&&Pt3&&Pt4)||(Pt5&&Pt6&&Pt7&&Pt8))
+        aMoy4Pts.All4Pts = 1;
     if(aMoy4Pts.All4Pts) aMoy4Pts.MoyPt = MoyPt/4;
 
     return aMoy4Pts;
@@ -139,7 +146,7 @@ int MoyMAF_main(int argc,char ** argv)
                  for (auto iT1=aLOneMAF1I.begin();iT1!=aLOneMAF1I.end();iT1++)
                  {
                      int aMPt = atoi(iT1->NamePt().c_str());
-                     if (aMPt==(aPt+1)||aMPt==(aPt+2)||aMPt==(aPt+3)||aMPt==(aPt+4))
+                     if ((aMPt>=aPt+1) && (aMPt<=aPt+8))
                      {
                          iT1 = aLOneMAF1I.erase(iT1);
                          iT1--;
