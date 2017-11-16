@@ -227,6 +227,7 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
 	std::vector<PosGPS> aVPosGPS;
 	std::vector<Pt3dr> aVSauvPosGPS;
 	
+    Pt3dr aOffset(0,0,0);
 	
 	ElInitArgMain
     (
@@ -237,6 +238,7 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
 					 << EAM(mStrChSys,"ChSys",true,"Change coordinate file")
 					 << EAM(aShowH,"ShowH",true,"Show header informations ; Def = false", eSAM_IsBool)
 					 << EAM(aXYZ,"tXYZQ",false,"Export tXYZQ format ASCII data ; Def = false", eSAM_IsBool)
+                     << EAM(aOffset,"OffSet",true,"Subtract an offset to all points")
     );
     
     std::string aFullName = mDir+mFile;
@@ -400,7 +402,7 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
     for (int aKP=0 ; aKP<int(aVSauvPosGPS.size()) ; aKP++)
     {
 		cOneGpsDGF aOAD;
-        aOAD.Pt() = aVSauvPosGPS[aKP];
+        aOAD.Pt() = aVSauvPosGPS[aKP] - aOffset;
         aOAD.NamePt() = aVPosGPS[aKP].Name;
         aOAD.Incertitude() = aVPosGPS[aKP].Ic;
         aOAD.TagPt() = aVPosGPS[aKP].Flag;
