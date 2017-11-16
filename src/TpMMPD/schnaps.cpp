@@ -757,6 +757,7 @@ int schnaps_main(int argc,char ** argv)
     bool DoNotFilter=false;
     double aMinPercentCoverage=30;//if %coverage<aMinPercentCoverage, add to poubelle!
     bool aMove=false;//if true, move poubelle images to a folder named "Poubelle/"
+    int aMinimalMultiplicity=1;
     std::string aNameTrashFolder = "";
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
@@ -786,6 +787,7 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(aMinPercentCoverage,"minPercentCoverage",true,"Minimum % of coverage to avoid adding to poubelle, def=30")
                    << EAM(aMove,"MoveBadImgs",true,"Move bad images to a trash folder called Poubelle, Def=false")
                    << EAM(aNameTrashFolder,"OutTrash",true,"Output name of trash folder if moving bad images, Def=Poubelle")
+                   << EAM(aMinimalMultiplicity,"MiniMulti",true,"Minimal Multiplicity of selected points, Def=1")
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -848,6 +850,16 @@ int schnaps_main(int argc,char ** argv)
         else
             itHomol++;
     }*/
+
+    if (aMinimalMultiplicity>1)
+    {
+        for (std::list<cHomol>::iterator itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();++itHomol)
+        {
+            cHomol &aHomol=(*itHomol);
+            if (aHomol.getPointOnPicsSize()<(unsigned)aMinimalMultiplicity)
+                aHomol.setBad();
+        }
+    }
 
     if (veryStrict)
     {
