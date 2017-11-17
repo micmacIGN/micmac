@@ -180,8 +180,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         /// Constructor, essenntially memorize command line
         cMMVII_Appli(int,char **);
         /// Second step of construction, parse the command line and initialize values
-        void InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFac);
+        void InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac);
 
+        cSetName &                               MainSet1();      ///< mMainSet1 , check !=0 before
+        cSetName &                               MainSet2();      ///< mMainSet2 , check !=0 before
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
@@ -208,12 +210,14 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mDoInternalHelp;///< Include internal parameter in Help
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
-        cCollecArg2007                            mArgObl;        ///< Mandatory args
-        cCollecArg2007                            mArgFac;        ///< Optional args
+        cCollecSpecArg2007                        mArgObl;        ///< Mandatory args
+        cCollecSpecArg2007                        mArgFac;        ///< Optional args
         bool                                      mDoInitProj;    ///< Init : Create folders of project, def (true<=> LevCall==1)
         cInterfSet<void *>*                       mSetInit;       ///< Adresses of all initialized variables
         bool                                      mInitParamDone; ///< 2 Check Post Init was not forgotten
-        std::unique_ptr<cSetName>                 mMainSet1;      ///< Main set, gen
+    private :
+        std::unique_ptr<cSetName>                 mMainSet1;      ///< For a many commands probably
+        std::unique_ptr<cSetName>                 mMainSet2;      ///< For TieP, cple edition ... 
 };
 
 };

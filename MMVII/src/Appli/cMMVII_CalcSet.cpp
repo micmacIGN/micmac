@@ -1,6 +1,4 @@
 #include "include/MMVII_all.h"
-#include <boost/regex.hpp> 
-// #include <boost/cregex.hpp> 
 
 /** \file cMMVII_CalcSet.cpp
     \brief Command for set calculation
@@ -15,65 +13,6 @@
 namespace MMVII
 {
 
-
-/* ======================================== */
-/*                                          */
-/*      cNameSelector                       */
-/*                                          */
-/* ======================================== */
-
-cNameSelector::~cNameSelector()
-{
-}
-
-/* ======================================== */
-/*                                          */
-/*     cInterfRegex                         */
-/*                                          */
-/* ======================================== */
-
-cInterfRegex::cInterfRegex(const std::string & aName) :
-   mName (aName)
-{
-}
-
-cInterfRegex::~cInterfRegex()
-{
-}
-
-const std::string & cInterfRegex::Name() const
-{
-   return mName;
-}
-/* ======================================== */
-/*                                          */
-/*     cBoostRegex                          */
-/*                                          */
-/* ======================================== */
-
-/// Boost implementation of Regex expression
-class cBoostRegex : public  cInterfRegex
-{
-    public :
-        cBoostRegex(const std::string &);
-        bool Match(const std::string &) const override ;
-    private :
-        boost::regex mRegex;
-};
-
-
-cBoostRegex::cBoostRegex(const std::string & aName) :
-   cInterfRegex (aName),
-   mRegex       (aName)
-{
-}
-
-bool cBoostRegex::Match(const std::string & aStr) const 
-{
-    return regex_match(aStr,mRegex);
-}
-
-/*=================================*/
 
 
 /* ====================================== */
@@ -116,8 +55,7 @@ void  cSetName::InitFromPat(const std::string & aFullPat)
      std::string aDir,aPat;
      SplitDirAndFile(aDir,aPat,aFullPat,false);
 
-     cBoostRegex aBE(aPat);
-     GetFilesFromDir(mV,aDir,aBE);
+     GetFilesFromDir(mV,aDir,BoostAllocRegex(aPat));
 }
 
 
@@ -188,7 +126,7 @@ cAppli_EditSet::cAppli_EditSet(int argc,char** argv) :
       mArgObl 
         <<  Arg2007(mXml,"Full Name of Xml in/out",{eTA2007::FileDirProj})
         <<  Arg2007(mOp,"Operator (= += -= *= 0)")
-        <<  Arg2007(mPat,"Pattern or Xml")
+        <<  Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatIm,"0"}})
      ,
      mArgFac
         <<  AOpt2007(mShow,"Show","Full Name of Xml in/out",{})
@@ -201,7 +139,7 @@ int cAppli_EditSet::Exe()
    std::vector<std::string>  aVOps = SplitString(Opers," ");
 
    cSetName aInput(mXml,false);
-   cSetName aNew(mDirProject+mPat,true);
+   cSetName & aNew =  MainSet1();
     
    if (mOp==aVOps.at(0)) // "=" , just an affectation
    {

@@ -25,7 +25,7 @@ enum class eTA2007
                 // PatOrXmlFile,    ///< Pattern File
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File of Dir Proj
-                MPatIm,        ///< Major PaternIm
+                MPatIm,        ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 MDirOri,       ///< Major DirOri
                 Internal,      ///< Reserved to internall use by MMVII
                 Common         ///< Parameter  Common to all commands

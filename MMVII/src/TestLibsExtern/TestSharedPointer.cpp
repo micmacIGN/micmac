@@ -12,6 +12,8 @@
 namespace MMVII
 {
 
+
+
 class cTestMMV2Obj : public cMemCheck
 {
     public :
@@ -21,7 +23,7 @@ class cTestMMV2Obj : public cMemCheck
         }
         static int NbObj() {return TheNbObj;}
     // protected :
-        cTestMMV2Obj()
+        cTestMMV2Obj() 
         {
            TheNbObj++;
         }

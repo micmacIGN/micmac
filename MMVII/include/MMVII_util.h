@@ -76,45 +76,8 @@ bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitiv
 bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case UN-sensitive premisse of aStr ?
 bool CreateDirectories(const std::string & aDir,bool SVP); ///< Create dir, recurs ?
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
+void SkeepWhite(const char * & aC);
 
-
-
-
-/// Generique Interface for all operation on name filtering
-class cNameSelector : public cMemCheck
-{
-    public :
-        virtual bool Match(const std::string &) const = 0;
-        virtual ~cNameSelector();
-};
-/// Interface class to Regex
-
-/** This class is a purely interface class to regex.
-    I separate from the implementation :
-       * because I am not 100% sure I will rely on boost
-       * I don't want to slow dow all compliation witrh boost (or other) header 
-       * I think it's good policy that class show the minimum required in header
-*/
-
-class cInterfRegex : public cNameSelector
-{
-    public :
-        cInterfRegex(const std::string &);
-        virtual ~cInterfRegex();
-        static cInterfRegex * BoostAlloc();
-        const std::string & Name() const;
-    private :
-        std::string mName;
-};
-
-/// Exract name of files located in the directory, by return value
-std::vector<std::string>  GetFilesFromDir(const std::string & aDir,cNameSelector &);
-/// Exract name of files, by ref
-void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,cNameSelector &);
-/// Recursively exract name of files located in the directory, by return value
-void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, cNameSelector & aNS,int aLevMin, int aLevMax);
-/// Recursively exract name of files, by return value
-std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,cNameSelector & aNS,int aLevMin, int aLevMax);
 
 
 

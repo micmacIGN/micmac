@@ -105,7 +105,6 @@ class  cMemCheck
       public :
          void * operator new    (size_t sz);
          void operator delete   (void * ptr) ;
-
       private :
 
        // to avoid use 

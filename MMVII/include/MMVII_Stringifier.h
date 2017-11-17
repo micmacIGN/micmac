@@ -13,8 +13,8 @@ namespace MMVII
     (3) services for serialization
 */
 
-class  cOneArgCL2007 ;
-class cCollecArg2007;
+class  cSpecOneArg2007 ;
+class cCollecSpecArg2007;
 
 /// Mother class of archive, do not need to export
 class cAr2007; 
@@ -70,7 +70,7 @@ template  <class Type> void FromS(const std::string & aStr,Type & aV) { aV= cStr
 /*                                                     */
 /*  ================================================== */
 
-/// Semantic of cOneArgCL2007
+/// Semantic of cSpecOneArg2007
 /**
    This "semantic" are usefull to have a finer process
    od the parameter in the global constructor. For example
@@ -103,7 +103,7 @@ class cSemA2007
 /**  The job will be done by template inheriting classes
     who knows how to use a string for computing a value
 */
-class  cOneArgCL2007 : public cMemCheck
+class  cSpecOneArg2007 : public cMemCheck
 {
      public :
         typedef std::vector<cSemA2007> tVSem;
@@ -111,14 +111,14 @@ class  cOneArgCL2007 : public cMemCheck
         /// Default empty semantique
         static const tVSem   TheEmptySem;
         ///  Name + comment  + semantic
-        cOneArgCL2007(const std::string & aName,const std::string & aCom,const tVSem & = TheEmptySem);
+        cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tVSem & = TheEmptySem);
 
         ///  This action defined in heriting-template class initialize "real" the value from its string value 
         virtual void InitParam(const std::string & aStr) = 0;
         virtual void * AdrParam() = 0;
         virtual const std::string & NameType() const = 0;
         /// Does any of  mVSem contains aType
-        bool HasType(const eTA2007 & aType)            const;
+        bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
 
         const tVSem & VSem() const;         ///< Accessor
         const std::string  & Name() const;  ///< Accessor
@@ -133,18 +133,18 @@ class  cOneArgCL2007 : public cMemCheck
          int             mNbMatch;  ///< Number of match, to generate error on multiple names
 };
 
-typedef std::shared_ptr<cOneArgCL2007>  tPtrArg2007;
+typedef std::shared_ptr<cSpecOneArg2007>  tPtrArg2007;
 typedef std::vector<tPtrArg2007>        tVecArg2007;
 
 
 /// Collection of arg spec
 /**
     Class for representing the collections  of parameter specificification (mandatory/optional/global)
-    This class is nothing more than a encapsultion of a vectot of cOneArgCL2007*,  but it
+    This class is nothing more than a encapsultion of a vectot of cSpecOneArg2007*,  but it
     was easier for defining the "operator <<" and  controling the access
 */
 
-class cCollecArg2007
+class cCollecSpecArg2007
 {
    public :
       friend class cMMVII_Appli; ///< only authorizd to construct
@@ -152,20 +152,20 @@ class cCollecArg2007
       size_t size() const;
       tPtrArg2007 operator [] (int) const;
       void clear() ;
-      cCollecArg2007 & operator << (tPtrArg2007 aVal);
+      cCollecSpecArg2007 & operator << (tPtrArg2007 aVal);
    private :
       friend class cMMVII_Appli;
       tVecArg2007 & Vec();
-      cCollecArg2007(const cCollecArg2007&) = delete;
+      cCollecSpecArg2007(const cCollecSpecArg2007&) = delete;
       tVecArg2007  mV;
-      cCollecArg2007();
+      cCollecSpecArg2007();
 };
 
 
-///  Two auxilary fonction to create easily cOneArgCL2007 , one for mandatory
-template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom, const std::vector<cSemA2007> & = cOneArgCL2007::TheEmptySem);
+///  Two auxilary fonction to create easily cSpecOneArg2007 , one for mandatory
+template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom, const std::vector<cSemA2007> & = cSpecOneArg2007::TheEmptySem);
 ///  One for optional args
-template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string & aName, const std::string & aCom,const std::vector<cSemA2007> & = cOneArgCL2007::TheEmptySem);
+template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string & aName, const std::string & aCom,const std::vector<cSemA2007> & = cSpecOneArg2007::TheEmptySem);
 
 
 

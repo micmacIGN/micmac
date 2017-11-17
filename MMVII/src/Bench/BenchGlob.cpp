@@ -59,7 +59,7 @@ void Bench_0000_Memory()
 void   Bench_0000_Param()
 {
    int a,b;
-   cCollecArg2007 aCol;
+   cCollecSpecArg2007 aCol;
    aCol << Arg2007(a,"UnA") << AOpt2007(b,"b","UnB") ;
    aCol[0]->InitParam("111");
    aCol[1]->InitParam("222");
@@ -90,11 +90,14 @@ void cAppli_MMVII_Bench::Bench_0000_String()
     // Bench elem sur la fonction SplitString
     std::vector<std::string> aSplit;
     SplitString(aSplit,"@  @AA  BB@CC DD   @  "," @");
-    MMVII_INTERNAL_ASSERT_bench(aSplit.size()==4,"Size in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[0]=="AA","SplitString in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[1]=="BB","SplitString in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[2]=="CC","SplitString in Bench_0000_String");
-    MMVII_INTERNAL_ASSERT_bench(aSplit[3]=="DD","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit.size()==6,"Size in Bench_0000_String");
+
+    MMVII_INTERNAL_ASSERT_bench(aSplit.at(0)=="","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit.at(1)=="AA","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit.at(2)=="BB","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit.at(3)=="CC","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit.at(4)=="DD","SplitString in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(aSplit.at(5)=="","SplitString in Bench_0000_String");
 
     MMVII_INTERNAL_ASSERT_bench(Prefix("AA.tif")=="AA",  "Prefix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench(Postfix("AA.tif")=="tif","Postfix in Bench_0000_String");
@@ -104,6 +107,11 @@ void cAppli_MMVII_Bench::Bench_0000_String()
     MMVII_INTERNAL_ASSERT_bench(Prefix("a.b.c",'.',true,false)=="a",  "Prefix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench(Postfix("a.b.c",'.',true,true)=="c",  "Prefix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench(Postfix("a.b.c",'.',true,false)=="b.c",  "Prefix in Bench_0000_String");
+
+    MMVII_INTERNAL_ASSERT_bench(Postfix("AA.",'.')=="","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench( Prefix("AA.",'.')=="AA","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix(".AA",'.')=="AA","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench( Prefix(".AA",'.')=="","Postfix in Bench_0000_String");
 }
 
 
@@ -125,6 +133,8 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv) :
 
 extern void BenchSerialization(const std::string & aDirOut,const std::string & aDirIn);
 extern void BenchSet(const std::string &);
+extern void BenchSelector(const std::string &);
+
 
 
 int  cAppli_MMVII_Bench::Exe()
@@ -156,6 +166,7 @@ int  cAppli_MMVII_Bench::Exe()
 
 
    BenchSet(mDirTestMMVII);
+   BenchSelector(mDirTestMMVII);
 
    return EXIT_SUCCESS;
 }
@@ -209,10 +220,27 @@ void TestArg0(const std::vector<int> & aV0)
 std::string BUD(const std::string & aDir);
 void TestBooostIter();
 
+class cTestShared
+{
+    public :
+        cTestShared() {std::cout  << "CREATE cTestShared "<< this << "\n";;}
+        ~cTestShared() {std::cout << "XXXXXX cTestShared "<< this << "\n";;}
+        static void Test()
+        {
+            cTestShared anOb;
+            // std::shared_ptr<cTestShared> aT(&anOb);
+            std::shared_ptr<cTestShared> aT(new cTestShared);
+        }
+};
+
+
+
+
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
    
+  cTestShared::Test();
   std::cout << "CHAR LIMS " << (int) std::numeric_limits<char>::min() << " " << (int) std::numeric_limits<char>::max() << "\n";
 /*
    TestBooostIter();

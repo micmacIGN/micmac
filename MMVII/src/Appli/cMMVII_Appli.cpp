@@ -78,22 +78,17 @@ cMMVII_Appli::cMMVII_Appli
    mDoInitProj    (false),
    mSetInit       (AllocUS<void *> ()),
    mInitParamDone (false),
-   mMainSet1      (nullptr)
+   mMainSet1      (nullptr),
+   mMainSet2      (nullptr)
 {
-   if (mMainSet1==0)
-   {
-       std::cout << "mMainSet1mMainSet1mMainSet1mMainSet1\n";
-       getchar();
-       mMainSet1.reset(new cSetName);
-   }
 }
 
-void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFac)
+void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac)
 {
   mInitParamDone = true;
-  // Check that  cCollecArg2007 were used with the good values
-  MMVII_INTERNAL_ASSERT_always((&anArgObl)==&mArgObl,"cMMVII_Appli dont respect cCollecArg2007");
-  MMVII_INTERNAL_ASSERT_always((&anArgFac)==&mArgFac,"cMMVII_Appli dont respect cCollecArg2007");
+  // Check that  cCollecSpecArg2007 were used with the good values
+  MMVII_INTERNAL_ASSERT_always((&anArgObl)==&mArgObl,"cMMVII_Appli dont respect cCollecSpecArg2007");
+  MMVII_INTERNAL_ASSERT_always((&anArgFac)==&mArgFac,"cMMVII_Appli dont respect cCollecSpecArg2007");
 
   std::string aDP; // mDirProject is handled specially so dont put mDirProject in AOpt2007
                    // becauser  InitParam, it may change the correct value 
@@ -173,17 +168,19 @@ void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFa
              std::string aName,aValue;
              SplitStringArround(aName,aValue,aArgK,'=',true,false);
              int aNbSpecGot=0;
+             // Look for spec corresponding to name
              for (auto aSpec : mArgFac.Vec())
              {
                  if (aSpec->Name() == aName)
                  {
                     aNbSpecGot++;
                     aVSpec.push_back(aSpec);
-                    // Should be
+                    // Several space have the same name
                     if (aNbSpecGot==2)
                     {
                         MMVII_INTERNAL_ASSERT_always(false,"\""+ aName +"\" is multiple in specification");
                     }
+                    // Same name was used several time
                     if (aSpec->NbMatch() !=0)
                     {
                         MMVII_INTERNAL_ASSERT_user(false,"\""+aName +"\" was used multiple time");
@@ -191,6 +188,7 @@ void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFa
                     aSpec->IncrNbMatch();
                  }
              }
+             // Name does not correspond to spec
              if (aNbSpecGot==0)
              {
                 MMVII_INTERNAL_ASSERT_user(false,"\""+aName +"\" is not a valide optionnal value");
@@ -236,6 +234,24 @@ void cMMVII_Appli::InitParam(cCollecArg2007 & anArgObl, cCollecArg2007 & anArgFa
   {
        aVSpec[aK]->InitParam(aVValues[aK]);
        mSetInit->Add(aVSpec[aK]->AdrParam()); ///< Memorize this value was initialized
+
+       // Test if it is (one of) the main pattern
+       {
+           std::string aNumPat;
+           if (aVSpec[aK]->HasType(eTA2007::MPatIm,&aNumPat))
+           {
+               std::unique_ptr<cSetName> & aPS = (aNumPat==""||aNumPat=="0") ? mMainSet1 : mMainSet2;
+
+               if (aPS==0)
+               {
+                   aPS.reset(new cSetName(mDirProject+aVValues[aK],true));
+               }
+               else
+               {
+                   MMVII_INTERNAL_ASSERT_always(false,"Multiple Pat Im");
+               }
+           }
+       }
   }
   // MakeNameDir(mDirProject);
   
@@ -311,6 +327,17 @@ bool cMMVII_Appli::ModeHelp() const
    return mModeHelp;
 }
 
+cSetName &  cMMVII_Appli::MainSet1() 
+{
+   MMVII_INTERNAL_ASSERT_always(mMainSet1!=0,"No mMainSet1 created");
+   return *mMainSet1;
+}
+
+cSetName &  cMMVII_Appli::MainSet2() 
+{
+   MMVII_INTERNAL_ASSERT_always(mMainSet2!=0,"No mMainSet2 created");
+   return *mMainSet2;
+}
 
 
 };

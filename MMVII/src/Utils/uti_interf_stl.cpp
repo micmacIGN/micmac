@@ -6,6 +6,11 @@
 namespace MMVII
 {
 
+///  unordered_set implementation of cInterfSet
+
+/** This class is (one of the)  a concret implementation of
+   the pure virtual interface class  cInterfSet
+*/
 
 template  <class Type> class cUnorderedSet : public cInterfSet<Type>
 {

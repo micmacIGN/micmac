@@ -15,6 +15,8 @@ void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char 
        getchar();
        exit(-1);
     }
+    getchar();
+    exit(-1);
 }
 
 

@@ -300,6 +300,13 @@ std::string  Quote(const std::string & aStr)
    return aStr;
 }
 
+void SkeepWhite(const char * & aC)
+{
+    while (isspace(*aC)) 
+         aC++;
+}
+
+
 bool CreateDirectories(const std::string & aDir,bool SVP)
 {
     bool Ok = boost::filesystem::create_directories(aDir);
@@ -323,17 +330,17 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 */
 
 
-void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,cNameSelector & aNS)
+void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,tNameSelector  aNS)
 {
    for (directory_iterator itr(aDir); itr!=directory_iterator(); ++itr)
    {
       std::string aName ( itr->path().filename().c_str());
-      if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
+      if ( is_regular_file(itr->status()) &&  aNS->Match(aName))
          aRes.push_back(aName);
    }
 }
 
-std::vector<std::string> GetFilesFromDir(const std::string & aDir,cNameSelector & aNS)
+std::vector<std::string> GetFilesFromDir(const std::string & aDir,tNameSelector  aNS)
 {
     std::vector<std::string> aRes;
     GetFilesFromDir(aRes,aDir,aNS);
@@ -341,7 +348,7 @@ std::vector<std::string> GetFilesFromDir(const std::string & aDir,cNameSelector 
     return aRes;
 }
 
-void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, cNameSelector & aNS,int aLevMin, int aLevMax)
+void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax)
 {
     for (recursive_directory_iterator itr(aDir); itr!=        recursive_directory_iterator(); ++itr)
     {
@@ -349,12 +356,12 @@ void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aD
         if ((aLev>=aLevMin) && (aLev<aLevMax))
         {
            std::string aName(itr->path().c_str());
-           if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
+           if ( is_regular_file(itr->status()) &&  aNS->Match(aName))
               aRes.push_back(aName);
         }
     }
 }
-std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,cNameSelector & aNS,int aLevMin, int aLevMax)
+std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelector aNS,int aLevMin, int aLevMax)
 {
     std::vector<std::string> aRes;
     RecGetFilesFromDir(aRes,aDir,aNS,aLevMin,aLevMax);

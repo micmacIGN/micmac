@@ -18,16 +18,16 @@
 
 
 //===========================================
+#include "MMVII_Error.h"
 #include "MMVII_AllClassDeclare.h"
 #include "MMVII_enums.h"
 // Header MMVII
 // #include "TypeNum.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Sys.h"
-#include "MMVII_Error.h"
 #include "MMVII_memory.h"
-#include "MMVII_util.h"
 #include "MMVII_util_tpl.h"
+#include "MMVII_util.h"
 
 
 
