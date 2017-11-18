@@ -37,6 +37,10 @@ template <class Type> class  cStrIO
        static const std::string  msNameType;
 };
 
+/// Facilities when the type is well defined
+template <class Type> std::string ToStr(const Type & aV) {return cStrIO<Type>::ToStr(aV);}
+
+
 /** Do the test using only specialization ...
    Could make something generic with isstream, but remember it was tricky ...
 */
@@ -315,15 +319,33 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
 
 void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!
 
+/// By default no MMV1 save
+template<class Type> void  MMv1_SaveInFile(const Type & aVal,const std::string & aName)
+{
+     // MMVII_INTERNAL_ASSERT_always(false,"No MMV1 save for " + std::string(typeid(Type).name()));
+     MMVII_INTERNAL_ASSERT_always(false,"No MMV1 save for type" );
+}
+/// Exist one for cSetName
+template<> void  MMv1_SaveInFile(const cSetName & aVal,const std::string & aName);
+
+/// call static function of cMMVII_Appli, cannot make forward declaration of static function
+bool GlobOutV2Format();
 /// Save the value in an archive, not proud of the const_cast ;-)
 template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
 {
-   std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,false),DeleteAr);
+   if (GlobOutV2Format())  // Do we save by serialization
    {
-        cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
-        /// Not proud of cons_cast ;-( 
-        AddData(aGLOB,const_cast<Type&>(aVal));
-    }
+       std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,false),DeleteAr);
+       {
+           cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+           /// Not proud of cons_cast ;-( 
+           AddData(aGLOB,const_cast<Type&>(aVal));
+       }
+   }
+   else
+   {
+     MMv1_SaveInFile<Type>(aVal,aName);
+   }
 }
 
 
@@ -347,7 +369,7 @@ template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & a
 }
 
 /// Indicate if a file is really XML, created by MMVII and containing the expected Tag
-bool IsFile2007XmlOfGivenTag(const std::string & aName,const std::string & aTag); 
+bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string & aTag); 
 
 
 /*****************************************************************/

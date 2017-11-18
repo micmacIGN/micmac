@@ -193,7 +193,7 @@ class cIXml_Ar2007 : public cAr2007
            {
            }
 
-           bool IsFile2007OfFirstTag(const std::string &);
+           bool IsFileOfFirstTag(bool Is2007,const std::string &);
      private :
            inline std::istream  & Ifs() {return mMMIs.Ifs();}
 
@@ -233,12 +233,12 @@ class cIXml_Ar2007 : public cAr2007
            bool                              mExcepOnEOF; ///< Do We use exception on EOF
 };
 
-bool cIXml_Ar2007::IsFile2007OfFirstTag(const std::string  & aName)
+bool cIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName)
 {
     bool aRes = false;
     mExcepOnEOF = true;
     try {
-        aRes = GetTag(false,TagMMVIISerial) && GetTag(false,aName);
+        aRes = ((!Is2007) || GetTag(false,TagMMVIISerial)) && GetTag(false,aName);
     }
     catch (cXMLEOF anE)
     {
@@ -247,13 +247,13 @@ bool cIXml_Ar2007::IsFile2007OfFirstTag(const std::string  & aName)
     return aRes;
 }
 
-bool IsFile2007XmlOfGivenTag(const std::string & aName,const std::string & aTag)
+bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string & aTag)
 {
   if ((Postfix(aName,'.',true) != "xml") || (! ExistFile(aName)))
      return false;
 
   cIXml_Ar2007 aFile (aName);
-  return aFile.IsFile2007OfFirstTag(aTag);
+  return aFile.IsFileOfFirstTag(Is2007,aTag);
 }
 
 

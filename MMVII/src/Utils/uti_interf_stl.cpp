@@ -3,6 +3,17 @@
 #include <unordered_map>
 
 
+/** \file uti_interf_stl.cpp
+    \brief Instantiation of some template utilitaries
+
+   This file contains implementation of a set of class that allow to
+  construct selectors, elemenatary one, or by boolean construction
+
+*/
+
+
+
+
 namespace MMVII
 {
 
@@ -11,6 +22,32 @@ namespace MMVII
 /** This class is (one of the)  a concret implementation of
    the pure virtual interface class  cInterfSet
 */
+
+// template <class Type> void SortPtrValue(std::vector<const Type*> aV);
+
+/// Comparison on pointed value 
+template <class Type> bool CmpOnPtrValue(const Type * & aV1,const Type * & aV2)
+{
+   return *aV1 < *aV2;
+}
+
+
+/// Sort on pointed value and not adress  
+template <class Type> void SortPtrValue(std::vector<Type*> & aV)
+{
+    std::sort(aV.begin(),aV.end(),CmpOnPtrValue<Type>);
+}
+
+/// Specialization 4 void who would not compile
+template <> void SortPtrValue(std::vector<const void*>&)
+{
+}
+
+
+
+
+// bool  
+
 
 template  <class Type> class cUnorderedSet : public cInterfSet<Type>
 {
@@ -32,15 +69,34 @@ template  <class Type> class cUnorderedSet : public cInterfSet<Type>
             return mUS.find(aVal) !=  mUS.end();
          }
 
-         void  PutInSet(std::vector<const Type*> & aV) const override
+         void  PutInSet(std::vector<const Type*> & aV,bool Sorted) const override
          {
+            aV.clear();
             for (const auto & el:mUS)
+            {
                 aV.push_back(&el);
+            }
+            if (Sorted)
+            {
+               SortPtrValue(aV);
+            }
          }
          void    clear() override
          {
              mUS.clear();
          }
+         cInterfSet<Type> *  VDupl() const override
+         {
+             return TypedDupl();
+         }
+
+         cUnorderedSet<Type> * TypedDupl() const
+         {
+             cUnorderedSet<Type> * aRes = new cUnorderedSet<Type>;
+             aRes->mUS = mUS;
+             return aRes;
+         }
+
 
          ~cUnorderedSet()  
          {
@@ -58,14 +114,20 @@ template  <class Type> class cUnorderedSet : public cInterfSet<Type>
 /*                                              */
 /* ============================================ */
 
+  // definition of interface class
+
 template <class Type> cInterfSet<Type>::~cInterfSet()
 {
 }
 
+ //=========================== Intersection ================
+
+   /// Intersection, in - situ
+
 template <class Type>  cInterfSet<Type> &  operator *= (cInterfSet<Type> & aRes,const cInterfSet<Type> & aFilter)
 {
    std::vector<const Type *>  aV;
-   aRes.PutInSet(aV);
+   aRes.PutInSet(aV,false);
    for (const auto & el : aV)
    {
        if ( ! aFilter.In(*el))
@@ -73,6 +135,7 @@ template <class Type>  cInterfSet<Type> &  operator *= (cInterfSet<Type> & aRes,
    }
    return aRes;
 }
+   /// Intersection, fonctionnal
 template <class Type>  cInterfSet<Type> *  operator * (const cInterfSet<Type> & aS1,const cInterfSet<Type> & aS2)
 {
    cInterfSet<Type> * aRes = AllocUS<Type>();
@@ -81,41 +144,45 @@ template <class Type>  cInterfSet<Type> *  operator * (const cInterfSet<Type> & 
    return  aRes;
 }
 
+ //=========================== Union  ================
+
+   /// Union, in - situ
 template <class Type>  cInterfSet<Type> &  operator += (cInterfSet<Type> & aRes,const cInterfSet<Type> & toAdd)
 {
    std::vector<const Type *>  aV;
-   toAdd.PutInSet(aV);
-// std::cout << "PutInSet " << aV.size() << "\n";
+   toAdd.PutInSet(aV,false);
    for (const auto & el : aV)
    {
         aRes.Add(*el);
    }
    return aRes;
 }
+   /// Union, functionnal
 template <class Type>  cInterfSet<Type> *  operator + (const cInterfSet<Type> & aS1,const cInterfSet<Type> & aS2)
 {
    cInterfSet<Type> * aRes = AllocUS<Type>();
-// std::cout << "SSSSS " << aRes->size() << " " << aS1.size() << " " << aS2.size() << "\n";
    (*aRes) = aS1;
-// std::cout << "SSSSS " << aRes->size() << "\n";
    (*aRes) += aS2;
-// std::cout << "SSSSS " << aRes->size() << "\n";
    return  aRes;
 }
 
+ //=========================== Affectation  ================
+
 template <class Type>  cInterfSet<Type> &  cInterfSet<Type>::operator = (const cInterfSet<Type> & toAdd)
 {
-// std::cout << "=========== " << size()<< " " << toAdd.size() << "\n";
    clear();
    *this += toAdd;
    return *this;
 }
 
 
+ //=========================== Difference  ================
+
+   /// Difference , in - situ
 template <class Type>  cInterfSet<Type> &  operator -= (cInterfSet<Type> & aRes,const cInterfSet<Type> & aFilter)
 {
    std::vector<const Type *>  aV;
-   aRes.PutInSet(aV);
+   aRes.PutInSet(aV,false);
    for (const auto & el : aV)
    {
        if (aFilter.In(*el))
@@ -123,6 +190,7 @@ template <class Type>  cInterfSet<Type> &  operator -= (cInterfSet<Type> & aRes,
    }
    return aRes;
 }
+   /// Difference , functionnal
 template <class Type>  cInterfSet<Type> *  operator - (const cInterfSet<Type> & aS1,const cInterfSet<Type> & aS2)
 {
    cInterfSet<Type> * aRes = AllocUS<Type>();
@@ -137,6 +205,9 @@ template <class Type> cInterfSet<Type> * AllocUS()
 {
    return new cUnorderedSet<Type>;
 }
+
+
+    /// MACRO INSTANTIATION
 
 #define INSTANTIATE_SET(Type)\
 template  class cInterfSet<Type>;\
@@ -153,11 +224,8 @@ INSTANTIATE_SET(int)
 INSTANTIATE_SET(void *)
 INSTANTIATE_SET(std::string)
 
-/*
-template  class cInterfSet<int>;
-template  class cUnorderedSet<int>;
-template  cInterfSet<int> * AllocUS<int>(); ///<  unordered_set
-*/
+
+    /// ========================= Basic Bench =============
 
 void BenchSet(const std::string & aDir)
 {

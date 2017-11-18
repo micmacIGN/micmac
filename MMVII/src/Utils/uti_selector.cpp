@@ -384,6 +384,8 @@ class cDataBoostRegex : public  cDataSelector<std::string>
 
 tNameSelector  BoostAllocRegex(const std::string& aPat)
 {
+   if (aPat=="")
+      return  CsteSelector<std::string>(true);
    return cSelector<std::string>(new cDataBoostRegex(aPat));
 }
 

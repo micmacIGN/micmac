@@ -25,7 +25,7 @@ bool cMMVII_Appli::ExistAppli()
   return msTheAppli != 0;
 }
 
-void cMMVII_Appli::AssertInitParam()
+void cMMVII_Appli::AssertInitParam() const
 {
   MMVII_INTERNAL_ASSERT_always(mInitParamDone,"Init Param was forgotten");
 }
@@ -78,14 +78,54 @@ cMMVII_Appli::cMMVII_Appli
    mDoInitProj    (false),
    mSetInit       (AllocUS<void *> ()),
    mInitParamDone (false),
-   mMainSet1      (nullptr),
-   mMainSet2      (nullptr)
+   mNumOutPut     (0),
+   mOutPutV1      (false),
+   mOutPutV2      (false),
+   mHasInputV1    (false),
+   mHasInputV2    (false)
 {
+}
+
+void cMMVII_Appli::SignalInputFormat(int aNumV)
+{
+   cMMVII_Appli & TheAp = TheAppli();
+   if (aNumV==0)
+   {
+   }
+   else if (aNumV==1)
+   {
+      TheAp.mHasInputV1 = true;
+   }
+   else if (aNumV==2)
+   {
+      TheAp.mHasInputV2 = true;
+   }
+   else 
+   {
+      MMVII_INTERNAL_ASSERT_always(false,"Input version must be in {0,1,2}, got: "+ToStr(aNumV));
+   }
+}
+
+bool GlobOutV2Format() { return cMMVII_Appli::OutV2Format(); }
+bool   cMMVII_Appli::OutV2Format() 
+{
+   const cMMVII_Appli & TheAp = TheAppli();
+   // Priority to specified output if exist
+   if (TheAp.mOutPutV2) return true;
+   if (TheAp.mOutPutV1) return false;
+   //  In input, set it, priority to V2
+   if (TheAp.mHasInputV2) return true;
+   if (TheAp.mHasInputV1) return false;
+   // by default V2
+   return true;
 }
 
 void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac)
 {
   mInitParamDone = true;
+  MMVII_INTERNAL_ASSERT_always(msTheAppli==0,"cMMVII_Appli only one by process");
+  msTheAppli = this;
+
   // Check that  cCollecSpecArg2007 were used with the good values
   MMVII_INTERNAL_ASSERT_always((&anArgObl)==&mArgObl,"cMMVII_Appli dont respect cCollecSpecArg2007");
   MMVII_INTERNAL_ASSERT_always((&anArgFac)==&mArgFac,"cMMVII_Appli dont respect cCollecSpecArg2007");
@@ -94,13 +134,18 @@ void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 &
                    // becauser  InitParam, it may change the correct value 
 
   // Add common optional parameters
+  cSpecOneArg2007::tVSem aIntCom{eTA2007::Internal,eTA2007::Common}; // just to make shorter lines
+  cSpecOneArg2007::tVSem aCom{eTA2007::Common}; // just to make shorter lines
   mArgFac
+      <<  AOpt2007(mIntervFilterMS[0],"FFI0","File Filter Interval, Main Set",aCom)
+      <<  AOpt2007(mIntervFilterMS[1],"FFI1","File Filter Interval, Second Set",aCom)
+      <<  AOpt2007(mNumOutPut,"NumVOut","Num version for output format (1 or 2)")
       <<  AOpt2007(aDP ,NameDirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Common})
-      <<  AOpt2007(mLevelCall,"LevCall","Internal : Don't Use !!",{eTA2007::Internal,eTA2007::Common})
-      <<  AOpt2007(mShowAll,"ShowAll","Internal : Don't Use !!",{eTA2007::Internal,eTA2007::Common})
+      <<  AOpt2007(mLevelCall,"LevCall","Internal : Don't Use !!",aIntCom)
+      <<  AOpt2007(mShowAll,"ShowAll","Internal : Don't Use !!",aIntCom)
   ;
 
-  // Check that name optionnal parameters begin with alphabetic caracters
+  // Check that names of optionnal parameters begin with alphabetic caracters
   for (auto aSpec : mArgFac.Vec())
   {
       if (!std::isalpha(aSpec->Name()[0]))
@@ -113,7 +158,6 @@ void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 &
       }
   }
 
-
   // Test if we are in help mode
   for (int aKArg=0 ; aKArg<mArgc ; aKArg++)
   {
@@ -124,6 +168,9 @@ void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 &
          while (*aArgK=='-') aArgK++;
          mDoGlobHelp = (*aArgK=='H');
          mDoInternalHelp = CaseSBegin("HELP",aArgK);
+
+         std::string aName; 
+         SplitStringArround(aName,mPatHelp,aArgK,'=',true,false);
       }
   }
   if (mModeHelp)
@@ -132,11 +179,6 @@ void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 &
       return;
   }
 
-  // std::cout  <<  "SIZE ARGS " <<  mArgFac.size() << " " << mArgObl.size() << "\n";
-
-
-  MMVII_INTERNAL_ASSERT_always(msTheAppli==0,"cMMVII_Appli only one by process");
-  msTheAppli = this;
 
   // std::cout << "MMV1 "  << mDirMicMacv1  << "\n";
 
@@ -227,32 +269,75 @@ void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 &
   }
   MakeNameDir(mDirProject);
 
-
-
   //  Initialize the paramaters
   for (size_t aK=0 ; aK<aNbArgTot; aK++)
   {
        aVSpec[aK]->InitParam(aVValues[aK]);
        mSetInit->Add(aVSpec[aK]->AdrParam()); ///< Memorize this value was initialized
-
-       // Test if it is (one of) the main pattern
-       {
-           std::string aNumPat;
-           if (aVSpec[aK]->HasType(eTA2007::MPatIm,&aNumPat))
-           {
-               std::unique_ptr<cSetName> & aPS = (aNumPat==""||aNumPat=="0") ? mMainSet1 : mMainSet2;
-
-               if (aPS==0)
-               {
-                   aPS.reset(new cSetName(mDirProject+aVValues[aK],true));
-               }
-               else
-               {
-                   MMVII_INTERNAL_ASSERT_always(false,"Multiple Pat Im");
-               }
-           }
-       }
   }
+
+  // If mNumOutPut was set, fix the output version
+  if (IsInit(&mNumOutPut))
+  {
+     if (mNumOutPut==1)
+        mOutPutV1 = true;
+     else if (mNumOutPut==2)
+        mOutPutV2 = true;
+     else
+     {
+         MMVII_INTERNAL_ASSERT_always(false,"Output version must be in {1,2}, got: "+ToStr(mNumOutPut));
+     }
+  }
+
+
+  // Analyse the possible main patterns
+  for (size_t aK=0 ; aK<aNbArgTot; aK++)
+  {
+      std::string aNumPat;
+      // Test the semantic
+      if (aVSpec[aK]->HasType(eTA2007::MPatIm,&aNumPat))
+      {
+         int aNum =   cStrIO<int>::FromStr(aNumPat);
+         // Check range
+         CheckRangeMainSet(aNum);
+
+         std::unique_ptr<cSetName> & aPS = mMainSets[aNum];
+         // don't accept multiple initialisation
+         if (aPS==0)
+         {
+            aPS.reset(new cSetName(mDirProject+aVValues[aK],true));
+         }
+         else
+         {
+            MMVII_INTERNAL_ASSERT_always(false,"Multiple main set im for num:"+ToStr(aNum));
+         }
+         std::string & aNameInterval = mIntervFilterMS[aNum];
+         if (IsInit(&aNameInterval))
+         {
+             aPS->Filter(Str2Interv<std::string>(aNameInterval));
+         }
+      }
+  }
+  // Check validity of main set initialization
+  for (int aNum=0 ; aNum<NbMaxMainSets ; aNum++)
+  {
+      // Why should user init interval if there no set ?
+      if (IsInit(&mIntervFilterMS[aNum]) && (mMainSets[aNum] == nullptr))
+      {
+         MMVII_INTERNAL_ASSERT_user(false,"Interval without filter for num:"+ToStr(aNum));
+      }
+      if (aNum>0)
+      {
+         // would be strange to have Mainset2 without MainSet1; probably if this occurs
+         // the fault would be from programer's side (not sure)
+         if ((mMainSets[aNum-1] == nullptr) && (mMainSets[aNum] != nullptr))
+         {
+            MMVII_INTERNAL_ASSERT_always(false,"Main set, init for :"+ToStr(aNum) + " and non init for " + ToStr(aNum-1));
+         }
+      }
+  }
+
+
   // MakeNameDir(mDirProject);
   
   // Print the info, debugging
@@ -294,29 +379,45 @@ void cMMVII_Appli::InitProject()
 
 void cMMVII_Appli::GenerateHelp()
 {
-   std::cout << "== Mandatory unnamed args : ==\n";
+  std::cout << "\n";
+
+  std::cout << "**********************************\n";
+  std::cout << "*   Help project 2007/MMVII      *\n";
+  std::cout << "**********************************\n";
+
+  std::cout << "\n";
+  std::cout << "  For command =" << " " << " \n";
+  std::cout << "\n";
+
+  std::cout << " == Mandatory unnamed args : ==\n";
 
    for (auto Arg : mArgObl.Vec())
    {
-       std::cout << " * " << Arg->NameType() << " :: " << Arg->Com() << "\n";
+       std::cout << "  * " << Arg->NameType() << " :: " << Arg->Com() << "\n";
    }
 
-   std::cout << "== Optional named args : ==\n";
-   for (auto Arg : mArgFac.Vec())
+   tNameSelector  aSelName =  BoostAllocRegex(mPatHelp);
+
+  std::cout << "\n";
+   std::cout << " == Optional named args : ==\n";
+   for (const auto & Arg : mArgFac.Vec())
    {
-       bool IsIinternal = Arg->HasType(eTA2007::Internal);
-       if ((! IsIinternal) || mDoInternalHelp)
+       const std::string & aNameA = Arg->Name();
+       if (aSelName->Match(aNameA))
        {
-          bool isGlobHelp = Arg->HasType(eTA2007::Common);
-          if ((!isGlobHelp) || mDoGlobHelp)
+          bool IsIinternal = Arg->HasType(eTA2007::Internal);
+          if ((! IsIinternal) || mDoInternalHelp)
           {
-             if (IsIinternal) 
-                std::cout << " #III " ; 
-             else if (isGlobHelp) 
-                std::cout << " #COM " ; 
-             else
-                std::cout << " * " ; 
-             std::cout << "[Name=" <<  Arg->Name()   << "] " << Arg->NameType() << " :: " << Arg->Com() << "\n";
+             bool isGlobHelp = Arg->HasType(eTA2007::Common);
+             if ((!isGlobHelp) || mDoGlobHelp)
+             {
+                std::cout << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << " :: " << Arg->Com();
+                if (IsIinternal) 
+                   std::cout << "   ### INTERNAL " ; 
+                else if (isGlobHelp) 
+                   std::cout << "   ### COMMON " ; 
+                std::cout  << "\n";
+             }
           }
        }
    }
@@ -327,16 +428,25 @@ bool cMMVII_Appli::ModeHelp() const
    return mModeHelp;
 }
 
-cSetName &  cMMVII_Appli::MainSet1() 
+const cSetName &  cMMVII_Appli::MainSet0() const { return MainSet(0); }
+const cSetName &  cMMVII_Appli::MainSet1() const { return MainSet(1); }
+const cSetName &  cMMVII_Appli::MainSet(int aK) const 
 {
-   MMVII_INTERNAL_ASSERT_always(mMainSet1!=0,"No mMainSet1 created");
-   return *mMainSet1;
+   CheckRangeMainSet(aK);
+   const std::unique_ptr<cSetName> & aRes = mMainSets[aK];
+   if (aRes==0)
+   {
+      MMVII_INTERNAL_ASSERT_always(false,"No mMainSet created for K="+ ToStr(aK));
+   }
+   return *aRes;
 }
 
-cSetName &  cMMVII_Appli::MainSet2() 
+void cMMVII_Appli::CheckRangeMainSet(int aK) const
 {
-   MMVII_INTERNAL_ASSERT_always(mMainSet2!=0,"No mMainSet2 created");
-   return *mMainSet2;
+   if ((aK<0) || (aK>=NbMaxMainSets))
+   {
+      MMVII_INTERNAL_ASSERT_always(false,"CheckRangeMainSet, out for :" + ToStr(aK));
+   }
 }
 
 

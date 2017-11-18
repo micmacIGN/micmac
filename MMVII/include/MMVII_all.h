@@ -1,5 +1,11 @@
 #ifndef _MMVII_ALL_H_
 #define _MMVII_ALL_H_
+/** \file MMVII_all.h
+    \brief Contains all header of MMVII
+
+  Try to put together files having something in common, not always easy ...
+*/
+
 
 // Header standar c++
 #include "memory.h"
@@ -40,7 +46,9 @@
 // 
 #include "cMMVII_Appli.h"
 
-// using namespace MMVII;
+// communication MMVII/MMv1
+
+#include "MMVII_MMV1Compat.h"
 
 
 #endif //  _MMVII_ALL_H_

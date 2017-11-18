@@ -79,6 +79,19 @@ bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case 
 void SkeepWhite(const char * & aC);
 
 
+/// Create a selector associated to a regular expression, by convention return Cste-true selector if string=""
+tNameSelector  BoostAllocRegex(const std::string& aRegEx);
+
+/// Exract name of files located in the directory, by return value
+std::vector<std::string>  GetFilesFromDir(const std::string & aDir,tNameSelector );
+/// Exract name of files, by ref
+void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,tNameSelector);
+/// Recursively exract name of files located in the directory, by return value
+void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, tNameSelector  aNS,int aLevMin, int aLevMax);
+/// Recursively exract name of files, by return value
+std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax);
+
+
 
 
 /*=============================================*/

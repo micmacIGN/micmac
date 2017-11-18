@@ -37,12 +37,16 @@ MMV2DirSerial=${MMV2DirSrc}Serial/
 SrcSerial= $(wildcard ${MMV2DirSerial}*.cpp)
 ObjSerial= $(SrcSerial:.cpp=.o) 
 #
+#
+MMV2DirMMV1=${MMV2DirSrc}MMV1/
+SrcMMV1=$(wildcard ${MMV2DirMMV1}*.cpp)
+ObjMMV1=$(SrcMMV1:.cpp=.o) 
 #    => Le Main
 #
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial}
+OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1}
 #
 #=========  Header ========
 #
@@ -53,8 +57,8 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags="-std=c++14" "-Wall" -I${MMV2Dir}
-LibsFlags= ${MMDir}/lib/libelise.a -lX11   /usr/include/boost/stage/lib/libboost_*.a
+CFlags="-std=c++14" "-Wall" -I${MMV2Dir} -I${MMDir}/include/
+LibsFlags= ${MMDir}/lib/libelise_SsQt.a -lX11   /usr/include/boost/stage/lib/libboost_*.a
 MMV2Exe=MMVII
 #
 ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN}
@@ -64,6 +68,8 @@ ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN}
 # Objects
 #
 #
+${MMV2DirMMV1}%.o :  ${MMV2DirMMV1}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirT4MkF}%.o :  ${MMV2DirT4MkF}%.cpp ${HEADER}

@@ -49,10 +49,12 @@ class cSetName : public cMemCheck
        size_t size() const;           ///< Accessor
        const tCont & Cont() const;    ///< Accessor
 
-       cInterfSet<std::string> * ToSet(); ///< generate set, usefull for boolean operation
+       cInterfSet<std::string> * ToSet() const; ///< generate set, usefull for boolean operation
+       void Filter(tNameSelector);  ///< select name matching the selector
    private :
    // private :
-       void InitFromFile(const std::string &);  ///< Init from Xml file
+       void Sort();
+       void InitFromFile(const std::string &,int aNumV);  ///< Init from Xml file
        void InitFromPat(const std::string & aFullPat); ///< Init from pattern (regex)
 
 
@@ -175,6 +177,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool ModeHelp() const;            ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();          ///< 
         bool    IsInit(void *);           ///< indicate for each variable if it was initiazed by argc/argv
+        static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
+        static bool                               OutV2Format() ;  ///<  Do we write in V2 Format
 
     protected :
         /// Constructor, essenntially memorize command line
@@ -182,8 +186,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         /// Second step of construction, parse the command line and initialize values
         void InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac);
 
-        cSetName &                               MainSet1();      ///< mMainSet1 , check !=0 before
-        cSetName &                               MainSet2();      ///< mMainSet2 , check !=0 before
+        const cSetName &                         MainSet0() const;         ///< MainSet(0) , 
+        const cSetName &                         MainSet1() const;         ///< MainSet(1) , 
+        const cSetName &                         MainSet(int aK) const;    ///< MainSets[aK] , check range !=0 before
+        void                                     CheckRangeMainSet(int) const;  ///< Check range in [0,NbMaxMainSets[
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
@@ -193,7 +199,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void                                      InitProject();  ///< Create Dir (an other ressources) that may be used by all processe
 
         static cMMVII_Appli *                     msTheAppli;     ///< Unique application
-        void                                      AssertInitParam();
+        void                                      AssertInitParam() const; ///< Check Init was called
     protected :
         cMemState                                 mMemStateBegin; ///< To check memory management
         int                                       mArgc;          ///< memo argc
@@ -208,6 +214,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mModeHelp;      ///< Is help present on parameter
         bool                                      mDoGlobHelp;    ///< Include common parameter in Help
         bool                                      mDoInternalHelp;///< Include internal parameter in Help
+        std::string                               mPatHelp;       ///< Possible filter on name of optionnal param shown
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
         cCollecSpecArg2007                        mArgObl;        ///< Mandatory args
@@ -216,8 +223,16 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cInterfSet<void *>*                       mSetInit;       ///< Adresses of all initialized variables
         bool                                      mInitParamDone; ///< 2 Check Post Init was not forgotten
     private :
-        std::unique_ptr<cSetName>                 mMainSet1;      ///< For a many commands probably
-        std::unique_ptr<cSetName>                 mMainSet2;      ///< For TieP, cple edition ... 
+        static const int                          NbMaxMainSets=3; ///< seems sufficient, Do not hesitate to increase if one command requires more
+        std::unique_ptr<cSetName>                 mMainSets[NbMaxMainSets];  ///< For a many commands probably
+        std::string                               mIntervFilterMS[NbMaxMainSets];  ///< Filterings interval
+
+        // Variable for setting num of mm version for output
+        int                                       mNumOutPut;  ///< specified by user
+        bool                                      mOutPutV1;   ///< computed from mNumOutPut
+        bool                                      mOutPutV2;   ///< computed from mNumOutPut
+        bool                                      mHasInputV1; ///< Is there any input in V1 format ?
+        bool                                      mHasInputV2; ///< Is there any input in V2 format ?
 };
 
 };

@@ -28,6 +28,14 @@ class cCarLookUpTable;
 class cMMVII_Ofs ;
 class cMMVII_Ifs ;
 
+// MMVII_util_tpl.h
+
+template <class Type> class cInterfSet ;
+template <class Type> class cSelector ;
+template <class Type> class cDataSelector ;
+
+typedef cSelector<std::string> tNameSelector;
+
 
 // MMVII_Ptxd.h
 template <class Type,const int Dim> class cPtxd;
@@ -37,6 +45,7 @@ template <class Type> class cPt2d ;
 // MMVII_Bench.h
 
 // cMMVII_Appli.h
+class cSetName;
 class cArgMMVII_Appli;
 class cSpecMMVII_Appli;
 class cMMVII_Ap_NameManip;

@@ -19,6 +19,10 @@ template <class Type> class cDataSelector ;
 /*                                               */
 /* ============================================= */
 
+
+///  Bench some sets functionnalities
+void BenchSet(const std::string & aDir);
+
 ///  Interface to sets services (set in extension)
 
 /** Derived class will implement the services on :
@@ -27,6 +31,9 @@ template <class Type> class cDataSelector ;
     * std::set  probably
     * std::vector
     * maybe hybrid (i.e. type that may change when size grows)
+ 
+    See also  "void BenchSet(const std::string & aDir)" for yy
+
 */
 
 template <class Type> class cInterfSet : public cMemCheck
@@ -38,9 +45,10 @@ template <class Type> class cInterfSet : public cMemCheck
          virtual void    clear() = 0;
          virtual int    size() const = 0;
 
-         virtual void  PutInSet(std::vector<const Type *> &) const = 0; ///< Some type requires iteration 
+         virtual void  PutInSet(std::vector<const Type *> &,bool Sorted) const = 0; ///< Some type requires iteration 
 
 
+         virtual cInterfSet<Type> *  VDupl() const = 0; // return a duplicata
          cInterfSet<Type> &  operator =(const cInterfSet<Type> &);
          virtual ~cInterfSet() ;
 };
@@ -50,6 +58,13 @@ template <class Type> cInterfSet<Type> * AllocUS(); ///<  Allocator, unordered_s
 template <class Type>  cInterfSet<Type> &  operator *= (cInterfSet<Type> &,const cInterfSet<Type> &);
 template <class Type>  cInterfSet<Type> &  operator += (cInterfSet<Type> &,const cInterfSet<Type> &);
 template <class Type>  cInterfSet<Type> &  operator -= (cInterfSet<Type> &,const cInterfSet<Type> &);
+
+template <class Type>  cInterfSet<Type> *  operator * (const cInterfSet<Type> & aS1,const cInterfSet<Type> & aS2);
+template <class Type>  cInterfSet<Type> *  operator + (const cInterfSet<Type> & aS1,const cInterfSet<Type> & aS2);
+template <class Type>  cInterfSet<Type> *  operator - (const cInterfSet<Type> & aS1,const cInterfSet<Type> & aS2);
+
+/// Sort on pointed value and not adress  
+template <class Type> void SortPtrValue(std::vector<Type*> &aV);
 
 /* ============================================= */
 /*                                               */
@@ -111,71 +126,13 @@ template<class Type> cSelector<Type> RightHalfIntervalSelector(const Type & aV, 
 template<class Type> cSelector<Type> IntervalSelector(const Type&aV1,const Type&aV2,bool aInclLow,bool InclUp);
 /// Constant selector, always true or false
 template<class Type> cSelector<Type> CsteSelector  (bool aVal);
-/**  convert a string into an union of interval
+
+/**  convert a string into an union of interval. For example :
 
      "],5] [8,9[ ]12,15] ]17,]" => (x<=5) || (x>=8 && x<9) || ...
 */
 template <class Type> cSelector<Type> Str2Interv(const std::string & aStr);
 
-
-/* ============================================= */
-/*                                               */
-/*      String  Selector specialization          */
-/*                                               */
-/* ============================================= */
-
-typedef cSelector<std::string> tNameSelector;
-tNameSelector  BoostAllocRegex(const std::string& aRegEx);
-
-/// Exract name of files located in the directory, by return value
-std::vector<std::string>  GetFilesFromDir(const std::string & aDir,tNameSelector );
-/// Exract name of files, by ref
-void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,tNameSelector);
-/// Recursively exract name of files located in the directory, by return value
-void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, tNameSelector  aNS,int aLevMin, int aLevMax);
-/// Recursively exract name of files, by return value
-std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax);
-
-
-#if (0)
-//===============================
-class cNameSelector : public cMemCheck
-{
-    public :
-        virtual bool Match(const std::string &) const = 0;
-        virtual ~cNameSelector();
-};
-
-
-/// Interface class to Regex
-
-/** This class is a purely interface class to regex.
-    I separate from the implementation :
-       * because I am not 100% sure I will rely on boost
-       * I don't want to slow dow all compliation witrh boost (or other) header 
-       * I think it's good policy that class show the minimum required in header
-*/
-
-class cInterfRegex : public cNameSelector
-{
-    public :
-        cInterfRegex(const std::string &);
-        virtual ~cInterfRegex();
-        static cInterfRegex * BoostAlloc();
-        const std::string & Name() const;
-    private :
-        std::string mName;
-};
-
-/// Exract name of files located in the directory, by return value
-std::vector<std::string>  GetFilesFromDir(const std::string & aDir,cNameSelector &);
-/// Exract name of files, by ref
-void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,cNameSelector &);
-/// Recursively exract name of files located in the directory, by return value
-void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, cNameSelector & aNS,int aLevMin, int aLevMax);
-/// Recursively exract name of files, by return value
-std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,cNameSelector & aNS,int aLevMin, int aLevMax);
-#endif
 
 
 

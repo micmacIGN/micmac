@@ -208,9 +208,9 @@ SaveInFile(aT2,"DEBUG.xml");
 
     // Bench IsFile2007XmlOfGivenTag 
     {
-       MMVII_INTERNAL_ASSERT_bench( IsFile2007XmlOfGivenTag(aDirOut+"F2.xml","TS0"),"cAppli_MMVII_TestSerial");
-       MMVII_INTERNAL_ASSERT_bench(!IsFile2007XmlOfGivenTag(aDirOut+"F2.xml","TS1"),"cAppli_MMVII_TestSerial");
-       MMVII_INTERNAL_ASSERT_bench(!IsFile2007XmlOfGivenTag(aDirIn+"PBF2.xml","TS0"),"cAppli_MMVII_TestSerial");
+       MMVII_INTERNAL_ASSERT_bench( IsFileXmlOfGivenTag(true,aDirOut+"F2.xml","TS0"),"cAppli_MMVII_TestSerial");
+       MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirOut+"F2.xml","TS1"),"cAppli_MMVII_TestSerial");
+       MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirIn+"PBF2.xml","TS0"),"cAppli_MMVII_TestSerial");
     }
 
     std::cout << "DONE SERIAL\n";
