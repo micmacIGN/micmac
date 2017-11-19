@@ -171,6 +171,11 @@ bool CaseSBegin(const char * aBegin,const char * aStr)
     /*                                             */
     /* =========================================== */
 
+char DirSeparator()
+{
+   return  path::preferred_separator;
+}
+
 std::string DirCur()
 {
 // std::cout << "DDDDCCCC=[" <<  "." + path::preferred_separator << "]\n";
@@ -245,6 +250,13 @@ void MakeNameDir(std::string & aDir)
 
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErrorNonExist)
 {
+if (0)
+{
+   static int aCpt=0; aCpt++;
+   std::cout << "SplitDirAndFile " << aCpt  << " " << __FILE__ << "\n";
+   getchar();
+}
+
    path aPath(aDirAndFile);
    bool aResult = true;
    if (! exists(aPath))

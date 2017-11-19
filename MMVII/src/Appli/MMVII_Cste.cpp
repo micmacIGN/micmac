@@ -23,6 +23,7 @@ const char CharProctected = '\\';
 
 // MicMac-v1  compatiblity 
 const std::string  MMv1XmlTag_SetName = "ListOfName";
+const std::string  Bin2007 = "MMVII";
 
 
 

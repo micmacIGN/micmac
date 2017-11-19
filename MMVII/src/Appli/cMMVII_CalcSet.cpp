@@ -145,8 +145,10 @@ void  AddData(const cAuxAr2007 & anAux,cSetName & aSON)
 class cAppli_EditSet : public cMMVII_Appli
 {
      public :
-        cAppli_EditSet(int argc,char** argv);
+        cAppli_EditSet(int argc,char** argv,const cSpecMMVII_Appli &);
         int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
      private :
          std::string mXmlIn;
          std::string mXmlOut;
@@ -154,30 +156,38 @@ class cAppli_EditSet : public cMMVII_Appli
          std::string mOp;
          bool        mShow;
          std::string mAllOp;
+
+ 
+
 };
 
+cCollecSpecArg2007 & cAppli_EditSet::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+   return 
+      anArgObl 
+         << Arg2007(mXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
+         << Arg2007(mOp,"Operator ("+mAllOp+")" )
+         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatIm,"0"}});
+}
 
-cAppli_EditSet::cAppli_EditSet(int argc,char** argv) :
-  cMMVII_Appli (argc,argv),
+cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return 
+      anArgOpt
+         << AOpt2007(mShow,"Show","Show detail of set before/after",{})
+         << AOpt2007(mXmlOut,"Out","Destination, def=Input",{});
+}
+
+cAppli_EditSet::cAppli_EditSet(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (argc,argv,aSpec),
   mShow        (false),
   mAllOp       ("= *= += -= =0")
 {
-   InitParam
-   (
-      mArgObl 
-        <<  Arg2007(mXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
-        <<  Arg2007(mOp,"Operator ("+mAllOp+")" )
-        <<  Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatIm,"0"}})
-     ,
-     mArgFac
-        <<  AOpt2007(mShow,"Show","Show detail of set before/after",{})
-        <<  AOpt2007(mXmlOut,"Out","Destination, def=Input",{})
-  );
-  if (! IsInit(&mXmlOut)) mXmlOut = mXmlIn;
 }
 
 int cAppli_EditSet::Exe()
 {
+   if (! IsInit(&mXmlOut)) mXmlOut = mXmlIn;
    std::vector<std::string>  aVOps = SplitString(mAllOp," ");
 
    cSetName aInput(mXmlIn,false);
@@ -244,9 +254,9 @@ int cAppli_EditSet::Exe()
    return EXIT_SUCCESS;
 }
 
-tMMVII_UnikPApli Alloc_EditSet(int argc,char ** argv)
+tMMVII_UnikPApli Alloc_EditSet(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_EditSet(argc,argv));
+   return tMMVII_UnikPApli(new cAppli_EditSet(argc,argv,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpecEditSet
@@ -260,6 +270,18 @@ cSpecMMVII_Appli  TheSpecEditSet
 
 );
 
+void BenchEditSet()
+{
+    cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
+
+    std::string aCom = anAp.StrCallMMVII
+                       (
+                          "EditSet",
+                           anAp.StrObl() << "t.xml" << "+=" << ".*",
+                           anAp.StrOpt() << t2S("Out","t2.xml")
+                       );
+    std::cout << "VVVVV=" << aCom << "\n";
+}
 
 
 };

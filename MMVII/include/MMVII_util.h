@@ -77,6 +77,7 @@ bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case 
 bool CreateDirectories(const std::string & aDir,bool SVP); ///< Create dir, recurs ?
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
 void SkeepWhite(const char * & aC);
+char DirSeparator();
 
 
 /// Create a selector associated to a regular expression, by convention return Cste-true selector if string=""

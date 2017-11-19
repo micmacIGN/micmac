@@ -33,6 +33,10 @@ extern const char CharProctected;  // => '\' on Gnu/Linux, will see on others
 // MicMac-v1  compatiblity 
 extern const std::string  MMv1XmlTag_SetName;
 
+// MicMac Install
+extern const   std::string DirBin2007;  ///< computed by MM Instal
+extern const   std::string Bin2007; ///< MMVII 4 now
+
 
 };
 

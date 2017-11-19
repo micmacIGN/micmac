@@ -13,10 +13,15 @@ class cSpecMMVII_Appli;
 class cMMVII_Ap_NameManip;
 class cMMVII_Appli;
 class cSetName;
+class cColStrAObl;
+class cColStrAOpt;
+typedef std::pair<std::string,std::string> t2S;
+
+
 
 //  Some typedef to facilitate type declaration
 typedef std::unique_ptr<cMMVII_Appli>   tMMVII_UnikPApli;
-typedef tMMVII_UnikPApli (* tMMVII_AppliAllocator)(int argc, char ** argv);
+typedef tMMVII_UnikPApli (* tMMVII_AppliAllocator)(int argc, char ** argv,const cSpecMMVII_Appli &);
 
 /* ============================================ */
 /*                                              */
@@ -94,7 +99,8 @@ class cSpecMMVII_Appli
        );
 
        void Check(); ///< Check that specification if ok (at least vectors non empty)
-       static std::vector<cSpecMMVII_Appli*> & VecAll(); ///< vectors of all specifs
+       static const std::vector<cSpecMMVII_Appli*> & VecAll(); ///< vectors of all specifs
+       static cSpecMMVII_Appli* SpecOfName(const std::string & aName,bool SVP); ///< Get spec; non case sensitive search
 
        const std::string &    Name() const; ///< Accessor
        tMMVII_AppliAllocator  Alloc() const; ///< Accessor
@@ -108,6 +114,43 @@ class cSpecMMVII_Appli
        tVaDT                 mVInputs;    //
        tVaDT                 mVOutputs;
 
+};
+
+/// Class to store Mandatory args for recursive call
+/**
+    When MMVII calls MMVII, we try to it as structured as possible (not
+    only a string). So  that eventually we can parse & analyze
+    parameters.
+*/
+
+class cColStrAObl
+{
+    public :
+        typedef std::vector<std::string> tCont;
+        cColStrAObl &  operator << (const std::string &);
+        const  tCont & V() const;
+        void clear();
+        cColStrAObl(); ///< Necessary as X(const X&) is declared (but not defined=>delete)
+    private : 
+        cColStrAObl(const cColStrAObl&) = delete;
+        tCont mV;
+};
+
+/// Class to store Optionnal args for recursive call
+/**
+    Equivalent of cColStrAObl, Use pair of strings Name/Value
+*/
+class cColStrAOpt
+{
+    public :
+        typedef std::vector<t2S> tCont;
+        cColStrAOpt &  operator << (const t2S &);
+        const  tCont & V() const;
+        void clear();
+        cColStrAOpt(); ///< Necessary as X(const X&) is declared (but not defined=>delete)
+    private :
+        cColStrAOpt(const cColStrAOpt&) = delete;
+        tCont mV;
 };
 
 
@@ -170,26 +213,36 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
 {
     public :
+        void  ExeCallMMVII(const std::string & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
+        std::string  StrCallMMVII(const std::string & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
+        cColStrAObl& StrObl();
+        cColStrAOpt& StrOpt();
  
-        static bool   ExistAppli();       ///< Return if the appli exist, no error
-        static cMMVII_Appli & TheAppli(); ///< Return the unique appli, error if not
-        virtual int Exe() = 0;            ///< Do the "real" job
-        bool ModeHelp() const;            ///< If we are in help mode, don't execute
-        virtual ~cMMVII_Appli();          ///< 
-        bool    IsInit(void *);           ///< indicate for each variable if it was initiazed by argc/argv
+        static bool   ExistAppli();         ///< Return if the appli exist, no error
+        static cMMVII_Appli & TheAppli();   ///< Return the unique appli, error if not
+        virtual int Exe() = 0;              ///< Do the "real" job
+        bool ModeHelp() const;              ///< If we are in help mode, don't execute
+        virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
+        bool    IsInit(void *);             ///< indicate for each variable if it was initiazed by argc/argv
         static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
-        static bool                               OutV2Format() ;  ///<  Do we write in V2 Format
+        static bool        OutV2Format() ;  ///<  Do we write in V2 Format
+
+        void InitParam();
+
+        // cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac);
 
     protected :
-        /// Constructor, essenntially memorize command line
-        cMMVII_Appli(int,char **);
+        /// Constructor, essenntially memorize command line and specifs
+        cMMVII_Appli(int,char **,const cSpecMMVII_Appli &);
         /// Second step of construction, parse the command line and initialize values
-        void InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac);
 
         const cSetName &                         MainSet0() const;         ///< MainSet(0) , 
         const cSetName &                         MainSet1() const;         ///< MainSet(1) , 
         const cSetName &                         MainSet(int aK) const;    ///< MainSets[aK] , check range !=0 before
         void                                     CheckRangeMainSet(int) const;  ///< Check range in [0,NbMaxMainSets[
+
+        virtual cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) = 0;  ///< A command specifies its mandatory args
+        virtual cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) = 0;  ///< A command specifies its optional args
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
@@ -204,6 +257,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMemState                                 mMemStateBegin; ///< To check memory management
         int                                       mArgc;          ///< memo argc
         char **                                   mArgv;          ///< memo argv
+        const cSpecMMVII_Appli &                  mSpecs;         ///< The basic specs
+
+        std::string                               mDirBinMMVII;   /// where is the binary
+        std::string                               mTopDirMMVII;   ///< directory  mother of src/ bin/ ...
+
         std::string                               mFullBin;       ///< full name of binarie =argv[0]
         std::string                               mDirMMVII;      ///< directory of binary
         std::string                               mBinMMVII;      ///< name of Binary (MMVII ?)
@@ -217,12 +275,14 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mPatHelp;       ///< Possible filter on name of optionnal param shown
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
-        cCollecSpecArg2007                        mArgObl;        ///< Mandatory args
-        cCollecSpecArg2007                        mArgFac;        ///< Optional args
         bool                                      mDoInitProj;    ///< Init : Create folders of project, def (true<=> LevCall==1)
         cInterfSet<void *>*                       mSetInit;       ///< Adresses of all initialized variables
-        bool                                      mInitParamDone; ///< 2 Check Post Init was not forgotten
+        bool                                      mInitParamDone; ///< To Check Post Init was not forgotten
+        cColStrAObl                               mColStrAObl;    ///< To use << for passing multiple string
+        cColStrAOpt                               mColStrAOpt;    ///< To use << for passing multiple pair
     private :
+        cCollecSpecArg2007                        mArgObl;        ///< Mandatory args
+        cCollecSpecArg2007                        mArgFac;        ///< Optional args
         static const int                          NbMaxMainSets=3; ///< seems sufficient, Do not hesitate to increase if one command requires more
         std::unique_ptr<cSetName>                 mMainSets[NbMaxMainSets];  ///< For a many commands probably
         std::string                               mIntervFilterMS[NbMaxMainSets];  ///< Filterings interval

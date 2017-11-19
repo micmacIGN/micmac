@@ -4,31 +4,38 @@
 namespace MMVII
 {
 
+
+const  cColStrAObl::tCont & cColStrAObl::V() const {return mV;}
+cColStrAObl &  cColStrAObl::operator << (const std::string & aVal) {mV.push_back(aVal); return *this;}
+void cColStrAObl::clear() {mV.clear();}
+cColStrAObl::cColStrAObl() {}
+
+const  cColStrAOpt::tCont & cColStrAOpt::V() const {return mV;}
+cColStrAOpt &  cColStrAOpt::operator << (const t2S & aVal) {mV.push_back(aVal); return *this;}
+void cColStrAOpt::clear() {mV.clear();}
+cColStrAOpt::cColStrAOpt() {}
+
+
 /*  ============================================== */
 /*                                                 */
 /*                cMMVII_Appli                     */
 /*                                                 */
 /*  ============================================== */
 
-cMMVII_Appli *  cMMVII_Appli::msTheAppli = 0;
-
-
-cMMVII_Appli & cMMVII_Appli::TheAppli()
+// May be used again for testing value inside initialization
+/*
+template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 {
-  MMVII_INTERNAL_ASSERT_medium(msTheAppli!=0,"cMMVII_Appli not created");
-
-  return *msTheAppli;
+    std::cout << " For " << aName << " V=" << aVal << "\n";
+    return aVal;
 }
+*/
 
-bool cMMVII_Appli::ExistAppli()
-{
-  return msTheAppli != 0;
-}
-
-void cMMVII_Appli::AssertInitParam() const
-{
-  MMVII_INTERNAL_ASSERT_always(mInitParamDone,"Init Param was forgotten");
-}
+// ========================= 3 Main function :
+// 
+//        cMMVII_Appli::~cMMVII_Appli()
+//        cMMVII_Appli::cMMVII_Appli ( int argc, char ** argv, const cSpecMMVII_Appli & aSpec) 
+//        void cMMVII_Appli::InitParam() => main initialisation must be done after Cstrctor as call virtual methods
 
 
 cMMVII_Appli::~cMMVII_Appli()
@@ -42,32 +49,24 @@ cMMVII_Appli::~cMMVII_Appli()
    mMemStateBegin.SetCheckAtDestroy();
 }
 
-bool  cMMVII_Appli::IsInit(void * aPtr)
-{
-    return  mSetInit->In(aPtr);
-}
-
-template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
-{
-    std::cout << " For " << aName << " V=" << aVal << "\n";
-    return aVal;
-}
-
 cMMVII_Appli::cMMVII_Appli
 (
       int argc,
-      char ** argv
+      char ** argv,
+      const cSpecMMVII_Appli & aSpec
 )  :
    mMemStateBegin (cMemManager::CurState()),
    mArgc          (argc),
    mArgv          (argv),
-   mFullBin       (mArgv[0]),
+   mSpecs         (aSpec),
+   mDirBinMMVII   (DirBin2007),
+   mTopDirMMVII   (UpDir(mDirBinMMVII,1)),
+   mFullBin       (mDirBinMMVII + Bin2007),
    // mFullBin       (AbsoluteName(mArgv[0])),
    // mFullBin       (PrintArg(AbsoluteName(mArgv[0]),"ABS")),
-   mDirMMVII      (DirOfPath(mFullBin)),
-   mBinMMVII      (FileOfPath(mFullBin)),
-   mDirMicMacv1   (UpDir(mDirMMVII,2)),
-   mDirMicMacv2   (UpDir(mDirMMVII,1)),
+   mBinMMVII      (Bin2007),
+   mDirMicMacv1   (UpDir(mTopDirMMVII,1)),
+   mDirMicMacv2   (mTopDirMMVII),
    mDirProject    (DirCur()),
    mDirTestMMVII  (mDirMicMacv2 + MMVIITestDir),
    mModeHelp      (false),
@@ -86,42 +85,12 @@ cMMVII_Appli::cMMVII_Appli
 {
 }
 
-void cMMVII_Appli::SignalInputFormat(int aNumV)
-{
-   cMMVII_Appli & TheAp = TheAppli();
-   if (aNumV==0)
-   {
-   }
-   else if (aNumV==1)
-   {
-      TheAp.mHasInputV1 = true;
-   }
-   else if (aNumV==2)
-   {
-      TheAp.mHasInputV2 = true;
-   }
-   else 
-   {
-      MMVII_INTERNAL_ASSERT_always(false,"Input version must be in {0,1,2}, got: "+ToStr(aNumV));
-   }
-}
 
-bool GlobOutV2Format() { return cMMVII_Appli::OutV2Format(); }
-bool   cMMVII_Appli::OutV2Format() 
+void cMMVII_Appli::InitParam()
 {
-   const cMMVII_Appli & TheAp = TheAppli();
-   // Priority to specified output if exist
-   if (TheAp.mOutPutV2) return true;
-   if (TheAp.mOutPutV1) return false;
-   //  In input, set it, priority to V2
-   if (TheAp.mHasInputV2) return true;
-   if (TheAp.mHasInputV1) return false;
-   // by default V2
-   return true;
-}
+  cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl);
+  cCollecSpecArg2007 & anArgFac = ArgOpt(mArgFac);
 
-void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac)
-{
   mInitParamDone = true;
   MMVII_INTERNAL_ASSERT_always(msTheAppli==0,"cMMVII_Appli only one by process");
   msTheAppli = this;
@@ -139,14 +108,14 @@ void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 &
   mArgFac
       <<  AOpt2007(mIntervFilterMS[0],"FFI0","File Filter Interval, Main Set",aCom)
       <<  AOpt2007(mIntervFilterMS[1],"FFI1","File Filter Interval, Second Set",aCom)
-      <<  AOpt2007(mNumOutPut,"NumVOut","Num version for output format (1 or 2)")
+      <<  AOpt2007(mNumOutPut,"NumVOut","Num version for output format (1 or 2)",aCom)
       <<  AOpt2007(aDP ,NameDirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Common})
       <<  AOpt2007(mLevelCall,"LevCall","Internal : Don't Use !!",aIntCom)
       <<  AOpt2007(mShowAll,"ShowAll","Internal : Don't Use !!",aIntCom)
   ;
 
   // Check that names of optionnal parameters begin with alphabetic caracters
-  for (auto aSpec : mArgFac.Vec())
+  for (const auto & aSpec : mArgFac.Vec())
   {
       if (!std::isalpha(aSpec->Name()[0]))
       {
@@ -167,7 +136,7 @@ void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 &
          mModeHelp = true;
          while (*aArgK=='-') aArgK++;
          mDoGlobHelp = (*aArgK=='H');
-         mDoInternalHelp = CaseSBegin("HELP",aArgK);
+         mDoInternalHelp = CaseSBegin("HE",aArgK);
 
          std::string aName; 
          SplitStringArround(aName,mPatHelp,aArgK,'=',true,false);
@@ -211,7 +180,7 @@ void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 &
              SplitStringArround(aName,aValue,aArgK,'=',true,false);
              int aNbSpecGot=0;
              // Look for spec corresponding to name
-             for (auto aSpec : mArgFac.Vec())
+             for (const auto  & aSpec : mArgFac.Vec())
              {
                  if (aSpec->Name() == aName)
                  {
@@ -250,6 +219,13 @@ void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 &
 
   if (aNbArgGot < aNbObl)
   {
+      // Tolerance, like in mmv1, no arg generate helps
+      if (aNbArgGot==0)
+      {
+         mModeHelp = true;  // else Exe() will be executed !!
+         GenerateHelp();
+         return;
+      }
       MMVII_INTERNAL_ASSERT_user
       (
           false,
@@ -363,7 +339,7 @@ void cMMVII_Appli::InitParam(cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 &
      InitProject();
   }
 
-  mLevelCall++; // So that is incremented if a new call is made
+  // mLevelCall++; // So that is incremented if a new call is made
 
   for (int aK=0 ; aK<100 ; aK++)
   {
@@ -377,28 +353,32 @@ void cMMVII_Appli::InitProject()
    CreateDirectories(mDirProject+TmpMMVIIDir,true);
 }
 
+
+    // ========== Help ============
+
 void cMMVII_Appli::GenerateHelp()
 {
-  std::cout << "\n";
+   std::cout << "\n";
 
-  std::cout << "**********************************\n";
-  std::cout << "*   Help project 2007/MMVII      *\n";
-  std::cout << "**********************************\n";
+   std::cout << "**********************************\n";
+   std::cout << "*   Help project 2007/MMVII      *\n";
+   std::cout << "**********************************\n";
 
-  std::cout << "\n";
-  std::cout << "  For command =" << " " << " \n";
-  std::cout << "\n";
+   std::cout << "\n";
+   std::cout << "  For command : " << mSpecs.Name() << " \n";
+   std::cout << "   => " << mSpecs.Comment() << "\n";
+   std::cout << "\n";
 
-  std::cout << " == Mandatory unnamed args : ==\n";
+   std::cout << " == Mandatory unnamed args : ==\n";
 
-   for (auto Arg : mArgObl.Vec())
+   for (const auto & Arg : mArgObl.Vec())
    {
        std::cout << "  * " << Arg->NameType() << " :: " << Arg->Com() << "\n";
    }
 
    tNameSelector  aSelName =  BoostAllocRegex(mPatHelp);
 
-  std::cout << "\n";
+   std::cout << "\n";
    std::cout << " == Optional named args : ==\n";
    for (const auto & Arg : mArgFac.Vec())
    {
@@ -421,12 +401,15 @@ void cMMVII_Appli::GenerateHelp()
           }
        }
    }
+   std::cout << "\n";
 }
 
 bool cMMVII_Appli::ModeHelp() const
 {
    return mModeHelp;
 }
+
+    // ========== Handling of Mains Sets
 
 const cSetName &  cMMVII_Appli::MainSet0() const { return MainSet(0); }
 const cSetName &  cMMVII_Appli::MainSet1() const { return MainSet(1); }
@@ -447,6 +430,108 @@ void cMMVII_Appli::CheckRangeMainSet(int aK) const
    {
       MMVII_INTERNAL_ASSERT_always(false,"CheckRangeMainSet, out for :" + ToStr(aK));
    }
+}
+
+    // ========== Handling of V1/V2 format for output =================
+
+void cMMVII_Appli::SignalInputFormat(int aNumV)
+{
+   cMMVII_Appli & TheAp = TheAppli();
+   if (aNumV==0)
+   {
+   }
+   else if (aNumV==1)
+   {
+      TheAp.mHasInputV1 = true;
+   }
+   else if (aNumV==2)
+   {
+      TheAp.mHasInputV2 = true;
+   }
+   else 
+   {
+      MMVII_INTERNAL_ASSERT_always(false,"Input version must be in {0,1,2}, got: "+ToStr(aNumV));
+   }
+}
+
+// Necessary for forward use of cMMVII_Appli::OutV2Forma
+bool GlobOutV2Format() { return cMMVII_Appli::OutV2Format(); }
+bool   cMMVII_Appli::OutV2Format() 
+{
+   const cMMVII_Appli & TheAp = TheAppli();
+   // Priority to specified output if exist
+   if (TheAp.mOutPutV2) return true;
+   if (TheAp.mOutPutV1) return false;
+   //  In input, set it, priority to V2
+   if (TheAp.mHasInputV2) return true;
+   if (TheAp.mHasInputV1) return false;
+   // by default V2
+   return true;
+}
+
+    // ========== Handling of global Appli =================
+
+cMMVII_Appli *  cMMVII_Appli::msTheAppli = 0;
+cMMVII_Appli & cMMVII_Appli::TheAppli()
+{
+  MMVII_INTERNAL_ASSERT_medium(msTheAppli!=0,"cMMVII_Appli not created");
+  return *msTheAppli;
+}
+bool cMMVII_Appli::ExistAppli()
+{
+  return msTheAppli != 0;
+}
+
+    // ========== Miscelaneous functions =================
+
+void cMMVII_Appli::AssertInitParam() const
+{
+  MMVII_INTERNAL_ASSERT_always(mInitParamDone,"Init Param was forgotten");
+}
+bool  cMMVII_Appli::IsInit(void * aPtr)
+{
+    return  mSetInit->In(aPtr);
+}
+
+    // ==========  MMVII  Call MMVII =================
+
+cColStrAObl& cMMVII_Appli::StrObl() {return mColStrAObl;}
+cColStrAOpt& cMMVII_Appli::StrOpt() {return mColStrAOpt;}
+
+
+std::string  cMMVII_Appli::StrCallMMVII(const std::string & aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt)
+{
+  MMVII_INTERNAL_ASSERT_always(&anAObl==&mColStrAObl,"StrCallMMVII use StrObl() !!");
+  MMVII_INTERNAL_ASSERT_always(&anAOpt==&mColStrAOpt,"StrCallMMVII use StrOpt() !!");
+
+   std::string aComGlob = mFullBin + " ";
+   cSpecMMVII_Appli*  aSpec = cSpecMMVII_Appli::SpecOfName(aCom2007,false);
+   if (! aSpec)  // Will see if we can di better, however SpecOfNam has generated error
+      return "";
+
+   // Theoretically we can create the command  (dealing with unik msTheAppli before !) and check
+   // the parameters, but it will be done in the call so maybe it's not worth the price ?
+  
+   aComGlob += aCom2007 + " ";
+
+   // Add mandatory args
+   for (const auto & aStr : anAObl.V())
+   {
+       aComGlob +=  Quote(aStr) + " ";
+   }
+
+   // Add optionnal args
+   for (const auto & aP : anAOpt.V())
+   {
+       aComGlob +=  aP.first + "=" + Quote(aP.second) + " ";
+   }
+
+   // Take into account the call level which must increase
+   aComGlob += "LevCall=" + ToStr(mLevelCall+1);
+
+   mColStrAObl.clear();
+   mColStrAOpt.clear();
+   return aComGlob;
 }
 
 
