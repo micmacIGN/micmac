@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /// Classe qui contient l'orientation relative de chaque image dans un triplet et son sommet GPS
 class cGpsLoc_Triplet;
 
-/// Classe qui contient le nom d'une image et son repere
+/// Classe qui contient le nom d'une image et son repere GPS
 class cGpsLoc_Som;     
 typedef cGpsLoc_Som *  tGLS_Ptr;
 
@@ -117,7 +117,7 @@ class cGpsLoc_Som
     public :
         cGpsLoc_Som(const std::string & aName);
         cGpsLoc_Rep  & Sol();
-	Pt3dr        & Gps();
+	    Pt3dr        & Gps();
         void Save(cNewO_NameManager *);
     private :
         std::string mName;

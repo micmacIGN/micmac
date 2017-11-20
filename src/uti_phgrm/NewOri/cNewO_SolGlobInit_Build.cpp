@@ -203,7 +203,7 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
      std::vector<Pt3dr> aVCTri;
      std::vector<Pt3dr> aVCCur;
 
-     
+     ///calcul de la rotation du passage (local->global)
      for (int aKS=0 ; aKS<3 ; aKS++)
      {
          tSomNSI * aSom =  aTri->KSom(aKS);
@@ -221,18 +221,19 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
      double aSomDCur=0;
      double aSomDTri=0;
 
-
+     ///som de translations entre des images voisin dans repere local (aSomDTri) et globale (aSomDCur) 
      for (int aKS=0 ; aKS<3 ; aKS++)
      {
           aSomDCur += euclid(aVCCur[aKS]-aVCCur[(aKS+1)%3]);
           aSomDTri += euclid(aVCTri[aKS]-aVCTri[(aKS+1)%3]);
      }
+     ///facteur d'echelle entre le modele local et global
      double aLambda = aSomDCur / aSomDTri;
 
 
 
 
-     //  aOffsTr + aMTri2Cur * PTri * aLambda = PCur
+     ///calcul de la translation => aOffsTr + aMTri2Cur * PTri * aLambda = PCur
      Pt3dr aOffsTr(0,0,0);
      for (int aKS=0 ; aKS<3 ; aKS++)
      {
@@ -282,6 +283,7 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
 
             // ElMatrix<double> aMKTri2Cur = aRCur.Mat() * aRTri.Mat().transpose();
 
+             //repartitin d'erreur; les valuers global change ici
              aSom->attr().SomPdsReMoy() += aPds;
              aSom->attr().SomTrReMoy () = aSom->attr().SomTrReMoy () + aTrK * aPds;
              aSom->attr().SomMatReMoy() = aSom->attr().SomMatReMoy() + aMK * aPds;

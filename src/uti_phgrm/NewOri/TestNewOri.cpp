@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+extern cNewO_NameManager * NM(const std::string & aDir);
 
 /*
 int TestNewOriImage_main(int argc,char ** argv)
@@ -66,7 +67,55 @@ int TestNewOriImage_main(int argc,char ** argv)
 }
 */
 
+///Export the graph to G2O format for testing in ceres
+int NewOriImage2G2O_main(int argc,char ** argv)
+{
+    std::string aPat,aDir;
+    std::string aName="triplets_g2o.txt";
 
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain() << EAMC(aPat,"Pattern of images", eSAM_IsExistFile),
+        LArgMain() << EAM(aName,"Out",true,"Output file name")
+    );
+
+   #if (ELISE_windows)
+        replace( aPat.begin(), aPat.end(), '\\', '/' );
+   #endif
+
+    SplitDirAndFile(aDir,aPat,aPat);
+
+    ///ori dir manager
+    cInterfChantierNameManipulateur * aICNM;
+    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+        
+
+    ///triplets dir manager
+    cNewO_NameManager *  aNM = NM(aDir);
+    std::string aNameLTriplets = aNM->NameTopoTriplet(true);
+    cXml_TopoTriplet  aLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
+
+    std::vector<ElRotation3D> aPVec;
+    for (auto a3 : aLT.Triplets())
+    {
+        std::string  aName3R = aNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
+        cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
+        //aPVec.push_back(aXml3Ori);
+
+        /*ElRotation3D aPose = Xml2El(aXmlOri.Ori2On1()) -> ElRotation3D
+    mOri (aPose.ImAff(Pt3dr(0,0,0))),
+    mI   (aPose.ImVect(Pt3dr(1,0,0))),
+    mJ   (aPose.ImVect(Pt3dr(0,1,0))),
+    mK   (aPose.ImVect(Pt3dr(0,0,1)))
+*/
+
+    }
+    fstream aFp;
+    aFp.open(aName.c_str(), ios::out);
+
+    return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
