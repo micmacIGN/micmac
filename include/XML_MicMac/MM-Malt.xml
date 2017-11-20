@@ -207,6 +207,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <Symb> VSNI=0 </Symb>
      <Symb> NbDirPrgDyn=7 </Symb>
      <Symb> ModeAgregPrgDyn=ePrgDAgrSomme </Symb>
+     <Symb> OrthoSuperpMNT=false </Symb>
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->

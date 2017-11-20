@@ -23,8 +23,8 @@ namespace MMVII
 
 // Prouve la pertinence du warning sur  mTable[*aPtr] = aC;
 
-static_assert( int(char(255)) != 255,"Bad char assert");
-static_assert( int(char(-1)) == -1,"Bad char assert");
+// static_assert( int(char(255)) != 255,"Bad char assert");
+// static_assert( int(char(-1)) == -1,"Bad char assert");
 
 // cGestObjetEmpruntable<cCarLookUpTable>   cCarLookUpTable::msGOE;
 
@@ -33,7 +33,7 @@ void  cCarLookUpTable::Init(const std::string& aStr,char aC)
     MMVII_INTERNAL_ASSERT_medium(!mInit,"Multiple init of  cCarLookUpTable");
     mInit= true;
     for (const char * aPtr = aStr.c_str() ; *aPtr ; aPtr++)
-        mTable[*aPtr] = aC;  // Laisse le warning, il faudra le regler !!!
+        mUTable[int(*aPtr)] = aC;  // Laisse le warning, il faudra le regler !!!
         // mTable[size_t(*aPtr)] = aC;
     mIns = aStr;
 }
@@ -43,16 +43,15 @@ void  cCarLookUpTable::UnInit()
     MMVII_INTERNAL_ASSERT_medium(mInit,"Multiple Uninit of  cCarLookUpTable");
     mInit= false;
     for (const char * aPtr = mIns.c_str() ; *aPtr ; aPtr++)
-        mTable[*aPtr] = 0;  // Laisse le warning, il faudra le regler !!!
+        mUTable[int(*aPtr)] = 0;  // Laisse le warning, il faudra le regler !!!
     mIns = "";
 }
 
 cCarLookUpTable::cCarLookUpTable() :
+     mUTable (mDTable-  std::numeric_limits<char>::min()),
      mInit(false)
 {
-    MEM_RAZ(&mTable,1);
-    // MEM_RAZ(mTable,1); =>  sizeof(*mTable) == 1 !!!! 
-    // std::cout << "DDddrrrr= " << &mTable << " ;; " << &(*mTable) << "\n";
+    MEM_RAZ(&mDTable,1);
 }
 
 std::vector<std::string>  SplitString(const std::string & aStr,const std::string & aSpace)
@@ -172,6 +171,11 @@ bool CaseSBegin(const char * aBegin,const char * aStr)
     /*                                             */
     /* =========================================== */
 
+char DirSeparator()
+{
+   return  path::preferred_separator;
+}
+
 std::string DirCur()
 {
 // std::cout << "DDDDCCCC=[" <<  "." + path::preferred_separator << "]\n";
@@ -191,6 +195,13 @@ std::string FileOfPath(const std::string & aPath,bool ErrorNonExist)
    SplitDirAndFile(aDir,aFile,aPath,ErrorNonExist);
    return aFile;
 }
+
+std::string AbsoluteName(const std::string & aName)
+{
+     return absolute(aName).c_str();
+}
+
+
 
 /**
   It was a test of using Boost for Up Dir,but untill now I am not 100% ok
@@ -239,11 +250,21 @@ void MakeNameDir(std::string & aDir)
 
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErrorNonExist)
 {
+if (0)
+{
+   static int aCpt=0; aCpt++;
+   std::cout << "SplitDirAndFile " << aCpt  << " " << __FILE__ << "\n";
+   getchar();
+}
+
    path aPath(aDirAndFile);
    bool aResult = true;
    if (! exists(aPath))
    {
-       MMVII_INTERNAL_ASSERT_always(!ErrorNonExist,"File non existing in SplitDirAndFile");
+       if (ErrorNonExist)
+       {
+           MMVII_INTERNAL_ASSERT_always(false,"File non existing in SplitDirAndFile for ["+  aDirAndFile +"]");
+       }
        //return false;
        aResult = false;
    }
@@ -291,6 +312,13 @@ std::string  Quote(const std::string & aStr)
    return aStr;
 }
 
+void SkeepWhite(const char * & aC)
+{
+    while (isspace(*aC)) 
+         aC++;
+}
+
+
 bool CreateDirectories(const std::string & aDir,bool SVP)
 {
     bool Ok = boost::filesystem::create_directories(aDir);
@@ -314,17 +342,17 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 */
 
 
-void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,cNameSelector & aNS)
+void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,tNameSelector  aNS)
 {
    for (directory_iterator itr(aDir); itr!=directory_iterator(); ++itr)
    {
       std::string aName ( itr->path().filename().c_str());
-      if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
+      if ( is_regular_file(itr->status()) &&  aNS->Match(aName))
          aRes.push_back(aName);
    }
 }
 
-std::vector<std::string> GetFilesFromDir(const std::string & aDir,cNameSelector & aNS)
+std::vector<std::string> GetFilesFromDir(const std::string & aDir,tNameSelector  aNS)
 {
     std::vector<std::string> aRes;
     GetFilesFromDir(aRes,aDir,aNS);
@@ -332,7 +360,7 @@ std::vector<std::string> GetFilesFromDir(const std::string & aDir,cNameSelector 
     return aRes;
 }
 
-void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, cNameSelector & aNS,int aLevMin, int aLevMax)
+void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax)
 {
     for (recursive_directory_iterator itr(aDir); itr!=        recursive_directory_iterator(); ++itr)
     {
@@ -340,12 +368,12 @@ void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aD
         if ((aLev>=aLevMin) && (aLev<aLevMax))
         {
            std::string aName(itr->path().c_str());
-           if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
+           if ( is_regular_file(itr->status()) &&  aNS->Match(aName))
               aRes.push_back(aName);
         }
     }
 }
-std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,cNameSelector & aNS,int aLevMin, int aLevMax)
+std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelector aNS,int aLevMin, int aLevMax)
 {
     std::vector<std::string> aRes;
     RecGetFilesFromDir(aRes,aDir,aNS,aLevMin,aLevMax);
@@ -369,6 +397,10 @@ std::vector<std::string>  GetFilesFromDirAndER(const std::string & aDir,const st
 void TestBooostIter()
 {
 
+   std::cout <<  boost::filesystem::absolute("./MMVII") << '\n';
+   std::cout <<  boost::filesystem::absolute("MMVII") << '\n';
+   std::cout <<  boost::filesystem::absolute("./") << '\n';
+getchar();
 /*
 for (directory_iterator itr("./"); itr!=directory_iterator(); ++itr)
 {

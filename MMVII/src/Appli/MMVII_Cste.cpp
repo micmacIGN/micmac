@@ -21,6 +21,10 @@ const std::string NameDirProj = "DirProj";
 const char CharProctected = '\\';
 #endif
 
+// MicMac-v1  compatiblity 
+const std::string  MMv1XmlTag_SetName = "ListOfName";
+const std::string  Bin2007 = "MMVII";
+
 
 
 };

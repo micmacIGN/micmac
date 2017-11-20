@@ -1,5 +1,11 @@
 #ifndef _MMVII_ALL_H_
 #define _MMVII_ALL_H_
+/** \file MMVII_all.h
+    \brief Contains all header of MMVII
+
+  Try to put together files having something in common, not always easy ...
+*/
+
 
 // Header standar c++
 #include "memory.h"
@@ -18,16 +24,16 @@
 
 
 //===========================================
+#include "MMVII_Error.h"
 #include "MMVII_AllClassDeclare.h"
 #include "MMVII_enums.h"
 // Header MMVII
 // #include "TypeNum.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Sys.h"
-#include "MMVII_Error.h"
 #include "MMVII_memory.h"
-#include "MMVII_util.h"
 #include "MMVII_util_tpl.h"
+#include "MMVII_util.h"
 
 
 
@@ -40,7 +46,9 @@
 // 
 #include "cMMVII_Appli.h"
 
-// using namespace MMVII;
+// communication MMVII/MMv1
+
+#include "MMVII_MMV1Compat.h"
 
 
 #endif //  _MMVII_ALL_H_

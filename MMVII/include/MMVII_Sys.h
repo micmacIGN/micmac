@@ -43,8 +43,8 @@ const eSYS TheSYS = eSYS::MacOs;
 
 int mmvii_NbProcSys();
 int mmvii_GetPId();
-// e xtern const std::string TheMMVII_SysName ;
 
+int SysCall(const std::string &, bool SVP=false); ///< call system, if SVP=false error not EXIT_SUCCESS
 
 };
 

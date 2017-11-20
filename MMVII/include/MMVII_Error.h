@@ -29,15 +29,7 @@ namespace MMVII
 #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
 
 
-inline void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
-{
-    std::cout << "\n\n ######################################""\n\n";
-    std::cout << "Level=[" << aType << "]\n";
-    std::cout << "Mes=[" << aMes << "]\n";
-    std::cout << "at line  " << aLine << " of file " << aFile  << "\n";
-    getchar();
-    exit(-1);
-}
+void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine);
 
 #define MMVII_INTERNAL_ASSERT_tiny(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny ) && (!(aTest)))\

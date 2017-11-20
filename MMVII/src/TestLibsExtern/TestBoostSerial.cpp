@@ -214,14 +214,17 @@ if (1)
 class cAppli_MMVII_TestBoostSerial : public cMMVII_Appli
 {
      public :
-        cAppli_MMVII_TestBoostSerial(int argc,char** argv) ;
-        int Exe();
+        cAppli_MMVII_TestBoostSerial(int argc,char** argv,const cSpecMMVII_Appli & aSpec) ;
+        int Exe() override ;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
+
+
 };
 
-cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial (int argc,char **argv) :
-  cMMVII_Appli (argc, argv)
+cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial (int argc,char **argv,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (argc, argv,aSpec)
 {
-  InitParam(mArgObl,mArgFac);
 }
 
 int cAppli_MMVII_TestBoostSerial::Exe()
@@ -231,9 +234,9 @@ int cAppli_MMVII_TestBoostSerial::Exe()
     return EXIT_SUCCESS;
 }
 
-tMMVII_UnikPApli Alloc_MMVII_TestBoostSerial(int argc,char ** argv)
+tMMVII_UnikPApli Alloc_MMVII_TestBoostSerial(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MMVII_TestBoostSerial(argc,argv));
+   return tMMVII_UnikPApli(new cAppli_MMVII_TestBoostSerial(argc,argv,aSpec));
 }
 
 

@@ -14,8 +14,24 @@ namespace MMVII
 */
 
 
-void  BenchGlob();
-void  Bench_0000_Ptxd();
+void Bench_0000_Ptxd();  ///< Basic Ptxd
+void Bench_0000_SysDepString(); ///< String split (dir, path, file ...)
+void Bench_0000_Memory(); ///< Bench on memory integrity
+void Bench_0000_Param();  ///< Bench on param line processing (elementary)
+// void cAppli_MMVII_Bench::Bench_0000_String(); => Bench on string-split
+void BenchSerialization(const std::string & aDirOut,const std::string & aDirIn); ///< Bench on seriaization function
+
+
+
+void BenchGlob();      ///< All Bench
+
+
+void BenchSet(const std::string & aDir); ///< Bench on cInterfSet (set "en extension")
+void BenchSelector(const std::string & aDir); ///< Bench on selecto, (set "en comprehension")
+void BenchEditSet(); ///< Bench on commands : EditSet  (to come EditCple)
+
+
+
 
 };
 

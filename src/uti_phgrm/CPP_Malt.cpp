@@ -285,6 +285,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
     Pt2di  aPtDebug;
     bool   aUseArgMaskAuto=true;
+    bool   OrthoImSupMNT = false;
 
     ElInitArgMain
     (
@@ -352,6 +353,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
  
                     << EAM(mNbDirPrgD,"NbDirPrgD",true,"Nb Dir for prog dyn, (rather for tuning)")
                     << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
+                    << EAM(OrthoImSupMNT,"OISM",true,"When true footprint of ortho-image=footprint of DSM")
                 );
 
     if (!MMVisualMode)
@@ -778,6 +780,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       {
            mCom =  mCom +  std::string(" +ModeAgregPrgDyn=ePrgDAgrProgressif");
       }
+
+     if (OrthoImSupMNT)
+           mCom =  mCom +  std::string(" +OrthoSuperpMNT=true ");
 
 
       if (EAMIsInit(&aPtDebug))

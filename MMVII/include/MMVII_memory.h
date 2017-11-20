@@ -28,6 +28,7 @@ class  cMemCheck;   // Class calling cMemManager for allocation
 */
 
 
+/// Class to register current state of memory
 
 /**
    cMemState  memorize a summary of memory state container the number of
@@ -49,12 +50,15 @@ class cMemState
         friend class cMemManager;
         bool operator == (const cMemState &) const;
         int NbObjCreated() const;
+        void SetCheckAtDestroy();
+        ~cMemState(); ///< may call a check
     private :
         cMemState();
         int64_t  mCheckNb;
         int64_t  mCheckSize;
         int64_t  mCheckPtr;
         int64_t  mNbObjCreated;
+        bool     mDoCheckAtDestroy; ///< Sometime we need to do the check at the very end of the existence
 };
 
 /**
@@ -101,7 +105,6 @@ class  cMemCheck
       public :
          void * operator new    (size_t sz);
          void operator delete   (void * ptr) ;
-
       private :
 
        // to avoid use 

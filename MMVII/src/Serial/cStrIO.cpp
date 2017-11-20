@@ -37,6 +37,9 @@ template <>  std::string cStrIO<int>::ToStr(const int & anI)
 }
 template <>  int cStrIO<int>::FromStr(const std::string & aStr)
 {
+    // can be convenient that empty string correspond to zero
+    if (aStr.empty())
+       return 0;
     int anI;
     sscanf(aStr.c_str(),"%d",&anI);
     return anI;

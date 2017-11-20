@@ -151,6 +151,11 @@ template <class Type> inline cPt1d<Type> operator / (const cPt1d<Type> & aP,cons
 {return  cPt1d<Type>(aP.x()/aVal);}
 */
 
+template <class Type> std::ostream & operator << (std::ostream & OS,const cPt2d<Type> &aP)
+{
+   return  OS << "[" << aP.x() << "," << aP.y() << "]";
+}
+
 };
 
 #endif  //  _MMVII_Ptxd_H_
