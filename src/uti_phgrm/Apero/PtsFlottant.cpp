@@ -697,6 +697,7 @@ void cBdAppuisFlottant::ExportFlottant(const cExportPtsFlottant & anEPF)
    {
         std::string aNameF =   mAppli.DC() + anEPF.NameFileTxt().Val();
 	FILE * aFP  = ElFopen(aNameF.c_str(),"w");
+    FILE * aFP_RollCtrl  = ElFopen((aNameF+"_RollCtrl.txt").c_str(), "a");
 	std::string aNC = anEPF.TextComplTxt().Val();
         for 
         (
@@ -707,14 +708,23 @@ void cBdAppuisFlottant::ExportFlottant(const cExportPtsFlottant & anEPF)
         {
            cOneAppuisFlottant * anOAF = it1->second;
 	   std::string aNP = anOAF->Name();
-	   Pt3dr aPTer = anOAF->PtRes();
+       Pt3dr aPTer = anOAF->PtRes();
+
+       //=== Giang
+       Pt3dr aDif =  aPTer - anOAF->PInter();
+       //===
+
 	   std::cout << aNP << " " <<  anOAF->PtRes() 
 	             << "    "  << euclid(aPTer-anOAF->PtInit())
 	             << "    "  << aPTer-anOAF->PtInit()
 		     << "\n";
            fprintf(aFP,"%s %lf %lf %lf %s\n",aNP.c_str(),aPTer.x,aPTer.y,aPTer.z,aNC.c_str());
+           //=== Giang
+           fprintf(aFP_RollCtrl,"%s %lf %lf %lf %s\n",aNP.c_str(),aDif.x,aDif.y,aDif.z,aNC.c_str());
+            // ===
         }
 	ElFclose(aFP);
+    ElFclose(aFP_RollCtrl);
    }
 }
 

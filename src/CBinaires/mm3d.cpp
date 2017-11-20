@@ -778,7 +778,7 @@ extern int  TestNewOriHom1Im_main(int argc,char ** argv);
 
 extern int  CPP_NOGpsLoc(int argc,char ** argv);
 
-
+extern int GCPRollingBasc_main(int argc, char** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -990,7 +990,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("Homol2Way",Homol2Way_main ,"Creat same pack homol in 2 way by combination 2 pack of each way"));
         aRes.push_back(cMMCom("CplFromHomol",CplFromHomol_main ,"Creat xml of pair images from Homol Folder"));
         aRes.push_back(cMMCom("LSQMatch",LSQMatch_Main ,"Giang Test LSQ"));
-
+        aRes.push_back(cMMCom("GCPRollingBasc",GCPRollingBasc_main ,"Rolling GCPBascule"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
