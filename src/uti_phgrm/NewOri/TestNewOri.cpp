@@ -39,7 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
-extern cNewO_NameManager * NM(const std::string & aDir);
 
 /*
 int TestNewOriImage_main(int argc,char ** argv)
@@ -68,55 +67,285 @@ int TestNewOriImage_main(int argc,char ** argv)
 */
 
 ///Export the graph to G2O format for testing in ceres
-int NewOriImage2G2O_main(int argc,char ** argv)
-{
-    std::string aPat,aDir;
-    std::string aName="triplets_g2o.txt";
+class cAppliNOExport;
+class Constraint;
+class Pose3d;
+class RotMat;
 
-    ElInitArgMain
-    (
-        argc,argv,
-        LArgMain() << EAMC(aPat,"Pattern of images", eSAM_IsExistFile),
-        LArgMain() << EAM(aName,"Out",true,"Output file name")
-    );
+//namespace ceresTestER
+//{
+    class RotMat 
+    {
+        public :
+            RotMat(const Pt3dr &aI,const Pt3dr &aJ,const Pt3dr &aK) : 
+                mI(aI), 
+                mJ(aJ),
+                mK(aK) {};
+            
+            Pt3dr & I(){return mI;}
+            Pt3dr & J(){return mJ;}
+            Pt3dr & K(){return mK;}
 
-   #if (ELISE_windows)
-        replace( aPat.begin(), aPat.end(), '\\', '/' );
-   #endif
+        private :
+            Pt3dr   mI;
+            Pt3dr   mJ;
+            Pt3dr   mK;
+    };
 
-    SplitDirAndFile(aDir,aPat,aPat);
+    class Pose3d
+    {
+        public :
+            Pose3d(const Pt3dr &aP,
+                   const Pt3dr &aI,const Pt3dr &aJ,const Pt3dr &aK,
+                   const int aId) : 
+                mP(aP),
+                mQ(aI,aJ,aK),
+                mId(aId) {};
 
-    ///ori dir manager
-    cInterfChantierNameManipulateur * aICNM;
-    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+            int     Id(){return mId;};
+            Pt3dr & P(){return mP;}
+            RotMat& R(){return mQ;}
+
+            static std::string name() {return "VERTEX_SE3:QUAT";};
+        
+        private : 
+            Pt3dr              mP;
+            RotMat             mQ;
+            int                mId;
+
+
+    };
+ 
+    class Constraint
+    {
+        public :
+            Constraint(const int aI0,const int aI1,
+                       const Pose3d &aRel,
+                       const Pt3dr  &aPdsT,
+                       const Pt3dr  &aPdsR) : 
+                mI0(aI0),
+                mI1(aI1),
+                mRel(aRel),
+                mPdsR(aPdsR),
+                mPdsT(aPdsT) {};
+                
+            int    &  I0(){return mI0;};
+            int    &  I1(){return mI1;};
+            Pose3d &  Pose(){return mRel;};
+            Pt3dr  &  PdsR(){return mPdsR;}
+            Pt3dr  &  PdsT(){return mPdsT;}
+
+            static std::string name() {return "EDGE_SE3:QUAT";}
+                
+        private :
+            int      mI0,mI1; 
+            Pose3d   mRel;
+            Pt3dr    mPdsR;
+            Pt3dr    mPdsT;
+            
+    };
+    
+    class cAppliNOExport : public cCommonMartiniAppli
+    {
+        public : 
+            cAppliNOExport(int argc,char ** argv);
+
+        private :
+            bool NOSave(const std::map<std::string,Pose3d *> aMP,
+                        const std::vector<Constraint*> aCVec,
+                        const std::string & aName );
+            void NOSaveConstraint(std::fstream* aFile, Constraint* aC);
+            void NOSaveNoed(std::fstream* aFile,Pose3d* aMP);
+    };
+    
+
+    ///pose X Y Z rot_I_x rot_I_y rot_I_z rot_J_x rot_J_y rot_J_z rot_K_x rot_K_y rot_K_z
+    void cAppliNOExport::NOSaveNoed(std::fstream* aFile,Pose3d* aMP)
+    {
+        *aFile << aMP->name().c_str() << " " << aMP->P().x << " " << aMP->P().y << " " << aMP->P().z << 
+           " " << aMP->R().I().x << " " << aMP->R().I().y << " " << aMP->R().I().z << 
+           " " << aMP->R().J().x << " " << aMP->R().J().y << " " << aMP->R().J().z << 
+           " " << aMP->R().K().x << " " << aMP->R().K().y << " " << aMP->R().K().z << "\n";
+    };
+
+    ///ID_a ID_b x_ab y_ab z_ab q_x_ab q_y_ab q_z_ab q_w_ab I_11 I_12 I_13 ... I_16 I_22 I_23 ... I_26 ... I_66 
+    void cAppliNOExport::NOSaveConstraint(std::fstream* aFile, Constraint* aC)
+    {
+        *aFile << aC->I0() << " " << aC->I1() << " " 
+               << aC->Pose().P().x << " " << aC->Pose().P().y << " " << aC->Pose().P().z << " "
+               << aC->Pose().R().I().x << " " << aC->Pose().R().I().y << " " << aC->Pose().R().I().z << " "
+               << aC->Pose().R().J().x << " " << aC->Pose().R().J().y << " " << aC->Pose().R().J().z << " "
+               << aC->Pose().R().K().x << " " << aC->Pose().R().K().y << " " << aC->Pose().R().K().z << " "
+               << aC->PdsR().x << " 0 0 0 0 0 " 
+               << "0 " << aC->PdsR().y << " 0 0 0 0 "
+               << "0 0 " << aC->PdsR().z << " 0 0 0 "
+               << "0 0 0 " << aC->PdsT().x << " 0 0 " 
+               << "0 0 0 0 " << aC->PdsT().y << " 0 "
+               << "0 0 0 0 0 " << aC->PdsT().z << "\n";
+
+                
+    };
+
+    bool cAppliNOExport::NOSave(const std::map<std::string,Pose3d *> aMP,
+              const std::vector<Constraint*> aCVec,
+              const std::string & aName )
+    {
+       std::fstream aOut;
+       aOut.open(aName.c_str(), std::istream::out); 
+
+       if (!aOut) 
+       {
+            ELISE_ASSERT
+            (
+                    false,
+                    "NewOriImage2G2O_main save; can't open file"
+            );
+
+            return false;
+       }
+
+       for(auto aK : aMP)
+       {
+           NOSaveNoed(&aOut,aK.second);
+       }
+
+       for(auto aK : aCVec)
+       {
+           NOSaveConstraint(&aOut,aK);
+       }
+
+       return true;
+
+    };
+
+
+
+
+    cAppliNOExport::cAppliNOExport(int argc,char ** argv)
+    {
+
+        std::string aPat,aDir;
+        std::string aOri="Martini";
+        std::string aName="triplets_g2o.txt";
+ 
+        cInterfChantierNameManipulateur * aICNM;
+        std::list<std::string> aLFile;
+
+        ElInitArgMain
+        (
+            argc,argv,
+            LArgMain() << EAMC(aPat,"Pattern of images", eSAM_IsExistFile),
+            LArgMain() << EAM(aOri,"Ori",true,"Initial absolute ori; Def=[Ori-Martini]")
+                       << EAM(aName,"Out",true,"Output file name")
+        );
+ 
+        #if (ELISE_windows)
+            replace( aPat.begin(), aPat.end(), '\\', '/' );
+        #endif
+ 
+        SplitDirAndFile(aDir,aPat,aPat);
+ 
+        /// get map of initial orientations
+        aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+        aOri= aICNM->StdKeyOrient(aOri);
+        aLFile =  aICNM->StdGetListOfFile(aPat,1);
+
+        std::map<std::string,Pose3d *> aMP;
+
+        int aNCP=0;
+        for( auto aL : aLFile )
+        {
+
+            std::string aNF = aICNM->Dir() + aICNM->Assoc1To1(aOri,aL,true);
+            Pt3dr aC = StdGetObjFromFile<Pt3dr>
+                    (
+                        aNF,
+                        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                        "Centre",
+                        "Pt3dr"
+                    );        
+    
+            cOrientationConique * aCO = OptionalGetObjFromFile_WithLC<cOrientationConique>
+                                     (
+                                           0,0,
+                                           aNF,
+                                           StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                           "OrientationConique",
+                                           "OrientationConique"
+                                     );
+            cRotationVect aRV   = aCO->Externe().ParamRotation();
+
+            aMP[aL] = new Pose3d(aC,
+                             aRV.CodageMatr().Val().L1(),
+                             aRV.CodageMatr().Val().L2(),
+                             aRV.CodageMatr().Val().L3(),
+                             aNCP++);
+        }        
+        std::cout << "No de noeds=" << aNCP << "\n";
+ 
+        ///triplets dir manager
+        cNewO_NameManager *  aNM = NM(aDir);
+        std::string aNameLTriplets = aNM->NameTopoTriplet(true);
+        cXml_TopoTriplet  aLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
         
 
-    ///triplets dir manager
-    cNewO_NameManager *  aNM = NM(aDir);
-    std::string aNameLTriplets = aNM->NameTopoTriplet(true);
-    cXml_TopoTriplet  aLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
+        ///get vector of constraints
+        int aNCC=0;
+        std::vector<Constraint*> aCVec;
+        for (auto a3 : aLT.Triplets())
+        {
+            std::string  aName3R = aNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
+            cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
+            
+            //find id inside aMP
+            Pose3d *aPA1 = aMP[a3.Name1()];
+            Pose3d *aPA2 = aMP[a3.Name2()];
+            Pose3d *aPA3 = aMP[a3.Name3()];
 
-    std::vector<ElRotation3D> aPVec;
-    for (auto a3 : aLT.Triplets())
+            ///1-2
+            ElRotation3D aP12 = Xml2El(aXml3Ori.Ori2On1());      
+            
+            Pt3dr aI,aJ,aK;
+            aP12.Mat().GetCol(0,aI);
+            aP12.Mat().GetCol(1,aJ);
+            aP12.Mat().GetCol(2,aK);
+
+            
+            //Pose3d aPRel(aP12.tr(),aI,aJ,aK,aNCC++);
+            aCVec.push_back(new Constraint( aPA1->Id(),aPA2->Id(), 
+                                            Pose3d(aP12.tr(),aI,aJ,aK,aNCC++),
+                                            Pt3dr(1,1,1),
+                                            Pt3dr(1,1,1)));
+
+            ///1-3
+            ElRotation3D aP13 = Xml2El(aXml3Ori.Ori3On1());
+
+            aP13.Mat().GetCol(0,aI);
+            aP13.Mat().GetCol(1,aJ);
+            aP13.Mat().GetCol(2,aK);
+ 
+            aCVec.push_back(new Constraint( aPA1->Id(),aPA3->Id(), 
+                                            Pose3d(aP13.tr(),aI,aJ,aK,aNCC++),
+                                            Pt3dr(1,1,1),
+                                            Pt3dr(1,1,1)));
+ 
+        }
+        std::cout << "No de contraints=" << aNCC << "\n";
+
+
+
+       
+        NOSave(aMP,aCVec,aName);
+                
+    }
+
+    int CPP_NewOriImage2G2O_main(int argc,char ** argv)
     {
-        std::string  aName3R = aNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
-        cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
-        //aPVec.push_back(aXml3Ori);
-
-        /*ElRotation3D aPose = Xml2El(aXmlOri.Ori2On1()) -> ElRotation3D
-    mOri (aPose.ImAff(Pt3dr(0,0,0))),
-    mI   (aPose.ImVect(Pt3dr(1,0,0))),
-    mJ   (aPose.ImVect(Pt3dr(0,1,0))),
-    mK   (aPose.ImVect(Pt3dr(0,0,1)))
-*/
+        cAppliNOExport aAppli(argc,argv);
+        return EXIT_SUCCESS;
 
     }
-    fstream aFp;
-    aFp.open(aName.c_str(), ios::out);
-
-    return EXIT_SUCCESS;
-}
-
+//}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
