@@ -171,6 +171,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       bool	   mExpImSec;
       bool mSuprImNoMasq;
       std::string mPIMsDirName;
+      std::string mSetHom;
 };
 
 /*****************************************************************/
@@ -791,13 +792,14 @@ void cAppliWithSetImage::AddDelaunayCple()
 
 }
 
-void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bool AddCple,bool ExpTxt,bool ExpImSec)
+void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bool AddCple, const std::string &SetHom, bool ExpTxt,bool ExpImSec)
 {
       std::string aCom = MMDir() + "bin/mm3d AperoChImSecMM "
                          + BLANK + QUOTE(mEASF.mFullName)
                          + BLANK + mOri
 			 + BLANK + "ExpTxt=" + ToString(ExpTxt)
-			 + BLANK + "ExpImSec=" + ToString(ExpImSec);
+			 + BLANK + "ExpImSec=" + ToString(ExpImSec)
+             + BLANK + "SH=" + SetHom;
 	 
       if (mPenPerIm>0)
       {
@@ -1324,8 +1326,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mExpTxt        (false),
     mExpImSec      (true),
     mSuprImNoMasq  (false),
-    mPIMsDirName   ("Statue") // used in MMEnvStatute for differenciating PIMs-Forest from PIMs-Statue
-
+    mPIMsDirName   ("Statue"), // used in MMEnvStatute for differenciating PIMs-Forest from PIMs-Statue
+    mSetHom        ("")
 {
   if ((argc>=2) && (!mModeHelp))
   {
@@ -1437,8 +1439,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",false,"Def corr (context condepend 0.5 Statue, 0.2 Forest)")
                     << EAM(mZReg,"ZReg",true,"Z Regul (context condepend,  0.05 Statue, 0.02 Forest)")
-   		    << EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for determining image pairs and/or computing epipolar geometry (Def false, e.g. use dat format)")
-   		    << EAM(mExpImSec,"ExpImSec",false,"Export ImSec def=true (put false if set elsewhere)")
+   		            << EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for determining image pairs and/or computing epipolar geometry (Def false, e.g. use dat format)")
+   		            << EAM(mSetHom,"SH",false,"Set of Hom, Def=\"\"")
+   		            << EAM(mExpImSec,"ExpImSec",false,"Export ImSec def=true (put false if set elsewhere)")
 
   );
 
@@ -1473,6 +1476,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
       {
           AddLinePair(1,mExpTxt);
       }
+    
 
       if (mModeHelp)
           StdEXIT(0);
@@ -1489,7 +1493,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
          AddDelaunayCple();
       if (mRunAperoImSec)
       {
-         AddCoupleMMImSec(BoolFind(mDo,'A'),mSuprImNoMasq,mAddCpleImSec,mExpTxt,mExpImSec);
+         AddCoupleMMImSec(BoolFind(mDo,'A'),mSuprImNoMasq,mAddCpleImSec,mSetHom,mExpTxt,mExpImSec);
       }
 
       if (EAMIsInit(&mFilePair))

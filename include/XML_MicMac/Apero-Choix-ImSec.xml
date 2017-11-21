@@ -16,7 +16,7 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
             <Symb>  SeuilP3d=1.5  </Symb>
             <Symb>  PatternExport=.*   </Symb>
             <Symb>  CalPerIm=false   </Symb>
-
+            <Symb>  SetHom=""   </Symb>
 
             <Symb>  FocMin=0 </Symb>
             <Symb>  FocMax=1000000 </Symb>
@@ -32,8 +32,8 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
        <SectionBDD_Observation>
             <BDD_PtsLiaisons>
                  <Id>    Id_Pastis_Hom  </Id>
-                 <KeySet> NKS-Set-Homol@@${Ext}  </KeySet>
-                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@@${Ext}   </KeyAssoc>
+                 <KeySet> NKS-Set-Homol@${SetHom}@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@${SetHom}@${Ext}   </KeyAssoc>
             </BDD_PtsLiaisons>
             <BDD_Orient>
                   <Id>  Or-Init   </Id>

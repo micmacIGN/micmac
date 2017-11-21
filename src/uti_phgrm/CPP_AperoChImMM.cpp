@@ -46,6 +46,7 @@ int AperoChImMM_main(int argc,char ** argv)
     std::string AeroIn;
     std::string Out;
     std::string aPatternExport=".*";
+    std::string aSetHom="";
     bool ExpTxt=0;
     bool CalPerIm=0;
     double aPenalPerIm = 0.20;
@@ -75,6 +76,7 @@ int AperoChImMM_main(int argc,char ** argv)
                     << EAM(mVecDep,"VecDep",true,"Fixed Vec of deplacement (adapted to video like acquisition) ")
                     << EAM(OnlyVecDep,"OnlyVecDep",true,"Only vec dep (internal purpose) ",eSAM_InternalUse)
                     << EAM(ExpImSec,"ExpImSec",true,"Export Im Sec (Def= true) ",eSAM_IsBool)
+                    << EAM(aSetHom,"SH",false,"Set of Hom, Def=\"\" ")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -128,6 +130,11 @@ int AperoChImMM_main(int argc,char ** argv)
     if (EAMIsInit(&ExpImSec))
     {
         aCom = aCom + " +ExportImSec=" + ToString(ExpImSec);
+    }
+
+    if (EAMIsInit(&aSetHom))
+    {
+        aCom = aCom + " +SetHom=" + aSetHom;
     }
 
    int aRes = EXIT_SUCCESS;
