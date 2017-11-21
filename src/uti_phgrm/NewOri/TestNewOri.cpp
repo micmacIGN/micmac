@@ -102,9 +102,9 @@ class RotMat;
                 mQ(aI,aJ,aK),
                 mId(aId) {};
 
-            int     Id(){return mId;};
-            Pt3dr & P(){return mP;}
-            RotMat& R(){return mQ;}
+            int    & Id(){return mId;};
+            Pt3dr  & P(){return mP;}
+            RotMat & R(){return mQ;}
 
             static std::string name() {return "VERTEX_SE3:QUAT";};
         
@@ -119,10 +119,10 @@ class RotMat;
     class Constraint
     {
         public :
-            Constraint(const int aI0,const int aI1,
-                       const Pose3d &aRel,
-                       const Pt3dr  &aPdsT,
-                       const Pt3dr  &aPdsR) : 
+            Constraint(const int & aI0,const int & aI1,
+                       const Pose3d aRel,
+                       const Pt3dr  aPdsT,
+                       const Pt3dr  aPdsR) : 
                 mI0(aI0),
                 mI1(aI1),
                 mRel(aRel),
@@ -162,7 +162,7 @@ class RotMat;
     ///pose X Y Z rot_I_x rot_I_y rot_I_z rot_J_x rot_J_y rot_J_z rot_K_x rot_K_y rot_K_z
     void cAppliNOExport::NOSaveNoed(std::fstream* aFile,Pose3d* aMP)
     {
-        *aFile << aMP->name().c_str() << " " << aMP->P().x << " " << aMP->P().y << " " << aMP->P().z << 
+        *aFile << aMP->name().c_str() << " " << aMP->Id() << " " << aMP->P().x << " " << aMP->P().y << " " << aMP->P().z << 
            " " << aMP->R().I().x << " " << aMP->R().I().y << " " << aMP->R().I().z << 
            " " << aMP->R().J().x << " " << aMP->R().J().y << " " << aMP->R().J().z << 
            " " << aMP->R().K().x << " " << aMP->R().K().y << " " << aMP->R().K().z << "\n";
@@ -171,7 +171,7 @@ class RotMat;
     ///ID_a ID_b x_ab y_ab z_ab q_x_ab q_y_ab q_z_ab q_w_ab I_11 I_12 I_13 ... I_16 I_22 I_23 ... I_26 ... I_66 
     void cAppliNOExport::NOSaveConstraint(std::fstream* aFile, Constraint* aC)
     {
-        *aFile << aC->I0() << " " << aC->I1() << " " 
+        *aFile << aC->name().c_str() << " " << aC->I0() << " " << aC->I1() << " " 
                << aC->Pose().P().x << " " << aC->Pose().P().y << " " << aC->Pose().P().z << " "
                << aC->Pose().R().I().x << " " << aC->Pose().R().I().y << " " << aC->Pose().R().I().z << " "
                << aC->Pose().R().J().x << " " << aC->Pose().R().J().y << " " << aC->Pose().R().J().z << " "
@@ -221,7 +221,8 @@ class RotMat;
 
 
 
-    cAppliNOExport::cAppliNOExport(int argc,char ** argv)
+    cAppliNOExport::cAppliNOExport(int argc,char ** argv) :
+        cCommonMartiniAppli ()
     {
 
         std::string aPat,aDir;
@@ -244,6 +245,7 @@ class RotMat;
         #endif
  
         SplitDirAndFile(aDir,aPat,aPat);
+        StdCorrecNameOrient(aOri,aDir);
  
         /// get map of initial orientations
         aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -274,15 +276,19 @@ class RotMat;
                                            "OrientationConique"
                                      );
             cRotationVect aRV   = aCO->Externe().ParamRotation();
+            
+            std::cout << "+P(" << aL << ")=" << aNCP << "\n";
 
             aMP[aL] = new Pose3d(aC,
                              aRV.CodageMatr().Val().L1(),
                              aRV.CodageMatr().Val().L2(),
                              aRV.CodageMatr().Val().L3(),
                              aNCP++);
+        
         }        
         std::cout << "No de noeds=" << aNCP << "\n";
  
+
         ///triplets dir manager
         cNewO_NameManager *  aNM = NM(aDir);
         std::string aNameLTriplets = aNM->NameTopoTriplet(true);
@@ -292,43 +298,51 @@ class RotMat;
         ///get vector of constraints
         int aNCC=0;
         std::vector<Constraint*> aCVec;
+        
         for (auto a3 : aLT.Triplets())
         {
-            std::string  aName3R = aNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
-            cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
-            
-            //find id inside aMP
-            Pose3d *aPA1 = aMP[a3.Name1()];
-            Pose3d *aPA2 = aMP[a3.Name2()];
-            Pose3d *aPA3 = aMP[a3.Name3()];
-
-            ///1-2
-            ElRotation3D aP12 = Xml2El(aXml3Ori.Ori2On1());      
-            
-            Pt3dr aI,aJ,aK;
-            aP12.Mat().GetCol(0,aI);
-            aP12.Mat().GetCol(1,aJ);
-            aP12.Mat().GetCol(2,aK);
-
-            
-            //Pose3d aPRel(aP12.tr(),aI,aJ,aK,aNCC++);
-            aCVec.push_back(new Constraint( aPA1->Id(),aPA2->Id(), 
-                                            Pose3d(aP12.tr(),aI,aJ,aK,aNCC++),
-                                            Pt3dr(1,1,1),
-                                            Pt3dr(1,1,1)));
-
-            ///1-3
-            ElRotation3D aP13 = Xml2El(aXml3Ori.Ori3On1());
-
-            aP13.Mat().GetCol(0,aI);
-            aP13.Mat().GetCol(1,aJ);
-            aP13.Mat().GetCol(2,aK);
+            if (DicBoolFind(aMP,a3.Name1()) && DicBoolFind(aMP,a3.Name2()) && DicBoolFind(aMP,a3.Name3()))
+            {
+                std::string  aName3R = aNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
+                cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
+                
+                //find id inside aMP
+                Pose3d *aPA1 = aMP[a3.Name1()];
+                Pose3d *aPA2 = aMP[a3.Name2()];
+                Pose3d *aPA3 = aMP[a3.Name3()];
+         
+        
  
-            aCVec.push_back(new Constraint( aPA1->Id(),aPA3->Id(), 
-                                            Pose3d(aP13.tr(),aI,aJ,aK,aNCC++),
-                                            Pt3dr(1,1,1),
-                                            Pt3dr(1,1,1)));
- 
+                ///1-2
+                ElRotation3D aP12 = Xml2El(aXml3Ori.Ori2On1());      
+                
+                Pt3dr aI,aJ,aK;
+                aP12.Mat().GetCol(0,aI);
+                aP12.Mat().GetCol(1,aJ);
+                aP12.Mat().GetCol(2,aK);
+         
+                
+                aCVec.push_back(new Constraint( aPA1->Id(),aPA2->Id(), 
+                                                Pose3d(aP12.tr(),aI,aJ,aK,aNCC++),
+                                                Pt3dr(1,1,1),
+                                                Pt3dr(1,1,1)
+                                                ));
+           
+                std::cout << "C=(" << aPA1->Id() << "," << aPA2->Id() << ")="  << a3.Name1() << "-" << a3.Name2() << "\n"; 
+                ///1-3
+                ElRotation3D aP13 = Xml2El(aXml3Ori.Ori3On1());
+             
+                aP13.Mat().GetCol(0,aI);
+                aP13.Mat().GetCol(1,aJ);
+                aP13.Mat().GetCol(2,aK);
+             
+                aCVec.push_back(new Constraint( aPA1->Id(),aPA3->Id(), 
+                                                Pose3d(aP13.tr(),aI,aJ,aK,aNCC++),
+                                                Pt3dr(1,1,1),
+                                                Pt3dr(1,1,1)));
+                
+                std::cout << "C=(" << aPA1->Id() << "," << aPA3->Id() << ")=" << a3.Name1() << "-" << a3.Name3() << "\n"; 
+            }
         }
         std::cout << "No de contraints=" << aNCC << "\n";
 
