@@ -227,6 +227,7 @@ int CPP_SampleMap2D(int argc,char** argv);
 int ScalePat_main(int argc,char** argv);
 int CPP_MakeMapEvolOfT(int argc,char ** argv);
 int CPP_PolynOfImage(int argc,char ** argv);
+int CPP_PolynOfImageStd(int argc,char ** argv);
 
 int GCP_Fusion(int argc,char ** argv);
 
@@ -349,6 +350,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("StackFlatField",EstimFlatField_main,"Basic Flat Field estimation by image stacking"));
        aRes.push_back(cMMCom("PolynOfImage",CPP_PolynOfImage,"Approximate image by polynom"));
+       aRes.push_back(cMMCom("PolynOfImageV2",CPP_PolynOfImageStd,"Approximate image by polynom ver2"));
        aRes.push_back(cMMCom("Impaint",Impainting_main,"Basic Impainting"));
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
@@ -604,6 +606,7 @@ extern int TestER_main3(int argc,char ** argv);
 extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
+extern int TestER_hom_main(int argc,char ** argv);
 extern int TestPush(int argc,char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
 extern int Homol2GCP_main(int argc,char ** argv);
@@ -683,6 +686,7 @@ int CPP_GenAllImP3(int argc,char ** argv);
 int CPP_OptimTriplet_main(int argc,char ** argv);
 int CPP_AllOptimTriplet_main(int argc,char ** argv);
 int CPP_NewSolGolInit_main(int argc, char ** argv);
+int CPP_NewOriImage2G2O_main(int argc, char ** argv);
 int GenOriFromOnePose_main(int argc,char ** argv);
 int CPP_NewGenTriOfCple(int argc, char ** argv);
 int CPP_TestBundleGen(int argc,char ** argv)   ;
@@ -762,6 +766,7 @@ extern int ExtraitHomol_main(int argc, char ** argv);
 extern int IntersectHomol_main(int argc, char ** argv);
 extern int ReechMAF_main(int argc, char ** argv);
 extern int ImgTMTxt2Xml_main(int argc, char ** argv);
+extern int MoyMAF_main(int argc, char ** argv);
 extern int GenImgTM_main(int argc, char ** argv);
 extern int EsSim_main(int argc,char ** argv);
 int ProcessThmImgs_main(int argc,char ** argv);
@@ -775,7 +780,9 @@ int LSQMatch_Main(int argc,char ** argv);
 
 extern int  TestNewOriHom1Im_main(int argc,char ** argv);
 
+extern int  CPP_NOGpsLoc(int argc,char ** argv);
 
+extern int GCPRollingBasc_main(int argc, char** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -825,6 +832,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
        aRes.push_back(cMMCom("TestER",TestER_main3,"ER test workplace"));
+       aRes.push_back(cMMCom("TestER2",TestER_hom_main,"ER test hom"));
        aRes.push_back(cMMCom("TestAT",TestPush,"AT test workplace"));
 
 //       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
@@ -945,6 +953,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("BasculeCamsInRepCam",BasculeCamsInRepCam_main,"Compute GCP in cam repair"));
 
         aRes.push_back(cMMCom("NO_OriHom1Im",TestNewOriHom1Im_main,"Test New Homgr Orientation-Case 1 central Im"));
+        aRes.push_back(cMMCom("NO_GpsLoc",CPP_NOGpsLoc,"Use Gps for absolute orientation of Martini"));
         aRes.push_back(cMMCom("NO_Ori2Im",TestNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_AllOri2Im",TestAllNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_GenTripl",GenTriplet_main,"New Orientation : select triplet"));
@@ -956,6 +965,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("NO_OneImOptTrip",CPP_OptimTriplet_main,"New Orientation : otimize triplet"));
         aRes.push_back(cMMCom("NO_AllImOptTrip",CPP_AllOptimTriplet_main,"New Orientation : otimize triplet"));
         aRes.push_back(cMMCom("NO_SolInit3",CPP_NewSolGolInit_main,"New Orientation : sol init from triplet"));
+        aRes.push_back(cMMCom("NO_ExportG2O",CPP_NewOriImage2G2O_main,"New Orientation : export triplets to g2o"));
 
         aRes.push_back(cMMCom("NO_GenTriOfCple",CPP_NewGenTriOfCple,"New Orientation : select triple of one edge"));
 
@@ -989,7 +999,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("Homol2Way",Homol2Way_main ,"Creat same pack homol in 2 way by combination 2 pack of each way"));
         aRes.push_back(cMMCom("CplFromHomol",CplFromHomol_main ,"Creat xml of pair images from Homol Folder"));
         aRes.push_back(cMMCom("LSQMatch",LSQMatch_Main ,"Giang Test LSQ"));
-
+        aRes.push_back(cMMCom("GCPRollingBasc",GCPRollingBasc_main ,"Rolling GCPBascule"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
@@ -1005,6 +1015,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("IntersectHomol",IntersectHomol_main ,"Pseudo-intersection for tie points"));
         aRes.push_back(cMMCom("ReechMAF",ReechMAF_main ,"Apply map to image measurement file"));
         aRes.push_back(cMMCom("ImgTMTxt2Xml",ImgTMTxt2Xml_main ,"Match tops time with image time to get GPS time"));
+        aRes.push_back(cMMCom("MoyMAF",MoyMAF_main ,"Calculate center of 4 corner points"));
         aRes.push_back(cMMCom("GenImgTM",GenImgTM_main ,"Generate fake Img name/time couple from GPS .xml file"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));

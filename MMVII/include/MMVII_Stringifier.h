@@ -1,6 +1,10 @@
 #ifndef  _MMVII_Stringifier_H_
 #define  _MMVII_Stringifier_H_
 
+namespace MMVII
+{
+
+
 /** \file MMVII_Stringifier.h
     \brief Interface for services related to read/write values
 
@@ -9,8 +13,8 @@
     (3) services for serialization
 */
 
-class  cOneArgCL2007 ;
-class cCollecArg2007;
+class  cSpecOneArg2007 ;
+class cCollecSpecArg2007;
 
 /// Mother class of archive, do not need to export
 class cAr2007; 
@@ -29,7 +33,13 @@ template <class Type> class  cStrIO
        static std::string ToStr(const Type &);     
       /// String -> Atomic object
        static Type  FromStr(const std::string &);  
+      /// Readable name for type
+       static const std::string  msNameType;
 };
+
+/// Facilities when the type is well defined
+template <class Type> std::string ToStr(const Type & aV) {return cStrIO<Type>::ToStr(aV);}
+
 
 /** Do the test using only specialization ...
    Could make something generic with isstream, but remember it was tricky ...
@@ -64,41 +74,102 @@ template  <class Type> void FromS(const std::string & aStr,Type & aV) { aV= cStr
 /*                                                     */
 /*  ================================================== */
 
-
-/** Mother class to describe one paramater specification */
-class  cOneArgCL2007 : public cMemCheck
-{
-     public :
-        /** Name an comment */
-        cOneArgCL2007(const std::string & aName,const std::string & aCom) ;
-
-        /** This action defined in heriting-template class initialize "real" the value from its string value */
-        virtual void InitParam(const std::string & aStr) = 0;
-     private :
-         std::string                      mName; ///< Name for optionnal
-         std::string                      mCom;  ///< Comment for all
-};
-
-typedef std::shared_ptr<cOneArgCL2007>  tPtrArg2007;
-typedef std::vector<tPtrArg2007>        tVecArg2007;
-
+/// Semantic of cSpecOneArg2007
 /**
-    Class for representing the collections  of parameter specificification (mandatory/optional/global)
+   This "semantic" are usefull to have a finer process
+   od the parameter in the global constructor. For example
+   indicate that a parameter is  internal (dont show) or
+   common to all command (show only when required).
+
+   Many parameter are at a low level just string , those indicating
+   pattern of file or those indicatif 
+
+     
 */
-class cCollecArg2007
+class cSemA2007
 {
    public :
-      tVecArg2007  & V();
-   private :
-      tVecArg2007  mV;
+      cSemA2007(eTA2007 aType,const std::string & anAux);
+      cSemA2007(eTA2007 aType);
+
+      eTA2007 Type()            const;
+      const std::string & Aux() const;
+
+    private :
+
+      eTA2007      mType;
+      std::string  mAux;
 };
 
-cCollecArg2007 & operator << (cCollecArg2007 & aV ,tPtrArg2007 aVal);
 
-///  Two auxilary fonction to create easily cOneArgCL2007 , one for mandatory
-template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom);
+
+/// Base class  to describe one paramater specification
+/**  The job will be done by template inheriting classes
+    who knows how to use a string for computing a value
+*/
+class  cSpecOneArg2007 : public cMemCheck
+{
+     public :
+        typedef std::vector<cSemA2007> tVSem;
+
+        /// Default empty semantique
+        static const tVSem   TheEmptySem;
+        ///  Name + comment  + semantic
+        cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tVSem & = TheEmptySem);
+
+        ///  This action defined in heriting-template class initialize "real" the value from its string value 
+        virtual void InitParam(const std::string & aStr) = 0;
+        virtual void * AdrParam() = 0;
+        virtual const std::string & NameType() const = 0;
+        /// Does any of  mVSem contains aType
+        bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
+
+        const tVSem & VSem() const;         ///< Accessor
+        const std::string  & Name() const;  ///< Accessor
+        const std::string  & Com() const;   ///< Accessor
+        int NbMatch () const;         ///< Accessor
+        void IncrNbMatch() ;
+     private :
+
+         std::string     mName; ///< Name for optionnal
+         std::string     mCom;  ///< Comment for all
+         tVSem           mVSem;    ///< Vector of semantic
+         int             mNbMatch;  ///< Number of match, to generate error on multiple names
+};
+
+typedef std::shared_ptr<cSpecOneArg2007>  tPtrArg2007;
+typedef std::vector<tPtrArg2007>        tVecArg2007;
+
+
+/// Collection of arg spec
+/**
+    Class for representing the collections  of parameter specificification (mandatory/optional/global)
+    This class is nothing more than a encapsultion of a vectot of cSpecOneArg2007*,  but it
+    was easier for defining the "operator <<" and  controling the access
+*/
+
+class cCollecSpecArg2007
+{
+   public :
+      friend class cMMVII_Appli; ///< only authorizd to construct
+      friend void   Bench_0000_Param(); ///< authorized for bench
+      size_t size() const;
+      tPtrArg2007 operator [] (int) const;
+      void clear() ;
+      cCollecSpecArg2007 & operator << (tPtrArg2007 aVal);
+   private :
+      friend class cMMVII_Appli;
+      tVecArg2007 & Vec();
+      cCollecSpecArg2007(const cCollecSpecArg2007&) = delete;
+      tVecArg2007  mV;
+      cCollecSpecArg2007();
+};
+
+
+///  Two auxilary fonction to create easily cSpecOneArg2007 , one for mandatory
+template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom, const std::vector<cSemA2007> & = cSpecOneArg2007::TheEmptySem);
 ///  One for optional args
-template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string &, const std::string & aCom);
+template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string & aName, const std::string & aCom,const std::vector<cSemA2007> & = cSpecOneArg2007::TheEmptySem);
 
 
 
@@ -110,6 +181,7 @@ template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string &, const std
 
 
 
+/// Auxiliary class for Archive manipulation
 
 /**
    The serialization "file" inherit from the mother class cAr2007. This
@@ -144,8 +216,11 @@ class cAuxAr2007
          cAr2007 & mAr;
 };
 
+
+
 /// Create an archive structure, its type (xml, binary, text) is determined by extension
-std::unique_ptr<cAr2007> AllocArFromFile(const std::string & aName,bool Input);
+ cAr2007* AllocArFromFile(const std::string & aName,bool Input);
+//  std::unique_ptr<cAr2007 > AllocArFromFile(const std::string & aName,bool Input);
 
 /** Here are the atomic serialization function */
 
@@ -155,9 +230,9 @@ void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
 void AddData(const  cAuxAr2007 & anAux, cPt2dr  &  aVal) ;  ///<for cPt2dr
 
 /// Serialization for container
-/** Template for list (will be easily extended to other containter */
+/** Template for list, vector */
 
-template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type> & aL)
+template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont & aL)
 {
     int aNb=aL.size();
     // put or read the number
@@ -165,21 +240,35 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type> & aL
     // In input, nb is now intialized, we must set the size of list
     if (aNb!=int(aL.size()))
     {
-       Type aV0;
-       aL = std::list<Type>(aNb,aV0);
+       typename TypeCont::value_type aV0;
+       aL = TypeCont(aNb,aV0);
     }
     // now read the elements
-    for (auto el : aL)
+    for (auto & el : aL)
     {
          AddData(cAuxAr2007("el",anAux),el);
     }
 }
 
-/// Serialization for optional
-/** Template for optional parameter, complicated becaus in xml forms, it handles the compatibility with new
-added parameters */
 
-template <class Type> void OptAddData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL)
+template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & aL) { StdContAddData(anAux,aL); }
+template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) 
+{ 
+   StdContAddData(anAux,aL); 
+}
+
+
+
+/// Serialization for optional
+/** Template for optional parameter, complicated becaus in xml forms, 
+    it handles the compatibility with new added parameters 
+ 
+    Name it AddOptData and not  AddData, because on this experimental stuff,
+    want do get easy track of it.
+
+*/
+
+template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL)
 {
     // put the tag as <Opt::Tag0>,
     //  Not mandatory, but optionality being an important feature I thought usefull to see it in XML file
@@ -228,24 +317,59 @@ template <class Type> void OptAddData(const cAuxAr2007 & anAux,const std::string
 }
 
 
+void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!
+
+/// By default no MMV1 save
+template<class Type> void  MMv1_SaveInFile(const Type & aVal,const std::string & aName)
+{
+     // MMVII_INTERNAL_ASSERT_always(false,"No MMV1 save for " + std::string(typeid(Type).name()));
+     MMVII_INTERNAL_ASSERT_always(false,"No MMV1 save for type" );
+}
+/// Exist one for cSetName
+template<> void  MMv1_SaveInFile(const cSetName & aVal,const std::string & aName);
+
+/// call static function of cMMVII_Appli, cannot make forward declaration of static function
+bool GlobOutV2Format();
 /// Save the value in an archive, not proud of the const_cast ;-)
 template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
 {
-    std::unique_ptr<cAr2007 > anAr = AllocArFromFile(aName,false);
-
-    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
-    // cAuxAr2007  anOpen(aTag,*anAr);
-    AddData(aGLOB,const_cast<Type&>(aVal));
+   if (GlobOutV2Format())  // Do we save by serialization
+   {
+       std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,false),DeleteAr);
+       {
+           cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+           /// Not proud of cons_cast ;-( 
+           AddData(aGLOB,const_cast<Type&>(aVal));
+       }
+   }
+   else
+   {
+     MMv1_SaveInFile<Type>(aVal,aName);
+   }
 }
+
 
 /// Read  the value in an archive
 template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
 {
-    std::unique_ptr<cAr2007 > anAr = AllocArFromFile(aName,true);
-
-    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
-    AddData(aGLOB,aVal);
+    std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,true),DeleteAr);
+    {
+       cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+       AddData(aGLOB,aVal);
+    }
 }
+
+/// If the file does not exist, initialize with default constructor
+template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & aName)
+{
+   if (ExistFile(aName))
+      ReadFromFile(aVal,aName);
+   else
+      aVal = Type();
+}
+
+/// Indicate if a file is really XML, created by MMVII and containing the expected Tag
+bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string & aTag); 
 
 
 /*****************************************************************/
@@ -277,11 +401,5 @@ class cCmpSerializer
 
 
 
-
-
-
-
-
-
-
+};
 #endif  //  _MMVII_Stringifier_H_

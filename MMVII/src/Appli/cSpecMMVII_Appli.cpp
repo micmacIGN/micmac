@@ -11,17 +11,17 @@ cSpecMMVII_Appli::cSpecMMVII_Appli
     const std::string & aName,
     tMMVII_AppliAllocator anAlloc,
     const std::string & aComment,
-    const std::string & aFeatures,
-    const std::string & aInputs,
-    const std::string & aOutputs
+    const tVaF     & aFeatures,
+    const tVaDT    & aInputs,   
+    const tVaDT    & aOutputs  
 
 ) :
   mName      (aName),
   mAlloc     (anAlloc),
   mComment   (aComment),
-  mFeatures  (aFeatures),
-  mInputs    (aInputs),
-  mOutputs   (aOutputs)
+  mVFeatures (aFeatures),
+  mVInputs    (aInputs),
+  mVOutputs   (aOutputs)
 {
 }
 
@@ -61,18 +61,18 @@ bool  CheckIntersect
 
 void cSpecMMVII_Appli::Check()
 {
-    CheckIntersect("Feature of " + mName,SPECMMVII_Feature ,mFeatures," ");
-    CheckIntersect("Input of "   + mName,SPECMMVII_DateType,mInputs  ," ");
-    CheckIntersect("Output of "  + mName,SPECMMVII_DateType,mOutputs ," ");
-    //std::vector<std::string>  aVFeature = anAppli.SPECMMVII_Feature(mFeaturesI
+    MMVII_INTERNAL_ASSERT_always(!mVFeatures.empty(),"cSpecMMVII_Appli No Features");
+    MMVII_INTERNAL_ASSERT_always(!mVInputs.empty(),"cSpecMMVII_Appli No Inputs");
+    MMVII_INTERNAL_ASSERT_always(!mVOutputs.empty(),"cSpecMMVII_Appli No Outputs");
 }
 
 extern cSpecMMVII_Appli  TheSpecBench;
 extern cSpecMMVII_Appli  TheSpecTestCpp11;
 extern cSpecMMVII_Appli  TheSpec_TestBoostSerial;
-extern cSpecMMVII_Appli  TheSpec_TestSerial;
+extern cSpecMMVII_Appli  TheSpecMPDTest;
+extern cSpecMMVII_Appli  TheSpecEditSet;
   
-std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
+const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
 {
    static std::vector<cSpecMMVII_Appli*>  TheRes;
    
@@ -81,10 +81,27 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
         TheRes.push_back(&TheSpecBench);
         TheRes.push_back(&TheSpecTestCpp11);
         TheRes.push_back(&TheSpec_TestBoostSerial);
-        TheRes.push_back(&TheSpec_TestSerial);
+        TheRes.push_back(&TheSpecMPDTest);
+        TheRes.push_back(&TheSpecEditSet);
    }
    
    return TheRes;
+}
+
+cSpecMMVII_Appli*  cSpecMMVII_Appli::SpecOfName(const std::string & aNameCom,bool SVP)
+{
+    
+   for (const auto & aSpec : VecAll())
+   {
+      if (UCaseEqual(aSpec->Name(),aNameCom))
+         return aSpec;
+   }
+   if (! SVP)
+   {
+      MMVII_INTERNAL_ASSERT_always(false,"Cannot find command of name ["+ aNameCom + "]");
+   }
+
+   return 0;
 }
 
 

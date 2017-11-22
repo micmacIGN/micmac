@@ -1,46 +1,50 @@
 #include "../include/MMVII_all.h"
 
+#include "ResultInstall/ResultInstall.cpp"
+using namespace MMVII;
+
 
 int main(int argc, char ** argv)
 {
-   std::vector<cSpecMMVII_Appli*> &  aVSpecAll = cSpecMMVII_Appli::VecAll();
+   std::setlocale(LC_ALL, "C");
+   // std::cout << 3.15 << "\n";
+   // std::setlocale(LC_ALL, "en_US.UTF-8");
 
-   std::string aNameCom ;
    if (argc>1)
    {
-        aNameCom = argv[1];
-        // Recherche la specif correspondant au nom de commande
-        for (auto itS=aVSpecAll.begin() ; itS!=aVSpecAll.end() ; itS++)
-        {
-            // Execute si match
-            if ((*itS)->Name()==aNameCom)
-            {
-                // Ajoute celui la pour teste la destruction avec unique_ptr
-                const cMemState  aMemoState= cMemManager::CurState() ;
-                int aRes=-1;
-                {
+      std::string aNameCom = argv[1];
 
-                    tMMVII_UnikPApli anAppli = (*itS)->Alloc()(argc,argv);
-                    // Verifie si une commande respecte les consignes de documentation
-                    (*itS)->Check();
-                    // Execute
-                    aRes = anAppli->Exe();
-                // delete anAppli;
-                }
-                cMemManager::CheckRestoration(aMemoState);
-                return aRes;
-            }
-        }
+      // Recherche la specif correspondant au nom de commande
+      cSpecMMVII_Appli*  aSpec = cSpecMMVII_Appli::SpecOfName(aNameCom,true);
+
+      // Execute si match
+      if (aSpec)
+      {
+         // Check if a  command respects specif of documentation
+         aSpec->Check();
+         // Add this one to check  destruction with unique_ptr
+         const cMemState  aMemoState= cMemManager::CurState() ;
+         int aRes=-1;
+         {
+            // Use allocator
+            tMMVII_UnikPApli anAppli = aSpec->Alloc()(argc,argv,*aSpec);
+            // Execute
+            anAppli->InitParam();
+            if (anAppli->ModeHelp())
+               aRes = EXIT_SUCCESS;
+            else
+               aRes = anAppli->Exe();
+         }
+         cMemManager::CheckRestoration(aMemoState);
+         return aRes;
+      }
    }
 
    // Affiche toutes les commandes
-   for (auto itS=aVSpecAll.begin() ; itS!=aVSpecAll.end() ; itS++)
+   for (const auto & aSpec : cSpecMMVII_Appli::VecAll())
    {
-       std::cout << (*itS)->Name() << " => " << (*itS)->Comment() << "\n";
+       std::cout << aSpec->Name() << " => " << aSpec->Comment() << "\n";
    }
-   
-
-
    return EXIT_SUCCESS;
 }
 

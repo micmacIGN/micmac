@@ -8,6 +8,13 @@ MMV2DirBin=${MMV2Dir}bin/
 MMV2Objects=${MMV2Dir}object/
 MMV2DirIncl=${MMV2Dir}include/
 #
+#
+#       ===== INSTALLATION ========================================
+#
+MMV2ResultInstal=${MMV2DirSrc}ResultInstall/ResultInstall.cpp
+MMV2SrcInstal=${MMV2DirSrc}BinaireInstall/InstalMM.cpp
+MMV2BinInstal=../Instal2007
+#
 #=========== Sous directory des sources
 #
 MMV2DirTLE=${MMV2DirSrc}TestLibsExtern/
@@ -37,12 +44,16 @@ MMV2DirSerial=${MMV2DirSrc}Serial/
 SrcSerial= $(wildcard ${MMV2DirSerial}*.cpp)
 ObjSerial= $(SrcSerial:.cpp=.o) 
 #
+#
+MMV2DirMMV1=${MMV2DirSrc}MMV1/
+SrcMMV1=$(wildcard ${MMV2DirMMV1}*.cpp)
+ObjMMV1=$(SrcMMV1:.cpp=.o) 
 #    => Le Main
 #
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial}
+OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1}
 #
 #=========  Header ========
 #
@@ -53,17 +64,25 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags="-std=c++14" "-Wall" -I${MMV2Dir}
-LibsFlags= ${MMDir}/lib/libelise.a -lX11   /usr/include/boost/stage/lib/libboost_*.a
+CFlags="-std=c++14" "-Wall" -I${MMV2Dir} -I${MMDir}/include/
+BOOST_LIBS=/usr/include/boost/stage/lib/libboost_*.a
+LibsFlags= ${MMDir}/lib/libelise_SsQt.a -lX11   ${BOOST_LIBS}
 MMV2Exe=MMVII
 #
-${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN}
-	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe}
+${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal}
+	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
 #
+# ==========    INSTALLATION =================
 #
-# Objects
+${MMV2ResultInstal} : ${MMV2SrcInstal}
+	${CXX} ${MMV2SrcInstal} -o ${MMV2BinInstal} ${BOOST_LIBS}
+	${MMV2BinInstal}
+	rm ${MMV2BinInstal}
 #
+# ================ Objects ==================
 #
+${MMV2DirMMV1}%.o :  ${MMV2DirMMV1}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirT4MkF}%.o :  ${MMV2DirT4MkF}%.cpp ${HEADER}
@@ -84,4 +103,5 @@ all : ${MMV2DirBin}${MMV2Exe} ${OBJ}
 Show:
 	echo ${SrcUtils}
 	echo DU=${MMV2DirUtils}
+#
 #

@@ -1,6 +1,20 @@
 #ifndef  _MMVII_MMError_H_
 #define  _MMVII_MMError_H_
 
+namespace MMVII
+{
+
+
+/** \file MMVII_Error.h
+    \brief Error handling, basic for now
+
+   Probably, sooner or later, I will have to change completely the error
+  handling. However, waiting for that, we need to do something, and keep
+  track in the file of the location of error detection.
+
+*/
+
+
 // Ce ne sont pas de petite erreurs, mais des erruer couteuse a checker
 #define  The_MMVII_DebugLevel_InternalError_tiny     5  
 #define  The_MMVII_DebugLevel_InternalError_medium   4
@@ -15,15 +29,7 @@
 #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
 
 
-inline void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
-{
-    std::cout << "\n\n ######################################""\n\n";
-    std::cout << "Level=[" << aType << "]\n";
-    std::cout << "Mes=[" << aMes << "]\n";
-    std::cout << "at line  " << aLine << " of file " << aFile  << "\n";
-    getchar();
-    exit(-1);
-}
+void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine);
 
 #define MMVII_INTERNAL_ASSERT_tiny(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny ) && (!(aTest)))\
@@ -52,9 +58,8 @@ inline void MMVVI_Error(const std::string & aType,const std::string &  aMes,cons
 { MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
 
 
-
-
 template<class T> void IgnoreUnused( const T& ) { };
 
+};
 
 #endif  //  _MMVII_MMError_H_

@@ -81,8 +81,8 @@ int Export2Ply_main(int argc,char ** argv)
     std::string aStrChSys;
     double aMul = 1.0;
     bool   aMulIncAlso = true;
-    Pt3di aCoul(255,0,0);
-    Pt3di aCoulLP(255,0,0);
+    Pt3di aCoul(0,0,255);
+    Pt3di aCoulLP(0,0,0);
     double aRay=0;
     int aNbPts=5;
     int aScale=1;
@@ -106,7 +106,7 @@ int Export2Ply_main(int argc,char ** argv)
                     << EAM(aDiffColor,"ChangeColor",false,"Change the color each number of points : not with FixColor")
                     << EAM(Out,"Out",true, "Default value is NameFile.ply")
                     << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
-                    << EAM(aOffset,"OffSet",true,"Add an offset to all points")
+                    << EAM(aOffset,"OffSet",true,"Subtract an offset to all points")
                     << EAM(aGpsFile,"GpsXML",true,"GPS xml input file; Def=false")
                     << EAM(aSFP,"ShiftBFP",true,"Shift by substructing frist point to all ; Def=false")
                     << EAM(aShow,"Show",true,"Show points ; Def=false")
@@ -120,6 +120,7 @@ int Export2Ply_main(int argc,char ** argv)
     std::vector<Pt3dr> aPoints;
     std::vector<Pt3dr> aVInc;
     std::vector<std::string> aVName;
+    std::vector<int> aVQ;
 
     if (!MMVisualMode)
     {
@@ -166,14 +167,21 @@ int Export2Ply_main(int argc,char ** argv)
                 if(aGpsFile)
                 {
 					cDicoGpsFlottant aDico =  StdGetFromPCP(NameFile,DicoGpsFlottant);
-					// std::list<cOneGpsDGF> &GPS = aDico.OneGpsDGF();
-					// for(std::list<cOneGpsDGF>::iterator IT=GPS.begin();IT!=GPS.end();IT++)
 					for(auto IT=aDico.OneGpsDGF().begin();IT!=aDico.OneGpsDGF().end();IT++)
 					{
 						aPoints.push_back(IT->Pt());
-						aVCol.push_back(aCoul);
+                        if(IT->TagPt() == 1)
+                        {
+                            aVCol.push_back(aCoul);
+                        }
+                        else
+                        {
+                            Pt3di aCoulMP(255,0,0);
+                            aVCol.push_back(aCoulMP);
+                        }
 						aVInc.push_back(IT->Incertitude());
-						aVName.push_back(IT->NamePt());       
+                        aVName.push_back(IT->NamePt());
+                        aVQ.push_back(IT->TagPt());
 					}
 				}
 				else
@@ -253,9 +261,9 @@ int Export2Ply_main(int argc,char ** argv)
     {
 		for(unsigned int aP=0; aP<aPoints.size(); aP++)
 		{
-			aPoints.at(aP).x = aPoints.at(aP).x + aOffset.x;
-			aPoints.at(aP).y = aPoints.at(aP).y + aOffset.y;
-			aPoints.at(aP).z = aPoints.at(aP).z + aOffset.z;
+            aPoints.at(aP).x = aPoints.at(aP).x - aOffset.x;
+            aPoints.at(aP).y = aPoints.at(aP).y - aOffset.y;
+            aPoints.at(aP).z = aPoints.at(aP).z - aOffset.z;
 		}
 	}
 	

@@ -2,6 +2,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ReechHomol.cpp
         ${TDPPMD_DIR}/DeformAnalyse.cpp
         ${TDPPMD_DIR}/MatchTops.cpp
+        ${TDPPMD_DIR}/MoyMAF.cpp
 	${TDPPMD_DIR}/TD_MMProgMars2017.cpp
 	${TDPPMD_DIR}/cTD_Camera.cpp
 	${TDPPMD_DIR}/cTD_SetAppuis.cpp
@@ -101,6 +102,9 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/Ex_Match/cImgMatch.cpp
     ${TDPPMD_DIR}/Ex_Match/cLSQTemplate.cpp
  	${TDPPMD_DIR}/FilterFileHom.cpp
+
+    ${TDPPMD_DIR}/RollingBasc/cAppliRollingBasc.cpp
+
 
 
 

@@ -89,6 +89,8 @@ class cAppli_C3DC : public cAppliWithSetImage
          std::string mBaseComEnv;
          std::string mComMerge;
          std::string mComCatPly;
+         
+         std::string mSetHom;
 
 
     // Param opt
@@ -120,6 +122,7 @@ class cAppli_C3DC : public cAppliWithSetImage
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    cAppliWithSetImage  (argc-2,argv+2,TheFlagDev16BGray|TheFlagAcceptProblem),
+   mSetHom             (""),
    mTuning             (false),
    mPurge              (true),
    mPlyCoul            (true),
@@ -219,6 +222,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 						<< EAM(mBin,"Bin",true,"Generate Binary or Ascii (Def=true, Binary)")
 						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
 						<< EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
+						<< EAM(mSetHom,"SH",true,"Set of Hom, Def=\"\"")
 		);
 	}
 	//Pims call case : no need to have all export .ply options in the command display (source of confusion)
@@ -244,6 +248,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
 						<< EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
                         << EAM(mSzW,"SzW",true,"Correlation Window Size (Def=1 means 3x3)")
+						<< EAM(mSetHom,"SH",true,"Set of Hom, Def=\"\"")
 		);
 	}
 	
@@ -282,7 +287,10 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
            +  mStrImOri0
            +  mArgMasq3D
            +  " UseGpu=" + ToString(mUseGpu)
-           +  " ExpImSec=" + ToString(mExpImSec);
+           +  " ExpImSec=" + ToString(mExpImSec)
+           +  " SH=" + mSetHom;
+   
+
    if (mDebugMMByP)
       mBaseComMMByP = mBaseComMMByP + " DebugMMByP=true";
 
@@ -312,7 +320,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mComMerge =      MM3dBinFile("TestLib  MergeCloud ")
            +  mStrImOri0 + " ModeMerge=" + mStrType
            +  " DownScale=" +ToString(mDS)
-           ;
+           +  " SH=" + mSetHom;
 
    if (EAMIsInit(&mOffsetPly))
    {

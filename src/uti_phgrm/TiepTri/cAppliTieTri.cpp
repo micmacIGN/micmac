@@ -166,6 +166,7 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     if (CurEtapeInFlagFiltre())
     {
        StatCorrel(mGlobMRIRC,"Avant");
+
        mGlobMRIRC = FiltrageSpatial(mGlobMRIRC,mDistFiltr,TT_FSDeltaCorrel);
     }
     StatCorrel(mGlobMRIRC,"Apres");

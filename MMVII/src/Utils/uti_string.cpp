@@ -1,5 +1,18 @@
 #include "include/MMVII_all.h"
 
+/** \file uti_string.cpp
+    \brief Implementation of utilitary services
+
+
+    Use boost and home made stuff for :
+
+      - split names
+      - separate directories from files
+      - parse directories
+
+*/
+
+
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -10,8 +23,8 @@ namespace MMVII
 
 // Prouve la pertinence du warning sur  mTable[*aPtr] = aC;
 
-static_assert( int(char(255)) != 255,"Bad char assert");
-static_assert( int(char(-1)) == -1,"Bad char assert");
+// static_assert( int(char(255)) != 255,"Bad char assert");
+// static_assert( int(char(-1)) == -1,"Bad char assert");
 
 // cGestObjetEmpruntable<cCarLookUpTable>   cCarLookUpTable::msGOE;
 
@@ -20,7 +33,7 @@ void  cCarLookUpTable::Init(const std::string& aStr,char aC)
     MMVII_INTERNAL_ASSERT_medium(!mInit,"Multiple init of  cCarLookUpTable");
     mInit= true;
     for (const char * aPtr = aStr.c_str() ; *aPtr ; aPtr++)
-        mTable[*aPtr] = aC;  // Laisse le warning, il faudra le regler !!!
+        mUTable[int(*aPtr)] = aC;  // Laisse le warning, il faudra le regler !!!
         // mTable[size_t(*aPtr)] = aC;
     mIns = aStr;
 }
@@ -30,16 +43,15 @@ void  cCarLookUpTable::UnInit()
     MMVII_INTERNAL_ASSERT_medium(mInit,"Multiple Uninit of  cCarLookUpTable");
     mInit= false;
     for (const char * aPtr = mIns.c_str() ; *aPtr ; aPtr++)
-        mTable[*aPtr] = 0;  // Laisse le warning, il faudra le regler !!!
+        mUTable[int(*aPtr)] = 0;  // Laisse le warning, il faudra le regler !!!
     mIns = "";
 }
 
 cCarLookUpTable::cCarLookUpTable() :
+     mUTable (mDTable-  std::numeric_limits<char>::min()),
      mInit(false)
 {
-    MEM_RAZ(&mTable,1);
-    // MEM_RAZ(mTable,1); =>  sizeof(*mTable) == 1 !!!! 
-    // std::cout << "DDddrrrr= " << &mTable << " ;; " << &(*mTable) << "\n";
+    MEM_RAZ(&mDTable,1);
 }
 
 std::vector<std::string>  SplitString(const std::string & aStr,const std::string & aSpace)
@@ -126,12 +138,43 @@ bool UCaseEqual(const std::string & aStr1 ,const std::string & aStr2)
    return boost::iequals(aStr1,aStr2);
 }
 
+bool UCaseBegin(const char * aBegin,const char * aStr)
+{
+   while (*aBegin)
+   {
+      if (tolower(*aBegin) != tolower(*aStr))
+         return false;
+      aBegin++;
+      aStr++;
+   }
+   return true;
+}
 
-    /***********************************************/
+bool CaseSBegin(const char * aBegin,const char * aStr)
+{
+   while (*aBegin)
+   {
+      if (*aBegin != *aStr)
+         return false;
+      aBegin++;
+      aStr++;
+   }
+   return true;
+}
+
+
+
+
+    /* =========================================== */
     /*                                             */
     /*        Dir/Files-names utils                */
     /*                                             */
-    /***********************************************/
+    /* =========================================== */
+
+char DirSeparator()
+{
+   return  path::preferred_separator;
+}
 
 std::string DirCur()
 {
@@ -153,6 +196,32 @@ std::string FileOfPath(const std::string & aPath,bool ErrorNonExist)
    return aFile;
 }
 
+std::string AbsoluteName(const std::string & aName)
+{
+     return absolute(aName).c_str();
+}
+
+
+
+/**
+  It was a test of using Boost for Up Dir,but untill now I am not 100% ok
+  with the results:
+        [.] => []
+        [/a/b/c] => [/a/b]
+        [a/b/c] => [a/b]
+        [a] => []
+*/
+
+std::string BUD(const std::string & aDir)
+{
+   path aPath(aDir);
+   aPath = aPath.parent_path();
+   std::cout << "BUDDDDDD [" << aDir << "] => [" <<  aPath.c_str() << "]\n";
+   return aPath.c_str();
+}
+
+/** Basic but seems to work untill now
+*/
 std::string UpDir(const std::string & aDir,int aNb)
 {
    std::string aRes = aDir;
@@ -171,13 +240,31 @@ bool ExistFile(const std::string & aName)
    return exists(aPath);
 }
 
+void MakeNameDir(std::string & aDir)
+{
+   if (aDir.back() != path::preferred_separator)
+   {
+      aDir += path::preferred_separator;
+   }
+}
+
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErrorNonExist)
 {
+if (0)
+{
+   static int aCpt=0; aCpt++;
+   std::cout << "SplitDirAndFile " << aCpt  << " " << __FILE__ << "\n";
+   getchar();
+}
+
    path aPath(aDirAndFile);
    bool aResult = true;
    if (! exists(aPath))
    {
-       MMVII_INTERNAL_ASSERT_always(!ErrorNonExist,"File non existing in SplitDirAndFile");
+       if (ErrorNonExist)
+       {
+           MMVII_INTERNAL_ASSERT_always(false,"File non existing in SplitDirAndFile for ["+  aDirAndFile +"]");
+       }
        //return false;
        aResult = false;
    }
@@ -202,15 +289,20 @@ bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & 
        {
           aDir = DirCur();
        }
-       else if (aDir.back() != '/')
+       else 
+       {
+          MakeNameDir(aDir);
+       }
+
+/*if (aDir.back() != path::preferred_separator)
        {
            aDir += path::preferred_separator;
-       }
+       }     
+*/
        // path& remove_filename();
    }  
    return aResult;
 }
-
 
 std::string  Quote(const std::string & aStr)
 {
@@ -220,6 +312,116 @@ std::string  Quote(const std::string & aStr)
    return aStr;
 }
 
+void SkeepWhite(const char * & aC)
+{
+    while (isspace(*aC)) 
+         aC++;
+}
+
+
+bool CreateDirectories(const std::string & aDir,bool SVP)
+{
+    bool Ok = boost::filesystem::create_directories(aDir);
+
+    if (! Ok) 
+    {
+        MMVII_INTERNAL_ASSERT_user(SVP,"Cannot create directory for arg " + aDir);
+    }
+    return Ok;
+}
+
+    /* =========================================== */
+    /*                                             */
+    /*        Get Files from dir                   */
+    /*                                             */
+    /* =========================================== */
+
+
+/**
+   Implementation of GetFilesFromDir, use boost
+*/
+
+
+void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,tNameSelector  aNS)
+{
+   for (directory_iterator itr(aDir); itr!=directory_iterator(); ++itr)
+   {
+      std::string aName ( itr->path().filename().c_str());
+      if ( is_regular_file(itr->status()) &&  aNS->Match(aName))
+         aRes.push_back(aName);
+   }
+}
+
+std::vector<std::string> GetFilesFromDir(const std::string & aDir,tNameSelector  aNS)
+{
+    std::vector<std::string> aRes;
+    GetFilesFromDir(aRes,aDir,aNS);
+ 
+    return aRes;
+}
+
+void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax)
+{
+    for (recursive_directory_iterator itr(aDir); itr!=        recursive_directory_iterator(); ++itr)
+    {
+        int aLev = itr.level();
+        if ((aLev>=aLevMin) && (aLev<aLevMax))
+        {
+           std::string aName(itr->path().c_str());
+           if ( is_regular_file(itr->status()) &&  aNS->Match(aName))
+              aRes.push_back(aName);
+        }
+    }
+}
+std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelector aNS,int aLevMin, int aLevMax)
+{
+    std::vector<std::string> aRes;
+    RecGetFilesFromDir(aRes,aDir,aNS,aLevMin,aLevMax);
+ 
+    return aRes;
+}
+
+
+/*
+std::vector<std::string>  GetFilesFromDirAndER(const std::string & aDir,const std::string & aRegEx)
+{
+}
+*/
+    /* =========================================== */
+    /*                                             */
+    /*        Dir/Files-names utils                */
+    /*                                             */
+    /* =========================================== */
+
+
+void TestBooostIter()
+{
+
+   std::cout <<  boost::filesystem::absolute("./MMVII") << '\n';
+   std::cout <<  boost::filesystem::absolute("MMVII") << '\n';
+   std::cout <<  boost::filesystem::absolute("./") << '\n';
+getchar();
+/*
+for (directory_iterator itr("./"); itr!=directory_iterator(); ++itr)
+{
+    std::cout << itr->path().filename() << ' '; // display filename only
+    if (is_regular_file(itr->status())) std::cout << " [" << file_size(itr->path()) << ']';
+    std::cout << '\n';
+}
+*/
+
+for (        recursive_directory_iterator itr("./"); itr!=        recursive_directory_iterator(); ++itr)
+{
+    std::cout  <<  itr->path().c_str() << " " << itr->path().filename() << ' '; // display filename only
+    std::cout << itr.level()  << " ";
+    if (is_regular_file(itr->status())) std::cout << " [" << file_size(itr->path()) << ']';
+    std::cout << '\n';
+}
+
+
+
+
+}
 
 };
 

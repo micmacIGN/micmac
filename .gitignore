@@ -1,6 +1,7 @@
 syntax: glob
 MkTapioca
 bin/
+ResultInstall/
 Boudha/
 build/
 Build/

@@ -241,6 +241,13 @@ int HomFilterMasq_main(int argc,char ** argv)
              std::string aNameIm1 = (*aVN)[aKN1];
              std::string aNameIm2 = (*aVN)[aKN2];
 
+/*
+if(MPD_MM())
+{
+std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
+}
+*/
+
              std::string aNameIn = aDir + anICNM->Assoc1To2(aKHIn,aNameIm1,aNameIm2,true);
 
              if (ELISE_fp::exist_file(aNameIn))
@@ -298,7 +305,7 @@ int HomFilterMasq_main(int argc,char ** argv)
                   }
                   std::string aNameOut = aDir + anICNM->Assoc1To2(aKHOut,aNameIm1,aNameIm2,true);
                   aPackOut.StdPutInFile(aNameOut);
-                  std::cout << "IN " << aNameIn << " " << aNameOut  << " UseM " << UseMasq << "\n";
+                  std::cout << "IN " << aNameIn << " " << aNameOut  << " UseM " << UseMasq  << " Nb=" <<  aPackOut.size() << "\n";
              }
         }
     }

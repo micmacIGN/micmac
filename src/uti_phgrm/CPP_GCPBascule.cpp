@@ -213,6 +213,9 @@ int GCPCtrl_main(int argc,char ** argv)
     bool        CPI = false;
     bool ShowUnused = true;
 
+    std::string OutTxt {"ResRoll.txt"};
+    bool BoolOutTxt =false;
+
 
     ElInitArgMain
     (
@@ -224,7 +227,8 @@ int GCPCtrl_main(int argc,char ** argv)
         LArgMain()
                     <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
                     <<  EAM(ShowUnused,"ShowU",true,"Show unused point (def=true)", eSAM_IsBool)
-    );
+                    <<  EAM(OutTxt,"OutTxt",true,"Name TXT file for Ctrl result (def=false)")
+                );
 
     if (!MMVisualMode)
     {
@@ -247,6 +251,8 @@ int GCPCtrl_main(int argc,char ** argv)
 
     if (EAMIsInit(&ShowUnused)) aCom = aCom + " +ShowUnused=" + ToString(ShowUnused);
     if (CPI) aCom += " +CPI=true ";
+    if (EAMIsInit(&OutTxt)) BoolOutTxt=true;
+    aCom += " +BoolOutTxt=" + ToString(BoolOutTxt) + " +OutTxt=" +OutTxt;
 
 
     std::cout << "Com = " << aCom << "\n";

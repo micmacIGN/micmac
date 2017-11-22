@@ -26,6 +26,8 @@ template <>  bool cStrIO<bool>::FromStr(const std::string & aStr)
     return false;
 }
 
+template <>  const std::string cStrIO<bool>::msNameType = "bool";
+
    // ================  int ==============================================
 
 template <>  std::string cStrIO<int>::ToStr(const int & anI)
@@ -35,10 +37,14 @@ template <>  std::string cStrIO<int>::ToStr(const int & anI)
 }
 template <>  int cStrIO<int>::FromStr(const std::string & aStr)
 {
+    // can be convenient that empty string correspond to zero
+    if (aStr.empty())
+       return 0;
     int anI;
     sscanf(aStr.c_str(),"%d",&anI);
     return anI;
 }
+template <>  const std::string cStrIO<int>::msNameType = "int";
 
    // ================  double ==============================================
 
@@ -53,6 +59,7 @@ template <>  double cStrIO<double>::FromStr(const std::string & aStr)
     sscanf(aStr.c_str(),"%lf",&anI);
     return anI;
 }
+template <>  const std::string cStrIO<double>::msNameType = "double";
 
    // ================  std::string ==============================================
 
@@ -65,5 +72,6 @@ template <>  std::string cStrIO<std::string>::FromStr(const std::string & aStr)
     return aStr;
 }
 
+template <>  const std::string cStrIO<std::string>::msNameType = "string";
 
 };

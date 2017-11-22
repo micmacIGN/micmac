@@ -12,6 +12,8 @@
 namespace MMVII
 {
 
+
+
 class cTestMMV2Obj : public cMemCheck
 {
     public :
@@ -21,7 +23,7 @@ class cTestMMV2Obj : public cMemCheck
         }
         static int NbObj() {return TheNbObj;}
     // protected :
-        cTestMMV2Obj()
+        cTestMMV2Obj() 
         {
            TheNbObj++;
         }
@@ -166,24 +168,18 @@ void  TestSharedPointer()
 class cAppli_MMVII_TestCpp11 : public cMMVII_Appli
 {
      public :
-        cAppli_MMVII_TestCpp11(int argc,char** argv) ;
-        int Exe();
+        cAppli_MMVII_TestCpp11(int argc,char** argv,const cSpecMMVII_Appli & aSpec) ;
+        int Exe() override ;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
+
 };
 
-cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv) :
-    cMMVII_Appli
-    (
-        argc,
-        argv,
-        DirCur(),
-        cArgMMVII_Appli
-        (
-            mArgObl,
-            mArgFac
-        )
-    )
+cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (argc,argv,aSpec)
 {
 }
+
 
 // Voir override et  final, pour verifier que le surcharge virtuelle est conforme a nos attentes
 
@@ -369,9 +365,9 @@ int cAppli_MMVII_TestCpp11::Exe()
 
 
 
-tMMVII_UnikPApli Alloc_MMVII_Cpp11(int argc,char ** argv)
+tMMVII_UnikPApli Alloc_MMVII_Cpp11(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MMVII_TestCpp11(argc,argv));
+   return tMMVII_UnikPApli(new cAppli_MMVII_TestCpp11(argc,argv,aSpec));
 }
 
 
@@ -380,9 +376,9 @@ cSpecMMVII_Appli  TheSpecTestCpp11
      "Cpp11",
       Alloc_MMVII_Cpp11,
       "This command execute some test for to check my understanding of C++11",
-      "Test",
-      "None",
-      "Console"
+      {eApF::Test},
+      {eApDT::None},
+      {eApDT::Console}
 );
 
 

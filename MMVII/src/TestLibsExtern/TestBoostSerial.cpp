@@ -214,22 +214,16 @@ if (1)
 class cAppli_MMVII_TestBoostSerial : public cMMVII_Appli
 {
      public :
-        cAppli_MMVII_TestBoostSerial(int argc,char** argv) ;
-        int Exe();
+        cAppli_MMVII_TestBoostSerial(int argc,char** argv,const cSpecMMVII_Appli & aSpec) ;
+        int Exe() override ;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
+
+
 };
 
-cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial (int argc,char **argv) :
-    cMMVII_Appli
-    (
-        argc,
-        argv,
-        DirCur(),
-        cArgMMVII_Appli
-        (
-             mArgObl,
-             mArgFac
-        )
-    )
+cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial (int argc,char **argv,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (argc, argv,aSpec)
 {
 }
 
@@ -240,9 +234,9 @@ int cAppli_MMVII_TestBoostSerial::Exe()
     return EXIT_SUCCESS;
 }
 
-tMMVII_UnikPApli Alloc_MMVII_TestBoostSerial(int argc,char ** argv)
+tMMVII_UnikPApli Alloc_MMVII_TestBoostSerial(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MMVII_TestBoostSerial(argc,argv));
+   return tMMVII_UnikPApli(new cAppli_MMVII_TestBoostSerial(argc,argv,aSpec));
 }
 
 
@@ -251,9 +245,9 @@ cSpecMMVII_Appli  TheSpec_TestBoostSerial
      "TBS",
       Alloc_MMVII_TestBoostSerial,
       "This command execute some experiments en boost serrialization",
-      "Test",
-      "None",
-      "Console"
+      {eApF::Test},
+      {eApDT::None},
+      {eApDT::Console}
 );
 
 
