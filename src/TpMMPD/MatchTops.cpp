@@ -1,39 +1,39 @@
 /*Header-MicMac-eLiSe-25/06/2007
 
-MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
-eLiSe  : ELements of an Image Software Environnement
+    MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
+    eLiSe  : ELements of an Image Software Environnement
 
-www.micmac.ign.fr
+    www.micmac.ign.fr
 
 
-Copyright : Institut Geographique National
-Author : Marc Pierrot Deseilligny
-Contributors : Gregoire Maillet, Didier Boldo.
+    Copyright : Institut Geographique National
+    Author : Marc Pierrot Deseilligny
+    Contributors : Gregoire Maillet, Didier Boldo.
 
 [1] M. Pierrot-Deseilligny, N. Paparoditis.
-"A multiresolution and optimization-based image matching approach:
-An application to surface reconstruction from SPOT5-HRS stereo imagery."
-In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
-(With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
+    "A multiresolution and optimization-based image matching approach:
+    An application to surface reconstruction from SPOT5-HRS stereo imagery."
+    In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
+    (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-d'images, adapte au contexte geograhique" to appears in
-Bulletin d'information de l'Institut Geographique National, 2007.
+    d'images, adapte au contexte geograhique" to appears in
+    Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-MicMac est un logiciel de mise en correspondance d'image adapte
-au contexte de recherche en information geographique. Il s'appuie sur
-la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
-licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
+   MicMac est un logiciel de mise en correspondance d'image adapte
+   au contexte de recherche en information geographique. Il s'appuie sur
+   la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
+   licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
 
 
 English :
 
-MicMac is an open source software specialized in image matching
-for research in geographic information. MicMac is built on the
-eLiSe image library. MicMac is governed by the  "Cecill-B licence".
-See below and http://www.cecill.info.
+    MicMac is an open source software specialized in image matching
+    for research in geographic information. MicMac is built on the
+    eLiSe image library. MicMac is governed by the  "Cecill-B licence".
+    See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
 
@@ -60,54 +60,12 @@ struct hmsTime{
 
 struct ImgNameTime
 {
-<<<<<<< HEAD
-	std::string ImgName;
-	double ImgT; // system unix time
-	double ImgMJD; // GPS MJD time
-=======
     std::string ImgName;
     hmsTime ImgTime; // system unix time
->>>>>>> master
 };
 
 std::vector<ImgNameTime> ReadImgNameTimeFile(string & aDir, string aImgNameTimeFile, std::string aExt)
 {
-<<<<<<< HEAD
-	std::vector<ImgTimes> aVSIT;
-	ifstream aFichier((aDir + aTimeFile).c_str());
-	if (aFichier)
-	{
-		std::string aLine;
-		while (!aFichier.eof())
-		{
-			getline(aFichier, aLine, '\n');
-			if (aLine.size() != 0)
-			{
-				char *aBuffer = strdup((char*)aLine.c_str());
-				std::string aImage = strtok(aBuffer, "	");
-				std::string aTime = strtok(NULL, "	");
-
-				ImgTimes aImgT;
-				if (aExt != "")
-					aImgT.ImgName = aImage + aExt;
-				else
-					aImgT.ImgName = aImage;
-
-				aImgT.ImgT = atof(aTime.c_str());
-
-				aImgT.ImgMJD = (aImgT.ImgT - J2000) / 86400 + MJD2000;
-
-				aVSIT.push_back(aImgT);
-			}
-		}
-		aFichier.close();
-	}
-	else
-	{
-		std::cout << "Error While opening file" << '\n';
-	}
-	return aVSIT;
-=======
     std::vector<ImgNameTime> aVINT;
     ifstream aFichier((aDir + aImgNameTimeFile).c_str());
     if(aFichier)
@@ -216,37 +174,10 @@ double hmsTime2MJD(const hmsTime & aTime, const bool & aTSys)
 
     return aMJD;
 
->>>>>>> master
 }
 
-int ImgTMTxt2Xml_main(int argc, char ** argv)
+int ImgTMTxt2Xml_main (int argc, char ** argv)
 {
-<<<<<<< HEAD
-	std::string aDir, aITF, aITFile, aExt = ".thm.tif";
-	ElInitArgMain
-	(
-		argc, argv,
-		LArgMain() << EAMC(aITFile, "File of image system unix time (all_name_time.txt)", eSAM_IsExistFile),
-		LArgMain() << EAM(aExt, "Ext", true, "Extension of Imgs, Def = .thm.tif")
-
-	);
-	SplitDirAndFile(aDir, aITF, aITFile);
-
-	//read aImTimeFile and convert to xml
-	std::vector<ImgTimes> aVSIT = ReadImgTimesFile(aDir, aITFile, aExt);
-	cDicoImgsTime aDicoIT;
-	for (uint iV = 0; iV < aVSIT.size(); iV++)
-	{
-		cCpleImgTime aCpleIT;
-		aCpleIT.NameIm() = aVSIT.at(iV).ImgName;
-		aCpleIT.TimeIm() = aVSIT.at(iV).ImgMJD;
-		aDicoIT.CpleImgTime().push_back(aCpleIT);
-	}
-	std::string aOutIT = StdPrefix(aITF) + ".xml";
-	MakeFileXML(aDicoIT, aOutIT);
-
-	return EXIT_SUCCESS;
-=======
     std::string aDir, aINTF, aINTFile, aExt=".thm.tif";
     bool aTSys (true);
     ElInitArgMain
@@ -332,7 +263,6 @@ int GenImgTM_main (int argc, char ** argv)
     ElFclose(aFP);
 
     return EXIT_SUCCESS;
->>>>>>> master
 }
 
 //struct Tops
