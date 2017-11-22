@@ -622,6 +622,9 @@ extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
 extern int  DocEx_Introfiltr_main(int,char **);
 extern int  ImageRectification(int argc,char ** argv);
+extern int  FilterFileHom_main(int argc,char ** argv);
+extern int  T2V_main(int argc,char ** argv);
+extern int  main_ORT(int argc,char ** argv);
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int,char **);
 #endif
@@ -907,6 +910,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("GeoSud",ServiceGeoSud_GeoSud_main,""));
         aRes.push_back(cMMCom("Surf",ServiceGeoSud_Surf_main,""));
         aRes.push_back(cMMCom("ImageRectification",ImageRectification,"Rectify individual aerial images, ground is assumed to be a plane"));
+        aRes.push_back(cMMCom("jo_FFH",FilterFileHom_main,"filtrer un fichier de paire d'image"));
+        aRes.push_back(cMMCom("jo_T2V",T2V_main,"appliquer une homographie a un ensemble d'im thermique pour Reg avec images visibles"));
+		aRes.push_back(cMMCom("jo_ORT",main_ORT,"Orthorectifier des images thermiques avec MNS calculé avec d'autre images"));
+
 // #if (ELISE_QT_VERSION >= 4)
         aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
 // #endif
