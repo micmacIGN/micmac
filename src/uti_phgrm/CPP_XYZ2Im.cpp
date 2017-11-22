@@ -116,8 +116,18 @@ int Camera2Ground_main(int argc,char **argv)
     while ((aLine = aFIn.std_fgets()))
     {
         Pt3dr aPCamera;
-        int aNb = sscanf(aLine,"%lf %lf %lf",&aPCamera.x,&aPCamera.y,&aPCamera.z);
-        ELISE_ASSERT(aNb==3,"Could not read 3 double values");
+        std::istringstream iss(aLine);
+        std::string S="";
+        iss >> aPCamera.x >> aPCamera.y >> aPCamera.z;
+        // int aNb = sscanf(aLine,"%lf %lf %lf",&aPCamera.x,&aPCamera.y,&aPCamera.z);
+        //ELISE_ASSERT(aNb==3,"Could not read 3 double values");
+		ELISE_ASSERT(iss.good(), "Could not read 3 double values");
+		while(!iss.eof())
+		{
+			std::string s;
+			iss >> s;
+			if (!iss.fail()) S+= " " +s;
+		}
         
         Pt3dr aPGround;
         if ((aTrans.x !=0)||(aTrans.y !=0)||(aTrans.z !=0)||(aRot.x !=0)||(aRot.y !=0)||(aRot.z !=0))
@@ -126,12 +136,12 @@ int Camera2Ground_main(int argc,char **argv)
             // pour creer un objet de cette classe :
             // TplElRotation3D(Pt3d<Type> tr,Type teta01,Type teta02,Type teta12)
             ElRotation3D boresight(aTrans,aRot.x,aRot.y,aRot.z);
-            aPGround = boresight.ImRecAff(aCam->L3toR3(aPCamera));
+            aPGround = aCam->L3toR3(boresight.ImRecAff(aPCamera));
         }
         else
             aPGround = aCam->L3toR3(aPCamera);
         
-        fprintf(aFOut,"%lf %lf %lf\n",aPGround.x,aPGround.y,aPGround.z);
+        fprintf(aFOut,"%lf %lf %lf %s\n",aPGround.x,aPGround.y,aPGround.z, S.c_str());
     }
     
     aFIn.close();
