@@ -38,21 +38,20 @@ const char *  cMMVII_Ap_NameManip::SkipLut(const char * aC,int aVal)
 
 void cMMVII_Ap_NameManip::SplitString(std::vector<std::string > & aRes,const std::string & aStr,const std::string & aSpace)
 {
-
      GetCurLut();
      mCurLut->Init(aSpace,1);
 
-
-
      const char * aC = aStr.c_str();
-     aC = SkipLut(aC,1);
+     if (mCurLut->Val(*aC)==1)
+        aRes.push_back("");
      while (*aC)
      {
+          aC = SkipLut(aC,1);
           const char * aC0 = aC;
           aC = SkipLut(aC,0);
           std::string aStr(aC0,aC);
           aRes.push_back(aStr);
-          aC = SkipLut(aC,1);
+          // aC = SkipLut(aC,1);
      }
      // const char * aDT = aLUT->Table() ;
      RendreCurLut();

@@ -81,7 +81,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv)
 
     }
     std::string aStrChSys;
-
+    Pt3dr aOffset(0,0,0);
 
     ElInitArgMain
     (
@@ -90,6 +90,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv)
                       << EAMC(aFilePtsIn,"GPS input  File", eSAM_IsExistFile),
            LArgMain() << EAM(aFilePtsOut,"Out",true,"Xml Out File",eSAM_IsOutputFile)
                       << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
+                      << EAM(aOffset,"OffSet",true,"Subtract an offset to all points")
     );
 
     if (!MMVisualMode)
@@ -137,7 +138,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv)
         {
 			if (aReadPosGps.Decode(aLine))
             {
-				aVPts.push_back(aReadPosGps.mPt);
+                aVPts.push_back(aReadPosGps.mPt);
                 double  aInc = aReadPosGps.GetDef(aReadPosGps.mInc,1);
                 aVInc.push_back(aReadPosGps.GetDef(aReadPosGps.mInc3,aInc));
                 aVName.push_back(aReadPosGps.mName);
@@ -157,7 +158,7 @@ int GPS_Txt2Xml_main(int argc,char ** argv)
 		for (int aKP=0 ; aKP<int(aVPts.size()) ; aKP++)
 		{
 			cOneGpsDGF aOAD;
-			aOAD.Pt() = aVPts[aKP];
+            aOAD.Pt() = aVPts[aKP] - aOffset;
 			aOAD.Incertitude() = aVInc[aKP];
 			aOAD.TagPt() = 1;
 			aOAD.TimePt() = 0;

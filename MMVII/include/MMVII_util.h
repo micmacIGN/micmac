@@ -1,6 +1,9 @@
 #ifndef  _MMVII_Util_H_
 #define  _MMVII_Util_H_
 
+namespace MMVII
+{
+
 /** \file MMVII_util.h
     \brief Utilitaries for non image related services
 
@@ -18,6 +21,10 @@ class cCarLookUpTable;
 
 // ===============================================
 
+inline bool IsChar(int aV)
+{
+   return (aV>=std::numeric_limits<char>::min())&&(aV<std::numeric_limits<char>::max());
+}
 
 class cCarLookUpTable
 {
@@ -28,13 +35,14 @@ class cCarLookUpTable
 
          inline char Val(const int & aV) const
          {
-             MMVII_INTERNAL_ASSERT_tiny((aV>=0) && (aV<256),"cCarLookUpTable::Val()");
-             return mTable[aV];
+             MMVII_INTERNAL_ASSERT_tiny(IsChar(aV),"cCarLookUpTable::Val()");
+             return mUTable[aV];
          }
      private :
          // static cGestObjetEmpruntable<cCarLookUpTable>   msGOE;
 
-         char          mTable[256];
+         char          mDTable[256]; ///< 
+         char *        mUTable;    ///<
          std::string   mIns;
          bool          mInit;
 };
@@ -56,52 +64,34 @@ std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool P
 
 
 // Direcytory and files names, Rely on boost
+void MakeNameDir(std::string & aDir); ///< Add a '/', or equiv, to make a name of directory
 bool ExistFile(const std::string & aName);
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErroNonExist=true);
 std::string DirCur(); // as "./" on Unix
 std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string FileOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string UpDir(const std::string & aDir,int aNb=1);
+// std::string AbsoluteName(const std::string &); ///< Get absolute name of path; rather pwd than unalias, no good
 bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitive equality
-bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case unsensitive premisse of aStr ?
+bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case UN-sensitive premisse of aStr ?
+bool CreateDirectories(const std::string & aDir,bool SVP); ///< Create dir, recurs ?
+bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
+void SkeepWhite(const char * & aC);
+char DirSeparator();
 
 
+/// Create a selector associated to a regular expression, by convention return Cste-true selector if string=""
+tNameSelector  BoostAllocRegex(const std::string& aRegEx);
 
-/// Generique Interface for all operation on name filtering
-class cNameSelector : public cMemCheck
-{
-    public :
-        virtual bool Match(const std::string &) const = 0;
-        virtual ~cNameSelector();
-};
-/// Interface class to Regex
-
-/** This class is a purely interface class to regex.
-    I separate from the implementation :
-       * because I am not 100% sure I will rely on boost
-       * I don't want to slow dow all compliation witrh boost (or other) header 
-       * I think it's good policy that class show the minimum required in header
-*/
-
-class cInterfRegex : public cNameSelector
-{
-    public :
-        cInterfRegex(const std::string &);
-        virtual ~cInterfRegex();
-        static cInterfRegex * BoostAlloc();
-        const std::string & Name() const;
-    private :
-        std::string mName;
-};
-
-/// Exract name of files, by return value
-std::vector<std::string>  GetFilesFromDir(const std::string & aDir,cNameSelector &);
+/// Exract name of files located in the directory, by return value
+std::vector<std::string>  GetFilesFromDir(const std::string & aDir,tNameSelector );
 /// Exract name of files, by ref
-void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,cNameSelector &);
+void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,tNameSelector);
+/// Recursively exract name of files located in the directory, by return value
+void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, tNameSelector  aNS,int aLevMin, int aLevMax);
 /// Recursively exract name of files, by return value
-void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, cNameSelector & aNS,int aLevMin, int aLevMax);
-/// Recursively exract name of files, by return value
-std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,cNameSelector & aNS,int aLevMin, int aLevMax);
+std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax);
+
 
 
 
@@ -166,6 +156,6 @@ class cMMVII_Ifs : public cMemCheck
 };
 
 
-
+};
 
 #endif  //  _MMVII_Util_H_

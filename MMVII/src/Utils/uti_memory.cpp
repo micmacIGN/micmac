@@ -12,11 +12,30 @@ void mem_raz(void * adr,int64_t nb)
 //================ cMemState =======
 
 cMemState::cMemState() :
-   mCheckNb      (0),
-   mCheckSize    (0),
-   mCheckPtr     (0),
-   mNbObjCreated (0)
+   mCheckNb          (0),
+   mCheckSize        (0),
+   mCheckPtr         (0),
+   mNbObjCreated     (0),
+   mDoCheckAtDestroy (false)
 {
+}
+      
+
+void cMemState::SetCheckAtDestroy()
+{
+    mDoCheckAtDestroy = true;
+}
+
+
+
+cMemState::~cMemState()
+{
+   if (mDoCheckAtDestroy)
+   {
+      // std::cout << "mDoCheckAtDestroymDoCheckAtDestroy\n";
+      // getchar();
+      cMemManager::CheckRestoration(*this);
+   }
 }
 
 bool cMemState::operator == (const cMemState & aSt2) const

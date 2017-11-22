@@ -12,6 +12,8 @@
 namespace MMVII
 {
 
+
+
 class cTestMMV2Obj : public cMemCheck
 {
     public :
@@ -21,7 +23,7 @@ class cTestMMV2Obj : public cMemCheck
         }
         static int NbObj() {return TheNbObj;}
     // protected :
-        cTestMMV2Obj()
+        cTestMMV2Obj() 
         {
            TheNbObj++;
         }
@@ -166,14 +168,16 @@ void  TestSharedPointer()
 class cAppli_MMVII_TestCpp11 : public cMMVII_Appli
 {
      public :
-        cAppli_MMVII_TestCpp11(int argc,char** argv) ;
-        int Exe();
+        cAppli_MMVII_TestCpp11(int argc,char** argv,const cSpecMMVII_Appli & aSpec) ;
+        int Exe() override ;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
+
 };
 
-cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv) :
-  cMMVII_Appli (argc, argv)
+cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (argc,argv,aSpec)
 {
-  InitParam(mArgObl,mArgFac);
 }
 
 
@@ -361,9 +365,9 @@ int cAppli_MMVII_TestCpp11::Exe()
 
 
 
-tMMVII_UnikPApli Alloc_MMVII_Cpp11(int argc,char ** argv)
+tMMVII_UnikPApli Alloc_MMVII_Cpp11(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MMVII_TestCpp11(argc,argv));
+   return tMMVII_UnikPApli(new cAppli_MMVII_TestCpp11(argc,argv,aSpec));
 }
 
 

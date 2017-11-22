@@ -64,6 +64,8 @@ void XXXXX(FILE * aF)
 }
 */
 
+extern bool ERupnik_MM();
+
 /**********************************************************/
 /*                                                        */
 /*         cStdNamePx2D                                   */
@@ -1777,7 +1779,8 @@ int CPP_ReechImMap(int argc,char** argv)
     std::string aNameOut;
     std::string aMAF;
     std::string aMAFOut;
-	bool aDoImgReech=true;
+    bool aDoImgReech=true;
+    Pt2di aWinInt(5,5); 
 	
 	Tiff_Im * aTifOut = 0;
 	std::vector<Im2DGen *> aVecImOut;
@@ -1790,6 +1793,7 @@ int CPP_ReechImMap(int argc,char** argv)
         LArgMain()  <<  EAM(aNameOut,"Out",false,"Tif file to write to")
                     <<  EAM(aMAF,"MAF",false,"Xml file of Image Measures")
                     <<  EAM(aDoImgReech,"DoImgReech",false,"Generate Image Reech ; Def=true")
+                    <<  EAM(aWinInt,"Win",false,"Interpolation window ; Def=[5,5]")
     );
 
     if (!EAMIsInit(&aNameOut))
@@ -1824,7 +1828,7 @@ int CPP_ReechImMap(int argc,char** argv)
 		std::vector<cIm2DInter*> aVInter;
 		for (int aK=0 ; aK<aNbC ; aK++)
 		{
-			aVInter.push_back(aVecImIn[aK]->SinusCard(5,5));
+			aVInter.push_back(aVecImIn[aK]->SinusCard(aWinInt.x,aWinInt.y));
 		}
 
 		Pt2di aP;
@@ -2853,6 +2857,119 @@ int CPP_MakeMapEvolOfT(int argc,char ** argv)
 }
 
 
+int CPP_PolynOfImageStd(int argc,char ** argv)
+{
+    std::string aNameIm;
+    std::string aMasq;
+    std::string aNameOut="FitPolyIm.tif";
+    std::string aNameMapOut="FitPolyIm.xml";
+
+    Pt2di       aP0(100,100);
+    Pt2di       aP1(1000,1000);
+
+    int         aNb;
+    int         aDeg=2;
+    Box2dr      aBox(aP0,aP0+aP1);
+
+
+//    eTypeMap2D aType="eTM2_Polyn";
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aNameIm,"Image name")
+                   << EAMC(aNb,"Number of points in X (and Y respectively)"),
+        LArgMain() << EAM(aP0,"P0",true,"P0 of the bounding box")
+                   << EAM(aP1,"P1",true,"P1 of the bounding box")
+                   << EAM(aDeg,"Deg",true,"Polynom degree")
+                   << EAM(aNameOut,"Out",true,"Name of the output image")
+                   << EAM(aMasq,"Masq",true,"Name of the mask image")
+    );
+
+
+    //lecture d'une image
+    Tiff_Im aTifIn = Tiff_Im::StdConvGen(aNameIm,-1,true);
+    Pt2di   aTifSz = aTifIn.sz();
+
+    Im2D_REAL4 aImR(aTifSz.x, aTifSz.y);
+    ELISE_COPY
+    (
+        aImR.all_pts(),
+        aTifIn.in(),
+        aImR.out()
+    );
+
+
+    Im2D_REAL4 aMasqIm(aTifSz.x,aTifSz.y,1.0);
+    if (EAMIsInit(&aMasq))
+    {
+        Tiff_Im aMasqTif = Tiff_Im::StdConvGen(aMasq,-1,true);
+        
+        ELISE_COPY
+        (
+            aMasqIm.all_pts(),
+            aMasqTif.in(),
+            aMasqIm.out()
+        );
+    }
+
+    Im2D_REAL8 aImRes(aTifSz.x,aTifSz.y,0.0);
+
+    Pt2di aPas(floor(double(aP1.x-aP0.x)/aNb), floor(double(aP1.y-aP0.y)/aNb));
+
+    ElPackHomologue aPack;
+    for (int aK1=aP0.x; aK1<aP1.x; aK1=aK1+aPas.x)
+    {
+        for (int aK2=aP0.y; aK2<aP1.y; aK2=aK2+aPas.y)
+        {
+            Pt2dr aP(aK1,aK2);
+	    if(aMasqIm.Val(aP.x,aP.y))
+	    {
+
+		if(ERupnik_MM())
+		    std::cout << "* aK1=" << aK1 << ", aK2" << aK2 << ", aPas=" << aPas << " ---- ImR=" << aImR.Val(aP.x,aP.y) <<  "\n";
+
+
+                double aD(aImR.Val(aP.x,aP.y));
+                aPack.Cple_Add(ElCplePtsHomologues(aP,aP+Pt2dr(aD,aD),aMasqIm.Val(aP.x,aP.y)));  
+	    }
+        }
+    }
+
+
+    cMapPol2d aMapPol(aDeg,aBox,2);
+    std::vector<std::string> aVAux = aMapPol.ParamAux();
+    cParamMap2DRobustInit aParam(eTypeMap2D(aMapPol.Type()),200,&aVAux);
+    Map2DRobustInit(aPack,aParam);
+
+    cElMap2D * aMapCor= aParam.mRes;
+    std::vector<cElMap2D *> aVMap;
+    aVMap.push_back(aMapCor);
+    cComposElMap2D aComp(aVMap);
+
+    for (int aK1=aP0.x; aK1<aP1.x; aK1++)
+    {
+        for (int aK2=aP0.y; aK2<aP1.y; aK2++)
+        {
+	    if(aMasqIm.Val(aK1,aK2))
+            {
+                Pt2dr  aP(aK1,aK2);
+                double aRes  = aComp(aP).x - aP.x;
+
+                aImRes.SetR_SVP(Pt2di(aP.x,aP.y),aRes);
+	    }
+        }
+    }
+    MakeFileXML(aComp.ToXmlGen(),aNameMapOut);
+
+    Tiff_Im::CreateFromIm(aImRes,aNameOut);
+
+    return EXIT_SUCCESS;
+
+
+
+
+}
   
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -72,7 +72,7 @@ extern cSpecMMVII_Appli  TheSpec_TestBoostSerial;
 extern cSpecMMVII_Appli  TheSpecMPDTest;
 extern cSpecMMVII_Appli  TheSpecEditSet;
   
-std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
+const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
 {
    static std::vector<cSpecMMVII_Appli*>  TheRes;
    
@@ -86,6 +86,22 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
    }
    
    return TheRes;
+}
+
+cSpecMMVII_Appli*  cSpecMMVII_Appli::SpecOfName(const std::string & aNameCom,bool SVP)
+{
+    
+   for (const auto & aSpec : VecAll())
+   {
+      if (UCaseEqual(aSpec->Name(),aNameCom))
+         return aSpec;
+   }
+   if (! SVP)
+   {
+      MMVII_INTERNAL_ASSERT_always(false,"Cannot find command of name ["+ aNameCom + "]");
+   }
+
+   return 0;
 }
 
 

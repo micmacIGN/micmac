@@ -1,6 +1,16 @@
 #ifndef  _MMVII_Sys_H_
 #define  _MMVII_Sys_H_
 
+namespace MMVII
+{
+
+
+/** \file MMVII_Sys.h
+    \brief Contains system & harwdare specificities
+*/
+
+
+
 // Use enum were it works are  they are "better" C++
 // Use macro when required (TheSYS==eSYS::Linux) do not work in #if
 
@@ -33,8 +43,9 @@ const eSYS TheSYS = eSYS::MacOs;
 
 int mmvii_NbProcSys();
 int mmvii_GetPId();
-// e xtern const std::string TheMMVII_SysName ;
 
+int SysCall(const std::string &, bool SVP=false); ///< call system, if SVP=false error not EXIT_SUCCESS
 
+};
 
 #endif  //  _MMVII_Sys_H_

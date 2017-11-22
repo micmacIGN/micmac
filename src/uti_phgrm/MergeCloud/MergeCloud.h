@@ -342,6 +342,8 @@ class cAppliMergeCloud : public cAppliWithSetImage
        cMMByImNM *                     mMMIN;
        double                          mDS;
        Pt3dr                           mOffsetPly;
+
+       std::string                     mSH;
 };
 
    //==============================================================================

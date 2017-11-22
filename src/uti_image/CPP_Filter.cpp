@@ -474,6 +474,29 @@ static cFilterImPolI  OperMoy(FMoy,1,1,1,2,"moy",true);
 
   //----------------------------------------------------------------
 
+static Fonc_Num FMaxMin(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+    int aNbV =  ToInt(anArg.mVArgs.at(0)) ;
+    int aNbIter =  (anArg.mVArgs.size()>=2) ? ToInt(anArg.mVArgs.at(1)) : 1 ;
+
+    Fonc_Num aRes = Rconv(anArg.mVIn.at(0));
+    for (int  aK=0 ; aK<aNbIter ; aK++)
+    {
+        if      (anArg.mNameIn=="maxv") aRes =  rect_max(aRes,aNbV);
+        else if (anArg.mNameIn=="minv") aRes =  rect_min(aRes,aNbV);
+        else {ELISE_ASSERT(false,"Bas name in FMaxMin");}
+    }
+
+    return aRes;
+}
+
+static cFilterImPolI  OperMaxMin(FMaxMin,1,1,1,2,"maxv|minv",true);
+
+
+
+
+  //----------------------------------------------------------------
+
 static Fonc_Num FMedian(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
 {
    int aNbV =  ToInt(anArg.mVArgs.at(0)) ;
@@ -520,6 +543,17 @@ static cFilterImPolI  OperIKth(FIKth,1,1,5,7,"ikth",true);
 
   //----------------------------------------------------------------
 
+/*
+static Fonc_Num FSobel(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
+{
+    Fonc_Num aFonc = anArg.mVIn.at(0);
+    return sobel(aFonc);
+}
+static cFilterImPolI  OperSobel(FSobel,1,1,0,0,"sobel",true);
+*/
+
+  //----------------------------------------------------------------
+
 static Fonc_Num FTrans(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
 {
    int aTX =  ToInt(anArg.mVArgs.at(0)) ;
@@ -563,6 +597,8 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperMed);
          aRes.push_back(&OperTrans);
          aRes.push_back(&OperIKth);
+         aRes.push_back(&OperMaxMin);
+         // aRes.push_back(&OperSobel);
     }
 
     return aRes;

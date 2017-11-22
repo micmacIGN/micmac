@@ -1721,7 +1721,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                            )
 {
    cParamCalcVarUnkEl aPCVU;
-   cParamCalcVarUnkEl * aPCVUPtr =    mSet.Sys()->IsCalculingVariance() ? &aPCVU : NullPCVU;
+   cParamCalcVarUnkEl * aPCVUPtr =   (mSet.Sys() && mSet.Sys()->IsCalculingVariance()) ? &aPCVU : NullPCVU;
    double aLimBsHOKBehind = 1e-2;
    double aCondMax = -1;
    if (anArg.mRop)
@@ -1845,8 +1845,6 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
     Pt3dr aPTer =   mPPP.mProjIsInit ? Pt3dr(0,0,0) :  mResidus.mPTer;
 
     mP3Inc->InitEqP3iVal(aPTer);
-
-
 
     // if (AddEq)
     {

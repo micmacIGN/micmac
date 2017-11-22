@@ -43,8 +43,8 @@ void  cAppliMergeCloud::CreateGrapheConx()
 {
    mRecouvrTot  =  mVSoms.size();  // Recouvrement total
             // Couple d'homologues
-   std::string aKSH = "NKS-Set-Homol@@"+ mParam.ExtHom().Val();
-   std::string aKAH = "NKS-Assoc-CplIm2Hom@@"+ mParam.ExtHom().Val();
+   std::string aKSH = "NKS-Set-Homol@" + mSH + "@" + mParam.ExtHom().Val();
+   std::string aKAH = "NKS-Assoc-CplIm2Hom@" + mSH + "@" + mParam.ExtHom().Val();
 
    std::vector<tMCArc *> aVAddCur;
    const cInterfChantierNameManipulateur::tSet * aSetHom = ICNM()->Get(aKSH);

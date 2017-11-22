@@ -1,6 +1,21 @@
 #ifndef  _MMVII_MEMORY_H_
 #define  _MMVII_MEMORY_H_
 
+namespace MMVII
+{
+
+/** \file MMVII_memory.h
+    \brief Memory checking functionnality
+
+    Contain support class for tracking the two main source of error :
+        - bad desallocation
+        - acces out of range
+
+    For now the access out or range is done only for writing at desallocation
+   time, maybe will add some access check for "tableau".
+
+*/
+
 
 void mem_raz(void * adr,int64_t nb);
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
@@ -13,6 +28,7 @@ class  cMemCheck;   // Class calling cMemManager for allocation
 */
 
 
+/// Class to register current state of memory
 
 /**
    cMemState  memorize a summary of memory state container the number of
@@ -34,12 +50,15 @@ class cMemState
         friend class cMemManager;
         bool operator == (const cMemState &) const;
         int NbObjCreated() const;
+        void SetCheckAtDestroy();
+        ~cMemState(); ///< may call a check
     private :
         cMemState();
         int64_t  mCheckNb;
         int64_t  mCheckSize;
         int64_t  mCheckPtr;
         int64_t  mNbObjCreated;
+        bool     mDoCheckAtDestroy; ///< Sometime we need to do the check at the very end of the existence
 };
 
 /**
@@ -86,7 +105,6 @@ class  cMemCheck
       public :
          void * operator new    (size_t sz);
          void operator delete   (void * ptr) ;
-
       private :
 
        // to avoid use 
@@ -139,7 +157,6 @@ template<class Type> class cGestObjetEmpruntable
 };
 
 
-
-
+};
 
 #endif  //  _MMVII_MEMORY_H_
