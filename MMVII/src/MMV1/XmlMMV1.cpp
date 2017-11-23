@@ -5,23 +5,23 @@
 namespace MMVII
 {
 
-void  MMV1InitSet(std::vector<std::string> & aRes,const std::string & aName)
+tNameSet  MMV1InitSet(const std::string & aName)
 {
-   aRes.clear();
+   tNameSet aRes ;
    cListOfName aLON = StdGetFromPCP(aName,ListOfName);
-   std::copy
-   (
-      aLON.Name().begin(),
-      aLON.Name().end(),
-      std::back_inserter(aRes)
-   );
+   for (const auto & el : aLON.Name())
+       aRes.Add(el);
+   return aRes;
 }
 
-template<> void  MMv1_SaveInFile(const cSetName & aVal,const std::string & aName)
+template<> void  MMv1_SaveInFile(const tNameSet & aSet,const std::string & aName)
 {
+    std::vector<const std::string *> aV;
+    aSet.PutInVect(aV,true);
+
     cListOfName aLON;
-    for (const auto & el : aVal.Cont())
-        aLON.Name().push_back(el);
+    for (const auto & el : aV)
+        aLON.Name().push_back(*el);
     MakeFileXML(aLON,aName);
 }
 

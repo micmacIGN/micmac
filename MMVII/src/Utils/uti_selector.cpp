@@ -1,3 +1,4 @@
+#if (0)
 #include "include/MMVII_all.h"
 #include <boost/optional/optional_io.hpp>
 #include <boost/regex.hpp>
@@ -17,25 +18,45 @@
 
 namespace MMVII
 {
+/* =============   cDataSelector<Type>   ========= */
+
+// Base class for Selector
+/**  a selector is just a boolean predicate,
+     the heriting class will implement override Match
+     Class is accessible via cSelector
+
+     As the implentation is "hidden" in this file, I dont see the benefit of 
+    setting private the methods.
+*/
+
+template <class Type> class cDataSelector : public cMemCheck
+{
+
+    public :
+    // friend class cSelector<Type>;
+    // private :
+        virtual bool Match(const Type &) const = 0;  ///< fundamuntal function
+        virtual ~cDataSelector() ;
+};
+
+
+template <class Type> cDataSelector<Type>::~cDataSelector()
+{
+}
+
 
 /* =============  cSelector<Type>  =============== */
 
 template <class Type> cSelector<Type>::cSelector(cDataSelector<Type> * aPtr) :
-  std::shared_ptr<cDataSelector<Type> >(aPtr)
+  mDS(aPtr)
 {
 }
 
 template <class Type> bool  cSelector<Type>::Match(const Type & aV) const
 {
-   return ((const std::shared_ptr<cDataSelector<Type> > &)(*this))->Match(aV);
+   return mDS->Match(aV);
 }
 
-
-/* =============   cDataSelector<Type>   ========= */
-
-template <class Type> cDataSelector<Type>::~cDataSelector()
-{
-}
 
 /* ================================================= */
 
@@ -161,7 +182,7 @@ template <class Type> class cDataNegSelector : public  cDataSelector<Type>
          }
          bool Match(const Type & aV) const override
          {
-            return ! mSel->Match(aV);
+            return ! mSel.Match(aV);
          }
      private :
          tSel mSel;  ///< Selector negated
@@ -186,7 +207,7 @@ template <class Type> class cDataAndSelector : public  cDataSelector<Type>
          }
          bool Match(const Type & aV) const override
          {
-            return  mSel1->Match(aV) && mSel2->Match(aV);
+            return  mSel1.Match(aV) && mSel2.Match(aV);
          }
      private :
          tSel mSel1;
@@ -212,7 +233,7 @@ template <class Type> class cDataOrSelector : public  cDataSelector<Type>
          }
          bool Match(const Type & aV) const override
          {
-            return  mSel1->Match(aV) || mSel2->Match(aV);
+            return  mSel1.Match(aV) || mSel2.Match(aV);
          }
      private :
          tSel mSel1;
@@ -360,6 +381,8 @@ template class cDataCsteSelector<Type>;\
 MACRO_INSTANTIATE_SELECTOR(int)
 MACRO_INSTANTIATE_SELECTOR(std::string)
 
+template class cSelector<void *>; // required by cExtSet<Type>::Filter
+
 /* ======================================== */
 /*                                          */
 /*     cBoostRegex                          */
@@ -465,3 +488,4 @@ void BenchSelector(const std::string & aDir)
 
 };
 
+#endif

@@ -4,11 +4,25 @@
 namespace MMVII
 {
 
+/*  ============================================== */
+/*                                                 */
+/*                cColStrAObl                      */
+/*                                                 */
+/*  ============================================== */
+
 
 const  cColStrAObl::tCont & cColStrAObl::V() const {return mV;}
 cColStrAObl &  cColStrAObl::operator << (const std::string & aVal) {mV.push_back(aVal); return *this;}
 void cColStrAObl::clear() {mV.clear();}
 cColStrAObl::cColStrAObl() {}
+
+
+/*  ============================================== */
+/*                                                 */
+/*                cColStrAOpt                      */
+/*                                                 */
+/*  ============================================== */
+
 
 const  cColStrAOpt::tCont & cColStrAOpt::V() const {return mV;}
 cColStrAOpt &  cColStrAOpt::operator << (const t2S & aVal) {mV.push_back(aVal); return *this;}
@@ -41,7 +55,7 @@ template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 cMMVII_Appli::~cMMVII_Appli()
 {
    AssertInitParam();
-   delete mSetInit;
+   // ======= delete mSetInit;
    mArgObl.clear();
    mArgFac.clear();
    // Verifie que tout ce qui a ete alloue a ete desalloue 
@@ -69,14 +83,17 @@ cMMVII_Appli::cMMVII_Appli
    mDirMicMacv2   (mTopDirMMVII),
    mDirProject    (DirCur()),
    mDirTestMMVII  (mDirMicMacv2 + MMVIITestDir),
+   mTmpDirTestMMVII   (mDirTestMMVII + "Tmp/"),
+   mInputDirTestMMVII (mDirTestMMVII + "Input/"),
    mModeHelp      (false),
    mDoGlobHelp    (false),
    mDoInternalHelp(false),
    mShowAll       (false),
    mLevelCall     (0),
    mDoInitProj    (false),
-   mSetInit       (AllocUS<void *> ()),
+   mSetInit       (cExtSet<void *>(eTySC::US)),
    mInitParamDone (false),
+   mVMainSets     (NbMaxMainSets,tNameSet(eTySC::NonInit)),
    mNumOutPut     (0),
    mOutPutV1      (false),
    mOutPutV2      (false),
@@ -249,7 +266,7 @@ void cMMVII_Appli::InitParam()
   for (size_t aK=0 ; aK<aNbArgTot; aK++)
   {
        aVSpec[aK]->InitParam(aVValues[aK]);
-       mSetInit->Add(aVSpec[aK]->AdrParam()); ///< Memorize this value was initialized
+       mSetInit.Add(aVSpec[aK]->AdrParam()); ///< Memorize this value was initialized
   }
 
   // If mNumOutPut was set, fix the output version
@@ -277,11 +294,10 @@ void cMMVII_Appli::InitParam()
          // Check range
          CheckRangeMainSet(aNum);
 
-         std::unique_ptr<cSetName> & aPS = mMainSets[aNum];
          // don't accept multiple initialisation
-         if (aPS==0)
+         if (!mVMainSets.at(aNum).IsInit())
          {
-            aPS.reset(new cSetName(mDirProject+aVValues[aK],true));
+            mVMainSets.at(aNum)= SetNameFromString(mDirProject+aVValues[aK],true);
          }
          else
          {
@@ -290,7 +306,7 @@ void cMMVII_Appli::InitParam()
          std::string & aNameInterval = mIntervFilterMS[aNum];
          if (IsInit(&aNameInterval))
          {
-             aPS->Filter(Str2Interv<std::string>(aNameInterval));
+             mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval));
          }
       }
   }
@@ -298,7 +314,7 @@ void cMMVII_Appli::InitParam()
   for (int aNum=0 ; aNum<NbMaxMainSets ; aNum++)
   {
       // Why should user init interval if there no set ?
-      if (IsInit(&mIntervFilterMS[aNum]) && (mMainSets[aNum] == nullptr))
+      if (IsInit(&mIntervFilterMS[aNum]) && (!  mVMainSets.at(aNum).IsInit()))
       {
          MMVII_INTERNAL_ASSERT_user(false,"Interval without filter for num:"+ToStr(aNum));
       }
@@ -306,7 +322,7 @@ void cMMVII_Appli::InitParam()
       {
          // would be strange to have Mainset2 without MainSet1; probably if this occurs
          // the fault would be from programer's side (not sure)
-         if ((mMainSets[aNum-1] == nullptr) && (mMainSets[aNum] != nullptr))
+         if ((! mVMainSets.at(aNum-1).IsInit() ) && ( mVMainSets.at(aNum).IsInit()))
          {
             MMVII_INTERNAL_ASSERT_always(false,"Main set, init for :"+ToStr(aNum) + " and non init for " + ToStr(aNum-1));
          }
@@ -383,7 +399,7 @@ void cMMVII_Appli::GenerateHelp()
    for (const auto & Arg : mArgFac.Vec())
    {
        const std::string & aNameA = Arg->Name();
-       if (aSelName->Match(aNameA))
+       if (aSelName.Match(aNameA))
        {
           bool IsIinternal = Arg->HasType(eTA2007::Internal);
           if ((! IsIinternal) || mDoInternalHelp)
@@ -411,17 +427,16 @@ bool cMMVII_Appli::ModeHelp() const
 
     // ========== Handling of Mains Sets
 
-const cSetName &  cMMVII_Appli::MainSet0() const { return MainSet(0); }
-const cSetName &  cMMVII_Appli::MainSet1() const { return MainSet(1); }
-const cSetName &  cMMVII_Appli::MainSet(int aK) const 
+const tNameSet &  cMMVII_Appli::MainSet0() const { return MainSet(0); }
+const tNameSet &  cMMVII_Appli::MainSet1() const { return MainSet(1); }
+const tNameSet &  cMMVII_Appli::MainSet(int aK) const 
 {
    CheckRangeMainSet(aK);
-   const std::unique_ptr<cSetName> & aRes = mMainSets[aK];
-   if (aRes==0)
+   if (! mVMainSets.at(aK).IsInit())
    {
       MMVII_INTERNAL_ASSERT_always(false,"No mMainSet created for K="+ ToStr(aK));
    }
-   return *aRes;
+   return  mVMainSets.at(aK);
 }
 
 void cMMVII_Appli::CheckRangeMainSet(int aK) const
@@ -490,8 +505,12 @@ void cMMVII_Appli::AssertInitParam() const
 }
 bool  cMMVII_Appli::IsInit(void * aPtr)
 {
-    return  mSetInit->In(aPtr);
+    return  mSetInit.In(aPtr);
 }
+              // Accessors
+const std::string & cMMVII_Appli::TmpDirTestMMVII()   const {return mTmpDirTestMMVII;}
+const std::string & cMMVII_Appli::InputDirTestMMVII() const {return mInputDirTestMMVII;}
+
 
     // ==========  MMVII  Call MMVII =================
 
@@ -505,7 +524,7 @@ std::string  cMMVII_Appli::StrCallMMVII(const std::string & aCom2007,const cColS
   MMVII_INTERNAL_ASSERT_always(&anAOpt==&mColStrAOpt,"StrCallMMVII use StrOpt() !!");
 
    std::string aComGlob = mFullBin + " ";
-   cSpecMMVII_Appli*  aSpec = cSpecMMVII_Appli::SpecOfName(aCom2007,false);
+   cSpecMMVII_Appli*  aSpec = cSpecMMVII_Appli::SpecOfName(aCom2007,false); // false => dont accept no match
    if (! aSpec)  // Will see if we can di better, however SpecOfNam has generated error
       return "";
 
@@ -532,6 +551,18 @@ std::string  cMMVII_Appli::StrCallMMVII(const std::string & aCom2007,const cColS
    mColStrAObl.clear();
    mColStrAOpt.clear();
    return aComGlob;
+}
+
+int  cMMVII_Appli::ExeCallMMVII(const std::string & aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt)
+{
+    std::string   aComGlob = StrCallMMVII(aCom2007,anAObl,anAOpt);
+if (0)
+{
+    std::cout <<  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
+    std::cout << aComGlob << "\n";
+    getchar();
+}
+    return  SysCall(aComGlob,false);
 }
 
 

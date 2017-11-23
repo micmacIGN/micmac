@@ -13,6 +13,36 @@
 namespace MMVII
 {
 
+/*
+template <class Type> cSetAsVect : public cMemCheck
+{
+   public :
+       friend void  AddData(const cAuxAr2007 & anAux,cSetAsVect<Type> & aSON);  ///< For serialization
+       typedef std::vector<Type> tCont;  ///< In case we change the container type
+
+       cSetName();  ///< Do nothing for now
+       cSetName(const  cInterfSet<Type> &);  ///<  Fill with set
+       cSetName(const std::string &,bool AllowPat);  ///< From Pat Or File
+
+       void InitFromString(const std::string &,bool AllowPat);  ///< Init from file if ok, from pattern else
+
+       size_t size() const;           ///< Accessor
+       const tCont & Cont() const;    ///< Accessor
+
+       cInterfSet<Type> * ToSet() const; ///< generate set, usefull for boolean operation
+       void Filter(cSelector<Type>);  ///< select name matching the selector
+   private :
+   // private :
+       void Sort();
+       void InitFromFile(const std::string &,int aNumV);  ///< Init from Xml file
+       void InitFromPat(const std::string & aFullPat); ///< Init from pattern (regex)
+
+
+       // Data part
+       tCont mV;
+};
+*/
+
 
 
 /* ====================================== */
@@ -23,6 +53,7 @@ namespace MMVII
 
             //========== Constructors =============
 
+/*
 cSetName::cSetName()
 {
 }
@@ -108,7 +139,7 @@ void  cSetName::Filter(tNameSelector aSel)
    tCont aVF;
    for (const auto & el:mV)
    {
-      if (aSel->Match(el))
+      if (aSel.Match(el))
          aVF.push_back(el);
    }
 
@@ -127,6 +158,8 @@ void  AddData(const cAuxAr2007 & anAux,cSetName & aSON)
 {
     AddData(cAuxAr2007(TagSetOfName,anAux) ,aSON.mV);
 }
+*/
+
 /* ==================================================== */
 /*                                                      */
 /*                                                      */
@@ -187,34 +220,33 @@ cAppli_EditSet::cAppli_EditSet(int argc,char** argv,const cSpecMMVII_Appli & aSp
 
 int cAppli_EditSet::Exe()
 {
-   if (! IsInit(&mXmlOut)) mXmlOut = mXmlIn;
+   if (! IsInit(&mXmlOut)) 
+       mXmlOut = mXmlIn;
+    else
+       mXmlOut = mDirProject + mXmlOut;
+
    std::vector<std::string>  aVOps = SplitString(mAllOp," ");
 
-   cSetName aInput(mXmlIn,false);
-   const cSetName & aNew =  MainSet0();
+   tNameSet aInput = SetNameFromString(mXmlIn,false);
+   const tNameSet & aNew =  MainSet0();
+   tNameSet aRes(eTySC::NonInit);
 
    
-   // we make set of them to handle unicity
-   std::unique_ptr<cInterfSet<std::string> >  aSInit ( aInput.ToSet());  
-   std::unique_ptr<cInterfSet<std::string> >  aSetNew ( aNew.ToSet());
-   std::unique_ptr<cInterfSet<std::string> >  aRes ; // AllocUS<std::string>());
-
-   // do the modification
    if (mOp==aVOps.at(0)) // *=
    {
-       aRes.reset(aSetNew->VDupl());
+       aRes = aNew;
    }
    else if (mOp==aVOps.at(1)) // *=
    {
-      aRes.reset(*aSInit * *aSetNew);
+      aRes = aInput * aNew;
    }
    else if (mOp==aVOps.at(2)) // +=
    {
-      aRes.reset(*aSInit + *aSetNew);
+      aRes = aInput + aNew;
    }
    else if (mOp==aVOps.at(3)) // -=
    {
-      aRes.reset(*aSInit - *aSetNew);
+      aRes = aInput - aNew;
    }
    else
    {
@@ -223,17 +255,17 @@ int cAppli_EditSet::Exe()
 
    if (mShow)
    {
-       std::unique_ptr<cInterfSet<std::string> >  aTot(*aSInit+* aSetNew);
+       tNameSet   aTot(aInput+aNew);
 
        std::vector<const std::string *> aV;
-       aTot->PutInSet(aV,true);
+       aTot.PutInVect(aV,true);
        // 0 First time show unnmodifier, 1 show added, 2 show supressed
        for (int aK=0 ; aK<3 ; aK++)
        {
           for (const auto  & aPtrS : aV)
           {
-              bool aInInit = aSInit->In(*aPtrS);
-              bool aInRes  = aRes->In(*aPtrS);
+              bool aInInit = aInput.In(*aPtrS);
+              bool aInRes  = aRes.In(*aPtrS);
               int aKPrint = (aInInit ? 0 : 2) + (aInRes ? 0 : 1);
               if (aKPrint== aK)
               {
@@ -246,10 +278,7 @@ int cAppli_EditSet::Exe()
    }
 
    // Back to cSetName
-   {
-      cSetName aResSN(*aRes);
-      SaveInFile(aResSN,mXmlOut);
-   }
+   SaveInFile(aRes,mXmlOut);
 
    return EXIT_SUCCESS;
 }
@@ -270,17 +299,107 @@ cSpecMMVII_Appli  TheSpecEditSet
 
 );
 
-void BenchEditSet()
+
+/* ==================================================================== */
+/*                                                                      */
+/*                     BENCH PART                                       */
+/*                                                                      */
+/* ==================================================================== */
+
+void OneBenchEditSet
+    (
+        const std::string & anOp,    // Operator
+        bool InitInput,              // If true, Input is set to last output
+        const std::string & aPat,    // Pattern of image
+        int aNumAskedOut,            // Required num version
+        int aRealNumOut,             // Real Num Version
+        int ExpectCard,              // Number of element required, useless with ExpSet added
+        const std::string & Interv,  // Interval,
+        const std::string & ExpSet   // Expect set
+    )
 {
     cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
+    std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
+    std::string aDirT = anAp.TmpDirTestMMVII()  ;
+    std::string Input = "Input.xml";
+    std::string Ouput = "Ouput.xml";
+    if (InitInput)
+    {
+       if (ExistFile(aDirT+Ouput))
+          RenameFiles(aDirT+Ouput,aDirI+Input);
+    }
+    else
+    {
+       // First time, file may subsist from an old crash
+       RemoveFile(aDirI+Input,true);
+    }
 
-    std::string aCom = anAp.StrCallMMVII
-                       (
-                          "EditSet",
-                           anAp.StrObl() << "t.xml" << "+=" << ".*",
-                           anAp.StrOpt() << t2S("Out","t2.xml")
-                       );
-    std::cout << "VVVVV=" << aCom << "\n";
+    cColStrAOpt & anArgOpt = anAp.StrOpt() << t2S("Out",Ouput);
+
+    if (aNumAskedOut!=0)
+       anArgOpt <<  t2S("NumVOut",ToStr(aNumAskedOut));
+
+    if (Interv!="")
+       anArgOpt <<  t2S("FFI0",ToStr(Interv));
+
+
+    anAp.ExeCallMMVII
+    (
+        "EditSet",
+        anAp.StrObl() <<   aDirI+Input  << anOp << aPat,
+        anArgOpt
+    );
+
+    RenameFiles(aDirI+Ouput,aDirT+Ouput);
+
+    const std::string & aTag = (aRealNumOut==1) ?  MMv1XmlTag_SetName : TagSetOfName;
+ // std::cout << "FFFfff " << aTag <<  " " << aDirT+Ouput << " " << aRealNumOut << "\n"; getchar();
+    MMVII_INTERNAL_ASSERT_always
+    (
+        IsFileXmlOfGivenTag((aRealNumOut==2),aDirT+Ouput,aTag) ,
+        "Tag in OneBenchEditSet"
+    );
+
+    tNameSet aSet = SetNameFromString(aDirT+Ouput,false);
+
+    MMVII_INTERNAL_ASSERT_always
+    (
+         aSet.size()==ExpectCard,
+        "Bad number in OneBenchEditSet exp: "+ToStr(ExpectCard) + " , got: " + ToStr(aSet.size())
+    );
+
+    if (InitInput)
+       RemoveFile(aDirI+Input,false);
+   
+   for (int aK=0 ; aK<10 ; aK++)
+   {
+       std::string aNF = "F" + ToStr(aK) + ".txt";
+       MMVII_INTERNAL_ASSERT_always(aSet.In(aNF)==(ExpSet.find('0'+aK)!=std::string::npos),"Exp Set in OneBenchEditSet");
+
+   }
+}
+
+
+void BenchEditSet()
+{                  
+    std::string C09="0123456789";
+  // Basic test, we create the file
+    OneBenchEditSet("+=",false,".*txt"       ,0,2,10,"",C09); // 
+    OneBenchEditSet("+=",false,".*txt"       ,1,1,10,"",C09);
+    OneBenchEditSet("+=",false,".*txt"       ,2,2,10,"",C09);
+    OneBenchEditSet("+=",false,"F[02468].txt",2,2,5,"","02468");
+ // here we init from previous
+    OneBenchEditSet("+=",true ,"F[3-5].txt" ,2,2,7,"","0234568"); // 0234568
+    OneBenchEditSet("*=",true ,"F[0-5].txt" ,2,2,5,"","02345"); // 02345
+    OneBenchEditSet("-=",true ,"F[0369].txt",2,2,3,"","245"); // 245
+
+    OneBenchEditSet( "=",true ,"F[0369].txt",1,1,4,"","0369"); // 0369
+    OneBenchEditSet("+=",true ,"F[02468].txt",0,1,7,"","0234689"); // 0234689
+    // Specify V2, but entry is V1, so V1
+    OneBenchEditSet( "=",true ,"F.*.txt",0,1,5,"],F4.txt]","01234"); // 01234
+    OneBenchEditSet("+=",true ,"F.*.txt",0,1,6,"]F8.txt,]","012349"); // 012349
+
+    OneBenchEditSet( "=",true ,"F.*.txt",0,1,4,"[F1.txt,F3.txt]]F6.txt,F8.txt[","1237"); // 
 }
 
 

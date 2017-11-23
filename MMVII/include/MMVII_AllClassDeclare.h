@@ -30,11 +30,12 @@ class cMMVII_Ifs ;
 
 // MMVII_util_tpl.h
 
-template <class Type> class cInterfSet ;
+template <class Type> class cExtSet ;
 template <class Type> class cSelector ;
 template <class Type> class cDataSelector ;
 
 typedef cSelector<std::string> tNameSelector;
+typedef cExtSet<std::string>   tNameSet;
 
 
 // MMVII_Ptxd.h

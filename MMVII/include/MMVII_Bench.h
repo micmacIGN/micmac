@@ -26,7 +26,7 @@ void BenchSerialization(const std::string & aDirOut,const std::string & aDirIn);
 void BenchGlob();      ///< All Bench
 
 
-void BenchSet(const std::string & aDir); ///< Bench on cInterfSet (set "en extension")
+void BenchSet(const std::string & aDir); ///< Bench on cExtSet (set "en extension")
 void BenchSelector(const std::string & aDir); ///< Bench on selecto, (set "en comprehension")
 void BenchEditSet(); ///< Bench on commands : EditSet  (to come EditCple)
 

@@ -53,6 +53,13 @@ enum class eApDT
               Xml       ///< Xml-files
            };
 
+
+/// Type of set creation
+enum class eTySC    
+           {
+              NonInit,  ///< With Ptr Null
+              US        ///< With unordered set
+           };
 };
 
 #endif  //  _MMVII_Enums_H_
