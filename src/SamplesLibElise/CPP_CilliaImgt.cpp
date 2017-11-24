@@ -426,7 +426,7 @@ int CilliaImgt_main(int argc, char ** argv)
           std::string mFullName= "/home/cillia/Bureau/a-transferer/Data/Dimage/DADF/.*tif";   
           SplitDirAndFile(mDir,mPat,mFullName);
           std::cout << mPat <<"\n";
-   cInterfChantierNameManipulateur *mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+   //cInterfChantierNameManipulateur *mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
           std::cout << "directory" << mDir << "\n";
 
           ElPackHomologue aPckOut , aPckOut1;

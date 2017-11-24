@@ -255,6 +255,7 @@ if (Bug)
      mCoeff[NumTr] = -aGr2X; // im00.x
      mCoeff[NumTr+1] = -aGr2Y;  // im00.y
 
+
      if (mAffineGeom)
      {
         mCoeff[NumAffGeom] =   -aGr2X*aPIm1.x; // im10.x

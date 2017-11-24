@@ -70,11 +70,42 @@
            <Symb>  NbMaxIterFin=4 </Symb>
            <Symb>  SeuilEvolIterFin=1e50 </Symb>
 
-
+            <!-- By backward compatibility WithLA instead of WithLA0 -->
            <Symb>  WithLA=false </Symb>
            <Symb>  LaX=0 </Symb>
            <Symb>  LaY=0 </Symb>
            <Symb>  LaZ=0 </Symb>
+
+           <Symb>  WithMultiLA=false </Symb>
+
+
+           <Symb>  WithLA1=false </Symb>
+           <Symb>  PatImLA1=XXXXXX </Symb>
+           <Symb>  La1X=0 </Symb>
+           <Symb>  La1Y=0 </Symb>
+           <Symb>  La1Z=0 </Symb>
+
+           <Symb>  WithLA2=false </Symb>
+           <Symb>  PatImLA2=XXXXXX </Symb>
+           <Symb>  La2X=0 </Symb>
+           <Symb>  La2Y=0 </Symb>
+           <Symb>  La2Z=0 </Symb>
+
+           <Symb>  WithLA3=false </Symb>
+           <Symb>  PatImLA3=XXXXXX </Symb>
+           <Symb>  La3X=0 </Symb>
+           <Symb>  La3Y=0 </Symb>
+           <Symb>  La3Z=0 </Symb>
+
+           <Symb>  WithLA4=false </Symb>
+           <Symb>  PatImLA4=XXXXXX </Symb>
+           <Symb>  La4X=0 </Symb>
+           <Symb>  La4Y=0 </Symb>
+           <Symb>  La4Z=0 </Symb>
+
+
+
+
 
            <Symb>  HasModeleAdd=false  </Symb>
            <Symb>  ModeleAdditionnel=XXXXX  </Symb>
@@ -215,6 +246,32 @@
                        <Id>  TheIdLA </Id>
                    </GpsOffset>
              </#WHEN>
+             <#WHEN VTEST=${WithLA1}>
+                  <GpsOffset>
+                       <ValInit> ${La1X} ${La1Y} ${La1Z} </ValInit>
+                       <Id>  TheIdLA1 </Id>
+                   </GpsOffset>
+             </#WHEN>
+             <#WHEN VTEST=${WithLA2}>
+                  <GpsOffset>
+                       <ValInit> ${La2X} ${La2Y} ${La2Z} </ValInit>
+                       <Id>  TheIdLA2 </Id>
+                   </GpsOffset>
+             </#WHEN>
+             <#WHEN VTEST=${WithLA3}>
+                  <GpsOffset>
+                       <ValInit> ${La3X} ${La3Y} ${La3Z} </ValInit>
+                       <Id>  TheIdLA3 </Id>
+                   </GpsOffset>
+             </#WHEN>
+             <#WHEN VTEST=${WithLA4}>
+                  <GpsOffset>
+                       <ValInit> ${La4X} ${La4Y} ${La4Z} </ValInit>
+                       <Id>  TheIdLA4 </Id>
+                   </GpsOffset>
+             </#WHEN>
+
+
 
              <CalibrationCameraInc>
                 <Name> GenerateKC-Others   </Name>
@@ -252,7 +309,7 @@
              </CalibrationCameraInc>
 
              <PoseCameraInc>
-                   <PatternName>    ${SetIm} </PatternName>
+                   <PatternName>    ${SetIm} </PatternName>  <!-- Si LA c'est en fait PatImLA0 -->
                    <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
                    <#WHEN  VTEST=${WithCenter}>
                          <IdBDCentre> Id-Centre </IdBDCentre>
@@ -265,6 +322,53 @@
                        <PosFromBDOrient> Or-Init </PosFromBDOrient>
                    </PosValueInit>
              </PoseCameraInc>
+
+             <#WHEN VTEST=${WithLA1}>
+                   <PoseCameraInc>
+                         <PatternName>    ${PatImLA1} </PatternName>  
+                         <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                         <IdBDCentre> Id-Centre </IdBDCentre>
+                         <IdOffsetGPS>  TheIdLA1 </IdOffsetGPS>
+                         <PosValueInit>
+                             <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                         </PosValueInit>
+                   </PoseCameraInc>
+             </#WHEN>
+             <#WHEN VTEST=${WithLA2}>
+                   <PoseCameraInc>
+                         <PatternName>    ${PatImLA2} </PatternName>  
+                         <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                         <IdBDCentre> Id-Centre </IdBDCentre>
+                         <IdOffsetGPS>  TheIdLA2 </IdOffsetGPS>
+                         <PosValueInit>
+                             <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                         </PosValueInit>
+                   </PoseCameraInc>
+             </#WHEN>
+             <#WHEN VTEST=${WithLA3}>
+                   <PoseCameraInc>
+                         <PatternName>    ${PatImLA3} </PatternName>  
+                         <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                         <IdBDCentre> Id-Centre </IdBDCentre>
+                         <IdOffsetGPS>  TheIdLA3 </IdOffsetGPS>
+                         <PosValueInit>
+                             <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                         </PosValueInit>
+                   </PoseCameraInc>
+             </#WHEN>
+             <#WHEN VTEST=${WithLA4}>
+                   <PoseCameraInc>
+                         <PatternName>    ${PatImLA4} </PatternName>  
+                         <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                         <IdBDCentre> Id-Centre </IdBDCentre>
+                         <IdOffsetGPS>  TheIdLA4 </IdOffsetGPS>
+                         <PosValueInit>
+                             <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                         </PosValueInit>
+                   </PoseCameraInc>
+             </#WHEN>
+
+
 
              <#WHEN  VTEST=${WithGCP}>
                 <PointFlottantInc>
