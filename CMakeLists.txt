@@ -288,9 +288,12 @@ if(${WITH_CPP11})
 	IF(NOT MSVC)
 		message("c++11")
 		# support c++11
+		IF (NOT DARWIN)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+		ELSE()
 		# MODIF MPD , reverse Gregoire, car gnu++11 mulitiple par 6 le temps de compilation
-		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+		ENDIF()
 		message(${CMAKE_CXX_FLAGS})
     endif()
 endif()

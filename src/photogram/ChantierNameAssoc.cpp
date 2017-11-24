@@ -2572,6 +2572,9 @@ bool DebugConvCal() {return false;}
         if ( !QDir(path).exists() ) cerr << "WARNING: setQtLibraryPath(" << i_path << "): path does not exist" << endl;
 
         QCoreApplication::setLibraryPaths( QStringList(path) );
+        // Sometimes the setLibraryPaths change the decimal-point character according the local OS config
+        // to be sure that atof("2.5") is always 2.5 it's necessary to force setLocale
+        setlocale(LC_NUMERIC, "C");
     }
 
     // if default path does not exist, replace it by deployment path
