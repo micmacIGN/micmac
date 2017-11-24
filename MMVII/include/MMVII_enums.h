@@ -15,6 +15,7 @@ namespace MMVII
 */
 
 
+/// Defined in MMVII_sys.h
 enum class eSYS;
 
 
@@ -60,6 +61,23 @@ enum class eTySC
               NonInit,  ///< With Ptr Null
               US        ///< With unordered set
            };
+
+
+/// Type of operator
+
+enum class eOperator
+           {
+               ePlusEq,   /// +=
+               eMulEq,    /// *=
+               eMinusEq,  /// *=
+               eEq,       /// =
+               eReset        /// =
+           };
+
+std::string E2Str(const eOperator &);
+eOperator   Str2E(const std::string &);
+
+
 };
 
 #endif  //  _MMVII_Enums_H_

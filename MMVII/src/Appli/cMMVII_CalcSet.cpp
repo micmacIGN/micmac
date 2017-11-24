@@ -248,6 +248,10 @@ int cAppli_EditSet::Exe()
    {
       aRes = aInput - aNew;
    }
+   else if (mOp==aVOps.at(4)) // -=
+   {
+      aRes.clear();
+   }
    else
    {
       MMVII_INTERNAL_ASSERT_user(false,"Unknown set operator :["+mOp+"] allowed: "+ mAllOp);
