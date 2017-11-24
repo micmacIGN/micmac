@@ -196,6 +196,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 #endif
 	
 	//C3DC call case : general case
+    bool NormByC {false};
     if(mDoMerge)
     {
 		ElInitArgMain
@@ -223,6 +224,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
 						<< EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
 						<< EAM(mSetHom,"SH",true,"Set of Hom, Def=\"\"")
+                        << EAM(NormByC,"NormByC",true,"Def=False")
+
 		);
 	}
 	//Pims call case : no need to have all export .ply options in the command display (source of confusion)
@@ -254,6 +257,11 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 	
 
    if (MMVisualMode) return;
+
+   if (NormByC == true)
+   {
+       mSzNorm = -1;
+   }
 
    if (!EAMIsInit(&mDS))
    {
@@ -320,7 +328,9 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mComMerge =      MM3dBinFile("TestLib  MergeCloud ")
            +  mStrImOri0 + " ModeMerge=" + mStrType
            +  " DownScale=" +ToString(mDS)
-           +  " SH=" + mSetHom;
+           +  " SH=" + mSetHom
+           + " NormByC=" + (NormByC ? "true" : "false")
+           ;
 
    if (EAMIsInit(&mOffsetPly))
    {
@@ -546,6 +556,7 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
                   + " DownScale=" +ToString(mDS)
                   + " SzNorm=3"
                   + " PlyCoul=true"
+
                ;
    if (EAMIsInit(&mOffsetPly))
    {
