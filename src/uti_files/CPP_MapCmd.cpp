@@ -69,6 +69,10 @@ int MapCmd_main(int argc,char ** argv)
       std::cout << "  N Niv \n";
       std::cout << "  M  Makefile \n";
       std::cout << "  S=Serial (def=0) \n";
+      std::cout << "  A=Ajoute dir (def=0) \n";
+      std::cout << "  T=Target \n";
+      std::cout << "  C=change, c=change+target \n";
+      std::cout << "  E=Equal pre-process, Def=true  \n";
       exit(0);
    }
 // K  
@@ -87,6 +91,8 @@ int MapCmd_main(int argc,char ** argv)
    bool NameCompl=false;
    bool AjouteDir = true;  // Compatibilite
    int  InSerie = false;
+
+   bool EqualPP=true;
 
 // std::cout << "ARGC " << argc << "\n";
 
@@ -125,6 +131,10 @@ int MapCmd_main(int argc,char ** argv)
         {
             AjouteDir = (aN[2]!='0');
         }
+        if (aN[0]=='E')
+        {
+            EqualPP = (aN[2]!='0');
+        }
       }
    }
 
@@ -134,7 +144,7 @@ int MapCmd_main(int argc,char ** argv)
 
    SplitDirAndFile(aDirIn,aPatIn,aPatDir);
 
-   cElRegex anAuto(aPatIn,10);
+   cElRegex anAuto(aPatIn,1000);
 
 
    std::list<std::string>  aLNameI = RegexListFileMatch(aDirIn,aPatIn,aNiv,NameCompl);
@@ -180,7 +190,7 @@ int MapCmd_main(int argc,char ** argv)
                 std::string aNp2 (aN+2);
                 std::string aPrefEq="";
 
-                if (aNp2.find('=')!=std::string::npos)
+                if ( EqualPP && (aNp2.find('=')!=std::string::npos))
                 {
                       std::string aNewNp2;
                       SplitIn2ArroundEq(aNp2,aPrefEq,aNewNp2);
@@ -188,6 +198,8 @@ int MapCmd_main(int argc,char ** argv)
                       aPrefEq=aPrefEq+"=";
                 }
 // std::cout << "xxxxxxxxxx"<< aNameCur << " " << aNp2 << "\n";
+
+
 
 		std::string aRepl = MatchAndReplace(anAuto,aNameCur,aNp2); // std::string(aN+2));
 

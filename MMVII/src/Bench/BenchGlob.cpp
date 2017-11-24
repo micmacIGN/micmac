@@ -1,6 +1,17 @@
 #include "include/MMVII_all.h"
 #include <cmath>
 
+/** \file BenchGlob.cpp
+    \brief Main bench
+
+
+    For now bench are relatively simples and executed in the same process,
+  it's than probable that when MMVII grow, more complex bench will be done
+  by sub process specialized.
+
+*/
+
+
 namespace MMVII
 {
 
@@ -63,7 +74,6 @@ void   Bench_0000_Param()
    aCol << Arg2007(a,"UnA") << AOpt2007(b,"b","UnB") ;
    aCol[0]->InitParam("111");
    aCol[1]->InitParam("222");
-   std::cout << "GGGGGGGG " << a << " " << b << "\n";
 
    MMVII_INTERNAL_ASSERT_bench(a==111,"Bench_0000_Param");
    MMVII_INTERNAL_ASSERT_bench(b==222,"Bench_0000_Param");
@@ -82,6 +92,7 @@ class cAppli_MMVII_Bench : public cMMVII_Appli
 
         cAppli_MMVII_Bench(int,char**,const cSpecMMVII_Appli & aSpec);
         void Bench_0000_String();
+        void BenchFiles(); ///< A Bench on creation/deletion/existence of files
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
@@ -131,16 +142,46 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv,const cSpecMMVII_Ap
   // The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_weak;
 }
 
+static void CreateFile(const std::string & aNameFile)
+{
+   cMMVII_Ofs aFile(aNameFile);
+   int anI=44;
+   aFile.Write(anI);
+}
+
+void cAppli_MMVII_Bench::BenchFiles()
+{
+   const std::string & aTDir = TmpDirTestMMVII();
+   std::string aNameFile = aTDir+"toto.txt";
+   
+   // Dir should be empty
+   MMVII_INTERNAL_ASSERT_always(!ExistFile(aNameFile),"BenchFiles");
+   CreateFile(aNameFile);
+   // File should now exist
+   MMVII_INTERNAL_ASSERT_always(ExistFile(aNameFile),"BenchFiles");
+
+   // CreateFile(aTDir+"a/b/c/toto.txt"); Do not work directly
+   CreateDirectories(aTDir+"a/b/c/",false);
+   CreateFile(aTDir+"a/b/c/toto.txt"); // Now it works
+
+
+   RemoveRecurs(TmpDirTestMMVII(),true,false);
+}
 
 
 int  cAppli_MMVII_Bench::Exe()
 {
-   // cMemManager::Alloc<short>(4);
+   // Begin with purging directory
+   CreateDirectories(TmpDirTestMMVII(),true );
+   RemoveRecurs(TmpDirTestMMVII(),true,false);
+
+
    //  On teste les macro d'assertion
    MMVII_INTERNAL_ASSERT_bench((1+1)==2,"Theoreme fondamental de l'arithmetique");
+   // La on a verifie que ca marchait pas
    // MMVII_INTERNAL_ASSERT_all((1+1)==3,"Theoreme  pas tres fondamental de l'arithmetique");
 
-   // 
+   BenchFiles();
    Bench_0000_SysDepString();
    Bench_0000_String();
    Bench_0000_Memory();
@@ -156,10 +197,13 @@ int  cAppli_MMVII_Bench::Exe()
    // std::cout << " sqrt(-1)=" << sqrt(-1)  << "\n";
    // std::cout << " asin(2)=" << asin(2.0) << "\n";
 
-
    BenchSet(mDirTestMMVII);
    BenchSelector(mDirTestMMVII);
    BenchEditSet();
+
+
+   // We clean the temporary files created
+   RemoveRecurs(TmpDirTestMMVII(),true,false);
 
    return EXIT_SUCCESS;
 }
@@ -237,6 +281,18 @@ int cAppli_MPDTest::Exe()
   std::cout << "CHAR LIMS " << (int) std::numeric_limits<char>::min() << " " << (int) std::numeric_limits<char>::max() << "\n";
 
   std::cout << "DIRBIN2007:" << DirBin2007 << "\n";
+
+  tNameSet aSet;
+  aSet.Add("toto");
+  std::cout << "SIZZZ " << aSet.size() << "\n";
+  SaveInFile(aSet,"toto.xml");
+  std::vector<std::string> aV;
+  aV.push_back("toto");
+  SaveInFile(aV,"totoV.xml");
+
+  tNameSet aS2;
+  ReadFromFile(aS2,"toto.xml");
+  std::cout << "SIZZZ " << aS2.size() << "\n";
 /*
    TestBooostIter();
    BUD(".");
