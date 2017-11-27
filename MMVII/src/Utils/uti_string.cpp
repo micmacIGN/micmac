@@ -330,6 +330,31 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
     return Ok;
 }
 
+bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
+{
+    boost::filesystem::remove_all(aDir);
+    if (ReMkDir)
+        return CreateDirectories(aDir,SVP);
+    return true;
+}
+
+bool RemoveFile(const  std::string & aFile,bool SVP)
+{
+   bool Ok = boost::filesystem::remove(aFile);
+   if (! Ok) 
+   {
+      MMVII_INTERNAL_ASSERT_user(SVP,"Cannot remove file for arg " + aFile);
+   }
+   return Ok;
+}
+
+void RenameFiles(const std::string & anOldName, const std::string & aNewName)
+{
+    boost::filesystem::rename(anOldName,aNewName);
+}
+
+
+
     /* =========================================== */
     /*                                             */
     /*        Get Files from dir                   */
@@ -342,17 +367,17 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 */
 
 
-void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,tNameSelector  aNS)
+void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,const tNameSelector &  aNS)
 {
    for (directory_iterator itr(aDir); itr!=directory_iterator(); ++itr)
    {
       std::string aName ( itr->path().filename().c_str());
-      if ( is_regular_file(itr->status()) &&  aNS->Match(aName))
+      if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
          aRes.push_back(aName);
    }
 }
 
-std::vector<std::string> GetFilesFromDir(const std::string & aDir,tNameSelector  aNS)
+std::vector<std::string> GetFilesFromDir(const std::string & aDir,const tNameSelector &  aNS)
 {
     std::vector<std::string> aRes;
     GetFilesFromDir(aRes,aDir,aNS);
@@ -368,7 +393,7 @@ void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aD
         if ((aLev>=aLevMin) && (aLev<aLevMax))
         {
            std::string aName(itr->path().c_str());
-           if ( is_regular_file(itr->status()) &&  aNS->Match(aName))
+           if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
               aRes.push_back(aName);
         }
     }

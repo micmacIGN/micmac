@@ -75,6 +75,11 @@ std::string UpDir(const std::string & aDir,int aNb=1);
 bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitive equality
 bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case UN-sensitive premisse of aStr ?
 bool CreateDirectories(const std::string & aDir,bool SVP); ///< Create dir, recurs ?
+bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP); ///< Purge recursively the directory
+bool RemoveFile(const  std::string & aDir,bool SVP); ///< Remove file
+void RenameFiles(const std::string & anOldName, const std::string & aNewName); ///< Move/Rename
+
+
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
 void SkeepWhite(const char * & aC);
 char DirSeparator();
@@ -84,9 +89,9 @@ char DirSeparator();
 tNameSelector  BoostAllocRegex(const std::string& aRegEx);
 
 /// Exract name of files located in the directory, by return value
-std::vector<std::string>  GetFilesFromDir(const std::string & aDir,tNameSelector );
+std::vector<std::string>  GetFilesFromDir(const std::string & aDir,const tNameSelector& );
 /// Exract name of files, by ref
-void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,tNameSelector);
+void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,const tNameSelector &);
 /// Recursively exract name of files located in the directory, by return value
 void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, tNameSelector  aNS,int aLevMin, int aLevMax);
 /// Recursively exract name of files, by return value

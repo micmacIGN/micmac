@@ -9,62 +9,11 @@ namespace MMVII
 
 */
 
-template <class Type> class cInterfSet ;
+template <class Type> class cExtSet ;
+template <class Type> class cDataExtSet ;
 template <class Type> class cSelector ;
 template <class Type> class cDataSelector ;
 
-/* ============================================= */
-/*                                               */
-/*            cInterfSet                         */
-/*                                               */
-/* ============================================= */
-
-
-///  Bench some sets functionnalities
-void BenchSet(const std::string & aDir);
-
-///  Interface to sets services (set in extension)
-
-/** Derived class will implement the services on :
- 
-    * std::unordered_set (done)
-    * std::set  probably
-    * std::vector
-    * maybe hybrid (i.e. type that may change when size grows)
- 
-    See also  "void BenchSet(const std::string & aDir)" for yy
-
-*/
-
-template <class Type> class cInterfSet : public cMemCheck
-{
-    public :
-         virtual bool Add(const Type &) = 0;
-         virtual bool In(const Type &) const = 0;
-         virtual bool Suppress(const Type &)  = 0;
-         virtual void    clear() = 0;
-         virtual int    size() const = 0;
-
-         virtual void  PutInSet(std::vector<const Type *> &,bool Sorted) const = 0; ///< Some type requires iteration 
-
-
-         virtual cInterfSet<Type> *  VDupl() const = 0; // return a duplicata
-         cInterfSet<Type> &  operator =(const cInterfSet<Type> &);
-         virtual ~cInterfSet() ;
-};
-
-template <class Type> cInterfSet<Type> * AllocUS(); ///<  Allocator, unordered_set
-
-template <class Type>  cInterfSet<Type> &  operator *= (cInterfSet<Type> &,const cInterfSet<Type> &);
-template <class Type>  cInterfSet<Type> &  operator += (cInterfSet<Type> &,const cInterfSet<Type> &);
-template <class Type>  cInterfSet<Type> &  operator -= (cInterfSet<Type> &,const cInterfSet<Type> &);
-
-template <class Type>  cInterfSet<Type> *  operator * (const cInterfSet<Type> & aS1,const cInterfSet<Type> & aS2);
-template <class Type>  cInterfSet<Type> *  operator + (const cInterfSet<Type> & aS1,const cInterfSet<Type> & aS2);
-template <class Type>  cInterfSet<Type> *  operator - (const cInterfSet<Type> & aS1,const cInterfSet<Type> & aS2);
-
-/// Sort on pointed value and not adress  
-template <class Type> void SortPtrValue(std::vector<Type*> &aV);
 
 /* ============================================= */
 /*                                               */
@@ -72,34 +21,21 @@ template <class Type> void SortPtrValue(std::vector<Type*> &aV);
 /*                                               */
 /* ============================================= */
 
-/// Base class for Selector
-/**  a selector is just a boolean predicate,
-     the heriting class will implement override Match
-     Class is accessible via cSelector
-*/
-
-template <class Type> class cDataSelector : public cMemCheck
-{
-    public :
-        virtual bool Match(const Type &) const = 0;  ///< fundamuntal function
-        virtual ~cDataSelector() ;
-};
-
 /// Access class to Selector
-/** Selector are used via smart pointer
-   which allow to build automatically the 
-
+/** A selector is just a boolean predicate,
+      Selector are used via smart pointer.
    Also the function "BenchSelector" illustrates all the
  functionnalities of selectors.
 */
 
-template <class Type> class  cSelector : public  std::shared_ptr<cDataSelector<Type> >
+template <class Type> class  cSelector 
 {
      public :
 
-          bool Match(const Type &) const;
+          virtual bool Match(const Type &) const;
           cSelector(cDataSelector<Type> *);
-     private :
+     protected :
+          std::shared_ptr<cDataSelector<Type> > mDS;
 };
 
 template<class Type> cSelector<Type> operator && (const cSelector<Type> &,const cSelector<Type>&); ///<  And/Inter of  selector
@@ -132,6 +68,107 @@ template<class Type> cSelector<Type> CsteSelector  (bool aVal);
      "],5] [8,9[ ]12,15] ]17,]" => (x<=5) || (x>=8 && x<9) || ...
 */
 template <class Type> cSelector<Type> Str2Interv(const std::string & aStr);
+
+
+/* ============================================= */
+/*                                               */
+/*            cExtSet                            */
+/*                                               */
+/* ============================================= */
+
+
+///  Bench some sets functionnalities
+void BenchSet(const std::string & aDir);
+
+///  Interface to sets services (set in extension)
+
+/** Derived class will implement the services on :
+ 
+    * std::unordered_set (done)
+    * std::set  probably
+    * std::vector
+    * maybe hybrid (i.e. type that may change when size grows)
+ 
+    See also  "void BenchSet(const std::string & aDir)" for yy
+
+*/
+
+template <class Type> class cExtSet  : public  cSelector<Type>
+{
+    public :
+         ~cExtSet() ;
+         cExtSet<Type>   Dupl() const ; // return a duplicata
+         cExtSet<Type>   EmptySet() const ; // return a set from same type
+         // static cExtSet<Type>  AllocUS(); ///<  Allocator, return empty set implemanted by unordered_set
+
+         bool Add(const Type &) ;
+         bool In(const Type &) const ;
+         bool Suppress(const Type &)  ;
+         void    clear() ;
+         int    size() const ;
+         void Filter(const cSelector<Type> &);
+
+         virtual void  PutInVect(std::vector<const Type *> &,bool Sorted) const ; ///< Some type requires iteration 
+
+
+         // cExtSet<Type>   operator=(const cExtSet<Type> &); => Basic semantic, = shared the same pointed value
+         cExtSet(eTySC = eTySC::US);
+         bool IsInit() const;
+         bool Match(const Type &) const override ;
+    private :
+         cExtSet(cDataExtSet<Type> *);
+         std::shared_ptr<cDataExtSet<Type> > mDES;
+         // void AssertInit();
+};
+
+
+template <class Type> void operator *= (cExtSet<Type> &,const cExtSet<Type> &);
+template <class Type> void operator += (cExtSet<Type> &,const cExtSet<Type> &);
+template <class Type> void operator -= (cExtSet<Type> &,const cExtSet<Type> &);
+
+template <class Type> cExtSet<Type> operator * (const cExtSet<Type> & aS1,const cExtSet<Type> & aS2);
+template <class Type> cExtSet<Type> operator + (const cExtSet<Type> & aS1,const cExtSet<Type> & aS2);
+template <class Type> cExtSet<Type> operator - (const cExtSet<Type> & aS1,const cExtSet<Type> & aS2);
+
+/// Sort on pointed value and not adress  
+template <class Type> void SortPtrValue(std::vector<Type*> &aV);
+
+
+// Xml or pat
+tNameSet SetNameFromPat    (const std::string&);
+tNameSet SetNameFromFile   (const std::string&, int aNumV);
+tNameSet SetNameFromString (const std::string&, bool AllowPat);
+
+/* ================================================ */
+/*                                                  */
+/*                 cOrderedPair                     */
+/*                                                  */
+/* ================================================ */
+
+// cOrderedPair pair
+/** cOrderedPair are pretty match like pair<T,T> ,
+    the main difference being that they modelise symetric graph.
+    To assure that they are always in a single way, we
+    force V1 <= V2
+*/
+template <class Type> class cOrderedPair
+{
+      public :
+           typedef cOrderedPair<Type> value;
+           cOrderedPair(const Type & aV1,const Type & aV2) ;
+           bool operator < (const cOrderedPair<Type> & aP2) const;
+           bool operator == (const cOrderedPair<Type> & aP2) const;
+           const Type & V1() const;
+           const Type & V2() const;
+
+
+      private :
+           static const Type &  Min4OP(const Type & aV1,const Type & aV2);
+           Type mV1;
+           Type mV2;
+};
+typedef cOrderedPair<std::string> tNamePair;
+
 
 
 

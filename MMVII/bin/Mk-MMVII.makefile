@@ -64,7 +64,7 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags="-std=c++14" "-Wall" -I${MMV2Dir} -I${MMDir}/include/
+CFlags="-std=c++14" "-Wall" "-Werror" -I${MMV2Dir} -I${MMDir}/include/
 BOOST_LIBS=/usr/include/boost/stage/lib/libboost_*.a
 LibsFlags= ${MMDir}/lib/libelise_SsQt.a -lX11   ${BOOST_LIBS}
 MMV2Exe=MMVII
