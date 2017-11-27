@@ -23,13 +23,13 @@ enum class eSYS;
 enum class eTA2007
            {
                 PatFile,       ///< Pattern File
-                // PatOrXmlFile,    ///< Pattern File
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File of Dir Proj
                 MPatIm,        ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 MDirOri,       ///< Major DirOri
                 Internal,      ///< Reserved to internall use by MMVII
-                Common         ///< Parameter  Common to all commands
+                Common,        ///< Parameter  Common to all commands
+                eNbVals
            };
 
 
@@ -40,7 +40,8 @@ enum class eApF
                Test,    ///< Test
                Ori,     ///< Orientation
                Match,   ///< Dense Matching
-               TieP     ///< Tie-Point processing
+               TieP,    ///< Tie-Point processing
+               eNbVals
            };
 
 /// Appli Data Type
@@ -51,31 +52,43 @@ enum class eApDT
               Ply,    ///< Ply file
               None,     ///< Nothing 
               Console,  ///< Console 
-              Xml       ///< Xml-files
+              Xml,      ///< Xml-files
+              eNbVals
            };
 
 
 /// Type of set creation
 enum class eTySC    
            {
-              NonInit,  ///< With Ptr Null
-              US        ///< With unordered set
+              NonInit,   ///< With Ptr Null
+              US,        ///< With unordered set
+              eNbVals
            };
-
 
 /// Type of operator
 
-enum class eOperator
+enum class eOpAff
            {
-               ePlusEq,   /// +=
-               eMulEq,    /// *=
-               eMinusEq,  /// *=
-               eEq,       /// =
-               eReset        /// =
+               ePlusEq,   ///< +=
+               eMulEq,    ///< *=
+               eMinusEq,  ///< *=
+               eEq,       ///< =
+               eReset,    ///< =0
+               eNbVals
            };
 
-std::string E2Str(const eOperator &);
-eOperator   Str2E(const std::string &);
+/// Type of Warning
+enum class eTyW
+           {
+               eWLineAndCart  ///< In EditRel, Circ in mod Cart
+           };
+
+
+const std::string & E2Str(const eTySC &);         
+const std::string & E2Str(const eOpAff &);         
+
+template <class Type> const Type & Str2E(const std::string &); 
+template <class Type> std::string   StrAllVall();
 
 
 };

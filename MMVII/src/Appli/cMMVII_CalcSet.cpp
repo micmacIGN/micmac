@@ -13,156 +13,9 @@
 namespace MMVII
 {
 
-/*
-template <class Type> cSetAsVect : public cMemCheck
-{
-   public :
-       friend void  AddData(const cAuxAr2007 & anAux,cSetAsVect<Type> & aSON);  ///< For serialization
-       typedef std::vector<Type> tCont;  ///< In case we change the container type
-
-       cSetName();  ///< Do nothing for now
-       cSetName(const  cInterfSet<Type> &);  ///<  Fill with set
-       cSetName(const std::string &,bool AllowPat);  ///< From Pat Or File
-
-       void InitFromString(const std::string &,bool AllowPat);  ///< Init from file if ok, from pattern else
-
-       size_t size() const;           ///< Accessor
-       const tCont & Cont() const;    ///< Accessor
-
-       cInterfSet<Type> * ToSet() const; ///< generate set, usefull for boolean operation
-       void Filter(cSelector<Type>);  ///< select name matching the selector
-   private :
-   // private :
-       void Sort();
-       void InitFromFile(const std::string &,int aNumV);  ///< Init from Xml file
-       void InitFromPat(const std::string & aFullPat); ///< Init from pattern (regex)
-
-
-       // Data part
-       tCont mV;
-};
-*/
-
-
-
-/* ====================================== */
-/*                                        */
-/*             cSetName                   */
-/*                                        */
-/* ====================================== */
-
-            //========== Constructors =============
-
-/*
-cSetName::cSetName()
-{
-}
-
-void cSetName::Sort()
-{
-    std::sort(mV.begin(),mV.end());
-}
-
-cSetName::cSetName(const std::string & aName,bool AllowPat) :
-    cSetName()
-{
-   InitFromString(aName,AllowPat);
-   Sort();
-}
-
-cSetName::cSetName(const  cInterfSet<std::string> & aSet)
-{
-   std::vector<const std::string *> aVPtr;
-   aSet.PutInSet(aVPtr,true);
-   for (const auto & el : aVPtr)
-       mV.push_back(*el);
-}
-
-
-            //===== Constructor helper =====
-
-void cSetName::InitFromFile(const std::string & aNameFile,int aNumV)
-{
-    cMMVII_Appli::SignalInputFormat(aNumV);
-    if (aNumV==1)
-    {
-       MMV1InitSet(mV,aNameFile);
-    }
-    else
-    {
-       ReadFromFileWithDef(*this,aNameFile);
-    }
-}
-
-
-void  cSetName::InitFromPat(const std::string & aFullPat)
-{
-     std::string aDir,aPat;
-     SplitDirAndFile(aDir,aPat,aFullPat,false);
-
-     GetFilesFromDir(mV,aDir,BoostAllocRegex(aPat));
-}
-
-
-void cSetName::InitFromString(const std::string & aName,bool AllowPat)
-{
-   if (IsFileXmlOfGivenTag(true,aName,TagSetOfName)) // MMVII
-   {
-      InitFromFile(aName,2);
-   }
-   else if (IsFileXmlOfGivenTag(false,aName,MMv1XmlTag_SetName))  // MMv1
-   {
-      InitFromFile(aName,1);
-   }
-   else if (AllowPat)
-   {
-      InitFromPat(aName);
-   }
-   else 
-   {
-      InitFromFile(aName,0);
-   }
-}
-
-            //============== "Sophisticated" operation
-
-cInterfSet<std::string> * cSetName::ToSet() const
-{
-   cInterfSet<std::string> * aRes = AllocUS<std::string>();
-   for (const auto & el:mV)
-       aRes->Add(el);
-   return aRes;
-}
-
-void  cSetName::Filter(tNameSelector aSel)
-{
-   tCont aVF;
-   for (const auto & el:mV)
-   {
-      if (aSel.Match(el))
-         aVF.push_back(el);
-   }
-
-   mV = aVF;
-}
-
-
-        // ==== Basic accessor
-
-size_t                   cSetName::size() const { return mV.size(); }
-const  cSetName::tCont & cSetName::Cont() const { return mV;        }
-
-     // ====== Global for serialization ===
-
-void  AddData(const cAuxAr2007 & anAux,cSetName & aSON)
-{
-    AddData(cAuxAr2007(TagSetOfName,anAux) ,aSON.mV);
-}
-*/
-
 /* ==================================================== */
 /*                                                      */
-/*                                                      */
+/*          cAppli_EditSet                              */
 /*                                                      */
 /* ==================================================== */
 
@@ -174,7 +27,11 @@ void  AddData(const cAuxAr2007 & anAux,cSetName & aSON)
       - substract a new set (-=)
       - intersect a new set (*=)
       - overwrite with a new set (=)
+
+    Most command take as input a set of file, single case can be pattern,
+  but more complex require Xml file that can be edited.
 */
+
 class cAppli_EditSet : public cMMVII_Appli
 {
      public :
@@ -187,11 +44,7 @@ class cAppli_EditSet : public cMMVII_Appli
          std::string mXmlOut;
          std::string mPat;
          std::string mOp;
-         bool        mShow;
-         std::string mAllOp;
-
- 
-
+         int         mShow;
 };
 
 cCollecSpecArg2007 & cAppli_EditSet::ArgObl(cCollecSpecArg2007 & anArgObl)
@@ -199,7 +52,7 @@ cCollecSpecArg2007 & cAppli_EditSet::ArgObl(cCollecSpecArg2007 & anArgObl)
    return 
       anArgObl 
          << Arg2007(mXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
-         << Arg2007(mOp,"Operator ("+mAllOp+")" )
+         << Arg2007(mOp,"Operator in ("+StrAllVall<eOpAff>()+")" )
          << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatIm,"0"}});
 }
 
@@ -207,55 +60,26 @@ cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return 
       anArgOpt
-         << AOpt2007(mShow,"Show","Show detail of set before/after",{})
-         << AOpt2007(mXmlOut,"Out","Destination, def=Input",{});
+         << AOpt2007(mShow,"Show","Show detail of set before/after , (def) 0->none, (1) modif, (2) all",{})
+         << AOpt2007(mXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{});
 }
 
 cAppli_EditSet::cAppli_EditSet(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli (argc,argv,aSpec),
-  mShow        (false),
-  mAllOp       ("= *= += -= =0")
+  mShow        (0)
 {
 }
 
 int cAppli_EditSet::Exe()
 {
-   if (! IsInit(&mXmlOut)) 
-       mXmlOut = mXmlIn;
-    else
-       mXmlOut = mDirProject + mXmlOut;
-
-   std::vector<std::string>  aVOps = SplitString(mAllOp," ");
+   InitOutFromIn(mXmlOut,mXmlIn);
 
    tNameSet aInput = SetNameFromString(mXmlIn,false);
    const tNameSet & aNew =  MainSet0();
-   tNameSet aRes(eTySC::NonInit);
 
-   
-   if (mOp==aVOps.at(0)) // *=
-   {
-       aRes = aNew;
-   }
-   else if (mOp==aVOps.at(1)) // *=
-   {
-      aRes = aInput * aNew;
-   }
-   else if (mOp==aVOps.at(2)) // +=
-   {
-      aRes = aInput + aNew;
-   }
-   else if (mOp==aVOps.at(3)) // -=
-   {
-      aRes = aInput - aNew;
-   }
-   else if (mOp==aVOps.at(4)) // -=
-   {
-      aRes.clear();
-   }
-   else
-   {
-      MMVII_INTERNAL_ASSERT_user(false,"Unknown set operator :["+mOp+"] allowed: "+ mAllOp);
-   }
+   tNameSet aRes = aInput.Dupl();
+
+   aRes.OpAff(Str2E<eOpAff>(mOp),aNew);
 
    if (mShow)
    {
@@ -268,21 +92,26 @@ int cAppli_EditSet::Exe()
        {
           for (const auto  & aPtrS : aV)
           {
-              bool aInInit = aInput.In(*aPtrS);
-              bool aInRes  = aRes.In(*aPtrS);
-              int aKPrint = (aInInit ? 0 : 2) + (aInRes ? 0 : 1);
-              if (aKPrint== aK)
-              {
-                  std::cout <<  " " << (aInInit ? "+" : "-");
-                  std::cout <<   (aInRes ? "+" : "-") << " ";
-                  std::cout <<  *aPtrS << "\n";
-              }
+             bool aInInit = aInput.In(*aPtrS);
+             bool aInRes  = aRes.In(*aPtrS);
+             bool ShowThis = (mShow>=2)  || (! aInInit) || (! aInRes);
+             if (ShowThis)
+             {
+                int aKPrint = (aInInit ? 0 : 2) + (aInRes ? 0 : 1);
+                if (aKPrint== aK)
+                {
+                   std::cout <<  " " << (aInInit ? "+" : "-");
+                   std::cout <<   (aInRes ? "+" : "-") << " ";
+                   std::cout <<  *aPtrS << "\n";
+                }
+             }
           }
        }
    }
 
    // Back to cSetName
-   SaveInFile(aRes,mXmlOut);
+   if (FileOfPath(mXmlOut,false) != MMVII_NONE)
+      SaveInFile(aRes,mXmlOut);
 
    return EXIT_SUCCESS;
 }
@@ -299,11 +128,180 @@ cSpecMMVII_Appli  TheSpecEditSet
       "This command is used to edit set of file",
       {eApF::Project},
       {eApDT::Console,eApDT::Xml},
-      {eApDT::Xml}
-
+      {eApDT::Xml},
+      __FILE__
 );
 
 
+
+/* ==================================================== */
+/*                                                      */
+/*          cAppli_EditRel                              */
+/*                                                      */
+/* ==================================================== */
+
+/// An application for editing set of cple of file
+/**
+    Given an XML memorizing a set of file, it is possible to :
+
+      - add a new set (+=)
+      - substract a new set (-=)
+      - intersect a new set (*=)
+      - overwrite with a new set (=)
+*/
+class cAppli_EditRel : public cMMVII_Appli
+{
+     public :
+        cAppli_EditRel(int argc,char** argv,const cSpecMMVII_Appli &);
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+     private :
+         bool        ValideCple(const std::string & aN1,const std::string &aN2) const;
+         void        AddCple(const std::string & aN1,const std::string &aN2) ;
+
+         std::string mXmlIn;
+         std::string mXmlOut;
+         std::string mPat;
+         std::string mPat2;
+         bool        m2Set;
+         bool        mAllPair;
+         std::string mOp;
+         int         mShow;
+         int         mLine;
+         bool        mCirc;
+         bool        mReflexif;
+         tNameRel    mNewRel;
+};
+
+cAppli_EditRel::cAppli_EditRel(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (argc,argv,aSpec),
+  mAllPair     (false),
+  mShow        (0),
+  mLine        (0),
+  mCirc        (true),
+  mReflexif    (false)
+{
+}
+
+cCollecSpecArg2007 & cAppli_EditRel::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+   return 
+      anArgObl 
+         << Arg2007(mXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
+         << Arg2007(mOp,"Operator in ("+StrAllVall<eOpAff>()+")" )
+         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatIm,"0"}})
+      ;
+}
+
+cCollecSpecArg2007 & cAppli_EditRel::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return 
+      anArgOpt
+         << AOpt2007(mPat2,"Pat2","Second Pattern or Xml for modifying, def=first",{{eTA2007::MPatIm,"1"}})
+         << AOpt2007(mAllPair,"AllP","Put all pair, def false ",{})
+         << AOpt2007(mLine,"Line","\"Linear graph\" : for k, add [k-l,k+l]")
+         << AOpt2007(mCirc,"Circ","\"Circular\" in line mode")
+         << AOpt2007(mReflexif,"Reflexif","Accept pair with identicall names, def=false")
+
+      ;
+/*
+         // << AOpt2007(mShow,"Show","Show detail of set before/after , (def) 0->none, (1) modif, (2) all",{})
+         << AOpt2007(mXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{});
+*/
+}
+
+bool cAppli_EditRel::ValideCple(const std::string & aN1,const std::string &aN2) const
+{
+   if ((aN1==aN2) && (!mReflexif))
+      return false;
+
+   return true;
+}
+
+void cAppli_EditRel::AddCple(const std::string & aN1,const std::string &aN2)
+{
+   if (ValideCple(aN1,aN2))
+      mNewRel.Add(tNamePair(aN1,aN2));
+}
+
+
+int cAppli_EditRel::Exe() 
+{
+   InitOutFromIn(mXmlOut,mXmlIn);
+   m2Set = IsInit(&mPat2);
+
+   tNameRel aRelIn =  RelNameFromFile (mXmlIn);
+   const tNameSet & aSet1 =  MainSet0();
+   const tNameSet & aSet2 =  m2Set ?  MainSet1() : MainSet0() ;
+
+
+   if (mAllPair)
+   {
+      std::vector<const std::string *> aV1;
+      aSet1.PutInVect(aV1,true);
+      std::vector<const std::string *> aV2;
+      aSet2.PutInVect(aV2,true);
+
+      for (const auto & aPtr1 : aV1)
+      {
+         for (const auto & aPtr2 : aV2)
+         {
+             AddCple(*aPtr1,*aPtr2);
+         }
+      }
+   }
+
+   if (mLine>0)
+   {
+       if (m2Set)
+          Warning("Mode Line with 2 sets in EditRel",eTyW::eWLineAndCart,__LINE__,__FILE__);
+
+      std::vector<const std::string *> aV1;
+      int aNba = aV1.size();
+      aSet1.PutInVect(aV1,true);
+      for (int aKa=0 ; aKa < aNba ; aKa++)
+      {
+           int aKb0 = aKa-mLine;
+           int aKb1 = aKa+mLine;
+           if (!mCirc)
+           {
+                aKb0 = std::max(aKb0,0);
+                aKb1 = std::min(aKb0,0);
+           }
+           for (int aKb = aKb0; aKb <= aKb1 ; aKb++)
+           {
+               AddCple(*aV1.at(aKa),*aV1.at(aKb));
+           }
+      }
+   }
+
+
+   tNameRel aRes = aRelIn.Dupl();
+   aRes.OpAff(Str2E<eOpAff>(mOp),mNewRel);
+
+   if (FileOfPath(mXmlOut,false) != MMVII_NONE)
+      SaveInFile(aRes,mXmlOut);
+
+   return EXIT_SUCCESS;
+}
+
+
+tMMVII_UnikPApli Alloc_EditRel(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_EditRel(argc,argv,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpecEditRel
+(
+     "EditRel",
+      Alloc_EditRel,
+      "This command is used to edit set of file",
+      {eApF::Project},
+      {eApDT::Console,eApDT::Xml},
+      {eApDT::Xml},
+      __FILE__
+);
 /* ==================================================================== */
 /*                                                                      */
 /*                     BENCH PART                                       */
@@ -404,6 +402,7 @@ void BenchEditSet()
     OneBenchEditSet("+=",true ,"F.*.txt",0,1,6,"]F8.txt,]","012349"); // 012349
 
     OneBenchEditSet( "=",true ,"F.*.txt",0,1,4,"[F1.txt,F3.txt]]F6.txt,F8.txt[","1237"); // 
+    OneBenchEditSet( "=0",true ,"F.*.txt",0,1,0,"",""); // 
 }
 
 

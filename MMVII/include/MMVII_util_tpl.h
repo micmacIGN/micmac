@@ -99,6 +99,10 @@ template <class Type> class cExtSet  : public  cSelector<Type>
          ~cExtSet() ;
          cExtSet<Type>   Dupl() const ; // return a duplicata
          cExtSet<Type>   EmptySet() const ; // return a set from same type
+
+
+         bool IncludedIn(const  cExtSet &) const; ///< Is this set in include in other ?
+         bool Equal(const  cExtSet &) const;      ///< By double inclusion
          // static cExtSet<Type>  AllocUS(); ///<  Allocator, return empty set implemanted by unordered_set
 
          bool Add(const Type &) ;
@@ -115,6 +119,7 @@ template <class Type> class cExtSet  : public  cSelector<Type>
          cExtSet(eTySC = eTySC::US);
          bool IsInit() const;
          bool Match(const Type &) const override ;
+         void OpAff(const eOpAff &,const cExtSet<Type> aS);
     private :
          cExtSet(cDataExtSet<Type> *);
          std::shared_ptr<cDataExtSet<Type> > mDES;
@@ -135,9 +140,11 @@ template <class Type> void SortPtrValue(std::vector<Type*> &aV);
 
 
 // Xml or pat
-tNameSet SetNameFromPat    (const std::string&);
-tNameSet SetNameFromFile   (const std::string&, int aNumV);
-tNameSet SetNameFromString (const std::string&, bool AllowPat);
+tNameSet SetNameFromPat    (const std::string&); ///< create a set of file from a pattern
+tNameSet SetNameFromFile   (const std::string&, int aNumV); ///< create from a file xml, V1 or V2
+tNameSet SetNameFromString (const std::string&, bool AllowPat); ///< general case, try to recognize automatically V1, V2 or pattern
+
+tNameRel  RelNameFromFile (const std::string&); ///< read from file, select version, accept empty
 
 /* ================================================ */
 /*                                                  */
@@ -145,7 +152,8 @@ tNameSet SetNameFromString (const std::string&, bool AllowPat);
 /*                                                  */
 /* ================================================ */
 
-// cOrderedPair pair
+/// Pair where we want (a,b) == (b,a)
+
 /** cOrderedPair are pretty match like pair<T,T> ,
     the main difference being that they modelise symetric graph.
     To assure that they are always in a single way, we
@@ -155,11 +163,14 @@ template <class Type> class cOrderedPair
 {
       public :
            typedef cOrderedPair<Type> value;
-           cOrderedPair(const Type & aV1,const Type & aV2) ;
+           cOrderedPair(const Type & aV1,const Type & aV2); ///< Pair will be reordered
+           cOrderedPair(); ///< Default constructor, notably for serializer
            bool operator < (const cOrderedPair<Type> & aP2) const;
            bool operator == (const cOrderedPair<Type> & aP2) const;
            const Type & V1() const;
            const Type & V2() const;
+           Type & V1() ;
+           Type & V2() ;
 
 
       private :
@@ -167,8 +178,6 @@ template <class Type> class cOrderedPair
            Type mV1;
            Type mV2;
 };
-typedef cOrderedPair<std::string> tNamePair;
-
 
 
 

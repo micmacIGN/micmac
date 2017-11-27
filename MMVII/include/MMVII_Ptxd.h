@@ -55,6 +55,8 @@ template <class Type,const int Dim> class cPtxd
        cPtxd(const Type & x) :  mCoords{x} {static_assert(Dim==1,"bad dim in cPtxd initializer");}
        /// Contructor for 2 dim point, statically checked
        cPtxd(const Type & x,const Type &y) :  mCoords{x,y} {static_assert(Dim==2,"bad dim in cPtxd initializer");}
+       /// Contructor for 3 dim point, statically checked
+       cPtxd(const Type & x,const Type &y,const Type &z) :  mCoords{x,y,z} {static_assert(Dim==3,"bad dim in cPtxd initializer");}
 
 
     protected :
@@ -138,23 +140,58 @@ template <class Type> inline bool operator != (const cPt2d<Type> & aP1,const cPt
 typedef cPt2d<double>  cPt2dr ;
 typedef cPt2d<int>     cPt2di ;
 typedef cPt2d<float>   cPt2df ;
-/*
-template <class Type> inline cPt1d<Type> operator - (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) 
-{return  cPt1d<Type>(aP1.x()-aP2.x());}
-template <class Type> inline cPt1d<Type> operator * (const Type & aVal ,const cPt1d<Type> & aP) 
-{return  cPt1d<Type>(aP.x()*aVal);}
-template <class Type> inline cPt1d<Type> operator * (const cPt1d<Type> & aP,const Type & aVal) 
-{return  cPt1d<Type>(aP.x()*aVal);}
-template <class Type> inline cPt1d<Type> operator / (const Type & aVal ,const cPt1d<Type> & aP) 
-{return  cPt1d<Type>(aP.x()/aVal);}
-template <class Type> inline cPt1d<Type> operator / (const cPt1d<Type> & aP,const Type & aVal) 
-{return  cPt1d<Type>(aP.x()/aVal);}
-*/
 
 template <class Type> std::ostream & operator << (std::ostream & OS,const cPt2d<Type> &aP)
 {
    return  OS << "[" << aP.x() << "," << aP.y() << "]";
 }
+
+
+template <class Type> class cPt3d : public cPtxd<Type,3>
+{
+     public :
+        typedef cPtxd<Type,3> tBase;
+
+   // Constructeur
+
+        inline cPt3d(const Type& anX,const Type& anY,const Type& aZ) : tBase(anX,anY,aZ) {}
+        inline cPt3d() : cPt3d(0,0,0) {}
+        inline cPt3d(const tBase & aP) {static_cast<tBase&>(*this) = aP;}
+
+   // Accesseurs
+        Type & x()             {return tBase::mCoords[0];}
+        const Type & x() const {return tBase::mCoords[0];}
+        Type & y()             {return tBase::mCoords[1];}
+        const Type & y() const {return tBase::mCoords[1];}
+        Type & z()             {return tBase::mCoords[2];}
+        const Type & z() const {return tBase::mCoords[2];}
+
+};
+
+template <class Type> inline cPt3d<Type> operator + (const cPt3d<Type> & aP1,const cPt3d<Type> & aP2) 
+{return  cPt3d<Type>(aP1.x()+aP2.x(),aP1.y()+aP2.y(),aP1.z()+aP2.z());}
+template <class Type> inline cPt3d<Type> operator - (const cPt3d<Type> & aP1,const cPt3d<Type> & aP2) 
+{return  cPt3d<Type>(aP1.x()-aP2.x(),aP1.y()-aP2.y(),aP1.z()-aP2.z());}
+template <class Type> inline cPt3d<Type> operator * (const Type & aVal ,const cPt3d<Type> & aP) 
+{return  cPt3d<Type>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
+template <class Type> inline cPt3d<Type> operator * (const cPt3d<Type> & aP,const Type & aVal ) 
+{return  cPt3d<Type>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
+template <class Type> inline cPt3d<Type> operator / (const cPt3d<Type> & aP,const Type & aVal ) 
+{return  cPt3d<Type>(aP.x()/aVal,aP.y()/aVal,aP.z()/aVal);}
+
+template <class Type> inline bool operator == (const cPt3d<Type> & aP1,const cPt3d<Type> & aP2) 
+{return  (aP1.x()==aP2.x())&&(aP1.y()==aP2.y())&&(aP1.z()==aP2.z());}
+template <class Type> inline bool operator != (const cPt3d<Type> & aP1,const cPt3d<Type> & aP2)  {return !(aP1==aP2);}
+
+typedef cPt3d<double>  cPt3dr ;
+typedef cPt3d<int>     cPt3di ;
+typedef cPt3d<float>   cPt3df ;
+
+template <class Type> std::ostream & operator << (std::ostream & OS,const cPt3d<Type> &aP)
+{
+   return  OS << "[" << aP.x() << "," << aP.y() << "," << aP.z()<< "]";
+}
+
 
 };
 

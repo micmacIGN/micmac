@@ -19,6 +19,14 @@ void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char 
     exit(-1);
 }
 
+/// Warning : temporary version
+/** Will evolve significativelly as MMVII grows
+*/
+void cMMVII_Appli::Warning(const std::string & aMes,eTyW,int line,const std::string & File)
+{
+    std::cout << "WARNING : " << aMes << "\n";
+}
+
 
 
 };

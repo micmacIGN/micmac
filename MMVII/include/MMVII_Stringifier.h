@@ -228,9 +228,10 @@ void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
 void AddData(const  cAuxAr2007 & anAux, cPt2dr  &  aVal) ;  ///<for cPt2dr
+void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Cple of string
 
-template <class Type> void AddData(const cAuxAr2007 & anAux,Type * aL);
-template <class Type> void AddData(const cAuxAr2007 & anAux,const Type * aL);
+template <class Type> void AddData(const cAuxAr2007 & anAux,Type * aL);  ///< Instantiated in files
+template <class Type> void AddData(const cAuxAr2007 & anAux,const Type * aL); ///< Instantiated in file
 
 /// Serialization for container
 /** Template for list, vector */
@@ -254,6 +255,7 @@ template<class Type> void  MMv1_SaveInFile(const Type & aVal,const std::string &
 }
 /// Exist one for cSetName
 template<> void  MMv1_SaveInFile(const cSetName & aVal,const std::string & aName);
+template<> void  MMv1_SaveInFile(const tNameRel & aVal,const std::string & aName);
 
 /// call static function of cMMVII_Appli, cannot make forward declaration of static function
 bool GlobOutV2Format();
@@ -298,6 +300,14 @@ template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & a
 /// Indicate if a file is really XML, created by MMVII and containing the expected Tag
 bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string & aTag); 
 
+
+template <class Type> const std::string  & XMLTagSet();
+template <> const std::string  &           XMLTagSet<std::string> ();
+template <> const std::string  &           XMLTagSet<tNamePair>   ();
+
+template <class Type> const std::string  & MMv1_XMLTagSet();
+template <> const std::string  &           MMv1_XMLTagSet<std::string> ();
+template <> const std::string  &           MMv1_XMLTagSet<tNamePair>   ();
 
 /*****************************************************************/
 

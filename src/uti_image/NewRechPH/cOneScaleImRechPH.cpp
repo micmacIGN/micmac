@@ -96,22 +96,17 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromFile
 
 cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneScaleImRechPH & anIm,const double & aSigma)
 {
-
-// MakeFlagMontant(anIm.mIm);
-// template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
-
      cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,anIm.mSz,aSigma,anIm.mNiv+1);
 
      // Pour reduire le temps de calcul, si deja plusieurs iters la fon de convol est le resultat
      // de plusieurs iters ...
      int aNbIter = 4;
-     if (aRes->mNiv==2) aNbIter = 3;
-     if (aRes->mNiv==1) aNbIter = 2;
+     if (aRes->mNiv==1) aNbIter = 3;
+     else if (aRes->mNiv>=2) aNbIter = 2;
 
      // anIm.mIm.dup(aRes->mIm);
      aRes->mIm.dup(anIm.mIm);
-     // double aParamG = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(anIm.mScale)));
-     // FilterGauss(aRes->mIm,aParamG,aNbIter);
+     // Passe au filtrage gaussien le sigma cible et le sigma actuel, il se debrouille ensuite
      FilterGaussProgr(aRes->mIm,aSigma,anIm.mScale,aNbIter);
 
      return aRes;
@@ -119,6 +114,9 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneS
 
 tImNRPH cOneScaleImRechPH::Im() {return mIm;}
 
+
+// Indique si tous les voisins se compare a la valeur cible aValCmp
+// autrement dit est un max ou min local
 
 bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
 {
@@ -134,9 +132,12 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
 }
 
 
+// Recherche tous les points topologiquement interessant
 
 void cOneScaleImRechPH::CalcPtsCarac()
 {
+   // voisin tries excluant le pixel central, le tri permet normalement de
+   // beneficier le plus rapidement possible d'une "coupe"
    std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(),true);
 
 
@@ -233,27 +234,29 @@ void cOneScaleImRechPH::Show(Video_Win* aW)
    );
 }
 
+// Initialise la matrice des pt remarquable, en Init les met, sinon les supprime
 void cOneScaleImRechPH::InitBuf(const eTypePtRemark & aType, bool Init)
 {
    for (std::list<cPtRemark *>::iterator itP=mLIPM.begin() ; itP!=mLIPM.end() ; itP++)
    {
-       if ((*itP)->Type()==aType)
-       {
-           Pt2di aPi = round_ni((*itP)->Pt());
-           if (mAppli.Inside(aPi))
-           {
-               mAppli.PtOfBuf(aPi) = Init ? *itP : 0;
-           }
-           else
-           {
-           }
-       }
+      if ((*itP)->Type()==aType)
+      {
+         Pt2di aPi = round_ni((*itP)->Pt());
+         if (mAppli.Inside(aPi))
+         {
+            mAppli.PtOfBuf(aPi) = Init ? *itP : 0;
+         }
+         else
+         {
+         }
+      }
    }
 }
 
 
 void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark & aType)
 {
+   // Initialise la matrice haute resolution
    aHR.InitBuf(aType,true);
    double aDist = mScale * 1.5 + 4;
 
@@ -274,6 +277,7 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark &
            }
        }
    }
+   // Desinitalise 
    aHR.InitBuf(aType,false);
 }
 

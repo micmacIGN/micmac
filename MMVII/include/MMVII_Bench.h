@@ -30,6 +30,10 @@ void BenchSet(const std::string & aDir); ///< Bench on cExtSet (set "en extensio
 void BenchSelector(const std::string & aDir); ///< Bench on selecto, (set "en comprehension")
 void BenchEditSet(); ///< Bench on commands : EditSet  (to come EditCple)
 
+void BenchEnum(); ///< Bench on Str2E / E2Str
+
+void Bench_Nums(); ///< Bench on rounding, modulo ... basic numeric service
+
 
 
 

@@ -56,13 +56,29 @@ class cOneScaleImRechPH;
 
 /************************************************************************/
 
+// represente une echelle de points remarquable
+// contient une image floutee et les points extrait
 
 class cOneScaleImRechPH
 {
       public :
-          static cOneScaleImRechPH* FromFile (cAppli_NewRechPH &,const double & aS0,const std::string &,const Pt2di & aP0,const Pt2di & aP1);
-          static cOneScaleImRechPH* FromScale(cAppli_NewRechPH &,cOneScaleImRechPH &,const double & aSigma);
-          tImNRPH Im();
+          // deux constructeurs statiques 
+
+             // 1- constucteur "top-level" a partir du fichier
+          static cOneScaleImRechPH* FromFile 
+                 (
+                    cAppli_NewRechPH &,
+                    const double & aS0, // sigma0
+                    const std::string &,  // Nom du fichier
+                    const Pt2di & aP0,const Pt2di & aP1  // Box Calcule
+                 );
+          static cOneScaleImRechPH* FromScale
+                 (
+                      cAppli_NewRechPH &,    // Application
+                      cOneScaleImRechPH &,   // niveau du dessus
+                      const double & aSigma  // a sigma abs
+                 );
+          tImNRPH Im(); // simple accesseur a l'image
 
           void CalcPtsCarac();
           void Show(Video_Win* aW);

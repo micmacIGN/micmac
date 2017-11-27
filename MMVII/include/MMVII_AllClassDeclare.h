@@ -33,9 +33,13 @@ class cMMVII_Ifs ;
 template <class Type> class cExtSet ;
 template <class Type> class cSelector ;
 template <class Type> class cDataSelector ;
+template <class Type> class cOrderedPair ;
 
-typedef cSelector<std::string> tNameSelector;
-typedef cExtSet<std::string>   tNameSet;
+typedef cSelector<std::string>      tNameSelector;
+typedef cExtSet<std::string>        tNameSet;
+typedef cOrderedPair<std::string>   tNamePair;
+typedef cExtSet<tNamePair>          tNameRel;
+
 
 
 // MMVII_Ptxd.h

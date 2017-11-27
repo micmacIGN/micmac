@@ -383,6 +383,7 @@ void cMMVII_Appli::GenerateHelp()
    std::cout << "\n";
    std::cout << "  For command : " << mSpecs.Name() << " \n";
    std::cout << "   => " << mSpecs.Comment() << "\n";
+   std::cout << "   => Srce code entry in :" << mSpecs.NameFile() << "\n";
    std::cout << "\n";
 
    std::cout << " == Mandatory unnamed args : ==\n";
@@ -552,6 +553,20 @@ std::string  cMMVII_Appli::StrCallMMVII(const std::string & aCom2007,const cColS
    mColStrAOpt.clear();
    return aComGlob;
 }
+
+void cMMVII_Appli::InitOutFromIn(std::string &aFileOut,const std::string& aFileIn)
+{
+   if (! IsInit(&aFileOut))
+   {
+      aFileOut = aFileIn;
+   }
+   else
+   {
+      aFileOut = mDirProject + aFileOut;
+   } 
+}
+   
+
 
 int  cMMVII_Appli::ExeCallMMVII(const std::string & aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt)
 {

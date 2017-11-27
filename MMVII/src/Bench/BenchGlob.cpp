@@ -38,6 +38,10 @@ void Bench_0000_SysDepString()
     std::string aPath4 = "/a/bb/cc/tutu";
     MMVII_INTERNAL_ASSERT_bench(DirOfPath (aPath4,false)==aPath3,"Dir Bench_0000_SysDepString");
     MMVII_INTERNAL_ASSERT_bench(FileOfPath(aPath4,false)=="tutu","File Bench_0000_SysDepString");
+
+    std::string aPath5 = "NONE";
+    MMVII_INTERNAL_ASSERT_bench(DirOfPath (aPath5,false)=="./","Dir Bench_0000_SysDepString");
+    MMVII_INTERNAL_ASSERT_bench(FileOfPath(aPath5,false)=="NONE","File Bench_0000_SysDepString");
 }
 #else
 void Bench_0000_SysDepString()
@@ -126,6 +130,11 @@ void cAppli_MMVII_Bench::Bench_0000_String()
     MMVII_INTERNAL_ASSERT_bench( Prefix("AA.",'.')=="AA","Postfix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench(Postfix(".AA",'.')=="AA","Postfix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench( Prefix(".AA",'.')=="","Postfix in Bench_0000_String");
+
+    MMVII_INTERNAL_ASSERT_bench(Postfix("AA",'.',true,true)=="AA","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Prefix("AA",'.',true,true)=="","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix("AA",'.',true,false)=="","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Prefix("AA",'.',true,false)=="AA","Postfix in Bench_0000_String");
 }
 
 
@@ -181,6 +190,8 @@ int  cAppli_MMVII_Bench::Exe()
    // La on a verifie que ca marchait pas
    // MMVII_INTERNAL_ASSERT_all((1+1)==3,"Theoreme  pas tres fondamental de l'arithmetique");
 
+   Bench_Nums();
+
    BenchFiles();
    Bench_0000_SysDepString();
    Bench_0000_String();
@@ -200,6 +211,8 @@ int  cAppli_MMVII_Bench::Exe()
    BenchSet(mDirTestMMVII);
    BenchSelector(mDirTestMMVII);
    BenchEditSet();
+
+   BenchEnum();
 
 
    // We clean the temporary files created
@@ -222,7 +235,8 @@ cSpecMMVII_Appli  TheSpecBench
       "This command execute (many) self verification on MicMac-V2 behaviour",
       {eApF::Test},
       {eApDT::None},
-      {eApDT::Console}
+      {eApDT::Console},
+      __FILE__
 );
 
 
@@ -277,23 +291,14 @@ class cTestShared
 int cAppli_MPDTest::Exe()
 {
    
-  cTestShared::Test();
-  std::cout << "CHAR LIMS " << (int) std::numeric_limits<char>::min() << " " << (int) std::numeric_limits<char>::max() << "\n";
-
-  std::cout << "DIRBIN2007:" << DirBin2007 << "\n";
-
-  tNameSet aSet;
-  aSet.Add("toto");
-  std::cout << "SIZZZ " << aSet.size() << "\n";
-  SaveInFile(aSet,"toto.xml");
-  std::vector<std::string> aV;
-  aV.push_back("toto");
-  SaveInFile(aV,"totoV.xml");
-
-  tNameSet aS2;
-  ReadFromFile(aS2,"toto.xml");
-  std::cout << "SIZZZ " << aS2.size() << "\n";
 /*
+   for (int aK=0 ; aK<=int (eOperator::eReset) ; aK++)
+   {
+      eOperator anOp = eOperator(aK);
+      std::string aStr = E2Str(anOp);
+      eOperator anOp2 = Str2E(aStr);
+      std::cout << "kkkkkkkkkK=" << aK  << " " << (int)anOp << " " << aStr << " " << (int)anOp2<< "\n";
+   }
    TestBooostIter();
    BUD(".");
    BUD("/a/b/c");
@@ -321,7 +326,8 @@ cSpecMMVII_Appli  TheSpecMPDTest
       "This used a an entry point to all quick and dirty test by MPD ...",
       {eApF::Test},
       {eApDT::None},
-      {eApDT::Console}
+      {eApDT::Console},
+      __FILE__
 );
 
 

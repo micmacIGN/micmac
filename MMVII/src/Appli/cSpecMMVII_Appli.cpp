@@ -13,21 +13,24 @@ cSpecMMVII_Appli::cSpecMMVII_Appli
     const std::string & aComment,
     const tVaF     & aFeatures,
     const tVaDT    & aInputs,   
-    const tVaDT    & aOutputs  
+    const tVaDT    & aOutputs  ,
+    const std::string & aNameFile
 
 ) :
-  mName      (aName),
-  mAlloc     (anAlloc),
-  mComment   (aComment),
-  mVFeatures (aFeatures),
+  mName       (aName),
+  mAlloc      (anAlloc),
+  mComment    (aComment),
+  mVFeatures  (aFeatures),
   mVInputs    (aInputs),
-  mVOutputs   (aOutputs)
+  mVOutputs   (aOutputs),
+  mNameFile   (aNameFile)
 {
 }
 
 const std::string &     cSpecMMVII_Appli::Name() const {return mName;}
 tMMVII_AppliAllocator  cSpecMMVII_Appli::Alloc() const {return mAlloc;}
 const std::string &     cSpecMMVII_Appli::Comment() const {return mComment;}
+const std::string &     cSpecMMVII_Appli::NameFile() const {return mNameFile;}
 
 
 // Si aMes=="SVP"=> No Error
@@ -71,6 +74,7 @@ extern cSpecMMVII_Appli  TheSpecTestCpp11;
 extern cSpecMMVII_Appli  TheSpec_TestBoostSerial;
 extern cSpecMMVII_Appli  TheSpecMPDTest;
 extern cSpecMMVII_Appli  TheSpecEditSet;
+extern cSpecMMVII_Appli  TheSpecEditRel;
   
 const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
 {
@@ -83,6 +87,7 @@ const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
         TheRes.push_back(&TheSpec_TestBoostSerial);
         TheRes.push_back(&TheSpecMPDTest);
         TheRes.push_back(&TheSpecEditSet);
+        TheRes.push_back(&TheSpecEditRel);
    }
    
    return TheRes;

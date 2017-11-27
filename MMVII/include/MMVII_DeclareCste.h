@@ -17,7 +17,8 @@ namespace MMVII
 
 // Xml tags
 extern const std::string TagMMVIISerial;    ///< Xml top tag of all generated file
-extern const std::string TagSetOfName;      ///< Xml (sub) top tag for 
+extern const std::string TagSetOfName;      ///< Xml (sub) top tag for  Set of name
+extern const std::string TagSetOfCpleName;  ///< Xml (sub) top tag for  Set of Cple of Name (relation)
 // ------
 extern const std::string TheMMVII_SysName ; ///< Name of Operating system
 
@@ -32,11 +33,15 @@ extern const char CharProctected;  // => '\' on Gnu/Linux, will see on others
 
 // MicMac-v1  compatiblity 
 extern const std::string  MMv1XmlTag_SetName;
+extern const std::string  MMv1XmlTag_RelName;
 
 // MicMac Install
 extern const   std::string DirBin2007;  ///< computed by MM Instal
 extern const   std::string Bin2007; ///< MMVII 4 now
 
+// Users Value
+
+extern const   std::string MMVII_NONE;  ///< For command, each time a "no value" can be used
 
 };
 

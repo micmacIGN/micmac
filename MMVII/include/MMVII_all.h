@@ -34,16 +34,18 @@
 #include "MMVII_memory.h"
 #include "MMVII_util_tpl.h"
 #include "MMVII_util.h"
+#include "MMVII_nums.h"
 
 
 
 // Les class cPtxd, cPt1d, cPt2d
 #include "MMVII_Ptxd.h"
-#include "MMVII_Bench.h"
+#include "MMVII_Mappings.h"
+#include "MMVII_Sensor.h"
 
 // Les classe lies aux conversion vers des chaines, fichier ...
 #include "MMVII_Stringifier.h"
-// 
+#include "MMVII_Bench.h"
 #include "cMMVII_Appli.h"
 
 // communication MMVII/MMv1
