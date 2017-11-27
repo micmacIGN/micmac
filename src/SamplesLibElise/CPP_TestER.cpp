@@ -40,7 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../uti_phgrm/Apero/cCameraRPC.h"
 #include "general/ptxd.h"
-#include "../util/affin2d.cpp"
 
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
@@ -687,35 +686,6 @@ int TestER_main100(int argc,char ** argv)
     bool aModeHelp;
     StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
 
-   /* CameraRPC * aRPC = new CameraRPC(aFullName, aType);
-    cComp3DBasic * aRPCB = new cComp3DBasic (aRPC);
-    
-    Pt2dr aP2d(100,500);
-    ElSeg3D aElOrg = aRPC->Capteur2RayTer(aP2d);
-    ElSeg3D aElGeo = aRPCB->Capteur2RayTer(aP2d);
-
-    Pt3dr aPB1 = aRPCB->Target2OriginCS(aElGeo.P0());
-    Pt3dr aPB2 = aRPCB->Target2OriginCS(aElGeo.P1());
-
-    std::cout <<  "aElOrg " << aElOrg.P0() << " " 
-	                    << aElOrg.P1() << "\n";
-    std::cout <<  "aElGeo " << aElGeo.P0() << " " 
-	                    << aElGeo.P1() << "\n";
-    std::cout <<  "aElGeoBack " << aPB1 << " " 
-	                        << aPB2 << "\n";
-
-    //aRPC.OptiicalCenterPerLine();
-
-    //Pt3dr aP1, aP2, aP3;
-    //aP1 = aRPC.OpticalCenterOfPixel(Pt2dr(1,1));
-    //aP2 = aRPC.OpticalCenterOfPixel(Pt2dr(10,10));
-    //aP3 = aRPC.OpticalCenterOfPixel(Pt2dr(aRPC.SzBasicCapt3D().x-1,
-//			             aRPC.SzBasicCapt3D().y-1));
-
-  //  std::cout <<  aP1.x << " " << aP1.y << " " << aP1.z << "\n";
-  //  std::cout <<  aP2.x << " " << aP2.y << " " << aP2.z << "\n";
-  //  std::cout <<  aP3.x << " " << aP3.y << " " << aP3.z << "\n";
-*/
     return EXIT_SUCCESS;
 }
 
@@ -732,89 +702,6 @@ int TestER_hom_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-//test Map2D
-int TestER_main3(int argc,char ** argv)
-{
-    std::string aNameIm;
-    std::string aNameOut="PolyIm.tif";
-    std::string aNameMapOut="PolyIm.xml";
-
-    Pt2di       aP0(100,100);
-    Pt2di       aP1(1000,1000);
-    int         aNb=100;
-    int         aDeg=2;
-    Box2dr      aBox(aP0,aP0+aP1);
-
-
-//    eTypeMap2D aType="eTM2_Polyn";
-   
-    ElInitArgMain
-    (
-        argc, argv,
-        LArgMain() << EAMC(aNameIm,"Image name")
-                   << EAMC(aNb,"Number of points in X (and Y respectively)"),
-        LArgMain() << EAM(aP0,"P0",true,"P0 of the bounding box")
-                   << EAM(aP1,"P1",true,"P1 of the bounding box")
-                   << EAM(aDeg,"Deg",true,"Polynom degree")
-                   << EAM(aNameOut,"Out",true,"Name of the output image")
-    );
-
- 		
-    //lecture d'une image
-    Tiff_Im aTifIn = Tiff_Im::StdConvGen(aNameIm,-1,true);
-    Pt2di   aTifSz = aTifIn.sz();
-
-    Im2D_REAL4 aImR(aTifSz.x, aTifSz.y);
-    ELISE_COPY
-    (
-        aImR.all_pts(),
-        aTifIn.in(),
-        aImR.out()
-    );
-
-    Im2D_REAL8 aImRes(aTifSz.x,aTifSz.y,0.0);
-    
-    //selection d'un grille et sauvgaure dans ElPackHomologue
-    Pt2di aPas(floor(double(aP1.x-aP0.x)/aNb), floor(double(aP1.y-aP0.y)/aNb));
-
-    ElPackHomologue aPack;
-    for (int aK1=aP0.x; aK1<aP1.x; aK1=aK1+aNb)
-    {
-        for (int aK2=aP0.y; aK2<aP1.y; aK2=aK2+aNb)
-     	{
-	    Pt2dr aP(aK1,aK2);
-	    double aD(aImR.Val(aK1,aK2));
-            aPack.Cple_Add(ElCplePtsHomologues(aP,aP+Pt2dr(aD,aD)));
-        }  
-    }
-
-
-    cMapPol2d aMapPol(aDeg,aBox,2); 
-    std::vector<std::string> aVAux = aMapPol.ParamAux();
-    cParamMap2DRobustInit aParam(eTypeMap2D(aMapPol.Type()),200,&aVAux);
-    Map2DRobustInit(aPack,aParam); 
-
-    cElMap2D * aMapCor= aParam.mRes;
-    std::vector<cElMap2D *> aVMap;
-    aVMap.push_back(aMapCor);
-    cComposElMap2D aComp(aVMap);
- 
-    for (int aK1=aP0.x; aK1<aP1.x; aK1++)
-    {
-        for (int aK2=aP0.y; aK2<aP1.y; aK2++)
-        {
-	    Pt2dr  aP(aK1,aK2);
-            double aRes  = aComp(aP).x - aP.x;
-
-            aImRes.SetR_SVP(Pt2di(aP.x,aP.y),aRes);
-        }
-    }
-    MakeFileXML(aComp.ToXmlGen(),aNameMapOut);
-
-    Tiff_Im::CreateFromIm(aImRes,aNameOut);
-
-    return EXIT_SUCCESS;
-}
 
 //test export of a CamStenope into bundles of rays
 int TestER_main2(int argc,char ** argv)
