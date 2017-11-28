@@ -102,6 +102,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/Ex_Match/cImgMatch.cpp
     ${TDPPMD_DIR}/Ex_Match/cLSQTemplate.cpp
  	${TDPPMD_DIR}/FilterFileHom.cpp
+	${TDPPMD_DIR}/DIDRO/cimgeo.cpp
 
     ${TDPPMD_DIR}/RollingBasc/cAppliRollingBasc.cpp
 
