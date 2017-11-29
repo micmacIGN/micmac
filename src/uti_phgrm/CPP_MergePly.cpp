@@ -315,6 +315,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin, const std::vecto
         vector<string> aVCom;
 
         int aBin  = 1;
+        std::string aComment="";
 
         ElInitArgMain
         (
@@ -323,6 +324,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin, const std::vecto
          LArgMain()		<< EAM(aNameOut,"Out",true)
                         << EAM(aVCom,"Comments",true)
                         << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
+                        << EAM(aComment,"Comment",true,"Comment to add to header")
         );
 
         SplitDirAndFile(aDir, aPattern, aFullName);
@@ -333,6 +335,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin, const std::vecto
 
         sPlyOrientedColoredAlphaVertex **glist=NULL;
         int gen_nelems =0;
+        unordered_set<string> aComments;
         int Cptr = 0;
 
         int type = 0;
@@ -362,6 +365,9 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin, const std::vecto
             plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 
             gen_nelems += num_elems;
+
+            for (int i=0;i<thePlyFile->num_comments;i++)
+                aComments.insert(thePlyFile->comments[i]);
 
             ply_close (thePlyFile);
         }
@@ -595,7 +601,11 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin, const std::vecto
         string mode = aBin ? "wb" : "w";
         FILE * aFP = FopenNN(aNameOut, mode, "MergePly");
 
-        writeHeader(aFP, gen_nelems, type, aBin);
+        if (aComment.size()>0)
+            aComments.insert(aComment);
+        vector<string> aCommentsVector;
+        aCommentsVector.assign(aComments.begin(),aComments.end());
+        writeHeader(aFP, gen_nelems, type, aBin, aCommentsVector);
 
         //data
         for (int aK=0 ; aK< gen_nelems ; aK++)
