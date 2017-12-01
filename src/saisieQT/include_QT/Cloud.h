@@ -22,7 +22,7 @@ class GlCloud : public cObjectGL
 {
 public:
     GlCloud(){}
-    GlCloud(vector<GlVertex> const &, int type=1);
+    GlCloud(vector<GlVertex> const &,int type=1, char** comments=0, int nbComments=0);
 
     static GlCloud* loadPly(string);
 
@@ -39,6 +39,8 @@ public:
 
     void    draw();
 
+    vector<string>& getComments(){return _comments;}
+
 private:
     vector<GlVertex> _vertices;
 
@@ -48,6 +50,8 @@ private:
     int         _type;  //data stored (0: xyz, 1:xyzrgb, 2: xyzrgba 3:xyznxnynz 4:xyznxnynzrgb 5:xyznxnynzrgba)
 
 	QVector3D       _sum;  //coordinate sums to compute scene center
+
+    vector<string> _comments;
 };
 
 
