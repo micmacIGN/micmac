@@ -117,6 +117,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          bool        mExpImSec;
          Pt3dr       mOffsetPly;
          int         mSzW;
+         bool        mNormByC;
 
 };
 
@@ -138,7 +139,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mDebugMMByP         (false),
    mBin                (true),
    mExpImSec           (true),
-   mSzW                (1)
+   mSzW                (1),
+   mNormByC            (false)
 {
 
 
@@ -196,7 +198,6 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 #endif
 	
 	//C3DC call case : general case
-    bool NormByC {false};
     if(mDoMerge)
     {
 		ElInitArgMain
@@ -224,7 +225,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
 						<< EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
 						<< EAM(mSetHom,"SH",true,"Set of Hom, Def=\"\"")
-                        << EAM(NormByC,"NormByC",true,"Def=False")
+                        << EAM(mNormByC,"NormByC",true,"Replace normal with camera position in ply (Def=false)")
 
 		);
 	}
@@ -258,7 +259,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 
    if (MMVisualMode) return;
 
-   if (NormByC == true)
+   if (mNormByC == true)
    {
        mSzNorm = -1;
    }
@@ -329,7 +330,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
            +  mStrImOri0 + " ModeMerge=" + mStrType
            +  " DownScale=" +ToString(mDS)
            +  " SH=" + mSetHom
-           + " NormByC=" + (NormByC ? "true" : "false")
+           + " NormByC=" + (mNormByC ? "true" : "false")
            ;
 
    if (EAMIsInit(&mOffsetPly))
