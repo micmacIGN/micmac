@@ -296,7 +296,7 @@ cSpecMMVII_Appli  TheSpecEditRel
 (
      "EditRel",
       Alloc_EditRel,
-      "This command is used to edit set of file",
+      "This command is used to edit set of pairs of files",
       {eApF::Project},
       {eApDT::Console,eApDT::Xml},
       {eApDT::Xml},
@@ -310,6 +310,7 @@ cSpecMMVII_Appli  TheSpecEditRel
 
 void OneBenchEditSet
     (
+        int aNumTest,                // Change test condition
         const std::string & anOp,    // Operator
         bool InitInput,              // If true, Input is set to last output
         const std::string & aPat,    // Pattern of image
@@ -325,10 +326,19 @@ void OneBenchEditSet
     std::string aDirT = anAp.TmpDirTestMMVII()  ;
     std::string Input = "Input.xml";
     std::string Ouput = "Ouput.xml";
+
+    bool UseDirP = (aNumTest==1);
+
     if (InitInput)
     {
        if (ExistFile(aDirT+Ouput))
+       {
           RenameFiles(aDirT+Ouput,aDirI+Input);
+       }
+       else
+       {
+          MMVII_INTERNAL_ASSERT_always(false,"Incoherence in OneBenchEditSet");
+       }
     }
     else
     {
@@ -339,16 +349,19 @@ void OneBenchEditSet
     cColStrAOpt & anArgOpt = anAp.StrOpt() << t2S("Out",Ouput);
 
     if (aNumAskedOut!=0)
-       anArgOpt <<  t2S("NumVOut",ToStr(aNumAskedOut));
+       anArgOpt <<  t2S(GOP_NumVO,ToStr(aNumAskedOut));
 
     if (Interv!="")
-       anArgOpt <<  t2S("FFI0",ToStr(Interv));
+       anArgOpt <<  t2S(GOP_Int0,ToStr(Interv));
+
+    if (UseDirP)
+       anArgOpt <<  t2S(GOP_DirProj,aDirI);
 
 
     anAp.ExeCallMMVII
     (
         "EditSet",
-        anAp.StrObl() <<   aDirI+Input  << anOp << aPat,
+        anAp.StrObl() <<   (UseDirP ? "" : aDirI)+Input  << anOp << aPat,
         anArgOpt
     );
 
@@ -384,27 +397,29 @@ void OneBenchEditSet
 
 void BenchEditSet()
 {                  
-    std::string C09="0123456789";
-  // Basic test, we create the file
-    OneBenchEditSet("+=",false,".*txt"       ,0,2,10,"",C09); // 
-    OneBenchEditSet("+=",false,".*txt"       ,1,1,10,"",C09);
-    OneBenchEditSet("+=",false,".*txt"       ,2,2,10,"",C09);
-    OneBenchEditSet("+=",false,"F[02468].txt",2,2,5,"","02468");
- // here we init from previous
-    OneBenchEditSet("+=",true ,"F[3-5].txt" ,2,2,7,"","0234568"); // 0234568
-    OneBenchEditSet("*=",true ,"F[0-5].txt" ,2,2,5,"","02345"); // 02345
-    OneBenchEditSet("-=",true ,"F[0369].txt",2,2,3,"","245"); // 245
+    for (int aK=0 ; aK<2 ; aK++)
+    {
+       std::string C09="0123456789";
+     // Basic test, we create the file
+       OneBenchEditSet(aK,"+=",false,".*txt"       ,0,2,10,"",C09); // 
+       OneBenchEditSet(aK,"+=",false,".*txt"       ,1,1,10,"",C09);
+       OneBenchEditSet(aK,"+=",false,".*txt"       ,2,2,10,"",C09);
+       OneBenchEditSet(aK,"+=",false,"F[02468].txt",2,2,5,"","02468");
+    // here we init from previous
+       OneBenchEditSet(aK,"+=",true ,"F[3-5].txt" ,2,2,7,"","0234568"); // 0234568
+       OneBenchEditSet(aK,"*=",true ,"F[0-5].txt" ,2,2,5,"","02345"); // 02345
+       OneBenchEditSet(aK,"-=",true ,"F[0369].txt",2,2,3,"","245"); // 245
 
-    OneBenchEditSet( "=",true ,"F[0369].txt",1,1,4,"","0369"); // 0369
-    OneBenchEditSet("+=",true ,"F[02468].txt",0,1,7,"","0234689"); // 0234689
-    // Specify V2, but entry is V1, so V1
-    OneBenchEditSet( "=",true ,"F.*.txt",0,1,5,"],F4.txt]","01234"); // 01234
-    OneBenchEditSet("+=",true ,"F.*.txt",0,1,6,"]F8.txt,]","012349"); // 012349
+       OneBenchEditSet(aK,"=",true ,"F[0369].txt",1,1,4,"","0369"); // 0369
+       OneBenchEditSet(aK,"+=",true ,"F[02468].txt",0,1,7,"","0234689"); // 0234689
+     // Specify V2, but entry is V1, so V1
+       OneBenchEditSet(aK,"=",true ,"F.*.txt",0,1,5,"],F4.txt]","01234"); // 01234
+       OneBenchEditSet(aK,"+=",true ,"F.*.txt",0,1,6,"]F8.txt,]","012349"); // 012349
 
-    OneBenchEditSet( "=",true ,"F.*.txt",0,1,4,"[F1.txt,F3.txt]]F6.txt,F8.txt[","1237"); // 
-    OneBenchEditSet( "=0",true ,"F.*.txt",0,1,0,"",""); // 
+       OneBenchEditSet(aK,"=",true ,"F.*.txt",0,1,4,"[F1.txt,F3.txt]]F6.txt,F8.txt[","1237"); // 
+       OneBenchEditSet(aK,"=0",true ,"F.*.txt",0,1,0,"",""); // 
+    }
 }
-
 
 };
 

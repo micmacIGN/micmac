@@ -1,0 +1,18 @@
+
+<GenCpp  Difndef="Define_NotRechNewPH">
+
+<Verbatim File=".cpp">
+#include "StdAfx.h"
+#include "cParamNewRechPH.h"
+</Verbatim>
+<Verbatim File=".h.cpp">
+// NOMORE ... 
+</Verbatim>
+   <PCarac  Nb="1" Class="true">
+        <Pt Nb="1" Type="Pt2dr"> </Pt>
+   </PCarac>
+<Verbatim File=".h.cpp">
+// };
+</Verbatim>
+
+</GenCpp>

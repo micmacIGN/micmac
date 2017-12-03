@@ -21,7 +21,7 @@ template <>  bool cStrIO<bool>::FromStr(const std::string & aStr)
     if ((aStr=="1") || UCaseEqual(aStr,"true")) return true;
     if ((aStr=="0") || UCaseEqual(aStr,"false")) return false;
 
-    MMVII_INTERNAL_ASSERT_user(false,"Bad value for boolean :["+aStr+"]");
+    MMVII_INTERNAL_ASSERT_user(eTyUEr::eBadBool,"Bad value for boolean :["+aStr+"]");
 
     return false;
 }

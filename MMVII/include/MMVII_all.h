@@ -24,8 +24,8 @@
 
 
 //===========================================
-#include "MMVII_Error.h"
 #include "MMVII_AllClassDeclare.h"
+#include "MMVII_Error.h"
 #include "MMVII_enums.h"
 // Header MMVII
 // #include "TypeNum.h"

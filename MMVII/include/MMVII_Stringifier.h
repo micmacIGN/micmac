@@ -92,8 +92,9 @@ class cSemA2007
       cSemA2007(eTA2007 aType,const std::string & anAux);
       cSemA2007(eTA2007 aType);
 
-      eTA2007 Type()            const;
-      const std::string & Aux() const;
+      eTA2007 Type()            const;  ///< Accessor
+      const std::string & Aux() const;  ///< Accessor
+      std::string  Name4Help() const;   ///< Use  E2Str(const eTA2007 &) but filter to usefull, add Aux
 
     private :
 
@@ -129,6 +130,9 @@ class  cSpecOneArg2007 : public cMemCheck
         const std::string  & Com() const;   ///< Accessor
         int NbMatch () const;         ///< Accessor
         void IncrNbMatch() ;
+
+        std::string  Name4Help() const;   ///< concat and format the different Name4Help of tVSem
+
      private :
 
          std::string     mName; ///< Name for optionnal

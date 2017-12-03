@@ -134,10 +134,12 @@ class cAppli_NewRechPH
         int         mNbS;
         double      mS0;
         Pt2di       mSzIm;
+        Box2di      mBox;
 
         std::vector<cOneScaleImRechPH *> mVI1;
         Video_Win  * mW1;
         bool         mModeTest;
+    
 
         double       mDistMinMax;
         bool         mDoMin;

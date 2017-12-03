@@ -14,6 +14,7 @@ namespace MMVII
 
 */
 
+enum class eTyUEr;
 
 // MMVII_memory.h :  Memory
 

@@ -120,15 +120,15 @@ void cMMVII_Appli::InitParam()
                    // becauser  InitParam, it may change the correct value 
 
   // Add common optional parameters
-  cSpecOneArg2007::tVSem aIntCom{eTA2007::Internal,eTA2007::Common}; // just to make shorter lines
+  cSpecOneArg2007::tVSem aInternal{eTA2007::Internal,eTA2007::Common}; // just to make shorter lines
   cSpecOneArg2007::tVSem aCom{eTA2007::Common}; // just to make shorter lines
   mArgFac
-      <<  AOpt2007(mIntervFilterMS[0],"FFI0","File Filter Interval, Main Set",aCom)
-      <<  AOpt2007(mIntervFilterMS[1],"FFI1","File Filter Interval, Second Set",aCom)
-      <<  AOpt2007(mNumOutPut,"NumVOut","Num version for output format (1 or 2)",aCom)
-      <<  AOpt2007(aDP ,NameDirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Common})
-      <<  AOpt2007(mLevelCall,"LevCall","Internal : Don't Use !!",aIntCom)
-      <<  AOpt2007(mShowAll,"ShowAll","Internal : Don't Use !!",aIntCom)
+      <<  AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
+      <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})
+      <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",aCom)
+      <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Common})
+      <<  AOpt2007(mLevelCall,GIP_LevCall,"Internal : Don't Use !!",aInternal)
+      <<  AOpt2007(mShowAll,GIP_ShowAll,"Internal : Don't Use !!",aInternal)
   ;
 
   // Check that names of optionnal parameters begin with alphabetic caracters
@@ -199,7 +199,8 @@ void cMMVII_Appli::InitParam()
              // Look for spec corresponding to name
              for (const auto  & aSpec : mArgFac.Vec())
              {
-                 if (aSpec->Name() == aName)
+                 // if (aSpec->Name() == aName)
+                 if (UCaseEqual(aSpec->Name(),aName))
                  {
                     aNbSpecGot++;
                     aVSpec.push_back(aSpec);
@@ -211,7 +212,7 @@ void cMMVII_Appli::InitParam()
                     // Same name was used several time
                     if (aSpec->NbMatch() !=0)
                     {
-                        MMVII_INTERNAL_ASSERT_user(false,"\""+aName +"\" was used multiple time");
+                        MMVII_INTERNAL_ASSERT_user(eTyUEr::eMulOptParam,"\""+aName +"\" was used multiple time");
                     }
                     aSpec->IncrNbMatch();
                  }
@@ -219,7 +220,7 @@ void cMMVII_Appli::InitParam()
              // Name does not correspond to spec
              if (aNbSpecGot==0)
              {
-                MMVII_INTERNAL_ASSERT_user(false,"\""+aName +"\" is not a valide optionnal value");
+                MMVII_INTERNAL_ASSERT_user(eTyUEr::eBadOptParam,"\""+aName +"\" is not a valide optionnal value");
              }
              aVValues.push_back(aValue);
           }
@@ -245,7 +246,7 @@ void cMMVII_Appli::InitParam()
       }
       MMVII_INTERNAL_ASSERT_user
       (
-          false,
+          eTyUEr::eInsufNbParam,
           "Not enough Arg, expecting " + ToS(aNbObl)  + " , Got only " +  ToS(aNbArgGot)
       );
   }
@@ -253,13 +254,33 @@ void cMMVII_Appli::InitParam()
 
 
   // First compute the directory of project that may influence all other computation
+     // Try with Optional value
+  bool HasDirProj=false;
   for (size_t aK=0 ; aK<aNbArgTot; aK++)
   {
      if (aVSpec[aK]->HasType(eTA2007::DirProject))
+     {
+        HasDirProj = true;
+        MakeNameDir(aVValues[aK]);
         mDirProject = aVValues[aK];
-     else if (aVSpec[aK]->HasType(eTA2007::FileDirProj))
-        mDirProject = DirOfPath(aVValues[aK],false);
+     }
   }
+
+  
+  for (size_t aK=0 ; aK<aNbArgTot; aK++)
+  {
+     if (aVSpec[aK]->HasType(eTA2007::FileDirProj))
+     {
+        if (!HasDirProj)
+           mDirProject = DirOfPath(aVValues[aK],false);
+        else
+        {
+           aVValues[aK] = mDirProject + aVValues[aK];
+        }
+     }
+  }
+
+  // Add a / if necessary
   MakeNameDir(mDirProject);
 
   //  Initialize the paramaters
@@ -316,7 +337,7 @@ void cMMVII_Appli::InitParam()
       // Why should user init interval if there no set ?
       if (IsInit(&mIntervFilterMS[aNum]) && (!  mVMainSets.at(aNum).IsInit()))
       {
-         MMVII_INTERNAL_ASSERT_user(false,"Interval without filter for num:"+ToStr(aNum));
+         MMVII_INTERNAL_ASSERT_user(eTyUEr::eIntervWithoutSet,"Interval without filter for num:"+ToStr(aNum));
       }
       if (aNum>0)
       {
@@ -390,7 +411,7 @@ void cMMVII_Appli::GenerateHelp()
 
    for (const auto & Arg : mArgObl.Vec())
    {
-       std::cout << "  * " << Arg->NameType() << " :: " << Arg->Com() << "\n";
+       std::cout << "  * " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com()  << "\n";
    }
 
    tNameSelector  aSelName =  BoostAllocRegex(mPatHelp);
@@ -408,7 +429,7 @@ void cMMVII_Appli::GenerateHelp()
              bool isGlobHelp = Arg->HasType(eTA2007::Common);
              if ((!isGlobHelp) || mDoGlobHelp)
              {
-                std::cout << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << " :: " << Arg->Com();
+                std::cout << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
                 if (IsIinternal) 
                    std::cout << "   ### INTERNAL " ; 
                 else if (isGlobHelp) 
@@ -547,7 +568,7 @@ std::string  cMMVII_Appli::StrCallMMVII(const std::string & aCom2007,const cColS
    }
 
    // Take into account the call level which must increase
-   aComGlob += "LevCall=" + ToStr(mLevelCall+1);
+   aComGlob += GIP_LevCall + "=" + ToStr(mLevelCall+1);
 
    mColStrAObl.clear();
    mColStrAOpt.clear();
@@ -558,7 +579,7 @@ void cMMVII_Appli::InitOutFromIn(std::string &aFileOut,const std::string& aFileI
 {
    if (! IsInit(&aFileOut))
    {
-      aFileOut = aFileIn;
+      aFileOut = mDirProject + FileOfPath(aFileIn,false);
    }
    else
    {

@@ -28,7 +28,15 @@ const std::string TmpMMVIIDir    = "Tmp-2007-Dir/";
 const std::string MMVIITestDir    = "MMVII-TestDir/";
 
 // Name of common parameters
-const std::string NameDirProj = "DirProj";
+      // -- External
+const std::string GOP_DirProj = "DirProj";
+const std::string GOP_NumVO   = "NumVOut";
+const std::string GOP_Int0    = "FFI0";
+const std::string GOP_Int1    = "FFI1";
+      // -- Internal
+const std::string GIP_LevCall = "LevCall";
+const std::string GIP_ShowAll = "ShowAll";
+
 
 #if (THE_MACRO_MMVII_SYS == MMVII_SYS_L)
 const char CharProctected = '\\';

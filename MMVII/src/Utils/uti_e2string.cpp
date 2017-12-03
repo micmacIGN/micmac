@@ -43,7 +43,9 @@ template <class TypeEnum> class cE2Str
          }
          typename tMapStr2E::iterator anIt = mS2E->find(aStr);
          if (anIt == mS2E->end())
-            MMVII_INTERNAL_ASSERT_always(false,"Str2E for enum : " + aStr);
+         {
+            MMVII_INTERNAL_ASSERT_user(eTyUEr::eBadEnum,"Str2E for : " + aStr + " ; valid are : " + StrAllVal() );
+         }
          return anIt->second;
      }
 
@@ -83,8 +85,6 @@ template <> std::string   StrAllVall<TypeEnum>()\
    return cE2Str<TypeEnum>::StrAllVal();\
 }
 
-TPL_ENUM_2_STRING(eOpAff);
-TPL_ENUM_2_STRING(eTySC);
 
 
 
@@ -97,11 +97,49 @@ template<> cE2Str<eOpAff>::tMapE2Str cE2Str<eOpAff>::mE2S
                            {eOpAff::eEq,"="},
                            {eOpAff::eReset,"=0"}
            };
+TPL_ENUM_2_STRING(eOpAff);
+
 template<> cE2Str<eTySC>::tMapE2Str cE2Str<eTySC>::mE2S
            {
                            {eTySC::NonInit,MMVII_NONE},
                            {eTySC::US,"unordered"},
            };
+TPL_ENUM_2_STRING(eTySC);
+
+
+template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
+           {
+                {eTA2007::DirProject,"DP"},
+                {eTA2007::FileDirProj,"FDP"},
+                {eTA2007::MPatIm,"MPI"},
+                {eTA2007::Internal,"##Intern"},
+                {eTA2007::Common,"##Com"},
+                {eTA2007::FFI,"FFI"}
+           };
+TPL_ENUM_2_STRING(eTA2007);
+
+
+
+template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
+           {
+                {eTyUEr::eCreateDir,"MkDir"},
+                {eTyUEr::eRemoveFile,"RmFile"},
+                {eTyUEr::eBadFileSetName,"FileSetN"},
+                {eTyUEr::eBadFileRelName,"FileRelN"},
+                {eTyUEr::eOpenFile,"OpenFile"},
+                {eTyUEr::eWriteFile,"WriteFile"},
+                {eTyUEr::eReadFile,"ReadFile"},
+                {eTyUEr::eBadBool,"BadBool"},
+                {eTyUEr::eBadEnum,"BadEnum"},
+                {eTyUEr::eMulOptParam,"MultOptP"},
+                {eTyUEr::eBadOptParam,"BadOptP"},
+                {eTyUEr::eInsufNbParam,"InsufP"},
+                {eTyUEr::eIntervWithoutSet,"IntWithoutS"}
+           };
+TPL_ENUM_2_STRING(eTyUEr);
+
+
+
 
 
 /****************************  BENCH **************************/
@@ -124,6 +162,7 @@ void BenchEnum()
 {
    TplBenchEnum<eOpAff>();
    TplBenchEnum<eTySC>();
+   TplBenchEnum<eTA2007>();
 }
 
 

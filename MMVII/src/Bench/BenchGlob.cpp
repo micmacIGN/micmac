@@ -90,6 +90,16 @@ void   Bench_0000_Param()
 /*                                                           */
 /*************************************************************/
 
+/// entry point for all unary test
+
+/** This class contain all the unary test to check the validaty of
+    command / classes / function relatively to their specs.
+
+    For now its essentially a serie of function that are called linearly.
+   When the test become long to execute, it may evolve with option allowing
+   to do only some specific bench.
+*/
+
 class cAppli_MMVII_Bench : public cMMVII_Appli
 {
      public :
@@ -246,6 +256,14 @@ cSpecMMVII_Appli  TheSpecBench
 /*                                                           */
 /* ========================================================= */
 
+
+/// A class to make quick and dirty test
+
+/** The code in this class will evolve
+  quickly, it has no perenity, if a test become
+  important it must be put in bench
+*/
+
 class cAppli_MPDTest : public cMMVII_Appli
 {
      public :
@@ -291,26 +309,6 @@ class cTestShared
 int cAppli_MPDTest::Exe()
 {
    
-/*
-   for (int aK=0 ; aK<=int (eOperator::eReset) ; aK++)
-   {
-      eOperator anOp = eOperator(aK);
-      std::string aStr = E2Str(anOp);
-      eOperator anOp2 = Str2E(aStr);
-      std::cout << "kkkkkkkkkK=" << aK  << " " << (int)anOp << " " << aStr << " " << (int)anOp2<< "\n";
-   }
-   TestBooostIter();
-   BUD(".");
-   BUD("/a/b/c");
-   BUD("a/b/c");
-   BUD("a");
-   TestArg0({1,3,9});
-   TestArg1({});
-   TestArg1({eTypeArg::MDirOri});
-   TestArg1({eTypeArg::MPatIm,eTypeArg::MDirOri,{eTypeArg::MDirOri,"Un"}});
-  CreateDirectories("a/b/c/d",false);
-*/
-
    return EXIT_SUCCESS;
 }
 

@@ -86,7 +86,7 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromFile
    Pt2di aP1 = (aP1Init.x > 0) ? aP1Init : aTifF.sz();
    cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aP1-aP0,aS0,0);
 
-   ELISE_COPY ( aRes->mIm.all_pts(),trans(aTifF.in_proj(),-aP0),aRes->mIm.out());
+   ELISE_COPY ( aRes->mIm.all_pts(),trans(aTifF.in_proj(),aP0),aRes->mIm.out());
 
    FilterGaussProgr(aRes->mIm,aS0,1.0,4);
 
@@ -108,6 +108,7 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneS
      aRes->mIm.dup(anIm.mIm);
      // Passe au filtrage gaussien le sigma cible et le sigma actuel, il se debrouille ensuite
      FilterGaussProgr(aRes->mIm,aSigma,anIm.mScale,aNbIter);
+
 
      return aRes;
 }
@@ -212,6 +213,7 @@ void cOneScaleImRechPH::Show(Video_Win* aW)
    Im2D_U_INT1 aIV(mSz.x,mSz.y);
    Im2D_U_INT1 aIB(mSz.x,mSz.y);
 
+
    ELISE_COPY(mIm.all_pts(),Max(0,Min(255,mIm.in())),aIR.out()|aIV.out()|aIB.out());
 
    for (std::list<cPtRemark*>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
@@ -286,10 +288,9 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aLR)
     for (int aK=0 ; aK<eTPR_NoLabel ; aK++)
     {
        CreateLink(aLR,eTypePtRemark(aK));
-       std::cout << " == \n";
     }
 
-   std::cout << "*************************\n";
+   std::cout <<  "CREATE LNK " << mNiv << "\n";
 }
 
 

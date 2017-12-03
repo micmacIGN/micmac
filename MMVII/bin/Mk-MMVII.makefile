@@ -10,6 +10,7 @@ MMV2DirIncl=${MMV2Dir}include/
 #
 #
 #       ===== INSTALLATION ========================================
+#       => for setting MMVII directory
 #
 MMV2ResultInstal=${MMV2DirSrc}ResultInstall/ResultInstall.cpp
 MMV2SrcInstal=${MMV2DirSrc}BinaireInstall/InstalMM.cpp
@@ -71,6 +72,7 @@ MMV2Exe=MMVII
 #
 ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal}
 	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
+	ar rvs P2007.a    ${OBJ}  
 #
 # ==========    INSTALLATION =================
 #

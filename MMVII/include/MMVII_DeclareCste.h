@@ -22,7 +22,15 @@ extern const std::string TagSetOfCpleName;  ///< Xml (sub) top tag for  Set of C
 // ------
 extern const std::string TheMMVII_SysName ; ///< Name of Operating system
 
-extern const std::string NameDirProj;
+// Name of global optionnal parameters
+extern const std::string GOP_DirProj;  ///< Directory of Proj
+extern const std::string GOP_NumVO;    ///< NumVOut 
+extern const std::string GOP_Int0;     ///< FFI0 => File Filter Interval
+extern const std::string GOP_Int1;     ///< FFI1
+//  Name of Global INTERNAL optional parameter
+extern const std::string GIP_LevCall;     ///< Level of MMVII call
+extern const std::string GIP_ShowAll;     ///< Show a lot of intermediary steps
+
 
 // Folders
 extern const std::string TmpMMVIIDir;
