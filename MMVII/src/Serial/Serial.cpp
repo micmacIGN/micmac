@@ -50,6 +50,8 @@ class cAr2007 : public cMemCheck
          /// Default return error
          virtual int NbNextOptionnal(const std::string &);
          virtual ~cAr2007();
+         virtual void Separator(); /**< Used in final but non atomic type, 
+                                        for ex with Pt : in text separate x,y, in bin do nothing */
 
     protected  :
          cAr2007(bool InPut,bool Tagged);
@@ -70,8 +72,6 @@ class cAr2007 : public cMemCheck
          virtual void RawAddDataTerm(std::string &    anI) =  0; ///< Heriting class descrine how they serialze string
       // Final non atomic type for serialization
          virtual void RawAddDataTerm(cPt2dr &    aP) ; ///< Default value should be OK ok
-         virtual void Separator(); /**< Used in final but non atomic type, 
-                                        for ex with Pt : in text separate x,y, in bin do nothing */
 };
 
 
@@ -118,6 +118,12 @@ void AddData(const  cAuxAr2007 & anAux, double  &  aVal) {anAux.Ar().TplAddDataT
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 void AddData(const  cAuxAr2007 & anAux, cPt2dr  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 
+void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) 
+{
+    AddData(anAux,aVal.V1());
+    anAux.Ar().Separator();
+    AddData(anAux,aVal.V2());
+}
 
 
 
@@ -173,15 +179,17 @@ static const char * aXMLBeginCom2 = "<?";
 static const char * aXMLEndCom2 = "?>";
 
 
+/// Class for recuperating End Of File error
+class cXMLEOF
+{
+};
+
+
 /// Xml read archive
 /**
     An archive for reading XML file saved by MMVII with cOXml_Ar2007
     Probably the more complicated class for cAr2007
 */
-
-class cXMLEOF
-{
-};
 
 class cIXml_Ar2007 : public cAr2007
 {

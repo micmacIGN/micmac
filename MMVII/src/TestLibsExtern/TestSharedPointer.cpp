@@ -378,7 +378,8 @@ cSpecMMVII_Appli  TheSpecTestCpp11
       "This command execute some test for to check my understanding of C++11",
       {eApF::Test},
       {eApDT::None},
-      {eApDT::Console}
+      {eApDT::Console},
+      __FILE__
 );
 
 

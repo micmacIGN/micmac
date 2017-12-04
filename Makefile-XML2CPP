@@ -20,6 +20,8 @@ src/uti_phgrm/CASA/cParamCasa.cpp : include/XML_GEN/ParamCasa.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamCasa.xml 3 src/uti_phgrm/CASA/cParamCasa
 CodeGenere/File2String/Str_ParamDigeo.cpp : include/XML_GEN/ParamDigeo.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamDigeo.xml 2 src/uti_image/Digeo/cParamDigeo
+src/uti_image/NewRechPH/cParamNewRechPH.cpp : src/uti_image/NewRechPH/ParamNewRechPH.xml
+	bin/GenXML2Cpp src/uti_image/NewRechPH/ParamNewRechPH.xml 2 src/uti_image/NewRechPH/cParamNewRechPH
 all: src/XML_GEN/ParamChantierPhotogram.cpp\
      CodeGenere/File2String/cParamXMLNew0.cpp\
      CodeGenere/File2String/Str_DefautChantierDescripteur.cpp\
@@ -29,5 +31,6 @@ all: src/XML_GEN/ParamChantierPhotogram.cpp\
      CodeGenere/File2String/Str_ParamApero.cpp\
      src/uti_phgrm/SaisiePts/cParamSaisiePts.cpp\
      src/uti_phgrm/CASA/cParamCasa.cpp\
+     src/uti_image/NewRechPH/cParamNewRechPH.cpp\
      CodeGenere/File2String/Str_ParamDigeo.cpp
 

@@ -73,6 +73,8 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mNbS,  "NbS",true,"Number of level")
                       << EAM(mS0,   "S0",true,"ScaleInit, Def=1")
                       << EAM(mDoPly, "DoPly",true,"Generate ply file, for didactic purpose")
+                      << EAM(mBox, "Box",true,"Box for computation")
+                      << EAM(mModeTest, "Test",true,"if true add W")
    );
 
    if (mDoPly)
@@ -80,12 +82,22 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
       mPlyC = new cPlyCloud;
    }
 
-   AddScale(cOneScaleImRechPH::FromFile(*this,mS0,mName,Pt2di(0,0),Pt2di(-1,-1)),0);
+   Pt2di aP0(0,0);
+   Pt2di aP1(-1,-1);
+   if (EAMIsInit(&mBox))
+   {
+       aP0 = mBox._p0;
+       aP1 = mBox._p1;
+   }
+   // Create top scale
+   AddScale(cOneScaleImRechPH::FromFile(*this,mS0,mName,aP0,aP1),0);
 
+   // Create matr of link, will have do it much less memory consuming (tiling of list ?)
    mSzIm = mVI1.back()->Im().sz();
    mBufLnk  = std::vector<std::vector<cPtRemark *> >(mSzIm.y,std::vector<cPtRemark *>(mSzIm.x,(cPtRemark *)0));
 
    double aScaleMax = mS0*pow(mPowS,mNbS);
+   // Used for  nearest point researh
    mVoisLnk = SortedVoisinDisk(-1,aScaleMax+4,true);
 
 
@@ -101,6 +113,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
 
    for (int aK=0 ; aK<mNbS ; aK++)
    {
+        // Init from low resol
         if (aK!=0)
         {
            AddScale
@@ -110,8 +123,11 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
            );
 
         }
+        // Compute point of scale
         mVI1.back()->CalcPtsCarac();
         mVI1.back()->Show(mW1);
+          
+        // Links the point at different scale
         if (aK!=0)
         {
            mVI1[aK]->CreateLink(*(mVI1[aK-1]));

@@ -38,6 +38,10 @@ void Bench_0000_SysDepString()
     std::string aPath4 = "/a/bb/cc/tutu";
     MMVII_INTERNAL_ASSERT_bench(DirOfPath (aPath4,false)==aPath3,"Dir Bench_0000_SysDepString");
     MMVII_INTERNAL_ASSERT_bench(FileOfPath(aPath4,false)=="tutu","File Bench_0000_SysDepString");
+
+    std::string aPath5 = "NONE";
+    MMVII_INTERNAL_ASSERT_bench(DirOfPath (aPath5,false)=="./","Dir Bench_0000_SysDepString");
+    MMVII_INTERNAL_ASSERT_bench(FileOfPath(aPath5,false)=="NONE","File Bench_0000_SysDepString");
 }
 #else
 void Bench_0000_SysDepString()
@@ -86,6 +90,16 @@ void   Bench_0000_Param()
 /*                                                           */
 /*************************************************************/
 
+/// entry point for all unary test
+
+/** This class contain all the unary test to check the validaty of
+    command / classes / function relatively to their specs.
+
+    For now its essentially a serie of function that are called linearly.
+   When the test become long to execute, it may evolve with option allowing
+   to do only some specific bench.
+*/
+
 class cAppli_MMVII_Bench : public cMMVII_Appli
 {
      public :
@@ -126,6 +140,11 @@ void cAppli_MMVII_Bench::Bench_0000_String()
     MMVII_INTERNAL_ASSERT_bench( Prefix("AA.",'.')=="AA","Postfix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench(Postfix(".AA",'.')=="AA","Postfix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench( Prefix(".AA",'.')=="","Postfix in Bench_0000_String");
+
+    MMVII_INTERNAL_ASSERT_bench(Postfix("AA",'.',true,true)=="AA","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Prefix("AA",'.',true,true)=="","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Postfix("AA",'.',true,false)=="","Postfix in Bench_0000_String");
+    MMVII_INTERNAL_ASSERT_bench(Prefix("AA",'.',true,false)=="AA","Postfix in Bench_0000_String");
 }
 
 
@@ -181,6 +200,8 @@ int  cAppli_MMVII_Bench::Exe()
    // La on a verifie que ca marchait pas
    // MMVII_INTERNAL_ASSERT_all((1+1)==3,"Theoreme  pas tres fondamental de l'arithmetique");
 
+   Bench_Nums();
+
    BenchFiles();
    Bench_0000_SysDepString();
    Bench_0000_String();
@@ -200,6 +221,8 @@ int  cAppli_MMVII_Bench::Exe()
    BenchSet(mDirTestMMVII);
    BenchSelector(mDirTestMMVII);
    BenchEditSet();
+
+   BenchEnum();
 
 
    // We clean the temporary files created
@@ -222,7 +245,8 @@ cSpecMMVII_Appli  TheSpecBench
       "This command execute (many) self verification on MicMac-V2 behaviour",
       {eApF::Test},
       {eApDT::None},
-      {eApDT::Console}
+      {eApDT::Console},
+      __FILE__
 );
 
 
@@ -231,6 +255,14 @@ cSpecMMVII_Appli  TheSpecBench
 /*            cAppli_MPDTest                                 */
 /*                                                           */
 /* ========================================================= */
+
+
+/// A class to make quick and dirty test
+
+/** The code in this class will evolve
+  quickly, it has no perenity, if a test become
+  important it must be put in bench
+*/
 
 class cAppli_MPDTest : public cMMVII_Appli
 {
@@ -277,35 +309,6 @@ class cTestShared
 int cAppli_MPDTest::Exe()
 {
    
-  cTestShared::Test();
-  std::cout << "CHAR LIMS " << (int) std::numeric_limits<char>::min() << " " << (int) std::numeric_limits<char>::max() << "\n";
-
-  std::cout << "DIRBIN2007:" << DirBin2007 << "\n";
-
-  tNameSet aSet;
-  aSet.Add("toto");
-  std::cout << "SIZZZ " << aSet.size() << "\n";
-  SaveInFile(aSet,"toto.xml");
-  std::vector<std::string> aV;
-  aV.push_back("toto");
-  SaveInFile(aV,"totoV.xml");
-
-  tNameSet aS2;
-  ReadFromFile(aS2,"toto.xml");
-  std::cout << "SIZZZ " << aS2.size() << "\n";
-/*
-   TestBooostIter();
-   BUD(".");
-   BUD("/a/b/c");
-   BUD("a/b/c");
-   BUD("a");
-   TestArg0({1,3,9});
-   TestArg1({});
-   TestArg1({eTypeArg::MDirOri});
-   TestArg1({eTypeArg::MPatIm,eTypeArg::MDirOri,{eTypeArg::MDirOri,"Un"}});
-  CreateDirectories("a/b/c/d",false);
-*/
-
    return EXIT_SUCCESS;
 }
 
@@ -321,7 +324,8 @@ cSpecMMVII_Appli  TheSpecMPDTest
       "This used a an entry point to all quick and dirty test by MPD ...",
       {eApF::Test},
       {eApDT::None},
-      {eApDT::Console}
+      {eApDT::Console},
+      __FILE__
 );
 
 

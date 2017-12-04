@@ -227,6 +227,7 @@ int Nuage2Ply_main(int argc,char ** argv)
     {
         if (! EAMIsInit(&DoNrm)) DoNrm = 5;
         aRes->SetNormByCenter(NormByC);
+        aLComment.push_back("Norm is camera origin");
     }
 
     if (DoPly)

@@ -43,6 +43,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+// ====================== Fonctions-classes qui pourraient etre exportees car d'interet ===================
+// ====================== general
+
+/*
+    Calcul le graphe, sous forme de flag, des pixel superieurs;
+   Pourra etre utilise pour tabuler rapidement les max,min cols ...
+*/
 template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
 {
     Pt2di aSz = anIm.sz();
@@ -61,6 +68,8 @@ template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
             {
                  Pt2di aV = TAB_8_NEIGH[aKV];
                  T1 aV2 = aTIm.get(aP+aV);
+                 // Comparaison des valeur et du voisinage en cas
+                 // d'egalite pour avoir une relation d'ordre stricte
                  if (CmpValAndDec(aV1,aV2,aV)==-1)
                  {
                     aFlag |= (1<<aKV);
@@ -92,6 +101,7 @@ Pt3di CoulOfType(eTypePtRemark);
 
 int  * TabTypePOfFlag();
 
+// Stucture de points remarquables
 class cPtRemark
 {
     public :
@@ -113,6 +123,7 @@ class cPtRemark
        cPtRemark     * mLR; // Lower Resol
 };
 
+// Stucture de brins , suite de points sans embranchement
 class cBrinPtRemark
 {
     public :
@@ -133,7 +144,7 @@ typedef cPtRemark * tPtrPtRemark;
 // std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort);
 
 
-#endif //  _NewRechPH_H_
+#endif //  _ExternNewRechPH_H_
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
