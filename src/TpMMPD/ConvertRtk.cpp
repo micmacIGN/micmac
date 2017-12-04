@@ -402,7 +402,7 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
     for (int aKP=0 ; aKP<int(aVSauvPosGPS.size()) ; aKP++)
     {
 		cOneGpsDGF aOAD;
-        aOAD.Pt() = aVSauvPosGPS[aKP] - aOffset;
+        aOAD.Pt() = aVSauvPosGPS.at(aKP) - aOffset;
         aOAD.NamePt() = aVPosGPS[aKP].Name;
         aOAD.Incertitude() = aVPosGPS[aKP].Ic;
         aOAD.TagPt() = aVPosGPS[aKP].Flag;
