@@ -561,6 +561,19 @@ cLibertOfCalib GetDefDegreeOfCalib(const cCalibDistortion & aCalib )
 void GenerateMesure2D3D(cBasicGeomCap3D * aCamIn,int aNbXY,int aNbProf,const std::string & aNameIm,cDicoAppuisFlottant & aDAF,cMesureAppuiFlottant1Im & aMAF)
 {
 
+    double aProfGlob = 1.0;
+    CamStenope * aCS = aCamIn->DownCastCS() ;
+
+    if (aCS)
+    {
+         aProfGlob = aCS->GetProfondeur();
+    }
+
+/*
+std::cout << "Ppppppppppp= " << aCamIn->GetVeryRoughInterProf()  
+         << " " << aCamIn->ProfondeurDeChamps(aCamIn->SzPixel()/2.0) << "\n";
+*/
+
    Pt2dr aSzPix = aCamIn->SzPixel();
 
    Pt2di aPInt;
@@ -584,7 +597,13 @@ void GenerateMesure2D3D(cBasicGeomCap3D * aCamIn,int aNbXY,int aNbProf,const std
 
               // GCP generation
                cOneAppuisDAF anAp;
-               double aProf = 1 + aKP* 0.5;
+               double aMult =  1;
+               if (aNbProf > 1)
+               {
+                   double aNbP1 = aNbProf-1.0;
+                   aMult =  pow(2.0, 0.3 * (aKP-aNbP1/2.0) / aNbP1);
+               }
+               double aProf = aProfGlob * aMult;
                Pt3dr aPGround = aCamIn->ImEtProf2Terrain(aPIm,aProf);
                anAp.Pt() = aPGround;
                anAp.Incertitude() = Pt3dr(anInc,anInc,anInc);
