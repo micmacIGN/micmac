@@ -630,6 +630,10 @@ class cAppli_GenerateAppuisLiaison : public cAppliWithSetImage
         int mNbXY,mNbProf;
 };
  
+std::string NameGenepi(const std::string & aName,bool Is3D)
+{
+    return  "Genepi-" + aName +  std::string("-Mes") + std::string(Is3D ? "3": "2") + std::string("D.xml");
+}
 
 
 cAppli_GenerateAppuisLiaison::cAppli_GenerateAppuisLiaison(int argc, char** argv) :
@@ -646,7 +650,7 @@ cAppli_GenerateAppuisLiaison::cAppli_GenerateAppuisLiaison(int argc, char** argv
        LArgMain()  << EAM(mNbXY,"NbXY",true,"Number of point of the Grid")
                    << EAM(mNbProf,"NbProf",true,"Number of depth")
     );
-    std::string aPref = "Genepi-";
+    // std::string aPref = "Genepi-";
 
      for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
      {
@@ -656,8 +660,10 @@ cAppli_GenerateAppuisLiaison::cAppli_GenerateAppuisLiaison(int argc, char** argv
           GenerateMesure2D3D(anIm->CamGen(),mNbXY,mNbProf,anIm->mNameIm,aDAF,aMAF);
           cSetOfMesureAppuisFlottants  aSMAF;
           aSMAF.MesureAppuiFlottant1Im().push_back(aMAF);
-          MakeFileXML(aDAF, aPref+ anIm->mNameIm + "-Mes3D.xml");
-          MakeFileXML(aSMAF, aPref+ anIm->mNameIm + "-Mes2D.xml");
+          MakeFileXML(aDAF,  NameGenepi(anIm->mNameIm,true));
+          MakeFileXML(aSMAF, NameGenepi(anIm->mNameIm,false));
+          // MakeFileXML(aDAF, aPref+ anIm->mNameIm + "-Mes3D.xml");
+          // MakeFileXML(aSMAF, aPref+ anIm->mNameIm + "-Mes2D.xml");
         
      }
 }
@@ -789,7 +795,65 @@ int ConvertCalib_main(int argc, char** argv)
    return EXIT_SUCCESS;
 }
 
+class cAppli_ConvOriCalib
+{
+   public :
+     cAppli_ConvOriCalib(int argc, char** argv);
 
+     std::string         mPat;
+     std::string         mDir;
+     std::string         mOriIn;
+     std::string         mOriCalib;
+     std::string         mOriOut;
+     cElemAppliSetFile   mEASF;
+
+};
+
+cAppli_ConvOriCalib::cAppli_ConvOriCalib(int argc, char** argv) 
+{
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(mPat, "Pat or file")
+                    << EAMC(mOriIn, "Input global orientation")
+                    << EAMC(mOriCalib, "Targeted   internal orientatin")
+                    << EAMC(mOriOut, "Ouptut prientation folder"),
+        LArgMain()  
+    );
+
+    mEASF.Init(mPat);
+    mDir = mEASF.mDir;
+    StdCorrecNameOrient(mOriIn,mDir);
+    StdCorrecNameOrient(mOriCalib,mDir);
+ 
+    for (const auto & aName : (*mEASF.SetIm()))
+    {
+        std::string aCom = MM3dBinFile_quotes( "Genepi " )
+                           + " " + aName 
+                           + " " + mOriIn
+                           + "\n"; 
+        System(aCom);
+        aCom =  MM3dBinFile_quotes( "Aspro ")
+                           + " " + aName
+                           + " " + mOriCalib
+                           + " " + NameGenepi(aName,true)
+                           + " " + NameGenepi(aName,false)
+                           + " Out=" + mOriOut;
+        System(aCom);
+        ELISE_fp::RmFile(mDir+NameGenepi(aName,true));
+        ELISE_fp::RmFile(mDir+NameGenepi(aName,false));
+        // std::cout << "COM : [ " << aCom << " ]\n";
+        // std::string 
+        // std::cout << "COM : [ " << aCom << " ]\n";
+
+    }
+}
+
+int ConvertOriCalib_main(int argc,char ** argv)
+{
+   cAppli_ConvOriCalib anAppli(argc,argv);
+   return EXIT_SUCCESS;
+}
 
 
 

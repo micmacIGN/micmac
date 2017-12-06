@@ -242,6 +242,7 @@ extern int CPP_MMRename(int argc,char**argv);
 extern int  CPP_EditSet(int argc,char**argv);
 
 int CPP_MMHelp(int argc,char ** argv);
+int ConvertOriCalib_main(int argc,char ** argv);
 
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC,const std::string & aLib)
 {
@@ -297,6 +298,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Compare two  calibrations"));
        aRes.push_back(cMMCom("CmpOri",CPP_CmpOriCam_main," Compare two sets of orientation"));
        aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
+       aRes.push_back(cMMCom("ConvertOriCalib",ConvertOriCalib_main,"Convert external orientation with new internal orientation "));
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
        
        aRes.push_back(cMMCom("TestRegEx",TestRegEx_main," Test regular expression"));
