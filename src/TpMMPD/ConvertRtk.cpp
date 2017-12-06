@@ -142,10 +142,10 @@ double cRPG_Appli::hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys
 	
 	//std::cout << "aSec = " << aSec << std::endl;
 	
-	if(TimeSys == "UTC")
-	{
-        aSec += LeapSecond;
-	}
+//	if(TimeSys == "UTC")
+//	{
+//        aSec += LeapSecond;
+//	}
 	
 	//std::cout << "aSec = " << aSec << std::endl;
 	

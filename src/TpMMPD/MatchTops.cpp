@@ -115,7 +115,7 @@ double towTime2MJD(const double GpsWeek, double Tow, const std::string & TimeSys
 
     if(TimeSys == "UTC")
     {
-        Tow += LeapSecond;
+        Tow -= LeapSecond;
     }
 
     double aS1970 = GpsWeek * 7 * 86400 + Tow + GPS0;
