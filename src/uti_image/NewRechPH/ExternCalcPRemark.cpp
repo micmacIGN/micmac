@@ -58,92 +58,13 @@ void  TestFlux2StdCont()
 
 }
 
-/*
-template <class TypeIm> class  cAutoCorrelDir
-{
-    public :
-        typedef typename TypeIm::tValueElem tElem;
-        typedef typename TypeIm::OutputFonc tBase;
-        cAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW) :
-           mTIm   (anIm),
-           mP0    (aP0),
-           mRho   (aRho),
-           mSzW   (aSzW)
-        {
-        }
-
-        void DoIt()
-        {
-           double aStep0 = 1/mRho;
-           int aNb = round_up(PI/aStep0);
-           Pt2dr aRes0 = DoItOneStep(0.0,aNb,aStep0);
-           Pt2dr aRes1 = DoItOneStep(aRes0.x,3,aStep0/4.0);
-           Pt2dr aRes2 = DoItOneStep(aRes1.x,2,aStep0/10.0);
-        }
-
-    private :
-        Pt2dr  DoItOneStep(double aTeta0,int aNb,double aStep)
-        {
-           double aScMax = -1e10;
-           double aTetaMax = 0;
-           for (int aK=-aNb; aK<aNb ; aK++)
-           {
-               double aTeta =  aTeta0 + aK * aStep;
-               double aVal =  CorrelTeta(aTeta) ;
-               if (aVal >aScMax)
-               {
-                  aScMax = aVal;
-                  aTetaMax = aTeta;
-               }
-           }
-           return Pt2dr(aTetaMax,aScMax);
-        }
-
-
-        double  CorrelOneOffset(const Pt2di & aP0,const Pt2dr & anOffset,int aSzW)
-        {
-            tBase aDef =   El_CTypeTraits<tBase>::MaxValue();
-            RMat_Inertie aMat;
-            for (int aDx=-aSzW ; aDx<=aSzW ; aDx++)
-            {
-                for (int aDy=-aSzW ; aDy<=aSzW ; aDy++)
-                {
-                    Pt2di aP1 = aP0 + Pt2di(aDx,aDy);
-                    tBase aV1 = mTIm.get(aP1,aDef);
-                    if (aV1==aDef) return -1;
-                    tBase aV2 = mTIm.getr(Pt2dr(aP1)+anOffset,aDef);
-                    if (aV2==aDef) return -1;
-                    aMat.add_pt_en_place(aV1,aV2);
-                }
-            }
-            return aMat.correlation();
-        }
-
-        double  CorrelTeta(double aTeta)
-        {
-            return CorrelOneOffset(mP0,Pt2dr::FromPolar(mRho,aTeta),mSzW);
-        }
-
-
-        TypeIm  mTIm;
-        Pt2di   mP0;
-        double  mRho;
-        int     mSzW;
-};
-
-void TestcAutoCorrelDir(TIm2D<double,double> aTIm,const Pt2di & aP0)
-{
-    cAutoCorrelDir<TIm2D<double,double> >  aACD(aTIm,aP0,3.0,3);
-    aACD.DoIt();
-}
-*/
-
 
 /*****************************************************/
 /*                                                   */
 /*                 ::                                */
 /*                                                   */
 /*****************************************************/
+
 class cCmpPt2diOnEuclid
 {
    public : 

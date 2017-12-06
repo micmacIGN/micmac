@@ -21,6 +21,16 @@ cSemA2007::cSemA2007(eTA2007 aType) :
 eTA2007  cSemA2007::Type()            const {return mType;}
 const std::string &  cSemA2007::Aux() const {return mAux;}
 
+std::string  cSemA2007::Name4Help() const
+{
+   if (int(mType) < int(eTA2007::Common))
+   {
+      return E2Str(mType) + mAux;
+   }
+
+   return "";
+}
+
 
 
 /* ========================== */
@@ -36,6 +46,29 @@ cSpecOneArg2007::cSpecOneArg2007(const std::string & aName,const std::string & a
    mNbMatch (0)
 {
 }
+
+std::string  cSpecOneArg2007::Name4Help() const
+{
+   std::string aRes;
+   int aNb=0;
+   for (const auto & aSem : mVSem)
+   {
+      std::string aStr = aSem.Name4Help();
+      if (aStr!="")
+      {
+         if (aNb==0)
+            aRes = " [";
+         else
+            aRes = aRes + ",";
+         aRes = aRes + aStr;
+         aNb++;
+      }
+   }
+   if (aNb!=0)
+      aRes += "]";
+   return aRes;
+}
+
 
 void cSpecOneArg2007::IncrNbMatch()
 {

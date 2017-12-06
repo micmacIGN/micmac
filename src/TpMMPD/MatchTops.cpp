@@ -49,25 +49,31 @@ const double MJD2000 = 51544.5; 	// J2000 en mjd
 const double GPS0 = 315964800.0; 	// 1980-01-06T00:00:00 in seconds starting from 1970-01-01T00:00:00
 const int LeapSecond = 18;			// GPST-UTC=18s
 
-struct hmsTime{
-    double Year;
-    double Month;
-    double Day;
-    double Hour;
-    double Minute;
-    double Second;
+//struct
+struct towTime{
+    double GpsWeek;
+    double Tow; //or week second
 };
 
 struct ImgNameTime
 {
     std::string ImgName;
-    hmsTime ImgTime; // system unix time
+    double ImgCRT; // camera raw time
+    double ImgMJD; // MJD time
 };
 
-std::vector<ImgNameTime> ReadImgNameTimeFile(string & aDir, string aImgNameTimeFile, std::string aExt)
+struct Tops
+{
+    int TopsGpsWeek;
+    double TopsTow; //Rising edge
+    double TopsCRT; //camera raw time
+    double TopsMJD;
+};
+
+std::vector<ImgNameTime> ReadImgNameTimeFile(string aINTFile, std::string aExt)
 {
     std::vector<ImgNameTime> aVINT;
-    ifstream aFichier((aDir + aImgNameTimeFile).c_str());
+    ifstream aFichier(aINTFile.c_str());
     if(aFichier)
     {
         std::string aLine;
@@ -78,12 +84,7 @@ std::vector<ImgNameTime> ReadImgNameTimeFile(string & aDir, string aImgNameTimeF
             {
                 char *aBuffer = strdup((char*)aLine.c_str());
                 std::string aImgName = strtok(aBuffer,"	");
-                std::string aYear = strtok(NULL,"-");
-                std::string aMonth = strtok(NULL,"-");
-                std::string aDay = strtok(NULL," ");
-                std::string aHour = strtok(NULL,":");
-                std::string aMinute = strtok(NULL,":");
-                std::string aSecond = strtok(NULL," ");
+                std::string aCRT = strtok(NULL," ");
 
                 ImgNameTime aImgNT;
                 if(aExt != "")
@@ -91,12 +92,7 @@ std::vector<ImgNameTime> ReadImgNameTimeFile(string & aDir, string aImgNameTimeF
                 else
                     aImgNT.ImgName = aImgName;
 
-                aImgNT.ImgTime.Year = atof(aYear.c_str());
-                aImgNT.ImgTime.Month = atof(aMonth.c_str());
-                aImgNT.ImgTime.Day = atof(aDay.c_str());
-                aImgNT.ImgTime.Hour = atof(aHour.c_str());
-                aImgNT.ImgTime.Minute = atof(aMinute.c_str());
-                aImgNT.ImgTime.Second = atof(aSecond.c_str());
+                aImgNT.ImgCRT = atof(aCRT.c_str());
 
                 aVINT.push_back(aImgNT);
             }
@@ -107,102 +103,130 @@ std::vector<ImgNameTime> ReadImgNameTimeFile(string & aDir, string aImgNameTimeF
     {
         std::cout<< "Error While opening file" << '\n';
     }
+
+    std::cout << "First : Im = " << aVINT.at(0).ImgName << " CRT = " << aVINT.at(0).ImgCRT << endl;
+    std::cout << "Last  : Im = " << aVINT.at(aVINT.size()-1).ImgName << " CRT = " << aVINT.at(aVINT.size()-1).ImgCRT << endl;
     return aVINT;
 }
 
-double hmsTime2MJD(const hmsTime & aTime, const bool & aTSys)
+
+double towTime2MJD(const double GpsWeek, double Tow, const std::string & TimeSys)
 {
 
-    double aYear;
-    double aMonth;
-    double aSec = aTime.Second;
-
-    //std::cout << "aSec = " << aSec << std::endl;
-
-    if(aTSys)
+    if(TimeSys == "UTC")
     {
-        aSec += LeapSecond;
+        Tow -= LeapSecond;
     }
 
-    //std::cout << "aSec = " << aSec << std::endl;
-
-    //2 or 4 digits year management
-    if(aTime.Year < 80)
-    {
-        aYear = aTime.Year + 2000;
-    }
-    else if(aTime.Year < 100)
-    {
-        aYear = aTime.Year + 1900;
-    }
-    else
-    {
-        aYear = aTime.Year;
-    }
-
-    //months
-    if(aTime.Month <= 2)
-    {
-        aMonth = aTime.Month + 12;
-        aYear = aTime.Year - 1;
-    }
-    else
-    {
-        aMonth = aTime.Month;
-    }
-
-    //std::cout << "aYear = " << aYear << std::endl;
-    //std::cout << "aMonth = " << aMonth << std::endl;
-
-    double aC = floor(aYear / 100);
-    //std::cout << "aC = " << aC << std::endl;
-
-    double aB = 2 - aC + floor(aC / 4);
-    //std::cout << "aB = " << aB << std::endl;
-
-    double aT = (aTime.Hour/24) + (aTime.Minute/1440) + (aSec/86400);
-    //printf("aT = %.15f \n", aT);
-
-    double aJD = floor(365.25 * (aYear+4716)) + floor(30.6001 * (aMonth+1)) + aTime.Day + aT + aB - 1524.5;
-    //printf("aJD = %.15f \n", aJD);
-
-    double aS1970 = (aJD - JD2000) * 86400 + J2000; // seconds starting from 1970-01-01T00:00:00
-    //printf("aS1970 = %.15f \n", aS1970);
+    double aS1970 = GpsWeek * 7 * 86400 + Tow + GPS0;
 
     double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
-    //printf("aMJD = %.15f \n", aMJD);
 
     return aMJD;
-
 }
+
+std::vector<Tops> ReadTopsFile(string aTops, const std::string & TimeSys)
+{
+    std::vector<Tops> aVTops;
+    ifstream aFichier(aTops.c_str());
+    if(aFichier)
+    {
+        std::string aLine;
+
+        getline(aFichier,aLine,'\n');
+        getline(aFichier,aLine,'\n');
+
+        while(!aFichier.eof())
+        {
+            getline(aFichier,aLine,'\n');
+            if(aLine.size() != 0)
+            {
+                char *aBuffer = strdup((char*)aLine.c_str());
+                std::string aUT = strtok(aBuffer," "); // Unix Time
+                std::string aWeek = strtok(NULL," "); //GPS week
+                std::string aRE = strtok(NULL," "); //Rising Edge
+                std::string aFE = strtok(NULL," "); //Falling Edge
+                std::string aFlag = strtok(NULL," "); //Flag
+                std::string aSeq = strtok(NULL," "); //Seq
+                std::string aCRT = strtok(NULL," "); //camera raw time
+
+                Tops aTops;
+                aTops.TopsGpsWeek = atoi(aWeek.c_str());
+                aTops.TopsTow = atof(aRE.c_str());
+                aTops.TopsCRT = atof(aCRT.c_str());
+
+                aTops.TopsMJD = towTime2MJD(aTops.TopsGpsWeek, aTops.TopsTow, TimeSys);
+
+                aVTops.push_back(aTops);
+            }
+        }
+        aFichier.close();
+    }
+    else
+    {
+        std::cout<< "Error While opening file" << '\n';
+    }
+
+    std::cout << "First : CRT = " << aVTops.at(0).TopsCRT << endl;
+    std::cout << "Last  : CRT = " << aVTops.at(aVTops.size()-1).TopsCRT << endl;
+
+    return aVTops;
+}
+
+int calcul_ecart(std::vector<ImgNameTime> aVINT, std::vector<Tops> aVTops)
+{
+    int aEcart = -1;
+    double aCRT0 = aVINT.at(0).ImgCRT;
+    for (uint aV=0; aV<aVTops.size(); aV++)
+    {
+        if ((aVTops.at(aV).TopsCRT > aCRT0) && (aVTops.at(aV-1).TopsCRT < aCRT0))
+        {
+            aEcart = int(aV);
+            break;
+        }
+    }
+    if (aEcart==-1)
+        std::cout << "Fail to match files!" << endl;
+
+    std::cout << "Ecart = " << aEcart << endl;
+    return aEcart;
+}
+
 
 int ImgTMTxt2Xml_main (int argc, char ** argv)
 {
-    std::string aDir, aINTF, aINTFile, aExt=".thm.tif";
-    bool aTSys (true);
+    std::string aINTFile, aTops, aExt=".thm.tif", aOut="Img_TM.xml", aTSys="UTC";
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aINTFile, "File of image system unix time (all_name_date.txt)", eSAM_IsExistFile),
+        LArgMain()  << EAMC(aINTFile, "File of image camera raw time (all_name_rawtime.txt)", eSAM_IsExistFile)
+                    << EAMC(aTops,"Tops file containing ToW and CRT (tops.txt)",eSAM_IsExistFile),
         LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
-                    << EAM(aTSys,"TSys",true,"Time system, UTC=1, GPST=0, Def=UTC")
+                    << EAM(aTSys,"TSys",true,"Time system, Def=UTC")
+                    << EAM(aOut,"Out",true,"Output matched file name, Def=Img_TM.xml")
     );
-    SplitDirAndFile(aDir,aINTF,aINTFile);
 
-    //read aImTimeFile and convert to xml
-    std::vector<ImgNameTime> aVINT = ReadImgNameTimeFile(aDir, aINTFile, aExt);
+    //read aImTimeFile
+    std::vector<ImgNameTime> aVINT = ReadImgNameTimeFile(aINTFile, aExt);
+
+    //read aTops
+    std::vector<Tops> aVTops = ReadTopsFile(aTops, aTSys);
+
+    //calculate index difference
+    int aEcart = calcul_ecart(aVINT, aVTops);
+    std::cout << "CRT 1 for 1st image = " << aVINT.at(0).ImgCRT << "       Matched CRT in tops file = " << aVTops.at(aEcart).TopsCRT << endl;
 
     cDicoImgsTime aDicoIT;
 
     for(uint iV=0; iV<aVINT.size(); iV++)
     {
+        int aV = int(iV+aEcart);
         cCpleImgTime aCpleIT;
-        aCpleIT.NameIm()=aVINT.at(iV).ImgName;
-        aCpleIT.TimeIm() = hmsTime2MJD(aVINT.at(iV).ImgTime,aTSys);
+        aCpleIT.NameIm() = aVINT.at(iV).ImgName;
+        aCpleIT.TimeIm() = aVTops.at(aV).TopsMJD;
         aDicoIT.CpleImgTime().push_back(aCpleIT);
     }
-    std::string aOutINT=StdPrefix(aINTF)+".xml";
-    MakeFileXML(aDicoIT,aOutINT);
+    MakeFileXML(aDicoIT,aOut);
 
     return EXIT_SUCCESS;
 }

@@ -142,10 +142,10 @@ double cRPG_Appli::hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys
 	
 	//std::cout << "aSec = " << aSec << std::endl;
 	
-	if(TimeSys == "UTC")
-	{
-        aSec += LeapSecond;
-	}
+//	if(TimeSys == "UTC")
+//	{
+//        aSec += LeapSecond;
+//	}
 	
 	//std::cout << "aSec = " << aSec << std::endl;
 	
@@ -402,7 +402,7 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
     for (int aKP=0 ; aKP<int(aVSauvPosGPS.size()) ; aKP++)
     {
 		cOneGpsDGF aOAD;
-        aOAD.Pt() = aVSauvPosGPS[aKP] - aOffset;
+        aOAD.Pt() = aVSauvPosGPS.at(aKP) - aOffset;
         aOAD.NamePt() = aVPosGPS[aKP].Name;
         aOAD.Incertitude() = aVPosGPS[aKP].Ic;
         aOAD.TagPt() = aVPosGPS[aKP].Flag;

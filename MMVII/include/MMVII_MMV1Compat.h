@@ -10,6 +10,7 @@ namespace MMVII
 */
 
 tNameSet  MMV1InitSet(const std::string & aName);
+tNameRel  MMV1InitRel(const std::string & aName);
 
 
 //  Defined in MMVII_Stringifier.h for Serialization

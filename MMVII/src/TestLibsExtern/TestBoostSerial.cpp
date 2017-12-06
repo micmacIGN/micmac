@@ -247,7 +247,8 @@ cSpecMMVII_Appli  TheSpec_TestBoostSerial
       "This command execute some experiments en boost serrialization",
       {eApF::Test},
       {eApDT::None},
-      {eApDT::Console}
+      {eApDT::Console},
+      __FILE__
 );
 
 

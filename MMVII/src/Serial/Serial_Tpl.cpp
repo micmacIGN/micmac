@@ -32,7 +32,7 @@ template  void AddData(const cAuxAr2007 & anAux,const std::string * aL);
 
 template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet)
 {
-    cAuxAr2007 aTagSet(TagSetOfName,anAux);
+    cAuxAr2007 aTagSet(XMLTagSet<Type>(),anAux);
     if (anAux.Input())
     {
         std::vector<Type> aV;
@@ -49,6 +49,7 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet
 }
 
 template void AddData(const cAuxAr2007 & anAux,cExtSet<std::string> & aSet);
+template void AddData(const cAuxAr2007 & anAux,cExtSet<tNamePair> & aSet);
 
 // Optionnal
 

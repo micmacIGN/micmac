@@ -68,7 +68,8 @@ class cSpecMMVII_Appli
                // Features, Input, Output =>  main first, more generally sorted by pertinence
            const tVaF     & aFeatures, 
            const tVaDT    & aInputs,   
-           const tVaDT    & aOutputs  
+           const tVaDT    & aOutputs  ,
+           const std::string & aNameFile 
        );
 
        void Check(); ///< Check that specification if ok (at least vectors non empty)
@@ -78,6 +79,7 @@ class cSpecMMVII_Appli
        const std::string &    Name() const; ///< Accessor
        tMMVII_AppliAllocator  Alloc() const; ///< Accessor
        const std::string &    Comment() const; ///< Accessor
+       const std::string &    NameFile() const; ///< Accessor
     private :
    // Data
        std::string           mName;       ///< User name
@@ -86,6 +88,7 @@ class cSpecMMVII_Appli
        tVaF                  mVFeatures;  ///< Features, at leat one
        tVaDT                 mVInputs;    //
        tVaDT                 mVOutputs;
+       std::string           mNameFile;   ///< C++ file where it is defined, may be usefull for devlopers ?
 
 };
 
@@ -219,6 +222,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         virtual cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) = 0;  ///< A command specifies its mandatory args
         virtual cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) = 0;  ///< A command specifies its optional args
+        void InitOutFromIn(std::string &aFileOut,const std::string& aFileIn); ///< If out is not init set In, else DirProj+Out
+
+        void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 

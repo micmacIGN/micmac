@@ -323,9 +323,9 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 {
     bool Ok = boost::filesystem::create_directories(aDir);
 
-    if (! Ok) 
+    if ((! Ok) && (!SVP))
     {
-        MMVII_INTERNAL_ASSERT_user(SVP,"Cannot create directory for arg " + aDir);
+        MMVII_INTERNAL_ASSERT_user(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
     }
     return Ok;
 }
@@ -341,9 +341,9 @@ bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
 bool RemoveFile(const  std::string & aFile,bool SVP)
 {
    bool Ok = boost::filesystem::remove(aFile);
-   if (! Ok) 
+   if ((! Ok) && (!SVP))
    {
-      MMVII_INTERNAL_ASSERT_user(SVP,"Cannot remove file for arg " + aFile);
+      MMVII_INTERNAL_ASSERT_user(eTyUEr::eRemoveFile,"Cannot remove file for arg " + aFile);
    }
    return Ok;
 }

@@ -2005,6 +2005,12 @@ void cAppliMICMAC::DoCorrelAdHoc
 
 void ShowStat(const std::string & aMes,std::vector<float> & aVC)
 {
+   if(aVC.empty())
+   {
+        std::cout << aMes << " empty" << "\n";
+        return;
+   }
+
    double aV0 = KthValProp(aVC,0.25);
    double aV1 = KthValProp(aVC,0.75);
 
