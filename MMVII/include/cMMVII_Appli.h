@@ -168,6 +168,12 @@ class cMMVII_Ap_CPU
 };
 
      // ========================== cMMVII_Appli  ==================
+
+cMultipleOfs& StdOut(); /// Call the ostream of cMMVII_Appli if exist (else std::cout)
+cMultipleOfs& HelpOut();
+cMultipleOfs& ErrOut();
+
+
 /// Mother class of all appli
 
 /** Any application of MMVII must inherit of cMMVII_Appli.
@@ -185,12 +191,19 @@ class cMMVII_Ap_CPU
    because InitParam use ressource of cMMVII_Appli.
  
 */
+
+
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
 {
     public :
-        int  ExeCallMMVII(const std::string & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
-        std::string  StrCallMMVII(const std::string & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
+        /// According to StdOut param can be std::cout, a File, both or none
+        cMultipleOfs & StdOut();
+        cMultipleOfs & HelpOut();
+        cMultipleOfs & ErrOut();
+
+        int  ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
+        std::string  StrCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
         cColStrAObl& StrObl();
         cColStrAOpt& StrOpt();
  
@@ -277,6 +290,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mOutPutV2;   ///< computed from mNumOutPut
         bool                                      mHasInputV1; ///< Is there any input in V1 format ?
         bool                                      mHasInputV2; ///< Is there any input in V2 format ?
+        // For controling output
+        std::unique_ptr<cMMVII_Ofs>               mFileStdOut;  ///< Redirection of std output
+        cMultipleOfs                              mStdCout;     ///< Standard Ouput (File,Console, both or none)
+        std::string                               mParamStdOut; ///< Users value
 };
 
 };

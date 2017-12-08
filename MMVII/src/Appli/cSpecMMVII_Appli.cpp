@@ -69,13 +69,6 @@ void cSpecMMVII_Appli::Check()
     MMVII_INTERNAL_ASSERT_always(!mVOutputs.empty(),"cSpecMMVII_Appli No Outputs");
 }
 
-extern cSpecMMVII_Appli  TheSpecBench;
-extern cSpecMMVII_Appli  TheSpecTestCpp11;
-extern cSpecMMVII_Appli  TheSpec_TestBoostSerial;
-extern cSpecMMVII_Appli  TheSpecMPDTest;
-extern cSpecMMVII_Appli  TheSpecEditSet;
-extern cSpecMMVII_Appli  TheSpecEditRel;
-  
 const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
 {
    static std::vector<cSpecMMVII_Appli*>  TheRes;

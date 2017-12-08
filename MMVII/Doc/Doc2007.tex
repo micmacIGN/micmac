@@ -120,6 +120,7 @@ en premi\`ere lecture.}}}
 \newcommand{\CdPPP}{{\tt MMVII}}
 \newcommand{\MMVIDIR}{{\tt MMVII-MainFolder/}}
 \newcommand{\doxy}{\emph{doxygen}}
+\newcommand{\MMNONE}{NONE}
 
 %---------------------------------------------
 \begin{document}
@@ -480,6 +481,7 @@ MMVII EditSet File.xml *= "F[02468].txt" Show=2 HELP
   * [Name=FFI1] string [FFI1] :: File Filter Interval, Second Set   ### COMMON 
   * [Name=NumVOut] int :: Num version for output format (1 or 2)   ### COMMON 
   * [Name=DirProj] string [DP] :: Project Directory   ### COMMON 
+  * [Name=StdOut] string :: Redirection of Ouput (+File for add,NONEfor no out)   ### COMMON 
 ...
   * [Name=LevCall] int :: Internal : Don't Use !!   ### INTERNAL 
   * [Name=ShowAll] bool :: Internal : Don't Use !!   ### INTERNAL 
@@ -582,6 +584,44 @@ and gives the result described with the $4$ names. Of course, the question is "H
 filter  {\tt FFI0}  will apply to this parameter ?".  This here where comes the
 "predefined semantics"  {\tt [MPI0]} that is shown in the help (see \ref{Param:Pred:Sem}).
 
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{Redirecting message with {\tt StdOut}}
+
+By defaut \PPP\, print several messages on the console. When user want  to
+print the messages in a file {\tt File.txt}, it is possible to :
+
+\begin{itemize}
+  \item just append the messages at the end to the possibily existing file  by {\tt StdOut=File.txt};
+  \item just append the messages to the possibily existing file  and still print the messages on the console
+        by {\tt StdOut=+File.txt};
+  \item print  the messages in this file, and reset if it exist, {\tt StdOut=0File.txt};
+  \item print  the messages in this file, and reset if it exist, and still print the 
+       messages on the console by {\tt StdOut=0+File.txt};
+  \item print  nothing by {\tt StdOut=\MMNONE}.
+\end{itemize}
+
+This has for consequences that the name of the file of redirection 
+cannot begin by {\tt +} or {\tt 0}.
+
+\subsubsection{Exercices}
+Try the following command and inspect the result , after each :
+
+\begin{verbatim}
+# File Mes.txt grows
+MMVII EditSet File.xml  = "F[0-3].txt" StdOut=Mes.txt Show=2
+MMVII EditSet File.xml  = "F[0-3].txt" StdOut=+Mes.txt Show=2
+MMVII EditSet File.xml  = "F[0-3].txt" StdOut=Mes.txt Show=2
+# File Mes.txt reiniliazed
+MMVII EditSet File.xml  = "F[0-3].txt" StdOut=0Mes.txt Show=2
+MMVII EditSet File.xml  = "F[0-3].txt" StdOut=0+Mes.txt Show=2
+MMVII EditSet File.xml  = "F[0-3].txt" StdOut=+0Mes.txt Show=2
+# No output
+MMVII EditSet File.xml  = "F[0-3].txt" StdOut=NONE Show=2
+\end{verbatim}
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
 
     % = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -600,7 +640,6 @@ optionnal parameter {\tt NumVOut} :
     \item else  the export will be in $V2$;
 \end{itemize}
 
-
     % = = = = = = = = = = = = = = = = = = = = = = =
 
 \subsection{Predefined semantics}
@@ -612,7 +651,7 @@ optionnal parameter {\tt NumVOut} :
 \subsubsection{Generalities}
 
 Many parameters of many command of \PPP correspond to the same meaning/semantic,
-this  the case for "main set of images", "main orientation", \dots These predefined
+this is  the case for "main set of images", "main orientation", \dots These predefined
 semantic are indicated in square bracket after the types, for example with command
 {\tt EditSet} we can see {\tt [FDP], [MPI0], [FFI0],[FFI1] [DP]} :
 
@@ -636,10 +675,10 @@ We desribe after this semantic (but not for common parameter, as they have alrea
 
 \subsubsection{Main pattern image {\tt [MPI]}}
 
-Many command have a parameters which is the main set/pattern of file (generally images).
+Many command have a parameter which is the main set/pattern of files (generally images).
 This  parameter is described by the predefined semantic {\tt [MPI0]}. If this
-parameter exist, then the its possible to use {\tt [FFI0]} to filter (if there
-is  {\tt [MPI0]} then use of {\tt [FFI0]}  is forbidden).
+parameter exists, then  it is possible to use {\tt [FFI0]} to filter the set (if there
+is no {\tt [MPI0]} then use of {\tt [FFI0]}  is forbidden).
 
 Some command have several main sets, in this case one of their parameter will have
 the predefined semantic {\tt [MPI1]}, which can be filtered by {\tt [FFI1]}. See
@@ -700,8 +739,8 @@ Let comment the message :
          boolean and {\tt tru} is not a valide string to create a boolean;
 
    \item {\tt Level=[UserEr:BadBool] } : this line indicate the reference of the error,
-         this reference can be used , if the short message is unsifficient, as an entry to get more 
-         information on the error;
+         this reference can be used , if the short message is unsufficient, as an entry in this
+         documentation to get more information on the error;
 
 \end{itemize}
 
@@ -747,7 +786,7 @@ MMVII EditSet File.xml = ".*txt" NumVOut=1 NumVOut=1
 \index{OpenFile}
 
 This error occurs when \PPP cannot open a file, in read or write mode, several reason can exist :
-hard disk full, write on the file system, directory do not exist. Example :
+hard disk full, rights on the file system, directory do not exist. Example :
 
 \begin{verbatim}
 MMVII EditSet File.xml = ".*txt"  Out=o/o.xml
@@ -882,6 +921,86 @@ in file {\tt src/Appli/cSpecMMVII\_Appli.cpp}.
 
 \subsection{Specifying paramaters}
 
+%% \subsubsection{Genarilities}
+
+The specification of parameters is done by the methods {\tt ArgObl} and {\tt ArgOpt}.
+They both return a {\tt cCollecSpecArg2007} with are an agregation of {\tt cSpecOneArg2007}.
+A {\tt cSpecOneArg2007} contains the specification of one parameters, it is
+a virtual class that contains :
+
+\begin{itemize}
+   \item  the variable that will be initialzed, this variable which can be of different type
+          as it is contained in the derived classes;
+
+   \item  a vector of predefined semantics, a predefined semantic is create from one
+          enum {\tt eTA2007} and an optional additional string;
+   \item  the comment associated to the parameter;
+   \item  the name of the parameter (aways empty string {\tt ""} for mandatory parameters);
+\end{itemize}
+
+Let's make a brief comment with class {\tt EditSet}, first mandatory parameters :
+
+{\small
+\begin{verbatim}
+cCollecSpecArg2007 & cAppli_EditSet::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+   return
+      anArgObl
+         << Arg2007(mXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
+         << Arg2007(mOp,"Operator in ("+StrAllVall<eOpAff>()+")" )
+         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatIm,"0"}});
+}
+\end{verbatim}
+}
+
+Let's comment :
+
+\begin{itemize}
+   \item The function {\tt Arg2007} is template and adapt to the type of the
+         l-value , here all the parameter are string , but could be {\tt int} \dots or
+         any type pre-instatiated in {\tt cReadOneArgCL.cpp} using macrp {\tt MACRO\_INSTANTIATE\_ARG2007};
+
+   \item the {\tt StrAllVall<eOpAff>()} function is used to generate the string of all valid operators;
+
+   \item the first parameter will fix the project directory, we indicate this by a having
+         the semantic {\tt  \{eTA2007::FileDirProj\}}
+
+   \item the third parameter will be the first main set of file, with indicate it by
+         the semantic {\tt {eTA2007::MPatIm,"0"}};
+\end{itemize}
+
+{\small
+\begin{verbatim}
+cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+  return
+    anArgOpt
+       << AOpt2007(mShow,"Show","Show detail of set before/after , (def) 0->none, (1) modif, (2) all",{})
+       << AOpt2007(mXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{});
+}
+\end{verbatim}
+}
+
+Here we use the template function {\tt AOpt2007},
+it is used with a {\tt bool} (parameter {\tt mShow})
+and a {\tt std::string} (parameter {\tt mXmlOut}).
+We see also that there is one more parameter : the name of the 
+parameter that MicMac user will see (here {\tt Show} or {\tt Out}).
+
+    % = = = = = = = = = = = = = = = = = = = = = = =
+
+\subsection{Standard access paramaters}
+
+Many command have paramaters that have more or less the
+same meaning. It is possible to avoid code redundancy
+via standard acces function and/or use of predefined semantic.
+
+\subsubsection{Reading set of name from file with {\tt  SetNameFromString}}
+\subsubsection{Main sets with {\tt MainSetk}}
+
+
+%% \subsubsection{Genarilities}
+
 % -------------------
 % -------------------
 % -------------------
@@ -890,6 +1009,8 @@ in file {\tt src/Appli/cSpecMMVII\_Appli.cpp}.
 
 \section{Naming convention}
 
+\section{Never use {\tt std::cout, printf \dots}}
+
 \section{Encapsulation of boost, stl ..}
 \section{Error handling}
 \section{Memory check}
@@ -897,6 +1018,19 @@ in file {\tt src/Appli/cSpecMMVII\_Appli.cpp}.
 \section{Shared pointer}
 
 \section{Enum to string}
+
+The enum/string  conversion is a recurent problem of \CPP which
+as far as I know is still an issue. A possible solution
+would be to use some code genration which from easy to read
+an write text file woul generate it. But I tried to limitate
+the code generation in \PPP.
+
+In file {\tt Serial/uti\_e2string.cpp} is implemanted 
+the used solution , it consist  to create data for each enum
+for which we want to do the conversion {\tt Serial/uti\_e2string.cpp}.
+
+
+
 
 %---------------------------------------------
 

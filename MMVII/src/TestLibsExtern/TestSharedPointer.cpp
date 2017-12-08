@@ -40,9 +40,9 @@ void TestCountSharePointer()
 
        std::shared_ptr<cTestMMV2Obj> p2 = p0;
        p2 = p1;
-       std::cout << "NB OBJ " << cTestMMV2Obj::NbObj() << " =? 2\n";
+       StdOut() << "NB OBJ " << cTestMMV2Obj::NbObj() << " =? 2\n";
     }
-    std::cout << "NB OBJ " << cTestMMV2Obj::NbObj() << " =? 0\n";
+    StdOut() << "NB OBJ " << cTestMMV2Obj::NbObj() << " =? 0\n";
 }
 
     //===============================================
@@ -103,8 +103,8 @@ cFonc1V::cFonc1V(double aCste) :
 class cDataFonc1V_X  : public cDataFonc1V
 {
       public :
-           cDataFonc1V_X() {} //{std::cout << "CREATE X\n";}
-           ~cDataFonc1V_X() {} //{std::cout << "Kill X\n";}
+           cDataFonc1V_X() {} 
+           ~cDataFonc1V_X() {} 
 
            double GetVal(double aVal) const {return aVal;}
            cFonc1V Derive() const {return cFonc1V(1.0);}
@@ -151,11 +151,11 @@ void  TestSharedPointer()
    // new  cDataFonc1V_Cste(3.14);
    {
        cFonc1V aF = X()+3+(X()+4);
-       std::cout << "F(10) = " << aF.GetVal(10) << " Count= " << cTestMMV2Obj::NbObj() << "\n";
-       std::cout << "F'(10) = " << aF.Derive().GetVal(10)  << "\n";
-       aF->Show(std::cout) ; std::cout << "\n";
+       StdOut() << "F(10) = " << aF.GetVal(10) << " Count= " << cTestMMV2Obj::NbObj() << "\n";
+       StdOut() << "F'(10) = " << aF.Derive().GetVal(10)  << "\n";
+       aF->Show(StdOut()) ; StdOut() << "\n";
    }
-   std::cout  << " Compte final " << cTestMMV2Obj::NbObj() << "\n";
+   StdOut()  << " Compte final " << cTestMMV2Obj::NbObj() << "\n";
 }
 
 
@@ -243,7 +243,7 @@ double Div(double a,double b) {return a/b;}
 class cUnikP
 {
    public :
-      ~cUnikP(){std::cout << "KilledP=" << mMes << "\n";}
+      ~cUnikP(){StdOut() << "KilledP=" << mMes << "\n";}
       cUnikP(const std::string & aMes) : mMes(aMes) {}
       std::string mMes;
 };
@@ -264,12 +264,12 @@ int cAppli_MMVII_TestCpp11::Exe()
    {
         std::unique_ptr<cUnikP> aP (new cUnikP("T1"));
    }
-   std::cout << "END BLOCK T1\n";
+   StdOut() << "END BLOCK T1\n";
    {
         std::unique_ptr<cUnikP> aP2 = Transfer("T2");
-        std::cout << " IN  BLOCK T2\n";
+        StdOut() << " IN  BLOCK T2\n";
    }
-   std::cout << "END BLOCK T2\n";
+   StdOut() << "END BLOCK T2\n";
 
    cPt2dr aP{1,2};
    std::vector<cPt2dr> aVP{{1,2},{3,1},{1,1}};  // Uniform initialization synta
@@ -289,18 +289,18 @@ int cAppli_MMVII_TestCpp11::Exe()
 
    std::string s = R"(\w\\\w)"; // Raw string , \ is \ !!
    std::string s2 = R"**(\w"()"\\\w)**"; // Raw string  avec "()" etc dedans ... 
-   std::cout << "TEST RAW STRING " << s  << "###"  << s2 << "\n";
+   StdOut() << "TEST RAW STRING " << s  << "###"  << s2 << "\n";
 
    auto aTuple = std::make_tuple(1,2.0,"3+2=5");
-   std::cout << " T0=> " << std::get<0>(aTuple) << " T2=>" << std::get<2>(aTuple) << " " << "\n";
+   StdOut() << " T0=> " << std::get<0>(aTuple) << " T2=>" << std::get<2>(aTuple) << " " << "\n";
    
-   std::cout << " Type1=> " << typeid(std::get<1>(aTuple)).name()  << "\n";
+   StdOut() << " Type1=> " << typeid(std::get<1>(aTuple)).name()  << "\n";
 
 
    char * C= nullptr; IgnoreUnused(C); // Un pointeur nul universel, + clean que (char *) 
 
    cCtsrCallCstr aT;
-   std::cout << "cCtsrCallCstr => " << aT.mV << "\n";
+   StdOut() << "cCtsrCallCstr => " << aT.mV << "\n";
    // PrintSzVect({1,2}); => Pb avec template et initializer , pas sur pb moo ou g++ ?
    PrintSzVectI({1,2});  // Ok sans template
    // Les const expression sont garanties evaluables a la compile
@@ -317,11 +317,11 @@ int cAppli_MMVII_TestCpp11::Exe()
    std::vector<int>  aVI;
    for (auto & it : aVI)
    {
-       std::cout << it << "\n";
+       StdOut() << it << "\n";
        it += 2;
    }
    // Range for "enum" values
-   for (const auto x : { 2,3,5,7,11 }) std::cout << "Prime ? "  << x << '\n';
+   for (const auto x : { 2,3,5,7,11 }) StdOut() << "Prime ? "  << x << '\n';
 
    // >> and double range
    std::vector<std::vector<int>>  aVVI;
@@ -335,19 +335,19 @@ int cAppli_MMVII_TestCpp11::Exe()
 
 
    std::forward_list<int> aFLPrime{2,3,5,7,11,13};
-   for (const auto &  it : aFLPrime) std::cout << " " << it ;
-   std::cout <<  std::endl;
+   for (const auto &  it : aFLPrime) StdOut() << " " << it ;
+   StdOut() <<  ENDL;
 
    std::unordered_map<std::string,int> aUMap{{"Un",1},{"deux",2},{"trois",3},{"Quatre",4}};
-   for (const auto &  it : aUMap) std::cout << " " << it.first<<","<<it.second ;
-   std::cout <<  std::endl;
-   std::cout << "aUMap[Un]=" <<aUMap["Un"] << " aUMap[un]=" << aUMap["un"] << "\n";
-   std::cout << " SZUM " << sizeof(aUMap) <<  std::endl;
+   for (const auto &  it : aUMap) StdOut() << " " << it.first<<","<<it.second ;
+   StdOut() <<  ENDL;
+   StdOut() << "aUMap[Un]=" <<aUMap["Un"] << " aUMap[un]=" << aUMap["un"] << "\n";
+   StdOut() << " SZUM " << sizeof(aUMap) <<  ENDL;
 
 
    // Pas sur supporte par g++ ??? 
    auto Div2 = std::bind(Div,std::placeholders::_1,2.0);
-   std::cout <<  " 5/2.0= " << Div2(5.0) << std::endl;
+   StdOut() <<  " 5/2.0= " << Div2(5.0) << ENDL;
    // auto Div2 = std::bind(Div,std::_1,2.0);
    // auto Div2 = std::bind(Div,std::_1,2.0);
    //auto Div2 = bind(Div,_1,2.0);

@@ -100,9 +100,9 @@ int cAppli_EditSet::Exe()
                 int aKPrint = (aInInit ? 0 : 2) + (aInRes ? 0 : 1);
                 if (aKPrint== aK)
                 {
-                   std::cout <<  " " << (aInInit ? "+" : "-");
-                   std::cout <<   (aInRes ? "+" : "-") << " ";
-                   std::cout <<  *aPtrS << "\n";
+                   StdOut() <<  " " << (aInInit ? "+" : "-");
+                   StdOut() <<   (aInRes ? "+" : "-") << " ";
+                   StdOut() <<  *aPtrS << "\n";
                 }
              }
           }
@@ -360,7 +360,7 @@ void OneBenchEditSet
 
     anAp.ExeCallMMVII
     (
-        "EditSet",
+        TheSpecEditSet,
         anAp.StrObl() <<   (UseDirP ? "" : aDirI)+Input  << anOp << aPat,
         anArgOpt
     );
@@ -368,7 +368,6 @@ void OneBenchEditSet
     RenameFiles(aDirI+Ouput,aDirT+Ouput);
 
     const std::string & aTag = (aRealNumOut==1) ?  MMv1XmlTag_SetName : TagSetOfName;
- // std::cout << "FFFfff " << aTag <<  " " << aDirT+Ouput << " " << aRealNumOut << "\n"; getchar();
     MMVII_INTERNAL_ASSERT_always
     (
         IsFileXmlOfGivenTag((aRealNumOut==2),aDirT+Ouput,aTag) ,

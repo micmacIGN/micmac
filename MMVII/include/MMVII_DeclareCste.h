@@ -27,6 +27,7 @@ extern const std::string GOP_DirProj;  ///< Directory of Proj
 extern const std::string GOP_NumVO;    ///< NumVOut 
 extern const std::string GOP_Int0;     ///< FFI0 => File Filter Interval
 extern const std::string GOP_Int1;     ///< FFI1
+extern const std::string GOP_StdOut;   ///< StdOut, Output redirection
 //  Name of Global INTERNAL optional parameter
 extern const std::string GIP_LevCall;     ///< Level of MMVII call
 extern const std::string GIP_ShowAll;     ///< Show a lot of intermediary steps

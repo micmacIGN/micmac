@@ -32,8 +32,8 @@ std::unique_ptr<std::ofstream>  NNOfs(const std::string & aNameFile,const std::s
 /*=============================================*/
 
 
-cMMVII_Ofs::cMMVII_Ofs(const std::string & aName) :
-   mOfs  (aName),
+cMMVII_Ofs::cMMVII_Ofs(const std::string & aName,bool ModeAppend) :
+   mOfs  (aName,ModeAppend ? std::ios_base::app : std::ios_base::out),
    mName (aName)
 {
     if (!mOfs.good())
