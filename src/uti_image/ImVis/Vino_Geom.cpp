@@ -123,6 +123,8 @@ void cAppli_Vino::ShowAsc()
 
    std::string aStrZoom = "Zoom=" + StrNbChifSign(mScr->sc(),3); // ToString(mScr->sc()); 
    mW->fixed_string(Pt2dr(5,10),aStrZoom.c_str(),mW->pdisc()(P8COL::black),true);
+
+   ShowVect();
 }
 
 
@@ -227,6 +229,27 @@ void cAppli_Vino::ExeClikGeom(Clik aCl)
          }
      }
      ShowAsc();
+}
+
+
+void cAppli_Vino::ShowVect()
+{
+   if (mWithPCarac) 
+      ShowVectPCarac();
+}
+
+void cAppli_Vino::ShowVectPCarac()
+{
+   for (const auto & aPC : mSPC->OnePCarac())
+   {
+       Pt2dr aPU = aPC.HR().Pt();
+       Pt2dr aPW = mScr->to_win(aPU);
+       if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
+       {
+           Pt3dr aC = CoulOfType(aPC.Kind());
+           mW->draw_circle_loc(aPW,3.0,mW->prgb()(aC.x*255,aC.y*255,aC.z*255));
+       }
+   }
 }
 
 

@@ -42,6 +42,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+
+//  =======   Pour visualiser les points carac new
+#include "../NewRechPH/cParamNewRechPH.h"
+std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin);
+Pt3dr CoulOfType(eTypePtRemark);
+
+
+
+
 #if (ELISE_X11)
 
 #define TheNbMaxChan  10
@@ -259,6 +268,8 @@ class cAppli_Vino : public cXml_EnvVino,
         void ExeClikGeom(Clik);
         void ZoomMolette();
         void ShowAsc();
+        void ShowVect();
+        void ShowVectPCarac();
         Pt2dr ToCoordAsc(const Pt2dr & aP);
 
         std::string               mNameXmlOut;
@@ -348,6 +359,12 @@ class cAppli_Vino : public cXml_EnvVino,
         bool           mClipIsChantier;
         std::string    mPatClipCh;
         std::string    mOriClipCh;
+ 
+      // Vector view 
+
+        int            mNbSPC;
+        int            mWithPCarac;
+        cSetPCarac *   mSPC;
 };
 
 Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);

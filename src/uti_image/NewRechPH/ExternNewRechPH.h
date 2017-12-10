@@ -82,20 +82,15 @@ template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
     return aRes;
 }
 
-typedef enum eTypePtRemark
-{
-    eTPR_Max     = 0,
-    eTPR_Min     = 1,
-    eTPR_NoLabel = 2
 /*
     eTPR_Corner  = 2,
     eTPR_MaxLapl = 3,
     eTPR_MinLapl = 4,
     eTPR_NoLabel = 5
 */
-}  eTypePtRemark;
 
-Pt3di CoulOfType(eTypePtRemark);
+Pt3di CoulOfType(eTypePtRemark,int aN0,int aLong);
+Pt3dr CoulOfType(eTypePtRemark);
 
 
 
@@ -130,8 +125,9 @@ class cBrinPtRemark
         cBrinPtRemark(cPtRemark * aP0,int aNiv0);
         cPtRemark * P0() {return mP0;}
         cPtRemark * PLast() {return mPLast;}
-        int   Niv0() {return mNiv0;}
-        int   Long() {return mLong;}
+        int   Niv0() const {return mNiv0;}
+        int   Long() const {return mLong;}
+        cPtRemark *  Nearest(int & aNiv,double aTargetNiv);
     private :
         cPtRemark * mP0;
         cPtRemark * mPLast;

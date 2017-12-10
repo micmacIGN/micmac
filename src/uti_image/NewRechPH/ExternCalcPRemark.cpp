@@ -97,8 +97,21 @@ std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort)
    return aResult;
 }
 
-Pt3di CoulOfType(eTypePtRemark aType)
+Pt3di CoulOfType(eTypePtRemark aType,int aL0,int aLong)
 {
+    if (aLong==0) 
+       return Pt3di(255,255,255);
+
+
+    double aSeuil = 5.0;
+    if (aLong < 5) 
+    {
+       int aG = 255 * ( aSeuil - aLong) / aSeuil;
+       return Pt3di(aG,aG,aG);
+    }
+
+
+
     switch(aType)
     {
          case eTPR_Max : return Pt3di(255,0,0);
@@ -108,6 +121,12 @@ Pt3di CoulOfType(eTypePtRemark aType)
     }
 
     return  Pt3di(128,128,128);
+}
+
+Pt3dr CoulOfType(eTypePtRemark aType)
+{
+   Pt3di aCI = CoulOfType(aType,0,1000);
+   return Pt3dr(aCI) /255.0;
 }
 
 /*****************************************************/
@@ -163,6 +182,30 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aP0,int aNiv0) :
        mLong++;
    }
 }
+
+
+cPtRemark *  cBrinPtRemark::Nearest(int & aNivMin,double aTargetNiv)
+{
+    cPtRemark * aRes = mP0;
+    cPtRemark * aPtr = aRes;
+    int aCurNiv = mNiv0;
+    aNivMin = aCurNiv;
+    double aScoreMin = 1e10;
+    while (aPtr)
+    {
+       double aScore = ElAbs(aTargetNiv-aCurNiv);
+       if (aScore < aScoreMin)
+       {
+           aScore = aScoreMin;
+           aRes = aPtr;
+           aNivMin = aCurNiv;
+       }
+       aPtr = aPtr->LR();
+       aCurNiv ++;
+    }
+    return aRes;
+}
+
 
 
 
