@@ -32,8 +32,6 @@ cMemState::~cMemState()
 {
    if (mDoCheckAtDestroy)
    {
-      // std::cout << "mDoCheckAtDestroymDoCheckAtDestroy\n";
-      // getchar();
       cMemManager::CheckRestoration(*this);
    }
 }
@@ -122,7 +120,6 @@ void * cMemManager::Calloc(size_t nmemb, size_t size)
           size_t aNbOctAllign8 = 8 * aNb8;
           for (size_t i =   aNbOct ; i < aNbOctAllign8; i++)
           {
-              // std::cout << "Majic Octet " << int(maj_octet) << "\n";
               aRes1[i] = maj_octet;
           }
      }
@@ -141,8 +138,6 @@ void   cMemManager::Free(void * aPtr)
      int32_t * aPtr32 = static_cast<int32_t *>(aPtr) ;
 
      size_t aNbOct =  aPtr64[-2];
-
-     // std::cout << "LIBERE OCTET = " << aNbOct  << "\n";
 
      const char * aMesDebord = "cMemManager::Free write out memory detected";
      MMVII_INTERNAL_ASSERT_always((aPtr32[-2] == maj_32A),aMesDebord);

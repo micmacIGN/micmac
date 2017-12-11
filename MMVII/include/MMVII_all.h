@@ -48,6 +48,8 @@
 #include "MMVII_Bench.h"
 #include "cMMVII_Appli.h"
 
+
+#include "MMVII_DeclareAllCmd.h"
 // communication MMVII/MMv1
 
 #include "MMVII_MMV1Compat.h"

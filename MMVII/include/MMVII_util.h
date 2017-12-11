@@ -116,7 +116,7 @@ std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelect
 class cMMVII_Ofs : public cMemCheck
 {
     public :
-        cMMVII_Ofs(const std::string & aName);
+        cMMVII_Ofs(const std::string & aName,bool aModeAppend);
         std::ofstream & Ofs() ;
         const std::string &   Name() const;
 
@@ -130,8 +130,9 @@ class cMMVII_Ofs : public cMemCheck
     private :
         void VoidWrite(const void * aPtr,size_t aNb);
 
-         std::ofstream  mOfs;
-         std::string   mName;
+        std::ofstream  mOfs;
+        std::string    mName;
+        bool           mModeAppend;
 };
 
 /// Secured ifstream
@@ -159,6 +160,29 @@ class cMMVII_Ifs : public cMemCheck
          std::ifstream  mIfs;
          std::string   mName;
 };
+
+class cMultipleOfs  : public  std::ostream
+{
+    public :
+        cMultipleOfs(std::ostream & aOfs)
+        {
+           Add(aOfs);
+        }
+        void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
+        void Clear() {mVOfs.clear();}
+
+        template <class Type> cMultipleOfs & operator << (const Type & aVal)
+        {
+             for (const auto & Ofs :  mVOfs)
+                 *Ofs << aVal;
+             return *this;
+        }
+    private :
+        std::vector<std::ostream *> mVOfs;
+};
+
+/// For now I have problem with cMultipleOfs << std::endl , tag end of line to come back on it later
+#define ENDL "\n"
 
 
 };

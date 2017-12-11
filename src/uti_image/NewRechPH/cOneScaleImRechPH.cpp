@@ -175,34 +175,49 @@ void cOneScaleImRechPH::CalcPtsCarac()
 
 }
 
-Pt3dr cOneScaleImRechPH::PtPly(const cPtRemark & aP)
+Pt3dr cOneScaleImRechPH::PtPly(const cPtRemark & aP,int aNiv)
 {
-   return Pt3dr(aP.Pt().x,aP.Pt().y,mNiv*mAppli.DZPlyLay());
+   return Pt3dr(aP.Pt().x,aP.Pt().y,aNiv*mAppli.DZPlyLay());
 }
 
-void cOneScaleImRechPH::AddPly(cOneScaleImRechPH * aHR, cPlyCloud *  aPlyC)
+void cOneScaleImRechPH::Export(cOneScaleImRechPH * aHR, cPlyCloud *  aPlyC)
 {
    mNbExLR = 0;
    mNbExHR = 0;
    for (std::list<cPtRemark*>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
    {
        cPtRemark & aP = **itIPM;
-       Pt3di aCol = CoulOfType(aP.Type());
        double aDistZ = mAppli.DZPlyLay();
-       if ((!aP.HR()) ||  (!aP.LR()))
+
+       if (!aP.HR())
        {
-          aPlyC->AddSphere(aCol,PtPly(aP),aDistZ/6.0,3);
-       }
-       if (aHR && aP.HR())
-       {
-          aPlyC->AddSeg(aCol,PtPly(aP),aHR->PtPly(*(aP.HR())),20);
+          cBrinPtRemark * aBr = new cBrinPtRemark(&aP,mNiv);
+          mAppli.AddBrin(aBr);
+
+          if (aPlyC)
+          {
+             int aN0 = aBr->Niv0();
+             int aL  = aBr->Long();
+             Pt3di aCol = CoulOfType(aP.Type(),aN0,aL);
+             Pt3di aColP0 = (aN0!=0)  ? Pt3di(0,255,0)  : aCol;
+             aPlyC->AddSphere(aColP0,PtPly(*(aBr->P0()),aN0),aDistZ/6.0,3);
+
+             aPlyC->AddSphere(aCol,PtPly(*(aBr->PLast()),aN0+aL),aDistZ/6.0,3);
+
+             int aNiv = aN0;
+             for (cPtRemark * aP = aBr->P0() ; aP->LR() ; aP = aP->LR())
+             {
+                 aPlyC->AddSeg(aCol,PtPly(*aP,aNiv),PtPly(*(aP->LR()),aNiv+1),20);
+                 aNiv++;
+             }
+          }
        }
  
        if (!aP.HR()) mNbExHR ++;
        if (!aP.LR()) mNbExLR ++;
    }
 
-   std::cout << "NIV=" << mNiv << " HR " << mNbExHR << " LR " << mNbExLR << "\n";
+   // std::cout << "NIV=" << mNiv << " HR " << mNbExHR << " LR " << mNbExLR << "\n";
 }
 
 void cOneScaleImRechPH::Show(Video_Win* aW)
@@ -218,7 +233,7 @@ void cOneScaleImRechPH::Show(Video_Win* aW)
 
    for (std::list<cPtRemark*>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
    {
-       Pt3di aC = CoulOfType((*itIPM)->Type());
+       Pt3di aC = CoulOfType((*itIPM)->Type(),0,1000);
 
        ELISE_COPY
        (
@@ -296,6 +311,7 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aLR)
 
 const int &  cOneScaleImRechPH::NbExLR() const {return mNbExLR;}
 const int &  cOneScaleImRechPH::NbExHR() const {return mNbExHR;}
+const double &  cOneScaleImRechPH::Scale() const {return mScale;}
 
 
 

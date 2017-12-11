@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _NewRechPH_H_
 #define _NewRechPH_H_
 
+#include "cParamNewRechPH.h"
 #include "ExternNewRechPH.h"
 
 typedef float   tElNewRechPH ;
@@ -83,12 +84,13 @@ class cOneScaleImRechPH
           void CalcPtsCarac();
           void Show(Video_Win* aW);
           void CreateLink(cOneScaleImRechPH & aLR);
-          void AddPly(cOneScaleImRechPH* aHR,cPlyCloud *  aPlyC);
+          void Export(cOneScaleImRechPH* aHR,cPlyCloud *  aPlyC);
 
           const int &  NbExLR() const ;
           const int &  NbExHR() const ;
+          const double &  Scale() const ;
       private :
-          Pt3dr PtPly(const cPtRemark & aP);
+          Pt3dr PtPly(const cPtRemark & aP,int aNiv);
 
           void CreateLink(cOneScaleImRechPH & aLR,const eTypePtRemark & aType);
           void InitBuf(const eTypePtRemark & aType, bool Init);
@@ -124,10 +126,15 @@ class cAppli_NewRechPH
         const Pt2di & SzIm() const ;
         tPtrPtRemark & PtOfBuf(const Pt2di &);
         tPtrPtRemark  NearestPoint(const Pt2di &,const double & aDist);
+        double ScaleOfNiv(const int &) const;
+        bool BrinStable(const cBrinPtRemark & aBr) const;
+        void AddBrin(cBrinPtRemark *);
+
 
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
+
 
         std::string mName;
         double      mPowS;
@@ -147,9 +154,13 @@ class cAppli_NewRechPH
         bool         mDoPly;
         cPlyCloud *  mPlyC;
         double       mDZPlyLay;
+        double       mNbInOct;  // Number in one octave
 
         std::vector<std::vector<cPtRemark *> >  mBufLnk;
         std::vector<Pt2di>                      mVoisLnk;
+        std::vector<cBrinPtRemark *>            mVecB;
+        std::vector<int>                        mHistLong;
+        std::vector<int>                        mHistN0;
 
 };
 

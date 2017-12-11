@@ -81,7 +81,9 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mHistoCum          (mNbHistoMax),
     mIsMnt             (true),
     mWithBundlExp      (false),
-    mClipIsChantier    (false)
+    mClipIsChantier    (false),
+    mWithPCarac        (false),
+    mSPC               (0)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -135,6 +137,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
                     << EAM(mIsMnt,"IsMnt",true,"Display altitude if true, def exist of Mnt Meta data")
                     << EAM(mFileMnt,"FileMnt",true,"Default toto.tif -> toto.xml")
                     << EAM(mParamClipCh,"ClipCh",true,"Param 4 Clip Chantier [PatClip,OriClip]")
+                    << EAM(mNbSPC,"NbSPC",true,"Nb Visu in Set Pts Carac")
                     // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
     );
 
@@ -258,6 +261,21 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
        mClipIsChantier = true;
        mPatClipCh = mParamClipCh[0];
        mOriClipCh = mParamClipCh[1];
+    }
+
+    if (EAMIsInit(&mNbSPC))
+    {
+        mWithPCarac = true;
+        mSPC = new cSetPCarac
+               (
+                   StdGetObjFromFile<cSetPCarac>
+                   (
+                        NameFileNewPCarac(mNameIm,false),
+                        MMDir() + "src/uti_image/NewRechPH/ParamNewRechPH.xml",
+                        "SetPCarac",
+                        "SetPCarac"
+                    )
+               );
     }
 }
 

@@ -5,11 +5,11 @@ namespace MMVII
 
 void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
 {
-    std::cout << "\n\n ######################################""\n\n";
-    std::cout << "Level=[" << aType << "]\n";
-    std::cout << "Mes=[" << aMes << "]\n";
+    ErrOut() << "\n\n ######################################""\n\n";
+    ErrOut() << "Level=[" << aType << "]\n";
+    ErrOut() << "Mes=[" << aMes << "]\n";
     if (aFile)
-       std::cout << "at line  " << aLine << " of file " << aFile  << "\n";
+       ErrOut() << "at line  " << aLine << " of file " << aFile  << "\n";
 
     if (!cMMVII_Appli::ExistAppli())
     {
@@ -37,7 +37,7 @@ void MMVII_UsersErrror(const eTyUEr & aRef,const std::string & aMes)
 */
 void cMMVII_Appli::Warning(const std::string & aMes,eTyW,int line,const std::string & File)
 {
-    std::cout << "WARNING : " << aMes << "\n";
+    ErrOut() << "WARNING : " << aMes << "\n";
 }
 
 

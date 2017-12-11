@@ -40,6 +40,24 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin)
+{
+    std::string aDirGlob = DirOfFile(aNameGlob);
+    std::string aDirLoc= "NewPH/";
+    ELISE_fp::MkDirSvp(aDirGlob+aDirLoc);
+    return aDirGlob+aDirLoc + NameWithoutDir(aNameGlob) + (Bin ? ".dmp" : ".xml");
+}
+
+bool  cAppli_NewRechPH::BrinStable(const cBrinPtRemark & aBr) const
+{
+  int aN0 = aBr.Niv0();
+  int aN1 = aN0 + aBr.Long();
+
+  return ScaleOfNiv(aN1) >=  2 * ScaleOfNiv(aN0);
+
+}
+
+
 void  cAppli_NewRechPH::Clik()
 {
    if (mW1) mW1->clik_in();
@@ -50,7 +68,20 @@ void cAppli_NewRechPH::AddScale(cOneScaleImRechPH * aI1,cOneScaleImRechPH *)
     mVI1.push_back(aI1);
 }
 
+void cAppli_NewRechPH::AddBrin(cBrinPtRemark * aBr)
+{
+   mVecB.push_back(aBr);
+}
 
+
+
+cPtSc CreatePtSc(const Pt2dr & aP,double aSc)
+{
+    cPtSc aRes;
+    aRes.Pt()    = aP;
+    aRes.Scale() = aSc;
+    return aRes;
+}
 
 cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mPowS     (pow(2.0,1/5.0)),
@@ -62,8 +93,12 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mDoMin      (true),
     mDoMax      (true),
     mDoPly      (true),
-    mPlyC       (0)
+    mPlyC       (0),
+    mHistLong   (1000,0),
+    mHistN0     (1000,0)
 {
+   double aSeuilPersist = 1.0;
+
    MMD_InitArgcArgv(argc,argv);
    ElInitArgMain
    (
@@ -75,7 +110,9 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mDoPly, "DoPly",true,"Generate ply file, for didactic purpose")
                       << EAM(mBox, "Box",true,"Box for computation")
                       << EAM(mModeTest, "Test",true,"if true add W")
+                      << EAM(aSeuilPersist, "SP",true,"Threshold persistance")
    );
+   mNbInOct = log(2) / log(mPowS);
 
    if (mDoPly)
    {
@@ -137,14 +174,65 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
 
    Clik();
 
+   for (int aK=0 ; aK<mNbS ; aK++)
+   {
+       mVI1[aK]->Export((aK!=0) ? mVI1[aK-1] : 0,mPlyC);
+   }
+
    if (mPlyC)
    {
-       for (int aK=0 ; aK<mNbS ; aK++)
-       {
-           mVI1[aK]->AddPly((aK!=0) ? mVI1[aK-1] : 0,mPlyC);
-       }
        mPlyC->PutFile("NewH.ply");
    }
+
+   cSetPCarac aSPC;
+   int aNb0 = 0;
+   int aNb1 = 0;
+   int aNb2 = 0;
+   int aNbTot=0;
+   for (const auto & aPBr  :  mVecB)
+   {
+//std::cout << "AAAAA\n";
+       int aN0 = aPBr->Niv0();
+       int aN1 = aN0 + aPBr->Long();
+       mHistLong.at(aPBr->Long())++;
+       mHistN0.at(aN0)++;
+
+       if (aPBr->Long()>= (aSeuilPersist*mNbInOct))
+       {
+          aNbTot++;
+          if (aN0==0)
+          {
+              aSPC.OnePCarac().push_back(cOnePCarac());
+              cOnePCarac & aPC = aSPC.OnePCarac().back();
+
+              aPC.Kind() = aPBr->P0()->Type();
+              int aNiv_h,aNiv_l;
+
+              aPC.HR() = CreatePtSc(aPBr->P0()->Pt(),ScaleOfNiv(aN0));
+
+              cPtRemark *aPhR = aPBr->Nearest(aNiv_h,aN0 + mNbInOct);
+              aPC.hR() =  CreatePtSc(aPhR->Pt(),ScaleOfNiv(aNiv_h));
+
+              cPtRemark *aPlR = aPBr->Nearest(aNiv_l,aN1 - mNbInOct);
+              aPC.lR() =  CreatePtSc(aPlR->Pt(),ScaleOfNiv(aNiv_l));
+
+              aPC.LR() = CreatePtSc(aPBr->PLast()->Pt(),ScaleOfNiv(aN1));
+
+              aNb0++;
+          }
+          else if (aN0==1) aNb1++;
+          else if (aN0==2) aNb2++;
+
+       }
+//std::cout << "FFFFFF\n";
+
+   }
+
+    MakeFileXML(aSPC,NameFileNewPCarac(mName,true));
+    MakeFileXML(aSPC,NameFileNewPCarac(mName,false));
+    std::cout << "Prop0 =" << aNb0 / double(aNbTot) << "\n";
+    std::cout << "Prop1 =" << aNb1 / double(aNbTot) << "\n";
+    std::cout << "Prop2 =" << aNb2 / double(aNbTot) << "\n";
 }
 
 bool cAppli_NewRechPH::Inside(const Pt2di & aP) const
@@ -180,10 +268,17 @@ tPtrPtRemark  cAppli_NewRechPH::NearestPoint(const Pt2di & aP,const double & aDi
 
 const Pt2di & cAppli_NewRechPH::SzIm() const  {return mSzIm;}
 
+double cAppli_NewRechPH::ScaleOfNiv(const int & aNiv) const
+{
+   return mVI1.at(aNiv)->Scale();
+}
+
+
 
 int Test_NewRechPH(int argc,char ** argv)
 {
    cAppli_NewRechPH anAppli(argc,argv,true);
+
 
    return EXIT_SUCCESS;
 

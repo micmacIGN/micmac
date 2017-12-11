@@ -40,7 +40,7 @@ cColStrAOpt::cColStrAOpt() {}
 /*
 template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 {
-    std::cout << " For " << aName << " V=" << aVal << "\n";
+    Std Out() << " For " << aName << " V=" << aVal << "\n";
     return aVal;
 }
 */
@@ -98,9 +98,40 @@ cMMVII_Appli::cMMVII_Appli
    mOutPutV1      (false),
    mOutPutV2      (false),
    mHasInputV1    (false),
-   mHasInputV2    (false)
+   mHasInputV2    (false),
+   mStdCout       (std::cout)
 {
 }
+
+/// This one is always std:: cout, to be used by StdOut and cMMVII_Appli::StdOut ONLY
+
+cMultipleOfs & StdStdOut()
+{
+   static cMultipleOfs aMOfs(std::cout);
+   return aMOfs;
+}
+
+cMultipleOfs& StdOut()
+{
+   if (cMMVII_Appli::ExistAppli())
+     return cMMVII_Appli::TheAppli().StdOut();
+   return StdStdOut();
+}
+cMultipleOfs& HelpOut() {return StdOut();}
+cMultipleOfs& ErrOut()  {return StdOut();}
+
+
+
+cMultipleOfs &  cMMVII_Appli::StdOut()
+{
+   // Maybe mStdCout not correctly initialized if we are in constructor ?
+   if (!msTheAppli)
+      return StdStdOut();
+   return mStdCout;
+}
+cMultipleOfs &  cMMVII_Appli::HelpOut() {return StdOut();}
+cMultipleOfs &  cMMVII_Appli::ErrOut() {return StdOut();}
+
 
 
 void cMMVII_Appli::InitParam()
@@ -127,6 +158,7 @@ void cMMVII_Appli::InitParam()
       <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})
       <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",aCom)
       <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Common})
+      <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for add,"+ MMVII_NONE + "for no out)",aCom)
       <<  AOpt2007(mLevelCall,GIP_LevCall,"Internal : Don't Use !!",aInternal)
       <<  AOpt2007(mShowAll,GIP_ShowAll,"Internal : Don't Use !!",aInternal)
   ;
@@ -165,8 +197,6 @@ void cMMVII_Appli::InitParam()
       return;
   }
 
-
-  // std::cout << "MMV1 "  << mDirMicMacv1  << "\n";
 
   int aNbObl = mArgObl.size(); //  Number of mandatory argument expected
   int aNbArgGot = 0; // Number of  Arg received untill now
@@ -290,6 +320,45 @@ void cMMVII_Appli::InitParam()
        mSetInit.Add(aVSpec[aK]->AdrParam()); ///< Memorize this value was initialized
   }
 
+  // Manange OutPut redirection
+  if (IsInit(&mParamStdOut))
+  {
+     const char * aPSO = mParamStdOut.c_str();
+     bool aModeFileInMore = false;
+     bool aModeAppend = true;
+
+     // Do it twice to accept 0+ and +0
+     for (int aK=0 ; aK<2 ; aK++)
+     {
+         //  StdOut=0File.txt => Put in file, erase it before
+         if (aPSO[0]=='0')
+         {
+            aModeAppend = false;
+            aPSO++;  
+         }
+         //  StdOut=+File.txt => redirect output in file and in console
+         //  StdOut=0+File.txt => work also
+         if (aPSO[0]=='+')
+         {
+            aModeFileInMore = true;
+            aPSO++;  
+         }
+     }
+     // If not on console, supress std:: cout which was in mStdCout
+     if (! aModeFileInMore)
+     {
+         mStdCout.Clear();
+     }
+     // Keyword NONE means no out at all
+     if (MMVII_NONE != aPSO)
+     {
+         mFileStdOut.reset(new cMMVII_Ofs(aPSO,aModeAppend));
+         // separator between each process , to refine ... (date ? Id ?)
+         mFileStdOut->Ofs() << "=============================================" << ENDL;
+         mStdCout.Add(mFileStdOut->Ofs());
+     }
+  }
+
   // If mNumOutPut was set, fix the output version
   if (IsInit(&mNumOutPut))
   {
@@ -359,12 +428,11 @@ void cMMVII_Appli::InitParam()
      // Print the value of all parameter
      for (size_t aK=0 ; aK<aNbArgTot; aK++)
      {
-         std::cout << aVSpec[aK]->Name()  << " => [" << aVValues[aK] << "]" << std::endl;
+         HelpOut() << aVSpec[aK]->Name()  << " => [" << aVValues[aK] << "]" << ENDL;
      }
-     std::cout << "---------------------------------------" << std::endl;
-     std::cout << "IS INIT  DP: " << IsInit(&aDP) << std::endl;
-
-     std::cout << "DIRPROJ=[" << mDirProject << "]" << std::endl;
+     HelpOut() << "---------------------------------------" << ENDL;
+     HelpOut() << "IS INIT  DP: " << IsInit(&aDP) << ENDL;
+     HelpOut() << "DIRPROJ=[" << mDirProject << "]" << ENDL;
   }
 
   // By default, if calls is done at top level, assure that everything is init
@@ -375,14 +443,6 @@ void cMMVII_Appli::InitParam()
   {
      InitProject();
   }
-
-  // mLevelCall++; // So that is incremented if a new call is made
-
-  for (int aK=0 ; aK<100 ; aK++)
-  {
-      // std::cout << "Lettre SFPT a diffuser \n";
-  }
-
 }
 
 void cMMVII_Appli::InitProject()
@@ -395,29 +455,29 @@ void cMMVII_Appli::InitProject()
 
 void cMMVII_Appli::GenerateHelp()
 {
-   std::cout << "\n";
+   HelpOut() << "\n";
 
-   std::cout << "**********************************\n";
-   std::cout << "*   Help project 2007/MMVII      *\n";
-   std::cout << "**********************************\n";
+   HelpOut() << "**********************************\n";
+   HelpOut() << "*   Help project 2007/MMVII      *\n";
+   HelpOut() << "**********************************\n";
 
-   std::cout << "\n";
-   std::cout << "  For command : " << mSpecs.Name() << " \n";
-   std::cout << "   => " << mSpecs.Comment() << "\n";
-   std::cout << "   => Srce code entry in :" << mSpecs.NameFile() << "\n";
-   std::cout << "\n";
+   HelpOut() << "\n";
+   HelpOut() << "  For command : " << mSpecs.Name() << " \n";
+   HelpOut() << "   => " << mSpecs.Comment() << "\n";
+   HelpOut() << "   => Srce code entry in :" << mSpecs.NameFile() << "\n";
+   HelpOut() << "\n";
 
-   std::cout << " == Mandatory unnamed args : ==\n";
+   HelpOut() << " == Mandatory unnamed args : ==\n";
 
    for (const auto & Arg : mArgObl.Vec())
    {
-       std::cout << "  * " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com()  << "\n";
+       HelpOut() << "  * " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com()  << "\n";
    }
 
    tNameSelector  aSelName =  BoostAllocRegex(mPatHelp);
 
-   std::cout << "\n";
-   std::cout << " == Optional named args : ==\n";
+   HelpOut() << "\n";
+   HelpOut() << " == Optional named args : ==\n";
    for (const auto & Arg : mArgFac.Vec())
    {
        const std::string & aNameA = Arg->Name();
@@ -429,17 +489,17 @@ void cMMVII_Appli::GenerateHelp()
              bool isGlobHelp = Arg->HasType(eTA2007::Common);
              if ((!isGlobHelp) || mDoGlobHelp)
              {
-                std::cout << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
+                HelpOut() << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
                 if (IsIinternal) 
-                   std::cout << "   ### INTERNAL " ; 
+                   HelpOut() << "   ### INTERNAL " ; 
                 else if (isGlobHelp) 
-                   std::cout << "   ### COMMON " ; 
-                std::cout  << "\n";
+                   HelpOut() << "   ### COMMON " ; 
+                HelpOut()  << "\n";
              }
           }
        }
    }
-   std::cout << "\n";
+   HelpOut() << "\n";
 }
 
 bool cMMVII_Appli::ModeHelp() const
@@ -540,20 +600,22 @@ cColStrAObl& cMMVII_Appli::StrObl() {return mColStrAObl;}
 cColStrAOpt& cMMVII_Appli::StrOpt() {return mColStrAOpt;}
 
 
-std::string  cMMVII_Appli::StrCallMMVII(const std::string & aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt)
+std::string  cMMVII_Appli::StrCallMMVII(const cSpecMMVII_Appli & aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt)
 {
   MMVII_INTERNAL_ASSERT_always(&anAObl==&mColStrAObl,"StrCallMMVII use StrObl() !!");
   MMVII_INTERNAL_ASSERT_always(&anAOpt==&mColStrAOpt,"StrCallMMVII use StrOpt() !!");
 
    std::string aComGlob = mFullBin + " ";
+/*
    cSpecMMVII_Appli*  aSpec = cSpecMMVII_Appli::SpecOfName(aCom2007,false); // false => dont accept no match
    if (! aSpec)  // Will see if we can di better, however SpecOfNam has generated error
       return "";
+*/
 
    // Theoretically we can create the command  (dealing with unik msTheAppli before !) and check
    // the parameters, but it will be done in the call so maybe it's not worth the price ?
   
-   aComGlob += aCom2007 + " ";
+   aComGlob += aCom2007.Name() + " ";
 
    // Add mandatory args
    for (const auto & aStr : anAObl.V())
@@ -589,15 +651,17 @@ void cMMVII_Appli::InitOutFromIn(std::string &aFileOut,const std::string& aFileI
    
 
 
-int  cMMVII_Appli::ExeCallMMVII(const std::string & aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt)
+int  cMMVII_Appli::ExeCallMMVII(const  cSpecMMVII_Appli&  aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt)
 {
     std::string   aComGlob = StrCallMMVII(aCom2007,anAObl,anAOpt);
+/*
 if (0)
 {
-    std::cout <<  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
-    std::cout << aComGlob << "\n";
+    Std Out() <<  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
+    Std Out() << aComGlob << "\n";
     getchar();
 }
+*/
     return  SysCall(aComGlob,false);
 }
 
