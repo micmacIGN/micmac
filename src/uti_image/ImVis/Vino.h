@@ -214,13 +214,14 @@ class cAppli_Vino : public cXml_EnvVino,
 
 
         bool Floutage() {return false;} // A mettre dans cXml_EnvVino,
-        cAppli_Vino(int,char **);
+        cAppli_Vino(int,char **,const std::string & anIm,cAppli_Vino * aMother ); // If anIm == "" => read from argv
         void PostInitVirtual();
         void  Boucle();
         cXml_EnvVino & EnvXml() {return static_cast<cXml_EnvVino &> (*this);}
 
 
      private :
+        void  ExeOneClik(Clik &);
         Box2di PutMessage(Pt2dr ,const std::string & aMes,int aCoulText,Pt2dr aSzRelief = Pt2dr(-1,-1),int aCoulRelief=-1);
         void   PutMessageRelief(int aK,const std::string & aMes);
         
@@ -359,12 +360,17 @@ class cAppli_Vino : public cXml_EnvVino,
         bool           mClipIsChantier;
         std::string    mPatClipCh;
         std::string    mOriClipCh;
+
+        //  Appli Vino Secondary Images
+        std::vector<cAppli_Vino *>  mAVSI;
+        std::string                 mPatSecIm;
  
       // Vector view 
 
         int            mNbSPC;
         int            mWithPCarac;
         cSetPCarac *   mSPC;
+
 };
 
 Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);
