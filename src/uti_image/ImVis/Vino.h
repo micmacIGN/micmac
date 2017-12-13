@@ -45,7 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //  =======   Pour visualiser les points carac new
 #include "../NewRechPH/cParamNewRechPH.h"
-std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin);
+std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
 Pt3dr CoulOfType(eTypePtRemark);
 
 
@@ -367,7 +367,7 @@ class cAppli_Vino : public cXml_EnvVino,
  
       // Vector view 
 
-        int            mNbSPC;
+        bool           mBasicPC;
         int            mWithPCarac;
         cSetPCarac *   mSPC;
 

@@ -137,7 +137,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
                     << EAM(mIsMnt,"IsMnt",true,"Display altitude if true, def exist of Mnt Meta data")
                     << EAM(mFileMnt,"FileMnt",true,"Default toto.tif -> toto.xml")
                     << EAM(mParamClipCh,"ClipCh",true,"Param 4 Clip Chantier [PatClip,OriClip]")
-                    << EAM(mNbSPC,"NbSPC",true,"Nb Visu in Set Pts Carac")
+                    << EAM(mBasicPC,"BasicPC",true,"Set if visualize carac point")
                     << EAM(mPatSecIm,"PSI",true,"Patt secondary images, for multiple vino")
                     // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
     );
@@ -273,14 +273,14 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
        mOriClipCh = mParamClipCh[1];
     }
 
-    if (EAMIsInit(&mNbSPC))
+    if (EAMIsInit(&mBasicPC))
     {
         mWithPCarac = true;
         mSPC = new cSetPCarac
                (
                    StdGetObjFromFile<cSetPCarac>
                    (
-                        NameFileNewPCarac(mNameIm,false),
+                        NameFileNewPCarac(mNameIm,true, mBasicPC ?  "Basic" : "Std"),
                         MMDir() + "src/uti_image/NewRechPH/ParamNewRechPH.xml",
                         "SetPCarac",
                         "SetPCarac"
