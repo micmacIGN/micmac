@@ -161,7 +161,8 @@ class cAppli_NewRechPH
         std::vector<cBrinPtRemark *>            mVecB;
         std::vector<int>                        mHistLong;
         std::vector<int>                        mHistN0;
-
+        std::string                             mExtSave;
+        bool                                    mBasic;
 };
 
 

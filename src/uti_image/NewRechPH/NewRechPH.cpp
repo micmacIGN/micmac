@@ -40,10 +40,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
-std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin)
+std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt)
 {
     std::string aDirGlob = DirOfFile(aNameGlob);
-    std::string aDirLoc= "NewPH/";
+    std::string aDirLoc= "NewPH" + anExt + "/";
     ELISE_fp::MkDirSvp(aDirGlob+aDirLoc);
     return aDirGlob+aDirLoc + NameWithoutDir(aNameGlob) + (Bin ? ".dmp" : ".xml");
 }
@@ -95,7 +95,9 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mDoPly      (true),
     mPlyC       (0),
     mHistLong   (1000,0),
-    mHistN0     (1000,0)
+    mHistN0     (1000,0),
+    mExtSave    ("Std"),
+    mBasic      (false)
 {
    double aSeuilPersist = 1.0;
 
@@ -228,8 +230,8 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
 
    }
 
-    MakeFileXML(aSPC,NameFileNewPCarac(mName,true));
-    MakeFileXML(aSPC,NameFileNewPCarac(mName,false));
+    MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
+    MakeFileXML(aSPC,NameFileNewPCarac(mName,false,mExtSave));
     std::cout << "Prop0 =" << aNb0 / double(aNbTot) << "\n";
     std::cout << "Prop1 =" << aNb1 / double(aNbTot) << "\n";
     std::cout << "Prop2 =" << aNb2 / double(aNbTot) << "\n";
