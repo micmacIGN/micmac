@@ -39,6 +39,7 @@
            <Symb>  BDDC=XXXX </Symb>
            <Symb>  SigmGPS=XXXX </Symb>
            <Symb>  SigmGPSAlti=XXXX </Symb>
+           <Symb>  PatternGPS=.* </Symb>
 
            <Symb>  CPI=false </Symb>
            <Symb>  CPIInput=false </Symb>
@@ -702,7 +703,7 @@
 
                           <#WHEN  VTEST=${WithCenter}>
                                <ObsCentrePDV>
-                                   <PatternApply> .* </PatternApply>
+                                   <PatternApply> ${PatternGPS} </PatternApply>
                                    <Pond>
                                           <EcartMesureIndiv>  ${SigmGPS}  </EcartMesureIndiv>
                                           <Show> eNSM_Indiv     </Show>

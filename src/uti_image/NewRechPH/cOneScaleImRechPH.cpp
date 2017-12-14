@@ -135,11 +135,11 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
 
 // Recherche tous les points topologiquement interessant
 
-void cOneScaleImRechPH::CalcPtsCarac()
+void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
 {
    // voisin tries excluant le pixel central, le tri permet normalement de
    // beneficier le plus rapidement possible d'une "coupe"
-   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(),true);
+   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(Basic),true);
 
 
    bool DoMin = mAppli.DoMin();
@@ -154,6 +154,8 @@ void cOneScaleImRechPH::CalcPtsCarac()
        {
            int aFlag = aTF.get(aP);
            eTypePtRemark aLab = eTPR_NoLabel;
+
+// std::cout << "DDDDDDDDd " << mAppli.DistMinMax(Basic) << "\n";
            
            if (DoMax &&  (aFlag == 0)  && SelectVois(aP,aVoisMinMax,1))
            {

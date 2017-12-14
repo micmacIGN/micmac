@@ -113,7 +113,18 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mBox, "Box",true,"Box for computation")
                       << EAM(mModeTest, "Test",true,"if true add W")
                       << EAM(aSeuilPersist, "SP",true,"Threshold persistance")
+                      << EAM(mBasic, "Basic",true,"Basic")
    );
+
+   if (! EAMIsInit(&mExtSave))
+   {
+        mExtSave  = mBasic ? "Basic" : "Std";
+   }
+   if (! EAMIsInit(&mNbS))
+   {
+       if (mBasic) 
+           mNbS = 1;
+   }
    mNbInOct = log(2) / log(mPowS);
 
    if (mDoPly)
@@ -163,7 +174,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
 
         }
         // Compute point of scale
-        mVI1.back()->CalcPtsCarac();
+        mVI1.back()->CalcPtsCarac(mBasic);
         mVI1.back()->Show(mW1);
           
         // Links the point at different scale
@@ -199,7 +210,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
        mHistLong.at(aPBr->Long())++;
        mHistN0.at(aN0)++;
 
-       if (aPBr->Long()>= (aSeuilPersist*mNbInOct))
+       if (mBasic || (aPBr->Long()>= (aSeuilPersist*mNbInOct)))
        {
           aNbTot++;
           if (aN0==0)
@@ -249,6 +260,18 @@ tPtrPtRemark &  cAppli_NewRechPH::PtOfBuf(const Pt2di & aP)
 
     return mBufLnk[aP.y][aP.x];
 }
+
+double  cAppli_NewRechPH::DistMinMax(bool Basic) const  
+{
+   if (Basic)
+   {
+       return  60;
+   }
+   return mDistMinMax;
+}
+
+
+
 
 tPtrPtRemark  cAppli_NewRechPH::NearestPoint(const Pt2di & aP,const double & aDist)
 {

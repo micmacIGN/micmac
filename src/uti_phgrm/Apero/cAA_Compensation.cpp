@@ -165,6 +165,9 @@ for (int aK=0 ; aK<aNbIter; aK++)
    {
        AddObservationsContrCamGenInc(anSO.ContrCamGenInc(),IsLastIter,aSO);
    }
+   {
+       AddObservationsBaseGpsInit();
+   }
 }
 
    MajAddCoeffMatrix();
@@ -176,6 +179,29 @@ for (int aK=0 ; aK<aNbIter; aK++)
        mFpRT = 0;
    }
 }
+
+
+void cAppliApero::AddObservationsBaseGpsInit()
+{
+for (int aK=0 ; aK< 100 ; aK++)
+std::cout << "cAppliApero::AddObservationsBaseGpsInicAppliApero::AddObservationsBaseGpsIni\n";
+
+   for (auto & aPair : mDicoOffGPS)
+   {
+      cAperoOffsetGPS * anOffs = aPair.second;
+      cBaseGPS * aBG =   anOffs->BaseUnk();
+      Pt3d<Fonc_Num>   aPF = aBG->BaseInc();
+
+      Pt3dr aPInc(0.001,0.001,0.001);
+      cMultiContEQF  aRes;
+      aBG->AddFoncRappInit(aRes,0,1,aPInc.x);
+      aBG->AddFoncRappInit(aRes,1,2,aPInc.y);
+      aBG->AddFoncRappInit(aRes,2,3,aPInc.z);
+
+      mSetEq.AddContrainte(aRes,true);
+   }
+}
+
 
 void cAppliApero::AddObservationsRigidBlockCam
      (

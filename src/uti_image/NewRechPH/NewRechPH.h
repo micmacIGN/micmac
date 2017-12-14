@@ -81,7 +81,7 @@ class cOneScaleImRechPH
                  );
           tImNRPH Im(); // simple accesseur a l'image
 
-          void CalcPtsCarac();
+          void CalcPtsCarac(bool Basic);
           void Show(Video_Win* aW);
           void CreateLink(cOneScaleImRechPH & aLR);
           void Export(cOneScaleImRechPH* aHR,cPlyCloud *  aPlyC);
@@ -116,7 +116,7 @@ class cAppli_NewRechPH
     public :
         cAppli_NewRechPH(int argc,char ** argv,bool ModeTest);
 
-        const double &      DistMinMax() const  {return mDistMinMax;}
+        double   DistMinMax(bool Basic) const ;
         const bool   &      DoMin() const       {return mDoMin;}
         const bool   &      DoMax() const       {return mDoMax;}
         cPlyCloud * PlyC()  const {return mPlyC;}
