@@ -202,7 +202,7 @@ std::cout << aPair.first << "cAppliApero::AddObservationsBaseGpsInicAppliApero::
       aBG->AddFoncRappInit(aRes,1,2,aPInc.y);
       aBG->AddFoncRappInit(aRes,2,3,aPInc.z);
 
-      mSetEq.AddContrainte(aRes,true);
+      mSetEq.AddContrainte(aRes,false);
    }
 */
 }
