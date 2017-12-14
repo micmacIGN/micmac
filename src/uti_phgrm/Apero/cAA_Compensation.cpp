@@ -183,16 +183,20 @@ for (int aK=0 ; aK<aNbIter; aK++)
 
 void cAppliApero::AddObservationsBaseGpsInit()
 {
-for (int aK=0 ; aK< 100 ; aK++)
-std::cout << "cAppliApero::AddObservationsBaseGpsInicAppliApero::AddObservationsBaseGpsIni\n";
+/*
 
+std::cout << "################################cAppliApero::AddObservationsBaseGpsInicAppliApero::AddObservationsBaseGpsIni\n";
    for (auto & aPair : mDicoOffGPS)
    {
+for (int aK=0 ; aK< 100 ; aK++)
+std::cout << aPair.first << "cAppliApero::AddObservationsBaseGpsInicAppliApero::AddObservationsBaseGpsIni\n";
+
       cAperoOffsetGPS * anOffs = aPair.second;
       cBaseGPS * aBG =   anOffs->BaseUnk();
       Pt3d<Fonc_Num>   aPF = aBG->BaseInc();
 
-      Pt3dr aPInc(0.001,0.001,0.001);
+      // Pt3dr aPInc(0.001,0.001,0.001);
+      Pt3dr aPInc(1e6,1e6,1e6);
       cMultiContEQF  aRes;
       aBG->AddFoncRappInit(aRes,0,1,aPInc.x);
       aBG->AddFoncRappInit(aRes,1,2,aPInc.y);
@@ -200,6 +204,7 @@ std::cout << "cAppliApero::AddObservationsBaseGpsInicAppliApero::AddObservations
 
       mSetEq.AddContrainte(aRes,true);
    }
+*/
 }
 
 
