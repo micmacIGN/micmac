@@ -470,7 +470,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
             }
             if (EAMIsInit(&aPatGPS))
             {
-                 mCom = mCom + " +PatternGPS=" + aPatGPS;
+                 mCom = mCom + " +PatternGPS=" + QUOTE(aPatGPS);
             }
         }
 
