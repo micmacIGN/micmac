@@ -1664,9 +1664,13 @@ class cGpsOffset
 
         std::string & Id();
         const std::string & Id()const ;
+
+        cTplValGesInit< Pt3dr > & Inc();
+        const cTplValGesInit< Pt3dr > & Inc()const ;
     private:
         Pt3dr mValInit;
         std::string mId;
+        cTplValGesInit< Pt3dr > mInc;
 };
 cElXMLTree * ToXMLTree(const cGpsOffset &);
 

@@ -165,9 +165,6 @@ for (int aK=0 ; aK<aNbIter; aK++)
    {
        AddObservationsContrCamGenInc(anSO.ContrCamGenInc(),IsLastIter,aSO);
    }
-   {
-       AddObservationsBaseGpsInit();
-   }
 }
 
    MajAddCoeffMatrix();
@@ -183,28 +180,31 @@ for (int aK=0 ; aK<aNbIter; aK++)
 
 void cAppliApero::AddObservationsBaseGpsInit()
 {
-/*
 
-std::cout << "################################cAppliApero::AddObservationsBaseGpsInicAppliApero::AddObservationsBaseGpsIni\n";
    for (auto & aPair : mDicoOffGPS)
    {
-for (int aK=0 ; aK< 100 ; aK++)
-std::cout << aPair.first << "cAppliApero::AddObservationsBaseGpsInicAppliApero::AddObservationsBaseGpsIni\n";
 
       cAperoOffsetGPS * anOffs = aPair.second;
-      cBaseGPS * aBG =   anOffs->BaseUnk();
-      Pt3d<Fonc_Num>   aPF = aBG->BaseInc();
+      const cGpsOffset &  aGO = anOffs->ParamCreate();
+      if (aGO.Inc().IsInit())
+      {
+          cBaseGPS * aBG =   anOffs->BaseUnk();
 
-      // Pt3dr aPInc(0.001,0.001,0.001);
-      Pt3dr aPInc(1e6,1e6,1e6);
-      cMultiContEQF  aRes;
-      aBG->AddFoncRappInit(aRes,0,1,aPInc.x);
-      aBG->AddFoncRappInit(aRes,1,2,aPInc.y);
-      aBG->AddFoncRappInit(aRes,2,3,aPInc.z);
-
-      mSetEq.AddContrainte(aRes,false);
-   }
-*/
+          Pt3dr aPInc = aGO.Inc().Val();
+          double aTab[3];
+          aPInc.to_tab(aTab);
+           // Pt3dr aPInc(1e6,1e6,1e6);
+          for (int aK=0 ; aK< 3 ; aK++)
+          {
+              if (aTab[aK] > 0)
+              {
+                 cMultiContEQF  aRes;
+                 aBG->AddFoncRappInit(aRes,aK,aK+1,1);
+                 mSetEq.AddContrainte(aRes,false,ElSquare(1/aTab[aK]));
+              }
+          }
+       }
+    }
 }
 
 
@@ -555,6 +555,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
     ActiveContraintes(true);
     mSetEq.SetPhaseEquation();
     ActiveContraintes(false);
+    AddObservationsBaseGpsInit();
 
 
     for (int aKP=0 ; aKP<int(mVecPose.size()) ; aKP++)
