@@ -546,13 +546,7 @@ int File(int argc,char ** argv, const std::string &aArg="")
     if (!MMVisualMode)
     {
         check_detect_and_match_tools( detectingTool, matchingTool, ignoreMax, ignoreMin, ignoreUnknown, ignoreMinMaxStr );
-		
-		// aPat vaux le fichier xml, pas utilisable pour développer les images si ont souhaite changer leur résolution - moi je veux en tout cas. changer aPat donc
-		aPatOri=".*tif";
-		std::cout <<"aDir" << aDir << "   aPat " << aPat << std::endl;
-		DoDevelopp(-1,aFullRes);
-		aPatOri=aPat;
-		
+
         std::string aSFR =  BinPastis
                 +  aDir + std::string(" ")
                 +  QUOTE(std::string("NKS-Rel-ByFile@")+  aPat) + std::string(" ")
@@ -1083,7 +1077,7 @@ int Tapioca_main(int argc,char ** argv)
     }
     else if (TheType == Type[3])
     {
-		int aRes = File(argc, argv, TheType);
+        int aRes = File(argc, argv, TheType);
         Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
