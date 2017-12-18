@@ -15,22 +15,24 @@ namespace MMVII
 */
 
 
+/// Defined in MMVII_sys.h
 enum class eSYS;
 
 
 /// Type for Semantic of Arg 2007
 enum class eTA2007
            {
-                PatFile,       ///< Pattern File
-                // PatOrXmlFile,    ///< Pattern File
+            // ---------- Printed --------------
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File of Dir Proj
                 MPatIm,        ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
-                MDirOri,       ///< Major DirOri
+                FFI,           ///< File Filter Interval
+            // ---------- Not Printed -----------
+            // !!!!! Common must be first UNPRINTED  !!!
+                Common,        ///< Parameter  Common to all commands
                 Internal,      ///< Reserved to internall use by MMVII
-                Common         ///< Parameter  Common to all commands
+                eNbVals
            };
-
 
 /// Appli Features
 enum class eApF
@@ -39,7 +41,8 @@ enum class eApF
                Test,    ///< Test
                Ori,     ///< Orientation
                Match,   ///< Dense Matching
-               TieP     ///< Tie-Point processing
+               TieP,    ///< Tie-Point processing
+               eNbVals
            };
 
 /// Appli Data Type
@@ -50,8 +53,65 @@ enum class eApDT
               Ply,    ///< Ply file
               None,     ///< Nothing 
               Console,  ///< Console 
-              Xml       ///< Xml-files
+              Xml,      ///< Xml-files
+              eNbVals
            };
+
+
+/// Type of set creation
+enum class eTySC    
+           {
+              NonInit,   ///< With Ptr Null
+              US,        ///< With unordered set
+              eNbVals
+           };
+
+/// Type of operator
+
+enum class eOpAff
+           {
+               ePlusEq,   ///< +=
+               eMulEq,    ///< *=
+               eMinusEq,  ///< *=
+               eEq,       ///< =
+               eReset,    ///< =0
+               eNbVals
+           };
+
+/// Type of Warning
+enum class eTyW
+           {
+               eWLineAndCart  ///< In EditRel, Circ in mod Cart
+           };
+
+
+/// Type of User's Error
+enum class eTyUEr
+           {
+              eCreateDir,
+              eRemoveFile,
+              eBadFileSetName,
+              eBadFileRelName,
+              eOpenFile,
+              eWriteFile,
+              eReadFile,
+              eBadBool,
+              eBadEnum,
+              eMulOptParam,
+              eBadOptParam,
+              eInsufNbParam,
+              eIntervWithoutSet
+           };
+
+
+const std::string & E2Str(const eTySC &);         
+const std::string & E2Str(const eOpAff &);         
+const std::string & E2Str(const eTA2007 &);         
+const std::string & E2Str(const eTyUEr &);         
+
+template <class Type> const Type & Str2E(const std::string &); 
+template <class Type> std::string   StrAllVall();
+
 
 };
 

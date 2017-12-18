@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_Class4Bench.h"
 #include <boost/algorithm/cxx14/equal.hpp>
 
 // #include <boost/optional/optional_io.hpp>
@@ -12,89 +13,49 @@
 
 namespace MMVII
 {
+
+//  ==========  cTestSerial0 =================
+
+bool cTestSerial0::operator ==   (const cTestSerial0 & aT0) const {return (mP1==aT0.mP1) && (mP2==aT0.mP2);}
+cTestSerial0::cTestSerial0() : 
+    mP1 (1,2) , 
+    mP2(3,3) 
+{
+}
+
+///  To serialize cTestSerial0, just indicate that it is made of mP1 and mP2
+void AddData(const cAuxAr2007 & anAux, cTestSerial0 &    aTS0) 
+{
+    AddData(cAuxAr2007("P1",anAux),aTS0.mP1);
+    AddData(cAuxAr2007("P2",anAux),aTS0.mP2);
+}
+//  ==========  cTestSerial1 =================
+
 template <class Type> bool EqualCont(const Type &aV1,const Type & aV2)
 {
     return  boost::algorithm::equal(aV1.begin(),aV1.end(),aV2.begin(),aV2.end());
 }
 
 
-/***********************************************************/
-
-/// class to illustrate basic serialization
-
-class cTestSerial0
+cTestSerial1::cTestSerial1() : 
+    mS("Hello"), 
+    mP3(3.1,3.2) ,
+    mLI{1,22,333},
+    mVD {314,27,14},
+    mO2 (cPt2dr(100,1000))
 {
-     public :
-        cTestSerial0() : 
-             mP1 (1,2) , 
-             mP2(3,3) 
-        {
-        }
-        bool operator ==   (const cTestSerial0 & aT0) const {return (mP1==aT0.mP1) && (mP2==aT0.mP2);}
-        cPt2dr mP1;
-        cPt2dr mP2;
-};
-
-void f()
-{
-    cPt2dr aP;
-    (aP==aP);
 }
 
-///  To serialize cTestSerial0, just indicate that it is made of mP1 and mP2
-
-void AddData(const cAuxAr2007 & anAux, cTestSerial0 &    aTS0) 
+bool cTestSerial1::operator ==   (const cTestSerial1 & aT1) const 
 {
-    AddData(cAuxAr2007("P1",anAux),aTS0.mP1);
-    AddData(cAuxAr2007("P2",anAux),aTS0.mP2);
+   return   (mTS0==aT1.mTS0) 
+         && (mS==aT1.mS) 
+         && (mP3==aT1.mP3) 
+         && (mO1==aT1.mO1) 
+         && (mO2==aT1.mO2)
+         && EqualCont(mLI,aT1.mLI)   
+   ;
 }
-
-///  a more complex class to illustrate serializaion
-/**
-    This class illustrate that there is no problem to use
-  recursively the  serializain: once AddData has been defined
-  in cTestSerial0 it can be used in AddData
-*/
-class cTestSerial1
-{
-     public :
-        cTestSerial1() : 
-             mS("Hello"), 
-             mP3(3.1,3.2) ,
-             mLI{1,22,333},
-             mVD {314,27,14},
-             mO2 (cPt2dr(100,1000))
-        {
-        }
-        bool operator ==   (const cTestSerial1 & aT1) const 
-        {
-            return     (mTS0==aT1.mTS0) 
-                    && (mS==aT1.mS) 
-                    && (mP3==aT1.mP3) 
-                    && (mO1==aT1.mO1) 
-                    && (mO2==aT1.mO2)
-                    && EqualCont(mLI,aT1.mLI)   
-                    // && EqualCont(mVD,aT1.mVD)   
-           ;
-        }
-        cTestSerial0            mTS0;
-        std::string             mS;
-        cPt2dr                  mP3;
-        std::list<int>          mLI;
-        std::vector<double>      mVD;
-        boost::optional<cPt2dr> mO1;
-        boost::optional<cPt2dr> mO2;
-
-
-/*
-        bool operator() == (const cTestSerial1 & aS)
-        {
-             return (mS==aTS.
-        }
-        /// Check a TS is OK, as all the object are the same  just check its value
-        void Check(const cTestSerial1 & aS)
-*/
-};
 
 
 void AddData(const cAuxAr2007 & anAux, cTestSerial1 &    aTS1) 
@@ -213,12 +174,7 @@ SaveInFile(aT2,"DEBUG.xml");
        MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirIn+"PBF2.xml","TS0"),"cAppli_MMVII_TestSerial");
     }
 
-    std::cout << "DONE SERIAL\n";
-/*
-    std::cout << "TAG0: " << IsFile2007XmlOfGivenTag(aDir+"F2.xml","TS0") << "\n";
-    std::cout << "TAG1: " << IsFile2007XmlOfGivenTag(aDir+"F2.xml","TS1") << "\n";
-    std::cout << "xxx TAG0: " << IsFile2007XmlOfGivenTag(aDir+"PBF2.xml","TS0") << "\n";
-*/
+    StdOut() << "DONE SERIAL\n";
 
     // return EXIT_SUCCESS;
 }

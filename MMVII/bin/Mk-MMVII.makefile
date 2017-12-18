@@ -10,6 +10,7 @@ MMV2DirIncl=${MMV2Dir}include/
 #
 #
 #       ===== INSTALLATION ========================================
+#       => for setting MMVII directory
 #
 MMV2ResultInstal=${MMV2DirSrc}ResultInstall/ResultInstall.cpp
 MMV2SrcInstal=${MMV2DirSrc}BinaireInstall/InstalMM.cpp
@@ -64,13 +65,14 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags="-std=c++14" "-Wall" -I${MMV2Dir} -I${MMDir}/include/
+CFlags="-std=c++14" "-Wall" "-Werror" -I${MMV2Dir} -I${MMDir}/include/
 BOOST_LIBS=/usr/include/boost/stage/lib/libboost_*.a
 LibsFlags= ${MMDir}/lib/libelise_SsQt.a -lX11   ${BOOST_LIBS}
 MMV2Exe=MMVII
 #
 ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal}
 	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
+	ar rvs P2007.a    ${OBJ}  
 #
 # ==========    INSTALLATION =================
 #

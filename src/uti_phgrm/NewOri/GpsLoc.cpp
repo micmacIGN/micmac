@@ -226,7 +226,7 @@ cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
    ElInitArgMain
    (
         argc,argv,
-        LArgMain() << EAMC(aPat,"GGGGGGpsss Name First Image", eSAM_IsExistFile) 
+        LArgMain() << EAMC(aPat,"Pattern of images", eSAM_IsExistFile) 
                    << EAMC(aGpsOri,"GPS orientation (OrientationConique)", eSAM_IsExistFile) ,
         LArgMain() << EAM(tata,"GenOri",true,"Generate Ori, Def=true, false for quick process to RedTieP")
                    << ArgCMA()

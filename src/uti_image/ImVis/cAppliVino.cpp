@@ -69,7 +69,7 @@ extern Video_Win * TheWinAffRed ;
 // bool TreeMatchSpecif(const std::string & aNameFile,const std::string & aNameSpecif,const std::string & aNameObj);
 
 
-cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
+cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern,cAppli_Vino * aMother) :
     mSzIncr            (400,400),
     mNbPixMinFile      (2e6),
     mCurStats          (0),
@@ -81,7 +81,9 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mHistoCum          (mNbHistoMax),
     mIsMnt             (true),
     mWithBundlExp      (false),
-    mClipIsChantier    (false)
+    mClipIsChantier    (false),
+    mWithPCarac        (false),
+    mSPC               (0)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -135,9 +137,13 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
                     << EAM(mIsMnt,"IsMnt",true,"Display altitude if true, def exist of Mnt Meta data")
                     << EAM(mFileMnt,"FileMnt",true,"Default toto.tif -> toto.xml")
                     << EAM(mParamClipCh,"ClipCh",true,"Param 4 Clip Chantier [PatClip,OriClip]")
+                    << EAM(mBasicPC,"BasicPC",true,"Set if visualize carac point")
+                    << EAM(mPatSecIm,"PSI",true,"Patt secondary images, for multiple vino")
                     // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
     );
 
+    if (aNameImExtern !="")
+      mNameIm = aNameImExtern;
 
 // Files
     mDir = DirOfFile(mNameIm);
@@ -186,13 +192,20 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mRatioFulXY = Pt2dr(SzW()).dcbyc(Pt2dr(mTifSz));
     mRatioFul = ElMin(mRatioFulXY.x,mRatioFulXY.y);
     // mSzW = round_up(Pt2dr(mTifSz) * mRatioFul);
-    mWAscH = Video_Win::PtrWStd(Pt2di(SzW().x,LargAsc()),true);
+    Pt2di aSzW(SzW().x,LargAsc());
+    if (aMother==0)
+       mWAscH = Video_Win::PtrWStd(aSzW,true);
+    else
+    {
+        mWAscH = new Video_Win(aMother->mWAscH->disp(),aMother->mWAscH->sop(),Pt2di(0,0),aSzW);
+    }
     mW =    new  Video_Win(*mWAscH,Video_Win::eBasG,SzW());
     mWAscV = new Video_Win(*mW,Video_Win::eDroiteH,Pt2di(LargAsc(),SzW().y));
 
 
     mTitle = std::string("MicMac/Vino -> ") + mNameIm;
-    mDisp = new Video_Display(mW->disp());
+    // mDisp =  aMother ?  aMother->mDisp : new Video_Display(mW->disp());
+    mDisp =   new Video_Display(mW->disp());
 
 
 
@@ -259,6 +272,31 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
        mPatClipCh = mParamClipCh[0];
        mOriClipCh = mParamClipCh[1];
     }
+
+    if (EAMIsInit(&mBasicPC))
+    {
+        mWithPCarac = true;
+        mSPC = new cSetPCarac
+               (
+                   StdGetObjFromFile<cSetPCarac>
+                   (
+                        NameFileNewPCarac(mNameIm,true, mBasicPC ?  "Basic" : "Std"),
+                        MMDir() + "src/uti_image/NewRechPH/ParamNewRechPH.xml",
+                        "SetPCarac",
+                        "SetPCarac"
+                    )
+               );
+    }
+
+    if (EAMIsInit(&mPatSecIm) && (aNameImExtern==""))
+    {
+       cElemAppliSetFile anEASF(mPatSecIm);
+       const cInterfChantierNameManipulateur::tSet *  aVIS = anEASF.SetIm();
+       for (const auto & aNIS : *aVIS)
+       {
+           mAVSI.push_back(new cAppli_Vino(argc,argv,aNIS,this));
+       }
+    }
 }
 
 void cAppli_Vino::PostInitVirtual()
@@ -274,6 +312,11 @@ void cAppli_Vino::PostInitVirtual()
     InitTabulDyn();
     mScr->set_max();
     ShowAsc();
+
+    for (auto  & aPtrAp : mAVSI)
+    {
+        aPtrAp->PostInitVirtual();
+    }
 }
 
 
@@ -284,55 +327,63 @@ void cAppli_Vino::SaveState()
 
 void cAppli_Vino::Boucle()
 {
-    while (1)
-    {
-        Clik aCl = mDisp->clik_press();
+   while (1)
+   {
+      Clik aCl = mDisp->clik_press();
+      ExeOneClik(aCl);
+      for (auto  & aPtrAp : mAVSI)
+      {
+         aPtrAp->ExeOneClik(aCl);
+      }
+   }
+}
 
-        mP0Click =  aCl._pt;
-        mScale0  =  mScr->sc();
-        mTr0     =  mScr->tr();
-        mBut0    = aCl._b;
-        mCtrl0  = aCl.controled();
-        mShift0  = aCl.shifted();
 
-        // Click sur la fenetre principale 
-        if (aCl._w == *mW)
-        {
- 
-            if (mBut0==2)
-               ExeClikGeom(aCl);
-            if ((mBut0==4) || (mBut0==5))
-            {
-                ZoomMolette();
-                ShowAsc();
-            }
+void cAppli_Vino::ExeOneClik(Clik & aCl)
+{
+   mP0Click =  aCl._pt;
+   mScale0  =  mScr->sc();
+   mTr0     =  mScr->tr();
+   mBut0    = aCl._b;
+   mCtrl0  = aCl.controled();
+   mShift0  = aCl.shifted();
 
-            if (mBut0==1)
-            {
-                GrabShowOneVal();
-            }
-            if (mBut0==3)
-            {
-                MenuPopUp();
-            }
-        }
-        if (aCl._w == *mWAscH)
-        {
-             mModeGrab= eModeGrapAscX;
-             mWAscH->grab(*this);
-             ShowAsc();
-        }
-        if (aCl._w == *mWAscV)
-        {
-             mModeGrab= eModeGrapAscY;
-             mWAscV->grab(*this);
-             ShowAsc();
-        }
-        if (aCl._w == *mWHelp)
-        {
-             Help();
-        }
-    }
+   // Click sur la fenetre principale 
+   if (aCl._w == *mW)
+   {
+      if (mBut0==2)
+         ExeClikGeom(aCl);
+      if ((mBut0==4) || (mBut0==5))
+      {
+         ZoomMolette();
+         ShowAsc();
+      }
+
+      if (mBut0==1)
+      {
+         GrabShowOneVal();
+      }
+      if (mBut0==3)
+      {
+         MenuPopUp();
+      }
+   }
+   if (aCl._w == *mWAscH)
+   {
+      mModeGrab= eModeGrapAscX;
+      mWAscH->grab(*this);
+      ShowAsc();
+   }
+   if (aCl._w == *mWAscV)
+   {
+      mModeGrab= eModeGrapAscY;
+      mWAscV->grab(*this);
+      ShowAsc();
+   }
+   if (aCl._w == *mWHelp)
+   {
+      Help();
+   }
 }
 
 

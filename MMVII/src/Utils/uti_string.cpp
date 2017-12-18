@@ -178,7 +178,6 @@ char DirSeparator()
 
 std::string DirCur()
 {
-// std::cout << "DDDDCCCC=[" <<  "." + path::preferred_separator << "]\n";
    return  std::string(".") + path::preferred_separator;
 }
 
@@ -203,22 +202,22 @@ std::string AbsoluteName(const std::string & aName)
 
 
 
-/**
+/*
   It was a test of using Boost for Up Dir,but untill now I am not 100% ok
   with the results:
         [.] => []
         [/a/b/c] => [/a/b]
         [a/b/c] => [a/b]
         [a] => []
-*/
 
 std::string BUD(const std::string & aDir)
 {
    path aPath(aDir);
    aPath = aPath.parent_path();
-   std::cout << "BUDDDDDD [" << aDir << "] => [" <<  aPath.c_str() << "]\n";
+   std:: cout << "BUDDDDDD [" << aDir << "] => [" <<  aPath.c_str() << "]\n";
    return aPath.c_str();
 }
+*/
 
 /** Basic but seems to work untill now
 */
@@ -250,12 +249,14 @@ void MakeNameDir(std::string & aDir)
 
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErrorNonExist)
 {
+/*
 if (0)
 {
    static int aCpt=0; aCpt++;
-   std::cout << "SplitDirAndFile " << aCpt  << " " << __FILE__ << "\n";
+   std:: cout << "SplitDirAndFile " << aCpt  << " " << __FILE__ << "\n";
    getchar();
 }
+*/
 
    path aPath(aDirAndFile);
    bool aResult = true;
@@ -323,12 +324,37 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 {
     bool Ok = boost::filesystem::create_directories(aDir);
 
-    if (! Ok) 
+    if ((! Ok) && (!SVP))
     {
-        MMVII_INTERNAL_ASSERT_user(SVP,"Cannot create directory for arg " + aDir);
+        MMVII_INTERNAL_ASSERT_user(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
     }
     return Ok;
 }
+
+bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
+{
+    boost::filesystem::remove_all(aDir);
+    if (ReMkDir)
+        return CreateDirectories(aDir,SVP);
+    return true;
+}
+
+bool RemoveFile(const  std::string & aFile,bool SVP)
+{
+   bool Ok = boost::filesystem::remove(aFile);
+   if ((! Ok) && (!SVP))
+   {
+      MMVII_INTERNAL_ASSERT_user(eTyUEr::eRemoveFile,"Cannot remove file for arg " + aFile);
+   }
+   return Ok;
+}
+
+void RenameFiles(const std::string & anOldName, const std::string & aNewName)
+{
+    boost::filesystem::rename(anOldName,aNewName);
+}
+
+
 
     /* =========================================== */
     /*                                             */
@@ -342,17 +368,17 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 */
 
 
-void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,tNameSelector  aNS)
+void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,const tNameSelector &  aNS)
 {
    for (directory_iterator itr(aDir); itr!=directory_iterator(); ++itr)
    {
       std::string aName ( itr->path().filename().c_str());
-      if ( is_regular_file(itr->status()) &&  aNS->Match(aName))
+      if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
          aRes.push_back(aName);
    }
 }
 
-std::vector<std::string> GetFilesFromDir(const std::string & aDir,tNameSelector  aNS)
+std::vector<std::string> GetFilesFromDir(const std::string & aDir,const tNameSelector &  aNS)
 {
     std::vector<std::string> aRes;
     GetFilesFromDir(aRes,aDir,aNS);
@@ -368,7 +394,7 @@ void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aD
         if ((aLev>=aLevMin) && (aLev<aLevMax))
         {
            std::string aName(itr->path().c_str());
-           if ( is_regular_file(itr->status()) &&  aNS->Match(aName))
+           if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
               aRes.push_back(aName);
         }
     }
@@ -394,34 +420,24 @@ std::vector<std::string>  GetFilesFromDirAndER(const std::string & aDir,const st
     /* =========================================== */
 
 
+/*
 void TestBooostIter()
 {
 
-   std::cout <<  boost::filesystem::absolute("./MMVII") << '\n';
-   std::cout <<  boost::filesystem::absolute("MMVII") << '\n';
-   std::cout <<  boost::filesystem::absolute("./") << '\n';
+   std:: cout <<  boost::filesystem::absolute("./MMVII") << '\n';
+   std:: cout <<  boost::filesystem::absolute("MMVII") << '\n';
+   std:: cout <<  boost::filesystem::absolute("./") << '\n';
 getchar();
-/*
-for (directory_iterator itr("./"); itr!=directory_iterator(); ++itr)
-{
-    std::cout << itr->path().filename() << ' '; // display filename only
-    if (is_regular_file(itr->status())) std::cout << " [" << file_size(itr->path()) << ']';
-    std::cout << '\n';
-}
-*/
 
 for (        recursive_directory_iterator itr("./"); itr!=        recursive_directory_iterator(); ++itr)
 {
-    std::cout  <<  itr->path().c_str() << " " << itr->path().filename() << ' '; // display filename only
-    std::cout << itr.level()  << " ";
-    if (is_regular_file(itr->status())) std::cout << " [" << file_size(itr->path()) << ']';
-    std::cout << '\n';
+    std:: cout  <<  itr->path().c_str() << " " << itr->path().filename() << ' '; // display filename only
+    std:: cout << itr.level()  << " ";
+    if (is_regular_file(itr->status())) std:: cout << " [" << file_size(itr->path()) << ']';
+    std:: cout << '\n';
 }
-
-
-
-
 }
+*/
 
 };
 

@@ -38,8 +38,9 @@
  Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+#include <unordered_set>
 
-void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
+void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin, const std::vector<std::string> &aComments)
 {
     fprintf(aFP,"ply\n");
     string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
@@ -47,6 +48,8 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
     fprintf(aFP,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
 
     fprintf(aFP,"comment MergePly generated\n");
+    for (unsigned int i=0;i<aComments.size();i++)
+        fprintf(aFP,"comment %s\n",aComments[i].c_str());
     fprintf(aFP,"element vertex %d\n", aNelems);
 
     fprintf(aFP,"property float x\n");
@@ -121,6 +124,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
         string aDir, aPattern;
 
         bool aBin     = true;
+        std::string aComment="";
 
         ElInitArgMain
         (
@@ -128,6 +132,8 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
                     LArgMain()	<< EAMC(aFullName, "Full Name (Dir+Pattern)", eSAM_IsPatFile),
                     LArgMain()	<< EAM(aNameOut,"Out",true)
                                 << EAM(aBin,"Bin",true,"Generate Binary or Ascii file (Def=true, Binary)", eSAM_IsBool)
+                                << EAM(aComment,"Comment",true,"Comment to add to header")
+
         );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -137,6 +143,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
         list<string> aVFiles = RegexListFileMatch(aDir, aPattern, 1, false);
 
         int gen_nelems =0;
+        unordered_set<string> aComments;
 
         //read ply files
         list<string>::iterator itr = aVFiles.begin();
@@ -150,6 +157,8 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
             {
                 clouds.push_back( cloud );
                 gen_nelems += cloud->size();
+                for (unsigned int i=0;i<cloud->getComments().size();i++)
+                    aComments.insert(cloud->getComments()[i]);
             }
             if (incre>0)
             {
@@ -174,7 +183,11 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
         string mode = aBin ? "wb" : "w";
         FILE * aFP = FopenNN(aNameOut,mode,"MergePly");
 
-        writeHeader(aFP, gen_nelems, type, aBin);
+        if (aComment.size()>0)
+            aComments.insert(aComment);
+        vector<string> aCommentsVector;
+        aCommentsVector.assign(aComments.begin(),aComments.end());
+        writeHeader(aFP, gen_nelems, type, aBin, aCommentsVector);
 
         //Data
         for (int aK=0 ; aK< (int) clouds.size() ; aK++)
@@ -302,6 +315,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
         vector<string> aVCom;
 
         int aBin  = 1;
+        std::string aComment="";
 
         ElInitArgMain
         (
@@ -310,6 +324,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
          LArgMain()		<< EAM(aNameOut,"Out",true)
                         << EAM(aVCom,"Comments",true)
                         << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
+                        << EAM(aComment,"Comment",true,"Comment to add to header")
         );
 
         SplitDirAndFile(aDir, aPattern, aFullName);
@@ -320,6 +335,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
 
         sPlyOrientedColoredAlphaVertex **glist=NULL;
         int gen_nelems =0;
+        unordered_set<string> aComments;
         int Cptr = 0;
 
         int type = 0;
@@ -349,6 +365,9 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
             plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 
             gen_nelems += num_elems;
+
+            for (int i=0;i<thePlyFile->num_comments;i++)
+                aComments.insert(thePlyFile->comments[i]);
 
             ply_close (thePlyFile);
         }
@@ -582,7 +601,11 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
         string mode = aBin ? "wb" : "w";
         FILE * aFP = FopenNN(aNameOut, mode, "MergePly");
 
-        writeHeader(aFP, gen_nelems, type, aBin);
+        if (aComment.size()>0)
+            aComments.insert(aComment);
+        vector<string> aCommentsVector;
+        aCommentsVector.assign(aComments.begin(),aComments.end());
+        writeHeader(aFP, gen_nelems, type, aBin, aCommentsVector);
 
         //data
         for (int aK=0 ; aK< gen_nelems ; aK++)

@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _NewRechPH_H_
 #define _NewRechPH_H_
 
+#include "cParamNewRechPH.h"
 #include "ExternNewRechPH.h"
 
 typedef float   tElNewRechPH ;
@@ -56,23 +57,40 @@ class cOneScaleImRechPH;
 
 /************************************************************************/
 
+// represente une echelle de points remarquable
+// contient une image floutee et les points extrait
 
 class cOneScaleImRechPH
 {
       public :
-          static cOneScaleImRechPH* FromFile (cAppli_NewRechPH &,const double & aS0,const std::string &,const Pt2di & aP0,const Pt2di & aP1);
-          static cOneScaleImRechPH* FromScale(cAppli_NewRechPH &,cOneScaleImRechPH &,const double & aSigma);
-          tImNRPH Im();
+          // deux constructeurs statiques 
 
-          void CalcPtsCarac();
+             // 1- constucteur "top-level" a partir du fichier
+          static cOneScaleImRechPH* FromFile 
+                 (
+                    cAppli_NewRechPH &,
+                    const double & aS0, // sigma0
+                    const std::string &,  // Nom du fichier
+                    const Pt2di & aP0,const Pt2di & aP1  // Box Calcule
+                 );
+          static cOneScaleImRechPH* FromScale
+                 (
+                      cAppli_NewRechPH &,    // Application
+                      cOneScaleImRechPH &,   // niveau du dessus
+                      const double & aSigma  // a sigma abs
+                 );
+          tImNRPH Im(); // simple accesseur a l'image
+
+          void CalcPtsCarac(bool Basic);
           void Show(Video_Win* aW);
           void CreateLink(cOneScaleImRechPH & aLR);
-          void AddPly(cOneScaleImRechPH* aHR,cPlyCloud *  aPlyC);
+          void Export(cOneScaleImRechPH* aHR,cPlyCloud *  aPlyC);
 
           const int &  NbExLR() const ;
           const int &  NbExHR() const ;
+          const double &  Scale() const ;
       private :
-          Pt3dr PtPly(const cPtRemark & aP);
+          Pt3dr PtPly(const cPtRemark & aP,int aNiv);
 
           void CreateLink(cOneScaleImRechPH & aLR,const eTypePtRemark & aType);
           void InitBuf(const eTypePtRemark & aType, bool Init);
@@ -98,7 +116,7 @@ class cAppli_NewRechPH
     public :
         cAppli_NewRechPH(int argc,char ** argv,bool ModeTest);
 
-        const double &      DistMinMax() const  {return mDistMinMax;}
+        double   DistMinMax(bool Basic) const ;
         const bool   &      DoMin() const       {return mDoMin;}
         const bool   &      DoMax() const       {return mDoMax;}
         cPlyCloud * PlyC()  const {return mPlyC;}
@@ -108,20 +126,27 @@ class cAppli_NewRechPH
         const Pt2di & SzIm() const ;
         tPtrPtRemark & PtOfBuf(const Pt2di &);
         tPtrPtRemark  NearestPoint(const Pt2di &,const double & aDist);
+        double ScaleOfNiv(const int &) const;
+        bool BrinStable(const cBrinPtRemark & aBr) const;
+        void AddBrin(cBrinPtRemark *);
+
 
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
+
 
         std::string mName;
         double      mPowS;
         int         mNbS;
         double      mS0;
         Pt2di       mSzIm;
+        Box2di      mBox;
 
         std::vector<cOneScaleImRechPH *> mVI1;
         Video_Win  * mW1;
         bool         mModeTest;
+    
 
         double       mDistMinMax;
         bool         mDoMin;
@@ -129,10 +154,15 @@ class cAppli_NewRechPH
         bool         mDoPly;
         cPlyCloud *  mPlyC;
         double       mDZPlyLay;
+        double       mNbInOct;  // Number in one octave
 
         std::vector<std::vector<cPtRemark *> >  mBufLnk;
         std::vector<Pt2di>                      mVoisLnk;
-
+        std::vector<cBrinPtRemark *>            mVecB;
+        std::vector<int>                        mHistLong;
+        std::vector<int>                        mHistN0;
+        std::string                             mExtSave;
+        bool                                    mBasic;
 };
 
 

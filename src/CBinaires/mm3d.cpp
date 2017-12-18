@@ -242,6 +242,7 @@ extern int CPP_MMRename(int argc,char**argv);
 extern int  CPP_EditSet(int argc,char**argv);
 
 int CPP_MMHelp(int argc,char ** argv);
+int ConvertOriCalib_main(int argc,char ** argv);
 
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC,const std::string & aLib)
 {
@@ -297,6 +298,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Compare two  calibrations"));
        aRes.push_back(cMMCom("CmpOri",CPP_CmpOriCam_main," Compare two sets of orientation"));
        aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
+       aRes.push_back(cMMCom("ConvertOriCalib",ConvertOriCalib_main,"Convert external orientation with new internal orientation "));
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
        
        aRes.push_back(cMMCom("TestRegEx",TestRegEx_main," Test regular expression"));
@@ -601,8 +603,8 @@ extern int TD_Match1_main(int argc,char ** argv);
 extern int TD_Match2_main(int argc,char ** argv);
 extern int TD_Match3_main(int argc,char ** argv);
 extern int TestER_main(int argc,char ** argv);
+extern int TestER_main2(int argc,char ** argv);
 extern int TestER_grille_main(int argc,char ** argv);
-extern int TestER_main3(int argc,char ** argv);
 extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
@@ -835,7 +837,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
        aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
-       aRes.push_back(cMMCom("TestER",TestER_main3,"ER test workplace"));
+       aRes.push_back(cMMCom("TestER",TestER_main2,"ER test workplace"));
        aRes.push_back(cMMCom("TestER2",TestER_hom_main,"ER test hom"));
        aRes.push_back(cMMCom("TestAT",TestPush,"AT test workplace"));
 

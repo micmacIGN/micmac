@@ -70,6 +70,9 @@ cBaseGPS::cBaseGPS  (cSetEqFormelles & aSet,const Pt3dr & aV0) :
      mV0             (aV0),
      mBaseInc        (mSet.Alloc().NewPt3("cBaseGPS",mV0))
 {
+   //aRes->CloseEEF();
+   //AddObj2Kill(aRes);
+
 }
 
 Pt3d<Fonc_Num> cBaseGPS::BaseInc() {return mBaseInc;}

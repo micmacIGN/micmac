@@ -1,0 +1,40 @@
+
+<GenCpp  Difndef="Define_NotRechNewPH">
+
+<Verbatim File=".cpp">
+#include "StdAfx.h"
+#include "cParamNewRechPH.h"
+</Verbatim>
+<Verbatim File=".h.cpp">
+// NOMORE ... 
+</Verbatim>
+<!--
+    eTPR_Corner  = 2,
+    eTPR_MaxLapl = 3,
+    eTPR_MinLapl = 4,
+    eTPR_NoLabel = 5
+-->
+   <enum Name="eTypePtRemark">
+      <eTPR_Max>      </eTPR_Max>
+      <eTPR_Min>      </eTPR_Min>
+      <eTPR_NoLabel>  </eTPR_NoLabel>
+   </enum>
+   <PtSc  Nb="*" Class="true" ToReference="true">
+       <Pt   Nb="1" Type="Pt2dr">     </Pt>
+       <Scale   Nb="1" Type="double">  </Scale>
+   </PtSc>
+
+   <SetPCarac  Nb="1" Class="true">
+      <OnePCarac  Nb="*" Class="true">
+         <Kind Nb="1" Type="eTypePtRemark">        </Kind>
+         <HR RefType="PtSc" Nb="1"> </HR>
+         <hR RefType="PtSc" Nb="1"> </hR>
+         <lR RefType="PtSc" Nb="1"> </lR>
+         <LR RefType="PtSc" Nb="1"> </LR>
+      </OnePCarac>
+   </SetPCarac>
+<Verbatim File=".h.cpp">
+// };
+</Verbatim>
+
+</GenCpp>

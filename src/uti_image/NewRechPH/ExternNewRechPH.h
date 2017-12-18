@@ -43,6 +43,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+// ====================== Fonctions-classes qui pourraient etre exportees car d'interet ===================
+// ====================== general
+
+/*
+    Calcul le graphe, sous forme de flag, des pixel superieurs;
+   Pourra etre utilise pour tabuler rapidement les max,min cols ...
+*/
 template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
 {
     Pt2di aSz = anIm.sz();
@@ -61,6 +68,8 @@ template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
             {
                  Pt2di aV = TAB_8_NEIGH[aKV];
                  T1 aV2 = aTIm.get(aP+aV);
+                 // Comparaison des valeur et du voisinage en cas
+                 // d'egalite pour avoir une relation d'ordre stricte
                  if (CmpValAndDec(aV1,aV2,aV)==-1)
                  {
                     aFlag |= (1<<aKV);
@@ -73,25 +82,21 @@ template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
     return aRes;
 }
 
-typedef enum eTypePtRemark
-{
-    eTPR_Max     = 0,
-    eTPR_Min     = 1,
-    eTPR_NoLabel = 2
 /*
     eTPR_Corner  = 2,
     eTPR_MaxLapl = 3,
     eTPR_MinLapl = 4,
     eTPR_NoLabel = 5
 */
-}  eTypePtRemark;
 
-Pt3di CoulOfType(eTypePtRemark);
+Pt3di CoulOfType(eTypePtRemark,int aN0,int aLong);
+Pt3dr CoulOfType(eTypePtRemark);
 
 
 
 int  * TabTypePOfFlag();
 
+// Stucture de points remarquables
 class cPtRemark
 {
     public :
@@ -113,14 +118,16 @@ class cPtRemark
        cPtRemark     * mLR; // Lower Resol
 };
 
+// Stucture de brins , suite de points sans embranchement
 class cBrinPtRemark
 {
     public :
         cBrinPtRemark(cPtRemark * aP0,int aNiv0);
         cPtRemark * P0() {return mP0;}
         cPtRemark * PLast() {return mPLast;}
-        int   Niv0() {return mNiv0;}
-        int   Long() {return mLong;}
+        int   Niv0() const {return mNiv0;}
+        int   Long() const {return mLong;}
+        cPtRemark *  Nearest(int & aNiv,double aTargetNiv);
     private :
         cPtRemark * mP0;
         cPtRemark * mPLast;
@@ -133,7 +140,7 @@ typedef cPtRemark * tPtrPtRemark;
 // std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort);
 
 
-#endif //  _NewRechPH_H_
+#endif //  _ExternNewRechPH_H_
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -12,7 +12,7 @@ namespace MMVII
 class cSpecMMVII_Appli;
 class cMMVII_Ap_NameManip;
 class cMMVII_Appli;
-class cSetName;
+// class cSetName;
 class cColStrAObl;
 class cColStrAOpt;
 typedef std::pair<std::string,std::string> t2S;
@@ -39,33 +39,6 @@ typedef tMMVII_UnikPApli (* tMMVII_AppliAllocator)(int argc, char ** argv,const 
     The command cAppli_EditSet allow to create sets with  with boolean expression.
 */
 
-class cSetName : public cMemCheck
-{
-   public :
-       friend void  AddData(const cAuxAr2007 & anAux,cSetName & aSON);  ///< For serialization
-       typedef std::vector<std::string> tCont;  ///< In case we change the container type
-
-       cSetName();  ///< Do nothing for now
-       cSetName(const  cInterfSet<std::string> &);  ///<  Fill with set
-       cSetName(const std::string &,bool AllowPat);  ///< From Pat Or File
-
-       void InitFromString(const std::string &,bool AllowPat);  ///< Init from file if ok, from pattern else
-
-       size_t size() const;           ///< Accessor
-       const tCont & Cont() const;    ///< Accessor
-
-       cInterfSet<std::string> * ToSet() const; ///< generate set, usefull for boolean operation
-       void Filter(tNameSelector);  ///< select name matching the selector
-   private :
-   // private :
-       void Sort();
-       void InitFromFile(const std::string &,int aNumV);  ///< Init from Xml file
-       void InitFromPat(const std::string & aFullPat); ///< Init from pattern (regex)
-
-
-       // Data part
-       tCont mV;
-};
 
 
      // ========================== cSpecMMVII_Appli ==================
@@ -95,7 +68,8 @@ class cSpecMMVII_Appli
                // Features, Input, Output =>  main first, more generally sorted by pertinence
            const tVaF     & aFeatures, 
            const tVaDT    & aInputs,   
-           const tVaDT    & aOutputs  
+           const tVaDT    & aOutputs  ,
+           const std::string & aNameFile 
        );
 
        void Check(); ///< Check that specification if ok (at least vectors non empty)
@@ -105,6 +79,7 @@ class cSpecMMVII_Appli
        const std::string &    Name() const; ///< Accessor
        tMMVII_AppliAllocator  Alloc() const; ///< Accessor
        const std::string &    Comment() const; ///< Accessor
+       const std::string &    NameFile() const; ///< Accessor
     private :
    // Data
        std::string           mName;       ///< User name
@@ -113,6 +88,7 @@ class cSpecMMVII_Appli
        tVaF                  mVFeatures;  ///< Features, at leat one
        tVaDT                 mVInputs;    //
        tVaDT                 mVOutputs;
+       std::string           mNameFile;   ///< C++ file where it is defined, may be usefull for devlopers ?
 
 };
 
@@ -192,6 +168,12 @@ class cMMVII_Ap_CPU
 };
 
      // ========================== cMMVII_Appli  ==================
+
+cMultipleOfs& StdOut(); /// Call the ostream of cMMVII_Appli if exist (else std::cout)
+cMultipleOfs& HelpOut();
+cMultipleOfs& ErrOut();
+
+
 /// Mother class of all appli
 
 /** Any application of MMVII must inherit of cMMVII_Appli.
@@ -209,12 +191,19 @@ class cMMVII_Ap_CPU
    because InitParam use ressource of cMMVII_Appli.
  
 */
+
+
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
 {
     public :
-        void  ExeCallMMVII(const std::string & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
-        std::string  StrCallMMVII(const std::string & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
+        /// According to StdOut param can be std::cout, a File, both or none
+        cMultipleOfs & StdOut();
+        cMultipleOfs & HelpOut();
+        cMultipleOfs & ErrOut();
+
+        int  ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
+        std::string  StrCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
         cColStrAObl& StrObl();
         cColStrAOpt& StrOpt();
  
@@ -229,6 +218,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         void InitParam();
 
+        const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
+        const std::string & InputDirTestMMVII() const;   ///<  where are input files for bench   , Export for global bench funtion
+
         // cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac);
 
     protected :
@@ -236,13 +228,16 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMMVII_Appli(int,char **,const cSpecMMVII_Appli &);
         /// Second step of construction, parse the command line and initialize values
 
-        const cSetName &                         MainSet0() const;         ///< MainSet(0) , 
-        const cSetName &                         MainSet1() const;         ///< MainSet(1) , 
-        const cSetName &                         MainSet(int aK) const;    ///< MainSets[aK] , check range !=0 before
+        const tNameSet &                         MainSet0() const;         ///< MainSet(0) , 
+        const tNameSet &                         MainSet1() const;         ///< MainSet(1) , 
+        const tNameSet &                         MainSet(int aK) const;    ///< MainSets[aK] , check range !=0 before
         void                                     CheckRangeMainSet(int) const;  ///< Check range in [0,NbMaxMainSets[
 
         virtual cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) = 0;  ///< A command specifies its mandatory args
         virtual cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) = 0;  ///< A command specifies its optional args
+        void InitOutFromIn(std::string &aFileOut,const std::string& aFileIn); ///< If out is not init set In, else DirProj+Out
+
+        void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
@@ -259,7 +254,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         char **                                   mArgv;          ///< memo argv
         const cSpecMMVII_Appli &                  mSpecs;         ///< The basic specs
 
-        std::string                               mDirBinMMVII;   /// where is the binary
+        std::string                               mDirBinMMVII;   ///< where is the binary
         std::string                               mTopDirMMVII;   ///< directory  mother of src/ bin/ ...
 
         std::string                               mFullBin;       ///< full name of binarie =argv[0]
@@ -269,6 +264,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mDirMicMacv2;   ///< Dir where is located MicMac V2
         std::string                               mDirProject;    ///< Directory of the project (./ if no way to find it)
         std::string                               mDirTestMMVII;  ///< Directory for read/write bench files
+        std::string                               mTmpDirTestMMVII;  ///< Tmp files (not versionned)
+        std::string                               mInputDirTestMMVII;  ///< Input files (versionned on git)
         bool                                      mModeHelp;      ///< Is help present on parameter
         bool                                      mDoGlobHelp;    ///< Include common parameter in Help
         bool                                      mDoInternalHelp;///< Include internal parameter in Help
@@ -276,7 +273,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
         bool                                      mDoInitProj;    ///< Init : Create folders of project, def (true<=> LevCall==1)
-        cInterfSet<void *>*                       mSetInit;       ///< Adresses of all initialized variables
+        cExtSet<void *>                           mSetInit;       ///< Adresses of all initialized variables
         bool                                      mInitParamDone; ///< To Check Post Init was not forgotten
         cColStrAObl                               mColStrAObl;    ///< To use << for passing multiple string
         cColStrAOpt                               mColStrAOpt;    ///< To use << for passing multiple pair
@@ -284,7 +281,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cCollecSpecArg2007                        mArgObl;        ///< Mandatory args
         cCollecSpecArg2007                        mArgFac;        ///< Optional args
         static const int                          NbMaxMainSets=3; ///< seems sufficient, Do not hesitate to increase if one command requires more
-        std::unique_ptr<cSetName>                 mMainSets[NbMaxMainSets];  ///< For a many commands probably
+        std::vector<tNameSet>                     mVMainSets;  ///< For a many commands probably
         std::string                               mIntervFilterMS[NbMaxMainSets];  ///< Filterings interval
 
         // Variable for setting num of mm version for output
@@ -293,6 +290,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mOutPutV2;   ///< computed from mNumOutPut
         bool                                      mHasInputV1; ///< Is there any input in V1 format ?
         bool                                      mHasInputV2; ///< Is there any input in V2 format ?
+        // For controling output
+        std::unique_ptr<cMMVII_Ofs>               mFileStdOut;  ///< Redirection of std output
+        cMultipleOfs                              mStdCout;     ///< Standard Ouput (File,Console, both or none)
+        std::string                               mParamStdOut; ///< Users value
 };
 
 };

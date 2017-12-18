@@ -1,4 +1,15 @@
 #include "include/MMVII_all.h"
+/** \file TestBoostSerial.cpp
+    \brief File to test boost serialization service
+
+    This file contains some test made to use boost for
+ serialization. For now I give up as I did not find
+ a solution to manage compatibility with optional :
+    
+
+*/
+
+
 
 #include <algorithm>
 #include <tuple>
@@ -33,15 +44,8 @@ namespace std{
 #include <boost/optional.hpp>
 #include <boost/serialization/optional.hpp>
 
-/*
-#include <boost/serialization/collections_save_imp.hpp>
-#include <boost/serialization/collections_load_imp.hpp>
-#include <boost/serialization/split_free.hpp>
-*/
 
 
-
-//#include <Eigen/Dense>
 
 namespace MMVII
 {
@@ -79,26 +83,7 @@ std::ifstream  * cMyBoostXmlIArch::mIFS = 0;
 template<class Archive,class Type>
 void serialize(Archive & ar,  cMyOpt<Type> & anE, const unsigned int version)
 {
-/*
-    std::ifstream * ifs = cMyBoostXmlIArch::mIFS ;
-    if (ifs)
-    {
-       std::cout << "cMyBoostXmlIArch " << ifs << "\n";
-
-while(1)
-{
-       int aC = ifs->get();
-
-       std::cout << "Got A Tag " << aC << " <" << (aC=='<') << "\n";
-       getchar();
-}
-    }
- boost::serialization::make_nvp
-*/
-// std::string #
- std::cout << "HHHHhhhhhhhhhhhhhhhhhhh "  << BOOST_PP_STRINGIZE(anE.mVal) << "\n";
- // boost::serialization::make_nvp("x",aP.x())
-    // ar & BOOST_SERIALIZATION_NVP(anE.mVal) ;
+    StdOut() << "HHHHhhhhhhhhhhhhhhhhhhh "  << BOOST_PP_STRINGIZE(anE.mVal) << "\n";
  
     ar & boost::serialization::make_nvp(BOOST_PP_STRINGIZE(anE.mVal), anE.mVal) ;
 
@@ -108,7 +93,7 @@ while(1)
 template<class Type>
 void serialize(cMyBoostXmlIArch & ar,  boost::optional<Type> & anE, const unsigned int version)
 {
-     std::cout << "Iiiiiiiiiiiiiiiiii\n"; 
+     StdOut() << "Iiiiiiiiiiiiiiiiii\n"; 
      serialize((boost::archive::xml_iarchive&)ar,anE,version);
 }
 
@@ -190,7 +175,7 @@ void TestBoostSerial()
         ia >> aNewP;
         // archive and stream closed when destructors are called
     }
-    std::cout  << " AAATestBoostSerial " << aNewP.x() << " " <<  aNewP.y() << "\n";
+    StdOut()  << " AAATestBoostSerial " << aNewP.x() << " " <<  aNewP.y() << "\n";
 
 if (1)
 {
@@ -210,6 +195,11 @@ if (1)
     ia >> BOOST_SERIALIZATION_NVP(anE2);
      
 }
+
+/// MMVII Appli for Testing boost serialization service
+/**
+     Probably obsolete
+*/
 
 class cAppli_MMVII_TestBoostSerial : public cMMVII_Appli
 {
@@ -247,7 +237,8 @@ cSpecMMVII_Appli  TheSpec_TestBoostSerial
       "This command execute some experiments en boost serrialization",
       {eApF::Test},
       {eApDT::None},
-      {eApDT::Console}
+      {eApDT::Console},
+      __FILE__
 );
 
 

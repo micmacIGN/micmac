@@ -819,8 +819,11 @@ class cSetEqFormelles : public cNameSpaceEqF
               bool IsClosed() const;
 
 
-	  void AddContrainte(const cContrainteEQF &,bool Strictes);
-	  void AddContrainte(const cMultiContEQF &,bool Strictes);
+          // Sur aPds => comprend plus comment marche AddContrainte, les poids
+          // semblent idiot, comme je ne veux pas casser ce qui marche (peut etre ?)
+          // on rajoute ce param qui permet de forcer le poids
+	  void AddContrainte(const cContrainteEQF &,bool Strictes,double aPds=-1);
+	  void AddContrainte(const cMultiContEQF &,bool Strictes,double aPds=-1);
 
 	  // AddEqFonctToSys est connservee pour compatibilite
 

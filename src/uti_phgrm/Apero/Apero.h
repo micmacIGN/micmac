@@ -2432,6 +2432,7 @@ class cAppliApero : public NROptF1vND
 
         void AddOneObservationsRelGPS(const cObsRelGPS &);
         void AddObservationsRelGPS(const std::list<cObsRelGPS> & aLO);
+        void AddObservationsBaseGpsInit();
 
         void AddObservationsRigidGrp(const std::list<cObsRigidGrpImage> &,bool IsLastIter,cStatObs & aSO);
         void AddObservationsRigidGrp(const cObsRigidGrpImage &,bool IsLastIter,cStatObs & aSO);

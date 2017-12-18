@@ -14,6 +14,7 @@ namespace MMVII
 
 */
 
+enum class eTyUEr;
 
 // MMVII_memory.h :  Memory
 
@@ -30,11 +31,16 @@ class cMMVII_Ifs ;
 
 // MMVII_util_tpl.h
 
-template <class Type> class cInterfSet ;
+template <class Type> class cExtSet ;
 template <class Type> class cSelector ;
 template <class Type> class cDataSelector ;
+template <class Type> class cOrderedPair ;
 
-typedef cSelector<std::string> tNameSelector;
+typedef cSelector<std::string>      tNameSelector;
+typedef cExtSet<std::string>        tNameSet;
+typedef cOrderedPair<std::string>   tNamePair;
+typedef cExtSet<tNamePair>          tNameRel;
+
 
 
 // MMVII_Ptxd.h

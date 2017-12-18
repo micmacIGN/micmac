@@ -86,7 +86,7 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromFile
    Pt2di aP1 = (aP1Init.x > 0) ? aP1Init : aTifF.sz();
    cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aP1-aP0,aS0,0);
 
-   ELISE_COPY ( aRes->mIm.all_pts(),trans(aTifF.in_proj(),-aP0),aRes->mIm.out());
+   ELISE_COPY ( aRes->mIm.all_pts(),trans(aTifF.in_proj(),aP0),aRes->mIm.out());
 
    FilterGaussProgr(aRes->mIm,aS0,1.0,4);
 
@@ -96,29 +96,28 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromFile
 
 cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneScaleImRechPH & anIm,const double & aSigma)
 {
-
-// MakeFlagMontant(anIm.mIm);
-// template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
-
      cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,anIm.mSz,aSigma,anIm.mNiv+1);
 
      // Pour reduire le temps de calcul, si deja plusieurs iters la fon de convol est le resultat
      // de plusieurs iters ...
      int aNbIter = 4;
-     if (aRes->mNiv==2) aNbIter = 3;
-     if (aRes->mNiv==1) aNbIter = 2;
+     if (aRes->mNiv==1) aNbIter = 3;
+     else if (aRes->mNiv>=2) aNbIter = 2;
 
      // anIm.mIm.dup(aRes->mIm);
      aRes->mIm.dup(anIm.mIm);
-     // double aParamG = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(anIm.mScale)));
-     // FilterGauss(aRes->mIm,aParamG,aNbIter);
+     // Passe au filtrage gaussien le sigma cible et le sigma actuel, il se debrouille ensuite
      FilterGaussProgr(aRes->mIm,aSigma,anIm.mScale,aNbIter);
+
 
      return aRes;
 }
 
 tImNRPH cOneScaleImRechPH::Im() {return mIm;}
 
+
+// Indique si tous les voisins se compare a la valeur cible aValCmp
+// autrement dit est un max ou min local
 
 bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
 {
@@ -134,10 +133,13 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
 }
 
 
+// Recherche tous les points topologiquement interessant
 
-void cOneScaleImRechPH::CalcPtsCarac()
+void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
 {
-   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(),true);
+   // voisin tries excluant le pixel central, le tri permet normalement de
+   // beneficier le plus rapidement possible d'une "coupe"
+   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(Basic),true);
 
 
    bool DoMin = mAppli.DoMin();
@@ -152,6 +154,8 @@ void cOneScaleImRechPH::CalcPtsCarac()
        {
            int aFlag = aTF.get(aP);
            eTypePtRemark aLab = eTPR_NoLabel;
+
+// std::cout << "DDDDDDDDd " << mAppli.DistMinMax(Basic) << "\n";
            
            if (DoMax &&  (aFlag == 0)  && SelectVois(aP,aVoisMinMax,1))
            {
@@ -173,34 +177,49 @@ void cOneScaleImRechPH::CalcPtsCarac()
 
 }
 
-Pt3dr cOneScaleImRechPH::PtPly(const cPtRemark & aP)
+Pt3dr cOneScaleImRechPH::PtPly(const cPtRemark & aP,int aNiv)
 {
-   return Pt3dr(aP.Pt().x,aP.Pt().y,mNiv*mAppli.DZPlyLay());
+   return Pt3dr(aP.Pt().x,aP.Pt().y,aNiv*mAppli.DZPlyLay());
 }
 
-void cOneScaleImRechPH::AddPly(cOneScaleImRechPH * aHR, cPlyCloud *  aPlyC)
+void cOneScaleImRechPH::Export(cOneScaleImRechPH * aHR, cPlyCloud *  aPlyC)
 {
    mNbExLR = 0;
    mNbExHR = 0;
    for (std::list<cPtRemark*>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
    {
        cPtRemark & aP = **itIPM;
-       Pt3di aCol = CoulOfType(aP.Type());
        double aDistZ = mAppli.DZPlyLay();
-       if ((!aP.HR()) ||  (!aP.LR()))
+
+       if (!aP.HR())
        {
-          aPlyC->AddSphere(aCol,PtPly(aP),aDistZ/6.0,3);
-       }
-       if (aHR && aP.HR())
-       {
-          aPlyC->AddSeg(aCol,PtPly(aP),aHR->PtPly(*(aP.HR())),20);
+          cBrinPtRemark * aBr = new cBrinPtRemark(&aP,mNiv);
+          mAppli.AddBrin(aBr);
+
+          if (aPlyC)
+          {
+             int aN0 = aBr->Niv0();
+             int aL  = aBr->Long();
+             Pt3di aCol = CoulOfType(aP.Type(),aN0,aL);
+             Pt3di aColP0 = (aN0!=0)  ? Pt3di(0,255,0)  : aCol;
+             aPlyC->AddSphere(aColP0,PtPly(*(aBr->P0()),aN0),aDistZ/6.0,3);
+
+             aPlyC->AddSphere(aCol,PtPly(*(aBr->PLast()),aN0+aL),aDistZ/6.0,3);
+
+             int aNiv = aN0;
+             for (cPtRemark * aP = aBr->P0() ; aP->LR() ; aP = aP->LR())
+             {
+                 aPlyC->AddSeg(aCol,PtPly(*aP,aNiv),PtPly(*(aP->LR()),aNiv+1),20);
+                 aNiv++;
+             }
+          }
        }
  
        if (!aP.HR()) mNbExHR ++;
        if (!aP.LR()) mNbExLR ++;
    }
 
-   std::cout << "NIV=" << mNiv << " HR " << mNbExHR << " LR " << mNbExLR << "\n";
+   // std::cout << "NIV=" << mNiv << " HR " << mNbExHR << " LR " << mNbExLR << "\n";
 }
 
 void cOneScaleImRechPH::Show(Video_Win* aW)
@@ -211,11 +230,12 @@ void cOneScaleImRechPH::Show(Video_Win* aW)
    Im2D_U_INT1 aIV(mSz.x,mSz.y);
    Im2D_U_INT1 aIB(mSz.x,mSz.y);
 
+
    ELISE_COPY(mIm.all_pts(),Max(0,Min(255,mIm.in())),aIR.out()|aIV.out()|aIB.out());
 
    for (std::list<cPtRemark*>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
    {
-       Pt3di aC = CoulOfType((*itIPM)->Type());
+       Pt3di aC = CoulOfType((*itIPM)->Type(),0,1000);
 
        ELISE_COPY
        (
@@ -233,27 +253,29 @@ void cOneScaleImRechPH::Show(Video_Win* aW)
    );
 }
 
+// Initialise la matrice des pt remarquable, en Init les met, sinon les supprime
 void cOneScaleImRechPH::InitBuf(const eTypePtRemark & aType, bool Init)
 {
    for (std::list<cPtRemark *>::iterator itP=mLIPM.begin() ; itP!=mLIPM.end() ; itP++)
    {
-       if ((*itP)->Type()==aType)
-       {
-           Pt2di aPi = round_ni((*itP)->Pt());
-           if (mAppli.Inside(aPi))
-           {
-               mAppli.PtOfBuf(aPi) = Init ? *itP : 0;
-           }
-           else
-           {
-           }
-       }
+      if ((*itP)->Type()==aType)
+      {
+         Pt2di aPi = round_ni((*itP)->Pt());
+         if (mAppli.Inside(aPi))
+         {
+            mAppli.PtOfBuf(aPi) = Init ? *itP : 0;
+         }
+         else
+         {
+         }
+      }
    }
 }
 
 
 void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark & aType)
 {
+   // Initialise la matrice haute resolution
    aHR.InitBuf(aType,true);
    double aDist = mScale * 1.5 + 4;
 
@@ -274,6 +296,7 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark &
            }
        }
    }
+   // Desinitalise 
    aHR.InitBuf(aType,false);
 }
 
@@ -282,15 +305,15 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aLR)
     for (int aK=0 ; aK<eTPR_NoLabel ; aK++)
     {
        CreateLink(aLR,eTypePtRemark(aK));
-       std::cout << " == \n";
     }
 
-   std::cout << "*************************\n";
+   std::cout <<  "CREATE LNK " << mNiv << "\n";
 }
 
 
 const int &  cOneScaleImRechPH::NbExLR() const {return mNbExLR;}
 const int &  cOneScaleImRechPH::NbExHR() const {return mNbExHR;}
+const double &  cOneScaleImRechPH::Scale() const {return mScale;}
 
 
 
