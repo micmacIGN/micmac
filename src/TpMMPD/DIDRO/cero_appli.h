@@ -1,25 +1,35 @@
-#ifndef CREO_APPLI_H
-#define CREO_APPLI_H
+#ifndef CERO_APPLI_H
+#define CERO_APPLI_H
+#include "cero_modelonepaire.h"
 
-
-class cREO_Appli
+class cERO_Appli
 {
 public:
-    cREO_Appli();
+     cERO_Appli(int argc, char** argv);
 
-    // on commence par déterminer une liste de paires d'images et on sauve cette liste dans un xml
-    void computeImPairFromOrthoOverlap();
-    // charge la liste de paire
+    void computeImCplOverlap();
+    void computeModel4EveryPairs();
+    // charge la liste de paire renseignée par l'utilisateur
     void loadImPair();
+    void applyRE();
 
    private:
+     cInterfChantierNameManipulateur * mICNM;
      // liste de couple d'images
-     cSauvegardeNamedRel aSNR ;
-     std::string mFileClpIm;
-     //= StdGetFromPCP(mFileHom,SauvegardeNamedRel);
-
+     cSauvegardeNamedRel mSNR ;
+     std::string mFileClpIm, mDirOut,mDir,mFullName;
+     std::list<std::string> mLFile;
+     bool mDebug;
      std::string mPatOrt;
      std::string mPatPrio; // les images qu'on ne souhaite pas égaliser.
+     std::vector<cImGeo> mLIm;
+     std::vector<c2DLineModel> mL2Dmod;// liste des modèles linéaires, un pour chaque images chargées.
+
+     int mMinOverX_Y,mMinOverX_Y_fichierCouple,mPropPixRec;
+     void moyenneModelPerOrt();
+     void loadEROSmodel4OneIm(string aNameOrt);
 };
 
-#endif // CREO_APPLI_H
+
+
+#endif // CERO_APPLI_H
