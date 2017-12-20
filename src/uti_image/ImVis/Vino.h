@@ -46,8 +46,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //  =======   Pour visualiser les points carac new
 #include "../NewRechPH/cParamNewRechPH.h"
 std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
-Pt3dr CoulOfType(eTypePtRemark);
-
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
 
 
 

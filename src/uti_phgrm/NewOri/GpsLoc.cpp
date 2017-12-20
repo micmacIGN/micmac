@@ -200,6 +200,7 @@ class cAppliGpsLoc : public cCommonMartiniAppli
           void InitSom();
 
           std::string                          mDir;
+          // Associe un nom d'image a l'objet C++
           std::map<std::string,cGpsLoc_Som *>  mMapS;
           std::vector<cGpsLoc_Triplet>         mV3;
           int                                  mNbSom;
@@ -251,7 +252,7 @@ cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
    //  + recuper son sommet (aC) d'un fichier d'orientation 
    //  + cree une classe cGpsLoc_Som et  mets la dans la map mMapS
    //  + initialise la pose avec la pose venant de GPS ( mMapS[itL]->Gps() )
-   for (auto aName : *aSetName)
+   for (const auto & aName : *aSetName)
    {
        std::string aNF = aICNM->Dir() + aICNM->Assoc1To1(aGpsOri,aName,true);
 
@@ -263,7 +264,7 @@ cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
                         "Pt3dr"
                     );
 
-
+      // Cree l'objet representant une image et le rentre dans le dictionnaire
       mMapS[aName] = new cGpsLoc_Som(aName);
       mMapS[aName]->Gps() = aC;      
 

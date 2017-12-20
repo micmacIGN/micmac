@@ -240,14 +240,18 @@ void cAppli_Vino::ShowVect()
 
 void cAppli_Vino::ShowVectPCarac()
 {
+   ElSimilitude aSim = mScr->to_win();
    for (const auto & aPC : mSPC->OnePCarac())
    {
-       Pt2dr aPU = aPC.HR().Pt();
-       Pt2dr aPW = mScr->to_win(aPU);
+       Pt2dr aPU = aPC.Pt();
+       Pt2dr aPW = aSim(aPU);
        if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
        {
-           Pt3dr aC = CoulOfType(aPC.Kind());
-           mW->draw_circle_loc(aPW,3.0,mW->prgb()(aC.x*255,aC.y*255,aC.z*255));
+           ShowPt(aPC,aSim,mW);
+       }
+       else
+       {
+          // std::cout << "FfFffff " << aPU << " " << aPW << "\n";
        }
    }
 }

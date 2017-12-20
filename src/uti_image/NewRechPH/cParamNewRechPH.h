@@ -59,23 +59,27 @@ class cOnePCarac
         eTypePtRemark & Kind();
         const eTypePtRemark & Kind()const ;
 
-        cPtSc & HR();
-        const cPtSc & HR()const ;
+        Pt2dr & Pt();
+        const Pt2dr & Pt()const ;
 
-        cPtSc & hR();
-        const cPtSc & hR()const ;
+        double & Scale();
+        const double & Scale()const ;
 
-        cPtSc & lR();
-        const cPtSc & lR()const ;
+        Pt2dr & Dir();
+        const Pt2dr & Dir()const ;
 
-        cPtSc & LR();
-        const cPtSc & LR()const ;
+        double & Contrast();
+        const double & Contrast()const ;
+
+        double & AutoCorrel();
+        const double & AutoCorrel()const ;
     private:
         eTypePtRemark mKind;
-        cPtSc mHR;
-        cPtSc mhR;
-        cPtSc mlR;
-        cPtSc mLR;
+        Pt2dr mPt;
+        double mScale;
+        Pt2dr mDir;
+        double mContrast;
+        double mAutoCorrel;
 };
 cElXMLTree * ToXMLTree(const cOnePCarac &);
 
