@@ -49,6 +49,8 @@ std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::
 void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
 
 
+//  =======   Pour visualiser les points carac new
+#include "../Sift/Sift.h"
 
 #if (ELISE_X11)
 
@@ -367,8 +369,11 @@ class cAppli_Vino : public cXml_EnvVino,
       // Vector view 
 
         bool           mBasicPC;
+        int            mResolSift;
+        std::string    mNameSift;
         int            mWithPCarac;
         cSetPCarac *   mSPC;
+        std::vector<Siftator::SiftPoint> mVSift;
 
 };
 
