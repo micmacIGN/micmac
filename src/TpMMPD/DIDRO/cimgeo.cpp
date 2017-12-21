@@ -124,11 +124,23 @@ std::vector<double> cImGeo::loadTFW(std::string aNameTFW)
  bool cImGeo::overlap(cImGeo * aIm2)
  {
    bool intersect(false);
+    //if (((mXmax>=aIm2->Xmax() && aIm2->Xmax() >= mXmin) || (mXmax>=aIm2->Xmin() && aIm2->Xmin()>=mXmin)) && ((mYmax>=aIm2->Ymax() && aIm2->Ymax() >= mYmin) || (mYmax>=aIm2->Ymin() && aIm2->Ymin()>=mYmin))) intersect=true;
+   // test im1 est contenue dans im2 ou inversément, pas pris en compte ci-dessus
+    double h1=mYmax-mYmin;
+    double w1=mXmax-mXmin;
+    double h2=aIm2->mYmax-aIm2->mYmin;
+    double w2=aIm2->mXmax-aIm2->mXmin;
 
-    if (((mXmax>=aIm2->Xmax() && aIm2->Xmax() >= mXmin) || (mXmax>=aIm2->Xmin() && aIm2->Xmin()>=mXmin)) && ((mYmax>=aIm2->Ymax() && aIm2->Ymax() >= mYmin) || (mYmax>=aIm2->Ymin() && aIm2->Ymin()>=mYmin))) intersect=true;
-   // test im1 est contenue dans im2 ou inversément
+    // projeter les bounding-box sur les axes et tester si les segments se recouvrent
+    // recouvrement axe horizontal
+    bool hoverlap = (mXmin<aIm2->Xmin()+w2) && (aIm2->Xmin()<mXmin+w1);
+
+    // recouvrement axe vertical
+    bool voverlap = (mYmin<aIm2->Ymin()+h2) && (aIm2->Ymin()<mYmin+h1);
+
+    // recouvrement final
+    intersect = hoverlap && voverlap;
    return intersect;
-
  }
 
  int cImGeo::pixCommun(cImGeo * aIm2)
@@ -164,7 +176,7 @@ std::vector<double> cImGeo::loadTFW(std::string aNameTFW)
 
    // recouvrement final
    bool overlap = hoverlap && voverlap;
-   //std::cout << "Calcul overlap entre 2 cimgeo. hoverlap :" << hoverlap << ", voverlap " << voverlap << "\n";
+   //std::cout << "Calcul overlap entre 2 cimgeo, "<< this->Name() << " and " << aIm2->Name() << ". hoverlap :" << hoverlap << ", voverlap " << voverlap << "\n";
    //calcule le recouvrement et le compare a aRec
 
    if (overlap)
@@ -173,7 +185,7 @@ std::vector<double> cImGeo::loadTFW(std::string aNameTFW)
     int hRec = 100*overBox.hauteur()/h1;
     int vRec = 100*overBox.largeur()/w1;
     if (hRec<aRec || vRec<aRec) overlap=0;
-    //std::cout << "overlap  en pourcent v et h" << vRec << " et " << hRec << "\n";
+    //std::cout << "overlap  en pourcent v et h :" << vRec << " et " << hRec << "\n";
    }
 
    return overlap;

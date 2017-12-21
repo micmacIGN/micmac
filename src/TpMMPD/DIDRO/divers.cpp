@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cero_modelonepaire.h"
 
 
+extern int RegTIRVIS_main(int , char **);
+
 
 //    Applique une homographie à l'ensemble des images thermiques pour les mettres dans la géométrie des images visibles prises simultanément
 
@@ -659,11 +661,12 @@ int MasqTIR_main(int argc,char ** argv)
 
 
 
-int main_test(int argc,char ** argv)
+int main_test2(int argc,char ** argv)
 {
      //cORT_Appli anAppli(argc,argv);
      //CmpOrthosTir_main(argc,argv);
-    ComputeStat_main(argc,argv);
+    //ComputeStat_main(argc,argv);
+    RegTIRVIS_main(argc,argv);
     //test_main(argc,argv);
     //MasqTIR_main(argc,argv);
     //cERO_ModelOnePaire(argc,argv);

@@ -3,20 +3,22 @@
 cERO_Appli::cERO_Appli(int argc, char** argv)
 {
     mDebug=false;
-    mMinOverX_Y=40; // recouvrement minimum entre 2 images, calculé séparément pour axe y et x.
+    mMinOverX_Y=30; // recouvrement minimum entre 2 images, calculé séparément pour axe y et x.
     mMinOverX_Y_fichierCouple=5; // si le couple est renseigné dans un fichier, on est moins exigent
-    mPropPixRec=20 ; // recouvrement minimum effectif (no data enlevée) en proportion de pixels, 1/mPropPixRec
+    mPropPixRec=10 ; // recouvrement minimum effectif (no data enlevée) en proportion de pixels, 1/mPropPixRec
     mDirOut="EROS-Tmp/" ;
     mDir="./";
     mFullName=".*.tif";
+    mSaveSingleOrtho=true;
 
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(mFullName, "Pattern of orthophoto",eSAM_IsPatFile),
-        LArgMain()  << EAM(mFileClpIm,"FileCpl",true,"File of images couples like the one determined by GrapHom for Tapioca File, prefix Ort_ not include")
+        LArgMain()  << EAM(mFileClpIm,"FileCpl",true,"File of images couples like the one determined by GrapHom/oriconvert for Tapioca File, prefix Ort_ not include")
                     << EAM(mDebug,"Debug",true,"Print Messages and write intermediates results")
-                    << EAM(mDirOut,"Dir",true,"Directory where to store all the results")
+                    << EAM(mSaveSingleOrtho,"ExportSO",true,"Export Single ortho corrected, def false")
+                    << EAM(mDirOut,"Dir",true,"Directory where to store all the results")  
     );
     // to do: corriger mDirOut si pas de "/" à la fin
 
@@ -71,12 +73,20 @@ cERO_Appli::cERO_Appli(int argc, char** argv)
     // applique le modèle à chacune des images -- idealement, ne devrait sauver les ortho corrigée pour leur radiometrie qu'en mode debug,
     // il faudrait effectuer le mosaiquage et la correction radiometrique d'un coup --> délivrable final sans trop de résultats intermédiaires
     // qui plus est, il faut lancer applyRE() en multiprocess. comment sans avoir une appli autonome? aie, demander à MPD
-    applyRE();
+    if (mSaveSingleOrtho) applyRE();
 
 }
 
 void cERO_Appli::applyRE()
 {
+
+     if (ELISE_fp::exist_file(mDir+"MTDMaskOrtho.xml"))
+        { System("cp " + mDir+"MTDMaskOrtho.xml"+ " " + mDirOut+"MTDMaskOrtho.xml"); } else { std::cout << "unable to copy file " << mDir+"MTDMaskOrtho.xml" <<"\n";}
+        if (ELISE_fp::exist_file(mDir+"MTDOrtho.xml"))
+        { System("cp " + mDir+"MTDOrtho.xml"+ " " + mDirOut+"MTDOrtho.xml"); } else { std::cout << "unable to copy file " << mDir+"MTDOrtho.xml" <<"\n";}
+
+
+
     int it(0);
     for (auto & ortho : mLIm)
     {
@@ -84,10 +94,23 @@ void cERO_Appli::applyRE()
         std::string filename(mDirOut+ortho.Name());
         std::cout << "Apply radiometric egalization on ortho " << ortho.Name() << ", save result in directory " << mDirOut <<"\n";
         Im2D_REAL4 aIm(ortho.applyRE(mL2Dmod.at(it)));
-        Im2D_U_INT1 out(aIm.sz().x,aIm.sz().y);
+
+
+            // temporary, but now i copy hidden part, incidence images and xml in order to be able to run Tawny with corrected images
+            std::vector<std::string> Vfile;
+            Vfile.push_back("PC" + ortho.Name().substr(3));
+            Vfile.push_back("PC" + ortho.Name().substr(3, ortho.Name().size()-6) + "xml");
+            Vfile.push_back("MTD-" + ortho.Name().substr(4)+ ".xml");
+            Vfile.push_back("Incid" + ortho.Name().substr(3));
+            for (auto & file : Vfile)
+            { if (ELISE_fp::exist_file(mDir+file))
+                { System("cp " + mDir+file+ " " + mDirOut+file); } else { std::cout << "unable to copy file " << mDir+file <<"\n";}
+            }
 
 
         // très peu approprié de mettre ça ici, mais mon jeu test sont les images thermiques de variocam
+        /*
+        Im2D_U_INT1 out(aIm.sz().x,aIm.sz().y);
         int minRad(27540), rangeRad(2546.0);
         ELISE_COPY
         (
@@ -102,17 +125,18 @@ void cERO_Appli::applyRE()
         0,
         out.out()
         );
-
+        // ne pas oublier de changer le format d'écriture en u_int_4
+*/
 
         // je sauve le résultats
         ELISE_COPY(
                     aIm.all_pts(),
-                    out.in(),
+                    aIm.in(),
                     Tiff_Im(filename.c_str(),
-                                aIm.sz(),
-                                GenIm::u_int1,
-                                Tiff_Im::No_Compr,
-                                Tiff_Im::BlackIsZero).out()
+                            aIm.sz(),
+                            GenIm::real4,
+                            Tiff_Im::No_Compr,
+                            Tiff_Im::BlackIsZero).out()
                     );
         it++;
     }
@@ -158,8 +182,11 @@ void cERO_Appli::loadImPair()
 
                 for (auto &cpleOK: mSNR.Cple()) if (cpleOK==cple || cple==cCpleString(cpleOK.N2(),cpleOK.N1())) doublon=true;
 
-                if(!doublon) mSNR.Cple().push_back(cple);
-
+                if(!doublon)
+                {
+                    mSNR.Cple().push_back(cple);
+                    if (mDebug) std::cout << "Add images pair " << cple.N1() << "-->"<< cple.N2() << "\n";
+                }
             }else {
                 std::cout << "For the orthos couples " << cple.N1() << " and " << cple.N2() << " , not enough overlap  \n";}
 
@@ -183,11 +210,16 @@ void cERO_Appli::computeImCplOverlap()
             if(im1.Name()!=im2.Name() && im1.containTer(im2.center()) && im1.overlap(&im2,mMinOverX_Y))
             {
                 // vérif ici que les images ont bien un recouvrement effectif suffisant, en enlevant les no data
-                if (im1.pixCommun(&im2)> (im1.nbPix()/mPropPixRec))
+                int pixCommun(im1.pixCommun(&im2));
+                if (pixCommun> (im1.nbPix()/mPropPixRec) || pixCommun>10000)
                 {
                         // ajout du couple
                         mSNR.Cple().push_back(cCpleString(im1.Name(),im2.Name()));
+                        if (mDebug) std::cout << "Add images pair " << im1.Name() << "-->"<< im2.Name() << "\n";
                         count++;
+               // } else {
+                 //   if(mDebug) std::cout << "for images pair " << im1.Name() << "-->"<< im2.Name() << ", not enough overlap\n";
+
                 }
             }
             }

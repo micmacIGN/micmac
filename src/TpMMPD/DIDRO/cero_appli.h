@@ -19,7 +19,7 @@ public:
      cSauvegardeNamedRel mSNR ;
      std::string mFileClpIm, mDirOut,mDir,mFullName;
      std::list<std::string> mLFile;
-     bool mDebug;
+     bool mDebug,mSaveSingleOrtho;
      std::string mPatOrt;
      std::string mPatPrio; // les images qu'on ne souhaite pas égaliser.
      std::vector<cImGeo> mLIm;
