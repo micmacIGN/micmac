@@ -843,7 +843,7 @@ void cAppliMICMAC::MakePartiesCachees
                }
           }
 
-           
+
            /// Geometrie Masq Ter / Image PC
 
            MakeOrtho
@@ -897,11 +897,10 @@ void cAppliMICMAC::MakePartiesCachees
            {
                 std::string aPref=ToString(aCptModProcess) + "-";
                 std::string aNameMTD = aDirOrtho+ aPref+aMOPI.FileMTD().Val();
-                if (! ELISE_fp::exist_file(aNameMTD))  
+                if (! ELISE_fp::exist_file(aNameMTD))
                 {
                    MakeFileXML(anOriOrtho, aNameMTD);
-                   GenTFW(anOriOrtho,aDirOrtho+aPref+aMOPI.FileMTD().Val());
-
+                   GenTFW(anOriOrtho,aDirOrtho+"Orthophotomosaic.tfw");
                    if (aMOPI.MakeMTDMaskOrtho().IsInit())
                    {
                        const cMakeMTDMaskOrtho & aMMMO = aMOPI.MakeMTDMaskOrtho().Val();
@@ -917,11 +916,10 @@ void cAppliMICMAC::MakePartiesCachees
                 MakeFileXML(anOriIm,aNameMtdIm);
 		// generate tfw for the ortho
 		std::string aNameMtdOrt = aDirOrtho + "Ort_"+ StdPrefix(aPdv.Name()) + ".tfw";
-		int aDzIm = mCurEtape->DeZoomIm();
-		// Pour le tfw et pour le XML, les conventions sont pas les mm, l'origine plani n'est pas correcte (pour tfw) si ZoomF!=1. Prise en compte du DzIm
-		anOriIm.OriginePlani() = anOriOrtho.OriginePlani() + anOffs.mcbyc(anOriOrtho.ResolutionPlani()*aDzIm); 
-                GenTFW(anOriIm, aNameMtdOrt);
-
+        // Pour le tfw et pour le XML, les conventions sont pas les mm. MTD Xml: ne semblent pas correctes, notament la taille en pixels, pour les orthos individuelles mais tawny s'en sort très bien avec.
+        // aResRelOrtho= 1/(ZoomF*ResolOrtho) alors que devrait etre ResolOrtho/ZoomF (car si resolOrtho diminue, le GSD augmente)
+        anOriIm.OriginePlani() = anOriOrtho.OriginePlani() + anOffs.mcbyc(anOriOrtho.ResolutionPlani()/aResRelOrtho);
+        GenTFW(anOriIm, aNameMtdOrt);
            }
        }
 
