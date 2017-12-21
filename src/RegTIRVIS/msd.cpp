@@ -900,7 +900,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
              xn = x + b[0] ;
              yn = y + b[1] ;
              // Check if isnan
-             if (isnan(xn)||isnan(yn))
+             if (std::isnan(xn)||std::isnan(yn))
              {
                 xn=i_p.x;
                 yn=i_p.y;

@@ -369,7 +369,8 @@ class cAppli_Vino : public cXml_EnvVino,
       // Vector view 
 
         bool           mBasicPC;
-        int            mResolSift;
+        int            mSzSift;
+        double         mSSF;  // Sift Scale Factor
         std::string    mNameSift;
         int            mWithPCarac;
         cSetPCarac *   mSPC;
