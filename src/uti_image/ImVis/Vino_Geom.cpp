@@ -241,17 +241,39 @@ void cAppli_Vino::ShowVect()
 void cAppli_Vino::ShowVectPCarac()
 {
    ElSimilitude aSim = mScr->to_win();
-   for (const auto & aPC : mSPC->OnePCarac())
+
+   if (mSPC)
    {
-       Pt2dr aPU = aPC.Pt();
-       Pt2dr aPW = aSim(aPU);
-       if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
+       for (const auto & aPC : mSPC->OnePCarac())
        {
-           ShowPt(aPC,aSim,mW);
+           Pt2dr aPU = aPC.Pt();
+           Pt2dr aPW = aSim(aPU);
+           if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
+           {
+               ShowPt(aPC,aSim,mW);
+           }
+           else
+           {
+              // std::cout << "FfFffff " << aPU << " " << aPW << "\n";
+           }
        }
-       else
+   }
+   if (mVSift.size())
+   {
+       for (const auto & aSP : mVSift)
        {
-          // std::cout << "FfFffff " << aPU << " " << aPW << "\n";
+           Pt2dr aPU(aSP.x,aSP.y);
+           Pt2dr aPW = aSim(aPU);
+std::cout << "PSSSS " << aPU << " " << aPW << "\n";
+           if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
+           {
+               mW->draw_circle_loc(aPW,3.0,mW->pdisc()(P8COL::red));
+               //ShowPt(aP,aSim,mW);
+           }
+           else
+           {
+              // std::cout << "FfFffff " << aPU << " " << aPW << "\n";
+           }
        }
    }
 }
