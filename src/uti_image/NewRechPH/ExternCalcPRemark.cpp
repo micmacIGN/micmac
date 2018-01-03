@@ -58,6 +58,13 @@ void  TestFlux2StdCont()
 
 }
 
+class cSurfQuadr
+{
+    public :
+    private :
+       
+};
+
 
 /*****************************************************/
 /*                                                   */
@@ -97,7 +104,7 @@ std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort)
    return aResult;
 }
 
-Pt3di CoulOfType(eTypePtRemark aType,int aL0,int aLong)
+Pt3di Ply_CoulOfType(eTypePtRemark aType,int aL0,int aLong)
 {
     if (aLong==0) 
        return Pt3di(255,255,255);
@@ -123,11 +130,22 @@ Pt3di CoulOfType(eTypePtRemark aType,int aL0,int aLong)
     return  Pt3di(128,128,128);
 }
 
-Pt3dr CoulOfType(eTypePtRemark aType)
+Pt3dr X11_CoulOfType(eTypePtRemark aType)
 {
-   Pt3di aCI = CoulOfType(aType,0,1000);
+   Pt3di aCI = Ply_CoulOfType(aType,0,1000);
    return Pt3dr(aCI) /255.0;
 }
+
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW)
+{
+    if (! aW) return;
+
+    Pt3dr aC = X11_CoulOfType(aPC.Kind());
+    Col_Pal aCPal = aW->prgb()(aC.x*255,aC.y*255,aC.z*255);
+
+    aW->draw_circle_abs(aSim(aPC.Pt()),3.0,aCPal);
+}
+
 
 /*****************************************************/
 /*                                                   */
@@ -138,28 +156,15 @@ Pt3dr CoulOfType(eTypePtRemark aType)
 cPtRemark::cPtRemark(const Pt2dr & aPt,eTypePtRemark aType) :
            mPtR   (aPt),
            mType  (aType),
-           mHR    (0),
+           mHRs   (),
            mLR    (0)
 {
 }
 
-/*
-  mLR      this
-    \
-    aHR    
-*/
 
 void cPtRemark::MakeLink(cPtRemark * aHR)
 {
-   if (aHR->mLR)
-   {
-        if (euclid(aHR->mLR->mPtR-aHR->mPtR) < euclid(mPtR-aHR->mPtR))
-           return;
-
-         aHR->mLR->mHR=0;
-         aHR->mLR=0;
-   }
-   mHR = aHR;
+   mHRs.push_back(aHR);
    aHR->mLR = this;
 }
 
@@ -169,21 +174,14 @@ void cPtRemark::MakeLink(cPtRemark * aHR)
 /*                                                   */
 /*****************************************************/
 
-cBrinPtRemark::cBrinPtRemark(cPtRemark * aP0,int aNiv0) :
-    mP0    (aP0),
-    mPLast (mP0),
-    mNiv0  (aNiv0),
-    mLong  (0)
+cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,int aNiv0) :
+    mLR    (aLR),
+    mNiv0  (aNiv0)
 {
-   ELISE_ASSERT(mP0->HR()==0,"Incoh in cBrinPtRemark");
-   while (mPLast->LR())
-   {
-       mPLast  = mPLast->LR();
-       mLong++;
-   }
 }
 
 
+/*
 cPtRemark *  cBrinPtRemark::Nearest(int & aNivMin,double aTargetNiv)
 {
     cPtRemark * aRes = mP0;
@@ -205,6 +203,7 @@ cPtRemark *  cBrinPtRemark::Nearest(int & aNivMin,double aTargetNiv)
     }
     return aRes;
 }
+*/
 
 
 

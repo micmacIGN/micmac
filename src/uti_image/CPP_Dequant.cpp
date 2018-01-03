@@ -74,6 +74,7 @@ int Dequant_main(int argc,char ** argv)
          if (aSzGlob== Pt2di(0,0))
             aSzGlob = aFileIn.sz();
 
+/*
         Tiff_Im  aTifOut
                  (
                         aNameOut.c_str(),
@@ -82,6 +83,18 @@ int Dequant_main(int argc,char ** argv)
                     Tiff_Im::No_Compr,
                     Tiff_Im::BlackIsZero
                  );
+*/
+        // Quand appele par MM, il ne faut pas changer la structure du fichier (dallage)
+        bool IsModified;
+        Tiff_Im  aTifOut = Tiff_Im::CreateIfNeeded
+                           (
+                                  IsModified,
+                                  aNameOut.c_str(),
+                                  aSzGlob,
+                                  GenIm::real4,
+                                  Tiff_Im::No_Compr,
+                                  Tiff_Im::BlackIsZero
+                           );
 
          Pt2di aPRD(aSzRecDalles,aSzRecDalles);
          cDecoupageInterv2D aDecoup

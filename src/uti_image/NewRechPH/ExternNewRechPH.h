@@ -43,6 +43,25 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+typedef float   tElNewRechPH ;
+typedef double  tElBufNRPH ;
+typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
+typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
+
+
+double Sigma2FromFactExp(double a);
+double FactExpFromSigma2(double aS2);
+void TestSigma2(double a);
+template <class T1> void  LocFilterGauss(T1 & anIm, double aSigmaN,int aNbIter);
+void FilterGaussProgr(tImNRPH anIm,double  aSTarget,double  aSInit,int aNbIter);
+void TestDist(Pt2di aSz,Fonc_Num aP,double aScale);
+
+
+
+
+
+
+
 // ====================== Fonctions-classes qui pourraient etre exportees car d'interet ===================
 // ====================== general
 
@@ -89,14 +108,19 @@ template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
     eTPR_NoLabel = 5
 */
 
-Pt3di CoulOfType(eTypePtRemark,int aN0,int aLong);
-Pt3dr CoulOfType(eTypePtRemark);
+Pt3di Ply_CoulOfType(eTypePtRemark,int aN0,int aLong);
+Pt3dr X11_CoulOfType(eTypePtRemark);
+
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude &,Video_Win * aW);
 
 
 
 int  * TabTypePOfFlag();
 
 // Stucture de points remarquables
+class cPtRemark;
+typedef std::list<cPtRemark*> tContHRPR;
+
 class cPtRemark
 {
     public :
@@ -106,16 +130,16 @@ class cPtRemark
        const eTypePtRemark & Type() const {return mType;}
        
        void MakeLink(cPtRemark * aHR /*Higher Resol */);
-       cPtRemark * HR() {return mHR;}
-       cPtRemark * LR() {return mLR;}
+       tContHRPR &  HRs()  {return mHRs;}
+       cPtRemark * LR()    {return mLR;}
 
     private :
 
        cPtRemark(const cPtRemark &); // N.I.
        Pt2dr           mPtR;
        eTypePtRemark   mType;
-       cPtRemark     * mHR; // Higher Resol
-       cPtRemark     * mLR; // Lower Resol
+       tContHRPR         mHRs; // Higher Resol
+       cPtRemark     *   mLR; // Lower Resol
 };
 
 // Stucture de brins , suite de points sans embranchement
@@ -123,16 +147,10 @@ class cBrinPtRemark
 {
     public :
         cBrinPtRemark(cPtRemark * aP0,int aNiv0);
-        cPtRemark * P0() {return mP0;}
-        cPtRemark * PLast() {return mPLast;}
-        int   Niv0() const {return mNiv0;}
-        int   Long() const {return mLong;}
-        cPtRemark *  Nearest(int & aNiv,double aTargetNiv);
+        // void StatBr(int & );
     private :
-        cPtRemark * mP0;
-        cPtRemark * mPLast;
+        cPtRemark * mLR;
         int         mNiv0;
-        int         mLong;
 };
 
 typedef cPtRemark * tPtrPtRemark;

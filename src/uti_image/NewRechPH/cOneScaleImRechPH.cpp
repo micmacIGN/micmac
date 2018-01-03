@@ -40,22 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
-void FilterGaussProgr(tImNRPH anIm,double  aSTarget,double  aSInit,int aNbIter)
-{
-    aSTarget = ElSquare(aSTarget);
-    aSInit = ElSquare(aSInit);
-    if (aSTarget > aSInit)
-    {
-        FilterGauss(anIm,sqrt(aSTarget-aSInit),aNbIter);
-    }
-    else if (aSTarget==aSInit)
-    {
-    }
-    else
-    {
-      ELISE_ASSERT(false,"FilterGaussProgr");
-    }
-}
+
+
 /*****************************************************/
 /*                                                   */
 /*            Constructeur                           */
@@ -68,10 +54,19 @@ cOneScaleImRechPH::cOneScaleImRechPH(cAppli_NewRechPH &anAppli,const Pt2di & aSz
    mSz    (aSz),
    mIm    (aSz.x,aSz.y),
    mTIm   (mIm),
+   mImMod (1,1),
+   mTImMod (mImMod),
    mScale (aScale),
    mNiv   (aNiv)
 {
 }
+
+void cOneScaleImRechPH::InitImMod()
+{
+  mImMod.Resize(mSz);
+  mTImMod = tTImNRPH(mImMod);
+}
+
 
 cOneScaleImRechPH* cOneScaleImRechPH::FromFile
 (
@@ -86,13 +81,25 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromFile
    Pt2di aP1 = (aP1Init.x > 0) ? aP1Init : aTifF.sz();
    cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aP1-aP0,aS0,0);
 
-   ELISE_COPY ( aRes->mIm.all_pts(),trans(aTifF.in_proj(),aP0),aRes->mIm.out());
+   if (anAppli.TestDirac())
+   {
+        ELISE_COPY(aRes->mIm.all_pts(),0,aRes->mIm.out());
+        aRes->mTIm.oset((aP1-aP0)/2,1000);
 
+      Tiff_Im::CreateFromIm(aRes->mIm,"LA-Im0.tif");
+   }
+   else
+   {
+      ELISE_COPY ( aRes->mIm.all_pts(),trans(aTifF.in_proj(),aP0),aRes->mIm.out());
+   }
+
+   std::cout << "S00000000000 = " << aS0 << "\n";
    FilterGaussProgr(aRes->mIm,aS0,1.0,4);
 
+   if (anAppli.TestDirac())
+      Tiff_Im::CreateFromIm(aRes->mIm,"LA-Gaus0.tif");
    return aRes;
 }
-
 
 cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneScaleImRechPH & anIm,const double & aSigma)
 {
@@ -101,8 +108,13 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneS
      // Pour reduire le temps de calcul, si deja plusieurs iters la fon de convol est le resultat
      // de plusieurs iters ...
      int aNbIter = 4;
-     if (aRes->mNiv==1) aNbIter = 3;
-     else if (aRes->mNiv>=2) aNbIter = 2;
+     if (!anAppli.TestDirac())
+     {
+        if (aRes->mNiv==1) aNbIter = 3;
+        else if (aRes->mNiv>=2) aNbIter = 2;
+
+        std::cout << "GaussByExp, NbIter=" << aNbIter << "\n";
+     }
 
      // anIm.mIm.dup(aRes->mIm);
      aRes->mIm.dup(anIm.mIm);
@@ -110,6 +122,12 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneS
      FilterGaussProgr(aRes->mIm,aSigma,anIm.mScale,aNbIter);
 
 
+     if (anAppli.TestDirac())
+     {
+        tImNRPH aIm =  aRes->mIm;
+        Tiff_Im::CreateFromIm(aIm,"LA-Gaus"+ ToString(aRes->Niv()) + ".tif");
+        TestDist(anIm.mSz,aIm.in(),aSigma);
+     }
      return aRes;
 }
 
@@ -129,6 +147,36 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
         if (CmpValAndDec(aV0,aV1,aVois) != aValCmp)
            return false;
     }
+    return true;
+}
+
+bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
+{
+    static Pt2di aP00(0,0);
+    tElNewRechPH aV0 =  mTImMod.get(aP);
+    tElNewRechPH aV2 =  aI2->mTImMod.get(aP);
+
+    if (aV0== aV2)
+    {
+       int aCmp = (mScale<aI2->mScale) ? -1 : 1;
+       if (aCmp != aValCmp)
+          return false;
+    }
+    else
+    {
+       int aCmp = (aV0<aV2) ? -1 : 1;
+       if (aCmp != aValCmp)
+          return false;
+    }
+
+    for (int aKV=0 ; aKV<int(aVVois.size()) ; aKV++)
+    {
+        const Pt2di & aVois = aVVois[aKV];
+        tElNewRechPH aV1 =  aI2->mTImMod.get(aP+aVois,aV0);
+        if (CmpValAndDec(aV0,aV1,aVois) != aValCmp)
+           return false;
+    }
+
     return true;
 }
 
@@ -189,18 +237,20 @@ void cOneScaleImRechPH::Export(cOneScaleImRechPH * aHR, cPlyCloud *  aPlyC)
    for (std::list<cPtRemark*>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
    {
        cPtRemark & aP = **itIPM;
-       double aDistZ = mAppli.DZPlyLay();
+       // double aDistZ = mAppli.DZPlyLay();
 
-       if (!aP.HR())
+       if (!aP.LR())
        {
           cBrinPtRemark * aBr = new cBrinPtRemark(&aP,mNiv);
           mAppli.AddBrin(aBr);
 
           if (aPlyC)
           {
+             std::cout << "PLY-PLY not longer avalaible \n";
+/*
              int aN0 = aBr->Niv0();
              int aL  = aBr->Long();
-             Pt3di aCol = CoulOfType(aP.Type(),aN0,aL);
+             Pt3di aCol = Ply_CoulOfType(aP.Type(),aN0,aL);
              Pt3di aColP0 = (aN0!=0)  ? Pt3di(0,255,0)  : aCol;
              aPlyC->AddSphere(aColP0,PtPly(*(aBr->P0()),aN0),aDistZ/6.0,3);
 
@@ -212,10 +262,11 @@ void cOneScaleImRechPH::Export(cOneScaleImRechPH * aHR, cPlyCloud *  aPlyC)
                  aPlyC->AddSeg(aCol,PtPly(*aP,aNiv),PtPly(*(aP->LR()),aNiv+1),20);
                  aNiv++;
              }
+*/
           }
        }
  
-       if (!aP.HR()) mNbExHR ++;
+       if (aP.HRs().empty()) mNbExHR ++;
        if (!aP.LR()) mNbExLR ++;
    }
 
@@ -235,7 +286,7 @@ void cOneScaleImRechPH::Show(Video_Win* aW)
 
    for (std::list<cPtRemark*>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
    {
-       Pt3di aC = CoulOfType((*itIPM)->Type(),0,1000);
+       Pt3di aC = Ply_CoulOfType((*itIPM)->Type(),0,1000);
 
        ELISE_COPY
        (
@@ -275,21 +326,23 @@ void cOneScaleImRechPH::InitBuf(const eTypePtRemark & aType, bool Init)
 
 void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark & aType)
 {
+   cOneScaleImRechPH & aLR = *this;
+
    // Initialise la matrice haute resolution
-   aHR.InitBuf(aType,true);
+   aLR.InitBuf(aType,true);
    double aDist = mScale * 1.5 + 4;
 
   
-   for (std::list<cPtRemark *>::iterator itP=mLIPM.begin() ; itP!=mLIPM.end() ; itP++)
+   for (const auto & aPHR : aHR.mLIPM)
    {
-       if ((*itP)->Type()==aType)
+       if (aPHR->Type()==aType)
        {
            // Pt2di aPi = round_ni((*itP)->Pt());
-           tPtrPtRemark aNearest  =  mAppli.NearestPoint(round_ni((*itP)->Pt()),aDist);
-           if (aNearest)
+           tPtrPtRemark aPLR  =  mAppli.NearestPoint(round_ni(aPHR->Pt()),aDist);
+           if (aPLR)
            {
               // std::cout << "LEVS " << mNiv << " " << aHR.mNiv << "\n";
-              (*itP)->MakeLink(aNearest);
+              aPLR->MakeLink(aPHR);
            }
            else
            {
@@ -297,17 +350,17 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark &
        }
    }
    // Desinitalise 
-   aHR.InitBuf(aType,false);
+   aLR.InitBuf(aType,false);
 }
 
-void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aLR)
+void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR)
 {
     for (int aK=0 ; aK<eTPR_NoLabel ; aK++)
     {
-       CreateLink(aLR,eTypePtRemark(aK));
+       CreateLink(aHR,eTypePtRemark(aK));
     }
 
-   std::cout <<  "CREATE LNK " << mNiv << "\n";
+   // std::cout <<  "CREATE LNK " << mNiv << "\n";
 }
 
 

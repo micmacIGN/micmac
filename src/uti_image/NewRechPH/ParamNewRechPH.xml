@@ -27,10 +27,11 @@
    <SetPCarac  Nb="1" Class="true">
       <OnePCarac  Nb="*" Class="true">
          <Kind Nb="1" Type="eTypePtRemark">        </Kind>
-         <HR RefType="PtSc" Nb="1"> </HR>
-         <hR RefType="PtSc" Nb="1"> </hR>
-         <lR RefType="PtSc" Nb="1"> </lR>
-         <LR RefType="PtSc" Nb="1"> </LR>
+         <Pt   Nb="1" Type="Pt2dr">     </Pt>
+         <Scale   Nb="1" Type="double">  </Scale>
+         <Dir   Nb="1" Type="Pt2dr">     </Dir>
+         <Contrast   Nb="1" Type="double">  </Contrast>
+         <AutoCorrel   Nb="1" Type="double">  </AutoCorrel>
       </OnePCarac>
    </SetPCarac>
 <Verbatim File=".h.cpp">

@@ -46,10 +46,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 //  =======   Pour visualiser les points carac new
 #include "../NewRechPH/cParamNewRechPH.h"
 std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
-Pt3dr CoulOfType(eTypePtRemark);
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
 
 
-
+//  =======   Pour visualiser les points carac new
+#include "../Sift/Sift.h"
 
 #if (ELISE_X11)
 
@@ -368,8 +369,12 @@ class cAppli_Vino : public cXml_EnvVino,
       // Vector view 
 
         bool           mBasicPC;
+        int            mSzSift;
+        double         mSSF;  // Sift Scale Factor
+        std::string    mNameSift;
         int            mWithPCarac;
         cSetPCarac *   mSPC;
+        std::vector<Siftator::SiftPoint> mVSift;
 
 };
 

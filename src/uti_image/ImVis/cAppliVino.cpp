@@ -138,6 +138,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
                     << EAM(mFileMnt,"FileMnt",true,"Default toto.tif -> toto.xml")
                     << EAM(mParamClipCh,"ClipCh",true,"Param 4 Clip Chantier [PatClip,OriClip]")
                     << EAM(mBasicPC,"BasicPC",true,"Set if visualize carac point")
+                    << EAM(mSzSift,"ResolSift",true,"Resol of sift point to visualize")
                     << EAM(mPatSecIm,"PSI",true,"Patt secondary images, for multiple vino")
                     // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
     );
@@ -286,6 +287,29 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
                         "SetPCarac"
                     )
                );
+    }
+    if (EAMIsInit(&mSzSift))
+    {
+
+        mWithPCarac = true;
+        getPastisGrayscaleFilename(mDir,mNameIm,mSzSift,mNameSift);
+        mNameSift  = DirOfFile(mNameSift) + "LBPp" + NameWithoutDir(mNameSift) + ".dat";
+
+        Tiff_Im aFileInit = PastisTif(mNameIm);
+        Pt2di       imageSize = aFileInit.sz();
+
+        mSSF =  double( ElMax( imageSize.x, imageSize.y ) ) / double( mSzSift ) ;
+
+
+        // std::cout << "NAMEPAST=" << mNameSift << "\n";
+        // getchar();
+        bool Ok = read_siftPoint_list(mNameSift,mVSift);
+        if (!Ok)
+        {
+           std::cout << "Name sift=[" << mNameSift << "]\n";
+           ELISE_ASSERT(Ok,"Bad read sift file\n");
+        }
+        // std::cout << "SIIIIffrt " << Ok << " Nb=" << mVSift.size() << "\n";
     }
 
     if (EAMIsInit(&mPatSecIm) && (aNameImExtern==""))
