@@ -222,6 +222,7 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
 	std::string aTimeSys="";
 	int aCompt = 0;
 	double aTimeF = 0;
+    bool aMedian = false;
 	
 	
 	std::vector<PosGPS> aVPosGPS;
@@ -239,6 +240,7 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
 					 << EAM(aShowH,"ShowH",true,"Show header informations ; Def = false", eSAM_IsBool)
 					 << EAM(aXYZ,"tXYZQ",false,"Export tXYZQ format ASCII data ; Def = false", eSAM_IsBool)
                      << EAM(aOffset,"OffSet",true,"Subtract an offset to all points")
+                     << EAM(aMedian,"Median",false,"Export the median of coordinates; Def = false")
     );
     
     std::string aFullName = mDir+mFile;
@@ -398,6 +400,13 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
      }
 	
 	cDicoGpsFlottant  aDico;
+
+
+    std::vector<double> aVCorX;
+    std::vector<double> aVCorY;
+    std::vector<double> aVCorZ;
+
+
 	
     for (int aKP=0 ; aKP<int(aVSauvPosGPS.size()) ; aKP++)
     {
@@ -409,9 +418,25 @@ cRPG_Appli::cRPG_Appli(int argc,char ** argv)
         aOAD.TimePt() = aVPosGPS[aKP].Time;
 
         aDico.OneGpsDGF().push_back(aOAD);
+
+        if (aMedian && (aOAD.TagPt()==1))
+        {
+            aVCorX.push_back(aOAD.Pt().x);
+            aVCorY.push_back(aOAD.Pt().y);
+            aVCorZ.push_back(aOAD.Pt().z);
+        }
 	}
 
     MakeFileXML(aDico,mOut);
+
+    if (aMedian)
+    {
+        double aCorX = MedianeSup(aVCorX);
+        double aCorY = MedianeSup(aVCorY);
+        double aCorZ = MedianeSup(aVCorZ);
+
+        std::cout << std::setprecision(12) << "The median of coordinates = [" << aCorX << "," << aCorY << "," << aCorZ << "]" << endl;
+    }
     
     //if (.txt) file export
     if(aXYZ)
