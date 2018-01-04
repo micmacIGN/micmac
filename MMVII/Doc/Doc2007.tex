@@ -1017,6 +1017,16 @@ via standard acces function and/or use of predefined semantic.
 \section{Serialization}
 \section{Shared pointer}
 
+\section{Random number}
+
+\PPP use some pseudo random generator. As every such generator
+they must be initialized with a seed.
+By default , the seed is always the same to facilitate debuging.
+When user wants initialization from time this must be specified 
+with a negative value of parameter {\tt  SeedRand}.
+
+
+
 \section{Enum to string}
 
 The enum/string  conversion is a recurent problem of \CPP which

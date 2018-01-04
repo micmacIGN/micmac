@@ -124,7 +124,7 @@ typedef std::list<cPtRemark*> tContHRPR;
 class cPtRemark
 {
     public :
-       cPtRemark(const Pt2dr & aPt,eTypePtRemark aType) ;
+       cPtRemark(const Pt2dr & aPt,eTypePtRemark aType,int aNiv) ;
 
        const Pt2dr & Pt() const          {return mPtR;}
        const eTypePtRemark & Type() const {return mType;}
@@ -132,7 +132,9 @@ class cPtRemark
        void MakeLink(cPtRemark * aHR /*Higher Resol */);
        tContHRPR &  HRs()  {return mHRs;}
        cPtRemark * LR()    {return mLR;}
+       int   Niv() const   {return mNiv;}
 
+       void  RecGetAllPt(std::vector<cPtRemark *> &);
     private :
 
        cPtRemark(const cPtRemark &); // N.I.
@@ -140,17 +142,33 @@ class cPtRemark
        eTypePtRemark   mType;
        tContHRPR         mHRs; // Higher Resol
        cPtRemark     *   mLR; // Lower Resol
+       int               mNiv;
+};
+
+
+class cStatBrin
+{
+   public :
+      int mNbMult;
+      int mNbNivMin;
 };
 
 // Stucture de brins , suite de points sans embranchement
 class cBrinPtRemark
 {
     public :
-        cBrinPtRemark(cPtRemark * aP0,int aNiv0);
+        cBrinPtRemark(cPtRemark * aP0,cAppli_NewRechPH &);
         // void StatBr(int & );
+        std::vector<cPtRemark *> GetAllPt();
+        bool    Ok() const {return mOk;}
+        double  Scale() const {return  mScale;}
+        int     NivScal() const {return mNivScal;}
     private :
         cPtRemark * mLR;
         int         mNiv0;
+        bool        mOk;
+        int         mNivScal;
+        double      mScale;
 };
 
 typedef cPtRemark * tPtrPtRemark;

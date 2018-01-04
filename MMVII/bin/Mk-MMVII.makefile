@@ -49,12 +49,18 @@ ObjSerial= $(SrcSerial:.cpp=.o)
 MMV2DirMMV1=${MMV2DirSrc}MMV1/
 SrcMMV1=$(wildcard ${MMV2DirMMV1}*.cpp)
 ObjMMV1=$(SrcMMV1:.cpp=.o) 
-#    => Le Main
 #
+#
+MMV2DirPerso=${MMV2DirSrc}Perso/
+SrcPerso=$(wildcard ${MMV2DirPerso}*.cpp)
+ObjPerso=$(SrcPerso:.cpp=.o) 
+#
+#
+#    => Le Main
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1}
+OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso}
 #
 #=========  Header ========
 #
@@ -83,6 +89,8 @@ ${MMV2ResultInstal} : ${MMV2SrcInstal}
 #
 # ================ Objects ==================
 #
+${MMV2DirPerso}%.o :  ${MMV2DirPerso}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirMMV1}%.o :  ${MMV2DirMMV1}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER}
