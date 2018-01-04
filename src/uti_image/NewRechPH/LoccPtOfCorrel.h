@@ -255,11 +255,12 @@ template <class TypeIm> class cNH_CutAutoCorrelDir : public cNH_AutoCorrelDir<Ty
          Pt2dr Res() const
          {
               ELISE_ASSERT(mResComputed,"AutoCorrel no K");
+              return mRes;
          }
 
     private :
-         bool mResComputed
-         Pt2dr               mRes
+         bool                mResComputed;
+         Pt2dr               mRes;
          std::vector<Pt2di> mVPt;
          int mNbPts;
 };
