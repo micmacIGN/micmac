@@ -37,122 +37,16 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#ifndef _CPTOFCORREL_H_
-#define _CPTOFCORREL_H_
+#ifndef _NH_CPTOFCORREL_H_
+#define _NH_CPTOFCORREL_H_
 
-// Classe pour calculer des points "favorables a la correlation 2D",
-//  c'est a dire des point qui n'auto-correlent pas avec leur
-// translate et qui ont du contraste
-
-class cQAC_XYV;
-class cQAC_Stat_XYV;
-class cPtOfCorrel
-{
-    public :
-        typedef cQAC_XYV tElem;
-        typedef cQAC_Stat_XYV tCumul;
-
-
-        cPtOfCorrel(Pt2di aSz,Fonc_Num aF,int aVCor);
-
-        void NoOp() {}
-        double AutoCorTeta(Pt2di aP,double aTeta,double anEpsilon);
-        double BrutaleAutoCor(Pt2di aP,int aNbTeta,double anEpsilon);
-
-
-        void QuickAutoCor_Gen(Pt2di aP,double & aLambda,double & aSvv);
-
-        double QuickAutoCor(Pt2di aP);
-        double QuickAutoCorWithNoise(Pt2di aP,double aBr);
-
-        void MakeScoreAndMasq
-             (
-                   Im2D_REAL4 & aISc,
-                   double  aEstBr,
-                   Im2D_Bits<1> & aMasq,
-                   double aSeuilVp,
-                   double aSeuilEcart
-             );
-
-
-        void Init(const std::complex<int> & aP,cQAC_XYV &);
-        void UseAggreg(const std::complex<int> & aP,const cQAC_Stat_XYV &);
-        void OnNewLine(int);
-   private :
-       double  PdsCorrel(double anX,double anY);
-
-       Pt2di                   mSz;
-       int                     mVCor;
-       Im2D_REAL4              mImIn;
-       TIm2D<REAL4,REAL8>      mTIn;
-       Im2D_REAL4              mGrX;
-       TIm2D<REAL4,REAL8>      mTGrX;
-       Im2D_REAL4              mGrY;
-       TIm2D<REAL4,REAL8>      mTGrY;
-
-       TIm2D<REAL4,REAL8> *   mISc;
-       TIm2DBits<1> *         mMasq;
-       double                 mEstBr;
-       double                 mSeuilVP;
-       double                 mSeuilEcart;
-};
-
-//  Classe pour reparti les points d'interet en respectant les criteres
-//  suivants :
-//       - pas de points dans le masque
-//       - un point par cellule
-
-
-class cRepartPtInteret
-{
-    public :
-        cRepartPtInteret
-        (
-            Im2D_REAL4        aImSc,
-            Im2D_Bits<1>      aMasq,
-            const cEquiv1D &  anEqX,
-            const cEquiv1D &  anEqY,
-            double            aDistRejet,
-            double            aDistEvitement
-        );
-
-
-        Im2D_Bits<1> ItereAndResult();
-
-    private :
-        void OnePasse(double aProp);
-
-       void UpdatePond (Pt2di aP, Im2D_REAL4 aPond, bool Ajout);
-
-       Pt2di    mNbC;
-       Im2D_REAL4          mImSc;
-       TIm2D<REAL4,REAL8>  mTSc;
-       Im2D_Bits<1>        mMasq;
-       TIm2DBits<1>        mTMasq;
-       Pt2di               mSzGlob;
-       Im2D_REAL4          mPondGlob;
-       TIm2D<REAL4,REAL8>  mTPondGlob;
-
-       cEquiv1D mEqX;
-       cEquiv1D mEqY;
-       Im2D_INT4 mPX;
-       TIm2D<INT4,INT4> mTPx;
-       Im2D_INT4 mPY;
-       TIm2D<INT4,INT4> mTPy;
-       double    mValRejet;
-       double    mDRejMax;
-       //double    mDRejCur;
-       //double    mDEvCur;
-       double    mDEvMax;
-       Im2D_REAL4  mLastImPond;
-};
 
 //=================================== Critere type fast pour selectionner les points favorables à la correl
 
-class cFastCriterCompute
+class cNH_FastCriterCompute
 {
      public :
-        cFastCriterCompute(Flux_Pts aFlux):
+        cNH_FastCriterCompute(Flux_Pts aFlux):
              mNbPts (SortedAngleFlux2StdCont(mVPt,aFlux).size()),
              mMaxSz ((1+mNbPts)/2),
              mFRA   (OpMax,0,mNbPts,mMaxSz-mNbPts,mMaxSz)
@@ -162,14 +56,14 @@ class cFastCriterCompute
         }
 
 
-        static cFastCriterCompute * Circle(double aRay)
+        static cNH_FastCriterCompute * Circle(double aRay)
         {
-            return new cFastCriterCompute(circle(Pt2dr(0,0),aRay));
+            return new cNH_FastCriterCompute(circle(Pt2dr(0,0),aRay));
         }
         const  std::vector<Pt2di> & VPt() const {return mVPt;}
         cFastReducAssoc<double> & FRA() {return mFRA;}
      private :
-         cFastCriterCompute(const cFastCriterCompute&);
+         cNH_FastCriterCompute(const cNH_FastCriterCompute&);
          std::vector<Pt2di>       mVPt;
          int                      mNbPts;
          int                      mMaxSz;
@@ -177,7 +71,7 @@ class cFastCriterCompute
   
 };
 
-template <class TIm> Pt2dr  FastQuality(TIm anIm,Pt2di aP,cFastCriterCompute & aCrit,bool IsMax,Pt2dr aProp)
+template <class TIm> Pt2dr  FastQuality(TIm anIm,Pt2di aP,cNH_FastCriterCompute & aCrit,bool IsMax,Pt2dr aProp)
 {
    std::vector<double> aVVals;
    const  std::vector<Pt2di> & aVPt = aCrit.VPt();
@@ -222,12 +116,12 @@ template <class TIm> Pt2dr  FastQuality(TIm anIm,Pt2di aP,cFastCriterCompute & a
 /*                                                           */
 /*************************************************************/
 
-template <class TypeIm> class  cAutoCorrelDir
+template <class TypeIm> class  cNH_AutoCorrelDir
 {
     public :
         typedef typename TypeIm::tValueElem tElem;
         typedef typename TypeIm::OutputFonc tBase;
-        cAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW) :
+        cNH_AutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW) :
            mTIm   (anIm),
            mP0    (aP0),
            mRho   (aRho),
@@ -315,17 +209,18 @@ template <class TypeIm> class  cAutoCorrelDir
         int     mSzW;
 };
 
-template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
+template <class TypeIm> class cNH_CutAutoCorrelDir : public cNH_AutoCorrelDir<TypeIm>
 {
     public :
-         cCutAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW ) :
-             cAutoCorrelDir<TypeIm> (anIm,aP0,aRho,aSzW),
+         cNH_CutAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW ) :
+             cNH_AutoCorrelDir<TypeIm> (anIm,aP0,aRho,aSzW),
              mNbPts                 (SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho)).size())
          {
          }
-         void ResetIm(const TypeIm & anIm) { cAutoCorrelDir<TypeIm>::ResetIm(anIm); }
-        bool  AutoCorrel(const Pt2di & aP0,double aRejetInt,double aRejetReel,double aSeuilAccept,Pt2dr * aPtrRes=0)
+         void ResetIm(const TypeIm & anIm) { cNH_AutoCorrelDir<TypeIm>::ResetIm(anIm); }
+         bool  AutoCorrel(const Pt2di & aP0,double aSeuilAccept)
          {
+               mResComputed = false;
                this->mP0 = aP0;
                double aCorrMax = -2;
                int    aKMax = -1;
@@ -341,25 +236,31 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
                     }
                }
                ELISE_ASSERT(aKMax!=-1,"AutoCorrel no K");
-               if (aCorrMax < aRejetInt) return false;
 
                Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
 
                double aStep0 = 1/this->mRho;
-               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);
+               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,3);
 
                if (aRes1.y>aSeuilAccept)   return true;
-               if (aRes1.y<aRejetReel)     return false;
 
                Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
 
-               if (aPtrRes) 
-                  *aPtrRes = aRes2;
+               mResComputed = true;
+               mRes = aRes2;
 
                return aRes2.y > aSeuilAccept;
          }
+         bool ResComputed() const {return mResComputed;}
+         Pt2dr Res() const
+         {
+              ELISE_ASSERT(mResComputed,"AutoCorrel no K");
+              return mRes;
+         }
 
     private :
+         bool                mResComputed;
+         Pt2dr               mRes;
          std::vector<Pt2di> mVPt;
          int mNbPts;
 };
@@ -371,7 +272,7 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
 
 
 
-#endif//  _CPTOFCORREL_H_
+#endif//  _NH_CPTOFCORREL_H_
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

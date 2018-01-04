@@ -38,7 +38,8 @@ template <class Type> class cOrderedPair ;
 
 typedef cSelector<std::string>      tNameSelector;
 typedef cExtSet<std::string>        tNameSet;
-typedef cOrderedPair<std::string>   tNamePair;
+typedef cOrderedPair<std::string>   tNamePair; ///< Order does not matter
+typedef std::pair<std::string,std::string>  tNameOCple;  ///< Order matters
 typedef cExtSet<tNamePair>          tNameRel;
 
 

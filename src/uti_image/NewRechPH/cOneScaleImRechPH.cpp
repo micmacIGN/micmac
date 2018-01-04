@@ -187,7 +187,8 @@ void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
 {
    // voisin tries excluant le pixel central, le tri permet normalement de
    // beneficier le plus rapidement possible d'une "coupe"
-   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(Basic),true);
+   // std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(Basic),true);
+   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,2*mScale + 4,true);
 
 
    bool DoMin = mAppli.DoMin();
@@ -208,17 +209,17 @@ void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
            if (DoMax &&  (aFlag == 0)  && SelectVois(aP,aVoisMinMax,1))
            {
               // std::cout << "DAxx "<< DoMax << " " << aFlag << "\n";
-               aLab = eTPR_Max;
+               aLab = eTPR_GrayMax;
            }
            if (DoMin &&  (aFlag == 255) && SelectVois(aP,aVoisMinMax,-1))
            {
                // std::cout << "DInnn "<< DoMin << " " << aFlag << "\n";
-               aLab = eTPR_Min;
+               aLab = eTPR_GrayMin;
            }
 
            if (aLab!=eTPR_NoLabel)
            {
-              mLIPM.push_back(new cPtRemark(Pt2dr(aP),aLab));
+              mLIPM.push_back(new cPtRemark(Pt2dr(aP),aLab,mNiv));
            }
         }
    }
@@ -230,23 +231,47 @@ Pt3dr cOneScaleImRechPH::PtPly(const cPtRemark & aP,int aNiv)
    return Pt3dr(aP.Pt().x,aP.Pt().y,aNiv*mAppli.DZPlyLay());
 }
 
-void cOneScaleImRechPH::Export(cOneScaleImRechPH * aHR, cPlyCloud *  aPlyC)
+void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
 {
    mNbExLR = 0;
    mNbExHR = 0;
+   static int aNbBr = 0;
+   static int aNbBrOk = 0;
+
    for (std::list<cPtRemark*>::const_iterator itIPM=mLIPM.begin(); itIPM!=mLIPM.end() ; itIPM++)
    {
        cPtRemark & aP = **itIPM;
-       // double aDistZ = mAppli.DZPlyLay();
+       double aDistZ = mAppli.DZPlyLay();
 
        if (!aP.LR())
        {
-          cBrinPtRemark * aBr = new cBrinPtRemark(&aP,mNiv);
-          mAppli.AddBrin(aBr);
-
-          if (aPlyC)
+          cBrinPtRemark * aBr = new cBrinPtRemark(&aP,mAppli);
+          aNbBr++;
+          if (aBr->Ok())
           {
-             std::cout << "PLY-PLY not longer avalaible \n";
+             aNbBrOk++;
+             mAppli.AddBrin(aBr);
+
+             cOnePCarac aPC;
+             std::vector<cPtRemark *> aVP = aBr->GetAllPt();
+
+             aPC.Kind() =  aVP[0]->Type();
+             aPC.Pt() =  aVP[aBr->NivScal()]->Pt();
+             aPC.Scale() = aBr->Scale();
+             aPC.NivScale() = aBr->NivScal();
+             aPC.DirMS() = aVP.back()->Pt() - aVP.front()->Pt();
+             std::cout << "DIRMS " << euclid(aPC.DirMS()) << "\n";
+
+             aSPC.OnePCarac().push_back(aPC);
+             if (aPlyC)
+             {
+                std::vector<cPtRemark *>  aVPt = aBr->GetAllPt();
+                Pt3di aCol(NRrandom3(255),NRrandom3(255),NRrandom3(255));
+
+                for (const auto & aPt : aVPt)
+                {
+                     aPlyC->AddSphere(aCol,PtPly(*aPt,aPt->Niv()),aDistZ/6.0,3);
+                }
 /*
              int aN0 = aBr->Niv0();
              int aL  = aBr->Long();
@@ -263,12 +288,17 @@ void cOneScaleImRechPH::Export(cOneScaleImRechPH * aHR, cPlyCloud *  aPlyC)
                  aNiv++;
              }
 */
+             }
+          }
+          else
+          {
           }
        }
  
        if (aP.HRs().empty()) mNbExHR ++;
        if (!aP.LR()) mNbExLR ++;
    }
+   std::cout << " Nb Br = "<<  aNbBr  << " \%Ok " << 100.0*( aNbBrOk/double(aNbBr))  << " OK=" << aNbBrOk << "\n";
 
    // std::cout << "NIV=" << mNiv << " HR " << mNbExHR << " LR " << mNbExLR << "\n";
 }
@@ -369,6 +399,24 @@ const int &  cOneScaleImRechPH::NbExHR() const {return mNbExHR;}
 const double &  cOneScaleImRechPH::Scale() const {return mScale;}
 
 
+double cOneScaleImRechPH::GetVal(const Pt2di & aP,bool & Ok) const 
+{
+   double aRes = 0;
+   Ok = mTIm.inside(aP);
+   if (Ok) aRes = mTIm.get(aP);
+   return aRes;
+}
+
+
+void cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
+{
+   cNH_CutAutoCorrelDir<tTImNRPH>  mACD(mTIm,Pt2di(aP.Pt()),ElMax(2.0,1+mScale),round_up(mScale));
+   
+    
+
+
+   std::cout << "CALCUL ComputeDirAC \n";
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

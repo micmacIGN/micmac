@@ -168,6 +168,7 @@ int Generate_ImagSift(int argc,char ** argv)
          }
      }
      Tiff_Im::CreateFromIm(aIm,"TestSift.tif");
+     return EXIT_SUCCESS;
 }
 
 

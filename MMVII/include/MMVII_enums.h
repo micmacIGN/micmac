@@ -42,7 +42,8 @@ enum class eApF
                Ori,     ///< Orientation
                Match,   ///< Dense Matching
                TieP,    ///< Tie-Point processing
-               eNbVals
+               Perso,   ///< Personnal
+               eNbVals  ///< Tag for number of value
            };
 
 /// Appli Data Type
@@ -54,6 +55,7 @@ enum class eApDT
               None,     ///< Nothing 
               Console,  ///< Console 
               Xml,      ///< Xml-files
+              FileSys,      ///< Inpu is the file system (list of file)
               eNbVals
            };
 

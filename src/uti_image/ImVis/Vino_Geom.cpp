@@ -250,7 +250,15 @@ void cAppli_Vino::ShowVectPCarac()
            Pt2dr aPW = aSim(aPU);
            if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
            {
+               mW->draw_circle_loc(aPW,aPC.Scale()*2*mScr->sc(),mW->pdisc()(P8COL::yellow));
                ShowPt(aPC,aSim,mW);
+               Pt2dr aDirMS = aPC.DirMS();
+// std::cout << "aDirMS " << aDirMS << "\n";
+               if (euclid(aDirMS) != 0)
+               {
+                   aDirMS =  vunit(aDirMS) * 20.0;
+                   mW->draw_seg(aPW,aPW+aDirMS,mW->pdisc()(P8COL::green));
+               }
            }
            else
            {
@@ -262,12 +270,15 @@ void cAppli_Vino::ShowVectPCarac()
    {
        for (const auto & aSP : mVSift)
        {
-           Pt2dr aPU(aSP.x,aSP.y);
+           Pt2dr aPU(aSP.x*mSSF,aSP.y*mSSF);
            Pt2dr aPW = aSim(aPU);
-std::cout << "PSSSS " << aPU << " " << aPW << "\n";
            if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
            {
                mW->draw_circle_loc(aPW,3.0,mW->pdisc()(P8COL::red));
+               Pt2dr aDir = Pt2dr::FromPolar(20,aSP.angle);
+               mW->draw_seg(aPW,aPW+aDir,mW->pdisc()(P8COL::green));
+               mW->draw_circle_loc(aPW,aSP.scale*2*mScr->sc(),mW->pdisc()(P8COL::yellow));
+               // std::cout << "TETA " <<  aSP.scale << " " << aSP.angle << "\n";
                //ShowPt(aP,aSim,mW);
            }
            else

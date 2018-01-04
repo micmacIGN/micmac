@@ -46,6 +46,17 @@ template <>  int cStrIO<int>::FromStr(const std::string & aStr)
 }
 template <>  const std::string cStrIO<int>::msNameType = "int";
 
+std::string ToStr(int aVal,int aSzMin)
+{
+   std::string aRes = ToStr(std::abs(aVal));
+   while (int(aRes.size())<aSzMin)
+       aRes = "0" + aRes;
+   if (aVal<0)
+       aRes = "-" + aRes;
+   return aRes;
+}
+
+
    // ================  double ==============================================
 
 template <>  std::string cStrIO<double>::ToStr(const double & anI)

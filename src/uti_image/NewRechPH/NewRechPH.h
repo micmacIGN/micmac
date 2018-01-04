@@ -41,8 +41,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _NewRechPH_H_
 #define _NewRechPH_H_
 
+class cAppli_NewRechPH;
+class cOneScaleImRechPH;
+
 #include "cParamNewRechPH.h"
 #include "ExternNewRechPH.h"
+#include "LoccPtOfCorrel.h"
 
 /*
 typedef float   tElNewRechPH ;
@@ -52,8 +56,6 @@ typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
 */
 
 
-class cAppli_NewRechPH;
-class cOneScaleImRechPH;
 
 
 /************************************************************************/
@@ -85,18 +87,22 @@ class cOneScaleImRechPH
           void CalcPtsCarac(bool Basic);
           void Show(Video_Win* aW);
           void CreateLink(cOneScaleImRechPH & aLR);
-          void Export(cOneScaleImRechPH* aHR,cPlyCloud *  aPlyC);
+          void Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC);
 
           const int &  NbExLR() const ;
           const int &  NbExHR() const ;
           const double &  Scale() const ;
           int  Niv() const {return mNiv;}
+          double GetVal(const Pt2di & aP,bool & Ok) const;
 
 // Sift 
           void SiftMakeDif(cOneScaleImRechPH* );
           void SiftMaxLoc(cOneScaleImRechPH* aLR,cOneScaleImRechPH* aHR,cSetPCarac&);
           bool OkSiftContrast(cOnePCarac & aP) ;
           double ComputeContrast() ;
+
+
+          void ComputeDirAC(cOnePCarac &);
 
       private :
           void InitImMod();
@@ -117,6 +123,7 @@ class cOneScaleImRechPH
           tTImNRPH  mTIm;
           tImNRPH   mImMod;   // Dif en Sift, corner en harris etc ...
           tTImNRPH  mTImMod;
+
           double    mScale;
           int       mNiv;
           int       mNbExLR; 
@@ -150,6 +157,12 @@ class cAppli_NewRechPH
         int&  NbScaleSpace()     { return  mNbScaleSpace;}
         int&  NbScaleSpaceCstr() { return  mNbScaleSpaceCstr;}
 
+        bool  OkNivStab(int aNiv);
+        bool  OkNivLapl(int aNiv);
+        double GetLapl(int aNiv,const Pt2di & aP,bool &Ok);
+
+        cOneScaleImRechPH * GetImOfNiv(int aNiv);
+        
 
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
@@ -160,6 +173,7 @@ class cAppli_NewRechPH
         double      mPowS;
         int         mNbS;
         double      mS0;
+        double      mScaleStab;
         Pt2di       mSzIm;
         Box2di      mBox;
 
