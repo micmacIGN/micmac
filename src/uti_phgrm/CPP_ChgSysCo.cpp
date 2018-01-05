@@ -64,7 +64,7 @@ int ChgSysCo_main(int argc,char ** argv)
     std::string AeroIn= "";
     std::string aStrChSys="";
     std::string AeroOut="";
-    bool        ForceRot = false;
+    bool        ForceRot = true;
 
 
     ElInitArgMain

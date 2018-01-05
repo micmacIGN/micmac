@@ -2518,6 +2518,14 @@ Pt3dr  cPoseCam::AddObsCentre
           aPdsZ *= ElSquare(1/aPInc.z);
        }
 
+/*
+       if (1)
+       {
+          cBaseGPS * aBG = mEqOffsetGPS->Base();
+          Pt3d<Fonc_Num>  BaseInc();
+       }
+*/
+
        return mEqOffsetGPS->AddObs(mObsCentre.mCentre,Pt3dr(aPdsPX,aPdsPY,aPdsZ));
    }
 

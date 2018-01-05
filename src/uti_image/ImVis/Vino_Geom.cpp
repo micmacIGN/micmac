@@ -232,22 +232,88 @@ void cAppli_Vino::ExeClikGeom(Clik aCl)
 }
 
 
+/**************** A mettre dans un autre fichier Show/Inspect-Vect ******/
+
 void cAppli_Vino::ShowVect()
 {
    if (mWithPCarac) 
       ShowVectPCarac();
 }
 
-void cAppli_Vino::ShowVectPCarac()
+void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
 {
+   ElSimilitude aU2W = mScr->to_win();
+   ElSimilitude aW2U = mScr->to_user();
+   Pt2dr aPClU = aW2U(aPClW);
+
+   mW->draw_circle_loc(aPClW,3.0,mW->pdisc()(P8COL::cyan));
+
+   const cOnePCarac * aNearest= nullptr;
+   double aDMin=1e20;
    for (const auto & aPC : mSPC->OnePCarac())
    {
-       Pt2dr aPU = aPC.HR().Pt();
-       Pt2dr aPW = mScr->to_win(aPU);
-       if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
+       double aDist = euclid(aPC.Pt(),aPClU);
+       if (aDist < aDMin)
        {
-           Pt3dr aC = CoulOfType(aPC.Kind());
-           mW->draw_circle_loc(aPW,3.0,mW->prgb()(aC.x*255,aC.y*255,aC.z*255));
+          aDMin = aDist;
+          aNearest = & aPC;
+       }
+   }
+   if (aNearest)
+   {
+       mW->draw_circle_loc(aU2W(aNearest->Pt()),3.0,mW->pdisc()(P8COL::magenta));
+       mW->draw_circle_loc(aU2W(aNearest->Pt()),5.0,mW->pdisc()(P8COL::magenta));
+   }
+}
+
+
+void cAppli_Vino::ShowVectPCarac()
+{
+   ElSimilitude aSim = mScr->to_win();
+
+   if (mSPC)
+   {
+       for (const auto & aPC : mSPC->OnePCarac())
+       {
+           Pt2dr aPU = aPC.Pt();
+           Pt2dr aPW = aSim(aPU);
+           if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
+           {
+               mW->draw_circle_loc(aPW,aPC.Scale()*2*mScr->sc(),mW->pdisc()(P8COL::yellow));
+               ShowPt(aPC,aSim,mW);
+               Pt2dr aDirMS = aPC.DirMS();
+// std::cout << "aDirMS " << aDirMS << "\n";
+               if (euclid(aDirMS) != 0)
+               {
+                   aDirMS =  vunit(aDirMS) * 20.0;
+                   mW->draw_seg(aPW,aPW+aDirMS,mW->pdisc()(P8COL::green));
+               }
+           }
+           else
+           {
+              // std::cout << "FfFffff " << aPU << " " << aPW << "\n";
+           }
+       }
+   }
+   if (mVSift.size())
+   {
+       for (const auto & aSP : mVSift)
+       {
+           Pt2dr aPU(aSP.x*mSSF,aSP.y*mSSF);
+           Pt2dr aPW = aSim(aPU);
+           if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
+           {
+               mW->draw_circle_loc(aPW,3.0,mW->pdisc()(P8COL::red));
+               Pt2dr aDir = Pt2dr::FromPolar(20,aSP.angle);
+               mW->draw_seg(aPW,aPW+aDir,mW->pdisc()(P8COL::green));
+               mW->draw_circle_loc(aPW,aSP.scale*2*mScr->sc(),mW->pdisc()(P8COL::yellow));
+               // std::cout << "TETA " <<  aSP.scale << " " << aSP.angle << "\n";
+               //ShowPt(aP,aSim,mW);
+           }
+           else
+           {
+              // std::cout << "FfFffff " << aPU << " " << aPW << "\n";
+           }
        }
    }
 }

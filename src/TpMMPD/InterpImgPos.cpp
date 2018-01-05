@@ -184,7 +184,7 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
     mTimeUnit (24  * 3600),
     mModeSpline (true),
     mChgSys     (0),
-    mWithWPK    (false),
+    mWithWPK    (true),
     mWithInc    (true),
     mWithIncVitesse    (true),
     mEcart        (false),
@@ -192,11 +192,10 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
 {
     std::cout.precision(15) ;
     std::string aOut;
-    bool aAddFormat = false;
+    bool aAddFormat = true;
 
     bool mAcceptExtrapol = false;
     std::string mPatNamePly;
-
 
 
     ElInitArgMain
@@ -206,14 +205,14 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
                 << EAMC(mGpsFile, "GPS .xml file trajectory",  eSAM_IsExistFile)
                 << EAMC(mTMFile, "Image TimeMark .xml file",  eSAM_IsExistFile),
                 LArgMain() << EAM(aOut,"Out",false,"Name Output File ; Def = GPSFileName-TMFileName.txt")
-                << EAM(aAddFormat,"Format",false,"Add File Format at the begining fo the File ; Def #F=N_X_Y_Z_W_P_K",eSAM_IsBool)
+                << EAM(aAddFormat,"Header",false,"Add File Format at the begining fo the File ; Def=true",eSAM_IsBool)
                 << EAM(mTimeUnit,"TimeU",false,"Unity for input time, def = 1 Day ")
                 << EAM(mModeSpline,"ModeSpline",false,"Interpolation spline, def=true ")
                 << EAM(mPatNamePly,"PatNamePly",false,"Pattern name for Ply")
-                << EAM(mWithWPK,"WithAngle",false,"Generate fake angle ")
+                << EAM(mWithWPK,"WithAngle",false,"Generate fake angle, def=true ")
                 << EAM(mWithInc,"Inc",false,"Export uncertainty, def=true")
-                << EAM(mWithIncVitesse,"SpeedInc",false,"Use speed variation in uncertainty estimation ")
-                << EAM(mEcart,"Ecart",false,"Generate difference between the interpolated position and the nearest GPS position")
+                << EAM(mWithIncVitesse,"SpeedInc",false,"Use speed variation in uncertainty estimation,def=true ")
+                << EAM(mEcart,"Ecart",false,"Generate difference between the interpolated position and the nearest GPS position, def=false")
                 << EAM(mSysGeoC2Rtl,"SysGeoC2RTL",false,"Make chgs sys from geoc to RTL of first point")
                 << EAM(mNameChSys,"ChSys",false,"To chang coorrdinate system")
                 );

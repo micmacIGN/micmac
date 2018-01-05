@@ -3,8 +3,11 @@
 // NOMORE ...
 typedef enum
 {
-  eTPR_Max,
-  eTPR_Min,
+  eTPR_LaplMax,
+  eTPR_LaplMin,
+  eTPR_GrayMax,
+  eTPR_GrayMin,
+  eTPR_GraySadl,
   eTPR_NoLabel
 } eTypePtRemark;
 void xml_init(eTypePtRemark & aVal,cElXMLTree * aTree);
@@ -59,23 +62,35 @@ class cOnePCarac
         eTypePtRemark & Kind();
         const eTypePtRemark & Kind()const ;
 
-        cPtSc & HR();
-        const cPtSc & HR()const ;
+        Pt2dr & Pt();
+        const Pt2dr & Pt()const ;
 
-        cPtSc & hR();
-        const cPtSc & hR()const ;
+        int & NivScale();
+        const int & NivScale()const ;
 
-        cPtSc & lR();
-        const cPtSc & lR()const ;
+        double & Scale();
+        const double & Scale()const ;
 
-        cPtSc & LR();
-        const cPtSc & LR()const ;
+        Pt2dr & DirMS();
+        const Pt2dr & DirMS()const ;
+
+        Pt2dr & DirAC();
+        const Pt2dr & DirAC()const ;
+
+        double & Contrast();
+        const double & Contrast()const ;
+
+        double & AutoCorrel();
+        const double & AutoCorrel()const ;
     private:
         eTypePtRemark mKind;
-        cPtSc mHR;
-        cPtSc mhR;
-        cPtSc mlR;
-        cPtSc mLR;
+        Pt2dr mPt;
+        int mNivScale;
+        double mScale;
+        Pt2dr mDirMS;
+        Pt2dr mDirAC;
+        double mContrast;
+        double mAutoCorrel;
 };
 cElXMLTree * ToXMLTree(const cOnePCarac &);
 

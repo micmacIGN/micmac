@@ -54,14 +54,22 @@ template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 
 cMMVII_Appli::~cMMVII_Appli()
 {
+  
+   msInDstructor = true;  // avoid problem with StdOut 
+   FreeRandom();   // Free memory
    AssertInitParam();
    // ======= delete mSetInit;
    mArgObl.clear();
    mArgFac.clear();
+
+
+   mStdCout.Clear();
+   // mStdCout.Add(std::cout);
    // Verifie que tout ce qui a ete alloue a ete desalloue 
    // cMemManager::CheckRestoration(mMemStateBegin);
    mMemStateBegin.SetCheckAtDestroy();
 }
+
 
 cMMVII_Appli::cMMVII_Appli
 (
@@ -99,7 +107,8 @@ cMMVII_Appli::cMMVII_Appli
    mOutPutV2      (false),
    mHasInputV1    (false),
    mHasInputV2    (false),
-   mStdCout       (std::cout)
+   mStdCout       (std::cout),
+   mSeedRand      (msDefSeedRand) // In constructor, don't use virtual, wait ...
 {
 }
 
@@ -124,8 +133,8 @@ cMultipleOfs& ErrOut()  {return StdOut();}
 
 cMultipleOfs &  cMMVII_Appli::StdOut()
 {
-   // Maybe mStdCout not correctly initialized if we are in constructor ?
-   if (!msTheAppli)
+   /// Maybe mStdCout not correctly initialized if we are in constructor or in destructor ?
+   if ((!msTheAppli) || msInDstructor)
       return StdStdOut();
    return mStdCout;
 }
@@ -134,8 +143,11 @@ cMultipleOfs &  cMMVII_Appli::ErrOut() {return StdOut();}
 
 
 
+
+
 void cMMVII_Appli::InitParam()
 {
+  mSeedRand = DefSeedRand();
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl);
   cCollecSpecArg2007 & anArgFac = ArgOpt(mArgFac);
 
@@ -157,6 +169,7 @@ void cMMVII_Appli::InitParam()
       <<  AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
       <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})
       <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",aCom)
+      <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aCom)
       <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Common})
       <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for add,"+ MMVII_NONE + "for no out)",aCom)
       <<  AOpt2007(mLevelCall,GIP_LevCall,"Internal : Don't Use !!",aInternal)
@@ -443,6 +456,11 @@ void cMMVII_Appli::InitParam()
   {
      InitProject();
   }
+
+  if (mSeedRand<=0)
+  {
+      mSeedRand =  std::chrono::system_clock::to_time_t(mT0);
+  }
 }
 
 void cMMVII_Appli::InitProject()
@@ -569,6 +587,7 @@ bool   cMMVII_Appli::OutV2Format()
     // ========== Handling of global Appli =================
 
 cMMVII_Appli *  cMMVII_Appli::msTheAppli = 0;
+bool  cMMVII_Appli::msInDstructor = false;
 cMMVII_Appli & cMMVII_Appli::TheAppli()
 {
   MMVII_INTERNAL_ASSERT_medium(msTheAppli!=0,"cMMVII_Appli not created");
@@ -577,6 +596,18 @@ cMMVII_Appli & cMMVII_Appli::TheAppli()
 bool cMMVII_Appli::ExistAppli()
 {
   return msTheAppli != 0;
+}
+ 
+    // ========== Random seed  =================
+
+const int cMMVII_Appli::msDefSeedRand = 42;
+int  cMMVII_Appli::SeedRandom()
+{
+    return msTheAppli ?  msTheAppli->mSeedRand  : msDefSeedRand;
+}
+int  cMMVII_Appli::DefSeedRand()
+{
+   return msDefSeedRand;
 }
 
     // ========== Miscelaneous functions =================

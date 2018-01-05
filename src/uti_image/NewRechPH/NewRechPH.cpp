@@ -48,15 +48,6 @@ std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::
     return aDirGlob+aDirLoc + NameWithoutDir(aNameGlob) + (Bin ? ".dmp" : ".xml");
 }
 
-bool  cAppli_NewRechPH::BrinStable(const cBrinPtRemark & aBr) const
-{
-  int aN0 = aBr.Niv0();
-  int aN1 = aN0 + aBr.Long();
-
-  return ScaleOfNiv(aN1) >=  2 * ScaleOfNiv(aN0);
-
-}
-
 
 void  cAppli_NewRechPH::Clik()
 {
@@ -83,22 +74,84 @@ cPtSc CreatePtSc(const Pt2dr & aP,double aSc)
     return aRes;
 }
 
-cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
-    mPowS     (pow(2.0,1/5.0)),
-    mNbS      (30),
-    mS0       (1.0),
-    mW1       (0),
-    mModeTest (ModeTest),
-    mDistMinMax (3.0),
-    mDoMin      (true),
-    mDoMax      (true),
-    mDoPly      (true),
-    mPlyC       (0),
-    mHistLong   (1000,0),
-    mHistN0     (1000,0),
-    mExtSave    ("Std"),
-    mBasic      (false)
+double Som_K_ApK(int aN,double a)
 {
+    double aSom = 0;
+    for (int aK=1 ; aK<= aN ; aK++)
+        aSom +=  pow(a,aK) * aK;
+    return aSom;
+}
+
+/*
+void TestSom(int aN,double a)
+{
+    // Verifie Som k=1,N  { a^k * k}
+
+     double aCheck = Som_K_ApK(aN,a);
+     // double aFormul = ((1-pow(a,aN+1)
+}
+*/
+/*
+double Sigma2FromFactExp(double a);
+double FactExpFromSigma2(double aS2);
+
+
+void TestSigma2(double a)
+{
+   int aNb = 100 + 100/(1-a);
+   double aSom=0;
+   double aSomK2=0;
+   for (int aK=-aNb ; aK<= aNb ; aK++)
+   {
+       double aPds = pow(a,ElAbs(aK));
+       aSom += aPds;
+       aSomK2 += aPds * ElSquare(aK);
+   }
+
+   double aSigmaExp =  aSomK2 / aSom;
+   // double aSigmaTh = (2*a) /((1+a) * ElSquare(1-a));
+   // double aSigmaTh = (2*a) /(ElSquare(1-a));
+   double aSigmaTh = Sigma2FromFactExp(a);
+
+   double aATh = FactExpFromSigma2(aSigmaTh);
+
+   std::cout << "TestSigma2 " << aSigmaExp << " " << aSigmaTh/aSigmaExp - 1 << " aaa " << a << " " << aATh << "\n";
+}
+*/
+
+cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
+    mPowS        (pow(2.0,1/5.0)),
+    mNbS         (30),
+    mS0          (1.0),
+    mScaleStab   (4.0),
+    mW1          (0),
+    mModeTest    (ModeTest),
+    mDistMinMax  (3.0),
+    mDoMin       (true),
+    mDoMax       (true),
+    mDoPly       (false),
+    mPlyC        (0),
+    mHistLong    (1000,0),
+    mHistN0      (1000,0),
+    mExtSave     ("Std"),
+    mBasic       (false),
+    mModeSift    (true),
+    mLapMS       (false),
+    mTestDirac   (false),
+    mPropCtrsIm0 (0.1),
+    mNbSpace           (0),
+    mNbScaleSpace      (0),
+    mNbScaleSpaceCstr  (0)
+{
+/*
+   TestSigma2(0.1);
+   TestSigma2(0.5);
+   TestSigma2(0.9);
+   TestSigma2(0.95);
+   TestSigma2(0.99);
+   getchar();
+*/
+
    double aSeuilPersist = 1.0;
 
    MMD_InitArgcArgv(argc,argv);
@@ -113,7 +166,23 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mBox, "Box",true,"Box for computation")
                       << EAM(mModeTest, "Test",true,"if true add W")
                       << EAM(aSeuilPersist, "SP",true,"Threshold persistance")
+                      << EAM(mBasic, "Basic",true,"Basic")
+                      << EAM(mModeSift, "Sift",true,"SIFT Mode")
+                      << EAM(mPropCtrsIm0, "PropCstr",true,"Value to compute threshold on constrst, base on im0")
+                      << EAM(mLapMS, "LapMS",true,"MulScale in Laplacian, def=false")
+                      << EAM(mTestDirac, "Dirac",true,"Test with dirac image")
+                      << EAM(mScaleStab, "SS",true,"Scale of Stability")
    );
+
+   if (! EAMIsInit(&mExtSave))
+   {
+        mExtSave  = mBasic ? "Basic" : "Std";
+   }
+   if (! EAMIsInit(&mNbS))
+   {
+       if (mBasic) 
+           mNbS = 1;
+   }
    mNbInOct = log(2) / log(mPowS);
 
    if (mDoPly)
@@ -122,14 +191,14 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    }
 
    Pt2di aP0(0,0);
-   Pt2di aP1(-1,-1);
+   Pt2di aP1 = mTestDirac ? Pt2di(1000,1000) : Pt2di(-1,-1);
    if (EAMIsInit(&mBox))
    {
        aP0 = mBox._p0;
        aP1 = mBox._p1;
    }
    // Create top scale
-   AddScale(cOneScaleImRechPH::FromFile(*this,mS0,mName,aP0,aP1),0);
+   AddScale(cOneScaleImRechPH::FromFile(*this,mS0,mName,aP0,aP1),nullptr);
 
    // Create matr of link, will have do it much less memory consuming (tiling of list ?)
    mSzIm = mVI1.back()->Im().sz();
@@ -162,79 +231,75 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
            );
 
         }
-        // Compute point of scale
-        mVI1.back()->CalcPtsCarac();
-        mVI1.back()->Show(mW1);
-          
-        // Links the point at different scale
-        if (aK!=0)
-        {
-           mVI1[aK]->CreateLink(*(mVI1[aK-1]));
-        }
+        std::cout << "DONE SCALE " << aK << " on " << mNbS << "\n";
    }
-
-
-   Clik();
-
-   for (int aK=0 ; aK<mNbS ; aK++)
-   {
-       mVI1[aK]->Export((aK!=0) ? mVI1[aK-1] : 0,mPlyC);
-   }
-
-   if (mPlyC)
-   {
-       mPlyC->PutFile("NewH.ply");
-   }
-
    cSetPCarac aSPC;
-   int aNb0 = 0;
-   int aNb1 = 0;
-   int aNb2 = 0;
-   int aNbTot=0;
-   for (const auto & aPBr  :  mVecB)
+   if (mModeSift)
    {
-//std::cout << "AAAAA\n";
-       int aN0 = aPBr->Niv0();
-       int aN1 = aN0 + aPBr->Long();
-       mHistLong.at(aPBr->Long())++;
-       mHistN0.at(aN0)++;
-
-       if (aPBr->Long()>= (aSeuilPersist*mNbInOct))
+       for (int aK=0 ; aK<mNbS-1 ; aK++)
        {
-          aNbTot++;
-          if (aN0==0)
-          {
-              aSPC.OnePCarac().push_back(cOnePCarac());
-              cOnePCarac & aPC = aSPC.OnePCarac().back();
-
-              aPC.Kind() = aPBr->P0()->Type();
-              int aNiv_h,aNiv_l;
-
-              aPC.HR() = CreatePtSc(aPBr->P0()->Pt(),ScaleOfNiv(aN0));
-
-              cPtRemark *aPhR = aPBr->Nearest(aNiv_h,aN0 + mNbInOct);
-              aPC.hR() =  CreatePtSc(aPhR->Pt(),ScaleOfNiv(aNiv_h));
-
-              cPtRemark *aPlR = aPBr->Nearest(aNiv_l,aN1 - mNbInOct);
-              aPC.lR() =  CreatePtSc(aPlR->Pt(),ScaleOfNiv(aNiv_l));
-
-              aPC.LR() = CreatePtSc(aPBr->PLast()->Pt(),ScaleOfNiv(aN1));
-
-              aNb0++;
-          }
-          else if (aN0==1) aNb1++;
-          else if (aN0==2) aNb2++;
-
+            mVI1[aK]->SiftMakeDif(mVI1[aK+1]);
+            if (aK==0)
+            {
+                double aCsrt = mVI1[aK]->ComputeContrast();
+                mThreshCstrIm0 = aCsrt * mPropCtrsIm0;
+            }
        }
-//std::cout << "FFFFFF\n";
+       for (int aK=1 ; aK<mNbS-1 ; aK++)
+       {
+            mVI1[aK]->SiftMaxLoc(mVI1[aK-1],mVI1[aK+1],aSPC);
+       }
+   }
+   else
+   {
+       for (int aK=0 ; aK<mNbS ; aK++)
+       {
+            // Compute point of scale
+            mVI1[aK]->CalcPtsCarac(mBasic);
+            mVI1[aK]->Show(mW1);
+          
+            // Links the point at different scale
+            if (aK!=0)
+            {
+               mVI1[aK]->CreateLink(*(mVI1[aK-1]));
+            }
+            std::cout << "DONE CARAC " << aK << " on " << mNbS << "\n";
+       }
+
+
+       Clik();
+
+       for (int aK=0 ; aK<mNbS ; aK++)
+       {
+           mVI1[aK]->Export(aSPC,mPlyC);
+       }
+
+       if (mPlyC)
+       {
+           mPlyC->PutFile("NewH.ply");
+       }
 
    }
 
-    MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
-    MakeFileXML(aSPC,NameFileNewPCarac(mName,false,mExtSave));
-    std::cout << "Prop0 =" << aNb0 / double(aNbTot) << "\n";
-    std::cout << "Prop1 =" << aNb1 / double(aNbTot) << "\n";
-    std::cout << "Prop2 =" << aNb2 / double(aNbTot) << "\n";
+   for (auto & aPt : aSPC.OnePCarac())
+   {
+       // 
+       mVI1[aPt.NivScale()]->ComputeDirAC(aPt);
+       //  ComputeDirAC(cBrinPtRemark &);
+
+
+       // Put in global coord
+       aPt.Pt() =  aPt.Pt() + Pt2dr(aP0);
+   }
+
+   // MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
+   MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
+}
+
+
+bool cAppli_NewRechPH::OkNivStab(int aNiv)
+{
+   return mVI1.at(aNiv)->Scale() >= mScaleStab;
 }
 
 bool cAppli_NewRechPH::Inside(const Pt2di & aP) const
@@ -249,6 +314,18 @@ tPtrPtRemark &  cAppli_NewRechPH::PtOfBuf(const Pt2di & aP)
 
     return mBufLnk[aP.y][aP.x];
 }
+
+double  cAppli_NewRechPH::DistMinMax(bool Basic) const  
+{
+   if (Basic)
+   {
+       return  60;
+   }
+   return mDistMinMax;
+}
+
+
+
 
 tPtrPtRemark  cAppli_NewRechPH::NearestPoint(const Pt2di & aP,const double & aDist)
 {
@@ -275,17 +352,64 @@ double cAppli_NewRechPH::ScaleOfNiv(const int & aNiv) const
    return mVI1.at(aNiv)->Scale();
 }
 
+bool cAppli_NewRechPH::OkNivLapl(int aNiv)
+{
+   return (aNiv < int(mVI1.size())-2) ;
+}
+
+double cAppli_NewRechPH::GetLapl(int aNiv,const Pt2di & aP,bool &Ok)
+{
+   Ok = false;
+   if (! OkNivLapl(aNiv))
+      return 0;
+   double aV1 = mVI1.at(aNiv)->GetVal(aP,Ok);
+   if (!Ok)  return 0;
+   double aV2 = mVI1.at(aNiv+1)->GetVal(aP,Ok);
+   if (!Ok)  return 0;
+   return aV1 - aV2;
+}
+
+
 
 
 int Test_NewRechPH(int argc,char ** argv)
 {
-   cAppli_NewRechPH anAppli(argc,argv,true);
+   cAppli_NewRechPH anAppli(argc,argv,false);
 
 
    return EXIT_SUCCESS;
 
 }
 
+/*
+int Generate_ImagSift(int argc,char ** argv)
+{
+     Pt2di aSz(1000,1000);
+     Im2D_REAL4 aIm(aSz.x,aSz.y);
+
+     for (int aKx=0 ; aKx<10 ; aKx++)
+     {
+         for (int aKy=0 ; aKy<10 ; aKy++)
+         {
+             Pt2di aP0(aKx*100,aKy*100);
+             Pt2di aP1((aKx+1)*100,(aKy+1)*100);
+             Pt2dr aMil = Pt2dr(aP0+aP1) / 2.0;
+
+             double aSigma = (0.5*aKx+1.5*aKy+1);
+             double aSign = ((aKx+aKy) % 2)   ? 1 : -1;
+
+             ELISE_COPY
+             (
+                  rectangle(aP0,aP1),
+                  128 * (1+aSign * exp(-  ( Square(FX-aMil.x) + Square(FY-aMil.y)) / Square(aSigma))),
+                  aIm.out()
+             );
+
+         }
+     }
+     Tiff_Im::CreateFromIm(aIm,"TestSift.tif");
+}
+*/
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

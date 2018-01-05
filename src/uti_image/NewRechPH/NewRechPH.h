@@ -41,18 +41,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _NewRechPH_H_
 #define _NewRechPH_H_
 
-#include "cParamNewRechPH.h"
-#include "ExternNewRechPH.h"
-
-typedef float   tElNewRechPH ;
-typedef double  tElBufNRPH ;
-
-typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
-typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
-
-
 class cAppli_NewRechPH;
 class cOneScaleImRechPH;
+
+#include "cParamNewRechPH.h"
+#include "ExternNewRechPH.h"
+#include "LoccPtOfCorrel.h"
+
+/*
+typedef float   tElNewRechPH ;
+typedef double  tElBufNRPH ;
+typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
+typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
+*/
+
+
 
 
 /************************************************************************/
@@ -81,15 +84,28 @@ class cOneScaleImRechPH
                  );
           tImNRPH Im(); // simple accesseur a l'image
 
-          void CalcPtsCarac();
+          void CalcPtsCarac(bool Basic);
           void Show(Video_Win* aW);
           void CreateLink(cOneScaleImRechPH & aLR);
-          void Export(cOneScaleImRechPH* aHR,cPlyCloud *  aPlyC);
+          void Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC);
 
           const int &  NbExLR() const ;
           const int &  NbExHR() const ;
           const double &  Scale() const ;
+          int  Niv() const {return mNiv;}
+          double GetVal(const Pt2di & aP,bool & Ok) const;
+
+// Sift 
+          void SiftMakeDif(cOneScaleImRechPH* );
+          void SiftMaxLoc(cOneScaleImRechPH* aLR,cOneScaleImRechPH* aHR,cSetPCarac&);
+          bool OkSiftContrast(cOnePCarac & aP) ;
+          double ComputeContrast() ;
+
+
+          void ComputeDirAC(cOnePCarac &);
+
       private :
+          void InitImMod();
           Pt3dr PtPly(const cPtRemark & aP,int aNiv);
 
           void CreateLink(cOneScaleImRechPH & aLR,const eTypePtRemark & aType);
@@ -98,12 +114,16 @@ class cOneScaleImRechPH
 
           cOneScaleImRechPH(cAppli_NewRechPH &,const Pt2di & aSz,const double & aScale,const int & aNiv);
           bool  SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp);
+          bool  ScaleSelectVois(cOneScaleImRechPH*, const Pt2di&, const std::vector<Pt2d<int> >&, int);
           std::list<cPtRemark *>  mLIPM;
    
           cAppli_NewRechPH & mAppli;
           Pt2di     mSz;
           tImNRPH   mIm;
           tTImNRPH  mTIm;
+          tImNRPH   mImMod;   // Dif en Sift, corner en harris etc ...
+          tTImNRPH  mTImMod;
+
           double    mScale;
           int       mNiv;
           int       mNbExLR; 
@@ -116,20 +136,33 @@ class cAppli_NewRechPH
     public :
         cAppli_NewRechPH(int argc,char ** argv,bool ModeTest);
 
-        const double &      DistMinMax() const  {return mDistMinMax;}
+        double   DistMinMax(bool Basic) const ;
         const bool   &      DoMin() const       {return mDoMin;}
         const bool   &      DoMax() const       {return mDoMax;}
         cPlyCloud * PlyC()  const {return mPlyC;}
         const double & DZPlyLay() const {return  mDZPlyLay;}
 
+
+        double    ThreshCstrIm0() {return mThreshCstrIm0;}
+
         bool Inside(const Pt2di & aP) const;
         const Pt2di & SzIm() const ;
         tPtrPtRemark & PtOfBuf(const Pt2di &);
         tPtrPtRemark  NearestPoint(const Pt2di &,const double & aDist);
+        bool       TestDirac() const {return mTestDirac;}
         double ScaleOfNiv(const int &) const;
-        bool BrinStable(const cBrinPtRemark & aBr) const;
         void AddBrin(cBrinPtRemark *);
 
+        int&  NbSpace()          { return  mNbSpace;}
+        int&  NbScaleSpace()     { return  mNbScaleSpace;}
+        int&  NbScaleSpaceCstr() { return  mNbScaleSpaceCstr;}
+
+        bool  OkNivStab(int aNiv);
+        bool  OkNivLapl(int aNiv);
+        double GetLapl(int aNiv,const Pt2di & aP,bool &Ok);
+
+        cOneScaleImRechPH * GetImOfNiv(int aNiv);
+        
 
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
@@ -140,6 +173,7 @@ class cAppli_NewRechPH
         double      mPowS;
         int         mNbS;
         double      mS0;
+        double      mScaleStab;
         Pt2di       mSzIm;
         Box2di      mBox;
 
@@ -163,6 +197,15 @@ class cAppli_NewRechPH
         std::vector<int>                        mHistN0;
         std::string                             mExtSave;
         bool                                    mBasic;
+        bool                                    mModeSift;
+        bool                                    mLapMS;
+        bool                                    mTestDirac;
+        double                                  mPropCtrsIm0;
+        double                                  mThreshCstrIm0;  /// Computed on first lapla
+
+        int     mNbSpace;
+        int     mNbScaleSpace;
+        int     mNbScaleSpaceCstr;
 };
 
 

@@ -66,6 +66,7 @@ std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool P
 // Direcytory and files names, Rely on boost
 void MakeNameDir(std::string & aDir); ///< Add a '/', or equiv, to make a name of directory
 bool ExistFile(const std::string & aName);
+uintmax_t SizeFile(const std::string & aName);
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErroNonExist=true);
 std::string DirCur(); // as "./" on Unix
 std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
@@ -78,6 +79,8 @@ bool CreateDirectories(const std::string & aDir,bool SVP); ///< Create dir, recu
 bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP); ///< Purge recursively the directory
 bool RemoveFile(const  std::string & aDir,bool SVP); ///< Remove file
 void RenameFiles(const std::string & anOldName, const std::string & aNewName); ///< Move/Rename
+void CopyFile(const std::string & aName,const std::string & aDest);
+
 
 
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?

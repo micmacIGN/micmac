@@ -810,7 +810,7 @@ void cSetEqFormelles::UpdateFctr()
 }
 
 
-void  cSetEqFormelles::AddContrainte(const cContrainteEQF & aContr,bool Stricte)
+void  cSetEqFormelles::AddContrainte(const cContrainteEQF & aContr,bool Stricte,double aPds)
 {  
      AssertClosed();
 
@@ -838,7 +838,8 @@ void  cSetEqFormelles::AddContrainte(const cContrainteEQF & aContr,bool Stricte)
         {
 
             double anEc = ElAbs(ResiduSigne(aFonct));
-            double aPds = aContr.PdsOfEcart(anEc);
+            if (aPds<0)
+               aPds = aContr.PdsOfEcart(anEc);
             VAddEqFonctToSys(aFonct,aPds,false,NullPCVU);
         }
      }
@@ -918,10 +919,12 @@ if (DebugCamBil)
 
 
 
-void cSetEqFormelles::AddContrainte (const cMultiContEQF & aMC,bool Stricte)
+void cSetEqFormelles::AddContrainte (const cMultiContEQF & aMC,bool Stricte,double aPds)
 {
      for (int aK=0 ;aK<aMC.NbC(); aK++)
-        AddContrainte(aMC.KthC(aK),Stricte);
+     {
+        AddContrainte(aMC.KthC(aK),Stricte,aPds);
+     }
 }
 
 const std::vector<REAL> & cSetEqFormelles::VResiduSigne (cElCompiledFonc * aFonct)

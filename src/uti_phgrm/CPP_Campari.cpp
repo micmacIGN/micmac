@@ -247,7 +247,9 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     std::vector<double> aVRegulDist;
     std::vector<double> aVExpImRes;
 
+    std::string              aPatGPS;
     std::vector<std::string> aVMultiLA;
+    Pt3dr                    aIncLA;
 
     ElInitArgMain
     (
@@ -259,6 +261,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(EmGPS,"EmGPS",true,"Embedded GPS [Gps-Dir,GpsUnc, ?GpsAlti?], GpsAlti if != Plani", eSAM_NoInit)
                     << EAM(aGpsLA,"GpsLa",true,"Gps Lever Arm, in combination with EmGPS", eSAM_NoInit)
                     << EAM(aVMultiLA,"MultiLA",true,"If multiple LA indicates the patterns of different subsets (first pattern being implicitely first mandatory parameter) ", eSAM_NoInit)
+                    << EAM(aIncLA,"IncLA",true,"Inc on initial value of LA (Def not used)")
+                    << EAM(aPatGPS,"PatGPS",true,"When EmGPS, filter images where GPS is used")
                     << EAM(aSigmaTieP,"SigmaTieP", true, "Sigma use for TieP weighting (Def=1)")
                     << EAM(aFactResElimTieP,"FactElimTieP", true, "Fact elimination of tie point (prop to SigmaTieP, Def=5)")
                     << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
@@ -465,6 +469,18 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                      mCom = mCom + " +WithLA" + ToString(int(aK+1)) + std::string("=true ")
                                  + " +PatImLA"+ToString(int(aK+1)) + "=" + QUOTE(aVMultiLA[aK]);
                 }
+            }
+            if (EAMIsInit(&aPatGPS))
+            {
+                 mCom = mCom + " +PatternGPS=" + QUOTE(aPatGPS);
+            }
+
+            if (EAMIsInit(&aIncLA))
+            {
+                mCom = mCom  + std::string(" +WithIncLA=true")
+                             + " +IncLaX=" + ToString(aIncLA.x)
+                             + " +IncLaY=" + ToString(aIncLA.y)
+                             + " +IncLaZ=" + ToString(aIncLA.z) ;
             }
         }
 

@@ -324,7 +324,7 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
          {
          }
          void ResetIm(const TypeIm & anIm) { cAutoCorrelDir<TypeIm>::ResetIm(anIm); }
-        bool  AutoCorrel(const Pt2di & aP0,double aRejetInt,double aRejetReel,double aSeuilAccept)
+        bool  AutoCorrel(const Pt2di & aP0,double aRejetInt,double aRejetReel,double aSeuilAccept,Pt2dr * aPtrRes=0)
          {
                this->mP0 = aP0;
                double aCorrMax = -2;
@@ -352,6 +352,9 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
                if (aRes1.y<aRejetReel)     return false;
 
                Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
+
+               if (aPtrRes) 
+                  *aPtrRes = aRes2;
 
                return aRes2.y > aSeuilAccept;
          }

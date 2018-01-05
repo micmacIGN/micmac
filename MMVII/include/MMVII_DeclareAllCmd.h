@@ -15,6 +15,7 @@ extern cSpecMMVII_Appli  TheSpec_TestBoostSerial;
 extern cSpecMMVII_Appli  TheSpecMPDTest;
 extern cSpecMMVII_Appli  TheSpecEditSet;
 extern cSpecMMVII_Appli  TheSpecEditRel;
+extern cSpecMMVII_Appli  TheSpecWalkman;
 
 };
 

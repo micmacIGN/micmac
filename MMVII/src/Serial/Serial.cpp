@@ -494,7 +494,8 @@ void cOXml_Ar2007::RawAddDataTerm(int &    anI) {Ofs() <<anI; mXTerm=true;}
 void cOXml_Ar2007::RawAddDataTerm(double &  aD) {Ofs() <<aD; mXTerm=true;}
 void cOXml_Ar2007::RawAddDataTerm(std::string &  anS) 
 {  
-    Ofs() <<anS; mXTerm=true;
+    // To allow white in string, put it between ""
+    Ofs() << '"' <<anS << '"'; mXTerm=true;
 }
 
 void cOXml_Ar2007::Separator() {Ofs() << ' ';}

@@ -162,9 +162,11 @@ class cMMVII_Ap_CPU
 {
     public  :
         cMMVII_Ap_CPU ();
+        typedef std::chrono::system_clock::time_point tTime;
     protected :
-         int mPid;       // Processus id
-         int mNbProcSys; // Number of processor on the system
+         tTime       mT0 ;       ///< More or less creation time
+         int         mPid;       ///< Processus id
+         int         mNbProcSys; ///< Number of processor on the system
 };
 
      // ========================== cMMVII_Appli  ==================
@@ -221,6 +223,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
         const std::string & InputDirTestMMVII() const;   ///<  where are input files for bench   , Export for global bench funtion
 
+        static int  SeedRandom();  ///< SeedRand if Appli init, else default
+
         // cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac);
 
     protected :
@@ -247,8 +251,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void                                      InitProject();  ///< Create Dir (an other ressources) that may be used by all processe
 
         static cMMVII_Appli *                     msTheAppli;     ///< Unique application
+        static bool                               msInDstructor;  ///< Some caution must be taken once destruction has begun
+        static const int                          msDefSeedRand;  ///<  Default value for Seed random generator
         void                                      AssertInitParam() const; ///< Check Init was called
     protected :
+        virtual int                               DefSeedRand();  ///< Clas can redefine instead of msDefSeedRand, value <=0 mean init from time:w
         cMemState                                 mMemStateBegin; ///< To check memory management
         int                                       mArgc;          ///< memo argc
         char **                                   mArgv;          ///< memo argv
@@ -294,6 +301,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::unique_ptr<cMMVII_Ofs>               mFileStdOut;  ///< Redirection of std output
         cMultipleOfs                              mStdCout;     ///< Standard Ouput (File,Console, both or none)
         std::string                               mParamStdOut; ///< Users value
+        int                                       mSeedRand;    ///< Seed for random generator
 };
 
 };
