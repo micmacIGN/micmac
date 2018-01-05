@@ -272,6 +272,7 @@ class cAppli_Vino : public cXml_EnvVino,
         void ShowAsc();
         void ShowVect();
         void ShowVectPCarac();
+        void ShowSPC(const Pt2dr & aP);
         Pt2dr ToCoordAsc(const Pt2dr & aP);
 
         std::string               mNameXmlOut;

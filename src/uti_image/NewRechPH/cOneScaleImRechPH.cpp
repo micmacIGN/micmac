@@ -413,9 +413,13 @@ void cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
    cNH_CutAutoCorrelDir<tTImNRPH>  mACD(mTIm,Pt2di(aP.Pt()),ElMax(2.0,1+mScale),round_up(mScale));
    
     
+   bool isAC = mACD.AutoCorrel(Pt2di(aP.Pt()),2.0);
+   Pt2dr  aR = mACD.Res();
+
+   
 
 
-   std::cout << "CALCUL ComputeDirAC \n";
+   std::cout << "CALCUL ComputeDirAC " << isAC  << " " << aR<< "\n";
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

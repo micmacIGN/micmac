@@ -232,11 +232,40 @@ void cAppli_Vino::ExeClikGeom(Clik aCl)
 }
 
 
+/**************** A mettre dans un autre fichier Show/Inspect-Vect ******/
+
 void cAppli_Vino::ShowVect()
 {
    if (mWithPCarac) 
       ShowVectPCarac();
 }
+
+void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
+{
+   ElSimilitude aU2W = mScr->to_win();
+   ElSimilitude aW2U = mScr->to_user();
+   Pt2dr aPClU = aW2U(aPClW);
+
+   mW->draw_circle_loc(aPClW,3.0,mW->pdisc()(P8COL::cyan));
+
+   const cOnePCarac * aNearest= nullptr;
+   double aDMin=1e20;
+   for (const auto & aPC : mSPC->OnePCarac())
+   {
+       double aDist = euclid(aPC.Pt(),aPClU);
+       if (aDist < aDMin)
+       {
+          aDMin = aDist;
+          aNearest = & aPC;
+       }
+   }
+   if (aNearest)
+   {
+       mW->draw_circle_loc(aU2W(aNearest->Pt()),3.0,mW->pdisc()(P8COL::magenta));
+       mW->draw_circle_loc(aU2W(aNearest->Pt()),5.0,mW->pdisc()(P8COL::magenta));
+   }
+}
+
 
 void cAppli_Vino::ShowVectPCarac()
 {

@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //=================================== Critere type fast pour selectionner les points favorables à la correl
 
+/*
 class cNH_FastCriterCompute
 {
      public :
@@ -109,6 +110,7 @@ template <class TIm> Pt2dr  FastQuality(TIm anIm,Pt2di aP,cNH_FastCriterCompute 
 
    return Pt2dr(aResStd,aResC);
 }
+*/
 
 /*************************************************************/
 /*                                                           */
@@ -227,7 +229,6 @@ template <class TypeIm> class cNH_CutAutoCorrelDir : public cNH_AutoCorrelDir<Ty
                for (int aK=0 ; aK<mNbPts ; aK++)
                {
                     double aCor = this->ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW);
-// if (BugAC) std::cout << "CCcccI " << aCor << " " << this->mTIm.sz() << "\n";
                     if (aCor > aSeuilAccept) return true;
                     if (aCor > aCorrMax)
                     {
@@ -235,16 +236,21 @@ template <class TypeIm> class cNH_CutAutoCorrelDir : public cNH_AutoCorrelDir<Ty
                         aKMax = aK;
                     }
                }
+ std::cout << "CMMMAXXXX " << aCorrMax  << "\n";
                ELISE_ASSERT(aKMax!=-1,"AutoCorrel no K");
 
                Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
 
                double aStep0 = 1/this->mRho;
                Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,3);
+std::cout << "R1111 " << aRes1 << "  RT=" << aRhoTeta << "\n";
+getchar();
 
                if (aRes1.y>aSeuilAccept)   return true;
 
                Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
+
+std::cout << "R22RRRR== " << aRes2 << "\n";
 
                mResComputed = true;
                mRes = aRes2;

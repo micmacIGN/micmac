@@ -386,7 +386,12 @@ void cAppli_Vino::ExeOneClik(Clik & aCl)
 
       if (mBut0==1)
       {
-         GrabShowOneVal();
+         if (mSPC && mCtrl0)
+         {
+             ShowSPC(mP0Click);
+         }
+         else
+            GrabShowOneVal();
       }
       if (mBut0==3)
       {
