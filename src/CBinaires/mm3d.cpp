@@ -651,6 +651,7 @@ int PLY2XYZ_main(int argc,char ** argv);
 int ExportXmlGcp2Txt_main(int argc,char ** argv);
 int ExportXmlGps2Txt_main(int argc,char ** argv);
 int ConvertRtk_main(int argc,char ** argv);
+int CPP_FilterGeo3(int argc,char ** argv);
 int MatchCenters_main( int argc,char ** argv);
 int Panache_main(int argc,char ** argv);
 int rnx2rtkp_main(int argc,char ** argv);
@@ -889,6 +890,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("XmlGps2Txt",ExportXmlGps2Txt_main,"Tool to export .xml GPS file to .txt file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Panache",Panache_main,"Tool to export profile along axis given a line draw on Orthoimage",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ConvRtk",ConvertRtk_main,"Tool to extract X_Y_Z_Ix_Iy_Iz from Rtklib output file",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("FilterGeo3",CPP_FilterGeo3,"Tool extract ?optimal position for a set of daily geocube obs",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("MatchCenters",MatchCenters_main,"Tool to match Gps positions and Camera Centers",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("GpsProc",rnx2rtkp_main,"Tool using rnx2rtkp from RTKlib to do GNSS processing",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
