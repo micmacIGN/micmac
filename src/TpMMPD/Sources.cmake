@@ -39,6 +39,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TestStephane.cpp
     ${TDPPMD_DIR}/TD_Exo.cpp
     ${TDPPMD_DIR}/ConvertRtk.cpp
+    ${TDPPMD_DIR}/FilterGeo3.cpp
     ${TDPPMD_DIR}/MatchCenters.cpp
     ${TDPPMD_DIR}/rnx2rtkp.cpp
     ${TDPPMD_DIR}/CPP_GPS_txt2Xml.cpp
