@@ -102,7 +102,7 @@ class cOneScaleImRechPH
           double ComputeContrast() ;
 
 
-          void ComputeDirAC(cOnePCarac &);
+          bool ComputeDirAC(cOnePCarac &);
 
       private :
           void InitImMod();

@@ -135,7 +135,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mHistN0      (1000,0),
     mExtSave     ("Std"),
     mBasic       (false),
-    mModeSift    (true),
+    mModeSift    (false),
     mLapMS       (false),
     mTestDirac   (false),
     mPropCtrsIm0 (0.1),
