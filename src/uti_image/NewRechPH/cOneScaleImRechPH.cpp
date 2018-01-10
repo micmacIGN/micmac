@@ -408,7 +408,7 @@ double cOneScaleImRechPH::GetVal(const Pt2di & aP,bool & Ok) const
 }
 
 
-void cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
+bool cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
 {
    cNH_CutAutoCorrelDir<tTImNRPH>  mACD(mTIm,Pt2di(aP.Pt()),ElMax(2.0,1+mScale),round_up(mScale));
    
@@ -417,9 +417,11 @@ void cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
    Pt2dr  aR = mACD.Res();
 
    
+   aP.AutoCorrel() = aR.y;
+   aP.DirAC() = Pt2dr::FromPolar(mScale,aR.x);
 
-
-   std::cout << "CALCUL ComputeDirAC " << isAC  << " " << aR<< "\n";
+   // std::cout << "CALCUL ComputeDirAC " << isAC  << " " << aR<< "\n";
+   return true;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -281,7 +281,8 @@ void cAppli_Vino::ShowVectPCarac()
            {
                mW->draw_circle_loc(aPW,aPC.Scale()*2*mScr->sc(),mW->pdisc()(P8COL::yellow));
                ShowPt(aPC,aSim,mW);
-               Pt2dr aDirMS = aPC.DirMS();
+               // Pt2dr aDirMS = aPC.DirMS();
+               Pt2dr aDirMS = aPC.DirAC();
 // std::cout << "aDirMS " << aDirMS << "\n";
                if (euclid(aDirMS) != 0)
                {

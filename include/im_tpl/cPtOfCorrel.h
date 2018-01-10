@@ -346,12 +346,14 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
                Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
 
                double aStep0 = 1/this->mRho;
-               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);
+               //  Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);  BUG CORRIGE VERIF AVEC GIANG
+               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,2,aStep0*0.5);
 
                if (aRes1.y>aSeuilAccept)   return true;
                if (aRes1.y<aRejetReel)     return false;
 
-               Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
+               // Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2); BUG CORRIGE VERIF AVEC GIANG
+               Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,2,aStep0*0.2);
 
                if (aPtrRes) 
                   *aPtrRes = aRes2;

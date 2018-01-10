@@ -236,21 +236,16 @@ template <class TypeIm> class cNH_CutAutoCorrelDir : public cNH_AutoCorrelDir<Ty
                         aKMax = aK;
                     }
                }
- std::cout << "CMMMAXXXX " << aCorrMax  << "\n";
                ELISE_ASSERT(aKMax!=-1,"AutoCorrel no K");
 
                Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
 
                double aStep0 = 1/this->mRho;
-               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,3);
-std::cout << "R1111 " << aRes1 << "  RT=" << aRhoTeta << "\n";
-getchar();
+               Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,3,aStep0*0.5);
 
                if (aRes1.y>aSeuilAccept)   return true;
 
-               Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2);
-
-std::cout << "R22RRRR== " << aRes2 << "\n";
+               Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,2,aStep0*0.2);
 
                mResComputed = true;
                mRes = aRes2;
