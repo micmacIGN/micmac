@@ -224,7 +224,7 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
 
 
 
-    if (! EAMIsInit(&aAddFormat))
+    if (! EAMIsInit(&aAddFormat) & EAMIsInit(&mModeSpline))
         aAddFormat = ! mModeSpline;
 
     bool mExportPly=EAMIsInit(&mPatNamePly);

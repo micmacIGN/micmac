@@ -86,14 +86,14 @@ static const float LabCbrtTabScale = LAB_CBRT_TAB_SIZE/1.5f;
 static float sRGBGammaTab[GAMMA_TAB_SIZE*4], sRGBInvGammaTab[GAMMA_TAB_SIZE*4];
 static const float GammaTabScale = (float)GAMMA_TAB_SIZE;
 
-static ushort sRGBGammaTab_b[256], linearGammaTab_b[256];
+static unsigned short sRGBGammaTab_b[256], linearGammaTab_b[256];
 #undef lab_shift
 #define lab_shift xyz_shift
 #define gamma_shift 3
 #define lab_shift2 (lab_shift + gamma_shift)
 #define LAB_CBRT_TAB_SIZE_B (256*3/2*(1<<gamma_shift))
 
-static ushort LabCbrtTab_b[LAB_CBRT_TAB_SIZE_B];
+static unsigned short LabCbrtTab_b[LAB_CBRT_TAB_SIZE_B];
 
 static const float sRGB2XYZ_D65[] =
 {
@@ -103,7 +103,7 @@ static const float sRGB2XYZ_D65[] =
 };
 
 
-template<typename _Tp> static inline _Tp saturate_cast(u_int64_t v)   { return _Tp(v); }
+template<typename _Tp> static inline _Tp saturate_cast(unsigned long long v)   { return _Tp(v); }
 
 // interpolates value of a function at x, 0 <= x <= n using a cubic spline.
 template<typename _Tp> static inline _Tp splineInterpolate(_Tp x, const _Tp* tab, int n)
@@ -169,14 +169,14 @@ static void initLabTabs()
         for(i = 0; i < 256; i++)
         {
             float x = i*(1.f/255.f);
-            sRGBGammaTab_b[i] = saturate_cast<u_short>(255.f*(1 << gamma_shift)*(x <= 0.04045f ? x*(1.f/12.92f) : (float)std::pow((double)(x + 0.055)*(1./1.055), 2.4)));
-            linearGammaTab_b[i] = (ushort)(i*(1 << gamma_shift));
+            sRGBGammaTab_b[i] = saturate_cast<unsigned short>(255.f*(1 << gamma_shift)*(x <= 0.04045f ? x*(1.f/12.92f) : (float)std::pow((double)(x + 0.055)*(1./1.055), 2.4)));
+            linearGammaTab_b[i] = (unsigned short)(i*(1 << gamma_shift));
         }
 
         for(i = 0; i < LAB_CBRT_TAB_SIZE_B; i++)
         {
             float x = i*(1.f/(255.f*(1 << gamma_shift)));
-            LabCbrtTab_b[i] = saturate_cast<u_short>((1 << lab_shift2)*(x < 0.008856f ? x*7.787f + 0.13793103448275862f : Cbrt(x)));
+            LabCbrtTab_b[i] = saturate_cast<unsigned short>((1 << lab_shift2)*(x < 0.008856f ? x*7.787f + 0.13793103448275862f : Cbrt(x)));
         }
         initialized = true;
     }
@@ -224,7 +224,7 @@ struct RGB2Lab_b
     {
         const int Lscale = (116*255+50)/100;
         const int Lshift = -((16*255*(1 << lab_shift2) + 50)/100);
-        const u_short* tab = srgb ? sRGBGammaTab_b : linearGammaTab_b;
+        const unsigned short* tab = srgb ? sRGBGammaTab_b : linearGammaTab_b;
         int i;
         int C0 = coeffs[0], C1 = coeffs[1], C2 = coeffs[2],
             C3 = coeffs[3], C4 = coeffs[4], C5 = coeffs[5],
@@ -244,9 +244,9 @@ struct RGB2Lab_b
             int a = dscl( 500*(fX - fY) + 128*(1 << lab_shift2), lab_shift2 );
             int b = dscl( 200*(fY - fZ) + 128*(1 << lab_shift2), lab_shift2 );
 
-           dstL->SetI(Loc,saturate_cast<u_char>(L));
-           dsta->SetI(Loc,saturate_cast<u_char>(a));
-           dstb->SetI(Loc,saturate_cast<u_char>(b));
+           dstL->SetI(Loc,saturate_cast<unsigned char>(L));
+           dsta->SetI(Loc,saturate_cast<unsigned char>(a));
+           dstb->SetI(Loc,saturate_cast<unsigned char>(b));
         }
         }
     }
