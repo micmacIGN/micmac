@@ -123,18 +123,19 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mPowS        (pow(2.0,1/5.0)),
     mNbS         (30),
     mS0          (1.0),
+    mScaleStab   (4.0),
     mW1          (0),
     mModeTest    (ModeTest),
     mDistMinMax  (3.0),
     mDoMin       (true),
     mDoMax       (true),
-    mDoPly       (true),
+    mDoPly       (false),
     mPlyC        (0),
     mHistLong    (1000,0),
     mHistN0      (1000,0),
     mExtSave     ("Std"),
     mBasic       (false),
-    mModeSift    (true),
+    mModeSift    (false),
     mLapMS       (false),
     mTestDirac   (false),
     mPropCtrsIm0 (0.1),
@@ -170,6 +171,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mPropCtrsIm0, "PropCstr",true,"Value to compute threshold on constrst, base on im0")
                       << EAM(mLapMS, "LapMS",true,"MulScale in Laplacian, def=false")
                       << EAM(mTestDirac, "Dirac",true,"Test with dirac image")
+                      << EAM(mScaleStab, "SS",true,"Scale of Stability")
    );
 
    if (! EAMIsInit(&mExtSave))
@@ -269,7 +271,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
 
        for (int aK=0 ; aK<mNbS ; aK++)
        {
-           mVI1[aK]->Export((aK!=0) ? mVI1[aK-1] : 0,mPlyC);
+           mVI1[aK]->Export(aSPC,mPlyC);
        }
 
        if (mPlyC)
@@ -277,56 +279,27 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
            mPlyC->PutFile("NewH.ply");
        }
 
-/*
-       int aNb0 = 0;
-       int aNb1 = 0;
-       int aNb2 = 0;
-       int aNbTot=0;
-       for (const auto & aPBr  :  mVecB)
-       {
-           int aN0 = aPBr->Niv0();
-           int aN1 = aN0 + aPBr->Long();
-           mHistLong.at(aPBr->Long())++;
-           mHistN0.at(aN0)++;
-
-           if (mBasic || (aPBr->Long()>= (aSeuilPersist*mNbInOct)))
-           {
-              aNbTot++;
-              if (aN0==0)
-              {
-                  aSPC.OnePCarac().push_back(cOnePCarac());
-                  cOnePCarac & aPC = aSPC.OnePCarac().back();
-
-                  aPC.Kind() = aPBr->P0()->Type();
-                  int aNiv_h,aNiv_l;
-
-                  aPC.HR() = CreatePtSc(aPBr->P0()->Pt(),ScaleOfNiv(aN0));
-
-                  cPtRemark *aPhR = aPBr->Nearest(aNiv_h,aN0 + mNbInOct);
-                  aPC.hR() =  CreatePtSc(aPhR->Pt(),ScaleOfNiv(aNiv_h));
-
-                  cPtRemark *aPlR = aPBr->Nearest(aNiv_l,aN1 - mNbInOct);
-                  aPC.lR() =  CreatePtSc(aPlR->Pt(),ScaleOfNiv(aNiv_l));
-
-                  aPC.LR() = CreatePtSc(aPBr->PLast()->Pt(),ScaleOfNiv(aN1));
-    
-                  aNb0++;
-              }
-              else if (aN0==1) aNb1++;
-              else if (aN0==2) aNb2++;
-
-           }
-//std::cout << "FFFFFF\n";
-
-       }
-       std::cout << "Prop0 =" << aNb0 / double(aNbTot) << "\n";
-       std::cout << "Prop1 =" << aNb1 / double(aNbTot) << "\n";
-       std::cout << "Prop2 =" << aNb2 / double(aNbTot) << "\n";
-*/
    }
 
+   for (auto & aPt : aSPC.OnePCarac())
+   {
+       // 
+       mVI1[aPt.NivScale()]->ComputeDirAC(aPt);
+       //  ComputeDirAC(cBrinPtRemark &);
+
+
+       // Put in global coord
+       aPt.Pt() =  aPt.Pt() + Pt2dr(aP0);
+   }
+
+   // MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
    MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
-   MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
+}
+
+
+bool cAppli_NewRechPH::OkNivStab(int aNiv)
+{
+   return mVI1.at(aNiv)->Scale() >= mScaleStab;
 }
 
 bool cAppli_NewRechPH::Inside(const Pt2di & aP) const
@@ -379,11 +352,29 @@ double cAppli_NewRechPH::ScaleOfNiv(const int & aNiv) const
    return mVI1.at(aNiv)->Scale();
 }
 
+bool cAppli_NewRechPH::OkNivLapl(int aNiv)
+{
+   return (aNiv < int(mVI1.size())-2) ;
+}
+
+double cAppli_NewRechPH::GetLapl(int aNiv,const Pt2di & aP,bool &Ok)
+{
+   Ok = false;
+   if (! OkNivLapl(aNiv))
+      return 0;
+   double aV1 = mVI1.at(aNiv)->GetVal(aP,Ok);
+   if (!Ok)  return 0;
+   double aV2 = mVI1.at(aNiv+1)->GetVal(aP,Ok);
+   if (!Ok)  return 0;
+   return aV1 - aV2;
+}
+
+
 
 
 int Test_NewRechPH(int argc,char ** argv)
 {
-   cAppli_NewRechPH anAppli(argc,argv,true);
+   cAppli_NewRechPH anAppli(argc,argv,false);
 
 
    return EXIT_SUCCESS;

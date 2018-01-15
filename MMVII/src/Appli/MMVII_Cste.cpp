@@ -29,11 +29,12 @@ const std::string MMVIITestDir    = "MMVII-TestDir/";
 
 // Name of common parameters
       // -- External
-const std::string GOP_DirProj = "DirProj";
-const std::string GOP_NumVO   = "NumVOut";
-const std::string GOP_Int0    = "FFI0";
-const std::string GOP_Int1    = "FFI1";
-const std::string GOP_StdOut  = "StdOut";
+const std::string GOP_DirProj  = "DirProj";
+const std::string GOP_NumVO    = "NumVOut";
+const std::string GOP_Int0     = "FFI0";
+const std::string GOP_Int1     = "FFI1";
+const std::string GOP_StdOut   = "StdOut";
+const std::string GOP_SeedRand = "SeedRand";
       // -- Internal
 const std::string GIP_LevCall = "LevCall";
 const std::string GIP_ShowAll = "ShowAll";

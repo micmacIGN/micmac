@@ -294,11 +294,12 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
         mWithPCarac = true;
         getPastisGrayscaleFilename(mDir,mNameIm,mSzSift,mNameSift);
         mNameSift  = DirOfFile(mNameSift) + "LBPp" + NameWithoutDir(mNameSift) + ".dat";
+        if (mSzSift<0) mNameSift = "Pastis/" + mNameSift;
 
         Tiff_Im aFileInit = PastisTif(mNameIm);
         Pt2di       imageSize = aFileInit.sz();
 
-        mSSF =  double( ElMax( imageSize.x, imageSize.y ) ) / double( mSzSift ) ;
+        mSSF =  (mSzSift<0) ? 1.0 :   double( ElMax( imageSize.x, imageSize.y ) ) / double( mSzSift ) ;
 
 
         // std::cout << "NAMEPAST=" << mNameSift << "\n";
@@ -385,7 +386,12 @@ void cAppli_Vino::ExeOneClik(Clik & aCl)
 
       if (mBut0==1)
       {
-         GrabShowOneVal();
+         if (mSPC && mCtrl0)
+         {
+             ShowSPC(mP0Click);
+         }
+         else
+            GrabShowOneVal();
       }
       if (mBut0==3)
       {

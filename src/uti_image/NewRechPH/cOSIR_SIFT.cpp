@@ -102,7 +102,7 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
                aSpaceNbExtr++;
                if (ScaleSelectVois(aHR,aP,aVoisMinMax,1) && ScaleSelectVois(aLR,aP,aVoisMinMax,1))
                {
-                   aLab = eTPR_Max;
+                   aLab = eTPR_LaplMax;
                    aSS_NbExtr ++;
                }
            }
@@ -112,15 +112,18 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
                aSpaceNbExtr++;
                if (ScaleSelectVois(aHR,aP,aVoisMinMax,-1) && ScaleSelectVois(aLR,aP,aVoisMinMax,-1))
                {
-                  aLab = eTPR_Min;
+                  aLab = eTPR_LaplMin;
                   aSS_NbExtr ++;
                }
            }
           if (aLab != eTPR_NoLabel)
            {
                cOnePCarac aPC;
+               aPC.DirMS() = Pt2dr(0,0);
                aPC.Kind() =  aLab;
                aPC.Pt() =  Pt2dr(aP);
+               aPC.Scale() = mScale;
+               aPC.NivScale() = mNiv;
                if (OkSiftContrast(aPC))
                {
                   aSPC.OnePCarac().push_back(aPC);

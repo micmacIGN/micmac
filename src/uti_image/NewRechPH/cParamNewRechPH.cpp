@@ -3,10 +3,16 @@
 // NOMORE ...
 eTypePtRemark  Str2eTypePtRemark(const std::string & aName)
 {
-   if (aName=="eTPR_Max")
-      return eTPR_Max;
-   else if (aName=="eTPR_Min")
-      return eTPR_Min;
+   if (aName=="eTPR_LaplMax")
+      return eTPR_LaplMax;
+   else if (aName=="eTPR_LaplMin")
+      return eTPR_LaplMin;
+   else if (aName=="eTPR_GrayMax")
+      return eTPR_GrayMax;
+   else if (aName=="eTPR_GrayMin")
+      return eTPR_GrayMin;
+   else if (aName=="eTPR_GraySadl")
+      return eTPR_GraySadl;
    else if (aName=="eTPR_NoLabel")
       return eTPR_NoLabel;
   else
@@ -22,10 +28,16 @@ void xml_init(eTypePtRemark & aVal,cElXMLTree * aTree)
 }
 std::string  eToString(const eTypePtRemark & anObj)
 {
-   if (anObj==eTPR_Max)
-      return  "eTPR_Max";
-   if (anObj==eTPR_Min)
-      return  "eTPR_Min";
+   if (anObj==eTPR_LaplMax)
+      return  "eTPR_LaplMax";
+   if (anObj==eTPR_LaplMin)
+      return  "eTPR_LaplMin";
+   if (anObj==eTPR_GrayMax)
+      return  "eTPR_GrayMax";
+   if (anObj==eTPR_GrayMin)
+      return  "eTPR_GrayMin";
+   if (anObj==eTPR_GraySadl)
+      return  "eTPR_GraySadl";
    if (anObj==eTPR_NoLabel)
       return  "eTPR_NoLabel";
  std::cout << "Enum = eTypePtRemark\n";
@@ -50,7 +62,7 @@ void  BinaryUnDumpFromFile(eTypePtRemark & anObj,ELISE_fp & aFp)
    anObj=(eTypePtRemark) aIVal;
 }
 
-std::string  Mangling( eTypePtRemark *) {return "18F36EDF0E177DA1FC3F";};
+std::string  Mangling( eTypePtRemark *) {return "42EC1EA5DA0B93EFFE3F";};
 
 
 Pt2dr & cPtSc::Pt()
@@ -132,6 +144,17 @@ const Pt2dr & cOnePCarac::Pt()const
 }
 
 
+int & cOnePCarac::NivScale()
+{
+   return mNivScale;
+}
+
+const int & cOnePCarac::NivScale()const 
+{
+   return mNivScale;
+}
+
+
 double & cOnePCarac::Scale()
 {
    return mScale;
@@ -143,14 +166,25 @@ const double & cOnePCarac::Scale()const
 }
 
 
-Pt2dr & cOnePCarac::Dir()
+Pt2dr & cOnePCarac::DirMS()
 {
-   return mDir;
+   return mDirMS;
 }
 
-const Pt2dr & cOnePCarac::Dir()const 
+const Pt2dr & cOnePCarac::DirMS()const 
 {
-   return mDir;
+   return mDirMS;
+}
+
+
+Pt2dr & cOnePCarac::DirAC()
+{
+   return mDirAC;
+}
+
+const Pt2dr & cOnePCarac::DirAC()const 
+{
+   return mDirAC;
 }
 
 
@@ -179,8 +213,10 @@ void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Kind(),aFp);
     BinaryUnDumpFromFile(anObj.Pt(),aFp);
+    BinaryUnDumpFromFile(anObj.NivScale(),aFp);
     BinaryUnDumpFromFile(anObj.Scale(),aFp);
-    BinaryUnDumpFromFile(anObj.Dir(),aFp);
+    BinaryUnDumpFromFile(anObj.DirMS(),aFp);
+    BinaryUnDumpFromFile(anObj.DirAC(),aFp);
     BinaryUnDumpFromFile(anObj.Contrast(),aFp);
     BinaryUnDumpFromFile(anObj.AutoCorrel(),aFp);
 }
@@ -189,8 +225,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
 {
     BinaryDumpInFile(aFp,anObj.Kind());
     BinaryDumpInFile(aFp,anObj.Pt());
+    BinaryDumpInFile(aFp,anObj.NivScale());
     BinaryDumpInFile(aFp,anObj.Scale());
-    BinaryDumpInFile(aFp,anObj.Dir());
+    BinaryDumpInFile(aFp,anObj.DirMS());
+    BinaryDumpInFile(aFp,anObj.DirAC());
     BinaryDumpInFile(aFp,anObj.Contrast());
     BinaryDumpInFile(aFp,anObj.AutoCorrel());
 }
@@ -201,8 +239,10 @@ cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OnePCarac",eXMLBranche);
    aRes->AddFils(ToXMLTree(std::string("Kind"),anObj.Kind())->ReTagThis("Kind"));
    aRes->AddFils(::ToXMLTree(std::string("Pt"),anObj.Pt())->ReTagThis("Pt"));
+   aRes->AddFils(::ToXMLTree(std::string("NivScale"),anObj.NivScale())->ReTagThis("NivScale"));
    aRes->AddFils(::ToXMLTree(std::string("Scale"),anObj.Scale())->ReTagThis("Scale"));
-   aRes->AddFils(::ToXMLTree(std::string("Dir"),anObj.Dir())->ReTagThis("Dir"));
+   aRes->AddFils(::ToXMLTree(std::string("DirMS"),anObj.DirMS())->ReTagThis("DirMS"));
+   aRes->AddFils(::ToXMLTree(std::string("DirAC"),anObj.DirAC())->ReTagThis("DirAC"));
    aRes->AddFils(::ToXMLTree(std::string("Contrast"),anObj.Contrast())->ReTagThis("Contrast"));
    aRes->AddFils(::ToXMLTree(std::string("AutoCorrel"),anObj.AutoCorrel())->ReTagThis("AutoCorrel"));
   aRes->mGXml = anObj.mGXml;
@@ -219,16 +259,20 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Pt(),aTree->Get("Pt",1)); //tototo 
 
+   xml_init(anObj.NivScale(),aTree->Get("NivScale",1)); //tototo 
+
    xml_init(anObj.Scale(),aTree->Get("Scale",1)); //tototo 
 
-   xml_init(anObj.Dir(),aTree->Get("Dir",1)); //tototo 
+   xml_init(anObj.DirMS(),aTree->Get("DirMS",1)); //tototo 
+
+   xml_init(anObj.DirAC(),aTree->Get("DirAC",1)); //tototo 
 
    xml_init(anObj.Contrast(),aTree->Get("Contrast",1)); //tototo 
 
    xml_init(anObj.AutoCorrel(),aTree->Get("AutoCorrel",1)); //tototo 
 }
 
-std::string  Mangling( cOnePCarac *) {return "03C807B7C7DF9ACEFD3F";};
+std::string  Mangling( cOnePCarac *) {return "9B68B2501F322698FF3F";};
 
 
 std::list< cOnePCarac > & cSetPCarac::OnePCarac()
@@ -287,6 +331,6 @@ void xml_init(cSetPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.OnePCarac(),aTree->GetAll("OnePCarac",false,1));
 }
 
-std::string  Mangling( cSetPCarac *) {return "FE05F1EAB0DBB394FF3F";};
+std::string  Mangling( cSetPCarac *) {return "B6B0DC4822F30E98FF3F";};
 
 // };

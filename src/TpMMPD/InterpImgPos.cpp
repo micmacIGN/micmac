@@ -198,7 +198,6 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
     std::string mPatNamePly;
 
 
-
     ElInitArgMain
             (
                 argc, argv,

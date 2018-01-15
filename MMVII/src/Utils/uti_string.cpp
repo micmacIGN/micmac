@@ -239,6 +239,13 @@ bool ExistFile(const std::string & aName)
    return exists(aPath);
 }
 
+uintmax_t SizeFile(const std::string & aName)
+{
+    path aPath(aName);
+    return file_size(aPath);
+}
+
+
 void MakeNameDir(std::string & aDir)
 {
    if (aDir.back() != path::preferred_separator)
@@ -352,6 +359,12 @@ bool RemoveFile(const  std::string & aFile,bool SVP)
 void RenameFiles(const std::string & anOldName, const std::string & aNewName)
 {
     boost::filesystem::rename(anOldName,aNewName);
+}
+
+
+void CopyFile(const std::string & aName,const std::string & aDest)
+{
+   boost::filesystem::copy_file(aName,aDest,boost::filesystem::copy_option::overwrite_if_exists);
 }
 
 

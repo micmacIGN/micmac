@@ -39,6 +39,7 @@ template <class Type> class  cStrIO
 
 /// Facilities when the type is well defined
 template <class Type> std::string ToStr(const Type & aV) {return cStrIO<Type>::ToStr(aV);}
+std::string ToStr(int aVal,int aSzMin);
 
 
 /** Do the test using only specialization ...
@@ -232,21 +233,11 @@ void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
 void AddData(const  cAuxAr2007 & anAux, cPt2dr  &  aVal) ;  ///<for cPt2dr
-void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Cple of string
-
-template <class Type> void AddData(const cAuxAr2007 & anAux,Type * aL);  ///< Instantiated in files
-template <class Type> void AddData(const cAuxAr2007 & anAux,const Type * aL); ///< Instantiated in file
-
-/// Serialization for container
-/** Template for list, vector */
-
-template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont & aL);
-template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & aL) { StdContAddData(anAux,aL); }
-template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) { StdContAddData(anAux,aL); }
-template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet);
+void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Pair of string
+void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered Cple of string
 
 /// Serialization for optional
-template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL);
+// template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL);
 
 
 void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!
@@ -263,43 +254,6 @@ template<> void  MMv1_SaveInFile(const tNameRel & aVal,const std::string & aName
 
 /// call static function of cMMVII_Appli, cannot make forward declaration of static function
 bool GlobOutV2Format();
-/// Save the value in an archive, not proud of the const_cast ;-)
-template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
-{
-   if (GlobOutV2Format())  // Do we save by serialization
-   {
-       std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,false),DeleteAr);
-       {
-           cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
-           /// Not proud of cons_cast ;-( 
-           AddData(aGLOB,const_cast<Type&>(aVal));
-       }
-   }
-   else
-   {
-     MMv1_SaveInFile<Type>(aVal,aName);
-   }
-}
-
-
-/// Read  the value in an archive
-template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
-{
-    std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,true),DeleteAr);
-    {
-       cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
-       AddData(aGLOB,aVal);
-    }
-}
-
-/// If the file does not exist, initialize with default constructor
-template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & aName)
-{
-   if (ExistFile(aName))
-      ReadFromFile(aVal,aName);
-   else
-      aVal = Type();
-}
 
 /// Indicate if a file is really XML, created by MMVII and containing the expected Tag
 bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string & aTag); 

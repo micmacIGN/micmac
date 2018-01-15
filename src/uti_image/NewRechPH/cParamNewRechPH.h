@@ -3,8 +3,11 @@
 // NOMORE ...
 typedef enum
 {
-  eTPR_Max,
-  eTPR_Min,
+  eTPR_LaplMax,
+  eTPR_LaplMin,
+  eTPR_GrayMax,
+  eTPR_GrayMin,
+  eTPR_GraySadl,
   eTPR_NoLabel
 } eTypePtRemark;
 void xml_init(eTypePtRemark & aVal,cElXMLTree * aTree);
@@ -62,11 +65,17 @@ class cOnePCarac
         Pt2dr & Pt();
         const Pt2dr & Pt()const ;
 
+        int & NivScale();
+        const int & NivScale()const ;
+
         double & Scale();
         const double & Scale()const ;
 
-        Pt2dr & Dir();
-        const Pt2dr & Dir()const ;
+        Pt2dr & DirMS();
+        const Pt2dr & DirMS()const ;
+
+        Pt2dr & DirAC();
+        const Pt2dr & DirAC()const ;
 
         double & Contrast();
         const double & Contrast()const ;
@@ -76,8 +85,10 @@ class cOnePCarac
     private:
         eTypePtRemark mKind;
         Pt2dr mPt;
+        int mNivScale;
         double mScale;
-        Pt2dr mDir;
+        Pt2dr mDirMS;
+        Pt2dr mDirAC;
         double mContrast;
         double mAutoCorrel;
 };

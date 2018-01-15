@@ -58,12 +58,14 @@ void  TestFlux2StdCont()
 
 }
 
+/*
 class cSurfQuadr
 {
     public :
     private :
-       
+               
 };
+*/
 
 
 /*****************************************************/
@@ -121,8 +123,12 @@ Pt3di Ply_CoulOfType(eTypePtRemark aType,int aL0,int aLong)
 
     switch(aType)
     {
-         case eTPR_Max : return Pt3di(255,0,0);
-         case eTPR_Min : return Pt3di(0,0,255);
+         case eTPR_LaplMax  : return Pt3di(255,128,128);
+         case eTPR_LaplMin  : return Pt3di(128,128,255);
+
+         case eTPR_GrayMax  : return Pt3di(255,  0,  0);
+         case eTPR_GrayMin  : return Pt3di(  0,  0,255);
+         case eTPR_GraySadl : return Pt3di(  0,255,  0);
 
          default :;
     }
@@ -153,11 +159,12 @@ void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW)
 /*                                                   */
 /*****************************************************/
 
-cPtRemark::cPtRemark(const Pt2dr & aPt,eTypePtRemark aType) :
-           mPtR   (aPt),
-           mType  (aType),
-           mHRs   (),
-           mLR    (0)
+cPtRemark::cPtRemark(const Pt2dr & aPt,eTypePtRemark aType,int aNiv) :
+     mPtR   (aPt),
+     mType  (aType),
+     mHRs   (),
+     mLR    (0),
+     mNiv   (aNiv)
 {
 }
 
@@ -168,17 +175,94 @@ void cPtRemark::MakeLink(cPtRemark * aHR)
    aHR->mLR = this;
 }
 
+void  cPtRemark::RecGetAllPt(std::vector<cPtRemark *> & aRes)
+{
+     aRes.push_back(this);
+     for (auto & aPt:  mHRs)
+         aPt->RecGetAllPt(aRes);
+}
+
 /*****************************************************/
 /*                                                   */
 /*                  cBrinPtRemark                    */
 /*                                                   */
 /*****************************************************/
 
-cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,int aNiv0) :
-    mLR    (aLR),
-    mNiv0  (aNiv0)
+int SignOfType(eTypePtRemark aKind)
 {
+   switch(aKind)
+   {
+       case eTPR_LaplMax :
+       case eTPR_GrayMax :
+            return 1;
+
+       case eTPR_LaplMin :
+       case eTPR_GrayMin :
+            return -1;
+       default :
+            ELISE_ASSERT(false,"cAppli_NewRechPH::PtOfBuf");
+   }
+   return 0;
 }
+
+cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
+    mLR    (aLR)
+{
+    std::vector<cPtRemark *> aVPt;
+    mLR->RecGetAllPt(aVPt);
+    
+    int aNbMult=0;
+    int aNivMin = aLR->Niv();
+
+    for (auto & aPt:  aVPt)
+    {
+        aNivMin = ElMin(aNivMin,aPt->Niv());
+        if (aPt->HRs().size()>=2)
+           aNbMult++;
+    }
+
+    mOk = (aNbMult==0) && anAppli.OkNivStab(aLR->Niv()) && (aNivMin==0);
+    if (!mOk) return;
+
+    int aSign = SignOfType(mLR->Type());
+    std::vector<double> aVLapl;
+    double aLaplMax = -1;
+    for (auto & aPt:  aVPt)
+    {
+        int aNiv = aPt->Niv();
+        if (anAppli.OkNivLapl(aNiv))
+        {
+           double aLapl = anAppli.GetLapl(aNiv,round_ni(aPt->Pt()),mOk) * aSign;
+           if (!mOk)
+           {
+               return;
+           }
+
+           if (aLapl> aLaplMax)
+           {
+               mNivScal = aNiv;
+               mScale   =  anAppli.ScaleOfNiv(aNiv);
+               aLaplMax = aLapl;
+           }
+        }
+    }
+    // std::cout << "SSsSSsS= " <<  aLaplMax << "\n";
+
+/*
+    static int aNbBr= 0;
+    static int aNbOk=0;
+    aNbBr++;
+    aNbOk += aNbBr;
+*/
+}
+
+std::vector<cPtRemark *> cBrinPtRemark::GetAllPt()
+{
+    std::vector<cPtRemark *> aRes;
+    mLR->RecGetAllPt(aRes);
+    return aRes;
+}
+
 
 
 /*
