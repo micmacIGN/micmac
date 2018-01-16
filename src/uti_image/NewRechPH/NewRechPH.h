@@ -172,25 +172,26 @@ class cAppli_NewRechPH
         cOneScaleImRechPH * GetImOfNiv(int aNiv);
         void ComputeContrast();
         bool ComputeContrastePt(cOnePCarac & aPt);
-
-        
+        tInterpolNRPH * Interp() {return mInterp;}
 
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
-
-
+        bool  CalvInvariantRot(cOnePCarac & aPt);
 
         std::string mName;
         double      mPowS;
         int         mNbS;
 
 /*
-//  Invariant Rotation
+  Invariant Rotation
+*/
         int         mNbSR;     // Nbre de niveau radial (entre 
         int         mDeltaSR;  // Delta entre deux niveau radiaux, genre 1 ou 2 ?
         int         mMaxLevR;  // Niv max permettant le calcul (calcule a partir des autres)
-*/
+
+        int         mNbTetaIm;
+        int         mMulNbTetaInv;
 
 
         double      mS0;
@@ -242,6 +243,7 @@ class cAppli_NewRechPH
         tTImNRPH  mTIm0;
         tImNRPH   mImContrast;
         tTImNRPH  mTImContrast;
+        tInterpolNRPH * mInterp;
 };
 
 

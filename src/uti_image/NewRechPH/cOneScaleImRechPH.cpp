@@ -59,8 +59,9 @@ cOneScaleImRechPH::cOneScaleImRechPH(cAppli_NewRechPH &anAppli,const Pt2di & aSz
    mScale (aScale),
    mNiv   (aNiv)
 {
-   cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
-   mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
+   // cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
+   // mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
+   mInterp = mAppli.Interp();
 }
 
 void cOneScaleImRechPH::InitImMod()
@@ -548,6 +549,7 @@ bool    cOneScaleImRechPH::AffinePosition(cOnePCarac & aPt)
 
      return true;
 }
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

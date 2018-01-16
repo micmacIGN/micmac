@@ -121,7 +121,10 @@ void TestSigma2(double a)
 
 cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mPowS        (pow(2.0,1/5.0)),
-    mNbS         (30),
+    mNbS         (40),
+    mNbSR        (7),
+    mDeltaSR     (2),
+    mMaxLevR     (mNbS - (mNbSR-1) * mDeltaSR),
     mS0          (1.0),
     mScaleStab   (4.0),
     mSeuilAC     (0.95),
@@ -155,6 +158,9 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mImContrast        (1,1),
     mTImContrast       (mImContrast)
 {
+   cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
+   mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
+
 /*
    TestSigma2(0.1);
    TestSigma2(0.5);
@@ -315,6 +321,11 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
           mVI1[aPt.NivScale()]->AffinePosition(aPt);
        }
 
+       if (aPt.OK())
+       {
+          CalvInvariantRot(aPt);
+       }
+
        // Put in global coord
        aPt.Pt() =  aPt.Pt() + Pt2dr(aP0);
        if (aPt.OK())
@@ -351,6 +362,17 @@ bool  cAppli_NewRechPH::ComputeContrastePt(cOnePCarac & aPt)
 
    return aPt.OK();
 }
+
+bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
+{
+   if (aPt.NivScale() >= mMaxLevR) 
+   {
+      return aPt.OK() = false;
+   }
+
+   return true;
+}
+
 
 void cAppli_NewRechPH::ComputeContrast()
 {
