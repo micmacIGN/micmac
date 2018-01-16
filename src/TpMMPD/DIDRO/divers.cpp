@@ -55,6 +55,7 @@ class cTIR2VIS_Appli
     cTIR2VIS_Appli(int argc,char ** argv);
     string T2V_imName(string tirName);
     string T2Reech_imName(string tirName);
+    void changeImSize(std::vector<std::string> aLIm); //list image
 
     std::string mDir;
     private:
@@ -62,7 +63,9 @@ class cTIR2VIS_Appli
     std::string mPat;
     std::string mHomog;
     std::string mOri;
+    std::string mPrefixReech;
     bool mOverwrite;
+    Pt2di mImSzOut;// si je veux découper mes images output, ex: homography between 2 sensors of different shape and size (TIR 2 VIS) but I want to have the same dimension as output
 
 };
 
@@ -71,16 +74,20 @@ cTIR2VIS_Appli::cTIR2VIS_Appli(int argc,char ** argv) :
       mFullDir	("img.*.tif"),
       mHomog	("homography.xml"),
       mOri		("RTL"),
+      mPrefixReech("Reech"),
       mOverwrite (false)
+
+
 
 {
     ElInitArgMain
     (
     argc,argv,
         LArgMain()  << EAMC(mFullDir,"image pattern", eSAM_IsPatFile)
-                    << EAMC(mHomog,"homography XML file", eSAM_IsExistFile )
-                    << EAMC(mOri,"ori name of VIS images", eSAM_IsExistDirOri ),
-        LArgMain()  << EAM(mOverwrite,"F",true, "Overwrite previous resampled images, def false")
+                    << EAMC(mHomog,"homography XML file", eSAM_IsExistFile ),
+        LArgMain()  << EAM(mOri,"Ori",true, "ori name of VIS images", eSAM_IsExistDirOri )
+                    << EAM(mOverwrite,"F",true, "Overwrite previous resampled images, def false")
+                    << EAM(mImSzOut,"ImSzOut",true, "Size of output images")
     );
 
 
@@ -90,16 +97,29 @@ cTIR2VIS_Appli::cTIR2VIS_Appli(int argc,char ** argv) :
     SplitDirAndFile(mDir,mPat,mFullDir);
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
     const std::vector<std::string> aSetIm = *(aICNM->Get(mPat));
-    StdCorrecNameOrient(mOri,mDir);
-    mOri="Ori-"+mOri+"/";
+
 
     ReechThermicIm(aSetIm,mHomog);
 
-    CopyOriVis(aSetIm,mOri);
+     if (EAMIsInit(&mOri))
+     {
+         StdCorrecNameOrient(mOri,mDir);
+         mOri="Ori-"+mOri+"/";
+         std::cout << "Copy orientation file." << std::endl;
+         CopyOriVis(aSetIm,mOri);
+      }
 
+    // changer la taille des images out
+    if (EAMIsInit(&mImSzOut))
+    {
+        //open first reech image just to read the dimension in order to print a message
+        Tiff_Im mTif=Tiff_Im::StdConvGen(T2Reech_imName(aSetIm.at(0)),1,true);
+        std::cout << "Change size of output images from " << mTif.sz() << " to " << mImSzOut << "\n";
+
+        changeImSize(aSetIm);
     }
 
-
+    }
 }
 
 
@@ -124,10 +144,10 @@ void cTIR2VIS_Appli::ReechThermicIm(
                             + _SetIm.at(aK)
                             + std::string(" ")
                             + aHomog;
+
+                            if (EAMIsInit(&mPrefixReech)) {  aCom += " PrefixOut=" + T2Reech_imName(_SetIm.at(aK)) ; }
+
                             //+ " Win=[3,3]";// taille de fenetre pour le rééchantillonnage, par défaut 5x5
-
-
-
 
                 bool Exist= ELISE_fp::exist_file(aNameOut);
 
@@ -137,9 +157,6 @@ void cTIR2VIS_Appli::ReechThermicIm(
                     //system_call(aCom.c_str());
                     aLCom.push_back(aCom);
                 }
-
-
-
     }
     cEl_GPAO::DoComInParal(aLCom);
 }
@@ -155,11 +172,15 @@ void cTIR2VIS_Appli::CopyOriVis(
     {
         //cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
         std::string aOriFileName(aOri+"Orientation-"+T2V_imName(imTIR)+".xml");
-        //CamStenope * aCam=CamOrientGenFromFile(aOriFileName,aICNM);
+        if (ELISE_fp::exist_file(aOriFileName))
+        {
         std::string aCom="cp " + aOriFileName + "   "+ aOri+"Orientation-" + T2Reech_imName(imTIR) +".xml";
         std::cout << "aCom = " << aCom << std::endl;
         system_call(aCom.c_str());
-        //cEl_GPAO::DoComInParal(
+        } else
+        {
+        std::cout << "Can not copy orientation " << aOriFileName << " because file not found." << std::endl;
+        }
 
     }
 }
@@ -179,8 +200,7 @@ string cTIR2VIS_Appli::T2V_imName(string tirName)
 
 string cTIR2VIS_Appli::T2Reech_imName(string tirName)
 {
-   return "Reech_"+tirName;
-
+   return mPrefixReech+ "_" + tirName;
 }
 
 
@@ -192,7 +212,34 @@ int T2V_main(int argc,char ** argv)
 }
 
 
+void cTIR2VIS_Appli::changeImSize(std::vector<std::string> aLIm)
+{
+    for(auto & imTIR: aLIm)
+    {
+    // load reech images
+    Tiff_Im mTifIn=Tiff_Im::StdConvGen(T2Reech_imName(imTIR),1,true);
+    // create RAM image
+    Im2D_REAL4 im(mImSzOut.x,mImSzOut.y);
+    // compute the translation for initial to final image size -- attention, que ce passe t il si l'offset en pixel n'est pas un nombre pair à diviser en 2?
+    Pt2di Tr((mTifIn.sz().x-im.sz().x)/2, (mTifIn.sz().x-im.sz().x)/2);
 
+    ELISE_COPY
+   (
+   mTifIn.all_pts(),
+   trans(mTifIn.in(),Tr),
+   im.out()
+   );
+    // on écrase le fichier tif
+    Tiff_Im  aTifOut
+             (
+                 T2Reech_imName(imTIR).c_str(),
+                 im.sz(),
+                 GenIm::real4,
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::BlackIsZero
+             );
+    }
+}
 
 
 /*    comparaise des orthos thermiques pour déterminer un éventuel facteur de calibration spectrale entre 2 frame successif, expliquer pouquoi tant de variabilité spectrale est présente (mosaique moche) */

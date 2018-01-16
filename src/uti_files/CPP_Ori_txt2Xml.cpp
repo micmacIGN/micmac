@@ -1624,8 +1624,8 @@ int OriExport_main(int argc,char ** argv)
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aFullName,"Full Directory (Dir+Pattern)", eSAM_IsPatFile)
-                    << EAMC(aRes,"Results"),
+        LArgMain()  << EAMC(aFullName,"Full Directory (Dir+Pattern) of xml orientation file", eSAM_IsPatFile)
+                    << EAMC(aRes,"Txt file name for results of export"),
         LArgMain()  << EAM(AddFormat,"AddF",true,"Add format as first line of header, def= false",eSAM_IsBool)
                     << EAM(aModeExport,"ModeExp",true,"Mode export, def=WPK (Omega Phi Kapa)",eSAM_None,ListOfVal(eEO_NbVals,"eEO_"))
                     << EAM(onlyC,"OnlyCenters",true,"Export only camera centers, def=false",eSAM_IsBool)

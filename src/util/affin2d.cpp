@@ -1777,6 +1777,7 @@ int CPP_ReechImMap(int argc,char** argv)
     std::string aNameIm,aNameMap;
     Pt2di aSzOut;
     std::string aNameOut;
+    std::string aPrefixOut("Reech_");
     std::string aMAF;
     std::string aMAFOut;
     bool aDoImgReech=true;
@@ -1790,17 +1791,17 @@ int CPP_ReechImMap(int argc,char** argv)
         argc,argv,
         LArgMain()  <<  EAMC(aNameIm,"Name Im")
                     <<  EAMC(aNameMap,"Name map"),
-        LArgMain()  <<  EAM(aNameOut,"Out",false,"Tif file to write to")
+        LArgMain()  <<  EAM(aNameOut,"Out",false,"Tif file to write to, this file must already exist")
+                    <<  EAM(aPrefixOut,"PrefixOut",false,"Prefix of output file, def 'Reech_'")
                     <<  EAM(aMAF,"MAF",false,"Xml file of Image Measures")
                     <<  EAM(aDoImgReech,"DoImgReech",false,"Generate Image Reech ; Def=true")
                     <<  EAM(aWinInt,"Win",false,"Interpolation window ; Def=[5,5]")
     );
 
-    if (!EAMIsInit(&aNameOut))
-       aNameOut = DirOfFile(aNameIm) + "Reech_" + NameWithoutDir(StdPrefix(aNameIm)) + ".tif";
-	else
-       aTifOut = new Tiff_Im(Tiff_Im::StdConvGen(aNameOut,-1,true)); 
-		
+    if (!EAMIsInit(&aNameOut))  
+       aNameOut = DirOfFile(aNameIm) + aPrefixOut + NameWithoutDir(StdPrefix(aNameIm)) + ".tif";
+     else
+       aTifOut = new Tiff_Im(Tiff_Im::StdConvGen(aNameOut,-1,true));
 
     cElMap2D * aMap = cElMap2D::FromFile(aNameMap);
     
