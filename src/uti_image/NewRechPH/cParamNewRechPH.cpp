@@ -144,6 +144,17 @@ const Pt2dr & cOnePCarac::Pt()const
 }
 
 
+Pt2dr & cOnePCarac::Pt0()
+{
+   return mPt0;
+}
+
+const Pt2dr & cOnePCarac::Pt0()const 
+{
+   return mPt0;
+}
+
+
 int & cOnePCarac::NivScale()
 {
    return mNivScale;
@@ -323,6 +334,7 @@ void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Kind(),aFp);
     BinaryUnDumpFromFile(anObj.Pt(),aFp);
+    BinaryUnDumpFromFile(anObj.Pt0(),aFp);
     BinaryUnDumpFromFile(anObj.NivScale(),aFp);
     BinaryUnDumpFromFile(anObj.Scale(),aFp);
     BinaryUnDumpFromFile(anObj.ScaleStab(),aFp);
@@ -345,6 +357,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
 {
     BinaryDumpInFile(aFp,anObj.Kind());
     BinaryDumpInFile(aFp,anObj.Pt());
+    BinaryDumpInFile(aFp,anObj.Pt0());
     BinaryDumpInFile(aFp,anObj.NivScale());
     BinaryDumpInFile(aFp,anObj.Scale());
     BinaryDumpInFile(aFp,anObj.ScaleStab());
@@ -369,6 +382,7 @@ cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OnePCarac",eXMLBranche);
    aRes->AddFils(ToXMLTree(std::string("Kind"),anObj.Kind())->ReTagThis("Kind"));
    aRes->AddFils(::ToXMLTree(std::string("Pt"),anObj.Pt())->ReTagThis("Pt"));
+   aRes->AddFils(::ToXMLTree(std::string("Pt0"),anObj.Pt0())->ReTagThis("Pt0"));
    aRes->AddFils(::ToXMLTree(std::string("NivScale"),anObj.NivScale())->ReTagThis("NivScale"));
    aRes->AddFils(::ToXMLTree(std::string("Scale"),anObj.Scale())->ReTagThis("Scale"));
    aRes->AddFils(::ToXMLTree(std::string("ScaleStab"),anObj.ScaleStab())->ReTagThis("ScaleStab"));
@@ -398,6 +412,8 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.Kind(),aTree->Get("Kind",1)); //tototo 
 
    xml_init(anObj.Pt(),aTree->Get("Pt",1)); //tototo 
+
+   xml_init(anObj.Pt0(),aTree->Get("Pt0",1)); //tototo 
 
    xml_init(anObj.NivScale(),aTree->Get("NivScale",1)); //tototo 
 
@@ -432,7 +448,7 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.CoeffGradTangentPiS2(),aTree->Get("CoeffGradTangentPiS2",1)); //tototo 
 }
 
-std::string  Mangling( cOnePCarac *) {return "808DA0E0F0AE06D9F8BF";};
+std::string  Mangling( cOnePCarac *) {return "4257CB5437AB7DA2FE3F";};
 
 
 std::list< cOnePCarac > & cSetPCarac::OnePCarac()
@@ -491,6 +507,6 @@ void xml_init(cSetPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.OnePCarac(),aTree->GetAll("OnePCarac",false,1));
 }
 
-std::string  Mangling( cSetPCarac *) {return "3239841B4CCCDFA0FE3F";};
+std::string  Mangling( cSetPCarac *) {return "C40808241B37B583FF3F";};
 
 // };

@@ -54,6 +54,8 @@ typedef float   tElNewRechPH ;
 typedef double  tElBufNRPH ;
 typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
 typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
+typedef cInterpolateurIm2D<tElNewRechPH>  tInterpolNRPH;
+
 
 
 double Sigma2FromFactExp(double a);
@@ -62,6 +64,8 @@ void TestSigma2(double a);
 template <class T1> void  LocFilterGauss(T1 & anIm, double aSigmaN,int aNbIter);
 void FilterGaussProgr(tImNRPH anIm,double  aSTarget,double  aSInit,int aNbIter);
 void TestDist(Pt2di aSz,Fonc_Num aP,double aScale);
+
+int SignOfType(eTypePtRemark aKind);
 
 
 

@@ -69,10 +69,10 @@ class cAppliStatPHom
        cElNuage3DMaille * mNuage1;
        
        ElPackHomologue   mPack;
+       bool              mSetPI;
 
        double EcartEpip(const Pt2dr & aP1,const Pt2dr & aP2);
        double EcartCompl(const Pt2dr & aP1,const Pt2dr & aP2);
-       
 };
 
 class cOneImSPH
@@ -110,6 +110,10 @@ cOneImSPH::cOneImSPH(const std::string & aName,cAppliStatPHom & anAppli) :
 {
    for (auto & aPt : mSPC->OnePCarac())
    {
+      if (mAppli.mSetPI) 
+      {
+         aPt.Pt() = aPt.Pt0();
+      }
       mVVPC.at(int(aPt.Kind())).push_back(&aPt);
    }
    std::cout << " N=" << mN << " nb=" << mSPC->OnePCarac().size() << "\n";
@@ -264,7 +268,8 @@ void cAppliStatPHom::TestHom()
 cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
     mDir ("./"),
     mSH  (""),
-    mNuage1  (0)
+    mNuage1  (0),
+    mSetPI   (false)
 {
    std::string aN1,aN2;
    ElInitArgMain
@@ -275,6 +280,7 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
                      << EAMC(mOri,"Orientation"),
          LArgMain()  << EAM(mSH,"SH",true,"Set of homologous point")
                      << EAM(mNameNuage,"NC",true,"Name of cloud")
+                     << EAM(mSetPI,"SetPI",true,"Set Integer point, def=false,for stat")
    );
 
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);

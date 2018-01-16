@@ -31,6 +31,7 @@
       <OnePCarac  Nb="*" Class="true">
          <Kind Nb="1" Type="eTypePtRemark">        </Kind>
          <Pt   Nb="1" Type="Pt2dr">     </Pt>
+         <Pt0   Nb="1" Type="Pt2dr">     </Pt0>  <!-- Avant opt, pour test -->
          <NivScale   Nb="1" Type="int">  </NivScale>
          <Scale   Nb="1" Type="double">  </Scale>
          <ScaleStab   Nb="1" Type="double">  </ScaleStab> <!-- 4 MinMax, highest scale where they are visible -->

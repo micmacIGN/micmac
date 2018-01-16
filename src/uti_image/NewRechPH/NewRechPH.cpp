@@ -298,20 +298,22 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    for (auto & aPt : aSPC.OnePCarac())
        aPt.OK() = true;
 
+   std::list<cOnePCarac> aNewL;
    for (auto & aPt : aSPC.OnePCarac())
    {
        if (aPt.OK())  
           ComputeContrastePt(aPt);
-   }
-
-   std::list<cOnePCarac> aNewL;
-   for (auto & aPt : aSPC.OnePCarac())
-   {
        // 
        if (aPt.OK())
+       {
           mVI1[aPt.NivScale()]->ComputeDirAC(aPt);
+       }
        //  ComputeDirAC(cBrinPtRemark &);
 
+       if (aPt.OK())
+       {
+          mVI1[aPt.NivScale()]->AffinePosition(aPt);
+       }
 
        // Put in global coord
        aPt.Pt() =  aPt.Pt() + Pt2dr(aP0);

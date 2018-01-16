@@ -65,6 +65,9 @@ class cOnePCarac
         Pt2dr & Pt();
         const Pt2dr & Pt()const ;
 
+        Pt2dr & Pt0();
+        const Pt2dr & Pt0()const ;
+
         int & NivScale();
         const int & NivScale()const ;
 
@@ -115,6 +118,7 @@ class cOnePCarac
     private:
         eTypePtRemark mKind;
         Pt2dr mPt;
+        Pt2dr mPt0;
         int mNivScale;
         double mScale;
         double mScaleStab;

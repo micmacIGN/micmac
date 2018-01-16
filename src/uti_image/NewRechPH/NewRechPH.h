@@ -50,6 +50,7 @@ class cOneScaleImRechPH;
 
 void TestTouch();
 
+
 /*
 typedef float   tElNewRechPH ;
 typedef double  tElBufNRPH ;
@@ -105,6 +106,7 @@ class cOneScaleImRechPH
 
 
           bool ComputeDirAC(cOnePCarac &);
+          bool AffinePosition(cOnePCarac &);
 
       private :
           void InitImMod();
@@ -125,6 +127,7 @@ class cOneScaleImRechPH
           tTImNRPH  mTIm;
           tImNRPH   mImMod;   // Dif en Sift, corner en harris etc ...
           tTImNRPH  mTImMod;
+          tInterpolNRPH * mInterp;
 
           double    mScale;
           int       mNiv;
@@ -181,6 +184,15 @@ class cAppli_NewRechPH
         std::string mName;
         double      mPowS;
         int         mNbS;
+
+/*
+//  Invariant Rotation
+        int         mNbSR;     // Nbre de niveau radial (entre 
+        int         mDeltaSR;  // Delta entre deux niveau radiaux, genre 1 ou 2 ?
+        int         mMaxLevR;  // Niv max permettant le calcul (calcule a partir des autres)
+*/
+
+
         double      mS0;
         double      mScaleStab;
         double      mSeuilAC;
