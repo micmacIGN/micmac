@@ -83,7 +83,9 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
     mWithBundlExp      (false),
     mClipIsChantier    (false),
     mWithPCarac        (false),
-    mSPC               (0)
+    mSPC               (0),
+    mSeuilAC           (0.95),
+    mSeuilContRel      (0.6)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -137,7 +139,8 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
                     << EAM(mIsMnt,"IsMnt",true,"Display altitude if true, def exist of Mnt Meta data")
                     << EAM(mFileMnt,"FileMnt",true,"Default toto.tif -> toto.xml")
                     << EAM(mParamClipCh,"ClipCh",true,"Param 4 Clip Chantier [PatClip,OriClip]")
-                    << EAM(mBasicPC,"BasicPC",true,"Set if visualize carac point")
+                    << EAM(mImNewP,"NewP",true,"Image for new tie point, if =\"\" curent image")
+                    << EAM(mImSift,"ImSift",true,"Image for sift if != curent image")
                     << EAM(mSzSift,"ResolSift",true,"Resol of sift point to visualize")
                     << EAM(mPatSecIm,"PSI",true,"Patt secondary images, for multiple vino")
                     // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
@@ -274,29 +277,32 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
        mOriClipCh = mParamClipCh[1];
     }
 
-    if (EAMIsInit(&mBasicPC))
+    if (EAMIsInit(&mImNewP))
     {
+        if (mImNewP=="")
+           mImNewP = mNameIm;
         mWithPCarac = true;
-        mSPC = new cSetPCarac
-               (
-                   StdGetObjFromFile<cSetPCarac>
-                   (
-                        NameFileNewPCarac(mNameIm,true, mBasicPC ?  "Basic" : "Std"),
-                        MMDir() + "src/uti_image/NewRechPH/ParamNewRechPH.xml",
-                        "SetPCarac",
-                        "SetPCarac"
-                    )
-               );
+        mSPC =  LoadStdSetCarac(mImNewP);
     }
     if (EAMIsInit(&mSzSift))
     {
-
+        if (EAMIsInit(&mImSift))
+        {
+        }
+        else if (EAMIsInit(&mImNewP))
+        {
+            mImSift = mImNewP;
+        }
+        else
+        {
+            mImSift = mNameIm;
+        }
         mWithPCarac = true;
-        getPastisGrayscaleFilename(mDir,mNameIm,mSzSift,mNameSift);
+        getPastisGrayscaleFilename(mDir,mImSift,mSzSift,mNameSift);
         mNameSift  = DirOfFile(mNameSift) + "LBPp" + NameWithoutDir(mNameSift) + ".dat";
         if (mSzSift<0) mNameSift = "Pastis/" + mNameSift;
 
-        Tiff_Im aFileInit = PastisTif(mNameIm);
+        Tiff_Im aFileInit = PastisTif(mImSift);
         Pt2di       imageSize = aFileInit.sz();
 
         mSSF =  (mSzSift<0) ? 1.0 :   double( ElMax( imageSize.x, imageSize.y ) ) / double( mSzSift ) ;

@@ -33,10 +33,20 @@
          <Pt   Nb="1" Type="Pt2dr">     </Pt>
          <NivScale   Nb="1" Type="int">  </NivScale>
          <Scale   Nb="1" Type="double">  </Scale>
+         <ScaleStab   Nb="1" Type="double">  </ScaleStab> <!-- 4 MinMax, highest scale where they are visible -->
          <DirMS   Nb="1" Type="Pt2dr">     </DirMS>
          <DirAC   Nb="1" Type="Pt2dr">     </DirAC>
-         <Contrast   Nb="1" Type="double">  </Contrast>
+         <Contraste   Nb="1" Type="double">  </Contraste>
+         <ContrasteRel   Nb="1" Type="double">  </ContrasteRel> <!-- Par raport au seuil, pour inspection-->
          <AutoCorrel   Nb="1" Type="double">  </AutoCorrel>
+         <OK   Nb="1" Type="bool">  </OK>  <!-- Help 4 compute, should always be true -->
+         <CoeffRadiom   Nb="1" Type="std::vector<double>">           </CoeffRadiom>
+         <CoeffRadiom2  Nb="1" Type="std::vector<double>">           </CoeffRadiom2>
+         <CoeffGradRadial   Nb="1" Type="std::vector<double>">       </CoeffGradRadial>
+         <CoeffGradRadialF2   Nb="1" Type="std::vector<double>">     </CoeffGradRadialF2>
+         <CoeffGradTangent   Nb="1" Type="std::vector<double>">      </CoeffGradTangent>
+         <CoeffGradTangentPiS4   Nb="1" Type="std::vector<double>">  </CoeffGradTangentPiS4>
+         <CoeffGradTangentPiS2   Nb="1" Type="std::vector<double>">  </CoeffGradTangentPiS2>
       </OnePCarac>
    </SetPCarac>
 <Verbatim File=".h.cpp">

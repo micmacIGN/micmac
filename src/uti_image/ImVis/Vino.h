@@ -45,8 +45,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //  =======   Pour visualiser les points carac new
 #include "../NewRechPH/cParamNewRechPH.h"
-std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
-void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
+#include "../NewRechPH/ExternNewRechPH.h"
+
+// std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
+// void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
+
+cSetPCarac * LoadStdSetCarac(const std::string & aNameIm);
 
 
 //  =======   Pour visualiser les points carac new
@@ -369,13 +373,16 @@ class cAppli_Vino : public cXml_EnvVino,
  
       // Vector view 
 
-        bool           mBasicPC;
+        std::string    mImNewP;
         int            mSzSift;
-        double         mSSF;  // Sift Scale Factor
+        std::string    mImSift;
+        double         mSSF;  // Sift Scale Factor => car a bas niveau calcule sur image reduite
         std::string    mNameSift;
         int            mWithPCarac;
         cSetPCarac *   mSPC;
         std::vector<Siftator::SiftPoint> mVSift;
+        double         mSeuilAC;
+        double         mSeuilContRel;
 
 };
 

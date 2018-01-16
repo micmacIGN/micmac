@@ -260,6 +260,8 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
              aPC.Scale() = aBr->Scale();
              aPC.NivScale() = aBr->NivScal();
              aPC.DirMS() = aVP.back()->Pt() - aVP.front()->Pt();
+             aPC.ScaleStab() = aBr->ScaleStab();
+
              std::cout << "DIRMS " << euclid(aPC.DirMS()) << "\n";
 
              aSPC.OnePCarac().push_back(aPC);
@@ -410,15 +412,26 @@ double cOneScaleImRechPH::GetVal(const Pt2di & aP,bool & Ok) const
 
 bool cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
 {
+   aP.OK() = true;
+
+
    cNH_CutAutoCorrelDir<tTImNRPH>  mACD(mTIm,Pt2di(aP.Pt()),ElMax(2.0,1+mScale),round_up(mScale));
    
     
-   bool isAC = mACD.AutoCorrel(Pt2di(aP.Pt()),2.0);
+   mACD.AutoCorrel(Pt2di(aP.Pt()),2.0);
    Pt2dr  aR = mACD.Res();
 
    
    aP.AutoCorrel() = aR.y;
    aP.DirAC() = Pt2dr::FromPolar(mScale,aR.x);
+
+   // std::cout << "AUTOC " << aP.AutoCorrel() << " " <<  mAppli.SeuilAC() << "\n";
+
+   if (aP.AutoCorrel() > mAppli.SeuilAC())
+   {
+      aP.OK() =  false;
+      return false;
+   }
 
    // std::cout << "CALCUL ComputeDirAC " << isAC  << " " << aR<< "\n";
    return true;

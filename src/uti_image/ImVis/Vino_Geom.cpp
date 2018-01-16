@@ -263,6 +263,13 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
    {
        mW->draw_circle_loc(aU2W(aNearest->Pt()),3.0,mW->pdisc()(P8COL::magenta));
        mW->draw_circle_loc(aU2W(aNearest->Pt()),5.0,mW->pdisc()(P8COL::magenta));
+
+       std::cout << "  * AutoC : " << aNearest->AutoCorrel() << "\n";
+       std::cout << "  * Scale : "      << aNearest->Scale()      << "\n";
+       std::cout << "  * SStab : "      << aNearest->ScaleStab()      << "\n";
+       std::cout << "  * Contr : "      << aNearest->Contraste()  << " Rel : " << aNearest->ContrasteRel()   << "\n";
+
+       std::cout << "\n";
    }
 }
 
@@ -280,7 +287,11 @@ void cAppli_Vino::ShowVectPCarac()
            if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
            {
                mW->draw_circle_loc(aPW,aPC.Scale()*2*mScr->sc(),mW->pdisc()(P8COL::yellow));
-               ShowPt(aPC,aSim,mW);
+
+               if ((aPC.ContrasteRel()>mSeuilContRel) &&   (aPC.AutoCorrel()< mSeuilAC))
+               {
+                  ShowPt(aPC,aSim,mW);
+               }
                // Pt2dr aDirMS = aPC.DirMS();
                Pt2dr aDirMS = aPC.DirAC();
 // std::cout << "aDirMS " << aDirMS << "\n";

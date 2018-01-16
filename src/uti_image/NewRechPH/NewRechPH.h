@@ -48,6 +48,8 @@ class cOneScaleImRechPH;
 #include "ExternNewRechPH.h"
 #include "LoccPtOfCorrel.h"
 
+void TestTouch();
+
 /*
 typedef float   tElNewRechPH ;
 typedef double  tElBufNRPH ;
@@ -98,8 +100,8 @@ class cOneScaleImRechPH
 // Sift 
           void SiftMakeDif(cOneScaleImRechPH* );
           void SiftMaxLoc(cOneScaleImRechPH* aLR,cOneScaleImRechPH* aHR,cSetPCarac&);
-          bool OkSiftContrast(cOnePCarac & aP) ;
-          double ComputeContrast() ;
+          // bool OkSiftContrast(cOnePCarac & aP) ;
+          // double ComputeContrast() ;
 
 
           bool ComputeDirAC(cOnePCarac &);
@@ -143,7 +145,7 @@ class cAppli_NewRechPH
         const double & DZPlyLay() const {return  mDZPlyLay;}
 
 
-        double    ThreshCstrIm0() {return mThreshCstrIm0;}
+        // double    ThreshCstrIm0() {return mThreshCstrIm0;}
 
         bool Inside(const Pt2di & aP) const;
         const Pt2di & SzIm() const ;
@@ -156,12 +158,18 @@ class cAppli_NewRechPH
         int&  NbSpace()          { return  mNbSpace;}
         int&  NbScaleSpace()     { return  mNbScaleSpace;}
         int&  NbScaleSpaceCstr() { return  mNbScaleSpaceCstr;}
+        double   SeuilAC() const { return  mSeuilAC;}
+        double   SeuilCR() const { return  mSeuilCR;}
+        bool SaveFileLapl() const{return  mSaveFileLapl;}
 
         bool  OkNivStab(int aNiv);
         bool  OkNivLapl(int aNiv);
         double GetLapl(int aNiv,const Pt2di & aP,bool &Ok);
 
         cOneScaleImRechPH * GetImOfNiv(int aNiv);
+        void ComputeContrast();
+        bool ComputeContrastePt(cOnePCarac & aPt);
+
         
 
     private :
@@ -169,11 +177,14 @@ class cAppli_NewRechPH
         void Clik();
 
 
+
         std::string mName;
         double      mPowS;
         int         mNbS;
         double      mS0;
         double      mScaleStab;
+        double      mSeuilAC;
+        double      mSeuilCR; // Contraste relatif
         Pt2di       mSzIm;
         Box2di      mBox;
 
@@ -197,15 +208,28 @@ class cAppli_NewRechPH
         std::vector<int>                        mHistN0;
         std::string                             mExtSave;
         bool                                    mBasic;
-        bool                                    mModeSift;
+        bool                                    mAddModeSift;
+        bool                                    mAddModeTopo;
         bool                                    mLapMS;
         bool                                    mTestDirac;
-        double                                  mPropCtrsIm0;
-        double                                  mThreshCstrIm0;  /// Computed on first lapla
+        bool                                    mSaveFileLapl;
+        // double                                  mPropCtrsIm0;
+        // double                                  mThreshCstrIm0;  /// Computed on first lapla
 
         int     mNbSpace;
         int     mNbScaleSpace;
         int     mNbScaleSpaceCstr;
+
+        double  mDistAttenContr;  // 20
+        double  mPropContrAbs;    // 0.2
+        int     mSzContrast;      // 2
+        double  mPropCalcContr;   // 0.25
+
+
+        tImNRPH   mIm0;
+        tTImNRPH  mTIm0;
+        tImNRPH   mImContrast;
+        tTImNRPH  mTImContrast;
 };
 
 

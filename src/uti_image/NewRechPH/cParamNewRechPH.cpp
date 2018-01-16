@@ -166,6 +166,17 @@ const double & cOnePCarac::Scale()const
 }
 
 
+double & cOnePCarac::ScaleStab()
+{
+   return mScaleStab;
+}
+
+const double & cOnePCarac::ScaleStab()const 
+{
+   return mScaleStab;
+}
+
+
 Pt2dr & cOnePCarac::DirMS()
 {
    return mDirMS;
@@ -188,14 +199,25 @@ const Pt2dr & cOnePCarac::DirAC()const
 }
 
 
-double & cOnePCarac::Contrast()
+double & cOnePCarac::Contraste()
 {
-   return mContrast;
+   return mContraste;
 }
 
-const double & cOnePCarac::Contrast()const 
+const double & cOnePCarac::Contraste()const 
 {
-   return mContrast;
+   return mContraste;
+}
+
+
+double & cOnePCarac::ContrasteRel()
+{
+   return mContrasteRel;
+}
+
+const double & cOnePCarac::ContrasteRel()const 
+{
+   return mContrasteRel;
 }
 
 
@@ -209,16 +231,114 @@ const double & cOnePCarac::AutoCorrel()const
    return mAutoCorrel;
 }
 
+
+bool & cOnePCarac::OK()
+{
+   return mOK;
+}
+
+const bool & cOnePCarac::OK()const 
+{
+   return mOK;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffRadiom()
+{
+   return mCoeffRadiom;
+}
+
+const std::vector<double> & cOnePCarac::CoeffRadiom()const 
+{
+   return mCoeffRadiom;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffRadiom2()
+{
+   return mCoeffRadiom2;
+}
+
+const std::vector<double> & cOnePCarac::CoeffRadiom2()const 
+{
+   return mCoeffRadiom2;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffGradRadial()
+{
+   return mCoeffGradRadial;
+}
+
+const std::vector<double> & cOnePCarac::CoeffGradRadial()const 
+{
+   return mCoeffGradRadial;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffGradRadialF2()
+{
+   return mCoeffGradRadialF2;
+}
+
+const std::vector<double> & cOnePCarac::CoeffGradRadialF2()const 
+{
+   return mCoeffGradRadialF2;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffGradTangent()
+{
+   return mCoeffGradTangent;
+}
+
+const std::vector<double> & cOnePCarac::CoeffGradTangent()const 
+{
+   return mCoeffGradTangent;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffGradTangentPiS4()
+{
+   return mCoeffGradTangentPiS4;
+}
+
+const std::vector<double> & cOnePCarac::CoeffGradTangentPiS4()const 
+{
+   return mCoeffGradTangentPiS4;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffGradTangentPiS2()
+{
+   return mCoeffGradTangentPiS2;
+}
+
+const std::vector<double> & cOnePCarac::CoeffGradTangentPiS2()const 
+{
+   return mCoeffGradTangentPiS2;
+}
+
 void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Kind(),aFp);
     BinaryUnDumpFromFile(anObj.Pt(),aFp);
     BinaryUnDumpFromFile(anObj.NivScale(),aFp);
     BinaryUnDumpFromFile(anObj.Scale(),aFp);
+    BinaryUnDumpFromFile(anObj.ScaleStab(),aFp);
     BinaryUnDumpFromFile(anObj.DirMS(),aFp);
     BinaryUnDumpFromFile(anObj.DirAC(),aFp);
-    BinaryUnDumpFromFile(anObj.Contrast(),aFp);
+    BinaryUnDumpFromFile(anObj.Contraste(),aFp);
+    BinaryUnDumpFromFile(anObj.ContrasteRel(),aFp);
     BinaryUnDumpFromFile(anObj.AutoCorrel(),aFp);
+    BinaryUnDumpFromFile(anObj.OK(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffRadiom(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffRadiom2(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffGradRadial(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffGradRadialF2(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffGradTangent(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffGradTangentPiS4(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffGradTangentPiS2(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
@@ -227,10 +347,20 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
     BinaryDumpInFile(aFp,anObj.Pt());
     BinaryDumpInFile(aFp,anObj.NivScale());
     BinaryDumpInFile(aFp,anObj.Scale());
+    BinaryDumpInFile(aFp,anObj.ScaleStab());
     BinaryDumpInFile(aFp,anObj.DirMS());
     BinaryDumpInFile(aFp,anObj.DirAC());
-    BinaryDumpInFile(aFp,anObj.Contrast());
+    BinaryDumpInFile(aFp,anObj.Contraste());
+    BinaryDumpInFile(aFp,anObj.ContrasteRel());
     BinaryDumpInFile(aFp,anObj.AutoCorrel());
+    BinaryDumpInFile(aFp,anObj.OK());
+    BinaryDumpInFile(aFp,anObj.CoeffRadiom());
+    BinaryDumpInFile(aFp,anObj.CoeffRadiom2());
+    BinaryDumpInFile(aFp,anObj.CoeffGradRadial());
+    BinaryDumpInFile(aFp,anObj.CoeffGradRadialF2());
+    BinaryDumpInFile(aFp,anObj.CoeffGradTangent());
+    BinaryDumpInFile(aFp,anObj.CoeffGradTangentPiS4());
+    BinaryDumpInFile(aFp,anObj.CoeffGradTangentPiS2());
 }
 
 cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
@@ -241,10 +371,20 @@ cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
    aRes->AddFils(::ToXMLTree(std::string("Pt"),anObj.Pt())->ReTagThis("Pt"));
    aRes->AddFils(::ToXMLTree(std::string("NivScale"),anObj.NivScale())->ReTagThis("NivScale"));
    aRes->AddFils(::ToXMLTree(std::string("Scale"),anObj.Scale())->ReTagThis("Scale"));
+   aRes->AddFils(::ToXMLTree(std::string("ScaleStab"),anObj.ScaleStab())->ReTagThis("ScaleStab"));
    aRes->AddFils(::ToXMLTree(std::string("DirMS"),anObj.DirMS())->ReTagThis("DirMS"));
    aRes->AddFils(::ToXMLTree(std::string("DirAC"),anObj.DirAC())->ReTagThis("DirAC"));
-   aRes->AddFils(::ToXMLTree(std::string("Contrast"),anObj.Contrast())->ReTagThis("Contrast"));
+   aRes->AddFils(::ToXMLTree(std::string("Contraste"),anObj.Contraste())->ReTagThis("Contraste"));
+   aRes->AddFils(::ToXMLTree(std::string("ContrasteRel"),anObj.ContrasteRel())->ReTagThis("ContrasteRel"));
    aRes->AddFils(::ToXMLTree(std::string("AutoCorrel"),anObj.AutoCorrel())->ReTagThis("AutoCorrel"));
+   aRes->AddFils(::ToXMLTree(std::string("OK"),anObj.OK())->ReTagThis("OK"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffRadiom"),anObj.CoeffRadiom())->ReTagThis("CoeffRadiom"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffRadiom2"),anObj.CoeffRadiom2())->ReTagThis("CoeffRadiom2"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffGradRadial"),anObj.CoeffGradRadial())->ReTagThis("CoeffGradRadial"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffGradRadialF2"),anObj.CoeffGradRadialF2())->ReTagThis("CoeffGradRadialF2"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffGradTangent"),anObj.CoeffGradTangent())->ReTagThis("CoeffGradTangent"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffGradTangentPiS4"),anObj.CoeffGradTangentPiS4())->ReTagThis("CoeffGradTangentPiS4"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffGradTangentPiS2"),anObj.CoeffGradTangentPiS2())->ReTagThis("CoeffGradTangentPiS2"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -263,16 +403,36 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Scale(),aTree->Get("Scale",1)); //tototo 
 
+   xml_init(anObj.ScaleStab(),aTree->Get("ScaleStab",1)); //tototo 
+
    xml_init(anObj.DirMS(),aTree->Get("DirMS",1)); //tototo 
 
    xml_init(anObj.DirAC(),aTree->Get("DirAC",1)); //tototo 
 
-   xml_init(anObj.Contrast(),aTree->Get("Contrast",1)); //tototo 
+   xml_init(anObj.Contraste(),aTree->Get("Contraste",1)); //tototo 
+
+   xml_init(anObj.ContrasteRel(),aTree->Get("ContrasteRel",1)); //tototo 
 
    xml_init(anObj.AutoCorrel(),aTree->Get("AutoCorrel",1)); //tototo 
+
+   xml_init(anObj.OK(),aTree->Get("OK",1)); //tototo 
+
+   xml_init(anObj.CoeffRadiom(),aTree->Get("CoeffRadiom",1)); //tototo 
+
+   xml_init(anObj.CoeffRadiom2(),aTree->Get("CoeffRadiom2",1)); //tototo 
+
+   xml_init(anObj.CoeffGradRadial(),aTree->Get("CoeffGradRadial",1)); //tototo 
+
+   xml_init(anObj.CoeffGradRadialF2(),aTree->Get("CoeffGradRadialF2",1)); //tototo 
+
+   xml_init(anObj.CoeffGradTangent(),aTree->Get("CoeffGradTangent",1)); //tototo 
+
+   xml_init(anObj.CoeffGradTangentPiS4(),aTree->Get("CoeffGradTangentPiS4",1)); //tototo 
+
+   xml_init(anObj.CoeffGradTangentPiS2(),aTree->Get("CoeffGradTangentPiS2",1)); //tototo 
 }
 
-std::string  Mangling( cOnePCarac *) {return "9B68B2501F322698FF3F";};
+std::string  Mangling( cOnePCarac *) {return "808DA0E0F0AE06D9F8BF";};
 
 
 std::list< cOnePCarac > & cSetPCarac::OnePCarac()
@@ -331,6 +491,6 @@ void xml_init(cSetPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.OnePCarac(),aTree->GetAll("OnePCarac",false,1));
 }
 
-std::string  Mangling( cSetPCarac *) {return "B6B0DC4822F30E98FF3F";};
+std::string  Mangling( cSetPCarac *) {return "3239841B4CCCDFA0FE3F";};
 
 // };

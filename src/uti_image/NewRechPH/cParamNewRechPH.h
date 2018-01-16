@@ -71,26 +71,66 @@ class cOnePCarac
         double & Scale();
         const double & Scale()const ;
 
+        double & ScaleStab();
+        const double & ScaleStab()const ;
+
         Pt2dr & DirMS();
         const Pt2dr & DirMS()const ;
 
         Pt2dr & DirAC();
         const Pt2dr & DirAC()const ;
 
-        double & Contrast();
-        const double & Contrast()const ;
+        double & Contraste();
+        const double & Contraste()const ;
+
+        double & ContrasteRel();
+        const double & ContrasteRel()const ;
 
         double & AutoCorrel();
         const double & AutoCorrel()const ;
+
+        bool & OK();
+        const bool & OK()const ;
+
+        std::vector<double> & CoeffRadiom();
+        const std::vector<double> & CoeffRadiom()const ;
+
+        std::vector<double> & CoeffRadiom2();
+        const std::vector<double> & CoeffRadiom2()const ;
+
+        std::vector<double> & CoeffGradRadial();
+        const std::vector<double> & CoeffGradRadial()const ;
+
+        std::vector<double> & CoeffGradRadialF2();
+        const std::vector<double> & CoeffGradRadialF2()const ;
+
+        std::vector<double> & CoeffGradTangent();
+        const std::vector<double> & CoeffGradTangent()const ;
+
+        std::vector<double> & CoeffGradTangentPiS4();
+        const std::vector<double> & CoeffGradTangentPiS4()const ;
+
+        std::vector<double> & CoeffGradTangentPiS2();
+        const std::vector<double> & CoeffGradTangentPiS2()const ;
     private:
         eTypePtRemark mKind;
         Pt2dr mPt;
         int mNivScale;
         double mScale;
+        double mScaleStab;
         Pt2dr mDirMS;
         Pt2dr mDirAC;
-        double mContrast;
+        double mContraste;
+        double mContrasteRel;
         double mAutoCorrel;
+        bool mOK;
+        std::vector<double> mCoeffRadiom;
+        std::vector<double> mCoeffRadiom2;
+        std::vector<double> mCoeffGradRadial;
+        std::vector<double> mCoeffGradRadialF2;
+        std::vector<double> mCoeffGradTangent;
+        std::vector<double> mCoeffGradTangentPiS4;
+        std::vector<double> mCoeffGradTangentPiS2;
 };
 cElXMLTree * ToXMLTree(const cOnePCarac &);
 
