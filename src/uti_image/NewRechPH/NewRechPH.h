@@ -190,8 +190,9 @@ class cAppli_NewRechPH
         int         mDeltaSR;  // Delta entre deux niveau radiaux, genre 1 ou 2 ?
         int         mMaxLevR;  // Niv max permettant le calcul (calcule a partir des autres)
 
-        int         mNbTetaIm;
-        int         mMulNbTetaInv;
+        int         mNbTetaIm;  // Assez si on veut pouvoir interpoler entre les angles pour recalage
+        int         mMulNbTetaInv; // Comme ceux pour l'invariance ne coutent pas très cher, on a interet a en mettre + ?
+        int         mNbTetaInv; // Calcule, 
 
 
         double      mS0;

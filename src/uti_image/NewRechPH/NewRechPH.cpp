@@ -125,6 +125,9 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mNbSR        (7),
     mDeltaSR     (2),
     mMaxLevR     (mNbS - (mNbSR-1) * mDeltaSR),
+    mNbTetaIm    (16),
+    mMulNbTetaInv (4),
+    mNbTetaInv   (mNbTetaIm*mMulNbTetaInv),
     mS0          (1.0),
     mScaleStab   (4.0),
     mSeuilAC     (0.95),
@@ -363,15 +366,6 @@ bool  cAppli_NewRechPH::ComputeContrastePt(cOnePCarac & aPt)
    return aPt.OK();
 }
 
-bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
-{
-   if (aPt.NivScale() >= mMaxLevR) 
-   {
-      return aPt.OK() = false;
-   }
-
-   return true;
-}
 
 
 void cAppli_NewRechPH::ComputeContrast()

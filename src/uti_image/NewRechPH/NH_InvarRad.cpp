@@ -40,6 +40,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
+{
+   if (aPt.NivScale() >= mMaxLevR)
+   {
+      return aPt.OK() = false;
+   }
+
+   // Buf[Teta][Rho]
+   static tImNRPH aImBuf(mNbSR,  mNbTetaInv);
+
+   return true;
+}
+
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
