@@ -104,9 +104,6 @@ class cOnePCarac
         std::vector<double> & CoeffGradRadial();
         const std::vector<double> & CoeffGradRadial()const ;
 
-        std::vector<double> & CoeffGradRadialF2();
-        const std::vector<double> & CoeffGradRadialF2()const ;
-
         std::vector<double> & CoeffGradTangent();
         const std::vector<double> & CoeffGradTangent()const ;
 
@@ -115,6 +112,12 @@ class cOnePCarac
 
         std::vector<double> & CoeffGradTangentPiS2();
         const std::vector<double> & CoeffGradTangentPiS2()const ;
+
+        Im2D_REAL4 & ImRad();
+        const Im2D_REAL4 & ImRad()const ;
+
+        std::vector<double> & VectRho();
+        const std::vector<double> & VectRho()const ;
     private:
         eTypePtRemark mKind;
         Pt2dr mPt;
@@ -131,10 +134,11 @@ class cOnePCarac
         std::vector<double> mCoeffRadiom;
         std::vector<double> mCoeffRadiom2;
         std::vector<double> mCoeffGradRadial;
-        std::vector<double> mCoeffGradRadialF2;
         std::vector<double> mCoeffGradTangent;
         std::vector<double> mCoeffGradTangentPiS4;
         std::vector<double> mCoeffGradTangentPiS2;
+        Im2D_REAL4 mImRad;
+        std::vector<double> mVectRho;
 };
 cElXMLTree * ToXMLTree(const cOnePCarac &);
 
@@ -155,10 +159,10 @@ class cSetPCarac
         friend void xml_init(cSetPCarac & anObj,cElXMLTree * aTree);
 
 
-        std::list< cOnePCarac > & OnePCarac();
-        const std::list< cOnePCarac > & OnePCarac()const ;
+        std::vector< cOnePCarac > & OnePCarac();
+        const std::vector< cOnePCarac > & OnePCarac()const ;
     private:
-        std::list< cOnePCarac > mOnePCarac;
+        std::vector< cOnePCarac > mOnePCarac;
 };
 cElXMLTree * ToXMLTree(const cSetPCarac &);
 

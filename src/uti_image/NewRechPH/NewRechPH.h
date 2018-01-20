@@ -85,7 +85,9 @@ class cOneScaleImRechPH
                       cOneScaleImRechPH &,   // niveau du dessus
                       const double & aSigma  // a sigma abs
                  );
-          tImNRPH Im(); // simple accesseur a l'image
+          tImNRPH  Im() {return mIm;}  // simple accesseur a l'image
+          tTImNRPH TIm() {return mTIm;}  // simple accesseur a l'image
+
 
           void CalcPtsCarac(bool Basic);
           void Show(Video_Win* aW);
@@ -107,6 +109,7 @@ class cOneScaleImRechPH
 
           bool ComputeDirAC(cOnePCarac &);
           bool AffinePosition(cOnePCarac &);
+          int& NbPOfLab(int aK) {return mNbPByLab.at(aK);}
 
       private :
           void InitImMod();
@@ -133,12 +136,15 @@ class cOneScaleImRechPH
           int       mNiv;
           int       mNbExLR; 
           int       mNbExHR;
+          std::vector<int>  mNbPByLab;
 };
 
 
 class cAppli_NewRechPH
 {
     public :
+        Pt2di SzInvRad();
+
         cAppli_NewRechPH(int argc,char ** argv,bool ModeTest);
 
         double   DistMinMax(bool Basic) const ;
@@ -186,6 +192,7 @@ class cAppli_NewRechPH
 /*
   Invariant Rotation
 */
+        double      mStepSR;  // Pas entre les pixel de reechantillonage pour les desc
         int         mNbSR;     // Nbre de niveau radial (entre 
         int         mDeltaSR;  // Delta entre deux niveau radiaux, genre 1 ou 2 ?
         int         mMaxLevR;  // Niv max permettant le calcul (calcule a partir des autres)
@@ -245,6 +252,7 @@ class cAppli_NewRechPH
         tImNRPH   mImContrast;
         tTImNRPH  mTImContrast;
         tInterpolNRPH * mInterp;
+
 };
 
 

@@ -240,6 +240,24 @@ void cAppli_Vino::ShowVect()
       ShowVectPCarac();
 }
 
+const cOnePCarac * cAppli_Vino::Nearest(const Pt2dr & aPClU,double * aDist,eTypePtRemark aType)
+{
+   const cOnePCarac * aNearest= nullptr;
+   double aDMin=1e20;
+   for (const auto & aPC : mSPC->OnePCarac())
+   {
+       double aDist = euclid(aPC.Pt(),aPClU);
+       if (  ((aPC.Kind()==aType)||(aType==eTPR_NoLabel)) && (aDist<aDMin))
+       {
+          aDMin = aDist;
+          aNearest = & aPC;
+       }
+   }
+   if (aDist) 
+      *aDist = aDMin;
+   return aNearest;
+}
+
 void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
 {
    ElSimilitude aU2W = mScr->to_win();
@@ -248,6 +266,8 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
 
    mW->draw_circle_loc(aPClW,3.0,mW->pdisc()(P8COL::cyan));
 
+
+/*
    const cOnePCarac * aNearest= nullptr;
    double aDMin=1e20;
    for (const auto & aPC : mSPC->OnePCarac())
@@ -259,10 +279,18 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
           aNearest = & aPC;
        }
    }
+*/
+   const cOnePCarac *  aNearest = Nearest(aPClU);
    if (aNearest)
    {
-       mW->draw_circle_loc(aU2W(aNearest->Pt()),3.0,mW->pdisc()(P8COL::magenta));
-       mW->draw_circle_loc(aU2W(aNearest->Pt()),5.0,mW->pdisc()(P8COL::magenta));
+       // mW->draw_circle_loc(aU2W(aNearest->Pt()),3.0,mW->pdisc()(P8COL::magenta));
+       // mW->draw_circle_loc(aU2W(aNearest->Pt()),5.0,mW->pdisc()(P8COL::magenta));
+
+       double aSc = mScr->sc();
+       for (const auto & aRho : aNearest->VectRho())
+       {
+           mW->draw_circle_loc(aU2W(aNearest->Pt()),aSc*aRho,mW->pdisc()(P8COL::magenta));
+       }
 
        std::cout << "  * AutoC : " << aNearest->AutoCorrel() << "\n";
        std::cout << "  * Scale : "      << aNearest->Scale()      << "\n";
@@ -270,7 +298,22 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
        std::cout << "  * Contr : "      << aNearest->Contraste()  << " Rel : " << aNearest->ContrasteRel()   << "\n";
 
        std::cout << "\n";
+       std::cout << "Rhoooo " << aNearest->VectRho() << "\n";
+
+       {
+          Im2D_REAL4 aImLogT = aNearest->ImRad();
+          int aZoom=10;
+          Pt2di aSz = aImLogT.sz();
+
+          ELISE_COPY
+          (
+              rectangle(Pt2di(0,0),Pt2di(aSz.y*aZoom,aSz.x*aZoom)),
+              Max(0,Min(255,128 + 64 * aImLogT.in()[Virgule(FY,FX)/aZoom])),
+              mW->ogray()
+          );
+       }
    }
+
 }
 
 
@@ -280,8 +323,9 @@ void cAppli_Vino::ShowVectPCarac()
 
    if (mSPC)
    {
-       for (const auto & aPC : mSPC->OnePCarac())
+       for (int aKP=0 ; aKP<int(mSPC->OnePCarac().size()) ; aKP++)
        {
+           const cOnePCarac & aPC = mSPC->OnePCarac()[aKP];
            Pt2dr aPU = aPC.Pt();
            Pt2dr aPW = aSim(aPU);
            if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))

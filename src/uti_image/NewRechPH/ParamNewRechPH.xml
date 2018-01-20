@@ -28,7 +28,7 @@
    </PtSc>
 
    <SetPCarac  Nb="1" Class="true">
-      <OnePCarac  Nb="*" Class="true">
+      <OnePCarac  Nb="*" Class="true" Container="std::vector">
          <Kind Nb="1" Type="eTypePtRemark">        </Kind>
          <Pt   Nb="1" Type="Pt2dr">     </Pt>
          <Pt0   Nb="1" Type="Pt2dr">     </Pt0>  <!-- Avant opt, pour test -->
@@ -44,10 +44,12 @@
          <CoeffRadiom   Nb="1" Type="std::vector<double>">           </CoeffRadiom>
          <CoeffRadiom2  Nb="1" Type="std::vector<double>">           </CoeffRadiom2>
          <CoeffGradRadial   Nb="1" Type="std::vector<double>">       </CoeffGradRadial>
-         <CoeffGradRadialF2   Nb="1" Type="std::vector<double>">     </CoeffGradRadialF2>
          <CoeffGradTangent   Nb="1" Type="std::vector<double>">      </CoeffGradTangent>
          <CoeffGradTangentPiS4   Nb="1" Type="std::vector<double>">  </CoeffGradTangentPiS4>
          <CoeffGradTangentPiS2   Nb="1" Type="std::vector<double>">  </CoeffGradTangentPiS2>
+    <!-- Pour visu -->
+         <ImRad Nb="1" Type="Im2D_REAL4"> </ImRad>
+         <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
       </OnePCarac>
    </SetPCarac>
 <Verbatim File=".h.cpp">

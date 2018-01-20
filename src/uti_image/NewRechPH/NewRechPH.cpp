@@ -121,9 +121,10 @@ void TestSigma2(double a)
 
 cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mPowS        (pow(2.0,1/5.0)),
-    mNbS         (40),
-    mNbSR        (7),
-    mDeltaSR     (2),
+    mNbS         (30),
+    mStepSR      (1.0),
+    mNbSR        (10),
+    mDeltaSR     (1),
     mMaxLevR     (mNbS - (mNbSR-1) * mDeltaSR),
     mNbTetaIm    (16),
     mMulNbTetaInv (4),
@@ -307,7 +308,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    for (auto & aPt : aSPC.OnePCarac())
        aPt.OK() = true;
 
-   std::list<cOnePCarac> aNewL;
+   std::vector<cOnePCarac> aNewL;
    for (auto & aPt : aSPC.OnePCarac())
    {
        if (aPt.OK())  
@@ -323,7 +324,11 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
        {
           mVI1[aPt.NivScale()]->AffinePosition(aPt);
        }
+       mVI1[aPt.NivScale()]->NbPOfLab(int(aPt.Kind())) ++;
+  }
 
+  for (auto & aPt : aSPC.OnePCarac())
+  {
        if (aPt.OK())
        {
           CalvInvariantRot(aPt);
@@ -333,8 +338,8 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
        aPt.Pt() =  aPt.Pt() + Pt2dr(aP0);
        if (aPt.OK())
           aNewL.push_back(aPt);
-   }
-   aSPC.OnePCarac() = aNewL;
+  }
+  aSPC.OnePCarac() = aNewL;
 
 
    // MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));

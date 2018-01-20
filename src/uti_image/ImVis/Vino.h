@@ -223,7 +223,7 @@ class cAppli_Vino : public cXml_EnvVino,
         void PostInitVirtual();
         void  Boucle();
         cXml_EnvVino & EnvXml() {return static_cast<cXml_EnvVino &> (*this);}
-
+        const cOnePCarac * Nearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
 
      private :
         void  ExeOneClik(Clik &);
@@ -282,6 +282,7 @@ class cAppli_Vino : public cXml_EnvVino,
         std::string               mNameXmlOut;
         std::string               mNameXmlIn;
         std::string               mDir;
+        cInterfChantierNameManipulateur * mICNM;
         std::string               mNameIm;
         Tiff_Im  *                mTiffIm;
         std::string               mNameTiffIm;
@@ -369,6 +370,7 @@ class cAppli_Vino : public cXml_EnvVino,
 
         //  Appli Vino Secondary Images
         std::vector<cAppli_Vino *>  mAVSI;
+        cAppli_Vino  *              mMother;
         std::string                 mPatSecIm;
  
       // Vector view 
@@ -384,6 +386,11 @@ class cAppli_Vino : public cXml_EnvVino,
         double         mSeuilAC;
         double         mSeuilContRel;
 
+        std::vector<std::string>   mCheckHom;
+        cElNuage3DMaille *         mCheckNuage;
+        cBasicGeomCap3D  *         mCheckOri;
+        std::vector<const cOnePCarac*>   mVptHom;
+        
 };
 
 Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);

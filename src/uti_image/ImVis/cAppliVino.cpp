@@ -82,10 +82,13 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
     mIsMnt             (true),
     mWithBundlExp      (false),
     mClipIsChantier    (false),
+    mMother            (aMother),
     mWithPCarac        (false),
     mSPC               (0),
     mSeuilAC           (0.95),
-    mSeuilContRel      (0.6)
+    mSeuilContRel      (0.6),
+    mCheckNuage        (nullptr),
+    mCheckOri          (nullptr)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -142,7 +145,8 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
                     << EAM(mImNewP,"NewP",true,"Image for new tie point, if =\"\" curent image")
                     << EAM(mImSift,"ImSift",true,"Image for sift if != curent image")
                     << EAM(mSzSift,"ResolSift",true,"Resol of sift point to visualize")
-                    << EAM(mPatSecIm,"PSI",true,"Patt secondary images, for multiple vino")
+                    << EAM(mPatSecIm,"PSI",true,"Pattern Imaage Second")
+                    << EAM(mCheckHom,"CheckH",true,"Check Hom : [Cloud,Ori]")
                     // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
     );
 
@@ -151,6 +155,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
 
 // Files
     mDir = DirOfFile(mNameIm);
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
     ELISE_fp::MkDirSvp(mDir+"Tmp-MM-Dir/");
     // MakeFileXML(EnvXml(),mNameXmlOut);
 
@@ -328,6 +333,21 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
            mAVSI.push_back(new cAppli_Vino(argc,argv,aNIS,this));
        }
     }
+
+    if (EAMIsInit(&mCheckHom))
+    {
+        ELISE_ASSERT(mCheckHom.size()==2,"cAppli_Vino, size CheckHom");
+        // Cas master
+        if (! mMother)
+        {
+            mCheckNuage =   cElNuage3DMaille::FromFileIm(mCheckHom[0]);
+        }
+        else
+        {
+            StdCorrecNameOrient(mCheckHom[1],mDir);
+            mCheckOri = mICNM->StdCamGenerikOfNames(mCheckHom[1],mNameIm);
+        }
+    }
 }
 
 void cAppli_Vino::PostInitVirtual()
@@ -347,6 +367,38 @@ void cAppli_Vino::PostInitVirtual()
     for (auto  & aPtrAp : mAVSI)
     {
         aPtrAp->PostInitVirtual();
+    }
+
+    // Calcul des homologues par nuage
+
+    if ((!mMother) && mSPC && mCheckNuage && (mAVSI.size()==1))
+    {
+        cBasicGeomCap3D * aCap2 = mAVSI[0]->mCheckOri;
+        int aNbH=0;
+        for (const auto & aPt :  mSPC->OnePCarac())
+        {
+            const cOnePCarac * aHom = nullptr;
+            Pt2dr aPIm = mCheckNuage->Plani2Index(aPt.Pt());
+            if (mCheckNuage->CaptHasData(aPIm))
+            {
+                Pt3dr aPTer = mCheckNuage->PtOfIndexInterpol(aPIm);
+                if (aCap2->PIsVisibleInImage(aPTer))
+                {
+                    Pt2dr aPIm2 = aCap2->Ter2Capteur(aPTer);
+                    double aDist;
+                    aHom = mAVSI[0]->Nearest(aPIm2,&aDist);
+                    if (aDist>2.0)
+                    {
+                        aHom = nullptr;
+                    }
+                }
+            }
+            if (aHom) 
+               aNbH++;
+            mVptHom.push_back(aHom);
+        }
+        std::cout << "% Homol got " << (aNbH*100.0) / mVptHom.size() << "\n";
+
     }
 }
 

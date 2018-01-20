@@ -57,7 +57,8 @@ cOneScaleImRechPH::cOneScaleImRechPH(cAppli_NewRechPH &anAppli,const Pt2di & aSz
    mImMod (1,1),
    mTImMod (mImMod),
    mScale (aScale),
-   mNiv   (aNiv)
+   mNiv   (aNiv),
+   mNbPByLab (int(eTPR_NoLabel),0)
 {
    // cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
    // mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
@@ -133,9 +134,6 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneS
      }
      return aRes;
 }
-
-tImNRPH cOneScaleImRechPH::Im() {return mIm;}
-
 
 // Indique si tous les voisins se compare a la valeur cible aValCmp
 // autrement dit est un max ou min local

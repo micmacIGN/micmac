@@ -287,17 +287,6 @@ const std::vector<double> & cOnePCarac::CoeffGradRadial()const
 }
 
 
-std::vector<double> & cOnePCarac::CoeffGradRadialF2()
-{
-   return mCoeffGradRadialF2;
-}
-
-const std::vector<double> & cOnePCarac::CoeffGradRadialF2()const 
-{
-   return mCoeffGradRadialF2;
-}
-
-
 std::vector<double> & cOnePCarac::CoeffGradTangent()
 {
    return mCoeffGradTangent;
@@ -330,6 +319,28 @@ const std::vector<double> & cOnePCarac::CoeffGradTangentPiS2()const
    return mCoeffGradTangentPiS2;
 }
 
+
+Im2D_REAL4 & cOnePCarac::ImRad()
+{
+   return mImRad;
+}
+
+const Im2D_REAL4 & cOnePCarac::ImRad()const 
+{
+   return mImRad;
+}
+
+
+std::vector<double> & cOnePCarac::VectRho()
+{
+   return mVectRho;
+}
+
+const std::vector<double> & cOnePCarac::VectRho()const 
+{
+   return mVectRho;
+}
+
 void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Kind(),aFp);
@@ -347,10 +358,11 @@ void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.CoeffRadiom(),aFp);
     BinaryUnDumpFromFile(anObj.CoeffRadiom2(),aFp);
     BinaryUnDumpFromFile(anObj.CoeffGradRadial(),aFp);
-    BinaryUnDumpFromFile(anObj.CoeffGradRadialF2(),aFp);
     BinaryUnDumpFromFile(anObj.CoeffGradTangent(),aFp);
     BinaryUnDumpFromFile(anObj.CoeffGradTangentPiS4(),aFp);
     BinaryUnDumpFromFile(anObj.CoeffGradTangentPiS2(),aFp);
+    BinaryUnDumpFromFile(anObj.ImRad(),aFp);
+    BinaryUnDumpFromFile(anObj.VectRho(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
@@ -370,10 +382,11 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
     BinaryDumpInFile(aFp,anObj.CoeffRadiom());
     BinaryDumpInFile(aFp,anObj.CoeffRadiom2());
     BinaryDumpInFile(aFp,anObj.CoeffGradRadial());
-    BinaryDumpInFile(aFp,anObj.CoeffGradRadialF2());
     BinaryDumpInFile(aFp,anObj.CoeffGradTangent());
     BinaryDumpInFile(aFp,anObj.CoeffGradTangentPiS4());
     BinaryDumpInFile(aFp,anObj.CoeffGradTangentPiS2());
+    BinaryDumpInFile(aFp,anObj.ImRad());
+    BinaryDumpInFile(aFp,anObj.VectRho());
 }
 
 cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
@@ -395,10 +408,11 @@ cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
    aRes->AddFils(::ToXMLTree(std::string("CoeffRadiom"),anObj.CoeffRadiom())->ReTagThis("CoeffRadiom"));
    aRes->AddFils(::ToXMLTree(std::string("CoeffRadiom2"),anObj.CoeffRadiom2())->ReTagThis("CoeffRadiom2"));
    aRes->AddFils(::ToXMLTree(std::string("CoeffGradRadial"),anObj.CoeffGradRadial())->ReTagThis("CoeffGradRadial"));
-   aRes->AddFils(::ToXMLTree(std::string("CoeffGradRadialF2"),anObj.CoeffGradRadialF2())->ReTagThis("CoeffGradRadialF2"));
    aRes->AddFils(::ToXMLTree(std::string("CoeffGradTangent"),anObj.CoeffGradTangent())->ReTagThis("CoeffGradTangent"));
    aRes->AddFils(::ToXMLTree(std::string("CoeffGradTangentPiS4"),anObj.CoeffGradTangentPiS4())->ReTagThis("CoeffGradTangentPiS4"));
    aRes->AddFils(::ToXMLTree(std::string("CoeffGradTangentPiS2"),anObj.CoeffGradTangentPiS2())->ReTagThis("CoeffGradTangentPiS2"));
+   aRes->AddFils(::ToXMLTree(std::string("ImRad"),anObj.ImRad())->ReTagThis("ImRad"));
+   aRes->AddFils(::ToXMLTree(std::string("VectRho"),anObj.VectRho())->ReTagThis("VectRho"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -439,24 +453,26 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.CoeffGradRadial(),aTree->Get("CoeffGradRadial",1)); //tototo 
 
-   xml_init(anObj.CoeffGradRadialF2(),aTree->Get("CoeffGradRadialF2",1)); //tototo 
-
    xml_init(anObj.CoeffGradTangent(),aTree->Get("CoeffGradTangent",1)); //tototo 
 
    xml_init(anObj.CoeffGradTangentPiS4(),aTree->Get("CoeffGradTangentPiS4",1)); //tototo 
 
    xml_init(anObj.CoeffGradTangentPiS2(),aTree->Get("CoeffGradTangentPiS2",1)); //tototo 
+
+   xml_init(anObj.ImRad(),aTree->Get("ImRad",1)); //tototo 
+
+   xml_init(anObj.VectRho(),aTree->Get("VectRho",1)); //tototo 
 }
 
-std::string  Mangling( cOnePCarac *) {return "4257CB5437AB7DA2FE3F";};
+std::string  Mangling( cOnePCarac *) {return "E55EDA1D3D7978C6FE3F";};
 
 
-std::list< cOnePCarac > & cSetPCarac::OnePCarac()
+std::vector< cOnePCarac > & cSetPCarac::OnePCarac()
 {
    return mOnePCarac;
 }
 
-const std::list< cOnePCarac > & cSetPCarac::OnePCarac()const 
+const std::vector< cOnePCarac > & cSetPCarac::OnePCarac()const 
 {
    return mOnePCarac;
 }
@@ -477,7 +493,7 @@ void  BinaryUnDumpFromFile(cSetPCarac & anObj,ELISE_fp & aFp)
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSetPCarac & anObj)
 {
     BinaryDumpInFile(aFp,(int)anObj.OnePCarac().size());
-    for(  std::list< cOnePCarac >::const_iterator iT=anObj.OnePCarac().begin();
+    for(  std::vector< cOnePCarac >::const_iterator iT=anObj.OnePCarac().begin();
          iT!=anObj.OnePCarac().end();
           iT++
     )
@@ -489,7 +505,7 @@ cElXMLTree * ToXMLTree(const cSetPCarac & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SetPCarac",eXMLBranche);
   for
-  (       std::list< cOnePCarac >::const_iterator it=anObj.OnePCarac().begin();
+  (       std::vector< cOnePCarac >::const_iterator it=anObj.OnePCarac().begin();
       it !=anObj.OnePCarac().end();
       it++
   ) 
@@ -507,6 +523,6 @@ void xml_init(cSetPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.OnePCarac(),aTree->GetAll("OnePCarac",false,1));
 }
 
-std::string  Mangling( cSetPCarac *) {return "C40808241B37B583FF3F";};
+std::string  Mangling( cSetPCarac *) {return "11020C86E9168BF8FE3F";};
 
 // };
