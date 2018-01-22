@@ -189,6 +189,8 @@ void wallis( Im2D<U_INT1,INT> &image, Im2D<U_INT1,INT> &WallEqIm)
     int resto_n = n%dim_n;
     int resto_m = m%dim_m;
 
+    // incompatibilité compilation sous windows declarer un array avec une dimension qui n'est pas une constance.
+    // je corrige de la manière suivante mais sans tester le code donc il faudra repasser derière ultérieurement
     int *dimension_x = new int[N_Block];
     int *dimension_y = new int[M_Block];
 

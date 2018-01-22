@@ -667,6 +667,16 @@ void ElPackHomologue::InvY(Pt2dr aSzIm1,Pt2dr aSzIm2)
      }
 }
 
+void ElPackHomologue::Resize(double aRatioIm1,double aRatioIm2)
+{
+    for (tCont::iterator itCPl=begin() ; itCPl!=end() ; itCPl++)
+    {
+         itCPl->P1() = itCPl->P1()*aRatioIm1 ;
+         itCPl->P2() = itCPl->P2()*aRatioIm2;
+     }
+}
+
+
 const ElCplePtsHomologues * ElPackHomologue::Cple_Nearest(Pt2dr aP,bool P1) const
 {
    return static_cast<const ElCplePtsHomologues *> (Nuple_Nearest(aP,P1?0:1));

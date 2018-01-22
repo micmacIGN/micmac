@@ -27,6 +27,7 @@ private:
 
     cInterfChantierNameManipulateur * mICNM;
     std::string mImPat,mMode,mPatOrFile;
+    std::map<std::string,double> mImRatio; // for each images, the changing scale ratio
     std::list<std::string> mLFile;
 
 
@@ -39,6 +40,7 @@ private:
     std::string mTmpDir, mDir;
     bool mMergeHomol;
     bool mDebug;
+    std::string mHomolIDR,mHomolFormat;
 
 };
 
@@ -56,6 +58,16 @@ private:
     bool mF;
 };
 
+
+class cResizeHomol
+{
+public:
+    cResizeHomol(int argc, char** argv);
+private:
+
+    std::string mHomolNameIn, mHomolNameOut;
+    double mR1,mR2; // ratio for image 1 and 2
+};
 
 
 
