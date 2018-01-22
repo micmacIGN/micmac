@@ -40,6 +40,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+cSetPCarac * LoadStdSetCarac(const std::string & aNameIm)
+{
+   return new cSetPCarac
+               (
+                   StdGetObjFromFile<cSetPCarac>
+                   (
+                        NameFileNewPCarac(aNameIm,true, "Std"),
+                        MMDir() + "src/uti_image/NewRechPH/ParamNewRechPH.xml",
+                        "SetPCarac",
+                        "SetPCarac"
+                    )
+               );
+}
+
 
 // Visualise une conversion de flux en vecteur de point
 void  TestFlux2StdCont()
@@ -206,7 +220,8 @@ int SignOfType(eTypePtRemark aKind)
 }
 
 cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
-    mLR    (aLR)
+    mLR        (aLR),
+    mScaleStab (-1)
 {
     std::vector<cPtRemark *> aVPt;
     mLR->RecGetAllPt(aVPt);
@@ -224,9 +239,11 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
     mOk = (aNbMult==0) && anAppli.OkNivStab(aLR->Niv()) && (aNivMin==0);
     if (!mOk) return;
 
+    mScaleStab = anAppli.ScaleOfNiv(aLR->Niv());
+
     int aSign = SignOfType(mLR->Type());
     std::vector<double> aVLapl;
-    double aLaplMax = -1;
+    mLaplMax = -1;
     for (auto & aPt:  aVPt)
     {
         int aNiv = aPt->Niv();
@@ -238,14 +255,15 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
                return;
            }
 
-           if (aLapl> aLaplMax)
+           if (aLapl> mLaplMax)
            {
                mNivScal = aNiv;
                mScale   =  anAppli.ScaleOfNiv(aNiv);
-               aLaplMax = aLapl;
+               mLaplMax = aLapl;
            }
         }
     }
+    
     // std::cout << "SSsSSsS= " <<  aLaplMax << "\n";
 
 /*

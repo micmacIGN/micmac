@@ -251,6 +251,9 @@ std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC,const std::string & aLib)
    return aVC; 
 }
 
+int  CPP_StatPHom(int argc,char ** argv);
+
+
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -537,6 +540,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("GenerateBorderCam",GenerateBorderCam_main," Generate the polygone of image contour undistorded"));
        aRes.push_back(cMMCom("ProfilIm",CPP_ProfilImage,"Image profiling  2D->1D "));
        aRes.push_back(cMMCom("EditSet",CPP_EditSet,"Edition creation of a set of images/files"));
+       aRes.push_back(cMMCom("StatPHom",CPP_StatPHom,"Stat on homologous point using orientation of 3D Model"));
 
    }
 

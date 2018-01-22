@@ -43,10 +43,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
+cSetPCarac * LoadStdSetCarac(const std::string & aNameIm);
+
+class cAppli_NewRechPH;
+
+
 typedef float   tElNewRechPH ;
 typedef double  tElBufNRPH ;
 typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
 typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
+typedef cInterpolateurIm2D<tElNewRechPH>  tInterpolNRPH;
+
 
 
 double Sigma2FromFactExp(double a);
@@ -55,6 +64,8 @@ void TestSigma2(double a);
 template <class T1> void  LocFilterGauss(T1 & anIm, double aSigmaN,int aNbIter);
 void FilterGaussProgr(tImNRPH anIm,double  aSTarget,double  aSInit,int aNbIter);
 void TestDist(Pt2di aSz,Fonc_Num aP,double aScale);
+
+int SignOfType(eTypePtRemark aKind);
 
 
 
@@ -162,13 +173,17 @@ class cBrinPtRemark
         std::vector<cPtRemark *> GetAllPt();
         bool    Ok() const {return mOk;}
         double  Scale() const {return  mScale;}
+        double  ScaleStab() const {return  mScaleStab;}
         int     NivScal() const {return mNivScal;}
+        double  LaplMax() const {return mLaplMax;}
     private :
         cPtRemark * mLR;
         int         mNiv0;
         bool        mOk;
         int         mNivScal;
         double      mScale;
+        double      mScaleStab;
+        double      mLaplMax;
 };
 
 typedef cPtRemark * tPtrPtRemark;

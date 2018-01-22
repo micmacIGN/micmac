@@ -8,6 +8,7 @@ set(uti_image_NewRechPH_Src_Files
     ${UTI_IMAGE_NewRechPH_DIR}/cOSIR_Topo.cpp
     ${UTI_IMAGE_NewRechPH_DIR}/cOSIR_Gaussian.cpp
     ${UTI_IMAGE_NewRechPH_DIR}/StatPHom.cpp
+    ${UTI_IMAGE_NewRechPH_DIR}/NH_InvarRad.cpp
 )
 
 

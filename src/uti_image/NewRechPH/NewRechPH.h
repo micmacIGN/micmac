@@ -48,6 +48,9 @@ class cOneScaleImRechPH;
 #include "ExternNewRechPH.h"
 #include "LoccPtOfCorrel.h"
 
+void TestTouch();
+
+
 /*
 typedef float   tElNewRechPH ;
 typedef double  tElBufNRPH ;
@@ -82,7 +85,9 @@ class cOneScaleImRechPH
                       cOneScaleImRechPH &,   // niveau du dessus
                       const double & aSigma  // a sigma abs
                  );
-          tImNRPH Im(); // simple accesseur a l'image
+          tImNRPH  Im() {return mIm;}  // simple accesseur a l'image
+          tTImNRPH TIm() {return mTIm;}  // simple accesseur a l'image
+
 
           void CalcPtsCarac(bool Basic);
           void Show(Video_Win* aW);
@@ -98,11 +103,13 @@ class cOneScaleImRechPH
 // Sift 
           void SiftMakeDif(cOneScaleImRechPH* );
           void SiftMaxLoc(cOneScaleImRechPH* aLR,cOneScaleImRechPH* aHR,cSetPCarac&);
-          bool OkSiftContrast(cOnePCarac & aP) ;
-          double ComputeContrast() ;
+          // bool OkSiftContrast(cOnePCarac & aP) ;
+          // double ComputeContrast() ;
 
 
           bool ComputeDirAC(cOnePCarac &);
+          bool AffinePosition(cOnePCarac &);
+          int& NbPOfLab(int aK) {return mNbPByLab.at(aK);}
 
       private :
           void InitImMod();
@@ -123,17 +130,21 @@ class cOneScaleImRechPH
           tTImNRPH  mTIm;
           tImNRPH   mImMod;   // Dif en Sift, corner en harris etc ...
           tTImNRPH  mTImMod;
+          tInterpolNRPH * mInterp;
 
           double    mScale;
           int       mNiv;
           int       mNbExLR; 
           int       mNbExHR;
+          std::vector<int>  mNbPByLab;
 };
 
 
 class cAppli_NewRechPH
 {
     public :
+        Pt2di SzInvRad();
+
         cAppli_NewRechPH(int argc,char ** argv,bool ModeTest);
 
         double   DistMinMax(bool Basic) const ;
@@ -143,7 +154,7 @@ class cAppli_NewRechPH
         const double & DZPlyLay() const {return  mDZPlyLay;}
 
 
-        double    ThreshCstrIm0() {return mThreshCstrIm0;}
+        // double    ThreshCstrIm0() {return mThreshCstrIm0;}
 
         bool Inside(const Pt2di & aP) const;
         const Pt2di & SzIm() const ;
@@ -156,24 +167,45 @@ class cAppli_NewRechPH
         int&  NbSpace()          { return  mNbSpace;}
         int&  NbScaleSpace()     { return  mNbScaleSpace;}
         int&  NbScaleSpaceCstr() { return  mNbScaleSpaceCstr;}
+        double   SeuilAC() const { return  mSeuilAC;}
+        double   SeuilCR() const { return  mSeuilCR;}
+        bool SaveFileLapl() const{return  mSaveFileLapl;}
 
         bool  OkNivStab(int aNiv);
         bool  OkNivLapl(int aNiv);
         double GetLapl(int aNiv,const Pt2di & aP,bool &Ok);
 
         cOneScaleImRechPH * GetImOfNiv(int aNiv);
-        
+        void ComputeContrast();
+        bool ComputeContrastePt(cOnePCarac & aPt);
+        tInterpolNRPH * Interp() {return mInterp;}
 
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
-
+        bool  CalvInvariantRot(cOnePCarac & aPt);
 
         std::string mName;
         double      mPowS;
         int         mNbS;
+
+/*
+  Invariant Rotation
+*/
+        double      mStepSR;  // Pas entre les pixel de reechantillonage pour les desc
+        int         mNbSR;     // Nbre de niveau radial (entre 
+        int         mDeltaSR;  // Delta entre deux niveau radiaux, genre 1 ou 2 ?
+        int         mMaxLevR;  // Niv max permettant le calcul (calcule a partir des autres)
+
+        int         mNbTetaIm;  // Assez si on veut pouvoir interpoler entre les angles pour recalage
+        int         mMulNbTetaInv; // Comme ceux pour l'invariance ne coutent pas très cher, on a interet a en mettre + ?
+        int         mNbTetaInv; // Calcule, 
+
+
         double      mS0;
         double      mScaleStab;
+        double      mSeuilAC;
+        double      mSeuilCR; // Contraste relatif
         Pt2di       mSzIm;
         Box2di      mBox;
 
@@ -197,15 +229,30 @@ class cAppli_NewRechPH
         std::vector<int>                        mHistN0;
         std::string                             mExtSave;
         bool                                    mBasic;
-        bool                                    mModeSift;
+        bool                                    mAddModeSift;
+        bool                                    mAddModeTopo;
         bool                                    mLapMS;
         bool                                    mTestDirac;
-        double                                  mPropCtrsIm0;
-        double                                  mThreshCstrIm0;  /// Computed on first lapla
+        bool                                    mSaveFileLapl;
+        // double                                  mPropCtrsIm0;
+        // double                                  mThreshCstrIm0;  /// Computed on first lapla
 
         int     mNbSpace;
         int     mNbScaleSpace;
         int     mNbScaleSpaceCstr;
+
+        double  mDistAttenContr;  // 20
+        double  mPropContrAbs;    // 0.2
+        int     mSzContrast;      // 2
+        double  mPropCalcContr;   // 0.25
+
+
+        tImNRPH   mIm0;
+        tTImNRPH  mTIm0;
+        tImNRPH   mImContrast;
+        tTImNRPH  mTImContrast;
+        tInterpolNRPH * mInterp;
+
 };
 
 

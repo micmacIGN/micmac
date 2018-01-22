@@ -57,8 +57,12 @@ cOneScaleImRechPH::cOneScaleImRechPH(cAppli_NewRechPH &anAppli,const Pt2di & aSz
    mImMod (1,1),
    mTImMod (mImMod),
    mScale (aScale),
-   mNiv   (aNiv)
+   mNiv   (aNiv),
+   mNbPByLab (int(eTPR_NoLabel),0)
 {
+   // cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
+   // mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
+   mInterp = mAppli.Interp();
 }
 
 void cOneScaleImRechPH::InitImMod()
@@ -130,9 +134,6 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneS
      }
      return aRes;
 }
-
-tImNRPH cOneScaleImRechPH::Im() {return mIm;}
-
 
 // Indique si tous les voisins se compare a la valeur cible aValCmp
 // autrement dit est un max ou min local
@@ -254,13 +255,17 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
 
              cOnePCarac aPC;
              std::vector<cPtRemark *> aVP = aBr->GetAllPt();
+             cPtRemark * aPMax =  aVP.at(aVP.size() - 1 -aBr->NivScal());
+             ELISE_ASSERT(aPMax->Niv()==aBr->NivScal(),"cOneScaleImRechPH::Export Incohe in Niv");
 
-             aPC.Kind() =  aVP[0]->Type();
-             aPC.Pt() =  aVP[aBr->NivScal()]->Pt();
+             aPC.Kind() =  aVP.at(0)->Type();
+             aPC.Pt() =  aPMax->Pt();
              aPC.Scale() = aBr->Scale();
              aPC.NivScale() = aBr->NivScal();
              aPC.DirMS() = aVP.back()->Pt() - aVP.front()->Pt();
-             std::cout << "DIRMS " << euclid(aPC.DirMS()) << "\n";
+             aPC.ScaleStab() = aBr->ScaleStab();
+
+             // std::cout << "DIRMS " << euclid(aPC.DirMS()) << "\n";
 
              aSPC.OnePCarac().push_back(aPC);
              if (aPlyC)
@@ -410,19 +415,139 @@ double cOneScaleImRechPH::GetVal(const Pt2di & aP,bool & Ok) const
 
 bool cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
 {
+   aP.OK() = true;
+
+
    cNH_CutAutoCorrelDir<tTImNRPH>  mACD(mTIm,Pt2di(aP.Pt()),ElMax(2.0,1+mScale),round_up(mScale));
    
     
-   bool isAC = mACD.AutoCorrel(Pt2di(aP.Pt()),2.0);
+   mACD.AutoCorrel(Pt2di(aP.Pt()),2.0);
    Pt2dr  aR = mACD.Res();
 
    
    aP.AutoCorrel() = aR.y;
    aP.DirAC() = Pt2dr::FromPolar(mScale,aR.x);
 
+   // std::cout << "AUTOC " << aP.AutoCorrel() << " " <<  mAppli.SeuilAC() << "\n";
+
+   if (aP.AutoCorrel() > mAppli.SeuilAC())
+   {
+      aP.OK() =  false;
+      return false;
+   }
+
    // std::cout << "CALCUL ComputeDirAC " << isAC  << " " << aR<< "\n";
    return true;
 }
+
+
+bool    cOneScaleImRechPH::AffinePosition(cOnePCarac & aPt)
+{
+    Pt2dr aPt0 = aPt.Pt();
+    aPt.Pt0() = aPt0;
+    int aNbGrid = 2;
+    double aStep = mScale/2;
+
+    // On verifie on est dedans
+    {
+        double aSz = mInterp->SzKernel() *  aNbGrid * aStep;
+        Pt2dr aPSz(aSz,aSz);
+        int aRab = 3;
+        Pt2di aPRab(aRab,aRab);
+
+        Pt2di aP0 = round_down(aPt.Pt() -aPSz) - aPRab;
+        Pt2di aP1 = round_up(aPt.Pt() +aPSz) + aPRab;
+        if ((aP0.x<=0) || (aP0.y<=0) || (aP1.x>=mSz.x)|| (aP1.y>=mSz.y))
+        {
+            aPt.OK() = false;
+            return false;
+        }
+    }
+
+    tElNewRechPH ** aData = mIm.data();
+    if ((aPt.Kind() == eTPR_LaplMax) || (aPt.Kind() == eTPR_LaplMin))
+       aData = mImMod.data();
+
+    L2SysSurResol aSys(6);
+
+    double aCoeff[6];
+    for (int aKx =-aNbGrid ; aKx<= aNbGrid ; aKx++)
+    {
+        for (int aKy =-aNbGrid ; aKy<= aNbGrid ; aKy++)
+        {
+            double aDx = aKx * aStep;
+            double aDy = aKy * aStep;
+            
+            double aVal =   mInterp->GetVal(aData,aPt0 + Pt2dr(aDx,aDy));
+            aCoeff[0] = 1.0;
+            aCoeff[1] = aDx;
+            aCoeff[2] = aDy;
+            aCoeff[3] = aDx * aDx;
+            aCoeff[4] = aDx * aDy;
+            aCoeff[5] = aDy * aDy;
+            
+            aSys.AddEquation(1.0,aCoeff,aVal);
+        }
+    }
+
+    Im1D_REAL8  aSol = aSys.Solve(&aPt.OK());
+    if (! aPt.OK())
+       return false;
+    double * aDS = aSol.data();
+    aDS[1] *= -0.5;
+    aDS[2] *= -0.5;
+    aDS[4] *= 0.5;
+    // D0 + D1X + D2Y  + D3XX +  D4XY + D5YY+ 
+    //  d4 = D4/2    d1 = -D1/2   d2 = -D2/2
+    //   (D3    d4) X               (X)
+    //   (d4    D5) Y   - 2 (d1 d2) (Y)
+
+     double aDelta = aDS[3]*aDS[5] - ElSquare(aDS[4]);
+     double X = ( aDS[5] * aDS[1] - aDS[4] * aDS[2]) / aDelta;
+     double Y = (-aDS[4] * aDS[1] + aDS[3] * aDS[2]) / aDelta;
+
+     // Two VP with different signs, will see when add sadle points
+     if (aDelta<0)
+     {
+         aPt.OK() = false;
+         return false;
+     }
+
+     // Verif solution est OK
+     if (0)
+     {
+         std::cout << "CHhhhhhhhhhhhhhexxkkkk\n";
+         int aS =  ((aDS[3]+aDS[5]) >0) ? 1 : -1; // SignOfType(aPt.Kind());
+
+         Im1D_REAL8  aSol = aSys.Solve(&aPt.OK());
+         double * aDS = aSol.data();
+
+         for (int aK=0 ; aK<10 ; aK++)
+         {
+            double aDx = X + NRrandC() * mScale / 20.0;
+            double aDy = Y + NRrandC() * mScale / 20.0;
+            double aV =  (aDS[1]*aDx + aDS[2]*aDy + aDS[3]*aDx*aDx + aDS[4]*aDx*aDy + aDS[5]*aDy*aDy);
+            double aVm = (aDS[1]*X + aDS[2]*Y + aDS[3]*X*X + aDS[4]*X*Y + aDS[5]*Y*Y);
+            double aCheck = (aV-aVm) * aS;
+        
+            if (aCheck<0)
+            {
+               std::cout << " Vvvvv " << aV -aVm << " S=" << aS << "\n";
+               ELISE_ASSERT(false,"cOneScaleImRechPH::AffinePosition Check min quad");
+            }
+         }
+     }
+
+     Pt2dr aCor(X,Y);
+     if (euclid(aCor) > mScale)
+     {
+        return (aPt.OK() = false);
+     }
+     aPt.Pt() = aPt.Pt() + aCor;
+
+     return true;
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

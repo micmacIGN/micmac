@@ -65,11 +65,17 @@ class cOnePCarac
         Pt2dr & Pt();
         const Pt2dr & Pt()const ;
 
+        Pt2dr & Pt0();
+        const Pt2dr & Pt0()const ;
+
         int & NivScale();
         const int & NivScale()const ;
 
         double & Scale();
         const double & Scale()const ;
+
+        double & ScaleStab();
+        const double & ScaleStab()const ;
 
         Pt2dr & DirMS();
         const Pt2dr & DirMS()const ;
@@ -77,20 +83,62 @@ class cOnePCarac
         Pt2dr & DirAC();
         const Pt2dr & DirAC()const ;
 
-        double & Contrast();
-        const double & Contrast()const ;
+        double & Contraste();
+        const double & Contraste()const ;
+
+        double & ContrasteRel();
+        const double & ContrasteRel()const ;
 
         double & AutoCorrel();
         const double & AutoCorrel()const ;
+
+        bool & OK();
+        const bool & OK()const ;
+
+        std::vector<double> & CoeffRadiom();
+        const std::vector<double> & CoeffRadiom()const ;
+
+        std::vector<double> & CoeffRadiom2();
+        const std::vector<double> & CoeffRadiom2()const ;
+
+        std::vector<double> & CoeffGradRadial();
+        const std::vector<double> & CoeffGradRadial()const ;
+
+        std::vector<double> & CoeffGradTangent();
+        const std::vector<double> & CoeffGradTangent()const ;
+
+        std::vector<double> & CoeffGradTangentPiS4();
+        const std::vector<double> & CoeffGradTangentPiS4()const ;
+
+        std::vector<double> & CoeffGradTangentPiS2();
+        const std::vector<double> & CoeffGradTangentPiS2()const ;
+
+        Im2D_REAL4 & ImRad();
+        const Im2D_REAL4 & ImRad()const ;
+
+        std::vector<double> & VectRho();
+        const std::vector<double> & VectRho()const ;
     private:
         eTypePtRemark mKind;
         Pt2dr mPt;
+        Pt2dr mPt0;
         int mNivScale;
         double mScale;
+        double mScaleStab;
         Pt2dr mDirMS;
         Pt2dr mDirAC;
-        double mContrast;
+        double mContraste;
+        double mContrasteRel;
         double mAutoCorrel;
+        bool mOK;
+        std::vector<double> mCoeffRadiom;
+        std::vector<double> mCoeffRadiom2;
+        std::vector<double> mCoeffGradRadial;
+        std::vector<double> mCoeffGradTangent;
+        std::vector<double> mCoeffGradTangentPiS4;
+        std::vector<double> mCoeffGradTangentPiS2;
+        Im2D_REAL4 mImRad;
+        std::vector<double> mVectRho;
 };
 cElXMLTree * ToXMLTree(const cOnePCarac &);
 
@@ -111,10 +159,10 @@ class cSetPCarac
         friend void xml_init(cSetPCarac & anObj,cElXMLTree * aTree);
 
 
-        std::list< cOnePCarac > & OnePCarac();
-        const std::list< cOnePCarac > & OnePCarac()const ;
+        std::vector< cOnePCarac > & OnePCarac();
+        const std::vector< cOnePCarac > & OnePCarac()const ;
     private:
-        std::list< cOnePCarac > mOnePCarac;
+        std::vector< cOnePCarac > mOnePCarac;
 };
 cElXMLTree * ToXMLTree(const cSetPCarac &);
 
