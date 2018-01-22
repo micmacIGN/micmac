@@ -91,7 +91,9 @@ cAppliTieTri::cAppliTieTri
      mTimeCorDense  (0.0),
      mHasPtSelecTri (false),
      mHasNumSelectImage (false),
-     mKeyMasqIm         ("NKS-Assoc-STD-Masq")
+     mKeyMasqIm         ("NKS-Assoc-STD-Masq"),
+     mMoyDifAffHomo (Pt2dr(0,0)),
+     mCountDiff (0)
 {
    mMasIm = new cImMasterTieTri(*this,aTriang.NameMaster());
 
@@ -112,7 +114,6 @@ cAppliTieTri::cAppliTieTri
    cCubicInterpKernel * aBic = new cCubicInterpKernel(-0.5);
    // mInterpolBicub = new cTplCIKTabul<tElTiepTri,tElTiepTri>(10,8,-0.5);
    mInterpolBicub = new cTabIM2D_FromIm2D<tElTiepTri>(aBic,1000,false);
-
 }
 
 
@@ -271,7 +272,10 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
         }
         aPack.writeToDisk(aHomolOut);
     }
-
+    if (mUseHomo)
+    {
+        cout<<"Diff Homo Stat: "<<mMoyDifAffHomo/mCountDiff<<" Nb Acc = "<<mCountDiff<<endl;
+    }
 }
 
 /*
@@ -304,7 +308,14 @@ void cAppliTieTri::PutInGlobCoord(cResulMultiImRechCorrel & aRMIRC,bool WithDeca
          int aKIm = aRMIRC.VIndex()[aKNumIm];
          if (WithRedr)
          {
-             aRRC.mPt = mImSec[aKIm]->Mas2Sec(aRRC.mPt);
+             if (mUseHomo)
+             {
+                 aRRC.mPt = mImSec[aKIm]->Mas2Sec_Hom(aRRC.mPt);
+             }
+             else
+             {
+                aRRC.mPt = mImSec[aKIm]->Mas2Sec(aRRC.mPt);
+             }
          }
 
          if (WithDecal)
