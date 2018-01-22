@@ -336,6 +336,8 @@ class cImTieTri
            string NameIm() {return mNameIm;}
            bool AutoCorrel(Pt2di aP);
            Tiff_Im   Tif();
+
+           std::vector<Pt3dr> & PtTri3DHomoGrp() {return mPtTri3DHomoGrp;}
            
       protected :
            cImTieTri(const cImTieTri &) ; // N.I.
@@ -366,6 +368,7 @@ class cImTieTri
            Pt2dr          mP2Glob;
            Pt2dr          mP3Glob;
            std::vector<Pt2dr> mVTriGlob;
+           std::vector<Pt3dr> mPtTri3DHomoGrp;
 
            Pt2dr          mP1Loc;
            Pt2dr          mP2Loc;
@@ -449,6 +452,10 @@ class cImSecTieTri : public cImTieTri
            Pt2di                         mSzReech;
            ElAffin2D                     mAffMas2Sec;
            ElAffin2D                     mAffSec2Mas;
+
+           cElHomographie                mHomMas2Sec;
+           cElHomographie                mHomSec2Mas;
+
            cImMasterTieTri *             mMaster;
            ElPackHomologue               mPackH;
 };

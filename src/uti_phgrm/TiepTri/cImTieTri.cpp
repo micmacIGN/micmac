@@ -99,7 +99,6 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
         return  false;
     }
 
-
     mP1Glob = mCamGen->Ter2Capteur(aTri.P1());
     mP2Glob = mCamGen->Ter2Capteur(aTri.P2());
     mP3Glob = mCamGen->Ter2Capteur(aTri.P3());

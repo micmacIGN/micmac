@@ -183,7 +183,7 @@ if (0) // (MPD__MM())
    {
        Pt2dr aSz= Pt2dr(mMasIm->Tif().sz());    // taille d'espace à recuperer les objets = taille d'image
        Pt2dr aRab(10,10);
-       aQdt = new tQtTiepT(aFctr,Box2dr(-aRab,aSz+aRab),10,20.0);
+       aQdt = new tQtTiepT(aFctr,Box2dr(-aRab,aSz+aRab),10,20.0); //10=N obj Max, 20.0=Sz Min
        /*
         * Creer un nouveau Quad-tri.
         *  - Structure de Quad-Tri:
@@ -203,8 +203,8 @@ if (0) // (MPD__MM())
 
    }
 
-   cTpP_HeapCompare aCmp;
-   ElHeap<cResulMultiImRechCorrel *,cTpP_HeapCompare,cTpP_HeapParam> aHeap(aCmp);
+   cTpP_HeapCompare aCmp; // if aR1 > aR2
+   ElHeap<cResulMultiImRechCorrel *,cTpP_HeapCompare,cTpP_HeapParam> aHeap(aCmp); // HeapParam: setIndex & getIndex
    /* == Definir un structure donne type Heap ==
     * ElHeap<cResulMultiImRechCorrel *,cTpP_HeapCompare,cTpP_HeapParam> aHeap(aCmp);
     *  .) Type objet cResulMultiImRechCorrel *
@@ -223,7 +223,7 @@ if (0) // (MPD__MM())
 
    cResulMultiImRechCorrel * aRM_1;
    // Contient les scores en fonction des numeros d'images
-   std::vector<double> aVCorrel(mImSec.size(),TT_DefCorrel);
+   std::vector<double> aVCorrel(mImSec.size(),TT_DefCorrel); // mImSec = all image 2nd of this tri
    Video_Win *  aW = mMasIm->W();
    while (aHeap.pop(aRM_1))
    {
@@ -294,7 +294,7 @@ if (0) // (MPD__MM())
               }
               int aNbSelEnd = aRM_2->NbSel();
 
-              if (aNbS0!=aNbSelEnd)
+              if (aNbS0!=aNbSelEnd) // au moins 1 point dans multiple aRM_2 est deselectione
               {
                   // ==== Si rentrer ici, ca veut dire aRM_2 est modifie ====
                   aRM_2->CalculScoreAgreg(EpsilAggr,PowAggreg,aSign);  // Epsilon, power
@@ -306,7 +306,7 @@ if (0) // (MPD__MM())
                   }
                   else
                   {
-                     aHeap.MAJ(aRM_2);
+                     aHeap.MAJ(aRM_2);  // ca veut dire il est moin multiple
                      // mis à jour pour ne pas cassé la structure de heap
                   }
                   // if (aRM_2->NbSel()
