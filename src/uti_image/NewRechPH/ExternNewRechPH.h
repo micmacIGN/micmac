@@ -177,6 +177,7 @@ class cBrinPtRemark
         std::vector<cPtRemark *> GetAllPt();
         bool    Ok() const {return mOk;}
         double  Scale() const {return  mScale;}
+        double  ScaleNature() const {return  mScaleNature;}
         double  ScaleStab() const {return  mScaleStab;}
         int     NivScal() const {return mNivScal;}
         double  LaplMax() const {return mLaplMax;}
@@ -186,8 +187,10 @@ class cBrinPtRemark
         bool        mOk;
         int         mNivScal;
         double      mScale;
+        double      mScaleNature;
         double      mScaleStab;
         double      mLaplMax;
+        double      mLaplMaxNature;
 };
 
 typedef cPtRemark * tPtrPtRemark;

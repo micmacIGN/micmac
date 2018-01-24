@@ -190,6 +190,11 @@ class cAppli_NewRechPH
 
         bool ScaleCorr() {return mScaleCorr;}
 
+        bool  ScaleIsValid(double aScale )   const  
+        {
+           return   (aScale>=mISF.x) && (aScale<=mISF.y);
+        }
+        void AdaptScaleValide(cOnePCarac & aPC);
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
@@ -198,6 +203,8 @@ class cAppli_NewRechPH
         std::string mName;
         double      mPowS;
         int         mNbS;
+
+        Pt2dr   mISF; // Interval Scale Forced
 
 /*
   Invariant Rotation

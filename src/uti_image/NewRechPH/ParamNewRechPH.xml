@@ -35,6 +35,7 @@
          <NivScale   Nb="1" Type="int">  </NivScale>
          <Scale   Nb="1" Type="double">  </Scale>
          <ScaleStab   Nb="1" Type="double">  </ScaleStab> <!-- 4 MinMax, highest scale where they are visible -->
+         <ScaleNature   Nb="1" Type="double">  </ScaleNature> <!-- May be != from scale when scale was forced -->
          <DirMS   Nb="1" Type="Pt2dr">     </DirMS>
          <DirAC   Nb="1" Type="Pt2dr">     </DirAC>
          <Contraste   Nb="1" Type="double">  </Contraste>

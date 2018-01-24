@@ -188,6 +188,17 @@ const double & cOnePCarac::ScaleStab()const
 }
 
 
+double & cOnePCarac::ScaleNature()
+{
+   return mScaleNature;
+}
+
+const double & cOnePCarac::ScaleNature()const 
+{
+   return mScaleNature;
+}
+
+
 Pt2dr & cOnePCarac::DirMS()
 {
    return mDirMS;
@@ -349,6 +360,7 @@ void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.NivScale(),aFp);
     BinaryUnDumpFromFile(anObj.Scale(),aFp);
     BinaryUnDumpFromFile(anObj.ScaleStab(),aFp);
+    BinaryUnDumpFromFile(anObj.ScaleNature(),aFp);
     BinaryUnDumpFromFile(anObj.DirMS(),aFp);
     BinaryUnDumpFromFile(anObj.DirAC(),aFp);
     BinaryUnDumpFromFile(anObj.Contraste(),aFp);
@@ -373,6 +385,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
     BinaryDumpInFile(aFp,anObj.NivScale());
     BinaryDumpInFile(aFp,anObj.Scale());
     BinaryDumpInFile(aFp,anObj.ScaleStab());
+    BinaryDumpInFile(aFp,anObj.ScaleNature());
     BinaryDumpInFile(aFp,anObj.DirMS());
     BinaryDumpInFile(aFp,anObj.DirAC());
     BinaryDumpInFile(aFp,anObj.Contraste());
@@ -399,6 +412,7 @@ cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
    aRes->AddFils(::ToXMLTree(std::string("NivScale"),anObj.NivScale())->ReTagThis("NivScale"));
    aRes->AddFils(::ToXMLTree(std::string("Scale"),anObj.Scale())->ReTagThis("Scale"));
    aRes->AddFils(::ToXMLTree(std::string("ScaleStab"),anObj.ScaleStab())->ReTagThis("ScaleStab"));
+   aRes->AddFils(::ToXMLTree(std::string("ScaleNature"),anObj.ScaleNature())->ReTagThis("ScaleNature"));
    aRes->AddFils(::ToXMLTree(std::string("DirMS"),anObj.DirMS())->ReTagThis("DirMS"));
    aRes->AddFils(::ToXMLTree(std::string("DirAC"),anObj.DirAC())->ReTagThis("DirAC"));
    aRes->AddFils(::ToXMLTree(std::string("Contraste"),anObj.Contraste())->ReTagThis("Contraste"));
@@ -435,6 +449,8 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ScaleStab(),aTree->Get("ScaleStab",1)); //tototo 
 
+   xml_init(anObj.ScaleNature(),aTree->Get("ScaleNature",1)); //tototo 
+
    xml_init(anObj.DirMS(),aTree->Get("DirMS",1)); //tototo 
 
    xml_init(anObj.DirAC(),aTree->Get("DirAC",1)); //tototo 
@@ -464,7 +480,7 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.VectRho(),aTree->Get("VectRho",1)); //tototo 
 }
 
-std::string  Mangling( cOnePCarac *) {return "E55EDA1D3D7978C6FE3F";};
+std::string  Mangling( cOnePCarac *) {return "06FAFBAAF3912BACFE3F";};
 
 
 std::vector< cOnePCarac > & cSetPCarac::OnePCarac()
@@ -523,6 +539,6 @@ void xml_init(cSetPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.OnePCarac(),aTree->GetAll("OnePCarac",false,1));
 }
 
-std::string  Mangling( cSetPCarac *) {return "11020C86E9168BF8FE3F";};
+std::string  Mangling( cSetPCarac *) {return "A53B2010A7A2AAB9FE3F";};
 
 // };

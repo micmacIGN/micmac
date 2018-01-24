@@ -122,6 +122,7 @@ void TestSigma2(double a)
 cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mPowS        (pow(2.0,1/5.0)),
     mNbS         (30),
+    mISF         (-1,1e10),
     mStepSR      (1.0),
     mNbSR        (10),
     mDeltaSR     (1),
@@ -198,6 +199,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mScaleStab, "SS",true,"Scale of Stability")
                       << EAM(mExtSave, "Save",true,"Extension for save")
                       << EAM(mScaleCorr, "ScCor",true,"Scale by correl")
+                      << EAM(mISF, "ISF",true,"Interval scale forced")
    );
 
    if (! EAMIsInit(&mExtSave))
@@ -462,6 +464,27 @@ void cAppli_NewRechPH::ComputeContrast()
    }
 }
 
+
+void cAppli_NewRechPH::AdaptScaleValide(cOnePCarac & aPC)
+{
+    // Pour le faire bien il faut suivre le point, on le fait direct
+    // pour les point max-min topo, et pour sift on verra
+    ELISE_ASSERT(false,"cAppli_NewRechPH::AdaptScaleValide"); 
+/*
+   aPC.ScaleNature() = aPC.Scale();
+
+   if (ScaleIsValid(aPC.Scale())) 
+      return;
+
+   for (const auto & aIm :  mVI1)
+   {
+      if (OkNivLapl(aIm->Niv()))
+      {
+      }
+
+   }
+*/
+}
 
 
 
