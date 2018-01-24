@@ -37,12 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
-#include <fstream>
-#include <algorithm>
-#include <iterator>
-#include <map>
-//#include <boost/filesystem.hpp>
+#include "mergehomol.h"
 
 /**
  * Merge Homol : merge two homol directories 
@@ -199,7 +194,7 @@ int mergeHomol_main(int argc,char ** argv)
     std::string aHomolOutDirName="";//output Homol dir
 
     std::cout<<"\nMergeHomol : merge homol directories\n"<<std::endl;
-
+    bool aPurgeOut(1);
     ElInitArgMain
       (
        argc,argv,
@@ -207,7 +202,7 @@ int mergeHomol_main(int argc,char ** argv)
        LArgMain()  << EAMC(aHomolInPattern, "Homol input pattern name",eSAM_IsPatFile)
                    << EAMC(aHomolOutDirName, "Homol output dir name",eSAM_IsDir),
        //optional arguments
-       LArgMain()
+       LArgMain()  << EAM(aPurgeOut,"PurgeOut",true, "Purge Output Homol if it exist prior to merge? Default true.")
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -222,6 +217,11 @@ int mergeHomol_main(int argc,char ** argv)
     }
     std::cout<<endl;
 
+    bool aOutIsIn(0);
+    if(find(listHomolInDir.begin(), listHomolInDir.end(), aHomolOutDirName)!=listHomolInDir.end())  aOutIsIn=1;
+    // in case the output Homol database is also one of the input, default= erase. option PurgeOut=0: keep and merge
+    if (aPurgeOut) aOutIsIn=0;
+
     std::string aDirWork,aPatIm;
     SplitDirAndFile(aDirWork,aPatIm,".*");
 
@@ -231,7 +231,8 @@ int mergeHomol_main(int argc,char ** argv)
     }
 
     aHomolOutDirName=aDirWork+aHomolOutDirName;
-    if(ELISE_fp::IsDirectory(aHomolOutDirName))
+
+    if(ELISE_fp::IsDirectory(aHomolOutDirName) & !aOutIsIn)
     {
         std::cout<<"Warning! "<<aHomolOutDirName<<" already exists!"<<std::endl;
         std::cout<<"Removing "<<aHomolOutDirName<<"..."<<std::endl;

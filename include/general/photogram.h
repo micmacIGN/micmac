@@ -493,7 +493,7 @@ class ElPackHomologue : public cPackNupletsHom
           void SetProfondeur(ElRotation3D & aR,double aProf) const;
           double Profondeur(const ElRotation3D & aR) const;
               void InvY(Pt2dr aSzIm1,Pt2dr aSzIm2);
-
+          void Resize(double aRatioIm1, double aRatioIm2);
               // Dist moy des intersections
           double AngularDistInter(const ElRotation3D & aR) const;
 

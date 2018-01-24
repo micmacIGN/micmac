@@ -115,7 +115,7 @@ double towTime2MJD(const double GpsWeek, double Tow, const std::string & TimeSys
 
     if(TimeSys == "UTC")
     {
-        Tow -= LeapSecond;
+        Tow += LeapSecond;
     }
 
     double aS1970 = GpsWeek * 7 * 86400 + Tow + GPS0;
@@ -195,14 +195,14 @@ int calcul_ecart(std::vector<ImgNameTime> aVINT, std::vector<Tops> aVTops)
 
 int ImgTMTxt2Xml_main (int argc, char ** argv)
 {
-    std::string aINTFile, aTops, aExt=".thm.tif", aOut="Img_TM.xml", aTSys="UTC";
+    std::string aINTFile, aTops, aExt=".thm.tif", aOut="Img_TM.xml", aTSys="GPS";
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aINTFile, "File of image camera raw time (all_name_rawtime.txt)", eSAM_IsExistFile)
                     << EAMC(aTops,"Tops file containing ToW and CRT (tops.txt)",eSAM_IsExistFile),
         LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
-                    << EAM(aTSys,"TSys",true,"Time system, Def=UTC")
+                    << EAM(aTSys,"TSys",true,"Time system, Def=GPS")
                     << EAM(aOut,"Out",true,"Output matched file name, Def=Img_TM.xml")
     );
 

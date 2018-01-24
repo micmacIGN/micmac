@@ -57,6 +57,8 @@ cImSecTieTri::cImSecTieTri(cAppliTieTri & anAppli ,const std::string& aNameIm,in
    mTMasqReech (mMasqReech),
    mAffMas2Sec (ElAffin2D::Id()),
    mAffSec2Mas (ElAffin2D::Id()),
+   mHomMas2Sec (cElHomographie::Id()),
+   mHomSec2Mas (cElHomographie::Id()),
    mMaster     (anAppli.Master())
 {
 }
@@ -66,19 +68,15 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 {
    if (! mAppli.NumImageIsSelect(mNum)) 
       return false;
-   // std::cout << "111111111  cImSecTieTri::LoadTri\n";
 
    if (! cImTieTri::LoadTri(aTri)) 
    {
-        // std::cout << "22222222222  cImSecTieTri::LoadTri\n";
         return false;
    }
 
-   // std::cout << "3333333333333  cImSecTieTri::LoadTri\n";
-
-
    // Reechantillonage des images
 
+   // Estimer par affine
    mAffMas2Sec = ElAffin2D::FromTri2Tri
                  (
                       mMaster->mP1Loc,mMaster->mP2Loc,mMaster->mP3Loc,
@@ -86,6 +84,31 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
                  );
 
    mAffSec2Mas = mAffMas2Sec.inv();
+   if (mAppli.mUseHomo)
+   {
+   // Estimer par Homographie
+   if (PtTri3DHomoGrp().size() >= 4)
+   {
+           ElPackHomologue aPackHomoGr;
+           for (uint aK = 0; aK<4; aK++)
+           {
+               ElCplePtsHomologues aCpl(mMaster->mCamS->Ter2Capteur(PtTri3DHomoGrp()[aK]) - Pt2dr(mMaster->Decal()) , mCamS->Ter2Capteur(PtTri3DHomoGrp()[aK]) - Pt2dr(mDecal));
+               aPackHomoGr.Cple_Add(aCpl);
+           }
+
+           if (aPackHomoGr.size() >= 4)
+           {
+               mHomMas2Sec = cElHomographie(aPackHomoGr, true);
+               mHomSec2Mas = mHomMas2Sec.Inverse();
+           }
+           else
+           {
+               cout<<"Homo Fail NB = "<<aPackHomoGr.size()<<endl;
+               return false;
+           }
+       }
+   }
+    // ---------
 
    mSzReech = mMaster->mSzIm;
 
@@ -104,30 +127,61 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
 
    Pt2di aPSec;
+   Pt2dr aSom(0.0,0.0);
    for (aPSec.x=0 ; aPSec.x<mSzReech.x ; aPSec.x++)
    {
        for (aPSec.y=0 ; aPSec.y<mSzReech.y ; aPSec.y++)
        {
            Pt2dr aPMast = mAffMas2Sec(Pt2dr(aPSec));
-           double aVal = mTImInit.getr(aPMast,-1);
+           double aVal;
+           if (mAppli.mUseHomo)
+           {
+                Pt2dr aPMastHom = mHomMas2Sec(Pt2dr(aPSec));
+                aSom += (Pt2dr( abs(aPMast.x - aPMastHom.x), abs(aPMast.y - aPMastHom.y) ));
+                aVal = mTImInit.getr(aPMastHom,-1);
+           }
+           else
+           {
+                aVal = mTImInit.getr(aPMast,-1);
+           }
            mTImReech.oset(aPSec,aVal);
-
            mTMasqReech.oset(aPSec,mTMasqIm.get(round_ni(aPMast),0));
+       }
+   }
+
+   if (mAppli.mUseHomo)
+   {
+       double aSurf = (mP1Glob-mP2Glob) ^ (mP1Glob-mP3Glob);
+       Pt2dr aDiffMoy = aSom/(mSzReech.x*mSzReech.y);
+       //cout<<"Diff Aff-Hom "<<aDiffMoy<<" - SURF "<<aSurf<<endl;
+
+       if ( (mAppli.mSurfDiffAffHomo.x < -aSurf) && (-aSurf < mAppli.mSurfDiffAffHomo.y) )
+       {
+            mAppli.MoyDifAffHomo() += aDiffMoy;
+            mAppli.CountDiff()++;
        }
    }
 
    if (mW)
    {
 /*
+
       ELISE_COPY
       (
           mImReech.all_pts(),
           Max(0,Min(255,Virgule(mImReech.in(),mMaster->mImInit.in(0),mMaster->mImInit.in(0)))),
           mW->orgb()
       );
+      mW->draw_circle_loc(aPtHom1LocOnMas,2.0, mW->pdisc()(P8COL::blue));
+      mW->draw_circle_loc(aPtHom2LocOnMas,2.0, mW->pdisc()(P8COL::blue));
+      mW->draw_circle_loc(aPtHom3LocOnMas,2.0, mW->pdisc()(P8COL::blue));
+      mW->draw_circle_loc(aPtHom4LocOnMas,2.0, mW->pdisc()(P8COL::blue));
+
+      //mW->clear();
 */
-      mW->clear();
-/*  ===== Affichier org img 2nd =======
+
+//  ===== Affichier org img 2nd =======
+       /*
       ELISE_COPY
       (
           mImInit.all_pts(),
@@ -135,9 +189,16 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
           mW->ogray()
       );
       ELISE_COPY(select(mImInit.all_pts(),mMasqTri.in()),Min(255,Max(0,mImInit.in())),mW->ogray());
-*/
+
+      for (uint aK=0; aK<PtTri3DHomoGrp().size(); aK++)
+      {
+          Pt2dr aPtHom1LocOn2nd = mCamGen->Ter2Capteur(PtTri3DHomoGrp()[aK]) - Pt2dr(mDecal);
+          mW->draw_circle_loc(aPtHom1LocOn2nd,1.0, mW->pdisc()(P8COL::red));
+      }
+      */
 
  /*  ===== Affichier rech img 2nd =======*/
+       /*
       ELISE_COPY
       (
           mImReech.all_pts(),
@@ -148,12 +209,16 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
       // mW->clik_in();
    }
-
+   */
+    }
    MakeInterestPoint(0,&mTImLabelPC,mMaster->mTMasqTri,mTImReech);
 
    //MakeInterestPointFAST(0,&mTImLabelPC,mMaster->mTMasqTri,mTImReech);
 
    return true;
+
+
+
 
 }
 
@@ -550,6 +615,11 @@ bool cImSecTieTri::InMasqReech(const Pt2di & aP) const
 Pt2dr cImSecTieTri::Mas2Sec(const Pt2dr & aP) const
 {
    return mAffMas2Sec(aP);
+}
+
+Pt2dr cImSecTieTri::Mas2Sec_Hom(const Pt2dr & aP) const
+{
+   return mHomMas2Sec(aP);
 }
 
 
