@@ -44,8 +44,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../../include/StdAfx.h"
 
 std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
-void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
-cSetPCarac * LoadStdSetCarac(const std::string & aNameIm);
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool HighLight);
+cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & Ext="Std");
+
+void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
+
 
 class cAppli_NewRechPH;
 
@@ -58,6 +61,7 @@ typedef cInterpolateurIm2D<tElNewRechPH>  tInterpolNRPH;
 
 
 
+double Gauss(double aSig,double aVal);
 double Sigma2FromFactExp(double a);
 double FactExpFromSigma2(double aS2);
 void TestSigma2(double a);

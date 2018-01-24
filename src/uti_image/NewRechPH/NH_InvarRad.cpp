@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 Pt2di cAppli_NewRechPH::SzInvRad()
 {
-   return Pt2di(mNbSR +1,  mNbTetaInv);
+   return Pt2di(mNbSR, mNbTetaInv);
 }
 
 void NormalizeVect(std::vector<double> & aVect)
@@ -67,9 +67,12 @@ void NormalizeVect(std::vector<double> & aVect)
     }
 }
 
+// Pt2dr aPTBUG (2914.32,1398.2);
+Pt2dr aPTBUG (2892.06,891.313);
 
 bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 {
+   bool BUG= false &&  (euclid(aPt.Pt()+Pt2dr(mP0)-aPTBUG) < 0.02);
    static int aCpt=0;
    aCpt++;
    if (aPt.NivScale() >= mMaxLevR)
@@ -86,7 +89,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
    std::vector<double>               aVRho;
 
    int aN0 = aPt.NivScale();
-   aVIm.push_back(mVI1.at(aN0));
+   // aVIm.push_back(mVI1.at(aN0));
    for (int aKRho=0 ; aKRho <mNbSR ; aKRho++)
    {
        aVIm.push_back(mVI1.at(aN0 + aKRho * mDeltaSR));
@@ -97,12 +100,12 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 
    for (int aKRho=0 ; aKRho<int(aVIm.size()) ; aKRho++)
    {
-      aVRho.push_back(aRho);
       double aCurScale = aVIm.at(aKRho)->Scale();
       double aDRho = ((aCurScale+aLastScale) / 2.0) *  mStepSR;
-
-      aLastScale = aCurScale;
       aRho += aDRho;
+
+      aVRho.push_back(aRho);
+      aLastScale = aCurScale;
    }
 
    // Calcul de l'image "log/polar"
@@ -124,10 +127,17 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       }
    }
 
+   if (BUG)
+   {
+       std::cout << "PTBBUGGGGG 111\n";
+       Tiff_Im::CreateFromIm(aImBuf,"NEWHBuf.tif");
+   }
+
    int aKPS4 = mNbTetaInv /4 ;
    int aKPS2 = mNbTetaInv /2 ;
    for (int aKRho=0 ; aKRho<int(aVIm.size()) ; aKRho++)
    {
+      bool WithGR = (aKRho!=0);
       double aSomV        =0;
       double aSomV2       =0;
       double aSomGradRadial  =0;
@@ -141,7 +151,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
           aSomGradTeta +=     ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,(1    +aKTeta)%mNbTetaInv)));
           aSomGradTetaPiS4 += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,(aKPS4+aKTeta)%mNbTetaInv)));
           aSomGradTetaPiS2 += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,(aKPS2+aKTeta)%mNbTetaInv)));
-          if (aKRho!=0)
+          if (WithGR)
           {
              aSomGradRadial += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho-1,aKTeta)));
           }
@@ -153,7 +163,10 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 
       aPt.CoeffRadiom().push_back(aSomV);
       aPt.CoeffRadiom2().push_back(aSomV2);
-      aPt.CoeffGradRadial().push_back(aSomGradRadial);
+      if (WithGR)
+      {
+         aPt.CoeffGradRadial().push_back(aSomGradRadial);
+      }
       aPt.CoeffGradTangent().push_back(aSomGradTeta);
       aPt.CoeffGradTangentPiS4().push_back(aSomGradTetaPiS4);
       aPt.CoeffGradTangentPiS2().push_back(aSomGradTetaPiS2);
@@ -212,6 +225,12 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       aPt.ImRad() = aImBuf;
       aPt.VectRho() = aVRho;
       
+      if (BUG)
+      {
+          std::cout << "PTBBUGGGGG 22\n";
+          Tiff_Im::CreateFromIm(aImBuf,"NORM-NEWHBuf.tif");
+          getchar();
+      }
    }
 
    return true;

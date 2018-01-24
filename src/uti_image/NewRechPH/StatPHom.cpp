@@ -70,6 +70,7 @@ class cAppliStatPHom
        
        ElPackHomologue   mPack;
        bool              mSetPI;
+       std::string mExtInput;
 
        double EcartEpip(const Pt2dr & aP1,const Pt2dr & aP2);
        double EcartCompl(const Pt2dr & aP1,const Pt2dr & aP2);
@@ -104,7 +105,7 @@ cOneImSPH::cOneImSPH(const std::string & aName,cAppliStatPHom & anAppli) :
    mAppli   (anAppli),
    mN       (aName),
    mCam     (mAppli.mICNM->StdCamGenerikOfNames(mAppli.mOri,mN)),
-   mSPC     (LoadStdSetCarac(mN)),
+   mSPC     (LoadStdSetCarac(mN,anAppli.mExtInput)),
    mVVPC    (int(eTPR_NoLabel)),
    mTif     (Tiff_Im::StdConvGen(aName,1,true))
 {
@@ -139,8 +140,14 @@ cOnePCarac * cOneImSPH::Nearest(const Pt2dr& aP0,int aKLab,double &aDMin,double 
 
 void cOneImSPH::TestMatch(cOneImSPH & aI2)
 {
+
    for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
    {
+        int aDifMax = 3;
+        std::vector<int>  aHistoScale(aDifMax+1,0);
+        double aSeuilDist = 2.0;
+        int aNbOk=0;
+
         eTypePtRemark aLab = eTypePtRemark(aKL);
         const std::vector<cOnePCarac*>  &   aV1 = mVVPC[aKL];
         const std::vector<cOnePCarac*>  &   aV2 = aI2.mVVPC[aKL];
@@ -172,10 +179,22 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                     cOnePCarac * aP = aI2.Nearest(mAppli.Hom(aP1),aKL,aDist,0.0);
                     mVNearest.push_back(aP);
                     aVD12.push_back(aDist);
+                    if (aDist<aSeuilDist)
+                    {
+                         aNbOk++;
+                         aHistoScale.at(ElMin(aDifMax,ElAbs(aV1[aK1]->NivScale() - aP->NivScale())))++;
+                    }
                 }
             }
 
             mAppli.ShowStat("By Homol D for ",20,aVD12,0.5);
+
+            for (int aK=0 ; aK<=aDifMax ; aK++)
+            {
+               int aNb = aHistoScale.at(aK);
+               if (aNb)
+                  std::cout << "  * For dif="  << aK << " perc=" << (aNb * 100.0) / aNbOk << "\n";
+            }
 
             getchar();
         }
@@ -269,7 +288,8 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
     mDir ("./"),
     mSH  (""),
     mNuage1  (0),
-    mSetPI   (false)
+    mSetPI   (false),
+    mExtInput ("Std")
 {
    std::string aN1,aN2;
    ElInitArgMain
@@ -281,6 +301,7 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
          LArgMain()  << EAM(mSH,"SH",true,"Set of homologous point")
                      << EAM(mNameNuage,"NC",true,"Name of cloud")
                      << EAM(mSetPI,"SetPI",true,"Set Integer point, def=false,for stat")
+                     << EAM(mExtInput,"ExtInput",true,"Extentsion for tieP")
    );
 
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);

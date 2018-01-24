@@ -63,6 +63,35 @@ cOneScaleImRechPH::cOneScaleImRechPH(cAppli_NewRechPH &anAppli,const Pt2di & aSz
    // cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
    // mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
    mInterp = mAppli.Interp();
+
+   mVoisGauss = SortedVoisinDisk(-1,2*mScale + 4,true);
+   for (const auto & aPt : mVoisGauss)
+   {
+       mGaussVal.push_back(Gauss(mScale,euclid(aPt)));
+   }
+}
+
+
+
+double cOneScaleImRechPH::QualityScaleCorrel(const Pt2di & aP0,int aSign,bool ImInit)
+{
+   tTImNRPH & aIm = ImInit ? mTIm : mTImMod;
+   RMat_Inertie aMat;
+   double aDef = -1e30;
+   for (int aKV=0 ; aKV<int(mVoisGauss.size()) ; aKV++)
+   {
+        double aVal = aIm.get(aP0+mVoisGauss[aKV],aDef);
+
+        if (aVal != aDef)
+        {
+           double aGausVal = mGaussVal.at(aKV);
+           // Pour l'instant, un peu au pif, on met le poids egal a la gaussienne, 
+           aMat.add_pt_en_place(aVal,aGausVal,aGausVal);
+        }
+   }
+   mQualScaleCorrel = aSign * aMat.correlation();
+
+   return mQualScaleCorrel;
 }
 
 void cOneScaleImRechPH::InitImMod()
@@ -150,6 +179,7 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
     }
     return true;
 }
+
 
 bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
 {

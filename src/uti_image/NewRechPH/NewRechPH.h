@@ -111,6 +111,8 @@ class cOneScaleImRechPH
           bool AffinePosition(cOnePCarac &);
           int& NbPOfLab(int aK) {return mNbPByLab.at(aK);}
 
+          double QualityScaleCorrel(const Pt2di &,int aSign,bool ImInit);
+
       private :
           void InitImMod();
           Pt3dr PtPly(const cPtRemark & aP,int aNiv);
@@ -120,7 +122,10 @@ class cOneScaleImRechPH
 
 
           cOneScaleImRechPH(cAppli_NewRechPH &,const Pt2di & aSz,const double & aScale,const int & aNiv);
+ 
+          // Selectionne les maxima locaux a cette echelle
           bool  SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp);
+          // Selectionne les maxima locaux a avec une echelle differente
           bool  ScaleSelectVois(cOneScaleImRechPH*, const Pt2di&, const std::vector<Pt2d<int> >&, int);
           std::list<cPtRemark *>  mLIPM;
    
@@ -136,7 +141,10 @@ class cOneScaleImRechPH
           int       mNiv;
           int       mNbExLR; 
           int       mNbExHR;
-          std::vector<int>  mNbPByLab;
+          std::vector<int>   mNbPByLab;
+          double             mQualScaleCorrel;
+          std::vector<Pt2di>   mVoisGauss;
+          std::vector<double>  mGaussVal;
 };
 
 
@@ -180,6 +188,8 @@ class cAppli_NewRechPH
         bool ComputeContrastePt(cOnePCarac & aPt);
         tInterpolNRPH * Interp() {return mInterp;}
 
+        bool ScaleCorr() {return mScaleCorr;}
+
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
@@ -206,8 +216,11 @@ class cAppli_NewRechPH
         double      mScaleStab;
         double      mSeuilAC;
         double      mSeuilCR; // Contraste relatif
+        bool        mScaleCorr;
         Pt2di       mSzIm;
         Box2di      mBox;
+        Pt2di       mP0; // P0-P1 => "vrai" box
+        Pt2di       mP1;
 
         std::vector<cOneScaleImRechPH *> mVI1;
         Video_Win  * mW1;

@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+
+// Gaussian   1/(sqrt(2Pi) Sig2)  exp(-X/2 Sig^2)
+
 // PB = > 
 
 // Simga2 =  (2*a) /(ElSquare(1-a)); voir TestSigma2 ds NewRechPH.cpp
@@ -72,8 +75,59 @@ void TestSigma2(double a)
 
    double aATh = FactExpFromSigma2(aSigmaTh);
 
-   std::cout << "TestSigma2 " << aSigmaExp << " " << aSigmaTh/aSigmaExp - 1 << " aaa " << a << " " << aATh << "\n";
+   std::cout << "TestSigma2 " << aSigmaExp << " EcarRel=" << aSigmaTh/aSigmaExp - 1 << " FactExp=" << a << " Sig2=" << aATh << "\n";
 }
+
+double Gauss(double aSig,double aVal)
+{
+   static double aS2PI = sqrt(1/(2*PI));
+   double aS2 = ElSquare(aSig);
+
+   return (aS2PI / aSig) * exp(-ElSquare(aVal)/ (2*aS2));
+}
+void TestGauss(double aSig)
+{
+   int aNbIn = 1000;
+   int aNbOut = 10;
+   int aNbTot = aNbIn * aNbOut;
+
+   double aSomG = 0.0;
+   double aSomGX = 0.0;
+   double aSomGX2 = 0.0;
+
+   double aStep = aSig / double(aNbIn);
+
+   for (int aK=-aNbTot ; aK<= aNbTot ; aK++)
+   {
+        double aVal = aK * aStep;
+
+        double aG = Gauss(aSig,aVal) * aStep;
+        aSomG   += aG;
+        aSomGX  += aG * aVal;
+        aSomGX2 += aG * ElSquare(aVal);
+   }
+   std::cout << "IntegG=" << aSomG   
+             <<  " S2=" << aSomGX2 / ElSquare(aSig) 
+             << " Moy=" << aSomGX  
+             << "\n";
+// Gaussian   1/(sqrt(2Pi) Sig2)  exp(-X/2 Sig^2)
+}
+
+void TestEcartTypeStd()
+{
+   TestGauss(0.5);
+   TestGauss(1);
+   TestGauss(2);
+   getchar();
+   TestSigma2(0.1);
+   TestSigma2(0.5);
+   TestSigma2(0.9);
+   TestSigma2(0.95);
+   TestSigma2(0.99);
+   getchar();
+
+}
+
 
 
 

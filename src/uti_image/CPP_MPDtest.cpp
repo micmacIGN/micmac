@@ -1303,9 +1303,14 @@ void TestFitPol()
 
 
 extern void TestMap2D();
+extern void TestEcartTypeStd();
 int MPDtest_main (int argc,char** argv)
 {
     std::cout << "MPDtest_main in " << __FILE__ << "\n";
+    {
+       TestEcartTypeStd();
+       exit(EXIT_SUCCESS);
+    }
     {
        TestFitPol();
        exit(EXIT_SUCCESS);

@@ -240,22 +240,60 @@ void cAppli_Vino::ShowVect()
       ShowVectPCarac();
 }
 
-const cOnePCarac * cAppli_Vino::Nearest(const Pt2dr & aPClU,double * aDist,eTypePtRemark aType)
+int  cAppli_Vino::IndexNearest(const Pt2dr & aPClU,double * aDist,eTypePtRemark aType)
 {
-   const cOnePCarac * aNearest= nullptr;
+   int aRes = -1;
    double aDMin=1e20;
-   for (const auto & aPC : mSPC->OnePCarac())
+   for (int aKP=0 ; aKP<int(mSPC->OnePCarac().size()) ; aKP++)
    {
+       const auto & aPC = mSPC->OnePCarac()[aKP];
        double aDist = euclid(aPC.Pt(),aPClU);
        if (  ((aPC.Kind()==aType)||(aType==eTPR_NoLabel)) && (aDist<aDMin))
        {
           aDMin = aDist;
-          aNearest = & aPC;
+          aRes = aKP;
        }
    }
    if (aDist) 
       *aDist = aDMin;
-   return aNearest;
+   return aRes;
+}
+
+const cOnePCarac * cAppli_Vino::Nearest(const Pt2dr & aPClU,double * aDist,eTypePtRemark aType)
+{
+    int I = IndexNearest(aPClU,aDist,aType);
+    if (I>=0) return &(mSPC->OnePCarac()[I]);
+    return nullptr;
+}
+
+void ShowCurve(const std::vector<double> & aV,const Pt2di & aP0,const Pt2di & aP1,Video_Win * aW,int aCoul)
+{
+   double aVmax = aV[0];
+   double aVmin = aV[0];
+   for (int aK=1 ; aK<int(aV.size()) ; aK++)
+   {
+      aVmin = ElMin(aVmin,aV[aK]);
+      aVmax = ElMax(aVmax,aV[aK]);
+   }
+
+   std::vector<double> aVX;
+   std::vector<double> aVY;
+   for (int aK=0 ; aK<int(aV.size()) ; aK++)
+   {
+        aVX.push_back(aP0.x+ ( aK /double(aV.size()-1)) * (aP1.x-aP0.x));
+        aVY.push_back(aP0.y+ ((aV[aK]-aVmin) /(aVmax-aVmin) ) * (aP1.y-aP0.y));
+   }
+   ELISE_COPY ( rectangle(aP0,aP1), 255, aW->ogray());
+   
+   for (int aK=1 ; aK<int(aV.size()) ; aK++)
+   {
+       aW->draw_seg
+       (
+           Pt2dr(aVX[aK-1],aVY[aK-1]),
+           Pt2dr(aVX[aK],aVY[aK]),
+           aW->pdisc()(aCoul)
+       );
+   }
 }
 
 void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
@@ -266,20 +304,6 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
 
    mW->draw_circle_loc(aPClW,3.0,mW->pdisc()(P8COL::cyan));
 
-
-/*
-   const cOnePCarac * aNearest= nullptr;
-   double aDMin=1e20;
-   for (const auto & aPC : mSPC->OnePCarac())
-   {
-       double aDist = euclid(aPC.Pt(),aPClU);
-       if (aDist < aDMin)
-       {
-          aDMin = aDist;
-          aNearest = & aPC;
-       }
-   }
-*/
    const cOnePCarac *  aNearest = Nearest(aPClU);
    if (aNearest)
    {
@@ -291,14 +315,17 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
        {
            mW->draw_circle_loc(aU2W(aNearest->Pt()),aSc*aRho,mW->pdisc()(P8COL::magenta));
        }
+       if (!mAVSI.empty())
+          std::cout << "#########################################################\n";
 
+       std::cout << "PTT=" << aNearest->Pt() << mNameIm <<  "\n";
        std::cout << "  * AutoC : " << aNearest->AutoCorrel() << "\n";
        std::cout << "  * Scale : "      << aNearest->Scale()      << "\n";
        std::cout << "  * SStab : "      << aNearest->ScaleStab()      << "\n";
        std::cout << "  * Contr : "      << aNearest->Contraste()  << " Rel : " << aNearest->ContrasteRel()   << "\n";
+       std::cout << "Rhoooo " << aNearest->VectRho() << "\n";
 
        std::cout << "\n";
-       std::cout << "Rhoooo " << aNearest->VectRho() << "\n";
 
        {
           Im2D_REAL4 aImLogT = aNearest->ImRad();
@@ -311,9 +338,33 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
               Max(0,Min(255,128 + 64 * aImLogT.in()[Virgule(FY,FX)/aZoom])),
               mW->ogray()
           );
+
+          int aY0 = aSz.x*aZoom + 10;
+          int aY1 = aY0+100;
+          ShowCurve(aNearest->CoeffRadiom()          ,Pt2di( 10,aY0),Pt2di(100,aY1),mW,P8COL::black);
+          ShowCurve(aNearest->CoeffRadiom2()         ,Pt2di(110,aY0),Pt2di(200,aY1),mW,P8COL::red);
+          ShowCurve(aNearest->CoeffGradRadial()      ,Pt2di(210,aY0),Pt2di(300,aY1),mW,P8COL::green);
+          ShowCurve(aNearest->CoeffGradTangent()     ,Pt2di(310,aY0),Pt2di(400,aY1),mW,P8COL::blue);
+          ShowCurve(aNearest->CoeffGradTangentPiS4() ,Pt2di(410,aY0),Pt2di(500,aY1),mW,P8COL::cyan);
+          ShowCurve(aNearest->CoeffGradTangentPiS2() ,Pt2di(510,aY0),Pt2di(600,aY1),mW,P8COL::magenta);
+       }
+
+       if (! mVptHom.empty())
+       {
+           int  aK = IndexNearest(aPClU);
+           ELISE_ASSERT(aNearest==&(mSPC->OnePCarac()[aK]),"NEAREST !!??");
+           const cOnePCarac * aPCHom = mVptHom.at(aK);
+           if (aPCHom)
+           {
+               ElSimilitude aHU2W =  mAVSI.at(0)->mScr->to_win();
+               Pt2dr aPt = aHU2W(aPCHom->Pt());
+               std::cout << "HOMMM " << aPt << "\n";
+               mAVSI.at(0)->ShowSPC(aPt);
+
+               TestMatchInvRad(mSPC->OnePCarac(),aNearest,aPCHom);
+           }
        }
    }
-
 }
 
 
@@ -328,14 +379,14 @@ void cAppli_Vino::ShowVectPCarac()
            const cOnePCarac & aPC = mSPC->OnePCarac()[aKP];
            Pt2dr aPU = aPC.Pt();
            Pt2dr aPW = aSim(aPU);
-           if ((aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
+           if (   (aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y) 
+               && (aPC.ContrasteRel()>mSeuilContRel) &&   (aPC.AutoCorrel()< mSeuilAC)
+              )
            {
                mW->draw_circle_loc(aPW,aPC.Scale()*2*mScr->sc(),mW->pdisc()(P8COL::yellow));
-
-               if ((aPC.ContrasteRel()>mSeuilContRel) &&   (aPC.AutoCorrel()< mSeuilAC))
-               {
-                  ShowPt(aPC,aSim,mW);
-               }
+ 
+               bool HighL =  (mVptHom.size() && mVptHom.at(aKP));
+               ShowPt(aPC,aSim,mW,HighL);
                // Pt2dr aDirMS = aPC.DirMS();
                Pt2dr aDirMS = aPC.DirAC();
 // std::cout << "aDirMS " << aDirMS << "\n";
