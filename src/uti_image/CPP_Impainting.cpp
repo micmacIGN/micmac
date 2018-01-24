@@ -51,6 +51,7 @@ int Impainting_main(int argc,char ** argv)
     std::string aNameMasqOK;
     std::string aNameMasq2FIll;
     std::string aNameOut;
+    bool OkIs1=false;
 
 
     ElInitArgMain
@@ -60,6 +61,7 @@ int Impainting_main(int argc,char ** argv)
                     << EAMC(aNameMasqOK,"Name Of Ok Masq (0 value means OK)", eSAM_IsExistFile),
     LArgMain()  << EAM(aNameOut,"Out",true,"Name of Result", eSAM_NoInit)
                     << EAM(aNameMasq2FIll,"2Fill", true, "Masq of point 2 fill, def = all", eSAM_NoInit)
+                    << EAM(OkIs1,"OkIs1", true, "If true set standard convention for masq 1=true !!! Def= false ..", eSAM_NoInit)
     );
 
     if (!MMVisualMode)
@@ -81,7 +83,11 @@ int Impainting_main(int argc,char ** argv)
 
         Tiff_Im aFileMasq(aNameMasqOK.c_str());
         Im2D_Bits<1> aMasq(aSzIm.x,aSzIm.y,1);
-        ELISE_COPY(aFileMasq.all_pts(),!aFileMasq.in_bool(),aMasq.out());
+        Fonc_Num aFMasq = aFileMasq.in_bool();
+        if (!OkIs1)
+           aFMasq = ! aFMasq;
+
+        ELISE_COPY(aFileMasq.all_pts(),aFMasq,aMasq.out());
 
 
         Im2D_Bits<1> aMasq2Fill(aSzIm.x,aSzIm.y,1);

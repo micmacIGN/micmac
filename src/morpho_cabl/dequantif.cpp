@@ -511,7 +511,7 @@ Im2D_REAL4 RecursiveImpaint
           {
               for (aP.y=1 ; aP.y<aSz.y-1 ; aP.y++)
               {
-                   if ((aTMaskI.get(aP)<0.999) && (aTMaskF.get(aP)>0.001))
+                   if ((aTMaskI.get(aP)<0.999) && (aTMaskF.get(aP)>0.0000001))
                    {
                       aVF.push_back(aP);
                    }
