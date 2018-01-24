@@ -427,6 +427,14 @@ Im2D_U_INT2 ElImplemDequantifier::DistMoins()
    return mDistMoins;
 }
 
+Im2D_REAL4 ReduceBin(Im2D_REAL4 aImIn)
+{
+    Im2D_REAL4 aRes = ReducItered(aImIn,1);
+    ELISE_COPY(aRes.all_pts(),aRes.in()>0.99,aRes.out());
+
+    return aRes;
+}
+
 Im2D_REAL4 RecursiveImpaint
      (
           Im2D_REAL4 aFlMaskInit,
@@ -436,13 +444,13 @@ Im2D_REAL4 RecursiveImpaint
           int        aZoomCible
      )
 {
+
     Pt2di aSz = aFlIm.sz();
     Im2D_REAL4 aSolInit(aSz.x,aSz.y);
     ELISE_COPY(aFlIm.all_pts(),aFlIm.in(),aSolInit.out());
 
 
     TIm2D<REAL4,REAL> aTMaskI(aFlMaskInit);
-    TIm2D<REAL4,REAL> aTMaskF(aFlMaskFinal);
 
    int aNbIter = 2 + 3 * aDeZoom;
 
@@ -452,6 +460,7 @@ Im2D_REAL4 RecursiveImpaint
        Im2D_REAL8 aDblMasqk(aSz.x,aSz.y);
 
        ELISE_COPY(aFlIm.all_pts(),aFlMaskInit.in(),aDblMasqk.out());
+       // On met dans le masq uniquement les bords
        ELISE_COPY
        (
             select(aDblMasqk.all_pts(), erod_d4(aDblMasqk.in(0)>0.5,1)),
@@ -462,8 +471,8 @@ Im2D_REAL4 RecursiveImpaint
        Im2D_REAL8 aDblIm(aSz.x,aSz.y);
        ELISE_COPY(aDblIm.all_pts(),aFlIm.in()*aDblMasqk.in(),aDblIm.out());
 
-       FilterGauss(aDblIm,2.0,1);
-       FilterGauss(aDblMasqk,2.0,1);
+       FilterGauss(aDblIm,8.0,1);
+       FilterGauss(aDblMasqk,8.0,1);
 
        ELISE_COPY
        (
@@ -471,6 +480,7 @@ Im2D_REAL4 RecursiveImpaint
            aDblIm.in() / Max(1e-20,aDblMasqk.in()),
            aSolInit.out()
        );
+
     }
     else
     {
@@ -479,8 +489,8 @@ Im2D_REAL4 RecursiveImpaint
 
         Im2D_REAL4 aSsEch = RecursiveImpaint
                             (
-                                ReducItered(aFlMaskInit,1),
-                                ReducItered(aFlMaskFinal,1),
+                                ReduceBin(aFlMaskInit),
+                                ReduceBin(aFlMaskFinal),
                                 ReducItered(aFlIm,1),
                                 aDeZoom*2,
                                 aZoomCible
@@ -504,6 +514,7 @@ Im2D_REAL4 RecursiveImpaint
       }
 
 
+      TIm2D<REAL4,REAL> aTMaskF(aFlMaskFinal);
       std::vector<Pt2di> aVF;
       {
           Pt2di aP;
@@ -511,7 +522,7 @@ Im2D_REAL4 RecursiveImpaint
           {
               for (aP.y=1 ; aP.y<aSz.y-1 ; aP.y++)
               {
-                   if ((aTMaskI.get(aP)<0.999) && (aTMaskF.get(aP)>0.0000001))
+                   if ((aTMaskI.get(aP)<0.999) && (aTMaskF.get(aP)>0.001))
                    {
                       aVF.push_back(aP);
                    }
