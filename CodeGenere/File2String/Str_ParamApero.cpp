@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1812]) = {
+const char * (theNameVar_ParamApero[1814]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -607,6 +607,8 @@ const char * (theNameVar_ParamApero[1812]) = {
 "              <GpsOffset Nb=\"*\">\n",
 "                  <ValInit Nb=\"1\" Type=\"Pt3dr\"> </ValInit>\n",
 "                  <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
+"                  <!-- Si pas d'incertitude, aucun rappel sur la valeur initiale -->\n",
+"                  <Inc Nb=\"?\" Type=\"Pt3dr\"> </Inc>\n",
 "              </GpsOffset>\n",
 "\n",
 "              <CalibrationCameraInc Nb=\"*\">\n",

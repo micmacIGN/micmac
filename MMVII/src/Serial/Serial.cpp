@@ -471,7 +471,7 @@ class cOXml_Ar2007 : public cAr2007
 
 cOXml_Ar2007::cOXml_Ar2007(const std::string & aName) : 
    cAr2007(false,true),  // Output, Tagged
-   mMMOs(aName), 
+   mMMOs(aName,false), 
    mXTerm (false), 
    mFirst(true) 
 {
@@ -494,7 +494,8 @@ void cOXml_Ar2007::RawAddDataTerm(int &    anI) {Ofs() <<anI; mXTerm=true;}
 void cOXml_Ar2007::RawAddDataTerm(double &  aD) {Ofs() <<aD; mXTerm=true;}
 void cOXml_Ar2007::RawAddDataTerm(std::string &  anS) 
 {  
-    Ofs() <<anS; mXTerm=true;
+    // To allow white in string, put it between ""
+    Ofs() << '"' <<anS << '"'; mXTerm=true;
 }
 
 void cOXml_Ar2007::Separator() {Ofs() << ' ';}
@@ -536,7 +537,7 @@ class  cOBin_Ar2007 : public cAr2007
     public :
         cOBin_Ar2007 (const std::string & aName) :
             cAr2007(false,false),  // Output, Tagged
-            mMMOs  (aName)
+            mMMOs  (aName,false)
         {
         }
         void RawAddDataTerm(int &    anI)  override;
@@ -607,7 +608,7 @@ int cIBin_Ar2007::NbNextOptionnal(const std::string &)
 cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
 {
    std::string aPost = Postfix(aName,'.',true);
-// std::cout << "AllocArFromFile, " << aName << " => " << aPost << "\n";
+// StdOut() << "AllocArFromFile, " << aName << " => " << aPost << "\n";
    cAr2007 * aRes = nullptr;
 
    if (aPost=="xml")

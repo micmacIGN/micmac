@@ -67,7 +67,6 @@ void Bench_0000_Memory()
     // Plante si on teste avant liberation
     if (0)  cMemManager::CheckRestoration(aSt);
     cMemManager::Free(aPtr);
-    // std::cout << "cMemManager::Free " << cMemManager::IsOkCheckRestoration(aSt) << "\n";
     cMemManager::CheckRestoration(aSt);
 }
 
@@ -163,7 +162,7 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv,const cSpecMMVII_Ap
 
 static void CreateFile(const std::string & aNameFile)
 {
-   cMMVII_Ofs aFile(aNameFile);
+   cMMVII_Ofs aFile(aNameFile,false);
    int anI=44;
    aFile.Write(anI);
 }
@@ -211,18 +210,13 @@ int  cAppli_MMVII_Bench::Exe()
 
    BenchSerialization(mDirTestMMVII+"Tmp/",mDirTestMMVII+"Input/");
 
-   // std::cout << "BenchGlobBenchGlob \n";
-
-   // std::cout << " 1/0=" << 1/0  << "\n";
-   // std::cout <<  " 1.0/0.0" << 1.0/0.0  << "\n";
-   // std::cout << " sqrt(-1)=" << sqrt(-1)  << "\n";
-   // std::cout << " asin(2)=" << asin(2.0) << "\n";
 
    BenchSet(mDirTestMMVII);
    BenchSelector(mDirTestMMVII);
    BenchEditSet();
 
    BenchEnum();
+   Bench_Random();
 
 
    // We clean the temporary files created
@@ -282,7 +276,7 @@ cAppli_MPDTest:: cAppli_MPDTest(int argc,char** argv,const cSpecMMVII_Appli & aS
 
 void TestArg0(const std::vector<int> & aV0)
 {
-   for (auto I : aV0){I++; std::cout << "I=" << I << "\n"; }
+   for (auto I : aV0){I++; StdOut() << "I=" << I << "\n"; }
 }
 
 
@@ -292,8 +286,8 @@ void TestBooostIter();
 class cTestShared
 {
     public :
-        cTestShared() {std::cout  << "CREATE cTestShared "<< this << "\n";;}
-        ~cTestShared() {std::cout << "XXXXXX cTestShared "<< this << "\n";;}
+        cTestShared()  {StdOut()  << "CREATE cTestShared "<< this << "\n";;}
+        ~cTestShared() {StdOut() << "XXXXXX cTestShared "<< this << "\n";;}
         static void Test()
         {
             cTestShared anOb;
@@ -303,12 +297,64 @@ class cTestShared
 };
 
 
+/*
+class cMultipleOfs  : public  std::ostream
+{
+    public :
+        cMultipleOfs(std::ostream & aos1,std::ostream & aos2) :
+           mOs1 (aos1),
+           mOs2 (aos2)
+        {
+        }
+        
+        std::ostream & mOs1;
+        std::ostream & mOs2;
+
+        template <class Type> cMultipleOfs & operator << (const Type & aVal)
+        {
+             mOs1 << aVal;
+             mOs2 << aVal;
+             return *this;
+        }
+};
+class cMultipleOfs  : public  std::ostream
+{
+    public :
+        cMultipleOfs()
+        {
+        }
+        void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
+        
+        std::vector<std::ostream *> mVOfs;
+
+        template <class Type> cMultipleOfs & operator << (const Type & aVal)
+        {
+             for (const auto & Ofs :  mVOfs) 
+                 *Ofs << aVal;
+             return *this;
+        }
+};
+*/
 
 
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
    
+/*
+   cMMVII_Ofs aOs1("toto1.txt");
+   cMMVII_Ofs aOs2("toto2.txt");
+
+    
+   cMultipleOfs amOs; // (aOs1.Ofs(),aOs2.Ofs());
+   amOs.Add(aOs1.Ofs());
+   amOs.Add(aOs2.Ofs());
+   amOs << "1+1=" << 1+1 << "\n";
+   cMMVII_Ofs aFile("toto.txt");
+   std::ostream & anOFS =  aFile.Ofs();
+   anOFS << "TEST OFFFSSSSSSSSSSSS\n";
+*/
+
    return EXIT_SUCCESS;
 }
 

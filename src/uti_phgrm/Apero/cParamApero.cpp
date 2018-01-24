@@ -5372,16 +5372,37 @@ const std::string & cGpsOffset::Id()const
    return mId;
 }
 
+
+cTplValGesInit< Pt3dr > & cGpsOffset::Inc()
+{
+   return mInc;
+}
+
+const cTplValGesInit< Pt3dr > & cGpsOffset::Inc()const 
+{
+   return mInc;
+}
+
 void  BinaryUnDumpFromFile(cGpsOffset & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.ValInit(),aFp);
     BinaryUnDumpFromFile(anObj.Id(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Inc().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Inc().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Inc().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cGpsOffset & anObj)
 {
     BinaryDumpInFile(aFp,anObj.ValInit());
     BinaryDumpInFile(aFp,anObj.Id());
+    BinaryDumpInFile(aFp,anObj.Inc().IsInit());
+    if (anObj.Inc().IsInit()) BinaryDumpInFile(aFp,anObj.Inc().Val());
 }
 
 cElXMLTree * ToXMLTree(const cGpsOffset & anObj)
@@ -5390,6 +5411,8 @@ cElXMLTree * ToXMLTree(const cGpsOffset & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"GpsOffset",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("ValInit"),anObj.ValInit())->ReTagThis("ValInit"));
    aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+   if (anObj.Inc().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Inc"),anObj.Inc().Val())->ReTagThis("Inc"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -5403,9 +5426,11 @@ void xml_init(cGpsOffset & anObj,cElXMLTree * aTree)
    xml_init(anObj.ValInit(),aTree->Get("ValInit",1)); //tototo 
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+
+   xml_init(anObj.Inc(),aTree->Get("Inc",1)); //tototo 
 }
 
-std::string  Mangling( cGpsOffset *) {return "A45F607E47168E8BFD3F";};
+std::string  Mangling( cGpsOffset *) {return "B1A66427BA26C3B0FF3F";};
 
 
 eTypeCalibAutom & cCalibAutomNoDist::TypeDist()
@@ -10402,7 +10427,7 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointFlottantInc(),aTree->GetAll("PointFlottantInc",false,1));
 }
 
-std::string  Mangling( cSectionInconnues *) {return "4C6A20E243924390FE3F";};
+std::string  Mangling( cSectionInconnues *) {return "5824DC66443884F4FD3F";};
 
 
 cTplValGesInit< double > & cUseExportImageResidu::SzByPair()
@@ -26845,7 +26870,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "C9A8AE4DEBC074F8FE3F";};
+std::string  Mangling( cParamApero *) {return "19A7C12DEB4C33DCFE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

@@ -18,7 +18,7 @@ void BenchMod(int A,int B,int aModb)
 
 void Bench_Nums()
 {
-   std::cout << "Bench_NumsBench_NumsBench_NumsBench_Nums\n";
+   StdOut() << "Bench_NumsBench_NumsBench_NumsBench_Nums\n";
    MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL8)==8,"Bench round_up");
    MMVII_INTERNAL_ASSERT_bench (sizeof(tINT4)==4 ,"Bench round_up");
    MMVII_INTERNAL_ASSERT_bench (sizeof(tINT8)==8 ,"Bench round_up");

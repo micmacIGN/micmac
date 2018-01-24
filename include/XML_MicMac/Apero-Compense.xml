@@ -39,6 +39,7 @@
            <Symb>  BDDC=XXXX </Symb>
            <Symb>  SigmGPS=XXXX </Symb>
            <Symb>  SigmGPSAlti=XXXX </Symb>
+           <Symb>  PatternGPS=.* </Symb>
 
            <Symb>  CPI=false </Symb>
            <Symb>  CPIInput=false </Symb>
@@ -71,6 +72,11 @@
            <Symb>  SeuilEvolIterFin=1e50 </Symb>
 
             <!-- By backward compatibility WithLA instead of WithLA0 -->
+           <Symb>  WithIncLA=false </Symb>
+           <Symb>  IncLaX=0 </Symb>
+           <Symb>  IncLaY=0 </Symb>
+           <Symb>  IncLaZ=0 </Symb>
+
            <Symb>  WithLA=false </Symb>
            <Symb>  LaX=0 </Symb>
            <Symb>  LaY=0 </Symb>
@@ -244,30 +250,35 @@
                   <GpsOffset>
                        <ValInit> ${LaX} ${LaY} ${LaZ} </ValInit>
                        <Id>  TheIdLA </Id>
+                       <#WHEN VTEST=${WithIncLA}> <Inc> ${IncLaX}  ${IncLaY}  ${IncLaZ} </Inc> </#WHEN>
                    </GpsOffset>
              </#WHEN>
              <#WHEN VTEST=${WithLA1}>
                   <GpsOffset>
                        <ValInit> ${La1X} ${La1Y} ${La1Z} </ValInit>
                        <Id>  TheIdLA1 </Id>
+                       <#WHEN VTEST=${WithIncLA}> <Inc> ${IncLaX}  ${IncLaY}  ${IncLaZ} </Inc> </#WHEN>
                    </GpsOffset>
              </#WHEN>
              <#WHEN VTEST=${WithLA2}>
                   <GpsOffset>
                        <ValInit> ${La2X} ${La2Y} ${La2Z} </ValInit>
                        <Id>  TheIdLA2 </Id>
+                       <#WHEN VTEST=${WithIncLA}> <Inc> ${IncLaX}  ${IncLaY}  ${IncLaZ} </Inc> </#WHEN>
                    </GpsOffset>
              </#WHEN>
              <#WHEN VTEST=${WithLA3}>
                   <GpsOffset>
                        <ValInit> ${La3X} ${La3Y} ${La3Z} </ValInit>
                        <Id>  TheIdLA3 </Id>
+                       <#WHEN VTEST=${WithIncLA}> <Inc> ${IncLaX}  ${IncLaY}  ${IncLaZ} </Inc> </#WHEN>
                    </GpsOffset>
              </#WHEN>
              <#WHEN VTEST=${WithLA4}>
                   <GpsOffset>
                        <ValInit> ${La4X} ${La4Y} ${La4Z} </ValInit>
                        <Id>  TheIdLA4 </Id>
+                       <#WHEN VTEST=${WithIncLA}> <Inc> ${IncLaX}  ${IncLaY}  ${IncLaZ} </Inc> </#WHEN>
                    </GpsOffset>
              </#WHEN>
 
@@ -702,7 +713,7 @@
 
                           <#WHEN  VTEST=${WithCenter}>
                                <ObsCentrePDV>
-                                   <PatternApply> .* </PatternApply>
+                                   <PatternApply> ${PatternGPS} </PatternApply>
                                    <Pond>
                                           <EcartMesureIndiv>  ${SigmGPS}  </EcartMesureIndiv>
                                           <Show> eNSM_Indiv     </Show>

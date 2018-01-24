@@ -162,12 +162,20 @@ class cMMVII_Ap_CPU
 {
     public  :
         cMMVII_Ap_CPU ();
+        typedef std::chrono::system_clock::time_point tTime;
     protected :
-         int mPid;       // Processus id
-         int mNbProcSys; // Number of processor on the system
+         tTime       mT0 ;       ///< More or less creation time
+         int         mPid;       ///< Processus id
+         int         mNbProcSys; ///< Number of processor on the system
 };
 
      // ========================== cMMVII_Appli  ==================
+
+cMultipleOfs& StdOut(); /// Call the ostream of cMMVII_Appli if exist (else std::cout)
+cMultipleOfs& HelpOut();
+cMultipleOfs& ErrOut();
+
+
 /// Mother class of all appli
 
 /** Any application of MMVII must inherit of cMMVII_Appli.
@@ -185,12 +193,19 @@ class cMMVII_Ap_CPU
    because InitParam use ressource of cMMVII_Appli.
  
 */
+
+
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
 {
     public :
-        int  ExeCallMMVII(const std::string & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
-        std::string  StrCallMMVII(const std::string & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
+        /// According to StdOut param can be std::cout, a File, both or none
+        cMultipleOfs & StdOut();
+        cMultipleOfs & HelpOut();
+        cMultipleOfs & ErrOut();
+
+        int  ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
+        std::string  StrCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
         cColStrAObl& StrObl();
         cColStrAOpt& StrOpt();
  
@@ -207,6 +222,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
         const std::string & InputDirTestMMVII() const;   ///<  where are input files for bench   , Export for global bench funtion
+
+        static int  SeedRandom();  ///< SeedRand if Appli init, else default
 
         // cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac);
 
@@ -234,8 +251,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void                                      InitProject();  ///< Create Dir (an other ressources) that may be used by all processe
 
         static cMMVII_Appli *                     msTheAppli;     ///< Unique application
+        static bool                               msInDstructor;  ///< Some caution must be taken once destruction has begun
+        static const int                          msDefSeedRand;  ///<  Default value for Seed random generator
         void                                      AssertInitParam() const; ///< Check Init was called
     protected :
+        virtual int                               DefSeedRand();  ///< Clas can redefine instead of msDefSeedRand, value <=0 mean init from time:w
         cMemState                                 mMemStateBegin; ///< To check memory management
         int                                       mArgc;          ///< memo argc
         char **                                   mArgv;          ///< memo argv
@@ -277,6 +297,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mOutPutV2;   ///< computed from mNumOutPut
         bool                                      mHasInputV1; ///< Is there any input in V1 format ?
         bool                                      mHasInputV2; ///< Is there any input in V2 format ?
+        // For controling output
+        std::unique_ptr<cMMVII_Ofs>               mFileStdOut;  ///< Redirection of std output
+        cMultipleOfs                              mStdCout;     ///< Standard Ouput (File,Console, both or none)
+        std::string                               mParamStdOut; ///< Users value
+        int                                       mSeedRand;    ///< Seed for random generator
 };
 
 };

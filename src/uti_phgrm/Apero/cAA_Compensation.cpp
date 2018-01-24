@@ -177,6 +177,37 @@ for (int aK=0 ; aK<aNbIter; aK++)
    }
 }
 
+
+void cAppliApero::AddObservationsBaseGpsInit()
+{
+
+   for (auto & aPair : mDicoOffGPS)
+   {
+
+      cAperoOffsetGPS * anOffs = aPair.second;
+      const cGpsOffset &  aGO = anOffs->ParamCreate();
+      if (aGO.Inc().IsInit())
+      {
+          cBaseGPS * aBG =   anOffs->BaseUnk();
+
+          Pt3dr aPInc = aGO.Inc().Val();
+          double aTab[3];
+          aPInc.to_tab(aTab);
+           // Pt3dr aPInc(1e6,1e6,1e6);
+          for (int aK=0 ; aK< 3 ; aK++)
+          {
+              if (aTab[aK] > 0)
+              {
+                 cMultiContEQF  aRes;
+                 aBG->AddFoncRappInit(aRes,aK,aK+1,1);
+                 mSetEq.AddContrainte(aRes,false,ElSquare(1/aTab[aK]));
+              }
+          }
+       }
+    }
+}
+
+
 void cAppliApero::AddObservationsRigidBlockCam
      (
          const std::list<cObsBlockCamRig> & anOBCR,
@@ -524,6 +555,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
     ActiveContraintes(true);
     mSetEq.SetPhaseEquation();
     ActiveContraintes(false);
+    AddObservationsBaseGpsInit();
 
 
     for (int aKP=0 ; aKP<int(mVecPose.size()) ; aKP++)

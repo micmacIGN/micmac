@@ -144,10 +144,11 @@ class cAppli_Aspro //  :  public cAppliWithSetImage
        std::string mNameCalib;
        std::string mNameFile3D;
        std::string mNameFile2D;
+       std::string mOriOut;
 };
 
-cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) //  : cAppliWithSetImage (argc-1,argv+1,0)
-
+cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) ://  : cAppliWithSetImage (argc-1,argv+1,0)
+    mOriOut ("Aspro")
 {
 
    ElInitArgMain
@@ -157,7 +158,7 @@ cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) //  : cAppliWithSetImage (argc
                    << EAMC(mNameCalib,"Name File for input calibratio,",eSAM_IsExistFile)
                    << EAMC(mNameFile3D,"Name File for GCP",eSAM_IsExistFile)
                    << EAMC(mNameFile2D,"Name File for Image Measures",eSAM_IsExistFile),
-       LArgMain()  // << EAM(toto,"toto",true,"toto et ttiti");
+       LArgMain() <<  EAM(mOriOut,"Out",true,"Out orientation, def=Aspro")
    );
 
    
@@ -169,7 +170,7 @@ cAppli_Aspro::cAppli_Aspro(int argc,char ** argv) //  : cAppliWithSetImage (argc
                        + " DirectoryChantier=" + mEASF.mDir
                        + " +PatternAllIm=" + mEASF.mPat
                        + " +CalibIn="      + mNameCalib
-                       + " +AeroOut=Aspro"
+                       + " +AeroOut=" + mOriOut
                        + " +DicoApp="  + mNameFile3D
                        + " +SaisieIm=" + mNameFile2D;
 

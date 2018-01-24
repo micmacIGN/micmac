@@ -1,4 +1,6 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
+
 
 /** \file cMMVII_CalcSet.cpp
     \brief Command for set calculation
@@ -100,9 +102,9 @@ int cAppli_EditSet::Exe()
                 int aKPrint = (aInInit ? 0 : 2) + (aInRes ? 0 : 1);
                 if (aKPrint== aK)
                 {
-                   std::cout <<  " " << (aInInit ? "+" : "-");
-                   std::cout <<   (aInRes ? "+" : "-") << " ";
-                   std::cout <<  *aPtrS << "\n";
+                   StdOut() <<  " " << (aInInit ? "+" : "-");
+                   StdOut() <<   (aInRes ? "+" : "-") << " ";
+                   StdOut() <<  *aPtrS << "\n";
                 }
              }
           }
@@ -258,20 +260,20 @@ int cAppli_EditRel::Exe()
           Warning("Mode Line with 2 sets in EditRel",eTyW::eWLineAndCart,__LINE__,__FILE__);
 
       std::vector<const std::string *> aV1;
-      int aNba = aV1.size();
       aSet1.PutInVect(aV1,true);
-      for (int aKa=0 ; aKa < aNba ; aKa++)
+      int aNb = aV1.size();
+      for (int aKa=0 ; aKa < aNb ; aKa++)
       {
            int aKb0 = aKa-mLine;
            int aKb1 = aKa+mLine;
            if (!mCirc)
            {
                 aKb0 = std::max(aKb0,0);
-                aKb1 = std::min(aKb0,0);
+                aKb1 = std::min(aKb0,aNb-1);
            }
            for (int aKb = aKb0; aKb <= aKb1 ; aKb++)
            {
-               AddCple(*aV1.at(aKa),*aV1.at(aKb));
+               AddCple(*aV1.at(aKa),*aV1.at(mod(aKb,aNb)));
            }
       }
    }
@@ -360,7 +362,7 @@ void OneBenchEditSet
 
     anAp.ExeCallMMVII
     (
-        "EditSet",
+        TheSpecEditSet,
         anAp.StrObl() <<   (UseDirP ? "" : aDirI)+Input  << anOp << aPat,
         anArgOpt
     );
@@ -368,7 +370,6 @@ void OneBenchEditSet
     RenameFiles(aDirI+Ouput,aDirT+Ouput);
 
     const std::string & aTag = (aRealNumOut==1) ?  MMv1XmlTag_SetName : TagSetOfName;
- // std::cout << "FFFfff " << aTag <<  " " << aDirT+Ouput << " " << aRealNumOut << "\n"; getchar();
     MMVII_INTERNAL_ASSERT_always
     (
         IsFileXmlOfGivenTag((aRealNumOut==2),aDirT+Ouput,aTag) ,

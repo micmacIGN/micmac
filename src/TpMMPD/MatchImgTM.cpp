@@ -54,7 +54,7 @@ const double JD2000 = 2451545.0; 	// J2000 in jd
 const double J2000 = 946728000.0; 	// J2000 in seconds starting from 1970-01-01T00:00:00
 const double MJD2000 = 51544.5; 	// J2000 en mjd
 const double GPS0 = 315964800.0; 	// 1980-01-06T00:00:00 in seconds starting from 1970-01-01T00:00:00
-const int LeapSecond = 18;			// GPST-UTC=17s
+const int LeapSecond = 18;			// GPST-UTC=18s
 
 //struct
 struct hmsTime{
@@ -137,7 +137,7 @@ double cMITM_Appli::hmsTime2MJD(const hmsTime & Time, const std::string & TimeSy
 	
 	if(TimeSys == "UTC")
 	{
-		aSec -= LeapSecond;
+        aSec += LeapSecond;
 	}
 	
 	//std::cout << "aSec = " << aSec << std::endl;

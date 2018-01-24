@@ -242,6 +242,7 @@ extern int CPP_MMRename(int argc,char**argv);
 extern int  CPP_EditSet(int argc,char**argv);
 
 int CPP_MMHelp(int argc,char ** argv);
+int ConvertOriCalib_main(int argc,char ** argv);
 
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC,const std::string & aLib)
 {
@@ -249,6 +250,9 @@ std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC,const std::string & aLib)
        aVC[aK].mLib = aLib;
    return aVC; 
 }
+
+int  CPP_StatPHom(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -297,6 +301,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Compare two  calibrations"));
        aRes.push_back(cMMCom("CmpOri",CPP_CmpOriCam_main," Compare two sets of orientation"));
        aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
+       aRes.push_back(cMMCom("ConvertOriCalib",ConvertOriCalib_main,"Convert external orientation with new internal orientation "));
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
        
        aRes.push_back(cMMCom("TestRegEx",TestRegEx_main," Test regular expression"));
@@ -535,6 +540,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("GenerateBorderCam",GenerateBorderCam_main," Generate the polygone of image contour undistorded"));
        aRes.push_back(cMMCom("ProfilIm",CPP_ProfilImage,"Image profiling  2D->1D "));
        aRes.push_back(cMMCom("EditSet",CPP_EditSet,"Edition creation of a set of images/files"));
+       aRes.push_back(cMMCom("StatPHom",CPP_StatPHom,"Stat on homologous point using orientation of 3D Model"));
 
    }
 
@@ -625,6 +631,16 @@ extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
 extern int  DocEx_Introfiltr_main(int,char **);
 extern int  ImageRectification(int argc,char ** argv);
+extern int  FilterFileHom_main(int argc,char ** argv);
+extern int  EgalRadioOrto_main(int argc,char ** argv);
+extern int  T2V_main(int argc,char ** argv);
+extern int  Tapioca_IDR_main(int argc,char ** argv);
+extern int  resizeImg_main(int argc,char ** argv);
+extern int  resizeHomol_main(int argc,char ** argv);
+// test je jo
+extern int  main_test(int argc,char ** argv);
+extern int  main_ero(int argc,char ** argv);
+extern int  main_ascii2tif(int argc,char ** argv);
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int,char **);
 #endif
@@ -642,6 +658,7 @@ int PLY2XYZ_main(int argc,char ** argv);
 int ExportXmlGcp2Txt_main(int argc,char ** argv);
 int ExportXmlGps2Txt_main(int argc,char ** argv);
 int ConvertRtk_main(int argc,char ** argv);
+int CPP_FilterGeo3(int argc,char ** argv);
 int MatchCenters_main( int argc,char ** argv);
 int Panache_main(int argc,char ** argv);
 int rnx2rtkp_main(int argc,char ** argv);
@@ -780,6 +797,7 @@ extern int  TestNewOriHom1Im_main(int argc,char ** argv);
 extern int  CPP_NOGpsLoc(int argc,char ** argv);
 
 extern int GCPRollingBasc_main(int argc, char** argv);
+extern int Generate_ImagSift(int argc, char** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -879,6 +897,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("XmlGps2Txt",ExportXmlGps2Txt_main,"Tool to export .xml GPS file to .txt file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Panache",Panache_main,"Tool to export profile along axis given a line draw on Orthoimage",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("ConvRtk",ConvertRtk_main,"Tool to extract X_Y_Z_Ix_Iy_Iz from Rtklib output file",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("FilterGeo3",CPP_FilterGeo3,"Tool extract ?optimal position for a set of daily geocube obs",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("MatchCenters",MatchCenters_main,"Tool to match Gps positions and Camera Centers",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("GpsProc",rnx2rtkp_main,"Tool using rnx2rtkp from RTKlib to do GNSS processing",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("GPSConvert",GPS_Txt2Xml_main,"Tool to convert a GPS trajectory into xml format",cArgLogCom(2)));
@@ -915,6 +934,16 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("GeoSud",ServiceGeoSud_GeoSud_main,""));
         aRes.push_back(cMMCom("Surf",ServiceGeoSud_Surf_main,""));
         aRes.push_back(cMMCom("ImageRectification",ImageRectification,"Rectify individual aerial images, ground is assumed to be a plane"));
+        aRes.push_back(cMMCom("jo_FFH",FilterFileHom_main,"filtrer un fichier de paire d'image"));
+        aRes.push_back(cMMCom("jo_T2V",T2V_main,"appliquer une homographie a un ensemble d'im thermique pour Reg avec images visibles"));
+        aRes.push_back(cMMCom("jo_test",main_test,"test function for didro project"));
+        aRes.push_back(cMMCom("TapiocaIDR",Tapioca_IDR_main,"Utiliser Tapioca avec des Images de Résolution Différente (effectue un resample des images)"));
+        aRes.push_back(cMMCom("ResizeImg",resizeImg_main,"Resize image in order to reach a specific image width"));
+        aRes.push_back(cMMCom("ResizeHomol",resizeHomol_main,"Resize Homol pack"));
+        aRes.push_back(cMMCom("Ero",main_ero,"Egalisation Radiometrique pour une paire d'ortho"));
+        aRes.push_back(cMMCom("Eros",EgalRadioOrto_main,"Egalisation Radiometrique d'OrthoS"));
+        aRes.push_back(cMMCom("Ascii2Tif",main_ascii2tif,"transform ascii file from irbis software into tif file."));
+
 // #if (ELISE_QT_VERSION >= 4)
         aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
 // #endif
@@ -995,6 +1024,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("GCPRollingBasc",GCPRollingBasc_main ,"Rolling GCPBascule"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
+        aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
         aRes.push_back(cMMCom("XMLDiffSeries",XMLDiffSeries_main ,"Generate pair images for tapioca in part c"));
         aRes.push_back(cMMCom("ZBufferRaster",ZBufferRaster_main ,"Z Buffer Raster"));

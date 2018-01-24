@@ -42,6 +42,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+
+//  =======   Pour visualiser les points carac new
+#include "../NewRechPH/cParamNewRechPH.h"
+#include "../NewRechPH/ExternNewRechPH.h"
+
+// std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
+// void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
+
+// cSetPCarac * LoadStdSetCarac(const std::string & aNameIm);
+
+
+//  =======   Pour visualiser les points carac new
+#include "../Sift/Sift.h"
+
 #if (ELISE_X11)
 
 #define TheNbMaxChan  10
@@ -205,13 +219,15 @@ class cAppli_Vino : public cXml_EnvVino,
 
 
         bool Floutage() {return false;} // A mettre dans cXml_EnvVino,
-        cAppli_Vino(int,char **);
+        cAppli_Vino(int,char **,const std::string & anIm,cAppli_Vino * aMother ); // If anIm == "" => read from argv
         void PostInitVirtual();
         void  Boucle();
         cXml_EnvVino & EnvXml() {return static_cast<cXml_EnvVino &> (*this);}
-
+        const cOnePCarac * Nearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
+        int  IndexNearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
 
      private :
+        void  ExeOneClik(Clik &);
         Box2di PutMessage(Pt2dr ,const std::string & aMes,int aCoulText,Pt2dr aSzRelief = Pt2dr(-1,-1),int aCoulRelief=-1);
         void   PutMessageRelief(int aK,const std::string & aMes);
         
@@ -259,11 +275,15 @@ class cAppli_Vino : public cXml_EnvVino,
         void ExeClikGeom(Clik);
         void ZoomMolette();
         void ShowAsc();
+        void ShowVect();
+        void ShowVectPCarac();
+        void ShowSPC(const Pt2dr & aP);
         Pt2dr ToCoordAsc(const Pt2dr & aP);
 
         std::string               mNameXmlOut;
         std::string               mNameXmlIn;
         std::string               mDir;
+        cInterfChantierNameManipulateur * mICNM;
         std::string               mNameIm;
         Tiff_Im  *                mTiffIm;
         std::string               mNameTiffIm;
@@ -348,6 +368,31 @@ class cAppli_Vino : public cXml_EnvVino,
         bool           mClipIsChantier;
         std::string    mPatClipCh;
         std::string    mOriClipCh;
+
+        //  Appli Vino Secondary Images
+        std::vector<cAppli_Vino *>  mAVSI;
+        cAppli_Vino  *              mMother;
+        std::string                 mPatSecIm;
+ 
+      // Vector view 
+
+        std::string    mImNewP;
+        std::string    mExtImNewP;
+        int            mSzSift;
+        std::string    mImSift;
+        double         mSSF;  // Sift Scale Factor => car a bas niveau calcule sur image reduite
+        std::string    mNameSift;
+        int            mWithPCarac;
+        cSetPCarac *   mSPC;
+        std::vector<Siftator::SiftPoint> mVSift;
+        double         mSeuilAC;
+        double         mSeuilContRel;
+
+        std::vector<std::string>   mCheckHom;
+        cElNuage3DMaille *         mCheckNuage;
+        cBasicGeomCap3D  *         mCheckOri;
+        std::vector<const cOnePCarac*>   mVptHom;
+        
 };
 
 Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);

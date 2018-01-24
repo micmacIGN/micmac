@@ -605,6 +605,8 @@
               <GpsOffset Nb="*">
                   <ValInit Nb="1" Type="Pt3dr"> </ValInit>
                   <Id Nb="1" Type="std::string"> </Id>
+                  <!-- Si pas d'incertitude, aucun rappel sur la valeur initiale -->
+                  <Inc Nb="?" Type="Pt3dr"> </Inc>
               </GpsOffset>
 
               <CalibrationCameraInc Nb="*">

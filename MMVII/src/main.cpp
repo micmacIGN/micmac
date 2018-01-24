@@ -7,7 +7,6 @@ using namespace MMVII;
 int main(int argc, char ** argv)
 {
    std::setlocale(LC_ALL, "C");
-   // std::cout << 3.15 << "\n";
    // std::setlocale(LC_ALL, "en_US.UTF-8");
 
    if (argc>1)
@@ -43,7 +42,7 @@ int main(int argc, char ** argv)
    // Affiche toutes les commandes
    for (const auto & aSpec : cSpecMMVII_Appli::VecAll())
    {
-       std::cout << aSpec->Name() << " => " << aSpec->Comment() << "\n";
+       StdOut()  << aSpec->Name() << " => " << aSpec->Comment() << "\n";
    }
    return EXIT_SUCCESS;
 }

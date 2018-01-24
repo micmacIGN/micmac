@@ -6,15 +6,11 @@ namespace MMVII
 
 void  Bench_0000_Ptxd()
 {
-    cPt2dr aP12(1,2);
-    cPt2dr aP22(2,2);
-    cPt2dr aP21(2,1);
-    cPt2dr aP11(1,1);
-    cPt2dr aP21Bis(2,1);
+    MMVII_INTERNAL_ASSERT_bench(cPt2dr(1,1) == cPt2dr(1,1),"Bench_0000_Ptxd");
+    MMVII_INTERNAL_ASSERT_bench(cPt2dr(1,1) != cPt2dr(1,2),"Bench_0000_Ptxd");
+    MMVII_INTERNAL_ASSERT_bench(cPt2dr(1,1) != cPt2dr(2,1),"Bench_0000_Ptxd");
 
-
-
-    std::cout << "done Bench_0000_Ptxd \n";
+    StdOut() << "done Bench_0000_Ptxd \n";
 }
 
 };

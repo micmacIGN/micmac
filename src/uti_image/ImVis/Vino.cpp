@@ -50,7 +50,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 int Vino_Main(int argc, char ** argv)
 {
     
-    cAppli_Vino  anAppli(argc,argv);
+    cAppli_Vino  anAppli(argc,argv,"",nullptr);
 
     anAppli.PostInitVirtual();
     anAppli.Boucle();

@@ -166,6 +166,8 @@ class cParamAppliTieTri
         int      mLastEtape;   // Inclusif !!
         int      mFlagFS;   // FlagFitrage Spatial
         string   mHomolOut;
+        Pt2dr    mSurfDiffAffHomo;
+        bool     mUseHomo;
 };
 
 
@@ -229,6 +231,9 @@ class cAppliTieTri : public cParamAppliTieTri
             const std::string &  KeyMasqIm() const;
             void SetMasqIm(const  std::string  & aKeyMasqIm);
 
+            Pt2dr &         MoyDifAffHomo() {return mMoyDifAffHomo;}
+            int   &         CountDiff() {return mCountDiff;}
+
       private  :
          cAppliTieTri(const cAppliTieTri &); // N.I.
          void DoOneTri  (const cXml_Triangle3DForTieP & ,int aKT);
@@ -279,6 +284,9 @@ class cAppliTieTri : public cParamAppliTieTri
 
          bool               mPIsInImRedr;  // Savoir si les points de correlation sont points redresses ou non
          int                mCurEtape;
+
+         Pt2dr          mMoyDifAffHomo;
+         int            mCountDiff;
 };
 
 /*
@@ -336,6 +344,12 @@ class cImTieTri
            string NameIm() {return mNameIm;}
            bool AutoCorrel(Pt2di aP);
            Tiff_Im   Tif();
+
+           std::vector<Pt3dr> & PtTri3DHomoGrp() {return mPtTri3DHomoGrp;}
+
+           Pt2dr &         P1Glob() {return mP1Glob;}
+           Pt2dr &         P2Glob() {return mP2Glob;}
+           Pt2dr &         P3Glob() {return mP3Glob;}
            
       protected :
            cImTieTri(const cImTieTri &) ; // N.I.
@@ -366,6 +380,7 @@ class cImTieTri
            Pt2dr          mP2Glob;
            Pt2dr          mP3Glob;
            std::vector<Pt2dr> mVTriGlob;
+           std::vector<Pt3dr> mPtTri3DHomoGrp;
 
            Pt2dr          mP1Loc;
            Pt2dr          mP2Loc;
@@ -430,6 +445,7 @@ class cImSecTieTri : public cImTieTri
            virtual tTImTiepTri & ImRedr();
            ElPackHomologue & PackH() ;
            Pt2dr   Mas2Sec(const Pt2dr &) const;
+           Pt2dr   Mas2Sec_Hom(const Pt2dr &) const;
     private :
            bool InMasqReech(const Pt2dr &) const;
            bool InMasqReech(const Pt2di &) const;
@@ -449,6 +465,10 @@ class cImSecTieTri : public cImTieTri
            Pt2di                         mSzReech;
            ElAffin2D                     mAffMas2Sec;
            ElAffin2D                     mAffSec2Mas;
+
+           cElHomographie                mHomMas2Sec;
+           cElHomographie                mHomSec2Mas;
+
            cImMasterTieTri *             mMaster;
            ElPackHomologue               mPackH;
 };

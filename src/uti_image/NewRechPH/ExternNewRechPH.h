@@ -43,6 +43,40 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool HighLight);
+cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & Ext="Std");
+
+void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
+
+
+class cAppli_NewRechPH;
+
+
+typedef float   tElNewRechPH ;
+typedef double  tElBufNRPH ;
+typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
+typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
+typedef cInterpolateurIm2D<tElNewRechPH>  tInterpolNRPH;
+
+
+
+double Gauss(double aSig,double aVal);
+double Sigma2FromFactExp(double a);
+double FactExpFromSigma2(double aS2);
+void TestSigma2(double a);
+template <class T1> void  LocFilterGauss(T1 & anIm, double aSigmaN,int aNbIter);
+void FilterGaussProgr(tImNRPH anIm,double  aSTarget,double  aSInit,int aNbIter);
+void TestDist(Pt2di aSz,Fonc_Num aP,double aScale);
+
+int SignOfType(eTypePtRemark aKind);
+
+
+
+
+
+
+
 // ====================== Fonctions-classes qui pourraient etre exportees car d'interet ===================
 // ====================== general
 
@@ -82,61 +116,78 @@ template<class T1,class T2> Im2D_U_INT1 MakeFlagMontant(Im2D<T1,T2> anIm)
     return aRes;
 }
 
-typedef enum eTypePtRemark
-{
-    eTPR_Max     = 0,
-    eTPR_Min     = 1,
-    eTPR_NoLabel = 2
 /*
     eTPR_Corner  = 2,
     eTPR_MaxLapl = 3,
     eTPR_MinLapl = 4,
     eTPR_NoLabel = 5
 */
-}  eTypePtRemark;
 
-Pt3di CoulOfType(eTypePtRemark);
+Pt3di Ply_CoulOfType(eTypePtRemark,int aN0,int aLong);
+Pt3dr X11_CoulOfType(eTypePtRemark);
+
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude &,Video_Win * aW);
 
 
 
 int  * TabTypePOfFlag();
 
 // Stucture de points remarquables
+class cPtRemark;
+typedef std::list<cPtRemark*> tContHRPR;
+
 class cPtRemark
 {
     public :
-       cPtRemark(const Pt2dr & aPt,eTypePtRemark aType) ;
+       cPtRemark(const Pt2dr & aPt,eTypePtRemark aType,int aNiv) ;
 
        const Pt2dr & Pt() const          {return mPtR;}
        const eTypePtRemark & Type() const {return mType;}
        
        void MakeLink(cPtRemark * aHR /*Higher Resol */);
-       cPtRemark * HR() {return mHR;}
-       cPtRemark * LR() {return mLR;}
+       tContHRPR &  HRs()  {return mHRs;}
+       cPtRemark * LR()    {return mLR;}
+       int   Niv() const   {return mNiv;}
 
+       void  RecGetAllPt(std::vector<cPtRemark *> &);
     private :
 
        cPtRemark(const cPtRemark &); // N.I.
        Pt2dr           mPtR;
        eTypePtRemark   mType;
-       cPtRemark     * mHR; // Higher Resol
-       cPtRemark     * mLR; // Lower Resol
+       tContHRPR         mHRs; // Higher Resol
+       cPtRemark     *   mLR; // Lower Resol
+       int               mNiv;
+};
+
+
+class cStatBrin
+{
+   public :
+      int mNbMult;
+      int mNbNivMin;
 };
 
 // Stucture de brins , suite de points sans embranchement
 class cBrinPtRemark
 {
     public :
-        cBrinPtRemark(cPtRemark * aP0,int aNiv0);
-        cPtRemark * P0() {return mP0;}
-        cPtRemark * PLast() {return mPLast;}
-        int   Niv0() {return mNiv0;}
-        int   Long() {return mLong;}
+        cBrinPtRemark(cPtRemark * aP0,cAppli_NewRechPH &);
+        // void StatBr(int & );
+        std::vector<cPtRemark *> GetAllPt();
+        bool    Ok() const {return mOk;}
+        double  Scale() const {return  mScale;}
+        double  ScaleStab() const {return  mScaleStab;}
+        int     NivScal() const {return mNivScal;}
+        double  LaplMax() const {return mLaplMax;}
     private :
-        cPtRemark * mP0;
-        cPtRemark * mPLast;
+        cPtRemark * mLR;
         int         mNiv0;
-        int         mLong;
+        bool        mOk;
+        int         mNivScal;
+        double      mScale;
+        double      mScaleStab;
+        double      mLaplMax;
 };
 
 typedef cPtRemark * tPtrPtRemark;

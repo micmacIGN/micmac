@@ -4,7 +4,8 @@ namespace MMVII
 {
 
 cMMVII_Ap_CPU::cMMVII_Ap_CPU() :
-   mPid         (mmvii_GetPId()),
+   mT0          (std::chrono::system_clock::now())     ,
+   mPid         (mmvii_GetPId())   ,
    mNbProcSys   (mmvii_NbProcSys())
 {
 }

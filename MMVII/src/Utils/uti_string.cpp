@@ -178,7 +178,6 @@ char DirSeparator()
 
 std::string DirCur()
 {
-// std::cout << "DDDDCCCC=[" <<  "." + path::preferred_separator << "]\n";
    return  std::string(".") + path::preferred_separator;
 }
 
@@ -203,22 +202,22 @@ std::string AbsoluteName(const std::string & aName)
 
 
 
-/**
+/*
   It was a test of using Boost for Up Dir,but untill now I am not 100% ok
   with the results:
         [.] => []
         [/a/b/c] => [/a/b]
         [a/b/c] => [a/b]
         [a] => []
-*/
 
 std::string BUD(const std::string & aDir)
 {
    path aPath(aDir);
    aPath = aPath.parent_path();
-   std::cout << "BUDDDDDD [" << aDir << "] => [" <<  aPath.c_str() << "]\n";
+   std:: cout << "BUDDDDDD [" << aDir << "] => [" <<  aPath.c_str() << "]\n";
    return aPath.c_str();
 }
+*/
 
 /** Basic but seems to work untill now
 */
@@ -240,6 +239,13 @@ bool ExistFile(const std::string & aName)
    return exists(aPath);
 }
 
+uintmax_t SizeFile(const std::string & aName)
+{
+    path aPath(aName);
+    return file_size(aPath);
+}
+
+
 void MakeNameDir(std::string & aDir)
 {
    if (aDir.back() != path::preferred_separator)
@@ -250,12 +256,14 @@ void MakeNameDir(std::string & aDir)
 
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErrorNonExist)
 {
+/*
 if (0)
 {
    static int aCpt=0; aCpt++;
-   std::cout << "SplitDirAndFile " << aCpt  << " " << __FILE__ << "\n";
+   std:: cout << "SplitDirAndFile " << aCpt  << " " << __FILE__ << "\n";
    getchar();
 }
+*/
 
    path aPath(aDirAndFile);
    bool aResult = true;
@@ -354,6 +362,12 @@ void RenameFiles(const std::string & anOldName, const std::string & aNewName)
 }
 
 
+void CopyFile(const std::string & aName,const std::string & aDest)
+{
+   boost::filesystem::copy_file(aName,aDest,boost::filesystem::copy_option::overwrite_if_exists);
+}
+
+
 
     /* =========================================== */
     /*                                             */
@@ -419,34 +433,24 @@ std::vector<std::string>  GetFilesFromDirAndER(const std::string & aDir,const st
     /* =========================================== */
 
 
+/*
 void TestBooostIter()
 {
 
-   std::cout <<  boost::filesystem::absolute("./MMVII") << '\n';
-   std::cout <<  boost::filesystem::absolute("MMVII") << '\n';
-   std::cout <<  boost::filesystem::absolute("./") << '\n';
+   std:: cout <<  boost::filesystem::absolute("./MMVII") << '\n';
+   std:: cout <<  boost::filesystem::absolute("MMVII") << '\n';
+   std:: cout <<  boost::filesystem::absolute("./") << '\n';
 getchar();
-/*
-for (directory_iterator itr("./"); itr!=directory_iterator(); ++itr)
-{
-    std::cout << itr->path().filename() << ' '; // display filename only
-    if (is_regular_file(itr->status())) std::cout << " [" << file_size(itr->path()) << ']';
-    std::cout << '\n';
-}
-*/
 
 for (        recursive_directory_iterator itr("./"); itr!=        recursive_directory_iterator(); ++itr)
 {
-    std::cout  <<  itr->path().c_str() << " " << itr->path().filename() << ' '; // display filename only
-    std::cout << itr.level()  << " ";
-    if (is_regular_file(itr->status())) std::cout << " [" << file_size(itr->path()) << ']';
-    std::cout << '\n';
+    std:: cout  <<  itr->path().c_str() << " " << itr->path().filename() << ' '; // display filename only
+    std:: cout << itr.level()  << " ";
+    if (is_regular_file(itr->status())) std:: cout << " [" << file_size(itr->path()) << ']';
+    std:: cout << '\n';
 }
-
-
-
-
 }
+*/
 
 };
 

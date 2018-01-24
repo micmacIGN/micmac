@@ -125,6 +125,7 @@ class cAppli_CmpOriCam : public cAppliWithSetImage
         std::string mPat,mOri1,mOri2;
         std::string mDirOri2;
         std::string mXmlG;
+        std::string mCSV = "CSVEachPose.csv";
         cInterfChantierNameManipulateur * mICNM2;
 };
 
@@ -140,6 +141,8 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
                     << EAMC(mOri2,"Orientation 2"),
         LArgMain()  << EAM(mDirOri2,"DirOri2", true,"Orientation 2")
 					<< EAM(mXmlG,"XmlG",true,"Generate Xml")
+                    << EAM(mCSV,"CSV",true,"Generate detail CSV (excel compatible) for each image")
+
    );
 
    mICNM2 = mEASF.mICNM;
@@ -156,6 +159,16 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
 
    double aSomDC = 0;
    double aSomDM = 0;
+
+   bool isCSV = false;
+   ofstream mCSVContent;
+   if (EAMIsInit(&mCSV))
+   {
+     mCSVContent.open(mCSV);
+     isCSV = true;
+     mCSVContent<< "Img,X,Y,Z,D\n";
+   }
+
 
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
@@ -174,6 +187,12 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
        aSomDC += aDC;
        aSomDM += aDM;
        std::cout << anIm->mNameIm << "\n";
+
+       if (isCSV)
+       {
+           mCSVContent << anIm->mNameIm <<","<< ToString(aC1.x) << "," << ToString(aC1.y) << "," <<ToString(aC1.z) << "," << ToString(aDC);
+           mCSVContent << "\n";
+       }
    }
 	
    std::cout << "Aver;  DistC= " << aSomDC/mVSoms.size()
@@ -191,6 +210,11 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
 	   }
 	   else{aCmpOri.TestOriDiff() = false;}
 	   MakeFileXML(aCmpOri, mXmlG);
+   }
+
+   if (isCSV)
+   {
+       mCSVContent.close();
    }
 }
 

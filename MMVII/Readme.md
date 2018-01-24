@@ -1,6 +1,15 @@
-Ce repertoire est pour l'instant un "bac a sable" ou je fais joujou pour experimenter des fonctionalite/idee qui pourtait etre utiles si un nouvelle version de MicMac devait etre developee.
 
-Il n'est pas du tout certain (euphemisme) que cette nouvelle version verra le jour; et dans l'hyopthèse ou ce serait le cas, pas du tout certain qu'elle reutilise les fichiers contenus ici.
+To install :
 
-MPD
+cd bin/
+make -f Mk-MMVII.makefile
+
+To generate html doc :
+
+doxygen Doxyfile 
+
+To generate pdf doc :
+
+cd Doc/
+pdflatex  Doc2007.tex
 

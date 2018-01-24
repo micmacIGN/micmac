@@ -82,6 +82,21 @@ inline tINT8 lround_ni(tREAL8 r) { return Tpl_round_ni<tINT8>(r); }
 
 
 
+
+
+/* ================= Random generator  ======================= */
+
+    // === Basic interface, global function but use C++11 modern
+    // === generator. By default will be deterministic, 
+
+
+///  Uniform distribution in 0-1
+double RandUnif_0_1();
+/// Uniform disrtibution in [0,N[ 
+double RandUnif_N(int aN);
+/// Eventualy free memory allocated for random generation
+void FreeRandom();
+
 };
 
 #endif  //  _MMVII_nums_H_

@@ -33,6 +33,7 @@ void BenchEditSet(); ///< Bench on commands : EditSet  (to come EditCple)
 void BenchEnum(); ///< Bench on Str2E / E2Str
 
 void Bench_Nums(); ///< Bench on rounding, modulo ... basic numeric service
+void Bench_Random(); ///< Bench on random generator
 
 
 

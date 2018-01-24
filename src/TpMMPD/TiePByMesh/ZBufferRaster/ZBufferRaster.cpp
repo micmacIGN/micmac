@@ -19,7 +19,7 @@ int ZBufferRaster_main(int argc,char ** argv)
                 //mandatory arguments
                 LArgMain()
                 << EAMC(aMesh, "Mesh",     eSAM_IsExistFile)
-                << EAMC(aPatFIm, "Image",  eSAM_IsPatFile)
+                << EAMC(aPatFIm, "Pattern Image",  eSAM_IsPatFile)
                 << EAMC(aOri, "Ori",       eSAM_IsExistDirOri),
                 //optional arguments
                 LArgMain()

@@ -8,9 +8,50 @@
 <Verbatim File=".h.cpp">
 // NOMORE ... 
 </Verbatim>
-   <PCarac  Nb="1" Class="true">
-        <Pt Nb="1" Type="Pt2dr"> </Pt>
-   </PCarac>
+<!--
+    eTPR_Corner  = 2,
+    eTPR_MaxLapl = 3,
+    eTPR_MinLapl = 4,
+    eTPR_NoLabel = 5
+-->
+   <enum Name="eTypePtRemark">
+      <eTPR_LaplMax>      </eTPR_LaplMax>
+      <eTPR_LaplMin>      </eTPR_LaplMin>
+      <eTPR_GrayMax>      </eTPR_GrayMax>
+      <eTPR_GrayMin>      </eTPR_GrayMin>
+      <eTPR_GraySadl>      </eTPR_GraySadl>
+      <eTPR_NoLabel>  </eTPR_NoLabel>
+   </enum>
+   <PtSc  Nb="*" Class="true" ToReference="true">
+       <Pt   Nb="1" Type="Pt2dr">     </Pt>
+       <Scale   Nb="1" Type="double">  </Scale>
+   </PtSc>
+
+   <SetPCarac  Nb="1" Class="true">
+      <OnePCarac  Nb="*" Class="true" Container="std::vector">
+         <Kind Nb="1" Type="eTypePtRemark">        </Kind>
+         <Pt   Nb="1" Type="Pt2dr">     </Pt>
+         <Pt0   Nb="1" Type="Pt2dr">     </Pt0>  <!-- Avant opt, pour test -->
+         <NivScale   Nb="1" Type="int">  </NivScale>
+         <Scale   Nb="1" Type="double">  </Scale>
+         <ScaleStab   Nb="1" Type="double">  </ScaleStab> <!-- 4 MinMax, highest scale where they are visible -->
+         <DirMS   Nb="1" Type="Pt2dr">     </DirMS>
+         <DirAC   Nb="1" Type="Pt2dr">     </DirAC>
+         <Contraste   Nb="1" Type="double">  </Contraste>
+         <ContrasteRel   Nb="1" Type="double">  </ContrasteRel> <!-- Par raport au seuil, pour inspection-->
+         <AutoCorrel   Nb="1" Type="double">  </AutoCorrel>
+         <OK   Nb="1" Type="bool">  </OK>  <!-- Help 4 compute, should always be true -->
+         <CoeffRadiom   Nb="1" Type="std::vector<double>">           </CoeffRadiom>
+         <CoeffRadiom2  Nb="1" Type="std::vector<double>">           </CoeffRadiom2>
+         <CoeffGradRadial   Nb="1" Type="std::vector<double>">       </CoeffGradRadial>
+         <CoeffGradTangent   Nb="1" Type="std::vector<double>">      </CoeffGradTangent>
+         <CoeffGradTangentPiS4   Nb="1" Type="std::vector<double>">  </CoeffGradTangentPiS4>
+         <CoeffGradTangentPiS2   Nb="1" Type="std::vector<double>">  </CoeffGradTangentPiS2>
+    <!-- Pour visu -->
+         <ImRad Nb="1" Type="Im2D_REAL4"> </ImRad>
+         <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
+      </OnePCarac>
+   </SetPCarac>
 <Verbatim File=".h.cpp">
 // };
 </Verbatim>

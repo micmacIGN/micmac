@@ -800,7 +800,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
                      << EAM(mSzPixDec,"SzPixDec",true,"Sz of decoupe in pixel")
                      << EAM(mTestExeOri,"TEO",true,"Test Execution OriRedTieP ()")
                      << EAM(mOut,"Out",true,"Folder dest => Def=-Ratafia")
-                     << EAM(mDistPMul,"DistPMul",true,"Average dist")
+                     << EAM(mDistPMul,"DistPMul",true,"Average distance in pixels between 2 Tie points, def=200")
                      << EAM(mMulVonGruber,"MVG",true,"Multiplier VonGruber, Def=" + ToString(mMulVonGruber))
                      << EAM(mInParal,"Paral",true,"Do it in parallel" )
                      << EAM(mDoCompleteArc,"DCA",true,"Do Complete Arc (Def=false)")

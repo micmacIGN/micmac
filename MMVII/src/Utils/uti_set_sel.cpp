@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
 #include <boost/optional/optional_io.hpp>
 #include <boost/regex.hpp>
 #include <unordered_set>
@@ -375,21 +376,22 @@ std::vector<tElemStrInterv> LireInterv(const std::string & aStr)
       aRes.push_back(tElemStrInterv(aStrLow,aLowIncl));
       aRes.push_back(tElemStrInterv(aStrUp,anUpIncl));
 
-      // std::cout << "LLLLL :" << (<< aStrLow << "###" << aStrUp  << "}\n";
       aC++;
       SkeepWhite(aC);
    }
 
+/*
    if (0)
    {
       for (size_t aK=0  ; aK<aRes.size() ; aK+=2)
       {
-         std::cout << (aRes[aK].second ? "[" : "]");
-         std::cout << aRes[aK].first << "," << aRes[aK+1].first ;
-         std::cout << (aRes[aK+1].second ? "]" : "[");
-         std::cout << "\n";
+         std:: cout << (aRes[aK].second ? "[" : "]");
+         std:: cout << aRes[aK].first << "," << aRes[aK+1].first ;
+         std:: cout << (aRes[aK+1].second ? "]" : "[");
+         std:: cout << "\n";
       }
    }
+*/
    return aRes;
 }
 
@@ -1038,7 +1040,6 @@ template <class Type> void TplBenchSet(const std::string & aDir)
          aSI.Add(FromInt<Type>(aK*2));
       for (int aK=0 ; aK<20 ; aK++)
           MMVII_INTERNAL_ASSERT_bench(aSI.In(FromInt<Type>(aK))==(aK%2==0),"BenchSet");
-      // std::cout << "BenchSetBenchSetBenchSet \n";
    }
 
 
@@ -1062,7 +1063,6 @@ template <class Type> void TplBenchSet(const std::string & aDir)
 
       for (int aK=0 ; aK<100; aK++)
       {
-         // std::cout << "K=" << aK << " " << aS2->In(aK) << " " << aS3->In(aK) << " " << aSPlus->In(aK) << "\n";
          MMVII_INTERNAL_ASSERT_bench(aSPlus.In(FromInt<Type>(aK))==((aK%2==0)||(aK%3==0)),"BenchSet+");
          MMVII_INTERNAL_ASSERT_bench(aSMoins.In(FromInt<Type>(aK))==((aK%2==0)&&(aK%3!=0)),"BenchSet-");
          MMVII_INTERNAL_ASSERT_bench(aSMul.In(FromInt<Type>(aK))==((aK%2==0)&&(aK%3==0)),"BenchSet*");

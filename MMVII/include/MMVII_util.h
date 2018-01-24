@@ -66,6 +66,7 @@ std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool P
 // Direcytory and files names, Rely on boost
 void MakeNameDir(std::string & aDir); ///< Add a '/', or equiv, to make a name of directory
 bool ExistFile(const std::string & aName);
+uintmax_t SizeFile(const std::string & aName);
 bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & aDirAndFile,bool ErroNonExist=true);
 std::string DirCur(); // as "./" on Unix
 std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
@@ -78,6 +79,8 @@ bool CreateDirectories(const std::string & aDir,bool SVP); ///< Create dir, recu
 bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP); ///< Purge recursively the directory
 bool RemoveFile(const  std::string & aDir,bool SVP); ///< Remove file
 void RenameFiles(const std::string & anOldName, const std::string & aNewName); ///< Move/Rename
+void CopyFile(const std::string & aName,const std::string & aDest);
+
 
 
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
@@ -116,7 +119,7 @@ std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelect
 class cMMVII_Ofs : public cMemCheck
 {
     public :
-        cMMVII_Ofs(const std::string & aName);
+        cMMVII_Ofs(const std::string & aName,bool aModeAppend);
         std::ofstream & Ofs() ;
         const std::string &   Name() const;
 
@@ -130,8 +133,9 @@ class cMMVII_Ofs : public cMemCheck
     private :
         void VoidWrite(const void * aPtr,size_t aNb);
 
-         std::ofstream  mOfs;
-         std::string   mName;
+        std::ofstream  mOfs;
+        std::string    mName;
+        bool           mModeAppend;
 };
 
 /// Secured ifstream
@@ -159,6 +163,29 @@ class cMMVII_Ifs : public cMemCheck
          std::ifstream  mIfs;
          std::string   mName;
 };
+
+class cMultipleOfs  : public  std::ostream
+{
+    public :
+        cMultipleOfs(std::ostream & aOfs)
+        {
+           Add(aOfs);
+        }
+        void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
+        void Clear() {mVOfs.clear();}
+
+        template <class Type> cMultipleOfs & operator << (const Type & aVal)
+        {
+             for (const auto & Ofs :  mVOfs)
+                 *Ofs << aVal;
+             return *this;
+        }
+    private :
+        std::vector<std::ostream *> mVOfs;
+};
+
+/// For now I have problem with cMultipleOfs << std::endl , tag end of line to come back on it later
+#define ENDL "\n"
 
 
 };

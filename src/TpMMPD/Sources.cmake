@@ -39,6 +39,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TestStephane.cpp
     ${TDPPMD_DIR}/TD_Exo.cpp
     ${TDPPMD_DIR}/ConvertRtk.cpp
+    ${TDPPMD_DIR}/FilterGeo3.cpp
     ${TDPPMD_DIR}/MatchCenters.cpp
     ${TDPPMD_DIR}/rnx2rtkp.cpp
     ${TDPPMD_DIR}/CPP_GPS_txt2Xml.cpp
@@ -101,6 +102,23 @@ set(Src_TD_PPMD
 
     ${TDPPMD_DIR}/Ex_Match/cImgMatch.cpp
     ${TDPPMD_DIR}/Ex_Match/cLSQTemplate.cpp
+ 	${TDPPMD_DIR}/FilterFileHom.cpp
+	${TDPPMD_DIR}/DIDRO/cimgeo.cpp
+	${TDPPMD_DIR}/DIDRO/cero_modelonepaire.cpp
+	${TDPPMD_DIR}/DIDRO/cransac_2dline.cpp
+	${TDPPMD_DIR}/DIDRO/cero_appli.cpp
+	${TDPPMD_DIR}/DIDRO/divers.cpp
+	${TDPPMD_DIR}/DIDRO/ascii2tif.cpp
+	${TDPPMD_DIR}/DIDRO/ctapioca_idr.cpp
+	${TDPPMD_DIR}/../RegTIRVIS/Arbre.cpp
+	${TDPPMD_DIR}/../RegTIRVIS/Image.cpp
+	${TDPPMD_DIR}/../RegTIRVIS/DescriptorExtractor.cpp
+	${TDPPMD_DIR}/../RegTIRVIS/Keypoint.cpp
+	${TDPPMD_DIR}/../RegTIRVIS/msd.cpp
+	${TDPPMD_DIR}/../RegTIRVIS/msdImgPyramid.cpp
+	${TDPPMD_DIR}/../RegTIRVIS/RegTIRVIS.cpp
+	${TDPPMD_DIR}/../RegTIRVIS/Resize.cpp
+
 
     ${TDPPMD_DIR}/RollingBasc/cAppliRollingBasc.cpp
 

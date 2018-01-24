@@ -41,17 +41,24 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _NewRechPH_H_
 #define _NewRechPH_H_
 
-#include "ExternNewRechPH.h"
-
-typedef float   tElNewRechPH ;
-typedef double  tElBufNRPH ;
-
-typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
-typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
-
-
 class cAppli_NewRechPH;
 class cOneScaleImRechPH;
+
+#include "cParamNewRechPH.h"
+#include "ExternNewRechPH.h"
+#include "LoccPtOfCorrel.h"
+
+void TestTouch();
+
+
+/*
+typedef float   tElNewRechPH ;
+typedef double  tElBufNRPH ;
+typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
+typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
+*/
+
+
 
 
 /************************************************************************/
@@ -78,63 +85,142 @@ class cOneScaleImRechPH
                       cOneScaleImRechPH &,   // niveau du dessus
                       const double & aSigma  // a sigma abs
                  );
-          tImNRPH Im(); // simple accesseur a l'image
+          tImNRPH  Im() {return mIm;}  // simple accesseur a l'image
+          tTImNRPH TIm() {return mTIm;}  // simple accesseur a l'image
 
-          void CalcPtsCarac();
+
+          void CalcPtsCarac(bool Basic);
           void Show(Video_Win* aW);
           void CreateLink(cOneScaleImRechPH & aLR);
-          void AddPly(cOneScaleImRechPH* aHR,cPlyCloud *  aPlyC);
+          void Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC);
 
           const int &  NbExLR() const ;
           const int &  NbExHR() const ;
+          const double &  Scale() const ;
+          int  Niv() const {return mNiv;}
+          double GetVal(const Pt2di & aP,bool & Ok) const;
+
+// Sift 
+          void SiftMakeDif(cOneScaleImRechPH* );
+          void SiftMaxLoc(cOneScaleImRechPH* aLR,cOneScaleImRechPH* aHR,cSetPCarac&);
+          // bool OkSiftContrast(cOnePCarac & aP) ;
+          // double ComputeContrast() ;
+
+
+          bool ComputeDirAC(cOnePCarac &);
+          bool AffinePosition(cOnePCarac &);
+          int& NbPOfLab(int aK) {return mNbPByLab.at(aK);}
+
+          double QualityScaleCorrel(const Pt2di &,int aSign,bool ImInit);
+
       private :
-          Pt3dr PtPly(const cPtRemark & aP);
+          void InitImMod();
+          Pt3dr PtPly(const cPtRemark & aP,int aNiv);
 
           void CreateLink(cOneScaleImRechPH & aLR,const eTypePtRemark & aType);
           void InitBuf(const eTypePtRemark & aType, bool Init);
 
 
           cOneScaleImRechPH(cAppli_NewRechPH &,const Pt2di & aSz,const double & aScale,const int & aNiv);
+ 
+          // Selectionne les maxima locaux a cette echelle
           bool  SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp);
+          // Selectionne les maxima locaux a avec une echelle differente
+          bool  ScaleSelectVois(cOneScaleImRechPH*, const Pt2di&, const std::vector<Pt2d<int> >&, int);
           std::list<cPtRemark *>  mLIPM;
    
           cAppli_NewRechPH & mAppli;
           Pt2di     mSz;
           tImNRPH   mIm;
           tTImNRPH  mTIm;
+          tImNRPH   mImMod;   // Dif en Sift, corner en harris etc ...
+          tTImNRPH  mTImMod;
+          tInterpolNRPH * mInterp;
+
           double    mScale;
           int       mNiv;
           int       mNbExLR; 
           int       mNbExHR;
+          std::vector<int>   mNbPByLab;
+          double             mQualScaleCorrel;
+          std::vector<Pt2di>   mVoisGauss;
+          std::vector<double>  mGaussVal;
 };
 
 
 class cAppli_NewRechPH
 {
     public :
+        Pt2di SzInvRad();
+
         cAppli_NewRechPH(int argc,char ** argv,bool ModeTest);
 
-        const double &      DistMinMax() const  {return mDistMinMax;}
+        double   DistMinMax(bool Basic) const ;
         const bool   &      DoMin() const       {return mDoMin;}
         const bool   &      DoMax() const       {return mDoMax;}
         cPlyCloud * PlyC()  const {return mPlyC;}
         const double & DZPlyLay() const {return  mDZPlyLay;}
 
+
+        // double    ThreshCstrIm0() {return mThreshCstrIm0;}
+
         bool Inside(const Pt2di & aP) const;
         const Pt2di & SzIm() const ;
         tPtrPtRemark & PtOfBuf(const Pt2di &);
         tPtrPtRemark  NearestPoint(const Pt2di &,const double & aDist);
+        bool       TestDirac() const {return mTestDirac;}
+        double ScaleOfNiv(const int &) const;
+        void AddBrin(cBrinPtRemark *);
+
+        int&  NbSpace()          { return  mNbSpace;}
+        int&  NbScaleSpace()     { return  mNbScaleSpace;}
+        int&  NbScaleSpaceCstr() { return  mNbScaleSpaceCstr;}
+        double   SeuilAC() const { return  mSeuilAC;}
+        double   SeuilCR() const { return  mSeuilCR;}
+        bool SaveFileLapl() const{return  mSaveFileLapl;}
+
+        bool  OkNivStab(int aNiv);
+        bool  OkNivLapl(int aNiv);
+        double GetLapl(int aNiv,const Pt2di & aP,bool &Ok);
+
+        cOneScaleImRechPH * GetImOfNiv(int aNiv);
+        void ComputeContrast();
+        bool ComputeContrastePt(cOnePCarac & aPt);
+        tInterpolNRPH * Interp() {return mInterp;}
+
+        bool ScaleCorr() {return mScaleCorr;}
 
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
+        bool  CalvInvariantRot(cOnePCarac & aPt);
 
         std::string mName;
         double      mPowS;
         int         mNbS;
+
+/*
+  Invariant Rotation
+*/
+        double      mStepSR;  // Pas entre les pixel de reechantillonage pour les desc
+        int         mNbSR;     // Nbre de niveau radial (entre 
+        int         mDeltaSR;  // Delta entre deux niveau radiaux, genre 1 ou 2 ?
+        int         mMaxLevR;  // Niv max permettant le calcul (calcule a partir des autres)
+
+        int         mNbTetaIm;  // Assez si on veut pouvoir interpoler entre les angles pour recalage
+        int         mMulNbTetaInv; // Comme ceux pour l'invariance ne coutent pas très cher, on a interet a en mettre + ?
+        int         mNbTetaInv; // Calcule, 
+
+
         double      mS0;
+        double      mScaleStab;
+        double      mSeuilAC;
+        double      mSeuilCR; // Contraste relatif
+        bool        mScaleCorr;
         Pt2di       mSzIm;
         Box2di      mBox;
+        Pt2di       mP0; // P0-P1 => "vrai" box
+        Pt2di       mP1;
 
         std::vector<cOneScaleImRechPH *> mVI1;
         Video_Win  * mW1;
@@ -147,9 +233,38 @@ class cAppli_NewRechPH
         bool         mDoPly;
         cPlyCloud *  mPlyC;
         double       mDZPlyLay;
+        double       mNbInOct;  // Number in one octave
 
         std::vector<std::vector<cPtRemark *> >  mBufLnk;
         std::vector<Pt2di>                      mVoisLnk;
+        std::vector<cBrinPtRemark *>            mVecB;
+        std::vector<int>                        mHistLong;
+        std::vector<int>                        mHistN0;
+        std::string                             mExtSave;
+        bool                                    mBasic;
+        bool                                    mAddModeSift;
+        bool                                    mAddModeTopo;
+        bool                                    mLapMS;
+        bool                                    mTestDirac;
+        bool                                    mSaveFileLapl;
+        // double                                  mPropCtrsIm0;
+        // double                                  mThreshCstrIm0;  /// Computed on first lapla
+
+        int     mNbSpace;
+        int     mNbScaleSpace;
+        int     mNbScaleSpaceCstr;
+
+        double  mDistAttenContr;  // 20
+        double  mPropContrAbs;    // 0.2
+        int     mSzContrast;      // 2
+        double  mPropCalcContr;   // 0.25
+
+
+        tImNRPH   mIm0;
+        tTImNRPH  mTIm0;
+        tImNRPH   mImContrast;
+        tTImNRPH  mTImContrast;
+        tInterpolNRPH * mInterp;
 
 };
 

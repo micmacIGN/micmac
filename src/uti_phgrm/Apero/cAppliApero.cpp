@@ -832,8 +832,8 @@ cAperoOffsetGPS *  cAppliApero::OffsetNNOfName(const std::string & aName)
    ELISE_ASSERT (anIt!= mDicoOffGPS.end(),"cAperoOffsetGPS::OffsetNNOfName");
 
    return anIt->second;
-   
 }
+
 
 cBdAppuisFlottant *  cAppliApero::BAF_FromName(const std::string & aName,bool CanCreate,bool SVP)
 {
