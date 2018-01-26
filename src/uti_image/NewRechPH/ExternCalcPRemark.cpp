@@ -249,6 +249,7 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
     int aSign = SignOfType(mLR->Type());
     std::vector<double> aVLapl;
     mLaplMax = -1;
+    mLaplMaxNature = -1;
 
     for (auto & aPt:  aVPt)
     {
@@ -271,14 +272,26 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
                return;
            }
 
-           if (aLapl> mLaplMax)
+           double aScale = anAppli.ScaleOfNiv(aNiv);
+           if ((aLapl>mLaplMax)  && anAppli.ScaleIsValid(aScale))
            {
                mNivScal = aNiv;
-               mScale   =  anAppli.ScaleOfNiv(aNiv);
+               mScale   =  aScale;
                mLaplMax = aLapl;
+           }
+           if (aLapl>mLaplMaxNature) 
+           {
+                mScaleNature = mScale;
+                mLaplMaxNature = aLapl;
            }
         }
       //   std::cout << "CORRELL " << anAppli.GetImOfNiv(aNiv)->QualityScaleCorrel(round_ni(aPt->Pt()),aSign,true)  << " \n";
+    }
+
+    if (mLaplMax==-1)
+    {
+       mOk = false;
+       return ;
     }
     
     // getchar();

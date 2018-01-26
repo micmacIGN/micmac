@@ -52,6 +52,8 @@ int Impainting_main(int argc,char ** argv)
     std::string aNameMasq2FIll;
     std::string aNameOut;
     bool OkIs1=false;
+    bool Debug=false;
+    double aParamKL=-1.0;
 
 
     ElInitArgMain
@@ -62,10 +64,14 @@ int Impainting_main(int argc,char ** argv)
     LArgMain()  << EAM(aNameOut,"Out",true,"Name of Result", eSAM_NoInit)
                     << EAM(aNameMasq2FIll,"2Fill", true, "Masq of point 2 fill, def = all", eSAM_NoInit)
                     << EAM(OkIs1,"OkIs1", true, "If true set standard convention for masq 1=true !!! Def= false ..", eSAM_NoInit)
+                    << EAM(Debug,"Debug", true, "Tuning ...", eSAM_NoInit)
+                    << EAM(aParamKL,"ParamKL", true, "Activate KL impaintinf", eSAM_NoInit)
     );
+
 
     if (!MMVisualMode)
     {
+        // L'Impating L2 fonctionne mal a cause d'effet de bors
         Tiff_Im aFileIm = Tiff_Im::UnivConvStd(aNameIn.c_str());
         Pt2di aSzIm = aFileIm.sz();
         int aNBC = aFileIm.nb_chan();
@@ -89,6 +95,21 @@ int Impainting_main(int argc,char ** argv)
 
         ELISE_COPY(aFileMasq.all_pts(),aFMasq,aMasq.out());
 
+        if (Debug)
+        {
+            ELISE_COPY
+            (
+                aMasq.all_pts(),
+                (FX<200) || (FX>300) || (FY<200) || (FY>300),
+                aMasq.out()
+            );
+            ELISE_COPY(aVIm[0].all_pts(),FX+FY,aVIm[0].out());
+            // ELISE_COPY(aVIm[0].all_pts(),200,aVIm[0].out());
+            ELISE_COPY(select(aVIm[0].all_pts(),!aMasq.in()),255*(FX%2),aVIm[0].out());
+            Tiff_Im::CreateFromIm(aMasq,"DebugMasq.tif");
+            Tiff_Im::CreateFromIm(aVIm[0],"DebugIm.tif");
+        }
+
 
         Im2D_Bits<1> aMasq2Fill(aSzIm.x,aSzIm.y,1);
         if (EAMIsInit(&aNameMasq2FIll))
@@ -99,10 +120,19 @@ int Impainting_main(int argc,char ** argv)
 
 
         Fonc_Num aFRes=0;
+
         for (int aK=0 ; aK<aNBC ; aK++)
         {
-            aVIm[aK] = ImpaintL2(aMasq,aMasq2Fill,aVIm[aK]);
-            aFRes = (aK==0) ? aVIm[aK].in() : Virgule(aFRes,aVIm[aK].in());
+           if (EAMIsInit(&aParamKL))
+           {
+               ComplKLipsParLBas(aMasq,aMasq2Fill,aVIm[aK],aParamKL);
+           }
+           else
+           {
+               aVIm[aK] = ImpaintL2(aMasq,aMasq2Fill,aVIm[aK],4);
+           }
+       
+           aFRes = (aK==0) ? aVIm[aK].in() : Virgule(aFRes,aVIm[aK].in());
         }
 
         if (!EAMIsInit(&aNameOut))

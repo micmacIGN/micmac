@@ -77,6 +77,9 @@ class cOnePCarac
         double & ScaleStab();
         const double & ScaleStab()const ;
 
+        double & ScaleNature();
+        const double & ScaleNature()const ;
+
         Pt2dr & DirMS();
         const Pt2dr & DirMS()const ;
 
@@ -125,6 +128,7 @@ class cOnePCarac
         int mNivScale;
         double mScale;
         double mScaleStab;
+        double mScaleNature;
         Pt2dr mDirMS;
         Pt2dr mDirAC;
         double mContraste;

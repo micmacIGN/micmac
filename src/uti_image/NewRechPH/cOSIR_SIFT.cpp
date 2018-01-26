@@ -129,6 +129,7 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
                aPC.Pt() =  Pt2dr(aP);
                aPC.Scale() = mScale;
                aPC.NivScale() = mNiv;
+               // mAppli.AdaptScaleValide(aPC);
                aPC.ScaleStab() = -1;
                aSPC.OnePCarac().push_back(aPC);
            }

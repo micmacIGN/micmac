@@ -1304,9 +1304,39 @@ void TestFitPol()
 
 extern void TestMap2D();
 extern void TestEcartTypeStd();
+
+void TestHomogr()
+{
+   ElPackHomologue aPack;
+  
+   aPack.Cple_Add(ElCplePtsHomologues(Pt2dr(0,0),Pt2dr(0,0)));
+   aPack.Cple_Add(ElCplePtsHomologues(Pt2dr(0,1),Pt2dr(0,1)));
+   aPack.Cple_Add(ElCplePtsHomologues(Pt2dr(1,0),Pt2dr(1,0)));
+
+   cElHomographie aHAff (aPack,true);
+
+   aPack.Cple_Add(ElCplePtsHomologues(Pt2dr(1,1),Pt2dr(2,10)));
+
+   cElHomographie aVraiH (aPack,true);
+
+   int aNB = 10 ;
+   for (int aK =0 ; aK<= aNB  ; aK++)
+   {
+       double A = aK / double(aNB);
+       Pt2dr aP(A,1-A);
+
+       std::cout << aP << " " << aHAff(aP)  << " " << aVraiH(aP) << "\n";
+   }
+}
+
+
 int MPDtest_main (int argc,char** argv)
 {
     std::cout << "MPDtest_main in " << __FILE__ << "\n";
+    {
+       TestHomogr();
+       exit(EXIT_SUCCESS);
+    }
     {
        TestEcartTypeStd();
        exit(EXIT_SUCCESS);

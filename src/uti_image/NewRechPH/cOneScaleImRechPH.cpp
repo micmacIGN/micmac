@@ -294,6 +294,7 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
              aPC.NivScale() = aBr->NivScal();
              aPC.DirMS() = aVP.back()->Pt() - aVP.front()->Pt();
              aPC.ScaleStab() = aBr->ScaleStab();
+             aPC.ScaleNature() = aBr->ScaleNature();
 
              // std::cout << "DIRMS " << euclid(aPC.DirMS()) << "\n";
 
