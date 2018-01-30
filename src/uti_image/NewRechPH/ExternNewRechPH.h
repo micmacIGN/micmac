@@ -48,6 +48,14 @@ void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool
 cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & Ext="Std");
 
 void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
+double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
+
+std::vector<const std::vector<double> *> VRAD(const cOnePCarac * aPC);
+
+cFullParamCB RandomFullParamCB(const cOnePCarac & aPC,int aNbBitsByVect,int aNbCoef);
+
+
+
 
 
 class cAppli_NewRechPH;

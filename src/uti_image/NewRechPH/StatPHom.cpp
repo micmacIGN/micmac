@@ -91,6 +91,7 @@ class cOneImSPH
          cSetPCarac *       mSPC;
          std::vector<std::vector<cOnePCarac*> > mVVPC; // Classe par label
          std::vector<cOnePCarac*>               mVNearest;
+         std::vector<std::vector<cOnePCarac*> > mVHom;
          Tiff_Im            mTif;
 };
 
@@ -143,14 +144,21 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
 
    for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
    {
+        mVHom.push_back(std::vector<cOnePCarac*>());
         int aDifMax = 3;
         std::vector<int>  aHistoScale(aDifMax+1,0);
         double aSeuilDist = 2.0;
+        double aSeuilProp = 0.02;
         int aNbOk=0;
 
         eTypePtRemark aLab = eTypePtRemark(aKL);
         const std::vector<cOnePCarac*>  &   aV1 = mVVPC[aKL];
         const std::vector<cOnePCarac*>  &   aV2 = aI2.mVVPC[aKL];
+
+        std::vector<cOnePCarac>  aVObj1;
+        for (auto aPtr1 : aV1)
+            aVObj1.push_back(*aPtr1);
+
 
         if ((!aV1.empty()) && (!aV2.empty()))
         {
@@ -170,24 +178,33 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
       
  
             std::vector<double> aVD12;
+            std::vector<double> aScorInvR;
             for (int aK1=0 ; aK1< int(aV1.size()); aK1++)
             {
                 Pt2dr aP1 = aV1[aK1]->Pt();
+                cOnePCarac * aHom = 0;
                 if (mAppli.I1HasHom(aP1))
                 {
                     double aDist;
                     cOnePCarac * aP = aI2.Nearest(mAppli.Hom(aP1),aKL,aDist,0.0);
-                    mVNearest.push_back(aP);
                     aVD12.push_back(aDist);
                     if (aDist<aSeuilDist)
                     {
                          aNbOk++;
                          aHistoScale.at(ElMin(aDifMax,ElAbs(aV1[aK1]->NivScale() - aP->NivScale())))++;
+                         double aPropInv = 1 - ScoreTestMatchInvRad(aVObj1,aV1[aK1],aP);
+                         aScorInvR.push_back(aPropInv);
+                         // if (aNbOk%10) std::cout << "aNbOk++aNbOk++ " << aNbOk << "\n";
+                         if (aPropInv < aSeuilProp)
+                            aHom = aP;
                     }
                 }
+
+                mVHom.at(aKL).push_back(aHom);
             }
 
             mAppli.ShowStat("By Homol D for ",20,aVD12,0.5);
+            mAppli.ShowStat("Inv Rad ",20,aScorInvR,1.0);
 
             for (int aK=0 ; aK<=aDifMax ; aK++)
             {
@@ -217,12 +234,11 @@ Pt2dr cAppliStatPHom::Hom(const Pt2dr & aP1)
    return mI2->mCam->Ter2Capteur(aPTer);
 }
 
-void  cAppliStatPHom::ShowStat(const std::string & aMes,int aNb,std::vector<double>  aVR,double aPropMax)
+void  cAppliStatPHom::ShowStat(const std::string & aMes,int aNB,std::vector<double>  aVR,double aPropMax)
 {
     if (aVR.empty())
        return;
 
-    int aNB= 20;
     std::cout << "=========  " << aMes << " ==========\n";
     for (int aK=0 ; aK< aNB ; aK++)
     {
@@ -308,6 +324,17 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
    StdCorrecNameOrient(mOri,mDir);
    StdCorrecNameHomol(mSH,mDir);
    mI1 = new cOneImSPH(aN1,*this);
+
+/*
+   if (1)
+   {
+       for (int aNbB=1 ; aNbB<4 ; aNbB++)
+       {
+          cFullParamCB  aFB = RandomFullParamCB(mI1->mSPC->OnePCarac()[0],aNbB,3);
+          MakeFileXML(aFB,"Test_"+ToString(aNbB)+".xml");
+       }
+   }
+*/
    mI2 = new cOneImSPH(aN2,*this);
 
    if (EAMIsInit(&mNameNuage))

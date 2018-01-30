@@ -110,11 +110,35 @@ class cOnePCarac
         std::vector<double> & CoeffGradTangent();
         const std::vector<double> & CoeffGradTangent()const ;
 
-        std::vector<double> & CoeffGradTangentPiS4();
-        const std::vector<double> & CoeffGradTangentPiS4()const ;
-
         std::vector<double> & CoeffGradTangentPiS2();
         const std::vector<double> & CoeffGradTangentPiS2()const ;
+
+        std::vector<double> & CoeffGradTangentPi();
+        const std::vector<double> & CoeffGradTangentPi()const ;
+
+        std::vector<double> & CoeffGradCroise();
+        const std::vector<double> & CoeffGradCroise()const ;
+
+        std::vector<double> & CoeffGradCroise2();
+        const std::vector<double> & CoeffGradCroise2()const ;
+
+        std::vector<double> & CoeffDiffOpposePi();
+        const std::vector<double> & CoeffDiffOpposePi()const ;
+
+        std::vector<double> & CoeffDiffOppose2Pi();
+        const std::vector<double> & CoeffDiffOppose2Pi()const ;
+
+        std::vector<double> & CoeffDiffOpposePiS2();
+        const std::vector<double> & CoeffDiffOpposePiS2()const ;
+
+        std::vector<double> & CoeffDiffOppose2PiS2();
+        const std::vector<double> & CoeffDiffOppose2PiS2()const ;
+
+        int & CodeBinaireCompl();
+        const int & CodeBinaireCompl()const ;
+
+        int & CodeBinaireIndex();
+        const int & CodeBinaireIndex()const ;
 
         Im2D_REAL4 & ImRad();
         const Im2D_REAL4 & ImRad()const ;
@@ -139,8 +163,16 @@ class cOnePCarac
         std::vector<double> mCoeffRadiom2;
         std::vector<double> mCoeffGradRadial;
         std::vector<double> mCoeffGradTangent;
-        std::vector<double> mCoeffGradTangentPiS4;
         std::vector<double> mCoeffGradTangentPiS2;
+        std::vector<double> mCoeffGradTangentPi;
+        std::vector<double> mCoeffGradCroise;
+        std::vector<double> mCoeffGradCroise2;
+        std::vector<double> mCoeffDiffOpposePi;
+        std::vector<double> mCoeffDiffOppose2Pi;
+        std::vector<double> mCoeffDiffOpposePiS2;
+        std::vector<double> mCoeffDiffOppose2PiS2;
+        int mCodeBinaireCompl;
+        int mCodeBinaireIndex;
         Im2D_REAL4 mImRad;
         std::vector<double> mVectRho;
 };
@@ -175,6 +207,87 @@ void  BinaryDumpInFile(ELISE_fp &,const cSetPCarac &);
 void  BinaryUnDumpFromFile(cSetPCarac &,ELISE_fp &);
 
 std::string  Mangling( cSetPCarac *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cCBOneBit
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCBOneBit & anObj,cElXMLTree * aTree);
+
+
+        std::vector<double> & Coeff();
+        const std::vector<double> & Coeff()const ;
+
+        std::vector<int> & IndInV();
+        const std::vector<int> & IndInV()const ;
+
+        int & IndBit();
+        const int & IndBit()const ;
+    private:
+        std::vector<double> mCoeff;
+        std::vector<int> mIndInV;
+        int mIndBit;
+};
+cElXMLTree * ToXMLTree(const cCBOneBit &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCBOneBit &);
+
+void  BinaryUnDumpFromFile(cCBOneBit &,ELISE_fp &);
+
+std::string  Mangling( cCBOneBit *);
+
+class cCBOneVect
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCBOneVect & anObj,cElXMLTree * aTree);
+
+
+        int & IndVec();
+        const int & IndVec()const ;
+
+        std::vector< cCBOneBit > & CBOneBit();
+        const std::vector< cCBOneBit > & CBOneBit()const ;
+    private:
+        int mIndVec;
+        std::vector< cCBOneBit > mCBOneBit;
+};
+cElXMLTree * ToXMLTree(const cCBOneVect &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCBOneVect &);
+
+void  BinaryUnDumpFromFile(cCBOneVect &,ELISE_fp &);
+
+std::string  Mangling( cCBOneVect *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cFullParamCB
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cFullParamCB & anObj,cElXMLTree * aTree);
+
+
+        std::vector< cCBOneVect > & CBOneVect();
+        const std::vector< cCBOneVect > & CBOneVect()const ;
+    private:
+        std::vector< cCBOneVect > mCBOneVect;
+};
+cElXMLTree * ToXMLTree(const cFullParamCB &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cFullParamCB &);
+
+void  BinaryUnDumpFromFile(cFullParamCB &,ELISE_fp &);
+
+std::string  Mangling( cFullParamCB *);
 
 /******************************************************/
 /******************************************************/

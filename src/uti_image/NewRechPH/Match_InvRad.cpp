@@ -48,8 +48,15 @@ std::vector<const std::vector<double> *> VRAD(const cOnePCarac * aPC)
    aRes.push_back(&(aPC->CoeffRadiom2()));
    aRes.push_back(&(aPC->CoeffGradRadial()));
    aRes.push_back(&(aPC->CoeffGradTangent()));
-   aRes.push_back(&(aPC->CoeffGradTangentPiS4()));
    aRes.push_back(&(aPC->CoeffGradTangentPiS2()));
+   aRes.push_back(&(aPC->CoeffGradTangentPi()));
+
+   aRes.push_back(&(aPC->CoeffGradCroise()));
+   aRes.push_back(&(aPC->CoeffGradCroise2()));
+   aRes.push_back(&(aPC->CoeffDiffOpposePi()));
+   aRes.push_back(&(aPC->CoeffDiffOppose2Pi()));
+   aRes.push_back(&(aPC->CoeffDiffOpposePiS2()));
+   aRes.push_back(&(aPC->CoeffDiffOppose2PiS2()));
 
    return aRes;
 }
@@ -84,10 +91,9 @@ std::vector<double> VectDist(const cOnePCarac * aP1,const cOnePCarac * aP2)
 
 
 
-void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2)
+double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2,bool Show)
 {
      ELISE_ASSERT(aHom1->Kind() == aHom2->Kind(),"Dif Kind in TestMatchInvRad");
-
      
      std::vector<double> aVD0 =  VectDist(aHom1,aHom2);
      std::vector<int> aVNbOk(aVD0.size(),0);
@@ -103,61 +109,37 @@ void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom
                  aVNbOk[aK]  += (aVDist[aK] > aVD0[aK]);
          }
      }
-     std::cout << "PropRad " << aVNbOk[0] / double(aNbOkLab) << "\n";
-     std::cout << "PropRad2 " << aVNbOk[1] / double(aNbOkLab) << "\n";
-     std::cout << "PropGradR " << aVNbOk[2] / double(aNbOkLab) << "\n";
-     std::cout << "PropGradT " << aVNbOk[3] / double(aNbOkLab) << "\n";
-     std::cout << "PropGradPiS4 " << aVNbOk[4] / double(aNbOkLab) << "\n";
-     std::cout << "PropGradPiS2 " << aVNbOk[5] / double(aNbOkLab) << "\n";
-     std::cout << "PropTot " << aVNbOk[6] / double(aNbOkLab) << "\n";
-
-/*
-     double aDRadiom  = Dist(aHom1->CoeffRadiom(),aHom2->CoeffRadiom());
-     double aDRadiom2 = Dist(aHom1->CoeffRadiom2(),aHom2->CoeffRadiom2());
-     double aDGradR = Dist(aHom1->CoeffGradRadial(),aHom2->CoeffGradRadial());
-     double aDGradT = Dist(aHom1->CoeffGradTangent(),aHom2->CoeffGradTangent());
-     double aDGradTPiS4 = Dist(aHom1->CoeffGradTangentPiS4(),aHom2->CoeffGradTangentPiS4());
-     double aDGradTPiS2 = Dist(aHom1->CoeffGradTangentPiS2(),aHom2->CoeffGradTangentPiS2());
-
-     int aNbOkRadiom  = 0;
-     int aNbOkRadiom2 = 0;
-     int aNbOkGradR   = 0;
-     int aNbOkGradT   = 0;
-     int aNbOkGPiS4   = 0;
-     int aNbOkGPiS2   = 0;
-
-     int aNbOkLab = 0;
-
-     for (int aK=0 ; aK<int(aVH.size()) ; aK++)
+     if (Show)
      {
-         const cOnePCarac * aHom1 = & aVH[aK];
-         if (aHom1->Kind() == aHom2->Kind())
-         {
-             aNbOkLab ++;
-             int OkRad = Dist(aHom1->CoeffRadiom(),aHom2->CoeffRadiom())    > aDRadiom;
-             int OkRad2 = Dist(aHom1->CoeffRadiom2(),aHom2->CoeffRadiom2()) > aDRadiom2;
-             int OkGradR = Dist(aHom1->CoeffGradRadial(),aHom2->CoeffGradRadial()) > aDGradR;
-             int OkGradT = Dist(aHom1->CoeffGradTangent(),aHom2->CoeffGradTangent()) > aDGradT;
-             int OkGradTPiS4 = Dist(aHom1->CoeffGradTangentPiS4(),aHom2->CoeffGradTangentPiS4()) > aDGradTPiS4;
-             int OkGradTPiS2 = Dist(aHom1->CoeffGradTangentPiS2(),aHom2->CoeffGradTangentPiS2()) > aDGradTPiS2;
+         std::cout << "PropRad " << aVNbOk[0] / double(aNbOkLab) << "\n";
+         std::cout << "PropRad2 " << aVNbOk[1] / double(aNbOkLab) << "\n";
+         std::cout << "PropGradR " << aVNbOk[2] / double(aNbOkLab) << "\n";
+         std::cout << "PropGradT " << aVNbOk[3] / double(aNbOkLab) << "\n";
+         std::cout << "PropGradPiS4 " << aVNbOk[4] / double(aNbOkLab) << "\n";
+         std::cout << "PropGradPiS2 " << aVNbOk[5] / double(aNbOkLab) << "\n";
 
-             aNbOkRadiom += OkRad;
-             aNbOkRadiom2 += OkRad2;
-             aNbOkGradR   += OkGradR;
-             aNbOkGradT   += OkGradT;
-             aNbOkGPiS4   += OkGradTPiS4;
-             aNbOkGPiS2   += OkGradTPiS2;
-           
-         }
+         std::cout << "PropGradC " << aVNbOk[6] / double(aNbOkLab) << "\n";
+         std::cout << "PropGrad2C " << aVNbOk[7] / double(aNbOkLab) << "\n";
+         std::cout << "PropGOPi " << aVNbOk[8] / double(aNbOkLab) << "\n";
+         std::cout << "PropGO2Pi " << aVNbOk[9] / double(aNbOkLab) << "\n";
+         std::cout << "PropGOPiS2 " << aVNbOk[10] / double(aNbOkLab) << "\n";
+         std::cout << "PropGO2PiS2 " << aVNbOk[11] / double(aNbOkLab) << "\n";
+
+
+         std::cout << "PropTot " << aVNbOk[12] / double(aNbOkLab) << "\n";
      }
+     return aVNbOk[12] / double(aNbOkLab);
+}
 
-     std::cout << "PropRad " << aNbOkRadiom / double(aNbOkLab) << "\n";
-     std::cout << "PropRad2 " << aNbOkRadiom2 / double(aNbOkLab) << "\n";
-     std::cout << "PropGradR " << aNbOkGradR / double(aNbOkLab) << "\n";
-     std::cout << "PropGradT " << aNbOkGradT / double(aNbOkLab) << "\n";
-     std::cout << "PropGradPiS4 " << aNbOkGPiS4 / double(aNbOkLab) << "\n";
-     std::cout << "PropGradPiS2 " << aNbOkGPiS2 / double(aNbOkLab) << "\n";
-*/
+void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2)
+{
+     ScoreTestMatchInvRad(aVH,aHom1,aHom2,true);
+}
+
+
+double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2)
+{
+   return ScoreTestMatchInvRad(aVH,aHom1,aHom2,false);
 }
 
 

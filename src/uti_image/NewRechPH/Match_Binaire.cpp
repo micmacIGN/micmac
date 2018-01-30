@@ -37,8 +37,130 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
 #include "NewRechPH.h"
+
+/*
+<FullParamCB  Nb="1" Class="true">
+      <CBOneVect  Nb="*" Class="true" Container="std::vector">
+           <CBOneBits Nb="*">
+                <IndVec Nb="1" Type="int">     </IndVec>
+                <Coeff  Nb="1" Type="double">  </Coeff>
+                <IndBit Nb="1" Type="int">     </IndBit>
+           </CBOneBits>
+      </CBOneVect>
+</FullParamCB>
+*/
+
+static bool CmpOnX(const Pt2dr & aP1,const Pt2dr &aP2)
+{
+   return aP1.x < aP2.x;
+}
+
+cFullParamCB RandomFullParamCB(const cOnePCarac & aPC,const std::vector<int> & aNbBitsByVect,int aNbCoef)
+{
+   // int aNbTirage = 10;
+   cFullParamCB aRes;
+   // Uniquement pour connaitre le nombre de vect
+   std::vector<const std::vector<double> *> aVVR = VRAD(&aPC);
+   int aNbV = aVVR.size();
+   int aIndBit=0;
+
+   for (int aIV=0 ; aIV<aNbV ; aIV++)
+   {
+      aRes.CBOneVect().push_back(cCBOneVect());
+      cCBOneVect & aVCBOneV = aRes.CBOneVect().back();
+      aVCBOneV.IndVec() = aIV;
+
+      int aNBB = aNbBitsByVect.at(aIV);
+      int aNbInVect = aVVR[aIV]->size();
+
+      std::vector<double> aPdsInd(aNbInVect,0.5); // On biaise les stats pour privilegier la repartition des coeffs
+
+      for (int aBit=0 ; aBit<aNBB ; aBit++)
+      {
+         aVCBOneV.CBOneBit().push_back(cCBOneBit());
+         cCBOneBit & aVCOneB  = aVCBOneV.CBOneBit().back();
+         aVCOneB.IndBit() =  aIndBit;
+         
+
+         std::vector<Pt2dr> aVPt;
+         for (int aKIV=0 ; aKIV<aNbInVect ; aKIV++)
+         {
+            aVPt.push_back(Pt2dr((1+NRrandC())*aPdsInd[aKIV],aKIV));
+         }
+         std::sort(aVPt.begin(),aVPt.end(),CmpOnX);
+
+// std::cout << "VPPPP " << aVPt << "\n";
+         double aSom=0;
+         double aSom2=0;
+         for (int aKC=0 ; aKC<aNbCoef ; aKC++)
+         {
+            double aVal =  (aKC==(aNbCoef-1)) ?  (-aSom) : NRrandC();
+            aSom += aVal;
+            aSom2 += ElSquare(aVal);
+            aVCOneB.Coeff().push_back(aVal);
+            int aInd = round_ni(aVPt[aKC].y);
+            aVCOneB.IndInV().push_back(aInd);
+            aPdsInd[aInd] += ElAbs(aVal);
+         }
+         double anEcart = sqrt(ElMax(1e-10,aSom2));
+         for (int aKC=0 ; aKC<aNbCoef ; aKC++)
+         {
+            aVCOneB.Coeff()[aKC] /= anEcart;
+         }
+
+         aIndBit++;
+      }
+   }
+   
+   return aRes;
+}
+
+cFullParamCB RandomFullParamCB(const cOnePCarac & aPC,int aNbBitsByVect,int aNbCoef)
+{
+   return RandomFullParamCB(aPC,std::vector<int>(100,aNbBitsByVect),aNbCoef);
+}
+
+double  ValCB(const cCBOneBit & aCB,const std::vector<double> & aVD)
+{
+    double aRes=0;
+    for (int aK=0 ; aK<int(aCB.IndInV().size()) ; aK++)
+    {
+        aRes += aCB.Coeff()[aK] * aVD[aCB.IndInV()[aK]];
+    }
+    return aRes;
+}
+
+
+int FlagCB(const cCBOneVect & aCBV,const std::vector<double> & aVD,bool IsRel) // Si IsRel part de 0
+{
+   int aFlag = 0;
+   for (const auto & aCB : aCBV.CBOneBit())
+   {
+        if (ValCB(aCB,aVD) > 0)
+        {
+           aFlag |=  (1<<aCB.IndBit());
+        }
+   }
+
+   if (IsRel)
+      aFlag >>= aCBV.CBOneBit()[0].IndBit();
+
+   return aFlag;
+}
+
+
+/*
+int CodageBinaire(const cCBOneVect & aCB,const std::vector<double> & )
+{
+}
+*/
+
+
+// std::vector<const std::vector<double> *> VRAD(const cOnePCarac * aPC);
+
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
