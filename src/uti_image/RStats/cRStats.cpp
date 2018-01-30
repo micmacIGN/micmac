@@ -36,7 +36,8 @@ void cRobustStats::DoCalc()
     cHistoStats aHNMAD(mNbV,aResMAD,mBrd,mSz,"StatsHistMAD.txt");
 
     /* Analayses on data without outliers */
-    double aSeuil = 2*aEc;
+    int    aFoisSeuil=5;
+    double aSeuil = double(aFoisSeuil)*aEc;
 
     //a trick to move from Fonc to Im2D_REAL4   
     std::string aNameTmp="tmp.tif";
@@ -71,7 +72,7 @@ void cRobustStats::DoCalc()
     std::cout << "                                                         \n";
     std::cout << aMoyNO << "    Mean (no outliers)\n";
     std::cout << aEcNO << "    Std dev (no outliers)\n";
-    std::cout << aSeuil << "    Rejection threshold -> 2*std_dev or 50m\n";
+    std::cout << aSeuil << "    Rejection threshold -> " << aFoisSeuil << "*std_dev or 50m\n";
     std::cout << aSP - aSPNO << "=" << (aSP-aSPNO)*100/aSP << "% Rejected outliers\n";
 
 
