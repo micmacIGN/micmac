@@ -72,6 +72,7 @@ int  StatIm_main(int argc,char ** argv)
 
     if (EAMIsInit(&aMasq))
     {
+        aP0 = Pt2di(0,0);
 		Tiff_Im aTF(aMasq.c_str());
         aFPds = aTF.in(0);
         if (!EAMIsInit(&aSz))
@@ -134,7 +135,9 @@ int  StatIm_main(int argc,char ** argv)
 	if(aMoreStat)
 	{
 		int aNbV=256;
-        cRobustStats aRStat(tiff.in(),aNbV,aP0,aSz);
+        
+        cRobustStats aRStat(Abs(tiff.in())*aFPds,aNbV,aP0,aSz);
+        //cRobustStats aRStat(Abs(aTF)*aFPds,aNbV,aP0,aSz);
 	}
 
 /*

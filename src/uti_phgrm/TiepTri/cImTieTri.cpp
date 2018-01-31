@@ -99,7 +99,6 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
         return  false;
     }
 
-
     mP1Glob = mCamGen->Ter2Capteur(aTri.P1());
     mP2Glob = mCamGen->Ter2Capteur(aTri.P2());
     mP3Glob = mCamGen->Ter2Capteur(aTri.P3());
@@ -107,6 +106,8 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     mVTriGlob.push_back(mP1Glob);
     mVTriGlob.push_back(mP2Glob);
     mVTriGlob.push_back(mP3Glob);
+
+    PtTri3DHomoGrp().clear();
 
     if (IsMaster() && mAppli.HasPtSelecTri())
     {
@@ -133,8 +134,6 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
     // std::cout << "SURF = " << aSurf  << " " << mP1Glob << mP2Glob << mP3Glob << "\n";
 
-
-
     Pt2dr aP0 = Inf(Inf(mP1Glob,mP2Glob),mP3Glob) - Pt2dr(mRab,mRab);
     Pt2dr aP1 = Sup(Sup(mP1Glob,mP2Glob),mP3Glob) + Pt2dr(mRab,mRab);
 
@@ -145,6 +144,50 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
     mP2Loc = mP2Glob - Pt2dr(mDecal);
     mP3Loc = mP3Glob - Pt2dr(mDecal);
 
+    // ---- Point 3D to estimate Homographie ----
+    if (mAppli.mUseHomo)
+    {
+        double l_12 = euclid(aTri.P2() - aTri.P1());
+        double l_13 = euclid(aTri.P3() - aTri.P1());
+        double l_23 = euclid(aTri.P3() - aTri.P2());
+
+        bool aDone = false;
+
+        if ((l_12 >= l_13) && (l_12 >= l_23) && !aDone)
+        {
+            PtTri3DHomoGrp().push_back(aTri.P1());
+            PtTri3DHomoGrp().push_back(aTri.P2());
+            PtTri3DHomoGrp().push_back(aTri.P3());
+            aDone = true;
+        }
+        if ((l_13 >= l_12) && (l_13 >= l_23) && !aDone)
+        {
+            PtTri3DHomoGrp().push_back(aTri.P1());
+            PtTri3DHomoGrp().push_back(aTri.P3());
+            PtTri3DHomoGrp().push_back(aTri.P2());
+            aDone = true;
+        }
+        if ((l_23 >= l_12) && (l_23 >= l_13) && !aDone)
+        {
+            PtTri3DHomoGrp().push_back(aTri.P2());
+            PtTri3DHomoGrp().push_back(aTri.P3());
+            PtTri3DHomoGrp().push_back(aTri.P1());
+            aDone = true;
+        }
+
+        Pt3dr aPtHom1 = PtTri3DHomoGrp()[0];
+        Pt3dr aPtHom2 = PtTri3DHomoGrp()[1];
+        Pt3dr aPtHom3 = (PtTri3DHomoGrp()[0] - PtTri3DHomoGrp()[2]) * 0.2 + PtTri3DHomoGrp()[2];
+        Pt3dr aPtHom4 = (PtTri3DHomoGrp()[1] - PtTri3DHomoGrp()[2]) *0.2 + PtTri3DHomoGrp()[2];
+
+        PtTri3DHomoGrp().clear();
+
+        PtTri3DHomoGrp().push_back(aPtHom1);
+        PtTri3DHomoGrp().push_back(aPtHom2);
+        PtTri3DHomoGrp().push_back(aPtHom3);
+        PtTri3DHomoGrp().push_back(aPtHom4);
+    }
+    //--------------------------------------------
 
     // Charge l'image
     mImInit.Resize(mSzIm);
@@ -194,7 +237,6 @@ bool cImTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
          ELISE_COPY(mImInit.all_pts(),Min(255,Max(0,255-mImInit.in())),mW->ogray());
 
          ELISE_COPY(select(mImInit.all_pts(),mMasqTri.in()),Min(255,Max(0,mImInit.in())),mW->ogray());
-
 
          // mW->clik_in();
     }

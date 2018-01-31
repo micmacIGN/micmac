@@ -122,8 +122,19 @@ void TestSigma2(double a)
 cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mPowS        (pow(2.0,1/5.0)),
     mNbS         (30),
+    mISF         (-1,1e10),
+    mStepSR      (1.0),
+    mNbSR        (10),
+    mDeltaSR     (1),
+    mMaxLevR     (mNbS - (mNbSR-1) * mDeltaSR),
+    mNbTetaIm    (16),
+    mMulNbTetaInv (4),
+    mNbTetaInv   (mNbTetaIm*mMulNbTetaInv),
     mS0          (1.0),
     mScaleStab   (4.0),
+    mSeuilAC     (0.95),
+    mSeuilCR     (0.6),
+    mScaleCorr   (false),
     mW1          (0),
     mModeTest    (ModeTest),
     mDistMinMax  (3.0),
@@ -135,14 +146,27 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mHistN0      (1000,0),
     mExtSave     ("Std"),
     mBasic       (false),
-    mModeSift    (false),
+    mAddModeSift (true),
+    mAddModeTopo (true),
     mLapMS       (false),
     mTestDirac   (false),
-    mPropCtrsIm0 (0.1),
+    mSaveFileLapl (false),
+    // mPropCtrsIm0 (0.1),
     mNbSpace           (0),
     mNbScaleSpace      (0),
-    mNbScaleSpaceCstr  (0)
+    mNbScaleSpaceCstr  (0),
+    mDistAttenContr    (100.0),
+    mPropContrAbs      (0.3),
+    mSzContrast        (2),
+    mPropCalcContr     (0.05),
+    mIm0               (1,1),
+    mTIm0              (mIm0),
+    mImContrast        (1,1),
+    mTImContrast       (mImContrast)
 {
+   cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
+   mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
+
 /*
    TestSigma2(0.1);
    TestSigma2(0.5);
@@ -167,21 +191,25 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mModeTest, "Test",true,"if true add W")
                       << EAM(aSeuilPersist, "SP",true,"Threshold persistance")
                       << EAM(mBasic, "Basic",true,"Basic")
-                      << EAM(mModeSift, "Sift",true,"SIFT Mode")
-                      << EAM(mPropCtrsIm0, "PropCstr",true,"Value to compute threshold on constrst, base on im0")
+                      << EAM(mAddModeSift, "Sift",true,"Add SIFT Mode")
+                      << EAM(mAddModeTopo, "Topo",true,"Add Topo Mode")
                       << EAM(mLapMS, "LapMS",true,"MulScale in Laplacian, def=false")
                       << EAM(mTestDirac, "Dirac",true,"Test with dirac image")
+                      << EAM(mSaveFileLapl, "SaveLapl",true,"Save Laplacian file, def=false")
                       << EAM(mScaleStab, "SS",true,"Scale of Stability")
+                      << EAM(mExtSave, "Save",true,"Extension for save")
+                      << EAM(mScaleCorr, "ScCor",true,"Scale by correl")
+                      << EAM(mISF, "ISF",true,"Interval scale forced")
    );
 
    if (! EAMIsInit(&mExtSave))
    {
-        mExtSave  = mBasic ? "Basic" : "Std";
+      mExtSave  = mBasic ? "Basic" : "Std";
    }
    if (! EAMIsInit(&mNbS))
    {
-       if (mBasic) 
-           mNbS = 1;
+      if (mBasic) 
+          mNbS = 1;
    }
    mNbInOct = log(2) / log(mPowS);
 
@@ -190,18 +218,23 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
       mPlyC = new cPlyCloud;
    }
 
-   Pt2di aP0(0,0);
-   Pt2di aP1 = mTestDirac ? Pt2di(1000,1000) : Pt2di(-1,-1);
+   mP0 = Pt2di(0,0);
+   mP1 = mTestDirac ? Pt2di(1000,1000) : Pt2di(-1,-1);
    if (EAMIsInit(&mBox))
    {
-       aP0 = mBox._p0;
-       aP1 = mBox._p1;
+       mP0 = mBox._p0;
+       mP1 = mBox._p1;
    }
    // Create top scale
-   AddScale(cOneScaleImRechPH::FromFile(*this,mS0,mName,aP0,aP1),nullptr);
+   AddScale(cOneScaleImRechPH::FromFile(*this,mS0,mName,mP0,mP1),nullptr);
 
    // Create matr of link, will have do it much less memory consuming (tiling of list ?)
-   mSzIm = mVI1.back()->Im().sz();
+   mIm0         = mVI1.back()->Im();
+   mTIm0        = tTImNRPH(mIm0);
+   mSzIm = mIm0.sz();
+   mImContrast  = tImNRPH(mSzIm.x,mSzIm.y);
+   mTImContrast = tTImNRPH(mImContrast);
+   ComputeContrast();
    mBufLnk  = std::vector<std::vector<cPtRemark *> >(mSzIm.y,std::vector<cPtRemark *>(mSzIm.x,(cPtRemark *)0));
 
    double aScaleMax = mS0*pow(mPowS,mNbS);
@@ -234,23 +267,18 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
         std::cout << "DONE SCALE " << aK << " on " << mNbS << "\n";
    }
    cSetPCarac aSPC;
-   if (mModeSift)
+   if (mAddModeSift)
    {
        for (int aK=0 ; aK<mNbS-1 ; aK++)
        {
             mVI1[aK]->SiftMakeDif(mVI1[aK+1]);
-            if (aK==0)
-            {
-                double aCsrt = mVI1[aK]->ComputeContrast();
-                mThreshCstrIm0 = aCsrt * mPropCtrsIm0;
-            }
        }
        for (int aK=1 ; aK<mNbS-1 ; aK++)
        {
             mVI1[aK]->SiftMaxLoc(mVI1[aK-1],mVI1[aK+1],aSPC);
        }
    }
-   else
+   if (mAddModeTopo)
    {
        for (int aK=0 ; aK<mNbS ; aK++)
        {
@@ -282,19 +310,182 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    }
 
    for (auto & aPt : aSPC.OnePCarac())
+       aPt.OK() = true;
+
+   std::vector<cOnePCarac> aNewL;
+   for (auto & aPt : aSPC.OnePCarac())
    {
+       if (aPt.OK())  
+          ComputeContrastePt(aPt);
        // 
-       mVI1[aPt.NivScale()]->ComputeDirAC(aPt);
+       if (aPt.OK())
+       {
+          mVI1[aPt.NivScale()]->ComputeDirAC(aPt);
+       }
        //  ComputeDirAC(cBrinPtRemark &);
 
+       if (aPt.OK())
+       {
+          mVI1[aPt.NivScale()]->AffinePosition(aPt);
+       }
+       mVI1[aPt.NivScale()]->NbPOfLab(int(aPt.Kind())) ++;
+  }
+
+  for (auto & aPt : aSPC.OnePCarac())
+  {
+       if (aPt.OK())
+       {
+          CalvInvariantRot(aPt);
+       }
 
        // Put in global coord
-       aPt.Pt() =  aPt.Pt() + Pt2dr(aP0);
-   }
+       aPt.Pt() =  aPt.Pt() + Pt2dr(mP0);
+       if (aPt.OK())
+          aNewL.push_back(aPt);
+  }
+  aSPC.OnePCarac() = aNewL;
+
 
    // MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
    MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
 }
+
+bool  cAppli_NewRechPH::ComputeContrastePt(cOnePCarac & aPt)
+{
+   
+   Symb_FNum aFI0  (mIm0.in_proj());
+   Symb_FNum aFPds (1.0);
+   double aS0,aS1,aS2;
+   ELISE_COPY
+   (
+       disc(aPt.Pt(),aPt.Scale()),
+       Virgule(aFPds,aFPds*aFI0,aFPds*Square(aFI0)),
+       Virgule(sigma(aS0),sigma(aS1),sigma(aS2))
+   );
+
+   aS1 /= aS0;
+   aS2 /= aS0;
+   aS2 -= ElSquare(aS1);
+   aS2 = sqrt(ElMax(aS2,1e-10)) * (aS0 / (aS0-1.0));
+   aPt.Contraste() = aS2;
+   aPt.ContrasteRel() = aS2 / mTImContrast.getproj(round_ni(aPt.Pt()));
+    
+   aPt.OK() = aPt.ContrasteRel() > mSeuilCR;
+
+   return aPt.OK();
+}
+
+cOneScaleImRechPH * cAppli_NewRechPH::GetImOfNiv(int aNiv)
+{
+   return mVI1.at(aNiv);
+}
+
+
+
+void cAppli_NewRechPH::ComputeContrast()
+{
+   Symb_FNum aFI0  (mIm0.in_proj());
+   Symb_FNum aFPds (1.0);
+   Symb_FNum aFSom (rect_som(Virgule(aFPds,aFPds*aFI0,aFPds*Square(aFI0)),mSzContrast));
+
+   Symb_FNum aS0 (aFSom.v0());
+   Symb_FNum aS1 (aFSom.v1()/aS0);
+   Symb_FNum aS2 (Max(0.0,aFSom.v2()/aS0 -Square(aS1)));
+
+   tImNRPH aImC0  (mSzIm.x,mSzIm.y);
+   double aNbVois = ElSquare(1+2*mSzContrast);
+   // compute variance of image
+   ELISE_COPY
+   (
+        mIm0.all_pts(),
+       // ect_max(mIm0.in_proj(),mSzContrast)-rect_min(mIm0.in_proj(),mSzContrast),
+        sqrt(aS2) * (aNbVois/(aNbVois-1.0)),
+        mImContrast.out() | aImC0.out()
+   );
+   
+
+   // Calcul d'une valeur  moyenne robuste
+   std::vector<double> aVC;
+   int aStep = 2*mSzContrast+1;
+   for (int aX0=0 ; aX0<mSzIm.x ; aX0+= aStep)
+   {
+      for (int aY0=0 ; aY0<mSzIm.y ; aY0+= aStep)
+      {
+          int aX1 = ElMin(aX0+aStep,mSzIm.x);
+          int aY1 = ElMin(aY0+aStep,mSzIm.y);
+          // Calcul de la moyenne par carre
+          double aSom = 0.0;
+          double aSomF = 0.0;
+          for (int aX=aX0 ; aX<aX1; aX++)
+          {
+              for (int aY=aY0 ; aY<aY1; aY++)
+              {
+                  aSom++;
+                  aSomF += mTImContrast.get(Pt2di(aX,aY));
+              }
+          }
+          aVC.push_back(aSomF/aSom);
+      }
+   }
+   double aV0 = KthValProp(aVC,mPropCalcContr);
+   double aV1 = KthValProp(aVC,1.0-mPropCalcContr);
+
+   double aSom=0.0;
+   double aSomF=0.0;
+   for (const auto & aV : aVC)
+   {
+       if ((aV>=aV0) && (aV<=aV1))
+       {
+           aSom  ++;
+           aSomF += aV;
+       }
+   }
+   double aMoy = aSomF / aSom;
+   double aFact = 1.0-1.0/mDistAttenContr;
+   FilterExp(mImContrast,aFact);
+   Im2D_REAL4 aIP1(mSzIm.x,mSzIm.y,1.0);
+   FilterExp(aIP1,aFact);
+   ELISE_COPY(mImContrast.all_pts(),mImContrast.in()/aIP1.in(),mImContrast.out());
+
+   ELISE_COPY
+   (
+      mImContrast.all_pts(),
+      mImContrast.in()*(1-mPropContrAbs)+mPropContrAbs*aMoy,
+      mImContrast.out()
+   );
+   std::cout << "MOY = " << aMoy << "\n";
+
+
+   if (1)
+   {
+      Tiff_Im::CreateFromIm(aImC0,"ImC0.tif");
+      Tiff_Im::CreateFromIm(mImContrast,"ImSeuilContraste.tif");
+      Tiff_Im::CreateFromFonc("ImCRatio.tif",mSzIm,aImC0.in()/Max(1e-10,mImContrast.in()),GenIm::real4);
+   }
+}
+
+
+void cAppli_NewRechPH::AdaptScaleValide(cOnePCarac & aPC)
+{
+    // Pour le faire bien il faut suivre le point, on le fait direct
+    // pour les point max-min topo, et pour sift on verra
+    ELISE_ASSERT(false,"cAppli_NewRechPH::AdaptScaleValide"); 
+/*
+   aPC.ScaleNature() = aPC.Scale();
+
+   if (ScaleIsValid(aPC.Scale())) 
+      return;
+
+   for (const auto & aIm :  mVI1)
+   {
+      if (OkNivLapl(aIm->Niv()))
+      {
+      }
+
+   }
+*/
+}
+
 
 
 bool cAppli_NewRechPH::OkNivStab(int aNiv)

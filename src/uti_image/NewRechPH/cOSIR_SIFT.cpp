@@ -40,17 +40,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
-bool cOneScaleImRechPH::OkSiftContrast(cOnePCarac & aP) 
-{
-   double aCstr = ElAbs(mTImMod.getr(aP.Pt(),1e6));
-   aP.Contrast() = aCstr;
-   return aCstr > mAppli.ThreshCstrIm0();
-}
 
+/*
 double cOneScaleImRechPH::ComputeContrast()
 {
+   int aSzW = 3;
+   for (int aX =aSzW ; aX< mSz.x-aSzW -1; aX+= aSzW)
+   {
+       for (int aY =aSzW ; aY< mSz.x-aSzW -1; aY+= aSzW)
+       {
+       }
+   }
+
    double aS1,aSC;
    double aSeuil = 0;
+
    for (int aK= 0 ; aK<3 ; aK++)
    {
        Symb_FNum aF = Square(mImMod.in());
@@ -74,6 +78,7 @@ double cOneScaleImRechPH::ComputeContrast()
    double aRes = sqrt(aSC);
    return aRes;
 }
+*/
 
 void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR,cSetPCarac & aSPC)
 {
@@ -124,11 +129,9 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
                aPC.Pt() =  Pt2dr(aP);
                aPC.Scale() = mScale;
                aPC.NivScale() = mNiv;
-               if (OkSiftContrast(aPC))
-               {
-                  aSPC.OnePCarac().push_back(aPC);
-                  aSSCstr++;
-               }
+               // mAppli.AdaptScaleValide(aPC);
+               aPC.ScaleStab() = -1;
+               aSPC.OnePCarac().push_back(aPC);
            }
        }
     }
@@ -148,7 +151,7 @@ void cOneScaleImRechPH::SiftMakeDif(cOneScaleImRechPH* aLR)
        Virgule(aDif,Abs(aDif)),
        Virgule(mImMod.out()|sigma(aMoy),sigma(aAbsMoy))
    );
-   if (1)
+   if (mAppli.SaveFileLapl())
    {
       std::cout << "LAPL TIFF Scccc= " << mScale  << " M=" << aMoy/aNb << " AM=" << aAbsMoy/aNb << "\n";
       Tiff_Im::CreateFromIm(mImMod,"LAPL-"  + ToString(mNiv) + ".tif");

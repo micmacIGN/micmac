@@ -43,18 +43,41 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool HighLight);
+cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & Ext="Std");
+
+void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
+double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
+
+std::vector<const std::vector<double> *> VRAD(const cOnePCarac * aPC);
+
+cFullParamCB RandomFullParamCB(const cOnePCarac & aPC,int aNbBitsByVect,int aNbCoef);
+
+
+
+
+
+class cAppli_NewRechPH;
+
+
 typedef float   tElNewRechPH ;
 typedef double  tElBufNRPH ;
 typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
 typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
+typedef cInterpolateurIm2D<tElNewRechPH>  tInterpolNRPH;
 
 
+
+double Gauss(double aSig,double aVal);
 double Sigma2FromFactExp(double a);
 double FactExpFromSigma2(double aS2);
 void TestSigma2(double a);
 template <class T1> void  LocFilterGauss(T1 & anIm, double aSigmaN,int aNbIter);
 void FilterGaussProgr(tImNRPH anIm,double  aSTarget,double  aSInit,int aNbIter);
 void TestDist(Pt2di aSz,Fonc_Num aP,double aScale);
+
+int SignOfType(eTypePtRemark aKind);
 
 
 
@@ -162,13 +185,20 @@ class cBrinPtRemark
         std::vector<cPtRemark *> GetAllPt();
         bool    Ok() const {return mOk;}
         double  Scale() const {return  mScale;}
+        double  ScaleNature() const {return  mScaleNature;}
+        double  ScaleStab() const {return  mScaleStab;}
         int     NivScal() const {return mNivScal;}
+        double  LaplMax() const {return mLaplMax;}
     private :
         cPtRemark * mLR;
         int         mNiv0;
         bool        mOk;
         int         mNivScal;
         double      mScale;
+        double      mScaleNature;
+        double      mScaleStab;
+        double      mLaplMax;
+        double      mLaplMaxNature;
 };
 
 typedef cPtRemark * tPtrPtRemark;

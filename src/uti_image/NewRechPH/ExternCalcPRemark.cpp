@@ -40,6 +40,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & aExt)
+{
+   return new cSetPCarac
+               (
+                   StdGetObjFromFile<cSetPCarac>
+                   (
+                        NameFileNewPCarac(aNameIm,true, aExt),
+                        MMDir() + "src/uti_image/NewRechPH/ParamNewRechPH.xml",
+                        "SetPCarac",
+                        "SetPCarac"
+                    )
+               );
+}
+
 
 // Visualise une conversion de flux en vecteur de point
 void  TestFlux2StdCont()
@@ -142,7 +156,7 @@ Pt3dr X11_CoulOfType(eTypePtRemark aType)
    return Pt3dr(aCI) /255.0;
 }
 
-void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW)
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool HighLight)
 {
     if (! aW) return;
 
@@ -150,6 +164,11 @@ void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW)
     Col_Pal aCPal = aW->prgb()(aC.x*255,aC.y*255,aC.z*255);
 
     aW->draw_circle_abs(aSim(aPC.Pt()),3.0,aCPal);
+    if (HighLight)
+    {
+       aW->draw_circle_abs(aSim(aPC.Pt()),5.0,aCPal);
+       aW->draw_circle_abs(aSim(aPC.Pt()),7.0,aCPal);
+    }
 }
 
 
@@ -206,7 +225,8 @@ int SignOfType(eTypePtRemark aKind)
 }
 
 cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
-    mLR    (aLR)
+    mLR        (aLR),
+    mScaleStab (-1)
 {
     std::vector<cPtRemark *> aVPt;
     mLR->RecGetAllPt(aVPt);
@@ -224,28 +244,57 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
     mOk = (aNbMult==0) && anAppli.OkNivStab(aLR->Niv()) && (aNivMin==0);
     if (!mOk) return;
 
+    mScaleStab = anAppli.ScaleOfNiv(aLR->Niv());
+
     int aSign = SignOfType(mLR->Type());
     std::vector<double> aVLapl;
-    double aLaplMax = -1;
+    mLaplMax = -1;
+    mLaplMaxNature = -1;
+
     for (auto & aPt:  aVPt)
     {
         int aNiv = aPt->Niv();
         if (anAppli.OkNivLapl(aNiv))
         {
-           double aLapl = anAppli.GetLapl(aNiv,round_ni(aPt->Pt()),mOk) * aSign;
+           double aLapl =  0;
+
+          if (anAppli.ScaleCorr())
+          {
+              aLapl = anAppli.GetImOfNiv(aNiv)->QualityScaleCorrel(round_ni(aPt->Pt()),aSign,true)  ;
+          }
+          else
+          {
+              aLapl =  anAppli.GetLapl(aNiv,round_ni(aPt->Pt()),mOk) * aSign;
+          }
+ 
            if (!mOk)
            {
                return;
            }
 
-           if (aLapl> aLaplMax)
+           double aScale = anAppli.ScaleOfNiv(aNiv);
+           if ((aLapl>mLaplMax)  && anAppli.ScaleIsValid(aScale))
            {
                mNivScal = aNiv;
-               mScale   =  anAppli.ScaleOfNiv(aNiv);
-               aLaplMax = aLapl;
+               mScale   =  aScale;
+               mLaplMax = aLapl;
+           }
+           if (aLapl>mLaplMaxNature) 
+           {
+                mScaleNature = mScale;
+                mLaplMaxNature = aLapl;
            }
         }
+      //   std::cout << "CORRELL " << anAppli.GetImOfNiv(aNiv)->QualityScaleCorrel(round_ni(aPt->Pt()),aSign,true)  << " \n";
     }
+
+    if (mLaplMax==-1)
+    {
+       mOk = false;
+       return ;
+    }
+    
+    // getchar();
     // std::cout << "SSsSSsS= " <<  aLaplMax << "\n";
 
 /*

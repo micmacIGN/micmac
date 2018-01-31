@@ -189,8 +189,10 @@ void wallis( Im2D<U_INT1,INT> &image, Im2D<U_INT1,INT> &WallEqIm)
     int resto_n = n%dim_n;
     int resto_m = m%dim_m;
 
-    int dimension_x[N_Block];
-    int dimension_y[M_Block];
+    // incompatibilité compilation sous windows declarer un array avec une dimension qui n'est pas une constance.
+    // je corrige de la manière suivante mais sans tester le code donc il faudra repasser derière ultérieurement
+    int *dimension_x = new int[N_Block];
+    int *dimension_y = new int[M_Block];
 
     dim_n = dim_n + resto_n/N_Block;
     dim_m = dim_m + resto_m/M_Block;
@@ -339,6 +341,8 @@ void wallis( Im2D<U_INT1,INT> &image, Im2D<U_INT1,INT> &WallEqIm)
                 (Imagefloat.in()-Minvalue)*255.0/(Maxvalue-Minvalue),
                 WallEqIm.out()
                );
+    delete [] dimension_x;
+    delete [] dimension_y;
 }
 //===============================================================================//
 /*      Routine that processes an image: RGB--> Lab and Wallis filter            */
@@ -2650,16 +2654,9 @@ else
 return EXIT_SUCCESS ;
 }
 
-int main_test(int argc,char ** argv)
+int main_test2(int argc,char ** argv)
 {
-     //cORT_Appli anAppli(argc,argv);
-     //CmpOrthosTir_main(argc,argv);
-    //ComputeStat_main(argc,argv);
+
     RegTIRVIS_main(argc,argv);
-    //test_main(argc,argv);
-    //MasqTIR_main(argc,argv);
-    //cERO_ModelOnePaire(argc,argv);
-
-
    return EXIT_SUCCESS;
 }

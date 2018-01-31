@@ -55,6 +55,8 @@ class cTIR2VIS_Appli
     cTIR2VIS_Appli(int argc,char ** argv);
     string T2V_imName(string tirName);
     string T2Reech_imName(string tirName);
+    void changeImSize(std::vector<std::string> aLIm); //list image
+    void changeImRadiom(std::vector<std::string> aLIm); //list image
 
     std::string mDir;
     private:
@@ -62,8 +64,10 @@ class cTIR2VIS_Appli
     std::string mPat;
     std::string mHomog;
     std::string mOri;
+    std::string mPrefixReech;
     bool mOverwrite;
-
+    Pt2di mImSzOut;// si je veux découper mes images output, ex: homography between 2 sensors of different shape and size (TIR 2 VIS) but I want to have the same dimension as output
+    Pt2di mRadiomRange;// If I want to change radiometry value, mainly to convert 16 bits to 8 bits
 };
 
 
@@ -71,16 +75,21 @@ cTIR2VIS_Appli::cTIR2VIS_Appli(int argc,char ** argv) :
       mFullDir	("img.*.tif"),
       mHomog	("homography.xml"),
       mOri		("RTL"),
+      mPrefixReech("Reech"),
       mOverwrite (false)
+
+
 
 {
     ElInitArgMain
     (
     argc,argv,
         LArgMain()  << EAMC(mFullDir,"image pattern", eSAM_IsPatFile)
-                    << EAMC(mHomog,"homography XML file", eSAM_IsExistFile )
-                    << EAMC(mOri,"ori name of VIS images", eSAM_IsExistDirOri ),
-        LArgMain()  << EAM(mOverwrite,"F",true, "Overwrite previous resampled images, def false")
+                    << EAMC(mHomog,"homography XML file", eSAM_IsExistFile ),
+        LArgMain()  << EAM(mOri,"Ori",true, "ori name of VIS images", eSAM_IsExistDirOri )
+                    << EAM(mOverwrite,"F",true, "Overwrite previous resampled images, def false")
+                    << EAM(mImSzOut,"ImSzOut",true, "Size of output images")
+                    << EAM(mRadiomRange,"RadiomRange",true, "range of radiometry of input images, if given, output will be 8 bits images")
     );
 
 
@@ -90,16 +99,35 @@ cTIR2VIS_Appli::cTIR2VIS_Appli(int argc,char ** argv) :
     SplitDirAndFile(mDir,mPat,mFullDir);
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
     const std::vector<std::string> aSetIm = *(aICNM->Get(mPat));
-    StdCorrecNameOrient(mOri,mDir);
-    mOri="Ori-"+mOri+"/";
+
 
     ReechThermicIm(aSetIm,mHomog);
 
-    CopyOriVis(aSetIm,mOri);
+     if (EAMIsInit(&mOri))
+     {
+         StdCorrecNameOrient(mOri,mDir);
+         mOri="Ori-"+mOri+"/";
+         std::cout << "Copy orientation file." << std::endl;
+         CopyOriVis(aSetIm,mOri);
+      }
 
+    // changer la taille des images out
+    if (EAMIsInit(&mImSzOut))
+    {
+        //open first reech image just to read the dimension in order to print a message
+        Tiff_Im mTif=Tiff_Im::StdConvGen(T2Reech_imName(aSetIm.at(0)),1,true);
+        std::cout << "Change size of output images from " << mTif.sz() << " to " << mImSzOut << "\n";
+        changeImSize(aSetIm);
     }
 
+    // change the image radiometry
+    if (EAMIsInit(&mRadiomRange))
+    {
+        std::cout << "Change images dynamic from range " << mRadiomRange << " to [0, 255] \n";
+        changeImRadiom(aSetIm);
+    }
 
+    }
 }
 
 
@@ -124,22 +152,21 @@ void cTIR2VIS_Appli::ReechThermicIm(
                             + _SetIm.at(aK)
                             + std::string(" ")
                             + aHomog;
+
+                            if (EAMIsInit(&mPrefixReech)) {  aCom += " PrefixOut=" + T2Reech_imName(_SetIm.at(aK)) ; }
+
                             //+ " Win=[3,3]";// taille de fenetre pour le rééchantillonnage, par défaut 5x5
 
-
-
-
-                bool Exist= ELISE_fp::exist_file(aNameOut);
+                bool Exist= ELISE_fp::exist_file(T2Reech_imName(_SetIm.at(aK)));
 
                 if(!Exist || mOverwrite) {
 
                     std::cout << "aCom = " << aCom << std::endl;
                     //system_call(aCom.c_str());
                     aLCom.push_back(aCom);
+                } else {
+                    std::cout << "Reech image " << T2Reech_imName(_SetIm.at(aK)) << " exist, use F=1 to overwrite \n";
                 }
-
-
-
     }
     cEl_GPAO::DoComInParal(aLCom);
 }
@@ -155,11 +182,15 @@ void cTIR2VIS_Appli::CopyOriVis(
     {
         //cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
         std::string aOriFileName(aOri+"Orientation-"+T2V_imName(imTIR)+".xml");
-        //CamStenope * aCam=CamOrientGenFromFile(aOriFileName,aICNM);
+        if (ELISE_fp::exist_file(aOriFileName))
+        {
         std::string aCom="cp " + aOriFileName + "   "+ aOri+"Orientation-" + T2Reech_imName(imTIR) +".xml";
         std::cout << "aCom = " << aCom << std::endl;
         system_call(aCom.c_str());
-        //cEl_GPAO::DoComInParal(
+        } else
+        {
+        std::cout << "Can not copy orientation " << aOriFileName << " because file not found." << std::endl;
+        }
 
     }
 }
@@ -179,8 +210,7 @@ string cTIR2VIS_Appli::T2V_imName(string tirName)
 
 string cTIR2VIS_Appli::T2Reech_imName(string tirName)
 {
-   return "Reech_"+tirName;
-
+   return mPrefixReech+ "_" + tirName;
 }
 
 
@@ -192,11 +222,97 @@ int T2V_main(int argc,char ** argv)
 }
 
 
+void cTIR2VIS_Appli::changeImSize(std::vector<std::string> aLIm)
+{
+    for(auto & imTIR: aLIm)
+    {
+    // load reech images
+    Tiff_Im mTifIn=Tiff_Im::StdConvGen(T2Reech_imName(imTIR),1,true);
+    // create RAM image
+    Im2D_REAL4 im(mImSzOut.x,mImSzOut.y);
+    // y sauver l'image
+    ELISE_COPY(mTifIn.all_pts(),mTifIn.in(),im.out());
+    // juste clipper
+    Tiff_Im  aTifOut
+             (
+                 T2Reech_imName(imTIR).c_str(),
+                 im.sz(),
+                 GenIm::real4,
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::BlackIsZero
+             );
+    // on écrase le fichier tif
+   ELISE_COPY(im.all_pts(),im.in(),aTifOut.out());
+    }
+}
+
+void cTIR2VIS_Appli::changeImRadiom(std::vector<std::string> aLIm)
+{
+    for(auto & imTIR: aLIm)
+    {
+
+    int minRad(mRadiomRange.x), rangeRad(mRadiomRange.y-mRadiomRange.x);
+
+    // load reech images
+    Tiff_Im mTifIn=Tiff_Im::StdConvGen(T2Reech_imName(imTIR),1,true);
+    // create empty RAM image for imput image
+    Im2D_REAL4 imIn(mTifIn.sz().x,mTifIn.sz().y);
+    // create empty RAM image for output image
+    Im2D_U_INT1 imOut(mTifIn.sz().x,mTifIn.sz().y);
+    // fill it with tiff image value
+    ELISE_COPY(
+                mTifIn.all_pts(),
+                mTifIn.in(),
+                imIn.out()
+               );
+
+    // change radiometry
+    for (int v(0); v<imIn.sz().y;v++)
+    {
+        for (int u(0); u<imIn.sz().x;u++)
+        {
+            Pt2di pt(u,v);
+            double aVal = imIn.GetR(pt);
+            unsigned int v(0);
+
+            if(aVal!=0){
+            if (aVal>minRad && aVal <minRad+rangeRad)
+            {
+                v=255.0*(aVal-minRad)/rangeRad;
+            }
+            }
+
+            imOut.SetR(pt,v);
+            //std::cout << "aVal a la position " << pt << " vaut " << aVal << ", transfo en " << v <<"\n";
+        }
+    }
+
+    // remove file to be sure of result
+    //ELISE_fp::RmFile(T2Reech_imName(imTIR));
+
+    Tiff_Im aTifOut
+             (
+                 T2Reech_imName(imTIR).c_str(),
+                 imOut.sz(),
+                 GenIm::u_int1,
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::BlackIsZero
+             );
+    // on écrase le fichier tif
+   ELISE_COPY(imOut.all_pts(),imOut.in(),aTifOut.out());
+    }
+}
+
+
+
+
+
+
 
 
 
 /*    comparaise des orthos thermiques pour déterminer un éventuel facteur de calibration spectrale entre 2 frame successif, expliquer pouquoi tant de variabilité spectrale est présente (mosaique moche) */
-
+// à priori ce n'est pas ça du tout, déjà mauvaise registration TIR --> vis du coup les ortho TIR ne se superposent pas , du coup correction radiometrique ne peut pas fonctionner.
 int CmpOrthosTir_main(int argc,char ** argv)
 {
     std::string aDir, aPat="Ort_.*.tif", aPrefix="ratio";
@@ -415,56 +531,137 @@ int ComputeStat_main(int argc,char ** argv)
 }
 
 
-
-int test_main(int argc,char ** argv)
+// j'ai utilisé saisieAppui pour saisir des points homologues sur plusieurs couples d'images TIR VIS orienté
+// je dois manipuler le résulat pour le tranformer en set de points homologues pour un unique couple d'images
+// de plus, la saisie sur les im TIR est effectué sur des images rééchantillonnées, il faut appliquer une homographie inverse au points saisi
+int TransfoMesureAppuisVario2TP_main(int argc,char ** argv)
 {
-    std::string aDir, aPat="Ort_.*.tif", aPrefix="box_";
-    std::list<std::string> mLFile;
-    std::vector<cImGeo> mLIm;
+    std::string a2DMesFileName, aOutputFile1, aOutputFile2,aImName("AK100419.tif"), aNameMap, aDirHomol("Homol-Man");
 
     ElInitArgMain
     (
-        argc,argv,
-        LArgMain()  << EAMC(aDir,"Ortho's Directory", eSAM_IsExistFile),
-        LArgMain()  << EAM(aPat,"Pat",false,"Ortho's image pattern, def='Ort_.*'",eSAM_IsPatFile)
-                    << EAM(aPrefix,"Prefix", false,"Prefix pour les ratio, default = box")
+    argc,argv,
+    //mandatory arguments
+    LArgMain()  << EAMC(a2DMesFileName, "Input mes2D file",  eSAM_IsExistFile)
+                << EAMC(aNameMap, "Input homography to apply to TIR images measurements",  eSAM_IsExistFile),
+    LArgMain()  << EAM(aImName,"ImName", true, "Name of Image for output files",  eSAM_IsOutputFile)
+                << EAM(aOutputFile1,"Out1", true,  "Output TP file 1, def Homol-Man/PastisTIR_ImName/VIS_ImName.txt",  eSAM_IsOutputFile)
+                << EAM(aOutputFile2,"Out2", true,  "Output TP file 2, def Homol-Man/PastisVIS_ImName/TIR_ImName.txt",  eSAM_IsOutputFile)
     );
 
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    // create the list of images starting from the regular expression (Pattern)
-    mLFile = aICNM->StdGetListOfFile(aPat);
+    if (!EAMIsInit(&aOutputFile1)) {
+        aOutputFile1=aDirHomol + "/PastisTIR_" + aImName + "/VIS_" + aImName + ".txt";
+        if(!ELISE_fp::IsDirectory(aDirHomol)) ELISE_fp::MkDir(aDirHomol);
+        if(!ELISE_fp::IsDirectory(aDirHomol + "/PastisTIR_" + aImName)) ELISE_fp::MkDir(aDirHomol + "/PastisTIR_" + aImName);
+    }
+    if (!EAMIsInit(&aOutputFile2)) {
+        aOutputFile2=aDirHomol + "/PastisVIS_" + aImName + "/TIR_" + aImName + ".txt";
+        if(!ELISE_fp::IsDirectory(aDirHomol)) ELISE_fp::MkDir(aDirHomol);
+        if(!ELISE_fp::IsDirectory(aDirHomol + "/PastisVIS_" + aImName)) ELISE_fp::MkDir(aDirHomol + "/PastisVIS_" + aImName);
+    }
 
-    for (
-              std::list<std::string>::iterator itS=mLFile.begin();
-              itS!=mLFile.end();
-              itS++
-              )
+    // lecture de la map 2D
+    cElMap2D * aMap = cElMap2D::FromFile(aNameMap);
+
+    // conversion de la map 2D en homographie; map 2D: plus de paramètres que l'homographie
+
+    //1) grille de pt sur le capteur thermique auquel on applique la map2D
+    ElPackHomologue  aPackHomMap2Homogr;
+    for (int y=0 ; y<720; y +=10)
+        {
+         for (int x=0 ; x<1200; x +=10)
+            {
+             Pt2dr aPt(x,y);
+             Pt2dr aPt2 = (*aMap)(aPt);
+             ElCplePtsHomologues Homol(aPt,aPt2);
+             aPackHomMap2Homogr.Cple_Add(Homol);
+            }
+        }
+    // convert Map2D to homography
+    cElHomographie H(aPackHomMap2Homogr,true);
+    //H = cElHomographie::RobustInit(qual,aPackHomImTer,bool Ok(1),1, 1.0,4);
+
+    // initialiser le pack de points homologues
+    ElPackHomologue  aPackHom;
+
+    cSetOfMesureAppuisFlottants aSetOfMesureAppuisFlottants=StdGetFromPCP(a2DMesFileName,SetOfMesureAppuisFlottants);
+
+    int count=0;
+
+    for( std::list< cMesureAppuiFlottant1Im >::const_iterator iTmes1Im=aSetOfMesureAppuisFlottants.MesureAppuiFlottant1Im().begin();
+         iTmes1Im!=aSetOfMesureAppuisFlottants.MesureAppuiFlottant1Im().end();          iTmes1Im++    )
     {
-    cImGeo aIm(*itS);
+        cMesureAppuiFlottant1Im anImTIR=*iTmes1Im;
 
-    aIm.display();
-    std::string filename=aPrefix + aIm.Name();
-    Pt2dr min(916320,6529220);
-    Pt2dr max(916320+5,6529220+5);
+        //std::cout<<anImTIR.NameIm().substr(0,5)<<" \n";
+        // pour chacune des images thermique rééchantillonnée, recherche l'image visible associée
+        if (anImTIR.NameIm().substr(0,5)=="Reech")
+        {
+            //std::cout<<anImTIR.NameIm()<<" \n";
 
-    Im2D_REAL4 clipped=aIm.clipImTer(min,max);
 
-    ELISE_COPY
-    (
-        clipped.all_pts(),
-        clipped.in(),
-        Tiff_Im(
-            filename.c_str(),
-            clipped.sz(),
-            GenIm::real4,
-            Tiff_Im::No_Compr,
-            Tiff_Im::BlackIsZero
-            ).out()
-    );
+            for (auto anImVIS : aSetOfMesureAppuisFlottants.MesureAppuiFlottant1Im()) {
+            // ne fonctionne que pour la convention de préfixe Reech_TIR_ et VIS_
+               if(anImTIR.NameIm().substr(10,anImTIR.NameIm().size()) == anImVIS.NameIm().substr(4,anImVIS.NameIm().size()))
+               {
+                   // j'ai un couple d'image.
+                   //std::cout << "Couple d'images " << anImTIR.NameIm() << " et " <<anImVIS.NameIm() << "\n";
+
+                   for (auto & appuiTIR : anImTIR.OneMesureAF1I())
+                   {
+                   //
+                       for (auto & appuiVIS : anImVIS.OneMesureAF1I())
+                       {
+                       if (appuiTIR.NamePt()==appuiVIS.NamePt())
+                       {
+                           // j'ai 2 mesures pour ce point
+                          // std::cout << "Pt " << appuiTIR.NamePt() << ", " <<appuiTIR.PtIm() << " --> " << appuiVIS.PtIm() << "\n";
+
+                           // J'ajoute ce point au set de points homol
+                           ElCplePtsHomologues Homol(appuiTIR.PtIm(),appuiVIS.PtIm());
+
+                           aPackHom.Cple_Add(Homol);
+
+                           count++;
+                           break;
+                       }
+                       }
+                   }
+                   break;
+               }
+            }
+       }
+
+    // fin iter sur les mesures appuis flottant
+    }
+    std::cout << "Total : " << count << " tie points read \n" ;
+
+    if (!EAMIsInit(&aOutputFile1) && !EAMIsInit(&aOutputFile2))
+    {
+    if(!ELISE_fp::IsDirectory(aDirHomol + "/PastisReech_TIR_" + aImName)) ELISE_fp::MkDir(aDirHomol + "/PastisReech_TIR_" + aImName);
+    std::cout << "Homol pack saved in  : " << aDirHomol + "/PastisReech_TIR_" + aImName + "/VIS_" + aImName + ".txt" << " \n" ;
+    aPackHom.StdPutInFile(aDirHomol + "/PastisReech_TIR_" + aImName + "/VIS_" + aImName + ".txt");
+    aPackHom.SelfSwap();
+
+    std::cout << "Homol pack saved in  : " << aDirHomol + "/PastisVIS_" + aImName + "/Reech_TIR_" + aImName + ".txt" << " \n" ;
+    aPackHom.StdPutInFile(aDirHomol + "/PastisVIS_" + aImName + "/Reech_TIR_" + aImName + ".txt");
 
     }
-    return EXIT_SUCCESS;
+
+
+    // appliquer l'homographie
+
+    //aPackHom.ApplyHomographies(H.Inverse(),H.Id());
+    aPackHom.ApplyHomographies(H,H.Id());
+    // maintenant on sauve ce pack de points homologues
+    std::cout << "Homol pack saved in  : " << aOutputFile1 << " \n" ;
+    aPackHom.StdPutInFile(aOutputFile1);
+    aPackHom.SelfSwap();
+    std::cout << "Homol pack saved in  : " << aOutputFile2 << " \n" ;
+    aPackHom.StdPutInFile(aOutputFile2);
 }
+
+
 
 
 
@@ -661,16 +858,16 @@ int MasqTIR_main(int argc,char ** argv)
 
 
 
-int main_test2(int argc,char ** argv)
+int main_test(int argc,char ** argv)
 {
      //cORT_Appli anAppli(argc,argv);
      //CmpOrthosTir_main(argc,argv);
     //ComputeStat_main(argc,argv);
-    RegTIRVIS_main(argc,argv);
+    //RegTIRVIS_main(argc,argv);
     //test_main(argc,argv);
     //MasqTIR_main(argc,argv);
     //cERO_ModelOnePaire(argc,argv);
-
+    TransfoMesureAppuisVario2TP_main(argc,argv);
 
    return EXIT_SUCCESS;
 }

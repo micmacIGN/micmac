@@ -45,8 +45,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //  =======   Pour visualiser les points carac new
 #include "../NewRechPH/cParamNewRechPH.h"
-std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
-void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
+#include "../NewRechPH/ExternNewRechPH.h"
+
+// std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
+// void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
+
+// cSetPCarac * LoadStdSetCarac(const std::string & aNameIm);
 
 
 //  =======   Pour visualiser les points carac new
@@ -219,7 +223,8 @@ class cAppli_Vino : public cXml_EnvVino,
         void PostInitVirtual();
         void  Boucle();
         cXml_EnvVino & EnvXml() {return static_cast<cXml_EnvVino &> (*this);}
-
+        const cOnePCarac * Nearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
+        int  IndexNearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
 
      private :
         void  ExeOneClik(Clik &);
@@ -278,6 +283,7 @@ class cAppli_Vino : public cXml_EnvVino,
         std::string               mNameXmlOut;
         std::string               mNameXmlIn;
         std::string               mDir;
+        cInterfChantierNameManipulateur * mICNM;
         std::string               mNameIm;
         Tiff_Im  *                mTiffIm;
         std::string               mNameTiffIm;
@@ -365,18 +371,28 @@ class cAppli_Vino : public cXml_EnvVino,
 
         //  Appli Vino Secondary Images
         std::vector<cAppli_Vino *>  mAVSI;
+        cAppli_Vino  *              mMother;
         std::string                 mPatSecIm;
  
       // Vector view 
 
-        bool           mBasicPC;
+        std::string    mImNewP;
+        std::string    mExtImNewP;
         int            mSzSift;
-        double         mSSF;  // Sift Scale Factor
+        std::string    mImSift;
+        double         mSSF;  // Sift Scale Factor => car a bas niveau calcule sur image reduite
         std::string    mNameSift;
         int            mWithPCarac;
         cSetPCarac *   mSPC;
         std::vector<Siftator::SiftPoint> mVSift;
+        double         mSeuilAC;
+        double         mSeuilContRel;
 
+        std::vector<std::string>   mCheckHom;
+        cElNuage3DMaille *         mCheckNuage;
+        cBasicGeomCap3D  *         mCheckOri;
+        std::vector<const cOnePCarac*>   mVptHom;
+        
 };
 
 Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);

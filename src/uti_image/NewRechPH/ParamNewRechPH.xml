@@ -28,17 +28,53 @@
    </PtSc>
 
    <SetPCarac  Nb="1" Class="true">
-      <OnePCarac  Nb="*" Class="true">
+      <OnePCarac  Nb="*" Class="true" Container="std::vector">
          <Kind Nb="1" Type="eTypePtRemark">        </Kind>
          <Pt   Nb="1" Type="Pt2dr">     </Pt>
+         <Pt0   Nb="1" Type="Pt2dr">     </Pt0>  <!-- Avant opt, pour test -->
          <NivScale   Nb="1" Type="int">  </NivScale>
          <Scale   Nb="1" Type="double">  </Scale>
+         <ScaleStab   Nb="1" Type="double">  </ScaleStab> <!-- 4 MinMax, highest scale where they are visible -->
+         <ScaleNature   Nb="1" Type="double">  </ScaleNature> <!-- May be != from scale when scale was forced -->
          <DirMS   Nb="1" Type="Pt2dr">     </DirMS>
          <DirAC   Nb="1" Type="Pt2dr">     </DirAC>
-         <Contrast   Nb="1" Type="double">  </Contrast>
+         <Contraste   Nb="1" Type="double">  </Contraste>
+         <ContrasteRel   Nb="1" Type="double">  </ContrasteRel> <!-- Par raport au seuil, pour inspection-->
          <AutoCorrel   Nb="1" Type="double">  </AutoCorrel>
+         <OK   Nb="1" Type="bool">  </OK>  <!-- Help 4 compute, should always be true -->
+     <!--   codage binaire -->
+         <CoeffRadiom   Nb="1" Type="std::vector<double>">           </CoeffRadiom>
+         <CoeffRadiom2  Nb="1" Type="std::vector<double>">           </CoeffRadiom2>
+         <CoeffGradRadial   Nb="1" Type="std::vector<double>">       </CoeffGradRadial>
+         <CoeffGradTangent   Nb="1" Type="std::vector<double>">      </CoeffGradTangent>
+         <CoeffGradTangentPiS2   Nb="1" Type="std::vector<double>">  </CoeffGradTangentPiS2>
+         <CoeffGradTangentPi     Nb="1" Type="std::vector<double>">  </CoeffGradTangentPi>
+         <CoeffGradCroise   Nb="1" Type="std::vector<double>">       </CoeffGradCroise>
+         <CoeffGradCroise2  Nb="1" Type="std::vector<double>">       </CoeffGradCroise2>
+         <CoeffDiffOpposePi   Nb="1" Type="std::vector<double>">     </CoeffDiffOpposePi>
+         <CoeffDiffOppose2Pi  Nb="1" Type="std::vector<double>">     </CoeffDiffOppose2Pi>
+         <CoeffDiffOpposePiS2   Nb="1" Type="std::vector<double>">   </CoeffDiffOpposePiS2>
+         <CoeffDiffOppose2PiS2  Nb="1" Type="std::vector<double>">   </CoeffDiffOppose2PiS2>
+     <!--   codage binaire -->
+         <CodeBinaireCompl Nb="1" Type="int"> </CodeBinaireCompl>
+         <CodeBinaireIndex Nb="1" Type="int"> </CodeBinaireIndex>
+    <!-- Pour visu -->
+         <ImRad Nb="1" Type="Im2D_REAL4"> </ImRad>
+         <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
       </OnePCarac>
    </SetPCarac>
+
+   <FullParamCB  Nb="1" Class="true">
+      <CBOneVect  Nb="*" Class="true" Container="std::vector">
+         <IndVec Nb="1" Type="int">     </IndVec> 
+         <CBOneBit Nb="*" Container="std::vector"> 
+            <Coeff  Nb="1" Type="std::vector<double>">  </Coeff> 
+            <IndInV Nb="1" Type="std::vector<int>">     </IndInV> 
+            <IndBit Nb="1" Type="int">     </IndBit> 
+         </CBOneBit>
+      </CBOneVect>
+   </FullParamCB>
+
 <Verbatim File=".h.cpp">
 // };
 </Verbatim>
