@@ -40,6 +40,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+const std::vector<double> * KVRAD(const cOnePCarac * aPC,int aK)
+{
+   return VRAD(aPC).at(aK);
+}
 
 std::vector<const std::vector<double> *> VRAD(const cOnePCarac * aPC)
 {

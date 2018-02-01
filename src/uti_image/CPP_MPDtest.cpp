@@ -1329,10 +1329,16 @@ void TestHomogr()
    }
 }
 
+extern void TestNbBitOfFlag();
 
 int MPDtest_main (int argc,char** argv)
 {
     std::cout << "MPDtest_main in " << __FILE__ << "\n";
+    {
+       std::cout << " 2>>1 = " << (2>>1) << " ; 2<<1 = "  << (2<<1) << "\n";
+       TestNbBitOfFlag();
+       exit(EXIT_SUCCESS);
+    }
     {
        TestHomogr();
        exit(EXIT_SUCCESS);

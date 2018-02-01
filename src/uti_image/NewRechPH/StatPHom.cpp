@@ -213,7 +213,18 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                   std::cout << "  * For dif="  << aK << " perc=" << (aNb * 100.0) / aNbOk << "\n";
             }
 
-            getchar();
+
+            for (int aNbB=1 ; aNbB<=2 ; aNbB++)
+            {
+               cFullParamCB  aFB = RandomFullParamCB(*(aV1[0]),aNbB,3);
+               TestFlagCB(aFB,aV1,aV2,mVHom.at(aKL));
+            }
+
+            {
+                cFullParamCB  aFPB =   Optimize(aV1,aV2,mVHom.at(aKL),1);
+                TestFlagCB(aFPB,aV1,aV2,mVHom.at(aKL));
+            }
+
         }
    }
 }
@@ -325,7 +336,6 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
    StdCorrecNameHomol(mSH,mDir);
    mI1 = new cOneImSPH(aN1,*this);
 
-/*
    if (1)
    {
        for (int aNbB=1 ; aNbB<4 ; aNbB++)
@@ -334,7 +344,7 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
           MakeFileXML(aFB,"Test_"+ToString(aNbB)+".xml");
        }
    }
-*/
+
    mI2 = new cOneImSPH(aN2,*this);
 
    if (EAMIsInit(&mNameNuage))
