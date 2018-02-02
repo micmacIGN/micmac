@@ -70,6 +70,14 @@ void NormalizeVect(std::vector<double> & aVect)
 // Pt2dr aPTBUG (2914.32,1398.2);
 Pt2dr aPTBUG (2892.06,891.313);
 
+void NormaliseSigma(double & aMoySom,double & aVarSig,const double & aPds)
+{
+   aMoySom /=  aPds;
+   aVarSig /= aPds;
+   aVarSig -= ElSquare(aMoySom);
+   aVarSig = sqrt(ElMax(1e-10,aVarSig));
+}
+
 bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 {
    bool BUG= false &&  (euclid(aPt.Pt()+Pt2dr(mP0)-aPTBUG) < 0.02);
@@ -87,6 +95,9 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
    std::vector<cOneScaleImRechPH *>  aVIm;
    // Tableau des distance / au centre pour echantillonner
    std::vector<double>               aVRho;
+   std::vector<double>               aVDeltaRad;
+   std::vector<double>               aVDeltaTang;
+   double aStepTeta =  (2*PI)/mNbTetaInv;
 
    int aN0 = aPt.NivScale();
    // aVIm.push_back(mVI1.at(aN0));
@@ -105,6 +116,8 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       aRho += aDRho;
 
       aVRho.push_back(aRho);
+      aVDeltaRad.push_back(aDRho);
+      aVDeltaTang.push_back(aCurScale*aStepTeta);
       aLastScale = aCurScale;
    }
 
@@ -112,7 +125,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 
    for (int aKTeta=0 ; aKTeta<mNbTetaInv; aKTeta++)
    {
-      double aTeta = (2*PI*aKTeta)/mNbTetaInv;
+      double aTeta = aKTeta * aStepTeta;
       Pt2dr aPTeta = Pt2dr::FromPolar(1.0,aTeta);
       for (int aKRho=0 ; aKRho<int(aVIm.size()) ; aKRho++)
       {
@@ -133,51 +146,96 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
        Tiff_Im::CreateFromIm(aImBuf,"NEWHBuf.tif");
    }
 
-   int aKPS4 = mNbTetaInv /4 ;
-   int aKPS2 = mNbTetaInv /2 ;
+   int aKPS2 = mNbTetaInv /4 ;
+   int aKPi  = mNbTetaInv /2 ;
    for (int aKRho=0 ; aKRho<int(aVIm.size()) ; aKRho++)
    {
+      double aRealDTeta =  aVDeltaRad[aKRho] / aVDeltaTang[aKRho];
+      int aDTeta = round_ni(aRealDTeta); // Delta correspondant a 1 rho
+
       bool WithGR = (aKRho!=0);
       double aSomV        =0;
       double aSomV2       =0;
       double aSomGradRadial  =0;
       double aSomGradTeta =0;
-      double aSomGradTetaPiS4 =0;
       double aSomGradTetaPiS2 =0;
+      double aSomGradTetaPi   =0;
+      double aSomGradCrois = 0 ;
+      double aSomGradCrois2 = 0 ;
+
+      double aSomGradOpposPi    = 0 ;
+      double aSomGrad2OpposPi   = 0 ;
+      double aSomGradOpposPiS2  = 0 ;
+      double aSomGrad2OpposPiS2 = 0 ;
+
+      int aKROp = aVIm.size()-1 - aKRho;
+
       for (int aKTeta=0 ; aKTeta<mNbTetaInv; aKTeta++)
       {
-          aSomV +=  aTBuf.get(Pt2di(aKRho,aKTeta));
-          aSomV2 += ElSquare(aTBuf.get(Pt2di(aKRho,aKTeta)));
-          aSomGradTeta +=     ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,(1    +aKTeta)%mNbTetaInv)));
-          aSomGradTetaPiS4 += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,(aKPS4+aKTeta)%mNbTetaInv)));
-          aSomGradTetaPiS2 += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,(aKPS2+aKTeta)%mNbTetaInv)));
+          int aKTetaPlus1 = (1    +aKTeta)%mNbTetaInv;
+          int aKTetaPiS2  = (aKPS2+aKTeta)%mNbTetaInv;
+          int aKTetaPi    = (aKPi+aKTeta)%mNbTetaInv;
+
+          double aVal = aTBuf.get(Pt2di(aKRho,aKTeta));
+          aSomV +=  aVal;
+          aSomV2 += ElSquare(aVal);
+          aSomGradTeta +=     ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,aKTetaPlus1)));
+          aSomGradTetaPiS2 += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,aKTetaPiS2)));
+          aSomGradTetaPi   += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,aKTetaPi)));
+
+          double aGradOpPi =  ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKROp,aKTetaPi)));
+          aSomGradOpposPi += aGradOpPi;
+          aSomGrad2OpposPi += ElSquare(aGradOpPi);
+          double aGradOpPiS2 =  ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKROp,aKTetaPiS2)));
+          aSomGradOpposPiS2 += aGradOpPiS2;
+          aSomGrad2OpposPiS2 += ElSquare(aGradOpPiS2);
+
           if (WithGR)
           {
+             int aKTetaCr =  (aDTeta+aKTeta)%mNbTetaInv;
              aSomGradRadial += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho-1,aKTeta)));
+             double aGradCr = ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho-1,aKTetaCr)));
+             aSomGradCrois += aGradCr;
+             aSomGradCrois2 += ElSquare(aGradCr);
           }
       }
-      aSomV /=  mNbTetaInv;
-      aSomV2 /= mNbTetaInv;
-      aSomV2 -= ElSquare(aSomV);
-      aSomV2 = sqrt(ElMax(1e-10,aSomV2));
 
+      NormaliseSigma(aSomV,aSomV2,mNbTetaInv);
       aPt.CoeffRadiom().push_back(aSomV);
       aPt.CoeffRadiom2().push_back(aSomV2);
+
+      NormaliseSigma(aSomGradOpposPi  , aSomGrad2OpposPi  , mNbTetaInv);
+      aPt.CoeffDiffOpposePi().push_back(aSomGradOpposPi);
+      aPt.CoeffDiffOppose2Pi().push_back(aSomGrad2OpposPi);
+
+      NormaliseSigma(aSomGradOpposPiS2, aSomGrad2OpposPiS2, mNbTetaInv);
+      aPt.CoeffDiffOpposePiS2().push_back(aSomGradOpposPiS2);
+      aPt.CoeffDiffOppose2PiS2().push_back(aSomGrad2OpposPiS2);
+
       if (WithGR)
       {
          aPt.CoeffGradRadial().push_back(aSomGradRadial);
+         NormaliseSigma(aSomGradCrois,aSomGradCrois2,mNbTetaInv);
+         aPt.CoeffGradCroise().push_back(aSomGradCrois);
+         aPt.CoeffGradCroise2().push_back(aSomGradCrois2);
       }
       aPt.CoeffGradTangent().push_back(aSomGradTeta);
-      aPt.CoeffGradTangentPiS4().push_back(aSomGradTetaPiS4);
       aPt.CoeffGradTangentPiS2().push_back(aSomGradTetaPiS2);
+      aPt.CoeffGradTangentPi().push_back(aSomGradTetaPi);
       
    }
    NormalizeVect(aPt.CoeffRadiom());
    NormalizeVect(aPt.CoeffRadiom2());
    NormalizeVect(aPt.CoeffGradRadial());
    NormalizeVect(aPt.CoeffGradTangent());
-   NormalizeVect(aPt.CoeffGradTangentPiS4());
    NormalizeVect(aPt.CoeffGradTangentPiS2());
+   NormalizeVect(aPt.CoeffGradTangentPi());
+   NormalizeVect(aPt.CoeffGradCroise());
+   NormalizeVect(aPt.CoeffGradCroise2());
+   NormalizeVect(aPt.CoeffDiffOpposePi());
+   NormalizeVect(aPt.CoeffDiffOppose2Pi());
+   NormalizeVect(aPt.CoeffDiffOpposePiS2());
+   NormalizeVect(aPt.CoeffDiffOppose2PiS2());
 
 
    // Sauvegarde

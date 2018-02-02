@@ -345,8 +345,18 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
           ShowCurve(aNearest->CoeffRadiom2()         ,Pt2di(110,aY0),Pt2di(200,aY1),mW,P8COL::red);
           ShowCurve(aNearest->CoeffGradRadial()      ,Pt2di(210,aY0),Pt2di(300,aY1),mW,P8COL::green);
           ShowCurve(aNearest->CoeffGradTangent()     ,Pt2di(310,aY0),Pt2di(400,aY1),mW,P8COL::blue);
-          ShowCurve(aNearest->CoeffGradTangentPiS4() ,Pt2di(410,aY0),Pt2di(500,aY1),mW,P8COL::cyan);
-          ShowCurve(aNearest->CoeffGradTangentPiS2() ,Pt2di(510,aY0),Pt2di(600,aY1),mW,P8COL::magenta);
+          ShowCurve(aNearest->CoeffGradTangentPiS2() ,Pt2di(410,aY0),Pt2di(500,aY1),mW,P8COL::magenta);
+          ShowCurve(aNearest->CoeffGradTangentPi()   ,Pt2di(510,aY0),Pt2di(600,aY1),mW,P8COL::cyan);
+          
+          aY0 += 110;
+          aY1 += 110;
+
+          ShowCurve(aNearest->CoeffGradCroise()    ,Pt2di( 10,aY0),Pt2di(100,aY1),mW,P8COL::black);
+          ShowCurve(aNearest->CoeffGradCroise2()   ,Pt2di(110,aY0),Pt2di(200,aY1),mW,P8COL::red);
+          ShowCurve(aNearest->CoeffDiffOpposePi()      ,Pt2di(210,aY0),Pt2di(300,aY1),mW,P8COL::green);
+          ShowCurve(aNearest->CoeffDiffOppose2Pi()     ,Pt2di(310,aY0),Pt2di(400,aY1),mW,P8COL::blue);
+          ShowCurve(aNearest->CoeffDiffOpposePiS2()    ,Pt2di(410,aY0),Pt2di(500,aY1),mW,P8COL::magenta);
+          ShowCurve(aNearest->CoeffDiffOppose2PiS2()   ,Pt2di(510,aY0),Pt2di(600,aY1),mW,P8COL::cyan);
        }
 
        if (! mVptHom.empty())

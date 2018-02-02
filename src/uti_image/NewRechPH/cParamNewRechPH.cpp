@@ -309,17 +309,6 @@ const std::vector<double> & cOnePCarac::CoeffGradTangent()const
 }
 
 
-std::vector<double> & cOnePCarac::CoeffGradTangentPiS4()
-{
-   return mCoeffGradTangentPiS4;
-}
-
-const std::vector<double> & cOnePCarac::CoeffGradTangentPiS4()const 
-{
-   return mCoeffGradTangentPiS4;
-}
-
-
 std::vector<double> & cOnePCarac::CoeffGradTangentPiS2()
 {
    return mCoeffGradTangentPiS2;
@@ -328,6 +317,105 @@ std::vector<double> & cOnePCarac::CoeffGradTangentPiS2()
 const std::vector<double> & cOnePCarac::CoeffGradTangentPiS2()const 
 {
    return mCoeffGradTangentPiS2;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffGradTangentPi()
+{
+   return mCoeffGradTangentPi;
+}
+
+const std::vector<double> & cOnePCarac::CoeffGradTangentPi()const 
+{
+   return mCoeffGradTangentPi;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffGradCroise()
+{
+   return mCoeffGradCroise;
+}
+
+const std::vector<double> & cOnePCarac::CoeffGradCroise()const 
+{
+   return mCoeffGradCroise;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffGradCroise2()
+{
+   return mCoeffGradCroise2;
+}
+
+const std::vector<double> & cOnePCarac::CoeffGradCroise2()const 
+{
+   return mCoeffGradCroise2;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffDiffOpposePi()
+{
+   return mCoeffDiffOpposePi;
+}
+
+const std::vector<double> & cOnePCarac::CoeffDiffOpposePi()const 
+{
+   return mCoeffDiffOpposePi;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffDiffOppose2Pi()
+{
+   return mCoeffDiffOppose2Pi;
+}
+
+const std::vector<double> & cOnePCarac::CoeffDiffOppose2Pi()const 
+{
+   return mCoeffDiffOppose2Pi;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffDiffOpposePiS2()
+{
+   return mCoeffDiffOpposePiS2;
+}
+
+const std::vector<double> & cOnePCarac::CoeffDiffOpposePiS2()const 
+{
+   return mCoeffDiffOpposePiS2;
+}
+
+
+std::vector<double> & cOnePCarac::CoeffDiffOppose2PiS2()
+{
+   return mCoeffDiffOppose2PiS2;
+}
+
+const std::vector<double> & cOnePCarac::CoeffDiffOppose2PiS2()const 
+{
+   return mCoeffDiffOppose2PiS2;
+}
+
+
+int & cOnePCarac::CodeBinaireCompl()
+{
+   return mCodeBinaireCompl;
+}
+
+const int & cOnePCarac::CodeBinaireCompl()const 
+{
+   return mCodeBinaireCompl;
+}
+
+
+int & cOnePCarac::CodeBinaireIndex()
+{
+   return mCodeBinaireIndex;
+}
+
+const int & cOnePCarac::CodeBinaireIndex()const 
+{
+   return mCodeBinaireIndex;
 }
 
 
@@ -371,8 +459,16 @@ void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.CoeffRadiom2(),aFp);
     BinaryUnDumpFromFile(anObj.CoeffGradRadial(),aFp);
     BinaryUnDumpFromFile(anObj.CoeffGradTangent(),aFp);
-    BinaryUnDumpFromFile(anObj.CoeffGradTangentPiS4(),aFp);
     BinaryUnDumpFromFile(anObj.CoeffGradTangentPiS2(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffGradTangentPi(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffGradCroise(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffGradCroise2(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffDiffOpposePi(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffDiffOppose2Pi(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffDiffOpposePiS2(),aFp);
+    BinaryUnDumpFromFile(anObj.CoeffDiffOppose2PiS2(),aFp);
+    BinaryUnDumpFromFile(anObj.CodeBinaireCompl(),aFp);
+    BinaryUnDumpFromFile(anObj.CodeBinaireIndex(),aFp);
     BinaryUnDumpFromFile(anObj.ImRad(),aFp);
     BinaryUnDumpFromFile(anObj.VectRho(),aFp);
 }
@@ -396,8 +492,16 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
     BinaryDumpInFile(aFp,anObj.CoeffRadiom2());
     BinaryDumpInFile(aFp,anObj.CoeffGradRadial());
     BinaryDumpInFile(aFp,anObj.CoeffGradTangent());
-    BinaryDumpInFile(aFp,anObj.CoeffGradTangentPiS4());
     BinaryDumpInFile(aFp,anObj.CoeffGradTangentPiS2());
+    BinaryDumpInFile(aFp,anObj.CoeffGradTangentPi());
+    BinaryDumpInFile(aFp,anObj.CoeffGradCroise());
+    BinaryDumpInFile(aFp,anObj.CoeffGradCroise2());
+    BinaryDumpInFile(aFp,anObj.CoeffDiffOpposePi());
+    BinaryDumpInFile(aFp,anObj.CoeffDiffOppose2Pi());
+    BinaryDumpInFile(aFp,anObj.CoeffDiffOpposePiS2());
+    BinaryDumpInFile(aFp,anObj.CoeffDiffOppose2PiS2());
+    BinaryDumpInFile(aFp,anObj.CodeBinaireCompl());
+    BinaryDumpInFile(aFp,anObj.CodeBinaireIndex());
     BinaryDumpInFile(aFp,anObj.ImRad());
     BinaryDumpInFile(aFp,anObj.VectRho());
 }
@@ -423,8 +527,16 @@ cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
    aRes->AddFils(::ToXMLTree(std::string("CoeffRadiom2"),anObj.CoeffRadiom2())->ReTagThis("CoeffRadiom2"));
    aRes->AddFils(::ToXMLTree(std::string("CoeffGradRadial"),anObj.CoeffGradRadial())->ReTagThis("CoeffGradRadial"));
    aRes->AddFils(::ToXMLTree(std::string("CoeffGradTangent"),anObj.CoeffGradTangent())->ReTagThis("CoeffGradTangent"));
-   aRes->AddFils(::ToXMLTree(std::string("CoeffGradTangentPiS4"),anObj.CoeffGradTangentPiS4())->ReTagThis("CoeffGradTangentPiS4"));
    aRes->AddFils(::ToXMLTree(std::string("CoeffGradTangentPiS2"),anObj.CoeffGradTangentPiS2())->ReTagThis("CoeffGradTangentPiS2"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffGradTangentPi"),anObj.CoeffGradTangentPi())->ReTagThis("CoeffGradTangentPi"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffGradCroise"),anObj.CoeffGradCroise())->ReTagThis("CoeffGradCroise"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffGradCroise2"),anObj.CoeffGradCroise2())->ReTagThis("CoeffGradCroise2"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffDiffOpposePi"),anObj.CoeffDiffOpposePi())->ReTagThis("CoeffDiffOpposePi"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffDiffOppose2Pi"),anObj.CoeffDiffOppose2Pi())->ReTagThis("CoeffDiffOppose2Pi"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffDiffOpposePiS2"),anObj.CoeffDiffOpposePiS2())->ReTagThis("CoeffDiffOpposePiS2"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffDiffOppose2PiS2"),anObj.CoeffDiffOppose2PiS2())->ReTagThis("CoeffDiffOppose2PiS2"));
+   aRes->AddFils(::ToXMLTree(std::string("CodeBinaireCompl"),anObj.CodeBinaireCompl())->ReTagThis("CodeBinaireCompl"));
+   aRes->AddFils(::ToXMLTree(std::string("CodeBinaireIndex"),anObj.CodeBinaireIndex())->ReTagThis("CodeBinaireIndex"));
    aRes->AddFils(::ToXMLTree(std::string("ImRad"),anObj.ImRad())->ReTagThis("ImRad"));
    aRes->AddFils(::ToXMLTree(std::string("VectRho"),anObj.VectRho())->ReTagThis("VectRho"));
   aRes->mGXml = anObj.mGXml;
@@ -471,16 +583,32 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.CoeffGradTangent(),aTree->Get("CoeffGradTangent",1)); //tototo 
 
-   xml_init(anObj.CoeffGradTangentPiS4(),aTree->Get("CoeffGradTangentPiS4",1)); //tototo 
-
    xml_init(anObj.CoeffGradTangentPiS2(),aTree->Get("CoeffGradTangentPiS2",1)); //tototo 
+
+   xml_init(anObj.CoeffGradTangentPi(),aTree->Get("CoeffGradTangentPi",1)); //tototo 
+
+   xml_init(anObj.CoeffGradCroise(),aTree->Get("CoeffGradCroise",1)); //tototo 
+
+   xml_init(anObj.CoeffGradCroise2(),aTree->Get("CoeffGradCroise2",1)); //tototo 
+
+   xml_init(anObj.CoeffDiffOpposePi(),aTree->Get("CoeffDiffOpposePi",1)); //tototo 
+
+   xml_init(anObj.CoeffDiffOppose2Pi(),aTree->Get("CoeffDiffOppose2Pi",1)); //tototo 
+
+   xml_init(anObj.CoeffDiffOpposePiS2(),aTree->Get("CoeffDiffOpposePiS2",1)); //tototo 
+
+   xml_init(anObj.CoeffDiffOppose2PiS2(),aTree->Get("CoeffDiffOppose2PiS2",1)); //tototo 
+
+   xml_init(anObj.CodeBinaireCompl(),aTree->Get("CodeBinaireCompl",1)); //tototo 
+
+   xml_init(anObj.CodeBinaireIndex(),aTree->Get("CodeBinaireIndex",1)); //tototo 
 
    xml_init(anObj.ImRad(),aTree->Get("ImRad",1)); //tototo 
 
    xml_init(anObj.VectRho(),aTree->Get("VectRho",1)); //tototo 
 }
 
-std::string  Mangling( cOnePCarac *) {return "06FAFBAAF3912BACFE3F";};
+std::string  Mangling( cOnePCarac *) {return "96E70BBB430BEF93FE3F";};
 
 
 std::vector< cOnePCarac > & cSetPCarac::OnePCarac()
@@ -539,6 +667,213 @@ void xml_init(cSetPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.OnePCarac(),aTree->GetAll("OnePCarac",false,1));
 }
 
-std::string  Mangling( cSetPCarac *) {return "A53B2010A7A2AAB9FE3F";};
+std::string  Mangling( cSetPCarac *) {return "09A2F3D4D5CE3CF4FD3F";};
+
+
+std::vector<double> & cCBOneBit::Coeff()
+{
+   return mCoeff;
+}
+
+const std::vector<double> & cCBOneBit::Coeff()const 
+{
+   return mCoeff;
+}
+
+
+std::vector<int> & cCBOneBit::IndInV()
+{
+   return mIndInV;
+}
+
+const std::vector<int> & cCBOneBit::IndInV()const 
+{
+   return mIndInV;
+}
+
+
+int & cCBOneBit::IndBit()
+{
+   return mIndBit;
+}
+
+const int & cCBOneBit::IndBit()const 
+{
+   return mIndBit;
+}
+
+void  BinaryUnDumpFromFile(cCBOneBit & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Coeff(),aFp);
+    BinaryUnDumpFromFile(anObj.IndInV(),aFp);
+    BinaryUnDumpFromFile(anObj.IndBit(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cCBOneBit & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Coeff());
+    BinaryDumpInFile(aFp,anObj.IndInV());
+    BinaryDumpInFile(aFp,anObj.IndBit());
+}
+
+cElXMLTree * ToXMLTree(const cCBOneBit & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CBOneBit",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Coeff"),anObj.Coeff())->ReTagThis("Coeff"));
+   aRes->AddFils(::ToXMLTree(std::string("IndInV"),anObj.IndInV())->ReTagThis("IndInV"));
+   aRes->AddFils(::ToXMLTree(std::string("IndBit"),anObj.IndBit())->ReTagThis("IndBit"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cCBOneBit & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Coeff(),aTree->Get("Coeff",1)); //tototo 
+
+   xml_init(anObj.IndInV(),aTree->Get("IndInV",1)); //tototo 
+
+   xml_init(anObj.IndBit(),aTree->Get("IndBit",1)); //tototo 
+}
+
+std::string  Mangling( cCBOneBit *) {return "2EB5B20E63A94F8EFE3F";};
+
+
+int & cCBOneVect::IndVec()
+{
+   return mIndVec;
+}
+
+const int & cCBOneVect::IndVec()const 
+{
+   return mIndVec;
+}
+
+
+std::vector< cCBOneBit > & cCBOneVect::CBOneBit()
+{
+   return mCBOneBit;
+}
+
+const std::vector< cCBOneBit > & cCBOneVect::CBOneBit()const 
+{
+   return mCBOneBit;
+}
+
+void  BinaryUnDumpFromFile(cCBOneVect & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.IndVec(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cCBOneBit aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.CBOneBit().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cCBOneVect & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.IndVec());
+    BinaryDumpInFile(aFp,(int)anObj.CBOneBit().size());
+    for(  std::vector< cCBOneBit >::const_iterator iT=anObj.CBOneBit().begin();
+         iT!=anObj.CBOneBit().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cCBOneVect & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CBOneVect",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("IndVec"),anObj.IndVec())->ReTagThis("IndVec"));
+  for
+  (       std::vector< cCBOneBit >::const_iterator it=anObj.CBOneBit().begin();
+      it !=anObj.CBOneBit().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("CBOneBit"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cCBOneVect & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.IndVec(),aTree->Get("IndVec",1)); //tototo 
+
+   xml_init(anObj.CBOneBit(),aTree->GetAll("CBOneBit",false,1));
+}
+
+std::string  Mangling( cCBOneVect *) {return "162A2F0FD2E22AFCFD3F";};
+
+
+std::vector< cCBOneVect > & cFullParamCB::CBOneVect()
+{
+   return mCBOneVect;
+}
+
+const std::vector< cCBOneVect > & cFullParamCB::CBOneVect()const 
+{
+   return mCBOneVect;
+}
+
+void  BinaryUnDumpFromFile(cFullParamCB & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cCBOneVect aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.CBOneVect().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cFullParamCB & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.CBOneVect().size());
+    for(  std::vector< cCBOneVect >::const_iterator iT=anObj.CBOneVect().begin();
+         iT!=anObj.CBOneVect().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cFullParamCB & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FullParamCB",eXMLBranche);
+  for
+  (       std::vector< cCBOneVect >::const_iterator it=anObj.CBOneVect().begin();
+      it !=anObj.CBOneVect().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("CBOneVect"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cFullParamCB & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.CBOneVect(),aTree->GetAll("CBOneVect",false,1));
+}
+
+std::string  Mangling( cFullParamCB *) {return "C623DB904AAFA1A5FE3F";};
 
 // };
