@@ -2235,6 +2235,7 @@ template <class T1,class T2> void BinaryDumpInFile(ELISE_fp & aFp,const Im2D<T1,
 template void BinaryDumpInFile(ELISE_fp&,const Im2D<REAL4,REAL8> & anIm);
 template void BinaryDumpInFile(ELISE_fp&,const Im2D<REAL8,REAL8> & anIm);
 template void BinaryDumpInFile(ELISE_fp&,const Im2D<U_INT1,INT> & anIm);
+template void BinaryDumpInFile(ELISE_fp&,const Im2D<U_INT2,INT> & anIm);
 template void BinaryDumpInFile(ELISE_fp&,const Im2D<INT1,INT> & anIm);
 
 template <class T1,class T2> void BinaryUnDumpFromFile(Im2D<T1,T2> & aVal,ELISE_fp & aFp)
@@ -2248,11 +2249,13 @@ template <class T1,class T2> void BinaryUnDumpFromFile(Im2D<T1,T2> & aVal,ELISE_
 template void BinaryUnDumpFromFile(Im2D<REAL4,REAL8> & anIm,ELISE_fp&);
 template void BinaryUnDumpFromFile(Im2D<REAL8,REAL8> & anIm,ELISE_fp&);
 template void BinaryUnDumpFromFile(Im2D<U_INT1,INT> & anIm,ELISE_fp&);
+template void BinaryUnDumpFromFile(Im2D<U_INT2,INT> & anIm,ELISE_fp&);
 template void BinaryUnDumpFromFile(Im2D<INT1,INT> & anIm,ELISE_fp&);
 
 STD_MANGL(Im2D_REAL8)
 STD_MANGL(Im2D_REAL4)
 STD_MANGL(Im2D_U_INT1)
+STD_MANGL(Im2D_U_INT2)
 STD_MANGL(Im2D_INT1)
 /********************************************************/
 /*    ceux dont ne sait pas trop quoi faire             */
