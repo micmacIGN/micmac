@@ -1766,7 +1766,7 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                     if (aStrMETADATA_FORMAT == "DIMAP")
                     {
                         std::string aStrVersion = aXmlMETADATA_FORMAT->ValAttr("version","-1");
-                        if ((aStrVersion =="2.0") || (aStrVersion =="2.15"))
+                        if ((aStrVersion =="2.0") || (aStrVersion =="2.12") || (aStrVersion =="2.15"))
                         {
                              //std::cout << "GOT DIMAP2 \n"; getchar();
                             aType = eTIGB_MMDimap2;
@@ -1784,6 +1784,12 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                                     return;
                                 }
                             }
+                            else
+                            {
+                                ELISE_ASSERT(false,"AutoDetermineTypeTIGB; A new DIMAP version? We only know versions 2.0, 2.12 and 2.15. Contact developpers for help."); 
+                                
+                            }
+                            
                         }
                     }
                 }
