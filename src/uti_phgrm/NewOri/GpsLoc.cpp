@@ -54,6 +54,16 @@ class cGpsLoc_Rep;
 class cAppliGpsLoc;
 
 
+class cSolBasculeRig  ;
+cSolBasculeRig StdSolFromPts
+                (
+                      const std::vector<Pt3dr> & aV1,
+                      const std::vector<Pt3dr> & aV2,
+                      const std::vector<double> * aVPds=0, // si 0 ts les pds valent 1
+                      int   aNbRansac             = 200,
+                      int   aNbL2                 = 5
+                );
+
 /** 
    cXml_Rotation
 ElRotation3D Xml2El(const cXml_Rotation & aXml)
@@ -121,8 +131,8 @@ class cGpsLoc_Som
         void Save(cNewO_NameManager *);
     private :
         std::string mName;
-        cGpsLoc_Rep mSol;
-        Pt3dr       mGPS;
+        cGpsLoc_Rep mSol;//centre perspective+rotation absolute calculé
+        Pt3dr       mGPS;//centre perspectif mesuré par le GPS
 };
 
 cGpsLoc_Som::cGpsLoc_Som(const std::string & aName)  :
@@ -142,10 +152,11 @@ void cGpsLoc_Som::Save(cNewO_NameManager * aNM)
 
    cOrientationConique anOC =  aCS->StdExportCalibGlob();
 
-   std::string aNameOri = aNM->NameOriOut(mName);
+   std::string aNameOri = aNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+aNM->OriOut()+"-GpsLoc",mName,true);
 
    MakeFileXML(anOC,aNameOri);
    std::cout << mName << ", aNameOri=" << aNameOri << "\n";
+
 }
 
 /* ========================================= */
@@ -160,8 +171,8 @@ class cGpsLoc_Triplet
         cGpsLoc_Triplet(tGLS_Ptr  aS1,tGLS_Ptr aS2,tGLS_Ptr aS3,const cXml_Ori3ImInit & aXmlOri);
         void InitSomTrivial();
     private :
-       tGLS_Ptr     mSoms[3];
-       cGpsLoc_Rep  mReps[3];
+       tGLS_Ptr     mSoms[3]; //absolute
+       cGpsLoc_Rep  mReps[3]; //repere local
        Pt3dr        mPMed;
 };
 
@@ -177,10 +188,46 @@ cGpsLoc_Triplet::cGpsLoc_Triplet(tGLS_Ptr  aS1,tGLS_Ptr aS2,tGLS_Ptr aS3,const c
 
 void cGpsLoc_Triplet::InitSomTrivial()
 {
+
+    std::vector<Pt3dr> mVP1; 
+    std::vector<Pt3dr> mVP2; 
+    
     for (auto aK : {0,1,2})
     {
-         mSoms[aK]->Sol() = mReps[aK];
+         //mSoms[aK]->Sol() = mReps[aK];
+    
+        mVP1.push_back(mReps[aK].Ori());
+        mVP2.push_back(mSoms[aK]->Gps());
     }
+
+    //le calcul de la similitude (7parametrs) à partir de points dans les deux reperes 
+    cSolBasculeRig    aSol = cSolBasculeRig::StdSolFromPts(mVP1,mVP2);
+ 
+    //la pose calculée
+    ElRotation3D      aPose(aSol.Tr(),aSol.Rot(),true);
+ 
+    /*
+    std::cout << "Bascule, Tr=" << aSol.Tr() << ", Lambda=" << aSol.Lambda() << "\n";
+    std::cout << ", Rot=" << aSol.Rot()(0,0) << ", " << aSol.Rot()(0,1) << ", " << aSol.Rot()(0,2) << "\n"
+                          << aSol.Rot()(1,0) << ", " << aSol.Rot()(1,1) << ", " << aSol.Rot()(1,2) << "\n"
+                          << aSol.Rot()(2,0) << ", " << aSol.Rot()(2,1) << ", " << aSol.Rot()(2,2) << "\n";
+    */
+    
+    //sauvgaurde de la pose dans l'objet de la classe
+    for (auto aK : {0,1,2})
+    {
+        Pt3dr aPEch( mReps[aK].Ori().x * aSol.Lambda(),
+                     mReps[aK].Ori().y * aSol.Lambda(),
+                     mReps[aK].Ori().z * aSol.Lambda() );
+
+        //calcul de la position du centre perspectif de la camera aK dans repere absolut 
+        Pt3dr              aOriBasc = aPose.ImAff(aPEch); // tk + Mk * Ckj;
+        ElMatrix<double>   aRotBasc = aPose.Mat() * mReps[aK].MatRot();// Mk * Mkj
+
+        mSoms[aK]->Sol() = cGpsLoc_Rep(ElRotation3D(aOriBasc,aRotBasc,true));
+        
+    }
+
 }
 
 
@@ -302,14 +349,24 @@ cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
    mNbSom = mMapS.size();
 
 
-   // Cas particulier ou il n'y a que 3 sommets, pour tester on initialise avec les
-   // orientation du triplet
+   // Cas particulier ou il n'y a que 3 sommets
    if (mNbSom==3)
    {
       ELISE_ASSERT(mV3.size()==1,"Incoherent size with on triplet");
       mV3[0].InitSomTrivial();
       for (auto aPair : mMapS)
            aPair.second->Save(aNM);
+   }
+   else
+   {   // calcul pour chaque triplet
+       for (auto a3 : mV3)
+       {
+            //a faire:
+            //- calcul de lorientation absolute pour chaque sommet dans chaque triplet independement
+            //  (alors on dispose de plusiers poses abs pour chaque sommet)
+            //- estimer la transformation de similitude (7param) la plus robuste en prennant en compte toutes les resultat 
+       }
+
    }
 }
 

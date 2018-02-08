@@ -534,6 +534,9 @@ cAppli_FFTKugelhupf_main::cAppli_FFTKugelhupf_main(int argc,char ** argv) :
                TIm2DBits<1>  aTM(anIm);
                ELISE_COPY(anIm.all_pts(),trans(aTifM.in(0),aP0),anIm.out());
 
+               // Debordement des composantes connexes si taches autour des marques trop grandes
+               ELISE_COPY(anIm.border(1),0,anIm.out());
+
                int aValC = aTM.get(aGerm);
                if (aValC!=1)
                {

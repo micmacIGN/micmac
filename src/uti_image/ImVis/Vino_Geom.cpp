@@ -266,26 +266,28 @@ const cOnePCarac * cAppli_Vino::Nearest(const Pt2dr & aPClU,double * aDist,eType
     return nullptr;
 }
 
-void ShowCurve(const std::vector<double> & aV,const Pt2di & aP0,const Pt2di & aP1,Video_Win * aW,int aCoul)
+void ShowCurve(Im2D_INT1 aIm,int aK,const Pt2di & aP0,const Pt2di & aP1,Video_Win * aW,int aCoul)
 {
+   int aTx = aIm.tx();
+   INT1 * aV = aIm.data()[aK];
    double aVmax = aV[0];
    double aVmin = aV[0];
-   for (int aK=1 ; aK<int(aV.size()) ; aK++)
+   for (int aK=1 ; aK<aTx ; aK++)
    {
-      aVmin = ElMin(aVmin,aV[aK]);
-      aVmax = ElMax(aVmax,aV[aK]);
+      aVmin = ElMin(aVmin,double(aV[aK]));
+      aVmax = ElMax(aVmax,double(aV[aK]));
    }
 
    std::vector<double> aVX;
    std::vector<double> aVY;
-   for (int aK=0 ; aK<int(aV.size()) ; aK++)
+   for (int aK=0 ; aK<aTx ; aK++)
    {
-        aVX.push_back(aP0.x+ ( aK /double(aV.size()-1)) * (aP1.x-aP0.x));
+        aVX.push_back(aP0.x+ ( aK /double(aTx-1)) * (aP1.x-aP0.x));
         aVY.push_back(aP0.y+ ((aV[aK]-aVmin) /(aVmax-aVmin) ) * (aP1.y-aP0.y));
    }
    ELISE_COPY ( rectangle(aP0,aP1), 255, aW->ogray());
    
-   for (int aK=1 ; aK<int(aV.size()) ; aK++)
+   for (int aK=1 ; aK<int(aTx) ; aK++)
    {
        aW->draw_seg
        (
@@ -328,25 +330,37 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
        std::cout << "\n";
 
        {
-          Im2D_REAL4 aImLogT = aNearest->ImRad();
+          Im2D_INT1 aImLogT = aNearest->ImRad();
           int aZoom=10;
           Pt2di aSz = aImLogT.sz();
 
           ELISE_COPY
           (
               rectangle(Pt2di(0,0),Pt2di(aSz.y*aZoom,aSz.x*aZoom)),
-              Max(0,Min(255,128 + 64 * aImLogT.in()[Virgule(FY,FX)/aZoom])),
+              Max(0,Min(255,128 + 2 * aImLogT.in()[Virgule(FY,FX)/aZoom])),
               mW->ogray()
           );
 
-          int aY0 = aSz.x*aZoom + 10;
-          int aY1 = aY0+100;
-          ShowCurve(aNearest->CoeffRadiom()          ,Pt2di( 10,aY0),Pt2di(100,aY1),mW,P8COL::black);
-          ShowCurve(aNearest->CoeffRadiom2()         ,Pt2di(110,aY0),Pt2di(200,aY1),mW,P8COL::red);
-          ShowCurve(aNearest->CoeffGradRadial()      ,Pt2di(210,aY0),Pt2di(300,aY1),mW,P8COL::green);
-          ShowCurve(aNearest->CoeffGradTangent()     ,Pt2di(310,aY0),Pt2di(400,aY1),mW,P8COL::blue);
-          ShowCurve(aNearest->CoeffGradTangentPiS4() ,Pt2di(410,aY0),Pt2di(500,aY1),mW,P8COL::cyan);
-          ShowCurve(aNearest->CoeffGradTangentPiS2() ,Pt2di(510,aY0),Pt2di(600,aY1),mW,P8COL::magenta);
+          int aMarge = 5;
+          int aSzW    = 45;
+          int aPer = 8;
+
+          for (int aK=0 ; aK<eTIR_NoLabel ; aK++)
+          {
+                int aX0 =  aMarge+(aK%aPer) * (aMarge+aSzW);
+                int aX1 =  aX0 + aSzW;
+
+                int aY0 =  aSz.x*aZoom + aMarge+(aK/aPer) * (aMarge+aSzW);
+                int aY1 = aY0 + aSzW;
+                ShowCurve
+                (
+                    aNearest->InvR().ImRad() ,
+                    aK,
+                    Pt2di(aX0,aY0), Pt2di(aX1,aY1),
+                    mW,
+                    1 + (aK%6)
+                );
+          }
        }
 
        if (! mVptHom.empty())

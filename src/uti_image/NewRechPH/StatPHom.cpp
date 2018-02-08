@@ -40,6 +40,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+const std::string NH_KeyAssoc_Nuage =  "NKS-Assoc-NHNuageRef";
+const std::string NH_KeyAssoc_PC    =  "NKS-Assoc-NHPtRef" ; 
+
 class cAppliStatPHom;
 class cOneImSPH;
 
@@ -58,6 +61,9 @@ class cAppliStatPHom
     private :
        void ShowStat(const std::string & aMes,int aNb,std::vector<double>  aVR,double aPropMax=1.0);
        void TestHom();
+       double EcartEpip(const Pt2dr & aP1,const Pt2dr & aP2);
+       double EcartCompl(const Pt2dr & aP1,const Pt2dr & aP2);
+
        std::string mDir;
        cInterfChantierNameManipulateur * mICNM;
        cOneImSPH * mI1;
@@ -70,10 +76,9 @@ class cAppliStatPHom
        
        ElPackHomologue   mPack;
        bool              mSetPI;
-       std::string mExtInput;
+       std::string       mExtInput;
+       bool              mTestFlagBin;
 
-       double EcartEpip(const Pt2dr & aP1,const Pt2dr & aP2);
-       double EcartCompl(const Pt2dr & aP1,const Pt2dr & aP2);
 };
 
 class cOneImSPH
@@ -91,6 +96,7 @@ class cOneImSPH
          cSetPCarac *       mSPC;
          std::vector<std::vector<cOnePCarac*> > mVVPC; // Classe par label
          std::vector<cOnePCarac*>               mVNearest;
+         std::vector<std::vector<cOnePCarac*> > mVHom;
          Tiff_Im            mTif;
 };
 
@@ -138,19 +144,36 @@ cOnePCarac * cOneImSPH::Nearest(const Pt2dr& aP0,int aKLab,double &aDMin,double 
     return aRes;
 }
 
+void AddRand(cSetRefPCarac & aSRef,const std::vector<cOnePCarac*> aVP, int aNb)
+{
+   cRandNParmiQ aRNpQ(aNb,aVP.size());
+   for (const auto & aPtr : aVP)
+       if (aRNpQ.GetNext())
+          aSRef.SRPC_Rand().push_back(*aPtr);
+}
+
+
 void cOneImSPH::TestMatch(cOneImSPH & aI2)
 {
 
    for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
    {
+        cSetRefPCarac aSetRef;
+        mVHom.push_back(std::vector<cOnePCarac*>());
         int aDifMax = 3;
         std::vector<int>  aHistoScale(aDifMax+1,0);
         double aSeuilDist = 2.0;
+        double aSeuilProp = 0.02;
         int aNbOk=0;
 
         eTypePtRemark aLab = eTypePtRemark(aKL);
         const std::vector<cOnePCarac*>  &   aV1 = mVVPC[aKL];
         const std::vector<cOnePCarac*>  &   aV2 = aI2.mVVPC[aKL];
+
+        std::vector<cOnePCarac>  aVObj1;
+        for (auto aPtr1 : aV1)
+            aVObj1.push_back(*aPtr1);
+
 
         if ((!aV1.empty()) && (!aV2.empty()))
         {
@@ -170,24 +193,41 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
       
  
             std::vector<double> aVD12;
+            std::vector<double> aScorInvR;
             for (int aK1=0 ; aK1< int(aV1.size()); aK1++)
             {
                 Pt2dr aP1 = aV1[aK1]->Pt();
+                cOnePCarac * aHom = 0;
                 if (mAppli.I1HasHom(aP1))
                 {
                     double aDist;
                     cOnePCarac * aP = aI2.Nearest(mAppli.Hom(aP1),aKL,aDist,0.0);
-                    mVNearest.push_back(aP);
                     aVD12.push_back(aDist);
                     if (aDist<aSeuilDist)
                     {
                          aNbOk++;
                          aHistoScale.at(ElMin(aDifMax,ElAbs(aV1[aK1]->NivScale() - aP->NivScale())))++;
+                         double aPropInv = 1 - ScoreTestMatchInvRad(aVObj1,aV1[aK1],aP);
+                         aScorInvR.push_back(aPropInv);
+                         // if (aNbOk%10) std::cout << "aNbOk++aNbOk++ " << aNbOk << "\n";
+                         if (aPropInv < aSeuilProp)
+
+                            aHom = aP;
                     }
+                }
+
+                mVHom.at(aKL).push_back(aHom);
+                if (aHom)
+                {
+                    cSRPC_Truth aTruth;
+                    aTruth.P1() = *(aV1[aK1]);
+                    aTruth.P2() = *(aHom);
+                    aSetRef.SRPC_Truth().push_back(aTruth);
                 }
             }
 
             mAppli.ShowStat("By Homol D for ",20,aVD12,0.5);
+            mAppli.ShowStat("Inv Rad ",20,aScorInvR,1.0);
 
             for (int aK=0 ; aK<=aDifMax ; aK++)
             {
@@ -196,8 +236,30 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                   std::cout << "  * For dif="  << aK << " perc=" << (aNb * 100.0) / aNbOk << "\n";
             }
 
-            getchar();
+
+            // Test random, pas forcement tres interessant
+            if (0)
+            {
+                for (int aNbB=1 ; aNbB<=2 ; aNbB++)
+                {
+                   cFullParamCB  aFB = RandomFullParamCB(*(aV1[0]),aNbB,3);
+                   TestFlagCB(aFB,aV1,aV2,mVHom.at(aKL));
+                }
+            }
+
+            if (mAppli.mTestFlagBin)
+            {
+                cFullParamCB  aFPB =   Optimize(true,aV1,aV2,mVHom.at(aKL),1);
+                TestFlagCB(aFPB,aV1,aV2,mVHom.at(aKL));
+            }
+            AddRand(aSetRef,aV1,round_up(aSetRef.SRPC_Truth().size()/4.0));
+            AddRand(aSetRef,aV2,round_up(aSetRef.SRPC_Truth().size()/4.0));
+            std::string aKey = NH_KeyAssoc_PC + "@"+eToString(eTypePtRemark(aKL));
+            std::string aName =  mAppli.mICNM->Assoc1To2(aKey,mN,aI2.mN,true);
+            MakeFileXML(aSetRef,aName);
         }
+
+        // getchar();
    }
 }
 
@@ -217,12 +279,11 @@ Pt2dr cAppliStatPHom::Hom(const Pt2dr & aP1)
    return mI2->mCam->Ter2Capteur(aPTer);
 }
 
-void  cAppliStatPHom::ShowStat(const std::string & aMes,int aNb,std::vector<double>  aVR,double aPropMax)
+void  cAppliStatPHom::ShowStat(const std::string & aMes,int aNB,std::vector<double>  aVR,double aPropMax)
 {
     if (aVR.empty())
        return;
 
-    int aNB= 20;
     std::cout << "=========  " << aMes << " ==========\n";
     for (int aK=0 ; aK< aNB ; aK++)
     {
@@ -285,11 +346,12 @@ void cAppliStatPHom::TestHom()
 
 
 cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
-    mDir ("./"),
-    mSH  (""),
-    mNuage1  (0),
-    mSetPI   (false),
-    mExtInput ("Std")
+    mDir          ("./"),
+    mSH           (""),
+    mNuage1       (0),
+    mSetPI        (false),
+    mExtInput     ("Std"),
+    mTestFlagBin  (false)
 {
    std::string aN1,aN2;
    ElInitArgMain
@@ -308,10 +370,26 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
    StdCorrecNameOrient(mOri,mDir);
    StdCorrecNameHomol(mSH,mDir);
    mI1 = new cOneImSPH(aN1,*this);
+
+   if (1)
+   {
+       for (int aNbB=1 ; aNbB<4 ; aNbB++)
+       {
+          cFullParamCB  aFB = RandomFullParamCB(mI1->mSPC->OnePCarac()[0],aNbB,3);
+          MakeFileXML(aFB,"Test_"+ToString(aNbB)+".xml");
+       }
+   }
+
    mI2 = new cOneImSPH(aN2,*this);
 
    if (EAMIsInit(&mNameNuage))
+   {
+      if (mNameNuage=="") 
+      {
+          mNameNuage =  mICNM->Assoc1To1(NH_KeyAssoc_Nuage+"@.xml",aN1,true);
+      }
       mNuage1 = cElNuage3DMaille::FromFileIm(mNameNuage);
+   }
 
    mPack = mICNM->StdPackHomol(mSH,mI1->mN,mI2->mN);
    TestHom();
@@ -327,9 +405,160 @@ int  CPP_StatPHom(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
+
+/*
+
+extern const std::string NH_DirRefNuage;
+extern const std::string NH_DirRef_PC;  // Point caracteristique
+    
+*/
+
+
+
+
+class cAppli_RenameRef
+{
+    public :
+         cAppli_RenameRef(int argc,char ** argv);
+         void CpFile(std::string &,const std::string & aKind);
+    private :
+         cInterfChantierNameManipulateur * mICNM;
+         std::string   mNameNuage;
+         std::string   mNameIm;
+};
+
+void cAppli_RenameRef::CpFile(std::string & aName,const std::string & aKind)
+{
+/*
+   std::string aDest = mPrefOut + "-" + aKind + ".tif";
+   ELISE_fp::CpFile(DirOfFile(mNameNuage)+aName,aDest); 
+   aName = NameWithoutDir(aDest);
+*/
+   std::string aDest =  mICNM->Assoc1To1(NH_KeyAssoc_Nuage+"@-"+aKind+".tif",mNameIm,true);
+   ELISE_fp::CpFile(DirOfFile(mNameNuage)+aName,aDest); 
+   aName = NameWithoutDir(aDest);
+}
+
   
+cAppli_RenameRef::cAppli_RenameRef(int argc,char ** argv) 
+{
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(mNameNuage, "Name Nuage")
+                     << EAMC(mNameIm, "Name Image"),
+         LArgMain()  
+   );
+
+   // C'est le numero d'étape d'une denomination standard
+   if (mNameNuage.size()<=2)
+   {
+       mNameNuage = "MM-Malt-Img-"+ StdPrefix(mNameIm) + "/NuageImProf_STD-MALT_Etape_"+ mNameNuage + ".xml";
+   }
+
+   mICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+   std::string aNameOut =  mICNM->Assoc1To1(NH_KeyAssoc_Nuage+"@.xml",mNameIm,true);
+
+   cXML_ParamNuage3DMaille aParam = StdGetFromSI(mNameNuage,XML_ParamNuage3DMaille);
+
+   cImage_Profondeur & aIP = aParam.Image_Profondeur().Val();
+   
+   CpFile(aIP.Image(),"Prof");
+   CpFile(aIP.Masq(),"Masq");
+   if (aIP.Correl().IsInit())
+      CpFile(aIP.Correl().Val(),"Correl");
+
+   MakeFileXML(aParam,aNameOut);
+/*
+  <Image_Profondeur>
+               <Image>Z_Num6_DeZoom4_STD-MALT.tif</Image>
+               <Masq>AutoMask_STD-MALT_Num_5.tif</Masq>
+               <Correl>Correl_STD-MALT_Num_5.tif</Correl>
+*/
+}
 
 
+int  CPP_PHom_RenameRef(int argc,char ** argv)
+{
+   cAppli_RenameRef anAppli(argc,argv);
+   return EXIT_SUCCESS;
+}
+
+/***************************************/
+
+void AddTo(cSetRefPCarac &aRes,const cSetRefPCarac & ToAdd)
+{
+   std::copy(ToAdd.SRPC_Truth().begin(),ToAdd.SRPC_Truth().end(),std::back_inserter(aRes.SRPC_Truth()));
+   std::copy(ToAdd.SRPC_Rand().begin(),ToAdd.SRPC_Rand().end(),std::back_inserter(aRes.SRPC_Rand()));
+}
+
+void MakeSetRefPCarac(cSetRefPCarac &aRes,const std::vector<std::string> & aVName)
+{
+   aRes = cSetRefPCarac();
+   for (int aK=0 ; aK<int(aVName.size()) ; aK++)
+   {
+      AddTo(aRes,StdGetFromNRPH(aVName.at(aK),SetRefPCarac));
+   }
+}
+
+class cAppli_NH_ApprentBinaire
+{
+    public :
+        cAppli_NH_ApprentBinaire(int argc,char**argv); 
+        void DoOne(eTypePtRemark aType);
+    private :
+         cInterfChantierNameManipulateur * mICNM;
+         cSetRefPCarac mSetRef;
+         std::string   mDir;
+         std::string   mDirPC;
+         std::string   mPatType;
+         cElRegex *    mAutomType;
+         cSetRefPCarac mCurSet;
+};
+
+
+void cAppli_NH_ApprentBinaire::DoOne(eTypePtRemark aType)
+{
+   std::string aNameType = eToString(aType);
+   if (!mAutomType->Match(aNameType))
+      return;
+   
+   const std::vector<std::string> * aSet =   mICNM->Get("NKS-Set-NHPtRef@"+ aNameType);
+   MakeSetRefPCarac(mCurSet,*aSet);
+   TestLearnOPC(mCurSet);
+}
+
+
+cAppli_NH_ApprentBinaire::cAppli_NH_ApprentBinaire(int argc,char**argv) :
+   mDir   ("./"),
+   mDirPC ("./PC-Ref-NH/")
+{
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(mPatType, "Patten of type in eTypePtRemark")
+                    ,
+         LArgMain()  << EAM(mDirPC,"DirPC",true,"Directory for Point (Def=PC-Ref-NH)")
+   );
+
+   mPatType = ".*(" + mPatType + ").*";
+   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+   mAutomType = new cElRegex(mPatType,10);
+
+   for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
+   {
+       DoOne(eTypePtRemark(aKL));
+   }
+}
+
+
+
+int  CPP_PHom_ApprentBinaire(int argc,char ** argv)
+{
+   cAppli_NH_ApprentBinaire anAppli(argc,argv);
+   return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
