@@ -7,7 +7,8 @@ cAppliZBufferRaster::cAppliZBufferRaster(cInterfChantierNameManipulateur * aICNM
                                             const std::string & anOri,
                                             vector<cTri3D> & aVTri,
                                             vector<string> & aVImg,
-                                            bool aNoTif
+                                            bool aNoTif,
+                                            cParamZbufferRaster aParam
                                          ):
     mICNM (aICNM),
     mDir  (aDir),
@@ -21,8 +22,10 @@ cAppliZBufferRaster::cAppliZBufferRaster(cInterfChantierNameManipulateur * aICNM
     mDistMax (TT_DISTMAX_NOLIMIT),
     mIsTmpZBufExist (ELISE_fp::IsDirectory(aDir + "Tmp-ZBuffer/")),
     mNoTif (aNoTif),
-    mMethod (3)
-{    
+    mMethod (3),
+    mAccNbImgVisible (aVTri.size(), Pt2di(0,0)),
+    mParam (aParam)
+{
     if ( !mIsTmpZBufExist)
     {
         ELISE_fp::MkDir(mDir + "Tmp-ZBuffer/");

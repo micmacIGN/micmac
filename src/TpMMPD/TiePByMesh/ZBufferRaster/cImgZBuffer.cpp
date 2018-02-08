@@ -67,6 +67,7 @@ void cImgZBuffer::updateZ(tImZBuf & ImZ, Pt2dr & pxl, double & prof_val, double 
 
 void cImgZBuffer::LoadTri(cTri3D aTri3D)
 {
+
     if (mAppli->DistMax() != TT_DISTMAX_NOLIMIT)
     {
         if (aTri3D.dist2Cam(mCamGen) > mAppli->DistMax())
@@ -75,6 +76,18 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         }
     }
     cTri2D aTri = aTri3D.reprj(mCamGen);
+    if (mAppli->Param().mFarScene)
+    {
+        if (
+                mCamGen->PIsVisibleInImage(aTri3D.P1())
+                && mCamGen->PIsVisibleInImage(aTri3D.P2())
+                && mCamGen->PIsVisibleInImage(aTri3D.P3())
+           )
+        {
+            mAppli->AccNbImgVisible()[int(aTri3D.Ind())].x = int(aTri3D.Ind());
+            mAppli->AccNbImgVisible()[int(aTri3D.Ind())].y++;
+        }
+    }
     if (mAppli->Reech() != TT_SCALE_1)
     {
         //Reech coordonee dans aTri2D

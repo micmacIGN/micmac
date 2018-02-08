@@ -384,6 +384,68 @@ void DrawOnMesh::drawListTriangle(vector<cXml_Triangle3DForTieP> listTri,
     myfile.close();
 }
 
+void DrawOnMesh::drawListTriangle(vector<vector<Pt3dr> > listTri,
+                                    string fileName,
+                                    Pt3dr colorRGB
+                                 )
+{
+    ofstream myfile;
+    if (listTri.size() > 0)
+        myfile.open (fileName.c_str());
+    else
+        return;
+
+    myfile<<"ply\n";
+    myfile<<"format ascii 1.0\n";
+    myfile<<"element vertex ";myfile<<listTri.size()*3;myfile<<"\n";
+    myfile<<"property float x\n";
+    myfile<<"property float y\n";
+    myfile<<"property float z\n";
+    myfile<<"property uchar red\n";
+    myfile<<"property uchar green\n";
+    myfile<<"property uchar blue\n";
+    myfile<<"element face "<<listTri.size()<<"\n";
+    myfile<<"property list uint8 int32 vertex_index\n";
+    myfile<<"property uchar red\n";
+    myfile<<"property uchar green\n";
+    myfile<<"property uchar blue\n";
+    myfile<<"end_header\n";
+    for (double i=0; i<listTri.size(); i++)
+    {
+        vector<Pt3dr> aTri = listTri[i];
+        myfile<<aTri[0].x;myfile<<" ";
+        myfile<<aTri[0].y;myfile<<" ";
+        myfile<<aTri[0].z;myfile<<" ";
+        myfile<<colorRGB.x;myfile<<" ";
+        myfile<<colorRGB.y;myfile<<" ";
+        myfile<<colorRGB.z;myfile<<"\n";
+        myfile<<aTri[1].x;myfile<<" ";
+        myfile<<aTri[1].y;myfile<<" ";
+        myfile<<aTri[1].z;myfile<<" ";
+        myfile<<colorRGB.x;myfile<<" ";
+        myfile<<colorRGB.y;myfile<<" ";
+        myfile<<colorRGB.z;myfile<<"\n";
+        myfile<<aTri[2].x;myfile<<" ";
+        myfile<<aTri[2].y;myfile<<" ";
+        myfile<<aTri[2].z;myfile<<" ";
+        myfile<<colorRGB.x;myfile<<" ";
+        myfile<<colorRGB.y;myfile<<" ";
+        myfile<<colorRGB.z;myfile<<"\n";
+    }
+    double count = 0;
+    for (double i=0; i<listTri.size(); i++)
+    {
+        myfile<<"3 ";
+        myfile<<count;myfile<<" ";count++;
+        myfile<<count<<" ";count++;
+        myfile<<count<<" ";count++;
+        myfile<<colorRGB.x;myfile<<" ";
+        myfile<<colorRGB.y;myfile<<" ";
+        myfile<<colorRGB.z;myfile<<"\n";
+    }
+    myfile.close();
+}
+
 
 void DrawOnMesh::drawListPtsOnPly(
                                     vector<Pt3dr> lstPts,

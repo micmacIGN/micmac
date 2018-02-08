@@ -7,7 +7,6 @@ const double TT_SEUIL_SURF = 100;
 const double TT_SCALE_1 = 1.0;
 const double TT_DISTMAX_NOLIMIT = -1.0;
 
-
 typedef double                    tElZBuf;
 typedef Im2D<tElZBuf,tElZBuf>     tImZBuf;
 typedef TIm2D<tElZBuf,tElZBuf>    tTImZBuf;
@@ -16,6 +15,23 @@ class cImgForTiepTri;
 class cImgZBuffer;
 class cTri3D;
 class cTri2D;
+
+class cParamZbufferRaster
+{
+    public :
+        cParamZbufferRaster();
+        bool        mFarScene;
+        string      mPatFIm, mMesh, mOri;
+        int         mInt;
+        Pt2di       mSzW;
+        int         mrech;
+        double      mDistMax;
+        bool        mWithLbl;
+        bool        mNoTif;
+        int         mMethod;
+        double      MD_SEUIL_SURF_TRIANGLE;
+};
+
 
 class cAppliZBufferRaster
 {
@@ -26,7 +42,8 @@ public:
                         const std::string & anOri,
                         vector<cTri3D> & aVTri,
                         vector<string> & aVImg,
-                        bool aNoTif
+                        bool aNoTif,
+                        cParamZbufferRaster aParam
                        );
 
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
@@ -49,6 +66,11 @@ public:
 
     int & Method() {return mMethod;}
     double & SEUIL_SURF_TRIANGLE() {return MD_SEUIL_SURF_TRIANGLE;}
+
+    vector<Pt2di> &                    AccNbImgVisible(){return mAccNbImgVisible;}
+    cParamZbufferRaster &              Param() {return mParam;}
+
+
 private:
     cInterfChantierNameManipulateur * mICNM;
     std::string                       mDir;
@@ -71,6 +93,9 @@ private:
 
     int                               mMethod;
     double                            MD_SEUIL_SURF_TRIANGLE;
+
+    vector<Pt2di>                     mAccNbImgVisible; // couple (ind, acc)
+    cParamZbufferRaster               mParam;
 };
 
 class cTri3D
