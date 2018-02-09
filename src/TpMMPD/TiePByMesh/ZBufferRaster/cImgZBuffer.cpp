@@ -240,6 +240,10 @@ void cImgZBuffer::ImportResult(string & fileTriLbl, string & fileZBuf)
     //Tiff_Im aImZBuf = Tiff_Im::StdConv(fileZBuf);
     ELISE_COPY(mImInd.all_pts(), aImInd.in(), mImInd.out());
     //ELISE_COPY(mImZ.all_pts(), aImZBuf.in(), mImZ.out());
+    if (Appli()->Param().mFarScene)
+    {
+        cout<<"Far scene is computed by existed result in Tmp-ZBuffer"<<endl;
+    }
     Pt2di aP;
     for (aP.x = 0; aP.x < mImInd.sz().x; aP.x++)
     {
@@ -249,6 +253,11 @@ void cImgZBuffer::ImportResult(string & fileTriLbl, string & fileZBuf)
             if (aIndTri  != tElZBuf(-1.0))
             {
                mTriValid[int(aIndTri)] = true;
+               if (Appli()->Param().mFarScene)
+               {
+                    Appli()->AccNbImgVisible()[int(aIndTri)].x = int(aIndTri);
+                    Appli()->AccNbImgVisible()[int(aIndTri)].y++;
+               }
             }
         }
     }

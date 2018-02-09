@@ -30,6 +30,7 @@ class cParamZbufferRaster
         bool        mNoTif;
         int         mMethod;
         double      MD_SEUIL_SURF_TRIANGLE;
+        double      mPercentVisible;
 };
 
 

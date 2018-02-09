@@ -22,8 +22,10 @@ cParamZbufferRaster::cParamZbufferRaster():
     mWithLbl (true),
     mNoTif   (false),
     mMethod  (3),
-    MD_SEUIL_SURF_TRIANGLE (TT_SEUIL_SURF)
-{}
+    MD_SEUIL_SURF_TRIANGLE (TT_SEUIL_SURF),
+    mPercentVisible (80.0)
+{
+}
 
 
 
@@ -48,6 +50,7 @@ int ZBufferRaster_main(int argc,char ** argv)
                 << EAM(aParam.mMethod,  "method",true,"method of grab pixel in triangle (1=very good (low), 3=fast (not so good - def))")
                 << EAM(aParam.MD_SEUIL_SURF_TRIANGLE, "surfTri", true, "Threshold of surface to filter triangle too small (def=100)")
                 << EAM(aParam.mFarScene, "farScene", true, "Detect far scene part")
+                << EAM(aParam.mPercentVisible, "pVisible", true, "condition to decide far scene part : triangle visible in % nb of image (def=80%)")
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -85,7 +88,6 @@ int ZBufferRaster_main(int argc,char ** argv)
     ElTimer aChrono;
     cMesh myMesh(aParam.mMesh, true);
     const int nFaces = myMesh.getFacesNumber();
-    std::set<int> aSetInd;
     for (double aKTri=0; aKTri<nFaces; aKTri++)
     {
         cTriangle* aTri = myMesh.getTriangle(aKTri);
@@ -97,8 +99,6 @@ int ZBufferRaster_main(int argc,char ** argv)
                           aKTri
                       );
         aVTri.push_back(aTri3D);
-        if (aParam.mFarScene)
-            aSetInd.insert(aKTri);
     }
     cout<<"Finish - time "<<aChrono.uval()<<" - NbTri : "<<aVTri.size()<<endl;
 
@@ -132,7 +132,7 @@ int ZBufferRaster_main(int argc,char ** argv)
         int aCount{0};
         for (int aKK=0; aKK<aAppli->AccNbImgVisible().size(); aKK++)
         {
-            if (aAppli->AccNbImgVisible()[aKK].y == vImg.size())
+            if (aAppli->AccNbImgVisible()[aKK].y >= (vImg.size() * aParam.mPercentVisible/100.0))
             {
                 aCount++;
                 /*
@@ -144,15 +144,11 @@ int ZBufferRaster_main(int argc,char ** argv)
                 */
                 aTriToWrite.insert(aAppli->AccNbImgVisible()[aKK].x);
             }
-            else
-            {
-                //myMesh.removeTriangle(aKK); // trop lent
-            }
         }
         cout<<"Write mesh .. "<<endl;
         //aDraw.drawListTriangle(aTriToWrite, farSceneMesh, Pt3dr(255,0,0));
-        myMesh.Export(farSceneMesh, aTriToWrite);
-        cout<<"Nb Tri View by all Img : "<<aCount<<" / "<< aVTri.size()<<endl;
+        myMesh.Export(farSceneMesh, aTriToWrite, true);
+        cout<<"Nb Tri View by "<<aParam.mPercentVisible<<"% of Img : "<<aCount<<" / "<< aVTri.size()<<endl;
     }
 
     return EXIT_SUCCESS;
