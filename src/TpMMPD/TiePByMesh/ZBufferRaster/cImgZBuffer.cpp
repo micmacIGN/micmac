@@ -79,9 +79,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
     if (mAppli->Param().mFarScene)
     {
         if (
-                mCamGen->PIsVisibleInImage(aTri3D.P1())
-                && mCamGen->PIsVisibleInImage(aTri3D.P2())
-                && mCamGen->PIsVisibleInImage(aTri3D.P3())
+               aTri.IsInCam()
            )
         {
             mAppli->AccNbImgVisible()[int(aTri3D.Ind())].x = int(aTri3D.Ind());

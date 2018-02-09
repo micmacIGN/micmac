@@ -122,25 +122,27 @@ int ZBufferRaster_main(int argc,char ** argv)
     aAppli->DoAllIm();
 
     // statistic far scene part
-    //set <int> aTriToWrite;
-    DrawOnMesh aDraw;
-    vector<vector<Pt3dr> > aTriToWrite;
+    set <int> aTriToWrite;
+    //DrawOnMesh aDraw;
+    //vector<vector<Pt3dr> > aTriToWrite;
     if (aParam.mFarScene)
     {
         string farSceneMesh = aParam.mMesh.substr(0,aParam.mMesh.length()-4) + "_Far.ply";
-        sortDescendPt2diY(aAppli->AccNbImgVisible());
+        //sortDescendPt2diY(aAppli->AccNbImgVisible());
         int aCount{0};
         for (int aKK=0; aKK<aAppli->AccNbImgVisible().size(); aKK++)
         {
             if (aAppli->AccNbImgVisible()[aKK].y == vImg.size())
             {
                 aCount++;
+                /*
                 vector<Pt3dr> aOneTri;
                 aOneTri.push_back(aVTri[aKK].P1());
                 aOneTri.push_back(aVTri[aKK].P2());
                 aOneTri.push_back(aVTri[aKK].P3());
                 aTriToWrite.push_back(aOneTri);
-                //aTriToWrite.insert(aKK);
+                */
+                aTriToWrite.insert(aAppli->AccNbImgVisible()[aKK].x);
             }
             else
             {
@@ -148,8 +150,8 @@ int ZBufferRaster_main(int argc,char ** argv)
             }
         }
         cout<<"Write mesh .. "<<endl;
-        aDraw.drawListTriangle(aTriToWrite, farSceneMesh, Pt3dr(255,0,0));
-        //myMesh.Export(farSceneMesh, aTriToWrite);
+        //aDraw.drawListTriangle(aTriToWrite, farSceneMesh, Pt3dr(255,0,0));
+        myMesh.Export(farSceneMesh, aTriToWrite);
         cout<<"Nb Tri View by all Img : "<<aCount<<" / "<< aVTri.size()<<endl;
     }
 
