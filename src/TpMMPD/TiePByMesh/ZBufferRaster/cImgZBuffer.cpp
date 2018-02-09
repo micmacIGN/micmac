@@ -1,10 +1,11 @@
 #include "ZBufferRaster.h"
 
-cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli ,const std::string & aNameIm, bool & aNoTif):
+cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli , const std::string & aNameIm, bool & aNoTif, int aInd):
 
     mAppli    (anAppli),
     mNameIm   (aNameIm),
     mTif      (Tiff_Im::UnivConvStd(mAppli->Dir() + aNameIm)),
+    mInd      (aInd),
     mSzIm     (mTif.sz()),
     mCamGen   (mAppli->ICNM()->StdCamGenerikOfNames(mAppli->Ori(),mNameIm)),
     mImZ      (round_ni(mSzIm.x*mAppli->Reech()), round_ni(mSzIm.y*mAppli->Reech()), tElZBuf(-1.0)),
@@ -84,6 +85,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         {
             mAppli->AccNbImgVisible()[int(aTri3D.Ind())].x = int(aTri3D.Ind());
             mAppli->AccNbImgVisible()[int(aTri3D.Ind())].y++;
+            mAppli->vImgVisibleFarScene()[Ind()] = true;
         }
     }
     if (mAppli->Reech() != TT_SCALE_1)

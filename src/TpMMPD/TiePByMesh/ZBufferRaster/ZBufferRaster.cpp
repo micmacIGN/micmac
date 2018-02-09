@@ -1,17 +1,6 @@
 #include "ZBufferRaster.h"
 #include "../DrawOnMesh.h"
 
-string aPatFIm, aMesh, aOri;
-int nInt = 0;
-Pt2di aSzW;
-int rech=1;
-double distMax = DBL_MAX;
-bool withLbl = true;
-bool aNoTif = false;
-int method = 3;
-double MD_SEUIL_SURF_TRIANGLE = TT_SEUIL_SURF;
-
-
 extern void sortDescendPt2diY(vector<Pt2di> & input);
 
 cParamZbufferRaster::cParamZbufferRaster():
@@ -26,8 +15,6 @@ cParamZbufferRaster::cParamZbufferRaster():
     mPercentVisible (80.0)
 {
 }
-
-
 
 int ZBufferRaster_main(int argc,char ** argv)
 {
@@ -65,10 +52,10 @@ int ZBufferRaster_main(int argc,char ** argv)
     cout<<"Ext : "<<ext<<endl;
     if ( ext.compare("tif") )   //ext equal tif
     {
-        aNoTif = true;
+        aParam.mNoTif = true;
         cout<<" No Tif"<<endl;
     }
-    if (aNoTif)
+    if (aParam.mNoTif)
     {
         list<string> cmd;
         for (uint aK=0; aK<vImg.size(); aK++)
@@ -102,10 +89,10 @@ int ZBufferRaster_main(int argc,char ** argv)
     }
     cout<<"Finish - time "<<aChrono.uval()<<" - NbTri : "<<aVTri.size()<<endl;
 
-    cAppliZBufferRaster * aAppli = new cAppliZBufferRaster(aICNM, aDir, aParam.mOri, aVTri, vImg, aNoTif, aParam);
+    cAppliZBufferRaster * aAppli = new cAppliZBufferRaster(aICNM, aDir, aParam.mOri, aVTri, vImg, aParam.mNoTif, aParam);
 
     aAppli->NInt() = aParam.mInt;
-    if (EAMIsInit(&aSzW))
+    if (EAMIsInit(&aParam.mSzW))
     {
         aAppli->SzW() = aParam.mSzW;
     }
@@ -122,15 +109,30 @@ int ZBufferRaster_main(int argc,char ** argv)
     aAppli->DoAllIm();
 
     // statistic far scene part
-    set <int> aTriToWrite;
-    //DrawOnMesh aDraw;
-    //vector<vector<Pt3dr> > aTriToWrite;
     if (aParam.mFarScene)
     {
-        string farSceneMesh = aParam.mMesh.substr(0,aParam.mMesh.length()-4) + "_Far.ply";
+    set <int> aTriToWrite;
+    vector<cXml_TriAngulationImMaster> aFarTask;
+    vector<int> vNumImSec;
+    //DrawOnMesh aDraw;
+    //vector<vector<Pt3dr> > aTriToWrite;
+
+    cXml_TriAngulationImMaster aXMLTri;
+    aXMLTri.NameMaster() = vImg[0]; // on s'en fou le master
+    for (uint aK=0; aK<vImg.size(); aK++)
+    {
+        if(aAppli->vImgVisibleFarScene()[aK])
+        {
+            aXMLTri.NameSec().push_back(vImg[aK]); // les secondaire est list d'image du far scene
+            vNumImSec.push_back(aK);
+        }
+    }
+
+
+   string farSceneMesh = aParam.mMesh.substr(0,aParam.mMesh.length()-4) + "_Far.ply";
         //sortDescendPt2diY(aAppli->AccNbImgVisible());
         int aCount{0};
-        for (int aKK=0; aKK<aAppli->AccNbImgVisible().size(); aKK++)
+        for (int aKK=0; aKK<int(aAppli->AccNbImgVisible().size()); aKK++)
         {
             if (aAppli->AccNbImgVisible()[aKK].y >= (vImg.size() * aParam.mPercentVisible/100.0))
             {
@@ -143,11 +145,18 @@ int ZBufferRaster_main(int argc,char ** argv)
                 aTriToWrite.push_back(aOneTri);
                 */
                 aTriToWrite.insert(aAppli->AccNbImgVisible()[aKK].x);
+                cXml_Triangle3DForTieP aTri3D;
+                aTri3D.P1() = aVTri[aKK].P1();
+                aTri3D.P2() = aVTri[aKK].P2();
+                aTri3D.P3() = aVTri[aKK].P3();
+                aTri3D.NumImSec() = vNumImSec;
+                aXMLTri.Tri().push_back(aTri3D);
             }
         }
-        cout<<"Write mesh .. "<<endl;
+        cout<<"Write mesh & export XML.. "<<endl;
         //aDraw.drawListTriangle(aTriToWrite, farSceneMesh, Pt3dr(255,0,0));
         myMesh.Export(farSceneMesh, aTriToWrite, true);
+        MakeFileXML(aXMLTri, "FarScene.xml");
         cout<<"Nb Tri View by "<<aParam.mPercentVisible<<"% of Img : "<<aCount<<" / "<< aVTri.size()<<endl;
     }
 
