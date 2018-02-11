@@ -87,14 +87,12 @@ int Nuage2Homol_main(int argc,char ** argv)
 
 
     std::list<std::string>  L = anICNM->StdGetListOfFile(aPat);
+    size_t nbImages = L.size();
     std::vector<ElCamera*> vCamera;
     std::vector<std::string> vName;
     for(std::list<std::string>::iterator list_iter = L.begin(); list_iter != L.end(); list_iter++)
     {
-        std::cout<<(*list_iter)<<endl;
-
         std::string oriFileName = anICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOri+"@",(*list_iter),true);
-
         cResulMSO aRMso = anICNM->MakeStdOrient(oriFileName,false);
         vCamera.push_back(aRMso.Cam());
         vName.push_back(*list_iter);
@@ -122,42 +120,48 @@ int Nuage2Homol_main(int argc,char ** argv)
            if (aNuage->IndexHasContenu(anI))
             {
                 Pt3dr aP3 = aNuage->PtOfIndex(anI);
-                std::cout << aP3.x << " "<< aP3.y<<" "<<aP3.z<<std::endl;
                 std::vector<Pt2dr> vPt2dr;
                 for(size_t i=0;i<vCamera.size();++i)
                 {
                     vPt2dr.push_back(vCamera[i]->R3toF2(aP3));
                 }
-                size_t index=0;
                 for(size_t i=0;i<vPt2dr.size();++i)
                 {
+                    Pt2dr pi = vPt2dr[i];
+                    // On verifie si le point est bien dans l'image
+                    if ((pi.x<0)||(pi.x>=vCamera[i]->Sz().x)||(pi.y<0)||(pi.y>=vCamera[i]->Sz().y))
+                        continue;
                     for(size_t j=0;j<vPt2dr.size();++j)
                     {
                         if (i != j)
                         {
-                            vPack[index]->Cple_Add(ElCplePtsHomologues(vPt2dr[i],vPt2dr[j]));
-                            ++ index;
+                            Pt2dr pj = vPt2dr[j];
+                            // On verifie si le point est bien dans l'image
+                            if ((pj.x<0)||(pj.x>=vCamera[j]->Sz().x)||(pj.y<0)||(pj.y>=vCamera[j]->Sz().y))
+                                continue;
+                            vPack[i*(nbImages-1)+j]->Cple_Add(ElCplePtsHomologues(pi,pj));
                         }
                     }   
                 }
             }
         }
     }
-
-    size_t index=0;
     for(size_t i=0;i<vCamera.size();++i)
     {
         for(size_t j=0;j<vCamera.size();++j)
         {
             if (i!=j)
             {
-                if (vPack[index]->size()>3)
+                std::string aNameOut = aDir + anICNM->Assoc1To2(aKHOut,vName[i],vName[j],true);
+                if (vPack[i*(nbImages-1)+j]->size()>3)
                 {
-                    std::string aNameOut = aDir + anICNM->Assoc1To2(aKHOut,vName[i],vName[j],true);
-                    std::cout << "export de "<<aNameOut<<std::endl;
-                    vPack[index]->StdPutInFile(aNameOut);
+                    std::cout << "creating : "<<aNameOut<<" ("<<vPack[i*(nbImages-1)+j]->size()<<" points)"<<std::endl;
+                    vPack[i*(nbImages-1)+j]->StdPutInFile(aNameOut);
                 }
-                ++index;
+                else
+                {
+                    std::cout << "skip "<<aNameOut<<" (not enough points)"<<std::endl;
+                }
             }
         }
     }
