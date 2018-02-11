@@ -70,7 +70,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    mModeMerge         (eQuickMac),
    mDS                (1.0),
    mOffsetPly         (0,0,0),
-   mSH("")
+   mSH(""),
    mDoublePrec        (false)
 {
    // ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
