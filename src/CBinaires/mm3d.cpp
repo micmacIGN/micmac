@@ -399,6 +399,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));
        aRes.push_back(cMMCom("NuageBascule",NuageBascule_main," To Change geometry of depth map "));
+       aRes.push_back(cMMCom("Nuage2Homol",Nuage2Homol_main," Create Tie Points from a depth map"));
+       aRes.push_back(cMMCom("Txt2Dat",Txt2Dat_main," Convert an ascii tie point file to binary"));
 
 
 
