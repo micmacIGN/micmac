@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & aExt)
 {
+   return new cSetPCarac(StdGetFromNRPH(NameFileNewPCarac(aNameIm,true, aExt),SetPCarac));
+/*
    return new cSetPCarac
                (
                    StdGetObjFromFile<cSetPCarac>
@@ -52,6 +54,7 @@ cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & aEx
                         "SetPCarac"
                     )
                );
+*/
 }
 
 

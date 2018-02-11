@@ -93,7 +93,10 @@ cAppliTieTri::cAppliTieTri
      mHasNumSelectImage (false),
      mKeyMasqIm         ("NKS-Assoc-STD-Masq"),
      mMoyDifAffHomo (Pt2dr(0,0)),
-     mCountDiff (0)
+     mCountDiff (0),
+     mHistoErrAffHomoX (vector<int> (round_up(mMaxErr/0.01))),
+     mHistoErrAffHomoY (vector<int> (round_up(mMaxErr/0.01)))
+
 {
    mMasIm = new cImMasterTieTri(*this,aTriang.NameMaster());
 
@@ -114,6 +117,14 @@ cAppliTieTri::cAppliTieTri
    cCubicInterpKernel * aBic = new cCubicInterpKernel(-0.5);
    // mInterpolBicub = new cTplCIKTabul<tElTiepTri,tElTiepTri>(10,8,-0.5);
    mInterpolBicub = new cTabIM2D_FromIm2D<tElTiepTri>(aBic,1000,false);
+
+   if (mUseHomo)
+   {
+       if (ELISE_fp::exist_file("ErrLogAffHomo.txt"))
+           mErrLog.open("ErrLogAffHomo.txt", std::ios_base::app);
+       else
+           mErrLog.open("ErrLogAffHomo.txt");
+   }
 }
 
 
@@ -146,21 +157,46 @@ void StatCorrel(const  std::vector<cResulMultiImRechCorrel*> &  aVec, const std:
     }
 }
 
+
+void print_progress_bar(int percentage)
+{
+  string progress = ToString(percentage) + "% " +"[" + string(percentage, '*') + string(100 - percentage, ' ') + "]";
+ // cout << progress << "\r\033[F\033[F\033[F" << flush;
+  //cout<<"."<<flush;
+  cout << "\r\033[F" << progress << flush;
+}
+
+
 void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
 {
     // ==== Parcour des triangles =============
+    cout<<"Im: " <<aTriang.NameMaster()<<endl<<endl;
     int aNbTri = aTriang.Tri().size();
 
     for (int aK=0 ; aK<int(aTriang.Tri().size()) ; aK++)
     {
         DoOneTri(aTriang.Tri()[aK],aK);
+        /*
+        if (aK<aTriang.Tri().size()-2)
+            print_progress_bar(aK*100/aTriang.Tri().size());
+        else
+            print_progress_bar(100);
+        cout << endl;
+        */
+
+
         if ( ( (aK%20)==0) && (! mWithW))
         {
             std::cout << "Av = "  << (aNbTri-aK) * (100.0/aNbTri) << "% "
                       << " NbP/Tri " << double(mNbPts) / mNbTriLoaded
                       << "\n";
         }
+
+
     }
+    if (mErrLog.is_open())
+        mErrLog.close();
+
     std::cout << "NB TRI LOADED = " << mNbTriLoaded << "\n";
 
 
@@ -274,7 +310,11 @@ void cAppliTieTri::DoAllTri(const cXml_TriAngulationImMaster & aTriang)
     }
     if (mUseHomo)
     {
-        cout<<"Diff Homo Stat: "<<mMoyDifAffHomo/mCountDiff<<" Nb Acc = "<<mCountDiff<<endl;
+        cout<<"+ Diff Homo Stat: "<<mMoyDifAffHomo/mCountDiff<<" Nb Acc = "<<mCountDiff<<" Max = "<<mMaxDifAffHomo<<endl;
+        for (uint aKHisto=0; aKHisto < HistoErrAffHomoX().size(); aKHisto++)
+        {
+            cout<<"    + Bin "<<aKHisto<<" : "<<HistoErrAffHomoX()[aKHisto]<<endl;
+        }
     }
 }
 

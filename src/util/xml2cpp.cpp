@@ -1746,6 +1746,9 @@ template void xml_init(Im2D<REAL8,REAL8>  & anIm,cElXMLTree * aTree);
 template cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<U_INT1,INT> & anIm);
 template void xml_init(Im2D<U_INT1,INT>  & anIm,cElXMLTree * aTree);
 
+template cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<U_INT2,INT> & anIm);
+template void xml_init(Im2D<U_INT2,INT>  & anIm,cElXMLTree * aTree);
+
 template cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<INT1,INT> & anIm);
 template void xml_init(Im2D<INT1,INT>  & anIm,cElXMLTree * aTree);
 

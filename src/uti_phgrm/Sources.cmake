@@ -132,6 +132,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_MergePly.cpp
     ${UTI_PHGRM_DIR}/CPP_MICMAC.cpp
     ${UTI_PHGRM_DIR}/CPP_Nuage2Ply.cpp
+    ${UTI_PHGRM_DIR}/CPP_Nuage2Homol.cpp
     ${UTI_PHGRM_DIR}/CPP_Pasta.cpp
     ${UTI_PHGRM_DIR}/CPP_Pastis.cpp
     ${UTI_PHGRM_DIR}/CPP_Porto.cpp

@@ -141,7 +141,9 @@ void CalcParamEqRel
     ElMatrix<Fonc_Num> aLMat = aRotL.MatFGLComplete(aLNumGl);
     ElMatrix<Fonc_Num> aRMatInv = aRMat.transpose();
 
+    //  L to R = CamRi-1  CamLi (Left2Right=Left2Monde * Monde2Right)
     aMat = aRMatInv * aLMat;
+    // vector de Translation entre 2 centre optique s'exprime en "coordonne du monde"
     aTr = aRMatInv * (aRotL.COpt() - aRotR.COpt());
 
 }
@@ -733,12 +735,11 @@ cImplemBlockCam::cImplemBlockCam
         std::string aNamePose = aPC->Name();
         std::pair<std::string,std::string> aPair =   mAppli.ICNM()->Assoc2To1(mSBC.KeyIm2TimeCam(),aNamePose,true);
         std::string aNameCam = aPair.second;
-        if (! DicBoolFind(mName2Cam,aNameCam))
+        if (! DicBoolFind(mName2Cam,aNameCam)) // si aNameCam se trouve dans mName2Cam
         {
-            cIBC_OneCam *  aCam = new cIBC_OneCam(aNameCam, (int)mNum2Cam.size());
+            cIBC_OneCam *  aCam = new cIBC_OneCam(aNameCam, (int)mNum2Cam.size()); // (name & index dans mNum2Cam)
             mName2Cam[aNameCam] = aCam;
             mNum2Cam.push_back(aCam); 
-
         }
     }
     mNbCam  = (int)mNum2Cam.size();
@@ -746,7 +747,8 @@ cImplemBlockCam::cImplemBlockCam
     mLSHC = mSBC.LiaisonsSHC().PtrVal();
     // mGlobCmp = mForCompens && 
 
-    if (mUFB)
+    // Initialiser les parametres & camera pour block compensation
+    if (mUFB)   // UFB=UseForBundle
     {
         ELISE_ASSERT(mLSHC!=0,"Compens without LiaisonsSHC");
         mBlGB = mUFB->BlockGlobalBundle().PtrVal();
@@ -764,46 +766,50 @@ cImplemBlockCam::cImplemBlockCam
           cPoseCam * aPC = aVP[aKP];
           std::string aNamePose = aPC->Name();
           std::pair<std::string,std::string> aPair =   mAppli.ICNM()->Assoc2To1(mSBC.KeyIm2TimeCam(),aNamePose,true);
-          std::string aNameTime = aPair.first;
-          std::string aNameCam  = aPair.second;
-          
+          std::string aNameTime = aPair.first; // get a time stamp
+          std::string aNameCam  = aPair.second;// get a cam name
+
           cIBC_ImsOneTime * aIms =  mName2ITime[aNameTime];
-          if (aIms==0)
+          if (aIms==0)  // check if there exist this time stamp in database
           {
-               aIms = new cIBC_ImsOneTime(mNbCam,aNameTime);
+               // If not, create a cIBC_ImsOneTime to group all img with same time stamp
+               aIms = new cIBC_ImsOneTime(mNbCam,aNameTime);    // cIBC_ImsOneTime contains a vector bool cPoseCam size mNbCam => flag Pose cam with same time stamp
                mName2ITime[aNameTime] = aIms;
                mNum2ITime.push_back(aIms);
           }
-          cIBC_OneCam * aCam = mName2Cam[aNameCam];
-          aIms->AddPose(aPC,aCam->CamNum());
+          cIBC_OneCam * aCam = mName2Cam[aNameCam]; // structure map, get cIBC_OneCam from cam name
+          aIms->AddPose(aPC,aCam->CamNum());   // if exist => add image to this time stamp
     }
     mNbTime = (int)mNum2ITime.size();
-    std::sort(mNum2ITime.begin(),mNum2ITime.end(),TheIOTCmp);
+    std::sort(mNum2ITime.begin(),mNum2ITime.end(),TheIOTCmp); // sort by time stamp
 
 
 // ## 
 //    On peut avoir equation / a calib et  I/I+1 (pour model derive)
 
-    if (mUFB)
+    if (mUFB) // UFB=UseForBundle
     {
-       if (mBlGB)
+       if (mBlGB) // BlGB=BlockGlobalBundle - global with no attachement to known value ?
        {
-          for (int aKTime=0 ; aKTime<mNbTime ; aKTime++)
+          for (int aKTime=0 ; aKTime<mNbTime ; aKTime++)    // scan all time stamp
           {
                cIBC_ImsOneTime * aTim =  mNum2ITime[aKTime];
-               for (int aKCam=0 ; aKCam<mNbCam ; aKCam++)
+               for (int aKCam=0 ; aKCam<mNbCam ; aKCam++)   // scan all camera in chantier
                {
-                   if (aKCam != NUMPIVOT)
+                   if (aKCam != NUMPIVOT)   // if it is not a 1er cam (1er time stamp in the Right)
                    {
-                       cIBC_OneCam *  aCamR =  mNum2Cam[NUMPIVOT];
+                       // Obs: Pour chaque cliches: 1 img L + 1 img R
+                       // 1 img R de 1er cliches + 1 img L de 1er cliches
+                       cIBC_OneCam *  aCamR =  mNum2Cam[NUMPIVOT]; // mNum2Cam[0]
                        cIBC_OneCam *  aCamL =  mNum2Cam[aKCam];
                        cPoseCam * aPcR1 = aTim->Pose(NUMPIVOT);
                        cPoseCam * aPcL1 = aTim->Pose(aKCam);
                        if (aCamR && aCamL && aPcR1 &&aPcL1)
                        {
+                          // Quelle est model ? Quelle est inconnu ?
                           cEqObsBlockCam * anEq = mAppli.SetEq().NewEqBlockCal
                                                       (
-                                                         aCamR->RF(),
+                                                         aCamR->RF(),   // get rotation Cam->Monde
                                                          aCamL->RF(),
                                                          aPcR1->RF(),
                                                          aPcL1->RF(),
@@ -818,7 +824,7 @@ cImplemBlockCam::cImplemBlockCam
           }
           // ModifDIST 
        }
-       if (mGlobDistTB)
+       if (mGlobDistTB) // Mode time relative ?
        {
           for (int aKTime=0 ; aKTime<mNbTime ; aKTime++)
           {
@@ -827,6 +833,7 @@ cImplemBlockCam::cImplemBlockCam
                {
                    for (int aKCam2=aKCam1+1 ; aKCam2<mNbCam ; aKCam2++)
                    {
+                       // Obs:
                        cIBC_OneCam *  aCamR =  mNum2Cam[aKCam1];
                        cIBC_OneCam *  aCamL =  mNum2Cam[aKCam2];
                        cPoseCam * aPcR1 = aTim->Pose(aKCam1);
@@ -850,7 +857,7 @@ cImplemBlockCam::cImplemBlockCam
           }
           // ModifDIST 
        }
-       if (mRelTB)
+       if (mRelTB) // global with attachement to known value
        {
            for (int aKTime=1 ; aKTime<mNbTime ; aKTime++)
            {
@@ -859,7 +866,8 @@ cImplemBlockCam::cImplemBlockCam
                for (int aKCam=0 ; aKCam<mNbCam ; aKCam++)
                {
                    if (aKCam != NUMPIVOT)
-                   {
+                   {   // Obs couple: Chaque temps (cliches): 1 image L + 1 image R
+                       // Prendre 2 cliches consecutives pour 1 equation
                        cPoseCam * aPcR0 = aT0->Pose(NUMPIVOT);
                        cPoseCam * aPcL0 = aT0->Pose(aKCam);
                        cPoseCam * aPcR1 = aT1->Pose(NUMPIVOT);
@@ -922,7 +930,7 @@ void cImplemBlockCam::DoCompensationRot
           aGlobEcMat += aSomEcartMat;
           aGlobEcPt += aSomEcartPt;
        
-          if (anObs.Show().Val())
+          if (anObs.Show().Val())   // comment activer cette option ?
           {
               std::cout << "    " << aKE << "   EcMat  " <<  sqrt(aSomEcartMat)   
                    << " XYZ " <<  sqrt(aSomEcartPt) <<" \n";

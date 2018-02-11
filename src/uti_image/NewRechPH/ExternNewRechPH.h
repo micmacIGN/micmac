@@ -43,15 +43,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+extern const std::string NH_DirRefNuage;
+extern const std::string NH_DirRef_PC;  // Point caracteristique
+
+
+
+
 std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
 void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool HighLight);
 cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & Ext="Std");
 
 void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
 double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
-
-std::vector<const std::vector<double> *> VRAD(const cOnePCarac * aPC);
-const std::vector<double> * KVRAD(const cOnePCarac * aPC,int aK); // !! Passe par VRAD donc pas hyper rapide
 
 
 cFullParamCB RandomFullParamCB(const cOnePCarac & aPC,int aNbBitsByVect,int aNbCoef);
@@ -65,6 +68,7 @@ void TestFlagCB(  const cFullParamCB & aCB,
 
 cFullParamCB  Optimize
               (
+                  bool DeuxVal,
                   const std::vector<cOnePCarac*>  & aV1,
                   const std::vector<cOnePCarac*>  & aV2,
                   const std::vector<cOnePCarac*>  & aHomOf1,

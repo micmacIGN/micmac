@@ -128,6 +128,7 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
 
    Pt2di aPSec;
    Pt2dr aSom(0.0,0.0);
+   Pt2dr aMaxErr(0.0, 0.0);
    for (aPSec.x=0 ; aPSec.x<mSzReech.x ; aPSec.x++)
    {
        for (aPSec.y=0 ; aPSec.y<mSzReech.y ; aPSec.y++)
@@ -137,7 +138,16 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
            if (mAppli.mUseHomo)
            {
                 Pt2dr aPMastHom = mHomMas2Sec(Pt2dr(aPSec));
-                aSom += (Pt2dr( abs(aPMast.x - aPMastHom.x), abs(aPMast.y - aPMastHom.y) ));
+                Pt2dr aErr(abs(aPMast.x - aPMastHom.x), abs(aPMast.y - aPMastHom.y));
+                if (aErr.x > aMaxErr.x)
+                {
+                    aMaxErr.x = aErr.x;
+                }
+                if (aErr.y > aMaxErr.y)
+                {
+                    aMaxErr.y = aErr.y;
+                }
+                aSom += aErr;
                 aVal = mTImInit.getr(aPMastHom,-1);
            }
            else
@@ -159,6 +169,18 @@ bool cImSecTieTri::LoadTri(const cXml_Triangle3DForTieP &  aTri)
        {
             mAppli.MoyDifAffHomo() += aDiffMoy;
             mAppli.CountDiff()++;
+            if (aMaxErr.x > mAppli.MaxDifAffHomo().x)
+            {
+                mAppli.MaxDifAffHomo().x = aMaxErr.x;
+            }
+            if (aMaxErr.y > mAppli.MaxDifAffHomo().y)
+            {
+                mAppli.MaxDifAffHomo().y = aMaxErr.y;
+            }
+            mAppli.HistoErrAffHomoX()[round(aMaxErr.x/0.01)]++;
+            mAppli.HistoErrAffHomoY()[round(aMaxErr.y/0.01)]++;
+            if(mAppli.mErrLog.is_open())
+                {mAppli.mErrLog<<aMaxErr.x<<endl;}
        }
    }
 

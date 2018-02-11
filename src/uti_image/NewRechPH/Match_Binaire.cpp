@@ -39,6 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+
+static constexpr int TheNbUI2Flag = 5;
+typedef Im2D_U_INT2 tCodBin;
+
+
 static constexpr int TheNbBitTabuled = 16;
 static constexpr int TheNbFlagTabuled = 1<<TheNbBitTabuled;
 static constexpr int TheMasqBitTabuled = TheNbFlagTabuled - 1;
@@ -62,11 +67,31 @@ int NbBitOfShortFlag(int aFlag)
    return aTab[aFlag];
 }
 
-int NbBitOfFlag(int aFlag)
+int NbBitOfFlag(tCodBin aFlag)
 {
-    return NbBitOfShortFlag(aFlag&TheMasqBitTabuled) +  NbBitOfShortFlag(aFlag>>TheNbBitTabuled);
+    U_INT2 * aData = aFlag.data_lin();
+    int aTX = aFlag.tx();
+    int aRes=0;
+    for (int aX=0 ; aX<aTX ; aX++)
+        aRes += NbBitOfShortFlag(aData[aX]);
+
+    return aRes;
 }
 
+int NbBitDifOfFlag(tCodBin aFlag1,tCodBin aFlag2)
+{
+    U_INT2 * aData1 = aFlag1.data_lin();
+    U_INT2 * aData2 = aFlag2.data_lin();
+    int aTX = aFlag1.tx();
+    int aRes=0;
+    for (int aX=0 ; aX<aTX ; aX++)
+        aRes += NbBitOfShortFlag(aData1[aX] ^ aData2[aX]);
+
+    return aRes;
+}
+
+
+/*
 
 void TestNbBitOfFlag(int aF,int aNbB)
 {
@@ -80,6 +105,8 @@ void TestNbBitOfFlag()
     TestNbBitOfFlag((1<<8) | (1<<13) | (1<<16) ,3);
     TestNbBitOfFlag((1<<8) | (1<<13) | (1<<16) | (1<<27) ,4);
 }
+
+*/
 
 
 static bool CmpOnX(const Pt2dr & aP1,const Pt2dr &aP2)
@@ -127,8 +154,8 @@ cFullParamCB RandomFullParamCB(const cOnePCarac & aPC,const std::vector<int> & a
    // int aNbTirage = 10;
    cFullParamCB aRes;
    // Uniquement pour connaitre le nombre de vect
-   std::vector<const std::vector<double> *> aVVR = VRAD(&aPC);
-   int aNbV = aVVR.size();
+   Im2D_INT1 aImR = aPC.InvR().ImRad();
+   int aNbV = aImR.ty();
    int aIndBit=0;
 
    for (int aIV=0 ; aIV<aNbV ; aIV++)
@@ -138,7 +165,7 @@ cFullParamCB RandomFullParamCB(const cOnePCarac & aPC,const std::vector<int> & a
       aVCBOneV.IndVec() = aIV;
 
       int aNBB = aNbBitsByVect.at(aIV);
-      int aNbInVect = aVVR[aIV]->size();
+      int aNbInVect = aImR.tx();
 
       std::vector<double> aPdsInd(aNbInVect,0.5); // On biaise les stats pour privilegier la repartition des coeffs
 
@@ -157,10 +184,10 @@ cFullParamCB RandomFullParamCB(const cOnePCarac & aPC,int aNbBitsByVect,int aNbC
    return RandomFullParamCB(aPC,std::vector<int>(100,aNbBitsByVect),aNbCoef);
 }
 
-double  ValCB(const cCBOneBit & aCB,const std::vector<double> & aVD)
+double  ValCB(const cCBOneBit & aCB,const INT1 * aVD)
 {
     double aRes=0;
-    for (int aK=0 ; aK<int(aCB.IndInV().size()) ; aK++)
+    for (int aK=0 ; aK<int(aCB.Coeff().size()) ; aK++)
     {
         aRes += aCB.Coeff()[aK] * aVD[aCB.IndInV()[aK]];
     }
@@ -168,52 +195,45 @@ double  ValCB(const cCBOneBit & aCB,const std::vector<double> & aVD)
 }
 
 
-int FlagCB(const cCBOneVect & aCBV,const std::vector<double> & aVD,bool IsRel) // Si IsRel part de 0
+void FlagCB(const cCBOneVect & aCBV,const INT1 * aVD,tCodBin aCodB) // Si IsRel part de 0
 {
-   int aFlag = 0;
+   U_INT2 * aData = aCodB.data_lin();
    for (const auto & aCB : aCBV.CBOneBit())
    {
         if (ValCB(aCB,aVD) > 0)
         {
-           aFlag |=  (1<<aCB.IndBit());
+           int aIB = aCB.IndBit();
+           aData[aIB/16]  |=  (1<<(aIB%16));
         }
    }
-
-   if (IsRel)
-      aFlag >>= aCBV.CBOneBit()[0].IndBit();
-
-   return aFlag;
 }
 
 
-int FlagCB(const cFullParamCB & aCB, const std::vector<const std::vector<double> *> &  aVD)
+void FlagCB(const cFullParamCB & aCB,Im2D_INT1 aIm ,tCodBin aCodB)
 {
-   int aFlag = 0;
+   
    for (const auto & aCBO : aCB.CBOneVect())
    {
-      aFlag |= FlagCB(aCBO,*aVD.at(aCBO.IndVec()),false);
+      FlagCB(aCBO,aIm.data()[aCBO.IndVec()],aCodB);
    }
-
-   return aFlag;
 }
 
-int FlagCB(const cFullParamCB & aCB,cOnePCarac * aPC)
-{
-    return FlagCB(aCB,VRAD(aPC));
-}
 
 
 void SetFlagCB(const cFullParamCB & aCB,const std::vector<cOnePCarac*>  & aVPC)
 {
     for (auto & aPC : aVPC)
-       aPC->CodeBinaireCompl() = FlagCB(aCB,aPC);
+    {
+       aPC->InvR().CodeBinaire() = tCodBin(TheNbUI2Flag,1,(U_INT2)0);
+       FlagCB(aCB,aPC->InvR().ImRad(),aPC->InvR().CodeBinaire());
+    }
 }
 
 void AddHistoBits(std::vector<int> & aVH,cOnePCarac* aP1,cOnePCarac* aP2,double & aSom)
 {
    if (aP1 && aP2)
    {
-      aVH[NbBitOfFlag(aP1->CodeBinaireCompl() ^ aP2->CodeBinaireCompl())] ++;
+      aVH[NbBitDifOfFlag(aP1->InvR().CodeBinaire() , aP2->InvR().CodeBinaire())] ++;
       aSom++;
    }
 }
@@ -237,7 +257,7 @@ void TestFlagCB(  const cFullParamCB & aCB,
    {
       for (int aK2=0 ; aK2<int(aV2.size()) ; aK2++)
       {
-           AddHistoBits(aVBRand,aV1[aK1],aV2[aK2],aSomRand);
+         AddHistoBits(aVBRand,aV1[aK1],aV2[aK2],aSomRand);
       }
       AddHistoBits(aVBTruth,aV1[aK1],aHomOf1[aK1],aSomTruth);
    }
@@ -264,7 +284,7 @@ void TestFlagCB(  const cFullParamCB & aCB,
 //    Apprentissage 
 // 
 // ===================================================================
-typedef const std::vector<double> * tCPtVD;
+typedef const INT1 * tCPtVD;
 typedef std::vector<std::pair<tCPtVD,tCPtVD> > tVPairCPVD;
 
 tVPairCPVD  EchantPair
@@ -283,18 +303,15 @@ tVPairCPVD  EchantPair
       {
          if (aRand.GetNext())
          {
-/*
-            std::vector<tCPtVD> aVV1 = VRAD(aV1[aK1]);
-            std::vector<tCPtVD> aVV2 = VRAD(aV2[aK2]);
-            aRes.push_back(std::pair<tCPtVD,tCPtVD>(aVV1.at(aInd),aVV2.at(aInd)));
-*/
-            aRes.push_back(std::pair<tCPtVD,tCPtVD>(KVRAD(aV1[aK1],aInd),KVRAD(aV2[aK2],aInd)));
+            aRes.push_back(std::pair<tCPtVD,tCPtVD>(
+                             aV1[aK1]->InvR().ImRad().data()[aInd],
+                             aV2[aK2]->InvR().ImRad().data()[aInd]
+            ));
          }
       }
    }
    return aRes;
 }
-
 
 tVPairCPVD  TruthPair
             (
@@ -309,7 +326,10 @@ tVPairCPVD  TruthPair
    {
       if (aV1[aK1] && aVTruth[aK1])
       {
-            aRes.push_back(std::pair<tCPtVD,tCPtVD>(KVRAD(aV1[aK1],aInd),KVRAD(aVTruth[aK1],aInd)));
+            aRes.push_back(std::pair<tCPtVD,tCPtVD>(
+                             aV1[aK1]->InvR().ImRad().data()[aInd],
+                             aVTruth[aK1]->InvR().ImRad().data()[aInd]
+            ));
       }
    }
    return aRes;
@@ -321,8 +341,8 @@ double PropEq (const cCBOneBit & aCB,const  tVPairCPVD & aVP)
     int aNbEq = 0;
     for (const auto & aP : aVP)
     {
-         double  aV1 = ValCB(aCB,*(aP.first));
-         double  aV2 = ValCB(aCB,*(aP.second));
+         double  aV1 = ValCB(aCB,aP.first);
+         double  aV2 = ValCB(aCB,aP.second);
          if ((aV1>0) == (aV2>0)) 
              aNbEq++;
     }
@@ -334,11 +354,11 @@ std::vector<double> PropEq2V (const cCBOneBit & aCB1,const cCBOneBit & aCB2,cons
    std::vector<double> aRes(3,0);
    for (const auto & aP : aVP)
    {
-        double  aVf1 = ValCB(aCB1,*(aP.first));
-        double  aVs1 = ValCB(aCB1,*(aP.second));
+        double  aVf1 = ValCB(aCB1,(aP.first));
+        double  aVs1 = ValCB(aCB1,(aP.second));
 
-        double  aVf2 = ValCB(aCB2,*(aP.first));
-        double  aVs2 = ValCB(aCB2,*(aP.second));
+        double  aVf2 = ValCB(aCB2,(aP.first));
+        double  aVs2 = ValCB(aCB2,(aP.second));
          
         int aNbEq =  ((aVf1>0) == (aVs1>0))  + ((aVf2>0) == (aVs2>0));
         aRes[aNbEq] ++;
@@ -392,22 +412,23 @@ cCBOneBit  Perturb(const cCBOneBit & aCB,double aSize)
 
 cCBOneVect RandOptimizeOneBit
           (
+              bool DeuxVal,
               int aInd,
               int & aIndBit,
               int aNbCoef,
               const  tVPairCPVD &  aVRand,
               const  tVPairCPVD &  aTruth,
               double aPdsTruth,
-              int aNbTir
+              int aNbTir,
+              int aTx
            )
 {
-    int aNbInd = aVRand[0].first->size();
     cCBOneBit aRes;
     cCBOneBit aRes2;
     double aBestScore = - 1e20;
     for (int aKT=0 ; aKT<aNbTir ; aKT++)
     {
-        std::vector<double>  aPdsInd(aNbInd,1e-14);
+        std::vector<double>  aPdsInd(aTx,1e-14);
         cCBOneBit aTest ;
         cCBOneBit aTest2 ;
 
@@ -424,7 +445,9 @@ cCBOneVect RandOptimizeOneBit
             aTest2 = Perturb(aRes2,aSzP);
         }
 
-        double aScore =  ScoreApprent2V(aTest,aTest2,aVRand,aTruth,aPdsTruth);
+        double aScore =   DeuxVal                                              ?
+                          ScoreApprent2V(aTest,aTest2,aVRand,aTruth,aPdsTruth) :
+                          ScoreApprent(aTest,aVRand,aTruth,aPdsTruth)          ;
 
         if (aScore > aBestScore)
         {
@@ -436,15 +459,19 @@ cCBOneVect RandOptimizeOneBit
     cCBOneVect aCOV;
     aCOV.IndVec() = aInd;
     aCOV.CBOneBit().push_back(aRes);
-    aCOV.CBOneBit().push_back(aRes2);
     aIndBit++;
-    aIndBit++;
+    if (DeuxVal)
+    {
+       aCOV.CBOneBit().push_back(aRes2);
+       aIndBit++;
+    }
 
     return aCOV;
 }
 
 cFullParamCB  Optimize
               (
+                  bool  DeuxVal,
                   const std::vector<cOnePCarac*>  & aV1,
                   const std::vector<cOnePCarac*>  & aV2,
                   const std::vector<cOnePCarac*>  & aHomOf1,
@@ -453,19 +480,21 @@ cFullParamCB  Optimize
 {
     cFullParamCB aRes;
 
-    std::vector<const std::vector<double> *>  aVR = VRAD(aV1[0]);
+    Im2D_INT1 aImR = aV1[0]->InvR().ImRad();
+
+    // std::vector<const std::vector<double> *>  aVR = VRAD(aV1[0]);
     int aNbTir=1000;
     int aNBC = 3;
 
     int aIndBit = 0;
-    for (int aInd=0 ; aInd<int(aVR.size()) ; aInd++)
+    for (int aInd=0 ; aInd<aImR.ty() ; aInd++)
     {
 std::cout << "KIIIIII " << aInd << "\n";
          tVPairCPVD aTruthPair = TruthPair (aInd,aV1,aHomOf1);
          tVPairCPVD aRanPair = EchantPair(aInd,aV1,aV2,10*aTruthPair.size());
 
-         int aNbCoef = ElMin(aNBC,int(aVR[aInd]->size()));
-         cCBOneVect aCOV =  RandOptimizeOneBit(aInd,aIndBit,aNbCoef,aRanPair,aTruthPair,aPdsTruth,aNbTir);
+         int aNbCoef = ElMin(aNBC,aImR.tx());
+         cCBOneVect aCOV =  RandOptimizeOneBit(DeuxVal,aInd,aIndBit,aNbCoef,aRanPair,aTruthPair,aPdsTruth,aNbTir,aImR.tx());
 /*
          cCBOneVect aCOV;
          aCOV.IndVec() = aInd;
@@ -478,6 +507,9 @@ std::cout << "KIIIIII " << aInd << "\n";
 
     return aRes;
 }
+
+#if (0)
+#endif
 
 
 /*

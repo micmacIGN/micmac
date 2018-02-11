@@ -251,8 +251,9 @@ std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC,const std::string & aLib)
    return aVC; 
 }
 
-int  CPP_StatPHom(int argc,char ** argv);
-
+int CPP_StatPHom(int argc,char ** argv);
+int CPP_PHom_RenameRef(int argc,char ** argv);
+int CPP_PHom_ApprentBinaire(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -398,6 +399,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));
        aRes.push_back(cMMCom("NuageBascule",NuageBascule_main," To Change geometry of depth map "));
+       aRes.push_back(cMMCom("Nuage2Homol",Nuage2Homol_main," Create Tie Points from a depth map"));
+       aRes.push_back(cMMCom("Txt2Dat",Txt2Dat_main," Convert an ascii tie point file to binary"));
 
 
 
@@ -541,6 +544,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ProfilIm",CPP_ProfilImage,"Image profiling  2D->1D "));
        aRes.push_back(cMMCom("EditSet",CPP_EditSet,"Edition creation of a set of images/files"));
        aRes.push_back(cMMCom("StatPHom",CPP_StatPHom,"Stat on homologous point using orientation of 3D Model"));
+       aRes.push_back(cMMCom("PHom_RenameRef",CPP_PHom_RenameRef,"Rename Ref for PHom"));
+       aRes.push_back(cMMCom("PHom_ApBin",CPP_PHom_ApprentBinaire,"Test Binary "));
 
    }
 

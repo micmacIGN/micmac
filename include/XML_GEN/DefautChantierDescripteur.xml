@@ -41,6 +41,56 @@
 
 <ChantierDescripteur>
 
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>     Nuage-Ref-NH/Nuage-$1#1    </CalcName>
+            </Direct>
+            <Inverse>
+                <PatternTransform> Nuage-Ref-NH/Nuage-(.*)#1  </PatternTransform>
+                <CalcName>  $1  </CalcName>
+            </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-NHNuageRef </Key>
+        <SubDirAutoMake> Nuage-Ref-NH/ </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*) </PatternTransform>
+                <CalcName>    PC-Ref-NH/RefNH-$1---$2-#1.dmp     </CalcName>
+                <Separateur > % </Separateur>
+            </Direct>
+            <Inverse>
+                <PatternTransform> PC-Ref-NH/RefNH-(.*)---(.*)-#1.dmp  </PatternTransform>
+                <CalcName>  $1  </CalcName>
+                <CalcName>  $2  </CalcName>
+            </Inverse>
+        </Calcs>
+        <SubDirAutoMake> PC-Ref-NH/ </SubDirAutoMake>
+        <Key>   NKS-Assoc-NHPtRef </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur>  RefNH-(.*)---(.*)-#1.dmp  </PatternAccepteur>
+		 <SubDir>   PC-Ref-NH/ </SubDir>
+                 <NivSubDir> 1 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-NHPtRef  </Key>
+    </KeyedSetsOfNames>
+
+
+
 <!--  ***********************************************************
 *                                                               *
 *       NEW and (hopefully) definitive systems of Keys  :       *
