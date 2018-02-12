@@ -399,6 +399,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));
        aRes.push_back(cMMCom("NuageBascule",NuageBascule_main," To Change geometry of depth map "));
+       aRes.push_back(cMMCom("Nuage2Homol",Nuage2Homol_main," Create Tie Points from a depth map"));
+       aRes.push_back(cMMCom("Txt2Dat",Txt2Dat_main," Convert an ascii tie point file to binary"));
 
 
 
@@ -616,6 +618,7 @@ extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
 extern int TestER_hom_main(int argc,char ** argv);
+extern int TestER_tiff2pfm(int argc,char ** argv);
 extern int TestPush(int argc,char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
 extern int Homol2GCP_main(int argc,char ** argv);
@@ -851,6 +854,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
        aRes.push_back(cMMCom("TestER",TestER_main2,"ER test workplace"));
        aRes.push_back(cMMCom("TestER2",TestER_hom_main,"ER test hom"));
+       aRes.push_back(cMMCom("Conv2Pfm",TestER_tiff2pfm,"Tif to pfm converter"));
        aRes.push_back(cMMCom("TestAT",TestPush,"AT test workplace"));
 
 //       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));

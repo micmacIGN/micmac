@@ -102,6 +102,7 @@ pic* CorrelMesh::chooseImgMaitre(int indTri, double & angleReturn, double angleV
     return mPicMaitre;
 }
 
+
 extern bool comparatorPt2dr ( Pt2dr const &l,  Pt2dr const &r)
    { return l.x > r.x; }
 
@@ -109,6 +110,9 @@ extern bool comparatorPt2drAsc ( Pt2dr const &l,  Pt2dr const &r)
    { return l.x < r.x; }
 
 extern bool comparatorPt2drY ( Pt2dr const &l,  Pt2dr const &r)
+   { return l.y > r.y; }
+
+extern bool comparatorPt2diY ( Pt2di const &l,  Pt2di const &r)
    { return l.y > r.y; }
 
 extern bool comparatorPt2drYAsc ( Pt2dr const &l,  Pt2dr const &r)
@@ -133,6 +137,11 @@ extern void sortAscendPt2drX(vector<Pt2dr> & input)
 extern void sortDescendPt2drY(vector<Pt2dr> & input)
 {
    sort(input.begin(), input.end(), static_cast<dsPt2drCompFunc>(&comparatorPt2drY));
+}
+
+extern void sortDescendPt2diY(vector<Pt2di> & input)
+{
+   sort(input.begin(), input.end(), static_cast<dsPt2diCompFunc>(&comparatorPt2diY));
 }
 
 extern void sortAscendPt2drY(vector<Pt2dr> & input)

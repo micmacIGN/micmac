@@ -622,6 +622,8 @@ int MergePly_main(int argc,char ** argv);
 int MICMAC_main(int argc,char ** argv);
 int FusionCarteProf_main(int argc,char ** argv);
 int Nuage2Ply_main(int argc,char ** argv);
+int Nuage2Homol_main(int argc,char ** argv);
+int Txt2Dat_main(int argc,char ** argv);
 int PlySphere_main(int argc,char ** argv);
 int San2Ply_main(int argc,char ** argv);
 

@@ -61,7 +61,8 @@ cParamAppliTieTri::cParamAppliTieTri():
    mFlagFS            ((1<<16) - 1),
    mHomolOut          ("_TiepTri"),
    mSurfDiffAffHomo   (Pt2dr(mTT_SEUIL_SURF_TRI, DBL_MAX)),
-   mUseHomo           (false)
+   mUseHomo           (false),
+   mMaxErr            (1.0)
 {
 }
 
@@ -111,6 +112,7 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aParam.mHomolOut,  "Out",true,"Suffix for Homol Out Folder (def=_TiepTri)")
                       << EAM(aParam.mUseHomo,  "useHomo",true,"Use homography for triangle")
                       << EAM(aParam.mSurfDiffAffHomo,  "surfDiff",true,"range of triangle surface for evaluation diff Aff-Homogr")
+                      << EAM(aParam.mMaxErr,  "MaxErr",true,"Max Error Aff/Homogr (to do statistic)")
                );
 
    bool WithInteract = EAMIsInit(& aSzW);
