@@ -78,6 +78,7 @@ class cAppliStatPHom
        bool              mSetPI;
        std::string       mExtInput;
        bool              mTestFlagBin;
+       std::string       mExtOut;
 
 };
 
@@ -254,7 +255,11 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
             }
             AddRand(aSetRef,aV1,round_up(aSetRef.SRPC_Truth().size()/4.0));
             AddRand(aSetRef,aV2,round_up(aSetRef.SRPC_Truth().size()/4.0));
-            std::string aKey = NH_KeyAssoc_PC + "@"+eToString(eTypePtRemark(aKL));
+
+            std::string aExt = eToString(eTypePtRemark(aKL));
+            if (EAMIsInit(&mAppli.mExtOut))
+               aExt =  mAppli.mExtOut + "-" +  aExt;
+            std::string aKey = NH_KeyAssoc_PC + "@"+aExt;
             std::string aName =  mAppli.mICNM->Assoc1To2(aKey,mN,aI2.mN,true);
             MakeFileXML(aSetRef,aName);
         }
@@ -351,7 +356,8 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
     mNuage1       (0),
     mSetPI        (false),
     mExtInput     ("Std"),
-    mTestFlagBin  (false)
+    mTestFlagBin  (false),
+    mExtOut       ()
 {
    std::string aN1,aN2;
    ElInitArgMain
@@ -364,6 +370,7 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
                      << EAM(mNameNuage,"NC",true,"Name of cloud")
                      << EAM(mSetPI,"SetPI",true,"Set Integer point, def=false,for stat")
                      << EAM(mExtInput,"ExtInput",true,"Extentsion for tieP")
+                     << EAM(mExtOut,"ExtOut",true,"Extentsion for output")
    );
 
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
@@ -486,79 +493,6 @@ int  CPP_PHom_RenameRef(int argc,char ** argv)
 }
 
 /***************************************/
-
-void AddTo(cSetRefPCarac &aRes,const cSetRefPCarac & ToAdd)
-{
-   std::copy(ToAdd.SRPC_Truth().begin(),ToAdd.SRPC_Truth().end(),std::back_inserter(aRes.SRPC_Truth()));
-   std::copy(ToAdd.SRPC_Rand().begin(),ToAdd.SRPC_Rand().end(),std::back_inserter(aRes.SRPC_Rand()));
-}
-
-void MakeSetRefPCarac(cSetRefPCarac &aRes,const std::vector<std::string> & aVName)
-{
-   aRes = cSetRefPCarac();
-   for (int aK=0 ; aK<int(aVName.size()) ; aK++)
-   {
-      AddTo(aRes,StdGetFromNRPH(aVName.at(aK),SetRefPCarac));
-   }
-}
-
-class cAppli_NH_ApprentBinaire
-{
-    public :
-        cAppli_NH_ApprentBinaire(int argc,char**argv); 
-        void DoOne(eTypePtRemark aType);
-    private :
-         cInterfChantierNameManipulateur * mICNM;
-         cSetRefPCarac mSetRef;
-         std::string   mDir;
-         std::string   mDirPC;
-         std::string   mPatType;
-         cElRegex *    mAutomType;
-         cSetRefPCarac mCurSet;
-};
-
-
-void cAppli_NH_ApprentBinaire::DoOne(eTypePtRemark aType)
-{
-   std::string aNameType = eToString(aType);
-   if (!mAutomType->Match(aNameType))
-      return;
-   
-   const std::vector<std::string> * aSet =   mICNM->Get("NKS-Set-NHPtRef@"+ aNameType);
-   MakeSetRefPCarac(mCurSet,*aSet);
-   TestLearnOPC(mCurSet);
-}
-
-
-cAppli_NH_ApprentBinaire::cAppli_NH_ApprentBinaire(int argc,char**argv) :
-   mDir   ("./"),
-   mDirPC ("./PC-Ref-NH/")
-{
-   ElInitArgMain
-   (
-         argc,argv,
-         LArgMain()  << EAMC(mPatType, "Patten of type in eTypePtRemark")
-                    ,
-         LArgMain()  << EAM(mDirPC,"DirPC",true,"Directory for Point (Def=PC-Ref-NH)")
-   );
-
-   mPatType = ".*(" + mPatType + ").*";
-   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-   mAutomType = new cElRegex(mPatType,10);
-
-   for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
-   {
-       DoOne(eTypePtRemark(aKL));
-   }
-}
-
-
-
-int  CPP_PHom_ApprentBinaire(int argc,char ** argv)
-{
-   cAppli_NH_ApprentBinaire anAppli(argc,argv);
-   return EXIT_SUCCESS;
-}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -183,9 +183,15 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
 
 bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
 {
+     if (mTImMod.inside(aP)) 
+        return false;
+     if (aI2->mTImMod.inside(aP)) 
+        return false;
+
     static Pt2di aP00(0,0);
     tElNewRechPH aV0 =  mTImMod.get(aP);
     tElNewRechPH aV2 =  aI2->mTImMod.get(aP);
+
 
     if (aV0== aV2)
     {
@@ -453,6 +459,11 @@ bool cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
    
     
    mACD.AutoCorrel(Pt2di(aP.Pt()),2.0);
+   if (!  mACD.ResComputed())
+   {
+      aP.OK() =  false;
+      return false;
+   }
    Pt2dr  aR = mACD.Res();
 
    
