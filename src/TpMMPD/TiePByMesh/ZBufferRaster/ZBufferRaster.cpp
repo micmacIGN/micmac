@@ -129,35 +129,35 @@ int ZBufferRaster_main(int argc,char ** argv)
     }
 
 
-   string farSceneMesh = aParam.mMesh.substr(0,aParam.mMesh.length()-4) + "_Far.ply";
-        //sortDescendPt2diY(aAppli->AccNbImgVisible());
-        int aCount{0};
-        for (int aKK=0; aKK<int(aAppli->AccNbImgVisible().size()); aKK++)
+    string farSceneMesh = aParam.mMesh.substr(0,aParam.mMesh.length()-4) + "_Far.ply";
+    //sortDescendPt2diY(aAppli->AccNbImgVisible());
+    int aCount{0};
+    for (int aKK=0; aKK<int(aAppli->AccNbImgVisible().size()); aKK++)
+    {
+        if (aAppli->AccNbImgVisible()[aKK].y >= (vImg.size() * aParam.mPercentVisible/100.0))
         {
-            if (aAppli->AccNbImgVisible()[aKK].y >= (vImg.size() * aParam.mPercentVisible/100.0))
-            {
-                aCount++;
-                /*
+            aCount++;
+            /*
                 vector<Pt3dr> aOneTri;
                 aOneTri.push_back(aVTri[aKK].P1());
                 aOneTri.push_back(aVTri[aKK].P2());
                 aOneTri.push_back(aVTri[aKK].P3());
                 aTriToWrite.push_back(aOneTri);
                 */
-                aTriToWrite.insert(aAppli->AccNbImgVisible()[aKK].x);
-                cXml_Triangle3DForTieP aTri3D;
-                aTri3D.P1() = aVTri[aKK].P1();
-                aTri3D.P2() = aVTri[aKK].P2();
-                aTri3D.P3() = aVTri[aKK].P3();
-                aTri3D.NumImSec() = vNumImSec;
-                aXMLTri.Tri().push_back(aTri3D);
-            }
+            aTriToWrite.insert(aAppli->AccNbImgVisible()[aKK].x);
+            cXml_Triangle3DForTieP aTri3D;
+            aTri3D.P1() = aVTri[aKK].P1();
+            aTri3D.P2() = aVTri[aKK].P2();
+            aTri3D.P3() = aVTri[aKK].P3();
+            aTri3D.NumImSec() = vNumImSec;
+            aXMLTri.Tri().push_back(aTri3D);
         }
-        cout<<"Write mesh & export XML.. "<<endl;
-        //aDraw.drawListTriangle(aTriToWrite, farSceneMesh, Pt3dr(255,0,0));
-        myMesh.Export(farSceneMesh, aTriToWrite, true);
-        MakeFileXML(aXMLTri, "FarScene.xml");
-        cout<<"Nb Tri View by "<<aParam.mPercentVisible<<"% of Img : "<<aCount<<" / "<< aVTri.size()<<endl;
+    }
+    cout<<"Write mesh & export XML.. "<<endl;
+    //aDraw.drawListTriangle(aTriToWrite, farSceneMesh, Pt3dr(255,0,0));
+    myMesh.Export(farSceneMesh, aTriToWrite, true);
+    MakeFileXML(aXMLTri, "FarScene.xml");
+    cout<<"Nb Tri View by "<<aParam.mPercentVisible<<"% of Img : "<<aCount<<" / "<< aVTri.size()<<endl;
     }
 
     return EXIT_SUCCESS;
