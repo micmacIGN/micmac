@@ -1042,7 +1042,7 @@ int TestER_tiff2pfm(int argc,char ** argv)
 
     for (int aK2=aSz.y-1; aK2>=0; aK2--)
     {
-        float aLine[aSz.x]; 
+        float *aLine = new float[aSz.x]; 
         for (int aK1=0; aK1<aSz.x; aK1++)
         {
             aLine[aK1] = float(I.Val(aK1,aK2));
@@ -1051,7 +1051,7 @@ int TestER_tiff2pfm(int argc,char ** argv)
  
         if(int(fwrite(aLine, sizeof(float), aSz.x, stream)) != aSz.x)
             ELISE_ASSERT(false,"File is too short");
-
+        delete[] aLine;
     }
     fclose(stream); 
 
