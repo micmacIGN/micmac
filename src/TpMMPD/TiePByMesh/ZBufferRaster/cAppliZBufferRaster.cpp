@@ -7,7 +7,8 @@ cAppliZBufferRaster::cAppliZBufferRaster(cInterfChantierNameManipulateur * aICNM
                                             const std::string & anOri,
                                             vector<cTri3D> & aVTri,
                                             vector<string> & aVImg,
-                                            bool aNoTif
+                                            bool aNoTif,
+                                            cParamZbufferRaster aParam
                                          ):
     mICNM (aICNM),
     mDir  (aDir),
@@ -21,8 +22,11 @@ cAppliZBufferRaster::cAppliZBufferRaster(cInterfChantierNameManipulateur * aICNM
     mDistMax (TT_DISTMAX_NOLIMIT),
     mIsTmpZBufExist (ELISE_fp::IsDirectory(aDir + "Tmp-ZBuffer/")),
     mNoTif (aNoTif),
-    mMethod (3)
-{    
+    mMethod (3),
+    mAccNbImgVisible (aVTri.size(), Pt2di(0,0)),
+    mvImgVisibleFarScene (aVImg.size() , false),
+    mParam (aParam)
+{
     if ( !mIsTmpZBufExist)
     {
         ELISE_fp::MkDir(mDir + "Tmp-ZBuffer/");
@@ -55,7 +59,7 @@ void  cAppliZBufferRaster::DoAllIm(vector<vector<bool> > & aVTriValid)
         string fileOutZBuf = path + mVImg[aKIm] + "_ZBuffer_DeZoom" + ToString(int(1.0/mReech)) + ".tif";
         string fileOutLbl = path + mVImg[aKIm] + "_TriLabel_DeZoom" +  ToString(int(1.0/mReech)) + ".tif";
         ElTimer aChrono;
-        cImgZBuffer * aZBuf = new cImgZBuffer(this, mVImg[aKIm], mNoTif);
+        cImgZBuffer * aZBuf = new cImgZBuffer(this, mVImg[aKIm], mNoTif, aKIm);
        if ( ELISE_fp::exist_file(fileOutLbl) && ELISE_fp::exist_file(fileOutZBuf))
        {
            cout<<mVImg[aKIm]<<" existed in Tmp-ZBuffer ! . Skip"<<endl;

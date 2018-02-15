@@ -49,6 +49,17 @@ class cOneScaleImRechPH;
 #include "LoccPtOfCorrel.h"
 
 void TestTouch();
+void TestLearnOPC(cSetRefPCarac & aSRP);
+
+
+#define StdGetFromNRPH(aStr,aObj)\
+StdGetObjFromFile<c##aObj>\
+    (\
+        aStr,\
+        MMDir() + "src/uti_image/NewRechPH/ParamNewRechPH.xml",\
+        #aObj ,\
+        #aObj \
+     )
 
 
 /*

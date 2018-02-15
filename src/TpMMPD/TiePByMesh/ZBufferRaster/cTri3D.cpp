@@ -48,6 +48,7 @@ cTri2D cTri3D::reprj(cBasicGeomCap3D * aCam)
         }
 }
 
+// distance from triangle center to camera center
 double cTri3D::dist2Cam(cBasicGeomCap3D * aCam)
 {
     return aCam->ProfondeurDeChamps(mCtr);

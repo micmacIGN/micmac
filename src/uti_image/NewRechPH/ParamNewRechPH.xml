@@ -22,13 +22,73 @@
       <eTPR_GraySadl>      </eTPR_GraySadl>
       <eTPR_NoLabel>  </eTPR_NoLabel>
    </enum>
+
+<!--
+         <CoeffRadiom   Nb="1" Type="std::vector<double>">           </CoeffRadiom>
+         <CoeffRadiom2  Nb="1" Type="std::vector<double>">           </CoeffRadiom2>
+         <CoeffGradRadial   Nb="1" Type="std::vector<double>">       </CoeffGradRadial>
+         <CoeffGradTangent   Nb="1" Type="std::vector<double>">      </CoeffGradTangent>
+         <CoeffGradTangentPiS2   Nb="1" Type="std::vector<double>">  </CoeffGradTangentPiS2>
+         <CoeffGradTangentPi     Nb="1" Type="std::vector<double>">  </CoeffGradTangentPi>
+         <CoeffGradCroise   Nb="1" Type="std::vector<double>">       </CoeffGradCroise>
+         <CoeffGradCroise2  Nb="1" Type="std::vector<double>">       </CoeffGradCroise2>
+         <CoeffDiffOpposePi   Nb="1" Type="std::vector<double>">     </CoeffDiffOpposePi>
+         <CoeffDiffOppose2Pi  Nb="1" Type="std::vector<double>">     </CoeffDiffOppose2Pi>
+         <CoeffDiffOpposePiS2   Nb="1" Type="std::vector<double>">   </CoeffDiffOpposePiS2>
+         <CoeffDiffOppose2PiS2  Nb="1" Type="std::vector<double>">   </CoeffDiffOppose2PiS2>
+-->
+   <enum Name="eTypeInvRad">
+      <eTIR_Radiom>          </eTIR_Radiom>    <!-- 1 -->
+      <eTIR_GradRad>         </eTIR_GradRad>
+      <eTIR_GradCroise>      </eTIR_GradCroise>
+      <eTIR_GradTan>         </eTIR_GradTan>
+      <eTIR_GradTanPiS2>     </eTIR_GradTanPiS2>
+      <eTIR_GradTanPi>       </eTIR_GradTanPi>   
+      <eTIR_LaplRad>         </eTIR_LaplRad>
+      <eTIR_LaplTan>         </eTIR_LaplTan>
+      <eTIR_LaplCrois>       </eTIR_LaplCrois>
+      <eTIR_DiffOpposePi>    </eTIR_DiffOpposePi>
+      <eTIR_DiffOpposePiS2>   </eTIR_DiffOpposePiS2>  <!-- 11 -->
+      <!--         BEGIN SQUARE -->
+      <eTIR_Sq_Radiom>        </eTIR_Sq_Radiom>   
+      <eTIR_Sq_GradRad>       </eTIR_Sq_GradRad>
+      <eTIR_Sq_GradCroise>    </eTIR_Sq_GradCroise>
+      <eTIR_Sq_GradTan>       </eTIR_Sq_GradTan>
+      <eTIR_Sq_GradTanPiS2>   </eTIR_Sq_GradTanPiS2>    <!-- 16 -->
+      <eTIR_Sq_GradTanPi>     </eTIR_Sq_GradTanPi>
+      <eTIR_Sq_LaplRad>       </eTIR_Sq_LaplRad>
+      <eTIR_Sq_LaplTan>       </eTIR_Sq_LaplTan>
+      <eTIR_Sq_LaplCrois>     </eTIR_Sq_LaplCrois>
+      <eTIR_Sq_DiffOpposePi>    </eTIR_Sq_DiffOpposePi>
+      <eTIR_Sq_DiffOpposePiS2>  </eTIR_Sq_DiffOpposePiS2>  <!-- 22 -->
+      <!--         BEGIN CUBE -->
+      <eTIR_Cub_Radiom>        </eTIR_Cub_Radiom>   
+      <eTIR_Cub_GradRad>       </eTIR_Cub_GradRad>
+      <eTIR_Cub_GradCroise>    </eTIR_Cub_GradCroise>
+      <eTIR_Cub_GradTan>       </eTIR_Cub_GradTan>
+      <eTIR_Cub_GradTanPiS2>   </eTIR_Cub_GradTanPiS2>    <!-- 16 -->
+      <eTIR_Cub_GradTanPi>     </eTIR_Cub_GradTanPi>
+      <eTIR_Cub_LaplRad>       </eTIR_Cub_LaplRad>
+      <eTIR_Cub_LaplTan>       </eTIR_Cub_LaplTan>
+      <eTIR_Cub_LaplCrois>     </eTIR_Cub_LaplCrois>
+      <eTIR_Cub_DiffOpposePi>  </eTIR_Cub_DiffOpposePi>
+      <eTIR_Cub_DiffOpposePiS2></eTIR_Cub_DiffOpposePiS2>  <!-- 22 -->
+
+      <eTIR_NoLabel>     </eTIR_NoLabel>
+   </enum>
+
    <PtSc  Nb="*" Class="true" ToReference="true">
        <Pt   Nb="1" Type="Pt2dr">     </Pt>
        <Scale   Nb="1" Type="double">  </Scale>
    </PtSc>
 
-   <SetPCarac  Nb="1" Class="true">
-      <OnePCarac  Nb="*" Class="true" Container="std::vector">
+   <OneInvRad  Nb="1" Class="true" ToReference="true">
+         <!-- y :  NumVect , x : Rho -->
+         <ImRad Nb="1" Type="Im2D_INT1"> </ImRad>
+         <!-- Code Binaire : devrait etre 1D, mais flemme modifier xml_init et autres ...  -->
+         <CodeBinaire  Nb="1" Type="Im2D_U_INT2"> </CodeBinaire>
+   </OneInvRad>
+   <OnePCarac   Nb="1" Class="true" ToReference="true">
          <Kind Nb="1" Type="eTypePtRemark">        </Kind>
          <Pt   Nb="1" Type="Pt2dr">     </Pt>
          <Pt0   Nb="1" Type="Pt2dr">     </Pt0>  <!-- Avant opt, pour test -->
@@ -43,37 +103,50 @@
          <AutoCorrel   Nb="1" Type="double">  </AutoCorrel>
          <OK   Nb="1" Type="bool">  </OK>  <!-- Help 4 compute, should always be true -->
      <!--   codage binaire -->
-         <CoeffRadiom   Nb="1" Type="std::vector<double>">           </CoeffRadiom>
-         <CoeffRadiom2  Nb="1" Type="std::vector<double>">           </CoeffRadiom2>
-         <CoeffGradRadial   Nb="1" Type="std::vector<double>">       </CoeffGradRadial>
-         <CoeffGradTangent   Nb="1" Type="std::vector<double>">      </CoeffGradTangent>
-         <CoeffGradTangentPiS2   Nb="1" Type="std::vector<double>">  </CoeffGradTangentPiS2>
-         <CoeffGradTangentPi     Nb="1" Type="std::vector<double>">  </CoeffGradTangentPi>
-         <CoeffGradCroise   Nb="1" Type="std::vector<double>">       </CoeffGradCroise>
-         <CoeffGradCroise2  Nb="1" Type="std::vector<double>">       </CoeffGradCroise2>
-         <CoeffDiffOpposePi   Nb="1" Type="std::vector<double>">     </CoeffDiffOpposePi>
-         <CoeffDiffOppose2Pi  Nb="1" Type="std::vector<double>">     </CoeffDiffOppose2Pi>
-         <CoeffDiffOpposePiS2   Nb="1" Type="std::vector<double>">   </CoeffDiffOpposePiS2>
-         <CoeffDiffOppose2PiS2  Nb="1" Type="std::vector<double>">   </CoeffDiffOppose2PiS2>
-     <!--   codage binaire -->
-         <CodeBinaireCompl Nb="1" Type="int"> </CodeBinaireCompl>
-         <CodeBinaireIndex Nb="1" Type="int"> </CodeBinaireIndex>
     <!-- Pour visu -->
-         <ImRad Nb="1" Type="Im2D_REAL4"> </ImRad>
+         <InvR Nb="1" RefType="OneInvRad">  </InvR>
+         <ImRad Nb="1" Type="Im2D_INT1"> </ImRad>
          <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
-      </OnePCarac>
+   </OnePCarac>
+
+   <SetPCarac  Nb="1" Class="true">
+      <OnePCarac  Nb="*" RefType="OnePCarac" Container="std::vector"> </OnePCarac>
    </SetPCarac>
 
-   <FullParamCB  Nb="1" Class="true">
-      <CBOneVect  Nb="*" Class="true" Container="std::vector">
+   <SetRefPCarac Nb="1" Class="true">
+         <SRPC_Truth Nb="*" Container="std::vector">
+             <P1  Nb="1" RefType="OnePCarac"> </P1>
+             <P2  Nb="1" RefType="OnePCarac"> </P2>
+         </SRPC_Truth>
+         <SRPC_Rand  Nb="*" RefType="OnePCarac" Container="std::vector"> </SRPC_Rand>
+   </SetRefPCarac>
+
+   <CBOneVect   Nb="1" Class="true" ToReference="true">
          <IndVec Nb="1" Type="int">     </IndVec> 
          <CBOneBit Nb="*" Container="std::vector"> 
             <Coeff  Nb="1" Type="std::vector<double>">  </Coeff> 
             <IndInV Nb="1" Type="std::vector<int>">     </IndInV> 
             <IndBit Nb="1" Type="int">     </IndBit> 
          </CBOneBit>
-      </CBOneVect>
+   </CBOneVect>
+
+   <FullParamCB  Nb="1" Class="true">
+        <CBOneVect  Nb="*" RefType="CBOneVect" Container="std::vector"> </CBOneVect>
    </FullParamCB>
+
+   
+   <CompCBOneBit Nb="1" Class="true" ToReference="true">
+      <Coeff  Nb="1" Type="std::vector<double>">  </Coeff> 
+      <IndX   Nb="1" Type="std::vector<int>">   </IndX> 
+      <IndY   Nb="1" Type="std::vector<int>">   </IndY> 
+      <IndBit Nb="1" Type="int">     </IndBit> 
+   </CompCBOneBit>
+
+   <CompCB Nb="1" Class="true" ToReference="true">
+         <CompCBOneBit  Nb="*" RefType="CompCBOneBit" Container="std::vector"> </CompCBOneBit>
+   </CompCB>
+
+
 
 <Verbatim File=".h.cpp">
 // };

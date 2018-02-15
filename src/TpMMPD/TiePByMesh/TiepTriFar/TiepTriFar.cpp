@@ -37,74 +37,27 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "tieptrifar.h"
 
-#include "NewRechPH.h"
 
-std::vector<int> VectScal(const cOnePCarac * aP1,const cOnePCarac * aP2)
+int TiepTriFar_Main(int argc,char ** argv)
 {
-    Im2D_INT1 aI1 =  aP1->InvR().ImRad();
-    Im2D_INT1 aI2 =  aP2->InvR().ImRad();
-    int aTy = aI1.ty();
-    int aTx = aI1.tx();
 
-    std::vector<int> aRes;
-    int aScalGlob = 0;
-    for (int aY=0 ; aY<aTy ; aY++)
-    {
-       int aScal = 0;
-       INT1 *aD1 = aI1.data()[aY];
-       INT1 *aD2 = aI2.data()[aY];
-       for (int aX=0 ; aX<aTx ; aX++)
-       {
-          aScal += aD1[aX] * aD2[aX];
-       }
-       aRes.push_back(aScal);
-       aScalGlob += aScal;
-    }
-    aRes.push_back(aScalGlob);
-    return aRes;
+   std::string aFullNameXML,anOri;
+   //cParamAppliTieTriFar aParam;
+
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(aFullNameXML, "Name XML for Triangu",  eSAM_IsPatFile)
+                     << EAMC(anOri,        "Orientation dir"),
+         LArgMain()   
+               );
+
+
+       return EXIT_SUCCESS;
 }
 
-
-double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2,bool Show)
-{
-     ELISE_ASSERT(aHom1->Kind() == aHom2->Kind(),"Dif Kind in TestMatchInvRad");
-     
-     std::vector<int> aVS0 =  VectScal(aHom1,aHom2);
-     std::vector<int> aVNbOk(aVS0.size(),0);
-     int aNbOkLab = 0;
-     for (int aK=0 ; aK<int(aVH.size()) ; aK++)
-     {
-         const cOnePCarac * aHomTest = & aVH[aK];
-         if (aHomTest->Kind() == aHom2->Kind())
-         {
-             aNbOkLab ++;
-             std::vector<int> aVScal =  VectScal(aHomTest,aHom2);
-             for (int aK=0 ; aK<int(aVScal.size()); aK++)
-                 aVNbOk[aK]  += (aVScal[aK] < aVS0[aK]);
-         }
-     }
-     if (Show)
-     {
-        for (int aK=0 ; aK<int(aVNbOk.size()) ; aK++)
-           std::cout << "For " <<  eToString(eTypeInvRad(aK))  << " " << aVNbOk[aK] / double(aNbOkLab) << "\n";
-     }
-     return aVNbOk.back() / double(aNbOkLab);
-}
-
-void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2)
-{
-     ScoreTestMatchInvRad(aVH,aHom1,aHom2,true);
-}
-
-
-double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2)
-{
-   return ScoreTestMatchInvRad(aVH,aHom1,aHom2,false);
-}
-
-#if (0)
-#endif
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

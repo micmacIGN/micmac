@@ -40,6 +40,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+const std::string NH_KeyAssoc_Nuage =  "NKS-Assoc-NHNuageRef";
+const std::string NH_KeyAssoc_PC    =  "NKS-Assoc-NHPtRef" ; 
+
 class cAppliStatPHom;
 class cOneImSPH;
 
@@ -58,6 +61,9 @@ class cAppliStatPHom
     private :
        void ShowStat(const std::string & aMes,int aNb,std::vector<double>  aVR,double aPropMax=1.0);
        void TestHom();
+       double EcartEpip(const Pt2dr & aP1,const Pt2dr & aP2);
+       double EcartCompl(const Pt2dr & aP1,const Pt2dr & aP2);
+
        std::string mDir;
        cInterfChantierNameManipulateur * mICNM;
        cOneImSPH * mI1;
@@ -70,10 +76,10 @@ class cAppliStatPHom
        
        ElPackHomologue   mPack;
        bool              mSetPI;
-       std::string mExtInput;
+       std::string       mExtInput;
+       bool              mTestFlagBin;
+       std::string       mExtOut;
 
-       double EcartEpip(const Pt2dr & aP1,const Pt2dr & aP2);
-       double EcartCompl(const Pt2dr & aP1,const Pt2dr & aP2);
 };
 
 class cOneImSPH
@@ -139,11 +145,21 @@ cOnePCarac * cOneImSPH::Nearest(const Pt2dr& aP0,int aKLab,double &aDMin,double 
     return aRes;
 }
 
+void AddRand(cSetRefPCarac & aSRef,const std::vector<cOnePCarac*> aVP, int aNb)
+{
+   cRandNParmiQ aRNpQ(aNb,aVP.size());
+   for (const auto & aPtr : aVP)
+       if (aRNpQ.GetNext())
+          aSRef.SRPC_Rand().push_back(*aPtr);
+}
+
+
 void cOneImSPH::TestMatch(cOneImSPH & aI2)
 {
 
    for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
    {
+        cSetRefPCarac aSetRef;
         mVHom.push_back(std::vector<cOnePCarac*>());
         int aDifMax = 3;
         std::vector<int>  aHistoScale(aDifMax+1,0);
@@ -196,11 +212,19 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                          aScorInvR.push_back(aPropInv);
                          // if (aNbOk%10) std::cout << "aNbOk++aNbOk++ " << aNbOk << "\n";
                          if (aPropInv < aSeuilProp)
+
                             aHom = aP;
                     }
                 }
 
                 mVHom.at(aKL).push_back(aHom);
+                if (aHom)
+                {
+                    cSRPC_Truth aTruth;
+                    aTruth.P1() = *(aV1[aK1]);
+                    aTruth.P2() = *(aHom);
+                    aSetRef.SRPC_Truth().push_back(aTruth);
+                }
             }
 
             mAppli.ShowStat("By Homol D for ",20,aVD12,0.5);
@@ -213,8 +237,34 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                   std::cout << "  * For dif="  << aK << " perc=" << (aNb * 100.0) / aNbOk << "\n";
             }
 
-            getchar();
+
+            // Test random, pas forcement tres interessant
+            if (0)
+            {
+                for (int aNbB=1 ; aNbB<=2 ; aNbB++)
+                {
+                   cFullParamCB  aFB = RandomFullParamCB(*(aV1[0]),aNbB,3);
+                   TestFlagCB(aFB,aV1,aV2,mVHom.at(aKL));
+                }
+            }
+
+            if (mAppli.mTestFlagBin)
+            {
+                cFullParamCB  aFPB =   Optimize(true,aV1,aV2,mVHom.at(aKL),1);
+                TestFlagCB(aFPB,aV1,aV2,mVHom.at(aKL));
+            }
+            AddRand(aSetRef,aV1,round_up(aSetRef.SRPC_Truth().size()/4.0));
+            AddRand(aSetRef,aV2,round_up(aSetRef.SRPC_Truth().size()/4.0));
+
+            std::string aExt = eToString(eTypePtRemark(aKL));
+            if (EAMIsInit(&mAppli.mExtOut))
+               aExt =  mAppli.mExtOut + "-" +  aExt;
+            std::string aKey = NH_KeyAssoc_PC + "@"+aExt;
+            std::string aName =  mAppli.mICNM->Assoc1To2(aKey,mN,aI2.mN,true);
+            MakeFileXML(aSetRef,aName);
         }
+
+        // getchar();
    }
 }
 
@@ -301,11 +351,13 @@ void cAppliStatPHom::TestHom()
 
 
 cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
-    mDir ("./"),
-    mSH  (""),
-    mNuage1  (0),
-    mSetPI   (false),
-    mExtInput ("Std")
+    mDir          ("./"),
+    mSH           (""),
+    mNuage1       (0),
+    mSetPI        (false),
+    mExtInput     ("Std"),
+    mTestFlagBin  (false),
+    mExtOut       ()
 {
    std::string aN1,aN2;
    ElInitArgMain
@@ -318,6 +370,7 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
                      << EAM(mNameNuage,"NC",true,"Name of cloud")
                      << EAM(mSetPI,"SetPI",true,"Set Integer point, def=false,for stat")
                      << EAM(mExtInput,"ExtInput",true,"Extentsion for tieP")
+                     << EAM(mExtOut,"ExtOut",true,"Extentsion for output")
    );
 
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
@@ -325,7 +378,6 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
    StdCorrecNameHomol(mSH,mDir);
    mI1 = new cOneImSPH(aN1,*this);
 
-/*
    if (1)
    {
        for (int aNbB=1 ; aNbB<4 ; aNbB++)
@@ -334,11 +386,17 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
           MakeFileXML(aFB,"Test_"+ToString(aNbB)+".xml");
        }
    }
-*/
+
    mI2 = new cOneImSPH(aN2,*this);
 
    if (EAMIsInit(&mNameNuage))
+   {
+      if (mNameNuage=="") 
+      {
+          mNameNuage =  mICNM->Assoc1To1(NH_KeyAssoc_Nuage+"@.xml",aN1,true);
+      }
       mNuage1 = cElNuage3DMaille::FromFileIm(mNameNuage);
+   }
 
    mPack = mICNM->StdPackHomol(mSH,mI1->mN,mI2->mN);
    TestHom();
@@ -354,9 +412,87 @@ int  CPP_StatPHom(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
+
+/*
+
+extern const std::string NH_DirRefNuage;
+extern const std::string NH_DirRef_PC;  // Point caracteristique
+    
+*/
+
+
+
+
+class cAppli_RenameRef
+{
+    public :
+         cAppli_RenameRef(int argc,char ** argv);
+         void CpFile(std::string &,const std::string & aKind);
+    private :
+         cInterfChantierNameManipulateur * mICNM;
+         std::string   mNameNuage;
+         std::string   mNameIm;
+};
+
+void cAppli_RenameRef::CpFile(std::string & aName,const std::string & aKind)
+{
+/*
+   std::string aDest = mPrefOut + "-" + aKind + ".tif";
+   ELISE_fp::CpFile(DirOfFile(mNameNuage)+aName,aDest); 
+   aName = NameWithoutDir(aDest);
+*/
+   std::string aDest =  mICNM->Assoc1To1(NH_KeyAssoc_Nuage+"@-"+aKind+".tif",mNameIm,true);
+   ELISE_fp::CpFile(DirOfFile(mNameNuage)+aName,aDest); 
+   aName = NameWithoutDir(aDest);
+}
+
   
+cAppli_RenameRef::cAppli_RenameRef(int argc,char ** argv) 
+{
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(mNameNuage, "Name Nuage")
+                     << EAMC(mNameIm, "Name Image"),
+         LArgMain()  
+   );
+
+   // C'est le numero d'étape d'une denomination standard
+   if (mNameNuage.size()<=2)
+   {
+       mNameNuage = "MM-Malt-Img-"+ StdPrefix(mNameIm) + "/NuageImProf_STD-MALT_Etape_"+ mNameNuage + ".xml";
+   }
+
+   mICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+   std::string aNameOut =  mICNM->Assoc1To1(NH_KeyAssoc_Nuage+"@.xml",mNameIm,true);
+
+   cXML_ParamNuage3DMaille aParam = StdGetFromSI(mNameNuage,XML_ParamNuage3DMaille);
+
+   cImage_Profondeur & aIP = aParam.Image_Profondeur().Val();
+   
+   CpFile(aIP.Image(),"Prof");
+   CpFile(aIP.Masq(),"Masq");
+   if (aIP.Correl().IsInit())
+      CpFile(aIP.Correl().Val(),"Correl");
+
+   MakeFileXML(aParam,aNameOut);
+/*
+  <Image_Profondeur>
+               <Image>Z_Num6_DeZoom4_STD-MALT.tif</Image>
+               <Masq>AutoMask_STD-MALT_Num_5.tif</Masq>
+               <Correl>Correl_STD-MALT_Num_5.tif</Correl>
+*/
+}
 
 
+int  CPP_PHom_RenameRef(int argc,char ** argv)
+{
+   cAppli_RenameRef anAppli(argc,argv);
+   return EXIT_SUCCESS;
+}
+
+/***************************************/
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

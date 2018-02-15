@@ -107,7 +107,7 @@ class cMesh
 
         void        write(const string & aOut, bool aBin, const string & textureFilename="");
 
-        void        Export(string aOut, set <int> const &triangles);
+        void        Export(string aOut, set <int> const &triangles, bool aBin=false);
 
 private:
 

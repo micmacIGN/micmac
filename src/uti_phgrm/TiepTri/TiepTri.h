@@ -168,6 +168,7 @@ class cParamAppliTieTri
         string   mHomolOut;
         Pt2dr    mSurfDiffAffHomo;
         bool     mUseHomo;
+        double   mMaxErr;
 };
 
 
@@ -232,7 +233,11 @@ class cAppliTieTri : public cParamAppliTieTri
             void SetMasqIm(const  std::string  & aKeyMasqIm);
 
             Pt2dr &         MoyDifAffHomo() {return mMoyDifAffHomo;}
+            Pt2dr &         MaxDifAffHomo() {return mMaxDifAffHomo;}
             int   &         CountDiff() {return mCountDiff;}
+            vector<int> &   HistoErrAffHomoX() {return mHistoErrAffHomoX;}
+            vector<int> &   HistoErrAffHomoY() {return mHistoErrAffHomoY;}
+            ofstream mErrLog;
 
       private  :
          cAppliTieTri(const cAppliTieTri &); // N.I.
@@ -286,7 +291,10 @@ class cAppliTieTri : public cParamAppliTieTri
          int                mCurEtape;
 
          Pt2dr          mMoyDifAffHomo;
+         Pt2dr          mMaxDifAffHomo;
          int            mCountDiff;
+         vector<int>    mHistoErrAffHomoX;
+         vector<int>    mHistoErrAffHomoY;
 };
 
 /*

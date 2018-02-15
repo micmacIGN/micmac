@@ -45,6 +45,7 @@ Pt2di cAppli_NewRechPH::SzInvRad()
    return Pt2di(mNbSR, mNbTetaInv);
 }
 
+/*
 void NormalizeVect(std::vector<double> & aVect)
 {
     double aS0  = 0.0;
@@ -66,10 +67,12 @@ void NormalizeVect(std::vector<double> & aVect)
         aVal = (aVal-aS1) / aSig;
     }
 }
+*/
 
 // Pt2dr aPTBUG (2914.32,1398.2);
 Pt2dr aPTBUG (2892.06,891.313);
 
+/*
 void NormaliseSigma(double & aMoySom,double & aVarSig,const double & aPds)
 {
    aMoySom /=  aPds;
@@ -77,6 +80,96 @@ void NormaliseSigma(double & aMoySom,double & aVarSig,const double & aPds)
    aVarSig -= ElSquare(aMoySom);
    aVarSig = sqrt(ElMax(1e-10,aVarSig));
 }
+*/
+
+static constexpr float DefInvRad = -1e20;
+
+void  NormalizeVect(Im2D_INT1  aIout , Im2D_REAL4 aIin, int aK)
+{
+   int aTx = aIout.tx();
+   INT1 * aDOut =  aIout.data()[aK];
+   REAL4 * aDIn =  aIin.data()[aK];
+
+   double aS0  = 0.0;
+   double aS1  = 0.0;
+   double aS2  = 0.0;
+   for (int aK=0 ; aK<aTx ; aK++)
+   {
+      float aVal = aDIn[aK];
+      if (aVal != DefInvRad)
+      {
+      
+         aS0 +=  1.0;
+         aS1 +=  aVal;
+         aS2 += ElSquare(aVal);
+      }
+   }
+   aS1 /= aS0;
+   aS2 /= aS0;
+   aS2 -= ElSquare(aS1);
+   double aSig = sqrt(ElMax(1e-10,aS2));
+
+// static int aCpt=0;
+// static int aCptOF=0;
+   for (int aK=0 ; aK<aTx ; aK++)
+   {
+      if (aDIn[aK] != DefInvRad)
+      {
+         float aVal =  ((aDIn[aK]-aS1) / aSig) ;
+         aDOut[aK] =  El_CTypeTraits<INT1>::Tronque(round_ni(aVal*32));
+
+         // aCpt++;
+         // if (ElAbs(aVal)>4) aCptOF++;
+
+// std::cout << "VVVVV= " << aVal << "\n";
+      }
+      else
+      {
+         aDOut[aK] = 0;
+      }
+   }
+
+   // std::cout << "Prop OF " << aCptOF / double(aCpt) << "\n";
+}
+
+
+class cRadInvStat
+{
+    public :
+        cRadInvStat() :
+           mComp (false),
+           mS0 (0.0),
+           mS1 (0.0),
+           mS2 (0.0),
+           mS3 (0.0)
+         {
+         }
+         void Add(double aVal)
+         {
+            mS0++;
+            mS1 += aVal;
+            mS2 += ElSquare(aVal);
+            mS3 += ElSquare(aVal) * aVal;
+         }
+         void Comp()
+         {
+            mS1 /= mS0;
+            mS2 /= mS0;
+            mS3 /= mS0;
+            mS2 -= ElSquare(mS1);
+            mS3 -= ElSquare(mS1) *mS1;
+            mS2 = sqrt(ElMax(1e-14,mS2));
+            mS3 = (mS3>=0) ? pow(mS3,1/3.0) :   -pow(-mS3,1/3.0);
+         }
+    // private :
+        bool mComp;
+        double mS0;
+        double mS1;
+        double mS2;
+        double mS3;
+};
+
+
 
 bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 {
@@ -121,6 +214,11 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       aLastScale = aCurScale;
    }
 
+   Pt2di aSzIm(int(aVIm.size()),int(eTIR_NoLabel));
+   aPt.InvR().ImRad() = Im2D_INT1(aSzIm.x,aSzIm.y,(INT1)0);
+   Im2D_REAL4 aBufRad(aSzIm.x,aSzIm.y,DefInvRad);
+   REAL4 ** aDataBR = aBufRad.data();
+
    // Calcul de l'image "log/polar"
 
    for (int aKTeta=0 ; aKTeta<mNbTetaInv; aKTeta++)
@@ -148,95 +246,86 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 
    int aKPS2 = mNbTetaInv /4 ;
    int aKPi  = mNbTetaInv /2 ;
+   int aNbGrand = ((int) eTIR_NoLabel) / 3;
    for (int aKRho=0 ; aKRho<int(aVIm.size()) ; aKRho++)
    {
       double aRealDTeta =  aVDeltaRad[aKRho] / aVDeltaTang[aKRho];
       int aDTeta = round_ni(aRealDTeta); // Delta correspondant a 1 rho
 
-      bool WithGR = (aKRho!=0);
-      double aSomV        =0;
-      double aSomV2       =0;
-      double aSomGradRadial  =0;
-      double aSomGradTeta =0;
-      double aSomGradTetaPiS2 =0;
-      double aSomGradTetaPi   =0;
-      double aSomGradCrois = 0 ;
-      double aSomGradCrois2 = 0 ;
+      std::vector<cRadInvStat> aVRIS(aNbGrand,cRadInvStat());
 
-      double aSomGradOpposPi    = 0 ;
-      double aSomGrad2OpposPi   = 0 ;
-      double aSomGradOpposPiS2  = 0 ;
-      double aSomGrad2OpposPiS2 = 0 ;
+      cRadInvStat & aRadiom = aVRIS[0];  // 0
+      cRadInvStat & aGradRad = aVRIS[1];   //1
+      cRadInvStat & aGradCrois = aVRIS[2]; //1 
+      cRadInvStat & aGradTan = aVRIS[3]; //0
+      cRadInvStat & aGradTanPiS2 = aVRIS[4]; //0
+      cRadInvStat & aGradTanPi = aVRIS[5]; //0
+      cRadInvStat & aLaplRad = aVRIS[6];   //2
+      cRadInvStat & aLaplTan = aVRIS[7]; // 0
+      cRadInvStat & aLaplCrois = aVRIS[8]; // 1
+      cRadInvStat & aDiffOpposePi = aVRIS[9]; // 
+      cRadInvStat & aDiffOpposePiS2 = aVRIS[10]; //
+
+
+      bool WithRD1 = (aKRho>=1);
+      bool WithRD2 = (aKRho>=2);
 
       int aKROp = aVIm.size()-1 - aKRho;
 
       for (int aKTeta=0 ; aKTeta<mNbTetaInv; aKTeta++)
       {
-          int aKTetaPlus1 = (1    +aKTeta)%mNbTetaInv;
+          int aKTetaPlus1 =  (1    +aKTeta)%mNbTetaInv;
+          int aKTetaMoins1 = (mNbTetaInv-1    +aKTeta)%mNbTetaInv;
           int aKTetaPiS2  = (aKPS2+aKTeta)%mNbTetaInv;
           int aKTetaPi    = (aKPi+aKTeta)%mNbTetaInv;
 
           double aVal = aTBuf.get(Pt2di(aKRho,aKTeta));
-          aSomV +=  aVal;
-          aSomV2 += ElSquare(aVal);
-          aSomGradTeta +=     ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,aKTetaPlus1)));
-          aSomGradTetaPiS2 += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,aKTetaPiS2)));
-          aSomGradTetaPi   += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho,aKTetaPi)));
+          double aVTp1 = aTBuf.get(Pt2di(aKRho,aKTetaPlus1));
+          double aVTm1 = aTBuf.get(Pt2di(aKRho,aKTetaMoins1));
+          aRadiom.Add(aVal);
+          aGradTan.Add(ElAbs(aVal-aVTp1));
+          aGradTanPiS2.Add(ElAbs(aVal-aTBuf.get(Pt2di(aKRho,aKTetaPiS2))));
+          aGradTanPi.Add(ElAbs(aVal-aTBuf.get(Pt2di(aKRho,aKTetaPi))));
+          aLaplTan.Add(ElAbs(2*aVal-aVTp1-aVTm1));
+          aDiffOpposePi.Add  (ElAbs(aVal -aTBuf.get(Pt2di(aKROp,aKTetaPi))));
+          aDiffOpposePiS2.Add(ElAbs(aVal -aTBuf.get(Pt2di(aKROp,aKTetaPiS2))));
 
-          double aGradOpPi =  ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKROp,aKTetaPi)));
-          aSomGradOpposPi += aGradOpPi;
-          aSomGrad2OpposPi += ElSquare(aGradOpPi);
-          double aGradOpPiS2 =  ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKROp,aKTetaPiS2)));
-          aSomGradOpposPiS2 += aGradOpPiS2;
-          aSomGrad2OpposPiS2 += ElSquare(aGradOpPiS2);
-
-          if (WithGR)
+          if (WithRD1)
           {
              int aKTetaCr =  (aDTeta+aKTeta)%mNbTetaInv;
-             aSomGradRadial += ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho-1,aKTeta)));
-             double aGradCr = ElAbs(aTBuf.get(Pt2di(aKRho,aKTeta)) -aTBuf.get(Pt2di(aKRho-1,aKTetaCr)));
-             aSomGradCrois += aGradCr;
-             aSomGradCrois2 += ElSquare(aGradCr);
+             double aVT0R1 = aTBuf.get(Pt2di(aKRho-1,aKTeta  ));
+             double aVT1R0 = aTBuf.get(Pt2di(aKRho  ,aKTetaCr));
+             double aVT1R1 = aTBuf.get(Pt2di(aKRho-1,aKTetaCr));
+             aGradRad.Add(ElAbs(aVal-aVT0R1));
+             aGradCrois.Add(ElAbs(aVal-aVT1R1));
+             aLaplCrois.Add(ElAbs(aVal+aVT1R1 - aVT0R1 - aVT1R0));
+
+             if (WithRD2)
+             {
+                double aVT0R2 = aTBuf.get(Pt2di(aKRho-2,aKTeta));
+                aLaplRad.Add(ElAbs(2*aVT0R1-aVal-aVT0R2));  
+             }
           }
       }
-
-      NormaliseSigma(aSomV,aSomV2,mNbTetaInv);
-      aPt.CoeffRadiom().push_back(aSomV);
-      aPt.CoeffRadiom2().push_back(aSomV2);
-
-      NormaliseSigma(aSomGradOpposPi  , aSomGrad2OpposPi  , mNbTetaInv);
-      aPt.CoeffDiffOpposePi().push_back(aSomGradOpposPi);
-      aPt.CoeffDiffOppose2Pi().push_back(aSomGrad2OpposPi);
-
-      NormaliseSigma(aSomGradOpposPiS2, aSomGrad2OpposPiS2, mNbTetaInv);
-      aPt.CoeffDiffOpposePiS2().push_back(aSomGradOpposPiS2);
-      aPt.CoeffDiffOppose2PiS2().push_back(aSomGrad2OpposPiS2);
-
-      if (WithGR)
-      {
-         aPt.CoeffGradRadial().push_back(aSomGradRadial);
-         NormaliseSigma(aSomGradCrois,aSomGradCrois2,mNbTetaInv);
-         aPt.CoeffGradCroise().push_back(aSomGradCrois);
-         aPt.CoeffGradCroise2().push_back(aSomGradCrois2);
-      }
-      aPt.CoeffGradTangent().push_back(aSomGradTeta);
-      aPt.CoeffGradTangentPiS2().push_back(aSomGradTetaPiS2);
-      aPt.CoeffGradTangentPi().push_back(aSomGradTetaPi);
       
+      for (int aK=0 ; aK< aNbGrand ; aK++)
+      {
+         cRadInvStat & aRIS = aVRIS[aK];  // 0
+         if (aRIS.mS0)
+         {
+            aRIS.Comp();
+            aDataBR[aK][aKRho] = aRIS.mS1;
+            aDataBR[aK+aNbGrand][aKRho] = aRIS.mS2;
+            aDataBR[aK+2*aNbGrand][aKRho] = aRIS.mS3;
+         }
+      }
    }
-   NormalizeVect(aPt.CoeffRadiom());
-   NormalizeVect(aPt.CoeffRadiom2());
-   NormalizeVect(aPt.CoeffGradRadial());
-   NormalizeVect(aPt.CoeffGradTangent());
-   NormalizeVect(aPt.CoeffGradTangentPiS2());
-   NormalizeVect(aPt.CoeffGradTangentPi());
-   NormalizeVect(aPt.CoeffGradCroise());
-   NormalizeVect(aPt.CoeffGradCroise2());
-   NormalizeVect(aPt.CoeffDiffOpposePi());
-   NormalizeVect(aPt.CoeffDiffOppose2Pi());
-   NormalizeVect(aPt.CoeffDiffOpposePiS2());
-   NormalizeVect(aPt.CoeffDiffOppose2PiS2());
 
+   for (int aK=0 ; aK<int(eTIR_NoLabel) ; aK++)
+   {
+       NormalizeVect(aPt.InvR().ImRad(),aBufRad,aK);
+   }
+   
 
    // Sauvegarde
    if (0)
@@ -280,7 +369,8 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       aS2 -= ElSquare(aS1);
       aS2 = sqrt(ElMax(1e-10,aS2));
       ELISE_COPY(aImBuf.all_pts(),(aImBuf.in()-aS1)/aS2, aImBuf.out());
-      aPt.ImRad() = aImBuf;
+      aPt.ImRad() =  Im2D_INT1(aImBuf.sz().x,aImBuf.sz().y);
+      ELISE_COPY(aImBuf.all_pts(),Max(-128,Min(127,round_ni(aImBuf.in()*32))),aPt.ImRad().out());
       aPt.VectRho() = aVRho;
       
       if (BUG)
