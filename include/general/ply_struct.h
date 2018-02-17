@@ -26,10 +26,21 @@ typedef struct sVertex
     float x,y,z;             /* the usual 3-space position of a vertex */
 } sVertex;
 
+typedef struct sVertex64
+{
+    double x,y,z;
+} sVertex64;
+
 typedef struct sPlyOrientedVertex
 {
     float x, y, z, nx, ny, nz;
 } sPlyOrientedVertex;
+
+typedef struct sPlyOrientedVertex64
+{
+    double x, y, z;
+    float nx, ny, nz;
+} sPlyOrientedVertex64;
 
 typedef struct sFace
 {
@@ -50,11 +61,25 @@ typedef struct sPlyColoredVertex
     unsigned char red, green, blue;
 } sPlyColoredVertex;
 
+typedef struct sPlyColoredVertex64
+{
+    double x, y, z;
+    unsigned char red, green, blue;
+} sPlyColoredVertex64;
+
+
 typedef struct sPlyColoredVertexWithAlpha
 {
     float x, y, z;
     unsigned char red, green, blue, alpha;
 } sPlyColoredVertexWithAlpha;
+
+typedef struct sPlyColoredVertexWithAlpha64
+{
+    double x, y, z;
+    unsigned char red, green, blue, alpha;
+} sPlyColoredVertexWithAlpha64;
+
 
 typedef struct sPlyOrientedColoredVertex
 {
@@ -62,10 +87,24 @@ typedef struct sPlyOrientedColoredVertex
     unsigned char red, green, blue;
 } sPlyOrientedColoredVertex;
 
+typedef struct sPlyOrientedColoredVertex64
+{
+    double x, y, z;
+    float nx, ny, nz;
+    unsigned char red, green, blue;
+} sPlyOrientedColoredVertex64;
+
 typedef struct sPlyOrientedColoredAlphaVertex
 {
     float x, y, z, nx, ny, nz;
     unsigned char red, green, blue, alpha;
 } sPlyOrientedColoredAlphaVertex;
+
+typedef struct sPlyOrientedColoredAlphaVertex64
+{
+    double x, y, z;
+    float nx, ny, nz;
+    unsigned char red, green, blue, alpha;
+} sPlyOrientedColoredAlphaVertex64;
 
 #endif

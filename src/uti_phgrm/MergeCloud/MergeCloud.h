@@ -295,6 +295,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        
        bool          HasOffsetPly() ;
        const Pt3dr & OffsetPly() ;
+       const bool    Export64BPly();
     private :
        tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
        tMCSom * SomOfName(const std::string & aName);
@@ -344,6 +345,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        Pt3dr                           mOffsetPly;
 
        std::string                     mSH;
+       bool                            mDoublePrec;
 };
 
    //==============================================================================
