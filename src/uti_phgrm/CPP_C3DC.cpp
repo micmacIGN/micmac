@@ -118,6 +118,8 @@ class cAppli_C3DC : public cAppliWithSetImage
          Pt3dr       mOffsetPly;
          int         mSzW;
          bool        mNormByC;
+         double      mResolTerrain;
+
 
 };
 
@@ -225,7 +227,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
 						<< EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
 						<< EAM(mSetHom,"SH",true,"Set of Hom, Def=\"\"")
-                        << EAM(mNormByC,"NormByC",true,"Replace normal with camera position in ply (Def=false)")
+            << EAM(mNormByC,"NormByC",true,"Replace normal with camera position in ply (Def=false)")
+
 
 		);
 	}
@@ -650,6 +653,7 @@ class cAppli_MPI2Mnt
          void ExeCom(const std::string & aCom);
          double      mZReg;
          double      mSeuilE;
+         double      mResolTerrain;
 };
 
 void cAppli_MPI2Mnt::ExeCom(const std::string & aCom)
@@ -810,6 +814,9 @@ void cAppli_MPI2Mnt::DoMTD()
                           + " EZA=1 "
                        ;
 
+    if (mResolTerrain > 0. )
+      aCom += " ResolTerrain=" + ToString(mResolTerrain);
+
     ExeCom(aCom);
 
 /*
@@ -840,7 +847,8 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mPurge       (true),
     mUseTA       (false),
     mZReg        (0.02),
-    mSeuilE      (5.0)
+    mSeuilE      (5.0),
+    mResolTerrain(0.0)
 {
    ElInitArgMain
    (
@@ -858,6 +866,8 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mUseTA,"UseTA",true,"Use TA as filter when exist (Def=false)",eSAM_InternalUse)
                     << EAM(mResolIm,"RI",true,"Resol Im, def=1 ",eSAM_InternalUse)
                     << EAM(mSeuilE,"SeuilE",true,"Seuil d'etirement des triangle, Def=5")
+                    << EAM(mResolTerrain,"ResolTerrain",true,"Ground Resol (Def automatically computed)", eSAM_NoInit)
+
    );
 
    mResolIm  /= mDeZoom;
