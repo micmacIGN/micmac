@@ -637,10 +637,13 @@ extern int  T2V_main(int argc,char ** argv);
 extern int  Tapioca_IDR_main(int argc,char ** argv);
 extern int  resizeImg_main(int argc,char ** argv);
 extern int  resizeHomol_main(int argc,char ** argv);
+extern int  VarioCamTo8Bits_main(int argc,char ** argv);
 // test je jo
 extern int  main_test(int argc,char ** argv);
+extern int  main_test2(int argc,char ** argv);
 extern int  main_ero(int argc,char ** argv);
 extern int  main_ascii2tif(int argc,char ** argv);
+extern int  GCP2Hom_main(int argc,char ** argv);
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int,char **);
 #endif
@@ -934,9 +937,12 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("GeoSud",ServiceGeoSud_GeoSud_main,""));
         aRes.push_back(cMMCom("Surf",ServiceGeoSud_Surf_main,""));
         aRes.push_back(cMMCom("ImageRectification",ImageRectification,"Rectify individual aerial images, ground is assumed to be a plane"));
+        aRes.push_back(cMMCom("ThermicVarioCamTo8Bits",VarioCamTo8Bits_main,"Convert 16 bits Variocam thermic images to 8 bits"));
         aRes.push_back(cMMCom("jo_FFH",FilterFileHom_main,"filtrer un fichier de paire d'image"));
         aRes.push_back(cMMCom("jo_T2V",T2V_main,"appliquer une homographie a un ensemble d'im thermique pour Reg avec images visibles"));
         aRes.push_back(cMMCom("jo_test",main_test,"test function for didro project"));
+        aRes.push_back(cMMCom("jo_test2",main_test2,"test function for didro project"));
+        aRes.push_back(cMMCom("GCP2Hom",GCP2Hom_main,"Convert GCP 2D measures in homol file"));
         aRes.push_back(cMMCom("TapiocaIDR",Tapioca_IDR_main,"Utiliser Tapioca avec des Images de Résolution Différente (effectue un resample des images)"));
         aRes.push_back(cMMCom("ResizeImg",resizeImg_main,"Resize image in order to reach a specific image width"));
         aRes.push_back(cMMCom("ResizeHomol",resizeHomol_main,"Resize Homol pack"));

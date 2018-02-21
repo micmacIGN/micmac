@@ -242,14 +242,12 @@ void cERO_Appli::computeModel4EveryPairs()
                                 + mDir +cple.N2()
                                 + " Debug=" + ToString(mDebug)
                                 + " Dir=" + mDirOut
-                                + " W1=1 W2=1" // poid des images, test avec poid egal toutes les images
+                                + " W1=1 W2=1 WIncid=1" // poid des images, test avec poid egal toutes les images
                                 ;
          aLCom.push_back(aCom);
          if (mDebug) std::cout << aCom << "\n";
     }
-
     cEl_GPAO::DoComInParal(aLCom);
-
 }
 
 // charger les modeles et calculer mod moyen
@@ -290,7 +288,7 @@ void cERO_Appli::loadEROSmodel4OneIm(std::string aNameOrt)
 
     // LSQ matching
     cLSQ_2dline LSQ_mod(&aCpleRad,&aVPond);
-    LSQ_mod.adjustModel();
+    LSQ_mod.adjustModelL2();
     if (mDebug) LSQ_mod.affiche();
 
     // sauve le modèle dans la liste des modèles

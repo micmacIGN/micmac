@@ -110,6 +110,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/DIDRO/divers.cpp
 	${TDPPMD_DIR}/DIDRO/ascii2tif.cpp
 	${TDPPMD_DIR}/DIDRO/ctapioca_idr.cpp
+	${TDPPMD_DIR}/DIDRO/cAppuis2homol.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/Arbre.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/Image.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/DescriptorExtractor.cpp
