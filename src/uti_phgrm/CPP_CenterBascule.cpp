@@ -190,7 +190,7 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
 
        if (isCSV)
        {
-           mCSVContent << anIm->mNameIm <<","<< ToString(aC1.x) << "," << ToString(aC1.y) << "," <<ToString(aC1.z) << "," << ToString(aDC);
+           mCSVContent << anIm->mNameIm <<","<< ToString(abs(aC1.x - aC2.x)) << "," << ToString(abs(aC1.y - aC2.y)) << "," <<ToString(abs(aC1.z - aC2.z)) << "," << ToString(aDC);
            mCSVContent << "\n";
        }
    }

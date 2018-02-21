@@ -949,8 +949,9 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
     }
 }
 
-void cMesh::Export(string aOut, set<int> const &triangles)
+void cMesh::Export(string aOut, set<int> const &triangles, bool aBin)
 {
+    /*
     string mode = "w";  //"a";
 
     FILE * file = FopenNN(aOut, mode, "cMesh::Export");
@@ -987,6 +988,78 @@ void cMesh::Export(string aOut, set<int> const &triangles)
     {
         fprintf(file,"3 %i %i %i\n",bK,bK+1,bK+2);
         bK+=3;
+    }
+*/
+    // ==== test write binary file
+
+    string mode = aBin ? "wb" : "w";
+    string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
+
+    FILE * file = FopenNN(aOut, mode, "cMesh::Export");
+    fprintf(file,"ply\n");
+    fprintf(file,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
+    fprintf(file,"element vertex %i\n", (int) triangles.size()*3);
+    fprintf(file,"property float x\n");
+    fprintf(file,"property float y\n");
+    fprintf(file,"property float z\n");
+    fprintf(file,"element face %i\n",(int) triangles.size());
+    fprintf(file,"property list uchar int vertex_indices\n");
+    fprintf(file,"end_header\n");
+
+    Pt3dr pt;
+
+    if (aBin)
+    {
+        std::set<int>::const_iterator it = triangles.begin();
+        for(;it!=triangles.end();++it)
+        {
+            cTriangle* face = getTriangle(*it);
+
+            vector <Pt3dr> Pts;
+            face->getVertexes(Pts);
+
+            for(unsigned int aK=0; aK<Pts.size();++aK)
+            {
+                pt = Pts[aK];
+                WriteType(file,float(pt.x));
+                WriteType(file,float(pt.y));
+                WriteType(file,float(pt.z));
+            }
+        }
+        it = triangles.begin();
+        for(int bK=0;it!=triangles.end();++it)
+        {
+            WriteType(file,(unsigned char)3);
+            WriteType(file,bK);
+            WriteType(file,bK+1);
+            WriteType(file,bK+2);
+            bK+=3;
+        }
+    }
+    else
+    {
+        std::set<int>::const_iterator it = triangles.begin();
+        for(;it!=triangles.end();++it)
+        {
+            cTriangle* face = getTriangle(*it);
+
+            vector <Pt3dr> Pts;
+            face->getVertexes(Pts);
+
+            for(unsigned int aK=0; aK<Pts.size();++aK)
+            {
+                pt = Pts[aK];
+
+                fprintf(file,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+            }
+        }
+
+        it = triangles.begin();
+        for(int bK=0;it!=triangles.end();++it)
+        {
+            fprintf(file,"3 %i %i %i\n",bK,bK+1,bK+2);
+            bK+=3;
+        }
     }
 }
 

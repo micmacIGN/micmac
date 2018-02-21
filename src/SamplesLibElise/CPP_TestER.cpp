@@ -1010,6 +1010,54 @@ int TestER_filtRec_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+
+int TestER_tiff2pfm(int argc,char ** argv)
+{
+    std::string aIn;
+    std::string aOut = "Output.pfm";
+    Pt2di aSz;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aIn,"Input file"),
+        LArgMain() << EAM(aOut,"Out",true, "Outputi pfm file")
+	);
+
+    Tiff_Im ImgTiff = Tiff_Im::StdConvGen(aIn,-1,true);
+
+    Im2D_REAL4 I(ImgTiff.sz().x, ImgTiff.sz().y);
+    ELISE_COPY
+    (
+        I.all_pts(),
+        ImgTiff.in(),
+        I.out()
+    );
+   
+    aSz = ImgTiff.sz();
+    
+    //save
+    FILE *stream = fopen(aOut.c_str(), "wb");
+    fprintf(stream, "Pf\n%d %d\n%f\n", aSz.x, aSz.y, float(-1.0));
+
+    for (int aK2=aSz.y-1; aK2>=0; aK2--)
+    {
+        float *aLine = new float[aSz.x]; 
+        for (int aK1=0; aK1<aSz.x; aK1++)
+        {
+            aLine[aK1] = float(I.Val(aK1,aK2));
+        }
+        std::cout << aLine[0] << " " << aLine[10] << "\n";
+ 
+        if(int(fwrite(aLine, sizeof(float), aSz.x, stream)) != aSz.x)
+            ELISE_ASSERT(false,"File is too short");
+        delete[] aLine;
+    }
+    fclose(stream); 
+
+ 
+    return EXIT_SUCCESS;
+}
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

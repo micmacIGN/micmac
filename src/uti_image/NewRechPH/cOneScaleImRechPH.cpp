@@ -63,6 +63,35 @@ cOneScaleImRechPH::cOneScaleImRechPH(cAppli_NewRechPH &anAppli,const Pt2di & aSz
    // cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
    // mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
    mInterp = mAppli.Interp();
+
+   mVoisGauss = SortedVoisinDisk(-1,2*mScale + 4,true);
+   for (const auto & aPt : mVoisGauss)
+   {
+       mGaussVal.push_back(Gauss(mScale,euclid(aPt)));
+   }
+}
+
+
+
+double cOneScaleImRechPH::QualityScaleCorrel(const Pt2di & aP0,int aSign,bool ImInit)
+{
+   tTImNRPH & aIm = ImInit ? mTIm : mTImMod;
+   RMat_Inertie aMat;
+   double aDef = -1e30;
+   for (int aKV=0 ; aKV<int(mVoisGauss.size()) ; aKV++)
+   {
+        double aVal = aIm.get(aP0+mVoisGauss[aKV],aDef);
+
+        if (aVal != aDef)
+        {
+           double aGausVal = mGaussVal.at(aKV);
+           // Pour l'instant, un peu au pif, on met le poids egal a la gaussienne, 
+           aMat.add_pt_en_place(aVal,aGausVal,aGausVal);
+        }
+   }
+   mQualScaleCorrel = aSign * aMat.correlation();
+
+   return mQualScaleCorrel;
 }
 
 void cOneScaleImRechPH::InitImMod()
@@ -151,11 +180,18 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
     return true;
 }
 
+
 bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
 {
+     if (mTImMod.inside(aP)) 
+        return false;
+     if (aI2->mTImMod.inside(aP)) 
+        return false;
+
     static Pt2di aP00(0,0);
     tElNewRechPH aV0 =  mTImMod.get(aP);
     tElNewRechPH aV2 =  aI2->mTImMod.get(aP);
+
 
     if (aV0== aV2)
     {
@@ -264,6 +300,7 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
              aPC.NivScale() = aBr->NivScal();
              aPC.DirMS() = aVP.back()->Pt() - aVP.front()->Pt();
              aPC.ScaleStab() = aBr->ScaleStab();
+             aPC.ScaleNature() = aBr->ScaleNature();
 
              // std::cout << "DIRMS " << euclid(aPC.DirMS()) << "\n";
 
@@ -422,6 +459,11 @@ bool cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
    
     
    mACD.AutoCorrel(Pt2di(aP.Pt()),2.0);
+   if (!  mACD.ResComputed())
+   {
+      aP.OK() =  false;
+      return false;
+   }
    Pt2dr  aR = mACD.Res();
 
    

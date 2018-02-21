@@ -122,6 +122,7 @@ void TestSigma2(double a)
 cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mPowS        (pow(2.0,1/5.0)),
     mNbS         (30),
+    mISF         (-1,1e10),
     mStepSR      (1.0),
     mNbSR        (10),
     mDeltaSR     (1),
@@ -133,6 +134,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mScaleStab   (4.0),
     mSeuilAC     (0.95),
     mSeuilCR     (0.6),
+    mScaleCorr   (false),
     mW1          (0),
     mModeTest    (ModeTest),
     mDistMinMax  (3.0),
@@ -191,21 +193,23 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mBasic, "Basic",true,"Basic")
                       << EAM(mAddModeSift, "Sift",true,"Add SIFT Mode")
                       << EAM(mAddModeTopo, "Topo",true,"Add Topo Mode")
-
                       << EAM(mLapMS, "LapMS",true,"MulScale in Laplacian, def=false")
                       << EAM(mTestDirac, "Dirac",true,"Test with dirac image")
                       << EAM(mSaveFileLapl, "SaveLapl",true,"Save Laplacian file, def=false")
                       << EAM(mScaleStab, "SS",true,"Scale of Stability")
+                      << EAM(mExtSave, "Save",true,"Extension for save")
+                      << EAM(mScaleCorr, "ScCor",true,"Scale by correl")
+                      << EAM(mISF, "ISF",true,"Interval scale forced")
    );
 
    if (! EAMIsInit(&mExtSave))
    {
-        mExtSave  = mBasic ? "Basic" : "Std";
+      mExtSave  = mBasic ? "Basic" : "Std";
    }
    if (! EAMIsInit(&mNbS))
    {
-       if (mBasic) 
-           mNbS = 1;
+      if (mBasic) 
+          mNbS = 1;
    }
    mNbInOct = log(2) / log(mPowS);
 
@@ -214,15 +218,15 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
       mPlyC = new cPlyCloud;
    }
 
-   Pt2di aP0(0,0);
-   Pt2di aP1 = mTestDirac ? Pt2di(1000,1000) : Pt2di(-1,-1);
+   mP0 = Pt2di(0,0);
+   mP1 = mTestDirac ? Pt2di(1000,1000) : Pt2di(-1,-1);
    if (EAMIsInit(&mBox))
    {
-       aP0 = mBox._p0;
-       aP1 = mBox._p1;
+       mP0 = mBox._p0;
+       mP1 = mBox._p1;
    }
    // Create top scale
-   AddScale(cOneScaleImRechPH::FromFile(*this,mS0,mName,aP0,aP1),nullptr);
+   AddScale(cOneScaleImRechPH::FromFile(*this,mS0,mName,mP0,mP1),nullptr);
 
    // Create matr of link, will have do it much less memory consuming (tiling of list ?)
    mIm0         = mVI1.back()->Im();
@@ -269,7 +273,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
        {
             mVI1[aK]->SiftMakeDif(mVI1[aK+1]);
        }
-       for (int aK=1 ; aK<mNbS-1 ; aK++)
+       for (int aK=1 ; aK<mNbS-2 ; aK++)
        {
             mVI1[aK]->SiftMaxLoc(mVI1[aK-1],mVI1[aK+1],aSPC);
        }
@@ -335,7 +339,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
        }
 
        // Put in global coord
-       aPt.Pt() =  aPt.Pt() + Pt2dr(aP0);
+       aPt.Pt() =  aPt.Pt() + Pt2dr(mP0);
        if (aPt.OK())
           aNewL.push_back(aPt);
   }
@@ -369,6 +373,11 @@ bool  cAppli_NewRechPH::ComputeContrastePt(cOnePCarac & aPt)
    aPt.OK() = aPt.ContrasteRel() > mSeuilCR;
 
    return aPt.OK();
+}
+
+cOneScaleImRechPH * cAppli_NewRechPH::GetImOfNiv(int aNiv)
+{
+   return mVI1.at(aNiv);
 }
 
 
@@ -455,6 +464,27 @@ void cAppli_NewRechPH::ComputeContrast()
    }
 }
 
+
+void cAppli_NewRechPH::AdaptScaleValide(cOnePCarac & aPC)
+{
+    // Pour le faire bien il faut suivre le point, on le fait direct
+    // pour les point max-min topo, et pour sift on verra
+    ELISE_ASSERT(false,"cAppli_NewRechPH::AdaptScaleValide"); 
+/*
+   aPC.ScaleNature() = aPC.Scale();
+
+   if (ScaleIsValid(aPC.Scale())) 
+      return;
+
+   for (const auto & aIm :  mVI1)
+   {
+      if (OkNivLapl(aIm->Niv()))
+      {
+      }
+
+   }
+*/
+}
 
 
 

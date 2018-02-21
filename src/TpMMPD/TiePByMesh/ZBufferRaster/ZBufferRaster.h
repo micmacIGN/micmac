@@ -7,7 +7,6 @@ const double TT_SEUIL_SURF = 100;
 const double TT_SCALE_1 = 1.0;
 const double TT_DISTMAX_NOLIMIT = -1.0;
 
-
 typedef double                    tElZBuf;
 typedef Im2D<tElZBuf,tElZBuf>     tImZBuf;
 typedef TIm2D<tElZBuf,tElZBuf>    tTImZBuf;
@@ -16,6 +15,24 @@ class cImgForTiepTri;
 class cImgZBuffer;
 class cTri3D;
 class cTri2D;
+
+class cParamZbufferRaster
+{
+    public :
+        cParamZbufferRaster();
+        bool        mFarScene;
+        string      mPatFIm, mMesh, mOri;
+        int         mInt;
+        Pt2di       mSzW;
+        int         mrech;
+        double      mDistMax;
+        bool        mWithLbl;
+        bool        mNoTif;
+        int         mMethod;
+        double      MD_SEUIL_SURF_TRIANGLE;
+        double      mPercentVisible;
+};
+
 
 class cAppliZBufferRaster
 {
@@ -26,7 +43,8 @@ public:
                         const std::string & anOri,
                         vector<cTri3D> & aVTri,
                         vector<string> & aVImg,
-                        bool aNoTif
+                        bool aNoTif,
+                        cParamZbufferRaster aParam
                        );
 
     cInterfChantierNameManipulateur * ICNM() {return mICNM;}
@@ -49,6 +67,12 @@ public:
 
     int & Method() {return mMethod;}
     double & SEUIL_SURF_TRIANGLE() {return MD_SEUIL_SURF_TRIANGLE;}
+
+    vector<Pt2di> &                    AccNbImgVisible(){return mAccNbImgVisible;}
+    cParamZbufferRaster &              Param() {return mParam;}
+
+    vector<bool>       &               vImgVisibleFarScene() {return mvImgVisibleFarScene;}
+
 private:
     cInterfChantierNameManipulateur * mICNM;
     std::string                       mDir;
@@ -71,6 +95,10 @@ private:
 
     int                               mMethod;
     double                            MD_SEUIL_SURF_TRIANGLE;
+
+    vector<Pt2di>                     mAccNbImgVisible; // couple (ind, acc)
+    vector<bool>                      mvImgVisibleFarScene; // des image voir "far scene"
+    cParamZbufferRaster               mParam;
 };
 
 class cTri3D
@@ -140,7 +168,7 @@ private:
 class cImgZBuffer
 {
 public:
-    cImgZBuffer(cAppliZBufferRaster *anAppli , const std::string& aNameIm, bool & aNoTif);
+    cImgZBuffer(cAppliZBufferRaster *anAppli , const std::string& aNameIm, bool & aNoTif, int aInd = -1);
 
     cAppliZBufferRaster * Appli() {return mAppli;}
     const string & NameIm() {return mNameIm;}
@@ -161,10 +189,11 @@ public:
     void normalizeIm(tImZBuf & aIm, double valMin, double valMax);
     void ImportResult(string & fileTriLbl, string & fileImgZBuf);
 
-
+    int & Ind(){return mInd;}
 private:
     cAppliZBufferRaster * mAppli;
     std::string    mNameIm;
+    int            mInd;
     Tiff_Im        mTif;
     Pt2di          mSzIm;
     cBasicGeomCap3D *   mCamGen;

@@ -43,9 +43,43 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+extern const std::string NH_DirRefNuage;
+extern const std::string NH_DirRef_PC;  // Point caracteristique
+
+
+
+
 std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
-void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
-cSetPCarac * LoadStdSetCarac(const std::string & aNameIm);
+void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool HighLight);
+cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & Ext="Std");
+
+void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
+double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
+
+
+cFullParamCB RandomFullParamCB(const cOnePCarac & aPC,int aNbBitsByVect,int aNbCoef);
+
+void TestFlagCB(  const cFullParamCB & aCB,
+                  const std::vector<cOnePCarac*>  & aV1,
+                  const std::vector<cOnePCarac*>  & aV2,
+                  const std::vector<cOnePCarac*>  & aHomOf1
+               );
+
+
+cFullParamCB  Optimize
+              (
+                  bool DeuxVal,
+                  const std::vector<cOnePCarac*>  & aV1,
+                  const std::vector<cOnePCarac*>  & aV2,
+                  const std::vector<cOnePCarac*>  & aHomOf1,
+                  double aPdsTruth
+               );
+
+
+
+
+
+
 
 class cAppli_NewRechPH;
 
@@ -58,6 +92,7 @@ typedef cInterpolateurIm2D<tElNewRechPH>  tInterpolNRPH;
 
 
 
+double Gauss(double aSig,double aVal);
 double Sigma2FromFactExp(double a);
 double FactExpFromSigma2(double aS2);
 void TestSigma2(double a);
@@ -173,6 +208,7 @@ class cBrinPtRemark
         std::vector<cPtRemark *> GetAllPt();
         bool    Ok() const {return mOk;}
         double  Scale() const {return  mScale;}
+        double  ScaleNature() const {return  mScaleNature;}
         double  ScaleStab() const {return  mScaleStab;}
         int     NivScal() const {return mNivScal;}
         double  LaplMax() const {return mLaplMax;}
@@ -182,8 +218,10 @@ class cBrinPtRemark
         bool        mOk;
         int         mNivScal;
         double      mScale;
+        double      mScaleNature;
         double      mScaleStab;
         double      mLaplMax;
+        double      mLaplMaxNature;
 };
 
 typedef cPtRemark * tPtrPtRemark;

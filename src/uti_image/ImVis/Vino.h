@@ -50,7 +50,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 // std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
 // void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
 
-cSetPCarac * LoadStdSetCarac(const std::string & aNameIm);
+// cSetPCarac * LoadStdSetCarac(const std::string & aNameIm);
 
 
 //  =======   Pour visualiser les points carac new
@@ -224,6 +224,7 @@ class cAppli_Vino : public cXml_EnvVino,
         void  Boucle();
         cXml_EnvVino & EnvXml() {return static_cast<cXml_EnvVino &> (*this);}
         const cOnePCarac * Nearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
+        int  IndexNearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
 
      private :
         void  ExeOneClik(Clik &);
@@ -376,6 +377,7 @@ class cAppli_Vino : public cXml_EnvVino,
       // Vector view 
 
         std::string    mImNewP;
+        std::string    mExtImNewP;
         int            mSzSift;
         std::string    mImSift;
         double         mSSF;  // Sift Scale Factor => car a bas niveau calcule sur image reduite

@@ -82,6 +82,7 @@ double cOneScaleImRechPH::ComputeContrast()
 
 void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR,cSetPCarac & aSPC)
 {
+// std::cout << "ENTER LAPL TIFF Scccc  \n";
    // std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mScale+2,true);
    std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,2,true);
    Im2D_U_INT1 aIFlag = MakeFlagMontant(mImMod);
@@ -92,8 +93,10 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
    int aSSCstr = 0;
    bool DoMin = mAppli.DoMin();
    bool DoMax = mAppli.DoMax();
+// std::cout << "BOUCCLLLLEEE   ENTER LAPL TIFF Scccc  \n";
    for (aP.x = 1 ; aP.x <mSz.x-1 ; aP.x++)
    {
+// static int aCpt=0; aCpt++; std::cout << "XXXX CPTTTTT= " << aCpt << "\n";
        for (aP.y = 1 ; aP.y <mSz.y-1 ; aP.y++)
        {
            int aFlag = aTF.get(aP);
@@ -129,6 +132,7 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
                aPC.Pt() =  Pt2dr(aP);
                aPC.Scale() = mScale;
                aPC.NivScale() = mNiv;
+               // mAppli.AdaptScaleValide(aPC);
                aPC.ScaleStab() = -1;
                aSPC.OnePCarac().push_back(aPC);
            }

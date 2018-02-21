@@ -48,6 +48,12 @@ public:
                            string fileName,
                            Pt3dr colorRGB
                         );
+    void drawListTriangle(
+                            vector<vector<Pt3dr> > listTri,
+                            string fileName,
+                            Pt3dr colorRGB
+                         );
+
 private:
     vector<triangle*> mPtrListTri;
     vector<pic*> mPtrListPic;

@@ -143,6 +143,7 @@ public :
     }
 };
 
+extern int TiepTriFar_Main(int argc,char ** argv);
 extern int PHO_MI_main(int , char **);
 extern int TiePByMesh_main(int , char **);
 extern int MeshProjOnImg_main(int , char **);
@@ -251,8 +252,9 @@ std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC,const std::string & aLib)
    return aVC; 
 }
 
-int  CPP_StatPHom(int argc,char ** argv);
-
+int CPP_StatPHom(int argc,char ** argv);
+int CPP_PHom_RenameRef(int argc,char ** argv);
+int CPP_PHom_ApprentBinaire(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -398,6 +400,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));
        aRes.push_back(cMMCom("NuageBascule",NuageBascule_main," To Change geometry of depth map "));
+       aRes.push_back(cMMCom("Nuage2Homol",Nuage2Homol_main," Create Tie Points from a depth map"));
+       aRes.push_back(cMMCom("Txt2Dat",Txt2Dat_main," Convert an ascii tie point file to binary"));
 
 
 
@@ -541,6 +545,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ProfilIm",CPP_ProfilImage,"Image profiling  2D->1D "));
        aRes.push_back(cMMCom("EditSet",CPP_EditSet,"Edition creation of a set of images/files"));
        aRes.push_back(cMMCom("StatPHom",CPP_StatPHom,"Stat on homologous point using orientation of 3D Model"));
+       aRes.push_back(cMMCom("PHom_RenameRef",CPP_PHom_RenameRef,"Rename Ref for PHom"));
+       aRes.push_back(cMMCom("PHom_ApBin",CPP_PHom_ApprentBinaire,"Test Binary "));
 
    }
 
@@ -613,6 +619,7 @@ extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
 extern int TestER_hom_main(int argc,char ** argv);
+extern int TestER_tiff2pfm(int argc,char ** argv);
 extern int TestPush(int argc,char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
 extern int Homol2GCP_main(int argc,char ** argv);
@@ -851,6 +858,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
        aRes.push_back(cMMCom("TestER",TestER_main2,"ER test workplace"));
        aRes.push_back(cMMCom("TestER2",TestER_hom_main,"ER test hom"));
+       aRes.push_back(cMMCom("Conv2Pfm",TestER_tiff2pfm,"Tif to pfm converter"));
        aRes.push_back(cMMCom("TestAT",TestPush,"AT test workplace"));
 
 //       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
@@ -1028,6 +1036,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("CplFromHomol",CplFromHomol_main ,"Creat xml of pair images from Homol Folder"));
         aRes.push_back(cMMCom("LSQMatch",LSQMatch_Main ,"Giang Test LSQ"));
         aRes.push_back(cMMCom("GCPRollingBasc",GCPRollingBasc_main ,"Rolling GCPBascule"));
+        aRes.push_back(cMMCom("TiepTriFar",TiepTriFar_Main ,"TestFarScene"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));

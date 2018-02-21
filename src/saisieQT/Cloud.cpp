@@ -34,7 +34,8 @@ GlCloud* GlCloud::loadPly(string i_filename)
     {
         // get the description of the first element
         elem_name = elist[i];
-        ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
+        PlyProperty **plist = NULL;
+        plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 
         // print the name of the element, for debugging
         #ifdef _DEBUG
@@ -43,70 +44,110 @@ GlCloud* GlCloud::loadPly(string i_filename)
 
         if (equal_strings ("vertex", elem_name))
         {
+            int external_type = plist[0]->external_type;
+            std::cout << "external_type : "<<external_type<<std::endl;
+            
             switch(nprops)
             {
             case 10: // x y z nx ny nz r g b a
                 {
                     type = 5;
-                    for (int j = 0; j < nprops ;++j)
-                        ply_get_property (thePlyFile, elem_name, &oriented_colored_alpha_vert_props[j]);
-
-                    sPlyOrientedColoredAlphaVertex *vertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
+                    PlyProperty props[] = {
+                        {"x",  external_type, PLY_DOUBLE, offsetof(sPlyOrientedColoredAlphaVertex64,x ), 0, 0, 0, 0},
+                        {"y",  external_type, PLY_DOUBLE, offsetof(sPlyOrientedColoredAlphaVertex64,y ), 0, 0, 0, 0},
+                        {"z",  external_type, PLY_DOUBLE, offsetof(sPlyOrientedColoredAlphaVertex64,z ), 0, 0, 0, 0},
+                        {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex64,nx), 0, 0, 0, 0},
+                        {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex64,ny), 0, 0, 0, 0},
+                        {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex64,nz), 0, 0, 0, 0},
+                        {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex64,red), 0, 0, 0, 0},
+                        {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex64,green), 0, 0, 0, 0},
+                        {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex64,blue), 0, 0, 0, 0},
+                        {"alpha",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex64,alpha), 0, 0, 0, 0}
+                    };
+                    
+                    for(int j=0;j<nprops;++j)
+                    {
+                        ply_get_property(thePlyFile, elem_name, &props[j]);
+                    }
 
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
                     {
-                        ply_get_element (thePlyFile, (void *) vertex);
+                        sPlyOrientedColoredAlphaVertex64 vertex;
+                        ply_get_element (thePlyFile, (void *) &vertex);
 
 #ifdef _DEBUG
-    printf ("vertex--: %g %g %g %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue, vertex->alpha);
+    printf ("vertex--: %g %g %g %g %g %g %u %u %u %u\n", vertex.x, vertex.y, vertex.z, vertex.nx, vertex.ny, vertex.nz, vertex.red, vertex.green, vertex.blue, vertex.alpha);
 #endif
 
-                        ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha ), QVector3D(vertex->nx, vertex->ny, vertex->nz)));
+						ptList.push_back( GlVertex (QVector3D ( vertex.x, vertex.y, vertex.z ), QColor( vertex.red, vertex.green, vertex.blue, vertex.alpha ), QVector3D(vertex.nx, vertex.ny, vertex.nz)));
                     }
                     break;
                 }
             case 9: // x y z nx ny nz r g b
                 {
                     type = 4;
-                    for (int j = 0; j < nprops ;++j)
-                        ply_get_property (thePlyFile, elem_name, &oriented_colored_vert_props[j]);
-
-                    sPlyOrientedColoredVertex *vertex = (sPlyOrientedColoredVertex *) malloc (sizeof (sPlyOrientedColoredVertex));
+                    PlyProperty props[] = {
+                        {"x",  external_type, PLY_DOUBLE, offsetof(sPlyOrientedColoredVertex64,x ), 0, 0, 0, 0},
+                        {"y",  external_type, PLY_DOUBLE, offsetof(sPlyOrientedColoredVertex64,y ), 0, 0, 0, 0},
+                        {"z",  external_type, PLY_DOUBLE, offsetof(sPlyOrientedColoredVertex64,z ), 0, 0, 0, 0},
+                        {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex64,nx), 0, 0, 0, 0},
+                        {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex64,ny), 0, 0, 0, 0},
+                        {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex64,nz), 0, 0, 0, 0},
+                        {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex64,red), 0, 0, 0, 0},
+                        {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex64,green), 0, 0, 0, 0},
+                        {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex64,blue), 0, 0, 0, 0}
+                    };
+                    
+                    for(int j=0;j<nprops;++j)
+                    {
+                        ply_get_property(thePlyFile, elem_name, &props[j]);
+                    }
 
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
                     {
-                        ply_get_element (thePlyFile, (void *) vertex);
+                        sPlyOrientedColoredVertex64 vertex;
+                        ply_get_element (thePlyFile, (void *) &vertex);
 
 #ifdef _DEBUG
-    printf ("vertex--: %g %g %g %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue);
+    printf ("vertex--: %g %g %g %g %g %g %u %u %u\n", vertex.x, vertex.y, vertex.z, vertex.nx, vertex.ny, vertex.nz, vertex.red, vertex.green, vertex.blue);
 #endif
 
-                        ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue ), QVector3D(vertex->nx, vertex->ny, vertex->nz)));
+						ptList.push_back( GlVertex (QVector3D ( vertex.x, vertex.y, vertex.z ), QColor( vertex.red, vertex.green, vertex.blue ), QVector3D(vertex.nx, vertex.ny, vertex.nz)));
                     }
                     break;
                 }
             case 7:
                 {
                     type = 2;
-                    // setup for getting vertex elements
-                    for (int j = 0; j < nprops ;++j)
-                        ply_get_property (thePlyFile, elem_name, &colored_a_vert_props[j]);
-
-                    sPlyColoredVertexWithAlpha * vertex = (sPlyColoredVertexWithAlpha *) malloc (sizeof (sPlyColoredVertexWithAlpha));
+                    PlyProperty props[] = {
+                        {"x",  external_type, PLY_DOUBLE, offsetof(sPlyColoredVertexWithAlpha64,x ), 0, 0, 0, 0},
+                        {"y",  external_type, PLY_DOUBLE, offsetof(sPlyColoredVertexWithAlpha64,y ), 0, 0, 0, 0},
+                        {"z",  external_type, PLY_DOUBLE, offsetof(sPlyColoredVertexWithAlpha64,z ), 0, 0, 0, 0},
+                        {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha64,red), 0, 0, 0, 0},
+                        {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha64,green), 0, 0, 0, 0},
+                        {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha64,blue), 0, 0, 0, 0},
+                        {"alpha",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha64,alpha), 0, 0, 0, 0}
+                    };
+                    
+                    for(int j=0;j<nprops;++j)
+                    {
+                        ply_get_property(thePlyFile, elem_name, &props[j]);
+                    }
 
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
                     {
                         // grab an element from the file
-                        ply_get_element (thePlyFile, (void *) vertex);
+                        sPlyColoredVertexWithAlpha64 vertex;
+                        ply_get_element (thePlyFile, (void *) &vertex);
 
                         #ifdef _DEBUG
-                            printf ("vertex--: %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue, vertex->alpha);
+                            printf ("vertex--: %g %g %g %u %u %u %u\n", vertex.x, vertex.y, vertex.z, vertex.red, vertex.green, vertex.blue, vertex.alpha);
                         #endif
 
-                        ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha )));
+						ptList.push_back( GlVertex (QVector3D ( vertex.x, vertex.y, vertex.z ), QColor( vertex.red, vertex.green, vertex.blue, vertex.alpha )));
                     }
                     break;
                 }
@@ -126,59 +167,86 @@ GlCloud* GlCloud::loadPly(string i_filename)
                     if (!wNormales)
                     {
                         type = 1;
-                        for (int j = 0; j < nprops ;++j)
-                            ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
-
-                        sPlyColoredVertex *vertex = (sPlyColoredVertex *) malloc (sizeof (sPlyColoredVertex));
+                        PlyProperty props[] = {
+                            {"x",  external_type, PLY_DOUBLE, offsetof(sPlyColoredVertex64,x ), 0, 0, 0, 0},
+                            {"y",  external_type, PLY_DOUBLE, offsetof(sPlyColoredVertex64,y ), 0, 0, 0, 0},
+                            {"z",  external_type, PLY_DOUBLE, offsetof(sPlyColoredVertex64,z ), 0, 0, 0, 0},
+                            {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex64,red), 0, 0, 0, 0},
+                            {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex64,green), 0, 0, 0, 0},
+                            {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex64,blue), 0, 0, 0, 0}
+                        };
+                        
+                        for(int j=0;j<nprops;++j)
+                        {
+                            ply_get_property(thePlyFile, elem_name, &props[j]);
+                        }
 
                         for (int j = 0; j < num_elems; j++)
                         {
-                            ply_get_element (thePlyFile, (void *) vertex);
+                            sPlyColoredVertex64 vertex;
+                            ply_get_element (thePlyFile, (void *) &vertex);
 
                             #ifdef _DEBUG
-                                printf ("vertex: %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue);
+                                printf ("vertex: %g %g %g %u %u %u\n", vertex.x, vertex.y, vertex.z, vertex.red, vertex.green, vertex.blue);
                             #endif
 
-                            ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue )));
+							ptList.push_back( GlVertex (QVector3D ( vertex.x, vertex.y, vertex.z ), QColor( vertex.red, vertex.green, vertex.blue )));
                         }
                     }
                     else
                     {
                         type = 3;
-                        for (int j = 0; j < nprops ;++j)
-                            ply_get_property (thePlyFile, elem_name, &oriented_vert_props[j]);
-
-                        sPlyOrientedVertex *vertex = (sPlyOrientedVertex *) malloc (sizeof (sPlyOrientedVertex));
+                        PlyProperty props[] = {
+                            {"x",  external_type, PLY_DOUBLE, offsetof(sPlyOrientedVertex64,x ), 0, 0, 0, 0},
+                            {"y",  external_type, PLY_DOUBLE, offsetof(sPlyOrientedVertex64,y ), 0, 0, 0, 0},
+                            {"z",  external_type, PLY_DOUBLE, offsetof(sPlyOrientedVertex64,z ), 0, 0, 0, 0},
+                            {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex64,nx), 0, 0, 0, 0},
+                            {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex64,ny), 0, 0, 0, 0},
+                            {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex64,nz), 0, 0, 0, 0}
+                        };
+                        
+                        for(int j=0;j<nprops;++j)
+                        {
+                            ply_get_property(thePlyFile, elem_name, &props[j]);
+                        }
 
                         for (int j = 0; j < num_elems; j++)
                         {
-                            ply_get_element (thePlyFile, (void *) vertex);
+                            sPlyOrientedVertex64 vertex;
+                            ply_get_element (thePlyFile, (void *) &vertex);
 
                             #ifdef _DEBUG
-                                printf ("vertex: %g %g %g %g %g %g\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz);
+                                printf ("vertex: %g %g %g %g %g %g\n", vertex.x, vertex.y, vertex.z, vertex.nx, vertex.ny, vertex.nz);
                             #endif
 
-                            ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z ), Qt::white, QVector3D(vertex->nx, vertex->ny, vertex->nz)));
+							ptList.push_back( GlVertex (QVector3D ( vertex.x, vertex.y, vertex.z ), Qt::white, QVector3D(vertex.nx, vertex.ny, vertex.nz)));
                         }
                     }
                     break;
                 }
             case 3:
                 {
-                    for (int j = 0; j < nprops ;++j)
-                        ply_get_property (thePlyFile, elem_name, &vert_props[j]);
-
-                    sVertex *vertex = (sVertex *) malloc (sizeof (sVertex));
-
+                    PlyProperty props[] = {
+                        {"x",  external_type, PLY_DOUBLE, offsetof(sVertex64,x ), 0, 0, 0, 0},
+                        {"y",  external_type, PLY_DOUBLE, offsetof(sVertex64,y ), 0, 0, 0, 0},
+                        {"z",  external_type, PLY_DOUBLE, offsetof(sVertex64,z ), 0, 0, 0, 0}
+                    };
+                    
+                    for(int j=0;j<nprops;++j)
+                    {
+                        ply_get_property(thePlyFile, elem_name, &props[j]);
+                    }
+                    
                     for (int j = 0; j < num_elems; j++)
                     {
-                        ply_get_element (thePlyFile, (void *) vertex);
+                        sVertex64 vertex;
+                        ply_get_element (thePlyFile, (void *) &vertex);
 
     #ifdef _DEBUG
-                        printf ("vertex: %g %g %g\n", vertex->x, vertex->y, vertex->z);
+                        printf ("vertex: %g %g %g\n", vertex.x, vertex.y, vertex.z);
     #endif
 
-                        ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z )));
+						ptList.push_back( GlVertex (QVector3D ( vertex.x, vertex.y, vertex.z )));
                     }
                     break;
                 }
@@ -188,6 +256,18 @@ GlCloud* GlCloud::loadPly(string i_filename)
                     break;
                 }
             }
+        }
+        
+        std::cout << "Fin"<<std::endl;
+        
+        if (plist!=NULL)
+        {
+            for(int j=0;j<nprops;++j)
+            {
+                free(plist[j]);
+            }
+            free(plist);
+
         }
     }
 

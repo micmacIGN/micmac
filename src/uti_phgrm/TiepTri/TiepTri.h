@@ -166,6 +166,9 @@ class cParamAppliTieTri
         int      mLastEtape;   // Inclusif !!
         int      mFlagFS;   // FlagFitrage Spatial
         string   mHomolOut;
+        Pt2dr    mSurfDiffAffHomo;
+        bool     mUseHomo;
+        double   mMaxErr;
 };
 
 
@@ -229,6 +232,13 @@ class cAppliTieTri : public cParamAppliTieTri
             const std::string &  KeyMasqIm() const;
             void SetMasqIm(const  std::string  & aKeyMasqIm);
 
+            Pt2dr &         MoyDifAffHomo() {return mMoyDifAffHomo;}
+            Pt2dr &         MaxDifAffHomo() {return mMaxDifAffHomo;}
+            int   &         CountDiff() {return mCountDiff;}
+            vector<int> &   HistoErrAffHomoX() {return mHistoErrAffHomoX;}
+            vector<int> &   HistoErrAffHomoY() {return mHistoErrAffHomoY;}
+            ofstream mErrLog;
+
       private  :
          cAppliTieTri(const cAppliTieTri &); // N.I.
          void DoOneTri  (const cXml_Triangle3DForTieP & ,int aKT);
@@ -279,6 +289,12 @@ class cAppliTieTri : public cParamAppliTieTri
 
          bool               mPIsInImRedr;  // Savoir si les points de correlation sont points redresses ou non
          int                mCurEtape;
+
+         Pt2dr          mMoyDifAffHomo;
+         Pt2dr          mMaxDifAffHomo;
+         int            mCountDiff;
+         vector<int>    mHistoErrAffHomoX;
+         vector<int>    mHistoErrAffHomoY;
 };
 
 /*
@@ -338,6 +354,10 @@ class cImTieTri
            Tiff_Im   Tif();
 
            std::vector<Pt3dr> & PtTri3DHomoGrp() {return mPtTri3DHomoGrp;}
+
+           Pt2dr &         P1Glob() {return mP1Glob;}
+           Pt2dr &         P2Glob() {return mP2Glob;}
+           Pt2dr &         P3Glob() {return mP3Glob;}
            
       protected :
            cImTieTri(const cImTieTri &) ; // N.I.
@@ -433,6 +453,7 @@ class cImSecTieTri : public cImTieTri
            virtual tTImTiepTri & ImRedr();
            ElPackHomologue & PackH() ;
            Pt2dr   Mas2Sec(const Pt2dr &) const;
+           Pt2dr   Mas2Sec_Hom(const Pt2dr &) const;
     private :
            bool InMasqReech(const Pt2dr &) const;
            bool InMasqReech(const Pt2di &) const;

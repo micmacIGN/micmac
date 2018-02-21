@@ -49,6 +49,17 @@ class cOneScaleImRechPH;
 #include "LoccPtOfCorrel.h"
 
 void TestTouch();
+void TestLearnOPC(cSetRefPCarac & aSRP);
+
+
+#define StdGetFromNRPH(aStr,aObj)\
+StdGetObjFromFile<c##aObj>\
+    (\
+        aStr,\
+        MMDir() + "src/uti_image/NewRechPH/ParamNewRechPH.xml",\
+        #aObj ,\
+        #aObj \
+     )
 
 
 /*
@@ -111,6 +122,8 @@ class cOneScaleImRechPH
           bool AffinePosition(cOnePCarac &);
           int& NbPOfLab(int aK) {return mNbPByLab.at(aK);}
 
+          double QualityScaleCorrel(const Pt2di &,int aSign,bool ImInit);
+
       private :
           void InitImMod();
           Pt3dr PtPly(const cPtRemark & aP,int aNiv);
@@ -120,7 +133,10 @@ class cOneScaleImRechPH
 
 
           cOneScaleImRechPH(cAppli_NewRechPH &,const Pt2di & aSz,const double & aScale,const int & aNiv);
+ 
+          // Selectionne les maxima locaux a cette echelle
           bool  SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp);
+          // Selectionne les maxima locaux a avec une echelle differente
           bool  ScaleSelectVois(cOneScaleImRechPH*, const Pt2di&, const std::vector<Pt2d<int> >&, int);
           std::list<cPtRemark *>  mLIPM;
    
@@ -136,7 +152,10 @@ class cOneScaleImRechPH
           int       mNiv;
           int       mNbExLR; 
           int       mNbExHR;
-          std::vector<int>  mNbPByLab;
+          std::vector<int>   mNbPByLab;
+          double             mQualScaleCorrel;
+          std::vector<Pt2di>   mVoisGauss;
+          std::vector<double>  mGaussVal;
 };
 
 
@@ -180,6 +199,13 @@ class cAppli_NewRechPH
         bool ComputeContrastePt(cOnePCarac & aPt);
         tInterpolNRPH * Interp() {return mInterp;}
 
+        bool ScaleCorr() {return mScaleCorr;}
+
+        bool  ScaleIsValid(double aScale )   const  
+        {
+           return   (aScale>=mISF.x) && (aScale<=mISF.y);
+        }
+        void AdaptScaleValide(cOnePCarac & aPC);
     private :
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
@@ -188,6 +214,8 @@ class cAppli_NewRechPH
         std::string mName;
         double      mPowS;
         int         mNbS;
+
+        Pt2dr   mISF; // Interval Scale Forced
 
 /*
   Invariant Rotation
@@ -206,8 +234,11 @@ class cAppli_NewRechPH
         double      mScaleStab;
         double      mSeuilAC;
         double      mSeuilCR; // Contraste relatif
+        bool        mScaleCorr;
         Pt2di       mSzIm;
         Box2di      mBox;
+        Pt2di       mP0; // P0-P1 => "vrai" box
+        Pt2di       mP1;
 
         std::vector<cOneScaleImRechPH *> mVI1;
         Video_Win  * mW1;

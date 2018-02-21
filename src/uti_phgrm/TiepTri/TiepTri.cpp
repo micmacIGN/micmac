@@ -59,7 +59,10 @@ cParamAppliTieTri::cParamAppliTieTri():
    mEtapeInteract     (-1),
    mLastEtape         (2),
    mFlagFS            ((1<<16) - 1),
-   mHomolOut          ("_TiepTri")
+   mHomolOut          ("_TiepTri"),
+   mSurfDiffAffHomo   (Pt2dr(mTT_SEUIL_SURF_TRI, DBL_MAX)),
+   mUseHomo           (false),
+   mMaxErr            (1.0)
 {
 }
 
@@ -107,7 +110,9 @@ int TiepTri_Main(int argc,char ** argv)
                       << EAM(aParam.mFlagFS,  "FFS",true,"Flag spatial  [1= after int,2= after bilin ,4=after dense, 8= at end]")
 
                       << EAM(aParam.mHomolOut,  "Out",true,"Suffix for Homol Out Folder (def=_TiepTri)")
-
+                      << EAM(aParam.mUseHomo,  "useHomo",true,"Use homography for triangle")
+                      << EAM(aParam.mSurfDiffAffHomo,  "surfDiff",true,"range of triangle surface for evaluation diff Aff-Homogr")
+                      << EAM(aParam.mMaxErr,  "MaxErr",true,"Max Error Aff/Homogr (to do statistic)")
                );
 
    bool WithInteract = EAMIsInit(& aSzW);
@@ -115,6 +120,10 @@ int TiepTri_Main(int argc,char ** argv)
    if (WithInteract  && (!EAMIsInit(&aParam.mEtapeInteract)))
       aParam.mEtapeInteract = 1;
 
+   if (EAMIsInit(&aParam.mSurfDiffAffHomo))
+   {
+       aParam.mUseHomo = true;
+   }
    if (! EAMIsInit(&aParam.mDoRaffImInit))
    {
        aParam.mDoRaffImInit =  (aParam.mNivLSQM >= 0);

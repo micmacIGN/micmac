@@ -83,6 +83,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
     mWithBundlExp      (false),
     mClipIsChantier    (false),
     mMother            (aMother),
+    mExtImNewP         ("Std"),
     mWithPCarac        (false),
     mSPC               (0),
     mSeuilAC           (0.95),
@@ -143,6 +144,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
                     << EAM(mFileMnt,"FileMnt",true,"Default toto.tif -> toto.xml")
                     << EAM(mParamClipCh,"ClipCh",true,"Param 4 Clip Chantier [PatClip,OriClip]")
                     << EAM(mImNewP,"NewP",true,"Image for new tie point, if =\"\" curent image")
+                    << EAM(mExtImNewP,"ExtImNewP",true,"Extension for new tie point, def=Std")
                     << EAM(mImSift,"ImSift",true,"Image for sift if != curent image")
                     << EAM(mSzSift,"ResolSift",true,"Resol of sift point to visualize")
                     << EAM(mPatSecIm,"PSI",true,"Pattern Imaage Second")
@@ -287,7 +289,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
         if (mImNewP=="")
            mImNewP = mNameIm;
         mWithPCarac = true;
-        mSPC =  LoadStdSetCarac(mImNewP);
+        mSPC =  LoadStdSetCarac(mImNewP,mExtImNewP);
     }
     if (EAMIsInit(&mSzSift))
     {
@@ -373,6 +375,8 @@ void cAppli_Vino::PostInitVirtual()
 
     if ((!mMother) && mSPC && mCheckNuage && (mAVSI.size()==1))
     {
+        ElTimer aT0;
+        std::cout << "BEGIN NEAREST \n";
         cBasicGeomCap3D * aCap2 = mAVSI[0]->mCheckOri;
         int aNbH=0;
         for (const auto & aPt :  mSPC->OnePCarac())
@@ -386,7 +390,7 @@ void cAppli_Vino::PostInitVirtual()
                 {
                     Pt2dr aPIm2 = aCap2->Ter2Capteur(aPTer);
                     double aDist;
-                    aHom = mAVSI[0]->Nearest(aPIm2,&aDist);
+                    aHom = mAVSI[0]->Nearest(aPIm2,&aDist,aPt.Kind());
                     if (aDist>2.0)
                     {
                         aHom = nullptr;
@@ -397,7 +401,7 @@ void cAppli_Vino::PostInitVirtual()
                aNbH++;
             mVptHom.push_back(aHom);
         }
-        std::cout << "% Homol got " << (aNbH*100.0) / mVptHom.size() << "\n";
+        std::cout << "% Homol got " << (aNbH*100.0) / mVptHom.size()  << " T=" << aT0.uval() << "\n";
 
     }
 }

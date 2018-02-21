@@ -201,13 +201,15 @@ void cAppliTaskCorrel::ZBuffer()
 {
     cout<<"Cal ZBuf && Tri Valid for each Img ...- NBImg : "<<mVName.size()<<endl;
     ElTimer aChrono;
+    cParamZbufferRaster aParamZBuf;
     cAppliZBufferRaster * aAppliZBuf = new cAppliZBufferRaster(
                                                                  mICNM,
                                                                  mDir,
                                                                  mOri,
                                                                  mVcTri3D,
                                                                  mVName,
-                                                                 mNoTif
+                                                                 mNoTif,
+                                                                 aParamZBuf
                                                               );
 
 
