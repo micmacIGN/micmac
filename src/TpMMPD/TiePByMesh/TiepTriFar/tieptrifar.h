@@ -7,18 +7,27 @@
 #include <stack>
 #include <iostream>
 
-extern bool convexHull(vector<Pt2dr> points, stack<Pt2dr> S);
+extern bool convexHull(vector<Pt2dr> points, stack<Pt2dr> &S);
 
 class cParamTiepTriFar;
 class cAppliTiepTriFar;
 class cImgTieTriFar;
+
+class cParamTiepTriFar
+{
+    public:
+        cParamTiepTriFar();
+        bool aDisp;
+        double  aZoom;
+        Pt2di aSzW;
+};
 
 class cAppliTiepTriFar
 {
     public:
         cAppliTiepTriFar (cParamTiepTriFar & aParam,
                           cInterfChantierNameManipulateur * aICNM,
-                          vector<cImgTieTriFar> & vImg,
+                          vector<string> & vNameImg,
                           string & aDir,
                           string & aOri
                          );
@@ -28,17 +37,22 @@ class cAppliTiepTriFar
         string & Dir() {return mDir;}
         string & Ori() {return mOri;}
         cInterfChantierNameManipulateur * ICNM() {return mICNM;}
+        vector <string> & VNameImg() {return mVNameImg;}
+        vector<cImgTieTriFar*>  & VImg() {return mvImg;}
+
         // FROM 3D MESH TO 2D MASK
         void loadMask2D();
 
     private:
         cParamTiepTriFar & mParam;
-        vector<cImgTieTriFar> & mvImg;
+        vector <string> mVNameImg;
+        vector<cImgTieTriFar*>  mvImg;
         string & mDir;
         string & mOri;
 
         vector<cTri3D> mVTri3D;
         cInterfChantierNameManipulateur * mICNM;
+
 
 
 
@@ -49,9 +63,9 @@ class cImgTieTriFar
   public :
         cImgTieTriFar(cAppliTiepTriFar & aAppli, string & aName);
 
-        Tiff_Im   Tif() {return mTif;}
-
         string NameIm() {return mNameIm;}
+
+        Tiff_Im   Tif() {return mTif;}
 
         Pt2di & SzIm() {return mSzIm;}
 
@@ -61,12 +75,25 @@ class cImgTieTriFar
 
         vector<Pt2dr> & SetVertices() {return mSetVertices;}
 
+        Video_Win * & VW() {return mVW;}
+
+        Im2D<double, double>  &   ImInit() {return mImInit;}
+
+        TIm2D<double, double> &   TImInit() {return mTImInit;}
+
+        template <typename T> bool IsInside(Pt2d<T> p, Pt2d<T> aRab=Pt2d<T>(0,0));
+
+        Im2D_Bits<1> & MasqIm() {return mMasqIm;}
+        TIm2DBits<1> & TMasqIm() {return mTMasqIm;}
+
+
   private :
         cAppliTiepTriFar & mAppli;
 
+        string    mNameIm;
+
         Tiff_Im   mTif;
 
-        string    mNameIm;
 
         Pt2di     mSzIm;
 
@@ -79,6 +106,15 @@ class cImgTieTriFar
         CamStenope *      mCamSten;
 
         vector<Pt2dr> mSetVertices;
+
+        Video_Win * mVW;
+
+        Im2D<double, double>     mImInit;
+
+        TIm2D<double, double>     mTImInit;
+
+
+
 
 };
 

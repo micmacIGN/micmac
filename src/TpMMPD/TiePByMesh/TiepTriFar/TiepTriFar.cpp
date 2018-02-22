@@ -43,16 +43,59 @@ Header-MicMac-eLiSe-25/06/2007*/
 int TiepTriFar_Main(int argc,char ** argv)
 {
 
-   std::string aFullNameXML,anOri;
-   //cParamAppliTieTriFar aParam;
+   std::string aFullNameXML,anOri,aMesh;
+   Pt3dr aVWin;
+   cParamTiepTriFar aParam;
 
    ElInitArgMain
    (
          argc,argv,
          LArgMain()  << EAMC(aFullNameXML, "Name XML for Triangu",  eSAM_IsPatFile)
+                     << EAMC(aMesh, "Mesh of far scene part",  eSAM_IsExistFile)
                      << EAMC(anOri,        "Orientation dir"),
          LArgMain()   
-               );
+                     << EAM(aVWin, "VWin", true, "[Pt2di(SzW), double Zoom]")
+    );
+
+    if (EAMIsInit(&aVWin))
+    {
+        aParam.aDisp = true;
+        aParam.aSzW = Pt2di(aVWin.x, aVWin.y);
+        aParam.aZoom = aVWin.z;
+    }
+
+    std::string aDir,aNameXML;
+
+    SplitDirAndFile(aDir,aNameXML,aFullNameXML);
+
+
+    if (!  StdCorrecNameOrient(anOri,aDir,true))
+    {
+       StdCorrecNameOrient(anOri,"./");
+       aDir = "./";
+    }
+
+
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    cXml_TriAngulationImMaster aTriang = StdGetFromSI(aFullNameXML,Xml_TriAngulationImMaster);
+
+    vector<string> aNameIm;
+    for (uint aKImg=0; aKImg<aTriang.NameSec().size(); aKImg++)
+    {
+        aNameIm.push_back(aTriang.NameSec()[aKImg]);
+    }
+
+    cAppliTiepTriFar * aAppli = new cAppliTiepTriFar(
+                                                        aParam,
+                                                        anICNM,
+                                                        aNameIm,
+                                                        aDir,
+                                                        anOri
+                                                    );
+    aAppli->LoadMesh(aMesh);
+    aAppli->loadMask2D();
+
 
 
        return EXIT_SUCCESS;

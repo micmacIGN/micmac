@@ -1,7 +1,6 @@
 #include "ZBufferRaster.h"
 #include "../DrawOnMesh.h"
 
-extern void sortDescendPt2diY(vector<Pt2di> & input);
 
 cParamZbufferRaster::cParamZbufferRaster():
     mFarScene (false),
@@ -131,6 +130,7 @@ int ZBufferRaster_main(int argc,char ** argv)
 
     string farSceneMesh = aParam.mMesh.substr(0,aParam.mMesh.length()-4) + "_Far.ply";
     //sortDescendPt2diY(aAppli->AccNbImgVisible());
+
     int aCount{0};
     for (int aKK=0; aKK<int(aAppli->AccNbImgVisible().size()); aKK++)
     {

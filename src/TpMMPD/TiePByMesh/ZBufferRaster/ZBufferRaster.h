@@ -16,6 +16,9 @@ class cImgZBuffer;
 class cTri3D;
 class cTri2D;
 
+template <typename T> bool comparatorPt2dY (Pt2d<T> const &l, Pt2d<T> const &r);
+template <typename T> void sortDescendPt2dY(vector<Pt2d<T>> & input);
+
 class cParamZbufferRaster
 {
     public :
@@ -117,6 +120,7 @@ public:
 
     void calVBasis();
     cTri2D reprj(cBasicGeomCap3D * aCam);
+    cTri2D reprj(cBasicGeomCap3D * aCam, bool & OK);
     double dist2Cam(cBasicGeomCap3D * aCam);
 
 

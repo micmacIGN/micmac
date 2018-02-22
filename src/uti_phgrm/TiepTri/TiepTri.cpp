@@ -153,8 +153,7 @@ int TiepTri_Main(int argc,char ** argv)
    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
 
-       cXml_TriAngulationImMaster aTriang =   StdGetFromSI(aFullNameXML,Xml_TriAngulationImMaster);;
-
+       cXml_TriAngulationImMaster aTriang =   StdGetFromSI(aFullNameXML,Xml_TriAngulationImMaster);
 
        cAppliTieTri  anAppli(aParam,anICNM,aDir,anOri,aTriang);
        anAppli.Debug() = aDebug;

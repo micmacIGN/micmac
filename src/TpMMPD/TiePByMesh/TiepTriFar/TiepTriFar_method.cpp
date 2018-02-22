@@ -39,18 +39,32 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "tieptrifar.h"
 
+cParamTiepTriFar::cParamTiepTriFar():
+    aDisp (false),
+    aZoom (0.2)
+{}
+
 cAppliTiepTriFar::cAppliTiepTriFar (cParamTiepTriFar & aParam,
                                     cInterfChantierNameManipulateur * aICNM,
-                                    vector<cImgTieTriFar> & vImg,
+                                    vector<string> & vNameImg,
                                     string & aDir,
                                     string & aOri
                                     ):
     mParam (aParam),
-    mvImg  (vImg),
+    mVNameImg  (vNameImg),
     mDir   (aDir),
     mOri   (aOri),
     mICNM  (aICNM)
-{}
+{
+    // create image
+    cout<<"In constructor cAppliTiepTriFar..creat "<<mVNameImg.size()<<" img...";
+    for (uint aKImg=0; aKImg<mVNameImg.size(); aKImg++)
+    {
+        cImgTieTriFar * aImg = new cImgTieTriFar(*this, mVNameImg[aKImg]);
+        mvImg.push_back(aImg);
+    }
+    cout<<"done!"<<endl;
+}
 
 void cAppliTiepTriFar::LoadMesh(string & aNameMesh)
 {
@@ -75,54 +89,130 @@ void cAppliTiepTriFar::LoadMesh(string & aNameMesh)
 
 cImgTieTriFar::cImgTieTriFar(cAppliTiepTriFar &aAppli, string & aName):
     mAppli  (aAppli),
-    mTif    (Tiff_Im::UnivConvStd(mAppli.Dir() + mNameIm)),
     mNameIm (aName),
+    mTif    (Tiff_Im::UnivConvStd(mAppli.Dir() + mNameIm)),
     mMasqIm (1,1),
     mTMasqIm (mMasqIm),
     mCamGen  (mAppli.ICNM()->StdCamGenerikOfNames(mAppli.Ori(),aName)),
-    mCamSten (mCamGen->DownCastCS())
+    mCamSten (mCamGen->DownCastCS()),
+    mVW      (0),
+    mImInit  (1,1),
+    mTImInit (mImInit)
 {
-
 }
+
+template <typename T> bool cImgTieTriFar::IsInside(Pt2d<T> p, Pt2d<T> aRab)
+{
+    return
+             (p.x >= ( (T)0.0 + aRab.x) )
+        &&   (p.y >= ( (T)0.0 + aRab.y) )
+        &&   (p.x <  ( (T)mTif.sz().x - aRab.x) )
+        &&   (p.y <  ( (T)mTif.sz().y - aRab.x) );
+}
+
 
 // Peut on definir un mask par convex hull sur le set de reprojection de point 2D ?
 void cAppliTiepTriFar::loadMask2D()
 {
+    cout<<"Creat Mask 2D..."<<endl;
+    Pt2dr aRab(10.0,10.0);
     for (uint aKTri=0; aKTri < mVTri3D.size(); aKTri++)
     {
         cTri3D aTri3D = mVTri3D[aKTri];
         for (uint aKImg=0; aKImg < mvImg.size(); aKImg++)
         {
-             cImgTieTriFar aImg = mvImg[aKImg];
-             cTri2D aTri2D = aTri3D.reprj(aImg.CamGen());
-             aImg.SetVertices().push_back(aTri2D.P1());
-             aImg.SetVertices().push_back(aTri2D.P2());
-             aImg.SetVertices().push_back(aTri2D.P3());
+             cImgTieTriFar * aImg = mvImg[aKImg];
+             bool proj_OK = false;
+             cTri2D aTri2D = aTri3D.reprj(aImg->CamGen(), proj_OK);
+             if (
+                        proj_OK
+                     && aImg->IsInside(aTri2D.P1(), aRab)
+                     && aImg->IsInside(aTri2D.P2(), aRab)
+                     && aImg->IsInside(aTri2D.P3(), aRab)
+                )
+             {
+
+                 {
+                     aImg->SetVertices().push_back(aTri2D.P1());
+                     aImg->SetVertices().push_back(aTri2D.P2());
+                     aImg->SetVertices().push_back(aTri2D.P3());
+                 }
+             }
         }
     }
 
     // compute convex hull for each set point 2D on image
     for (uint aKImg=0; aKImg < mvImg.size(); aKImg++)
     {
-        cImgTieTriFar aImg = mvImg[aKImg];
+        cout<<" + Im "<<aKImg<<"...";
+        cImgTieTriFar * aImg = mvImg[aKImg];
         bool aOK = false;
         stack<Pt2dr> aStackP;
-        aOK = convexHull(aImg.SetVertices(), aStackP);
+        vector<Pt2dr> aBoder;
+        aOK = convexHull(aImg->SetVertices(), aStackP);
         if (aOK)
         {
             while(!aStackP.empty())
             {
                 Pt2dr p = aStackP.top();
-                cout << "(" << p.x << ", " << p.y <<")" << endl;
+                //cout << "(" << p.x << ", " << p.y <<")" << endl;
+                aBoder.push_back(p);
                 aStackP.pop();
             }
+            if (aBoder.size() > 0)
+                cout<<"Hull OK"<<endl;
+            else
+                cout<<"Hull null point"<<endl;
         }
         else
         {
             cout<<"Hull not possible"<<endl;
         }
+
+        // Remplit l'image de masque avec les point qui sont dans le polygone du convex Hull
+        aImg->MasqIm() =  Im2D_Bits<1>(aImg->Tif().sz().x,aImg->Tif().sz().y,0);
+        aImg->TMasqIm() = TIm2DBits<1> (aImg->MasqIm());
+        ElList<Pt2di>  aLTri;
+        for (uint aKBord=0; aKBord<aBoder.size(); aKBord++)
+        {
+            aLTri = aLTri + round_ni(aBoder[aKBord]);
+        }
+        ELISE_COPY(polygone(aLTri),1, aImg->MasqIm().oclip());
+
+        aImg->ImInit().Resize(aImg->Tif().sz());
+        aImg->TImInit() =  TIm2D<double,double>(aImg->ImInit());
+        ELISE_COPY( aImg->ImInit().all_pts(), aImg->Tif().in() , aImg->ImInit().out() );
+
+        if (aImg->VW() == 0 && Param().aDisp)
+        {
+             Video_Win * aVW = aImg->VW();
+             aVW = Video_Win::PtrWStd(Pt2di(aImg->Tif().sz()*Param().aZoom),true,Pt2dr(Param().aZoom,Param().aZoom));
+             aVW->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+             std::string aTitle = aImg->NameIm();
+             aVW->set_title(aTitle.c_str());
+             ELISE_COPY(aVW->all_pts(), aImg->Tif().in_proj(), aVW->ogray());
+
+             // display convexhull
+             cout<<"Disp Hull "<<endl;
+             aVW->draw_poly(aBoder, aVW->pdisc()(P8COL::green),true);
+             cout<<"Nb Vrtc "<<aImg->SetVertices().size()<<endl;
+             double r_ptsDraw = ElMax(aImg->Tif().sz().x, aImg->Tif().sz().y)/1000;
+             for (uint aKVtc=0; aKVtc<aImg->SetVertices().size(); aKVtc++)
+                {
+                    aVW->draw_circle_loc( aImg->SetVertices()[aKVtc],
+                                          r_ptsDraw,
+                                          aVW->pdisc()(P8COL::red)
+                                         );
+                }
+
+             if (aKImg == mvImg.size()-1)
+                aVW->clik_in();
+        }
     }
 }
+
+
+
 
 // ===================== CONVEX HULL COMPUTE ===========================//
 Pt2dr p0;
@@ -173,8 +263,9 @@ int compare(const void *vp1, const void *vp2)
 }
 
 
-extern bool convexHull(vector<Pt2dr> points, stack<Pt2dr> S)
+extern bool convexHull(vector<Pt2dr> points, stack<Pt2dr> & S)
 {
+    cout<<endl<<"Compute Hull..on "<<points.size()<<" pts.."<<endl;
    int nPoints = points.size();
    int ymin = points[0].y, min = 0;
    for (int i = 1; i < nPoints; i++)
@@ -213,8 +304,10 @@ extern bool convexHull(vector<Pt2dr> points, stack<Pt2dr> S)
    }
    while (!S.empty())
    {
-        return true;
+       cout<<" Hull has "<<S.size()<<" pts"<<endl;
+       return true;
    }
+   cout<<" Hull has "<<S.size()<<" pts"<<endl;
    return false;
 }
 
