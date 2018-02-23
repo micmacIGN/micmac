@@ -38,12 +38,12 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "tieptrifar.h"
-
+#include "../Detector.h"
 
 int TiepTriFar_Main(int argc,char ** argv)
 {
 
-   std::string aFullNameXML,anOri,aMesh;
+   std::string aFullNameXML,anOri;
    Pt3dr aVWin;
    cParamTiepTriFar aParam;
 
@@ -51,10 +51,14 @@ int TiepTriFar_Main(int argc,char ** argv)
    (
          argc,argv,
          LArgMain()  << EAMC(aFullNameXML, "Name XML for Triangu",  eSAM_IsPatFile)
-                     << EAMC(aMesh, "Mesh of far scene part",  eSAM_IsExistFile)
-                     << EAMC(anOri,        "Orientation dir"),
+                     << EAMC(aParam.aNameMesh, "Mesh of far scene part",  eSAM_IsExistFile)
+                     << EAMC(anOri,        "Orientation dir")
+                     << EAMC(aParam.aDirZBuf, "ZBuffer directory", eSAM_IsDir),
          LArgMain()   
                      << EAM(aVWin, "VWin", true, "[Pt2di(SzW), double Zoom]")
+                     << EAM(aParam.aDispVertices, "DispVrtc", true, "Display vertices")
+                     << EAM(aParam.aRad, "Rad", true, "Radius of detector")
+
     );
 
     if (EAMIsInit(&aVWin))
@@ -62,6 +66,10 @@ int TiepTriFar_Main(int argc,char ** argv)
         aParam.aDisp = true;
         aParam.aSzW = Pt2di(aVWin.x, aVWin.y);
         aParam.aZoom = aVWin.z;
+    }
+    else
+    {
+        aParam.aDispVertices = false;
     }
 
     std::string aDir,aNameXML;
@@ -93,7 +101,7 @@ int TiepTriFar_Main(int argc,char ** argv)
                                                         aDir,
                                                         anOri
                                                     );
-    aAppli->LoadMesh(aMesh);
+    aAppli->LoadMesh(aParam.aNameMesh);
     aAppli->loadMask2D();
 
 

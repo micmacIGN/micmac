@@ -4,6 +4,7 @@
 #include "StdAfx.h"
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../TaskCorrel/TaskCorrel.h"
+//#include "../ZBufferRaster/ZBufferRaster.h"
 #include <stack>
 #include <iostream>
 
@@ -12,6 +13,7 @@ extern bool convexHull(vector<Pt2dr> points, stack<Pt2dr> &S);
 class cParamTiepTriFar;
 class cAppliTiepTriFar;
 class cImgTieTriFar;
+class ExtremePoint;
 
 class cParamTiepTriFar
 {
@@ -20,6 +22,10 @@ class cParamTiepTriFar
         bool aDisp;
         double  aZoom;
         Pt2di aSzW;
+        bool aDispVertices;
+        double aRad;
+        string aDirZBuf;
+        string aNameMesh;
 };
 
 class cAppliTiepTriFar
@@ -86,6 +92,10 @@ class cImgTieTriFar
         Im2D_Bits<1> & MasqIm() {return mMasqIm;}
         TIm2DBits<1> & TMasqIm() {return mTMasqIm;}
 
+        int DetectInterestPts();
+
+        vector<Pt2dr> & InterestPt() {return mInterestPt;}
+
 
   private :
         cAppliTiepTriFar & mAppli;
@@ -100,8 +110,6 @@ class cImgTieTriFar
         Im2D_Bits<1> mMasqIm;
         TIm2DBits<1> mTMasqIm;
 
-        vector<Pt2dr> vPolyMask;
-
         cBasicGeomCap3D * mCamGen;
         CamStenope *      mCamSten;
 
@@ -113,7 +121,9 @@ class cImgTieTriFar
 
         TIm2D<double, double>     mTImInit;
 
+        vector<Pt2dr> mInterestPt;
 
+        Tiff_Im   mTifZBuf;
 
 
 };

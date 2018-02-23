@@ -38,10 +38,14 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "tieptrifar.h"
+#include "../Detector.h"
+
 
 cParamTiepTriFar::cParamTiepTriFar():
     aDisp (false),
-    aZoom (0.2)
+    aZoom (0.2),
+    aDispVertices (false),
+    aRad (3)
 {}
 
 cAppliTiepTriFar::cAppliTiepTriFar (cParamTiepTriFar & aParam,
@@ -97,7 +101,8 @@ cImgTieTriFar::cImgTieTriFar(cAppliTiepTriFar &aAppli, string & aName):
     mCamSten (mCamGen->DownCastCS()),
     mVW      (0),
     mImInit  (1,1),
-    mTImInit (mImInit)
+    mTImInit (mImInit),
+    mTifZBuf (Tiff_Im::UnivConvStd(aAppli.Param().aDirZBuf + "/" + mNameIm + "/" + mNameIm + "_ZBuffer_DeZoom1.tif"))
 {
 }
 
@@ -110,6 +115,13 @@ template <typename T> bool cImgTieTriFar::IsInside(Pt2d<T> p, Pt2d<T> aRab)
         &&   (p.y <  ( (T)mTif.sz().y - aRab.x) );
 }
 
+int cImgTieTriFar::DetectInterestPts()
+{
+    ExtremePoint * aDetector = new ExtremePoint(mAppli.Param().aRad);
+    int aNbPts = aDetector->template detect<double, double>(mTImInit, mInterestPt, mTMasqIm);
+    delete aDetector;
+    return aNbPts;
+}
 
 // Peut on definir un mask par convex hull sur le set de reprojection de point 2D ?
 void cAppliTiepTriFar::loadMask2D()
@@ -181,7 +193,9 @@ void cAppliTiepTriFar::loadMask2D()
 
         aImg->ImInit().Resize(aImg->Tif().sz());
         aImg->TImInit() =  TIm2D<double,double>(aImg->ImInit());
-        ELISE_COPY( aImg->ImInit().all_pts(), aImg->Tif().in() , aImg->ImInit().out() );
+        ELISE_COPY( aImg->ImInit().all_pts(), aImg->Tif().in() , aImg->ImInit().out() ); //masq
+        // detection interest pts
+        cout<<"  + Detect in mask - nbPts : "<<aImg->DetectInterestPts()<<endl;
 
         if (aImg->VW() == 0 && Param().aDisp)
         {
@@ -192,27 +206,27 @@ void cAppliTiepTriFar::loadMask2D()
              aVW->set_title(aTitle.c_str());
              ELISE_COPY(aVW->all_pts(), aImg->Tif().in_proj(), aVW->ogray());
 
-             // display convexhull
              cout<<"Disp Hull "<<endl;
+             // display convexhull
              aVW->draw_poly(aBoder, aVW->pdisc()(P8COL::green),true);
              cout<<"Nb Vrtc "<<aImg->SetVertices().size()<<endl;
              double r_ptsDraw = ElMax(aImg->Tif().sz().x, aImg->Tif().sz().y)/1000;
-             for (uint aKVtc=0; aKVtc<aImg->SetVertices().size(); aKVtc++)
-                {
-                    aVW->draw_circle_loc( aImg->SetVertices()[aKVtc],
-                                          r_ptsDraw,
-                                          aVW->pdisc()(P8COL::red)
-                                         );
-                }
+             if (Param().aDispVertices)
+             {
+                 for (uint aKVtc=0; aKVtc<aImg->InterestPt().size(); aKVtc++)
+                    {
+                        aVW->draw_circle_loc( aImg->InterestPt()[aKVtc],
+                                              r_ptsDraw,
+                                              aVW->pdisc()(P8COL::red)
+                                             );
+                    }
+             }
 
              if (aKImg == mvImg.size()-1)
                 aVW->clik_in();
         }
     }
 }
-
-
-
 
 // ===================== CONVEX HULL COMPUTE ===========================//
 Pt2dr p0;

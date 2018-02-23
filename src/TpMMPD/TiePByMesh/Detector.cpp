@@ -47,7 +47,7 @@ ExtremePoint::ExtremePoint(double radiusVoisin)
 {
     mVoisin = ExtremePoint::getVoisinInteret(0.5,radiusVoisin);
 }
-
+/*
 bool ExtremePoint::isAllVoisinInside(
                                       const TIm2D<unsigned char,int> &anIm,
                                       Pt2di aP,
@@ -64,6 +64,8 @@ bool ExtremePoint::isAllVoisinInside(
     }
     return true;
 }
+*/
+
 
 void ExtremePoint::detect(
                             const TIm2D<unsigned char,int> &anIm,
@@ -114,22 +116,8 @@ vector<Pt2di> ExtremePoint::getVoisinInteret(double minR, double maxR)
     return aResult;
 }
 
-template <class Type> int  CmpValAndDec(const Type & aV1,const Type & aV2, const Pt2di & aDec)
-{
-   //    aV1 =>   aV1 + eps * aDec.x + eps * esp * aDec
 
-   if (aV1 < aV2) return -1;
-   if (aV1 > aV2) return  1;
-
-   if (aDec.x<0)  return -1;
-   if (aDec.x>0)  return  1;
-
-   if (aDec.y<0)  return -1;
-   if (aDec.y>0)  return  1;
-
-   return 0;
-}
-
+/*
 int ExtremePoint::IsExtrema(const TIm2D<unsigned char,int> & anIm,Pt2di aP)
 {
     int aValCentr = anIm.get(aP);
@@ -148,7 +136,86 @@ int ExtremePoint::IsExtrema(const TIm2D<unsigned char,int> & anIm,Pt2di aP)
     }
     return aCmp0;
 }
+*/
+//======Template =====
 
+/*
+template <typename Type, typename Type_Base> bool ExtremePoint::isAllVoisinInside
+                                   (
+                                      const TIm2D<Type, Type_Base> &anIm,
+                                      Pt2di aP,
+                                      vector<Pt2di> &  aVE
+                                    )
+{
+    for (uint aK=0; aK<aVE.size(); aK++)
+    {
+        if ( !anIm.inside(aP + aVE[aK]) )
+        {
+            return false;
+            break;
+        }
+    }
+    return true;
+}
+*/
+
+/*
+template <typename Type, typename Type_Base> int ExtremePoint::IsExtrema
+                (
+                    const TIm2D<Type,Type_Base> & anIm,
+                    Pt2di aP
+                )
+{
+    int aValCentr = anIm.get(aP);
+    const std::vector<Pt2di> &  aVE = this->mVoisin;
+    int aCmp0 =0;
+    for (int aKP=0 ; aKP<int(aVE.size()) ; aKP++)
+    {
+        int aCmp = CmpValAndDec(aValCentr,anIm.get(aP+aVE[aKP]),aVE[aKP]);
+        if (aKP==0)
+        {
+            aCmp0 = aCmp;
+            if (aCmp0==0) return 0;
+        }
+
+        if (aCmp!=aCmp0) return 0;
+    }
+    return aCmp0;
+}
+*/
+
+/*
+template <typename Type, typename Type_Base> int ExtremePoint::detect
+(
+        TIm2D<Type,Type_Base> & anIm,
+        vector<Pt2dr> & lstPt,
+        TIm2DBits<1> & aMasq
+)
+{
+    Pt2di aP;
+    Pt2di aSzIm = anIm.sz();
+    for (aP.x=0 ; aP.x<aSzIm.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<aSzIm.y ; aP.y++)
+        {
+
+            bool get;
+            get = aMasq.get(aP);
+            if (get && isAllVoisinInside(anIm, aP, mVoisin))
+            {
+                int aCmp0 =  ExtremePoint::IsExtrema(anIm,aP);
+                if (aCmp0)
+                {
+                    lstPt.push_back(ToPt2dr(aP));
+                }
+            }
+        }
+    }
+    return lstPt.size();
+}
+*/
+
+//====================
 
 Detector::Detector( string typeDetector, vector<double> paramDetector,
                     string nameImg,
