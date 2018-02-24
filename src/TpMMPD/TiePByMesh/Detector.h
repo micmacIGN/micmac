@@ -6,6 +6,7 @@
 #include "Fast.h"
 #include "Pic.h"
 #include "../include/general/ptxd.h"
+#include "../../uti_phgrm/TiepTri/TiepTri.h"
 /*
 template <class Type> int  CmpValAndDec(const Type & aV1,const Type & aV2, const Pt2di & aDec)
 {
@@ -76,12 +77,12 @@ public:
                     const TIm2DBits<1> * aMasq = NULL
                 );
 
-
+    // detect extrema point + compute Fast quality (like TiepTri)
    template <typename Type, typename Type_Base> int detect
    (
            TIm2D<Type,Type_Base> & anIm,
-           vector<Pt2dr> & lstPt,
-           TIm2DBits<1> & aMasq
+           TIm2DBits<1> & aMasq,
+           vector<cIntTieTriInterest> & lstPt
    )
    {
        Pt2di aP;
@@ -98,7 +99,9 @@ public:
                    int aCmp0 =  ExtremePoint::IsExtrema(anIm,aP);
                    if (aCmp0)
                    {
-                       lstPt.push_back(ToPt2dr(aP));
+                       eTypeTieTri aType = (aCmp0==1)  ? eTTTMax : eTTTMin;
+                       cIntTieTriInterest aPt(aP, aType, 0);
+                       lstPt.push_back(aPt);
                    }
                }
            }

@@ -58,7 +58,9 @@ cAppliTiepTriFar::cAppliTiepTriFar (cParamTiepTriFar & aParam,
     mVNameImg  (vNameImg),
     mDir   (aDir),
     mOri   (aOri),
-    mICNM  (aICNM)
+    mICNM  (aICNM),
+    mImgLeastPts (NULL),
+    mPtToCorrel (vector<cIntTieTriInterest*>(0))
 {
     // create image
     cout<<"In constructor cAppliTiepTriFar..creat "<<mVNameImg.size()<<" img...";
@@ -118,7 +120,7 @@ template <typename T> bool cImgTieTriFar::IsInside(Pt2d<T> p, Pt2d<T> aRab)
 int cImgTieTriFar::DetectInterestPts()
 {
     ExtremePoint * aDetector = new ExtremePoint(mAppli.Param().aRad);
-    int aNbPts = aDetector->template detect<double, double>(mTImInit, mInterestPt, mTMasqIm);
+    int aNbPts = aDetector->template detect<double, double>(mTImInit, mTMasqIm, mInterestPt_v2);
     delete aDetector;
     return aNbPts;
 }
@@ -154,6 +156,7 @@ void cAppliTiepTriFar::loadMask2D()
     }
 
     // compute convex hull for each set point 2D on image
+    int aMinNbPts = INT_MAX;
     for (uint aKImg=0; aKImg < mvImg.size(); aKImg++)
     {
         cout<<" + Im "<<aKImg<<"...";
@@ -195,7 +198,14 @@ void cAppliTiepTriFar::loadMask2D()
         aImg->TImInit() =  TIm2D<double,double>(aImg->ImInit());
         ELISE_COPY( aImg->ImInit().all_pts(), aImg->Tif().in() , aImg->ImInit().out() ); //masq
         // detection interest pts
-        cout<<"  + Detect in mask - nbPts : "<<aImg->DetectInterestPts()<<endl;
+        int anbPts = aImg->DetectInterestPts();
+        if ((anbPts < aMinNbPts) && (anbPts!=0))
+        {
+            aMinNbPts = anbPts;
+            mImgLeastPts = aImg;
+            cout<<"  + Update least Pt : "<<mImgLeastPts->NameIm()<<endl;
+        }
+        cout<<"  + Detect in mask - nbPts : "<<anbPts<<endl;
 
         if (aImg->VW() == 0 && Param().aDisp)
         {
@@ -209,8 +219,8 @@ void cAppliTiepTriFar::loadMask2D()
              cout<<"Disp Hull "<<endl;
              // display convexhull
              aVW->draw_poly(aBoder, aVW->pdisc()(P8COL::green),true);
-             cout<<"Nb Vrtc "<<aImg->SetVertices().size()<<endl;
              double r_ptsDraw = ElMax(aImg->Tif().sz().x, aImg->Tif().sz().y)/1000;
+             cout<<"Nb Vrtc "<<aImg->SetVertices().size()<<" -Draw ,Rad "<<r_ptsDraw<<endl;
              if (Param().aDispVertices)
              {
                  for (uint aKVtc=0; aKVtc<aImg->InterestPt().size(); aKVtc++)
@@ -221,14 +231,68 @@ void cAppliTiepTriFar::loadMask2D()
                                              );
                     }
              }
-
+             aImg->VW() = aVW;
              if (aKImg == mvImg.size()-1)
                 aVW->clik_in();
         }
     }
 }
 
-// ===================== CONVEX HULL COMPUTE ===========================//
+
+bool cAppliTiepTriFar::FilterContrast()
+{
+    // get least pts image
+    cout<<endl<<"Filter Contrast... "<<endl;
+    if (mImgLeastPts != NULL)
+    {
+        // filter point on
+        cFastCriterCompute * aCrit = cFastCriterCompute::Circle(TT_DIST_FAST);
+        for (uint aKPt=0; aKPt<mImgLeastPts->InterestPt_v2().size(); aKPt++)
+        {
+            //cIntTieTriInterest aP = mImgLeastPts->InterestPt_v2()[aKPt];
+            cIntTieTriInterest * aP = new cIntTieTriInterest(mImgLeastPts->InterestPt_v2()[aKPt]);
+            Pt2dr aFastQual = FastQuality(      mImgLeastPts->TImInit() ,aP->mPt,
+                                                *aCrit,
+                                                aP->mType,
+                                                Pt2dr(TT_PropFastStd,TT_PropFastConsec)
+                                         );
+
+
+            bool OkFast = (aFastQual.x > TT_SeuilFastStd) && ( aFastQual.y> TT_SeuilFastCons);
+            // stock to "point to correl" vector
+            if (OkFast)
+            {
+                mPtToCorrel.push_back(aP);
+            }
+        }
+        cout<<"  + STAT : In "<<mImgLeastPts->InterestPt_v2().size()<<" -Out : "<<mPtToCorrel.size()<<endl;
+        Video_Win * aVW = mImgLeastPts->VW();
+        if (aVW != 0 && Param().aDisp)
+        {
+            cout<<"  Draw.. "<<endl;
+            for (uint aKVtc=0; aKVtc<mPtToCorrel.size(); aKVtc++)
+               {
+                   cout<<mPtToCorrel[aKVtc]->mPt<<endl;
+                   aVW->draw_circle_loc( Pt2dr(mPtToCorrel[aKVtc]->mPt),
+                                         5,
+                                         aVW->pdisc()(P8COL::blue)
+                                        );
+               }
+            aVW->clik_in();
+        }
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+/*
+ For matching :
+    1) _ Re scale all selected region to the same scale => how to do it ?
+*/
+// ===================== CONVEX HULL COMPUTE FOR SET OF 2D POINTS===========================//
 Pt2dr p0;
 Pt2dr nextToTop(stack<Pt2dr> &S)
 {

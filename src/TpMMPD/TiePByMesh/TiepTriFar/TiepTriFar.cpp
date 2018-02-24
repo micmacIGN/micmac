@@ -69,6 +69,7 @@ int TiepTriFar_Main(int argc,char ** argv)
     }
     else
     {
+        aParam.aDisp = false;
         aParam.aDispVertices = false;
     }
 
@@ -103,7 +104,7 @@ int TiepTriFar_Main(int argc,char ** argv)
                                                     );
     aAppli->LoadMesh(aParam.aNameMesh);
     aAppli->loadMask2D();
-
+    aAppli->FilterContrast();
 
 
        return EXIT_SUCCESS;

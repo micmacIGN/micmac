@@ -49,6 +49,12 @@ class cAppliTiepTriFar
         // FROM 3D MESH TO 2D MASK
         void loadMask2D();
 
+        bool FilterContrast();
+
+        cImgTieTriFar * ImgLeastPts() {return mImgLeastPts;}
+
+        vector<cIntTieTriInterest*> & PtToCorrel() {return mPtToCorrel;}
+
     private:
         cParamTiepTriFar & mParam;
         vector <string> mVNameImg;
@@ -59,8 +65,9 @@ class cAppliTiepTriFar
         vector<cTri3D> mVTri3D;
         cInterfChantierNameManipulateur * mICNM;
 
+        cImgTieTriFar * mImgLeastPts;
 
-
+        vector<cIntTieTriInterest*> mPtToCorrel;
 
 };
 
@@ -96,6 +103,7 @@ class cImgTieTriFar
 
         vector<Pt2dr> & InterestPt() {return mInterestPt;}
 
+        vector<cIntTieTriInterest> & InterestPt_v2() {return mInterestPt_v2;}
 
   private :
         cAppliTiepTriFar & mAppli;
@@ -122,6 +130,8 @@ class cImgTieTriFar
         TIm2D<double, double>     mTImInit;
 
         vector<Pt2dr> mInterestPt;
+
+        vector<cIntTieTriInterest> mInterestPt_v2;
 
         Tiff_Im   mTifZBuf;
 

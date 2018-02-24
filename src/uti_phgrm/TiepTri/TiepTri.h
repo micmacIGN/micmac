@@ -316,6 +316,7 @@ class cIntTieTriInterest
 {
     public :
        cIntTieTriInterest(const Pt2di & aP,eTypeTieTri aType,const double & aFastQual);
+       cIntTieTriInterest(const cIntTieTriInterest &aPt);
 
        Pt2di        mPt;
        eTypeTieTri  mType;
