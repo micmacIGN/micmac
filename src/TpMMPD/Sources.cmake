@@ -122,7 +122,8 @@ set(Src_TD_PPMD
 
     ${TDPPMD_DIR}/RollingBasc/cAppliRollingBasc.cpp
 
-
+    ${TDPPMD_DIR}/TiePByMesh/TiepTriFar/TiepTriFar.cpp
+    ${TDPPMD_DIR}/TiePByMesh/TiepTriFar/TiepTriFar_method.cpp
 
 
 

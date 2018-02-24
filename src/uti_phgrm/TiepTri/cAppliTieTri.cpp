@@ -605,6 +605,15 @@ cIntTieTriInterest::cIntTieTriInterest(const Pt2di & aP,eTypeTieTri aType,const 
 {
 }
 
+cIntTieTriInterest::cIntTieTriInterest(const cIntTieTriInterest & aP)
+{
+    mPt        = aP.mPt;
+    mType      = aP.mType;
+    mFastQual  = aP.mFastQual;
+    mSelected  = aP.mSelected;
+}
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en
