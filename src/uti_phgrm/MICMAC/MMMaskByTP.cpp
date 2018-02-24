@@ -255,6 +255,7 @@ class cMMTP
       {
            mHeapCTP.MajOrAdd(&aCel);
       }
+      // Remplit aCPtr avec la meilleure cellule
       bool PopCel(cCelTiepPtr & aCPtr)
       {
          return mHeapCTP.pop(aCPtr);
@@ -1000,25 +1001,30 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
 
     aCptR[0] ++;
 
+   // Control la boite, les debordment en Z, le masque 3d, le masque image ...
    if (!mMMTP->Inside(anX,anY,aZ))
      return;
    aCptR[1] ++;
 
    aCptR[2] ++;
-
+  
+   // Recupere la cellule au point X,Y (existe toujours)
    cCelTiep & aCel =  mMMTP->Cel(anX,anY);
-
 
    // std::cout << "NBCCCEL " << aCel.NbCel() << " " << aZ << "\n";
 
+   // Pas le peine de perdre du temps si on est deja passe par la
    if (aCel.ZIsExplored(aZ)) 
       return;
    aCptR[3] ++;
+   // Memoriser qu'on est deja passe par la
    aCel.SetZExplored(aZ);
 
+   // Calcul le cout  (par du CorMS ?)
    cResCorTP aCost = CorrelMasqTP(aMATP,anX,anY,aZ) ;
    // std::cout << "Cots " << aCost.CSom() << " " << aCost.CMax() << " " << aCost.CMed()  << "\n";
    double aCSom = aCost.CSom();
+   // Different type de seuil pour eliminer
    if (
          (     (aCSom > aMATP.SeuilSomCostCorrel()) 
             || (aCost.CMax() > aMATP.SeuilMaxCostCorrel()) 
@@ -1029,15 +1035,18 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
       return ;
    }
    aCptR[4] ++;
+   // Si le cout est meilleur que le meilleur cout courrant on met a jour
    if (aCSom < aCel.CostCorel())
    {
         aCel.SetCostCorel(aCSom);
         aCel.SetZ(aZ);
         ShowPoint(Pt2dr(anX,anY),aZ*10,1);
+        // Maj Or Ad => Ajoute si n'existe pas, Mise a jour sinon
         mMMTP->MajOrAdd(aCel);
    }
 
 #if (ELISE_X11)
+  // Eventuelle generation d'images pour illustrer
   int aPer =  100000;
   static int aCpt=0; aCpt++;
   if ((aCpt%aPer)==0)
@@ -1068,12 +1077,14 @@ void  cAppliMICMAC::OneIterFinaleMATP(const cMasqueAutoByTieP & aMATP,bool Final
 {
    std::cout << "IN ITER FINAL " << mMMTP->NbInHeap() << " FINAL " << Final << "\n";
    cCelTiepPtr aCPtr;
+   // Tant qu'il y a des cellule, prendre la meilleur
    while (mMMTP->PopCel(aCPtr))
    {
         Pt3di  aP = aCPtr->Pt();
         int aMxDZ = aMATP.DeltaZ();
         Pt3di aDP;
 
+        // Parcourir les voisin
         MakeDerivAllGLI(aP.x,aP.y,aP.z);
         for (aDP.x=-1 ; aDP.x<=1 ; aDP.x++)
         {
@@ -1082,6 +1093,7 @@ void  cAppliMICMAC::OneIterFinaleMATP(const cMasqueAutoByTieP & aMATP,bool Final
                 for (aDP.z=-aMxDZ ; aDP.z<=aMxDZ ; aDP.z++)
                 {
                     Pt3di aQ = aP+aDP;
+                    // Mettre tout les voisin a explorer
                     CTPAddCell(aMATP,aQ.x,aQ.y,aQ.z,Final);
                 }
             }
@@ -1243,9 +1255,9 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoBy
        }
    }
 
-
-
+   // Fonction qui contient la boucle principale
    OneIterFinaleMATP(aMATP,false);
+   // Export ....
    mMMTP->ExportResultInit();
    mMMTP->FreeCel();
  #ifdef ELISE_X11

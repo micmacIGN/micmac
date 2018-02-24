@@ -1189,6 +1189,7 @@ double CensusQuantif(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di a
      float aVC1 =  Im1[aP1.y][0];
      float * aL2C = Im2[aP1.y] + aQI2.mX0; // debut de la colone Im2, centre sur la partie entiere
      float aVC2 = aQI2.GetVal(aL2C);  // 
+     double aSomEcart = 0;
 
      for (int aDy=-aSzV.y ; aDy<=aSzV.y ; aDy++)
      {
@@ -1199,9 +1200,14 @@ double CensusQuantif(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di a
               // Val du voisin  Dx,Dy en 
               float aV1 = aL1[aDx]; // 
               float aV2 = aQI2.GetVal(aL2+aDx);  // 
+
+              aSomEcart += ElAbs(EcartNormalise(aV1,aVC1)-EcartNormalise(aV2,aVC2));
           }
      }
+     return aSomEcart / ( (1+2*aSzV.x) * (1+2*aSzV.y) );
 }
+/*
+*/
 
 
 // Version basique du calcul de Census par graphe;
