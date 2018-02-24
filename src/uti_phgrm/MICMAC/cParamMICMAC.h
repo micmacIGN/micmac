@@ -27,6 +27,7 @@ typedef enum
   eMCC_GrCensus,
   eMCC_CensusBasic,
   eMCC_CensusCorrel,
+  eMCC_CensusQuantitatif,
   eMCC_CensusMixCorrelBasic
 } eModeCensusCost;
 void xml_init(eModeCensusCost & aVal,cElXMLTree * aTree);

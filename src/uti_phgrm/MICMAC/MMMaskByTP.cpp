@@ -1057,6 +1057,7 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
 
 void  cAppliMICMAC::MakeDerivAllGLI(int aX,int aY,int aZ)
 {
+   // Les derivees sont precalculees sur toutes les images
    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
    {
        mVLI[aKIm]->MakeDeriv(aX,aY,aZ);
@@ -1133,6 +1134,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoBy
        );
     }
 
+    // Si on active le filtre "anti-ciel"
     if (aMATP.mmtpFilterSky().IsInit())
     {
          Im2D_REAL4 * anIm = mPDV1->LoadedIm().FirstFloatIm();
@@ -1146,21 +1148,18 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoBy
          Im2D_U_INT1 aImLabel(aSz.x,aSz.y);
          TIm2D<U_INT1,INT> aTLab(aImLabel);
 
+         // Fonction d'homogenite , est homogene si sur un voisinage le Min est superieur a une proportion du max
          Fonc_Num FHGlob = FoncHomog(*anIm,aFS.SzKernelHom().Val(),aFS.PertPerPix().Val());
          ELISE_COPY(aImLabel.all_pts(),FHGlob,aImLabel.out());
          FiltrageCardCC(true,aTLab,1,2,aSeuilNbPts);
 
          Im2D_Bits<1> aNewM = mMMTP->ImMasquageInput();
          ELISE_COPY(select(aImLabel.all_pts(),aImLabel.in()==1),0,aNewM.out());
-/*
-         Video_Win * aW = Video_Win::PtrWStd(anIm->sz());
-         ELISE_COPY(anIm->all_pts(),aImLabel.in(), aW->odisc());
-         std::cout << "AAAAAAAAAAAAAAAAAaaaSkkkkkkYYyyyyy\n"; getchar();
-*/
           
     }
 
  #ifdef ELISE_X11
+   // Cree les fenetre qui permettront la visualisation progressive
    if (aMATP.Visu().Val())
    {
        Pt2dr aSzW = Pt2dr(aBoxLoc.sz());
@@ -1176,12 +1175,6 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoBy
            Im2D_REAL4 * anI = mVLI[0]->FloatIm(aKS);
            ELISE_COPY(anI->all_pts(),Max(0,Min(255,anI->in()/50)),TheWTiePCor->ogray());
        }
-/*
-       {
-           ELISE_COPY(TheWTiePCor->all_pts(),mMMTP->ImMasquageInput().in(),TheWTiePCor->odisc());
-           std::cout << "HERISE THE MAKSE \n"; getchar();
-       }
-*/
    }
 #endif 
    std::string  aNamePts = mICNM->Assoc1To1
@@ -1190,8 +1183,11 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoBy
                               PDV1()->Name(),
                               true
                            );
+   // Lecture des germes de l'appariement, ce sont des points 3D genere a
+   // a partir des points homologues dans "AperoChImSecMM"
    mTP3d = StdNuage3DFromFile(WorkDir()+aNamePts);
 
+   // Filtre avec le masque 3D
    cMasqBin3D * aMasq3D = 0;
 //#if (ELISE_QT_VERSION >= 4)
    if (aMATP.Masq3D().IsInit())
@@ -1215,11 +1211,15 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoBy
    cXML_ParamNuage3DMaille aXmlN =  mCurEtape->DoRemplitXML_MTD_Nuage();
 
 
+   // On rentre tous les germe
    {
+       // On lit le nuage qui permet de faire les conversion geometrique
+       // pour "rasteriser" les points 3D
        cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(mPDV1->Name(),aXmlN,FullDirMEC());
        if (aMasq3D)
        {
            mMMTP->SetMasq3D(aMasq3D,aNuage,Pt2dr(mBoxIn._p0));
+           // A priori ces deux la ne servent plus, mais ont ete utiles pour du debugage, on laisse
            mGLOBMasq3D = aMasq3D;
            mGLOBNuage = aNuage;
        }
@@ -1229,13 +1229,14 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoBy
            Pt3dr aPE = (*mTP3d)[aK];
            Pt3dr aPL2 = aNuage->Euclid2ProfPixelAndIndex(aPE);
 
-
            int aXIm = round_ni(aPL2.x) - mBoxIn._p0.x;
            int aYIm = round_ni(aPL2.y) - mBoxIn._p0.y;
            int aZIm = round_ni(aPL2.z) ;
 
-
+           // calclul les derivees par differences finies pour accelerer 
+           // la geometrie
            MakeDerivAllGLI(aXIm,aYIm,aZIm);
+           // Ajoute le point germe
            CTPAddCell(aMATP,aXIm,aYIm,aZIm,false);
 
            ShowPoint(Pt2dr(aXIm,aYIm),P8COL::red,0);

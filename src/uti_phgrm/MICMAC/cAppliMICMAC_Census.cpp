@@ -52,10 +52,17 @@ template <class Type> class cImFlags ;
 
 
 
+// Redifinition de la moitie superieure du graphe de 8 voisins
+//
+//     V3  V2 V1
+//       \ | / 
+//         X -  V0
 
 static int VX[4] = {1,1,0,-1};
 static int VY[4] = {0,1,1,1};
 
+// Structure optimisee lorsque l'on veut interpoler 
+// une image plusieur fois avec le meme X
 class cQckInterpolEpip
 {
     public :
@@ -1175,10 +1182,30 @@ double CensusBasic(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSz
      return ((double) aNbOk) / ((1+2*aSzV.x)*(1+2*aSzV.y));
 }
 
+double CensusQuantif(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV)
+{
+     cQckInterpolEpip aQI2(X2);
+
+     float aVC1 =  Im1[aP1.y][0];
+     float * aL2C = Im2[aP1.y] + aQI2.mX0; // debut de la colone Im2, centre sur la partie entiere
+     float aVC2 = aQI2.GetVal(aL2C);  // 
+
+     for (int aDy=-aSzV.y ; aDy<=aSzV.y ; aDy++)
+     {
+          float * aL1 = Im1[aP1.y+aDy] + aP1.x; // debut de la colone Im1, centre x1
+          float * aL2 = Im2[Y2+aDy] + aQI2.mX0; // debut de la colone Im2, centre sur la partie entiere
+          for (int aDx=-aSzV.x ; aDx<= aSzV.x ; aDx++)
+          {
+              // Val du voisin  Dx,Dy en 
+              float aV1 = aL1[aDx]; // 
+              float aV2 = aQI2.GetVal(aL2+aDx);  // 
+          }
+     }
+}
 
 
-
-
+// Version basique du calcul de Census par graphe;
+// Est utilise pour verifier la correction du calcul optimise
 
 
 double CensusGraphePlein(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV)
@@ -1190,18 +1217,21 @@ double CensusGraphePlein(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2
 
      for (int aDy=-aSzV.y ; aDy<=aSzV.y ; aDy++)
      {
-          float * aL1 = Im1[aP1.y+aDy] + aP1.x;
-          float * aL2 = Im2[Y2+aDy] + aQI2.mX0;
+          float * aL1 = Im1[aP1.y+aDy] + aP1.x; // debut de la colone Im1, centre x1
+          float * aL2 = Im2[Y2+aDy] + aQI2.mX0; // debut de la colone Im2, centre sur la partie entiere
           for (int aDx=-aSzV.x ; aDx<= aSzV.x ; aDx++)
           {
-              float aV1 = aL1[aDx];
-              float aV2 = aQI2.GetVal(aL2+aDx);
+              // Val du voisin  Dx,Dy en 
+              float aV1 = aL1[aDx]; // 
+              float aV2 = aQI2.GetVal(aL2+aDx);  // 
               for (int aK=0 ; aK<4 ; aK++)
               {
-                   int aDx2 = aDx+VX[aK];
+                   int aDx2 = aDx+VX[aK];  // Dx-Dy des des 8 voisins
                    int aDy2 = aDy+VY[aK];
+                   // Pour ne pas sortir
                    if  ((aDx2>=-aSzV.x) && (aDx2<=aSzV.x) && (aDy2>=-aSzV.y) && (aDy2<=aSzV.y))
                    {
+                       // 
                        float aW1 = Im1[aP1.y+aDy2][aP1.x+aDx2];
                        float aW2 = aQI2.GetVal(Im2,Pt2di(aDx2,Y2+aDy2));
                        bool Inf1 = (aV1<aW1);
