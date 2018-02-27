@@ -273,7 +273,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
        {
             mVI1[aK]->SiftMakeDif(mVI1[aK+1]);
        }
-       for (int aK=1 ; aK<mNbS-1 ; aK++)
+       for (int aK=1 ; aK<mNbS-2 ; aK++)
        {
             mVI1[aK]->SiftMaxLoc(mVI1[aK-1],mVI1[aK+1],aSPC);
        }

@@ -143,6 +143,7 @@ public :
     }
 };
 
+extern int TiepTriFar_Main(int argc,char ** argv);
 extern int PHO_MI_main(int , char **);
 extern int TiePByMesh_main(int , char **);
 extern int MeshProjOnImg_main(int , char **);
@@ -805,6 +806,9 @@ extern int  CPP_NOGpsLoc(int argc,char ** argv);
 extern int GCPRollingBasc_main(int argc, char** argv);
 extern int Generate_ImagSift(int argc, char** argv);
 
+extern int  CPP_DistHistoBinaire(int argc,char ** argv);
+
+
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -1029,6 +1033,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("CplFromHomol",CplFromHomol_main ,"Creat xml of pair images from Homol Folder"));
         aRes.push_back(cMMCom("LSQMatch",LSQMatch_Main ,"Giang Test LSQ"));
         aRes.push_back(cMMCom("GCPRollingBasc",GCPRollingBasc_main ,"Rolling GCPBascule"));
+        aRes.push_back(cMMCom("TiepTriFar",TiepTriFar_Main ,"TestFarScene"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
@@ -1050,6 +1055,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
         aRes.push_back(cMMCom("ConvertTiePPs2MM",ConvertTiePPs2MM_main,"ConvertTiePPs2MM"));
+        aRes.push_back(cMMCom("DistHB",CPP_DistHistoBinaire,"Dist Binarie Code Histo of Images"));
 
         aRes.push_back(cMMCom("ConvHomolVSFM2MM",ConvHomolVSFM2MM_main,"Convert Tie Points from Visual SFM format (.sift & .mat) to MicMac format"));
 

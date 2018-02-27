@@ -529,6 +529,7 @@ class cAppli_MPI2Ply
          std::string mPat;
          bool 		 mBin;
          Pt3dr       mOffsetPly;
+	 bool DoublePrec = false;
 
 };
 
@@ -545,6 +546,7 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
                     << EAM(mMergeOut,"Out",true,"Ply File Results")
                     << EAM(mPat,"Pat",true,"Pattern for selecting images (Def=All image in files)",eSAM_IsPatFile)
                     << EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
+		    << EAM(DoublePrec,"64B",true,"To generate 64 Bits ply, Def=false, WARN = do not work properly with meshlab or cloud compare")
     );
 
     if(MMVisualMode) return;
@@ -562,6 +564,15 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
    if (EAMIsInit(&mOffsetPly))
    {
         mComNuageMerge = mComNuageMerge + " OffsetPly=" + ToString(mOffsetPly);
+   }
+	
+   if (DoublePrec)
+   {
+       mComNuageMerge = mComNuageMerge + " 64B=true";
+   }
+   else
+   {
+      mComNuageMerge = mComNuageMerge + " 64B=false";
    }
 
    std::string aPatPly = "Nuage-Merge-" +mPat + ".*.ply";

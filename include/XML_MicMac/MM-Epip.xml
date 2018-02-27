@@ -282,17 +282,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                                  <Pds> 0.25 </Pds>
                                  <SquareW> ${SquareW} </SquareW>
                             </OneParamCMS>
-<!--
--->
 
-<!--
-                            <OneParamCMS>
-                                 <SzW> 8 6 </SzW>
-                                 <Sigma> 4.0 </Sigma>
-                                 <Pds> 0.125 </Pds>
-                                 <SquareW> ${SquareW} </SquareW>
-                            </OneParamCMS>
--->
 
 
                      </CorrelMultiScale>

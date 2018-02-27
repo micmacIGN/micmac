@@ -1390,6 +1390,11 @@ double EcartNormalise(double aI1,double aI2)
     // X = I1/I2
     if (aI1 < aI2)   // X < 1
         return aI1/aI2 -1;   // X -1
+    // 0<= aI2 <= aI1
+    if (aI1==0)
+    {
+       return 0;
+    }
 
     return 1-aI2/aI1;  // 1 -1/X
 }

@@ -1051,7 +1051,7 @@ int TestER_tiff2pfm(int argc,char ** argv)
  
         if(int(fwrite(aLine, sizeof(float), aSz.x, stream)) != aSz.x)
             ELISE_ASSERT(false,"File is too short");
-
+        delete[] aLine;
     }
     fclose(stream); 
 

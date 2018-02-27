@@ -60,6 +60,8 @@ eModeCensusCost  Str2eModeCensusCost(const std::string & aName)
       return eMCC_CensusBasic;
    else if (aName=="eMCC_CensusCorrel")
       return eMCC_CensusCorrel;
+   else if (aName=="eMCC_CensusQuantitatif")
+      return eMCC_CensusQuantitatif;
    else if (aName=="eMCC_CensusMixCorrelBasic")
       return eMCC_CensusMixCorrelBasic;
   else
@@ -81,6 +83,8 @@ std::string  eToString(const eModeCensusCost & anObj)
       return  "eMCC_CensusBasic";
    if (anObj==eMCC_CensusCorrel)
       return  "eMCC_CensusCorrel";
+   if (anObj==eMCC_CensusQuantitatif)
+      return  "eMCC_CensusQuantitatif";
    if (anObj==eMCC_CensusMixCorrelBasic)
       return  "eMCC_CensusMixCorrelBasic";
  std::cout << "Enum = eModeCensusCost\n";
@@ -105,7 +109,7 @@ void  BinaryUnDumpFromFile(eModeCensusCost & anObj,ELISE_fp & aFp)
    anObj=(eModeCensusCost) aIVal;
 }
 
-std::string  Mangling( eModeCensusCost *) {return "80C6DB7C96F47089FF3F";};
+std::string  Mangling( eModeCensusCost *) {return "20F055988F7786B1FE3F";};
 
 eTypeModeleAnalytique  Str2eTypeModeleAnalytique(const std::string & aName)
 {
@@ -7646,7 +7650,7 @@ void xml_init(cCensusCost & anObj,cElXMLTree * aTree)
    xml_init(anObj.SeuilBasCorMixte(),aTree->Get("SeuilBasCorMixte",1),double(0.6)); //tototo 
 }
 
-std::string  Mangling( cCensusCost *) {return "19D3912EEE273BAFFE3F";};
+std::string  Mangling( cCensusCost *) {return "0812A605C8DAF5D2FE3F";};
 
 
 int & cCorrel2DLeastSquare::SzW()
@@ -9713,7 +9717,7 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
    xml_init(anObj.MasqueAutoByTieP(),aTree->Get("MasqueAutoByTieP",1)); //tototo 
 }
 
-std::string  Mangling( cTypeCAH *) {return "9CC7DE2B5F9875EEFE3F";};
+std::string  Mangling( cTypeCAH *) {return "70ABEEF11EC9B289FA3F";};
 
 
 cTplValGesInit< double > & cCorrelAdHoc::EpsilonAddMoyenne()
@@ -10030,7 +10034,7 @@ void xml_init(cCorrelAdHoc & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeCAH(),aTree->Get("TypeCAH",1)); //tototo 
 }
 
-std::string  Mangling( cCorrelAdHoc *) {return "875C51040E6E09BEFE3F";};
+std::string  Mangling( cCorrelAdHoc *) {return "06BCD1C246CB0F85FC3F";};
 
 
 cTplValGesInit< double > & cDoImageBSurH::Dyn()
@@ -19315,7 +19319,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "023ED89FDE14C4EBFF3F";};
+std::string  Mangling( cEtapeMEC *) {return "DD337D36C13AC6C7FD3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -20480,7 +20484,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "F46163F9FFCCD082FC3F";};
+std::string  Mangling( cSection_MEC *) {return "90DD720B3958E481FE3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -29510,6 +29514,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "A4E7E61E4F81D6FBFD3F";};
+std::string  Mangling( cParamMICMAC *) {return "26A800050F69FE81FD3F";};
 
 // Quelque chose

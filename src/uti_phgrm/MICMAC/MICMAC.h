@@ -3868,6 +3868,9 @@ void CombleTrouPrgDyn (
          Im2D_INT2     aImZ
      );
 
+double EcartNormalise(double aI1,double aI2);
+
+
 
 
 
