@@ -49,7 +49,7 @@ int  StatIm_main(int argc,char ** argv)
         Pt2di aSz(1,1);
 		bool aMoreStat=false;
 		bool aTxtExport=false;
-
+        bool aRatioXml=false;
 
 
     ElInitArgMain
@@ -61,6 +61,7 @@ int  StatIm_main(int argc,char ** argv)
                             << EAM(aMoreStat,"Stat",true,"Calculate extra statistical measures (Def=false)")
                             << EAM(aMasq,"Masq",true,"Masq for image")
                             << EAM(aTxtExport,"TxtExport",true,"Export Image as .txt Matrix ; Def=false") 
+                            << EAM(aRatioXml,"RatioXmlExport",true,"Export median to XML_RatioCorrImage; Def=false") 
     );
 
     if(MMVisualMode) return EXIT_SUCCESS;
@@ -132,7 +133,7 @@ int  StatIm_main(int argc,char ** argv)
     std::cout << "ZMinMax=[" << aZMin << " , " << aZMax << "]\n";
     std::cout << "MoyAbs=" << aSomAbs  << "\n";
 	
-	if(aMoreStat)
+	if (aMoreStat)
 	{
 		int aNbV=256;
         
@@ -140,6 +141,16 @@ int  StatIm_main(int argc,char ** argv)
         //cRobustStats aRStat(Abs(aTF)*aFPds,aNbV,aP0,aSz);
 	}
 
+    if (aRatioXml)
+    {
+
+        cXML_RatioCorrImage aXml;
+        aXml.Ratio() = aSomZ;
+
+        std::string aRatioXmlName = StdPrefix(Name) + ".xml";
+        MakeFileXML(aXml,aRatioXmlName);
+
+    }
 /*
         INT NbB = tiff.NbBits();
         INT NbV = 1<<NbB;

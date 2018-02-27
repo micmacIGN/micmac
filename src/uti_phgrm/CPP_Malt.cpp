@@ -106,6 +106,8 @@ class cAppliMalt
           std::string mCom;
           std::string mComOA;
           std::string mComTaramaOA;
+          std::vector<std::string> mCom12PixMRadCal;
+          std::string mCom12PixM;
           std::string mDirTA;
           bool        mPurge;
           bool        mMkFPC;
@@ -136,6 +138,7 @@ class cAppliMalt
           std::string  mMasqImGlob;
           bool        mUseImSec;
           bool        mCorMS;
+          bool        mMCorPonc;
           bool        mForDeform;
           bool        mUseGpu;
           double      mIncidMax;
@@ -153,6 +156,11 @@ class cAppliMalt
 
 int cAppliMalt::Exe()
 {
+
+    //std::cout << "ewwwwwwwwwwwelina -> " << mCom.c_str() << 
+    //             " \n mCom12PixM=" << mCom12PixM.c_str() << "\n";
+    //getchar();
+
     if (! mExe) return 0;
     int aRes = TopSystem(mCom.c_str());
 
@@ -170,6 +178,22 @@ int cAppliMalt::Exe()
         aRes = TopSystem(mComOA.c_str());
     }
 
+
+    
+    if ((aRes==0) &&  mCom12PixMRadCal.size())
+    {
+        
+        for ( auto aComRadCal : mCom12PixMRadCal)
+            aRes = TopSystem(aComRadCal.c_str());
+
+
+    }
+
+
+    if ((aRes==0) && ( mCom12PixM !=""))
+    {
+        aRes = TopSystem(mCom12PixM.c_str());
+    }
 
 
     if (!MMVisualMode) ShowParam();
@@ -209,6 +233,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mSzGlob       (0,0),
     mUseImSec     (false),
     mCorMS        (false),
+    mMCorPonc      (false),
     mForDeform    (false),
     mUseGpu       (false),
     mGenCubeCorrel (false),
@@ -287,6 +312,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     bool   aUseArgMaskAuto=true;
     bool   OrthoImSupMNT = false;
 
+    std::vector<std::string> a12PixParam;
+
     ElInitArgMain
     (
         argc,argv,
@@ -297,6 +324,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM", eSAM_IsExistFileRP)
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
+                    << EAM(mMCorPonc,"CorPonc",true,"New One-Two Pixel Matching option, def=false, available in image geometry")
+                    << EAM(a12PixParam,"12PixMP",true,"One-Two Pixel Matching parameters [ZoomInit,PdsAttPix,PCCroise,?PCStd?,?\"tif\"?], \"tif\" or else \"xml\"", eSAM_NoInit)
                     << EAM(mForDeform,"ForDeform",true,"Set paramaters when ortho are used for deformation")
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false", eSAM_IsBool)
                     << EAM(mZRegul,"Regul",true,"Regularization factor")
@@ -410,6 +439,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mDirOrthoF = "Ortho-" + mDirMEC;
       MakeFileDirCompl(mDirOrthoF);
 
+      if (mMCorPonc && EAMIsInit(&mDoOrtho) && mDoOrtho) mZoomFinal=4;
+      if (mMCorPonc && !EAMIsInit(&mDoOrtho)) mDoOrtho=false;
 
       if (mModeHelp)
           StdEXIT(-1);
@@ -654,7 +685,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       {
           if (! EAMIsInit(&mDirMEC))
           {
-              mDirMEC = "MM-Malt-Img-" + StdPrefix(mImMaster) +ELISE_CAR_DIR;
+              if (mMCorPonc && !mDoOrtho)
+                  mDirMEC = "MM-Malt-Img-" + StdPrefix(mImMaster) + "_OneTwoPixMatch" +ELISE_CAR_DIR;
+              else
+                  mDirMEC = "MM-Malt-Img-" + StdPrefix(mImMaster) +ELISE_CAR_DIR;
           }
           mUseMasqTA = UseMTAOri && ELISE_fp::exist_file(mDir+StdPrefix(mImMaster)+"_Masq.tif");
           if (mUseMasqTA)
@@ -897,7 +931,169 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mCom = mCom + std::string(" +CorMS=true");
           if (mType!=eGeomImage) mCom = mCom + std::string(" +MSDense=false");
       }
+      if (mMCorPonc)
+      { 
+         int aZoomInitMCPonc = 4; 
+         double aPdsAttPix = 1.0;
+         double aPCCroise  = 1.0;
+         double aPCStd     = 0.0;          
+         std::string aMCorPoncCal = "tif";
 
+         if (int(a12PixParam.size())==3)
+         {
+               aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
+               aPdsAttPix = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
+               aPCCroise  = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : aPCCroise");
+
+         }
+         else if (int(a12PixParam.size())==4)
+         {
+               aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
+               aPdsAttPix = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
+               aPCCroise  = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : PCCroise");
+               aPCStd     = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
+               
+         }
+         else if (int(a12PixParam.size())==5)
+         {
+               aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
+               aPdsAttPix   = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
+               aPCCroise    = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : PCCroise");
+               aPCStd       = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
+               aMCorPoncCal = a12PixParam[4]; 
+
+
+               
+         }
+         else
+               ELISE_ASSERT( !((a12PixParam.size()==2) || (a12PixParam.size()>5)) ,"if 12PixP option used must be of size at least three"); 
+   
+
+ 
+         if (EAMIsInit(&mDoOrtho) && mDoOrtho)
+         {
+
+             mCom = mCom + std::string(" +OrthoSuperpMNT=true ");
+             aMCorPoncCal = "tif";
+
+             std::string aKeyOrt = std::string("NKS-Assoc-AddDirAndPref@")  + mDirOrthoF + "@Ort_"; 
+             std::string aKeyRadCal = std::string("NKS-Key-Im2OrtRadCal@") + mDir + "@" + aMCorPoncCal;
+             
+             std::string aOrtMast= mICNM->Assoc1To1(aKeyOrt,mImMaster,true);
+             for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
+             { 
+                  const std::string & aNameImCur = (*mSetIm)[aKIm];
+         
+
+                  std::string aOrtCur = mICNM->Assoc1To1(aKeyOrt,aNameImCur,true);
+                  std::string aOrtOut = mICNM->Assoc1To1(aKeyRadCal,StdPrefix(aNameImCur),true);
+    
+                  //ratio of orthos
+                  std::string aRatioCur = MMBinFile("mm3d Nikrup") + "\"/ " +
+                                        + aOrtCur.c_str() + "(max " 
+                                        + aOrtMast.c_str() + " 1.0)\" " 
+                                        + aOrtOut.c_str();
+
+
+                  //ikth the ratios
+                  /*std::string aRatioCurIkth = MMBinFile("mm3d Nikrup") + 
+                                       + "\"ikth " + aOrtOut.c_str() + " 0.5 5 0 2 10\" "
+                                       + aOrtOut.c_str();*/
+
+                  //masq
+                  std::string aRatioCurMasqName = StdPrefix(aOrtOut) + "_Masq.tif"; 
+                  std::string aRatioCurMasqNameMax = StdPrefix(aOrtOut) + "_MasqMin.tif"; 
+                  std::string aRatioCurMasqNameMin = StdPrefix(aOrtOut) + "_MasqMax.tif"; 
+                  std::string aRatioCurMasqMax = MMBinFile("mm3d Nikrup") + "\"< 0.0 " +
+                                            + aOrtOut.c_str() + "\" " + aRatioCurMasqNameMin.c_str();
+                  std::string aRatioCurMasqMin = MMBinFile("mm3d Nikrup") + "\"> 10.0 " +
+                                            + aOrtOut.c_str() + "\" " + aRatioCurMasqNameMax.c_str();
+                  std::string aRatioCurMasq = MMBinFile("mm3d Nikrup") + "\"&& " + aRatioCurMasqNameMin.c_str()
+                                            + " " + aRatioCurMasqNameMax.c_str() + "\" " + aRatioCurMasqName.c_str();
+
+
+                  //create xml
+                  std::string aRatioStatToXml = MMBinFile("mm3d StatIm") + aOrtOut.c_str() 
+                                                + " [0,0] RatioXmlExport=1 Masq=" + aRatioCurMasqName.c_str();
+
+
+                  //delete the masq  3_06CP_RadCal_Masq.tif
+                  //std::string aRatioCurMasqRm = "ELISE_fp::RmFile(" + aRatioCurMasqName + ")";
+                  std::string aRatioCurMasqRm = "rm \"" + aRatioCurMasqName + "\"" + " \"" + aRatioCurMasqNameMax + "\" " 
+                                                    + " \"" + aRatioCurMasqNameMin + "\"";
+
+ 
+
+                  mCom12PixMRadCal.push_back(aRatioCur.c_str());
+                  //mCom12PixMRadCal.push_back(aRatioCurIkth.c_str());
+                  mCom12PixMRadCal.push_back(aRatioCurMasqMin.c_str());
+                  mCom12PixMRadCal.push_back(aRatioCurMasqMax.c_str());
+                  mCom12PixMRadCal.push_back(aRatioCurMasq.c_str());
+                  mCom12PixMRadCal.push_back(aRatioStatToXml.c_str());
+                  mCom12PixMRadCal.push_back(aRatioCurMasqRm.c_str());
+             }
+
+             mCom12PixM = MMBinFile("mm3d") + " ";
+             for (int aArg=0; aArg<argc; aArg++ )
+             {
+                
+                 const string aACur(argv[aArg]); 
+                 if ( (aACur != "DoOrtho=1") && (aACur != "DoOrtho=true"))      
+                   mCom12PixM += "\"" + aACur + "\" ";
+                 else
+                  mCom12PixM += "DoOrtho=false ";
+             }
+          
+
+
+         }
+         else
+         {
+
+             std::string aKeyRadCal = std::string("NKS-Key-Im2OrtRadCal@") + mDir + "@" + aMCorPoncCal;
+
+             //verify that files with radiometric calibration exist
+             for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
+             { 
+                 const std::string & aNameImCur = (*mSetIm)[aKIm];
+                 std::string aRadCalName = mICNM->Assoc1To1(aKeyRadCal,StdPrefix(aNameImCur),true);
+
+                 if ( !ELISE_fp::exist_file(aRadCalName))
+                 {
+              
+                     if(aMCorPoncCal=="xml")
+                     {
+                         //create an xml if it doesn't exist
+                         cXML_RatioCorrImage aXml;
+                         aXml.Ratio() = 1.0;
+                 
+                         MakeFileXML(aXml,aRadCalName);
+                     }
+                     else
+                     {
+                         std::cout << "Expected radiometric calibration in format: " << aRadCalName << "\n";
+                         ELISE_ASSERT(false,"No calibration file available.");
+                     }
+              
+              
+                 }
+             }
+
+             mCom = mCom + std::string(" +Dir=") + mDir
+                         + std::string(" +CorPonc=true") 
+                         + std::string(" +ZoomInitMCorPonc=")   + ToString(aZoomInitMCPonc) 
+                         + std::string(" +PdsAttPix=")   + ToString(aPdsAttPix)
+                         + std::string(" +PCCroise=")    + ToString(aPCCroise)
+                         + std::string(" +PCStd=")       + ToString(aPCStd)
+                         + std::string(" +MCorPoncCal=") + aMCorPoncCal;
+
+         }
+
+
+
+         
+
+      }
       if (mGenCubeCorrel)
           mCom = mCom + std::string(" +GCC=true");
 
@@ -948,7 +1144,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (mType==eGeomImage)
       {
-          mCom = mCom + " +ModeAgrCor=eAggregMoyMedIm1Maitre";
+          if (mMCorPonc)
+            mCom = mCom + " +ModeAgrCor=eAggregIm1Maitre";
+          else
+            mCom = mCom + " +ModeAgrCor=eAggregMoyMedIm1Maitre";
       }
 
       if (EAMIsInit(&mIncidMax))
