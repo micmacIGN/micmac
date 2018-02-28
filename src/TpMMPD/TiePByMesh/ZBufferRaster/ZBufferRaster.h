@@ -34,6 +34,7 @@ class cParamZbufferRaster
         int         mMethod;
         double      MD_SEUIL_SURF_TRIANGLE;
         double      mPercentVisible;
+        bool        mSafe;
 };
 
 
@@ -153,7 +154,7 @@ public:
 
     void calVBasis();
     Pt3dr pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D);
-    double profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, cBasicGeomCap3D * aCam);
+    double profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, cBasicGeomCap3D * aCam, bool aSafe = true);
 
     bool orientToCam(cBasicGeomCap3D * aCam);
     double surf();
@@ -180,6 +181,9 @@ public:
     tImZBuf & ImZ() {return mImZ;}
     tTImZBuf & TImZ() {return mTImZ;}
     tImZBuf & ImInd() {return mImInd;}
+    tTImZBuf & TImInd() {return mTImInd;}
+
+
     int & CntTriValab() {return mCntTriValab;}
     int & CntTriTraite() {return mCntTriTraite;}
 
@@ -205,7 +209,8 @@ private:
     tImZBuf        mImZ;
     tTImZBuf       mTImZ;
 
-    tImZBuf        mImInd;
+    tImZBuf         mImInd;
+    tTImZBuf        mTImInd;
 
     Im2D_Bits<1>   mMasqTri;
     TIm2DBits<1>   mTMasqTri;

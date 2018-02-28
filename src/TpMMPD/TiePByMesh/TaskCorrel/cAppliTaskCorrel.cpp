@@ -40,7 +40,8 @@ cAppliTaskCorrel::cAppliTaskCorrel (cInterfChantierNameManipulateur * aICNM,
     mNoTif (aNoTif),
     mKeepAll2nd (false),
     MD_SEUIL_SURF_TRIANGLE (TT_SEUIL_SURF_TRIANGLE),
-    mWithGCP (false)
+    mWithGCP (false),
+    mSafeZBuf (true)
 {
     ElTimer aChrono;
     cout<<"In constructor cAppliTaskCorrel : ";
@@ -202,6 +203,7 @@ void cAppliTaskCorrel::ZBuffer()
     cout<<"Cal ZBuf && Tri Valid for each Img ...- NBImg : "<<mVName.size()<<endl;
     ElTimer aChrono;
     cParamZbufferRaster aParamZBuf;
+
     cAppliZBufferRaster * aAppliZBuf = new cAppliZBufferRaster(
                                                                  mICNM,
                                                                  mDir,
@@ -220,6 +222,7 @@ void cAppliTaskCorrel::ZBuffer()
     aAppliZBuf->SEUIL_SURF_TRIANGLE() = SEUIL_SURF_TRIANGLE();
     aAppliZBuf->Method() = MethodZBuf();
     aAppliZBuf->SetNameMesh(mNameMesh);
+    aAppliZBuf->Param().mSafe = this->SafeZBuf();
     aAppliZBuf->DoAllIm(mVTriValid);
 
 
