@@ -105,6 +105,7 @@ int TiepTriFar_Main(int argc,char ** argv)
     aAppli->LoadMesh(aParam.aNameMesh);
     aAppli->loadMask2D();
     aAppli->FilterContrast();
+    aAppli->Matching();
 
 
        return EXIT_SUCCESS;

@@ -65,18 +65,24 @@ Pt3dr cTri2D::pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D)
 }
 
 
-double cTri2D::profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, cBasicGeomCap3D * aCam)
+double cTri2D::profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, cBasicGeomCap3D * aCam, bool aSafe)
 {
     Pt2dr ptInTri2DGlob = ptInTri2D/mReech;
     Pt3dr aPt = cTri2D::pt3DFromVBasis(ptInTri2DGlob, aTri3D);
-    if (aCam->PIsVisibleInImage(aPt))
+    if (aSafe)
     {
-        //Can I use this method ?
-        return aCam->ProfondeurDeChamps(aPt);
-        //return(euclid((aCam->VraiOpticalCenter()-aPt).AbsP() ));
+        if (aCam->PIsVisibleInImage(aPt))
+        {
+            //Can I use this method ?
+            double aProf = aCam->ProfondeurDeChamps(aPt);
+            return aProf;
+            //return(euclid((aCam->VraiOpticalCenter()-aPt).AbsP() ));
+        }
+        else
+            return TT_DEFAULT_PROF_NOVISIBLE;
     }
     else
-        return TT_DEFAULT_PROF_NOVISIBLE;
+        return aCam->ProfondeurDeChamps(aPt);
 }
 
 bool cTri2D::orientToCam(cBasicGeomCap3D * aCam)
