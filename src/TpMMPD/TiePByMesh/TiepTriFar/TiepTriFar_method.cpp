@@ -48,6 +48,39 @@ cParamTiepTriFar::cParamTiepTriFar():
     aRad (3)
 {}
 
+cResultMatch::cResultMatch():
+    IsInit (false),
+    aPtMatched (Pt2dr (-1,-1)),
+    aPtToMatch (Pt2dr (-1,-1)),
+    aScore (-1),
+    aNbUpdate (0)
+
+{}
+
+cParamMatch::cParamMatch():
+    aSzWin (-1),
+    aThres (-1),
+    aStep (-1)
+{}
+
+cParamMatch::cParamMatch(int & aSzWin, double & aThres, double & aStep)
+{
+    this->aStep = aStep;
+    this->aSzWin = aSzWin;
+    this->aThres = aThres;
+}
+
+int cResultMatch::update(Pt2dr & aPtOrg, Pt2dr &aPtMatched, double & aScore)
+{
+    this->IsInit = true;
+    this->aPtMatched = aPtMatched;
+    this->aScore = aScore;
+    this->aPtToMatch = aPtOrg;
+    aNbUpdate++;
+    return aNbUpdate;
+}
+
+
 cAppliTiepTriFar::cAppliTiepTriFar (cParamTiepTriFar & aParam,
                                     cInterfChantierNameManipulateur * aICNM,
                                     vector<string> & vNameImg,
@@ -104,7 +137,12 @@ cImgTieTriFar::cImgTieTriFar(cAppliTiepTriFar &aAppli, string & aName):
     mVW      (0),
     mImInit  (1,1),
     mTImInit (mImInit),
-    mTifZBuf (Tiff_Im::UnivConvStd(aAppli.Param().aDirZBuf + "/" + mNameIm + "/" + mNameIm + "_ZBuffer_DeZoom1.tif"))
+    mTifZBuf (Tiff_Im::UnivConvStd(aAppli.Param().aDirZBuf + "/" + mNameIm + "/" + mNameIm + "_ZBuffer_DeZoom1.tif")),
+    mImPtch  (1,1),
+    mTImPtch (mImPtch),
+    mImZBuf  (1,1),
+    mTImZBuf (mImZBuf)
+
 {
 }
 
@@ -238,6 +276,46 @@ void cAppliTiepTriFar::loadMask2D()
     }
 }
 
+template <typename Type, typename Type_Base, typename TypePt2d, typename TypeZBuf> void DoMatchWithZBuf
+                (
+                    TIm2D<Type, Type_Base> & aIm1,
+                    TIm2D<Type, Type_Base> & aIm2,
+                    CamStenope * aCam1,
+                    CamStenope * aCam2,
+                    Pt2d<TypePt2d> & aPt1,
+                    TIm2D<TypeZBuf, TypeZBuf> & aZBuf1,
+                    cParamMatch & aParamMatch,
+                    cResultMatch & aResult
+                )
+{
+    int aSzWin = aParamMatch.aSzWin;
+    double aStep = aParamMatch.aStep;
+    Pt2dr aPtRun;
+    Pt2di aPtPtch;
+    RMat_Inertie aMatr;
+    Im2D<double, double>aPtch1((aSzWin*2+1)*aStep, (aSzWin*2+1)*aStep);
+    Im2D<double, double>aPtch2((aSzWin*2+1)*aStep, (aSzWin*2+1)*aStep);
+    Pt2dr aPtPtch2(-1,-1);
+    for (aPtRun.x = -aSzWin, aPtPtch.x=0 ;aPtRun.x <= aSzWin; aPtRun.x=aPtRun.x+aStep, aPtPtch.x++)
+    {
+        for (aPtRun.y = -aSzWin, aPtPtch.y=0 ;aPtRun.y <= aSzWin; aPtRun.y=aPtRun.y+aStep, aPtPtch.y++)
+        {
+            Pt2dr aPt = aPtRun + Pt2dr(aPt1);
+            double aVal = aIm1.getr(aPt, -2);
+            aPtch1.SetR_SVP(aPtPtch, aVal);
+            double aZ = aZBuf1.getr(aPt, -2);
+            Pt3dr aPtTer = aCam1->ImEtProf2Terrain(aPt, aZ);
+            aPtPtch2 = aCam2->R3toF2(aPtTer);
+            aPtch2.SetR_SVP(aPtPtch, aIm2.getr(aPtPtch2));
+
+            aMatr.add_pt_en_place(aVal, aIm2.getr(aPtPtch2));
+        }
+    }
+    double aScore = aMatr.correlation();
+    Pt2dr aPt1_r = Pt2dr(aPt1);
+    aResult.update(aPt1_r, aPtPtch2, aScore);
+}
+
 
 bool cAppliTiepTriFar::FilterContrast()
 {
@@ -280,7 +358,6 @@ bool cAppliTiepTriFar::FilterContrast()
                }
             aVW->clik_in();
         }
-
         return true;
     }
     else
@@ -291,7 +368,59 @@ bool cAppliTiepTriFar::FilterContrast()
 /*
  For matching :
     1) _ Re scale all selected region to the same scale => how to do it ?
+
+    2) _ Maybe pass through 3D ? from img pixel + profondeur (ZBuffer) => 3D Point => reproject to other image ?
+
+    3)
+        _ Matching (Im1, Im2, Cam1, Cam2, ZBuf1, ZBuf2, Pt2d Pt1, Param Matching(correl win size, score reject) )
 */
+
+int cAppliTiepTriFar::Matching()
+{
+    cout<<endl<<" ======== MATCHING ========"<<endl;
+
+    int aNBMatchSuccess;
+    cParamMatch aPrMatch;
+    aPrMatch.aSzWin = 3;
+    aPrMatch.aStep = 0.1;
+    aPrMatch.aThres = 0.8;
+
+    cImgTieTriFar * aIm1 = this->ImgLeastPts();
+    cout<<" + Im1 : "<<aIm1->NameIm()<<" - NbPt to match : "<<mPtToCorrel.size()<<endl;
+
+    // Load ZBuffer for Image Least Pts
+    cout<<"  + Load ZBuffer ... ";
+    aIm1->ImInit().Resize(aIm1->TifZBuf().sz());
+    aIm1->TImInit() = tTImZBuf(aIm1->ImInit());
+    ELISE_COPY(aIm1->ImInit().all_pts(), aIm1->TifZBuf().in() , aIm1->ImInit().out());
+    cout<<"  Loaded"<<endl;
+
+    for (uint aKIm=1; aKIm<mvImg.size(); aKIm++)
+    {
+        cImgTieTriFar * aIm2 = mvImg[aKIm];
+        cout<<endl<<"  + Im2 : "<<aIm2->NameIm()<<endl;
+        for (uint aKPt=0; aKPt<mPtToCorrel.size(); aKPt++)
+        {
+            cIntTieTriInterest * aPt = mPtToCorrel[aKPt];
+            cResultMatch aResult;
+            DoMatchWithZBuf(
+                                aIm1->TImInit(),
+                                aIm2->TImInit(),
+                                aIm1->CamSten(),
+                                aIm2->CamSten(),
+                                aPt->mPt,
+                                aIm1->TImZBuf(),
+                                aPrMatch,
+                                aResult
+                            );
+            cout<<"   > Pt :"<<aPt->mPt<<aResult.aPtMatched<<" -Sc: "<<aResult.aScore<<endl;
+        }
+    }
+    return aNBMatchSuccess;
+}
+
+
+
 // ===================== CONVEX HULL COMPUTE FOR SET OF 2D POINTS===========================//
 Pt2dr p0;
 Pt2dr nextToTop(stack<Pt2dr> &S)

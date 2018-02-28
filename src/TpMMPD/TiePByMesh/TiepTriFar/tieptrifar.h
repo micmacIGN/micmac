@@ -14,6 +14,32 @@ class cParamTiepTriFar;
 class cAppliTiepTriFar;
 class cImgTieTriFar;
 class ExtremePoint;
+class cResultMatch;
+class cParamMatch;
+
+class cResultMatch
+{
+    public:
+        cResultMatch();
+        bool IsInit;        // if this instant is updated ?
+        Pt2dr aPtMatched;   // Pt found on img 2 as a match with aPtToMatch
+        Pt2dr aPtToMatch;   // Pt on img 1 (origin pt to be matched)
+        double aScore;      // Last correlation score
+        int aNbUpdate;  // Nb of times this instant updated
+        int update(Pt2dr & aPtOrg, Pt2dr & aPtMatched, double & aScore);
+
+};
+
+class cParamMatch
+{
+    public:
+        cParamMatch();
+        cParamMatch(int & aSzWin, double & aThres, double & aStep);
+        int aSzWin; // correlation win size (1/2)
+        double aThres; // reject correlation score
+        double aStep; // pixel sample step
+};
+
 
 class cParamTiepTriFar
 {
@@ -54,6 +80,8 @@ class cAppliTiepTriFar
         cImgTieTriFar * ImgLeastPts() {return mImgLeastPts;}
 
         vector<cIntTieTriInterest*> & PtToCorrel() {return mPtToCorrel;}
+
+        int Matching();
 
     private:
         cParamTiepTriFar & mParam;
@@ -105,6 +133,11 @@ class cImgTieTriFar
 
         vector<cIntTieTriInterest> & InterestPt_v2() {return mInterestPt_v2;}
 
+        Tiff_Im &  TifZBuf() {return mTifZBuf;}
+
+        tImZBuf & ImZBuf() {return mImZBuf;}
+        tTImZBuf & TImZBuf() {return mTImZBuf;}
+
   private :
         cAppliTiepTriFar & mAppli;
 
@@ -135,7 +168,11 @@ class cImgTieTriFar
 
         Tiff_Im   mTifZBuf;
 
+        Im2D<double, double>     mImPtch;   //store image region or correlation
+        TIm2D<double, double>    mTImPtch;
 
+        tImZBuf mImZBuf;
+        tTImZBuf mTImZBuf;
 };
 
 

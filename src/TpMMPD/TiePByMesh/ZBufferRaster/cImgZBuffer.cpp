@@ -11,6 +11,7 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli , const std::string & aNa
     mImZ      (round_ni(mSzIm.x*mAppli->Reech()), round_ni(mSzIm.y*mAppli->Reech()), tElZBuf(-1.0)),
     mTImZ     (mImZ),
     mImInd    (round_ni(mSzIm.x*mAppli->Reech()), round_ni(mSzIm.y*mAppli->Reech()), tElZBuf(-1.0)),
+    mTImInd   (mImInd),
     mMasqTri  (1,1),
     mTMasqTri (mMasqTri),
     mMasqIm   (1,1),
@@ -135,7 +136,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
             for (int aKPt=0; aKPt<(int)aVPtsInTri.size(); aKPt++)
             {
                 Pt2dr aPtRas = aVPtsInTri[aKPt];
-                double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCamGen);
+                double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCamGen, Appli()->Param().mSafe);
                 cImgZBuffer::updateZ(mImZ, aPtRas, prof, aTri3D.Ind());
             }
         }
@@ -176,7 +177,7 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
             for (int aKPt=0; aKPt<aSeg.mNb; aKPt++)
             {
                 Pt2dr aPtRas(aSeg.mP0.x + aKPt, aSeg.mP0.y);
-                double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCamGen);
+                double prof = aTri.profOfPixelInTri(aPtRas, aTri3D, mCamGen, Appli()->Param().mSafe);
                 cImgZBuffer::updateZ(mImZ, aPtRas, prof, aTri3D.Ind());
             }
         }
@@ -251,7 +252,8 @@ void cImgZBuffer::ImportResult(string & fileTriLbl, string & fileZBuf)
     {
         for (aP.y = 0; aP.y < mImInd.sz().y; aP.y++)
         {
-            double aIndTri = mImInd.GetR(aP);
+            //double aIndTri = mImInd.GetR(aP);
+            double aIndTri = mTImInd.get(aP);
             if (aIndTri  != tElZBuf(-1.0))
             {
                mTriValid[int(aIndTri)] = true;

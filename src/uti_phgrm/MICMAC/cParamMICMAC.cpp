@@ -1254,14 +1254,35 @@ const double & cXML_RatioCorrImage::Ratio()const
    return mRatio;
 }
 
+
+cTplValGesInit< int > & cXML_RatioCorrImage::NbPt()
+{
+   return mNbPt;
+}
+
+const cTplValGesInit< int > & cXML_RatioCorrImage::NbPt()const 
+{
+   return mNbPt;
+}
+
 void  BinaryUnDumpFromFile(cXML_RatioCorrImage & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Ratio(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NbPt().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbPt().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NbPt().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXML_RatioCorrImage & anObj)
 {
     BinaryDumpInFile(aFp,anObj.Ratio());
+    BinaryDumpInFile(aFp,anObj.NbPt().IsInit());
+    if (anObj.NbPt().IsInit()) BinaryDumpInFile(aFp,anObj.NbPt().Val());
 }
 
 cElXMLTree * ToXMLTree(const cXML_RatioCorrImage & anObj)
@@ -1269,6 +1290,8 @@ cElXMLTree * ToXMLTree(const cXML_RatioCorrImage & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XML_RatioCorrImage",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("Ratio"),anObj.Ratio())->ReTagThis("Ratio"));
+   if (anObj.NbPt().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbPt"),anObj.NbPt().Val())->ReTagThis("NbPt"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -1280,9 +1303,11 @@ void xml_init(cXML_RatioCorrImage & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Ratio(),aTree->Get("Ratio",1)); //tototo 
+
+   xml_init(anObj.NbPt(),aTree->Get("NbPt",1)); //tototo 
 }
 
-std::string  Mangling( cXML_RatioCorrImage *) {return "E0DC8E986FDF41D7FC3F";};
+std::string  Mangling( cXML_RatioCorrImage *) {return "6754566BFE6187BFFF3F";};
 
 
 Pt2dr & cCorrectionPxTransverse::DirPx()

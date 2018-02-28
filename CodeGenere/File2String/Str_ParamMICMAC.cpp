@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2159]) = {
+const char * (theNameVar_ParamMICMAC[2160]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -313,6 +313,7 @@ const char * (theNameVar_ParamMICMAC[2159]) = {
 "-->\n",
 "  <XML_RatioCorrImage Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "      <Ratio Nb=\"1\" Type=\"double\"> </Ratio>\n",
+"      <NbPt Nb=\"?\" Type=\"int\"> </NbPt>\n",
 "  </XML_RatioCorrImage>\n",
 "\n",
 "\n",
