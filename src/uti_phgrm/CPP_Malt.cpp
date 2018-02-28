@@ -936,7 +936,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          double aPdsAttPix = 1.0;
          double aPCCroise  = 1.0;
          double aPCStd     = 0.0;          
-         std::string aMCorPoncCal = "tif";
+         std::string aMCorPoncCal = "xml";
 
          if (int(a12PixParam.size())==3)
          {
