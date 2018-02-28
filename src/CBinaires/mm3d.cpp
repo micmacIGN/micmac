@@ -808,6 +808,7 @@ extern int Generate_ImagSift(int argc, char** argv);
 
 extern int  CPP_DistHistoBinaire(int argc,char ** argv);
 
+extern int CPP_AutoCorr_CensusQuant(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -1058,6 +1059,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("DistHB",CPP_DistHistoBinaire,"Dist Binarie Code Histo of Images"));
 
         aRes.push_back(cMMCom("ConvHomolVSFM2MM",ConvHomolVSFM2MM_main,"Convert Tie Points from Visual SFM format (.sift & .mat) to MicMac format"));
+
+        aRes.push_back(cMMCom("AC_CQ",CPP_AutoCorr_CensusQuant,"Auto correl for Census Quant"));
 
    }
 
