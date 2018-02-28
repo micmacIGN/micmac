@@ -430,8 +430,12 @@ class cXML_RatioCorrImage
 
         double & Ratio();
         const double & Ratio()const ;
+
+        cTplValGesInit< int > & NbPt();
+        const cTplValGesInit< int > & NbPt()const ;
     private:
         double mRatio;
+        cTplValGesInit< int > mNbPt;
 };
 cElXMLTree * ToXMLTree(const cXML_RatioCorrImage &);
 

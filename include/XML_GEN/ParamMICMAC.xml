@@ -311,6 +311,7 @@
 -->
   <XML_RatioCorrImage Nb="1" Class="true" ToReference="true">
       <Ratio Nb="1" Type="double"> </Ratio>
+      <NbPt Nb="?" Type="int"> </NbPt>
   </XML_RatioCorrImage>
 
 

@@ -973,10 +973,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          {
 
              mCom = mCom + std::string(" +OrthoSuperpMNT=true ");
-             aMCorPoncCal = "tif";
+             //aMCorPoncCal = "tif";
 
              std::string aKeyOrt = std::string("NKS-Assoc-AddDirAndPref@")  + mDirOrthoF + "@Ort_"; 
-             std::string aKeyRadCal = std::string("NKS-Key-Im2OrtRadCal@") + mDir + "@" + aMCorPoncCal;
+             std::string aKeyRadCal = std::string("NKS-Key-Im2OrtRadCal@") + mDir + "@tif";// + aMCorPoncCal;
              
              std::string aOrtMast= mICNM->Assoc1To1(aKeyOrt,mImMaster,true);
              for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
@@ -986,18 +986,18 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
                   std::string aOrtCur = mICNM->Assoc1To1(aKeyOrt,aNameImCur,true);
                   std::string aOrtOut = mICNM->Assoc1To1(aKeyRadCal,StdPrefix(aNameImCur),true);
-    
+                  std::string aOrtOutOrg = StdPrefix(aOrtOut) + "_org.tif";
 
                   //ratio of orthos
                   std::string aRatioCur = MMBinFile("mm3d Nikrup") + "\"/ " +
                                         + aOrtCur.c_str() + " (max " 
                                         + aOrtMast.c_str() + " 1.0)\" " 
-                                        + aOrtOut.c_str();
+                                        + aOrtOutOrg.c_str();
 
                   //is RGB? 
                   std::string aRatioConv="";
                   std::string aRatioImConvMv="";
-                  std::string aRatioImConv = StdPrefix(aOrtOut) + "_gray.tif";
+                  std::string aRatioImConv = StdPrefix(aOrtOutOrg) + "_gray.tif";
                   Tiff_Im aIsRGB = Tiff_Im::StdConvGen(aNameImCur.c_str(),-1,true);
 
 
@@ -1005,17 +1005,18 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   if (aIsRGB.nb_chan()==3)
                   {
                       aRatioConv = MMBinFile("mm3d Nikrup") + "\"(/ (+ (=F " 
-                                              + aOrtOut.c_str() + " v0 @F) v1 @F v2 @F) 3)\" " 
+                                              + aOrtOutOrg.c_str() + " v0 @F) v1 @F v2 @F) 3)\" " 
                                               + aRatioImConv.c_str();
-                      aRatioImConvMv = "mv \"" + aRatioImConv + "\" " + "\"" + aOrtOut + "\""; 
+                      aRatioImConvMv = "mv \"" + aRatioImConv + "\" " + "\"" + aOrtOutOrg + "\""; 
 
 
                   }                  
 
                   //ikth the ratios
-                  /*std::string aRatioCurIkth = MMBinFile("mm3d Nikrup") + 
-                                       + "\"ikth " + aOrtOut.c_str() + " 0.5 5 0 2 10\" "
-                                       + aOrtOut.c_str();*/
+                  std::string aRatioIkth = MMBinFile("mm3d Nikrup") + 
+                                       + "\"ikth " + aOrtOutOrg.c_str() + " 0.5 5 0 2 5\" "
+                                       + aOrtOut.c_str();
+
 
 
                   //masq
@@ -1041,6 +1042,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                       mCom12PixMRadCal.push_back(aRatioConv);
                       mCom12PixMRadCal.push_back(aRatioImConvMv);
                   }
+                  mCom12PixMRadCal.push_back(aRatioIkth.c_str());
                   mCom12PixMRadCal.push_back(aRatioMasq.c_str());
                   mCom12PixMRadCal.push_back(aRatioStatToXml.c_str());
                   mCom12PixMRadCal.push_back(aRatioMasqRm.c_str());
