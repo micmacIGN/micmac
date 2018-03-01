@@ -146,7 +146,7 @@ int  StatIm_main(int argc,char ** argv)
 
         cXML_RatioCorrImage aXml;
         aXml.Ratio() = aSomZ;
-
+        aXml.NbPt() = aSP;
         std::string aRatioXmlName = StdPrefix(Name) + ".xml";
         MakeFileXML(aXml,aRatioXmlName);
 
