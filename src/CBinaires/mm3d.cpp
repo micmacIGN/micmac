@@ -747,6 +747,8 @@ int TestGiangNewHomol_Main(int argc,char ** argv);
 
 int TestGiangDispHomol_Main(int argc,char ** argv);
 
+int Test_Conv(int argc,char ** argv);
+
 int GetSpace_main(int argc, char ** argv);
 
 int TestDetecteur_main(int argc,char ** argv);
@@ -1034,6 +1036,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("LSQMatch",LSQMatch_Main ,"Giang Test LSQ"));
         aRes.push_back(cMMCom("GCPRollingBasc",GCPRollingBasc_main ,"Rolling GCPBascule"));
         aRes.push_back(cMMCom("TiepTriFar",TiepTriFar_Main ,"TestFarScene"));
+        aRes.push_back(cMMCom("DetectImBlur",Test_Conv,"compute sharpness notion for each img by variance of laplacian"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));

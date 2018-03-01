@@ -46,7 +46,195 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 
+// =================== Test Zone ============================
+Im2D_REAL4 ImRead(string aNameImTif)
+{
+   Tiff_Im aTif = Tiff_Im::UnivConvStd(aNameImTif);
 
+   Im2D_REAL4 aI(aTif.sz().x, aTif.sz().y);
+
+   ELISE_COPY
+   (
+       aI.all_pts(),
+       aTif.in(),
+       aI.out()
+   );
+   return aI;
+}
+
+void Show(Im2D_REAL4 aIm,Fonc_Num aF, Im2D_REAL4 & aImOut, string aSaveName = "")
+{
+    ELISE_COPY
+    (
+       aIm.all_pts(),
+       Max(0,Min(255,aF)),
+       aImOut.out()
+    );
+    if (aSaveName != "")
+    {
+        string aName =  std::string("./") + aSaveName + ".tif";
+
+        L_Arg_Opt_Tiff aL = Tiff_Im::Empty_ARG;
+        aL = aL + Arg_Tiff(Tiff_Im::ANoStrip());
+        Tiff_Im aRes
+                (
+                   aName.c_str(),
+                   aIm.sz(),
+                   GenIm::u_int1,
+                   Tiff_Im::No_Compr,
+                   Tiff_Im::BlackIsZero,
+                   aL
+                );
+        ELISE_COPY
+        (
+           aIm.all_pts(),
+           Max(0,Min(255,aF)),
+           aRes.out()
+        );
+    }
+}
+
+double Conv1Cell(Im2D_REAL4 & aImgIn, Im2D_REAL8 & aKer, Pt2di & aPos, Pt2di & aSzKer, double & aSomker)
+{
+    double aSom=0;
+    for (int aKx=-aSzKer.x; aKx<=aSzKer.x; aKx++)
+    {
+        for (int aKy=-aSzKer.y; aKy<=aSzKer.y; aKy++)
+        {
+            Pt2di aVois(aKx, aKy);
+            aSom += aImgIn.GetI(aPos + aVois) * aKer.GetI(aVois + aSzKer);
+            //cout<<"Img "<<(aPos + aVois)<<aImgIn.GetI(aPos + aVois)<<" -aKer "<<(aVois + aSzKer)<<aKer.GetI(aVois + aSzKer)<<endl;
+        }
+    }
+    return abs(aSom/aSomker);
+}
+
+double Convol_Withker(Im2D_REAL4 & aImgIn, Im2D_REAL8 & aKer, Im2D_REAL4 & aImgOut)
+{
+    cout<<"In Conv ... "<<endl;
+    aImgOut.Resize(aImgIn.sz());
+    Pt2di aSzKer(round_up((aKer.sz().x-1)/2), round_up((aKer.sz().y-1)/2));
+    Pt2di aRun;
+    double aSomKer = 1;
+    double Moy = 0;
+    int aCnt = 0;
+    for (aRun.x = aSzKer.x ;aRun.x < aImgIn.sz().x-aSzKer.x; aRun.x++)
+    {
+        for (aRun.y = aSzKer.y ;aRun.y < aImgIn.sz().y-aSzKer.y; aRun.y++)
+        {
+            double aRes = Conv1Cell(aImgIn, aKer, aRun, aSzKer, aSomKer);
+            Moy += aRes;
+            aCnt++;
+            aImgOut.SetI_SVP(aRun, aRes);
+        }
+    }
+    return Moy/aCnt;
+}
+
+double Average(Im2D_REAL4 & aImgIn, Pt2di aRab = Pt2di(0,0))
+{
+    Pt2di aRun;
+    double aMoy{0};
+    int aCnt{0};
+    for (aRun.x = aRab.x; aRun.x < aImgIn.sz().x - aRab.x; aRun.x++)
+    {
+        for (aRun.y = aRab.y; aRun.y < aImgIn.sz().y - aRab.y; aRun.y++)
+        {
+           aMoy +=  aImgIn.GetI(aRun);
+           aCnt++;
+        }
+    }
+    return (aMoy/aCnt);
+}
+
+
+double Variance(Im2D_REAL4 & aImgIn, double aMoy = 0, Pt2di aRab = Pt2di(0,0))
+{
+    double Moy=aMoy;
+    if (aMoy == 0)
+    {
+       Moy = aImgIn.moy_rect(Pt2dr(aRab), Pt2dr(aImgIn.sz()-(aRab+Pt2di(1,1))) );
+    }
+    Pt2di aRun;
+    double aSumEcart{0};
+    int aCnt{0};
+    for (aRun.x = aRab.x; aRun.x < aImgIn.sz().x - aRab.x; aRun.x++)
+    {
+        for (aRun.y = aRab.y; aRun.y < aImgIn.sz().y - aRab.y; aRun.y++)
+        {
+           aSumEcart +=  ElSquare(aImgIn.GetI(aRun)-Moy);
+           aCnt++;
+        }
+    }
+    return (aSumEcart/aCnt);
+}
+
+double VarBlur(string aNameIm)
+{
+    ElTimer aTimer;
+    Im2D_REAL8 aLapl(3,3,
+                        "0 1 0 "
+                        "1 -4 1 "
+                        " 0 1 0"
+                   );
+    Im2D_REAL8 aDenoise(3,3,
+                        "0 1 0 "
+                        "1 2 1 "
+                        " 0 1 0"
+                        );
+
+    Pt2di aSzKer(round_up((aLapl.sz().x-1)/2), round_up((aLapl.sz().y-1)/2));
+
+
+    Im2D_REAL4 aIm2D = ImRead(aNameIm);
+    Im2D_REAL4 aIm2D_DNs(aIm2D.sz().x, aIm2D.sz().y);
+    //Show(aIm2D, som_masq(aIm2D.in(0), aDenoise), aIm2D_DNs, aNameIm + "_Dns");
+    Show(aIm2D, som_masq(aIm2D.in(0), aDenoise), aIm2D_DNs, "");
+
+
+    Im2D_REAL4 aIm2D_Lpl(aIm2D.sz().x, aIm2D.sz().y);
+    //Show(aIm2D_DNs,som_masq(aIm2D_DNs.in(0), aLapl), aIm2D_Lpl, aNameIm + "_Lpl");
+    Show(aIm2D_DNs,som_masq(aIm2D_DNs.in(0), aLapl), aIm2D_Lpl, "");
+
+    double aVar = Variance(aIm2D_Lpl, 0, aSzKer);
+    //cout<<"Im "<<aNameIm<<" - aVar "<<aVar<<"  Time : "<<aTimer.uval()<<endl;
+    return aVar;
+}
+
+int Test_Conv(int argc,char ** argv)
+{
+
+    string aDir = "./";
+    string aPat, aPattern;
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPattern, "PatIm",  eSAM_IsPatFile),
+          LArgMain()
+    );
+    SplitDirAndFile(aDir, aPat, aPattern);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    vector<string>  aSetIm = *(aICNM->Get(aPat));
+    vector<Pt2dr> aVPair;
+    for (uint aKImg=0; aKImg<aSetIm.size(); aKImg++)
+    {
+        // ====== test convolution function ======
+        string aIm = aSetIm[aKImg];
+        double aVar = VarBlur(aIm);
+        Pt2dr aPair(double(aKImg), aVar);
+        aVPair.push_back(aPair);
+    }
+    sortDescendPt2drY(aVPair);
+
+    cout<<endl<<"+ Sort by sharpness (higher is sharper) : "<<endl;
+    for (uint aK=0; aK<aVPair.size(); aK++)
+    {
+        cout<<" + "<<aSetIm[int(aVPair[aK].x)]<<" - Var "<<aVPair[aK].y<<endl;
+    }
+    return 0;
+}
+// ===================  ============================
 
 void Test_Xml()
 {
@@ -453,7 +641,7 @@ void PlyPutForCC(string & aPlyResCC, vector<Pt3dr> & aVAllPtInter, vector<double
     ELISE_ASSERT(aVAllPtInter.size() > 0,"No Pts in PlyPutForCC");
     ELISE_ASSERT(aVResidu.size() == aVAllPtInter.size(),"Pts and Res dif size in PlyPutForCC");
 
-    int aNbS = aVAllPtInter.size();
+    //int aNbS = aVAllPtInter.size();
     std::string aTypeXYZ = "float";
 
     bool aModeBin = 1; // mode bin
@@ -492,6 +680,9 @@ void PlyPutForCC(string & aPlyResCC, vector<Pt3dr> & aVAllPtInter, vector<double
 
 int TestGiangNewHomol_Main(int argc,char ** argv)
 {
+    //Test_Conv(argc, argv);
+
+
     string aDir = "./";
     string aSH="";
     string aOri="";
