@@ -112,6 +112,10 @@ class cMMOnePair
       double            mDefCor;
       double            mZReg;
       bool		mExpTxt;
+      bool              mUseCensQ;
+      std::string       mModeCensus;
+      int               mNbS;
+      int               mSzW0;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -176,7 +180,10 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mUseGpu	    (false),
     mDefCor         (0.5),
     mZReg           (0.05),
-    mExpTxt	    (false)
+    mExpTxt	    (false),
+    mUseCensQ       (false),
+    mModeCensus     ("eMCC_CensusCorrel"),
+    mNbS            (3)
 {
   ElInitArgMain
   (
@@ -214,7 +221,21 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mDefCor,"DefCor",false,"Def cor (Def=0.5)")
                     << EAM(mZReg,"ZReg",false,"Regularisation factor (Def=0.05)")
 		    << EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for generating epipolar geometry (Def false, e.g. use dat format)")
+		    << EAM(mNbS,"NbS",false,"Nb Scale,def=3")
+		    << EAM(mSzW0,"SzW0",false,"Sz first Windows, def depend of NbS (1 MS, 2 no MS)")
+		    << EAM(mUseCensQ,"CensusQ",false,"Use Census Quantitaive")
   );
+
+  if (mUseCensQ)
+  {
+      mModeCensus  = "eMCC_CensusQuantitatif"; 
+      if (! EAMIsInit(&mZReg))   mZReg = 0.01;
+      if (! EAMIsInit(&mDefCor)) mDefCor = 0.90;
+  }
+  if (! EAMIsInit(&mSzW0))
+  {
+     mSzW0 =  (mNbS==1) ? 2 : 1;
+  }
 
   if (!mExe) mShow = true;
 
@@ -252,6 +273,11 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
 
   if (!EAMIsInit(&mCMS))
      mCMS = mModeEpip;
+
+   if (MPD_MM())
+   {
+       std::cout << "MODE-E=" << mModeEpip << " CMS=" << mCMS << "\n";
+   }
 
   if (mQualOr==eQual_Low)
   {
@@ -345,9 +371,23 @@ void cMMOnePair::ExeCom(const std::string & aCom)
 /*                                                               */
 /*****************************************************************/
 
+int FlagcAppliMMOnePair(int argc,char ** argv)
+{
+/*
+   std::cout << "A0 " << argv[0] << "\n";
+   std::cout << "A1 " << argv[1] << "\n";
+   std::cout << "A2 " << argv[2] << "\n";
+*/
+   if ((argc>=4) && (std::string(argv[3])=="NONE"))
+       return cAppliWithSetImage::TheFlagNoOri;
+
+   return 0;
+}
+
+
 cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
    cMMOnePair(argc,argv),
-   cAppliWithSetImage(2,&(mArgcAWS[0]),0),
+   cAppliWithSetImage(2,&(mArgcAWS[0]),FlagcAppliMMOnePair(argc,argv)),
    mIm1 (0),
    mIm2 (0)
 {
@@ -430,11 +470,7 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
 
               SauvMasqReentrant(true,aStep,aStep==mStepEnd);
               SauvMasqReentrant(false,aStep,aStep==mStepEnd);
-/*
-   BUGUEE et a priori inutile ...  BUGUEE CAR CREE DES TROU et pas appelle sauf en resol finale (ou ca cree des trous ...).
-*/
            }
-
         }
 
         if (mDoPly)
@@ -791,6 +827,10 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
                           + " +UseGpu=" + ToString(mUseGpu)
                           + " +DefCor=" + ToString(mDefCor)
                           + " +ZReg="   + ToString(mZReg)
+                          + " +ModeCensus=" + mModeCensus
+                          + " +NbS=" + ToString(mNbS)
+                          + " +SzW0=" + ToString(mSzW0)
+                          + " "+  QUOTE( "+ExtImIn=("   + StdPostfix(mNameIm1) + "|" + StdPostfix(mNameIm2) + ")")
 // FirstEtapeMEC=5 LastEtapeMEC=6
                       ;
 
