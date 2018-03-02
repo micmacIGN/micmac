@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2158]) = {
+const char * (theNameVar_ParamMICMAC[2160]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -66,6 +66,7 @@ const char * (theNameVar_ParamMICMAC[2158]) = {
 "	   <eMCC_GrCensus >          </eMCC_GrCensus>\n",
 "           <eMCC_CensusBasic >       </eMCC_CensusBasic>\n",
 "           <eMCC_CensusCorrel >      </eMCC_CensusCorrel>\n",
+"           <eMCC_CensusQuantitatif >      </eMCC_CensusQuantitatif>  <!-- Somme des ratio / pix central -->\n",
 "           <eMCC_CensusMixCorrelBasic >      </eMCC_CensusMixCorrelBasic>\n",
 "   </enum>\n",
 "\n",
@@ -312,6 +313,7 @@ const char * (theNameVar_ParamMICMAC[2158]) = {
 "-->\n",
 "  <XML_RatioCorrImage Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "      <Ratio Nb=\"1\" Type=\"double\"> </Ratio>\n",
+"      <NbPt Nb=\"?\" Type=\"int\"> </NbPt>\n",
 "  </XML_RatioCorrImage>\n",
 "\n",
 "\n",

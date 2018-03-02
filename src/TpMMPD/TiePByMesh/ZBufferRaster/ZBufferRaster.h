@@ -16,6 +16,9 @@ class cImgZBuffer;
 class cTri3D;
 class cTri2D;
 
+template <typename T> bool comparatorPt2dY (Pt2d<T> const &l, Pt2d<T> const &r);
+template <typename T> void sortDescendPt2dY(vector<Pt2d<T>> & input);
+
 class cParamZbufferRaster
 {
     public :
@@ -31,6 +34,7 @@ class cParamZbufferRaster
         int         mMethod;
         double      MD_SEUIL_SURF_TRIANGLE;
         double      mPercentVisible;
+        bool        mSafe;
 };
 
 
@@ -117,6 +121,7 @@ public:
 
     void calVBasis();
     cTri2D reprj(cBasicGeomCap3D * aCam);
+    cTri2D reprj(cBasicGeomCap3D * aCam, bool & OK);
     double dist2Cam(cBasicGeomCap3D * aCam);
 
 
@@ -149,7 +154,7 @@ public:
 
     void calVBasis();
     Pt3dr pt3DFromVBasis(Pt2dr & ptInTri2D, cTri3D & aTri3D);
-    double profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, cBasicGeomCap3D * aCam);
+    double profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, cBasicGeomCap3D * aCam, bool aSafe = true);
 
     bool orientToCam(cBasicGeomCap3D * aCam);
     double surf();
@@ -176,6 +181,9 @@ public:
     tImZBuf & ImZ() {return mImZ;}
     tTImZBuf & TImZ() {return mTImZ;}
     tImZBuf & ImInd() {return mImInd;}
+    tTImZBuf & TImInd() {return mTImInd;}
+
+
     int & CntTriValab() {return mCntTriValab;}
     int & CntTriTraite() {return mCntTriTraite;}
 
@@ -201,7 +209,8 @@ private:
     tImZBuf        mImZ;
     tTImZBuf       mTImZ;
 
-    tImZBuf        mImInd;
+    tImZBuf         mImInd;
+    tTImZBuf        mTImInd;
 
     Im2D_Bits<1>   mMasqTri;
     TIm2DBits<1>   mTMasqTri;

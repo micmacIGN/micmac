@@ -64,6 +64,7 @@
 	   <eMCC_GrCensus >          </eMCC_GrCensus>
            <eMCC_CensusBasic >       </eMCC_CensusBasic>
            <eMCC_CensusCorrel >      </eMCC_CensusCorrel>
+           <eMCC_CensusQuantitatif >      </eMCC_CensusQuantitatif>  <!-- Somme des ratio / pix central -->
            <eMCC_CensusMixCorrelBasic >      </eMCC_CensusMixCorrelBasic>
    </enum>
 
@@ -310,6 +311,7 @@
 -->
   <XML_RatioCorrImage Nb="1" Class="true" ToReference="true">
       <Ratio Nb="1" Type="double"> </Ratio>
+      <NbPt Nb="?" Type="int"> </NbPt>
   </XML_RatioCorrImage>
 
 

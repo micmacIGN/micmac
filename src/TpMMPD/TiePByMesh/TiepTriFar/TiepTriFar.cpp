@@ -38,21 +38,74 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "tieptrifar.h"
-
+#include "../Detector.h"
 
 int TiepTriFar_Main(int argc,char ** argv)
 {
 
    std::string aFullNameXML,anOri;
-   //cParamAppliTieTriFar aParam;
+   Pt3dr aVWin;
+   cParamTiepTriFar aParam;
 
    ElInitArgMain
    (
          argc,argv,
          LArgMain()  << EAMC(aFullNameXML, "Name XML for Triangu",  eSAM_IsPatFile)
-                     << EAMC(anOri,        "Orientation dir"),
+                     << EAMC(aParam.aNameMesh, "Mesh of far scene part",  eSAM_IsExistFile)
+                     << EAMC(anOri,        "Orientation dir")
+                     << EAMC(aParam.aDirZBuf, "ZBuffer directory", eSAM_IsDir),
          LArgMain()   
-               );
+                     << EAM(aVWin, "VWin", true, "[Pt2di(SzW), double Zoom]")
+                     << EAM(aParam.aDispVertices, "DispVrtc", true, "Display vertices")
+                     << EAM(aParam.aRad, "Rad", true, "Radius of detector")
+
+    );
+
+    if (EAMIsInit(&aVWin))
+    {
+        aParam.aDisp = true;
+        aParam.aSzW = Pt2di(aVWin.x, aVWin.y);
+        aParam.aZoom = aVWin.z;
+    }
+    else
+    {
+        aParam.aDisp = false;
+        aParam.aDispVertices = false;
+    }
+
+    std::string aDir,aNameXML;
+
+    SplitDirAndFile(aDir,aNameXML,aFullNameXML);
+
+
+    if (!  StdCorrecNameOrient(anOri,aDir,true))
+    {
+       StdCorrecNameOrient(anOri,"./");
+       aDir = "./";
+    }
+
+
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    cXml_TriAngulationImMaster aTriang = StdGetFromSI(aFullNameXML,Xml_TriAngulationImMaster);
+
+    vector<string> aNameIm;
+    for (uint aKImg=0; aKImg<aTriang.NameSec().size(); aKImg++)
+    {
+        aNameIm.push_back(aTriang.NameSec()[aKImg]);
+    }
+
+    cAppliTiepTriFar * aAppli = new cAppliTiepTriFar(
+                                                        aParam,
+                                                        anICNM,
+                                                        aNameIm,
+                                                        aDir,
+                                                        anOri
+                                                    );
+    aAppli->LoadMesh(aParam.aNameMesh);
+    aAppli->loadMask2D();
+    aAppli->FilterContrast();
+    aAppli->Matching();
 
 
        return EXIT_SUCCESS;

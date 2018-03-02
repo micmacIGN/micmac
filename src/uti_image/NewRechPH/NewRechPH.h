@@ -286,6 +286,21 @@ class cAppli_NewRechPH
 
 };
 
+class cCompileOPC
+{
+    public :
+      cCompileOPC(const cOnePCarac & aOPC) ;
+
+      double   ValCB(const cCompCBOneBit & aCCOB) const;
+      int Flag(const cCompCB & aCOB) const;
+      void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
+
+
+      cOnePCarac   mOPC;
+      INT1 **      mDR;
+};
+
+
 
 
 #endif //  _NewRechPH_H_

@@ -14,6 +14,7 @@
  * Si il trouve pas OpenCV sharedlib => export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
  */
 
+
 typedef struct CplString
 {
     string img1;
@@ -58,6 +59,8 @@ extern void sortDescendPt2drX(vector<Pt2dr> & input);
 extern void sortDescendPt2drY(vector<Pt2dr> & input);
 extern void sortAscendPt2drX(vector<Pt2dr> & input);
 extern void sortAscendPt2drY(vector<Pt2dr> & input);
+
+
 extern std::string intToString ( int number );
 extern void MakeXMLPairImg(vector<CplString> & cplImg, string & outXML);
 extern vector<CplString> fsnPairImg(vector<CplString> & cplImg);

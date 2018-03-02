@@ -48,6 +48,36 @@ cTri2D cTri3D::reprj(cBasicGeomCap3D * aCam)
         }
 }
 
+cTri2D cTri3D::reprj(cBasicGeomCap3D * aCam, bool & OK)
+{
+    Pt2dr P1, P2, P3;
+    OK=false;
+    if (mIsLoaded)
+    {
+        P1 = aCam->Ter2Capteur(mP1);
+        P2 = aCam->Ter2Capteur(mP2);
+        P3 = aCam->Ter2Capteur(mP3);
+
+    }
+    if      (
+                 aCam->PIsVisibleInImage(mP1)
+              && aCam->PIsVisibleInImage(mP1)
+              && aCam->PIsVisibleInImage(mP1)
+            )
+    {
+         cTri2D aTri2D(P1,P2,P3);
+         OK=true;
+         return aTri2D;
+    }
+    else
+        {
+            OK=false;
+            cTri2D aTri2D(Pt2dr(-1,-1), Pt2dr(-1,-1), Pt2dr(-1,-1));
+            return aTri2D;
+            //return cTri2D::Default();
+        }
+}
+
 // distance from triangle center to camera center
 double cTri3D::dist2Cam(cBasicGeomCap3D * aCam)
 {

@@ -494,6 +494,232 @@ int  CPP_PHom_RenameRef(int argc,char ** argv)
 
 /***************************************/
 
+class cImADHB;
+class cAppli_DistHistoBinaire;
+
+class cImADHB
+{
+      friend class cAppli_DistHistoBinaire;
+   public :
+      cImADHB(const std::string & aName,cAppli_DistHistoBinaire &);
+      std::string   mName;
+      cAppli_DistHistoBinaire & mAppli;
+      Im1D_REAL8    mH;
+      cSetPCarac*   mPC;
+      // Im1D_INT1     mHI;
+};
+
+class cAppli_DistHistoBinaire
+{
+      friend class cImADHB;
+    public :
+       cAppli_DistHistoBinaire(int argc,char ** argv);
+    private :
+       std::string mPatIm1;
+       std::string mPatIm2;
+       std::string mExt;
+       std::string mNameXmlCOB;
+       double      mFactConv;
+       int         mNbConvol;
+       cCompCB     mCOB;
+       int         mNBB;
+       int         mSzH;
+       int         mNBI1;
+       int         mNBI2;
+       bool        mSingle;
+       std::string mDir;
+       cInterfChantierNameManipulateur * mICNM;
+       std::vector<double>   mVProp;
+       double                mScaleMin;
+};
+
+void FilterHistoFlag(Im1D_REAL8 aH,int aNbConvol,double aFactConv,bool DoNorm)
+{
+    int aSzH = aH.tx();
+    int aNBB = round_ni(log2(aSzH));
+    ELISE_ASSERT(aSzH==(1<<aNBB),"FilterHistoFlag pow 2 expected");
+
+    for (int aK= 0 ; aK< aNbConvol ; aK++)
+    {
+        Im1D_REAL8    aNewH(aSzH,0.0) ;
+        ELISE_COPY(aH.all_pts(),aH.in(),aNewH.out());
+        for (int aFlag=0 ; aFlag<aSzH ; aFlag++)
+        {
+            for (int aB=0 ; aB<aNBB ; aB++)
+            {
+                 int aNewF = aFlag ^ (1<<aB);
+                 aNewH.data()[aFlag] += aH.data()[aNewF] * aFactConv;
+            }
+        }
+
+        double aSom;
+        double aSomNew;
+        ELISE_COPY(aNewH.all_pts(),aNewH.in(),sigma(aSomNew));
+        ELISE_COPY(aH.all_pts(),aH.in(),sigma(aSom));
+
+        ELISE_COPY(aH.all_pts(),aNewH.in() * (aSom/aSomNew),aH.out());
+    }
+    // Normalisation
+    if (DoNorm)
+    {
+        double aS0,aS1,aS2;
+        ELISE_COPY(aH.all_pts(),Virgule(1,aH.in(),Square(aH.in())),Virgule(sigma(aS0),sigma(aS1),sigma(aS2)));
+        aS1 /= aS0;
+        aS2 /= aS0;
+        aS2 -= Square(aS1);
+        aS2 = sqrt(ElMax(1e-10,aS2));
+        ELISE_COPY(aH.all_pts(),(aH.in()-aS1)/aS2,aH.out());
+    }
+}
+
+cImADHB::cImADHB(const std::string & aName,cAppli_DistHistoBinaire & anAppli) :
+   mName  (aName),
+   mAppli (anAppli),
+   mH     (mAppli.mSzH,0.0),
+   mPC    (LoadStdSetCarac(mName,mAppli.mExt))
+{
+    int aSom = 0;
+    int aSomDif = 0;
+    // Histogramme des flag
+    for (const auto & aP : mPC->OnePCarac())
+    {
+       if (aP.Kind() == eTPR_GrayMax)
+       {
+           aSom ++;
+           cCompileOPC aCOPC(aP);
+           int aBit=0;
+           int aFlag = 0;
+           for (const auto & aCOB : mAppli.mCOB.CompCBOneBit())
+           {
+              double aVCB = aCOPC.ValCB(aCOB);
+              if (aVCB>=0)
+                 aFlag |= 1<< aBit;
+              aBit++;
+           }
+           if (mH.data()[aFlag]!=0) 
+              aSomDif++;
+           if (aP.ScaleStab()>= mAppli.mScaleMin)
+           {
+              mH.data()[aFlag] += 1;
+           }
+             
+           // mH.data()[aFlag] += pow(2.0,aP.ScaleStab()/2.0);
+           // std::cout << "CCCCCC " << aP.ScaleStab() << "\n";
+       }
+    }
+    if (mAppli.mSingle)
+       std::cout << "NB CASE!=0 " << aSomDif << " Tot=" << aSom << "\n";
+    // Convolution
+    FilterHistoFlag(mH,mAppli.mNbConvol, mAppli.mFactConv,true);
+}
+
+
+// cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & aExt)
+
+class cTestImD
+{
+    public :
+        cTestImD(const std::string & aName,int aSzH,double aScore) :
+            mSzH   (aSzH),
+            mScore (aScore)
+        {
+        }
+        double mSzH;
+        double mScore;
+        int mRnkH;
+        int mRnkS;
+};
+bool CmpOnSzH(const cTestImD & aI1,const cTestImD & aI2)
+{
+    return  aI1.mSzH > aI2.mSzH;
+}
+bool CmpOnScore(const cTestImD & aI1,const cTestImD & aI2)
+{
+    return  aI1.mScore > aI2.mScore;
+}
+
+
+cAppli_DistHistoBinaire::cAppli_DistHistoBinaire(int argc,char ** argv) :
+   mDir      ("./"),
+   mVProp    ({0.1,0.25,0.5}),
+   mScaleMin (-1)
+{
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(mPatIm1, "Name Image1")
+                     << EAMC(mPatIm2, "Pattern Image2")
+                     << EAMC(mExt,"Extension for Point Carac")
+                     << EAMC(mFactConv,"Factor of convolution")
+                     << EAM(mNbConvol,"Number of convolution")
+                     << EAMC(mNameXmlCOB,"Name XML file for binary code computation"),
+         LArgMain()  << EAM(mScaleMin,"ScaleMin",true,"Scale Stab min 4 use")
+   );
+
+   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+   cElemAppliSetFile aS1(mPatIm1);
+   cElemAppliSetFile aS2(mPatIm2);
+
+   mCOB = StdGetFromNRPH(mNameXmlCOB,CompCB);
+   mNBB = mCOB.CompCBOneBit().size();
+   mSzH = 1 << mNBB;
+
+   mNBI1 = aS1.SetIm()->size();
+   mNBI2 = aS2.SetIm()->size();
+   mSingle = (mNBI1==1) && (mNBI2==2);
+   
+
+   
+   for (const auto & aN1 : *(aS1.SetIm()))
+   {
+      cImADHB aI1 (aN1,*this);
+      std::vector<cTestImD>  aVI;
+      for (const auto & aN2 : *(aS2.SetIm()))
+      {
+         cImADHB aI2 (aN2,*this);
+         std::string aNH = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aN1,aN2,true);
+         // int aSize = ELISE_fp::exist_file(aNH);
+         int aSizeFileH = ELISE_fp::file_length(aNH);
+
+         double aSom;
+         ELISE_COPY(aI1.mH.all_pts(),aI1.mH.in()*aI2.mH.in(),sigma(aSom));
+         double aScal = aSom / mSzH;
+
+         if (mNBI1==1)
+            std::cout << "  #  " << aN2 << " , S=" << aScal << " " << aSizeFileH << "\n";
+         aVI.push_back(cTestImD(aN2,aSizeFileH,aScal));
+      }
+      std::sort(aVI.begin(),aVI.end(),CmpOnSzH);
+      for (int aK=0 ; aK< int (aVI.size()) ; aK++)
+          aVI[aK].mRnkH = aK;
+
+      std::sort(aVI.begin(),aVI.end(),CmpOnScore);
+      for (int aK=0 ; aK< int (aVI.size()) ; aK++)
+          aVI[aK].mRnkS = aK;
+
+      std::cout << "Im=" << aN1 << " ";
+      for (const auto & aProp : mVProp)
+      {
+         int aRnk = round_up(aProp*aVI.size());
+         int aNbOk=0;
+         double aRealP = (aRnk / double(aVI.size()));
+         for (const auto & anI : aVI)
+         {
+             if ((anI.mRnkH<aRnk) && ( anI.mRnkS <aRnk))
+               aNbOk++;
+         }
+         std::cout << "[P=" << aProp <<  " Max=" << aRnk <<  " Esp=" << (aRnk*aRealP) << " Got=" << aNbOk << "] ";
+      }
+      std::cout << "\n";
+   }
+}
+
+
+int  CPP_DistHistoBinaire(int argc,char ** argv)
+{
+   cAppli_DistHistoBinaire anAppli(argc,argv);
+   return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

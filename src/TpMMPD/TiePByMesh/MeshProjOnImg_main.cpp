@@ -260,7 +260,7 @@ else
       std::string aNameIm = mVName[aKImg];
       cBasicGeomCap3D * mCamGen = aICNM->StdCamGenerikOfNames(aOriInput,aNameIm);
       mVOri.push_back(mCamGen);
-      CamStenope * mCamSten = mCamGen->DownCastCS();
+      //CamStenope * mCamSten = mCamGen->DownCastCS();
       Tiff_Im mTif  = Tiff_Im::UnivConvStd(aDir + aNameIm);
       mVTif.push_back(mTif);
       Video_Win * mW = 0;

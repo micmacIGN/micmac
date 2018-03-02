@@ -1390,6 +1390,11 @@ double EcartNormalise(double aI1,double aI2)
     // X = I1/I2
     if (aI1 < aI2)   // X < 1
         return aI1/aI2 -1;   // X -1
+    // 0<= aI2 <= aI1
+    if (aI1==0)
+    {
+       return 0;
+    }
 
     return 1-aI2/aI1;  // 1 -1/X
 }
@@ -1456,12 +1461,12 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                        {
                            aNbCostPix++;
 			
-			   double aVCorK = mVLI[aK]->CorrRadiom(aVk,mGeomDFPx->RDiscToR2(Pt2dr(anX,anY)));
+			               double aVCorK = mVLI[aK]->CorrRadiom(aVk,mGeomDFPx->RDiscToR2(Pt2dr(anX,anY)));
                            aCostPix += ElAbs(EcartNormalise(aVCorK,aV0));
 
-			   if(ERupnik_MM())
+			               if(ERupnik_MM())
                            {
-			   	std::cout << "ewelina, " << mVLI[aK]->PDV()->Name()  << ", PTer=" << mGeomDFPx->RDiscToR2(Pt2dr(anX,anY)) 
+        			   	        std::cout << "ewelina, " << mVLI[aK]->PDV()->Name()  << ", PTer=" << mGeomDFPx->RDiscToR2(Pt2dr(anX,anY)) 
                                                          << ", aVk=" << aVk << ", aVCorK=" << aVCorK << ", Cor=" << aVk/aVCorK << "\n";
                            }
                        }

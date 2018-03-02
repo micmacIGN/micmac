@@ -1,7 +1,6 @@
 #include "ZBufferRaster.h"
 #include "../DrawOnMesh.h"
 
-extern void sortDescendPt2diY(vector<Pt2di> & input);
 
 cParamZbufferRaster::cParamZbufferRaster():
     mFarScene (false),
@@ -12,7 +11,8 @@ cParamZbufferRaster::cParamZbufferRaster():
     mNoTif   (false),
     mMethod  (3),
     MD_SEUIL_SURF_TRIANGLE (TT_SEUIL_SURF),
-    mPercentVisible (80.0)
+    mPercentVisible (80.0),
+    mSafe   (true)
 {
 }
 
@@ -38,6 +38,7 @@ int ZBufferRaster_main(int argc,char ** argv)
                 << EAM(aParam.MD_SEUIL_SURF_TRIANGLE, "surfTri", true, "Threshold of surface to filter triangle too small (def=100)")
                 << EAM(aParam.mFarScene, "farScene", true, "Detect far scene part")
                 << EAM(aParam.mPercentVisible, "pVisible", true, "condition to decide far scene part : triangle visible in % nb of image (def=80%)")
+                << EAM(aParam.mSafe, "Safe", true, "check if pt 3D raster visible in img before calcul (safe but slow) - def=true")
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -108,56 +109,60 @@ int ZBufferRaster_main(int argc,char ** argv)
     aAppli->SetNameMesh(aParam.mMesh);
     aAppli->DoAllIm();
 
+    cout<<"Cal ZBuf: time "<<aChrono.uval()<<" - NbTri : "<<aVTri.size()<<endl;
+
+
     // statistic far scene part
     if (aParam.mFarScene)
     {
-    set <int> aTriToWrite;
-    vector<cXml_TriAngulationImMaster> aFarTask;
-    vector<int> vNumImSec;
-    //DrawOnMesh aDraw;
-    //vector<vector<Pt3dr> > aTriToWrite;
+        set <int> aTriToWrite;
+        vector<cXml_TriAngulationImMaster> aFarTask;
+        vector<int> vNumImSec;
+        //DrawOnMesh aDraw;
+        //vector<vector<Pt3dr> > aTriToWrite;
 
-    cXml_TriAngulationImMaster aXMLTri;
-    aXMLTri.NameMaster() = vImg[0]; // on s'en fou le master
-    for (uint aK=0; aK<vImg.size(); aK++)
-    {
-        if(aAppli->vImgVisibleFarScene()[aK])
+        cXml_TriAngulationImMaster aXMLTri;
+        aXMLTri.NameMaster() = vImg[0]; // on s'en fou le master
+        for (uint aK=0; aK<vImg.size(); aK++)
         {
-            aXMLTri.NameSec().push_back(vImg[aK]); // les secondaire est list d'image du far scene
-            vNumImSec.push_back(aK);
+            if(aAppli->vImgVisibleFarScene()[aK])
+            {
+                aXMLTri.NameSec().push_back(vImg[aK]); // les secondaire est list d'image du far scene
+                vNumImSec.push_back(aK);
+            }
         }
-    }
 
 
-    string farSceneMesh = aParam.mMesh.substr(0,aParam.mMesh.length()-4) + "_Far.ply";
-    //sortDescendPt2diY(aAppli->AccNbImgVisible());
-    int aCount{0};
-    for (int aKK=0; aKK<int(aAppli->AccNbImgVisible().size()); aKK++)
-    {
-        if (aAppli->AccNbImgVisible()[aKK].y >= (vImg.size() * aParam.mPercentVisible/100.0))
+        string farSceneMesh = aParam.mMesh.substr(0,aParam.mMesh.length()-4) + "_Far.ply";
+        //sortDescendPt2diY(aAppli->AccNbImgVisible());
+
+        int aCount{0};
+        for (int aKK=0; aKK<int(aAppli->AccNbImgVisible().size()); aKK++)
         {
-            aCount++;
-            /*
+            if (aAppli->AccNbImgVisible()[aKK].y >= (vImg.size() * aParam.mPercentVisible/100.0))
+            {
+                aCount++;
+                /*
                 vector<Pt3dr> aOneTri;
                 aOneTri.push_back(aVTri[aKK].P1());
                 aOneTri.push_back(aVTri[aKK].P2());
                 aOneTri.push_back(aVTri[aKK].P3());
                 aTriToWrite.push_back(aOneTri);
                 */
-            aTriToWrite.insert(aAppli->AccNbImgVisible()[aKK].x);
-            cXml_Triangle3DForTieP aTri3D;
-            aTri3D.P1() = aVTri[aKK].P1();
-            aTri3D.P2() = aVTri[aKK].P2();
-            aTri3D.P3() = aVTri[aKK].P3();
-            aTri3D.NumImSec() = vNumImSec;
-            aXMLTri.Tri().push_back(aTri3D);
+                aTriToWrite.insert(aAppli->AccNbImgVisible()[aKK].x);
+                cXml_Triangle3DForTieP aTri3D;
+                aTri3D.P1() = aVTri[aKK].P1();
+                aTri3D.P2() = aVTri[aKK].P2();
+                aTri3D.P3() = aVTri[aKK].P3();
+                aTri3D.NumImSec() = vNumImSec;
+                aXMLTri.Tri().push_back(aTri3D);
+            }
         }
-    }
-    cout<<"Write mesh & export XML.. "<<endl;
-    //aDraw.drawListTriangle(aTriToWrite, farSceneMesh, Pt3dr(255,0,0));
-    myMesh.Export(farSceneMesh, aTriToWrite, true);
-    MakeFileXML(aXMLTri, "FarScene.xml");
-    cout<<"Nb Tri View by "<<aParam.mPercentVisible<<"% of Img : "<<aCount<<" / "<< aVTri.size()<<endl;
+        cout<<"Write mesh & export XML.. "<<endl;
+        //aDraw.drawListTriangle(aTriToWrite, farSceneMesh, Pt3dr(255,0,0));
+        myMesh.Export(farSceneMesh, aTriToWrite, true);
+        MakeFileXML(aXMLTri, "FarScene.xml");
+        cout<<"Nb Tri View by "<<aParam.mPercentVisible<<"% of Img : "<<aCount<<" / "<< aVTri.size()<<endl;
     }
 
     return EXIT_SUCCESS;

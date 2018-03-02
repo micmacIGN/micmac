@@ -47,6 +47,8 @@ extern const std::string NH_DirRefNuage;
 extern const std::string NH_DirRef_PC;  // Point caracteristique
 
 
+void FilterHistoFlag(Im1D_REAL8 aH,int aNbConvol,double aFactConv,bool DoNorm);
+
 
 
 std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
@@ -225,6 +227,9 @@ class cBrinPtRemark
 };
 
 typedef cPtRemark * tPtrPtRemark;
+
+// Nombre d'element a P parmi N
+std::vector<std::vector<int> > CnP(int aP,int aN);
 
 // std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort);
 

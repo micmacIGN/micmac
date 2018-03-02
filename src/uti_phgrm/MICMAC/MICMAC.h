@@ -3868,6 +3868,10 @@ void CombleTrouPrgDyn (
          Im2D_INT2     aImZ
      );
 
+// Fonction du ratio compris entre -1 et 1; 0 qd egaux
+double EcartNormalise(double aI1,double aI2);
+
+
 
 
 

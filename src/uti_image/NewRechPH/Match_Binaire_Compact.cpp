@@ -46,29 +46,23 @@ class cCalcOB;        // Un pds de calc binaire + la memo des resultats dont deu
 class cCombCalcOB;    // Une combinaison de cCalcOB
 class cAppli_NH_ApprentBinaire;    // la classe mere
 
-class cCompileOPC
-{
-    public :
-      cCompileOPC(const cOnePCarac & aOPC) ;
-      
-      double   ValCB(const cCompCBOneBit & aCCOB) const;
-
-
-      cOnePCarac   mOPC;
-      INT1 **      mDR;
-};
 
 class cPairOPC
 {
       public :
           cPairOPC(const cOnePCarac & aP1,const cOnePCarac & aP2) ;
-          bool Eq(const cCompCBOneBit &) const;
+          bool CompAndIsEq(const cCompCBOneBit &) const;
           int         mNbNonEq;
           const cCompileOPC & P1() const;
           const cCompileOPC & P2() const;
+          const double & V1() const;
+          const double & V2() const;
+          void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
       private :
           cCompileOPC mP1;
           cCompileOPC mP2;
+          mutable double      mV1;
+          mutable double      mV2;
 };
 
 
@@ -84,6 +78,7 @@ class cScoreOPC
           int    mBit;
           std::vector<double> mHCumT;
           std::vector<double> mHCumR;
+          double mInH;
 };
 
 class cSetPairOPC
@@ -97,8 +92,9 @@ class cSetPairOPC
           cScoreOPC Score(const cSetPairOPC &,double aPdsWrong,int aBitMax) const; // Score, Truth, Rand
          
           std::vector<cPairOPC>  mVP; 
+          void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
       private :
-          int                  mNbBitsMax;
+          int                  mPairNbBitsMax;
           int                  mNbPair;
           std::vector<int>     mHisto;
           std::vector<double>  mHistoCum;
@@ -112,8 +108,9 @@ class cCalcOB
 
        const TIm2DBits<1> &  TIT() const;
        const TIm2DBits<1> &  TIR() const;
+       const double & Inhomog() const;
     private :
-       void Init(TIm2DBits<1> & aTB,const cSetPairOPC &,int & aNbEq,double & aProp);
+       void Init(TIm2DBits<1> & aTB,const cSetPairOPC &,int & aNbEq,double & aProp,double & aPropPlus);
        // cCompCBOneBit
        cCompCBOneBit  mCOB;
        Im2D_Bits<1>   mIT;
@@ -123,12 +120,15 @@ class cCalcOB
        TIm2DBits<1>   mTIR;
        int            mNbEqR;
        double         mScoreIndiv;
+       double         mPropPlus;
+       double         mInhomog;
 };
 
 class cCombCalcOB
 {
     public :
        void  Save(const std::string &) const;
+       cCompCB CCOB() const;
        const std::vector<cCalcOB> & VC() const;
        std::vector<cCalcOB> & VC() ;
        void Add(cCalcOB);
@@ -188,6 +188,23 @@ double   cCompileOPC::ValCB(const cCompCBOneBit & aCCOB) const
    return aRes;
 }
 
+int cCompileOPC::Flag(const cCompCB & aCOB) const
+{
+   int aFlag = 0;
+   for (int aK=0 ; aK<int(aCOB.CompCBOneBit().size()) ; aK++)
+   {
+      if (ValCB(aCOB.CompCBOneBit()[aK]) > 0)
+         aFlag |= 1<<aK;
+   }
+
+   return aFlag;
+}
+
+void cCompileOPC::AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const
+{
+   aImH.data()[Flag(aCOB)]++;
+}
+
 /**************************************************/
 /*                                                */
 /*             cScoreOPC                          */
@@ -198,7 +215,8 @@ cScoreOPC::cScoreOPC(double aScore,double aHTrue,double aHRand,int aBit) :
    mScore (aScore),
    mHTrue (aHTrue),
    mHRand (aHRand),
-   mBit   (aBit)
+   mBit   (aBit),
+   mInH   (0.0)
 {
 }
            
@@ -215,19 +233,24 @@ cPairOPC::cPairOPC(const cOnePCarac & aP1,const cOnePCarac & aP2) :
 {
 }
 
-bool cPairOPC::Eq(const cCompCBOneBit & aCCOB) const
+bool cPairOPC::CompAndIsEq(const cCompCBOneBit & aCCOB) const
 {
-   return  ( (mP1.ValCB(aCCOB)>0) == (mP2.ValCB(aCCOB)>0));
+   mV1 = mP1.ValCB(aCCOB);
+   mV2 = mP2.ValCB(aCCOB);
+   return  ((mV1>0) == (mV2>0)) ;
 }
 
-const cCompileOPC & cPairOPC::P1() const
+const cCompileOPC & cPairOPC::P1() const { return mP1; }
+const cCompileOPC & cPairOPC::P2() const { return mP2; }
+const double & cPairOPC::V1() const { return mV1; }
+const double & cPairOPC::V2() const { return mV2; }
+
+void cPairOPC::AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const
 {
-   return mP1;
+    mP1.AddFlag(aCOB,aImH);
+    mP2.AddFlag(aCOB,aImH);
 }
-const cCompileOPC & cPairOPC::P2() const
-{
-   return mP2;
-}
+
 
 /**************************************************/
 /*                                                */
@@ -244,30 +267,42 @@ cCalcOB::cCalcOB(const  cCompCBOneBit & aCOB,const cSetPairOPC & aVTruth,const c
    mTIR    (mIR),
    mNbEqR  (0)
 {
-    double aPropT,aPropR;
-    Init(mTIT,aVTruth,mNbEqT,aPropT);
-    Init(mTIR,aVRand,mNbEqR,aPropR);
+    double aPropT,aPropR,aPropPlusT,aPropPlusR;
+    Init(mTIT,aVTruth,mNbEqT,aPropT,aPropPlusT);
+    Init(mTIR,aVRand,mNbEqR,aPropR,aPropPlusR);
     
     mScoreIndiv = aPropT-aPropR;
+
+    mInhomog = (ElAbs(aPropPlusT-0.5)+ElAbs(aPropPlusR-0.5))/2.0;
 }
 const cCompCBOneBit &  cCalcOB::COB() const 
 {
    return mCOB;
 }
 
-void cCalcOB::Init(TIm2DBits<1> & aTB,const cSetPairOPC & aVOP,int &aNbEq,double & aProp)
+const double & cCalcOB::Inhomog() const
 {
+   return mInhomog;
+}
+
+
+
+void cCalcOB::Init(TIm2DBits<1> & aTB,const cSetPairOPC & aVOP,int &aNbEq,double & aProp,double & aPropPlus)
+{
+    int aNbPlus = 0;
     aNbEq = 0;
     int aNbP = aVOP.mVP.size();
     for (int aK=0 ; aK<aNbP ; aK++)
     {
-         bool isEq = aVOP.mVP[aK].Eq(mCOB);
+         bool isEq = aVOP.mVP[aK].CompAndIsEq(mCOB);
+         aNbPlus += aVOP.mVP[aK].V1() >0;
+         aNbPlus += aVOP.mVP[aK].V2() >0;
          aTB.oset(Pt2di(aK,0),isEq ? 1 : 0);
          if (isEq) 
             aNbEq++;
     }
     aProp = double(aNbEq) / double(aNbP);
-       
+    aPropPlus = aNbPlus / double(2*aNbP);
 }
 
 const TIm2DBits<1> &  cCalcOB::TIT() const {return mTIT;}
@@ -292,13 +327,23 @@ void cCombCalcOB::Add(cCalcOB aCalc)
    mVC.push_back(aCalc);
 }
 
-void  cCombCalcOB::Save(const std::string & aNameSave) const
+cCompCB cCombCalcOB::CCOB() const
 {
    cCompCB aCC;
    for (const auto & aCOB : mVC)
        aCC.CompCBOneBit().push_back(aCOB.COB());
+   return aCC;
+}
 
-   MakeFileXML(aCC,aNameSave);
+void  cCombCalcOB::Save(const std::string & aNameSave) const
+{
+/*
+   cCompCB aCC;
+   for (const auto & aCOB : mVC)
+       aCC.CompCBOneBit().push_back(aCOB.COB());
+*/
+
+   MakeFileXML(CCOB(),aNameSave);
 }
 
 cCombCalcOB cCombCalcOB::Modif
@@ -328,7 +373,7 @@ cSetPairOPC::cSetPairOPC()
 }
 void cSetPairOPC::Compile(int aNbBitsMax) 
 {
-    mNbBitsMax = aNbBitsMax;
+    mPairNbBitsMax = aNbBitsMax;
     mNbPair    = mVP.size();
     mHisto     = std::vector<int>(aNbBitsMax+1,0);
     mHistoCum  = std::vector<double>(aNbBitsMax+1,0);
@@ -390,6 +435,11 @@ cScoreOPC cSetPairOPC::Score(const cSetPairOPC & aVOP,double aPdsWrong,int aBitM
     return aRes;
 }
 
+void cSetPairOPC::AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const
+{
+  for (auto & aP : mVP)
+      aP.AddFlag(aCOB,aImH);
+}
 
 /**************************************************/
 /*                                                */
@@ -404,6 +454,7 @@ class cAppli_NH_ApprentBinaire
             cAppli_NH_ApprentBinaire(int argc, char ** argv);
             // cAppli_NH_ApprentBinaire(cSetRefPCarac  & aSRPC,int aNbT,int aNbRand,int aNBBitMax);
             cScoreOPC Score(const cCombCalcOB &);
+            double ComputeInH(const cCombCalcOB &);
             cScoreOPC ScoreModif(std::vector<int> & ,const std::vector<cCompCBOneBit> &);
             void OptimCombin(const std::string &);
             void OptimLocal(const std::string & aIn,const std::string & aOut);
@@ -412,6 +463,7 @@ class cAppli_NH_ApprentBinaire
             // Si aNumInv<0 => Random
             // aModeRand 0 => rand X, 1=> rand Y , 2 => all
             cCompCBOneBit RandomCOB_OneInv(int aModeRand,int aNumInv,int aNbCoef);
+            // aProp => Proportion de la perturbation / aux coeffs
             cCompCBOneBit RandomCOB_PerturbCoeff(const cCompCBOneBit &,double aProp);
             cScoreOPC FinishScore();
             int NbOfMode(int aMode) const;
@@ -445,19 +497,24 @@ class cAppli_NH_ApprentBinaire
             std::string     mNameLocale;
             cCombCalcOB     mLastCompute;
             bool            mDoSave;
+            std::string     mExt;
+            double          mSomInH;
+            double          mPdhInH;
 };
 
 // cAppli_NH_ApprentBinaire::cAppli_NH_ApprentBinaire(cSetRefPCarac  & aSRPC,int aNbT,int aNbRand,int aNBBitMax) :
 cAppli_NH_ApprentBinaire::cAppli_NH_ApprentBinaire(int argc, char ** argv) :
-    mDir       ("./"),
-    mDirPC     ("./PC-Ref-NH/"),
-    mNbBitsMax (16),
-    mNbT       (4000),
-    mNbRand    (4000),
-    mPdsWrong  (1.0),
-    mBitMax    (1000000),
-    mNumStep   (1),
-    mDoSave    (true)
+    mDir        ("./"),
+    mDirPC      ("./PC-Ref-NH/"),
+    mNbBitsMax  (16),
+    mNbT        (4000),
+    mNbRand     (4000),
+    mPdsWrong   (1.0),
+    mBitMax     (1000000),
+    mNumStep    (1),
+    mDoSave     (true),
+    mExt        (""),
+    mPdhInH     (0)
 {
    Pt2di aNbTR;
    ElInitArgMain
@@ -471,6 +528,8 @@ cAppli_NH_ApprentBinaire::cAppli_NH_ApprentBinaire(int argc, char ** argv) :
                      << EAM(mNumStep,"Step",true,"0:  combine, 1: combine->local , 2 local->local")
                      << EAM(aNbTR,"NbTR",true,"Number True-Random (in k 1->1000)")
                      << EAM(mNameInput,"Input",true,"Name input if != def")
+                     << EAM(mExt,"Ext",true,"Extension to add to name")
+                     << EAM(mPdhInH,"PdsInH",true,"Pds for In hoomogeneite")
    );
    if (EAMIsInit(&aNbTR))
    {
@@ -481,6 +540,8 @@ cAppli_NH_ApprentBinaire::cAppli_NH_ApprentBinaire(int argc, char ** argv) :
    mPrefName =      "PC-Ref-NH/Save_CompCB" 
                   + (EAMIsInit(&mBitMax) ? std::string("_BM"+ToString(mBitMax)) : "")
                   + ( "_NBB"+ToString(mNbBitsMax)) 
+                  + ((mExt!="") ? std::string("_"+mExt) : "")
+                  + ((mPdhInH==0.0) ? "" : std::string("_PdsInH" +ToString(round_ni(1000*mPdhInH))))
                   + ("_PdsW" +ToString(round_ni(1000*mPdsWrong)))
                ;
 
@@ -638,17 +699,62 @@ cScoreOPC cAppli_NH_ApprentBinaire::FinishScore()
    return mVTruth.Score(mVRand,mPdsWrong,mBitMax);
 }
 
+
+double cAppli_NH_ApprentBinaire::ComputeInH(const cCombCalcOB & aComb)
+{
+   if (aComb.VC().size()==1)
+   {
+      return mSomInH ;
+   }
+   int aNBB =  aComb.VC().size();
+   int aSzH = 1<<aNBB;
+   Im1D_REAL8 aH(aSzH,0.0);
+   cCompCB aCOB =  aComb.CCOB() ;
+   mVTruth.AddFlag(aCOB,aH);
+   mVRand.AddFlag(aCOB,aH);
+
+   FilterHistoFlag(aH,2,0.5,false);
+
+   double aS0,aS1,aS2;
+
+   ELISE_COPY
+   (
+        aH.all_pts(),
+        Virgule(1.0,aH.in(),Square(aH.in())),
+        Virgule(sigma(aS0),sigma(aS1),sigma(aS2))
+   );
+
+   aS1 /= aS0;
+   aS2 /= aS0;
+
+   double aRes = aS2 / ElSquare(aS1);
+
+   // std::cout << "INHOM= " << aRes << "\n";
+
+   return  aRes;
+}
+
 cScoreOPC cAppli_NH_ApprentBinaire::Score(const cCombCalcOB & aComb)
 {
    mVTruth.Reset();
    mVRand.Reset();
+   mSomInH=0;
    for (const  auto & aCalc : aComb.VC())
    {
       mVTruth.Add(aCalc.TIT(),1);
       mVRand.Add(aCalc.TIR(),1);
+      mSomInH += aCalc.Inhomog();
    }
+   mSomInH /= aComb.VC().size();
    mLastCompute = aComb;
-   return FinishScore();
+   cScoreOPC aRes = FinishScore();
+
+   if (mPdhInH !=0)
+   {
+      aRes.mInH = ComputeInH(aComb);
+      aRes.mScore -= aRes.mInH * mPdhInH ;
+   }
+   return aRes;
 }
 
 
@@ -685,7 +791,9 @@ cCalcOB cAppli_NH_ApprentBinaire::COB(const  cCompCBOneBit & aCOB) {return cCalc
 std::vector<cCalcOB> cAppli_NH_ApprentBinaire::SelectGermes()
 {
     int aNbCoef= 3;
-    int aNbInOneLine= 3;
+    int aNbInOneLine= (mPdhInH !=0)  ? 1 : 3;
+    int aNbTests = (mPdhInH !=0)  ? 10 : 100;
+
     std::vector<cCalcOB> aVGlobC;
     for (int aMode=0 ; aMode<3 ; aMode++)
     {
@@ -711,9 +819,9 @@ std::vector<cCalcOB> cAppli_NH_ApprentBinaire::SelectGermes()
                    }
                }
 
-               for (int aNbT=0 ; aNbT<100 ; aNbT++)
+               for (int aKT=0 ; aKT<aNbTests ; aKT++)
                {
-                   cCalcOB aCOB =  COB(RandomCOB_PerturbCoeff(aCOBMax.COB(),1/(1+aNbT*0.3)));
+                   cCalcOB aCOB =  COB(RandomCOB_PerturbCoeff(aCOBMax.COB(),1/(1+aKT*0.3)));
                    cCombCalcOB aVCur = aVC;
                    aVCur.Add(aCOB);
                    cScoreOPC aS = Score(aVCur);
@@ -727,7 +835,11 @@ std::vector<cCalcOB> cAppli_NH_ApprentBinaire::SelectGermes()
              
                aVC.Add(aCOBMax);
                aVGlobC.push_back(aCOBMax);
-               std::cout << "SSSSSSS glob : " << aScMax.mHTrue << " "<< aScMax.mHRand << " " << aScMax.mBit  << "\n";
+               std::cout << "SSSSSSS glob : " << aScMax.mHTrue 
+                         << " "<< aScMax.mHRand << " " << aScMax.mBit 
+                         << " InH " << aScMax.mInH 
+                         << " Mode=" << aMode << "  KIReste=" << aNbIR - aKIR
+                         << "\n";
            }
            std::cout << "=============================\n";
        }
@@ -797,6 +909,7 @@ void cAppli_NH_ApprentBinaire::OptimLocal(const std::string & aIn,const std::str
                      << " True : " << aSMax.mHTrue 
                      << " Rand : "<< aSMax.mHRand 
                      << " MB " << aSMax.mBit  
+                     << " InH " << aSMax.mInH  
                      << " NBBB " << mNbBitsMax << "\n";
                 if (mDoSave)
                    aCMax.Save(aOut);
@@ -848,6 +961,7 @@ void cAppli_NH_ApprentBinaire::OptimCombin(const std::string & aNameSave)
                      << " Score : " << aScMax.mScore 
                      << " True : " << aScMax.mHTrue 
                      << " Rand : "<< aScMax.mHRand 
+                     << " InH " << aScMax.mInH  
                      << " MB " << aScMax.mBit  
                      << " NBBB " << mNbBitsMax << "\n";
            if (mDoSave)

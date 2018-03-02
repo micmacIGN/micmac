@@ -144,6 +144,7 @@ extern void sortDescendPt2diY(vector<Pt2di> & input)
    sort(input.begin(), input.end(), static_cast<dsPt2diCompFunc>(&comparatorPt2diY));
 }
 
+
 extern void sortAscendPt2drY(vector<Pt2dr> & input)
 {
    sort(input.begin(), input.end(), static_cast<dsPt2drCompFunc>(&comparatorPt2drYAsc));

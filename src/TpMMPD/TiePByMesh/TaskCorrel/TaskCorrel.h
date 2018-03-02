@@ -104,6 +104,8 @@ public:
 
     void GetIndTriHasGCP();
 
+    bool & SafeZBuf() {return mSafeZBuf;}
+
 private:
     cInterfChantierNameManipulateur * mICNM;
     const string mDir;
@@ -135,6 +137,8 @@ private:
     int    mMethodZBuf;
     bool   mWithGCP;
     vector<cXml_TriAngulationImMaster_WithPts> mVTaskWithGCP;
+
+    bool mSafeZBuf;
 
 
 };

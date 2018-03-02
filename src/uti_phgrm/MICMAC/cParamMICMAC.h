@@ -27,6 +27,7 @@ typedef enum
   eMCC_GrCensus,
   eMCC_CensusBasic,
   eMCC_CensusCorrel,
+  eMCC_CensusQuantitatif,
   eMCC_CensusMixCorrelBasic
 } eModeCensusCost;
 void xml_init(eModeCensusCost & aVal,cElXMLTree * aTree);
@@ -429,8 +430,12 @@ class cXML_RatioCorrImage
 
         double & Ratio();
         const double & Ratio()const ;
+
+        cTplValGesInit< int > & NbPt();
+        const cTplValGesInit< int > & NbPt()const ;
     private:
         double mRatio;
+        cTplValGesInit< int > mNbPt;
 };
 cElXMLTree * ToXMLTree(const cXML_RatioCorrImage &);
 
